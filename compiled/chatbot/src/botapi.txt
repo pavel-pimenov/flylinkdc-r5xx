@@ -1,0 +1,48 @@
+
+ChatBot.dll should export one function
+bool __stdcall init(struct BotInit *);
+that called just after dll loading
+
+structure BotInit defined as follows:
+
+struct BotInit
+{
+        DWORD apiVersion;
+        char* appName;
+        char* appVersion;
+        tSendMessage SendMessage;
+        tRecvMessage RecvMessage;
+        char* botId;
+        char* botVersion;
+};
+
+where apiVersion contains 1 for today,
+appName and appVersion are client ID strings,
+SendMessage - routine, that bot can call at any
+time to send reply message
+
+RecvMessage, botId and botVersion should be
+filled in init function.
+
+functions SendMessage and RecvMessage defined as follows
+
+void __stdcall SendMessage(const WCHAR *params, const WCHAR *message);
+void __stdcall RecvMessage(const WCHAR *params, const WCHAR *message);
+
+params is a string like
+"CID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx|NICK=User01|SLOTS=5|" and so on..
+bot's RecvMessage routine gets the following parameters:
+        CID        - user cid, should be used in reply params
+        NICK       - user nickname
+        IP,DNS,DESC,SLOTS,LIMIT,SHARE,EXACTSHARE - user data (from TAG, etc..)
+        OP,BOT,AWAY - user flags
+        NEW        - is this message opened new chat window
+        MYNICK, MYSHARE, MYSLOTS, MYLIMIT, MYEXACTSHARE, MYAWAY
+                   - own data, could be used in replies
+        ISFAV      - favorite user, if 1, params added:
+                     FAVSLOT, FAVBAN, FAVIGNORE
+        HUBURL, HUBNAME, HUBDESC
+                   - hub parameters (same for me and user)
+
+bot calls SendMessage at least with CID parameter to send reply
+for simplicity, bot can pass same 'params' value to SendMessage

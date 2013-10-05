@@ -1,0 +1,287 @@
+[main]
+host = https://www.transifex.com/projects/p/flylinkdc/
+
+[flylinkdc.UI]
+file_filter = translations\flylinkdc.UI\<lang>.xml
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.custom_messages]
+file_filter = translations\flylinkdc.setup\custom_messages-<lang>.isl
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.advanced]
+file_filter = translations\wiki\<lang>\advanced.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.autoban]
+file_filter = translations\wiki\<lang>\autoban.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.autoupdate]
+file_filter = translations\wiki\<lang>\autoupdate.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.baloon_popups]
+file_filter = translations\wiki\<lang>\baloon_popups.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.bugreport]
+file_filter = translations\wiki\<lang>\bugreport.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.color_fonts]
+file_filter = translations\wiki\<lang>\color_fonts.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.connection_settings]
+file_filter = translations\wiki\<lang>\connection_settings.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.dcls]
+file_filter = translations\wiki\<lang>\dcls.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.default_click]
+file_filter = translations\wiki\<lang>\default_click.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.developers]
+file_filter = translations\wiki\<lang>\developers.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.download]
+file_filter = translations\wiki\<lang>\download.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.downloads]
+file_filter = translations\wiki\<lang>\downloads.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.experts]
+file_filter = translations\wiki\<lang>\experts.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.faq]
+file_filter = translations\wiki\<lang>\faq.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.faststart]
+file_filter = translations\wiki\<lang>\faststart.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.favorites_xml]
+file_filter = translations\wiki\<lang>\favorites.xml.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.favorites_directories]
+file_filter = translations\wiki\<lang>\favorites_directories.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.files_not_shared]
+file_filter = translations\wiki\<lang>\files_not_shared.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.flylinkdc]
+file_filter = translations\wiki\<lang>\flylinkdc.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.flylinkdcfilesstructure]
+file_filter = translations\wiki\<lang>\flylinkdcfilesstructure.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.general]
+file_filter = translations\wiki\<lang>\general.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.hotkeys]
+file_filter = translations\wiki\<lang>\hotkeys.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.howtocompileflylinkdc]
+file_filter = translations\wiki\<lang>\howtocompileflylinkdc.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.howtogetsource]
+file_filter = translations\wiki\<lang>\howtogetsource.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.incompatible_software]
+file_filter = translations\wiki\<lang>\incompatiblesoftware.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.internal_preview]
+file_filter = translations\wiki\<lang>\internal_preview.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.ipfilter]
+file_filter = translations\wiki\<lang>\ipfilter.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.isp]
+file_filter = translations\wiki\<lang>\isp.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.logs]
+file_filter = translations\wiki\<lang>\logs.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.magnetlink]
+file_filter = translations\wiki\<lang>\magnetlink.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.messages]
+file_filter = translations\wiki\<lang>\messages.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.messages_advanced]
+file_filter = translations\wiki\<lang>\messages_advanced.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.misc]
+file_filter = translations\wiki\<lang>\misc.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.preview]
+file_filter = translations\wiki\<lang>\preview.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.outdatedoperatingsystem]
+file_filter = translations\wiki\<lang>\outdatedoperatingsystem.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.priority]
+file_filter = translations\wiki\<lang>\priority.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.progress_bar]
+file_filter = translations\wiki\<lang>\progress_bar.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.proxy_settings]
+file_filter = translations\wiki\<lang>\proxy_settings.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.queue]
+file_filter = translations\wiki\<lang>\queue.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.rss_properties]
+file_filter = translations\wiki\<lang>\rss_properties.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.security]
+file_filter = translations\wiki\<lang>\security.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.share]
+file_filter = translations\wiki\<lang>\share.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.sidebar]
+file_filter = translations\wiki\<lang>\sidebar.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.slots]
+file_filter = translations\wiki\<lang>\slots.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.sounds]
+file_filter = translations\wiki\<lang>\sounds.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.speed_limit]
+file_filter = translations\wiki\<lang>\speed_limit.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.structureofrepository]
+file_filter = translations\wiki\<lang>\structureofrepository.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.tabs]
+file_filter = translations\wiki\<lang>\tabs.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.toolbar]
+file_filter = translations\wiki\<lang>\toolbar.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.ui_settings]
+file_filter = translations\wiki\<lang>\ui_settings.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.user_commands]
+file_filter = translations\wiki\<lang>\user_commands.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.user_list_color]
+file_filter = translations\wiki\<lang>\user_list_color.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.usersbar]
+file_filter = translations\wiki\<lang>\usersbar.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.webserver]
+file_filter = translations\wiki\<lang>\webserver.txt
+host = https://www.transifex.com
+source_lang = en
+
+[flylinkdc.windows]
+file_filter = translations\wiki\<lang>\windows.txt
+host = https://www.transifex.com
+source_lang = en

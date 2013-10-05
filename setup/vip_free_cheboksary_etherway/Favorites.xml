@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="DCHub21.ru" Connect="1" Description="" Nick="" Password="" Server="dc-lan.hub21.ru" UserDescription="" Encoding="" AwayMsg="" Email="" WindowPosX="-2" WindowPosY="-2" WindowSizeX="1056" WindowSizeY="524" WindowType="3" ChatUserSplit="7892" StealthMode="0" HideShare="0" SendUserIpOnLogon="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,2,3,4,5,6,7,8,9,10,11,12,13" HeaderWidths="124,75,75,139,100,50,40,40,100,30,30,50,300,80" HeaderVisible="1,1,1,1,1,1,1,1,1,1,1,1,1,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="1" IP="" OpChat="" CliendId="ApexDC++ V:0.4.0" OverrideId="0" Group=""/>
+		<Hub Name="EW DCMagnet&apos;s HuB - Добро пожаловать на хаб проекта релизов. (hub.ewmagnet.ru:771)" Connect="1" Description="EW DCMagnet&apos;s HuB - Добро пожаловать на хаб проекта релизов. (hub.ewmagnet.ru:771)" Nick="" Password="" Server="hub.ewmagnet.ru:771" UserDescription="" Encoding="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="7500" StealthMode="0" HideShare="0" SendUserIpOnLogon="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,2,3,4,5,6,7,8,9,10,11,12,13" HeaderWidths="100,75,75,139,100,50,40,40,100,30,30,50,300,80" HeaderVisible="1,1,1,1,1,1,1,1,1,1,1,1,1,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="1" IP="10.128.162.28" OpChat="" CliendId="StrgDC++ V:2.40" OverrideId="0" Group=""/>
+		<Hub Name="Etherway.ru" Connect="1" Description="" Nick="" Password="" Server="dc.etherway.ru" UserDescription="" Encoding="" AwayMsg="" Email="" WindowPosX="-2" WindowPosY="-2" WindowSizeX="1038" WindowSizeY="570" WindowType="3" ChatUserSplit="7375" StealthMode="0" HideShare="0" SendUserIpOnLogon="0" ShowJoins="0" ExclChecks="1" ExclusiveHub="1" UserListState="1" HeaderOrder="0,1,2,3,4,5,6,7,8,9,10,11,12,13" HeaderWidths="100,75,75,139,100,50,40,40,100,30,30,50,300,80" HeaderVisible="1,1,1,1,1,1,1,1,1,1,1,1,1,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="1" IP="10.128.162.28" OpChat="" CliendId="ApexDC++ V:0.4.0" OverrideId="1" Group=""/>
+	</Hubs>
+	<Users/>
+	<UserCommands/>
+	<FavoriteDirs/>
+</Favorites>

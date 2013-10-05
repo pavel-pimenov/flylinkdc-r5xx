@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="CordNet" Connect="1" Description="" Server="dc.cordnet.ru:411" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="0" ChatUserSplit="0" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="" HeaderWidths="" HeaderVisible="" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0"/>
+	</Hubs>
+	<Users/>
+	<UserCommands/>
+	<FavoriteDirs/>
+</Favorites>

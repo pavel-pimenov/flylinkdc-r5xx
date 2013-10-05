@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Skin>
+	<Toolbar Type="vertical" Position="left" ItemCount="4" NormalImage="Tollbar24big.bmp" HilitedImage="Tollbar24big-hilited.bmp" SelectedImage="Tollbar24big-selected.bmp" SelectedHilitedImage="Tollbar24big-selectedhilited.bmp" ArrowsImage="arrows.bmp" BkgColor="13732096">
+	<Item Cmd="1037" ImageID="0"/>
+    <Item Cmd="1084" ImageID="1"/>
+    <Item Cmd="32777" ImageID="3"/>
+    <Item Cmd="32774" ImageID="2"/>
+  </Toolbar>
+
+	<Bannerbar Type="vertical" Position="right" ItemCount="3" NormalImage="banners.bmp" HilitedImage="banners-highlight.bmp" SelectedHilitedImage="banners-selectedhilited.bmp" ArrowsImage="banners-arrows.bmp" BkgColor="13732096">
+    <Item ImageID="0" URL="http://myhost.ru/nir-times"/>
+    <Item ImageID="1" URL="http://myhost.ru/nir-times"/>
+    <Item ImageID="2" URL="http://myhost.ru/nir-times"/>
+  </Bannerbar>
+
+  <Tabbar Position="top" BkgColor="13732096" Image="tab.bmp" Overlap="40" IconOffsetX="40" IconOffsetY="0" ArrowsImage="tab-arrows.bmp" TextRectLeft="78" TextRectTop="3" TextRectRight="194" TextRectBottom="38">
+    <Icon IDname="IDR_QUEUE" TabIcon="Queue.ico" WndIcon="QueueWnd.ico"/>
+    <Icon ID="231" TabIcon="FinishedDL.ico" WndIcon="FinishedDLwnd.ico"/>
+  </Tabbar>
+
+	<Searchbar Position="top" BkgColor="13732096" NormalImage="search.bmp" HilitedImage="search-highlight.bmp" SelectedHilitedImage="search-selectedhilited.bmp">
+		<Item ImageID="0"/>
+	</Searchbar>
+
+  <Informer Position="bottom" Height="60" Name="Informer">
+    <HideBtn NormalImage="hide.bmp" HilitedImage="hide-highlight.bmp" SelectedHilitedImage="hide-selectedhilited.bmp" SelectedImage="hide-selected.bmp" BkgColor="13732096">
+      <Item ImageID="0"/>
+    </HideBtn>
+  </Informer>    
+</Skin>

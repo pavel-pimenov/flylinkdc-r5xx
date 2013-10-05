@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="Обменник файлами (192.168.2.222:411)" Connect="1" Description="Обменник файлами (192.168.2.222:411)" Server="192.168.2.222:411" UserDescription="" AwayMsg="" Email="" WindowPosX="16" WindowPosY="23" WindowSizeX="1038" WindowSizeY="364" WindowType="3" ChatUserSplit="6054" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" UserListState="1" HeaderOrder="0,1,4,2,5,6,3" HeaderWidths="206,64,152,282,272,75,91" HeaderVisible="1,1,0,1,0,0,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat=""/>
+		<Hub Name="Севастопольская точка обмена трафиком (upload.net.ua:411)" Connect="1" Description="Севастопольская точка обмена трафиком (upload.net.ua:411)" Server="upload.net.ua:411" UserDescription="" AwayMsg="" Email="" WindowPosX="16" WindowPosY="23" WindowSizeX="1038" WindowSizeY="364" WindowType="3" ChatUserSplit="6054" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" UserListState="1" HeaderOrder="0,1,4,2,5,6,3" HeaderWidths="206,64,152,282,272,75,91" HeaderVisible="1,1,0,1,0,0,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat=""/>
+
+	</Hubs>
+</Favorites>

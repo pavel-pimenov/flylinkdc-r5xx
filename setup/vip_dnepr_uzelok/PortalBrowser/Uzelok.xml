@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="windows 1251"?>
+<Portal name="Uzelok.net.ua" URL="http://boo.cru" SearchURL="http://boo.cru/search.php?q" XMLVersion="1" DefaultCharset="windows 1251">
+	<Images Large="uzelok\icons_large.bmp" Small="uzelok\icons_small.bmp" SmallImageID="0" LargeImageID="0"/>
+	<Default StartSection="0" SearchSection="1"/>
+	<Flags DenyNewWnd="1" DenyExternalLinksNewWindow="1"/>
+	<Section URL="" LargeImageID="Home"/>
+	<Section name="Видео">
+		<Section name="Новинки" URL="/plugins/forum/forum_viewforum.php?7"/>
+		<Section name="Стол заказов" URL="/plugins/forum/forum_viewforum.php?14"/>
+		<Section name="Боевики" URL="plugins/roll_mini/roll.php?cat=2"/>
+		<Section name="HD-видео" URL="plugins/roll_mini/roll.php?cat=24"/>
+		<Section name="Мультфильмы" URL="plugins/roll_mini/roll.php?cat=8"/>
+		<Section name="Комедии" URL="plugins/roll_mini/roll.php?cat=3"/>
+		<Section name="Концерты, телепередачи" URL="plugins/roll_mini/roll.php?cat=4"/>
+		<Section name="Фантастика" URL="plugins/roll_mini/roll.php?cat=5"/>
+		<Section name="Ужасы" URL="plugins/roll_mini/roll.php?cat=6"/>
+		<Section name="Драмы" URL="plugins/roll_mini/roll.php?cat=9"/>
+		<Section name="Документальные" URL="plugins/roll_mini/roll.php?cat=10"/>
+		<Section name="Сериалы" URL="plugins/roll_mini/roll.php?cat=7"/>
+	</Section>
+	<Section name="Игры">
+	    <Section name="Новинки" URL="/plugins/forum/forum_viewforum.php?7"/>
+		<Section name="Стол заказов" URL="/plugins/forum/forum_viewforum.php?14"/>
+		<Section name="Шутеры" URL="plugins/roll_mini/roll.php?cat=11"/>
+		<Section name="Стратегии" URL="plugins/roll_mini/roll.php?cat=12"/>
+		<Section name="Ролевые" URL="plugins/roll_mini/roll.php?cat=13"/>
+		<Section name="Симуляторы" URL="plugins/roll_mini/roll.php?cat=14"/>
+		<Section name="Приключения" URL="plugins/roll_mini/roll.php?cat=22"/>
+	</Section>
+	<Section name="Программы">
+		<Section name="Пакет узелок" URL="plugins/roll_mini/roll.php?cat=23"/>
+	</Section>
+	<Section name="Техническая поддержка" URL="/plugins/forum/forum.php">
+		<Section name="Поиск игры или фильма в сети" URL="plugins/forum/forum_viewtopic.php?132"/>
+		<Section name="Как добавить игру или фильм на сайт" URL="plugins/forum/forum_viewtopic.php?586"/>
+		<Section name="Настройка программы для общения в сети Net Speakerphone 4" URL="plugins/forum/forum_viewtopic.php?104"/>
+		<Section name="Подключение ПК к сети УзелОК(pppoe соединение windows XP)" URL="plugins/forum/forum_viewtopic.php?483"/>
+		<Section name="Настройка соединения PPPoE для Windows Vista и Windows Seven" URL="plugins/forum/forum_viewtopic.php?581"/>
+		<Section name="Настройка сетевого подключения(рабочая группа, имя компьютера)" URL="plugins/forum/forum_viewtopic.php?136"/>
+		<Section name="Основные ошибки Wan PPPoE" URL="plugins/forum/forum_viewtopic.php?642"/>
+		<Section name="Онлайн помощь "Удалённым помощником" Windows XP" URL="plugins/forum/forum_viewtopic.php?684"/>
+	</Section>
+	<UserData>
+		<Flags ShowRequestDumper="0"/>
+	</UserData>
+</Portal>

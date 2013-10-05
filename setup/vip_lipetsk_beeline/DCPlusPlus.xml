@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<DCPlusPlus>
+	<Settings>
+		<UploadSpeed type="string">100</UploadSpeed>
+		<MainFrameOrder type="string">0,1,2,3,4,5,6,7,8,9,10,11,12</MainFrameOrder>
+		<MainFrameWidths type="string">150,100,250,75,75,175,100,200,50,50,50,100,75</MainFrameWidths>
+		<FavoritesFrameOrder type="string">0,1,2,3,4,5,6</FavoritesFrameOrder>
+		<FavoritesFrameWidths type="string">200,290,125,100,100,125,125</FavoritesFrameWidths>
+		<ConfigVersion type="string">365</ConfigVersion>
+		<BeepFile type="string">.\Sounds\PrivateMessage.wav</BeepFile>
+		<BeginFile type="string">.\Sounds\DownloadBegins.wav</BeginFile>
+		<FinishedFile type="string">.\Sounds\DownloadFinished.wav</FinishedFile>
+		<SourceFile type="string">.\Sounds\AltSourceAdded.wav</SourceFile>
+		<UploadFile type="string">.\Sounds\UploadFinished.wav</UploadFile>
+		<FakerFile type="string">.\Sounds\FakerFound.wav</FakerFile>
+		<ChatNameFile type="string">.\Sounds\MyNickInMainChat.wav</ChatNameFile>
+		<SoundTTH type="string">.\Sounds\FileCorrupted.wav</SoundTTH>
+		<SoundException type="string">.\Sounds\UnhandledException.wav</SoundException>
+		<SoundHubConnected type="string">.\Sounds\ConnectHUB.wav</SoundHubConnected>
+		<SoundHubDisconnected type="string">.\Sounds\DisconnectHUB.wav</SoundHubDisconnected>
+		<SoundFavUserOnline type="string">.\Sounds\FavUser.wav</SoundFavUserOnline>
+		<SoundFavUserOffline type="string">.\Sounds\FavUserDisconnected.wav</SoundFavUserOffline>
+		<MainFrameVisible type="string">1,1,1,1,1,1,1,1,1,1,1,1,1</MainFrameVisible>
+		<ToolBarSettings type="string">255,60160,0;712,60161,1;200,60162,0;296,60163,1;</ToolBarSettings>
+		<IncomingConnections type="int">0</IncomingConnections>
+		<InPort type="int">6418</InPort>
+		<GetUserInfo type="int">1</GetUserInfo>
+		<MainWindowState type="int">3</MainWindowState>
+		<MainWindowSizeX type="int">768</MainWindowSizeX>
+		<MainWindowSizeY type="int">538</MainWindowSizeY>
+		<MainWindowPosX type="int">88</MainWindowPosX>
+		<MainWindowPosY type="int">124</MainWindowPosY>
+		<MDIMaxmimized type="int">1</MDIMaxmimized>
+		<CzertHiddenSettingA type="int">0</CzertHiddenSettingA>
+		<CzertHiddenSettingB type="int">0</CzertHiddenSettingB>
+		<TransferSplitSize type="int">8000</TransferSplitSize>
+		<ShowDescriptionSpeed type="int">0</ShowDescriptionSpeed>
+		<Away type="int">0</Away>
+		<UDPPort type="int">6147</UDPPort>
+		<TLSPort type="int">17261</TLSPort>
+		<ShowDescriptionSlots type="int">1</ShowDescriptionSlots>
+		<ShowDescriptionLimit type="int">1</ShowDescriptionLimit>
+		<ShowWinampControl type="int">0</ShowWinampControl>
+	</Settings>
+	<Share/>
+	<NoShare/>
+	<PreviewApps>
+		<Application Name="AVIPreview" Application="AVIPreview.exe" Arguments="%[file]" Extension="avi;divx;mpg;mpeg"/>
+	</PreviewApps>
+	<IgnoreList/>
+	<Rebars>
+		<Rebar Name="MainToolBar" ID="60160,60161,60162,60163" CX="255,712,200,296" BreakLine="0,1,0,1" BandCount="4"/>
+	</Rebars>
+	<SearchHistory/>
+</DCPlusPlus>

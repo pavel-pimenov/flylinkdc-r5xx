@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Portal name="CLUB42.RU" URL="http://p2p.club42.ru" SearchURL="index.php?do=files&amp;op=search" XMLVersion="1" DefaultCharset="utf8">
+	<Images Large="club42\WebStream-24.bmp" Small="club42\WebStream-16.bmp" SmallImageID="0" LargeImageID="0"/>
+	<Default StartSection="0" SearchSection="1"/>
+	<Flags DenyNewWnd="1" DenyExternalLinksNewWindow="1"/>
+	<Section URL="index.html" LargeImageID="Home"/>
+	<Section SearchName="Везде" SearchURL="&amp;search_text=%QUERY%" LargeImageID="Search"/>
+	<Section name="Видео" URL="files/cat1.html" SearchURL="&amp;razdel=1&amp;search_text=%QUERY%">
+		<Section name="Аниме" URL="files/cat5.html"/>
+		<Section name="Для детей" URL="files/cat63.html"/>
+		<Section name="Мультфильмы" URL="files/cat6.html"/>
+		<Section name="Мультсериалы" URL="files/cat7.html"/>
+		<Section name="Отечественное кино" URL="files/cat8.html"/>
+		<Section name="Зарубежное кино" URL="files/cat9.html"/>
+		<Section name="Азиатское кино" URL="files/cat60.html"/>
+		<Section name="Эротика" URL="files/cat61.html"/>
+		<Section name="Индийское кино" URL="files/cat62.html"/>
+		<Section name="Нестандартный перевод" URL="files/cat44.html"/>
+		<Section name="Документальные фильмы" URL="files/cat38.html"/>
+		<Section name="Сериалы" URL="files/cat10.html"/>
+		<Section name="Музыкальное видео" URL="files/cat37.html"/>
+		<Section name="Русские фильмы HDTV" URL="files/cat43.html"/>
+		<Section name="Зарубежные фильмы HDTV" URL="files/cat36.html"/>
+		<Section name="Экранные версии" URL="files/cat42.html"/>
+		<Section name="Трейлеры" URL="files/cat57.html"/>
+	</Section>
+	<Section name="Музыка" URL="files/cat2.html" SearchURL="&amp;razdel=2&amp;search_text=%QUERY%">
+		<Section name="Электронная музыка" URL="files/cat11.html"/>
+		<Section name="Ethnic, NewAge" URL="files/cat12.html"/>
+		<Section name="Зарубежный Рок" URL="files/cat13.html"/>
+		<Section name="Отечественный Рок" URL="files/cat14.html"/>
+		<Section name="Классическая музыка" URL="files/cat15.html"/>
+		<Section name="Поп музыка" URL="files/cat16.html"/>
+		<Section name="Рэп, Хип-Хоп, R&amp;B" URL="files/cat17.html"/>
+		<Section name="Саундтреки и Караоке" URL="files/cat18.html"/>
+		<Section name="Шансон" URL="files/cat19.html"/>
+	</Section>
+	<Section name="Игры" URL="files/cat3.html" SearchURL="&amp;razdel=3&amp;search_text=%QUERY%">
+		<Section name="Action" URL="files/cat20.html"/>
+		<Section name="Adventure" URL="files/cat21.html"/>
+		<Section name="Arcade" URL="files/cat22.html"/>
+		<Section name="MMORPG" URL="files/cat23.html"/>
+		<Section name="Simulators" URL="files/cat24.html"/>
+		<Section name="Sport" URL="files/cat25.html"/>
+		<Section name="Strategy" URL="files/cat26.html"/>
+		<Section name="RPG" URL="files/cat40.html"/>
+		<Section name="Трейлеры" URL="files/cat58.html"/>
+		<Section name="Консольные" URL="files/cat59.html"/>
+	</Section>
+	<Section name="Софт" URL="files/cat4.html" SearchURL="&amp;razdel=4&amp;search_text=%QUERY%">
+		<Section name="Офисные программы" URL="files/cat27.html"/>
+		<Section name="Операционные системы" URL="files/cat28.html"/>
+		<Section name="Графика и дизайн" URL="files/cat29.html"/>
+		<Section name="Интернет и Сети" URL="files/cat30.html"/>
+		<Section name="Мультимедиа" URL="files/cat31.html"/>
+		<Section name="Программирование" URL="files/cat32.html"/>
+		<Section name="Разное" URL="files/cat33.html"/>
+		<Section name="Утилиты" URL="files/cat34.html"/>
+		<Section name="Безопасность" URL="files/cat35.html"/>
+		<Section name="Драйвера" URL="files/cat41.html"/>
+	</Section>
+	<Section name="Книги и обучающие материалы" URL="files/cat45.html" SearchURL="&amp;razdel=5&amp;search_text=%QUERY%">
+		<Section name="Научная и техническая литература" URL="files/cat46.html"/>
+		<Section name="Компьютерная литература" URL="files/cat47.html"/>
+		<Section name="Художественная литература" URL="files/cat48.html"/>
+		<Section name="Комиксы" URL="files/cat49.html"/>
+		<Section name="Обучающие аудиоматериалы" URL="files/cat50.html"/>
+		<Section name="Обучающие видеоматериалы" URL="files/cat51.html"/>
+		<Section name="Художественные аудиокниги" URL="files/cat52.html"/>
+		<Section name="Журналы" URL="files/cat53.html"/>
+		<Section name="Авто-Мото" URL="files/cat55.html"/>
+		<Section name="Разное" URL="files/cat54.html"/>
+		<Section name="Манга" URL="files/cat56.html"/>
+	</Section>
+	<UserData>
+		<Flags ShowRequestDumper="1"/>
+		<Login user="FlyDeveloper" password="123456"/>
+	</UserData>
+</Portal>

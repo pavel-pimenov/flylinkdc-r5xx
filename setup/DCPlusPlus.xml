@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<DCPlusPlus>
+	<Settings>                      
+		<UploadSpeed type="string">100</UploadSpeed>
+		<MainFrameOrder type="string">0,1,2,3,4,5,6,7,8,9,10,11,12</MainFrameOrder>
+		<MainFrameWidths type="string">150,100,250,75,75,175,100,200,50,50,50,100,75</MainFrameWidths>
+		<UploadSpeed type="string">100</UploadSpeed>
+		<Toolbar type="string">0,2,5,6,7,8,-1,9,22,13,-1,14</Toolbar>
+		<BeepFile type="string">.\Sounds\PrivateMessage.wav</BeepFile>
+		<BeginFile type="string">.\Sounds\DownloadBegins.wav</BeginFile>
+		<FinishedFile type="string">.\Sounds\DownloadFinished.wav</FinishedFile>
+		<SourceFile type="string">.\Sounds\AltSourceAdded.wav</SourceFile>
+		<UploadFile type="string">.\Sounds\UploadFinished.wav</UploadFile>
+		<FakerFile type="string">.\Sounds\FakerFound.wav</FakerFile>
+		<ChatNameFile type="string">.\Sounds\MyNickInMainChat.wav</ChatNameFile>
+		<SoundTTH type="string">.\Sounds\FileCorrupted.wav</SoundTTH>
+		<SoundException type="string">.\Sounds\UnhandledException.wav</SoundException>
+		<SoundHubConnected type="string">.\Sounds\ConnectHUB.wav</SoundHubConnected>
+		<SoundHubDisconnected type="string">.\Sounds\DisconnectHUB.wav</SoundHubDisconnected>
+		<SoundFavUserOnline type="string">.\Sounds\FavUser.wav</SoundFavUserOnline>
+		<SoundFavUserOffline type="string">.\Sounds\FavUserDisconnected.wav</SoundFavUserOffline>
+		<IncomingConnections type="int">0</IncomingConnections>
+		<IncomingAutodetectFlag type="int">1</IncomingAutodetectFlag>
+	</Settings>
+	<PreviewApps>
+		<Application Name="AVIPreview" Application="AVIPreview.exe" Arguments="%[file]" Extension="avi;divx;mpg;mpeg"/>
+	</PreviewApps>
+	<Rebars>
+		<Rebar Name="MainToolBar" ID="60160,60163,60162,60161" CX="1056,214,215,1143" BreakLine="1,0,1,0" BandCount="4"/>
+	</Rebars>
+</DCPlusPlus>

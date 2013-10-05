@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="Иной хаб" Connect="1" Description="Круглосуточный хаб. Мин. шара - 1 ГБ" Nick="" Password="" Server="dchub://another-hub.no-ip.org"/>		
+		<Hub Name="PENZA-CITY" Connect="1" Description="Круглосуточный хаб." Server="penza-city.pp.ru:1209"/>
+		<Hub Name="»»» J_i_n «««" Connect="1" Description="Круглосуточный хаб." Server="dchub://pnz.dczone.ru" />
+		<Hub Name="58 регион" Connect="1" Description="Работает вечерами и по выходным" Server="dchub://58-region.myftp.org"/>
+		<Hub Name="World of Entertainment" Connect="1" Description="Хаб периодически в сети, обычно вечером и ночью" Server="dchub://penza58-hub.myftp.org"/>
+		<Hub Name="Microlab" Connect="1" Description="Круглосуточно" Server="dchub://85.234.47.69" />
+		<Hub Name="DeviL Hub" Connect="1" Description="Круглосуточный хаб. Минимум расшарить 10 Гб. Необходим префикс [PNZ] в нике" Server="dchub://85.234.54.184"/>
+		<Hub Name="Гигабайтный хаб" Connect="1" Description="Круглосуточный хаб. Минимум расшарить 1 Гб." Server="dchub://1024mb.x24hr.com" />
+		<Hub Name="ТракТорныЙ 3аВоД" Connect="1" Description="Периодически в сети" Server="dchub://zavod.mydc.ru"/>
+	</Hubs>
+	<Users/>
+	<UserCommands/>
+	<FavoriteDirs/>
+</Favorites>

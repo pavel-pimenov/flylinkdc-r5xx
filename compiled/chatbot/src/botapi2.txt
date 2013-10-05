@@ -1,0 +1,256 @@
+
+ChatBot.dll should export one function
+bool __stdcall init(struct BotInit *);
+that called just after dll loading
+
+structure BotInit defined as follows:
+
+struct BotInit
+{
+        DWORD apiVersion;
+        char* appName;
+        char* appVersion;
+        tSendMessage SendMessage;
+        tRecvMessage RecvMessage;
+        char* botId;
+        char* botVersion;
+        tSendMessage2 SendMessage2;
+        tRecvMessage2 RecvMessage2;
+        tQueryInfo QueryInfo;
+        tFreeInfo FreeInfo;
+};
+
+where apiVersion contains 1 for api v1, 2 for api v2.
+appName and appVersion are client ID strings
+
+botId and botVersion should be filled in init function.
+
+if bot uses API v1 it should fill RecvMessage field with
+callback address, and call SendMessage later.
+if uses API v2, fill RecvMessage2 and call SendMessage2,
+QueryInfo, FreeInfo
+
+functions defined as follows
+
+void __stdcall SendMessage(const WCHAR *params, const WCHAR *message);
+void __stdcall RecvMessage(const WCHAR *params, const WCHAR *message);
+
+bool __stdcall SendMessage2(int msgid, const WCHAR *objid, const void *param, unsigned paramsize);
+void __stdcall RecvMessage2(int msgid, const WCHAR *objid, const void *param, unsigned paramsize);
+
+void* __stdcall QueryInfo(int qryid, void *objid, void *param);
+void  __stdcall FreeInfo(void *info);
+
+========================== using v1 API =================================
+
+bot fills RecvMessage in 'init' function, and receives
+user private messages from this function
+
+params is a string like
+"CID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx|NICK=User01|SLOTS=5|" and so on..
+bot's RecvMessage routine gets the following parameters:
+        CID        - user cid, should be used in reply params
+        NICK       - user nickname
+        IP,DNS,DESC,SLOTS,LIMIT,SHARE,EXACTSHARE - user data (from TAG, etc..)
+        OP,BOT,AWAY - user flags
+        NEW        - is this message opened new chat window
+        MYNICK, MYSHARE, MYSLOTS, MYLIMIT, MYEXACTSHARE, MYAWAY
+                   - own data, could be used in replies
+        ISFAV      - favorite user, if 1, params added:
+                     FAVSLOT, FAVBAN, FAVIGNORE
+        HUBURL, HUBNAME, HUBDESC
+                   - hub parameters (same for me and user)
+
+bot calls SendMessage at least with CID parameter to send reply.
+for simplicity, bot can pass same 'params' value to SendMessage
+
+this API left from compatibility with old client version and
+may dissapare later
+
+========================== using v2 API =================================
+
+for clarity, let's define some data types:
+`wstr`: null-terminated unicode string
+`list`: null-terminated unicode string. set of values, separated by '|',
+    for example, "dc.san.ru|88.147.22.157|88.147.61.19|"
+`record`: null-terminated unicode string with sections
+    VAR=VALUE, separated by '|'. for example,
+    "NICK=User|SLOT=5|SHARE=5,12 Gb|EXACTSHARE=5497558138|"
+`reclist`: concatenated set of records, separated with '|', for example
+    "NICK=User|SLOT=5|SHARE=5,12 Gb|EXACTSHARE=5497558138||NICK=User2|SLOT=10|SHARE=5,12 Gb|EXACTSHARE=5497558138||"
+if string value in `recird` contains '|' or '\', they quoted as '\|' or '\\'
+`BOOL`: Win32 BOOL data type. sizeof BOOL is 4 bytes, zero value means 'false', any other - 'true'
+
+
+'param' is a pointer to additional parameters,
+'paramsize' - size of parameters block in bytes, including
+terminating NULLs for null-terminated strings
+
+usage examples:
+    DWORD ignore = FALSE;
+    SendMessage2(USER_IGNORE, L"KWTSAFAOXZW7KZBL4VU5PVVVJEQCGZAJDXYG6ZY", &ignore, sizeof(ignore));
+or
+    WCHAR *msg = L"Hello";
+    SendMessage2(SEND_CM, L"dc.san.ru", msg, (wcslen(msg)+1)*sizeof(WCHAR));
+
+
+SendMessage2
+------------
+bot sends commands to DC++ client using this function
+
+msgid: SEND_PM
+objid: user cid (`wstr`)
+param: message text (`wstr`)
+notes: send private message to user
+
+msgid: SEND_CM
+objid: huburl (`wstr`)
+param: message text (`wstr`)
+notes: send public message to hub chat
+
+msgid: USER_CLOSE
+objid: user cid (`wstr`)
+param: not used, should be NULL
+notes: close window with user's private chat
+
+msgid: USER_IGNORE
+objid: user cid (`wstr`)
+param: ignore flag (`BOOL`)
+notes: set/reset 'ignore private messages' flag.
+user added to favorite list, if needed. (note, that
+if chat window already open, messages from user
+will be received regardless of ignore flag)
+
+msgid: USER_BAN
+objid: user cid (`wstr`)
+param: ban flag (`BOOL`)
+notes: set/reset ban flag. user added to favorite list, if needed
+
+msgid: USER_SLOT
+objid: user cid (`wstr`)
+param: slot timeout, seconds (DWORD)
+notes: grant slot for specified time, param=0 - remove slot
+
+msgid: DL_MAGNET
+objid: magnet link (`wstr`)
+param: not used, should be NULL
+notes: put magnet link to download queue. if magnet invalid
+       (no size or filename), function returns false
+
+
+RecvMessage2
+------------
+bot callback for receiving notifications from client
+
+msgid: RECV_PM_NEW
+objid: user cid (`wstr`)
+param: message text (`wstr`)
+notes: client received private message from user and opens
+new private chat window
+
+msgid: RECV_PM
+objid: user cid (`wstr`)
+param: message text (`wstr`)
+notes: client received private message from user but
+private chat window already open
+
+msgid: RECV_CM
+objid: user cid (`wstr`)
+param: message text (`wstr`)
+notes: client received message from user in main chat
+(same client on different hubs have different CIDs, at
+far future cid must be same, this msgid will be obsolette)
+
+msgid: RECV_UPDATE
+objid: user cid (`wstr`)
+notes: user updated his data (sharesize, slots, comment, etc)
+       or new user connected to hub
+
+msgid: RECV_PART
+objid: user cid (`wstr`)
+notes: user disconnected from hub
+
+msgid: RECV_CONNECT
+objid: hub url
+notes: client connected to hub
+
+msgid: RECV_DISCONNECT
+objid: hub url
+notes: client disconnected from hub
+
+
+QueryInfo
+---------
+bot can read additional information through this function. returned
+pointer to memory block must be freed with 'FreeInfo' when no longer
+needed or before ChatBot.dll library unloaded
+
+
+qryid: QUERY_USER_BY_CID
+objid: user cid (`wstr`)
+param: not used, should be NULL
+return value: NULL, if user offline or `record` with vars
+        CID        - user cid
+        NICK       - user nickname
+        IP,DNS,DESC,SLOTS,LIMIT,SHARE,EXACTSHARE - user data (from TAG, etc..)
+        OP,BOT,AWAY - user flags
+        MYNICK, MYSHARE, MYSLOTS, MYLIMIT, MYEXACTSHARE, MYAWAY
+                   - own data, could be used in replies
+        ISFAV      - favorite user, if 1, params added:
+                     FAVSLOT, FAVBAN, FAVIGNORE
+        HUBURL
+
+
+qryid: QUERY_HUB_BY_URL
+objid: hub url (`wstr`)
+param: not used, should be NULL
+return value: NULL, if hub not found or `record` with vars
+        HUBURL, HUBNAME, HUBDESC
+        IP, PORT        - connection data
+
+
+qryid: QUERY_CONNECTED_HUBS
+objid: not used, should be NULL
+param: not used, should be NULL
+return value: `list` of HUBURLs of connected hubs
+
+
+qryid: QUERY_HUB_USERS
+objid: hub url (`wstr`)
+param: not used, should be NULL
+return value: `list` of CIDs of all hub users
+(not implemented in API v2, use RECV_UPDATE)
+
+qryid: QUERY_RUNNING_UPLOADS
+objid: user cid (`wstr`) or NULL for all running uploads
+param: not used, should be NULL
+return value: NULL, if user offline or param-list with vars
+        CID, FILENAME, FILESIZE
+(not implemented in API v2)
+
+
+qryid: QUERY_QUEUED_UPLOADS
+objid: user cid (`wstr`) or NULL for all uploads
+param: not used, should be NULL
+return value: NULL, if user offline or param-list with vars
+        CID, FILENAME, FILESIZE,
+        POS     - requested download position
+        TIME    - waiting time, seconds
+
+
+qryid: QUERY_DOWNLOADS
+objid: user cid (`wstr`) or NULL for all downloads
+param: not used, should be NULL
+return value: NULL, if user offline or param-list with vars
+        FILENAME,
+        FILESIZE, DOWNLOADED - full size/done size in bytes
+        ISBADSRC        - 1 if queried user has file with error
+        STATUS          - WAIT/RUN
+        PRIORITY
+
+
+qryid: QUERY_SELF
+objid: not used, should be NULL
+param: not used, should be NULL
+return value: user cid (`wstr`) for 'client' user (it is same on all hubs)
+

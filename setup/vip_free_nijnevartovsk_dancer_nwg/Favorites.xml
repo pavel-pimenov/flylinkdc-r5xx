@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="«DC++ (NWG)»" Connect="1" Description="Электронный город (Нижневартовск)" Nick="" Password="" Server="dc.nwg-nv.ru" UserDescription="" Encoding="Russian_Russia.1251" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="5196" StealthMode="0" HideShare="0" SendUserIpOnLogon="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,10,2,5,11,4,3,6,7,8,9,12,13" HeaderWidths="159,75,75,231,304,59,58,53,243,30,30,50,300,80" HeaderVisible="1,1,0,1,1,0,1,1,1,1,1,1,0,0" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="1" IP="" OpChat="" CliendId="" OverrideId="1" Group=""/>
+	</Hubs>
+	<Users/>
+	<UserCommands/>
+	<FavoriteDirs/>
+</Favorites>

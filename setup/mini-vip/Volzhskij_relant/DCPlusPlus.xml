@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<DCPlusPlus>
+	<Settings>                      
+		<BeepFile type="string">.\Sounds\PrivateMessage.wav</BeepFile>
+		<BeginFile type="string">.\Sounds\DownloadBegins.wav</BeginFile>
+		<FinishedFile type="string">.\Sounds\DownloadFinished.wav</FinishedFile>
+		<SourceFile type="string">.\Sounds\AltSourceAdded.wav</SourceFile>
+		<UploadFile type="string">.\Sounds\UploadFinished.wav</UploadFile>
+		<FakerFile type="string">.\Sounds\FakerFound.wav</FakerFile>
+		<ChatNameFile type="string">.\Sounds\MyNickInMainChat.wav</ChatNameFile>
+		<SoundTTH type="string">.\Sounds\FileCorrupted.wav</SoundTTH>
+		<SoundException type="string">.\Sounds\UnhandledException.wav</SoundException>
+		<SoundHubConnected type="string">.\Sounds\ConnectHUB.wav</SoundHubConnected>
+		<SoundHubDisconnected type="string">.\Sounds\DisconnectHUB.wav</SoundHubDisconnected>
+		<SoundFavUserOnline type="string">.\Sounds\FavUser.wav</SoundFavUserOnline>
+		<SoundFavUserOffline type="string">.\Sounds\FavUserDisconnected.wav</SoundFavUserOffline>
+		<IncomingConnections type="int">0</IncomingConnections>
+	</Settings>
+	<PreviewApps>
+		<Application Name="AVIPreview" Application="AVIPreview.exe" Arguments="%[file]" Extension="avi;divx;mpg;mpeg"/>
+	</PreviewApps>
+</DCPlusPlus>

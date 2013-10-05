@@ -1,0 +1,37 @@
+Описываем тут свои бранчи для длительной реализации фич
+
+
+1. Экспериментальная ветка интеграции mediainfo -  http://www.flylinkdc.ru/2011/01/blog-post_09.html
+  * переключится:
+    svn switch https://flylinkdc.googlecode.com/svn/branches-dev/ppa/r5xx-mediainfo-integration
+  * вернуться в ствол
+    svn switch https://flylinkdc.googlecode.com/svn/trunk
+  * забрать изменения из ствола 
+    svn merge https://flylinkdc.googlecode.com/svn/trunk
+  * протолкнуть изменения из бранча в ствол
+   svn merge --reintegrate https://flylinkdc.googlecode.com/svn/branches-dev/ppa/r5xx-mediainfo-integration
+
+2. Эксперементальная ветка для рефакторинга механизма передач. Задачи:
+  * реализация индивидуальных ограничений по пользователям ( http://code.google.com/p/flylinkdc/issues/detail?id=291 )
+  * реализация смежных задач (неправильное измерение скорости передач, и прочее)
+	https://flylinkdc.googlecode.com/svn/branches-dev/rainman/r5xx-transfer-refactoring
+  * БОЛЬШАЯ ПРОСЬБА: самостоятельно не вливать изменения из этой ветки в trunk: могут быть не рабочие или совершенно не отттестированные реализации. 
+
+3. Бинарный формат GeoIP
+   https://flylinkdc.googlecode.com/svn/branches-dev/geo-ip 
+4. Вывод лога в виде отдельной закладки
+   https://flylinkdc.googlecode.com/svn/branches-dev/ppa/new-log-view
+5. Слияние фаворит-листа с шаблоном провайдера
+   https://flylinkdc.googlecode.com/svn/branches-dev/ppa/merge-favorites
+6. VIdeo Preview on download
+   https://flylinkdc.googlecode.com/svn/branches-dev/ssa/ViewOnDownload
+
+7. https://flylinkdc.googlecode.com/svn/branches-dev/ppa/issue-618-mediainfo
+
+8. https://flylinkdc.googlecode.com/svn/branches-dev/ppa/issue-110-dht -m"# Перенос файла dht.xml в sqlite"
+
+9. https://flylinkdc.googlecode.com/svn/branches-dev/ppa/issue-843-fly-server
+
+p.s.
+Команда создания ветки из ствола
+svn copy https://flylinkdc.googlecode.com/svn/trunk https://flylinkdc.googlecode.com/svn/branches-dev/ppa/issue-843-fly-server -m"# fly-server"

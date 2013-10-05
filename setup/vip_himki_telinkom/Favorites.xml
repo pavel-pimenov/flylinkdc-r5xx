@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="leftside.org" Connect="1" Description="http://leftside.org" Server="172.30.12.18" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="6342" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,9,2,10,11,12,3,4,5,6,7,8" HeaderWidths="164,75,75,119,100,50,54,33,148,30,30,50,80" HeaderVisible="1,1,0,1,0,0,0,1,1,1,1,1,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="1" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0"/>
+		<Hub Name="172.23.1.233" Connect="1" Description="Jcuken Hub" Server="172.23.1.233" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="5804" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,2,3,4,5,6,7,8,9,10,11,12" HeaderWidths="100,75,75,161,100,50,90,100,80,30,30,50,80" HeaderVisible="1,1,1,1,1,1,1,1,1,1,1,1,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="1" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0"/>
+		<Hub Name="Chijik hub" Connect="1" Description="" Server="172.30.21.76" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="0" ChatUserSplit="0" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="" HeaderWidths="" HeaderVisible="" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0"/>
+	</Hubs>
+	<Users/>
+	<UserCommands/>
+	<FavoriteDirs/>
+</Favorites>

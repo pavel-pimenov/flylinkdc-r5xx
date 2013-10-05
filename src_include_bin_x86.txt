@@ -1,0 +1,8 @@
+compiled/Settings/Custom*.* 
+compiled/Themes/*.dll 
+compiled/lang/*.xml 
+compiled/EmoPacks/*.* 
+compiled/Sounds/*.* 
+compiled/WEBserver/*.*
+compiled/crshhndl-x86.dll
+

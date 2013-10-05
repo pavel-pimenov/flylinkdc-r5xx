@@ -1,0 +1,25 @@
+<script type="text/javascript" src="{THEME_PATH}/files/search4608.js"></script>
+<div class="content">
+	<h3>{PAGENAME}</h3>
+		<form name=form_S method=get action='search.htm' enctype='multipart/form-data'>
+			<div class="settings">
+
+				<!-- /* page_search_proceed.html OR page_search_select.html */ -->
+				{SEARCH_SUITE}
+
+				<!-- /* page_search_pagination.html (IF NEED) */ -->
+				<div class="pagination">
+						<table><tr>
+							<td width="5%">{SEARCH_PAGINATION_BACK}</td>
+							<td width="5%">{SEARCH_PAGINATION_NEXT}</td>
+							<td width="90%"></td>
+						</tr></table>
+				</div>
+
+				<div class="content">
+					{SEARCH_LIST}
+				</div>
+				
+			</div>
+		</form>
+</div>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="г.Омск" Connect="1" Description="Integro (ManHunt)" Server="10.10.1.1" UserDescription="Integro (ManHunt)" AwayMsg="" Email="" WindowPosX="16" WindowPosY="23" WindowSizeX="1038" WindowSizeY="364" WindowType="3" ChatUserSplit="6941" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,6,2,7,8,3,4,5" HeaderWidths="171,61,152,282,272,75,91,100,80" HeaderVisible="1,1,0,1,0,0,1,1,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat="" CliendId="" OverrideId="0"/>
+	</Hubs>
+	<Users/>
+	<UserCommands/>
+	<FavoriteDirs/>
+</Favorites>

@@ -1,0 +1,15 @@
+.svn
+developer.key
+CustomLocations.7z
+Customlocations-5.rar
+FlyUpdate.exe
+UpdateMaker.exe
+test-console.pdb
+FlyUpdate.pdb
+UpdateMaker.pdb
+vc100.pdb
+vc10
+FlylinkDCShellExt*.pdb
+FlylinkDC_Debug*.pdb
+compiled/Settings/common/*.*
+CustomCompressExt.txt

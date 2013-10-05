@@ -1,0 +1,41 @@
+	<div class="fly">
+		<h1>{APPNAME}</h1>
+		<table>
+			<tr>
+				<td width="150px" valign="top">
+					<div class="menu">
+						{MENU_INDEX}<br />
+						{MENU_SEARCH}<br />
+						{MENU_SETTINGS}<br />
+						{MENU_LOGOUT}<br /><br />
+					</div>
+					
+					<div class="head">
+						Info:
+					</div>
+					<div class="menu">
+						<span><center>
+							IP: <strong>{USERIP}</strong><br />
+							<strong>{USERSTATE}</strong><br />
+													
+						</center></span>
+					</div>
+						{CONTENT_ADMIN_BUTTONS}
+					<div class="head">
+						Logs:
+					</div>
+					<div class="menu">
+						{MENU_WEBLOG}<br />
+						{MENU_SYSLOG}<br />
+						{MENU_UPLOADS_QUEUE}<br />
+						{MENU_UPLOADS_FINISHED}<br />
+						{MENU_DOWNLOADS_QUEUE}<br />
+						{MENU_DOWNLOADS_FINISHED}<br />
+						<br />
+					</div>
+				</td>
+				<td valign="top" class="content">
+						{CONTENT}
+				</td>
+			</tr>
+		</table>

@@ -1,0 +1,1 @@
+wget -c http://flylinkdc.googlecode.com/files/FlylinkDC_version.xml

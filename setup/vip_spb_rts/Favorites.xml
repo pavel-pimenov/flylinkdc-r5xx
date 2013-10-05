@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="ПИКНИК (РТС) - Санкт-Петербург - Добро Пожаловать На Пикник! (80.93.188.135)" Connect="1" Description="ПИКНИК (РТС) - Санкт-Петербург - Добро Пожаловать На Пикник! (80.93.188.135)" Nick="" Password="" Server="piknik-dc.ru" UserDescription="" Encoding="System default" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="8086" StealthMode="0" HideShare="0" SetUserIpOnLogon="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,5,2,6,7,8,9,3,10,11,4,12" HeaderWidths="150,75,75,75,100,50,40,60,96,80,50,116,80" HeaderVisible="1,1,0,1,0,0,0,0,1,0,0,1,0" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat="" SearchInterval="0" CliendId="FakeDC V:1.0" OverrideId="0" Group=""/>
+	</Hubs>
+	<Users/>
+	<UserCommands/>
+	<FavoriteDirs/>
+</Favorites>

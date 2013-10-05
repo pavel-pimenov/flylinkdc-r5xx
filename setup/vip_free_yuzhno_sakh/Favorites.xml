@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="dc.scts.tv" Connect="1" Description="dc.scts.tv" Nick="" Password="" Server="dc.scts.tv" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="6733" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,2,3,4,5,6,7,8,9,10,11,12" HeaderWidths="123,75,75,231,100,50,40,40,100,30,30,50,80" HeaderVisible="1,1,1,1,1,1,1,1,1,1,1,1,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="1" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0"/>
+		<Hub Name="Пиринг острова Сахалина" Connect="1" Description="" Server="dchub://sakhhub.ru" Mode="0" />
+	</Hubs>
+	<Users/>
+	<UserCommands/>
+	<FavoriteDirs/>
+</Favorites>

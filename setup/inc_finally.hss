@@ -1,0 +1,27 @@
+#ifexist "D:\ppa-doc\Dropbox\src\install-yandex\inc_finally_yandex_flylinkdc-r5xx.hss"
+  #include "D:\ppa-doc\Dropbox\src\install-yandex\inc_finally_yandex_flylinkdc-r5xx.hss"
+#else
+[Code]
+procedure InitializeWizard();
+begin
+  WizardForm.TypesCombo.Visible := False;
+  CreateAboutButtonAndURLLabel(WizardForm, WizardForm.CancelButton);
+#ifdef PPA_WIZARD
+  UserPage := CreateInputQueryPage(wpSelectDir,
+    CustomMessage('UserInfo'), CustomMessage('Nick'),
+    CustomMessage('NickInfo')+ #13 +#13 +CustomMessage('NickSymbols') +#13 +'0123456789'+ #13 + 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'+ #13 +'()+-=[]^_{})"' + #13 + CustomMessage('Alphabet'));
+  UserPage.Add(CustomMessage('DCPlusPlusUserName'), False);
+
+
+  DataDirPage := CreateInputDirPage(wpSelectDir+1,
+    CustomMessage('ChooseDownloadDir'), CustomMessage('DownloadDirQuestion'),
+    CustomMessage('ChooseSharedDownloadDir'),
+    False, 'DCDownloads');
+  DataDirPage.Add('');
+
+  { Set default values, using settings that were stored last time if possible }
+  UserPage.Values[0] := GetPreviousData('Name', '');
+  DataDirPage.Values[0] := GetPreviousData('DataDir', 'C:\DCDownloads');
+#endif
+end;
+#endif

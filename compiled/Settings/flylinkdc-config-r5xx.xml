@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Bootstraps>
+	<server url="http://strongdc.sourceforge.net/bootstrap/" agent="StrongDC++ v2.43"/>
+	<server url="http://ssa.in.ua/dcDHT.php"/>
+	<fly-server 
+		ip ="82.196.7.135" 
+		port ="37015" 
+		mirror_read_only_server = ""
+		min_size ="30000" 
+		max_size_value = "65536" 
+		minimal_interval = "1000"
+		zlib_compress_level = "9"
+		collect_lost_location = "1"	
+		scan ="avi,mkv,mp3,flac,ogg,mp4,mpg,divx,flv,mov,mpeg,wma"
+		mediainfo_ext ="3gp,avi,divx,flv,m4v,mkv,dts,mov,mp4,mpg,mpeg,vob,wmv,bik,qt,rm,aac,ac3,ape,fla,flac,m4a,mp1,mp2,mp3,ogg,wma,wv,mka,vqf,lqt,ts,tp,mod,m2ts,webm" 
+		type= "http" 
+		exclude_tag = "Format_Settings_Matrix_Data,Codec/Extensions,Format/Extensions,Cover,Cover_Type,Cover_Mime,StreamSize_Proportion,Cover_Data,Encoded_Library_Settings,CodecID/Url,Codec/Url,CompleteName,UniqueID,UniqueID/String,Encoded_Application,Format/Url,FolderName,File_Created_Date_Local,File_Modified_Date,File_Modified_Date_Local,FileName,FileSize,File_Created_Date,Tagged_Date,Album replay gain,Album replay gain peak,Comment,Copyright,Cover,Cover type,Cover MIME,GRACENOTEFILEID,GRACENOTEEXTDATA,Overall bit rate mode,Overall bit rate,NOTES,Alignment,Menu ID,Replay gain,Replay gain peak,Source,Forced,Encoded_Library/Date,Cover_Description,Encoded_Date,EncodedBy,Encoded_Library/Version,Encoded_Library,HeaderSize,ISRC,Mastered_Date,Menu_Codec_List,MenuCount,Mood,Original/Released_Date,Source_Duration_LastFrame,Source_StreamSize_Encoded,TimeCode_FirstFrame"
+		include_tag = ""
+		exclude_tag_inform = "ID,Complete name,Encoding settings,Encoded date,Tagged date,,Album replay gain,Album replay gain peak,Comment,Copyright,Cover,Cover type,Cover MIME,GRACENOTEFILEID,GRACENOTEEXTDATA,Overall bit rate mode,Overall bit rate,NOTES,Alignment,Forced,Menu ID,Replay gain,Replay gain peak,Source"
+		send_full_mediainfo = "0"
+		parasitic_file = "id.bdmv,mcmf.xml,contenthash000.tbl,anydvd.xrl,online.crl,00001.clpi,00000.clpi,contentrevocation.lst"
+		block_share_ext = "jc!,ob!,dmf,mta,dmfr,!ut,!bt,bc!,getright,antifrag,pusd,dusd,download,crdownload,gltth,kwm,pwm"
+		block_share_name = "thumbs.db,~utorrentpartfile*,zbthumbnail.info,.~lock.*.*#"
+		custom_compress_ext = "msi,3gp,avi,divx,flv,m4v,mkv,mov,mp4,mpg,mpeg,vob,wmv,bik,qt,rm,dts,aac,ac3,ape,fla,flac,m4a,mp1,mp2,mp3,ogg,wma,wv,mka,vqf,lqt,tiff,tif,jpg,gif,djvu,djv,part1,part2,part3,part4,part5,part6,part7,part8,part9,part10,cab,cso,0,000,7z,a01,ace,ain,alz,apz,ar,arc,arh,ari,arj,ark,axx,bhx,bz,bz2,bzip,bzip2,c00,c01,c02,car,cb7,cbr,cbz,deb,dgc,dist,f,fdp,gca,gz,gzi,gzip,ha,hbc,hbc2,hbe,hki,hki2,hpk,hyp,ice,ipg,ipk,ish,j,jgz,jic,kgb,lbr,lha,lzh,lzma,lzo,lzx,pak,paq6,paq7,paq8,par,par2,pbi,pea,pf,pim,pit,piz,pkg,puz,qda,r00,r01,r02,r03,r30,rar,rev,rk,rpm,rte,rzs,s00,s01,s02,sar,sdn,sea,sen,sfs,sfx,sh,shar,shr,sit,sitx,spt,sqx,sqz,tbz,tbz2,tg,tgz,tlz,tlzma,txz,tz,uha,wad,war,xef,xez,xmcdz,xpi,xz,y,z,z02,z04,zap,zip,zipx,zix,zoo,zpi,zz"
+	/>
+</Bootstraps>	

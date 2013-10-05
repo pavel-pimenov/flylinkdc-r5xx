@@ -1,0 +1,436 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="PortalBrowser">
+    <xs:annotation>
+      <xs:documentation xml:lang="ru">
+        Содержит список порталов - минимум одна подсекция Portal.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Portal" minOccurs="1" maxOccurs="unbounded">
+          <xs:annotation>
+            <xs:documentation xml:lang="ru">
+              Содержит все настройки одного данного портала.
+            </xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Login" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                  <xs:documentation xml:lang="ru">
+                    Настройки типа запроса для авторизации пользователя на портале.
+                  </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:attribute name="URL" type="xs:string" use="required">
+                    <xs:annotation>
+                      <xs:documentation xml:lang="ru">
+                        URL страницы авторизации.
+                      </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                  <xs:attribute name="Command" type="xs:string" use="required">
+                    <xs:annotation>
+                      <xs:documentation xml:lang="ru">
+                        Команда авторизации. В зависимости от атрибута "RequestMethod" является GET или POST командой, соответственно добавляется к URL после символа '?' или отправляется как данные POST запроса.
+                        Может содержать макросы %LOGIN% и %PASSWORD%, которые разворачиваются в имя пользователя и его пароль соответственно. Данные берутся из диалогового окна или из XML-секции файла "UserData/Login".
+                      </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                  <xs:attribute name="RequestMethod" type="RequestMethodType" use="optional">
+                    <xs:annotation>
+                      <xs:documentation xml:lang="ru">
+                        Метод запроса авторизации - POST или GET. По-умолчанию используется метод GET.
+                      </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="Images" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                  <xs:documentation xml:lang="ru">
+                    Содержит ссылки на файлы иконок для тулбара и контрола поиска. Так же используется в программе-хосте для отображения иконок портала.
+                  </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:attribute name="Large" type="xs:string" use="optional">
+                    <xs:annotation>
+                      <xs:documentation xml:lang="ru">
+                        Имя файла содержащего большие иконки. Размер иконок 24x24, формат bmp. Лучше использовать 32битный формат, с каналом прозрачности.
+                      </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                  <xs:attribute name="Small" type="xs:string" use="optional">
+                    <xs:annotation>
+                      <xs:documentation xml:lang="ru">
+                        Имя файла содержащего маленькие иконки. Размер иконок 16x16, формат bmp. Лучше использовать 32битный формат, с каналом прозрачности.
+                      </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                  <xs:attribute name="LargePng" type="xs:string" use="optional">
+                    <xs:annotation>
+                      <xs:documentation xml:lang="ru">
+                        Имя файла содержащего большие иконки (PNG формат). Размер иконок 24x24, формат bmp. Лучше использовать 32битный формат, с каналом прозрачности.
+                      </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                  <xs:attribute name="SmallPng" type="xs:string" use="optional">
+                    <xs:annotation>
+                      <xs:documentation xml:lang="ru">
+                        Имя файла содержащего маленькие иконки (PNG формат). Размер иконок 16x16, формат bmp. Лучше использовать 32битный формат, с каналом прозрачности.
+                      </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                  <xs:attribute name="SmallImageID" type="ImageIDType" use="optional">
+                    <xs:annotation>
+                      <xs:documentation xml:lang="ru">
+                        Индекс иконки в файле, указанном в "Small", которая будет использоватся для отображения портала в меню программы-хоста.
+                      </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                  <xs:attribute name="LargeImageID" type="ImageIDType" use="optional">
+                    <xs:annotation>
+                      <xs:documentation xml:lang="ru">
+                        Индекс иконки в файле, указанном в "Large", которая будет использоватся для отображения портала в тулбаре программы-хоста.
+                      </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="Default" type="DefaultType" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="Flags" type="FlagsType" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="Section" type="SectionType" minOccurs="1" maxOccurs="unbounded"/>
+              <xs:element name="UserData" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                  <xs:documentation xml:lang="ru">
+                    Пользовательские данные. Отличаются от всех остальных данных тем, что не будут затираться при обновлении данных портала с сервера (при наличии такой настройки).
+                  </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:all>
+                    <xs:element name="Flags" type="FlagsType" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="Login" minOccurs="0" maxOccurs="1">
+                      <xs:annotation>
+                        <xs:documentation xml:lang="ru">
+                          Данные для авторизации на портале.
+                          Если для авторизации требуется имя пользователя и/или пароль (%LOGIN%, %PASSWORD% - см. Portal/Login) но они не указаны в этой XML-секции, то логин и пароль берутся из настроек хаба программы-хоста (см. атрибут HubURL, а также флаг DisableHubLogin) или, если они не доступны, то показывается диалог ввода логина/пароля (также см. флаг DisableLoginDialog).
+                        </xs:documentation>
+                      </xs:annotation>
+                      <xs:complexType>
+                        <xs:attribute name="user" type="xs:string" use="optional">
+                          <xs:annotation>
+                            <xs:documentation xml:lang="ru">
+                              Имя пользователя для авторизации. Если не указано, то берется из настроек хаба программы-клиента (см. атрибут HubURL, а также флаг DisableHubLogin), если имя не доступно, то показывается диалог ввода логина/пароля (также см. флаг DisableLoginDialog).
+                            </xs:documentation>
+                          </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute name="password" type="xs:string" use="optional">
+                          <xs:annotation>
+                            <xs:documentation xml:lang="ru">
+                              Пароль для авторизации. Если не указано, то берется из настроек хаба программы-клиента (см. атрибут HubURL, а также флаг DisableHubLogin), если пароль не доступен, то показывается диалог ввода логина/пароля (также см. флаг DisableLoginDialog).
+                              ВНИМАНИЕ!!! Хранить пароль здесь не безопасно!
+                            </xs:documentation>
+                          </xs:annotation>
+                        </xs:attribute>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="Default" type="DefaultType" minOccurs="0" maxOccurs="1"/>
+                  </xs:all>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+            <xs:attribute name="name" type="xs:string" use="required">
+              <xs:annotation>
+                <xs:documentation xml:lang="ru">
+                  Имя портала. Используется для идентификации и отображения в программе-хосте.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="URL" type="xs:string" use="required">
+              <xs:annotation>
+                <xs:documentation xml:lang="ru">
+                  URL сервера портала. Используется для перехода по ссылкам и фильтрации открываемых страниц (см. флаги AllowExternalLinks, DenyExternalLinksNewWindow).
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="HubURL" type="xs:string" use="optional">
+              <xs:annotation>
+                <xs:documentation xml:lang="ru">
+                  URL хаба программы-хоста, ассоциированного с данным порталом. Используется для получения логина/пароля для авторизации на портале из настроек хаба.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="SearchURL" type="xs:string" use="optional">
+              <xs:annotation>
+                <xs:documentation xml:lang="ru">
+                  URL страницы поиска. Относителен к URL'у портала (см. атрибут URL). Используется как URL поиска по-умолчанию для каждого раздела портала (см. XML-секция Section).
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="XMLVersion" type="xs:unsignedByte" use="required">
+              <xs:annotation>
+                <xs:documentation xml:lang="ru">
+                  Версия текущей структуры XML-файла.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="DefaultCharset" use="optional">
+              <xs:simpleType>
+                <xs:annotation>
+                  <xs:documentation xml:lang="ru">
+                    Кодировка страниц портала. Может принимать значение "utf8" или "ascii". По-умолчанию используется кодировка "ansi".
+                  </xs:documentation>
+                </xs:annotation>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="utf8"/>
+                  <xs:enumeration value="ansi"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="UpdateURL" type="xs:string" use="optional">
+              <xs:annotation>
+                <xs:documentation xml:lang="ru">
+                  URL XML файла настроек, используемого для обновление текущего файла. Обновляется XML-секция "Portal" данного портала, за исключением секции "UserData".
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:simpleType name="boolType">
+    <xs:annotation>
+      <xs:documentation xml:lang="ru">
+        Тип "да/нет". Принимает значения 0 для "нет" и 1 для "да".
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:unsignedByte">
+      <xs:minInclusive value="0"/>
+      <xs:maxInclusive value="1"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="RequestMethodType">
+    <xs:annotation>
+      <xs:documentation xml:lang="ru">
+        Тип http запроса.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="POST"/>
+      <xs:enumeration value="GET"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="ImageIDType">
+    <xs:annotation>
+      <xs:documentation xml:lang="ru">
+        Индекс иконки: номер иконки в bmp файле или ключевое слово "Home" или "Search".
+        Если указан индекс - берется иконка из заданного файла иконок, если ключевое слово - то иконка берется из внутренних ресурсов, внешний файл в этом случае не используется.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="Home|Search|([0-9])*"/>
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:complexType name="FlagsType">
+    <xs:annotation>
+      <xs:documentation xml:lang="ru">
+        Флаги применяемые к конкретному порталу.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="DisableLoginDialog" type="boolType" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          Запрещает отображение окна ввода логина/пароля. Если флаг не указан, окно отображается в том случае, если требуется авторизация (заданы %LOGIN% и/или %PASSWORD% - см. Portal/Login) но логин и пароль не получены от программы-хоста (см. атрибут "Portal/HubURL") и не заданы в "UserData/Login".
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="DisableHubLogin" type="boolType" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          Запрещает получение логина/пароля от программы-хоста (см. атрибут "Portal/HubURL").
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="DisableAutoUpdate" type="boolType" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          Запрещает автоматическое обновление настроек (см. атрибут "Portal/UpdateURL").
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="AllowExternalLinks" type="boolType" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          Разрешает переходить по ссылкам на страницы, находящиеся на другом сервере чем заданный атрибутом "Portal/URL".
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="DenyNewWnd" type="boolType" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          Запрещает открытие нового окна; окна открываются в существующем окне. Если флаг не задан, новые окна открываются во внешнем ассоциированном браузере.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="DenyExternalLinksNewWindow" type="boolType" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          Запрещает открытие нового окна для запрещенных ссылок (см. флаг "AllowExternalLinks"). Если флаг не задан, новые окна открываются во внешнем ассоциированном браузере.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="AllLinksInNewWnd" type="boolType" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          Если задан, все ссылки открываются во внешнем ассоциированном браузере.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="HostToolbarIconFirst" type="boolType" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          Иконка портала в программе-хосте появляется перед всеми остальными иконками тулбара. Если флаг не задан - иконка появляется последней.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="HostToolbarIconNone" type="boolType" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          Запрещает отображение иконки портала в тулбаре программы-хоста.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="HostMenuNone" type="boolType" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          Запрещает отображение портала в меню программы-хоста.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="EnableScriptDebugging" type="boolType" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          Включает script debugger. При ошибке скрипта в HTML странице будет показано окно отладки.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="DisableToolbarFollowURL" type="boolType" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          По-умолчанию при переходе по ссылкам отслеживается перемещение и автоматически переключается текущий раздел портала. При заданном флаге отслеживание отключается.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="ShowRequestDumper" type="boolType" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          Добавляет в тулбар иконку request dumper'а.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="DisableToolbar" type="boolType" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          Отключает тулбар в браузере.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="DefaultType">
+    <xs:annotation>
+      <xs:documentation xml:lang="ru">
+        Описание значений по-умолчанию.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="StartSection" type="xs:unsignedByte" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          Индекс раздела портала загружаемого при инициализации. Индекс является номером раздела портала, заданного верхним уровнем дерева Section.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="SearchSection" type="xs:unsignedByte" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          Индекс команды поиска загружаемой при открытии портала. Индекс является номером команды поиска, заданной верхним уровнем дерева Section.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="SectionType">
+    <xs:annotation>
+      <xs:documentation xml:lang="ru">
+        Описание раздела портала.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Section" type="SectionType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="SearchName" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          Имя команды поиска, отображающееся с контроле поиска. Если не указано, то берется имя, заданное атрибутом "name".
+          Поиск для данного раздела портала считается не заданным, если отсутствуют атрибуты "SearchName" и "name", "SearchURL" и "Portal/SearchURL".
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="SearchURL" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          URL страницы поиска. Относителен к URL'у портала (см. атрибут "Portal/URL"). Если не указан, то используется "Portal/SearchURL".
+          Поиск для данного раздела портала считается не заданным, если отсутствуют атрибуты "SearchName" и "name", "SearchURL" и "Portal/SearchURL".
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="LargeImageID" type="ImageIDType" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          Индекс иконки в файле, указанном в "Portal/Large", которая будет показываться в тулбаре для данного раздела портала.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="URL" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          URL раздела портала. Относителен к URL'у портала (см. атрибут "Portal/URL"). Если не указан, будет использоваться "Portal/URL".
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+		<xs:attribute name="AbsolutePath" type="boolType" use="optional">
+			<xs:annotation>
+				<xs:documentation xml:lang="ru">
+					Флаг абсолютного пути к ресурсу. Если true - в URL указан абсолютный путь, если false - то относительный.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+    <xs:attribute name="name" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          Имя раздела портала. Отображается в тулбаре. Если не указано и не задан атрибут "LargeImageID" - раздел не отображается в тулбаре; в таком случае должен быть задан атрибут "SearchURL" или "Portal/SearchURL", тогда этот раздел добавляется в контрол поиска.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="SearchCommand" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          Команда поиска. В зависимости от атрибута "RequestMethod" является GET или POST командой, соответственно добавляется к URL после символа '?' или отправляется как данные POST запроса.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="RequestMethod" type="RequestMethodType" use="optional">
+      <xs:annotation>
+        <xs:documentation xml:lang="ru">
+          Метод запроса авторизации - POST или GET. По-умолчанию используется метод GET.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    </xs:complexType>
+</xs:schema>

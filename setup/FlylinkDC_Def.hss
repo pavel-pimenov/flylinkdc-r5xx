@@ -1,0 +1,402 @@
+
+#if VER < 0x05050300
+  #error Update your Inno Setup version
+#endif
+#ifndef UNICODE
+  #error Use the Unicode Inno Setup
+#endif
+
+#define YANDEX_DOWNLOADER
+
+[Setup]
+AppName=FlylinkDC++{code:Postfix| }
+#include "version_info.txt"
+AppVerName={code:LoadVerName}
+VersionInfoDescription=FlylinkDC++ Setup
+VersionInfoProductName=FlylinkDC++
+AppPublisher=FlylinkDC++ Team
+AppPublisherURL=http://www.flylinkdc.ru
+AppSupportURL=http://flylinkdc.blogspot.com/
+AppUpdatesURL=http://www.flylinkdc.ru
+DefaultDirName={pf}\FlylinkDC++{code:Postfix|_}
+DefaultGroupName=FlylinkDC++{code:Postfix| }
+SetupIconFile="..\res\FlylinkDC.ico"
+#ifdef FLYLIKDC_USE_ZIP
+Compression=zip
+#else
+Compression=lzma2/ultra64
+#endif
+SolidCompression=yes
+AppendDefaultDirName=false
+UninstallDisplayIcon={app}\FlylinkDC{code:Postfix|_}.exe
+;release instance
+AppMutex={{FLYDC-AEE8350A-B49A-4753-AB4B-E55479A48351}
+;debug instance
+;AppMutex={{FLYDC-AEE8350A-B49A-4753-AB4B-E55479A48350}
+UsePreviousLanguage=no
+
+[Languages]
+Name: "en_US"; MessagesFile: "custom_lang\custom_messages-EN-US.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
+Name: "ru_RU"; MessagesFile: "custom_lang\custom_messages-RU-RU.isl"; InfoBeforeFile: "readme_ru-RU.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"; LicenseFile: "license_ru-RU.rtf"
+Name: "be_BY"; MessagesFile: "custom_lang\custom_messages-BE-BY.isl"; InfoBeforeFile: "readme_ru-RU.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"; LicenseFile: "license_ru-RU.rtf"
+Name: "uk_UA"; MessagesFile: "custom_lang\custom_messages-UK-UA.isl"; InfoBeforeFile: "readme_ru-RU.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"; LicenseFile: "license_ru-RU.rtf"
+Name: "fr_FR"; MessagesFile: "custom_lang\custom_messages-FR-FR.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
+Name: "es_ES"; MessagesFile: "custom_lang\custom_messages-ES-ES.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
+Name: "lv_LV"; MessagesFile: "custom_lang\custom_messages-LV-LV.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"; LicenseFile: "license_en-US.rtf"
+Name: "it_IT"; MessagesFile: "custom_lang\custom_messages-IT-IT.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
+Name: "pl_PL"; MessagesFile: "custom_lang\custom_messages-PL-PL.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
+Name: "de_DE"; MessagesFile: "custom_lang\custom_messages-DE-DE.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
+Name: "zh_CN"; MessagesFile: "custom_lang\custom_messages-ZH-CN.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
+Name: "pt_BR"; MessagesFile: "custom_lang\custom_messages-PT-BR.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
+;Name: "eo_XX"; MessagesFile: "English.isl"
+;Name: "et_EE"; MessagesFile: "English.isl"
+;Name: "hu_HU"; MessagesFile: "English.isl"
+;Name: "ro_RO"; MessagesFile: "English.isl"
+;Name: "sq_AL"; MessagesFile: "English.isl"
+;Name: "sv_SE"; MessagesFile: "English.isl"
+;Name: "tr_TR"; MessagesFile: "English.isl"
+
+[Files]
+Source: "..\compiled\Settings\custom_menu.xml"; DestDir: "{app}\Settings"; Flags: onlyifdoesntexist ignoreversion
+Source: "..\compiled\AVIPreview.exe"; DestDir: "{app}"; Flags: overwritereadonly ignoreversion
+Source: "..\compiled\WEBserver\*.*"; Excludes: "\.svn\"; DestDir: "{app}\WEBserver"; Flags: recursesubdirs overwritereadonly ignoreversion
+Source: "..\compiled\Lang\??-??.xml"; DestDir: "{app}\Lang"; Flags: overwritereadonly ignoreversion
+Source: "..\compiled\Themes\*.dctheme"; DestDir: "{app}\Themes"; Flags: overwritereadonly ignoreversion
+Source: "..\compiled\Sounds\*.wav"; DestDir: "{app}\Sounds"; Flags: overwritereadonly ignoreversion
+Source: "..\compiled\Sounds\Animals\*.wav"; DestDir: "{app}\Sounds\Animals"; Flags: overwritereadonly ignoreversion
+Source: "..\compiled\EmoPacks\*.*"; Excludes: "\.svn\"; DestDir: "{app}\EmoPacks"; Flags: createallsubdirs overwritereadonly recursesubdirs ignoreversion
+Source: "..\Tools\XMLMerge.exe"; DestDir: "{app}\PortalBrowser\XMLUpdate"; Flags: overwritereadonly ignoreversion
+Source: "readme_*-*.rtf"; DestDir: "{app}"; Flags: overwritereadonly
+Source: "license_*-*.rtf"; DestDir: "{app}"; Flags: overwritereadonly
+
+[Tasks]
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}";
+Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}";
+Name: "startup"; Description: "{cm:CreateStartupIcon}"; GroupDescription: "{cm:AdditionalIcons}"; 
+
+[Registry]
+;создание ключей ADC в реестре
+Root: HKCU; SubKey: Software\Classes\adc; ValueType: string; ValueData: URL:Direct Connect Protocol; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\adc; ValueType: string; ValueName: URL Protocol; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\adc\DefaultIcon; ValueType: string; ValueData: {app}\FlylinkDC{code:Postfix|_}.exe; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\adc\Shell; Flags: uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\adc\Shell\Open; Flags: uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\adc\Shell\Open\Command; ValueType: string; ValueData: """{app}\FlylinkDC{code:Postfix|_}.exe"" /magnet ""%1"""; Flags: uninsdeletevalue uninsdeletekeyifempty
+;создание ключей ADCS в реестре
+Root: HKCU; SubKey: Software\Classes\adcs; ValueType: string; ValueData: URL:Direct Connect Protocol; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\adcs; ValueType: string; ValueName: URL Protocol; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\adcs\DefaultIcon; ValueType: string; ValueData: {app}\FlylinkDC{code:Postfix|_}.exe; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\adcs\Shell; Flags: uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\adcs\Shell\Open; Flags: uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\adcs\Shell\Open\Command; ValueType: string; ValueData: """{app}\FlylinkDC{code:Postfix|_}.exe"" /magnet ""%1"""; Flags: uninsdeletevalue uninsdeletekeyifempty
+;Создание ключей DCHUB в реестре
+Root: HKCU; SubKey: Software\Classes\dchub; ValueType: string; ValueData: URL:Direct Connect Protocol; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\dchub; ValueType: string; ValueName: URL Protocol; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\dchub\DefaultIcon; ValueType: string; ValueData: {app}\FlylinkDC{code:Postfix|_}.exe; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\dchub\Shell; Flags: uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\dchub\Shell\Open; Flags: uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\dchub\Shell\Open\Command; ValueType: string; ValueData: """{app}\FlylinkDC{code:Postfix|_}.exe"" /magnet ""%1"""; Flags: uninsdeletevalue uninsdeletekeyifempty
+;Создание ключей magnet в реестре
+Root: HKCU; SubKey: Software\Classes\magnet; ValueType: string; ValueData: URL: {cm:Magnet_link}; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\magnet; ValueType: string; ValueName: URL Protocol; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\magnet\DefaultIcon; ValueType: string; ValueData: """{app}\FlylinkDC{code:Postfix|_}.exe"" /magnet"; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\magnet\shell; Flags: uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\magnet\shell\open; Flags: uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\magnet\shell\open\command; ValueType: string; ValueData: """{app}\FlylinkDC{code:Postfix|_}.exe"" /magnet ""%1"""; Flags: uninsdeletevalue uninsdeletekeyifempty
+;Создание ключей NMDCS в реестре
+Root: HKCU; SubKey: Software\Classes\nmdcs; ValueType: string; ValueData: URL: {cm:Magnet_link}; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\nmdcs; ValueType: string; ValueName: URL Protocol; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\nmdcs\DefaultIcon; ValueType: string; ValueData: """{app}\FlylinkDC{code:Postfix|_}.exe"" /magnet"; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\nmdcs\shell; Flags: uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\nmdcs\shell\open; Flags: uninsdeletekeyifempty
+Root: HKCU; SubKey: Software\Classes\nmdcs\shell\open\command; ValueType: string; ValueData: """{app}\FlylinkDC{code:Postfix|_}.exe"" /magnet ""%1"""; Flags: uninsdeletevalue uninsdeletekeyifempty
+
+[UninstallDelete]
+Type: files; Name: "{app}\PortalBrowser\*.bak"
+Type: files; Name: "{app}\PortalBrowser\PortalBrowser.xml"
+
+#ifndef PPA_VIP
+[Run]
+Filename: "{app}\FlylinkDC{code:Postfix|_}.exe"; Description: "{cm:LaunchProgram,FlylinkDC++{code:Postfix| }}"; Flags: nowait postinstall skipifsilent
+Filename: "http://flylinkdc.blogspot.com/"; Description: "{cm:TestDrive}"; Flags: nowait postinstall shellexec skipifsilent
+
+[Icons]
+Name: {group}\FlylinkDC++{code:Postfix| }; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; WorkingDir: {app}
+Name: {userstartup}\FlylinkDC++{code:Postfix| }; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; Tasks: startup; WorkingDir: {app}
+Name: {group}\{cm:ProgramOnTheWeb,FlylinkDC++{code:Postfix| }}; Filename: http://www.flylinkdc.ru
+Name: {group}\{cm:AboutProgram}; Filename: {app}\readme_ru-RU.rtf; Languages: ru_RU be_BY uk_UA 
+Name: {group}\{cm:AboutProgram}; Filename: {app}\readme_en-US.rtf; Languages: en_US fr_FR es_ES lv_LV
+Name: {group}\{cm:License}; Filename: {app}\license_ru-RU.rtf; Languages: ru_RU be_BY uk_UA
+Name: {group}\{cm:License}; Filename: {app}\license_en-US.rtf; Languages: en_US fr_FR es_ES lv_LV
+Name: {group}\{cm:UninstallProgram,FlylinkDC++{code:Postfix| }}; Filename: {uninstallexe}
+Name: {commondesktop}\FlylinkDC++{code:Postfix| }; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; Tasks: desktopicon; WorkingDir: {app}
+Name: {userappdata}\Microsoft\Internet Explorer\Quick Launch\FlylinkDC++{code:Postfix| }; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; Tasks: quicklaunchicon; WorkingDir: {app}
+#endif
+
+[code]
+function LoadVerName(Separator: String): String;
+begin
+  if Is64BitInstallMode then begin
+    #include "version-x64.txt"
+  end
+  else begin
+    #include "version.txt"
+  end;
+end;
+
+function Postfix(Separator: String): String;
+begin
+  if Is64BitInstallMode then begin
+    Separator := Separator + 'x64';
+    Result := Separator;
+  end;
+end;
+
+procedure AboutButtonOnClick(Sender: TObject);
+begin
+  MsgBox('© 2006-2013, ' + CustomMessage('FlylinkTeam'), mbInformation, mb_Ok);
+end;
+
+procedure URLLabelOnClick(Sender: TObject);
+var
+  ErrorCode: Integer;
+begin
+  ShellExec('open', 'http://flylinkdc.blogspot.com/', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+end;
+
+procedure CreateAboutButtonAndURLLabel(ParentForm: TSetupForm; CancelButton: TNewButton);
+var
+  AboutButton: TNewButton;
+  URLLabel: TNewStaticText;
+begin
+  AboutButton := TNewButton.Create(ParentForm);
+  AboutButton.Left := ParentForm.ClientWidth - CancelButton.Left - CancelButton.Width;
+  AboutButton.Top := CancelButton.Top;
+  AboutButton.Width := CancelButton.Width;
+  AboutButton.Height := CancelButton.Height;
+  AboutButton.Caption := CustomMessage('About');
+  AboutButton.OnClick := @AboutButtonOnClick;
+  AboutButton.Parent := ParentForm;
+
+  URLLabel := TNewStaticText.Create(ParentForm);
+  URLLabel.Caption := 'http://flylinkdc.blogspot.com';
+  URLLabel.Cursor := crHand;
+  URLLabel.OnClick := @URLLabelOnClick;
+  URLLabel.Parent := ParentForm;
+  URLLabel.Font.Style := URLLabel.Font.Style + [fsUnderline];
+  URLLabel.Font.Color := clBlue;
+  URLLabel.Top := AboutButton.Top + AboutButton.Height - URLLabel.Height - 2;
+  URLLabel.Left := AboutButton.Left + AboutButton.Width + ScaleX(7);
+end;
+
+#ifdef PPA_WIZARD
+var
+  UserPage: TInputQueryWizardPage;
+  DataDirPage: TInputDirWizardPage;
+
+function NextButtonClick(CurPageID: Integer): Boolean;
+begin
+  { Validate certain pages before allowing the user to proceed }
+  if CurPageID = DataDirPage.ID then begin
+    begin
+      if DataDirPage.Values[0] = '' then
+    begin
+        DataDirPage.Values[0] := 'C:\DCDownloads';
+        MsgBox(CustomMessage('DataDirPage'), mbError, MB_OK);
+        Result := false;
+    end
+    else
+        RegWriteStringValue(HKEY_CURRENT_USER, 'Software\FlylinkDC++', 'DownloadDir', DataDirPage.Values[0]);
+        RegWriteStringValue(HKEY_CURRENT_USER, 'Software\FlylinkDC++','Nick', UserPage.Values[0]);
+        if (DirExists(DataDirPage.Values[0]) = false) then
+          begin
+            if (CreateDir(DataDirPage.Values[0]) = false) then
+               begin
+               MsgBox(CustomMessage('DataDirPageCreateError'), mbError, MB_OK);
+               Result := false;
+               end
+              else
+               Result := true;
+          end
+        else
+          Result := true;
+    end;
+  end
+  else
+    Result := True;
+end;
+
+procedure RegisterPreviousData(PreviousDataKey: Integer);
+begin
+  { Store the settings so we can restore them next time }
+  SetPreviousData(PreviousDataKey, 'Name', UserPage.Values[0]);
+  SetPreviousData(PreviousDataKey, 'DataDir', DataDirPage.Values[0]);
+end;
+#endif
+
+procedure InitializeUninstallProgressForm();
+begin
+  CreateAboutButtonAndURLLabel(UninstallProgressForm, UninstallProgressForm.CancelButton);
+end;
+
+procedure DeinitializeUninstall();
+var ErrorCode : Integer;
+l_VID_VALUE : string;
+begin
+
+#ifdef  YANDEX_VID_PREFIX
+   #if YANDEX_VID_PREFIX > 9
+     l_VID_VALUE := IntToStr({#YANDEX_VID_PREFIX} * 1000000 + {#YANDEX_VID_INDEX});
+   #else
+     l_VID_VALUE := IntToStr({#YANDEX_VID_PREFIX} * 10000000 + {#YANDEX_VID_INDEX});
+   #endif
+    RegDeleteValue(HKEY_CURRENT_USER, 'Software\FlylinkDC++\VID', l_VID_VALUE);
+#endif
+
+    if MsgBox(CustomMessage('ThanksForUsingFlylink') + #13 + CustomMessage('FeedBack'), mbConfirmation, MB_YESNO or MB_DEFBUTTON2) = idYes
+    then ShellExec('open', 'http://flylinkdc.blogspot.com/2010/04/flylinkdc-uninstall-feedback.html', '', '', SW_SHOW, ewNoWait, ErrorCode);
+end;
+
+var source: String;
+var dest: String;
+var userall: string;
+var user: string;
+
+procedure MoveFileAll(FileName: String);
+begin
+source := ExpandConstant('{app}\Settings\' + FileName)
+dest := ExpandConstant('{commonappdata}\FlylinkDC++\' + FileName);
+  if FileExists(source) then begin
+    if  FileCopy(source, dest, false) then begin
+      DeleteFile(source);
+    end;
+  end;
+end;
+ 
+procedure MoveFileUser(FileName: String);
+begin
+source := ExpandConstant('{app}\Settings\' + FileName);
+dest := ExpandConstant('{userappdata}\FlylinkDC++\' + FileName);
+  if FileExists(source) then begin
+    if  FileCopy(source, dest, false) then begin
+      DeleteFile(source);
+    end;
+  end;
+end;
+
+procedure SelectPath();
+begin
+  userall := ExpandConstant('{app}\Settings');
+  user := ExpandConstant('{app}\Settings');
+  if (pos(ExpandConstant('{pf}'), ExpandConstant('{app}')) <> 0)  then begin
+    if FileExists(ExpandConstant('{app}\Settings\DCPlusPlus.xml')) then begin
+//      MoveFileUser('ADLSearch.xml');
+//      MoveFileUser('DCPlusPlus.xml');
+//      MoveFileUser('dht.xml');
+//      MoveFileUser('Favorites.xml');
+//      MoveFileUser('files.xml.bz2');
+//      MoveFileUser('FlylinkDC.sqlite');
+//      MoveFileUser('FlylinkDC.sqlite-shm');
+//      MoveFileUser('FlylinkDC.sqlite-wal'); 
+//      MoveFileUser('FlylinkDC_log.sqlite');
+//      MoveFileUser('IPTrust.ini');
+//      MoveFileUser('Profiles.xml');
+//      userall := ExpandConstant('{commonappdata}\FlylinkDC++');
+//      user := ExpandConstant('{userappdata}\FlylinkDC++');
+    end
+  else
+    begin
+    userall := ExpandConstant('{commonappdata}\FlylinkDC++');
+    user := ExpandConstant('{userappdata}\FlylinkDC++');
+    end;
+  end;
+end;
+  
+function fUser(Separator: String): String;
+begin
+  if user = '' then 
+    begin
+    SelectPath();
+    end;
+  Result := user;
+end;
+
+function fUserAll(Separator: String): String;
+begin
+  if user = '' then 
+    begin
+    SelectPath();
+    end;
+  Result := userall;
+end;
+
+#ifdef PPA_PORTAL_MERGE
+var PortalsMergeCommand: String;
+
+procedure MyAfterInstall();
+begin
+  {Construct XMLMerge command from chosen in GUI Portals}
+  PortalsMergeCommand := PortalsMergeCommand + Format('-i:"%s" ', [CurrentFileName]);
+end;
+
+
+procedure PortalMerge(CurPageID: Integer);
+var i: integer;
+var ResultCode: Integer;
+var BakFile1: String;
+var BakFile2: String;
+var CurDir: String;
+var MergeFailed: Bool;
+begin
+  {After installation complete}
+  if CurPageID = wpInfoAfter then begin
+
+    CurDir := GetCurrentDir;
+    MergeFailed := False;
+
+    {check if user have selected some Portals. If so, do merge it}
+    if Length(PortalsMergeCommand) > 0 then begin
+      SetCurrentDir(ExpandConstant('{app}\PortalBrowser'));
+
+      {Shift backups files if wee need to backup existing file and backup name is in use}
+      if (FileExists('PortalBrowser.xml')) and (FileExists('PortalBrowser.xml.1.bak')) then begin
+        {Delete oldest backup file}
+        DeleteFile('PortalBrowser.xml.9.bak');
+        for i := 8 downto 1 do begin
+          BakFile1 := Format('PortalBrowser.xml.%d.bak', [i]);
+          BakFile2 := Format('PortalBrowser.xml.%d.bak', [i + 1]);
+
+          RenameFile(BakFile1, BakFile2);
+        end;
+      end;
+
+      {Backup current file}
+      FileCopy('PortalBrowser.xml', 'PortalBrowser.xml.1.bak', False);
+
+      PortalsMergeCommand := ExpandConstant(PortalsMergeCommand) + ExpandConstant('-o:"{app}\PortalBrowser\PortalBrowser.xml"');
+      Exec(ExpandConstant('{app}\PortalBrowser\XMLUpdate\XMLMerge.exe'), PortalsMergeCommand, ExpandConstant('{app}\PortalBrowser\XMLUpdate'), SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
+      SetCurrentDir(ExpandConstant('{app}\PortalBrowser'));
+      if not ResultCode = 0 then begin
+        {some error, restore backup file}
+        RenameFile('PortalBrowser.xml.1.bak', 'PortalBrowser.xml');
+
+        {Set flag to not to delete XMLUpdate directory, so user can manualy merge Portals}
+        MergeFailed := True;
+      end;
+    end
+    else begin
+      SetCurrentDir(ExpandConstant('{app}\PortalBrowser'));
+    end;
+
+    if not MergeFailed then begin
+      {Cleanup}
+      DelTree('XMLUpdate', True, True, True);
+    end;
+
+    {Restore initial dir}
+    SetCurrentDir(CurDir);
+  end;
+end;
+
+#endif

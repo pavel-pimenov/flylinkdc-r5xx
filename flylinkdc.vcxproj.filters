@@ -1,0 +1,1115 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="windows\AddMagnet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\ADLSearchFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\ADLSProperties.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\AdvancedPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\AGEmotionSetup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\AppearancePage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\BarShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\Bitmap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\CDMDebugFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\CertificatesPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\ChatBot.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\ChatCtrl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\ClientProfileDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\ClientsPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\CommandDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\DefaultClickPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\DetectionEntryDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\DirectoryListingFrm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\DownloadPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\EmoticonsDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\ExListViewCtrl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\ExMessageBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\FavHubProperties.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\FavoriteDirsPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\FavoritesFrm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\FolderTree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\GeneralPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\HubFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\ImageDataObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\LimitPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\LineDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\LogPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\MagnetDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\MainFrm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\MessagesPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\MiscPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\NetworkPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\NotepadFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\OperaColorsPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\PopupManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\PortalBrowser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\PreviewDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\PriorityPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\PrivateFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\InputBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\OMenu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\PropertiesDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\PropPageTextStyles.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\PropPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\PublicHubsFrm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\QueueFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\QueuePage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\RangesPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\RecentsFrm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\RemoteControlPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\SDCPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\SearchFrm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\ShellContextMenu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\SkinableCmdBar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\SkinManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\UCPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\TreePropertySheet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\TransferView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\SpyFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\StatsFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\TabCtrlSharedInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\TabsPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\TextFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\ToolbarManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\toolbarpage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\SlotPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\WMPlayerRemoteApi.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\WinUtil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\WindowsPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\WebServerPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\WaitingUsersFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\UsersFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\UserListColours.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\iTunesCOMInterface_i.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\ProxyPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\RSSnewsFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\RSSPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\RSSSetFeedDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\FavHubGroupsDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\MessagePanel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\CheckTargetDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\UpdatePage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\JAControl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\FlyUpdateDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\DCLSTPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\dclstGenDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\FileSharePage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\WizardTestDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\LimitEditDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\IntegrationPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\UserInfoSimple.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\IntPreviewPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\PreviewLogDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\ProvidersPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\MessagesChatPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\AVIPreviewPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\FakeDetectPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\PopupsPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\SoundsPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\BaseChatFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\ResourceLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\SpeedVolDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\FlySQLExplorer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\UPNPCheckDlg.cpp">
+      <Filter>Wizard</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\SharePage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\ShareMiscPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\SearchPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\HashProgressDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="windows\AboutDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\AddMagnet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\ADLSearchFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\ADLSProperties.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\AdvancedPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\AGEmotionSetup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\AppearancePage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\BarShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\Bitmap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\CDMDebugFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\CertificatesPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\ChatCtrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\ClientProfileDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\CommandDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\DefaultClickPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\DimEdit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\DirectoryListingFrm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\DownloadPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\EmoticonsDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\ExListViewCtrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\ExMessageBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\FavDirDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\FavHubProperties.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\FavoriteDirsPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\FavoritesFrm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\FinishedFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\FinishedFrameBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\FinishedULFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\FlatTabCtrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\FolderTree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\GeneralPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\HashProgressDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\HubFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\ImageDataObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\InputBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\LimitPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\LineDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\ListViewArrows.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\LogPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\MagnetDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\MainFrm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\MessagesPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\MiscPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\NetworkPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\NotepadFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\OMenu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\OperaColorsPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\ParamDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\PopupDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\PopupManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\PreviewDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\PriorityPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\PrivateFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\PropertiesDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\PropPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\PropPageTextStyles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\PublicHubsListDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\QueueFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\QueuePage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\RangesPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\RecentsFrm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\RemoteControlPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\ResourceLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\SDCPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\SearchFrm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\SingleInstance.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\SkinableCmdBar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\SkinManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\SlotPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\SpyFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\StatsFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\TabCtrlSharedInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\TabsPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\TextFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\ToolbarManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\ToolbarPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\TransferView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\TreePropertySheet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\TypedListViewCtrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\UCHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\UCPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\UserListColours.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\UsersFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\WaitingUsersFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\WebServerPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\Winamp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\WindowsPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\WinUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\Wnd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\ProxyPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\RSSnewsFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\RSSPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\RSSSetFeedDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\FavHubGroupsDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\MessagePanel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\CheckTargetDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\HIconWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\UpdatePage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\JetAudio6_API.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\JAControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\FlyUpdateDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\DCLSTPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\dclstGenDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\FileSharePage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\Wizards\FlyWizard.h">
+      <Filter>Wizard</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\Wizards\WzDownload.h">
+      <Filter>Wizard</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\Wizards\WzFinish.h">
+      <Filter>Wizard</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\Wizards\WzNick.h">
+      <Filter>Wizard</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\Wizards\WzStartup.h">
+      <Filter>Wizard</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\Wizards\WzShare.h">
+      <Filter>Wizard</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\Wizards\WzSetIP.h">
+      <Filter>Wizard</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\Wizards\WzNetActive.h">
+      <Filter>Wizard</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\WizardTestDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\LimitEditDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\IntegrationPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\UserInfoSimple.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\IntPreviewPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\PreviewLogDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\ProvidersPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\wtl_flylinkdc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\MessagesChatPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\AVIPreviewPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\FakeDetectPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\PopupsPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\SoundsPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\BaseChatFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\HTMLColors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\QCDCtrlMsgs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\ChatBot.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\ClientsPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\CZDCPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\ddraw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\DetectionEntryDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\iTunesCOMInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\natupnp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\Players.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\PortalBrowser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\PublicHubsFrm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\ShellContextMenu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\wmp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\WMPlayerRemoteApi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\SpeedVolDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\FlySQLExplorer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\UPNPCheckDlg.h">
+      <Filter>Wizard</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\AboutCmdsDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\AboutDlgIndex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\SharePage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\ShareMiscPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\SearchPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\AboutLogDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="FlylinkDC_version.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+    <ResourceCompile Include="FlylinkDC.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\ADLSearch.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Arrows.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\CDM.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Error.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Favorites.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\FlylinkDC.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Hub.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\HubOff.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Magnet.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Notepad.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\PM.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Pause.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Purge.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Search.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Shutdown.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Sounds.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\TranferUser.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\User.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\UserBan.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\UserBanOff.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\UserOff.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\RSS.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Download-Queue.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Fav-Users-States.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Finished-Downloads.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Finished-Uploads.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Flags.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\FlyLink.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Folders.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Internet-Hubs.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Network-Statistics.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\PlayersControl-highlight.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\PlayersControl-mini.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\PlayersControl.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Search-Types.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Settings-icons.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Smile.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Speeds.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\State.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Toolbar-highlight.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Toolbar-mini.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Toolbar.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\TranferSpeeds.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\TransferSpeeds-BW.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Upload-Queue.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Users.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Portal-Browser.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Recent-Hubs.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Search-Spy.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Favorite-Users.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\PM-None.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\File-List-Off.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\File-List.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\underline.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\traur_flag.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\transcode.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\strike.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\italic.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\bold.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\addMessage.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\addMessage.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Bold.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Smile.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\italic.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\strike.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\transcode.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\underline.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\CloseIcon.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Splash\Splash.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Splash\Splash_9may.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\dclst.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\f_green_16.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\f_yellow_16.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\f_p_16.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\f_red_16.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Splash\Splash_5xx_NY1.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Splash\Splash_5xx_NY2.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Splash\Splash_winter.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\MultiChat.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\MultiChat.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\FlylinkDC_Update.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Error.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\FlyLink.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Magnet.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\f_green_16.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\SwitchPanels.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\f_red_16.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\f_yellow_16.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\SwitchPanels.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Splash\Splash_fools_day.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Mediafiles.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="compiled\Settings\common\IPGrant.ini">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="compiled\Settings\common\IPGuard.ini">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="compiled\Settings\common\IPTrust.ini">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="compiled\Settings\flylinkdc-config-r5xx.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{40c3f4a7-57df-445e-bb65-f2a2c5044d1c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{659523c1-6334-4d66-a5f3-9d1abbb0b271}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{6d5ae0f2-9faa-4006-80bd-b651b3509ec5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Wizard">
+      <UniqueIdentifier>{cb5f3249-0049-47ba-845a-a0cef619df71}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

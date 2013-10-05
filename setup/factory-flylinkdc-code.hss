@@ -1,0 +1,34 @@
+[code]
+function ShouldSkipPage(PageID: Integer): Boolean;
+begin
+  if PageID = wpInfoAfter then
+    begin
+    result := True;
+//    MsgBox('wpInfoAfter!' , mbInformation, MB_OK);
+    exit;
+    end;
+  result := False;
+end;
+
+procedure CustomAfterInstall;
+var
+  l_fileSrc: String;
+  l_fileDest: String;
+begin    
+   l_fileDest := AddBackslash(ExpandConstant('{userappdata}\FlylinkDC++')) + 'Favorites.xml';
+   l_fileSrc := AddBackslash(ExpandConstant('{src}')) + 'build-out\custom\Favorites.xml';
+//   MsgBox('l_fileDest = ' + l_fileDest + ' l_fileSrc = ' + l_fileSrc , mbInformation, MB_OK);
+   FileCopy(l_fileSrc, l_fileDest,true);
+//   if FileCopy(l_fileSrc, l_fileDest,true) = true then
+//      MsgBox('FileCopy Ok!' , mbInformation, MB_OK);
+   l_fileDest := AddBackslash(ExpandConstant('{userappdata}\FlylinkDC++')) + 'DCPlusPlus.xml';
+   l_fileSrc := AddBackslash(ExpandConstant('{src}')) + 'build-out\custom\DCPlusPlus.xml';
+//   MsgBox('l_fileDest = ' + l_fileDest + ' l_fileSrc = ' + l_fileSrc , mbInformation, MB_OK);
+   FileCopy(l_fileSrc, l_fileDest,true);
+//   if FileCopy(l_fileSrc, l_fileDest,true) = true then
+//      MsgBox('FileCopy Ok!' , mbInformation, MB_OK);
+   l_fileDest := AddBackslash(ExpandConstant('{userappdata}\FlylinkDC++')) + 'ISP-root.url';
+   l_fileSrc := AddBackslash(ExpandConstant('{src}')) + 'build-out\custom\ISP-root.url';
+   FileCopy(l_fileSrc, l_fileDest,true);
+end;
+

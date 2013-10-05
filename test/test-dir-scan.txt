@@ -1,0 +1,66 @@
+C:\bcb2007\common - 7157 פאיכמג, 405204147 באיע
+
+===============================================
+CAtlFileMapping ===============================
+g_hash_byte = -1852368863 g_sum_byte = 405204147
+Instruction number = 100
+Hole time = 0.928249
+Call count = 7157
+Average time = 0.000129698
+
+g_hash_byte = -1852368863 g_sum_byte = 405204147
+Instruction number = 100
+Hole time = 0.948382
+Call count = 7157
+Average time = 0.000132511
+
+g_hash_byte = -1852368863 g_sum_byte = 405204147
+Instruction number = 100
+Hole time = 0.940913
+Call count = 7157
+Average time = 0.000131468
+
+
+===============================================
+CAtlFile ======================================
+
+g_hash_byte = -1852368863 g_sum_byte = 405204147
+Instruction number = 100
+Hole time = 1.4599
+Call count = 7157
+Average time = 0.000203982
+
+g_hash_byte = -1852368863 g_sum_byte = 405204147
+Instruction number = 100
+Hole time = 1.46512
+Call count = 7157
+Average time = 0.000204712
+
+g_hash_byte = -1852368863 g_sum_byte = 405204147
+Instruction number = 100
+Hole time = 1.46267
+Call count = 7157
+Average time = 0.000204369
+
+===============================================
+boost::iostreams::mapped_file_source ==========
+
+g_hash_byte = -1852368863 g_sum_byte = 405204147
+Instruction number = 100
+Hole time = 0.723911
+Call count = 7157
+Average time = 0.000101147
+
+g_hash_byte = -1852368863 g_sum_byte = 405204147
+Instruction number = 100
+Hole time = 0.714723
+Call count = 7157
+Average time = 9.98634e-005
+
+g_hash_byte = -1852368863 g_sum_byte = 405204147
+Instruction number = 100
+Hole time = 0.714339
+Call count = 7157
+Average time = 9.98099e-005
+
+===============================================

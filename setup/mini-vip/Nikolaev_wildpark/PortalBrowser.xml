@@ -1,0 +1,330 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<PortalBrowser xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="PortalBrowser.xsd">
+	
+	
+	
+	<Portal name="CLUB42.RU" URL="http://p2p.club42.ru" SearchURL="index.php?do=files&amp;op=search" XMLVersion="1" DefaultCharset="utf8">
+		<Images Large="club42\icons_large.bmp" Small="club42\icons_small.bmp" SmallImageID="0" LargeImageID="0"/>
+		<Default StartSection="0" SearchSection="1"/>
+		<Flags DenyNewWnd="1" DenyExternalLinksNewWindow="1"/>
+		<Section URL="index.html" LargeImageID="Home"/>
+		<Section SearchName="Везде" SearchURL="&amp;search_text=%QUERY%" LargeImageID="Search"/>
+		<Section name="Видео" URL="files/cat1.html" SearchURL="&amp;razdel=1&amp;search_text=%QUERY%">
+			<Section name="Аниме" URL="files/cat5.html"/>
+			<Section name="Мультфильмы" URL="files/cat6.html"/>
+			<Section name="Мультсериалы" URL="files/cat7.html"/>
+			<Section name="Отечественное кино" URL="files/cat8.html"/>
+			<Section name="Зарубежное кино" URL="files/cat9.html"/>
+			<Section name="Документальные фильмы" URL="files/cat38.html"/>
+			<Section name="Сериалы" URL="files/cat10.html"/>
+			<Section name="Музыкальное видео" URL="files/cat37.html"/>
+			<Section name="Русские фильмы HDTV" URL="files/cat43.html"/>
+			<Section name="Зарубежные фильмы HDTV" URL="files/cat36.html"/>
+			<Section name="Экранные версии" URL="files/cat42.html"/>
+		</Section>
+		<Section name="Музыка" URL="files/cat2.html" SearchURL="&amp;razdel=2&amp;search_text=%QUERY%">
+			<Section name="Электронная музыка" URL="files/cat11.html"/>
+			<Section name="Ethnic, NewAge" URL="files/cat12.html"/>
+			<Section name="Зарубежный Рок" URL="files/cat13.html"/>
+			<Section name="Отечественный Рок" URL="files/cat14.html"/>
+			<Section name="Классическая музыка" URL="files/cat15.html"/>
+			<Section name="Поп музыка" URL="files/cat16.html"/>
+			<Section name="Рэп, Хип-Хоп, R&amp;B" URL="files/cat17.html"/>
+			<Section name="Саундтреки и Караоке" URL="files/cat18.html"/>
+			<Section name="Шансон" URL="files/cat19.html"/>
+		</Section>
+		<Section name="Игры" URL="files/cat3.html" SearchURL="&amp;razdel=3&amp;search_text=%QUERY%">
+			<Section name="Action" URL="files/cat20.html"/>
+			<Section name="Adventure" URL="files/cat21.html"/>
+			<Section name="Arcade" URL="files/cat22.html"/>
+			<Section name="MMORPG" URL="files/cat23.html"/>
+			<Section name="Simulators" URL="files/cat24.html"/>
+			<Section name="Sport" URL="files/cat25.html"/>
+			<Section name="Strategy" URL="files/cat26.html"/>
+			<Section name="RPG" URL="files/cat40.html"/>
+		</Section>
+		<Section name="Софт" URL="files/cat4.html" SearchURL="&amp;razdel=4&amp;search_text=%QUERY%">
+			<Section name="Офисные программы" URL="files/cat27.html"/>
+			<Section name="Операционные системы" URL="files/cat28.html"/>
+			<Section name="Графика и дизайн" URL="files/cat29.html"/>
+			<Section name="Интернет и Сети" URL="files/cat30.html"/>
+			<Section name="Мультимедиа" URL="files/cat31.html"/>
+			<Section name="Программирование" URL="files/cat32.html"/>
+			<Section name="Разное" URL="files/cat33.html"/>
+			<Section name="Утилиты" URL="files/cat34.html"/>
+			<Section name="Безопасность" URL="files/cat35.html"/>
+			<Section name="Драйвера" URL="files/cat41.html"/>
+		</Section>
+		<UserData>
+			<Flags ShowRequestDumper="1"/>
+			<Login user="FlyDeveloper" password="123456"/>
+		</UserData>
+	</Portal>
+	<Portal name="SovietServer" URL="http://dcp.sovserv.ru" SearchURL="search.php?query=%QUERY%" XMLVersion="1" DefaultCharset="utf8">
+		<Login URL="login.php" Command="username=%LOGIN%&amp;password=%PASSWORD%" RequestMethod="POST"/>
+		<Images Large="SovietServer\icons_large.bmp" Small="SovietServer\icons_small.bmp" SmallImageID="0" LargeImageID="0"/>
+		<Section SearchName="Везде" SearchURL="search.php?query=%QUERY%" LargeImageID="Home"/>
+		<Section URL="search.php" LargeImageID="Search"/>
+		<Section name="Новости" URL="news/" SearchURL="&amp;category_ids%5B%5D=1">
+			<Section name="Интернет" URL="news/internet"/>
+			<Section name="Локальная сеть" URL="news/network"/>
+		</Section>
+		<Section name="Фильмы" URL="video/" SearchURL="&amp;category_ids%5B%5D=2">
+			<Section name="DVD" URL="video/dvd"/>
+			<Section name="HD Video" URL="video/hd-video"/>
+			<Section name="Original (English, etc.)" URL="video/original"/>
+			<Section name="Аниме" URL="video/anime"/>
+			<Section name="Боевик" URL="video/action"/>
+			<Section name="Вестерн" URL="video/vestern"/>
+			<Section name="Гоблин" URL="video/goblin"/>
+			<Section name="Детектив" URL="video/detective"/>
+			<Section name="Документальный" URL="video/documentation"/>
+			<Section name="Драма" URL="video/drame"/>
+			<Section name="Зарубежные мультфильмы" URL="video/multfilm"/>
+			<Section name="Исторический" URL="video/historical"/>
+			<Section name="Комедия" URL="video/comedy"/>
+			<Section name="Мелодрама" URL="video/melodrama"/>
+			<Section name="Мистика" URL="video/mistic"/>
+			<Section name="Мюзикл" URL="video/musical"/>
+			<Section name="Отечественные мультфильмы" URL="video/mult_cccp"/>
+			<Section name="Отечественный" URL="video/cccp"/>
+			<Section name="Приключения" URL="video/adventure"/>
+			<Section name="Разное" URL="video/other"/>
+			<Section name="Сериалы" URL="video/serials"/>
+			<Section name="Трейлеры" URL="video/trailer"/>
+			<Section name="Триллер" URL="video/thriller"/>
+			<Section name="Ужасы" URL="video/horror"/>
+			<Section name="Фантастика" URL="video/fantasy"/>
+			<Section name="Флэш-мультфильмы" URL="video/flash_mult"/>
+		</Section>
+		<Section name="Музыка" URL="audio/" SearchURL="&amp;category_ids%5B%5D=3">
+			<Section name="Ambient, Chill Out" URL="audio/ambient_chill_out"/>
+			<Section name="Blues" URL="audio/blues"/>
+			<Section name="Classic" URL="audio/classic"/>
+			<Section name="DTS" URL="audio/dts"/>
+			<Section name="Dance" URL="audio/dance"/>
+			<Section name="Drum &amp; Bass" URL="audio/drum_and_bass"/>
+			<Section name="Electronic" URL="audio/electronic"/>
+			<Section name="Gothic" URL="audio/gothic"/>
+			<Section name="Hardcore" URL="audio/hardcore"/>
+			<Section name="House" URL="audio/house"/>
+			<Section name="Instrumental" URL="audio/instrumental"/>
+			<Section name="Jazz" URL="audio/jazz"/>
+			<Section name="Metal" URL="audio/metal"/>
+			<Section name="New Age/Trip-Hop" URL="audio/new_age_trip_hop"/>
+			<Section name="Pop" URL="audio/pop"/>
+			<Section name="Psychedelic" URL="audio/psychedelic"/>
+			<Section name="Punk" URL="audio/punk"/>
+			<Section name="Rap/Hip-Hop" URL="audio/rap_hip_hop"/>
+			<Section name="Reggae" URL="audio/reggae"/>
+			<Section name="Rock" URL="audio/rock"/>
+			<Section name="Sound Track (OST)" URL="audio/soundtrack_ost"/>
+			<Section name="Techno" URL="audio/techno"/>
+			<Section name="Trance" URL="audio/trance"/>
+			<Section name="Бардовская песня" URL="audio/bard"/>
+			<Section name="Клипы" URL="audio/video_clips"/>
+			<Section name="Концерты" URL="audio/video_film"/>
+			<Section name="Разное" URL="audio/other"/>
+			<Section name="Советское ретро" URL="audio/cccp_retro"/>
+		</Section>
+		<Section name="Программы" URL="program/" SearchURL="&amp;category_ids%5B%5D=5">
+			<Section name="*nix" URL="program/nix"/>
+			<Section name="PDA" URL="program/pda"/>
+			<Section name="PlayStation Portable [PSP]" URL="program/prog_playstation_portable"/>
+			<Section name="Portable Soft" URL="program/portable"/>
+			<Section name="Windows" URL="program/windows"/>
+		</Section>
+		<Section name="Игры" URL="games/" SearchURL="&amp;category_ids%5B%5D=4">
+			<Section name="On-line игры" URL="games/on_line"/>
+			<Section name="PC" URL="games/pc"/>
+			<Section name="PDA" URL="games/games_pda"/>
+			<Section name="PlayStation 1 - 3" URL="games/playstation"/>
+			<Section name="PlayStation Portable [PSP]" URL="games/games_playstation_portable"/>
+			<Section name="Xbox" URL="games/xbox"/>
+			<Section name="Демо-версии" URL="games/demo"/>
+			<Section name="Игровое видео" URL="games/video"/>
+			<Section name="Игровой софт" URL="games/soft_for_games"/>
+			<Section name="Мини-игры" URL="games/mini_games"/>
+			<Section name="Модификации" URL="games/modifications"/>
+			<Section name="Патчи" URL="games/patch"/>
+			<Section name="Разное" URL="games/other"/>
+		</Section>
+		<Section name="eBook" URL="ebook/" SearchURL="&amp;category_ids%5B%5D=7">
+			<Section name="Аудиокниги" URL="ebook/audiobook"/>
+			<Section name="Журналы" URL="ebook/jurnal"/>
+			<Section name="Книги" URL="ebook/book"/>
+			<Section name="Манга" URL="ebook/manga"/>
+			<Section name="Разное" URL="ebook/other"/>
+		</Section>
+		<Section name="Спорт" URL="sport/" SearchURL="&amp;category_ids%5B%5D=6">
+			<Section name="eXtream" URL="sport/extream"/>
+			<Section name="Автомобильный" URL="sport/automobile"/>
+			<Section name="Баскетбол" URL="sport/basketball"/>
+			<Section name="Гимнастика" URL="sport/gimnastika"/>
+			<Section name="Единоборства" URL="sport/combat"/>
+			<Section name="Паркур" URL="sport/parkur"/>
+			<Section name="Разное" URL="sport/other"/>
+			<Section name="Скейтбординг" URL="sport/skateboarding"/>
+			<Section name="Футбол" URL="sport/football"/>
+			<Section name="Хоккей" URL="sport/hockey"/>
+		</Section>
+		<Section name="Юмор" URL="humor/" SearchURL="&amp;category_ids%5B%5D=8">
+			<Section name="Анекдоты" URL="humor/anekdot"/>
+			<Section name="Аудио" URL="humor/audio"/>
+			<Section name="Видео" URL="humor/video"/>
+			<Section name="КВН" URL="humor/kvn"/>
+			<Section name="Картинки" URL="humor/image"/>
+			<Section name="Рассказы" URL="humor/text"/>
+		</Section>
+		<Section name="Разное" URL="other/" SearchURL="&amp;category_ids%5B%5D=9">
+			<Section name="Аудио" URL="other/audio"/>
+			<Section name="Видео" URL="other/video"/>
+			<Section name="Галереи" URL="other/gallery"/>
+		</Section>
+		<UserData>
+			<Flags ShowRequestDumper="1"/>
+			<Login user="FlyDeveloper" password="123456"/>
+			<Default StartSection="3" SearchSection="0"/>
+		</UserData>
+	</Portal>
+	<Portal name="DCmagnets.RU" URL="http://www.dcmagnets.ru" SearchURL="search.php?query=%QUERY%" XMLVersion="1" DefaultCharset="utf8">
+		<Images Large="dcmagnets\icons_large.bmp" Small="dcmagnets\icons_small.bmp" SmallImageID="0" LargeImageID="0"/>
+		<Login URL="/" Command="login_name=%LOGIN%&amp;login_password=%PASSWORD%&amp;login=submit" RequestMethod="POST"/>
+		<Default StartSection="0" SearchSection="1"/>
+		<Flags DenyNewWnd="1" DenyExternalLinksNewWindow="1"/>
+		<Section URL="" LargeImageID="Home"/>
+		<Section SearchName="Везде" URL="index.php?do=search" LargeImageID="Search"/>
+		<Section name="Фильмы" URL="filmyvideo" SearchURL="">
+			<Section name="Аниме" URL="animekhentajj"/>
+			<Section name="Документальные" URL="dokumentalnye"/>
+			<Section name="Мультсериалы" URL="multserialy"/>
+			<Section name="Мультфильмы" URL="multfilmy"/>
+			<Section name="Детективы" URL="detektivy"/>
+			<Section name="Вестерны" URL="vestern"/>
+			<Section name="Детский/Семейный" URL="detskijjsemejjnyjj"/>
+			<Section name="Драма/Мелодрама" URL="dramamelodrama"/>
+			<Section name="Комедии" URL="komedii"/>
+			<Section name="Фантастика" URL="fantastika"/>
+			<Section name="Видео-учебник" URL="obuchajushhee_video"/>
+			<Section name="HDTV" URL="hdtv"/>
+			<Section name="Боевики" URL="boeviki"/>
+			<Section name="Сериалы" URL="serialy"/>
+			<Section name="Спорт" URL="sport"/>
+			<Section name="Триллер" URL="triller"/>
+			<Section name="Ужасы" URL="uzhasy"/>
+			<Section name="Фэнтези" URL="fantasy"/>
+			<Section name="Клипы" URL="klipy"/>
+			<Section name="Трейлеры" URL="trailers"/>
+			<Section name="Остальное" URL="ostalnoe"/>
+			<Section name="Приколы" URL="prikoly"/>
+		</Section>
+		<Section name="Музыка" URL="muzyka" SearchURL="">
+			<Section name="Electronica/Dance" URL="electronicadance"/>
+			<Section name="Easy Listen/Acoustic" URL="easy_listenacoustic"/>
+			<Section name="Funk/Acid-jazz/Disco" URL="funkacidjazzdisco"/>
+			<Section name="World/Folk/Ethnic" URL="worldfolkethnic"/>
+			<Section name="Drum’n’Bass/Breakbeat" URL="drum_and_bass"/>
+			<Section name="Blues/Rock-n-roll/60s" URL="bluesrocknroll60s"/>
+			<Section name="Rock/Alternative/Emo" URL="rockalternativeemo"/>
+			<Section name="Jazz/Fusion/Latin" URL="jazzfusionlatin"/>
+			<Section name="Lounge/Ambient" URL="loungeambient"/>
+			<Section name="Instrumental/Soundtrack" URL="instrumentalsoundtrack"/>
+			<Section name="Trance/Goa" URL="trancegoa"/>
+			<Section name="Pump" URL="pump"/>
+			<Section name="House/Electro" URL="houseelectro"/>
+			<Section name="Punk/Ska" URL="punkska"/>
+			<Section name="Reggae" URL="reggae"/>
+			<Section name="Russian" URL="russian"/>
+			<Section name="Metal/Hardcore" URL="metalhardcore"/>
+			<Section name="Pop" URL="popsa"/>
+			<Section name="Experimental" URL="experimental"/>
+			<Section name="Классическая" URL="klassicheskaja"/>
+			<Section name="HipHop/R’n’B/Soul/Rap" URL="hiphoprnbsoulrap"/>
+		</Section>
+		<Section name="Игры" URL="igry_dlja_pk" SearchURL="">
+			<Section name="Adventure" URL="adventure"/>
+			<Section name="Action" URL="action"/>
+			<Section name="Стратегии" URL="strategii"/>
+			<Section name="Симуляторы" URL="simuljatory"/>
+			<Section name="3D / 1st/3rd Person" URL="3d-1st3rd-person"/>
+			<Section name="RPG" URL="rpg"/>
+			<Section name="Квесты" URL="kvesty"/>
+			<Section name="Аркады" URL="arkady"/>
+			<Section name="MMORPG" URL="mmorpg"/>
+			<Section name="Sony playstation" URL="sony-playstation"/>
+			<Section name="Sony playstation 2" URL="sony-playstation-2"/>
+			<Section name="Sony playstation 3" URL="sony-playstation-3"/>
+			<Section name="Xbox" URL="xbox"/>
+			<Section name="Xbox 360" URL="xbox-360"/>
+			<Section name="Nintendo Wii" URL="nintendo-wii"/>
+			<Section name="Sega dreamcast" URL="sega-dreamcast"/>
+			<Section name="Для мобильника" URL="dlja_mobilnikakpk/mobigry"/>
+			<Section name="Для кпк" URL="dlja_kpk/kpkigry"/>
+			<Section name="Для psp" URL="psp/pspigry"/>
+		</Section>
+		<Section name="Софт" URL="soft" SearchURL="">
+			<Section name="Системные" URL="sistemnye"/>
+			<Section name="Редакторы" URL="redaktory"/>
+			<Section name="Утилиты" URL="utility"/>
+			<Section name="Мультимедиа" URL="multimedia"/>
+			<Section name="Интернет" URL="internet"/>
+			<Section name="Драйвера" URL="drajjvera"/>
+			<Section name="Для кпк" URL="dlja_kpk/kpkprogrammy"/>
+			<Section name="Для мобильника" URL="dlja_mobilnikakpk/mobsoft"/>
+			<Section name="Для psp" URL="psp/pspprogrammy"/>
+		</Section>
+		<Section name="Книги" URL="knigi" SearchURL="">
+			<Section name="Журналы" URL="knigi/jurnali"/>
+			<Section name="Комиксы" URL="knigi/komiksy"/>
+			<Section name="Иностранные языки" URL="knigi/inostrannye-jazyki"/>
+			<Section name="Вера и религия" URL="knigi/vera-i-religija"/>
+			<Section name="Спорт" URL="knigi/knigi_sport"/>
+			<Section name="Медицина" URL="knigi/medicina"/>
+			<Section name="Разное" URL="knigi/knigi_raznoe"/>
+			<Section name="Гуманитарные науки" URL="knigi/gn"/>
+			<Section name="Точные науки" URL="knigi/teiin"/>
+			<Section name="Художественная литература" URL="knigi/hl"/>
+			<Section name="Компьютерная литература" URL="knigi/kl"/>
+			<Section name="Аудиокниги" URL="ak"/>
+		</Section>
+		<Section name="Разное" URL="raznoe" SearchURL="">
+			<Section name="Статьи/новости" URL="stati"/>
+			<Section name="Журналы" URL="zhurnaly"/>
+			<Section name="Руководства/карты" URL="rukovodstvakarty"/>
+			<Section name="Зацени" URL="zaceni"/>
+			<Section name="Flashки" URL="flashki"/>
+		</Section>
+		<Section name="Мобильник/Смартфон" URL="dlja_mobilnikakpk" SearchURL="">
+			<Section name="Видео" URL="dlja_mobilnikakpk/video"/>
+			<Section name="Темы" URL="dlja_mobilnikakpk/temy"/>
+			<Section name="Софт" URL="dlja_mobilnikakpk/mobsoft"/>
+			<Section name="Игры" URL="dlja_mobilnikakpk/mobigry"/>
+		</Section>
+		<Section name="Кпк" URL="dlja_kpk" SearchURL="">
+			<Section name="Видео" URL="dlja_kpk/kpkvideo"/>
+			<Section name="Темы" URL="dlja_kpk/kpktemy"/>
+			<Section name="Софт" URL="dlja_kpk/kpkprogrammy"/>
+			<Section name="Игры" URL="dlja_kpk/kpkigry"/>
+		</Section>
+		<Section name="PSP" URL="psp" SearchURL="">
+			<Section name="Игры" URL="psp/pspigry"/>
+			<Section name="Инструкции/статьи" URL="psp/pspis"/>
+			<Section name="Темы" URL="psp/psp_temy"/>
+			<Section name="Софт" URL="psp/pspprogrammy"/>
+			<Section name="Видео" URL="psp/psp_video"/>
+		</Section>
+		<UserData>
+			<Flags ShowRequestDumper="1"/>
+			<Login user="FlyViewer" password="1fsd3e3245ewz"/>
+		</UserData>
+	</Portal>
+	
+	<Portal name="Сityshop - интернет-магазин в Николаеве" URL="http://cityshop.mk.ua" SearchURL="index.php?ukey=search&amp;searchstring=search" XMLVersion="1" DefaultCharset="utf8">
+	<Images Large="wp_cityshop/big.bmp" Small="wp_cityshop/small.bmp" SmallImageID="0" LargeImageID="0"/>
+	<Default StartSection="0" SearchSection="1"/>
+		<Flags DenyNewWnd="1" DenyExternalLinksNewWindow="1"/>
+		<Section URL="index.php" LargeImageID="Home"/>
+		<Section SearchName="Везде" SearchURL="/index.php?ukey=search&amp;searchstring=%QUERY%" LargeImageID="Search"/>
+	</Portal> 
+	
+</PortalBrowser>

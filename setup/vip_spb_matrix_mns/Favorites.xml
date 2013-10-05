@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="dc.local" Connect="0" Description="" Server="dchub://dc.local" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="0" ChatUserSplit="0" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" UserListState="1" HeaderOrder="" HeaderWidths="" HeaderVisible="" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="1" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0"/>
+		<Hub Name="kripper.local" Connect="0" Description="" Server="dchub://kripper.local" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="0" ChatUserSplit="0" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" UserListState="1" HeaderOrder="" HeaderWidths="" HeaderVisible="" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="1" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0"/>
+		<Hub Name="kino.local" Connect="0" Description="" Server="dchub://kino.local" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="7500" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" UserListState="1" HeaderOrder="" HeaderWidths="" HeaderVisible="" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="1" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0"/>
+		<Hub Name="kino2.local" Connect="0" Description="" Server="dchub://kino2.local" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="0" ChatUserSplit="0" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" UserListState="1" HeaderOrder="" HeaderWidths="" HeaderVisible="" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="1" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0"/>
+		<Hub Name="dc.mns.ru" Connect="1" Description="" Server="dchub://dc.mns.ru" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="0" ChatUserSplit="0" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" UserListState="1" HeaderOrder="" HeaderWidths="" HeaderVisible="" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="1" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0"/>
+	</Hubs>
+	<Users>
+	</Users>
+	<UserCommands/>
+	<FavoriteDirs/>
+</Favorites>

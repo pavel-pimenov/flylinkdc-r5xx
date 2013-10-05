@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+			<Hub Name="Иной хаб" Connect="1" Description="" Server="dc.hexanet.ru" UserDescription="" Mode="0" IP="" OpChat="" />
+		<Hub Name="МедиаСеть" Connect="1" Description="" Server="dc.lan48.ru" UserDescription="" Mode="0" IP="" OpChat="" />
+		<Hub Name="Desperate - Home Hub" Connect="1" Description="" Server="dc.j4fun.ru:4111" UserDescription="" Mode="0" IP="" OpChat="" />
+		<Hub Name="" Connect="1" Description="" Server="video-hub.no-ip.org" UserDescription="" Mode="0" IP="" OpChat="" />
+
+	</Hubs>
+	<Users/>
+	<UserCommands/>
+	<FavoriteDirs/>
+</Favorites>

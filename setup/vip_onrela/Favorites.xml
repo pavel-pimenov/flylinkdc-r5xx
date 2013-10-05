@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="p2p" Connect="1" Description="" Server="p2p.onrela.ru:4012" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="3354" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,6,2,7,3,8,9,10,4,5,11,12" HeaderWidths="143,118,119,261,272,122,74,65,101,100,96,113,80" HeaderVisible="1,1,0,1,0,1,0,0,0,1,1,0,0" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="1" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0"/>
+	</Hubs>
+	<Users/>
+	<UserCommands/>
+	<FavoriteDirs/>
+</Favorites>

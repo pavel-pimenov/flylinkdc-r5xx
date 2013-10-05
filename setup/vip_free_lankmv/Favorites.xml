@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="Интернет на КМВ - lankmv.ru" Connect="1" Description="Адрес внешки: dc.lankmv.ru" Nick="" Password="" Server="p2p.lankmv.ru" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="4765" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,2,3,4,5,6,7,8,9,10,11,12" HeaderWidths="100,75,75,75,100,105,40,40,184,30,30,50,80" HeaderVisible="1,1,1,1,1,1,1,1,1,1,1,1,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="1" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0"/>
+		<Hub Name="Центральный Хаб Корбины" Connect="1" Description="" Nick="" Password="" Server="p2p.corbina.net" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="0" ChatUserSplit="0" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="" HeaderWidths="" HeaderVisible="" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0"/>
+	</Hubs>
+	<Users/>
+	<UserCommands/>
+	<FavoriteDirs/>
+</Favorites>

@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="ADSL@HUB (p2p.tmb.ru)" Connect="1" Description="ADSL@HUB (p2p.tmb.ru)" Server="p2p.tmb.ru" UserDescription="" AwayMsg="" Email="" WindowPosX="16" WindowPosY="23" WindowSizeX="1038" WindowSizeY="364" WindowType="3" ChatUserSplit="6054" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" UserListState="1" HeaderOrder="0,1,4,2,5,6,3" HeaderWidths="206,64,152,282,272,75,91" HeaderVisible="1,1,0,1,0,0,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat=""/>
+		<Hub Name="ONLINE HUB" Connect="1" Description="ONLINE HUB (on1ine.homeip.net:10421)" Server="dchub://on1ine.homeip.net:10421" UserDescription="" AwayMsg="" Email="" WindowPosX="20" WindowPosY="20" WindowSizeX="1082" WindowSizeY="451" WindowType="1" ChatUserSplit="7500" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,4,2,5,6,3,7,8,9,10,11,12" HeaderWidths="206,64,152,282,272,75,91,40,100,30,30,50,80" HeaderVisible="1,1,1,1,1,1,1,1,1,1,1,1,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0"/>
+	</Hubs>
+</Favorites>

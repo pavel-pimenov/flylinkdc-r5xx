@@ -1,0 +1,294 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Portal name="Magnetida.ru" URL="http://magnetida.ru/magneto/" SearchURL="subkat.php?type=find&amp;search=%QUERY%" XMLVersion="1" UpdateURL="http://magnetida.ru/index.php?type=portalbrowser" HubURL="atlantidap2p.homenet" >
+	<Login URL="index.php" Command="type=login&amp;magneto_login=%LOGIN%&amp;magneto_pass=%PASSWORD%" RequestMethod="POST" /> 
+	<Images Large="Magnetida.ru\icons_large.bmp" Small="Magnetida.ru\icons_small.bmp" SmallImageID="0" LargeImageID="0"/>
+	<Flags DenyNewWnd="1" DenyExternalLinksNewWindow="1" HostToolbarIconFirst="1" DisableLoginDialog="1" DisableAutoUpdate="0" AllowExternalLinks="0" />
+	<Section SearchName="Простой" SearchURL="subkat.php?type=find&amp;search=%QUERY%" LargeImageID="Home"/>
+	<Section SearchName="Расширенный" SearchURL="subkat.php?type=find&amp;search=%QUERY% &amp;fullsearch=1" LargeImageID="Search" URL="/subkat.php?type=find&amp;search="/>
+	<Section name="Новости" URL="/subkat.php?type=shownews"/>
+	<Section name="Персоналии" URL="subkat.php?type=persona"/>
+	<Section name="Видео" URL="/kat.php?type=showkat&amp;type2=1">
+		<Section name="3D" URL="/subkat.php?type=showsubkat&amp;type2=222"/>
+		<Section name="OVA" URL="/subkat.php?type=showsubkat&amp;type2=231"/>
+		<Section name="Азиатские фильмы" URL="/subkat.php?type=showsubkat&amp;type2=163"/>
+		<Section name="Альтернативный перевод, озвучка" URL="/subkat.php?type=showsubkat&amp;type2=188"/>
+		<Section name="Анимация" URL="/subkat.php?type=showsubkat&amp;type2=13"/>
+		<Section name="Анимэ" URL="/subkat.php?type=showsubkat&amp;type2=127"/>
+		<Section name="Биография" URL="/subkat.php?type=showsubkat&amp;type2=175"/>
+		<Section name="Боевик" URL="/subkat.php?type=showsubkat&amp;type2=8"/>
+		<Section name="Вестерн" URL="/subkat.php?type=showsubkat&amp;type2=11"/>
+		<Section name="Видео для КПК" URL="/subkat.php?type=showsubkat&amp;type2=213"/>
+		<Section name="Военный" URL="/subkat.php?type=showsubkat&amp;type2=18"/>
+		<Section name="Детектив" URL="/subkat.php?type=showsubkat&amp;type2=24"/>
+		<Section name="Детский" URL="/subkat.php?type=showsubkat&amp;type2=144"/>
+		<Section name="Документальный" URL="/subkat.php?type=showsubkat&amp;type2=25"/>
+		<Section name="Драма" URL="/subkat.php?type=showsubkat&amp;type2=26"/>
+		<Section name="Индийские фильмы" URL="/subkat.php?type=showsubkat&amp;type2=164"/>
+		<Section name="Исторический" URL="/subkat.php?type=showsubkat&amp;type2=27"/>
+		<Section name="Караоке" URL="/subkat.php?type=showsubkat&amp;type2=147"/>
+		<Section name="Клип" URL="/subkat.php?type=showsubkat&amp;type2=28"/>
+		<Section name="Комедия" URL="/subkat.php?type=showsubkat&amp;type2=29"/>
+		<Section name="Комикс" URL="/subkat.php?type=showsubkat&amp;type2=225"/>
+		<Section name="Концерты" URL="/subkat.php?type=showsubkat&amp;type2=71"/>
+		<Section name="Короткометражный" URL="/subkat.php?type=showsubkat&amp;type2=217"/>
+		<Section name="Криминал" URL="/subkat.php?type=showsubkat&amp;type2=130"/>
+		<Section name="Мелодрама" URL="/subkat.php?type=showsubkat&amp;type2=30"/>
+		<Section name="Мистика" URL="/subkat.php?type=showsubkat&amp;type2=31"/>
+		<Section name="Музыкальное видео" URL="/subkat.php?type=showsubkat&amp;type2=98"/>
+		<Section name="Научно-популярные" URL="/subkat.php?type=showsubkat&amp;type2=236"/>
+		<Section name="Обучающее" URL="/subkat.php?type=showsubkat&amp;type2=182"/>
+		<Section name="Отечественный" URL="/subkat.php?type=showsubkat&amp;type2=32"/>
+		<Section name="Правильный Перевод Гоблина" URL="/subkat.php?type=showsubkat&amp;type2=116"/>
+		<Section name="Приключения" URL="/subkat.php?type=showsubkat&amp;type2=33"/>
+		<Section name="Прочее" URL="/subkat.php?type=showsubkat&amp;type2=45"/>
+		<Section name="Семейный" URL="/subkat.php?type=showsubkat&amp;type2=34"/>
+		<Section name="Сериал" URL="/subkat.php?type=showsubkat&amp;type2=35"/>
+		<Section name="Сказка" URL="/subkat.php?type=showsubkat&amp;type2=226"/>
+		<Section name="Спектакль" URL="/subkat.php?type=showsubkat&amp;type2=36"/>
+		<Section name="Спорт" URL="/subkat.php?type=showsubkat&amp;type2=37"/>
+		<Section name="ТВ-шоу" URL="/subkat.php?type=showsubkat&amp;type2=38"/>
+		<Section name="Трейлер" URL="/subkat.php?type=showsubkat&amp;type2=39"/>
+		<Section name="Триллер" URL="/subkat.php?type=showsubkat&amp;type2=40"/>
+		<Section name="Ужасы" URL="/subkat.php?type=showsubkat&amp;type2=41"/>
+		<Section name="Фантастика" URL="/subkat.php?type=showsubkat&amp;type2=42"/>
+		<Section name="Фэнтези" URL="/subkat.php?type=showsubkat&amp;type2=43"/>
+		<Section name="Эротика" URL="/subkat.php?type=showsubkat&amp;type2=44"/>
+	</Section>
+	<Section name="HD Видео" URL="/kat.php?type=showkat&amp;type2=26">
+		<Section name="3D" URL="/subkat.php?type=showsubkat&amp;type2=348"/>
+		<Section name="OVA" URL="/subkat.php?type=showsubkat&amp;type2=351"/>
+		<Section name="Азиатские фильмы" URL="/subkat.php?type=showsubkat&amp;type2=341"/>
+		<Section name="Альтернативный перевод, озвучка" URL="/subkat.php?type=showsubkat&amp;type2=345"/>
+		<Section name="Анимация" URL="/subkat.php?type=showsubkat&amp;type2=309"/>
+		<Section name="Анимэ" URL="/subkat.php?type=showsubkat&amp;type2=337"/>
+		<Section name="Биография" URL="/subkat.php?type=showsubkat&amp;type2=343"/>
+		<Section name="Боевик" URL="/subkat.php?type=showsubkat&amp;type2=307"/>
+		<Section name="Вестерн" URL="/subkat.php?type=showsubkat&amp;type2=308"/>
+		<Section name="Видео для КПК" URL="/subkat.php?type=showsubkat&amp;type2=346"/>
+		<Section name="Военный" URL="/subkat.php?type=showsubkat&amp;type2=310"/>
+		<Section name="Детектив" URL="/subkat.php?type=showsubkat&amp;type2=311"/>
+		<Section name="Детский" URL="/subkat.php?type=showsubkat&amp;type2=339"/>
+		<Section name="Документальный" URL="/subkat.php?type=showsubkat&amp;type2=312"/>
+		<Section name="Драма" URL="/subkat.php?type=showsubkat&amp;type2=313"/>
+		<Section name="Индийские фильмы" URL="/subkat.php?type=showsubkat&amp;type2=342"/>
+		<Section name="Исторический" URL="/subkat.php?type=showsubkat&amp;type2=314"/>
+		<Section name="Караоке" URL="/subkat.php?type=showsubkat&amp;type2=340"/>
+		<Section name="Клип" URL="/subkat.php?type=showsubkat&amp;type2=315"/>
+		<Section name="Комедия" URL="/subkat.php?type=showsubkat&amp;type2=316"/>
+		<Section name="Комикс" URL="/subkat.php?type=showsubkat&amp;type2=349"/>
+		<Section name="Концерты" URL="/subkat.php?type=showsubkat&amp;type2=333"/>
+		<Section name="Короткометражный" URL="/subkat.php?type=showsubkat&amp;type2=347"/>
+		<Section name="Криминал" URL="/subkat.php?type=showsubkat&amp;type2=338"/>
+		<Section name="Мелодрама" URL="/subkat.php?type=showsubkat&amp;type2=317"/>
+		<Section name="Мистика" URL="/subkat.php?type=showsubkat&amp;type2=318"/>
+		<Section name="Музыкальное видео" URL="/subkat.php?type=showsubkat&amp;type2=334"/>
+		<Section name="Научно-популярные" URL="/subkat.php?type=showsubkat&amp;type2=352"/>
+		<Section name="Обучающее" URL="/subkat.php?type=showsubkat&amp;type2=344"/>
+		<Section name="Отечественный" URL="/subkat.php?type=showsubkat&amp;type2=319"/>
+		<Section name="Правильный Перевод Гоблина" URL="/subkat.php?type=showsubkat&amp;type2=335"/>
+		<Section name="Приключения" URL="/subkat.php?type=showsubkat&amp;type2=320"/>
+		<Section name="Прочее" URL="/subkat.php?type=showsubkat&amp;type2=332"/>
+		<Section name="Семейный" URL="/subkat.php?type=showsubkat&amp;type2=321"/>
+		<Section name="Сериал" URL="/subkat.php?type=showsubkat&amp;type2=322"/>
+		<Section name="Сказка" URL="/subkat.php?type=showsubkat&amp;type2=350"/>
+		<Section name="Спектакль" URL="/subkat.php?type=showsubkat&amp;type2=323"/>
+		<Section name="Спорт" URL="/subkat.php?type=showsubkat&amp;type2=324"/>
+		<Section name="ТВ-передачи" URL="/subkat.php?type=showsubkat&amp;type2=325"/>
+		<Section name="Трейлер" URL="/subkat.php?type=showsubkat&amp;type2=326"/>
+		<Section name="Триллер" URL="/subkat.php?type=showsubkat&amp;type2=327"/>
+		<Section name="Ужасы" URL="/subkat.php?type=showsubkat&amp;type2=328"/>
+		<Section name="Фантастика" URL="/subkat.php?type=showsubkat&amp;type2=329"/>
+		<Section name="Фэнтези" URL="/subkat.php?type=showsubkat&amp;type2=330"/>
+		<Section name="Эротика" URL="/subkat.php?type=showsubkat&amp;type2=331"/>
+	</Section>
+	<Section name="Игры" URL="/kat.php?type=showkat&amp;type2=4">
+		<Section name="Action" URL="/subkat.php?type=showsubkat&amp;type2=9"/>
+		<Section name="Arcade" URL="/subkat.php?type=showsubkat&amp;type2=60"/>
+		<Section name="Fighting" URL="/subkat.php?type=showsubkat&amp;type2=233"/>
+		<Section name="FPS" URL="/subkat.php?type=showsubkat&amp;type2=61"/>
+		<Section name="Horror" URL="/subkat.php?type=showsubkat&amp;type2=235"/>
+		<Section name="MMORPG" URL="/subkat.php?type=showsubkat&amp;type2=155"/>
+		<Section name="RPG" URL="/subkat.php?type=showsubkat&amp;type2=47"/>
+		<Section name="RTS" URL="/subkat.php?type=showsubkat&amp;type2=14"/>
+		<Section name="Shooter" URL="/subkat.php?type=showsubkat&amp;type2=19"/>
+		<Section name="Strategy" URL="/subkat.php?type=showsubkat&amp;type2=63"/>
+		<Section name="Гонки" URL="/subkat.php?type=showsubkat&amp;type2=69"/>
+		<Section name="Для самых маленьких" URL="/subkat.php?type=showsubkat&amp;type2=240"/>
+		<Section name="Игры для MAC" URL="/subkat.php?type=showsubkat&amp;type2=210"/>
+		<Section name="Игры для консолей" URL="/subkat.php?type=showsubkat&amp;type2=187"/>
+		<Section name="Игры для телефонов, смартфонов, avi-mp3 плееров" URL="/subkat.php?type=showsubkat&amp;type2=229"/>
+		<Section name="Казуальные" URL="/subkat.php?type=showsubkat&amp;type2=68"/>
+		<Section name="Карточные игры" URL="/subkat.php?type=showsubkat&amp;type2=129"/>
+		<Section name="Квест" URL="/subkat.php?type=showsubkat&amp;type2=180"/>
+		<Section name="Модификации" URL="/subkat.php?type=showsubkat&amp;type2=183"/>
+		<Section name="Прочее" URL="/subkat.php?type=showsubkat&amp;type2=46"/>
+		<Section name="Репаки игр" URL="/subkat.php?type=showsubkat&amp;type2=186"/>
+		<Section name="Русификаторы" URL="/subkat.php?type=showsubkat&amp;type2=165"/>
+		<Section name="Симуляторы" URL="/subkat.php?type=showsubkat&amp;type2=62"/>
+		<Section name="Спортивные" URL="/subkat.php?type=showsubkat&amp;type2=237"/>
+	</Section>
+	<Section name="Музыка" URL="/kat.php?type=showkat&amp;type2=3">
+		<Section name="Alternative" URL="/subkat.php?type=showsubkat&amp;type2=140"/>
+		<Section name="Dance" URL="/subkat.php?type=showsubkat&amp;type2=214"/>
+		<Section name="Death" URL="/subkat.php?type=showsubkat&amp;type2=177"/>
+		<Section name="Disco 80-х" URL="/subkat.php?type=showsubkat&amp;type2=131"/>
+		<Section name="Drum n Bass" URL="/subkat.php?type=showsubkat&amp;type2=20"/>
+		<Section name="Dubstep" URL="/subkat.php?type=showsubkat&amp;type2=370"/>
+		<Section name="Electro" URL="/subkat.php?type=showsubkat&amp;type2=119"/>
+		<Section name="Electro House" URL="/subkat.php?type=showsubkat&amp;type2=118"/>
+		<Section name="Eurodance" URL="/subkat.php?type=showsubkat&amp;type2=133"/>
+		<Section name="Funk" URL="/subkat.php?type=showsubkat&amp;type2=221"/>
+		<Section name="Hardcore" URL="/subkat.php?type=showsubkat&amp;type2=148"/>
+		<Section name="Hardstyle" URL="/subkat.php?type=showsubkat&amp;type2=238"/>
+		<Section name="Hip-Hop" URL="/subkat.php?type=showsubkat&amp;type2=121"/>
+		<Section name="House" URL="/subkat.php?type=showsubkat&amp;type2=139"/>
+		<Section name="Jazz" URL="/subkat.php?type=showsubkat&amp;type2=138"/>
+		<Section name="Melodic Death Metal" URL="/subkat.php?type=showsubkat&amp;type2=172"/>
+		<Section name="Metal" URL="/subkat.php?type=showsubkat&amp;type2=135"/>
+		<Section name="Metalcore" URL="/subkat.php?type=showsubkat&amp;type2=137"/>
+		<Section name="New Age" URL="/subkat.php?type=showsubkat&amp;type2=146"/>
+		<Section name="Nu-Metal" URL="/subkat.php?type=showsubkat&amp;type2=136"/>
+		<Section name="Pop" URL="/subkat.php?type=showsubkat&amp;type2=132"/>
+		<Section name="Progressive" URL="/subkat.php?type=showsubkat&amp;type2=142"/>
+		<Section name="Punk Rock" URL="/subkat.php?type=showsubkat&amp;type2=134"/>
+		<Section name="Rap" URL="/subkat.php?type=showsubkat&amp;type2=128"/>
+		<Section name="Relax" URL="/subkat.php?type=showsubkat&amp;type2=216"/>
+		<Section name="RnB" URL="/subkat.php?type=showsubkat&amp;type2=184"/>
+		<Section name="Rock" URL="/subkat.php?type=showsubkat&amp;type2=220"/>
+		<Section name="Trash" URL="/subkat.php?type=showsubkat&amp;type2=211"/>
+		<Section name="Авторская песня" URL="/subkat.php?type=showsubkat&amp;type2=230"/>
+		<Section name="Альтернатива" URL="/subkat.php?type=showsubkat&amp;type2=123"/>
+		<Section name="Зарубежный поп" URL="/subkat.php?type=showsubkat&amp;type2=15"/>
+		<Section name="Зарубежный рок" URL="/subkat.php?type=showsubkat&amp;type2=91"/>
+		<Section name="Зарубежный рэп" URL="/subkat.php?type=showsubkat&amp;type2=78"/>
+		<Section name="Инструментал" URL="/subkat.php?type=showsubkat&amp;type2=218"/>
+		<Section name="Классика" URL="/subkat.php?type=showsubkat&amp;type2=80"/>
+		<Section name="Музыка в losstless" URL="/subkat.php?type=showsubkat&amp;type2=124"/>
+		<Section name="Прочее" URL="/subkat.php?type=showsubkat&amp;type2=126"/>
+		<Section name="Ретро" URL="/subkat.php?type=showsubkat&amp;type2=143"/>
+		<Section name="Русский поп" URL="/subkat.php?type=showsubkat&amp;type2=79"/>
+		<Section name="Русский рок" URL="/subkat.php?type=showsubkat&amp;type2=92"/>
+		<Section name="Русский рэп" URL="/subkat.php?type=showsubkat&amp;type2=16"/>
+		<Section name="Саундтреки (OST)" URL="/subkat.php?type=showsubkat&amp;type2=70"/>
+		<Section name="Сборники (VA)" URL="/subkat.php?type=showsubkat&amp;type2=232"/>
+		<Section name="СКА" URL="/subkat.php?type=showsubkat&amp;type2=162"/>
+		<Section name="Техно" URL="/subkat.php?type=showsubkat&amp;type2=10"/>
+		<Section name="Транс" URL="/subkat.php?type=showsubkat&amp;type2=81"/>
+		<Section name="Шансон" URL="/subkat.php?type=showsubkat&amp;type2=17"/>
+	</Section>
+	<Section name="Программы" URL="/kat.php?type=showkat&amp;type2=23">
+		<Section name="CD/DVD" URL="/subkat.php?type=showsubkat&amp;type2=55"/>
+		<Section name="HDD" URL="/subkat.php?type=showsubkat&amp;type2=57"/>
+		<Section name="Антивирусы" URL="/subkat.php?type=showsubkat&amp;type2=48"/>
+		<Section name="Архиваторы" URL="/subkat.php?type=showsubkat&amp;type2=74"/>
+		<Section name="Аудио Плееры" URL="/subkat.php?type=showsubkat&amp;type2=50"/>
+		<Section name="Видео Плееры" URL="/subkat.php?type=showsubkat&amp;type2=56"/>
+		<Section name="Виртуализация, Эмуляция" URL="/subkat.php?type=showsubkat&amp;type2=174"/>
+		<Section name="Для музыкантов" URL="/subkat.php?type=showsubkat&amp;type2=212"/>
+		<Section name="Дополнения к программам" URL="/subkat.php?type=showsubkat&amp;type2=75"/>
+		<Section name="Драйвера" URL="/subkat.php?type=showsubkat&amp;type2=54"/>
+		<Section name="Интернет" URL="/subkat.php?type=showsubkat&amp;type2=59"/>
+		<Section name="Интернет Браузеры" URL="/subkat.php?type=showsubkat&amp;type2=65"/>
+		<Section name="Кодеки, кодекпаки" URL="/subkat.php?type=showsubkat&amp;type2=52"/>
+		<Section name="Конвертеры" URL="/subkat.php?type=showsubkat&amp;type2=176"/>
+		<Section name="Мультимедиа" URL="/subkat.php?type=showsubkat&amp;type2=241"/>
+		<Section name="Навигация, ГИС" URL="/subkat.php?type=showsubkat&amp;type2=154"/>
+		<Section name="Обновление системы" URL="/subkat.php?type=showsubkat&amp;type2=125"/>
+		<Section name="Образовательные программы" URL="/subkat.php?type=showsubkat&amp;type2=173"/>
+		<Section name="Операционные системы" URL="/subkat.php?type=showsubkat&amp;type2=90"/>
+		<Section name="Офисные приложения" URL="/subkat.php?type=showsubkat&amp;type2=97"/>
+		<Section name="Оформление системы" URL="/subkat.php?type=showsubkat&amp;type2=72"/>
+		<Section name="Переводчики" URL="/subkat.php?type=showsubkat&amp;type2=122"/>
+		<Section name="Программы для Android" URL="/subkat.php?type=showsubkat&amp;type2=243"/>
+		<Section name="Программы для iPhone" URL="/subkat.php?type=showsubkat&amp;type2=215"/>
+		<Section name="Программы для MAC OS" URL="/subkat.php?type=showsubkat&amp;type2=371"/>
+		<Section name="Программы для PlayStation Portable" URL="/subkat.php?type=showsubkat&amp;type2=242"/>
+		<Section name="Программы для Pocket PC" URL="/subkat.php?type=showsubkat&amp;type2=94"/>
+		<Section name="Программы для Symbian OS" URL="/subkat.php?type=showsubkat&amp;type2=153"/>
+		<Section name="Прочее" URL="/subkat.php?type=showsubkat&amp;type2=67"/>
+		<Section name="Работа с изображениями" URL="/subkat.php?type=showsubkat&amp;type2=77"/>
+		<Section name="Редактирование аудио" URL="/subkat.php?type=showsubkat&amp;type2=95"/>
+		<Section name="Редактирование видео" URL="/subkat.php?type=showsubkat&amp;type2=96"/>
+		<Section name="Системные утилиты" URL="/subkat.php?type=showsubkat&amp;type2=185"/>
+		<Section name="Справочники" URL="/subkat.php?type=showsubkat&amp;type2=76"/>
+		<Section name="Средства разработки" URL="/subkat.php?type=showsubkat&amp;type2=223"/>
+		<Section name="Твикеры" URL="/subkat.php?type=showsubkat&amp;type2=58"/>
+		<Section name="Фаерволы" URL="/subkat.php?type=showsubkat&amp;type2=73"/>
+		<Section name="Файловые менеджеры" URL="/subkat.php?type=showsubkat&amp;type2=234"/>
+		<Section name="Чистка системы" URL="/subkat.php?type=showsubkat&amp;type2=64"/>
+	</Section>
+	<Section name="Рortable Soft" URL="/kat.php?type=showkat&amp;type2=25">
+		<Section name="CD/DVD" URL="/subkat.php?type=showsubkat&amp;type2=209"/>
+		<Section name="HDD" URL="/subkat.php?type=showsubkat&amp;type2=169"/>
+		<Section name="Антивирусы" URL="/subkat.php?type=showsubkat&amp;type2=166"/>
+		<Section name="Архиваторы" URL="/subkat.php?type=showsubkat&amp;type2=168"/>
+		<Section name="Аудио Плееры" URL="/subkat.php?type=showsubkat&amp;type2=171"/>
+		<Section name="Видео Плееры" URL="/subkat.php?type=showsubkat&amp;type2=170"/>
+		<Section name="Виртуализация, Эмуляция" URL="/subkat.php?type=showsubkat&amp;type2=193"/>
+		<Section name="Интернет Браузеры" URL="/subkat.php?type=showsubkat&amp;type2=194"/>
+		<Section name="Конвертор" URL="/subkat.php?type=showsubkat&amp;type2=228"/>
+		<Section name="Навигация, ГИС" URL="/subkat.php?type=showsubkat&amp;type2=197"/>
+		<Section name="Офисные приложения" URL="/subkat.php?type=showsubkat&amp;type2=200"/>
+		<Section name="Переводчики" URL="/subkat.php?type=showsubkat&amp;type2=201"/>
+		<Section name="Прочее" URL="/subkat.php?type=showsubkat&amp;type2=208"/>
+		<Section name="Работа с изображениями" URL="/subkat.php?type=showsubkat&amp;type2=202"/>
+		<Section name="Редактирование аудио" URL="/subkat.php?type=showsubkat&amp;type2=203"/>
+		<Section name="Редактирование видео" URL="/subkat.php?type=showsubkat&amp;type2=204"/>
+		<Section name="Сборки" URL="/subkat.php?type=showsubkat&amp;type2=167"/>
+		<Section name="Системные утилиты" URL="/subkat.php?type=showsubkat&amp;type2=205"/>
+	</Section>
+	<Section name="Литература" URL="/kat.php?type=showkat&amp;type2=22">
+		<Section name="Аудио книги" URL="/subkat.php?type=showsubkat&amp;type2=89"/>
+		<Section name="Детектив" URL="/subkat.php?type=showsubkat&amp;type2=151"/>
+		<Section name="Детская литература" URL="/subkat.php?type=showsubkat&amp;type2=85"/>
+		<Section name="Журналы" URL="/subkat.php?type=showsubkat&amp;type2=87"/>
+		<Section name="Иностранная литература" URL="/subkat.php?type=showsubkat&amp;type2=83"/>
+		<Section name="История" URL="/subkat.php?type=showsubkat&amp;type2=239"/>
+		<Section name="Классика" URL="/subkat.php?type=showsubkat&amp;type2=82"/>
+		<Section name="Комиксы" URL="/subkat.php?type=showsubkat&amp;type2=152"/>
+		<Section name="Компьютерные журналы" URL="/subkat.php?type=showsubkat&amp;type2=49"/>
+		<Section name="Про войну" URL="/subkat.php?type=showsubkat&amp;type2=86"/>
+		<Section name="Прочее" URL="/subkat.php?type=showsubkat&amp;type2=66"/>
+		<Section name="Раскраски" URL="/subkat.php?type=showsubkat&amp;type2=181"/>
+		<Section name="Справочники" URL="/subkat.php?type=showsubkat&amp;type2=51"/>
+		<Section name="Учебники" URL="/subkat.php?type=showsubkat&amp;type2=88"/>
+		<Section name="Фантастика" URL="/subkat.php?type=showsubkat&amp;type2=149"/>
+		<Section name="Фентези" URL="/subkat.php?type=showsubkat&amp;type2=150"/>
+		<Section name="Энциклопедии" URL="/subkat.php?type=showsubkat&amp;type2=84"/>
+	</Section>
+	<Section name="Обои для рабочего стола" URL="/kat.php?type=showkat&amp;type2=24">
+		<Section name="3-D" URL="/subkat.php?type=showsubkat&amp;type2=120"/>
+		<Section name="Авиация" URL="/subkat.php?type=showsubkat&amp;type2=108"/>
+		<Section name="Автомобили" URL="/subkat.php?type=showsubkat&amp;type2=101"/>
+		<Section name="Анимация" URL="/subkat.php?type=showsubkat&amp;type2=179"/>
+		<Section name="Города и страны" URL="/subkat.php?type=showsubkat&amp;type2=110"/>
+		<Section name="Девушки" URL="/subkat.php?type=showsubkat&amp;type2=93"/>
+		<Section name="Животные" URL="/subkat.php?type=showsubkat&amp;type2=106"/>
+		<Section name="Кинофильмы" URL="/subkat.php?type=showsubkat&amp;type2=104"/>
+		<Section name="Комикс" URL="/subkat.php?type=showsubkat&amp;type2=227"/>
+		<Section name="Комп. Графика" URL="/subkat.php?type=showsubkat&amp;type2=100"/>
+		<Section name="Комп. Игры" URL="/subkat.php?type=showsubkat&amp;type2=113"/>
+		<Section name="Мотоциклы" URL="/subkat.php?type=showsubkat&amp;type2=102"/>
+		<Section name="Мужчины" URL="/subkat.php?type=showsubkat&amp;type2=99"/>
+		<Section name="Музыка" URL="/subkat.php?type=showsubkat&amp;type2=107"/>
+		<Section name="Мультфильмы" URL="/subkat.php?type=showsubkat&amp;type2=109"/>
+		<Section name="Природа" URL="/subkat.php?type=showsubkat&amp;type2=103"/>
+		<Section name="Прочее" URL="/subkat.php?type=showsubkat&amp;type2=115"/>
+		<Section name="Спорт" URL="/subkat.php?type=showsubkat&amp;type2=114"/>
+		<Section name="Фентези" URL="/subkat.php?type=showsubkat&amp;type2=111"/>
+		<Section name="Цветы" URL="/subkat.php?type=showsubkat&amp;type2=112"/>
+		<Section name="Юмор" URL="/subkat.php?type=showsubkat&amp;type2=105"/>
+	</Section>
+	<Section name="Прочее" URL="/kat.php?type=showkat&amp;type2=21">
+		<Section name="Аудио" URL="/subkat.php?type=showsubkat&amp;type2=189"/>
+		<Section name="Подкасты" URL="/subkat.php?type=showsubkat&amp;type2=190"/>
+		<Section name="Правильное оформление раздач" URL="/subkat.php?type=showsubkat&amp;type2=192"/>
+		<Section name="Разное" URL="/subkat.php?type=showsubkat&amp;type2=53"/>
+		<Section name="Фотогалерея" URL="/subkat.php?type=showsubkat&amp;type2=224"/>
+	</Section>
+	<UserData>
+		<Flags ShowRequestDumper="0"/>
+		<Login user="" password=""/>
+		<Default StartSection="0" SearchSection="1"/>
+    </UserData>
+</Portal>

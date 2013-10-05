@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="Alp&apos;s DC++" Connect="1" Description="Welcome to the Alp&apos;s DC++ HUB" Nick="" Password="" Server="alp.ava.net.ua:4111" UserDescription="" Encoding="Russian_Russia.1251" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="3373" StealthMode="0" HideShare="0" SendUserIpOnLogon="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,11,2,12,13,3,4,5,6,7,8,9,10" HeaderWidths="206,64,152,282,272,75,91,40,100,30,30,50,300,80" HeaderVisible="1,1,0,1,0,0,1,1,1,1,1,1,1,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="1" IP="" OpChat="" CliendId="StrgDC++ V:2.40" OverrideId="0" Group=""/>
+		<Hub Name="bugServer" Connect="1" Description="" Nick="" Password="" Server="bug.crimea.ua:4111" UserDescription="" Encoding="Russian_Russia.1251" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="3258" StealthMode="0" HideShare="0" SendUserIpOnLogon="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,11,2,12,13,3,4,5,6,7,8,9,10" HeaderWidths="206,64,152,282,272,75,91,40,100,30,30,50,300,80" HeaderVisible="1,1,0,1,0,0,1,1,1,1,1,1,1,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="1" IP="" OpChat="" CliendId="StrgDC++ V:2.40" OverrideId="0" Group=""/>
+	</Hubs>
+	<Users/>
+	<UserCommands/>
+	<FavoriteDirs/>
+</Favorites>

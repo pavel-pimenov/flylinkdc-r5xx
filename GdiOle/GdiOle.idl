@@ -1,0 +1,39 @@
+// GdiOle.idl : IDL source for ImageOle
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (GdiOle.tlb) and marshalling code.
+
+#include "olectl.h"
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+	object,
+	uuid(109E151F-5C8F-4321-B842-46150141B11A),
+	dual,
+	nonextensible,
+	helpstring("IGdiOle Interface"),
+	pointer_default(unique)
+]
+interface IGDIImage : IDispatch{
+};
+
+[
+	uuid(2E22569D-D190-4744-9EF8-A45A75049E1F),
+	version(1.0),
+	helpstring("GdiOle 1.0 Type Library")
+]
+library GdiOleLib
+{
+	importlib("stdole2.tlb");
+	[
+		uuid(18583A78-3E42-472C-9871-F1D3104C7AF4),
+		control,
+		helpstring("GdiOle")
+	]
+	coclass GDIImage
+	{
+		[default] interface IGDIImage;
+	};
+};

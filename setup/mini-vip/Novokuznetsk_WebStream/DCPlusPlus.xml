@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<DCPlusPlus>
+	<Settings>
+		<BindAddress type="string">0.0.0.0</BindAddress>
+		<BeepFile type="string">.\Sounds\PrivateMessage.wav</BeepFile>
+		<BeginFile type="string">.\Sounds\DownloadBegins.wav</BeginFile>
+		<FinishedFile type="string">.\Sounds\DownloadFinished.wav</FinishedFile>
+		<SourceFile type="string">.\Sounds\AltSourceAdded.wav</SourceFile>
+		<UploadFile type="string">.\Sounds\UploadFinished.wav</UploadFile>
+		<FakerFile type="string">.\Sounds\FakerFound.wav</FakerFile>
+		<ChatNameFile type="string">.\Sounds\MyNickInMainChat.wav</ChatNameFile>
+		<UpdateURL type="string">http://p2p.kuzbass.net/</UpdateURL>
+		<SoundTTH type="string">.\Sounds\FileCorrupted.wav</SoundTTH>
+		<SoundException type="string">.\Sounds\UnhandledException.wav</SoundException>
+		<SoundHubConnected type="string">.\Sounds\ConnectHUB.wav</SoundHubConnected>
+		<SoundHubDisconnected type="string">.\Sounds\DisconnectHUB.wav</SoundHubDisconnected>
+		<SoundFavUserOnline type="string">.\Sounds\FavUser.wav</SoundFavUserOnline>
+		<SoundFavUserOffline type="string">.\Sounds\FavUserDisconnected.wav</SoundFavUserOffline>
+		<VersionFile type="string">http://p2p.kuzbass.net/FlylinkDC_version.xml</VersionFile>
+		<UrlGetIp type="string">http://checkip.dyndns.com</UrlGetIp>
+		<UrlTestIp type="string">http://www.flylinkdc.com/test.php</UrlTestIp>
+		<IncomingConnections type="int">2</IncomingConnections>
+		<InPort type="int">30001</InPort>
+		<AutoUpdateIP type="int">1</AutoUpdateIP>
+		<UDPPort type="int">30002</UDPPort>
+		<NoIPOverride type="int">1</NoIPOverride>
+		<CustomMenuPath	type="string">http://inc.club42.ru/custom_menu.xml</CustomMenuPath>	
+		<UseCustomMenu type="int">1</UseCustomMenu>
+	</Settings>
+	<Share/>
+	<NoShare/>
+	<PreviewApps>
+		<Application Name="AVIPreview" Application="AVIPreview.exe" Arguments="%[file]" Extension="avi;divx;mpg;mpeg"/>
+		<Application Name="Media Player Classic" Application="Media Player Classic\mplayerc.exe" Arguments="%[file]" Extension=""/>
+	</PreviewApps>
+</DCPlusPlus>

@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<PortalBrowser xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="PortalBrowser.xsd">
+<Portal name="DCmagnets.RU" URL="http://www.dcmagnets.ru" SearchURL="engine/search.php?filmname=%QUERY%" XMLVersion="1" DefaultCharset="utf8">
+	<Login URL="/" Command="login_name=%LOGIN%&amp;login_password=%PASSWORD%&amp;login=submit" RequestMethod="POST"/>
+	<Images Large="dcmagnets\icons_large.bmp" Small="dcmagnets\icons_small.bmp" SmallImageID="0" LargeImageID="0"/>
+	<Default StartSection="0" SearchSection="1"/>
+	<Flags DenyNewWnd="1" DenyExternalLinksNewWindow="1"/>
+	<Section URL="" LargeImageID="Home"/>
+	<Section SearchName="По загаловкам" SearchURL="&amp;showposts=1&amp;titleonly=3" LargeImageID="Search"/>
+	<Section SearchName="По TTH / BTIH / ED2K" SearchURL="&amp;showposts=1&amp;titleonly=4" LargeImageID="Search"/>
+	<Section name="Кино, Видео и ТВ" URL="filmyvideo" SearchURL="&amp;cats=films">
+		<Section name="Кино новинки" URL="new-cinema"/>
+		<Section name="Трейлеры / тизеры / короткометражные фильмы" URL="trailers"/>
+		<Section name="Зарубежное кино" URL="foreign-cinema"/>
+		<Section name="Наше кино" URL="russian-cinema"/>
+		<Section name="Документальные фильмы" URL="documentaries"/>
+		<Section name="Спорт" URL="sports"/>
+		<Section name="Сериалы" URL="serials"/>
+		<Section name="Мультипликация" URL="animation"/>
+		<Section name="Развлекательные передачи" URL="entertainment"/>
+		<Section name="Музыкальное видео и клипы" URL="klipy"/>
+	</Section>
+	<Section name="Музыка" URL="muzyka" SearchURL="&amp;cats=music">
+		<Section name="Музыка" URL="muz"/>
+		<Section name="Рок-музыка" URL="rok-muz"/>
+		<Section name="Электронная музыка" URL="elektro-muz"/>
+	</Section>
+	<Section name="Игры" URL="igry" SearchURL="&amp;cats=game">
+		<Section name="Игры для ПК" URL="igry_dlja_pk"/>
+		<Section name="Игры для приставок" URL="iddp"/>
+		<Section name="Для портативных консолей" URL="idpk"/>
+	</Section>
+	<Section name="Софт" URL="soft" SearchURL="&amp;cats=soft">
+		<Section name="Программы" URL="program"/>
+		<Section name="Операционные системы" URL="os"/>
+	</Section>
+	<Section name="Литература и книги" URL="knigi" SearchURL="&amp;cats=book">
+		<Section name="Книги" URL="books"/>
+		<Section name="Аудиокниги" URL="audiobooks"/>
+	</Section>
+	<Section name="Мобильные устройства" URL="dlja_mobilnikakpk" SearchURL="&amp;cats=mobile">
+		<Section name="Игры для мобильных устройств" URL="mobile-games"/>
+		<Section name="Приложения и пр. для мобильных устройств" URL="mobile-soft"/>
+		<Section name="Видео для мобильных устройств" URL="mobile-video"/>
+	</Section>
+	<Section name="Разное" URL="raznoe" SearchURL="&amp;cats=different">
+		<Section name="Статьи/новости" URL="articles"/>
+		<Section name="Журналы" URL="journals"/>
+		<Section name="Руководства/карты" URL="guides"/>
+		<Section name="Зацени" URL="fun"/>
+		<Section name="Flashки" URL="flashки"/>
+		<Section name="Обои" URL="wallpapers"/>
+	</Section>
+	<UserData>
+		<Flags ShowRequestDumper="1"/>
+		<Login user="FlyViewer" password="1fsd3e3245ewz"/>
+	</UserData>
+</Portal>
+</PortalBrowser>

@@ -1,0 +1,36 @@
+HKCR
+{
+	GdiOle.GDIImage.1 = s 'GDIImage Class'
+	{
+		CLSID = s '{1256AD0C-C8BD-429A-BEBE-3F1A87C49894}'
+		'Insertable'
+	}
+	GdiOle.GDIImage = s 'GDIImage Class'
+	{
+		CLSID = s '{1256AD0C-C8BD-429A-BEBE-3F1A87C49894}'
+		CurVer = s 'GdiOle.GDIImage.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {1256AD0C-C8BD-429A-BEBE-3F1A87C49894} = s 'GDIImage Class'
+		{
+			ProgID = s 'GdiOle.GDIImage.1'
+			VersionIndependentProgID = s 'GdiOle.GDIImage'
+			ForceRemove 'Programmable'
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Apartment'
+			}
+			val AppID = s '%APPID%'
+			ForceRemove 'Control'
+			ForceRemove 'Insertable'
+			ForceRemove 'ToolboxBitmap32' = s '%MODULE%, 102'
+			'MiscStatus' = s '0'
+			{
+			    '1' = s '%OLEMISC%'
+			}
+			'TypeLib' = s '{1024F232-BC4E-407E-9B00-EE306CB20996}'
+			'Version' = s '1.0'
+		}
+	}
+}

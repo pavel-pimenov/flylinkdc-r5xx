@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="Mellon DC Hub" Connect="1" Description="Щелковский DC++ Хаб" Server="xdn.msk.ru" Encoding="Russian_Russia.1251" UserListState="1"/>
+		<Hub Name="2net" Connect="1" Description="2net DC project" Server="dc.2net.su" Encoding="Russian_Russia.1251" UserListState="1"/>
+		<Hub Name="HjET" Connect="1" Description="Хаб для замечательных людей" Server="hyper-jet.ru" Encoding="Russian_Russia.1251" UserListState="1"/>
+		<Hub Name="Schelkovo-net.ru" Connect="1" Description="Официальный DC++ хаб г. Щёлково" Server="dc.schelkovo-net.ru" Encoding="Russian_Russia.1251" UserListState="1"/>
+	</Hubs>
+</Favorites>

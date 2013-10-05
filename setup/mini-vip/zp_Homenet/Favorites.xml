@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="Homenet DC++ Hub" Connect="1" Description="Официальный хаб сети" Nick="" Password="" Server="dc.hub" UserDescription="" AwayMsg="" Email="" WindowPosX="-2" WindowPosY="-2" WindowSizeX="1478" WindowSizeY="473" WindowType="3" ChatUserSplit="6686" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,5,3,6,7,8,4,9,10,11,2,12" HeaderWidths="132,63,75,199,138,50,40,49,130,50,105,169,80" HeaderVisible="1,1,0,1,0,0,0,1,0,0,0,1,0" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0"/>
+	</Hubs>
+	<Users/>
+	<UserCommands/>
+	<FavoriteDirs/>
+</Favorites>

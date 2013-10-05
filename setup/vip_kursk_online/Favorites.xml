@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="Курск•Online" Connect="1" Description="dc.r46.ru" Nick="" Password="" Server="dc.r46.ru" UserDescription="" AwayMsg="" Email="" WindowPosX="16" WindowPosY="23" WindowSizeX="1038" WindowSizeY="364" WindowType="3" ChatUserSplit="4387" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,11,3,8,9,7,2,10,4,5,6" HeaderWidths="134,62,152,174,156,97,57,48,187,106,61,189" HeaderVisible="1,1,0,1,1,1,1,1,1,1,1,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat="" CliendId="" OverrideId="0"/>
+		<Hub Name="АксиНет" Connect="1" Description="dc-hub.aksinet.net" Nick="" Password="" Server="dc-hub.aksinet.net" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="4387" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,11,3,8,9,7,2,10,4,5,6" HeaderWidths="135,62,152,173,156,100,57,48,182,106,61,187" HeaderVisible="1,1,0,1,1,1,1,1,1,1,1,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0"/>
+		<Hub Name="Пазл" Connect="1" Description="hub.puzzle (NetByNet)" Nick="" Password="" Server="94.232.12.123" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="4387" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,11,3,8,9,7,2,10,4,5,6" HeaderWidths="135,62,152,173,155,100,57,48,186,106,61,192" HeaderVisible="1,1,0,1,1,1,1,1,1,1,1,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0"/>
+	</Hubs>
+	<Users/>
+	<UserCommands/>
+	<FavoriteDirs/>
+</Favorites>

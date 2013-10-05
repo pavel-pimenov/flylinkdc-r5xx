@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="wizardHub" Connect="1" Description="" Server="wizard.korolev.net" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="4608" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" UserListState="1" HeaderOrder="0,1,4,2,5,6,3,7,8,9,10,11,12,13,14" HeaderWidths="137,68,100,240,80,80,144,80,80,80,80,80,80,80,80" HeaderVisible="1,1,0,1,0,0,1,0,0,0,0,0,0,0,0" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat=""/>
+		<Hub Name="Veranda" Connect="0" Description="" Server="10.170.161.66:414" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="3647" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" UserListState="1" HeaderOrder="0,1,4,2,5,6,3,7,8,9,10,11,12,13,14" HeaderWidths="118,73,100,310,80,80,124,80,80,80,80,80,80,80,80" HeaderVisible="1,1,0,1,0,0,1,0,0,0,0,0,0,0,0" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat=""/>
+		<Hub Name="F1miha hub(KASKAD+)" Connect="0" Description="" Server="10.170.161.66:411" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="4608" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" UserListState="1" HeaderOrder="0,1,4,2,5,6,3,7,8,9,10,11,12,13,14" HeaderWidths="113,72,100,233,80,80,126,80,80,80,80,80,80,80,80" HeaderVisible="1,1,0,1,0,0,1,0,0,0,0,0,0,0,0" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat=""/>
+		<Hub Name="Хаб_общение" Connect="0" Description="" Server="bublik.korolev.net" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="4990" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" UserListState="1" HeaderOrder="0,1,4,2,5,6,3,7,8,9,10,11,12,13,14" HeaderWidths="121,65,100,210,80,80,126,80,80,80,80,80,80,80,80" HeaderVisible="1,1,0,1,0,0,1,0,0,0,0,0,0,0,0" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat=""/>
+	</Hubs>
+	<Users/>
+	<UserCommands/>
+	<FavoriteDirs/>
+</Favorites>

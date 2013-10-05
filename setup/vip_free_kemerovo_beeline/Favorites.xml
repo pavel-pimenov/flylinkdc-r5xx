@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="БиЛайн Локальный" Connect="1" Description="Кемерово БиЛайн" Nick="" Password="" Server="gas.servequake.com" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="5645" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,2,3,1,4,6,7,8,9,10,11,5,12" HeaderWidths="174,88,112,110,196,50,40,40,91,30,30,192,80" HeaderVisible="1,1,1,1,1,0,0,0,0,0,0,1,0" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="1" IP="" OpChat="" CliendId="" OverrideId="1"/>
+	</Hubs>
+	<Users/>
+	<UserCommands/>
+	<FavoriteDirs/>
+</Favorites>

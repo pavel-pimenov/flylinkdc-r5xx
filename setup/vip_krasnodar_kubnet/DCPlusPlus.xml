@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<DCPlusPlus>
+	<Settings>
+		<UploadSpeed type="string">100</UploadSpeed>
+		<MainFrameOrder type="string">0,1,2,3,4,5,6,7,8,9,10,11,12</MainFrameOrder>
+		<MainFrameWidths type="string">150,100,250,75,75,175,100,200,50,50,50,100,75</MainFrameWidths>
+		<HubFrameOrder type="string">0,1,2,3,4,5,6,7,8,9,10,11,12</HubFrameOrder>
+		<HubFrameWidths type="string">100,75,75,75,100,50,40,40,100,30,30,50,80</HubFrameWidths>
+		<FavoritesFrameOrder type="string">0,1,2,3,4,5,6</FavoritesFrameOrder>
+		<FavoritesFrameWidths type="string">200,290,125,100,100,125,125</FavoritesFrameWidths>
+		<BindAddress type="string">0.0.0.0</BindAddress>
+		<ConfigVersion type="string">4582</ConfigVersion>
+		<TimeStampsFormat type="string">%H:%M:%S</TimeStampsFormat>
+		<BeepFile type="string">.\Sounds\PrivateMessage.wav</BeepFile>
+		<BeginFile type="string">.\Sounds\DownloadBegins.wav</BeginFile>
+		<FinishedFile type="string">.\Sounds\DownloadFinished.wav</FinishedFile>
+		<SourceFile type="string">.\Sounds\AltSourceAdded.wav</SourceFile>
+		<UploadFile type="string">.\Sounds\UploadFinished.wav</UploadFile>
+		<FakerFile type="string">.\Sounds\FakerFound.wav</FakerFile>
+		<ChatNameFile type="string">.\Sounds\MyNickInMainChat.wav</ChatNameFile>
+		<Toolbar type="string">21,23,0,1,-1,2,3,4,-1,5,6,7,8,-1,9,10,11,12,-1,22,13,-1,14,15,16,-1,17,18,19,20</Toolbar>
+		<SoundTTH type="string">.\Sounds\FileCorrupted.wav</SoundTTH>
+		<SoundException type="string">.\Sounds\UnhandledException.wav</SoundException>
+		<SoundHubConnected type="string">.\Sounds\ConnectHUB.wav</SoundHubConnected>
+		<SoundHubDisconnected type="string">.\Sounds\DisconnectHUB.wav</SoundHubDisconnected>
+		<SoundFavUserOnline type="string">.\Sounds\FavUser.wav</SoundFavUserOnline>
+		<SoundFavUserOffline type="string">.\Sounds\FavUserDisconnected.wav</SoundFavUserOffline>
+		<MainFrameVisible type="string">1,1,1,1,1,1,1,1,1,1,1,1,1</MainFrameVisible>
+		<HubFrameVisible type="string">1,1,1,1,1,1,1,1,1,1,1,1,1</HubFrameVisible>
+		<UrlGetIp type="string">http://checkip.dyndns.com</UrlGetIp>
+		<UrlTestIp type="string">http://www.flylinkdc.com/test.php</UrlTestIp>
+		<IncomingConnections type="int">0</IncomingConnections>
+		<InPort type="int">5430</InPort>
+		<FilterMessages type="int">1</FilterMessages>
+		<MinimizeToTray type="int">1</MinimizeToTray>
+		<UseSystemIcons type="int">1</UseSystemIcons>
+		<GetUserInfo type="int">1</GetUserInfo>
+		<MainWindowState type="int">3</MainWindowState>
+		<SocksPort type="int">1080</SocksPort>
+		<SocksResolve type="int">1</SocksResolve>
+		<ShowProgressBars type="int">1</ShowProgressBars>
+		<MDIMaxmimized type="int">1</MDIMaxmimized>
+		<CzertHiddenSettingA type="int">0</CzertHiddenSettingA>
+		<CzertHiddenSettingB type="int">0</CzertHiddenSettingB>
+		<ShowInfoTips type="int">1</ShowInfoTips>
+		<ExpandQueue type="int">1</ExpandQueue>
+		<TransferSplitSize type="int">8000</TransferSplitSize>
+		<AutoUpdateIP type="int">0</AutoUpdateIP>
+		<AutoUpdateIPInterval type="int">0</AutoUpdateIPInterval>
+		<GetUserCountry type="int">1</GetUserCountry>
+		<UseOldSharingUI type="int">0</UseOldSharingUI>
+		<ShowDescriptionSpeed type="int">0</ShowDescriptionSpeed>
+		<SoundsDisabled type="int">0</SoundsDisabled>
+		<Away type="int">0</Away>
+		<UseVerticalView type="int">1</UseVerticalView>
+		<UDPPort type="int">3977</UDPPort>
+		<NoIPOverride type="int">1</NoIPOverride>
+		<BoldFinishedDownloads type="int">1</BoldFinishedDownloads>
+		<BoldFinishedUploads type="int">1</BoldFinishedUploads>
+		<BoldQueue type="int">1</BoldQueue>
+		<BoldHub type="int">1</BoldHub>
+		<BoldPm type="int">1</BoldPm>
+		<BoldSearch type="int">1</BoldSearch>
+		<TabsOnTop type="int">0</TabsOnTop>
+		<BoldWaitingUsers type="int">1</BoldWaitingUsers>
+		<ShowDescriptionSlots type="int">1</ShowDescriptionSlots>
+		<ShowDescriptionLimit type="int">1</ShowDescriptionLimit>
+		<TbImageSize type="int">20</TbImageSize>
+		<TbImageSizeHot type="int">20</TbImageSizeHot>
+		<ShowWinampControl type="int">1</ShowWinampControl>
+		<SortFavUsersFirst type="int">0</SortFavUsersFirst>
+		<UploadTransfersColors type="int">1</UploadTransfersColors>
+		<OldTrayBehav type="int">0</OldTrayBehav>
+		<ZionTabs type="int">0</ZionTabs>
+		<ViewGridcontrols type="int">0</ViewGridcontrols>
+		<NonHubsFront type="int">0</NonHubsFront>
+		<GlobalMiniTabs type="int">0</GlobalMiniTabs>
+		<BlendOffline type="int">1</BlendOffline>
+		<UseCustomListBackground type="int">1</UseCustomListBackground>
+		<IncomingAutodetectFlag type="int">0</IncomingAutodetectFlag>
+	</Settings>
+	<NoShare/>
+	<PreviewApps>
+		<Application Name="AVIPreview" Application="AVIPreview.exe" Arguments="%[file]" Extension="avi;divx;mpg;mpeg"/>
+	</PreviewApps>
+	<Rebars>
+		<Rebar Name="MainToolBar" ID="60160,60163,60161,60162" CX="1056,214,809,213" BreakLine="1,0,1,0" BandCount="4"/>
+	</Rebars>
+	<Rss/>
+	<SearchHistory/>
+</DCPlusPlus>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="dchub.lan" Connect="1" Description="dchub.lan" Nick="" Password="" Server="dchub.lan" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="7500" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,5,2,6,3,4,7,8,9,10,11,12" HeaderWidths="100,75,75,75,100,50,64,40,100,30,30,50,80" HeaderVisible="1,1,0,1,0,1,1,0,0,0,0,0,0" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0"/>
+	</Hubs>
+	<UserCommands/>
+	<FavoriteDirs/>
+</Favorites>

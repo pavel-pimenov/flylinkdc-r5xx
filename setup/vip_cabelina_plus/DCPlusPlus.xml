@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<DCPlusPlus>
+	<Settings>
+		<UploadSpeed type="string">100</UploadSpeed>
+		<TextFont type="string">Arial,-11,400,0</TextFont>
+		<MainFrameOrder type="string">0,1,2,3,4,5,6,7,8,9,10,11,12</MainFrameOrder>
+		<MainFrameWidths type="string">150,100,241,69,75,175,76,200,50,50,50,100,75</MainFrameWidths>
+		<HubFrameOrder type="string">0,1,10,2,11,12,3,4,5,6,7,8,9</HubFrameOrder>
+		<HubFrameWidths type="string">206,64,152,282,272,75,91,40,100,30,30,50,80</HubFrameWidths>
+		<SearchFrameOrder type="string">0,8,3,4,2,1,5,6,7,11,10,9,12</SearchFrameOrder>
+		<SearchFrameWidths type="string">286,80,86,72,46,77,103,62,76,80,100,100,150</SearchFrameWidths>
+		<FavoritesFrameOrder type="string">0,1,2,3,4,5,6</FavoritesFrameOrder>
+		<FavoritesFrameWidths type="string">200,290,125,100,100,125,125</FavoritesFrameWidths>
+		<QueueFrameOrder type="string">0,1,2,3,4,5,6,7,8,9,10,11,12,13</QueueFrameOrder>
+		<QueueFrameWidths type="string">200,300,70,75,100,120,75,200,200,75,200,100,125,75</QueueFrameWidths>
+		<UsersFrameOrder type="string">0,1,2,3,4,5,6,7</UsersFrameOrder>
+		<UsersFrameWidths type="string">191,235,127,173,118,100,100,100</UsersFrameWidths>
+		<UsersFrameVisible type="string">1,1,1,1,1,1,1,1</UsersFrameVisible>
+		<FinishedOrder type="string">1,0,2,3,4,5,6</FinishedOrder>
+		<FinishedWidths type="string">100,110,290,125,80,80,80</FinishedWidths>
+		<BindAddress type="string">0.0.0.0</BindAddress>
+		<ConfigVersion type="string">2516</ConfigVersion>
+		<MainFrameVisible type="string">1,1,1,1,1,1,1,1,1,1,1,1,1</MainFrameVisible>
+		<UrlGetIp type="string">http://checkip.dyndns.com</UrlGetIp>
+		<UrlTestIp type="string">http://www.flylinkdc.com/test.php</UrlTestIp>
+		<IncomingConnections type="int">0</IncomingConnections>
+		<InPort type="int">0</InPort>
+		<GetUserInfo type="int">1</GetUserInfo>
+		<MainWindowState type="int">1</MainWindowState>
+		<MainWindowSizeX type="int">960</MainWindowSizeX>
+		<MainWindowSizeY type="int">697</MainWindowSizeY>
+		<MainWindowPosX type="int">22</MainWindowPosX>
+		<MainWindowPosY type="int">29</MainWindowPosY>
+		<SocksPort type="int">1080</SocksPort>
+		<SocksResolve type="int">1</SocksResolve>
+		<CzertHiddenSettingA type="int">0</CzertHiddenSettingA>
+		<CzertHiddenSettingB type="int">0</CzertHiddenSettingB>
+		<TransferSplitSize type="int">8000</TransferSplitSize>
+		<AutoUpdateIP type="int">0</AutoUpdateIP>
+		<AutoUpdateIPInterval type="int">0</AutoUpdateIPInterval>
+		<ShowDescriptionSpeed type="int">0</ShowDescriptionSpeed>
+		<Away type="int">0</Away>
+		<UDPPort type="int">0</UDPPort>
+		<NoIPOverride type="int">1</NoIPOverride>
+		<ShowDescriptionSlots type="int">1</ShowDescriptionSlots>
+		<ShowDescriptionLimit type="int">1</ShowDescriptionLimit>
+		<ShowWinampControl type="int">0</ShowWinampControl>
+		<IncomingAutodetectFlag type="int">0</IncomingAutodetectFlag>
+	</Settings>
+	<PreviewApps>
+		<Application Name="AVIPreview" Application="AVIPreview.exe" Arguments="%[file]" Extension="avi;divx;mpg;mpeg"/>
+	</PreviewApps>
+	<Rebars>
+		<Rebar Name="MainToolBar" ID="60160,60163,60161,60162" CX="691,327,778,240" BreakLine="1,0,1,0" BandCount="4"/>
+	</Rebars>
+	<SearchHistory/>
+</DCPlusPlus>

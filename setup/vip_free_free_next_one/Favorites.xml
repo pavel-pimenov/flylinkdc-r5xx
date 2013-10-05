@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="megara.next-one.ru" Connect="1" Description="megara.next-one.ru" Server="megara.next-one.ru" Encoding="Russian_Russia.1251" Mode="0" SearchInterval="10" />
+		<Hub Name="StarNet - DC Hub (dc.starnet)" Connect="1" Description="StarNet - DC Hub (dc.starnet)" Server="dc.starnet"  Encoding="Russian_Russia.1251"  Mode="0" SearchInterval="10" />
+		<Hub Name="E-telecom+Unity (p2p.unity-net.pvt:1090)" Connect="1" Description="E-telecom+Unity (p2p.unity-net.pvt:1090)" Nick="" Password="" Server="p2p.unity-net.pvt:1090" UserDescription="" Encoding="Russian_Russia.1251" Mode="0" SearchInterval="10" CliendId="StrgDC++ 2.42" />
+		<Hub Name="demon.lan" Connect="1" Description="demon.lan" Server="demon.lan"  Encoding="Russian_Russia.1251" Mode="0"  SearchInterval="10" />
+		<Hub Name="von-ent.lan" Connect="1" Description="von-ent.lan" Nick="" Password="" Server="von-ent.lan" UserDescription="" Encoding="Russian_Russia.1251" Mode="0" SearchInterval="10" />
+	</Hubs>
+	<Users>
+	</Users>
+	<UserCommands/>
+	<FavoriteDirs/>
+</Favorites>

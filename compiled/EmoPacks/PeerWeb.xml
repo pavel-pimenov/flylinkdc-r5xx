@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="windows-1252"?>
+<Emoticons CaseSensitive="0" PreferHintText="1">
+	<Emoticon HintText="Gasp!" PasteText=":O" Expression=":O" Bitmap="Images\PeerWeb\icon5.bmp"/>
+	<Emoticon HintText="Gasp!" PasteText=":-O" Expression=":-O" Bitmap="Images\PeerWeb\icon5.bmp"/>
+	<Emoticon HintText="Annoyed" PasteText=":hmph:" Expression=":hmph:" Bitmap="Images\PeerWeb\icon2.bmp"/>
+	<Emoticon HintText="Arrow" PasteText=":arrow:" Expression=":arrow:" Bitmap="Images\PeerWeb\icon11.bmp"/>
+	<Emoticon HintText="Arrow" PasteText=":right:" Expression=":right:" Bitmap="Images\PeerWeb\icon11.bmp"/>
+	<Emoticon HintText="Happy" PasteText=":}" Expression=":}" Bitmap="Images\PeerWeb\icon20.bmp"/>
+	<Emoticon HintText="Happy" PasteText=":-}" Expression=":-}" Bitmap="Images\PeerWeb\icon20.bmp"/>
+	<Emoticon HintText="Raising A Brow" PasteText=":brow:" Expression=":brow:" Bitmap="Images\PeerWeb\icon29.bmp"/>
+	<Emoticon HintText="Thumbs Down" PasteText=":no:" Expression=":no:" Bitmap="Images\PeerWeb\icon36.bmp"/>
+	<Emoticon HintText="Sad" PasteText=":(" Expression=":(" Bitmap="Images\PeerWeb\icon19.bmp"/>
+	<Emoticon HintText="Sad" PasteText=":-(" Expression=":-(" Bitmap="Images\PeerWeb\icon19.bmp"/>
+	<Emoticon HintText="Crying Or Very Sad" PasteText=":'(" Expression=":'(" Bitmap="Images\PeerWeb\icon23.bmp"/>
+	<Emoticon HintText="Crying Or Very Sad" PasteText=":'-(" Expression=":'-(" Bitmap="Images\PeerWeb\icon23.bmp"/>
+	<Emoticon HintText="Idea" PasteText=":idea:" Expression=":idea:" Bitmap="Images\PeerWeb\icon24.bmp"/>
+	<Emoticon HintText="Rockin' Out" PasteText="_\m/" Expression="_\m/" Bitmap="Images\PeerWeb\rockin.bmp"/>
+	<Emoticon HintText="Rockin' Out" PasteText="\m/" Expression="\m/" Bitmap="Images\PeerWeb\rockin.bmp"/>
+	<Emoticon HintText="Yelling" PasteText="|-O" Expression="|-O" Bitmap="Images\PeerWeb\icon99.bmp"/>
+	<Emoticon HintText="Yelling" PasteText="|O" Expression="|O" Bitmap="Images\PeerWeb\icon99.bmp"/>
+	<Emoticon HintText="Rockin' Out" PasteText="m/_/" Expression="m/_/" Bitmap="Images\PeerWeb\rockinr.bmp"/>
+	<Emoticon HintText="Geek" PasteText=":geek:" Expression=":geek:" Bitmap="Images\PeerWeb\icon28.bmp"/>
+	<Emoticon HintText="Thumbs Up" PasteText=":yes:" Expression=":yes:" Bitmap="Images\PeerWeb\icon35.bmp"/>
+	<Emoticon HintText="Cute Thingy" PasteText="O_O" Expression="O_O" Bitmap="Images\PeerWeb\icon43.bmp"/>
+	<Emoticon HintText="Cute Thingy" PasteText=":weird:" Expression=":weird:" Bitmap="Images\PeerWeb\icon43.bmp"/>
+	<Emoticon HintText="Smile" PasteText=":)" Expression=":)" Bitmap="Images\PeerWeb\icon1.bmp"/>
+	<Emoticon HintText="Smile" PasteText=":-)" Expression=":-)" Bitmap="Images\PeerWeb\icon1.bmp"/>
+	<Emoticon HintText="Embarrased" PasteText=":umm:" Expression=":umm:" Bitmap="Images\PeerWeb\icon9.bmp"/>
+	<Emoticon HintText="Question" PasteText=":?:" Expression=":?:" Bitmap="Images\PeerWeb\icon14.bmp"/>
+	<Emoticon HintText="Going To Be Sick" PasteText=":sick:" Expression=":sick:" Bitmap="Images\PeerWeb\icon8.bmp"/>
+	<Emoticon HintText="Fear The Niinja!" PasteText=":fear:" Expression=":fear:" Bitmap="Images\PeerWeb\icon27.bmp"/>
+	<Emoticon HintText="Fear The Pirate!" PasteText=":ahoy:" Expression=":ahoy:" Bitmap="Images\PeerWeb\icon22.bmp"/>
+	<Emoticon HintText="Whistling" PasteText=":whistle:" Expression=":whistle:" Bitmap="Images\PeerWeb\icon34.bmp"/>
+	<Emoticon HintText="So Evil" PasteText=":satan:" Expression=":satan:" Bitmap="Images\PeerWeb\icon42.bmp"/>
+	<Emoticon HintText="Very Happy" PasteText=":D" Expression=":D" Bitmap="Images\PeerWeb\icon15.bmp"/>
+	<Emoticon HintText="Very Happy" PasteText=":-D" Expression=":-D" Bitmap="Images\PeerWeb\icon15.bmp"/>
+	<Emoticon HintText="Razz" PasteText=":P" Expression=":P" Bitmap="Images\PeerWeb\icon18.bmp"/>
+	<Emoticon HintText="Razz" PasteText=":-P" Expression=":-P" Bitmap="Images\PeerWeb\icon18.bmp"/>
+	<Emoticon HintText="Exclamation" PasteText=":!:" Expression=":!:" Bitmap="Images\PeerWeb\icon13.bmp"/>
+	<Emoticon HintText="Blushing" PasteText=":blush:" Expression=":blush:" Bitmap="Images\PeerWeb\icon26.bmp"/>
+	<Emoticon HintText="w00t!" PasteText=":w00t:" Expression=":w00t:" Bitmap="Images\PeerWeb\icon33.bmp"/>
+	<Emoticon HintText="errm" PasteText=":errm:" Expression=":errm:" Bitmap="Images\PeerWeb\icon41.bmp"/>
+	<Emoticon HintText="Mad" PasteText=":x" Expression=":x" Bitmap="Images\PeerWeb\icon7.bmp"/>
+	<Emoticon HintText="Mad" PasteText=":X" Expression=":X" Bitmap="Images\PeerWeb\icon7.bmp"/>
+	<Emoticon HintText="Mad" PasteText=":-X" Expression=":-X" Bitmap="Images\PeerWeb\icon7.bmp"/>
+	<Emoticon HintText="Mad" PasteText=":-x" Expression=":-x" Bitmap="Images\PeerWeb\icon7.bmp"/>
+	<Emoticon HintText="Wink" PasteText=";)" Expression=";)" Bitmap="Images\PeerWeb\icon17.bmp"/>
+	<Emoticon HintText="Wink" PasteText=";-)" Expression=";-)" Bitmap="Images\PeerWeb\icon17.bmp"/>
+	<Emoticon HintText="Oh My Gosh" PasteText=":omg:" Expression=":omg:" Bitmap="Images\PeerWeb\icon32.bmp"/>
+	<Emoticon HintText="Oh My Gosh" PasteText="8-\" Expression=":omg:" Bitmap="Images\PeerWeb\icon32.bmp"/>
+	<Emoticon HintText="Pinched" PasteText=">_<" Expression=">_<" Bitmap="Images\PeerWeb\icon40.bmp"/>
+	<Emoticon HintText="Laughing" PasteText=":lol:" Expression=":lol:" Bitmap="Images\PeerWeb\icon6.bmp"/>
+	<Emoticon HintText="Rolling Eyes" PasteText=":roll:" Expression=":roll:" Bitmap="Images\PeerWeb\icon21.bmp"/>
+	<Emoticon HintText="True Love!" PasteText=":heart:" Expression=":heart:" Bitmap="Images\PeerWeb\icon12.bmp"/>
+	<Emoticon HintText="Ungh" PasteText=":S" Expression=":S" Bitmap="Images\PeerWeb\icon39.bmp"/>
+	<Emoticon HintText="Ungh" PasteText=":-S" Expression=":-S" Bitmap="Images\PeerWeb\icon39.bmp"/>
+	<Emoticon HintText="Sulking" PasteText=":sulk:" Expression=":sulk:" Bitmap="Images\PeerWeb\icon31.bmp"/>
+	<Emoticon HintText="Naughty" PasteText=":naughty:" Expression=":naughty:" Bitmap="Images\PeerWeb\icon38.bmp"/>
+	<Emoticon HintText="Cool" PasteText="(H)" Expression="(H)" Bitmap="Images\PeerWeb\icon10.bmp"/>
+	<Emoticon HintText="Cool" PasteText="(8)" Expression="(8)" Bitmap="Images\PeerWeb\icon10.bmp"/>
+	<Emoticon HintText="Cool" PasteText="8-)" Expression="8-)" Bitmap="Images\PeerWeb\icon10.bmp"/>
+	<Emoticon HintText="Well Then" PasteText=":whatever:" Expression=":whatever:" Bitmap="Images\PeerWeb\icon3.bmp"/>
+	<Emoticon HintText="Neutral" PasteText=":|" Expression=":|" Bitmap="Images\PeerWeb\icon25.bmp"/>
+	<Emoticon HintText="Neutral" PasteText=":-|" Expression=":-|" Bitmap="Images\PeerWeb\icon25.bmp"/>
+	<Emoticon HintText="Just Kidding" PasteText=":-p" Expression=":-p" Bitmap="Images\PeerWeb\icon4.bmp"/>
+	<Emoticon HintText="Crego The Playa" PasteText=":crego:" Expression=":crego:" Bitmap="Images\PeerWeb\crego.bmp"/>
+	<Emoticon HintText="Crego The Playa" PasteText=":pimp:" Expression=":pimp:" Bitmap="Images\PeerWeb\crego.bmp"/>
+	<Emoticon HintText="Giant Grin" PasteText=":biggrin:" Expression=":biggrin:" Bitmap="Images\PeerWeb\icon30.bmp"/>
+	<Emoticon HintText="That's One Sketchy Smiley" PasteText=":sketchy:" Expression=":sketchy:"Bitmap="Images\PeerWeb\icon37.bmp"/>
+	<Emoticon HintText="Relax And Have A Drink" PasteText=":martini:" Expression=":martini:" Bitmap="Images\PeerWeb\martini.bmp"/>
+	<Emoticon HintText="Beer" PasteText=":beer:" Expression=":beer:" Bitmap="Images\PeerWeb\beer_mug.bmp"/>
+	<Emoticon HintText="Thumbs Down!" PasteText="(N)" Expression="(N)" Bitmap="Images\PeerWeb\thumbs_down.bmp"/>
+	<Emoticon HintText="Thumbs Up!" PasteText="(Y)" Expression="(Y)" Bitmap="Images\PeerWeb\thumbs_up.bmp"/>
+	<Emoticon HintText="Retarded" PasteText=":retard:" Expression=":retard:" Bitmap="Images\PeerWeb\icon16.bmp"/>
+	<Emoticon HintText="Awkward" PasteText=":awkward:" Expression=":awkward:" Bitmap="Images\PeerWeb\icon45.bmp"/>
+	<Emoticon HintText="Angry" PasteText=":@" Expression=":@" Bitmap="Images\PeerWeb\icon72.bmp"/>
+	<Emoticon HintText="Ditz" PasteText=":ditz:" Expression=":ditz:" Bitmap="Images\PeerWeb\icon65.bmp"/>
+	<Emoticon HintText="Gagged" PasteText=":notalk:" Expression=":notalk:" Bitmap="Images\PeerWeb\icon61.bmp"/>
+	<Emoticon HintText="Suprise" PasteText=":twitch:" Expression=":twitch:" Bitmap="Images\PeerWeb\icon60.bmp"/>
+	<Emoticon HintText="Kiss" PasteText=":kiss:" Expression=":kiss:" Bitmap="Images\PeerWeb\icon57.bmp"/>
+	<Emoticon HintText="Huh" PasteText=":huh:" Expression=":huh:" Bitmap="Images\PeerWeb\icon56.bmp"/>
+	<Emoticon HintText="Topsy" PasteText=":topsy:" Expression=":topsy:" Bitmap="Images\PeerWeb\icon52.bmp"/>
+	<Emoticon HintText="Unsure" PasteText=":-\" Expression=":-\" Bitmap="Images\PeerWeb\icon49.bmp"/>
+</Emoticons>

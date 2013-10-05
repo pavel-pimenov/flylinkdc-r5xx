@@ -1,0 +1,58 @@
+Место хранения актуальной конфигурации:
+http://www.fly-server.ru/update/etc/flylinkdc-config.xml
+
+1 ======================== Убираем лишние тэги Mediainfo =======================
+  Данный массив описывается в конфигурационном поле exclude_tag
+  и содержит следующие значения: "Format_Settings_Matrix_Data,Codec/Extensions,Format/Extensions,Cover,Cover_Type,Cover_Mime,StreamSize_Proportion,Cover_Data,Encoded_Library_Settings,CodecID/Url,Codec/Url,CompleteName,UniqueID,UniqueID/String,Encoded_Application,Format/Url,FolderName,File_Created_Date_Local,File_Modified_Date,File_Modified_Date_Local,FileName,FileSize,File_Created_Date,Tagged_Date" 
+
+  В медиаинфо присуствует дополнительный общий тэг Infrom в котором собирается общая информация из него так-же есть возможность вырезать лишние строки по наименованию тэга
+  конфигурация хранится в поле exclude_tag_inform и на сегодня содержит значения
+        Complete name,Encoding settings,Encoded date,Tagged date
+
+	 Предложения от Александра добавить к ней следующую фильтрацию:
+
+	В General:
+
+	Album replay gain
+	Album replay gain peak
+	Comment
+	Copyright
+	Cover
+	Cover type
+	Cover MIME
+	GRACENOTEFILEID
+	GRACENOTEEXTDATA
+	Overall bit rate mode
+	Overall bit rate
+	NOTES
+
+
+	В Audio:
+
+	Alignment
+	Interleave, duration
+	Interleave, preload duration
+	Format settings, Endianness
+	Menu ID
+	Replay gain
+	Replay gain peak
+	Source
+        Forced
+
+	В Video:
+
+	Forced
+	Source
+        Forced
+
+	В Text
+	
+	
+Default
+	Forced
+
+  [27.01.2013] Добавил все кроме
+	Interleave, duration
+	Interleave, preload duration
+	Format settings, Endianness
+  Внутри себя содержат запятые...

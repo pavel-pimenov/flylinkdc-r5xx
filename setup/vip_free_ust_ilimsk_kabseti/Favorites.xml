@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="Хаб сети ООО &quot;Кабельные сети&quot;" Connect="1" Description="&quot;Кабельные сети&quot;" Nick="" Password="" Server="dchub://dc1.ksilim.ru" UserDescription="" Encoding="" AwayMsg="" Email="" WindowPosX="46" WindowPosY="46" WindowSizeX="1402" WindowSizeY="366" WindowType="3" ChatUserSplit="6645" StealthMode="0" HideShare="0" SendUserIpOnLogon="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,11,12,2,13,3,4,5,6,7,8,9,10" HeaderWidths="133,75,75,84,301,50,53,67,215,118,92,118,80,80" HeaderVisible="1,1,0,0,1,0,1,1,1,1,1,1,1,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0" Group=""/>
+	</Hubs>
+	<Users/>
+	<UserCommands/>	
+</Favorites>

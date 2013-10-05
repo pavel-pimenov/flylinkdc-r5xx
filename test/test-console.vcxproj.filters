@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\client\Thread.cpp" />
+    <ClCompile Include="test-console.cpp" />
+    <ClCompile Include="..\boost\libs\system\src\error_code.cpp">
+      <Filter>boost</Filter>
+    </ClCompile>
+    <ClCompile Include="..\client\CFlyProfiler.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="boost">
+      <UniqueIdentifier>{1e81a698-56f0-47a9-9227-02507846f3b2}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

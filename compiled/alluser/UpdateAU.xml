@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UpdateAU xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<Module Title="geoip">
+		<File Name="GeoIPCountryWhois.csv" Pack="bz2" Size="6033575" TTH="VY26OLZJS2SH23QLOOA4UGUMLFFC7BKT2EBOF6Q" PackedSize="1042013" Url="http://www.fly-server.ru/update/alluser/GeoIPCountryWhois.csv.bz2"/>
+	</Module>
+	<Module Title="customlocation">
+		<File Name="CustomLocations.bmp" Pack="bz2" Size="1695670" TTH="34YMBPHWFC445TGA6WQXWHAIKW3ZXHBVPPHDIBY" PackedSize="864673" Url="http://www.fly-server.ru/update/alluser/CustomLocations.bmp.bz2"/>
+		<File Name="CustomLocations.ini" Pack="bz2" Size="524300" TTH="KPUFMTSL4OB7KALVKWKVHPHS5SBZTJXOQ7UYY4Y" PackedSize="81952" Url="http://www.fly-server.ru/update/alluser/CustomLocations.ini.bz2"/>
+	</Module>
+</UpdateAU>

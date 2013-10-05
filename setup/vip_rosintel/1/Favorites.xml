@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="Alex1977 Hub (Локальный хаб Алекса)" Connect="1" Description="хаб локальной сети Росинтел, владелец хаба - Alex1977" Server="10.101.1.170" UserDescription="надо что-то написать сюда" AwayMsg="Я отошел от компьютера, отвечу когда вернусь" Mode="0" />
+		<Hub Name="The New Moscow Росинтел-адрес" Connect="1" Description="X@Б The New Moscow с адресом Росинтел" Server="10.103.2.172" UserDescription="Я с Росинтел" AwayMsg="Я отошел от компьютера, отвечу когда вернусь" Mode="0" />
+	</Hubs>
+</Favorites>

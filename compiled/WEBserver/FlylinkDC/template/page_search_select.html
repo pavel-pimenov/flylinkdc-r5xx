@@ -1,0 +1,24 @@
+<!-- /* page_search_dir_select.html */ -->
+{SEARCH_DOWNLOAD_DIR}
+
+<h2>{LANG_WEBSERVER_ADD_MAGNET_LINK}</h2>
+	<strong>{LANG_WEBSERVER_MAGNET_LINK}</strong> <input size=60 type=text name=link />
+		<input class=button type=submit value="{LANG_ADD2}" />
+		<br /><br />
+
+<h2>{LANG_SEARCH}</h2>
+	<strong>{LANG_ENTER_SEARCH_STRING}:</strong> <input size=50 type=text name=search />
+		<select class=sel name=type>
+			<option value=0 selected="selected">{LANG_OPT_ANY}</option>
+			<option value=1>{LANG_OPT_AUDIO}</option>
+			<option value=2>{LANG_OPT_COMPRESSED}</option>
+			<option value=3>{LANG_OPT_DOCUMENT}</option>
+			<option value=4>{LANG_OPT_EXECUTABLE}</option>
+			<option value=5>{LANG_OPT_PICTURE}</option>
+			<option value=6>{LANG_OPT_VIDEO_AND_SUBTITLES}</option>
+			<option value=7>{LANG_OPT_DIRECTORY}</option>
+			<option value=8>TTH</option>
+			<option value=9>CD-DVD Image</option>
+		</select>
+		<input class=button type=submit value="{LANG_SEARCH}" />
+		<br /><br />

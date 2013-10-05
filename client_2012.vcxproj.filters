@@ -1,0 +1,1063 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="client\AdcCommand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\AdcHub.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\ADLSearch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\BufferedSocket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\BZUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\ChatMessage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\ClientManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\ClientProfileManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\ConnectionManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\CryptoManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\DCPlusPlus.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\DetectionManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\DirectoryListing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\Download.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\DownloadManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\File.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\FavoriteManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\Encoder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\Client.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\FinishedManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\FsUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\HashBloom.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\HashManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\HttpConnection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\IpGuard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\MD5Calc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\NmdcHub.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\PGLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\QueueItem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\QueueManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\ResourceManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\SearchManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\SearchQueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\SimpleXMLReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\SimpleXML.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\ShareManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\SettingsManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\ServerSocket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\SearchResult.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\Socket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\SSL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\SSLSocket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\stdinc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\StringDefs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\Text.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\Thread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\ThrottleManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\TigerHash.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\TimerManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\TraceManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\Transfer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\Upload.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\UploadManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\User.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\UserConnection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\Util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\WebServerManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\ZUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\CFlylinkDBManager.cpp">
+      <Filter>Source Files\dbmanager</Filter>
+    </ClCompile>
+    <ClCompile Include="client\sqlite\sqlite3.c">
+      <Filter>Source Files\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="client\sqlite\sqlite3x_command.cpp">
+      <Filter>Source Files\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="client\sqlite\sqlite3x_connection.cpp">
+      <Filter>Source Files\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="client\sqlite\sqlite3x_reader.cpp">
+      <Filter>Source Files\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="client\sqlite\sqlite3x_transaction.cpp">
+      <Filter>Source Files\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="client\UserCommand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\ConnectivityManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\SharedFileStream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\idna\idna.cpp">
+      <Filter>Source Files\idna</Filter>
+    </ClCompile>
+    <ClCompile Include="client\idna\punycode.cpp">
+      <Filter>Source Files\idna</Filter>
+    </ClCompile>
+    <ClCompile Include="client\iplist.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\IPGrant.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\CID.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\Mapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\MappingManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\CompatibilityManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\UserInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\UserInfoBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\Mapper_MiniUPnPc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\Mapper_NATPMP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\Mapper_WinUPnP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\UserManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jsoncpp\src\lib_json\json_writer.cpp">
+      <Filter>Source Files\jsoncpp</Filter>
+    </ClCompile>
+    <ClCompile Include="jsoncpp\src\lib_json\json_value.cpp">
+      <Filter>Source Files\jsoncpp</Filter>
+    </ClCompile>
+    <ClCompile Include="jsoncpp\src\lib_json\json_reader.cpp">
+      <Filter>Source Files\jsoncpp</Filter>
+    </ClCompile>
+    <ClCompile Include="client\DebugManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\Exception.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\LogManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\CFlyProfiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\db\builder.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\db\c.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\db\db_impl.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\db\db_iter.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\db\dbformat.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\db\filename.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\db\leveldb_main.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\db\log_reader.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\db\log_writer.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\db\memtable.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\db\repair.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\db\table_cache.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\db\version_edit.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\db\version_set.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\db\write_batch.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\helpers\memenv\memenv.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\port\port_win.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\table\block.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\table\block_builder.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\table\filter_block.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\table\format.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\table\iterator.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\table\merger.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\table\table.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\table\table_builder.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\table\two_level_iterator.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\util\arena.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\util\bloom.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\util\cache.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\util\coding.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\util\comparator.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\util\crc32c.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\util\env.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\util\env_win.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\util\filter_policy.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\util\hash.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\util\histogram.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\util\logging.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\util\options.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="leveldb\util\status.cc">
+      <Filter>Source Files\leveldb</Filter>
+    </ClCompile>
+    <ClCompile Include="client\StringPool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\ZipFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\minizip\ioapi.c">
+      <Filter>Source Files\minizip</Filter>
+    </ClCompile>
+    <ClCompile Include="client\minizip\unzip.c">
+      <Filter>Source Files\minizip</Filter>
+    </ClCompile>
+    <ClCompile Include="client\minizip\zip.c">
+      <Filter>Source Files\minizip</Filter>
+    </ClCompile>
+    <ClCompile Include="client\AdcSupports.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="client\AdcCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\AdcHub.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\ADLSearch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\BitInputStream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\BitOutputStream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\BloomFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\BufferedSocket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\BufferedSocketListener.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\BZUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\ChatMessage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\CheatManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\CID.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\Client.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\ClientListener.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\ClientManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\ClientManagerListener.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\ClientProfileManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\ConnectionManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\ConnectionManagerListener.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\CryptoManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\DCPlusPlus.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\DebugManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\DetectionManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\DirectoryListing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\Download.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\DownloadManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\DownloadManagerListener.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\Encoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\Exception.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\FavHubGroup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\FavoriteManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\FavoriteManagerListener.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\FavoriteUser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\File.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\FilteredFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\FinishedManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\FinishedManagerListener.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\Flags.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\forward.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\FsUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\HashBloom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\HashManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\HashValue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\HttpConnection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\HubEntry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\IpGuard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\LogManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\MD5Calc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\MerkleCheckOutputStream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\MerkleTree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\NmdcHub.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\OnlineUser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\PGLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\Pointer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\QueueItem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\QueueManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\QueueManagerListener.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\ResourceManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="revision.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\SearchManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\SearchManagerListener.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\SearchQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\SearchResult.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\Segment.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\Semaphore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\ServerSocket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\SettingsManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\ShareManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\SimpleXML.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\SimpleXMLReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\Singleton.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\Socket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\Speaker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\ssl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\SSLSocket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\stdinc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\Streams.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\StringSearch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\StringTokenizer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\TaskQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\Text.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\Thread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\ThrottleManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\TigerHash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\TimerManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\TraceManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\Transfer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\Upload.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\UploadManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\UploadManagerListener.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\User.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\UserCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\UserConnection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\UserConnectionListener.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\UserInfoBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\Util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\WebServerManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\Wildcards.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\ZUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\sqlite\sqlite3.h">
+      <Filter>Header Files\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="client\sqlite\sqlite3ext.h">
+      <Filter>Header Files\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="client\sqlite\sqlite3x.hpp">
+      <Filter>Header Files\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="client\CFlylinkDBManager.h">
+      <Filter>Header Files\dbmanager</Filter>
+    </ClInclude>
+    <ClInclude Include="client\sqlite\sqlite_fly.h">
+      <Filter>Header Files\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="client\ConnectivityManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\SharedFileStream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\idna\idna.h">
+      <Filter>Header Files\idna</Filter>
+    </ClInclude>
+    <ClInclude Include="client\idna\punycode.h">
+      <Filter>Header Files\idna</Filter>
+    </ClInclude>
+    <ClInclude Include="client\iplist.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\IPGrant.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\compiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\debug.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\Mapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\MappingManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\noexcept.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\ScopedFunctor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\typedefs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\w.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\compiler_flylinkdc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\CompatibilityManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\UserInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\UserManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\Mapper_MiniUPnPc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\Mapper_NATPMP.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\Mapper_WinUPnP.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\w_flylinkdc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="jsoncpp\include\json\autolink.h">
+      <Filter>Header Files\jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="jsoncpp\include\json\config.h">
+      <Filter>Header Files\jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="jsoncpp\include\json\features.h">
+      <Filter>Header Files\jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="jsoncpp\include\json\forwards.h">
+      <Filter>Header Files\jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="jsoncpp\include\json\json.h">
+      <Filter>Header Files\jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="jsoncpp\src\lib_json\json_batchallocator.h">
+      <Filter>Header Files\jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="jsoncpp\include\json\reader.h">
+      <Filter>Header Files\jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="jsoncpp\include\json\value.h">
+      <Filter>Header Files\jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="jsoncpp\include\json\writer.h">
+      <Filter>Header Files\jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="client\cperformance.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\DetectionEntry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\HintedUser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\util_flylinkdc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\CFlyMediaInfo.h">
+      <Filter>Header Files\dbmanager</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\RebuildMediainfoProgressDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\CFlyProfiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\UserInfoColumns.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\util\arena.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\util\coding.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\util\crc32c.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\util\hash.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\util\histogram.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\util\logging.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\util\mutexlock.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\util\posix_logger.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\util\random.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\util\testharness.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\util\testutil.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\table\block.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\table\block_builder.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\table\filter_block.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\table\format.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\table\iterator_wrapper.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\table\merger.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\table\two_level_iterator.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\port\port_win.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\include\leveldb\c.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\include\leveldb\cache.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\include\leveldb\comparator.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\include\leveldb\db.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\include\leveldb\env.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\include\leveldb\filter_policy.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\include\leveldb\iterator.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\include\leveldb\options.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\include\leveldb\slice.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\include\leveldb\status.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\include\leveldb\table.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\include\leveldb\table_builder.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\include\leveldb\write_batch.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\helpers\memenv\memenv.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\db\builder.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\db\db_impl.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\db\db_iter.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\db\dbformat.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\db\filename.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\db\log_format.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\db\log_reader.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\db\log_writer.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\db\memtable.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\db\skiplist.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\db\snapshot.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\db\table_cache.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\db\version_edit.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\db\version_set.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="leveldb\db\write_batch_internal.h">
+      <Filter>Header Files\leveldb</Filter>
+    </ClInclude>
+    <ClInclude Include="client\AdcSupports.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\StringPool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\ZipFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\minizip\crypt.h">
+      <Filter>Source Files\minizip</Filter>
+    </ClInclude>
+    <ClInclude Include="client\minizip\ioapi.h">
+      <Filter>Source Files\minizip</Filter>
+    </ClInclude>
+    <ClInclude Include="client\minizip\unzip.h">
+      <Filter>Source Files\minizip</Filter>
+    </ClInclude>
+    <ClInclude Include="client\minizip\zip.h">
+      <Filter>Source Files\minizip</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{dabd48b6-4870-40e4-91f6-8a1c673b70e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{bd2812c4-18a9-4b41-91e8-da1839d3b23f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\sqlite">
+      <UniqueIdentifier>{8bbddd30-ea83-4cff-a396-58c23c41f445}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\sqlite">
+      <UniqueIdentifier>{16d3c7d3-ee44-44de-a820-f5fcffbe4341}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\idna">
+      <UniqueIdentifier>{14c6f065-8e7e-4320-90bb-3c457151c8da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\idna">
+      <UniqueIdentifier>{21e47374-4f41-47f1-b223-45719142797d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\jsoncpp">
+      <UniqueIdentifier>{1939ab80-b10d-48d1-a1ee-ceb30dfe0622}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\jsoncpp">
+      <UniqueIdentifier>{a2bc7e46-ac54-4dd9-bdbf-0729d9408fad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\dbmanager">
+      <UniqueIdentifier>{28cda5a3-e6da-4055-9453-9e82e394b0aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\dbmanager">
+      <UniqueIdentifier>{106869dc-2d96-4e8e-80d9-80880a08ae18}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\leveldb">
+      <UniqueIdentifier>{5b59962a-56df-480f-b25d-2becdf0e1ce2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\leveldb">
+      <UniqueIdentifier>{d23b4909-e5c2-4012-8823-963a17f2b9e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\minizip">
+      <UniqueIdentifier>{84096e6f-60b6-4f0c-939d-d548ac07cd87}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="client\StringDefs.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="jsoncpp\src\lib_json\json_internalarray.inl">
+      <Filter>Source Files\jsoncpp</Filter>
+    </None>
+    <None Include="jsoncpp\src\lib_json\json_valueiterator.inl">
+      <Filter>Source Files\jsoncpp</Filter>
+    </None>
+    <None Include="jsoncpp\src\lib_json\json_internalmap.inl">
+      <Filter>Source Files\jsoncpp</Filter>
+    </None>
+  </ItemGroup>
+</Project>

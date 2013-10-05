@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="Saltov DC ++ Hub" Connect="1" Description="" Nick="" Password="" Server="dc-saltov.sytes.net" UserDescription="" Encoding="" AwayMsg="" Email="" WindowPosX="150" WindowPosY="168" WindowSizeX="1082" WindowSizeY="480" WindowType="3" ChatUserSplit="8367" StealthMode="0" HideShare="0" SendUserIpOnLogon="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,12,2,3,4,5,6,7,8,9,10,11,13" HeaderWidths="165,73,115,83,38,42,68,58,150,99,141,80,80,80" HeaderVisible="1,1,1,1,1,1,1,1,1,1,1,1,1,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="1" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0" Group=""/>
+	</Hubs>
+	<Users/>
+	<UserCommands/>
+	<FavoriteDirs/>
+</Favorites>

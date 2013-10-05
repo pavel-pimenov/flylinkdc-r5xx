@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="dc.adslclub.ru"     Connect="1" Description="WS-Сибирь (все регионы)"              Nick="" Password="" Server="dc.adslclub.ru"     UserListState="1" />
+		<Hub Name="p2p.academ.org"     Connect="1" Description="WS-Новосибирск, WS-Алтай, Academ.Org" Nick="" Password="" Server="p2p.academ.org"     UserListState="1" />
+		<Hub Name="peers.cn.ru"        Connect="1" Description="WS-Новосибирск, Новотелеком"          Nick="" Password="" Server="peers.cn.ru"        UserListState="1" />
+		<Hub Name="dc.1nsk.ru"         Connect="1" Description="WS-Новосибирск"                       Nick="" Password="" Server="dc.1nsk.ru"         UserListState="1" />
+	</Hubs>
+	<Users/>
+	<UserCommands/>
+	<FavoriteDirs/>
+</Favorites>

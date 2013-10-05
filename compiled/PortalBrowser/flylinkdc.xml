@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Portal name="Flylinkdc++" URL="http://flylinkdc.com/forum/" SearchURL="search.php?keywords=%QUERY%" XMLVersion="1" DefaultCharset="utf8">
+	<Images Large="Flylinkdc\icons_large.bmp" Small="Flylinkdc\icons_small.bmp" SmallImageID="0" LargeImageID="0"/>
+	<Section URL="search.php" LargeImageID="Search"/>
+	<Section SearchName="Домой" SearchURL="" LargeImageID="Home"/>
+	<Section name="Общие" URL="viewforum.php?f=4" >
+		<Section name="Новости проекта" URL="viewforum.php?f=7">
+			<Section name="FlylinkDC++ 4хх" URL="viewforum.php?f=5"/>
+			<Section name="FlylinkDC++ 5хх" URL="viewforum.php?f=6"/>
+		</Section>
+		<Section name="Правила" URL="viewforum.php?f=17"/>
+		<Section name="Голосования" URL="viewforum.php?f=19"/>
+		<Section name="Пожелания" URL="viewforum.php?f=26"/>
+	</Section>
+	<Section name="Форум" URL="index.php">
+		<Section name="Работа над ошибками" URL="viewforum.php?f=21">
+			<Section name="FlylinkDC++ 4хх" URL="viewforum.php?f=22"/>
+			<Section name="FlylinkDC++ 5хх" URL="viewforum.php?f=23"/>
+		</Section>
+		<Section name="Вопросы-Ответы" URL="viewforum.php?f=27"/>
+	</Section>
+	<Section name="FlylinkDC 5хх" URL="viewforum.php?f=9" >
+		<Section name="Хотелки" URL="viewforum.php?f=15"/>
+		<Section name="Дополнения" URL="viewforum.php?f=28">
+			<Section name="Пакеты иконок" URL="viewforum.php?f=29"/>
+			<Section name="Пакеты звуков" URL="viewforum.php?f=30"/>
+			<Section name="Темы Интерфейса" URL="viewforum.php?f=31"/>
+		</Section>
+	</Section>
+	<Section name="Флудилка" URL="viewforum.php?f=10">
+		<Section name="Курилка" URL="viewforum.php?f=16"/>
+		<Section name="Архив" URL="viewforum.php?f=24">
+			<Section name="Корзина с мусором" URL="viewforum.php?f=25"/>
+		</Section>
+	</Section>
+	<UserData>
+		<Default StartSection="1" SearchSection="0"/>
+	</UserData>
+</Portal>

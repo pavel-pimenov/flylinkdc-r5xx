@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<CustomMenu name="Ресурсы Провайдера">
+  <MenuItem type="menuItem" link="http://www.provider.info">Официальная web-страница Провайдера</MenuItem>
+  <MenuItem type="separator"/>
+  <MenuItem type="menuItem" link="http://games.provider.info">Игровой каталог</MenuItem>
+  <MenuItem type="submenu" name="Игры">
+	  <MenuItem type="menuItem" link="http://cs.provider.info">Страница статистики серверов Сounter-Strike 1.6</MenuItem>
+	  <MenuItem type="menuItem" link="http://wow.provider.info">Страница игры World Of Worldcraft</MenuItem>
+	  <MenuItem type="menuItem" link="http://la2.provider.info">Страница игры Lineage II</MenuItem>
+	  <MenuItem type="menuItem" link="http://mu.provider.info">Страница игры MU Online</MenuItem>
+  </MenuItem>
+  <MenuItem type="separator"/>
+  <MenuItem type="submenu" name="Статистика">
+	  <MenuItem type="menuItem" link="http://stat.provider.info">Основная статистика</MenuItem>
+	  <MenuItem type="menuItem" link="http://stat2.provider.info">Для пользователей других районов</MenuItem>
+  </MenuItem>
+</CustomMenu>

@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Portal name="Кладовка" URL="http://kladovka.hutor.org" XMLVersion="1" HubURL="dc.hutor.ru" UpdateURL="PortalBrowser.xml" ServerVersion="1">
+	<Login URL="auth.php" Command="user=%LOGIN%&amp;password=%PASSWORD%" RequestMethod="POST"/>
+	<Images Large="Кладовка\icons_large.bmp" Small="Кладовка\icons_small.bmp" SmallImageID="0" LargeImageID="0"/>
+	<Flags HostToolbarIconFirst="1" DisableLoginDialog="1"/>
+	<Magnet action="search"/>
+	<Section LargeImageID="0"/>
+	<Section name="Софт" URL="?section=soft" SearchURL="?section=soft" SearchCommand="search=%QUERY%" SmallImageID="1" LargeImageID="1"/>
+	<Section name="Игры" URL="?section=game" SearchURL="?section=game" SearchCommand="search=%QUERY%" SmallImageID="2" LargeImageID="2"/>
+	<Section name="Видео" URL="?section=video" SearchURL="?section=video" SearchCommand="search=%QUERY%" SmallImageID="3" LargeImageID="3"/>
+</Portal>

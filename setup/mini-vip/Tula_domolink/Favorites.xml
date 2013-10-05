@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Favorites>
+	<Hubs>
+		<Hub Name="TulaÂ DC++Â Hub" Connect="1" Server="dc.anton.tula.net" UserListState="1"/>
+		<Hub Name="TTK" Connect="1" Server="dc.tula.net" UserListState="1"/>
+                <Hub Name="Upgrade-Hub" Connect="1" Description="" Server="212.12.31.88" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="7500" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,5,2,6,3,4,7,8,9,10,11" HeaderWidths="100,75,75,75,100,50,40,100,30,30,50,80" HeaderVisible="1,1,0,1,0,1,1,0,0,0,0,0" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat="" CliendId="" OverrideId="0"/>
+		<Hub Name="71 Ðåãèîí (212.12.19.254)" Connect="1" Server="212.12.19.254" UserListState="1"/>
+		<Hub Name="clubhub.sytes.net" Connect="1" Description="clubhub.sytes.net" Server="clubhub.sytes.net" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="0" ChatUserSplit="0" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="" HeaderWidths="" HeaderVisible="" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0"/>
+		<Hub Name="^-TulaCity.Net-^" Connect="1" Description="Ð¡Ð°Ð?Ñ<Ð¹ Ð¿Ð?Ð¿Ñ?Ð>Ñ?Ñ?Ð?Ñ<Ð¹ Ñ:Ð°Ð+ Ð¢Ñ?Ð>Ñ< Ð¸ Ð?Ð+Ð>Ð°Ñ?Ñ'Ð¸" Server="dc.tula71.net" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="7500" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,5,2,6,3,4,7,8,9,10,11,12" HeaderWidths="100,75,75,75,100,50,40,100,30,30,50,80,80" HeaderVisible="1,1,0,1,0,1,1,0,0,0,0,0,0" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat="" CliendId="" OverrideId="0"/>
+		<Hub Name="multiMEDIA HUB" Connect="1" Description="multiMEDIA HUB" Server="multimedia.tula71.net:1209" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="7500" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1"  RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat="" CliendId="" OverrideId="0"/>
+	</Hubs>
+</Favorites>

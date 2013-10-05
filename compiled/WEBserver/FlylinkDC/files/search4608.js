@@ -1,0 +1,3 @@
+function processTimer(){if(limit>0){setTimeout("processTimer()",1000);setTimeout("GetSearchRezult()",5000);limit--;}var limit_div=parseInt(limit/60);var limit_mod=limit-limit_div*60;limit_str="&nbsp;&nbsp;";if(limit_div<10)limit_str=limit_str+"0";limit_str=limit_str+limit_div+":";if(limit_mod<10)limit_str=limit_str+"0";limit_str=limit_str+limit_mod+"&nbsp;&nbsp;";el_timer=document.getElementById("timer");if(el_timer)el_timer.innerHTML="<strong>"+limit_str+"</strong>";}
+function set_download_dir(f){document.forms[f].dir.value=document.forms.form_S.dir.value;document.forms[f].submit();}
+function GetSearchRezult(){return;}

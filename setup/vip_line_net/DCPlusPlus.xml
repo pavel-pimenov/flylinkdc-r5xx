@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<DCPlusPlus>
+	<Settings>
+		<UploadSpeed type="string">50</UploadSpeed>
+		<ConfigVersion type="string">375</ConfigVersion>
+		<BeepFile type="string">.\Sounds\PrivateMessage.wav</BeepFile>
+		<BeginFile type="string">.\Sounds\DownloadBegins.wav</BeginFile>
+		<FinishedFile type="string">.\Sounds\DownloadFinished.wav</FinishedFile>
+		<SourceFile type="string">.\Sounds\AltSourceAdded.wav</SourceFile>
+		<UploadFile type="string">.\Sounds\UploadFinished.wav</UploadFile>
+		<FakerFile type="string">.\Sounds\FakerFound.wav</FakerFile>
+		<ChatNameFile type="string">.\Sounds\MyNickInMainChat.wav</ChatNameFile>
+		<SoundTTH type="string">.\Sounds\FileCorrupted.wav</SoundTTH>
+		<SoundException type="string">.\Sounds\UnhandledException.wav</SoundException>
+		<SoundHubConnected type="string">.\Sounds\ConnectHUB.wav</SoundHubConnected>
+		<SoundHubDisconnected type="string">.\Sounds\DisconnectHUB.wav</SoundHubDisconnected>
+		<SoundFavUserOnline type="string">.\Sounds\FavUser.wav</SoundFavUserOnline>
+		<SoundFavUserOffline type="string">.\Sounds\FavUserDisconnected.wav</SoundFavUserOffline>
+		<UrlGetIp type="string">http://checkip.dyndns.com</UrlGetIp>
+		<UrlTestIp type="string">http://www.flylinkdc.com/test.php</UrlTestIp>
+		<IncomingConnections type="int">0</IncomingConnections>
+		<InPort type="int">0</InPort>
+		<SocksPort type="int">1080</SocksPort>
+		<SocksResolve type="int">1</SocksResolve>
+		<CzertHiddenSettingA type="int">0</CzertHiddenSettingA>
+		<CzertHiddenSettingB type="int">0</CzertHiddenSettingB>
+		<AutoUpdateIP type="int">0</AutoUpdateIP>
+		<ShowDescriptionSpeed type="int">0</ShowDescriptionSpeed>
+		<Away type="int">0</Away>
+		<UDPPort type="int">0</UDPPort>
+		<NoIPOverride type="int">1</NoIPOverride>
+		<ShowDescriptionSlots type="int">1</ShowDescriptionSlots>
+		<ShowDescriptionLimit type="int">1</ShowDescriptionLimit>
+		<ShowWinampControl type="int">0</ShowWinampControl>
+	</Settings>
+	<Share/>
+	<NoShare/>
+	<PreviewApps>
+		<Application Name="AVIPreview" Application="AVIPreview.exe" Arguments="%[file]" Extension="avi;divx;mpg;mpeg"/>
+	</PreviewApps>
+	<Rebars>
+		<Rebar Name="MainToolBar" ID="60160,60163,60161,60162" CX="1056,214,731,268" BreakLine="1,0,1,0" BandCount="4"/>
+	</Rebars>
+	<SearchHistory/>
+</DCPlusPlus>
