@@ -26,11 +26,7 @@
 #include "Wildcards.h"
 #include "UserConnection.h"
 
-
 FastSharedCriticalSection Identity::g_cs;
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-FastCriticalSection CFlyUserRatioInfo::g_cs;
-#endif
 
 #ifdef _DEBUG
 #define DISALLOW(a, b) { uint16_t tag1 = TAG(name[0], name[1]); uint16_t tag2 = TAG(a, b); dcassert(tag1 != tag2); }
@@ -50,8 +46,163 @@ boost::atomic_int OnlineUser::g_online_user_counts(0);
 STRING_INFO_DIC_LIST();
 
 #undef DECL_STRING_INFO_DIC
+		void User::setHubID(uint32_t p_hub_id)
+		{
+			dcassert(p_hub_id);
+			m_hub_id = p_hub_id;
+			if(m_ratio_ptr)
+			{
+				   m_ratio_ptr->m_hub_id = p_hub_id; // TODO fix copy-paste
+			}
+		}
 
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+void User::setLastNick(const string& p_nick)
+		{
+			if(!m_ratio_ptr)
+{
+				m_nick = p_nick;
+			}
+	else
+			{
+			if (m_nick != p_nick)
+			{
+				const bool l_is_change_nick = !m_nick.empty() && !p_nick.empty();
+				if (l_is_change_nick)
+				{
+					if(m_ratio_ptr)
+					{
+				     safe_delete(m_ratio_ptr);
+					 m_nick = p_nick;
+					 initRatio(true);
+					}
+}
+				else
+{
+					m_nick = p_nick;
+				}
+				if(m_ratio_ptr)
+				   m_ratio_ptr->setDitry(true);
+			}
+	else
+			{
+				// TODO dcassert(p_nick != m_nick); // Ловим холостое обновление
+			}
+			}
+}
+		void User::setIP(const string& p_last_ip)
+		{
+			if(m_ratio_ptr)
+			{
+			dcassert(!p_last_ip.empty());
+			if (m_last_ip != p_last_ip)
+			{
+#ifdef _DEBUG
+				if (!m_last_ip.empty() && p_last_ip.empty())
+{
+					dcassert(0);
+}
+#endif
+				const bool l_is_change_ip = !m_last_ip.empty() && !p_last_ip.empty();
+				if (l_is_change_ip)
+				{
+					if(m_ratio_ptr)
+{
+					  safe_delete(m_ratio_ptr);
+					  initRatio(false);
+					}
+}
+			}
+			else
+{
+				// dcassert(p_last_ip != m_ratio_ptr->m_last_ip); // Ловим холостое обновление
+			}
+}
+			m_last_ip = p_last_ip;
+		}
+		const string& User::getIP()
+		{
+			initRatio(false);
+			if(m_ratio_ptr)
+{
+				return m_ratio_ptr->m_last_ip_ref;
+}
+			else
+{
+				return Util::emptyString;
+			}
+		}
+		uint64_t User::getBytesUpload()
+	{
+			initRatio(false);
+			if(m_ratio_ptr)
+		{
+			 return m_ratio_ptr->m_upload;
+		}
+			else
+				return 0;
+		}
+		uint64_t User::getBytesDownload()
+		{
+			initRatio(false);
+			if(m_ratio_ptr)
+			{
+			  return m_ratio_ptr->m_download;
+	}
+			else
+				return 0;
+}
+		void User::AddRatioUpload(const string& p_ip, uint64_t p_size)
+{
+			if(m_ratio_ptr == nullptr)
+			{
+					m_is_first_init_ratio = false;
+			}
+	initRatio(true);
+			m_ratio_ptr->addUpload(p_ip, p_size);
+}
+		void User::AddRatioDownload(const string& p_ip, uint64_t p_size)
+{
+			if(m_ratio_ptr == nullptr)
+			{
+					m_is_first_init_ratio = false;
+			}
+	initRatio(true);
+			m_ratio_ptr->addDownload(p_ip, p_size);
+		}
+		void User::flushRatio()
+		{
+			if(m_ratio_ptr)
+			   m_ratio_ptr->flushRatio();
+}
+
+void User::initRatio(bool p_is_create)
+{
+	dcassert(!m_nick.empty());
+	if(!m_is_first_init_ratio && m_hub_id)
+	{
+	 m_is_first_init_ratio = true;
+	 // Узнаем был ли в базе last_ip
+	 const string l_last_ip_from_sql = CFlylinkDBManager::getInstance()->load_last_ip(m_hub_id, m_nick);
+	 if(!l_last_ip_from_sql.empty() || p_is_create)
+	 {
+	 if(m_last_ip.empty())
+		m_last_ip = l_last_ip_from_sql; // ????? может не нада
+		dcassert(!m_last_ip.empty());
+	  CFlyUserRatioInfo* l_try_ratio = new CFlyUserRatioInfo(m_nick, m_last_ip, m_hub_id); // Передавать на вход только m_ки
+	  if(l_try_ratio->try_load_ratio(p_is_create,l_last_ip_from_sql))
+		{
+		   dcassert(m_ratio_ptr == nullptr);
+		   safe_delete(m_ratio_ptr);
+		   m_ratio_ptr = l_try_ratio;
+	  }
+	  else
+			{
+		// dcassert(0); Удалем когда не нашли рейтинги
+		delete l_try_ratio;
+			}
+		}
+	}
+}
 
 tstring User::getDownload()
 {
@@ -63,140 +214,23 @@ tstring User::getDownload()
 }
 
 tstring User::getUpload()
-{
+	{
 	const auto l_value = getBytesUpload();
 	if (l_value)
 		return Util::formatBytesW(l_value);
 	else
 		return Util::emptyStringT;
-}
+	}
 
 tstring User::getUDratio()
-{
-	m_ratio.initRatio(false);
-	if (m_ratio.m_download || m_ratio.m_upload)
-		return Util::toStringW(m_ratio.m_download ? ((double)m_ratio.m_upload / (double)m_ratio.m_download) : 0) +
-		       L" (" + Util::formatBytesW(m_ratio.m_upload) + _T('/') + Util::formatBytesW(m_ratio.m_download) + L")";
-	else
-		return Util::emptyStringT;
-}
-
-CFlyUserRatioInfo::CFlyUserRatioInfo() : m_nick_id(0), m_is_init(false), m_hub_id(0), m_is_ditry(false), m_is_first_item(false)
-{
-//   dcdebug(" [!!!!!!]   [!!!!!!]  CFlyUserRatioInfo::CFlyUserRatioInfo()  this = %p\r\n", this);
-}
-
-CFlyUserRatioInfo::~CFlyUserRatioInfo()
-{
-	flushRatio();
-}
-
-
-void CFlyUserRatioInfo::setDitry(bool p_value)
-{
-	//  dcdebug(" [!!!!!!] CFlyUserRatioInfo::setDitry() p_value = %d m_last_ip = %s nick = %s, m_is_ditry = %d m_nick_id = %d m_hub_id = %d m_is_init = %d this = %p\r\n",
-	//    int(p_value), m_last_ip.c_str(), m_nick.c_str(), int(m_is_ditry), int(m_nick_id), int(m_hub_id), int(m_is_init), this);
-	m_is_ditry = p_value;
-}
-void CFlyUserRatioInfo::calcLastIP(const string& p_ip, CFlyUploadDownloadPair<uint64_t>& p_value)
-{
-	if (p_value.m_last_ip_id == 0)
-	{
-		p_value.m_last_ip_id = CFlylinkDBManager::getInstance()->get_ip_id(p_ip);
-		m_last_ip_id = p_value.m_last_ip_id;
-		if (m_last_ip != p_ip)
-		{
-			m_last_ip = p_ip;
-		}
-	}
-}
-void CFlyUserRatioInfo::addUpload(const string& p_ip, uint64_t p_size)
-{
-	initRatio(true);
-	//dcassert(is_ratio_init() == true);
-	m_upload += p_size;
-	FastLock l(g_cs);
-	auto& l_u_d_map = m_upload_download_map[p_ip];
-	calcLastIP(p_ip, l_u_d_map);
-	l_u_d_map.m_upload += p_size;
-	setDitry(true);
-}
-void CFlyUserRatioInfo::addDownload(const string& p_ip, uint64_t p_size)
-{
-	initRatio(true);
-	//dcassert(is_ratio_init() == true);
-	m_download += p_size;
-	FastLock l(g_cs);
-	auto& l_u_d_map = m_upload_download_map[p_ip];
-	calcLastIP(p_ip, l_u_d_map);
-	l_u_d_map.m_download += p_size;
-	setDitry(true);
-}
-
-void CFlyUserRatioInfo::flushRatio()
-{
-	//  dcdebug(" [!!!!!!] CFlyUserRatioInfo::flush() m_last_ip = %s nick = %s, m_is_ditry = %d m_nick_id = %d m_hub_id = %d m_is_init = %d this = %p\r\n",
-	//   m_last_ip.c_str(), m_nick.c_str(), int(m_is_ditry), int(m_nick_id), int(m_hub_id), int(m_is_init), this);
-	// dcassert(!m_nick.empty());
-	//dcassert(m_hub_id && (m_nick_id || !m_nick.empty()));
-	// dcassert(m_nick_id && !m_nick.empty()); Такое возможно когда ник - это бот хаба
-	if (m_is_init && m_is_ditry && m_hub_id && m_nick_id && !m_nick.empty()
-	        && CFlylinkDBManager::isValidInstance()) // fix https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&Login=Guest&DumpGroupID=86337
-	{
-		FastLock l(g_cs); // Для защиты m_upload_download_map
-		dcassert(!m_last_ip.empty());
-		if (!m_upload_download_map.empty())
-		{
-			if (!m_last_ip.empty() && m_last_ip_id == 0)
 			{
-				dcassert(!m_last_ip.empty() && m_last_ip_id == 0);
-				m_last_ip_id = CFlylinkDBManager::getInstance()->get_ip_id(m_last_ip); // TODO - помониторить почему так получается...
-			}
-			CFlylinkDBManager::getInstance()->store_all_ratio_and_last_ip(m_hub_id, m_nick, m_nick_id, m_upload_download_map, m_last_ip_id);
-			setDitry(false);
-		}
-	}
-}
-void CFlyUserRatioInfo::initRatio(bool p_is_create)
-{
-	const bool l_is_full_params = m_hub_id && (m_nick_id != 0 || !m_nick.empty());
-	if (m_is_first_item == false && p_is_create == true && m_is_init == true && l_is_full_params) // Если запись, то скидываем флаг блокировку попыток один раз
-	{
-		m_is_init = false;
-		m_is_first_item = true;
-	}
-	if (m_is_init == false && l_is_full_params) // Не грузили ниразу данные по рейтингу?
-	{
-		auto l_dbm = CFlylinkDBManager::getInstance();
-		if (m_nick_id == 0)
-			m_nick_id = l_dbm->get_dic_nick_id(m_nick, p_is_create);
-		if (m_nick_id)
-		{
-			const CFlyRatioItem& l_item = l_dbm->LoadRatio(
-			                                  m_hub_id,
-			                                  m_nick_id,
-			                                  *this);
-			m_upload   = l_item.m_upload;
-			m_download = l_item.m_download;
-			if (m_last_ip.empty() && !l_item.m_last_ip.empty()) // [+] IRainman fix.
-			{
-				m_last_ip  = l_item.m_last_ip;
-				m_last_ip_id = l_item.m_last_ip_id;
-			}
-		}
+	if (m_ratio_ptr && (m_ratio_ptr->m_download || m_ratio_ptr->m_upload))
+		return Util::toStringW(m_ratio_ptr->m_download ? ((double)m_ratio_ptr->m_upload / (double)m_ratio_ptr->m_download) : 0) +
+		       L" (" + Util::formatBytesW(m_ratio_ptr->m_upload) + _T('/') + Util::formatBytesW(m_ratio_ptr->m_download) + L")";
 		else
-		{
-			dcassert(m_upload == 0 && m_download == 0);
-#ifdef _DEBUG
-			m_upload = 0;
-			m_download = 0;
-#endif
+		return Util::emptyStringT;
 		}
-		m_is_init  = true;
-		m_is_ditry = false;
-	}
-}
-#endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
+
 
 bool Identity::isTcpActive(const Client* client) const // [+] IRainman fix.
 {
@@ -323,7 +357,7 @@ string Identity::getApplication() const
 
 #ifdef _DEBUG
 
-// #define PPA_INCLUDE_TEST
+#define PPA_INCLUDE_TEST
 #ifdef PPA_INCLUDE_TEST
 FastCriticalSection csTest;
 #endif
@@ -453,7 +487,7 @@ void Identity::setStringParam(const char* name, const string& val) // [!] IRainm
 		string l_key = string(name).substr(0, 2);
 		auto& j = g_cnt_val[l_key + "~" + val];
 		j++;
-		if (l_key != "AP" && l_key != "EM" &&  l_key != "DE" &&  l_key != "VE")
+		//if (l_key != "AP" && l_key != "EM" &&  l_key != "DE" &&  l_key != "VE")
 		{
 			dcdebug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! set[%s] '%s' count = %d sizeof(*this) = %d\n", name, val.c_str(), j, sizeof(*this));
 		}

@@ -426,7 +426,7 @@ enum Strings   // @DontAdd
 	ENABLE_HUBMODE_PIC, // "Enable 'Mode Picture' for hubs"
 	ENABLE_COUNTRYFLAG, // "Add Country flag into 'Location' in userlist"
 	ENABLE_HUBTOPIC, // "Enable $HubTopic support"
-	ENABLE_LAST_IP, // "Store IP in a SQLite database (Column Last IP)"
+	ENABLE_LAST_IP, // "Store IP in a SQLite database"
 	ENABLE_FLY_SERVER,  // "Use fly-server cloud"
 	ENABLE_MULTI_SOURCE, // "Enable multi-source"
 	ENABLE_POPUPS, // "Enable popups"

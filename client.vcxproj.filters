@@ -403,6 +403,9 @@
     <ClCompile Include="client\AdcSupports.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="client\CFlyUserRatioInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client\AdcCommand.h">
@@ -1001,6 +1004,9 @@
     </ClInclude>
     <ClInclude Include="client\minizip\zip.h">
       <Filter>Source Files\minizip</Filter>
+    </ClInclude>
+    <ClInclude Include="client\CFlyUserRatioInfo.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

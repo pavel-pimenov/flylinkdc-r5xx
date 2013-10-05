@@ -153,14 +153,13 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		void store_all_ratio_and_last_ip(uint32_t p_dic_hub,
 		                                 const string& p_nick,
-		                                 const uint32_t p_dic_nick,
 		                                 const CFlyUploadDownloadMap& p_upload_download_stats,
-		                                 const uint32_t p_last_ip_id);
+										 const string& p_last_ip);
 		uint32_t get_dic_hub_id(const string& p_hub);
 		uint32_t get_ip_id(const string& p_ip);
-		__int64 get_dic_nick_id(const string& p_nick, bool p_create);
-		void LoadGlobalRatio();
-		CFlyRatioItem LoadRatio(uint32_t p_hub_id, const __int64 p_nick_id, CFlyUserRatioInfo& p_ratio_info);
+		void load_global_ratio();
+		CFlyRatioItem load_ratio(uint32_t p_hub_id, const string& p_nick, CFlyUserRatioInfo& p_ratio_info,const string& p_last_ip);
+		string load_last_ip(uint32_t p_hub_id, const string& p_nick);
 		
 		CFlyGlobalRatioItem  m_global_ratio;
 		double get_ratio() const;

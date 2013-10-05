@@ -1378,7 +1378,7 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 	{
 		// [+] WhiteD. Custom ratio message.
 		StringMap params;
-		CFlylinkDBManager::getInstance()->LoadGlobalRatio();
+		CFlylinkDBManager::getInstance()->load_global_ratio();
 		params["ratio"] = Text::fromT(CFlylinkDBManager::getInstance()->get_ratioW());
 		params["up"] = Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.m_upload);
 		params["down"] = Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.m_download);

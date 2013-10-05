@@ -29,68 +29,7 @@ class ClientBase;
 
 #define TAG(x,y) (x + (y << 8)) // TODO static_assert
 
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-template <class T> class CFlyUploadDownloadPair
-{
-	public:
-		T  m_upload;
-		T  m_download;
-		uint32_t  m_last_ip_id;
-		CFlyUploadDownloadPair(): m_upload(0), m_download(0), m_last_ip_id(0)
-		{
-		}
-		~CFlyUploadDownloadPair()
-		{
-		}
-};
-typedef CFlyUploadDownloadPair<double> CFlyGlobalRatioItem;
-typedef unordered_map<string, CFlyUploadDownloadPair<uint64_t> > CFlyUploadDownloadMap;
-struct CFlyRatioItem : public CFlyUploadDownloadPair<uint64_t>
-{
-	string    m_last_ip;
-	CFlyRatioItem()
-	{
-	}
-	~CFlyRatioItem()
-	{
-	}
-};
-struct CFlyUserRatioInfo : public CFlyRatioItem
-#ifdef _DEBUG
-		, boost::noncopyable , virtual NonDerivable<CFlyUserRatioInfo>
-#endif
-{
-	private:
-		static FastCriticalSection g_cs;
-	public:
-		uint32_t  m_hub_id;
-		uint32_t  m_nick_id; // TODO - возможно его хранение не нужно.
-		string    m_nick;
-		CFlyUploadDownloadMap m_upload_download_map;
-		
-		CFlyUserRatioInfo();
-		~CFlyUserRatioInfo();
-		
-		void initRatio(bool p_is_create);
-		void addUpload(const string& p_ip, uint64_t p_size);
-		void addDownload(const string& p_ip, uint64_t p_size);
-		void flushRatio();
-		bool is_ratio_init() const
-		{
-			return m_is_init;
-		}
-		void reset_init()
-		{
-			m_is_init = false;
-		}
-		void setDitry(bool p_value);
-	private:
-		bool      m_is_init;
-		bool      m_is_first_item;
-		bool      m_is_ditry;
-		void      calcLastIP(const string& p_ip, CFlyUploadDownloadPair<uint64_t>& p_value);
-};
-#endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#include "CFlyUserRatioInfo.h"
 
 /** A user connected to one or more hubs. */
 class User : public intrusive_ptr_base<User>, public Flags
@@ -209,7 +148,10 @@ class User : public intrusive_ptr_base<User>, public Flags
 #endif
 			m_slots(0),
 			m_bytesShared(0),
-			m_limit(0)
+			m_limit(0),
+			m_hub_id(0),
+			m_ratio_ptr(nullptr),
+			m_is_first_init_ratio(false)
 		{
 #ifdef _DEBUG
 			++g_user_counts;
@@ -227,6 +169,7 @@ class User : public intrusive_ptr_base<User>, public Flags
 			dcdebug(" [!!!!!!]   [!!!!!!]  User::~User() this = %p, g_user_counts = %d\n", this, g_user_counts);
 #endif
 #endif
+			safe_delete(m_ratio_ptr);
 		}
 		
 #ifdef _DEBUG
@@ -246,71 +189,15 @@ class User : public intrusive_ptr_base<User>, public Flags
 //			if (++g_call_counts % 1000 == 0)
 //				dcdebug("User::getLastNick() called %d\n", int(++g_call_counts));
 #endif
-			return m_ratio.m_nick;
+			return m_nick;
 		}
-		void setLastNick(const string& p_nick)
-		{
-			// dcassert(!p_nick.empty()); Для DHT тут пусто
-			if (m_ratio.m_nick != p_nick)
-			{
-				m_ratio.m_nick_id = 0;
-				// dcassert(m_ratio.m_nick.empty() && !p_nick.empty()); // Падает на Ежике.
-				const bool l_is_change_nick = !m_ratio.m_nick.empty() && !p_nick.empty();
-				if (l_is_change_nick)
-				{
-					m_ratio.flushRatio();
-					m_ratio.reset_init();
-					m_ratio.m_nick = p_nick;
-					m_ratio.initRatio(false);
-				}
-				else
-				{
-					m_ratio.m_nick = p_nick;
-				}
-				m_ratio.setDitry(true);
-			}
-			else
-			{
-				// TODO dcassert(p_nick != m_ratio.m_nick); // Ловим холостое обновление
-			}
-		}
-		void setIP(const string& p_last_ip)
-		{
-			dcassert(!p_last_ip.empty());
-			if (m_ratio.m_last_ip != p_last_ip)
-			{
-#ifdef _DEBUG
-				if (!m_ratio.m_last_ip.empty() && p_last_ip.empty())
-				{
-					dcassert(0);
-				}
-#endif
-				// dcassert(m_ratio.m_last_ip.empty());
-				m_ratio.m_last_ip_id = 0; // Сброс кэша ID по IP
-				const bool l_is_change_ip = !m_ratio.m_last_ip.empty() && !p_last_ip.empty();
-				if (l_is_change_ip)
-				{
-					m_ratio.flushRatio();
-					m_ratio.reset_init();
-					m_ratio.initRatio(false);
-				}
-				m_ratio.m_last_ip = p_last_ip;
-				m_ratio.setDitry(true);
-			}
-			else
-			{
-				// dcassert(p_last_ip != m_ratio.m_last_ip); // Ловим холостое обновление
-			}
-		}
+		void setLastNick(const string& p_nick);
+		void setIP(const string& p_last_ip);
 		uint32_t getHubID() const
 		{
-			return m_ratio.m_hub_id;
+			return m_hub_id;
 		}
-		void setHubID(uint32_t p_hub_id)
-		{
-			dcassert(p_hub_id);
-			m_ratio.m_hub_id = p_hub_id;
-		}
+		void setHubID(uint32_t p_hub_id);
 		
 #else
 	public:
@@ -319,12 +206,6 @@ class User : public intrusive_ptr_base<User>, public Flags
 			dcassert(!ip.empty());
 			m_ip = ip;
 		}
-		/*
-		const string& getIP()
-		{
-		    return getIP();
-		}
-		*/
 		GETSET(string, m_lastNick, LastNick);
 		GETM(string, m_ip, IP);
 #endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
@@ -342,6 +223,8 @@ class User : public intrusive_ptr_base<User>, public Flags
 		GETSET(int64_t, m_bytesShared, BytesShared); // http://code.google.com/p/flylinkdc/issues/detail?id=1109 нужно для автобана и некоторых других мест
 		GETSET(uint32_t, m_limit, Limit);
 		GETSET(uint8_t, m_slots, Slots);
+		string m_nick;
+		string m_last_ip;
 #ifdef PPA_INCLUDE_DEAD_CODE
 		GETSET(size_t, m_lastDownloadSpeed, LastDownloadSpeed);
 #endif
@@ -370,68 +253,43 @@ class User : public intrusive_ptr_base<User>, public Flags
 		}
 		// [~] IRainman fix.
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-		void AddRatioUpload(const string& p_ip, uint64_t p_size)
-		{
-			m_ratio.addUpload(p_ip, p_size);
-		}
-		void AddRatioDownload(const string& p_ip, uint64_t p_size)
-		{
-			m_ratio.addDownload(p_ip, p_size);
-		}
-		void flushRatio()
-		{
-			m_ratio.flushRatio();
-		}
+		void AddRatioUpload(const string& p_ip, uint64_t p_size);
+		void AddRatioDownload(const string& p_ip, uint64_t p_size);
+		void flushRatio();
 		tstring getUDratio();
 		tstring getUpload();
 		tstring getDownload();
 		
 		uint64_t getBytesUploadRAW() const
 		{
-			return m_ratio.m_upload;
+			if(m_ratio_ptr)
+			  return m_ratio_ptr->m_upload;
+			else
+			 return 0;
 		}
 		uint64_t getBytesDownloadRAW() const
 		{
-			return m_ratio.m_download;
+			if(m_ratio_ptr)
+			 return m_ratio_ptr->m_download;
+			else
+			 return 0;
 		}
-		/*
-		const string& getIP() const
-		{
-		    return m_ratio.m_last_ip;
-		}
-		*/
 		bool isLastIP() // [+] IRainman fix.
 		{
-			return m_ratio.m_last_ip_id != 0;
+			return m_ratio_ptr && !m_ratio_ptr->m_last_ip_sql.empty() && m_last_ip.empty();
 		}
-		const string& getIP()
-		{
-			m_ratio.initRatio(false);
-			return m_ratio.m_last_ip;
-		}
-		uint64_t getBytesUpload()
-		{
-			m_ratio.initRatio(false);
-			return m_ratio.m_upload;
-		}
-		uint64_t getBytesDownload()
-		{
-			m_ratio.initRatio(false);
-			return m_ratio.m_download;
-		}
-		void initRatio(bool p_is_create)
-		{
-			m_ratio.initRatio(p_is_create);
-		}
+		const string& getIP();
+		uint64_t getBytesUpload();
+		uint64_t getBytesDownload();
+		void initRatio(bool p_is_create);
+
 #endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	private:
 		const CID m_cid; // [!] IRainman fix: this is const value!
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-		CFlyUserRatioInfo m_ratio;
-		bool is_ratio_init() const
-		{
-			return m_ratio.is_ratio_init();
-		}
+		CFlyUserRatioInfo* m_ratio_ptr;
+		uint32_t  m_hub_id;
+		bool      m_is_first_init_ratio;
 #endif
 };
 

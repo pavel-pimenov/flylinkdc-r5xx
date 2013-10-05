@@ -131,7 +131,7 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			
 //[-]PPA    SetDlgItemText(IDC_TTH, WinUtil::tth.c_str());
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-			CFlylinkDBManager::getInstance()->LoadGlobalRatio();
+			CFlylinkDBManager::getInstance()->load_global_ratio();
 			SetDlgItemText(IDC_LATEST, CTSTRING(DOWNLOADING));
 			SetDlgItemText(IDC_TOTAL_UPLOAD, (TSTRING(UPLOADED) + _T(": ") +
 			                                  Text::toT(Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.m_upload))).c_str());

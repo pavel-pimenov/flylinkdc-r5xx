@@ -499,6 +499,7 @@
     <ClCompile Include="client\BufferedSocket.cpp" />
     <ClCompile Include="client\BZUtils.cpp" />
     <ClCompile Include="client\CFlyProfiler.cpp" />
+    <ClCompile Include="client\CFlyUserRatioInfo.cpp" />
     <ClCompile Include="client\ChatMessage.cpp" />
     <ClCompile Include="client\CID.cpp" />
     <ClCompile Include="client\Client.cpp" />
@@ -1089,6 +1090,7 @@
     <ClInclude Include="client\AdcSupports.h" />
     <ClInclude Include="client\CFlyMediaInfo.h" />
     <ClInclude Include="client\CFlyProfiler.h" />
+    <ClInclude Include="client\CFlyUserRatioInfo.h" />
     <ClInclude Include="client\CompatibilityManager.h" />
     <ClInclude Include="client\compiler_flylinkdc.h" />
     <ClInclude Include="client\ConnectivityManager.h" />

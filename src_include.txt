@@ -1,4 +1,5 @@
 MakeDefs
+unrar
 client
 wtl
 windows

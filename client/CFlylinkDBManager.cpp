@@ -47,7 +47,7 @@ static void gf_trace_callback(void* p_udp, const char* p_sql)
 //========================================================================================================
 void CFlylinkDBManager::pragma_executor(const char* p_pragma)
 {
-	static const char* l_db_name[] = {"main", "media_db", "dht_db"};
+	static const char* l_db_name[] = {"main", "media_db", "dht_db", "stat_db", "location_db"};
 	for (int i = 0; i < _countof(l_db_name); ++i)
 	{
 		string l_sql = "pragma ";
@@ -436,7 +436,18 @@ CFlylinkDBManager::CFlylinkDBManager()
 		}
 		safeAlter("ALTER TABLE fly_queue add column HubHint text");
 		safeAlter("ALTER TABLE fly_queue_source add column HubHint text");
-		
+		const bool l_fly_last_ip_convert2 = is_table_exists("fly_last_ip");
+		if (l_fly_last_ip_convert2 && !is_table_exists("fly_last_ip_nick_hub"))
+		{
+				m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS fly_last_ip_nick_hub(\n"
+				                              "nick text not null, dic_hub integer not null,ip text not null);");
+				m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_last_ip_nick_hub ON fly_last_ip_nick_hub(nick,dic_hub);");
+				sqlite3_transaction l_trans(m_flySQLiteDB);
+				m_flySQLiteDB.executenonquery("insert into fly_last_ip_nick_hub(nick,dic_hub,ip)\n"
+				                              "select (select name from fly_dic where id = dic_nick),dic_hub,(select name from fly_dic where id = dic_ip) from fly_last_ip");
+				m_flySQLiteDB.executenonquery("drop table fly_last_ip");
+				l_trans.commit();
+		}
 		/*      {
 		            sqlite3_transaction l_trans(m_flySQLiteDB);
 		            sqlite3_command(m_flySQLiteDB,"delete from fly_queue where size=-1"));
@@ -1522,6 +1533,7 @@ bool CFlylinkDBManager::merge_queue_item(QueueItemPtr& p_QueueItem)
 #endif
 			else
 			{
+				LogManager::getInstance()->message("l_count_normal_source == 0!");
 				dcassert(0);
 				l_sql->bind(11, g_empty_cid.data() , 24, SQLITE_TRANSIENT);
 				l_sql->bind(12, Util::emptyString, SQLITE_STATIC); // ?
@@ -1606,7 +1618,7 @@ bool CFlylinkDBManager::merge_queue_item(QueueItemPtr& p_QueueItem)
 }
 //========================================================================================================
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-void CFlylinkDBManager::LoadGlobalRatio()
+void CFlylinkDBManager::load_global_ratio()
 {
 	try
 	{
@@ -1625,67 +1637,81 @@ void CFlylinkDBManager::LoadGlobalRatio()
 	}
 	catch (const database_error& e)
 	{
-		errorDB("SQLite - LoadGlobalRatio: " + e.getError());
+		errorDB("SQLite - load_global_ratio: " + e.getError());
 	}
 }
 //========================================================================================================
-CFlyRatioItem CFlylinkDBManager::LoadRatio(uint32_t p_hub_id, const __int64 p_dic_nick, CFlyUserRatioInfo& p_ratio_info)
+string CFlylinkDBManager::load_last_ip(uint32_t p_hub_id, const string& p_nick)
 {
-	dcassert(p_hub_id != 0);
-	dcassert(p_dic_nick != 0);
 	try
 	{
 		Lock l(m_cs);
-		CFlyRatioItem l_ip_ratio_item;
-		if (BOOLSETTING(ENABLE_LAST_IP))
-		{
 			if (!m_select_last_ip.get())
 				m_select_last_ip = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-				                                                                 "select (select name from fly_dic where id = dic_ip),dic_ip "
-				                                                                 "from fly_last_ip where dic_nick=? and dic_hub=?"));
+				                                                                 "select ip from fly_last_ip_nick_hub where nick=? and dic_hub=?"));
 			sqlite3_command* l_sql_command = m_select_last_ip.get();
-			l_sql_command->bind(1, p_dic_nick);
+			l_sql_command->bind(1, p_nick, SQLITE_STATIC);
 			l_sql_command->bind(2, __int64(p_hub_id));
 			sqlite3_reader l_q = l_sql_command->executereader();
 			if (l_q.read())
 			{
-				l_ip_ratio_item.m_last_ip    = l_q.getstring(0);
-				l_ip_ratio_item.m_last_ip_id = l_q.getint64(1);
+				return l_q.getstring(0);
 			}
+	}
+	catch (const database_error& e)
+	{
+		errorDB("SQLite - load_last_ip: " + e.getError());
+			}
+	return Util::emptyString;
 		}
+//========================================================================================================
+CFlyRatioItem CFlylinkDBManager::load_ratio(uint32_t p_hub_id, const string& p_nick, CFlyUserRatioInfo& p_ratio_info, const string& p_last_ip)
+{
+	dcassert(p_hub_id != 0);
+	dcassert(!p_nick.empty());
+	try
+	{
+		CFlyRatioItem l_ip_ratio_item;
+		l_ip_ratio_item.m_last_ip_sql = p_last_ip;
+		if(!p_last_ip.empty()) // Если нет в таблице  fly_last_ip_nick_hub, в fly_ratio можно не ходить - там ничего нет
+		{
+		 Lock l(m_cs);
+       __int64	l_dic_nick = getDIC_ID(p_nick, e_DIC_NICK, true);
 		if (!m_select_ratio_load.get())
 			m_select_ratio_load = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
 			                                                                    "select upload,download,(select name from fly_dic where id = dic_ip)" // TODO ,dic_ip
 			                                                                    "from fly_ratio where dic_nick=? and dic_hub=?\n"));
 		sqlite3_command* l_sql_command = m_select_ratio_load.get();
-		l_sql_command->bind(1, p_dic_nick);
+		l_sql_command->bind(1, l_dic_nick);
 		l_sql_command->bind(2, __int64(p_hub_id));
 		sqlite3_reader l_q = l_sql_command->executereader();
+		string l_ip_from_ration;
 		while (l_q.read())
 		{
 			const auto l_u = l_q.getint64(0);
 			const auto l_d = l_q.getint64(1);
 			dcassert(l_d || l_u);
-			const string& l_ip = l_q.getstring(2);
+			l_ip_from_ration = l_q.getstring(2);
+			dcassert(!l_ip_from_ration.empty());
 			l_ip_ratio_item.m_upload    += l_u;
 			l_ip_ratio_item.m_download  += l_d;
-			auto& l_u_d_map = p_ratio_info.m_upload_download_map[l_ip];
+			auto& l_u_d_map = p_ratio_info.m_upload_download_map[l_ip_from_ration];
 			l_u_d_map.m_download = l_d;
 			l_u_d_map.m_upload   = l_u;
+		}
+		dcassert(!l_ip_ratio_item.m_last_ip_sql.empty());
+		if(l_ip_ratio_item.m_last_ip_sql.empty()) // Если вдруг last_ip не достали (выключена галка ENABLE_LAST_IP) - сохраним последний IP из рейтинга
+			{
+				l_ip_ratio_item.m_last_ip_sql = l_ip_from_ration; // TODO Похерить ENABLE_LAST_IP - ведь флажки нам всегда лучше показывать?
+			}
 		}
 		return l_ip_ratio_item;
 	}
 	catch (const database_error& e)
 	{
-		errorDB("SQLite - LoadRatio: " + e.getError());
+		errorDB("SQLite - load_ratio: " + e.getError());
 	}
 	return CFlyRatioItem();
-}
-//========================================================================================================
-__int64 CFlylinkDBManager::get_dic_nick_id(const string& p_nick, bool p_create)
-{
-	Lock l(m_cs);
-	return getDIC_ID(p_nick, e_DIC_NICK, p_create);
 }
 //========================================================================================================
 uint32_t CFlylinkDBManager::get_dic_hub_id(const string& p_hub)
@@ -1716,17 +1742,28 @@ __int64 CFlylinkDBManager::get_dic_country_id(const string& p_country)
 //========================================================================================================
 void CFlylinkDBManager::store_all_ratio_and_last_ip(uint32_t p_dic_hub,
                                                     const string& p_nick,
-                                                    const uint32_t p_dic_nick,
                                                     const CFlyUploadDownloadMap& p_upload_download_stats,
-                                                    const uint32_t p_last_ip_id)
+													const string& p_last_ip)
 {
 	Lock l(m_cs);
 	dcassert(p_dic_hub);
 	try
 	{
-		dcassert(p_last_ip_id != 0);
-		dcassert(p_dic_nick != 0);
+		dcassert(!p_nick.empty());
 		dcassert(!p_upload_download_stats.empty());
+		const __int64 l_dic_nick = getDIC_ID(p_nick, e_DIC_NICK, true);
+		__int64 l_last_ip_id = 0;
+		// Если запись 1- проверить что p_last_ip = 
+#ifdef _DEBUG
+		if(p_upload_download_stats.size() == 1)
+		{
+			dcassert(p_upload_download_stats.cbegin()->first == p_last_ip);
+		}
+#endif
+		for (auto i = p_upload_download_stats.cbegin(); i != p_upload_download_stats.cend(); ++i)
+		{
+			l_last_ip_id = getDIC_ID(i->first, e_DIC_IP, true); // Внешний цикл для создания последнего IP - вложенные транзакции нельзя
+		}
 		sqlite3_transaction l_trans_insert(m_flySQLiteDB);
 		if (!p_upload_download_stats.empty())
 		{
@@ -1734,15 +1771,14 @@ void CFlylinkDBManager::store_all_ratio_and_last_ip(uint32_t p_dic_hub,
 				m_insert_ratio = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
 				                                                               "insert or replace into fly_ratio (dic_ip,dic_nick,dic_hub,upload,download) values(?,?,?,?,?)"));
 			sqlite3_command* l_sql = m_insert_ratio.get();
-			l_sql->bind(2, __int64(p_dic_nick));
+			l_sql->bind(2, l_dic_nick);
 			l_sql->bind(3, __int64(p_dic_hub));
 			for (auto i = p_upload_download_stats.cbegin(); i != p_upload_download_stats.cend(); ++i)
 			{
-				// dcassert(getDIC_ID(i->first, e_DIC_IP, false));
-				// dcassert(i->second.m_last_ip_id);
-				if (i->second.m_last_ip_id) // Коннект еще не наступил - не пишем в базу 0
+				__int64 l_last_ip_id = getDIC_ID(i->first, e_DIC_IP, false); // TODO - второй раз делаем запрос ! криво - изменить структуру fly_ratio
+				if (l_last_ip_id) // Коннект еще не наступил - не пишем в базу 0
 				{
-					l_sql->bind(1, __int64(i->second.m_last_ip_id));
+					l_sql->bind(1, __int64(l_last_ip_id));
 					l_sql->bind(4, __int64(i->second.m_upload));
 					l_sql->bind(5, __int64(i->second.m_download));
 					l_sql->executenonquery();
@@ -1750,15 +1786,15 @@ void CFlylinkDBManager::store_all_ratio_and_last_ip(uint32_t p_dic_hub,
 			}
 		}
 		// Иначе фиксируем только последний IP
-		if (p_last_ip_id != 0)
+		if (!p_last_ip.empty())
 		{
 			if (!m_insert_store_ip.get())
 				m_insert_store_ip = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-				                                                                  "insert or replace into fly_last_ip (dic_nick,dic_hub,dic_ip) values(?,?,?)"));
+				                                                                  "insert or replace into fly_last_ip_nick_hub (nick,dic_hub,ip) values(?,?,?)"));
 			sqlite3_command* l_sql = m_insert_store_ip.get();
-			l_sql->bind(1, __int64(p_dic_nick));
+			l_sql->bind(1, p_nick, SQLITE_STATIC);
 			l_sql->bind(2, __int64(p_dic_hub));
-			l_sql->bind(3, __int64(p_last_ip_id));
+			l_sql->bind(3, p_last_ip, SQLITE_STATIC);
 			l_sql->executenonquery();
 		}
 		l_trans_insert.commit();

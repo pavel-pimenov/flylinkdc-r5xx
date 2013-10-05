@@ -812,7 +812,6 @@ void ConnectionManager::on(UserConnectionListener::CLock, UserConnection* aSourc
 		{
 			defFeatures.push_back(UserConnection::FEATURE_ZLIB_GET);
 		}
-		
 		aSource->supports(defFeatures);
 	}
 	

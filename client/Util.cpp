@@ -2142,7 +2142,7 @@ string Util::getExternalIP(const string& p_url, LONG p_timeOut /* = 500 */)
 {
 	CFlyLog l_log("[GetIP]");
 	string l_downBuf;
-	getDataFromInet(_T("GetIP"), 4096, p_url, l_downBuf, p_timeOut);
+	getDataFromInet(_T("GetIP"), 256, p_url, l_downBuf, p_timeOut);
 	if (!l_downBuf.empty())
 	{
 		SimpleXML xml;
@@ -2156,7 +2156,14 @@ string Util::getExternalIP(const string& p_url, LONG p_timeOut /* = 500 */)
 				{
 					const string l_IP = xml.getChildData().substr(20);
 					l_log.step("Download : " + p_url + " IP = " + l_IP);
+					if(isValidIP(l_IP))
+					{
 					return l_IP;
+				}
+					else
+					{
+						dcassert(0);
+					}
 				}
 			}
 		}

@@ -2096,14 +2096,14 @@ void SearchFrame::addSearchResult(SearchInfo * si)
 		SearchInfoList::ParentPair* pp = ctrlResults.findParentPair(sr->getTTH());
 		if (pp)
 		{
-			if ((user->getCID() == pp->parent->getUser()->getCID()) && (sr->getFile() == pp->parent->sr->getFile()))
+			if (user->getCID() == pp->parent->getUser()->getCID() && sr->getFile() == pp->parent->sr->getFile())
 			{
 				delete si;
 				return;
 			}
 			for (auto k = pp->children.cbegin(); k != pp->children.cend(); ++k)
 			{
-				if ((user->getCID() == (*k)->getUser()->getCID()) && (sr->getFile() == (*k)->sr->getFile()))
+				if (user->getCID() == (*k)->getUser()->getCID() && sr->getFile() == (*k)->sr->getFile())
 				{
 					delete si;
 					return;
@@ -2117,7 +2117,7 @@ void SearchFrame::addSearchResult(SearchInfo * si)
 		{
 			const SearchInfo* si2 = (*s).second.parent;
 			const auto& sr2 = si2->sr;
-			if ((user->getCID() == sr2->getUser()->getCID()) && (sr->getFile() == sr2->getFile()))
+			if (user->getCID() == sr2->getUser()->getCID() && sr->getFile() == sr2->getFile())
 			{
 				delete si;
 				return;

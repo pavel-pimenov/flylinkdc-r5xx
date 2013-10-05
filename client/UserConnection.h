@@ -227,8 +227,10 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		
 		const string& getDirectionString() const
 		{
+			static const string g_UPLOAD   = "Upload";
+			static const string g_DOWNLOAD = "Download";
 			dcassert(isSet(FLAG_UPLOAD) ^ isSet(FLAG_DOWNLOAD));
-			return isSet(FLAG_UPLOAD) ? UPLOAD : DOWNLOAD;
+			return isSet(FLAG_UPLOAD) ? g_UPLOAD : g_DOWNLOAD;
 		}
 		
 		const UserPtr& getUser() const
@@ -344,7 +346,6 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		void updateChunkSize(int64_t leafSize, int64_t lastChunk, uint64_t ticks);
 		
 		// [!] IRainman add HintedUser
-		// [-] GETSET(string, hubUrl, HubUrl);
 		void setHubUrl(const string& p_HubUrl) // [+]
 		{
 #ifdef _DEBUG
@@ -352,10 +353,6 @@ class UserConnection : public Speaker<UserConnectionListener>,
 				dcassert(p_HubUrl == Text::toLower(p_HubUrl));
 #endif
 			m_hintedUser.hint = p_HubUrl;
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-			m_HubID = CFlylinkDBManager::getInstance()->get_dic_hub_id(m_hintedUser.hint);
-			dcassert(m_HubID);
-#endif
 		}
 		const string& getHubUrl() // [+]
 		{
@@ -388,11 +385,6 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		int64_t chunkSize;
 		BufferedSocket* socket;
 		HintedUser m_hintedUser; //UserPtr user; [!] IRainman add HintedUser
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-		uint32_t m_HubID;
-#endif
-		
-		static const string UPLOAD, DOWNLOAD;
 		
 		union
 		{

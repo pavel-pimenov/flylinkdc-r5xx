@@ -422,7 +422,7 @@ string ResourceManager::strings[] = {
 "Enable 'Mode Picture' for hubs", 
 "Add Country flag into 'Location' in userlist", 
 "Enable $HubTopic support", 
-"Store IP in a SQLite database (Column Last IP)", 
+"Store IP in a SQLite database", 
 "Use fly-server cloud", 
 "Enable multi-source", 
 "Enable popups", 

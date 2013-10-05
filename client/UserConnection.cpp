@@ -38,9 +38,6 @@ const string UserConnection::FILE_NOT_AVAILABLE = "File Not Available";
 const string UserConnection::PLEASE_UPDATE_YOUR_CLIENT = "Please update your DC++ http://flylinkdc.com";
 #endif
 
-const string UserConnection::UPLOAD = "Upload";
-const string UserConnection::DOWNLOAD = "Download";
-
 void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexcept
 {
 
