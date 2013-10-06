@@ -81,3 +81,7 @@ vc11
 /compiled/Settings/tth-history.leveldb
 
 /ipch
+
+/compiled/FlylinkDC.exe
+
+/compiled/FlylinkDC_x64.exe
