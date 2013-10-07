@@ -1031,7 +1031,10 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 						if (pShortName)
 						{
 							m_len = min(static_cast<size_t>(MAX_LENGTH - 1), pShortName->size());
+							if(m_len)
+							{
 							_tcsnccpy(textNew.data(), pShortName->c_str(), m_len);
+							}
 							textNew[m_len] = '\0';
 						}
 					}
@@ -1070,7 +1073,10 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 						if (pShortName)
 						{
 							m_len = min(static_cast<size_t>(MAX_LENGTH - 1), pShortName->size());
+							if(m_len)
+							{
 							_tcsnccpy(textNew.data(), pShortName->c_str(), m_len);
+							}
 							textNew[m_len] = '\0';
 							_tcscpy(name.data(), textNew.data()); // diff[1]
 						}
@@ -1353,13 +1359,9 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			graphics->FillPath(&tabBrush, &tabsPatch); //[4]  https://www.box.net/shared/2b24970b81c979fc60e5
 			//Отрисовка контура поверх заливки
 			//Создание "ручек" для контура
-			if (aActive)
-			{
-				Gdiplus::Pen pen(Gdiplus::Color(255, 0, 0), 1);
-				pen.SetDashStyle(Gdiplus::DashStyleDot);
+			Gdiplus::Pen pen(Gdiplus::Color(aActive ? 255 : 0 , 0, 0), 1);
+			pen.SetDashStyle(aActive? Gdiplus::DashStyleDot : Gdiplus::DashStyleSolid);
 				graphics->DrawPath(&pen, &tabsPatch);
-			}
-			
 #else
 			if (tab->row != (rows - 1))
 			{
