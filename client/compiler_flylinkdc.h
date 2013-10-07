@@ -342,7 +342,7 @@ typedef unsigned __int64 uint64_t;
 //#  define RIP_USE_THREAD_POOL
 # endif
 #endif
-//[!] #define RIP_USE_LOG_PROTOCOL выключил т.к. сильно грузит систему
+// #define RIP_USE_LOG_PROTOCOL // выключил т.к. сильно грузит систему
 //[!] #define RIP_USE_CORAL // http://coralcdn.org/ If needed, one have to merge support for CORAL from FlylinkDC
 
 //#define FLYLINKDC_USE_CS_CLIENT_SOCKET [-] IRainman fix.

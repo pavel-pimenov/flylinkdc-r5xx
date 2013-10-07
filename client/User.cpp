@@ -357,7 +357,7 @@ string Identity::getApplication() const
 
 #ifdef _DEBUG
 
-#define PPA_INCLUDE_TEST
+// #define PPA_INCLUDE_TEST
 #ifdef PPA_INCLUDE_TEST
 FastCriticalSection csTest;
 #endif

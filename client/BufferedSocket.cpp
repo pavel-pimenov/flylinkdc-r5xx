@@ -337,12 +337,12 @@ void BufferedSocket::threadRead()
 				int l_count_separator = 0;
 				while ((pos = l.find(separator)) != string::npos)
 				{
-#ifdef RIP_USE_LOG_PROTOCOL
+#if 0
 					if (l_count_separator++ && l.length() > 0 && BOOLSETTING(LOG_PROTOCOL))
 					{
 						StringMap params;
-						params["message"] = "MODE_LINE l_count_separator = " + Util::toString(l_count_separator) + " left = " + Util::toString(left) + " l.length()=" + Util::toString(l.length()) + " l = " + l;
-						LogManager::getInstance()->log(LogManager::PROTOCOL, params, true);
+						const string l_log = "MODE_LINE l_count_separator = " + Util::toString(l_count_separator) + " left = " + Util::toString(left) + " l.length()=" + Util::toString(l.length()) + " l = " + l;
+						LogManager::getInstance()->message(l_log);
 					}
 #endif
 					if (pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
@@ -354,7 +354,7 @@ void BufferedSocket::threadRead()
 					{
 							left = l.length();
 					}
-					dcassert(mode == MODE_LINE);
+					//dcassert(mode == MODE_LINE);
 					if (mode != MODE_LINE)
 					{
 						// we changed mode; remainder of l is invalid.
@@ -767,6 +767,7 @@ void BufferedSocket::fail(const string& aError)
 
 void BufferedSocket::shutdown()
 {
+	m_disconnecting = true;
 	// [!] IRainman fix: turning off the socket in the asynchronous mode is prohibited because
 	// the listeners of its events will have been destroyed by the time of processing the shutdown event.
 	{
