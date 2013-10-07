@@ -621,8 +621,22 @@ void SettingsManager::setDefaults()
 	//setDefault(OPEN_WAITING_USERS, false);
 	//setDefault(NO_IP_OVERRIDE, false);//[+] PPA [!]IRainman default disable ip override option
 	// http://forum.wafl.ru/index.php?s=&showtopic=4300&view=findpost&p=82510
-	setDefault(SOCKET_IN_BUFFER, 0 * 1024);
-	setDefault(SOCKET_OUT_BUFFER, 0 * 1024);
+#ifdef FLYLINKDC_SUPPORT_WIN_XP
+	setDefault(SOCKET_IN_BUFFER,  64 * 1024 );
+	setDefault(SOCKET_OUT_BUFFER, 64 * 1024 );
+/*
+  // Increase the socket buffer sizes from the default sizes for WinXP.  In
+  // performance testing, there is substantial benefit by increasing from 8KB
+  // to 64KB.
+  // See also:
+  //    http://support.microsoft.com/kb/823764/EN-US
+  // On Vista, if we manually set these sizes, Vista turns off its receive
+  // window auto-tuning feature.
+  //    http://blogs.msdn.com/wndp/archive/2006/05/05/Winhec-blog-tcpip-2.aspx
+  // Since Vista's auto-tune is better than any static value we can could set,
+  // only change these on pre-vista machines.
+*/
+#endif
 	setDefault(TLS_TRUSTED_CERTIFICATES_PATH, Util::getConfigPath() + "Certificates" PATH_SEPARATOR_STR);
 	setDefault(TLS_PRIVATE_KEY_FILE, Util::getConfigPath() + "Certificates" PATH_SEPARATOR_STR "client.key");
 	setDefault(TLS_CERTIFICATE_FILE, Util::getConfigPath() + "Certificates" PATH_SEPARATOR_STR "client.crt");

@@ -355,50 +355,28 @@ int Socket::getSocketOptInt(int p_option) const
 	  [~] IRainman fix */
 	return l_val;
 }
-/*
- src\chromium\home\chrome-svn\tarball\chromium\src\net\socket\tcp_client_socket_win.cc
-// Sets socket parameters. Returns the OS error code (or 0 on
-// success).
-int SetupSocket(SOCKET socket) {
-  // Increase the socket buffer sizes from the default sizes for WinXP.  In
-  // performance testing, there is substantial benefit by increasing from 8KB
-  // to 64KB.
-  // See also:
-  //    http://support.microsoft.com/kb/823764/EN-US
-  // On Vista, if we manually set these sizes, Vista turns off its receive
-  // window auto-tuning feature.
-  //    http://blogs.msdn.com/wndp/archive/2006/05/05/Winhec-blog-tcpip-2.aspx
-  // Since Vista's auto-tune is better than any static value we can could set,
-  // only change these on pre-vista machines.
-  if (base::win::GetVersion() < base::win::VERSION_VISTA) {
-    const int32 kSocketBufferSize = 64 * 1024;
-    SetSocketReceiveBufferSize(socket, kSocketBufferSize);
-    SetSocketSendBufferSize(socket, kSocketBufferSize);
-  }
-
-  DisableNagle(socket, true);
-  SetTCPKeepAlive(socket, true, kTCPKeepAliveSeconds);
-  return 0;
-}
-*/
 
 void Socket::setInBufSize()
 {
-	if(!CompatibilityManager::isOsVistaPlus())
+#ifdef FLYLINKDC_SUPPORT_WIN_XP
+	if(!CompatibilityManager::isOsVistaPlus()) // http://blogs.msdn.com/wndp/archive/2006/05/05/Winhec-blog-tcpip-2.aspx
 	{
 	const int l_sockInBuf = SETTING(SOCKET_IN_BUFFER);
 	if (l_sockInBuf > 0)
 		setSocketOpt(SO_RCVBUF, l_sockInBuf);
 	}
+#endif
 }
 void Socket::setOutBufSize()
 {
-	if(!CompatibilityManager::isOsVistaPlus())
+#ifdef FLYLINKDC_SUPPORT_WIN_XP
+	if(!CompatibilityManager::isOsVistaPlus()) // http://blogs.msdn.com/wndp/archive/2006/05/05/Winhec-blog-tcpip-2.aspx
 	{
 	const int l_sockOutBuf = SETTING(SOCKET_OUT_BUFFER);
 	if (l_sockOutBuf > 0)
 		setSocketOpt(SO_SNDBUF, l_sockOutBuf);
 	}
+#endif
 }
 void Socket::setSocketOpt(int option, int val)
 {
