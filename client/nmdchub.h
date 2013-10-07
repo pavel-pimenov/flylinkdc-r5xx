@@ -45,9 +45,9 @@ class NmdcHub : public Client, private Flags
 		{
 			send("$MyPass " + fromUtf8(aPass) + '|');
 		}
-		void info(bool force)
+		void info(bool p_force)
 		{
-			myInfo(force);
+			myInfo(p_force);
 		}
 		
 		size_t getUserCount() const

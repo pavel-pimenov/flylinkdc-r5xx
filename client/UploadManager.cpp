@@ -1157,9 +1157,6 @@ void UploadManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 	if (freeSlots != lastFreeSlots)
 	{
 		lastFreeSlots = freeSlots;
-		/* I don't like spamming every minute so disabled it for now
-		    ClientManager::getInstance()->infoUpdated();
-		*/
 	}
 }
 

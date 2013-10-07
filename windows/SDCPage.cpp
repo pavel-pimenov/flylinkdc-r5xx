@@ -49,9 +49,7 @@ PropPage::Item SDCPage::items[] =
 {
 	{ IDC_ROLLBACK, SettingsManager::ROLLBACK, PropPage::T_INT },
 	{ IDC_BUFFERSIZE, SettingsManager::BUFFER_SIZE_FOR_DOWNLOADS, PropPage::T_INT },
-#ifdef IRAINMAN_INCLUDE_SOCKET_IN_BUFFER_OPTION
 	{ IDC_SOCKET_IN_BUFFER, SettingsManager::SOCKET_IN_BUFFER, PropPage::T_INT },
-#endif
 	{ IDC_SOCKET_OUT_BUFFER, SettingsManager::SOCKET_OUT_BUFFER, PropPage::T_INT },
 	{ IDC_CHAT_LINES, SettingsManager::SHOW_LAST_LINES_LOG, PropPage::T_INT },
 	{ IDC_SHUTDOWNTIMEOUT, SettingsManager::SHUTDOWN_TIMEOUT, PropPage::T_INT },
@@ -63,9 +61,6 @@ PropPage::Item SDCPage::items[] =
 
 LRESULT SDCPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-#ifndef IRAINMAN_INCLUDE_SOCKET_IN_BUFFER_OPTION
-	::EnableWindow(GetDlgItem(IDC_SOCKET_IN_BUFFER), FALSE);
-#endif
 	PropPage::translate((HWND)(*this), texts);
 	PropPage::read((HWND)*this, items);
 	
@@ -98,7 +93,8 @@ LRESULT SDCPage::onFixControls(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
 }
 void SDCPage::fixControls() // [+]NightOrion
 {
-
+ ::EnableWindow(GetDlgItem(IDC_SOCKET_IN_BUFFER), !CompatibilityManager::isOsVistaPlus());
+ ::EnableWindow(GetDlgItem(IDC_SOCKET_OUT_BUFFER), !CompatibilityManager::isOsVistaPlus());
 }
 
 void SDCPage::write()

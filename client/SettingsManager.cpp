@@ -221,7 +221,7 @@ const string SettingsManager::settingTags[] =
 	"NoIPOverride", "GroupSearchResults", "ForgetSearchRequest", "SaveSearchSettings", "SavedSearchType", "SavedSearchSizeMode", "SavedSearchMode", "BoldFinishedDownloads", "BoldFinishedUploads", "BoldQueue",
 	"BoldHub", "BoldPm", "BoldSearch", "BoldNewrss", "TabsPos",
 	"HubPosition", // [+] InfinitySky.
-	"SocketInBuffer", "SocketOutBuffer",
+	"SocketInBuffer2", "SocketOutBuffer2",
 	"ColorRunning", "ColorDownloaded", "ColorVerified", "ColorAvoiding", "AutoRefreshTime", "OpenWaitingUsers",
 	"BoldWaitingUsers", "AutoSearchLimit", "AutoKickNoFavs", "PromptPassword", "SpyFrameIgnoreTthSearches",
 	"TLSPort", "UseTLS", "MaxCommandLength", "AllowUntrustedHubs", "AllowUntrustedClients",
@@ -621,8 +621,8 @@ void SettingsManager::setDefaults()
 	//setDefault(OPEN_WAITING_USERS, false);
 	//setDefault(NO_IP_OVERRIDE, false);//[+] PPA [!]IRainman default disable ip override option
 	// http://forum.wafl.ru/index.php?s=&showtopic=4300&view=findpost&p=82510
-	setDefault(SOCKET_IN_BUFFER, 128 * 1024);
-	setDefault(SOCKET_OUT_BUFFER, 128 * 1024);
+	setDefault(SOCKET_IN_BUFFER, 0 * 1024);
+	setDefault(SOCKET_OUT_BUFFER, 0 * 1024);
 	setDefault(TLS_TRUSTED_CERTIFICATES_PATH, Util::getConfigPath() + "Certificates" PATH_SEPARATOR_STR);
 	setDefault(TLS_PRIVATE_KEY_FILE, Util::getConfigPath() + "Certificates" PATH_SEPARATOR_STR "client.key");
 	setDefault(TLS_CERTIFICATE_FILE, Util::getConfigPath() + "Certificates" PATH_SEPARATOR_STR "client.crt");
@@ -1735,7 +1735,7 @@ bool SettingsManager::set(IntSetting key, int value)
 		case SOCKET_IN_BUFFER:
 		case SOCKET_OUT_BUFFER:
 		{
-			VERIFI(0, 128 * 1024);
+			VERIFI(0, 64 * 1024);
 			break;
 		}
 		case NUMBER_OF_SEGMENTS:

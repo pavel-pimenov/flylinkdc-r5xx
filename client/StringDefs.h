@@ -1340,6 +1340,7 @@ enum Strings   // @DontAdd
 	SETTINGS_LOG_SYSTEM_MESSAGES, // "Log system messages"
 	SETTINGS_LOG_UPLOADS, // "Log uploads"
 	SETTINGS_LOG_WEBSERVER, // "Log web server"
+	SETTINGS_LOG_PROTOCOL, // "Log TCP socket "
 	SETTINGS_MAX_COMPRESS, // "Max compression level"
 	SETTINGS_MAX_HASH_SPEED, // "Max hash speed"
 	SETTINGS_MAX_TAB_ROWS, // "Max tab rows"

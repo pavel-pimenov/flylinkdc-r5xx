@@ -811,7 +811,7 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	if (TimerManager::g_isStartupShutdownProcess || m_closing)
 		return 0;
 	const uint64_t aTick = GET_TICK();
-	if (++m_second_count % 60 == 0)
+	if (--m_second_count == 0)
 	{
 		m_second_count = 60;
 		onMinute(aTick);
@@ -3316,7 +3316,6 @@ LRESULT MainFrame::onAway(WORD , WORD , HWND, BOOL&)
 		setAwayButton(true);
 		Util::setAway(true);
 	}
-	// [-] IRainman fix ClientManager::getInstance()->infoUpdated();
 	return 0;
 }
 

@@ -1300,7 +1300,7 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 		{
 			SET_SETTING(SLOTS, j);
 			status = TSTRING(SLOTS_SET);
-			ClientManager::getInstance()->infoUpdated();
+			ClientManager::getInstance()->infoUpdated(); // Не звать если не меняется SLOTS_SET
 		}
 		else
 		{

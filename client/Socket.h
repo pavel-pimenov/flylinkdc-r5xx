@@ -234,6 +234,8 @@ class Socket
 		
 		int getSocketOptInt(int option) const;
 		void setSocketOpt(int option, int value);
+		void setInBufSize();
+		void setOutBufSize();
 		
 		virtual bool isSecure() const noexcept
 		{

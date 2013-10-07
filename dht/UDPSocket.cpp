@@ -94,11 +94,7 @@ void UDPSocket::listen() throw(SocketException)
 		socket.reset(new Socket);
 		socket->create(Socket::TYPE_UDP);
 		socket->setSocketOpt(SO_REUSEADDR, 1);
-#ifdef IRAINMAN_INCLUDE_SOCKET_IN_BUFFER_OPTION
-		const int l_sockInBuf = SETTING(SOCKET_IN_BUFFER);
-		if (l_sockInBuf > 0) // [+] IRainman fix: support Windows auto set this value.
-			socket->setSocketOpt(SO_RCVBUF, l_sockInBuf);
-#endif
+	    socket->setInBufSize();
 		const string& l_bind = SETTING(BIND_ADDRESS);
 		port = socket->bind(static_cast<uint16_t>(SETTING(DHT_PORT)), l_bind);
 		
@@ -253,11 +249,7 @@ int UDPSocket::run()
 				{
 					socket->disconnect();
 					socket->create(Socket::TYPE_UDP);
-#ifdef IRAINMAN_INCLUDE_SOCKET_IN_BUFFER_OPTION
-					const int l_sockInBuf = SETTING(SOCKET_IN_BUFFER);
-					if (l_sockInBuf > 0) // [+] IRainman fix: support Windows auto set this value.
-						socket->setSocketOpt(SO_RCVBUF, l_sockInBuf);
-#endif
+					socket->setInBufSize();
 					socket->setSocketOpt(SO_REUSEADDR, 1);
 					socket->bind(port, SETTING(BIND_ADDRESS));
 					if (failed)

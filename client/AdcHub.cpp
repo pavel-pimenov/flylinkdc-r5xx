@@ -63,7 +63,7 @@ const string AdcSupports::ZLIF_SUPPORT("ADZLIF");
 
 const vector<StringList> AdcHub::searchExts;
 
-AdcHub::AdcHub(const string& aHubURL, bool secure) : Client(aHubURL, '\n', secure), oldPassword(false), sid(0)
+AdcHub::AdcHub(const string& aHubURL, bool secure) : Client(aHubURL, '\n', secure), m_oldPassword(false), sid(0)
 {
 	// [-] TimerManager::getInstance()->addListener(this); [-] IRainman fix.
 }
@@ -421,7 +421,7 @@ void AdcHub::handle(AdcCommand::SUP, AdcCommand& c) noexcept
 	}
 	else if (!tigrOk)
 	{
-		oldPassword = true;
+		m_oldPassword = true;
 		// Some hubs fake BASE support without TIGR support =/
 		fire(ClientListener::StatusMessage(), this, "Hub probably uses an old version of ADC, please encourage the owner to upgrade"); // TODO: translate
 	}
@@ -489,7 +489,7 @@ void AdcHub::handle(AdcCommand::GPA, AdcCommand& c) noexcept
 {
 	if (c.getParameters().empty())
 		return;
-	salt = c.getParam(0);
+	m_salt = c.getParam(0);
 	state = STATE_VERIFY;
 	
 	// [!] IRainman fix.
@@ -1362,13 +1362,13 @@ void AdcHub::password(const string& pwd)
 {
 	if (state != STATE_VERIFY)
 		return;
-	if (!salt.empty())
+	if (!m_salt.empty())
 	{
-		size_t saltBytes = salt.size() * 5 / 8;
+		size_t saltBytes = m_salt.size() * 5 / 8;
 		std::unique_ptr<uint8_t[]> buf(new uint8_t[saltBytes]);
-		Encoder::fromBase32(salt.c_str(), &buf[0], saltBytes);
+		Encoder::fromBase32(m_salt.c_str(), &buf[0], saltBytes);
 		TigerHash th;
-		if (oldPassword)
+		if (m_oldPassword)
 		{
 			CID cid = getMyIdentity().getUser()->getCID();
 			th.update(cid.data(), CID::SIZE);
@@ -1376,21 +1376,21 @@ void AdcHub::password(const string& pwd)
 		th.update(pwd.data(), pwd.length());
 		th.update(&buf[0], saltBytes);
 		send(AdcCommand(AdcCommand::CMD_PAS, AdcCommand::TYPE_HUB).addParam(Encoder::toBase32(th.finalize(), TigerHash::BYTES)));
-		salt.clear();
+		m_salt.clear();
 	}
 }
 
-static void addParam(StringMap& lastInfoMap, AdcCommand& c, const string& var, const string& value)
+static void addParam(StringMap& p_lastInfoMap, AdcCommand& c, const string& var, const string& value)
 {
-	const auto& i = lastInfoMap.find(var);
+	const auto& i = p_lastInfoMap.find(var);
 	
-	if (i != lastInfoMap.end())
+	if (i != p_lastInfoMap.end())
 	{
 		if (i->second != value)
 		{
 			if (value.empty())
 			{
-				lastInfoMap.erase(i);
+				p_lastInfoMap.erase(i);
 			}
 			else
 			{
@@ -1401,12 +1401,12 @@ static void addParam(StringMap& lastInfoMap, AdcCommand& c, const string& var, c
 	}
 	else if (!value.empty())
 	{
-		lastInfoMap.insert(make_pair(var, value));
+		p_lastInfoMap.insert(make_pair(var, value));
 		c.addParam(var, value);
 	}
 }
 
-void AdcHub::info(bool /*alwaysSend*/)
+void AdcHub::info(bool p_force)
 {
 	if (state != STATE_IDENTIFY && state != STATE_NORMAL)
 		return;
@@ -1420,95 +1420,95 @@ void AdcHub::info(bool /*alwaysSend*/)
 		updateCounts(false);
 	}
 	
-	addParam(lastInfoMap, c, "ID", ClientManager::getMyCID().toBase32()); // [!] IRainman fix.
-	addParam(lastInfoMap, c, "PD", ClientManager::getMyPID().toBase32()); // [!] IRainman fix.
-	addParam(lastInfoMap, c, "NI", getMyNick());
-	addParam(lastInfoMap, c, "DE", getCurrentDescription());
-	addParam(lastInfoMap, c, "SL", Util::toString(UploadManager::getInstance()->getSlots()));
-	addParam(lastInfoMap, c, "FS", Util::toString(UploadManager::getInstance()->getFreeSlots()));
+	addParam(m_lastInfoMap, c, "ID", ClientManager::getMyCID().toBase32()); // [!] IRainman fix.
+	addParam(m_lastInfoMap, c, "PD", ClientManager::getMyPID().toBase32()); // [!] IRainman fix.
+	addParam(m_lastInfoMap, c, "NI", getMyNick());
+	addParam(m_lastInfoMap, c, "DE", getCurrentDescription());
+	addParam(m_lastInfoMap, c, "SL", Util::toString(UploadManager::getInstance()->getSlots()));
+	addParam(m_lastInfoMap, c, "FS", Util::toString(UploadManager::getInstance()->getFreeSlots()));
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 	if (getHideShare())
 	{
-		addParam(lastInfoMap, c, "SS", "0"); // [!] Flylink++ HideShare mode
-		addParam(lastInfoMap, c, "SF", "0"); // [!] Flylink HideShare mode
+		addParam(m_lastInfoMap, c, "SS", "0"); // [!] Flylink++ HideShare mode
+		addParam(m_lastInfoMap, c, "SF", "0"); // [!] Flylink HideShare mode
 	}
 	else
 #endif
 	{
-		addParam(lastInfoMap, c, "SS", ShareManager::getInstance()->getShareSizeString()); // [!] Flylink++ HideShare mode
-		addParam(lastInfoMap, c, "SF", Util::toString(ShareManager::getInstance()->getSharedFiles())); // [!] Flylink++ HideShare mode
+		addParam(m_lastInfoMap, c, "SS", ShareManager::getInstance()->getShareSizeString()); // [!] Flylink++ HideShare mode
+		addParam(m_lastInfoMap, c, "SF", Util::toString(ShareManager::getInstance()->getSharedFiles())); // [!] Flylink++ HideShare mode
 	}
 	
 	
-	addParam(lastInfoMap, c, "EM", SETTING(EMAIL));
+	addParam(m_lastInfoMap, c, "EM", SETTING(EMAIL));
 	// [!] Flylink++ Exclusive hub mode
 	const FavoriteHubEntry *fhe = FavoriteManager::getInstance()->getFavoriteHubEntry(getHubUrl());
 	if (fhe && fhe->getExclusiveHub())
 	{
 		uint8_t l_normal, l_registered, l_op;
 		getCountsIndivid(l_normal, l_registered, l_op);
-		addParam(lastInfoMap, c, "HN", Util::toString(l_normal));
-		addParam(lastInfoMap, c, "HR", Util::toString(l_registered));
-		addParam(lastInfoMap, c, "HO", Util::toString(l_op));
+		addParam(m_lastInfoMap, c, "HN", Util::toString(l_normal));
+		addParam(m_lastInfoMap, c, "HR", Util::toString(l_registered));
+		addParam(m_lastInfoMap, c, "HO", Util::toString(l_op));
 	}
 	else
 	{
-		addParam(lastInfoMap, c, "HN", Util::toString(counts[COUNT_NORMAL]));
-		addParam(lastInfoMap, c, "HR", Util::toString(counts[COUNT_REGISTERED]));
-		addParam(lastInfoMap, c, "HO", Util::toString(counts[COUNT_OP]));
+		addParam(m_lastInfoMap, c, "HN", Util::toString(counts[COUNT_NORMAL]));
+		addParam(m_lastInfoMap, c, "HR", Util::toString(counts[COUNT_REGISTERED]));
+		addParam(m_lastInfoMap, c, "HO", Util::toString(counts[COUNT_OP]));
 	}
 	// [~] Flylink++ Exclusive hub mode
 	// [!] IRainman mimicry function
-	addParam(lastInfoMap, c, "AP", getClientName());
-	addParam(lastInfoMap, c, "VE", getClientVersion());
+	addParam(m_lastInfoMap, c, "AP", getClientName());
+	addParam(m_lastInfoMap, c, "VE", getClientVersion());
 	// [~] IRainman mimicry function
-	addParam(lastInfoMap, c, "AW", Util::getAway() ? "1" : Util::emptyString);
+	addParam(m_lastInfoMap, c, "AW", Util::getAway() ? "1" : Util::emptyString);
 	
 	size_t limit = BOOLSETTING(THROTTLE_ENABLE) ? ThrottleManager::getInstance()->getDownloadLimitInBytes() : 0;// [!] IRainman SpeedLimiter
 	if (limit > 0)
 	{
-		addParam(lastInfoMap, c, "DS", Util::toString(limit));
+		addParam(m_lastInfoMap, c, "DS", Util::toString(limit));
 	}
 	
 	limit = BOOLSETTING(THROTTLE_ENABLE) ? ThrottleManager::getInstance()->getUploadLimitInBytes() : 0;// [!] IRainman SpeedLimiter
 	if (limit > 0)
 	{
-		addParam(lastInfoMap, c, "US", Util::toString(limit));
+		addParam(m_lastInfoMap, c, "US", Util::toString(limit));
 	}
 	else
 	{
-		addParam(lastInfoMap, c, "US", Util::toString((long)(Util::toDouble(SETTING(UPLOAD_SPEED)) * 1024 * 1024 / 8)));
+		addParam(m_lastInfoMap, c, "US", Util::toString((long)(Util::toDouble(SETTING(UPLOAD_SPEED)) * 1024 * 1024 / 8)));
 	}
 	
-	addParam(lastInfoMap, c, "LC", Util::getIETFLang()); // http://adc.sourceforge.net/ADC-EXT.html#_lc_locale_specification
+	addParam(m_lastInfoMap, c, "LC", Util::getIETFLang()); // http://adc.sourceforge.net/ADC-EXT.html#_lc_locale_specification
 	
 	string su(AdcSupports::SEGA_FEATURE);
 	
 	if (CryptoManager::getInstance()->TLSOk())
 	{
 		su += "," + AdcSupports::ADCS_FEATURE;
-		auto &kp = CryptoManager::getInstance()->getKeyprint();
-		addParam(lastInfoMap, c, "KP", "SHA256/" + Encoder::toBase32(&kp[0], kp.size()));
+		const auto &kp = CryptoManager::getInstance()->getKeyprint();
+		addParam(m_lastInfoMap, c, "KP", "SHA256/" + Encoder::toBase32(&kp[0], kp.size()));
 	}
 	if (isActive() || BOOLSETTING(ALLOW_NAT_TRAVERSAL))
 	{
 		if (!getFavIp().empty())
 		{
-			addParam(lastInfoMap, c, "I4", getFavIp());
+			addParam(m_lastInfoMap, c, "I4", getFavIp());
 		}
 		else if (BOOLSETTING(NO_IP_OVERRIDE) && !SETTING(EXTERNAL_IP).empty())
 		{
-			addParam(lastInfoMap, c, "I4", Socket::resolve(SETTING(EXTERNAL_IP)));
+			addParam(m_lastInfoMap, c, "I4", Socket::resolve(SETTING(EXTERNAL_IP)));
 		}
 		else
 		{
-			addParam(lastInfoMap, c, "I4", "0.0.0.0");
+			addParam(m_lastInfoMap, c, "I4", "0.0.0.0");
 		}
 	}
 	
 	if (isActive())
 	{
-		addParam(lastInfoMap, c, "U4", Util::toString(SearchManager::getInstance()->getPort()));
+		addParam(m_lastInfoMap, c, "U4", Util::toString(SearchManager::getInstance()->getPort()));
 		su += "," + AdcSupports::TCP4_FEATURE;
 		su += "," + AdcSupports::UDP4_FEATURE;
 	}
@@ -1520,12 +1520,12 @@ void AdcHub::info(bool /*alwaysSend*/)
 		}
 		else
 		{
-			addParam(lastInfoMap, c, "I4", "");
+			addParam(m_lastInfoMap, c, "I4", "");
 		}
-		addParam(lastInfoMap, c, "U4", "");
+		addParam(m_lastInfoMap, c, "U4", "");
 	}
 	
-	addParam(lastInfoMap, c, "SU", su);
+	addParam(m_lastInfoMap, c, "SU", su);
 	
 	if (!c.getParameters().empty())
 	{
@@ -1593,7 +1593,7 @@ void AdcHub::on(Connected c) noexcept
 		return;
 	}
 	
-	lastInfoMap.clear();
+	m_lastInfoMap.clear();
 	sid = 0;
 	forbiddenCommands.clear();
 	

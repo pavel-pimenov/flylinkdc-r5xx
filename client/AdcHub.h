@@ -39,7 +39,7 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		void sendUserCmd(const UserCommand& command, const StringMap& params);
 		void search(Search::SizeModes aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, const StringList& aExtList);
 		void password(const string& pwd);
-		void info(bool alwaysSend);
+		void info(bool p_force);
 		void refreshUserList(bool);
 		
 		size_t getUserCount() const
@@ -92,12 +92,12 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 			}
 		}
 		
-		bool oldPassword;
+		bool m_oldPassword;
 		Socket udp;
 		SIDMap m_users;
-		StringMap lastInfoMap;
+		StringMap m_lastInfoMap;
 		
-		string salt;
+		string m_salt;
 		uint32_t sid;
 		
 		unordered_set<uint32_t> forbiddenCommands;

@@ -255,6 +255,8 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		deque<pair<Tasks, std::unique_ptr<TaskData>> > m_tasks;
 		volatile ThreadID m_threadId; // [+] IRainman fix.
 		ByteVector inbuf;
+		void resizeInBuf();
+
 		ByteVector writeBuf;
 		ByteVector sendBuf;
 		

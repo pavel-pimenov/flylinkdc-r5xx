@@ -1335,6 +1335,7 @@
 	<string name="SettingsLogSystemMessages">Log system messages</string>
 	<string name="SettingsLogUploads">Log uploads</string>
 	<string name="SettingsLogWebserver">Log web server</string>
+	<string name="SettingsLogProtocol">Log TCP socket </string>
 	<string name="SettingsMaxCompress">Max compression level</string>
 	<string name="SettingsMaxHashSpeed">Max hash speed</string>
 	<string name="SettingsMaxTabRows">Max tab rows</string>

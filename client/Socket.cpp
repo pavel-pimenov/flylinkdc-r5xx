@@ -351,14 +351,59 @@ int Socket::getSocketOptInt(int p_option) const
 	and why the system could restore us to waste in these places, but the api does not contain the test function of range.
 	Once again I ask, please - if that's where you fell, you have to find real bugs in our code and not to mask them is not clear what the basis of checks.
 	  [-] if (l_val <= 0)
-	  [-]    throw SocketException("[Error] getSocketOptInt() = 0");
+	  [-]    throw SocketException("[Error] getSocketOptInt() <= 0");
 	  [~] IRainman fix */
 	return l_val;
 }
+/*
+ src\chromium\home\chrome-svn\tarball\chromium\src\net\socket\tcp_client_socket_win.cc
+// Sets socket parameters. Returns the OS error code (or 0 on
+// success).
+int SetupSocket(SOCKET socket) {
+  // Increase the socket buffer sizes from the default sizes for WinXP.  In
+  // performance testing, there is substantial benefit by increasing from 8KB
+  // to 64KB.
+  // See also:
+  //    http://support.microsoft.com/kb/823764/EN-US
+  // On Vista, if we manually set these sizes, Vista turns off its receive
+  // window auto-tuning feature.
+  //    http://blogs.msdn.com/wndp/archive/2006/05/05/Winhec-blog-tcpip-2.aspx
+  // Since Vista's auto-tune is better than any static value we can could set,
+  // only change these on pre-vista machines.
+  if (base::win::GetVersion() < base::win::VERSION_VISTA) {
+    const int32 kSocketBufferSize = 64 * 1024;
+    SetSocketReceiveBufferSize(socket, kSocketBufferSize);
+    SetSocketSendBufferSize(socket, kSocketBufferSize);
+  }
 
+  DisableNagle(socket, true);
+  SetTCPKeepAlive(socket, true, kTCPKeepAliveSeconds);
+  return 0;
+}
+*/
+
+void Socket::setInBufSize()
+{
+	if(!CompatibilityManager::isOsVistaPlus())
+	{
+	const int l_sockInBuf = SETTING(SOCKET_IN_BUFFER);
+	if (l_sockInBuf > 0)
+		setSocketOpt(SO_RCVBUF, l_sockInBuf);
+	}
+}
+void Socket::setOutBufSize()
+{
+	if(!CompatibilityManager::isOsVistaPlus())
+	{
+	const int l_sockOutBuf = SETTING(SOCKET_OUT_BUFFER);
+	if (l_sockOutBuf > 0)
+		setSocketOpt(SO_SNDBUF, l_sockOutBuf);
+	}
+}
 void Socket::setSocketOpt(int option, int val)
 {
-	int len = sizeof(val);
+	dcassert(val > 0);
+	int len = sizeof(val); // x64 - x86 int разный размер
 	check(::setsockopt(sock, SOL_SOCKET, option, (char*)&val, len)); // [2] https://www.box.net/shared/57976d5de875f5b33516
 }
 
@@ -381,7 +426,7 @@ int Socket::read(void* aBuffer, int aBufLen)
 			if (len > 0 && BOOLSETTING(LOG_PROTOCOL))
 			{
 				StringMap params;
-				params["message"] = "<- " + std::string((char*)aBuffer, len);
+				params["message"] = Util::toString(len) + " byte <- " + std::string((char*)aBuffer, len);
 				LogManager::getInstance()->log(LogManager::PROTOCOL, params, true);
 			}
 #endif
@@ -396,6 +441,14 @@ int Socket::read(void* aBuffer, int aBufLen)
 				break;
 				
 			len = ::recvfrom(sock, (char*)aBuffer, aBufLen, 0, NULL, NULL);
+#ifdef RIP_USE_LOG_PROTOCOL
+			if (len > 0 && BOOLSETTING(LOG_PROTOCOL))
+			{
+				StringMap params;
+				params["message"] = Util::toString(len) + " UDP recvfrom byte <- " + std::string((char*)aBuffer, len);
+				LogManager::getInstance()->log(LogManager::PROTOCOL, params, true);
+			}
+#endif
 		}
 		while (len < 0 && getLastError() == EINTR);
 	}
@@ -423,6 +476,14 @@ int Socket::read(void* aBuffer, int aBufLen, sockaddr_in &remote)
 			break;
 			
 		len = ::recvfrom(sock, (char*)aBuffer, aBufLen, 0, (sockaddr*) & remote_addr, &addr_length); // 2012-05-03_22-00-59_BXMHFQ4XUPHO3PGC3R7LOLCOCEBV57NUA63QOVA_AE6E2832_crash-stack-r502-beta24-build-9900.dmp
+#ifdef RIP_USE_LOG_PROTOCOL
+			if (len > 0 && BOOLSETTING(LOG_PROTOCOL))
+			{
+				StringMap params;
+				params["message"] = Util::toString(len) + " UDP recvfrom byte <- " + std::string((char*)aBuffer, len);
+				LogManager::getInstance()->log(LogManager::PROTOCOL, params, true);
+			}
+#endif
 	}
 	while (len < 0 && getLastError() == EINTR);
 	
@@ -466,7 +527,7 @@ int Socket::writeAll(const void* aBuffer, int aLen, uint64_t timeout)
 	const uint8_t* buf = (const uint8_t*)aBuffer;
 	int pos = 0;
 	// No use sending more than this at a time...
-	int sendSize = getSocketOptInt(SO_SNDBUF);
+	const int sendSize = getSocketOptInt(SO_SNDBUF);
 	
 	while (pos < aLen)
 	{
@@ -498,7 +559,7 @@ int Socket::write(const void* aBuffer, int aLen)
 		if (aLen > 0 && BOOLSETTING(LOG_PROTOCOL))
 		{
 			StringMap params;
-			params["message"] = "-> " + std::string((const char*)aBuffer, aLen);
+			params["message"] = Util::toString(aLen) + " byte -> " + std::string((const char*)aBuffer, aLen);
 			LogManager::getInstance()->log(LogManager::PROTOCOL, params, true);
 		}
 #endif

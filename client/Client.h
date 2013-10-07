@@ -88,7 +88,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		}
 		
 		virtual void password(const string& pwd) = 0;
-		virtual void info(bool force) = 0;
+		virtual void info(bool p_force) = 0;
 		
 		virtual size_t getUserCount() const = 0;
 		int64_t getAvailableBytes() const

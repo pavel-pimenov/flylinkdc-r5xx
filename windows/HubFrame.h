@@ -287,6 +287,19 @@ public UCHandler<HubFrame>, public UserInfoBaseHandler < HubFrame, UserInfoGuiTr
 		static FrameMap g_frames;
 		
 		tstring m_shortHubName;
+		uint8_t m_second_count;
+		void setShortHubName(const tstring& p_name)
+		{
+			m_shortHubName = p_name;
+			if(!p_name.empty())
+			{
+				  SetWindowLongPtr(GWLP_USERDATA, (LONG_PTR)&m_shortHubName);
+			}
+			else
+			{
+				SetWindowLongPtr(GWLP_USERDATA, (LONG_PTR)nullptr);
+			}
+		}
 		tstring m_redirect;
 		tstring m_complete;
 		

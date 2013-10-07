@@ -92,11 +92,7 @@ void SearchManager::listen()
 		socket.reset(new Socket);
 		socket->create(Socket::TYPE_UDP);
 		socket->setBlocking(true);
-#ifdef IRAINMAN_INCLUDE_SOCKET_IN_BUFFER_OPTION
-		const int l_sockInBuf = SETTING(SOCKET_IN_BUFFER);
-		if (l_sockInBuf > 0) // [+] IRainman fix: support Windows auto set this value.
-			socket->setSocketOpt(SO_RCVBUF, l_sockInBuf);
-#endif
+		socket->setInBufSize();
 		if (BOOLSETTING(AUTO_DETECT_CONNECTION))
 		{
 			port = socket->bind(0, Util::emptyString);
@@ -170,11 +166,7 @@ int SearchManager::run()
 				socket->disconnect();
 				socket->create(Socket::TYPE_UDP);
 				socket->setBlocking(true);
-#ifdef IRAINMAN_INCLUDE_SOCKET_IN_BUFFER_OPTION
-				const int l_sockInBuf = SETTING(SOCKET_IN_BUFFER);
-				if (l_sockInBuf > 0) // [+] IRainman fix: support Windows auto set this value.
-					socket->setSocketOpt(SO_RCVBUF, l_sockInBuf);
-#endif
+				socket->setInBufSize();
 				socket->bind(port, SETTING(BIND_ADDRESS));
 				if (failed)
 				{

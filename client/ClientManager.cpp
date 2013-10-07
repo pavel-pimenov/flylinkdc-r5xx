@@ -664,7 +664,15 @@ void ClientManager::send(AdcCommand& cmd, const CID& cid)
 		}
 	}
 }
-
+void ClientManager::infoUpdated(Client* p_client)
+{
+	SharedLock l(g_csClients);
+	dcassert(p_client);
+	if (p_client && p_client->isConnected())
+	{
+	 p_client->info(false);
+	}
+}
 void ClientManager::infoUpdated()
 {
 	SharedLock l(g_csClients);
@@ -881,13 +889,7 @@ void ClientManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) noexcep
 			}
 		}
 	}
-	{
-		SharedLock l(g_csClients); // [+] IRainman opt.
-		for (auto j = m_clients.cbegin(); j != m_clients.cend(); ++j)
-		{
-			j->second->info(false);
-		}
-	}
+	//[-]PPA infoUpdated(); 
 }
 // [!] IRainman fix.
 void ClientManager::createMe(const string& cid, const string& nick)

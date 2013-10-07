@@ -182,8 +182,9 @@ HubFrame::HubFrame(const tstring& aServer,
                    bool p_UserListState
                    //bool p_ChatUserSplitState
                   ) :
-	CFlyTimerAdapter(m_hWnd),
-	client(nullptr) // на вс€кий случай :)
+	CFlyTimerAdapter(m_hWnd)
+	, client(nullptr) // на вс€кий случай :)
+	, m_second_count(60)
 	, server(aServer)
 	, m_waitingForPW(false)
 	, m_needsUpdateStats(false)
@@ -287,7 +288,6 @@ LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	ConnectionManager::getInstance()->addListener(this);
 #endif
 	// loadIgnoreList(); // Load ignore list [-] IRainman fix.
-	SetWindowLongPtr(GWLP_USERDATA, (LONG_PTR)&m_shortHubName);
 	create_timer(1000);
 	return 1;
 }
@@ -2581,7 +2581,6 @@ LRESULT HubFrame::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*b
 		if (m_needsUpdateStats &&
 		        BaseChatFrame::g_isStartupProcess == false && // ѕока открываем хабы не обновл€ем статистику - мерцает
 		        !MainFrame::isAppMinimized() && WinUtil::g_tabCtrl->isActive(m_hWnd) // [+] IRainman opt.
-		        
 #ifndef IRAINMAN_NOT_USE_COUNT_UPDATE_INFO_IN_LIST_VIEW_CTRL
 		        && ctrlUsers.getCountUpdateInfo() == 0 //[+]FlylinkDC++
 #endif
@@ -2595,6 +2594,11 @@ LRESULT HubFrame::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*b
 		{
 			fastSpeak();
 		}
+	}
+	if (--m_second_count == 0)
+	{
+		m_second_count = 60;
+		ClientManager::infoUpdated(client);
 	}
 	// [~] IRainman opt.
 	return 0;
@@ -2713,21 +2717,13 @@ void HubFrame::on(HubUpdated, const Client*) noexcept
 	
 	if (!client->getName().empty())
 	{
-		m_shortHubName = Text::toT(client->getName());
+		setShortHubName(Text::toT(client->getName()));
 		getFullHubInfo(fullHubName, client);
 	}
 	else
 	{
-		/* TODO: please fix me: this options not working properly!
-		if (!BOOLSETTING(SHOW_FULL_HUB_INFO_ON_TAB))
 		{
-		    m_shortHubName = Text::toT(fullHubName);
-		    getFullHubInfo(fullHubName, client);
-		}
-		else
-		*/
-		{
-			m_shortHubName = Text::toT(fullHubName);
+			setShortHubName(Text::toT(fullHubName));
 			getFullHubInfo(fullHubName, client);
 		}
 	}
@@ -2736,7 +2732,7 @@ void HubFrame::on(HubUpdated, const Client*) noexcept
 	const string version = client->getHubIdentity().getStringParam("VE");
 	if (!version.empty())
 	{
-		m_shortHubName += Text::toT(" - " + version);
+		setShortHubName (m_shortHubName + Text::toT(" - " + version));
 		fullHubName += " - " + version;
 	}
 #endif

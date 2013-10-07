@@ -119,6 +119,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		void cancelSearch(void* aOwner);
 		
 		void infoUpdated();
+		static void infoUpdated(Client* p_client);
 		
 		UserPtr getUser(const string& p_Nick, const string& p_HubURL
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO

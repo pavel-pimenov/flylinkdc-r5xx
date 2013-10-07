@@ -273,6 +273,7 @@ VideoPreview::PreviewServer::PreviewServer(uint16_t aPort, const string& ip /* =
 {
 	sock.create();
 	sock.setSocketOpt(SO_REUSEADDR, 1);
+	dcassert(aPort);
 	port = sock.bind(aPort, ip);
 	sock.listen();
 	start();

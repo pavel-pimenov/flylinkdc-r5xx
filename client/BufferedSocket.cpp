@@ -93,17 +93,31 @@ void BufferedSocket::setSocket(std::unique_ptr<Socket>& s) // [!] IRainman fix: 
 	dcassert(!sock.get());
 	sock = move(s);
 }
+void BufferedSocket::resizeInBuf()
+		{
+			bool l_is_bad_alloc;
+			int l_size = sock->getSocketOptInt(SO_RCVBUF);
+			do
+			{
+			try
+			 {				
+				dcassert(l_size);
+				l_is_bad_alloc = false;
+				inbuf.resize(l_size);
+			 }
+			 catch(std::bad_alloc& )
+			 {
+				l_size /= 2; // Заказываем в 2 раза меньше
+				l_is_bad_alloc = l_size != 0;
+			 }
+			}
+			while(l_is_bad_alloc == true);
+		}
 
 void BufferedSocket::setOptions()
 {
-#ifdef IRAINMAN_INCLUDE_SOCKET_IN_BUFFER_OPTION
-	const int l_sockInBuf = SETTING(SOCKET_IN_BUFFER);
-	if (l_sockInBuf > 0)
-		sock->setSocketOpt(SO_RCVBUF, l_sockInBuf);
-#endif
-	const int l_sockOutBuf = SETTING(SOCKET_OUT_BUFFER);
-	if (l_sockOutBuf > 0)
-		sock->setSocketOpt(SO_SNDBUF, l_sockOutBuf);
+	sock->setInBufSize();
+	sock->setOutBufSize();
 }
 
 uint16_t BufferedSocket::accept(const Socket& srv, bool secure, bool allowUntrusted)
@@ -178,8 +192,7 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 				dcassert(!ClientManager::isShutdown());
 				if (sock->waitConnected(POLL_TIMEOUT))
 				{
-					inbuf.resize(sock->getSocketOptInt(SO_RCVBUF));
-					
+					resizeInBuf();
 					fire(BufferedSocketListener::Connected()); //[1] https://www.box.net/shared/52748dbc4f8a46f0a71b
 					return;
 				}
@@ -198,8 +211,7 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 			
 			if (connSucceeded)
 			{
-			    inbuf.resize(sock->getSocketOptInt(SO_RCVBUF));
-			
+				resizeInBuf();		
 			    fire(BufferedSocketListener::Connected());
 			    return;
 			}
@@ -229,7 +241,7 @@ void BufferedSocket::threadAccept()
 	
 	m_state = RUNNING;
 	
-	inbuf.resize(sock->getSocketOptInt(SO_RCVBUF)); // TODO bad_alloc 2012-04-23_22-28-18_L4N2H5DQSWJDZVGEWQRLCAQCSP3HVHJ3ZRWM73Q_05553A64_crash-stack-r501-build-9812.dmp
+	resizeInBuf();
 	
 	const uint64_t startTime = GET_TICK();
 	while (!sock->waitAccepted(POLL_TIMEOUT))
@@ -306,6 +318,7 @@ void BufferedSocket::threadRead()
 				break;
 			}
 			case MODE_LINE:
+				{
 				// Special to autodetect nmdc connections...
 				if (separator == 0)
 				{
@@ -321,13 +334,27 @@ void BufferedSocket::threadRead()
 				l = line + string((char*) & inbuf[bufpos], left);
 				// TODO - bad_alloc 2012-04-23_22-28-18_L4N2H5DQSWJDZVGEWQRLCAQCSP3HVHJ3ZRWM73Q_EA6DB66F_crash-stack-r501-build-9812.dmp
 				// 2012-04-23_22-28-18_XIBJZTGAX3SV6EEOL6UOPEPBV3JEIWX2TEWIU5I_BE4E9488_crash-stack-r501-build-9812.dmp
+				int l_count_separator = 0;
 				while ((pos = l.find(separator)) != string::npos)
 				{
+#ifdef RIP_USE_LOG_PROTOCOL
+					if (l_count_separator++ && l.length() > 0 && BOOLSETTING(LOG_PROTOCOL))
+					{
+						StringMap params;
+						params["message"] = "MODE_LINE l_count_separator = " + Util::toString(l_count_separator) + " left = " + Util::toString(left) + " l.length()=" + Util::toString(l.length()) + " l = " + l;
+						LogManager::getInstance()->log(LogManager::PROTOCOL, params, true);
+					}
+#endif
 					if (pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
-						fire(BufferedSocketListener::Line(), l.substr(0, pos));
+						fire(BufferedSocketListener::Line(), l.substr(0, pos)); // // TODO - отказаться от временной переменной l и скользить по окну inbuf
 						
 					l.erase(0, pos + 1 /* separator char */); //[3] https://www.box.net/shared/74efa5b96079301f7194
-					if (l.length() < (size_t)left) left = l.length();
+					// TODO - erase не эффективно.					
+					if (l.length() < (size_t)left) 
+					{
+							left = l.length();
+					}
+					dcassert(mode == MODE_LINE);
 					if (mode != MODE_LINE)
 					{
 						// we changed mode; remainder of l is invalid.
@@ -340,6 +367,7 @@ void BufferedSocket::threadRead()
 					left = 0;
 				line = l;
 				break;
+				}
 			case MODE_DATA:
 				while (left > 0)
 				{
@@ -387,8 +415,8 @@ void BufferedSocket::threadSendFile(InputStream* file)
 	if (socketIsDisconecting()) // [!] IRainman fix
 		return;
 	dcassert(file != NULL);
-	size_t sockSize = (size_t)sock->getSocketOptInt(SO_SNDBUF);
-	size_t bufSize = max(sockSize, (size_t)64 * 1024);
+	const size_t sockSize = (size_t)sock->getSocketOptInt(SO_SNDBUF);
+	const size_t bufSize = max(sockSize, (size_t)64 * 1024);
 	
 	ByteVector readBuf(bufSize); // https://www.box.net/shared/07ab0210ed0f83ab842e
 	ByteVector writeBuf(bufSize);
