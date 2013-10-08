@@ -192,8 +192,7 @@ void User::setLastNick(const string& p_nick)
 
 void User::initRatio(bool p_is_create)
 {
-	dcassert(!m_nick.empty());
-	if(!m_is_first_init_ratio && m_hub_id)
+	if(!m_nick.empty() && !m_is_first_init_ratio && m_hub_id)
 	{
 	 m_is_first_init_ratio = true;
 	 // ”знаем был ли в базе last_ip
