@@ -8,8 +8,11 @@
 #include <unordered_set>
 #include <atlfile.h>
 #include <time.h>
+#include <unordered_map>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/unordered/unordered_map.hpp>
+
 //#include <boost/iostreams/device/mapped_file.hpp>
 #include <boost/thread.hpp>
 #include <limits>
@@ -17,6 +20,7 @@
 #include "../client/thread.h"
 #include "cperformance.h"
 #include "FastAlloc.h"
+#include "cycle.h"
 
 FastCriticalSection FastAllocBase::cs;
 
@@ -24,6 +28,62 @@ typedef boost::recursive_mutex	BoostCriticalSection;
 typedef boost::detail::spinlock	BoostFastCriticalSection;
 typedef boost::lock_guard<boost::recursive_mutex> BoostLock;
 typedef boost::lock_guard<boost::detail::spinlock> BoostFastLock;
+
+template<typename T>
+void timemap(const int n=10000000, const int r=7) {
+	std::map<std::string,std::vector<double> > timings;
+	std::cout << std::fixed << std::setprecision(2);
+
+	for (int j=0 ; j<r ; j++) {
+		ticks start;
+		T hsh;
+		int kk = 0;
+
+		start = getticks();
+		// Insert every 2nd number in the sequence
+		for (int i=0 ; i<n ; i+=2) {
+			hsh[i] = i*2;
+		}
+		timings["1: Insert"].push_back(elapsed(getticks(), start));
+
+		start = getticks();
+		// Lookup every number in the sequence
+		for (int i=0 ; i<n ; ++i) {
+			if(hsh.find(i) != hsh.end())
+              ++kk;
+		}
+		if(kk)
+		{
+		 timings["2: Lookup"].push_back(elapsed(getticks(), start));
+		}
+
+		start = getticks();
+		// Iterate over the entries
+		for (typename T::iterator it=hsh.begin() ; it != hsh.end() ; ++it) {
+			int x = it->second;
+			++x;
+		}
+		timings["3: Iterate"].push_back(elapsed(getticks(), start));
+
+		start = getticks();
+		// Erase the entries
+		for (int i=0 ; i<n ; i+=2) {
+			hsh.erase(i);
+		}
+		timings["4: Erase"].push_back(elapsed(getticks(), start));
+	}
+
+	for (std::map<std::string,std::vector<double> >::iterator it=timings.begin() ; it!=timings.end() ; ++it) {
+		double sum = 0.0;
+		std::cout << it->first << " ( ";
+		for (int i=1 ; i<r ; i++) {
+			sum += it->second.at(i);
+			std::cout << it->second.at(i) << " ";
+		}
+		std::cout << ") " << sum/double(r-1) << std::endl;
+	}
+}
+
 
 static std::wstring translateError(int aError)
 {
@@ -359,6 +419,19 @@ void processPreparing(DWORD_PTR affinityMask)
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	std::cout << "Timing boost::unordered_map<int,int>" << std::endl;
+	timemap<boost::unordered_map<int,int> >();
+	std::cout << std::endl;
+
+	std::cout << "Timing std::unordered_map<int,int>" << std::endl;
+	timemap<std::unordered_map<int,int> >();
+	std::cout << std::endl;
+
+	std::cout << "Timing std::map<int,int>" << std::endl;
+	timemap<std::map<int,int> >();
+	std::cout << std::endl;
+
+	return 0;
 	// [+] IRainman fix.
 	::SetProcessPriorityBoost(::GetCurrentProcess(), FALSE); // Запрещаем системе изменять приоритет процесса.
 
