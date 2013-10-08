@@ -1686,24 +1686,24 @@ CFlyRatioItem CFlylinkDBManager::load_ratio(uint32_t p_hub_id, const string& p_n
 		l_sql_command->bind(1, l_dic_nick);
 		l_sql_command->bind(2, __int64(p_hub_id));
 		sqlite3_reader l_q = l_sql_command->executereader();
-		string l_ip_from_ration;
+		string l_ip_from_ratio;
 		while (l_q.read())
 		{
 			const auto l_u = l_q.getint64(0);
 			const auto l_d = l_q.getint64(1);
 			dcassert(l_d || l_u);
-			l_ip_from_ration = l_q.getstring(2);
-			dcassert(!l_ip_from_ration.empty());
+			l_ip_from_ratio = l_q.getstring(2);
+			dcassert(!l_ip_from_ratio.empty());
 			l_ip_ratio_item.m_upload    += l_u;
 			l_ip_ratio_item.m_download  += l_d;
-			auto& l_u_d_map = p_ratio_info.m_upload_download_map[l_ip_from_ration];
+			auto& l_u_d_map = p_ratio_info.m_upload_download_map[l_ip_from_ratio];
 			l_u_d_map.m_download = l_d;
 			l_u_d_map.m_upload   = l_u;
 		}
 		dcassert(!l_ip_ratio_item.m_last_ip_sql.empty());
 		if(l_ip_ratio_item.m_last_ip_sql.empty()) // Если вдруг last_ip не достали (выключена галка ENABLE_LAST_IP) - сохраним последний IP из рейтинга
 			{
-				l_ip_ratio_item.m_last_ip_sql = l_ip_from_ration; // TODO Похерить ENABLE_LAST_IP - ведь флажки нам всегда лучше показывать?
+				l_ip_ratio_item.m_last_ip_sql = l_ip_from_ratio; // TODO Похерить ENABLE_LAST_IP - ведь флажки нам всегда лучше показывать?
 			}
 		}
 		return l_ip_ratio_item;
@@ -1747,12 +1747,15 @@ void CFlylinkDBManager::store_all_ratio_and_last_ip(uint32_t p_dic_hub,
 													const string& p_last_ip)
 {
 	Lock l(m_cs);
-	dcassert(p_dic_hub);
 	try
 	{
+		dcassert(p_dic_hub);
 		dcassert(!p_nick.empty());
-		dcassert(!p_upload_download_stats.empty());
-		const __int64 l_dic_nick = getDIC_ID(p_nick, e_DIC_NICK, true);
+		__int64 l_dic_nick = 0;
+		if(!p_upload_download_stats.empty()) // Для рейтинга нужно расчитать ID ника
+		{
+			  l_dic_nick = getDIC_ID(p_nick, e_DIC_NICK, true);
+		}
 		__int64 l_last_ip_id = 0;
 		// Если запись 1- проверить что p_last_ip = 
 #ifdef _DEBUG
