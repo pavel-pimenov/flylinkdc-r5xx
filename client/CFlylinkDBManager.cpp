@@ -382,7 +382,8 @@ CFlylinkDBManager::CFlylinkDBManager()
 		                              
 		m_flySQLiteDB.executenonquery(
 		    "CREATE TABLE IF NOT EXISTS stat_db.fly_statistic(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,stat_value_json text not null,stat_time int64, flush_time int64);");
-		if (l_rev <= 388)
+		const bool l_is_fly_last_ip_nick_hub_exists = is_table_exists("fly_last_ip_nick_hub");
+		if (l_rev <= 388 && l_is_fly_last_ip_nick_hub_exists == false)
 		{
 			const bool l_first_convert = is_table_exists("fly_last_ip");
 			if (!l_first_convert)
@@ -437,7 +438,7 @@ CFlylinkDBManager::CFlylinkDBManager()
 		safeAlter("ALTER TABLE fly_queue add column HubHint text");
 		safeAlter("ALTER TABLE fly_queue_source add column HubHint text");
 		const bool l_fly_last_ip_convert2 = is_table_exists("fly_last_ip");
-		if (l_fly_last_ip_convert2 && !is_table_exists("fly_last_ip_nick_hub"))
+		if (l_fly_last_ip_convert2 && l_is_fly_last_ip_nick_hub_exists == false)
 		{
 				m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS fly_last_ip_nick_hub(\n"
 				                              "nick text not null, dic_hub integer not null,ip text not null);");
@@ -445,7 +446,7 @@ CFlylinkDBManager::CFlylinkDBManager()
 				sqlite3_transaction l_trans(m_flySQLiteDB);
 				m_flySQLiteDB.executenonquery("insert into fly_last_ip_nick_hub(nick,dic_hub,ip)\n"
 				                              "select (select name from fly_dic where id = dic_nick),dic_hub,(select name from fly_dic where id = dic_ip) from fly_last_ip");
-				m_flySQLiteDB.executenonquery("drop table fly_last_ip");
+				// TODO m_flySQLiteDB.executenonquery("drop table fly_last_ip");
 				l_trans.commit();
 		}
 		/*      {
