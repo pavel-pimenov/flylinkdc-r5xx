@@ -1,4 +1,4 @@
-/* $Id: miniwget.c,v 1.59 2013/08/01 21:21:25 nanard Exp $ */
+/* $Id: miniwget.c,v 1.60 2013/10/07 10:03:16 nanard Exp $ */
 /* Project : miniupnp
  * Website : http://miniupnp.free.fr/
  * Author : Thomas Bernard
@@ -162,7 +162,7 @@ getHTTPResponse(int s, int * size)
 							chunked = 1;
 						}
 					}
-					while(header_buf[i]=='\r' || header_buf[i] == '\n')
+					while((i < (int)header_buf_used) && (header_buf[i]=='\r' || header_buf[i] == '\n'))
 						i++;
 					linestart = i;
 					colon = linestart;
