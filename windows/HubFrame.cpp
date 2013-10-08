@@ -224,14 +224,7 @@ HubFrame::HubFrame(const tstring& aServer,
 	client->setRawFour(Text::fromT(aRawFour));
 	client->setRawFive(Text::fromT(aRawFive));
 	
-	if (FavoriteManager::getInstance()->getFavoriteHubEntry(client->getHubUrl()) != nullptr)
-	{
 		m_showUsersStore = p_UserListState;
-	}
-	else
-	{
-		m_showUsersStore = BOOLSETTING(GET_USER_INFO);
-	}
 	m_showUsers = false;
 }
 
@@ -1843,7 +1836,7 @@ void HubFrame::storeColumsInfo()
 		
 		fhe->setChatUserSplit(m_nProportionalPos);
 		fhe->setChatUserSplitState(m_ClientUsers);
-		fhe->setUserListState(m_ActivateCounter == 1 ? m_showUsers : m_showUsersStore);
+		fhe->setUserListState(m_showUsersStore);
 		fhe->setHeaderOrder(l_order);
 		fhe->setHeaderWidths(l_width);
 		fhe->setHeaderVisible(l_visible);
@@ -1891,8 +1884,6 @@ LRESULT HubFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 	}
 	else
 	{
-		// SET_SETTING(GET_USER_INFO, m_showUsers); [-] IRainman fix: Save this option only when it changes.
-		FavoriteManager::getInstance()->removeUserCommand(l_server);
 		clearTaskList();
 		clearUserList();
 		storeColumsInfo();
@@ -2410,7 +2401,7 @@ void HubFrame::usermap2ListrView()
 void HubFrame::firstLoadAllUsers()
 {
 	CWaitCursor l_cursor_wait;
-	m_showUsers = true;
+	setShowUsers(true);
 	m_needsResort = false;
 	CLockRedraw<> l_lock_draw(ctrlUsers);
 	usermap2ListrView();
@@ -2426,15 +2417,12 @@ LRESULT HubFrame::onShowUsers(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, B
 	}
 	else
 	{
-		m_showUsers = false;
+		setShowUsers(false);
 		m_needsResort = false;
 		// [!] IRainman Speed optimization and support for the full menu on selected nick in chat when user list is hided.
 		ctrlUsers.DeleteAllItems();
 		// [~] IRainman
 	}
-	m_showUsersStore = m_showUsers;
-	if (FavoriteManager::getInstance()->getFavoriteHubEntry(client->getHubUrl()) == nullptr)
-		SET_SETTING(GET_USER_INFO, m_showUsers); // [!] IRainman fix: Save this option only when it changes.
 	UpdateLayout(FALSE);
 	m_needsUpdateStats = true;
 	return 0;

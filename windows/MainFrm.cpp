@@ -807,8 +807,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 
 LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
-	//dcassert(TimerManager::g_isStartupShutdownProcess || m_closing);
-	if (TimerManager::g_isStartupShutdownProcess || m_closing)
+	if (TimerManager::g_isStartupShutdownProcess || m_closing || BaseChatFrame::g_isStartupProcess)
 		return 0;
 	const uint64_t aTick = GET_TICK();
 	if (--m_second_count == 0)

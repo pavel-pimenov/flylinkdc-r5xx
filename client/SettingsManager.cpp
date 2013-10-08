@@ -142,7 +142,7 @@ const string SettingsManager::settingTags[] =
 	"LogDownloads", "LogUploads",
 	"LogifSuppressPms", // [+]IRainman
 	"StatusInChat", "ShowJoins", "PrivateMessageBeep", "PrivateMessageBeepOpen",
-	"UseSystemIcons", "PopupPMs", "MinUploadSpeed", "GetUserInfo", "UrlHandler", "MainWindowState",
+	"UseSystemIcons", "PopupPMs", "MinUploadSpeed", "UrlHandler", "MainWindowState",
 	"MainWindowSizeX", "MainWindowSizeY", "MainWindowPosX", "MainWindowPosY", "AutoAway",
 	"SocksPort", "SocksResolve", "KeepLists", "AutoKick", "QueueFrameShowTree", "QueueFrameSplit",
 	"CompressTransfers", "ShowProgressBars", "MaxTabRows",
@@ -540,9 +540,6 @@ void SettingsManager::setDefaults()
 	setDefault(LOG_FORMAT_TRACE_SQLITE, "[%Y-%m-%d %H:%M:%S] %[sql]");
 	setDefault(TIME_STAMPS_FORMAT, "%X"); // [!] IRainman fix: use system format time. "%H:%M:%S"
 //
-#ifndef FLYLINKDC_HE
-	setDefault(GET_USER_INFO, TRUE);
-#endif
 	setDefault(URL_HANDLER, TRUE);
 	//setDefault(AUTO_AWAY, false);
 	setDefault(BIND_ADDRESS, "0.0.0.0");

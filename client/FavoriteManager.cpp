@@ -817,7 +817,7 @@ void FavoriteManager::save() const
 		xml.stepIn();
 		{
 			FastSharedLock l(csUserCommand); // [+] IRainman opt.
-			for (auto i = userCommands.cbegin(), iend = userCommands.cend(); i != iend; ++i)
+			for (auto i = userCommands.cbegin(); i != userCommands.cend(); ++i)
 			{
 				if (!i->isSet(UserCommand::FLAG_NOSAVE))
 				{
@@ -973,8 +973,10 @@ void FavoriteManager::load()
 			e->setConnect(true);
 			e->setDescription(STRING(SUPPORTS_SERVER_DESC));
 			e->setServer(getSupportHubURL());
+			{
 			FastUniqueLock l(csHubs);
 			favoriteHubs.push_back(e);
+			}
 			// [-] IRainman fix m_dontSave = false;
 		}
 	}

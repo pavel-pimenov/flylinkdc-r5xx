@@ -317,6 +317,11 @@ public UCHandler<HubFrame>, public UserInfoBaseHandler < HubFrame, UserInfoGuiTr
 		
 		bool m_showUsers;
 		bool m_showUsersStore;
+		void setShowUsers(bool m_value)
+		{
+			m_showUsers = m_value;
+			m_showUsersStore = m_value;
+		}
 		void firstLoadAllUsers();
 		void usermap2ListrView();
 		

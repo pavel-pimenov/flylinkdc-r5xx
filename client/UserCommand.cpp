@@ -20,22 +20,16 @@
 #include "UserCommand.h"
 #include "StringTokenizer.h"
 
-const StringList& UserCommand::getDisplayName() const
-{
-	return displayName;
-}
-
 void UserCommand::setDisplayName(bool makeBackSplashReplacement)
 {
 	string name_ = name;
 	if (makeBackSplashReplacement) // [!] SSA - test
 		Util::replace("\\", "/", name_);
-		
 	Util::replace("//", "\t", name_);
 	const StringTokenizer<string> t(name_, '/');
 	for (auto i = t.getTokens().cbegin(), iend = t.getTokens().cend(); i != iend; ++i)
 	{
-		displayName.push_back(*i);
-		Util::replace("\t", "/", displayName.back());
+		m_displayName.push_back(*i);
+		Util::replace("\t", "/", m_displayName.back());
 	}
 }

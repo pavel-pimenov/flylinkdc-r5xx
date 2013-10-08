@@ -85,3 +85,7 @@ vc11
 /compiled/FlylinkDC.exe
 
 /compiled/FlylinkDC_x64.exe
+/compiled/Settings/Emptyfiles.xml.bz2
+/compiled/Settings/*.sqlite-shm
+/compiled/Settings/*.sqlite-wal
+/compiled/Settings/IPTrust.ini

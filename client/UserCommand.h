@@ -77,7 +77,7 @@ class UserCommand : public Flags
 			to = rhs.to;
 			hub = rhs.hub;
 			*((Flags*)this) = rhs;
-			displayName.clear();
+			m_displayName.clear();
 			setDisplayName(!isSet(UserCommand::FLAG_NOSAVE));
 			return *this;
 		}
@@ -100,8 +100,11 @@ class UserCommand : public Flags
 		{
 			return adc(hub);
 		}
+		const StringList& getDisplayName() const
+		{
+			return m_displayName;
+		}
 		
-		const StringList& getDisplayName() const;
 		void setDisplayName(bool makeBackSplashReplacement);
 		
 		GETSET(int, cid, Id);
@@ -113,7 +116,7 @@ class UserCommand : public Flags
 		GETSET(string, hub, Hub);
 		
 	private:
-		StringList displayName;
+		StringList m_displayName;
 };
 
 #endif // DCPLUSPLUS_CLIENT_USER_COMMAND_H
