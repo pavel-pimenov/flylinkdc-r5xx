@@ -192,12 +192,17 @@ class User : public intrusive_ptr_base<User>, public Flags
 			return m_nick;
 		}
 		void setLastNick(const string& p_nick);
-		void setIP(const string& p_last_ip);
+		void setIP(const string& p_ip);
+		void storeIP(const string& p_ip);
 		uint32_t getHubID() const
 		{
 			return m_hub_id;
 		}
-		void setHubID(uint32_t p_hub_id);
+		void setHubID(uint32_t p_hub_id)
+		{
+			dcassert(p_hub_id);
+			m_hub_id = p_hub_id;
+		}
 		
 #else
 	public:
@@ -276,7 +281,14 @@ class User : public intrusive_ptr_base<User>, public Flags
 		}
 		bool isLastIP() // [+] IRainman fix.
 		{
-			return m_ratio_ptr && !m_ratio_ptr->m_last_ip_sql.empty() && m_last_ip.empty();
+			if(m_ratio_ptr)
+			{
+					return !m_ratio_ptr->m_last_ip_sql.empty() && m_last_ip.empty();
+			}
+			else
+			{
+					return false;
+			}
 		}
 		const string& getIP();
 		uint64_t getBytesUpload();

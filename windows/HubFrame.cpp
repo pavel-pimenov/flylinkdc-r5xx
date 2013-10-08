@@ -3367,6 +3367,9 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			if (!ui)
 				return CDRF_DODEFAULT;
 			const int l_column_id = ctrlUsers.findColumn(cd->iSubItem);
+			bool l_is_last_ip = false;
+			if(l_column_id == COLUMN_IP || l_column_id == COLUMN_GEO_LOCATION)
+				l_is_last_ip = ui->isIPFromSQL();
 #ifndef IRAINMAN_TEMPORARY_DISABLE_XXX_ICON
 			if (l_column_id == COLUMN_DESCRIPTION &&
 			        (ui->getIdentity().getUser()->isSet(User::GREY_XXX_5) ||
@@ -3390,7 +3393,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 				if (l_column_id == COLUMN_IP)
 				{
 //					PROFILE_THREAD_SCOPED_DESC("COLUMN_IP");
-					if (ui->isLastIP())
+					if (l_is_last_ip)
 					{
 						CRect rc;
 						ctrlUsers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
@@ -3411,7 +3414,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					{
 //				PROFILE_THREAD_SCOPED_DESC("COLUMN_GEO_LOCATION");
 #ifdef SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
-						COLORREF col_brit = OperaColors::brightenColor(cd->clrText, 0.5f);
+						const COLORREF col_brit = OperaColors::brightenColor(cd->clrText, 0.5f);
 #endif // SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
 						ctrlUsers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
 						if (BOOLSETTING(USE_EXPLORER_THEME)
@@ -3422,7 +3425,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 						{
 						
 #ifdef SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
-							SetTextColor(cd->nmcd.hdc, !ui->isLastIP() ? cd->clrText : col_brit);
+							SetTextColor(cd->nmcd.hdc, !l_is_last_ip ? cd->clrText : col_brit);
 #else
 							SetTextColor(cd->nmcd.hdc, cd->clrText);
 #endif //SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
@@ -3440,27 +3443,27 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 								if (l_res != S_OK)
 								{
 #ifdef SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
-									ctrlUsers.SetItemFilled(cd, rc, /*color_text*/ !ui->isLastIP() ? cd->clrText : col_brit, /*color_text_unfocus*/ !ui->isLastIP() ? cd->clrText : col_brit);
+									ctrlUsers.SetItemFilled(cd, rc, !l_is_last_ip ? cd->clrText : col_brit, !l_is_last_ip ? cd->clrText : col_brit); // TODO fix copy-paste 
 #else
-									ctrlUsers.SetItemFilled(cd, rc, /*color_text*/ cd->clrText/*, /*color_text_unfocus*/);
+									ctrlUsers.SetItemFilled(cd, rc, cd->clrText);
 #endif //SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
 								}
 							}
 							else
 							{
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-								ctrlUsers.SetItemFilled(cd, rc, /*color_text*/ !ui->isLastIP() ? cd->clrText : col_brit, /*color_text_unfocus*/ !ui->isLastIP() ? cd->clrText : col_brit);
+								ctrlUsers.SetItemFilled(cd, rc, !l_is_last_ip ? cd->clrText : col_brit, !l_is_last_ip ? cd->clrText : col_brit); // TODO fix copy-paste
 #else
-								ctrlUsers.SetItemFilled(cd, rc, /*color_text*/ cd->clrText, /*color_text_unfocus*/ cd->clrText);
+								ctrlUsers.SetItemFilled(cd, rc, cd->clrText, cd->clrText);
 #endif
 							}
 						}
 						else
 						{
 #ifdef SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
-							ctrlUsers.SetItemFilled(cd, rc, /*color_text*/ !ui->isLastIP() ? cd->clrText : col_brit, /*color_text_unfocus*/ !ui->isLastIP() ? cd->clrText : col_brit);
+							ctrlUsers.SetItemFilled(cd, rc, !l_is_last_ip ? cd->clrText : col_brit, !l_is_last_ip ? cd->clrText : col_brit); // TODO fix copy-paste
 #else
-							ctrlUsers.SetItemFilled(cd, rc, /*color_text*/ cd->clrText/*, /*color_text_unfocus*/);
+							ctrlUsers.SetItemFilled(cd, rc, cd->clrText);
 #endif //SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
 						}
 						// TODO fix copy-paste
@@ -3505,6 +3508,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 				if (!l_location.isSet()) // [!] IRainman opt: Prevent multiple repeated requests to the database if the location has not been found!
 				{
 					const auto& l_ip = ui->getIp();
+					ui->calcIpFromSQL(l_ip);
 					if (!l_ip.empty())
 						ui->setLocation(Util::getIpCountry(l_ip));
 				}

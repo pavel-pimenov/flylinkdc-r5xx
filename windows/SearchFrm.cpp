@@ -2088,7 +2088,7 @@ void SearchFrame::addSearchResult(SearchInfo * si)
 #endif
 	   )
 	{
-		user->setIP(sr->getIP());
+		user->storeIP(sr->getIP());
 	}
 	// Check previous search results for dupes
 	if (!si->getText(COLUMN_TTH).empty() && useGrouping)

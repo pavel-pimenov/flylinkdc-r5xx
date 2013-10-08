@@ -30,6 +30,7 @@ struct CFlyRatioItem : public CFlyUploadDownloadPair<uint64_t>
 	{
 	}
 };
+class User;
 struct CFlyUserRatioInfo : public CFlyRatioItem
 #ifdef _DEBUG
 		, boost::noncopyable , virtual NonDerivable<CFlyUserRatioInfo>
@@ -37,14 +38,11 @@ struct CFlyUserRatioInfo : public CFlyRatioItem
 {
 	private:
 		static FastCriticalSection g_cs;
+		User*  m_user;
 	public:
-		uint32_t	   m_hub_id;
-		const string&  m_nick_ref;
-		string&		   m_last_ip_ref;
-
 		CFlyUploadDownloadMap m_upload_download_map;
 		
-		CFlyUserRatioInfo(const string& p_nick, string& p_last_ip, uint32_t p_hub_id);
+		CFlyUserRatioInfo(User* p_user);
 		~CFlyUserRatioInfo();
 		
 		bool try_load_ratio(bool p_is_create, const string& p_last_ip);
@@ -55,7 +53,6 @@ struct CFlyUserRatioInfo : public CFlyRatioItem
 	private:
 		bool      m_is_sql_record_exists; // Флаг наличия записи в базе данных
 		bool      m_is_ditry;
-		void      update_last_ip(const string& p_ip);
 };
 #endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
 

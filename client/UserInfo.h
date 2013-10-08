@@ -77,9 +77,10 @@ class UserInfo : public UserInfoBase
 	private:
 		const OnlineUserPtr m_ou; // [!] IRainman fix: use online user here!
 		Util::CustomNetworkIndex m_location; // [+] IRainman opt.
+		bool m_is_ip_from_sql;
 	public:
 	
-		explicit UserInfo(const OnlineUserTask& u) : m_ou(u.getOnlineUser())
+		explicit UserInfo(const OnlineUserTask& u) : m_is_ip_from_sql(false), m_ou(u.getOnlineUser())
 		{
 		}
 		static int compareItems(const UserInfo* a, const UserInfo* b, int col);
@@ -89,9 +90,9 @@ class UserInfo : public UserInfoBase
 		}
 		tstring getText(int p_col) const;
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-		bool isLastIP() const
+		bool isIPFromSQL() const
 		{
-			return getUser()->isLastIP();
+			return m_is_ip_from_sql;
 		}
 #endif
 		bool isOP() const
@@ -110,6 +111,10 @@ class UserInfo : public UserInfoBase
 		const Util::CustomNetworkIndex& getLocation() const
 		{
 			return m_location;
+		}
+		void calcIpFromSQL(const string& p_ip)
+		{
+			m_is_ip_from_sql = p_ip.empty() && getUser()->isLastIP();
 		}
 		void setLocation(const Util::CustomNetworkIndex& p_location)
 		{
