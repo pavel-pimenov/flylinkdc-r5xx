@@ -445,9 +445,11 @@ CFlylinkDBManager::CFlylinkDBManager()
 			m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_last_ip_nick_hub ON fly_last_ip_nick_hub(nick,dic_hub);");
 			sqlite3_transaction l_trans(m_flySQLiteDB);
 			m_flySQLiteDB.executenonquery("insert into fly_last_ip_nick_hub(nick,dic_hub,ip)\n"
-			                              "select (select name from fly_dic where id = dic_nick),dic_hub,(select name from fly_dic where id = dic_ip) from fly_last_ip");
-			// TODO m_flySQLiteDB.executenonquery("drop table fly_last_ip");
+			                              "select distinct (select name from fly_dic where id = dic_nick),dic_hub,(select name from fly_dic where id = dic_ip) from fly_last_ip\n"
+										  "where exists (select * from fly_dic where id = dic_nick)\n"
+										  "and exists (select * from fly_dic where id = dic_ip)");
 			l_trans.commit();
+			// TODO m_flySQLiteDB.executenonquery("drop table fly_last_ip");
 		}
 		/*      {
 		            sqlite3_transaction l_trans(m_flySQLiteDB);

@@ -89,3 +89,5 @@ vc11
 /compiled/Settings/*.sqlite-shm
 /compiled/Settings/*.sqlite-wal
 /compiled/Settings/IPTrust.ini
+
+/compiled/Settings/files.xml.bz2

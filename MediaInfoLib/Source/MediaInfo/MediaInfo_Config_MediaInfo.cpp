@@ -1078,8 +1078,8 @@ bool MediaInfo_Config_MediaInfo::File_IgnoreSequenceFileSize_Get ()
 #if MEDIAINFO_ADVANCED
 void MediaInfo_Config_MediaInfo::File_DefaultFrameRate_Set (float64 NewValue)
 {
-    CriticalSectionLocker CSL(CS);
 #if MEDIAINFO_DEMUX
+    CriticalSectionLocker CSL(CS);
     Demux_Rate=File_DefaultFrameRate=NewValue;
 #endif
 }
