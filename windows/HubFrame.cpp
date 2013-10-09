@@ -211,6 +211,7 @@ HubFrame::HubFrame(const tstring& aServer,
 	, m_tabMenu(nullptr)
 	, m_userMenu(nullptr)
 	, m_ActivateCounter(0)
+	, m_is_window_text_update(false)
 {
 	client = ClientManager::getInstance()->getClient(Text::fromT(aServer));
 	m_nProportionalPos = p_ChatUserSplit;
@@ -439,6 +440,12 @@ void HubFrame::createMessagePanel()
 				firstLoadAllUsers();
 			}
 		}
+		if(m_is_window_text_update)
+		{
+			SetWindowText(Text::toT(m_window_text).c_str());
+			m_is_window_text_update = false;
+		}
+		// » без этого работает :) SetMDIFrameMenu();
 		l_is_need_update = true;
 	}
 	BaseChatFrame::createMessagePanel();
@@ -1333,9 +1340,19 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 			case SET_WINDOW_TITLE:
 			{
 				dcassert(!ClientManager::isShutdown());
-//				PROFILE_THREAD_SCOPED_DESC("SET_WINDOW_TITLE")
-				SetWindowText(Text::toT(static_cast<StatusTask&>(*i->second).str).c_str()); // https://www.box.net/shared/a5534c01ede031210a85
-				SetMDIFrameMenu();
+				const string& l_new_text = static_cast<StatusTask&>(*i->second).str;
+				if(m_window_text != l_new_text)
+					{
+						m_window_text = l_new_text;
+						m_is_window_text_update = true;
+					}
+				if (m_is_window_text_update && m_ctrlStatus)
+				{
+				 // TODO - ограничить размер текста
+				 SetWindowText(Text::toT(m_window_text).c_str()); // https://www.box.net/shared/a5534c01ede031210a85
+				 m_is_window_text_update = false;
+				 //[?] SetMDIFrameMenu();
+				}
 			}
 			break;
 			case STATS:
