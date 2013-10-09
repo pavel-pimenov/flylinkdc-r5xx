@@ -201,6 +201,7 @@ void FavoriteManager::prepareClose()
 }
 size_t FavoriteManager::countUserCommand(const string& srv) const
 {
+	FastSharedLock l(csUserCommand);
 	size_t l_count = 0;
 	for (auto i = userCommands.cbegin(); i != userCommands.cend(); ++i)
 	{
