@@ -148,10 +148,12 @@ class User : public intrusive_ptr_base<User>, public Flags
 #endif
 			m_slots(0),
 			m_bytesShared(0),
-			m_limit(0),
-			m_hub_id(0),
-			m_ratio_ptr(nullptr),
-			m_is_first_init_ratio(false)
+			m_limit(0)
+#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+			, m_hub_id(0)
+			, m_ratio_ptr(nullptr)
+			, m_is_first_init_ratio(false)
+#endif
 		{
 #ifdef _DEBUG
 			++g_user_counts;
@@ -169,7 +171,9 @@ class User : public intrusive_ptr_base<User>, public Flags
 			dcdebug(" [!!!!!!]   [!!!!!!]  User::~User() this = %p, g_user_counts = %d\n", this, g_user_counts);
 #endif
 #endif
+#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 			safe_delete(m_ratio_ptr);
+#endif
 		}
 		
 #ifdef _DEBUG

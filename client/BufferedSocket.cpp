@@ -116,8 +116,10 @@ void BufferedSocket::resizeInBuf()
 
 void BufferedSocket::setOptions()
 {
+#ifdef FLYLINKDC_SUPPORT_WIN_XP
 	sock->setInBufSize();
 	sock->setOutBufSize();
+#endif
 }
 
 uint16_t BufferedSocket::accept(const Socket& srv, bool secure, bool allowUntrusted)
@@ -338,7 +340,9 @@ void BufferedSocket::threadRead()
 				l = line + string((char*) & inbuf[bufpos], left);
 				// TODO - bad_alloc 2012-04-23_22-28-18_L4N2H5DQSWJDZVGEWQRLCAQCSP3HVHJ3ZRWM73Q_EA6DB66F_crash-stack-r501-build-9812.dmp
 				// 2012-04-23_22-28-18_XIBJZTGAX3SV6EEOL6UOPEPBV3JEIWX2TEWIU5I_BE4E9488_crash-stack-r501-build-9812.dmp
+#if 0
 				int l_count_separator = 0;
+#endif
 				while ((pos = l.find(separator)) != string::npos)
 				{
 #if 0

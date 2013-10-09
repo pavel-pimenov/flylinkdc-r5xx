@@ -619,8 +619,9 @@ void SettingsManager::setDefaults()
 	//setDefault(NO_IP_OVERRIDE, false);//[+] PPA [!]IRainman default disable ip override option
 	// http://forum.wafl.ru/index.php?s=&showtopic=4300&view=findpost&p=82510
 #ifdef FLYLINKDC_SUPPORT_WIN_XP
-	setDefault(SOCKET_IN_BUFFER,  64 * 1024);
-	setDefault(SOCKET_OUT_BUFFER, 64 * 1024);
+# define MAX_SOCKET_BUFFER_SIZE 64 * 1024
+	setDefault(SOCKET_IN_BUFFER, MAX_SOCKET_BUFFER_SIZE);
+	setDefault(SOCKET_OUT_BUFFER, MAX_SOCKET_BUFFER_SIZE);
 	/*
 	  // Increase the socket buffer sizes from the default sizes for WinXP.  In
 	  // performance testing, there is substantial benefit by increasing from 8KB
@@ -633,7 +634,7 @@ void SettingsManager::setDefaults()
 	  // Since Vista's auto-tune is better than any static value we can could set,
 	  // only change these on pre-vista machines.
 	*/
-#endif
+#endif // FLYLINKDC_SUPPORT_WIN_XP
 	setDefault(TLS_TRUSTED_CERTIFICATES_PATH, Util::getConfigPath() + "Certificates" PATH_SEPARATOR_STR);
 	setDefault(TLS_PRIVATE_KEY_FILE, Util::getConfigPath() + "Certificates" PATH_SEPARATOR_STR "client.key");
 	setDefault(TLS_CERTIFICATE_FILE, Util::getConfigPath() + "Certificates" PATH_SEPARATOR_STR "client.crt");
@@ -1743,12 +1744,14 @@ bool SettingsManager::set(IntSetting key, int value)
 			VER_MIN(16);
 			break;
 		}
+#ifdef FLYLINKDC_SUPPORT_WIN_XP
 		case SOCKET_IN_BUFFER:
 		case SOCKET_OUT_BUFFER:
 		{
-			VERIFI(0, 64 * 1024);
+			VERIFI(0, MAX_SOCKET_BUFFER_SIZE);
 			break;
 		}
+#endif
 		case NUMBER_OF_SEGMENTS:
 		{
 			VERIFI(1, 200);

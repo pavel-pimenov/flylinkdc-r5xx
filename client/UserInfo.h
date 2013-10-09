@@ -112,10 +112,12 @@ class UserInfo : public UserInfoBase
 		{
 			return m_location;
 		}
+#ifdef SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
 		void calcIpFromSQL(const string& p_ip)
 		{
 			m_is_ip_from_sql = p_ip.empty() && getUser()->isLastIP();
 		}
+#endif
 		void setLocation(const Util::CustomNetworkIndex& p_location)
 		{
 			m_location = p_location;

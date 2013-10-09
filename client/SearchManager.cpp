@@ -92,7 +92,9 @@ void SearchManager::listen()
 		socket.reset(new Socket);
 		socket->create(Socket::TYPE_UDP);
 		socket->setBlocking(true);
+#ifdef FLYLINKDC_SUPPORT_WIN_XP
 		socket->setInBufSize();
+#endif
 		if (BOOLSETTING(AUTO_DETECT_CONNECTION))
 		{
 			port = socket->bind(0, Util::emptyString);
@@ -166,7 +168,9 @@ int SearchManager::run()
 				socket->disconnect();
 				socket->create(Socket::TYPE_UDP);
 				socket->setBlocking(true);
+#ifdef FLYLINKDC_SUPPORT_WIN_XP
 				socket->setInBufSize();
+#endif
 				socket->bind(port, SETTING(BIND_ADDRESS));
 				if (failed)
 				{

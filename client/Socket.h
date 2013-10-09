@@ -234,8 +234,10 @@ class Socket
 		
 		int getSocketOptInt(int option) const;
 		void setSocketOpt(int option, int value);
+#ifdef FLYLINKDC_SUPPORT_WIN_XP
 		void setInBufSize();
 		void setOutBufSize();
+#endif
 		
 		virtual bool isSecure() const noexcept
 		{

@@ -91,6 +91,15 @@ FavoriteManager::~FavoriteManager()
 
 UserCommand FavoriteManager::addUserCommand(int type, int ctx, Flags::MaskType flags, const string& name, const string& command, const string& to, const string& hub)
 {
+#ifdef _DEBUG
+				static int g_count;
+				static int g_max_len;
+				string l_all = name + command + to + hub;
+				if(l_all.length() > g_max_len)
+					g_max_len = l_all.length(); 
+				LogManager::getInstance()->message("FavoriteManager::addUserCommand g_count = " + Util::toString(++g_count) 
+					+  " g_max_len = " + Util::toString(g_max_len) + " str =  " + l_all);
+#endif
 	UserCommand uc(m_lastId++, type, ctx, flags, name, command, to, hub);
 	{
 		// No dupes, add it...
@@ -1422,6 +1431,7 @@ bool FavoriteManager::isPrivate(const string& p_url) const
 //	dcassert(!p_url.empty());
 	if (!p_url.empty())
 	{
+		// TODO Зовется без полного лока
 		FavoriteHubEntry* fav = getFavoriteHubEntry(p_url); // https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=23193
 		if (fav)
 		{

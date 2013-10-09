@@ -3379,9 +3379,11 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			if (!ui)
 				return CDRF_DODEFAULT;
 			const int l_column_id = ctrlUsers.findColumn(cd->iSubItem);
+#ifdef SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
 			bool l_is_last_ip = false;
 			if (l_column_id == COLUMN_IP || l_column_id == COLUMN_GEO_LOCATION)
 				l_is_last_ip = ui->isIPFromSQL();
+#endif
 #ifndef IRAINMAN_TEMPORARY_DISABLE_XXX_ICON
 			if (l_column_id == COLUMN_DESCRIPTION &&
 			        (ui->getIdentity().getUser()->isSet(User::GREY_XXX_5) ||
@@ -3463,7 +3465,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 							}
 							else
 							{
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
 								ctrlUsers.SetItemFilled(cd, rc, !l_is_last_ip ? cd->clrText : col_brit, !l_is_last_ip ? cd->clrText : col_brit); // TODO fix copy-paste
 #else
 								ctrlUsers.SetItemFilled(cd, rc, cd->clrText, cd->clrText);
@@ -3520,7 +3522,9 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 				if (!l_location.isSet()) // [!] IRainman opt: Prevent multiple repeated requests to the database if the location has not been found!
 				{
 					const auto& l_ip = ui->getIp();
+#ifdef SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
 					ui->calcIpFromSQL(l_ip);
+#endif
 					if (!l_ip.empty())
 						ui->setLocation(Util::getIpCountry(l_ip));
 				}

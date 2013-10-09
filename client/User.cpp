@@ -47,6 +47,7 @@ STRING_INFO_DIC_LIST();
 
 #undef DECL_STRING_INFO_DIC
 
+#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 void User::setLastNick(const string& p_nick)
 {
 	if (!m_ratio_ptr)
@@ -244,7 +245,7 @@ tstring User::getUDratio()
 	else
 		return Util::emptyStringT;
 }
-
+#endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
 
 bool Identity::isTcpActive(const Client* client) const // [+] IRainman fix.
 {

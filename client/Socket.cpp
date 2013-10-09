@@ -355,29 +355,26 @@ int Socket::getSocketOptInt(int p_option) const
 	  [~] IRainman fix */
 	return l_val;
 }
-
+#ifdef FLYLINKDC_SUPPORT_WIN_XP
 void Socket::setInBufSize()
 {
-#ifdef FLYLINKDC_SUPPORT_WIN_XP
 	if (!CompatibilityManager::isOsVistaPlus()) // http://blogs.msdn.com/wndp/archive/2006/05/05/Winhec-blog-tcpip-2.aspx
 	{
 		const int l_sockInBuf = SETTING(SOCKET_IN_BUFFER);
 		if (l_sockInBuf > 0)
 			setSocketOpt(SO_RCVBUF, l_sockInBuf);
 	}
-#endif
 }
 void Socket::setOutBufSize()
 {
-#ifdef FLYLINKDC_SUPPORT_WIN_XP
 	if (!CompatibilityManager::isOsVistaPlus()) // http://blogs.msdn.com/wndp/archive/2006/05/05/Winhec-blog-tcpip-2.aspx
 	{
 		const int l_sockOutBuf = SETTING(SOCKET_OUT_BUFFER);
 		if (l_sockOutBuf > 0)
 			setSocketOpt(SO_SNDBUF, l_sockOutBuf);
 	}
-#endif
 }
+#endif // FLYLINKDC_SUPPORT_WIN_XP
 void Socket::setSocketOpt(int option, int val)
 {
 	dcassert(val > 0);

@@ -2082,14 +2082,17 @@ void SearchFrame::addSearchResult(SearchInfo * si)
 {
 	const SearchResultPtr &sr = si->sr;
 	const auto& user      = sr->getUser(); // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'sr->getUser()' expression repeatedly. searchfrm.cpp 1844
-	if (!sr->getIP().empty()
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-	        && m_storeIP
-#endif
-	   )
+	if (!sr->getIP().empty() && m_storeIP)
 	{
 		user->storeIP(sr->getIP());
 	}
+#else
+	if (!sr->getIP().empty())
+	{
+		user->setIP(sr->getIP());
+	}
+#endif
 	// Check previous search results for dupes
 	if (!si->getText(COLUMN_TTH).empty() && useGrouping)
 	{
