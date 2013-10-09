@@ -111,10 +111,11 @@ class UCHandler
 					{
 						tstring name;
 						cur = menu.m_hMenu;
-						for (auto i = uc.getDisplayName().cbegin(), iend = uc.getDisplayName().cend(); i != iend; ++i)
+						const auto l_disp_name = uc.getDisplayName();
+						for (auto i = l_disp_name.cbegin(); i != l_disp_name.cend(); ++i)
 						{
 							Text::toT(*i, name);
-							if (i + 1 == iend)
+							if (i + 1 == l_disp_name.cend())
 							{
 								cur.AppendMenu(MF_STRING, IDC_USER_COMMAND + n, name.c_str());
 								m++;

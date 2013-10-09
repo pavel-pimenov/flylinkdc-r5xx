@@ -58,39 +58,16 @@ class UserCommand : public Flags
 	:
 		Flags(aFlags), cid(aId), type(aType), ctx(aCtx), name(aName), command(aCommand), to(aTo), hub(aHub)
 		{
-			setDisplayName(!isSet(UserCommand::FLAG_NOSAVE));
 		}
-		
-		UserCommand(const UserCommand& rhs) : Flags(rhs), cid(rhs.cid), type(rhs.type),
-			ctx(rhs.ctx), name(rhs.name), command(rhs.command), to(rhs.to), hub(rhs.hub)
-		{
-			setDisplayName(!isSet(UserCommand::FLAG_NOSAVE));
-		}
-		
-		UserCommand& operator=(const UserCommand& rhs)
-		{
-			cid = rhs.cid;
-			type = rhs.type;
-			ctx = rhs.ctx;
-			name = rhs.name;
-			command = rhs.command;
-			to = rhs.to;
-			hub = rhs.hub;
-			*((Flags*)this) = rhs;
-			m_displayName.clear();
-			setDisplayName(!isSet(UserCommand::FLAG_NOSAVE));
-			return *this;
-		}
-		
-		inline bool isRaw() const
+		bool isRaw() const
 		{
 			return type == TYPE_RAW || type == TYPE_RAW_ONCE;
 		}
-		inline bool isChat() const
+		bool isChat() const
 		{
 			return type == TYPE_CHAT || type == TYPE_CHAT_ONCE;
 		}
-		inline bool once() const
+		bool once() const
 		{
 			return type == TYPE_RAW_ONCE || type == TYPE_CHAT_ONCE;
 		}
@@ -100,12 +77,7 @@ class UserCommand : public Flags
 		{
 			return adc(hub);
 		}
-		const StringList& getDisplayName() const
-		{
-			return m_displayName;
-		}
-		
-		void setDisplayName(bool makeBackSplashReplacement);
+		StringList getDisplayName() const;
 		
 		GETSET(int, cid, Id);
 		GETSET(int, type, Type);
@@ -113,10 +85,7 @@ class UserCommand : public Flags
 		GETSET(string, name, Name);
 		GETSET(string, command, Command);
 		GETSET(string, to, To);
-		GETSET(string, hub, Hub);
-		
-	private:
-		StringList m_displayName;
+		GETSET(string, hub, Hub);		
 };
 
 #endif // DCPLUSPLUS_CLIENT_USER_COMMAND_H

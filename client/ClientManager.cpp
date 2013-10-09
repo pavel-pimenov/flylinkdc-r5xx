@@ -871,6 +871,9 @@ void ClientManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) noexcep
 	{
 		UniqueLock l(g_csUsers); // [+] IRainman opt.
 		// Collect some garbage...
+#ifdef _DEBUG
+		CFlyLog l_log("[ClientManager::Minute GC]");
+#endif
 		UserMap::const_iterator i = g_users.begin();
 		while (i != g_users.end())
 		{
