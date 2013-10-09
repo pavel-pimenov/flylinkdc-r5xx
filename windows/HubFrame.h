@@ -487,6 +487,8 @@ public UCHandler<HubFrame>, public UserInfoBaseHandler < HubFrame, UserInfoGuiTr
 		CComboBox* m_ctrlFilterSel;
 		int m_FilterSelPos;
 		tstring m_filter;
+		string m_window_text;
+		bool   m_is_window_text_update;
 		CContainedWindow* m_ctrlFilterContainer;
 		CContainedWindow* m_ctrlFilterSelContainer;
 		

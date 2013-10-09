@@ -189,6 +189,10 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 			// [+] IRainman fix
 			while (true)
 			{
+				if(ClientManager::isShutdown()) 
+				{
+					return;
+				}
 				dcassert(!ClientManager::isShutdown());
 				if (sock->waitConnected(POLL_TIMEOUT))
 				{
