@@ -204,7 +204,7 @@ size_t FavoriteManager::countUserCommand(const string& srv) const
 	size_t l_count = 0;
 	for (auto i = userCommands.cbegin(); i != userCommands.cend(); ++i)
 	{
-		if (i->getHub() == srv)
+		if (i->isSet(UserCommand::FLAG_NOSAVE) && i->getHub() == srv)
 			l_count++;
 	}
 	return l_count;
