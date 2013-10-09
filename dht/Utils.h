@@ -70,9 +70,9 @@ class Utils
 			const uint32_t    cmd;
 		};
 		
-		static FastCriticalSection cs; // [!] IRainman opt: use spin lock here.
-		static std::unordered_map<string, std::unordered_multiset<uint32_t>> receivedPackets;
-		static std::list<const OutPacket> sentPackets;
+		static FastCriticalSection g_cs; // [!] IRainman opt: use spin lock here.
+		static std::unordered_map<string, std::unordered_multiset<uint32_t>> g_receivedPackets;
+		static std::list<const OutPacket> g_sentPackets;
 };
 
 } // namespace dht

@@ -45,6 +45,7 @@
 #include "FavHubProperties.h"
 
 HubFrame::FrameMap HubFrame::g_frames;
+bool HubFrame::g_is_before_close_all;
 
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
 HIconWrapper HubFrame::g_hSwitchPanelsIco(IDR_SWITCH_PANELS_ICON);
@@ -155,9 +156,6 @@ static ResourceManager::Strings g_columnNames[] = { ResourceManager::NICK,      
                                                     ResourceManager::CID,             // COLUMN_CID
 #endif
                                                   };
-
-long lURLBegin = 0;
-long lURLEnd = 0;
 
 // [+] IRainman: copy-past fix.
 void HubFrame::addFrameLogParams(StringMap& params)
@@ -2550,6 +2548,7 @@ void HubFrame::closeAll(size_t thershold)
 {
 	if(thershold == 0)
 	{
+	 g_is_before_close_all = true; // TODO - пока не используетс€.
 	 FavoriteManager::getInstance()->prepareClose(); // ”скорим закрытие всех хабов
 	}
 	dcdrun(const auto l_size_g_frames = g_frames.size());
@@ -2566,6 +2565,10 @@ void HubFrame::closeAll(size_t thershold)
 	}
 	}
 	dcassert(l_size_g_frames == g_frames.size());
+	if(thershold == 0)
+	{
+	 g_is_before_close_all = false;
+	}
 }
 void HubFrame::on(FavoriteManagerListener::UserAdded, const FavoriteUser& /*aUser*/) noexcept
 {

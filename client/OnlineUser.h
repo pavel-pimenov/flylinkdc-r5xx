@@ -19,7 +19,7 @@
 #ifndef DCPLUSPLUS_DCPP_ONLINEUSER_H_
 #define DCPLUSPLUS_DCPP_ONLINEUSER_H_
 
-#include <map>
+#include <boost/unordered/unordered_map.hpp>
 #include "StringPool.h"
 #include "User.h"
 #include "UserInfoBase.h"
@@ -518,7 +518,7 @@ class Identity
 		}
 		GETSET(UserPtr, user, User);
 		
-		typedef unordered_map<short, string> InfMap;
+		typedef boost::unordered_map<short, string> InfMap;
 		
 		InfMap m_stringInfo;
 		

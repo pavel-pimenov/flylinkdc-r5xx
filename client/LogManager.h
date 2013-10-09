@@ -71,10 +71,10 @@ class LogManager : public Singleton<LogManager>, public Speaker<LogManagerListen
 		
 		int logOptions[LAST][2];
 #ifdef _DEBUG
-		unordered_map<string, pair<string, size_t>> m_patchCache;
+		boost::unordered_map<string, pair<string, size_t>> m_patchCache;
 		size_t _debugTotal, _debugMissed;
 #else
-		unordered_map<string, string> m_patchCache;
+		boost::unordered_map<string, string> m_patchCache;
 #endif
 		FastCriticalSection m_csPatchCache; // [!] IRainman opt: use spin lock here.
 		

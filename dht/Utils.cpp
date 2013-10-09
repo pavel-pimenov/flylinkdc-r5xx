@@ -34,9 +34,9 @@
 namespace dht
 {
 
-FastCriticalSection Utils::cs; // [!] IRainman opt: use spin lock here.
-std::unordered_map<string, std::unordered_multiset<uint32_t>> Utils::receivedPackets;
-std::list<const Utils::OutPacket> Utils::sentPackets;
+FastCriticalSection Utils::g_cs; // [!] IRainman opt: use spin lock here.
+std::unordered_map<string, std::unordered_multiset<uint32_t>> Utils::g_receivedPackets;
+std::list<const Utils::OutPacket> Utils::g_sentPackets;
 
 CID Utils::getDistance(const CID& cid1, const CID& cid2)
 {
@@ -125,12 +125,12 @@ bool Utils::checkFlood(const string& ip, const AdcCommand& cmd)
 			requestCmd = AdcCommand::CMD_GET;
 		case AdcCommand::CMD_RES: // default value of requestCmd
 			{
-				FastLock l(cs);
-				for (auto i = sentPackets.cbegin(); i != sentPackets.cend(); ++i)
+				FastLock l(g_cs);
+				for (auto i = g_sentPackets.cbegin(); i != g_sentPackets.cend(); ++i)
 				{
 					if (i->cmd == requestCmd && i->ip == ip)
 					{
-						sentPackets.erase(i);
+						g_sentPackets.erase(i);
 						return true;
 					}
 				}
@@ -139,8 +139,8 @@ bool Utils::checkFlood(const string& ip, const AdcCommand& cmd)
 			return false;
 	}
 	
-	FastLock l(cs);
-	std::unordered_multiset<uint32_t>& packetsPerIp = receivedPackets[ip];
+	FastLock l(g_cs);
+	std::unordered_multiset<uint32_t>& packetsPerIp = g_receivedPackets[ip];
 	packetsPerIp.insert(cmd.getCommand());
 	
 	if (packetsPerIp.count(cmd.getCommand()) > maxAllowedPacketsPerMinute)
@@ -157,8 +157,8 @@ bool Utils::checkFlood(const string& ip, const AdcCommand& cmd)
  */
 void Utils::cleanFlood()
 {
-	FastLock l(cs);
-	receivedPackets.clear();
+	FastLock l(g_cs);
+	g_receivedPackets.clear();
 }
 
 /*
@@ -168,7 +168,7 @@ void Utils::trackOutgoingPacket(const string& ip, const AdcCommand& cmd)
 {
 	const uint64_t now = GET_TICK();
 
-	FastLock l(cs);
+	FastLock l(g_cs);
 
 	switch (cmd.getCommand())
 	{
@@ -179,17 +179,17 @@ void Utils::trackOutgoingPacket(const string& ip, const AdcCommand& cmd)
 		case AdcCommand::CMD_CTM:
 		case AdcCommand::CMD_GET:
 		case AdcCommand::CMD_PSR:
-			sentPackets.push_back(OutPacket(ip, now, cmd.getCommand()));
+			g_sentPackets.push_back(OutPacket(ip, now, cmd.getCommand()));
 			break;
 	}
 	
 	// clean up old items
 	// list is sorted by time, so the first unmatched item can break the loop
-	while (!sentPackets.empty())
+	while (!g_sentPackets.empty())
 	{
-		const uint64_t diff = now - sentPackets.front().time;
+		const uint64_t diff = now - g_sentPackets.front().time;
 		if (diff >= TIME_FOR_RESPONSE)
-			sentPackets.pop_front();
+			g_sentPackets.pop_front();
 		else
 			break;
 	}
@@ -208,7 +208,7 @@ CID Utils::getUdpKey(const string& targetIp)
 	return CID(th.finalize());
 }
 
-bool IsInvalid(char ch)
+static inline bool IsInvalid(char ch)
 {
 	return ch == '\r' || ch == '\n' || ch == '\t';
 }

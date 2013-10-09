@@ -47,7 +47,7 @@ namespace dht
 
 UDPSocket::UDPSocket(void) : m_stop(false), port(0), delay(100)
 #ifdef _DEBUG
-	, sentBytes(0), receivedBytes(0), sentPackets(0), receivedPackets(0)
+	, m_sentBytes(0), m_receivedBytes(0), m_sentPackets(0), m_receivedPackets(0)
 #endif
 {
 }
@@ -59,7 +59,7 @@ UDPSocket::~UDPSocket(void)
 	for_each(sendQueue.begin(), sendQueue.end(), DeleteFunction());
 	
 #ifdef _DEBUG
-	dcdebug("DHT stats, received: %d bytes, sent: %d bytes\n", receivedBytes, sentBytes);
+	dcdebug("DHT stats, received: %d bytes, sent: %d bytes\n", m_receivedBytes, m_sentBytes);
 #endif
 }
 
@@ -116,8 +116,8 @@ void UDPSocket::checkIncoming() throw(SocketException)
 		int len = socket->read(&buf[0], BUFSIZE, remoteAddr);
 		// 2012-05-03_22-00-59_BXMHFQ4XUPHO3PGC3R7LOLCOCEBV57NUA63QOVA_AE6E2832_crash-stack-r502-beta24-build-9900.dmp
 		// 2012-05-03_22-00-59_7E4TZRQNDSN3PPIVOY7FFMF3LDVYFBH27L7F6NI_9F52EA4D_crash-stack-r502-beta24-build-9900.dmp
-		dcdrun(receivedBytes += len);
-		dcdrun(receivedPackets++);
+		dcdrun(m_receivedBytes += len);
+		dcdrun(m_receivedPackets++);
 		
 		if (len > 1)
 		{
@@ -193,8 +193,8 @@ void UDPSocket::checkOutgoing(uint64_t& timer) throw(SocketException)
 			
 			// encrypt packet
 			encryptPacket(packet->targetCID, packet->udpKey, data.get(), length);
-			dcdrun(sentBytes += packet->data.length());
-			dcdrun(sentPackets++);
+			dcdrun(m_sentBytes += packet->data.length());
+			dcdrun(m_sentPackets++);
 			socket->writeTo(packet->ip, packet->port, data.get(), length);
 		}
 		catch (const SocketException& e)

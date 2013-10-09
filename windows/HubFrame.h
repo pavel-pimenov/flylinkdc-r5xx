@@ -285,6 +285,7 @@ public UCHandler<HubFrame>, public UserInfoBaseHandler < HubFrame, UserInfoGuiTr
 		virtual void doDestroyFrame();
 		typedef unordered_map<tstring, HubFrame*> FrameMap;
 		static FrameMap g_frames;
+		static bool g_is_before_close_all;
 		
 		tstring m_shortHubName;
 		uint8_t m_second_count;

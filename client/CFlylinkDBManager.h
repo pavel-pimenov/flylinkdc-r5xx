@@ -5,6 +5,7 @@
 #define CFlylinkDBManager_H
 
 #include <vector>
+#include <boost/unordered/unordered_map.hpp>
 #include "QueueItem.h"
 #include "Singleton.h"
 #include "Thread.h"
@@ -105,7 +106,7 @@ struct CFlyFileInfo
 	bool     m_recalc_ftype;
 	char     m_ftype;
 };
-typedef unordered_map<string, CFlyFileInfo> CFlyDirMap;
+typedef boost::unordered_map<string, CFlyFileInfo> CFlyDirMap;
 struct CFlyPathItem
 {
 	__int64 m_path_id;
@@ -141,8 +142,8 @@ struct CFlyRegistryValue
 		return Text::toT(m_val_str);
 	}
 };
-typedef unordered_map<string, CFlyRegistryValue> CFlyRegistryMap;
-typedef unordered_map<string, CFlyPathItem> CFlyPathCache;
+typedef boost::unordered_map<string, CFlyRegistryValue> CFlyRegistryMap;
+typedef boost::unordered_map<string, CFlyPathItem> CFlyPathCache;
 class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 {
 	public:
@@ -389,7 +390,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 			else
 				return Util::emptyString;
 		}
-		typedef unordered_map<string, __int64> CFlyCacheDIC;
+		typedef boost::unordered_map<string, __int64> CFlyCacheDIC;
 		vector<CFlyCacheDIC> m_DIC;
 		
 		__int64 findDIC_ID(const string& p_name, const eTypeDIC p_DIC, bool p_cache_result);

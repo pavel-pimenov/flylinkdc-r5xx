@@ -99,11 +99,11 @@ class UDPSocket :
 		
 #ifdef _DEBUG
 		// debug constants to optimize bandwidth
-		size_t sentBytes;
-		size_t receivedBytes;
+		size_t m_sentBytes;
+		size_t m_receivedBytes;
 		
-		size_t sentPackets;
-		size_t receivedPackets;
+		size_t m_sentPackets;
+		size_t m_receivedPackets;
 #endif
 		
 		/** Thread for receiving UDP packets */
