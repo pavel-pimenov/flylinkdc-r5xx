@@ -2548,7 +2548,10 @@ void HubFrame::reconnectDisconnected()
 
 void HubFrame::closeAll(size_t thershold)
 {
-	FavoriteManager::getInstance()->prepareClose(); // Ускорим закрытие всех хабов
+	if(thershold == 0)
+	{
+	 FavoriteManager::getInstance()->prepareClose(); // Ускорим закрытие всех хабов
+	}
 	dcdrun(const auto l_size_g_frames = g_frames.size());
 	for (auto i = g_frames.cbegin(); i != g_frames.cend(); ++i)
 	{
@@ -2559,8 +2562,8 @@ void HubFrame::closeAll(size_t thershold)
 #endif
 		            i->second->client->getUserCount() <= thershold))
 		{
-			i->second->PostMessage(WM_CLOSE);
-		}
+		i->second->PostMessage(WM_CLOSE);
+	}
 	}
 	dcassert(l_size_g_frames == g_frames.size());
 }
