@@ -9,10 +9,10 @@
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 FastCriticalSection CFlyUserRatioInfo::g_cs;
 
-CFlyUserRatioInfo::CFlyUserRatioInfo(User* p_user): 
-     m_user(p_user), 
-	 m_is_sql_record_exists(false), 
-	 m_is_ditry(false)
+CFlyUserRatioInfo::CFlyUserRatioInfo(User* p_user):
+	m_user(p_user),
+	m_is_sql_record_exists(false),
+	m_is_ditry(false)
 {
 }
 
@@ -29,7 +29,7 @@ void CFlyUserRatioInfo::addUpload(const string& p_ip, uint64_t p_size)
 {
 	m_upload += p_size;
 	FastLock l(g_cs);
-	auto& l_u_d_map = m_upload_download_map[p_ip]; 
+	auto& l_u_d_map = m_upload_download_map[p_ip];
 	l_u_d_map.m_upload += p_size;
 	setDitry(true);
 }
@@ -37,7 +37,7 @@ void CFlyUserRatioInfo::addDownload(const string& p_ip, uint64_t p_size)
 {
 	m_download += p_size;
 	FastLock l(g_cs);
-	auto& l_u_d_map = m_upload_download_map[p_ip]; 
+	auto& l_u_d_map = m_upload_download_map[p_ip];
 	l_u_d_map.m_download += p_size;
 	setDitry(true);
 }
@@ -55,38 +55,38 @@ void CFlyUserRatioInfo::flushRatio()
 		dcassert(!m_last_ip_sql.empty());
 		FastLock l(g_cs); // Для защиты m_upload_download_map
 		CFlylinkDBManager::getInstance()->store_all_ratio_and_last_ip(m_user->getHubID(), m_user->m_nick, m_upload_download_map, m_last_ip_sql); // m_user->m_last_ip ??
-			setDitry(false);
-		}
+		setDitry(false);
 	}
+}
 bool CFlyUserRatioInfo::try_load_ratio(bool p_is_create, const string& p_last_ip)
 {
-	if(m_is_sql_record_exists)
+	if (m_is_sql_record_exists)
 		return true;
 	dcassert(!p_last_ip.empty());
 	if (m_user->getHubID() && !m_user->m_nick.empty()) // Не грузили данные по рейтингу?
 	{
-		   if(!p_last_ip.empty())
-	{
-				m_last_ip_sql = p_last_ip;
-		    }
-		    auto l_dbm = CFlylinkDBManager::getInstance();
-			const CFlyRatioItem& l_item = l_dbm->load_ratio(
-			                                  m_user->getHubID(),
-			                                  m_user->m_nick,
-			                                  *this,
-											  p_last_ip);
-			m_upload   = l_item.m_upload;
-			m_download = l_item.m_download;
-			m_is_sql_record_exists = !p_last_ip.empty() || m_download || m_upload;
-	}
-		else
+		if (!p_last_ip.empty())
 		{
-			dcassert(m_upload == 0 && m_download == 0);
-#ifdef _DEBUG
-			m_upload = 0;
-			m_download = 0;
-#endif
+			m_last_ip_sql = p_last_ip;
 		}
+		auto l_dbm = CFlylinkDBManager::getInstance();
+		const CFlyRatioItem& l_item = l_dbm->load_ratio(
+		                                  m_user->getHubID(),
+		                                  m_user->m_nick,
+		                                  *this,
+		                                  p_last_ip);
+		m_upload   = l_item.m_upload;
+		m_download = l_item.m_download;
+		m_is_sql_record_exists = !p_last_ip.empty() || m_download || m_upload;
+	}
+	else
+	{
+		dcassert(m_upload == 0 && m_download == 0);
+#ifdef _DEBUG
+		m_upload = 0;
+		m_download = 0;
+#endif
+	}
 	return m_is_sql_record_exists || p_is_create;
 }
 #endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO

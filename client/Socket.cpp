@@ -359,22 +359,22 @@ int Socket::getSocketOptInt(int p_option) const
 void Socket::setInBufSize()
 {
 #ifdef FLYLINKDC_SUPPORT_WIN_XP
-	if(!CompatibilityManager::isOsVistaPlus()) // http://blogs.msdn.com/wndp/archive/2006/05/05/Winhec-blog-tcpip-2.aspx
+	if (!CompatibilityManager::isOsVistaPlus()) // http://blogs.msdn.com/wndp/archive/2006/05/05/Winhec-blog-tcpip-2.aspx
 	{
-	const int l_sockInBuf = SETTING(SOCKET_IN_BUFFER);
-	if (l_sockInBuf > 0)
-		setSocketOpt(SO_RCVBUF, l_sockInBuf);
+		const int l_sockInBuf = SETTING(SOCKET_IN_BUFFER);
+		if (l_sockInBuf > 0)
+			setSocketOpt(SO_RCVBUF, l_sockInBuf);
 	}
 #endif
 }
 void Socket::setOutBufSize()
 {
 #ifdef FLYLINKDC_SUPPORT_WIN_XP
-	if(!CompatibilityManager::isOsVistaPlus()) // http://blogs.msdn.com/wndp/archive/2006/05/05/Winhec-blog-tcpip-2.aspx
+	if (!CompatibilityManager::isOsVistaPlus()) // http://blogs.msdn.com/wndp/archive/2006/05/05/Winhec-blog-tcpip-2.aspx
 	{
-	const int l_sockOutBuf = SETTING(SOCKET_OUT_BUFFER);
-	if (l_sockOutBuf > 0)
-		setSocketOpt(SO_SNDBUF, l_sockOutBuf);
+		const int l_sockOutBuf = SETTING(SOCKET_OUT_BUFFER);
+		if (l_sockOutBuf > 0)
+			setSocketOpt(SO_SNDBUF, l_sockOutBuf);
 	}
 #endif
 }
@@ -455,12 +455,12 @@ int Socket::read(void* aBuffer, int aBufLen, sockaddr_in &remote)
 			
 		len = ::recvfrom(sock, (char*)aBuffer, aBufLen, 0, (sockaddr*) & remote_addr, &addr_length); // 2012-05-03_22-00-59_BXMHFQ4XUPHO3PGC3R7LOLCOCEBV57NUA63QOVA_AE6E2832_crash-stack-r502-beta24-build-9900.dmp
 #ifdef RIP_USE_LOG_PROTOCOL
-			if (len > 0 && BOOLSETTING(LOG_PROTOCOL))
-			{
-				StringMap params;
-				params["message"] = Util::toString(len) + " UDP recvfrom byte <- " + std::string((char*)aBuffer, len);
-				LogManager::getInstance()->log(LogManager::PROTOCOL, params, true);
-			}
+		if (len > 0 && BOOLSETTING(LOG_PROTOCOL))
+		{
+			StringMap params;
+			params["message"] = Util::toString(len) + " UDP recvfrom byte <- " + std::string((char*)aBuffer, len);
+			LogManager::getInstance()->log(LogManager::PROTOCOL, params, true);
+		}
 #endif
 	}
 	while (len < 0 && getLastError() == EINTR);

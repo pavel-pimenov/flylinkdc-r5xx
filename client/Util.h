@@ -534,7 +534,7 @@ class Util
 			const int l_Items = sscanf_s(p_ip.c_str(), "%u.%u.%u.%u", &a[0], &a[1], &a[2], &a[3]);
 			return  l_Items == 4 && a[0] < 256 && a[1] < 256 && a[2] < 256 && a[3] < 256;
 		}
-
+		
 		static bool isHttpsLink(const tstring& p_url)
 		{
 			return strnicmp(p_url.c_str(), _T("https://"), 8) == 0;

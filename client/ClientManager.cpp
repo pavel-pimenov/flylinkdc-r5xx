@@ -670,7 +670,7 @@ void ClientManager::infoUpdated(Client* p_client)
 	dcassert(p_client);
 	if (p_client && p_client->isConnected())
 	{
-	 p_client->info(false);
+		p_client->info(false);
 	}
 }
 void ClientManager::infoUpdated()
@@ -889,7 +889,7 @@ void ClientManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) noexcep
 			}
 		}
 	}
-	//[-]PPA infoUpdated(); 
+	//[-]PPA infoUpdated();
 }
 // [!] IRainman fix.
 void ClientManager::createMe(const string& cid, const string& nick)
@@ -1130,7 +1130,9 @@ void ClientManager::on(HubUserCommand, const Client* client, int aType, int ctx,
 		{
 			int cmd = FavoriteManager::getInstance()->findUserCommand(name, client->getHubUrl());
 			if (cmd != -1)
+			{
 				FavoriteManager::getInstance()->removeUserCommand(cmd);
+			}
 		}
 		else if (aType == UserCommand::TYPE_CLEAR)
 		{

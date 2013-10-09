@@ -94,25 +94,25 @@ void BufferedSocket::setSocket(std::unique_ptr<Socket>& s) // [!] IRainman fix: 
 	sock = move(s);
 }
 void BufferedSocket::resizeInBuf()
+{
+	bool l_is_bad_alloc;
+	int l_size = sock->getSocketOptInt(SO_RCVBUF);
+	do
+	{
+		try
 		{
-			bool l_is_bad_alloc;
-			int l_size = sock->getSocketOptInt(SO_RCVBUF);
-			do
-			{
-			try
-			 {				
-				dcassert(l_size);
-				l_is_bad_alloc = false;
-				inbuf.resize(l_size);
-			 }
-			 catch(std::bad_alloc& )
-			 {
-				l_size /= 2; // Заказываем в 2 раза меньше
-				l_is_bad_alloc = l_size != 0;
-			 }
-			}
-			while(l_is_bad_alloc == true);
+			dcassert(l_size);
+			l_is_bad_alloc = false;
+			inbuf.resize(l_size);
 		}
+		catch (std::bad_alloc&)
+		{
+			l_size /= 2; // Заказываем в 2 раза меньше
+			l_is_bad_alloc = l_size != 0;
+		}
+	}
+	while (l_is_bad_alloc == true);
+}
 
 void BufferedSocket::setOptions()
 {
@@ -189,11 +189,11 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 			// [+] IRainman fix
 			while (true)
 			{
-				if(ClientManager::isShutdown()) 
+				if (ClientManager::isShutdown())
 				{
+					dcassert(0);
 					return;
 				}
-				dcassert(!ClientManager::isShutdown());
 				if (sock->waitConnected(POLL_TIMEOUT))
 				{
 					resizeInBuf();
@@ -215,7 +215,7 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 			
 			if (connSucceeded)
 			{
-				resizeInBuf();		
+			    resizeInBuf();
 			    fire(BufferedSocketListener::Connected());
 			    return;
 			}
@@ -322,7 +322,7 @@ void BufferedSocket::threadRead()
 				break;
 			}
 			case MODE_LINE:
-				{
+			{
 				// Special to autodetect nmdc connections...
 				if (separator == 0)
 				{
@@ -353,10 +353,10 @@ void BufferedSocket::threadRead()
 						fire(BufferedSocketListener::Line(), l.substr(0, pos)); // // TODO - отказаться от временной переменной l и скользить по окну inbuf
 						
 					l.erase(0, pos + 1 /* separator char */); //[3] https://www.box.net/shared/74efa5b96079301f7194
-					// TODO - erase не эффективно.					
-					if (l.length() < (size_t)left) 
+					// TODO - erase не эффективно.
+					if (l.length() < (size_t)left)
 					{
-							left = l.length();
+						left = l.length();
 					}
 					//dcassert(mode == MODE_LINE);
 					if (mode != MODE_LINE)
@@ -371,7 +371,7 @@ void BufferedSocket::threadRead()
 					left = 0;
 				line = l;
 				break;
-				}
+			}
 			case MODE_DATA:
 				while (left > 0)
 				{

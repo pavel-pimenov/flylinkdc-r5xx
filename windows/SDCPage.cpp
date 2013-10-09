@@ -93,8 +93,8 @@ LRESULT SDCPage::onFixControls(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
 }
 void SDCPage::fixControls() // [+]NightOrion
 {
- ::EnableWindow(GetDlgItem(IDC_SOCKET_IN_BUFFER), !CompatibilityManager::isOsVistaPlus());
- ::EnableWindow(GetDlgItem(IDC_SOCKET_OUT_BUFFER), !CompatibilityManager::isOsVistaPlus());
+	::EnableWindow(GetDlgItem(IDC_SOCKET_IN_BUFFER), !CompatibilityManager::isOsVistaPlus());
+	::EnableWindow(GetDlgItem(IDC_SOCKET_OUT_BUFFER), !CompatibilityManager::isOsVistaPlus());
 }
 
 void SDCPage::write()

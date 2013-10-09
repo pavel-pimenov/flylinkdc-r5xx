@@ -48,7 +48,7 @@ class FavHubGroupsDlg : public CDialogImpl<FavHubGroupsDlg>
 		{
 			ctrlGroups.Detach();
 		}
-
+		
 	private:
 		void addItem(const tstring& name, bool priv, bool select = false);
 		bool getItem(tstring& name, bool& priv, bool checkSel);

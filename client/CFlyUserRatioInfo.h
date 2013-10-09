@@ -23,7 +23,7 @@ typedef unordered_map<string, CFlyUploadDownloadPair<uint64_t> > CFlyUploadDownl
 struct CFlyRatioItem : public CFlyUploadDownloadPair<uint64_t>
 {
 	string m_last_ip_sql;
-	CFlyRatioItem() 
+	CFlyRatioItem()
 	{
 	}
 	~CFlyRatioItem()

@@ -75,7 +75,7 @@ Client::~Client()
 	dcassert(!sock);
 	if (sock)
 		LogManager::getInstance()->message("[Error] Client::~Client() sock == nullptr");
-	dcassert (FavoriteManager::getInstance()->countUserCommand(getHubUrl()) == 0);
+	dcassert(FavoriteManager::getInstance()->countUserCommand(getHubUrl()) == 0);
 	// In case we were deleted before we Failed
 	// [-] TimerManager::getInstance()->removeListener(this); [-] IRainman fix: please see shutdown().
 	updateCounts(true);

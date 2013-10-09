@@ -186,11 +186,11 @@ void FavoriteManager::removeUserCommand(int cid)
 void FavoriteManager::shutdown()
 {
 #ifdef IRAINMAN_ENABLE_HUB_LIST
-			if (c)
-			{
-				c->removeListener(this); // https://code.google.com/p/flylinkdc/issues/detail?id=1103
-				safe_delete(c);
-			}
+	if (c)
+	{
+		c->removeListener(this); // https://code.google.com/p/flylinkdc/issues/detail?id=1103
+		safe_delete(c);
+	}
 #endif
 }
 void FavoriteManager::prepareClose()
@@ -202,7 +202,7 @@ void FavoriteManager::prepareClose()
 size_t FavoriteManager::countUserCommand(const string& srv) const
 {
 	size_t l_count = 0;
-	for (auto i = userCommands.cbegin(); i != userCommands.cend();++i)
+	for (auto i = userCommands.cbegin(); i != userCommands.cend(); ++i)
 	{
 		if (i->getHub() == srv)
 			l_count++;
@@ -215,15 +215,15 @@ void FavoriteManager::removeUserCommand(const string& srv)
 #ifdef _DEBUG
 	static int g_count;
 	static string g_last_url;
-	if(g_last_url != srv)
+	if (g_last_url != srv)
 	{
-			g_last_url = srv;
+		g_last_url = srv;
 	}
 	else
 	{
-	LogManager::getInstance()->message("FavoriteManager::removeUserCommand DUP srv = " + srv + 
-		                               " userCommands.size() = " + Util::toString(userCommands.size()) +
-									   " g_count = " + Util::toString(++g_count));
+		LogManager::getInstance()->message("FavoriteManager::removeUserCommand DUP srv = " + srv +
+		                                   " userCommands.size() = " + Util::toString(userCommands.size()) +
+		                                   " g_count = " + Util::toString(++g_count));
 	}
 #endif
 	for (auto i = userCommands.cbegin(); i != userCommands.cend();)
@@ -1018,8 +1018,8 @@ void FavoriteManager::load()
 			e->setDescription(STRING(SUPPORTS_SERVER_DESC));
 			e->setServer(getSupportHubURL());
 			{
-			FastUniqueLock l(csHubs);
-			favoriteHubs.push_back(e);
+				FastUniqueLock l(csHubs);
+				favoriteHubs.push_back(e);
 			}
 			// [-] IRainman fix m_dontSave = false;
 		}
@@ -1385,15 +1385,15 @@ FavoriteHubEntry* FavoriteManager::getFavoriteHubEntry(const string& aServer) co
 #ifdef _DEBUG
 	static int g_count;
 	static string g_last_url;
-	if(g_last_url != aServer)
+	if (g_last_url != aServer)
 	{
-			g_last_url = aServer;
+		g_last_url = aServer;
 	}
 	else
 	{
-	LogManager::getInstance()->message("FavoriteManager::getFavoriteHubEntry DUP call! srv = " + aServer + 
-		                               " favoriteHubs.size() = " + Util::toString(favoriteHubs.size()) +
-									   " g_count = " + Util::toString(++g_count));
+		LogManager::getInstance()->message("FavoriteManager::getFavoriteHubEntry DUP call! srv = " + aServer +
+		                                   " favoriteHubs.size() = " + Util::toString(favoriteHubs.size()) +
+		                                   " g_count = " + Util::toString(++g_count));
 	}
 #endif
 	for (auto i = favoriteHubs.cbegin(); i != favoriteHubs.cend(); ++i)

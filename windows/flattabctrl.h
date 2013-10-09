@@ -1031,9 +1031,9 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 						if (pShortName)
 						{
 							m_len = min(static_cast<size_t>(MAX_LENGTH - 1), pShortName->size());
-							if(m_len)
+							if (m_len)
 							{
-							_tcsnccpy(textNew.data(), pShortName->c_str(), m_len);
+								_tcsnccpy(textNew.data(), pShortName->c_str(), m_len);
 							}
 							textNew[m_len] = '\0';
 						}
@@ -1073,9 +1073,9 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 						if (pShortName)
 						{
 							m_len = min(static_cast<size_t>(MAX_LENGTH - 1), pShortName->size());
-							if(m_len)
+							if (m_len)
 							{
-							_tcsnccpy(textNew.data(), pShortName->c_str(), m_len);
+								_tcsnccpy(textNew.data(), pShortName->c_str(), m_len);
 							}
 							textNew[m_len] = '\0';
 							_tcscpy(name.data(), textNew.data()); // diff[1]
@@ -1360,8 +1360,8 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			//Отрисовка контура поверх заливки
 			//Создание "ручек" для контура
 			Gdiplus::Pen pen(Gdiplus::Color(aActive ? 255 : 0 , 0, 0), 1);
-			pen.SetDashStyle(aActive? Gdiplus::DashStyleDot : Gdiplus::DashStyleSolid);
-				graphics->DrawPath(&pen, &tabsPatch);
+			pen.SetDashStyle(aActive ? Gdiplus::DashStyleDot : Gdiplus::DashStyleSolid);
+			graphics->DrawPath(&pen, &tabsPatch);
 #else
 			if (tab->row != (rows - 1))
 			{

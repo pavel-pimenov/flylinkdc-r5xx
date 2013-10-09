@@ -2156,10 +2156,10 @@ string Util::getExternalIP(const string& p_url, LONG p_timeOut /* = 500 */)
 				{
 					const string l_IP = xml.getChildData().substr(20);
 					l_log.step("Download : " + p_url + " IP = " + l_IP);
-					if(isValidIP(l_IP))
+					if (isValidIP(l_IP))
 					{
-					return l_IP;
-				}
+						return l_IP;
+					}
 					else
 					{
 						dcassert(0);

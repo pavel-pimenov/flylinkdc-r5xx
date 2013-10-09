@@ -267,34 +267,34 @@ class User : public intrusive_ptr_base<User>, public Flags
 		
 		uint64_t getBytesUploadRAW() const
 		{
-			if(m_ratio_ptr)
-			  return m_ratio_ptr->m_upload;
+			if (m_ratio_ptr)
+				return m_ratio_ptr->m_upload;
 			else
-			 return 0;
+				return 0;
 		}
 		uint64_t getBytesDownloadRAW() const
 		{
-			if(m_ratio_ptr)
-			 return m_ratio_ptr->m_download;
+			if (m_ratio_ptr)
+				return m_ratio_ptr->m_download;
 			else
-			 return 0;
+				return 0;
 		}
 		bool isLastIP() // [+] IRainman fix.
 		{
-			if(m_ratio_ptr)
+			if (m_ratio_ptr)
 			{
-					return !m_ratio_ptr->m_last_ip_sql.empty() && m_last_ip.empty();
+				return !m_ratio_ptr->m_last_ip_sql.empty() && m_last_ip.empty();
 			}
 			else
 			{
-					return false;
+				return false;
 			}
 		}
 		const string& getIP();
 		uint64_t getBytesUpload();
 		uint64_t getBytesDownload();
 		void initRatio(bool p_is_create);
-
+		
 #endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	private:
 		const CID m_cid; // [!] IRainman fix: this is const value!

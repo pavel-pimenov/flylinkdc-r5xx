@@ -59,7 +59,7 @@ PropPage::ListItem LogPage::listItems[] =
 	{ SettingsManager::LOG_STATUS_MESSAGES,     ResourceManager::SETTINGS_LOG_STATUS_MESSAGES },
 	{ SettingsManager::LOG_WEBSERVER,           ResourceManager::SETTINGS_LOG_WEBSERVER },
 #ifdef RIP_USE_LOG_PROTOCOL
-	{ SettingsManager::LOG_PROTOCOL,            ResourceManager::SETTINGS_LOG_PROTOCOL }, 
+	{ SettingsManager::LOG_PROTOCOL,            ResourceManager::SETTINGS_LOG_PROTOCOL },
 #endif
 	{ SettingsManager::LOG_CUSTOM_LOCATION,     ResourceManager::SETTINGS_LOG_CUSTOM_LOCATION }, // [+]IRainman
 	{ SettingsManager::LOG_FORMAT_TRACE_SQLITE, ResourceManager::SETTINGS_LOG_FORMAT_TRACE_SQLITE },

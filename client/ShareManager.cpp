@@ -202,7 +202,7 @@ return tmp;
 string ShareManager::toRealPath(const TTHValue& tth) const
 {
 	SharedLock l(cs);
-	HashFileMap::const_iterator i = tthIndex.find(tth);
+	const auto& i = tthIndex.find(tth);
 	if (i != tthIndex.end())
 	{
 		try
@@ -227,7 +227,7 @@ string ShareManager::toVirtual(const TTHValue& tth) const
 	}
 	{
 		SharedLock l(cs);
-		HashFileMap::const_iterator i = tthIndex.find(tth);
+		const auto& i = tthIndex.find(tth);
 		if (i != tthIndex.end())
 		{
 			return i->second->getADCPath();
@@ -387,7 +387,7 @@ ShareManager::Directory::File::Set::const_iterator ShareManager::findFile(const 
 {
 	if (virtualFile.compare(0, 4, "TTH/") == 0)
 	{
-		HashFileMap::const_iterator i = tthIndex.find(TTHValue(virtualFile.substr(4)));
+		const auto& i = tthIndex.find(TTHValue(virtualFile.substr(4)));
 		if (i == tthIndex.end())
 		{
 			throw ShareException(UserConnection::FILE_NOT_AVAILABLE, virtualFile);
@@ -1983,7 +1983,7 @@ void ShareManager::search(SearchResultList& results, const string& aString, Sear
 			SearchResultPtr sr;
 			{
 				SharedLock l(cs); // [+] IRainman opt.
-				const HashFileMap::const_iterator i = tthIndex.find(tth);
+				const auto& i = tthIndex.find(tth);
 				if (i == tthIndex.end() || !i->second->getParent()) // [!] IRainman opt.
 					return;
 				const auto &l_fileMap = i->second; // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'i->second' expression repeatedly. sharemanager.cpp 2012
@@ -2207,7 +2207,7 @@ void ShareManager::search(SearchResultList& results, const StringList& params, S
 		SearchResultPtr sr;
 		{
 			SharedLock l(cs); // [+] IRainman opt.
-			const HashFileMap::const_iterator i = tthIndex.find(srch.root);
+			const auto& i = tthIndex.find(srch.root);
 			if (i == tthIndex.end())
 				return;
 			const auto &l_fileMap = i->second; // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'i->second' expression repeatedly. sharemanager.cpp 2240

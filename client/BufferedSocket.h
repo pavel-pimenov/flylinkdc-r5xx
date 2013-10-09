@@ -256,7 +256,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		volatile ThreadID m_threadId; // [+] IRainman fix.
 		ByteVector inbuf;
 		void resizeInBuf();
-
+		
 		ByteVector writeBuf;
 		ByteVector sendBuf;
 		

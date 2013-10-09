@@ -57,30 +57,17 @@ class ResourceManager /*: public Singleton<ResourceManager> [-] IRainman opt. */
 		static void loadLanguage(const string& aFile); // [!] IRainman fix: is its static function.
 		static const string& getString(Strings x) // [!] IRainman fix: is its static function.
 		{
-			/*dcassert(x >= 0 && x < LAST);*/
 			return strings[x];
 		}
 		static const wstring& getStringW(Strings x) // [!] IRainman fix: is its static function.
 		{
 			dcassert(g_debugStarted); // [+] IRainman fix.
-			/*dcassert(x >= 0 && x < LAST);*/
 			return wstrings[x];
 		}
-		/* [-] IRainman fix.
-		bool isRTL()
-		{
-		    return rtl;
-		}
-		*/
 	private:
-		// [-] friend class Singleton<ResourceManager>; [-] IRainman opt.
-		
-		typedef unordered_map<string, Strings> NameMap;
-//		typedef NameMap::const_iterator NameIter;
-
-		ResourceManager() /*: rtl(false) [-] IRainman fix */
+	
+		ResourceManager()
 		{
-			// [-] createWide(); [-] IRainman fix.
 		}
 		
 		~ResourceManager() { }
@@ -88,9 +75,6 @@ class ResourceManager /*: public Singleton<ResourceManager> [-] IRainman opt. */
 		static string strings[LAST];
 		static wstring wstrings[LAST];
 		static string names[LAST];
-		
-		// [-] bool rtl; [-] IRainman fix.
-		
 		static void createWide();
 		dcdrun(static bool g_debugStarted;) // [+] IRainman fix.
 };

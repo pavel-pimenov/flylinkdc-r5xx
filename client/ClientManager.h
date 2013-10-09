@@ -361,7 +361,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		           ) const;
 		bool isActive(const FavoriteHubEntry* p_hub
 #ifdef RIP_USE_CONNECTION_AUTODETECT
-		                                      , bool *pbWantAutodetect = NULL
+		              , bool *pbWantAutodetect = NULL
 #endif
 		             ) const
 		{

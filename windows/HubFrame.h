@@ -291,9 +291,9 @@ public UCHandler<HubFrame>, public UserInfoBaseHandler < HubFrame, UserInfoGuiTr
 		void setShortHubName(const tstring& p_name)
 		{
 			m_shortHubName = p_name;
-			if(!p_name.empty())
+			if (!p_name.empty())
 			{
-				  SetWindowLongPtr(GWLP_USERDATA, (LONG_PTR)&m_shortHubName);
+				SetWindowLongPtr(GWLP_USERDATA, (LONG_PTR)&m_shortHubName);
 			}
 			else
 			{

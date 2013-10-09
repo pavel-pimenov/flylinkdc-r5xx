@@ -48,171 +48,171 @@ STRING_INFO_DIC_LIST();
 #undef DECL_STRING_INFO_DIC
 
 void User::setLastNick(const string& p_nick)
-		{
-			if(!m_ratio_ptr)
 {
+	if (!m_ratio_ptr)
+	{
+		m_nick = p_nick;
+	}
+	else
+	{
+		if (m_nick != p_nick)
+		{
+			const bool l_is_change_nick = !m_nick.empty() && !p_nick.empty();
+			if (l_is_change_nick)
+			{
+				if (m_ratio_ptr)
+				{
+					safe_delete(m_ratio_ptr);
+					m_nick = p_nick;
+					initRatio(true);
+				}
+			}
+			else
+			{
 				m_nick = p_nick;
 			}
-	else
-			{
-			if (m_nick != p_nick)
-			{
-				const bool l_is_change_nick = !m_nick.empty() && !p_nick.empty();
-				if (l_is_change_nick)
-				{
-					if(m_ratio_ptr)
-					{
-				     safe_delete(m_ratio_ptr);
-					 m_nick = p_nick;
-					 initRatio(true);
-					}
-}
-				else
-{
-					m_nick = p_nick;
-				}
-				if(m_ratio_ptr)
-				   m_ratio_ptr->setDitry(true);
-			}
-	else
-			{
-				// TODO dcassert(p_nick != m_nick); // Ловим холостое обновление
-			}
-			}
-}
-		void User::storeIP(const string& p_ip)
+			if (m_ratio_ptr)
+				m_ratio_ptr->setDitry(true);
+		}
+		else
 		{
-			if(m_ratio_ptr)
-			{
-				setIP(p_ip);
-			}
-			else
-			{
-				m_is_first_init_ratio = false;
-				initRatio(true);
-				if(m_ratio_ptr)
-				{
-					m_ratio_ptr->m_last_ip_sql = p_ip;
-					m_ratio_ptr->setDitry(true);					
-				}
-			}
+			// TODO dcassert(p_nick != m_nick); // Ловим холостое обновление
 		}
-		void User::setIP(const string& p_last_ip)
-		{
-			if(m_ratio_ptr)
-			{
-			dcassert(!p_last_ip.empty());
-			if (m_last_ip != p_last_ip)
-			{
-#ifdef _DEBUG
-				if (!m_last_ip.empty() && p_last_ip.empty())
-{
-					dcassert(0);
-}
-#endif
-				const bool l_is_change_ip = !m_last_ip.empty() && !p_last_ip.empty();
-				if (l_is_change_ip)
-				{
-					if(m_ratio_ptr)
-{
-					  safe_delete(m_ratio_ptr);
-					  initRatio(false);
-					}
-}
-			}
-			else
-{
-				// dcassert(p_last_ip != m_ratio_ptr->m_last_ip); // Ловим холостое обновление
-			}
-}
-			else
-			{
-			m_last_ip = p_last_ip;
-		}
-		}
-		const string& User::getIP()
-		{
-			initRatio(false);
-			if(m_ratio_ptr)
-{
-				return m_ratio_ptr->m_last_ip_sql;
-}
-			else
-{
-				return m_last_ip;
-			}
-		}
-		uint64_t User::getBytesUpload()
-	{
-			initRatio(false);
-			if(m_ratio_ptr)
-		{
-			 return m_ratio_ptr->m_upload;
-		}
-			else
-			{
-				return 0;
-		}
-		}
-		uint64_t User::getBytesDownload()
-		{
-			initRatio(false);
-			if(m_ratio_ptr)
-			{
-			  return m_ratio_ptr->m_download;
 	}
-			else
-			{
-				return 0;
 }
-		}
-		void User::AddRatioUpload(const string& p_ip, uint64_t p_size)
+void User::storeIP(const string& p_ip)
 {
-			if(m_ratio_ptr == nullptr)
-			{
-					m_is_first_init_ratio = false;
-			}
-	initRatio(true);
-			m_ratio_ptr->addUpload(p_ip, p_size);
-}
-		void User::AddRatioDownload(const string& p_ip, uint64_t p_size)
-{
-			if(m_ratio_ptr == nullptr)
-			{
-					m_is_first_init_ratio = false;
-			}
-	initRatio(true);
-			m_ratio_ptr->addDownload(p_ip, p_size);
-		}
-		void User::flushRatio()
+	if (m_ratio_ptr)
+	{
+		setIP(p_ip);
+	}
+	else
+	{
+		m_is_first_init_ratio = false;
+		initRatio(true);
+		if (m_ratio_ptr)
 		{
-			if(m_ratio_ptr)
-			   m_ratio_ptr->flushRatio();
+			m_ratio_ptr->m_last_ip_sql = p_ip;
+			m_ratio_ptr->setDitry(true);
+		}
+	}
+}
+void User::setIP(const string& p_last_ip)
+{
+	if (m_ratio_ptr)
+	{
+		dcassert(!p_last_ip.empty());
+		if (m_last_ip != p_last_ip)
+		{
+#ifdef _DEBUG
+			if (!m_last_ip.empty() && p_last_ip.empty())
+			{
+				dcassert(0);
+			}
+#endif
+			const bool l_is_change_ip = !m_last_ip.empty() && !p_last_ip.empty();
+			if (l_is_change_ip)
+			{
+				if (m_ratio_ptr)
+				{
+					safe_delete(m_ratio_ptr);
+					initRatio(false);
+				}
+			}
+		}
+		else
+		{
+			// dcassert(p_last_ip != m_ratio_ptr->m_last_ip); // Ловим холостое обновление
+		}
+	}
+	else
+	{
+		m_last_ip = p_last_ip;
+	}
+}
+const string& User::getIP()
+{
+	initRatio(false);
+	if (m_ratio_ptr)
+	{
+		return m_ratio_ptr->m_last_ip_sql;
+	}
+	else
+	{
+		return m_last_ip;
+	}
+}
+uint64_t User::getBytesUpload()
+{
+	initRatio(false);
+	if (m_ratio_ptr)
+	{
+		return m_ratio_ptr->m_upload;
+	}
+	else
+	{
+		return 0;
+	}
+}
+uint64_t User::getBytesDownload()
+{
+	initRatio(false);
+	if (m_ratio_ptr)
+	{
+		return m_ratio_ptr->m_download;
+	}
+	else
+	{
+		return 0;
+	}
+}
+void User::AddRatioUpload(const string& p_ip, uint64_t p_size)
+{
+	if (m_ratio_ptr == nullptr)
+	{
+		m_is_first_init_ratio = false;
+	}
+	initRatio(true);
+	m_ratio_ptr->addUpload(p_ip, p_size);
+}
+void User::AddRatioDownload(const string& p_ip, uint64_t p_size)
+{
+	if (m_ratio_ptr == nullptr)
+	{
+		m_is_first_init_ratio = false;
+	}
+	initRatio(true);
+	m_ratio_ptr->addDownload(p_ip, p_size);
+}
+void User::flushRatio()
+{
+	if (m_ratio_ptr)
+		m_ratio_ptr->flushRatio();
 }
 
 void User::initRatio(bool p_is_create)
 {
-	if(!m_nick.empty() && !m_is_first_init_ratio && m_hub_id)
+	if (!m_nick.empty() && !m_is_first_init_ratio && m_hub_id)
 	{
-	 m_is_first_init_ratio = true;
-	 // Узнаем был ли в базе last_ip
-	 const string l_last_ip_from_sql = CFlylinkDBManager::getInstance()->load_last_ip(m_hub_id, m_nick);
-	 if(!l_last_ip_from_sql.empty() || p_is_create)
-	 {
+		m_is_first_init_ratio = true;
+		// Узнаем был ли в базе last_ip
+		const string l_last_ip_from_sql = CFlylinkDBManager::getInstance()->load_last_ip(m_hub_id, m_nick);
+		if (!l_last_ip_from_sql.empty() || p_is_create)
+		{
 //	 if(m_last_ip.empty())
 //		m_last_ip = l_last_ip_from_sql; // ????? может не нада
 //		dcassert(!m_last_ip.empty());
-	  CFlyUserRatioInfo* l_try_ratio = new CFlyUserRatioInfo(this); 
-	  if(l_try_ratio->try_load_ratio(p_is_create,m_last_ip.empty() ? l_last_ip_from_sql : m_last_ip))
-		{
-		   dcassert(m_ratio_ptr == nullptr);
-		   safe_delete(m_ratio_ptr);
-		   m_ratio_ptr = l_try_ratio;
-	  }
-	  else
+			CFlyUserRatioInfo* l_try_ratio = new CFlyUserRatioInfo(this);
+			if (l_try_ratio->try_load_ratio(p_is_create, m_last_ip.empty() ? l_last_ip_from_sql : m_last_ip))
 			{
-		// dcassert(0); Удалем когда не нашли рейтинги
-		delete l_try_ratio;
+				dcassert(m_ratio_ptr == nullptr);
+				safe_delete(m_ratio_ptr);
+				m_ratio_ptr = l_try_ratio;
+			}
+			else
+			{
+				// dcassert(0); Удалем когда не нашли рейтинги
+				delete l_try_ratio;
 			}
 		}
 	}
@@ -228,22 +228,22 @@ tstring User::getDownload()
 }
 
 tstring User::getUpload()
-	{
+{
 	const auto l_value = getBytesUpload();
 	if (l_value)
 		return Util::formatBytesW(l_value);
 	else
 		return Util::emptyStringT;
-	}
+}
 
 tstring User::getUDratio()
-			{
+{
 	if (m_ratio_ptr && (m_ratio_ptr->m_download || m_ratio_ptr->m_upload))
 		return Util::toStringW(m_ratio_ptr->m_download ? ((double)m_ratio_ptr->m_upload / (double)m_ratio_ptr->m_download) : 0) +
 		       L" (" + Util::formatBytesW(m_ratio_ptr->m_upload) + _T('/') + Util::formatBytesW(m_ratio_ptr->m_download) + L")";
-		else
+	else
 		return Util::emptyStringT;
-		}
+}
 
 
 bool Identity::isTcpActive(const Client* client) const // [+] IRainman fix.

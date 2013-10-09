@@ -225,7 +225,7 @@ HubFrame::HubFrame(const tstring& aServer,
 	client->setRawFour(Text::fromT(aRawFour));
 	client->setRawFive(Text::fromT(aRawFive));
 	
-		m_showUsersStore = p_UserListState;
+	m_showUsersStore = p_UserListState;
 	m_showUsers = false;
 }
 
@@ -440,7 +440,7 @@ void HubFrame::createMessagePanel()
 				firstLoadAllUsers();
 			}
 		}
-		if(m_is_window_text_update)
+		if (m_is_window_text_update)
 		{
 			SetWindowText(Text::toT(m_window_text).c_str());
 			m_is_window_text_update = false;
@@ -1341,17 +1341,17 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 			{
 				dcassert(!ClientManager::isShutdown());
 				const string& l_new_text = static_cast<StatusTask&>(*i->second).str;
-				if(m_window_text != l_new_text)
-					{
-						m_window_text = l_new_text;
-						m_is_window_text_update = true;
-					}
+				if (m_window_text != l_new_text)
+				{
+					m_window_text = l_new_text;
+					m_is_window_text_update = true;
+				}
 				if (m_is_window_text_update && m_ctrlStatus)
 				{
-				 // TODO - ограничить размер текста
-				 SetWindowText(Text::toT(m_window_text).c_str()); // https://www.box.net/shared/a5534c01ede031210a85
-				 m_is_window_text_update = false;
-				 //[?] SetMDIFrameMenu();
+					// TODO - ограничить размер текста
+					SetWindowText(Text::toT(m_window_text).c_str()); // https://www.box.net/shared/a5534c01ede031210a85
+					m_is_window_text_update = false;
+					//[?] SetMDIFrameMenu();
 				}
 			}
 			break;
@@ -2737,7 +2737,7 @@ void HubFrame::on(HubUpdated, const Client*) noexcept
 	const string version = client->getHubIdentity().getStringParam("VE");
 	if (!version.empty())
 	{
-		setShortHubName (m_shortHubName + Text::toT(" - " + version));
+		setShortHubName(m_shortHubName + Text::toT(" - " + version));
 		fullHubName += " - " + version;
 	}
 #endif
@@ -3373,7 +3373,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 				return CDRF_DODEFAULT;
 			const int l_column_id = ctrlUsers.findColumn(cd->iSubItem);
 			bool l_is_last_ip = false;
-			if(l_column_id == COLUMN_IP || l_column_id == COLUMN_GEO_LOCATION)
+			if (l_column_id == COLUMN_IP || l_column_id == COLUMN_GEO_LOCATION)
 				l_is_last_ip = ui->isIPFromSQL();
 #ifndef IRAINMAN_TEMPORARY_DISABLE_XXX_ICON
 			if (l_column_id == COLUMN_DESCRIPTION &&
@@ -3448,7 +3448,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 								if (l_res != S_OK)
 								{
 #ifdef SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
-									ctrlUsers.SetItemFilled(cd, rc, !l_is_last_ip ? cd->clrText : col_brit, !l_is_last_ip ? cd->clrText : col_brit); // TODO fix copy-paste 
+									ctrlUsers.SetItemFilled(cd, rc, !l_is_last_ip ? cd->clrText : col_brit, !l_is_last_ip ? cd->clrText : col_brit); // TODO fix copy-paste
 #else
 									ctrlUsers.SetItemFilled(cd, rc, cd->clrText);
 #endif //SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
