@@ -354,33 +354,23 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		void privateMessage(const HintedUser& user, const string& msg, bool thirdPerson);
 		void userCommand(const HintedUser& user, const UserCommand& uc, StringMap& params, bool compatibility);
 		
-		int getMode(const string& aHubUrl
+		int getMode(const FavoriteHubEntry* p_hub
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 		            , bool *pbWantAutodetect = NULL
 #endif
 		           ) const;
-		bool isActive(const string& aHubUrl = Util::emptyString
+		bool isActive(const FavoriteHubEntry* p_hub
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 		                                      , bool *pbWantAutodetect = NULL
 #endif
 		             ) const
 		{
-			return getMode(aHubUrl
+			return getMode(p_hub
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 			               , pbWantAutodetect
 #endif
 			              ) != SettingsManager::INCOMING_FIREWALL_PASSIVE;
 		}
-		/* [-] IRainman
-		void lock() noexcept
-		{
-		    cs.lock();
-		}
-		void unlock() noexcept
-		{
-		    cs.unlock();
-		}
-		*/
 #ifdef IRAINMAN_NON_COPYABLE_CLIENTS_IN_CLIENT_MANAGER
 		const Client::List& getClientsL() const
 		{

@@ -150,7 +150,7 @@ void NmdcHub::supports(const StringList& feat)
 OnlineUserPtr NmdcHub::findUser(const string& aNick) const
 {
 	FastLock l(cs);
-	NickIter i = m_users.find(aNick); // [3] https://www.box.net/shared/03a0bb07362fc510b8a5
+	const auto& i = m_users.find(aNick); // [3] https://www.box.net/shared/03a0bb07362fc510b8a5
 	return i == m_users.end() ? nullptr : i->second; // 2012-04-29_13-38-26_EJMPFXUHZAKEQON7Y6X7EIKZVS3S3GMF43CWO3Y_C95F3090_crash-stack-r501-build-9869.dmp
 }
 
@@ -159,7 +159,7 @@ void NmdcHub::putUser(const string& aNick)
 	OnlineUserPtr ou;
 	{
 		FastLock l(cs);
-		NickIter i = m_users.find(aNick);
+		const auto& i = m_users.find(aNick);
 		if (i == m_users.end())
 			return;
 		ou = i->second;
@@ -1451,7 +1451,7 @@ void NmdcHub::myInfo(bool alwaysSend)
 	
 	checkstate();
 	
-	reloadSettings(false);
+	const FavoriteHubEntry *fhe = reloadSettings(false);
 	
 	//[-]PPA    dcdebug("MyInfo %s...\n", getMyNick().c_str());
 	
@@ -1512,7 +1512,6 @@ void NmdcHub::myInfo(bool alwaysSend)
 	}
 #endif
 //[+]FlylinkDC
-	const FavoriteHubEntry *fhe = FavoriteManager::getInstance()->getFavoriteHubEntry(getHubUrl());
 	const string currentCounts = (fhe && fhe->getExclusiveHub()) ? getCountsIndivid() : getCounts();
 //[~]FlylinkDC
 

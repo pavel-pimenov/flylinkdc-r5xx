@@ -442,6 +442,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		void updateUserCommand(const UserCommand& uc);
 		void removeUserCommand(int cid);
 		void removeUserCommand(const string& srv);
+		size_t countUserCommand(const string& srv) const;
 		void removeHubUserCommands(int ctx, const string& hub);
 		
 		UserCommand::List getUserCommands() const
@@ -528,16 +529,8 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		string m_downloadBuf;
 #endif
 	public:
-		void shutdown()
-		{
-#ifdef IRAINMAN_ENABLE_HUB_LIST
-			if (c)
-			{
-				c->removeListener(this); // https://code.google.com/p/flylinkdc/issues/detail?id=1103
-				safe_delete(c);
-			}
-#endif
-		}
+		void prepareClose();
+		void shutdown();
 	private:
 		/** Used during loading to prevent saving. */
 		
@@ -615,7 +608,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		
 		// [+] RedMaster add FlylinkDC supports hub
 		static const string g_SupportsHubUrl;
-		static bool m_SupportsHubExist;
+		static bool g_SupportsHubExist;
 		
 };
 

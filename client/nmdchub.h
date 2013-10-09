@@ -115,7 +115,6 @@ class NmdcHub : public Client, private Flags
 		
 		
 		typedef unordered_map<string, OnlineUser*, noCaseStringHash, noCaseStringEq> NickMap;
-		typedef NickMap::const_iterator NickIter;
 		
 		NickMap m_users;
 		

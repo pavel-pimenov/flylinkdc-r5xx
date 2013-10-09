@@ -195,6 +195,7 @@ TODO:
 
 void preparingCoreToShutdown() // [+] IRainamn fix.
 {
+	FavoriteManager::getInstance()->prepareClose();
 	ClientManager::getInstance()->shutdown();
 	TimerManager::getInstance()->shutdown();
 	HashManager::getInstance()->shutdown();

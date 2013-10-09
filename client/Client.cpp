@@ -75,8 +75,8 @@ Client::~Client()
 	dcassert(!sock);
 	if (sock)
 		LogManager::getInstance()->message("[Error] Client::~Client() sock == nullptr");
+	dcassert (FavoriteManager::getInstance()->countUserCommand(getHubUrl()) == 0);
 	// In case we were deleted before we Failed
-	FavoriteManager::getInstance()->removeUserCommand(getHubUrl());
 	// [-] TimerManager::getInstance()->removeListener(this); [-] IRainman fix: please see shutdown().
 	updateCounts(true);
 //[+]FlylinkDC
@@ -132,7 +132,7 @@ void Client::shutdown()
 	reset_socket();
 }
 
-void Client::reloadSettings(bool updateNick)
+const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 {
 #ifdef IRAINMAN_ENABLE_SLOTS_AND_LIMIT_IN_DESCRIPTION
 	string speedDescription;
@@ -275,6 +275,7 @@ void Client::reloadSettings(bool updateNick)
 	    }
 	*/
 	// [~] IRainman mimicry function
+	return hub;
 }
 
 void Client::connect()
@@ -283,12 +284,11 @@ void Client::connect()
 	// [!]IRainman moved to two function:
 	// void Client::on(Failed, const string& aLine)
 	// void Client::disconnect(bool graceLess)
-	// FavoriteManager::getInstance()->removeUserCommand(getHubUrl());// don't need anymore!!!
 	clearAvailableBytes();
 	
 	setAutoReconnect(true);
 	setReconnDelay(120 + Util::rand(0, 60));
-	reloadSettings(true);
+	const FavoriteHubEntry* fhe = reloadSettings(true);
 	// [!]IRainman fix.
 	resetRegistered(); // [!]
 	resetOp(); // [+]
@@ -315,7 +315,7 @@ void Client::connect()
 		state = STATE_DISCONNECTED;
 		fire(ClientListener::Failed(), this, e.getError());
 	}
-	m_isActivMode = ClientManager::getInstance()->isActive(getHubUrl()); // [+] IRainman opt.
+	m_isActivMode = ClientManager::getInstance()->isActive(fhe); // [+] IRainman opt.
 	updateActivity();
 }
 

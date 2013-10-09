@@ -126,7 +126,7 @@ OnlineUserPtr AdcHub::getUser(const uint32_t aSID, const CID& aCID)
 OnlineUserPtr AdcHub::findUser(const uint32_t aSID) const// [!] IRainman fix return OnlineUserPtr
 {
 	FastLock l(cs);
-	SIDMap::const_iterator i = m_users.find(aSID);
+	const auto& i = m_users.find(aSID);
 	return i == m_users.end() ? nullptr : i->second;
 }
 
@@ -690,7 +690,7 @@ void AdcHub::sendUDP(const AdcCommand& cmd) noexcept
 	uint16_t port;
 	{
 		FastLock l(cs);
-		SIDMap::const_iterator i = m_users.find(cmd.getTo());
+		const auto& i = m_users.find(cmd.getTo());
 		if (i == m_users.end())
 		{
 			dcdebug("AdcHub::sendUDP: invalid user\n");

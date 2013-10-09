@@ -73,7 +73,7 @@ void DHT::start()
 		return;
 		
 	// start with global firewalled status
-	firewalled = !ClientManager::getInstance()->isActive();
+	firewalled = !ClientManager::getInstance()->isActive(nullptr);
 	requestFWCheck = true;
 	//
 	
@@ -321,7 +321,7 @@ void DHT::info(const string& ip, uint16_t port, uint32_t type, const CID& target
 		su += AdcSupports::ADCS_FEATURE + ',';
 		
 	// TCP status according to global status
-	if (ClientManager::getInstance()->isActive())
+	if (ClientManager::getInstance()->isActive(nullptr))
 		su += AdcSupports::TCP4_FEATURE + ',';
 		
 	// UDP status according to UDP status check

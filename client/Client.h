@@ -499,7 +499,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		}
 		
 		/** Reload details from favmanager or settings */
-		void reloadSettings(bool updateNick);
+		const FavoriteHubEntry* reloadSettings(bool updateNick);
 		
 		virtual string checkNick(const string& nick) = 0;
 		virtual void search(Search::SizeModes aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, const StringList& aExtList) = 0;

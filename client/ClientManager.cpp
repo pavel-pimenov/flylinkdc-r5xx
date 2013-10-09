@@ -1008,7 +1008,7 @@ const string& ClientManager::getMyNick(const string& hubUrl) const // [!] IRainm
 	return Util::emptyString;
 }
 
-int ClientManager::getMode(const string& aHubUrl
+int ClientManager::getMode(const FavoriteHubEntry* p_hub
 #ifdef RIP_USE_CONNECTION_AUTODETECT
                            , bool *pbWantAutodetect
 #endif
@@ -1018,14 +1018,13 @@ int ClientManager::getMode(const string& aHubUrl
 	if (pbWantAutodetect)
 		*pbWantAutodetect = false;
 #endif
-	if (aHubUrl.empty())
+	if (!p_hub)
 		return SETTING(INCOMING_CONNECTIONS);
 		
 	int mode = 0;
-	const FavoriteHubEntry* hub = FavoriteManager::getInstance()->getFavoriteHubEntry(aHubUrl);
-	if (hub)
+	if (p_hub)
 	{
-		switch (hub->getMode())
+		switch (p_hub->getMode())
 		{
 			case 1 :
 				mode = SettingsManager::INCOMING_DIRECT;
@@ -1036,7 +1035,6 @@ int ClientManager::getMode(const string& aHubUrl
 			default:
 			{
 				mode = SETTING(INCOMING_CONNECTIONS);
-				
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 				// If autodetection turned on, use passive mode until
 				// active mode detected

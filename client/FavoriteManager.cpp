@@ -30,7 +30,7 @@
 
 // [+] FlylinkDC supports hub
 const string FavoriteManager::g_SupportsHubUrl = "adcs://adcs.flylinkdc.com:2780";
-bool FavoriteManager::m_SupportsHubExist = false;
+bool FavoriteManager::g_SupportsHubExist = false;
 // [+] IRainman mimicry function
 const FavoriteManager::mimicrytag FavoriteManager::g_MimicryTags[] =
 {
@@ -183,13 +183,56 @@ void FavoriteManager::removeUserCommand(int cid)
 	}
 	save();
 }
+void FavoriteManager::shutdown()
+{
+#ifdef IRAINMAN_ENABLE_HUB_LIST
+			if (c)
+			{
+				c->removeListener(this); // https://code.google.com/p/flylinkdc/issues/detail?id=1103
+				safe_delete(c);
+			}
+#endif
+}
+void FavoriteManager::prepareClose()
+{
+	CFlyLog l_log("[User command cleanup]");
+	FastUniqueLock l(csUserCommand);
+	userCommands.clear();
+}
+size_t FavoriteManager::countUserCommand(const string& srv) const
+{
+	size_t l_count = 0;
+	for (auto i = userCommands.cbegin(); i != userCommands.cend();++i)
+	{
+		if (i->getHub() == srv)
+			l_count++;
+	}
+	return l_count;
+}
 void FavoriteManager::removeUserCommand(const string& srv)
 {
 	FastUniqueLock l(csUserCommand);
+#ifdef _DEBUG
+	static int g_count;
+	static string g_last_url;
+	if(g_last_url != srv)
+	{
+			g_last_url = srv;
+	}
+	else
+	{
+	LogManager::getInstance()->message("FavoriteManager::removeUserCommand DUP srv = " + srv + 
+		                               " userCommands.size() = " + Util::toString(userCommands.size()) +
+									   " g_count = " + Util::toString(++g_count));
+	}
+#endif
 	for (auto i = userCommands.cbegin(); i != userCommands.cend();)
 	{
 		if (i->isSet(UserCommand::FLAG_NOSAVE) && i->getHub() == srv) // [!] IRainman opt: reordering conditions.
 		{
+#ifdef _DEBUG
+			LogManager::getInstance()->message("FavoriteManager::removeUserCommand srv = " + srv + " userCommands.erase()! userCommands.size() = " + Util::toString(userCommands.size()));
+#endif
 			i = userCommands.erase(i);
 		}
 		else
@@ -411,7 +454,7 @@ string FavoriteManager::getUserUrl(const UserPtr& aUser) const
 #else
 		Lock l(csUsers);
 #endif
-		FavoriteMap::const_iterator i = m_users.find(aUser->getCID());
+		const auto& i = m_users.find(aUser->getCID());
 		if (i != m_users.end())
 		{
 			const FavoriteUser& fu = i->second;
@@ -721,7 +764,7 @@ void FavoriteManager::save() const
 				xml.addChildAttrib("Name", i->first);
 				xml.addChildAttrib("Private", i->second.priv);
 			}
-			for (auto i = favoriteHubs.cbegin(), iend = favoriteHubs.cend(); i != iend; ++i)
+			for (auto i = favoriteHubs.cbegin(); i != favoriteHubs.cend(); ++i)
 			{
 				xml.addTag("Hub");
 				xml.addChildAttrib("Name", (*i)->getName());
@@ -860,6 +903,7 @@ void FavoriteManager::save() const
 	}
 	catch (const Exception& e)
 	{
+		dcassert(0);
 		dcdebug("FavoriteManager::save: %s\n", e.getError().c_str());
 	}
 }
@@ -965,9 +1009,9 @@ void FavoriteManager::load()
 	// [+] RedMaster add FlylinkDC supports hub
 	if (BOOLSETTING(CONNECT_TO_SUPPORT_HUB)) // [+] SSA
 	{
-		if (!m_SupportsHubExist)
+		if (!g_SupportsHubExist)
 		{
-			m_SupportsHubExist = true;
+			g_SupportsHubExist = true;
 			FavoriteHubEntry* e = new FavoriteHubEntry();
 			e->setName(STRING(SUPPORTS_SERVER_DESC));
 			e->setConnect(true);
@@ -1063,7 +1107,7 @@ void FavoriteManager::load(SimpleXML& aXml
 			// [+] RedMaster add FlylinkDC supports hub
 			const string& l_CurrentServerUrl = Util::formatDchubUrl(aXml.getChildAttrib("Server"));
 			if (l_CurrentServerUrl == getSupportHubURL())
-				m_SupportsHubExist = true;
+				g_SupportsHubExist = true;
 			else if (l_CurrentServerUrl == "adc://adchub.com:1687") // TODO - black list for spammers hub?
 				continue; // [!] IRainman fix - delete SEO hub.
 				
@@ -1338,6 +1382,20 @@ void FavoriteManager::userUpdated(const OnlineUser& info)
 FavoriteHubEntry* FavoriteManager::getFavoriteHubEntry(const string& aServer) const
 {
 	FastSharedLock l(csHubs); // [+] IRainman fix.
+#ifdef _DEBUG
+	static int g_count;
+	static string g_last_url;
+	if(g_last_url != aServer)
+	{
+			g_last_url = aServer;
+	}
+	else
+	{
+	LogManager::getInstance()->message("FavoriteManager::getFavoriteHubEntry DUP call! srv = " + aServer + 
+		                               " favoriteHubs.size() = " + Util::toString(favoriteHubs.size()) +
+									   " g_count = " + Util::toString(++g_count));
+	}
+#endif
 	for (auto i = favoriteHubs.cbegin(); i != favoriteHubs.cend(); ++i)
 	{
 		if ((*i)->getServer() == aServer)
