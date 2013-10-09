@@ -44,6 +44,11 @@ class FavHubGroupsDlg : public CDialogImpl<FavHubGroupsDlg>
 		LRESULT onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onUpdate(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
+		~FavHubGroupsDlg()
+		{
+			ctrlGroups.Detach();
+		}
+
 	private:
 		void addItem(const tstring& name, bool priv, bool select = false);
 		bool getItem(tstring& name, bool& priv, bool checkSel);
