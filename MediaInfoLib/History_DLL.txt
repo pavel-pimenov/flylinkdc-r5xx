@@ -18,6 +18,7 @@ Version 0.7.65, 2013-
 + IMF AssetMap (AM), PackageList (PKL) and CompositionPlaylist (CPL): basic support
 + Mac dylib: looking for the dylib in @executable_path and CFBundleCopyExecutableURL dir
 + AAC: option for instantaneous bitrate in fast detect mode (MediaInfoLib only)
++ FTP (custom builds only): support of UTF-8 file names
 x #B775, AVI: AVI can use negative height for raw to signal that it's coded top-down, not bottom-up
 x #B780, MPEG-TS: crash with some files having PAT/PMT change between begin and end of the file
 x #B782, PBCore 1.2: some fields were not in the right order
@@ -30,6 +31,8 @@ x Automation, StreamKind type was set to integer, it is text
 x MPEG-4: was reading lot of useless bytes from disk when the raw stream format is not known
 x AVI: crash with some malformed text streams
 x Reference/playlist files were not supported from FTP (custom builds only)
+x MPEG-4/MOV: ScanOrder was using "stored" value instead of "displayed" value
+x MXF: Detection of Dolby E was not working in some cases (regression in 0.7.62)
 
 Version 0.7.64, 2013-07-05
 --------------
