@@ -107,13 +107,14 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 //	SetDlgItemText(IDC_HUBNICK, login);
 
 	// [+] IRainman mimicry function. Thanks SMT!
+	CComboBox IdCombo; // !SMT!-S
 	IdCombo.Attach(GetDlgItem(IDC_CLIENT_ID_BOX));
 	const bool l_isAdc = Util::isAdcHub(entry->getServer());
 	for (const FavoriteManager::mimicrytag* i = &FavoriteManager::g_MimicryTags[0]; i->tag; ++i)
 	{
 		IdCombo.AddString(Text::toT(FavoriteManager::createClientId(i->tag, i->version, l_isAdc)).c_str());
 	}
-	
+	IdCombo.Detach();
 	
 	if (!entry->getClientName().empty())
 		SetDlgItemText(IDC_CLIENT_ID_BOX, Text::toT(FavoriteManager::createClientId(entry->getClientName(), entry->getClientVersion(), l_isAdc)).c_str());
