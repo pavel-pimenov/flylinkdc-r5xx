@@ -119,7 +119,7 @@ void WebServerManager::on(ServerSocketListener::IncomingConnection) noexcept
 {
 	WebServerSocket *wss = new WebServerSocket();
 	wss->accept(&socket);
-	wss->start();
+	wss->start(64);
 }
 
 void WebServerManager::getLoginPage(string& p_out)

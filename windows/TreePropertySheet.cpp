@@ -331,7 +331,7 @@ HTREEITEM TreePropertySheet::findItem(const tstring& str, HTREEITEM start)
 	while (start != NULL)
 	{
 		ctrlTree.GetItemText(start, buf.data(), MAX_NAME_LENGTH - 1);
-		if (str == buf.data())
+		if(lstrcmp(str.c_str(),buf.data()) == 0) // TODO PVS
 		{
 			return start;
 		}
@@ -346,7 +346,7 @@ HTREEITEM TreePropertySheet::findItem(int page, HTREEITEM start)
 	{
 		if (((int)ctrlTree.GetItemData(start)) == page)
 			return start;
-		HTREEITEM ret = findItem(page, ctrlTree.GetChildItem(start));
+		const HTREEITEM ret = findItem(page, ctrlTree.GetChildItem(start));
 		if (ret != NULL)
 			return ret;
 		start = ctrlTree.GetNextSiblingItem(start);

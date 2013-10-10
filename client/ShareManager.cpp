@@ -1259,7 +1259,7 @@ void ShareManager::refresh(bool dirs /* = false */, bool aUpdate /* = true */, b
 	}
 	try
 	{
-		start();
+		start(0);
 		if (block && !cached)
 		{
 			join();

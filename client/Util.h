@@ -1560,7 +1560,7 @@ class BackgroundTaskExecuter : public BASE_THREAD
 		{
 			try
 			{
-				start();
+				start(64);
 			}
 			catch (const ThreadException& e)
 			{

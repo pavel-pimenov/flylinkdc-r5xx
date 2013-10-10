@@ -254,7 +254,7 @@ class Thread : public BaseThread
 				CloseHandle(m_threadHandle);
 		}
 		
-		void start();
+		void start(unsigned int p_stack_size);
 		void join()
 		{
 			if (m_threadHandle != INVALID_HANDLE_VALUE)

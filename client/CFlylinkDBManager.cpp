@@ -445,9 +445,11 @@ CFlylinkDBManager::CFlylinkDBManager()
 			m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_last_ip_nick_hub ON fly_last_ip_nick_hub(nick,dic_hub);");
 			sqlite3_transaction l_trans(m_flySQLiteDB);
 			m_flySQLiteDB.executenonquery("insert into fly_last_ip_nick_hub(nick,dic_hub,ip)\n"
-			                              "select distinct (select name from fly_dic where id = dic_nick),dic_hub,(select name from fly_dic where id = dic_ip) from fly_last_ip\n"
-										  "where exists (select * from fly_dic where id = dic_nick)\n"
-										  "and exists (select * from fly_dic where id = dic_ip)");
+				                          "select nick,dic_hub, max(ip) from (\n"
+										  "select (select name from fly_dic where id = dic_nick) nick,\n"
+										  "dic_hub, (select name from fly_dic where id = dic_ip) ip from fly_last_ip)\n"
+										  "where nick is not null and ip is not null\n"
+										  "group by nick,dic_hub");
 			l_trans.commit();
 			// TODO m_flySQLiteDB.executenonquery("drop table fly_last_ip");
 		}
@@ -2654,7 +2656,7 @@ tstring CFlylinkDBManager::get_ratioW() const
 {
 	if (m_global_ratio.m_download > 0)
 	{
-		LocalArray<TCHAR, 256> buf;
+		LocalArray<TCHAR, 32> buf;
 		snwprintf(buf.data(), buf.size(), _T("%.2f"), get_ratio());
 		return buf.data();
 	}

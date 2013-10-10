@@ -160,7 +160,7 @@ void DirectoryListingFrame::loadFile(const tstring& name, const tstring& dir)
 	//don't worry about cleanup, the object will delete itself once the thread has finished it's job
 	ThreadedDirectoryListing* tdl = new ThreadedDirectoryListing(this, Text::fromT(name), Util::emptyString, dir);
 	m_loading = true;
-	tdl->start();
+	tdl->start(0);
 }
 
 void DirectoryListingFrame::loadXML(const string& txt)
@@ -170,7 +170,7 @@ void DirectoryListingFrame::loadXML(const string& txt)
 	//don't worry about cleanup, the object will delete itself once the thread has finished it's job
 	ThreadedDirectoryListing* tdl = new ThreadedDirectoryListing(this, Util::emptyString, txt);
 	m_loading = true;
-	tdl->start();
+	tdl->start(0);
 }
 
 LRESULT DirectoryListingFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)

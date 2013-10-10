@@ -84,7 +84,7 @@ LRESULT UPNPCheckDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 	if (_needPortCheck)
 		StartPortListener(_tcp, _udp);
 		
-	start(); // Wizard https://www.box.net/shared/287cdbad1ef13f2393ca
+	start(64); // Wizard https://www.box.net/shared/287cdbad1ef13f2393ca
 	CenterWindow(GetParent());
 	return 0;
 }

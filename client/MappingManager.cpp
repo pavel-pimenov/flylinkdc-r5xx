@@ -69,7 +69,7 @@ bool MappingManager::open()
 		return false;
 	}
 	
-	start();
+	start(64);
 	
 	return true;
 }
@@ -311,5 +311,5 @@ string MappingManager::deviceString(const Mapper& p_mapper) const
 void MappingManager::on(TimerManagerListener::Minute, uint64_t tick) noexcept
 {
 	if (tick >= renewal && !m_busy.test_and_set())
-		start();
+		start(64);
 }

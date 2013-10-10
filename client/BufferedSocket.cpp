@@ -43,7 +43,7 @@ BufferedSocket::BufferedSocket(char aSeparator) :
 	m_disconnecting(false),
 	m_threadId(-1) // [+] IRainman fix.
 {
-	start();
+	start(64);
 	
 	Thread::safeInc(g_sockets); // [!] IRainman opt.
 }
@@ -597,9 +597,6 @@ void BufferedSocket::threadSendData()
 	sendBuf.clear();
 }
 
-#ifdef FLYLINKDC_HE
-inline // [+] IRainman opt.
-#endif
 bool BufferedSocket::checkEvents()
 {
 	// [!] application hangs http://www.flickr.com/photos/96019675@N02/9605525265/ http://code.google.com/p/flylinkdc/issues/detail?id=1245

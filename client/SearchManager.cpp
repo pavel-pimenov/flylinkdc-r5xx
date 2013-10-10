@@ -104,7 +104,7 @@ void SearchManager::listen()
 			port = socket->bind(static_cast<uint16_t>(SETTING(UDP_PORT)), SETTING(BIND_ADDRESS));
 		}
 		
-		start();
+		start(64);
 	}
 	catch (...)
 	{
@@ -136,8 +136,7 @@ int SearchManager::run()
 	std::unique_ptr<uint8_t[]> buf(new uint8_t[BUFSIZE]);
 	int len;
 	sockaddr_in remoteAddr = { 0 };
-	
-	m_queue.start();
+	m_queue.start(0);
 	while (!m_stop)
 	{
 		try

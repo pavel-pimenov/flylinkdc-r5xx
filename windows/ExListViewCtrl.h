@@ -121,6 +121,7 @@ class ExListViewCtrl : public CWindowImpl<ExListViewCtrl, CListViewCtrl, CContro
 			fi.psz = aText.c_str();
 			return FindItem(&fi, aStart);
 		}
+#if 0
 		void deleteItem(const tstring& aItem, int col = 0)
 		{
 			const int l_cnt = GetItemCount();
@@ -135,6 +136,7 @@ class ExListViewCtrl : public CWindowImpl<ExListViewCtrl, CListViewCtrl, CContro
 				}
 			}
 		}
+#endif
 		int moveItem(int oldPos, int newPos);
 		void setSortDirection(bool aAscending)
 		{

@@ -100,7 +100,7 @@ void UDPSocket::listen() throw(SocketException)
 		const string& l_bind = SETTING(BIND_ADDRESS);
 		port = socket->bind(static_cast<uint16_t>(SETTING(DHT_PORT)), l_bind);
 		
-		start();
+		start(64);
 	}
 	catch (...)
 	{

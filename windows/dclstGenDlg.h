@@ -67,7 +67,8 @@ class DCLSTGenDlg : public CDialogImpl< DCLSTGenDlg >, public BASE_THREAD
 		
 	private:
 		DirectoryListing::Directory* _Dir;
-		ExCImage _img, img_f;
+		ExCImage _img;
+		ExCImage _img_f;
 		bool _breakThread;
 		int _progresStatus;
 		size_t _totalFiles;
@@ -77,11 +78,10 @@ class DCLSTGenDlg : public CDialogImpl< DCLSTGenDlg >, public BASE_THREAD
 		CProgressBarCtrl _pBar;
 		UserPtr         _usr;
 		string      _xml;
-		// [-] CriticalSection _cs; [-] IRainman fix: no needs!
 		string _mNameDCLST;
 		string _strMagnet;
-		bool _isCanceled; // [!] IRainman fix: this variable is volatile.
-		bool _isInProcess; // [!] IRainman fix: this variable is volatile.
+		volatile bool _isCanceled; // [!] IRainman fix: this variable is volatile.
+		volatile bool _isInProcess; // [!] IRainman fix: this variable is volatile.
 		unique_ptr<TigerTree>  _tth;
 		
 };

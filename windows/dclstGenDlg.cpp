@@ -54,8 +54,8 @@ LRESULT DCLSTGenDlg::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	GetDlgItem(IDC_DCLSTGEN_COPYMAGNET).EnableWindow(FALSE);
 	
 	// for Custom Themes Bitmap
-	img_f.LoadFromResource(IDR_FLYLINK_PNG, _T("PNG"));
-	GetDlgItem(IDC_STATIC).SendMessage(STM_SETIMAGE, IMAGE_BITMAP, LPARAM((HBITMAP)img_f));
+	_img_f.LoadFromResource(IDR_FLYLINK_PNG, _T("PNG"));
+	GetDlgItem(IDC_STATIC).SendMessage(STM_SETIMAGE, IMAGE_BITMAP, LPARAM((HBITMAP)_img_f));
 	// IDC_DCLSTGEN_PICT
 	_img.LoadFromResource(IDR_DCLST, _T("PNG"));
 	GetDlgItem(IDC_DCLSTGEN_PICT).SendMessage(STM_SETIMAGE, IMAGE_BITMAP, LPARAM((HBITMAP)_img));
@@ -80,7 +80,7 @@ LRESULT DCLSTGenDlg::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	UpdateDialogItems();
 	
 	_isInProcess = true;
-	start();
+	start(0);
 	
 	
 	return 0;

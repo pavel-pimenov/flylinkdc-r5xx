@@ -825,7 +825,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 						m_MinuteElapsed = 0;
 						try
 						{
-						start();
+						start(128);
 						if (p_is_sync_run)
 						{
 							join(); // Синхронный вызов

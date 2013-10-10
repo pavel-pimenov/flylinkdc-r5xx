@@ -123,14 +123,14 @@ class UCHandler
 							else
 							{
 								bool found = false;
-								LocalArray<TCHAR, 1024> buf;
+								AutoArray<TCHAR> l_buf(1024);
 								// Let's see if we find an existing item...
 								for (int k = 0; k < cur.GetMenuItemCount(); k++)
 								{
 									if (cur.GetMenuState(k, MF_BYPOSITION) & MF_POPUP)
 									{
-										cur.GetMenuString(k, buf.data(), 1024, MF_BYPOSITION);
-										if (stricmp(buf.data(),  name.c_str()) == 0)
+										cur.GetMenuString(k, l_buf.data(), 1024, MF_BYPOSITION);
+										if (strnicmp(l_buf.data(),  name.c_str(), 1024) == 0)
 										{
 											found = true;
 											cur = (HMENU)cur.GetSubMenu(k);
@@ -139,7 +139,7 @@ class UCHandler
 								}
 								if (!found)
 								{
-									HMENU l_m = CreatePopupMenu();
+									const HMENU l_m = CreatePopupMenu();
 									cur.AppendMenu(MF_POPUP, (UINT_PTR)l_m, name.c_str());
 									cur = l_m;
 								}

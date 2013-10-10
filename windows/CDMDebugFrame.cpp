@@ -74,7 +74,7 @@ LRESULT CDMDebugFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	m_hWndClient    = ctrlPad;
 	m_hMenu         = WinUtil::mainMenu;
 	
-	start();
+	start(64);
 	DebugManager::newInstance(); // [+] IRainman opt.
 	DebugManager::getInstance()->addListener(this);
 	

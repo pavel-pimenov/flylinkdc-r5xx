@@ -530,7 +530,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		}
 	}
 	
-	TimerManager::getInstance()->start();
+	TimerManager::getInstance()->start(0);
 	SetWindowText(T_APPNAME_WITH_VERSION);
 	MainFrame::createMainMenu();
 	
@@ -2698,7 +2698,7 @@ int MainFrame::run()
 
 LRESULT MainFrame::onGetTTH(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	start();
+	start(64);
 	return 0;
 }
 

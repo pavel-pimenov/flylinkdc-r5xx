@@ -311,7 +311,7 @@ ConnectionManager::Server::Server(bool p_secure
 	m_sock.setSocketOpt(SO_REUSEADDR, 1);
 	m_port = m_sock.bind(p_port, p_ip); // [7] Wizard https://www.box.net/shared/45acc9cef68ecb499cb5
 	m_sock.listen();
-	start();
+	start(64);
 }
 
 static const uint64_t POLL_TIMEOUT = 250;

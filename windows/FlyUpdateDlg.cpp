@@ -98,7 +98,7 @@ LRESULT FlyUpdateDlg::OnLink(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 	const ENLINK* pL = (const ENLINK*)pnmh;
 	if (WM_LBUTTONDOWN == pL->msg)
 	{
-		LocalArray<TCHAR, _MAX_PATH> buf;
+		LocalArray<TCHAR, MAX_PATH> buf;
 		CRichEditCtrl(pL->nmhdr.hwndFrom).GetTextRange(pL->chrg.cpMin, pL->chrg.cpMax, buf.data());
 		WinUtil::openFile(buf.data());
 	}
