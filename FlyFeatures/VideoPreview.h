@@ -172,7 +172,7 @@ class VideoPreview :
 			, _tempFilename(Util::emptyString)
 		{
 			_ask2Download.reserve(10);
-			start();
+			start(64);
 		}
 		
 		virtual ~VideoPreview();
@@ -186,20 +186,16 @@ class VideoPreview :
 		};
 		class TaskData
 		{
-				// TODO: this class needs to be refactoring
 			public:
-				//TaskData(HWND parentWindow): _parentWindow(parentWindow) {} // [!]
-				explicit TaskData(const string& logInfo) : _logInfo(logInfo) {} // [!]
+				explicit TaskData(const string& p_logInfo) : m_logInfo(p_logInfo) {}
 				
-				//HWND _parentWindow;
-				string _logInfo;
-				
+				string m_logInfo;
 				virtual ~TaskData() { }
 		};
 		
 		mutable CriticalSection cs;
 		mutable CriticalSection csRoadMap;
-		mutable CriticalSection cs_downloadItems;
+		mutable CriticalSection csDownloadItems;
 		mutable CriticalSection csInfo;
 		
 		Semaphore taskSem;
