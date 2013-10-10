@@ -458,20 +458,8 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 #endif
 		void save() const;
 		void recentsave() const;
-		static const string& getSupportHubURL()
-		{
-			return g_SupportsHubUrl;
-		}
-		size_t getCountFavsUsers() const
-		{
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-			FastSharedLock l(csUsers);
-#else
-			Lock l(csUsers);
-#endif
-			return m_users.size();
-		}
-		
+		static const string& getSupportHubURL();
+		size_t getCountFavsUsers() const;
 	private:
 		FavoriteHubEntryList favoriteHubs;
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
@@ -606,8 +594,6 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 			}
 		}
 		
-		// [+] RedMaster add FlylinkDC supports hub
-		static const string g_SupportsHubUrl;
 		static bool g_SupportsHubExist;
 		
 };

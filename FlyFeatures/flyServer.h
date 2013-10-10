@@ -199,6 +199,7 @@ public:
   static DWORD    g_winet_connect_timeout;
   static DWORD    g_winet_receive_timeout;
   static DWORD    g_winet_send_timeout;
+  static string   g_support_hub;
 };
 //=======================================================================
 extern CFlyServerConfig g_fly_server_config; // TODO: cleanup call of this.
@@ -319,7 +320,7 @@ class CFlyServerAdapter
 							}
 							else
 							{
-							  start();  // Запустим на обработку.
+							  start(256);  // Запустим на обработку.
 						}
 					}
 				}

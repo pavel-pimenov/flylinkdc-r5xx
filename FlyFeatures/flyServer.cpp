@@ -72,6 +72,7 @@ uint16_t CFlyServerAdapter::CFlyServerQueryThread::g_minimal_interval_in_ms  = 2
 DWORD CFlyServerConfig::g_winet_connect_timeout = 2000;
 DWORD CFlyServerConfig::g_winet_receive_timeout = 0; //TODO
 DWORD CFlyServerConfig::g_winet_send_timeout    = 0; //TODO
+string CFlyServerConfig::g_support_hub = "adcs://adcs.flylinkdc.com:2780"; // "adc://adc.fly-server.ru:2780";
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 StringSet CFlyServerConfig::g_parasitic_files;
 StringSet CFlyServerConfig::g_mediainfo_ext;
@@ -277,6 +278,11 @@ void CFlyServerConfig::loadConfig()
 						m_zlib_compress_level = Z_BEST_COMPRESSION;
 					}
 					m_send_full_mediainfo = Util::toInt(l_xml.getChildAttrib("send_full_mediainfo")) == 1;
+					const string l_support_hub = l_xml.getChildAttrib("support_hub");
+					if(!l_support_hub.empty())
+                    {
+						   g_support_hub = l_support_hub;
+					}
 					m_collect_lost_location = Util::toInt(l_xml.getChildAttrib("collect_lost_location")) == 1;
 					m_type = l_xml.getChildAttrib("type") == "http" ? TYPE_FLYSERVER_HTTP : TYPE_FLYSERVER_TCP ;
 					CFlyServerAdapter::CFlyServerQueryThread::setMinimalIntervalInMilliSecond(Util::toInt(l_xml.getChildAttrib("minimal_interval")));

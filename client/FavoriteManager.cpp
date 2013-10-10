@@ -27,9 +27,9 @@
 #include "FilteredFile.h"
 #include "ConnectionManager.h"
 #include "LogManager.h"
+#include "../FlyFeatures/flyServer.h"
 
-// [+] FlylinkDC supports hub
-const string FavoriteManager::g_SupportsHubUrl = "adcs://adcs.flylinkdc.com:2780";
+
 bool FavoriteManager::g_SupportsHubExist = false;
 // [+] IRainman mimicry function
 const FavoriteManager::mimicrytag FavoriteManager::g_MimicryTags[] =
@@ -46,22 +46,6 @@ const FavoriteManager::mimicrytag FavoriteManager::g_MimicryTags[] =
 	FavoriteManager::mimicrytag("OlympP2P", "4.0 RC3"),     // Project discontinued
 	FavoriteManager::mimicrytag(nullptr, nullptr),          // terminating, don't delete this
 };
-
-void FavoriteManager::splitClientId(const string& p_id, string& p_name, string& p_version)
-{
-	const auto l_space = p_id.find(' ');
-	if (l_space != string::npos)
-	{
-		p_name = p_id.substr(0, l_space);
-		p_version = p_id.substr(l_space + 1);
-		const auto l_vMarker = p_version.find("V:");
-		if (l_vMarker != string::npos)
-		{
-			p_version = p_version.substr(l_vMarker + 2);
-		}
-	}
-}
-// [~] IRainman mimicry function
 
 FavoriteManager::FavoriteManager() : m_isNotEmpty(false), m_lastId(0),
 #ifndef IRAINMAN_USE_SEPARATE_CS_IN_FAVORITE_MANAGER
@@ -87,6 +71,35 @@ FavoriteManager::~FavoriteManager()
 	for_each(favoriteHubs.begin(), favoriteHubs.end(), DeleteFunction());
 	for_each(recentHubs.begin(), recentHubs.end(), DeleteFunction());
 	for_each(previewApplications.begin(), previewApplications.end(), DeleteFunction());
+}
+
+const string& FavoriteManager::getSupportHubURL()
+{
+	return CFlyServerConfig::g_support_hub;
+}
+
+size_t FavoriteManager::getCountFavsUsers() const
+{
+#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
+			FastSharedLock l(csUsers);
+#else
+			Lock l(csUsers);
+#endif
+			return m_users.size();
+}
+void FavoriteManager::splitClientId(const string& p_id, string& p_name, string& p_version)
+{
+	const auto l_space = p_id.find(' ');
+	if (l_space != string::npos)
+	{
+		p_name = p_id.substr(0, l_space);
+		p_version = p_id.substr(l_space + 1);
+		const auto l_vMarker = p_version.find("V:");
+		if (l_vMarker != string::npos)
+		{
+			p_version = p_version.substr(l_vMarker + 2);
+		}
+	}
 }
 
 UserCommand FavoriteManager::addUserCommand(int type, int ctx, Flags::MaskType flags, const string& name, const string& command, const string& to, const string& hub)
