@@ -823,6 +823,8 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 #endif
 					{
 						m_MinuteElapsed = 0;
+						try
+						{
 						start();
 						if (p_is_sync_run)
 						{
@@ -830,6 +832,12 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 							// подождем отработку потока.
 							// он должен быть быстрый т.к.
 							// пишет только в локальную базу
+						}
+					}
+						catch (const ThreadException& e)
+						{
+							LogManager::getInstance()->message(e.getError());
+							// TODO - сохранить такие вещи и скинуть как ошибку
 						}
 					}
 				}

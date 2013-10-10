@@ -287,7 +287,13 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		void checkSocket();
 		
 		void setSocket(std::unique_ptr<Socket>& s); // [!] IRainman fix: add link
-		void setOptions();
+		void setOptions()
+		{
+#ifdef FLYLINKDC_SUPPORT_WIN_XP
+			sock->setInBufSize();
+			sock->setOutBufSize();
+#endif
+		}
 		void shutdown();
 		void addTask(Tasks task, TaskData* data);
 };

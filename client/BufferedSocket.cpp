@@ -114,14 +114,6 @@ void BufferedSocket::resizeInBuf()
 	while (l_is_bad_alloc == true);
 }
 
-void BufferedSocket::setOptions()
-{
-#ifdef FLYLINKDC_SUPPORT_WIN_XP
-	sock->setInBufSize();
-	sock->setOutBufSize();
-#endif
-}
-
 uint16_t BufferedSocket::accept(const Socket& srv, bool secure, bool allowUntrusted)
 {
 	dcdebug("BufferedSocket::accept() %p\n", (void*)this);

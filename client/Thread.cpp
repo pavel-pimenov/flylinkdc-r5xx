@@ -72,8 +72,11 @@ void Thread::start()
 		{
 #ifdef USE_FLY_CONSOLE_TEST
 			throw ThreadException("UNABLE_TO_CREATE_THREAD");
-#else
-			throw ThreadException(STRING(UNABLE_TO_CREATE_THREAD) + " errno = " + Util::toString(errno));
+#else                   // TODO - отметить маркером для передачи на флай сервер факта падения. ошибка странная и плохая.
+			const string l_error = "Unable to crate thread! errno = " + Util::toString(errno) + " Please send a text or a screenshot of the error to developers ppa74@ya.ru";
+			// https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&Login=Guest&DumpGroupID=97752
+			// MessageBox(NULL, Text::toT(l_error).c_str(), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_OK | MB_ICONERROR | MB_TOPMOST);
+			throw ThreadException(l_error);
 #endif
 		}
 	}

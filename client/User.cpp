@@ -174,7 +174,10 @@ void User::AddRatioUpload(const string& p_ip, uint64_t p_size)
 		m_is_first_init_ratio = false;
 	}
 	initRatio(true);
+	if (m_ratio_ptr)
+	{
 	m_ratio_ptr->addUpload(p_ip, p_size);
+}
 }
 void User::AddRatioDownload(const string& p_ip, uint64_t p_size)
 {
@@ -183,7 +186,10 @@ void User::AddRatioDownload(const string& p_ip, uint64_t p_size)
 		m_is_first_init_ratio = false;
 	}
 	initRatio(true);
+	if (m_ratio_ptr)
+	{
 	m_ratio_ptr->addDownload(p_ip, p_size);
+}
 }
 void User::flushRatio()
 {

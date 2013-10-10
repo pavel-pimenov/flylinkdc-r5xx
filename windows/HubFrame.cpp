@@ -438,12 +438,7 @@ void HubFrame::createMessagePanel()
 				firstLoadAllUsers();
 			}
 		}
-		if (m_is_window_text_update)
-		{
-			SetWindowText(Text::toT(m_window_text).c_str());
-			m_is_window_text_update = false;
-		}
-		// » без этого работает :) SetMDIFrameMenu();
+		updateWindowText();
 		l_is_need_update = true;
 	}
 	BaseChatFrame::createMessagePanel();
@@ -1344,13 +1339,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 					m_window_text = l_new_text;
 					m_is_window_text_update = true;
 				}
-				if (m_is_window_text_update && m_ctrlStatus)
-				{
-					// TODO - ограничить размер текста
-					SetWindowText(Text::toT(m_window_text).c_str()); // https://www.box.net/shared/a5534c01ede031210a85
-					m_is_window_text_update = false;
-					//[?] SetMDIFrameMenu();
-				}
+				updateWindowText();
 			}
 			break;
 			case STATS:

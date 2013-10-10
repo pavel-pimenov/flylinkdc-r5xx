@@ -490,6 +490,16 @@ public UCHandler<HubFrame>, public UserInfoBaseHandler < HubFrame, UserInfoGuiTr
 		tstring m_filter;
 		string m_window_text;
 		bool   m_is_window_text_update;
+		void updateWindowText()
+		{
+			if (m_is_window_text_update)
+			{
+				// TODO - ограничить размер текста
+				SetWindowText(Text::toT(m_window_text).c_str());
+				m_is_window_text_update = false;
+				//[?] SetMDIFrameMenu();
+			}
+		}
 		CContainedWindow* m_ctrlFilterContainer;
 		CContainedWindow* m_ctrlFilterSelContainer;
 		

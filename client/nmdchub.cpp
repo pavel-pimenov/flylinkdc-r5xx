@@ -1573,7 +1573,7 @@ void NmdcHub::search(Search::SizeModes aSizeType, int64_t aSize, int aFileType, 
 		tmp2 = "Hub:" + fromUtf8(getMyNick());
 	}
 	const string l_search_command = "$Search " + tmp2 + ' ' + c1 + '?' + c2 + '?' + Util::toString(aSize) + '?' + Util::toString(aFileType + 1) + '?' + tmp + '|';
-	const string l_debug_string =  "[" + (isActive() ? string("Active") : string("Passive")) + " search][Client:" + getHubUrl() + "][Command:" + l_search_command + " ]";
+	const string l_debug_string =  "[Search:" + l_search_command + "][" + (isActive() ? string("Active") : string("Passive")) + " search][Client:" + getHubUrl() + "]";
 	dcdebug("[NmdcHub::search] %s \r\n", l_debug_string.c_str());
 	g_last_search_string = l_debug_string;
 	//LogManager::getInstance()->message(l_debug_string);
