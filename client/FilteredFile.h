@@ -117,13 +117,28 @@ class CalcInputStream : public InputStream
 		Filter filter;
 };
 
+template<class Filter>
+class FilteredInOutStream
+{
+	public:
+		FilteredInOutStream(): more(true), buf(new uint8_t[g_buf_size])
+		{
+		}
+	protected:
+		static const size_t g_buf_size = 64 * 1024;
+		Filter filter;
+		std::unique_ptr<uint8_t[]> buf;
+		bool more;
+};
+
 template<class Filter, bool manage>
 class FilteredOutputStream : public OutputStream
+	, protected FilteredInOutStream<Filter>
 {
 	public:
 		using OutputStream::write;
 		
-		FilteredOutputStream(OutputStream* aFile) : f(aFile), buf(new uint8_t[BUF_SIZE]), flushed(false), more(true) { }
+		FilteredOutputStream(OutputStream* aFile) : f(aFile), flushed(false) { }
 		~FilteredOutputStream()
 		{
 			if (manage) delete f;
@@ -139,7 +154,7 @@ class FilteredOutputStream : public OutputStream
 			
 			for (;;)
 			{
-				size_t n = BUF_SIZE;
+				size_t n = g_buf_size;
 				size_t zero = 0;
 				more = filter(NULL, zero, &buf[0], n);
 				
@@ -161,7 +176,7 @@ class FilteredOutputStream : public OutputStream
 			size_t written = 0;
 			while (len > 0)
 			{
-				size_t n = BUF_SIZE;
+				size_t n = g_buf_size;
 				size_t m = len;
 				
 				more = filter(wb, m, &buf[0], n);
@@ -184,27 +199,18 @@ class FilteredOutputStream : public OutputStream
 			return written;
 		}
 		
-		virtual bool eof()
-		{
-			return !more;
-		}
 		
 	private:
-		static const size_t BUF_SIZE = 64 * 1024;
-		
 		OutputStream* f;
-		Filter filter;
-		
-		std::unique_ptr<uint8_t[]> buf;
 		bool flushed;
-		bool more;
 };
 
 template<class Filter, bool managed>
 class FilteredInputStream : public InputStream
+	, protected FilteredInOutStream<Filter>
 {
 	public:
-		FilteredInputStream(InputStream* aFile) : f(aFile), buf(new uint8_t[BUF_SIZE]), pos(0), valid(0), more(true) { }
+		FilteredInputStream(InputStream* aFile) : f(aFile), pos(0), valid(0) { }
 		~FilteredInputStream()
 		{
 			if (managed) delete f;
@@ -225,7 +231,7 @@ class FilteredInputStream : public InputStream
 			
 			while (more && totalProduced < len)
 			{
-				size_t curRead = BUF_SIZE;
+				size_t curRead = g_buf_size;
 				if (valid == 0)
 				{
 					dcassert(pos == 0);
@@ -249,14 +255,9 @@ class FilteredInputStream : public InputStream
 		}
 		
 	private:
-		static const size_t BUF_SIZE = 64 * 1024;
-		
 		InputStream* f;
-		Filter filter;
-		std::unique_ptr<uint8_t[]> buf;
 		size_t pos;
 		size_t valid;
-		bool more;
 };
 
 #endif // !defined(FILTERED_FILE_H)

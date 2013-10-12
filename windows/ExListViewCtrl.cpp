@@ -207,6 +207,69 @@ int ExListViewCtrl::insert(int nItem, TStringList& aList, int iImage, LPARAM lPa
 	return i;
 	
 }
+int CALLBACK ExListViewCtrl::CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
+{
+	ExListViewCtrl* p = (ExListViewCtrl*) lParamSort;
+	LocalArray<TCHAR, 128> buf;
+	LocalArray<TCHAR, 128> buf2;
+	
+	int na = (int)lParam1;
+	int nb = (int)lParam2;
+	// This is a trick, so that if fun() returns something bigger than one, use the
+	// internal default sort functions
+	int result = p->sortType;
+	if (result == SORT_FUNC)
+	{
+		result = p->fun(p->GetItemData(na), p->GetItemData(nb));
+	}
+	if (result == SORT_STRING)
+	{
+		p->GetItemText(na, p->sortColumn, buf.data(), 128);
+		p->GetItemText(nb, p->sortColumn, buf2.data(), 128);
+		result = Util::DefaultSort(buf.data(), buf2.data(), false);
+	}
+	else if (result == SORT_STRING_NOCASE)
+	{
+		p->GetItemText(na, p->sortColumn, buf.data(), 128);
+		p->GetItemText(nb, p->sortColumn, buf2.data(), 128);
+		result = Util::DefaultSort(buf.data(), buf2.data(), true);
+	}
+	else if (result == SORT_INT)
+	{
+		p->GetItemText(na, p->sortColumn, buf.data(), 128);
+		p->GetItemText(nb, p->sortColumn, buf2.data(), 128);
+		result = compare(_tstoi(buf.data()), _tstoi(buf2.data()));
+	}
+	else if (result == SORT_FLOAT)
+	{
+		p->GetItemText(na, p->sortColumn, buf.data(), 128);
+		p->GetItemText(nb, p->sortColumn, buf2.data(), 128);
+		result = compare(_tstof(buf.data()), _tstof(buf2.data()));
+	}
+	else if (result == SORT_BYTES)
+	{
+		p->GetItemText(na, p->sortColumn, buf.data(), 128);
+		p->GetItemText(nb, p->sortColumn, buf2.data(), 128);
+		result = compare(WinUtil::toBytes(buf.data()), WinUtil::toBytes(buf2.data()));
+	}
+	if (!p->ascending)
+		result = -result;
+	return result;
+}
+
+LRESULT ExListViewCtrl::onChar(UINT /*msg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+{
+	if ((GetKeyState(VkKeyScan('A') & 0xFF) & 0xFF00) > 0 && (GetKeyState(VK_CONTROL) & 0xFF00) > 0)
+	{
+		const int count = GetItemCount();
+		for (int i = 0; i < count; ++i)
+			ListView_SetItemState(m_hWnd, i, LVIS_SELECTED, LVIS_SELECTED);
+			
+		return 0;
+	}
+	bHandled = FALSE;
+	return 1;
+}
 
 /**
  * @file

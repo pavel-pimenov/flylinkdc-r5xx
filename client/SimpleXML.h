@@ -70,6 +70,13 @@ class SimpleXML
 			addChildAttrib(aName, Util::toString(aData));
 		}
 		void addChildAttrib(const string& aName, const string& aData);
+		void addChildAttribIfNotEmpty(const string& aName, const string& aData)
+		{
+			if (!aData.empty())
+			{
+				addChildAttrib(aName, aData);
+			}
+		}
 		void addChildAttrib(const string& aName, bool aData)
 		{
 			addChildAttrib(aName, string(aData ? "1" : "0"));

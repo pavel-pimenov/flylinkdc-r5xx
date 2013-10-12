@@ -19,6 +19,8 @@
 #ifndef DCPLUSPLUS_DCPP_FAVORITE_MANAGER_H
 #define DCPLUSPLUS_DCPP_FAVORITE_MANAGER_H
 
+#include <boost/unordered/unordered_set.hpp>
+#include <boost/unordered/unordered_map.hpp>
 #include "SettingsManager.h"
 
 #ifdef IRAINMAN_ENABLE_HUB_LIST
@@ -435,14 +437,14 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		}
 		
 // User Commands
-		UserCommand addUserCommand(int type, int ctx, Flags::MaskType flags, const string& name, const string& command, const string& to, const string& hub);
+		UserCommand addUserCommand(int type, int ctx, Flags::MaskType flags, const string& name, const string& command, const string& to, const string& p_Hub);
 		bool getUserCommand(int cid, UserCommand& uc) const;
-		int findUserCommand(const string& aName, const string& aUrl) const;
+		int findUserCommand(const string& aName, const string& p_Hub) const;
 		bool moveUserCommand(int cid, int pos);
 		void updateUserCommand(const UserCommand& uc);
 		void removeUserCommand(int cid);
-		void removeUserCommand(const string& srv);
-		size_t countUserCommand(const string& srv) const;
+		void removeUserCommand(const string& p_Hub);
+		size_t countUserCommand(const string& p_Hub) const;
 		void removeHubUserCommands(int ctx, const string& hub);
 		
 		UserCommand::List getUserCommands() const
@@ -471,6 +473,11 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		RecentHubEntry::List recentHubs;
 		PreviewApplication::List previewApplications;
 		UserCommand::List userCommands;
+		boost::unordered_set<string> m_userCommandsHubUrl;
+		bool is_hub_exists(const string& p_Hub) const
+		{
+			return m_userCommandsHubUrl.find(p_Hub) != m_userCommandsHubUrl.end();
+		}
 		int m_lastId;
 		
 		bool m_isNotEmpty; // Fasts response if contact list empty.
@@ -505,7 +512,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		// [~] IRainman opt.
 #ifdef IRAINMAN_ENABLE_HUB_LIST
 		// Public Hubs
-		typedef unordered_map<string, HubEntryList> PubListMap;
+		typedef boost::unordered_map<string, HubEntryList> PubListMap;
 		PubListMap publicListMatrix;
 		string publicListServer;
 		bool m_useHttp;

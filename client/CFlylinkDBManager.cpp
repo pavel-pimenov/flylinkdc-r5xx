@@ -445,11 +445,11 @@ CFlylinkDBManager::CFlylinkDBManager()
 			m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_last_ip_nick_hub ON fly_last_ip_nick_hub(nick,dic_hub);");
 			sqlite3_transaction l_trans(m_flySQLiteDB);
 			m_flySQLiteDB.executenonquery("insert into fly_last_ip_nick_hub(nick,dic_hub,ip)\n"
-				                          "select nick,dic_hub, max(ip) from (\n"
-										  "select (select name from fly_dic where id = dic_nick) nick,\n"
-										  "dic_hub, (select name from fly_dic where id = dic_ip) ip from fly_last_ip)\n"
-										  "where nick is not null and ip is not null\n"
-										  "group by nick,dic_hub");
+			                              "select nick,dic_hub, max(ip) from (\n"
+			                              "select (select name from fly_dic where id = dic_nick) nick,\n"
+			                              "dic_hub, (select name from fly_dic where id = dic_ip) ip from fly_last_ip)\n"
+			                              "where nick is not null and ip is not null\n"
+			                              "group by nick,dic_hub");
 			l_trans.commit();
 			// TODO m_flySQLiteDB.executenonquery("drop table fly_last_ip");
 		}
@@ -2292,7 +2292,7 @@ bool CFlylinkDBManager::checkTTH(const string& p_fname, __int64 p_path_id,
 }
 //========================================================================================================
 // [+] brain-ripper
-unsigned __int64 CFlylinkDBManager::getBlockSize(const TTHValue& p_root, __int64 p_size)
+unsigned __int64 CFlylinkDBManager::getBlockSizeSQL(const TTHValue& p_root, __int64 p_size)
 {
 	unsigned __int64 l_blocksize = 0;
 	Lock l(m_cs);

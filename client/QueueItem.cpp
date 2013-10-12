@@ -151,12 +151,12 @@ static string getTempName(const string& aFileName, const TTHValue& aRoot)
 
 void QueueItem::calcBlockSize()
 {
-	m_block_size = CFlylinkDBManager::getInstance()->getBlockSize(getTTH(), getSize());
+	m_block_size = CFlylinkDBManager::getInstance()->getBlockSizeSQL(getTTH(), getSize());
 	dcassert(m_block_size);
 	
 #ifdef _DEBUG
-	static boost::atomic_uint l_count(0);
-	dcdebug("QueueItem::getBlockSize() TTH = %s [count = %d]\n", getTTH().toBase32().c_str(), int(++l_count));
+	static boost::atomic_uint g_count(0);
+	dcdebug("QueueItem::getBlockSize() TTH = %s [count = %d]\n", getTTH().toBase32().c_str(), int(++g_count));
 #endif
 }
 

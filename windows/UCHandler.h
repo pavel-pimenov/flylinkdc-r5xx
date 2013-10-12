@@ -27,20 +27,20 @@ template<class T>
 class UCHandler
 {
 	public:
-		UCHandler() : menuPos(0), extraItems(0) { }
+		UCHandler() : m_menuPos(0), m_extraItems(0) { }
 		
 		typedef UCHandler<T> thisClass;
 		BEGIN_MSG_MAP(thisClass)
-		COMMAND_RANGE_HANDLER(IDC_USER_COMMAND, IDC_USER_COMMAND + userCommands.size(), onUserCommand)
+		COMMAND_RANGE_HANDLER(IDC_USER_COMMAND, IDC_USER_COMMAND + m_userCommands.size(), onUserCommand)
 		END_MSG_MAP()
 		
 		LRESULT onUserCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			dcassert(wID >= IDC_USER_COMMAND);
 			size_t n = (size_t)wID - IDC_USER_COMMAND;
-			dcassert(n < userCommands.size());
+			dcassert(n < m_userCommands.size());
 			
-			UserCommand& uc = userCommands[n];
+			UserCommand& uc = m_userCommands[n];
 			
 			T* t = static_cast<T*>(this);
 			
@@ -56,13 +56,13 @@ class UCHandler
 		void appendUcMenu(CMenu& menu, int ctx, const StringList& hubs)
 		{
 			// bool isOp = false; [-] IRainman fix.
-			userCommands = FavoriteManager::getInstance()->getUserCommands(ctx, hubs/*, isOp*/);
+			m_userCommands = FavoriteManager::getInstance()->getUserCommands(ctx, hubs/*, isOp*/);
 			int n = 0;
 			int m = 0;
 			
-			menuPos = menu.GetMenuItemCount();
+			m_menuPos = menu.GetMenuItemCount();
 			
-			//if(!userCommands.empty() || isOp) // [-]Drakon. Allow op commands for everybody.
+			//if(!m_userCommands.empty() || isOp) // [-]Drakon. Allow op commands for everybody.
 			{
 				bool l_is_add_responses = ctx != UserCommand::CONTEXT_HUB
 				                          &&  ctx != UserCommand::CONTEXT_SEARCH
@@ -84,16 +84,16 @@ class UCHandler
 						menu.AppendMenu(MF_STRING, IDC_GET_USER_RESPONSES, CTSTRING(GET_USER_RESPONSES));
 						menu.AppendMenu(MF_STRING, IDC_REPORT, CTSTRING(REPORT));
 						menu.AppendMenu(MF_STRING, IDC_CHECKLIST, CTSTRING(CHECK_FILELIST));
-						extraItems = 5;
+						m_extraItems = 5;
 					}
 				}
 				else
-					extraItems = 1;
+					m_extraItems = 1;
 				if (/*isOp*/l_is_add_responses)
 					menu.AppendMenu(MF_SEPARATOR);
 					
 				CMenuHandle cur = menu.m_hMenu;
-				for (auto ui = userCommands.begin(); ui != userCommands.end(); ++ui)
+				for (auto ui = m_userCommands.begin(); ui != m_userCommands.end(); ++ui)
 				{
 					UserCommand& uc = *ui;
 					if (uc.getType() == UserCommand::TYPE_SEPARATOR)
@@ -156,18 +156,18 @@ class UCHandler
 		}
 		void cleanUcMenu(OMenu& menu)
 		{
-			if (!userCommands.empty())
+			if (!m_userCommands.empty())
 			{
-				for (size_t i = 0; i < userCommands.size() + static_cast<size_t>(extraItems); ++i)
+				for (size_t i = 0; i < m_userCommands.size() + static_cast<size_t>(m_extraItems); ++i)
 				{
-					menu.DeleteMenu(menuPos, MF_BYPOSITION);
+					menu.DeleteMenu(m_menuPos, MF_BYPOSITION);
 				}
 			}
 		}
 	private:
-		UserCommand::List userCommands;
-		int menuPos;
-		int extraItems;
+		UserCommand::List m_userCommands;
+		int m_menuPos;
+		int m_extraItems;
 };
 
 #endif // !defined(UC_HANDLER_H)

@@ -17,6 +17,9 @@
 namespace FlyWindow
 {
 
+#define SQL_TREE_MESSAGE_MAP 9
+#define SQL_LIST_MESSAGE_MAP 10
+
 ItemInfo::ItemInfo()
 {
 }
@@ -34,8 +37,8 @@ FlySQLExplorer* FlySQLExplorer::m_flySQLExplorer = NULL;
 
 FlySQLExplorer::FlySQLExplorer()
 	: m_statusContainer(STATUSCLASSNAME, this, m_statusMessageMap)
-	, m_treeContainer(WC_TREEVIEW, this, m_controlMessageMap)
-	, m_listContainer(WC_LISTVIEW, this, m_controlMessageMap)
+	, m_treeContainer(WC_TREEVIEW, this, SQL_TREE_MESSAGE_MAP)
+	, m_listContainer(WC_LISTVIEW, this, SQL_LIST_MESSAGE_MAP)
 {
 }
 

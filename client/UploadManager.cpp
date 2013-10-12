@@ -928,10 +928,6 @@ void UploadManager::on(UserConnectionListener::TransmitDone, UserConnection* aSo
 	dcassert(aSource->getState() == UserConnection::STATE_RUNNING);
 	Upload* u = aSource->getUpload();
 	dcassert(u != nullptr);
-	// [-] if (!u) return; [-] IRainman fix: please don't problem maskerate.
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-	aSource->getUser()->flushRatio();
-#endif
 	u->tick(aSource->getLastActivity()); // [!] IRainman refactoring transfer mechanism
 	aSource->setState(UserConnection::STATE_GET);
 	

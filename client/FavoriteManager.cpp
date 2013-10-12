@@ -81,11 +81,11 @@ const string& FavoriteManager::getSupportHubURL()
 size_t FavoriteManager::getCountFavsUsers() const
 {
 #ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-			FastSharedLock l(csUsers);
+	FastSharedLock l(csUsers);
 #else
-			Lock l(csUsers);
+	Lock l(csUsers);
 #endif
-			return m_users.size();
+	return m_users.size();
 }
 void FavoriteManager::splitClientId(const string& p_id, string& p_name, string& p_version)
 {
@@ -105,18 +105,22 @@ void FavoriteManager::splitClientId(const string& p_id, string& p_name, string& 
 UserCommand FavoriteManager::addUserCommand(int type, int ctx, Flags::MaskType flags, const string& name, const string& command, const string& to, const string& hub)
 {
 #ifdef _DEBUG
-				static int g_count;
-				static int g_max_len;
-				string l_all = name + command + to + hub;
-				if(l_all.length() > g_max_len)
-					g_max_len = l_all.length(); 
-				LogManager::getInstance()->message("FavoriteManager::addUserCommand g_count = " + Util::toString(++g_count) 
-					+  " g_max_len = " + Util::toString(g_max_len) + " str =  " + l_all);
+	static int g_count;
+	static int g_max_len;
+	string l_all = name + command + to + hub;
+	if (l_all.length() > g_max_len)
+		g_max_len = l_all.length();
+	LogManager::getInstance()->message("FavoriteManager::addUserCommand g_count = " + Util::toString(++g_count)
+	                                   +  " g_max_len = " + Util::toString(g_max_len) + " str =  " + l_all);
 #endif
 	UserCommand uc(m_lastId++, type, ctx, flags, name, command, to, hub);
 	{
 		// No dupes, add it...
 		FastUniqueLock l(csUserCommand);
+		if (!hub.empty())
+		{
+			m_userCommandsHubUrl.insert(hub);
+		}
 		userCommands.push_back(uc);
 	}
 	if (!uc.isSet(UserCommand::FLAG_NOSAVE))
@@ -173,14 +177,17 @@ void FavoriteManager::updateUserCommand(const UserCommand& uc)
 	save();
 }
 
-int FavoriteManager::findUserCommand(const string& aName, const string& aUrl) const
+int FavoriteManager::findUserCommand(const string& aName, const string& p_Hub) const
 {
 	FastSharedLock l(csUserCommand);
-	for (auto i = userCommands.cbegin(); i != userCommands.cend(); ++i)
+	if (is_hub_exists(p_Hub))
 	{
-		if (i->getName() == aName && i->getHub() == aUrl)
+		for (auto i = userCommands.cbegin(); i != userCommands.cend(); ++i)
 		{
-			return i->getId();
+			if (i->getName() == aName && i->getHub() == p_Hub)
+			{
+				return i->getId();
+			}
 		}
 	}
 	return -1;
@@ -219,64 +226,75 @@ void FavoriteManager::prepareClose()
 {
 	CFlyLog l_log("[User command cleanup]");
 	FastUniqueLock l(csUserCommand);
+	m_userCommandsHubUrl.clear();
 	userCommands.clear();
 }
-size_t FavoriteManager::countUserCommand(const string& srv) const
+size_t FavoriteManager::countUserCommand(const string& p_Hub) const
 {
 	FastSharedLock l(csUserCommand);
 	size_t l_count = 0;
-	for (auto i = userCommands.cbegin(); i != userCommands.cend(); ++i)
+	if (is_hub_exists(p_Hub))
 	{
-		if (i->isSet(UserCommand::FLAG_NOSAVE) && i->getHub() == srv)
-			l_count++;
+		for (auto i = userCommands.cbegin(); i != userCommands.cend(); ++i)
+		{
+			if (i->isSet(UserCommand::FLAG_NOSAVE) && i->getHub() == p_Hub)
+				l_count++;
+		}
 	}
 	return l_count;
 }
-void FavoriteManager::removeUserCommand(const string& srv)
+void FavoriteManager::removeUserCommand(const string& p_Hub)
 {
 	FastUniqueLock l(csUserCommand);
+	if (is_hub_exists(p_Hub))
+	{
+	
 #ifdef _DEBUG
-	static int g_count;
-	static string g_last_url;
-	if (g_last_url != srv)
-	{
-		g_last_url = srv;
-	}
-	else
-	{
-		LogManager::getInstance()->message("FavoriteManager::removeUserCommand DUP srv = " + srv +
-		                                   " userCommands.size() = " + Util::toString(userCommands.size()) +
-		                                   " g_count = " + Util::toString(++g_count));
-	}
-#endif
-	for (auto i = userCommands.cbegin(); i != userCommands.cend();)
-	{
-		if (i->isSet(UserCommand::FLAG_NOSAVE) && i->getHub() == srv) // [!] IRainman opt: reordering conditions.
+		static int g_count;
+		static string g_last_url;
+		if (g_last_url != p_Hub)
 		{
-#ifdef _DEBUG
-			LogManager::getInstance()->message("FavoriteManager::removeUserCommand srv = " + srv + " userCommands.erase()! userCommands.size() = " + Util::toString(userCommands.size()));
-#endif
-			i = userCommands.erase(i);
+			g_last_url = p_Hub;
 		}
 		else
 		{
-			++i;
+			LogManager::getInstance()->message("FavoriteManager::removeUserCommand DUP srv = " + p_Hub +
+			                                   " userCommands.size() = " + Util::toString(userCommands.size()) +
+			                                   " g_count = " + Util::toString(++g_count));
+		}
+#endif
+		for (auto i = userCommands.cbegin(); i != userCommands.cend();)
+		{
+			if (i->isSet(UserCommand::FLAG_NOSAVE) && i->getHub() == p_Hub) // [!] IRainman opt: reordering conditions.
+			{
+#ifdef _DEBUG
+				LogManager::getInstance()->message("FavoriteManager::removeUserCommand srv = " + p_Hub + " userCommands.erase()! userCommands.size() = " + Util::toString(userCommands.size()));
+#endif
+				i = userCommands.erase(i);
+			}
+			else
+			{
+				++i;
+			}
 		}
 	}
 }
 
-void FavoriteManager::removeHubUserCommands(int ctx, const string& hub)
+void FavoriteManager::removeHubUserCommands(int ctx, const string& p_Hub)
 {
 	FastUniqueLock l(csUserCommand);
-	for (auto i = userCommands.cbegin(); i != userCommands.cend();)
+	if (is_hub_exists(p_Hub))
 	{
-		if (i->isSet(UserCommand::FLAG_NOSAVE) && (i->getCtx() & ctx) != 0 && i->getHub() == hub) // [!] IRainman opt: reordering conditions.
+		for (auto i = userCommands.cbegin(); i != userCommands.cend();)
 		{
-			i = userCommands.erase(i);
-		}
-		else
-		{
-			++i;
+			if (i->isSet(UserCommand::FLAG_NOSAVE) && (i->getCtx() & ctx) != 0 && i->getHub() == p_Hub) // [!] IRainman opt: reordering conditions.
+			{
+				i = userCommands.erase(i);
+			}
+			else
+			{
+				++i;
+			}
 		}
 	}
 }
@@ -793,16 +811,16 @@ void FavoriteManager::save() const
 				xml.addChildAttrib("Name", (*i)->getName());
 				xml.addChildAttrib("Connect", (*i)->getConnect());
 				xml.addChildAttrib("Description", (*i)->getDescription());
-				xml.addChildAttrib("Nick", (*i)->getNick(false));
-				xml.addChildAttrib("Password", (*i)->getPassword());
+				xml.addChildAttribIfNotEmpty("Nick", (*i)->getNick(false));
+				xml.addChildAttribIfNotEmpty("Password", (*i)->getPassword());
 				xml.addChildAttrib("Server", (*i)->getServer());
-				xml.addChildAttrib("UserDescription", (*i)->getUserDescription());
+				xml.addChildAttribIfNotEmpty("UserDescription", (*i)->getUserDescription());
 				if (!Util::isAdcHub((*i)->getServer())) // [+] IRainman fix.
 				{
 					xml.addChildAttrib("Encoding", (*i)->getEncoding());
 				}
-				xml.addChildAttrib("AwayMsg", (*i)->getAwayMsg());
-				xml.addChildAttrib("Email", (*i)->getEmail());
+				xml.addChildAttribIfNotEmpty("AwayMsg", (*i)->getAwayMsg());
+				xml.addChildAttribIfNotEmpty("Email", (*i)->getEmail());
 				xml.addChildAttrib("WindowPosX", (*i)->getWindowPosX());
 				xml.addChildAttrib("WindowPosY", (*i)->getWindowPosY());
 				xml.addChildAttrib("WindowSizeX", (*i)->getWindowSizeX());
@@ -823,22 +841,22 @@ void FavoriteManager::save() const
 				xml.addChildAttrib("HeaderVisible", (*i)->getHeaderVisible());
 				xml.addChildAttrib("HeaderSort", (*i)->getHeaderSort());
 				xml.addChildAttrib("HeaderSortAsc", (*i)->getHeaderSortAsc());
-				xml.addChildAttrib("RawOne", (*i)->getRawOne());
-				xml.addChildAttrib("RawTwo", (*i)->getRawTwo());
-				xml.addChildAttrib("RawThree", (*i)->getRawThree());
-				xml.addChildAttrib("RawFour", (*i)->getRawFour());
-				xml.addChildAttrib("RawFive", (*i)->getRawFive());
+				xml.addChildAttribIfNotEmpty("RawOne", (*i)->getRawOne());
+				xml.addChildAttribIfNotEmpty("RawTwo", (*i)->getRawTwo());
+				xml.addChildAttribIfNotEmpty("RawThree", (*i)->getRawThree());
+				xml.addChildAttribIfNotEmpty("RawFour", (*i)->getRawFour());
+				xml.addChildAttribIfNotEmpty("RawFive", (*i)->getRawFive());
 				xml.addChildAttrib("Mode", Util::toString((*i)->getMode()));
-				xml.addChildAttrib("IP", (*i)->getIP());
-				xml.addChildAttrib("OpChat", (*i)->getOpChat());
+				xml.addChildAttribIfNotEmpty("IP", (*i)->getIP());
+				xml.addChildAttribIfNotEmpty("OpChat", (*i)->getOpChat());
 				xml.addChildAttrib("SearchInterval", Util::toString((*i)->getSearchInterval()));
 				// [!] IRainman mimicry function
 				// [-] xml.addChildAttrib("CliendId", (*i)->getClientId()); // !SMT!-S
-				xml.addChildAttrib("ClientName", (*i)->getClientName());
-				xml.addChildAttrib("ClientVersion", (*i)->getClientVersion());
+				xml.addChildAttribIfNotEmpty("ClientName", (*i)->getClientName());
+				xml.addChildAttribIfNotEmpty("ClientVersion", (*i)->getClientVersion());
 				xml.addChildAttrib("OverrideId", Util::toString((*i)->getOverrideId())); // !SMT!-S
 				// [~] IRainman mimicry function
-				xml.addChildAttrib("Group", (*i)->getGroup());
+				xml.addChildAttribIfNotEmpty("Group", (*i)->getGroup());
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 				xml.addChildAttrib("Status", (*i)->getConnectionStatus().getStatus());
 				xml.addChildAttrib("LastAttempts", (*i)->getConnectionStatus().getLastAttempts());

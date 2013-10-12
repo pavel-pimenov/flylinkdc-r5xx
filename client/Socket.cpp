@@ -502,7 +502,7 @@ int Socket::writeAll(const void* aBuffer, int aLen, uint64_t timeout)
 	const uint8_t* buf = (const uint8_t*)aBuffer;
 	int pos = 0;
 	// No use sending more than this at a time...
-	const int sendSize = getSocketOptInt(SO_SNDBUF);
+	const int sendSize = 64 * 1024; // getSocketOptInt(SO_SNDBUF); fix http://code.google.com/p/flylinkdc/issues/detail?id=1333
 	
 	while (pos < aLen)
 	{

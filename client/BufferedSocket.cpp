@@ -96,7 +96,7 @@ void BufferedSocket::setSocket(std::unique_ptr<Socket>& s) // [!] IRainman fix: 
 void BufferedSocket::resizeInBuf()
 {
 	bool l_is_bad_alloc;
-	int l_size = sock->getSocketOptInt(SO_RCVBUF);
+	int l_size = 64 * 1024; // sock->getSocketOptInt(SO_RCVBUF); fix http://code.google.com/p/flylinkdc/issues/detail?id=1333
 	do
 	{
 		try
@@ -415,7 +415,7 @@ void BufferedSocket::threadSendFile(InputStream* file)
 	if (socketIsDisconecting()) // [!] IRainman fix
 		return;
 	dcassert(file != NULL);
-	const size_t sockSize = (size_t)sock->getSocketOptInt(SO_SNDBUF);
+	const size_t sockSize = 64 * 1024; // (size_t)sock->getSocketOptInt(SO_SNDBUF); fix http://code.google.com/p/flylinkdc/issues/detail?id=1333
 	const size_t bufSize = max(sockSize, (size_t)64 * 1024);
 	
 	ByteVector readBuf(bufSize); // https://www.box.net/shared/07ab0210ed0f83ab842e

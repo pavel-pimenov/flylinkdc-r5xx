@@ -484,13 +484,15 @@ bool HashManager::checkTTH(const string& fname, const string& fpath, int64_t p_p
 #endif // IRAINMAN_NTFS_STREAM_TTH
 	}
 #ifdef IRAINMAN_NTFS_STREAM_TTH
-	else  // if(!l_db)
+	else
 	{
 		if (File::isExist(name))
 		{
 			TigerTree l_TT;
 			if (CFlylinkDBManager::getInstance()->getTree(p_out_tth, l_TT)) // [!] IRainman fix: no needs to lock.
+			{
 				m_streamstore.saveTree(name, l_TT); // [!] IRainman fix: no needs to lock.
+			}
 		}
 	}
 #endif // IRAINMAN_NTFS_STREAM_TTH
@@ -521,7 +523,9 @@ const TTHValue HashManager::getTTH(const string& fname, const string& fpath, int
 #ifdef IRAINMAN_NTFS_STREAM_TTH
 		}
 		if (!BOOLSETTING(SAVE_TTH_IN_NTFS_FILESTREAM))
+		{
 			HashManager::getInstance()->m_streamstore.deleteStream(name); // [!] IRainman fix: no needs to lock.
+		}
 #endif // IRAINMAN_NTFS_STREAM_TTH
 	}
 	return *tth;

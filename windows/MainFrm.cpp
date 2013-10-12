@@ -1910,13 +1910,16 @@ LRESULT MainFrame::onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 					break;
 #ifdef IRAINMAN_ENABLE_HUB_LIST
 				case ID_FILE_CONNECT:
-					if (!isOpenHubFrame/*PublicHubsFrame::isClosed()*/
-					        /* TODO WinUtil::checkIsButtonPressed(ID_FILE_CONNECT)*/
-					   )
+					if (!isOpenHubFrame)
 					{
-						// [-] InfinitySky. if (MessageBox(m_hWnd, CTSTRING(HUB_LIST_WARNING), CTSTRING(WARNING), MB_ICONWARNING | MB_YESNO) == IDYES)
 						UINT checkState = BOOLSETTING(CONFIRM_OPEN_INET_HUBS) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
-						if (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(HUB_LIST_WARNING), CTSTRING(WARNING), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES) // [+] InfinitySky.
+						if (checkState == BST_CHECKED
+#ifndef _DEBUG
+						        || ::MessageBox(m_hWnd, CTSTRING(HUB_LIST_WARNING), CTSTRING(WARNING), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES
+#else
+						        || true
+#endif
+						   )
 						{
 							PublicHubsFrame::openWindow();
 							isOpenHubFrame = true;

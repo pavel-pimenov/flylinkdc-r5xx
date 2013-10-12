@@ -467,6 +467,7 @@ void CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 		{
 		l_info["IsShutdown"] = "1"; // Поставим маркер останова флая
 		}
+		dcassert(!g_fly_server_id.empty());
 		l_info["ID"]  = g_fly_server_id;
 		l_info["CID"] = ClientManager::getMyCID().toBase32(); 
 		l_info["Client"] = g_full_user_agent;

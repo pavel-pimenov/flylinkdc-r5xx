@@ -386,10 +386,6 @@ void DownloadManager::endData(UserConnection* aSource)
 	dcassert(aSource->getState() == UserConnection::STATE_RUNNING);
 	Download* d = aSource->getDownload();
 	dcassert(d != nullptr);
-	// [-] if (!d) return; [-] IRainman fix: please don't problem maskerate: possible file corruption.
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-	aSource->getUser()->flushRatio();
-#endif
 	d->tick(aSource->getLastActivity()); // [!] IRainman refactoring transfer mechanism
 	
 	if (d->getType() == Transfer::TYPE_TREE)

@@ -1359,7 +1359,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			graphics->FillPath(&tabBrush, &tabsPatch); //[4]  https://www.box.net/shared/2b24970b81c979fc60e5
 			//Отрисовка контура поверх заливки
 			//Создание "ручек" для контура
-			Gdiplus::Pen pen(Gdiplus::Color(aActive ? 255 : 0 , 0, 0), 1);
+			Gdiplus::Pen pen(aActive ? Gdiplus::Color(0, 0, 0) : Gdiplus::Color(90, 60, 90) , 1);
 			pen.SetDashStyle(aActive ? Gdiplus::DashStyleDot : Gdiplus::DashStyleSolid);
 			graphics->DrawPath(&pen, &tabsPatch);
 #else
