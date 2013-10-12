@@ -1430,7 +1430,7 @@ void MediaInfo_Config_CodecID_Video_Mpeg4 (InfoMap &Info)
     "PIM2;MPEG Video;;;;;;YUV\n"
     "PNTG;MacPaint;;Apple MacPaint image format;http://www.apple.com/quicktime/download/standalone.html;;;\n"
     "raw ;RGB;;;http://www.apple.com/quicktime/download/standalone.html;;;RGB\n"
-    "rle ;RLE;;;http://www.apple.com/quicktime/download/standalone.html;;;\n"
+    "rle ;RLE;;;http://www.apple.com/quicktime/download/standalone.html;;;RGB\n"
     "rpza;Road Pizza;;;http://www.apple.com/quicktime/download/standalone.html;;;\n"
     "s263;H.263;;;http://www.apple.com/quicktime/download/standalone.html;;;\n"
     "Shr0;SheerVideo;;Generic SheerVideo codec;http://www.bitjazz.com/;;;\n"
@@ -5111,6 +5111,8 @@ void MediaInfo_Config_Menu (ZtringListList &Info)
     "Original/NetworkName;;;Y YT;;;;;Legal\n"
     "Countries;;;Y YT;;;;;Legal\n"
     "TimeZones;;;Y YT;;;;;Legal\n"
+    "LawRating;;;Y YT;;;Depending on the country it's the format of the rating of a movie (P, R, X in the USA, an age in other countries or a URI defining a logo).;;Classification\n"
+    "LawRating_Reason;;;Y YT;;;Reason for the law rating;;Classification\n"
     "Chapters_Pos_Begin;;;N NI;;;Used by third-party developers to know about the beginning of the chapters list, to be used by Get(Stream_Menu, x, Pos), where Pos is an Integer between Chapters_Pos_Begin and Chapters_Pos_End;\n"
     "Chapters_Pos_End;;;N NI;;;Used by third-party developers to know about the end of the chapters list (this position excluded)\n"
     ));
