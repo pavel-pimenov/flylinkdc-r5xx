@@ -726,7 +726,7 @@ void BaseChatFrame::appendNickToChat(const tstring& nick)
 		
 		if (iSelBegin == 0 && iSelEnd == 0)
 		{
-			sUser += getChatRefferingToNick();       // :   text <Insert Nick Here> text -> text Nick, text
+			sUser += getChatRefferingToNick();
 			sUser += _T(' ');
 			if (sText.IsEmpty())
 			{

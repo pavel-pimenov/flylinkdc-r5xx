@@ -63,9 +63,9 @@ static void SetThreadName(DWORD dwThreadID, char* threadName)
 void Thread::start(unsigned int p_stack_size)
 {
 	join();
-        p_stack_size *= 1024;
+	p_stack_size *= 1024;
 	HANDLE h = reinterpret_cast<HANDLE>(_beginthreadex(nullptr, p_stack_size, &starter, this, 0, nullptr));
-	if (h == nullptr || h == INVALID_HANDLE_VALUE )
+	if (h == nullptr || h == INVALID_HANDLE_VALUE)
 	{
 		// [!] IRainman fix: try twice before generating an exception.
 		h = reinterpret_cast<HANDLE>(_beginthreadex(nullptr, p_stack_size ? p_stack_size / 2 : 64 * 1024, &starter, this, 0, nullptr)); // TODO убрать двойной вызов.
@@ -75,12 +75,12 @@ void Thread::start(unsigned int p_stack_size)
 #ifdef USE_FLY_CONSOLE_TEST
 			throw ThreadException("UNABLE_TO_CREATE_THREAD");
 #else                   // TODO - отметить маркером для передачи на флай сервер факта падения. ошибка странная и плохая.
-			const string l_error = "Unable to crate thread! errno = " + Util::toString(errno) + 
-				" GetLastError() = " + Util::toString(l_last_error) + 
-				" Please send a text or a screenshot of the error to developers ppa74@ya.ru";
+			const string l_error = "Unable to crate thread! errno = " + Util::toString(errno) +
+			                       " GetLastError() = " + Util::toString(l_last_error) +
+			                       " Please send a text or a screenshot of the error to developers ppa74@ya.ru";
 			// https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&Login=Guest&DumpGroupID=97752
 #ifdef _DEBUG
-			 MessageBox(NULL, Text::toT(l_error).c_str(), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_OK | MB_ICONERROR | MB_TOPMOST);
+			MessageBox(NULL, Text::toT(l_error).c_str(), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_OK | MB_ICONERROR | MB_TOPMOST);
 #endif
 			throw ThreadException(l_error);
 #endif

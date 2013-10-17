@@ -60,9 +60,9 @@ class MessagesChatPage : public CPropertyPage<IDD_MESSAGES_CHAT_PAGE>, public Pr
 		
 	protected:
 		wstring title;
-		static Item items_chat[];
-		static TextItem texts_chat[];
-		static ListItem listItems_chat[];
+		static Item g_items_chat[];
+		static TextItem g_texts_chat[];
+		static ListItem g_listItems_chat[];
 		void fixControls();
 		ExListViewCtrl ctrlList_chat; // [+] IRainman
 };

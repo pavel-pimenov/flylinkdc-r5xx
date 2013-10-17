@@ -255,7 +255,18 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		deque<pair<Tasks, std::unique_ptr<TaskData>> > m_tasks;
 		volatile ThreadID m_threadId; // [+] IRainman fix.
 		ByteVector inbuf;
+#ifdef FLYLINKDC_HE
+		void resizeInBuf()
+		{
+#if 0 // fix http://code.google.com/p/flylinkdc/issues/detail?id=1333
+			inbuf.resize(MAX_SOCKET_BUFFER_SIZE);
+#else
+			inbuf.resize(sock->getSocketOptInt(SO_RCVBUF));
+#endif
+		}
+#else
 		void resizeInBuf();
+#endif
 		
 		ByteVector writeBuf;
 		ByteVector sendBuf;
@@ -289,10 +300,8 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		void setSocket(std::unique_ptr<Socket>& s); // [!] IRainman fix: add link
 		void setOptions()
 		{
-#ifdef FLYLINKDC_SUPPORT_WIN_XP
 			sock->setInBufSize();
 			sock->setOutBufSize();
-#endif
 		}
 		void shutdown();
 		void addTask(Tasks task, TaskData* data);

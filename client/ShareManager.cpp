@@ -190,7 +190,7 @@ string ShareManager::findRealRoot(const string& virtualRoot, const string& virtu
 
 int64_t ShareManager::Directory::getSize() const noexcept
 {
-    dcassert(g_isShutdown == false);
+    dcassert(!isShutdown());
     int64_t tmp = size;
     for (auto i = directories.cbegin(); i != directories.cend(); ++i)
 {
@@ -869,7 +869,7 @@ return directories.end();
 
 int64_t ShareManager::getShareSize(const string& realPath) const noexcept
 {
-    dcassert(g_isShutdown == false);
+    dcassert(!isShutdown());
     dcassert(!realPath.empty());
     SharedLock l(cs);
     const StringMap::const_iterator i = shares.find(realPath);
@@ -889,8 +889,10 @@ void ShareManager::internal_calcShareSize() noexcept // [!] IRainman opt.
 {
 	if (m_isNeedsUpdateShareSize)
 	{
-		dcassert(g_isShutdown == false);
-		if (g_isShutdown == false) // fix https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=37756
+		dcassert(!isShutdown());
+#ifndef FLYLINKDC_HE
+		if (!isShutdown()) // fix https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=37756
+#endif
 		{
 			m_isNeedsUpdateShareSize = false;
 			int64_t l_CurrentShareSize = 0;

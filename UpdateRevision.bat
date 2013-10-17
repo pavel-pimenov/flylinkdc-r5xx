@@ -41,25 +41,25 @@ if %1=="Revision" call :WriteRevision %2
 goto :end
 
 :WriteRevision
-echo SYMUPLOAD %SYMBOL_SERVER_APP_KEY% %APP_VERSION_FOR_SYMBOL_SERVER%.%VERSION_NUM%.%~1 0 FlylinkDC.pdb > SymRegisterBinaries.bat
-echo SYMUPLOAD %SYMBOL_SERVER_APP_KEY% %APP_VERSION_FOR_SYMBOL_SERVER%.%VERSION_NUM%.%~1 0 FlylinkDC.exe >> SymRegisterBinaries.bat
-echo SYMUPLOAD %SYMBOL_SERVER_APP_KEY% %APP_VERSION_FOR_SYMBOL_SERVER%.%VERSION_NUM%.%~1 0 FlylinkDC_x64.pdb >> SymRegisterBinaries.bat
-echo SYMUPLOAD %SYMBOL_SERVER_APP_KEY% %APP_VERSION_FOR_SYMBOL_SERVER%.%VERSION_NUM%.%~1 0 FlylinkDC_x64.exe >> SymRegisterBinaries.bat
+echo SYMUPLOAD %SYMBOL_SERVER_APP_KEY% %APP_VERSION_FOR_SYMBOL_SERVER%.%VERSION_NUM%.%~1 0 FlylinkDC.pdb> SymRegisterBinaries.bat
+echo SYMUPLOAD %SYMBOL_SERVER_APP_KEY% %APP_VERSION_FOR_SYMBOL_SERVER%.%VERSION_NUM%.%~1 0 FlylinkDC.exe>> SymRegisterBinaries.bat
+echo SYMUPLOAD %SYMBOL_SERVER_APP_KEY% %APP_VERSION_FOR_SYMBOL_SERVER%.%VERSION_NUM%.%~1 0 FlylinkDC_x64.pdb>> SymRegisterBinaries.bat
+echo SYMUPLOAD %SYMBOL_SERVER_APP_KEY% %APP_VERSION_FOR_SYMBOL_SERVER%.%VERSION_NUM%.%~1 0 FlylinkDC_x64.exe>> SymRegisterBinaries.bat
 move SymRegisterBinaries.bat "compiled"
 
-if "%BETA_STATE%"=="1" (echo UpdateMaker.exe -V%~1 -D%BETA_UPDATE_FOLDER% -U%BETA_UPDATE_URL% -B -MP -P"5" >> CreateUpdate.bat) else (echo UpdateMaker.exe -V%~1 -D%RELEASE_UPDATE_FOLDER% -U%RELEASE_UPDATE_URL% -R -MP -P"5" >> CreateUpdate.bat)
-if "%RELEASE_UPDATE_FOLDER%"=="%BETA_UPDATE_FOLDER%" echo copy %RELEASE_UPDATE_FOLDER%Update5_beta.* %RELEASE_UPDATE_FOLDER%Update5.* >> CreateUpdate.bat
+if "%BETA_STATE%"=="1" (echo UpdateMaker.exe -V%~1 -D%BETA_UPDATE_FOLDER% -U%BETA_UPDATE_URL% -B -MP -P"5">> CreateUpdate.bat) else (echo UpdateMaker.exe -V%~1 -D%RELEASE_UPDATE_FOLDER% -U%RELEASE_UPDATE_URL% -R -MP -P"5">> CreateUpdate.bat)
+if "%RELEASE_UPDATE_FOLDER%"=="%BETA_UPDATE_FOLDER%" echo copy %RELEASE_UPDATE_FOLDER%Update5_beta.* %RELEASE_UPDATE_FOLDER%Update5.*>> CreateUpdate.bat
 move CreateUpdate.bat "compiled"
 
-echo #ifndef FLY_REVISION_H > revision.h
-echo #define FLY_REVISION_H >> revision.h
+echo #ifndef FLY_REVISION_H> revision.h
+echo #define FLY_REVISION_H>> revision.h
 echo. >> revision.h
-echo #define VERSION_NUM %VERSION_NUM% >> revision.h
-echo #define REVISION_NUM %~1 >> revision.h
-if "%BETA_STATE%"=="1" (echo #define BETA >> revision.h) else (echo //#define BETA >> revision.h)
-echo #define BETA_NUM   %BETA_NUM% // Number of beta. Does not matter if the #define BETA is disabled. >> revision.h
+echo #define VERSION_NUM %VERSION_NUM%>> revision.h
+echo #define REVISION_NUM %~1>> revision.h
+if "%BETA_STATE%"=="1" (echo #define BETA>> revision.h) else (echo //#define BETA>> revision.h)
+echo #define BETA_NUM   %BETA_NUM% // Number of beta. Does not matter if the #define BETA is disabled.>> revision.h
 echo. >> revision.h
-echo #endif >> revision.h
+echo #endif>> revision.h
 
 goto :end
 

@@ -167,7 +167,9 @@ class FavoriteHubEntry
 #else
 		        userliststate(true),
 #endif
+#ifdef SCALOLAZ_HUB_SWITCH_BTN
 		        chatusersplitstate(true),
+#endif
 		        hideShare(false),
 		        exclusiveHub(false), showJoins(false), exclChecks(false), mode(0), ip(Util::emptyString),
 		        searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)), overrideId(0) /*clientId(DEF_FAKE_ID),*/
@@ -234,7 +236,9 @@ class FavoriteHubEntry
 		GETSET(int, chatusersplit, ChatUserSplit);
 		GETSET(bool, stealth, Stealth);
 		GETSET(bool, userliststate, UserListState);
+#ifdef SCALOLAZ_HUB_SWITCH_BTN
 		GETSET(bool, chatusersplitstate, ChatUserSplitState);
+#endif
 		GETSET(bool, hideShare, HideShare); // Save paramethers always IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 		GETSET(bool, showJoins, ShowJoins); // Show joins
 		GETSET(bool, exclChecks, ExclChecks); // Excl. from client checking

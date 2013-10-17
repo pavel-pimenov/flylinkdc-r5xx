@@ -1514,7 +1514,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 	if (wParam != PARSE_COMMAND_LINE && wParam != AUTO_CONNECT && wParam != STATUS_MESSAGE)
 	{
 #ifdef IRAINMAN_INCLUDE_SMILE
-		dcassert(!CGDIImage::g_isShutdown);
+		dcassert(!CGDIImage::isShutdown());
 #endif
 		dcassert(!BaseChatFrame::g_isStartupProcess);
 		if (m_closing)
@@ -2528,7 +2528,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 				m_closing = true;
 				safe_destroy_timer();
 #ifdef IRAINMAN_INCLUDE_SMILE
-				CGDIImage::g_isShutdown = true;
+				CGDIImage::shutdown();
 #endif
 				BaseChatFrame::g_isStartupProcess = true; // [+] IRainman fix: probably fix crash in gui on shutdown.
 				// TODO: possible small memory leak on shutdown, details here https://code.google.com/p/flylinkdc/source/detail?r=15141

@@ -154,7 +154,7 @@ void AdcHub::putUser(const uint32_t aSID, bool disconnect)
 		ou = i->second;
 		m_users.erase(i);
 	}
-	m_availableBytes -= ou->getIdentity().getBytesShared(); // https://code.google.com/p/flylinkdc/issues/detail?id=1231
+	decBytesShared(ou->getIdentity());
 	
 	if (aSID != AdcCommand::HUB_SID)
 		ClientManager::getInstance()->putOffline(ou, disconnect);
@@ -1548,7 +1548,7 @@ void AdcHub::refreshUserList(bool)
 			}
 		}
 	}
-	fire(ClientListener::UsersUpdated(), this, v);
+	fire_user_updated(v);
 }
 
 string AdcHub::checkNick(const string& aNick)

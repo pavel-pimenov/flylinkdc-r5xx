@@ -2210,8 +2210,9 @@ void DirectoryListingFrame::mergeFlyServerInfo()
 	const int l_top_index = ctrlList.GetTopIndex();
 	const int l_count_per_page = ctrlList.GetCountPerPage();
 	const int l_item_count = ctrlList.GetItemCount();
-	for (int j = l_top_index; j < l_item_count && j < l_top_index + l_count_per_page; ++j)
+	for (int j = l_top_index; !m_closed && j < l_item_count && j < l_top_index + l_count_per_page; ++j)
 	{
+		dcassert(!m_closed);
 		ItemInfo* i2 = ctrlList.getItemData(j);
 		if (i2 == nullptr)
 			continue;
@@ -2262,8 +2263,9 @@ void DirectoryListingFrame::mergeFlyServerInfo()
 				const string l_tth = l_cur_item_in["tth"].asString();
 				bool l_is_know_tth = false;
 				auto l_si_find = l_si_map.find(l_tth + l_size_str);
-				if (l_si_find != l_si_map.end())
+				if (l_si_find != l_si_map.end() && !m_closed)
 				{
+					dcassert(!m_closed);
 					const auto l_cur_item = ctrlList.findItem(l_si_find->second);
 					if (l_cur_item >= 0)
 					{
@@ -2305,8 +2307,12 @@ void DirectoryListingFrame::mergeFlyServerInfo()
 				COLUMN_BITRATE , COLUMN_MEDIA_XY, COLUMN_MEDIA_VIDEO , COLUMN_MEDIA_AUDIO, COLUMN_DURATION, COLUMN_FLY_SERVER_RATING
 			};
 			const static std::vector<int> l_columns(l_array, l_array + _countof(l_array));
-			ctrlList.update_columns(l_update_index, l_columns);
-			ctrlList.RedrawItems(l_top_index, l_top_index + l_count_per_page); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1113
+			dcassert(!m_closed);
+			if (!m_closed)
+			{
+				ctrlList.update_columns(l_update_index, l_columns);
+				ctrlList.RedrawItems(l_top_index, l_top_index + l_count_per_page); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1113
+			}
 		}
 	}
 	// Обойдем кандидатов для предачи на сервер.
@@ -2314,8 +2320,7 @@ void DirectoryListingFrame::mergeFlyServerInfo()
 	for (auto i = l_tth_media_file_map.begin(); i != l_tth_media_file_map.end(); ++i)
 	{
 		CFlyMediaInfo l_media_info;
-		const __int64 l_tth_id  = CFlylinkDBManager::getInstance()->load_media_info(TTHValue(i->first), l_media_info, false);
-		if (l_tth_id)
+		if (CFlylinkDBManager::getInstance()->load_media_info(TTHValue(i->first), l_media_info, false))
 		{
 			bool l_is_send_info = l_media_info.isMedia() && g_fly_server_config.isFullMediainfo() == false; // Есть медиаинфа и сервер не ждет полный комплект?
 			if (g_fly_server_config.isFullMediainfo()) // Если сервер ждет от нас только полный комплект - проверим наличие атрибутной составялющей

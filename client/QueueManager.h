@@ -469,8 +469,8 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 				void removeL(const QueueItemPtr& qi, const UserPtr& aUser, bool removeRunning = true); // [!] IRainman fix.
 				void setPriority(const QueueItemPtr& qi, QueueItem::Priority p); // [!] IRainman fix.
 				// [+] IRainman fix.
-				typedef unordered_map<UserPtr, QueueItemList, User::Hash> UserQueueMap;
-				typedef unordered_map<UserPtr, QueueItemPtr, User::Hash> RunningMap;
+				typedef boost::unordered_map<UserPtr, QueueItemList> UserQueueMap;
+				typedef boost::unordered_map<UserPtr, QueueItemPtr> RunningMap;
 				/* [-]
 				   [-]const RunningMap& getRunning() const
 				   [-]{
@@ -528,7 +528,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		/** QueueItems by user */
 		UserQueue userQueue;
 		/** Directories queued for downloading */
-		std::unordered_multimap<UserPtr, DirectoryItemPtr, User::Hash> directories;
+		boost::unordered_multimap<UserPtr, DirectoryItemPtr> directories;
 		/** Recent searches list, to avoid searching for the same thing too often */
 		deque<string> recent;
 		/** The queue needs to be saved */

@@ -9,7 +9,7 @@
 #include "MessagesChatPage.h"
 #include "WinUtil.h"
 
-PropPage::TextItem MessagesChatPage::texts_chat[] =
+PropPage::TextItem MessagesChatPage::g_texts_chat[] =
 {
 	{ IDC_PROTECT_PRIVATE, ResourceManager::SETTINGS_PROTECT_PRIVATE },
 	{ IDC_SETTINGS_PASSWORD, ResourceManager::SETTINGS_PASSWORD },
@@ -25,7 +25,7 @@ PropPage::TextItem MessagesChatPage::texts_chat[] =
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
-PropPage::Item MessagesChatPage::items_chat[] =
+PropPage::Item MessagesChatPage::g_items_chat[] =
 {
 	{ IDC_PROTECT_PRIVATE, SettingsManager::PROTECT_PRIVATE, PropPage::T_BOOL },
 	{ IDC_PASSWORD, SettingsManager::PM_PASSWORD, PropPage::T_STR },
@@ -38,7 +38,7 @@ PropPage::Item MessagesChatPage::items_chat[] =
 	{ 0, 0, PropPage::T_END }
 };
 
-MessagesChatPage::ListItem MessagesChatPage::listItems_chat[] =
+MessagesChatPage::ListItem MessagesChatPage::g_listItems_chat[] =
 {
 #ifdef IRAINMAN_INCLUDE_SMILE
 	{ SettingsManager::SHOW_EMOTIONS_BTN, ResourceManager::SHOW_EMOTIONS_BTN }, // [+] SSA
@@ -59,14 +59,16 @@ MessagesChatPage::ListItem MessagesChatPage::listItems_chat[] =
 	{ SettingsManager::MULTILINE_CHAT_INPUT_BY_CTRL_ENTER, ResourceManager::MULTILINE_CHAT_INPUT_BY_CTRL_ENTER },//[+] SSA
 	{ SettingsManager::USE_AUTO_MULTI_CHAT_SWITCH, ResourceManager::USE_AUTO_MULTI_CHAT_SWITCH }, // [+] SSA
 	{ SettingsManager::SHOW_MULTI_CHAT_BTN, ResourceManager::SHOW_MULTI_CHAT_BTN }, // [+] IRainman
+#ifdef SCALOLAZ_CHAT_REFFERING_TO_NICK
 	{ SettingsManager::CHAT_REFFERING_TO_NICK, ResourceManager::CHAT_REFFERING_TO_NICK },   // [+] SCALOlaz
+#endif
 	
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
 LRESULT MessagesChatPage::onInitDialog_chat(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-	PropPage::read((HWND)*this, items_chat, listItems_chat, GetDlgItem(IDC_MESSAGES_CHAT_BOOLEANS));
+	PropPage::read((HWND)*this, g_items_chat, g_listItems_chat, GetDlgItem(IDC_MESSAGES_CHAT_BOOLEANS));
 	
 	ctrlList_chat.Attach(GetDlgItem(IDC_MESSAGES_CHAT_BOOLEANS)); // [+] IRainman
 	
@@ -85,7 +87,7 @@ LRESULT MessagesChatPage::onInitDialog_chat(UINT /*uMsg*/, WPARAM /*wParam*/, LP
 		tooltip_messageschat.Activate(TRUE);
 	}
 	
-	PropPage::translate((HWND)(*this), texts_chat);
+	PropPage::translate((HWND)(*this), g_texts_chat);
 	fixControls();
 	// Do specialized reading here
 	return TRUE;
@@ -93,7 +95,7 @@ LRESULT MessagesChatPage::onInitDialog_chat(UINT /*uMsg*/, WPARAM /*wParam*/, LP
 
 void MessagesChatPage::write()
 {
-	PropPage::write((HWND)*this, items_chat, listItems_chat, GetDlgItem(IDC_MESSAGES_CHAT_BOOLEANS));
+	PropPage::write((HWND)*this, g_items_chat, g_listItems_chat, GetDlgItem(IDC_MESSAGES_CHAT_BOOLEANS));
 	// Do specialized writing here
 }
 

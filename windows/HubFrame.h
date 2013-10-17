@@ -156,7 +156,7 @@ public UCHandler<HubFrame>, public UserInfoBaseHandler < HubFrame, UserInfoGuiTr
 		LRESULT onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
-		//LRESULT onSwitchPanels(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+		void OnSwitchedPanels();
 		LRESULT onSwitchPanels(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 		{
 			OnSwitchedPanels();
@@ -289,18 +289,7 @@ public UCHandler<HubFrame>, public UserInfoBaseHandler < HubFrame, UserInfoGuiTr
 		
 		tstring m_shortHubName;
 		uint8_t m_second_count;
-		void setShortHubName(const tstring& p_name)
-		{
-			m_shortHubName = p_name;
-			if (!p_name.empty())
-			{
-				SetWindowLongPtr(GWLP_USERDATA, (LONG_PTR)&m_shortHubName);
-			}
-			else
-			{
-				SetWindowLongPtr(GWLP_USERDATA, (LONG_PTR)nullptr);
-			}
-		}
+		void setShortHubName(const tstring& p_name);
 		tstring m_redirect;
 		tstring m_complete;
 		
@@ -310,8 +299,6 @@ public UCHandler<HubFrame>, public UserInfoBaseHandler < HubFrame, UserInfoGuiTr
 		tstring server;
 		
 		CContainedWindow ctrlClientContainer;
-		
-		void OnSwitchedPanels();
 		
 		CtrlUsers ctrlUsers;
 		tstring m_lastUserName; // SSA_SAVE_LAST_NICK_MACROS
@@ -325,8 +312,6 @@ public UCHandler<HubFrame>, public UserInfoBaseHandler < HubFrame, UserInfoGuiTr
 		}
 		void firstLoadAllUsers();
 		void usermap2ListrView();
-		
-		bool m_ClientUsers;
 		
 		UserInfo::OnlineUserMap userMap;
 		TaskQueue m_tasks;
@@ -343,7 +328,7 @@ public UCHandler<HubFrame>, public UserInfoBaseHandler < HubFrame, UserInfoGuiTr
 		void updateUserList(UserInfo* ui);
 		void updateUserList(); // [!] IRainman opt.
 		bool parseFilter(FilterModes& mode, int64_t& size);
-		bool matchFilter(const UserInfo& ui, int sel, bool doSizeCompare = false, FilterModes mode = NONE, int64_t size = 0);
+		bool matchFilter(UserInfo& ui, int sel, bool doSizeCompare = false, FilterModes mode = NONE, int64_t size = 0);
 		UserInfo* findUser(const tstring& p_nick)   // !SMT!-S
 		{
 			if (p_nick.empty())
@@ -455,27 +440,8 @@ public UCHandler<HubFrame>, public UserInfoBaseHandler < HubFrame, UserInfoGuiTr
 		void addMesageLogParams(StringMap& params, tstring aLine, bool bThirdPerson, tstring extra);
 		void addFrameLogParams(StringMap& params);
 		
-		StringMap getFrameLogParams() const
-		{
-			StringMap params;
-			
-			params["hubNI"] = client->getHubName();
-			params["hubURL"] = client->getHubUrl();
-			params["myNI"] = client->getMyNick();
-			
-			return params;
-		}
-		void readFrameLog()
-		{
-#ifdef IRAINMAN_LOAD_LOG_FOR_HUBS
-			const auto linesCount = SETTING(SHOW_LAST_LINES_LOG);
-			if (linesCount)
-			{
-				const string path = Util::validateFileName(SETTING(LOG_DIRECTORY) + Util::formatParams(SETTING(LOG_FILE_MAIN_CHAT), getFrameLogParams(), false));
-				appendLogToChat(path, linesCount);
-			}
-#endif
-		}
+		StringMap getFrameLogParams() const;
+		void readFrameLog();
 		void openFrameLog() const
 		{
 			WinUtil::openLog(SETTING(LOG_FILE_MAIN_CHAT), getFrameLogParams(), TSTRING(NO_LOG_FOR_HUB));
@@ -487,6 +453,10 @@ public UCHandler<HubFrame>, public UserInfoBaseHandler < HubFrame, UserInfoGuiTr
 		CEdit* m_ctrlFilter;
 		CComboBox* m_ctrlFilterSel;
 		int m_FilterSelPos;
+		int getFilterSelPos() const
+		{
+			return m_ctrlFilterSel ? m_ctrlFilterSel->GetCurSel() : m_FilterSelPos;
+		}
 		tstring m_filter;
 		string m_window_text;
 		bool   m_is_window_text_update;
@@ -512,12 +482,17 @@ public UCHandler<HubFrame>, public UserInfoBaseHandler < HubFrame, UserInfoGuiTr
 		void updateColumnsInfo(const FavoriteHubEntry *p_fhe);
 		void storeColumsInfo();
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
+		bool m_isClientUsersSwitch;
 		CButton* m_ctrlSwitchPanels;
 		CContainedWindow* m_switchPanelsContainer;
-		CFlyToolTipCtrl*  m_tooltip_hubframe;
 		static HIconWrapper g_hSwitchPanelsIco;
 #endif
+		CFlyToolTipCtrl*  m_tooltip_hubframe;
 		CButton* m_ctrlShowUsers;
+		void setShowUsersCheck()
+		{
+			m_ctrlShowUsers->SetCheck((m_ActivateCounter == 1 ? m_showUsersStore : m_showUsers) ? BST_CHECKED : BST_UNCHECKED);
+		}
 		CContainedWindow* m_showUsersContainer;
 		
 		OMenu* m_tabMenu;

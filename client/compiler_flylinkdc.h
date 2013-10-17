@@ -165,6 +165,7 @@ typedef unsigned __int64 uint64_t;
 #ifdef FLYLINKDC_HE // деваться некуда, без галки в боксе очень тяжко жить, хрен с ним - пускай падает :(
 # define PPA_INCLUDE_APEX_EX_MESSAGE_BOX // TODO: глючит - много дампов по переполнению стека, необходимо найти альтернативу.
 #endif
+#define PPA_USER_COMMANDS_HUBS_SET
 #ifndef FLYLINKDC_HE
 # define PPA_INCLUDE_IPGUARD
 # ifdef PPA_INCLUDE_IPGUARD
@@ -289,6 +290,7 @@ typedef unsigned __int64 uint64_t;
 # ifdef FLYLINKDC_HE
 #  define IRAINMAN_USE_NG_TRANSFERS
 #  ifdef IRAINMAN_USE_READ_WRITE_POLITICS
+#   define IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS // TODO https://code.google.com/p/flylinkdc/issues/detail?id=1316
 #   define IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
 // [!] IRainman opt: use policies without copying data.
 #   ifdef IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
@@ -304,7 +306,6 @@ typedef unsigned __int64 uint64_t;
 # define IRAINMAN_USE_NON_RECURSIVE_BEHAVIOR // TODO: recursive entry into a non-recursive mutex or spin lock.
 #endif
 #ifndef IRAINMAN_USE_NON_RECURSIVE_BEHAVIOR
-# define IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS // TODO https://code.google.com/p/flylinkdc/issues/detail?id=1316
 # ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 #  define UPDATE_CON_STATUS_ON_FAV_HUBS_IN_REALTIME // TODO.
 # endif
@@ -390,7 +391,7 @@ typedef unsigned __int64 uint64_t;
 
 #ifndef FLYLINKDC_HE
 # define SCALOLAZ_PROPPAGE_TRANSPARENCY   //[+] SCALOlaz: Transparency of a Settings window
-#endif // FLYLINKDC_HE
+#endif
 #define SCALOLAZ_PROPPAGE_COLOR          //[+] SCALOlaz: Colorized background in Properties
 #define SCALOLAZ_PROPPAGE_HELPLINK       //[+] SCALOlaz: FlyWiki Help link per pages
 #define SCALOLAZ_SEARCH_HELPLINK         //[+] SCALOlaz: FlyWiki Help link for SearchFrm
@@ -407,6 +408,7 @@ typedef unsigned __int64 uint64_t;
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 # define SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP  // Use bright text color for 'last ip' & locations
 #endif
+#define SCALOLAZ_CHAT_REFFERING_TO_NICK
 
 // TODO: feature not fully implemented, don't turn off this define!
 //#if defined(FLYLINKDC_HE) || !defined(BETA) // before the end of the experiments using the old menu, eliminates the hassle.

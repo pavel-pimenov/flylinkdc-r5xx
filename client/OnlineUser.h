@@ -203,16 +203,27 @@ class Identity
 		{
 			return getUser()->getBytesShared();
 		}
-		
-		const string& getIp() const // "I4"
+
+// #define FLYLINKDC_ISSUE_1330
+#ifdef FLYLINKDC_ISSUE_1330
+		void setIp(const string& ip) // "I4"
 		{
-			return getUser()->getIP();
+			m_ip = ip;
+			getUser()->setIP(ip);
+			change(CHANGES_IP | CHANGES_GEO_LOCATION);
 		}
+		GETM(string, m_ip, Ip); // "I4" // [!] IRainman fix: needs here, details https://code.google.com/p/flylinkdc/issues/detail?id=1330
+#else
 		void setIp(const string& ip) // "I4"
 		{
 			getUser()->setIP(ip);
 			change(CHANGES_IP | CHANGES_GEO_LOCATION);
 		}
+	    const string& getIp() const // "I4"
+ 		{
+ 		 	return getUser()->getIP();
+ 		}
+#endif
 		
 // Нужна ли тут блокировка?
 // L: с одной стороны надо блокировать такие операции,
@@ -573,7 +584,6 @@ class Identity
 		string getPkVersion() const;
 #endif // IRAINMAN_INCLUDE_DETECTION_MANAGER
 };
-
 class OnlineUser :
 	public intrusive_ptr_base<OnlineUser>, public UserInfoBase
 {
@@ -602,15 +612,8 @@ class OnlineUser :
 			COLUMN_LAST
 		};
 		
-		struct Hash
-		{
-			size_t operator()(const OnlineUserPtr& x) const
-			{
-				return ((size_t)(&(*x))) / sizeof(OnlineUser);
-			}
-		};
-		OnlineUser(const UserPtr& ptr, ClientBase& client_, uint32_t sid_)
-			: identity(ptr, sid_), client(client_)
+		OnlineUser(const UserPtr& p_user, ClientBase& p_client, uint32_t p_sid)
+			: m_identity(p_user, p_sid), m_client(p_client)
 		{
 #ifdef _DEBUG
 			++g_online_user_counts;
@@ -635,39 +638,38 @@ class OnlineUser :
 		{
 			return getUser();
 		}
-		
 		UserPtr& getUser() // TODO
 		{
-			return identity.getUser();
+			return m_identity.getUser();
 		}
 		const UserPtr& getUser() const // TODO
 		{
-			return identity.getUser();
+			return m_identity.getUser();
 		}
 		Identity& getIdentity() // TODO
 		{
-			return identity;
+			return m_identity;
 		}
 		const Identity& getIdentity() const // TODO
 		{
-			return identity;
+			return m_identity;
 		}
 		Client& getClient()
 		{
-			return (Client&)client;
+			return (Client&)m_client;
 		}
 		const Client& getClient() const
 		{
-			return (const Client&)client;
+			return (const Client&)m_client;
 		}
 		
 		ClientBase& getClientBase()
 		{
-			return client;
+			return m_client;
 		}
 		const ClientBase& getClientBase() const
 		{
-			return client;
+			return m_client;
 		}
 		
 		/* UserInfo */
@@ -680,17 +682,30 @@ class OnlineUser :
 #ifdef IRAINMAN_USE_HIDDEN_USERS
 		bool isHidden() const
 		{
-			return identity.isHidden();
+			return m_identity.isHidden();
 		}
 #endif
 		
 		tstring getText(uint8_t col) const;
 		
 	private:
-		Identity identity;
+		Identity m_identity;
 		friend class NmdcHub;
 		
-		ClientBase& client;
+		ClientBase& m_client;
 };
+
+// http://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom-class-type-as-the-key
+namespace std
+{
+template <>
+struct hash<OnlineUserPtr>
+{
+	size_t operator()(const OnlineUserPtr & x) const
+	{
+		return ((size_t)(&(*x))) / sizeof(OnlineUser);
+	}
+};
+}
 
 #endif /* ONLINEUSER_H_ */

@@ -112,6 +112,20 @@ class UserInfo : public UserInfoBase
 		{
 			return m_location;
 		}
+		const Util::CustomNetworkIndex& calcLocation()
+		{
+			const auto& l_location = getLocation();
+			if (!l_location.isSet())
+			{
+				const auto& l_ip = getIp();
+#ifdef SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
+				calcIpFromSQL(l_ip);
+#endif
+				if (!l_ip.empty())
+					setLocation(Util::getIpCountry(l_ip));
+			}
+			return l_location;
+		}
 #ifdef SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
 		void calcIpFromSQL(const string& p_ip)
 		{
@@ -152,7 +166,7 @@ class UserInfo : public UserInfoBase
 		static tstring formatSpeedLimit(const uint32_t limit);
 		tstring getLimit() const;
 		tstring getDownloadSpeed() const;
-		typedef unordered_map<OnlineUserPtr, UserInfo*, OnlineUser::Hash> OnlineUserMapBase; // [!] IRainman fix: use online user here.
+		typedef boost::unordered_map<OnlineUserPtr, UserInfo*> OnlineUserMapBase; // [!] IRainman fix: use online user here.
 		class OnlineUserMap : public OnlineUserMapBase
 #ifdef _DEBUG
 			, virtual NonDerivable<OnlineUserMap>, boost::noncopyable // [+] IRainman fix.

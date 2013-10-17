@@ -926,8 +926,9 @@ void SearchFrame::mergeFlyServerInfo()
 	const int l_top_index = ctrlResults.GetTopIndex();
 	const int l_count_per_page = ctrlResults.GetCountPerPage();
 	const int l_item_count = ctrlResults.GetItemCount();
-	for (int j = l_top_index; j < l_item_count && j < l_top_index + l_count_per_page; ++j)
+	for (int j = l_top_index; !m_closed && j < l_item_count && j < l_top_index + l_count_per_page; ++j)
 	{
+		dcassert(!m_closed);
 		SearchInfo* si2 = ctrlResults.getItemData(j);
 		if (si2 == nullptr)
 			continue;
@@ -956,7 +957,8 @@ void SearchFrame::mergeFlyServerInfo()
 			}
 		}
 	}
-	if (!m_GetFlyServerArray.empty())
+	dcassert(!m_closed);
+	if (!m_closed && !m_GetFlyServerArray.empty())
 	{
 		const string l_json_result = CFlyServerJSON::connect(m_GetFlyServerArray, false); // послать запрос на сервер для получения медиаинформации.
 		m_GetFlyServerArray.clear();
@@ -980,7 +982,8 @@ void SearchFrame::mergeFlyServerInfo()
 				const string l_tth = l_cur_item_in["tth"].asString();
 				bool l_is_know_tth = false;
 				auto l_si_find = l_si_map.find(l_tth + l_size_str);
-				if (l_si_find != l_si_map.end())
+				dcassert(!m_closed);
+				if (l_si_find != l_si_map.end() && !m_closed)
 				{
 					SearchInfo* l_si = l_si_find->second.first;
 					const auto l_cur_item = ctrlResults.findItem(l_si);
@@ -1029,7 +1032,9 @@ void SearchFrame::mergeFlyServerInfo()
 				COLUMN_BITRATE , COLUMN_MEDIA_XY, COLUMN_MEDIA_VIDEO , COLUMN_MEDIA_AUDIO, COLUMN_DURATION, COLUMN_FLY_SERVER_RATING
 			};
 			const static std::vector<int> l_columns(l_array, l_array + _countof(l_array));
-			ctrlResults.update_columns(l_update_index, l_columns);
+			dcassert(!m_closed);
+			if (!m_closed)
+				ctrlResults.update_columns(l_update_index, l_columns);
 		}
 	}
 	
@@ -1038,8 +1043,7 @@ void SearchFrame::mergeFlyServerInfo()
 	for (auto i = l_tth_media_file_map.begin(); i != l_tth_media_file_map.end(); ++i)
 	{
 		CFlyMediaInfo l_media_info;
-		const __int64 l_tth_id  = CFlylinkDBManager::getInstance()->load_media_info(TTHValue(i->first), l_media_info, false);
-		if (l_tth_id)
+		if (CFlylinkDBManager::getInstance()->load_media_info(TTHValue(i->first), l_media_info, false))
 		{
 			bool l_is_send_info = l_media_info.isMedia() && g_fly_server_config.isFullMediainfo() == false; // Есть медиаинфа и сервер не ждет полный комплект?
 			if (g_fly_server_config.isFullMediainfo()) // Если сервер ждет от нас полный комплект - проверим наличие атрибутной составялющей
@@ -1408,7 +1412,9 @@ void SearchFrame::SearchInfo::CheckTTH::operator()(const SearchInfo* si)
 		// we will merge hubs of all users to ensure we can use OP commands in all hubs
 		StringList sl = ClientManager::getInstance()->getHubs(si->sr->getUser()->getCID(), Util::emptyString);
 		hubs.insert(hubs.end(), sl.begin(), sl.end());
-		//Util::intersect(hubs, ClientManager::getInstance()->getHubs(si->sr->getUser()->getCID()));
+#if 0
+		Util::intersect(hubs, ClientManager::getInstance()->getHubs(si->sr->getUser()->getCID()));
+#endif
 	}
 }
 
@@ -2085,7 +2091,7 @@ void SearchFrame::addSearchResult(SearchInfo * si)
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	if (!sr->getIP().empty() && m_storeIP)
 	{
-		user->storeIP(sr->getIP());
+		CFlylinkDBManager::getInstance()->update_last_ip(user->getHubID(), user->getLastNick(), sr->getIP());
 	}
 #else
 	if (!sr->getIP().empty())

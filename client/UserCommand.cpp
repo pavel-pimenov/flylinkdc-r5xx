@@ -24,9 +24,9 @@ StringList UserCommand::getDisplayName() const
 {
 	StringList l_displayName;
 	string name_ = name;
-	if (!isSet(UserCommand::FLAG_NOSAVE)) 
+	if (!isSet(UserCommand::FLAG_NOSAVE))
 	{
-			Util::replace("\\", "/", name_);
+		Util::replace("\\", "/", name_);
 	}
 	Util::replace("//", "\t", name_);
 	const StringTokenizer<string> t(name_, '/');

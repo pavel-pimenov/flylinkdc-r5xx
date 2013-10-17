@@ -434,7 +434,8 @@ LRESULT TransferView::onForce(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 
 void TransferView::ItemInfo::removeAll()
 {
-	if (hits <= 1) // TODO 2012-04-18_11-17-28_54VROXRMJ6YSH6HDVIHAPES3OCW6A42FKJLYBXI_F7657B36_crash-stack-r502-beta18-build-9768.dmp
+	// Не удаляются отдачи через контекстное меню https://code.google.com/p/flylinkdc/issues/detail?id=1335
+	if (hits <= 1)
 	{
 		QueueManager::getInstance()->removeSource(hintedUser, QueueItem::Source::FLAG_REMOVED);
 	}

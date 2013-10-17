@@ -2179,188 +2179,82 @@ string Util::getExternalIP(const string& p_url, LONG p_timeOut /* = 500 */)
 //[+] SSA
 size_t Util::getDataFromInet(LPCWSTR agent, const DWORD frameBufferSize, const string& url, string& data, LONG timeOut /*=0*/, IDateReceiveReporter* reporter /* = NULL */)
 {
-	// FlylinkDC++ Team TODO: http://code.google.com/p/flylinkdc/issues/detail?id=632
-	dcassert(!url.empty());
-	if (url.empty())
-		return 0;
-	size_t totalBytesRead = 0;
-	DWORD numberOfBytesRead = 0;
-	DWORD numberOfBytesToRead = frameBufferSize;
-	
-	std::vector<char> pTempData(frameBufferSize + 1);
-	pTempData[0] = 0;
-	CInternetHandle hInternet(InternetOpen(agent, INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0));
-	if (!hInternet)
-		return 0;
-	if (timeOut)
-		InternetSetOption(hInternet, INTERNET_OPTION_CONNECT_TIMEOUT, &timeOut, sizeof(timeOut));
-	CInternetHandle hURL(InternetOpenUrlA(hInternet, url.c_str(), NULL, 0, INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_RELOAD, 1)); // https://www.box.net/shared/096fe84f3e7e68666a3e
-	// 2012-04-29_13-38-26_QSBM3KCUOSEPDSQX3BQ6IG7MTJ3QRPGV62TS46I_F9A54D9E_crash-stack-r501-build-9869.dmp
-	if (!hURL)
+	std::vector<byte> l_bin_data;
+	const size_t l_bin_size = Util::getBinaryDataFromInet(agent, frameBufferSize, url, l_bin_data, timeOut, reporter);
+	if (l_bin_size)
 	{
-		LogManager::getInstance()->message("InternetOpenUrl error = " + Util::translateError(GetLastError()));
-		return 0;
-	}
-	bool isUserCancel = false;
-	while (InternetReadFile(hURL, pTempData.data(), numberOfBytesToRead, &numberOfBytesRead))
-	{
-		if (numberOfBytesRead == 0)
-		{
-			// EOF detected
-			break;
-		}
-		else
-		{
-			// Copy partial data
-			pTempData[numberOfBytesRead] = '\0';
-			data += pTempData.data();
-			totalBytesRead += numberOfBytesRead;
-			if (reporter)
-			{
-				if (!reporter->ReportResultReceive(numberOfBytesRead))
-				{
-					isUserCancel = true;
-					break;
-				}
-			}
-		}
-	}
-	if (isUserCancel)
-	{
-		data = emptyString;
-		totalBytesRead = 0;
-	}
-	return totalBytesRead;
-}
-
-#if 0
-uint64_t Util::getDataFromInet(LPCWSTR agent, const DWORD frameBufferSize, const string& url, File& fileout, LONG timeOut/* = 0*/, IDateReceiveReporter* reporter/* = NULL*/)
-{
-	// FlylinkDC++ Team TODO: http://code.google.com/p/flylinkdc/issues/detail?id=632
-	dcassert(!url.empty());
-	if (url.empty())
-		return 0;
-	uint64_t totalBytesRead = 0;
-	DWORD numberOfBytesRead = 0;
-	DWORD numberOfBytesToRead = frameBufferSize;
-	// vector<byte*> vecOut(numberOfBytesToRead);
-	
-	AutoArray<uint8_t> pTempData(frameBufferSize + 1);
-	CInternetHandle  hInternet(InternetOpen(agent, INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0));
-	if (!hInternet)
-		return 0;
-		
-	if (timeOut)
-		InternetSetOption(hInternet, INTERNET_OPTION_CONNECT_TIMEOUT, &timeOut, sizeof(timeOut));
-		
-	CInternetHandle hURL(InternetOpenUrlA(hInternet, url.c_str(), NULL, 0, INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_RELOAD, 1));
-	if (!hURL)
-	{
-		LogManager::getInstance()->message("InternetOpenUrl error = " + Util::translateError(GetLastError()));
-		return 0;
-	}
-	
-	while (InternetReadFile(hURL, pTempData.data(), numberOfBytesToRead, &numberOfBytesRead))
-	{
-		if (numberOfBytesRead == 0)
-		{
-			// EOF detected
-			break;
-		}
-		else
-		{
-			// Copy partial data
-			// pTempData[numberOfBytesRead] = '\0';
-			// data += pTempData.get();
-			fileout.write(pTempData.data(), numberOfBytesRead);
-			totalBytesRead += numberOfBytesRead;
-			if (reporter)
-			{
-				if (!reporter->ReportResultReceive(numberOfBytesRead))
-				{
-					break;
-				}
-			}
-		}
-	}
-	return totalBytesRead;
-}
-
-#endif
-//[+] SSA
-uint64_t Util::getDataFromInet(LPCWSTR agent, const DWORD frameBufferSize, const string& url, unique_ptr<byte[]>& dataOut, LONG timeOut /*=0*/, IDateReceiveReporter* reporter /* = NULL */)
-{
-	dcassert(!url.empty());
-	// FlylinkDC++ Team TODO: http://code.google.com/p/flylinkdc/issues/detail?id=632
-	// TODO: please refactoring this code: The current implementation is redundant and is not optimal:
-	// now used three different storage container of the same data :( . Please use only one container.
-	if (url.empty())
-		return 0;
-	uint64_t totalBytesRead = 0;
-	DWORD numberOfBytesRead = 0;
-	DWORD numberOfBytesToRead = frameBufferSize;
-	vector<byte*> vecOut(numberOfBytesToRead); // The first container.
-	
-	AutoArray<uint8_t> pTempData(frameBufferSize + 1); // Second container.
-	CInternetHandle hInternet(InternetOpen(agent, INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0));
-	if (!hInternet)
-		return 0;
-		
-	if (timeOut)
-		InternetSetOption(hInternet, INTERNET_OPTION_CONNECT_TIMEOUT, &timeOut, sizeof(timeOut));
-		
-	CInternetHandle hURL(InternetOpenUrlA(hInternet, url.c_str(), NULL, 0, INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_RELOAD, 1));
-	if (!hURL)
-	{
-		LogManager::getInstance()->message("InternetOpenUrl error = " + Util::translateError(GetLastError()));
-		return 0;
-	}
-	bool isUserCancel = false;
-	while (InternetReadFile(hURL, pTempData.data(), numberOfBytesToRead, &numberOfBytesRead))
-	{
-		if (numberOfBytesRead == 0)
-		{
-			// EOF detected
-			break;
-		}
-		else
-		{
-			// Copy partial data
-			// pTempData[numberOfBytesRead] = '\0';
-			// data += pTempData.get();
-			if (totalBytesRead + numberOfBytesRead > vecOut.size())
-			{
-				vecOut.resize(totalBytesRead + numberOfBytesRead);
-			}
-			memcpy(&vecOut[totalBytesRead], pTempData.data(), numberOfBytesRead);
-			totalBytesRead += numberOfBytesRead;
-			if (reporter)
-			{
-				if (!reporter->ReportResultReceive(numberOfBytesRead)) //  2012-04-29_06-52-32_ZCMA2HPLJNT2IO6XPN2TGEMMKDEC4FRWXU24CMY_56E6F820_crash-stack-r502-beta23-build-9860.dmp
-				{
-					isUserCancel = true;
-					break;
-				}
-			}
-		}
-	}
-	if (isUserCancel)
-	{
-		dataOut.reset();
-		totalBytesRead = 0;
+		data = string((char*)l_bin_data.data(), l_bin_size);
 	}
 	else
 	{
-		dataOut = unique_ptr<byte[]>(new byte[ totalBytesRead ]); // Third container.
-		for (size_t i = 0; i < totalBytesRead; i += frameBufferSize)
+		data.clear();
+	}
+	
+	return l_bin_size;
+}
+//[+] SSA
+uint64_t Util::getBinaryDataFromInet(LPCWSTR agent, const DWORD frameBufferSize, const string& url, std::vector<byte>& p_dataOut, LONG timeOut /*=0*/, IDateReceiveReporter* reporter /* = NULL */)
+{
+	dcassert(frameBufferSize);
+	dcassert(!url.empty());
+	// FlylinkDC++ Team TODO: http://code.google.com/p/flylinkdc/issues/detail?id=632
+	if (url.empty())
+		return 0;
+		
+	CInternetHandle hInternet(InternetOpen(agent, INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0));
+	if (!hInternet)
+	{
+		LogManager::getInstance()->message("InternetOpen [" + url + "] error = " + Util::translateError(GetLastError()));
+		dcassert(0);
+		return 0;
+	}
+	
+	
+	if (timeOut)
+		InternetSetOption(hInternet, INTERNET_OPTION_CONNECT_TIMEOUT, &timeOut, sizeof(timeOut));
+		
+	CInternetHandle hURL(InternetOpenUrlA(hInternet, url.c_str(), NULL, 0, INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_RELOAD, 1));
+	if (!hURL)
+	{
+		dcassert(0);
+		LogManager::getInstance()->message("InternetOpenUrl [" + url + "] error = " + Util::translateError(GetLastError()));
+		// TODO - залогировать коды ошибок для статы
+		return 0;
+	}
+	bool isUserCancel = false;
+	uint64_t totalBytesRead = 0;
+	for (;;)
+	{
+		DWORD l_BytesRead = 0;
+		p_dataOut.resize(totalBytesRead + frameBufferSize);
+		if (!InternetReadFile(hURL, &p_dataOut[totalBytesRead], frameBufferSize, &l_BytesRead))
 		{
-			size_t lenCopy = frameBufferSize;
-			if (totalBytesRead - i < frameBufferSize)
-				lenCopy = totalBytesRead - i;
-				
-			byte* ptrCopy = dataOut.get() + i;
-			memcpy(ptrCopy, &vecOut[i], lenCopy);
+			dcassert(0);
+			LogManager::getInstance()->message("InternetReadFile [" + url + "] error = " + Util::translateError(GetLastError()));
+			// TODO - залогировать коды ошибок для статы
+			return 0;
 		}
+		if (l_BytesRead == 0)
+		{
+			break;
+		}
+		else
+		{
+			totalBytesRead += l_BytesRead;
+			if (reporter)
+			{
+				if (!reporter->ReportResultReceive(l_BytesRead))
+				{
+					isUserCancel = true;
+					break;
+				}
+			}
+		}
+	}
+	if (isUserCancel)
+	{
+		p_dataOut.clear();
+		totalBytesRead = 0;
 	}
 	return totalBytesRead;
 }

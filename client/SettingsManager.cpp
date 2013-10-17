@@ -619,7 +619,6 @@ void SettingsManager::setDefaults()
 	//setDefault(NO_IP_OVERRIDE, false);//[+] PPA [!]IRainman default disable ip override option
 	// http://forum.wafl.ru/index.php?s=&showtopic=4300&view=findpost&p=82510
 #ifdef FLYLINKDC_SUPPORT_WIN_XP
-# define MAX_SOCKET_BUFFER_SIZE 64 * 1024
 	setDefault(SOCKET_IN_BUFFER, MAX_SOCKET_BUFFER_SIZE);
 	setDefault(SOCKET_OUT_BUFFER, MAX_SOCKET_BUFFER_SIZE);
 	/*
@@ -663,7 +662,9 @@ void SettingsManager::setDefaults()
 	//setDefault(SORT_FAVUSERS_FIRST, false);
 	//setDefault(SHOW_SHELL_MENU, false);
 	setDefault(NUMBER_OF_SEGMENTS, 50); //[!]PPA
+#ifndef FLYLINKDC_HE
 	setDefault(SEGMENTS_MANUAL, TRUE); //[!]PPA
+#endif
 	//setDefault(HUB_SLOTS, 0);
 	setDefault(TEXT_FONT, "Arial,-12,400,0"); // !SMT!-F [~] InfinitySky - бережём зрение.
 	setDefault(DROP_MULTISOURCE_ONLY, TRUE);
@@ -1048,8 +1049,10 @@ void SettingsManager::setDefaults()
 	setDefault(SHOW_BBCODE_PANEL, TRUE);
 	setDefault(SHOW_EMOTIONS_BTN, TRUE);
 	setDefault(SHOW_MULTI_CHAT_BTN, TRUE);
-#ifdef FLYLINKDC_HE
+#ifdef SCALOLAZ_CHAT_REFFERING_TO_NICK
+# ifdef FLYLINKDC_HE
 	setDefault(CHAT_REFFERING_TO_NICK, TRUE);  // [+] SCALOlaz
+# endif
 #endif
 	setDefault(USE_AUTO_MULTI_CHAT_SWITCH, TRUE);
 	setDefault(USE_MAGNETS_IN_PLAYERS_SPAM, TRUE);

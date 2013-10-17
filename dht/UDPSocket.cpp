@@ -94,9 +94,7 @@ void UDPSocket::listen() throw(SocketException)
 		socket.reset(new Socket);
 		socket->create(Socket::TYPE_UDP);
 		socket->setSocketOpt(SO_REUSEADDR, 1);
-#ifdef FLYLINKDC_SUPPORT_WIN_XP
 	    socket->setInBufSize();
-#endif
 		const string& l_bind = SETTING(BIND_ADDRESS);
 		port = socket->bind(static_cast<uint16_t>(SETTING(DHT_PORT)), l_bind);
 		
@@ -251,9 +249,7 @@ int UDPSocket::run()
 				{
 					socket->disconnect();
 					socket->create(Socket::TYPE_UDP);
-#ifdef FLYLINKDC_SUPPORT_WIN_XP
 					socket->setInBufSize();
-#endif
 					socket->setSocketOpt(SO_REUSEADDR, 1);
 					socket->bind(port, SETTING(BIND_ADDRESS));
 					if (failed)

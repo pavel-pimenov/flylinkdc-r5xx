@@ -93,10 +93,15 @@ void BufferedSocket::setSocket(std::unique_ptr<Socket>& s) // [!] IRainman fix: 
 	dcassert(!sock.get());
 	sock = move(s);
 }
+#ifndef FLYLINKDC_HE
 void BufferedSocket::resizeInBuf()
 {
 	bool l_is_bad_alloc;
-	int l_size = 64 * 1024; // sock->getSocketOptInt(SO_RCVBUF); fix http://code.google.com/p/flylinkdc/issues/detail?id=1333
+#if 0 // fix http://code.google.com/p/flylinkdc/issues/detail?id=1333
+	int l_size = sock->getSocketOptInt(SO_RCVBUF);
+#else
+	int l_size = MAX_SOCKET_BUFFER_SIZE;
+#endif
 	do
 	{
 		try
@@ -108,12 +113,12 @@ void BufferedSocket::resizeInBuf()
 		catch (std::bad_alloc&)
 		{
 			l_size /= 2; // Заказываем в 2 раза меньше
-			l_is_bad_alloc = l_size != 0;
+			l_is_bad_alloc = l_size > 1024;
 		}
 	}
 	while (l_is_bad_alloc == true);
 }
-
+#endif // FLYLINKDC_HE
 uint16_t BufferedSocket::accept(const Socket& srv, bool secure, bool allowUntrusted)
 {
 	dcdebug("BufferedSocket::accept() %p\n", (void*)this);
@@ -163,7 +168,7 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 	m_state = RUNNING;
 	do // while (GET_TICK() < endTime) // [~] IRainman opt
 	{
-		if (!hasSocket()) // [+] IRainman fix.
+		if (socketIsDisconecting()) // [+] IRainman fix.
 			break;
 			
 		dcdebug("threadConnect attempt to addr \"%s\"\n", aAddr.c_str());
@@ -183,15 +188,20 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 			// [+] IRainman fix
 			while (true)
 			{
+#ifndef FLYLINKDC_HE
 				if (ClientManager::isShutdown())
 				{
 					dcassert(0);
 					return;
 				}
+#endif
 				if (sock->waitConnected(POLL_TIMEOUT))
 				{
-					resizeInBuf();
-					fire(BufferedSocketListener::Connected()); //[1] https://www.box.net/shared/52748dbc4f8a46f0a71b
+					if (!socketIsDisconecting())
+					{
+						resizeInBuf();
+						fire(BufferedSocketListener::Connected()); //[1] https://www.box.net/shared/52748dbc4f8a46f0a71b
+					}
 					return;
 				}
 				if (endTime <= GET_TICK())
@@ -415,8 +425,13 @@ void BufferedSocket::threadSendFile(InputStream* file)
 	if (socketIsDisconecting()) // [!] IRainman fix
 		return;
 	dcassert(file != NULL);
-	const size_t sockSize = 64 * 1024; // (size_t)sock->getSocketOptInt(SO_SNDBUF); fix http://code.google.com/p/flylinkdc/issues/detail?id=1333
-	const size_t bufSize = max(sockSize, (size_t)64 * 1024);
+#if 0 // fix http://code.google.com/p/flylinkdc/issues/detail?id=1333
+	const size_t sockSize = (size_t)sock->getSocketOptInt(SO_SNDBUF);
+	const size_t bufSize = max(sockSize, (size_t)MAX_SOCKET_BUFFER_SIZE);
+#else
+	const size_t sockSize = MAX_SOCKET_BUFFER_SIZE;
+	const size_t bufSize = MAX_SOCKET_BUFFER_SIZE;
+#endif
 	
 	ByteVector readBuf(bufSize); // https://www.box.net/shared/07ab0210ed0f83ab842e
 	ByteVector writeBuf(bufSize);

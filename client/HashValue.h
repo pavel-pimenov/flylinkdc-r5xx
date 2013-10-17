@@ -94,12 +94,13 @@ struct hash<HashValue<T> >
 	size_t operator()(const HashValue<T>& rhs) const
 	{
 		// RVO should handle this as efficiently as reinterpret_cast
-		size_t hvHash = 0; // [+] IRainman fix: V512 http://www.viva64.com/en/V512 A call of the 'memcpy' function will lead to underflow of the buffer 'cid'.
+		size_t hvHash; // = 0; // [+] IRainman fix: V512 http://www.viva64.com/en/V512 A call of the 'memcpy' function will lead to underflow of the buffer 'cid'.
 		memcpy(&hvHash, rhs.data, sizeof(size_t));
 		return hvHash;
 	}
 };
 
+#if 0
 template<typename T>
 struct hash<HashValue<T>* >
 {
@@ -118,6 +119,7 @@ struct equal_to<HashValue<T>*>
 	}
 };
 
+#endif
 }
 
 #endif // !defined(HASH_VALUE_H)

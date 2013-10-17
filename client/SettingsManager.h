@@ -23,6 +23,8 @@
 #include "Speaker.h"
 #include "Singleton.h"
 
+#define MAX_SOCKET_BUFFER_SIZE 64 * 1024 // [+] IRainman fix.
+
 #define URL_TEST_IP_DEFAULT  "http://flylinkdc.com/test.php"
 #define URL_GET_IP_DEFAULT  "http://checkip.dyndns.com"
 

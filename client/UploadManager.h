@@ -176,7 +176,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		
 		// [+] IRainman SpeedLimiter
 		typedef pair<UserPtr, unsigned int> CurrentConnectionPair;
-		typedef unordered_map<UserPtr, unsigned int, User::Hash> CurrentConnectionMap;
+		typedef boost::unordered_map<UserPtr, unsigned int> CurrentConnectionMap;
 		CurrentConnectionMap m_uploadsPerUser;
 		
 		void increaseUserConnectionAmountL(const UserPtr& p_user)
@@ -211,7 +211,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		
 		int lastFreeSlots; /// amount of free slots at the previous minute
 		
-		typedef unordered_map<UserPtr, uint64_t, User::Hash> SlotMap;
+		typedef boost::unordered_map<UserPtr, uint64_t> SlotMap;
 		
 		SlotMap m_reservedSlots;
 		mutable FastSharedCriticalSection m_csReservedSlots; // [+] IRainman opt.

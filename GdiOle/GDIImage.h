@@ -92,7 +92,11 @@ class CGDIImage
 		~CGDIImage();
 		
 	public:
-	    static bool isShutdown()
+		static void shutdown()
+		{
+			g_isShutdown = true;
+		}
+		static bool isShutdown()
 		{
 			return g_isShutdown;
 		}

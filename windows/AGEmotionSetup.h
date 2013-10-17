@@ -23,13 +23,13 @@
 
 #include "../client/Util.h"
 #include "ImageDataObject.h"
+#include <boost/unordered/unordered_set.hpp>
 
 class CGDIImage;
 class CAGEmotion
 {
 	public:
-		typedef CAGEmotion* Ptr;
-		typedef std::vector<Ptr> Array;
+		typedef std::vector<CAGEmotion*> Array;
 		
 		CAGEmotion();
 		~CAGEmotion();
@@ -120,7 +120,7 @@ class CAGEmotionSetup
 		CImageList       m_EmotionImages;
 		CAGEmotion::Array m_EmotionsArray;
 	private:
-		unordered_set<string> m_FilterEmotiion;
+		boost::unordered_set<string> m_FilterEmotion;
 		void cleanup();
 };
 

@@ -95,3 +95,8 @@ vc11
 /client/mrgtmp0
 
 FlylinkDC-*.7z
+/client/StringDefs.cpp
+/compiled/UpdateTools/FlyUpdate/FlyUpdate.exe
+/compiled/Settings/common/CustomLocations.bmp
+/compiled/Settings/common/CustomLocations.ini
+/compiled/UpdateTools/FlyUpdate/commit_update.bat

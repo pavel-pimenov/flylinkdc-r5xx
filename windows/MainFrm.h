@@ -825,15 +825,15 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 						m_MinuteElapsed = 0;
 						try
 						{
-						start(128);
-						if (p_is_sync_run)
-						{
-							join(); // Синхронный вызов
-							// подождем отработку потока.
-							// он должен быть быстрый т.к.
-							// пишет только в локальную базу
+							start(128);
+							if (p_is_sync_run)
+							{
+								join(); // Синхронный вызов
+								// подождем отработку потока.
+								// он должен быть быстрый т.к.
+								// пишет только в локальную базу
+							}
 						}
-					}
 						catch (const ThreadException& e)
 						{
 							LogManager::getInstance()->message(e.getError());

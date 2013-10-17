@@ -170,11 +170,16 @@ class ClientManager : public Speaker<ClientManagerListener>,
 #endif
 		                      ) const noexcept;
 		                      
-		void updateNick(const UserPtr& user, const string& nick) noexcept;
 #ifdef IRAINMAN_USE_NICKS_IN_CM
+		void updateNick(const UserPtr& user, const string& nick) noexcept;
 	private:
 		void updateNick_internal(const UserPtr& user, const string& nick) noexcept; // [+] IRainman fix.
 	public:
+#else
+		void updateNick(const UserPtr& p_user, const string& p_nick) noexcept
+		{
+			p_user->setLastNick(p_nick);
+		}
 #endif
 		const string& getMyNick(const string& hubUrl) const; // [!] IRainman opt.
 		
@@ -484,7 +489,10 @@ class ClientManager : public Speaker<ClientManagerListener>,
 			dcassert(isShutdown());
 		}
 		
-		void updateNick(const OnlineUserPtr& user) noexcept;
+		void updateNick(const OnlineUserPtr& user) noexcept
+		{
+			updateNick(user->getUser(), user->getIdentity().getNick());
+		}
 		
 		/// @return OnlineUser* found by CID and hint; discard any user that doesn't match the hint.
 		OnlineUser* findOnlineUserHintL(const CID& cid, const string& hintUrl) const

@@ -307,7 +307,15 @@ LRESULT PrivateFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 		return 0;
 	}
 }
-
+void PrivateFrame::readFrameLog()
+{
+	const auto linesCount = SETTING(SHOW_LAST_LINES_LOG);
+	if (linesCount)
+	{
+		const string path = Util::validateFileName(SETTING(LOG_DIRECTORY) + Util::formatParams(SETTING(LOG_FILE_PRIVATE_CHAT), getFrameLogParams(), false));
+		appendLogToChat(path, linesCount);
+	}
+}
 void PrivateFrame::addLine(const Identity& from, const bool bMyMess, const bool bThirdPerson, const tstring& aLine, const CHARFORMAT2& cf /*= WinUtil::m_ChatTextGeneral*/)
 {
 	if (!m_created)

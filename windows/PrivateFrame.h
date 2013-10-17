@@ -100,15 +100,7 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 		void addLine(const Identity& from, const bool bMyMess, const bool bThirdPerson, const tstring& aLine, const CHARFORMAT2& cf = Colors::g_ChatTextGeneral);
 		void UpdateLayout(BOOL bResizeBars = TRUE);
 		void runUserCommand(UserCommand& uc);
-		void readFrameLog()
-		{
-			const auto linesCount = SETTING(SHOW_LAST_LINES_LOG);
-			if (linesCount)
-			{
-				const string path = Util::validateFileName(SETTING(LOG_DIRECTORY) + Util::formatParams(SETTING(LOG_FILE_PRIVATE_CHAT), getFrameLogParams(), false));
-				appendLogToChat(path, linesCount);
-			}
-		}
+		void readFrameLog();
 		void openFrameLog() const
 		{
 			WinUtil::openLog(SETTING(LOG_FILE_PRIVATE_CHAT), getFrameLogParams(), TSTRING(NO_LOG_FOR_USER));
@@ -171,7 +163,7 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 		virtual void doDestroyFrame();
 		
 		bool m_created; // TODO: fix me please.
-		typedef unordered_map<UserPtr, PrivateFrame*, User::Hash> FrameMap;
+		typedef boost::unordered_map<UserPtr, PrivateFrame*> FrameMap;
 		static FrameMap g_frames;
 		
 #define MAX_PM_FRAMES 200

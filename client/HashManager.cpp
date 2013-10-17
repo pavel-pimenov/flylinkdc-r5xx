@@ -502,8 +502,9 @@ bool HashManager::checkTTH(const string& fname, const string& fpath, int64_t p_p
 const TTHValue HashManager::getTTH(const string& fname, const string& fpath, int64_t aSize) throw(HashException)
 {
 	// Lock l(cs); [-] IRainman fix.
-	const TTHValue* tth = CFlylinkDBManager::getInstance()->findTTH(fname, fpath); // [!] IRainman fix: no needs to lock.
-	if (tth == NULL)
+	TTHValue l_tth;
+	bool l_is_find_tth = CFlylinkDBManager::getInstance()->findTTH(fname, fpath, l_tth); // [!] IRainman fix: no needs to lock.
+	if (!l_is_find_tth)
 	{
 		const string name = fpath + fname;
 #ifdef IRAINMAN_NTFS_STREAM_TTH
@@ -511,7 +512,12 @@ const TTHValue HashManager::getTTH(const string& fname, const string& fpath, int
 		if (m_streamstore.loadTree(name, l_TT)) // [!] IRainman fix: no needs to lock.
 		{
 			addFileFromStream(name, l_TT, aSize); // [!] IRainman fix: no needs to lock.
-			tth = CFlylinkDBManager::getInstance()->findTTH(fname, fpath); // [!] IRainman fix: no needs to lock.
+			l_is_find_tth = CFlylinkDBManager::getInstance()->findTTH(fname, fpath, l_tth);
+			dcassert(l_is_find_tth);
+			if (!l_is_find_tth)
+			{
+				throw HashException("Error HashManager::getTTH - CFlylinkDBManager::getInstance()->findTTH! - mail ppa74@ya.ru");
+			}
 		}
 		else
 		{
@@ -528,7 +534,7 @@ const TTHValue HashManager::getTTH(const string& fname, const string& fpath, int
 		}
 #endif // IRAINMAN_NTFS_STREAM_TTH
 	}
-	return *tth;
+	return l_tth;
 }
 
 void HashManager::hashDone(const string& aFileName, uint64_t aTimeStamp, const TigerTree& tth, int64_t speed,

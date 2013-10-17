@@ -52,8 +52,8 @@ class FavHubProperties : public CDialogImpl<FavHubProperties>
 		
 		LRESULT onRandomNick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onDefaultNick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	
-	
+		
+		
 	protected:
 		FavoriteHubEntry *entry;
 };

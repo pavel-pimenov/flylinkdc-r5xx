@@ -937,21 +937,12 @@ CID ClientManager::getMyCID()
 }
 [~] IRainman fix */
 
-void ClientManager::updateNick(const OnlineUserPtr& user) noexcept
-{
-	updateNick(user->getUser(), user->getIdentity().getNick());
-}
-#ifndef IRAINMAN_USE_NICKS_IN_CM
-void ClientManager::updateNick(const UserPtr& p_user, const string& p_nick) noexcept
-{
-	p_user->setLastNick(p_nick);
-}
-#else
+#ifdef IRAINMAN_USE_NICKS_IN_CM
 void ClientManager::updateNick(const UserPtr& p_user, const string& p_nick) noexcept
 {
 	dcassert(!isShutdown());
 	//if (isShutdown()) return;
-
+	
 	// [-] dcassert(!p_nick.empty()); [-] IRainman fix: this is normal, if the user is offline.
 	if (!p_nick.empty())
 	{
@@ -964,13 +955,13 @@ void ClientManager::updateNick_internal(const UserPtr& p_user, const string& p_n
 {
 	dcassert(!isShutdown());
 	//if (isShutdown()) return;
-
+	
 # ifdef _DEBUG
 	static int g_count = 0;
 	++g_count;
 	dcdebug("!ClientManager::updateNick_internal count = %d nicks.size() = %d nick = %s\n", g_count, g_nicks.size(), p_nick.c_str());
 # endif
-
+	
 	// [+] IRainman fix.
 	p_user->setLastNick(p_nick); // [+]
 	if (p_user->isSet(User::NMDC)) // [+]
@@ -1098,7 +1089,7 @@ void ClientManager::on(Connected, const Client* c) noexcept
 
 void ClientManager::on(UserUpdated, const Client*, const OnlineUserPtr& user) noexcept
 {
-	if (!g_isShutdown)
+	if (!isShutdown())
 	{
 		fire(ClientManagerListener::UserUpdated(), user);
 	}
@@ -1106,7 +1097,7 @@ void ClientManager::on(UserUpdated, const Client*, const OnlineUserPtr& user) no
 
 void ClientManager::on(UsersUpdated, const Client* client, const OnlineUserList& l) noexcept
 {
-	dcassert(!g_isShutdown);
+	dcassert(!isShutdown());
 	for (auto i = l.cbegin(), iend = l.cend(); i != iend; ++i)
 	{
 		updateNick(*i);
@@ -1116,7 +1107,7 @@ void ClientManager::on(UsersUpdated, const Client* client, const OnlineUserList&
 
 void ClientManager::on(HubUpdated, const Client* c) noexcept
 {
-	dcassert(!g_isShutdown);
+	dcassert(!isShutdown());
 	fire(ClientManagerListener::ClientUpdated(), c);
 }
 

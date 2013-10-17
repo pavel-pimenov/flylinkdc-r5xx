@@ -340,7 +340,12 @@ void Socket::socksAuth(uint64_t timeout)
 
 int Socket::getSocketOptInt(int p_option) const
 {
+
+#ifdef FLYLINKDC_HE
+	int l_val;
+#else
 	int l_val = 0; //[!] 2012-04-23_22-28-18_L4N2H5DQSWJDZVGEWQRLCAQCSP3HVHJ3ZRWM73Q_05553A64_crash-stack-r501-build-9812.dmp
+#endif
 	socklen_t l_len = sizeof(l_val);
 	check(::getsockopt(sock, SOL_SOCKET, p_option, (char*)&l_val, &l_len)); // [2] https://www.box.net/shared/3ad49dfa7f44028a7467
 	/* [-] IRainman fix:
@@ -502,7 +507,11 @@ int Socket::writeAll(const void* aBuffer, int aLen, uint64_t timeout)
 	const uint8_t* buf = (const uint8_t*)aBuffer;
 	int pos = 0;
 	// No use sending more than this at a time...
-	const int sendSize = 64 * 1024; // getSocketOptInt(SO_SNDBUF); fix http://code.google.com/p/flylinkdc/issues/detail?id=1333
+#if 0 // fix http://code.google.com/p/flylinkdc/issues/detail?id=1333
+	const int sendSize = getSocketOptInt(SO_SNDBUF);
+#else
+	const int sendSize = MAX_SOCKET_BUFFER_SIZE;
+#endif
 	
 	while (pos < aLen)
 	{

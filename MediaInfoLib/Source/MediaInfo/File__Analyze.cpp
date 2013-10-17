@@ -1104,8 +1104,8 @@ size_t File__Analyze::Read_Buffer_Seek (size_t Method, int64u Value, int64u ID)
                     Open_Buffer_Unsynch();
                     return 1;
         default :
-    return (size_t)-1; //Not supported
-}
+                    return (size_t)-1; //Not supported
+    }
 }
 #endif //MEDIAINFO_SEEK
 

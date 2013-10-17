@@ -129,14 +129,6 @@ class User : public intrusive_ptr_base<User>, public Flags
 	public:
 #endif // IRAINMAN_ENABLE_AUTO_BAN
 	
-		struct Hash
-		{
-			size_t operator()(const UserPtr& x) const
-			{
-				return ((size_t)(&(*x))) / sizeof(User);
-			}
-		};
-		
 //#define ENABLE_DEBUG_LOG_IN_USER_CLASS
 
 		User(const CID& aCID) : m_cid(aCID),
@@ -157,9 +149,9 @@ class User : public intrusive_ptr_base<User>, public Flags
 		{
 #ifdef _DEBUG
 			++g_user_counts;
-#ifdef ENABLE_DEBUG_LOG_IN_USER_CLASS
+# ifdef ENABLE_DEBUG_LOG_IN_USER_CLASS
 			dcdebug(" [!!!!!!]   [!!!!!!]  User::User(const CID& aCID) this = %p, g_user_counts = %d\n", this, g_user_counts);
-#endif
+# endif
 #endif
 		}
 		
@@ -167,9 +159,9 @@ class User : public intrusive_ptr_base<User>, public Flags
 		{
 #ifdef _DEBUG
 			--g_user_counts;
-#ifdef ENABLE_DEBUG_LOG_IN_USER_CLASS
+# ifdef ENABLE_DEBUG_LOG_IN_USER_CLASS
 			dcdebug(" [!!!!!!]   [!!!!!!]  User::~User() this = %p, g_user_counts = %d\n", this, g_user_counts);
-#endif
+# endif
 #endif
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 			safe_delete(m_ratio_ptr);
@@ -197,7 +189,6 @@ class User : public intrusive_ptr_base<User>, public Flags
 		}
 		void setLastNick(const string& p_nick);
 		void setIP(const string& p_ip);
-		void storeIP(const string& p_ip);
 		uint32_t getHubID() const
 		{
 			return m_hub_id;
@@ -308,6 +299,19 @@ class User : public intrusive_ptr_base<User>, public Flags
 		bool      m_is_first_init_ratio;
 #endif
 };
+
+// http://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom-class-type-as-the-key
+namespace std
+{
+template <>
+struct hash<UserPtr>
+{
+	size_t operator()(const UserPtr & x) const
+	{
+		return ((size_t)(&(*x))) / sizeof(User);
+	}
+};
+}
 
 #endif // !defined(USER_H)
 

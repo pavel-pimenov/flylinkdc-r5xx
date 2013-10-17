@@ -64,7 +64,7 @@ static DefinedTestRectValue TestRectInRect(RECT *pRect1, RECT *pRect2)
 
 HRESULT CGDIImageOle::FireViewChangeEx(BOOL bEraseBackground)
 {
-	dcassert(!CGDIImage::g_isShutdown);
+	dcassert(!CGDIImage::isShutdown());
 	HRESULT Res = S_OK;	
 	if (m_bInPlaceActive)
 	{
@@ -171,7 +171,7 @@ HRESULT CGDIImageOle::FireViewChangeEx(BOOL bEraseBackground)
 
 STDMETHODIMP CGDIImageOle::put_SetImage(CGDIImage *pImage, COLORREF clrBack, HWND hCallbackWnd, DWORD dwUpdateMsg)
 {
-        dcassert(!CGDIImage::g_isShutdown);
+        dcassert(!CGDIImage::isShutdown());
 	if (m_pImage)
 		return S_FALSE;
 		
@@ -204,7 +204,7 @@ STDMETHODIMP CGDIImageOle::put_SetImage(CGDIImage *pImage, COLORREF clrBack, HWN
 
 bool CGDIImageOle::OnFrameChanged(CGDIImage *pImage, LPARAM lParam)
 {
-        dcassert(!CGDIImage::g_isShutdown);
+        dcassert(!CGDIImage::isShutdown());
 	CGDIImageOle *pGDIImage = (CGDIImageOle *)lParam;
 	return pGDIImage->FireViewChangeEx(FALSE) == S_OK;
 }

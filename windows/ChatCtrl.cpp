@@ -249,14 +249,14 @@ void ChatCtrl::AppendText(const Identity& id, const bool bMyMess, const bool bTh
 	if (bUseEmo)
 	{
 		const CAGEmotion::Array& Emoticons = CAGEmotionSetup::g_pEmotionsSetup->getEmoticonsArray();
-		uint8_t smiles = 0;
+		uint8_t l_count_smiles = 0;
 		while (true)
 		{
-			if (smiles < MAX_EMOTICONS)
+			if (l_count_smiles < MAX_EMOTICONS)
 			{
 				auto l_pos = tstring::npos;
 				auto l_min_pos = tstring::npos;
-				CAGEmotion::Ptr pFoundEmotion = nullptr;
+				CAGEmotion* pFoundEmotion = nullptr;
 				tstring l_cur_smile;
 				for (auto pEmotion = Emoticons.cbegin(); pEmotion != Emoticons.cend(); ++pEmotion)
 				{
@@ -293,7 +293,7 @@ void ChatCtrl::AppendText(const Identity& id, const bool bMyMess, const bool bTh
 						if (pObject)
 						{
 							CImageDataObject::InsertBitmap(m_hWnd, m_pRichEditOle, pOleClientSite, m_pStorage, pObject);
-							smiles++;
+							l_count_smiles++;
 						}
 						else
 						{

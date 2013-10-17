@@ -85,7 +85,7 @@ class UserCommand : public Flags
 		GETSET(string, name, Name);
 		GETSET(string, command, Command);
 		GETSET(string, to, To);
-		GETSET(string, hub, Hub);		
+		GETSET(string, hub, Hub);
 };
 
 #endif // DCPLUSPLUS_CLIENT_USER_COMMAND_H

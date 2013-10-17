@@ -473,14 +473,17 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		RecentHubEntry::List recentHubs;
 		PreviewApplication::List previewApplications;
 		UserCommand::List userCommands;
+#ifdef PPA_USER_COMMANDS_HUBS_SET
 		boost::unordered_set<string> m_userCommandsHubUrl;
-		bool is_hub_exists(const string& p_Hub) const
+		bool isHubExistsL(const string& p_Hub) const
 		{
 			return m_userCommandsHubUrl.find(p_Hub) != m_userCommandsHubUrl.end();
 		}
+#endif
 		int m_lastId;
 		
-		bool m_isNotEmpty; // Fasts response if contact list empty.
+		// [!] Fasts response if contact list empty.
+		bool m_isNotEmpty;
 		bool isNotEmpty() const
 		{
 			return m_isNotEmpty;
@@ -489,6 +492,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		{
 			m_isNotEmpty = !m_users.empty();
 		}
+		// [~] Fasts response if contact list empty.
 		
 		FavoriteMap m_users;
 		// [!] IRainman opt: replace one recursive mutex to multiply shared spin locks.

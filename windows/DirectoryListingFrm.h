@@ -576,7 +576,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		void updateTitle(); // [+] InfinitySky. Изменять заголовок окна.
 #endif // USE_OFFLINE_ICON_FOR_FILELIST
 		
-		typedef unordered_map<UserPtr, DirectoryListingFrame*, User::Hash> UserMap;
+		typedef boost::unordered_map<UserPtr, DirectoryListingFrame*> UserMap;
 		typedef pair<UserPtr, DirectoryListingFrame*> UserPair;
 		
 		static UserMap g_usersMap;

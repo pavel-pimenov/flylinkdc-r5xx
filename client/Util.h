@@ -1096,6 +1096,7 @@ class Util
 			return static_cast<char>(res);
 		}
 		
+#if 0
 		template<typename T>
 		static T& intersect(T& t1, const T& t2)
 		{
@@ -1108,7 +1109,7 @@ class Util
 			}
 			return t1;
 		}
-		
+#endif
 		static string encodeURI(const string& /*aString*/, bool reverse = false);
 		static string getLocalIp();
 		static bool isPrivateIp(const string& ip);
@@ -1166,8 +1167,7 @@ class Util
 		static string getExternalIP(const string& p_url, LONG p_timeOut = 500);
 		
 		static size_t getDataFromInet(LPCWSTR agent, const DWORD frameBufferSize, const string& url, string& data, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
-		static uint64_t getDataFromInet(LPCWSTR agent, const DWORD frameBufferSize, const string& url, unique_ptr<byte[]>& dataOut, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
-		//static uint64_t getDataFromInet(LPCWSTR agent, const DWORD frameBufferSize, const string& url, File& fileout, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
+		static uint64_t getBinaryDataFromInet(LPCWSTR agent, const DWORD frameBufferSize, const string& url, std::vector<byte>& p_dataOut, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
 		
 		// static string formatMessage(const string& message);[-] IRainman fix
 #ifdef _WIN32

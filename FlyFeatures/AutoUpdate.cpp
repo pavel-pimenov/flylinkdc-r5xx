@@ -225,9 +225,9 @@ string AutoUpdate::getUpdateFilesList(const string& p_componentName,
 		};
 bool AutoUpdateObject::checkSignXML(const string& p_url_sign) const
 {
-	unique_ptr<byte[]> l_signData;
-	const size_t l_signDataSize = Util::getDataFromInet(T_VERSIONSTRING, 4096, p_url_sign, l_signData);  
-	return l_signDataSize != 0 && AutoUpdate::verifyUpdate(l_signData.get(), l_signDataSize, m_update_xml, m_update_xml.length());
+	std::vector<byte> l_signData;
+	const size_t l_signDataSize = Util::getBinaryDataFromInet(T_VERSIONSTRING, 128+1, p_url_sign, l_signData); // update*.sign fize == 128
+	return l_signDataSize != 0 && AutoUpdate::verifyUpdate(l_signData.data(), l_signDataSize, m_update_xml, m_update_xml.length());
 }
 void AutoUpdate::startUpdateThisThread()
 {
@@ -669,9 +669,9 @@ bool AutoUpdate::prepareFile(const AutoUpdateFile& file, const string& tempFolde
 	if (file.m_sDownloadURL.empty())
 		return false;
 
-	unique_ptr<byte[]> data;
+	std::vector<byte> l_binary_data;
 	IDateReceiveReporter* reporter = InetDownloadReporter::getInstance();
-	int64_t sizeRead = Util::getDataFromInet(T_VERSIONSTRING, 4096, file.m_sDownloadURL, data, 0, reporter);
+	int64_t sizeRead = Util::getBinaryDataFromInet(T_VERSIONSTRING, 4096, file.m_sDownloadURL, l_binary_data, 0, reporter); // TODO - передать размер буфера сарзу
 	if (sizeRead == file.m_packedSize)
 	{
 		/*
@@ -686,14 +686,14 @@ bool AutoUpdate::prepareFile(const AutoUpdateFile& file, const string& tempFolde
 		if (file.m_packer == AutoUpdateFile::Zip)
 		{
 			UnZFilter unzip;
-			unPacked  = (unzip(data.get(), (size_t &)sizeRead, out.get(), outSize) && outSize == file.m_size);
+			unPacked  = (unzip(l_binary_data.data(), (size_t &)sizeRead, out.get(), outSize) && outSize == file.m_size);
 		}
 		else if (file.m_packer == AutoUpdateFile::BZip2)
 		{
 			UnBZFilter unbzip;
 			try
 			{
-				unbzip(data.get(), (size_t &)sizeRead, out.get(), outSize);
+				unbzip(l_binary_data.data(), (size_t &)sizeRead, out.get(), outSize);
 				unPacked = (outSize == file.m_size) ;
 			}
 			catch (const Exception&)
@@ -701,11 +701,10 @@ bool AutoUpdate::prepareFile(const AutoUpdateFile& file, const string& tempFolde
 				// Unpack error
 				unPacked = false;
 			}
-			
 		}
 		else if (file.m_packer == AutoUpdateFile::Unpacked)
 		{
-			memcpy(out.get(), data.get(), sizeRead);
+			memcpy(out.get(), l_binary_data.data(), sizeRead);
 			unPacked = true;
 		}
 		if (unPacked)

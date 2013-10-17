@@ -53,7 +53,7 @@ class OutputStream
 		/**
 		 * @return True if stream is at expected end
 		 */
-		virtual bool eof()
+		virtual bool eof() const
 		{
 			return false;
 		}
@@ -180,10 +180,12 @@ class LimitedOutputStream : public OutputStream
 			return s->flush();
 		}
 		
-		bool eof()
+		
+		virtual bool eof() const
 		{
 			return maxBytes == 0;
 		}
+		
 	private:
 		OutputStream* s;
 		uint64_t maxBytes;

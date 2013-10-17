@@ -57,19 +57,80 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 {
 	protected:
 		mutable FastCriticalSection cs; // [!] IRainman opt: use spinlock here!
+		void fire_user_updated(const OnlineUserList& p_list)
+		{
+			if (!p_list.empty())
+			{
+				fire(ClientListener::UsersUpdated(), this, p_list);
+			}
+		}
+		
+		// https://code.google.com/p/flylinkdc/issues/detail?id=1231
+//#define CLIENT_SUMMARY_SHARE_IS_ATOMIC
+//#define CLIENT_SUMMARY_SHARE_CLEANUP_IDENTITY
+#define CLIENT_SUMMARY_SHARE_NOT_FULL_DIAG
+
 		void clearAvailableBytes()
 		{
-			//FastLock l(cs); https://code.google.com/p/flylinkdc/issues/detail?id=1231
+#ifdef CLIENT_SUMMARY_SHARE_IS_ATOMIC
+			FastLock l(cs);
+#endif
+#ifndef CLIENT_SUMMARY_SHARE_NOT_FULL_DIAG
+			dcassert(m_availableBytes >= 0);
+#endif
 			m_availableBytes = 0;
+		}
+		void decBytesShared(Identity& p_id)
+		{
+#ifdef CLIENT_SUMMARY_SHARE_CLEANUP_IDENTITY
+			changeBytesShared(p_id, 0);
+#else
+# ifdef CLIENT_SUMMARY_SHARE_IS_ATOMIC
+			FastLock l(cs);
+# endif
+			dcdrun(const auto oldSum = m_availableBytes);
+			dcassert(oldSum >= 0);
+			const auto old = p_id.getBytesShared();
+			dcassert(old >= 0);
+# ifndef CLIENT_SUMMARY_SHARE_NOT_FULL_DIAG
+			dcassert(old <= oldSum); // bug here.
+			dcassert(m_availableBytes >= 0);
+# endif
+#endif
 		}
 		void changeBytesShared(Identity& p_id, const int64_t p_bytes)
 		{
-			//FastLock l(cs); https://code.google.com/p/flylinkdc/issues/detail?id=1231
-			m_availableBytes -= p_id.getBytesShared();
+			// https://code.google.com/p/flylinkdc/issues/detail?id=1231
+			dcassert(p_bytes >= 0);
+#ifdef CLIENT_SUMMARY_SHARE_IS_ATOMIC
+			FastLock l(cs);
+#endif
+			dcdrun(const auto oldSum = m_availableBytes);
+			dcassert(oldSum >= 0);
+			const auto old = p_id.getBytesShared();
 			p_id.setBytesShared(p_bytes);
+			dcassert(old >= 0);
+#ifndef CLIENT_SUMMARY_SHARE_NOT_FULL_DIAG
+			dcassert(old <= oldSum);
+#endif
 			m_availableBytes += p_bytes;
+#ifndef CLIENT_SUMMARY_SHARE_NOT_FULL_DIAG
+			dcassert(m_availableBytes >= 0);
+#endif
 		}
 	public:
+		int64_t getAvailableBytes() const
+		{
+			// https://code.google.com/p/flylinkdc/issues/detail?id=1231
+#ifdef CLIENT_SUMMARY_SHARE_IS_ATOMIC
+			FastLock l(cs);
+#endif
+#ifndef CLIENT_SUMMARY_SHARE_NOT_FULL_DIAG
+			dcassert(m_availableBytes >= 0);
+#endif
+			return m_availableBytes;
+		}
+		
 		typedef unordered_map<string, Client*, noCaseStringHash, noCaseStringEq> List;
 		typedef List::const_iterator Iter;
 		
@@ -91,11 +152,6 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		virtual void info(bool p_force) = 0;
 		
 		virtual size_t getUserCount() const = 0;
-		int64_t getAvailableBytes() const
-		{
-			//FastLock l(cs); https://code.google.com/p/flylinkdc/issues/detail?id=1231
-			return m_availableBytes;
-		}
 		
 		virtual void send(const AdcCommand& command) = 0;
 		

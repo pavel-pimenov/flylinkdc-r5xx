@@ -71,6 +71,7 @@ void NmdcHub::refreshUserList(bool refreshOnly)
 	if (refreshOnly)
 	{
 		OnlineUserList v;
+		v.reserve(m_users.size());
 		{
 			// [!] IRainman fix potential deadlock.
 			FastLock l(cs);
@@ -80,7 +81,7 @@ void NmdcHub::refreshUserList(bool refreshOnly)
 				v.push_back(i->second);
 			}
 		}
-		fire(ClientListener::UsersUpdated(), this, v);
+		fire_user_updated(v);
 	}
 	else
 	{
@@ -165,7 +166,7 @@ void NmdcHub::putUser(const string& aNick)
 		ou = i->second;
 		m_users.erase(i);
 	}
-	m_availableBytes -= ou->getIdentity().getBytesShared(); // https://code.google.com/p/flylinkdc/issues/detail?id=1231
+	decBytesShared(ou->getIdentity());
 	
 	if (!ou->getUser()->getCID().isZero()) // [+] IRainman fix.
 		ClientManager::getInstance()->putOffline(ou); // [2] https://www.box.net/shared/7b796492a460fe528961
@@ -717,6 +718,7 @@ void NmdcHub::onLine(const string& aLine)
 		auto l_share_size = Util::toInt64(param.c_str() + i); // Иногда шара бывает == -1 http://www.flickr.com/photos/96019675@N02/9732534452/
 		if (l_share_size < 0)
 		{
+			dcassert(l_share_size >= 0);
 			l_share_size = 0;
 			LogManager::getInstance()->message("ShareSize < 0 !, param = " + param);
 		}
@@ -1120,7 +1122,7 @@ void NmdcHub::onLine(const string& aLine)
 		{
 			OnlineUserList v;
 			const StringTokenizer<string> t(param, "$$");
-			const StringList& l = t.getTokens();
+			const StringList& sl = t.getTokens();
 			{
 				// [-] brain-ripper
 				// I can't see any work with ClientListener
@@ -1134,8 +1136,7 @@ void NmdcHub::onLine(const string& aLine)
 				// changed in other thread
 				
 				// Lock _l(cs); [-] IRainman fix.
-				
-				for (auto it = l.cbegin(); it != l.cend(); ++it)
+				for (auto it = sl.cbegin(); it != sl.cend(); ++it)
 				{
 					string::size_type j = 0;
 					if ((j = it->find(' ')) == string::npos)
@@ -1159,7 +1160,7 @@ void NmdcHub::onLine(const string& aLine)
 					v.push_back(ou);
 				}
 			}
-			fire(ClientListener::UsersUpdated(), this, v); // !SMT!-fix
+			fire_user_updated(v);
 		}
 	}
 	else if (cmd == "NickList")
@@ -1169,7 +1170,6 @@ void NmdcHub::onLine(const string& aLine)
 			OnlineUserList v;
 			const StringTokenizer<string> t(param, "$$");
 			const StringList& sl = t.getTokens();
-			
 			{
 				// [-] brain-ripper
 				// I can't see any work with ClientListener
@@ -1210,7 +1210,7 @@ void NmdcHub::onLine(const string& aLine)
 					}
 				}
 			}
-			fire(ClientListener::UsersUpdated(), this, v); // !SMT!-fix
+			fire_user_updated(v);
 		}
 	}
 	else if (cmd == "OpList")
@@ -1250,8 +1250,7 @@ void NmdcHub::onLine(const string& aLine)
 					v.push_back(ou);
 				}
 			}
-			
-			fire(ClientListener::UsersUpdated(), this, v); // !SMT!-fix
+			fire_user_updated(v);
 			updateCounts(false);
 			
 			// Special...to avoid op's complaining that their count is not correctly

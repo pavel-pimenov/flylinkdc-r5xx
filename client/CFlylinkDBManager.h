@@ -152,7 +152,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void push_download_tth(const TTHValue& p_tth);
 		void push_add_share_tth_(const TTHValue& p_tth);
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-		void store_all_ratio_and_last_ip(uint32_t p_dic_hub,
+		void store_all_ratio_and_last_ip(uint32_t p_hub_id,
 		                                 const string& p_nick,
 		                                 const CFlyUploadDownloadMap& p_upload_download_stats,
 		                                 const string& p_last_ip);
@@ -161,7 +161,10 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void load_global_ratio();
 		CFlyRatioItem load_ratio(uint32_t p_hub_id, const string& p_nick, CFlyUserRatioInfo& p_ratio_info, const string& p_last_ip);
 		string load_last_ip(uint32_t p_hub_id, const string& p_nick);
-		
+		void update_last_ip(uint32_t p_hub_id, const string& p_nick, const string& p_last_ip);
+	private:
+		void update_last_ipL(uint32_t p_hub_id, const string& p_nick, const string& p_last_ip);
+	public:
 		CFlyGlobalRatioItem  m_global_ratio;
 		double get_ratio() const;
 		tstring get_ratioW() const;
@@ -179,12 +182,11 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		
 		FileStatus get_status_file(const TTHValue& p_tth);
 		
-		const TTHValue* get_tth(const __int64 p_tth_id);
 		bool getTree(const TTHValue& p_root, TigerTree& p_tt);
 		unsigned __int64 getBlockSizeSQL(const TTHValue& p_root, __int64 p_size);
 		__int64 get_path_id(string p_path, bool p_create, bool p_case_convet);
 		__int64 addTree(const TigerTree& tt);
-		const TTHValue* findTTH(const string& aPath, const string& aFileName);
+		bool findTTH(const string& aPath, const string& aFileName, TTHValue& p_tth);
 		
 		__int64 merge_file(const string& p_path, const string& p_file_name, const int64_t p_time_stamp,
 		                   const TigerTree& p_tt, bool p_case_convet,
@@ -194,7 +196,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		bool rebuild_mediainfo(const __int64 p_path_id, const string& p_file_name, const CFlyMediaInfo& p_media, const TTHValue& p_tth);
 #endif
 		static void errorDB(const string& p_txt);
-	public:
+		
 		void Hit(const string& p_Path, const string& p_FileName);
 		bool checkTTH(const string& fname, __int64 path_id, int64_t aSize, int64_t aTimeStamp, TTHValue& p_out_tth);
 		void LoadPathCache();
@@ -218,7 +220,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void save_registry(const TStringList& p_values, int p_Segment);
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		
-		__int64 load_media_info(const TTHValue& p_tth, CFlyMediaInfo& p_media_info, bool p_only_inform);
+		bool load_media_info(const TTHValue& p_tth, CFlyMediaInfo& p_media_info, bool p_only_inform);
 		bool find_fly_server_cache(const TTHValue& p_tth, CFlyServerCache& p_value);
 		void save_fly_server_cache(const TTHValue& p_tth, const CFlyServerCache& p_value);
 #endif
@@ -327,7 +329,6 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		auto_ptr<sqlite3_command> m_get_path_id;
 		auto_ptr<sqlite3_command> m_get_tth_id;
 		auto_ptr<sqlite3_command> m_findTTH;
-		auto_ptr<sqlite3_command> m_get_tth;
 		auto_ptr<sqlite3_command> m_get_status_file;
 		auto_ptr<sqlite3_command> m_upload_file;
 		auto_ptr<sqlite3_command> m_get_tree;
@@ -401,12 +402,13 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void pragma_executor(const char* p_pragma);
 		void updateFileInfo(const string& p_fname, __int64 p_path_id,
 		                    int64_t p_Size, int64_t p_TimeStamp, __int64 p_tth_id);
-		__int64 get_tth_id(const TTHValue& p_tth, bool p_create);
+		__int64 get_tth_idL(const TTHValue& p_tth, bool p_create);
 		
 		__int64 m_queue_id;
 		__int64 m_last_path_id;
 		string  m_last_path;
 		int     m_convert_ftype_stop_key;
+		size_t  m_count_json_stat;
 		static size_t g_count_queue_source;
 };
 #endif

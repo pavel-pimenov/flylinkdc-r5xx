@@ -152,9 +152,13 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		
 		void appendChatCtrlItems(OMenu& p_menu, const Client* client = nullptr);
 		
-		TCHAR getChatRefferingToNick()
+		static TCHAR getChatRefferingToNick()
 		{
+#ifdef SCALOLAZ_CHAT_REFFERING_TO_NICK
 			return BOOLSETTING(CHAT_REFFERING_TO_NICK) ? _T(',') : _T(':');
+#else
+			return _T(',');
+#endif
 		}
 		
 		void appendNickToChat(const tstring& nick);

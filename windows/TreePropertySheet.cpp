@@ -331,7 +331,7 @@ HTREEITEM TreePropertySheet::findItem(const tstring& str, HTREEITEM start)
 	while (start != NULL)
 	{
 		ctrlTree.GetItemText(start, buf.data(), MAX_NAME_LENGTH - 1);
-		if(lstrcmp(str.c_str(),buf.data()) == 0) // TODO PVS
+		if (lstrcmp(str.c_str(), buf.data()) == 0) // TODO PVS
 		{
 			return start;
 		}

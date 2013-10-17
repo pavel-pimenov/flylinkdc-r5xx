@@ -81,6 +81,7 @@ void User::setLastNick(const string& p_nick)
 		}
 	}
 }
+#if 0
 void User::storeIP(const string& p_ip)
 {
 	if (m_ratio_ptr)
@@ -98,6 +99,7 @@ void User::storeIP(const string& p_ip)
 		}
 	}
 }
+#endif
 void User::setIP(const string& p_last_ip)
 {
 	if (m_ratio_ptr)
@@ -176,8 +178,8 @@ void User::AddRatioUpload(const string& p_ip, uint64_t p_size)
 	initRatio(true);
 	if (m_ratio_ptr)
 	{
-	m_ratio_ptr->addUpload(p_ip, p_size);
-}
+		m_ratio_ptr->addUpload(p_ip, p_size);
+	}
 }
 void User::AddRatioDownload(const string& p_ip, uint64_t p_size)
 {
@@ -188,8 +190,8 @@ void User::AddRatioDownload(const string& p_ip, uint64_t p_size)
 	initRatio(true);
 	if (m_ratio_ptr)
 	{
-	m_ratio_ptr->addDownload(p_ip, p_size);
-}
+		m_ratio_ptr->addDownload(p_ip, p_size);
+	}
 }
 void User::flushRatio()
 {

@@ -117,10 +117,12 @@ UserCommand FavoriteManager::addUserCommand(int type, int ctx, Flags::MaskType f
 	{
 		// No dupes, add it...
 		FastUniqueLock l(csUserCommand);
+#ifdef PPA_USER_COMMANDS_HUBS_SET
 		if (!hub.empty())
 		{
 			m_userCommandsHubUrl.insert(hub);
 		}
+#endif
 		userCommands.push_back(uc);
 	}
 	if (!uc.isSet(UserCommand::FLAG_NOSAVE))
@@ -180,7 +182,9 @@ void FavoriteManager::updateUserCommand(const UserCommand& uc)
 int FavoriteManager::findUserCommand(const string& aName, const string& p_Hub) const
 {
 	FastSharedLock l(csUserCommand);
-	if (is_hub_exists(p_Hub))
+#ifdef PPA_USER_COMMANDS_HUBS_SET
+	if (isHubExistsL(p_Hub))
+#endif
 	{
 		for (auto i = userCommands.cbegin(); i != userCommands.cend(); ++i)
 		{
@@ -226,19 +230,25 @@ void FavoriteManager::prepareClose()
 {
 	CFlyLog l_log("[User command cleanup]");
 	FastUniqueLock l(csUserCommand);
+#ifdef PPA_USER_COMMANDS_HUBS_SET
 	m_userCommandsHubUrl.clear();
+#endif
 	userCommands.clear();
 }
 size_t FavoriteManager::countUserCommand(const string& p_Hub) const
 {
-	FastSharedLock l(csUserCommand);
 	size_t l_count = 0;
-	if (is_hub_exists(p_Hub))
 	{
-		for (auto i = userCommands.cbegin(); i != userCommands.cend(); ++i)
+		FastSharedLock l(csUserCommand);
+#ifdef PPA_USER_COMMANDS_HUBS_SET
+		if (isHubExistsL(p_Hub))
+#endif
 		{
-			if (i->isSet(UserCommand::FLAG_NOSAVE) && i->getHub() == p_Hub)
-				l_count++;
+			for (auto i = userCommands.cbegin(); i != userCommands.cend(); ++i)
+			{
+				if (i->isSet(UserCommand::FLAG_NOSAVE) && i->getHub() == p_Hub)
+					l_count++;
+			}
 		}
 	}
 	return l_count;
@@ -246,7 +256,9 @@ size_t FavoriteManager::countUserCommand(const string& p_Hub) const
 void FavoriteManager::removeUserCommand(const string& p_Hub)
 {
 	FastUniqueLock l(csUserCommand);
-	if (is_hub_exists(p_Hub))
+#ifdef PPA_USER_COMMANDS_HUBS_SET
+	if (isHubExistsL(p_Hub))
+#endif
 	{
 	
 #ifdef _DEBUG
@@ -263,9 +275,13 @@ void FavoriteManager::removeUserCommand(const string& p_Hub)
 			                                   " g_count = " + Util::toString(++g_count));
 		}
 #endif
+#ifdef PPA_USER_COMMANDS_HUBS_SET
+		bool hubWithoutCommands = true; // [+] IRainman fix: cleanup.
+#endif
 		for (auto i = userCommands.cbegin(); i != userCommands.cend();)
 		{
-			if (i->isSet(UserCommand::FLAG_NOSAVE) && i->getHub() == p_Hub) // [!] IRainman opt: reordering conditions.
+			const bool matchHub = i->getHub() == p_Hub;
+			if (i->isSet(UserCommand::FLAG_NOSAVE) && matchHub) // [!] IRainman opt: reordering conditions.
 			{
 #ifdef _DEBUG
 				LogManager::getInstance()->message("FavoriteManager::removeUserCommand srv = " + p_Hub + " userCommands.erase()! userCommands.size() = " + Util::toString(userCommands.size()));
@@ -274,28 +290,58 @@ void FavoriteManager::removeUserCommand(const string& p_Hub)
 			}
 			else
 			{
+#ifdef PPA_USER_COMMANDS_HUBS_SET
+				if (matchHub)
+				{
+					hubWithoutCommands = false;
+				}
+#endif
 				++i;
 			}
 		}
+#ifdef PPA_USER_COMMANDS_HUBS_SET
+		if (hubWithoutCommands)
+		{
+			m_userCommandsHubUrl.erase(p_Hub);
+		}
+#endif
 	}
 }
 
 void FavoriteManager::removeHubUserCommands(int ctx, const string& p_Hub)
 {
 	FastUniqueLock l(csUserCommand);
-	if (is_hub_exists(p_Hub))
+#ifdef PPA_USER_COMMANDS_HUBS_SET
+	if (isHubExistsL(p_Hub))
+#endif
 	{
+#ifdef PPA_USER_COMMANDS_HUBS_SET
+		bool hubWithoutCommands = true; // [+] IRainman fix: cleanup.
+#endif
 		for (auto i = userCommands.cbegin(); i != userCommands.cend();)
 		{
-			if (i->isSet(UserCommand::FLAG_NOSAVE) && (i->getCtx() & ctx) != 0 && i->getHub() == p_Hub) // [!] IRainman opt: reordering conditions.
+			const bool matchHub = i->getHub() == p_Hub;
+			if (i->isSet(UserCommand::FLAG_NOSAVE) && (i->getCtx() & ctx) != 0 && matchHub) // [!] IRainman opt: reordering conditions.
 			{
 				i = userCommands.erase(i);
 			}
 			else
 			{
+#ifdef PPA_USER_COMMANDS_HUBS_SET
+				if (matchHub)
+				{
+					hubWithoutCommands = false;
+				}
+#endif
 				++i;
 			}
 		}
+#ifdef PPA_USER_COMMANDS_HUBS_SET
+		if (hubWithoutCommands)
+		{
+			m_userCommandsHubUrl.erase(p_Hub);
+		}
+#endif
 	}
 }
 
@@ -676,7 +722,7 @@ void FavoriteManager::addRecent(const RecentHubEntry& aEntry)
 
 void FavoriteManager::removeRecent(const RecentHubEntry* entry)
 {
-	RecentHubEntry::List::iterator i = find(recentHubs.begin(), recentHubs.end(), entry);
+	const auto& i = find(recentHubs.begin(), recentHubs.end(), entry);
 	if (i == recentHubs.end())
 	{
 		return;
@@ -827,7 +873,9 @@ void FavoriteManager::save() const
 				xml.addChildAttrib("WindowSizeY", (*i)->getWindowSizeY());
 				xml.addChildAttrib("WindowType", (*i)->getWindowType());
 				xml.addChildAttrib("ChatUserSplitSize", (*i)->getChatUserSplit());
+#ifdef SCALOLAZ_HUB_SWITCH_BTN
 				xml.addChildAttrib("ChatUserSplitState", (*i)->getChatUserSplitState());
+#endif
 #ifdef IRAINMAN_ENABLE_STEALTH_MODE
 				xml.addChildAttrib("StealthMode", (*i)->getStealth());
 #endif
@@ -932,12 +980,14 @@ void FavoriteManager::save() const
 		
 		xml.stepOut();
 		
-		string fname = getConfigFile();
+		const string fname = getConfigFile();
 		
-		File f(fname + ".tmp", File::WRITE, File::CREATE | File::TRUNCATE);
-		f.write(SimpleXML::utf8Header);
-		f.write(xml.toXML());
-		f.close();
+		{
+			File f(fname + ".tmp", File::WRITE, File::CREATE | File::TRUNCATE);
+			f.write(SimpleXML::utf8Header);
+			f.write(xml.toXML());
+			f.close();
+		}
 		File::deleteFile(fname);
 		File::renameFile(fname + ".tmp", fname);
 		
@@ -946,6 +996,7 @@ void FavoriteManager::save() const
 	{
 		dcassert(0);
 		dcdebug("FavoriteManager::save: %s\n", e.getError().c_str());
+		LogManager::getInstance()->message("FavoriteManager::save error = " + e.getError());
 	}
 }
 
@@ -1015,18 +1066,18 @@ void FavoriteManager::load()
 {
 
 	// Add NMDC standard op commands
-	static const char kickstr[] =
+	static const char g_kickstr[] =
 	    "$To: %[userNI] From: %[myNI] $<%[myNI]> You are being kicked because: %[kickline:Reason]|<%[myNI]> is kicking %[userNI] because: %[kickline:Reason]|$Kick %[userNI]|";
 	addUserCommand(UserCommand::TYPE_RAW_ONCE, UserCommand::CONTEXT_USER | UserCommand::CONTEXT_SEARCH, UserCommand::FLAG_NOSAVE,
-	               STRING(KICK_USER), kickstr, "", "op");
-	static const char kickfilestr[] =
+	               STRING(KICK_USER), g_kickstr, "", "op");
+	static const char g_kickfilestr[] =
 	    "$To: %[userNI] From: %[myNI] $<%[myNI]> You are being kicked because: %[kickline:Reason] %[fileFN]|<%[myNI]> is kicking %[userNI] because: %[kickline:Reason] %[fileFN]|$Kick %[userNI]|";
 	addUserCommand(UserCommand::TYPE_RAW_ONCE, UserCommand::CONTEXT_SEARCH, UserCommand::FLAG_NOSAVE,
-	               STRING(KICK_USER_FILE), kickfilestr, "", "op");
-	static const char redirstr[] =
+	               STRING(KICK_USER_FILE), g_kickfilestr, "", "op");
+	static const char g_redirstr[] =
 	    "$OpForceMove $Who:%[userNI]$Where:%[line:Target Server]$Msg:%[line:Message]|";
 	addUserCommand(UserCommand::TYPE_RAW_ONCE, UserCommand::CONTEXT_USER | UserCommand::CONTEXT_SEARCH, UserCommand::FLAG_NOSAVE,
-	               STRING(REDIRECT_USER), redirstr, "", "op");
+	               STRING(REDIRECT_USER), g_redirstr, "", "op");
 	               
 	try
 	{
@@ -1195,7 +1246,9 @@ void FavoriteManager::load(SimpleXML& aXml
 				e->setWindowSizeY(aXml.getIntChildAttrib("WindowSizeY"));
 				e->setWindowType(aXml.getIntChildAttrib("WindowType", "3")); // Если кея нет - SW_MAXIMIZE
 				e->setChatUserSplit(aXml.getIntChildAttrib("ChatUserSplitSize"));
+#ifdef SCALOLAZ_HUB_SWITCH_BTN
 				e->setChatUserSplitState(aXml.getBoolChildAttrib("ChatUserSplitState"));
+#endif
 #ifdef IRAINMAN_ENABLE_STEALTH_MODE
 				e->setStealth(aXml.getBoolChildAttrib("StealthMode"));
 #endif

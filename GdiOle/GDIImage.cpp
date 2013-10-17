@@ -19,7 +19,7 @@ CGDIImage::CGDIImage(LPCWSTR pszFileName, HWND hCallbackWnd, DWORD dwCallbackMsg
 	m_dwCurrentFrame(0)
 	, m_allowCreateTimer(true) // [+] IRainman fix.
 {
-	dcassert(!g_isShutdown);
+	dcassert(!isShutdown());
 	InitializeCriticalSectionAndSpinCount(&m_csCallback, CRITICAL_SECTION_SPIN_COUNT); // [!] IRainman opt.
 	m_pImage = new Gdiplus::Image(pszFileName);
 	if (m_pImage && m_pImage->GetLastStatus() != Gdiplus::Ok)
@@ -88,7 +88,7 @@ CGDIImage::~CGDIImage()
 
 void CGDIImage::Draw(HDC hDC, int xDst, int yDst, int wDst, int hDst, int xSrc, int ySrc, HDC hBackDC, int xBk, int yBk, int wBk, int hBk)
 {
-	dcassert(!g_isShutdown);
+	dcassert(!isShutdown());
 	if (hBackDC)
 	{
 		BitBlt(hBackDC, xBk, yBk, wBk, hBk, NULL, 0, 0, PATCOPY);
@@ -125,7 +125,7 @@ DWORD CGDIImage::GetFrameDelay(DWORD dwFrame)
 
 bool CGDIImage::SelectActiveFrame(DWORD dwFrame)
 {
-	dcassert(!g_isShutdown);
+	dcassert(!isShutdown());
 	static const GUID g_Guid = Gdiplus::FrameDimensionTime;
 	if (m_pImage)
 		m_pImage->SelectActiveFrame(&g_Guid, dwFrame); // [1] https://www.box.net/shared/x4tgntvw818gzd274nek
@@ -140,7 +140,7 @@ bool CGDIImage::SelectActiveFrame(DWORD dwFrame)
 
 DWORD CGDIImage::GetFrameCount()
 {
-	dcassert(!g_isShutdown);
+	dcassert(!isShutdown());
 	if (m_dwFramesCount == 0)
 	{
 		//First of all we should get the number of frame dimensions
@@ -170,7 +170,7 @@ DWORD CGDIImage::GetHeight()
 
 void CGDIImage::DrawFrame()
 {
-	dcassert(!g_isShutdown);
+	dcassert(!isShutdown());
 
 	EnterCriticalSection(&m_csCallback); // crash-full-r501-build-9869.dmp
 	static int g_count = 0;
@@ -207,7 +207,7 @@ VOID CALLBACK CGDIImage::OnTimer(PVOID lpParameter, BOOLEAN TimerOrWaitFired)
 	CGDIImage *pGDIImage = (CGDIImage *)lpParameter;
 	if (pGDIImage)
 	{
-		if(g_isShutdown)
+		if(isShutdown())
 		{
 			destroyTimer(pGDIImage,NULL);
 			return;
@@ -257,7 +257,7 @@ VOID CALLBACK CGDIImage::OnTimer(PVOID lpParameter, BOOLEAN TimerOrWaitFired)
 
 void CGDIImage::RegisterCallback(ONFRAMECHANGED pOnFrameChangedProc, LPARAM lParam)
 {
-	dcassert(!g_isShutdown);
+	dcassert(!isShutdown());
 
 	if (GetFrameCount() > 1)
 	{
@@ -274,7 +274,7 @@ void CGDIImage::RegisterCallback(ONFRAMECHANGED pOnFrameChangedProc, LPARAM lPar
 
 void CGDIImage::UnregisterCallback(ONFRAMECHANGED pOnFrameChangedProc, LPARAM lParam)
 {
-	if(g_isShutdown)
+	if(isShutdown())
 	{
 		EnterCriticalSection(&m_csCallback);
 		m_Callbacks.clear(); // TODO - часто зовется на пустой коллекции при наличии нескольки смайлов в чатах.
@@ -298,7 +298,7 @@ void CGDIImage::UnregisterCallback(ONFRAMECHANGED pOnFrameChangedProc, LPARAM lP
 
 HDC CGDIImage::CreateBackDC(COLORREF clrBack, int iPaddingW, int iPaddingH)
 {
-	dcassert(!g_isShutdown);
+	dcassert(!isShutdown());
 	HDC hRetDC = NULL;
 	if (m_pImage)
 	{

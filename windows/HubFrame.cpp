@@ -195,8 +195,11 @@ HubFrame::HubFrame(const tstring& aServer,
 	, m_ctrlFilter(nullptr)
 	, m_ctrlFilterSel(nullptr)
 	, m_FilterSelPos(COLUMN_NICK)
+#ifdef SCALOLAZ_HUB_SWITCH_BTN
 	, m_ctrlSwitchPanels(nullptr)
+	, m_isClientUsersSwitch(nullptr)
 	, m_switchPanelsContainer(nullptr)
+#endif
 	, m_ctrlShowUsers(nullptr)
 	, m_tooltip_hubframe(nullptr)
 #ifdef SCALOLAZ_HUB_MODE
@@ -211,6 +214,8 @@ HubFrame::HubFrame(const tstring& aServer,
 	, m_ActivateCounter(0)
 	, m_is_window_text_update(false)
 {
+	m_showUsersStore = p_UserListState;
+	m_showUsers = false;
 	client = ClientManager::getInstance()->getClient(Text::fromT(aServer));
 	m_nProportionalPos = p_ChatUserSplit;
 	m_ctrlStatusCache.resize(5);
@@ -223,8 +228,6 @@ HubFrame::HubFrame(const tstring& aServer,
 	client->setRawFour(Text::fromT(aRawFour));
 	client->setRawFive(Text::fromT(aRawFive));
 	
-	m_showUsersStore = p_UserListState;
-	m_showUsers = false;
 }
 
 void HubFrame::doDestroyFrame()
@@ -334,30 +337,32 @@ void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
 }
 void HubFrame::updateSplitterPosition(const FavoriteHubEntry *p_fhe)
 {
-	if (m_ActivateCounter == 1) // Настройку сплиттеров делаем только один раз
+	dcassert(m_ActivateCounter == 1);
+	m_nProportionalPos = 0;
+	if (p_fhe && p_fhe->getChatUserSplit())
 	{
-		m_nProportionalPos = 0;
-		if (p_fhe && p_fhe->getChatUserSplit())
-		{
-			m_ClientUsers = p_fhe->getChatUserSplitState();
-			m_nProportionalPos = p_fhe->getChatUserSplit();
-		}
-		if (m_nProportionalPos == 0)
-		{
-			if (SETTING(HUB_POSITION) == SettingsManager::POS_RIGHT)
-			{
-				m_ClientUsers = true;
-				m_nProportionalPos = 7500;
-			}
-			else
-			{
-				m_ClientUsers = false;
-				m_nProportionalPos = 2500;
-			}
-		}
-		TuneSplitterPanes();
-		SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
+#ifdef SCALOLAZ_HUB_SWITCH_BTN
+		m_isClientUsersSwitch = p_fhe->getChatUserSplitState();
+#endif
+		m_nProportionalPos = p_fhe->getChatUserSplit();
 	}
+	else
+	{
+#ifdef SCALOLAZ_HUB_SWITCH_BTN
+		m_isClientUsersSwitch = true;
+#endif
+	}
+	if (m_nProportionalPos == 0)
+	{
+#ifdef SCALOLAZ_HUB_SWITCH_BTN
+		m_isClientUsersSwitch = SETTING(HUB_POSITION) == SettingsManager::POS_RIGHT;
+		m_nProportionalPos = m_isClientUsersSwitch ? 7500 : 2500;
+#else
+		m_nProportionalPos = 7500;
+#endif
+	}
+	TuneSplitterPanes();
+	SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
 }
 
 void HubFrame::createMessagePanel()
@@ -366,7 +371,7 @@ void HubFrame::createMessagePanel()
 	dcassert(!ClientManager::isShutdown());
 	if (m_ctrlFilter == nullptr && g_isStartupProcess == false)
 	{
-		++m_ActivateCounter; // TODO - вместо счетчика использовать указатель на динамический объект, который не разрушать при деактивации
+		++m_ActivateCounter;
 		BaseChatFrame::createMessageCtrl(this, EDIT_MESSAGE_MAP);
 		
 		m_ctrlFilterContainer    = new CContainedWindow(WC_EDIT, this, FILTER_MESSAGE_MAP);
@@ -416,7 +421,8 @@ void HubFrame::createMessagePanel()
 		m_ctrlShowUsers->Create(m_ctrlStatus->m_hWnd, rcDefault, _T("+/-"), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 		m_ctrlShowUsers->SetButtonStyle(BS_AUTOCHECKBOX, false);
 		m_ctrlShowUsers->SetFont(Fonts::systemFont);
-		m_ctrlShowUsers->SetCheck((m_ActivateCounter == 1 ? m_showUsersStore : m_showUsers) ? BST_CHECKED : BST_UNCHECKED);
+		setShowUsersCheck();
+		
 		m_showUsersContainer = new CContainedWindow(WC_BUTTON, this, EDIT_MESSAGE_MAP);
 		m_showUsersContainer->SubclassWindow(m_ctrlShowUsers->m_hWnd);
 		m_tooltip_hubframe->AddTool(*m_ctrlShowUsers, ResourceManager::CMD_USERLIST);
@@ -427,7 +433,6 @@ void HubFrame::createMessagePanel()
 		dcassert(client->getHubUrl() == Text::fromT(server));
 		const FavoriteHubEntry *fhe = FavoriteManager::getInstance()->getFavoriteHubEntry(Text::fromT(server));
 		createFavHubMenu(fhe);
-		updateSplitterPosition(fhe); // Обновим сплитер
 		updateColumnsInfo(fhe); // Настроим колонки списка юзеров
 		m_ctrlMessage->SetFocus();
 		if (m_ActivateCounter == 1)
@@ -437,6 +442,7 @@ void HubFrame::createMessagePanel()
 			{
 				firstLoadAllUsers();
 			}
+			updateSplitterPosition(fhe); // Обновим сплитер
 		}
 		updateWindowText();
 		l_is_need_update = true;
@@ -444,7 +450,9 @@ void HubFrame::createMessagePanel()
 	BaseChatFrame::createMessagePanel();
 	if (l_is_need_update)
 	{
+#ifdef SCALOLAZ_HUB_SWITCH_BTN
 		HubModeChange();
+#endif
 		UpdateLayout(TRUE); // TODO - сконструировать статус отдельным методом
 		restoreStatusFromCache(); // Восстанавливать статус нужно после UpdateLayout
 	}
@@ -465,8 +473,10 @@ void HubFrame::destroyMessagePanel(bool p_is_destroy)
 #endif
 		//safe_unsubclass_window(m_showUsersContainer);
 		safe_destroy_window(m_ctrlShowUsers);
+#ifdef SCALOLAZ_HUB_SWITCH_BTN
 		//safe_unsubclass_window(m_switchPanelsContainer);
 		safe_destroy_window(m_ctrlSwitchPanels);
+#endif
 		//safe_unsubclass_window(m_ctrlFilterContainer);
 		safe_destroy_window(m_ctrlFilter);
 		//safe_unsubclass_window(m_ctrlFilterSelContainer);
@@ -476,9 +486,11 @@ void HubFrame::destroyMessagePanel(bool p_is_destroy)
 		safe_delete(m_ctrlShowMode);
 #endif
 		safe_delete(m_ctrlShowUsers);
-		safe_delete(m_ctrlSwitchPanels);
 		safe_delete(m_showUsersContainer);
+#ifdef SCALOLAZ_HUB_SWITCH_BTN
+		safe_delete(m_ctrlSwitchPanels);
 		safe_delete(m_switchPanelsContainer);
+#endif
 		safe_delete(m_ctrlFilter);
 		safe_delete(m_ctrlFilterContainer);
 		safe_delete(m_ctrlFilterSel);
@@ -547,7 +559,9 @@ void HubFrame::onInvalidateAfterActiveTab(HWND aWnd)
 				//m_ctrlStatus->RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
 				// TODO подобрать более легкую команду. без этой пропадаю иконки в статусе.
 				m_ctrlShowUsers->Invalidate();
+#ifdef SCALOLAZ_HUB_SWITCH_BTN
 				m_ctrlSwitchPanels->Invalidate();
+#endif
 #ifdef SCALOLAZ_HUB_MODE
 				m_ctrlShowMode->Invalidate();
 #endif
@@ -635,6 +649,28 @@ void HubFrame::processFrameMessage(const tstring& fullMessageText, bool& resetIn
 	}
 }
 
+StringMap HubFrame::getFrameLogParams() const
+{
+	StringMap params;
+	
+	params["hubNI"] = client->getHubName();
+	params["hubURL"] = client->getHubUrl();
+	params["myNI"] = client->getMyNick();
+	
+	return params;
+}
+void HubFrame::readFrameLog()
+{
+#ifdef IRAINMAN_LOAD_LOG_FOR_HUBS
+	const auto linesCount = SETTING(SHOW_LAST_LINES_LOG);
+	if (linesCount)
+	{
+		const string path = Util::validateFileName(SETTING(LOG_DIRECTORY) + Util::formatParams(SETTING(LOG_FILE_MAIN_CHAT), getFrameLogParams(), false));
+		appendLogToChat(path, linesCount);
+	}
+#endif
+}
+
 void HubFrame::processFrameCommand(const tstring& fullMessageText, const tstring& cmd, tstring& param, bool& resetInputMessageText)
 {
 	if (stricmp(cmd.c_str(), _T("join")) == 0)
@@ -693,7 +729,7 @@ void HubFrame::processFrameCommand(const tstring& fullMessageText, const tstring
 	}
 	else if (m_ctrlShowUsers && stricmp(cmd.c_str(), _T("userlist")) == 0)
 	{
-		m_ctrlShowUsers->SetCheck(m_showUsers ? BST_UNCHECKED : BST_CHECKED);
+		setShowUsersCheck();
 	}
 	else if (stricmp(cmd.c_str(), _T("connection")) == 0 || stricmp(cmd.c_str(), _T("con")) == 0)
 	{
@@ -781,18 +817,20 @@ void HubFrame::processFrameCommand(const tstring& fullMessageText, const tstring
 			}
 		}
 	}
+#ifdef SCALOLAZ_HUB_SWITCH_BTN
 	// [~] InfinitySky. Положение в окне.
 	else if (stricmp(cmd.c_str(), _T("switch")) == 0)
 	{
 		if (m_showUsers)
 			OnSwitchedPanels();
 	}
+#endif
 // SSA_SAVE_LAST_NICK_MACROS
 	else if (stricmp(cmd.c_str(), _T("nick")) == 0 || stricmp(cmd.c_str(), _T("n")) == 0) // [+] SSA
 	{
 		tstring sayMessage;
 		if (!m_lastUserName.empty())
-			sayMessage = m_lastUserName + getChatRefferingToNick() + _T(' ');       // :   <Insert Nick Here> text -> Nick, text
+			sayMessage = m_lastUserName + getChatRefferingToNick() + _T(' ');
 			
 		sayMessage += param;
 		sendMessage(sayMessage);
@@ -1013,14 +1051,14 @@ LRESULT HubFrame::onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 				sCopy += id.getEmail();
 				break;
 			case IDC_COPY_IP:
-				sCopy += u->getIP();
+				sCopy += id.getIp();
 				break;
 			case IDC_COPY_NICK_IP:
 			{
 				// TODO translate
 				sCopy += "User Info:\r\n"
 				         "\t" + STRING(NICK) + ": " + id.getNick() + "\r\n" +
-				         "\tIP: " + Identity::formatIpString(u->getIP());
+				         "\tIP: " + Identity::formatIpString(id.getIp());
 				break;
 			}
 			case IDC_COPY_ALL:
@@ -1663,7 +1701,13 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		if (!m_showUsers) // Если список пользователей не отображается.
 		{
 			if (GetSinglePaneMode() == SPLIT_PANE_NONE) // Если никакая сторона не скрыта.
-				SetSinglePaneMode((m_ClientUsers == true) ? SPLIT_PANE_LEFT : SPLIT_PANE_RIGHT);
+			{
+#ifdef SCALOLAZ_HUB_SWITCH_BTN
+				SetSinglePaneMode((m_isClientUsersSwitch == true) ? SPLIT_PANE_LEFT : SPLIT_PANE_RIGHT);
+#else
+				SetSinglePaneMode(SPLIT_PANE_LEFT);
+#endif
+			}
 		}
 		else // Если список пользователей отображается.
 		{
@@ -1755,7 +1799,8 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 }
 void HubFrame::TuneSplitterPanes()
 {
-	if (m_ClientUsers == true)
+#ifdef SCALOLAZ_HUB_SWITCH_BTN
+	if (m_isClientUsersSwitch == true)
 	{
 		SetSplitterPanes(ctrlClient.m_hWnd, ctrlUsers.m_hWnd, false); // Чат, список пользователей.
 	}
@@ -1763,6 +1808,9 @@ void HubFrame::TuneSplitterPanes()
 	{
 		SetSplitterPanes(ctrlUsers.m_hWnd, ctrlClient.m_hWnd, false); // Список пользователей, чат.
 	}
+#else
+	SetSplitterPanes(ctrlClient.m_hWnd, ctrlUsers.m_hWnd, false);
+#endif
 }
 #ifdef SCALOLAZ_HUB_MODE
 void HubFrame::HubModeChange()
@@ -1839,7 +1887,9 @@ void HubFrame::storeColumsInfo()
 		}
 		
 		fhe->setChatUserSplit(m_nProportionalPos);
-		fhe->setChatUserSplitState(m_ClientUsers);
+#ifdef SCALOLAZ_HUB_SWITCH_BTN
+		fhe->setChatUserSplitState(m_isClientUsersSwitch);
+#endif
 		fhe->setUserListState(m_showUsersStore);
 		fhe->setHeaderOrder(l_order);
 		fhe->setHeaderWidths(l_width);
@@ -2405,7 +2455,6 @@ void HubFrame::usermap2ListrView()
 void HubFrame::firstLoadAllUsers()
 {
 	CWaitCursor l_cursor_wait;
-	setShowUsers(true);
 	m_needsResort = false;
 	CLockRedraw<> l_lock_draw(ctrlUsers);
 	usermap2ListrView();
@@ -2415,37 +2464,35 @@ void HubFrame::firstLoadAllUsers()
 LRESULT HubFrame::onShowUsers(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 {
 	bHandled = FALSE;
-	if (wParam == BST_CHECKED)
+	if (m_ActivateCounter > 1)
 	{
-		firstLoadAllUsers();
+		if (wParam == BST_CHECKED)
+		{
+			setShowUsers(true);
+			firstLoadAllUsers();
+		}
+		else
+		{
+			setShowUsers(false);
+			m_needsResort = false;
+			// [!] IRainman Speed optimization and support for the full menu on selected nick in chat when user list is hided.
+			ctrlUsers.DeleteAllItems();
+			// [~] IRainman
+		}
+		UpdateLayout(FALSE);
+		m_needsUpdateStats = true;
 	}
-	else
-	{
-		setShowUsers(false);
-		m_needsResort = false;
-		// [!] IRainman Speed optimization and support for the full menu on selected nick in chat when user list is hided.
-		ctrlUsers.DeleteAllItems();
-		// [~] IRainman
-	}
-	UpdateLayout(FALSE);
-	m_needsUpdateStats = true;
 	return 0;
 }
+#ifdef SCALOLAZ_HUB_SWITCH_BTN
 void HubFrame::OnSwitchedPanels()
 {
-	if (m_ClientUsers == true)
-	{
-		SetSplitterPanes(ctrlUsers.m_hWnd, ctrlClient.m_hWnd, false); // Список пользователей, чат.
-		m_ClientUsers = false;
-	}
-	else
-	{
-		SetSplitterPanes(ctrlClient.m_hWnd, ctrlUsers.m_hWnd, false); // Чат, список пользователей.
-		m_ClientUsers = true;
-	}
+	m_isClientUsersSwitch = !m_isClientUsersSwitch;
 	m_nProportionalPos = 10000 - m_nProportionalPos;
+	TuneSplitterPanes();
 	UpdateLayout();
 }
+#endif
 LRESULT HubFrame::onFollow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	if (!m_redirect.empty())
@@ -2535,10 +2582,10 @@ void HubFrame::reconnectDisconnected()
 
 void HubFrame::closeAll(size_t thershold)
 {
-	if(thershold == 0)
+	if (thershold == 0)
 	{
-	 g_is_before_close_all = true; // TODO - пока не используется.
-	 FavoriteManager::getInstance()->prepareClose(); // Ускорим закрытие всех хабов
+		g_is_before_close_all = true; // TODO - пока не используется.
+		FavoriteManager::getInstance()->prepareClose(); // Ускорим закрытие всех хабов
 	}
 	dcdrun(const auto l_size_g_frames = g_frames.size());
 	for (auto i = g_frames.cbegin(); i != g_frames.cend(); ++i)
@@ -2550,13 +2597,13 @@ void HubFrame::closeAll(size_t thershold)
 #endif
 		            i->second->client->getUserCount() <= thershold))
 		{
-		i->second->PostMessage(WM_CLOSE);
-	}
+			i->second->PostMessage(WM_CLOSE);
+		}
 	}
 	dcassert(l_size_g_frames == g_frames.size());
-	if(thershold == 0)
+	if (thershold == 0)
 	{
-	 g_is_before_close_all = false;
+		g_is_before_close_all = false;
 	}
 }
 void HubFrame::on(FavoriteManagerListener::UserAdded, const FavoriteUser& /*aUser*/) noexcept
@@ -2694,6 +2741,18 @@ void HubFrame::on(GetPassword, const Client*) noexcept
 {
 	speak(GET_PASSWORD);
 }
+void HubFrame::setShortHubName(const tstring& p_name)
+{
+	m_shortHubName = p_name;
+	if (!p_name.empty())
+	{
+		SetWindowLongPtr(GWLP_USERDATA, (LONG_PTR)&m_shortHubName);
+	}
+	else
+	{
+		SetWindowLongPtr(GWLP_USERDATA, (LONG_PTR)nullptr);
+	}
+}
 void HubFrame::on(HubUpdated, const Client*) noexcept
 {
 	PROFILE_THREAD_SCOPED_DESC("HubUpdated");
@@ -2795,16 +2854,19 @@ LRESULT HubFrame::onFilterChar(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL
 	}
 	
 	dcassert(m_ctrlFilter);
-	if (!BOOLSETTING(FILTER_ENTER) || (wParam == VK_RETURN) && m_ctrlFilter)
+	if (m_ctrlFilter)
 	{
-		WinUtil::GetWindowText(m_filter, *m_ctrlFilter);
-		
-		// [+] birkoff.anarchist | Escape .^+(){}[] symbols in filter
-		static const std::wregex rx(L"(\\.|\\^|\\+|\\[|\\]|\\{|\\}|\\(|\\))");
-		static const tstring replacement = L"\\$1";
-		m_filter = std::regex_replace(m_filter, rx, replacement);
-		
-		updateUserList();
+		if (wParam == VK_RETURN || !BOOLSETTING(FILTER_ENTER))
+		{
+			WinUtil::GetWindowText(m_filter, *m_ctrlFilter);
+			
+			// [+] birkoff.anarchist | Escape .^+(){}[] symbols in filter
+			static const std::wregex rx(L"(\\.|\\^|\\+|\\[|\\]|\\{|\\}|\\(|\\))");
+			static const tstring replacement = L"\\$1";
+			m_filter = std::regex_replace(m_filter, rx, replacement);
+			
+			updateUserList();
+		}
 	}
 	
 	bHandled = FALSE;
@@ -2942,7 +3004,7 @@ void HubFrame::updateUserList(UserInfo* ui) // [!] IRainman opt.
 	{
 		int64_t size = -1;
 		FilterModes mode = NONE;
-		const int sel = m_ctrlFilterSel ? m_ctrlFilterSel->GetCurSel() : m_FilterSelPos;
+		const int sel = getFilterSelPos();
 		bool doSizeCompare = sel == COLUMN_SHARED && parseFilter(mode, size);
 		
 		if (matchFilter(*ui, sel, doSizeCompare, mode, size))
@@ -2972,7 +3034,7 @@ void HubFrame::updateUserList() // [!] IRainman opt.
 		int64_t size = -1;
 		FilterModes mode = NONE;
 		dcassert(m_ctrlFilterSel);
-		const int sel = m_ctrlFilterSel ? m_ctrlFilterSel->GetCurSel() : m_FilterSelPos;
+		const int sel = getFilterSelPos();
 		const bool doSizeCompare = sel == COLUMN_SHARED && parseFilter(mode, size);
 		for (auto i = userMap.cbegin(); i != userMap.cend(); ++i)
 		{
@@ -3042,7 +3104,7 @@ void HubFrame::handleTab(bool reverse)
 	}
 }
 
-bool HubFrame::matchFilter(const UserInfo& ui, int sel, bool doSizeCompare, FilterModes mode, int64_t size)
+bool HubFrame::matchFilter(UserInfo& ui, int sel, bool doSizeCompare, FilterModes mode, int64_t size)
 {
 
 	if (m_filter.empty())
@@ -3092,7 +3154,11 @@ bool HubFrame::matchFilter(const UserInfo& ui, int sel, bool doSizeCompare, Filt
 			}
 			else
 			{
-				tstring s = ui.getText(static_cast<uint8_t>(sel));
+				if (sel == COLUMN_GEO_LOCATION) // http://code.google.com/p/flylinkdc/issues/detail?id=1319
+				{
+					ui.calcLocation();
+				}
+				const tstring s = ui.getText(static_cast<uint8_t>(sel));
 				if (regex_search(s.begin(), s.end(), reg))
 					insert = true;
 			}
@@ -3507,16 +3573,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			if (ui)
 			{
 //				PROFILE_THREAD_SCOPED_DESC("CDDS_ITEMPREPAINT");
-				const auto& l_location = ui->getLocation();
-				if (!l_location.isSet()) // [!] IRainman opt: Prevent multiple repeated requests to the database if the location has not been found!
-				{
-					const auto& l_ip = ui->getIp();
-#ifdef SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
-					ui->calcIpFromSQL(l_ip);
-#endif
-					if (!l_ip.empty())
-						ui->setLocation(Util::getIpCountry(l_ip));
-				}
+				ui->calcLocation();
 				Colors::getUserColor(ui->getUser(), cd->clrText, cd->clrTextBk, ui->getOnlineUser()); // !SMT!-UI
 				dcassert(client);
 				if (client->isOp()) // Возможно фикс https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=38000

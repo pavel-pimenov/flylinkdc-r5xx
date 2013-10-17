@@ -13,6 +13,7 @@
 
 #include "stdafx.h"
 #include "ImageDataObject.h"
+#include "../client/LogManager.h"
 
 // Static member functions
 void CImageDataObject::InsertBitmap(HWND hWnd, IRichEditOle* pRichEditOle, IOleClientSite *pOleClientSite, IStorage *pStorage, IOleObject *pOleObject)//IRichEditOle* pRichEditOle, HBITMAP hBitmap, LPCTSTR pszPath)
@@ -34,7 +35,10 @@ void CImageDataObject::InsertBitmap(HWND hWnd, IRichEditOle* pRichEditOle, IOleC
 	if (sc != S_OK)
 	{
 		dcdebug("Thrown OLE Exception: %d\n", sc);
+		LogManager::getInstance()->message("CImageDataObject::InsertBitmap, OLE GetUserClassID error = " + Util::toString(sc));
+		dcassert(0);
 		safe_release(pOleObject);
+		safe_release(pOleClientSite);
 		return;
 	}
 	
@@ -47,8 +51,17 @@ void CImageDataObject::InsertBitmap(HWND hWnd, IRichEditOle* pRichEditOle, IOleC
 	reobject.pstg = pStorage;
 	
 	// Insert the bitmap at the current location in the richedit control
-	pRichEditOle->InsertObject(&reobject);
-	
+	sc = pRichEditOle->InsertObject(&reobject);
+	if (sc != S_OK)
+	{
+		dcdebug("Thrown OLE InsertObject: %d\n", sc);
+		LogManager::getInstance()->message("CImageDataObject::InsertBitmap, OLE InsertObject error = " + Util::toString(sc));
+		dcassert(0);
+		safe_release(pOleObject);
+		safe_release(pOleClientSite);
+		return;
+	}
+	dcassert(::IsWindow(hWnd));
 	::SendMessage(hWnd, EM_SCROLLCARET, (WPARAM)0, (LPARAM)0);
 	
 	// Release all unnecessary interfaces
@@ -90,12 +103,14 @@ IOleObject *CImageDataObject::GetOleObject(IOleClientSite *pOleClientSite, IStor
 	
 	IOleObject *pOleObject = nullptr;
 	
-	SCODE sc = ::OleCreateStaticFromData(this, IID_IOleObject, OLERENDER_FORMAT,
-	                                     &m_fromat, pOleClientSite, pStorage, (void **) & pOleObject);
-	                                     
+	const SCODE sc = ::OleCreateStaticFromData(this, IID_IOleObject, OLERENDER_FORMAT,
+	                                           &m_fromat, pOleClientSite, pStorage, (void **) & pOleObject);
+	                                           
 	if (sc != S_OK)
 	{
 		dcdebug("Thrown OLE Exception: %d\n", sc);
+		dcassert(0);
+		LogManager::getInstance()->message("CImageDataObject::GetOleObject, OleCreateStaticFromData error = " + Util::toString(sc));
 		return nullptr;
 	}
 	return pOleObject;

@@ -324,7 +324,7 @@ void CAGEmotionSetup::cleanup()
 	m_EmotionsArray.clear();
 	m_EmotionImages.Destroy();
 	m_CountSelEmotions = 0;
-	m_FilterEmotiion.clear();
+	m_FilterEmotion.clear();
 }
 bool CAGEmotionSetup::LoadEmotion(const string& p_file_name)
 {
@@ -362,7 +362,7 @@ bool CAGEmotionSetup::LoadEmotion(const string& p_file_name)
 					                    {
 					                    }
 					*/
-					if (m_FilterEmotiion.insert(strEmotionText).second == false) // [!] IRainman opt.
+					if (m_FilterEmotion.insert(strEmotionText).second == false) // [!] IRainman opt.
 					{
 						// Такой текст уже найден - но файла может и не быть?
 						// Добавить альтернативный путь к смайлу на случай если не получится грузануть по первому пути?

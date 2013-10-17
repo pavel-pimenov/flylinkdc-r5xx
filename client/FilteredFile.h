@@ -182,9 +182,13 @@ class FilteredOutputStream : public OutputStream
 				more = filter(wb, m, &buf[0], n);
 				wb += m;
 				len -= m;
-				if (n > 0) //[+]PPA
+				// [!] IRainman fix: This test results in the elimination error generating the exception.
+				// [-] if (n > 0) //[+]PPA
 				{
-					written += f->write(&buf[0], n);
+					if (n > 0) // [+]
+					{
+						written += f->write(&buf[0], n);
+					}
 					
 					if (!more)
 					{
@@ -195,8 +199,14 @@ class FilteredOutputStream : public OutputStream
 						return written;
 					}
 				}
+				// [~] IRainman fix.
 			}
 			return written;
+		}
+		
+		virtual bool eof() const
+		{
+			return !more;
 		}
 		
 		
