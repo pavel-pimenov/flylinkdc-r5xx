@@ -100,7 +100,6 @@ void AutoUpdate::startUpdateManually()
 
 	// [!] SSA - set the ignore update list as empty if manual update started.
 	SET_SETTING(AUTOUPDATE_IGNORE_VERSION, Util::emptyString);
-	SettingsManager::getInstance()->save();
 
 	addTask(START_UPDATE);
 }
@@ -405,7 +404,6 @@ void AutoUpdate::startUpdateThisThread()
 						{
 							message(STRING(AUTOUPDATE_IGNORED) + l_versionToIgnore);
 							SET_SETTING(AUTOUPDATE_IGNORE_VERSION, autoUpdateObject->m_sVersion);
-							SettingsManager::getInstance()->save();
 						}
 						else
 						{
@@ -464,7 +462,6 @@ void AutoUpdate::startUpdateThisThread()
 										f.close();
 										}
 										SET_SETTING(AUTOUPDATE_PATH_WITH_UPDATE, g_tempFolder);
-										SettingsManager::getInstance()->save();
 								
 										message(STRING(AUTOUPDATE_STARTED));
 										if (BOOLSETTING(AUTOUPDATE_FORCE_RESTART))
@@ -973,7 +970,6 @@ bool AutoUpdate::startupUpdate()
 		}
 		::RemoveDirectory(m_updateFolder.c_str());
 		SET_SETTING(AUTOUPDATE_PATH_WITH_UPDATE, Util::emptyString);
-		SettingsManager::getInstance()->save();
 		m_updateFolder.clear();
 	}
 	return false;

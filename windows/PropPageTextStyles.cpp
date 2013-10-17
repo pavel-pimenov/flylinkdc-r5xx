@@ -230,10 +230,7 @@ void PropPageTextStyles::write()
 	{
 		TextStyles[ i ].SaveSettings();
 	}
-	if (m_maincolor_changed)
-		SettingsManager::getInstance()->save();
 	File::deleteFile(m_tempfile);
-	
 	Colors::init();
 }
 
@@ -537,7 +534,6 @@ LRESULT PropPageTextStyles::onImport(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 	}
 	SettingsManager::importDctheme(file);
 	SendMessage(WM_DESTROY, 0, 0);
-	//  SettingsManager::getInstance()->save();
 	PropertiesDlg::needUpdate = true;
 	SendMessage(WM_INITDIALOG, 0, 0);
 	m_maincolor_changed = true;

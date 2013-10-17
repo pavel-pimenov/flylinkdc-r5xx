@@ -146,7 +146,7 @@ class ExpectedMap
 };
 
 // Comparing with a user...
-inline bool operator==(ConnectionQueueItem::Ptr ptr, const UserPtr& aUser)
+inline bool operator==(const ConnectionQueueItem::Ptr ptr, const UserPtr& aUser)
 {
 	return ptr->getUser() == aUser;
 }

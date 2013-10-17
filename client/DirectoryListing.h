@@ -205,11 +205,11 @@ class DirectoryListing : public UserInfoBase
 		
 };
 
-inline bool operator==(DirectoryListing::Directory::Ptr a, const string& b)
+inline bool operator==(const DirectoryListing::Directory::Ptr a, const string& b)
 {
 	return stricmp(a->getName(), b) == 0;
 }
-inline bool operator==(DirectoryListing::File::Ptr a, const string& b)
+inline bool operator==(const DirectoryListing::File::Ptr a, const string& b)
 {
 	return stricmp(a->getName(), b) == 0;
 }
