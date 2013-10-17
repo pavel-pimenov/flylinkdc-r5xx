@@ -283,10 +283,6 @@ void NmdcHub::updateFromTag(Identity& id, string && tag) // [!] IRainman opt.
 		{
 			const uint32_t l_limit = Util::toInt(i->c_str() + j + 2);
 			id.setLimit(l_limit * 1024);
-#ifdef PPA_INCLUDE_DEAD_CODE
-			if (slots > 0)
-				id.getUser()->setLastDownloadSpeed((uint16_t)((l_limit * 1024) / slots));
-#endif
 		}
 		// [+] IRainman fix: https://code.google.com/p/flylinkdc/issues/detail?id=1234
 		else if ((j = i->find("v:")) != string::npos)

@@ -171,7 +171,7 @@ class DHT :
 		
 		/** IPs who we received firewalled status from */
 		StringSet firewalledWanted;
-		unordered_map<string, std::pair<string, uint16_t>> firewalledChecks;
+		boost::unordered_map<string, std::pair<string, uint16_t>> firewalledChecks;
 		bool firewalled;
 		bool requestFWCheck;
 		

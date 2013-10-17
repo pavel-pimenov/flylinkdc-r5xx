@@ -458,7 +458,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		friend class ::dht::IndexManager;
 #endif
 		
-		typedef unordered_map<TTHValue, Directory::File::Set::const_iterator> HashFileMap;
+		typedef std::unordered_map<TTHValue, Directory::File::Set::const_iterator> HashFileMap; // TODO - boost
 		
 		HashFileMap tthIndex;
 		//[+]IRainman opt.

@@ -123,10 +123,10 @@ class Identity
 			BAD_CLIENT  = 0x04, //-V112
 			BAD_LIST    = 0x08
 		};
-		enum EmptyStringParam
+		enum NotEmptyString
 		{
-			EM_IS_NOT_EMPTY     = 0x01,
-			DE_IS_NOT_EMPTY     = 0x02
+			EM = 0x01,
+			DE = 0x02
 		};
 		
 #ifndef IRAINMAN_IDENTITY_IS_NON_COPYABLE
@@ -203,28 +203,21 @@ class Identity
 		{
 			return getUser()->getBytesShared();
 		}
-
-// #define FLYLINKDC_ISSUE_1330
-#ifdef FLYLINKDC_ISSUE_1330
+		
 		void setIp(const string& ip) // "I4"
 		{
 			m_ip = ip;
 			getUser()->setIP(ip);
 			change(CHANGES_IP | CHANGES_GEO_LOCATION);
 		}
-		GETM(string, m_ip, Ip); // "I4" // [!] IRainman fix: needs here, details https://code.google.com/p/flylinkdc/issues/detail?id=1330
-#else
-		void setIp(const string& ip) // "I4"
+		const string& getIp() const // "I4"
 		{
-			getUser()->setIP(ip);
-			change(CHANGES_IP | CHANGES_GEO_LOCATION);
+			return !m_ip.empty() ? m_ip : getUser()->getIP();
 		}
-	    const string& getIp() const // "I4"
- 		{
- 		 	return getUser()->getIP();
- 		}
-#endif
-		
+	private:
+		string m_ip; // "I4" // [!] IRainman fix: needs here, details https://code.google.com/p/flylinkdc/issues/detail?id=1330
+	public:
+	
 // Нужна ли тут блокировка?
 // L: с одной стороны надо блокировать такие операции,
 // а с другой эти данные всегда изменяются в одном потоке,
@@ -311,7 +304,7 @@ class Identity
 			e_KnownSupports, // 1 бит для ADC, 0 для NMDC
 			e_KnownUcSupports, // 7 бит вперемешку.
 			e_DicAP, // "AP"
-			e_EmptyStringParam, // 0 бит - EM (Email), 1 бит - DE (Описание)
+			e_NotEmptyString, // 2 бита
 			e_TypeUInt8AttrLast
 		};
 		GSUINTBITS(8);
@@ -381,8 +374,8 @@ class Identity
 #endif
 		GSUINT(8, FakeCard);
 		GSUINTBIT(8, FakeCard);
-		GSUINTBIT(8, EmptyStringParam);
-		GSUINT(8, EmptyStringParam);
+		GSUINTBIT(8, NotEmptyString);
+		GSUINT(8, NotEmptyString);
 		GSUINT(8, DicAP);
 		
 //////////////////// uint16 ///////////////////
@@ -534,14 +527,16 @@ class Identity
 		InfMap m_stringInfo;
 		
 		typedef vector<const string*> StringDictionaryReductionPointers;
-		typedef unordered_map<string, size_t> StringDictionaryIndex;
+		typedef boost::unordered_map<string, size_t> StringDictionaryIndex;
 		
 #define DECL_STRING_INFO_DIC(dmk)\
 	static StringDictionaryReductionPointers g_infoDic##dmk;\
 	static StringDictionaryIndex g_infoDicIndex##dmk;\
+	static FastCriticalSection g_csInfoDic##dmk;\
 	\
-	void setDicId##dmk##L(const string& p_val)\
+	void setDicId##dmk(const string& p_val)\
 	{\
+		FastLock l(g_csInfoDic##dmk);\
 		const auto i = g_infoDicIndex##dmk.find(p_val);\
 		if (i == g_infoDicIndex##dmk.end())\
 		{\
@@ -553,17 +548,24 @@ class Identity
 		{\
 			setDic##dmk(i->second);\
 		}\
+	}\
+	\
+	const string& getDicVal##dmk() const\
+	{\
+		FastLock l(g_csInfoDic##dmk);\
+		const auto& dicId = getDic##dmk();\
+		return dicId > 0 ? *g_infoDic##dmk[dicId - 1] : Util::emptyString;/*TODO: add instantly access*/\
 	}
 		
-#define STRING_INFO_DIC_LIST()\
+#define IDENTITY_STRING_INFO_DIC_LIST()\
 	DECL_STRING_INFO_DIC(AP);\
 	DECL_STRING_INFO_DIC(VE)
 		
-		STRING_INFO_DIC_LIST();
+		IDENTITY_STRING_INFO_DIC_LIST();
 		
 #undef DECL_STRING_INFO_DIC
 		
-#define CHECK_STRING_INFO_DIC_LIST()\
+#define CHECK_IDENTITY_STRING_INFO_DIC_LIST()\
 	CHECK_STR_DIC('V','E', VE);\
 	CHECK_STR_DIC('A','P', AP)
 		

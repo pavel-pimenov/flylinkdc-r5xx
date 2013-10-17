@@ -369,27 +369,6 @@ bool FavoriteManager::addUserL(const UserPtr& aUser, FavoriteMap::iterator& iUse
 	return false;
 }
 
-bool FavoriteManager::getUploadLimit(const UserPtr& aUser, int& p_uploadLimit) const // [+] FlylinkDC
-{
-	dcassert(!ClientManager::isShutdown());
-	if (isNotEmpty()) // [+]PPA
-	{
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-		FastSharedLock l(csUsers);
-#else
-		Lock l(csUsers);
-#endif
-		
-		const auto l_user = m_users.find(aUser->getCID());
-		if (l_user != m_users.end())
-		{
-			p_uploadLimit = getUploadLimitL(l_user);
-			return true;
-		}
-	}
-	return false;
-}
-
 bool FavoriteManager::getFavUserParam(const UserPtr& aUser, FavoriteUser::MaskType& p_flags, int& p_uploadLimit) const // [+] IRainman opt.
 {
 	dcassert(!ClientManager::isShutdown());
@@ -404,7 +383,7 @@ bool FavoriteManager::getFavUserParam(const UserPtr& aUser, FavoriteUser::MaskTy
 		if (l_user != m_users.end())
 		{
 			p_flags = l_user->second.getFlags();
-			p_uploadLimit = getUploadLimitL(l_user);
+			p_uploadLimit = l_user->second.getUploadLimit();
 			return true;
 		}
 	}
@@ -438,7 +417,7 @@ bool FavoriteManager::isNoFavUserOrUserBanUpload(const UserPtr& aUser) const // 
 		Lock l(csUsers);
 #endif
 		const auto l_user = m_users.find(aUser->getCID());
-		return l_user == m_users.end() || getUploadLimitL(l_user) == FavoriteUser::UL_BAN;
+		return l_user == m_users.end() || l_user->second.getUploadLimit() == FavoriteUser::UL_BAN;
 	}
 	return true;
 }

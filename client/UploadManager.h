@@ -69,7 +69,7 @@ class WaitingUser
 class UploadManager : private ClientManagerListener, private UserConnectionListener, public Speaker<UploadManagerListener>, private TimerManagerListener, public Singleton<UploadManager>
 {
 #ifdef PPA_INCLUDE_DOS_GUARD
-		typedef unordered_map<string, uint8_t> CFlyDoSCandidatMap;
+		typedef boost::unordered_map<string, uint8_t> CFlyDoSCandidatMap;
 		CFlyDoSCandidatMap m_dos_map;
 		mutable FastCriticalSection csDos; // [+] IRainman opt.
 #endif
@@ -267,7 +267,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 				        (min_share ^ a.min_share) | (min_limit ^ a.min_limit)) == 0;
 			}
 		};
-		typedef unordered_map<string, banmsg_t> BanMap;
+		typedef boost::unordered_map<string, banmsg_t> BanMap;
 		bool handleBan(UserConnection& aSource/*, bool forceBan, bool noChecks*/);
 		static bool hasAutoBan(const UserPtr& aUser);
 		BanMap m_lastBans;

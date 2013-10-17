@@ -2294,7 +2294,7 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 			string fname, fhash, type, param;
 			
 			const StringTokenizer<string> mag(url.substr(8), '&');
-			typedef unordered_map<string, string> MagMap;
+			typedef boost::unordered_map<string, string> MagMap;
 			MagMap hashes;
 			
 			int64_t fsize = 0;

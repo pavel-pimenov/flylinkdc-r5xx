@@ -950,7 +950,7 @@ string CFlyServerAdapter::CFlyServerJSON::connect(const CFlyServerKeyArray& p_fi
 						}
 					}
 				}
-				std::unordered_map<int,Json::Value*> l_cache_channel;
+				boost::unordered_map<int,Json::Value*> l_cache_channel;
 				for(auto j = i->m_media.m_ext_array.cbegin(); j!= i->m_media.m_ext_array.cend(); ++j)
 				{
 					if(g_fly_server_config.isSupportTag(j->m_param))

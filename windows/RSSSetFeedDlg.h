@@ -30,7 +30,7 @@ class RSS_SetFeedDlg : public CDialogImpl<RSS_SetFeedDlg>
 		CEdit ctrlName;
 		CComboBox ctrlCodeing;
 		
-		typedef unordered_map<wstring, string> CodeingMap;
+		typedef boost::unordered_map<wstring, string> CodeingMap;
 		typedef pair<wstring, string> CodeingMapPair;
 		
 	public:

@@ -34,7 +34,7 @@ class SharedFileStream : public IOStream
 			~SharedFileHandle() noexcept { }
 		};
 		
-		typedef unordered_map<string, SharedFileHandle*> SharedFileHandleMap;
+		typedef boost::unordered_map<string, SharedFileHandle*> SharedFileHandleMap;
 		
 	public:
 		SharedFileStream(const string& aFileName, int access, int mode);

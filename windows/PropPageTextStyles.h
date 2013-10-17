@@ -157,7 +157,7 @@ class PropPageTextStyles: public CPropertyPage<IDD_TEXT_STYLES_PAGE>, public Pro
 		CButton cmdSetTabColor;
 		CEdit ctrlTabExample;
 		
-		typedef unordered_map<wstring, string> ColorThemeMap;   // > [+] SCALOlaz: https://code.google.com/p/flylinkdc/issues/detail?id=455
+		typedef boost::unordered_map<wstring, string> ColorThemeMap;   // > [+] SCALOlaz: https://code.google.com/p/flylinkdc/issues/detail?id=455
 		typedef pair<wstring, string> ThemePair;
 		CComboBox ctrlTheme;
 		ColorThemeMap m_ThemeList;

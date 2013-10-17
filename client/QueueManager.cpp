@@ -1321,20 +1321,18 @@ QueueItem::Priority QueueManager::hasDownload(const UserPtr& aUser) noexcept
 	}
 	return qi->getPriority();
 }
-namespace
-{
-typedef unordered_map<TTHValue, const DirectoryListing::File*> TTHMap;
-
 // *** WARNING ***
 // Lock(cs) makes sure that there's only one thread accessing this
 // [-] static TTHMap tthMap; [-] IRainman fix.
 
-void buildMap(const DirectoryListing::Directory* dir, TTHMap& tthMap) noexcept // [!] IRainman fix.
+void QueueManager::buildMap(const DirectoryListing::Directory* dir, TTHMap& tthMap) noexcept // [!] IRainman fix.
 {
 	for (auto j = dir->directories.cbegin(); j != dir->directories.cend(); ++j)
 	{
 		if (!(*j)->getAdls()) // [1] https://www.box.net/shared/d511d114cb87f7fa5b8d
+		{
 			buildMap(*j, tthMap); // [!] IRainman fix.
+	}
 	}
 	
 	for (auto i = dir->files.cbegin(); i != dir->files.cend(); ++i)
@@ -1342,7 +1340,6 @@ void buildMap(const DirectoryListing::Directory* dir, TTHMap& tthMap) noexcept /
 		const DirectoryListing::File* df = *i;
 		tthMap.insert(make_pair(df->getTTH(), df));
 	}
-}
 }
 
 int QueueManager::matchListing(const DirectoryListing& dl) noexcept
@@ -1355,9 +1352,9 @@ int QueueManager::matchListing(const DirectoryListing& dl) noexcept
 	if (!fileQueue.empty()) // [!] opt
 	{
 		// [-] Lock l(cs); [-]
-		TTHMap tthMap;// tthMap.clear(); [!]
-		buildMap(dl.getRoot(), tthMap); // [!]
-		dcassert(!tthMap.empty());
+		TTHMap l_tthMap;// tthMap.clear(); [!]
+		buildMap(dl.getRoot(), l_tthMap); // [!]
+		dcassert(!l_tthMap.empty());
 		{
 			UniqueLock l(QueueItem::cs);
 #ifdef IRAINMAN_USE_SEPARATE_CS_IN_QUEUE_MANAGER
@@ -1371,8 +1368,8 @@ int QueueManager::matchListing(const DirectoryListing& dl) noexcept
 					continue;
 				if (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
 					continue;
-				const auto j = tthMap.find(qi->getTTH());
-				if (j != tthMap.end() && j->second->getSize() == qi->getSize()) // [!] IRainman fix.
+				const auto j = l_tthMap.find(qi->getTTH());
+				if (j != l_tthMap.end() && j->second->getSize() == qi->getSize()) // [!] IRainman fix.
 				{
 					try
 					{

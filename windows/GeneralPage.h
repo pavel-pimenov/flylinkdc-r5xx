@@ -81,7 +81,7 @@ class GeneralPage : public CPropertyPage<IDD_GENERAL_PAGE>, public PropPage
 		CComboBox ctrlLanguage;     // [+] SCALOlaz, Lang Select
 		CFlyHyperLink m_LangTranslate;
 		
-		typedef unordered_map<wstring, string> LanguageMap;
+		typedef boost::unordered_map<wstring, string> LanguageMap;
 		void fixControls();
 		LanguageMap m_languagesList;
 		

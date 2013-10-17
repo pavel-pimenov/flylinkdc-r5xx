@@ -35,7 +35,7 @@ namespace dht
 {
 
 FastCriticalSection Utils::g_cs; // [!] IRainman opt: use spin lock here.
-std::unordered_map<string, std::unordered_multiset<uint32_t>> Utils::g_receivedPackets;
+boost::unordered_map<string, boost::unordered_multiset<uint32_t>> Utils::g_receivedPackets;
 std::list<const Utils::OutPacket> Utils::g_sentPackets;
 
 CID Utils::getDistance(const CID& cid1, const CID& cid2)
@@ -140,7 +140,7 @@ bool Utils::checkFlood(const string& ip, const AdcCommand& cmd)
 	}
 	
 	FastLock l(g_cs);
-	std::unordered_multiset<uint32_t>& packetsPerIp = g_receivedPackets[ip];
+	auto& packetsPerIp = g_receivedPackets[ip];
 	packetsPerIp.insert(cmd.getCommand());
 	
 	if (packetsPerIp.count(cmd.getCommand()) > maxAllowedPacketsPerMinute)

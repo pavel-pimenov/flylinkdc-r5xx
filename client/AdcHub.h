@@ -78,7 +78,7 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		~AdcHub();
 		
 		/** Map session id to OnlineUser */
-		typedef unordered_map<uint32_t, OnlineUser*> SIDMap;
+		typedef boost::unordered_map<uint32_t, OnlineUser*> SIDMap;
 		
 		void getUserList(OnlineUserList& p_list) const
 		{

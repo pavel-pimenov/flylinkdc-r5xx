@@ -19,6 +19,8 @@
 #ifndef DCPLUSPLUS_DCPP_TYPEDEFS_H_
 #define DCPLUSPLUS_DCPP_TYPEDEFS_H_
 
+#include <boost/unordered/unordered_map.hpp>
+#include <boost/unordered/unordered_set.hpp>
 #include "debug.h"
 #include "forward.h"
 #include "noexcept.h"
@@ -27,12 +29,12 @@ typedef wstring tstring;
 typedef std::vector<string> StringList;
 typedef std::pair<string, string> StringPair;
 typedef std::vector<StringPair> StringPairList;
-typedef std::unordered_map<string, string> StringMap;
-typedef std::unordered_set<string> StringSet;
+typedef boost::unordered_map<string, string> StringMap;
+typedef boost::unordered_set<string> StringSet;
 typedef std::vector<wstring> TStringList;
 typedef std::pair<wstring, wstring> TStringPair;
 typedef std::vector<TStringPair> TStringPairList;
-typedef std::unordered_map<wstring, wstring> TStringMap;
+typedef boost::unordered_map<wstring, wstring> TStringMap;
 typedef std::vector<uint8_t> ByteVector;
 
 #endif /* TYPEDEFS_H_ */

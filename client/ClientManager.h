@@ -439,9 +439,9 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		typedef unordered_map<const CID*, const UserPtr> UserMap;
 #else
 # ifdef IRAINMAN_USE_NICKS_IN_CM
-		typedef unordered_map<CID, std::string> NickMap;
+		typedef std::unordered_map<CID, std::string> NickMap; // TODO boost
 # endif
-		typedef unordered_map<CID, const UserPtr> UserMap;
+		typedef std::unordered_map<CID, const UserPtr> UserMap; // TODO boost
 #endif
 		static UserMap g_users;
 #ifdef IRAINMAN_USE_NICKS_IN_CM

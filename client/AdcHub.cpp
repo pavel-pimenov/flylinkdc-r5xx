@@ -1477,7 +1477,8 @@ void AdcHub::info(bool p_force)
 	}
 	else
 	{
-		addParam(m_lastInfoMap, c, "US", Util::toString((long)(Util::toDouble(SETTING(UPLOAD_SPEED)) * 1024 * 1024 / 8)));
+		limit = Util::toInt64(SETTING(UPLOAD_SPEED)) * 1024 * 1024 / 8;
+		addParam(m_lastInfoMap, c, "US", Util::toString(limit));
 	}
 	
 	addParam(m_lastInfoMap, c, "LC", Util::getIETFLang()); // http://adc.sourceforge.net/ADC-EXT.html#_lc_locale_specification

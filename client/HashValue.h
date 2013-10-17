@@ -93,9 +93,9 @@ struct hash<HashValue<T> >
 {
 	size_t operator()(const HashValue<T>& rhs) const
 	{
-		// RVO should handle this as efficiently as reinterpret_cast
-		size_t hvHash; // = 0; // [+] IRainman fix: V512 http://www.viva64.com/en/V512 A call of the 'memcpy' function will lead to underflow of the buffer 'cid'.
-		memcpy(&hvHash, rhs.data, sizeof(size_t));
+		// RVO should handle this as efficiently as reinterpret_cast version
+		size_t hvHash;
+		memcpy(&hvHash, rhs.data, sizeof(size_t)); //-V512
 		return hvHash;
 	}
 };

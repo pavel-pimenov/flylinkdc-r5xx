@@ -62,7 +62,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 {
 	public:
 	
-		typedef std::unordered_map<string, StringList> SearchTypes;
+		typedef boost::unordered_map<string, StringList> SearchTypes;
 		typedef SearchTypes::iterator SearchTypesIter;
 //		typedef SearchTypes::const_iterator SearchTypesIterC;
 

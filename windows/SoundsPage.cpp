@@ -41,7 +41,7 @@ PropPage::Item Sounds::items[] =
 	{ 0, 0, PropPage::T_END }
 };
 
-Sounds::snds Sounds::sounds[] =
+Sounds::snds Sounds::g_sounds[] =
 {
 	{ ResourceManager::SOUND_DOWNLOAD_BEGINS,   SettingsManager::SOUND_BEGINFILE, ""},
 	{ ResourceManager::SOUND_DOWNLOAD_FINISHED, SettingsManager::SOUND_FINISHFILE, ""},
@@ -96,12 +96,11 @@ LRESULT Sounds::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	
 	// Do specialized reading here
 	
-	int j;
-	for (int i = 0; i < _countof(sounds); i++)
+	for (int i = 0; i < _countof(g_sounds); i++)
 	{
-		j = ctrlSounds.insert(i, Text::toT(ResourceManager::getString(sounds[i].name)).c_str());
-		sounds[i].value = SettingsManager::get((SettingsManager::StrSetting)sounds[i].setting, true);
-		ctrlSounds.SetItemText(j, 1, Text::toT(sounds[i].value).c_str());
+		int j = ctrlSounds.insert(i, Text::toT(ResourceManager::getString(g_sounds[i].name)).c_str());
+		g_sounds[i].value = SettingsManager::get((SettingsManager::StrSetting)g_sounds[i].setting, true);
+		ctrlSounds.SetItemText(j, 1, Text::toT(g_sounds[i].value).c_str());
 	}
 	
 	fixControls();
@@ -113,9 +112,9 @@ void Sounds::write()
 {
 	PropPage::write((HWND)*this, items);
 	
-	for (int i = 0; i < _countof(sounds); i++)
+	for (int i = 0; i < _countof(g_sounds); i++)
 	{
-		settings->set((SettingsManager::StrSetting)sounds[i].setting, ctrlSounds.ExGetItemText(i, 1));
+		settings->set((SettingsManager::StrSetting)g_sounds[i].setting, ctrlSounds.ExGetItemText(i, 1));
 	}
 	
 	SET_SETTING(SOUNDS_DISABLED, IsDlgButtonChecked(IDC_SOUND_ENABLE) == 1 ? false : true);

@@ -206,7 +206,7 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 						         si->s + "\r\n";
 					}
 #endif
-					const SearchIter it2 = m_searches.find(si->s);
+					const auto& it2 = m_searches.find(si->s);
 					if (it2 == m_searches.end())
 					{
 						m_searches[si->s].i = 1;

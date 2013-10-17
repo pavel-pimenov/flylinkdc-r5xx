@@ -132,9 +132,6 @@ class User : public intrusive_ptr_base<User>, public Flags
 //#define ENABLE_DEBUG_LOG_IN_USER_CLASS
 
 		User(const CID& aCID) : m_cid(aCID),
-#ifdef PPA_INCLUDE_DEAD_CODE
-			m_lastDownloadSpeed(0),
-#endif
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 			m_support_slots(FLY_SUPPORT_SLOTS_FIRST),
 #endif
@@ -225,9 +222,6 @@ class User : public intrusive_ptr_base<User>, public Flags
 		GETSET(uint8_t, m_slots, Slots);
 		string m_nick;
 		string m_last_ip;
-#ifdef PPA_INCLUDE_DEAD_CODE
-		GETSET(size_t, m_lastDownloadSpeed, LastDownloadSpeed);
-#endif
 		//[~]PPA
 		
 		bool isOnline() const

@@ -175,8 +175,7 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 				size_t curpos;
 		};
 		
-		typedef unordered_map<string, SearchData> SearchMap;
-		typedef SearchMap::iterator SearchIter;
+		typedef boost::unordered_map<string, SearchData> SearchMap;
 		
 		SearchMap m_searches;
 		

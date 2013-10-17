@@ -92,3 +92,6 @@ mrgtmp?
 *-profile-*.html
 tth-history.leveldb
 .dctmp
+test/Debug/*
+test/ipch/*
+test/Release/*

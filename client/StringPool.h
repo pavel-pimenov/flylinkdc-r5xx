@@ -28,7 +28,7 @@ class StringPool : public Singleton<StringPool>, private TimerManagerListener
 {
 		friend Singleton<StringPool>;
 		
-		typedef unordered_map<string, volatile long> StringMap;
+		typedef boost::unordered_map<string, volatile long> StringMap;
 		
 		static StringMap g_stringMap;
 		static FastCriticalSection g_csStringMap;

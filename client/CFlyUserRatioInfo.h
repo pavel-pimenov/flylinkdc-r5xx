@@ -1,9 +1,11 @@
 #ifndef CFlyUserRatioInfo_H
 #define CFlyUserRatioInfo_H
 
+#pragma once
+
+#include <boost/unordered/unordered_map.hpp>
 #include "Thread.h"
 
-#pragma once
 
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 template <class T> class CFlyUploadDownloadPair
@@ -19,7 +21,7 @@ template <class T> class CFlyUploadDownloadPair
 		}
 };
 typedef CFlyUploadDownloadPair<double> CFlyGlobalRatioItem;
-typedef unordered_map<string, CFlyUploadDownloadPair<uint64_t> > CFlyUploadDownloadMap;
+typedef boost::unordered_map<string, CFlyUploadDownloadPair<uint64_t> > CFlyUploadDownloadMap;
 struct CFlyRatioItem : public CFlyUploadDownloadPair<uint64_t>
 {
 	string m_last_ip_sql;

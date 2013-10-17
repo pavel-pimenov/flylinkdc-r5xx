@@ -20,9 +20,6 @@
 #define DCPLUSPLUS_DCPP_CID_H
 
 #include "Util.h"
-#ifdef IRAINMAN_USE_BOOST_HASHER_FOR_CID
-#include <boost/functional/hash.hpp>
-#endif
 
 class CID
 {
@@ -39,6 +36,7 @@ class CID
 		}
 		explicit CID(const string& base32)
 		{
+			dcassert(base32.length() == 39);
 			Encoder::fromBase32(base32.c_str(), cid, sizeof(cid));
 		}
 		
@@ -68,14 +66,10 @@ class CID
 		
 		size_t toHash() const
 		{
-#ifdef IRAINMAN_USE_BOOST_HASHER_FOR_CID
-			return boost::hash<uint8_t[SIZE]>()(cid);
-#else
 			// RVO should handle this as efficiently as reinterpret_cast version
-			size_t cidHash = 0; // [+] IRainman fix: V512 http://www.viva64.com/en/V512 A call of the 'memcpy' function will lead to underflow of the buffer 'cid'.
+			size_t cidHash;
 			memcpy(&cidHash, cid, sizeof(size_t)); //-V512
 			return cidHash;
-#endif // IRAINMAN_USE_BOOST_HASHER_FOR_CID
 		}
 		const uint8_t* data() const
 		{
@@ -110,6 +104,7 @@ struct hash<CID>
 		return rhs.toHash(); // [!] IRainman fix.
 	}
 };
+
 #ifdef IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER
 template<>
 struct hash<const CID*> // [!] IRainman fix.

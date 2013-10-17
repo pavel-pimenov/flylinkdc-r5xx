@@ -1268,7 +1268,7 @@ struct FileImage : public BaseImageList
 		}
 		void init();
 	private:
-		typedef unordered_map<string, int> ImageMap;
+		typedef boost::unordered_map<string, int> ImageMap;
 		ImageMap m_indexis;
 		int m_imageCount;
 		//FastCriticalSection m_cs;// [!] IRainman opt: use spin lock here. [!] Delete this after move getIconIndex to draw function.

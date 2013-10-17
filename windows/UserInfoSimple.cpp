@@ -31,7 +31,7 @@ void UserInfoSimple::addSummaryMenu()
 	if (!getUser())
 		return;
 		
-	HCURSOR hcurPrev = ::SetCursor(::LoadCursor(NULL, IDC_WAIT));
+	CWaitCursor l_cursor_wait;
 	
 	UserInfoGuiTraits::userSummaryMenu.InsertSeparatorLast(getUser()->getLastNickT());
 	
@@ -41,7 +41,9 @@ void UserInfoSimple::addSummaryMenu()
 		tstring userInfo = TSTRING(SLOTS) + _T('=') + Util::toStringW(params.slots) + _T(' ') + TSTRING(SHARED) + _T('=') + Util::formatBytesW(params.bytesShared);
 		
 		if (params.limit)
-			userInfo += _T(' ') + TSTRING(SPEED_LIMIT) + _T('=') + Util::toStringW(params.limit) + WSTRING(KBPS);
+		{
+				userInfo += _T(' ') + TSTRING(SPEED_LIMIT) + _T('=') + Util::formatBytesW(params.limit) + _T('/') + WSTRING(SEC);
+		}
 			
 		UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, userInfo.c_str());
 		
@@ -137,7 +139,6 @@ void UserInfoSimple::addSummaryMenu()
 			}
 		}
 	}
-	::SetCursor(hcurPrev);
 }
 // !SMT!-S
 const tstring& UserInfoSimple::getBroadcastPrivateMessage()

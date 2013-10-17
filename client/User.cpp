@@ -41,9 +41,10 @@ boost::atomic_int OnlineUser::g_online_user_counts(0);
 
 #define DECL_STRING_INFO_DIC(dmk)\
 	Identity::StringDictionaryReductionPointers Identity::g_infoDic##dmk;\
-	Identity::StringDictionaryIndex Identity::g_infoDicIndex##dmk
+	Identity::StringDictionaryIndex Identity::g_infoDicIndex##dmk;\
+	FastCriticalSection Identity::g_csInfoDic##dmk;
 
-STRING_INFO_DIC_LIST();
+IDENTITY_STRING_INFO_DIC_LIST();
 
 #undef DECL_STRING_INFO_DIC
 
@@ -437,31 +438,44 @@ string Identity::getStringParam(const char* name) const // [!] IRainman fix.
 	CHECK_GET_SET_COMMAND();
 	
 #ifdef PPA_INCLUDE_TEST
-	static map<short, int> g_cnt;
-	FastLock ll(csTest);
-	auto& j = g_cnt[*(short*)name];
-	j++;
-	if (j % 100 == 0)
 	{
-		dcdebug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! get[%s] = %d \n", name, j);
+		static map<short, int> g_cnt;
+		FastLock ll(csTest);
+		auto& j = g_cnt[*(short*)name];
+		j++;
+		if (j % 100 == 0)
+		{
+			dcdebug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! get[%s] = %d \n", name, j);
+		}
 	}
 #endif
+	
+	switch (*(short*)name) // TODO: move to instantly method
+	{
+#define CHECK_STR_DIC(c1, c2, dmk)\
+case TAG(c1,c2):\
+	return getDicVal##dmk()
+	
+			CHECK_IDENTITY_STRING_INFO_DIC_LIST();
+#undef CHECK_STR_DIC
+	}
 	
 	switch (*(short*)name) // http://code.google.com/p/flylinkdc/issues/detail?id=1314
 	{
 		case TAG('E', 'M'):
 		{
-			if (!getEmptyStringParamBit(EM_IS_NOT_EMPTY))
+			if (!getNotEmptyStringBit(EM))
 			{
-				//dcdebug(" =================== !getEmptyStringParamBit(EM_IS_NOT_EMPTY)\n");
+				//dcdebug(" =================== !getNotEmptyStringBit(EM)\n");
 				return Util::emptyString;
 			}
+			break;
 		}
 		case TAG('D', 'E'):
 		{
-			if (!getEmptyStringParamBit(DE_IS_NOT_EMPTY))
+			if (!getNotEmptyStringBit(DE))
 			{
-				//dcdebug(" =================== !getEmptyStringParamBit(DE_IS_NOT_EMPTY)\n");
+				//dcdebug(" =================== !getNotEmptyStringBit(DE)\n");
 				return Util::emptyString;
 			}
 			break;
@@ -469,20 +483,6 @@ string Identity::getStringParam(const char* name) const // [!] IRainman fix.
 	};
 	
 	FastSharedLock l(g_cs); // [4] https://www.box.net/shared/81bdfde50b7c189f8240  https://www.box.net/shared/a130f02bc6c8d99420d8
-	
-	switch (*(short*)name) // TODO: move to instantly method
-	{
-#define CHECK_STR_DIC(c1, c2, dmk)\
-case TAG(c1,c2):\
-{\
-	const auto& dicId = getDic##dmk();\
-	return dicId > 0 ? *g_infoDic##dmk[dicId - 1] : Util::emptyString;/*TODO: add instantly access*/\
-}\
-break
-
-		CHECK_STRING_INFO_DIC_LIST();
-#undef CHECK_STR_DIC
-	}
 	
 	const auto i = m_stringInfo.find(*(short*)name);
 	if (i != m_stringInfo.end())
@@ -516,6 +516,18 @@ void Identity::setStringParam(const char* name, const string& val) // [!] IRainm
 		}
 	}
 #endif
+	
+	switch (*(short*)name) // TODO: move to instantly method
+	{
+#define CHECK_STR_DIC(c1, c2, dmk)\
+case TAG(c1,c2):\
+	setDicId##dmk(val);\
+	return
+	
+			CHECK_IDENTITY_STRING_INFO_DIC_LIST();
+#undef CHECK_STR_DIC
+	}
+	
 	bool l_is_processing_stringInfo_map = true;
 	if (val.empty()) //  http://code.google.com/p/flylinkdc/issues/detail?id=1314
 	{
@@ -523,14 +535,14 @@ void Identity::setStringParam(const char* name, const string& val) // [!] IRainm
 		{
 			case TAG('E', 'M'):
 			{
-				l_is_processing_stringInfo_map = getEmptyStringParamBit(EM_IS_NOT_EMPTY); // TODO два раза пишем пустоту
-				setEmptyStringParamBit(EM_IS_NOT_EMPTY, false);
+				l_is_processing_stringInfo_map = getNotEmptyStringBit(EM); // TODO два раза пишем пустоту
+				setNotEmptyStringBit(EM, false);
 				break;
 			}
 			case TAG('D', 'E'):
 			{
-				l_is_processing_stringInfo_map = getEmptyStringParamBit(DE_IS_NOT_EMPTY);  // TODO два раза пишем пустоту
-				setEmptyStringParamBit(DE_IS_NOT_EMPTY, false);
+				l_is_processing_stringInfo_map = getNotEmptyStringBit(DE);  // TODO два раза пишем пустоту
+				setNotEmptyStringBit(DE, false);
 				break;
 			}
 		}
@@ -543,21 +555,14 @@ void Identity::setStringParam(const char* name, const string& val) // [!] IRainm
 		{
 			case TAG('E', 'M'): //  http://code.google.com/p/flylinkdc/issues/detail?id=1314
 			{
-				setEmptyStringParamBit(EM_IS_NOT_EMPTY, !val.empty());
+				setNotEmptyStringBit(EM, !val.empty());
 				break;
 			}
 			case TAG('D', 'E'): //  http://code.google.com/p/flylinkdc/issues/detail?id=1314
 			{
-				setEmptyStringParamBit(DE_IS_NOT_EMPTY, !val.empty());
+				setNotEmptyStringBit(DE, !val.empty());
 				break;
 			}
-#define CHECK_STR_DIC(c1, c2, dmk)\
-case TAG(c1,c2):\
-	setDicId##dmk##L(val);\
-	return
-				
-				CHECK_STRING_INFO_DIC_LIST();
-#undef CHECK_STR_DIC
 		}
 		
 		if (val.empty())

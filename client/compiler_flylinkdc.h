@@ -313,7 +313,6 @@ typedef unsigned __int64 uint64_t;
 #ifdef FLYLINKDC_HE
 //# define IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER // TODO: This code locates problem https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=12550 , as well as allow to save memory in the future.
 #endif
-//#define IRAINMAN_USE_BOOST_HASHER_FOR_CID // https://bugs.launchpad.net/dcplusplus/+bug/1193899 Replacing homemade hasher, to hasher, taking into account all the data?
 #ifdef FLYLINKDC_HE
 # define IRAINMAN_SQLITE_USE_EXCLUSIVE_LOCK_MODE // TODO: please correct the launch of two clients with the same configuration https://code.google.com/p/flylinkdc/source/detail?r=13240
 #endif

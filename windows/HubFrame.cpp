@@ -2867,7 +2867,7 @@ LRESULT HubFrame::onFilterChar(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL
 			
 			updateUserList();
 		}
-	}
+	 }
 	
 	bHandled = FALSE;
 	
@@ -3633,11 +3633,11 @@ void HubFrame::addDupeUsersToSummaryMenu(const int64_t &share, const string& ip)
 					if (favUser.isSet(FavoriteUser::FLAG_IGNORE_PRIVATE)) favInfo += ' ' + STRING(IGNORE_PRIVATE);
 					if (favUser.getUploadLimit() != FavoriteUser::UL_NONE) favInfo += ' ' + FavoriteUser::getSpeedLimitText(favUser.getUploadLimit());
 					if (!favUser.getDescription().empty()) favInfo += " \"" + favUser.getDescription() + '\"';
-					if (!favInfo.empty()) info += _T("\t/") + Text::toT(favInfo);
+					if (!favInfo.empty()) info += _T(",   FavInfo: ") + Text::toT(favInfo);
 				}
 				userSummaryMenu.AppendMenu(MF_SEPARATOR);
 				userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED | flags, IDC_NONE, info.c_str());
-				userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, Text::toT(l_id.getApplication() + "\t" + l_id.getIp()).c_str());
+				userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, Text::toT(l_id.getApplication() + ",   IP: " + l_id.getIp()).c_str());
 			}
 		}
 	}
@@ -3646,15 +3646,16 @@ void HubFrame::addDupeUsersToSummaryMenu(const int64_t &share, const string& ip)
 
 void HubFrame::addPasswordCommand()
 {
+	const TCHAR* l_pass = _T("/password ");
 	if (m_ctrlMessage)
 	{
-		m_ctrlMessage->SetWindowText(_T("/password "));
+		m_ctrlMessage->SetWindowText(l_pass);
 		m_ctrlMessage->SetFocus();
 		m_ctrlMessage->SetSel(10, 10);
 	}
 	else
 	{
-		m_LastMessage = _T("/password ");
+		m_LastMessage = l_pass;
 	}
 }
 

@@ -65,7 +65,7 @@ class AppearancePage : public CPropertyPage<IDD_APPEARANCE_PAGE>, public PropPag
 		
 		ExListViewCtrl ctrlList; // [+] IRainman
 		
-		typedef unordered_map<wstring, string> ThemeMap;
+		typedef boost::unordered_map<wstring, string> ThemeMap;
 		typedef pair<wstring, string> ThemePair;
 		
 		// [+] SSA Theme

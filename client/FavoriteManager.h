@@ -120,7 +120,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		// [~] IRainman mimicry function
 		
 // Favorite Users
-		typedef unordered_map<CID, FavoriteUser> FavoriteMap;
+		typedef std::unordered_map<CID, FavoriteUser> FavoriteMap; // TODO boost
 #ifdef IRAINMAN_NON_COPYABLE_FAV_USERS
 		class LockInstanceUsers
 		{
@@ -167,11 +167,6 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		bool getFavoriteUser(const UserPtr& p_user, FavoriteUser& p_favuser) const; // [+] IRainman opt.
 		bool isNoFavUserOrUserBanUpload(const UserPtr& aUser) const; // [+] IRainman opt.
 		bool isNoFavUserOrUserIgnorePrivate(const UserPtr& aUser) const; // [+] IRainman opt.
-	private:
-		int getUploadLimitL(const FavoriteMap::const_iterator& p_user) const // [+] IRainman fix.
-		{
-			return p_user->second.getUploadLimit();
-		}
 	public:
 		bool getFavUserParam(const UserPtr& aUser, FavoriteUser::MaskType& p_flags, int& p_uploadLimit) const; // [+] IRainman opt.
 		
@@ -198,8 +193,6 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 			return (p_flags & FavoriteUser::FLAG_FREE_PM_ACCESS) != 0;
 		}
 		
-		bool getUploadLimit(const UserPtr& aUser, int& p_uploadLimit) const; // [+] FlylinkDC
-		
 		void removeFavoriteUser(const UserPtr& aUser);
 		
 		void setUserDescription(const UserPtr& aUser, const string& description);
@@ -219,17 +212,21 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		bool hasUploadBan(const UserPtr& aUser) const
 		{
 			int limit;
-			return getUploadLimit(aUser, limit) ? limit == FavoriteUser::UL_BAN : false;
+			FavoriteUser::MaskType l_flags;
+			return getFavUserParam(aUser, l_flags, limit) ? limit == FavoriteUser::UL_BAN : false;
 		}
 		void setUploadBan(const UserPtr& aUser, bool ban) // [+] IRainman fix.
 		{
 			setUploadLimit(aUser, ban ? FavoriteUser::UL_BAN : FavoriteUser::UL_NONE);
 		}
+#if 0
 		bool hasUploadSuperUser(const UserPtr& aUser) const // [+] IRainman fix.
 		{
 			int limit;
-			return getUploadLimit(aUser, limit) ? limit == FavoriteUser::UL_SU : false;
+			FavoriteUser::MaskType l_flags;
+			return getFavUserParam(aUser, l_flags, limit) ? limit == FavoriteUser::UL_SU : false;
 		}
+#endif
 		void setUploadSuperUser(const UserPtr& aUser, bool superUser) // [+] IRainman fix.
 		{
 			setUploadLimit(aUser, superUser ? FavoriteUser::UL_SU : FavoriteUser::UL_NONE);

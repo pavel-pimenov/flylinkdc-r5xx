@@ -283,7 +283,7 @@ public UCHandler<HubFrame>, public UserInfoBaseHandler < HubFrame, UserInfoGuiTr
 		~HubFrame();
 		
 		virtual void doDestroyFrame();
-		typedef unordered_map<tstring, HubFrame*> FrameMap;
+		typedef boost::unordered_map<tstring, HubFrame*> FrameMap;
 		static FrameMap g_frames;
 		static bool g_is_before_close_all;
 		
