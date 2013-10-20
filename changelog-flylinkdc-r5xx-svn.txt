@@ -1,4 +1,66 @@
 ------------------------------------------------------------------------
+r15758 | pavel.pimenov@gmail.com | 2013-10-20 08:54:43 +0400 (Вс, 20 окт 2013) | 1 line
+
+#
+------------------------------------------------------------------------
+r15757 | pavel.pimenov | 2013-10-18 14:41:58 +0400 (Пт, 18 окт 2013) | 1 line
+
+# TODO Купить словарь
+------------------------------------------------------------------------
+r15756 | pavel.pimenov | 2013-10-18 14:29:16 +0400 (Пт, 18 окт 2013) | 2 lines
+
+# Исключил дополнительный запрос к справочнику ников в CFlylinkDBManager::load_ratio 
+  с ошибочным созданием холостой записи в fly_dic.
+------------------------------------------------------------------------
+r15755 | pavel.pimenov@gmail.com | 2013-10-18 07:13:59 +0400 (Пт, 18 окт 2013) | 1 line
+
+# Astyle - [public-build]
+------------------------------------------------------------------------
+r15754 | pavel.pimenov@gmail.com | 2013-10-18 07:12:59 +0400 (Пт, 18 окт 2013) | 1 line
+
+# Убрал вывод IP = '0.0.0.0' когда он не известен
+------------------------------------------------------------------------
+r15753 | pavel.pimenov@gmail.com | 2013-10-17 22:20:35 +0400 (Чт, 17 окт 2013) | 1 line
+
+# storeColumsInfo Зовем раньше - возможно исправится баг с потерей расположения колонок.
+------------------------------------------------------------------------
+r15752 | pavel.pimenov@gmail.com | 2013-10-17 22:12:14 +0400 (Чт, 17 окт 2013) | 21 lines
+
+* SQLite Release 3.8.1 On 2013-10-17 (3.8.1)
+    Added the unlikely() and likelihood() SQL functions to be used as hints to the query planner.
+    Enhancements to the query planner:
+        Take into account the fact WHERE clause terms that cannot be used with indices still probably reduce the number of output rows.
+        Estimate the sizes of table and index rows and use the smallest applicable B-Tree for full scans and "count(*)" operations. 
+    Added the soft_heap_limit pragma.
+    Added support for SQLITE_ENABLE_STAT4
+    Added support for "sz=NNN" parameters at the end of sqlite_stat1.stat fields used to specify the average length in bytes for table and index rows.
+    Avoid running foreign-key constraint checks on an UPDATE if none of the modified columns are associated with foreign keys.
+    Added the SQLITE_MINIMUM_FILE_DESCRIPTOR compile-time option
+    Added the win32-longpath VFS on windows, permitting filenames up to 32K characters in length.
+    The Date And Time Functions are enhanced so that the current time (ex: julianday('now')) is always the same for multiple function invocations within the same sqlite3_step() call.
+    Add the "totype.c" extension, implementing the tointeger() and toreal() SQL functions.
+    FTS4 queries are better able to make use of docid<$limit constraints to limit the amount of I/O required.
+    Added the hidden fts4aux languageid column to the fts4aux virtual table.
+    The VACUUM command packs the database about 1% tighter.
+    The sqlite3_analyzer utility program is updated to provide better descriptions and to compute a more accurate estimate for "Non-sequential pages"
+    Refactor the implementation of PRAGMA statements to improve parsing performance.
+    The directory used to hold temporary files on unix can now be set using the SQLITE_TMPDIR environment variable, which takes precedence over the TMPDIR environment variable. The sqlite3_temp_directory global variable still has higher precedence than both environment variables, however.
+    Added the PRAGMA stats statement.
+    Bug fix: Return the correct answer for "SELECT count(*) FROM table" even if there is a partial index on the table. Ticket a5c8ed66ca. 
+------------------------------------------------------------------------
+r15750 | pavel.pimenov@gmail.com | 2013-10-17 20:14:04 +0400 (Чт, 17 окт 2013) | 1 line
+
+# Astyle
+------------------------------------------------------------------------
+r15749 | pavel.pimenov@gmail.com | 2013-10-17 20:13:36 +0400 (Чт, 17 окт 2013) | 6 lines
+
+# Перевел хранение IP адреса в std:;string на boost::asio::ip::address_v4 - ожидается сокращение потребеление RAM (4 байта вместо 15+4 байт)  
+  TODO 
+  - убрать копипаст вида:
+    boost::system::error_code ec;
+    const auto l_ip = boost::asio::ip::address_v4::from_string(sr->getIP(),ec);
+  - Унести address_v4 ниже в socket
+------------------------------------------------------------------------
 r15747 | pavel.pimenov@gmail.com | 2013-10-17 18:34:07 +0400 (Чт, 17 окт 2013) | 1 line
 
 # Забыл #include <boost/unordered/unordered_map.hpp>

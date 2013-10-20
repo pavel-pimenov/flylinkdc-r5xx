@@ -154,16 +154,15 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		void store_all_ratio_and_last_ip(uint32_t p_hub_id,
 		                                 const string& p_nick,
-		                                 const CFlyUploadDownloadMap& p_upload_download_stats,
-		                                 const string& p_last_ip);
+		                                 const CFlyUploadDownloadMap* p_upload_download_stats,
+		                                 const boost::asio::ip::address_v4& p_last_ip);
 		uint32_t get_dic_hub_id(const string& p_hub);
-		uint32_t get_ip_id(const string& p_ip);
 		void load_global_ratio();
-		CFlyRatioItem load_ratio(uint32_t p_hub_id, const string& p_nick, CFlyUserRatioInfo& p_ratio_info, const string& p_last_ip);
-		string load_last_ip(uint32_t p_hub_id, const string& p_nick);
-		void update_last_ip(uint32_t p_hub_id, const string& p_nick, const string& p_last_ip);
+		CFlyRatioItem load_ratio(uint32_t p_hub_id, const string& p_nick, CFlyUserRatioInfo& p_ratio_info, const  boost::asio::ip::address_v4& p_last_ip);
+		boost::asio::ip::address_v4 load_last_ip(uint32_t p_hub_id, const string& p_nick);
+		void update_last_ip(uint32_t p_hub_id, const string& p_nick, const boost::asio::ip::address_v4& p_last_ip);
 	private:
-		void update_last_ipL(uint32_t p_hub_id, const string& p_nick, const string& p_last_ip);
+		void update_last_ipL(uint32_t p_hub_id, const string& p_nick, const boost::asio::ip::address_v4& p_last_ip);
 	public:
 		CFlyGlobalRatioItem  m_global_ratio;
 		double get_ratio() const;

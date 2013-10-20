@@ -74,7 +74,7 @@ void User::setLastNick(const string& p_nick)
 				m_nick = p_nick;
 			}
 			if (m_ratio_ptr)
-				m_ratio_ptr->setDitry(true);
+				m_ratio_ptr->setDirty(true);
 		}
 		else
 		{
@@ -96,25 +96,25 @@ void User::storeIP(const string& p_ip)
 		if (m_ratio_ptr)
 		{
 			m_ratio_ptr->m_last_ip_sql = p_ip;
-			m_ratio_ptr->setDitry(true);
+			m_ratio_ptr->setDirty(true);
 		}
 	}
 }
 #endif
-void User::setIP(const string& p_last_ip)
+void User::setIP(const boost::asio::ip::address_v4& p_last_ip)
 {
 	if (m_ratio_ptr)
 	{
-		dcassert(!p_last_ip.empty());
-		if (m_last_ip != p_last_ip)
+		dcassert(!p_last_ip.is_unspecified());
+		if (m_last_ip != p_last_ip) // TODO подумать где лучше делать преобразование
 		{
 #ifdef _DEBUG
-			if (!m_last_ip.empty() && p_last_ip.empty())
+			if (!m_last_ip.is_unspecified() && p_last_ip.is_unspecified())
 			{
 				dcassert(0);
 			}
 #endif
-			const bool l_is_change_ip = !m_last_ip.empty() && !p_last_ip.empty();
+			const bool l_is_change_ip = !m_last_ip.is_unspecified() && !p_last_ip.is_unspecified();
 			if (l_is_change_ip)
 			{
 				if (m_ratio_ptr)
@@ -134,17 +134,20 @@ void User::setIP(const string& p_last_ip)
 		m_last_ip = p_last_ip;
 	}
 }
-const string& User::getIP()
+string User::getIP()
 {
 	initRatio(false);
 	if (m_ratio_ptr)
 	{
-		return m_ratio_ptr->m_last_ip_sql;
+		if (!m_ratio_ptr->m_last_ip_sql.is_unspecified())
+			return m_ratio_ptr->m_last_ip_sql.to_string();
 	}
 	else
 	{
-		return m_last_ip;
+		if (!m_last_ip.is_unspecified())
+			return m_last_ip.to_string();
 	}
+	return Util::emptyString;
 }
 uint64_t User::getBytesUpload()
 {
@@ -206,14 +209,11 @@ void User::initRatio(bool p_is_create)
 	{
 		m_is_first_init_ratio = true;
 		// Узнаем был ли в базе last_ip
-		const string l_last_ip_from_sql = CFlylinkDBManager::getInstance()->load_last_ip(m_hub_id, m_nick);
-		if (!l_last_ip_from_sql.empty() || p_is_create)
+		const boost::asio::ip::address_v4 l_last_ip_from_sql = CFlylinkDBManager::getInstance()->load_last_ip(m_hub_id, m_nick);
+		if (!l_last_ip_from_sql.is_unspecified() || p_is_create)
 		{
-//	 if(m_last_ip.empty())
-//		m_last_ip = l_last_ip_from_sql; // ????? может не нада
-//		dcassert(!m_last_ip.empty());
 			CFlyUserRatioInfo* l_try_ratio = new CFlyUserRatioInfo(this);
-			if (l_try_ratio->try_load_ratio(p_is_create, m_last_ip.empty() ? l_last_ip_from_sql : m_last_ip))
+			if (l_try_ratio->try_load_ratio(p_is_create, m_last_ip.is_unspecified() ? l_last_ip_from_sql : m_last_ip))
 			{
 				dcassert(m_ratio_ptr == nullptr);
 				safe_delete(m_ratio_ptr);

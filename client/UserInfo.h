@@ -99,7 +99,7 @@ class UserInfo : public UserInfoBase
 		{
 			return getIdentity().isOp();
 		}
-		const string& getIp() const
+		string getIp() const
 		{
 			return getIdentity().getIp();
 		}

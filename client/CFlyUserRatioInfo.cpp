@@ -10,62 +10,52 @@
 FastCriticalSection CFlyUserRatioInfo::g_cs;
 
 CFlyUserRatioInfo::CFlyUserRatioInfo(User* p_user):
+	m_ip_map_ptr(nullptr),
 	m_user(p_user),
 	m_is_sql_record_exists(false),
-	m_is_ditry(false)
+	m_is_dirty(false)
 {
 }
 
 CFlyUserRatioInfo::~CFlyUserRatioInfo()
 {
 	flushRatio();
-}
-
-void CFlyUserRatioInfo::setDitry(bool p_value)
-{
-	m_is_ditry = p_value;
+	delete m_ip_map_ptr;
 }
 void CFlyUserRatioInfo::addUpload(const string& p_ip, uint64_t p_size)
 {
 	m_upload += p_size;
 	FastLock l(g_cs);
-	auto& l_u_d_map = m_upload_download_map[p_ip];
-	l_u_d_map.m_upload += p_size;
-	setDitry(true);
+	find_ip_map(p_ip).m_upload += p_size;
+	setDirty(true);
 }
 void CFlyUserRatioInfo::addDownload(const string& p_ip, uint64_t p_size)
 {
 	m_download += p_size;
 	FastLock l(g_cs);
-	auto& l_u_d_map = m_upload_download_map[p_ip];
-	l_u_d_map.m_download += p_size;
-	setDitry(true);
+	find_ip_map(p_ip).m_download += p_size;
+	setDirty(true);
 }
 
 void CFlyUserRatioInfo::flushRatio()
 {
-	//  dcdebug(" [!!!!!!] CFlyUserRatioInfo::flush() m_last_ip = %s nick = %s, m_is_ditry = %d m_nick_id = %d m_hub_id = %d m_is_sql_record_exists = %d this = %p\r\n",
-	//   m_last_ip.c_str(), m_nick.c_str(), int(m_is_ditry), int(m_hub_id), int(m_is_sql_record_exists), this);
-	// dcassert(!m_nick.empty());
-	//dcassert(m_hub_id && (m_nick_id || !m_nick.empty()));
-	// dcassert(m_nick_id && !m_nick.empty()); Такое возможно когда ник - это бот хаба
-	if (m_is_ditry && m_user->getHubID() && !m_user->m_nick.empty() && !m_last_ip_sql.empty() // !m_user->m_last_ip.empty()
+	if (m_is_dirty && m_user->getHubID() && !m_last_ip_sql.is_unspecified() && !m_user->m_nick.empty() 
 	        && CFlylinkDBManager::isValidInstance()) // fix https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&Login=Guest&DumpGroupID=86337
 	{
-		dcassert(!m_last_ip_sql.empty());
+		dcassert(!m_last_ip_sql.is_unspecified());
 		FastLock l(g_cs); // Для защиты m_upload_download_map
-		CFlylinkDBManager::getInstance()->store_all_ratio_and_last_ip(m_user->getHubID(), m_user->m_nick, m_upload_download_map, m_last_ip_sql); // m_user->m_last_ip ??
-		setDitry(false);
+		CFlylinkDBManager::getInstance()->store_all_ratio_and_last_ip(m_user->getHubID(), m_user->m_nick, m_ip_map_ptr, m_last_ip_sql); // m_user->m_last_ip ??
+		setDirty(false);
 	}
 }
-bool CFlyUserRatioInfo::try_load_ratio(bool p_is_create, const string& p_last_ip)
+bool CFlyUserRatioInfo::try_load_ratio(bool p_is_create, const boost::asio::ip::address_v4& p_last_ip)
 {
 	if (m_is_sql_record_exists)
 		return true;
-	dcassert(!p_last_ip.empty());
+	dcassert(!p_last_ip.is_unspecified());
 	if (m_user->getHubID() && !m_user->m_nick.empty()) // Не грузили данные по рейтингу?
 	{
-		if (!p_last_ip.empty())
+		if (!p_last_ip.is_unspecified())
 		{
 			m_last_ip_sql = p_last_ip;
 		}
@@ -77,7 +67,7 @@ bool CFlyUserRatioInfo::try_load_ratio(bool p_is_create, const string& p_last_ip
 		                                  p_last_ip);
 		m_upload   = l_item.m_upload;
 		m_download = l_item.m_download;
-		m_is_sql_record_exists = !p_last_ip.empty() || m_download || m_upload;
+		m_is_sql_record_exists = !p_last_ip.is_unspecified() || m_download || m_upload;
 	}
 	else
 	{

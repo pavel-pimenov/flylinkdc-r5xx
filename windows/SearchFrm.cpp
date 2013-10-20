@@ -2091,7 +2091,10 @@ void SearchFrame::addSearchResult(SearchInfo * si)
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	if (!sr->getIP().empty() && m_storeIP)
 	{
-		CFlylinkDBManager::getInstance()->update_last_ip(user->getHubID(), user->getLastNick(), sr->getIP());
+		boost::system::error_code ec;
+		const auto l_ip = boost::asio::ip::address_v4::from_string(sr->getIP(), ec);
+		dcassert(!ec);
+		CFlylinkDBManager::getInstance()->update_last_ip(user->getHubID(), user->getLastNick(), l_ip);
 	}
 #else
 	if (!sr->getIP().empty())

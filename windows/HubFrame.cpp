@@ -1914,6 +1914,7 @@ LRESULT HubFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 	{
 		m_closed = true;
 		safe_destroy_timer();
+		storeColumsInfo();
 		RecentHubEntry* r = FavoriteManager::getInstance()->getRecentHubEntry(l_server);
 		if (r) // hub has been removed by the user from a list of recent hubs at a time when it was opened. https://crash-server.com/Bug.aspx?ClientID=ppa&ProblemID=9897
 		{
@@ -1940,7 +1941,6 @@ LRESULT HubFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 	{
 		clearTaskList();
 		clearUserList();
-		storeColumsInfo();
 		bHandled = FALSE;
 		return 0;
 	}
@@ -2867,7 +2867,7 @@ LRESULT HubFrame::onFilterChar(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL
 			
 			updateUserList();
 		}
-	 }
+	}
 	
 	bHandled = FALSE;
 	

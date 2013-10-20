@@ -204,18 +204,23 @@ class Identity
 			return getUser()->getBytesShared();
 		}
 		
-		void setIp(const string& ip) // "I4"
+		void setIp(const string& p_ip) // "I4"
 		{
-			m_ip = ip;
-			getUser()->setIP(ip);
+			boost::system::error_code ec;
+			m_ip = boost::asio::ip::address_v4::from_string(p_ip, ec);
+			dcassert(!ec);
+			getUser()->setIP(m_ip);
 			change(CHANGES_IP | CHANGES_GEO_LOCATION);
 		}
-		const string& getIp() const // "I4"
+		string getIp() const // "I4"
 		{
-			return !m_ip.empty() ? m_ip : getUser()->getIP();
+			if (!m_ip.is_unspecified())
+				return m_ip.to_string();
+			else
+				return getUser()->getIP();
 		}
 	private:
-		string m_ip; // "I4" // [!] IRainman fix: needs here, details https://code.google.com/p/flylinkdc/issues/detail?id=1330
+		boost::asio::ip::address_v4 m_ip; // "I4" // [!] IRainman fix: needs here, details https://code.google.com/p/flylinkdc/issues/detail?id=1330
 	public:
 	
 // Нужна ли тут блокировка?

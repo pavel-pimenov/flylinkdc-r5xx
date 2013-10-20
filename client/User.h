@@ -19,6 +19,8 @@
 #ifndef DCPLUSPLUS_DCPP_USER_H
 #define DCPLUSPLUS_DCPP_USER_H
 
+#include <boost/asio/ip/address_v4.hpp>
+
 #include "Pointer.h"
 #include "CID.h"
 #include "Flags.h"
@@ -185,7 +187,14 @@ class User : public intrusive_ptr_base<User>, public Flags
 			return m_nick;
 		}
 		void setLastNick(const string& p_nick);
-		void setIP(const string& p_ip);
+		void setIP(const string& p_ip)
+		{
+			boost::system::error_code ec;
+			const auto l_ip = boost::asio::ip::address_v4::from_string(p_ip, ec);
+			dcassert(!ec);
+			setIP(l_ip);
+		}
+		void setIP(const boost::asio::ip::address_v4& p_ip);
 		uint32_t getHubID() const
 		{
 			return m_hub_id;
@@ -221,7 +230,7 @@ class User : public intrusive_ptr_base<User>, public Flags
 		GETSET(uint32_t, m_limit, Limit);
 		GETSET(uint8_t, m_slots, Slots);
 		string m_nick;
-		string m_last_ip;
+		boost::asio::ip::address_v4 m_last_ip;
 		//[~]PPA
 		
 		bool isOnline() const
@@ -272,14 +281,14 @@ class User : public intrusive_ptr_base<User>, public Flags
 		{
 			if (m_ratio_ptr)
 			{
-				return !m_ratio_ptr->m_last_ip_sql.empty() && m_last_ip.empty();
+				return !m_ratio_ptr->m_last_ip_sql.is_unspecified() && m_last_ip.is_unspecified();
 			}
 			else
 			{
 				return false;
 			}
 		}
-		const string& getIP();
+		string getIP();
 		uint64_t getBytesUpload();
 		uint64_t getBytesDownload();
 		void initRatio(bool p_is_create);

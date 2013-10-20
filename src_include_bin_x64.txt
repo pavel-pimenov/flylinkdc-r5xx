@@ -5,4 +5,3 @@ compiled/EmoPacks/*.*
 compiled/Sounds/*.* 
 compiled/WEBserver/*.*
 compiled/crshhndl-x64.dll
-

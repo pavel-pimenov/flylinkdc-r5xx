@@ -58,7 +58,7 @@ uint32_t IPList::parseIP(const std::string& IPNumber) // TODO: use Socket::conve
 
 uint32_t IPList::add(const std::string& IPNumber)
 {
-	uint32_t ip = parseIP(IPNumber);
+	const uint32_t ip = parseIP(IPNumber);
 	if (ip == INADDR_NONE)
 		return IP_ERROR;
 	add(ip);
@@ -74,8 +74,8 @@ void IPList::add(uint32_t ip)
 
 uint32_t IPList::add(const std::string& IPNumber, const std::string& Mask)
 {
-	uint32_t ip = parseIP(IPNumber);
-	uint32_t umask = parseIP(Mask);
+	const uint32_t ip = parseIP(IPNumber);
+	const uint32_t umask = parseIP(Mask);
 	if (ip == INADDR_NONE)
 		return IP_ERROR;
 	if (umask == INADDR_NONE)
@@ -103,8 +103,8 @@ void IPList::add(uint32_t ip, uint32_t umask)
 
 uint32_t IPList::add(const std::string& IPNumber, uint32_t maskLevel)
 {
-	uint32_t ip = parseIP(IPNumber);
-	uint32_t umask = getMaskByLevel(maskLevel);
+	const uint32_t ip = parseIP(IPNumber);
+	const uint32_t umask = getMaskByLevel(maskLevel);
 	
 	if (ip == INADDR_NONE)
 		return IP_ERROR;
@@ -131,8 +131,8 @@ uint32_t IPList::getMaskByLevel(uint32_t maskLevel)
 
 uint32_t IPList::addRange(const std::string& fromIP, const std::string& toIP)
 {
-	uint32_t ufromIP = parseIP(fromIP);
-	uint32_t utoIP = parseIP(toIP);
+	const uint32_t ufromIP = parseIP(fromIP);
+	const uint32_t utoIP = parseIP(toIP);
 	
 	if (ufromIP == INADDR_NONE)
 		return START_IP_ERROR;
@@ -204,6 +204,7 @@ uint32_t IPList::addRange(uint32_t fromIP, uint32_t toIP)
 
 void IPList::addLine(std::string& Line, CFlyLog& p_log)
 {
+	dcassert(!Line.empty() && Line[0] != '#')
 	int32_t l_errorCode = 0;
 	boost::replace_all(Line, " ", "");
 	if (!Line.empty() && Line[0] != '#')
@@ -217,14 +218,12 @@ void IPList::addLine(std::string& Line, CFlyLog& p_log)
 			const string mask = Line.substr(mask_pos + 1);
 			if (mask.find('.') != string::npos)
 			{
-				l_errorCode = add(ip, mask);
-				
+				l_errorCode = add(ip, mask);				
 			}
 			else
 			{
 				l_errorCode = add(ip, Util::toUInt32(mask));
-			}
-			
+			}			
 		}
 		else if (range_pos != string::npos)
 		{
@@ -267,6 +266,10 @@ void IPList::addLine(std::string& Line, CFlyLog& p_log)
 				p_log.step(STRING(ERROR_PARSE) + ": [" + Line + "] " + l_ErrorString + ' ' + STRING(SKIPPED));
 			}
 		}
+	}
+	else
+	{
+		p_log.step(STRING(ERROR_PARSE) + ": [" + Line + "] line.empty() || line[0] == '#'" + STRING(SKIPPED));
 	}
 }
 
