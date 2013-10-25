@@ -75,7 +75,7 @@ LRESULT WaitingUsersFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 	// column names, sizes
 	for (uint8_t j = 0; j < UploadQueueItemInfo::COLUMN_LAST; j++)
 	{
-		int fmt = (j == UploadQueueItemInfo::COLUMN_TRANSFERRED || j == UploadQueueItemInfo::COLUMN_SIZE) ? LVCFMT_RIGHT : LVCFMT_LEFT;
+		const int fmt = (j == UploadQueueItemInfo::COLUMN_TRANSFERRED || j == UploadQueueItemInfo::COLUMN_SIZE) ? LVCFMT_RIGHT : LVCFMT_LEFT;
 		ctrlList.InsertColumn(j, TSTRING_I(columnNames[j]), fmt, columnSizes[j], j);
 	}
 	

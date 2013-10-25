@@ -591,7 +591,6 @@ enum Strings   // @DontAdd
 	GROUPS_REMOVEGROUP, // "Remove group"
 	GROUPS_REMOVENOTIFY, // " hubs; remove all of the hubs as well?\n\nIf you select 'Yes', all of these hubs are going to be deleted!\n\nIf you select 'No', these hubs will simply be moved to the main default group."
 	GROUP_CUSTOMMENU, // "Alternative 'Custom Menu' location"
-	GROUP_SEARCH_RESULTS, // "Group search results by TTH"
 	H, // "H:"
 	HASHING_FAILED, // "Hashing failed:"
 	HASHING_FINISHED, // "Finished hashing:"

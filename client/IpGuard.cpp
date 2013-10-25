@@ -126,7 +126,7 @@ bool IpGuard::check(const string& aIP, string& reason)
 	return BOOLSETTING(DEFAULT_POLICY);
 }
 
-void IpGuard::check(uint32_t aIP, Socket* socket /*= nullptr*/) throw(SocketException)
+void IpGuard::check(uint32_t aIP, Socket* socket /*= nullptr*/)
 {
 	if (aIP == 0)
 		return;

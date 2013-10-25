@@ -39,7 +39,7 @@ void CFlyUserRatioInfo::addDownload(const string& p_ip, uint64_t p_size)
 
 void CFlyUserRatioInfo::flushRatio()
 {
-	if (m_is_dirty && m_user->getHubID() && !m_last_ip_sql.is_unspecified() && !m_user->m_nick.empty() 
+	if (m_is_dirty && m_user->getHubID() && !m_last_ip_sql.is_unspecified() && !m_user->m_nick.empty()
 	        && CFlylinkDBManager::isValidInstance()) // fix https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&Login=Guest&DumpGroupID=86337
 	{
 		dcassert(!m_last_ip_sql.is_unspecified());

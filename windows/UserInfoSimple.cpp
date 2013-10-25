@@ -42,9 +42,9 @@ void UserInfoSimple::addSummaryMenu()
 		
 		if (params.limit)
 		{
-				userInfo += _T(' ') + TSTRING(SPEED_LIMIT) + _T('=') + Util::formatBytesW(params.limit) + _T('/') + WSTRING(SEC);
+			userInfo += _T(' ') + TSTRING(SPEED_LIMIT) + _T('=') + Util::formatBytesW(params.limit) + _T('/') + WSTRING(SEC);
 		}
-			
+		
 		UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, userInfo.c_str());
 		
 		time_t slot = UploadManager::getInstance()->getReservedSlotTime(getUser());

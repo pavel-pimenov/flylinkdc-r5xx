@@ -62,6 +62,23 @@ class TaskQueue
 		{
 			return tasks.empty();
 		}
+#if 0
+		size_t size()
+		{
+			FastLock l(cs);
+			return tasks.size();
+		}
+		string get_debug_info()
+		{
+			FastLock l(cs);
+			string l_tmp;
+			for (auto i = tasks.cbegin(); i != tasks.cend(); ++i)
+			{
+				l_tmp += "," + Util::toString(i->first);
+			}
+			return l_tmp;
+		}
+#endif
 		void add(uint8_t type, Task* data)
 		{
 			FastLock l(cs);

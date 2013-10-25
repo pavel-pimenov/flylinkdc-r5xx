@@ -677,7 +677,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 	if (aSource->isSet(UserConnection::FLAG_INCOMING))
 	{
 		// Try to guess where this came from...
-		ExpectedMap::NickHubPair i = expectedConnections.remove(aNick);
+		const auto& i = m_expectedConnections.remove(aNick);
 		
 		if (i.m_HubUrl.empty())
 		{

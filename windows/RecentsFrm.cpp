@@ -47,7 +47,7 @@ LRESULT RecentHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	BOOST_STATIC_ASSERT(_countof(columnNames) == COLUMN_LAST);
 	for (int j = 0; j < COLUMN_LAST; j++)
 	{
-		int fmt = LVCFMT_LEFT;
+		const int fmt = LVCFMT_LEFT;
 		ctrlHubs.InsertColumn(j, CTSTRING_I(columnNames[j]), fmt, columnSizes[j], j);
 	}
 	

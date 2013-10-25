@@ -585,7 +585,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		static int columnIndexes[COLUMN_LAST];
 		static int columnSizes[COLUMN_LAST];
 		
-		typedef map< HWND , DirectoryListingFrame* > FrameMap;
+		typedef std::map< HWND , DirectoryListingFrame* > FrameMap;
 		typedef pair< HWND , DirectoryListingFrame* > FramePair;
 		static FrameMap g_frames;
 		

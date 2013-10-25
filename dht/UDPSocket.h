@@ -67,7 +67,7 @@ class UDPSocket :
 		void disconnect() noexcept;
 		
 		/** Starts listening to UDP socket */
-		void listen() throw(SocketException);
+		void listen();
 		
 		/** Returns port used to listening to UDP socket */
 		uint16_t getPort() const
@@ -109,8 +109,8 @@ class UDPSocket :
 		/** Thread for receiving UDP packets */
 		int run();
 		
-		void checkIncoming() throw(SocketException);
-		void checkOutgoing(uint64_t& timer) throw(SocketException);
+		void checkIncoming();
+		void checkOutgoing(uint64_t& timer);
 		
 		void compressPacket(const string& data, uint8_t* destBuf, unsigned long& destSize);
 		bool decompressPacket(uint8_t* destBuf, unsigned long& destLen, const uint8_t* buf, size_t len);

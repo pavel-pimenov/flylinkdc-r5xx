@@ -100,7 +100,7 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		string m_salt;
 		uint32_t sid;
 		
-		unordered_set<uint32_t> forbiddenCommands;
+		boost::unordered_set<uint32_t> forbiddenCommands;
 		
 		static const vector<StringList> searchExts;
 		

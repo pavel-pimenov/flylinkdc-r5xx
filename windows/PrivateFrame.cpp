@@ -481,10 +481,10 @@ void PrivateFrame::updateTitle()
 	Flags::MaskType l_flags;
 	int l_ul;
 	if (FavoriteManager::getInstance()->getFavUserParam(replyTo, l_flags, l_ul))
-		{
+	{
 		banIcon = FavoriteManager::hasUploadBan(l_ul) || FavoriteManager::hasIgnorePM(l_flags); // !SMT!-UI
 	}
-		
+	
 	if (hubs.second)
 	{
 		if (banIcon) // !SMT!-UI

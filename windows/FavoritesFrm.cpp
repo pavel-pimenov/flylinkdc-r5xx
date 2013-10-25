@@ -76,7 +76,7 @@ LRESULT FavoriteHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 	BOOST_STATIC_ASSERT(_countof(columnNames) == COLUMN_LAST);
 	for (int j = 0; j < COLUMN_LAST; j++)
 	{
-		int fmt = LVCFMT_LEFT;
+		const int fmt = LVCFMT_LEFT;
 		ctrlHubs.InsertColumn(j, CTSTRING_I(columnNames[j]), fmt, columnSizes[j], j);
 	}
 	ctrlHubs.SetColumnOrderArray(COLUMN_LAST, columnIndexes);
@@ -506,7 +506,7 @@ void FavoriteHubsFrame::handleMove(bool up)
 
 TStringList FavoriteHubsFrame::getSortedGroups() const
 {
-	set<tstring, noCaseStringLess> sorted_groups;
+	std::set<tstring, noCaseStringLess> sorted_groups;
 	{
 		FavoriteManager::LockInstanceHubs lockedInstanceHubs;
 		const FavHubGroups& favHubGroups = lockedInstanceHubs.getFavHubGroups();

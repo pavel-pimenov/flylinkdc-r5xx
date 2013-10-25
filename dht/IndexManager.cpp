@@ -98,7 +98,7 @@ bool IndexManager::findResult(const TTHValue& p_tth, SourceList& p_sources) cons
 {
 #ifdef _DEBUG
 	static FastCriticalSection cs_tth_dup;
-	static map<string,int> g_tth_dup;
+	static boost::unordered_map<string,int> g_tth_dup;
 
 	FastLock l(cs_tth_dup);
 	if(g_tth_dup[p_tth.toBase32()]++ > 1)

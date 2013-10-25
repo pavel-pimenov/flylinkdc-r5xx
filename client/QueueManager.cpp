@@ -806,7 +806,7 @@ QueueManager::~QueueManager() noexcept
 			std::sort(filelists.begin(), filelists.end());
 			std::for_each(filelists.begin(),
 			std::set_difference(filelists.begin(), filelists.end(), protectedFileLists.begin(), protectedFileLists.end(), filelists.begin()),
-			(std::identity<bool(const string&)>::type*) File::deleteFile);
+			File::deleteFile);
 		}
 	}
 }
@@ -1332,7 +1332,7 @@ void QueueManager::buildMap(const DirectoryListing::Directory* dir, TTHMap& tthM
 		if (!(*j)->getAdls()) // [1] https://www.box.net/shared/d511d114cb87f7fa5b8d
 		{
 			buildMap(*j, tthMap); // [!] IRainman fix.
-	}
+		}
 	}
 	
 	for (auto i = dir->files.cbegin(); i != dir->files.cend(); ++i)

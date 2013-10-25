@@ -112,35 +112,33 @@ class ExpectedMap
 		        )
 		{
 			FastLock l(cs);
-			expectedConnections.insert(make_pair(aNick, NickHubPair(aMyNick, aHubUrl
+			m_expectedConnections.insert(make_pair(aNick, NickHubPair(aMyNick, aHubUrl
 #ifdef RIP_USE_CONNECTION_AUTODETECT
-			                                                        , reason
+			                                                          , reason
 #endif
-			                                                       )));
+			                                                         )));
 		}
 		
 		NickHubPair remove(const string& aNick)
 		{
 			FastLock l(cs);
-			ExpectMap::iterator i = expectedConnections.find(aNick);
-			
-			if (i == expectedConnections.end())
+			const auto& i = m_expectedConnections.find(aNick);
+			if (i == m_expectedConnections.end())
 				return NickHubPair(Util::emptyString, Util::emptyString
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 				                   , REASON_DEFAULT
 #endif
 				                  );
 				                  
-			NickHubPair tmp = i->second;
-			expectedConnections.erase(i);
-			
+			const NickHubPair tmp = i->second;
+			m_expectedConnections.erase(i);
 			return tmp;
 		}
 		
 	private:
 		/** Nick -> myNick, hubUrl for expected NMDC incoming connections */
-		typedef map<string, NickHubPair> ExpectMap;
-		ExpectMap expectedConnections;
+		typedef boost::unordered_map<string, NickHubPair> ExpectMap;
+		ExpectMap m_expectedConnections;
 		
 		FastCriticalSection cs; // [!] IRainman opt: use spin lock here.
 };
@@ -162,11 +160,11 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 #endif
 		               )
 		{
-			expectedConnections.add(aNick, aMyNick, aHubUrl
+			m_expectedConnections.add(aNick, aMyNick, aHubUrl
 #ifdef RIP_USE_CONNECTION_AUTODETECT
-			                        , reason
+			                          , reason
 #endif
-			                       );
+			                         );
 		}
 		
 		void nmdcConnect(const string& aServer, uint16_t aPort, const string& aMyNick, const string& hubUrl, const string& encoding,
@@ -254,7 +252,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		StringList nmdcFeatures;
 		StringList adcFeatures;
 		
-		ExpectedMap expectedConnections;
+		ExpectedMap m_expectedConnections;
 		
 		uint64_t floodCounter;
 		

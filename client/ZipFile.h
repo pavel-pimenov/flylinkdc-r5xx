@@ -89,7 +89,7 @@ class ZipFile : private boost::noncopyable
 #else
 		typedef boost::shared_array<uint8_t> FileContentType;
 #endif
-		typedef map<string, pair<FileInfo, FileContentType > > FileMap;
+		typedef std::map<string, pair<FileInfo, FileContentType > > FileMap;
 		
 		ZipFile() : fp(NULL) { }
 		ZipFile(const string &file);

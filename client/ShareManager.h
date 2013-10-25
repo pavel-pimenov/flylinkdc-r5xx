@@ -240,7 +240,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 								return a.getName() == b.getName();
 							}
 						};
-						typedef unordered_set<File, FileTraits, FileTraits> Set;
+						typedef std::unordered_set<File, FileTraits, FileTraits> Set;
 						
 						
 						File() : size(0), parent(0), hit(0), ts(0), ftype(SearchManager::TYPE_ANY) { }

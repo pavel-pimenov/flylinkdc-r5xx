@@ -207,7 +207,7 @@ LRESULT DirectoryListingFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	
 	for (size_t j = 0; j < COLUMN_LAST; j++) //-V104
 	{
-		int fmt = ((j == COLUMN_SIZE) || (j == COLUMN_EXACTSIZE) || (j == COLUMN_TYPE) || (j == COLUMN_HIT)) ? LVCFMT_RIGHT : LVCFMT_LEFT; //-V104
+		const int fmt = ((j == COLUMN_SIZE) || (j == COLUMN_EXACTSIZE) || (j == COLUMN_TYPE) || (j == COLUMN_HIT)) ? LVCFMT_RIGHT : LVCFMT_LEFT; //-V104
 		ctrlList.InsertColumn(j, TSTRING_I(columnNames[j]), fmt, columnSizes[j], j); //-V107
 	}
 	ctrlList.setColumnOrderArray(COLUMN_LAST, columnIndexes); //-V106
@@ -791,7 +791,7 @@ void DirectoryListingFrame::downloadList(const tstring& aTarget, bool view /* = 
 			{
 				if (view)
 				{
-					File::deleteFile(target + Text::toT(Util::validateFileName(ii->file->getName())));
+					File::deleteFileT(target + Text::toT(Util::validateFileName(ii->file->getName())));
 				}
 				dl->download(ii->file, Text::fromT(target + ii->getText(COLUMN_FILENAME)), view, WinUtil::isShift() || view, prio);
 			}
@@ -1767,7 +1767,7 @@ void DirectoryListingFrame::runUserCommand(UserCommand& uc)
 		
 	StringMap ucParams = ucLineParams;
 	
-	set<UserPtr> nicks;
+	std::set<UserPtr> nicks;
 	
 	int sel = -1;
 	while ((sel = ctrlList.GetNextItem(sel, LVNI_SELECTED)) != -1)
@@ -2269,7 +2269,6 @@ void DirectoryListingFrame::mergeFlyServerInfo()
 					const auto l_cur_item = ctrlList.findItem(l_si_find->second);
 					if (l_cur_item >= 0)
 					{
-						l_update_index.push_back(l_cur_item);
 						const Json::Value& l_result_counter = l_cur_item_in["info"];
 						const Json::Value& l_result_base_media = l_cur_item_in["media"];
 						const int l_count_media = Util::toInt(l_result_counter["count_media"].asString());
@@ -2291,6 +2290,7 @@ void DirectoryListingFrame::mergeFlyServerInfo()
 						const string l_count_query = l_result_counter["count_query"].asString();
 						if (!l_count_query.empty())
 						{
+							l_update_index.push_back(l_cur_item);
 							l_si_find->second->columns[COLUMN_FLY_SERVER_RATING] =  Text::toT(l_count_query);
 							if (l_count_query == "1")
 								l_is_know_tth = false; // Файл на сервер первый раз появился.
@@ -2302,6 +2302,9 @@ void DirectoryListingFrame::mergeFlyServerInfo()
 					l_tth_media_file_map.erase(TTHValue(l_tth));
 				}
 			}
+#if 0
+			TODO - апдейты по колонкам не пашут иногда
+http://code.google.com/p/flylinkdc/issues/detail?id=1113
 			const static int l_array[] =
 			{
 				COLUMN_BITRATE , COLUMN_MEDIA_XY, COLUMN_MEDIA_VIDEO , COLUMN_MEDIA_AUDIO, COLUMN_DURATION, COLUMN_FLY_SERVER_RATING
@@ -2311,8 +2314,10 @@ void DirectoryListingFrame::mergeFlyServerInfo()
 			if (!m_closed)
 			{
 				ctrlList.update_columns(l_update_index, l_columns);
-				ctrlList.RedrawItems(l_top_index, l_top_index + l_count_per_page); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1113
 			}
+#else
+			ctrlList.update_all_columns(l_update_index);
+#endif
 		}
 	}
 	// Обойдем кандидатов для предачи на сервер.

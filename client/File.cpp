@@ -256,7 +256,7 @@ void File::renameFile(const tstring& source, const tstring& target)
 	{
 		// Can't move, try copy/delete...
 		copyFile(source, target);
-		deleteFile(source);
+		deleteFileT(source);
 	}
 }
 
@@ -330,7 +330,7 @@ bool File::isExist(const tstring& filename, int64_t& outFileSize, int64_t& outFi
 
 void File::ensureDirectory(const tstring& aFile) noexcept
 {
-	dcassert(!aFile.empty())
+	dcassert(!aFile.empty());
 	// Skip the first dir...
 	tstring::size_type start = aFile.find_first_of(_T("\\/"));
 	if (start == tstring::npos)

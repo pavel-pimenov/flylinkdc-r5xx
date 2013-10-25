@@ -586,7 +586,6 @@
 	<string name="GroupsRemovegroup">Remove group</string>
 	<string name="GroupsRemovenotify"> hubs; remove all of the hubs as well?\n\nIf you select 'Yes', all of these hubs are going to be deleted!\n\nIf you select 'No', these hubs will simply be moved to the main default group.</string>
 	<string name="GroupCustommenu">Alternative 'Custom Menu' location</string>
-	<string name="GroupSearchResults">Group search results by TTH</string>
 	<string name="H">H:</string>
 	<string name="HashingFailed">Hashing failed:</string>
 	<string name="HashingFinished">Finished hashing:</string>

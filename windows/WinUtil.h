@@ -1434,7 +1434,7 @@ class WinUtil
 {
 	public:
 		// !SMT!-UI search user by exact share size
-		//typedef unordered_multimap<uint64_t, UserPtr> ShareMap;
+		//typedef std::unordered_multimap<uint64_t, UserPtr> ShareMap;
 //		typedef ShareMap::iterator ShareIter;
 		//static ShareMap UsersShare;
 		

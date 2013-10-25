@@ -434,9 +434,9 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		// =================================================
 #ifdef IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER
 # ifdef IRAINMAN_USE_NICKS_IN_CM
-		typedef unordered_map<const CID*, std::string&> NickMap;
+		typedef std::unordered_map<const CID*, std::string&> NickMap;
 # endif
-		typedef unordered_map<const CID*, const UserPtr> UserMap;
+		typedef std::unordered_map<const CID*, const UserPtr> UserMap;
 #else
 # ifdef IRAINMAN_USE_NICKS_IN_CM
 		typedef std::unordered_map<CID, std::string> NickMap; // TODO boost

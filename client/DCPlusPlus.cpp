@@ -281,8 +281,8 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		UserManager::deleteInstance(); // [+] IRainman core
 		FavoriteManager::deleteInstance();
 		ClientManager::deleteInstance();
-		CFlylinkDBManager::deleteInstance();
 		HashManager::deleteInstance();
+		CFlylinkDBManager::deleteInstance(); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1355
 		LogManager::deleteInstance();
 		SettingsManager::deleteInstance();
 		TimerManager::deleteInstance();

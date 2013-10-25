@@ -3,8 +3,8 @@ call svn update
 
 set NOCOMMIT=
 set VERSION_NUM=502
-set BETA_STATE=1
-set BETA_NUM=2
+set BETA_STATE=
+set BETA_NUM=
 
 set RELEASE_UPDATE_FOLDER=".\update\"
 set RELEASE_UPDATE_URL="http://www.fly-server.ru/update/5xx/release/"

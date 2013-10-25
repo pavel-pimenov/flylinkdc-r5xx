@@ -39,7 +39,7 @@ class IpGuard : public Singleton<IpGuard>, private SettingsManagerListener
 		}
 		
 		bool check(const string& aIP, string& reason);
-		void check(uint32_t aIP, Socket* socket = NULL) throw(SocketException);
+		void check(uint32_t aIP, Socket* socket = nullptr);
 		
 		void load();
 		void clear()

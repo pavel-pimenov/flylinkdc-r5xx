@@ -85,7 +85,7 @@ void UDPSocket::disconnect() noexcept
 /*
  * Starts listening to UDP socket
  */
-void UDPSocket::listen() throw(SocketException)
+void UDPSocket::listen()
 {
 	disconnect();
 	
@@ -107,7 +107,7 @@ void UDPSocket::listen() throw(SocketException)
 	}
 }
 
-void UDPSocket::checkIncoming() throw(SocketException)
+void UDPSocket::checkIncoming()
 {
 	if (socket->wait(delay, Socket::WAIT_READ) == Socket::WAIT_READ)
 	{
@@ -159,7 +159,7 @@ void UDPSocket::checkIncoming() throw(SocketException)
 	}
 }
 
-void UDPSocket::checkOutgoing(uint64_t& timer) throw(SocketException)
+void UDPSocket::checkOutgoing(uint64_t& timer)
 {
 	std::unique_ptr<Packet> packet;
 	const uint64_t now = GET_TICK();

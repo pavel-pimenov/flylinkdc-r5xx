@@ -218,12 +218,12 @@ void IPList::addLine(std::string& Line, CFlyLog& p_log)
 			const string mask = Line.substr(mask_pos + 1);
 			if (mask.find('.') != string::npos)
 			{
-				l_errorCode = add(ip, mask);				
+				l_errorCode = add(ip, mask);
 			}
 			else
 			{
 				l_errorCode = add(ip, Util::toUInt32(mask));
-			}			
+			}
 		}
 		else if (range_pos != string::npos)
 		{

@@ -439,7 +439,7 @@ string Identity::getStringParam(const char* name) const // [!] IRainman fix.
 	
 #ifdef PPA_INCLUDE_TEST
 	{
-		static map<short, int> g_cnt;
+		static std::map<short, int> g_cnt;
 		FastLock ll(csTest);
 		auto& j = g_cnt[*(short*)name];
 		j++;
@@ -498,7 +498,7 @@ void Identity::setStringParam(const char* name, const string& val) // [!] IRainm
 	
 #ifdef PPA_INCLUDE_TEST
 	{
-		static map<short, int> g_cnt;
+		static std::map<short, int> g_cnt;
 		FastLock ll(csTest);
 //	auto& i = g_cnt[*(short*)name];
 //	i++;
@@ -506,7 +506,7 @@ void Identity::setStringParam(const char* name, const string& val) // [!] IRainm
 //	{
 //		dcdebug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! set[%s] '%s' count = %d sizeof(*this) = %d\n", name, val.c_str(), i, sizeof(*this));
 //	}
-		static map<string, int> g_cnt_val;
+		static std::map<string, int> g_cnt_val;
 		string l_key = string(name).substr(0, 2);
 		auto& j = g_cnt_val[l_key + "~" + val];
 		j++;

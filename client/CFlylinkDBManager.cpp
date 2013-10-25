@@ -677,7 +677,7 @@ void CFlylinkDBManager::save_lost_location(const string& p_ip)
 	}
 }
 //========================================================================================================
-void CFlylinkDBManager::get_location(uint32_t p_ip, uint32_t& p_index)
+void CFlylinkDBManager::get_location(uint32_t p_ip, int32_t& p_index)
 {
 	dcassert(p_ip);
 	FastLock l(m_cache_location_cs);
@@ -688,7 +688,7 @@ void CFlylinkDBManager::get_location(uint32_t p_ip, uint32_t& p_index)
 	}
 }
 //========================================================================================================
-void CFlylinkDBManager::get_location_sql(uint32_t p_ip, uint32_t& p_index)
+void CFlylinkDBManager::get_location_sql(uint32_t p_ip, int32_t& p_index)
 {
 	dcassert(p_ip);
 	Lock l(m_cs);
@@ -756,7 +756,7 @@ void CFlylinkDBManager::save_location(const CFlyLocationIPArray& p_geo_ip)
 	}
 }
 //========================================================================================================
-uint16_t CFlylinkDBManager::find_cache_locationL(uint32_t p_ip, uint32_t& p_index)
+uint16_t CFlylinkDBManager::find_cache_locationL(uint32_t p_ip, int32_t& p_index)
 {
 	dcassert(p_ip);
 	p_index = 0;
@@ -792,10 +792,10 @@ void CFlylinkDBManager::get_country(uint32_t p_ip, uint8_t& p_index)
 {
 	dcassert(p_ip);
 	FastLock l(m_cache_location_cs);
-	CFlyLocationDesc l_location;
 	const bool l_is_find = find_cache_countryL(p_ip, p_index);
 	if (l_is_find == false)
 	{
+		CFlyLocationDesc l_location;
 		if (get_country_sqlite(p_ip, l_location))
 		{
 			m_country_cache.push_back(l_location);
@@ -1696,8 +1696,8 @@ CFlyRatioItem CFlylinkDBManager::load_ratio(uint32_t p_hub_id, const string& p_n
 			Lock l(m_cs);
 			if (!m_select_ratio_load.get())
 				m_select_ratio_load = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-				  "select upload,download,(select name from fly_dic where id = dic_ip)" // TODO перевести на хранение IP как числа?
-				   "from fly_ratio where dic_nick=(select id from fly_dic where name=? and dic=2) and dic_hub=?\n"));
+				                                                                    "select upload,download,(select name from fly_dic where id = dic_ip)" // TODO перевести на хранение IP как числа?
+				                                                                    "from fly_ratio where dic_nick=(select id from fly_dic where name=? and dic=2) and dic_hub=?\n"));
 			sqlite3_command* l_sql_command = m_select_ratio_load.get();
 			l_sql_command->bind(1, p_nick, SQLITE_STATIC);
 			l_sql_command->bind(2, __int64(p_hub_id));

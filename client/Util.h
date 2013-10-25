@@ -19,8 +19,6 @@
 #ifndef DCPLUSPLUS_DCPP_UTIL_H
 #define DCPLUSPLUS_DCPP_UTIL_H
 
-#ifdef _WIN32
-
 # define PATH_SEPARATOR '\\'
 # define PATH_SEPARATOR_STR "\\"
 # define PATH_SEPARATOR_WSTR L"\\"
@@ -33,17 +31,6 @@
 
 #include <wininet.h>
 #include <atlcomtime.h>
-
-#else
-
-# define PATH_SEPARATOR '/'
-# define PATH_SEPARATOR_STR "/"
-
-#include <sys/stat.h>
-#include <unistd.h>
-#include <stdlib.h>
-
-#endif
 
 #include <array>
 #include "Text.h"
@@ -532,7 +519,7 @@ class Util
 		{
 			uint32_t a[4] = {0};
 			const int l_Items = sscanf_s(p_ip.c_str(), "%u.%u.%u.%u", &a[0], &a[1], &a[2], &a[3]);
-			return  l_Items == 4 && a[0] < 256 && a[1] < 256 && a[2] < 256 && a[3] < 256;
+			return  l_Items == 4 && a[0] < 256 && a[1] < 256 && a[2] < 256 && a[3] < 256; // TODO - boost
 		}
 		
 		static bool isHttpsLink(const tstring& p_url)
@@ -797,7 +784,7 @@ class Util
 			decodeUrl(aUrl, protocol, host, port, path, isSecure, query, fragment);
 		}
 		static void decodeUrl(const string& aUrl, string& protocol, string& host, uint16_t& port, string& path, bool& isSecure, string& query, string& fragment);
-		static map<string, string> decodeQuery(const string& query);
+		static std::map<string, string> decodeQuery(const string& query);
 		
 		static string validateFileName(string aFile);
 		static string cleanPathChars(string aNick);
@@ -1020,7 +1007,7 @@ class Util
 		static string toString(long long val)
 		{
 			char buf[24];
-			snprintf(buf, _countof(buf), I64_FMT, val); // https://www.box.net/shared/f9415ff9a9442f3f08d3
+			snprintf(buf, _countof(buf), I64_FMT, val);
 			return buf;
 		}
 		static string toString(unsigned long long val)
@@ -1112,7 +1099,15 @@ class Util
 #endif
 		static string encodeURI(const string& /*aString*/, bool reverse = false);
 		static string getLocalIp();
-		static bool isPrivateIp(const string& ip);
+		static bool isPrivateIp(const string& p_ip);
+		static bool isPrivateIp(uint32_t p_ip)
+		{
+			return ((p_ip & 0xff000000) == 0x0a000000 || // 10.0.0.0/8
+			        (p_ip & 0xff000000) == 0x7f000000 || // 127.0.0.0/8
+			        (p_ip & 0xffff0000) == 0xa9fe0000 || // 169.254.0.0/16
+			        (p_ip & 0xfff00000) == 0xac100000 || // 172.16.0.0/12
+			        (p_ip & 0xffff0000) == 0xc0a80000);  // 192.168.0.0/16
+		}
 		/**
 		 * Case insensitive substring search.
 		 * @return First position found or string::npos
@@ -1268,7 +1263,7 @@ class Util
 		{
 			public:
 				explicit CustomNetworkIndex() :
-					m_location_cache_index(0),
+					m_location_cache_index(-1),
 					m_country_cache_index(0)
 				{
 				}
@@ -1277,13 +1272,17 @@ class Util
 					m_country_cache_index(p_country_cache_index)
 				{
 				}
+				bool isNew() const
+				{
+					return m_location_cache_index == -1;
+				}
 				bool isSet() const
 				{
-					return m_location_cache_index != 0;
+					return m_location_cache_index > 0;
 				}
 				bool isKnown() const
 				{
-					return m_location_cache_index || m_country_cache_index;
+					return m_location_cache_index > 0 || m_country_cache_index;
 				}
 				tstring getDescription() const;
 				int16_t getFlagIndex() const;

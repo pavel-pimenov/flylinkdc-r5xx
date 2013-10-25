@@ -414,7 +414,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	
 	for (uint8_t j = 0; j < COLUMN_LAST; j++)
 	{
-		int fmt = (j == COLUMN_SIZE || j == COLUMN_EXACT_SIZE) ? LVCFMT_RIGHT : LVCFMT_LEFT;
+		const int fmt = (j == COLUMN_SIZE || j == COLUMN_EXACT_SIZE) ? LVCFMT_RIGHT : LVCFMT_LEFT;
 		ctrlResults.InsertColumn(j, TSTRING_I(columnNames[j]), fmt, columnSizes[j], j);
 	}
 	
@@ -539,7 +539,11 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	}
 	
 	SettingsManager::getInstance()->addListener(this);
+#ifdef FLYLINKDC_USE_WINDOWS_TIMER_SEARCH_FRAME
 	create_timer(1000);
+#else
+	TimerManager::getInstance()->addListener(this);
+#endif
 	bHandled = FALSE;
 	return 1;
 }
@@ -989,7 +993,6 @@ void SearchFrame::mergeFlyServerInfo()
 					const auto l_cur_item = ctrlResults.findItem(l_si);
 					if (l_cur_item >= 0)
 					{
-						l_update_index.push_back(l_cur_item);
 						const Json::Value& l_result_counter = l_cur_item_in["info"];
 						const Json::Value& l_result_base_media = l_cur_item_in["media"];
 						const int l_count_media = Util::toInt(l_result_counter["count_media"].asString());
@@ -1016,6 +1019,7 @@ void SearchFrame::mergeFlyServerInfo()
 						const string l_count_query = l_result_counter["count_query"].asString();
 						if (!l_count_query.empty())
 						{
+							l_update_index.push_back(l_cur_item);
 							l_si->columns[COLUMN_FLY_SERVER_RATING] =  Text::toT(l_count_query);
 							if (l_count_query == "1")
 								l_is_know_tth = false; // Файл на сервер первый раз появился.
@@ -1027,6 +1031,9 @@ void SearchFrame::mergeFlyServerInfo()
 					l_tth_media_file_map.erase(TTHValue(l_tth));
 				}
 			}
+#if 0
+			TODO - апдейты по колонкам не пашут иногда
+http://code.google.com/p/flylinkdc/issues/detail?id=1113
 			const static int l_array[] =
 			{
 				COLUMN_BITRATE , COLUMN_MEDIA_XY, COLUMN_MEDIA_VIDEO , COLUMN_MEDIA_AUDIO, COLUMN_DURATION, COLUMN_FLY_SERVER_RATING
@@ -1035,6 +1042,9 @@ void SearchFrame::mergeFlyServerInfo()
 			dcassert(!m_closed);
 			if (!m_closed)
 				ctrlResults.update_columns(l_update_index, l_columns);
+#else
+			ctrlResults.update_all_columns(l_update_index);
+#endif
 		}
 	}
 	
@@ -1065,7 +1075,11 @@ void SearchFrame::mergeFlyServerInfo()
 }
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 
+#ifdef FLYLINKDC_USE_WINDOWS_TIMER_SEARCH_FRAME
 LRESULT SearchFrame::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
+#else
+void SearchFrame::on(TimerManagerListener::Second, uint64_t aTick) noexcept
+#endif
 {
 	if (!m_closed)
 	{
@@ -1103,7 +1117,9 @@ LRESULT SearchFrame::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 			// [~] IRainman fix.
 		}
 	}
+#ifdef FLYLINKDC_USE_WINDOWS_TIMER_SEARCH_FRAME
 	return 0;
+#endif
 }
 int SearchFrame::SearchInfo::compareItems(const SearchInfo* a, const SearchInfo* b, int col)
 {
@@ -1649,7 +1665,11 @@ LRESULT SearchFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	if (!m_closed)
 	{
 		m_closed = true;
+#ifdef FLYLINKDC_USE_WINDOWS_TIMER_SEARCH_FRAME
 		safe_destroy_timer();
+#else
+		TimerManager::getInstance()->removeListener(this);
+#endif
 		SettingsManager::getInstance()->removeListener(this);
 		if (!CompatibilityManager::isWine())
 		{
@@ -1910,7 +1930,7 @@ void SearchFrame::runUserCommand(UserCommand & uc)
 		
 	StringMap ucParams = ucLineParams;
 	
-	set<CID> users;
+	std::set<CID> users;
 	
 	int sel = -1;
 	while ((sel = ctrlResults.GetNextItem(sel, LVNI_SELECTED)) != -1)
@@ -2103,7 +2123,7 @@ void SearchFrame::addSearchResult(SearchInfo * si)
 	}
 #endif
 	// Check previous search results for dupes
-	if (!si->getText(COLUMN_TTH).empty() && useGrouping)
+	if (!si->getText(COLUMN_TTH).empty())
 	{
 		SearchInfoList::ParentPair* pp = ctrlResults.findParentPair(sr->getTTH());
 		if (pp)
@@ -2142,13 +2162,13 @@ void SearchFrame::addSearchResult(SearchInfo * si)
 		
 		CLockRedraw<> l_lock_draw(ctrlResults); //[+]IRainman optimize SearchFrame
 		
-		if (!si->getText(COLUMN_TTH).empty() && useGrouping)
+		if (!si->getText(COLUMN_TTH).empty())
 		{
 			ctrlResults.insertGroupedItem(si, m_expandSR);
 		}
 		else
 		{
-			const SearchInfoList::ParentPair pp = { si, SearchInfoList::emptyVector };
+			const SearchInfoList::ParentPair pp = { si, SearchInfoList::g_emptyVector };
 			ctrlResults.insertItem(si, si->getImageIndex());
 			ctrlResults.getParents().insert(make_pair(const_cast<TTHValue*>(&sr->getTTH()), pp));
 		}

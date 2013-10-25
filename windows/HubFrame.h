@@ -38,7 +38,7 @@
 struct CompareItems;
 
 class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HUB, IDR_HUB_OFF > , private ClientListener,
-	public CSplitterImpl<HubFrame>, private FavoriteManagerListener,
+	public  CSplitterImpl<HubFrame>,
 	private CFlyTimerAdapter,
 //  TODO    private ClientManagerListener,
 public UCHandler<HubFrame>, public UserInfoBaseHandler < HubFrame, UserInfoGuiTraits::NO_CONNECT_FAV_HUB | UserInfoGuiTraits::NICK_TO_CHAT | UserInfoGuiTraits::USER_LOG, OnlineUserPtr > , private SettingsManagerListener

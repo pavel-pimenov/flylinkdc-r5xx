@@ -43,7 +43,7 @@ class QueueItem : public Flags,
 #endif
 {
 	public:
-		typedef unordered_map<string*, QueueItemPtr, noCaseStringHash, noCaseStringEq> QIStringMap;
+		typedef std::unordered_map<string*, QueueItemPtr, noCaseStringHash, noCaseStringEq> QIStringMap;
 		
 		enum Priority
 		{
@@ -168,7 +168,7 @@ class QueueItem : public Flags,
 		// [+] fix ? http://code.google.com/p/flylinkdc/issues/detail?id=1236 .
 		static void getPFSSourcesL(const QueueItemPtr& p_qi, SourceListBuffer& p_sourceList, uint64_t p_now);
 		
-		typedef set<Segment> SegmentSet;
+		typedef std::set<Segment> SegmentSet;
 		typedef SegmentSet::const_iterator SegmentConstIter;
 		
 		QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, Flags::MaskType aFlag,

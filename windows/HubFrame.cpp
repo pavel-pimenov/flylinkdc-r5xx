@@ -267,18 +267,9 @@ LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	                 WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS, WS_EX_STATICEDGE, IDC_USERS);
 	SET_EXTENDENT_LIST_VIEW_STYLE(ctrlUsers);
 	
-	
-	BOOST_STATIC_ASSERT(_countof(g_columnSizes) == COLUMN_LAST);
-	BOOST_STATIC_ASSERT(_countof(g_columnNames) == COLUMN_LAST);
-	for (size_t j = 0; j < COLUMN_LAST; ++j)
-	{
-		int fmt = (j == COLUMN_SHARED || j == COLUMN_EXACT_SHARED || j == COLUMN_SLOTS) ? LVCFMT_RIGHT : LVCFMT_LEFT;
-		ctrlUsers.InsertColumn(j, TSTRING_I(g_columnNames[j]), fmt, g_columnSizes[j], j); //-V107
-	}
+// TODO - может колонки не создвать пока они не нужны?
 	bHandled = FALSE;
 	client->connect();
-	FavoriteManager::getInstance()->addListener(this);
-	SettingsManager::getInstance()->addListener(this);
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	ConnectionManager::getInstance()->addListener(this);
 #endif
@@ -291,6 +282,14 @@ void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
 	if (!m_isUpdateColumnsInfoProcessed) // Апдейт колон делаем только один раз при первой активации т.к. ListItem не разрушается
 	{
 		m_isUpdateColumnsInfoProcessed = true;
+		SettingsManager::getInstance()->addListener(this);
+		BOOST_STATIC_ASSERT(_countof(g_columnSizes) == COLUMN_LAST);
+		BOOST_STATIC_ASSERT(_countof(g_columnNames) == COLUMN_LAST);
+		for (size_t j = 0; j < COLUMN_LAST; ++j)
+		{
+			const int fmt = (j == COLUMN_SHARED || j == COLUMN_EXACT_SHARED || j == COLUMN_SLOTS) ? LVCFMT_RIGHT : LVCFMT_LEFT;
+			ctrlUsers.InsertColumn(j, TSTRING_I(g_columnNames[j]), fmt, g_columnSizes[j], j); //-V107
+		}
 		if (p_fhe)
 		{
 			WinUtil::splitTokens(g_columnIndexes, p_fhe->getHeaderOrder(), COLUMN_LAST);
@@ -1858,53 +1857,65 @@ void HubFrame::HubModeChange()
 #endif // SCALOLAZ_HUB_MODE
 void HubFrame::storeColumsInfo()
 {
+
 	string l_order, l_width, l_visible;
-	ctrlUsers.saveHeaderOrder(l_order, l_width, l_visible);
+	if (m_isUpdateColumnsInfoProcessed)
+	{
+		ctrlUsers.saveHeaderOrder(l_order, l_width, l_visible);
+	}
 	FavoriteHubEntry *fhe = FavoriteManager::getInstance()->getFavoriteHubEntry(Text::fromT(server));
 	if (fhe)
 	{
-		WINDOWPLACEMENT wp = {0};
-		wp.length = sizeof(wp);
-		GetWindowPlacement(&wp);
-		CRect rc;
-		GetWindowRect(rc);
-		CRect rcmdiClient;
-		::GetWindowRect(WinUtil::mdiClient, &rcmdiClient);
-		if (wp.showCmd == SW_SHOW || wp.showCmd == SW_SHOWNORMAL)
+		if (m_isUpdateColumnsInfoProcessed)
 		{
-			fhe->setWindowPosX(rc.left - (rcmdiClient.left + 2));
-			fhe->setWindowPosY(rc.top - (rcmdiClient.top + 2));
-			fhe->setWindowSizeX(rc.Width());
-			fhe->setWindowSizeY(rc.Height());
-		}
-		if (wp.showCmd == SW_SHOWNORMAL || wp.showCmd == SW_SHOW || wp.showCmd == SW_SHOWMAXIMIZED || wp.showCmd == SW_MAXIMIZE)
-		{
-			fhe->setWindowType((int)wp.showCmd);
-		}
-		else
-		{
-			fhe->setWindowType(SW_SHOWMAXIMIZED);
-		}
-		
-		fhe->setChatUserSplit(m_nProportionalPos);
+			WINDOWPLACEMENT wp = {0};
+			wp.length = sizeof(wp);
+			GetWindowPlacement(&wp);
+			CRect rc;
+			GetWindowRect(rc);
+			CRect rcmdiClient;
+			::GetWindowRect(WinUtil::mdiClient, &rcmdiClient);
+			if (wp.showCmd == SW_SHOW || wp.showCmd == SW_SHOWNORMAL)
+			{
+				fhe->setWindowPosX(rc.left - (rcmdiClient.left + 2));
+				fhe->setWindowPosY(rc.top - (rcmdiClient.top + 2));
+				fhe->setWindowSizeX(rc.Width());
+				fhe->setWindowSizeY(rc.Height());
+			}
+			if (wp.showCmd == SW_SHOWNORMAL || wp.showCmd == SW_SHOW || wp.showCmd == SW_SHOWMAXIMIZED || wp.showCmd == SW_MAXIMIZE)
+			{
+				fhe->setWindowType((int)wp.showCmd);
+			}
+			else
+			{
+				fhe->setWindowType(SW_SHOWMAXIMIZED);
+			}
+			fhe->setChatUserSplit(m_nProportionalPos);
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
-		fhe->setChatUserSplitState(m_isClientUsersSwitch);
+			fhe->setChatUserSplitState(m_isClientUsersSwitch);
 #endif
-		fhe->setUserListState(m_showUsersStore);
-		fhe->setHeaderOrder(l_order);
-		fhe->setHeaderWidths(l_width);
-		fhe->setHeaderVisible(l_visible);
-		fhe->setHeaderSort(ctrlUsers.getSortColumn());
-		fhe->setHeaderSortAsc(ctrlUsers.isAscending());
-		FavoriteManager::getInstance()->save();
+			fhe->setUserListState(m_showUsersStore);
+			fhe->setHeaderOrder(l_order);
+			fhe->setHeaderWidths(l_width);
+			fhe->setHeaderVisible(l_visible);
+			fhe->setHeaderSort(ctrlUsers.getSortColumn());
+			fhe->setHeaderSortAsc(ctrlUsers.isAscending());
+		}
+		if (g_frames.size() == 1 || BaseChatFrame::g_isStartupProcess == false) // Сохраняем только на последней итерации или когда не закрываем приложение.
+		{
+			FavoriteManager::getInstance()->save();
+		}
 	}
 	else
 	{
-		SET_SETTING(HUBFRAME_ORDER, l_order);
-		SET_SETTING(HUBFRAME_WIDTHS, l_width);
-		SET_SETTING(HUBFRAME_VISIBLE, l_visible);
-		SET_SETTING(HUBFRAME_COLUMNS_SORT, ctrlUsers.getSortColumn());
-		SET_SETTING(HUBFRAME_COLUMNS_SORT_ASC, ctrlUsers.isAscending());
+		if (m_isUpdateColumnsInfoProcessed)
+		{
+			SET_SETTING(HUBFRAME_ORDER, l_order);
+			SET_SETTING(HUBFRAME_WIDTHS, l_width);
+			SET_SETTING(HUBFRAME_VISIBLE, l_visible);
+			SET_SETTING(HUBFRAME_COLUMNS_SORT, ctrlUsers.getSortColumn());
+			SET_SETTING(HUBFRAME_COLUMNS_SORT_ASC, ctrlUsers.isAscending());
+		}
 	}
 }
 LRESULT HubFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
@@ -1930,8 +1941,10 @@ LRESULT HubFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 		ConnectionManager::getInstance()->removeListener(this);
 #endif
-		SettingsManager::getInstance()->removeListener(this);
-		FavoriteManager::getInstance()->removeListener(this);
+		if (m_isUpdateColumnsInfoProcessed)
+		{
+			SettingsManager::getInstance()->removeListener(this);
+		}
 		client->removeListener(this);
 		client->disconnect(true);
 		PostMessage(WM_CLOSE);

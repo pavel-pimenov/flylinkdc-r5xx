@@ -100,7 +100,6 @@ struct hash<HashValue<T> >
 	}
 };
 
-#if 0
 template<typename T>
 struct hash<HashValue<T>* >
 {
@@ -119,7 +118,6 @@ struct equal_to<HashValue<T>*>
 	}
 };
 
-#endif
 }
 
 #endif // !defined(HASH_VALUE_H)

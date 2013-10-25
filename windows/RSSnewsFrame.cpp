@@ -50,7 +50,7 @@ LRESULT RSSNewsFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	
 	for (size_t j = 0; j < COLUMN_LAST; j++)
 	{
-		int fmt = (j == COLUMN_DATE) ? LVCFMT_RIGHT : LVCFMT_LEFT;
+		const int fmt = (j == COLUMN_DATE) ? LVCFMT_RIGHT : LVCFMT_LEFT;
 		ctrlList.InsertColumn(j, TSTRING_I(rss_columnNames[j]), fmt, columnSizes[j], j);
 	}
 	

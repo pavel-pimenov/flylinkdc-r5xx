@@ -113,7 +113,7 @@ template <class T> class CFlyTestStatistic
 
 template <class T> inline void safe_delete(T* & p)
 {
-	// [-] if (p != nullptr) [-] IRainman fix.
+	if (p != nullptr)
 	{
 #ifdef  _DEBUG
 		boost::checked_delete(p);
@@ -125,7 +125,7 @@ template <class T> inline void safe_delete(T* & p)
 }
 template <class T> inline void safe_delete_array(T* & p)
 {
-	// [-] if (p != nullptr) [-] IRainman fix.
+	if (p != nullptr)
 	{
 #ifdef  _DEBUG
 		boost::checked_array_delete(p);

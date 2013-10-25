@@ -91,10 +91,6 @@
 #include <regex>
 using std::vector;
 using std::list;
-using std::unordered_map;
-using std::unordered_set;
-using std::set;
-using std::map;
 using std::deque;
 using std::pair;
 using std::string;

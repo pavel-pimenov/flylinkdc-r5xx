@@ -79,7 +79,7 @@ class LogManager : public Singleton<LogManager>, public Speaker<LogManagerListen
 		FastCriticalSection m_csPatchCache; // [!] IRainman opt: use spin lock here.
 		
 #ifdef IRAINMAN_USE_NG_LOG_MANAGER
-		unordered_set<string> m_currentlyOpenedFiles;
+		std::unordered_set<string> m_currentlyOpenedFiles;
 		FastCriticalSection m_csCurrentlyOpenedFiles;
 		dcdrun(int _debugConcurrencyEventCount; int _debugParallelWritesFiles;)
 #endif

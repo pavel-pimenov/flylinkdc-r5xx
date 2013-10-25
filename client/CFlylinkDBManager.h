@@ -235,24 +235,26 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void get_country(uint32_t p_ip, uint8_t& p_index);
 		CFlyLocationDesc get_country_from_cache(uint8_t p_index)
 		{
+			dcassert(p_index > 0);
 			FastLock l(m_cache_location_cs);
 			return m_country_cache[p_index - 1];
 		}
-		CFlyLocationDesc get_location_from_cache(uint32_t p_index)
+		CFlyLocationDesc get_location_from_cache(int32_t p_index)
 		{
+			dcassert(p_index > 0);
 			FastLock l(m_cache_location_cs);
 			return m_location_cache[p_index - 1];
 		}
 	private:
 		uint8_t  get_country_sqlite(uint32_t p_ip, CFlyLocationDesc& p_location);
 		bool find_cache_countryL(uint32_t p_ip, uint8_t& p_index);
-		uint16_t find_cache_locationL(uint32_t p_ip, uint32_t& p_index);
+		uint16_t find_cache_locationL(uint32_t p_ip, int32_t& p_index);
 	public:
 		__int64 get_dic_country_id(const string& p_country);
 		
 		void save_location(const CFlyLocationIPArray& p_geo_ip);
-		void get_location(uint32_t p_ip, uint32_t& p_index);
-		void get_location_sql(uint32_t p_ip, uint32_t& p_index);
+		void get_location(uint32_t p_ip, int32_t& p_index);
+		void get_location_sql(uint32_t p_ip, int32_t& p_index);
 		__int64 get_dic_location_id(const string& p_location);
 		
 		void save_lost_location(const string& p_ip);
@@ -295,6 +297,9 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		auto_ptr<sqlite3_command> m_load_mediainfo_ext;
 		auto_ptr<sqlite3_command> m_load_mediainfo_ext_only_inform;
 		auto_ptr<sqlite3_command> m_load_mediainfo_base;
+		auto_ptr<sqlite3_command> m_insert_mediainfo;
+		auto_ptr<sqlite3_command> m_update_base_mediainfo;
+		
 		void merge_mediainfo_ext(const __int64 l_tth_id, const CFlyMediaInfo& p_media, bool p_delete_old_info);
 #endif
 		
@@ -313,10 +318,6 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		auto_ptr<sqlite3_command> m_insert_store_ip;
 		auto_ptr<sqlite3_command> m_ins_fly_hash_block;
 		auto_ptr<sqlite3_command> m_insert_file;
-		auto_ptr<sqlite3_command> m_update_base_mediainfo;
-		
-		auto_ptr<sqlite3_command> m_insert_mediainfo;
-		
 		auto_ptr<sqlite3_command> m_update_file;
 		auto_ptr<sqlite3_command> m_check_tth_sql;
 		auto_ptr<sqlite3_command> m_load_dir_sql;
@@ -348,7 +349,6 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		
 		auto_ptr<sqlite3_command> m_select_fly_dic;
 		auto_ptr<sqlite3_command> m_insert_fly_dic;
-		
 		auto_ptr<sqlite3_command> m_get_registry;
 		auto_ptr<sqlite3_command> m_insert_registry;
 		auto_ptr<sqlite3_command> m_delete_registry;
@@ -375,7 +375,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		auto_ptr<sqlite3_command> m_select_location_lost;
 		auto_ptr<sqlite3_command> m_update_location_lost;
 		auto_ptr<sqlite3_command> m_insert_location_lost;
-		std::unordered_set<string> m_lost_location_cache;
+		boost::unordered_set<string> m_lost_location_cache;
 		
 		auto_ptr<sqlite3_command> m_select_statistic_json;
 		auto_ptr<sqlite3_command> m_delete_statistic_json;

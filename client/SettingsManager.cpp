@@ -218,7 +218,7 @@ const string SettingsManager::settingTags[] =
 	"AcceptedDisconnects", "AcceptedTimeouts",
 	"OpenPublic", "OpenFavoriteHubs", "OpenFavoriteUsers", "OpenQueue", "OpenFinishedDownloads",
 	"OpenFinishedUploads", "OpenSearchSpy", "OpenNetworkStatistics", "OpenNotepad", "OutgoingConnections",
-	"NoIPOverride", "GroupSearchResults", "ForgetSearchRequest", "SaveSearchSettings", "SavedSearchType", "SavedSearchSizeMode", "SavedSearchMode", "BoldFinishedDownloads", "BoldFinishedUploads", "BoldQueue",
+	"NoIPOverride", "ForgetSearchRequest", "SaveSearchSettings", "SavedSearchType", "SavedSearchSizeMode", "SavedSearchMode", "BoldFinishedDownloads", "BoldFinishedUploads", "BoldQueue",
 	"BoldHub", "BoldPm", "BoldSearch", "BoldNewrss", "TabsPos",
 	"HubPosition", // [+] InfinitySky.
 	"SocketInBuffer2", "SocketOutBuffer2",
@@ -395,7 +395,7 @@ const string SettingsManager::settingTags[] =
 	"AutoUpdateDHTServersList", // [+] SSA
 	"AutoUpdateGeoIP", "AutoUpdateCustomLocation", "AutoUpdateShellExt", // [+] IRainman
 #ifdef IRAINMAN_USE_BB_CODES
-	"FormatBBCodeColor", // [+] SSA
+	"FormatBBCodeColors", // [+] SSA
 #endif
 #ifdef NIGHTORION_USE_STATISTICS_REQUEST
 	"SettingsStatisticsAsk",
@@ -893,7 +893,6 @@ void SettingsManager::setDefaults()
 	setDefault(ACCEPTED_DISCONNECTS, 5);
 	setDefault(ACCEPTED_TIMEOUTS, 10);
 	setDefault(EMOTICONS_FILE, "FlylinkSmilesInternational");
-	setDefault(GROUP_SEARCH_RESULTS, TRUE);
 //	setDefault(FORGET_SEARCH_REQUEST, false);    // [+] SCALOlaz: do not save s-queue to dropbox list
 	setDefault(SAVE_SEARCH_SETTINGS, TRUE); // [+] SCALOlaz: save selected type in search frame
 	setDefault(SAVED_SEARCH_TYPE, 0);
@@ -984,7 +983,7 @@ void SettingsManager::setDefaults()
 #endif
 #ifdef IRAINMAN_USE_BB_CODES
 	setDefault(FORMAT_BB_CODES, TRUE);// [+] IRainman
-	//setDefault(FORMAT_BB_CODES_COLORS, false);// [+] SSA
+	setDefault(FORMAT_BB_CODES_COLORS, TRUE); // [+] SSA
 #endif
 	setDefault(FORMAT_BOT_MESSAGE, TRUE);// [+] IRainman
 	//setDefault(PROT_USERS, Util::emptyString);

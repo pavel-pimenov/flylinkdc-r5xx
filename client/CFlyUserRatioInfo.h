@@ -67,7 +67,7 @@ struct CFlyUserRatioInfo : public CFlyRatioItem
 			m_is_dirty = p_value;
 		}
 	private:
-		bool      m_is_sql_record_exists; 
+		bool      m_is_sql_record_exists;
 		bool      m_is_dirty;
 };
 #endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO

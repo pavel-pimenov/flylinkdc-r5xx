@@ -851,9 +851,9 @@ void Util::decodeUrl(const string& url, string& protocol, string& host, uint16_t
 	}
 }
 
-map<string, string> Util::decodeQuery(const string& query)
+std::map<string, string> Util::decodeQuery(const string& query)
 {
-	map<string, string> ret;
+	std::map<string, string> ret;
 	size_t start = 0;
 	while (start < query.size())
 	{
@@ -1074,17 +1074,11 @@ string Util::getLocalIp()
 bool Util::isPrivateIp(const string& ip)
 {
 	struct in_addr addr;
-	
 	addr.s_addr = inet_addr(ip.c_str());
-	
 	if (addr.s_addr  != INADDR_NONE)
 	{
-		unsigned long haddr = ntohl(addr.s_addr);
-		return ((haddr & 0xff000000) == 0x0a000000 || // 10.0.0.0/8
-		        (haddr & 0xff000000) == 0x7f000000 || // 127.0.0.0/8
-		        (haddr & 0xffff0000) == 0xa9fe0000 || // 169.254.0.0/16
-		        (haddr & 0xfff00000) == 0xac100000 || // 172.16.0.0/12
-		        (haddr & 0xffff0000) == 0xc0a80000);  // 192.168.0.0/16
+		const uint32_t haddr = ntohl(addr.s_addr);
+		return isPrivateIp(haddr);
 	}
 	return false;
 }
@@ -1139,7 +1133,6 @@ static wchar_t utf8ToLC(ccp& str)
 	
 	return Text::toLower(c);
 }
-
 string Util::toString(const string& p_sep, const StringList& p_lst)
 {
 	string ret;
@@ -1725,7 +1718,7 @@ string Util::getRandomNick()
 //======================================================================================================================================
 tstring Util::CustomNetworkIndex::getDescription() const
 {
-	if (m_location_cache_index)
+	if (m_location_cache_index > 0)
 	{
 		const CFlyLocationDesc l_res =  CFlylinkDBManager::getInstance()->get_location_from_cache(m_location_cache_index);
 		return l_res.m_description;
@@ -1741,7 +1734,7 @@ tstring Util::CustomNetworkIndex::getDescription() const
 //======================================================================================================================================
 int16_t Util::CustomNetworkIndex::getFlagIndex() const
 {
-	if (m_location_cache_index)
+	if (m_location_cache_index > 0)
 	{
 		const CFlyLocationDesc l_res =  CFlylinkDBManager::getInstance()->get_location_from_cache(m_location_cache_index);
 		return l_res.m_flag_index;
@@ -1777,8 +1770,11 @@ Util::CustomNetworkIndex Util::getIpCountry(const string& p_ip)
 	if (l_ipNum)
 	{
 		uint8_t l_country_index = 0;
-		CFlylinkDBManager::getInstance()->get_country(l_ipNum, l_country_index);
-		uint32_t  l_location_index = 0;
+		if (!Util::isPrivateIp(l_ipNum))
+		{
+			CFlylinkDBManager::getInstance()->get_country(l_ipNum, l_country_index);
+		}
+		int32_t  l_location_index = -1;
 		CFlylinkDBManager::getInstance()->get_location(l_ipNum, l_location_index);
 		if (l_location_index > 0)
 		{
@@ -2142,7 +2138,7 @@ string Util::getExternalIP(const string& p_url, LONG p_timeOut /* = 500 */)
 {
 	CFlyLog l_log("[GetIP]");
 	string l_downBuf;
-	getDataFromInet(_T("GetIP"), 256, p_url, l_downBuf, p_timeOut);
+	getDataFromInet(_T("GetIP"), 2048, p_url, l_downBuf, p_timeOut);
 	if (!l_downBuf.empty())
 	{
 		SimpleXML xml;

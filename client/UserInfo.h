@@ -115,7 +115,7 @@ class UserInfo : public UserInfoBase
 		const Util::CustomNetworkIndex& calcLocation()
 		{
 			const auto& l_location = getLocation();
-			if (!l_location.isSet())
+			if (l_location.isNew())
 			{
 				const auto& l_ip = getIp();
 #ifdef SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP

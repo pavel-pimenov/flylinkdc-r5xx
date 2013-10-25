@@ -48,7 +48,7 @@ class CustomMenuManager
 		typedef vector<CustomMenuItem*> MenuList;
 //		typedef MenuList::const_iterator MenuIter;
 		
-		typedef map<int, string> URLList;
+		typedef std::map<int, string> URLList;
 		
 		
 		CustomMenuManager(void);

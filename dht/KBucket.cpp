@@ -318,7 +318,7 @@ void RoutingTable::getClosestNodes(const CID& cid, Node::Map& closest, unsigned 
  */
 void RoutingTable::loadNodes(SimpleXML& xml)
 {
-	std::vector<dht::BootstrapNode> l_dht_nodes; // [!] IRainman opt: replace dqueue to list.
+	std::vector<dht::BootstrapNode> l_dht_nodes; 
 	if(CFlylinkDBManager::getInstance()->load_dht_nodes(l_dht_nodes))
 	{
 		for (auto k = l_dht_nodes.cbegin(); k != l_dht_nodes.cend(); ++k)

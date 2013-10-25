@@ -32,13 +32,13 @@
 // [+] IRainman fix.
 #ifdef _DEBUG
 FastCriticalSection AdcSupports::g_debugCsUnknownAdcFeatures;
-unordered_set<string> AdcSupports::g_debugUnknownAdcFeatures;
+boost::unordered_set<string> AdcSupports::g_debugUnknownAdcFeatures;
 
 FastCriticalSection NmdcSupports::g_debugCsUnknownNmdcConnection;
-unordered_set<string> NmdcSupports::g_debugUnknownNmdcConnection;
+boost::unordered_set<string> NmdcSupports::g_debugUnknownNmdcConnection;
 
 FastCriticalSection NmdcSupports::g_debugCsUnknownNmdcTagParam;
-unordered_set<string> NmdcSupports::g_debugUnknownNmdcTagParam;
+boost::unordered_set<string> NmdcSupports::g_debugUnknownNmdcTagParam;
 #endif
 // [~] IRainman fix.
 

@@ -230,7 +230,7 @@ void PropPageTextStyles::write()
 	{
 		TextStyles[ i ].SaveSettings();
 	}
-	File::deleteFile(m_tempfile);
+	File::deleteFileT(m_tempfile);
 	Colors::init();
 }
 

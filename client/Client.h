@@ -131,7 +131,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			return m_availableBytes;
 		}
 		
-		typedef unordered_map<string, Client*, noCaseStringHash, noCaseStringEq> List;
+		typedef std::unordered_map<string, Client*, noCaseStringHash, noCaseStringEq> List;
 		typedef List::const_iterator Iter;
 		
 		virtual void connect();

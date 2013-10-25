@@ -54,7 +54,7 @@ class AdcSupports // [+] IRainman fix.
 		
 #ifdef _DEBUG
 		static FastCriticalSection g_debugCsUnknownAdcFeatures;
-		static unordered_set<string> g_debugUnknownAdcFeatures;
+		static boost::unordered_set<string> g_debugUnknownAdcFeatures;
 #endif
 };
 
@@ -78,10 +78,10 @@ class NmdcSupports // [+] IRainman fix.
 		static void setSupports(Identity& id, StringList && su);
 #ifdef _DEBUG
 		static FastCriticalSection g_debugCsUnknownNmdcConnection;
-		static unordered_set<string> g_debugUnknownNmdcConnection;
+		static boost::unordered_set<string> g_debugUnknownNmdcConnection;
 		
 		static FastCriticalSection g_debugCsUnknownNmdcTagParam;
-		static unordered_set<string> g_debugUnknownNmdcTagParam;
+		static boost::unordered_set<string> g_debugUnknownNmdcTagParam;
 #endif
 };
 

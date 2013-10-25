@@ -111,7 +111,7 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 		bool sended_search;
 		//bool search_started; // TODO
 		
-		map<size_t, string> SearchPages;
+		std::map<size_t, string> SearchPages;
 		
 		bool started;
 		FastCriticalSection cs;
@@ -140,7 +140,7 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 		} searchresult;
 	private:
 	
-		map<size_t, searchresult> SearchResultList;
+		std::map<size_t, searchresult> SearchResultList;
 		
 	public:
 		ServerSocket& getServerSocket()

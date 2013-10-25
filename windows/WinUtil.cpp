@@ -4601,7 +4601,9 @@ bool WinUtil::AutoRunShortCut(bool bCreate)
 	{
 		// Remove
 		if (IsAutoRunShortCutExists())
-			return File::deleteFile(GetAutoRunShortCutName());
+		{
+			return File::deleteFileT(GetAutoRunShortCutName());
+		}
 	}
 	
 	return true;

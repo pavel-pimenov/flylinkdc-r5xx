@@ -24,6 +24,7 @@
 #include "FlatTabCtrl.h"
 #include "TypedListViewCtrl.h"
 #include "WinUtil.h"
+#include "UCHandler.h"
 
 #include "../client/DCPlusPlus.h"
 #include "../client/UserInfoBase.h"
@@ -33,18 +34,14 @@
 #include "../client/SearchResult.h"
 #include "../client/ShareManager.h"
 #include "../FlyFeatures/GradientLabel.h"
-#include "UCHandler.h"
-
-#ifdef SCALOLAZ_SEARCH_HELPLINK
-#include "wtl_flylinkdc.h"
-#endif
-
 #include "../FlyFeatures/flyServer.h"
 
 #define SEARCH_MESSAGE_MAP 6        // This could be any number, really...
 #define SHOWUI_MESSAGE_MAP 7
 #define FILTER_MESSAGE_MAP 8
 
+#define FLYLINKDC_USE_WINDOWS_TIMER_SEARCH_FRAME
+// С виндовым таймером у меня иногда вешается на ноуте.
 class HIconWrapper;
 class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 255), IDR_SEARCH > ,
 	private SearchManagerListener, private ClientManagerListener,
@@ -56,7 +53,11 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	, public CFlyServerAdapter
 #endif
+#ifdef FLYLINKDC_USE_WINDOWS_TIMER_SEARCH_FRAME
 	, private CFlyTimerAdapter
+#else
+	, private TimerManagerListener
+#endif
 #ifdef _DEBUG
 	, virtual NonDerivable<SearchFrame>, boost::noncopyable // [+] IRainman fix.
 #endif
@@ -92,7 +93,9 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		MESSAGE_HANDLER(WM_CTLCOLORSTATIC, onCtlColor)
 		MESSAGE_HANDLER(WM_CTLCOLORLISTBOX, onCtlColor)
 		MESSAGE_HANDLER(WM_CLOSE, onClose)
+#ifdef FLYLINKDC_USE_WINDOWS_TIMER_SEARCH_FRAME
 		MESSAGE_HANDLER(WM_TIMER, onTimer)
+#endif
 		MESSAGE_HANDLER(WM_DRAWITEM, onDrawItem)
 		MESSAGE_HANDLER(WM_MEASUREITEM, onMeasure)
 		MESSAGE_HANDLER(FTM_CONTEXTMENU, onTabContextMenu) // [+] InfinitySky.
@@ -161,7 +164,9 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		END_MSG_MAP()
 		
 		SearchFrame() :
+#ifdef FLYLINKDC_USE_WINDOWS_TIMER_SEARCH_FRAME
 			CFlyTimerAdapter(m_hWnd),
+#endif
 			searchBoxContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
 			searchContainer(WC_EDIT, this, SEARCH_MESSAGE_MAP),
 			sizeContainer(WC_EDIT, this, SEARCH_MESSAGE_MAP),
@@ -200,7 +205,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			, m_widthHelp(50)
 #endif
 		{
-			useGrouping = BOOLSETTING(GROUP_SEARCH_RESULTS);
+		
 		}
 		
 		~SearchFrame();
@@ -254,7 +259,11 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 		LRESULT onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 #endif
+#ifdef FLYLINKDC_USE_WINDOWS_TIMER_SEARCH_FRAME
 		LRESULT onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+#else
+		void on(TimerManagerListener::Second, uint64_t aTick) noexcept;
+#endif
 		
 		void UpdateLayout(BOOL bResizeBars = TRUE);
 		void runUserCommand(UserCommand& uc);
@@ -651,7 +660,6 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		bool m_isExactSize;
 		bool m_waitingResults;
 		bool m_needsUpdateStats; // [+] IRainman opt.
-		bool useGrouping;
 		int64_t m_exactSize2;
 		Search::SizeModes m_sizeMode;
 		size_t m_resultsCount;
@@ -678,7 +686,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		static int columnIndexes[];
 		static int columnSizes[];
 		
-		typedef map<HWND, SearchFrame*> FrameMap;
+		typedef std::map<HWND, SearchFrame*> FrameMap;
 		typedef pair<HWND, SearchFrame*> FramePair;
 		
 		static FrameMap g_frames;
@@ -708,7 +716,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			tstring strPath;
 			DefinedTypes Type;
 		};
-		typedef map<int, TARGET_STRUCT> TargetsMap; // !SMT!-S
+		typedef std::map<int, TARGET_STRUCT> TargetsMap; // !SMT!-S
 		TargetsMap dlTargets; // !SMT!-S
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		void mergeFlyServerInfo(); // Сольем ответ от сервера с результатом в окошке результатов поиска

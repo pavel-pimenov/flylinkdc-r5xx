@@ -73,7 +73,7 @@ LRESULT ADLSearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	WinUtil::splitTokensWidth(columnSizes, SETTING(ADLSEARCHFRAME_WIDTHS), COLUMN_LAST);
 	for (size_t j = 0; j < COLUMN_LAST; j++) //-V104
 	{
-		int fmt = LVCFMT_LEFT;
+		const int fmt = LVCFMT_LEFT;
 		ctrlList.InsertColumn(j, CTSTRING_I(columnNames[j]), fmt, columnSizes[j], j);
 	}
 	ctrlList.SetColumnOrderArray(COLUMN_LAST, columnIndexes);

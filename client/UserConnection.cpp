@@ -385,7 +385,7 @@ void UserConnection::setUser(const UserPtr& aUser)
 		FavoriteUser::MaskType l_flags;
 		if (FavoriteManager::getInstance()->getFavUserParam(aUser, l_flags, limit))
 		{
-				setUploadLimit(limit);
+			setUploadLimit(limit);
 		}
 	}
 }

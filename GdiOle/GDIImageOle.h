@@ -1,6 +1,7 @@
 // GDIImage.h : Declaration of the CGDIImageOle
 #pragma once
 #ifdef IRAINMAN_INCLUDE_GDI_OLE
+#include <algorithm>
 #include "resource.h"       // main symbols
 #include <atlctl.h>
 #include "GdiOle_i.h"

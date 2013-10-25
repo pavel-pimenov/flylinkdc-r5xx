@@ -364,7 +364,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 			private:
 				// Case-sensitive (faster), it is rather unlikely that case changes, and if it does it's harmless.
 				// map because it's sorted (to avoid random hash order that would create quite strange shares while hashing)
-				typedef map<string, int64_t> WorkMap;
+				typedef std::map<string, int64_t> WorkMap;
 				
 				WorkMap w;
 				mutable FastCriticalSection cs; // [!] IRainman opt: use only spinlock here!
@@ -394,7 +394,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 		
 		friend class Hasher;
 		
-		bool addFile(const string& p_FileName, int64_t p_TimeStamp, const TigerTree& p_tth, int64_t p_size, CFlyMediaInfo& p_out_media);
+		bool addFile(const string& p_file_name, int64_t p_time_stamp, const TigerTree& p_tth, int64_t p_size, CFlyMediaInfo& p_out_media);
 #ifdef IRAINMAN_NTFS_STREAM_TTH
 		bool addFileFromStream(const string& p_name, const TigerTree& p_TT, int64_t p_size);
 #endif

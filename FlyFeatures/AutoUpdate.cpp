@@ -934,7 +934,7 @@ void AutoUpdate::runFlyUpdate()
 			wstring flagName = m_updateFolder;
 			AppendPathSeparator(flagName);
 			flagName += UPDATE_FILE_NAME;
-			File::deleteFile(flagName);
+			File::deleteFileT(flagName);
 		}
 		else
 		{

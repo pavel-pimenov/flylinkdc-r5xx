@@ -67,6 +67,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		CHAIN_MSG_MAP(arrowBase)
 		END_MSG_MAP();
 		
+#if 0
 		class iterator : public std::iterator<std::random_access_iterator_tag, T*>
 		{
 			public:
@@ -149,19 +150,31 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 				int cur;
 				int cnt;
 		};
-		void update_columns(const std::vector<int>& p_item, const std::vector<int>& p_column)
+#endif
+		void update_all_columns(const std::vector<int>& p_items)
 		{
-			if (!p_item.empty())
+			if (!p_items.empty())
 			{
-				CLockRedraw<true> l_lock_draw(m_hWnd);
+				CLockRedraw<false> l_lock_draw(m_hWnd);
+				for (auto i = p_items.begin(); i != p_items.end(); ++i)
+				{
+					updateItem(*i);
+				}
+			}
+		}
+		void update_columns(const std::vector<int>& p_items, const std::vector<int>& p_columns)
+		{
+			if (!p_items.empty())
+			{
+				CLockRedraw<false> l_lock_draw(m_hWnd);
 				// TODO - обощить
 				// const auto l_top_index         = GetTopIndex();
 				// const auto l_count_per_page    = GetCountPerPage();
 				// const auto l_item_count        = GetItemCount();
-				for (auto i = p_item.cbegin(); i != p_item.cend(); ++i)
+				for (auto i = p_items.cbegin(); i != p_items.cend(); ++i)
 				{
 					// TODO if (*i >= l_top_index && *i < l_item_count && *i < (l_top_index + l_count_per_page))
-					for (auto j = p_column.cbegin(); j != p_column.cend(); ++j)
+					for (auto j = p_columns.cbegin(); j != p_columns.cend(); ++j)
 					{
 						updateItem(*i, *j);
 					}
@@ -545,6 +558,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 			updateArrow();
 		}
 		
+#if 0
 		iterator begin()
 		{
 			return iterator(this);
@@ -553,6 +567,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		{
 			return iterator(this, GetItemCount());
 		}
+#endif
 		
 		int InsertColumn(uint8_t nCol, const tstring &columnHeading, int nFormat = LVCFMT_LEFT, int nWidth = -1, int nSubItem = -1)
 		{
@@ -734,25 +749,24 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 					}
 				}
 			}
+			string l_separator;
 			for (auto i = m_columnList.cbegin(); i != m_columnList.cend(); ++i)
 			{
 				ColumnInfo* ci = *i;
 				if (ci->visible)
 				{
-					visible += "1,";
+					visible += l_separator + "1";
 				}
 				else
 				{
-					ci->pos = size++;
-					visible += "0,";
+					ci->pos = size++; // TODO зачем это?
+					visible += l_separator + "0";
 				}
-				order += Util::toString((*i)->pos) + ',';
-				widths += Util::toString((*i)->width) + ',';
+				order  += l_separator + Util::toString((*i)->pos);
+				widths += l_separator + Util::toString((*i)->width);
+				if (l_separator.empty())
+					l_separator  = ",";
 			}
-			order.erase(order.size() - 1, 1);
-			widths.erase(widths.size() - 1, 1);
-			visible.erase(visible.size() - 1, 1);
-			
 		}
 		
 		void setVisible(const string& vis)
@@ -966,8 +980,8 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 			vector<T*> children;
 		};
 		
-		typedef pair<K*, ParentPair> ParentMapPair;
-		typedef unordered_map<K*, ParentPair, hashFunc, equalKey> ParentMap;
+		typedef std::pair<K*, ParentPair> ParentMapPair;
+		typedef std::unordered_map<K*, ParentPair, hashFunc, equalKey> ParentMap;
 		
 		BEGIN_MSG_MAP(thisClass)
 		MESSAGE_HANDLER(WM_CREATE, onCreate)
@@ -1072,17 +1086,31 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 			return i != parents.end() ? (*i).second.parent : NULL;
 		}
 		
-		static const vector<T*> emptyVector;
+		static const vector<T*> g_emptyVector;
 		const vector<T*>& findChildren(const K& groupCond) const
 		{
 			ParentMap::const_iterator i = parents.find(const_cast<K*>(&groupCond));
-			return i != parents.end() ? (*i).second.children : emptyVector;
+			if (i != parents.end())
+			{
+				return  i->second.children;
+			}
+			else
+			{
+				return g_emptyVector;
+			}
 		}
 		
 		ParentPair* findParentPair(const K& groupCond)
 		{
 			ParentMap::iterator i = parents.find(const_cast<K*>(&groupCond));
-			return i != parents.end() ? &((*i).second) : NULL;
+			if (i != parents.end())
+			{
+				return &i->second;
+			}
+			else
+			{
+				return nullptr;
+			}
 		}
 		
 		void insertGroupedItem(T* item, bool autoExpand, bool extra = false)
@@ -1408,7 +1436,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 };
 
 template<class T, int ctrlId, class K, class hashFunc, class equalKey>
-const vector<T*> TypedTreeListViewCtrl<T, ctrlId, K, hashFunc, equalKey>::emptyVector;
+const vector<T*> TypedTreeListViewCtrl<T, ctrlId, K, hashFunc, equalKey>::g_emptyVector;
 
 
 // [+] FlylinkDC++: support MediaInfo in Lists.

@@ -188,11 +188,11 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		                  QueueItem::Priority p = QueueItem::DEFAULT) noexcept;
 		                  
 		int matchListing(const DirectoryListing& dl) noexcept;
-private:
+	private:
 		typedef std::unordered_map<TTHValue, const DirectoryListing::File*> TTHMap; // TODO boost
 		static void buildMap(const DirectoryListing::Directory* dir, TTHMap& tthMap) noexcept;
-public:
-		
+	public:
+	
 		bool getTTH(const string& p_target, TTHValue& p_tth) const
 		{
 			return fileQueue.getTTH(p_target, p_tth);

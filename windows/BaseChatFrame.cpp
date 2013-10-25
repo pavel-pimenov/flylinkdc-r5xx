@@ -27,7 +27,7 @@ LRESULT BaseChatFrame::OnCreate(HWND p_hWnd, RECT &rcDefault)
 	m_MessagePanelHWnd = p_hWnd;
 	
 	ctrlClient.Create(p_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-	                  WS_VSCROLL | ES_MULTILINE | ES_NOHIDESEL | ES_READONLY, WS_EX_STATICEDGE, IDC_CLIENT);
+	                  WS_VSCROLL | ES_AUTOVSCROLL | ES_MULTILINE | ES_NOHIDESEL | ES_READONLY, WS_EX_STATICEDGE, IDC_CLIENT);
 	                  
 	ctrlClient.LimitText(0);
 	ctrlClient.SetFont(Fonts::font);

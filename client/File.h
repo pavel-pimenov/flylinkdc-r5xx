@@ -109,13 +109,13 @@ class File : public IOStream
 		{
 			renameFile(Text::toT(source), Text::toT(target));
 		}
-		static bool deleteFile(const tstring& aFileName) noexcept
+		static bool deleteFileT(const tstring& aFileName) noexcept
 		{
 			return ::DeleteFile(formatPath(aFileName).c_str()) != NULL;
 		}
 		static bool deleteFile(const string& aFileName) noexcept
 		{
-			return deleteFile(Text::toT(aFileName));
+			return deleteFileT(Text::toT(aFileName));
 		}
 		
 #ifndef _CONSOLE

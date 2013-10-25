@@ -1716,7 +1716,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 		else
 		{
 			TextFrame::openWindow(*file);
-			File::deleteFile(*file);
+			File::deleteFileT(*file);
 		}
 	}
 	else if (wParam == AUTO_CONNECT)

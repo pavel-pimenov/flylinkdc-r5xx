@@ -248,7 +248,7 @@ class OperaColors
 			}
 		};
 		
-		typedef unordered_map<FloodCacheItem::FCIMapper, FloodCacheItem*, fci_hash, fci_equal_to> FCIMap;
+		typedef std::unordered_map<FloodCacheItem::FCIMapper, FloodCacheItem*, fci_hash, fci_equal_to> FCIMap;
 		
 		static FCIMap g_flood_cache;
 };

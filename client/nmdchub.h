@@ -114,7 +114,7 @@ class NmdcHub : public Client, private Flags
 		enum DefinedMeyInfoState {DIDNT_GET_YET_FIRST_MYINFO, FIRST_MYINFO, ALREADY_GOT_MYINFO};
 		
 		
-		typedef unordered_map<string, OnlineUser*, noCaseStringHash, noCaseStringEq> NickMap;
+		typedef std::unordered_map<string, OnlineUser*, noCaseStringHash, noCaseStringEq> NickMap;
 		
 		NickMap m_users;
 		
