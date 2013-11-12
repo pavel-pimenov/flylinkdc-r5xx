@@ -175,9 +175,9 @@ LRESULT RecentHubsFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 {
 	if (!m_closed)
 	{
+		m_closed = true;
 		FavoriteManager::getInstance()->removeListener(this);
 		SettingsManager::getInstance()->removeListener(this);
-		m_closed = true;
 		WinUtil::setButtonPressed(IDC_RECENTS, false);
 		PostMessage(WM_CLOSE);
 		return 0;
@@ -297,7 +297,9 @@ LRESULT RecentHubsFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHan
 					cd->clrTextBk = SETTING(HUB_IN_FAV_BK_COLOR);
 				}
 			}
+#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 			Colors::alternationBkColor(cd); // [+] IRainman
+#endif
 			return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
 		}
 		default:

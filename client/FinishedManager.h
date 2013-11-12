@@ -133,12 +133,12 @@ class FinishedManager : public Singleton<FinishedManager>,
 			if (upload)
 			{
 				csU.lockShared();
-				return uploads;
+				return m_uploads;
 			}
 			else
 			{
 				csD.lockShared();
-				return downloads;
+				return m_downloads;
 			}
 		}
 		void unlockList(const bool upload)
@@ -156,11 +156,6 @@ class FinishedManager : public Singleton<FinishedManager>,
 		void remove(FinishedItemPtr item, bool upload = false);
 		void removeAll(bool upload = false);
 		
-		/*      void insertHistoryItem(FinishedItem *item, bool upload = false)
-		        {
-		            upload ? uploads.push_back(item) : downloads.push_back(item);
-		        }
-		        */
 	private:
 		friend class Singleton<FinishedManager>;
 		
@@ -176,7 +171,8 @@ class FinishedManager : public Singleton<FinishedManager>,
 		FastSharedCriticalSection csD;
 		FastSharedCriticalSection& csU;
 #endif
-		FinishedItemList downloads, uploads;
+		FinishedItemList m_downloads;
+		FinishedItemList m_uploads;
 };
 
 #endif // !defined(FINISHED_MANAGER_H)

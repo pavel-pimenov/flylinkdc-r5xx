@@ -73,7 +73,8 @@ bool Mapper_MiniUPnPc::add(const unsigned short port, const Protocol protocol, c
 {
 	const string port_ = Util::toString(port);
 	return UPNP_AddPortMapping(m_url.c_str(), m_service.c_str(), port_.c_str(), port_.c_str(),
-	                           Util::getLocalIp().c_str(), description.c_str(), protocols[protocol], 0, 0) == UPNPCOMMAND_SUCCESS;
+	                           Util::getLocalOrBindIp(true).c_str(), // http://code.google.com/p/flylinkdc/issues/detail?id=1359
+	                           description.c_str(), protocols[protocol], 0, 0) == UPNPCOMMAND_SUCCESS;
 }
 
 bool Mapper_MiniUPnPc::remove(const unsigned short port, const Protocol protocol)

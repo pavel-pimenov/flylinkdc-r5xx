@@ -41,7 +41,7 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 	public:
 	
 		/** @internal */
-		void addConnection(UserConnectionPtr conn);
+		void addConnection(UserConnection* p_conn);
 		void checkIdle(const UserPtr& user);
 		
 		/** @internal */
@@ -57,7 +57,7 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 		size_t getDownloadCount() const
 		{
 			// [-] Lock l(cs); [-] IRainman opt.
-			return m_downloads.size();
+			return m_download_map.size();
 		}
 		
 		bool startDownload(QueueItem::Priority prio);
@@ -66,12 +66,19 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 	private:
 	
 		SharedCriticalSection cs; // [!] IRainman fix.
-		DownloadList m_downloads;
-		UserConnectionList idlers;
-		
+		DownloadMap m_download_map;
+		std::unordered_map<UserPtr, UserConnection*, User::Hash> m_idlers;
+		void remove_idlers(UserConnection* aSource)
+		{
+			UniqueLock l(cs);
+			dcassert(aSource->getUser());
+			// Могут быть не найдены.
+			// лишняя проверка dcassert(m_idlers.find(aSource->getUser()) != m_idlers.end());
+			m_idlers.erase(aSource->getUser());
+		}
 		int64_t runningAverage;//[+] IRainman refactoring transfer mechanism
 		
-		void removeConnection(UserConnectionPtr aConn);
+		void removeConnection(UserConnection* p_conn);
 		void removeDownload(Download* aDown);
 		void fileNotAvailable(UserConnection* aSource);
 		void noSlots(UserConnection* aSource, const string& param = Util::emptyString);

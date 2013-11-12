@@ -104,7 +104,8 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	
 	dcassert(pProgressCallbackProc != nullptr);
 	
-	LOAD_STEP("Fly server", g_fly_server_config.loadConfig());
+	// Загрузку конфига нужно делать раньше
+	// LOAD_STEP("Fly server", g_fly_server_config.loadConfig());
 	
 	LOAD_STEP("Geo IP", Util::loadGeoIp());
 	
@@ -195,14 +196,21 @@ TODO:
 
 void preparingCoreToShutdown() // [+] IRainamn fix.
 {
-	FavoriteManager::getInstance()->prepareClose();
-	ClientManager::getInstance()->shutdown();
-	TimerManager::getInstance()->shutdown();
-	HashManager::getInstance()->shutdown();
-	ShareManager::getInstance()->shutdown();
-	QueueManager::getInstance()->shutdown();
-	SearchManager::getInstance()->disconnect();
-	ClientManager::getInstance()->clear();
+	CFlyLog l_log("[Core shutdown]");
+	static bool g_is_first = false;
+	if (!g_is_first)
+	{
+		g_is_first = true;
+		TimerManager::getInstance()->shutdown();
+		HashManager::getInstance()->shutdown();
+		ClientManager::getInstance()->shutdown(); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1374
+		ClientManager::getInstance()->prepareClose();
+		FavoriteManager::getInstance()->prepareClose();
+		ShareManager::getInstance()->shutdown();
+		QueueManager::getInstance()->shutdown();
+		SearchManager::getInstance()->disconnect();
+		ClientManager::getInstance()->clear();
+	}
 }
 
 void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
@@ -221,7 +229,7 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		dcdebug("shutdown (after closing last hub (DHT::stop) - User::g_user_counts = %d OnlineUser::g_online_user_counts = %d\n", int(User::g_user_counts), int(OnlineUser::g_online_user_counts)); // [+] IRainman fix.
 #endif
 #endif
-		// [!] IRainman fix: see preparingShutdown().
+		preparingCoreToShutdown(); // Зовем тут второй раз т.к. вероятно при автообновлении оно не зовется.
 		ConnectionManager::getInstance()->shutdown();
 		MappingManager::getInstance()->close();
 		
@@ -247,9 +255,6 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 #ifdef PPA_INCLUDE_IPGUARD
 		IpGuard::deleteInstance();
 #endif
-		//ToolbarManager::deleteInstance();  // moved to windows\main.cpp. This is Window related object!!!
-		//PopupManager::deleteInstance();    // moved to windows\main.cpp. This is Window related object!!!
-		//HistoryManager::deleteInstance();//[-] FlylinkDC this functional released in DB Manager
 		if (pGuiInitProc)
 			pGuiInitProc(pGuiParam);
 		ADLSearchManager::deleteInstance();

@@ -469,8 +469,9 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			const int colIndex = ctrlTransfers.findColumn(cd->iSubItem);
 			cd->clrTextBk = Colors::bgColor;
 			
+#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 			Colors::alternationBkColor(cd);
-			
+#endif
 			if ((ii->status == ItemInfo::STATUS_RUNNING) && (colIndex == COLUMN_STATUS))
 			{
 				if (!BOOLSETTING(SHOW_PROGRESS_BARS))
@@ -1003,7 +1004,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 				ii->update(ui);
 				if (ii->download)
 				{
-					ctrlTransfers.insertGroupedItem(ii, false);
+					ctrlTransfers.insertGroupedItem(ii, false, false, true);
 				}
 				else
 				{
@@ -1066,7 +1067,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 						
 						if (changeParent)
 						{
-							ctrlTransfers.insertGroupedItem(ii, false);
+							ctrlTransfers.insertGroupedItem(ii, false, false, true);
 							parent = ii->parent ? ii->parent : ii;
 						}
 						else if (ii == parent || !parent->collapsed)
@@ -1452,13 +1453,13 @@ void TransferView::on(DownloadManagerListener::Starting, const Download* aDownlo
 	tasks.add(UPDATE_ITEM, ui);
 }
 
-void TransferView::on(DownloadManagerListener::Tick, const DownloadList& dl, uint64_t CurrentTick)
+void TransferView::on(DownloadManagerListener::Tick, const DownloadMap& dl, uint64_t CurrentTick)
 {
 	if (!MainFrame::isAppMinimized())// [+]IRainman opt
 	{
 		for (auto j = dl.cbegin(); j != dl.cend(); ++j)
 		{
-			Download* d = *j;
+			const Download* d = j->second;
 			
 			UpdateInfo* ui = new UpdateInfo(d->getHintedUser(), true); // [!] IRainman fix.
 			ui->setStatus(ItemInfo::STATUS_RUNNING);

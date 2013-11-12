@@ -78,13 +78,21 @@ void CFlylinkDBManager::errorDB(const string& p_txt)
 	const string l_message = p_txt + "\r\n" + STRING(DATA_BASE_ERROR_STRING);
 	const string l_error = "CFlylinkDBManager::errorDB. p_txt = " + p_txt;
 	Util::setRegistryValueString(FLYLINKDC_REGISTRY_SQLITE_ERROR , Text::toT(l_error));
-	MessageBox(NULL, Text::toT(l_message).c_str(), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_OK | MB_ICONERROR | MB_TOPMOST);
 	LogManager::getInstance()->message(p_txt, true); // ¬сегда логируем в файл (т.к. база может быть битой)
-	throw database_error(l_error.c_str());
+	MessageBox(NULL, Text::toT(l_message).c_str(), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_OK | MB_ICONERROR | MB_TOPMOST);
+	bool l_is_send = CFlyServerAdapter::CFlyServerJSON::pushError(l_error);
+	if (!l_is_send)
+	{
+		// TODO - скинуть ошибку в файл и не грузить crash-server логичискими ошибками
+		throw database_error(l_error.c_str());
+	}
 }
 //========================================================================================================
 CFlylinkDBManager::CFlylinkDBManager()
 {
+#ifdef _DEBUG
+	m_is_load_global_ratio = false;
+#endif
 	m_count_json_stat = 1; // ѕервый раз думаем, что в таблице что-то есть
 	m_count_fly_location_ip_record = -1;
 	m_last_path_id = -1;
@@ -381,6 +389,14 @@ CFlylinkDBManager::CFlylinkDBManager()
 		m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS\n"
 		                              "location_db.i_fly_location_ip ON fly_location_ip(start_ip,stop_ip);"); // »ндекс делаем не уникальный
 		                              
+#ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
+		m_flySQLiteDB.executenonquery(
+		    "CREATE TABLE IF NOT EXISTS stat_db.fly_identity(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,hub text not null,key text not null, value text not null,\n"
+		    "count_get integer, count_set integer,last_time_get text not null, last_time_set text not null);");
+		m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS\n"
+		                              "stat_db.iu_fly_identity ON fly_identity(hub,key,value);");
+		                              
+#endif // FLYLINKDC_USE_GATHER_IDENTITY_STAT
 		m_flySQLiteDB.executenonquery(
 		    "CREATE TABLE IF NOT EXISTS stat_db.fly_statistic(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,stat_value_json text not null,stat_time int64, flush_time int64);");
 		const bool l_is_fly_last_ip_nick_hub_exists = is_table_exists("fly_last_ip_nick_hub");
@@ -436,8 +452,8 @@ CFlylinkDBManager::CFlylinkDBManager()
 			m_flySQLiteDB.executenonquery("insert into fly_revision(rev) values(" A_VERSION_NUM_STR ");");
 			l_trans.commit();
 		}
-		safeAlter("ALTER TABLE fly_queue add column HubHint text");
-		safeAlter("ALTER TABLE fly_queue_source add column HubHint text");
+		//safeAlter("ALTER TABLE fly_queue add column HubHint text"); // TODO - колонки не используютс€. удалить?
+		//safeAlter("ALTER TABLE fly_queue_source add column HubHint text"); // TODO - колонки не используютс€. удалить?
 		const bool l_fly_last_ip_convert2 = is_table_exists("fly_last_ip");
 		if (l_fly_last_ip_convert2 && l_is_fly_last_ip_nick_hub_exists == false)
 		{
@@ -519,6 +535,93 @@ void CFlylinkDBManager::save_fly_server_cache(const TTHValue& p_tth, const CFlyS
 	}
 }
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
+#ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
+//========================================================================================================
+void CFlylinkDBManager::identity_initL(const string& p_hub, const string& p_key, const string& p_value)
+{
+	try
+	{
+		if (!m_insert_identity_stat.get())
+			m_insert_identity_stat = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+			                                                                       "insert into stat_db.fly_identity (hub,key,value,count_get,count_set,last_time_get,last_time_set)\n"
+			                                                                       "values(?,?,?,0,0,strftime('%s','now','localtime'),strftime('%s','now','localtime'))"));
+		m_insert_identity_stat.get()->bind(1, p_hub, SQLITE_STATIC);
+		m_insert_identity_stat.get()->bind(2, p_key, SQLITE_STATIC);
+		m_insert_identity_stat.get()->bind(3, p_value, SQLITE_STATIC);
+		m_insert_identity_stat.get()->executenonquery();
+	}
+	catch (const database_error& e)
+	{
+		errorDB("SQLite - identity_set: " + e.getError());
+	}
+}
+//========================================================================================================
+void CFlylinkDBManager::identity_set(string p_key, string p_value, const string& p_hub /*= "-" */)
+{
+	dcassert(!p_key.empty());
+	if (p_value.empty())
+		p_value = "null";
+	if (p_key.size() > 2)
+		p_key = p_key.substr(0, 2);
+	if (p_key.empty())
+		p_key = "null";
+	Lock l(m_cs);
+	try
+	{
+		sqlite3_transaction l_trans(m_flySQLiteDB);
+		if (!m_update_identity_stat_set.get())
+			m_update_identity_stat_set = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+			                                                                           "update stat_db.fly_identity set count_set = count_set+1, last_time_set = strftime('%s','now','localtime')\n"
+			                                                                           "where hub = ? and key=? and value =?"));
+		m_update_identity_stat_set.get()->bind(1, p_hub, SQLITE_STATIC);
+		m_update_identity_stat_set.get()->bind(2, p_key, SQLITE_STATIC);
+		m_update_identity_stat_set.get()->bind(3, p_value, SQLITE_STATIC);
+		m_update_identity_stat_set.get()->executenonquery();
+		if (m_flySQLiteDB.sqlite3_changes() == 0)
+		{
+			identity_initL(p_hub, p_key, p_value);
+		}
+		l_trans.commit();
+	}
+	catch (const database_error& e)
+	{
+		errorDB("SQLite - identity_set: " + e.getError());
+	}
+}
+//========================================================================================================
+void CFlylinkDBManager::identity_get(string p_key, string p_value, const string& p_hub /*= "-" */)
+{
+	dcassert(!p_key.empty());
+	if (p_value.empty())
+		p_value = "null";
+	if (p_key.size() > 2)
+		p_key = p_key.substr(0, 2);
+	if (p_key.empty())
+		p_key = "null";
+	Lock l(m_cs);
+	try
+	{
+		sqlite3_transaction l_trans(m_flySQLiteDB);
+		if (!m_update_identity_stat_get.get())
+			m_update_identity_stat_get = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+			                                                                           "update stat_db.fly_identity set count_get = count_get+1, last_time_get = strftime('%s','now','localtime')\n"
+			                                                                           "where hub = ? and key=? and value =?"));
+		m_update_identity_stat_get.get()->bind(1, p_hub, SQLITE_STATIC);
+		m_update_identity_stat_get.get()->bind(2, p_key, SQLITE_STATIC);
+		m_update_identity_stat_get.get()->bind(3, p_value, SQLITE_STATIC);
+		m_update_identity_stat_get.get()->executenonquery();
+		if (m_flySQLiteDB.sqlite3_changes() == 0)
+		{
+			identity_initL(p_hub, p_key, p_value);
+		}
+		l_trans.commit();
+	}
+	catch (const database_error& e)
+	{
+		errorDB("SQLite - identity_get: " + e.getError());
+	}
+}
+#endif // FLYLINKDC_USE_GATHER_IDENTITY_STAT
 //========================================================================================================
 void CFlylinkDBManager::push_json_statistic(const std::string& p_value)
 {
@@ -1245,8 +1348,8 @@ size_t CFlylinkDBManager::load_queue()
 		                            "MaxSegments,\n"
 		                            "CID,\n" //12
 		                            "Nick,\n"
-		                            "CountSubSource,\n"
-		                            "HubHint\n"
+		                            "CountSubSource\n"
+		                            //",HubHint\n"
 		                            "from fly_queue where size > 0"; // todo убрать в будущих верси€х
 		if (!m_get_fly_queue.get())
 			m_get_fly_queue = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB, l_sql));
@@ -1332,7 +1435,8 @@ size_t CFlylinkDBManager::load_queue()
 			{
 				if (!m_get_fly_queue_source.get())
 					m_get_fly_queue_source = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-					                                                                       "select cid,nick,HubHint from fly_queue_source where fly_queue_id=?"));
+					                                                                       "select cid,nick from fly_queue_source where fly_queue_id=?"));
+				// "select cid,nick,HubHint from fly_queue_source where fly_queue_id=?"));
 				// TODO - возможно по€вление дублей https://code.google.com/p/flylinkdc/issues/detail?id=931
 				// добавл€ть distinct - не стал т.к. нагрузит базу лишней сортировкой в нормальных услови€х
 				// TODO - ƒобавить контроль дубликатности CID
@@ -1390,10 +1494,11 @@ void CFlylinkDBManager::addSource(const QueueItemPtr& p_QueueItem, const CID& p_
 		try
 		{
 			UniqueLock l(QueueItem::cs); // [+] IRainman fix.
-			wantConnection = QueueManager::getInstance()->addSourceL(p_QueueItem, l_user, 0) && l_user->isOnline();
+			wantConnection = QueueManager::getInstance()->addSourceL(p_QueueItem, l_user, 0, true) && l_user->isOnline(); // ƒобавить флаг ускоренной загрузки первый раз.
 		}
-		catch (const Exception&)
+		catch (const Exception& e)
 		{
+			LogManager::getInstance()->message("CFlylinkDBManager::addSource, Error = " + e.getError());
 		}
 		if (wantConnection)
 		{
@@ -1479,9 +1584,9 @@ bool CFlylinkDBManager::merge_queue_item(QueueItemPtr& p_QueueItem)
 			                                                                   "id,"
 			                                                                   "CID,"
 			                                                                   "Nick,"
-			                                                                   "CountSubSource,"
-			                                                                   "HubHint"
-			                                                                   ") values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
+			                                                                   "CountSubSource"
+			                                                                   // ’аб не пишем ",HubHint"
+			                                                                   ") values(?,?,?,?,?,?,?,?,?,?,?,?,?)"));
 		sqlite3_command* l_sql = m_insert_fly_queue.get();
 		l_sql->bind(1, p_QueueItem->getTarget(), SQLITE_TRANSIENT);
 		l_sql->bind(2, p_QueueItem->getSize());
@@ -1523,15 +1628,16 @@ bool CFlylinkDBManager::merge_queue_item(QueueItemPtr& p_QueueItem)
 			static const CID g_empty_cid; // CID пустышка - область видимости не мен€ть!
 			if (l_count_normal_source)
 			{
-				const auto s = l_sources.cbegin();
-				dcassert(!s->getUser()->getCID().isZero());
+				const auto& s = l_sources.cbegin();
+				dcassert(!s->first->getCID().isZero());
 #ifndef IRAINMAN_SAVE_ALL_VALID_SOURCE
-				dcassert(!s->getUser()->getLastNick().empty());
+				dcassert(!s->first->getLastNick().empty());
 				//dcassert(!s->getUser().hint.empty());
 #endif
-				l_sql->bind(11, s->getUser()->getCID().data(), 24, SQLITE_TRANSIENT);
-				l_sql->bind(12, s->getUser()->getLastNick(), SQLITE_TRANSIENT);
-				l_sql->bind(14, Util::emptyString, SQLITE_TRANSIENT); // s->getUser().hint
+				l_sql->bind(11, s->first->getCID().data(), 24, SQLITE_TRANSIENT);
+				l_sql->bind(12, s->first->getLastNick(), SQLITE_TRANSIENT);
+				// [-] ’аб не пишем.
+				// l_sql->bind(14, Util::emptyString, SQLITE_TRANSIENT); // s->getUser().hint
 			}
 #ifdef IRAINMAN_SAVE_BAD_SOURCE
 			else if (l_count_bad_source)
@@ -1543,7 +1649,7 @@ bool CFlylinkDBManager::merge_queue_item(QueueItemPtr& p_QueueItem)
 #endif
 				l_sql->bind(11, b->getUser()->getCID().data(), 24, SQLITE_TRANSIENT);
 				l_sql->bind(12, b->getUser()->getLastNick(), SQLITE_TRANSIENT);
-				l_sql->bind(14, Util::emptyString, SQLITE_TRANSIENT); // s->getUser().hint
+				// TODO l_sql->bind(14, Util::emptyString, SQLITE_TRANSIENT); // s->getUser().hint
 			}
 #endif
 			else
@@ -1552,7 +1658,7 @@ bool CFlylinkDBManager::merge_queue_item(QueueItemPtr& p_QueueItem)
 				dcassert(0);
 				l_sql->bind(11, g_empty_cid.data() , 24, SQLITE_TRANSIENT);
 				l_sql->bind(12, Util::emptyString, SQLITE_STATIC); // ?
-				l_sql->bind(14, Util::emptyString, SQLITE_TRANSIENT); // ? пустой хинт ?
+				//TODO l_sql->bind(14, Util::emptyString, SQLITE_TRANSIENT); // ? пустой хинт ?
 			}
 			l_sql->executenonquery();
 #ifdef _DEBUG
@@ -1564,32 +1670,47 @@ bool CFlylinkDBManager::merge_queue_item(QueueItemPtr& p_QueueItem)
 			{
 				if (!m_insert_fly_queue_source.get())
 					m_insert_fly_queue_source = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-					                                                                          "insert into fly_queue_source(fly_queue_id,CID,Nick,HubHint) values(?,?,?,?)"));
+					                                                                          "insert into fly_queue_source(fly_queue_id,CID,Nick) values(?,?,?)"));
+				// ”рл хаба не используем...
+				// "insert into fly_queue_source(fly_queue_id,CID,Nick,HubHint) values(?,?,?,?)"));
 				sqlite3_command* l_sql_source = m_insert_fly_queue_source.get();
-				for (auto j = l_sources.cbegin() + (l_count_normal_source > 0 ? 1 : 0); j != l_sources.cend(); ++j)
+				auto j = l_sources.cbegin();
+				if (l_count_normal_source > 0)
+					++j;
+				for (; j != l_sources.cend(); ++j)
 				{
-					const auto &l_user = j->getUser(); // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'j->getUser().user' expression repeatedly. cflylinkdbmanager.cpp 1289
+					const auto &l_user = j->first; // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'j->getUser().user' expression repeatedly. cflylinkdbmanager.cpp 1289
 #ifndef IRAINMAN_SAVE_ALL_VALID_SOURCE
-					if (j->isSet(QueueItem::Source::FLAG_PARTIAL)/* || j->getUser().hint == "DHT"*/)
+					if (j->second.isSet(QueueItem::Source::FLAG_PARTIAL)/* || j->getUser().hint == "DHT"*/)
 						continue;
 #endif
 					const auto &l_cid = l_user->getCID();// [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'j->getUser().user->getCID()' expression repeatedly. cflylinkdbmanager.cpp 1284
-					l_sql_source->bind(1, l_id);
 					dcassert(!l_cid.isZero());
+					if (l_cid.isZero())
+					{
+#ifdef _DEBUG
+						LogManager::getInstance()->message("[CFlylinkDBManager::merge_queue_item] l_cid.isZero() - skip! insert into fly_queue_source CID = "
+						                                   + l_cid.toBase32() + " nick = " + l_user->getLastNick()
+						                                  );
+						                                  
+#endif
+						continue;
+					}
+					l_sql_source->bind(1, l_id);
 #ifndef IRAINMAN_SAVE_ALL_VALID_SOURCE
 					dcassert(!l_user->getLastNick().empty());
 					//dcassert(!j->getUser().hint.empty());
 #endif
 					l_sql_source->bind(2, l_cid.data(), 24, SQLITE_TRANSIENT);
 					l_sql_source->bind(3, l_user->getLastNick(), SQLITE_TRANSIENT);
-					l_sql_source->bind(4, Util::emptyString, SQLITE_TRANSIENT); // j->getUser().hint
+					// TODO l_sql_source->bind(4, Util::emptyString, SQLITE_TRANSIENT); // j->getUser().hint
 					l_sql_source->executenonquery(); // TODO - копипаст
 					l_cont_insert_sub_source++;
 #ifdef _DEBUG
-					LogManager::getInstance()->message("[getSourcesL] insert into fly_queue_source CID = "
+					LogManager::getInstance()->message("[CFlylinkDBManager::merge_queue_item] insert into fly_queue_source CID = "
 					                                   + l_cid.toBase32() + " nick = " + l_user->getLastNick()
-					                                   // + " HubHint =" +  j->getHintedUser().hint
 					                                  );
+					                                  
 #endif
 				}
 #ifdef IRAINMAN_SAVE_BAD_SOURCE
@@ -1606,19 +1727,18 @@ bool CFlylinkDBManager::merge_queue_item(QueueItemPtr& p_QueueItem)
 #endif
 					l_sql_source->bind(2, l_cid.data(), 24, SQLITE_TRANSIENT);
 					l_sql_source->bind(3, l_user->getLastNick(), SQLITE_TRANSIENT);
-					l_sql_source->bind(4, Util::emptyString, SQLITE_TRANSIENT); // j->getUser().hint
+					// TODO l_sql_source->bind(4, Util::emptyString, SQLITE_TRANSIENT); // j->getUser().hint
 					l_sql_source->executenonquery(); // TODO - addsou
 					l_cont_insert_sub_source++;
 #ifdef _DEBUG
 					LogManager::getInstance()->message("[getBadSourcesL] insert into fly_queue_source CID = "
 					                                   + l_cid.toBase32() + " nick = " + l_user->getLastNick()
-					                                   // + " HubHint =" +  j->getHintedUser().hint
 					                                  );
 #endif
 				}
 #endif // IRAINMAN_SAVE_BAD_SOURCE
 			}
-			dcassert(l_count_total_source == l_cont_insert_sub_source + 1);
+			// dcassert(l_count_total_source == l_cont_insert_sub_source + 1);
 			p_QueueItem->setFlyCountSourceInSQL(l_cont_insert_sub_source); // —охраним в пам€ти сколько записей добавили к дочерней таблице.
 			p_QueueItem->setFlyQueueID(l_id);
 		}
@@ -1649,6 +1769,9 @@ void CFlylinkDBManager::load_global_ratio()
 			m_global_ratio.m_upload   = l_q.getdouble(0);
 			m_global_ratio.m_download = l_q.getdouble(1);
 		}
+#ifdef _DEBUG
+		m_is_load_global_ratio = true;
+#endif
 	}
 	catch (const database_error& e)
 	{
@@ -1705,16 +1828,22 @@ CFlyRatioItem CFlylinkDBManager::load_ratio(uint32_t p_hub_id, const string& p_n
 			string l_ip_from_ratio;
 			while (l_q.read())
 			{
-				const auto l_u = l_q.getint64(0);
-				const auto l_d = l_q.getint64(1);
-				dcassert(l_d || l_u);
 				l_ip_from_ratio = l_q.getstring(2);
-				dcassert(!l_ip_from_ratio.empty());
-				l_ip_ratio_item.m_upload    += l_u;
-				l_ip_ratio_item.m_download  += l_d;
-				auto& l_u_d_map = p_ratio_info.find_ip_map(l_ip_from_ratio);
-				l_u_d_map.m_download = l_d;
-				l_u_d_map.m_upload   = l_u;
+				dcassert(!l_ip_from_ratio.empty()); // TODO - сделать зачистку таких
+				if (!l_ip_from_ratio.empty())
+				{
+					const auto l_u = l_q.getint64(0);
+					const auto l_d = l_q.getint64(1);
+					dcassert(l_d || l_u);
+					l_ip_ratio_item.m_upload    += l_u;
+					l_ip_ratio_item.m_download  += l_d;
+					boost::system::error_code ec;
+					const auto l_ip = boost::asio::ip::address_v4::from_string(l_ip_from_ratio, ec);
+					dcassert(!ec);
+					auto& l_u_d_map = p_ratio_info.find_ip_map(l_ip);
+					l_u_d_map.m_download = l_d;
+					l_u_d_map.m_upload   = l_u;
+				}
 			}
 		}
 	}
@@ -1788,7 +1917,9 @@ void CFlylinkDBManager::store_all_ratio_and_last_ip(uint32_t p_hub_id,
 			for (auto i = p_upload_download_stats->cbegin(); i != p_upload_download_stats->cend(); ++i)
 			{
 				__int64 l_last_ip_id = getDIC_ID(boost::asio::ip::address_v4(i->first).to_string(), e_DIC_IP, false); // TODO - второй раз делаем запрос ! криво - изменить структуру fly_ratio
-				if (l_last_ip_id) //  оннект еще не наступил - не пишем в базу 0
+				dcassert(i->second.m_upload != 0 || i->second.m_download != 0);
+				if (l_last_ip_id && //  оннект еще не наступил - не пишем в базу 0
+				        (i->second.m_upload != 0 || i->second.m_download != 0)) // ≈сли все по нул€м - тоже странно
 				{
 					l_sql->bind(1, __int64(l_last_ip_id));
 					l_sql->bind(4, __int64(i->second.m_upload));
@@ -1819,7 +1950,7 @@ void CFlylinkDBManager::update_last_ip(uint32_t p_hub_id, const string& p_nick, 
 	}
 	catch (const database_error& e)
 	{
-		errorDB("SQLite - getDIC_ID: " + e.getError());
+		errorDB("SQLite - update_last_ip: " + e.getError());
 	}
 }
 //========================================================================================================
@@ -2646,6 +2777,7 @@ CFlylinkDBManager::~CFlylinkDBManager()
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 double CFlylinkDBManager::get_ratio() const
 {
+	dcassert(m_is_load_global_ratio);
 	if (m_global_ratio.m_download > 0)
 		return m_global_ratio.m_upload / m_global_ratio.m_download;
 	else
@@ -2654,6 +2786,7 @@ double CFlylinkDBManager::get_ratio() const
 //========================================================================================================
 tstring CFlylinkDBManager::get_ratioW() const
 {
+	dcassert(m_is_load_global_ratio);
 	if (m_global_ratio.m_download > 0)
 	{
 		LocalArray<TCHAR, 32> buf;

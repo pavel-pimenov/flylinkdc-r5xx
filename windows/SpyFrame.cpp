@@ -59,7 +59,7 @@ LRESULT SpyFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	//ctrlSearches.setVisible(SETTING(SPYFRAME_VISIBLE)); // !SMT!-UI
 	
 	ctrlSearches.setSort(SETTING(SEARCH_SPY_COLUMNS_SORT), ExListViewCtrl::SORT_INT, BOOLSETTING(SEARCH_SPY_COLUMNS_SORT_ASC));
-	ShareManager::getInstance()->setHits(0);
+	ShareManager::setHits(0);
 	
 #ifdef _BIG_BROTHER_MODE
 	//[!]IRainman refactoring SpyFrame
@@ -301,8 +301,8 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 				snwprintf(buf.data(), buf.size(), CTSTRING(SEARCHES_PER), s->perS, s->perM);
 				ctrlStatus.SetText(2, (TSTRING(TOTAL) + _T(' ') + Util::toStringW(m_total)).c_str());
 				ctrlStatus.SetText(3, buf.data());
-				ctrlStatus.SetText(4, (TSTRING(HITS) + _T(' ') + Util::toStringW((size_t)(ShareManager::getInstance()->getHits()))).c_str());
-				const double ratio = m_total > 0 ? static_cast<double>(ShareManager::getInstance()->getHits()) / static_cast<double>(m_total) : 0.0;
+				ctrlStatus.SetText(4, (TSTRING(HITS) + _T(' ') + Util::toStringW((size_t)(ShareManager::getHits()))).c_str());
+				const double ratio = m_total > 0 ? static_cast<double>(ShareManager::getHits()) / static_cast<double>(m_total) : 0.0;
 				ctrlStatus.SetText(5, (TSTRING(HIT_RATIO) + _T(' ') + Util::toStringW(ratio)).c_str());
 				if (m_needsResort)
 				{
@@ -466,7 +466,9 @@ LRESULT SpyFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 			//if it's a partial hit, try to use some simple blending
 			plvcd->clrTextBk = WinUtil::blendColors(SETTING(DUPE_COLOR), SETTING(BACKGROUND_COLOR));
 			
+#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 		Colors::alternationBkColor(plvcd); // [+] IRainman
+#endif
 	}
 	return CDRF_DODEFAULT;
 }

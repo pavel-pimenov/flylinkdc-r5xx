@@ -272,6 +272,21 @@ void CreateSplash()
 		g_dummy.Create(NULL, rc, T_APPNAME_WITH_VERSION, WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 		               ES_CENTER | ES_READONLY, WS_EX_STATICEDGE);
 		g_splash.Create(_T("Static"), GetDesktopWindow(), g_splash.rcDefault, NULL, WS_POPUP | WS_VISIBLE | SS_USERITEM | WS_EX_TOOLWINDOW);
+		/*
+		Error #365: LEAK 40 direct bytes 0x027d7f78-0x027d7fa0 + 0 indirect bytes
+		# 0 COMCTL32.dll!DPA_Grow                 +0xf5     (0x71ec0d15 <COMCTL32.dll+0x30d15>)
+		# 1 COMCTL32.dll!GetWindowSubclass        +0x5235   (0x71eabb74 <COMCTL32.dll+0x1bb74>)
+		# 2 USER32.dll!gapfnScSendMessage         +0x331    (0x766b62fa <USER32.dll+0x162fa>)
+		# 3 USER32.dll!GetDC                      +0x51     (0x766b7316 <USER32.dll+0x17316>)
+		# 4 USER32.dll!GetThreadDesktop           +0x184    (0x766b6de8 <USER32.dll+0x16de8>)
+		# 5 USER32.dll!UnregisterClassW           +0x7bb    (0x766ba740 <USER32.dll+0x1a740>)
+		# 6 ntdll.dll!KiUserCallbackDispatcher    +0x2d     (0x7761010a <ntdll.dll+0x1010a>)
+		# 7 USER32.dll!UnregisterClassW           +0xab7    (0x766baa3c <USER32.dll+0x1aa3c>)
+		# 8 USER32.dll!CreateWindowExW            +0x32     (0x766b8a5c <USER32.dll+0x18a5c>)
+		# 9 ATL::CWindow::Create                   [c:\program files (x86)\microsoft visual studio 10.0\vc\atlmfc\include\atlwin.h:818]
+		#10 CreateSplash                           [c:\vc10\r5xx\windows\main.cpp:274]
+		#11 Run                                    [c:\vc10\r5xx\windows\main.cpp:340]
+		*/
 		g_splash.SetFont((HFONT)GetStockObject(DEFAULT_GUI_FONT));
 		
 		HDC dc = g_splash.GetDC();
@@ -293,7 +308,7 @@ void CreateSplash()
 
 void DestroySplash() // [+] IRainman
 {
-	if (!g_DisableSplash)
+	if (!g_DisableSplash && g_splash)
 	{
 		DestroyAndDetachWindow(g_splash);
 		DestroyAndDetachWindow(g_dummy);
@@ -308,7 +323,6 @@ void DestroySplash() // [+] IRainman
 void GuiInit(void* pParam)
 {
 	UNREFERENCED_PARAMETER(pParam);
-	PopupManager::newInstance();
 	ToolbarManager::newInstance();
 	createFlyFeatures(); // [+] SSA
 }
@@ -344,17 +358,7 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	startup(callBack, g_DisableSplash ? (void*)0 : (void*)g_splash.m_hWnd, GuiInit, NULL);
 	startupFlyFeatures(callBack, g_DisableSplash ? (void*)0 : (void*)g_splash.m_hWnd); // [+] SSA
 	WinUtil::initThemeIcons();
-	
-	// [~] brain-ripper
-	// Hiding splash screen moved to end of this function,
-	// to hide Splash only after main window appears
-	/*
-	DestroySplash()
-	*/
-	
-	
 	static int nRet;
-	
 	{
 		// !SMT!-fix this will ensure that GUI (wndMain) destroyed before client library shutdown (gui objects may call lib)
 		MainFrame wndMain;
@@ -532,7 +536,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	//}
 	
 	Util::initialize();
-	
 	ThrottleManager::newInstance();
 	
 	// First, load the settings! Any code running before will not get the value of SettingsManager!
@@ -543,6 +546,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	SettingsManager::getInstance()->setDefaults(); // !SMT!-S: allow localized defaults in string settings
 	
 	LogManager::newInstance();
+	g_fly_server_config.loadConfig();
 	CFlylinkDBManager::newInstance();
 	TimerManager::newInstance();
 	ClientManager::newInstance();

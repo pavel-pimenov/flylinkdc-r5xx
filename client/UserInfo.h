@@ -77,24 +77,36 @@ class UserInfo : public UserInfoBase
 	private:
 		const OnlineUserPtr m_ou; // [!] IRainman fix: use online user here!
 		Util::CustomNetworkIndex m_location; // [+] IRainman opt.
+#ifdef SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
 		bool m_is_ip_from_sql;
+#endif
 	public:
 	
-		explicit UserInfo(const OnlineUserTask& u) : m_is_ip_from_sql(false), m_ou(u.getOnlineUser())
+		explicit UserInfo(const OnlineUserTask& u) :
+#ifdef SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
+			m_is_ip_from_sql(false),
+#endif
+			m_ou(u.getOnlineUser())
 		{
 		}
 		static int compareItems(const UserInfo* a, const UserInfo* b, int col);
-		bool update(int sortCol)
+		bool is_update(int sortCol)
 		{
+#ifdef IRAINMAN_USE_NG_FAST_USER_INFO
 			return (m_ou->getIdentity().getChanges() & (1 << sortCol)) != 0; // [!] IRAINMAN_USE_NG_FAST_USER_INFO
+#else
+			return true;
+#endif
 		}
 		tstring getText(int p_col) const;
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
 		bool isIPFromSQL() const
 		{
 			return m_is_ip_from_sql;
 		}
-#endif
+#endif // SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
+#endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		bool isOP() const
 		{
 			return getIdentity().isOp();
@@ -114,7 +126,7 @@ class UserInfo : public UserInfoBase
 		}
 		const Util::CustomNetworkIndex& calcLocation()
 		{
-			const auto& l_location = getLocation();
+			auto& l_location = getLocation();
 			if (l_location.isNew())
 			{
 				const auto& l_ip = getIp();
@@ -123,6 +135,8 @@ class UserInfo : public UserInfoBase
 #endif
 				if (!l_ip.empty())
 					setLocation(Util::getIpCountry(l_ip));
+// TODO             else
+// TODO                     setLocation(Util::CustomNetworkIndex(0,0));
 			}
 			return l_location;
 		}
@@ -166,7 +180,7 @@ class UserInfo : public UserInfoBase
 		static tstring formatSpeedLimit(const uint32_t limit);
 		tstring getLimit() const;
 		tstring getDownloadSpeed() const;
-		typedef boost::unordered_map<OnlineUserPtr, UserInfo*> OnlineUserMapBase; // [!] IRainman fix: use online user here.
+		typedef std::unordered_map<OnlineUserPtr, UserInfo*, OnlineUser::Hash> OnlineUserMapBase; // [!] IRainman fix: use online user here.
 		class OnlineUserMap : public OnlineUserMapBase
 #ifdef _DEBUG
 			, virtual NonDerivable<OnlineUserMap>, boost::noncopyable // [+] IRainman fix.

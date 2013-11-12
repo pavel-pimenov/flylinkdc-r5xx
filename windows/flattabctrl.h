@@ -1056,7 +1056,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 						return false;
 						
 					_tcscpy(name.data(), textNew.data()); // diff[1]
-					updateTextData();
+					updateTextMetrics();
 					return true;
 				}
 				
@@ -1096,28 +1096,39 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 							_tcscpy(name.data(), text); // diff[3]
 						}
 					}
-					updateTextData();
+					if (old_len != m_len)
+					{
+						updateTextMetrics();
+					}
 					return old_len != m_len;
 				}
 			private:
-				void updateTextData()
+				void updateTextMetrics()
 				{
 					switch (WinUtil::GetTabsPosition())
 					{
 						case SettingsManager::TABS_TOP:
 						case SettingsManager::TABS_BOTTOM:
 						{
-							CDCHandle dc(::GetDC(hWnd)); // Error ~CDC() call DeleteDC
+							if (m_len)
 							{
-								CSelectFont l_font(dc, Fonts::systemFont);
-								dc.GetTextExtent(name.data(), m_len + (g_TabsCloseButtonEnabled ? 2 : 0), &m_size); //-V107
+								CDCHandle dc(::GetDC(hWnd)); // Error ~CDC() call DeleteDC
+								{
+									CSelectFont l_font(dc, Fonts::systemFont);
+									dc.GetTextExtent(name.data(), m_len, &m_size); //-V107
+								}
+								{
+									CSelectFont l_font(dc, Fonts::boldFont);
+									dc.GetTextExtent(name.data(), m_len, &m_boldSize); //-V107
+								}
+								if (g_TabsCloseButtonEnabled)
+								{
+									m_size.cx     += 10;
+									m_boldSize.cx += 10;
+								}
+								int l_res = ::ReleaseDC(hWnd, dc);
+								dcassert(l_res);
 							}
-							{
-								CSelectFont l_font(dc, Fonts::boldFont);
-								dc.GetTextExtent(name.data(), m_len + (g_TabsCloseButtonEnabled ? 2 : 0), &m_boldSize); //-V107
-							}
-							int l_res = ::ReleaseDC(hWnd, dc);
-							dcassert(l_res);
 						}
 						break;
 						default:
@@ -1357,13 +1368,30 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
 			//Заливка вкладки
 			graphics->FillPath(&tabBrush, &tabsPatch); //[4]  https://www.box.net/shared/2b24970b81c979fc60e5
+			
+			/*
+			Error #349: LEAK 65543 direct bytes 0x0657ec30-0x0658ec37 + 0 indirect bytes
+			# 0 gdiplus.dll!GdipCreateSolidFill                                           +0x1c6    (0x717a7246 <gdiplus.dll+0x47246>)
+			# 1 gdiplus.dll!GdipCreateSolidFill                                           +0x58c6a  (0x717ffcea <gdiplus.dll+0x9fcea>)
+			# 2 gdiplus.dll!GdipCreateSolidFill                                           +0x10026  (0x717b70a6 <gdiplus.dll+0x570a6>)
+			# 3 gdiplus.dll!GdipCreateSolidFill                                           +0x5b64a  (0x718026ca <gdiplus.dll+0xa26ca>)
+			# 4 gdiplus.dll!GdipCreateSolidFill                                           +0x701d6  (0x71817256 <gdiplus.dll+0xb7256>)
+			# 5 gdiplus.dll!GdipCreateSolidFill                                           +0x70bd8  (0x71817c58 <gdiplus.dll+0xb7c58>)
+			# 6 gdiplus.dll!GdipCreateSolidFill                                           +0xfc85   (0x717b6d05 <gdiplus.dll+0x56d05>)
+			# 7 gdiplus.dll!GdipCreateSolidFill                                           +0xfd99   (0x717b6e19 <gdiplus.dll+0x56e19>)
+			# 8 gdiplus.dll!GdipCreateSolidFill                                           +0x10e2f  (0x717b7eaf <gdiplus.dll+0x57eaf>)
+			# 9 gdiplus.dll!GdipFillPath                                                  +0x111    (0x7179ce81 <gdiplus.dll+0x3ce81>)
+			#10 Gdiplus::Graphics::FillPath                                                [c:\program files (x86)\microsoft sdks\windows\v7.0a\include\gdiplusgraphics.h:1136]
+			#11 FlatTabCtrlImpl<FlatTabCtrl,ATL::CWindow,ATL::CWinTraits<1442840576,0> >::drawTab [c:\vc10\r5xx\windows\flattabctrl.h:1359]
+			
+			*/
 			//Отрисовка контура поверх заливки
 			//Создание "ручек" для контура
 			Gdiplus::Pen pen(aActive ? Gdiplus::Color(0, 0, 0) : Gdiplus::Color(90, 60, 90) , 1);
 			pen.SetDashStyle(aActive ? Gdiplus::DashStyleDot : Gdiplus::DashStyleSolid);
 			graphics->DrawPath(&pen, &tabsPatch);
 #else
-			if (tab->row != (rows - 1))
+			if (tab->m_row != (rows - 1))
 			{
 				dc.MoveTo(p[3]);
 				dc.LineTo(p[0]);
@@ -1390,13 +1418,11 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				// ВАЖНО
 				// Что не надо делать в WinAPI:
 				// Удалять (DeleteObject) объект, полученный по SelectObject.
-			
 			}
 			else
 			{
 				dc.SelectBrush(oldbrush);
 			}
-			
 #endif // IRAINMAN_USE_GDI_PLUS_TAB
 			
 			dc.SetBkMode(TRANSPARENT);
@@ -1886,6 +1912,10 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 		
 	protected:
 		bool m_closed;
+		bool isClosedOrShutdown() const
+		{
+			return m_closed || ClientManager::isShutdown();
+		}
 };
 
 #endif // !defined(FLAT_TAB_CTRL_H)

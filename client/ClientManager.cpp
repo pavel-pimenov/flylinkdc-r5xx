@@ -81,17 +81,28 @@ Client* ClientManager::getClient(const string& p_HubURL)
 	
 	return c;
 }
-
-void ClientManager::putClient(Client* aClient)
+void ClientManager::prepareClose()
 {
-	fire(ClientManagerListener::ClientDisconnected(), aClient);
-	aClient->removeListeners();
+	UniqueLock l(g_csClients);
+	for (auto i = m_clients.cbegin(); i != m_clients.cend(); ++i)
+	{
+		i->second->removeListeners();
+	}
+	m_clients.clear();
+}
+void ClientManager::putClient(Client* p_client)
+{
+	if (!g_isShutdown) // При закрытии не шлем уведомление (на него подписан только фрейм поиска)
+	{
+		fire(ClientManagerListener::ClientDisconnected(), p_client);
+	}
+	p_client->removeListeners();
 	{
 		UniqueLock l(g_csClients);
-		m_clients.erase(aClient->getHubUrl());
+		m_clients.erase(p_client->getHubUrl());
 	}
-	aClient->shutdown();
-	delete aClient;
+	p_client->shutdown();
+	delete p_client;
 }
 
 StringList ClientManager::getHubs(const CID& cid, const string& hintUrl) const
@@ -265,7 +276,7 @@ Client* ClientManager::findClient(const string& p_url) const
 {
 	dcassert(!p_url.empty());
 	SharedLock l(g_csClients);
-	Client::Iter i = m_clients.find(p_url);
+	const auto& i = m_clients.find(p_url);
 	if (i != m_clients.end())
 	{
 		return i->second;
@@ -327,7 +338,7 @@ string ClientManager::findHubEncoding(const string& aUrl) const
 	if (!aUrl.empty()) //[+]FlylinkDC++ Team
 	{
 		SharedLock l(g_csClients);
-		Client::Iter i = m_clients.find(aUrl);
+		const auto& i = m_clients.find(aUrl);
 		if (i != m_clients.end())
 			return i->second->getEncoding();
 	}
@@ -385,6 +396,7 @@ UserPtr ClientManager::getUser(const string& p_Nick, const string& p_HubURL
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
                                , uint32_t p_HubID
 #endif
+                               , bool p_first_load
                               ) noexcept
 {
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
@@ -394,27 +406,29 @@ UserPtr ClientManager::getUser(const string& p_Nick, const string& p_HubURL
 	const CID cid = makeCid(p_Nick, p_HubURL);
 	
 	UniqueLock l(g_csUsers);
-	UserMap::const_iterator ui = g_users.find(cid); // 2012-04-29_06-52-32_326HFGI4AAB7UBIMH5QHBGD2AAUTW3MRTX4QLJI_11B3C5DD_crash-stack-r502-beta23-build-9860.dmp
-	if (ui != g_users.end())
+	dcassert(p_first_load == false || p_first_load == true && g_users.find(cid) == g_users.end())
+	auto l_result_insert = g_users.insert(make_pair(cid, nullptr));
+	if (!l_result_insert.second)
 	{
-		const auto &l_user = ui->second; // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'ui->second' expression repeatedly. clientmanager.cpp 375
+		const auto &l_user = l_result_insert.first->second;
 #ifdef IRAINMAN_USE_NICKS_IN_CM
 		updateNick_internal(l_user, p_Nick); // [!] IRainman fix.
 #else
 		l_user->setLastNick(p_Nick);
 #endif
 		l_user->setFlag(User::NMDC); // TODO тут так можно? L: тут так обязательно нужно - этот метод только для nmdc протокола!
+		// TODO-2 зачем второй раз прописывать флаг на NMDC
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+		dcassert(l_user->getHubID());
 		if (!l_user->getHubID())
 		{
-			l_user->setHubID(p_HubID);
+			l_user->setHubID(p_HubID); // TODO-3 а это зачем повторно. оно разве может поменяться?
 		}
 #endif
 		return l_user;
 	}
 	UserPtr p(new User(cid));
 	p->setFlag(User::NMDC); // TODO тут так можно? L: тут так обязательно нужно - этот метод только для nmdc протокола!
-	g_users.insert(make_pair(p->getCID(), p)); // [2] https://www.box.net/shared/ed0a17c14c625047593a
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	p->setHubID(p_HubID);
 #endif
@@ -423,6 +437,7 @@ UserPtr ClientManager::getUser(const string& p_Nick, const string& p_HubURL
 #else
 	p->setLastNick(p_Nick);
 #endif
+	l_result_insert.first->second = p;
 	return p;
 }
 
@@ -447,24 +462,27 @@ UserPtr ClientManager::getUser(const CID& cid, bool p_create /* = true */) noexc
 UserPtr ClientManager::findUser(const CID& cid) const noexcept
 {
     SharedLock l(g_csUsers);
-    const UserMap::const_iterator ui = g_users.find(cid);
+    const auto& ui = g_users.find(cid);
     if (ui != g_users.end())
-    return ui->second;
-    
-    return UserPtr();
+{
+return ui->second;
+}
+return UserPtr();
 }
 
 // deprecated
 bool ClientManager::isOp(const UserPtr& user, const string& aHubUrl) const
+{
+	SharedLock l(g_csOnlineUsers);
+	OnlinePairC p = g_onlineUsers.equal_range(user->getCID());
+	for (auto i = p.first; i != p.second; ++i)
 	{
-		SharedLock l(g_csOnlineUsers);
-		OnlinePairC p = g_onlineUsers.equal_range(user->getCID());
-		for (auto i = p.first; i != p.second; ++i)
-			if (i->second->getClient().getHubUrl() == aHubUrl)
-				return i->second->getIdentity().isOp();
-				
-		return false;
+		const auto& l_hub = i->second->getClient().getHubUrl();
+		if (l_hub == aHubUrl)
+			return i->second->getIdentity().isOp();
 	}
+	return false;
+}
 
 #ifdef IRAINMAN_ENABLE_STEALTH_MODE
 bool ClientManager::isStealth(const string& aHubUrl) const
@@ -750,10 +768,12 @@ void ClientManager::on(NmdcSearch, Client* aClient, const string& aSeeker, Searc
 					udp.writeTo(ip, port, sr->toSR(*aClient));
 				}
 			}
-			catch (...)
+			catch (Exception& e)
 			{
-				// TODO - Log
-				dcdebug("Search caught error\n");
+#ifdef _DEBUG
+				LogManager::getInstance()->message("ClientManager::on(NmdcSearch, Search caught error= " + e.getError());
+#endif
+				dcdebug("Search caught error = %s\n", + e.getError().c_str());
 			}
 		}
 	}
@@ -774,10 +794,12 @@ void ClientManager::on(NmdcSearch, Client* aClient, const string& aSeeker, Searc
 				Socket s;
 				s.writeTo(Socket::resolve(ip), port, cmd.toString(getMyCID())); // [!] IRainman fix.
 			}
-			catch (...)
+			catch (Exception& e)
 			{
-// TODO - Log
+#ifdef _DEBUG
+				LogManager::getInstance()->message("ClientManager::on(NmdcSearch, Partial search caught error = " + e.getError());
 				dcdebug("Partial search caught error\n");
+#endif
 			}
 		}
 	}
@@ -854,7 +876,7 @@ uint64_t ClientManager::search(const StringList& who, Search::SizeModes aSizeMod
 		{
 			const string& client = *it;
 			
-			Client::Iter i = m_clients.find(client);
+			const auto& i = m_clients.find(client);
 			if (i != m_clients.end() && i->second->isConnected())
 			{
 				const uint64_t ret = i->second->search(aSizeMode, aSize, aFileType, aString, aToken, aExtList, aOwner);
@@ -995,10 +1017,9 @@ const string& ClientManager::getMyNick(const string& hubUrl) const // [!] IRainm
 	dcassert(!hubUrl.empty());
 #endif
 	SharedLock l(g_csClients);
-	Client::Iter i = m_clients.find(hubUrl);
+	const auto& i = m_clients.find(hubUrl);
 	if (i != m_clients.end())
 		return i->second->getMyNick(); // [!] IRainman opt.
-		
 	return Util::emptyString;
 }
 

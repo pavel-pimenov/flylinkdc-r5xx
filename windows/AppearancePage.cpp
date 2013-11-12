@@ -56,7 +56,9 @@ PropPage::ListItem AppearancePage::listItems[] =
 //	{ SettingsManager::UP_TRANSFER_COLORS, ResourceManager::UP_TRANSFER_COLORS }, // [+] Drakon.
 	{ SettingsManager::VIEW_GRIDCONTROLS, ResourceManager::VIEW_GRIDCONTROLS }, // [+] ZagZag.
 	{ SettingsManager::FILTER_MESSAGES, ResourceManager::SETTINGS_FILTER_MESSAGES },
+#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 	{ SettingsManager::USE_CUSTOM_LIST_BACKGROUND, ResourceManager::USE_CUSTOM_LIST_BACKGROUND },
+#endif
 	{ SettingsManager::USE_EXPLORER_THEME, ResourceManager::USE_EXPLORER_THEME },
 	{ SettingsManager::USE_12_HOUR_FORMAT, ResourceManager::USE_12_HOUR_FORMAT }, // [+] InfinitySky.
 	{ SettingsManager::SHOW_CUSTOM_MINI_ICON_ON_TASKBAR, ResourceManager::SHOW_CUSTOM_MINI_ICON_ON_TASKBAR }, // [+] InfinitySky.

@@ -163,7 +163,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		}
 		
 		void addFavoriteUser(const UserPtr& aUser);
-		bool isFavoriteUser(const UserPtr& aUser) const;
+		bool isFavoriteUser(const UserPtr& aUser, bool& p_is_ban) const;
 		bool getFavoriteUser(const UserPtr& p_user, FavoriteUser& p_favuser) const; // [+] IRainman opt.
 		bool isNoFavUserOrUserBanUpload(const UserPtr& aUser) const; // [+] IRainman opt.
 		bool isNoFavUserOrUserIgnorePrivate(const UserPtr& aUser) const; // [+] IRainman opt.

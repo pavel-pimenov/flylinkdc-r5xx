@@ -147,7 +147,7 @@
     </PreBuildEvent>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;$(SolutionDir)\client;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -187,7 +187,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;$(SolutionDir)\client;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -230,7 +230,7 @@
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;$(SolutionDir)\client;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -272,7 +272,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;$(SolutionDir)\client;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -315,7 +315,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;$(SolutionDir)\client;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -361,7 +361,7 @@
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;$(SolutionDir)\client;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -407,7 +407,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;$(SolutionDir)\client;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -454,7 +454,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;$(SolutionDir)\client;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -655,6 +655,22 @@
     <ClCompile Include="client\UserInfoBase.cpp" />
     <ClCompile Include="client\UserManager.cpp" />
     <ClCompile Include="client\Util.cpp" />
+    <ClCompile Include="client\webrtc\system_wrappers\source\condition_variable.cc" />
+    <ClCompile Include="client\webrtc\system_wrappers\source\condition_variable_event_win.cc" />
+    <ClCompile Include="client\webrtc\system_wrappers\source\condition_variable_native_win.cc" />
+    <ClCompile Include="client\webrtc\system_wrappers\source\critical_section.cc" />
+    <ClCompile Include="client\webrtc\system_wrappers\source\critical_section_win.cc" />
+    <ClCompile Include="client\webrtc\system_wrappers\source\event.cc" />
+    <ClCompile Include="client\webrtc\system_wrappers\source\event_win.cc" />
+    <ClCompile Include="client\webrtc\system_wrappers\source\file_impl.cc" />
+    <ClCompile Include="client\webrtc\system_wrappers\source\flylinkdc_thread.cc" />
+    <ClCompile Include="client\webrtc\system_wrappers\source\rw_lock.cc" />
+    <ClCompile Include="client\webrtc\system_wrappers\source\rw_lock_generic.cc" />
+    <ClCompile Include="client\webrtc\system_wrappers\source\rw_lock_win.cc" />
+    <ClCompile Include="client\webrtc\system_wrappers\source\sleep.cc" />
+    <ClCompile Include="client\webrtc\system_wrappers\source\thread_win.cc" />
+    <ClCompile Include="client\webrtc\system_wrappers\source\trace_impl.cc" />
+    <ClCompile Include="client\webrtc\system_wrappers\source\trace_win.cc" />
     <ClCompile Include="client\WebServerManager.cpp" />
     <ClCompile Include="client\ZipFile.cpp" />
     <ClCompile Include="client\ZUtils.cpp" />
@@ -1181,6 +1197,29 @@
     <ClInclude Include="client\UserInfoColumns.h" />
     <ClInclude Include="client\UserManager.h" />
     <ClInclude Include="client\util_flylinkdc.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\common_types.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\condition_variable_posix.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\condition_variable_win.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\condition_variable_wrapper.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\critical_section_win.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\critical_section_wrapper.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\event_win.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\event_wrapper.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\file_impl.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\file_wrapper.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\fix_interlocked_exchange_pointer_win.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\rw_lock_generic.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\rw_lock_win.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\rw_lock_wrapper.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\set_thread_name_win.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\sleep.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\static_instance.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\thread_win.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\thread_wrapper.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\trace.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\trace_impl.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\trace_win.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\interface\typedefs.h" />
     <ClInclude Include="client\w_flylinkdc.h" />
     <ClInclude Include="client\ZipFile.h" />
     <ClInclude Include="jsoncpp\include\json\autolink.h" />

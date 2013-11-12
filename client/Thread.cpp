@@ -29,6 +29,8 @@
 
 #if USE_WIN_THREAD_NAME
 
+// (c) chromium\home\chrome-svn\tarball\chromium\src\third_party\webrtc\system_wrappers\source
+// set_thread_name_win.h
 const DWORD MS_VC_EXCEPTION = 0x406D1388;
 
 #pragma pack(push,8)
@@ -59,6 +61,19 @@ static void SetThreadName(DWORD dwThreadID, char* threadName)
 }
 
 #endif // USE_WIN_THREAD_NAME
+void Thread::setThreadPriority(Priority p)
+{
+	const BOOL l_res = ::SetThreadPriority(m_threadHandle, p);
+	dcassert(l_res);
+	if (!l_res)
+	{
+#if defined (_CONSOLE)
+		dcdebug("Error setThreadPriority = %s", GetLastError());
+#else
+		dcdebug("Error setThreadPriority = %s", Util::translateError(GetLastError()).c_str());
+#endif
+	}
+}
 
 void Thread::start(unsigned int p_stack_size)
 {

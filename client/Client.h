@@ -92,6 +92,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			dcassert(oldSum >= 0);
 			const auto old = p_id.getBytesShared();
 			dcassert(old >= 0);
+			m_availableBytes -= old;
 # ifndef CLIENT_SUMMARY_SHARE_NOT_FULL_DIAG
 			dcassert(old <= oldSum); // bug here.
 			dcassert(m_availableBytes >= 0);
@@ -107,7 +108,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 #endif
 			dcdrun(const auto oldSum = m_availableBytes);
 			dcassert(oldSum >= 0);
-			const auto old = p_id.getBytesShared();
+			dcdrun(const auto old = p_id.getBytesShared());
 			p_id.setBytesShared(p_bytes);
 			dcassert(old >= 0);
 #ifndef CLIENT_SUMMARY_SHARE_NOT_FULL_DIAG
@@ -132,7 +133,6 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		}
 		
 		typedef std::unordered_map<string, Client*, noCaseStringHash, noCaseStringEq> List;
-		typedef List::const_iterator Iter;
 		
 		virtual void connect();
 		virtual void disconnect(bool graceless);
@@ -174,6 +174,16 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		bool isReady() const
 		{
 			return /*[-]IRainman fix: sock &&*/ state != STATE_CONNECTING && state != STATE_DISCONNECTED;
+		}
+		bool is_all_my_info_loaded() const
+		{
+			return sock && sock->is_all_my_info_loaded();
+		}
+
+		void set_all_my_info_loaded()
+		{
+			if(sock)
+			   sock->set_all_my_info_loaded();
 		}
 		
 		bool isSecure() const;
@@ -557,7 +567,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		/** Reload details from favmanager or settings */
 		const FavoriteHubEntry* reloadSettings(bool updateNick);
 		
-		virtual string checkNick(const string& nick) = 0;
+		virtual void checkNick(string& p_nick) = 0;
 		virtual void search(Search::SizeModes aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, const StringList& aExtList) = 0;
 		
 		// TimerManagerListener

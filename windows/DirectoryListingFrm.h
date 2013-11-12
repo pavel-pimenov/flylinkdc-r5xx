@@ -124,7 +124,9 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		NOTIFY_HANDLER(IDC_FILES, LVN_KEYDOWN, onKeyDown)
 		NOTIFY_HANDLER(IDC_FILES, NM_DBLCLK, onDoubleClickFiles)
 		NOTIFY_HANDLER(IDC_FILES, LVN_ITEMCHANGED, onItemChanged)
+#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 		NOTIFY_HANDLER(IDC_FILES, NM_CUSTOMDRAW, ctrlList.onCustomDraw) // [+] IRainman
+#endif
 		NOTIFY_HANDLER(IDC_DIRECTORIES, TVN_KEYDOWN, onKeyDownDirs)
 		NOTIFY_HANDLER(IDC_DIRECTORIES, TVN_SELCHANGED, onSelChangedDirectories)
 		NOTIFY_HANDLER(IDC_DIRECTORIES, NM_CUSTOMDRAW, onCustomDrawTree) // !fulDC!
@@ -331,11 +333,6 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 			return 1;
 		}
 		
-		void clearList()
-		{
-			ctrlList.DeleteAndCleanAllItems(); // [!] IRainman
-		}
-		
 		LRESULT onFind(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			m_searching = true;
@@ -509,16 +506,25 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 				}
 				int getImageIndex() const
 				{
-					if (type == DIRECTORY)
-						return FileImage::DIR_ICON;
-					else
-						return g_fileImage.getIconIndex(Text::fromT(getText(COLUMN_FILENAME)));
+					dcassert(m_icon_index >= 0);
+					return m_icon_index;
+				}
+				void calcImageIndex()
+				{
+					if (m_icon_index < 0)
+					{
+						if (type == DIRECTORY)
+							m_icon_index = FileImage::DIR_ICON;
+						else
+							m_icon_index = g_fileImage.getIconIndex(Text::fromT(getText(COLUMN_FILENAME)));
+					}
 				}
 				
 				void UpdatePathColumn(const DirectoryListing::File* f);
 				
 			private:
 				tstring columns[COLUMN_LAST];
+				int m_icon_index;
 		};
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		bool showFlyServerProperty(const ItemInfo* p_item_info);
@@ -542,6 +548,8 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		
 		CTreeViewCtrl ctrlTree;
 		MediainfoTypedListViewCtrl<ItemInfo, IDC_FILES> ctrlList;
+		boost::unordered_map<DirectoryListing::Directory*, string> m_selected_file_history;
+		DirectoryListing::Directory* m_prev_directory;
 		CStatusBarCtrl ctrlStatus;
 		HTREEITEM treeRoot;
 		
@@ -576,7 +584,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		void updateTitle(); // [+] InfinitySky. Изменять заголовок окна.
 #endif // USE_OFFLINE_ICON_FOR_FILELIST
 		
-		typedef boost::unordered_map<UserPtr, DirectoryListingFrame*> UserMap;
+		typedef std::unordered_map<UserPtr, DirectoryListingFrame*, User::Hash> UserMap;
 		typedef pair<UserPtr, DirectoryListingFrame*> UserPair;
 		
 		static UserMap g_usersMap;

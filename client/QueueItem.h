@@ -139,13 +139,8 @@ class QueueItem : public Flags,
 					| FLAG_NO_TREE | FLAG_TTH_INCONSISTENCY | FLAG_UNTRUSTED
 				};
 				
-				Source(const UserPtr& aUser) : user(aUser), partialSource(nullptr) { }
-				//Source(const Source& aSource) : Flags(aSource), hintedUser(aSource.hintedUser), partialSource(aSource.partialSource) { }
+				Source() : partialSource(nullptr) {}
 				
-				bool operator==(const UserPtr& aUser) const
-				{
-					return user == aUser;
-				}
 				PartialSource::Ptr& getPartialSource()
 				{
 					return partialSource;
@@ -156,13 +151,12 @@ class QueueItem : public Flags,
 					return isSet(FLAG_PARTIAL) && (isBadSourse || !isSet(FLAG_TTH_INCONSISTENCY));
 				}
 				
-				GETSET(UserPtr, user, User);
 				GETSET(PartialSource::Ptr, partialSource, PartialSource);
 		};
 		
-		typedef deque<Source> SourceList; // [!] IRainman opt: change vector to deque
-		typedef SourceList::iterator SourceIter;
-		typedef SourceList::const_iterator SourceConstIter;
+		typedef std::unordered_map<UserPtr, Source, User::Hash> SourceMap;
+		typedef SourceMap::iterator SourceIter;
+		typedef SourceMap::const_iterator SourceConstIter;
 		typedef std::multimap<time_t, pair<SourceConstIter, const QueueItemPtr> > SourceListBuffer;
 		
 		// [+] fix ? http://code.google.com/p/flylinkdc/issues/detail?id=1236 .
@@ -184,21 +178,31 @@ class QueueItem : public Flags,
 		static SharedCriticalSection cs;
 		// [~]
 		
-		SourceList& getSourcesL() // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
+		SourceMap& getSourcesL() // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
 		{
-			return sources;
+			return m_sources;
 		}
-		const SourceList& getSourcesL() const // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
+		SourceMap& getBadSourcesL() // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
 		{
-			return sources;
+			return m_badSources;
 		}
-		SourceList& getBadSourcesL() // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
+		/*
+		        const SourceMap& getSourcesL() const // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
+		        {
+		            return m_sources;
+		        }
+		
+		        const SourceMap& getBadSourcesL() const // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
+		        {
+		            return m_badSources;
+		        }
+		*/
+#ifdef _DEBUG
+		bool isSourceValid(const QueueItem::Source* p_source_ptr);
+#endif
+		size_t getSourcesCountL() const
 		{
-			return badSources;
-		}
-		const SourceList& getBadSourcesL() const // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
-		{
-			return badSources;
+			return m_sources.size();
 		}
 		string getTargetFileName() const
 		{
@@ -206,34 +210,35 @@ class QueueItem : public Flags,
 		}
 		SourceIter getSourceL(const UserPtr& aUser) // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
 		{
-			return find(sources.begin(), sources.end(), aUser); // [!] IRainman fix done: [6] https://www.box.net/shared/898c1974fa8c47f9614b
+			return m_sources.find(aUser); // [!] IRainman fix done: [6] https://www.box.net/shared/898c1974fa8c47f9614b
 		}
 		SourceIter getBadSourceL(const UserPtr& aUser) // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
 		{
-			return find(badSources.begin(), badSources.end(), aUser);
+			return m_badSources.find(aUser);
 		}
+#if 0
 		SourceConstIter getSourceL(const UserPtr& aUser) const // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
 		{
-			return find(sources.begin(), sources.end(), aUser);
+			return m_sources.find(aUser);
 		}
 		SourceConstIter getBadSourceL(const UserPtr& aUser) const // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
 		{
-			return find(badSources.begin(), badSources.end(), aUser);
+			return m_badSources.find(aUser);
 		}
+#endif
 		bool isSourceL(const UserPtr& aUser) const
 		{
-			return getSourceL(aUser) != sources.end();
+			return m_sources.find(aUser) != m_sources.end();
 		}
 		bool isBadSourceL(const UserPtr& aUser) const
 		{
-			return getBadSourceL(aUser) != badSources.end();
+			return m_badSources.find(aUser) != m_badSources.end();
 		}
 		bool isBadSourceExceptL(const UserPtr& aUser, Flags::MaskType exceptions) const
 		{
-			SharedLock l(cs); // [+] IRainman fix.
-			const auto& i = getBadSourceL(aUser);
-			if (i != badSources.end())
-				return i->isAnySet((Flags::MaskType)(exceptions ^ Source::FLAG_MASK));
+			const auto& i = m_badSources.find(aUser);
+			if (i != m_badSources.end())
+				return i->second.isAnySet((Flags::MaskType)(exceptions ^ Source::FLAG_MASK));
 			return false;
 		}
 		void getChunksVisualisation(vector<pair<Segment, Segment>>& p_runnigChunksAndDownloadBytes, vector<Segment>& p_doneChunks) const; // [!] IRainman fix.
@@ -272,11 +277,12 @@ class QueueItem : public Flags,
 			m_dirty = p_dirty;
 		}
 		
-		DownloadList& getDownloadsL() // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
+		DownloadMap& getDownloadsL() // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
 		{
 			return m_downloads;
 		}
-		
+		void addDownloadL(Download* p_download);
+		bool removeDownloadL(const UserPtr& p_user);
 		size_t getDownloadsSegmentCount() const
 		{
 			// SharedLock l(cs); [!] IRainman opt: no needs for dqueue.
@@ -311,10 +317,10 @@ class QueueItem : public Flags,
 		
 		string getListName() const;
 		const string& getTempTarget();
-		void setTempTarget(const string& aTempTarget)
+		void setTempTarget(const string& p_TempTarget)
 		{
 			m_dirty = true;
-			tempTarget = aTempTarget;
+			m_tempTarget = p_TempTarget;
 		}
 		
 #define GETSET_DIRTY(type, name, name2) \
@@ -340,7 +346,7 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 			return m_block_size;
 		}
 		
-		DownloadList m_downloads;
+		DownloadMap m_downloads;
 		
 		GETSET_DIRTY(SegmentSet, done, Done);
 		GETSET_DIRTY(string, target, Target);
@@ -382,9 +388,9 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 		mutable uint64_t m_averageSpeed; // [+] IRainman opt.
 		mutable uint64_t m_downloadedBytes; // [+] IRainman opt.
 		friend class QueueManager;
-		SourceList sources;
-		SourceList badSources;
-		string tempTarget;
+		SourceMap m_sources;
+		SourceMap m_badSources;
+		string m_tempTarget;
 		
 		void addSourceL(const UserPtr& aUser);
 		void removeSourceL(const UserPtr& aUser, Flags::MaskType reason);

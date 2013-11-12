@@ -278,10 +278,7 @@ class Thread : public BaseThread
 			}
 		}
 		
-		void setThreadPriority(Priority p)
-		{
-			::SetThreadPriority(m_threadHandle, p);
-		}
+		void setThreadPriority(Priority p);
 		
 		static void sleep(uint64_t millis)
 		{
@@ -814,6 +811,11 @@ class FastSharedCriticalSection
 
 #ifdef IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
 
+// TODO портировать часть из WebRTC
+// chromium\src\third_party\webrtc\system_wrappers\source\rw_lock_win.cc
+// https://github.com/rillian/webrtc/blob/f9f128a6306634d0b66f81dca71dac69f0f8fe00/webrtc/system_wrappers/source/rw_lock_win.cc
+// Реализация динамически детектирует винду а если Vista или выше используется нативные RWСекции ядра винды!
+
 class SharedCriticalSection
 #ifdef _DEBUG
 	: boost::noncopyable, virtual NonDerivable<SharedCriticalSection>
@@ -1024,7 +1026,7 @@ class SharedCriticalSection
 };
 #else
 typedef CriticalSection SharedCriticalSection;
-#endif // RECURSIVE_READ_WRITE_CRITICAL_SECTION_ENABLED
+#endif // IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
 
 template<class T>
 class SharedLockBase

@@ -167,6 +167,11 @@ LRESULT PropPageTextStyles::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARA
 	    SettingsManager::TEXT_FAV_BACK_COLOR, SettingsManager::TEXT_FAV_FORE_COLOR,
 	    SettingsManager::TEXT_FAV_BOLD, SettingsManager::TEXT_FAV_ITALIC);
 	    
+	TextStyles[ TS_FAV_ENEMY ].Init(
+	    this, settings, (char*)CSTRING(FAV_ENEMY_USER), (char*)CSTRING(FAV_ENEMY_USER),
+	    SettingsManager::TEXT_ENEMY_BACK_COLOR, SettingsManager::TEXT_ENEMY_FORE_COLOR,
+	    SettingsManager::TEXT_ENEMY_BOLD, SettingsManager::TEXT_ENEMY_ITALIC);
+	    
 	TextStyles[ TS_OP ].Init(
 	    this, settings, (char*)CSTRING(OPERATOR), (char*)CSTRING(OPERATOR),
 	    SettingsManager::TEXT_OP_BACK_COLOR, SettingsManager::TEXT_OP_FORE_COLOR,
@@ -357,6 +362,10 @@ LRESULT PropPageTextStyles::onDefaultStyles(WORD /*wNotifyCode*/, WORD /*wID*/, 
 	TextStyles[ TS_FAVORITE ].crTextColor = RGB(67, 98, 154);
 	TextStyles[ TS_FAVORITE ].dwEffects = CFE_BOLD;
 	
+	TextStyles[ TS_FAV_ENEMY ].crBackColor = RGB(255, 255, 255);
+	TextStyles[ TS_FAV_ENEMY ].crTextColor = RGB(255, 165, 121);
+	TextStyles[ TS_FAV_ENEMY ].dwEffects = CFE_BOLD;
+	
 	TextStyles[ TS_OP ].crBackColor = RGB(255, 255, 255);
 	TextStyles[ TS_OP ].crTextColor = RGB(0, 128, 64);
 	TextStyles[ TS_OP ].dwEffects = CFE_BOLD;
@@ -404,6 +413,10 @@ LRESULT PropPageTextStyles::onBlackAndWhite(WORD /*wNotifyCode*/, WORD /*wID*/, 
 	TextStyles[ TS_FAVORITE ].crBackColor = RGB(255, 255, 255);
 	TextStyles[ TS_FAVORITE ].crTextColor = RGB(37, 60, 121);
 	TextStyles[ TS_FAVORITE ].dwEffects = 0;
+	
+	TextStyles[ TS_FAV_ENEMY ].crBackColor = RGB(255, 255, 255);
+	TextStyles[ TS_FAV_ENEMY ].crTextColor = RGB(37, 60, 121);
+	TextStyles[ TS_FAV_ENEMY ].dwEffects = 0;
 	
 	TextStyles[ TS_OP ].crBackColor = RGB(255, 255, 255);
 	TextStyles[ TS_OP ].crTextColor = RGB(37, 60, 121);

@@ -19,7 +19,7 @@ RadoX-Pack v.2.2
    <Emoticon PasteText=":солнце:" Bitmap="SmilesMegaPack\!Wsun.bmp"/>
    <Emoticon PasteText=":гроза:" Bitmap="SmilesMegaPack\!Wrain.bmp"/>
    <Emoticon PasteText=":ХР:" Bitmap="SmilesMegaPack\!XP.bmp"/>
-   <Emoticon PasteText=":-1:"Bitmap="SmilesMegaPack\minus_one.bmp"/>
+   <Emoticon PasteText=":-1:" Bitmap="SmilesMegaPack\minus_one.bmp"/>
    <Emoticon PasteText=":+1:" Bitmap="SmilesMegaPack\plus_one.bmp"/>
    <Emoticon PasteText=":пыво:" Bitmap="SmilesMegaPack\Beer.bmp" Gif="AnimPack\Beer.gif"/>
    <Emoticon PasteText=":кубок:" Bitmap="SmilesMegaPack\cup.bmp"/>
@@ -153,7 +153,7 @@ RadoX-Pack v.2.2
    <Emoticon PasteText=":слушаю:" Bitmap="SmilesMegaPack\sigh.bmp"/>
    <Emoticon PasteText=":телефон:" Bitmap="SmilesMegaPack\telephon.bmp"/>
    <Emoticon PasteText=":превед:" Bitmap="SmilesMegaPack\hi.bmp"/>
-   <Emoticon PasteText=":бб:" Bitmap="SmilesMegaPack\bye.bmp"Gif="AnimPack\bye.gif"/>
+   <Emoticon PasteText=":бб:" Bitmap="SmilesMegaPack\bye.bmp" Gif="AnimPack\bye.gif"/>
    <Emoticon PasteText=":1ыйнах:" Bitmap="SmilesMegaPack\1th.bmp"/>
    <Emoticon PasteText=":2ойнах:" Bitmap="SmilesMegaPack\2nd.bmp"/>
    <Emoticon PasteText=":3ийнах:" Bitmap="SmilesMegaPack\3rd.bmp"/>
@@ -227,7 +227,7 @@ RadoX-Pack v.2.2
    <Emoticon PasteText=":суицид:" Bitmap="SmilesMegaPack\Suicid.bmp" Gif="AnimPack\Suicid.gif"/>
    <Emoticon PasteText=":смерть:" Bitmap="SmilesMegaPack\death.bmp"/>
    <Emoticon PasteText=":помер:" Bitmap="SmilesMegaPack\rip2.bmp"/>
-   <Emoticon PasteText=":роджер:" Bitmap="SmilesMegaPack\rip1.bmp"Gif="AnimPack\rip1.gif"/>
+   <Emoticon PasteText=":роджер:" Bitmap="SmilesMegaPack\rip1.bmp" Gif="AnimPack\rip1.gif"/>
    <Emoticon PasteText=":пират:" Bitmap="SmilesMegaPack\pirate1.bmp"/>
    <Emoticon PasteText=":головорез:" Bitmap="SmilesMegaPack\pirate2.bmp"/>
    <Emoticon PasteText=":гопнег:" Bitmap="SmilesMegaPack\kick.bmp"/>

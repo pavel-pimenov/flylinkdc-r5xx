@@ -31,7 +31,7 @@ void UserInfoSimple::addSummaryMenu()
 	if (!getUser())
 		return;
 		
-	CWaitCursor l_cursor_wait;
+	CWaitCursor l_cursor_wait; //-V808
 	
 	UserInfoGuiTraits::userSummaryMenu.InsertSeparatorLast(getUser()->getLastNickT());
 	
@@ -115,8 +115,12 @@ void UserInfoSimple::addSummaryMenu()
 		for (auto j = downloads.cbegin(); j != downloads.cend(); ++j)
 		{
 			const QueueItemPtr& aQI = j->second;
-			bool src = aQI->isSourceL(getUser()), badsrc = false;
-			if (!src) badsrc = aQI->isBadSourceL(getUser());
+			const bool src = aQI->isSourceL(getUser());
+			bool badsrc = false;
+			if (!src)
+			{
+				badsrc = aQI->isBadSourceL(getUser());
+			}
 			if (src || badsrc)
 			{
 				if (!caption)

@@ -588,7 +588,9 @@ LRESULT WaitingUsersFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHan
 		case CDDS_PREPAINT:
 			return CDRF_NOTIFYITEMDRAW;
 		case CDDS_ITEMPREPAINT:
+#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 			Colors::alternationBkColor(cd); // [+] IRainman
+#endif
 			return CDRF_NOTIFYSUBITEMDRAW;
 			
 		case CDDS_SUBITEM | CDDS_ITEMPREPAINT:

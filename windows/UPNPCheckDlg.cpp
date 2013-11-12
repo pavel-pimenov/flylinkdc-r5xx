@@ -278,7 +278,7 @@ bool UPNPCheckDlg::MiniUPnPc_add(const unsigned short port, const string& protoc
 {
 	const string port_ = Util::toString(port);
 	return UPNP_AddPortMapping(url.c_str(), service.c_str(), port_.c_str(), port_.c_str(),
-	                           Util::getLocalIp().c_str(), description.c_str(), protocol.c_str(), "", 0) == UPNPCOMMAND_SUCCESS;
+	                           Util::getLocalOrBindIp(false).c_str(), description.c_str(), protocol.c_str(), "", 0) == UPNPCOMMAND_SUCCESS;
 }
 
 bool UPNPCheckDlg::MiniUPnPc_remove(const unsigned short port, const string& protocol, const string& service, const string& url)
@@ -327,7 +327,7 @@ bool UPNPCheckDlg::WinUPnP_add(const unsigned short port, const string& protocol
 	/// @todo use a BSTR wrapper
 	BSTR protocol_ = SysAllocString(Text::toT(protocol).c_str());
 	BSTR description_ = SysAllocString(Text::toT(description).c_str());
-	BSTR localIP = SysAllocString(Text::toT(Util::getLocalIp()).c_str());
+	BSTR localIP = SysAllocString(Text::toT(Util::getLocalOrBindIp(false)).c_str());
 	
 	IStaticPortMapping* pSPM = 0;
 	HRESULT hr = pSPMC->Add(port, protocol_, port, localIP, VARIANT_TRUE, description_, &pSPM);

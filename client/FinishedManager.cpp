@@ -41,11 +41,11 @@ FinishedManager::~FinishedManager()
 	UploadManager::getInstance()->removeListener(this);
 	{
 		FastUniqueLock l(csD); // TODO: needs?
-		for_each(downloads.begin(), downloads.end(), DeleteFunction());
+		for_each(m_downloads.begin(), m_downloads.end(), DeleteFunction());
 	}
 	{
 		FastUniqueLock l(csU); // TODO: needs?
-		for_each(uploads.begin(), uploads.end(), DeleteFunction());
+		for_each(m_uploads.begin(), m_uploads.end(), DeleteFunction());
 	}
 }
 
@@ -54,7 +54,7 @@ void FinishedManager::remove(FinishedItemPtr item, bool upload /* = false */)
 	auto remove = [item](FinishedItemList & listptr, FastSharedCriticalSection & cs) -> void
 	{
 		FastUniqueLock l(cs);
-		const FinishedItemList::iterator it = find(listptr.begin(), listptr.end(), item);
+		const FinishedItemList::const_iterator it = find(listptr.begin(), listptr.end(), item);
 		
 		if (it != listptr.end())
 			listptr.erase(it);
@@ -64,11 +64,11 @@ void FinishedManager::remove(FinishedItemPtr item, bool upload /* = false */)
 	
 	if (upload)
 	{
-		remove(uploads, csU);
+		remove(m_uploads, csU);
 	}
 	else
 	{
-		remove(downloads, csD);
+		remove(m_downloads, csD);
 	}
 }
 
@@ -83,11 +83,11 @@ void FinishedManager::removeAll(bool upload /* = false */)
 	
 	if (upload)
 	{
-		removeAll(uploads, csU);
+		removeAll(m_uploads, csU);
 	}
 	else
 	{
-		removeAll(downloads, csD);
+		removeAll(m_downloads, csD);
 	}
 }
 
@@ -106,19 +106,15 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItemPtr& qi,
 		const FinishedItemPtr item = new FinishedItem(qi->getTarget(), d->getHintedUser(), qi->getSize(), d->getRunningAverage(), GET_TIME(), qi->getTTH().toBase32(), d->getUser()->getIP());
 		{
 			FastUniqueLock l(csD);
+			// TODO - fix copy-paste
 			// [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
-			while (!downloads.empty() && downloads.size() > static_cast<size_t>(SETTING(MAX_FINISHED_DOWNLOADS)))
+			while (!m_downloads.empty() && m_downloads.size() > static_cast<size_t>(SETTING(MAX_FINISHED_DOWNLOADS)))
 			{
-				/* TODO remove from the frame, please see FinishedFrameBase::onSpeaker
-				FinishedItemPtr l_orig = *(downloads.cbegin());
-				FinishedItemPtr l_copy = new FinishedItem(*l_orig);
-				fire(FinishedManagerListener::RemovedDl(), l_copy);
-				*/
-				delete *downloads.cbegin();
-				downloads.erase(downloads.cbegin());
+				delete *m_downloads.cbegin();
+				m_downloads.pop_front();
 			}
 			// [~] IRainman
-			downloads.push_back(item);
+			m_downloads.push_back(item);
 		}
 		
 		fire(FinishedManagerListener::AddedDl(), item);
@@ -140,32 +136,28 @@ void FinishedManager::on(UploadManagerListener::Complete, const Upload* u) noexc
 		const FinishedItemPtr item = new FinishedItem(u->getPath(), u->getHintedUser(), u->getFileSize(), u->getRunningAverage(), GET_TIME(), Util::emptyString, u->getUser()->getIP());
 		{
 			FastUniqueLock l(csU);
+			// TODO - fix copy-paste
 			// [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
-			while (!uploads.empty() && uploads.size() > static_cast<size_t>(SETTING(MAX_FINISHED_UPLOADS)))
+			while (!m_uploads.empty() && m_uploads.size() > static_cast<size_t>(SETTING(MAX_FINISHED_UPLOADS)))
 			{
-				/* TODO remove from the frame, please see FinishedFrameBase::onSpeaker
-				FinishedItemPtr l_orig = *(uploads.cbegin());
-				FinishedItemPtr l_copy = new FinishedItem(*l_orig);
-				fire(FinishedManagerListener::RemovedUl(), l_copy);
-				*/
-				delete *uploads.cbegin();
-				uploads.erase(uploads.cbegin());
+				delete *m_uploads.cbegin();
+				m_uploads.pop_front();
 			}
 			// [~] IRainman
-			uploads.push_back(item);
+			m_uploads.push_back(item);
 		}
 		
 		fire(FinishedManagerListener::AddedUl(), item);
-		
+		const auto l_file_name = Util::getFileName(u->getPath());
 		const size_t BUF_SIZE = STRING(FINISHED_UPLOAD).size() + FULL_MAX_PATH + 128;
 		{
 			std::unique_ptr<char[]> buf(new char[BUF_SIZE]);
-			snprintf(&buf[0], BUF_SIZE, CSTRING(FINISHED_UPLOAD), (Util::getFileName(u->getPath())).c_str(),
+			snprintf(&buf[0], BUF_SIZE, CSTRING(FINISHED_UPLOAD), l_file_name.c_str(),
 			         Util::toString(ClientManager::getInstance()->getNicks(u->getUser()->getCID(), Util::emptyString)).c_str());
 			         
 			LogManager::getInstance()->message(&buf[0]);
 		}
-		const string l_name = Text::toLower(Util::getFileName(u->getPath()));
+		const string l_name = Text::toLower(l_file_name);
 		const string l_path = Text::toLower(Util::getFilePath(u->getPath()));
 		CFlylinkDBManager::getInstance()->Hit(l_path, l_name);
 	}

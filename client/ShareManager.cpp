@@ -53,8 +53,9 @@
 #include <boost/algorithm/string.hpp>
 
 bool ShareManager::g_isShutdown = false;
+size_t ShareManager::g_hits = 0;
 
-ShareManager::ShareManager() : hits(0), xmlListLen(0), bzXmlListLen(0),
+ShareManager::ShareManager() : xmlListLen(0), bzXmlListLen(0),
 	xmlDirty(true), forceXmlRefresh(false), refreshDirs(false), update(false), initial(true), listN(0), /* refreshing(false), [-] IRainman */
 	lastXmlUpdate(0), lastFullUpdate(GET_TICK()), m_bloom(1 << 20), sharedSize(0),
 #ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
@@ -286,7 +287,7 @@ TTHValue ShareManager::getTTH(const string& virtualFile) const
 MemoryInputStream* ShareManager::getTree(const string& virtualFile) const
 {
 	TigerTree tree;
-	if (virtualFile.compare(0, 4, "TTH/") == 0)
+	if (virtualFile.compare(0, 4, "TTH/", 4) == 0)
 	{
 		if (!CFlylinkDBManager::getInstance()->getTree(TTHValue(virtualFile.substr(4)), tree))
 			return 0;
@@ -331,7 +332,7 @@ AdcCommand ShareManager::getFileInfo(const string& aFile)
 		return cmd;
 	}
 	
-	if (aFile.compare(0, 4, "TTH/") != 0)
+	if (aFile.compare(0, 4, "TTH/", 4) != 0)
 		throw ShareException(UserConnection::FILE_NOT_AVAILABLE, aFile);
 		
 	TTHValue val(aFile.c_str() + 4); //[+]FlylinkDC++
@@ -385,7 +386,7 @@ pair<ShareManager::Directory::Ptr, string> ShareManager::splitVirtual(const stri
 
 ShareManager::Directory::File::Set::const_iterator ShareManager::findFile(const string& virtualFile) const
 {
-	if (virtualFile.compare(0, 4, "TTH/") == 0)
+	if (virtualFile.compare(0, 4, "TTH/", 4) == 0)
 	{
 		const auto& i = tthIndex.find(TTHValue(virtualFile.substr(4)));
 		if (i == tthIndex.end())
@@ -1919,7 +1920,7 @@ if ((cur->empty()) &&
 // We satisfied all the search words! Add the directory...(NMDC searches don't support directory size)
 SearchResultPtr sr(new SearchResult(SearchResult::TYPE_DIRECTORY, 0, getFullName(), TTHValue()));
 	aResults.push_back(sr);
-	ShareManager::getInstance()->incHits();
+	ShareManager::incHits();
 }
 
 if (aFileType != SearchManager::TYPE_DIRECTORY)
@@ -1958,7 +1959,7 @@ for (auto i = files.cbegin(); i != files.cend(); ++i)
 		{
 			SearchResultPtr sr(new SearchResult(SearchResult::TYPE_FILE, i->getSize(), getFullName() + i->getName(), i->getTTH()));
 			aResults.push_back(sr);
-			ShareManager::getInstance()->incHits();
+			ShareManager::incHits();
 			if (aResults.size() >= maxResults)
 			{
 				break;
@@ -1967,7 +1968,7 @@ for (auto i = files.cbegin(); i != files.cend(); ++i)
 	}
 }
 
-for (auto l = directories.cbegin(); (l != directories.cend()) && (aResults.size() < maxResults); ++l)
+for (auto l = directories.cbegin(); l != directories.cend() && aResults.size() < maxResults; ++l)
 {
 if (l->second)
 		l->second->search(aResults, *cur, aSizeMode, aSize, aFileType, aClient, maxResults); //TODO - Hot point
@@ -2006,6 +2007,7 @@ void ShareManager::search(SearchResultList& results, const string& aString, Sear
 	}
 	
 	StringSearch::List ssl;
+	ssl.reserve(sl.size());
 	for (auto i = sl.cbegin(); i != sl.cend(); ++i)
 	{
 		if (!i->empty())
@@ -2020,17 +2022,14 @@ void ShareManager::search(SearchResultList& results, const string& aString, Sear
 		SharedLock l(cs); // [+] IRainman opt.
 		for (auto j = directories.cbegin(); j != directories.cend() && results.size() < maxResults; ++j)
 		{
-			(*j)->search(results, ssl, aSizeMode, aSize, aFileType, aClient, maxResults); // [2] https://www.box.net/shared/febc028d616f06385594
+			(*j)->search(results, ssl, aSizeMode, aSize, aFileType, aClient, maxResults);
 		}
 	}
 }
 
-namespace
-{
-inline uint16_t toCode(char a, char b)
+inline static uint16_t toCode(char a, char b)
 {
 	return (uint16_t)a | ((uint16_t)b) << 8;
-}
 }
 
 ShareManager::AdcSearch::AdcSearch(const StringList& params) : include(&includeX), gt(0),
@@ -2147,7 +2146,7 @@ if (cur->empty() && aStrings.ext.empty() && sizeOk)
 // We satisfied all the search words! Add the directory...
 SearchResultPtr sr(new SearchResult(SearchResult::TYPE_DIRECTORY, getSize(), getFullName(), TTHValue()));
 	aResults.push_back(sr);
-	ShareManager::getInstance()->incHits();
+	ShareManager::incHits();
 }
 
 if (!aStrings.isDirectory)
@@ -2181,7 +2180,7 @@ for (auto i = files.cbegin(); i != files.cend(); ++i)
 			SearchResultPtr sr(new SearchResult(SearchResult::TYPE_FILE,
 			                                    i->getSize(), getFullName() + i->getName(), i->getTTH()));
 			aResults.push_back(sr);
-			ShareManager::getInstance()->incHits();
+			ShareManager::incHits();
 			if (aResults.size() >= maxResults)
 			{
 				return;

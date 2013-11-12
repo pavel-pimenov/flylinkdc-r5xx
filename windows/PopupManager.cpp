@@ -26,6 +26,10 @@
 
 void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bool preview /*= false*/)
 {
+	dcassert(BaseChatFrame::g_isStartupProcess == false);
+	if (BaseChatFrame::g_isStartupProcess == true)
+		return;
+		
 	if (!activated)
 		return;
 		
@@ -129,30 +133,22 @@ void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bo
 	//increase offset so we know where to place the next popup
 	offset = offset + height;
 	
-	popups.push_back(p);
+	m_popups.push_back(p);
 }
 
 void PopupManager::on(TimerManagerListener::Second /*type*/, uint64_t tick)
 {
 	// TODO - подписаться позже. dcassert(!BaseChatFrame::g_isStartupProcess);
-	if (BaseChatFrame::g_isStartupProcess == false)
-	{
-		::PostMessage(WinUtil::mainWnd, WM_SPEAKER, MainFrame::REMOVE_POPUP, (LPARAM)tick); // [!] IRainman opt.
-	}
+	::PostMessage(WinUtil::mainWnd, WM_SPEAKER, MainFrame::REMOVE_POPUP, (LPARAM)tick); // [!] IRainman opt.
+	
 }
 
 
 void PopupManager::AutoRemove(uint64_t tick) // [!] IRainman opt.
 {
-	//we got nothing to do here
-	if (popups.empty())
-	{
-		return;
-	}
-	
 	const uint64_t popupTime = SETTING(POPUP_TIME) * 1000; // [+] IRainman opt.
-	//check all popups and see if we need to remove anyone
-	for (auto i = popups.cbegin(); i != popups.cend(); ++i)
+	//check all m_popups and see if we need to remove anyone
+	for (auto i = m_popups.cbegin(); i != m_popups.cend(); ++i)
 	{
 	
 		if ((*i)->visible + popupTime < tick)
@@ -161,11 +157,11 @@ void PopupManager::AutoRemove(uint64_t tick) // [!] IRainman opt.
 			Remove((*i)->id);
 			
 			//if list is empty there is nothing more to do
-			if (popups.empty())
+			if (m_popups.empty())
 				return;
 				
 			//start over from the beginning
-			i = popups.cbegin();
+			i = m_popups.cbegin();
 		}
 	}
 }
@@ -173,21 +169,22 @@ void PopupManager::AutoRemove(uint64_t tick) // [!] IRainman opt.
 void PopupManager::Remove(uint32_t pos)
 {
 	//find the correct window
-	auto i = popups.cbegin();
+	auto i = m_popups.cbegin();
 	
-	for (; i != popups.cend(); ++i)
+	for (; i != m_popups.cend(); ++i)
 	{
 		if ((*i)->id == pos)
 			break;
 	}
-	dcassert(i != popups.cend());
-	if (i == popups.cend())
+	dcassert(i != m_popups.cend());
+	if (i == m_popups.cend())
 		return;
 	//remove the window from the list
-	PopupWnd *p = (*i);
-	i = popups.erase(i);
+	PopupWnd *p = *i;
+	i = m_popups.erase(i);
 	
-	if (p == NULL)
+	dcassert(p);
+	if (p == nullptr)
 	{
 		return;
 	}
@@ -202,13 +199,13 @@ void PopupManager::Remove(uint32_t pos)
 	offset = offset - height;
 	
 	//nothing to do
-	if (popups.empty())
+	if (m_popups.empty())
 		return;
 		
 	CRect rc;
 	
 	//move down all windows
-	for (; i != popups.cend(); ++i)
+	for (; i != m_popups.cend(); ++i)
 	{
 		(*i)->GetWindowRect(rc);
 		rc.top += height;

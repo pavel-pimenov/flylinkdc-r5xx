@@ -80,7 +80,9 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		NOTIFY_HANDLER(IDC_RESULTS, LVN_COLUMNCLICK, ctrlResults.onColumnClick)
 		NOTIFY_HANDLER(IDC_RESULTS, LVN_GETINFOTIP, ctrlResults.onInfoTip)
 		NOTIFY_HANDLER(IDC_HUB, LVN_GETDISPINFO, ctrlHubs.onGetDispInfo)
+#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 		NOTIFY_HANDLER(IDC_HUB, NM_CUSTOMDRAW, ctrlHubs.onCustomDraw) // [+] IRainman
+#endif
 		NOTIFY_HANDLER(IDC_RESULTS, NM_DBLCLK, onDoubleClickResults)
 		NOTIFY_HANDLER(IDC_RESULTS, LVN_KEYDOWN, onKeyDown)
 		NOTIFY_HANDLER(IDC_HUB, LVN_ITEMCHANGED, onItemChangedHub)
@@ -200,7 +202,8 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			m_searchEndTime(0),
 			m_searchStartTime(0),
 			m_waitingResults(false),
-			m_needsUpdateStats(false) // [+] IRainman opt.
+			m_needsUpdateStats(false), // [+] IRainman opt.
+			m_Theme(nullptr)
 #ifdef SCALOLAZ_SEARCH_HELPLINK
 			, m_widthHelp(50)
 #endif
@@ -435,9 +438,9 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		{
 			public:
 				typedef SearchInfo* Ptr;
-				typedef vector<Ptr> List;
+				typedef vector<Ptr> Array;
 				
-				SearchInfo(const SearchResultPtr &aSR) : sr(aSR), collapsed(true), parent(nullptr), hits(0)
+				SearchInfo(const SearchResultPtr &aSR) : sr(aSR), collapsed(true), parent(nullptr), hits(0), m_icon_index(-1), m_is_flush_ip_to_sqlite(false)
 				{
 					sr->inc();
 				}
@@ -454,6 +457,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 				bool collapsed;
 				SearchInfo* parent;
 				size_t hits;
+				int m_icon_index;
 				
 				void getList();
 				void browseList();
@@ -497,6 +501,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 				static int compareItems(const SearchInfo* a, const SearchInfo* b, int col);
 				
 				int getImageIndex() const;
+				void calcImageIndex();
 				
 				SearchInfo* createParent()
 				{
@@ -527,6 +532,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 				*/
 				
 				Util::CustomNetworkIndex m_location;
+				bool m_is_flush_ip_to_sqlite;
 				const SearchResultPtr sr;
 				tstring columns[COLUMN_LAST];
 				const TTHValue& getGroupCond() const
@@ -647,7 +653,12 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		StringList m_search;
 		StringList targets;
 		StringList wholeTargets;
-		SearchInfo::List pausedResults;
+		SearchInfo::Array m_pausedResults;
+		void clearPausedResults()
+		{
+			for_each(m_pausedResults.begin(), m_pausedResults.end(), DeleteFunction());
+			m_pausedResults.clear();
+		}
 		
 		CEdit ctrlFilter;
 		CComboBox ctrlFilterSel;
@@ -680,6 +691,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		static HIconWrapper g_search_icon; // [~] Sergey Shushkanov
 		
 		size_t m_droppedResults;
+		HTHEME m_Theme;
 		
 		StringMap ucLineParams;
 		

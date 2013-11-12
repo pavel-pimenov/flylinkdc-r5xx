@@ -323,9 +323,9 @@ LRESULT PublicHubsFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 {
 	if (!m_closed)
 	{
+		m_closed = true;
 		FavoriteManager::getInstance()->removeListener(this);
 		SettingsManager::getInstance()->removeListener(this);
-		m_closed = true;
 		WinUtil::setButtonPressed(ID_FILE_CONNECT, false);
 		PostMessage(WM_CLOSE);
 		return 0;
@@ -607,22 +607,22 @@ bool PublicHubsFrame::parseFilter(FilterModes& mode, double& size)
 	int64_t multiplier = 1;
 	
 	if (filter.empty()) return false;
-	if (filter.compare(0, 2, ">=") == 0)
+	if (filter.compare(0, 2, ">=", 2) == 0)
 	{
 		mode = GREATER_EQUAL;
 		start = 2;
 	}
-	else if (filter.compare(0, 2, "<=") == 0)
+	else if (filter.compare(0, 2, "<=", 2) == 0)
 	{
 		mode = LESS_EQUAL;
 		start = 2;
 	}
-	else if (filter.compare(0, 2, "==") == 0)
+	else if (filter.compare(0, 2, "==", 2) == 0)
 	{
 		mode = EQUAL;
 		start = 2;
 	}
-	else if (filter.compare(0, 2, "!=") == 0)
+	else if (filter.compare(0, 2, "!=", 2) == 0)
 	{
 		mode = NOT_EQUAL;
 		start = 2;
@@ -878,7 +878,9 @@ LRESULT PublicHubsFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHan
 					cd->clrTextBk = SETTING(HUB_IN_FAV_BK_COLOR);
 				}
 			}
+#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 			Colors::alternationBkColor(cd); // [+] IRainman
+#endif
 			return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
 		}
 		default:

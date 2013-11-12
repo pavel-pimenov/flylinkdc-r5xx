@@ -1039,7 +1039,7 @@ wstring Util::formatExactSize(int64_t aBytes)
 #endif
 }
 
-string Util::getLocalIp()
+string Util::getLocalOrBindIp(const bool p_check_bind_address)
 {
 	string tmp;
 	char buf[256];
@@ -1048,19 +1048,22 @@ string Util::getLocalIp()
 		const hostent* he = gethostbyname(buf);
 		if (he == nullptr || he->h_addr_list[0] == 0)
 			return Util::emptyString;
-		sockaddr_in dest;
+		sockaddr_in dest = {0};
 		int i = 0;
-		
 		// We take the first ip as default, but if we can find a better one, use it instead...
-		memcpy(&(dest.sin_addr), he->h_addr_list[i++], he->h_length);
+		memcpy(&dest.sin_addr, he->h_addr_list[i++], he->h_length);
 		tmp = inet_ntoa(dest.sin_addr);
+		if (p_check_bind_address && tmp == SETTING(BIND_ADDRESS)) // http://code.google.com/p/flylinkdc/issues/detail?id=1359
+			return tmp;
 		if (Util::isPrivateIp(tmp) || strncmp(tmp.c_str(), "169", 3) == 0)
 		{
 			while (he->h_addr_list[i])
 			{
-				memcpy(&(dest.sin_addr), he->h_addr_list[i], he->h_length);
-				string tmp2 = inet_ntoa(dest.sin_addr);
-				if (!Util::isPrivateIp(tmp2) && strncmp(tmp2.c_str(), "169", 3) != 0)
+				memcpy(&dest.sin_addr, he->h_addr_list[i], he->h_length);
+				const string tmp2 = inet_ntoa(dest.sin_addr);
+				if (p_check_bind_address && tmp2 == SETTING(BIND_ADDRESS)) // http://code.google.com/p/flylinkdc/issues/detail?id=1359
+					return tmp2;
+				else if (!Util::isPrivateIp(tmp2) && strncmp(tmp2.c_str(), "169", 3) != 0)
 				{
 					tmp = tmp2;
 				}
@@ -1931,6 +1934,10 @@ string Util::translateError(int aError)
 				}
 			}
 			tmp += "[error: " + toString(aError) + "]";
+			if (aError >= WSAEADDRNOTAVAIL && aError <= WSAEHOSTDOWN)
+			{
+				tmp += "\r\n\t" + STRING(SOCKET_ERROR_NOTE) + " " + Util::getWikiLink() + "socketerror#error_" + toString(aError);  // as  LANG:socketerror#error_10060
+			}
 			return tmp;
 #else // _WIN32
 	return Text::toUtf8(strerror(aError));
@@ -2138,7 +2145,7 @@ string Util::getExternalIP(const string& p_url, LONG p_timeOut /* = 500 */)
 {
 	CFlyLog l_log("[GetIP]");
 	string l_downBuf;
-	getDataFromInet(_T("GetIP"), 2048, p_url, l_downBuf, p_timeOut);
+	getDataFromInet(_T("GetIP"), 4096, p_url, l_downBuf, p_timeOut);
 	if (!l_downBuf.empty())
 	{
 		SimpleXML xml;
@@ -2209,7 +2216,7 @@ uint64_t Util::getBinaryDataFromInet(LPCWSTR agent, const DWORD frameBufferSize,
 	if (timeOut)
 		InternetSetOption(hInternet, INTERNET_OPTION_CONNECT_TIMEOUT, &timeOut, sizeof(timeOut));
 		
-	CInternetHandle hURL(InternetOpenUrlA(hInternet, url.c_str(), NULL, 0, INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_RELOAD, 1));
+	CInternetHandle hURL(InternetOpenUrlA(hInternet, url.c_str(), NULL, 0, INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_RELOAD , 0));
 	if (!hURL)
 	{
 		dcassert(0);

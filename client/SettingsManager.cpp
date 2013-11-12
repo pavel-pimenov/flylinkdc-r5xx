@@ -167,6 +167,7 @@ const string SettingsManager::settingTags[] =
 	"TextFavBackColor", "TextFavForeColor", "TextFavBold", "TextFavItalic",
 	"TextOPBackColor", "TextOPForeColor", "TextOPBold", "TextOPItalic",
 	"TextURLBackColor", "TextURLForeColor", "TextURLBold", "TextURLItalic",
+	"TextEnemyBackColor", "TextEnemyForeColor", "TextEnemyBold", "TextEnemyItalic",
 	"BoldAuthorsMess", "WindowsStyleURL", "UploadLimitNormal", "ThrottleEnable", "HubSlots", "DownloadLimitNormal",
 	"UploadLimitTime", "DownloadLimitTime", "TimeThrottle", "TimeLimitStart", "TimeLimitEnd",
 	"RemoveForbidden", "ProgressTextDown", "ProgressTextUp", "ShowInfoTips", "ExtraDownloadSlots",
@@ -218,7 +219,8 @@ const string SettingsManager::settingTags[] =
 	"AcceptedDisconnects", "AcceptedTimeouts",
 	"OpenPublic", "OpenFavoriteHubs", "OpenFavoriteUsers", "OpenQueue", "OpenFinishedDownloads",
 	"OpenFinishedUploads", "OpenSearchSpy", "OpenNetworkStatistics", "OpenNotepad", "OutgoingConnections",
-	"NoIPOverride", "ForgetSearchRequest", "SaveSearchSettings", "SavedSearchType", "SavedSearchSizeMode", "SavedSearchMode", "BoldFinishedDownloads", "BoldFinishedUploads", "BoldQueue",
+	"NoIPOverride", "ForgetSearchRequest", "SaveSearchSettings", "SavedSearchType", "SavedSearchSizeMode", "SavedSearchMode", "BoldFinishedDownloads",
+	"BoldFinishedUploads", "BoldQueue",
 	"BoldHub", "BoldPm", "BoldSearch", "BoldNewrss", "TabsPos",
 	"HubPosition", // [+] InfinitySky.
 	"SocketInBuffer2", "SocketOutBuffer2",
@@ -232,13 +234,17 @@ const string SettingsManager::settingTags[] =
 #endif
 	"ProtectTray", "ProtectStart", "ProtectClose",
 	"StripTopic", "TbImageSize", "TbImageSizeHot", "OpenCdmDebug", "ShowWinampControl", "HubThreshold", "PGOn", "GuardUp", "GuardDown", "GuardSearch", "PGLog",
-	"PreviewPm", "FilterEnter", "PopupTime", "PopupW", "PopupH", "PopupTransp", "AwayThrottle", "AwayStart", "AwayEnd", "OdcStyleBumped", "TopSpeed", "StealthyStyle", "StealthyStyleIco", "StealthyStyleIcoSpeedIgnore", "PSRDelay",
-	"IpInChat", "CountryInChat", "TopUpSpeed", "Broadcast", "RememberSettingsPage", "Page", "RememberSettingsWindowPos", "SettingsWindowPosX", "SettingsWindowPosY", "SettingsWindowSizeX", "SettingsWindowSizeYY", "SettingsWindowTransp", "SettingsWindowColorize", "SettingsWindowWikihelp", "ChatBufferSize", "EnableHubTopic", "EnableHubmodePic", "EnableCountryflag", "PgLastUp",
+	"PreviewPm", "FilterEnter", "PopupTime", "PopupW", "PopupH", "PopupTransp", "AwayThrottle", "AwayStart", "AwayEnd", "OdcStyleBumped", "TopSpeed", "StealthyStyle",
+	"StealthyStyleIco", "StealthyStyleIcoSpeedIgnore", "PSRDelay",
+	"IpInChat", "CountryInChat", "TopUpSpeed", "Broadcast", "RememberSettingsPage", "Page", "RememberSettingsWindowPos", "SettingsWindowPosX", "SettingsWindowPosY",
+	"SettingsWindowSizeX", "SettingsWindowSizeYY", "SettingsWindowTransp", "SettingsWindowColorize", "SettingsWindowWikihelp", "ChatBufferSize", "EnableHubmodePic",
+	"EnableCountryflag", "PgLastUp",
 	"DiredtorListingFrameSplit",
 #ifdef IRAINMAN_INCLUDE_TEXT_FORMATTING
 	"FormatBIU",
 #endif
-	"MediaPlayer", "ProtFavs", "MaxMsgLength", "PopupBackColor", "PopupTextColor", "PopupTitleTextColor", "PopupImage", "PopupColors", "SortFavUsersFirst", "ShowShellMenu", "OpenLogsInternal",
+	"MediaPlayer", "ProtFavs", "MaxMsgLength", "PopupBackColor", "PopupTextColor", "PopupTitleTextColor", "PopupImage", "PopupColors", "SortFavUsersFirst",
+	"ShowShellMenu", "OpenLogsInternal",
 	// "NoEmotesLinks", [-] IRainman
 	
 	"NsLookupMode", "NsLookupDelay", // !SMT!-IP
@@ -757,6 +763,10 @@ void SettingsManager::setDefaults()
 	//setDefault(TEXT_URL_BOLD, false);
 	//setDefault(TEXT_URL_ITALIC, false);
 	
+	setDefault(TEXT_ENEMY_BACK_COLOR, RGB(244, 244, 244));
+	setDefault(TEXT_ENEMY_FORE_COLOR, RGB(255, 165, 121));
+	//setDefault(TEXT_ENEMY_BOLD, false);
+	
 	setDefault(BOLD_AUTHOR_MESS, TRUE);
 	//setDefault(KICK_MSG_RECENT_01, "");
 	//setDefault(KICK_MSG_RECENT_02, "");
@@ -969,7 +979,6 @@ void SettingsManager::setDefaults()
 	setDefault(SETTINGS_WINDOW_WIKIHELP, TRUE);
 	setDefault(CHATBUFFERSIZE, 25000);
 	setDefault(SEND_BLOOM, TRUE);
-	//setDefault(ENABLE_HUBTOPIC, false);
 	setDefault(ENABLE_HUBMODE_PIC, TRUE);
 	setDefault(ENABLE_COUNTRYFLAG, TRUE);
 	setDefault(ENABLE_LAST_IP, TRUE);
@@ -1231,7 +1240,9 @@ void SettingsManager::setDefaults()
 	setDefault(SETTINGS_STATISTICS_ASK, TRUE);
 #endif
 	setDefault(USE_STATICTICS_SEND, TRUE);
+#ifdef FLYLINKDC_USE_CHECK_OLD_OS
 	setDefault(REPORT_TO_USER_IF_OUTDATED_OS_DETECTED, TRUE); // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=1032
+#endif
 #ifdef FLYLINKDC_HE
 	setDefault(AUTOUPDATE_USE_CUSTOM_URL, TRUE);
 	setDefault(AUTOUPDATE_SERVER_URL, "http://studia2000.sytes.net/flyupdate"); // TODO: move to google.
@@ -2165,6 +2176,10 @@ void SettingsManager::importDctheme(const tstring& file, const bool asDefault /*
 			importData("TextOPForeColor", TEXT_OP_FORE_COLOR);
 			importData("TextOPBold", TEXT_OP_BOLD);
 			importData("TextOPItalic", TEXT_OP_ITALIC);
+			importData("TextEnemyBackColor", TEXT_ENEMY_BACK_COLOR);
+			importData("TextEnemyForeColor", TEXT_ENEMY_FORE_COLOR);
+			importData("TextEnemyBold", TEXT_ENEMY_BOLD);
+			importData("TextEnemyItalic", TEXT_ENEMY_ITALIC);
 			importData("SearchAlternateColour", SEARCH_ALTERNATE_COLOUR);
 			importData("ProgressBackColor", PROGRESS_BACK_COLOR);
 			importData("ProgressCompressColor", PROGRESS_COMPRESS_COLOR);
@@ -2301,6 +2316,10 @@ void SettingsManager::exportDctheme(const tstring& file)
 	exportData("TextOPForeColor", TEXT_OP_FORE_COLOR);
 	exportData("TextOPBold", TEXT_OP_BOLD);
 	exportData("TextOPItalic", TEXT_OP_ITALIC);
+	exportData("TextEnemyBackColor", TEXT_ENEMY_BACK_COLOR);
+	exportData("TextEnemyForeColor", TEXT_ENEMY_FORE_COLOR);
+	exportData("TextEnemyBold", TEXT_ENEMY_BOLD);
+	exportData("TextEnemyItalic", TEXT_ENEMY_ITALIC);
 	exportData("SearchAlternateColour", SEARCH_ALTERNATE_COLOUR);
 	exportData("ProgressBackColor", PROGRESS_BACK_COLOR);
 	exportData("ProgressCompressColor", PROGRESS_COMPRESS_COLOR);

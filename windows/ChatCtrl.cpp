@@ -212,13 +212,14 @@ void ChatCtrl::AppendText(const Identity& id, const bool bMyMess, const bool bTh
 	}
 	else
 	{
-		const bool isFavorite = !bMyMess && FavoriteManager::getInstance()->isFavoriteUser(id.getUser());                      //TODO - унести выше.
+		bool l_is_ban = false;
+		const bool isFavorite = !bMyMess && FavoriteManager::getInstance()->isFavoriteUser(id.getUser(), l_is_ban);    //TODO - унести выше.
 		const CHARFORMAT2& currentCF =
 		    bMyMess ? Colors::g_TextStyleMyNick :
-		    isFavorite ? Colors::g_TextStyleFavUsers :
-		    id.isOp() ? Colors::g_TextStyleOPs :
-		    BOOLSETTING(BOLD_AUTHOR_MESS) ? Colors::g_TextStyleBold :
-		    cf;
+		    isFavorite ? (l_is_ban ? Colors::g_TextStyleFavUsersBan : Colors::g_TextStyleFavUsers) :
+			    id.isOp() ? Colors::g_TextStyleOPs :
+			    BOOLSETTING(BOLD_AUTHOR_MESS) ? Colors::g_TextStyleBold :
+			    cf;
 		insertAndFormat(_T("<"), cf);
 		insertAndFormat(sAuthor, currentCF);
 		insertAndFormat(_T("> "), cf);
@@ -230,7 +231,7 @@ void ChatCtrl::AppendText(const Identity& id, const bool bMyMess, const bool bTh
 	
 #ifdef IRAINMAN_INCLUDE_SMILE
 	if (!CAGEmotionSetup::g_pEmotionsSetup || CompatibilityManager::isWine())
-	{
+{
 		bUseEmo = false;
 	}
 	

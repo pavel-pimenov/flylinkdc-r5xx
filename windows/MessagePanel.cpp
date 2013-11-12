@@ -45,7 +45,9 @@ HIconWrapper MessagePanel::g_hUndelineIco(IDR_UNDERLINE_ICON);
 HIconWrapper MessagePanel::g_hStrikeIco(IDR_STRIKE_ICON);
 HIconWrapper MessagePanel::g_hItalicIco(IDR_ITALIC_ICON);
 HIconWrapper MessagePanel::g_hTransCodeIco(IDR_TRANSCODE_ICON);
-
+#ifdef SCALOLAZ_BB_COLOR_BUTTON
+HIconWrapper MessagePanel::g_hColorIco(IDR_COLOR_ICON);
+#endif
 #ifdef IRAINMAN_INCLUDE_SMILE
 CEmotionMenu MessagePanel::g_emoMenu;
 #endif
@@ -72,6 +74,9 @@ void MessagePanel::DestroyPanel(bool p_is_shutdown)
 	ctrlStrikeBtn.DestroyWindow();
 	ctrlItalicBtn.DestroyWindow();
 	ctrlTransCodeBtn.DestroyWindow();
+#ifdef SCALOLAZ_BB_COLOR_BUTTON
+	ctrlColorBtn.DestroyWindow();
+#endif
 	ctrlSizeSel.DestroyWindow();
 	m_tooltip.DestroyWindow();
 }
@@ -115,6 +120,11 @@ LRESULT MessagePanel::InitPanel(HWND& p_hWnd, RECT &p_rcDefault)
 	ctrlTransCodeBtn.SetIcon(g_hTransCodeIco);
 	m_tooltip.AddTool(ctrlTransCodeBtn, ResourceManager::BBCODE_PANEL_TRANSLATE);
 	
+#ifdef SCALOLAZ_BB_COLOR_BUTTON
+	ctrlColorBtn.Create(m_hWnd, p_rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_ICON | BS_CENTER, 0, IDC_COLOR);
+	ctrlColorBtn.SetIcon(g_hColorIco);
+	m_tooltip.AddTool(ctrlColorBtn, ResourceManager::BBCODE_PANEL_COLOR);
+#endif
 	ctrlSizeSel.Create(m_hWnd, p_rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_HSCROLL |
 	                   WS_VSCROLL | CBS_DROPDOWNLIST, WS_EX_CLIENTEDGE);
 	ctrlSizeSel.SetFont(Fonts::font);
@@ -211,6 +221,20 @@ LRESULT MessagePanel::UpdatePanel(CRect& rect)
 		rc.right += 22; // [~] Sergey Shuhskanov.
 		ctrlStrikeBtn.ShowWindow(SW_SHOW);
 		ctrlStrikeBtn.MoveWindow(rc);
+#ifdef SCALOLAZ_BB_COLOR_BUTTON
+		if (BOOLSETTING(FORMAT_BB_CODES_COLORS))
+		{
+			// Color
+			rc.left = rc.right + 1;
+			rc.right += 22;
+			ctrlColorBtn.ShowWindow(SW_SHOW);
+			ctrlColorBtn.MoveWindow(rc);
+		}
+		else
+		{
+			ctrlColorBtn.ShowWindow(SW_HIDE);
+		}
+#endif // SCALOLAZ_BB_COLOR_BUTTON
 		// Size Selection
 		//rc.left = rc.right + 1;
 		//rc.right += 40;
@@ -226,6 +250,9 @@ LRESULT MessagePanel::UpdatePanel(CRect& rect)
 		ctrlItalicBtn.ShowWindow(SW_HIDE);
 		ctrlSizeSel.ShowWindow(SW_HIDE);
 		ctrlTransCodeBtn.ShowWindow(SW_HIDE);
+#ifdef SCALOLAZ_BB_COLOR_BUTTON
+		ctrlColorBtn.ShowWindow(SW_HIDE);
+#endif
 	}
 	if (!BOOLSETTING(POPUPS_DISABLED) && BOOLSETTING(POPUPS_MESSAGEPANEL_ENABLED))
 		m_tooltip.Activate(TRUE);
@@ -240,7 +267,13 @@ int MessagePanel::GetPanelWidth()
 	iButtonPanelLength += BOOLSETTING(SHOW_EMOTIONS_BTN) ? 22 : 0; // [~] Sergey Shuhskanov.
 #endif
 	iButtonPanelLength += BOOLSETTING(SHOW_SEND_MESSAGE_BUTTON) ? 22 : 0; // [~] Sergey Shuhskanov.
-	iButtonPanelLength += BOOLSETTING(SHOW_BBCODE_PANEL) ? 22 * 5 : 0; // [~] Sergey Shuhskanov.
+	iButtonPanelLength += BOOLSETTING(SHOW_BBCODE_PANEL) ? 22 *
+#ifdef SCALOLAZ_BB_COLOR_BUTTON
+	                      6
+#else   //SCALOLAZ_BB_COLOR_BUTTON
+	                      5
+#endif  //SCALOLAZ_BB_COLOR_BUTTON
+	                      : 0; // [~] Sergey Shuhskanov.
 	iButtonPanelLength += 1; // [+] DONT DELETE! Sergey Shuhskanov.
 	return iButtonPanelLength;
 }

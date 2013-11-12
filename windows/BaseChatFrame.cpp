@@ -71,6 +71,7 @@ void BaseChatFrame::createMessageCtrl(ATL::CMessageMap *p_map, DWORD p_MsgMapID)
 	if (!m_LastMessage.empty())
 	{
 		m_ctrlMessage->SetWindowText(m_LastMessage.c_str());
+		m_ctrlMessage->SetSel(m_LastSelPos);
 	}
 	m_ctrlMessage->SetFont(Fonts::font);
 	m_ctrlMessage->SetLimitText(9999);
@@ -86,6 +87,7 @@ void BaseChatFrame::destroyMessageCtrl(bool p_is_shutdown)
 		if (!p_is_shutdown && m_ctrlMessage->IsWindow()) // fix https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=36887
 		{
 			WinUtil::GetWindowText(m_LastMessage, *m_ctrlMessage);
+			m_LastSelPos = m_ctrlMessage->GetSel();
 		}
 		safe_destroy_window(m_ctrlMessage);
 	}
@@ -774,7 +776,7 @@ void BaseChatFrame::appendLogToChat(const string& path , const size_t linesCount
 	}
 	
 	StringList lines;
-	if (buf.compare(0, 3, "\xef\xbb\xbf") == 0)
+	if (buf.compare(0, 3, "\xef\xbb\xbf", 3) == 0)
 	{
 		swap(lines, StringTokenizer<string>(buf.substr(3), "\r\n").getTokensForWrite());
 	}

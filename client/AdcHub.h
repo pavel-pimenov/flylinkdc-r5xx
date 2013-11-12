@@ -80,17 +80,7 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		/** Map session id to OnlineUser */
 		typedef boost::unordered_map<uint32_t, OnlineUser*> SIDMap;
 		
-		void getUserList(OnlineUserList& p_list) const
-		{
-			FastLock l(cs);
-			for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
-			{
-				if (i->first != AdcCommand::HUB_SID)
-				{
-					p_list.push_back(i->second);
-				}
-			}
-		}
+		void getUserList(OnlineUserList& p_list) const;
 		
 		bool m_oldPassword;
 		Socket udp;
@@ -104,25 +94,14 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		
 		static const vector<StringList> searchExts;
 		
-		string checkNick(const string& nick);
+		virtual void checkNick(string& nick);
 		
 		OnlineUserPtr getUser(const uint32_t aSID, const CID& aCID); // [!] IRainman fix return OnlineUserPtr [IntelC++ 2012 beta2] warning #1125: function "Client::getUser(const UserPtr &)" is hidden by "AdcHub::getUser" -- virtual function override intended?
 		OnlineUserPtr findUser(const uint32_t sid) const; // [!] IRainman fix return OnlineUserPtr
 		OnlineUserPtr findUser(const CID& cid) const; // [!] IRainman fix return OnlineUserPtr
 		
 		// just a workaround
-		OnlineUserPtr findUser(const string& aNick) const
-		{
-			FastLock l(cs);
-			for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
-			{
-				if (i->second->getIdentity().getNick() == aNick)
-				{
-					return i->second;
-				}
-			}
-			return nullptr;
-		}
+		OnlineUserPtr findUser(const string& aNick) const;
 		
 		void putUser(const uint32_t sid, bool disconnect);
 		

@@ -76,6 +76,7 @@ UserPtr DirectoryListing::getUserFromFilename(const string& fileName)
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		                                             , 0
 #endif
+		                                             , false
 		                                            );
 	}
 	
@@ -88,6 +89,7 @@ UserPtr DirectoryListing::getUserFromFilename(const string& fileName)
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		                                             , 0
 #endif
+		                                             , false
 		                                            );
 	}
 	
@@ -99,6 +101,7 @@ UserPtr DirectoryListing::getUserFromFilename(const string& fileName)
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		                                             , 0
 #endif
+		                                             , false
 		                                            );
 	}
 	

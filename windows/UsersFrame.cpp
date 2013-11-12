@@ -348,10 +348,10 @@ LRESULT UsersFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 {
 	if (!m_closed)
 	{
+		m_closed = true;
 		FavoriteManager::getInstance()->removeListener(this);
 		SettingsManager::getInstance()->removeListener(this);
 		//WinUtil::UnlinkStaticMenus(usersMenu); // !SMT!-S
-		m_closed = true;
 		WinUtil::setButtonPressed(IDC_FAVUSERS, false);
 		PostMessage(WM_CLOSE);
 		return 0;

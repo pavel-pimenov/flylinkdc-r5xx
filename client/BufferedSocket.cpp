@@ -36,12 +36,14 @@ static const uint64_t POLL_TIMEOUT = 250;
 #pragma warning(push)
 #pragma warning(disable:4245)
 BufferedSocket::BufferedSocket(char aSeparator) :
-	separator(aSeparator), mode(MODE_LINE), dataBytes(0), rollback(0), m_state(STARTING),
+	m_separator(aSeparator), mode(MODE_LINE), dataBytes(0), rollback(0), m_state(STARTING),
 // [-] brain-ripper
 // should be rewritten using ThrottleManager
 //sleep(0), // !SMT!-S
 	m_disconnecting(false),
-	m_threadId(-1) // [+] IRainman fix.
+	m_threadId(-1), // [+] IRainman fix.
+	m_myInfoCount(0),
+	m_myInfoStop(false)
 {
 	start(64);
 	
@@ -314,11 +316,11 @@ void BufferedSocket::threadRead()
 					}
 				}
 				// process all lines
-				while ((pos = l.find(separator)) != string::npos)
+				while ((pos = l.find(m_separator)) != string::npos)
 				{
 					if (pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
 						fire(BufferedSocketListener::Line(), l.substr(0, pos));
-					l.erase(0, pos + 1 /* separator char */);
+					l.erase(0, pos + 1 /* separator char */); // TODO не эффективно
 				}
 				// store remainder
 				line = l;
@@ -328,24 +330,28 @@ void BufferedSocket::threadRead()
 			case MODE_LINE:
 			{
 				// Special to autodetect nmdc connections...
-				if (separator == 0)
+				if (m_separator == 0)
 				{
 					if (inbuf[0] == '$')
 					{
-						separator = '|';
+						m_separator = '|';
 					}
 					else
 					{
-						separator = '\n';
+						m_separator = '\n';
 					}
 				}
 				l = line + string((char*) & inbuf[bufpos], left);
-				// TODO - bad_alloc 2012-04-23_22-28-18_L4N2H5DQSWJDZVGEWQRLCAQCSP3HVHJ3ZRWM73Q_EA6DB66F_crash-stack-r501-build-9812.dmp
-				// 2012-04-23_22-28-18_XIBJZTGAX3SV6EEOL6UOPEPBV3JEIWX2TEWIU5I_BE4E9488_crash-stack-r501-build-9812.dmp
 #if 0
 				int l_count_separator = 0;
 #endif
-				while ((pos = l.find(separator)) != string::npos)
+#ifdef _DEBUG
+				//LogManager::getInstance()->message("MODE_LINE . line = " + line);
+				//LogManager::getInstance()->message("MODE_LINE = " + l);
+#endif
+				StringList l_all_myInfo;
+				//string::size_type l_start_pos = 0;
+				while ((pos = l.find(m_separator)) != string::npos)
 				{
 #if 0
 					if (l_count_separator++ && l.length() > 0 && BOOLSETTING(LOG_PROTOCOL))
@@ -356,8 +362,32 @@ void BufferedSocket::threadRead()
 					}
 #endif
 					if (pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
-						fire(BufferedSocketListener::Line(), l.substr(0, pos)); // // TODO - отказаться от временной переменной l и скользить по окну inbuf
-						
+					{
+						const bool l_is_MyINFO = m_myInfoStop == false ? l.compare(0, 7, "$MyINFO", 7) == 0 : false;
+						const string l_line_item = l_is_MyINFO ? l.substr(8, pos) : l.substr(0, pos);
+						if (m_myInfoStop == false)
+						{
+							if (l_is_MyINFO)
+							{
+								++m_myInfoCount;
+								l_all_myInfo.push_back(l_line_item);
+							}
+							else if (m_myInfoCount)
+							{
+								if (!l_all_myInfo.empty())
+								{
+									fire(BufferedSocketListener::MyInfoArray(), l_all_myInfo); // [+]PPA
+									l_all_myInfo.clear();
+								}
+								m_myInfoStop = true; // закончился стартовый поток $MyINFO
+							}
+						}
+						if (l_all_myInfo.empty())
+						{
+							fire(BufferedSocketListener::Line(), l_line_item); // // TODO - отказаться от временной переменной l и скользить по окну inbuf
+						}
+					}
+					
 					l.erase(0, pos + 1 /* separator char */); //[3] https://www.box.net/shared/74efa5b96079301f7194
 					// TODO - erase не эффективно.
 					if (l.length() < (size_t)left)
@@ -367,11 +397,19 @@ void BufferedSocket::threadRead()
 					//dcassert(mode == MODE_LINE);
 					if (mode != MODE_LINE)
 					{
+						// dcassert(mode == MODE_LINE);
+						// TOOD ? m_myInfoStop = true;
 						// we changed mode; remainder of l is invalid.
 						l.clear();
 						bufpos = total - left;
 						break;
 					}
+				}
+				//
+				if (!l_all_myInfo.empty())
+				{
+					fire(BufferedSocketListener::MyInfoArray(), l_all_myInfo); // [+]PPA
+					l_all_myInfo.clear();
 				}
 				if (pos == string::npos)
 					left = 0;

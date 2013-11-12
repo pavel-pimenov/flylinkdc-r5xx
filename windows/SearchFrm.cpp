@@ -114,6 +114,7 @@ SearchFrame::~SearchFrame()
 	dcassert(m_closed);
 	images.Destroy();
 	searchTypes.Destroy();
+// пока не знаю OperaColors::ClearCache();
 }
 
 void SearchFrame::openWindow(const tstring& str /* = Util::emptyString */, LONGLONG size /* = 0 */, Search::SizeModes mode /* = Search::SIZE_ATLEAST */, SearchManager::TypeModes type /* = SearchManager::TYPE_ANY */)
@@ -225,6 +226,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	}
 	SET_EXTENDENT_LIST_VIEW_STYLE(ctrlResults);
 	resultsContainer.SubclassWindow(ctrlResults.m_hWnd);
+	m_Theme = GetWindowTheme(ctrlResults.m_hWnd);
 	
 	if (useSystemIcon)
 	{
@@ -703,11 +705,8 @@ void SearchFrame::onEnter()
 	
 	const int64_t llsize = lsize;
 	
-	// delete all results which came in paused state
-	for_each(pausedResults.begin(), pausedResults.end(), DeleteFunction());
-	pausedResults.clear();
-	
 	ctrlResults.DeleteAndClearAllItems(); // [!] IRainman
+	clearPausedResults();
 	
 	::EnableWindow(GetDlgItem(IDC_SEARCH_PAUSE), TRUE);
 	ctrlPauseSearch.SetWindowText(CTSTRING(PAUSE_SEARCH));
@@ -777,7 +776,7 @@ void SearchFrame::onEnter()
 	}
 	MainFrame::updateQuickSearches();//[+]IRainman
 	
-	for_each(pausedResults.begin(), pausedResults.end(), DeleteFunction());
+	clearPausedResults();
 	
 	
 	SetWindowText((TSTRING(SEARCH) + _T(" - ") + s).c_str());
@@ -837,7 +836,7 @@ void SearchFrame::onEnter()
 
 void SearchFrame::on(SearchManagerListener::SR, const SearchResultPtr &aResult) noexcept
 {
-	if (m_closed)
+	if (isClosedOrShutdown())
 		return;
 	// Check that this is really a relevant search result...
 	{
@@ -921,18 +920,20 @@ void SearchFrame::on(SearchManagerListener::Searching, SearchQueueItem* aSearch)
 // TODO: please fix copy-past.
 void SearchFrame::mergeFlyServerInfo()
 {
-	if (m_closed)
+	if (isClosedOrShutdown())
 		return;
 	m_FlyServerGradientLabel.SetTextColor(RGB(255, 0, 0));
 	CWaitCursor l_cursor_wait;
 	std::map<string, std::pair<SearchInfo*, CFlyServerCache> > l_si_map; // Соберем результат для последующего апдейта
 	std::map<TTHValue, uint64_t> l_tth_media_file_map; // Сохраним TTH файлов содержащих локальную медиаинфу для последующей передачи на сервер
-	const int l_top_index = ctrlResults.GetTopIndex();
-	const int l_count_per_page = ctrlResults.GetCountPerPage();
-	const int l_item_count = ctrlResults.GetItemCount();
-	for (int j = l_top_index; !m_closed && j < l_item_count && j < l_top_index + l_count_per_page; ++j)
+	const int l_top_index = isClosedOrShutdown() ? 0 : ctrlResults.GetTopIndex();
+	const int l_count_per_page = isClosedOrShutdown() ? 0 : ctrlResults.GetCountPerPage();
+	const int l_item_count = isClosedOrShutdown() ? 0 : ctrlResults.GetItemCount();
+	for (int j = l_top_index; j < l_item_count && j < l_top_index + l_count_per_page; ++j)
 	{
-		dcassert(!m_closed);
+		dcassert(!isClosedOrShutdown());
+		if (isClosedOrShutdown())
+			return;
 		SearchInfo* si2 = ctrlResults.getItemData(j);
 		if (si2 == nullptr)
 			continue;
@@ -961,8 +962,8 @@ void SearchFrame::mergeFlyServerInfo()
 			}
 		}
 	}
-	dcassert(!m_closed);
-	if (!m_closed && !m_GetFlyServerArray.empty())
+	dcassert(!isClosedOrShutdown());
+	if (!isClosedOrShutdown() && !m_GetFlyServerArray.empty())
 	{
 		const string l_json_result = CFlyServerJSON::connect(m_GetFlyServerArray, false); // послать запрос на сервер для получения медиаинформации.
 		m_GetFlyServerArray.clear();
@@ -986,18 +987,24 @@ void SearchFrame::mergeFlyServerInfo()
 				const string l_tth = l_cur_item_in["tth"].asString();
 				bool l_is_know_tth = false;
 				auto l_si_find = l_si_map.find(l_tth + l_size_str);
-				dcassert(!m_closed);
-				if (l_si_find != l_si_map.end() && !m_closed)
+				if (l_si_find != l_si_map.end())
 				{
 					SearchInfo* l_si = l_si_find->second.first;
-					const auto l_cur_item = ctrlResults.findItem(l_si);
+					int l_cur_item = -1;
+					dcassert(!isClosedOrShutdown());
+					if (!isClosedOrShutdown())
+						l_cur_item = ctrlResults.findItem(l_si);
+					else
+						return;
 					if (l_cur_item >= 0)
 					{
 						const Json::Value& l_result_counter = l_cur_item_in["info"];
 						const Json::Value& l_result_base_media = l_cur_item_in["media"];
 						const int l_count_media = Util::toInt(l_result_counter["count_media"].asString());
 						if (l_count_media > 0) // Медиаинфа на сервере уже лежит? - не пытаемся ее послать снова
+						{
 							l_is_know_tth |= true;
+						}
 						CFlyServerCache& l_mediainfo_cache = l_si_find->second.second;
 						if (l_mediainfo_cache.m_audio.empty()) // В локальной базе пусто?
 						{
@@ -1031,19 +1038,32 @@ void SearchFrame::mergeFlyServerInfo()
 					l_tth_media_file_map.erase(TTHValue(l_tth));
 				}
 			}
-#if 0
-			TODO - апдейты по колонкам не пашут иногда
-http://code.google.com/p/flylinkdc/issues/detail?id=1113
+#if 1
+//			TODO - апдейты по колонкам не пашут иногда
+// http://code.google.com/p/flylinkdc/issues/detail?id=1113
 			const static int l_array[] =
 			{
 				COLUMN_BITRATE , COLUMN_MEDIA_XY, COLUMN_MEDIA_VIDEO , COLUMN_MEDIA_AUDIO, COLUMN_DURATION, COLUMN_FLY_SERVER_RATING
 			};
 			const static std::vector<int> l_columns(l_array, l_array + _countof(l_array));
-			dcassert(!m_closed);
-			if (!m_closed)
+			dcassert(!isClosedOrShutdown());
+			if (!isClosedOrShutdown())
+			{
 				ctrlResults.update_columns(l_update_index, l_columns);
+			}
+			else
+			{
+				return;
+			}
 #else
-			ctrlResults.update_all_columns(l_update_index);
+			if (!isClosedOrShutdown())
+			{
+				ctrlResults.update_all_columns(l_update_index);
+			}
+			else
+			{
+				return;
+			}
 #endif
 		}
 	}
@@ -1081,7 +1101,7 @@ LRESULT SearchFrame::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 void SearchFrame::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 #endif
 {
-	if (!m_closed)
+	if (!isClosedOrShutdown())
 	{
 		const auto l_tick = GET_TICK();
 		if (!MainFrame::isAppMinimized() && WinUtil::g_tabCtrl->isActive(m_hWnd)) // [+] IRainman opt.
@@ -1089,6 +1109,7 @@ void SearchFrame::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 			if (ctrlResults.GetItemCount())
 			{
+				// Проверить перед тем как запускать
 				addFlyServerTask(l_tick); // TODO - вешаемся на void Thread::start() в join();
 			}
 #endif
@@ -1164,18 +1185,24 @@ int SearchFrame::SearchInfo::compareItems(const SearchInfo* a, const SearchInfo*
 	}
 }
 
+void SearchFrame::SearchInfo::calcImageIndex()
+{
+	if (m_icon_index < 0)
+	{
+		m_icon_index = sr->getType() == SearchResult::TYPE_FILE ? g_fileImage.getIconIndex(sr->getFile()) : FileImage::DIR_ICON;
+	}
+}
+
 int SearchFrame::SearchInfo::getImageIndex() const
 {
-	return sr->getType() == SearchResult::TYPE_FILE ? g_fileImage.getIconIndex(sr->getFile()) : FileImage::DIR_ICON;
+	dcassert(m_icon_index >= 0);
+	return m_icon_index;
 }
 
 const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 {
 	dcassert(sr);
 	dcassert(col < COLUMN_LAST);
-	// [-] IRainman fix: It's not even funny. This is sad. :(
-	// [-] if (!sr || col >= COLUMN_LAST || !getUser())
-	// [-] return Util::emptyStringT; // TODO Log
 	switch (col)
 	{
 		case COLUMN_FILENAME:
@@ -1677,27 +1704,21 @@ LRESULT SearchFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 		}
 		SearchManager::getInstance()->removeListener(this);
 		g_frames.erase(m_hWnd);
+		ctrlResults.DeleteAndClearAllItems();
+		clearPausedResults();
+		ctrlHubs.DeleteAndCleanAllItems(); // [!] IRainman
+		ctrlResults.saveHeaderOrder(SettingsManager::SEARCHFRAME_ORDER, SettingsManager::SEARCHFRAME_WIDTHS,
+		                            SettingsManager::SEARCHFRAME_VISIBLE);
+		SET_SETTING(SEARCH_COLUMNS_SORT, ctrlResults.getSortColumn());
+		SET_SETTING(SEARCH_COLUMNS_SORT_ASC, ctrlResults.isAscending());
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
+		waitForFlyServerStop();
+#endif
 		PostMessage(WM_CLOSE);
 		return 0;
 	}
 	else
 	{
-#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-		waitForFlyServerStop();
-#endif
-		ctrlResults.DeleteAndClearAllItems();
-		// delete all results which came in paused state
-		for_each(pausedResults.begin(), pausedResults.end(), DeleteFunction());
-		// 2012-05-11_23-53-01_AAOQRZH3KTC6LFJU2SAQTJDNESNI4MBM6TDBIMY_F6629064_crash-stack-r502-beta26-build-9946.dmp
-		
-		ctrlHubs.DeleteAndCleanAllItems(); // [!] IRainman
-		
-		ctrlResults.saveHeaderOrder(SettingsManager::SEARCHFRAME_ORDER, SettingsManager::SEARCHFRAME_WIDTHS,
-		                            SettingsManager::SEARCHFRAME_VISIBLE);
-		                            
-		SET_SETTING(SEARCH_COLUMNS_SORT, ctrlResults.getSortColumn());
-		SET_SETTING(SEARCH_COLUMNS_SORT_ASC, ctrlResults.isAscending());
-		
 		bHandled = FALSE;
 		return 0;
 	}
@@ -1906,7 +1927,7 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 #ifdef SCALOLAZ_SEARCH_HELPLINK
 	m_frect = rc;
 	// [+] SCALOlaz: little copy paste for move WikiHelp on resize window
-	const size_t l_totalResult = m_resultsCount + pausedResults.size();
+	const size_t l_totalResult = m_resultsCount + m_pausedResults.size();
 	m_SearchHelp.MoveWindow(0, 0, 0, 0);
 	if (!l_totalResult && m_waitingResults)
 		m_SearchHelp.MoveWindow(m_frect.right + 20, m_frect.top + 4, m_widthHelp, 18);
@@ -2108,20 +2129,10 @@ void SearchFrame::addSearchResult(SearchInfo * si)
 {
 	const SearchResultPtr &sr = si->sr;
 	const auto& user      = sr->getUser(); // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'sr->getUser()' expression repeatedly. searchfrm.cpp 1844
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-	if (!sr->getIP().empty() && m_storeIP)
-	{
-		boost::system::error_code ec;
-		const auto l_ip = boost::asio::ip::address_v4::from_string(sr->getIP(), ec);
-		dcassert(!ec);
-		CFlylinkDBManager::getInstance()->update_last_ip(user->getHubID(), user->getLastNick(), l_ip);
-	}
-#else
 	if (!sr->getIP().empty())
 	{
 		user->setIP(sr->getIP());
 	}
-#endif
 	// Check previous search results for dupes
 	if (!si->getText(COLUMN_TTH).empty())
 	{
@@ -2164,12 +2175,12 @@ void SearchFrame::addSearchResult(SearchInfo * si)
 		
 		if (!si->getText(COLUMN_TTH).empty())
 		{
-			ctrlResults.insertGroupedItem(si, m_expandSR);
+			ctrlResults.insertGroupedItem(si, m_expandSR, false, true);
 		}
 		else
 		{
 			const SearchInfoList::ParentPair pp = { si, SearchInfoList::g_emptyVector };
-			ctrlResults.insertItem(si, si->getImageIndex());
+			ctrlResults.insertItem(si, I_IMAGECALLBACK); // si->getImageIndex()
 			ctrlResults.getParents().insert(make_pair(const_cast<TTHValue*>(&sr->getTTH()), pp));
 		}
 		if (!filter.empty())
@@ -2189,7 +2200,7 @@ void SearchFrame::addSearchResult(SearchInfo * si)
 	}
 	else   // searching is paused, so store the result but don't show it in the GUI (show only information: visible/all results)
 	{
-		pausedResults.push_back(si);
+		m_pausedResults.push_back(si);
 		//ctrlStatus.SetText(3, (Util::toStringW(resultsCount + pausedResults.size()) + _T('/') + Util::toStringW(resultsCount) + _T(' ') + WSTRING(FILES)).c_str());//[-]IRainman optimize SearchFrame
 	}
 }
@@ -2212,7 +2223,7 @@ LRESULT SearchFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL
 			break;
 		case UPDATE_STATUS:
 		{
-			const size_t l_totalResult = m_resultsCount + pausedResults.size();
+			const size_t l_totalResult = m_resultsCount + m_pausedResults.size();
 			ctrlStatus.SetText(3, (Util::toStringW(l_totalResult) + _T('/') + Util::toStringW(m_resultsCount) + _T(' ') + WSTRING(FILES)).c_str());
 			ctrlStatus.SetText(4, (Util::toStringW(m_droppedResults) + _T(' ') + TSTRING(FILTERED)).c_str());
 #ifdef SCALOLAZ_SEARCH_HELPLINK
@@ -2614,11 +2625,11 @@ LRESULT SearchFrame::onPause(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*
 		m_running = true;
 		
 		// readd all results which came during pause state
-		while (!pausedResults.empty())
+		while (!m_pausedResults.empty())
 		{
 			// start from the end because erasing front elements from vector is not efficient
-			addSearchResult(pausedResults.back());
-			pausedResults.pop_back();
+			addSearchResult(m_pausedResults.back());
+			m_pausedResults.pop_back();
 		}
 		
 		// update controls texts
@@ -2768,6 +2779,7 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 			if (si && //[+] PPA "crash-stack-(r382)-build-1685.dmp"
 			        si->sr != nullptr)
 			{
+				si->calcImageIndex();
 				si->sr->checkTTH();
 				if (si->sr->m_is_tth_share)
 					cd->clrTextBk = SETTING(DUPE_COLOR);
@@ -2782,11 +2794,24 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 					auto ip = si->getText(COLUMN_IP);
 					if (!ip.empty())
 					{
-						si->m_location = Util::getIpCountry(Text::fromT(ip));
+						const string l_str_ip = Text::fromT(ip);
+						si->m_location = Util::getIpCountry(l_str_ip);
+#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+						if (si->m_is_flush_ip_to_sqlite == false && m_storeIP && si->getUser()->getHubID())
+						{
+							si->m_is_flush_ip_to_sqlite = true;
+							boost::system::error_code ec;
+							const auto l_ip = boost::asio::ip::address_v4::from_string(l_str_ip, ec);
+							dcassert(!ec);
+							CFlylinkDBManager::getInstance()->update_last_ip(si->getUser()->getHubID(), si->getUser()->getLastNick(), l_ip);
+						}
+#endif
 					}
 				}
 			}
+#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 			Colors::alternationBkColor(cd); // [+] IRainman
+#endif
 			return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
 		}
 		case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
@@ -2806,15 +2831,13 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 				   )
 				{
 					SetTextColor(cd->nmcd.hdc, cd->clrText);
-					const auto l_theme = GetWindowTheme(ctrlResults.m_hWnd); // http://code.google.com/p/flylinkdc/issues/detail?id=949
-					dcassert(l_theme);
-					if (l_theme)
+					if (m_Theme)
 					{
 #if _MSC_VER < 1700 // [!] FlylinkDC++
-						DrawThemeBackground(l_theme, cd->nmcd.hdc, LVP_LISTITEM, 3, &rc, &rc);
+						DrawThemeBackground(m_Theme, cd->nmcd.hdc, LVP_LISTITEM, 3, &rc, &rc);
 						
 #else
-						DrawThemeBackground(l_theme, cd->nmcd.hdc, 1, 3, &rc, &rc);
+						DrawThemeBackground(m_Theme, cd->nmcd.hdc, 1, 3, &rc, &rc);
 #endif // _MSC_VER < 1700
 					}
 				}
@@ -2877,22 +2900,22 @@ bool SearchFrame::parseFilter(FilterModes& mode, int64_t& size)
 	tstring::size_type end = (tstring::size_type)tstring::npos;
 	int64_t multiplier = 1;
 	
-	if (filter.compare(0, 2, _T(">=")) == 0)
+	if (filter.compare(0, 2, _T(">="), 2) == 0)
 	{
 		mode = GREATER_EQUAL;
 		start = 2;
 	}
-	else if (filter.compare(0, 2, _T("<=")) == 0)
+	else if (filter.compare(0, 2, _T("<="), 2) == 0)
 	{
 		mode = LESS_EQUAL;
 		start = 2;
 	}
-	else if (filter.compare(0, 2, _T("==")) == 0)
+	else if (filter.compare(0, 2, _T("=="), 2) == 0)
 	{
 		mode = EQUAL;
 		start = 2;
 	}
-	else if (filter.compare(0, 2, _T("!=")) == 0)
+	else if (filter.compare(0, 2, _T("!="), 2) == 0)
 	{
 		mode = NOT_EQUAL;
 		start = 2;
@@ -3037,7 +3060,7 @@ void SearchFrame::updateSearchList(SearchInfo* si)
 			if (matchFilter(si, sel, doSizeCompare, mode, size))
 			{
 				dcassert(ctrlResults.findItem(si) == -1);
-				int k = ctrlResults.insertItem(si, si->getImageIndex());
+				int k = ctrlResults.insertItem(si, I_IMAGECALLBACK); // si->getImageIndex()
 				
 				const vector<SearchInfo*>& children = ctrlResults.findChildren(si->getGroupCond());
 				if (!children.empty())
@@ -3148,7 +3171,7 @@ LRESULT SearchFrame::onMarkAsDownloaded(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 	
 	while ((i = ctrlResults.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
-		SearchInfo*   si = ctrlResults.getItemData(i);
+		const SearchInfo* si = ctrlResults.getItemData(i);
 		const SearchResultPtr& sr = si->sr;
 		if (sr->getType() == SearchResult::TYPE_FILE)
 		{

@@ -153,7 +153,7 @@ RadoX-Pack v.2.5 International
    <Emoticon PasteText=":listen:" Bitmap="SmilesMegaPack\sigh.bmp"/>
    <Emoticon PasteText=":telephone:" Bitmap="SmilesMegaPack\telephon.bmp"/>
    <Emoticon PasteText=":hello:" Bitmap="SmilesMegaPack\hi.bmp"/>
-   <Emoticon PasteText=":bb:" Bitmap="SmilesMegaPack\bye.bmp"Gif="SmilesMegaPack\bye.gif"/>
+   <Emoticon PasteText=":bb:" Bitmap="SmilesMegaPack\bye.bmp"Gif="AnimPack\bye.gif"/>
    <Emoticon PasteText=":1th:" Bitmap="SmilesMegaPack\1th.bmp"/>
    <Emoticon PasteText=":2th:" Bitmap="SmilesMegaPack\2nd.bmp"/>
    <Emoticon PasteText=":3th:" Bitmap="SmilesMegaPack\3rd.bmp"/>
@@ -227,7 +227,7 @@ RadoX-Pack v.2.5 International
    <Emoticon PasteText=":suicide:" Bitmap="SmilesMegaPack\Suicid.bmp" Gif="AnimPack\Suicid.gif"/>
    <Emoticon PasteText=":death:" Bitmap="SmilesMegaPack\death.bmp"/>
    <Emoticon PasteText=":deadly:" Bitmap="SmilesMegaPack\rip2.bmp"/>
-   <Emoticon PasteText=":roger:" Bitmap="SmilesMegaPack\rip1.bmp"Gif="SmilesMegaPack\rip1.gif"/>
+   <Emoticon PasteText=":roger:" Bitmap="SmilesMegaPack\rip1.bmp"Gif="AnimPack\rip1.gif"/>
    <Emoticon PasteText=":pirat:" Bitmap="SmilesMegaPack\pirate1.bmp"/>
    <Emoticon PasteText=":golovores:" Bitmap="SmilesMegaPack\pirate2.bmp"/>
    <Emoticon PasteText=":gopneg:" Bitmap="SmilesMegaPack\kick.bmp"/>

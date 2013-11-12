@@ -166,9 +166,17 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		string validateVirtual(const string& aVirt) const noexcept;
 		bool hasVirtual(const string& name) const noexcept;
 		
-		void incHits()
+		static void incHits()
 		{
-			++hits;
+			++g_hits;
+		}
+		static size_t getHits()
+		{
+			return g_hits;
+		}
+		static void setHits(size_t p_hit)
+		{
+			g_hits = p_hit;
 		}
 		
 		const string& getOwnListFile()
@@ -187,7 +195,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 			return false;
 		}
 		
-		GETSET(size_t, hits, Hits);
+		static size_t g_hits;
 		GETSET(string, bzXmlFile, BZXmlFile);
 		GETSET(int64_t, sharedSize, SharedSize);
 		

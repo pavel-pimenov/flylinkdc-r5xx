@@ -143,12 +143,12 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 				return TSTRING(DOWNLOAD_FINISHED_IDLE);
 			}
 			const size_t l_online = QueueManager::countOnlineUsersL(qi); // [!] IRainman fix done 2012-04-29_13-46-19_NRAIMLXLGO4PGYESCVW76KIYPJCSLGLGP2LS2WY_712318D1_crash-stack-r501-x64-build-9869.dmp
-			const size_t size = QueueManager::getSourcesCountL(qi);
+			const size_t l_count_source = qi->getSourcesCountL();
 			if (isWaitingL())
 			{
 				if (l_online > 0)
 				{
-					if (size == 1)
+					if (l_count_source == 1)
 					{
 						return TSTRING(WAITING_USER_ONLINE);
 					}
@@ -156,13 +156,13 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 					{
 						tstring buf;
 						buf.resize(64);
-						buf.resize(snwprintf(&buf[0], buf.size(), CTSTRING(WAITING_USERS_ONLINE), l_online, size));
+						buf.resize(snwprintf(&buf[0], buf.size(), CTSTRING(WAITING_USERS_ONLINE), l_online, l_count_source));
 						return buf;
 					}
 				}
 				else
 				{
-					switch (size)
+					switch (l_count_source)
 					{
 						case 0:
 							return TSTRING(NO_USERS_TO_DOWNLOAD_FROM);
@@ -177,14 +177,14 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 						default:
 							tstring buf;
 							buf.resize(64);
-							buf.resize(snwprintf(&buf[0], buf.size(), CTSTRING(ALL_USERS_OFFLINE), size));
+							buf.resize(snwprintf(&buf[0], buf.size(), CTSTRING(ALL_USERS_OFFLINE), l_count_source));
 							return buf;
 					};
 				}
 			}
 			else
 			{
-				if (size == 1)
+				if (l_count_source == 1)
 				{
 					return TSTRING(USER_ONLINE);
 				}
@@ -192,7 +192,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 				{
 					tstring buf;
 					buf.resize(64);
-					buf.resize(snwprintf(&buf[0], buf.size(), CTSTRING(USERS_ONLINE), l_online, size));
+					buf.resize(snwprintf(&buf[0], buf.size(), CTSTRING(USERS_ONLINE), l_online, l_count_source));
 					return buf;
 				}
 			}
@@ -252,7 +252,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 				if (!tmp.empty())
 					tmp += _T(", ");
 					
-				tmp += WinUtil::getNicks(j->getUser(), Util::emptyString);
+				tmp += WinUtil::getNicks(j->first, Util::emptyString);
 			}
 			return tmp.empty() ? TSTRING(NO_USERS) : tmp;
 		}
@@ -292,37 +292,37 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 			const auto& badSources = qi->getBadSourcesL();
 			for (auto j = badSources.cbegin(); j != badSources.cend(); ++j)
 			{
-				if (!j->isSet(QueueItem::Source::FLAG_REMOVED))
+				if (!j->second.isSet(QueueItem::Source::FLAG_REMOVED))
 				{
 					if (!tmp.empty())
 						tmp += _T(", ");
-					tmp += WinUtil::getNicks(j->getUser(), Util::emptyString);
+					tmp += WinUtil::getNicks(j->first, Util::emptyString);
 					tmp += _T(" (");
-					if (j->isSet(QueueItem::Source::FLAG_FILE_NOT_AVAILABLE))
+					if (j->second.isSet(QueueItem::Source::FLAG_FILE_NOT_AVAILABLE))
 					{
 						tmp += TSTRING(FILE_NOT_AVAILABLE);
 					}
-					else if (j->isSet(QueueItem::Source::FLAG_PASSIVE))
+					else if (j->second.isSet(QueueItem::Source::FLAG_PASSIVE))
 					{
 						tmp += TSTRING(PASSIVE_USER);
 					}
-					else if (j->isSet(QueueItem::Source::FLAG_BAD_TREE))
+					else if (j->second.isSet(QueueItem::Source::FLAG_BAD_TREE))
 					{
 						tmp += TSTRING(INVALID_TREE);
 					}
-					else if (j->isSet(QueueItem::Source::FLAG_SLOW_SOURCE))
+					else if (j->second.isSet(QueueItem::Source::FLAG_SLOW_SOURCE))
 					{
 						tmp += TSTRING(SLOW_USER);
 					}
-					else if (j->isSet(QueueItem::Source::FLAG_NO_TTHF))
+					else if (j->second.isSet(QueueItem::Source::FLAG_NO_TTHF))
 					{
 						tmp += TSTRING(SOURCE_TOO_OLD);
 					}
-					else if (j->isSet(QueueItem::Source::FLAG_NO_NEED_PARTS))
+					else if (j->second.isSet(QueueItem::Source::FLAG_NO_NEED_PARTS))
 					{
 						tmp += TSTRING(NO_NEEDED_PART);
 					}
-					else if (j->isSet(QueueItem::Source::FLAG_UNTRUSTED))
+					else if (j->second.isSet(QueueItem::Source::FLAG_UNTRUSTED))
 					{
 						tmp += TSTRING(CERTIFICATE_NOT_TRUSTED);
 					}
@@ -355,6 +355,7 @@ void QueueFrame::on(QueueManagerListener::Added, const QueueItemPtr& aQI)
 
 void QueueFrame::addQueueItem(QueueItemInfo* ii, bool noSort)
 {
+	dcassert(m_closed == false);
 	if (!ii->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP))
 	{
 		dcassert(ii->getSize() >= 0);
@@ -385,17 +386,21 @@ void QueueFrame::addQueueItem(QueueItemInfo* ii, bool noSort)
 	}
 }
 
-QueueFrame::QueueItemInfo* QueueFrame::getItemInfo(const string& target) const
+QueueFrame::QueueItemInfo* QueueFrame::getItemInfo(const string& p_target) const
 {
-	const string path = Util::getFilePath(target);
-	DirectoryPairC items = m_directories.equal_range(path);
+	dcassert(m_closed == false);
+	const string l_path = Util::getFilePath(p_target);
+	DirectoryPairC items = m_directories.equal_range(l_path);
+	// https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=101839
+	// https://www.crash-server.com/Problem.aspx?ProblemID=43187
+	// https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=30936
 	for (DirectoryIterC i = items.first; i != items.second; ++i)
 	{
 #ifdef _DEBUG
 		//static int g_count = 0;
 		//dcdebug("QueueFrame::getItemInfo  count = %d i->second->getTarget() = %s\n", ++g_count, i->second->getTarget().c_str());
 #endif
-		if (i->second->getTarget() == target)
+		if (i->second->getTarget() == p_target)
 		{
 			return i->second;
 		}
@@ -451,6 +456,7 @@ HTREEITEM QueueFrame::addDirectory(const string& dir, bool isFileList /* = false
 	if (startAt == NULL)
 	{
 		// First find the correct drive letter or netpath
+		dcassert(dir.size() >= 3);
 		dcassert((dir[1] == ':' && dir[2] == '\\') || (dir[0] == '\\' && dir[1] == '\\'));
 		
 		next = ctrlDirs.GetRootItem();
@@ -491,7 +497,7 @@ HTREEITEM QueueFrame::addDirectory(const string& dir, bool isFileList /* = false
 		
 		// Ok, next now points to x:\... find how much is common
 		
-		string* rootStr = (string*)ctrlDirs.GetItemData(next);
+		const string* rootStr = (string*)ctrlDirs.GetItemData(next);
 		
 		i = 0;
 		if (rootStr)
@@ -626,7 +632,7 @@ void QueueFrame::removeDirectory(const string& dir, bool isFileList /* = false *
 	}
 	
 	next = parent;
-	
+	dcassert(m_closed == false);
 	while (ctrlDirs.GetChildItem(next) == NULL && m_directories.find(getDir(next)) == m_directories.end())
 	{
 		delete reinterpret_cast<string*>(ctrlDirs.GetItemData(next));
@@ -688,6 +694,7 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	tasks.get(t);
 	//m_spoken = false; [-] IRainman opt.
 	
+	dcassert(m_closed == false);
 	for (auto ti = t.cbegin(); ti != t.cend(); ++ti)
 	{
 		switch (ti->first)
@@ -730,7 +737,8 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 				queueItems--;
 				dcassert(queueItems >= 0);
 				
-				pair<DirectoryIter, DirectoryIter> i = m_directories.equal_range(ii->getPath());
+				dcassert(m_closed == false);
+				const auto& i = m_directories.equal_range(ii->getPath());
 				DirectoryIter j;
 				for (j = i.first; j != i.second; ++j)
 				{
@@ -892,6 +900,7 @@ void QueueFrame::moveSelectedDir()
 
 void QueueFrame::moveDir(HTREEITEM ht, const string& target)
 {
+	dcassert(m_closed == false);
 	HTREEITEM next = ctrlDirs.GetChildItem(ht);
 	while (next != NULL)
 	{
@@ -1084,9 +1093,9 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 					// ниже сохраняем адрес итератора
 					for (auto i = sources.cbegin(); i != sources.cend(); ++i)
 					{
-						tstring nick = WinUtil::escapeMenu(WinUtil::getNicks(i->getUser(), Util::emptyString));
+						const auto& user = i->first;
+						tstring nick = WinUtil::escapeMenu(WinUtil::getNicks(user, Util::emptyString));
 						// add hub hint to menu
-						const auto& user = i->getUser(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'i->getUser()' expression repeatedly. queueframe.cpp 1067
 						const auto& hubs = ClientManager::getInstance()->getHubNames(user->getCID(), Util::emptyString);
 						if (!hubs.empty())
 							nick += _T(" (") + Text::toT(hubs[0]) + _T(")");
@@ -1094,7 +1103,7 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 						mi.fMask = MIIM_ID | MIIM_TYPE | MIIM_DATA;
 						mi.fType = MFT_STRING;
 						mi.dwTypeData = (LPTSTR)nick.c_str();
-						mi.dwItemData = (ULONG_PTR) & (*i); // http://code.google.com/p/flylinkdc/issues/detail?id=1270
+						mi.dwItemData = (ULONG_PTR) & i->first; // http://code.google.com/p/flylinkdc/issues/detail?id=1270
 						mi.wID = IDC_BROWSELIST + menuItems;
 						browseMenu.InsertMenuItem(menuItems, TRUE, &mi);
 						mi.wID = IDC_REMOVE_SOURCE + 1 + menuItems; // "All" is before sources
@@ -1114,33 +1123,33 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 					// ниже сохраняем адрес итератора
 					for (auto i = badSources.cbegin(); i != badSources.cend(); ++i)
 					{
-						const auto& user = i->getUser();
+						const auto& user = i->first;
 						tstring nick = WinUtil::getNicks(user, Util::emptyString);
-						if (i->isSet(QueueItem::Source::FLAG_FILE_NOT_AVAILABLE))
+						if (i->second.isSet(QueueItem::Source::FLAG_FILE_NOT_AVAILABLE))
 						{
 							nick += _T(" (") + TSTRING(FILE_NOT_AVAILABLE) + _T(")");
 						}
-						else if (i->isSet(QueueItem::Source::FLAG_PASSIVE))
+						else if (i->second.isSet(QueueItem::Source::FLAG_PASSIVE))
 						{
 							nick += _T(" (") + TSTRING(PASSIVE_USER) + _T(")");
 						}
-						else if (i->isSet(QueueItem::Source::FLAG_BAD_TREE))
+						else if (i->second.isSet(QueueItem::Source::FLAG_BAD_TREE))
 						{
 							nick += _T(" (") + TSTRING(INVALID_TREE) + _T(")");
 						}
-						else if (i->isSet(QueueItem::Source::FLAG_NO_NEED_PARTS))
+						else if (i->second.isSet(QueueItem::Source::FLAG_NO_NEED_PARTS))
 						{
 							nick += _T(" (") + TSTRING(NO_NEEDED_PART) + _T(")");
 						}
-						else if (i->isSet(QueueItem::Source::FLAG_NO_TTHF))
+						else if (i->second.isSet(QueueItem::Source::FLAG_NO_TTHF))
 						{
 							nick += _T(" (") + TSTRING(SOURCE_TOO_OLD) + _T(")");
 						}
-						else if (i->isSet(QueueItem::Source::FLAG_SLOW_SOURCE))
+						else if (i->second.isSet(QueueItem::Source::FLAG_SLOW_SOURCE))
 						{
 							nick += _T(" (") + TSTRING(SLOW_USER) + _T(")");
 						}
-						else if (i->isSet(QueueItem::Source::FLAG_UNTRUSTED))
+						else if (i->second.isSet(QueueItem::Source::FLAG_UNTRUSTED))
 						{
 							nick += _T(" (") + TSTRING(CERTIFICATE_NOT_TRUSTED) + _T(")");
 						}
@@ -1320,13 +1329,13 @@ LRESULT QueueFrame::onBrowseList(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 		OMenuItem* omi = (OMenuItem*)mi.dwItemData;
 		if (omi)
 		{
-			QueueItem::Source* s   = (QueueItem::Source*)omi->m_data;
-			dcassert(getSelectedQueueItem() && QueueManager::getInstance()->isSourceValid(getSelectedQueueItem()->getQueueItem(), s));
+			UserPtr* s   = (UserPtr*)omi->m_data;
+			// dcassert(getSelectedQueueItem() && QueueManager::getInstance()->isSourceValid(getSelectedQueueItem()->getQueueItem(), s));
 			// охранник бага http://code.google.com/p/flylinkdc/issues/detail?id=1270
 			try
 			{
-				const auto& hubs = ClientManager::getInstance()->getHubNames(s->getUser()->getCID(), Util::emptyString);
-				QueueManager::getInstance()->addList(HintedUser(s->getUser(), !hubs.empty() ? hubs[0] : Util::emptyString), QueueItem::FLAG_CLIENT_VIEW);
+				const auto& hubs = ClientManager::getInstance()->getHubNames((*s)->getCID(), Util::emptyString);
+				QueueManager::getInstance()->addList(HintedUser(*s, !hubs.empty() ? hubs[0] : Util::emptyString), QueueItem::FLAG_CLIENT_VIEW);
 			}
 			catch (const Exception&)
 			{
@@ -1363,10 +1372,10 @@ LRESULT QueueFrame::onReadd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BO
 			OMenuItem* omi = (OMenuItem*)mi.dwItemData;
 			if (omi)
 			{
-				QueueItem::Source* s = (QueueItem::Source*)omi->m_data;
+				UserPtr* s = (UserPtr*)omi->m_data;
 				try
 				{
-					QueueManager::getInstance()->readd(ii->getTarget(), s->getUser());
+					QueueManager::getInstance()->readd(ii->getTarget(), *s);
 				}
 				catch (const QueueException& e)
 				{
@@ -1392,7 +1401,7 @@ LRESULT QueueFrame::onRemoveSource(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCt
 			{
 				// TODO - внутри еще один рекурсивный UniqueLock lqi(QueueItem::cs);
 				// придумать как избавится от него
-				QueueManager::getInstance()->removeSource(ii->getTarget(), si->getUser(), QueueItem::Source::FLAG_REMOVED);
+				QueueManager::getInstance()->removeSource(ii->getTarget(), si->first, QueueItem::Source::FLAG_REMOVED);
 			}
 		}
 		else
@@ -1403,8 +1412,8 @@ LRESULT QueueFrame::onRemoveSource(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCt
 			OMenuItem* omi = (OMenuItem*)mi.dwItemData;
 			if (omi)
 			{
-				QueueItem::Source* s = (QueueItem::Source*)omi->m_data;
-				QueueManager::getInstance()->removeSource(ii->getTarget(), s->getUser(), QueueItem::Source::FLAG_REMOVED);
+				UserPtr* s = (UserPtr*)omi->m_data;
+				QueueManager::getInstance()->removeSource(ii->getTarget(), *s, QueueItem::Source::FLAG_REMOVED);
 			}
 		}
 	}
@@ -1419,9 +1428,9 @@ LRESULT QueueFrame::onRemoveSources(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndC
 	OMenuItem* omi = (OMenuItem*)mi.dwItemData;
 	if (omi)
 	{
-		if (QueueItem::Source* s = (QueueItem::Source*)omi->m_data)
+		if (UserPtr* s = (UserPtr*)omi->m_data)
 		{
-			QueueManager::getInstance()->removeSource(s->getUser(), QueueItem::Source::FLAG_REMOVED);
+			QueueManager::getInstance()->removeSource(*s, QueueItem::Source::FLAG_REMOVED);
 		}
 	}
 	return 0;
@@ -1438,13 +1447,13 @@ LRESULT QueueFrame::onPM(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL&
 		OMenuItem* omi = (OMenuItem*)mi.dwItemData;
 		if (omi)
 		{
-			if (QueueItem::Source* s = (QueueItem::Source*)omi->m_data)
+			if (UserPtr* s = (UserPtr*)omi->m_data)
 			{
 				// [!] IRainman: Open the window of PM with an empty address if the user NMDC,
 				// as soon as it appears on the hub of the network, the window immediately PM knows about it, and update the Old.
 				// If the user ADC, as soon as he appears on any of the ADC hubs at once a personal window to know.
-				const auto& hubs = ClientManager::getInstance()->getHubs(s->getUser()->getCID(), Util::emptyString);
-				PrivateFrame::openWindow(nullptr, HintedUser(s->getUser(), !hubs.empty() ? hubs[0] : Util::emptyString));
+				const auto& hubs = ClientManager::getInstance()->getHubs((*s)->getCID(), Util::emptyString);
+				PrivateFrame::openWindow(nullptr, HintedUser(*s, !hubs.empty() ? hubs[0] : Util::emptyString));
 			}
 		}
 	}
@@ -1539,6 +1548,7 @@ LRESULT QueueFrame::onPriority(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
 
 void QueueFrame::removeDir(HTREEITEM ht)
 {
+	dcassert(m_closed == false);
 	if (ht == NULL)
 		return;
 	HTREEITEM child = ctrlDirs.GetChildItem(ht);
@@ -1606,6 +1616,7 @@ void QueueFrame::changePriority(bool inc)
 
 void QueueFrame::setPriority(HTREEITEM ht, const QueueItem::Priority& p)
 {
+	dcassert(m_closed == false);
 	if (ht == NULL)
 		return;
 	HTREEITEM child = ctrlDirs.GetChildItem(ht);
@@ -1627,6 +1638,7 @@ void QueueFrame::setPriority(HTREEITEM ht, const QueueItem::Priority& p)
 
 void QueueFrame::setAutoPriority(HTREEITEM ht, const bool& ap)
 {
+	dcassert(m_closed == false);
 	if (ht == NULL)
 		return;
 	HTREEITEM child = ctrlDirs.GetChildItem(ht);
@@ -1804,12 +1816,15 @@ LRESULT QueueFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		}
 		
 		SET_SETTING(QUEUEFRAME_SHOW_TREE, ctrlShowTree.GetCheck() == BST_CHECKED);
+		ctrlQueue.DeleteAllItems();
+		// try fix https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=101839
+		// https://www.crash-server.com/Problem.aspx?ProblemID=43187
+		// https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=30936
 		for (auto i = m_directories.cbegin(); i != m_directories.cend(); ++i)
 		{
 			delete i->second;
 		}
 		m_directories.clear();
-		ctrlQueue.DeleteAllItems();
 		
 		ctrlQueue.saveHeaderOrder(SettingsManager::QUEUEFRAME_ORDER,
 		                          SettingsManager::QUEUEFRAME_WIDTHS, SettingsManager::QUEUEFRAME_VISIBLE);
@@ -1846,6 +1861,7 @@ void QueueFrame::onTab()
 
 void QueueFrame::updateQueue()
 {
+	dcassert(m_closed == false);
 	CWaitCursor l_cursor_wait;
 	ctrlQueue.DeleteAllItems();
 	pair<DirectoryIter, DirectoryIter> i;
@@ -1922,10 +1938,14 @@ LRESULT QueueFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			    !qii->getQueueItem()->getBadSourcesL().empty()) // [!] IRainman fix done [7] https://www.box.net/shared/f516cb76187b328e4bf5
 			{
 				cd->clrText = SETTING(ERROR_COLOR);
+#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 				Colors::alternationBkColor(cd); // [+] IRainman
+#endif
 				return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
 			}
+#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 			Colors::alternationBkColor(cd); // [+] IRainman
+#endif
 			return CDRF_NOTIFYSUBITEMDRAW;
 		}
 		
@@ -2054,11 +2074,12 @@ LRESULT QueueFrame::onRemoveOffline(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 		const auto& sources = ii->getQueueItem()->getSourcesL();
 		for (auto i =  sources.cbegin(); i != sources.cend(); ++i)
 		{
-			if (!i->getUser()->isOnline())
+			if (!i->first->isOnline())
 			{
+				// TODO2
 				// TODO - внутри еще один рекурсивный UniqueLock lqi(QueueItem::cs);
 				// придумать как избавится от него
-				QueueManager::getInstance()->removeSource(ii->getTarget(), i->getUser(), QueueItem::Source::FLAG_REMOVED);
+				QueueManager::getInstance()->removeSource(ii->getTarget(), i->first, QueueItem::Source::FLAG_REMOVED);
 			}
 		}
 	}

@@ -408,18 +408,9 @@ bool FavoriteManager::isNoFavUserOrUserIgnorePrivate(const UserPtr& aUser) const
 
 bool FavoriteManager::isNoFavUserOrUserBanUpload(const UserPtr& aUser) const // [+] IRainman opt.
 {
-	dcassert(!ClientManager::isShutdown());
-	if (isNotEmpty()) // [+]PPA
-	{
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-		FastSharedLock l(csUsers);
-#else
-		Lock l(csUsers);
-#endif
-		const auto l_user = m_users.find(aUser->getCID());
-		return l_user == m_users.end() || l_user->second.getUploadLimit() == FavoriteUser::UL_BAN;
-	}
-	return true;
+	bool p_is_ban;
+	const bool l_is_fav = isFavoriteUser(aUser, p_is_ban);
+	return !l_is_fav || p_is_ban;
 }
 
 bool FavoriteManager::getFavoriteUser(const UserPtr& p_user, FavoriteUser& p_favuser) const // [+] IRainman opt.
@@ -442,7 +433,7 @@ bool FavoriteManager::getFavoriteUser(const UserPtr& p_user, FavoriteUser& p_fav
 	return false;
 }
 
-bool FavoriteManager::isFavoriteUser(const UserPtr& aUser) const
+bool FavoriteManager::isFavoriteUser(const UserPtr& aUser, bool& p_is_ban) const
 {
 	dcassert(!ClientManager::isShutdown());
 	if (isNotEmpty()) // [+]PPA
@@ -452,6 +443,15 @@ bool FavoriteManager::isFavoriteUser(const UserPtr& aUser) const
 #else
 		Lock l(csUsers);
 #endif
+		const auto& l_find = m_users.find(aUser->getCID());
+		if (l_find != m_users.end())
+		{
+			p_is_ban = l_find->second.getUploadLimit() == FavoriteUser::UL_BAN;
+		}
+		else
+		{
+			p_is_ban = false;
+		}
 		return m_users.find(aUser->getCID()) != m_users.end();
 	}
 	return false;
@@ -1367,6 +1367,7 @@ void FavoriteManager::load(SimpleXML& aXml
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 					                                          , l_hub_id
 #endif
+					                                          , false
 					                                         );
 				}
 				else

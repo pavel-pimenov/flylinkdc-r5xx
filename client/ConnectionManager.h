@@ -242,7 +242,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		ConnectionQueueItem::List uploads;
 		
 		/** All active connections */
-		UserConnectionList userConnections;
+		boost::unordered_set<UserConnection*> m_userConnections;
 		
 #define USING_IDLERS_IN_CONNECTION_MANAGER // [!] IRainman fix: don't disable this.
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER

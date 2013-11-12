@@ -285,15 +285,15 @@ public UCHandler<HubFrame>, public UserInfoBaseHandler < HubFrame, UserInfoGuiTr
 		virtual void doDestroyFrame();
 		typedef boost::unordered_map<tstring, HubFrame*> FrameMap;
 		static FrameMap g_frames;
-		static bool g_is_before_close_all;
 		
 		tstring m_shortHubName;
 		uint8_t m_second_count;
 		void setShortHubName(const tstring& p_name);
 		tstring m_redirect;
 		tstring m_complete;
-		
 		bool m_waitingForPW;
+		uint8_t m_password_do_modal;
+		HTHEME m_Theme;
 		
 		Client* client;
 		tstring server;
@@ -325,7 +325,7 @@ public UCHandler<HubFrame>, public UserInfoBaseHandler < HubFrame, UserInfoGuiTr
 		bool updateUser(const OnlineUserTask& u);
 		void removeUser(const OnlineUserTask& u);
 		
-		void updateUserList(UserInfo* ui);
+		void InsertUserList(UserInfo* ui);
 		void updateUserList(); // [!] IRainman opt.
 		bool parseFilter(FilterModes& mode, int64_t& size);
 		bool matchFilter(UserInfo& ui, int sel, bool doSizeCompare = false, FilterModes mode = NONE, int64_t size = 0);
@@ -459,15 +459,14 @@ public UCHandler<HubFrame>, public UserInfoBaseHandler < HubFrame, UserInfoGuiTr
 		}
 		tstring m_filter;
 		string m_window_text;
-		bool   m_is_window_text_update;
+		uint8_t m_is_window_text_update;
 		void updateWindowText()
 		{
 			if (m_is_window_text_update)
 			{
 				// TODO - ограничить размер текста
 				SetWindowText(Text::toT(m_window_text).c_str());
-				m_is_window_text_update = false;
-				//[?] SetMDIFrameMenu();
+				m_is_window_text_update = 0;
 			}
 		}
 		CContainedWindow* m_ctrlFilterContainer;

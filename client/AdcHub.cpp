@@ -73,6 +73,29 @@ AdcHub::~AdcHub()
 	// [-] TimerManager::getInstance()->removeListener(this); [-] IRainman fix.
 	clearUsers();
 }
+void AdcHub::getUserList(OnlineUserList& p_list) const
+{
+			FastLock l(cs);
+			for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
+			{
+				if (i->first != AdcCommand::HUB_SID)
+				{
+					p_list.push_back(i->second);
+				}
+			}
+}
+OnlineUserPtr AdcHub::findUser(const string& aNick) const
+{
+			FastLock l(cs);
+			for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
+			{
+				if (i->second->getIdentity().getNick() == aNick)
+				{
+					return i->second;
+				}
+			}
+			return nullptr;
+}
 
 OnlineUserPtr AdcHub::getUser(const uint32_t aSID, const CID& aCID)
 {
@@ -1552,17 +1575,15 @@ void AdcHub::refreshUserList(bool)
 	fire_user_updated(v);
 }
 
-string AdcHub::checkNick(const string& aNick)
+void AdcHub::checkNick(string& aNick)
 {
-	string tmp = aNick;
 	for (size_t i = 0; i < aNick.size(); ++i)
 	{
-		if (static_cast<uint8_t>(tmp[i]) <= 32)
+		if (static_cast<uint8_t>(aNick[i]) <= 32)
 		{
-			tmp[i] = '_';
+			aNick[i] = '_';
 		}
 	}
-	return tmp;
 }
 
 void AdcHub::send(const AdcCommand& cmd)
@@ -1588,7 +1609,7 @@ void AdcHub::unknownProtocol(uint32_t target, const string& protocol, const stri
 void AdcHub::on(Connected c) noexcept
 {
 	Client::on(c);
-	
+	set_all_my_info_loaded(); // TODO - разобраться и перехватить факт окончания передачи всех юзеров.
 	if (state != STATE_PROTOCOL)
 	{
 		return;

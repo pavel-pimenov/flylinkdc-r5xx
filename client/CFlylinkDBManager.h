@@ -158,6 +158,9 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		                                 const boost::asio::ip::address_v4& p_last_ip);
 		uint32_t get_dic_hub_id(const string& p_hub);
 		void load_global_ratio();
+#ifdef _DEBUG
+		bool m_is_load_global_ratio;
+#endif
 		CFlyRatioItem load_ratio(uint32_t p_hub_id, const string& p_nick, CFlyUserRatioInfo& p_ratio_info, const  boost::asio::ip::address_v4& p_last_ip);
 		boost::asio::ip::address_v4 load_last_ip(uint32_t p_hub_id, const string& p_nick);
 		void update_last_ip(uint32_t p_hub_id, const string& p_nick, const boost::asio::ip::address_v4& p_last_ip);
@@ -285,11 +288,22 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		sqlite3_connection m_flySQLiteDB;
 		
 #ifdef FLYLINKDC_USE_LEVELDB
-		FastCriticalSection    m_leveldb_cs;
+		// FastCriticalSection    m_leveldb_cs;
 		CFlyLevelDB        m_flyLevelDB;
 #endif // FLYLINKDC_USE_LEVELDB
 		
 		CFlyPathCache m_path_cache;
+#ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
+	private:
+		auto_ptr<sqlite3_command> m_update_identity_stat_get;
+		auto_ptr<sqlite3_command> m_update_identity_stat_set;
+		auto_ptr<sqlite3_command> m_insert_identity_stat;
+		void identity_initL(const string& p_key, const string& p_value, const string& p_hub);
+	public:
+		void identity_set(string p_key, string p_value, const string& p_hub = "-");
+		void identity_get(string p_key, string p_value, const string& p_hub = "-");
+#endif // FLYLINKDC_USE_GATHER_IDENTITY_STAT
+	private:
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		auto_ptr<sqlite3_command> m_select_fly_server_cache;
 		auto_ptr<sqlite3_command> m_insert_fly_server_cache;

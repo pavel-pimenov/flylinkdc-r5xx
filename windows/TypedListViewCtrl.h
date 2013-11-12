@@ -577,12 +577,16 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 			return CListViewCtrl::InsertColumn(nCol, columnHeading.c_str(), nFormat, nWidth, nSubItem);
 		}
 		// [+] InfinitySky. Alpha for PNG.
+#ifdef FLYLINKDC_USE_LIST_VIEW_WATER_MARK
 		BOOL SetBkColor(COLORREF cr, UINT nID = 0)
 		{
-			if (nID != 0) WinUtil::setListCtrlWatermark(m_hWnd, nID, cr);
+			if (nID != 0)
+			{
+				WinUtil::setListCtrlWatermark(m_hWnd, nID, cr);
+			}
 			return CListViewCtrl::SetBkColor(cr);
 		}
-		
+#endif
 		void showMenu(const POINT &pt)
 		{
 			headerMenu.DestroyMenu();
@@ -710,10 +714,12 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 			return 0;
 		}
 		
+#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 		LRESULT onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled) //[!]PPA TODO Copy-Paste
 		{
 			return Colors::alternationonCustomDraw(pnmh, bHandled);
 		}
+#endif
 		
 		void saveHeaderOrder(SettingsManager::StrSetting order, SettingsManager::StrSetting widths,
 		                     SettingsManager::StrSetting visible)
@@ -822,7 +828,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		
 		T* getSelectedItem() const
 		{
-			return (GetSelectedCount() > 0 ? getItemData(GetNextItem(-1, LVNI_SELECTED)) : NULL);
+			return GetSelectedCount() > 0 ? getItemData(GetNextItem(-1, LVNI_SELECTED)) : nullptr;
 		}
 		
 	private:
@@ -924,7 +930,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 			}
 		}
 	public:
-		void SetItemFilled(const LPNMLVCUSTOMDRAW p_cd, CRect p_rc2, COLORREF p_textColor = Colors::textColor, COLORREF p_textColorUnfocus = Colors::textColor)
+		void SetItemFilled(const LPNMLVCUSTOMDRAW p_cd, const CRect& p_rc2, COLORREF p_textColor = Colors::textColor, COLORREF p_textColorUnfocus = Colors::textColor)
 		{
 			COLORREF color;
 			if (GetItemState((int)p_cd->nmcd.dwItemSpec, LVIS_SELECTED) & LVIS_SELECTED)
@@ -1113,7 +1119,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 			}
 		}
 		
-		void insertGroupedItem(T* item, bool autoExpand, bool extra = false)
+		void insertGroupedItem(T* item, bool autoExpand, bool extra, bool p_use_image_callback)
 		{
 			T* parent = nullptr;
 			ParentPair* pp = nullptr;
@@ -1131,7 +1137,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 				parents.insert(ParentMapPair(const_cast<K*>(&parent->getGroupCond()), newPP));
 				
 				parent->parent = nullptr; // ensure that parent of this item is really NULL
-				insertItem(getSortPos(parent), parent, parent->getImageIndex()); // https://www.box.net/shared/24b38a950762faa8e45e
+				insertItem(getSortPos(parent), parent, p_use_image_callback ? I_IMAGECALLBACK : parent->getImageIndex());
 				return;
 			}
 			else if (pp->children.empty())
@@ -1152,7 +1158,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 					pp->children.push_back(oldParent); // mark old parent item as a child
 					parent->hits++;
 					
-					pos = insertItem(getSortPos(parent), parent, parent->getImageIndex());
+					pos = insertItem(getSortPos(parent), parent, p_use_image_callback ? I_IMAGECALLBACK : parent->getImageIndex());
 				}
 				else
 				{

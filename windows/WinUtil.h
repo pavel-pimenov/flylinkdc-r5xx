@@ -1330,6 +1330,7 @@ struct Colors
 	}
 	static void getUserColor(const UserPtr& user, COLORREF &fg, COLORREF &bg, const OnlineUserPtr& onlineUser = nullptr); // !SMT!-UI
 	
+#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 	// [+] IRainman The alternation of the background color in lists.
 	static void alternationBkColor(LPNMLVCUSTOMDRAW cd)
 	{
@@ -1346,6 +1347,23 @@ struct Colors
 		{
 			cd->clrTextBk = HLS_TRANSFORM(((cd->clrTextBk == CLR_DEFAULT) ? ::GetSysColor(COLOR_WINDOW) : cd->clrTextBk), -9, 0);
 		}
+		/*
+		Error #315: UNINITIALIZED READ: reading 0x0025db48-0x0025db4c 4 byte(s)
+		# 0 Colors::alternationBkColorAlways                                           [c:\vc10\r5xx\windows\winutil.h:1347]
+		# 1 Colors::alternationonCustomDraw                                            [c:\vc10\r5xx\windows\winutil.cpp:4293]
+		# 2 TypedListViewCtrl<SearchFrame::HubInfo,1181>::onCustomDraw                 [c:\vc10\r5xx\windows\typedlistviewctrl.h:719]
+		# 3 SearchFrame::ProcessWindowMessage                                          [c:\vc10\r5xx\windows\searchfrm.h:83]
+		# 4 ATL::CWindowImplBaseT<WTL::CMDIWindow,ATL::CWinTraits<1456406528,64> >::WindowProc [c:\program files (x86)\microsoft visual studio 10.0\vc\atlmfc\include\atlwin.h:3503]
+		# 5 USER32.dll!gapfnScSendMessage                                             +0x331    (0x766b62fa <USER32.dll+0x162fa>)
+		# 6 USER32.dll!GetThreadDesktop                                               +0xd6     (0x766b6d3a <USER32.dll+0x16d3a>)
+		# 7 USER32.dll!GetWindow                                                      +0x3ef    (0x766b965e <USER32.dll+0x1965e>)
+		# 8 USER32.dll!SendMessageW                                                   +0x4b     (0x766b96c5 <USER32.dll+0x196c5>)
+		# 9 COMCTL32.dll!DetachScrollBars                                             +0x1fb    (0x71ebc05d <COMCTL32.dll+0x2c05d>)
+		#10 COMCTL32.dll!ImageList_CoCreateInstance                                   +0x770    (0x71eb5eba <COMCTL32.dll+0x25eba>)
+		#11 COMCTL32.dll!Ordinal395                                                   +0x40d    (0x71eb2a3b <COMCTL32.dll+0x22a3b>)
+		Note: @0:01:22.093 in thread 6916
+		Note: instruction: cmp    0x34(%edx) $0xff000000
+		*/
 	}
 	
 	static COLORREF getAlternativBkColor(LPNMLVCUSTOMDRAW cd)
@@ -1354,6 +1372,13 @@ struct Colors
 		         cd->nmcd.dwItemSpec % 2 != 0) ? HLS_TRANSFORM(Colors::bgColor, -9, 0) : Colors::bgColor);
 	}
 	// [~] IRainman
+#else
+	inline static COLORREF getAlternativBkColor(LPNMLVCUSTOMDRAW cd)
+	{
+		return Colors::bgColor;
+	}
+	
+#endif
 	
 	// [+] SSA
 	static bool getColorFromString(const tstring& colorText, COLORREF& color);
@@ -1366,6 +1391,7 @@ struct Colors
 	static CHARFORMAT2 g_ChatTextSystem;
 	static CHARFORMAT2 g_TextStyleBold;
 	static CHARFORMAT2 g_TextStyleFavUsers;
+	static CHARFORMAT2 g_TextStyleFavUsersBan;
 	static CHARFORMAT2 g_TextStyleOPs;
 	static CHARFORMAT2 g_TextStyleURL;
 	static CHARFORMAT2 g_ChatTextPrivate;
@@ -1682,7 +1708,9 @@ class WinUtil
 		static int setButtonPressed(int nID, bool bPressed = true);
 //TODO      static bool checkIsButtonPressed(int nID);// [+] IRainman
 
+#ifdef FLYLINKDC_USE_LIST_VIEW_WATER_MARK
 		static bool setListCtrlWatermark(HWND hListCtrl, UINT nID, COLORREF clr, int width = 128, int height = 128); // [+] InfinitySky. PNG Support from Apex 1.3.8.
+#endif
 		static string getWMPSpam(HWND playerWnd = NULL);
 		static string getItunesSpam(HWND playerWnd = NULL);
 		static string getMPCSpam();
@@ -1853,8 +1881,9 @@ class WinUtil
 		{
 			text.resize(element.GetWindowTextLength());
 			if (text.size() > 0)
+			{
 				element.GetWindowText(&text[0], text.size() + 1);
-				
+			}
 			return text.size();
 		}
 		

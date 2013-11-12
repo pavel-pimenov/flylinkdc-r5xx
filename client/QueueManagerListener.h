@@ -21,6 +21,7 @@
 
 #include "forward.h"
 #include "noexcept.h"
+#include "Download.h"
 
 class QueueManagerListener
 {

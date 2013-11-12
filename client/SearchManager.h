@@ -93,7 +93,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 				void shutdown()
 				{
 					stop = true;
-					s.signal();
+					m_s.signal();
 				}
 				void addResult(const string& buf, const string& ip)
 				{
@@ -101,12 +101,12 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 						FastLock l(cs);
 						resultList.push_back(make_pair(buf, ip));
 					}
-					s.signal();
+					m_s.signal();
 				} // Venturi Firewall 2012-04-23_22-28-18_A6JRQEPFW5263A7S7ZOBOAJGFCMET3YJCUYOVCQ_34B61CDE_crash-stack-r501-build-9812.dmp
 				
 			private:
 				FastCriticalSection cs; // [!] IRainman opt: use spin lock here.
-				Semaphore s;
+				Semaphore m_s;
 				
 				deque<pair<string, string>> resultList;
 				

@@ -595,12 +595,12 @@ LRESULT FavoriteHubsFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 {
 	if (!m_closed)
 	{
+		m_closed = true;
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 		safe_destroy_timer();
 #endif
 		SettingsManager::getInstance()->removeListener(this);
 		FavoriteManager::getInstance()->removeListener(this);
-		m_closed = true;
 		WinUtil::setButtonPressed(IDC_FAVORITES, false);
 		PostMessage(WM_CLOSE);
 		return 0;

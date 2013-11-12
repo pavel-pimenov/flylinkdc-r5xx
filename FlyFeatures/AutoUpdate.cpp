@@ -923,7 +923,7 @@ void AutoUpdate::runFlyUpdate()
 		//shex.fMask          = 0;
 		//shex.hwnd           = NULL; //(HWND)*this;
 		shex.lpVerb         = L"open";
-		shex.lpFile         = L"flyUpdate.exe";// flyUpdate.c_str();
+		shex.lpFile         = L"FlyUpdate.exe";// flyUpdate.c_str();
 		shex.lpParameters   = parameters.c_str();
 		shex.lpDirectory    = flyUpdatepath.c_str(); //updateApplication.c_str();
 		shex.nShow          = SW_NORMAL;

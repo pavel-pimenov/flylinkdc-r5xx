@@ -20,8 +20,6 @@
 #define USERINFO_COLUMNS_H
 
 
-#ifdef IRAINMAN_USE_NG_FAST_USER_INFO
-
 enum
 {
 	COLUMN_FIRST,
@@ -59,6 +57,5 @@ enum
 	COLUMN_LAST
 };
 
-#endif
 
 #endif // USERINFO_COLUMNS_H

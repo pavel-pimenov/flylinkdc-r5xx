@@ -114,7 +114,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 			}
 		}
 		/*#ifdef IRAINMAN_ENABLE_AUTO_BAN
-		        else if (param.compare(0, 4, "BAN ") == 0)   // !SMT!-B
+		        else if (param.compare(0, 4, "BAN ", 4) == 0)   // !SMT!-B
 		        {
 		            fire(UserConnectionListener::BanMessage(), this, param); // !SMT!-B
 		        }
@@ -182,7 +182,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 			fire(UserConnectionListener::Supports(), this, move(StringTokenizer<string>(param, ' ').getTokensForWrite())); // [!] IRainman fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
 		}
 	}
-	else if (cmd.compare(0, 3, "ADC") == 0)
+	else if (cmd.compare(0, 3, "ADC", 3) == 0)
 	{
 		dispatch(aLine, true);
 	}
@@ -271,7 +271,7 @@ void UserConnection::on(Data, uint8_t* p_data, size_t p_len) noexcept
 	setLastActivity(GET_TICK());
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	if (p_len)
-		getUser()->AddRatioDownload(getSocket()->getIp(), p_len);
+		getUser()->AddRatioDownload(getSocket()->getIp4(), p_len);
 #endif
 	fire(UserConnectionListener::Data(), this, p_data, p_len);
 }
@@ -281,7 +281,7 @@ void UserConnection::on(BytesSent, size_t p_Bytes, size_t p_Actual) noexcept
 	setLastActivity(GET_TICK());
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	if (p_Actual)
-		getUser()->AddRatioUpload(getSocket()->getIp(), p_Actual);
+		getUser()->AddRatioUpload(getSocket()->getIp4(), p_Actual);
 #endif
 	fire(UserConnectionListener::BytesSent(), this, p_Bytes, p_Actual);
 }
@@ -305,8 +305,11 @@ void UserConnection::on(Updated) noexcept
 void UserConnection::on(Failed, const string& aLine) noexcept
 {
 	setState(STATE_UNCONNECTED);
+	if (getUser()) // fix crash https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=44660
+	{
+		getUser()->fixLastIP();
+	}
 	fire(UserConnectionListener::Failed(), this, aLine);
-	
 	delete this;
 }
 

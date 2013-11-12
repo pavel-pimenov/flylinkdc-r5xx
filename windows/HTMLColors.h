@@ -55,4 +55,14 @@ static const HTMLColors g_htmlColors[] =
 
 #undef RGBT
 
+#ifdef SCALOLAZ_BB_COLOR_BUTTON
+static string RGB2HTMLHEX(int val)
+{
+	char buf[16];
+	buf[0] = 0;
+	snprintf(buf, _countof(buf), "%.2X%.2X%.2X", GetRValue(val), GetGValue(val), GetBValue(val));
+	return buf;
+}
+#endif //SCALOLAZ_BB_COLOR
+
 #endif // _HTML_COLORS_H_

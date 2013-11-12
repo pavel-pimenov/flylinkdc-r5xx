@@ -1,4 +1,652 @@
 ------------------------------------------------------------------------
+r16027 | pavel.pimenov@gmail.com | 2013-11-11 19:55:24 +0400 (Пн, 11 ноя 2013) | 10 lines
+
+Merged revision(s) 16023-16026 from trunk:
+# Вернул сломанный в r15718 decBytesShared - если юзер уходил с хаба общая шара не уменьшалась. (Спасибо Диме за найденный баг)
+........
+# Вот как опасно if без фигурных скобочек - из-за экрана вырезал вызов g_comCtlVersion = getComCtlVersionFromOS();
+........
+# Блокируем лишние сортировки если не загрузился весь список (добавлен метод is_all_my_info_loaded)
+  для ADC - он пока не работает
+# Экраном FLYLINKDC_USE_REALSHARED_IDENTITY отключил храненеи RealBytesShared в Identity (64 бита и нигде не юзаются)  
+........
+
+------------------------------------------------------------------------
+r16022 | pavel.pimenov@gmail.com | 2013-11-11 06:53:23 +0400 (Пн, 11 ноя 2013) | 266 lines
+
+# r502-stable [merge]
+Merged revision(s) 15925-16020 from trunk:
+# Фикс копи-пасты. 2 * 60 * 1000 сделал  константой http://code.google.com/p/flylinkdc/source/detail?r=15920
+........
+* (closed issue 876) http://code.google.com/p/flylinkdc/issues/detail?id=876
+ - Выделять забаненных пользователей не как друзей, а по другому (к примеру так же как и игнорируемых).
+ TODO - можно пиделать еще и отдельный шрифт для забанненых в чате - вот тут есть детект
+		bool l_is_ban;
+		const bool isFavorite = !bMyMess && FavoriteManager::getInstance()->isFavoriteUser(id.getUser(),l_is_ban);     //TODO - унести выше.
+		const CHARFORMAT2& currentCF =
+		    bMyMess ? Colors::g_TextStyleMyNick :
+		    isFavorite ? Colors::g_TextStyleFavUsers :
+		    id.isOp() ? Colors::g_TextStyleOPs :
+		    BOOLSETTING(BOLD_AUTHOR_MESS) ? Colors::g_TextStyleBold :
+		    cf;
+		insertAndFormat(_T("<"), cf);
+		insertAndFormat(sAuthor, currentCF);
+		insertAndFormat(_T("> "), cf);
+
+........
+# Исключаем в рантайме загрузку пустых IP в CFlylinkDBManager::load_ratio
+  TODO - отказаться от хранения Ip в виде внешнего ключа и убрать подзапрос (select name from fly_dic where id = dic_ip)
+........
+# Убрал вызов GetWindowTheme на каждой отрисовке
+  TODO - сделать базовый классик protected - с HTHEME m_Theme; а то копипаста
+........
+# Astyle [public-build]
+........
+* К http://code.google.com/p/flylinkdc/issues/detail?id=876
+ - Сделал измененеи цвета +100 для забаненых друганов http://www.flickr.com/photos/96019675@N02/10667044804/ чтобы различались
+ - Оптимизнул Colors::getUserColor в user->hasAutoBan выполнялся повторный поиск друганов
+........
+# Попытка исправить зависание при завершении http://www.flickr.com/photos/96019675@N02/10667231623/
+  1. первым гасем менеджер таймера и потом HashManager
+  2. У менеджера хеширования странный двойной сигнал если пауза. зачем тут два раза signal пока не понял
+void signal()
+{
+	if (paused) 
+	{
+		m_s.signal();
+	}
+	m_s.signal();
+}
+
+
+........
+# Залогировал preparingCoreToShutdown - и продублировал вызов в void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
+  предположение что оно не зовется при автообновлении и привозит к висякам
+........
+# Astyle [public-build]
+........
+Исправлена сборка без использования GDI+ на вкладках, т.е. без определения #define IRAINMAN_USE_GDI_PLUS_TAB 1
+........
+# Log [public-build]
+
+........
+# Исправил багу в isNoFavUserOrUserBanUpload
+........
+# setThreadPriority(PRIORITY); // AppVerifier ругается иногда тут http://www.flickr.com/photos/96019675@N02/10669352575/
+........
+* issue 876 http://code.google.com/p/flylinkdc/issues/detail?id=876
+  Добавил раскраску цветами забанненых и в чате http://www.flickr.com/photos/96019675@N02/10669544285/ 
+........
+# Добавил диагностику в Thread::setThreadPriority. [public-build]
+........
+# PopupManager::newInstance(); запускаем позже.
+  - MainFrame::REMOVE_POPUP шлем всегда чтобы не пропустить удаление балонов
+........
+# About + Mikhail Korbakov <mike.korbakov@gmail.com>
+........
+# Astyle [public-build]
+........
+# Убрал возможность отрубить ENABLE_HUBTOPIC
+  команду "HubTopic" отрабатываем всегда
+  http://mydc.ru/topic915.html?p=6687#entry6687
+
+$HubTopic
+
+Синтаксис:
+Код
+$HubTopic [Топик]|
+Направление команды:
+Хаб ---> Клиент
+Описание:
+Команда $HubTopic отсылает клиенту топик хаба, на подобии IRC.
+[Топик] - это строка, содержащая топик.
+Доступность команды в клиентах:
+Данная команда поддерживается почти всеми современными клиентами.
+Данная команда поддерживается следующими хабами: Verlihub, RusHub. Хаб PtokaX не поддерживает данную команду, однако команда может отправляться скриптом. На поддержку данной команды может указывать наличие дополнения HubTopic в команде $Supports, однако, это наличие не обязательно. 
+........
+* Отключил детект устаревшей версии винды (по результатам обсуждения в хабе)
+........
+# Исправил раскарску в списке юзеров (спасиьбо JhaoDa)
+........
+* (fixed issue 1379) NmdcHub - Нет поддержки команды BotList
+   http://code.google.com/p/flylinkdc/issues/detail?id=1379 
+........
+# Astyle [public-build]
+........
+# Log
+........
+# Мертвые батники слияний [public-build]
+
+........
+* (Fixed issue 1383) Не сохраняется позиция курсора при повторной активации вкладки чата. (спасибо Dmitry Volkov)
+  http://code.google.com/p/flylinkdc/issues/detail?id=1383 
+........
+# virtual void checkNick(string& p_nick) = 0; сделал без временной переменной
+........
+# test вставок в unordered_map
+........
+# Исправил вызов методе string::compare
+  без хинта с размером последнего аргумента const char* он звал для него strlen
+  
+........
+# Отключил фичу IRAINMAN_INCLUDE_USER_CHECK - если активировать то на хабах со 100 тыс умрет
+........
+# Не ругаемся в дебаге в void removeListener(Listener* aListener) если подписок нет вообще
+........
+# Фикс сборки Thread::setThreadPriority в консольной версии проги (тесты)
+........
+* (Starting issue 1384)  http://code.google.com/p/flylinkdc/issues/detail?id=1384
+ - В NmdcHub::updateFromTag убрал лишний вложенный StringTokenizer<string> для разбора достаточно одной команды sscanf_s с маской %u/%u/%u"
+ - В мапах юзеров и ников не делаем предварительного поиск вида g_users.find и OnlineUserPtr ou = findUser(aNick)
+   а сразу выполняем вставку в коллекцию. с последующим анализом возврата pair <iterator, bool> - ускорение ~ 2 раза.
+ - Добавлен параметр-подсказка p_first_load помогающие исключить лишние операции при первичной загрузке юзеров по стартовым пачкам MyINFO
+ - Добавлен упрощенная версия setNickFast юез нее ник у UserPtr апдейтился два раза.
+........
+# Выкинул string && tag в updateFromTag
+........
+# В resizeInBuf исключаем заказ буфера с размером = 0 + диагностика
+........
+# Issue 1384 http://code.google.com/p/flylinkdc/issues/detail?id=1384
+  - Добавлено событие BufferedSocketListener::MyInfoArray
+  - в BufferedSocket::threadRead() детектируем прием пакетов $MyINFO
+    как только после вместо $MyINFO прийходит другая команда - считаем что хаб скинул полный список на клиент
+    и событие MyInfoArray блокируется. вкучается стандартная обработка $MyINFO по одной штуки.
+  TODO 
+   - Разобраться дублирующим toUtf8 (или вообще звать их для нужных частей сктрок а не для всей aLine)
+   - Для массива MyInfoArray выполнять Reserve
+   - Исключить операцию l.erase(0, pos + 1 /* separator char */);
+     т.к. она выполняет избыточное смещение большого блока памяти (как правило 6-5к) мелкими шажками откусывая сначала элементы
+     пока не закончится обработка всего принятого через сокет куска $MyINFO-ек.
+
+........
+# Ругаюсь dcassert(mode == MODE_LINE);
+# Astyle [public-build]
+
+........
+# Опт в OperaColors::ClearCache()
+# Исправлен лик HBITMAP в FloodFill
+........
+# Убрал тяжелый код OperaColors::FloodFill из хедера
+........
+# Astyle [public-build]
+........
+# В обработке команды $SR убрал лишний обход результат поиска в алогритме count(x.begin() + j, x.end(), 0x05)
+ для подчета колв-а разделителей с кодом 5 + после подсчета кол-ва убрал лишние поиски 
+   j = x.rfind(0x05) 
+   j = x.find((char)5, i)
+
+ TODO 
+   - оптимизнуть ClientManager::getInstance()->findHub(hubIpPort) 
+   - ClientManager::getInstance()->setIPUser(from, remoteIp, udpPort); 
+     Ищем в OnlineUser а чуть выше ищем в UserPtr UserPtr user = ClientManager::getInstance()->findUser(nick, url);
+     может тожно схлопнуть в один поиск для апдейта IP
+
+........
+* Убрал из Identity макросы и лишние секции/массивы для обработки справочников
+* К проекту добавлена часть системной либы webrtc (используется в chromium)
+  http://webrtc.googlecode.com/svn/stable/src/system_wrappers  
+  для прозрачного использования Slim Reader/Writer (SRW) Locks если система Vista или выше.
+  http://msdn.microsoft.com/en-us/library/aa904937.aspx
+* Перевел на SRW работу с Identity
+........
+# К логу плохиз команд добавил урл хаба.
+  LogManager::getInstance()->message("NmdcHub::onLine Unknown hub = " + getHubUrl() + " command = " + cmd + " param = " + param);
+........
+* r503-beta5
+........
+# Попробую бетку собрать в ReleaseFullOpt - посмотрю на стеки падения.
+........
+# Log
+........
+# Дополнение r15968
+........
+* Дополнение к r15938:
+Добавлена настройка цвета ника для Враг\Забаненный
+........
+* (Closed issue 575): https://code.google.com/p/flylinkdc/issues/detail?id=575
+Добавьте кнопочку на BB-code панель что бы можно было менять цвет шрифта в чате
+# Astyle [public-build]
+........
+# Исправление r15976
+# [public-build]
+........
+# Исправил падение в &setString[0] при пустой строке (дополнение к http://code.google.com/p/flylinkdc/source/detail?r=15977)
+  TODO - поправить координаты вывода диалога выбора цвета
+  
+........
+* (Fixed issue 1382) Не запоминает IP в контакт листе
+   http://code.google.com/p/flylinkdc/issues/detail?id=1382
+........
+# Поправил коменты
+........
+* (Fixed issue 1316) http://code.google.com/p/flylinkdc/issues/detail?id=1316
+  IP в базу кидаю только для видимых записей (иначе тормозит)
+........
+* Обновил webrtc до svn - версии.
+........
+# Astyle
+........
+# Исправлен путь к webrtc/system_wrappers/interface/rw_lock_wrapper.h
+........
+# Log
+........
+# Исправлено падение в void UserConnection::on(Failed, const string& aLine) 
+........
+# Log
+........
+# Добавлена отладочная сборка статистики рабоыт со строковыми параметрами в Identity
+  инфа скидывается в таблицу sqlite http://www.flickr.com/photos/96019675@N02/10735486246/ 
+  в файл базы данных FlylinkDC_stat.sqlite
+  TODO - добавить сбор статы и по числовым параметрам.
+  для оценки частоты обращений к атрибутам
+........
+* Закрыл падение https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=44646
+........
+# Закрыл потенциальное место зависона в получения ответа от флай сервера (mergeFlyServerInfo) 
+  почему вешается пока не нашел
+........
+# DHT - логирую ошибку DHT - SearchManager::processSearchRequest Error term.size() != 39
+........
+# Исправления логики сохранения рейтинга. убрал лишние мемберы и преобразования IP в строку
+........
+# SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
+........
+* (Fixed issue 1388) Пропали некоторые в ПКМ-меню пользователя
+  http://code.google.com/p/flylinkdc/issues/detail?id=1388
+  TODO - разобраться как я это сломал.
+........
+# Astyle
+........
+* ( Continue Issue 948 ) : https://code.google.com/p/flylinkdc/issues/detail?id=948
+Сделать более простым для понимания пользователя перевод ошибок подключения к хабу.
+
+........
+# Little BB-Color Conversion fix: B R G -> R G B
+........
+# Исправлены падения в void User::AddRatioUpload и void User::AddRatioDownload
+
+........
+# Log
+........
+# Дополнение r15983 (правкапроектов VS2012 и VS2013)
+........
+# Second Little BB-Color Conversion fix
+........
+* ( Fixed Issue 1390 ) https://code.google.com/p/flylinkdc/issues/detail?id=1390 : После выбора тэга форматирования любым BB-кодом вся строка ввода оказывается выделенной.
+........
+# Astyle [public-build]
+........
+#
+........
+
+
+------------------------------------------------------------------------
+r16021 | pavel.pimenov@gmail.com | 2013-11-11 06:45:17 +0400 (Пн, 11 ноя 2013) | 1 line
+
+# Маркер падения
+------------------------------------------------------------------------
+r15924 | pavel.pimenov@gmail.com | 2013-11-03 18:46:56 +0400 (Вс, 03 ноя 2013) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r15923 | pavel.pimenov@gmail.com | 2013-11-03 18:29:45 +0400 (Вс, 03 ноя 2013) | 14 lines
+
+Merged revision(s) 15922 from trunk:
+*  Исправлена ошибка приводящая к ошибкам загрузки по http
+Ошибки выглядят так:
+[2013-11-02 17:07:50] InternetOpenUrl [http://checkip.dyndns.com] error =
+Операция успешно завершена.[error: 0]
+[2013-11-02 17:07:50] [Step ] [GetIP] Error download : Операция успешно
+завершена.[error: 0] [3553 ms]
+[2013-11-02 17:34:41] InternetOpenUrl [http://checkip.dyndns.com] error =
+Операция успешно завершена.[error: 0]
+[2013-11-02 17:34:41] [Step ] [GetIP] Error download : Операция на
+незаблокированном сокете не может быть завершена немедленно.[error: 10035] [2669
+ms]
+........
+
+------------------------------------------------------------------------
+r15921 | pavel.pimenov@gmail.com | 2013-11-03 17:20:51 +0400 (Вс, 03 ноя 2013) | 2 lines
+
+Merged revision(s) 15920 from trunk:
+
+------------------------------------------------------------------------
+r15919 | pavel.pimenov@gmail.com | 2013-11-03 17:14:16 +0400 (Вс, 03 ноя 2013) | 1 line
+
+# В релизе тоже показываем потребляемые ресурсы в заголовке окна
+------------------------------------------------------------------------
+r15918 | pavel.pimenov@gmail.com | 2013-11-03 17:11:49 +0400 (Вс, 03 ноя 2013) | 37 lines
+
+Merged revision(s) 15894-15917 from trunk:
+........
+* (Closed issue 1223) При просмотре файл-листов помним файл, на котором стояли для всех каталогов
+  и если возвращаемя в тот каталог повторно - курсор восстанавливается на старом файле.
+  (данные хранятся в памяти и после закрытия фрейма - все забывается)
+  http://code.google.com/p/flylinkdc/issues/detail?id=1223
+........
+# issue 1372 Очередь закачки - часто зовем userQueue.setQIPriority(q, p)
+   http://code.google.com/p/flylinkdc/issues/detail?id=1372
+- Ищу причну падений в релизе 502
+   https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=43669
+   std::deque<QueueItemPtr> QueueItemList вернул в std::list<QueueItemPtr> QueueItemList; (не инвалидаируются итераторы)
+- QueueManager::addSourceL - при загрузке очереди при старте не делаем лишние проверки.
+- Убрал логи в void QueueItem::removeSourceL
+........
+* (Fixed issue 1370) Высокая частота отсылки MyINFO хабам
+  - Сделал 2 минуты.
+  - TODO - влить в r4xx и strongdc++sqlite
+........
+* Исправлено переполнение стека при бесконечном вызове окна запроса пароля (вероятно человек долго не подходил к компу)
+  https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=103355
+........
+* (Closed issue 1374) Поправил зависание при закрытии клиента с большим количеством хабов (флаг закрытия клиент-менеджера нужно поднимать раньше)
+  http://code.google.com/p/flylinkdc/issues/detail?id=1374
+........
+# При получении IP в NetworkPage::onGetIP если вернулась пустота - не затираем предыдущий IP 
+  TODO - почему возвращает пустота пока не понял. возможно глючит http://checkip.dyndns.com
+Ошибки выглядят так:
+[2013-11-02 17:07:50] InternetOpenUrl [http://checkip.dyndns.com] error = Операция успешно завершена.[error: 0]
+[2013-11-02 17:07:50] [Step ] [GetIP] Error download : Операция успешно завершена.[error: 0] [3553 ms]
+[2013-11-02 17:34:41] InternetOpenUrl [http://checkip.dyndns.com] error = Операция успешно завершена.[error: 0]
+[2013-11-02 17:34:41] [Step ] [GetIP] Error download : Операция на незаблокированном сокете не может быть завершена немедленно.[error: 10035] [2669 ms]
+........
+# Логические ошибки в CFlylinkDBManager::errorDB скидываем на флай-сервер для анализа.
+  если сброс прошел корректно - не вызываем исключение и вызов crash-server-а (туда дамп слать бесполезно - лишняя трата трафика)
+
+
+------------------------------------------------------------------------
+r15916 | pavel.pimenov@gmail.com | 2013-11-03 17:04:35 +0400 (Вс, 03 ноя 2013) | 1 line
+
+# log
+------------------------------------------------------------------------
+r15893 | pavel.pimenov@gmail.com | 2013-10-31 20:15:10 +0400 (Чт, 31 окт 2013) | 155 lines
+
+*r502 - merge
+Merged revision(s) 15860-15892 from trunk:
+* (Started issue 1366) [Рефакторинг] Перевести некоторые контейнеры в DownloadManager ConnectionManager на map
+ http://code.google.com/p/flylinkdc/issues/detail?id=1366
+ - Требуется ревью и тест под нагрузкой - повесил где мог assert-ы в дебаге постреливает.
+ - Временно убрал boost::unordered_map<UserPtr - т.к. к ним не цепляется флаевская хеш-функция
+   template <> struct hash<UserPtr> { size_t operator()(const UserPtr & x) const	{return ((size_t)(&(*x))) / sizeof(User);}};
+  Сама функция тоже вызывает вопросы - почему она такая?
+
+........
+* [merge] 
+  Исправлено падение https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=43397
+........
+# Log [public-build]
+........
+# OpenSSL Исправлен возможный лик 
+  http://openssl.6102.n7.nabble.com/Memory-leak-while-using-OpenSSL-library-td38670.html
+........
+# Fix [http://code.google.com/p/drmemory/]
+Error #280: UNINITIALIZED READ: reading register cx
+# 0 RPCRT4.dll!NdrConformantStringBufferSize                 +0x7f     (0x767c03d0 <RPCRT4.dll+0x203d0>)
+# 1 RPCRT4.dll!NdrConformantStringBufferSize                 +0x2b     (0x767c037d <RPCRT4.dll+0x2037d>)
+# 2 RPCRT4.dll!NdrPointerBufferSize                          +0x28     (0x767b6c03 <RPCRT4.dll+0x16c03>)
+# 3 RPCRT4.dll!?                                             +0x0      (0x76850104 <RPCRT4.dll+0xb0104>)
+# 4 CFGMGR32.dll!CMP_RegisterNotification                    +0x1b4    (0x7515766e <CFGMGR32.dll+0x766e>)
+# 5 CFGMGR32.dll!CMP_RegisterNotification                    +0x116    (0x751575d0 <CFGMGR32.dll+0x75d0>)
+# 6 USER32.dll!DeregisterShellHookWindow                     +0x151    (0x766ddb9e <USER32.dll+0x3db9e>)
+# 7 USER32.dll!RegisterDeviceNotificationW                   +0x32     (0x766ddc27 <USER32.dll+0x3dc27>)
+# 8 FsUtils::CFsTypeDetector::IsStreamSupported               [c:\vc10\r5xx\client\fsutils.cpp:53]
+# 9 HashManager::StreamStore::loadTree                        [c:\vc10\r5xx\client\hashmanager.cpp:73]
+#10 HashManager::Hasher::run                                  [c:\vc10\r5xx\client\hashmanager.cpp:1064]
+#11 Thread::starter                                           [c:\vc10\r5xx\client\thread.h:307]
+Note: @0:01:03.633 in thread 10252
+Note: instruction: data16 test   %cx %cx
+
+........
+# uploads.erase(uploads.cbegin()); -> uploads.pop_front();
+........
+# Вырезал экраном раскарску списков в "полосочку"
+- Лишняя трата CPU
+- Странно ругается доктор
+Error #315: UNINITIALIZED READ: reading 0x0025db48-0x0025db4c 4 byte(s)
+# 0 Colors::alternationBkColorAlways                                           [c:\vc10\r5xx\windows\winutil.h:1347]
+# 1 Colors::alternationonCustomDraw                                            [c:\vc10\r5xx\windows\winutil.cpp:4293]
+# 2 TypedListViewCtrl<SearchFrame::HubInfo,1181>::onCustomDraw                 [c:\vc10\r5xx\windows\typedlistviewctrl.h:719]
+# 3 SearchFrame::ProcessWindowMessage                                          [c:\vc10\r5xx\windows\searchfrm.h:83]
+# 4 ATL::CWindowImplBaseT<WTL::CMDIWindow,ATL::CWinTraits<1456406528,64> >::WindowProc [c:\program files (x86)\microsoft visual studio 10.0\vc\atlmfc\include\atlwin.h:3503]
+# 5 USER32.dll!gapfnScSendMessage                                             +0x331    (0x766b62fa <USER32.dll+0x162fa>)
+# 6 USER32.dll!GetThreadDesktop                                               +0xd6     (0x766b6d3a <USER32.dll+0x16d3a>)
+# 7 USER32.dll!GetWindow                                                      +0x3ef    (0x766b965e <USER32.dll+0x1965e>)
+# 8 USER32.dll!SendMessageW                                                   +0x4b     (0x766b96c5 <USER32.dll+0x196c5>)
+# 9 COMCTL32.dll!DetachScrollBars                                             +0x1fb    (0x71ebc05d <COMCTL32.dll+0x2c05d>)
+#10 COMCTL32.dll!ImageList_CoCreateInstance                                   +0x770    (0x71eb5eba <COMCTL32.dll+0x25eba>)
+#11 COMCTL32.dll!Ordinal395                                                   +0x40d    (0x71eb2a3b <COMCTL32.dll+0x22a3b>)
+Note: @0:01:22.093 in thread 6916
+Note: instruction: cmp    0x34(%edx) $0xff000000
+ 
+........
+# Маркеры ошибк в CBarShader - пока не знаю как поправить и в чем ошибка.
+........
+# Сократил расчет индекса иконки g_fileImage.getIconIndex(sr->getFile()) в окнах поиска и списка файлов
+  Индекс теперь получается на I_IMAGECALLBACK и кешируется
+  TODO - обощить класс кеширования индекса иконки для файлов и сделать базовым классов где это нужно.
+........
+# В Закладках исправлен закус памяти на 2 байта если ключены кнопки-закрывашки.
+   dc.GetTextExtent(name.data(), m_len + (g_TabsCloseButtonEnabled ? 2 : 0), &m_size)
+  Фукция updateTextData звалась даже тогда, когда не меняется размер текста.
+
+	Error #264: UNINITIALIZED READ: reading 0x0490d8fa-0x0490d8fc 2 byte(s)
+	# 0 GDI32.dll!GetCurrentPositionEx                                            +0x374    (0x74e593ff <GDI32.dll+0x193ff>)
+	# 1 GDI32.dll!GetTextExtentPoint32W                                           +0x17     (0x74e5c11f <GDI32.dll+0x1c11f>)
+	# 2 WTL::CDCT<0>::GetTextExtent                                                [c:\vc10\r5xx\wtl\atlgdi.h:2566]
+	# 3 FlatTabCtrlImpl<FlatTabCtrl,ATL::CWindow,ATL::CWinTraits<1442840576,0> >::TabInfo::updateTextData [c:\vc10\r5xx\windows\flattabctrl.h:1113]
+	# 4 FlatTabCtrlImpl<FlatTabCtrl,ATL::CWindow,ATL::CWinTraits<1442840576,0> >::TabInfo::updateText [c:\vc10\r5xx\windows\flattabctrl.h:1099]
+	# 5 FlatTabCtrlImpl<FlatTabCtrl,ATL::CWindow,ATL::CWinTraits<1442840576,0> >::updateText [c:\vc10\r5xx\windows\flattabctrl.h:354]
+	# 6 FlatTabCtrl::updateText                                                    [c:\vc10\r5xx\windows\flattabctrl.h:1548]
+	# 7 MDITabChildWindowImpl<HubFrame,255,129,130,WTL::CMDIWindow,ATL::CWinTraits<1456406528,64> >::onSetText [c:\vc10\r5xx\windows\flattabctrl.h:1781]
+	# 8 MDITabChildWindowImpl<HubFrame,255,129,130,WTL::CMDIWindow,ATL::CWinTraits<1456406528,64> >::ProcessWindowMessage [c:\vc10\r5xx\windows\flattabctrl.h:1616]
+	# 9 HubFrame::ProcessWindowMessage                                             [c:\vc10\r5xx\windows\hubframe.h:105]
+	#10 ATL::CWindowImplBaseT<WTL::CMDIWindow,ATL::CWinTraits<1456406528,64> >::WindowProc [c:\program files (x86)\microsoft visual studio 10.0\vc\atlmfc\include\atlwin.h:3503]
+	#11 USER32.dll!gapfnScSendMessage                                             +0x331    (0x766b62fa <USER32.dll+0x162fa>)
+	Note: @0:00:54.876 in thread 11732
+	Note: instruction: data16 test   (%edx,%eax,2) %cx
+
+........
+# Маркер лика в закладках
+Error #349: LEAK 65543 direct bytes 0x0657ec30-0x0658ec37 + 0 indirect bytes
+# 0 gdiplus.dll!GdipCreateSolidFill                                           +0x1c6    (0x717a7246 <gdiplus.dll+0x47246>)
+# 1 gdiplus.dll!GdipCreateSolidFill                                           +0x58c6a  (0x717ffcea <gdiplus.dll+0x9fcea>)
+# 2 gdiplus.dll!GdipCreateSolidFill                                           +0x10026  (0x717b70a6 <gdiplus.dll+0x570a6>)
+# 3 gdiplus.dll!GdipCreateSolidFill                                           +0x5b64a  (0x718026ca <gdiplus.dll+0xa26ca>)
+# 4 gdiplus.dll!GdipCreateSolidFill                                           +0x701d6  (0x71817256 <gdiplus.dll+0xb7256>)
+# 5 gdiplus.dll!GdipCreateSolidFill                                           +0x70bd8  (0x71817c58 <gdiplus.dll+0xb7c58>)
+# 6 gdiplus.dll!GdipCreateSolidFill                                           +0xfc85   (0x717b6d05 <gdiplus.dll+0x56d05>)
+# 7 gdiplus.dll!GdipCreateSolidFill                                           +0xfd99   (0x717b6e19 <gdiplus.dll+0x56e19>)
+# 8 gdiplus.dll!GdipCreateSolidFill                                           +0x10e2f  (0x717b7eaf <gdiplus.dll+0x57eaf>)
+# 9 gdiplus.dll!GdipFillPath                                                  +0x111    (0x7179ce81 <gdiplus.dll+0x3ce81>)
+#10 Gdiplus::Graphics::FillPath                                                [c:\program files (x86)\microsoft sdks\windows\v7.0a\include\gdiplusgraphics.h:1136]
+#11 FlatTabCtrlImpl<FlatTabCtrl,ATL::CWindow,ATL::CWinTraits<1442840576,0> >::drawTab [c:\vc10\r5xx\windows\flattabctrl.h:1359]
+  
+........
+# fly-server исключем зависание при закрытии приложения.
+  TODO - Убрать копипаст и много флажков isShutdown - оставить один глобальный
+........
+# Не понятный лик и DestroySplash зоем два раза.
+Error #365: LEAK 40 direct bytes 0x027d7f78-0x027d7fa0 + 0 indirect bytes
+# 0 COMCTL32.dll!DPA_Grow                 +0xf5     (0x71ec0d15 <COMCTL32.dll+0x30d15>)
+# 1 COMCTL32.dll!GetWindowSubclass        +0x5235   (0x71eabb74 <COMCTL32.dll+0x1bb74>)
+# 2 USER32.dll!gapfnScSendMessage         +0x331    (0x766b62fa <USER32.dll+0x162fa>)
+# 3 USER32.dll!GetDC                      +0x51     (0x766b7316 <USER32.dll+0x17316>)
+# 4 USER32.dll!GetThreadDesktop           +0x184    (0x766b6de8 <USER32.dll+0x16de8>)
+# 5 USER32.dll!UnregisterClassW           +0x7bb    (0x766ba740 <USER32.dll+0x1a740>)
+# 6 ntdll.dll!KiUserCallbackDispatcher    +0x2d     (0x7761010a <ntdll.dll+0x1010a>)
+# 7 USER32.dll!UnregisterClassW           +0xab7    (0x766baa3c <USER32.dll+0x1aa3c>)
+# 8 USER32.dll!CreateWindowExW            +0x32     (0x766b8a5c <USER32.dll+0x18a5c>)
+# 9 ATL::CWindow::Create                   [c:\program files (x86)\microsoft visual studio 10.0\vc\atlmfc\include\atlwin.h:818]
+#10 CreateSplash                           [c:\vc10\r5xx\windows\main.cpp:274]
+#11 Run                                    [c:\vc10\r5xx\windows\main.cpp:340]
+........
+# Обновление имени хаба в закладке выполняем только когда оно действительно меняется.
+........
+* (Started issue 1223) Сохранять позицию курсора в файллисте при переходе на один уровень выше по нажатии кнопки "Backspace"
+  http://code.google.com/p/flylinkdc/issues/detail?id=1223
+  - Алгоритм будет запоминать все позиции файлов.
+  - Пока не работает - запутался и что-то сделла не так :) 
+........
+# Убрал спам в релизе /client/Client.h(94): warning C4189: 'old' : local variable is initialized but not referenced
+........
+* [mediainfo][merge]
+x MXF: issue with Seek(0)
+x MPEG-4: another way to show edit list (still not OK, but it fixes an issue with time codes)
++ JPEG 2000, better display of gray images
++ General_FolderName for URLs, update
+
+........
+# Маркеры возможных утечек
+........
+# GETSET(size_t, hits, Hits); сделал статическим
+........
+# Повесил логи в void ClientManager::on(NmdcSearch
+........
+* (Closed issue 1368) Ускорил закрытие всех хабов или всего приложения
+  http://code.google.com/p/flylinkdc/issues/detail?id=1368
+........
+* (Closed issue 1223) При просмотре файл-листов помним файл, на котором стояли для всех каталогов
+  и если возвращаемя в тот каталог повторно - курсор восстанавливается на старом файле.
+  (данные хранятся в памяти и после закрытия фрейма - все забывается)
+  http://code.google.com/p/flylinkdc/issues/detail?id=1223
+........
+# Временно добавил проверку + лог в void QueueItem::removeSourceL (определить причину падения)
+........
+# r503-beta3
+* Починил сломанный поиск
+........
+
+------------------------------------------------------------------------
+r15863 | pavel.pimenov@gmail.com | 2013-10-29 23:37:42 +0400 (Вт, 29 окт 2013) | 1 line
+
+# r502-release-sp1.1 Log
+------------------------------------------------------------------------
+r15861 | pavel.pimenov@gmail.com | 2013-10-29 23:18:23 +0400 (Вт, 29 окт 2013) | 1 line
+
+* Исправлено падение https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=43397
+------------------------------------------------------------------------
+r15857 | pavel.pimenov@gmail.com | 2013-10-29 20:23:15 +0400 (Вт, 29 окт 2013) | 1 line
+
+# r502-release-sp1 Log
+------------------------------------------------------------------------
+r15855 | pavel.pimenov@gmail.com | 2013-10-29 19:54:00 +0400 (Вт, 29 окт 2013) | 88 lines
+
+* r502-release hotfix-1
+
+Merged revision(s) 15807-15854 from trunk:
+* Исправлен путь к смайлу SmilesMegaPack\rip1.gif (Спасибо havokdan)
+........
+* Исправлен путь к смайлу SmilesMegaPack\bye.gif (Спасибо havokdan)
+........
+* (Fixed issue 1363) Неверное отображение кумулятивной статистики приянтого/отданного по команде /stats
+   http://code.google.com/p/flylinkdc/issues/detail?id=1363
+........
+* (Fixed issue 1359) UPNP работает некорректно при наличии более 1 сетевого интефейса.
+  http://code.google.com/p/flylinkdc/issues/detail?id=1359
+........
+# Дополнение к http://code.google.com/p/flylinkdc/source/detail?r=15830#
+  - Сократил размер стека в CompatibilityManager::generateProgramStats()
+  - На всякий случай проверим живость CFlylinkDBManager
+........
+* Попытка исправит падения
+  https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=101839
+  https://www.crash-server.com/Problem.aspx?ProblemID=43187
+  https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=30936
+  ctrlQueue.DeleteAllItems(); зовем раньше разрушения m_directories
+........
+# Функция isBadSourceExceptL а внутри зачем-то стоит Lock
+........
+# Дополнение к http://code.google.com/p/flylinkdc/source/detail?r=15830#
+  - На всякий случай проверим живость CFlylinkDBManager
+........
+# Очередь - Стиль кодирования, isSourceValid перенес ниже
+........
+* (Started issue 1366) Перевести некоторые контейнеры в DownloadManager ConnectionManager на map
+  http://code.google.com/p/flylinkdc/issues/detail?id=1366
+........
+# Опечатка - не собиралась Release конфигурация
+........
+# Log [public-build]
+........
+*(Fixed issue 1329) Неправильная обработка adc:// (adcs://) ссылок в чате (Спасибо MikeKMV)
+   http://code.google.com/p/flylinkdc/issues/detail?id=1329
+   Сломали в r15028 между 
+   FlylinkDC-r502-src-beta106-build-15058-2013.08.23-21.21.09.7z и 
+   FlylinkDC-r502-src-beta104-build-15012-2013.08.21-05.31.47.7z
+........
+* (Starting issue 1365) Возможно уйдут падения в QueueItemPtr QueueManager::UserQueue::getNextL 
+  http://code.google.com/p/flylinkdc/issues/detail?id=1365
+........
+# DBMaanager 
+  - Колонки HubHint не используются в таблицах fly_queue и fly_queue_source (пока не уверен, что это хорошо)
+  - Пропускаем insert into fly_queue_source если l_user->getCID() пустой (TODO разобраться почему он такой бывает)
+# В SearchFrame::addSearchResult не зовем CFlylinkDBManager::getInstance()->update_last_ip пот 0 ID хаба (TODO разобраться почему не расчитался)
+........
+# Astyle
+........
+# Log [public-build]
+........
+* fly-server
+ - CFlyServerQueryThread не создаем если ENABLE_FLY_SERVER == false
+ - Ожидаем закрытие потока в onClose до повторного PostMessage(WM_CLOSE)
+   TODO - разобраться зачем зовется PostMessage(WM_CLOSE) из обработки onClose
+   не понял в чем финт.
+ - Обощил зачистку pausedResults.clear() во фрейме поиска
+ - Быстрее входим из цикла обработки mergeFlyServerInfo если окно закрыли
+ - В окне поиска обновляем только нужные колонки (пропадание отрисовки значения рейтинга змечено только в окне файл-листов
+   http://code.google.com/p/flylinkdc/issues/detail?id=1113
+........
+# Astyle
+........
+# Log [public-build]
+........
+# Исправлено падения при закрытии окон списка файлов и поиска [public-build]
+  - https://crash-server.com/Bug.aspx?ClientID=ppa&ProblemID=43326
+  - https://crash-server.com/Bug.aspx?ClientID=ppa&ProblemID=43333
+........
+* [public-build] Исправлена визуализация смайлов из базовых паков FlylinkSmilesInternational и FlylinkSmiles
+  если активен другой набор смайлов. (сканирование всего каталога EmoPacks не выполняем для экономии ресурсов)
+  TODO - сделать галку для полного скана всех паков?
+........
+# Убрал поля HubHint из sql запросов к fly_queue - они пока не используются
+........
+# Отключил не используемую перделку от InfinitySky
+........
+# fly-server убрал зависания в mergeFlyServerInfo при активной нагрузке и одновременном закрытии фреймов (обязательно влить в r4xx)
+........
+# Привел подъем флага m_closed в методах onClose к единому виду
+........
+# Log [public-build]
+........
+
+------------------------------------------------------------------------
+r15828 | pavel.pimenov@gmail.com | 2013-10-27 16:29:43 +0400 (Вс, 27 окт 2013) | 4 lines
+
+# r502-release
+  - http://code.google.com/p/flylinkdc/issues/detail?id=1361
+  - fix AnimPack\rip1.gif и AnimPack\bye.gif
+  - APP-ID = D7F972BA-ACF7-451E-88D5-FF0B98BD085D
+------------------------------------------------------------------------
+r15817 | pavel.pimenov@gmail.com | 2013-10-25 23:19:18 +0400 (Пт, 25 окт 2013) | 1 line
+
+#
+------------------------------------------------------------------------
+r15814 | pavel.pimenov@gmail.com | 2013-10-25 20:44:25 +0400 (Пт, 25 окт 2013) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r15813 | pavel.pimenov@gmail.com | 2013-10-25 20:09:49 +0400 (Пт, 25 окт 2013) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r15811 | pavel.pimenov@gmail.com | 2013-10-25 20:01:18 +0400 (Пт, 25 окт 2013) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r15810 | pavel.pimenov@gmail.com | 2013-10-25 19:57:42 +0400 (Пт, 25 окт 2013) | 1 line
+
+# Сменил APP_ID для r502-release
+------------------------------------------------------------------------
 r15808 | pavel.pimenov@gmail.com | 2013-10-25 19:03:40 +0400 (Пт, 25 окт 2013) | 2 lines
 
 # r502-release. часть 1

@@ -246,11 +246,9 @@ class CFlyServerAdapter
 			 :m_debugWaits(false)
 #endif
 		{
-			m_query_thread = std::unique_ptr<CFlyServerQueryThread>(new CFlyServerQueryThread(this));
 		}
 		virtual ~CFlyServerAdapter()
 		{
-			dcassert(m_query_thread);
 			dcassert(m_debugWaits);
 			dcassert(m_GetFlyServerArray.empty());
 			dcassert(m_SetFlyServerArray.empty());
@@ -259,18 +257,24 @@ class CFlyServerAdapter
 		void waitForFlyServerStop()
 		{
 			dcdrun(m_debugWaits = true;)
-			m_query_thread->join(); // Дождемся завершения.
-			}
+			if(m_query_thread)
+			   m_query_thread->join(); // Дождемся завершения.
+		}
 
 		bool is_fly_server_active() const
-				{
-			return m_query_thread->is_active();
+		{
+			if(m_query_thread)
+			  return m_query_thread->is_active();
+			else
+			  return false;
 		}
 		void addFlyServerTask(uint64_t p_tick)
 		{
 			if (BOOLSETTING(ENABLE_FLY_SERVER))
 			{
-				m_query_thread->processTask(this, p_tick);
+				if(!m_query_thread)
+				    m_query_thread = std::unique_ptr<CFlyServerQueryThread>(new CFlyServerQueryThread(this));
+				m_query_thread->processTask(p_tick);
 			}
 		}
 		void clearFlyServerQueue()
@@ -309,8 +313,8 @@ class CFlyServerAdapter
 					}
 					return 0;
 				}
-				void processTask(CFlyServerAdapter* p_adapter, uint64_t p_tick)
-					{
+				void processTask(uint64_t p_tick)
+				{
 						if (p_tick > m_previous_tick + g_minimal_interval_in_ms)
 						{
 							m_previous_tick = p_tick;
@@ -343,10 +347,12 @@ class CFlyServerAdapter
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 			static void pushStatistic(const bool p_is_sync_run);
 #endif
+			static bool pushError(const string& p_error);
+			
 			// TODO static void logout();
 			static string g_fly_server_id;
 			static string connect(const CFlyServerKeyArray& p_fileInfoArray, bool p_is_fly_set_query);
-			static string postQuery(bool p_is_set, bool p_is_stat_server, const char* p_query, const string& p_body, bool& p_is_send);
+			static string postQuery(bool p_is_set, bool p_is_stat_server, const char* p_query, const string& p_body, bool& p_is_send);		
 		};
 
 		std::unique_ptr<CFlyServerQueryThread> m_query_thread;

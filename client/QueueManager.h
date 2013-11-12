@@ -212,25 +212,15 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		
 		void getTargets(const TTHValue& tth, StringList& sl);
 #ifdef _DEBUG
-		bool isSourceValid(const QueueItemPtr& p_qi, const QueueItem::Source* p_source_ptr)
+		bool isSourceValid(const QueueItemPtr& p_qi, const QueueItem::Source* p_source_ptr) const
 		{
-			SharedLock l(QueueItem::cs); // [+] IRainman fix.
-			for (auto i = p_qi->getSourcesL().cbegin(); i != p_qi->getSourcesL().cend(); ++i)
-			{
-				if (p_source_ptr == &*i)
-					return true;
-			}
-			return false;
+			return p_qi->isSourceValid(p_source_ptr);
 		}
 #endif
 		static size_t countOnlineUsersL(const QueueItemPtr& p_qi) //[+]FlylinkDC++ Team
 		{
 			// [!] IRainman fix done https://www.box.net/shared/ec264696b10d3fa873e7
 			return p_qi->countOnlineUsersL();
-		}
-		static size_t getSourcesCountL(const QueueItemPtr& qi) // [!] IRainman fix.
-		{
-			return qi->getSourcesL().size();
 		}
 		static void getChunksVisualisation(const QueueItemPtr& qi, vector<pair<Segment, Segment>>& p_runnigChunksAndDownloadBytes, vector<Segment>& p_doneChunks) // [!] IRainman fix.
 		{
@@ -320,7 +310,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		/** Sanity check for the target filename */
 		static string checkTarget(const string& aTarget, const int64_t aSize = -1) throw(QueueException, FileException);
 		/** Add a source to an existing queue item */
-		bool addSourceL(const QueueItemPtr& qi, const UserPtr& aUser, Flags::MaskType addBad) throw(QueueException, FileException); // [!] IRainman fix.
+		bool addSourceL(const QueueItemPtr& qi, const UserPtr& aUser, Flags::MaskType addBad, bool p_is_first_load = false);
 	private:
 		GETSET(uint64_t, lastSave, LastSave);
 		// [!] IRainman opt.
@@ -464,23 +454,17 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		{
 			public:
 				void add(const QueueItemPtr& qi); // [!] IRainman fix.
-				void addL(const QueueItemPtr& qi, const UserPtr& aUser); // [!] IRainman fix.
+				void addL(const QueueItemPtr& qi, const UserPtr& aUser, bool p_is_first_load); // [!] IRainman fix.
 				QueueItemPtr getNextL(const UserPtr& aUser, QueueItem::Priority minPrio = QueueItem::LOWEST, int64_t wantedSize = 0, int64_t lastSpeed = 0, bool allowRemove = false); // [!] IRainman fix.
 				QueueItemPtr getRunningL(const UserPtr& aUser); // [!] IRainman fix.
 				void addDownloadL(const QueueItemPtr& qi, Download* d); // [!] IRainman fix: this function needs external lock.
-				void removeDownloadL(const QueueItemPtr& qi, const UserPtr& d); // [!] IRainman fix: this function needs external lock.
-				void removeL(const QueueItemPtr& qi, bool removeRunning = true); // [!] IRainman fix.
-				void removeL(const QueueItemPtr& qi, const UserPtr& aUser, bool removeRunning = true); // [!] IRainman fix.
-				void setPriority(const QueueItemPtr& qi, QueueItem::Priority p); // [!] IRainman fix.
+				bool removeDownloadL(const QueueItemPtr& qi, const UserPtr& d); // [!] IRainman fix: this function needs external lock.
+				void removeQueueItemL(const QueueItemPtr& qi, bool removeRunning = true); // [!] IRainman fix.
+				void removeUserL(const QueueItemPtr& qi, const UserPtr& aUser, bool removeRunning = true); // [!] IRainman fix.
+				void setQIPriority(const QueueItemPtr& qi, QueueItem::Priority p); // [!] IRainman fix.
 				// [+] IRainman fix.
-				typedef boost::unordered_map<UserPtr, QueueItemList> UserQueueMap;
-				typedef boost::unordered_map<UserPtr, QueueItemPtr> RunningMap;
-				/* [-]
-				   [-]const RunningMap& getRunning() const
-				   [-]{
-				   [-]  return running;
-				   [-]}
-				   [-]*/
+				typedef std::unordered_map<UserPtr, QueueItemList, User::Hash> UserQueueMap; // TODO - set ?
+				typedef std::unordered_map<UserPtr, QueueItemPtr, User::Hash> RunningMap;
 				// [~] IRainman fix.
 #ifdef IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
 				const UserQueueMap& getListL(size_t i) const
@@ -488,37 +472,22 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 					return userQueue[i];
 				}
 #else
-				bool userIsDownloadedFiles(const UserPtr& aUser, QueueItemList& p_status_update_array) noexcept
-				{
-					bool hasDown = false;
-					SharedLock l(QueueItem::cs); // [!] IRainman fix. DeadLock[3]
-					for (size_t i = 0; i < QueueItem::LAST; ++i)
-					{
-						const auto j = userQueue[i].find(aUser);
-						if (j != userQueue[i].end())
-						{
-							p_status_update_array.insert(p_status_update_array.end(), j->second.cbegin(), j->second.cend());
-							if (i != QueueItem::PAUSED)
-								hasDown = true;
-						}
-					}
-					return hasDown;
-				}
+				bool userIsDownloadedFiles(const UserPtr& aUser, QueueItemList& p_status_update_array);
 #endif // IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
 				
 				void getLastError(string& out)
 				{
 					out.clear();
-					swap(out, lastError);
+					swap(out, m_lastError);
 				}
 				
 			private:
 				/** QueueItems by priority and user (this is where the download order is determined) */
-				UserQueueMap userQueue[QueueItem::LAST];
+				UserQueueMap m_userQueue[QueueItem::LAST];
 				/** Currently running downloads, a QueueItem is always either here or in the userQueue */
-				RunningMap running;
+				RunningMap m_running;
 				/** Last error message to sent to TransferView */
-				string lastError;
+				string m_lastError;
 		};
 		
 		friend class QueueLoader;
@@ -532,7 +501,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		/** QueueItems by user */
 		UserQueue userQueue;
 		/** Directories queued for downloading */
-		boost::unordered_multimap<UserPtr, DirectoryItemPtr> directories;
+		std::unordered_multimap<UserPtr, DirectoryItemPtr, User::Hash> directories;
 		/** Recent searches list, to avoid searching for the same thing too often */
 		deque<string> recent;
 		/** The queue needs to be saved */

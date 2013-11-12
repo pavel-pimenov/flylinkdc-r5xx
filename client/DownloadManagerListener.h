@@ -20,7 +20,8 @@
 #define DCPLUSPLUS_DCPP_DOWNLOADMANAGERLISTENER_H_
 
 #include "typedefs.h"
-#include "noexcept.h"
+#include "User.h"
+
 
 /**
  * Use this listener interface to get progress information for downloads.
@@ -65,7 +66,7 @@ class DownloadManagerListener
 		/**
 		 * Sent once a second if something has actually been downloaded.
 		 */
-		virtual void on(Tick, const DownloadList&, uint64_t/*[+]IRainman refactoring transfer mechanism*/) noexcept { }
+		virtual void on(Tick, const DownloadMap&, uint64_t/*[+]IRainman refactoring transfer mechanism*/) noexcept { }
 		
 		/**
 		 * This is the last message sent before a download is deleted.

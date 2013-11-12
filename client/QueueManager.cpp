@@ -326,20 +326,41 @@ void QueueManager::FileQueue::move(const QueueItemPtr& qi, const string& aTarget
 	add(qi);
 }
 
+#ifndef IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
+bool QueueManager::UserQueue::userIsDownloadedFiles(const UserPtr& aUser, QueueItemList& p_status_update_array)
+{
+	bool hasDown = false;
+	SharedLock l(QueueItem::cs); // [!] IRainman fix. DeadLock[3]
+	for (size_t i = 0; i < QueueItem::LAST; ++i)
+	{
+		const auto j = m_userQueue[i].find(aUser);
+		if (j != m_userQueue[i].end())
+		{
+			p_status_update_array.insert(p_status_update_array.end(), j->second.cbegin(), j->second.cend()); // Ѕез лока?
+			if (i != QueueItem::PAUSED)
+				hasDown = true;
+		}
+	}
+	return hasDown;
+}
+#endif // IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
+
 void QueueManager::UserQueue::add(const QueueItemPtr& qi) // [!] IRainman fix.
 {
 	UniqueLock lqi(QueueItem::cs); // [+] IRainman fix.
 	for (auto i = qi->getSourcesL().cbegin(); i != qi->getSourcesL().cend(); ++i)
 	{
-		addL(qi, i->getUser());
+		addL(qi, i->first, false);
 	}
 }
 
-void QueueManager::UserQueue::addL(const QueueItemPtr& qi, const UserPtr& aUser) // [!] IRainman fix.
+void QueueManager::UserQueue::addL(const QueueItemPtr& qi, const UserPtr& aUser, bool p_is_first_load) // [!] IRainman fix.
 {
-	auto& uq = userQueue[qi->getPriority()][aUser];
+	auto& uq = m_userQueue[qi->getPriority()][aUser];
 	
-	if (qi->isSet(QueueItem::FLAG_USER_CHECK) || qi->calcAverageSpeedAndCalcAndGetDownloadedBytesL() > 0)
+// ѕри первой загрузки очереди из базы не зовем calcAverageSpeedAndCalcAndGetDownloadedBytesL
+	if (p_is_first_load == false
+	        && (qi->isSet(QueueItem::FLAG_USER_CHECK) ||  qi->calcAverageSpeedAndCalcAndGetDownloadedBytesL() > 0))
 	{
 		uq.push_front(qi);
 	}
@@ -347,6 +368,7 @@ void QueueManager::UserQueue::addL(const QueueItemPtr& qi, const UserPtr& aUser)
 	{
 		uq.push_back(qi);
 	}
+	
 }
 
 bool QueueManager::FileQueue::getTTH(const string& p_name, TTHValue& p_tth) const
@@ -382,33 +404,32 @@ void QueueManager::FileQueue::on(SettingsManagerListener::QueueChanges) noexcept
 QueueItemPtr QueueManager::UserQueue::getNextL(const UserPtr& aUser, QueueItem::Priority minPrio, int64_t wantedSize, int64_t lastSpeed, bool allowRemove) // [!] IRainman fix.
 {
 	int p = QueueItem::LAST - 1;
-	lastError.clear();
+	m_lastError.clear();
 	do
 	{
-		const auto i = userQueue[p].find(aUser);
-		if (i != userQueue[p].cend())
+		const auto i = m_userQueue[p].find(aUser);
+		if (i != m_userQueue[p].cend())
 		{
 			dcassert(!i->second.empty());
 			for (auto j = i->second.cbegin(); j != i->second.cend(); ++j)
 			{
 				const QueueItemPtr& qi = *j;
 				QueueItem::SourceConstIter l_source = qi->getSourceL(aUser); // [!] IRainman fix done: [10] https://www.box.net/shared/6ea561f898012606519a
-				if (l_source == qi->sources.end()) //[+]PPA
+				if (l_source == qi->m_sources.end()) //[+]PPA
 					continue;
-				if (l_source->isSet(QueueItem::Source::FLAG_PARTIAL)) // TODO Crash
+				if (l_source->second.isSet(QueueItem::Source::FLAG_PARTIAL)) // TODO Crash
 				{
 					// check partial source
 					const int64_t blockSize = qi->getBlockSize();
 					dcassert(blockSize);
-					const Segment segment = qi->getNextSegmentL(blockSize, wantedSize, lastSpeed, l_source->getPartialSource());
+					const Segment segment = qi->getNextSegmentL(blockSize, wantedSize, lastSpeed, l_source->second.getPartialSource());
 					if (allowRemove && segment.getStart() != -1 && segment.getSize() == 0)
 					{
 						// no other partial chunk from this user, remove him from queue
-						removeL(qi, aUser);
+						removeUserL(qi, aUser);
 						qi->removeSourceL(aUser, QueueItem::Source::FLAG_NO_NEED_PARTS);
-						lastError = STRING(NO_NEEDED_PART);
-						p++;
-						break;
+						m_lastError = STRING(NO_NEEDED_PART);
+						return nullptr; // airDC++ http://code.google.com/p/flylinkdc/issues/detail?id=1365
 					}
 				}
 				if (qi->isWaitingL()) // там внутри m_downloads.empty(); поэтому след можно сделать qi->getDownloadsL().front()
@@ -422,21 +443,21 @@ QueueItemPtr QueueManager::UserQueue::getNextL(const UserPtr& aUser, QueueItem::
 					}
 					else
 					{
-						lastError = STRING(ALL_FILE_SLOTS_TAKEN);
+						m_lastError = STRING(ALL_FILE_SLOTS_TAKEN);
 						continue;
 					}
 				}
-				else if (qi->getDownloadsL().front()->getType() == Transfer::TYPE_TREE) // No segmented downloading when getting the tree
+				else if (qi->getDownloadsL().begin()->second->getType() == Transfer::TYPE_TREE) // No segmented downloading when getting the tree
 				{
 					continue;
 				}
 				if (!qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
 				{
 					const int64_t blockSize = qi->getBlockSize();
-					Segment segment = qi->getNextSegmentL(blockSize, wantedSize, lastSpeed, l_source->getPartialSource());
+					const Segment segment = qi->getNextSegmentL(blockSize, wantedSize, lastSpeed, l_source->second.getPartialSource());
 					if (segment.getSize() == 0)
 					{
-						lastError = segment.getStart() == -1 ? STRING(ALL_DOWNLOAD_SLOTS_TAKEN) : STRING(NO_FREE_BLOCK);
+						m_lastError = segment.getStart() == -1 ? STRING(ALL_DOWNLOAD_SLOTS_TAKEN) : STRING(NO_FREE_BLOCK);
 						dcdebug("No segment for %s in %s, block " I64_FMT "\n", aUser->getCID().toBase32().c_str(), qi->getTarget().c_str(), blockSize);
 						continue;
 					}
@@ -453,10 +474,10 @@ QueueItemPtr QueueManager::UserQueue::getNextL(const UserPtr& aUser, QueueItem::
 
 void QueueManager::UserQueue::addDownloadL(const QueueItemPtr& qi, Download* d) // [!] IRainman fix: this function needs external lock.
 {
-	qi->getDownloadsL().push_back(d);
+	qi->addDownloadL(d);
 	// Only one download per user...
-	dcassert(running.find(d->getUser()) == running.end());
-	running[d->getUser()] = qi;
+	dcassert(m_running.find(d->getUser()) == m_running.end());
+	m_running[d->getUser()] = qi;
 }
 void QueueManager::FileQueue::getUserSettingsPriority(const string& target, QueueItem::Priority& p_prio) const
 {
@@ -526,71 +547,79 @@ void QueueManager::FileQueue::calcPriorityAndGetRunningFiles(QueueItem::Priority
 	}
 }
 
-void QueueManager::UserQueue::removeDownloadL(const QueueItemPtr& qi, const UserPtr& user) // [!] IRainman fix: this function needs external lock.
+bool QueueManager::UserQueue::removeDownloadL(const QueueItemPtr& qi, const UserPtr& user) // [!] IRainman fix: this function needs external lock.
 {
-	running.erase(user);
-	
-	for (auto i = qi->getDownloadsL().cbegin(); i != qi->getDownloadsL().cend(); ++i)
-	{
-		if ((*i)->getUser() == user) // bug! http://code.google.com/p/flylinkdc/issues/detail?id=1269
-		{
-			qi->getDownloadsL().erase(i);
-			break;
-		}
-	}
+	m_running.erase(user);
+	return qi->removeDownloadL(user);
 }
 
-void QueueManager::UserQueue::setPriority(const QueueItemPtr& qi, QueueItem::Priority p) // [!] IRainman fix.
+void QueueManager::UserQueue::setQIPriority(const QueueItemPtr& qi, QueueItem::Priority p) // [!] IRainman fix.
 {
 	UniqueLock l(QueueItem::cs); // [+] IRainamn fix.
-	removeL(qi, false);
-	qi->setPriority(p);
+	removeQueueItemL(qi, false);
+	qi->setPriority(p); // TODO дл€ установки приоритета - нужно удалить и снова добавить запись в контейнер? - это зоветс€ очень часто
 	add(qi);
 }
 
 QueueItemPtr QueueManager::UserQueue::getRunningL(const UserPtr& aUser) // [!] IRainman fix.
 {
-	const auto i = running.find(aUser);
-	return (i == running.cend()) ? nullptr : i->second;
+	const auto i = m_running.find(aUser);
+	return i == m_running.cend() ? nullptr : i->second;
 }
 
-void QueueManager::UserQueue::removeL(const QueueItemPtr& qi, bool removeRunning) // [!] IRainman fix.
+void QueueManager::UserQueue::removeQueueItemL(const QueueItemPtr& qi, bool removeRunning) // [!] IRainman fix.
 {
 	const auto& s = qi->getSourcesL();
 	for (auto i = s.cbegin(); i != s.cend(); ++i)
 	{
-		removeL(qi, i->getUser(), removeRunning);
+		removeUserL(qi, i->first, removeRunning);
 	}
 }
 
-void QueueManager::UserQueue::removeL(const QueueItemPtr& qi, const UserPtr& aUser, bool removeRunning) // [!] IRainman fix.
+void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr& aUser, bool removeRunning /* = true */) // [!] IRainman fix.
 {
-	if (removeRunning && qi == getRunningL(aUser))
+	if (removeRunning
+	        && qi == getRunningL(aUser) // Ќужен ли поиск дополнительный перед удалением?
+	   )
 	{
 		removeDownloadL(qi, aUser); // [!] IRainman fix.
 	}
 	const bool isSource = qi->isSourceL(aUser);
 	if (!isSource)
 	{
+		LogManager::getInstance()->message("Error QueueManager::UserQueue::removeUserL [dcassert(isSource)] aUser = [" +
+		                                   aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
 		dcassert(isSource);
 		return;
 	}
 	
-	auto& ulm = userQueue[qi->getPriority()];
-	const auto j = ulm.find(aUser);
+	auto& ulm = m_userQueue[qi->getPriority()];
+	const auto& j = ulm.find(aUser);
 	if (j == ulm.cend())
 	{
+		LogManager::getInstance()->message("Error QueueManager::UserQueue::removeUserL [dcassert(j != ulm.cend())] aUser = [" +
+		                                   aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
 		dcassert(j != ulm.cend());
 		return;
 	}
 	
 	auto& uq = j->second;
-	const auto i = find(uq.begin(), uq.end(), qi);
+	const auto& i = find(uq.begin(), uq.end(), qi);
+	// TODO - перевести на set const auto& i = uq.find(qi);
 	if (i == uq.cend())
 	{
+		LogManager::getInstance()->message("Error QueueManager::UserQueue::removeUserL [dcassert(i != uq.cend());] aUser = [" +
+		                                   aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
 		dcassert(i != uq.cend());
 		return;
 	}
+#ifdef _DEBUG
+	if (uq.size() > 5)
+	{
+		LogManager::getInstance()->message("void QueueManager::UserQueue::removeUserL User = " + aUser->getLastNick() +
+		                                   " uq.size = " + Util::toString(uq.size()));
+	}
+#endif
 	
 	uq.erase(i);
 	if (uq.empty())
@@ -659,7 +688,7 @@ void QueueManager::Rechecker::execute(const string && p_file) // [!] IRainman co
 	}
 	
 	TigerTree tt;
-	string tempTarget;
+	string l_tempTarget;
 	
 	{
 		// [-] Lock l(qm->cs); [-] IRainman fix.
@@ -678,7 +707,7 @@ void QueueManager::Rechecker::execute(const string && p_file) // [!] IRainman co
 		//Clear segments
 		q->resetDownloaded();
 		
-		tempTarget = q->getTempTarget();
+		l_tempTarget = q->getTempTarget();
 	}
 	
 	//Merklecheck
@@ -695,7 +724,7 @@ void QueueManager::Rechecker::execute(const string && p_file) // [!] IRainman co
 	
 	try // [+] IRainman fix.
 	{
-		File inFile(tempTarget, File::READ, File::OPEN);
+		File inFile(l_tempTarget, File::READ, File::OPEN);
 		// [!] IRainman fix done: FileException! 2012-05-03_22-00-59_ASFM4NEIHGU4QDY7Y47A4QA54OSD25MOF4732FQ_4FBD35E8_crash-stack-r502-beta24-build-9900.dmp
 		// 2012-05-11_23-53-01_L6P3Z3TKLYYLIFJTSF2JIMBT67EAZEI6RYDTRSI_6363943D_crash-stack-r502-beta26-build-9946.dmp
 		
@@ -839,7 +868,7 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 		
 		for (auto i = sl.cbegin(); i != sl.cend(); ++i)
 		{
-			QueueItem::PartialSource::Ptr source = i->first->getPartialSource();
+			QueueItem::PartialSource::Ptr source = i->first->second.getPartialSource();
 			const QueueItemPtr& qi = i->second;
 			
 			PartsInfoReqParam* param = new PartsInfoReqParam;
@@ -977,31 +1006,31 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& roo
 	const bool l_testIP = (aFlags & QueueItem::FLAG_USER_GET_IP) == QueueItem::FLAG_USER_GET_IP;
 	const bool l_newItem = !(l_testIP || l_userList);
 	
-	string target;
-	string tempTarget;
+	string l_target;
+	string l_tempTarget;
 	
 	if (l_userList)
 	{
 		dcassert(aUser); // [!] IRainman fix: You can not add to list download an empty user.
-		target = getListPath(aUser);
-		tempTarget = aTarget;
+		l_target = getListPath(aUser);
+		l_tempTarget = aTarget;
 	}
 	else if (l_testIP)
 	{
 		dcassert(aUser); // [!] IRainman fix: You can not add to check download an empty user.
-		target = getListPath(aUser) + ".check";
-		tempTarget = aTarget;
+		l_target = getListPath(aUser) + ".check";
+		l_tempTarget = aTarget;
 	}
 	else
 	{
 		//+SMT, BugMaster: ability to use absolute file path
 		if (File::isAbsolute(aTarget))
-			target = aTarget;
+			l_target = aTarget;
 		else
-			target = FavoriteManager::getInstance()->getDownloadDirectory(Util::getFileExt(aTarget)) + aTarget;//[!] IRainman support download to specify extension dir.
+			l_target = FavoriteManager::getInstance()->getDownloadDirectory(Util::getFileExt(aTarget)) + aTarget;//[!] IRainman support download to specify extension dir.
 		//target = SETTING(DOWNLOAD_DIRECTORY) + aTarget;
 		//-SMT, BugMaster: ability to use absolute file path
-		target = checkTarget(target); // [!] IRainman fix. FlylinkDC use Size on 2nd parametr!
+		l_target = checkTarget(l_target); // [!] IRainman fix. FlylinkDC use Size on 2nd parametr!
 		// TODO - checkTarget т€жела€ функци€ зовет
 		// 1. string target = Util::validateFileName(aTarget); [!] IRainman - вр€д ли это можно как то оптимизировать - провер€ть корректность символов в пут€х необходимо,  однако можно засунуть весь вызов одновременной загрузки кучи файлов в отдельный поток ;)
 		// 2. int64_t sz = File::getSize(target); [!] IRainman - исправлено.
@@ -1014,8 +1043,8 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& roo
 	{
 		if (!BOOLSETTING(SKIP_ZERO_BYTE))
 		{
-			File::ensureDirectory(target);
-			File f(target, File::WRITE, File::CREATE);
+			File::ensureDirectory(l_target);
+			File f(l_target, File::WRITE, File::CREATE);
 		}
 		return;
 	}
@@ -1025,7 +1054,7 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& roo
 	{
 		// [-] Lock l(cs); [-] IRainman fix.
 		
-		QueueItemPtr q = fileQueue.find(target);
+		QueueItemPtr q = fileQueue.find(l_target);
 		if (q == nullptr && l_newItem
 		        && (BOOLSETTING(MULTI_CHUNK) && aSize > SETTING(MIN_MULTI_CHUNK_SIZE) * 1024 * 1024) // [+] IRainman size in MB.
 		   )
@@ -1058,14 +1087,14 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& roo
 				*/
 				int64_t l_existingFileSize;
 				time_t l_eistingFileTime;
-				if (File::isExist(target, l_existingFileSize, l_eistingFileTime))
+				if (File::isExist(l_target, l_existingFileSize, l_eistingFileTime))
 				{
 					m_curOnDownloadSettings = SETTING(ON_DOWNLOAD_SETTING);
 					if (m_curOnDownloadSettings == SettingsManager::ON_DOWNLOAD_REPLACE && BOOLSETTING(KEEP_FINISHED_FILES_OPTION))
 						m_curOnDownloadSettings = SettingsManager::ON_DOWNLOAD_ASK;
 						
 					if (m_curOnDownloadSettings == SettingsManager::ON_DOWNLOAD_ASK)
-						fire(QueueManagerListener::TryAdding(), target, aSize, l_existingFileSize, l_eistingFileTime, m_curOnDownloadSettings);
+						fire(QueueManagerListener::TryAdding(), l_target, aSize, l_existingFileSize, l_eistingFileTime, m_curOnDownloadSettings);
 						
 					switch (m_curOnDownloadSettings)
 					{
@@ -1075,10 +1104,10 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& roo
 							    return;
 							*/
 						case SettingsManager::ON_DOWNLOAD_REPLACE:
-							File::deleteFile(target); // Delete old file.  FlylinkDC Team TODO: recheck existing file to save traffic and download time.
+							File::deleteFile(l_target); // Delete old file.  FlylinkDC Team TODO: recheck existing file to save traffic and download time.
 							break;
 						case SettingsManager::ON_DOWNLOAD_RENAME:
-							target = Util::getFilenameForRenaming(target); // for safest: call Util::getFilenameForRenaming twice from gui and core.
+							l_target = Util::getFilenameForRenaming(l_target); // for safest: call Util::getFilenameForRenaming twice from gui and core.
 							break;
 						case SettingsManager::ON_DOWNLOAD_SKIP:
 							return;
@@ -1086,7 +1115,7 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& roo
 				}
 			}
 			// [~] SSA - check file exist
-			q = fileQueue.add(target, aSize, aFlags, QueueItem::DEFAULT, tempTarget, GET_TIME(), root);
+			q = fileQueue.add(l_target, aSize, aFlags, QueueItem::DEFAULT, l_tempTarget, GET_TIME(), root);
 			fire(QueueManagerListener::Added(), q);
 		}
 		else
@@ -1146,12 +1175,13 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& roo
 void QueueManager::readdAll(const QueueItemPtr& q) throw(QueueException) // [+] IRainman opt.
 {
 	UniqueLock l(QueueItem::cs);
-	const auto badSources = q->getBadSourcesL();
+	const auto& badSources = q->getBadSourcesL();
 	for (auto s = badSources.cbegin(); s != badSources.cend(); ++s)
 	{
-		const auto u = s->getUser();
-		if (addSourceL(q, u, QueueItem::Source::FLAG_MASK))
-			ConnectionManager::getInstance()->getDownloadConnection(u);
+		if (addSourceL(q, s->first, QueueItem::Source::FLAG_MASK))
+		{
+			ConnectionManager::getInstance()->getDownloadConnection(s->first);
+		}
 	}
 }
 
@@ -1225,20 +1255,25 @@ string QueueManager::checkTarget(const string& aTarget, const int64_t aSize) thr
 }
 
 /** Add a source to an existing queue item */
-bool QueueManager::addSourceL(const QueueItemPtr& qi, const UserPtr& aUser, Flags::MaskType addBad) throw(QueueException, FileException) // [!] IRainman fix.
+bool QueueManager::addSourceL(const QueueItemPtr& qi, const UserPtr& aUser, Flags::MaskType addBad, bool p_is_first_load)
 {
 	dcassert(aUser); // [!] IRainman fix: Unable to add a source if the user is empty! Check your code!
-	/* [-] IRainman fix.
-	if (!aUser) //[+]PPA http://flylinkdc.blogspot.com/2009/11/crash-strong-r3154.html
-	    throw QueueException("[C++Bug] aUser = NULL! Target:" + Util::getFileName(qi->getTarget()));
-	[-] */
-	
 	bool wantConnection;
 	{
 		// [-] UniqueLock l(QueueItem::cs); // [-] IRainman fix.
 		
-		wantConnection = (qi->getPriority() != QueueItem::PAUSED) && !userQueue.getRunningL(aUser);
+		//dcassert(p_is_first_load == true && !userQueue.getRunningL(aUser) || p_is_first_load == false);
+		if (p_is_first_load)
+		{
+			wantConnection = true;
+		}
+		else
+		{
+			wantConnection = (qi->getPriority() != QueueItem::PAUSED)
+			                 && !userQueue.getRunningL(aUser);
+		}
 		
+		dcassert(p_is_first_load == true && !qi->isSourceL(aUser) || p_is_first_load == false);
 		if (qi->isSourceL(aUser))
 		{
 			if (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
@@ -1247,7 +1282,7 @@ bool QueueManager::addSourceL(const QueueItemPtr& qi, const UserPtr& aUser, Flag
 			}
 			throw QueueException(STRING(DUPLICATE_SOURCE) + ": " + Util::getFileName(qi->getTarget()));
 		}
-		
+		dcassert(p_is_first_load == true && !qi->isBadSourceExceptL(aUser, addBad) || p_is_first_load == false);
 		if (qi->isBadSourceExceptL(aUser, addBad))
 		{
 			throw QueueException(STRING(DUPLICATE_SOURCE) + ": " + Util::getFileName(qi->getTarget()));
@@ -1258,22 +1293,27 @@ bool QueueManager::addSourceL(const QueueItemPtr& qi, const UserPtr& aUser, Flag
 		    qi->removeSource(aUser, QueueItem::Source::FLAG_PASSIVE);
 		    wantConnection = false;
 		} else */
-		if (qi->isFinishedL())
+		if (p_is_first_load == false && qi->isFinishedL())
 		{
 			wantConnection = false;
 		}
 		else
 		{
-			if (!qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP)) // http://code.google.com/p/flylinkdc/issues/detail?id=1088
+			if (p_is_first_load == false)
 			{
-				PLAY_SOUND(SOUND_SOURCEFILE);
+				if (!qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP)) // http://code.google.com/p/flylinkdc/issues/detail?id=1088
+				{
+					PLAY_SOUND(SOUND_SOURCEFILE);
+				}
 			}
-			userQueue.addL(qi, aUser);
+			userQueue.addL(qi, aUser, p_is_first_load);
 		}
 	}
-	fire(QueueManagerListener::SourcesUpdated(), qi);
-	setDirty();
-	
+	if (p_is_first_load == false)
+	{
+		fire(QueueManagerListener::SourcesUpdated(), qi);
+		setDirty();
+	}
 	return wantConnection;
 }
 
@@ -1517,7 +1557,7 @@ void QueueManager::move(const string& aSource, const string& aTarget) noexcept
 				{
 					try
 					{
-						addSourceL(qt, i->getUser(), QueueItem::Source::FLAG_MASK);
+						addSourceL(qt, i->first, QueueItem::Source::FLAG_MASK);
 					}
 					catch (const Exception&)
 					{
@@ -1539,7 +1579,7 @@ void QueueManager::move(const string& aSource, const string& aTarget) noexcept
 bool QueueManager::getQueueInfo(const UserPtr& aUser, string& aTarget, int64_t& aSize, int& aFlags) noexcept
 {
 	UniqueLock l(QueueItem::cs); // [!] IRainman fix.
-	QueueItemPtr qi = userQueue.getNextL(aUser);
+	const QueueItemPtr qi = userQueue.getNextL(aUser);
 	if (!qi)
 		return false;
 		
@@ -1688,17 +1728,18 @@ void QueueManager::setFile(Download* d)
 			SharedLock l(QueueItem::cs); // [+] IRainman fix.
 			for (auto i = qi->getDownloadsL().cbegin(); i != qi->getDownloadsL().cend(); ++i)
 			{
-				if ((*i) != d && (*i)->getSegment().contains(d->getSegment()))
+				const auto& j = i->second;
+				if (j != d && j->getSegment().contains(d->getSegment()))
 				{
 				
 					// overlapping has no sense if segment is going to finish
-					if ((*i)->getSecondsLeft() < 10)
+					if (j->getSecondsLeft() < 10)
 						break;
 						
 					found = true;
 					
 					// disconnect slow chunk
-					(*i)->getUserConnection().disconnect();
+					j->getUserConnection().disconnect();
 					break;
 				}
 			}
@@ -1825,7 +1866,7 @@ void QueueManager::moveStuckFile(const QueueItemPtr& qi)
 		UniqueLock l(QueueItem::cs); // [+] IRainman fix.
 		if (qi->isFinishedL())
 		{
-			userQueue.removeL(qi);
+			userQueue.removeQueueItemL(qi);
 		}
 	}
 	
@@ -1924,7 +1965,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 				
 				{
 					UniqueLock l(QueueItem::cs); // [+] IRainman fix.
-					userQueue.removeL(q);
+					userQueue.removeQueueItemL(q);
 				}
 				
 				fileQueue.remove(q);
@@ -2017,8 +2058,8 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 									// Disconnect all possible overlapped downloads
 									for (auto i = q->getDownloadsL().cbegin(); i != q->getDownloadsL().cend(); ++i)
 									{
-										if (*i != aDownload)
-											(*i)->getUserConnection().disconnect();
+										if (i->second != aDownload)
+											i->second->getUserConnection().disconnect();
 									}
 								}
 							}
@@ -2049,9 +2090,9 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 								if (q->isSet(QueueItem::FLAG_USER_LIST)) // [<-] IRainman fix: moved form MainFrame to core.
 								{
 									// [!] IRainman fix: please always match listing without hint!
-									m_listQueue.addTask(new DirectoryListInfo(HintedUser(q->getDownloadsL().front()->getUser(), Util::emptyString), q->getListName(), dir, aDownload->getRunningAverage()));
+									m_listQueue.addTask(new DirectoryListInfo(HintedUser(q->getDownloadsL().begin()->first, Util::emptyString), q->getListName(), dir, aDownload->getRunningAverage()));
 								}
-								userQueue.removeL(q);
+								userQueue.removeQueueItemL(q);
 							}
 							// [+] IRainman dclst support
 							if (q->isSet(QueueItem::FLAG_DCLST_LIST))
@@ -2249,8 +2290,8 @@ void QueueManager::remove(const string& aTarget) noexcept
 			SharedLock ll(QueueItem::cs); // [+] IRainman fix.
 			dcassert(q->getSourcesL().size() == 1);
 			FastLock l(csDirectories); // [+] IRainman fix.
-			for_each(directories.equal_range(q->getSourcesL()[0].getUser()) | map_values, DeleteFunction());
-			directories.erase(q->getSourcesL()[0].getUser());
+			for_each(directories.equal_range(q->getSourcesL().begin()->first) | map_values, DeleteFunction()); // ћутное место
+			directories.erase(q->getSourcesL().begin()->first);
 		}
 		
 		// For partial-share
@@ -2259,10 +2300,10 @@ void QueueManager::remove(const string& aTarget) noexcept
 		if (q->isRunningL())
 		{
 			SharedLock l(QueueItem::cs); // [+] IRainman fix.
-			auto d = q->getDownloadsL();
+			const auto& d = q->getDownloadsL();
 			for (auto i = d.cbegin(); i != d.cend(); ++i)
 			{
-				x.push_back((*i)->getUser());
+				x.push_back(i->first);
 			}
 		}
 		else if (!q->getTempTarget().empty() && q->getTempTarget() != q->getTarget())
@@ -2276,7 +2317,7 @@ void QueueManager::remove(const string& aTarget) noexcept
 			UniqueLock l(QueueItem::cs); // [+] IRainman fix.
 			if (!q->isFinishedL())
 			{
-				userQueue.removeL(q);
+				userQueue.removeQueueItemL(q);
 			}
 		}
 		fileQueue.remove(q);
@@ -2315,7 +2356,7 @@ void QueueManager::removeSource(const string& aTarget, const UserPtr& aUser, Fla
 		
 		if (reason == QueueItem::Source::FLAG_NO_TREE)
 		{
-			q->getSourceL(aUser)->setFlag(reason);
+			q->getSourceL(aUser)->second.setFlag(reason);
 			return;
 		}
 		
@@ -2327,7 +2368,7 @@ void QueueManager::removeSource(const string& aTarget, const UserPtr& aUser, Fla
 		}
 		if (!q->isFinishedL())
 		{
-			userQueue.removeL(q, aUser);
+			userQueue.removeUserL(q, aUser);
 		}
 		q->removeSourceL(aUser, reason);
 		
@@ -2364,7 +2405,7 @@ void QueueManager::removeSource(const UserPtr& aUser, Flags::MaskType reason) no
 			}
 			else
 			{
-				userQueue.removeL(qi, aUser);
+				userQueue.removeUserL(qi, aUser);
 				qi->removeSourceL(aUser, reason);
 				fire(QueueManagerListener::SourcesUpdated(), qi);
 				setDirty();
@@ -2381,7 +2422,7 @@ void QueueManager::removeSource(const UserPtr& aUser, Flags::MaskType reason) no
 			else
 			{
 				userQueue.removeDownloadL(qi, aUser); // [!] IRainman fix.
-				userQueue.removeL(qi, aUser);
+				userQueue.removeUserL(qi, aUser);
 				isRunning = true;
 				qi->removeSourceL(aUser, reason);
 				fire(QueueManagerListener::StatusUpdated(), qi);
@@ -2426,7 +2467,10 @@ void QueueManager::setPriority(const string& aTarget, QueueItem::Priority p) noe
 					// Problem, we have to request connections to all these users...
 					q->getOnlineUsers(getConn);
 				}
-				userQueue.setPriority(q, p);
+				userQueue.setQIPriority(q, p); // !!!!!!!!!!!!!!!!!! ”дал€ет и вставл€ет в массив каждую секунду
+#ifdef _DEBUG
+				LogManager::getInstance()->message("QueueManager userQueue.setQIPriority q->getTarget = " + q->getTarget());
+#endif
 				setDirty();
 				fire(QueueManagerListener::StatusUpdated(), q);
 			}
@@ -2598,7 +2642,7 @@ void QueueLoader::startTag(const string& name, StringPairList& attribs, bool sim
 			if (tthRoot.empty())
 				return;
 				
-			const string& tempTarget = getAttrib(attribs, sTempTarget, 5);
+			const string& l_tempTarget = getAttrib(attribs, sTempTarget, 5);
 			uint8_t maxSegments = (uint8_t)Util::toInt(getAttrib(attribs, sMaxSegments, 5));
 			int64_t downloaded = Util::toInt64(getAttrib(attribs, sDownloaded, 5));
 			if (downloaded > size || downloaded < 0)
@@ -2611,7 +2655,7 @@ void QueueLoader::startTag(const string& name, StringPairList& attribs, bool sim
 			
 			if (qi == NULL)
 			{
-				qi = qm->fileQueue.add(target, size, 0, p, tempTarget, added, TTHValue(tthRoot));
+				qi = qm->fileQueue.add(target, size, 0, p, l_tempTarget, added, TTHValue(tthRoot));
 				if (downloaded > 0)
 				{
 					{
@@ -2654,6 +2698,7 @@ void QueueLoader::startTag(const string& name, StringPairList& attribs, bool sim
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 				                                             , 0
 #endif
+				                                             , false
 				                                            );
 			}
 			else
@@ -2873,11 +2918,10 @@ bool QueueManager::dropSource(Download* d)
 		const auto& d = q->getDownloadsL();
 		for (auto i = d.cbegin(); i != d.cend(); ++i)
 		{
-			if ((*i)->getStart() > 0)
+			if (i->second->getStart() > 0)
 			{
 				activeSegments++;
 			}
-			
 			// more segments won't change anything
 			if (activeSegments > 1)
 				break;
@@ -2973,7 +3017,7 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 		{
 			si = qi->getBadSourceL(aUser);
 			
-			if (si != qi->getBadSourcesL().end() && si->isSet(QueueItem::Source::FLAG_TTH_INCONSISTENCY))
+			if (si != qi->getBadSourcesL().end() && si->second.isSet(QueueItem::Source::FLAG_TTH_INCONSISTENCY))
 				return false;
 				
 			if (!wantConnection)
@@ -2986,22 +3030,22 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 				// add this user as partial file sharing source
 				qi->addSourceL(aUser);
 				si = qi->getSourceL(aUser);
-				si->setFlag(QueueItem::Source::FLAG_PARTIAL);
+				si->second.setFlag(QueueItem::Source::FLAG_PARTIAL);
 				
 				QueueItem::PartialSource* ps = new QueueItem::PartialSource(partialSource.getMyNick(),
 				                                                            partialSource.getHubIpPort(), partialSource.getIp(), partialSource.getUdpPort());
-				si->setPartialSource(ps);
+				si->second.setPartialSource(ps);
 				
-				userQueue.addL(qi, aUser);
+				userQueue.addL(qi, aUser, false);
 				dcassert(si != qi->getSourcesL().end());
 				fire(QueueManagerListener::SourcesUpdated(), qi);
 			}
 		}
 		
 		// Update source's parts info
-		if (si->getPartialSource())
+		if (si->second.getPartialSource())
 		{
-			si->getPartialSource()->setPartialInfo(partialSource.getPartialInfo());
+			si->second.getPartialSource()->setPartialInfo(partialSource.getPartialInfo());
 		}
 	}
 	
@@ -3083,12 +3127,12 @@ void QueueManager::FileQueue::findPFSSourcesL(PFSSourceList& sl)
 //////////////////
 #ifdef _DEBUG
 		// ѕосле отладки убрать сарый вариант наполнени€
-		const QueueItem::SourceList& sources = q->getSourcesL();
-		const QueueItem::SourceList& badSources = q->getBadSourcesL();
+		const auto& sources = q->getSourcesL();
+		const auto& badSources = q->getBadSourcesL();
 		for (auto j = sources.cbegin(); j != sources.cend(); ++j)
 		{
-			const auto &l_getPartialSource = j->getPartialSource(); // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the '(* j).getPartialSource()' expression repeatedly. queuemanager.cpp 2900
-			if (j->isSet(QueueItem::Source::FLAG_PARTIAL) &&
+			const auto &l_getPartialSource = j->second.getPartialSource(); // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the '(* j).getPartialSource()' expression repeatedly. queuemanager.cpp 2900
+			if (j->second.isSet(QueueItem::Source::FLAG_PARTIAL) &&
 			        l_getPartialSource->getNextQueryTime() <= now &&
 			        l_getPartialSource->getPendingQueryCount() < 10 && l_getPartialSource->getUdpPort() > 0)
 			{
@@ -3098,8 +3142,8 @@ void QueueManager::FileQueue::findPFSSourcesL(PFSSourceList& sl)
 		}
 		for (auto j = badSources.cbegin(); j != badSources.cend(); ++j)
 		{
-			const auto &l_getPartialSource = j->getPartialSource(); // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the '(* j).getPartialSource()' expression repeatedly. queuemanager.cpp 2900
-			if ((*j).isSet(QueueItem::Source::FLAG_TTH_INCONSISTENCY) == false && j->isSet(QueueItem::Source::FLAG_PARTIAL) &&
+			const auto &l_getPartialSource = j->second.getPartialSource(); // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the '(* j).getPartialSource()' expression repeatedly. queuemanager.cpp 2900
+			if (j->second.isSet(QueueItem::Source::FLAG_TTH_INCONSISTENCY) == false && j->second.isSet(QueueItem::Source::FLAG_PARTIAL) &&
 			        l_getPartialSource->getNextQueryTime() <= now && l_getPartialSource->getPendingQueryCount() < 10 &&
 			        l_getPartialSource->getUdpPort() > 0)
 			{

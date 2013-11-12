@@ -208,7 +208,7 @@ typedef unsigned __int64 uint64_t;
 #endif // IRAINMAN_INCLUDE_DETECTION_MANAGER
 #define IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 //#define IRAINMAN_SPEED_LIMITER_5S4_10 // Включает ограничение: скорость отдачи = 5 * количество слотов + 4, скорость загрузки = 10 * скорость отдачи
-#define IRAINMAN_INCLUDE_USER_CHECK
+//#define IRAINMAN_INCLUDE_USER_CHECK // - Не понял нахрена оно нужно. если юзеров 100 тыщ то что будет?
 #define IRAINMAN_INCLUDE_PROTO_DEBUG_FUNCTION
 #define IRAINMAN_USE_BB_CODES // BB codes support http://ru.wikipedia.org/wiki/BbCode
 #define IRAINMAN_EXCHANGED_UPNP_ALGORITHM // [!]IRainman UPnP refactoring
@@ -318,7 +318,7 @@ typedef unsigned __int64 uint64_t;
 #endif
 // [!] Fix for https://code.google.com/p/flylinkdc/issues/detail?id=849
 #ifdef FLYLINKDC_HE
-# define IRAINMAN_SAVE_BAD_SOURCE // Potentially all the bad sources only temporarily poor. So they can be added through the back through the gui, it is necessary to keep them together with good, or to create a separate record, or do not save at all?
+// # define IRAINMAN_SAVE_BAD_SOURCE // Potentially all the bad sources only temporarily poor. So they can be added through the back through the gui, it is necessary to keep them together with good, or to create a separate record, or do not save at all?
 # define IRAINMAN_SAVE_ALL_VALID_SOURCE // Each partial source will eventually become full, you can not lose them. All DHT sources contain the real CID, and as soon as the node for this CID is loaded with it immediately starts downloading.
 #endif
 // [~] Fix for https://code.google.com/p/flylinkdc/issues/detail?id=849
@@ -408,6 +408,7 @@ typedef unsigned __int64 uint64_t;
 # define SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP  // Use bright text color for 'last ip' & locations
 #endif
 #define SCALOLAZ_CHAT_REFFERING_TO_NICK
+#define SCALOLAZ_BB_COLOR_BUTTON
 
 // TODO: feature not fully implemented, don't turn off this define!
 //#if defined(FLYLINKDC_HE) || !defined(BETA) // before the end of the experiments using the old menu, eliminates the hassle.
@@ -437,7 +438,13 @@ typedef unsigned __int64 uint64_t;
 // #define FLYLINKDC_USE_SETTINGS_AUTO_UPDATE
 #define FLYLINKDC_USE_MEDIAINFO_SERVER
 #define FLYLINKDC_USE_GATHER_STATISTICS
+#ifdef _DEBUG
+// #define FLYLINKDC_USE_GATHER_IDENTITY_STAT
+#endif
 //#define FLYLINKDC_USE_SQL_EXPLORER // TODO
+//#define FLYLINKDC_USE_LIST_VIEW_WATER_MARK // Свистелку отрубить
+//#define FLYLINKDC_USE_LIST_VIEW_MATTRESS   // Отключаем полосатые листвью (бестолковая трата ресурсов)
+
 
 #define FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE // http://code.google.com/p/flylinkdc/issues/detail?id=1255
 

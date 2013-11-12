@@ -150,6 +150,7 @@
 	<string name="BbcodePanelStrike">Strike font</string>
 	<string name="BbcodePanelTranslate">Transcode (selected) Text</string>
 	<string name="BbcodePanelUnderline">Underline font</string>
+	<string name="BbcodePanelColor">Color</string>
 	<string name="Bitrate">Bitrate</string>
 	<string name="BitziLookup">Bitzi Lookup</string>
 	<string name="BlendOfflineSearch">Blend offline search results</string>
@@ -420,7 +421,6 @@
 	<string name="Email">E-Mail</string>
 	<string name="EnableHubmodePic">Enable 'Mode Picture' for hubs</string>
 	<string name="EnableCountryflag">Add Country flag into 'Location' in userlist</string>
-	<string name="EnableHubtopic">Enable $HubTopic support</string>
 	<string name="EnableLastIp">Store IP in a SQLite database</string>
 	<string name="EnableFlyServer">Use fly-server cloud</string>
 	<string name="EnableMultiSource">Enable multi-source</string>
@@ -1509,6 +1509,7 @@
 	<string name="SlowUser">Slow user</string>
 	<string name="SmallFileSizeSet">Small file size set</string>
 	<string name="SmileSelectWndAnimSmiles">Use animated icons in smile selection window</string>
+	<string name="SocketErrorNote">Read about this 'Windows Socket error' on FlylinkDC Wiki page:</string>
 	<string name="SocketErrorWsaeaddrnotavail">The requested address is not valid in its context.</string>
 	<string name="SocketErrorWsaenetdown">A socket operation encountered a dead network.</string>
 	<string name="SocketErrorWsaenetunreach">A socket operation was attempted to an unreachable network.</string>
@@ -1599,6 +1600,7 @@
 	<string name="TextStatRequest">To improve the program FlylinkDC++ collects anonymous\r\nusage statistics and transmits it to the developers.\r\nAccording to the law of many countries FlylinkDC++ needs\r\nyour permission to do so.\r\nAllow the program to collect and send anonymous usage statistics to developers?</string>
 	<string name="TextStatInfo">To improve the program FlylinkDC++ collects anonymous\r\nusage statistics and transmits it to the developers.\r\nAccording to the law of many countries FlylinkDC++ are\r\nobliged to inform about this fact.</string>
 	<string name="TextStr">Text</string>
+	<string name="FavEnemyUser">Enemy user/Speed Ban</string>
 	<string name="FavUser">Favorite user</string>
 	<string name="GeneralText">General text</string>
 	<string name="MyMessage">My own message</string>

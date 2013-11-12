@@ -119,7 +119,7 @@ class User : public intrusive_ptr_base<User>, public Flags
 			BAN_BY_LIMIT      = 0x08
 		};
 		
-		DefinedAutoBanFlags hasAutoBan(Client *p_Client = NULL);//[+]FlylinkDC
+		DefinedAutoBanFlags hasAutoBan(Client *p_Client, const bool p_is_favorite);//[+]FlylinkDC
 	private:
 		enum SupportSlotsFlag
 		{
@@ -130,7 +130,27 @@ class User : public intrusive_ptr_base<User>, public Flags
 		SupportSlotsFlag m_support_slots;
 	public:
 #endif // IRAINMAN_ENABLE_AUTO_BAN
-	
+		// TODO
+		struct Hash
+		{
+			size_t operator()(const UserPtr& x) const
+			{
+				size_t cidHash = 0;
+				boost::hash_combine(cidHash, x);
+				//return boost::hash<OnlineUserPtr>(x);
+				// TODO - check x->getUser()
+				//memcpy(&cidHash, &x->getUser()->getCID(), sizeof(size_t)); //-V512
+				return cidHash;
+				
+				//size_t cidHash;
+				//memcpy(&cidHash, &x->getCID(), sizeof(size_t)); //-V512
+				//return cidHash;
+			}
+		};
+//		bool operator==(const UserPtr & x) const
+//		{
+//			return m_cid == x->m_cid;
+//		}
 //#define ENABLE_DEBUG_LOG_IN_USER_CLASS
 
 		User(const CID& aCID) : m_cid(aCID),
@@ -256,8 +276,9 @@ class User : public intrusive_ptr_base<User>, public Flags
 		}
 		// [~] IRainman fix.
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-		void AddRatioUpload(const string& p_ip, uint64_t p_size);
-		void AddRatioDownload(const string& p_ip, uint64_t p_size);
+		void fixLastIP();
+		void AddRatioUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
+		void AddRatioDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
 		void flushRatio();
 		tstring getUDratio();
 		tstring getUpload();
@@ -281,7 +302,7 @@ class User : public intrusive_ptr_base<User>, public Flags
 		{
 			if (m_ratio_ptr)
 			{
-				return !m_ratio_ptr->m_last_ip_sql.is_unspecified() && m_last_ip.is_unspecified();
+				return m_last_ip.is_unspecified();
 			}
 			else
 			{
@@ -291,7 +312,8 @@ class User : public intrusive_ptr_base<User>, public Flags
 		string getIP();
 		uint64_t getBytesUpload();
 		uint64_t getBytesDownload();
-		void initRatio(bool p_is_create);
+		void initRatio();
+		void initRatio(const boost::asio::ip::address_v4& p_ip);
 		
 #endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	private:
@@ -303,6 +325,10 @@ class User : public intrusive_ptr_base<User>, public Flags
 #endif
 };
 
+class Download;
+typedef std::unordered_map<UserPtr, Download*, User::Hash> DownloadMap;
+
+// TODO - для буста это пока не цепляется
 // http://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom-class-type-as-the-key
 namespace std
 {

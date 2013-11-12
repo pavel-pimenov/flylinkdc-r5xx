@@ -12,6 +12,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/unordered/unordered_map.hpp>
+#include <boost/asio/ip/address_v4.hpp>
 
 //#include <boost/iostreams/device/mapped_file.hpp>
 #include <boost/thread.hpp>
@@ -170,6 +171,12 @@ DECLARE_PERFORMANCE_CHECKER(1, g_flylinkdc_perf_swap);
 DECLARE_PERFORMANCE_CHECKER(2, g_flylinkdc_perf_swap);
 DECLARE_PERFORMANCE_CHECKER(3, g_flylinkdc_perf_swap);
 DECLARE_PERFORMANCE_CHECKER(4, g_flylinkdc_perf_swap);
+
+DECLARE_PERFORMANCE_FILE_STREAM(profiler-map.log, g_flylinkdc_map_insert);
+DECLARE_PERFORMANCE_CHECKER(5, g_flylinkdc_map_insert);
+DECLARE_PERFORMANCE_CHECKER(6, g_flylinkdc_map_insert);
+DECLARE_PERFORMANCE_CHECKER(7, g_flylinkdc_map_insert);
+
 //DECLARE_PERFORMANCE_CHECKER(5, g_flylinkdc_perf_swap);
 
 
@@ -417,8 +424,68 @@ void processPreparing(DWORD_PTR affinityMask)
 }
 // [+] IRainman fix.
 
+namespace std
+{
+template<> struct hash<boost::asio::ip::address_v4>
+{
+	size_t operator()(const boost::asio::ip::address_v4& p_ip) const
+	{
+		return p_ip.to_ulong();
+	}
+};
+}
+
+static string toString(int val)
+		{
+			char buf[16];
+			snprintf(buf, _countof(buf), "%d", val);
+			return buf;
+		}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
+	const int max_count = 10000000;
+{
+		boost::unordered_map<std::string,double> myrecipe;
+		START_PERFORMANCE_CHECK(5);
+		for(int i=0; i<max_count;++i)
+		{
+			myrecipe.insert (myrecipe.end(), std::make_pair<std::string,double>(toString(i),0)); // move insertion + hint
+		}
+		FINISH_PERFORMANCE_CHECK(5);
+}
+
+{
+		boost::unordered_map<std::string,double> myrecipe;
+	    START_PERFORMANCE_CHECK(6);
+		for(int i=0; i<max_count;++i)
+		{
+			const auto s = toString(i);
+			if(myrecipe.find(s) == myrecipe.end())
+			{
+			 myrecipe.insert (std::make_pair<std::string,double>(toString(i),0)); // move insertion
+			}
+		}
+		FINISH_PERFORMANCE_CHECK(6);
+}
+
+{
+		boost::unordered_map<std::string,double> myrecipe;
+	    START_PERFORMANCE_CHECK(7);
+		for(int i=0; i<max_count;++i)
+		{
+			std::pair<std::string,double> l_val(toString(i),0);
+			myrecipe.insert (l_val); // copy insertion
+		}
+		FINISH_PERFORMANCE_CHECK(7);
+}
+
+
+  return 0;
+  //boost::unordered_map<boost::asio::ip::address_v4, int> tmp;
+  boost::asio::ip::address_v4 ip = boost::asio::ip::address_v4::from_string("010.010.010.010");
+  //tmp[ip] = 1;
+
 	std::cout << "Timing boost::unordered_map<int,int>" << std::endl;
 	timemap<boost::unordered_map<int,int> >();
 	std::cout << std::endl;

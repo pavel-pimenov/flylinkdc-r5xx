@@ -127,6 +127,7 @@ CHARFORMAT2 Colors::g_ChatTextServer;
 CHARFORMAT2 Colors::g_ChatTextSystem;
 CHARFORMAT2 Colors::g_TextStyleBold;
 CHARFORMAT2 Colors::g_TextStyleFavUsers;
+CHARFORMAT2 Colors::g_TextStyleFavUsersBan;
 CHARFORMAT2 Colors::g_TextStyleOPs;
 CHARFORMAT2 Colors::g_TextStyleURL;
 CHARFORMAT2 Colors::g_ChatTextPrivate;
@@ -350,9 +351,19 @@ void Colors::getUserColor(const UserPtr& user, COLORREF &fg, COLORREF &bg, const
 	dcassert(user);
 	// [!] IRainman fix todo: https://crash-server.com/SearchResult.aspx?ClientID=ppa&Stack=Colors::getUserColor , https://crash-server.com/SearchResult.aspx?ClientID=ppa&Stack=WinUtil::getUserColor
 	// [!] PPA fix: https://code.google.com/p/flylinkdc/issues/detail?id=961
-	if (FavoriteManager::getInstance()->isFavoriteUser(user))
+	bool l_is_ban = false;
+	const bool l_is_favorite = FavoriteManager::getInstance()->isFavoriteUser(user, l_is_ban);
+	if (l_is_favorite)
 	{
-		fg = SETTING(FAVORITE_COLOR);
+		if (l_is_ban)
+		{
+			fg = SETTING(TEXT_ENEMY_FORE_COLOR); // http://code.google.com/p/flylinkdc/issues/detail?id=876
+			//OperaColors::brightenColor(fg, 1);
+		}
+		else
+		{
+			fg = SETTING(FAVORITE_COLOR);
+		}
 	}
 	else if (UploadManager::getInstance()->getReservedSlotTime(user))
 	{
@@ -383,7 +394,7 @@ void Colors::getUserColor(const UserPtr& user, COLORREF &fg, COLORREF &bg, const
 		fg = SETTING(NORMAL_COLOUR);
 	}
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
-	if (SETTING(ENABLE_AUTO_BAN) && user->hasAutoBan(&onlineUser->getClient()))//[+]IRainman
+	if (SETTING(ENABLE_AUTO_BAN) && user->hasAutoBan(&onlineUser->getClient(), l_is_favorite)) //[+]IRainman
 	{
 		bg = SETTING(BAN_COLOR);
 	}
@@ -797,7 +808,7 @@ void Colors::init()
 	textColor = SETTING(TEXT_COLOR);
 	bgColor = SETTING(BACKGROUND_COLOR);
 	
-	bgBrush = CreateSolidBrush(Colors::bgColor);
+	bgBrush = CreateSolidBrush(Colors::bgColor); // Leak
 	
 	CHARFORMAT2 cf;
 	memzero(&cf, sizeof(CHARFORMAT2));
@@ -877,6 +888,14 @@ void Colors::init()
 		g_TextStyleFavUsers.dwEffects |= CFE_BOLD;
 	if (SETTING(TEXT_FAV_ITALIC))
 		g_TextStyleFavUsers.dwEffects |= CFE_ITALIC;
+		
+	g_TextStyleFavUsersBan = cf;
+	g_TextStyleFavUsersBan.crBackColor = SETTING(TEXT_ENEMY_BACK_COLOR);
+	g_TextStyleFavUsersBan.crTextColor = SETTING(TEXT_ENEMY_FORE_COLOR);
+	if (SETTING(TEXT_ENEMY_BOLD))
+		g_TextStyleFavUsersBan.dwEffects |= CFE_BOLD;
+	if (SETTING(TEXT_ENEMY_ITALIC))
+		g_TextStyleFavUsersBan.dwEffects |= CFE_ITALIC;
 		
 	g_TextStyleOPs = cf;
 	g_TextStyleOPs.crBackColor = SETTING(TEXT_OP_BACK_COLOR);
@@ -2201,16 +2220,17 @@ bool WinUtil::parseDchubUrl(const tstring& aUrl)// [!] IRainman fix: stop copy-p
 		//[-] PVS-Studio V808 string path;
 		uint16_t port;
 		string proto, host, file, query, fragment;
-		Util::decodeUrl(Util::formatDchubUrl(Text::fromT(aUrl)), proto, host, port, file, query, fragment); // [!] IRainman fix: http://code.google.com/p/flylinkdc/issues/detail?id=855
-		string url = host + ":" + Util::toString(port);
+		const string l_Url = Util::formatDchubUrl(Text::fromT(aUrl)); // TODO - внутри лежит вложенный decodeUrl
+		Util::decodeUrl(l_Url, proto, host, port, file, query, fragment); // [!] IRainman fix: http://code.google.com/p/flylinkdc/issues/detail?id=855
+		const string l_url_rebuild = host + ":" + Util::toString(port);
 		if (!host.empty())
 		{
 			// [+] IRainman fix.
 			RecentHubEntry r;
-			r.setServer(url);
+			r.setServer(l_Url);
 			FavoriteManager::getInstance()->addRecent(r);
 			// [~] IRainman fix.
-			HubFrame::openWindow(Text::toT(url));
+			HubFrame::openWindow(Text::toT(l_Url));
 		}
 		if (!file.empty())
 		{
@@ -2231,7 +2251,7 @@ bool WinUtil::parseDchubUrl(const tstring& aUrl)// [!] IRainman fix: stop copy-p
 			{
 				const UserPtr user = ClientManager::getInstance()->findLegacyUser(nick
 #ifndef IRAINMAN_USE_NICKS_IN_CM
-				                                                                  , url
+				                                                                  , l_url_rebuild
 #endif
 				                                                                 );
 				if (user)
@@ -2974,6 +2994,7 @@ int WinUtil::setButtonPressed(int nID, bool bPressed /* = true */)
 	return 0;
 }
 
+#ifdef FLYLINKDC_USE_LIST_VIEW_WATER_MARK
 // [+] InfinitySky. Alpha Channel. PNG Support from Apex 1.3.8.
 
 bool WinUtil::setListCtrlWatermark(HWND hListCtrl, UINT nID, COLORREF clr, int width /*= 128*/, int height /*= 128*/)
@@ -2985,7 +3006,7 @@ bool WinUtil::setListCtrlWatermark(HWND hListCtrl, UINT nID, COLORREF clr, int w
 		
 		
 	// Despite documentation LVBKIF_FLAG_ALPHABLEND works only with version 6.1 and up
-	const bool supportsAlpha = (CompatibilityManager::getComCtlVersion() >= MAKELONG(1, 6));
+	const bool supportsAlpha = CompatibilityManager::getComCtlVersion() >= MAKELONG(1, 6);
 	
 	// If there already is a watermark with alpha channel, stop here...
 	if (supportsAlpha)
@@ -3001,13 +3022,13 @@ bool WinUtil::setListCtrlWatermark(HWND hListCtrl, UINT nID, COLORREF clr, int w
 	if (!image.LoadFromResource(nID, _T("PNG")))
 		return false;
 		
-	HBITMAP bmp = NULL;
-	HDC screen_dev = ::GetDC(hListCtrl);
+	HBITMAP bmp = nullptr;
+	const HDC screen_dev = ::GetDC(hListCtrl);
 	
 	if (screen_dev)
 	{
 		// Create a compatible DC
-		HDC dst_hdc = ::CreateCompatibleDC(screen_dev);
+		const HDC dst_hdc = ::CreateCompatibleDC(screen_dev);
 		if (dst_hdc)
 		{
 			// Create a new bitmap of icon size
@@ -3041,7 +3062,7 @@ bool WinUtil::setListCtrlWatermark(HWND hListCtrl, UINT nID, COLORREF clr, int w
 	if (!bmp)
 		return false;
 		
-	LVBKIMAGE lv;
+	LVBKIMAGE lv = {0};
 	lv.ulFlags = LVBKIF_TYPE_WATERMARK |
 #ifdef FLYLINKDC_SUPPORT_WIN_XP
 	             (supportsAlpha ? LVBKIF_FLAG_ALPHABLEND : 0)
@@ -3056,6 +3077,7 @@ bool WinUtil::setListCtrlWatermark(HWND hListCtrl, UINT nID, COLORREF clr, int w
 	return true;
 }
 // [+] InfinitySky. END. Alpha Channel. PNG Support from Apex 1.3.8.
+#endif
 
 /*
 bool WinUtil::checkIsButtonPressed(int nID)//[+]IRainman
@@ -4148,10 +4170,14 @@ void WinUtil::TextTranscode(CEdit& ctrlMessage) // [+] Drakon [!] Added Selectio
 
 void WinUtil::SetBBCodeForCEdit(CEdit& ctrlMessage, WORD wID) // [+] SSA
 {
-
 #ifdef IRAINMAN_USE_BB_CODES
+#ifdef SCALOLAZ_BB_COLOR_BUTTON
+	tstring startTag;
+	tstring  endTag;
+#else // SCALOLAZ_BB_COLOR_BUTTON
 	TCHAR* startTag = nullptr;
 	TCHAR* endTag = nullptr;
+#endif // SCALOLAZ_BB_COLOR_BUTTON
 	switch (wID)
 	{
 		case IDC_BOLD:
@@ -4170,37 +4196,59 @@ void WinUtil::SetBBCodeForCEdit(CEdit& ctrlMessage, WORD wID) // [+] SSA
 			startTag = _T("[s]");
 			endTag = _T("[/s]");
 			break;
+#ifdef SCALOLAZ_BB_COLOR_BUTTON
+		case IDC_COLOR:
+		{
+			CColorDialog dlg(SETTING(TEXT_GENERAL_FORE_COLOR), 0, ctrlMessage.m_hWnd /*mainWnd*/);
+			if (dlg.DoModal(mainWnd) == IDOK)
+			{
+				const string hexString = RGB2HTMLHEX(dlg.GetColor());
+				tstring tcolor = _T("[color=#") + (Text::toT(hexString)) + _T("]");
+				startTag = tcolor;
+				endTag = _T("[/color]");
+			}
+			break;
+		}
+#endif // SCALOLAZ_BB_COLOR_BUTTON
+		default:
+			dcassert(0);
 	}
 	
 	tstring setString;
-	int ctrlMessageLength = ctrlMessage.GetWindowTextLength();
-	if (ctrlMessageLength > 0)
+	int nStartSel = 0;
+	int nEndSel = 0;
+	ctrlMessage.GetSel(nStartSel, nEndSel);
+	tstring s;
+	WinUtil::GetWindowText(s, ctrlMessage);
+	tstring startString = s.substr(0, nStartSel);
+	tstring middleString = s.substr(nStartSel, nEndSel - nStartSel);
+	tstring endString = s.substr(nEndSel, s.length() - nEndSel);
+	setString = startString;
+	
+	if ((nEndSel - nStartSel) > 0) //Что-то выделено, обрамляем тэгом, курсор ставим в конце
 	{
-		tstring s;
-		WinUtil::GetWindowText(s, ctrlMessage);
-		int nStartSel = 0;
-		int nEndSel = 0;
-		ctrlMessage.GetSel(nStartSel, nEndSel);
-		tstring startString = s.substr(0, nStartSel);
-		tstring middleString = s.substr(nStartSel, nEndSel - nStartSel);
-		tstring endString = s.substr(nEndSel, s.length() - nEndSel);
-		setString = startString;
 		setString += startTag;
 		setString += middleString;
 		setString += endTag;
 		setString += endString;
-		ctrlMessage.SetWindowText(&setString[0]);
-		int newPosition = setString.length() - endString.length();
-		ctrlMessage.SetSel(newPosition, newPosition);
-		
+		if (!setString.empty())
+		{
+			ctrlMessage.SetWindowText(setString.c_str());
+			int newPosition = setString.length() - endString.length();
+			ctrlMessage.SetSel(newPosition, newPosition);
+		}
 	}
-	else
+	else    // Ничего не выбрано, ставим тэги, курсор между ними
 	{
-		setString = startTag;
+		setString += startTag;
+		const int newPosition = setString.length();
 		setString += endTag;
-		ctrlMessage.SetWindowText(&setString[0]);
-		int newPosition = setString.length();
-		ctrlMessage.SetSel(newPosition, newPosition);
+		setString += endString;
+		if (!setString.empty())
+		{
+			ctrlMessage.SetWindowText(setString.c_str());
+			ctrlMessage.SetSel(newPosition, newPosition);
+		}
 	}
 	ctrlMessage.SetFocus();
 #endif
@@ -4270,6 +4318,7 @@ tstring WinUtil::getFilenameFromString(const tstring& filename)
 	return strRet;
 }
 
+#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 LRESULT Colors::alternationonCustomDraw(LPNMHDR pnmh, BOOL& bHandled)
 {
 	if (!BOOLSETTING(USE_CUSTOM_LIST_BACKGROUND))
@@ -4295,6 +4344,7 @@ LRESULT Colors::alternationonCustomDraw(LPNMHDR pnmh, BOOL& bHandled)
 			return CDRF_DODEFAULT;
 	}
 }
+#endif
 
 int UserInfoGuiTraits::getCtrlIdBySpeedLimit(const int limit)
 {

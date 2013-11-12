@@ -212,6 +212,11 @@ VOID CALLBACK CGDIImage::OnTimer(PVOID lpParameter, BOOLEAN TimerOrWaitFired)
 			destroyTimer(pGDIImage,NULL);
 			return;
 		}
+#ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
+			dcassert(isGDIImageLive(pGDIImage));
+			if(isGDIImageLive(pGDIImage)) // fix http://code.google.com/p/flylinkdc/issues/detail?id=1255
+			{
+#endif
 		if (pGDIImage->SelectActiveFrame(pGDIImage->m_dwCurrentFrame)) //Change Active frame
 		{
 			DWORD dwDelay = pGDIImage->GetFrameDelay(pGDIImage->m_dwCurrentFrame);
@@ -252,6 +257,9 @@ VOID CALLBACK CGDIImage::OnTimer(PVOID lpParameter, BOOLEAN TimerOrWaitFired)
 		}
 #endif
 }
+#ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
+}
+#endif
 }
 }
 

@@ -25,8 +25,9 @@
 #include "CFlylinkDBManager.h"
 #include "Wildcards.h"
 #include "UserConnection.h"
+#include "LogManager.h"
 
-FastSharedCriticalSection Identity::g_cs;
+std::unique_ptr<webrtc::RWLockWrapper> Identity::g_rw_cs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 
 #ifdef _DEBUG
 #define DISALLOW(a, b) { uint16_t tag1 = TAG(name[0], name[1]); uint16_t tag2 = TAG(a, b); dcassert(tag1 != tag2); }
@@ -39,14 +40,8 @@ boost::atomic_int User::g_user_counts(0);
 boost::atomic_int OnlineUser::g_online_user_counts(0);
 #endif
 
-#define DECL_STRING_INFO_DIC(dmk)\
-	Identity::StringDictionaryReductionPointers Identity::g_infoDic##dmk;\
-	Identity::StringDictionaryIndex Identity::g_infoDicIndex##dmk;\
-	FastCriticalSection Identity::g_csInfoDic##dmk;
-
-IDENTITY_STRING_INFO_DIC_LIST();
-
-#undef DECL_STRING_INFO_DIC
+Identity::StringDictionaryReductionPointers Identity::g_infoDic;
+Identity::StringDictionaryIndex Identity::g_infoDicIndex;
 
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 void User::setLastNick(const string& p_nick)
@@ -66,7 +61,7 @@ void User::setLastNick(const string& p_nick)
 				{
 					safe_delete(m_ratio_ptr);
 					m_nick = p_nick;
-					initRatio(true);
+					initRatio();
 				}
 			}
 			else
@@ -120,7 +115,7 @@ void User::setIP(const boost::asio::ip::address_v4& p_last_ip)
 				if (m_ratio_ptr)
 				{
 					safe_delete(m_ratio_ptr);
-					initRatio(false);
+					initRatio(p_last_ip);
 				}
 			}
 		}
@@ -136,22 +131,14 @@ void User::setIP(const boost::asio::ip::address_v4& p_last_ip)
 }
 string User::getIP()
 {
-	initRatio(false);
-	if (m_ratio_ptr)
-	{
-		if (!m_ratio_ptr->m_last_ip_sql.is_unspecified())
-			return m_ratio_ptr->m_last_ip_sql.to_string();
-	}
-	else
-	{
-		if (!m_last_ip.is_unspecified())
-			return m_last_ip.to_string();
-	}
+	initRatio();
+	if (!m_last_ip.is_unspecified())
+		return m_last_ip.to_string();
 	return Util::emptyString;
 }
 uint64_t User::getBytesUpload()
 {
-	initRatio(false);
+	initRatio();
 	if (m_ratio_ptr)
 	{
 		return m_ratio_ptr->m_upload;
@@ -163,7 +150,7 @@ uint64_t User::getBytesUpload()
 }
 uint64_t User::getBytesDownload()
 {
-	initRatio(false);
+	initRatio();
 	if (m_ratio_ptr)
 	{
 		return m_ratio_ptr->m_download;
@@ -173,47 +160,48 @@ uint64_t User::getBytesDownload()
 		return 0;
 	}
 }
-void User::AddRatioUpload(const string& p_ip, uint64_t p_size)
+void User::fixLastIP()
 {
-	if (m_ratio_ptr == nullptr)
-	{
-		m_is_first_init_ratio = false;
-	}
-	initRatio(true);
-	if (m_ratio_ptr)
-	{
-		m_ratio_ptr->addUpload(p_ip, p_size);
-	}
+	initRatio(m_last_ip);
 }
-void User::AddRatioDownload(const string& p_ip, uint64_t p_size)
+void User::AddRatioUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size)
 {
-	if (m_ratio_ptr == nullptr)
-	{
-		m_is_first_init_ratio = false;
-	}
-	initRatio(true);
+	initRatio(p_ip);
 	if (m_ratio_ptr)
-	{
+		m_ratio_ptr->addUpload(p_ip, p_size);
+}
+void User::AddRatioDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size)
+{
+	initRatio(p_ip);
+	if (m_ratio_ptr)
 		m_ratio_ptr->addDownload(p_ip, p_size);
-	}
 }
 void User::flushRatio()
 {
 	if (m_ratio_ptr)
 		m_ratio_ptr->flushRatio();
 }
-
-void User::initRatio(bool p_is_create)
+void User::initRatio(const boost::asio::ip::address_v4& p_ip)
 {
-	if (!m_nick.empty() && !m_is_first_init_ratio && m_hub_id)
+	if (m_ratio_ptr == nullptr && !m_nick.empty() && m_hub_id)
+	{
+		m_ratio_ptr = new CFlyUserRatioInfo(this);
+		m_ratio_ptr->try_load_ratio(p_ip);
+		m_ratio_ptr->setDirty(true);
+	}
+}
+void User::initRatio()
+{
+	if (!m_nick.empty() && m_hub_id && !m_is_first_init_ratio)
 	{
 		m_is_first_init_ratio = true;
 		// Узнаем был ли в базе last_ip
 		const boost::asio::ip::address_v4 l_last_ip_from_sql = CFlylinkDBManager::getInstance()->load_last_ip(m_hub_id, m_nick);
-		if (!l_last_ip_from_sql.is_unspecified() || p_is_create)
+		if (!l_last_ip_from_sql.is_unspecified())
 		{
-			CFlyUserRatioInfo* l_try_ratio = new CFlyUserRatioInfo(this);
-			if (l_try_ratio->try_load_ratio(p_is_create, m_last_ip.is_unspecified() ? l_last_ip_from_sql : m_last_ip))
+			m_last_ip = l_last_ip_from_sql;
+			CFlyUserRatioInfo* l_try_ratio = new CFlyUserRatioInfo(this); // TODO отказаться от попытки создания временного через new
+			if (l_try_ratio->try_load_ratio(l_last_ip_from_sql))
 			{
 				dcassert(m_ratio_ptr == nullptr);
 				safe_delete(m_ratio_ptr);
@@ -342,13 +330,17 @@ void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility
 				sm["email"] = getEmail();
 				sm["share"] = Util::toString(getBytesShared());
 				sm["shareshort"] = Util::formatBytes(getBytesShared());
+#ifdef FLYLINKDC_USE_REALSHARED_IDENTITY
 				sm["realshareformat"] = Util::formatBytes(getRealBytesShared());
+#else
+				sm["realshareformat"] = Util::formatBytes(getBytesShared());
+#endif
 			}
 		}
 #undef APPEND
 #undef SKIP_EMPTY
 	}
-	FastSharedLock l(g_cs);
+	webrtc::ReadLockScoped l(*g_rw_cs);
 	for (auto i = m_stringInfo.cbegin(); i != m_stringInfo.cend(); ++i)
 	{
 		sm[prefix + string((char*)(&i->first), 2)] =  i->second;
@@ -443,30 +435,41 @@ string Identity::getStringParam(const char* name) const // [!] IRainman fix.
 		FastLock ll(csTest);
 		auto& j = g_cnt[*(short*)name];
 		j++;
-		if (j % 100 == 0)
+		//if (j % 100 == 0)
 		{
-			dcdebug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! get[%s] = %d \n", name, j);
+			LogManager::getInstance()->message("Identity::getStringParam = " + string(name) + " count = " + Util::toString(j));
+			//dcdebug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! get[%s] = %d \n", name, j);
 		}
 	}
 #endif
 	
-	switch (*(short*)name) // TODO: move to instantly method
-	{
-#define CHECK_STR_DIC(c1, c2, dmk)\
-case TAG(c1,c2):\
-	return getDicVal##dmk()
-	
-			CHECK_IDENTITY_STRING_INFO_DIC_LIST();
-#undef CHECK_STR_DIC
-	}
-	
 	switch (*(short*)name) // http://code.google.com/p/flylinkdc/issues/detail?id=1314
 	{
+		case TAG('A', 'P'):
+		{
+			webrtc::ReadLockScoped l(*g_rw_cs);
+			const string& l_value = getDicValL(getDicAP());
+#ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
+			CFlylinkDBManager::getInstance()->identity_get(name, l_value); // TODO вывести из лока g_rw_cs
+#endif
+			return l_value;
+		}
+		case TAG('V', 'E'):
+		{
+			webrtc::ReadLockScoped l(*g_rw_cs);
+			const string& l_value = getDicValL(getDicVE());
+#ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
+			CFlylinkDBManager::getInstance()->identity_get(name, l_value); // TODO вывести из лока g_rw_cs
+#endif
+			return l_value;
+		}
 		case TAG('E', 'M'):
 		{
 			if (!getNotEmptyStringBit(EM))
 			{
-				//dcdebug(" =================== !getNotEmptyStringBit(EM)\n");
+#ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
+				CFlylinkDBManager::getInstance()->identity_get(name, "");
+#endif
 				return Util::emptyString;
 			}
 			break;
@@ -475,19 +478,24 @@ case TAG(c1,c2):\
 		{
 			if (!getNotEmptyStringBit(DE))
 			{
-				//dcdebug(" =================== !getNotEmptyStringBit(DE)\n");
+#ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
+				CFlylinkDBManager::getInstance()->identity_get(name, "");
+#endif
 				return Util::emptyString;
 			}
 			break;
 		}
 	};
 	
-	FastSharedLock l(g_cs); // [4] https://www.box.net/shared/81bdfde50b7c189f8240  https://www.box.net/shared/a130f02bc6c8d99420d8
+	webrtc::ReadLockScoped l(*g_rw_cs);
 	
 	const auto i = m_stringInfo.find(*(short*)name);
 	if (i != m_stringInfo.end())
 	{
-		return  i->second;
+#ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
+		CFlylinkDBManager::getInstance()->identity_get(name, i->second);
+#endif
+		return i->second;
 	}
 	return Util::emptyString;
 }
@@ -510,24 +518,16 @@ void Identity::setStringParam(const char* name, const string& val) // [!] IRainm
 		string l_key = string(name).substr(0, 2);
 		auto& j = g_cnt_val[l_key + "~" + val];
 		j++;
-		//if (l_key != "AP" && l_key != "EM" &&  l_key != "DE" &&  l_key != "VE")
+		if (l_key != "AP" && l_key != "EM" &&  l_key != "DE" &&  l_key != "VE")
 		{
-			dcdebug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! set[%s] '%s' count = %d sizeof(*this) = %d\n", name, val.c_str(), j, sizeof(*this));
+			//dcdebug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! set[%s] '%s' count = %d sizeof(*this) = %d\n", name, val.c_str(), j, sizeof(*this));
+			LogManager::getInstance()->message("Identity::setStringParam = " + string(name) + " val = " + val);
 		}
 	}
 #endif
-	
-	switch (*(short*)name) // TODO: move to instantly method
-	{
-#define CHECK_STR_DIC(c1, c2, dmk)\
-case TAG(c1,c2):\
-	setDicId##dmk(val);\
-	return
-	
-			CHECK_IDENTITY_STRING_INFO_DIC_LIST();
-#undef CHECK_STR_DIC
-	}
-	
+#ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
+	CFlylinkDBManager::getInstance()->identity_set(name, val);
+#endif
 	bool l_is_processing_stringInfo_map = true;
 	if (val.empty()) //  http://code.google.com/p/flylinkdc/issues/detail?id=1314
 	{
@@ -549,10 +549,20 @@ case TAG(c1,c2):\
 	}
 	if (l_is_processing_stringInfo_map)
 	{
-		FastUniqueLock l(g_cs);
+		webrtc::WriteLockScoped l(*g_rw_cs);
 		
 		switch (*(short*)name) // TODO: move to instantly method
 		{
+			case TAG('A', 'P'):
+			{
+				setDicAP(mergeDicIdL(val));
+				break;
+			}
+			case TAG('V', 'E'):
+			{
+				setDicVE(mergeDicIdL(val));
+				break;
+			}
 			case TAG('E', 'M'): //  http://code.google.com/p/flylinkdc/issues/detail?id=1314
 			{
 				setNotEmptyStringBit(EM, !val.empty());
@@ -597,7 +607,10 @@ void FavoriteUser::update(const OnlineUser& info) // !SMT!-fix
 
 string Identity::setCheat(const ClientBase& c, const string& aCheatDescription, bool aBadClient)
 {
-	if (!c.isOp() || isOp()) return Util::emptyString;
+	if (!c.isOp() || isOp()) 
+	{
+		return Util::emptyString;
+	}
 	
 	PLAY_SOUND(SOUND_FAKERFILE);
 	
@@ -744,7 +757,9 @@ void Identity::getReport(string& p_report) const
 		
 		appendIfValueSetInt(STRING(SHARED_FILES), getSharedFiles());
 		appendIfValueNotEmpty(STRING(SHARED) + " - reported", formatShareBytes(getBytesShared()));
+#ifdef FLYLINKDC_USE_REALSHARED_IDENTITY
 		appendIfValueNotEmpty(STRING(SHARED) + " - real", formatShareBytes(getRealBytesShared()));
+#endif
 		
 		appendIfValueSetInt("Fake check card", getFakeCard());
 		appendIfValueSetInt("Connection Timeouts", getConnectionTimeouts());
@@ -766,7 +781,7 @@ void Identity::getReport(string& p_report) const
 		appendIfValueNotEmpty("DC client", getStringParam("AP"));
 		appendIfValueNotEmpty("Client version", getStringParam("VE"));
 		
-		FastSharedLock l(g_cs);
+		webrtc::ReadLockScoped l(*g_rw_cs);
 		for (auto i = m_stringInfo.cbegin(); i != m_stringInfo.cend(); ++i)
 		{
 			auto name = string((char*)(&i->first), 2);
@@ -1163,15 +1178,14 @@ string Identity::splitVersion(const string& aExp, string aTag, size_t part)
 #endif // IRAINMAN_INCLUDE_DETECTION_MANAGER
 
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
-User::DefinedAutoBanFlags User::hasAutoBan(Client *p_Client /*= NULL*/)
+User::DefinedAutoBanFlags User::hasAutoBan(Client *p_Client, const bool p_is_favorite)
 {
 	// Check exclusion first
-	
-	bool bForceAllow = BOOLSETTING(PROT_FAVS) && FavoriteManager::getInstance()->isFavoriteUser(this);
+	bool bForceAllow = BOOLSETTING(PROT_FAVS) && p_is_favorite;
 	if (!bForceAllow && !UserManager::protectedUserListEmpty())
 	{
 		const string l_Nick = getLastNick();
-		bForceAllow = !l_Nick.empty() && !UserManager::isInProtectedUserList(l_Nick);
+		bForceAllow = !l_Nick.empty() && !UserManager::isInProtectedUserList(l_Nick); // TODO - часто toLower
 	}
 	int iBan = BAN_NONE;
 	if (!bForceAllow)

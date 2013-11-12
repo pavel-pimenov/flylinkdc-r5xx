@@ -90,7 +90,64 @@ void NmdcHub::refreshUserList(bool refreshOnly)
 	}
 }
 
-OnlineUserPtr NmdcHub::getUser(const string& aNick, bool hub /*= false*/)
+#if 0
+
+OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_load)
+{
+	FastLock l(cs);
+	OnlineUser * l_ou_ptr;
+	bool l_is_CID_User = nullptr;
+	if (p_hub)
+	{
+		l_ou_ptr = getHubOnlineUser().get();
+	}
+	else if (p_first_load == false && aNick == getMyNick())
+	{
+		l_ou_ptr = getMyOnlineUser().get();
+	}
+	else
+	{
+		l_is_CID_User = true;
+		UserPtr p = ClientManager::getInstance()->getUser(aNick, getHubUrl()
+#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+		                                                  , getHubID()
+#endif
+		                                                  , p_first_load
+		                                                 );
+		l_ou_ptr = new OnlineUser(p, *this, 0);
+	}
+	auto l_find = m_users.insert(make_pair(aNick, l_ou_ptr));
+	if (l_find.second == false) // Не прошла вставка т.к. такой ник уже есть в мапе?
+	{
+		return l_find.first->second;
+	}
+	else
+	{
+		// Новый элемент
+		l_find.first->second->inc();
+		if (p_hub)
+		{
+			l_find.first->second->getIdentity().setNick(aNick);
+		}
+		else
+		{
+			l_find.first->second->getIdentity().setNickFast(aNick);
+		}
+	}
+	//dcassert(!l_find.first->second->getUser()->getCID().isZero());
+	if (l_is_CID_User)
+	{
+		ClientManager::getInstance()->putOnline(l_find.first->second);
+#ifdef IRAINMAN_INCLUDE_USER_CHECK
+		UserManager::checkUser(ou);
+#endif
+	}
+	return l_find.first->second;
+}
+
+
+#endif
+OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_load)
 {
 	OnlineUserPtr ou = findUser(aNick); // !SMT!-S
 	if (ou)
@@ -98,7 +155,7 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool hub /*= false*/)
 		
 	// [+] IRainman fix.
 	auto cm = ClientManager::getInstance();
-	if (hub)
+	if (p_hub)
 	{
 		{
 			FastLock l(cs);
@@ -122,6 +179,7 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool hub /*= false*/)
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		                        , getHubID()
 #endif
+		                        , p_first_load
 		                       );
 		OnlineUser* newUser = new OnlineUser(p, *this, 0);
 		{
@@ -141,7 +199,6 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool hub /*= false*/)
 	}
 	return ou;
 }
-
 void NmdcHub::supports(const StringList& feat)
 {
 	const string x = Util::toSupportsCommand(feat);
@@ -207,7 +264,7 @@ void NmdcHub::clearUsers()
 	}
 }
 
-void NmdcHub::updateFromTag(Identity& id, string && tag) // [!] IRainman opt.
+void NmdcHub::updateFromTag(Identity& id, const string & tag) // [!] IRainman opt.
 {
 	const StringTokenizer<string> tok(tag, ',');
 	string::size_type j;
@@ -219,18 +276,17 @@ void NmdcHub::updateFromTag(Identity& id, string && tag) // [!] IRainman opt.
 			continue;
 		}
 		// [!] IRainman opt: first use the compare, and only then to find.
-		else if (i->compare(0, 2, "H:") == 0)
+		else if (i->compare(0, 2, "H:", 2) == 0)
 		{
-			const StringTokenizer<string> t(i->substr(2), '/');
-			if (t.getTokens().size() != 3)
-			{
+			int u[3] = {0};
+			const auto l_items = sscanf_s(i->c_str() + 2, "%u/%u/%u", &u[0], &u[1], &u[2]);
+			if (l_items != 3)
 				continue;
-			}
-			id.setHubNormal(t.getTokens()[0].c_str());
-			id.setHubRegister(t.getTokens()[1].c_str());
-			id.setHubOperator(t.getTokens()[2].c_str());
+			id.setHubNormal(u[0]);
+			id.setHubRegister(u[1]);
+			id.setHubOperator(u[2]);
 		}
-		else if (i->compare(0, 2, "S:") == 0)
+		else if (i->compare(0, 2, "S:", 2) == 0)
 		{
 			const uint16_t slots = Util::toInt(i->c_str() + 2);
 			id.setSlots(slots);
@@ -242,13 +298,13 @@ void NmdcHub::updateFromTag(Identity& id, string && tag) // [!] IRainman opt.
 #endif // IRAINMAN_ENABLE_AUTO_BAN
 		}
 #ifdef IRAINMAN_ENABLE_FREE_SLOTS_IN_TAG
-		else if (i->compare(0, 2, "F:") == 0) // TODO.
+		else if (i->compare(0, 2, "F:", 2) == 0) // TODO.
 		{
 			const uint16_t slots = Util::toInt(i->c_str() + 2);
 			id.setFreeSlots(slots);
 		}
 #endif
-		else if (i->compare(0, 2, "M:") == 0)
+		else if (i->compare(0, 2, "M:", 2) == 0)
 		{
 			if (i->size() == 3)
 			{
@@ -268,7 +324,7 @@ void NmdcHub::updateFromTag(Identity& id, string && tag) // [!] IRainman opt.
 		}
 		// [+] IRainman fix: https://code.google.com/p/flylinkdc/issues/detail?id=1234
 #ifdef _DEBUG
-		else if (i->compare(0, 2, "O:") == 0)
+		else if (i->compare(0, 2, "O:", 2) == 0)
 		{
 			// [?] TODO http://nmdc.sourceforge.net/NMDC.html#_tag
 		}
@@ -470,7 +526,7 @@ void NmdcHub::onLine(const string& aLine)
 		
 		if (!chatMessage.from)
 		{
-			chatMessage.from = getUser(nick);
+			chatMessage.from = getUser(nick, false, false);
 			// [-] if (chatMessage.from) [-] IRainman fix.
 			{
 				// Assume that messages from unknown users come from the hub
@@ -511,11 +567,13 @@ void NmdcHub::onLine(const string& aLine)
 	else
 	{
 		cmd = aLine.substr(1, x - 1);
-		param = toUtf8(aLine.substr(x + 1));
+		param = toUtf8(aLine.substr(x + 1)); // TODO - тут второй toUtf8 зачем-то?
 	}
 	
 	bool bMyInfoCommand = false;
-	
+#ifdef _DEBUG
+//	LogManager::getInstance()->message("###################################### cmd = " + cmd + " param = " + param);
+#endif
 	if (cmd == "Search")
 	{
 		if (state != STATE_NORMAL
@@ -533,7 +591,7 @@ void NmdcHub::onLine(const string& aLine)
 			
 		const auto seeker = param.substr(i, j - i);
 		
-		const auto isPassive = (seeker.compare(0, 4, "Hub:") == 0);
+		const auto isPassive = seeker.compare(0, 4, "Hub:", 4) == 0;
 		const auto meActive = isActive();
 		
 		// Filter own searches
@@ -565,7 +623,7 @@ void NmdcHub::onLine(const string& aLine)
 		// First, check if it's a flooder
 		for (auto fi = flooders.cbegin(); fi != flooders.cend(); ++fi)
 		{
-			if (fi->first == seeker)
+			if (fi->first == seeker) // TODO - линейны й поиск. не эффективно
 			{
 				return;
 			}
@@ -647,89 +705,7 @@ void NmdcHub::onLine(const string& aLine)
 	else if (cmd == "MyINFO")
 	{
 		bMyInfoCommand = true;
-		
-		string::size_type i, j;
-		i = 5;
-		j = param.find(' ', i);
-		if ((j == string::npos) || (j == i))
-			return;
-		string nick = param.substr(i, j - i);
-		
-		if (nick.empty())
-			return;
-			
-		i = j + 1;
-		
-		OnlineUserPtr ou = getUser(nick); // [!] IRainman fix: use OnlineUserPtr
-		
-		j = param.find('$', i);
-		if (j == string::npos)
-			return;
-			
-		string tmpDesc = unescape(param.substr(i, j - i));
-		// Look for a tag...
-		if (!tmpDesc.empty() && tmpDesc[tmpDesc.size() - 1] == '>')
-		{
-			x = tmpDesc.rfind('<');
-			if (x != string::npos)
-			{
-				// Hm, we have something...disassemble it...
-				updateFromTag(ou->getIdentity(), tmpDesc.substr(x + 1, tmpDesc.length() - x - 2)); // [1] https://www.box.net/shared/182trhjuvkkx2l8nblq2
-				tmpDesc.erase(x);
-			}
-		}
-		ou->getIdentity().setDescription(tmpDesc);
-		
-		i = j + 3;
-		j = param.find('$', i);
-		if (j == string::npos)
-			return;
-			
-		// [!] IRainman fix.
-		if (i == j || j - i - 1 == 0)
-		{
-			// No connection = bot...
-			ou->getIdentity().setBot();
-			NmdcSupports::setStatus(ou->getIdentity(), param[j - 1]);
-		}
-		else
-		{
-			NmdcSupports::setStatus(ou->getIdentity(), param[j - 1], param.substr(i, j - i - 1));
-		}
-		// [~] IRainman fix.
-		
-		i = j + 1;
-		j = param.find('$', i);
-		
-		if (j == string::npos)
-			return;
-			
-		ou->getIdentity().setEmail(unescape(param.substr(i, j - i)));
-		
-		i = j + 1;
-		j = param.find('$', i);
-		if (j == string::npos)
-			return;
-			
-		auto l_share_size = Util::toInt64(param.c_str() + i); // Иногда шара бывает == -1 http://www.flickr.com/photos/96019675@N02/9732534452/
-		if (l_share_size < 0)
-		{
-			dcassert(l_share_size >= 0);
-			l_share_size = 0;
-			LogManager::getInstance()->message("ShareSize < 0 !, param = " + param);
-		}
-		changeBytesShared(ou->getIdentity(), l_share_size);
-		
-		/* [-] IRainman fix.
-		if (ou->getUser() == getMyIdentity().getUser())
-		{
-		    setMyIdentity(ou.getIdentity);
-		}
-		   [~] IRainman fix.*/
-		if (!ClientManager::isShutdown())
-		{
-			fire(ClientListener::UserUpdated(), this, ou); // !SMT!-fix
-		}
+		myInfoParse(param); // [+]PPA http://code.google.com/p/flylinkdc/issues/detail?id=1384
 	}
 	else if (cmd == "Quit")
 	{
@@ -921,12 +897,12 @@ void NmdcHub::onLine(const string& aLine)
 			if (i == string::npos)
 			{
 				hubnick = unescape(param);
-				ou = getUser(hubnick, true);
+				ou = getUser(hubnick, true, false);
 			}
 			else
 			{
 				hubnick = unescape(param.substr(0, i));
-				ou = getUser(hubnick, true);
+				ou = getUser(hubnick, true, false);
 				if (!SETTING(STRIP_TOPIC))
 					ou->getIdentity().setDescription(unescape(param.substr(i + 1)));
 			}
@@ -934,7 +910,7 @@ void NmdcHub::onLine(const string& aLine)
 		else
 		{
 			hubnick = unescape(param.substr(0, i));
-			ou = getUser(hubnick, true); // https://www.box.net/shared/0w28tcl49iv1wnckpwi8
+			ou = getUser(hubnick, true, false); // https://www.box.net/shared/0w28tcl49iv1wnckpwi8
 			if (!SETTING(STRIP_TOPIC))
 				ou->getIdentity().setDescription(unescape(param.substr(i + 3)));
 		}
@@ -1054,7 +1030,7 @@ void NmdcHub::onLine(const string& aLine)
 			}
 			
 			key(CryptoManager::getInstance()->makeKey(lock));
-			OnlineUserPtr ou = getUser(getMyNick()); // [!] IRainman fix: use OnlineUserPtr
+			OnlineUserPtr ou = getUser(getMyNick(), false, false); // [!] IRainman fix: use OnlineUserPtr
 			validateNick(ou->getIdentity().getNick());
 		}
 	}
@@ -1062,7 +1038,7 @@ void NmdcHub::onLine(const string& aLine)
 	{
 		if (!param.empty())
 		{
-			OnlineUserPtr ou = getUser(param); // [!] IRainman fix: use OnlineUserPtr
+			OnlineUserPtr ou = getUser(param, false, false); // [!] IRainman fix: use OnlineUserPtr
 			
 			if (isMe(ou))
 			{
@@ -1147,19 +1123,34 @@ void NmdcHub::onLine(const string& aLine)
 						
 					const string l_ip = it->substr(j + 1);
 					ou->getIdentity().setIp(l_ip);
-					/* [-] IRainman fix.
-					if (ou->getUser() == getMyIdentity().getUser())
-					{
-					 setMyIdentity(ou->getIdentity); // [-]
-					}
-					   [-]IRainman fix. */
 					v.push_back(ou);
 				}
 			}
 			fire_user_updated(v);
 		}
 	}
-	else if (cmd == "NickList")
+	else if (cmd == "BotList")
+	{
+		OnlineUserList v;
+		const StringTokenizer<string> t(param, "$$");
+		const StringList& sl = t.getTokens();
+		{
+			for (auto it = sl.cbegin(); it != sl.cend(); ++it)
+			{
+				if (it->empty())
+					continue;
+				OnlineUserPtr ou = getUser(*it, false, false);
+				if (ou)
+				{
+					ou->getIdentity().setBot();
+					v.push_back(ou);
+				}
+			}
+		}
+		fire_user_updated(v);
+		
+	}
+	else if (cmd == "NickList") // TODO - убить
 	{
 		if (!param.empty())
 		{
@@ -1184,8 +1175,8 @@ void NmdcHub::onLine(const string& aLine)
 				{
 					if (it->empty())
 						continue;
-						
-					v.push_back(getUser(*it));// [!] IRainman fix: use OnlineUserPtr
+					OnlineUserPtr ou = getUser(*it, false, false);
+					v.push_back(ou);// [!] IRainman fix: use OnlineUserPtr
 				}
 				
 				if (!(m_supportFlags & SUPPORTS_NOGETINFO))
@@ -1230,20 +1221,17 @@ void NmdcHub::onLine(const string& aLine)
 				
 				// Lock _l(cs); [-] IRainman fix: no needs any lock here!
 				
-				for (auto it = sl.cbegin(); it != sl.cend(); ++it)
+				for (auto it = sl.cbegin(); it != sl.cend(); ++it) // fix copy-paste
 				{
 					if (it->empty())
 						continue;
 						
-					OnlineUserPtr ou = getUser(*it);
-					ou->getIdentity().setOp(true);
-					/* [-] IRainman fix.
-					if (isMe(ou))
+					OnlineUserPtr ou = getUser(*it, false, false);
+					if (ou)
 					{
-					    // [-] setMyIdentity(ou->getIdentity); [-]
+						ou->getIdentity().setOp(true);
+						v.push_back(ou);
 					}
-					// [-] IRainman fix*/
-					v.push_back(ou);
 				}
 			}
 			fire_user_updated(v);
@@ -1288,7 +1276,7 @@ void NmdcHub::onLine(const string& aLine)
 			if (message.replyTo == nullptr)
 			{
 				// Assume it's from the hub
-				message.replyTo = getUser(rtNick);// [!] IRainman fix: use OnlineUserPtr
+				message.replyTo = getUser(rtNick, false, false); // [!] IRainman fix: use OnlineUserPtr
 				message.replyTo->getIdentity().setHub();
 #ifdef IRAINMAN_USE_HIDDEN_USERS
 				message.replyTo->getIdentity().setHidden();
@@ -1298,7 +1286,7 @@ void NmdcHub::onLine(const string& aLine)
 			if (message.from == nullptr)
 			{
 				// Assume it's from the hub
-				message.from = getUser(fromNick);// [!] IRainman fix: use OnlineUserPtr
+				message.from = getUser(fromNick, false, false); // [!] IRainman fix: use OnlineUserPtr
 				message.from->getIdentity().setHub();
 #ifdef IRAINMAN_USE_HIDDEN_USERS
 				message.from->getIdentity().setHidden();
@@ -1329,7 +1317,7 @@ void NmdcHub::onLine(const string& aLine)
 	else if (cmd == "GetPass")
 	{
 		// [!] IRainman fix.
-		getUser(getMyNick()); // [!] use OnlineUserPtr, don't delete this line.
+		getUser(getMyNick(), false, false); // [!] use OnlineUserPtr, don't delete this line.
 		setRegistered(); // [!]
 		// setMyIdentity(ou->getIdentity()); [-]
 		processingPassword(); // [!]
@@ -1350,7 +1338,7 @@ void NmdcHub::onLine(const string& aLine)
 			dcdebug("NmdcHub::onLine %s failed with error: %s\n", cmd.c_str(), e.getError().c_str());
 		}
 	}
-	else if (cmd == "HubTopic" && SETTING(ENABLE_HUBTOPIC))
+	else if (cmd == "HubTopic")
 	{
 		fire(ClientListener::HubTopic(), this, param);
 	}
@@ -1368,7 +1356,9 @@ void NmdcHub::onLine(const string& aLine)
 	// [~] IRainman.
 	else
 	{
+		dcassert(0);
 		dcdebug("NmdcHub::onLine Unknown command %s\n", aLine.c_str());
+		LogManager::getInstance()->message("NmdcHub::onLine Unknown hub = " + getHubUrl() + " command = " + cmd + " param = " + param);
 	}
 	
 	if (!bMyInfoCommand && m_bLastMyInfoCommand == FIRST_MYINFO)
@@ -1388,17 +1378,15 @@ void NmdcHub::onLine(const string& aLine)
 		m_bLastMyInfoCommand = FIRST_MYINFO;
 }
 
-string NmdcHub::checkNick(const string& aNick)
+void NmdcHub::checkNick(string& aNick)
 {
-	string tmp = aNick;
 	for (size_t i = 0; i < aNick.size(); ++i)
 	{
-		if (static_cast<uint8_t>(tmp[i]) <= 32 || tmp[i] == '|' || tmp[i] == '$' || tmp[i] == '<' || tmp[i] == '>')
+		if (static_cast<uint8_t>(aNick[i]) <= 32 || aNick[i] == '|' || aNick[i] == '$' || aNick[i] == '<' || aNick[i] == '>')
 		{
-			tmp[i] = '_';
+			aNick[i] = '_';
 		}
 	}
-	return tmp;
 }
 
 void NmdcHub::connectToMe(const OnlineUser& aUser
@@ -1441,8 +1429,12 @@ void NmdcHub::hubMessage(const string& aMessage, bool thirdPerson)
 
 void NmdcHub::myInfo(bool alwaysSend)
 {
+	const uint64_t l_limit = 2 * 60 * 1000; // http://code.google.com/p/flylinkdc/issues/detail?id=1370
 	const uint64_t currentTick = GET_TICK(); // [!] IRainman opt.
-	if (!alwaysSend && lastUpdate + 15000 > currentTick) return; // antispam
+	if (!alwaysSend && lastUpdate + l_limit > currentTick)
+	{
+		return; // antispam
+	}
 	
 	checkstate();
 	
@@ -1537,7 +1529,7 @@ void NmdcHub::myInfo(bool alwaysSend)
 	    ShareManager::getInstance()->getShareSize();
 	    
 	if (alwaysSend ||
-	        (currentBytesShared != lastbytesshared && lastUpdate + 15 * 60 * 1000 < currentTick) ||
+	        (currentBytesShared != lastbytesshared && lastUpdate + l_limit < currentTick) ||
 	        currentMyInfo != lastmyinfo)  // [!] IRainman opt.
 	{
 		lastmyinfo = currentMyInfo;
@@ -1694,7 +1686,7 @@ void NmdcHub::clearFlooders(uint64_t aTick)
 	}
 }
 #endif // IRAINMAN_USE_SEARCH_FLOOD_FILTER
-void NmdcHub::on(Connected) noexcept
+void NmdcHub::on(BufferedSocketListener::Connected) noexcept
 {
 	Client::on(Connected());
 	
@@ -1709,11 +1701,114 @@ void NmdcHub::on(Connected) noexcept
 	lastUpdate = 0;
 }
 
-void NmdcHub::on(Line, const string& aLine) noexcept
+void NmdcHub::myInfoParse(const string& param) noexcept
+{
+	string::size_type i = 5;
+	string::size_type j = param.find(' ', i);
+	if (j == string::npos || j == i)
+		return;
+	string nick = param.substr(i, j - i);
+	
+	dcassert(!nick.empty())
+	if (nick.empty())
+		return;
+		
+	i = j + 1;
+	
+	OnlineUserPtr ou = getUser(nick, false, m_bLastMyInfoCommand == DIDNT_GET_YET_FIRST_MYINFO); // При первом коннекте исключаем поиск
+	
+	j = param.find('$', i);
+	dcassert(j != string::npos)
+	if (j == string::npos)
+		return;
+		
+	string tmpDesc = unescape(param.substr(i, j - i));
+	// Look for a tag...
+	if (!tmpDesc.empty() && tmpDesc[tmpDesc.size() - 1] == '>')
+	{
+		const string::size_type x = tmpDesc.rfind('<');
+		if (x != string::npos)
+		{
+			// Hm, we have something...disassemble it...
+			dcassert(tmpDesc.length() > x + 2)
+			if (tmpDesc.length()  > x + 2)
+			{
+				const string l_tag = tmpDesc.substr(x + 1, tmpDesc.length() - x - 2);
+				updateFromTag(ou->getIdentity(), l_tag); // тяжелая операция с токенами. TODO - оптимизнуть
+			}
+			ou->getIdentity().setDescription(tmpDesc.substr(x));
+		}
+	}
+	else
+	{
+		ou->getIdentity().setDescription(Util::emptyString);
+	}
+	
+	i = j + 3;
+	j = param.find('$', i);
+	if (j == string::npos)
+		return;
+		
+	// [!] IRainman fix.
+	if (i == j || j - i - 1 == 0)
+	{
+		// No connection = bot...
+		ou->getIdentity().setBot();
+		NmdcSupports::setStatus(ou->getIdentity(), param[j - 1]);
+	}
+	else
+	{
+		NmdcSupports::setStatus(ou->getIdentity(), param[j - 1], param.substr(i, j - i - 1));
+	}
+	// [~] IRainman fix.
+	
+	i = j + 1;
+	j = param.find('$', i);
+	
+	if (j == string::npos)
+		return;
+		
+	ou->getIdentity().setEmail(unescape(param.substr(i, j - i)));
+	
+	i = j + 1;
+	j = param.find('$', i);
+	if (j == string::npos)
+		return;
+		
+	auto l_share_size = Util::toInt64(param.c_str() + i); // Иногда шара бывает == -1 http://www.flickr.com/photos/96019675@N02/9732534452/
+	if (l_share_size < 0)
+	{
+		dcassert(l_share_size >= 0);
+		l_share_size = 0;
+		LogManager::getInstance()->message("ShareSize < 0 !, param = " + param);
+	}
+	changeBytesShared(ou->getIdentity(), l_share_size);
+	
+	/* [-] IRainman fix.
+	if (ou->getUser() == getMyIdentity().getUser())
+	{
+	    setMyIdentity(ou.getIdentity);
+	}
+	   [~] IRainman fix.*/
+	if (!ClientManager::isShutdown())
+	{
+		fire(ClientListener::UserUpdated(), this, ou); // !SMT!-fix
+	}
+}
+
+void NmdcHub::on(BufferedSocketListener::MyInfoArray, const StringList& p_myInfoArray) noexcept
+{
+	for (auto i = p_myInfoArray.cbegin(); i != p_myInfoArray.end(); ++i)
+	{
+		myInfoParse(toUtf8(*i));
+	}
+}
+
+void NmdcHub::on(BufferedSocketListener::Line, const string& aLine) noexcept
 {
 	if (!ClientManager::isShutdown())
 	{
-		Client::on(Line(), aLine);
+		Client::on(Line(), aLine); // TODO skip Start
 #ifdef IRAINMAN_INCLUDE_PROTO_DEBUG_FUNCTION
 		if (BOOLSETTING(NMDC_DEBUG))
 		{
@@ -1724,7 +1819,7 @@ void NmdcHub::on(Line, const string& aLine) noexcept
 	}
 }
 
-void NmdcHub::on(Failed, const string& aLine) noexcept
+void NmdcHub::on(BufferedSocketListener::Failed, const string& aLine) noexcept
 {
 	clearUsers();
 	Client::on(Failed(), aLine);

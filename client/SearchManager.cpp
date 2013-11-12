@@ -203,7 +203,7 @@ int SearchManager::UdpQueue::run()
 	
 	while (true)
 	{
-		s.wait();
+		m_s.wait();
 		if (stop)
 			break;
 			
@@ -216,12 +216,12 @@ int SearchManager::UdpQueue::run()
 			resultList.pop_front();
 		}
 		
-		if (x.compare(0, 4, "$SR ") == 0)
+		if (x.compare(0, 4, "$SR ", 4) == 0)
 		{
-			string::size_type i, j;
+			string::size_type i = 4;
+			string::size_type j;
 			// Directories: $SR <nick><0x20><directory><0x20><free slots>/<total slots><0x05><Hubname><0x20>(<Hubip:port>)
 			// Files:       $SR <nick><0x20><filename><0x05><filesize><0x20><free slots>/<total slots><0x05><Hubname><0x20>(<Hubip:port>)
-			i = 4;
 			if ((j = x.find(' ', i)) == string::npos)
 			{
 				continue;
@@ -230,22 +230,24 @@ int SearchManager::UdpQueue::run()
 			i = j + 1;
 			
 			// A file has 2 0x05, a directory only one
-			size_t cnt = count(x.begin() + j, x.end(), 0x05);
-			
+			// const size_t cnt = count(x.begin() + j, x.end(), 0x05);
+			// Cчитать можно только до 2-х. значени€ больше игнорируютс€
+			const auto l_find_05_first = x.find(0x05, j);
+			dcassert(l_find_05_first != string::npos);
+			if (l_find_05_first == string::npos)
+				continue;
+			const auto l_find_05_second = x.find(0x05, l_find_05_first + 1);
 			SearchResult::Types type = SearchResult::TYPE_FILE;
 			string file;
 			int64_t size = 0;
 			
-			if (cnt == 1)
+			if (l_find_05_first != string::npos && l_find_05_second == string::npos) // cnt == 1
 			{
 				// We have a directory...find the first space beyond the first 0x05 from the back
 				// (dirs might contain spaces as well...clever protocol, eh?)
 				type = SearchResult::TYPE_DIRECTORY;
 				// Get past the hubname that might contain spaces
-				if ((j = x.rfind(0x05)) == string::npos)
-				{
-					continue;
-				}
+				j = l_find_05_first;
 				// Find the end of the directory info
 				if ((j = x.rfind(' ', j - 1)) == string::npos)
 				{
@@ -257,12 +259,9 @@ int SearchManager::UdpQueue::run()
 				}
 				file = x.substr(i, j - i) + '\\';
 			}
-			else if (cnt == 2)
+			else if (l_find_05_first != string::npos && l_find_05_second != string::npos) // cnt == 2
 			{
-				if ((j = x.find((char)5, i)) == string::npos)
-				{
-					continue;
-				}
+				j = l_find_05_first;
 				file = x.substr(i, j - i);
 				i = j + 1;
 				if ((j = x.find(' ', i)) == string::npos)
@@ -297,7 +296,7 @@ int SearchManager::UdpQueue::run()
 			}
 			
 			const string hubIpPort = x.substr(i, j - i);
-			const string url = ClientManager::getInstance()->findHub(hubIpPort);
+			const string url = ClientManager::getInstance()->findHub(hubIpPort); // TODO - внутри линейный поиск. оптимизнуть
 			// url оказываетс€ пустым https://www.box.net/shared/ayirspvdjk2boix4oetr
 			// падаем на dcassert в следующем вызове findHubEncoding.
 			// [!] IRainman fix: не падаем!!!! Ёто диагностическое предупреждение!!!
@@ -349,15 +348,18 @@ int SearchManager::UdpQueue::run()
 			SearchManager::getInstance()->fire(SearchManagerListener::SR(), sr);
 			
 		}
-		else if (x.compare(1, 4, "RES ") == 0 && x[x.length() - 1] == 0x0a)
+		else if (x.compare(1, 4, "RES ", 4) == 0 && x[x.length() - 1] == 0x0a)
 		{
 			AdcCommand c(x.substr(0, x.length() - 1));
 			if (c.getParameters().empty())
 				continue;
-			string cid = c.getParam(0);
+			const string cid = c.getParam(0);
 			if (cid.size() != 39)
+			{
+				dcassert(0);
 				continue;
-				
+			}
+			
 			UserPtr user = ClientManager::getInstance()->findUser(CID(cid));
 			if (!user)
 				continue;
@@ -368,7 +370,7 @@ int SearchManager::UdpQueue::run()
 			SearchManager::getInstance()->onRES(c, user, remoteIp);
 			
 		}
-		if (x.compare(1, 4, "PSR ") == 0 && x[x.length() - 1] == 0x0a)
+		if (x.compare(1, 4, "PSR ", 4) == 0 && x[x.length() - 1] == 0x0a)
 		{
 			AdcCommand c(x.substr(0, x.length() - 1));
 			if (c.getParameters().empty())
@@ -384,7 +386,7 @@ int SearchManager::UdpQueue::run()
 			
 			SearchManager::getInstance()->onPSR(c, user, remoteIp);
 			
-		} /*else if(x.compare(1, 4, "SCH ") == 0 && x[x.length() - 1] == 0x0a) {
+		} /*else if(x.compare(1, 4, "SCH ",4) == 0 && x[x.length() - 1] == 0x0a) {
             try {
                 respond(AdcCommand(x.substr(0, x.length()-1)));
             } catch(const ParseException& ) {
@@ -414,23 +416,23 @@ void SearchManager::onRES(const AdcCommand& cmd, const UserPtr& from, const stri
 	for (auto i = cmd.getParameters().cbegin(); i != cmd.getParameters().cend(); ++i)
 	{
 		const string& str = *i;
-		if (str.compare(0, 2, "FN") == 0)
+		if (str.compare(0, 2, "FN", 2) == 0)
 		{
 			file = Util::toNmdcFile(str.substr(2));
 		}
-		else if (str.compare(0, 2, "SL") == 0)
+		else if (str.compare(0, 2, "SL", 2) == 0)
 		{
 			freeSlots = Util::toInt(str.substr(2));
 		}
-		else if (str.compare(0, 2, "SI") == 0)
+		else if (str.compare(0, 2, "SI", 2) == 0)
 		{
 			size = Util::toInt64(str.substr(2));
 		}
-		else if (str.compare(0, 2, "TR") == 0)
+		else if (str.compare(0, 2, "TR", 2) == 0)
 		{
 			tth = str.substr(2);
 		}
-		else if (str.compare(0, 2, "TO") == 0)
+		else if (str.compare(0, 2, "TO", 2) == 0)
 		{
 			token = str.substr(2);
 		}
@@ -469,27 +471,27 @@ void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const string& rem
 	for (auto i = cmd.getParameters().cbegin(); i != cmd.getParameters().cend(); ++i)
 	{
 		const string& str = *i;
-		if (str.compare(0, 2, "U4") == 0)
+		if (str.compare(0, 2, "U4", 2) == 0)
 		{
 			udpPort = static_cast<uint16_t>(Util::toInt(str.substr(2)));
 		}
-		else if (str.compare(0, 2, "NI") == 0)
+		else if (str.compare(0, 2, "NI", 2) == 0)
 		{
 			nick = str.substr(2);
 		}
-		else if (str.compare(0, 2, "HI") == 0)
+		else if (str.compare(0, 2, "HI", 2) == 0)
 		{
 			hubIpPort = str.substr(2);
 		}
-		else if (str.compare(0, 2, "TR") == 0)
+		else if (str.compare(0, 2, "TR", 2) == 0)
 		{
 			tth = str.substr(2);
 		}
-		else if (str.compare(0, 2, "PC") == 0)
+		else if (str.compare(0, 2, "PC", 2) == 0)
 		{
 			partialCount = Util::toUInt32(str.substr(2)) * 2;
 		}
-		else if (str.compare(0, 2, "PI") == 0)
+		else if (str.compare(0, 2, "PI", 2) == 0)
 		{
 			const StringTokenizer<string> tok(str.substr(2), ',');
 			for (auto j = tok.getTokens().cbegin(); j != tok.getTokens().cend(); ++j)
@@ -527,6 +529,7 @@ void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const string& rem
 	}
 	
 	ClientManager::getInstance()->setIPUser(from, remoteIp, udpPort);
+	// TODO »щем в OnlineUser а чуть выше ищем в UserPtr може тожно схлопнуть в один поиск дл€ апдейта IP
 	
 	if (partialInfo.size() != partialCount)
 	{

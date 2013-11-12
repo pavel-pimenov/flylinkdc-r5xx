@@ -99,8 +99,7 @@ class DirectoryListing : public UserInfoBase
 					}
 				};
 				typedef vector<Ptr> List;
-//				typedef List::const_iterator Iter;
-
+				
 				typedef std::unordered_set<TTHValue> TTHSet;
 				
 				List directories;

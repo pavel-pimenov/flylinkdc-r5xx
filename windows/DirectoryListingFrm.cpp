@@ -148,7 +148,8 @@ DirectoryListingFrame::DirectoryListingFrame(const HintedUser& aHintedUser, int6
 	isoffline(false), /* <[+] InfinitySky */
 #endif // USE_OFFLINE_ICON_FOR_FILELIST
 	dl(new DirectoryListing(aHintedUser)), m_searching(false), m_isDclst(false),
-	m_count_item_changed(0)
+	m_count_item_changed(0),
+	m_prev_directory(nullptr)
 {
 	addToUserMap(aHintedUser); // [!] IRainman dclst support
 }
@@ -244,7 +245,10 @@ LRESULT DirectoryListingFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	SetSplitterPanes(ctrlTree.m_hWnd, ctrlList.m_hWnd);
 	m_nProportionalPos = SETTING(DIRECTORYLISTINGFRAME_SPLIT);
 	string nick = isDclst() ? Util::getFileName(getFileName()) : (dl->getUser() ? dl->getUser()->getLastNick() : Util::emptyString); // [!] IRainman dclst support
-	treeRoot = ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM, Text::toT(nick).c_str(), isDclst() ? FileImage::DIR_DSLCT : FileImage::DIR_ICON,  isDclst() ? FileImage::DIR_DSLCT : FileImage::DIR_ICON, 0, 0, (LPARAM)dl->getRoot(), NULL, TVI_SORT); // [!] SSA - adds DCLST or Directory icon here.
+	treeRoot = ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
+	                               Text::toT(nick).c_str(), isDclst() ? FileImage::DIR_DSLCT : FileImage::DIR_ICON,
+	                               isDclst() ? FileImage::DIR_DSLCT : FileImage::DIR_ICON, 0, 0,
+	                               (LPARAM)dl->getRoot(), NULL, TVI_SORT); // [!] SSA - adds DCLST or Directory icon here.
 	dcassert(treeRoot != NULL);
 	
 	memzero(statusSizes, sizeof(statusSizes));
@@ -379,7 +383,7 @@ void DirectoryListingFrame::refreshTree(const tstring& root)
 
 void DirectoryListingFrame::updateStatus()
 {
-	if (!m_closed &&
+	if (!isClosedOrShutdown() &&
 	        !m_searching &&
 	        !m_updating &&
 	        ctrlStatus.IsWindow())
@@ -510,22 +514,46 @@ void DirectoryListingFrame::changeDir(DirectoryListing::Directory* p_dir, BOOL p
 	CWaitCursor l_cursor_wait;
 	CLockRedraw<> l_lock_draw(ctrlList);
 	m_updating = true; // TODO сделать классом RAII
-	clearList();
+	// http://code.google.com/p/flylinkdc/issues/detail?id=1223
+	auto& l_prev_selected_file = m_selected_file_history[m_prev_directory];
+	string l_cur_selected_item_name = m_selected_file_history[p_dir];
+	if (const auto& l_cur_item = ctrlList.getSelectedItem())
+	{
+		if (m_prev_directory)
+		{
+			l_prev_selected_file = Text::fromT(l_cur_item->getText(COLUMN_FILENAME));
+		}
+	}
+	m_prev_directory = p_dir;
+	ctrlList.DeleteAndCleanAllItems();
 	auto l_count = ctrlList.GetItemCount();
+	ItemInfo* l_last_item = nullptr;
 	for (auto i = p_dir->directories.cbegin(); i != p_dir->directories.cend(); ++i)
 	{
-		// Определяем иконку для папки
-		const auto typeDirectory = GetTypeDirectory(*i);
-		
-		// Отрисовываем строку в таблице
-		ctrlList.insertItem(l_count++, new ItemInfo(*i), typeDirectory);
+		ItemInfo* ii = new ItemInfo(*i);
+		const auto& l_name = (*i)->getName();
+		if (!l_cur_selected_item_name.empty() && l_name == l_cur_selected_item_name)
+		{
+			l_last_item = ii;
+		}
+		ctrlList.insertItem(l_count++, ii, I_IMAGECALLBACK); // GetTypeDirectory(*i)
 	}
 	for (auto j = p_dir->files.cbegin(); j != p_dir->files.cend(); ++j)
 	{
 		ItemInfo* ii = new ItemInfo(*j);
+		const auto& l_name = (*j)->getName();
+		if (!l_cur_selected_item_name.empty() && l_name == l_cur_selected_item_name)
+		{
+			l_last_item = ii;
+		}
 		ctrlList.insertItem(l_count++, ii, I_IMAGECALLBACK);
 	}
 	ctrlList.resort();
+	if (l_last_item)
+	{
+		const auto l_sel_item = ctrlList.findItem(l_last_item);
+		ctrlList.SelectItem(l_sel_item); // Возвращаемся на запомненный файл.
+	}
 	ctrlList.SetRedraw(p_enableRedraw);
 	m_updating = false; // TODO сделать классом RAII
 	updateStatus();
@@ -1082,7 +1110,7 @@ HTREEITEM DirectoryListingFrame::findItem(HTREEITEM ht, const tstring& name)
 
 void DirectoryListingFrame::selectItem(const tstring& name)
 {
-	HTREEITEM ht = findItem(treeRoot, name);
+	const HTREEITEM ht = findItem(treeRoot, name);
 	if (ht != NULL)
 	{
 		ctrlTree.EnsureVisible(ht);
@@ -1767,7 +1795,7 @@ void DirectoryListingFrame::runUserCommand(UserCommand& uc)
 		
 	StringMap ucParams = ucLineParams;
 	
-	std::set<UserPtr> nicks;
+	std::unordered_set<UserPtr, User::Hash> l_nicks;
 	
 	int sel = -1;
 	while ((sel = ctrlList.GetNextItem(sel, LVNI_SELECTED)) != -1)
@@ -1775,9 +1803,9 @@ void DirectoryListingFrame::runUserCommand(UserCommand& uc)
 		const ItemInfo* ii = (ItemInfo*)ctrlList.getItemData(sel);
 		if (uc.getType() == UserCommand::TYPE_RAW_ONCE)
 		{
-			if (nicks.find(dl->getUser()) != nicks.end())
+			if (l_nicks.find(dl->getUser()) != l_nicks.end())
 				continue;
-			nicks.insert(dl->getUser());
+			l_nicks.insert(dl->getUser());
 		}
 		if (!dl->getUser()->isOnline())
 			return;
@@ -1805,7 +1833,7 @@ void DirectoryListingFrame::runUserCommand(UserCommand& uc)
 		ucParams["tth"] = ucParams["fileTR"];
 		
 		StringMap tmp = ucParams;
-		UserPtr tmpPtr = dl->getUser();
+		const UserPtr tmpPtr = dl->getUser();
 		ClientManager::getInstance()->userCommand(dl->getHintedUser(), uc, tmp, true);
 	}
 }
@@ -1892,21 +1920,20 @@ LRESULT DirectoryListingFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 		m_closed = true;
 		safe_destroy_timer();
 		SettingsManager::getInstance()->removeListener(this);
-		clearList();
+		ctrlList.DeleteAndCleanAllItems();
 		g_frames.erase(m_hWnd);
 		ctrlList.saveHeaderOrder(SettingsManager::DIRECTORYLISTINGFRAME_ORDER, SettingsManager::DIRECTORYLISTINGFRAME_WIDTHS, SettingsManager::DIRECTORYLISTINGFRAME_VISIBLE); // !SMT!-UI
-		//WinUtil::saveHeaderOrder(ctrlList, SettingsManager::DIRECTORLISTINGFRAME_ORDER, SettingsManager::DIRECTORLISTINGFRAME_WIDTHS, COLUMN_LAST, columnIndexes, columnSizes);
 		SET_SETTING(DIRLIST_COLUMNS_SORT, ctrlList.getSortColumn());
 		SET_SETTING(DIRLIST_COLUMNS_SORT_ASC, ctrlList.isAscending());
 		SET_SETTING(DIRECTORYLISTINGFRAME_SPLIT, m_nProportionalPos);
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
+		waitForFlyServerStop();
+#endif
 		PostMessage(WM_CLOSE);
 		return 0;
 	}
 	else
 	{
-#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-		waitForFlyServerStop();
-#endif
 		bHandled = FALSE;
 		return 0;
 	}
@@ -2022,6 +2049,7 @@ LRESULT DirectoryListingFrame::onCustomDrawList(int /*idCtrl*/, LPNMHDR pnmh, BO
 		{
 			Flags::MaskType flags = 0;
 			ItemInfo *ii = reinterpret_cast<ItemInfo*>(plvcd->nmcd.lItemlParam);
+			ii->calcImageIndex();
 			if (ii->type == ItemInfo::FILE)
 				flags = ii->file->getFlags();
 			else if (ii->type == ItemInfo::DIRECTORY)
@@ -2029,7 +2057,9 @@ LRESULT DirectoryListingFrame::onCustomDrawList(int /*idCtrl*/, LPNMHDR pnmh, BO
 			getItemColor(flags, plvcd->clrText, plvcd->clrTextBk);
 			if (!ii->columns[COLUMN_FLY_SERVER_RATING].empty())
 				plvcd->clrTextBk  = OperaColors::brightenColor(plvcd->clrTextBk, -0.02f);
+#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 			Colors::alternationBkColor(plvcd); // [+] IRainman
+#endif
 #ifdef SCALOLAZ_MEDIAVIDEO_ICO
 			return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
 #endif // SCALOLAZ_MEDIAVIDEO_ICO
@@ -2063,13 +2093,15 @@ LRESULT DirectoryListingFrame::onCustomDrawTree(int /*idCtrl*/, LPNMHDR pnmh, BO
 				DirectoryListing::Directory* dir = reinterpret_cast<DirectoryListing::Directory*>(plvcd->nmcd.lItemlParam);
 				getItemColor(dir->getFlags(), plvcd->clrText, plvcd->clrTextBk);
 			}
+#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 			else
 				Colors::alternationBkColor(plvcd); // [+] IRainman
+#endif
 	}
 	return CDRF_DODEFAULT;
 }
 
-DirectoryListingFrame::ItemInfo::ItemInfo(DirectoryListing::File* f) : type(FILE), file(f)
+DirectoryListingFrame::ItemInfo::ItemInfo(DirectoryListing::File* f) : type(FILE), file(f), m_icon_index(-1)
 {
 	columns[COLUMN_FILENAME] = Text::toT(f->getName()); // https://www.box.net/shared/972al1nj5hngajrcgvnt
 	columns[COLUMN_TYPE] = Util::getFileExt(columns[COLUMN_FILENAME]);
@@ -2096,7 +2128,7 @@ DirectoryListingFrame::ItemInfo::ItemInfo(DirectoryListing::File* f) : type(FILE
 	
 	CFlyMediaInfo::translateDuration(f->m_media.m_audio, columns[COLUMN_MEDIA_AUDIO], columns[COLUMN_DURATION]);
 }
-DirectoryListingFrame::ItemInfo::ItemInfo(DirectoryListing::Directory* d) : type(DIRECTORY), dir(d)
+DirectoryListingFrame::ItemInfo::ItemInfo(DirectoryListing::Directory* d) : type(DIRECTORY), dir(d), m_icon_index(-1)
 {
 	columns[COLUMN_FILENAME]  = Text::toT(d->getName());
 	columns[COLUMN_EXACTSIZE] = Util::formatExactSize(d->getTotalSize());
@@ -2201,19 +2233,18 @@ LRESULT DirectoryListingFrame::onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, 
 // TODO: please fix copy-past.
 void DirectoryListingFrame::mergeFlyServerInfo()
 {
-	if (m_closed)
+	if (isClosedOrShutdown())
 		return;
-		
 	CWaitCursor l_cursor_wait;
 	std::map<string, ItemInfo*> l_si_map;      // Соберем элементы списка для последующего апдейта
 	std::map<TTHValue, uint64_t> l_tth_media_file_map; // Сохраним TTH файлов содержащих локальную медиаинфу для последующей передачи на сервер
-	const int l_top_index = ctrlList.GetTopIndex();
-	const int l_count_per_page = ctrlList.GetCountPerPage();
-	const int l_item_count = ctrlList.GetItemCount();
-	for (int j = l_top_index; !m_closed && j < l_item_count && j < l_top_index + l_count_per_page; ++j)
+	const int l_top_index = isClosedOrShutdown() ? 0 : ctrlList.GetTopIndex();
+	const int l_count_per_page = isClosedOrShutdown() ? 0 : ctrlList.GetCountPerPage();
+	const int l_item_count = isClosedOrShutdown() ? 0 : ctrlList.GetItemCount();
+	for (int j = l_top_index; j < l_item_count && j < l_top_index + l_count_per_page; ++j)
 	{
-		dcassert(!m_closed);
-		ItemInfo* i2 = ctrlList.getItemData(j);
+		dcassert(!isClosedOrShutdown());
+		ItemInfo* i2 = isClosedOrShutdown() ? nullptr : ctrlList.getItemData(j);
 		if (i2 == nullptr)
 			continue;
 		if (i2->m_already_processed || i2->type != ItemInfo::FILE) // Уже не первый раз или это не файл?
@@ -2239,7 +2270,8 @@ void DirectoryListingFrame::mergeFlyServerInfo()
 			}
 		}
 	}
-	if (!m_GetFlyServerArray.empty())
+	dcassert(!isClosedOrShutdown());
+	if (!isClosedOrShutdown() && !m_GetFlyServerArray.empty())
 	{
 		const string l_json_result = CFlyServerJSON::connect(m_GetFlyServerArray, false); // послать запрос на сервер для получения медиаинформации.
 		m_GetFlyServerArray.clear();
@@ -2263,10 +2295,14 @@ void DirectoryListingFrame::mergeFlyServerInfo()
 				const string l_tth = l_cur_item_in["tth"].asString();
 				bool l_is_know_tth = false;
 				auto l_si_find = l_si_map.find(l_tth + l_size_str);
-				if (l_si_find != l_si_map.end() && !m_closed)
+				if (l_si_find != l_si_map.end())
 				{
-					dcassert(!m_closed);
-					const auto l_cur_item = ctrlList.findItem(l_si_find->second);
+					int l_cur_item = -1;
+					dcassert(!isClosedOrShutdown());
+					if (!isClosedOrShutdown())
+						l_cur_item = ctrlList.findItem(l_si_find->second);
+					else
+						return;
 					if (l_cur_item >= 0)
 					{
 						const Json::Value& l_result_counter = l_cur_item_in["info"];
@@ -2310,13 +2346,25 @@ http://code.google.com/p/flylinkdc/issues/detail?id=1113
 				COLUMN_BITRATE , COLUMN_MEDIA_XY, COLUMN_MEDIA_VIDEO , COLUMN_MEDIA_AUDIO, COLUMN_DURATION, COLUMN_FLY_SERVER_RATING
 			};
 			const static std::vector<int> l_columns(l_array, l_array + _countof(l_array));
-			dcassert(!m_closed);
-			if (!m_closed)
+			dcassert(!isClosedOrShutdown());
+			if (!isClosedOrShutdown())
 			{
 				ctrlList.update_columns(l_update_index, l_columns);
 			}
+			else
+			{
+				return;
+			}
 #else
-			ctrlList.update_all_columns(l_update_index);
+			dcassert(!isClosedOrShutdown());
+			if (!isClosedOrShutdown())
+			{
+				ctrlList.update_all_columns(l_update_index);
+			}
+			else
+			{
+				return;
+			}
 #endif
 		}
 	}
@@ -2348,7 +2396,7 @@ http://code.google.com/p/flylinkdc/issues/detail?id=1113
 //===================================================================================================================================
 LRESULT DirectoryListingFrame::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 {
-	if (!MainFrame::isAppMinimized() && WinUtil::g_tabCtrl->isActive(m_hWnd)) // [+] IRainman opt.
+	if (!MainFrame::isAppMinimized() && WinUtil::g_tabCtrl->isActive(m_hWnd) && !isClosedOrShutdown()) // [+] IRainman opt.
 	{
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		if (ctrlList.GetItemCount())

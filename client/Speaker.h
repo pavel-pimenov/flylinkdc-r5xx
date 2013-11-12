@@ -268,20 +268,23 @@ void addListener(Listener* aListener)
 void removeListener(Listener* aListener)
 {
 	Lock l(m_listenerCS);
-	auto it = boost::range::find(m_listeners, aListener);
-	if (it != m_listeners.end())
+	if (!m_listeners.empty())
 	{
-		m_listeners.erase(it);
-	}
+		auto it = boost::range::find(m_listeners, aListener);
+		if (it != m_listeners.end())
+		{
+			m_listeners.erase(it);
+		}
 #ifdef _DEBUG_SPEAKER_LISTENER_LIST_LEVEL_1
-	else
-	{
-		dcassert(0);
+		else
+		{
+			dcassert(0);
 # ifdef _DEBUG_SPEAKER_LISTENER_LIST_LEVEL_2
-		log_listener_list(m_listeners, "removeListener-zombie!!!");
+			log_listener_list(m_listeners, "removeListener-zombie!!!");
 # endif
-	}
+		}
 #endif // _DEBUG_SPEAKER_LISTENER_LIST_LEVEL_1
+	}
 }
 
 void removeListeners()

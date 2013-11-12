@@ -62,6 +62,7 @@ LRESULT NotepadFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 {
 	if (!m_closed)
 	{
+		m_closed = true;
 		SettingsManager::getInstance()->removeListener(this);
 		if (m_dirty || ctrlPad.GetModify())
 		{
@@ -80,7 +81,6 @@ LRESULT NotepadFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 			}
 		}
 		
-		m_closed = true;
 		WinUtil::setButtonPressed(IDC_NOTEPAD, false);
 		PostMessage(WM_CLOSE);
 		return 0;

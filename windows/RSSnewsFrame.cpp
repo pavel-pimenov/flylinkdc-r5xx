@@ -119,10 +119,9 @@ LRESULT RSSNewsFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 
 	if (!m_closed)
 	{
+		m_closed = true;
 		RSSManager::getInstance()->removeListener(this);
 		SettingsManager::getInstance()->removeListener(this);
-		
-		m_closed = true;
 		WinUtil::setButtonPressed(IDC_RSS, false);
 		PostMessage(WM_CLOSE);
 		return 0;

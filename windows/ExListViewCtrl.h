@@ -142,21 +142,28 @@ class ExListViewCtrl : public CWindowImpl<ExListViewCtrl, CListViewCtrl, CContro
 		{
 			setSort(sortColumn, sortType, aAscending, fun);
 		}
-		// [+] InfinitySky. Alpha for PNG.
+#ifdef FLYLINKDC_USE_LIST_VIEW_WATER_MARK
 		BOOL SetBkColor(COLORREF cr, UINT nID = 0)
 		{
-			if (nID != 0) WinUtil::setListCtrlWatermark(m_hWnd, nID, cr);
+			if (nID != 0)
+			{
+				WinUtil::setListCtrlWatermark(m_hWnd, nID, cr);
+			}
 			return CListViewCtrl::SetBkColor(cr);
 		}
+#endif
 		
 		static int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 		LRESULT onChar(UINT /*msg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
 		
 		LRESULT onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 		{
+#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 			return Colors::alternationonCustomDraw(pnmh, bHandled);
+#else
+			return CDRF_DODEFAULT;
+#endif
 		}
-		
 		tstring ExGetItemTextT(const int p_line, const int p_col) const
 		{
 			LocalArray<TCHAR, 256> l_buf;

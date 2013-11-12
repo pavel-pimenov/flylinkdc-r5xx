@@ -283,7 +283,12 @@ void SearchManager::processSearchRequest(const string& ip, uint16_t port, const 
 			
 			// get nodes closest to requested ID
 			Node::Map nodes;
-			DHT::getInstance()->getClosestNodes(CID(term), nodes, count, 2);
+			if(term.size() != 39)
+			{
+				LogManager::getInstance()->message("DHT - SearchManager::processSearchRequest Error term.size() != 39. term = " + term);
+			}
+			const CID l_CID_term(term);
+			DHT::getInstance()->getClosestNodes(l_CID_term, nodes, count, 2);
 			
 			// add nodelist in XML format
 			for (auto i = nodes.cbegin(); i != nodes.cend(); ++i)

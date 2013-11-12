@@ -50,6 +50,7 @@ class UserListColours : public CPropertyPage<IDD_USERLIST_COLOURS_PAGE>, public 
 		CListBox n_lsbList;
 		int normalColour;
 		int favoriteColour;
+		int favEnemyColour;
 		int reservedSlotColour;
 		int ignoredColour;
 		int fastColour;

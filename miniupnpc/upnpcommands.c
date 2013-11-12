@@ -353,7 +353,7 @@ UPNP_AddPortMapping(const char * controlURL, const char * servicetype,
 	if(!inPort || !inClient || !proto || !extPort)
 		return UPNPCOMMAND_INVALID_ARGS;
 
-	AddPortMappingArgs = calloc(9, sizeof(struct UPNParg));
+	AddPortMappingArgs = calloc(9, sizeof(struct UPNParg)); // TODO - заказываем 9?
 	AddPortMappingArgs[0].elt = "NewRemoteHost";
 	AddPortMappingArgs[0].val = remoteHost;
 	AddPortMappingArgs[1].elt = "NewExternalPort";

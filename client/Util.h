@@ -1098,7 +1098,7 @@ class Util
 		}
 #endif
 		static string encodeURI(const string& /*aString*/, bool reverse = false);
-		static string getLocalIp();
+		static string getLocalOrBindIp(const bool p_check_bind_address);
 		static bool isPrivateIp(const string& p_ip);
 		static bool isPrivateIp(uint32_t p_ip)
 		{
@@ -1576,7 +1576,7 @@ class BackgroundTaskExecuter : public BASE_THREAD
 #ifdef _DEBUG
 			m_runningThreadId = GetSelfThreadID();
 #endif
-			setThreadPriority(PRIORITY);
+			setThreadPriority(PRIORITY); // AppVerifier ругается иногда тут http://www.flickr.com/photos/96019675@N02/10669352575/
 			for (;;)
 			{
 				TASK_TYPE next;

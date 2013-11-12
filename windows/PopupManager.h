@@ -42,6 +42,7 @@ class PopupManager : public Singleton< PopupManager >, private TimerManagerListe
 		
 		~PopupManager()
 		{
+			dcassert(m_popups.empty());
 			TimerManager::getInstance()->removeListener(this);
 			if (m_hBitmap)
 			{
@@ -67,7 +68,7 @@ class PopupManager : public Singleton< PopupManager >, private TimerManagerListe
 		
 	private:
 		typedef deque< PopupWnd* > PopupList; // [!] IRainman opt: change list to deque.
-		PopupList popups;
+		PopupList m_popups;
 		
 		//size of the popup window
 		uint16_t height;

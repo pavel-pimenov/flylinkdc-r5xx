@@ -54,6 +54,9 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		COMMAND_ID_HANDLER(IDC_MESSAGEPANEL, onMultilineChatInputButton)
 		COMMAND_ID_HANDLER(ID_TEXT_TRANSCODE, OnTextTranscode)
 		COMMAND_RANGE_HANDLER(IDC_BOLD, IDC_STRIKE, onTextStyleSelect)
+#ifdef SCALOLAZ_BB_COLOR_BUTTON
+		COMMAND_ID_HANDLER(IDC_COLOR, onTextStyleSelect)
+#endif
 		END_MSG_MAP()
 	public:
 		void createMessagePanel();
@@ -78,7 +81,8 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 			m_ctrlLastLinesToolTip(nullptr),
 			m_ctrlStatus(nullptr),
 			m_ctrlMessage(nullptr),
-			m_ctrlMessageContainer(nullptr)
+			m_ctrlMessageContainer(nullptr),
+			m_LastSelPos(0)
 		{
 		}
 		virtual ~BaseChatFrame() {}
@@ -169,6 +173,7 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		
 		CEdit*        m_ctrlMessage;
 		tstring       m_LastMessage;
+		DWORD         m_LastSelPos;
 		MessagePanel* m_msgPanel;
 		CContainedWindow* m_ctrlMessageContainer;
 		RECT          m_MessagePanelRECT;

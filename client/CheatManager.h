@@ -130,7 +130,9 @@ void checkCheating(const UserPtr& p, DirectoryListing* dl)
 		
 		const double multiplier = (100 + double(SETTING(PERCENT_FAKE_SHARE_TOLERATED))) / 100;
 		const int64_t sizeTolerated = (int64_t)(realSize * multiplier);
+#ifdef FLYLINKDC_USE_REALSHARED_IDENTITY
 		id.setRealBytesShared(realSize);
+#endif
 		
 		if (statedSize > sizeTolerated)
 		{

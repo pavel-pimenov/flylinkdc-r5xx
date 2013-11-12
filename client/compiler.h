@@ -62,7 +62,9 @@
 # define memzero(dest, n) memset(dest, 0, n)
 
 //disable the deprecated warnings for the CRT functions.
+#ifndef _CRT_SECURE_NO_DEPRECATE
 # define _CRT_SECURE_NO_DEPRECATE 1
+#endif
 # define _ATL_SECURE_NO_DEPRECATE 1
 # define _CRT_NON_CONFORMING_SWPRINTFS 1
 # ifndef _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES

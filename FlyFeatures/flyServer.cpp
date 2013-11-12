@@ -450,15 +450,112 @@ void CFlyServerAdapter::CFlyServerJSON::login()
 		}
 	}
 }
+static void getDiskAndMemoryStat(Json::Value& p_info)
+{
+		if(ClientManager::isValidInstance())
+		{
+			  p_info["CID"] = ClientManager::getMyCID().toBase32(); 
+		}
+		p_info["Client"] = g_full_user_agent;
+		p_info["OS"] = CompatibilityManager::getFormatedOsVersion();
+		p_info["CPUCount"] = CompatibilityManager::getProcessorsCount();
+		{
+		Json::Value& l_disk_info = p_info["Disk"];
+				auto getFileSize = [](const tstring& p_file_name) -> int64_t
+				{
+					int64_t l_size = 0;
+					int64_t l_outFileTime = 0;
+					File::isExist(p_file_name, l_size, l_outFileTime);
+					return l_size;
+				};
+				const tstring l_path = Text::toT(Util::getConfigPath());
+				l_disk_info["DBMain"] = getFileSize(l_path + _T("\\FlylinkDC.sqlite"));
+				l_disk_info["DBDHT"] = getFileSize(l_path + _T("\\FlylinkDC_dht.sqlite"));
+				l_disk_info["DBMediainfo"] = getFileSize(l_path + _T("\\FlylinkDC_mediainfo.sqlite"));
+				l_disk_info["DBLog"] = getFileSize(l_path + _T("\\FlylinkDC_log.sqlite"));
+				l_disk_info["DBStat"] = getFileSize(l_path + _T("\\FlylinkDC_stat.sqlite"));
+
+				DWORD l_cluster, l_sector_size, l_freeclustor;
+				int64_t l_space;
+				if(l_path.size() >= 3)
+				{
+				if (GetDiskFreeSpace(l_path.substr(0,3).c_str(), &l_cluster, &l_sector_size, &l_freeclustor, NULL))
+				{
+				 l_space  = l_cluster * l_sector_size;
+				 l_space *= l_freeclustor;
+				 l_disk_info["DBFreeSpace"] = int64_t(l_space/1024/1024);
+				}
+				}
+		}
+		PROCESS_MEMORY_COUNTERS l_pmc = {0};
+		const auto l_mem_ok = GetProcessMemoryInfo(GetCurrentProcess(), &l_pmc, sizeof(l_pmc));
+		dcassert(l_mem_ok);
+		if(l_mem_ok) // Под Wine может не работать
+		{
+		 Json::Value& l_mem_info = p_info["Memory"];
+		l_mem_info["WorkingSetSize"]     = int64_t(l_pmc.WorkingSetSize);
+		l_mem_info["PeakWorkingSetSize"] = int64_t(l_pmc.PeakWorkingSetSize);
+		l_mem_info["TotalPhys"] = CompatibilityManager::getTotalPhysMemory();
+		}
+		Json::Value& l_handle_info = p_info["Handle"];
+		{
+		DWORD l_handle_count = 0;
+		const auto l_hc_ok = GetProcessHandleCount(GetCurrentProcess(), &l_handle_count);
+		dcassert(l_hc_ok);
+		l_handle_info["Handle"] = int(l_handle_count); // TODO научить jsoncpp понимать DWORD
+		auto getResourceCounter = [](int p_type_object) -> unsigned
+		 {
+			const unsigned l_res_count = GetGuiResources(GetCurrentProcess(), p_type_object);
+			return l_res_count;
+        };
+
+		l_handle_info["GDI"]     = getResourceCounter(GR_GDIOBJECTS);
+		l_handle_info["UserObj"] = getResourceCounter(GR_USEROBJECTS);
+
+#ifdef FLYLINKDC_SUPPORT_WIN_VISTA
+# define GR_GDIOBJECTS_PEAK  2       /* Peak count of GDI objects */
+# define GR_USEROBJECTS_PEAK 4       /* Peak count of USER objects */
+#endif 
+		 // http://msdn.microsoft.com/en-us/library/windows/desktop/ms683192%28v=vs.85%29.aspx
+		 // This value is not supported until Windows 7 and Windows Server 2008 R2.
+		l_handle_info["GDIPeak"]      = getResourceCounter(GR_GDIOBJECTS_PEAK);
+		l_handle_info["UserObjPeak"]  = getResourceCounter(GR_USEROBJECTS_PEAK);
+		}
+		// TODO - Свободное место на диске системном и том, где стоит флай-база
+		{
+			//Json::Value& l_disk_info = l_info["Disk"];
+			//l_disk_info["SysFree"] = 
+			//l_disk_info["sqliteFree"] = 
+		}
+}
 //======================================================================================================
+bool CFlyServerAdapter::CFlyServerJSON::pushError(const string& p_error)
+{
+		CFlyLog l_log("[fly-error-sql]");
+		Json::Value  l_info;   
+		l_info["error"] = p_error;
+		l_info["ID"]  = g_fly_server_id;
+		l_info["Threads"]  =  Thread::getThreadsCount();
+		l_info["Current"]  = Util::formatDigitalClock(time(nullptr));
+		getDiskAndMemoryStat(l_info);
+		const std::string l_post_query = l_info.toStyledString();
+		bool l_is_send = false;
+	    postQuery(true,true,"fly-error-sql",l_post_query,l_is_send);
+		if(!l_is_send)
+		{
+			 // TODO Передача не удалась - скинем данные в файлы
+		}
+		return l_is_send;
+}
+
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 void CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 {
 	Thread::ConditionLockerWithSpin l(g_running);
 	login();
-		CFlyLog l_log("[fly-stat]");
-		Json::Value  l_info;   
-		if(p_is_sync_run == false) // При останове не делаем этого
+	CFlyLog l_log("[fly-stat]");
+	Json::Value  l_info;   
+	if(p_is_sync_run == false ) // При останове не делаем этого
 		{
 		// Сбросим 10 записей отложенной статистики если накопилась
 		 CFlylinkDBManager::getInstance()->flush_lost_json_statistic();
@@ -468,11 +565,10 @@ void CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 		l_info["IsShutdown"] = "1"; // Поставим маркер останова флая
 		}
 		dcassert(!g_fly_server_id.empty());
+		
+		getDiskAndMemoryStat(l_info);
+
 		l_info["ID"]  = g_fly_server_id;
-		l_info["CID"] = ClientManager::getMyCID().toBase32(); 
-		l_info["Client"] = g_full_user_agent;
-		l_info["CPUCount"] = CompatibilityManager::getProcessorsCount();
-		l_info["OS"] = CompatibilityManager::getFormatedOsVersion();
 		const string l_VID_Array = Util::getRegistryCommaSubkey(_T("VID"));
 		if(!l_VID_Array.empty())
 		{
@@ -563,71 +659,6 @@ void CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 		 }
 		}
 #endif // IRAINMAN_INCLUDE_GDI_OLE
-		{
-		Json::Value& l_disk_info = l_info["Disk"];
-				auto getFileSize = [](const tstring& p_file_name) -> int64_t
-				{
-					int64_t l_size = 0;
-					int64_t l_outFileTime = 0;
-					File::isExist(p_file_name, l_size, l_outFileTime);
-					return l_size;
-				};
-				const tstring l_path = Text::toT(Util::getConfigPath());
-				l_disk_info["DBMain"] = getFileSize(l_path + _T("\\FlylinkDC.sqlite"));
-				l_disk_info["DBDHT"] = getFileSize(l_path + _T("\\FlylinkDC_dht.sqlite"));
-				l_disk_info["DBMediainfo"] = getFileSize(l_path + _T("\\FlylinkDC_mediainfo.sqlite"));
-				l_disk_info["DBLog"] = getFileSize(l_path + _T("\\FlylinkDC_log.sqlite"));
-				l_disk_info["DBStat"] = getFileSize(l_path + _T("\\FlylinkDC_stat.sqlite"));
-
-				DWORD l_cluster, l_sector_size, l_freeclustor;
-				int64_t l_space;
-				if(l_path.size() >= 3)
-				{
-				if (GetDiskFreeSpace(l_path.substr(0,3).c_str(), &l_cluster, &l_sector_size, &l_freeclustor, NULL))
-				{
-				 l_space  = l_cluster * l_sector_size;
-				 l_space *= l_freeclustor;
-				 l_disk_info["DBFreeSpace"] = int64_t(l_space/1024/1024);
-				}
-				}
-		}
-		PROCESS_MEMORY_COUNTERS l_pmc = {0};
-		const auto l_mem_ok = GetProcessMemoryInfo(GetCurrentProcess(), &l_pmc, sizeof(l_pmc));
-		dcassert(l_mem_ok);
-		if(l_mem_ok) // Под Wine может не работать
-		{
-		 Json::Value& l_mem_info = l_info["Memory"];
-		l_mem_info["WorkingSetSize"]     = int64_t(l_pmc.WorkingSetSize);
-		l_mem_info["PeakWorkingSetSize"] = int64_t(l_pmc.PeakWorkingSetSize);
-		l_mem_info["TotalPhys"] = CompatibilityManager::getTotalPhysMemory();
-		//l_mem_info["PagefileUsage"]      = int64_t(l_pmc.PagefileUsage);
-		//l_mem_info["PeakPagefileUsage"]  = int64_t(l_pmc.PeakPagefileUsage);
-		}
-		Json::Value& l_handle_info = l_info["Handle"];
-		{
-		DWORD l_handle_count = 0;
-		const auto l_hc_ok = GetProcessHandleCount(GetCurrentProcess(), &l_handle_count);
-		dcassert(l_hc_ok);
-		l_handle_info["Handle"] = int(l_handle_count); // TODO научить jsoncpp понимать DWORD
-
-		auto getResourceCounter = [](int p_type_object) -> unsigned
-		 {
-			const unsigned l_res_count = GetGuiResources(GetCurrentProcess(), p_type_object);
-			return l_res_count;
-        };
-
-		l_handle_info["GDI"]     = getResourceCounter(GR_GDIOBJECTS);
-		l_handle_info["UserObj"] = getResourceCounter(GR_USEROBJECTS);
-
-#ifdef FLYLINKDC_SUPPORT_WIN_VISTA
-# define GR_GDIOBJECTS_PEAK  2       /* Peak count of GDI objects */
-# define GR_USEROBJECTS_PEAK 4       /* Peak count of USER objects */
-#endif 
-		 // http://msdn.microsoft.com/en-us/library/windows/desktop/ms683192%28v=vs.85%29.aspx
-		 // This value is not supported until Windows 7 and Windows Server 2008 R2.
-		l_handle_info["GDIPeak"]      = getResourceCounter(GR_GDIOBJECTS_PEAK);
-		l_handle_info["UserObjPeak"]  = getResourceCounter(GR_USEROBJECTS_PEAK);
-		}
 		// Сетевые настройки
 		{
 			Json::Value& l_net_info = l_info["Net"];
@@ -644,12 +675,6 @@ void CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 			{
 			 l_net_info["Router"]      = g_fly_server_stat.m_upnp_router_name;
 			}
-		}
-		// TODO - Свободное место на диске системном и том, где стоит флай-база
-		{
-			//Json::Value& l_disk_info = l_info["Disk"];
-			//l_disk_info["SysFree"] = 
-			//l_disk_info["sqliteFree"] = 
 		}
 		const std::string l_post_query = l_info.toStyledString();
 		bool l_is_send = false;
@@ -744,7 +769,7 @@ string CFlyServerAdapter::CFlyServerJSON::postQuery(bool p_is_set, bool p_is_sta
 			CInternetHandle hRequest(HttpOpenRequestA(hConnect, "POST", p_query , NULL, NULL, g_accept, 0, 1));
 			if(hRequest)
 			{
-				if(HttpSendRequestA(hRequest, g_hdrs, g_hdrs_len, 
+				if(HttpSendRequestA(hRequest, g_hdrs, g_hdrs_len,  // Leak?
 						l_is_zlib ? reinterpret_cast<LPVOID>(l_post_compress_query.data()) : LPVOID(p_body.data()), 
 						l_is_zlib ? l_post_compress_query.size() : p_body.size()))
 				{

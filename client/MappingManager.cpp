@@ -229,7 +229,7 @@ int MappingManager::run()
 		
 		if (!BOOLSETTING(NO_IP_OVERRIDE))
 		{
-			string externalIP = mapper.getExternalIP();
+			const string externalIP = mapper.getExternalIP();
 			if (!externalIP.empty())
 			{
 				SET_SETTING(EXTERNAL_IP, externalIP);

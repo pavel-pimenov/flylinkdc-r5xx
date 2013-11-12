@@ -5,6 +5,12 @@
 #include "MainFrm.h"
 #include "BarShader.h"
 
+const static int MAX_SHADE = 44;
+const static int SHADE_LEVEL = 90;
+const static int blend_vector[MAX_SHADE] = {0, 8, 16, 20, 10, 4, 0, -2, -4, -6, -10, -12, -14, -16, -14, -12, -10, -8, -6, -4, -2, 0, //-V112
+                                            1, 2, 3, 8, 10, 12, 14, 16, 14, 12, 10, 6, 4, 2, 0, -4, -10, -20, -16, -8, 0 //-V112
+                                           };
+
 
 CBarShader::CBarShader(uint32_t dwHeight, uint32_t dwWidth, COLORREF crColor /*= 0*/, uint64_t qwFileSize /*= 1*/)
 {
@@ -427,23 +433,139 @@ COLORREF OperaColors::TextFromBackground(COLORREF bg)
 
 void OperaColors::ClearCache()
 {
-	auto i = g_flood_cache.begin();
-	for (; !g_flood_cache.empty(); i = g_flood_cache.begin())
+	for (auto i = g_flood_cache.begin(); i != g_flood_cache.end(); ++i)
 	{
-		FloodCacheItem* fci = i->second;
-		g_flood_cache.erase(i);
-		delete fci;
+		delete i->second;
 	}
+	g_flood_cache.clear();
+}
+void OperaColors::FloodFill(CDC& hDC, int x1, int y1, int x2, int y2, COLORREF c1, COLORREF c2, bool light /*= true */)
+{
+	if (x2 <= x1 || y2 <= y1 || x2 > 10000)
+		return;
+		
+	int w = x2 - x1;
+	int h = y2 - y1;
+	
+	FloodCacheItem::FCIMapper fcim = {c1, c2, light}; // Make it hash-safe // we must map all colors but not only R component
+	auto i = g_flood_cache.find(fcim); // TODO - убрать этот лишний find
+	
+	FloodCacheItem* fci = nullptr;
+	if (i != g_flood_cache.end())
+	{
+		fci = i->second;
+		if (fci->h >= h && fci->w >= w)
+		{
+			// Perfect, this kindof flood already exist in memory, lets paint it stretched
+			SetStretchBltMode(hDC.m_hDC, HALFTONE);
+			StretchBlt(hDC.m_hDC, x1, y1, w, h, fci->hDC, 0, 0, fci->w, fci->h, SRCCOPY);
+			return;
+		}
+		DeleteDC(fci->hDC);
+		fci->hDC = nullptr;
+	}
+	else
+	{
+		fci = new FloodCacheItem();
+		g_flood_cache[fcim] = fci;
+	}
+	
+	fci->hDC = ::CreateCompatibleDC(hDC.m_hDC); // Leak
+	fci->w = w;
+	fci->h = h;
+	fci->mapper = fcim;
+	
+	HBITMAP hBitmap = CreateBitmap(w, h, 1, 32, NULL); // Leak
+	HBITMAP hOldBitmap = (HBITMAP)::SelectObject(fci->hDC, hBitmap);
+	
+	if (!light)
+	{
+		for (int _x = 0; _x < w; ++_x)
+		{
+			HBRUSH hBr = CreateSolidBrush(blendColors(c2, c1, (double)(_x - x1) / (double)(w)));
+			const RECT rc = { _x, 0, _x + 1, h };
+			::FillRect(fci->hDC, &rc, hBr);
+			DeleteObject(hBr);
+		}
+	}
+	else
+	{
+		for (int _x = 0; _x <= w; ++_x)
+		{
+			const COLORREF cr = blendColors(c2, c1, (double)(_x) / (double)(w));
+			for (int _y = 0; _y < h; ++_y)
+			{
+				SetPixelV(fci->hDC, _x, _y, brightenColor(cr, (double)blend_vector[(size_t)floor(((double)(_y) / h) * MAX_SHADE - 1)] / (double)SHADE_LEVEL));
+			}
+		}
+	}
+	BitBlt(hDC.m_hDC, x1, y1, x2, y2, fci->hDC, 0, 0, SRCCOPY);
+	DeleteObject(SelectObject(fci->hDC, hOldBitmap));
 }
 
-OperaColors::FloodCacheItem::FloodCacheItem() : w(0), h(0), hDC(nullptr)
-{
-}
+/*
+        static void FloodFill(CDC& hDC, int x1, int y1, int x2, int y2, COLORREF c1, COLORREF c2, bool light = true)
+        {
+            if (x2 <= x1 || y2 <= y1 || x2 > 10000)
+                return;
 
-OperaColors::FloodCacheItem::~FloodCacheItem()
-{
-	if (hDC)
-	{
-		DeleteDC(hDC);
-	}
-}
+            int w = x2 - x1;
+            int h = y2 - y1;
+
+            FloodCacheItem::FCIMapper fcim = {c1, c2, light}; // Make it hash-safe // we must map all colors but not only R component
+            auto& l_flood_item = g_flood_cache[fcim];
+
+            FloodCacheItem* fci = nullptr;
+            if (l_flood_item != nullptr)
+            {
+                fci = l_flood_item;
+                if (fci->h >= h && fci->w >= w)
+                {
+                    // Perfect, this kindof flood already exist in memory, lets paint it stretched
+                    SetStretchBltMode(hDC.m_hDC, HALFTONE);
+                    StretchBlt(hDC.m_hDC, x1, y1, w, h, fci->hDC, 0, 0, fci->w, fci->h, SRCCOPY);
+                    return;
+                }
+                DeleteDC(fci->hDC);
+                fci->hDC = nullptr;
+            }
+            else
+            {
+                fci = new FloodCacheItem();
+                l_flood_item = fci;
+            }
+
+            fci->hDC = ::CreateCompatibleDC(hDC.m_hDC); // Leak
+            fci->w = w;
+            fci->h = h;
+            fci->mapper = fcim;
+
+            HBITMAP hBitmap = CreateBitmap(w, h, 1, 32, NULL); // Leak
+            HBITMAP hOldBitmap = (HBITMAP)::SelectObject(fci->hDC, hBitmap);
+
+            if (!light)
+            {
+                for (int _x = 0; _x < w; ++_x)
+                {
+                    HBRUSH hBr = CreateSolidBrush(blendColors(c2, c1, (double)(_x - x1) / (double)(w)));
+                    const RECT rc = { _x, 0, _x + 1, h };
+                    ::FillRect(fci->hDC, &rc, hBr);
+                    DeleteObject(hBr);
+                }
+            }
+            else
+            {
+                for (int _x = 0; _x <= w; ++_x)
+                {
+                    const COLORREF cr = blendColors(c2, c1, (double)(_x) / (double)(w));
+                    for (int _y = 0; _y < h; ++_y)
+                    {
+                        SetPixelV(fci->hDC, _x, _y, brightenColor(cr, (double)blend_vector[(size_t)floor(((double)(_y) / h) * MAX_SHADE - 1)] / (double)SHADE_LEVEL));
+                    }
+                }
+            }
+            BitBlt(hDC.m_hDC, x1, y1, x2, y2, fci->hDC, 0, 0, SRCCOPY);
+            DeleteObject (SelectObject(fci->hDC, hOldBitmap));
+        }
+
+*/

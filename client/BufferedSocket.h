@@ -20,6 +20,7 @@
 #define DCPLUSPLUS_DCPP_BUFFERED_SOCKET_H
 
 #include <boost/atomic.hpp>
+#include <boost/asio/ip/address_v4.hpp>
 
 #include "BufferedSocketListener.h"
 #include "Semaphore.h"
@@ -126,6 +127,20 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		{
 			return hasSocket() ? sock->getIp() : Util::emptyString;
 		}
+		boost::asio::ip::address_v4 getIp4() const
+		{
+			if (hasSocket())
+			{
+				boost::system::error_code ec;
+				const auto l_ip = boost::asio::ip::address_v4::from_string(sock->getIp(), ec); // TODO - конвертнуть IP и в сокетах
+				dcassert(!ec);
+				return l_ip;
+			}
+			else
+			{
+				return boost::asio::ip::address_v4();
+			}
+		}
 		const uint16_t getPort()
 		{
 			return hasSocket() ? sock->getPort() : 0;
@@ -195,9 +210,16 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		{
 			return m_disconnecting || !hasSocket();
 		}
-		
-		GETSET(char, separator, Separator)
-		
+		bool is_all_my_info_loaded() const
+		{
+			return m_myInfoStop;
+		}
+		void set_all_my_info_loaded()
+		{
+			m_myInfoStop = true;
+		}
+	private:
+		char m_separator;
 	private:
 		enum Tasks
 		{
@@ -255,13 +277,24 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		deque<pair<Tasks, std::unique_ptr<TaskData>> > m_tasks;
 		volatile ThreadID m_threadId; // [+] IRainman fix.
 		ByteVector inbuf;
+		size_t m_myInfoCount; // —четчик MyInfo
+		bool   m_myInfoStop;  // ‘лаг передачи команды отличной от MyInfo (загрузка списка закончилась)
 #ifdef FLYLINKDC_HE
 		void resizeInBuf()
 		{
 #if 0 // fix http://code.google.com/p/flylinkdc/issues/detail?id=1333
 			inbuf.resize(MAX_SOCKET_BUFFER_SIZE);
 #else
-			inbuf.resize(sock->getSocketOptInt(SO_RCVBUF));
+			const auto l_size = sock->getSocketOptInt(SO_RCVBUF);
+			dcassert(l_size)
+			if (l_size)
+			{
+				inbuf.resize(l_size);
+			}
+			else
+			{
+				inbuf.resize(MAX_SOCKET_BUFFER_SIZE);
+			}
 #endif
 		}
 #else

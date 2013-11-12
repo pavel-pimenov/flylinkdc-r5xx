@@ -107,7 +107,7 @@ bool BootstrapManager::bootstrap(const string& p_sub_agent)
 				const CID cid     = CID(remoteXml.getChildAttrib("CID"));
 				const string& i4   = remoteXml.getChildAttrib("I4");
 				const string& u4   = remoteXml.getChildAttrib("U4");
-				
+				dcassert(Util::toInt(u4)); // http://ssa.in.ua/dcDHT.php?cid=00&encryption=0 U4 может вернуться нулем
 				addBootstrapNode(i4, static_cast<uint16_t>(Util::toInt(u4)), cid, UDPKey());
 			}
 			remoteXml.stepOut();

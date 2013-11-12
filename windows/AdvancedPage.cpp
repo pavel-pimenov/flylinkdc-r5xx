@@ -66,7 +66,6 @@ AdvancedPage::ListItem AdvancedPage::listItems[] =
 //  { SettingsManager::DONT_ADD_TTH_DCTMP, ResourceManager::SETTINGS_DONT_ADD_TTH_DCTMP },
 //#endif
 	{ SettingsManager::SHOW_SHELL_MENU, ResourceManager::SETTINGS_SHOW_SHELL_MENU },
-	{ SettingsManager::ENABLE_HUBTOPIC, ResourceManager::ENABLE_HUBTOPIC },
 	{ SettingsManager::OPEN_LOGS_INTERNAL, ResourceManager::OPEN_LOGS_INTERNAL },
 	{ SettingsManager::EXTERNAL_PREVIEW, ResourceManager::EXTERNAL_PREVIEW },
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO

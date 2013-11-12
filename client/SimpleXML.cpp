@@ -31,25 +31,25 @@ string& SimpleXML::escape(string& aString, bool aAttrib, bool aLoading /* = fals
 	{
 		while ((i = aString.find('&', i)) != string::npos)
 		{
-			if (aString.compare(i + 1, 3, "lt;") == 0)
+			if (aString.compare(i + 1, 3, "lt;", 3) == 0)
 			{
 				aString.replace(i, 4, 1, '<');
 			}
-			else if (aString.compare(i + 1, 4, "amp;") == 0)
+			else if (aString.compare(i + 1, 4, "amp;", 4) == 0)
 			{
 				aString.replace(i, 5, 1, '&');
 			}
-			else if (aString.compare(i + 1, 3, "gt;") == 0)
+			else if (aString.compare(i + 1, 3, "gt;", 3) == 0)
 			{
 				aString.replace(i, 4, 1, '>');
 			}
 			else if (aAttrib)
 			{
-				if (aString.compare(i + 1, 5, "apos;") == 0)
+				if (aString.compare(i + 1, 5, "apos;", 5) == 0)
 				{
 					aString.replace(i, 6, 1, '\'');
 				}
-				else if (aString.compare(i + 1, 5, "quot;") == 0)
+				else if (aString.compare(i + 1, 5, "quot;", 5) == 0)
 				{
 					aString.replace(i, 6, 1, '"');
 				}

@@ -34,7 +34,7 @@ ConnectionManager::ConnectionManager() : floodCounter(0), server(nullptr),
 	shuttingDown(false)
 {
 	// [-] TimerManager::getInstance()->addListener(this); [-] IRainman fix.
-	
+	nmdcFeatures.reserve(5);
 	nmdcFeatures.push_back(UserConnection::FEATURE_MINISLOTS);
 	nmdcFeatures.push_back(UserConnection::FEATURE_XML_BZLIST);
 	nmdcFeatures.push_back(UserConnection::FEATURE_ADCGET);
@@ -43,6 +43,7 @@ ConnectionManager::ConnectionManager() : floodCounter(0), server(nullptr),
 #ifdef SMT_ENABLE_FEATURE_BAN_MSG
 	nmdcFeatures.push_back(UserConnection::FEATURE_BANMSG); // !SMT!-B
 #endif
+	adcFeatures.reserve(4);
 	adcFeatures.push_back("AD" + UserConnection::FEATURE_ADC_BAS0);
 	adcFeatures.push_back("AD" + UserConnection::FEATURE_ADC_BASE);
 	adcFeatures.push_back("AD" + UserConnection::FEATURE_ADC_TIGR);
@@ -53,7 +54,7 @@ ConnectionManager::ConnectionManager() : floodCounter(0), server(nullptr),
 ConnectionManager::~ConnectionManager()
 {
 	dcassert(shuttingDown == true);
-	dcassert(userConnections.empty());
+	dcassert(m_userConnections.empty());
 	//shutdown();
 	
 	// [!] http://code.google.com/p/flylinkdc/issues/detail?id=1037
@@ -170,7 +171,8 @@ UserConnection* ConnectionManager::getConnection(bool aNmdc, bool secure) noexce
 	uc->addListener(this);
 	{
 		UniqueLock l(cs);
-		userConnections.push_back(uc);
+		dcassert(m_userConnections.find(uc) == m_userConnections.end());
+		m_userConnections.insert(uc);
 	}
 	if (aNmdc)
 	{
@@ -184,14 +186,15 @@ void ConnectionManager::putConnection(UserConnection* aConn)
 	aConn->removeListener(this);
 	aConn->disconnect(true);
 	UniqueLock l(cs);
-	userConnections.erase(remove(userConnections.begin(), userConnections.end(), aConn), userConnections.end());
+	dcassert(m_userConnections.find(aConn) != m_userConnections.end());
+	m_userConnections.erase(aConn);
 }
 
 void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 {
 	ConnectionQueueItem::List removed;
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
-	UserList idlers;
+	UserList l_idlers;
 #endif
 	
 	{
@@ -200,13 +203,13 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 		uint16_t attempts = 0;
 		
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
-		idlers.swap(checkIdle); // [!] IRainman opt: use swap.
+		l_idlers.swap(checkIdle); // [!] IRainman opt: use swap.
 #endif
 		
 		for (auto i = downloads.cbegin(); i != downloads.cend(); ++i)
 		{
 			ConnectionQueueItem* cqi = *i;
-			if (cqi->getState() != ConnectionQueueItem::ACTIVE)
+			if (cqi->getState() != ConnectionQueueItem::ACTIVE) // crash - https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=44111
 			{
 				if (!cqi->getUser()->isOnline())
 				{
@@ -279,7 +282,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 	}
 	
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
-	for (auto i = idlers.cbegin(); i != idlers.cend(); ++i)
+	for (auto i = l_idlers.cbegin(); i != l_idlers.cend(); ++i)
 	{
 		DownloadManager::getInstance()->checkIdle(*i);
 	}
@@ -290,7 +293,7 @@ void ConnectionManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcep
 {
 	SharedLock l(cs);
 	
-	for (auto j = userConnections.cbegin(); j != userConnections.cend(); ++j)
+	for (auto j = m_userConnections.cbegin(); j != m_userConnections.cend(); ++j)
 	{
 		if (((*j)->getLastActivity() + 180 * 1000) < aTick)
 		{
@@ -444,7 +447,7 @@ bool ConnectionManager::checkIpFlood(const string& aServer, uint16_t aPort, cons
 	
 	// We don't want to be used as a flooding instrument
 	int count = 0;
-	for (auto j = userConnections.cbegin(); j != userConnections.cend(); ++j)
+	for (auto j = m_userConnections.cbegin(); j != m_userConnections.cend(); ++j)
 	{
 	
 		const UserConnection& uc = **j;
@@ -572,7 +575,7 @@ void ConnectionManager::on(AdcCommand::SUP, UserConnection* aSource, const AdcCo
 	
 	for (auto i = cmd.getParameters().cbegin(); i != cmd.getParameters().cend(); ++i)
 	{
-		if (i->compare(0, 2, "AD") == 0)
+		if (i->compare(0, 2, "AD", 2) == 0)
 		{
 			string feat = i->substr(2);
 			if (feat == UserConnection::FEATURE_ADC_BASE || feat == UserConnection::FEATURE_ADC_BAS0)
@@ -1142,7 +1145,7 @@ bool ConnectionManager::checkKeyprint(UserConnection *aSource)
 		return true;
 	}
 	
-	if (kp2.compare(0, 7, "SHA256/") != 0)
+	if (kp2.compare(0, 7, "SHA256/", 7) != 0)
 	{
 		// Unsupported hash
 		return true;
@@ -1210,30 +1213,38 @@ void ConnectionManager::on(UserConnectionListener::ProtocolError, UserConnection
 void ConnectionManager::disconnect(const UserPtr& aUser)
 {
 	SharedLock l(cs);
-	for (auto i = userConnections.cbegin(); i != userConnections.cend(); ++i)
+	for (auto i = m_userConnections.cbegin(); i != m_userConnections.cend(); ++i)
 	{
 		UserConnection* uc = *i;
 		if (uc->getUser() == aUser)
 			uc->disconnect(true);
 	}
+	/*
+	    const auto & l_find = m_userConnections.find(aUser);
+	    if(l_find != m_userConnections.end())
+	        l_find->second->disconnect(true);
+	*/
 }
 
 void ConnectionManager::disconnect(const UserPtr& aUser, bool isDownload) // [!] IRainman fix.
 {
 	SharedLock l(cs);
-	for (auto i = userConnections.cbegin(); i != userConnections.cend(); ++i)
+	for (auto i = m_userConnections.cbegin(); i != m_userConnections.cend(); ++i)
 	{
-		// [!] IRainman fix: please don't problem maskerate.
-		// [-] if (UserConnection* uc = *i)
 		UserConnection* uc = *i;
 		dcassert(uc);
-		// [~]
 		if (uc->getUser() == aUser && uc->isSet((Flags::MaskType)(isDownload ? UserConnection::FLAG_DOWNLOAD : UserConnection::FLAG_UPLOAD)))
 		{
 			uc->disconnect(true);
 			break;
 		}
 	}
+	/*
+	    const auto & l_find = m_userConnections.find(aUser);
+	    if(l_find != m_userConnections.end())
+	        if(l_find->second->isSet((Flags::MaskType)(isDownload ? UserConnection::FLAG_DOWNLOAD : UserConnection::FLAG_UPLOAD)))
+	            l_find->second->disconnect(true);
+	*/
 }
 
 void ConnectionManager::shutdown()
@@ -1244,7 +1255,7 @@ void ConnectionManager::shutdown()
 	disconnect();
 	{
 		SharedLock l(cs);
-		for (auto j = userConnections.cbegin(); j != userConnections.cend(); ++j)
+		for (auto j = m_userConnections.cbegin(); j != m_userConnections.cend(); ++j)
 		{
 			(*j)->disconnect(true);
 		}
@@ -1254,7 +1265,7 @@ void ConnectionManager::shutdown()
 	{
 		{
 			SharedLock l(cs);
-			if (userConnections.empty())
+			if (m_userConnections.empty())
 			{
 				break;
 			}
@@ -1300,13 +1311,18 @@ void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* con
 void ConnectionManager::setUploadLimit(const UserPtr& aUser, int lim)
 {
 	SharedLock l(cs);
-	for (auto i = userConnections.cbegin(); i != userConnections.cend(); ++i)
+	for (auto i = m_userConnections.cbegin(); i != m_userConnections.cend(); ++i)
 	{
 		if ((*i)->getUser() == aUser && (*i)->isSet(UserConnection::FLAG_UPLOAD))
 		{
 			(*i)->setUploadLimit(lim);
 		}
 	}
+	/*
+	    const auto & l_find = m_userConnections.find(aUser);
+	    if(l_find != m_userConnections.end() && l_find->second->isSet(UserConnection::FLAG_UPLOAD))
+	        l_find->second->setUploadLimit(lim);
+	*/
 }
 
 /**

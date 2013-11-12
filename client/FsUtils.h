@@ -53,7 +53,7 @@ class CFsTypeDetector
 			HDEVNOTIFY hNotify;
 		};
 		
-		typedef std::map<FsUtils_str, VOL_STRUCT> tCACHE;
+		typedef std::unordered_map<FsUtils_str, VOL_STRUCT> tCACHE;
 		
 		//FastCriticalSection m_cs; // [+] IRainman fix.
 		tCACHE m_cache;

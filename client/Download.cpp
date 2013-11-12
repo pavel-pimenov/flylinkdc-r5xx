@@ -61,9 +61,9 @@ lastNormalSpeed(0),
 	// ~TODO
 	
 	UniqueLock l(QueueItem::cs); // [+] IRainman fix.
-	const QueueItem::SourceConstIter source = qi->getSourceL(getUser()); // [+] IRainman fix.
-	
-	if (source->isSet(QueueItem::Source::FLAG_PARTIAL))
+	const auto& l_source_it = qi->getSourceL(getUser()); // [+] IRainman fix.
+	const auto& l_src = l_source_it->second;
+	if (l_src.isSet(QueueItem::Source::FLAG_PARTIAL))
 		setFlag(FLAG_PARTIAL);
 		
 	if (l_is_type_file)
@@ -71,9 +71,9 @@ lastNormalSpeed(0),
 		if (l_is_check_tth)
 		{
 			setTreeValid(true);
-			setSegment(qi->getNextSegmentL(getTigerTree().getBlockSize(), conn.getChunkSize(), conn.getSpeed(), source->getPartialSource()));
+			setSegment(qi->getNextSegmentL(getTigerTree().getBlockSize(), conn.getChunkSize(), conn.getSpeed(), l_src.getPartialSource()));
 		}
-		else if (conn.isSet(UserConnection::FLAG_SUPPORTS_TTHL) && !source->isSet(QueueItem::Source::FLAG_NO_TREE) && qi->getSize() > MIN_BLOCK_SIZE) // [!] IRainman opt.
+		else if (conn.isSet(UserConnection::FLAG_SUPPORTS_TTHL) && !l_src.isSet(QueueItem::Source::FLAG_NO_TREE) && qi->getSize() > MIN_BLOCK_SIZE) // [!] IRainman opt.
 		{
 			// Get the tree unless the file is small (for small files, we'd probably only get the root anyway)
 			setType(TYPE_TREE);
@@ -85,7 +85,7 @@ lastNormalSpeed(0),
 			// Use the root as tree to get some sort of validation at least...
 			getTigerTree() = TigerTree(qi->getSize(), qi->getSize(), getTTH());
 			setTreeValid(true);
-			setSegment(qi->getNextSegmentL(getTigerTree().getBlockSize(), 0, 0, source->getPartialSource()));
+			setSegment(qi->getNextSegmentL(getTigerTree().getBlockSize(), 0, 0, l_src.getPartialSource()));
 		}
 		
 		if ((getStartPos() + getSize()) != qi->getSize())

@@ -146,7 +146,7 @@ class NmdcHub : public Client, private Flags
 		void clearUsers();
 		void onLine(const string& aLine) noexcept;
 		
-		OnlineUserPtr getUser(const string& aNick, bool hub = false); // [!] IRainman fix: return OnlineUserPtr and add hub
+		OnlineUserPtr getUser(const string& aNick, bool p_hub, bool p_first_load); // [!] IRainman fix: return OnlineUserPtr and add hub
 		OnlineUserPtr findUser(const string& aNick) const;
 		void putUser(const string& aNick);
 		
@@ -219,21 +219,21 @@ class NmdcHub : public Client, private Flags
 		                );
 		void revConnectToMe(const OnlineUser& aUser);
 		void myInfo(bool alwaysSend);
+		void myInfoParse(const string& param);
 		void supports(const StringList& feat);
 #ifdef IRAINMAN_USE_SEARCH_FLOOD_FILTER
 		void clearFlooders(uint64_t tick);
 #endif
 		
-		void updateFromTag(Identity& id, string && tag); // [!] IRainman opt.
+		void updateFromTag(Identity& id, const string & tag);
 		
-		string checkNick(const string& aNick);
+		virtual void checkNick(string& p_nick);
 		
-		// TimerManagerListener
-		void on(Second, uint64_t aTick) noexcept;
-		
-		void on(Connected) noexcept;
-		void on(Line, const string& l) noexcept;
-		void on(Failed, const string&) noexcept;
+		void on(TimerManagerListener::Second, uint64_t aTick) noexcept;
+		void on(BufferedSocketListener::Connected) noexcept;
+		void on(BufferedSocketListener::Line, const string& l) noexcept;
+		void on(BufferedSocketListener::MyInfoArray, const StringList&) noexcept; // [+]PPA
+		void on(BufferedSocketListener::Failed, const string&) noexcept;
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 	public:
 		bool hubIsNotSupportSlot() const //[+]FlylinkDC

@@ -68,6 +68,9 @@ class MessagePanel
 		CButton ctrlUnderlineBtn;
 		CComboBox ctrlSizeSel;
 		CButton ctrlTransCodeBtn;
+#ifdef SCALOLAZ_BB_COLOR_BUTTON
+		CButton ctrlColorBtn;
+#endif
 #ifdef IRAINMAN_INCLUDE_SMILE
 		static CEmotionMenu g_emoMenu;
 #endif
@@ -84,6 +87,9 @@ class MessagePanel
 		static HIconWrapper g_hStrikeIco;
 		static HIconWrapper g_hItalicIco;
 		static HIconWrapper g_hTransCodeIco;
+#ifdef SCALOLAZ_BB_COLOR_BUTTON
+		static HIconWrapper g_hColorIco;
+#endif
 		// [~] Sergey Shuhskanov
 };
 

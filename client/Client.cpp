@@ -175,9 +175,9 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 	{
 		if (updateNick)
 		{
-			const string& l_nick = hub->getNick(true);
-			const string l_nick_check = checkNick(l_nick);
-			setCurrentNick(l_nick_check);
+			string l_nick = hub->getNick(true);
+			checkNick(l_nick);
+			setCurrentNick(l_nick);
 		}
 		
 		if (!hub->getUserDescription().empty())
@@ -243,7 +243,9 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 	{
 		if (updateNick)
 		{
-			setCurrentNick(checkNick(SETTING(NICK)));
+			string l_nick = SETTING(NICK);
+			checkNick(l_nick);
+			setCurrentNick(l_nick);
 		}
 		setCurrentDescription(
 #ifdef IRAINMAN_ENABLE_SLOTS_AND_LIMIT_IN_DESCRIPTION
@@ -350,7 +352,7 @@ void Client::on(Connected) noexcept
 #endif
 		m_ip      = sock->getIp();
 	}
-	if (sock->isSecure() && m_keyprint.compare(0, 7, "SHA256/") == 0)
+	if (sock->isSecure() && m_keyprint.compare(0, 7, "SHA256/", 7) == 0)
 	{
 		const auto kp = sock->getKeyprint();
 		if (!kp.empty())
@@ -509,7 +511,7 @@ string Client::getLocalIp() const
 			return sock->getLocalIp();
 		}
 	}
-	return Util::getLocalIp();
+	return Util::getLocalOrBindIp(false);
 	// [~] IRainman fix.
 }
 

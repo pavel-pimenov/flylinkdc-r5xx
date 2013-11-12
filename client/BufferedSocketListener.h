@@ -20,6 +20,7 @@
 #define DCPLUSPLUS_DCPP_BUFFEREDSOCKETLISTENER_H_
 
 #include "noexcept.h"
+#include "typedefs.h"
 
 class BufferedSocketListener
 {
@@ -39,10 +40,12 @@ class BufferedSocketListener
 		typedef X<6> TransmitDone;
 		typedef X<7> Failed;
 		typedef X<8> Updated;
+		typedef X<9> MyInfoArray; // [+]PPA
 		
 		virtual void on(Connecting) noexcept { }
 		virtual void on(Connected) noexcept { }
 		virtual void on(Line, const string&) noexcept { }
+		virtual void on(MyInfoArray, const StringList&) noexcept { } // [+]PPA
 		virtual void on(Data, uint8_t*, size_t) noexcept { }
 		virtual void on(BytesSent, size_t p_Bytes, size_t p_Actual) noexcept { }
 		virtual void on(ModeChange) noexcept { }

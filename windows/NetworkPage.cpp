@@ -244,10 +244,15 @@ LRESULT NetworkPage::onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndC
 		{
 			::EnableWindow(GetDlgItem(IDC_GETIP), false);
 			fixControls();
-			SetDlgItemText(IDC_EXTERNAL_IP, Text::toT(Util::getExternalIP(l_url, 500)).c_str());
+			auto l_ip = Util::getExternalIP(l_url, 500);
+			if (!l_ip.empty())
+			{
+				SetDlgItemText(IDC_EXTERNAL_IP, Text::toT(l_ip).c_str());
+			}
 		}
 		catch (Exception & e)
 		{
+			// TODO - сюда никогда не попадаем?
 			::MessageBox(NULL, Text::toT(e.getError()).c_str(), _T("SetIP Error!"), MB_OK | MB_ICONERROR);
 		}
 		::EnableWindow(GetDlgItem(IDC_GETIP), true);

@@ -104,9 +104,9 @@ void ConnectivityManager::detectConnection()
 	
 	autoDetected = true;
 	
-	if (!Util::isPrivateIp(Util::getLocalIp()))
+	if (!Util::isPrivateIp(Util::getLocalOrBindIp(false))) // false - дл€ детекта внешнего IP
 	{
-		SET_SETTING(INCOMING_CONNECTIONS, SettingsManager::INCOMING_DIRECT);
+		SET_SETTING(INCOMING_CONNECTIONS, SettingsManager::INCOMING_DIRECT); // ¬от тут сомнительно
 		log(STRING(PUBLIC_IP_DETECTED));
 		fire(ConnectivityManagerListener::Finished());
 		running = false;

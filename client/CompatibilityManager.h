@@ -33,10 +33,12 @@ class CompatibilityManager
 		{
 			return isSet(IS_WINE);
 		}
+#ifdef FLYLINKDC_USE_CHECK_OLD_OS
 		static bool runningAnOldOS()
 		{
 			return isSet(RUNNING_AN_UNSUPPORTED_OS);
 		}
+#endif
 		static bool runningIsWow64()
 		{
 			return isSet(RUNNING_IS_WOW64);
@@ -150,7 +152,9 @@ class CompatibilityManager
 #endif
 			OS_WINDOWS8_PLUS,
 			RUNNING_IS_WOW64,
+#ifdef FLYLINKDC_USE_CHECK_OLD_OS
 			RUNNING_AN_UNSUPPORTED_OS,
+#endif
 			LAST_SUPPORTS
 		};
 		static void set(Supports index, bool val = true)

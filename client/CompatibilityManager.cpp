@@ -125,8 +125,12 @@ void CompatibilityManager::detectOsSupports()
 	    !CURRENT_VER_SP(6, 0, 2) && // Windows Vista SP2 & Windows Server 2008 SP2 // http://ru.wikipedia.org/wiki/Windows_Vista http://en.wikipedia.org/wiki/Windows_Server_2008
 #endif
 	    !CURRENT_VER_SP(6, 1, 1) && // Windows 7 SP1 & Windows Server 2008 R2 SP1  http://en.wikipedia.org/wiki/Windows_7 http://en.wikipedia.org/wiki/Windows_Server_2008_R2
-	    !CURRENT_VER_SP(6, 2, 0)) // Windows 8 & Windows Server 2012 http://en.wikipedia.org/wiki/Windows_8 http://ru.wikipedia.org/wiki/Windows_Server_2012
+	    !CURRENT_VER_SP(6, 2, 0))	// Windows 8 & Windows Server 2012 http://en.wikipedia.org/wiki/Windows_8 http://ru.wikipedia.org/wiki/Windows_Server_2012
+	{
+#ifdef FLYLINKDC_USE_CHECK_OLD_OS
 		set(RUNNING_AN_UNSUPPORTED_OS);
+#endif
+	}
 		
 #undef FUTURE_VER
 #undef FUTURE_MINOR_VER
@@ -278,8 +282,10 @@ void CompatibilityManager::generateSystemInfoForApp()
 		
 	g_startupInfo += getFormatedOsVersion();
 	
+#ifdef FLYLINKDC_USE_CHECK_OLD_OS
 	if (runningAnOldOS())
 		g_startupInfo += " - incompatible OS!";
+#endif
 		
 	g_startupInfo += ").\r\n\r\n";
 	
@@ -386,7 +392,7 @@ string CompatibilityManager::generateFullSystemStatusMessage()
 
 string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 {
-	char buf[2048];
+	std::vector<char> l_buf(2048);
 #ifdef FLYLINKDC_SUPPORT_WIN_2000
 	if (LOBYTE(LOWORD(GetVersion())) >= 5)
 #endif
@@ -408,7 +414,14 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				GetProcessTimes(GetCurrentProcess(), &tmpa, &tmpb, &kernelTimeFT, &userTimeFT);
 				const int64_t kernelTime = kernelTimeFT.dwLowDateTime | (((int64_t)kernelTimeFT.dwHighDateTime) << 32); //-V112
 				const int64_t userTime = userTimeFT.dwLowDateTime | (((int64_t)userTimeFT.dwHighDateTime) << 32); //-V112
-				sprintf_s(buf, _countof(buf), "\r\n-=[ FlylinkDC++ %s " //-V111
+#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+				dcassert(CFlylinkDBManager::isValidInstance());
+				if (CFlylinkDBManager::isValidInstance())
+				{
+					CFlylinkDBManager::getInstance()->load_global_ratio(); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1363
+				}
+#endif
+				sprintf_s(l_buf.data(), l_buf.size(), "\r\n-=[ FlylinkDC++ %s " //-V111
 #ifdef FLYLINKDC_HE
 				          "HE "
 #endif
@@ -445,6 +458,13 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 #ifdef FLYLINKDC_SUPPORT_WIN_2000
 	else
 	{
+#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+		dcassert(CFlylinkDBManager::isValidInstance());
+		if (CFlylinkDBManager::isValidInstance())
+		{
+			CFlylinkDBManager::getInstance()->load_global_ratio(); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1363
+		}
+#endif
 		snprintf(buf, _countof(buf), "\r\n-=[ FlylinkDC++ %s "
 #ifdef FLYLINKDC_HE
 		         "HE"
@@ -462,7 +482,7 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 		        );
 	}
 #endif // FLYLINKDC_SUPPORT_WIN_2000
-	return buf;
+	return l_buf.data();
 }
 
 WORD CompatibilityManager::getDllPlatform(const string& fullpath)

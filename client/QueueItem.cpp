@@ -65,8 +65,8 @@ int16_t QueueItem::calcTransferFlag(bool& partial, bool& trusted, bool& untruste
 	SharedLock l(cs);
 	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 	{
-		Download *d = *i;
-		if (d->getStart() > 0) // [!] IRainman fix done: [4] https://www.box.net/shared/f61d62efbd4e60a25b64
+		const Download *d = i->second;
+		if (d->getStart() > 0) // crash http://code.google.com/p/flylinkdc/issues/detail?id=1361
 		{
 			segs++;
 			
@@ -163,9 +163,9 @@ void QueueItem::calcBlockSize()
 size_t QueueItem::countOnlineUsersL() const
 {
 	size_t l_count = 0;
-	for (auto i = sources.cbegin(); i != sources.cend(); ++i)
+	for (auto i = m_sources.cbegin(); i != m_sources.cend(); ++i)
 	{
-		if (i->getUser()->isOnline()) // [!] IRainman fix done [3] https://www.box.net/shared/7b99196ed232f2aaa28c  https://www.box.net/shared/0006cf0ff4dcec643530
+		if (i->first->isOnline()) // [!] IRainman fix done [3] https://www.box.net/shared/7b99196ed232f2aaa28c  https://www.box.net/shared/0006cf0ff4dcec643530
 			l_count++;
 	}
 	return l_count;
@@ -173,14 +173,14 @@ size_t QueueItem::countOnlineUsersL() const
 
 bool QueueItem::countOnlineUsersGreatOrEqualThanL(const size_t maxValue) const // [+] FlylinkDC++ opt.
 {
-	if (sources.size() < maxValue)
+	if (m_sources.size() < maxValue)
 	{
 		return false;
 	}
 	size_t count = 0;
-	for (auto i = sources.cbegin(); i != sources.cend(); ++i)
+	for (auto i = m_sources.cbegin(); i != m_sources.cend(); ++i)
 	{
-		if (i->getUser()->isOnline())
+		if (i->first->isOnline())
 		{
 			if (++count == maxValue)
 			{
@@ -200,11 +200,11 @@ bool QueueItem::countOnlineUsersGreatOrEqualThanL(const size_t maxValue) const /
 void QueueItem::getOnlineUsers(UserList& list) const
 {
 	SharedLock l(cs); // [+] IRainman fix.
-	for (auto i = sources.cbegin(); i != sources.cend(); ++i)
+	for (auto i = m_sources.cbegin(); i != m_sources.cend(); ++i)
 	{
-		if (i->getUser()->isOnline())
+		if (i->first->isOnline())
 		{
-			list.push_back(i->getUser());
+			list.push_back(i->first);
 		}
 	}
 }
@@ -213,14 +213,14 @@ void QueueItem::addSourceL(const UserPtr& aUser)
 {
 	dcassert(!isSourceL(aUser));
 	SourceIter i = getBadSourceL(aUser);
-	if (i != badSources.end())
+	if (i != m_badSources.end())
 	{
-		sources.push_back(std::move(*i)); // [!] IRainman opt: use move semantics.
-		badSources.erase(i);
+		m_sources.insert(std::move(*i)); // [!] IRainman opt: use move semantics.
+		m_badSources.erase(i->first);
 	}
 	else
 	{
-		sources.push_back(Source(aUser));
+		m_sources.insert(std::make_pair(aUser, Source()));
 	}
 }
 // [+] fix ? http://code.google.com/p/flylinkdc/issues/detail?id=1236 .
@@ -231,8 +231,8 @@ void QueueItem::getPFSSourcesL(const QueueItemPtr& p_qi, SourceListBuffer& p_sou
 		const auto& sources = isBadSourses ? p_qi->getBadSourcesL() : p_qi->getSourcesL();
 		for (auto j = sources.cbegin(); j != sources.cend(); ++j)
 		{
-			const auto &l_ps = j->getPartialSource();
-			if (j->isCandidate(isBadSourses) && l_ps->isCandidate(p_now))
+			const auto &l_ps = j->second.getPartialSource();
+			if (j->second.isCandidate(isBadSourses) && l_ps->isCandidate(p_now))
 			{
 				p_sourceList.insert(make_pair(l_ps->getNextQueryTime(), make_pair(j, p_qi)));
 			}
@@ -264,17 +264,21 @@ bool QueueItem::isChunkDownloadedL(int64_t startPos, int64_t& len) const
 
 void QueueItem::removeSourceL(const UserPtr& aUser, Flags::MaskType reason)
 {
-	SourceIter i = getSourceL(aUser);
-	dcassert(i != sources.end());
+	SourceIter i = getSourceL(aUser); // crash - https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=42877 && http://www.flickr.com/photos/96019675@N02/10488126423/
+	dcassert(i != m_sources.end());
 	// [-] IRainman fix: is not possible in normal state! Please don't problem maskerate.
-	// [-] if (i != sources.end()) //[+]FlylinkDC++ Team
-	// [~]
-	{
-		i->setFlag(reason);
-		badSources.push_back(std::move(*i)); // [!] IRainman opt: use move semantics.
-		sources.erase(i);
+//	if (i != m_sources.end()) //[+]PPA
+//	{
+		i->second.setFlag(reason);
+		m_badSources.insert(*i);
+		m_sources.erase(i);
+//	}
+//	else
+//	{
+//		LogManager::getInstance()->message("Error QueueItem::removeSourceL [i != m_sources.end()] aUser = [" +
+//		                                   aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
+//	}
 	}
-}
 string QueueItem::getListName() const
 {
 	dcassert(isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_DCLST_LIST));
@@ -294,7 +298,7 @@ string QueueItem::getListName() const
 
 const string& QueueItem::getTempTarget()
 {
-	if (!isSet(QueueItem::FLAG_USER_LIST) && tempTarget.empty())
+	if (!isSet(QueueItem::FLAG_USER_LIST) && m_tempTarget.empty())
 	{
 		if (!SETTING(TEMP_DOWNLOAD_DIRECTORY).empty() && (File::getSize(getTarget()) == -1))
 		{
@@ -313,9 +317,35 @@ const string& QueueItem::getTempTarget()
 		if (SETTING(TEMP_DOWNLOAD_DIRECTORY).empty())
 			setTempTarget(target.substr(0, target.length() - getTargetFileName().length()) + getTempName(getTargetFileName(), getTTH()));
 	}
-	return tempTarget;
+	return m_tempTarget;
+}
+#ifdef _DEBUG
+bool QueueItem::isSourceValid(const QueueItem::Source* p_source_ptr)
+{
+	SharedLock l(cs);
+	for (auto i = m_sources.cbegin(); i != m_sources.cend(); ++i)
+	{
+		if (p_source_ptr == &i->second)
+			return true;
+	}
+	return false;
+}
+#endif
+void QueueItem::addDownloadL(Download* p_download)
+{
+	dcassert(p_download->getUser());
+	dcassert(m_downloads.find(p_download->getUser()) == m_downloads.end());
+	m_downloads.insert(std::make_pair(p_download->getUser(), p_download));
 }
 
+bool QueueItem::removeDownloadL(const UserPtr& p_user)
+{
+	//dcassert(m_downloads.find(p_user) != m_downloads.end());
+	const auto l_size_before = m_downloads.size();
+	m_downloads.erase(p_user);
+	dcassert(l_size_before != m_downloads.size());
+	return l_size_before != m_downloads.size();
+		}
 Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wantedSize, const int64_t lastSpeed, const PartialSource::Ptr &partialSource) const
 {
 	if (getSize() == -1 || blockSize == 0)
@@ -392,7 +422,7 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 				{
 					for (auto i = m_downloads.cbegin(); !overlaps && i != m_downloads.cend(); ++i)
 					{
-						overlaps = block.overlaps((*i)->getSegment());
+						overlaps = block.overlaps(i->second->getSegment());
 					}
 					
 				}
@@ -470,7 +500,7 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 		
 		for (auto i = m_downloads.cbegin(); !overlaps && i != m_downloads.cend(); ++i)
 		{
-			overlaps = block.overlaps((*i)->getSegment());
+			overlaps = block.overlaps(i->second->getSegment());
 		}
 		
 		if (!overlaps)
@@ -528,7 +558,7 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 		const uint64_t l_CurrentTick = GET_TICK();//[+]IRainman refactoring transfer mechanism
 		for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 		{
-			Download* d = *i;
+			const Download* d = i->second;
 			
 			// current chunk mustn't be already overlapped
 			if (d->getOverlapped())
@@ -564,7 +594,7 @@ void QueueItem::setOverlappedL(const Segment& p_segment, const bool p_isOverlapp
 	// set overlapped flag to original segment
 	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 	{
-		Download* d = *i;
+		Download* d = i->second;
 		if (d->getSegment().contains(p_segment))
 		{
 			d->setOverlapped(p_isOverlapped);
@@ -585,7 +615,7 @@ uint64_t QueueItem::calcAverageSpeedAndCalcAndGetDownloadedBytesL() const // [!]
 	// count running segments
 	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 	{
-		const Download* d = *i;
+		const Download* d = i->second;
 		l_totalDownloaded += d->getPos(); // [!] IRainman fix done: [6] https://www.box.net/shared/bcc1e978be39a1e0cbf6
 		l_totalSpeed += d->getRunningAverage();
 	}
@@ -717,7 +747,7 @@ void QueueItem::getChunksVisualisation(vector<pair<Segment, Segment>>& p_runnigC
 	// m_downloads.size() для list - дорого!
 	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 	{
-		p_runnigChunksAndDownloadBytes.push_back(make_pair((*i)->getSegment(), Segment((*i)->getStartPos(), (*i)->getPos()))); // https://www.box.net/shared/1004787fe85503e7d4d9
+		p_runnigChunksAndDownloadBytes.push_back(make_pair(i->second->getSegment(), Segment(i->second->getStartPos(), i->second->getPos()))); // https://www.box.net/shared/1004787fe85503e7d4d9
 	}
 	p_doneChunks.reserve(done.size());
 	for (auto i = done.cbegin(); i != done.cend(); ++i)

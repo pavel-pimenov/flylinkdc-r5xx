@@ -249,7 +249,7 @@ IOleObject *CAGEmotion::GetImageObject(bool bAnimated, IOleClientSite *pOleClien
 	
 	if (!pObject)
 	{
-		HBITMAP hBitmap = getEmotionBmp(BkColor);
+		HBITMAP hBitmap = getEmotionBmp(BkColor); // leak
 		
 		if (hBitmap)
 		{
@@ -280,7 +280,17 @@ HBITMAP CAGEmotion::getEmotionBmp(const COLORREF &clrBkColor)
 		g_pImagesList->GetImageInfo(getImagePos(), &ii);
 		const int nWidth = ii.rcImage.right - ii.rcImage.left;
 		const int nHeight = ii.rcImage.bottom - ii.rcImage.top;
-		dist.CreateCompatibleBitmap(dc, nWidth, nHeight);
+		dist.CreateCompatibleBitmap(dc, nWidth, nHeight); //
+		/*
+		flylinkdc_Debug.exe!WTL::CBitmapT<1>::CreateCompatibleBitmap Line 775 (c:\vc10\r5xx\wtl\atlgdi.h)
+		flylinkdc_Debug.exe!CAGEmotion::getEmotionBmp Line 284 (c:\vc10\r5xx\windows\agemotionsetup.cpp)
+		flylinkdc_Debug.exe!CAGEmotion::GetImageObject Line 252 (c:\vc10\r5xx\windows\agemotionsetup.cpp)
+		flylinkdc_Debug.exe!ChatCtrl::AppendText Line 292 (c:\vc10\r5xx\windows\chatctrl.cpp)
+		flylinkdc_Debug.exe!BaseChatFrame::addLine Line 625 (c:\vc10\r5xx\windows\basechatframe.cpp)
+		flylinkdc_Debug.exe!HubFrame::addLine Line 2099 (c:\vc10\r5xx\windows\hubframe.cpp)
+		flylinkdc_Debug.exe!HubFrame::onSpeaker Line 1351 (c:\vc10\r5xx\windows\hubframe.cpp)
+		*/
+		
 		CDC memDC;
 		memDC.CreateCompatibleDC(dc);
 		HBITMAP pOldBitmap = (HBITMAP) SelectObject(memDC, dist);
@@ -410,13 +420,17 @@ bool CAGEmotionSetup::Create()
 	const string l_CurentName = SETTING(EMOTICONS_FILE);
 	if (l_CurentName == "Disabled")
 		return true;
-	LoadEmotion(l_CurentName); //[+]PPA грузим текущю схему
-//	const string l_base_smile = "FlylinkSmilesInternational";
-//	if(l_CurentName != l_base_smile)
-//	{
-//		 LoadEmotion(l_base_smile); //[+]PPA загрузим еще докучи базовую схемы, чтобы юзера с другой схемой видели смайлы.
-//	}
-// TODO - отключить загрузку всех
+	LoadEmotion(l_CurentName);
+	const int l_cnt_main = m_CountSelEmotions;
+	const string l_base_smile = "FlylinkSmilesInternational";
+	const string l_old_base_smile = "FlylinkSmiles";
+	if (l_CurentName != l_base_smile)
+		LoadEmotion(l_base_smile);
+	if (l_CurentName != l_old_base_smile)
+		LoadEmotion(l_old_base_smile);
+	m_CountSelEmotions = l_cnt_main;
+	
+	// TODO - включить загрузку всех опционально?
 	/*  const int l_cntMain = m_CountSelEmotions;
 	    WIN32_FIND_DATA data;
 	    HANDLE hFind = FindFirstFile(Text::toT(Util::getDataPath() + "EmoPacks\\*.xml").c_str(), &data);

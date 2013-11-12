@@ -50,7 +50,9 @@ class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_
 		BEGIN_MSG_MAP(UsersFrame)
 		NOTIFY_HANDLER(IDC_USERS, LVN_GETDISPINFO, ctrlUsers.onGetDispInfo)
 		NOTIFY_HANDLER(IDC_USERS, LVN_COLUMNCLICK, ctrlUsers.onColumnClick)
+#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 		NOTIFY_HANDLER(IDC_USERS, NM_CUSTOMDRAW, ctrlUsers.onCustomDraw) // [+] IRainman
+#endif
 		NOTIFY_HANDLER(IDC_USERS, LVN_ITEMCHANGED, onItemChanged)
 		NOTIFY_HANDLER(IDC_USERS, LVN_KEYDOWN, onKeyDown)
 		NOTIFY_HANDLER(IDC_USERS, NM_DBLCLK, onDoubleClick)

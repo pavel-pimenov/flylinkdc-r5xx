@@ -20,6 +20,7 @@
 #include "Mapper_WinUPnP.h"
 #include "Util.h"
 #include "Text.h"
+#include "LogManager.h"
 
 #ifdef HAVE_NATUPNP_H
 #include <ole2.h>
@@ -61,12 +62,15 @@ bool Mapper_WinUPnP::add(const unsigned short port, const Protocol protocol, con
 {
 	IStaticPortMappingCollection* pSPMC = getStaticPortMappingCollection();
 	if (!pSPMC)
+	{
+		LogManager::getInstance()->message("Mapper_WinUPnP::add, Error = getStaticPortMappingCollection == nullptr");
 		return false;
-		
+	}
+	
 	/// @todo use a BSTR wrapper
 	BSTR protocol_ = SysAllocString(Text::toT(protocols[protocol]).c_str());
 	BSTR description_ = SysAllocString(Text::toT(description).c_str());
-	BSTR localIP = SysAllocString(Text::toT(Util::getLocalIp()).c_str());
+	BSTR localIP = SysAllocString(Text::toT(Util::getLocalOrBindIp(true)).c_str()); //  http://code.google.com/p/flylinkdc/issues/detail?id=1359
 	
 	IStaticPortMapping* pSPM = 0;
 	HRESULT hr = pSPMC->Add(port, protocol_, port, localIP, VARIANT_TRUE, description_, &pSPM);

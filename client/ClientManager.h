@@ -32,7 +32,8 @@ class ClientManager : public Speaker<ClientManagerListener>,
 {
 	public:
 		Client* getClient(const string& aHubURL);
-		void putClient(Client* aClient);
+		void putClient(Client* p_client);
+		void prepareClose(); // [+]PPA
 		StringList getHubs(const CID& cid, const string& hintUrl) const;
 		StringList getHubNames(const CID& cid, const string& hintUrl) const;
 		StringList getNicks(const CID& cid, const string& hintUrl) const;
@@ -125,6 +126,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		                , uint32_t p_HubID
 #endif
+		                , bool p_first_load
 		               ) noexcept;
 		UserPtr getUser(const CID& cid, bool p_create = true) noexcept;
 		
@@ -441,7 +443,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 # ifdef IRAINMAN_USE_NICKS_IN_CM
 		typedef std::unordered_map<CID, std::string> NickMap; // TODO boost
 # endif
-		typedef std::unordered_map<CID, const UserPtr> UserMap; // TODO boost
+		typedef std::unordered_map<CID, UserPtr> UserMap; // TODO boost
 #endif
 		static UserMap g_users;
 #ifdef IRAINMAN_USE_NICKS_IN_CM

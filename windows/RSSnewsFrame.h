@@ -53,7 +53,9 @@ class RSSNewsFrame : public MDITabChildWindowImpl < RSSNewsFrame, RGB(0, 0, 0), 
 		COMMAND_ID_HANDLER(IDC_REMOVE_ALL, onRemoveAll)
 		NOTIFY_HANDLER(IDC_RSS, LVN_GETDISPINFO, ctrlList.onGetDispInfo)
 		NOTIFY_HANDLER(IDC_RSS, LVN_COLUMNCLICK, ctrlList.onColumnClick)
+#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 		NOTIFY_HANDLER(IDC_RSS, NM_CUSTOMDRAW, ctrlList.onCustomDraw) // [+] IRainman
+#endif
 		CHAIN_MSG_MAP(baseClass)
 		NOTIFY_HANDLER(IDC_RSS, NM_DBLCLK, onDoubleClick)
 		COMMAND_ID_HANDLER(IDC_OPEN_FILE, onOpenClick)      // Go to the URL

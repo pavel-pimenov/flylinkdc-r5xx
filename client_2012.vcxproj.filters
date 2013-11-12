@@ -406,6 +406,54 @@
     <ClCompile Include="client\CFlyUserRatioInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="client\webrtc\system_wrappers\source\critical_section.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\system_wrappers\source\critical_section_win.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\system_wrappers\source\event.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\system_wrappers\source\event_win.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\system_wrappers\source\file_impl.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\system_wrappers\source\rw_lock.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\system_wrappers\source\rw_lock_generic.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\system_wrappers\source\rw_lock_win.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\system_wrappers\source\sleep.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\system_wrappers\source\thread_win.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\system_wrappers\source\trace_impl.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\system_wrappers\source\trace_win.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\system_wrappers\source\condition_variable.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\system_wrappers\source\flylinkdc_thread.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\system_wrappers\source\condition_variable_event_win.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\system_wrappers\source\condition_variable_native_win.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client\AdcCommand.h">
@@ -1008,6 +1056,75 @@
     <ClInclude Include="client\CFlyUserRatioInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\common_types.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\condition_variable_posix.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\condition_variable_win.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\condition_variable_wrapper.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\critical_section_win.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\critical_section_wrapper.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\event_win.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\event_wrapper.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\file_impl.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\file_wrapper.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\fix_interlocked_exchange_pointer_win.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\rw_lock_generic.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\rw_lock_win.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\rw_lock_wrapper.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\set_thread_name_win.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\sleep.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\static_instance.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\thread_win.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\thread_wrapper.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\trace.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\trace_impl.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\trace_win.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\interface\typedefs.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -1048,6 +1165,9 @@
     </Filter>
     <Filter Include="Source Files\minizip">
       <UniqueIdentifier>{84096e6f-60b6-4f0c-939d-d548ac07cd87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\webrtc">
+      <UniqueIdentifier>{634734c1-c671-4cbd-877a-3a51a43bf950}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

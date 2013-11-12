@@ -524,7 +524,9 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		void on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept // [+] IRainman opt.
 		{
 			for (auto i = p_list.cbegin(); i != p_list.cend(); ++i)
+			{
 				on(QueueManagerListener::StatusUpdated(), *i);
+			}
 		}
 		void on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept; // [+] IRainman opt.
 		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept;

@@ -64,7 +64,9 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		NOTIFY_HANDLER(id, LVN_COLUMNCLICK, ctrlList.onColumnClick)
 		NOTIFY_HANDLER(id, LVN_KEYDOWN, onKeyDown)
 		NOTIFY_HANDLER(id, NM_DBLCLK, onDoubleClick)
+#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 		NOTIFY_HANDLER(id, NM_CUSTOMDRAW, ctrlList.onCustomDraw) // [+] IRainman
+#endif
 		CHAIN_MSG_MAP(baseClass)
 		END_MSG_MAP()
 		
@@ -126,10 +128,10 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		{
 			if (!m_closed)
 			{
+				m_closed = true;
 				FinishedManager::getInstance()->removeListener(this);
 				SettingsManager::getInstance()->removeListener(this);
 				
-				m_closed = true;
 				WinUtil::setButtonPressed(id, false);
 				PostMessage(WM_CLOSE);
 				return 0;

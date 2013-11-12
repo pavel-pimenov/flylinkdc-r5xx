@@ -41,7 +41,7 @@ DownloadManager::~DownloadManager()
 	{
 		{
 			// [-] Lock l(cs); [-] IRainman opt.
-			if (m_downloads.empty())
+			if (m_download_map.empty())
 				break;
 		}
 		Thread::sleep(100);
@@ -58,17 +58,17 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	
 	{
 		// [-] Lock l(cs); [-] IRainman opt.
-		DownloadList l_tickList;
+		DownloadMap l_tickList;
 		int64_t l_currentSpeed = 0;// [+] IRainman refactoring transfer mechanism
 		SharedLock l(cs); // [+] IRainman opt.
 		// Tick each ongoing download
-		for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
+		for (auto i = m_download_map.cbegin(); i != m_download_map.cend(); ++i)
 		{
-			Download* d = *i;
+			Download* d = i->second;
 			
 			if (d->getPos() > 0)
 			{
-				l_tickList.push_back(d);
+				l_tickList.insert(*i);
 				d->tick(aTick); //[!]IRainman refactoring transfer mechanism
 			}
 			const int64_t l_currentSingleSpeed = d->getRunningAverage();//[+]IRainman refactoring transfer mechanism
@@ -114,43 +114,38 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	}
 }
 
-void DownloadManager::checkIdle(const UserPtr& user)
+void DownloadManager::checkIdle(const UserPtr& aUser)
 {
 	SharedLock l(cs);
-	for (auto i = idlers.cbegin(); i != idlers.cend(); ++i)
-	{
-		UserConnection* uc = *i;
-		if (uc->getUser() == user)
-		{
-			uc->updated();
-			return;
-		}
-	}
+	dcassert(aUser);
+	const auto & l_find = m_idlers.find(aUser);
+	if (l_find != m_idlers.end())
+		l_find->second->updated();
 }
 
-void DownloadManager::addConnection(UserConnectionPtr conn)
+void DownloadManager::addConnection(UserConnection* p_conn)
 {
-	if (!conn->isSet(UserConnection::FLAG_SUPPORTS_TTHF) || !conn->isSet(UserConnection::FLAG_SUPPORTS_ADCGET))
+	if (!p_conn->isSet(UserConnection::FLAG_SUPPORTS_TTHF) || !p_conn->isSet(UserConnection::FLAG_SUPPORTS_ADCGET))
 	{
 		// Can't download from these...
-		ClientManager::getInstance()->setClientStatus(conn->getUser(), STRING(SOURCE_TOO_OLD), -1, true);
-		QueueManager::getInstance()->removeSource(conn->getUser(), QueueItem::Source::FLAG_NO_TTHF);
-		conn->disconnect();
+		ClientManager::getInstance()->setClientStatus(p_conn->getUser(), STRING(SOURCE_TOO_OLD), -1, true);
+		QueueManager::getInstance()->removeSource(p_conn->getUser(), QueueItem::Source::FLAG_NO_TTHF);
+		p_conn->disconnect();
 		return;
 	}
 #ifdef PPA_INCLUDE_IPFILTER
-	if (PGLoader::getInstance()->check(conn->getRemoteIp()))
+	if (PGLoader::getInstance()->check(p_conn->getRemoteIp()))
 	{
-		conn->error(STRING(YOUR_IP_IS_BLOCKED));
-		conn->getUser()->setFlag(User::PG_BLOCK);
-		LogManager::getInstance()->message("IPFilter: " + STRING(IPFILTER_BLOCK_OUT_CONNECTION) + ' ' + conn->getRemoteIp());
-		QueueManager::getInstance()->removeSource(conn->getUser(), QueueItem::Source::FLAG_REMOVED);
-		removeConnection(conn);
+		p_conn->error(STRING(YOUR_IP_IS_BLOCKED));
+		p_conn->getUser()->setFlag(User::PG_BLOCK);
+		LogManager::getInstance()->message("IPFilter: " + STRING(IPFILTER_BLOCK_OUT_CONNECTION) + ' ' + p_conn->getRemoteIp());
+		QueueManager::getInstance()->removeSource(p_conn->getUser(), QueueItem::Source::FLAG_REMOVED);
+		removeConnection(p_conn);
 		return;
 	}
 #endif
-	conn->addListener(this);
-	checkDownloads(conn);
+	p_conn->addListener(this);
+	checkDownloads(p_conn);
 }
 
 bool DownloadManager::startDownload(QueueItem::Priority prio)
@@ -204,7 +199,9 @@ void DownloadManager::checkDownloads(UserConnection* aConn)
 		// [-] Lock l(cs); [-] IRainman fix.
 		aConn->setState(UserConnection::STATE_IDLE);
 		UniqueLock l(cs); // [+] IRainman fix.
-		idlers.push_back(aConn);
+		dcassert(aConn->getUser());
+		dcassert(m_idlers.find(aConn->getUser()) == m_idlers.end());
+		m_idlers[aConn->getUser()] = aConn;
 		return;
 	}
 	
@@ -217,7 +214,9 @@ void DownloadManager::checkDownloads(UserConnection* aConn)
 	
 	{
 		UniqueLock l(cs);
-		m_downloads.push_back(d);
+		dcassert(d->getUser());
+		dcassert(m_download_map.find(d->getUser()) == m_download_map.end());
+		m_download_map[d->getUser()] = d;
 	}
 	fire(DownloadManagerListener::Requesting(), d);
 	
@@ -476,10 +475,7 @@ void DownloadManager::noSlots(UserConnection* aSource, const string& param)
 
 void DownloadManager::onFailed(UserConnection* aSource, const string& aError)
 {
-	{
-		UniqueLock l(cs);
-		idlers.erase(remove(idlers.begin(), idlers.end(), aSource), idlers.end());
-	}
+	remove_idlers(aSource);
 	failDownload(aSource, aError);
 }
 
@@ -510,11 +506,11 @@ void DownloadManager::failDownload(UserConnection* aSource, const string& reason
 	removeConnection(aSource);
 }
 
-void DownloadManager::removeConnection(UserConnectionPtr aConn)
+void DownloadManager::removeConnection(UserConnection* p_conn)
 {
-	dcassert(aConn->getDownload() == nullptr);
-	aConn->removeListener(this);
-	aConn->disconnect();
+	dcassert(p_conn->getDownload() == nullptr);
+	p_conn->removeListener(this);
+	p_conn->disconnect();
 }
 
 void DownloadManager::removeDownload(Download* d)
@@ -535,8 +531,8 @@ void DownloadManager::removeDownload(Download* d)
 	
 	{
 		UniqueLock l(cs);
-		dcassert(find(m_downloads.begin(), m_downloads.end(), d) != m_downloads.end());
-		m_downloads.erase(remove(m_downloads.begin(), m_downloads.end(), d), m_downloads.end());
+		dcassert(m_download_map.find(d->getUser()) != m_download_map.end());
+		m_download_map.erase(d->getUser());
 	}
 }
 
@@ -544,9 +540,9 @@ void DownloadManager::abortDownload(const string& aTarget)
 {
 	SharedLock l(cs);
 	
-	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
+	for (auto i = m_download_map.cbegin(); i != m_download_map.cend(); ++i)
 	{
-		Download* d = *i;
+		Download* d = i->second;
 		if (d->getPath() == aTarget)
 		{
 			dcdebug("Trying to close connection for download %p\n", d);
@@ -614,14 +610,7 @@ void DownloadManager::on(AdcCommand::STA, UserConnection* aSource, const AdcComm
 
 void DownloadManager::on(UserConnectionListener::Updated, UserConnection* aSource) noexcept
 {
-	{
-		UniqueLock l(cs);
-		UserConnectionList::iterator i = find(idlers.begin(), idlers.end(), aSource);
-		if (i == idlers.end())
-			return;
-		idlers.erase(i);
-	}
-	
+	remove_idlers(aSource);
 	checkDownloads(aSource);
 }
 
@@ -656,12 +645,22 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource)
 bool DownloadManager::checkFileDownload(const UserPtr& aUser)
 {
 	SharedLock l(cs);
-	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
-	{
-		if (Download* d = *i)
-			if (d->getUser() == aUser && d->getType() != Download::TYPE_PARTIAL_LIST && d->getType() != Download::TYPE_FULL_LIST && d->getType() != Download::TYPE_TREE)
-				return true;
-	}
+	const auto& l_find = m_download_map.find(aUser);
+	if (l_find != m_download_map.end())
+		if (l_find->second->getType() != Download::TYPE_PARTIAL_LIST &&
+		        l_find->second->getType() != Download::TYPE_FULL_LIST &&
+		        l_find->second->getType() != Download::TYPE_TREE)
+		{
+			return true;
+		}
+		
+	/*  for (auto i = m_download_map.cbegin(); i != m_download_map.cend(); ++i)
+	    {
+	        Download* d = i->second;
+	            if (d->getUser() == aUser && d->getType() != Download::TYPE_PARTIAL_LIST && d->getType() != Download::TYPE_FULL_LIST && d->getType() != Download::TYPE_TREE)
+	                return true;
+	    }
+	*/
 	return false;
 }
 /*#ifdef IRAINMAN_ENABLE_AUTO_BAN

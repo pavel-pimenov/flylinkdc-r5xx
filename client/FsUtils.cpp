@@ -37,11 +37,9 @@ bool CFsTypeDetector::IsStreamSupported(FsUtils_LPCtSTR pwcFileName)
 			
 			const bool bRet = (dwVolumeFlags & FILE_NAMED_STREAMS) != 0;
 			
-			DEV_BROADCAST_HANDLE dbh =
-			{
-				sizeof(DEV_BROADCAST_HANDLE),
-				DBT_DEVTYP_HANDLE,
-			};
+			DEV_BROADCAST_HANDLE dbh = {0};
+			dbh.dbch_size = sizeof(DEV_BROADCAST_HANDLE);
+			dbh.dbch_devicetype = DBT_DEVTYP_HANDLE;
 			
 			wcRootPath[6] = 0;
 			dbh.dbch_handle = FsUtils_CreateFile(wcRootPath, 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, NULL);

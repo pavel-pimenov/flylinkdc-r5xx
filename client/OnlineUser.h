@@ -24,6 +24,7 @@
 #include "User.h"
 #include "UserInfoBase.h"
 #include "UserInfoColumns.h"
+#include "webrtc/system_wrappers/interface/rw_lock_wrapper.h"
 
 class ClientBase;
 class NmdcHub;
@@ -157,11 +158,15 @@ class Identity
 		GSMC(Description, "DE", CHANGES_DESCRIPTION) // ok
 		GSMC(Email, "EM", CHANGES_EMAIL) // ok
 		
-		void setNick(const string& nick) // "NI"
+		void setNick(const string& p_nick) // "NI"
 		{
-			m_nick = nick;
-			getUser()->setLastNick(nick);
+			m_nick = p_nick;
+			getUser()->setLastNick(p_nick);
 			change(CHANGES_NICK);
+		}
+		void setNickFast(const string& p_nick) // »спользуетс€ при первой инициализации
+		{
+			m_nick = p_nick;
 		}
 		GETM(string, m_nick, Nick); // "NI"
 		const tstring getNickT() const
@@ -308,26 +313,20 @@ class Identity
 			e_FreeSlots,
 			e_KnownSupports, // 1 бит дл€ ADC, 0 дл€ NMDC
 			e_KnownUcSupports, // 7 бит вперемешку.
-			e_DicAP, // "AP"
 			e_NotEmptyString, // 2 бита
 			e_TypeUInt8AttrLast
 		};
 		GSUINTBITS(8);
-		
 		GSUINTBIT(8, ClientType);
 		
 	public:
 	
 		GSUINT(8, ConnectionTimeouts); // "TO"
 		GC_INC_UINT(8, ConnectionTimeouts); // "TO"
-		
 		GSUINT(8, FileListDisconnects); // "FD"
 		GC_INC_UINT(8, FileListDisconnects); // "FD"
-		
 		GSUINT(8, FreeSlots); // "FS"
-		
 		GSUINT(8, ClientType); // "CT"
-		
 		GSUINT(8, KnownSupports); // "SU"
 		GSUINT(8, KnownUcSupports); // "SU"
 		
@@ -381,39 +380,44 @@ class Identity
 		GSUINTBIT(8, FakeCard);
 		GSUINTBIT(8, NotEmptyString);
 		GSUINT(8, NotEmptyString);
-		GSUINT(8, DicAP);
 		
 //////////////////// uint16 ///////////////////
 	private:
 	
 		enum eTypeUint16Attr
 		{
+#ifdef IRAINMAN_USE_NG_FAST_USER_INFO
 			e_Changes,
+#endif
 			e_UdpPort,
 			e_DicVE, // "VE"
+			e_DicAP, // "AP"
 			e_TypeUInt16AttrLast
 		};
 		GSUINTBITS(16);
 		
-		// [+] IRAINMAN_USE_NG_FAST_USER_INFO
 		void change(const uint16_t p_change)
 		{
+#ifdef IRAINMAN_USE_NG_FAST_USER_INFO
 			BOOST_STATIC_ASSERT(COLUMN_LAST - 1 <= 16); // [!] If you require more than 16 columns in the hub, please increase the size of m_changed_status and correct types in the code harness around her.
 			//FastUniqueLock l(g_cs);
 			get_uint16(e_Changes) |= p_change;
+#endif
 		}
 	public:
-		uint16_t getChanges() // [!]
+#ifdef IRAINMAN_USE_NG_FAST_USER_INFO
+		uint16_t getChanges() 
 		{
 			uint16_t ret = 0;
 			//FastUniqueLock l(g_cs);
 			std::swap(ret, get_uint16(e_Changes));
 			return ret;
 		}
-		// [~] IRAINMAN_USE_NG_FAST_USER_INFO
+#endif
 		
 		GSUINT(16, UdpPort); // "U4"
-		GSUINT(16, DicVE);
+		GSUINT(16, DicVE); // "VE"
+		GSUINT(16, DicAP); // "AP"
 		
 //////////////////// uint32 ///////////////////
 	private:
@@ -457,32 +461,44 @@ class Identity
 		}
 		void setHubNormal(const char* p_val) // "HN"
 		{
-			get_uint32(e_HubNormalRegOper) |= uint32_t((Util::toInt(p_val) << 20) & 0x3FF00000); // 00111111111100000000000000000000
+			setHubNormal(Util::toInt(p_val));
 		}
 		void setHubRegister(const char* p_val) // "HR"
 		{
-			get_uint32(e_HubNormalRegOper) |= uint32_t((Util::toInt(p_val) << 10) & 0xFFC00);    // 00000000000011111111110000000000
+			setHubRegister(Util::toInt(p_val));
 		}
 		void setHubOperator(const char* p_val) // "HO"
 		{
-			get_uint32(e_HubNormalRegOper) |= uint32_t(Util::toInt(p_val) & 0x3FF);              // 00000000000000000000001111111111
+			setHubOperator(Util::toInt(p_val));
+		}
+		void setHubNormal(int p_val) // "HN"
+		{
+			get_uint32(e_HubNormalRegOper) |= uint32_t((p_val << 20) & 0x3FF00000); // 00111111111100000000000000000000
+		}
+		void setHubRegister(int p_val) // "HR"
+		{
+			get_uint32(e_HubNormalRegOper) |= uint32_t((p_val << 10) & 0xFFC00);    // 00000000000011111111110000000000
+		}
+		void setHubOperator(int p_val) // "HO"
+		{
+			get_uint32(e_HubNormalRegOper) |= uint32_t(p_val & 0x3FF);              // 00000000000000000000001111111111
 		}
 		
 //////////////////// int64 ///////////////////
 	private:
 	
+#ifdef FLYLINKDC_USE_REALSHARED_IDENTITY
+#define FLYLINKDC_USE_IDENTITY_64_BIT
 		enum eTypeInt64Attr
 		{
 			e_RealBytesShared = 0,
 			e_TypeInt64AttrLast
 		};
 		GSINTBITS(64);
-		
-	public:
-	
 		GSINT(64, RealBytesShared) // "RS"
-		
+#endif
 //////////////////////////////////
+	public:
 
 		// [-] string getTag() const; [-] IRainman opt.
 		string getApplication() const;
@@ -532,59 +548,48 @@ class Identity
 		InfMap m_stringInfo;
 		
 		typedef vector<const string*> StringDictionaryReductionPointers;
-		typedef boost::unordered_map<string, size_t> StringDictionaryIndex;
+		typedef boost::unordered_map<string, uint16_t> StringDictionaryIndex;
 		
-#define DECL_STRING_INFO_DIC(dmk)\
-	static StringDictionaryReductionPointers g_infoDic##dmk;\
-	static StringDictionaryIndex g_infoDicIndex##dmk;\
-	static FastCriticalSection g_csInfoDic##dmk;\
-	\
-	void setDicId##dmk(const string& p_val)\
-	{\
-		FastLock l(g_csInfoDic##dmk);\
-		const auto i = g_infoDicIndex##dmk.find(p_val);\
-		if (i == g_infoDicIndex##dmk.end())\
-		{\
-			const auto l_new_id = g_infoDic##dmk.size() + 1;\
-			g_infoDic##dmk.push_back(&g_infoDicIndex##dmk.insert(make_pair(p_val, l_new_id)).first->first);\
-			setDic##dmk(l_new_id);\
-		}\
-		else\
-		{\
-			setDic##dmk(i->second);\
-		}\
-	}\
-	\
-	const string& getDicVal##dmk() const\
-	{\
-		FastLock l(g_csInfoDic##dmk);\
-		const auto& dicId = getDic##dmk();\
-		return dicId > 0 ? *g_infoDic##dmk[dicId - 1] : Util::emptyString;/*TODO: add instantly access*/\
-	}
+		static StringDictionaryReductionPointers g_infoDic;
+		static StringDictionaryIndex g_infoDicIndex;
 		
-#define IDENTITY_STRING_INFO_DIC_LIST()\
-	DECL_STRING_INFO_DIC(AP);\
-	DECL_STRING_INFO_DIC(VE)
+		uint32_t mergeDicIdL(const string& p_val)
+		{
+			if (p_val.empty())
+				return 0;
+			auto l_find = g_infoDicIndex.insert(make_pair(p_val, g_infoDic.size() + 1));
+			if (l_find.second == true) // Ќовое значение в справочнике?
+			{
+				g_infoDic.push_back(&l_find.first->first);   // —охран€ем указатель на строчку
+			}
+			return l_find.first->second;
+		}
 		
-		IDENTITY_STRING_INFO_DIC_LIST();
-		
-#undef DECL_STRING_INFO_DIC
-		
-#define CHECK_IDENTITY_STRING_INFO_DIC_LIST()\
-	CHECK_STR_DIC('V','E', VE);\
-	CHECK_STR_DIC('A','P', AP)
+		const string& getDicValL(uint16_t p_index) const
+		{
+			if (p_index > 0)
+			{
+				return *g_infoDic[p_index - 1];
+			}
+			else
+			{
+				return Util::emptyString;
+			}
+		}
 		
 #pragma pack(push,1)
 		struct
 		{
+#ifdef FLYLINKDC_USE_IDENTITY_64_BIT
 			int64_t  info_int64 [e_TypeInt64AttrLast];
+#endif
 			uint32_t info_uint32[e_TypeUInt32AttrLast];
 			uint16_t info_uint16[e_TypeUInt16AttrLast];
 			uint8_t  info_uint8 [e_TypeUInt8AttrLast];
 		} m_bits_info;
 #pragma pack(pop)
-//
-		static FastSharedCriticalSection g_cs; // [!] IRainman opt.
+		
+		static std::unique_ptr<webrtc::RWLockWrapper> g_rw_cs;
 #ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
 		string getDetectionField(const string& aName) const;
 		void getDetectionParams(StringMap& p);
@@ -617,6 +622,19 @@ class OnlineUser :
 			COLUMN_SLOTS,
 			COLUMN_CID,
 			COLUMN_LAST
+		};
+		
+		struct Hash
+		{
+			size_t operator()(const OnlineUserPtr& x) const
+			{
+				size_t cidHash = 0;
+				boost::hash_combine(cidHash, x);
+				//return boost::hash<OnlineUserPtr>(x);
+				// TODO - check x->getUser()
+				//memcpy(&cidHash, &x->getUser()->getCID(), sizeof(size_t)); //-V512
+				return cidHash;
+			}
 		};
 		
 		OnlineUser(const UserPtr& p_user, ClientBase& p_client, uint32_t p_sid)

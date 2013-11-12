@@ -32,6 +32,7 @@ LRESULT UserListColours::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 	
 	normalColour = SETTING(NORMAL_COLOUR);
 	favoriteColour = SETTING(FAVORITE_COLOR);
+	favEnemyColour = SETTING(TEXT_ENEMY_FORE_COLOR);
 	reservedSlotColour = SETTING(RESERVED_SLOT_COLOR);
 	ignoredColour = SETTING(IGNORED_COLOR);
 	fastColour = SETTING(FIREBALL_COLOR);
@@ -47,6 +48,7 @@ LRESULT UserListColours::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 	n_Preview.SetBackgroundColor(Colors::bgColor);
 	n_lsbList.AddString(CTSTRING(SETTINGS_COLOR_NORMAL));
 	n_lsbList.AddString(CTSTRING(SETTINGS_COLOR_FAVORITE));
+	n_lsbList.AddString(CTSTRING(FAV_ENEMY_USER));
 	n_lsbList.AddString(CTSTRING(SETTINGS_COLOR_RESERVED));
 	n_lsbList.AddString(CTSTRING(SETTINGS_COLOR_IGNORED));
 	n_lsbList.AddString(CTSTRING(COLOR_FAST));
@@ -85,30 +87,33 @@ LRESULT UserListColours::onChangeColour(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 			colour = favoriteColour;
 			break;
 		case 2:
-			colour = reservedSlotColour;
+			colour = favEnemyColour;
 			break;
 		case 3:
-			colour = ignoredColour;
+			colour = reservedSlotColour;
 			break;
 		case 4:
-			colour = fastColour;
+			colour = ignoredColour;
 			break;
 		case 5:
-			colour = serverColour;
+			colour = fastColour;
 			break;
 		case 6:
-			colour = opColour;
+			colour = serverColour;
 			break;
 		case 7:
-			colour = pasiveColour;
+			colour = opColour;
 			break;
 		case 8:
-			colour = fullCheckedColour;
+			colour = pasiveColour;
 			break;
 		case 9:
-			colour = badClientColour;
+			colour = fullCheckedColour;
 			break;
 		case 10:
+			colour = badClientColour;
+			break;
+		case 11:
 			colour = badFilelistColour;
 			break;
 		default:
@@ -126,30 +131,33 @@ LRESULT UserListColours::onChangeColour(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 				favoriteColour = d.GetColor();
 				break;
 			case 2:
-				reservedSlotColour = d.GetColor();
+				favEnemyColour = d.GetColor();
 				break;
 			case 3:
-				ignoredColour = d.GetColor();
+				reservedSlotColour = d.GetColor();
 				break;
 			case 4:
-				fastColour = d.GetColor();
+				ignoredColour = d.GetColor();
 				break;
 			case 5:
-				serverColour = d.GetColor();
+				fastColour = d.GetColor();
 				break;
 			case 6:
-				opColour = d.GetColor();
+				serverColour = d.GetColor();
 				break;
 			case 7:
-				pasiveColour = d.GetColor();
+				opColour = d.GetColor();
 				break;
 			case 8:
-				fullCheckedColour = d.GetColor();
+				pasiveColour = d.GetColor();
 				break;
 			case 9:
-				badClientColour = d.GetColor();
+				fullCheckedColour = d.GetColor();
 				break;
 			case 10:
+				badClientColour = d.GetColor();
+				break;
+			case 11:
 				badFilelistColour = d.GetColor();
 				break;
 			default:
@@ -174,6 +182,10 @@ void UserListColours::refreshPreview()
 	cf.crTextColor = favoriteColour;
 	n_Preview.SetSelectionCharFormat(cf);
 	n_Preview.AppendText((_T("\r\n") + TSTRING(SETTINGS_COLOR_FAVORITE)).c_str());
+	
+	cf.crTextColor = favEnemyColour;
+	n_Preview.SetSelectionCharFormat(cf);
+	n_Preview.AppendText((_T("\r\n") + TSTRING(FAV_ENEMY_USER)).c_str());
 	
 	cf.crTextColor = reservedSlotColour;
 	n_Preview.SetSelectionCharFormat(cf);
@@ -219,6 +231,7 @@ void UserListColours::write()
 	PropPage::write((HWND)*this, items);
 	SET_SETTING(NORMAL_COLOUR, normalColour);
 	SET_SETTING(FAVORITE_COLOR, favoriteColour);
+	SET_SETTING(TEXT_ENEMY_FORE_COLOR, favEnemyColour);
 	SET_SETTING(RESERVED_SLOT_COLOR, reservedSlotColour);
 	SET_SETTING(IGNORED_COLOR, ignoredColour);
 	SET_SETTING(FIREBALL_COLOR, fastColour);

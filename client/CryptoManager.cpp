@@ -34,6 +34,8 @@
 #ifdef HEADER_OPENSSLV_H
 # include <openssl/bn.h>
 # include <openssl/err.h>
+# include <openssl/engine.h>
+# include <openssl/conf.h>
 # ifdef _DEBUG
 #  ifndef _WIN64
 #  pragma comment(lib, "libeay32.lib")
@@ -106,12 +108,21 @@ CryptoManager::CryptoManager():
 	SSL_library_init();
 	SSL_load_error_strings();
 	
+#ifdef _DEBUG
+// #define  FLYLINKDC_TEMP_EXCLUDE_OPENSSL
+#endif
+#ifdef FLYLINKDC_TEMP_EXCLUDE_OPENSSL
+	clientContext = nullptr;
+	clientVerContext = nullptr;
+	serverContext = nullptr;
+	serverVerContext = nullptr;
+#else
 	// Probably should check the return value of these.
 	clientContext = SSL_CTX_new(TLSv1_client_method());
-	clientVerContext = SSL_CTX_new(TLSv1_client_method()); // 2012-04-23_22-28-18_WMMAQWDY7SJS4C4LUCVX5WPEM2U6E26UW42JITA_022765A8_crash-stack-r501-build-9812.dmp
+	clientVerContext = SSL_CTX_new(TLSv1_client_method());
 	serverContext = SSL_CTX_new(TLSv1_server_method());
 	serverVerContext = SSL_CTX_new(TLSv1_server_method());
-	
+#endif
 	if (clientContext && clientVerContext && serverContext && serverVerContext)
 	{
 #ifdef HEADER_OPENSSLV_H
@@ -216,7 +227,12 @@ CryptoManager::~CryptoManager()
 	// Can you believe, that OpenSSL
 	// doesn't have SSL_library_cleanup function?
 	ERR_remove_state(0);
+#ifndef OPENSSL_NO_ENGINE
+	ENGINE_cleanup(); //[+]PPA http://openssl.6102.n7.nabble.com/Memory-leak-while-using-OpenSSL-library-td38670.html
+#endif
+	CONF_modules_unload(1); //[+]PPA http://openssl.6102.n7.nabble.com/Memory-leak-while-using-OpenSSL-library-td38670.html
 	ERR_free_strings();
+	ERR_remove_thread_state(NULL);
 	EVP_cleanup();
 	OBJ_cleanup();
 	CRYPTO_cleanup_all_ex_data();
@@ -224,6 +240,7 @@ CryptoManager::~CryptoManager()
 	CRYPTO_set_locking_callback(NULL);
 	delete[] cs;
 #endif
+	
 	sk_SSL_COMP_free(SSL_COMP_get_compression_methods()); // allocated in SSL_library_init
 	// [merge] https://bitbucket.org/3F/flightsdc/commits/220b9ce93f3332087492ec3747f86ef29fe88118
 	// http://old.nabble.com/sk_SSL_COMP_new-and-sk_SSL_COMP_free-p27491190.html
@@ -526,7 +543,7 @@ void CryptoManager::decodeBZ2(const uint8_t* is, size_t sz, string& os)
 	bz_stream bs = { 0 };
 	
 	if (BZ2_bzDecompressInit(&bs, 0, 0) != BZ_OK)
-		throw(CryptoException(STRING(DECOMPRESSION_ERROR)));
+		throw CryptoException(STRING(DECOMPRESSION_ERROR));
 		
 	// We assume that the files aren't compressed more than 2:1...if they are it'll work anyway,
 	// but we'll have to do multiple passes...

@@ -54,7 +54,7 @@ bool ExCImage::LoadFromResource(UINT id, LPCTSTR pType, HMODULE hInst
 			IStream* pStream = nullptr;
 			if (::CreateStreamOnHGlobal(m_hBuffer, FALSE, &pStream) == S_OK)
 			{
-				res = Load(pStream);
+				res = Load(pStream); //Leak
 				safe_release(pStream);
 			}
 			::GlobalUnlock(m_hBuffer);

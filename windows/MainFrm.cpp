@@ -97,16 +97,14 @@
 
 
 #ifndef FLYLINKDC_HE
-# ifdef BETA
-#  define FLYLINKDC_CALC_MEMORY_USAGE // TODO: move to CompatibilityManager
+#define FLYLINKDC_CALC_MEMORY_USAGE // TODO: move to CompatibilityManager
 #  ifdef FLYLINKDC_CALC_MEMORY_USAGE
 #   ifdef FLYLINKDC_SUPPORT_WIN_VISTA
 #    define PSAPI_VERSION 1
 #   endif
 #   include <psapi.h>
 #   pragma comment(lib, "psapi.lib")
-#  endif // FLYLINKDC_CALC_MEMORY_USAGE
-# endif // BETA
+#endif // FLYLINKDC_CALC_MEMORY_USAGE
 #endif // FLYLINKDC_HE
 
 int HashProgressDlg::g_is_execute = 0;
@@ -436,7 +434,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 			WinUtil::openLink(WinUtil::GetWikiLink() + _T("incompatiblesoftware"));
 		}
 	}
-	
+#ifdef FLYLINKDC_USE_CHECK_OLD_OS
 	if (BOOLSETTING(REPORT_TO_USER_IF_OUTDATED_OS_DETECTED) && CompatibilityManager::runningAnOldOS()) // https://code.google.com/p/flylinkdc/issues/detail?id=1032
 	{
 		SET_SETTING(REPORT_TO_USER_IF_OUTDATED_OS_DETECTED, false);
@@ -446,6 +444,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		}
 	}
 	// [~] IRainman
+#endif
 	
 #ifdef NIGHTORION_USE_STATISTICS_REQUEST
 	if (BOOLSETTING(SETTINGS_STATISTICS_ASK))
@@ -1741,12 +1740,20 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 	else if (wParam == SHOW_POPUP)
 	{
 		Popup* msg = (Popup*)lParam;
-		PopupManager::getInstance()->Show(msg->Message, msg->Title, msg->Icon);
+		dcassert(PopupManager::isValidInstance());
+		if (PopupManager::isValidInstance())
+		{
+			PopupManager::getInstance()->Show(msg->Message, msg->Title, msg->Icon);
+		}
 		delete msg;
 	}
 	else if (wParam == REMOVE_POPUP)
 	{
-		PopupManager::getInstance()->AutoRemove((uint64_t)lParam); // [!] IRainman opt.
+		dcassert(PopupManager::isValidInstance());
+		if (PopupManager::isValidInstance())
+		{
+			PopupManager::getInstance()->AutoRemove((uint64_t)lParam); // [!] IRainman opt.
+		}
 	}
 	else if (wParam == SET_PM_TRAY_ICON) // Установка иконки о получении сообщения.
 	{
@@ -1763,7 +1770,11 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 	}
 	else if (wParam == WM_CLOSE)
 	{
-		PopupManager::getInstance()->Remove((int)lParam);
+		dcassert(PopupManager::isValidInstance());
+		if (PopupManager::isValidInstance())
+		{
+			PopupManager::getInstance()->Remove((int)lParam);
+		}
 	}
 	return 0;
 }
@@ -2265,6 +2276,7 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 	{
 		frm->createMessagePanel();
 	}
+	PopupManager::newInstance();
 //[!]PPA TODO  добавит галку для автостарта портала
 //	PortalBrowserFrame::openWindow(IDC_PORTAL_BROWSER);
 }

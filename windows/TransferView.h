@@ -529,7 +529,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		}
 		void on(DownloadManagerListener::Failed, const Download* aDownload, const string& aReason) noexcept;
 		void on(DownloadManagerListener::Starting, const Download* aDownload) noexcept;
-		void on(DownloadManagerListener::Tick, const DownloadList& aDownload, uint64_t CurrentTick) noexcept;//[!]IRainman refactoring transfer mechanism + uint64_t CurrentTick
+		void on(DownloadManagerListener::Tick, const DownloadMap& aDownload, uint64_t CurrentTick) noexcept;//[!]IRainman refactoring transfer mechanism + uint64_t CurrentTick
 		void on(DownloadManagerListener::Status, const UserConnection*, const string&) noexcept;
 		
 		void on(UploadManagerListener::Starting, const Upload* aUpload) noexcept;

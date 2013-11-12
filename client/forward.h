@@ -46,9 +46,6 @@ class ConnectionQueueItem;
 class DirectoryItem;
 typedef DirectoryItem* DirectoryItemPtr;
 
-class Download;
-typedef std::deque<Download*> DownloadList; // [!] IRainman opt: change vector to deque
-
 class FavoriteHubEntry;
 typedef FavoriteHubEntry* FavoriteHubEntryPtr;
 typedef std::vector<FavoriteHubEntryPtr> FavoriteHubEntryList;
@@ -86,7 +83,7 @@ class OutputStream;
 
 class QueueItem;
 typedef boost::intrusive_ptr<QueueItem> QueueItemPtr; // [!] IRainman fix.
-typedef std::deque<QueueItemPtr> QueueItemList;
+typedef std::list<QueueItemPtr> QueueItemList;
 
 class RecentHubEntry;
 
@@ -123,9 +120,6 @@ typedef boost::intrusive_ptr<User> UserPtr;
 typedef std::vector<UserPtr> UserList;
 
 class UserCommand;
-
 class UserConnection;
-typedef UserConnection* UserConnectionPtr;
-typedef std::vector<UserConnectionPtr> UserConnectionList;
 
 #endif /*DCPLUSPLUS_CLIENT_FORWARD_H_*/

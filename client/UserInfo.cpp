@@ -38,8 +38,9 @@ int UserInfo::compareItems(const UserInfo* a, const UserInfo* b, int col)
 			return 1;
 		if (BOOLSETTING(SORT_FAVUSERS_FIRST))
 		{
-			const bool a_isFav = FavoriteManager::getInstance()->isFavoriteUser(a->getUser());
-			const bool b_isFav = FavoriteManager::getInstance()->isFavoriteUser(b->getUser());
+			bool l_is_ban = false; // TODO можно флажки сделать 2 и заиспользовать в сортировке
+			const bool a_isFav = FavoriteManager::getInstance()->isFavoriteUser(a->getUser(), l_is_ban);
+			const bool b_isFav = FavoriteManager::getInstance()->isFavoriteUser(b->getUser(), l_is_ban);
 			if (a_isFav && !b_isFav)
 				return -1;
 			if (!a_isFav && b_isFav)

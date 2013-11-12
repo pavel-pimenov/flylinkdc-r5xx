@@ -271,17 +271,23 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 					getBytesAndFileLeft(bytesLeft, filesLeft);
 				}
 				
+				void signal()
+				{
+					if (paused)
+					{
+						m_s.signal(); // TODO тут точно нужен такой двойной сигнал?
+					}
+					m_s.signal();
+				}
 				void shutdown()
 				{
 					stop = true;
-					if (paused) s.signal();
-					s.signal();
+					signal();
 				}
 				void scheduleRebuild()
 				{
 					rebuild = true;
-					if (paused) s.signal();
-					s.signal();
+					signal();
 				}
 				
 				// [+] brain-ripper: Temporarily change hash speed functional
@@ -368,7 +374,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 				
 				WorkMap w;
 				mutable FastCriticalSection cs; // [!] IRainman opt: use only spinlock here!
-				Semaphore s;
+				Semaphore m_s;
 				
 				volatile bool stop; // [!] IRainman fix: this variable is volatile.
 				volatile bool running; // [!] IRainman fix: this variable is volatile.

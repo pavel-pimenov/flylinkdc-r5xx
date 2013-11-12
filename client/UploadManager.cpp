@@ -81,7 +81,9 @@ bool UploadManager::handleBan(UserConnection& aSource/*, bool forceBan, bool noC
 		aSource.disconnect();
 		return true;
 	}
-	const auto banType = user->hasAutoBan();
+	bool l_is_ban = false;
+	const bool l_is_favorite = FavoriteManager::getInstance()->isFavoriteUser(user, l_is_ban);
+	const auto banType = user->hasAutoBan(nullptr, l_is_favorite);
 	bool banByRules = banType != User::BAN_NONE;
 	if (banByRules)
 	{
@@ -449,7 +451,7 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 	catch (const ShareException& e)
 	{
 		// Partial file sharing upload
-		if (aType == Transfer::g_type_names[Transfer::TYPE_FILE] && aFile.compare(0, 4, "TTH/") == 0)
+		if (aType == Transfer::g_type_names[Transfer::TYPE_FILE] && aFile.compare(0, 4, "TTH/", 4) == 0)
 		{
 		
 			TTHValue fileHash(aFile.c_str() + 4); //[+]FlylinkDC++
@@ -1007,21 +1009,21 @@ void UploadManager::clearUserFilesL(const UserPtr& aUser)
 	}
 }
 
-void UploadManager::addConnection(UserConnectionPtr conn)
+void UploadManager::addConnection(UserConnection* p_conn)
 {
 #ifdef PPA_INCLUDE_IPFILTER
-	if (PGLoader::getInstance()->check(conn->getRemoteIp()))
+	if (PGLoader::getInstance()->check(p_conn->getRemoteIp()))
 	{
-		conn->error(STRING(YOUR_IP_IS_BLOCKED));
-		conn->getUser()->setFlag(User::PG_BLOCK);
-		LogManager::getInstance()->message("IPFilter: " + STRING(BLOCKED_INCOMING_CONN) + ' ' + conn->getRemoteIp());
-		QueueManager::getInstance()->removeSource(conn->getUser(), QueueItem::Source::FLAG_REMOVED);
-		removeConnection(conn);
+		p_conn->error(STRING(YOUR_IP_IS_BLOCKED));
+		p_conn->getUser()->setFlag(User::PG_BLOCK);
+		LogManager::getInstance()->message("IPFilter: " + STRING(BLOCKED_INCOMING_CONN) + ' ' + p_conn->getRemoteIp());
+		QueueManager::getInstance()->removeSource(p_conn->getUser(), QueueItem::Source::FLAG_REMOVED);
+		removeConnection(p_conn);
 		return;
 	}
 #endif
-	conn->addListener(this);
-	conn->setState(UserConnection::STATE_GET);
+	p_conn->addListener(this);
+	p_conn->setState(UserConnection::STATE_GET);
 }
 
 void UploadManager::testSlotTimeout(uint64_t aTick /*= GET_TICK()*/)
@@ -1132,8 +1134,8 @@ void UploadManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 						disconnects.push_back(u->getUser());
 						continue;
 					}
-					
-					if (BOOLSETTING(AUTO_KICK_NO_FAVS) && FavoriteManager::getInstance()->isFavoriteUser(u->getUser()))
+					bool l_is_ban = false;
+					if (BOOLSETTING(AUTO_KICK_NO_FAVS) && FavoriteManager::getInstance()->isFavoriteUser(u->getUser(), l_is_ban))
 					{
 						continue;
 					}

@@ -187,6 +187,7 @@
 #define IDD_SHARE_MISC_PAGE             288
 #define IDD_FLY_PROGRESS                289
 #define IDD_SEARCH_PAGE                 290
+#define IDR_COLOR_ICON                  291
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
 #define IDC_COPY_HUB                    1002
@@ -203,9 +204,8 @@
 #define IDC_DEBUG_IP_FILTER_TEXT        1013
 #define IDC_DEBUG_INCLUDE_FILTER_TEXT   1014
 #define IDC_DEBUG_EXCLUDE_FILTER_TEXT   1015
-#define IDC_COLLAPSED                   1014
-#define IDC_USER_CMD_PREVIEW            1015
-#define IDC_CLEAR                       1016
+#define IDC_USER_CMD_PREVIEW            1016
+#define IDC_CLEAR                       1017
 #define IDC_PUB_LIST_DROPDOWN           1018
 #define IDC_SEARCH_PAUSE                1019
 #define IDC_HUBLIST                     1020
@@ -1448,6 +1448,8 @@
 #define IDC_ITALIC                      2276
 #define IDC_UNDERLINE                   2277
 #define IDC_STRIKE                      2278
+#define IDC_COLOR                       2279
+#define IDC_COLLAPSED                   2280
 #define IDC_STARTVIEW_EXISTING_FILE     2281
 #define IDC_MIN_LENGHT_FILE_TO_MEDIAINFO 2282
 #define IDC_PAUSE                       2283
@@ -1574,7 +1576,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        291
+#define _APS_NEXT_RESOURCE_VALUE        292
 #define _APS_NEXT_COMMAND_VALUE         32789
 #define _APS_NEXT_CONTROL_VALUE         2353
 #define _APS_NEXT_SYMED_VALUE           2423

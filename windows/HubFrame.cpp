@@ -44,8 +44,8 @@
 #endif
 #include "FavHubProperties.h"
 
+
 HubFrame::FrameMap HubFrame::g_frames;
-bool HubFrame::g_is_before_close_all;
 
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
 HIconWrapper HubFrame::g_hSwitchPanelsIco(IDR_SWITCH_PANELS_ICON);
@@ -185,6 +185,7 @@ HubFrame::HubFrame(const tstring& aServer,
 	, m_second_count(60)
 	, server(aServer)
 	, m_waitingForPW(false)
+	, m_password_do_modal(0)
 	, m_needsUpdateStats(false)
 	, m_needsResort(false)
 	, m_showUsersContainer(nullptr)
@@ -212,7 +213,8 @@ HubFrame::HubFrame(const tstring& aServer,
 	, m_tabMenu(nullptr)
 	, m_userMenu(nullptr)
 	, m_ActivateCounter(0)
-	, m_is_window_text_update(false)
+	, m_is_window_text_update(0)
+	, m_Theme(nullptr)
 {
 	m_showUsersStore = p_UserListState;
 	m_showUsers = false;
@@ -266,7 +268,6 @@ LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	ctrlUsers.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                 WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS, WS_EX_STATICEDGE, IDC_USERS);
 	SET_EXTENDENT_LIST_VIEW_STYLE(ctrlUsers);
-	
 // TODO - может колонки не создвать пока они не нужны?
 	bHandled = FALSE;
 	client->connect();
@@ -330,6 +331,7 @@ void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
 			ctrlUsers.setAscending(BOOLSETTING(HUBFRAME_COLUMNS_SORT_ASC));
 		}
 		ctrlUsers.SetImageList(g_userImage.getIconList(), LVSIL_SMALL);
+		m_Theme = GetWindowTheme(ctrlUsers.m_hWnd);
 		m_showJoins = p_fhe ? p_fhe->getShowJoins() : BOOLSETTING(SHOW_JOINS);
 		m_favShowJoins = BOOLSETTING(FAV_SHOW_JOINS);
 	}
@@ -1170,8 +1172,12 @@ bool HubFrame::updateUser(const OnlineUserTask& u)
 			userMap.insert(make_pair(u.getOnlineUser(), ui));
 			if (m_showUsers)// [+] IRainman optimization
 			{
-				m_needsResort |= ui->update(ctrlUsers.getSortColumn()); // [+] IRainman fix.
-				updateUserList(ui);// [!] IRainman fix.
+				//dcassert(!client->is_all_my_info_loaded());
+				if(client->is_all_my_info_loaded())
+				{
+				  m_needsResort |= ui->is_update(ctrlUsers.getSortColumn()); // [+] IRainman fix.
+				}
+			    InsertUserList(ui); // [!] IRainman fix.
 			}
 			return true;
 #ifdef IRAINMAN_USE_HIDDEN_USERS
@@ -1200,14 +1206,18 @@ bool HubFrame::updateUser(const OnlineUserTask& u)
 #endif // IRAINMAN_USE_HIDDEN_USERS
 			if (m_showUsers)// [+] IRainman opt.
 			{
+				//dcassert(!client->is_all_my_info_loaded());
+				if(client->is_all_my_info_loaded())
+				{
 				PROFILE_THREAD_SCOPED_DESC("HubFrame::updateUser-update")
-				m_needsResort |= ui->update(ctrlUsers.getSortColumn());
+				m_needsResort |= ui->is_update(ctrlUsers.getSortColumn());
 				const int pos = ctrlUsers.findItem(ui); // TODO 2012-04-18_11-17-28_X543EFD4NB3G3HWBA6SW4KHRQKUBPK5V5S7ZMGY_803AF4F1_crash-stack-r502-beta18-build-9768.dmp
 				if (pos != -1)
 				{
 					ctrlUsers.updateItem(pos);
 					ctrlUsers.SetItem(pos, 0, LVIF_IMAGE, NULL, I_IMAGECALLBACK, 0, 0, NULL); // TODO это нужно?
 				}
+			}
 			}
 			return false;
 #ifdef IRAINMAN_USE_HIDDEN_USERS
@@ -1374,7 +1384,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 				if (m_window_text != l_new_text)
 				{
 					m_window_text = l_new_text;
-					m_is_window_text_update = true;
+					++m_is_window_text_update;
 				}
 				updateWindowText();
 			}
@@ -1446,8 +1456,9 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 					addPasswordCommand();
 					m_waitingForPW = true;
 				}
-				else
+				else if (m_password_do_modal == 0)
 				{
+					CFlySafeGuard<uint8_t> l_dlg_(m_password_do_modal); // fix Stack Overflow https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=103355
 					LineDlg linePwd;
 					linePwd.title = Text::toT(client->getHubName() + " (" + client->getHubUrl() + ')');
 					linePwd.description = TSTRING(ENTER_PASSWORD);
@@ -2597,8 +2608,12 @@ void HubFrame::closeAll(size_t thershold)
 {
 	if (thershold == 0)
 	{
-		g_is_before_close_all = true; // TODO - пока не используется.
-		FavoriteManager::getInstance()->prepareClose(); // Ускорим закрытие всех хабов
+		// Ускорим закрытие всех хабов
+		FavoriteManager::getInstance()->prepareClose();
+		ClientManager::getInstance()->prepareClose();
+		// TODO http://code.google.com/p/flylinkdc/issues/detail?id=1368
+		// ClientManager::getInstance()->prepareClose(); // Отпишемся от подписок клиента
+		// SearchManager::getInstance()->prepareClose(); // Отпишемся от подписок поиска
 	}
 	dcdrun(const auto l_size_g_frames = g_frames.size());
 	for (auto i = g_frames.cbegin(); i != g_frames.cend(); ++i)
@@ -2614,10 +2629,6 @@ void HubFrame::closeAll(size_t thershold)
 		}
 	}
 	dcassert(l_size_g_frames == g_frames.size());
-	if (thershold == 0)
-	{
-		g_is_before_close_all = false;
-	}
 }
 void HubFrame::on(FavoriteManagerListener::UserAdded, const FavoriteUser& /*aUser*/) noexcept
 {
@@ -2756,6 +2767,10 @@ void HubFrame::on(GetPassword, const Client*) noexcept
 }
 void HubFrame::setShortHubName(const tstring& p_name)
 {
+	if (m_shortHubName != p_name)
+	{
+		++m_is_window_text_update;
+	}
 	m_shortHubName = p_name;
 	if (!p_name.empty())
 	{
@@ -2911,22 +2926,22 @@ bool HubFrame::parseFilter(FilterModes& mode, int64_t& size)
 	{
 		return false;
 	}
-	if (m_filter.compare(0, 2, _T(">=")) == 0)
+	if (m_filter.compare(0, 2, _T(">="), 2) == 0)
 	{
 		mode = GREATER_EQUAL;
 		start = 2;
 	}
-	else if (m_filter.compare(0, 2, _T("<=")) == 0)
+	else if (m_filter.compare(0, 2, _T("<="), 2) == 0)
 	{
 		mode = LESS_EQUAL;
 		start = 2;
 	}
-	else if (m_filter.compare(0, 2, _T("==")) == 0)
+	else if (m_filter.compare(0, 2, _T("=="), 2) == 0)
 	{
 		mode = EQUAL;
 		start = 2;
 	}
-	else if (m_filter.compare(0, 2, _T("!=")) == 0)
+	else if (m_filter.compare(0, 2, _T("!="), 2) == 0)
 	{
 		mode = NOT_EQUAL;
 		start = 2;
@@ -3000,7 +3015,7 @@ bool HubFrame::parseFilter(FilterModes& mode, int64_t& size)
 	return true;
 }
 
-void HubFrame::updateUserList(UserInfo* ui) // [!] IRainman opt.
+void HubFrame::InsertUserList(UserInfo* ui) // [!] IRainman opt.
 {
 #ifdef IRAINMAN_USE_HIDDEN_USERS
 	dcassert(ui->isHidden() == false);
@@ -3429,12 +3444,15 @@ LRESULT HubFrame::onSizeMove(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 
 LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 {
+	dcassert(g_isStartupProcess != true);
+	if (g_isStartupProcess == true)
+	{
+		return CDRF_DODEFAULT;
+	}
 	// http://forums.codeguru.com/showthread.php?512490-NM_CUSTOMDRAW-on-Listview
 	// Последовательность событий при отрисовке
 	CRect rc;
 	LPNMLVCUSTOMDRAW cd = reinterpret_cast<LPNMLVCUSTOMDRAW>(pnmh);
-	
-	dcassert(g_isStartupProcess == false && !ClientManager::isShutdown());
 	switch (cd->nmcd.dwDrawStage)
 	{
 		case CDDS_PREPAINT:
@@ -3512,14 +3530,12 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 							SetTextColor(cd->nmcd.hdc, cd->clrText);
 #endif //SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
 							
-							const auto l_theme = GetWindowTheme(ctrlUsers.m_hWnd); // http://code.google.com/p/flylinkdc/issues/detail?id=949
-							dcassert(l_theme);
-							if (l_theme)
+							if (m_Theme)
 							{
 #if _MSC_VER < 1700 // [!] FlylinkDC++
-								const auto l_res = DrawThemeBackground(l_theme, cd->nmcd.hdc, LVP_LISTITEM, 3, &rc, &rc);
+								const auto l_res = DrawThemeBackground(m_Theme, cd->nmcd.hdc, LVP_LISTITEM, 3, &rc, &rc);
 #else
-								const auto l_res = DrawThemeBackground(l_theme, cd->nmcd.hdc, 1, 3, &rc, &rc);
+								const auto l_res = DrawThemeBackground(m_Theme, cd->nmcd.hdc, 1, 3, &rc, &rc);
 #endif // _MSC_VER < 1700
 								//dcassert(l_res == S_OK);
 								if (l_res != S_OK)
@@ -3607,8 +3623,9 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					}
 				}
 			}
+#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 			Colors::alternationBkColor(cd); // [+] IRainman
-			
+#endif
 			return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
 		}
 		

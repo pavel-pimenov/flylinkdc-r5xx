@@ -210,7 +210,7 @@ static void getExtMediaInfo(const string& p_file_ext_wo_dot,
 						l_ext_item.m_param = l_str_param_name;
 						l_ext_item.m_value = Text::fromT(l_value);
 						// Inform - Сводный параметр - распарсим его для удаления лишних записей и пробелов.
-						if (l_str_param_name.compare(0, 6, "Inform") == 0)
+						if (l_str_param_name.compare(0, 6, "Inform", 6) == 0)
 						{
 							g_fly_server_config.ConvertInform(l_ext_item.m_value);
 						}
@@ -618,7 +618,7 @@ void HashManager::Hasher::hashFile(const string& fileName, int64_t size)
 		if (paused > 0)
 			paused++;
 		else
-			s.signal();
+			m_s.signal();
 			
 		int64_t bytesLeft;
 		size_t filesLeft;
@@ -642,7 +642,9 @@ void HashManager::Hasher::resume()
 {
 	FastLock l(cs);
 	while (--paused > 0)
-		s.signal();
+	{
+		m_s.signal();
+	}
 }
 
 bool HashManager::Hasher::isPaused() const
@@ -697,7 +699,9 @@ void HashManager::Hasher::instantPause()
 		}
 	}
 	if (wait)
-		s.wait();
+	{
+		m_s.wait();
+	}
 }
 
 static const size_t g_HashBufferSize = 16 * 1024 * 1024;
@@ -994,7 +998,7 @@ int HashManager::Hasher::run()
 	bool last = false;
 	for (;;)
 	{
-		s.wait();
+		m_s.wait();
 		if (stop)
 			break;
 		if (rebuild)
