@@ -35,6 +35,7 @@ Identity ClientManager::g_iflylinkdc; // [+] IRainman fix: Identity for User for
 UserPtr ClientManager::g_me; // [+] IRainman fix: this is static object.
 CID ClientManager::g_pid; // [+] IRainman fix: this is static object.
 bool ClientManager::g_isShutdown = false;
+Client::List ClientManager::g_clients;
 
 SharedCriticalSection ClientManager::g_csClients;
 #ifdef IRAINMAN_USE_SEPARATE_CS_IN_CLIENT_MANAGER
@@ -74,7 +75,7 @@ Client* ClientManager::getClient(const string& p_HubURL)
 	
 	{
 		UniqueLock l(g_csClients);
-		m_clients.insert(make_pair(c->getHubUrl(), c));
+		g_clients.insert(make_pair(c->getHubUrl(), c));
 	}
 	
 	c->addListener(this);
@@ -84,11 +85,11 @@ Client* ClientManager::getClient(const string& p_HubURL)
 void ClientManager::prepareClose()
 {
 	UniqueLock l(g_csClients);
-	for (auto i = m_clients.cbegin(); i != m_clients.cend(); ++i)
+	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 	{
 		i->second->removeListeners();
 	}
-	m_clients.clear();
+	g_clients.clear();
 }
 void ClientManager::putClient(Client* p_client)
 {
@@ -99,28 +100,28 @@ void ClientManager::putClient(Client* p_client)
 	p_client->removeListeners();
 	{
 		UniqueLock l(g_csClients);
-		m_clients.erase(p_client->getHubUrl());
+		g_clients.erase(p_client->getHubUrl());
 	}
 	p_client->shutdown();
 	delete p_client;
 }
 
-StringList ClientManager::getHubs(const CID& cid, const string& hintUrl) const
+StringList ClientManager::getHubs(const CID& cid, const string& hintUrl)
 {
 	return getHubs(cid, hintUrl, FavoriteManager::getInstance()->isPrivate(hintUrl));
 }
 
-StringList ClientManager::getHubNames(const CID& cid, const string& hintUrl) const
+StringList ClientManager::getHubNames(const CID& cid, const string& hintUrl)
 {
 	return getHubNames(cid, hintUrl, FavoriteManager::getInstance()->isPrivate(hintUrl));
 }
 
-StringList ClientManager::getNicks(const CID& cid, const string& hintUrl) const
+StringList ClientManager::getNicks(const CID& cid, const string& hintUrl)
 {
 	return getNicks(cid, hintUrl, FavoriteManager::getInstance()->isPrivate(hintUrl));
 }
 
-StringList ClientManager::getHubs(const CID& cid, const string& hintUrl, bool priv) const
+StringList ClientManager::getHubs(const CID& cid, const string& hintUrl, bool priv)
 {
 	//Lock l(cs); [-] IRainman opt.
 	StringList lst;
@@ -143,7 +144,7 @@ StringList ClientManager::getHubs(const CID& cid, const string& hintUrl, bool pr
 	return lst;
 }
 
-StringList ClientManager::getHubNames(const CID& cid, const string& hintUrl, bool priv) const
+StringList ClientManager::getHubNames(const CID& cid, const string& hintUrl, bool priv)
 {
 	//Lock l(cs); [-] IRainman opt.
 	StringList lst;
@@ -166,7 +167,7 @@ StringList ClientManager::getHubNames(const CID& cid, const string& hintUrl, boo
 	return lst;
 }
 //[+]FlylinkDC
-StringList ClientManager::getNicks(const CID& p_cid, const string& hintUrl, bool priv) const
+StringList ClientManager::getNicks(const CID& p_cid, const string& hintUrl, bool priv)
 {
 	//Lock l(cs); [-] IRainman opt.
 	StringSet ret;
@@ -206,7 +207,7 @@ StringList ClientManager::getNicks(const CID& p_cid, const string& hintUrl, bool
 	return StringList(ret.begin(), ret.end());
 }
 
-string ClientManager::getStringField(const CID& cid, const string& hint, const char* field) const // [!] IRainman fix.
+string ClientManager::getStringField(const CID& cid, const string& hint, const char* field) // [!] IRainman fix.
 {
 	SharedLock l(g_csOnlineUsers);
 	
@@ -262,7 +263,7 @@ uint8_t ClientManager::getSlots(const CID& cid) const
 Client* ClientManager::findClient(const string& aUrl) const
 {
     Lock l(cs);
-    for (auto i = m_clients.cbegin(); i != m_clients.cend(); ++i)
+    for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
     {
         if (i->second->getHubUrl() == aUrl)
         {
@@ -276,15 +277,15 @@ Client* ClientManager::findClient(const string& p_url) const
 {
 	dcassert(!p_url.empty());
 	SharedLock l(g_csClients);
-	const auto& i = m_clients.find(p_url);
-	if (i != m_clients.end())
+	const auto& i = g_clients.find(p_url);
+	if (i != g_clients.end())
 	{
 		return i->second;
 	}
 	return nullptr;
 }
 
-string ClientManager::findHub(const string& ipPort) const
+string ClientManager::findHub(const string& ipPort)
 {
 #ifdef IRAINMAN_CORRRECT_CALL_FOR_CLIENT_MANAGER_DEBUG
 	dcassert(!ipPort.empty());
@@ -310,7 +311,7 @@ string ClientManager::findHub(const string& ipPort) const
 	
 	string url;
 	SharedLock l(g_csClients); // [+] IRainman opt.
-	for (auto j = m_clients.cbegin(); j != m_clients.cend(); ++j)
+	for (auto j = g_clients.cbegin(); j != g_clients.cend(); ++j)
 	{
 		const Client* c = j->second;
 		if (c->getPort() == port) // [!] IRainman opt.
@@ -333,13 +334,13 @@ string ClientManager::findHub(const string& ipPort) const
 	return url;
 }
 
-string ClientManager::findHubEncoding(const string& aUrl) const
+string ClientManager::findHubEncoding(const string& aUrl)
 {
 	if (!aUrl.empty()) //[+]FlylinkDC++ Team
 	{
 		SharedLock l(g_csClients);
-		const auto& i = m_clients.find(aUrl);
-		if (i != m_clients.end())
+		const auto& i = g_clients.find(aUrl);
+		if (i != g_clients.end())
 			return i->second->getEncoding();
 	}
 	return Text::systemCharset;
@@ -349,47 +350,47 @@ UserPtr ClientManager::findLegacyUser(const string& aNick
 #ifndef IRAINMAN_USE_NICKS_IN_CM
                                       , const string& aHubUrl
 #endif
-                                     ) const noexcept
+                                     )
 {
-    dcassert(!aNick.empty());
-    if (!aNick.empty())
-{
+	dcassert(!aNick.empty());
+	if (!aNick.empty())
+	{
 #ifdef IRAINMAN_USE_NICKS_IN_CM
-SharedLock l(g_csUsers);
+		SharedLock l(g_csUsers);
 #ifdef _DEBUG
-	static int g_count = 0;
-	if (++g_count % 1000 == 0)
-	{
-		dcdebug("ClientManager::findLegacyUser count = %d g_nicks.size() = %d\n", g_count, g_nicks.size());
-	}
-#endif
-	// this be slower now, but it's not called so often
-	for (auto i = g_nicks.cbegin(); i != g_nicks.cend(); ++i)
-	{
-		// [!] IRainman fix: can not be used here insensitive search! Using stricmp replaced by the string comparison operator. https://code.google.com/p/flylinkdc/source/detail?r=14247
-		if (i->second == aNick) // TODO - https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=12550  (> 200 падений)
+		static int g_count = 0;
+		if (++g_count % 1000 == 0)
 		{
-			UserMap::const_iterator u = g_users.find(i->first);
-			if (u != g_users.end() && u->second->getCID() == i->first)
-				return u->second;
+			dcdebug("ClientManager::findLegacyUser count = %d g_nicks.size() = %d\n", g_count, g_nicks.size());
 		}
-	}
+#endif
+		// this be slower now, but it's not called so often
+		for (auto i = g_nicks.cbegin(); i != g_nicks.cend(); ++i)
+		{
+			// [!] IRainman fix: can not be used here insensitive search! Using stricmp replaced by the string comparison operator. https://code.google.com/p/flylinkdc/source/detail?r=14247
+			if (i->second == aNick) // TODO - https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=12550  (> 200 падений)
+			{
+				UserMap::const_iterator u = g_users.find(i->first);
+				if (u != g_users.end() && u->second->getCID() == i->first)
+					return u->second;
+			}
+		}
 #else // IRAINMAN_USE_NICKS_IN_CM
 // [+] IRainman fix.
-SharedLock l(g_csClients);
-	const auto i = m_clients.find(aHubUrl);
-	if (i != m_clients.end())
-	{
-		const auto& ou = i->second->findUser(aNick);
-		if (ou)
+		SharedLock l(g_csClients);
+		const auto i = g_clients.find(aHubUrl);
+		if (i != g_clients.end())
 		{
-			return ou->getUser();
+			const auto& ou = i->second->findUser(aNick);
+			if (ou)
+			{
+				return ou->getUser();
+			}
 		}
-	}
-	// [~] IRainman fix.
+		// [~] IRainman fix.
 #endif // IRAINMAN_USE_NICKS_IN_CM
-}
-return UserPtr();
+	}
+	return UserPtr();
 }
 
 UserPtr ClientManager::getUser(const string& p_Nick, const string& p_HubURL
@@ -397,7 +398,7 @@ UserPtr ClientManager::getUser(const string& p_Nick, const string& p_HubURL
                                , uint32_t p_HubID
 #endif
                                , bool p_first_load
-                              ) noexcept
+                              )
 {
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	dcassert(p_HubID);
@@ -406,7 +407,7 @@ UserPtr ClientManager::getUser(const string& p_Nick, const string& p_HubURL
 	const CID cid = makeCid(p_Nick, p_HubURL);
 	
 	UniqueLock l(g_csUsers);
-	dcassert(p_first_load == false || p_first_load == true && g_users.find(cid) == g_users.end())
+//	dcassert(p_first_load == false || p_first_load == true && g_users.find(cid) == g_users.end())
 	auto l_result_insert = g_users.insert(make_pair(cid, nullptr));
 	if (!l_result_insert.second)
 	{
@@ -419,7 +420,7 @@ UserPtr ClientManager::getUser(const string& p_Nick, const string& p_HubURL
 		l_user->setFlag(User::NMDC); // TODO тут так можно? L: тут так обязательно нужно - этот метод только для nmdc протокола!
 		// TODO-2 зачем второй раз прописывать флаг на NMDC
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-		dcassert(l_user->getHubID());
+		//dcassert(l_user->getHubID());
 		if (!l_user->getHubID())
 		{
 			l_user->setHubID(p_HubID); // TODO-3 а это зачем повторно. оно разве может поменяться?
@@ -441,7 +442,7 @@ UserPtr ClientManager::getUser(const string& p_Nick, const string& p_HubURL
 	return p;
 }
 
-UserPtr ClientManager::getUser(const CID& cid, bool p_create /* = true */) noexcept
+UserPtr ClientManager::getUser(const CID& cid, bool p_create /* = true */)
 {
 	dcassert(!ClientManager::isShutdown());
 	UniqueLock l(g_csUsers);
@@ -459,19 +460,19 @@ UserPtr ClientManager::getUser(const CID& cid, bool p_create /* = true */) noexc
 	return UserPtr();
 }
 
-UserPtr ClientManager::findUser(const CID& cid) const noexcept
+UserPtr ClientManager::findUser(const CID& cid)
 {
-    SharedLock l(g_csUsers);
-    const auto& ui = g_users.find(cid);
-    if (ui != g_users.end())
-{
-return ui->second;
-}
-return UserPtr();
+	SharedLock l(g_csUsers);
+	const auto& ui = g_users.find(cid);
+	if (ui != g_users.end())
+	{
+		return ui->second;
+	}
+	return UserPtr();
 }
 
 // deprecated
-bool ClientManager::isOp(const UserPtr& user, const string& aHubUrl) const
+bool ClientManager::isOp(const UserPtr& user, const string& aHubUrl)
 {
 	SharedLock l(g_csOnlineUsers);
 	OnlinePairC p = g_onlineUsers.equal_range(user->getCID());
@@ -485,12 +486,12 @@ bool ClientManager::isOp(const UserPtr& user, const string& aHubUrl) const
 }
 
 #ifdef IRAINMAN_ENABLE_STEALTH_MODE
-bool ClientManager::isStealth(const string& aHubUrl) const
+bool ClientManager::isStealth(const string& aHubUrl)
 {
 	dcassert(!aHubUrl.empty());
 	SharedLock l(g_csClients);
-	const Client::Iter i = m_clients.find(aHubUrl);
-	if (i != m_clients.end())
+	const Client::Iter i = g_clients.find(aHubUrl);
+	if (i != g_clients.end())
 		return i->second->getStealth();
 		
 	return false;
@@ -562,7 +563,6 @@ void ClientManager::putOffline(const OnlineUserPtr& ou, bool disconnect) noexcep
 		{
 			UserPtr& u = ou->getUser();
 			u->unsetFlag(User::ONLINE);
-			// [-] updateNick(ou); [-] FlylinkDC++ fix.
 			if (disconnect)
 				ConnectionManager::getInstance()->disconnect(u);
 				
@@ -575,7 +575,7 @@ void ClientManager::putOffline(const OnlineUserPtr& ou, bool disconnect) noexcep
 	}
 }
 
-OnlineUser* ClientManager::findOnlineUserHintL(const CID& cid, const string& hintUrl, OnlinePairC& p) const
+OnlineUser* ClientManager::findOnlineUserHintL(const CID& cid, const string& hintUrl, OnlinePairC& p)
 {
 	// [!] IRainman fix: This function need to external lock.
 	p = g_onlineUsers.equal_range(cid);
@@ -699,7 +699,7 @@ void ClientManager::infoUpdated()
 	dcdebug("ClientManager::infoUpdated() count = %d\n", ++g_count);
 	LogManager::getInstance()->message("ClientManager::infoUpdated() count = " + Util::toString(g_count));
 #endif
-	for (auto i = m_clients.cbegin(); i != m_clients.cend(); ++i)
+	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 	{
 		Client* c = i->second;
 		if (c->isConnected())
@@ -710,7 +710,7 @@ void ClientManager::infoUpdated()
 }
 
 void ClientManager::on(NmdcSearch, Client* aClient, const string& aSeeker, Search::SizeModes aSizeMode, int64_t aSize,
-                       int aFileType, const string& aString, bool isPassive) noexcept
+                       Search::TypeModes aFileType, const string& aString, bool isPassive) noexcept
 {
 
 	ClientManagerListener::SearchReply l_re = ClientManagerListener::SEARCH_MISS; // !SMT!-S
@@ -777,7 +777,7 @@ void ClientManager::on(NmdcSearch, Client* aClient, const string& aSeeker, Searc
 			}
 		}
 	}
-	else if (!isPassive && (aFileType == SearchManager::TYPE_TTH) && isTTHBase64(aString)) //[+]FlylinkDC++ opt.
+	else if (!isPassive && (aFileType == Search::TYPE_TTH) && isTTHBase64(aString)) //[+]FlylinkDC++ opt.
 	{
 		PartsInfo partialInfo;
 		TTHValue aTTH(aString.c_str() + 4);  //[+]FlylinkDC++ opt. //-V112
@@ -832,16 +832,16 @@ void ClientManager::on(AdcSearch, const Client* c, const AdcCommand& adc, const 
 	// [~] IRainman-S
 }
 
-void ClientManager::search(Search::SizeModes aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, void* aOwner)
+void ClientManager::search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, void* aOwner)
 {
 #ifdef STRONG_USE_DHT
-	if (BOOLSETTING(USE_DHT) && aFileType == SearchManager::TYPE_TTH)
+	if (BOOLSETTING(USE_DHT) && aFileType == Search::TYPE_TTH)
 		dht::DHT::getInstance()->findFile(aString);
 #endif
 		
 	SharedLock l(g_csClients);
 	
-	for (auto i = m_clients.cbegin(); i != m_clients.cend(); ++i)
+	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 	{
 		Client* c = i->second;
 		if (c->isConnected())
@@ -851,10 +851,10 @@ void ClientManager::search(Search::SizeModes aSizeMode, int64_t aSize, int aFile
 	}
 }
 
-uint64_t ClientManager::search(const StringList& who, Search::SizeModes aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, const StringList& aExtList, void* aOwner)
+uint64_t ClientManager::search(const StringList& who, Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, void* aOwner)
 {
 #ifdef STRONG_USE_DHT
-	if (BOOLSETTING(USE_DHT) && aFileType == SearchManager::TYPE_TTH)
+	if (BOOLSETTING(USE_DHT) && aFileType == Search::TYPE_TTH)
 		dht::DHT::getInstance()->findFile(aString, aToken);
 #endif
 	//Lock l(cs); [-] IRainman opt.
@@ -862,7 +862,7 @@ uint64_t ClientManager::search(const StringList& who, Search::SizeModes aSizeMod
 	if (who.empty())
 	{
 		SharedLock l(g_csClients); // [+] IRainman opt.
-		for (auto i = m_clients.cbegin(); i != m_clients.cend(); ++i)
+		for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 			if (i->second->isConnected())
 			{
 				const uint64_t ret = i->second->search(aSizeMode, aSize, aFileType, aString, aToken, aExtList, aOwner);
@@ -876,8 +876,8 @@ uint64_t ClientManager::search(const StringList& who, Search::SizeModes aSizeMod
 		{
 			const string& client = *it;
 			
-			const auto& i = m_clients.find(client);
-			if (i != m_clients.end() && i->second->isConnected())
+			const auto& i = g_clients.find(client);
+			if (i != g_clients.end() && i->second->isConnected())
 			{
 				const uint64_t ret = i->second->search(aSizeMode, aSize, aFileType, aString, aToken, aExtList, aOwner);
 				estimateSearchSpan = max(estimateSearchSpan, ret);
@@ -1017,8 +1017,8 @@ const string& ClientManager::getMyNick(const string& hubUrl) const // [!] IRainm
 	dcassert(!hubUrl.empty());
 #endif
 	SharedLock l(g_csClients);
-	const auto& i = m_clients.find(hubUrl);
-	if (i != m_clients.end())
+	const auto& i = g_clients.find(hubUrl);
+	if (i != g_clients.end())
 		return i->second->getMyNick(); // [!] IRainman opt.
 	return Util::emptyString;
 }
@@ -1027,7 +1027,7 @@ int ClientManager::getMode(const FavoriteHubEntry* p_hub
 #ifdef RIP_USE_CONNECTION_AUTODETECT
                            , bool *pbWantAutodetect
 #endif
-                          ) const
+                          )
 {
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	if (pbWantAutodetect)
@@ -1076,14 +1076,14 @@ void ClientManager::cancelSearch(void* aOwner)
 {
 	SharedLock l(g_csClients);
 	
-	for (auto i = m_clients.cbegin(); i != m_clients.cend(); ++i)
+	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 	{
 		i->second->cancelSearch(aOwner);
 	}
 }
 
 #ifdef STRONG_USE_DHT
-OnlineUserPtr ClientManager::findDHTNode(const CID& cid) const
+OnlineUserPtr ClientManager::findDHTNode(const CID& cid)
 {
 	SharedLock l(g_csOnlineUsers);
 	
@@ -1121,8 +1121,29 @@ void ClientManager::on(UsersUpdated, const Client* client, const OnlineUserList&
 	dcassert(!isShutdown());
 	for (auto i = l.cbegin(), iend = l.cend(); i != iend; ++i)
 	{
-		updateNick(*i);
+		updateNick(*i); // TODO проверить что меняется именно ник - иначе не звать. или разбить UsersUpdated на UsersUpdated + UsersUpdatedNick
+#ifdef _DEBUG
+//		LogManager::getInstance()->message("ClientManager::on(UsersUpdated nick = " + (*i)->getUser()->getLastNick());
+#endif
 		// [-] fire(ClientManagerListener::UserUpdated(), *i); [-] IRainman fix: No needs to update user twice.
+	}
+}
+
+void ClientManager::updateNick(const OnlineUserPtr& p_online_user)
+{
+	const string& l_nick_from_identity = p_online_user->getIdentity().getNick();
+	if (p_online_user->getUser()->getLastNick().empty())
+	{
+		p_online_user->getUser()->setLastNick(l_nick_from_identity);
+		dcassert(p_online_user->getUser()->getLastNick() != l_nick_from_identity); // TODO поймать когда это бывает?
+	}
+	else
+	{
+#ifdef _DEBUG
+		//dcassert(0);
+//			LogManager::getInstance()->message("[DUP] updateNick(const OnlineUserPtr& p_online_user) ! nick==nick == "
+//				+ l_nick_from_identity + " p_online_user->getUser()->getLastNick() = " + p_online_user->getUser()->getLastNick());
+#endif
 	}
 }
 
@@ -1157,6 +1178,315 @@ void ClientManager::on(HubUserCommand, const Client* client, int aType, int ctx,
 		{
 			FavoriteManager::getInstance()->addUserCommand(aType, ctx, UserCommand::FLAG_NOSAVE, name, command, "", client->getHubUrl());
 		}
+	}
+}
+////////////////////
+/**
+ * This file is a part of client manager.
+ * It has been divided but shouldn't be used anywhere else.
+ */
+
+void ClientManager::sendRawCommand(const OnlineUser& ou, const int aRawCommand)
+{
+	string rawCommand = ou.getClient().getRawCommand(aRawCommand);
+	if (!rawCommand.empty())
+	{
+		StringMap ucParams;
+		
+		UserCommand uc = UserCommand(0, 0, 0, 0, "", rawCommand, "", "");
+		userCommand(HintedUser(ou.getUser(), ou.getClient().getHubUrl()), uc, ucParams, true);
+	}
+}
+
+void ClientManager::setListLength(const UserPtr& p, const string& listLen)
+{
+	SharedLock l(g_csOnlineUsers);
+	OnlineIterC i = g_onlineUsers.find(p->getCID());
+	if (i != g_onlineUsers.end())
+	{
+		i->second->getIdentity().setStringParam("LL", listLen);
+	}
+}
+
+void ClientManager::fileListDisconnected(const UserPtr& p)
+{
+	string report;
+	Client* c = nullptr;
+	{
+		SharedLock l(g_csOnlineUsers);
+		OnlineIterC i = g_onlineUsers.find(p->getCID());
+		if (i != g_onlineUsers.end()
+#ifdef STRONG_USE_DHT
+		        && i->second->getClientBase().type != ClientBase::DHT
+#endif
+		   )
+		{
+			OnlineUser* ou = i->second;
+			auto& id = ou->getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'ou->getIdentity()' expression repeatedly. cheatmanager.h 43
+			
+			auto fileListDisconnects = id.incFileListDisconnects(); // 8 бит не мало?
+			
+			if (SETTING(ACCEPTED_DISCONNECTS) == 0)
+				return;
+				
+			if (fileListDisconnects == SETTING(ACCEPTED_DISCONNECTS))
+			{
+				c = &ou->getClient();
+				report = id.setCheat(ou->getClientBase(), "Disconnected file list " + Util::toString(fileListDisconnects) + " times", false);
+				getInstance()->sendRawCommand(*ou, SETTING(DISCONNECT_RAW));
+			}
+		}
+	}
+	if (c && !report.empty() && BOOLSETTING(DISPLAY_CHEATS_IN_MAIN_CHAT))
+	{
+		c->cheatMessage(report);
+	}
+}
+
+void ClientManager::connectionTimeout(const UserPtr& p)
+{
+	string report;
+	bool remove = false;
+	Client* c = nullptr;
+	{
+		SharedLock l(g_csOnlineUsers);
+		OnlineIterC i = g_onlineUsers.find(p->getCID());
+		if (i != g_onlineUsers.end()
+#ifdef STRONG_USE_DHT
+		        && i->second->getClientBase().type != ClientBase::DHT
+#endif
+		   )
+		{
+			OnlineUser& ou = *i->second;
+			auto& id = ou.getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'ou.getIdentity()' expression repeatedly. cheatmanager.h 80
+			
+			auto connectionTimeouts = id.incConnectionTimeouts(); // 8 бит не мало?
+			
+			if (SETTING(ACCEPTED_TIMEOUTS) == 0)
+				return;
+				
+			if (connectionTimeouts == SETTING(ACCEPTED_TIMEOUTS))
+			{
+				c = &ou.getClient();
+				report = id.setCheat(ou.getClientBase(), "Connection timeout " + Util::toString(connectionTimeouts) + " times", false);
+				remove = true;
+				sendRawCommand(ou, SETTING(TIMEOUT_RAW));
+			}
+		}
+	}
+	if (remove)
+	{
+		/*try
+		{
+		    // TODO: remove user check
+		}
+		catch (...)
+		{
+		}*/
+	}
+	if (c && !report.empty() && BOOLSETTING(DISPLAY_CHEATS_IN_MAIN_CHAT))
+	{
+		c->cheatMessage(report);
+	}
+}
+
+void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl)
+{
+	Client* client;
+	string report;
+	OnlineUserPtr ou;
+	{
+		SharedLock l(g_csOnlineUsers);
+		OnlineIterC i = g_onlineUsers.find(p->getCID());
+		if (i == g_onlineUsers.end()
+#ifdef STRONG_USE_DHT
+		        || i->second->getClientBase().type == ClientBase::DHT
+#endif
+		   )
+			return;
+			
+		ou = i->second;
+		auto& id = ou->getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'ou->getIdentity()' expression repeatedly. cheatmanager.h 127
+		
+		const int64_t statedSize = id.getBytesShared();
+		const int64_t realSize = dl->getTotalSize();
+		
+		const double multiplier = (100 + double(SETTING(PERCENT_FAKE_SHARE_TOLERATED))) / 100;
+		const int64_t sizeTolerated = (int64_t)(realSize * multiplier);
+#ifdef FLYLINKDC_USE_REALSHARED_IDENTITY
+		id.setRealBytesShared(realSize);
+#endif
+		
+		if (statedSize > sizeTolerated)
+		{
+			id.setFakeCardBit(Identity::BAD_LIST | Identity::CHECKED, true);
+			string detectString = STRING(CHECK_MISMATCHED_SHARE_SIZE) + " - ";
+			if (realSize == 0)
+			{
+				detectString += STRING(CHECK_0BYTE_SHARE);
+			}
+			else
+			{
+				const double qwe = double(statedSize) / double(realSize);
+				char buf[128];
+				buf[0] = 0;
+				snprintf(buf, _countof(buf), CSTRING(CHECK_INFLATED), Util::toString(qwe).c_str()); //-V111
+				detectString += buf;
+			}
+			detectString += STRING(CHECK_SHOW_REAL_SHARE);
+			
+			report = id.setCheat(ou->getClientBase(), detectString, false);
+			sendRawCommand(*ou.get(), SETTING(FAKESHARE_RAW));
+		}
+		else
+		{
+			id.setFakeCardBit(Identity::CHECKED, true);
+		}
+#ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
+		if (report.empty())
+			report = id.updateClientType(*ou);
+		else
+#endif
+			id.updateClientType(*ou);
+			
+		client = &(ou->getClient());
+	}
+	client->updated(ou);
+	
+	if (!report.empty() && BOOLSETTING(DISPLAY_CHEATS_IN_MAIN_CHAT))
+		client->cheatMessage(report);
+}
+
+void ClientManager::setClientStatus(const UserPtr& p, const string& aCheatString, const int aRawCommand, bool aBadClient)
+{
+	Client* client;
+	OnlineUserPtr ou;
+	string report;
+	{
+		SharedLock l(g_csOnlineUsers);
+		OnlineIterC i = g_onlineUsers.find(p->getCID());
+		if (i == g_onlineUsers.end()
+#ifdef STRONG_USE_DHT
+		        || i->second->getClientBase().type == ClientBase::DHT
+#endif
+		   )
+			return;
+			
+		ou = i->second;
+#ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
+		report = ou->getIdentity().updateClientType(*ou);
+#else
+		ou->getIdentity().updateClientType(*ou);
+#endif
+		if (!aCheatString.empty())
+		{
+			report += ou->getIdentity().setCheat(ou->getClientBase(), aCheatString, aBadClient);
+		}
+		if (aRawCommand != -1)
+			sendRawCommand(*ou.get(), aRawCommand);
+			
+		client = &(ou->getClient());
+	}
+	client->updated(ou);
+	if (!report.empty() && BOOLSETTING(DISPLAY_CHEATS_IN_MAIN_CHAT))
+		client->cheatMessage(report);
+}
+
+void ClientManager::setPkLock(const UserPtr& p
+#ifdef IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
+                              , const string& aPk, const string& aLock
+#endif
+                             )
+{
+	Client *client; // !SMT!-fix
+	OnlineUserPtr ou;
+	{
+		SharedLock l(g_csOnlineUsers);
+		OnlineIterC i = g_onlineUsers.find(p->getCID());
+		if (i == g_onlineUsers.end())
+			return;
+		ou = i->second;
+#ifdef IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
+		ou->getIdentity().setStringParam("PK", aPk);
+		ou->getIdentity().setStringParam("LO", aLock);
+#endif
+		client = &(ou->getClient()); // !SMT!-fix
+	}
+	client->updated(ou);
+}
+
+void ClientManager::setSupports(const UserPtr& p, StringList & aSupports, const uint8_t knownUcSupports) // [!] IRainamn fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
+{
+	SharedLock l(g_csOnlineUsers);
+	OnlineIterC i = g_onlineUsers.find(p->getCID());
+	if (i != g_onlineUsers.end())
+	{
+		// [!] IRainman fix.
+		auto& id = i->second->getIdentity();
+		id.setKnownUcSupports(knownUcSupports);
+		/*
+		if (p->isNMDC())
+		{
+		    NmdcSupports::setSupports(id, move(aSupports));
+		}
+		else
+		*/
+		{
+			AdcSupports::setSupports(id, aSupports);
+		}
+		// [~] IRainman fix.
+	}
+}
+#ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
+void ClientManager::setGenerator(const UserPtr& p, const string& aGenerator)
+{
+	SharedLock l(g_csOnlineUsers);
+	OnlineIterC i = g_onlineUsers.find(p->getCID());
+	if (i != g_onlineUsers.end())
+		i->second->getIdentity().setStringParam("GE", aGenerator);
+}
+#endif
+void ClientManager::setUnknownCommand(const UserPtr& p, const string& aUnknownCommand)
+{
+	SharedLock l(g_csOnlineUsers);
+	OnlineIterC i = g_onlineUsers.find(p->getCID());
+	if (i != g_onlineUsers.end())
+		i->second->getIdentity().setStringParam("UC", aUnknownCommand);
+}
+
+void ClientManager::reportUser(const HintedUser& user)
+{
+	const bool priv = FavoriteManager::getInstance()->isPrivate(user.hint);
+	string report;// [+] FlylinkDC report
+	Client* client; // [+] IRainman fix
+	{
+		SharedLock l(g_csOnlineUsers);
+		OnlineUser* ou = findOnlineUserL(user.user->getCID(), user.hint, priv);
+		if (!ou
+#ifdef STRONG_USE_DHT
+		        || ou->getClientBase().type == ClientBase::DHT
+#endif
+		   )
+			return;
+			
+		ou->getIdentity().getReport(report);// [+] FlylinkDC report
+		client = &(ou->getClient()); // [!] IRainman fix
+		
+		// [-] IRainman fix
+		// ou->getClient().reportUser(ou->getIdentity());
+	}
+	client->reportUser(report); // [+] IRainman fix
+}
+
+// [+] FlylinkDC
+void ClientManager::setFakeList(const UserPtr& p, const string& aCheatString)
+{
+	SharedLock l(g_csOnlineUsers);
+	const OnlineIterC i = g_onlineUsers.find(p->getCID());
+	if (i != g_onlineUsers.end())
+	{
+		auto& id = i->second->getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'i->second' expression repeatedly. cheatmanager.h 285
+		id.setCheat(i->second->getClient(), aCheatString, false);
 	}
 }
 

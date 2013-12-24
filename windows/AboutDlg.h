@@ -118,7 +118,7 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			    _T("miniupnpc ") _T(MINIUPNPC_VERSION) _T("\r\n")
 			    _T("ZenLib 0.4.29\r\n")
 			    _T("OpenSSL 1.0.1e\r\n") //SSLeay_version(SSLEAY_VERSION)
-			    _T("MediaInfoLib 0.7.63\r\n")//MediaInfoLib::MediaInfo_Version _T("\r\n")
+			    _T("MediaInfoLib 0.7.65-1\r\n")//MediaInfoLib::MediaInfo_Version _T("\r\n")
 			    _T("WTL 8.1\r\n")
 			    _T("XMLParser 2.43\r\n") //XMLParser::XMLNode::getVersion()
 			    _T("InnoSetup 5.5.3");

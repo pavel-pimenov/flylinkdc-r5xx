@@ -36,7 +36,11 @@ class ClientBase
 		ClientBase() : type(DIRECT_CONNECT) { }
 		virtual ~ClientBase() {} // [cppcheck]
 		
-		enum P2PType { DIRECT_CONNECT, DHT };
+		enum P2PType { DIRECT_CONNECT
+#ifdef STRONG_USE_DHT
+		               , DHT
+#endif
+		             };
 		P2PType type;
 		
 		P2PType getType() const
@@ -108,9 +112,10 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 #endif
 			dcdrun(const auto oldSum = m_availableBytes);
 			dcassert(oldSum >= 0);
-			dcdrun(const auto old = p_id.getBytesShared());
-			p_id.setBytesShared(p_bytes);
+			const auto old = p_id.getBytesShared();
 			dcassert(old >= 0);
+			m_availableBytes -= old;
+			p_id.setBytesShared(p_bytes);
 #ifndef CLIENT_SUMMARY_SHARE_NOT_FULL_DIAG
 			dcassert(old <= oldSum);
 #endif
@@ -142,7 +147,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		virtual void privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson = false) = 0; // !SMT!-S
 		virtual void sendUserCmd(const UserCommand& command, const StringMap& params) = 0;
 		
-		uint64_t search(Search::SizeModes aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, const StringList& aExtList, void* owner);
+		uint64_t search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, void* owner);
 		void cancelSearch(void* aOwner)
 		{
 			searchQueue.cancelSearch(aOwner);
@@ -179,11 +184,11 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			return sock && sock->is_all_my_info_loaded();
 		}
-
+		
 		void set_all_my_info_loaded()
 		{
-			if(sock)
-			   sock->set_all_my_info_loaded();
+			if (sock)
+				sock->set_all_my_info_loaded();
 		}
 		
 		bool isSecure() const;
@@ -353,7 +358,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		void shutdown();
 		bool isActive() const
 		{
-			// return ClientManager::getInstance()->isActive(hubUrl); [-] IRainman opt.
+			// return ClientManager::isActive(hubUrl); [-] IRainman opt.
 			return m_isActivMode; // [+] IRainman opt.
 			// [!]IRainman Fixed auto-adjust the connection type
 		}
@@ -568,7 +573,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		const FavoriteHubEntry* reloadSettings(bool updateNick);
 		
 		virtual void checkNick(string& p_nick) = 0;
-		virtual void search(Search::SizeModes aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, const StringList& aExtList) = 0;
+		virtual void search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList) = 0;
 		
 		// TimerManagerListener
 		virtual void on(Second, uint64_t aTick) noexcept;

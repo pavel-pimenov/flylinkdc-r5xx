@@ -155,6 +155,7 @@ bool File_DcpPkl::FileHeader_Begin()
                 {
                     File__ReferenceFilesHelper::reference ReferenceFile;
                     bool IsCPL=false;
+                    bool PreviousFileNameIsAnnotationText=false;
 
                     for (XMLElement* File_Item=AssetList_Item->FirstChildElement(); File_Item; File_Item=File_Item->NextSiblingElement())
                     {
@@ -178,13 +179,18 @@ bool File_DcpPkl::FileHeader_Begin()
                         }
 
                         //Id
-                        if (!strcmp(File_Item->Value(), "OriginalFileName"))
+                        if (!strcmp(File_Item->Value(), "OriginalFileName")
+                         || (ReferenceFile.FileNames.empty() && !strcmp(File_Item->Value(), "AnnotationText"))) // Annotation contains file name (buggy IMF file)
                         {
+                            if (PreviousFileNameIsAnnotationText)
+                                ReferenceFile.FileNames.clear(); // Annotation is something else, no need of it
+                            if (!strcmp(File_Item->Value(), "AnnotationText"))
+                                PreviousFileNameIsAnnotationText=true;
                             ReferenceFile.FileNames.push_back(Ztring().From_UTF8(File_Item->GetText()));
                             string Text=File_Item->GetText();
                             if (Text.size()>=8
                              && (Text.find("_cpl.xml")==Text.size()-8)
-                              || (Text.find("CPL_")==0 && Text.find(".xml")==Text.size()-4))
+                              || Text.find("CPL_")==0 && Text.find(".xml")==Text.size()-4)
                             {
                                 HasCpl=IsCPL=true;
                                 ReferenceFile.StreamKind=Stream_Max;

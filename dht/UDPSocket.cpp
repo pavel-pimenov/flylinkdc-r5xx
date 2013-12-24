@@ -96,7 +96,9 @@ void UDPSocket::listen()
 		socket->setSocketOpt(SO_REUSEADDR, 1);
 	    socket->setInBufSize();
 		const string& l_bind = SETTING(BIND_ADDRESS);
-		port = socket->bind(static_cast<uint16_t>(SETTING(DHT_PORT)), l_bind);
+		const auto l_dht_port = static_cast<uint16_t>(SETTING(DHT_PORT));
+		dcassert(l_dht_port);
+		port = socket->bind(l_dht_port, l_bind);
 		
 		start(64);
 	}
@@ -218,7 +220,7 @@ int UDPSocket::run()
 #ifndef SIO_UDP_CONNRESET
 # define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR,12)
 #endif
-	ioctlsocket(socket->sock, SIO_UDP_CONNRESET, &value);
+	ioctlsocket(socket->m_sock, SIO_UDP_CONNRESET, &value);
 #endif
 	
 	// antiflood variables

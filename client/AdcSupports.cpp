@@ -53,7 +53,7 @@ string AdcSupports::getSupports(const Identity& id)
 	return tmp;
 }
 
-void AdcSupports::setSupports(Identity& id, StringList && su)
+void AdcSupports::setSupports(Identity& id, StringList & su)
 {
 	uint8_t knownSupports = 0;
 	auto& u = id.getUser();
@@ -79,7 +79,7 @@ void AdcSupports::setSupports(Identity& id, StringList && su)
 									else
 									{
 										FastLock l(g_debugCsUnknownAdcFeatures);
-										g_debugUnknownAdcFeatures.insert(std::move(*i));
+										g_debugUnknownAdcFeatures.insert(*i);
 									}
 #endif
 									
@@ -93,9 +93,9 @@ void AdcSupports::setSupports(Identity& id, StringList && su)
 	id.setKnownSupports(knownSupports);
 }
 
-void AdcSupports::setSupports(Identity& id, string && su)
+void AdcSupports::setSupports(Identity& id, const string & su)
 {
-	setSupports(id, move(StringTokenizer<string>(su, ',').getTokensForWrite()));
+	setSupports(id, StringTokenizer<string>(su, ',').getTokensForWrite());
 }
 
 
@@ -156,7 +156,7 @@ void NmdcSupports::setStatus(Identity& id, const char status, const string& conn
 					coef = 0;
 #ifdef _DEBUG
 					FastLock l(g_debugCsUnknownNmdcConnection);
-					g_debugUnknownNmdcConnection.insert(std::move(postfix));
+					g_debugUnknownNmdcConnection.insert(postfix);
 #endif
 				}
 				
@@ -198,7 +198,7 @@ string NmdcSupports::getSupports(const Identity& id)
     return tmp;
 }
 
-void NmdcSupports::setSupports(Identity& id, StringList && su)
+void NmdcSupports::setSupports(Identity& id, StringList & su)
 {
     //uint8_t knownSupports = 0;
     for (auto i = su.begin(); i != su.end(); ++i)
@@ -211,7 +211,7 @@ void NmdcSupports::setSupports(Identity& id, StringList && su)
         //else
         {
             FastLock l(AdcSupports::_debugCsUnknownFeatures);
-            AdcSupports::_debugUnknownFeatures.insert(std::move(*i));
+            AdcSupports::_debugUnknownFeatures.insert(*i);
         }
 #endif
     }

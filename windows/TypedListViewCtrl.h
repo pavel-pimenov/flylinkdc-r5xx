@@ -356,11 +356,17 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 				(getItemData(i)->*func)(param);
 		}
 		
-		void forEachSelectedParam2(void (T::*func)(const string&, void*), const string& hubHint, void *param)   // !SMT!-S
+		void forEachSelectedParam(void (T::*func)(const string&, const tstring&), const string& hubHint, const tstring& p_message)
 		{
 			int i = -1;
 			while ((i = GetNextItem(i, LVNI_SELECTED)) != -1)
-				(getItemData(i)->*func)(hubHint, param);
+				(getItemData(i)->*func)(hubHint, p_message);
+		}
+		void forEachSelectedParam(void (T::*func)(const string&, uint64_t), const string& hubHint, uint64_t p_data)
+		{
+			int i = -1;
+			while ((i = GetNextItem(i, LVNI_SELECTED)) != -1)
+				(getItemData(i)->*func)(hubHint, p_data);
 		}
 		
 		int findItem(const T* item) const
@@ -456,17 +462,31 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		{
 			SetItemText(i, col, LPSTR_TEXTCALLBACK);
 		}
-		void updateItem(const T* item)
+		int updateItem(const T* item)
 		{
 			int i = findItem(item);
-			if (i != -1) updateItem(i);
+			if (i != -1)
+			{
+				updateItem(i);
+			}
+			else
+			{
+				dcassert(i != -1);
+			}
+			return i;
 		}
-		void deleteItem(const T* item)
+		int deleteItem(const T* item)
 		{
 			int i = findItem(item);
-			if (i != -1) DeleteItem(i);
-			// 2012-04-23_22-28-18_X5DK64I7LUTCI7TV4Q2T5PVJJ3NY2GJ6QONOKQQ_F17903E7_crash-stack-r501-build-9812.dmp
-			// 2012-05-11_23-53-01_AYXLTZ7RN5YUAGXOSITR2NXZM27FQGIUZEBSUPI_35014867_crash-stack-r502-beta26-build-9946.dmp
+			if (i != -1)
+			{
+				DeleteItem(i);
+			}
+			else
+			{
+				// dcassert(i != -1);
+			}
+			return i;
 		}
 		
 		void DeleteAndCleanAllItems() // [+] IRainman
@@ -1227,7 +1247,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 				T* parent = item->parent;
 				ParentPair* pp = findParentPair(parent->getGroupCond());
 				
-				deleteItem(item);
+				deleteItem(item); // TODO - разобраться почему тут не удаляет.
 				
 				const auto n = find(pp->children.begin(), pp->children.end(), item);
 				if (n != pp->children.end())

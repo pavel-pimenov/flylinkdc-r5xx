@@ -88,12 +88,8 @@ LRESULT UsersFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	
 	CLockRedraw<> l_lock_draw(ctrlUsers);
 	{
-#ifdef IRAINMAN_NON_COPYABLE_FAV_USERS
 		FavoriteManager::LockInstanceUsers lockedInstance;
-		const FavoriteManager::FavoriteMap& l_fav_users = lockedInstance.getFavoriteUsers();
-#else
-		const FavoriteManager::FavoriteMap l_fav_users = FavoriteManager::getInstance()->getFavoriteUsers();
-#endif
+		const auto& l_fav_users = lockedInstance.getFavoriteUsers();
 		for (auto i = l_fav_users.cbegin(); i != l_fav_users.cend(); ++i)
 		{
 			addUser(i->second);
@@ -293,10 +289,10 @@ void UsersFrame::addUser(const FavoriteUser& user)
 
 void UsersFrame::updateUser(const UserPtr& user)
 {
-	const int cnt = ctrlUsers.GetItemCount();
-	for (int i = 0; i < cnt; ++i)
+	const int l_cnt = ctrlUsers.GetItemCount();
+	for (int i = 0; i < l_cnt; ++i)
 	{
-		dcassert(cnt == ctrlUsers.GetItemCount());
+		dcassert(l_cnt == ctrlUsers.GetItemCount());
 		UserInfo *ui = ctrlUsers.getItemData(i);
 		if (ui->getUser() == user)
 		{
@@ -316,7 +312,7 @@ void UsersFrame::updateUser(const int i, UserInfo* p_ui, const FavoriteUser& fav
 	// !SMT!-UI
 	int imageIndex = favUser.getUser()->isOnline() ? (favUser.getUser()->isAway() ? 1 : 0) : 2;
 	
-	if ((favUser.getUploadLimit() == FavoriteUser::UL_BAN) || (favUser.isSet(FavoriteUser::FLAG_IGNORE_PRIVATE)))
+	if (favUser.getUploadLimit() == FavoriteUser::UL_BAN || favUser.isSet(FavoriteUser::FLAG_IGNORE_PRIVATE))
 	{
 		imageIndex += 3;
 	}
@@ -410,8 +406,8 @@ LRESULT UsersFrame::onOpenUserLog(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 		
 		const auto& l_user = ui->getUser(); // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'ui->getUser()' expression repeatedly. usersframe.cpp 445
 		StringMap params;
-		params["hubNI"] = Util::toString(ClientManager::getInstance()->getHubNames(l_user->getCID(), Util::emptyString));
-		params["hubURL"] = Util::toString(ClientManager::getInstance()->getHubs(l_user->getCID(), Util::emptyString));
+		params["hubNI"] = Util::toString(ClientManager::getHubNames(l_user->getCID(), Util::emptyString));
+		params["hubURL"] = Util::toString(ClientManager::getHubs(l_user->getCID(), Util::emptyString));
 		params["userCID"] = l_user->getCID().toBase32();
 		params["userNI"] = l_user->getLastNick();
 		params["myCID"] = ClientManager::getMyCID().toBase32();

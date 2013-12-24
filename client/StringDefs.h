@@ -1,7 +1,7 @@
 // @Prolog: #include "stdinc.h"
 // @Prolog: #include "ResourceManager.h"
-// @Strings: string ResourceManager::strings[]
-// @Names: string ResourceManager::names[]
+// @Strings: string ResourceManager::g_strings[]
+// @Names: string ResourceManager::g_names[]
 
 enum Strings   // @DontAdd
 {

@@ -120,7 +120,7 @@ class CDMDebugFrame : private DebugManagerListener, public BASE_THREAD,
 		
 	private:
 	
-		void addLine(DebugTask && task); // [!] IRainman opt: use move semantics.
+		void addLine(DebugTask& task);
 		
 		volatile bool m_stop; // [!] IRainman fix: this variable is volatile.
 		FastCriticalSection cs; // [!] IRainman opt: use spin lock here.

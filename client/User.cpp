@@ -44,6 +44,8 @@ Identity::StringDictionaryReductionPointers Identity::g_infoDic;
 Identity::StringDictionaryIndex Identity::g_infoDicIndex;
 
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+FastCriticalSection User::g_ratio_cs;
+
 void User::setLastNick(const string& p_nick)
 {
 	if (!m_ratio_ptr)
@@ -55,13 +57,14 @@ void User::setLastNick(const string& p_nick)
 		if (m_nick != p_nick)
 		{
 			const bool l_is_change_nick = !m_nick.empty() && !p_nick.empty();
+			FastLock l(g_ratio_cs);
 			if (l_is_change_nick)
 			{
 				if (m_ratio_ptr)
 				{
 					safe_delete(m_ratio_ptr);
 					m_nick = p_nick;
-					initRatio();
+					initRatioL();
 				}
 			}
 			else
@@ -112,10 +115,11 @@ void User::setIP(const boost::asio::ip::address_v4& p_last_ip)
 			const bool l_is_change_ip = !m_last_ip.is_unspecified() && !p_last_ip.is_unspecified();
 			if (l_is_change_ip)
 			{
+				FastLock l(g_ratio_cs);
 				if (m_ratio_ptr)
 				{
 					safe_delete(m_ratio_ptr);
-					initRatio(p_last_ip);
+					initRatioL(p_last_ip);
 				}
 			}
 		}
@@ -131,14 +135,16 @@ void User::setIP(const boost::asio::ip::address_v4& p_last_ip)
 }
 string User::getIP()
 {
-	initRatio();
+	FastLock l(g_ratio_cs);
+	initRatioL();
 	if (!m_last_ip.is_unspecified())
 		return m_last_ip.to_string();
 	return Util::emptyString;
 }
 uint64_t User::getBytesUpload()
 {
-	initRatio();
+	FastLock l(g_ratio_cs);
+	initRatioL();
 	if (m_ratio_ptr)
 	{
 		return m_ratio_ptr->m_upload;
@@ -150,7 +156,8 @@ uint64_t User::getBytesUpload()
 }
 uint64_t User::getBytesDownload()
 {
-	initRatio();
+	FastLock l(g_ratio_cs);
+	initRatioL();
 	if (m_ratio_ptr)
 	{
 		return m_ratio_ptr->m_download;
@@ -162,26 +169,30 @@ uint64_t User::getBytesDownload()
 }
 void User::fixLastIP()
 {
-	initRatio(m_last_ip);
+	FastLock l(g_ratio_cs);
+	initRatioL(m_last_ip);
 }
 void User::AddRatioUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size)
 {
-	initRatio(p_ip);
+	FastLock l(g_ratio_cs);
+	initRatioL(p_ip);
 	if (m_ratio_ptr)
 		m_ratio_ptr->addUpload(p_ip, p_size);
 }
 void User::AddRatioDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size)
 {
-	initRatio(p_ip);
+	FastLock l(g_ratio_cs);
+	initRatioL(p_ip);
 	if (m_ratio_ptr)
 		m_ratio_ptr->addDownload(p_ip, p_size);
 }
 void User::flushRatio()
 {
+	FastLock l(g_ratio_cs);
 	if (m_ratio_ptr)
-		m_ratio_ptr->flushRatio();
+		m_ratio_ptr->flushRatioL();
 }
-void User::initRatio(const boost::asio::ip::address_v4& p_ip)
+void User::initRatioL(const boost::asio::ip::address_v4& p_ip)
 {
 	if (m_ratio_ptr == nullptr && !m_nick.empty() && m_hub_id)
 	{
@@ -190,7 +201,7 @@ void User::initRatio(const boost::asio::ip::address_v4& p_ip)
 		m_ratio_ptr->setDirty(true);
 	}
 }
-void User::initRatio()
+void User::initRatioL()
 {
 	if (!m_nick.empty() && m_hub_id && !m_is_first_init_ratio)
 	{
@@ -203,7 +214,7 @@ void User::initRatio()
 			CFlyUserRatioInfo* l_try_ratio = new CFlyUserRatioInfo(this); // TODO отказаться от попытки создания временного через new
 			if (l_try_ratio->try_load_ratio(l_last_ip_from_sql))
 			{
-				dcassert(m_ratio_ptr == nullptr);
+				// dcassert(m_ratio_ptr == nullptr); // TODO иногда тут падаем
 				safe_delete(m_ratio_ptr);
 				m_ratio_ptr = l_try_ratio;
 			}
@@ -236,6 +247,7 @@ tstring User::getUpload()
 
 tstring User::getUDratio()
 {
+	FastLock l(g_ratio_cs);
 	if (m_ratio_ptr && (m_ratio_ptr->m_download || m_ratio_ptr->m_upload))
 		return Util::toStringW(m_ratio_ptr->m_download ? ((double)m_ratio_ptr->m_upload / (double)m_ratio_ptr->m_download) : 0) +
 		       L" (" + Util::formatBytesW(m_ratio_ptr->m_upload) + _T('/') + Util::formatBytesW(m_ratio_ptr->m_download) + L")";
@@ -607,7 +619,7 @@ void FavoriteUser::update(const OnlineUser& info) // !SMT!-fix
 
 string Identity::setCheat(const ClientBase& c, const string& aCheatDescription, bool aBadClient)
 {
-	if (!c.isOp() || isOp()) 
+	if (!c.isOp() || isOp())
 	{
 		return Util::emptyString;
 	}
@@ -726,13 +738,13 @@ void Identity::getReport(string& p_report) const
 		appendIfValueNotEmpty(STRING(NICK), getNick());
 		if (!isNmdc)
 		{
-			appendIfValueNotEmpty("Nicks", Util::toString(ClientManager::getInstance()->getNicks(user->getCID(), Util::emptyString)));
+			appendIfValueNotEmpty("Nicks", Util::toString(ClientManager::getNicks(user->getCID(), Util::emptyString)));
 		}
 		appendIfValueNotEmpty(STRING(HUBS), Text::fromT(getHubs()));
 		if (!isNmdc)
 		{
-			appendIfValueNotEmpty("Hub names", Util::toString(ClientManager::getInstance()->getHubNames(user->getCID(), Util::emptyString)));
-			appendIfValueNotEmpty("Hub addresses", Util::toString(ClientManager::getInstance()->getHubs(user->getCID(), Util::emptyString)));
+			appendIfValueNotEmpty("Hub names", Util::toString(ClientManager::getHubNames(user->getCID(), Util::emptyString)));
+			appendIfValueNotEmpty("Hub addresses", Util::toString(ClientManager::getHubs(user->getCID(), Util::emptyString)));
 		}
 		
 		p_report += "\t" "Client type" ": ";

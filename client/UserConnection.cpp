@@ -179,7 +179,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 	{
 		if (!param.empty())
 		{
-			fire(UserConnectionListener::Supports(), this, move(StringTokenizer<string>(param, ' ').getTokensForWrite())); // [!] IRainman fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
+			fire(UserConnectionListener::Supports(), this, StringTokenizer<string>(param, ' ').getTokensForWrite()); // [!] IRainman fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
 		}
 	}
 	else if (cmd.compare(0, 3, "ADC", 3) == 0)

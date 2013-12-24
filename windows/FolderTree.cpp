@@ -1534,7 +1534,7 @@ bool FolderTree::GetHasSharedChildren(HTREEITEM hItem)
 	else
 		return false;
 		
-	StringPairList Dirs = ShareManager::getInstance()->getDirectories();
+	const StringPairList Dirs = ShareManager::getInstance()->getDirectories();
 	
 	for (auto i = Dirs.cbegin(); i != Dirs.cend(); ++i)
 	{
@@ -1544,12 +1544,16 @@ bool FolderTree::GetHasSharedChildren(HTREEITEM hItem)
 			{
 				if (searchStr.size() <= 3)
 				{
-					return File::isExist(i->second);
+					const auto l_is_exists = File::isExist(i->second);
+					return l_is_exists;
 				}
 				else
 				{
 					if (i->second.substr(searchStr.size()).substr(0, 1) == "\\")
-						return File::isExist(i->second);
+					{
+						const auto l_is_exists = File::isExist(i->second);
+						return l_is_exists;
+					}
 					else
 						return false;
 				}

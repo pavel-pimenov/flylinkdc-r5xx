@@ -597,6 +597,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		LRESULT onCloseWindow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			bClose.ShowWindow(FALSE);
+			dcassert(::IsWindow(closing));
 			if (::IsWindow(closing))
 				::SendMessage(closing, WM_CLOSE, 0, 0);
 			return 0;
@@ -1615,7 +1616,7 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 {
 	public:
 	
-		MDITabChildWindowImpl() : m_closed(false) { }
+		MDITabChildWindowImpl() : m_closed(false), m_before_close(false) { }
 #ifdef RIP_USE_SKIN
 		ITabCtrl*
 #else
@@ -1722,7 +1723,11 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 		
 		LRESULT onSysCommand(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 		{
-			if (wParam == SC_NEXTWINDOW)
+			if (wParam == SC_CLOSE)
+			{
+				m_before_close = true;
+			}
+			else if (wParam == SC_NEXTWINDOW)
 			{
 				HWND next = getTab()->getNext();
 				if (next != NULL)
@@ -1796,6 +1801,7 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 		
 		LRESULT onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled */)
 		{
+			m_before_close = true;
 			PostMessage(WM_REALLY_CLOSE);
 			return 0;
 		}
@@ -1912,9 +1918,10 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 		
 	protected:
 		bool m_closed;
+		bool m_before_close;
 		bool isClosedOrShutdown() const
 		{
-			return m_closed || ClientManager::isShutdown();
+			return m_closed || m_before_close || ClientManager::isShutdown();
 		}
 };
 

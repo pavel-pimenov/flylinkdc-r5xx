@@ -121,7 +121,6 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		
 // Favorite Users
 		typedef std::unordered_map<CID, FavoriteUser> FavoriteMap; // TODO boost
-#ifdef IRAINMAN_NON_COPYABLE_FAV_USERS
 		class LockInstanceUsers
 		{
 			public:
@@ -147,16 +146,11 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 				{
 					return FavoriteManager::getInstance()->m_users;
 				}
+				const StringSet& getFavoriteNames() const
+				{
+					return FavoriteManager::getInstance()->m_fav_users;
+				}
 		};
-#else
-		void getFavoriteUsersNames(StringSet& p_users) const; // TODO оптимизировать упаковку в уникальные ники отложенно в момент измения базовой мапы users.
-		FavoriteMap getFavoriteUsers() const
-		{
-			dcassert(!ClientManager::isShutdown());
-			Lock l(csUsers);
-			return m_users;
-		}
-#endif // IRAINMAN_NON_COPYABLE_FAV_USERS
 		const PreviewApplication::List& getPreviewApps() const
 		{
 			return previewApplications;
@@ -167,7 +161,6 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		bool getFavoriteUser(const UserPtr& p_user, FavoriteUser& p_favuser) const; // [+] IRainman opt.
 		bool isNoFavUserOrUserBanUpload(const UserPtr& aUser) const; // [+] IRainman opt.
 		bool isNoFavUserOrUserIgnorePrivate(const UserPtr& aUser) const; // [+] IRainman opt.
-	public:
 		bool getFavUserParam(const UserPtr& aUser, FavoriteUser::MaskType& p_flags, int& p_uploadLimit) const; // [+] IRainman opt.
 		
 		static bool hasAutoGrantSlot(FavoriteUser::MaskType p_flags) // [+] IRainman opt.
@@ -313,7 +306,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 					return FavoriteManager::getInstance()->favoriteHubs;
 				}
 		};
-		void setFavHubGroups(FavHubGroups && p_favHubGroups)
+		void setFavHubGroups(FavHubGroups& p_favHubGroups)
 		{
 			FastUniqueLock l(csHubs);
 			swap(favHubGroups, p_favHubGroups);
@@ -339,10 +332,9 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		string getDownloadDirectory(const string& ext) const;
 		size_t getFavoriteDirsCount() const
 		{
-			//FastSharedLock l(csDirs); no needs.
+			//FastSharedLock l(csDirs); no needs. TODO
 			return favoriteDirs.size();
 		}
-#ifdef IRAINMAN_NON_COPYABLE_FAV_DIRS
 		class LockInstanceDirs
 		{
 			public:
@@ -354,29 +346,11 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 				{
 					FavoriteManager::getInstance()->csDirs.unlockShared();
 				}
-				const FavDirList& getFavoriteDirs() const
+				const FavDirList& getFavoriteDirsL() const
 				{
 					return FavoriteManager::getInstance()->favoriteDirs;
 				}
 		};
-#else
-		FavDirList getFavoriteDirs() const
-		{
-			FastSharedLock l(csDirs);
-			return favoriteDirs;
-		}
-		StringList getFavoriteDirsOrNames(bool p_is_name) const
-		{
-			StringList l_name;
-			FastSharedLock l(csDirs);
-			l_name.reserve(favoriteDirs.size());
-			for (auto j = favoriteDirs.cbegin(); j != favoriteDirs.cend(); ++j)
-			{
-				l_name.push_back(p_is_name ? j->name : j->dir);
-			}
-			return l_name;
-		}
-#endif // IRAINMAN_NON_COPYABLE_FAV_DIRS
 		
 // Recent Hubs
 		const RecentHubEntry::List& getRecentHubs() const
@@ -455,11 +429,12 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 		bool load_from_url();
 #endif
-		void save() const;
+		void save();
 		void recentsave() const;
 		static const string& getSupportHubURL();
 		size_t getCountFavsUsers() const;
 	private:
+		void getFavoriteUsersNamesL(StringSet& p_users, bool p_is_ban) const;
 		FavoriteHubEntryList favoriteHubs;
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 		StringSet m_sync_hub_local;
@@ -485,13 +460,11 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		{
 			return m_isNotEmpty;
 		}
-		void updateEmptyState()
-		{
-			m_isNotEmpty = !m_users.empty();
-		}
+		void updateEmptyStateL();
 		// [~] Fasts response if contact list empty.
 		
 		FavoriteMap m_users;
+		StringSet   m_fav_users;
 		// [!] IRainman opt: replace one recursive mutex to multiply shared spin locks.
 #ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
 		mutable FastSharedCriticalSection csUsers;
@@ -518,7 +491,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		string publicListServer;
 		bool m_useHttp;
 		bool m_running;
-		bool m_dontSave;
+		uint16_t m_dontSave;
 		HttpConnection* c;
 		int m_lastServer;
 		HubTypes m_listType;

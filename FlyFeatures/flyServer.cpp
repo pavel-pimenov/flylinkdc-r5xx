@@ -579,7 +579,7 @@ void CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 		        Json::Value& l_stat_info = l_info["Stat"];
 			l_stat_info["Files"] = Util::toString(ShareManager::getInstance()->getSharedFiles());
 			l_stat_info["Size"]  = ShareManager::getInstance()->getShareSizeString();
-			l_stat_info["Users"] = Util::toString(ClientManager::getInstance()->getTotalUsers());
+			l_stat_info["Users"] = Util::toString(ClientManager::getTotalUsers());
 			// TODO l_stat_info["MaxUsers"] = 
 			l_stat_info["Hubs"]  = Util::toString(Client::getTotalCounts());
 			l_stat_info["DBQueueSources"] =  CFlylinkDBManager::getCountQueueSources();        

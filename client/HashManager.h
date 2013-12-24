@@ -89,7 +89,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 		/** @return TTH root */
 		const TTHValue getTTH(const string& fname, const string& fpath, int64_t aSize) throw(HashException);
 		
-		void addTree(const string& aFileName, uint64_t aTimeStamp, const TigerTree& tt, int64_t p_Size)
+		void addTree(const string& aFileName, int64_t aTimeStamp, const TigerTree& tt, int64_t p_Size)
 		{
 			hashDone(aFileName, aTimeStamp, tt, -1, false, p_Size);
 		}
@@ -412,7 +412,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 		/** Single node tree where node = root, no storage in HashData.dat */
 		static const int64_t SMALL_TREE = -1;
 		
-		void hashDone(const string& aFileName, uint64_t aTimeStamp, const TigerTree& tth, int64_t speed,
+		void hashDone(const string& aFileName, int64_t aTimeStamp, const TigerTree& tth, int64_t speed,
 		              bool p_is_ntfs,
 		              int64_t p_Size);
 		void doRebuild()

@@ -73,7 +73,7 @@ void DHT::start()
 		return;
 		
 	// start with global firewalled status
-	firewalled = !ClientManager::getInstance()->isActive(nullptr);
+	firewalled = !ClientManager::isActive(nullptr);
 	requestFWCheck = true;
 	//
 	
@@ -244,15 +244,9 @@ Node::Ptr DHT::addNode(const CID& cid, const string& ip, uint16_t port, const UD
 {
 	dcassert(!ClientManager::isShutdown());
 	// create user as offline (only TCP connected users will be online)
-	UserPtr u = ClientManager::getInstance()->getUser(cid);
-	Node::Ptr node;
-	
-	{
+	UserPtr u = ClientManager::getUser(cid);
 		FastLock l(cs);
-		node = m_bucket->addOrUpdate(u, ip, port, udpKey, update, isUdpKeyValid);
-	}
-	
-	return node;
+	return m_bucket->addOrUpdate(u, ip, port, udpKey, update, isUdpKeyValid);
 }
 
 /*
@@ -287,6 +281,7 @@ void DHT::findFile(const string& tth, const string& token)
  */
 void DHT::info(const string& ip, uint16_t port, uint32_t type, const CID& targetCID, const UDPKey& udpKey)
 {
+	dcassert(port);
 	// TODO: what info is needed?
 	AdcCommand cmd(AdcCommand::CMD_INF, AdcCommand::TYPE_UDP);
 	
@@ -321,7 +316,7 @@ void DHT::info(const string& ip, uint16_t port, uint32_t type, const CID& target
 		su += AdcSupports::ADCS_FEATURE + ',';
 		
 	// TCP status according to global status
-	if (ClientManager::getInstance()->isActive(nullptr))
+	if (ClientManager::isActive(nullptr))
 		su += AdcSupports::TCP4_FEATURE + ',';
 		
 	// UDP status according to UDP status check
@@ -539,7 +534,7 @@ void DHT::handle(AdcCommand::CTM, const string& ip, uint16_t port, const UDPKey&
 	CID cid = CID(c.getParam(0));
 	
 	// connection allowed with online nodes only, so try to get them directly from ClientManager
-	OnlineUserPtr node = ClientManager::getInstance()->findDHTNode(cid);
+	OnlineUserPtr node = ClientManager::findDHTNode(cid);
 	if (node != NULL)
 		ConnectionManager::getInstance()->connectToMe((Node*)node.get(), c);
 	else
@@ -556,7 +551,7 @@ void DHT::handle(AdcCommand::RCM, const string& ip, uint16_t port, const UDPKey&
 	CID cid = CID(c.getParam(0));
 	
 	// connection allowed with online nodes only, so try to get them directly from ClientManager
-	OnlineUserPtr node = ClientManager::getInstance()->findDHTNode(cid);
+	OnlineUserPtr node = ClientManager::findDHTNode(cid);
 	if (node != NULL)
 		ConnectionManager::getInstance()->revConnectToMe((Node*)node.get(), c);
 	else
@@ -619,9 +614,8 @@ void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t /*port*/, const
 			string externalUdpPort;
 			if (!c.getParam("I4", 1, externalIP) || !c.getParam("U4", 1, externalUdpPort))
 				return; // no IP and port in response
-				
-			firewalledChecks.insert(std::make_pair(fromIP, std::make_pair(externalIP, static_cast<uint16_t>(Util::toInt(externalUdpPort)))));
-			
+			const auto l_udp_port = static_cast<uint16_t>(Util::toInt(externalUdpPort));
+			firewalledChecks.insert(std::make_pair(fromIP, std::make_pair(externalIP,l_udp_port)));
 			if (firewalledChecks.size() >= FW_RESPONSES)
 			{
 				// when we received more firewalled statuses, we will be firewalled
@@ -656,13 +650,13 @@ void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t /*port*/, const
 				{
 					// we are probably firewalled, so our internal UDP port is unaccessible
 					if (externalIP != lastExternalIP || !firewalled)
-						LogManager::getInstance()->message("DHT: " + STRING(DHT_FIREWALLED_UDP) + " (IP: " + externalIP + ")");
+						LogManager::getInstance()->message("DHT: " + STRING(DHT_FIREWALLED_UDP) + " (IP: " + externalIP + ") port:" + externalUdpPort);
 					firewalled = true;
 				}
 				else
 				{
 					if (externalIP != lastExternalIP || firewalled)
-						LogManager::getInstance()->message("DHT: " + STRING(DHT_OUR_UPD_PORT_OPEND) + " (IP: " + externalIP + ")");
+						LogManager::getInstance()->message("DHT: " + STRING(DHT_OUR_UPD_PORT_OPEND) + " (IP: " + externalIP + ") port:" + externalUdpPort);
 						
 					firewalled = false;
 				}
@@ -696,7 +690,7 @@ void DHT::handle(AdcCommand::PSR, const string& ip, uint16_t port, const UDPKey&
 	c.getParameters().erase(c.getParameters().begin());  // remove CID from UDP command
 	
 	// connection allowed with online nodes only, so try to get them directly from ClientManager
-	OnlineUserPtr node = ClientManager::getInstance()->findDHTNode(cid);
+	OnlineUserPtr node = ClientManager::findDHTNode(cid);
 	if (node != NULL)
 		::SearchManager::getInstance()->onPSR(c, node->getUser(), ip);
 	else
@@ -772,7 +766,7 @@ void DHT::handle(AdcCommand::SND, const string& ip, uint16_t port, const UDPKey&
 			unsigned int n = 20;
 			while (xml.findChild("Node") && n-- > 0)
 			{
-				CID cid = CID(xml.getChildAttrib("CID"));
+				const CID cid(xml.getChildAttrib("CID"));
 				
 				if (cid.isZero())
 					continue;
@@ -782,7 +776,7 @@ void DHT::handle(AdcCommand::SND, const string& ip, uint16_t port, const UDPKey&
 					continue;
 					
 				const string& i4    = xml.getChildAttrib("I4");
-				uint16_t u4         = static_cast<uint16_t>(xml.getIntChildAttrib("U4"));
+				const uint16_t u4         = static_cast<uint16_t>(xml.getIntChildAttrib("U4"));
 				
 				// don't bother with private IPs
 				if (!Utils::isGoodIPPort(i4, u4))
@@ -792,12 +786,21 @@ void DHT::handle(AdcCommand::SND, const string& ip, uint16_t port, const UDPKey&
 				// if this node already exists in our routing table, don't update its ip/port for security reasons
 				addNode(cid, i4, u4, UDPKey(), false, true);
 			}
-			
+#ifdef _DEBUG
+			int l_tail_count_node = 0;
+			while (xml.findChild("Node") && l_tail_count_node++)
+			{
+			}
+			if(l_tail_count_node)
+			{
+				LogManager::getInstance()->message("DHT::handle(AdcCommand::SND l_tail_count_node = " + Util::toString(l_tail_count_node));
+			}
+#endif
 			xml.stepOut();
 		}
-		catch (const SimpleXMLException&)
+		catch (const SimpleXMLException& e)
 		{
-			// malformed node list
+			LogManager::getInstance()->message("DHT::handle(AdcCommand::SND malformed node list = " + e.getError());
 		}
 	}
 }

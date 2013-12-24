@@ -70,7 +70,6 @@ UploadManager::~UploadManager()
 		Thread::sleep(100);
 	}
 }
-
 // !SMT!-S
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 bool UploadManager::handleBan(UserConnection& aSource/*, bool forceBan, bool noChecks*/)
@@ -839,7 +838,7 @@ void UploadManager::on(UserConnectionListener::Send, UserConnection* aSource) no
 	}
 	
 	Upload* u = aSource->getUpload();
-	dcassert(u != NULL);
+	dcassert(u != nullptr);
 	// [-] if (!u) return; [-] IRainman fix: please don't problem maskerate.
 	
 	// [!] IRainman refactoring transfer mechanism
@@ -868,7 +867,7 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 	if (prepareFile(*aSource, type, fname, aStartPos, aBytes, c.hasFlag("RE", 4)))
 	{
 		Upload* u = aSource->getUpload();
-		dcassert(u != NULL);
+		dcassert(u != nullptr);
 		// [-] if (!u) return; [-] IRainman fix: please don't problem maskerate.
 		AdcCommand cmd(AdcCommand::CMD_SND);
 		cmd.addParam(type).addParam(fname)
@@ -984,7 +983,7 @@ size_t UploadManager::addFailedUpload(const UserConnection& source, const string
 	}
 	else
 	{
-		it->m_files.push_back(uqi); // [!] IRainman opt: use list, no needs set here.
+		it->m_files.insert(uqi);
 	}
 	// Crash https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=29270
 	fire(UploadManagerListener::QueueAdd(), uqi);
@@ -1044,7 +1043,7 @@ void UploadManager::testSlotTimeout(uint64_t aTick /*= GET_TICK()*/)
 
 void UploadManager::removeConnection(UserConnection* aSource)
 {
-	dcassert(aSource->getUpload() == NULL);
+	dcassert(aSource->getUpload() == nullptr);
 	aSource->removeListener(this);
 	
 	// slot lost
@@ -1147,7 +1146,7 @@ void UploadManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 	
 	for (auto i = disconnects.cbegin(); i != disconnects.cend(); ++i)
 	{
-		LogManager::getInstance()->message(STRING(DISCONNECTED_USER) + ' ' + Util::toString(ClientManager::getInstance()->getNicks((*i)->getCID(), Util::emptyString)));
+		LogManager::getInstance()->message(STRING(DISCONNECTED_USER) + ' ' + Util::toString(ClientManager::getNicks((*i)->getCID(), Util::emptyString)));
 		ConnectionManager::getInstance()->disconnect(*i, false);
 	}
 	
@@ -1251,7 +1250,7 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 				if ((aTick - fireballStartTick) > 60 * 1000)
 				{
 					isFireball = true;
-					ClientManager::getInstance()->infoUpdated();
+					ClientManager::infoUpdated();
 				}
 			}
 			else
@@ -1267,7 +1266,7 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 			        (ShareManager::getInstance()->getSharedSize() > 1.5 * 1024 * 1024 * 1024 * 1024)) // > 1.5 TiB shared
 			{
 				isFileServer = true;
-				ClientManager::getInstance()->infoUpdated();
+				ClientManager::infoUpdated();
 			}
 		}
 	}
@@ -1377,11 +1376,44 @@ void UploadManager::load()
 	// [-] Lock l(cs); [-] IRainman opt.
 	for (auto k = l_values.cbegin(); k != l_values.cend(); ++k)
 	{
-		auto user = ClientManager::getInstance()->getUser(CID(k->first));
+		auto user = ClientManager::getUser(CID(k->first));
 		FastUniqueLock l(m_csReservedSlots); // [+] IRainman opt.
 		m_reservedSlots[user] = uint32_t(k->second.m_val_int64);
 	}
 	testSlotTimeout();
+}
+// http://code.google.com/p/flylinkdc/issues/detail?id=1413
+void UploadQueueItem::update()
+{
+	setText(COLUMN_FILE, Text::toT(Util::getFileName(getFile())));
+	setText(COLUMN_PATH, Text::toT(Util::getFilePath(getFile())));
+	setText(COLUMN_NICK, getUser()->getLastNickT()); // [1] https://www.box.net/shared/plriwg50qendcr3kbjp5
+	setText(COLUMN_HUB, Text::toT(Util::toString(ClientManager::getHubNames(getHintedUser().user->getCID(), Util::emptyString))));
+	setText(COLUMN_TRANSFERRED, Util::formatBytesW(getPos()) + _T(" (") + Util::toStringW((double)getPos() * 100.0 / (double)getSize()) + _T("%)"));
+	setText(COLUMN_SIZE, Util::formatBytesW(getSize()));
+	setText(COLUMN_ADDED, Text::toT(Util::formatDigitalClock(getTime())));
+	setText(COLUMN_WAITING, Util::formatSecondsW(GET_TIME() - getTime()));
+	setText(COLUMN_SHARE, Util::formatBytesW(getUser()->getBytesShared())); //[+]PPA
+	setText(COLUMN_SLOTS, Util::toStringW(getUser()->getSlots())); //[+]PPA
+	// !SMT!-IP
+	if (!m_location.isSet() && !getUser()->getIP().empty()) // [!] IRainman opt: Prevent multiple repeated requests to the database if the location has not been found!
+	{
+		m_location = Util::getIpCountry(getUser()->getIP());
+		setText(COLUMN_IP, Text::toT(getUser()->getIP()));
+	}
+	if (m_location.isKnown())
+	{
+		setText(COLUMN_LOCATION, m_location.getDescription());
+	}
+#ifdef PPA_INCLUDE_DNS
+	// [!] IRainman opt.
+	if (m_dns.empty())
+	{
+		m_dns = Socket::nslookup(m_ip);
+		setText(COLUMN_DNS, Text::toT(m_dns)); // todo: paint later if not resolved yet
+	}
+	// [~] IRainman opt.
+#endif
 }
 
 /**

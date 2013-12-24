@@ -1261,9 +1261,9 @@ void SettingsManager::setDefaults()
 	Util::shrink_to_fit(&strDefaults[STR_FIRST], &strDefaults[STR_LAST]); // [+] IRainman opt.
 }
 
-void SettingsManager::LoadLanguage()
+bool SettingsManager::LoadLanguage()
 {
-	ResourceManager::loadLanguage(Util::getLocalisationPath() + get(LANGUAGE_FILE));
+	return ResourceManager::loadLanguage(Util::getLocalisationPath() + get(LANGUAGE_FILE));
 }
 
 void SettingsManager::load(const string& aFileName)
@@ -2030,7 +2030,7 @@ void SettingsManager::validateSearchTypeName(const string& name)
 	{
 		throw SearchTypeException("Invalid search type name"); // TODO translate
 	}
-	for (int type = SearchManager::TYPE_ANY; type != SearchManager::TYPE_LAST; ++type)
+	for (int type = Search::TYPE_ANY; type != Search::TYPE_LAST; ++type)
 	{
 		if (SearchManager::getTypeStr(type) == name)
 		{

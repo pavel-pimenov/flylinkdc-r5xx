@@ -63,7 +63,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 #endif
 {
 	public:
-		static void openWindow(const tstring& str = Util::emptyStringT, LONGLONG size = 0, Search::SizeModes mode = Search::SIZE_ATLEAST, SearchManager::TypeModes type = SearchManager::TYPE_ANY);
+		static void openWindow(const tstring& str = Util::emptyStringT, LONGLONG size = 0, Search::SizeModes mode = Search::SIZE_ATLEAST, Search::TypeModes type = Search::TYPE_ANY);
 		static void closeAll();
 		
 		DECLARE_FRAME_WND_CLASS_EX(_T("SearchFrame"), IDR_SEARCH, 0, COLOR_3DFACE)
@@ -193,7 +193,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			hubsContainer(WC_LISTVIEW, this, SEARCH_MESSAGE_MAP),
 			ctrlFilterContainer(WC_EDIT, this, FILTER_MESSAGE_MAP),
 			ctrlFilterSelContainer(WC_COMBOBOX, this, FILTER_MESSAGE_MAP),
-			m_initialSize(0), m_initialMode(Search::SIZE_ATLEAST), m_initialType(SearchManager::TYPE_ANY),
+			m_initialSize(0), m_initialMode(Search::SIZE_ATLEAST), m_initialType(Search::TYPE_ANY),
 			m_showUI(true), m_onlyFree(false), m_isHash(false), m_droppedResults(0), m_resultsCount(0),
 			m_expandSR(false),
 			m_storeSettings(false), m_isExactSize(false), m_exactSize2(0), m_sizeMode(Search::SIZE_DONTCARE), /*searches(0),*/
@@ -346,7 +346,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			return 0;
 		}
 		
-		void setInitial(const tstring& str, LONGLONG size, Search::SizeModes mode, SearchManager::TypeModes type)
+		void setInitial(const tstring& str, LONGLONG size, Search::SizeModes mode, Search::TypeModes type)
 		{
 			m_initialString = str;
 			m_initialSize = size;
@@ -582,7 +582,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		tstring m_initialString;
 		int64_t m_initialSize;
 		Search::SizeModes m_initialMode;
-		SearchManager::TypeModes m_initialType;
+		Search::TypeModes m_initialType;
 		
 		CStatusBarCtrl ctrlStatus;
 		CEdit ctrlSearch;

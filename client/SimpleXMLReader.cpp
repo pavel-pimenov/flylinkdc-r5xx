@@ -24,17 +24,17 @@
 #include "Text.h"
 #include "Streams.h"
 
-static bool isSpace(int c)
+inline static bool isSpace(int c)
 {
 	return c == 0x20 || c == 0x09 || c == 0x0d || c == 0x0a;
 }
 
-static bool inRange(int c, int a, int b)
+inline static bool inRange(int c, int a, int b)
 {
 	return c >= a && c <= b;
 }
 
-static bool isNameStartChar(int c)
+inline static bool isNameStartChar(int c)
 {
 	return  c == ':'
 	        || inRange(c, 'A', 'Z')
@@ -56,7 +56,7 @@ static bool isNameStartChar(int c)
 	        ;
 }
 
-static bool isNameChar(int c)
+inline static bool isNameChar(int c)
 {
 	return isNameStartChar(c)
 	       || c == '-'
@@ -96,20 +96,6 @@ void SimpleXMLReader::append(std::string& str, size_t maxLen, const std::string:
 
 /// @todo This is cheating - we should be converting from the encoding, but since we simplify a few things
 /// this is ok
-int SimpleXMLReader::charAt(size_t n) const
-{
-	return buf[bufPos + n];
-}
-void SimpleXMLReader::advancePos(size_t n)
-{
-	bufPos += n;
-	pos += n;
-}
-string::size_type SimpleXMLReader::bufSize() const
-{
-	return buf.size() - bufPos;
-}
-
 bool SimpleXMLReader::error(const char* e)
 {
 	throw SimpleXMLException(Util::toString(pos) + ": " + e);
@@ -263,7 +249,7 @@ bool SimpleXMLReader::elementAttrName()
 	size_t i = 0;
 	for (size_t iend = bufSize(); i < iend; ++i)
 	{
-		int c = charAt(i);
+		const int c = charAt(i);
 		
 		if (isSpace(c))
 		{
@@ -297,7 +283,7 @@ bool SimpleXMLReader::elementAttrValue()
 	size_t i = 0;
 	for (size_t iend = bufSize(); i < iend; ++i)
 	{
-		int c = charAt(i);
+		const int c = charAt(i);
 		
 		if ((state == STATE_ELEMENT_ATTR_VALUE_APOS && c == '\'') || (state == STATE_ELEMENT_ATTR_VALUE_QUOT && c == '"'))
 		{
@@ -701,10 +687,6 @@ bool SimpleXMLReader::skipSpace(bool store)
 	return skipped;
 }
 
-bool SimpleXMLReader::needChars(size_t n) const
-{
-	return bufPos + n <= buf.size();
-}
 
 #define LITN(x) x, sizeof(x)-1
 

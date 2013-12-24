@@ -72,12 +72,12 @@ UserPtr DirectoryListing::getUserFromFilename(const string& fileName)
 	if (i == string::npos)
 	{
 		// return UserPtr();
-		return ClientManager::getInstance()->getUser(name, "Unknown Hub"
+		return ClientManager::getUser(name, "Unknown Hub"
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-		                                             , 0
+		                              , 0
 #endif
-		                                             , false
-		                                            );
+		                              , false
+		                             );
 	}
 	
 	size_t n = name.length() - (i + 1);
@@ -85,32 +85,28 @@ UserPtr DirectoryListing::getUserFromFilename(const string& fileName)
 	if (n != 39)
 	{
 		// return UserPtr();
-		return ClientManager::getInstance()->getUser(name, "Unknown Hub"
+		return ClientManager::getUser(name, "Unknown Hub"
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-		                                             , 0
+		                              , 0
 #endif
-		                                             , false
-		                                            );
+		                              , false
+		                             );
 	}
 	
 	CID cid(name.substr(i + 1));
 	if (cid.isZero())
 	{
 		// return UserPtr();
-		return ClientManager::getInstance()->getUser(name, "Unknown Hub"
+		return ClientManager::getUser(name, "Unknown Hub"
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-		                                             , 0
+		                              , 0
 #endif
-		                                             , false
-		                                            );
+		                              , false
+		                             );
 	}
 	
-	UserPtr u = ClientManager::getInstance()->getUser(cid);
-	if (u->getLastNick().empty())
-	{
-		ClientManager::getInstance()->updateNick(u, name.substr(0, i)); // [!] IRainman fix.
-	}
-	
+	UserPtr u = ClientManager::getUser(cid);
+	u->initLastNick(name.substr(0, i)); // [!] IRainman fix.
 	return u;
 }
 
@@ -205,6 +201,7 @@ static const string sSize = "Size";
 static const string sTTH = "TTH";
 static const string sHIT = "HIT";
 static const string sTS = "TS";
+static const string sShared = "Shared";
 static const string sBR = "BR";
 static const string sWH = "WH";
 static const string sMVideo = "MV";
@@ -237,6 +234,8 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 	{
 		if (name == sFile)
 		{
+			dcassert(attribs.size() >= 3); // Иногда есть Shared - 4-тый атрибут.
+			// это тэг от грея. его тоже можно обработать и записать в TS. хотя там 64 битное время
 			const string& l_name = getAttrib(attribs, sName, 0);
 			if (l_name.empty())
 				return;
@@ -268,35 +267,69 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 				}
 			}
 			// [+] FlylinkDC
-			string l_hit;
-			string l_ts = getAttrib(attribs, sTS, 3);
-			CFlyMediaInfo l_mediaXY;
-			if (!m_is_first_check_mediainfo_list)
-			{
-				m_is_first_check_mediainfo_list = true;
-				m_is_mediainfo_list = !l_ts.empty();
-			}
+			std::shared_ptr<CFlyMediaInfo> l_mediaXY;
 			uint32_t l_i_ts = 0;
-			if (!l_ts.empty()) // Extended tags - exists only FlylinkDC++ or StrongDC++ sqlite or clones
+			int l_i_hit     = 0;
+			string l_hit;
+			if (attribs.size() >= 4) // 3 - стандартный DC++, 4 - GreyLinkDC++
 			{
-				l_i_ts = atoi(l_ts.c_str());
-				l_hit = getAttrib(attribs, sHIT, 3);
-				const string& l_br = getAttrib(attribs, sBR, 4);
-				l_mediaXY.init(getAttrib(attribs, sWH, 3), atoi(l_br.c_str()));
-				l_mediaXY.m_audio = getAttrib(attribs, sMAudio, 3);
-				l_mediaXY.m_video = getAttrib(attribs, sMVideo, 3);
+				if (attribs.size() == 4) // http://code.google.com/p/flylinkdc/issues/detail?id=1402
+				{
+					string l_sharedGL = getAttrib(attribs, sShared, 4);
+					if (!l_sharedGL.empty())
+					{
+						const int64_t tmp_ts = _atoi64(l_sharedGL.c_str()) - 116444736000000000L ;
+						if (tmp_ts <= 0L)
+							l_i_ts = 0;
+						else
+							l_i_ts = uint32_t(tmp_ts / 10000000L);
+					}
+				}
+				string l_ts;
+				if (l_i_ts == 0)
+				{
+					l_ts = getAttrib(attribs, sTS, 3); // TODO проверить  attribs.size() >= 4 если = 4 или 3 то TS нет и можно не искать
+				}
+				if (!m_is_first_check_mediainfo_list)
+				{
+					m_is_first_check_mediainfo_list = true;
+					m_is_mediainfo_list = !l_ts.empty();
+				}
+				if (!l_ts.empty()  // Extended tags - exists only FlylinkDC++ or StrongDC++ sqlite or clones
+				        || l_i_ts // Грейлинк - время расшаривания
+				   )
+				{
+					if (!l_ts.empty())
+					{
+						l_i_ts = atoi(l_ts.c_str());
+					}
+					if (attribs.size() > 4)
+					{
+						l_hit = getAttrib(attribs, sHIT, 3);
+						const string& l_br = getAttrib(attribs, sBR, 4);
+						l_mediaXY = std::make_shared<CFlyMediaInfo> (getAttrib(attribs, sWH, 3),
+						                                             atoi(l_br.c_str()),
+						                                             getAttrib(attribs, sMAudio, 3),
+						                                             getAttrib(attribs, sMVideo, 3)
+						                                            );
+					}
+				}
+				l_i_hit = l_hit.empty() ? 0 : atoi(l_hit.c_str());
 			}
-			const int l_i_hit = l_hit.empty() ? 0 : atoi(l_hit.c_str());
 			DirectoryListing::File* f = new DirectoryListing::File(cur, l_name, l_size, l_tth, l_i_hit, l_i_ts, l_mediaXY);
 			cur->files.push_back(f);
 			if (l_size) // http://code.google.com/p/flylinkdc/issues/detail?id=1098
 			{
 				if (m_own_list)//[+] FlylinkDC++
+				{
 					f->setFlag(DirectoryListing::FLAG_SHARED_OWN);  // TODO - убить FLAG_SHARED_OWN
+				}
 				else
 				{
 					if (ShareManager::getInstance()->isTTHShared(f->getTTH()))
+					{
 						f->setFlag(DirectoryListing::FLAG_SHARED);
+					}
 					else
 					{
 						if (!CFlyServerConfig::isParasitFile(f->getName()))
@@ -392,7 +425,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 			{
 				if (!user)
 				{
-					user = ClientManager::getInstance()->getUser(l_CID);
+					user = ClientManager::getUser(l_CID);
 					list->setHintedUser(HintedUser(user, Util::emptyString));
 				}
 #ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
@@ -539,7 +572,7 @@ void DirectoryListing::logMatchedFiles(const UserPtr& p_user, int p_count) //[+]
 	string l_tmp;
 	l_tmp.resize(l_BUF_SIZE);
 	snprintf(&l_tmp[0], l_tmp.size(), CSTRING(MATCHED_FILES), p_count);
-	LogManager::getInstance()->message(Util::toString(ClientManager::getInstance()->getNicks(p_user->getCID(), Util::emptyString)) + string(": ") + l_tmp.c_str());
+	LogManager::getInstance()->message(Util::toString(ClientManager::getNicks(p_user->getCID(), Util::emptyString)) + string(": ") + l_tmp.c_str());
 }
 
 struct HashContained
@@ -600,11 +633,11 @@ void DirectoryListing::Directory::getHashList(DirectoryListing::Directory::TTHSe
 	for (auto i = files.cbegin(); i != files.cend(); ++i) l.insert((*i)->getTTH());
 }
 
-uint32_t DirectoryListing::Directory::getTotalTS() const
+int64_t DirectoryListing::Directory::getTotalTS() const
 {
 	if (!m_is_mediainfo)
 		return 0;
-	uint32_t x = getMaxTS();
+	int64_t x = getMaxTS();
 	for (auto i = directories.cbegin(); i != directories.cend(); ++i)
 	{
 		x = std::max((*i)->getMaxTS(), x);
@@ -631,11 +664,11 @@ uint64_t DirectoryListing::Directory::getSumHit() const
 	}
 	return x;
 }
-uint32_t DirectoryListing::Directory::getMaxTS() const
+int64_t DirectoryListing::Directory::getMaxTS() const
 {
 	if (!m_is_mediainfo)
 		return 0;
-	uint32_t x = 0;
+	int64_t x = 0;
 	for (auto i = files.cbegin(); i != files.cend(); ++i)
 	{
 		x = std::max((*i)->getTS(), x);
@@ -650,12 +683,15 @@ std::pair<uint32_t, uint32_t> DirectoryListing::Directory::getMinMaxBitrateFile(
 	l_min_max.first = static_cast<uint32_t>(-1);
 	for (auto i = files.cbegin(); i != files.cend(); ++i)
 	{
-		if (const uint32_t l_tmp = (*i)->m_media.m_bitrate)
+		if ((*i)->m_media)
 		{
-			if (l_tmp < l_min_max.first)
-				l_min_max.first = l_tmp;
-			if (l_tmp > l_min_max.second)
-				l_min_max.second = l_tmp;
+			if (const uint32_t l_tmp = (*i)->m_media->m_bitrate)
+			{
+				if (l_tmp < l_min_max.first)
+					l_min_max.first = l_tmp;
+				if (l_tmp > l_min_max.second)
+					l_min_max.second = l_tmp;
+			}
 		}
 	}
 	return l_min_max;

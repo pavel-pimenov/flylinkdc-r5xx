@@ -163,7 +163,6 @@ class QueueItem : public Flags,
 		static void getPFSSourcesL(const QueueItemPtr& p_qi, SourceListBuffer& p_sourceList, uint64_t p_now);
 		
 		typedef std::set<Segment> SegmentSet;
-		typedef SegmentSet::const_iterator SegmentConstIter;
 		
 		QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, Flags::MaskType aFlag,
 		          time_t aAdded, const TTHValue& tth);
@@ -274,6 +273,12 @@ class QueueItem : public Flags,
 		}
 		void setDirty(bool p_dirty = true)
 		{
+#ifdef _DEBUG
+			if (p_dirty)
+			{
+				m_dirty = p_dirty;
+			}
+#endif
 			m_dirty = p_dirty;
 		}
 		
@@ -319,14 +324,17 @@ class QueueItem : public Flags,
 		const string& getTempTarget();
 		void setTempTarget(const string& p_TempTarget)
 		{
-			m_dirty = true;
-			m_tempTarget = p_TempTarget;
+			if (m_tempTarget != p_TempTarget)
+			{
+				setDirty(true);
+				m_tempTarget = p_TempTarget;
+			}
 		}
 		
 #define GETSET_DIRTY(type, name, name2) \
 private: type name; \
 public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
-	void set##name2(TypeTraits<type>::ParameterType a##name2) {m_dirty = true; name = a##name2; }
+	void set##name2(TypeTraits<type>::ParameterType a##name2) { if(name != a##name2) {setDirty(true); name = a##name2;} }
 	private:
 		const TTHValue m_tthRoot;
 		bool m_dirty;
@@ -343,12 +351,18 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 			{
 				calcBlockSize();
 			}
+			dcassert(m_block_size);
 			return m_block_size;
 		}
 		
 		DownloadMap m_downloads;
 		
-		GETSET_DIRTY(SegmentSet, done, Done);
+		SegmentSet done;
+		const SegmentSet& getDoneL() const
+		{
+			return done;
+		}
+		
 		GETSET_DIRTY(string, target, Target);
 		GETSET_DIRTY(uint64_t, fileBegin, FileBegin);
 		GETSET_DIRTY(uint64_t, nextPublishingTime, NextPublishingTime);

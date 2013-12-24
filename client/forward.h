@@ -112,8 +112,10 @@ typedef std::deque<UploadPtr> UploadList; // [!] IRainman opt: change vector to 
 
 class UploadQueueItem;
 typedef UploadQueueItem* UploadQueueItemPtr;
-class UploadQueueItemInfo;
-typedef UploadQueueItemInfo* UploadQueueItemInfoPtr;
+
+// http://code.google.com/p/flylinkdc/issues/detail?id=1413
+//class UploadQueueItemInfo;
+//typedef UploadQueueItemInfo* UploadQueueItemInfoPtr;
 
 class User;
 typedef boost::intrusive_ptr<User> UserPtr;

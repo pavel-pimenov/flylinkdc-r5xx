@@ -519,8 +519,8 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			            {
 			                sCopy += "\t" + STRING(NICK) + ": " + su->getLastNick() + "\r\n";
 			            }
-			            sCopy += "\tNicks: " + Util::toString(ClientManager::getInstance()->getNicks(u->getCID(), Util::emptyString)) + "\r\n" +
-			                     "\t" + STRING(HUBS) + ": " + Util::toString(ClientManager::getInstance()->getHubs(u->getCID(), Util::emptyString)) + "\r\n" +
+			            sCopy += "\tNicks: " + Util::toString(ClientManager::getNicks(u->getCID(), Util::emptyString)) + "\r\n" +
+			                     "\t" + STRING(HUBS) + ": " + Util::toString(ClientManager::getHubs(u->getCID(), Util::emptyString)) + "\r\n" +
 			                     "\t" + STRING(SHARED) + ": " + Identity::formatShareBytes(u->getBytesShared());
 			            __if_exists(T2::getIdentity)
 			            {
@@ -697,9 +697,9 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 					// !SMT!-S
 					if (((T*)this)->getUserList().getSelectedCount() > 1)
 					{
-						const tstring pmessage = UserInfoSimple::getBroadcastPrivateMessage();
-						if (!pmessage.empty()) // [+] SCALOlaz: support for abolition and prohibition to send a blank line https://code.google.com/p/flylinkdc/issues/detail?id=1034
-							((T*)this)->getUserList().forEachSelectedParam2(&UserInfoBase::pm_msg, m_selectedHint, (void*)&pmessage);
+						const tstring l_message = UserInfoSimple::getBroadcastPrivateMessage();
+						if (!l_message.empty()) // [+] SCALOlaz: support for abolition and prohibition to send a blank line https://code.google.com/p/flylinkdc/issues/detail?id=1034
+							((T*)this)->getUserList().forEachSelectedParam(&UserInfoBase::pm_msg, m_selectedHint, l_message);
 					}
 					else
 					{
@@ -721,21 +721,21 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			switch (wID)
 			{
 				case IDC_GRANTSLOT:
-					doAction(&UserInfoBase::grant, m_selectedHint);
-					break;
-				case IDC_GRANTSLOT_DAY:
-					doAction(&UserInfoBase::grantSlotDay, m_selectedHint);
+					doAction(&UserInfoBase::grantSlotPeriod, m_selectedHint, 600);
 					break;
 				case IDC_GRANTSLOT_HOUR:
-					doAction(&UserInfoBase::grantSlotHour, m_selectedHint);
+					doAction(&UserInfoBase::grantSlotPeriod, m_selectedHint, 3600);
+					break;
+				case IDC_GRANTSLOT_DAY:
+					doAction(&UserInfoBase::grantSlotPeriod, m_selectedHint, 24 * 3600);
 					break;
 				case IDC_GRANTSLOT_WEEK:
-					doAction(&UserInfoBase::grantSlotWeek, m_selectedHint);
+					doAction(&UserInfoBase::grantSlotPeriod, m_selectedHint, 7 * 24 * 3600);
 					break;
 				case IDC_GRANTSLOT_PERIOD:
 				{
 					const uint64_t slotTime = UserInfoSimple::inputSlotTime();
-					doAction(&UserInfoBase::grantSlotPeriod, m_selectedHint, (void*)slotTime);
+					doAction(&UserInfoBase::grantSlotPeriod, m_selectedHint, slotTime);
 				}
 				break;
 				case IDC_UNGRANTSLOT:
@@ -1042,7 +1042,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			}
 		}
 		
-		void doAction(void (UserInfoBase::*func)(const string &hubHint, void* data), const string &hubHint, void* data) // [+] IRainman.
+		void doAction(void (UserInfoBase::*func)(const string &hubHint, const tstring& data), const string &hubHint, const tstring& data) // [+] IRainman.
 		{
 			if (m_selectedUser)
 			{
@@ -1052,7 +1052,21 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			{
 				__if_exists(T::getUserList)
 				{
-					((T*)this)->getUserList().forEachSelectedParam2(func, hubHint, data);
+					((T*)this)->getUserList().forEachSelectedParam(func, hubHint, data);
+				}
+			}
+		}
+		void doAction(void (UserInfoBase::*func)(const string &hubHint, const uint64_t data), const string &hubHint, const uint64_t data)
+		{
+			if (m_selectedUser)
+			{
+				(UserInfoSimple(m_selectedUser).*func)(hubHint, data);
+			}
+			else
+			{
+				__if_exists(T::getUserList)
+				{
+					((T*)this)->getUserList().forEachSelectedParam(func, hubHint, data);
 				}
 			}
 		}

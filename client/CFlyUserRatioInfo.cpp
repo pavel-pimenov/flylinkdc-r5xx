@@ -7,7 +7,6 @@
 #include "CFlylinkDBManager.h"
 
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-FastCriticalSection CFlyUserRatioInfo::g_cs;
 
 CFlyUserRatioInfo::CFlyUserRatioInfo(User* p_user):
 	m_ip_map_ptr(nullptr),
@@ -18,13 +17,12 @@ CFlyUserRatioInfo::CFlyUserRatioInfo(User* p_user):
 
 CFlyUserRatioInfo::~CFlyUserRatioInfo()
 {
-	flushRatio();
+	flushRatioL();
 	delete m_ip_map_ptr;
 }
 void CFlyUserRatioInfo::addUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size)
 {
 	dcassert(p_size);
-	FastLock l(g_cs);
 	m_upload += p_size;
 	find_ip_map(p_ip).m_upload += p_size;
 	setDirty(true);
@@ -32,18 +30,16 @@ void CFlyUserRatioInfo::addUpload(const boost::asio::ip::address_v4& p_ip, uint6
 void CFlyUserRatioInfo::addDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size)
 {
 	dcassert(p_size);
-	FastLock l(g_cs);
 	m_download += p_size;
 	find_ip_map(p_ip).m_download += p_size;
 	setDirty(true);
 }
 
-void CFlyUserRatioInfo::flushRatio()
+void CFlyUserRatioInfo::flushRatioL()
 {
 	if (m_is_dirty && m_user->getHubID() && !m_user->m_nick.empty()
 	        && CFlylinkDBManager::isValidInstance()) // fix https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&Login=Guest&DumpGroupID=86337
 	{
-		FastLock l(g_cs); // Для защиты m_upload_download_map
 		CFlylinkDBManager::getInstance()->store_all_ratio_and_last_ip(m_user->getHubID(), m_user->m_nick, m_ip_map_ptr, m_user->m_last_ip); // TODO зачем передавать туда m_user->m_last_ip?
 		setDirty(false);
 	}

@@ -42,15 +42,16 @@ namespace MediaInfoLib
 // Infos
 //***************************************************************************
 
+struct DcpCpl_info
+{
+    Ztring FileName;
+    File__ReferenceFilesHelper::references::iterator Reference;
+};
+
 //---------------------------------------------------------------------------
 extern void DcpCpl_MergeFromPkl(File__ReferenceFilesHelper* FromCpl, File__ReferenceFilesHelper* FromPkl)
 {
-    struct info
-    {
-        Ztring FileName;
-        File__ReferenceFilesHelper::references::iterator Reference;
-    };
-    map<Ztring, info> Map;
+    map<Ztring, DcpCpl_info> Map;
     list<File__ReferenceFilesHelper::references::iterator> List;
     ZtringList ExtraFiles_Name;
     for (File__ReferenceFilesHelper::references::iterator Reference=FromPkl->References.begin(); Reference!=FromPkl->References.end(); ++Reference)
@@ -68,7 +69,7 @@ extern void DcpCpl_MergeFromPkl(File__ReferenceFilesHelper* FromCpl, File__Refer
     for (File__ReferenceFilesHelper::references::iterator Reference=FromCpl->References.begin(); Reference!=FromCpl->References.end(); ++Reference)
         for (size_t Pos=0; Pos<Reference->FileNames.size(); Pos++)
         {
-            map<Ztring, info>::iterator Map_Item=Map.find(Reference->FileNames[Pos]);
+            map<Ztring, DcpCpl_info>::iterator Map_Item=Map.find(Reference->FileNames[Pos]);
             if (Map_Item!=Map.end())
             {
                 Reference->FileNames[Pos]=Map_Item->second.FileName;
@@ -267,10 +268,10 @@ bool File_DcpCpl::FileHeader_Begin()
     {
         FileName Directory(File_Name);
         ZtringList List;
-        if (IsDcp)
-            List=Dir::GetAllFileNames(Directory.Path_Get()+PathSeparator+__T("*_pkl.xml"), Dir::Include_Files);
         if (IsImf)
             List=Dir::GetAllFileNames(Directory.Path_Get()+PathSeparator+__T("PKL_*.xml"), Dir::Include_Files);
+        if (IsDcp || List.empty())
+            List=Dir::GetAllFileNames(Directory.Path_Get()+PathSeparator+__T("*_pkl.xml"), Dir::Include_Files);
         for (size_t Pos=0; Pos<List.size(); Pos++)
         {
             MediaInfo_Internal MI;

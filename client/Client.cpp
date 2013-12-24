@@ -318,7 +318,7 @@ void Client::connect()
 		state = STATE_DISCONNECTED;
 		fire(ClientListener::Failed(), this, e.getError());
 	}
-	m_isActivMode = ClientManager::getInstance()->isActive(fhe); // [+] IRainman opt.
+	m_isActivMode = ClientManager::isActive(fhe); // [+] IRainman opt.
 	updateActivity();
 }
 
@@ -515,14 +515,14 @@ string Client::getLocalIp() const
 	// [~] IRainman fix.
 }
 
-uint64_t Client::search(Search::SizeModes aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, const StringList& aExtList, void* owner)
+uint64_t Client::search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, void* owner)
 {
 	dcdebug("Queue search %s\n", aString.c_str());
 	
 	if (searchQueue.interval)
 	{
 		Search s;
-		s.fileType = aFileType;
+		s.m_fileTypes_bitmap = aFileType; // TODO - проверить что тут все ок.
 		s.size     = aSize;
 		s.query    = aString;
 		s.sizeMode = aSizeMode;
@@ -564,7 +564,9 @@ void Client::on(Second, uint64_t aTick) noexcept
 		
 		if (searchQueue.pop(s, aTick)) // [!] IRainman opt
 		{
-			search(s.sizeMode, s.size, s.fileType , s.query, s.token, s.exts);
+			// TODO - пробежаться по битовой маске?
+			// Если она там есть
+			search(s.sizeMode, s.size, Search::TypeModes(s.m_fileTypes_bitmap), s.query, s.token, s.exts);
 		}
 	}
 }

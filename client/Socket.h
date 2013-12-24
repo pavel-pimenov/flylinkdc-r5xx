@@ -80,12 +80,12 @@ class Socket
 			TYPE_UDP
 		};
 		
-		Socket() : sock(INVALID_SOCKET), connected(false)
+		Socket() : m_sock(INVALID_SOCKET), connected(false)
 			, m_maxSpeed(0), m_currentBucket(0) //[+] IRainman SpeedLimiter
 			, type(0), port(0)
 		{
 		}
-		Socket(const string& aIp, uint16_t aPort) : sock(INVALID_SOCKET), connected(false)
+		Socket(const string& aIp, uint16_t aPort) : m_sock(INVALID_SOCKET), connected(false)
 			, m_maxSpeed(0), m_currentBucket(0) //[+] IRainman SpeedLimiter
 			, type(0)
 		{
@@ -94,10 +94,11 @@ class Socket
 		virtual ~Socket()
 		{
 #ifdef _DEBUG
-			if (sock != INVALID_SOCKET) // [+] PPA test
+			if (m_sock != INVALID_SOCKET) // [+] PPA test
 #endif
 			{
 				disconnect();
+				m_sock = INVALID_SOCKET;
 			}
 		}
 		
@@ -202,7 +203,7 @@ class Socket
 		void setBlocking(bool block) noexcept
 		{
 			u_long b = block ? 0 : 1;
-			ioctlsocket(sock, FIONBIO, &b);
+			ioctlsocket(m_sock, FIONBIO, &b);
 		}
 #else
 		void setBlocking(bool block) noexcept
@@ -272,7 +273,7 @@ class Socket
 		GETSET(string, ip, Ip);
 		GETSET(uint16_t, port, Port);
 		
-		socket_t sock;
+		socket_t m_sock;
 		
 		//[+] IRainman SpeedLimiter
 		GETSET(int64_t, m_maxSpeed, MaxSpeed);

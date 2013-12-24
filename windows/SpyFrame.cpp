@@ -220,7 +220,7 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 							if (l_twopt != string::npos)
 							{
 								si->seeker = si->seeker.substr(0, l_twopt);
-								const UserPtr u = ClientManager::getInstance()->getUserByIp(si->seeker);
+								const UserPtr u = ClientManager::getUserByIp(si->seeker);
 								if (u)
 								{
 									si->seeker = u->getLastNick();
@@ -374,7 +374,7 @@ LRESULT SpyFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOO
 LRESULT SpyFrame::onSearch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	if (strnicmp(m_searchString.c_str(), _T("TTH:"), 4) == 0)
-		SearchFrame::openWindow(m_searchString.substr(4), 0, Search::SIZE_DONTCARE, SearchManager::TYPE_TTH);
+		SearchFrame::openWindow(m_searchString.substr(4), 0, Search::SIZE_DONTCARE, Search::TYPE_TTH);
 	else
 		SearchFrame::openWindow(m_searchString);
 	return 0;

@@ -203,6 +203,15 @@ class SimpleXML
 				root.children[0]->toXML(0, f);
 		}
 		
+		static const string& escapeAtrib(const string& p_str, string& p_tmp) // [+]PPA
+		{
+			if (needsEscapeForce(p_str))
+			{
+				p_tmp = p_str;
+				return escape(p_tmp, true);
+			}
+			return p_str;
+		}
 		static const string& escape(const string& str, string& tmp, bool aAttrib, bool aLoading = false, const string &encoding = Text::g_utf8)
 		{
 			if (needsEscape(str, aAttrib, aLoading, encoding))
@@ -226,7 +235,8 @@ class SimpleXML
 		 */
 		inline static bool needsEscape(const string& aString, bool aAttrib, bool aLoading = false, const string &encoding = Text::g_utf8)
 		{
-			return stricmp(encoding, Text::g_utf8) != 0 || (((aLoading) ? aString.find('&') : aString.find_first_of(aAttrib ? "<&>'\"" : "<&>")) != string::npos);
+			const bool l_is_utf8 = stricmp(encoding, Text::g_utf8) == 0;
+			return !l_is_utf8 || ((aLoading ? aString.find('&') : aString.find_first_of(aAttrib ? "<&>'\"" : "<&>")) != string::npos);
 		}
 		inline static bool needsEscapeForce(const string& aString) // [+]PPA
 		{

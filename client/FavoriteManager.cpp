@@ -54,7 +54,7 @@ FavoriteManager::FavoriteManager() : m_isNotEmpty(false), m_lastId(0),
 #ifdef IRAINMAN_ENABLE_HUB_LIST
 	m_useHttp(false), m_running(false), c(nullptr), m_lastServer(0), m_listType(TYPE_NORMAL),
 #endif
-	m_dontSave(false)
+	m_dontSave(0)
 {
 	SettingsManager::getInstance()->addListener(this);
 	ClientManager::getInstance()->addListener(this);
@@ -126,8 +126,10 @@ UserCommand FavoriteManager::addUserCommand(int type, int ctx, Flags::MaskType f
 		userCommands.push_back(uc);
 	}
 	if (!uc.isSet(UserCommand::FLAG_NOSAVE))
+	{
 		save();
-		
+	}
+	
 	return uc;
 }
 
@@ -344,6 +346,13 @@ void FavoriteManager::removeHubUserCommands(int ctx, const string& p_Hub)
 #endif
 	}
 }
+void FavoriteManager::updateEmptyStateL()
+{
+	m_isNotEmpty = !m_users.empty();
+	m_fav_users.clear();
+	getFavoriteUsersNamesL(m_fav_users, false);
+	//getFavoriteUsersNamesL(m_ban_users,true);
+}
 
 // [+] SSA addUser (Unified)
 bool FavoriteManager::addUserL(const UserPtr& aUser, FavoriteMap::iterator& iUser, bool create /*= true*/)
@@ -353,8 +362,8 @@ bool FavoriteManager::addUserL(const UserPtr& aUser, FavoriteMap::iterator& iUse
 	iUser = m_users.find(aUser->getCID());
 	if (iUser == m_users.end() && create)
 	{
-		StringList hubs = ClientManager::getInstance()->getHubs(aUser->getCID(), Util::emptyString);
-		StringList nicks = ClientManager::getInstance()->getNicks(aUser->getCID(), Util::emptyString);
+		StringList hubs = ClientManager::getHubs(aUser->getCID(), Util::emptyString);
+		StringList nicks = ClientManager::getNicks(aUser->getCID(), Util::emptyString);
 		
 		/// @todo make this an error probably...
 		if (hubs.empty())
@@ -363,7 +372,7 @@ bool FavoriteManager::addUserL(const UserPtr& aUser, FavoriteMap::iterator& iUse
 			nicks.push_back(Util::emptyString);
 			
 		iUser = m_users.insert(make_pair(aUser->getCID(), FavoriteUser(aUser, nicks[0], hubs[0]))).first;
-		updateEmptyState();
+		updateEmptyStateL();
 		return true;
 	}
 	return false;
@@ -456,24 +465,22 @@ bool FavoriteManager::isFavoriteUser(const UserPtr& aUser, bool& p_is_ban) const
 	}
 	return false;
 }
-#ifndef IRAINMAN_NON_COPYABLE_FAV_USERS
-void FavoriteManager::getFavoriteUsersNames(StringSet& p_users) const // TODO оптимизировать упаковку в уникальные ники отложенно в момент измени€ базовой мапы users.
+void FavoriteManager::getFavoriteUsersNamesL(StringSet& p_users, bool p_is_ban) const // TODO оптимизировать упаковку в уникальные ники отложенно в момент измени€ базовой мапы users.
 {
-	dcassert(!ClientManager::isShutdown());
-	if (isNotEmpty()) // [+]PPA
+	for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 	{
-		Lock l(csUsers);
-		for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
+		const auto& l_nick = i->second.getNick();
+		dcassert(!l_nick.empty());
+		if (!l_nick.empty()) // Ќики могут дублировать и могут быть пустыми. https://www.box.com/shared/p4p0scdeh92wpxf9bohi
 		{
-			dcassert(!i->second.getNick().empty());
-			if (!i->second.getNick().empty()) // Ќики могут дублировать и могут быть пустыми. https://www.box.com/shared/p4p0scdeh92wpxf9bohi
+			const bool l_is_ban = i->second.getUploadLimit() == FavoriteUser::UL_BAN;
+			if ((!p_is_ban && !l_is_ban) || (p_is_ban && l_is_ban))
 			{
-				p_users.insert(i->second.getNick());
+				p_users.insert(l_nick);
 			}
 		}
 	}
 }
-#endif
 void FavoriteManager::addFavoriteUser(const UserPtr& aUser)
 {
 	// [!] SSA see _addUserIfnotExist function
@@ -506,7 +513,7 @@ void FavoriteManager::removeFavoriteUser(const UserPtr& aUser)
 			
 		fire(FavoriteManagerListener::UserRemoved(), i->second);
 		m_users.erase(i);
-		updateEmptyState();
+		updateEmptyStateL();
 	}
 	save();
 }
@@ -804,11 +811,11 @@ bool FavoriteManager::onHttpFinished(bool fromHttp) noexcept
 }
 #endif // IRAINMAN_ENABLE_HUB_LIST
 
-void FavoriteManager::save() const
+void FavoriteManager::save()
 {
 	if (m_dontSave)
 		return;
-		
+	CFlySafeGuard<uint16_t> l_satrt(m_dontSave);
 	// Lock l(cs); [-] IRainman opt.
 	try
 	{
@@ -904,18 +911,20 @@ void FavoriteManager::save() const
 			{
 				const auto &u = i->second; // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'i->second' expression repeatedly. favoritemanager.cpp 687
 				xml.addTag("User");
-				
-				xml.addChildAttrib("LastSeen", u.getLastSeen());
-				
-				xml.addChildAttrib("GrantSlot", u.isSet(FavoriteUser::FLAG_GRANT_SLOT));
-				
-				xml.addChildAttrib("SuperUser", u.getUploadLimit() == FavoriteUser::UL_SU); // [!] FlylinkDC++ compatibility mode.
-				xml.addChildAttrib("UploadLimit", u.getUploadLimit()); // !SMT!-S
-				
-				xml.addChildAttrib("IgnorePrivate", u.isSet(FavoriteUser::FLAG_IGNORE_PRIVATE)); // !SMT!-S
-				xml.addChildAttrib("FreeAccessPM", u.isSet(FavoriteUser::FLAG_FREE_PM_ACCESS)); // !SMT!-PSW
-				
-				xml.addChildAttrib("UserDescription", u.getDescription());
+				if (u.getLastSeen())
+					xml.addChildAttrib("LastSeen", u.getLastSeen());
+				if (u.isSet(FavoriteUser::FLAG_GRANT_SLOT))
+					xml.addChildAttrib("GrantSlot", true);
+				if (u.getUploadLimit() == FavoriteUser::UL_SU)
+					xml.addChildAttrib("SuperUser", true);
+				if (u.getUploadLimit())
+					xml.addChildAttrib("UploadLimit", u.getUploadLimit()); // !SMT!-S
+				if (u.isSet(FavoriteUser::FLAG_IGNORE_PRIVATE))
+					xml.addChildAttrib("IgnorePrivate", true); // !SMT!-S
+				if (u.isSet(FavoriteUser::FLAG_FREE_PM_ACCESS))
+					xml.addChildAttrib("FreeAccessPM", true); // !SMT!-PSW
+				if (!u.getDescription().empty())
+					xml.addChildAttrib("UserDescription", u.getDescription());
 				xml.addChildAttrib("Nick", u.getNick());
 				xml.addChildAttrib("URL", u.getUrl());
 				if (Util::isAdcHub(u.getUrl())) // [+] IRainman fix.
@@ -961,15 +970,27 @@ void FavoriteManager::save() const
 		
 		const string fname = getConfigFile();
 		
+		const string l_tmp_file = fname + ".tmp";
 		{
-			File f(fname + ".tmp", File::WRITE, File::CREATE | File::TRUNCATE);
+			File f(l_tmp_file, File::WRITE, File::CREATE | File::TRUNCATE);
 			f.write(SimpleXML::utf8Header);
 			f.write(xml.toXML());
+			f.flush();
 			f.close();
 		}
-		File::deleteFile(fname);
-		File::renameFile(fname + ".tmp", fname);
-		
+		// ѕроверим валидность XML
+		try
+		{
+			SimpleXML xml_check; // http://code.google.com/p/flylinkdc/issues/detail?id=1409
+			xml_check.fromXML(File(l_tmp_file, File::READ, File::OPEN).read());
+			File::deleteFile(fname);
+			File::renameFile(l_tmp_file, fname);
+		}
+		catch (SimpleXMLException& e)
+		{
+			LogManager::getInstance()->message("FavoriteManager::save error parse tmp file: " + l_tmp_file + " error = " + e.getError());
+			File::deleteFile(l_tmp_file);
+		}
 	}
 	catch (const Exception& e)
 	{
@@ -1092,7 +1113,6 @@ void FavoriteManager::load()
 				FastUniqueLock l(csHubs);
 				favoriteHubs.push_back(e);
 			}
-			// [-] IRainman fix m_dontSave = false;
 		}
 	}
 	// [~] RedMaster
@@ -1150,284 +1170,284 @@ void FavoriteManager::load(SimpleXML& aXml
 #endif
                           )
 {
-	m_dontSave = true;
 	bool needSave = false;
-	
-	//const int l_configVersion = Util::toInt(aXml.getChildAttrib("ConfigVersion"));// [+] IRainman fav options
-	aXml.resetCurrentChild();
-	if (aXml.findChild("Hubs"))
 	{
-		aXml.stepIn();
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
-		if (!p_is_url)
-#endif
-		{
-			FastUniqueLock l(csHubs); // [+] IRainman fix.
-			while (aXml.findChild("Group"))
-			{
-				const string& name = aXml.getChildAttrib("Name");
-				if (name.empty())
-					continue;
-				const FavHubGroupProperties props = { aXml.getBoolChildAttrib("Private") };
-				favHubGroups[name] = props;
-			}
-		}
+		CFlySafeGuard<uint16_t> l_satrt(m_dontSave);
+		//const int l_configVersion = Util::toInt(aXml.getChildAttrib("ConfigVersion"));// [+] IRainman fav options
 		aXml.resetCurrentChild();
-		while (aXml.findChild("Hub"))
+		if (aXml.findChild("Hubs"))
 		{
-			// [+] RedMaster add FlylinkDC supports hub
-			const string& l_CurrentServerUrl = Util::formatDchubUrl(aXml.getChildAttrib("Server"));
-			if (l_CurrentServerUrl == getSupportHubURL())
-				g_SupportsHubExist = true;
-			else if (l_CurrentServerUrl == "adc://adchub.com:1687") // TODO - black list for spammers hub?
-				continue; // [!] IRainman fix - delete SEO hub.
-				
-			FavoriteHubEntry* e = new FavoriteHubEntry();
-			const string& l_Name = aXml.getChildAttrib("Name");
-			e->setName(l_Name);
-			const bool l_connect = aXml.getBoolChildAttrib("Connect");
-			e->setConnect(l_connect);
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
-			const bool l_ISPDelete  = aXml.getBoolChildAttrib("ISPDelete");
-			const string& l_ISPMode = aXml.getChildAttrib("ISPMode");
-			if (!l_ISPMode.empty())
-				e->setMode(Util::toInt(aXml.getChildAttrib(l_ISPMode)));
-#endif
-			const string& l_Description = aXml.getChildAttrib("Description");
-			const string& l_Group = aXml.getChildAttrib("Group");
-			e->setDescription(l_Description);
-			e->setServer(l_CurrentServerUrl);
-			e->setSearchInterval(Util::toUInt32(aXml.getChildAttrib("SearchInterval")));
-			// [!] IRainman fix.
-			if (Util::isAdcHub(l_CurrentServerUrl))
-			{
-				e->setEncoding(Text::g_utf8);
-			}
-			else
-			{
-				e->setEncoding(aXml.getChildAttrib("Encoding"));
-			}
-			// [~] IRainman fix.
+			aXml.stepIn();
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 			if (!p_is_url)
+#endif
 			{
-				if (l_Group == "ISP")
-					m_sync_hub_local.insert(l_CurrentServerUrl);
+				FastUniqueLock l(csHubs); // [+] IRainman fix.
+				while (aXml.findChild("Group"))
+				{
+					const string& name = aXml.getChildAttrib("Name");
+					if (name.empty())
+						continue;
+					const FavHubGroupProperties props = { aXml.getBoolChildAttrib("Private") };
+					favHubGroups[name] = props;
+				}
+			}
+			aXml.resetCurrentChild();
+			while (aXml.findChild("Hub"))
+			{
+				// [+] RedMaster add FlylinkDC supports hub
+				const string& l_CurrentServerUrl = Util::formatDchubUrl(aXml.getChildAttrib("Server"));
+				if (l_CurrentServerUrl == getSupportHubURL())
+					g_SupportsHubExist = true;
+				else if (l_CurrentServerUrl == "adc://adchub.com:1687") // TODO - black list for spammers hub?
+					continue; // [!] IRainman fix - delete SEO hub.
+					
+				FavoriteHubEntry* e = new FavoriteHubEntry();
+				const string& l_Name = aXml.getChildAttrib("Name");
+				e->setName(l_Name);
+				const bool l_connect = aXml.getBoolChildAttrib("Connect");
+				e->setConnect(l_connect);
+#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+				const bool l_ISPDelete  = aXml.getBoolChildAttrib("ISPDelete");
+				const string& l_ISPMode = aXml.getChildAttrib("ISPMode");
+				if (!l_ISPMode.empty())
+					e->setMode(Util::toInt(aXml.getChildAttrib(l_ISPMode)));
+#endif
+				const string& l_Description = aXml.getChildAttrib("Description");
+				const string& l_Group = aXml.getChildAttrib("Group");
+				e->setDescription(l_Description);
+				e->setServer(l_CurrentServerUrl);
+				e->setSearchInterval(Util::toUInt32(aXml.getChildAttrib("SearchInterval")));
+				// [!] IRainman fix.
+				if (Util::isAdcHub(l_CurrentServerUrl))
+				{
+					e->setEncoding(Text::g_utf8);
+				}
+				else
+				{
+					e->setEncoding(aXml.getChildAttrib("Encoding"));
+				}
+				// [~] IRainman fix.
+#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+				if (!p_is_url)
+				{
+					if (l_Group == "ISP")
+						m_sync_hub_local.insert(l_CurrentServerUrl);
 #endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
-				e->setNick(aXml.getChildAttrib("Nick"));
-				e->setPassword(aXml.getChildAttrib("Password"));
-				e->setUserDescription(aXml.getChildAttrib("UserDescription"));
-				e->setAwayMsg(aXml.getChildAttrib("AwayMsg"));
-				e->setEmail(aXml.getChildAttrib("Email"));
-				e->setWindowPosX(aXml.getIntChildAttrib("WindowPosX"));
-				e->setWindowPosY(aXml.getIntChildAttrib("WindowPosY"));
-				e->setWindowSizeX(aXml.getIntChildAttrib("WindowSizeX"));
-				e->setWindowSizeY(aXml.getIntChildAttrib("WindowSizeY"));
-				e->setWindowType(aXml.getIntChildAttrib("WindowType", "3")); // ≈сли ке€ нет - SW_MAXIMIZE
-				e->setChatUserSplit(aXml.getIntChildAttrib("ChatUserSplitSize"));
+					e->setNick(aXml.getChildAttrib("Nick"));
+					e->setPassword(aXml.getChildAttrib("Password"));
+					e->setUserDescription(aXml.getChildAttrib("UserDescription"));
+					e->setAwayMsg(aXml.getChildAttrib("AwayMsg"));
+					e->setEmail(aXml.getChildAttrib("Email"));
+					e->setWindowPosX(aXml.getIntChildAttrib("WindowPosX"));
+					e->setWindowPosY(aXml.getIntChildAttrib("WindowPosY"));
+					e->setWindowSizeX(aXml.getIntChildAttrib("WindowSizeX"));
+					e->setWindowSizeY(aXml.getIntChildAttrib("WindowSizeY"));
+					e->setWindowType(aXml.getIntChildAttrib("WindowType", "3")); // ≈сли ке€ нет - SW_MAXIMIZE
+					e->setChatUserSplit(aXml.getIntChildAttrib("ChatUserSplitSize"));
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
-				e->setChatUserSplitState(aXml.getBoolChildAttrib("ChatUserSplitState"));
+					e->setChatUserSplitState(aXml.getBoolChildAttrib("ChatUserSplitState"));
 #endif
 #ifdef IRAINMAN_ENABLE_STEALTH_MODE
-				e->setStealth(aXml.getBoolChildAttrib("StealthMode"));
+					e->setStealth(aXml.getBoolChildAttrib("StealthMode"));
 #endif
-				e->setHideShare(aXml.getBoolChildAttrib("HideShare")); // Hide Share Mod
-				e->setShowJoins(aXml.getBoolChildAttrib("ShowJoins")); // Show joins
-				e->setExclChecks(aXml.getBoolChildAttrib("ExclChecks")); // Excl. from client checking
-				e->setExclusiveHub(aXml.getBoolChildAttrib("ExclusiveHub")); // Exclusive Hub Mod
-				e->setUserListState(aXml.getBoolChildAttrib("UserListState"));
-				e->setHeaderOrder(aXml.getChildAttrib("HeaderOrder", SETTING(HUBFRAME_ORDER)));
-				e->setHeaderWidths(aXml.getChildAttrib("HeaderWidths", SETTING(HUBFRAME_WIDTHS)));
-				e->setHeaderVisible(aXml.getChildAttrib("HeaderVisible", SETTING(HUBFRAME_VISIBLE)));
-				e->setHeaderSort(aXml.getIntChildAttrib("HeaderSort", "-1"));
-				e->setHeaderSortAsc(aXml.getBoolChildAttrib("HeaderSortAsc"));
-				e->setRawOne(aXml.getChildAttrib("RawOne"));
-				e->setRawTwo(aXml.getChildAttrib("RawTwo"));
-				e->setRawThree(aXml.getChildAttrib("RawThree"));
-				e->setRawFour(aXml.getChildAttrib("RawFour"));
-				e->setRawFive(aXml.getChildAttrib("RawFive"));
-				e->setMode(Util::toInt(aXml.getChildAttrib("Mode")));
-				e->setIP(aXml.getChildAttribTrim("IP"));
-				e->setOpChat(aXml.getChildAttrib("OpChat"));
-				// [+] IRainman mimicry function
-				//if (l_configVersion <= xxxx)
-				const string& l_ClientID = aXml.getChildAttrib("CliendId"); // !SMT!-S
-				if (!l_ClientID.empty())
-				{
-					string l_ClientName, l_ClientVersion;
-					splitClientId(l_ClientID, l_ClientName, l_ClientVersion);
-					e->setClientName(l_ClientName);
-					e->setClientVersion(l_ClientVersion);
-				}
-				else
-				{
-					e->setClientName(aXml.getChildAttrib("ClientName"));
-					e->setClientVersion(aXml.getChildAttrib("ClientVersion"));
-				}
-				e->setOverrideId(Util::toInt(aXml.getChildAttrib("OverrideId")) != 0); // !SMT!-S
-				// [~] IRainman mimicry function
-				e->setGroup(l_Group);
+					e->setHideShare(aXml.getBoolChildAttrib("HideShare")); // Hide Share Mod
+					e->setShowJoins(aXml.getBoolChildAttrib("ShowJoins")); // Show joins
+					e->setExclChecks(aXml.getBoolChildAttrib("ExclChecks")); // Excl. from client checking
+					e->setExclusiveHub(aXml.getBoolChildAttrib("ExclusiveHub")); // Exclusive Hub Mod
+					e->setUserListState(aXml.getBoolChildAttrib("UserListState"));
+					e->setHeaderOrder(aXml.getChildAttrib("HeaderOrder", SETTING(HUBFRAME_ORDER)));
+					e->setHeaderWidths(aXml.getChildAttrib("HeaderWidths", SETTING(HUBFRAME_WIDTHS)));
+					e->setHeaderVisible(aXml.getChildAttrib("HeaderVisible", SETTING(HUBFRAME_VISIBLE)));
+					e->setHeaderSort(aXml.getIntChildAttrib("HeaderSort", "-1"));
+					e->setHeaderSortAsc(aXml.getBoolChildAttrib("HeaderSortAsc"));
+					e->setRawOne(aXml.getChildAttrib("RawOne"));
+					e->setRawTwo(aXml.getChildAttrib("RawTwo"));
+					e->setRawThree(aXml.getChildAttrib("RawThree"));
+					e->setRawFour(aXml.getChildAttrib("RawFour"));
+					e->setRawFive(aXml.getChildAttrib("RawFive"));
+					e->setMode(Util::toInt(aXml.getChildAttrib("Mode")));
+					e->setIP(aXml.getChildAttribTrim("IP"));
+					e->setOpChat(aXml.getChildAttrib("OpChat"));
+					// [+] IRainman mimicry function
+					//if (l_configVersion <= xxxx)
+					const string& l_ClientID = aXml.getChildAttrib("CliendId"); // !SMT!-S
+					if (!l_ClientID.empty())
+					{
+						string l_ClientName, l_ClientVersion;
+						splitClientId(l_ClientID, l_ClientName, l_ClientVersion);
+						e->setClientName(l_ClientName);
+						e->setClientVersion(l_ClientVersion);
+					}
+					else
+					{
+						e->setClientName(aXml.getChildAttrib("ClientName"));
+						e->setClientVersion(aXml.getChildAttrib("ClientVersion"));
+					}
+					e->setOverrideId(Util::toInt(aXml.getChildAttrib("OverrideId")) != 0); // !SMT!-S
+					// [~] IRainman mimicry function
+					e->setGroup(l_Group);
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
-				e->setSavedConnectionStatus(Util::toInt(aXml.getChildAttrib("Status")),
-				                            Util::toInt64(aXml.getChildAttrib("LastAttempts")),
-				                            Util::toInt64(aXml.getChildAttrib("LastSucces")));
+					e->setSavedConnectionStatus(Util::toInt(aXml.getChildAttrib("Status")),
+					                            Util::toInt64(aXml.getChildAttrib("LastAttempts")),
+					                            Util::toInt64(aXml.getChildAttrib("LastSucces")));
 #endif
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
-			}
-			else
-			{
-				if (m_sync_hub_external.empty() && favHubGroups.empty())
-				{
-					FavHubGroupProperties props = { aXml.getBoolChildAttrib("Public") };
-					
-					FastUniqueLock l(csHubs); // [+] IRainman fix.
-					
-					favHubGroups["ISP"] = props;
-					favHubGroups["ISP Recycled"] = props;
 				}
-				m_sync_hub_external.insert(l_CurrentServerUrl);
-			}
-			FavoriteHubEntry* l_HubEntry = getFavoriteHubEntry(l_CurrentServerUrl);
-			if (!l_HubEntry)
-			{
-				if (l_ISPDelete)
-					delete e;
 				else
 				{
+					if (m_sync_hub_external.empty() && favHubGroups.empty())
+					{
+						FavHubGroupProperties props = { aXml.getBoolChildAttrib("Public") };
+						
+						FastUniqueLock l(csHubs); // [+] IRainman fix.
+						
+						favHubGroups["ISP"] = props;
+						favHubGroups["ISP Recycled"] = props;
+					}
+					m_sync_hub_external.insert(l_CurrentServerUrl);
+				}
+				FavoriteHubEntry* l_HubEntry = getFavoriteHubEntry(l_CurrentServerUrl);
+				if (!l_HubEntry)
+				{
+					if (l_ISPDelete)
+						delete e;
+					else
+					{
+						{
+							FastUniqueLock l(csHubs);
+							favoriteHubs.push_back(e);
+						}
+						if (p_is_url)
+						{
+							e->setGroup("ISP");
+							e->setConnect(true);
+							needSave = true;
+						}
+					}
+				}
+				else
+				{
+					if (l_HubEntry->getGroup().empty() || l_HubEntry->getGroup() == "ISP")
+					{
+						l_HubEntry->setName(l_Name);
+						l_HubEntry->setDescription(l_Description);
+						l_HubEntry->setGroup("ISP");
+					}
+					if (l_ISPDelete)
+					{
+						needSave = true;
+						FastUniqueLock l(csHubs);
+						FavoriteHubEntryList::iterator i = find(favoriteHubs.begin(), favoriteHubs.end(), l_HubEntry);
+						if (i != favoriteHubs.end())
+						{
+							favoriteHubs.erase(i);
+							delete l_HubEntry;
+							LogManager::getInstance()->message("[ISPDelete] FavoriteHubEntry server = " + l_CurrentServerUrl);
+						}
+					}
+					delete e;
+				}
+#else
 					{
 						FastUniqueLock l(csHubs);
 						favoriteHubs.push_back(e);
 					}
-					if (p_is_url)
-					{
-						e->setGroup("ISP");
-						e->setConnect(true);
-						needSave = true;
-					}
-				}
-			}
-			else
-			{
-				if (l_HubEntry->getGroup().empty() || l_HubEntry->getGroup() == "ISP")
-				{
-					l_HubEntry->setName(l_Name);
-					l_HubEntry->setDescription(l_Description);
-					l_HubEntry->setGroup("ISP");
-				}
-				if (l_ISPDelete)
-				{
-					needSave = true;
-					FastUniqueLock l(csHubs);
-					FavoriteHubEntryList::iterator i = find(favoriteHubs.begin(), favoriteHubs.end(), l_HubEntry);
-					if (i != favoriteHubs.end())
-					{
-						favoriteHubs.erase(i);
-						delete l_HubEntry;
-						LogManager::getInstance()->message("[ISPDelete] FavoriteHubEntry server = " + l_CurrentServerUrl);
-					}
-				}
-				delete e;
-			}
-#else
-				{
-					FastUniqueLock l(csHubs);
-					favoriteHubs.push_back(e);
-				}
 #endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+			}
+			aXml.stepOut();
 		}
-		aXml.stepOut();
-	}
-	aXml.resetCurrentChild();
+		aXml.resetCurrentChild();
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
-	if (!p_is_url)
+		if (!p_is_url)
 #endif
-	{
-		if (aXml.findChild("Users"))
 		{
-			aXml.stepIn();
-			while (aXml.findChild("User"))
+			if (aXml.findChild("Users"))
 			{
-				UserPtr u;
-				// [!] FlylinkDC
-				const string& nick = aXml.getChildAttrib("Nick");
-				
-				const string hubUrl = Util::formatDchubUrl(aXml.getChildAttrib("URL")); // [!] IRainman fix: toLower already called in formatDchubUrl ( decodeUrl )
-				
-				const string cid = Util::isAdcHub(hubUrl) ? aXml.getChildAttrib("CID") : ClientManager::makeCid(nick, hubUrl).toBase32();
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-				const uint32_t l_hub_id = CFlylinkDBManager::getInstance()->get_dic_hub_id(hubUrl);
-#endif
-				// [~] FlylinkDC
-				
-				if (cid.length() != 39)
+				aXml.stepIn();
+				while (aXml.findChild("User"))
 				{
-					if (nick.empty() || hubUrl.empty())
-						continue;
-					u = ClientManager::getInstance()->getUser(nick, hubUrl
+					UserPtr u;
+					// [!] FlylinkDC
+					const string& nick = aXml.getChildAttrib("Nick");
+					
+					const string hubUrl = Util::formatDchubUrl(aXml.getChildAttrib("URL")); // [!] IRainman fix: toLower already called in formatDchubUrl ( decodeUrl )
+					
+					const string cid = Util::isAdcHub(hubUrl) ? aXml.getChildAttrib("CID") : ClientManager::makeCid(nick, hubUrl).toBase32();
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-					                                          , l_hub_id
+					const uint32_t l_hub_id = CFlylinkDBManager::getInstance()->get_dic_hub_id(hubUrl);
 #endif
-					                                          , false
-					                                         );
-				}
-				else
-				{
-					u = ClientManager::getInstance()->getUser(CID(cid));
-				}
-				
+					// [~] FlylinkDC
+					
+					if (cid.length() != 39)
+					{
+						if (nick.empty() || hubUrl.empty())
+							continue;
+						u = ClientManager::getUser(nick, hubUrl
+#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+						                           , l_hub_id
+#endif
+						                           , false
+						                          );
+					}
+					else
+					{
+						u = ClientManager::getUser(CID(cid));
+					}
+					
 #ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-				FastUniqueLock l(csUsers);
+					FastUniqueLock l(csUsers);
 #else
-				Lock l(csUsers);
+					Lock l(csUsers);
 #endif
-				FavoriteMap::iterator i = m_users.insert(make_pair(u->getCID(), FavoriteUser(u, nick, hubUrl))).first;
-				
-				if (aXml.getBoolChildAttrib("IgnorePrivate")) // !SMT!-S
-					i->second.setFlag(FavoriteUser::FLAG_IGNORE_PRIVATE);
-				if (aXml.getBoolChildAttrib("FreeAccessPM")) // !SMT!-PSW
-					i->second.setFlag(FavoriteUser::FLAG_FREE_PM_ACCESS);
+					FavoriteMap::iterator i = m_users.insert(make_pair(u->getCID(), FavoriteUser(u, nick, hubUrl))).first;
 					
-				i->second.setUploadLimit(aXml.getIntChildAttrib("UploadLimit"));
-				if (aXml.getBoolChildAttrib("SuperUser")) // [!] FlylinkDC++ compatibility mode.
-					i->second.setUploadLimit(FavoriteUser::UL_SU);
+					if (aXml.getBoolChildAttrib("IgnorePrivate")) // !SMT!-S
+						i->second.setFlag(FavoriteUser::FLAG_IGNORE_PRIVATE);
+					if (aXml.getBoolChildAttrib("FreeAccessPM")) // !SMT!-PSW
+						i->second.setFlag(FavoriteUser::FLAG_FREE_PM_ACCESS);
+						
+					i->second.setUploadLimit(aXml.getIntChildAttrib("UploadLimit"));
+					if (aXml.getBoolChildAttrib("SuperUser")) // [!] FlylinkDC++ compatibility mode.
+						i->second.setUploadLimit(FavoriteUser::UL_SU);
+						
+					if (aXml.getBoolChildAttrib("GrantSlot"))
+						i->second.setFlag(FavoriteUser::FLAG_GRANT_SLOT);
+						
+					i->second.setLastSeen(aXml.getInt64ChildAttrib("LastSeen")); // [!] IRainman fix.
 					
-				if (aXml.getBoolChildAttrib("GrantSlot"))
-					i->second.setFlag(FavoriteUser::FLAG_GRANT_SLOT);
-					
-				i->second.setLastSeen(aXml.getInt64ChildAttrib("LastSeen")); // [!] IRainman fix.
-				
-				i->second.setDescription(aXml.getChildAttrib("UserDescription"));
+					i->second.setDescription(aXml.getChildAttrib("UserDescription"));
+				}
+				updateEmptyStateL();
+				aXml.stepOut();
 			}
-			updateEmptyState();
-			aXml.stepOut();
-		}
-		aXml.resetCurrentChild();
-		if (aXml.findChild("UserCommands"))
-		{
-			aXml.stepIn();
-			while (aXml.findChild("UserCommand"))
+			aXml.resetCurrentChild();
+			if (aXml.findChild("UserCommands"))
 			{
-				addUserCommand(aXml.getIntChildAttrib("Type"), aXml.getIntChildAttrib("Context"), 0, aXml.getChildAttrib("Name"),
-				               aXml.getChildAttrib("Command"), aXml.getChildAttrib("To"), aXml.getChildAttrib("Hub"));
+				aXml.stepIn();
+				while (aXml.findChild("UserCommand"))
+				{
+					addUserCommand(aXml.getIntChildAttrib("Type"), aXml.getIntChildAttrib("Context"), 0, aXml.getChildAttrib("Name"),
+					               aXml.getChildAttrib("Command"), aXml.getChildAttrib("To"), aXml.getChildAttrib("Hub"));
+				}
+				aXml.stepOut();
 			}
-			aXml.stepOut();
-		}
-		//Favorite download to dirs
-		aXml.resetCurrentChild();
-		if (aXml.findChild("FavoriteDirs"))
-		{
-			aXml.stepIn();
-			while (aXml.findChild("Directory"))
+			//Favorite download to dirs
+			aXml.resetCurrentChild();
+			if (aXml.findChild("FavoriteDirs"))
 			{
-				const auto& virt = aXml.getChildAttrib("Name");
-				const auto& ext = aXml.getChildAttrib("Extensions");
-				const auto& d = aXml.getChildData();
-				addFavoriteDir(d, virt, ext);
+				aXml.stepIn();
+				while (aXml.findChild("Directory"))
+				{
+					const auto& virt = aXml.getChildAttrib("Name");
+					const auto& ext = aXml.getChildAttrib("Extensions");
+					const auto& d = aXml.getChildData();
+					addFavoriteDir(d, virt, ext);
+				}
+				aXml.stepOut();
 			}
-			aXml.stepOut();
 		}
 	}
-	m_dontSave = false;
 	if (needSave)
 		save();
 }
@@ -1449,7 +1469,7 @@ void FavoriteManager::userUpdated(const OnlineUser& info)
 				
 			i->second.update(info);
 		}
-		save();
+		// save(); http://code.google.com/p/flylinkdc/issues/detail?id=1409
 	}
 }
 
@@ -1714,7 +1734,7 @@ UserCommand::List FavoriteManager::getUserCommands(int ctx, const StringList& hu
 	
 	for (size_t i = 0; i < hubs.size(); ++i)
 	{
-		isOp[i] = ClientManager::getInstance()->isOp(ClientManager::getMe_UseOnlyForNonHubSpecifiedTasks(), hubs[i]);
+		isOp[i] = ClientManager::isOp(ClientManager::getMe_UseOnlyForNonHubSpecifiedTasks(), hubs[i]);
 	}
 	
 	UserCommand::List lst;
@@ -1848,7 +1868,7 @@ void FavoriteManager::on(UserDisconnected, const UserPtr& user) noexcept
 			i->second.setLastSeen(GET_TIME()); // TODO: if ClientManager::isShutdown() this data is not update :( https://code.google.com/p/flylinkdc/issues/detail?id=1317
 		}
 		fire(FavoriteManagerListener::StatusChanged(), user);
-		save();
+		// save(); http://code.google.com/p/flylinkdc/issues/detail?id=1409
 	}
 }
 

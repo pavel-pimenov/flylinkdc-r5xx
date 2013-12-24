@@ -447,8 +447,8 @@ void OperaColors::FloodFill(CDC& hDC, int x1, int y1, int x2, int y2, COLORREF c
 	int w = x2 - x1;
 	int h = y2 - y1;
 	
-	FloodCacheItem::FCIMapper fcim = {c1, c2, light}; // Make it hash-safe // we must map all colors but not only R component
-	auto i = g_flood_cache.find(fcim); // TODO - убрать этот лишний find
+	FloodCacheItem::FCIMapper fcim = {c1 & (light ? 0x80FF : 0x00FF), c2 & 0x00FF}; // Make it hash-safe
+	const auto& i = g_flood_cache.find(fcim); // TODO - убрать этот лишний find
 	
 	FloodCacheItem* fci = nullptr;
 	if (i != g_flood_cache.end())
@@ -475,14 +475,25 @@ void OperaColors::FloodFill(CDC& hDC, int x1, int y1, int x2, int y2, COLORREF c
 	fci->h = h;
 	fci->mapper = fcim;
 	
-	HBITMAP hBitmap = CreateBitmap(w, h, 1, 32, NULL); // Leak
-	HBITMAP hOldBitmap = (HBITMAP)::SelectObject(fci->hDC, hBitmap);
+	BITMAPINFOHEADER bih;
+	ZeroMemory(&bih, sizeof(BITMAPINFOHEADER));
+	bih.biSize = sizeof(BITMAPINFOHEADER);
+	bih.biWidth = w;
+	bih.biHeight = -h;
+	bih.biPlanes = 1;
+	bih.biBitCount = 32;
+	bih.biCompression = BI_RGB;
+	bih.biClrUsed = 32;
+	HBITMAP hBitmap = ::CreateDIBitmap(hDC.m_hDC, &bih, 0, NULL, NULL, DIB_RGB_COLORS);
+	// [merge from AirDC++]
+	// fix http://code.google.com/p/flylinkdc/issues/detail?id=1397
+	::DeleteObject(::SelectObject(fci->hDC, hBitmap));
 	
 	if (!light)
 	{
 		for (int _x = 0; _x < w; ++_x)
 		{
-			HBRUSH hBr = CreateSolidBrush(blendColors(c2, c1, (double)(_x - x1) / (double)(w)));
+			HBRUSH hBr = CreateSolidBrush(blendColors(c2, c1, double(_x - x1) / (double)(w)));
 			const RECT rc = { _x, 0, _x + 1, h };
 			::FillRect(fci->hDC, &rc, hBr);
 			DeleteObject(hBr);
@@ -492,15 +503,14 @@ void OperaColors::FloodFill(CDC& hDC, int x1, int y1, int x2, int y2, COLORREF c
 	{
 		for (int _x = 0; _x <= w; ++_x)
 		{
-			const COLORREF cr = blendColors(c2, c1, (double)(_x) / (double)(w));
+			const COLORREF cr = blendColors(c2, c1, double(_x) / double(w));
 			for (int _y = 0; _y < h; ++_y)
 			{
-				SetPixelV(fci->hDC, _x, _y, brightenColor(cr, (double)blend_vector[(size_t)floor(((double)(_y) / h) * MAX_SHADE - 1)] / (double)SHADE_LEVEL));
+				SetPixelV(fci->hDC, _x, _y, brightenColor(cr, (double)blend_vector[(size_t)floor((double(_y) / h) * MAX_SHADE - 1)] / (double)SHADE_LEVEL));
 			}
 		}
 	}
 	BitBlt(hDC.m_hDC, x1, y1, x2, y2, fci->hDC, 0, 0, SRCCOPY);
-	DeleteObject(SelectObject(fci->hDC, hOldBitmap));
 }
 
 /*

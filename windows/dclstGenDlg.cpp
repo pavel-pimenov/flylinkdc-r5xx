@@ -267,27 +267,32 @@ void DCLSTGenDlg::WriteFile(DirectoryListing::File* file)
 	{
 		_xml += " TS=\"" + Util::toString(file->getTS()) + '\"';
 	}
-	if (file->m_media.m_bitrate)
+	if (file->m_media)
 	{
-		_xml += " BR=\"" + Util::toString(file->m_media.m_bitrate) + '\"';
-	}
-	if (file->m_media.m_mediaX && file->m_media.m_mediaY)
-	{
-		_xml += " WH=\"" + file->m_media.getXY() + '\"';
-	}
-	
-	if (!file->m_media.m_audio.empty())
-	{
-		string maudio = file->m_media.m_audio;
-		_xml += " MA=\"" + SimpleXML::escape(maudio, true) + '\"';
-	}
-	if (!file->m_media.m_video.empty())
-	{
-		string mvideo = file->m_media.m_video;
-		_xml += " MV=\"" + SimpleXML::escape(mvideo, true) + '\"';
+		if (file->m_media->m_bitrate)
+		{
+			_xml += " BR=\"" + Util::toString(file->m_media->m_bitrate) + '\"';
+		}
+		if (file->m_media->m_mediaX && file->m_media->m_mediaY)
+		{
+			_xml += " WH=\"" + file->m_media->getXY() + '\"';
+		}
+		if (!file->m_media->m_audio.empty())
+		{
+			string maudio = file->m_media->m_audio;
+			_xml += " MA=\"" + SimpleXML::escape(maudio, true) + '\"';
+		}
+		if (!file->m_media->m_video.empty())
+		{
+			string mvideo = file->m_media->m_video;
+			_xml += " MV=\"" + SimpleXML::escape(mvideo, true) + '\"';
+		}
 	}
 	_xml += "/>\r\n";
-	if (_isCanceled) return;
+	if (_isCanceled)
+	{
+		return;
+	}
 	PostMessage(WM_UPDATE_WINDOW, 0, 0);
 	::Sleep(1);
 }
@@ -330,7 +335,7 @@ DCLSTGenDlg::onShareThis(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, B
 	if (!_strMagnet.empty() && !_tth == NULL)
 	{
 		const string strPath = _mNameDCLST;
-		if (ShareManager::getInstance()->isFileInSharedDirectory(strPath))
+		if (ShareManager::getInstance()->isFileInSharedDirectoryL(strPath))
 		{
 			HashManager::getInstance()->addTree(strPath, File::getTimeStamp(strPath), *(_tth.get()), -1);
 			if (ShareManager::getInstance()->isTTHShared(_tth.get()->getRoot()))

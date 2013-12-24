@@ -27,6 +27,7 @@
 
 #include "../client/ClientManager.h"
 #include "../client/CFlylinkDBManager.h"
+#include "../client/LogManager.h"
 
 namespace dht
 {
@@ -161,13 +162,16 @@ Node::Ptr RoutingTable::addOrUpdate(const UserPtr& u, const string& ip, uint16_t
 				break;
 			}
 		}
-		
+#if 0		
 		if (node == nullptr && u->isOnline())
 		{
 			// try to get node from ClientManager (user can be online but not in our routing table)
-			node = (Node*)ClientManager::getInstance()->findDHTNode(u->getCID()).get();
+			// [-]PPA Отключил опасное преобразование типа OnlineUser нельзя расширить до наследника Node*
+            // node = (Node*)ClientManager::findDHTNode(u->getCID()).get();
+			// LogManager::getInstance()->message("RoutingTable::addOrUpdate error node == nullptr && u->isOnline() - send email ppa74@ya.ru");
+			// dcassert(0);
 		}
-		
+#endif		
 		if (node != nullptr)
 		{
 			// fine, node found, update it and return it
@@ -343,9 +347,10 @@ void RoutingTable::loadNodes(SimpleXML& xml)
 			xml.stepIn();
 			while (xml.findChild("Node"))
 			{
-				const CID cid     = CID(xml.getChildAttrib("CID"));
+				const CID cid(xml.getChildAttrib("CID"));
 				const string& i4   = xml.getChildAttrib("I4");
-				uint16_t u4 = static_cast<uint16_t>(xml.getIntChildAttrib("U4"));
+				const uint16_t u4 = static_cast<uint16_t>(xml.getIntChildAttrib("U4"));
+				dcassert(u4);
 			
 				if (Utils::isGoodIPPort(i4, u4))
 				{
@@ -363,7 +368,7 @@ void RoutingTable::loadNodes(SimpleXML& xml)
 							DHT::getInstance()->setLastExternalIP(keyIp);
 					}
 				
-					//UserPtr u = ClientManager::getInstance()->getUser(cid);
+					//UserPtr u = ClientManager::getUser(cid);
 					//addOrUpdate(u, i4, u4, udpKey, false, true);
 				
 					BootstrapManager::getInstance()->addBootstrapNode(i4, u4, cid, udpKey);

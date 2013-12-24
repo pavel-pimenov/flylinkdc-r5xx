@@ -57,7 +57,7 @@ class ServerSocket : public Speaker<ServerSocketListener>
 		
 		socket_t getSock() const
 		{
-			return socket.sock;
+			return socket.m_sock;
 		}
 		operator const Socket&() const
 		{

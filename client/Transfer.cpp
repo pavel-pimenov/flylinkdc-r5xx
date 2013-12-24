@@ -90,17 +90,17 @@ void Transfer::getParams(const UserConnection& aSource, StringMap& params) const
 	const auto& user = aSource.getUser();
 	
 	params["userCID"] = user->getCID().toBase32();
-	params["userNI"] = !user->getLastNick().empty() ? user->getLastNick() : Util::toString(ClientManager::getInstance()->getNicks(user->getCID(), Util::emptyString));
+	params["userNI"] = !user->getLastNick().empty() ? user->getLastNick() : Util::toString(ClientManager::getNicks(user->getCID(), Util::emptyString));
 	params["userI4"] = aSource.getRemoteIp();
 	
-	StringList hubNames = ClientManager::getInstance()->getHubNames(user->getCID(), hint);
+	StringList hubNames = ClientManager::getHubNames(user->getCID(), hint);
 	if (hubNames.empty())
 	{
 		hubNames.push_back(STRING(OFFLINE));
 	}
 	params["hub"] = Util::toString(hubNames);
 	
-	StringList hubs = ClientManager::getInstance()->getHubs(user->getCID(), hint);
+	StringList hubs = ClientManager::getHubs(user->getCID(), hint);
 	if (hubs.empty())
 	{
 		hubs.push_back(STRING(OFFLINE));

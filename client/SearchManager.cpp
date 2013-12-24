@@ -27,7 +27,7 @@
 
 const char* SearchManager::getTypeStr(int type)
 {
-	static const char* types[TYPE_LAST] =
+	static const char* g_types[Search::TYPE_LAST] =
 	{
 		CSTRING(ANY),
 		CSTRING(AUDIO),
@@ -39,7 +39,7 @@ const char* SearchManager::getTypeStr(int type)
 		CSTRING(DIRECTORY),
 		"TTH"
 	};
-	return types[type];
+	return g_types[type];
 }
 
 SearchManager::SearchManager() :
@@ -73,12 +73,12 @@ string SearchManager::normalizeWhitespace(const string& aString)
 	return normalized;
 }
 
-void SearchManager::search(const string& aName, int64_t aSize, TypeModes aTypeMode /* = TYPE_ANY */, Search::SizeModes aSizeMode /* = SIZE_ATLEAST */, const string& aToken /* = Util::emptyString */, void* aOwner /* = NULL */)
+void SearchManager::search(const string& aName, int64_t aSize, Search::TypeModes aTypeMode /* = Search::TYPE_ANY */, Search::SizeModes aSizeMode /* = SIZE_ATLEAST */, const string& aToken /* = Util::emptyString */, void* aOwner /* = NULL */)
 {
 	ClientManager::getInstance()->search(aSizeMode, aSize, aTypeMode, normalizeWhitespace(aName), aToken, aOwner);
 }
 
-uint64_t SearchManager::search(const StringList& who, const string& aName, int64_t aSize /* = 0 */, TypeModes aTypeMode /* = TYPE_ANY */, Search::SizeModes aSizeMode /* = SIZE_ATLEAST */, const string& aToken /* = Util::emptyString */, const StringList& aExtList, void* aOwner /* = NULL */)
+uint64_t SearchManager::search(const StringList& who, const string& aName, int64_t aSize /* = 0 */, Search::TypeModes aTypeMode /* = Search::TYPE_ANY */, Search::SizeModes aSizeMode /* = SIZE_ATLEAST */, const string& aToken /* = Util::emptyString */, const StringList& aExtList, void* aOwner /* = NULL */)
 {
 	return ClientManager::getInstance()->search(who, aSizeMode, aSize, aTypeMode, normalizeWhitespace(aName), aToken, aExtList, aOwner);
 }
@@ -296,13 +296,13 @@ int SearchManager::UdpQueue::run()
 			}
 			
 			const string hubIpPort = x.substr(i, j - i);
-			const string url = ClientManager::getInstance()->findHub(hubIpPort); // TODO - внутри линейный поиск. оптимизнуть
+			const string url = ClientManager::findHub(hubIpPort); // TODO - внутри линейный поиск. оптимизнуть
 			// url оказываетс€ пустым https://www.box.net/shared/ayirspvdjk2boix4oetr
 			// падаем на dcassert в следующем вызове findHubEncoding.
 			// [!] IRainman fix: не падаем!!!! Ёто диагностическое предупреждение!!!
 			// [-] string encoding;
 			// [-] if (!url.empty())
-			const string encoding = ClientManager::getInstance()->findHubEncoding(url); // [!]
+			const string encoding = ClientManager::findHubEncoding(url); // [!]
 			// [~]
 			nick = Text::toUtf8(nick, encoding);
 			file = Text::toUtf8(file, encoding);
@@ -310,29 +310,29 @@ int SearchManager::UdpQueue::run()
 			if (!l_isTTH) // [+]FlylinkDC++ Team
 				l_hub_name_or_tth = Text::toUtf8(l_hub_name_or_tth, encoding);
 				
-			UserPtr user = ClientManager::getInstance()->findUser(nick, url); // TODO оптмизнуть makeCID
+			UserPtr user = ClientManager::findUser(nick, url); // TODO оптмизнуть makeCID
 			if (!user)
 			{
 				// Could happen if hub has multiple URLs / IPs
-				user = ClientManager::getInstance()->findLegacyUser(nick
+				user = ClientManager::findLegacyUser(nick
 #ifndef IRAINMAN_USE_NICKS_IN_CM
-				                                                    , url
+				                                     , url
 #endif
-				                                                   );
+				                                    );
 				if (!user)
-				
 					continue;
 			}
 			if (!remoteIp.empty())
+			{
 				user->setIP(remoteIp);
-				
-			ClientManager::getInstance()->setIPUser(user, remoteIp);
+				ClientManager::setIPUser(user, remoteIp); // TODO - может не нужно тут?
+			}
 			
 			string tth;
 			if (l_isTTH)
 			{
 				tth = l_hub_name_or_tth.substr(4);
-				StringList names = ClientManager::getInstance()->getHubNames(user->getCID(), Util::emptyString);
+				const StringList names = ClientManager::getHubNames(user->getCID(), Util::emptyString);
 				l_hub_name_or_tth = names.empty() ? STRING(OFFLINE) : Util::toString(names);
 			}
 			
@@ -360,7 +360,7 @@ int SearchManager::UdpQueue::run()
 				continue;
 			}
 			
-			UserPtr user = ClientManager::getInstance()->findUser(CID(cid));
+			UserPtr user = ClientManager::findUser(CID(cid));
 			if (!user)
 				continue;
 				
@@ -379,7 +379,7 @@ int SearchManager::UdpQueue::run()
 			if (cid.size() != 39)
 				continue;
 				
-			UserPtr user = ClientManager::getInstance()->findUser(CID(cid));
+			UserPtr user = ClientManager::findUser(CID(cid));
 			// when user == NULL then it is probably NMDC user, check it later
 			
 			c.getParameters().erase(c.getParameters().begin());
@@ -442,9 +442,9 @@ void SearchManager::onRES(const AdcCommand& cmd, const UserPtr& from, const stri
 	{
 	
 		/// @todo get the hub this was sent from, to be passed as a hint? (eg by using the token?)
-		const StringList& names = ClientManager::getInstance()->getHubNames(from->getCID(), Util::emptyString);
+		const StringList& names = ClientManager::getHubNames(from->getCID(), Util::emptyString);
 		const string& hubName = names.empty() ? STRING(OFFLINE) : Util::toString(names);
-		const StringList& hubs = ClientManager::getInstance()->getHubs(from->getCID(), Util::emptyString);
+		const StringList& hubs = ClientManager::getHubs(from->getCID(), Util::emptyString);
 		const string& hub = hubs.empty() ? STRING(OFFLINE) : Util::toString(hubs);
 		
 		const SearchResult::Types type = (file[file.length() - 1] == '\\' ? SearchResult::TYPE_DIRECTORY : SearchResult::TYPE_FILE);
@@ -502,7 +502,7 @@ void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const string& rem
 	}
 	
 	
-	const string url = ClientManager::getInstance()->findHub(hubIpPort);
+	const string url = ClientManager::findHub(hubIpPort);
 	if (!from || ClientManager::isMe(from))
 	{
 		// for NMDC support
@@ -511,15 +511,15 @@ void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const string& rem
 		{
 			return;
 		}
-		from = ClientManager::getInstance()->findUser(nick, url); // TODO оптмизнуть makeCID
+		from = ClientManager::findUser(nick, url); // TODO оптмизнуть makeCID
 		if (!from)
 		{
 			// Could happen if hub has multiple URLs / IPs
-			from = ClientManager::getInstance()->findLegacyUser(nick
+			from = ClientManager::findLegacyUser(nick
 #ifndef IRAINMAN_USE_NICKS_IN_CM
-			                                                    , url
+			                                     , url
 #endif
-			                                                   );
+			                                    );
 			if (!from)
 			{
 				dcdebug("Search result from unknown user");
@@ -528,7 +528,7 @@ void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const string& rem
 		}
 	}
 	
-	ClientManager::getInstance()->setIPUser(from, remoteIp, udpPort);
+	ClientManager::setIPUser(from, remoteIp, udpPort);
 	// TODO »щем в OnlineUser а чуть выше ищем в UserPtr може тожно схлопнуть в один поиск дл€ апдейта IP
 	
 	if (partialInfo.size() != partialCount)
@@ -565,7 +565,7 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 	if (from == ClientManager::getMyCID()) // [!] IRainman fix.
 		return ClientManagerListener::SEARCH_MISS; // [!] IRainman-S
 		
-	UserPtr p = ClientManager::getInstance()->findUser(from);
+	UserPtr p = ClientManager::findUser(from);
 	if (!p)
 		return ClientManagerListener::SEARCH_MISS; // [!] IRainman-S
 		
@@ -646,7 +646,7 @@ AdcCommand SearchManager::toPSR(bool wantResponse, const string& myNick, const s
 		cmd.addParam("NI", Text::utf8ToAcp(myNick));
 		
 	cmd.addParam("HI", hubIpPort);
-	cmd.addParam("U4", Util::toString(wantResponse ? getPort() : 0)); // —юда по ошибке подавс€ не урл к хабу. && ClientManager::getInstance()->isActive(hubIpPort)
+	cmd.addParam("U4", Util::toString(wantResponse ? getPort() : 0)); // —юда по ошибке подавс€ не урл к хабу. && ClientManager::isActive(hubIpPort)
 	cmd.addParam("TR", tth);
 	cmd.addParam("PC", Util::toString(partialInfo.size() / 2));
 	cmd.addParam("PI", getPartsString(partialInfo));

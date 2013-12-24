@@ -68,7 +68,7 @@ class VideoPreviewSocketProcessor: public Thread
 		{
 			inProcess = true;
 			int fromlen = sizeof(from);
-			sock = ::accept(socket.sock, (struct sockaddr*) & from, &fromlen);
+			sock = ::accept(socket.m_sock, (struct sockaddr*) & from, &fromlen);
 			u_long b = 1;
 			ioctlsocket(sock, FIONBIO, &b);
 		}

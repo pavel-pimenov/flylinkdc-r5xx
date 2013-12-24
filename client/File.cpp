@@ -24,8 +24,6 @@
 #include "BZUtils.h"
 #endif
 
-#ifdef _WIN32
-
 #include "CompatibilityManager.h" // [+] IRainman
 
 const FileFindIter FileFindIter::end; // [+] IRainman opt.
@@ -72,17 +70,17 @@ void File::init(const tstring& aFileName, int access, int mode, bool isAbsoluteP
 	}
 }
 
-uint64_t File::getLastWriteTime()const noexcept
+int64_t File::getLastWriteTime()const noexcept
 {
     FILETIME f = {0};
     ::GetFileTime(h, NULL, NULL, &f);
-    const uint64_t l_res = (((int64_t)f.dwLowDateTime | ((int64_t)f.dwHighDateTime) << 32) - 116444736000000000LL) / (1000LL * 1000LL * 1000LL / 100LL); //1.1.1970
+    const int64_t l_res = (((int64_t)f.dwLowDateTime | ((int64_t)f.dwHighDateTime) << 32) - 116444736000000000LL) / (1000LL * 1000LL * 1000LL / 100LL); //1.1.1970
     //[+] PVS Studio V592   The expression was enclosed by parentheses twice: ((expression)). One pair of parentheses is unnecessary or misprint is present.
     return l_res;
 }
 
 //[+] Greylink
-uint64_t File::getTimeStamp(const string& aFileName) throw(FileException)
+int64_t File::getTimeStamp(const string& aFileName) throw(FileException)
 {
 	WIN32_FIND_DATA fd;
 	HANDLE hFind = FindFirstFile(Text::toT(formatPath(aFileName)).c_str(), &fd);
@@ -318,7 +316,7 @@ bool File::isExist(const tstring& filename, int64_t& outFileSize, int64_t& outFi
 	if (filename.empty())
 		return false;
 		
-	FileFindIter i(filename);
+	FileFindIter i(filename); // TODO - formatPath ?
 	if (i != FileFindIter::end)
 	{
 		outFileSize = i->getSize();
@@ -343,248 +341,7 @@ void File::ensureDirectory(const tstring& aFile) noexcept
 	}
 }
 
-#else // !_WIN32
 
-void File::init(const string& aFileName, int access, int mode) // [!] IRainman fix.
-{
-	dcassert(access == WRITE || access == READ || access == (READ | WRITE));
-
-	int m = 0;
-	if (access == READ)
-		m |= O_RDONLY;
-	else if (access == WRITE)
-		m |= O_WRONLY;
-	else
-		m |= O_RDWR;
-
-	if (mode & CREATE)
-	{
-		m |= O_CREAT;
-	}
-	if (mode & TRUNCATE)
-	{
-		m |= O_TRUNC;
-	}
-
-	string filename = Text::fromUtf8(aFileName);
-
-	struct stat s;
-	if (lstat(filename.c_str(), &s) != -1)
-	{
-		if (!S_ISREG(s.st_mode) && !S_ISLNK(s.st_mode))
-			throw FileException("Invalid file type");
-	}
-
-	h = open(filename.c_str(), m, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-	if (h == -1)
-		throw FileException(Util::translateError(errno));
-}
-
-uint32_t File::getLastModified() const noexcept
-{
-    struct stat s;
-    if (::fstat(h, &s) == -1)
-    return 0;
-
-    return (uint32_t)s.st_mtime;
-}
-
-bool File::isOpen() const noexcept
-	{
-	    return h != -1;
-	}
-
-	void File::close() noexcept
-{
-	if (h != -1)
-	{
-		::close(h);
-		h = -1;
-	}
-}
-
-int64_t File::getSize() const noexcept
-{
-    struct stat s;
-    if (::fstat(h, &s) == -1)
-    return -1;
-
-    return (int64_t)s.st_size;
-}
-
-int64_t File::getPos() const noexcept
-	{
-	    return (int64_t)lseek(h, 0, SEEK_CUR);
-	}
-
-	void File::setPos(int64_t pos) noexcept
-{
-	lseek(h, (off_t)pos, SEEK_SET);
-}
-
-void File::setEndPos(int64_t pos) noexcept
-{
-	lseek(h, (off_t)pos, SEEK_END);
-}
-
-void File::movePos(int64_t pos) noexcept
-{
-	lseek(h, (off_t)pos, SEEK_CUR);
-}
-
-size_t File::read(void* buf, size_t& len)
-{
-	ssize_t result = ::read(h, buf, len);
-	if (result == -1)
-	{
-		throw FileException(Util::translateError(errno));
-	}
-	len = result;
-	return (size_t)result;
-}
-
-size_t File::write(const void* buf, size_t len)
-{
-	ssize_t result;
-	char* pointer = (char*)buf;
-	ssize_t left = len;
-
-	while (left > 0)
-	{
-		result = ::write(h, pointer, left);
-		if (result == -1)
-		{
-			if (errno != EINTR)
-			{
-				throw FileException(Util::translateError(errno));
-			}
-		}
-		else
-		{
-			pointer += result;
-			left -= result;
-		}
-	}
-	return len;
-}
-
-// some ftruncate implementations can't extend files like SetEndOfFile,
-// not sure if the client code needs this...
-int File::extendFile(int64_t len) noexcept
-{
-	char zero;
-
-	if ((lseek(h, (off_t)len, SEEK_SET) != -1) && (::write(h, &zero, 1) != -1))
-	{
-		ftruncate(h, (off_t)len);
-		return 1;
-	}
-	return -1;
-}
-
-void File::setEOF()
-{
-	int64_t pos;
-	int64_t eof;
-	int ret;
-
-	pos = (int64_t)lseek(h, 0, SEEK_CUR);
-	eof = (int64_t)lseek(h, 0, SEEK_END);
-	if (eof < pos)
-		ret = extendFile(pos);
-	else
-		ret = ftruncate(h, (off_t)pos);
-	lseek(h, (off_t)pos, SEEK_SET);
-	if (ret == -1)
-		throw FileException(Util::translateError(errno));
-}
-
-void File::setSize(int64_t newSize) throw(FileException)
-{
-	int64_t pos = getPos();
-	setPos(newSize);
-	setEOF();
-	setPos(pos);
-}
-
-size_t File::flush()
-{
-	if (isOpen() && fsync(h) == -1)
-		throw FileException(Util::translateError(errno));
-	return 0;
-}
-
-/**
- * ::rename seems to have problems when source and target is on different partitions
- * from "man 2 rename":
- * EXDEV oldpath and newpath are not on the same mounted filesystem. (Linux permits a
- * filesystem to be mounted at multiple points, but rename(2) does not
- * work across different mount points, even if the same filesystem is mounted on both.)
-*/
-void File::renameFile(const string& source, const string& target)
-{
-	int ret = ::rename(Text::fromUtf8(source).c_str(), Text::fromUtf8(target).c_str());
-	if (ret != 0 && errno == EXDEV)
-	{
-		copyFile(source, target);
-		deleteFile(source);
-	}
-	else if (ret != 0)
-		throw FileException(source + Util::translateError(errno));
-}
-
-// This doesn't assume all bytes are written in one write call, it is a bit safer
-void File::copyFile(const string& source, const string& target)
-{
-	const size_t BUF_SIZE = 64 * 1024;
-	std::unique_ptr<char[]> buffer(new char[BUF_SIZE]);
-	size_t count = BUF_SIZE;
-	File src(source, File::READ, 0);
-	File dst(target, File::WRITE, File::CREATE | File::TRUNCATE);
-
-	while (src.read(&buffer[0], count) > 0)
-	{
-		char* p = &buffer[0];
-		while (count > 0)
-		{
-			size_t ret = dst.write(p, count);
-			p += ret;
-			count -= ret;
-		}
-		count = BUF_SIZE;
-	}
-}
-
-void File::deleteFile(const string& aFileName) noexcept
-{
-	::unlink(Text::fromUtf8(aFileName).c_str());
-}
-
-int64_t File::getSize(const string& aFileName) noexcept
-{
-	dcassert(!aFileName.empty())
-	struct stat s;
-	if (stat(Text::fromUtf8(aFileName).c_str(), &s) == -1)
-		return -1;
-
-	return s.st_size;
-}
-void File::ensureDirectory(const string& aFile) noexcept
-{
-	string file = Text::fromUtf8(aFile);
-	string::size_type start = 0;
-	while ((start = file.find_first_of('/', start)) != string::npos)
-	{
-		mkdir(file.substr(0, start + 1).c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
-		start++;
-	}
-}
-bool File::isAbsolute(const string& path) noexcept
-{
-	return path.size() > 1 && path[0] == '/';
-}
-
-#endif // !_WIN32
 
 string File::read(size_t len)
 {
@@ -617,7 +374,6 @@ StringList File::findFiles(const string& path, const string& pattern, bool p_app
 			ret.push_back(l_name + extra);
 	};
 	// [~] FlylinkDC
-#ifdef _WIN32
 	WIN32_FIND_DATA data;
 	HANDLE hFind = FindFirstFile(formatPath(Text::toT(path + pattern)).c_str(), &data);
 	if (hFind != INVALID_HANDLE_VALUE)
@@ -633,30 +389,8 @@ StringList File::findFiles(const string& path, const string& pattern, bool p_app
 		while (FindNextFile(hFind, &data));
 		FindClose(hFind);
 	}
-#else
-	DIR* dir = opendir(Text::fromUtf8(path).c_str());
-	if (dir)
-	{
-		while (struct dirent* ent = readdir(dir))
-		{
-			if (fnmatch(pattern.c_str(), ent->d_name, 0) == 0)
-			{
-				struct stat s;
-				stat(ent->d_name, &s);
-				const char* extra = (s.st_mode & S_IFDIR) ? '/' : "";
-				// [!] FlylinkDC
-				const string l_name = Text::toUtf8(ent->d_name);
-				appendToRet(ret, l_name, extra);
-				// [~] FlylinkDC
-			}
-		}
-		closedir(dir);
-	}
-#endif
 	return ret;
 }
-
-#ifdef _WIN32
 
 void FileFindIter::init(const tstring& path)
 {
@@ -739,98 +473,3 @@ bool FileFindIter::DirData::isVirtual() const
 
 // ~[+]IRainman
 
-#else // _WIN32
-
-FileFindIter::FileFindIter()
-{
-	m_dir = NULL;
-	m_data.m_ent = NULL;
-}
-
-FileFindIter::FileFindIter(const string& path)
-{
-	string filename = Text::fromUtf8(path);
-	m_dir = opendir(filename.c_str());
-	if (!m_dir)
-		return;
-	m_data.m_base = filename;
-	m_data.m_ent = readdir(m_dir);
-	if (!m_data.m_ent)
-	{
-		closedir(m_dir);
-		m_dir = NULL;
-	}
-}
-
-FileFindIter::~FileFindIter()
-{
-	if (m_dir) closedir(m_dir);
-}
-
-FileFindIter& FileFindIter::operator++()
-{
-	if (!m_dir)
-		return *this;
-	m_data.m_ent = readdir(m_dir);
-	if (!m_data.m_ent)
-	{
-		closedir(m_dir);
-		m_dir = NULL;
-	}
-	return *this;
-}
-
-bool FileFindIter::operator != (const FileFindIter& rhs) const
-{
-	// good enough to to say if it's null
-	return m_dir != rhs.m_dir;
-}
-
-FileFindIter::DirData::DirData() : m_ent(NULL) {}
-
-string FileFindIter::DirData::getFileName() const
-{
-	if (!m_ent) return Util::emptyString;
-	return Text::toUtf8(m_ent->d_name);
-}
-
-bool FileFindIter::DirData::isDirectory() const
-{
-	struct stat inode;
-	if (!m_ent) return false;
-	if (stat((m_base + PATH_SEPARATOR + m_ent->d_name).c_str(), &inode) == -1) return false;
-	return S_ISDIR(inode.st_mode);
-}
-
-bool FileFindIter::DirData::isHidden() const
-{
-	if (!m_ent) return false;
-	// Check if the parent directory is hidden for '.'
-	if (strcmp(m_ent->d_name, ".") == 0 && m_base[0] == '.') return true;
-	return m_ent->d_name[0] == '.' && strlen(m_ent->d_name) > 1;
-}
-bool FileFindIter::DirData::isLink() const
-{
-	struct stat inode;
-	if (!m_ent) return false;
-	if (lstat((m_base + PATH_SEPARATOR + m_ent->d_name).c_str(), &inode) == -1) return false;
-	return S_ISLNK(inode.st_mode);
-}
-
-int64_t FileFindIter::DirData::getSize() const
-{
-	struct stat inode;
-	if (!m_ent) return false;
-	if (stat((m_base + PATH_SEPARATOR + m_ent->d_name).c_str(), &inode) == -1) return 0;
-	return inode.st_size;
-}
-
-uint64_t FileFindIter::DirData::getLastWriteTime() const
-{
-	struct stat inode;
-	if (!m_ent) return false;
-	if (stat((m_base + PATH_SEPARATOR + m_ent->d_name).c_str(), &inode) == -1) return 0;
-	return inode.st_mtime;
-}
-
-#endif // _WIN32

@@ -176,8 +176,8 @@ void QueueManager::FileQueue::remove(const QueueItemPtr& qi) // [!] IRainman fix
 		UniqueLock l(csFQ); // [+] IRainman fix.
 		m_queue.erase(const_cast<string*>(&qi->getTarget()));
 	}
-	qi->dec();
 	const auto l_id = qi->getFlyQueueID();
+	qi->dec();
 	if (l_id) // [!] IRainman fix: FlyQueueID is not set for filelists.
 		CFlylinkDBManager::getInstance()->remove_queue_item(l_id);
 }
@@ -421,7 +421,6 @@ QueueItemPtr QueueManager::UserQueue::getNextL(const UserPtr& aUser, QueueItem::
 				{
 					// check partial source
 					const int64_t blockSize = qi->getBlockSize();
-					dcassert(blockSize);
 					const Segment segment = qi->getNextSegmentL(blockSize, wantedSize, lastSpeed, l_source->second.getPartialSource());
 					if (allowRemove && segment.getStart() != -1 && segment.getSize() == 0)
 					{
@@ -435,9 +434,10 @@ QueueItemPtr QueueManager::UserQueue::getNextL(const UserPtr& aUser, QueueItem::
 				if (qi->isWaitingL()) // там внутри m_downloads.empty(); поэтому след можно сделать qi->getDownloadsL().front()
 				{
 					// check maximum simultaneous files setting
-					if (SETTING(FILE_SLOTS) == 0 ||
+					const auto l_file_slot = (size_t)SETTING(FILE_SLOTS);
+					if (l_file_slot == 0 ||
 					        qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP) ||
-					        QueueManager::getInstance()->getRunningFileCount() < (size_t)SETTING(FILE_SLOTS))
+					        QueueManager::getInstance()->getRunningFileCount(l_file_slot) < l_file_slot)
 					{
 						return qi;
 					}
@@ -497,7 +497,7 @@ void QueueManager::FileQueue::getUserSettingsPriority(const string& target, Queu
 	}
 }
 
-size_t QueueManager::FileQueue::getRunningFileCount() const
+size_t QueueManager::FileQueue::getRunningFileCount(const size_t p_stop_key) const
 {
 	size_t l_cnt = 0;
 	SharedLock l(csFQ); // [+] IRainman fix.
@@ -507,6 +507,8 @@ size_t QueueManager::FileQueue::getRunningFileCount() const
 		if (q->isRunningL()) //
 		{
 			++l_cnt;
+			if (l_cnt > p_stop_key && p_stop_key != 0)
+				break; // Выходим раньше и не бегаем по всей очереди.
 		}
 		// TODO - можно не бегать по очереди а считать в онлайне.
 		// Алгоритм:
@@ -874,7 +876,6 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 			PartsInfoReqParam* param = new PartsInfoReqParam;
 			
 			const int64_t blockSize = qi->getBlockSize();
-			dcassert(blockSize);
 			qi->getPartialInfoL(param->parts, blockSize);
 			
 			param->tth = qi->getTTH().toBase32();
@@ -950,7 +951,7 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 	
 	if (!searchString.empty())
 	{
-		SearchManager::getInstance()->search(searchString, 0, SearchManager::TYPE_TTH, Search::SIZE_DONTCARE, "auto");
+		SearchManager::getInstance()->search(searchString, 0, Search::TYPE_TTH, Search::SIZE_DONTCARE, "auto");
 	}
 }
 
@@ -977,7 +978,7 @@ string QueueManager::getListPath(const UserPtr& user) const
 {
 	dcassert(user); // [!] IRainman fix: Unable to load the file list with an empty user!
 	
-	StringList nicks = ClientManager::getInstance()->getNicks(user->getCID(), Util::emptyString);
+	StringList nicks = ClientManager::getNicks(user->getCID(), Util::emptyString);
 	string nick = nicks.empty() ? Util::emptyString : Util::cleanPathChars(nicks[0]) + ".";
 	return checkTarget(Util::getListPath() + nick + user->getCID().toBase32());// [!] IRainman fix. FlylinkDC use Size on 2nd parametr!
 }
@@ -1167,7 +1168,7 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& roo
 		if (l_newItem && //[+] FlylinkDC++ Team: Если файл-лист, или запрос IP - то его не нужно искать.
 		        BOOLSETTING(AUTO_SEARCH))
 		{
-			SearchManager::getInstance()->search(root.toBase32(), 0, SearchManager::TYPE_TTH, Search::SIZE_DONTCARE, "auto");
+			SearchManager::getInstance()->search(root.toBase32(), 0, Search::TYPE_TTH, Search::SIZE_DONTCARE, "auto");
 		}
 	}
 }
@@ -1289,7 +1290,7 @@ bool QueueManager::addSourceL(const QueueItemPtr& qi, const UserPtr& aUser, Flag
 		}
 		
 		qi->addSourceL(aUser);
-		/*if(aUser.user->isSet(User::PASSIVE) && !ClientManager::getInstance()->isActive(aUser.hint)) {
+		/*if(aUser.user->isSet(User::PASSIVE) && !ClientManager::isActive(aUser.hint)) {
 		    qi->removeSource(aUser, QueueItem::Source::FLAG_PASSIVE);
 		    wantConnection = false;
 		} else */
@@ -2694,16 +2695,16 @@ void QueueLoader::startTag(const string& name, StringPairList& attribs, bool sim
 			UserPtr user;
 			if (cid.length() != 39)
 			{
-				user = ClientManager::getInstance()->getUser(getAttrib(attribs, sNick, 1), getAttrib(attribs, sHubHint, 1)
+				user = ClientManager::getUser(getAttrib(attribs, sNick, 1), getAttrib(attribs, sHubHint, 1)
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-				                                             , 0
+				                              , 0
 #endif
-				                                             , false
-				                                            );
+				                              , false
+				                             );
 			}
 			else
 			{
-				user = ClientManager::getInstance()->getUser(CID(cid));
+				user = ClientManager::getUser(CID(cid));
 			}
 			
 			bool wantConnection;
@@ -3001,11 +3002,6 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 		
 		// Get my parts info
 		const int64_t blockSize = qi->getBlockSize();
-		dcassert(blockSize);
-		// [-] IRainman fix.
-		// [-] if (blockSize == 0)
-		// [-]  blockSize = qi->getSize();
-		
 		qi->getPartialInfoL(outPartialInfo, blockSize);
 		
 		// Any parts for me?
@@ -3089,11 +3085,6 @@ bool QueueManager::handlePartialSearch(const TTHValue& tth, PartsInfo& _outParts
 			return false;
 			
 		const int64_t blockSize = qi->getBlockSize();
-		dcassert(blockSize);
-		// [-] IRainman fix.
-		// [-] if (blockSize == 0)
-		// [-]  blockSize = qi->getSize();
-		
 		qi->getPartialInfoL(_outPartsInfo, blockSize);
 	}
 	

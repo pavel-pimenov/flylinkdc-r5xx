@@ -122,7 +122,7 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItemPtr& qi,
 		const size_t BUF_SIZE = STRING(FINISHED_DOWNLOAD).size() + FULL_MAX_PATH + 128;
 		std::unique_ptr<char[]> buf(new char[BUF_SIZE]);
 		snprintf(&buf[0], BUF_SIZE, CSTRING(FINISHED_DOWNLOAD), Util::getFileName(qi->getTarget()).c_str(),
-		         Util::toString(ClientManager::getInstance()->getNicks(d->getUser()->getCID(), Util::emptyString)).c_str());
+		         Util::toString(ClientManager::getNicks(d->getUser()->getCID(), Util::emptyString)).c_str());
 		LogManager::getInstance()->message(&buf[0]);
 	}
 }
@@ -153,7 +153,7 @@ void FinishedManager::on(UploadManagerListener::Complete, const Upload* u) noexc
 		{
 			std::unique_ptr<char[]> buf(new char[BUF_SIZE]);
 			snprintf(&buf[0], BUF_SIZE, CSTRING(FINISHED_UPLOAD), l_file_name.c_str(),
-			         Util::toString(ClientManager::getInstance()->getNicks(u->getUser()->getCID(), Util::emptyString)).c_str());
+			         Util::toString(ClientManager::getNicks(u->getUser()->getCID(), Util::emptyString)).c_str());
 			         
 			LogManager::getInstance()->message(&buf[0]);
 		}

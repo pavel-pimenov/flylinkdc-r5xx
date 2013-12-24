@@ -117,7 +117,7 @@ SearchFrame::~SearchFrame()
 // пока не знаю OperaColors::ClearCache();
 }
 
-void SearchFrame::openWindow(const tstring& str /* = Util::emptyString */, LONGLONG size /* = 0 */, Search::SizeModes mode /* = Search::SIZE_ATLEAST */, SearchManager::TypeModes type /* = SearchManager::TYPE_ANY */)
+void SearchFrame::openWindow(const tstring& str /* = Util::emptyString */, LONGLONG size /* = 0 */, Search::SizeModes mode /* = Search::SIZE_ATLEAST */, Search::TypeModes type /* = Search::TYPE_ANY */)
 {
 	SearchFrame* pChild = new SearchFrame();
 	pChild->setInitial(str, size, mode, type);
@@ -744,7 +744,7 @@ void SearchFrame::onEnter()
 	ctrlStatus.SetText(3, _T(""));
 	ctrlStatus.SetText(4, _T(""));
 	
-	int ftype = ctrlFiletype.GetCurSel();
+	Search::TypeModes ftype = Search::TypeModes(ctrlFiletype.GetCurSel());
 	m_isExactSize = (m_sizeMode == Search::SIZE_EXACT);
 	m_exactSize2 = llsize;
 	
@@ -756,7 +756,7 @@ void SearchFrame::onEnter()
 	m_droppedResults = 0;
 	m_resultsCount = 0;
 	m_running = true;
-	m_isHash = (ftype == SearchManager::TYPE_TTH);
+	m_isHash = (ftype == Search::TYPE_TTH);
 	
 	// Add new searches to the last-search dropdown list
 	if (!BOOLSETTING(FORGET_SEARCH_REQUEST) && find(lastSearches.begin(), lastSearches.end(), s) == lastSearches.end())
@@ -783,18 +783,18 @@ void SearchFrame::onEnter()
 	
 	// [+] merge
 	// stop old search
-	ClientManager::getInstance()->cancelSearch((void*)this);
+	ClientManager::cancelSearch((void*)this);
 	
 	// Get ADC searchtype extensions if any is selected
 	StringList extList;
 	try
 	{
-		if (ftype == SearchManager::TYPE_ANY)
+		if (ftype == Search::TYPE_ANY)
 		{
 			// Custom searchtype
 			// disabled with current GUI extList = SettingsManager::getInstance()->getExtensions(Text::fromT(fileType->getText()));
 		}
-		else if (ftype > SearchManager::TYPE_ANY && ftype < SearchManager::TYPE_DIRECTORY)
+		else if (ftype > Search::TYPE_ANY && ftype < Search::TYPE_DIRECTORY)
 		{
 			// Predefined searchtype
 			extList = SettingsManager::getExtensions(string(1, '0' + ftype));
@@ -802,7 +802,7 @@ void SearchFrame::onEnter()
 	}
 	catch (const SearchTypeException&)
 	{
-		ftype = SearchManager::TYPE_ANY;
+		ftype = Search::TYPE_ANY;
 	}
 	
 	{
@@ -811,7 +811,7 @@ void SearchFrame::onEnter()
 		m_searchStartTime = GET_TICK();
 		// more 10 seconds for transfering results
 		m_searchEndTime = m_searchStartTime + SearchManager::getInstance()->search(clients, Text::fromT(s), llsize,
-		                                                                           (SearchManager::TypeModes)ftype, m_sizeMode, m_token, extList, (void*)this)
+		                                                                           ftype, m_sizeMode, m_token, extList, (void*)this)
 #ifdef FLYLINKDC_HE
 		                  + 30000
 #else
@@ -830,7 +830,7 @@ void SearchFrame::onEnter()
 	// [~] IRainman: http://code.google.com/p/flylinkdc/issues/detail?id=767
 	
 	//SearchManager::getInstance()->search(clients, Text::fromT(s), llsize,
-	//                                     (SearchManager::TypeModes)ftype, m_sizeMode, "manual", (int*)this, fullSearch); // [-] merge
+	//                                     (Search::TypeModes)ftype, m_sizeMode, "manual", (int*)this, fullSearch); // [-] merge
 	//searches++;
 }
 
@@ -926,9 +926,11 @@ void SearchFrame::mergeFlyServerInfo()
 	CWaitCursor l_cursor_wait;
 	std::map<string, std::pair<SearchInfo*, CFlyServerCache> > l_si_map; // Соберем результат для последующего апдейта
 	std::map<TTHValue, uint64_t> l_tth_media_file_map; // Сохраним TTH файлов содержащих локальную медиаинфу для последующей передачи на сервер
+	const int l_item_count = isClosedOrShutdown() ? 0 : ctrlResults.GetItemCount();
+	if (l_item_count == 0)
+		return;
 	const int l_top_index = isClosedOrShutdown() ? 0 : ctrlResults.GetTopIndex();
 	const int l_count_per_page = isClosedOrShutdown() ? 0 : ctrlResults.GetCountPerPage();
-	const int l_item_count = isClosedOrShutdown() ? 0 : ctrlResults.GetItemCount();
 	for (int j = l_top_index; j < l_item_count && j < l_top_index + l_count_per_page; ++j)
 	{
 		dcassert(!isClosedOrShutdown());
@@ -958,7 +960,7 @@ void SearchFrame::mergeFlyServerInfo()
 				}
 				const string l_fly_server_key = l_tth.toBase32() + Util::toString(l_file_size);
 				l_si_map.insert(make_pair(l_fly_server_key, make_pair(si2, l_fly_server_cache)));
-				m_GetFlyServerArray.push_back(std::move(l_info));
+				m_GetFlyServerArray.push_back(l_info);
 			}
 		}
 	}
@@ -1076,13 +1078,13 @@ void SearchFrame::mergeFlyServerInfo()
 		if (CFlylinkDBManager::getInstance()->load_media_info(TTHValue(i->first), l_media_info, false))
 		{
 			bool l_is_send_info = l_media_info.isMedia() && g_fly_server_config.isFullMediainfo() == false; // Есть медиаинфа и сервер не ждет полный комплект?
-			if (g_fly_server_config.isFullMediainfo()) // Если сервер ждет от нас полный комплект - проверим наличие атрибутной составялющей
+			if (g_fly_server_config.isFullMediainfo()) // Если сервер ждет от нас только полный комплект - проверим наличие атрибутной составялющей
 				l_is_send_info = l_media_info.isMediaAttrExists();
 			if (l_is_send_info)
 			{
 				CFlyServerKey l_info(i->first, i->second);
 				l_info.m_media = l_media_info; // Получили медиаинформацию с локальной базы
-				m_SetFlyServerArray.push_back(std::move(l_info));
+				m_SetFlyServerArray.push_back(l_info);
 			}
 		}
 	}
@@ -1224,7 +1226,7 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 		case COLUMN_HITS:
 			return hits == 0 ? Util::emptyStringT : Util::toStringW(hits + 1) + _T(' ') + TSTRING(USERS);
 		case COLUMN_NICK:
-			return Text::toT(Util::toString(ClientManager::getInstance()->getNicks(getUser()->getCID(), sr->getHubURL())));
+			return Text::toT(Util::toString(ClientManager::getNicks(getUser()->getCID(), sr->getHubURL())));
 		case COLUMN_TYPE:
 			if (sr->getType() == SearchResult::TYPE_FILE)
 			{
@@ -1336,7 +1338,7 @@ void SearchFrame::SearchInfo::Download::operator()(const SearchInfo* si)
 				SearchInfo* j = *i;
 				try
 				{
-					if (j && j->sr) // [2] https://www.box.net/shared/fa81babda5cfe6ef6408
+					if (j && j->sr) // crash https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=44625
 					{
 						QueueManager::getInstance()->add(target, j->sr->getSize(), j->sr->getTTH(), HintedUser(j->getUser(), j->sr->getHubURL()), mask);
 					}
@@ -1447,16 +1449,16 @@ void SearchFrame::SearchInfo::CheckTTH::operator()(const SearchInfo* si)
 	
 	if (firstHubs && hubs.empty())
 	{
-		hubs = ClientManager::getInstance()->getHubs(si->sr->getUser()->getCID(), si->sr->getHubURL());
+		hubs = ClientManager::getHubs(si->sr->getUser()->getCID(), si->sr->getHubURL());
 		firstHubs = false;
 	}
 	else if (!hubs.empty())
 	{
 		// we will merge hubs of all users to ensure we can use OP commands in all hubs
-		StringList sl = ClientManager::getInstance()->getHubs(si->sr->getUser()->getCID(), Util::emptyString);
+		StringList sl = ClientManager::getHubs(si->sr->getUser()->getCID(), Util::emptyString);
 		hubs.insert(hubs.end(), sl.begin(), sl.end());
 #if 0
-		Util::intersect(hubs, ClientManager::getInstance()->getHubs(si->sr->getUser()->getCID()));
+		Util::intersect(hubs, ClientManager::getHubs(si->sr->getUser()->getCID()));
 #endif
 	}
 }
@@ -1685,9 +1687,9 @@ LRESULT SearchFrame::onDoubleClickResults(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*
 	}
 	return 0;
 }
-
 LRESULT SearchFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL & bHandled)
 {
+	m_before_close = true;
 	CWaitCursor l_cursor_wait;
 	if (!m_closed)
 	{
@@ -1704,6 +1706,9 @@ LRESULT SearchFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 		}
 		SearchManager::getInstance()->removeListener(this);
 		g_frames.erase(m_hWnd);
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
+		waitForFlyServerStop();
+#endif
 		ctrlResults.DeleteAndClearAllItems();
 		clearPausedResults();
 		ctrlHubs.DeleteAndCleanAllItems(); // [!] IRainman
@@ -1711,9 +1716,6 @@ LRESULT SearchFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 		                            SettingsManager::SEARCHFRAME_VISIBLE);
 		SET_SETTING(SEARCH_COLUMNS_SORT, ctrlResults.getSortColumn());
 		SET_SETTING(SEARCH_COLUMNS_SORT_ASC, ctrlResults.isAscending());
-#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-		waitForFlyServerStop();
-#endif
 		PostMessage(WM_CLOSE);
 		return 0;
 	}
@@ -2338,12 +2340,8 @@ LRESULT SearchFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 			int n = 1;
 			//{ [!] IRainman TODO.
 			//Append favorite download dirs
-#ifdef IRAINMAN_NON_COPYABLE_FAV_DIRS
 			FavoriteManager::LockInstanceDirs lockedInstance;
-			const auto& spl = lockedInstance.getFavoriteDirs();
-#else
-			const auto spl = FavoriteManager::getInstance()->getFavoriteDirs();
-#endif
+			const auto& spl = lockedInstance.getFavoriteDirsL();
 			if (!spl.empty())
 			{
 				for (auto i = spl.cbegin(); i != spl.cend(); ++i)
@@ -2517,7 +2515,7 @@ void SearchFrame::initHubs()
 		}
 #else
 		ClientManager::HubInfoArray l_hub_info;
-		ClientManager::getInstance()->getConnectedHubInfo(l_hub_info);
+		ClientManager::getConnectedHubInfo(l_hub_info);
 		for (auto i = l_hub_info.cbegin(); i != l_hub_info.cend(); ++i)
 		{
 			onHubAdded(new HubInfo(Text::toT(i->m_hub_url), Text::toT(i->m_hub_name), i->m_is_op));

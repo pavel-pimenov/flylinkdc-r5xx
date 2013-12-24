@@ -31,31 +31,17 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 {
 	public:
 	
-		enum TypeModes
-		{
-			TYPE_ANY = 0,
-			TYPE_AUDIO,
-			TYPE_COMPRESSED,
-			TYPE_DOCUMENT,
-			TYPE_EXECUTABLE,
-			TYPE_PICTURE,
-			TYPE_VIDEO,
-			TYPE_DIRECTORY,
-			TYPE_TTH,
-			TYPE_CD_IMAGE, //[+] от flylinkdc++
-			TYPE_LAST
-		};
 	public:
 		static const char* getTypeStr(int type);
 		
-		void search(const string& aName, int64_t aSize, TypeModes aTypeMode, Search::SizeModes aSizeMode, const string& aToken, void* aOwner = nullptr);
-		void search(const string& aName, const string& aSize, TypeModes aTypeMode, Search::SizeModes aSizeMode, const string& aToken, void* aOwner = nullptr)
+		void search(const string& aName, int64_t aSize, Search::TypeModes aTypeMode, Search::SizeModes aSizeMode, const string& aToken, void* aOwner = nullptr);
+		void search(const string& aName, const string& aSize, Search::TypeModes aTypeMode, Search::SizeModes aSizeMode, const string& aToken, void* aOwner = nullptr)
 		{
 			search(aName, Util::toInt64(aSize), aTypeMode, aSizeMode, aToken, aOwner);
 		}
 		
-		uint64_t search(const StringList& who, const string& aName, int64_t aSize, TypeModes aTypeMode, Search::SizeModes aSizeMode, const string& aToken, const StringList& aExtList, void* aOwner = nullptr);
-		uint64_t search(const StringList& who, const string& aName, const string& aSize, TypeModes aTypeMode, Search::SizeModes aSizeMode, const string& aToken, const StringList& aExtList, void* aOwner = nullptr)
+		uint64_t search(const StringList& who, const string& aName, int64_t aSize, Search::TypeModes aTypeMode, Search::SizeModes aSizeMode, const string& aToken, const StringList& aExtList, void* aOwner = nullptr);
+		uint64_t search(const StringList& who, const string& aName, const string& aSize, Search::TypeModes aTypeMode, Search::SizeModes aSizeMode, const string& aToken, const StringList& aExtList, void* aOwner = nullptr)
 		{
 			return search(who, aName, Util::toInt64(aSize), aTypeMode, aSizeMode, aToken, aExtList, aOwner);
 		}

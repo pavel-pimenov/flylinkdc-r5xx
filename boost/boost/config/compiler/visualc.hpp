@@ -178,13 +178,9 @@
 #  define BOOST_NO_CXX11_RAW_LITERALS
 #  define BOOST_NO_CXX11_TEMPLATE_ALIASES
 #  define BOOST_NO_CXX11_TRAILING_RESULT_TYPES
+#  define BOOST_NO_CXX11_VARIADIC_TEMPLATES
 #  define BOOST_NO_CXX11_UNIFIED_INITIALIZATION_SYNTAX
 #endif
-
-// variadic templates are supposed to be supported by VC++ 12
-// but VC++ 12 RC variadic support is causing boost regression
-// test failures for signals2 and several of its dependencies.
-#define BOOST_NO_CXX11_VARIADIC_TEMPLATES
 
 // C++11 features not supported by any versions
 #define BOOST_NO_CXX11_CHAR16_T
@@ -230,8 +226,10 @@
 #     define BOOST_COMPILER_VERSION evc9
 #   elif _MSC_VER < 1700
 #     define BOOST_COMPILER_VERSION evc10
-#   elif _MSC_VER < 1800
-#     define BOOST_COMPILER_VERSION evc11
+#   elif _MSC_VER < 1800 
+#     define BOOST_COMPILER_VERSION evc11 
+#   elif _MSC_VER < 1900 
+#     define BOOST_COMPILER_VERSION evc12
 #   else
 #      if defined(BOOST_ASSERT_CONFIG)
 #         error "Unknown EVC++ compiler version - please run the configure tests and report the results"

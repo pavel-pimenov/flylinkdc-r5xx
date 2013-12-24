@@ -92,7 +92,7 @@ LRESULT MiscPage::onIgnoreAdd(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWnd
 		const auto& p = m_ignoreList.insert(Text::fromT(buf));
 		if (p.second)
 		{
-			ignoreListCtrl.insert(ignoreListCtrl.GetItemCount(), std::move(buf));
+			ignoreListCtrl.insert(ignoreListCtrl.GetItemCount(), buf);
 		}
 		else
 		{

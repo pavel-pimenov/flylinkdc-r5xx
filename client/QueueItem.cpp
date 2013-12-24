@@ -215,7 +215,7 @@ void QueueItem::addSourceL(const UserPtr& aUser)
 	SourceIter i = getBadSourceL(aUser);
 	if (i != m_badSources.end())
 	{
-		m_sources.insert(std::move(*i)); // [!] IRainman opt: use move semantics.
+		m_sources.insert(*i);
 		m_badSources.erase(i->first);
 	}
 	else
@@ -269,16 +269,16 @@ void QueueItem::removeSourceL(const UserPtr& aUser, Flags::MaskType reason)
 	// [-] IRainman fix: is not possible in normal state! Please don't problem maskerate.
 //	if (i != m_sources.end()) //[+]PPA
 //	{
-		i->second.setFlag(reason);
-		m_badSources.insert(*i);
-		m_sources.erase(i);
+	i->second.setFlag(reason);
+	m_badSources.insert(*i);
+	m_sources.erase(i);
 //	}
 //	else
 //	{
 //		LogManager::getInstance()->message("Error QueueItem::removeSourceL [i != m_sources.end()] aUser = [" +
 //		                                   aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
 //	}
-	}
+}
 string QueueItem::getListName() const
 {
 	dcassert(isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_DCLST_LIST));
@@ -345,7 +345,7 @@ bool QueueItem::removeDownloadL(const UserPtr& p_user)
 	m_downloads.erase(p_user);
 	dcassert(l_size_before != m_downloads.size());
 	return l_size_before != m_downloads.size();
-		}
+}
 Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wantedSize, const int64_t lastSpeed, const PartialSource::Ptr &partialSource) const
 {
 	if (getSize() == -1 || blockSize == 0)
@@ -640,12 +640,19 @@ void QueueItem::addSegmentL(const Segment& segment)
 #endif
 	dcassert(segment.getOverlapped() == false);
 	done.insert(segment);
-	setDirty(); //[+] FlylinkDC++
-	
+#ifdef _DEBUG
+	LogManager::getInstance()->message("QueueItem::addSegmentL, setDirty = true! id = " +
+	                                   Util::toString(this->getFlyQueueID()) + " target = " + this->getTarget()
+	                                   + " TempTarget = " + this->getTempTarget()
+	                                   + " segment.getSize() = " + Util::toString(segment.getSize())
+	                                   + " segment.getEnd() = " + Util::toString(segment.getEnd())
+	                                  );
+#endif
 	// Consolidate segments
 	if (done.size() == 1)
 		return;
-		
+	setDirty();
+	
 	for (auto i = ++done.cbegin() ; i != done.cend();)
 	{
 		SegmentSet::iterator prev = i;
@@ -668,7 +675,7 @@ bool QueueItem::isNeededPartL(const PartsInfo& partsInfo, int64_t blockSize)
 {
 	dcassert(partsInfo.size() % 2 == 0);
 	
-	SegmentConstIter i  = done.begin();
+	auto i  = done.begin();
 	for (auto j = partsInfo.cbegin(); j != partsInfo.cend(); j += 2)
 	{
 		while (i != done.end() && (*i).getEnd() <= (*j) * blockSize)

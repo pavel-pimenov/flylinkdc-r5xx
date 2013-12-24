@@ -193,7 +193,7 @@ void CDMDebugFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		               SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
-void CDMDebugFrame::addLine(DebugTask && task) // [!] IRainman opt: use move semantics.
+void CDMDebugFrame::addLine(DebugTask& task)
 {
 	if (ctrlPad.GetWindowTextLength() > MAX_TEXT_LEN)
 	{
@@ -288,7 +288,7 @@ int CDMDebugFrame::run()
 			m_cmdList.pop_front();
 		}
 		
-		addLine(std::move(task)); // [!] opt: use move semantics.
+		addLine(task);
 	}
 	// [~] IRainman.
 	return 0;

@@ -75,26 +75,26 @@ AdcHub::~AdcHub()
 }
 void AdcHub::getUserList(OnlineUserList& p_list) const
 {
-			FastLock l(cs);
-			for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
-			{
-				if (i->first != AdcCommand::HUB_SID)
-				{
-					p_list.push_back(i->second);
-				}
-			}
+	FastLock l(cs);
+	for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
+	{
+		if (i->first != AdcCommand::HUB_SID)
+		{
+			p_list.push_back(i->second);
+		}
+	}
 }
 OnlineUserPtr AdcHub::findUser(const string& aNick) const
 {
-			FastLock l(cs);
-			for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
-			{
-				if (i->second->getIdentity().getNick() == aNick)
-				{
-					return i->second;
-				}
-			}
-			return nullptr;
+	FastLock l(cs);
+	for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
+	{
+		if (i->second->getIdentity().getNick() == aNick)
+		{
+			return i->second;
+		}
+	}
+	return nullptr;
 }
 
 OnlineUserPtr AdcHub::getUser(const uint32_t aSID, const CID& aCID)
@@ -126,7 +126,7 @@ OnlineUserPtr AdcHub::getUser(const uint32_t aSID, const CID& aCID)
 	// [~] IRainman fix.
 	else // User
 	{
-		UserPtr u = ClientManager::getInstance()->getUser(aCID);
+		UserPtr u = ClientManager::getUser(aCID);
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		u->setHubID(getHubID());
 #endif
@@ -1230,7 +1230,7 @@ StringList AdcHub::parseSearchExts(int flag)
 	}
 	return ret;
 }
-void AdcHub::search(Search::SizeModes aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, const StringList& aExtList)
+void AdcHub::search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList)
 {
 	if (state != STATE_NORMAL
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
@@ -1244,7 +1244,7 @@ void AdcHub::search(Search::SizeModes aSizeMode, int64_t aSize, int aFileType, c
 	if (!aToken.empty())
 		c.addParam("TO", aToken);
 		
-	if (aFileType == SearchManager::TYPE_TTH)
+	if (aFileType == Search::TYPE_TTH)
 	{
 		c.addParam("TR", aString);
 	}
@@ -1265,7 +1265,7 @@ void AdcHub::search(Search::SizeModes aSizeMode, int64_t aSize, int aFileType, c
 			c.addParam("AN", *i);
 		}
 		
-		if (aFileType == SearchManager::TYPE_DIRECTORY)
+		if (aFileType == Search::TYPE_DIRECTORY)
 		{
 			c.addParam("TY", "2");
 		}

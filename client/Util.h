@@ -1522,21 +1522,6 @@ class BackgroundTaskExecuter : public BASE_THREAD
 			}
 			startThread();
 		}
-		
-		void addTask(const TASK_TYPE && toAdd)
-		{
-			dcassert(!m_stop);
-			{
-				FastLock l(m_csTasks);
-				m_tasks.push_front(std::move(toAdd));
-				if (m_active)
-					return;
-					
-				m_active = true;
-			}
-			startThread();
-		}
-		
 		void forceStop()
 		{
 			m_stop = true;
@@ -1614,10 +1599,10 @@ class BackgroundTaskExecuter : public BASE_THREAD
 					std::swap(next, m_tasks.back());
 					m_tasks.pop_back();
 				}
-				execute(std::move(next));
+				execute(next);
 			}
 		}
-		virtual void execute(const TASK_TYPE && toExecute) = NULL;
+		virtual void execute(const TASK_TYPE & toExecute) = 0;
 		typedef list<const TASK_TYPE> TaskList;
 		volatile bool m_stop;
 		volatile bool m_active;

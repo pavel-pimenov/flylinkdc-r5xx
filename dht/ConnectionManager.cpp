@@ -58,7 +58,7 @@ void ConnectionManager::connect(const Node::Ptr& node, const string& token, bool
 		return;
 	}
 	
-	const bool active = ClientManager::getInstance()->isActive(nullptr);
+	const bool active = ClientManager::isActive(nullptr);
 	
 	// if I am not active, send reverse connect to me request
 	AdcCommand cmd(active ? AdcCommand::CMD_CTM : AdcCommand::CMD_RCM, AdcCommand::TYPE_UDP);
@@ -122,7 +122,7 @@ void ConnectionManager::connectToMe(const Node::Ptr& p_node, const AdcCommand& p
 void ConnectionManager::revConnectToMe(const Node::Ptr& node, const AdcCommand& cmd)
 {
 	// this is valid for active-passive connections only
-	if (!ClientManager::getInstance()->isActive(nullptr))
+	if (!ClientManager::isActive(nullptr))
 		return;
 		
 	const string& protocol = cmd.getParam(1);

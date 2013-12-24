@@ -38,7 +38,6 @@ struct CFlyUserRatioInfo : public CFlyRatioItem
 #endif
 {
 	private:
-		static FastCriticalSection g_cs;
 		User*  m_user;
 	public:
 		CFlyUploadDownloadMap* m_ip_map_ptr;
@@ -57,7 +56,7 @@ struct CFlyUserRatioInfo : public CFlyRatioItem
 		bool try_load_ratio(const boost::asio::ip::address_v4& p_last_ip_from_sql);
 		void addUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
 		void addDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
-		void flushRatio();
+		void flushRatioL();
 		void setDirty(bool p_value)
 		{
 			m_is_dirty = p_value;

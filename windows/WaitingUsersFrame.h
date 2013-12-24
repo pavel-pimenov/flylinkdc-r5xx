@@ -37,6 +37,7 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 	, virtual NonDerivable<WaitingUsersFrame>, boost::noncopyable // [+] IRainman fix.
 #endif
 {
+		typedef UserInfoBaseHandler<WaitingUsersFrame> uiBase;
 	public:
 		DECLARE_FRAME_WND_CLASS_EX(_T("WaitingUsersFrame"), IDR_UPLOAD_QUEUE, 0, COLOR_3DFACE);
 		
@@ -71,14 +72,15 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		MESSAGE_HANDLER(WM_SPEAKER, onSpeaker)
 		COMMAND_HANDLER(IDC_REMOVE, BN_CLICKED, onRemove)
 		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow) // [+] InfinitySky.
-		NOTIFY_HANDLER(IDC_UPLOAD_QUEUE, LVN_GETDISPINFO, ctrlList.onGetDispInfo)
-		NOTIFY_HANDLER(IDC_UPLOAD_QUEUE, LVN_COLUMNCLICK, ctrlList.onColumnClick)
+		NOTIFY_HANDLER(IDC_UPLOAD_QUEUE, LVN_GETDISPINFO, m_ctrlList.onGetDispInfo)
+		NOTIFY_HANDLER(IDC_UPLOAD_QUEUE, LVN_COLUMNCLICK, m_ctrlList.onColumnClick)
 		NOTIFY_HANDLER(IDC_UPLOAD_QUEUE, NM_CUSTOMDRAW, onCustomDraw)
 //      NOTIFY_HANDLER(IDC_UPLOAD_QUEUE, LVN_ITEMCHANGED, onItemChangedQueue)
 		NOTIFY_HANDLER(IDC_UPLOAD_QUEUE, LVN_KEYDOWN, onKeyDown)
 		NOTIFY_HANDLER(IDC_DIRECTORIES, TVN_SELCHANGED, onItemChanged)
 		NOTIFY_HANDLER(IDC_DIRECTORIES, TVN_KEYDOWN, onKeyDownDirs)
 		
+		CHAIN_COMMANDS(uiBase) // fix http://code.google.com/p/flylinkdc/issues/detail?id=1406
 		CHAIN_MSG_MAP(splitBase)
 		CHAIN_MSG_MAP(baseClass)
 		ALT_MSG_MAP(SHOWTREE_MESSAGE_MAP)
@@ -142,7 +144,7 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 			NMLVKEYDOWN* kd = (NMLVKEYDOWN*) pnmh;
 			if (kd->wVKey == VK_DELETE)
 			{
-				if (ctrlList.getSelectedCount())
+				if (m_ctrlList.getSelectedCount())
 				{
 					removeSelected();
 				}
@@ -160,24 +162,7 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 			return 0;
 		}
 		
-		void removeSelected()
-		{
-			int i = -1;
-			UserList RemoveUsers;
-			while ((i = ctrlList.GetNextItem(i, LVNI_SELECTED)) != -1)
-			{
-				// Ok let's cheat here, if you try to remove more users here is not working :(
-				RemoveUsers.push_back(((UploadQueueItemInfo*)ctrlList.getItemData(i))->getQi()->getUser());
-			}
-			{
-				UploadManager::LockInstanceQueue lockedInstance; // [+] IRainman opt.
-				for (auto i = RemoveUsers.cbegin(); i != RemoveUsers.cend(); ++i)
-				{
-					lockedInstance->clearUserFilesL(*i);
-				}
-			}
-			m_needsUpdateStatus = true; // [!] IRainman opt.
-		}
+		void removeSelected();
 		
 		void removeSelectedUser()
 		{
@@ -204,12 +189,12 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		
 		UserList UQFUsers;
 		
-		typedef TypedListViewCtrl<UploadQueueItemInfo, IDC_UPLOAD_QUEUE> CtrlList;
-		CtrlList ctrlList;
+		typedef TypedListViewCtrl<UploadQueueItem, IDC_UPLOAD_QUEUE> CtrlList;
+		CtrlList m_ctrlList;
 	public:
 		CtrlList& getUserList() // [+] IRainman fix: add user menu.
 		{
-			return ctrlList;
+			return m_ctrlList;
 		}
 	private:
 		CTreeViewCtrl ctrlQueued;

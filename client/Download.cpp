@@ -57,7 +57,8 @@ lastNormalSpeed(0),
 		
 	// TODO: убрать флажки после рефакторинга, ибо они всё равно бесполезны https://code.google.com/p/flylinkdc/issues/detail?id=1028
 	const bool l_is_type_file = getType() == TYPE_FILE && qi->getSize() != -1;
-	const bool l_is_check_tth = l_is_type_file && CFlylinkDBManager::getInstance()->getTree(getTTH(), getTigerTree());
+	// TODO http://code.google.com/p/flylinkdc/issues/detail?id=1418
+	const bool l_is_check_tth = l_is_type_file && CFlylinkDBManager::getInstance()->getTree(getTTH(), getTigerTree()); // Часто дублируется Вызов
 	// ~TODO
 	
 	UniqueLock l(QueueItem::cs); // [+] IRainman fix.

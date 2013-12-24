@@ -60,7 +60,7 @@ bool SSLSocket::waitConnected(uint64_t millis)
 		if (!ssl)
 			checkSSL(-1);
 			
-		checkSSL(SSL_set_fd(ssl, sock));
+		checkSSL(SSL_set_fd(ssl, m_sock));
 	}
 	
 	if (SSL_is_init_finished(ssl))
@@ -106,7 +106,7 @@ bool SSLSocket::waitAccepted(uint64_t millis)
 		if (!ssl)
 			checkSSL(-1);
 			
-		checkSSL(SSL_set_fd(ssl, sock));
+		checkSSL(SSL_set_fd(ssl, m_sock));
 	}
 	
 	if (SSL_is_init_finished(ssl))

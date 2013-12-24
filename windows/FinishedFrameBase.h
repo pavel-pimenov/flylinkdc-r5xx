@@ -60,7 +60,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		COMMAND_ID_HANDLER(IDC_GETLIST, onGetList)
 		COMMAND_ID_HANDLER(IDC_GRANTSLOT, onGrant)
 		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow) // [+] InfinitySky.
-		NOTIFY_HANDLER(id, LVN_GETDISPINFO, ctrlList.onGetDispInfo)
+		NOTIFY_HANDLER(id, LVN_GETDISPINFO, ctrlList.onGetDispInfo) // https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=47103 + http://www.flickr.com/photos/96019675@N02/11198858144/
 		NOTIFY_HANDLER(id, LVN_COLUMNCLICK, ctrlList.onColumnClick)
 		NOTIFY_HANDLER(id, LVN_KEYDOWN, onKeyDown)
 		NOTIFY_HANDLER(id, NM_DBLCLK, onDoubleClick)
@@ -176,7 +176,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				case SPEAK_ADD_LINE:
 				{
 					FinishedItem* entry = reinterpret_cast<FinishedItem*>(lParam);
-					addEntry(entry);
+					addEntry(entry); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=110193 + http://www.flickr.com/photos/96019675@N02/11199325634/
 					if (SettingsManager::get(boldFinished))
 						setDirty();
 					updateStatus();
@@ -185,7 +185,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				case SPEAK_REMOVE_LINE: // [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
 				{
 					FinishedItem* entry = reinterpret_cast<FinishedItem*>(lParam);
-					delete entry;
+					delete entry; // Возможно тут падает из-за этого https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=47103
 					
 					/* TODO remove from the frame
 					const int i = ctrlList.findItem( MagicFunction(entry) );
@@ -355,7 +355,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			{
 				if (const ItemInfo *ii = ctrlList.getItemData(i))
 				{
-					const UserPtr u = ClientManager::getInstance()->findUser(ii->entry->getCID());
+					const UserPtr u = ClientManager::findUser(ii->entry->getCID());
 					if (u && u->isOnline())
 					{
 						try // [+] IRainman fix done: [4] https://www.box.net/shared/0ac062dcc56424091537
@@ -387,7 +387,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			{
 				if (const ItemInfo *ii = ctrlList.getItemData(i))
 				{
-					const UserPtr u = ClientManager::getInstance()->findUser(ii->entry->getCID());
+					const UserPtr u = ClientManager::findUser(ii->entry->getCID());
 					if (u && u->isOnline())
 					{
 						UploadManager::getInstance()->reserveSlot(HintedUser(u, ii->entry->getHub()), 600);
@@ -536,7 +536,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			const ItemInfo *ii = new ItemInfo(entry);
 			totalBytes += entry->getSize();
 			totalSpeed += entry->getAvgSpeed();
-			int loc = ctrlList.insertItem(ii, I_IMAGECALLBACK);
+			const int loc = ctrlList.insertItem(ii, ii->getImageIndex()); // fix I_IMAGECALLBACK https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=47103
 			ctrlList.EnsureVisible(loc, FALSE);
 		}
 		

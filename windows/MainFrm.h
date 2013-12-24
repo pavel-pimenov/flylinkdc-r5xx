@@ -658,6 +658,8 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		bool qtbarcreated; // [+]Drakon
 		
 		bool m_bTrayIcon;
+		uint8_t m_TuneSplitCount;
+		int tuneTransferSplit();
 		bool m_bIsPM;
 		static bool g_bAppMinimized;
 		

@@ -1067,8 +1067,8 @@ LRESULT HubFrame::onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 				// TODO translate
 				sCopy += "User info:\r\n"
 				         "\t" + STRING(NICK) + ": " + id.getNick() + "\r\n" +
-				         "\tNicks: " + Util::toString(ClientManager::getInstance()->getNicks(u->getCID(), Util::emptyString)) + "\r\n" +
-				         "\t" + STRING(HUBS) + ": " + Util::toString(ClientManager::getInstance()->getHubs(u->getCID(), Util::emptyString)) + "\r\n" +
+				         "\tNicks: " + Util::toString(ClientManager::getNicks(u->getCID(), Util::emptyString)) + "\r\n" +
+				         "\t" + STRING(HUBS) + ": " + Util::toString(ClientManager::getHubs(u->getCID(), Util::emptyString)) + "\r\n" +
 				         "\t" + STRING(SHARED) + ": " + Identity::formatShareBytes(u->getBytesShared()) + (u->isNMDC() ? Util::emptyString : "(" + STRING(SHARED_FILES) + ": " + Util::toString(id.getSharedFiles()) + ")") + "\r\n" +
 				         "\t" + STRING(DESCRIPTION) + ": " + id.getDescription() + "\r\n" +
 				         "\t" + STRING(APPLICATION) + ": " + id.getApplication() + "\r\n";
@@ -1140,7 +1140,7 @@ LRESULT HubFrame::onDoubleClickUsers(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
 					l_ui->matchQueue();
 					break;
 				case 4:
-					l_ui->grant(getHubHint());
+					l_ui->grantSlotPeriod(getHubHint(), 600);
 					break;
 				case 5:
 					l_ui->addFav();
@@ -1173,11 +1173,11 @@ bool HubFrame::updateUser(const OnlineUserTask& u)
 			if (m_showUsers)// [+] IRainman optimization
 			{
 				//dcassert(!client->is_all_my_info_loaded());
-				if(client->is_all_my_info_loaded())
+				if (client->is_all_my_info_loaded())
 				{
-				  m_needsResort |= ui->is_update(ctrlUsers.getSortColumn()); // [+] IRainman fix.
+					m_needsResort |= ui->is_update(ctrlUsers.getSortColumn()); // [+] IRainman fix.
 				}
-			    InsertUserList(ui); // [!] IRainman fix.
+				InsertUserList(ui); // [!] IRainman fix.
 			}
 			return true;
 #ifdef IRAINMAN_USE_HIDDEN_USERS
@@ -1207,17 +1207,40 @@ bool HubFrame::updateUser(const OnlineUserTask& u)
 			if (m_showUsers)// [+] IRainman opt.
 			{
 				//dcassert(!client->is_all_my_info_loaded());
-				if(client->is_all_my_info_loaded())
+				// [!] TODO if (client->is_all_my_info_loaded()) // TODO нельзя тут отключать иначе глючит обновления своего ника если хаб PtoX у самого себя шара = 0
 				{
-				PROFILE_THREAD_SCOPED_DESC("HubFrame::updateUser-update")
-				m_needsResort |= ui->is_update(ctrlUsers.getSortColumn());
-				const int pos = ctrlUsers.findItem(ui); // TODO 2012-04-18_11-17-28_X543EFD4NB3G3HWBA6SW4KHRQKUBPK5V5S7ZMGY_803AF4F1_crash-stack-r502-beta18-build-9768.dmp
-				if (pos != -1)
-				{
-					ctrlUsers.updateItem(pos);
-					ctrlUsers.SetItem(pos, 0, LVIF_IMAGE, NULL, I_IMAGECALLBACK, 0, 0, NULL); // TODO это нужно?
+					PROFILE_THREAD_SCOPED_DESC("HubFrame::updateUser-update")
+					m_needsResort |= ui->is_update(ctrlUsers.getSortColumn());
+					const int pos = ctrlUsers.findItem(ui); // TODO 2012-04-18_11-17-28_X543EFD4NB3G3HWBA6SW4KHRQKUBPK5V5S7ZMGY_803AF4F1_crash-stack-r502-beta18-build-9768.dmp
+					if (pos != -1)
+					{
+					
+						const int l_top_index      = ctrlUsers.GetTopIndex();
+						if (pos >= l_top_index && pos <= l_top_index + ctrlUsers.GetCountPerPage()) // TODO ctrlUsers.GetCountPerPage() закешировать?
+						{
+#if 0
+							const int l_item_count = ctrlUsers.GetItemCount();
+							
+							LogManager::getInstance()->message("[!!!!!!!!!!!] bool HubFrame::updateUser! ui->getUser()->getLastNick() = " + ui->getUser()->getLastNick()
+							                                   + " top/count_per_page/all_count = " +
+							                                   Util::toString(l_top_index) + "/" +
+							                                   Util::toString(ctrlUsers.GetCountPerPage()) + "/" +
+							                                   Util::toString(l_item_count) + "  pos =" + Util::toString(pos)
+							                                  );
+#endif
+							ctrlUsers.updateItem(pos); // TODO - проверить что позиция видна?
+							// ctrlUsers.SetItem(pos, 0, LVIF_IMAGE, NULL, I_IMAGECALLBACK, 0, 0, NULL); // TODO это нужно?
+						}
+#if 0
+						else
+						{
+						
+							LogManager::getInstance()->message("[///////] bool HubFrame::updateUser! ui->getUser()->getLastNick() = " + ui->getUser()->getLastNick()
+							                                   + " ! pos >= l_top_index && pos <= l_top_index + l_count_per_page pos = " + Util::toString(pos));
+						}
+#endif
+					}
 				}
-			}
 			}
 			return false;
 #ifdef IRAINMAN_USE_HIDDEN_USERS
@@ -1268,6 +1291,9 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 	m_spoken = true; // [+] IRainman opt.
 	TaskQueue::List t;
 	m_tasks.get(t);
+#ifdef _DEBUG
+	//LogManager::getInstance()->message("LRESULT HubFrame::onSpeaker: m_tasks.size() = " + Util::toString(t.size()));
+#endif
 	
 	CLockRedraw<> l_lock_draw(ctrlUsers);
 	
@@ -1294,19 +1320,18 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 						{
 							const Identity& id = u.getOnlineUser()->getIdentity();
 							const UserPtr& user = u.getOnlineUser()->getUser();
-							const tstring l_nick = Text::toT(id.getNick());
 							const bool isFavorite = !FavoriteManager::getInstance()->isNoFavUserOrUserBanUpload(user); // [!] TODO: в ядро!
 							if (isFavorite)
 							{
 								PLAY_SOUND(SOUND_FAVUSER);
-								SHOW_POPUP(POPUP_FAVORITE_CONNECTED, l_nick + _T(" - ") + Text::toT(client->getHubName()), TSTRING(FAVUSER_ONLINE));
+								SHOW_POPUP(POPUP_FAVORITE_CONNECTED, id.getNickT() + _T(" - ") + Text::toT(client->getHubName()), TSTRING(FAVUSER_ONLINE));
 							}
 							
 							if (!(id.isBot() || id.isHub())) // [+] IRainman fix: no show has come/gone for bots, and a hub.
 							{
 								if (m_showJoins || (m_favShowJoins && isFavorite))
 								{
-									BaseChatFrame::addLine(_T("*** ") + TSTRING(JOINS) + _T(' ') + l_nick, Colors::g_ChatTextSystem);
+									BaseChatFrame::addLine(_T("*** ") + TSTRING(JOINS) + _T(' ') + id.getNickT(), Colors::g_ChatTextSystem);
 								}
 							}
 						}
@@ -1385,6 +1410,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 				{
 					m_window_text = l_new_text;
 					++m_is_window_text_update;
+					SetMDIFrameMenu(); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1386
 				}
 				updateWindowText();
 			}
@@ -1394,18 +1420,21 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 				dcassert(!ClientManager::isShutdown());
 				if (m_ctrlStatus)
 				{
-//				PROFILE_THREAD_SCOPED_DESC("STATS")
-					const int64_t l_availableBytes = client->getAvailableBytes();
-					const size_t l_allUsers = client->getUserCount();
-					const size_t l_shownUsers = ctrlUsers.GetItemCount();
-					const size_t l_diff = l_allUsers - l_shownUsers;
-					setStatusText(2, (Util::toStringW(l_shownUsers) + (l_diff ? (_T('/') + Util::toStringW(l_allUsers)) : Util::emptyStringT) + _T(' ') + TSTRING(HUB_USERS)));
-					setStatusText(3, Util::formatBytesW(l_availableBytes));
-					setStatusText(4, l_allUsers ? (Util::formatBytesW(l_availableBytes / l_allUsers) + _T('/') + TSTRING(USER)) : Util::emptyStringT);
-					if (m_needsResort)
+					if (client->is_all_my_info_loaded() == true)
 					{
-						m_needsResort = false;
-						ctrlUsers.resort(); // убран ресорт если окно не активное!
+//				PROFILE_THREAD_SCOPED_DESC("STATS")
+						const int64_t l_availableBytes = client->getAvailableBytes();
+						const size_t l_allUsers = client->getUserCount();
+						const size_t l_shownUsers = ctrlUsers.GetItemCount();
+						const size_t l_diff = l_allUsers - l_shownUsers;
+						setStatusText(2, (Util::toStringW(l_shownUsers) + (l_diff ? (_T('/') + Util::toStringW(l_allUsers)) : Util::emptyStringT) + _T(' ') + TSTRING(HUB_USERS)));
+						setStatusText(3, Util::formatBytesW(l_availableBytes));
+						setStatusText(4, l_allUsers ? (Util::formatBytesW(l_availableBytes / l_allUsers) + _T('/') + TSTRING(USER)) : Util::emptyStringT);
+						if (m_needsResort)
+						{
+							m_needsResort = false;
+							ctrlUsers.resort(); // убран ресорт если окно не активное!
+						}
 					}
 				}
 			}
@@ -2090,7 +2119,7 @@ LRESULT HubFrame::onLButton(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& b
 						ui->matchQueue();
 						break;
 					case 5:
-						ui->grant(getHubHint());
+						ui->grantSlotPeriod(getHubHint(), 600);
 						break;
 					case 6:
 						ui->addFav();
@@ -2488,7 +2517,7 @@ void HubFrame::firstLoadAllUsers()
 LRESULT HubFrame::onShowUsers(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 {
 	bHandled = FALSE;
-	if (m_ActivateCounter > 1)
+	if (m_ActivateCounter >= 1)
 	{
 		if (wParam == BST_CHECKED)
 		{
@@ -2522,7 +2551,7 @@ LRESULT HubFrame::onFollow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/,
 	if (!m_redirect.empty())
 	{
 		const string l_redirect = Text::fromT(m_redirect);
-		if (ClientManager::getInstance()->isConnected(l_redirect))
+		if (ClientManager::isConnected(l_redirect))
 		{
 			addStatus(TSTRING(REDIRECT_ALREADY_CONNECTED), true, false, Colors::g_ChatTextServer);
 			return 0;
@@ -2680,7 +2709,7 @@ void HubFrame::on(Connecting, const Client*) noexcept
 {
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	bool bWantAutodetect = false;
-	if (!ClientManager::getInstance()->isActive(client->getHubUrl(), &bWantAutodetect))
+	if (!ClientManager::isActive(client->getHubUrl(), &bWantAutodetect))
 	{
 		if (bWantAutodetect)
 			BaseChatFrame::addLine(_T("[!]FlylinkDC++ ") + _T("Detecting connection type: work in passive mode until direct mode is detected"), Colors::g_ChatTextSystem);
@@ -2710,6 +2739,9 @@ void HubFrame::on(ClientListener::UserUpdated, const Client*, const OnlineUserPt
 	if (!ClientManager::isShutdown())
 	{
 		speak(UPDATE_USER_JOIN, user);
+#ifdef _DEBUG
+//		LogManager::getInstance()->message("[single OnlineUserPtr] void HubFrame::on(ClientListener::UserUpdated nick = " + user->getUser()->getLastNick());
+#endif
 		ChatBot::getInstance()->onUserAction(BotInit::RECV_UPDATE, user->getUser());
 	}
 }
@@ -2719,11 +2751,14 @@ void HubFrame::on(StatusMessage, const Client*, const string& line, int statusFl
 	speak(ADD_STATUS_LINE, Text::toDOS(line), !BOOLSETTING(FILTER_MESSAGES) || !(statusFlags & ClientListener::FLAG_IS_SPAM));
 }
 
-void HubFrame::on(UsersUpdated, const Client*, const OnlineUserList& aList) noexcept
+void HubFrame::on(ClientListener::UsersUpdated, const Client*, const OnlineUserList& aList) noexcept
 {
 	for (auto i = aList.cbegin(); i != aList.cend(); ++i)
 	{
 		speak(UPDATE_USER, *i); // !SMT!-fix
+#ifdef _DEBUG
+//		LogManager::getInstance()->message("[array OnlineUserPtr] void HubFrame::on(UsersUpdated nick = " + (*i)->getUser()->getLastNick());
+#endif
 		ChatBot::getInstance()->onUserAction(BotInit::RECV_UPDATE, (*i)->getUser());
 	}
 }
@@ -2737,7 +2772,7 @@ void HubFrame::on(ClientListener::UserRemoved, const Client*, const OnlineUserPt
 void HubFrame::on(Redirect, const Client*, const string& line) noexcept
 {
 	const auto redirAdr = Util::formatDchubUrl(line); // [+] IRainman fix http://code.google.com/p/flylinkdc/issues/detail?id=1237
-	if (ClientManager::getInstance()->isConnected(redirAdr))
+	if (ClientManager::isConnected(redirAdr))
 	{
 		speak(ADD_STATUS_LINE, STRING(REDIRECT_ALREADY_CONNECTED), true);
 		return;
@@ -3444,7 +3479,7 @@ LRESULT HubFrame::onSizeMove(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 
 LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 {
-	dcassert(g_isStartupProcess != true);
+	//dcassert(g_isStartupProcess != true);
 	if (g_isStartupProcess == true)
 	{
 		return CDRF_DODEFAULT;

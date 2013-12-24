@@ -91,7 +91,7 @@ void FavHubGroupsDlg::save()
 		group.priv = getText(1, i) == TSTRING(YES);
 		groups.insert(make_pair(name, group));
 	}
-	FavoriteManager::getInstance()->setFavHubGroups(std::move(groups));
+	FavoriteManager::getInstance()->setFavHubGroups(groups);
 	FavoriteManager::getInstance()->save();
 }
 

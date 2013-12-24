@@ -49,6 +49,7 @@ class UserInfoSimple: public UserInfoBase
 		const UserPtr&  m_user;
 };
 
+#if 0 // http://code.google.com/p/flylinkdc/issues/detail?id=1413
 class UploadQueueItemInfo : public UserInfoBase // [<-] IRainman fix: moved from kernel and cleanup.
 	, public ColumnBase< 12 >
 #ifdef _DEBUG
@@ -61,7 +62,7 @@ class UploadQueueItemInfo : public UserInfoBase // [<-] IRainman fix: moved from
 			m_queueItem->inc();
 			{
 				int dummy_param_limit;
-				if (ClientManager::getInstance()->getUserParams(getQi()->getHintedUser(), m_share, m_slots, dummy_param_limit, m_ip)) // [!] IRainman opt.
+				if (ClientManager::getUserParams(getQi()->getHintedUser(), m_share, m_slots, dummy_param_limit, m_ip)) // [!] IRainman opt.
 				{
 #ifdef PPA_INCLUDE_DNS
 					// [-] dns = Socket::nslookup(ip); [-] IRainman opt.
@@ -89,7 +90,7 @@ class UploadQueueItemInfo : public UserInfoBase // [<-] IRainman fix: moved from
 		{
 			return getQi() == item;
 		}
-		bool operator==(const UploadQueueItemInfoPtr& item) const
+		bool operator==(const UploadQueueItemInfo* item) const
 		{
 			return getQi() == item->getQi();
 		}
@@ -166,4 +167,5 @@ class UploadQueueItemInfo : public UserInfoBase // [<-] IRainman fix: moved from
 		GETM(int, m_slots, Slots); // !SMT!-UI
 };
 
+#endif
 #endif

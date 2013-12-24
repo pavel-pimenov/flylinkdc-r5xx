@@ -21,7 +21,7 @@
 #include <signal.h>
 
 #ifdef _DEBUG
-// # define USE_FLYLINKDC_VLD // 3>LINK : fatal error LNK1104: cannot open file 'vld.lib' VLD качать тут http://vld.codeplex.com/
+//# define USE_FLYLINKDC_VLD // 3>LINK : fatal error LNK1104: cannot open file 'vld.lib' VLD качать тут http://vld.codeplex.com/
 #endif
 #ifdef USE_FLYLINKDC_VLD
 //[!] ¬ключать только при наличии VLD и только в _DEBUG
@@ -541,8 +541,8 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	// First, load the settings! Any code running before will not get the value of SettingsManager!
 	SettingsManager::newInstance();
 	SettingsManager::getInstance()->load();
-	SettingsManager::getInstance()->LoadLanguage();
-	ResourceManager::startup();
+	const bool l_is_create_wide = SettingsManager::getInstance()->LoadLanguage();
+	ResourceManager::startup(l_is_create_wide);
 	SettingsManager::getInstance()->setDefaults(); // !SMT!-S: allow localized defaults in string settings
 	
 	LogManager::newInstance();

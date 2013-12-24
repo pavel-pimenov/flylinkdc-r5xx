@@ -1096,7 +1096,7 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 						const auto& user = i->first;
 						tstring nick = WinUtil::escapeMenu(WinUtil::getNicks(user, Util::emptyString));
 						// add hub hint to menu
-						const auto& hubs = ClientManager::getInstance()->getHubNames(user->getCID(), Util::emptyString);
+						const auto& hubs = ClientManager::getHubNames(user->getCID(), Util::emptyString);
 						if (!hubs.empty())
 							nick += _T(" (") + Text::toT(hubs[0]) + _T(")");
 							
@@ -1154,7 +1154,7 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 							nick += _T(" (") + TSTRING(CERTIFICATE_NOT_TRUSTED) + _T(")");
 						}
 						// add hub hint to menu
-						const auto& hubs = ClientManager::getInstance()->getHubNames(user->getCID(), Util::emptyString);
+						const auto& hubs = ClientManager::getHubNames(user->getCID(), Util::emptyString);
 						if (!hubs.empty())
 							nick += _T(" (") + Text::toT(hubs[0]) + _T(")");
 							
@@ -1334,7 +1334,7 @@ LRESULT QueueFrame::onBrowseList(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 			// охранник бага http://code.google.com/p/flylinkdc/issues/detail?id=1270
 			try
 			{
-				const auto& hubs = ClientManager::getInstance()->getHubNames((*s)->getCID(), Util::emptyString);
+				const auto& hubs = ClientManager::getHubNames((*s)->getCID(), Util::emptyString);
 				QueueManager::getInstance()->addList(HintedUser(*s, !hubs.empty() ? hubs[0] : Util::emptyString), QueueItem::FLAG_CLIENT_VIEW);
 			}
 			catch (const Exception&)
@@ -1452,7 +1452,7 @@ LRESULT QueueFrame::onPM(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL&
 				// [!] IRainman: Open the window of PM with an empty address if the user NMDC,
 				// as soon as it appears on the hub of the network, the window immediately PM knows about it, and update the Old.
 				// If the user ADC, as soon as he appears on any of the ADC hubs at once a personal window to know.
-				const auto& hubs = ClientManager::getInstance()->getHubs((*s)->getCID(), Util::emptyString);
+				const auto& hubs = ClientManager::getHubs((*s)->getCID(), Util::emptyString);
 				PrivateFrame::openWindow(nullptr, HintedUser(*s, !hubs.empty() ? hubs[0] : Util::emptyString));
 			}
 		}

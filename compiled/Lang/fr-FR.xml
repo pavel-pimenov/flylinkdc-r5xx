@@ -473,8 +473,6 @@ Inclure DHT?</String>
 		<String Name="EditAccel">&amp;Modif.</String>
 		<String Name="Email">E-Mail</String>
 		<String Name="EnableHubmodePic">Afficher l'icone de mode pour des Hubs</String>
-		<String Name="EnableHubtopic">Inclut le support $HubTopic</String>
-		<String Name="EnableLastIp">Garder l'adresse IP dans SQLite (pour la colonne "Dernière IP")</String>
 		<String Name="EnableMultiSource">Permettre la segmentation</String>
 		<String Name="EnablePopups">Activer les messages flottantes</String>
 		<String Name="EnableSounds">Activer les sons</String>
@@ -641,7 +639,6 @@ If you select 'Yes', all of these hubs are going to be deleted!
 
 If you select 'No', these hubs will simply be moved to the main default group.</String>
 		<String Name="GroupCustommenu">"Menu du Fournisseur" alternatif</String>
-		<String Name="GroupSearchResults">Voir les résultats des recherches par TTH</String>
 		<String Name="H">H:</String>
 		<String Name="HashingFailed">Echec indexation:</String>
 		<String Name="HashingFinished">Indexation finie:</String>
@@ -683,7 +680,6 @@ Voir la liste des hubs?</String>
 		<String Name="HubTopic">Thème du hub:</String>
 		<String Name="HubUsers">Utilisateurs</String>
 		<String Name="HubUsersPositionText">L'emplacement de la liste des utilisateurs</String>
-		<String Name="IgnoredMessage">Message ignoré:</String>
 		<String Name="IgnoredUsers">Ignorer l'utilisateur</String>
 		<String Name="IgnoreClear">Vider</String>
 		<String Name="IgnoreS">Ignorer</String>

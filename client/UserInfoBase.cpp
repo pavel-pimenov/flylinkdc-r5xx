@@ -167,12 +167,11 @@ void UserInfoBase::pm(const string& hubHint)
 }
 
 // !SMT!-S
-void UserInfoBase::pm_msg(const string& hubHint, void *param)
+void UserInfoBase::pm_msg(const string& hubHint, const tstring& p_message)
 {
-	const tstring *message = (const tstring*)param;
-	if (!message->empty()) // [~] SCALOlaz: support for abolition and prohibition to send a blank line https://code.google.com/p/flylinkdc/issues/detail?id=1034
+	if (!p_message.empty()) // [~] SCALOlaz: support for abolition and prohibition to send a blank line https://code.google.com/p/flylinkdc/issues/detail?id=1034
 	{
-		UserManager::getInstance()->outgoingPrivateMessage(getUser(), hubHint, *message);
+		UserManager::getInstance()->outgoingPrivateMessage(getUser(), hubHint, p_message);
 	}
 }
 
@@ -181,14 +180,6 @@ void UserInfoBase::createSummaryInfo() // [+] IRainman
 	if (getUser())
 	{
 		UserManager::getInstance()->collectSummaryInfo(getUser());
-	}
-}
-
-void UserInfoBase::grant(const string& hubHint)
-{
-	if (getUser())
-	{
-		UploadManager::getInstance()->reserveSlot(HintedUser(getUser(), hubHint), 600);
 	}
 }
 
@@ -208,35 +199,11 @@ void UserInfoBase::connectFav()
 	}
 }
 
-void UserInfoBase::grantSlotHour(const string& hubHint)
-{
-	if (getUser())
-	{
-		UploadManager::getInstance()->reserveSlot(HintedUser(getUser(), hubHint), 3600);
-	}
-}
-
-void UserInfoBase::grantSlotDay(const string& hubHint)
-{
-	if (getUser())
-	{
-		UploadManager::getInstance()->reserveSlot(HintedUser(getUser(), hubHint), 24 * 3600);
-	}
-}
-
-void UserInfoBase::grantSlotWeek(const string& hubHint)
-{
-	if (getUser())
-	{
-		UploadManager::getInstance()->reserveSlot(HintedUser(getUser(), hubHint), 7 * 24 * 3600);
-	}
-}
-
 // !SMT!-UI
-void UserInfoBase::grantSlotPeriod(const string& hubHint, void *period)
+void UserInfoBase::grantSlotPeriod(const string& hubHint, const uint64_t period)
 {
 	if (period && getUser())
-		UploadManager::getInstance()->reserveSlot(HintedUser(getUser(), hubHint), (uint64_t)period);
+		UploadManager::getInstance()->reserveSlot(HintedUser(getUser(), hubHint), period);
 }
 
 void UserInfoBase::ungrantSlot(const string& hubHint) // [!] IRainman fix: add hubhint.

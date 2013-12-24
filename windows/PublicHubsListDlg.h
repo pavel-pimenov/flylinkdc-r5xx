@@ -108,7 +108,7 @@ class PublicHubListDlg : public CDialogImpl<PublicHubListDlg>
 			GET_TEXT(IDC_LIST_EDIT_BOX, buf);
 			if (!buf.empty())
 			{
-				ctrlList.insert(0, std::move(buf));
+				ctrlList.insert(0, buf);
 				SetDlgItemText(IDC_LIST_EDIT_BOX, Util::emptyStringT.c_str());
 			}
 			bHandled = FALSE;

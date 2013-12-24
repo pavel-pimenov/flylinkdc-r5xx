@@ -75,17 +75,18 @@ bool HashManager::StreamStore::loadTree(const string& p_filePath, TigerTree& p_T
 		if (isBan(p_filePath))
 #endif
 			return false;
-		const int64_t l_fileSize = (p_FileSize == -1) ? File::getSize(p_filePath) : p_FileSize;
-		if (l_fileSize < (SETTING(SET_MIN_LENGHT_TTH_IN_NTFS_FILESTREAM) * 1048576)) // that's why minStreamedFileSize never be changed![*]NightOrion
+		dcassert(p_FileSize > 0);
+		const int64_t l_fileSize = p_FileSize == -1 ? File::getSize(p_filePath) : p_FileSize;
+		if (l_fileSize < SETTING(SET_MIN_LENGHT_TTH_IN_NTFS_FILESTREAM) * 1048576) // that's why minStreamedFileSize never be changed![*]NightOrion
 			return false;
-		const uint64_t l_timeStamp = File::getTimeStamp(p_filePath);
+		const int64_t l_timeStamp = File::getTimeStamp(p_filePath);
 		{
 			File l_stream(p_filePath + ":" + g_streamName, File::READ, File::OPEN);
 			size_t l_sz = sizeof(TTHStreamHeader);
 			TTHStreamHeader h;
 			if (l_stream.read(&h, l_sz) != sizeof(TTHStreamHeader))
 				return false;
-			if ((uint64_t)l_fileSize != h.fileSize || l_timeStamp != h.timeStamp || !validateCheckSum(h))
+			if (uint64_t(l_fileSize) != h.fileSize || l_timeStamp != uint64_t(h.timeStamp) || !validateCheckSum(h))
 				return false;
 			const size_t l_datalen = TigerTree::calcBlocks(l_fileSize, h.blockSize) * TTHValue::BYTES;
 			l_sz = l_datalen;
@@ -97,9 +98,10 @@ bool HashManager::StreamStore::loadTree(const string& p_filePath, TigerTree& p_T
 				return false;
 		}
 	}
-	catch (const Exception& /*[-]PPA e*/)
+	catch (const Exception& /*e*/)
 	{
-		LogManager::getInstance()->message(STRING(ERROR_GET_TTH_STREAM) + ' ' + p_filePath);// [+]IRainman
+		// Отключил спам http://code.google.com/p/flylinkdc/issues/detail?id=1415
+		// LogManager::getInstance()->message(STRING(ERROR_GET_TTH_STREAM) + ' ' + p_filePath + " Error = " + e.getError());// [+]IRainman
 		return false;
 	}
 	/*
@@ -537,7 +539,7 @@ const TTHValue HashManager::getTTH(const string& fname, const string& fpath, int
 	return l_tth;
 }
 
-void HashManager::hashDone(const string& aFileName, uint64_t aTimeStamp, const TigerTree& tth, int64_t speed,
+void HashManager::hashDone(const string& aFileName, int64_t aTimeStamp, const TigerTree& tth, int64_t speed,
                            bool p_is_ntfs, int64_t p_size)
 {
 	// Lock l(cs); [-] IRainman fix: no data to lock.
@@ -595,7 +597,7 @@ bool HashManager::addFile(const string& p_file_name, int64_t p_time_stamp, const
 {
 	const string l_name = Text::toLower(Util::getFileName(p_file_name));
 	const string l_path = Text::toLower(Util::getFilePath(p_file_name));
-	p_out_media.init();
+	p_out_media.init(); // TODO - делается двойной инит
 	int64_t l_path_id = 0;
 	const int64_t l_tth_id = CFlylinkDBManager::getInstance()->merge_file(l_path, l_name, p_time_stamp, p_tth, false , l_path_id);
 	if (getMediaInfo(p_file_name, p_out_media, p_size, p_tth.getRoot()))
@@ -1057,7 +1059,7 @@ int HashManager::Hasher::run()
 			{
 				const int64_t bs = TigerTree::getMaxBlockSize(l_size);
 				const uint64_t start = GET_TICK();
-				const uint64_t timestamp = l_outFiletime;
+				const int64_t timestamp = l_outFiletime;
 				int64_t speed = 0;
 				size_t n = 0;
 				TigerTree fastTTH(bs);
@@ -1065,7 +1067,7 @@ int HashManager::Hasher::run()
 				TigerTree* tth = &fastTTH;
 				bool l_is_ntfs = false;
 #ifdef IRAINMAN_NTFS_STREAM_TTH
-				if (HashManager::getInstance()->m_streamstore.loadTree(m_fname, fastTTH, l_size)) //[+]IRainman
+				if (l_size > 0 && HashManager::getInstance()->m_streamstore.loadTree(m_fname, fastTTH, l_size)) //[+]IRainman
 				{
 					l_is_ntfs = true; //[+]PPA
 					LogManager::getInstance()->message(STRING(LOAD_TTH_FROM_NTFS) + ' ' + m_fname); //[!]NightOrion(translate)
@@ -1112,7 +1114,7 @@ int HashManager::Hasher::run()
 									tth->update(buf, n);
 									{
 										FastLock l(cs);
-										currentSize = max(static_cast<uint64_t>(currentSize - n), static_cast<uint64_t>(0));
+										currentSize = max(static_cast<uint64_t>(currentSize - n), static_cast<uint64_t>(0)); // TODO - max от 0 для беззнакового?
 									}
 									l_sizeLeft -= n;
 									

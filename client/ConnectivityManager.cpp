@@ -44,7 +44,7 @@ void ConnectivityManager::startSocket()
 	disconnect();
 	
 	// active check mustn't be there to hub-dependent setting works correctly
-	//if(ClientManager::getInstance()->isActive()) {
+	//if(ClientManager::isActive()) {
 	listen();
 #ifdef PPA_INCLUDE_UPNP
 	// must be done after listen calls; otherwise ports won't be set
@@ -207,13 +207,19 @@ string ConnectivityManager::getInformation() const
 	               "\tTransfer port: %3%\n"
 	               "\tEncrypted transfer port: %4%\n"
 	               "\tSearch port: %5%\n"
-	               "\tStatus: %6%"
+	               "\tDHT port: %6%\n"
+	               "\tStatus: %7%"
 	           ) %
 	           field(SETTING(EXTERNAL_IP)) %
 	           field(SETTING(BIND_ADDRESS)) %
 	           field(Util::toString(ConnectionManager::getInstance()->getPort())) %
 	           field(Util::toString(ConnectionManager::getInstance()->getSecurePort())) %
 	           field(Util::toString(SearchManager::getInstance()->getPort())) %
+#ifdef STRONG_USE_DHT
+	           field(Util::toString(dht::DHT::getInstance()->getPort())) %
+#else
+	           field(" DHT Disable!") %
+#endif
 	           field(getStatus())
 	          );
 }

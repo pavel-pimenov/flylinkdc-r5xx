@@ -125,18 +125,18 @@ void CompatibilityManager::detectOsSupports()
 	    !CURRENT_VER_SP(6, 0, 2) && // Windows Vista SP2 & Windows Server 2008 SP2 // http://ru.wikipedia.org/wiki/Windows_Vista http://en.wikipedia.org/wiki/Windows_Server_2008
 #endif
 	    !CURRENT_VER_SP(6, 1, 1) && // Windows 7 SP1 & Windows Server 2008 R2 SP1  http://en.wikipedia.org/wiki/Windows_7 http://en.wikipedia.org/wiki/Windows_Server_2008_R2
-	    !CURRENT_VER_SP(6, 2, 0))	// Windows 8 & Windows Server 2012 http://en.wikipedia.org/wiki/Windows_8 http://ru.wikipedia.org/wiki/Windows_Server_2012
+	    !CURRENT_VER_SP(6, 2, 0))   // Windows 8 & Windows Server 2012 http://en.wikipedia.org/wiki/Windows_8 http://ru.wikipedia.org/wiki/Windows_Server_2012
 	{
 #ifdef FLYLINKDC_USE_CHECK_OLD_OS
 		set(RUNNING_AN_UNSUPPORTED_OS);
 #endif
 	}
-		
+	
 #undef FUTURE_VER
 #undef FUTURE_MINOR_VER
 #undef CURRENT_VER
 #undef CURRENT_VER_SP
-		
+	
 	g_comCtlVersion = getComCtlVersionFromOS();
 }
 
@@ -438,7 +438,7 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				          A_VERSIONSTRING, Text::fromT(Util::getCompileDate()).c_str(), Util::formatSeconds(Util::getUpTime()).c_str(), Util::formatSeconds((kernelTime + userTime) / (10I64 * 1000I64 * 1000I64)).c_str(),
 				          Util::formatBytes(pmc.WorkingSetSize).c_str(), Util::formatBytes(pmc.PeakWorkingSetSize).c_str(),
 				          Util::formatBytes(pmc.PagefileUsage).c_str(), Util::formatBytes(pmc.PeakPagefileUsage).c_str(),
-				          ShareManager::getInstance()->getSharedFiles(), ClientManager::getInstance()->getTotalUsers(), Client::getTotalCounts(),
+				          ShareManager::getInstance()->getSharedFiles(), ClientManager::getTotalUsers(), Client::getTotalCounts(),
 				          Util::formatBytes(Socket::getTotalDown()).c_str(), Util::formatBytes(Socket::getTotalUp()).c_str(),
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 				          Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.m_download).c_str(), Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.m_upload).c_str(),

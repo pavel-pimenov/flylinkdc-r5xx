@@ -142,11 +142,24 @@ class SimpleXMLReader
 		void append(std::string& str, size_t maxLen, int c);
 		void append(std::string& str, size_t maxLen, const std::string::const_iterator& begin, const std::string::const_iterator& end);
 		
-		bool needChars(size_t n) const;
-		int charAt(size_t n) const;
+		bool needChars(size_t n) const
+		{
+			return bufPos + n <= buf.size();
+		}
 		bool skipSpace(bool store = false);
-		void advancePos(size_t n = 1);
-		std::string::size_type bufSize() const;
+		int charAt(size_t n) const
+		{
+			return buf[bufPos + n];
+		}
+		void advancePos(size_t n = 1)
+		{
+			bufPos += n;
+			pos += n;
+		}
+		string::size_type bufSize() const
+		{
+			return buf.size() - bufPos;
+		}
 		
 		bool literal(const char* lit, size_t len, bool withSpace, ParseState newState);
 		bool character(int c, ParseState newState);

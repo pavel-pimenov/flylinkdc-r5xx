@@ -23,10 +23,11 @@
 
 dcdrun(bool ResourceManager::g_debugStarted = false;) // [+] IRainman fix.
 
-wstring ResourceManager::wstrings[ResourceManager::LAST];
+wstring ResourceManager::g_wstrings[ResourceManager::LAST];
 
-void ResourceManager::loadLanguage(const string& aFile)
+bool ResourceManager::loadLanguage(const string& aFile)
 {
+	bool l_is_create_wide = true;
 	XMLParser::XMLResults xRes;
 	// Try to parse data
 	XMLParser::XMLNode xRootNode = XMLParser::XMLNode::parseFile(Text::toT(aFile).c_str(), 0, &xRes); // [!] IRainman fix.
@@ -37,7 +38,7 @@ void ResourceManager::loadLanguage(const string& aFile)
 		
 		for (int i = 0; i < LAST; ++i)
 		{
-			l_handler[names[i]] = i;
+			l_handler[g_names[i]] = i;
 		}
 		
 		XMLParser::XMLNode ResNode = xRootNode.getChildNode("Language");
@@ -54,27 +55,29 @@ void ResourceManager::loadLanguage(const string& aFile)
 					
 					if (j != l_handler.end())
 					{
-						strings[j->second] = StringNode.getTextOrDefault(); // [!] IRainman fix.
-						strings[j->second].shrink_to_fit(); // [+]IRainman opt.
+						g_strings[j->second] = StringNode.getTextOrDefault(); // [!] IRainman fix.
+						g_strings[j->second].shrink_to_fit(); // [+]IRainman opt.
 					}
 					
 					StringNode = StringsNode.getChildNode("String", &i);
 				}
+				l_is_create_wide = false;
 				createWide();
 			}
 		}
 	}
+	return l_is_create_wide;
 }
 
 void ResourceManager::createWide()
 {
 	for (size_t i = 0; i < LAST; ++i)
 	{
-		wstrings[i].clear();
-		if (!strings[i].empty())
+		g_wstrings[i].clear();
+		if (!g_strings[i].empty())
 		{
-			Text::toT(strings[i], wstrings[i]);
-			wstrings[i].shrink_to_fit(); // [+]IRainman opt
+			Text::toT(g_strings[i], g_wstrings[i]);
+			g_wstrings[i].shrink_to_fit(); // [+]IRainman opt
 		}
 	}
 }

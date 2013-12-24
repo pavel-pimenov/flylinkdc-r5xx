@@ -41,8 +41,10 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 	public  CSplitterImpl<HubFrame>,
 	private CFlyTimerAdapter,
 //  TODO    private ClientManagerListener,
-public UCHandler<HubFrame>, public UserInfoBaseHandler < HubFrame, UserInfoGuiTraits::NO_CONNECT_FAV_HUB | UserInfoGuiTraits::NICK_TO_CHAT | UserInfoGuiTraits::USER_LOG, OnlineUserPtr > , private SettingsManagerListener
-	, public BaseChatFrame // [+] IRainman copy-past fix.
+public UCHandler<HubFrame>,
+public UserInfoBaseHandler < HubFrame, UserInfoGuiTraits::NO_CONNECT_FAV_HUB | UserInfoGuiTraits::NICK_TO_CHAT | UserInfoGuiTraits::USER_LOG, OnlineUserPtr > ,
+private SettingsManagerListener,
+public BaseChatFrame // [+] IRainman copy-past fix.
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	, private ConnectionManagerListener // [+] FlylinkDC
 #endif

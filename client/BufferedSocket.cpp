@@ -129,7 +129,7 @@ uint16_t BufferedSocket::accept(const Socket& srv, bool secure, bool allowUntrus
 	
 	auto ret = s->accept(srv);
 	
-	setSocket(s); // [!] IRainman fix setSocket(std::move(s));
+	setSocket(s);
 	setOptions();
 	
 	FastLock l(cs);
@@ -150,7 +150,7 @@ void BufferedSocket::connect(const string& aAddress, uint16_t aPort, uint16_t lo
 	
 	s->create();
 	
-	setSocket(s); // [!] IRainman fix setSocket(std::move(s));
+	setSocket(s);
 	sock->bind(localPort, SETTING(BIND_ADDRESS));
 	
 	FastLock l(cs);

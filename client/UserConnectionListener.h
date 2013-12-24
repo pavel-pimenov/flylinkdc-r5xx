@@ -75,7 +75,7 @@ class UserConnectionListener
 		virtual void on(ModeChange, UserConnection*) noexcept { }
 		virtual void on(MyNick, UserConnection*, const string&) noexcept { }
 		virtual void on(TransmitDone, UserConnection*) noexcept { }
-		virtual void on(Supports, UserConnection*, StringList &&) noexcept { } // [!] IRainman fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
+		virtual void on(Supports, UserConnection*, StringList &) noexcept { } // [!] IRainman fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
 		virtual void on(FileNotAvailable, UserConnection*) noexcept { }
 		virtual void on(Updated, UserConnection*) noexcept { }
 		virtual void on(ListLength, UserConnection*, const string&) noexcept { }

@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 #include "Text.h"
+#include "SimpleXML.h"
+
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 struct CFlyServerCache
 {
@@ -44,13 +46,23 @@ class CFlyMediaInfo
 		uint16_t m_mediaY;
 		std::string m_video;
 		std::string m_audio;
+		bool m_is_need_escape;
 		CFlyMediaInfo()
 		{
 			init();
 		}
+		CFlyMediaInfo(const std::string& p_WH, uint16_t p_bitrate,
+		              const std::string& p_audio, const std::string& p_video): m_audio(p_audio), m_video(p_video)
+		{
+			init(p_WH, p_bitrate);
+		}
 		CFlyMediaInfo(const std::string& p_WH, uint16_t p_bitrate = 0)
 		{
 			init(p_WH, p_bitrate);
+		}
+		void calcEscape()
+		{
+			m_is_need_escape = SimpleXML::needsEscapeForce(m_audio) || SimpleXML::needsEscapeForce(m_video);
 		}
 		bool isMedia() const
 		{
@@ -65,7 +77,7 @@ class CFlyMediaInfo
 		void init(const std::string& p_WH, uint16_t p_bitrate = 0)
 		{
 			init(p_bitrate);
-			auto l_pos = p_WH.find('x');
+			const auto l_pos = p_WH.find('x');
 			if (l_pos != std::string::npos)
 			{
 				m_mediaX = atoi(p_WH.c_str());
@@ -77,13 +89,14 @@ class CFlyMediaInfo
 			m_bitrate = p_bitrate;
 			m_mediaX  = 0;
 			m_mediaY  = 0;
+			m_is_need_escape = false;
 		}
 		
 		string getXY() const
 		{
 			if (m_mediaX && m_mediaY)
 			{
-				char l_buf[100];
+				char l_buf[30];
 				l_buf[0] = 0;
 				snprintf(l_buf, _countof(l_buf), "%ux%u", m_mediaX, m_mediaY);
 				return l_buf;

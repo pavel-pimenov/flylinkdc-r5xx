@@ -171,6 +171,7 @@ Tem certeza que deseja executar outra cópia do programa?</String>
 		<String Name="BbcodePanelStrike">Tachada</String>
 		<String Name="BbcodePanelTranslate">Transcodificar (selecionado) Texto</String>
 		<String Name="BbcodePanelUnderline">Sublinhar</String>
+		<String Name="BbcodePanelColor">Cor</String>
 		<String Name="Bitrate">Bitrate</String>
 		<String Name="BitziLookup">Busca Bitzi</String>
 		<String Name="BlendOfflineSearch">Misture resultados de busca off-line</String>
@@ -186,7 +187,7 @@ Tem certeza que deseja executar outra cópia do programa?</String>
 		<String Name="Cancel">Cancelar</String>
 		<String Name="CantCreate">Não é possível criar CInputBox!</String>
 		<String Name="CdmClear">Limpar</String>
-		<String Name="CdmClientCommands">Comandos de Cliente</String>
+		<String Name="CdmClientCommands">Comandos do Cliente</String>
 		<String Name="CdmDetection">Detecção</String>
 		<String Name="CdmFilter">Filtro</String>
 		<String Name="CdmHubCommands">Comandos do Hub</String>
@@ -475,10 +476,9 @@ Ligar DHT?</String>
 		<String Name="Email">E-Mail</String>
 		<String Name="EnableHubmodePic">Habilitar 'Modo Imagem' para hubs</String>
 		<String Name="EnableCountryflag">Adicionar bandeira do país em 'Local' na lista de usuários</String>
-		<String Name="EnableHubtopic">Habilitar suporte à $HubTopic</String>
-		<String Name="EnableLastIp">Armazenar IP em um banco de dados SQLite (Coluna do Último IP)</String>
+		<String Name="EnableLastIp">Armazenar IP em um banco de dados SQLite</String>
 		<String Name="EnableFlyServer">Usar nuvem de fly-server</String>
-		<String Name="EnableMultiSource">Habilita Multi-fonte</String>
+		<String Name="EnableMultiSource">Habilitar Segmentos</String>
 		<String Name="EnablePopups">Habilitar popups</String>
 		<String Name="EnableSounds">Habilitar sons</String>
 		<String Name="EnterGroupName">Você deve digitar um nome para o grupo!</String>
@@ -651,7 +651,6 @@ Se você selecionar "sim", todos estes hubs vão ser apagados!
 
 Se você selecionar 'Não', esses hubs serão simplesmente mudou-se para o principal grupo padrão.</String>
 		<String Name="GroupCustommenu">Local alternativo 'Menu Personalizado'</String>
-		<String Name="GroupSearchResults">Agrupar resultas das buscas por TTH</String>
 		<String Name="H">H:</String>
 		<String Name="HashingFailed">Falha de hashing:</String>
 		<String Name="HashingFinished">Hashing terminado:</String>
@@ -693,7 +692,7 @@ Mostra a lista de hubs?</String>
 		<String Name="HubTopic">Tópico do Hub:</String>
 		<String Name="HubUsers">Usuários</String>
 		<String Name="HubUsersPositionText">O local da lista de usuários</String>
-		<String Name="IgnoredMessage">Mensagem ignorada:</String>
+		<String Name="IgnoredHubBotPm">Ignorar MP do hub ou bot</String>
 		<String Name="IgnoredUsers">Usuários ignorados</String>
 		<String Name="IgnoreClear">Limpar</String>
 		<String Name="AccesToPersonalMessages">Acesso a mensagens pessoais</String>
@@ -934,7 +933,7 @@ Empty = Default String -&gt; +me listens %[artist] - %[title] * listened to %[pe
 		<String Name="MenuSearch">&amp;Busca	Ctrl+S</String>
 		<String Name="MenuSearchSpy">Busca Espiã</String>
 		<String Name="MenuSettings">Configurações…	F12</String>
-		<String Name="MenuSettingsWizard">Configurações do Assistente…	Ctrl+Shift+W</String>
+		<String Name="MenuSettingsWizard">Assistente de Instalação…	Ctrl+Shift+W</String>
 		<String Name="MenuShow">Exibir FlylinkDC++</String>
 		<String Name="MenuSites">Links/Afiliados</String>
 		<String Name="MenuSitesGuide">Guia do Usuário</String>
@@ -1034,7 +1033,7 @@ Empty = Default String -&gt; +me playing: %[title] (Media Player Classic)</Strin
 		<String Name="OnlyFreeSlots">Só usuários com slots livres</String>
 		<String Name="OnlyTth">Só resultados com raiz TTH</String>
 		<String Name="OnlyWhereOp">Só onde sou OP</String>
-		<String Name="OnDownloadingSegment">No arquivo de download, que já existe</String>
+		<String Name="OnDownloadingSegment">Quando baixar um arquivo que já existe</String>
 		<String Name="OnDownloadAsk">Perguntar ao usuário</String>
 		<String Name="OnDownloadAutorename">Renomear automaticamente</String>
 		<String Name="OnDownloadReplace">Substitua arquivo por uma nova - se Manter arquivos acabados definidos, então isso é igual Pergunte Usuário</String>
@@ -1277,7 +1276,7 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="SearchFileInGoogle">Buscar no Google</String>
 		<String Name="SearchFileInNigma">Nigma na Busca</String>
 		<String Name="SearchFileInYandex">Buscar no Yandex</String>
-		<String Name="SearchFor">Buscar por</String>
+		<String Name="SearchFor">Buscar por </String>
 		<String Name="SearchForAlternates">Buscar Alternativas</String>
 		<String Name="SearchForFile">Arquivos na Busca</String>
 		<String Name="SearchInResults">Buscar nos Resultados</String>
@@ -1360,7 +1359,7 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="SettingsAutoupdateProp">Autoupdate</String>
 		<String Name="SettingsAutoAway">Auto Ausentar-se, quando minimizado (e voltar ao restaurar)</String>
 		<String Name="SettingsAutoBan">Auto Banir</String>
-		<String Name="SettingsAutoDropSegmentedSource">Quando segmentado baixando somente (mais de duas ativas fontes)</String>
+		<String Name="SettingsAutoDropSegmentedSource">Quando baixando segmentado somente (mais de duas fontes ativas)</String>
 		<String Name="SettingsAutoFollow">Seguir redirecionamento automaticamente</String>
 		<String Name="SettingsAutoKick">Automaticamente desconectar de usuários que deixarem o hub</String>
 		<String Name="SettingsAutoKickNoFavs">Não desconectar automaticamente de usuários favoritos que deixarem o hub</String>
@@ -1467,6 +1466,7 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="SettingsLogSystemMessages">Registrar mensagens do sistema</String>
 		<String Name="SettingsLogUploads">Registrar uploads</String>
 		<String Name="SettingsLogWebserver">Registrar servidor de web</String>
+		<String Name="SettingsLogProtocol">Log do socket TCP</String>
 		<String Name="SettingsMaxCompress">Nível Máx. de Compressão</String>
 		<String Name="SettingsMaxHashSpeed">Veloc. Máx. de Hash</String>
 		<String Name="SettingsMaxTabRows">Máx. de Abas por linha</String>
@@ -1482,7 +1482,7 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="SettingsName2">Nome:</String>
 		<String Name="SettingsNetwork">Configurar Conexões</String>
 		<String Name="SettingsNmdcDebug">Depurar protocolo NMDC</String>
-		<String Name="SettingsNominalBandwidth">Banda Nominal</String>
+		<String Name="SettingsNominalBandwidth">Velocidade da Conexão</String>
 		<String Name="SettingsNormal">Normal</String>
 		<String Name="SettingsOnlyHashed">Nota: os novos arquivos são adicionados à parcela apenas quando eles foram hash!</String>
 		<String Name="SettingsOpenNewWindow">Abrir nova janela quando usando /join</String>
@@ -1563,7 +1563,7 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="SettingsSortFavusersFirst">Classificar usuários favoritos primeiros</String>
 		<String Name="SettingsSounds">Sons</String>
 		<String Name="SettingsSpeedsNotAccurate">Nota: por causa da mudança de velocidades de download, isso não é 100% exato…</String>
-		<String Name="SettingsStatisticsSend">Permiti que o programa coletar e enviar estatísticas de uso anônimas para os desenvolvedores.</String>
+		<String Name="SettingsStatisticsSend">Permitir que o programa coletar e enviar estatísticas de uso anônimas para os desenvolvedores.</String>
 		<String Name="SettingsStatusInChat">Ver as mensagens de status no chat principal</String>
 		<String Name="SettingsStripTopic">Ocultar tópicos dos hubs</String>
 		<String Name="SettingsTabs">Abas</String>
@@ -1581,7 +1581,7 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="SettingsToolbarImage">Imagens da Barra de Ferramentas</String>
 		<String Name="SettingsToolbarRemove">&lt;-- Remover</String>
 		<String Name="SettingsUdpPort">UDP Porta</String>
-		<String Name="SettingsUnfinishedDownloadDirectory">Diretório de downloads Não-Terminados (vazio = download diretamente para o destino)</String>
+		<String Name="SettingsUnfinishedDownloadDirectory">Diretório de downloads incompletos (vazio = download diretamente para o destino)</String>
 		<String Name="SettingsUpdateIp">Atualizar IP quando checar por firewall para DHT (ao iniciar e então a cada  hora)</String>
 		<String Name="SettingsUploads">Compartilhando</String>
 		<String Name="SettingsUploadsMinSpeed">Abrir um slots extra se veloc. for abaixo (0 = desabilitado)</String>
@@ -1641,6 +1641,7 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="SlowUser">Usuário lento</String>
 		<String Name="SmallFileSizeSet">Arquivo pequeno</String>
 		<String Name="SmileSelectWndAnimSmiles">Usar ícones animados na janela de seleções</String>
+		<String Name="SocketErrorNote">Leia sobre este "Erro no Socket do Windows" na página do Wiki do FlylinkDC</String>
 		<String Name="SocketErrorWsaeaddrnotavail">O endereço pedido não é válido no contexto.</String>
 		<String Name="SocketErrorWsaenetdown">Uma operação socket encontrou uma rede morta.</String>
 		<String Name="SocketErrorWsaenetunreach">Uma operação de socket foi tentada em uma rede inacessível.</String>
@@ -1739,6 +1740,7 @@ estatísticas de uso e transmite para os desenvolvedores.
 De acordo com a lei de vários países, o FlylinkDC++ é
 obrigado a informar isso.</String>
 		<String Name="TextStr">Texto</String>
+		<String Name="FavEnemyUser">Usuário Inimigo/Velocidade do Ban</String>
 		<String Name="FavUser">Usuário Favorito</String>
 		<String Name="GeneralText">Texto Geral</String>
 		<String Name="MyMessage">Minha própria mensagem</String>
@@ -1832,7 +1834,7 @@ Ou você não está conectado à Internet ou você configurou a conexão de form
 		<String Name="UpdateIp">Atualizar IP ao iniciar</String>
 		<String Name="UpdateIpInterval">Atualização do IP no intervalo em minutos
 (Se for 0 - irá atualizar só no ínicio)</String>
-		<String Name="Upload">Upload</String>
+		<String Name="Upload">Envio</String>
 		<String Name="Uploaded">Enviado</String>
 		<String Name="UploadedBytes">Enviado %s (%.01f%%) em %s</String>
 		<String Name="UploadedTo">enviado para</String>

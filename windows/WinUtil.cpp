@@ -137,7 +137,7 @@ int WinUtil::g_tabPos = SettingsManager::TABS_TOP;// [!] IRainman optimize
 // [!] brain-ripper
 // In order to correct work of small images for toolbar's menu
 // toolbarButton::image MUST be in order without gaps.
-const toolbarButton g_ToolbarButtons[] = // TODO унести это из хедеров в cpp
+const toolbarButton g_ToolbarButtons[] =
 {
 	{ID_FILE_CONNECT, 0, true, ResourceManager::MENU_PUBLIC_HUBS},
 	{ID_FILE_RECONNECT, 1, false, ResourceManager::MENU_RECONNECT},
@@ -1319,7 +1319,7 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 		{
 			SET_SETTING(SLOTS, j);
 			status = TSTRING(SLOTS_SET);
-			ClientManager::getInstance()->infoUpdated(); // Не звать если не меняется SLOTS_SET
+			ClientManager::infoUpdated(); // Не звать если не меняется SLOTS_SET
 		}
 		else
 		{
@@ -1491,7 +1491,7 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 			StringMap sm;
 			status = TSTRING(AWAY_MODE_ON) + _T(' ') + Text::toT(Util::getAwayMessage(sm));
 		}
-		// [-] IRainman fix ClientManager::getInstance()->infoUpdated();
+		// [-] IRainman fix ClientManager::infoUpdated();
 	}
 	else if (stricmp(cmd.c_str(), _T("u")) == 0)
 	{
@@ -1750,11 +1750,11 @@ void WinUtil::copyMagnet(const TTHValue& aHash, const string& aFile, int64_t aSi
 
 void WinUtil::searchFile(const string& p_File)
 {
-	SearchFrame::openWindow(Text::toT(p_File), 0, Search::SIZE_DONTCARE, SearchManager::TYPE_ANY);
+	SearchFrame::openWindow(Text::toT(p_File), 0, Search::SIZE_DONTCARE, Search::TYPE_ANY);
 }
 void WinUtil::searchHash(const TTHValue& aHash)
 {
-	SearchFrame::openWindow(Text::toT(aHash.toBase32()), 0, Search::SIZE_DONTCARE, SearchManager::TYPE_TTH);
+	SearchFrame::openWindow(Text::toT(aHash.toBase32()), 0, Search::SIZE_DONTCARE, Search::TYPE_TTH);
 }
 
 void WinUtil::registerDchubHandler()
@@ -2249,11 +2249,11 @@ bool WinUtil::parseDchubUrl(const tstring& aUrl)// [!] IRainman fix: stop copy-p
 			// [~] IRainman
 			if (!nick.empty())
 			{
-				const UserPtr user = ClientManager::getInstance()->findLegacyUser(nick
+				const UserPtr user = ClientManager::findLegacyUser(nick
 #ifndef IRAINMAN_USE_NICKS_IN_CM
-				                                                                  , l_url_rebuild
+				                                                   , l_url_rebuild
 #endif
-				                                                                 );
+				                                                  );
 				if (user)
 				{
 					try
@@ -2501,7 +2501,7 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 						break;
 						
 					case MA_SEARCH:
-						SearchFrame::openWindow(Text::toT(fhash), 0, Search::SIZE_DONTCARE, SearchManager::TYPE_TTH);
+						SearchFrame::openWindow(Text::toT(fhash), 0, Search::SIZE_DONTCARE, Search::TYPE_TTH);
 						break;
 					case MA_OPEN:
 					{
@@ -2530,7 +2530,7 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 			}
 			else if (fname.length() > 0 && fhash.empty())
 			{
-				SearchFrame::openWindow(Text::toT(fname), fsize, (fsize == 0) ? Search::SIZE_DONTCARE : Search::SIZE_EXACT , SearchManager::TYPE_ANY);
+				SearchFrame::openWindow(Text::toT(fname), fsize, (fsize == 0) ? Search::SIZE_DONTCARE : Search::SIZE_EXACT , Search::TYPE_ANY);
 			}
 			else
 			{
@@ -2724,7 +2724,7 @@ static pair<tstring, bool> formatHubNames(const StringList& hubs)
 
 pair<tstring, bool> WinUtil::getHubNames(const CID& cid, const string& hintUrl)
 {
-	return formatHubNames(ClientManager::getInstance()->getHubNames(cid, hintUrl));
+	return formatHubNames(ClientManager::getHubNames(cid, hintUrl));
 }
 
 pair<tstring, bool> WinUtil::getHubNames(const UserPtr& u, const string& hintUrl)
@@ -2734,7 +2734,7 @@ pair<tstring, bool> WinUtil::getHubNames(const UserPtr& u, const string& hintUrl
 
 pair<tstring, bool> WinUtil::getHubNames(const CID& cid, const string& hintUrl, bool priv)
 {
-	return formatHubNames(ClientManager::getInstance()->getHubNames(cid, hintUrl, priv));
+	return formatHubNames(ClientManager::getHubNames(cid, hintUrl, priv));
 }
 
 pair<tstring, bool> WinUtil::getHubNames(const HintedUser& user)
@@ -3990,7 +3990,7 @@ string WinUtil::getJASpam()
 
 tstring WinUtil::getNicks(const CID& cid, const string& hintUrl)
 {
-	return Text::toT(Util::toString(ClientManager::getInstance()->getNicks(cid, hintUrl)));
+	return Text::toT(Util::toString(ClientManager::getNicks(cid, hintUrl)));
 }
 
 tstring WinUtil::getNicks(const UserPtr& u, const string& hintUrl)
@@ -4000,7 +4000,7 @@ tstring WinUtil::getNicks(const UserPtr& u, const string& hintUrl)
 
 tstring WinUtil::getNicks(const CID& cid, const string& hintUrl, bool priv)
 {
-	return Text::toT(Util::toString(ClientManager::getInstance()->getNicks(cid, hintUrl, priv)));
+	return Text::toT(Util::toString(ClientManager::getNicks(cid, hintUrl, priv)));
 }
 
 tstring WinUtil::getNicks(const HintedUser& user)

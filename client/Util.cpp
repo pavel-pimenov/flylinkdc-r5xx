@@ -893,7 +893,7 @@ void Util::setAway(bool aAway, bool notUpdateInfo /*= false*/)
 		g_awayTime = time(NULL);
 		
 	if (!notUpdateInfo)
-		ClientManager::getInstance()->infoUpdated(); // Не звать если не меняется aAway
+		ClientManager::infoUpdated(); // Не звать если не меняется aAway
 }
 // [~] InfinitySky. Работа с автоответчиком.
 string Util::getAwayMessage(StringMap& params)
@@ -2066,7 +2066,7 @@ string Util::formatMessage(const string& message)
 void Util::setLimiter(bool aLimiter)
 {
 	SET_SETTING(THROTTLE_ENABLE, aLimiter);
-	ClientManager::getInstance()->infoUpdated(); // TODO - не звать если не меняется лимитер
+	ClientManager::infoUpdated(); // TODO - не звать если не меняется лимитер
 }
 
 std::string Util::getRegistryCommaSubkey(const tstring& p_key)

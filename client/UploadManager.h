@@ -19,32 +19,97 @@
 #ifndef DCPLUSPLUS_DCPP_UPLOAD_MANAGER_H
 #define DCPLUSPLUS_DCPP_UPLOAD_MANAGER_H
 
+#include <set>
 #include "UserConnectionListener.h"
 #include "Singleton.h"
 #include "UploadManagerListener.h"
 #include "ClientManager.h"
 #include "ClientManagerListener.h"
 
-class UploadQueueItem : public intrusive_ptr_base<UploadQueueItem> // [!] IRainman fix: cleanup.
+class UploadQueueItem : public intrusive_ptr_base<UploadQueueItem>, // [!] IRainman fix: cleanup.
+	public ColumnBase< 12 >, // [+] PPA. TODO fix me: use COLUMN_LAST.
+	public UserInfoBase //[+] PPA
 {
 	public:
 		UploadQueueItem(const HintedUser& user, const string& file, int64_t pos, int64_t size) :
-			m_hintedUser(user), m_file(file), m_pos(pos), m_size(size), m_time(GET_TIME())
+			m_hintedUser(user), m_file(file), m_pos(pos), m_size(size), m_time(GET_TIME()), m_share(0), m_slots(0)
 		{
 			inc();
 		}
 		~UploadQueueItem()
 		{
 		}
+		void update();
 		const UserPtr& getUser() const
 		{
 			return m_hintedUser.user;
 		}
+		int getImageIndex() const
+		{
+			return 0; //g_fileImage.getIconIndex(getFile());
+		}
+		static int compareItems(const UploadQueueItem* a, const UploadQueueItem* b, uint8_t col)
+		{
+			//+BugMaster: small optimization; fix; correct IP sorting
+			switch (col)
+			{
+				case COLUMN_FILE:
+				case COLUMN_PATH:
+				case COLUMN_NICK:
+				case COLUMN_HUB:
+					return stricmp(a->getText(col), b->getText(col));
+				case COLUMN_TRANSFERRED:
+					return compare(a->m_pos, b->m_pos);
+				case COLUMN_SIZE:
+					return compare(a->m_size, b->m_size);
+				case COLUMN_ADDED:
+				case COLUMN_WAITING:
+					return compare(a->m_time, b->m_time);
+				case COLUMN_SLOTS:
+					return compare(a->m_slots, b->m_slots); // !SMT!-UI
+				case COLUMN_SHARE:
+					return compare(a->m_share, b->m_share); // !SMT!-UI
+				case COLUMN_IP:
+				{
+					const uint32_t a_ip = Socket::convertIP4(Text::fromT(a->getText(col)));
+					const uint32_t b_ip = Socket::convertIP4(Text::fromT(b->getText(col)));
+					return compare(a_ip, b_ip);
+				}
+			}
+			return stricmp(a->getText(col), b->getText(col));
+			//-BugMaster: small optimization; fix; correct IP sorting
+			//return 0; [-] IRainman.
+		}
+		enum
+		{
+			COLUMN_FIRST,
+			COLUMN_FILE = COLUMN_FIRST,
+			COLUMN_PATH,
+			COLUMN_NICK,
+			COLUMN_HUB,
+			COLUMN_TRANSFERRED,
+			COLUMN_SIZE,
+			COLUMN_ADDED,
+			COLUMN_WAITING,
+			COLUMN_LOCATION, // !SMT!-IP
+			COLUMN_IP, // !SMT!-IP
+#ifdef PPA_INCLUDE_DNS
+			COLUMN_DNS, // !SMT!-IP
+#endif
+			COLUMN_SLOTS, // !SMT!-UI
+			COLUMN_SHARE, // !SMT!-UI
+			COLUMN_LAST
+		};
+		
 		GETC(HintedUser, m_hintedUser, HintedUser);
 		GETC(string, m_file, File);
 		GETSET(int64_t, m_pos, Pos);
 		GETC(int64_t, m_size, Size);
 		GETC(uint64_t, m_time, Time);
+		
+		uint64_t m_share;
+		int m_slots;
+		Util::CustomNetworkIndex m_location;
 };
 
 class WaitingUser
@@ -55,13 +120,13 @@ class WaitingUser
 	public:
 		WaitingUser(const UserPtr& user, const std::string& token, UploadQueueItem* p_uqi) : m_user(user), m_token(token)
 		{
-			m_files.push_back(p_uqi);
+			m_files.insert(p_uqi);
 		}
 		operator const UserPtr&() const
 		{
 			return m_user;
 		}
-		deque<UploadQueueItem*> m_files; // [!] IRainman opt: use deque, no needs set here.
+		std::set<UploadQueueItem*> m_files;
 		GETC(UserPtr, m_user, User);
 		GETSET(string, m_token, Token);
 };

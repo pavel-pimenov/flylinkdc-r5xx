@@ -520,7 +520,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		{
 			return !isSet[aSet];
 		}
-		static void LoadLanguage();
+		static bool LoadLanguage();
 		// [+] IRainman fix.
 		static void importDctheme(const tstring& file, const bool asDefault = false);
 		static void exportDctheme(const tstring& file);

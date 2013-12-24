@@ -732,7 +732,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 #endif // RIP_USE_CONNECTION_AUTODETECT
 		aSource->setToken(i.m_Nick);
 		aSource->setHubUrl(i.m_HubUrl);
-		aSource->setEncoding(ClientManager::getInstance()->findHubEncoding(i.m_HubUrl));
+		aSource->setEncoding(ClientManager::findHubEncoding(i.m_HubUrl));
 	}
 	
 	const string nick = Text::toUtf8(aNick, aSource->getEncoding());// TODO IRAINMAN_USE_UNICODE_IN_NMDC
@@ -763,7 +763,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 	{
 		// Make sure we know who it is, i e that he/she is connected...
 		
-		aSource->setUser(ClientManager::getInstance()->findUser(cid));
+		aSource->setUser(ClientManager::findUser(cid));
 		if (!aSource->getUser() || !aSource->getUser()->isOnline())
 		{
 			dcdebug("CM::onMyNick Incoming connection from unknown user %s\n", nick.c_str());
@@ -779,10 +779,10 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 		aSource->setFlag(UserConnection::FLAG_STEALTH);
 #endif
 		
-	ClientManager::getInstance()->setIPUser(aSource->getUser(), aSource->getRemoteIp());
+	ClientManager::setIPUser(aSource->getUser(), aSource->getRemoteIp());
 	
 #ifdef IRAINMAN_ENABLE_OP_VIP_MODE_ON_NMDC
-	if (ClientManager::getInstance()->isOp(aSource->getUser(), aSource->getHubUrl()))
+	if (ClientManager::isOp(aSource->getUser(), aSource->getHubUrl()))
 		aSource->setFlag(UserConnection::FLAG_OP);
 #endif
 		
@@ -1014,7 +1014,7 @@ void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCo
 		return;
 	}
 	
-	aSource->setUser(ClientManager::getInstance()->findUser(CID(cid)));
+	aSource->setUser(ClientManager::findUser(CID(cid)));
 	
 	if (!aSource->getUser())
 	{
@@ -1138,7 +1138,7 @@ bool ConnectionManager::checkKeyprint(UserConnection *aSource)
 		return true;
 	}
 	
-	auto kp2 = ClientManager::getInstance()->getStringField(aSource->getUser()->getCID(), aSource->getHubUrl(), "KP");
+	auto kp2 = ClientManager::getStringField(aSource->getUser()->getCID(), aSource->getHubUrl(), "KP");
 	if (kp2.empty())
 	{
 		// TODO false probably
@@ -1296,14 +1296,14 @@ void ConnectionManager::shutdown()
 }
 
 // UserConnectionListener
-void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* conn, StringList && feat) noexcept // [!] IRainman fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
+void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* conn, StringList& feat) noexcept // [!] IRainman fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
 {
 	dcassert(conn->getUser()); // [!] IRainman fix: please don't problem maskerate.
 	//PROFILE_THREAD_SCOPED();
 	// [!] IRainman fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
 	uint8_t knownUcSupports = 0;
-	auto unknownUcSupports = UcSupports::setSupports(conn, move(feat), knownUcSupports);
-	ClientManager::getInstance()->setSupports(conn->getUser(), move(unknownUcSupports), knownUcSupports);
+	auto unknownUcSupports = UcSupports::setSupports(conn, feat, knownUcSupports);
+	ClientManager::getInstance()->setSupports(conn->getUser(), unknownUcSupports, knownUcSupports);
 	// [~] IRainman fix.
 }
 
@@ -1313,7 +1313,7 @@ void ConnectionManager::setUploadLimit(const UserPtr& aUser, int lim)
 	SharedLock l(cs);
 	for (auto i = m_userConnections.cbegin(); i != m_userConnections.cend(); ++i)
 	{
-		if ((*i)->getUser() == aUser && (*i)->isSet(UserConnection::FLAG_UPLOAD))
+		if ((*i)->isSet(UserConnection::FLAG_UPLOAD) && (*i)->getUser() == aUser)
 		{
 			(*i)->setUploadLimit(lim);
 		}

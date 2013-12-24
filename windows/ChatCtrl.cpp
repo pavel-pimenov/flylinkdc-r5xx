@@ -799,48 +799,38 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const tstring& sAuthor, cons
 	
 	// Zvyrazneni vsech vyskytu nicku Favorite useru
 	lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
-#ifdef IRAINMAN_NON_COPYABLE_FAV_USERS
-	FavoriteManager::LockInstanceUsers lockedInstance;
-	const FavoriteManager::FavoriteMap& l_fav_users = lockedInstance.getFavoriteUsers();
-#else
-	StringSet l_fav_users;
-	FavoriteManager::getInstance()->getFavoriteUsersNames(l_fav_users);
-#endif
-	for (auto i = l_fav_users.cbegin(); i != l_fav_users.cend(); ++i)
 	{
-		const string& l_nick =
-#ifdef IRAINMAN_NON_COPYABLE_FAV_USERS
-		    i->second.getNick();
-		if (l_nick.empty())
-			continue;
-#else
-		    *i;
-#endif
-		dcassert(!l_nick.empty());
-		
-		lSearchFrom = 0;
-		const CAtlString sNick(WinUtil::toAtlString(l_nick));
-		while (true)
+		FavoriteManager::LockInstanceUsers lockedInstance;
+		const auto& l_fav_users = lockedInstance.getFavoriteNames();
+		for (auto i = l_fav_users.cbegin(); i != l_fav_users.cend(); ++i) // TODO - проверить на большом фаворите.
 		{
-			lMyNickStart = sMsgLower.Find(sNick, lSearchFrom);
-			if (lMyNickStart < 0)
-				break;
-				
-			// [!] SSA - get Previous symbol.
-			if (lMyNickStart > 0 && !isGoodNickBorderSymbol(sMsgLower.GetAt(lMyNickStart - 1)))
-				break;
-				
-			lMyNickEnd = lMyNickStart + sNick.GetLength();
+			const string& l_nick =  *i;
+			dcassert(!l_nick.empty());
 			
-			// [!] SSA - get Last symbol.
-			if (lMyNickEnd < sMsgLower.GetLength() - 1 && !isGoodNickBorderSymbol(sMsgLower.GetAt(lMyNickEnd)))
-				break;
+			lSearchFrom = 0;
+			const CAtlString sNick(WinUtil::toAtlString(l_nick));
+			while (true)
+			{
+				lMyNickStart = sMsgLower.Find(sNick, lSearchFrom);
+				if (lMyNickStart < 0)
+					break; // TODO не понятно зачем грузить список ников из фаворитов чтобы при первом ошибочном поиске выйти из цикла!
+				// http://code.google.com/p/flylinkdc/issues/detail?id=1416
+				// [!] SSA - get Previous symbol.
+				if (lMyNickStart > 0 && !isGoodNickBorderSymbol(sMsgLower.GetAt(lMyNickStart - 1)))
+					break;
+					
+				lMyNickEnd = lMyNickStart + sNick.GetLength();
 				
-			SetSel(lSelBegin + lMyNickStart, lSelBegin + lMyNickEnd);
-			
-			auto tmpCF = Colors::g_TextStyleFavUsers;
-			SetSelectionCharFormat(tmpCF);
-			lSearchFrom = lMyNickEnd;
+				// [!] SSA - get Last symbol.
+				if (lMyNickEnd < sMsgLower.GetLength() - 1 && !isGoodNickBorderSymbol(sMsgLower.GetAt(lMyNickEnd)))
+					break;
+					
+				SetSel(lSelBegin + lMyNickStart, lSelBegin + lMyNickEnd);
+				
+				auto tmpCF = Colors::g_TextStyleFavUsers;
+				SetSelectionCharFormat(tmpCF);
+				lSearchFrom = lMyNickEnd;
+			}
 		}
 	}
 }

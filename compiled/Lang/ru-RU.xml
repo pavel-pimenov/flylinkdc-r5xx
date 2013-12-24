@@ -175,6 +175,7 @@
 		<String Name="BbcodePanelStrike">Зачёркнутый шрифт</String>
 		<String Name="BbcodePanelTranslate">Транслитерировать (выделенный) текст</String>
 		<String Name="BbcodePanelUnderline">Подчёркнутый шрифт</String>
+		<String Name="BbcodePanelColor">Цвет</String>
 		<String Name="Bitrate">Качество звука</String>
 		<String Name="BitziLookup">Bitzi-поиск</String>
 		<String Name="BlendOfflineSearch">Смешать оффлайн результаты поиска</String>
@@ -480,8 +481,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="Email">E-Mail</String>
 		<String Name="EnableHubmodePic">Показывать 'Иконку Режима' для хабов</String>
 		<String Name="EnableCountryflag">Добавить флаг Страны в 'Расположение' списка Пользователей</String>
-		<String Name="EnableHubtopic">Включить поддержку $HubTopic</String>
-		<String Name="EnableLastIp">Сохранять IP в базе SQLite (для колонки Последний IP)</String>
+		<String Name="EnableLastIp">Сохранять IP в базе SQLite</String>
 		<String Name="EnableFlyServer">Искать в облаке</String>
 		<String Name="EnableMultiSource">Включить сегментирование</String>
 		<String Name="EnablePopups">Включить всплывающие подсказки</String>
@@ -656,7 +656,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 
 Если Вы укажете 'Нет', хабы будут перемещены в общую группу.</String>
 		<String Name="GroupCustommenu">Альтернативное 'Меню провайдера'</String>
-		<String Name="GroupSearchResults">Группировать результаты поиска по ТТН</String>
 		<String Name="H">Х:</String>
 		<String Name="HashingFailed">Хеширование не удалось:</String>
 		<String Name="HashingFinished">Хеширование завершено:</String>
@@ -698,7 +697,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="HubTopic">Тема хаба:</String>
 		<String Name="HubUsers">Пользователей</String>
 		<String Name="HubUsersPositionText">Расположение списка пользователей</String>
-		<String Name="IgnoredMessage">Игнорируемое сообщение:</String>
+		<String Name="IgnoredHubBotPm">Игнорируется PM от хаба или бота</String>
 		<String Name="IgnoredUsers">Игнорируемые пользователи</String>
 		<String Name="IgnoreClear">Очистить</String>
 		<String Name="AccesToPersonalMessages">Доступ к личным сообщениям</String>
@@ -1407,7 +1406,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsColorAlternate">Альтернативные источники в поиске</String>
 		<String Name="SettingsColorBadClient">Плохой клиент</String>
 		<String Name="SettingsColorBadFilelist">Плохой список файлов/поддельная шара</String>
-		<String Name="SettingsColorFavorite">Избранные</String>
+		<String Name="SettingsColorFavorite">Друг</String>
 		<String Name="SettingsColorFullChecked">Проверка пользователя завершена</String>
 		<String Name="SettingsColorIgnored">Игнорируемый</String>
 		<String Name="SettingsColorNormal">Нормальный</String>
@@ -1484,6 +1483,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsLogSystemMessages">Журнал системных сообщений</String>
 		<String Name="SettingsLogUploads">Журнал отдачи</String>
 		<String Name="SettingsLogWebserver">Журнал веб-сервера</String>
+		<String Name="SettingsLogProtocol">Журнал TCP сокета</String>
 		<String Name="SettingsMaxCompress">Макс. степень сжатия</String>
 		<String Name="SettingsMaxHashSpeed">Макс. скорость хеша</String>
 		<String Name="SettingsMaxTabRows">Максимальное количество строк вкладок</String>
@@ -1658,6 +1658,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SlowUser">Медленный пользователь</String>
 		<String Name="SmallFileSizeSet">Размер мини-файлов задан</String>
 		<String Name="SmileSelectWndAnimSmiles">Использовать анимированные иконки в окне выбора смайлов</String>
+		<String Name="SocketErrorNote">Прочитать об этой «ошибке сокета Windows» на странице FlylinkDC Wiki:</String>
 		<String Name="SocketErrorWsaeaddrnotavail">Неверно указан адрес сервера либо отсутствует подключение к интернету.</String>
 		<String Name="SocketErrorWsaenetdown">Сбой в сети</String>
 		<String Name="SocketErrorWsaenetunreach">Компьютер в данное время не может получить доступ к указанной сети.</String>
@@ -1756,7 +1757,8 @@ Raw: отослать raw-команду хабу (только для эксп�
 Согласно законодательству многих стран FlylinkDC++ обязан
 информировать пользователя об этом.</String>
 		<String Name="TextStr">Текст</String>
-		<String Name="FavUser">Фаворит</String>
+		<String Name="FavEnemyUser">Пользователь недоброжелатель/Запрет скорости</String>
+		<String Name="FavUser">Друг</String>
 		<String Name="GeneralText">Главный текст</String>
 		<String Name="MyMessage">Моё сообщение</String>
 		<String Name="MyNick">Мой псевдоним</String>

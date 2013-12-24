@@ -21,16 +21,6 @@
 
 #include "Streams.h"
 
-#ifdef _WIN32
-//
-#else
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <dirent.h>
-#include <fnmatch.h>
-#endif
-
 
 
 class File : public IOStream
@@ -45,31 +35,12 @@ class File : public IOStream
 			NO_CACHE_HINT = 0x10
 		};
 		
-#ifdef _WIN32
 		enum
 		{
 			READ = GENERIC_READ,
 			WRITE = GENERIC_WRITE,
 			RW = READ | WRITE
 		};
-		
-		static uint64_t convertTime(const FILETIME* f);
-		
-#else // !_WIN32
-		
-		enum
-		{
-			READ = 0x01,
-			WRITE = 0x02,
-			RW = READ | WRITE
-		};
-		
-		// some ftruncate implementations can't extend files like SetEndOfFile,
-		// not sure if the client code needs this...
-		int extendFile(int64_t len) noexcept;
-		
-#endif // !_WIN32
-		
 		File(const tstring& aFileName, int access, int mode, bool isAbsolutePath = true)
 		{
 			init(aFileName, access, mode, isAbsolutePath); // [1] https://www.box.net/shared/75247d259e1ee4eab670
@@ -78,9 +49,7 @@ class File : public IOStream
 		{
 			init(Text::toT(aFileName), access, mode, isAbsolutePath);
 		}
-		
 		void init(const tstring& aFileName, int access, int mode, bool isAbsolutePath); // [+] IRainman fix
-		
 		bool isOpen() const noexcept;
 		void close() noexcept;
 		int64_t getSize() const noexcept;
@@ -96,9 +65,10 @@ class File : public IOStream
 		size_t write(const void* buf, size_t len);
 		size_t flush();
 		
-		uint64_t getLastWriteTime()const noexcept; //[+]PPA
+		int64_t getLastWriteTime()const noexcept; //[+]PPA
 //		uint32_t getLastModified() const noexcept;
 
+		static uint64_t convertTime(const FILETIME* f);
 		static void copyFile(const tstring& src, const tstring& target);
 		static void copyFile(const string& src, const string& target) // [+] IRainman opt.
 		{
@@ -128,10 +98,10 @@ class File : public IOStream
 			return getSize(Text::toT(aFileName));
 		}
 		// [+] Greylink
-		static uint64_t getTimeStamp(const string& aFileName) throw(FileException);
-		static uint64_t getSafeTimeStamp(const string& p_FileName) noexcept
+		static int64_t getTimeStamp(const string& aFileName) throw(FileException);
+		static int64_t getSafeTimeStamp(const string& p_FileName) noexcept
 		{
-			uint64_t l_time_stamp;
+			int64_t l_time_stamp;
 			try
 			{
 				l_time_stamp = getTimeStamp(p_FileName);
@@ -213,11 +183,10 @@ class File : public IOStream
 		static uint64_t currentTime();
 		
 	protected:
-#ifdef _WIN32
 		HANDLE h;
-#else
-		int h;
-#endif
+	private:
+		File(const File&);
+		File& operator=(const File&);
 };
 
 class FileFindIter
@@ -246,9 +215,7 @@ class FileFindIter
 		static const FileFindIter end; // [+] IRainman opt.
 		
 		struct DirData
-#ifdef _WIN32
 				: public WIN32_FIND_DATA
-#endif
 		{
 			DirData();
 			
@@ -258,16 +225,10 @@ class FileFindIter
 			bool isLink() const;
 			int64_t getSize() const;
 			int64_t getLastWriteTime() const;
-#ifdef _WIN32 // [+]IRainman
 			bool isSystem() const;
 			bool isTemporary() const;
 			bool isVirtual() const;
-#endif  // ~[+]IRainman
-			
-#ifndef _WIN32
-			dirent *m_ent;
-			string m_base;
-#endif
+			bool isFileSizeCorrupted() const;
 		};
 		
 		DirData& operator*()
@@ -288,11 +249,7 @@ class FileFindIter
 		}
 		
 	private:
-#ifdef _WIN32
 		HANDLE m_handle;
-#else
-		DIR* m_dir;
-#endif
 		void init(const tstring& path);
 		DirData m_data;
 };

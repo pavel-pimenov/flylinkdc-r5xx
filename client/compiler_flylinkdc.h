@@ -279,8 +279,6 @@ typedef unsigned __int64 uint64_t;
 # define IRAINMAN_USE_READ_WRITE_POLITICS
 # ifdef IRAINMAN_USE_READ_WRITE_POLITICS
 // [!] IRainman opt: use policies without copying data.
-#  define IRAINMAN_NON_COPYABLE_FAV_USERS
-#  define IRAINMAN_NON_COPYABLE_FAV_DIRS
 #  define IRAINMAN_USE_SHARED_SPIN_LOCK
 #   ifdef IRAINMAN_USE_SHARED_SPIN_LOCK
 #    define IRAINMAN_USE_SEPARATE_CS_IN_FAVORITE_MANAGER

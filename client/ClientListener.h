@@ -62,7 +62,7 @@ class ClientListener
 		virtual void on(SearchFlood, const Client*, const string&) noexcept { }
 #endif
 		virtual void on(NmdcSearch, Client* aClient, const string& aSeeker, Search::SizeModes aSizeMode, int64_t aSize,
-		                int aFileType, const string& aString, bool isPassive) noexcept { }
+		                Search::TypeModes aFileType, const string& aString, bool isPassive) noexcept { }
 		virtual void on(AdcSearch, const Client*, const AdcCommand&, const CID&) noexcept { }
 		virtual void on(CheatMessage, const Client*, const string&) noexcept { }
 		virtual void on(HubTopic, const Client*, const string&) noexcept { }

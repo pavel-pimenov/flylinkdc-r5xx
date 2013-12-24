@@ -219,7 +219,11 @@ void VideoPreview::AddTempFileToPreview(QueueItem* tempItem, HWND serverReadyRep
 		_previewFileSize = tempItem->getSize();
 		_tempFilename = tempItem->getTempTarget();
 		_fileRoadMap = unique_ptr<FileRoadMap>(new FileRoadMap(_previewFileSize));
-		QueueItem::SegmentSet segments =  tempItem->getDone();
+		QueueItem::SegmentSet segments;
+		{
+			SharedLock l(QueueItem::cs);
+			segments =  tempItem->getDoneL();
+		}
 		for (auto i = segments.cbegin(); i != segments.cend(); ++i)
 		{
 			addSegment(i->getStart(), i->getEnd());
@@ -243,7 +247,7 @@ void VideoPreview::fail(const string& aError)
 
 void VideoPreview::_StartServer()
 {
-	if (_serverPreview == NULL)
+	if (_serverPreview == nullptr)
 	{
 		_serverPreview = new PreviewServer(SETTING(INT_PREVIEW_SERVER_PORT), SETTING(BIND_ADDRESS));
 		_serverStarted = true;
@@ -255,7 +259,7 @@ void VideoPreview::_StartServer()
 void VideoPreview::_StopServer()
 {
 	_isServerDie = true;
-	if (_serverPreview != NULL)
+	if (_serverPreview != nullptr)
 	{
 		safe_delete(_serverPreview);
 		_serverStarted = false;

@@ -63,24 +63,25 @@ class DirectoryListing : public UserInfoBase
 				};
 				typedef vector<Ptr> List;
 				
-			File(Directory* p_Dir, const string& p_Name, int64_t p_Size, const TTHValue& p_TTH, uint32_t p_Hit, uint32_t p_ts, const CFlyMediaInfo& p_media) noexcept :
+			File(Directory* p_Dir, const string& p_Name, int64_t p_Size, const TTHValue& p_TTH, uint32_t p_Hit, uint32_t p_ts, std::shared_ptr<CFlyMediaInfo>& p_media) noexcept :
 				name(p_Name), size(p_Size), parent(p_Dir), tthRoot(p_TTH), hit(p_Hit), ts(p_ts), m_media(p_media), adls(false)
 				{
 				}
 				File(const File& rhs, bool _adls = false) : name(rhs.name), size(rhs.size), parent(rhs.parent), tthRoot(rhs.tthRoot),
-					hit(rhs.hit), ts(rhs.ts), m_media(rhs.m_media), adls(_adls)
+					hit(rhs.hit), ts(rhs.ts), adls(_adls), m_media(rhs.m_media)
 				{
 				}
-				
-				~File() { }
+				~File()
+				{
+				}
 				
 				GETSET(string, name, Name);
 				GETSET(int64_t, size, Size);
 				GETSET(Directory*, parent, Parent);
 				GETSET(TTHValue, tthRoot, TTH);
-				GETSET(uint32_t, hit, Hit);
-				GETSET(uint32_t, ts, TS);
-				CFlyMediaInfo m_media;
+				GETSET(uint64_t, hit, Hit);
+				GETSET(int64_t, ts, TS);
+				std::shared_ptr<CFlyMediaInfo> m_media;
 				GETSET(bool, adls, Adls);
 		};
 		
@@ -118,13 +119,13 @@ class DirectoryListing : public UserInfoBase
 				size_t   getTotalFileCount(bool adls = false) const;
 				uint64_t getTotalSize(bool adls = false) const;
 				uint64_t getTotalHit() const;
-				uint32_t getTotalTS() const;
+				int64_t getTotalTS() const;
 				std::pair<uint32_t, uint32_t> getMinMaxBitrateDir() const;
 				std::pair<uint32_t, uint32_t> getMinMaxBitrateFile() const;
 				tstring getMinMaxBitrateDirAsString() const;
 				uint64_t getSumSize() const;
 				uint64_t getSumHit() const;
-				uint32_t getMaxTS() const;
+				int64_t getMaxTS() const;
 				void filterList(DirectoryListing& dirList);
 				void filterList(TTHSet& l);
 				void getHashList(TTHSet& l);

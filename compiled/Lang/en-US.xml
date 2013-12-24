@@ -185,6 +185,7 @@ Are you sure to run another copy of program?</String>
 		<String Name="BbcodePanelStrike">Strike font</String>
 		<String Name="BbcodePanelTranslate">Transcode (selected) Text</String>
 		<String Name="BbcodePanelUnderline">Underline font</String>
+		<String Name="BbcodePanelColor">Color</String>
 		<String Name="Bitrate">Bitrate</String>
 		<String Name="BitziLookup">Bitzi Lookup</String>
 		<String Name="BlendOfflineSearch">Blend offline search results</String>
@@ -489,8 +490,7 @@ Turn DHT feature on?</String>
 		<String Name="Email">E-Mail</String>
 		<String Name="EnableHubmodePic">Enable 'Mode Picture' for hubs</String>
 		<String Name="EnableCountryflag">Add Country flag into 'Location' in userlist</String>
-		<String Name="EnableHubtopic">Enable $HubTopic support</String>
-		<String Name="EnableLastIp">Store IP in a SQLite database (Column Last IP)</String>
+		<String Name="EnableLastIp">Store IP in a SQLite database</String>
 		<String Name="EnableFlyServer">Use fly-server cloud</String>
 		<String Name="EnableMultiSource">Enable multi-source</String>
 		<String Name="EnablePopups">Enable popups</String>
@@ -665,7 +665,6 @@ If you select 'Yes', all of these hubs are going to be deleted!
 
 If you select 'No', these hubs will simply be moved to the main default group.</String>
 		<String Name="GroupCustommenu">Alternative 'Custom Menu' location</String>
-		<String Name="GroupSearchResults">Group search results by TTH</String>
 		<String Name="H">H:</String>
 		<String Name="HashingFailed">Hashing failed:</String>
 		<String Name="HashingFinished">Finished hashing:</String>
@@ -707,7 +706,7 @@ Show the list of hubs?</String>
 		<String Name="HubTopic">Hub Topic:</String>
 		<String Name="HubUsers">Users</String>
 		<String Name="HubUsersPositionText">The location of the user list</String>
-		<String Name="IgnoredMessage">Ignored message:</String>
+		<String Name="IgnoredHubBotPm">Ignored PM from hub or bot</String>
 		<String Name="IgnoredUsers">Ignored users</String>
 		<String Name="IgnoreClear">Clear</String>
 		<String Name="AccesToPersonalMessages">Access to personal messages</String>
@@ -1482,6 +1481,7 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="SettingsLogSystemMessages">Log system messages</String>
 		<String Name="SettingsLogUploads">Log uploads</String>
 		<String Name="SettingsLogWebserver">Log web server</String>
+		<String Name="SettingsLogProtocol">Log TCP socket </String>
 		<String Name="SettingsMaxCompress">Max compression level</String>
 		<String Name="SettingsMaxHashSpeed">Max hash speed</String>
 		<String Name="SettingsMaxTabRows">Max tab rows</String>
@@ -1656,6 +1656,7 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="SlowUser">Slow user</String>
 		<String Name="SmallFileSizeSet">Small file size set</String>
 		<String Name="SmileSelectWndAnimSmiles">Use animated icons in smile selection window</String>
+		<String Name="SocketErrorNote">Read about this 'Windows Socket error' on FlylinkDC Wiki page:</String>
 		<String Name="SocketErrorWsaeaddrnotavail">The requested address is not valid in its context.</String>
 		<String Name="SocketErrorWsaenetdown">A socket operation encountered a dead network.</String>
 		<String Name="SocketErrorWsaenetunreach">A socket operation was attempted to an unreachable network.</String>
@@ -1753,6 +1754,7 @@ usage statistics and transmits it to the developers.
 According to the law of many countries FlylinkDC++ are
 obliged to inform about this fact.</String>
 		<String Name="TextStr">Text</String>
+		<String Name="FavEnemyUser">Enemy user/Speed Ban</String>
 		<String Name="FavUser">Favorite user</String>
 		<String Name="GeneralText">General text</String>
 		<String Name="MyMessage">My own message</String>

@@ -108,12 +108,12 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 	else
 	{
 		l_is_CID_User = true;
-		UserPtr p = ClientManager::getInstance()->getUser(aNick, getHubUrl()
+		UserPtr p = ClientManager::getUser(aNick, getHubUrl()
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-		                                                  , getHubID()
+		                                   , getHubID()
 #endif
-		                                                  , p_first_load
-		                                                 );
+		                                   , p_first_load
+		                                  );
 		l_ou_ptr = new OnlineUser(p, *this, 0);
 	}
 	auto l_find = m_users.insert(make_pair(aNick, l_ou_ptr));
@@ -359,7 +359,7 @@ void NmdcHub::updateFromTag(Identity& id, const string & tag) // [!] IRainman op
 		else
 		{
 			FastLock l(NmdcSupports::g_debugCsUnknownNmdcTagParam);
-			NmdcSupports::g_debugUnknownNmdcTagParam.insert(std::move(*i));
+			NmdcSupports::g_debugUnknownNmdcTagParam.insert(*i);
 		}
 #endif
 		// [~] IRainman fix.
@@ -672,7 +672,7 @@ void NmdcHub::onLine(const string& aLine)
 		j = param.find('?', i);
 		if (j == string::npos || i == j)
 			return;
-		int type = Util::toInt(param.substr(i, j - i)) - 1; // TODO уйти от int
+		const Search::TypeModes type = Search::TypeModes(Util::toInt(param.substr(i, j - i)) - 1);
 		i = j + 1;
 		string terms = unescape(param.substr(i));
 		
@@ -919,7 +919,7 @@ void NmdcHub::onLine(const string& aLine)
 	}
 	else if (cmd == "Supports")
 	{
-		const StringTokenizer<string> st(param, ' ');
+		const StringTokenizer<string> st(param, ' '); // TODO убрать текены. сделать поиском. http://code.google.com/p/flylinkdc/issues/detail?id=1112
 		const StringList& sl = st.getTokens();
 		for (auto i = sl.cbegin(); i != sl.cend(); ++i)
 		{
@@ -1009,9 +1009,6 @@ void NmdcHub::onLine(const string& aLine)
 				feat.push_back("TTHSearch");
 				feat.push_back("ZPipe0");
 				
-				if (BOOLSETTING(COMPRESS_TRANSFERS))
-					feat.push_back("GetZBlock");
-					
 				if (CryptoManager::getInstance()->TLSOk()
 #ifdef IRAINMAN_ENABLE_STEALTH_MODE
 				        && !getStealth()
@@ -1499,7 +1496,7 @@ void NmdcHub::myInfo(bool alwaysSend)
 	}
 #endif
 //[+]FlylinkDC
-	const string currentCounts = (fhe && fhe->getExclusiveHub()) ? getCountsIndivid() : getCounts();
+	const string currentCounts = fhe && fhe->getExclusiveHub() ? getCountsIndivid() : getCounts();
 //[~]FlylinkDC
 
 	// IRAINMAN_USE_UNICODE_IN_NMDC
@@ -1539,12 +1536,12 @@ void NmdcHub::myInfo(bool alwaysSend)
 	}
 }
 
-void NmdcHub::search(Search::SizeModes aSizeType, int64_t aSize, int aFileType, const string& aString, const string&, const StringList&)
+void NmdcHub::search(Search::SizeModes aSizeType, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string&, const StringList&)
 {
 	checkstate();
 	const char c1 = (aSizeType == Search::SIZE_DONTCARE || aSizeType == Search::SIZE_EXACT) ? 'F' : 'T';
-	const char c2 = (aSizeType == Search::SIZE_ATLEAST) ? 'F' : 'T';
-	string tmp = ((aFileType == SearchManager::TYPE_TTH) ? g_tth + aString : fromUtf8(escape(aString))); // [!] IRainman opt.
+	const char c2 = aSizeType == Search::SIZE_ATLEAST ? 'F' : 'T';
+	string tmp = aFileType == Search::TYPE_TTH ? g_tth + aString : fromUtf8(escape(aString)); // [!] IRainman opt.
 	string::size_type i;
 	while ((i = tmp.find(' ')) != string::npos)
 	{
@@ -1560,9 +1557,11 @@ void NmdcHub::search(Search::SizeModes aSizeType, int64_t aSize, int aFileType, 
 		tmp2 = "Hub:" + fromUtf8(getMyNick());
 	}
 	const string l_search_command = "$Search " + tmp2 + ' ' + c1 + '?' + c2 + '?' + Util::toString(aSize) + '?' + Util::toString(aFileType + 1) + '?' + tmp + '|';
+#ifdef _DEBUG
 	const string l_debug_string =  "[Search:" + l_search_command + "][" + (isActive() ? string("Active") : string("Passive")) + " search][Client:" + getHubUrl() + "]";
 	dcdebug("[NmdcHub::search] %s \r\n", l_debug_string.c_str());
-	g_last_search_string = l_debug_string;
+#endif
+	g_last_search_string = "UDP port: " + tmp2;
 	//LogManager::getInstance()->message(l_debug_string);
 	send(l_search_command);
 }
@@ -1736,7 +1735,7 @@ void NmdcHub::myInfoParse(const string& param) noexcept
 				const string l_tag = tmpDesc.substr(x + 1, tmpDesc.length() - x - 2);
 				updateFromTag(ou->getIdentity(), l_tag); // тяжелая операция с токенами. TODO - оптимизнуть
 			}
-			ou->getIdentity().setDescription(tmpDesc.substr(x));
+			ou->getIdentity().setDescription(tmpDesc.erase(x));
 		}
 	}
 	else
@@ -1842,7 +1841,8 @@ void NmdcHub::RequestConnectionForAutodetect()
 	bool bWantAutodetect = false;
 	if (m_bAutodetectionPending &&
 	        m_iRequestCount < MAX_CONNECTION_REQUESTS_COUNT &&
-	        ClientManager::getInstance()->getMode(getHubUrl(), &bWantAutodetect) == SettingsManager::INCOMING_FIREWALL_PASSIVE && bWantAutodetect)
+	        ClientManager::getMode(getHubUrl(), &bWantAutodetect) == SettingsManager::INCOMING_FIREWALL_PASSIVE
+	        && bWantAutodetect)
 	{
 		FastLock l(cs);
 		for (auto i = m_users.cbegin(); i != m_users.cend() && m_iRequestCount < MAX_CONNECTION_REQUESTS_COUNT; ++i)

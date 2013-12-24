@@ -30,10 +30,24 @@ struct Search
 		SIZE_ATMOST = 0x02,
 		SIZE_EXACT = 0x03
 	};
+	enum TypeModes
+	{
+		TYPE_ANY = 0,
+		TYPE_AUDIO,
+		TYPE_COMPRESSED,
+		TYPE_DOCUMENT,
+		TYPE_EXECUTABLE,
+		TYPE_PICTURE,
+		TYPE_VIDEO,
+		TYPE_DIRECTORY,
+		TYPE_TTH,
+		TYPE_CD_IMAGE, //[+] от flylinkdc++
+		TYPE_LAST
+	};
 	
 	SizeModes   sizeMode;
 	int64_t   size;
-	int32_t   fileType;
+	uint16_t  m_fileTypes_bitmap;
 	string    query;
 	string    token;
 	StringList  exts;
@@ -41,9 +55,10 @@ struct Search
 	
 	bool operator==(const Search& rhs) const
 	{
+		BOOST_STATIC_ASSERT(TYPE_LAST < 16); // Иначе не влезет в m_fileTypes_bitmap
 		return sizeMode == rhs.sizeMode &&
 		       size == rhs.size &&
-		       fileType == rhs.fileType &&
+		       m_fileTypes_bitmap == rhs.m_fileTypes_bitmap &&
 		       query == rhs.query;
 	}
 };

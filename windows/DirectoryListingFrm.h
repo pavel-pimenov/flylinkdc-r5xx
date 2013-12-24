@@ -261,11 +261,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		void downloadList(const FavoriteManager::FavDirList& spl, int newId)
 		{
 			dcassert(newId < (int)spl.size());
-			downloadList(Text::toT(spl[newId]
-#ifdef IRAINMAN_NON_COPYABLE_FAV_DIRS
-			                       .dir
-#endif
-			                      ));
+			downloadList(Text::toT(spl[newId].dir));
 		}
 		
 		void updateTree(DirectoryListing::Directory* tree, HTREEITEM treeItem);
@@ -492,13 +488,19 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 							case COLUMN_TS:
 								return compare(a->file->getTS(), b->file->getTS());
 							case COLUMN_BITRATE:
-								return compare(a->file->m_media.m_bitrate, b->file->m_media.m_bitrate);
+								if (a->file->m_media && b->file->m_media)
+									return compare(a->file->m_media->m_bitrate, b->file->m_media->m_bitrate);
+								else
+									return 0;
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 							case COLUMN_FLY_SERVER_RATING:
 								return compare(Util::toInt64(a->columns[col]), Util::toInt64(b->columns[col]));
 #endif
 							case COLUMN_MEDIA_XY:
-								return compare(a->file->m_media.m_mediaX * 1000000 + a->file->m_media.m_mediaY, b->file->m_media.m_mediaX * 1000000 + b->file->m_media.m_mediaY);
+								if (a->file->m_media && b->file->m_media)
+									return compare(a->file->m_media->m_mediaX * 1000000 + a->file->m_media->m_mediaY, b->file->m_media->m_mediaX * 1000000 + b->file->m_media->m_mediaY);
+								else
+									return 0;
 							default:
 								return Util::DefaultSort(a->columns[col].c_str(), b->columns[col].c_str(), false);
 						}
@@ -658,8 +660,8 @@ class ThreadedDirectoryListing : public BASE_THREAD
 			}
 			catch (const Exception& e)
 			{
-				mWindow->m_error = Text::toT(ClientManager::getInstance()->getNicks(mWindow->dl->getUser()->getCID(),
-				                                                                    mWindow->dl->getHintedUser().hint)[0] + ": " + e.getError());
+				mWindow->m_error = Text::toT(ClientManager::getNicks(mWindow->dl->getUser()->getCID(),
+				                                                     mWindow->dl->getHintedUser().hint)[0] + ": " + e.getError());
 				tstring l_email_message = Text::toT(string("\r\nSend the corrupted file '") + mFile + "' to e-mail ppa74@ya.ru for analyze and correct the error!");
 				::MessageBox(NULL, (mWindow->m_error + l_email_message).c_str() , _T(APPNAME)  , MB_OK | MB_ICONERROR);
 				mWindow->PostMessage(WM_SPEAKER, DirectoryListingFrame::ABORTED);

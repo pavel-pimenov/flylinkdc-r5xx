@@ -99,18 +99,31 @@ struct CFlyFileInfo
 	TTHValue m_tth;
 	uint32_t m_hit;
 	int64_t m_StampShare;
-	CFlyMediaInfo m_media;
+	std::shared_ptr<CFlyMediaInfo> m_media_ptr;
 #ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
 	bool     m_found;
 #endif
 	bool     m_recalc_ftype;
 	char     m_ftype;
+	CFlyFileInfo()
+	{
+	}
+	~CFlyFileInfo()
+	{
+	}
 };
 typedef boost::unordered_map<string, CFlyFileInfo> CFlyDirMap;
 struct CFlyPathItem
 {
 	__int64 m_path_id;
-	bool    m_found;
+	bool    m_is_found;
+	bool    m_is_no_mediainfo;
+	CFlyPathItem(__int64 p_path_id = 0, bool p_is_found = false, bool p_is_no_mediainfo = false)
+		: m_path_id(p_path_id),
+		  m_is_found(p_is_found),
+		  m_is_no_mediainfo(p_is_no_mediainfo)
+	{
+	}
 };
 enum eTypeSegment
 {
@@ -186,7 +199,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		
 		bool getTree(const TTHValue& p_root, TigerTree& p_tt);
 		unsigned __int64 getBlockSizeSQL(const TTHValue& p_root, __int64 p_size);
-		__int64 get_path_id(string p_path, bool p_create, bool p_case_convet);
+		__int64 get_path_id(string p_path, bool p_create, bool p_case_convet, bool& p_is_no_mediainfo);
 		__int64 addTree(const TigerTree& tt);
 		bool findTTH(const string& aPath, const string& aFileName, TTHValue& p_tth);
 		
@@ -203,7 +216,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		bool checkTTH(const string& fname, __int64 path_id, int64_t aSize, int64_t aTimeStamp, TTHValue& p_out_tth);
 		void LoadPathCache();
 		void SweepPath();
-		void LoadDir(__int64 p_path_id, CFlyDirMap& p_dir_map);
+		void LoadDir(__int64 p_path_id, CFlyDirMap& p_dir_map, bool p_is_no_mediainfo);
 #ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
 		void SweepFiles(__int64 p_path_id, const CFlyDirMap& p_sweep_files);
 #endif
@@ -221,7 +234,6 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		__int64 get_registry_variable_int64(eTypeSegment p_TypeSegment);
 		void save_registry(const TStringList& p_values, int p_Segment);
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-		
 		bool load_media_info(const TTHValue& p_tth, CFlyMediaInfo& p_media_info, bool p_only_inform);
 		bool find_fly_server_cache(const TTHValue& p_tth, CFlyServerCache& p_value);
 		void save_fly_server_cache(const TTHValue& p_tth, const CFlyServerCache& p_value);
@@ -335,6 +347,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		auto_ptr<sqlite3_command> m_update_file;
 		auto_ptr<sqlite3_command> m_check_tth_sql;
 		auto_ptr<sqlite3_command> m_load_dir_sql;
+		auto_ptr<sqlite3_command> m_load_dir_sql_without_mediainfo;
 		auto_ptr<sqlite3_command> m_set_ftype;
 		auto_ptr<sqlite3_command> m_load_path_cache;
 		auto_ptr<sqlite3_command> m_sweep_dir_sql;

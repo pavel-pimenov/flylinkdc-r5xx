@@ -480,8 +480,6 @@
 		<String Name="EditAccel">&amp;Рэдаґаваць</String>
 		<String Name="Email">Эл. пошта</String>
 		<String Name="EnableHubmodePic">Паказваць значак стану асяродкаў</String>
-		<String Name="EnableHubtopic">Падтрымваць «$HubTopic»</String>
-		<String Name="EnableLastIp">Захоўваць IP у базе зьвестак SQLite (для слупка «Апошні IP»)</String>
 		<String Name="EnableMultiSource">Дазволіць шмат крыніцаў</String>
 		<String Name="EnablePopups">Дазволіць вынырцы</String>
 		<String Name="EnableSounds">Дазволіць гучэць</String>
@@ -644,7 +642,6 @@
 
 Калі абраць «Не», гэтыя асяродкі толькі перасунуцца ў пачатковую галоўную суполку.</String>
 		<String Name="GroupCustommenu">Іншае месца дадатковага мэню</String>
-		<String Name="GroupSearchResults">Аб’ядноўваць знойдзенае па скаротах (TTH)</String>
 		<String Name="H">А:</String>
 		<String Name="HashingFailed">Не ўдалося стварыць скароты:</String>
 		<String Name="HashingFinished">Стварылі скарот:</String>
@@ -686,7 +683,6 @@
 		<String Name="HubTopic">Тэма асяродку:</String>
 		<String Name="HubUsers">карыст.</String>
 		<String Name="HubUsersPositionText">Разьмесьціць сьпіс карыстальнікаў</String>
-		<String Name="IgnoredMessage">Паведамленьне ігнараваным:</String>
 		<String Name="IgnoredUsers">Не заўважаць карыстальнікаў</String>
 		<String Name="IgnoreClear">Ачысьціць</String>
 		<String Name="IgnorePrivate">Не заўважаць асабістыя паведамленьні</String>

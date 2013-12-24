@@ -57,7 +57,7 @@ bool BootstrapManager::bootstrap(const string& p_sub_agent)
 		string l_url = l_server.getUrl() + "?cid=" + ClientManager::getMyCID().toBase32() + "&encryption=1";  // [!] IRainman fix.
 		
 		// store only active nodes to database
-		if (ClientManager::getInstance()->isActive(nullptr))
+		if (ClientManager::isActive(nullptr))
 		{
 			l_url += "&u4=" + Util::toString(DHT::getInstance()->getPort());
 		}

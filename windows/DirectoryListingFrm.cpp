@@ -938,7 +938,7 @@ LRESULT DirectoryListingFrame::onGetTTHMediainfoServer(WORD /*wNotifyCode*/, WOR
 		{
 			const DirectoryListing::File* pFile = pItemInfo->file;
 			CFlyServerKey l_info(pFile->getTTH(), pFile->getSize()); // pFile->getName()
-			l_array.push_back(std::move(l_info));
+			l_array.push_back(l_info);
 		}
 		else
 		{
@@ -959,11 +959,14 @@ LRESULT DirectoryListingFrame::onSetTTHMediainfoServer(WORD /*wNotifyCode*/, WOR
 		{
 			const DirectoryListing::File* pFile = pItemInfo->file;
 			CFlyServerKey l_info(pFile->getTTH(), pFile->getSize()); // , pFile->getName()
-			l_info.m_media = pFile->m_media;
+			if (pFile->m_media)
+			{
+				l_info.m_media = *pFile->m_media;
+			}
 			l_info.m_hit = pFile->getHit();
 			l_info.m_time_hash = pFile->getTS();
 			CFlylinkDBManager::getInstance()->load_media_info(pFile->getTTH(), l_info.m_media, false);
-			l_array.push_back(std::move(l_info));
+			l_array.push_back(l_info);
 		}
 		else
 		{
@@ -1157,24 +1160,14 @@ void DirectoryListingFrame::updateTitle()
 
 void DirectoryListingFrame::appendTargetMenu(OMenu& p_menu, const int p_id_menu)
 {
-#ifdef IRAINMAN_NON_COPYABLE_FAV_DIRS
 	FavoriteManager::LockInstanceDirs lockedInstance;
-	const auto& dirs = lockedInstance.getFavoriteDirs();
-#else
-	const auto dirs = FavoriteManager::getInstance()->getFavoriteDirsOrNames(true);
-#endif
+	const auto& dirs = lockedInstance.getFavoriteDirsL();
 	if (!dirs.empty())
 	{
 		int n = 0;
 		for (auto i = dirs.cbegin(); i != dirs.cend(); ++i)
 		{
-			p_menu.AppendMenu(MF_STRING, p_id_menu + n, Text::toT(
-#ifdef IRAINMAN_NON_COPYABLE_FAV_DIRS
-			                      i->name
-#else
-			                      *i
-#endif
-			                  ).c_str());
+			p_menu.AppendMenu(MF_STRING, p_id_menu + n, Text::toT(i->name).c_str());
 			n++;
 		}
 		p_menu.AppendMenu(MF_SEPARATOR);
@@ -1290,7 +1283,7 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 			}
 			
 			//fileMenu.EnableMenuItem((UINT)(HMENU)copyMenu, MF_BYCOMMAND | MFS_ENABLED);
-			appendUcMenu(fileMenu, UserCommand::CONTEXT_FILELIST, ClientManager::getInstance()->getHubs(dl->getUser()->getCID(), dl->getHintedUser().hint));
+			appendUcMenu(fileMenu, UserCommand::CONTEXT_FILELIST, ClientManager::getHubs(dl->getUser()->getCID(), dl->getHintedUser().hint));
 #ifdef OLD_MENU_HEADER //[~]JhaoDa
 			fileMenu.InsertSeparatorFirst(Text::CropStrLength(ii->file->getName()));
 #endif
@@ -1329,7 +1322,7 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 				copyMenu.ModifyMenu(l_ipos, MF_BYPOSITION | MF_STRING, IDC_COPY_FILENAME, CTSTRING(FOLDERNAME));
 			}
 			
-			appendUcMenu(fileMenu, UserCommand::CONTEXT_FILELIST, ClientManager::getInstance()->getHubs(dl->getUser()->getCID(), dl->getHintedUser().hint));
+			appendUcMenu(fileMenu, UserCommand::CONTEXT_FILELIST, ClientManager::getHubs(dl->getUser()->getCID(), dl->getHintedUser().hint));
 #ifdef OLD_MENU_HEADER //[~]JhaoDa
 			fileMenu.InsertSeparatorFirst(ctrlList.GetSelectedCount() == 1 ? (ii->type == ItemInfo::FILE ? Text::CropStrLength(ii->file->getName()) : Text::CropStrLength(ii->dir->getName())) : CTSTRING(FILES));
 #endif
@@ -1480,12 +1473,8 @@ LRESULT DirectoryListingFrame::onDownloadFavoriteDirs(WORD /*wNotifyCode*/, WORD
 {
 	int newId = wID - IDC_DOWNLOAD_FAVORITE_DIRS;
 	dcassert(newId >= 0);
-#ifdef IRAINMAN_NON_COPYABLE_FAV_DIRS
 	FavoriteManager::LockInstanceDirs lockedInstance;
-	const auto& spl = lockedInstance.getFavoriteDirs();
-#else
-	const auto spl = FavoriteManager::getInstance()->getFavoriteDirsOrNames(false);
-#endif
+	const auto& spl = lockedInstance.getFavoriteDirsL();
 	if (ctrlList.GetSelectedCount() == 1)
 	{
 		ItemInfo* ii = (ItemInfo*)ctrlList.GetItemData(ctrlList.GetNextItem(-1, LVNI_SELECTED));
@@ -1534,18 +1523,10 @@ LRESULT DirectoryListingFrame::onDownloadWholeFavoriteDirs(WORD /*wNotifyCode*/,
 		//string target = SETTING(DOWNLOAD_DIRECTORY);
 		try
 		{
-#ifdef IRAINMAN_NON_COPYABLE_FAV_DIRS
 			FavoriteManager::LockInstanceDirs lockedInstance;
-			const auto& spl = lockedInstance.getFavoriteDirs();
-#else
-			const auto spl = FavoriteManager::getInstance()->getFavoriteDirsOrNames(false);
-#endif
+			const auto& spl = lockedInstance.getFavoriteDirsL();
 			dcassert(newId < (int)spl.size());
-			dl->download(dir, spl[newId]
-#ifdef IRAINMAN_NON_COPYABLE_FAV_DIRS
-			             .dir
-#endif
-			             , WinUtil::isShift(), QueueItem::DEFAULT);
+			dl->download(dir, spl[newId].dir, WinUtil::isShift(), QueueItem::DEFAULT);
 		}
 		catch (const Exception& e)
 		{
@@ -1907,6 +1888,7 @@ LRESULT DirectoryListingFrame::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
 
 LRESULT DirectoryListingFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
+	m_before_close = true;
 	CWaitCursor l_cursor_wait;
 	if (m_loading)
 	{
@@ -1920,15 +1902,15 @@ LRESULT DirectoryListingFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 		m_closed = true;
 		safe_destroy_timer();
 		SettingsManager::getInstance()->removeListener(this);
-		ctrlList.DeleteAndCleanAllItems();
 		g_frames.erase(m_hWnd);
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
+		waitForFlyServerStop();
+#endif
+		ctrlList.DeleteAndCleanAllItems();
 		ctrlList.saveHeaderOrder(SettingsManager::DIRECTORYLISTINGFRAME_ORDER, SettingsManager::DIRECTORYLISTINGFRAME_WIDTHS, SettingsManager::DIRECTORYLISTINGFRAME_VISIBLE); // !SMT!-UI
 		SET_SETTING(DIRLIST_COLUMNS_SORT, ctrlList.getSortColumn());
 		SET_SETTING(DIRLIST_COLUMNS_SORT_ASC, ctrlList.isAscending());
 		SET_SETTING(DIRECTORYLISTINGFRAME_SPLIT, m_nProportionalPos);
-#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-		waitForFlyServerStop();
-#endif
 		PostMessage(WM_CLOSE);
 		return 0;
 	}
@@ -2121,12 +2103,14 @@ DirectoryListingFrame::ItemInfo::ItemInfo(DirectoryListing::File* f) : type(FILE
 		columns[COLUMN_HIT] = Util::toStringW(f->getHit());
 	if (f->getTS())
 		columns[COLUMN_TS] = Text::toT(Util::formatDigitalClock(f->getTS()));
-	if (f->m_media.m_bitrate)
-		columns[COLUMN_BITRATE] = Util::toStringW(f->m_media.m_bitrate);
-	columns[COLUMN_MEDIA_XY] = Text::toT(f->m_media.getXY());
-	columns[COLUMN_MEDIA_VIDEO] = Text::toT(f->m_media.m_video);
-	
-	CFlyMediaInfo::translateDuration(f->m_media.m_audio, columns[COLUMN_MEDIA_AUDIO], columns[COLUMN_DURATION]);
+	if (f->m_media)
+	{
+		if (f->m_media->m_bitrate)
+			columns[COLUMN_BITRATE] = Util::toStringW(f->m_media->m_bitrate);
+		columns[COLUMN_MEDIA_XY] = Text::toT(f->m_media->getXY());
+		columns[COLUMN_MEDIA_VIDEO] = Text::toT(f->m_media->m_video);
+		CFlyMediaInfo::translateDuration(f->m_media->m_audio, columns[COLUMN_MEDIA_AUDIO], columns[COLUMN_DURATION]);
+	}
 }
 DirectoryListingFrame::ItemInfo::ItemInfo(DirectoryListing::Directory* d) : type(DIRECTORY), dir(d), m_icon_index(-1)
 {
@@ -2135,7 +2119,7 @@ DirectoryListingFrame::ItemInfo::ItemInfo(DirectoryListing::Directory* d) : type
 	columns[COLUMN_SIZE]      = Util::formatBytesW(d->getTotalSize());
 	if (const int64_t l_Hit   = d->getTotalHit())
 		columns[COLUMN_HIT]   = Util::toStringW(l_Hit);
-	if (const uint32_t l_ts   = d->getTotalTS())
+	if (const int64_t l_ts   = d->getTotalTS())
 		columns[COLUMN_TS]    = Text::toT(Util::formatDigitalClock(l_ts)); //-V106
 	columns[COLUMN_BITRATE]   = d->getMinMaxBitrateDirAsString();
 }
@@ -2238,9 +2222,11 @@ void DirectoryListingFrame::mergeFlyServerInfo()
 	CWaitCursor l_cursor_wait;
 	std::map<string, ItemInfo*> l_si_map;      // Соберем элементы списка для последующего апдейта
 	std::map<TTHValue, uint64_t> l_tth_media_file_map; // Сохраним TTH файлов содержащих локальную медиаинфу для последующей передачи на сервер
+	const int l_item_count = isClosedOrShutdown() ? 0 : ctrlList.GetItemCount();
+	if (l_item_count == 0)
+		return;
 	const int l_top_index = isClosedOrShutdown() ? 0 : ctrlList.GetTopIndex();
 	const int l_count_per_page = isClosedOrShutdown() ? 0 : ctrlList.GetCountPerPage();
-	const int l_item_count = isClosedOrShutdown() ? 0 : ctrlList.GetItemCount();
 	for (int j = l_top_index; j < l_item_count && j < l_top_index + l_count_per_page; ++j)
 	{
 		dcassert(!isClosedOrShutdown());
@@ -2266,7 +2252,7 @@ void DirectoryListingFrame::mergeFlyServerInfo()
 					l_tth_media_file_map[l_tth] = l_file_size; // Регистрируем кандидата на передачу информации
 				}
 				// TODO - обратиться к локальной базе вдруг у нас уже инфа есть?
-				m_GetFlyServerArray.push_back(std::move(l_info));
+				m_GetFlyServerArray.push_back(l_info);
 			}
 		}
 	}
@@ -2369,7 +2355,7 @@ http://code.google.com/p/flylinkdc/issues/detail?id=1113
 		}
 	}
 	// Обойдем кандидатов для предачи на сервер.
-	// Массив - есть у нас в базе но нет на fly-server
+	// Массив - есть у нас в базе, но нет на fly-server
 	for (auto i = l_tth_media_file_map.begin(); i != l_tth_media_file_map.end(); ++i)
 	{
 		CFlyMediaInfo l_media_info;
@@ -2382,7 +2368,7 @@ http://code.google.com/p/flylinkdc/issues/detail?id=1113
 			{
 				CFlyServerKey l_info(i->first, i->second);
 				l_info.m_media = l_media_info; // Получили медиаинформацию с локальной базы
-				m_SetFlyServerArray.push_back(std::move(l_info));
+				m_SetFlyServerArray.push_back(l_info);
 			}
 		}
 	}

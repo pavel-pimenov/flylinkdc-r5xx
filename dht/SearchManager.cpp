@@ -131,7 +131,7 @@ void SearchManager::findFile(const string& tth, const string& token)
 	//  for(auto i = sources.cbegin(); i != sources.cend(); ++i)
 	//  {
 	//      // create user as offline (only TCP connected users will be online)
-	//      UserPtr u = ClientManager::getInstance()->getUser(i->getCID());
+	//      UserPtr u = ClientManager::getUser(i->getCID());
 	//      u->setFlag(User::DHT);
 	//
 	//      // contact node that we are online and we want his info

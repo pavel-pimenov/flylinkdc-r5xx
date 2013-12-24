@@ -439,7 +439,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 class UcSupports // [+] IRainman fix.
 {
 	public:
-		static StringList setSupports(UserConnection* conn, StringList && feat, uint8_t& knownUcSupports)
+		static StringList setSupports(UserConnection* conn, StringList& feat, uint8_t& knownUcSupports)
 		{
 			StringList unknownSupports;
 			for (auto i = feat.cbegin(); i != feat.cend(); ++i)
@@ -456,7 +456,7 @@ class UcSupports // [+] IRainman fix.
 									else CHECK_FEAT(BANMSG) // !SMT!-S
 										else
 										{
-											unknownSupports.push_back(std::move(*i));
+											unknownSupports.push_back(*i);
 										}
 										
 #undef CHECK_FEAT

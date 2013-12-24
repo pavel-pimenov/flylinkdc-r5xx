@@ -69,16 +69,16 @@ string SocketException::errorToString(int aError) noexcept
 
 void Socket::create(uint8_t aType /* = TYPE_TCP */)
 {
-	if (sock != INVALID_SOCKET)
+	if (m_sock != INVALID_SOCKET)
 		disconnect();
 		
 	switch (aType)
 	{
 		case TYPE_TCP:
-			sock = checksocket(socket(AF_INET, SOCK_STREAM, IPPROTO_TCP));
+			m_sock = checksocket(socket(AF_INET, SOCK_STREAM, IPPROTO_TCP));
 			break;
 		case TYPE_UDP:
-			sock = checksocket(socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP));
+			m_sock = checksocket(socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP));
 			break;
 		default:
 			dcassert(0);
@@ -89,7 +89,7 @@ void Socket::create(uint8_t aType /* = TYPE_TCP */)
 
 uint16_t Socket::accept(const Socket& listeningSocket)
 {
-	if (sock != INVALID_SOCKET)
+	if (m_sock != INVALID_SOCKET)
 	{
 		disconnect();
 	}
@@ -98,17 +98,17 @@ uint16_t Socket::accept(const Socket& listeningSocket)
 	
 	do
 	{
-		sock = ::accept(listeningSocket.sock, (sockaddr*) & sock_addr, &sz);
+		m_sock = ::accept(listeningSocket.m_sock, (sockaddr*) & sock_addr, &sz);
 	}
-	while (sock == SOCKET_ERROR && getLastError() == EINTR);
-	check(sock);
+	while (m_sock == SOCKET_ERROR && getLastError() == EINTR);
+	check(m_sock);
 #ifdef PPA_INCLUDE_IPGUARD
 	if (BOOLSETTING(ENABLE_IPGUARD))
 		IpGuard::getInstance()->check(sock_addr.sin_addr.s_addr, this);
 #endif
 #ifdef _WIN32
 	// Make sure we disable any inherited windows message things for this socket.
-	::WSAAsyncSelect(sock, NULL, 0, 0);
+	::WSAAsyncSelect(m_sock, NULL, 0, 0);
 #endif
 	
 	type = TYPE_TCP;
@@ -140,20 +140,20 @@ uint16_t Socket::bind(uint16_t aPort, const string& aIp /* = 0.0.0.0 */)
 	sock_addr.sin_family = AF_INET;
 	sock_addr.sin_port = htons(aPort);
 	sock_addr.sin_addr.s_addr = inet_addr(aIp.c_str());
-	if (::bind(sock, (sockaddr *)&sock_addr, sizeof(sock_addr)) == SOCKET_ERROR)
+	if (::bind(m_sock, (sockaddr *)&sock_addr, sizeof(sock_addr)) == SOCKET_ERROR)
 	{
 		dcdebug("Bind failed, retrying with INADDR_ANY: %s\n", SocketException(getLastError()).getError().c_str()); //-V111
 		sock_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-		check(::bind(sock, (sockaddr *)&sock_addr, sizeof(sock_addr)));
+		check(::bind(m_sock, (sockaddr *)&sock_addr, sizeof(sock_addr)));
 	}
 	socklen_t size = sizeof(sock_addr);
-	getsockname(sock, (sockaddr*)&sock_addr, (socklen_t*)&size);
+	getsockname(m_sock, (sockaddr*)&sock_addr, (socklen_t*)&size);
 	return ntohs(sock_addr.sin_port);
 }
 
 void Socket::listen()
 {
-	check(::listen(sock, 20));
+	check(::listen(m_sock, 20));
 	connected = true;
 }
 
@@ -161,7 +161,7 @@ void Socket::connect(const string& aAddr, uint16_t aPort)
 {
 	sockaddr_in  serv_addr;
 	
-	if (sock == INVALID_SOCKET)
+	if (m_sock == INVALID_SOCKET)
 	{
 		create(TYPE_TCP);
 	}
@@ -179,7 +179,7 @@ void Socket::connect(const string& aAddr, uint16_t aPort)
 	int result;
 	do
 	{
-		result = ::connect(sock, (sockaddr*) & serv_addr, sizeof(serv_addr));
+		result = ::connect(m_sock, (sockaddr*) & serv_addr, sizeof(serv_addr));
 	}
 	while (result < 0 && getLastError() == EINTR);
 	check(result, true);
@@ -347,7 +347,7 @@ int Socket::getSocketOptInt(int p_option) const
 	int l_val = 0; //[!] 2012-04-23_22-28-18_L4N2H5DQSWJDZVGEWQRLCAQCSP3HVHJ3ZRWM73Q_05553A64_crash-stack-r501-build-9812.dmp
 #endif
 	socklen_t l_len = sizeof(l_val);
-	check(::getsockopt(sock, SOL_SOCKET, p_option, (char*)&l_val, &l_len)); // [2] https://www.box.net/shared/3ad49dfa7f44028a7467
+	check(::getsockopt(m_sock, SOL_SOCKET, p_option, (char*)&l_val, &l_len)); // [2] https://www.box.net/shared/3ad49dfa7f44028a7467
 	/* [-] IRainman fix:
 	Please read http://msdn.microsoft.com/en-us/library/windows/desktop/ms740532(v=vs.85).aspx
 	and explain on what basis to audit https://code.google.com/p/flylinkdc/source/detail?r=9835 has been added to the magic check l_val <= 0,
@@ -384,7 +384,7 @@ void Socket::setSocketOpt(int option, int val)
 {
 	dcassert(val > 0);
 	int len = sizeof(val); // x64 - x86 int разный размер
-	check(::setsockopt(sock, SOL_SOCKET, option, (char*)&val, len)); // [2] https://www.box.net/shared/57976d5de875f5b33516
+	check(::setsockopt(m_sock, SOL_SOCKET, option, (char*)&val, len)); // [2] https://www.box.net/shared/57976d5de875f5b33516
 }
 
 int Socket::read(void* aBuffer, int aBufLen)
@@ -397,10 +397,10 @@ int Socket::read(void* aBuffer, int aBufLen)
 	{
 		do
 		{
-			if (sock == INVALID_SOCKET)// [+]IRainman
+			if (m_sock == INVALID_SOCKET)// [+]IRainman
 				break;
 				
-			len = ::recv(sock, (char*)aBuffer, aBufLen, 0); // 2012-06-09_18-19-42_SQVQZUUAHG43VEDR2S7ZTUWUU4RK7JYLXQ3CQSY_EDA69E51_crash-stack-r501-x64-build-10294.dmp
+			len = ::recv(m_sock, (char*)aBuffer, aBufLen, 0); // 2012-06-09_18-19-42_SQVQZUUAHG43VEDR2S7ZTUWUU4RK7JYLXQ3CQSY_EDA69E51_crash-stack-r501-x64-build-10294.dmp
 			
 #ifdef RIP_USE_LOG_PROTOCOL
 			if (len > 0 && BOOLSETTING(LOG_PROTOCOL))
@@ -417,10 +417,10 @@ int Socket::read(void* aBuffer, int aBufLen)
 	{
 		do
 		{
-			if (sock == INVALID_SOCKET)// [+]IRainman
+			if (m_sock == INVALID_SOCKET)// [+]IRainman
 				break;
 				
-			len = ::recvfrom(sock, (char*)aBuffer, aBufLen, 0, NULL, NULL);
+			len = ::recvfrom(m_sock, (char*)aBuffer, aBufLen, 0, NULL, NULL);
 #ifdef RIP_USE_LOG_PROTOCOL
 			if (len > 0 && BOOLSETTING(LOG_PROTOCOL))
 			{
@@ -452,10 +452,10 @@ int Socket::read(void* aBuffer, int aBufLen, sockaddr_in &remote)
 	int len = 0;
 	do
 	{
-		if (sock == INVALID_SOCKET)// [+]IRainman
+		if (m_sock == INVALID_SOCKET)// [+]IRainman
 			break;
 			
-		len = ::recvfrom(sock, (char*)aBuffer, aBufLen, 0, (sockaddr*) & remote_addr, &addr_length); // 2012-05-03_22-00-59_BXMHFQ4XUPHO3PGC3R7LOLCOCEBV57NUA63QOVA_AE6E2832_crash-stack-r502-beta24-build-9900.dmp
+		len = ::recvfrom(m_sock, (char*)aBuffer, aBufLen, 0, (sockaddr*) & remote_addr, &addr_length); // 2012-05-03_22-00-59_BXMHFQ4XUPHO3PGC3R7LOLCOCEBV57NUA63QOVA_AE6E2832_crash-stack-r502-beta24-build-9900.dmp
 #ifdef RIP_USE_LOG_PROTOCOL
 		if (len > 0 && BOOLSETTING(LOG_PROTOCOL))
 		{
@@ -536,7 +536,7 @@ int Socket::write(const void* aBuffer, int aLen)
 	int sent = 0;
 	do
 	{
-		if (sock == INVALID_SOCKET)// [+]IRainman
+		if (m_sock == INVALID_SOCKET)// [+]IRainman
 			break;
 			
 #ifdef RIP_USE_LOG_PROTOCOL
@@ -547,7 +547,7 @@ int Socket::write(const void* aBuffer, int aLen)
 			LogManager::getInstance()->log(LogManager::PROTOCOL, params, true);
 		}
 #endif
-		sent = ::send(sock, (const char*)aBuffer, aLen, 0);
+		sent = ::send(m_sock, (const char*)aBuffer, aLen, 0);
 		// adguard.dll //[3] https://www.box.net/shared/cb7ec34c8cfac4b0b4a7
 		// dng.dll
 		// NetchartFilter.dll!100168ab() //[2] https://www.box.net/shared/007b54beb27139189267
@@ -589,7 +589,7 @@ void Socket::writeTo(const string& aAddr, uint16_t aPort, const void* aBuffer, i
 	*/
 	
 	uint8_t* buf = (uint8_t*)aBuffer;
-	if (sock == INVALID_SOCKET)
+	if (m_sock == INVALID_SOCKET)
 	{
 		create(TYPE_UDP);
 		setSocketOpt(SO_SNDTIMEO, 250);
@@ -646,7 +646,7 @@ void Socket::writeTo(const string& aAddr, uint16_t aPort, const void* aBuffer, i
 		
 		do
 		{
-			sent = ::sendto(sock, (const char*) & connStr[0], static_cast<int>(connStr.size()), 0, (struct sockaddr*) & serv_addr, sizeof(serv_addr)); // [!] PVS V107 Implicit type conversion third argument 'connStr.size()' of function 'sendto' to 32-bit type. socket.cpp 594
+			sent = ::sendto(m_sock, (const char*) & connStr[0], static_cast<int>(connStr.size()), 0, (struct sockaddr*) & serv_addr, sizeof(serv_addr)); // [!] PVS V107 Implicit type conversion third argument 'connStr.size()' of function 'sendto' to 32-bit type. socket.cpp 594
 		}
 		while (sent < 0 && getLastError() == EINTR);
 	}
@@ -657,7 +657,7 @@ void Socket::writeTo(const string& aAddr, uint16_t aPort, const void* aBuffer, i
 		serv_addr.sin_addr.s_addr = inet_addr(resolve(aAddr).c_str());
 		do
 		{
-			sent = ::sendto(sock, (const char*)aBuffer, (int)aLen, 0, (struct sockaddr*) & serv_addr, sizeof(serv_addr));
+			sent = ::sendto(m_sock, (const char*)aBuffer, (int)aLen, 0, (struct sockaddr*) & serv_addr, sizeof(serv_addr));
 		}
 		while (sent < 0 && getLastError() == EINTR);
 	}
@@ -692,23 +692,23 @@ int Socket::wait(uint64_t millis, int waitFor)
 			FD_ZERO(&wfd);
 			FD_ZERO(&efd);
 			
-			FD_SET(sock, &wfd);
-			FD_SET(sock, &efd);
-			result = select((int)(sock + 1), 0, &wfd, &efd, &tv);
+			FD_SET(m_sock, &wfd);
+			FD_SET(m_sock, &efd);
+			result = select((int)(m_sock + 1), 0, &wfd, &efd, &tv);
 		}
 		while (result < 0 && getLastError() == EINTR);
 		check(result);
 		
-		if (FD_ISSET(sock, &wfd))
+		if (FD_ISSET(m_sock, &wfd))
 		{
 			return WAIT_CONNECT;
 		}
 		
-		if (FD_ISSET(sock, &efd))
+		if (FD_ISSET(m_sock, &efd))
 		{
 			int y = 0;
 			socklen_t z = sizeof(y);
-			check(getsockopt(sock, SOL_SOCKET, SO_ERROR, (char*)&y, &z));
+			check(getsockopt(m_sock, SOL_SOCKET, SO_ERROR, (char*)&y, &z));
 			
 			if (y != 0)
 				throw SocketException(y);
@@ -726,31 +726,31 @@ int Socket::wait(uint64_t millis, int waitFor)
 			dcassert(!(waitFor & WAIT_CONNECT));
 			rfdp = &rfd;
 			FD_ZERO(rfdp);
-			FD_SET(sock, rfdp);
+			FD_SET(m_sock, rfdp);
 		}
 		if (waitFor & WAIT_WRITE)
 		{
 			dcassert(!(waitFor & WAIT_CONNECT));
 			wfdp = &wfd;
 			FD_ZERO(wfdp);
-			FD_SET(sock, wfdp);
+			FD_SET(m_sock, wfdp);
 		}
 		
-		result = select((int)(sock + 1), rfdp, wfdp, NULL, &tv); //[1] https://www.box.net/shared/03ae4d0b4586cea0a305
+		result = select((int)(m_sock + 1), rfdp, wfdp, NULL, &tv); //[1] https://www.box.net/shared/03ae4d0b4586cea0a305
 	}
 	while (result < 0 && getLastError() == EINTR);
 	check(result);
 	
 	waitFor = WAIT_NONE;
 	
-	dcassert(sock != INVALID_SOCKET); // https://github.com/eiskaltdcpp/eiskaltdcpp/commit/b031715
-	if (sock != INVALID_SOCKET)
+	dcassert(m_sock != INVALID_SOCKET); // https://github.com/eiskaltdcpp/eiskaltdcpp/commit/b031715
+	if (m_sock != INVALID_SOCKET)
 	{
-		if (rfdp && FD_ISSET(sock, rfdp)) // https://www.box.net/shared/t3apqdurqxzicy4bg1h0
+		if (rfdp && FD_ISSET(m_sock, rfdp)) // https://www.box.net/shared/t3apqdurqxzicy4bg1h0
 		{
 			waitFor |= WAIT_READ;
 		}
-		if (wfdp && FD_ISSET(sock, wfdp))
+		if (wfdp && FD_ISSET(m_sock, wfdp))
 		{
 			waitFor |= WAIT_WRITE;
 		}
@@ -815,29 +815,28 @@ string Socket::resolve(const string& aDns)
 
 string Socket::getLocalIp() const noexcept
 {
-    dcassert(sock != INVALID_SOCKET);
-    if (sock == INVALID_SOCKET)
+    dcassert(m_sock != INVALID_SOCKET);
+    if (m_sock == INVALID_SOCKET)
 {
 return Util::emptyString;
 }
 sockaddr_in sock_addr;
 socklen_t len = sizeof(sock_addr);
-if (getsockname(sock, (sockaddr*)&sock_addr, &len) == 0)
+if (getsockname(m_sock, (sockaddr*)&sock_addr, &len) == 0)
 {
 return inet_ntoa(sock_addr.sin_addr);
 }
-
 return Util::emptyString;
 }
 
 uint16_t Socket::getLocalPort() noexcept
 {
-	if (sock == INVALID_SOCKET)
+	if (m_sock == INVALID_SOCKET)
 		return 0;
 		
 	sockaddr_in sock_addr;
 	socklen_t len = sizeof(sock_addr);
-	if (getsockname(sock, (sockaddr*)&sock_addr, &len) == 0)
+	if (getsockname(m_sock, (sockaddr*)&sock_addr, &len) == 0)
 	{
 		return ntohs(sock_addr.sin_port);
 	}
@@ -897,23 +896,25 @@ void Socket::socksUpdated()
 
 void Socket::shutdown() noexcept
 {
-	dcassert(sock != INVALID_SOCKET); // Поймаем под отладкой двойной shutdown? L: нет не поймаем, INVALID_SOCKET это тоже нормальное состояние сокета, который мог стать не валидным в процессе работы в результате какой либо сетевой ошибки.
-	if (sock != INVALID_SOCKET)
-		::shutdown(sock, SD_BOTH); // !DC++!
+	dcassert(m_sock != INVALID_SOCKET); // Поймаем под отладкой двойной shutdown? L: нет не поймаем, INVALID_SOCKET это тоже нормальное состояние сокета, который мог стать не валидным в процессе работы в результате какой либо сетевой ошибки.
+	if (m_sock != INVALID_SOCKET)
+	{
+		::shutdown(m_sock, SD_BOTH); // !DC++!
+	}
 }
 
 void Socket::close() noexcept
 {
-	dcassert(sock != INVALID_SOCKET); // Поймаем под отладкой двойное закрытие? L: нет не поймаем, INVALID_SOCKET это тоже нормальное состояние сокета, который мог стать не валидным в процессе работы в результате какой либо сетевой ошибки.
-	if (sock != INVALID_SOCKET)
+	dcassert(m_sock != INVALID_SOCKET); // Поймаем под отладкой двойное закрытие? L: нет не поймаем, INVALID_SOCKET это тоже нормальное состояние сокета, который мог стать не валидным в процессе работы в результате какой либо сетевой ошибки.
+	if (m_sock != INVALID_SOCKET)
 	{
 #ifdef _WIN32
-		::closesocket(sock);
+		::closesocket(m_sock);
 #else
 		::close(sock);
 #endif
 		connected = false;
-		sock = INVALID_SOCKET;
+		m_sock = INVALID_SOCKET;
 	}
 }
 

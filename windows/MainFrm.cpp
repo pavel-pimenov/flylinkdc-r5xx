@@ -172,6 +172,7 @@ MainFrame::MainFrame() :
 	m_elapsedMinutesFromlastIPUpdate(0),
 #endif
 	m_bTrayIcon(false),
+	m_TuneSplitCount(0),
 	m_bIsPM(false),
 	QuickSearchBoxContainer(WC_COMBOBOX, this, QUICK_SEARCH_MAP),
 	QuickSearchEditContainer(WC_EDIT , this, QUICK_SEARCH_MAP),
@@ -630,10 +631,8 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	// [-] IRainman tabPos = SETTING(TABS_POS);
 	
 	transferView.Create(m_hWnd);
+	tuneTransferSplit();
 	
-	SetSplitterPanes(m_hWndMDIClient, transferView.m_hWnd);
-	SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
-	m_nProportionalPos = SETTING(TRANSFER_SPLIT_SIZE);
 	UIAddToolBar(hWndToolBar);
 	UIAddToolBar(hWndWinampBar);
 	UIAddToolBar(hWndQuickSearchBar);
@@ -802,6 +801,18 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
 	create_timer(1000);
 	return 0;
+}
+
+int MainFrame::tuneTransferSplit()
+{
+	m_nProportionalPos = SETTING(TRANSFER_SPLIT_SIZE);
+	//dcassert(m_nProportionalPos > 200);
+	if (m_nProportionalPos < 100)
+		m_nProportionalPos = 8000; // TODO - пофиксить http://code.google.com/p/flylinkdc/issues/detail?id=1398
+	SET_SETTING(TRANSFER_SPLIT_SIZE, m_nProportionalPos);
+	SetSplitterPanes(m_hWndMDIClient, transferView.m_hWnd);
+	SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
+	return m_nProportionalPos;
 }
 
 LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
@@ -1048,7 +1059,12 @@ HWND MainFrame::createToolbar()    //[~]Drakon. Enlighting toolbars.
 					nTB.idCommand = g_ToolbarButtons[i].id;
 					nTB.fsStyle = g_ToolbarButtons[i].check ? TBSTYLE_CHECK : TBSTYLE_BUTTON;
 					nTB.fsState = TBSTATE_ENABLED;
-					
+#ifdef _DEBUG
+					nTB.iString = ctrlToolbar.AddStrings(_T("Debug hint"));
+#else
+					LPCTSTR l_str = CTSTRING_I(g_ToolbarButtons[i].tooltip);
+					nTB.iString = ctrlToolbar.AddStrings(l_str); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=29760
+#endif
 				}
 				ctrlToolbar.AddButtons(1, &nTB);
 			}
@@ -1112,6 +1128,11 @@ HWND MainFrame::createWinampToolbar() // [~]Drakon. Toolbar fix.
 					wTB.idCommand = g_WinampToolbarButtons[i].id;
 					wTB.fsState = TBSTATE_ENABLED;
 					wTB.fsStyle = g_WinampToolbarButtons[i].check ? TBSTYLE_CHECK : TBSTYLE_BUTTON;
+#ifdef _DEBUG
+					wTB.iString = ctrlToolbar.AddStrings(_T("Debug hint"));
+#else
+					wTB.iString = ctrlWinampToolbar.AddStrings(CTSTRING_I(g_WinampToolbarButtons[i].tooltip)); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=29760
+#endif
 					if (wTB.idCommand  == IDC_WINAMP_SPAM)   // SSA First icon
 					{
 						wTB.fsStyle |= TBSTYLE_DROPDOWN;
@@ -1510,7 +1531,7 @@ void MainFrame::updateQuickSearches(bool p_clean /*= false*/)
 
 LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 {
-	if (wParam != PARSE_COMMAND_LINE && wParam != AUTO_CONNECT && wParam != STATUS_MESSAGE)
+	if (wParam != REMOVE_POPUP && wParam != PARSE_COMMAND_LINE && wParam != AUTO_CONNECT && wParam != STATUS_MESSAGE)
 	{
 #ifdef IRAINMAN_INCLUDE_SMILE
 		dcassert(!CGDIImage::isShutdown());
@@ -2011,6 +2032,7 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 		const unsigned short lastTLS = static_cast<unsigned short>(SETTING(TLS_PORT));
 #ifdef STRONG_USE_DHT
 		const unsigned short lastDHT = static_cast<unsigned short>(SETTING(DHT_PORT));
+		dcassert(lastDHT);
 #endif
 		
 		const int lastConn = SETTING(INCOMING_CONNECTIONS);
@@ -2112,7 +2134,7 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 			}
 			
 			// TODO move this call to kernel.
-			ClientManager::getInstance()->infoUpdated();
+			ClientManager::infoUpdated();
 		}
 	}
 	return 0;
@@ -3296,6 +3318,11 @@ LRESULT MainFrame::onActivateApp(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/
 	{
 		setTrayAndTaskbarIcons(); // [!] IRainman fix.
 	}
+	if (m_TuneSplitCount++ < 3) // http://code.google.com/p/flylinkdc/issues/detail?id=1398
+	{
+		if (!tuneTransferSplit())
+			--m_TuneSplitCount;
+	}
 	return 0;
 }
 
@@ -3391,7 +3418,7 @@ LRESULT MainFrame::onDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 //		Util::setLimiter(true);
 //		MainFrame::setLimiterButton(true);
 //	}
-//	ClientManager::getInstance()->infoUpdated();
+//	ClientManager::infoUpdated();
 //	return 0;
 //}**
 

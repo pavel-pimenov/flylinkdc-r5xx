@@ -167,6 +167,7 @@ class LimitedOutputStream : public OutputStream
 		
 		size_t write(const void* buf, size_t len)
 		{
+			dcassert(len > 0);
 			if (maxBytes < len)
 			{
 				throw FileException(STRING(TOO_MUCH_DATA));

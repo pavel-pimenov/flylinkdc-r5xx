@@ -44,7 +44,7 @@ class UserInfoBase
 #endif
 		
 		void pm(const string& hubHint);
-		void pm_msg(const string& hubHint, void *param); // !SMT!-S
+		void pm_msg(const string& hubHint, const tstring& p_message); // !SMT!-S
 		
 		// [!] IRainman moved to windows/UserInfoSimple void addSummary(); // !SMT!-UI
 		void createSummaryInfo();// [+] IRainman
@@ -52,11 +52,7 @@ class UserInfoBase
 		// [!] IRainman moved to windows/UserInfoSimple static const tstring getBroadcastPrivateMessage(); // !SMT!-S
 		// [!] IRainman moved to windows/UserInfoSimple static uint64_t inputSlotTime(); // !SMT!-UI
 		
-		void grant(const string& hubHint);
-		void grantSlotHour(const string& hubHint);
-		void grantSlotDay(const string& hubHint);
-		void grantSlotWeek(const string& hubHint);
-		void grantSlotPeriod(const string& hubHint, void *period); // !SMT!-UI
+		void grantSlotPeriod(const string& hubHint, const uint64_t period); // !SMT!-UI
 		void ungrantSlot(const string& hubHint); // [!] IRainman fix: add hubhint.
 		void addFav();
 		void delFav();

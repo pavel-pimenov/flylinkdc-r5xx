@@ -34,9 +34,9 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		Client* getClient(const string& aHubURL);
 		void putClient(Client* p_client);
 		void prepareClose(); // [+]PPA
-		StringList getHubs(const CID& cid, const string& hintUrl) const;
-		StringList getHubNames(const CID& cid, const string& hintUrl) const;
-		StringList getNicks(const CID& cid, const string& hintUrl) const;
+		static StringList getHubs(const CID& cid, const string& hintUrl);
+		static StringList getHubNames(const CID& cid, const string& hintUrl);
+		static StringList getNicks(const CID& cid, const string& hintUrl);
 #ifndef IRAINMAN_NON_COPYABLE_CLIENTS_IN_CLIENT_MANAGER
 		struct HubInfo
 		{
@@ -45,10 +45,10 @@ class ClientManager : public Speaker<ClientManagerListener>,
 			bool m_is_op;
 		};
 		typedef std::vector<HubInfo> HubInfoArray;
-		void getConnectedHubInfo(HubInfoArray& p_hub_info) const
+		static void getConnectedHubInfo(HubInfoArray& p_hub_info)
 		{
 			SharedLock l(g_csClients);
-			for (auto i = m_clients.cbegin(); i != m_clients.cend(); ++i)
+			for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 			{
 				if (i->second->isConnected())
 				{
@@ -60,38 +60,38 @@ class ClientManager : public Speaker<ClientManagerListener>,
 				}
 			}
 		}
-		void getConnectedHubUrls(StringList& p_hub_url) const
+		static void getConnectedHubUrls(StringList& p_hub_url)
 		{
 			SharedLock l(g_csClients);
-			for (auto i = m_clients.cbegin(); i != m_clients.cend(); ++i)
+			for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 			{
 				if (i->second->isConnected())
 					p_hub_url.push_back(i->second->getHubUrl());
 			}
 		}
 #endif // IRAINMAN_NON_COPYABLE_CLIENTS_IN_CLIENT_MANAGER
-		size_t getTotalUsers() const // [+] IRainman.
+		static size_t getTotalUsers() // [+] IRainman.
 		{
 			size_t users = 0;
 			SharedLock l(g_csClients);
-			for (auto i = m_clients.cbegin(); i != m_clients.cend(); ++i)
+			for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 			{
 				users += i->second->getUserCount();
 			}
 			return users;
 		}
 		
-		StringList getHubs(const CID& cid, const string& hintUrl, bool priv) const;
-		StringList getHubNames(const CID& cid, const string& hintUrl, bool priv) const;
-		StringList getNicks(const CID& cid, const string& hintUrl, bool priv) const;
-		string getStringField(const CID& cid, const string& hintUrl, const char* field) const; // [!] IRainman fix.
-		StringList getNicks(const HintedUser& user) const
+		static StringList getHubs(const CID& cid, const string& hintUrl, bool priv);
+		static StringList getHubNames(const CID& cid, const string& hintUrl, bool priv);
+		static StringList getNicks(const CID& cid, const string& hintUrl, bool priv);
+		static string getStringField(const CID& cid, const string& hintUrl, const char* field); // [!] IRainman fix.
+		static StringList getNicks(const HintedUser& user)
 		{
 			// [!] IRainman fix: Calling this function with an empty by the user is not correct!
 			dcassert(user.user);
 			return getNicks(user.user->getCID(), user.hint);
 		}
-		StringList getHubNames(const HintedUser& user) const
+		static StringList getHubNames(const HintedUser& user)
 		{
 			// [!] IRainman fix: Calling this function with an empty by the user is not correct!
 			dcassert(user.user);
@@ -101,48 +101,48 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		// [-] string getConnection(const CID& cid) const; [-] IRainman: deprecated.
 		uint8_t getSlots(const CID& cid) const;
 		
-		bool isConnected(const string& aUrl) const
+		static bool isConnected(const string& aUrl)
 		{
 			SharedLock l(g_csClients);
-			return m_clients.find(aUrl) != m_clients.end();
+			return g_clients.find(aUrl) != g_clients.end();
 		}
 		Client* findClient(const string& p_Url) const;
 //[+] FlylinkDC
-		bool isOnline(const UserPtr& aUser) const
+		static bool isOnline(const UserPtr& aUser)
 		{
 			SharedLock l(g_csOnlineUsers);
 			return g_onlineUsers.find(aUser->getCID()) != g_onlineUsers.end();
 		}
 //[~] FlylinkDC
-		void search(Search::SizeModes aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, void* aOwner = nullptr);
-		uint64_t search(const StringList& who, Search::SizeModes aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, const StringList& aExtList, void* aOwner = nullptr);
+		void search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, void* aOwner = nullptr);
+		uint64_t search(const StringList& who, Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, void* aOwner = nullptr);
 		
-		void cancelSearch(void* aOwner);
+		static void cancelSearch(void* aOwner);
 		
-		void infoUpdated();
+		static void infoUpdated();
 		static void infoUpdated(Client* p_client);
 		
-		UserPtr getUser(const string& p_Nick, const string& p_HubURL
+		static UserPtr getUser(const string& p_Nick, const string& p_HubURL
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-		                , uint32_t p_HubID
+		                       , uint32_t p_HubID
 #endif
-		                , bool p_first_load
-		               ) noexcept;
-		UserPtr getUser(const CID& cid, bool p_create = true) noexcept;
+		                       , bool p_first_load
+		                      );
+		static UserPtr getUser(const CID& cid, bool p_create = true);
 		
-		string findHub(const string& ipPort) const;
-		string findHubEncoding(const string& aUrl) const;
+		static string findHub(const string& ipPort);
+		static string findHubEncoding(const string& aUrl);
 		
 		/**
 		* @param priv discard any user that doesn't match the hint.
 		* @return OnlineUser* found by CID and hint; might be only by CID if priv is false.
 		*/
-		OnlineUser* findOnlineUserL(const HintedUser& user, bool priv) const
+		static OnlineUser* findOnlineUserL(const HintedUser& user, bool priv)
 		{
 			// [!] IRainman: This function need to external lock.
 			return findOnlineUserL(user.user->getCID(), user.hint, priv);
 		}
-		OnlineUser* findOnlineUserL(const CID& cid, const string& hintUrl, bool priv) const
+		static OnlineUser* findOnlineUserL(const CID& cid, const string& hintUrl, bool priv)
 		{
 			// [!] IRainman: This function need to external lock.
 			OnlinePairC p;
@@ -161,32 +161,27 @@ class ClientManager : public Speaker<ClientManagerListener>,
 			return p.first->second;
 		}
 		
-		UserPtr findUser(const string& aNick, const string& aHubUrl) const
+		static UserPtr findUser(const string& aNick, const string& aHubUrl)
 		{
 			return findUser(makeCid(aNick, aHubUrl));
 		}
-		UserPtr findUser(const CID& cid) const noexcept;
-		UserPtr findLegacyUser(const string& aNick
+		static UserPtr findUser(const CID& cid);
+		static UserPtr findLegacyUser(const string& aNick
 #ifndef IRAINMAN_USE_NICKS_IN_CM
-		                       , const string& aHubUrl
+		                              , const string& aHubUrl
 #endif
-		                      ) const noexcept;
-		                      
+		                             );
+		                             
 #ifdef IRAINMAN_USE_NICKS_IN_CM
 		void updateNick(const UserPtr& user, const string& nick) noexcept;
 	private:
 		void updateNick_internal(const UserPtr& user, const string& nick) noexcept; // [+] IRainman fix.
 	public:
-#else
-		void updateNick(const UserPtr& p_user, const string& p_nick) noexcept
-		{
-			p_user->setLastNick(p_nick);
-		}
 #endif
 		const string& getMyNick(const string& hubUrl) const; // [!] IRainman opt.
 		
 		// [+] brain-ripper
-		bool getUserParams(const UserPtr& user, uint64_t& p_bytesShared, int& p_slots, int& p_limit, std::string& p_ip) const
+		static bool getUserParams(const UserPtr& user, uint64_t& p_bytesShared, int& p_slots, int& p_limit, std::string& p_ip)
 		{
 			SharedLock l(g_csOnlineUsers);
 			const OnlineUser* u = getOnlineUserL(user);
@@ -212,7 +207,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 			std::string ip;
 		};
 		
-		bool getUserParams(const UserPtr& user, UserParams& p_params) const
+		static bool getUserParams(const UserPtr& user, UserParams& p_params)
 		{
 			return getUserParams(user, p_params.bytesShared, p_params.slots, p_params.limit, p_params.ip);
 		}
@@ -243,7 +238,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		// [~] IRainman opt.
 #undef CREATE_LOCK_INSTANCE_CM
 		
-		void setIPUser(const UserPtr& p_user, const string& p_ip, const uint16_t p_udpPort = 0)
+		static void setIPUser(const UserPtr& p_user, const string& p_ip, const uint16_t p_udpPort = 0)
 		{
 			// [!] TODO FlylinkDC++ Team - Зачем этот метод?
 			// Нужен! r8622
@@ -261,18 +256,16 @@ class ClientManager : public Speaker<ClientManagerListener>,
 			}
 		}
 		
-		UserPtr getUserByIp(const string &ip) const
+		static UserPtr getUserByIp(const string &ip)
 		{
-			{
-				SharedLock l(g_csOnlineUsers);
-				for (auto i = g_onlineUsers.cbegin(); i != g_onlineUsers.cend(); ++i)
-					if (i->second->getIdentity().getIp() == ip)
-						return i->second->getUser();
-			}
+			SharedLock l(g_csOnlineUsers);
+			for (auto i = g_onlineUsers.cbegin(); i != g_onlineUsers.cend(); ++i)
+				if (i->second->getIdentity().getIp() == ip)
+					return i->second->getUser();
 			return nullptr;
 		}
 #ifndef IRAINMAN_IDENTITY_IS_NON_COPYABLE
-		Identity getIdentity(const UserPtr& user) const
+		static Identity getIdentity(const UserPtr& user)
 		{
 			SharedLock l(g_csOnlineUsers);
 			const OnlineUser* ou = getOnlineUserL(user);
@@ -282,7 +275,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 				return Identity();
 		}
 #endif // IRAINMAN_IDENTITY_IS_NON_COPYABLE
-		OnlineUser* getOnlineUserL(const UserPtr& p) const
+		static OnlineUser* getOnlineUserL(const UserPtr& p)
 		{
 			// Lock l(cs);  - getOnlineUser() return value should be guarded outside
 			if (p == nullptr)
@@ -296,7 +289,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		}
 		//[~]FlylinkDC
 		/* [-] IRainman fix: deprecated.
-		int64_t getBytesShared(const UserPtr& p) const //[+]PPA
+		static int64_t getBytesShared(const UserPtr& p) //[+]PPA
 		{
 		    int64_t l_share = 0;
 		    {
@@ -308,9 +301,9 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		    return l_share;
 		}
 		  [-] IRainman fix */
-		bool isOp(const UserPtr& aUser, const string& aHubUrl) const;
+		static bool isOp(const UserPtr& aUser, const string& aHubUrl);
 #ifdef IRAINMAN_ENABLE_STEALTH_MODE
-		bool isStealth(const string& aHubUrl) const;
+		static bool isStealth(const string& aHubUrl);
 #endif
 		
 		/** Constructs a synthetic, hopefully unique CID */
@@ -361,16 +354,16 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		void privateMessage(const HintedUser& user, const string& msg, bool thirdPerson);
 		void userCommand(const HintedUser& user, const UserCommand& uc, StringMap& params, bool compatibility);
 		
-		int getMode(const FavoriteHubEntry* p_hub
+		static int getMode(const FavoriteHubEntry* p_hub
 #ifdef RIP_USE_CONNECTION_AUTODETECT
-		            , bool *pbWantAutodetect = NULL
+		                   , bool *pbWantAutodetect = NULL
 #endif
-		           ) const;
-		bool isActive(const FavoriteHubEntry* p_hub
+		                  );
+		static bool isActive(const FavoriteHubEntry* p_hub
 #ifdef RIP_USE_CONNECTION_AUTODETECT
-		              , bool *pbWantAutodetect = NULL
+		                     , bool *pbWantAutodetect = NULL
 #endif
-		             ) const
+		                    )
 		{
 			return getMode(p_hub
 #ifdef RIP_USE_CONNECTION_AUTODETECT
@@ -381,7 +374,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 #ifdef IRAINMAN_NON_COPYABLE_CLIENTS_IN_CLIENT_MANAGER
 		const Client::List& getClientsL() const
 		{
-			return m_clients;
+			return g_clients;
 		}
 #endif
 		// [!] IRainman fix.
@@ -397,10 +390,36 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		}
 		// [~] IRainman fix.
 		// fake detection methods
-#include "CheatManager.h"
+		///////////////////////
+		/**
+		 * This file is a part of client manager.
+		 * It has been divided but shouldn't be used anywhere else.
+		 */
+		
+		void sendRawCommand(const OnlineUser& ou, const int aRawCommand);
+		void setListLength(const UserPtr& p, const string& listLen);
+		void fileListDisconnected(const UserPtr& p);
+		void connectionTimeout(const UserPtr& p);
+		void checkCheating(const UserPtr& p, DirectoryListing* dl);
+		void setClientStatus(const UserPtr& p, const string& aCheatString, const int aRawCommand, bool aBadClient);
+		void setPkLock(const UserPtr& p
+#ifdef IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
+		               , const string& aPk, const string& aLock
+#endif
+		              );
+		              
+// [!] IRainamn fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
+		void setSupports(const UserPtr& p, StringList& aSupports, const uint8_t knownUcSupports);
+#ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
+		void setGenerator(const UserPtr& p, const string& aGenerator);
+#endif
+		void setUnknownCommand(const UserPtr& p, const string& aUnknownCommand);
+		void reportUser(const HintedUser& user);
+		void setFakeList(const UserPtr& p, const string& aCheatString);
+		///////////////////////
 		
 #ifdef STRONG_USE_DHT
-		OnlineUserPtr findDHTNode(const CID& cid) const;
+		static OnlineUserPtr findDHTNode(const CID& cid);
 #endif
 		void shutdown()
 		{
@@ -408,7 +427,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 			g_isShutdown = true;
 			TimerManager::getInstance()->removeListener(this);
 		}
-		void clear()
+		static void clear()
 		{
 			{
 				UniqueLock l(g_csOnlineUsers);
@@ -431,7 +450,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 	
 		//mutable CriticalSection cs; [-] IRainman opt.
 		// =================================================
-		Client::List m_clients;
+		static Client::List g_clients;
 		static SharedCriticalSection g_csClients; // [+] IRainman opt.
 		// =================================================
 #ifdef IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER
@@ -491,13 +510,10 @@ class ClientManager : public Speaker<ClientManagerListener>,
 			dcassert(isShutdown());
 		}
 		
-		void updateNick(const OnlineUserPtr& user) noexcept
-		{
-			updateNick(user->getUser(), user->getIdentity().getNick());
-		}
+		static void updateNick(const OnlineUserPtr& p_online_user);
 		
 		/// @return OnlineUser* found by CID and hint; discard any user that doesn't match the hint.
-		OnlineUser* findOnlineUserHintL(const CID& cid, const string& hintUrl) const
+		static OnlineUser* findOnlineUserHintL(const CID& cid, const string& hintUrl)
 		{
 			// [!] IRainman: This function need to external lock.
 			OnlinePairC p;
@@ -507,7 +523,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		* @param p OnlinePair of all the users found by CID, even those who don't match the hint.
 		* @return OnlineUser* found by CID and hint; discard any user that doesn't match the hint.
 		*/
-		OnlineUser* findOnlineUserHintL(const CID& cid, const string& hintUrl, OnlinePairC& p) const;
+		static OnlineUser* findOnlineUserHintL(const CID& cid, const string& hintUrl, OnlinePairC& p);
 		
 		// ClientListener
 		void on(Connected, const Client* c) noexcept;
@@ -517,7 +533,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		void on(HubUpdated, const Client* c) noexcept;
 		void on(HubUserCommand, const Client*, int, int, const string&, const string&) noexcept;
 		void on(NmdcSearch, Client* aClient, const string& aSeeker, Search::SizeModes aSizeMode, int64_t aSize,
-		        int aFileType, const string& aString, bool isPassive) noexcept;
+		        Search::TypeModes aFileType, const string& aString, bool isPassive) noexcept;
 		void on(AdcSearch, const Client* c, const AdcCommand& adc, const CID& from) noexcept;
 		// TimerManagerListener
 		void on(TimerManagerListener::Minute, uint64_t aTick) noexcept;

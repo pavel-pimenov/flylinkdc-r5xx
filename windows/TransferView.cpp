@@ -293,7 +293,7 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 				
 				if (getSelectedUser())
 				{
-					appendUcMenu(usercmdsMenu, UserCommand::CONTEXT_USER, ClientManager::getInstance()->getHubs(getSelectedUser()->getCID(), getSelectedHint()));
+					appendUcMenu(usercmdsMenu, UserCommand::CONTEXT_USER, ClientManager::getHubs(getSelectedUser()->getCID(), getSelectedHint()));
 				}
 				// end !SMT!-S
 			}
@@ -896,7 +896,7 @@ LRESULT TransferView::onDoubleClickTransfers(int /*idCtrl*/, LPNMHDR pnmh, BOOL&
 				case 2:
 					i->matchQueue(); // [!] IRainman fix.
 				case 3:
-					i->grant(i->hintedUser.hint); // [!] IRainman fix.
+					i->grantSlotPeriod(i->hintedUser.hint, 600); // [!] IRainman fix.
 					break;
 				case 4:
 					i->addFav();

@@ -55,8 +55,8 @@ void PrivateFrame::doDestroyFrame()
 StringMap PrivateFrame::getFrameLogParams() const
 {
 	StringMap params;
-	params["hubNI"] = Util::toString(ClientManager::getInstance()->getHubNames(replyTo->getCID(), getHubHint()));
-	params["hubURL"] = Util::toString(ClientManager::getInstance()->getHubs(replyTo->getCID(), getHubHint()));
+	params["hubNI"] = Util::toString(ClientManager::getHubNames(replyTo->getCID(), getHubHint()));
+	params["hubURL"] = Util::toString(ClientManager::getHubs(replyTo->getCID(), getHubHint()));
 	params["userCID"] = replyTo->getCID().toBase32();
 	params["userNI"] = Text::fromT(m_replyToRealName);
 	params["myCID"] = ClientManager::getMyCID().toBase32();
@@ -105,7 +105,7 @@ void PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 			if (/*!(BOOLSETTING(NO_AWAYMSG_TO_BOTS) && */ !(replyTo.isBot() || replyTo.isHub())) // [!] IRainman fix.
 			{
 				// Again, is there better way for this?
-				const FavoriteHubEntry *fhe = FavoriteManager::getInstance()->getFavoriteHubEntry(Util::toString(ClientManager::getInstance()->getHubs(id.getUser()->getCID(), sHubHint)));
+				const FavoriteHubEntry *fhe = FavoriteManager::getInstance()->getFavoriteHubEntry(Util::toString(ClientManager::getHubs(id.getUser()->getCID(), sHubHint)));
 				StringMap params;
 				from.getParams(params, "user", false);
 				
@@ -357,7 +357,7 @@ LRESULT PrivateFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 	//#endif
 	reinitUserMenu(replyTo, getHubHint()); // [!] IRainman fix.
 	appendAndActivateUserItems(tabMenu); // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=621
-	appendUcMenu(tabMenu, UserCommand::CONTEXT_USER, ClientManager::getInstance()->getHubs(replyTo->getCID(), getHubHint()));
+	appendUcMenu(tabMenu, UserCommand::CONTEXT_USER, ClientManager::getHubs(replyTo->getCID(), getHubHint()));
 	if (!(tabMenu.GetMenuState(tabMenu.GetMenuItemCount() - 1, MF_BYPOSITION) & MF_SEPARATOR))
 	{
 		tabMenu.AppendMenu(MF_SEPARATOR);
@@ -482,7 +482,7 @@ void PrivateFrame::updateTitle()
 	int l_ul;
 	if (FavoriteManager::getInstance()->getFavUserParam(replyTo, l_flags, l_ul))
 	{
-		banIcon = FavoriteManager::hasUploadBan(l_ul) || FavoriteManager::hasIgnorePM(l_flags); // !SMT!-UI
+		banIcon = FavoriteManager::hasUploadBan(l_ul) || FavoriteManager::hasIgnorePM(l_flags); // TODO - переписать на получения иконки
 	}
 	
 	if (hubs.second)
@@ -584,7 +584,7 @@ LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 			
 			reinitUserMenu(replyTo, getHubHint()); // [!] IRainman fix.
 			
-			appendUcMenu(menu, UserCommand::CONTEXT_USER, ClientManager::getInstance()->getHubs(replyTo->getCID(), getHubHint()));
+			appendUcMenu(menu, UserCommand::CONTEXT_USER, ClientManager::getHubs(replyTo->getCID(), getHubHint()));
 			if (!(menu.GetMenuState(menu.GetMenuItemCount() - 1, MF_BYPOSITION) & MF_SEPARATOR))
 			{
 				menu.AppendMenu(MF_SEPARATOR);

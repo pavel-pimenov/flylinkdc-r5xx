@@ -78,7 +78,7 @@ bool ChatBot::botSendMessage2(int msgid, const WCHAR* objid, const void *param, 
 			return false;
 	}
 	
-	UserPtr user = ClientManager::getInstance()->getUser(CID(Text::fromT((WCHAR*)objid)));
+	UserPtr user = ClientManager::getUser(CID(Text::fromT((WCHAR*)objid)));
 	
 	if (user)
 	{
@@ -162,7 +162,7 @@ void ChatBot::onHubAction(BotInit::CODES c, const string& hubUrl)
 
 WCHAR* ChatBot::onQueryUserByCid(const WCHAR* cid)
 {
-	UserPtr user = ClientManager::getInstance()->getUser(CID(Text::fromT(cid)));
+	UserPtr user = ClientManager::getUser(CID(Text::fromT(cid)));
 	if (!user)
 		return nullptr;
 		
@@ -241,7 +241,7 @@ WCHAR* ChatBot::onQueryConnectedHubs()
 	}
 #else
 	StringList l_hubs;
-	ClientManager::getInstance()->getConnectedHubUrls(l_hubs);
+	ClientManager::getConnectedHubUrls(l_hubs);
 	for (auto i = l_hubs.cbegin(); i != l_hubs.cend(); ++i)
 	{
 		l_ps.addValue(Text::toT((*i)).c_str());
@@ -264,7 +264,7 @@ WCHAR* ChatBot::onQueryRunningUploads(const WCHAR* /* cid */)
 
 WCHAR* ChatBot::onQueryDownloads(const WCHAR* cid)
 {
-	UserPtr user = cid ? ClientManager::getInstance()->getUser(CID(Text::fromT(cid))) : nullptr;
+	UserPtr user = cid ? ClientManager::getUser(CID(Text::fromT(cid))) : nullptr;
 	if (user)
 	{
 		ParamSet ps;
@@ -297,7 +297,7 @@ WCHAR* ChatBot::onQueryDownloads(const WCHAR* cid)
 
 WCHAR* ChatBot::onQueryQueuedUploads(const WCHAR* cid)
 {
-	UserPtr user = cid ? ClientManager::getInstance()->getUser(CID(Text::fromT(cid))) : nullptr;
+	UserPtr user = cid ? ClientManager::getUser(CID(Text::fromT(cid))) : nullptr;
 	if (user)
 	{
 		ParamSet ps;

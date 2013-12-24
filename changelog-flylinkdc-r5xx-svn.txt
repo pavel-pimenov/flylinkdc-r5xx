@@ -1,4 +1,385 @@
 ------------------------------------------------------------------------
+r16176 | pavel.pimenov@gmail.com | 2013-12-08 09:51:36 +0400 (Вс, 08 дек 2013) | 1 line
+
+# r502 Вернул релизный ридми
+------------------------------------------------------------------------
+r16171 | pavel.pimenov@gmail.com | 2013-12-07 11:59:46 +0400 (Сб, 07 дек 2013) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r16170 | pavel.pimenov@gmail.com | 2013-12-07 11:33:00 +0400 (Сб, 07 дек 2013) | 1 line
+
+# /client/mrgtmp*
+------------------------------------------------------------------------
+r16169 | pavel.pimenov@gmail.com | 2013-12-07 11:27:23 +0400 (Сб, 07 дек 2013) | 1 line
+
+# Astyle
+------------------------------------------------------------------------
+r16168 | pavel.pimenov@gmail.com | 2013-12-07 11:26:41 +0400 (Сб, 07 дек 2013) | 1 line
+
+# r502 [merge]
+------------------------------------------------------------------------
+r16167 | pavel.pimenov@gmail.com | 2013-12-07 11:01:30 +0400 (Сб, 07 дек 2013) | 172 lines
+
+Merged revision(s) 16093-16165 from trunk:
+* r502-beta7
+........
+# Log
+........
+# [lang] an auto commit from localization system...
+........
+# [Transifex] new page added
+........
+* (Fixed issue 1397) Отсутствуют полосы прогресса, при включении стилей "Объемно" и "oDC"
+   http://code.google.com/p/flylinkdc/issues/detail?id=1397
+........
+# Косметика
+........
+# Больше инлайн-функций в SimpleXMLReader
+........
+* (Started Issue 1402) http://code.google.com/p/flylinkdc/issues/detail?id=1402
+  - aTimeStamp перевел на int64
+  - CFlyMediaInfo создаем динамически если он нужен. (быстрее будут отркываться списки если в шаре нет медиа-инфы)
+  
+........
+# Добавил диагностику DHT портов
+........
+# Astyle
+........
+# issue http://code.google.com/p/flylinkdc/issues/detail?id=1402
+  Пока отключил обработку тэга Shared от грея - показывает не верную дату.
+........
+* (Continued Issue 1402) http://code.google.com/p/flylinkdc/issues/detail?id=1402
+Попытка сделать обработку даты расшаривания в списках от greylink dc++
+Т.к. истинный формат времени в файл-листах от грейлинка не известен, сделано подбором коэффициентов.
+........
+* (Fixed issue 1406) http://code.google.com/p/flylinkdc/issues/detail?id=1406
+........
+* (Closed issue 1402) Поддержка грейлинковского формата хранения даты добавления файла в шару "Shared"
+   http://code.google.com/p/flylinkdc/issues/detail?id=1402
+* (Closed issue 194)  http://code.google.com/p/flylinkdc/issues/detail?id=194
+........
+* (Started issue 1403) Увеличил таймаут при автообновлении до 60 сек
+   http://code.google.com/p/flylinkdc/issues/detail?id=1403
+  
+........
+# Сокарщаем потребление памяти для клиентов в шаре которых мало медиа файлов
+  CFlyMediaInfo создаем динамически только для файлов у которых есть медиаинформация.
+  При загрузке кэша каталога дополнительно вычисляем есть ли в папке файлы с медиаинформацией и стоит ли их 
+  запрашивать при синхронизации. запрос имеет вид
+  select id,name,(select count(*) from fly_file where dic_path = id and (media_audio is not null or media_video is not null)) cnt_mediainfo from fly_path
+  TODO - протестировать при появлении медиафайлы а каталоге в момент работы клиента.
+ 
+........
+* r502-beta8
+........
+# Log [public-build]
+........
+Откатил ревизию 16052 from trunk/client/DCPlusPlus.cpp:
+Возможно сломал пропадание настроек
+http://code.google.com/p/flylinkdc/issues/detail?id=1405
+
+........
+# Исправления в динамическом создании CFlyMediaInfo - раньше создавалост для всех файлов!
+........
+# [fly-server] Исключаем подвисание флая при закрытии окон с работающим потоком обращения к серверу
+........
+# Добавлен метод ускореной обработки имен файлов и каталогов SimpleXML::escapeAtrib
+  исключил лишнюю операцию stricmp(encoding, Text::g_utf8) == 0
+........
+# ShareManager::addExcludeFolder исправлен выход за границу вектора (Влить в r4xx и strongdc++ sqlite)
+........
+# Log [public-build]
+........
+* (Started issue 1410)  http://code.google.com/p/flylinkdc/issues/detail?id=1410
+  Убрал частый вызов SimpleXML::needsEscapeForce для каждого файла при генерации файл-листа.
+  значение загружается и расчитывается один раз.
+  TODO - этот признак сохранить в базе данных?
+........
+* (Fixed issue 1409) Частая перезапись файла Favorites.xml и возможное его разрушение (Спасибо Dmitry Volkov)
+  http://code.google.com/p/flylinkdc/issues/detail?id=1409
+........
+* Issue 1398 http://code.google.com/p/flylinkdc/issues/detail?id=1398
+  Пока не понял почему залипает - заткнул 
+........
+# Astyle
+........
+# Log [public-build]
+........
+* Исправлены падения при обновления файл-листов
+  в ShareManager::loadCache забыли лок
+  в StringPairList ShareManager::getDirectories() забыли ret.reserve(shares.size());
+........
+# Log [public-build]
+........
+# Забыл UniqueLock l(cs); в bool ShareManager::loadCache()
+........
+# UniqueLock l(cs) для buildTree
+........
+# Log
+........
+# Косметика
+........
+# CFlyFileInfo перевел на std::shared_ptr ( c сырым указателем падает)
+........
+* r503-beta9
+........
+# Log
+........
+# Убил IRAINMAN_NON_COPYABLE_FAV_USERS и IRAINMAN_NON_COPYABLE_FAV_DIRS
+........
+# Убрал понатыканные std::move http://www.rsdn.ru/forum/cpp.applied/5375479.1
+........
+# ClientManager методы перевел на static
+........
+* (Fixed issue 1413) Сломано меню в списке закачек
+  http://code.google.com/p/flylinkdc/issues/detail?id=1413
+  TODO - потестить под нагрузкой.
+  
+........
+# Косметика
+  TODO - изменить прототип UserInfoBase::pm_msg убрав void *
+........
+# Log [public-build]
+........
+# Убрал I_IMAGECALLBACK
+  Вычисление иконки на лету не нужно + мы там падаем почему-то иногда
+  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=47103
+# Маркер проблемы http://code.google.com/p/flylinkdc/issues/detail?id=1416
+........
+# ClientManager методы перевел на static
+........
+# Убрал опасные преобразования void* к int64
+........
+# Не зову HashManager::getInstance()->m_streamstore.loadTree при файле размером = 0
+  TODO - странная команда max(static_cast<uint64_t>(currentSize - n), static_cast<uint64_t>(0));
+         берется максимальное число от 0 для беззнакового числа.
+........
+# Ускорил подкраску друзей из FavoriteManager в чате. (друзья с флагом забанненные не красятся - многие банят большое кол-во пользователей и список достикает 3-4 тыс)
+........
+# В Node::Ptr RoutingTable::addOrUpdate Отключил опасное преобразование типа + лог
+  У кого будет ругаться в лог LogManager::getInstance()->message("RoutingTable::addOrUpdate error node == nullptr && u->isOnline() - send email ppa7@ya.ru");
+  пишите - будем разбираться.
+........
+# Astyle
+........
+# Log [public-build]
+........
+# Доп. исправление в Node::Ptr RoutingTable::addOrUpdate 
+........
+#
+........
+# Log [public-build]
+........
+* Отключил спам об ошибке чтения потока из NTFS http://code.google.com/p/flylinkdc/issues/detail?id=1415
+........
+* CoolContextMenu.h (c) http://www.codeproject.com/KB/wtl/WTLOwnerDrawCtxtMenu.aspx
+ Пока не используется.
+........
+* (Started issue 1418) http://code.google.com/p/flylinkdc/issues/detail?id=1418
+  - В VideoPreview::AddTempFileToPreview исправлен доступ к коллекции без лока
+  - В методе getRunningFileCount передаем подсказку для боле раннего прекращения перебора элементов очереди (используется в UserQueue::getNextL)
+  - В QueueItem::addSegmentL setDirty зовем если done.size() > 1
+  - GETSET_DIRTY не скидывает флаг setDirty если значения не меняются.
+........
+#
+........
+#
+........
+# LimitedOutputStream + dcassert(len > 0 );
+........
+# Astyle
+........
+# Log [public-build]
+........
+
+------------------------------------------------------------------------
+r16166 | pavel.pimenov@gmail.com | 2013-12-07 10:35:01 +0400 (Сб, 07 дек 2013) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r16136 | pavel.pimenov@gmail.com | 2013-11-29 08:24:09 +0400 (Пт, 29 ноя 2013) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r16135 | pavel.pimenov@gmail.com | 2013-11-29 07:58:50 +0400 (Пт, 29 ноя 2013) | 1 line
+
+# Astyle
+------------------------------------------------------------------------
+r16134 | pavel.pimenov@gmail.com | 2013-11-29 07:58:10 +0400 (Пт, 29 ноя 2013) | 5 lines
+
+* r502 [merge] Закрыты проблемы:
+ http://code.google.com/p/flylinkdc/issues/detail?id=1403
+ http://code.google.com/p/flylinkdc/issues/detail?id=1409
+ http://code.google.com/p/flylinkdc/issues/detail?id=1398
+ http://code.google.com/p/flylinkdc/issues/detail?id=1406
+------------------------------------------------------------------------
+r16095 | pavel.pimenov@gmail.com | 2013-11-25 01:29:55 +0400 (Пн, 25 ноя 2013) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r16092 | pavel.pimenov@gmail.com | 2013-11-25 00:58:02 +0400 (Пн, 25 ноя 2013) | 30 lines
+
+Merged revision(s) 16079-16091 from trunk:
+# r502 [merge] Маркеры падения
+........
+* (Closed issue 1398) При активации из трея область передачи файлов занимает все пространство окна.
+  http://code.google.com/p/flylinkdc/issues/detail?id=1398
+ ........
+* (Closed issue 1381) 
+ https://code.google.com/p/flylinkdc/issues/detail?id=1381
+Откатил ревизию
+Возможно вернется падение https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=29760
+В дебаге падаем - поэтому пишу константу "Debug hint"
+причина пока не известна
+
+Merged revision(s) 12882 from trunk/windows/MainFrm.cpp:
+# Исправлено падение https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=29760
+  - Попытка сделать ctrlToolbar.AddStrings до ctrlToolbar.AddButtons
+  - Текст подсказок у нас достается динамически в обработчике. тут его грузить не нужно (завтра for merge)
+........
+# Исключил двойной вызов ResourceManager::createWide()
+........
+# Логирование в bool CFlyLevelDB::open_level_db
+........
+* Исправлены падения 
+  https://crash-server.com/Bug.aspx?ClientID=ppa&ProblemID=46355
+  https://crash-server.com/Bug.aspx?ClientID=ppa&ProblemID=46344
+  https://crash-server.com/Bug.aspx?ClientID=ppa&ProblemID=46337
+  https://crash-server.com/Bug.aspx?ClientID=ppa&ProblemID=46377
+  https://crash-server.com/Bug.aspx?ClientID=ppa&ProblemID=46368
+........
+
+------------------------------------------------------------------------
+r16081 | pavel.pimenov@gmail.com | 2013-11-22 23:07:48 +0400 (Пт, 22 ноя 2013) | 5 lines
+
+* r502
+  - mediainfo 0.7.65-1
+  - Исправлен подсчёт общей шары хаба.
+  - Для NMDC описание пользователя не выводится как Tag
+
+------------------------------------------------------------------------
+r16080 | pavel.pimenov@gmail.com | 2013-11-22 22:15:30 +0400 (Пт, 22 ноя 2013) | 1 line
+
+* mediainfo 0.7.65-1
+------------------------------------------------------------------------
+r16078 | pavel.pimenov@gmail.com | 2013-11-22 21:56:31 +0400 (Пт, 22 ноя 2013) | 1 line
+
+#
+------------------------------------------------------------------------
+r16077 | pavel.pimenov@gmail.com | 2013-11-22 21:44:39 +0400 (Пт, 22 ноя 2013) | 94 lines
+
+Merged revision(s) 16028-16075 from trunk:
+# Log
+........
+# DBmanager - поставил assert-ы для DHT и портов равных 0
+........
+# DHT - добавил assert-ы для портов
+........
+*(Fixed issue 1386) Не появляются названия окон хабов в выпадающем меню при первом старте.
+   Вернул вырезанную SetMDIFrameMenu(); - вот она зачем нужна оказывается :)
+   http://code.google.com/p/flylinkdc/issues/detail?id=1386
+........
+* В оригинальном DC++ недавно была допущена ошибка приводящая к блокировке поиска
+  http://dcpp.wordpress.com/2013/11/11/dc-0-831/
+  https://bugs.launchpad.net/dcplusplus/+bug/1249810
+  Из Фикса http://bazaar.launchpad.net/~dcplusplus-team/dcplusplus/trunk/revision/3361 видно,
+  что это из-за опечатки. Причина, по чему эту опечатку не заметили при компиляции 
+  для параметров searchType и fileType используется универсальный тип int вместо enum-ов
+  Для исключения наступления на подобные грабли - сделаю замену у себя.
+  TODO - потестить поиск разных типов файлов
+........
+# Дополненеи к r16037
+  - BOOST_STATIC_ASSERT(TYPE_LAST < 16)
+........
+# Забытый экран DHT
+........
+# Откатил фикс http://code.google.com/p/flylinkdc/issues/detail?id=1112
+  issue забрал себе. 
+  Пользы от этих move и && мало - там нужно убивать лишние операции с временными StringTokenizer
+........
+# Полправлен код обновления ника. если LastNick уже есть - повторно не апдейтим
+........
+# ConnectionManager::setUploadLimit - сначала сравниваем более легкии операции. если они true то тогда уже юзера смотрим
+........
+# Удалил  #include "CheatManager.h" из серединки класса.
+........
+# Удалил 
+GetZBlock
+Since: 0.307
+Deprecated - replaced by ADCGet
+
+Usage: Instead of $Get and $Send, use 
+"$GetZBlock <start> <numbytes> <filename>|" where <start> is the 0-based
+(yes, 0-based, not like get that's 1-based) starting index of the file 
+used, <numbytes> is the number of bytes to send and <filename> obviously 
+is the filename. The other client then responds 
+"$Sending <bytes>|<compressed data>", if the sending is ok or 
+"$Failed <errordescription>|" if it isn't. If everything's ok, the data is 
+sent until the whole uncompressed length has been sent. <bytes> specifies
+how many uncompressed bytes will be sent, not compressed, as the sending
+client doesn't know how well the file will compress. $Sending is 
+needed to be able to distinguish the failure command from file data. Only 
+one roundtrip is done for each block though, minimizing the need for 
+maintaining states.
+
+Compression: Compression is done using ZLib (v 1.1.4 in DC++ 0.21's case), 
+using dynamic compression level. The compression level can of course be 
+changed by the implementator to reduce CPU usage, or even just store 
+compression in the case of non-compressible files, which then works as 
+adler32 check of the transferred data.
+
+Support of $GetZBlock also implies support for $UGetZBlock.  The syntax
+and semantics of $UGetZBlock are the same as the $GetZBlock, but the
+filename must be given in utf-8 encoding.
+........
+# В bool HubFrame::updateUser пока грузятся пользователи не выполняем поиск findUser(u.getOnlineUser()); - их там еще нет.
+  поможет при загрузке толстых хабов.
+# Исключил лишние операции обноления списка ctrlUsers.updateItem если найденный элемент не попадает в зону видимости 
+  между ctrlUsers.GetTopIndex() и ctrlUsers.GetCountPerPage()
+# Откатил оптимизацию поиска юзеров - размножаются :)
+  http://www.flickr.com/photos/96019675@N02/10823492963/ 
+# Исправлено появление 0 шалы у самого себя при ручном подключении к хабу (причину пока не нашел)
+# SetMDIFrameMenu() зову реже - а то у меня под нагрузкой повесилось :(
+........
+# В MainFrame::onSpeaker пропускаем сообщение REMOVE_POPUP при закрытии приложения.
+# Забыл заммнить if (client->is_all_my_info_loaded()) в bool HubFrame::updateUser
+........
+* Исправлено падение fix https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=106110 
+  сохранение очереди и установок зовем раньше разрушения (вохможно от этого раньше слетали настройки!)
+* mediainfo]
+  + MPEG-4/MOV: Bug found in one file, sample size is 16 with a 32-bit CodecID ("fl32"), correcting the output of MediaInfo
+  + Canopus: better  detection of different kinds of codec (HQQ, HQX, Lossless)
+  + Law rating: support of CEA-608 XDS Content Advisory in MPEG-PS, MPEG-Ts, LXF, GXF, update
+........
+# Починил отключение списка юзеров через галку в HubFrame::onShowUsers
+........
+# ShareManager [merge]
+  Убрал избыточные публичные File& operator=(const File& rhs) и File(const File& rhs) :
+........
+* Вернул в описание NMDC хабов описание пользователя
+........
+* Исправлен подсчёт общей шары хаба.
+ http://www.flickr.com/photos/96019675@N02/10994909603/
+ http://www.flickr.com/photos/96019675@N02/10994868464/
+
+------------------------------------------------------------------------
+r16076 | pavel.pimenov@gmail.com | 2013-11-22 21:37:04 +0400 (Пт, 22 ноя 2013) | 1 line
+
+# r502 - маркеры падения
+------------------------------------------------------------------------
+r16032 | pavel.pimenov@gmail.com | 2013-11-12 03:42:37 +0400 (Вт, 12 ноя 2013) | 1 line
+
+# r502
+------------------------------------------------------------------------
+r16031 | pavel.pimenov@gmail.com | 2013-11-12 03:17:32 +0400 (Вт, 12 ноя 2013) | 1 line
+
+# r502 изменил целевой путь для робота custom-сборок.
+------------------------------------------------------------------------
+r16029 | pavel.pimenov@gmail.com | 2013-11-11 20:35:40 +0400 (Пн, 11 ноя 2013) | 1 line
+
+# r502-sp4 log
+------------------------------------------------------------------------
 r16027 | pavel.pimenov@gmail.com | 2013-11-11 19:55:24 +0400 (Пн, 11 ноя 2013) | 10 lines
 
 Merged revision(s) 16023-16026 from trunk:

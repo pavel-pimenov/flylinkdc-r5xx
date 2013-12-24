@@ -255,9 +255,9 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		{
 			fileQueue.calcPriorityAndGetRunningFiles(p_proir_array, p_running_file);
 		}
-		size_t getRunningFileCount() const //[+]PPA opt.
+		size_t getRunningFileCount(const size_t p_stop_key) const //[+]PPA opt.
 		{
-			return fileQueue.getRunningFileCount();
+			return fileQueue.getRunningFileCount(p_stop_key);
 		}
 	public:
 		bool getTargetByRoot(const TTHValue& tth, string& target, string& tempTarget)
@@ -412,7 +412,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 					return m_queue;
 				}
 				void calcPriorityAndGetRunningFiles(QueueItem::PriorityArray& p_changedPriority, QueueItemList& p_runningFiles);
-				size_t getRunningFileCount() const;
+				size_t getRunningFileCount(const size_t p_stop_key) const;
 				void move(const QueueItemPtr& qi, const string& aTarget); // [!] IRainman fix.
 				void remove(const QueueItemPtr& qi); // [!] IRainman fix.
 				

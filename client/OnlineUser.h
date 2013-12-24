@@ -406,7 +406,7 @@ class Identity
 		}
 	public:
 #ifdef IRAINMAN_USE_NG_FAST_USER_INFO
-		uint16_t getChanges() 
+		uint16_t getChanges()
 		{
 			uint16_t ret = 0;
 			//FastUniqueLock l(g_cs);
@@ -495,11 +495,12 @@ class Identity
 			e_TypeInt64AttrLast
 		};
 		GSINTBITS(64);
+	public:
 		GSINT(64, RealBytesShared) // "RS"
 #endif
 //////////////////////////////////
 	public:
-
+	
 		// [-] string getTag() const; [-] IRainman opt.
 		string getApplication() const;
 		tstring getHubs() const;

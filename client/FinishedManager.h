@@ -50,7 +50,7 @@ class FinishedItem
 			target(aTarget),
 			cid(aUser.user->getCID()),
 			hub(aUser.hint),
-			hubs(Util::toString(ClientManager::getInstance()->getHubNames(aUser.user->getCID(), Util::emptyString))),
+			hubs(Util::toString(ClientManager::getHubNames(aUser.user->getCID(), Util::emptyString))),
 			size(aSize), avgSpeed(aSpeed), time(aTime), tth(aTTH), ip(aIP), nick(aUser.user->getLastNick())
 		{
 #ifdef IRAINMAN_AV_CHECK

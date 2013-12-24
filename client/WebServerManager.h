@@ -207,7 +207,7 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 			LoggedIn[ip] = tmp;
 		}
 		
-		void search(string search_str, int search_type);
+		void search(string search_str, Search::TypeModes search_type);
 		
 		/*void searchstarted(bool s) { // TODO
 		    search_started = s;

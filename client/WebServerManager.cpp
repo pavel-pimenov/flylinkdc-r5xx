@@ -684,7 +684,7 @@ string WebServerManager::getULQueue()
 		{
 			for (auto i = ii->m_files.cbegin(); i != ii->m_files.cend(); ++i)
 			{
-				ret_queue_list += "<tr>\n<td>" + Util::toString(ClientManager::getInstance()->getNicks(ii->getUser()->getCID(), Util::emptyString)) + "</td>\n";
+				ret_queue_list += "<tr>\n<td>" + Util::toString(ClientManager::getNicks(ii->getUser()->getCID(), Util::emptyString)) + "</td>\n";
 				ret_queue_list += "<td>" + Util::getFileName((*i)->getFile()) + "</td>\n</tr>\n";
 			}
 		}
@@ -827,7 +827,7 @@ int WebServerSocket::run()
 				{
 					if (!m["search"].empty())
 					{
-						WebServerManager::getInstance()->search(Util::encodeURI(m["search"], true), Util::toInt(m["type"]));
+						WebServerManager::getInstance()->search(Util::encodeURI(m["search"], true), Search::TypeModes(Util::toInt(m["type"])));
 					} /*else {
                         WebServerManager::getInstance()->searchstarted(m["search_started"].empty()); // TODO
                     }*/
@@ -975,7 +975,7 @@ int WebServerSocket::run()
 	return 0;
 }
 
-void WebServerManager::search(string search_str, int search_type)
+void WebServerManager::search(string search_str, Search::TypeModes search_type)
 {
 	if (sended_search == false)
 	{
@@ -984,7 +984,7 @@ void WebServerManager::search(string search_str, int search_type)
 		{
 			search_str.replace(i++, 1, " ");
 		}
-		if ((SearchManager::TypeModes)search_type == SearchManager::TYPE_TTH)
+		if (search_type == Search::TYPE_TTH)
 		{
 			search_str = g_tth + search_str; // [!] IRainman opt.
 		}
@@ -994,7 +994,7 @@ void WebServerManager::search(string search_str, int search_type)
 		SearchManager::getInstance()->addListener(this);
 		// TODO: Get ADC searchtype extensions if any is selected
 		const StringList emptyList;
-		const uint64_t l_searchInterval = SearchManager::getInstance()->search(emptyList, search_str, 0, (SearchManager::TypeModes)search_type, Search::SIZE_DONTCARE, token, emptyList, (void*)this);
+		const uint64_t l_searchInterval = SearchManager::getInstance()->search(emptyList, search_str, 0, search_type, Search::SIZE_DONTCARE, token, emptyList, (void*)this);
 		search_delay = Util::toString(l_searchInterval / 1000 + 15);
 		//Lock l(cs);
 		results.clear();
@@ -1016,8 +1016,8 @@ void WebServerManager::on(SearchManagerListener::SR, const SearchResultPtr& aRes
 		{
 			const string Row = Util::toString(row);
 			const string User = aResult->getUser()->getLastNick();
-//          string User = ClientManager::getInstance()->getNick(aResult->getUser()->getCID());
-//          string User = ClientManager::getInstance()->getNicks(HintedUser(aResult->getUser(), aResult->getHubURL()))[0];
+//          string User = ClientManager::getNick(aResult->getUser()->getCID());
+//          string User = ClientManager::getNicks(HintedUser(aResult->getUser(), aResult->getHubURL()))[0];
 			const string& File = aResult->getFile();
 			const string FileName = aResult->getFileName();
 			results += "<form method=get name='form" + Row + "' action='search.htm'>\n";

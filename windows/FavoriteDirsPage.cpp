@@ -48,12 +48,8 @@ LRESULT FavoriteDirsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 	ctrlDirectories.InsertColumn(0, CTSTRING(FAVORITE_DIR_NAME), LVCFMT_LEFT, rc.Width() / 4, 0);
 	ctrlDirectories.InsertColumn(1, CTSTRING(DIRECTORY), LVCFMT_LEFT, rc.Width() * 2 / 4, 1);
 	ctrlDirectories.InsertColumn(2, CTSTRING(SETTINGS_EXTENSIONS), LVCFMT_LEFT, rc.Width() / 4, 2);
-#ifdef IRAINMAN_NON_COPYABLE_FAV_DIRS
 	FavoriteManager::LockInstanceDirs lockedInstance;
-	const auto& directories = lockedInstance.getFavoriteDirs();
-#else
-	const auto directories = FavoriteManager::getInstance()->getFavoriteDirs();
-#endif
+	const auto& directories = lockedInstance.getFavoriteDirsL();
 	auto cnt = ctrlDirectories.GetItemCount();
 	for (auto j = directories.cbegin(); j != directories.cend(); ++j)
 	{

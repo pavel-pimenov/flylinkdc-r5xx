@@ -183,6 +183,7 @@ class User : public intrusive_ptr_base<User>, public Flags
 # endif
 #endif
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+			// Тут можно и не лочить - иначе падаем FastLock l(g_ratio_cs);
 			safe_delete(m_ratio_ptr);
 #endif
 		}
@@ -205,6 +206,13 @@ class User : public intrusive_ptr_base<User>, public Flags
 //				dcdebug("User::getLastNick() called %d\n", int(++g_call_counts));
 #endif
 			return m_nick;
+		}
+		void initLastNick(const string& p_nick)
+		{
+			if (getLastNick().empty())
+			{
+				setLastNick(p_nick);
+			}
 		}
 		void setLastNick(const string& p_nick);
 		void setIP(const string& p_ip)
@@ -286,6 +294,7 @@ class User : public intrusive_ptr_base<User>, public Flags
 		
 		uint64_t getBytesUploadRAW() const
 		{
+			FastLock l(g_ratio_cs);
 			if (m_ratio_ptr)
 				return m_ratio_ptr->m_upload;
 			else
@@ -300,6 +309,7 @@ class User : public intrusive_ptr_base<User>, public Flags
 		}
 		bool isLastIP() // [+] IRainman fix.
 		{
+			FastLock l(g_ratio_cs);
 			if (m_ratio_ptr)
 			{
 				return m_last_ip.is_unspecified();
@@ -312,8 +322,8 @@ class User : public intrusive_ptr_base<User>, public Flags
 		string getIP();
 		uint64_t getBytesUpload();
 		uint64_t getBytesDownload();
-		void initRatio();
-		void initRatio(const boost::asio::ip::address_v4& p_ip);
+		void initRatioL();
+		void initRatioL(const boost::asio::ip::address_v4& p_ip);
 		
 #endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	private:
@@ -322,6 +332,7 @@ class User : public intrusive_ptr_base<User>, public Flags
 		CFlyUserRatioInfo* m_ratio_ptr;
 		uint32_t  m_hub_id;
 		bool      m_is_first_init_ratio;
+		static FastCriticalSection g_ratio_cs;
 #endif
 };
 

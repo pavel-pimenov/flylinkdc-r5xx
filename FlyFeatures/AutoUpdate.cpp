@@ -161,8 +161,8 @@ string AutoUpdate::getUpdateFilesList(const string& p_componentName,
 			p_base_update_url = p_serverUrl;
 			const string l_serverUpdateFile = p_serverUrl + p_file;
 			const string l_log_url_info = " (" + p_componentName + ')' + " ( URL:" + l_serverUpdateFile + ')';
-		
-			size_t l_dataSize =  Util::getDataFromInet(T_VERSIONSTRING, 4096, l_serverUpdateFile, p_autoUpdateObject->m_update_xml); // [2] https://www.box.net/shared/9abd7079b1531c354231
+		        // 60 sec - http://code.google.com/p/flylinkdc/issues/detail?id=1403
+			size_t l_dataSize =  Util::getDataFromInet(T_VERSIONSTRING, 4096, l_serverUpdateFile, p_autoUpdateObject->m_update_xml,60000); 
 			if (l_dataSize)
 			{
 				message(STRING(AUTOUPDATE_DOWNLOAD_SUCCESS) + l_log_url_info);
@@ -668,7 +668,8 @@ bool AutoUpdate::prepareFile(const AutoUpdateFile& file, const string& tempFolde
 
 	std::vector<byte> l_binary_data;
 	IDateReceiveReporter* reporter = InetDownloadReporter::getInstance();
-	int64_t sizeRead = Util::getBinaryDataFromInet(T_VERSIONSTRING, 4096, file.m_sDownloadURL, l_binary_data, 0, reporter); // TODO - передать размер буфера сарзу
+        // 60 sec - http://code.google.com/p/flylinkdc/issues/detail?id=1403
+	int64_t sizeRead = Util::getBinaryDataFromInet(T_VERSIONSTRING, 4096, file.m_sDownloadURL, l_binary_data, 60000, reporter); // TODO - передать размер буфера сразу
 	if (sizeRead == file.m_packedSize)
 	{
 		/*

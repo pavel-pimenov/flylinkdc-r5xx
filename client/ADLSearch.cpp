@@ -642,7 +642,7 @@ void ADLSearchManager::matchListing(DirectoryListing& aDirList) noexcept
 	StringMap params;
 	if (aDirList.getUser())
 	{
-		params["userNI"] = ClientManager::getInstance()->getNicks(aDirList.getUser()->getCID(), Util::emptyString)[0];
+		params["userNI"] = ClientManager::getNicks(aDirList.getUser()->getCID(), Util::emptyString)[0];
 		params["userCID"] = aDirList.getUser()->getCID().toBase32();
 	}
 	setUser(aDirList.getUser());

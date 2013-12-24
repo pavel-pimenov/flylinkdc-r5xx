@@ -296,7 +296,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		void on(Key, UserConnection*, const string&) noexcept;
 		void on(Direction, UserConnection*, const string&, const string&) noexcept;
 		void on(MyNick, UserConnection*, const string&) noexcept;
-		void on(Supports, UserConnection*, StringList &&) noexcept; // [!] IRainman fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
+		void on(Supports, UserConnection*, StringList &) noexcept;
 		
 		void on(AdcCommand::SUP, UserConnection*, const AdcCommand&) noexcept;
 		void on(AdcCommand::INF, UserConnection*, const AdcCommand&) noexcept;

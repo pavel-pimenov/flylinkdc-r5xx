@@ -27,12 +27,12 @@
 #include "BarShader.h"
 
 int WaitingUsersFrame::columnSizes[] = { 250, 100, 75, 75, 75, 75, 100, 100, 100, 100, 150, 75 }; // !SMT!-UI
-int WaitingUsersFrame::columnIndexes[] = { UploadQueueItemInfo::COLUMN_FILE, UploadQueueItemInfo::COLUMN_PATH, UploadQueueItemInfo::COLUMN_NICK, UploadQueueItemInfo::COLUMN_HUB, UploadQueueItemInfo::COLUMN_TRANSFERRED, UploadQueueItemInfo::COLUMN_SIZE, UploadQueueItemInfo::COLUMN_ADDED, UploadQueueItemInfo::COLUMN_WAITING,
-                                           UploadQueueItemInfo::COLUMN_LOCATION, UploadQueueItemInfo::COLUMN_IP, // !SMT!-IP
+int WaitingUsersFrame::columnIndexes[] = { UploadQueueItem::COLUMN_FILE, UploadQueueItem::COLUMN_PATH, UploadQueueItem::COLUMN_NICK, UploadQueueItem::COLUMN_HUB, UploadQueueItem::COLUMN_TRANSFERRED, UploadQueueItem::COLUMN_SIZE, UploadQueueItem::COLUMN_ADDED, UploadQueueItem::COLUMN_WAITING,
+                                           UploadQueueItem::COLUMN_LOCATION, UploadQueueItem::COLUMN_IP, // !SMT!-IP
 #ifdef PPA_INCLUDE_DNS
-                                           UploadQueueItemInfo::COLUMN_DNS, // !SMT!-IP
+                                           UploadQueueItem::COLUMN_DNS, // !SMT!-IP
 #endif
-                                           UploadQueueItemInfo::COLUMN_SLOTS, UploadQueueItemInfo::COLUMN_SHARE // !SMT!-UI
+                                           UploadQueueItem::COLUMN_SLOTS, UploadQueueItem::COLUMN_SHARE // !SMT!-UI
                                          };
 static ResourceManager::Strings columnNames[] = { ResourceManager::FILENAME, ResourceManager::PATH, ResourceManager::NICK,
                                                   ResourceManager::HUB, ResourceManager::TRANSFERRED, ResourceManager::SIZE, ResourceManager::ADDED, ResourceManager::WAITING_TIME,
@@ -51,43 +51,43 @@ LRESULT WaitingUsersFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 	CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);
 	ctrlStatus.Attach(m_hWndStatusBar);
 	
-	ctrlList.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-	                WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS, WS_EX_CLIENTEDGE, IDC_UPLOAD_QUEUE);
-	                
-	SET_EXTENDENT_LIST_VIEW_STYLE(ctrlList);
+	m_ctrlList.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+	                  WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS, WS_EX_CLIENTEDGE, IDC_UPLOAD_QUEUE);
+	                  
+	SET_EXTENDENT_LIST_VIEW_STYLE(m_ctrlList);
 	ctrlQueued.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS |
 	                  TVS_HASBUTTONS | TVS_LINESATROOT | TVS_HASLINES | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP,
 	                  WS_EX_CLIENTEDGE, IDC_DIRECTORIES);
 	                  
 	ctrlQueued.SetImageList(g_fileImage.getIconList(), TVSIL_NORMAL);
-	ctrlList.SetImageList(g_fileImage.getIconList(), LVSIL_SMALL);
+	m_ctrlList.SetImageList(g_fileImage.getIconList(), LVSIL_SMALL);
 	
 	m_nProportionalPos = SETTING(UPLOADQUEUEFRAME_SPLIT);
-	SetSplitterPanes(ctrlQueued.m_hWnd, ctrlList.m_hWnd);
+	SetSplitterPanes(ctrlQueued.m_hWnd, m_ctrlList.m_hWnd);
 	
 	// Create listview columns
-	WinUtil::splitTokens(columnIndexes, SETTING(UPLOADQUEUEFRAME_ORDER), UploadQueueItemInfo::COLUMN_LAST);
-	WinUtil::splitTokensWidth(columnSizes, SETTING(UPLOADQUEUEFRAME_WIDTHS), UploadQueueItemInfo::COLUMN_LAST);
+	WinUtil::splitTokens(columnIndexes, SETTING(UPLOADQUEUEFRAME_ORDER), UploadQueueItem::COLUMN_LAST);
+	WinUtil::splitTokensWidth(columnSizes, SETTING(UPLOADQUEUEFRAME_WIDTHS), UploadQueueItem::COLUMN_LAST);
 	
-	BOOST_STATIC_ASSERT(_countof(columnSizes) == UploadQueueItemInfo::COLUMN_LAST);
-	BOOST_STATIC_ASSERT(_countof(columnNames) == UploadQueueItemInfo::COLUMN_LAST);
+	BOOST_STATIC_ASSERT(_countof(columnSizes) == UploadQueueItem::COLUMN_LAST);
+	BOOST_STATIC_ASSERT(_countof(columnNames) == UploadQueueItem::COLUMN_LAST);
 	
 	// column names, sizes
-	for (uint8_t j = 0; j < UploadQueueItemInfo::COLUMN_LAST; j++)
+	for (uint8_t j = 0; j < UploadQueueItem::COLUMN_LAST; j++)
 	{
-		const int fmt = (j == UploadQueueItemInfo::COLUMN_TRANSFERRED || j == UploadQueueItemInfo::COLUMN_SIZE) ? LVCFMT_RIGHT : LVCFMT_LEFT;
-		ctrlList.InsertColumn(j, TSTRING_I(columnNames[j]), fmt, columnSizes[j], j);
+		const int fmt = (j == UploadQueueItem::COLUMN_TRANSFERRED || j == UploadQueueItem::COLUMN_SIZE) ? LVCFMT_RIGHT : LVCFMT_LEFT;
+		m_ctrlList.InsertColumn(j, TSTRING_I(columnNames[j]), fmt, columnSizes[j], j);
 	}
 	
-	ctrlList.setColumnOrderArray(UploadQueueItemInfo::COLUMN_LAST, columnIndexes);
-	ctrlList.setVisible(SETTING(UPLOADQUEUEFRAME_VISIBLE));
+	m_ctrlList.setColumnOrderArray(UploadQueueItem::COLUMN_LAST, columnIndexes);
+	m_ctrlList.setVisible(SETTING(UPLOADQUEUEFRAME_VISIBLE));
 	
 	//ctrlList.setSortColumn(COLUMN_NICK);
-	ctrlList.setSortColumn(SETTING(UPLOAD_QUEUE_COLUMNS_SORT));
-	ctrlList.setAscending(BOOLSETTING(UPLOAD_QUEUE_COLUMNS_SORT_ASC));
+	m_ctrlList.setSortColumn(SETTING(UPLOAD_QUEUE_COLUMNS_SORT));
+	m_ctrlList.setAscending(BOOLSETTING(UPLOAD_QUEUE_COLUMNS_SORT_ASC));
 	
 	// colors
-	SET_LIST_COLOR(ctrlList);
+	SET_LIST_COLOR(m_ctrlList);
 	
 	ctrlQueued.SetBkColor(Colors::bgColor);
 	ctrlQueued.SetTextColor(Colors::textColor);
@@ -133,14 +133,14 @@ LRESULT WaitingUsersFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 			delete reinterpret_cast<UserItem *>(ctrlQueued.GetItemData(userNode));
 			userNode = ctrlQueued.GetNextSiblingItem(userNode);
 		}
-		ctrlList.DeleteAllItems();
+		m_ctrlList.DeleteAllItems();
 		UQFUsers.clear();
 		SET_SETTING(UPLOADQUEUEFRAME_SHOW_TREE, ctrlShowTree.GetCheck() == BST_CHECKED);
-		ctrlList.saveHeaderOrder(SettingsManager::UPLOADQUEUEFRAME_ORDER, SettingsManager::UPLOADQUEUEFRAME_WIDTHS,
-		                         SettingsManager::UPLOADQUEUEFRAME_VISIBLE);
-		                         
-		SET_SETTING(UPLOAD_QUEUE_COLUMNS_SORT, ctrlList.getSortColumn());
-		SET_SETTING(UPLOAD_QUEUE_COLUMNS_SORT_ASC, ctrlList.isAscending());
+		m_ctrlList.saveHeaderOrder(SettingsManager::UPLOADQUEUEFRAME_ORDER, SettingsManager::UPLOADQUEUEFRAME_WIDTHS,
+		                           SettingsManager::UPLOADQUEUEFRAME_VISIBLE);
+		                           
+		SET_SETTING(UPLOAD_QUEUE_COLUMNS_SORT, m_ctrlList.getSortColumn());
+		SET_SETTING(UPLOAD_QUEUE_COLUMNS_SORT_ASC, m_ctrlList.isAscending());
 		SET_SETTING(UPLOADQUEUEFRAME_SPLIT, m_nProportionalPos);
 		
 		bHandled = FALSE;
@@ -204,14 +204,14 @@ LRESULT WaitingUsersFrame::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 	}
 	else
 	{
-		if (ctrlList.getSelectedCount())
+		if (m_ctrlList.getSelectedCount())
 		{
 			int i = -1;
 			UserList RemoveUsers;
-			while ((i = ctrlList.GetNextItem(i, LVNI_SELECTED)) != -1)
+			while ((i = m_ctrlList.GetNextItem(i, LVNI_SELECTED)) != -1)
 			{
 				// Ok let's cheat here, if you try to remove more users here is not working :(
-				RemoveUsers.push_back(((UploadQueueItem*)ctrlList.getItemData(i))->getUser());
+				RemoveUsers.push_back(((UploadQueueItem*)m_ctrlList.getItemData(i))->getUser());
 			}
 			UploadManager::LockInstanceQueue lockedInstance; // [+] IRainman opt.
 			for (auto i = RemoveUsers.cbegin(); i != RemoveUsers.cend(); ++i)
@@ -228,10 +228,10 @@ LRESULT WaitingUsersFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lP
 {
 	RECT rc;
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-	ctrlList.GetHeader().GetWindowRect(&rc);
+	m_ctrlList.GetHeader().GetWindowRect(&rc);
 	if (PtInRect(&rc, pt))
 	{
-		ctrlList.showMenu(pt);
+		m_ctrlList.showMenu(pt);
 		return TRUE;
 	}
 	
@@ -241,11 +241,11 @@ LRESULT WaitingUsersFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lP
 	contextMenu.CreatePopupMenu();
 	clearUserMenu(); // [+] IRainman fix.
 	
-	if (reinterpret_cast<HWND>(wParam) == ctrlList && ctrlList.GetSelectedCount() > 0)
+	if (reinterpret_cast<HWND>(wParam) == m_ctrlList && m_ctrlList.GetSelectedCount() > 0)
 	{
 		if (pt.x == -1 && pt.y == -1)
 		{
-			WinUtil::getContextMenuPos(ctrlList, pt);
+			WinUtil::getContextMenuPos(m_ctrlList, pt);
 		}
 		
 		appendAndActivateUserItems(contextMenu);
@@ -284,7 +284,7 @@ LRESULT WaitingUsersFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lP
 
 void WaitingUsersFrame::LoadAll()
 {
-	CLockRedraw<> l_lock_draw(ctrlList);
+	CLockRedraw<> l_lock_draw(m_ctrlList);
 	CLockRedraw<true> l_lock_draw_q(ctrlQueued);
 	
 	HTREEITEM userNode = ctrlQueued.GetRootItem();
@@ -293,7 +293,8 @@ void WaitingUsersFrame::LoadAll()
 		delete reinterpret_cast<UserItem *>(ctrlQueued.GetItemData(userNode));
 		userNode = ctrlQueued.GetNextSiblingItem(userNode);
 	}
-	ctrlList.DeleteAllItems();
+	// TODO - delete
+	m_ctrlList.DeleteAllItems();
 	ctrlQueued.DeleteAllItems();
 	UQFUsers.clear();
 	
@@ -350,7 +351,7 @@ LRESULT WaitingUsersFrame::onItemChanged(int /*idCtrl*/, LPNMHDR /* pnmh */, BOO
 	
 	while (userNode)
 	{
-		ctrlList.DeleteAllItems();
+		m_ctrlList.DeleteAllItems();
 		UserItem* ui = reinterpret_cast<UserItem *>(ctrlQueued.GetItemData(userNode));
 		if (ui)
 		{
@@ -362,7 +363,7 @@ LRESULT WaitingUsersFrame::onItemChanged(int /*idCtrl*/, LPNMHDR /* pnmh */, BOO
 			});
 			if (it != users.end())
 			{
-				CLockRedraw<> l_lock_draw(ctrlList);
+				CLockRedraw<> l_lock_draw(m_ctrlList);
 				CLockRedraw<true> l_lock_draw_q(ctrlQueued);
 				for (auto i = it->m_files.cbegin(); i != it->m_files.cend(); ++i)
 				{
@@ -384,8 +385,7 @@ LRESULT WaitingUsersFrame::onItemChanged(int /*idCtrl*/, LPNMHDR /* pnmh */, BOO
 
 void WaitingUsersFrame::RemoveFile(UploadQueueItemPtr aUQI)
 {
-	unique_ptr<UploadQueueItemInfo> d(new UploadQueueItemInfo(aUQI));
-	ctrlList.deleteItem(d.get());
+	m_ctrlList.deleteItem(aUQI);
 }
 
 void WaitingUsersFrame::AddFile(UploadQueueItemPtr aUQI)
@@ -422,9 +422,8 @@ void WaitingUsersFrame::AddFile(UploadQueueItemPtr aUQI)
 			return;
 		}
 	}
-	auto ii = new UploadQueueItemInfo(aUQI);
-	ii->update();
-	ctrlList.insertItem(ctrlList.GetItemCount(), ii, ii->getImageIndex());
+	aUQI->update();
+	m_ctrlList.insertItem(m_ctrlList.GetItemCount(), aUQI, aUQI->getImageIndex()); // aUQI->getImageIndex()
 }
 
 HTREEITEM WaitingUsersFrame::GetParentItem()
@@ -439,7 +438,7 @@ void WaitingUsersFrame::updateStatus()
 {
 	if (ctrlStatus.IsWindow())
 	{
-		const int cnt = ctrlList.GetItemCount();
+		const int cnt = m_ctrlList.GetItemCount();
 		const int users = ctrlQueued.GetCount();
 		
 		tstring tmp[2];
@@ -467,6 +466,24 @@ void WaitingUsersFrame::updateStatus()
 			UpdateLayout(TRUE);
 	}
 }
+void WaitingUsersFrame::removeSelected()
+{
+	int i = -1;
+	UserList RemoveUsers;
+	while ((i = m_ctrlList.GetNextItem(i, LVNI_SELECTED)) != -1)
+	{
+		// Ok let's cheat here, if you try to remove more users here is not working :(
+		RemoveUsers.push_back(((UploadQueueItem*)m_ctrlList.getItemData(i))->getUser());
+	}
+	{
+		UploadManager::LockInstanceQueue lockedInstance; // [+] IRainman opt.
+		for (auto i = RemoveUsers.cbegin(); i != RemoveUsers.cend(); ++i)
+		{
+			lockedInstance->clearUserFilesL(*i);
+		}
+	}
+	m_needsUpdateStatus = true; // [!] IRainman opt.
+}
 
 LRESULT WaitingUsersFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
@@ -477,7 +494,7 @@ LRESULT WaitingUsersFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 	if (t.empty())
 		return 0;
 		
-	CLockRedraw<> lockCtrlList(ctrlList);
+	CLockRedraw<> lockCtrlList(m_ctrlList);
 	CLockRedraw<> lockCtrlQueued(ctrlQueued);
 	for (auto i = t.cbegin(); i != t.cend(); ++i)
 	{
@@ -501,18 +518,27 @@ LRESULT WaitingUsersFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 			break;
 			case UPDATE_ITEMS:
 			{
-				const int j = ctrlList.GetItemCount();
-				int64_t itime = GET_TIME();
-				for (int i = 0; i < j; i++)
+				const int l_item_count = m_ctrlList.GetItemCount();
+				if (l_item_count)
 				{
-					auto ii = ctrlList.getItemData(i);
-					ii->setText(UploadQueueItemInfo::COLUMN_TRANSFERRED, Util::formatBytesW(ii->getQi()->getPos()) + _T(" (") + Util::toStringW((double)ii->getQi()->getPos() * 100.0 / (double)ii->getQi()->getSize()) + _T("%)"));
-					ii->setText(UploadQueueItemInfo::COLUMN_WAITING, Util::formatSecondsW(itime - ii->getQi()->getTime()));
-					ctrlList.updateItem(i);
+					const int l_top_index = m_ctrlList.GetTopIndex();
+					const int l_count_per_page = m_ctrlList.GetCountPerPage();
+					int64_t itime = GET_TIME();
+					for (int i = l_top_index; i < l_count_per_page; i++)
+					{
+						auto ii = m_ctrlList.getItemData(i);
+						if (ii)
+						{
+							ii->setText(UploadQueueItem::COLUMN_TRANSFERRED, Util::formatBytesW(ii->getPos()) + _T(" (") + Util::toStringW((double)ii->getPos() * 100.0 / (double)ii->getSize()) + _T("%)"));
+							ii->setText(UploadQueueItem::COLUMN_WAITING, Util::formatSecondsW(itime - ii->getTime()));
+							m_ctrlList.updateItem(i, UploadQueueItem::COLUMN_TRANSFERRED);
+							m_ctrlList.updateItem(i, UploadQueueItem::COLUMN_WAITING);
+						}
+					}
 				}
 				if (m_needsResort)
 				{
-					ctrlList.resort();
+					m_ctrlList.resort();
 					m_needsResort = false;
 				}
 				if (m_needsUpdateStatus)
@@ -543,16 +569,16 @@ LRESULT WaitingUsersFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 void WaitingUsersFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
 {
 	bool refresh = false;
-	if (ctrlList.GetBkColor() != Colors::bgColor)
+	if (m_ctrlList.GetBkColor() != Colors::bgColor)
 	{
-		ctrlList.SetBkColor(Colors::bgColor);
-		ctrlList.SetTextBkColor(Colors::bgColor);
+		m_ctrlList.SetBkColor(Colors::bgColor);
+		m_ctrlList.SetTextBkColor(Colors::bgColor);
 		ctrlQueued.SetBkColor(Colors::bgColor);
 		refresh = true;
 	}
-	if (ctrlList.GetTextColor() != Colors::textColor)
+	if (m_ctrlList.GetTextColor() != Colors::textColor)
 	{
-		ctrlList.SetTextColor(Colors::textColor);
+		m_ctrlList.SetTextColor(Colors::textColor);
 		ctrlQueued.SetTextColor(Colors::textColor);
 		refresh = true;
 	}
@@ -581,7 +607,7 @@ LRESULT WaitingUsersFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHan
 	*/
 	CRect rc;
 	LPNMLVCUSTOMDRAW cd = reinterpret_cast<LPNMLVCUSTOMDRAW>(pnmh);
-	UploadQueueItemInfo *ii = (UploadQueueItemInfo*)cd->nmcd.lItemlParam;
+	UploadQueueItem *ii = (UploadQueueItem*)cd->nmcd.lItemlParam;
 	
 	switch (cd->nmcd.dwDrawStage)
 	{
@@ -596,13 +622,12 @@ LRESULT WaitingUsersFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHan
 		case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
 		{
 			// Let's draw a box if needed...
-			if (BOOLSETTING(SHOW_PROGRESS_BARS) && ctrlList.findColumn(cd->iSubItem) == UploadQueueItemInfo::COLUMN_TRANSFERRED) // [+] IRainman
+			if (BOOLSETTING(SHOW_PROGRESS_BARS) && m_ctrlList.findColumn(cd->iSubItem) == UploadQueueItem::COLUMN_TRANSFERRED) // [+] IRainman
 			{
 				// draw something nice...
 				LocalArray<TCHAR, 256> buf;
-				ctrlList.GetItemText((int)cd->nmcd.dwItemSpec, cd->iSubItem, buf.data(), 255);
-				
-				ctrlList.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
+				m_ctrlList.GetItemText((int)cd->nmcd.dwItemSpec, cd->iSubItem, buf.data(), 255);
+				m_ctrlList.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
 				// Real rc, the original one.
 				CRect real_rc = rc;
 				// We need to offset the current rc to (0, 0) to paint on the New dc
@@ -623,8 +648,8 @@ LRESULT WaitingUsersFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHan
 				HFONT oldFont = (HFONT)SelectObject(dc, Fonts::font);
 				SetBkMode(dc, TRANSPARENT);
 				
-				CBarShader statusBar(rc.bottom - rc.top, rc.right - rc.left, RGB(150, 0, 0), ii->getQi()->getSize());
-				statusBar.FillRange(0, ii->getQi()->getPos(), RGB(222, 160, 0));
+				CBarShader statusBar(rc.bottom - rc.top, rc.right - rc.left, RGB(150, 0, 0), ii->getSize());
+				statusBar.FillRange(0, ii->getPos(), RGB(222, 160, 0));
 				statusBar.Draw(cdc, rc.top, rc.left, SETTING(PROGRESS_3DDEPTH));
 				
 				SetTextColor(dc, SETTING(PROGRESS_TEXT_COLOR_UP));
@@ -641,14 +666,14 @@ LRESULT WaitingUsersFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHan
 			// [!] TODO https://code.google.com/p/flylinkdc/issues/detail?id=1115
 			// [!] Colors::getUserColor(ii->getUser(), cd->clrText, cd->clrTextBk); // [!] IRainman fix todo [1] https://www.box.net/shared/f7c509838c3a1125842b , https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=59082
 			// !SMT!-IP
-			if (ctrlList.findColumn(cd->iSubItem) == UploadQueueItemInfo::COLUMN_LOCATION)
+			if (m_ctrlList.findColumn(cd->iSubItem) == UploadQueueItem::COLUMN_LOCATION)
 			{
-				const tstring l_text = ii->getText(UploadQueueItemInfo::COLUMN_LOCATION);
+				const tstring l_text = ii->getText(UploadQueueItem::COLUMN_LOCATION);
 				if (l_text.length() != 0)
 				{
-					ctrlList.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
+					m_ctrlList.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
 					CRect rc2 = rc;
-					ctrlList.SetItemFilled(cd, rc2, cd->clrText);
+					m_ctrlList.SetItemFilled(cd, rc2, cd->clrText);
 					LONG top = rc2.top + (rc2.Height() - 15) / 2;
 					if ((top - rc2.top) < 2)
 						top = rc2.top + 1;

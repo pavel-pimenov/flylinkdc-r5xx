@@ -41,6 +41,7 @@ class CountOutputStream : public OutputStream
 		}
 		size_t write(const void* buf, size_t len)
 		{
+			dcassert(len);
 			size_t n = s->write(buf, len);
 			count += n;
 			return n;

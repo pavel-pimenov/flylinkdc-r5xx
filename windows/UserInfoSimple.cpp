@@ -36,7 +36,7 @@ void UserInfoSimple::addSummaryMenu()
 	UserInfoGuiTraits::userSummaryMenu.InsertSeparatorLast(getUser()->getLastNickT());
 	
 	ClientManager::UserParams params;
-	if (ClientManager::getInstance()->getUserParams(getUser(), params))
+	if (ClientManager::getUserParams(getUser(), params))
 	{
 		tstring userInfo = TSTRING(SLOTS) + _T('=') + Util::toStringW(params.slots) + _T(' ') + TSTRING(SHARED) + _T('=') + Util::formatBytesW(params.bytesShared);
 		
@@ -203,6 +203,13 @@ uint64_t UserInfoSimple::inputSlotTime()
 
 // [+] FlylinkDC++ Team
 
+#if 0 // http://code.google.com/p/flylinkdc/issues/detail?id=1413
+int UploadQueueItemInfo::getImageIndex() const
+{
+	return g_fileImage.getIconIndex(getQi()->getFile());
+}
+
+
 void UploadQueueItemInfo::update()
 {
 	setText(COLUMN_FILE, Text::toT(Util::getFileName(getQi()->getFile())));
@@ -235,6 +242,8 @@ void UploadQueueItemInfo::update()
 	// [~] IRainman opt.
 #endif
 }
+#endif
+
 /* [-] IRainman opt.
 const tstring UploadQueueItemInfo::getText(uint8_t col) const
 {
@@ -285,10 +294,5 @@ const tstring UploadQueueItemInfo::getText(uint8_t col) const
     return ColumnBase::getText(col);
 }
 [~] IRainman opt. */
-
-int UploadQueueItemInfo::getImageIndex() const
-{
-	return g_fileImage.getIconIndex(getQi()->getFile());
-}
 
 // [~] FlylinkDC++ Team
