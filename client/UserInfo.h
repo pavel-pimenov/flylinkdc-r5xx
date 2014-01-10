@@ -21,54 +21,49 @@
 
 #include "ClientManager.h"
 #include "TaskQueue.h"
+#include "LogManager.h"
 #ifdef IRAINMAN_USE_NG_FAST_USER_INFO
 #include "UserInfoColumns.h"
 #endif
 
-enum Tasks { UPDATE_USER_JOIN,
-             UPDATE_USER,
-             REMOVE_USER,
-             ADD_CHAT_LINE,
-             ADD_STATUS_LINE,
-             ADD_SILENT_STATUS_LINE,
-             SET_WINDOW_TITLE,
-             GET_PASSWORD,
-             PRIVATE_MESSAGE,
-             STATS,
-             CONNECTED,
-             DISCONNECTED,
-             CHEATING_USER,
-             USER_REPORT,
-             GET_SHUTDOWN,
-             SET_SHUTDOWN,
-             KICK_MSG,
+enum Tasks
+{
+	ADD_STATUS_LINE,
+#ifndef FLYLINKDC_REMOVE_USER_WIN_MESSAGES_Q
+	REMOVE_USER,
+#endif
+#ifndef FLYLINKDC_PRIVATE_MESSAGE_USE_WIN_MESSAGES_Q
+	PRIVATE_MESSAGE,
+#endif
+#ifndef FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
+	UPDATE_USER_JOIN,
+#endif
+	GET_PASSWORD,
+	STATS,
 #ifdef RIP_USE_CONNECTION_AUTODETECT
-             DIRECT_MODE_DETECTED
+	DIRECT_MODE_DETECTED
 #endif
-           };
-
-struct OnlineUserTask : public Task // [!] IRainman fix.
-#ifdef _DEBUG
-		, virtual NonDerivable<OnlineUserTask>
-#endif
-{
-	explicit OnlineUserTask(const OnlineUserPtr& ouser) : m_ouser(ouser)
-	{
-	}
-	GETC(OnlineUserPtr, m_ouser, OnlineUser); // [!] IRainman fix: is its online user!!!
 };
 
-struct MessageTask : public Task // [!] IRainman fix.
-#ifdef _DEBUG
-		, virtual NonDerivable<MessageTask>
-#endif
+#ifndef FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
+struct OnlineUserTask : public Task
 {
-	explicit MessageTask(const ChatMessage& message) : m_message(message)
+	explicit OnlineUserTask(const OnlineUserPtr& p_ou) : m_ou(p_ou)
 	{
 	}
-	GETC(ChatMessage, m_message, Message);
+	const OnlineUserPtr m_ou;
 };
+#endif
 
+#ifndef FLYLINKDC_PRIVATE_MESSAGE_USE_WIN_MESSAGES_Q
+struct MessageTask : public Task
+{
+	explicit MessageTask(ChatMessage* p_message_ptr) : m_message_ptr(p_message_ptr)
+	{
+	}
+	ChatMessage* m_message_ptr;
+};
+#endif
 class UserInfo : public UserInfoBase
 #ifdef _DEBUG
 	, virtual NonDerivable<UserInfo> // [+] IRainman fix.
@@ -82,11 +77,11 @@ class UserInfo : public UserInfoBase
 #endif
 	public:
 	
-		explicit UserInfo(const OnlineUserTask& u) :
+		explicit UserInfo(const OnlineUserPtr& p_ou) :
 #ifdef SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
 			m_is_ip_from_sql(false),
 #endif
-			m_ou(u.getOnlineUser())
+			m_ou(p_ou)
 		{
 		}
 		static int compareItems(const UserInfo* a, const UserInfo* b, int col);
@@ -189,8 +184,18 @@ class UserInfo : public UserInfoBase
 			public:
 				UserInfo* findUser(const OnlineUserPtr& p_user) const // [!] IRainman fix: use online user here.
 				{
-					const auto i = find(p_user);
-					return i == end() ? nullptr : i->second;
+					if (p_user->isFirstFind())
+					{
+						//    LogManager::getInstance()->message("[++++++++++++++++++ UserInfo* findUser] Hub = " + p_user->getClient().getHubUrl() + " First user = " + p_user->getUser()->getLastNick() );
+						dcassert(find(p_user) == end());
+						return nullptr;
+					}
+					else
+					{
+						const auto i = find(p_user);
+						// LogManager::getInstance()->message("[================== UserInfo* findUser] Hub = " + p_user->getClient().getHubUrl() + " First user = " + p_user->getUser()->getLastNick() );
+						return i == end() ? nullptr : i->second;
+					}
 				}
 		};
 };

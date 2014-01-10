@@ -682,7 +682,7 @@ void HashManager::Hasher::stopHashing(const string& baseDir)
 	}
 	// [+] brain-ripper
 	// cleanup state
-	running = false;
+	m_running = false;
 	dwMaxFiles = 0;
 	iMaxBytes = 0;
 	m_fname.erase();
@@ -830,7 +830,7 @@ bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, TigerTree&
 	// [+] brain-ripper
 	// exit loop if "running" equals false.
 	// "running" sets to false in stopHashing function
-	while (!stop && running)
+	while (!m_stop && m_running)
 	{
 		if (size > 0)
 		{
@@ -1001,12 +1001,12 @@ int HashManager::Hasher::run()
 	for (;;)
 	{
 		m_s.wait();
-		if (stop)
+		if (m_stop)
 			break;
-		if (rebuild)
+		if (m_rebuild)
 		{
 			HashManager::getInstance()->doRebuild();
-			rebuild = false;
+			m_rebuild = false;
 			LogManager::getInstance()->message(STRING(HASH_REBUILT));
 			continue;
 		}
@@ -1019,18 +1019,17 @@ int HashManager::Hasher::run()
 				m_CurrentBytesLeft -= currentSize;// [+]IRainman
 				w.erase(w.begin());
 				last = w.empty();
-				
-				if (!running)
+				if (!m_running)
 				{
 					uiStartTime = GET_TICK();
-					running = true;
+					m_running = true;
 				}
 			}
 			else
 			{
 				last = true;
 				m_fname.clear();
-				running = false;
+				m_running = false;
 				iMaxBytes = 0;
 				dwMaxFiles = 0;
 				m_CurrentBytesLeft = 0;// [+]IRainman
@@ -1085,7 +1084,7 @@ int HashManager::Hasher::run()
 				{
 #endif
 						// [+] brain-ripper
-						if (running)
+						if (m_running)
 						{
 							tth = &slowTTH;
 							uint64_t lastRead = GET_TICK();
@@ -1121,7 +1120,7 @@ int HashManager::Hasher::run()
 									instantPause();
 								}
 							}
-							while (!stop && running && n > 0);
+							while (!m_stop && m_running && n > 0);
 						}
 						else
 							tth = nullptr;
@@ -1138,7 +1137,7 @@ int HashManager::Hasher::run()
 				{
 					speed = l_size * _LL(1000) / (end - start);
 				}
-				if (running)
+				if (m_running)
 				{
 #ifdef IRAINMAN_NTFS_STREAM_TTH
 					if (l_is_ntfs)
@@ -1166,14 +1165,14 @@ int HashManager::Hasher::run()
 			
 			if (w.empty())
 			{
-				running = false;
+				m_running = false;
 				iMaxBytes = 0;
 				dwMaxFiles = 0;
 				m_CurrentBytesLeft = 0;//[+]IRainman
 			}
 		}
 		
-		if (buf != NULL && (last || stop))
+		if (buf != NULL && (last || m_stop))
 		{
 			if (virtualBuf)
 				VirtualFree(buf, 0, MEM_RELEASE);

@@ -81,11 +81,11 @@ static const Tags l_EndBBTag[] =
 //typedef Intervals::const_iterator CIterIntervals;
 #endif // IRAINMAN_USE_BB_CODES
 
-tstring ChatCtrl::sSelectedLine;
-tstring ChatCtrl::sSelectedText;
-tstring ChatCtrl::sSelectedIP;
-tstring ChatCtrl::sSelectedUserName;
-tstring ChatCtrl::sSelectedURL;
+tstring ChatCtrl::g_sSelectedLine;
+tstring ChatCtrl::g_sSelectedText;
+tstring ChatCtrl::g_sSelectedIP;
+tstring ChatCtrl::g_sSelectedUserName;
+tstring ChatCtrl::g_sSelectedURL;
 
 ChatCtrl::ChatCtrl() : m_boAutoScroll(true) //, m_Client(nullptr)
 #ifdef IRAINMAN_INCLUDE_SMILE
@@ -174,7 +174,7 @@ void ChatCtrl::AppendText(const Identity& id, const bool bMyMess, const bool bTh
 	{
 		lSelBegin = lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
 		SetSel(lSelEnd, lSelEnd);
-		ReplaceSel(text.c_str());
+		ReplaceSel(text.c_str()); // http://www.flickr.com/photos/96019675@N02/11524414653/ http://code.google.com/p/flylinkdc/issues/detail?id=1428
 		lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
 		SetSel(lSelBegin, lSelEnd);
 		SetSelectionCharFormat(cf);
@@ -357,7 +357,7 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const tstring& sAuthor, cons
 	sMsgLower.MakeLower();
 	
 	//[!]IRainman optimize
-	lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
+	lSelEnd = GetTextLengthEx(GTL_NUMCHARS); // Часто встречается GetTextLengthEx(GTL_NUMCHARS) http://code.google.com/p/flylinkdc/issues/detail?id=1428
 	SetSel(lSelBegin, lSelEnd);
 	auto cfTemp = bMyMess ? Colors::g_ChatTextMyOwn : cf;
 	SetSelectionCharFormat(cfTemp);
@@ -617,7 +617,7 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const tstring& sAuthor, cons
 			}
 			ls.resize(linkEnd - linkStart); //-V106
 			SetSel(lSelBegin + linkStart, lSelBegin + linkEnd);
-			GetTextRange(lSelBegin + linkStart, lSelBegin + linkEnd, &ls[0]);
+			GetTextRange(lSelBegin + linkStart, lSelBegin + linkEnd, &ls[0]); // TODO проверить результат? http://code.google.com/p/flylinkdc/issues/detail?id=1428
 			tstring originalLink = ls;
 			if (Util::isMagnetLink(ls)) // shorten magnet-links
 			{
@@ -1047,33 +1047,33 @@ void ChatCtrl::SetAutoScroll(bool boAutoScroll)
 
 LRESULT ChatCtrl::OnRButtonDown(POINT pt, const UserPtr& user /*= nullptr*/)
 {
-	sSelectedLine = LineFromPos(pt);
-	sSelectedText.clear();
-	sSelectedUserName.clear();
-	sSelectedIP.clear();
-	sSelectedURL.clear();
+	g_sSelectedLine = LineFromPos(pt);
+	g_sSelectedText.clear();
+	g_sSelectedUserName.clear();
+	g_sSelectedIP.clear();
+	g_sSelectedURL.clear();
 	
 	// Po kliku dovnitr oznaceneho textu si zkusime poznamenat pripadnej nick ci ip...
 	// jinak by nam to neuznalo napriklad druhej klik na uz oznaceny nick =)
 	long lSelBegin, lSelEnd;
 	GetSel(lSelBegin, lSelEnd);
 	
-	if (HitURL(sSelectedURL, lSelBegin/*, lSelEnd*/))
+	if (HitURL(g_sSelectedURL, lSelBegin/*, lSelEnd*/))
 		return 1;
 		
 	const int iCharPos = CharFromPos(pt);
 	int iBegin, iEnd;
 	if ((lSelEnd > lSelBegin) && (iCharPos >= lSelBegin) && (iCharPos <= lSelEnd))
 	{
-		if (!HitIP(pt, sSelectedIP, iBegin, iEnd))
-			if (!HitNick(pt, sSelectedUserName, iBegin, iEnd, user))
-				HitText(sSelectedText, lSelBegin, lSelEnd);
+		if (!HitIP(pt, g_sSelectedIP, iBegin, iEnd))
+			if (!HitNick(pt, g_sSelectedUserName, iBegin, iEnd, user))
+				HitText(g_sSelectedText, lSelBegin, lSelEnd);
 				
 		return 1; // 2012-06-09_18-15-11_DRYNVE2SCLWPDGO7YSIGD5TBFKAR66RUAFWJ36A_B1E71795_crash-stack-r501-build-10294.dmp
 	}
 	
 	// hightlight IP or nick when clicking on it
-	if (HitIP(pt, sSelectedIP, iBegin, iEnd) || HitNick(pt, sSelectedUserName, iBegin, iEnd, user))
+	if (HitIP(pt, g_sSelectedIP, iBegin, iEnd) || HitNick(pt, g_sSelectedUserName, iBegin, iEnd, user))
 		// [8] https://www.box.net/shared/132998a58df880723a78
 	{
 		SetSel(iBegin, iEnd);
@@ -1155,12 +1155,12 @@ LRESULT ChatCtrl::onEnLink(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 	
 	if (pEL->msg == WM_LBUTTONUP)
 	{
-		sSelectedURL = get_URL(pEL);
-		WinUtil::openLink(sSelectedURL);
+		g_sSelectedURL = get_URL(pEL);
+		WinUtil::openLink(g_sSelectedURL);
 	}
 	else if (pEL->msg == WM_RBUTTONUP)
 	{
-		sSelectedURL = get_URL(pEL);
+		g_sSelectedURL = get_URL(pEL);
 		SetSel(pEL->chrg.cpMin, pEL->chrg.cpMax);
 		InvalidateRect(NULL);
 		return 0;
@@ -1170,27 +1170,27 @@ LRESULT ChatCtrl::onEnLink(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 
 LRESULT ChatCtrl::onCopyActualLine(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	if (!sSelectedLine.empty())
+	if (!g_sSelectedLine.empty())
 	{
-		WinUtil::setClipboard(sSelectedLine);
+		WinUtil::setClipboard(g_sSelectedLine);
 	}
 	return 0;
 }
 
 LRESULT ChatCtrl::onCopyURL(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	if (!sSelectedURL.empty())
+	if (!g_sSelectedURL.empty())
 	{
-		WinUtil::setClipboard(sSelectedURL);
+		WinUtil::setClipboard(g_sSelectedURL);
 	}
 	return 0;
 }
 #ifdef IRAINMAN_ENABLE_WHOIS
 LRESULT ChatCtrl::onWhoisIP(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	if (!sSelectedIP.empty())
+	if (!g_sSelectedIP.empty())
 	{
-		WinUtil::openLink(_T("http://www.ripe.net/perl/whois?form_type=simple&full_query_string=&searchtext=") + sSelectedIP);// TODO унести в settings.
+		WinUtil::openLink(_T("http://www.ripe.net/perl/whois?form_type=simple&full_query_string=&searchtext=") + g_sSelectedIP);// TODO унести в settings.
 	}
 	return 0;
 }

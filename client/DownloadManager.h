@@ -56,7 +56,7 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 		/** @return Number of downloads. */
 		size_t getDownloadCount() const
 		{
-			// [-] Lock l(cs); [-] IRainman opt.
+			webrtc::ReadLockScoped l(*g_csDownload);
 			return m_download_map.size();
 		}
 		
@@ -65,12 +65,12 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 		
 	private:
 	
-		SharedCriticalSection cs; // [!] IRainman fix.
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csDownload;
 		DownloadMap m_download_map;
 		std::unordered_map<UserPtr, UserConnection*, User::Hash> m_idlers;
 		void remove_idlers(UserConnection* aSource)
 		{
-			UniqueLock l(cs);
+			webrtc::WriteLockScoped l(*g_csDownload);
 			dcassert(aSource->getUser());
 			// Могут быть не найдены.
 			// лишняя проверка dcassert(m_idlers.find(aSource->getUser()) != m_idlers.end());

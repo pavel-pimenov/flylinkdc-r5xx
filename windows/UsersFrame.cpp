@@ -121,26 +121,27 @@ LRESULT UsersFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 		usersMenu.AppendMenu(MF_STRING, IDC_EDIT, CTSTRING(PROPERTIES));
 		usersMenu.AppendMenu(MF_STRING, IDC_OPEN_USER_LOG, CTSTRING(OPEN_USER_LOG));
 		usersMenu.AppendMenu(MF_STRING, IDC_REMOVE_FROM_FAVORITES, CTSTRING(REMOVE_FROM_FAVORITES)); //[+] NightOrion
-		usersMenu.AppendMenu(MF_SEPARATOR);
-		
-		// [-] merge
-		//usersMenu.AppendMenu(MF_SEPARATOR);
-		//usersMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(REMOVE));
-		
 		
 		tstring x;
 		if (ctrlUsers.GetSelectedCount() == 1)
 		{
 			const auto user = ctrlUsers.getItemData(ctrlUsers.GetSelectedIndex())->getUser();
-			x = user->getLastNickT();
-			reinitUserMenu(user, Util::emptyString); // TODO: add hub hint.
+			if (user->isOnline())
+			{
+				usersMenu.AppendMenu(MF_SEPARATOR);
+				x = user->getLastNickT();
+				reinitUserMenu(user, Util::emptyString); // TODO: add hub hint.
+				if (!x.empty())
+					usersMenu.InsertSeparatorFirst(x);
+					
+				appendAndActivateUserItems(usersMenu);
+			}
 		}
-		
-		if (!x.empty())
-			usersMenu.InsertSeparatorFirst(x);
-			
-		appendAndActivateUserItems(usersMenu);
-		
+		else
+		{
+			usersMenu.AppendMenu(MF_SEPARATOR);
+			appendAndActivateUserItems(usersMenu);
+		}
 		usersMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 		
 		if (!x.empty())

@@ -35,7 +35,7 @@
 #include "../FlyFeatures/AutoUpdate.h"
 #include "ConnectivityManager.h"
 
-StringList SettingsManager::connectionSpeeds;
+StringList SettingsManager::g_connectionSpeeds;
 
 
 // [!] IRainman opt: use this data as static.
@@ -442,25 +442,23 @@ void SettingsManager::setDefaults()
 	else
 		l_isSettingsAlreadyInit = true;
 #endif
-		
-	connectionSpeeds.push_back("0.005");
-	connectionSpeeds.push_back("0.01");
-	connectionSpeeds.push_back("0.02");
-	connectionSpeeds.push_back("0.05");
-	connectionSpeeds.push_back("0.1");
-	connectionSpeeds.push_back("0.2");
-	connectionSpeeds.push_back("0.5");
-	connectionSpeeds.push_back("1");
-	connectionSpeeds.push_back("2");
-	connectionSpeeds.push_back("5");
-	connectionSpeeds.push_back("10");
-	connectionSpeeds.push_back("20");
-	connectionSpeeds.push_back("50");
-	connectionSpeeds.push_back("100");
-	connectionSpeeds.push_back("1000");
-	
-	connectionSpeeds.shrink_to_fit(); // [+] IRainman opt.
-	
+	g_connectionSpeeds.reserve(15);
+	g_connectionSpeeds.push_back("0.005");
+	g_connectionSpeeds.push_back("0.01");
+	g_connectionSpeeds.push_back("0.02");
+	g_connectionSpeeds.push_back("0.05");
+	g_connectionSpeeds.push_back("0.1");
+	g_connectionSpeeds.push_back("0.2");
+	g_connectionSpeeds.push_back("0.5");
+	g_connectionSpeeds.push_back("1");
+	g_connectionSpeeds.push_back("2");
+	g_connectionSpeeds.push_back("5");
+	g_connectionSpeeds.push_back("10");
+	g_connectionSpeeds.push_back("20");
+	g_connectionSpeeds.push_back("50");
+	g_connectionSpeeds.push_back("100");
+	g_connectionSpeeds.push_back("1000");
+	dcassert(g_connectionSpeeds.size() == g_connectionSpeeds.capacity());
 #ifdef PPA_INCLUDE_OLD_INNOSETUP_WIZARD
 	const string l_dir = Util::getRegistryValueString("DownloadDir", true);
 	if (!l_dir.empty())
@@ -514,7 +512,7 @@ void SettingsManager::setDefaults()
 	setDefault(LOG_IF_SUPPRESS_PMS, TRUE); // [+] IRainman
 	setDefault(STATUS_IN_CHAT, TRUE);
 	//setDefault(SHOW_JOINS, false);
-	setDefault(UPLOAD_SPEED, connectionSpeeds[12]); // [+] PPA. 50m
+	setDefault(UPLOAD_SPEED, g_connectionSpeeds[12]); // [+] PPA. 50m
 	//setDefault(PRIVATE_MESSAGE_BEEP, false);
 	//setDefault(PRIVATE_MESSAGE_BEEP_OPEN, false);
 	setDefault(USE_SYSTEM_ICONS, TRUE);
@@ -1209,7 +1207,7 @@ void SettingsManager::setDefaults()
 	setDefault(DCLST_ACTION, MAGNET_AUTO_SEARCH); // [+] SSA
 	setDefault(DCLST_INCLUDESELF, TRUE); // [+] SSA
 	// [+] SSA - update to beta version
-#if defined(BETA)
+#if defined(FLYLINKDC_BETA)
 	setDefault(AUTOUPDATE_TO_BETA, TRUE);
 #else
 	setDefault(AUTOUPDATE_TO_BETA, false);
@@ -1316,7 +1314,7 @@ void SettingsManager::load(const string& aFileName)
 					{
 						continue;
 					}
-					swap(g_searchTypes[name], Util::splitSetting(extensions));
+					g_searchTypes[name] = Util::splitSettingAndLower(extensions);
 				}
 				xml.stepOut();
 			}

@@ -76,7 +76,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		};
 		static StringList getHubLists()
 		{
-			return SPLIT_SETTING(HUBLIST_SERVERS);
+			return SPLIT_SETTING_AND_LOWER(HUBLIST_SERVERS);
 		}
 		void setHubList(int aHubList);
 		int getSelectedHubList() const

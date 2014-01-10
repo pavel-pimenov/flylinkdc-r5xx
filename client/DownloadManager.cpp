@@ -27,6 +27,7 @@
 #include <cmath>
 
 static const string DOWNLOAD_AREA = "Downloads";
+std::unique_ptr<webrtc::RWLockWrapper> DownloadManager::g_csDownload = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 
 DownloadManager::DownloadManager()
 	: runningAverage(0)//[+] IRainman refactoring transfer mechanism
@@ -40,7 +41,7 @@ DownloadManager::~DownloadManager()
 	while (true)
 	{
 		{
-			// [-] Lock l(cs); [-] IRainman opt.
+			webrtc::ReadLockScoped l(*g_csDownload);
 			if (m_download_map.empty())
 				break;
 		}
@@ -57,10 +58,9 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	TargetList dropTargets;
 	
 	{
-		// [-] Lock l(cs); [-] IRainman opt.
 		DownloadMap l_tickList;
 		int64_t l_currentSpeed = 0;// [+] IRainman refactoring transfer mechanism
-		SharedLock l(cs); // [+] IRainman opt.
+		webrtc::ReadLockScoped l(*g_csDownload);
 		// Tick each ongoing download
 		for (auto i = m_download_map.cbegin(); i != m_download_map.cend(); ++i)
 		{
@@ -116,7 +116,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 
 void DownloadManager::checkIdle(const UserPtr& aUser)
 {
-	SharedLock l(cs);
+	webrtc::ReadLockScoped l(*g_csDownload);
 	dcassert(aUser);
 	const auto & l_find = m_idlers.find(aUser);
 	if (l_find != m_idlers.end())
@@ -196,9 +196,8 @@ void DownloadManager::checkDownloads(UserConnection* aConn)
 			fire(DownloadManagerListener::Status(), aConn, errorMessage);
 		}
 		
-		// [-] Lock l(cs); [-] IRainman fix.
 		aConn->setState(UserConnection::STATE_IDLE);
-		UniqueLock l(cs); // [+] IRainman fix.
+		webrtc::WriteLockScoped l(*g_csDownload);
 		dcassert(aConn->getUser());
 		dcassert(m_idlers.find(aConn->getUser()) == m_idlers.end());
 		m_idlers[aConn->getUser()] = aConn;
@@ -213,7 +212,7 @@ void DownloadManager::checkDownloads(UserConnection* aConn)
 	}
 	
 	{
-		UniqueLock l(cs);
+		webrtc::WriteLockScoped l(*g_csDownload);
 		dcassert(d->getUser());
 		dcassert(m_download_map.find(d->getUser()) == m_download_map.end());
 		m_download_map[d->getUser()] = d;
@@ -445,7 +444,7 @@ void DownloadManager::endData(UserConnection* aSource)
 //[-] IRainman refactoring transfer mechanism
 //int64_t DownloadManager::getRunningAverage()
 //{
-//	Lock l(cs);
+//	webrtc::ReadLockScoped l(*g_csDownload);
 //	int64_t avg = 0;
 //	for (auto i = downloads.cbegin(); i != downloads.cend(); ++i)
 //	{
@@ -530,7 +529,7 @@ void DownloadManager::removeDownload(Download* d)
 	}
 	
 	{
-		UniqueLock l(cs);
+		webrtc::WriteLockScoped l(*g_csDownload);
 		dcassert(m_download_map.find(d->getUser()) != m_download_map.end());
 		m_download_map.erase(d->getUser());
 	}
@@ -538,8 +537,7 @@ void DownloadManager::removeDownload(Download* d)
 
 void DownloadManager::abortDownload(const string& aTarget)
 {
-	SharedLock l(cs);
-	
+	webrtc::ReadLockScoped l(*g_csDownload);
 	for (auto i = m_download_map.cbegin(); i != m_download_map.cend(); ++i)
 	{
 		Download* d = i->second;
@@ -644,7 +642,7 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource)
 // !SMT!-S
 bool DownloadManager::checkFileDownload(const UserPtr& aUser)
 {
-	SharedLock l(cs);
+	webrtc::ReadLockScoped l(*g_csDownload);
 	const auto& l_find = m_download_map.find(aUser);
 	if (l_find != m_download_map.end())
 		if (l_find->second->getType() != Download::TYPE_PARTIAL_LIST &&

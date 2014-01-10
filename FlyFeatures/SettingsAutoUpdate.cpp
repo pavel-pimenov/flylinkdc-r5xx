@@ -35,7 +35,7 @@ SettingsAutoUpdate::initialize()
 	SettingsManager::getInstance()->addListener(this);
 }
 
-void SettingsAutoUpdate::execute(const pair<SettingsAutoUpdateTasks, SettingsAutoUpdateTaskData*>&& p_task)
+void SettingsAutoUpdate::execute(const pair<SettingsAutoUpdateTasks, SettingsAutoUpdateTaskData*>& p_task)
 {
 	switch (p_task.first)
 	{

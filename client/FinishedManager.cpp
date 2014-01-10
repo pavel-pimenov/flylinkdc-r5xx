@@ -102,7 +102,7 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItemPtr& qi,
 	
 	if (isFile || (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_DCLST_LIST) && BOOLSETTING(LOG_FILELIST_TRANSFERS)))
 	{
-	
+		CFlylinkDBManager::getInstance()->clear_tiger_tree_cache(qi->getTTH());
 		const FinishedItemPtr item = new FinishedItem(qi->getTarget(), d->getHintedUser(), qi->getSize(), d->getRunningAverage(), GET_TIME(), qi->getTTH().toBase32(), d->getUser()->getIP());
 		{
 			FastUniqueLock l(csD);

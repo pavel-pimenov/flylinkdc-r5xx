@@ -49,7 +49,7 @@ CrashHandler g_crashHandler(
 #ifdef FLYLINKDC_HE
     "C9149EA6-612E-4038-A557-D62DF22755CD"
 #else
-#ifdef BETA
+#ifdef FLYLINKDC_BETA
     "910F4B4D-C71C-45BC-A88D-F59FE022525B"
 #else
     "D7F972BA-ACF7-451E-88D5-FF0B98BD085D"
@@ -179,7 +179,7 @@ LRESULT CALLBACK splashCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		ExCImage hi;
 		// TODO. Нужно реализовать прозрачность из WinUtil.cpp.
 		
-#ifdef BETA
+#ifdef FLYLINKDC_BETA
 		g_Loadtext = TSTRING(SPLASH_BETA);
 #else
 		g_Loadtext = TSTRING(SPLASH_RELEASE);

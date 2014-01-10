@@ -31,12 +31,7 @@
 #define BZ_NO_STDIO 1
 #endif
 
-#ifdef _WIN32
 #include "w.h"
-#else
-#include <unistd.h>
-#define BOOST_PTHREAD_HAS_MUTEXATTR_SETTYPE
-#endif
 
 #include <wchar.h>
 #include <ctype.h>

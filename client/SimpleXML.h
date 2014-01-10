@@ -197,7 +197,7 @@ class SimpleXML
 			toXML(&os);
 			return tmp;
 		}
-		void toXML(OutputStream* f) throw(FileException)
+		void toXML(OutputStream* f)
 		{
 			if (!root.children.empty())
 				root.children[0]->toXML(0, f);

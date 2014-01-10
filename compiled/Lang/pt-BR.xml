@@ -220,6 +220,7 @@ Por favor não compartilhar pasta %s</String>
 		<String Name="CheckShowRealShare">, tamanho indicado = %[shareshort], Tamanho real = %[realshareformat]</String>
 		<String Name="ChooseFolder">Escolher Pasta</String>
 		<String Name="Cid">CID</String>
+		<String Name="Tag">Tag</String>
 		<String Name="Cipher">Cipher</String>
 		<String Name="Clear">Limpar Chat</String>
 		<String Name="ClearSearchHistory">Limpar histórico de buscas</String>
@@ -313,6 +314,7 @@ In the parameters, you can use %[xxx] variables and date/time specifiers (%Y, %m
 		<String Name="CommandTooLong">Tamanho Máximo de comando excedido</String>
 		<String Name="CommaNotFound">Vírgula não pode ser encontrada</String>
 		<String Name="Comment">Comentário</String>
+		<String Name="CommentedLine">Linha comentada</String>
 		<String Name="CompiledOn">Compilado em:</String>
 		<String Name="Compressed">Comprimido</String>
 		<String Name="CompressionError">Erro durante a compressão</String>
@@ -334,6 +336,7 @@ In the parameters, you can use %[xxx] variables and date/time specifiers (%Y, %m
 		<String Name="ConnectAll">Conectar à todos usuários</String>
 		<String Name="ConnectFavuserHub">Conectar ao hub</String>
 		<String Name="ConnectToSupportHub">Conectar ao hub de suporte no início</String>
+		<String Name="ContactListMenu">Lista de Contatos</String>
 		<String Name="ContinueSearch">Continuar</String>
 		<String Name="Copy">Copiar</String>
 		<String Name="CopyAll">Copiar Tudo</String>
@@ -351,6 +354,8 @@ In the parameters, you can use %[xxx] variables and date/time specifiers (%Y, %m
 		<String Name="CopyNick">Copiar Apelido</String>
 		<String Name="CopyNickIp">Copiar Apelido+IP</String>
 		<String Name="CopyApplication">Copiar аplicativo</String>
+		<String Name="CopyTag">Copiar Tag</String>
+		<String Name="CopyCid">Copiar CID</String>
 		<String Name="CopyTth">Copiar TTH</String>
 		<String Name="CopyUrl">Copiar URL</String>
 		<String Name="CouldNotOpenTargetFile">Não pode abrir o arquivo:</String>
@@ -474,6 +479,7 @@ Ligar DHT?</String>
 		<String Name="Eb">EiB</String>
 		<String Name="EditAccel">&amp;Editar</String>
 		<String Name="Email">E-Mail</String>
+		<String Name="EmptyLineSkiped">Linha vazia pulada</String>
 		<String Name="EnableHubmodePic">Habilitar 'Modo Imagem' para hubs</String>
 		<String Name="EnableCountryflag">Adicionar bandeira do país em 'Local' na lista de usuários</String>
 		<String Name="EnableLastIp">Armazenar IP em um banco de dados SQLite</String>
@@ -540,7 +546,6 @@ Se possível, envie o arquivo para análise para ppa74@ya.ru</String>
 		<String Name="FavoriteUsers">Usuários Favoritos</String>
 		<String Name="FavoriteUserAdded">Usuário Favorito Adicionado</String>
 		<String Name="Favuserlistdblclickaction">na lista de favoritos do usuário</String>
-		<String Name="ContactListMenu">Lista de Contatos</String>
 		<String Name="FavuserOffline">Usuário favoritos está offline</String>
 		<String Name="FavuserOnline">Usuário favoritos está online</String>
 		<String Name="FavJoinShowingOff">Entrada/Saída de usuários favoritos desligado</String>
@@ -1012,7 +1017,7 @@ Empty = Default String -&gt; +me playing: %[title] (Media Player Classic)</Strin
 		<String Name="NoDownloadsFromPassive">Não é possível transferir de usuários passivos quando você está passiva</String>
 		<String Name="NoDownloadsFromSelf">Você está tentando baixar a partir de si mesmo!</String>
 		<String Name="NoErrors">Sem erros</String>
-		<String Name="NoFreeBlock">Sem bloco livre</String>
+		<String Name="NoFreeBlock">Nenhum Slot Livre</String>
 		<String Name="NoFullTree">Nenhuma árvore completa disponível</String>
 		<String Name="NoLogForHub">Log Hub não existe</String>
 		<String Name="NoLogForStatus">Log do status não existe</String>

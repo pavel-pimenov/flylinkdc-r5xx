@@ -23,8 +23,12 @@ class ChatBot : public Singleton<ChatBot>
 		void onMessage(const string& huburl, const Identity& msgFrom, const string& message);
 		void onUserAction(BotInit::CODES, const UserPtr& aUser);
 		void onHubAction(BotInit::CODES, const string& hubUrl);
+		static bool isLoaded()
+		{
+			return g_ChatBotDll != nullptr;
+		}
 	private:
-		HINSTANCE m_hDll;
+		static HINSTANCE g_ChatBotDll;
 		BotInit m_init;
 		int m_qrycount;
 		

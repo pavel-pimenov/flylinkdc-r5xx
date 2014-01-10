@@ -297,6 +297,7 @@ int SearchManager::UdpQueue::run()
 			
 			const string hubIpPort = x.substr(i, j - i);
 			const string url = ClientManager::findHub(hubIpPort); // TODO - внутри линейный поиск. оптимизнуть
+			// для dc.dly-server.ru - возвращается его IP-шник "31.186.103.125:411"
 			// url оказывается пустым https://www.box.net/shared/ayirspvdjk2boix4oetr
 			// падаем на dcassert в следующем вызове findHubEncoding.
 			// [!] IRainman fix: не падаем!!!! Это диагностическое предупреждение!!!
@@ -311,8 +312,14 @@ int SearchManager::UdpQueue::run()
 				l_hub_name_or_tth = Text::toUtf8(l_hub_name_or_tth, encoding);
 				
 			UserPtr user = ClientManager::findUser(nick, url); // TODO оптмизнуть makeCID
+			// не находим юзера "$SR snooper-06 Фильмы\Прошлой ночью в Нью-Йорке.avi1565253632 15/15TTH:LUWOOXBE2H77TUV4S4HNZQTVDXLPEYC757OUMLY (31.186.103.125:411)"
+			// при пустом url - можно не звать ClientManager::findUser - не найдем.
+			// сразу нужно переходить на ClientManager::findLegacyUser
+			// url не педедается прри коннекте к хабу через SOCKS5
+			// TODO - если хаб только один - пытаться подставлять его?
 			if (!user)
 			{
+				// LogManager::getInstance()->message("Error ClientManager::findUser nick = " + nick + " url = " + url);
 				// Could happen if hub has multiple URLs / IPs
 				user = ClientManager::findLegacyUser(nick
 #ifndef IRAINMAN_USE_NICKS_IN_CM
@@ -320,7 +327,10 @@ int SearchManager::UdpQueue::run()
 #endif
 				                                    );
 				if (!user)
+				{
+					LogManager::getInstance()->message("Error ClientManager::findLegacyUser nick = " + nick + " url = " + url);
 					continue;
+				}
 			}
 			if (!remoteIp.empty())
 			{
@@ -523,6 +533,7 @@ void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const string& rem
 			if (!from)
 			{
 				dcdebug("Search result from unknown user");
+				LogManager::getInstance()->message("Error SearchManager::onPSR & ClientManager::findLegacyUser nick = " + nick + " url = " + url);
 				return;
 			}
 		}

@@ -87,9 +87,8 @@ class Identity
 			CHANGES_DNS = 1 << COLUMN_DNS, // !SMT!-IP
 #endif
 			//[-]PPA        CHANGES_PK = 1 << COLUMN_PK,
-#ifdef IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB
 			CHANGE_CID = 1 << COLUMN_CID,
-#endif
+			CHANGE_TAG = 1 << COLUMN_TAG
 		};
 // [~] IRAINMAN_USE_NG_FAST_USER_INFO
 		enum ClientType
@@ -200,12 +199,14 @@ class Identity
 		
 		void setBytesShared(const int64_t bytes) // "SS"
 		{
+			webrtc::WriteLockScoped l(*g_rw_cs);
 			dcassert(bytes >= 0);
 			getUser()->setBytesShared(bytes);
 			change(CHANGES_SHARED | CHANGES_EXACT_SHARED);
 		}
 		const int64_t getBytesShared() const // "SS"
 		{
+			webrtc::ReadLockScoped l(*g_rw_cs);
 			return getUser()->getBytesShared();
 		}
 		
@@ -500,8 +501,11 @@ class Identity
 #endif
 //////////////////////////////////
 	public:
-	
-		// [-] string getTag() const; [-] IRainman opt.
+		string getCID() const
+		{
+			return getUser()->getCID().toBase32();
+		}
+		string getTag() const;
 		string getApplication() const;
 		tstring getHubs() const;
 		
@@ -608,7 +612,6 @@ class OnlineUser :
 			COLUMN_SHARED,
 			COLUMN_EXACT_SHARED,
 			COLUMN_DESCRIPTION,
-			COLUMN_TAG,
 			COLUMN_CONNECTION,
 			COLUMN_IP,
 			//[+]PPA
@@ -617,11 +620,14 @@ class OnlineUser :
 			COLUMN_DOWNLOAD,
 			//[~]PPA
 			COLUMN_EMAIL,
+#ifdef IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB
 			COLUMN_VERSION,
 			COLUMN_MODE,
+#endif
 			COLUMN_HUBS,
 			COLUMN_SLOTS,
 			COLUMN_CID,
+			COLUMN_TAG,
 			COLUMN_LAST
 		};
 		
@@ -639,7 +645,7 @@ class OnlineUser :
 		};
 		
 		OnlineUser(const UserPtr& p_user, ClientBase& p_client, uint32_t p_sid)
-			: m_identity(p_user, p_sid), m_client(p_client)
+			: m_identity(p_user, p_sid), m_client(p_client), m_is_first_find(true)
 		{
 #ifdef _DEBUG
 			++g_online_user_counts;
@@ -688,7 +694,6 @@ class OnlineUser :
 		{
 			return (const Client&)m_client;
 		}
-		
 		ClientBase& getClientBase()
 		{
 			return m_client;
@@ -698,11 +703,16 @@ class OnlineUser :
 			return m_client;
 		}
 		
-		/* UserInfo */
 		bool update(int sortCol, const tstring& oldText = Util::emptyStringT);
 		uint8_t getImageIndex() const
 		{
 			return UserInfoBase::getImage(*this);
+		}
+		bool isFirstFind()
+		{
+			const auto l_old = m_is_first_find;
+			m_is_first_find = false;
+			return l_old;
 		}
 		static int compareItems(const OnlineUser* a, const OnlineUser* b, uint8_t col);
 #ifdef IRAINMAN_USE_HIDDEN_USERS
@@ -711,13 +721,11 @@ class OnlineUser :
 			return m_identity.isHidden();
 		}
 #endif
-		
 		tstring getText(uint8_t col) const;
-		
 	private:
 		Identity m_identity;
+		bool m_is_first_find;
 		friend class NmdcHub;
-		
 		ClientBase& m_client;
 };
 

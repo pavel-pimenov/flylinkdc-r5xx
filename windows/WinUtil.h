@@ -418,6 +418,8 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 		COMMAND_ID_HANDLER(IDC_COPY_NICK, onCopyUserInfo)
 		COMMAND_ID_HANDLER(IDC_COPY_EXACT_SHARE, onCopyUserInfo)
 		COMMAND_ID_HANDLER(IDC_COPY_APPLICATION, onCopyUserInfo)
+		COMMAND_ID_HANDLER(IDC_COPY_TAG, onCopyUserInfo)
+		COMMAND_ID_HANDLER(IDC_COPY_CID, onCopyUserInfo)
 		COMMAND_ID_HANDLER(IDC_COPY_DESCRIPTION, onCopyUserInfo)
 		COMMAND_ID_HANDLER(IDC_COPY_EMAIL_ADDRESS, onCopyUserInfo)
 		COMMAND_ID_HANDLER(IDC_COPY_NICK_IP, onCopyUserInfo)
@@ -586,6 +588,12 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			                        break;
 			                    case IDC_COPY_APPLICATION:
 			                        sCopy += id.getApplication();
+			                        break;
+			                    case IDC_COPY_TAG:
+			                        sCopy += id.getTag();
+			                        break;
+			                    case IDC_COPY_CID:
+			                        sCopy += id.getCID();
 			                        break;
 			                    case IDC_COPY_EMAIL_ADDRESS:
 			                        sCopy += id.getEmail();
@@ -1787,7 +1795,7 @@ class WinUtil
 		}
 		// [~] IRainman optimize.
 		
-		static void getAddresses(CComboBox& BindCombo); // [<-] IRainman moved from Network Page.
+		static tstring getAddresses(CComboBox& BindCombo); // [<-] IRainman moved from Network Page.
 		
 		static void GetTimeValues(CComboBox& p_ComboBox); // [+] InfinitySky.
 		

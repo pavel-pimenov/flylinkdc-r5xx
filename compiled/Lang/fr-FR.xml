@@ -220,6 +220,7 @@ Merci d'exclure le dossier %s de votre partage.</String>
 		<String Name="CheckShowRealShare">, Taille déclarée = %[shareshort], Taille réelle = %[realshareformat]</String>
 		<String Name="ChooseFolder">Choisir le répertoire</String>
 		<String Name="Cid">CID</String>
+		<String Name="Tag">Tag</String>
 		<String Name="Cipher">Chiffré</String>
 		<String Name="Clear">Vider le chat</String>
 		<String Name="ClearSearchHistory">Effacer l'historique des recherches</String>

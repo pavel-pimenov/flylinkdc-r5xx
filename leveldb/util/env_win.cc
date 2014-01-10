@@ -59,8 +59,7 @@ std::string& ModifyPath(std::string& path);
 std::wstring& ModifyPath(std::wstring& path);
 
 std::string GetLastErrSz();
-// [-] std::wstring GetLastErrSzW();
-// [~] IRainman fix.
+std::wstring GetLastErrSzW();
 
 size_t GetPageSize();
 
@@ -337,9 +336,24 @@ std::string GetLastErrSz()
     return Err;
 }
 
-// [-] std::wstring GetLastErrSzW()
-
-// [~] IRainamn fix.
+std::wstring GetLastErrSzW()
+{
+    LPVOID lpMsgBuf;
+    FormatMessageW( 
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+        FORMAT_MESSAGE_FROM_SYSTEM | 
+        FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        GetLastError(),
+        0, // Default language
+        (LPWSTR) &lpMsgBuf,
+        0,
+        NULL 
+        );
+    std::wstring Err = (LPCWSTR)lpMsgBuf;
+    LocalFree(lpMsgBuf);
+    return Err;
+}
 
 WorkItemWrapper::WorkItemWrapper( ScheduleProc proc_,void* content_ ) :
     proc(proc_),pContent(content_)

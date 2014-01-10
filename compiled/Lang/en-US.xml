@@ -234,6 +234,7 @@ Please do not share %s directory.</String>
 		<String Name="CheckShowRealShare">, stated size = %[shareshort], real size = %[realshareformat]</String>
 		<String Name="ChooseFolder">Choose folder</String>
 		<String Name="Cid">CID</String>
+		<String Name="Tag">Tag</String>
 		<String Name="Cipher">Cipher</String>
 		<String Name="Clear">Clear chat</String>
 		<String Name="ClearSearchHistory">Clear search history</String>
@@ -327,6 +328,7 @@ In the parameters, you can use %[xxx] variables and date/time specifiers (%Y, %m
 		<String Name="CommandTooLong">Maximum command length exceeded</String>
 		<String Name="CommaNotFound">comma cannot be found</String>
 		<String Name="Comment">Comment</String>
+		<String Name="CommentedLine">Commented line</String>
 		<String Name="CompiledOn">Compiled on:</String>
 		<String Name="Compressed">Compressed</String>
 		<String Name="CompressionError">Error during compression</String>
@@ -348,6 +350,7 @@ In the parameters, you can use %[xxx] variables and date/time specifiers (%Y, %m
 		<String Name="ConnectAll">Connect to all users</String>
 		<String Name="ConnectFavuserHub">Connect to hub</String>
 		<String Name="ConnectToSupportHub">Connect to support hub on each startup</String>
+		<String Name="ContactListMenu">Contact list</String>
 		<String Name="ContinueSearch">Continue</String>
 		<String Name="Copy">Copy</String>
 		<String Name="CopyAll">Copy all</String>
@@ -365,6 +368,8 @@ In the parameters, you can use %[xxx] variables and date/time specifiers (%Y, %m
 		<String Name="CopyNick">Copy nick</String>
 		<String Name="CopyNickIp">Copy Nick+IP</String>
 		<String Name="CopyApplication">Copy application</String>
+		<String Name="CopyTag">Copy Tag</String>
+		<String Name="CopyCid">Copy CID</String>
 		<String Name="CopyTth">Copy TTH</String>
 		<String Name="CopyUrl">Copy URL</String>
 		<String Name="CouldNotOpenTargetFile">Could not open target file:</String>
@@ -488,6 +493,7 @@ Turn DHT feature on?</String>
 		<String Name="Eb">EiB</String>
 		<String Name="EditAccel">&amp;Edit</String>
 		<String Name="Email">E-Mail</String>
+		<String Name="EmptyLineSkiped">Empty line skipped</String>
 		<String Name="EnableHubmodePic">Enable 'Mode Picture' for hubs</String>
 		<String Name="EnableCountryflag">Add Country flag into 'Location' in userlist</String>
 		<String Name="EnableLastIp">Store IP in a SQLite database</String>
@@ -554,7 +560,6 @@ If possible, send the file for analysis to ppa74@ya.ru</String>
 		<String Name="FavoriteUsers">Favorite users</String>
 		<String Name="FavoriteUserAdded">Favorite user is added</String>
 		<String Name="Favuserlistdblclickaction">on Favorite User list</String>
-		<String Name="ContactListMenu">Contact list</String>
 		<String Name="FavuserOffline">Favorite user is offline</String>
 		<String Name="FavuserOnline">Favorite user is online</String>
 		<String Name="FavJoinShowingOff">Join/part of favorite users showing off</String>

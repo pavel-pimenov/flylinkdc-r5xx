@@ -121,7 +121,6 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 			// and threadHandle thread hangs on this very critical section
 			// in HashManager::hashDone
 			//Lock l(cs); //[!]IRainman
-			
 			hasher.shutdown();
 			hasher.join();
 		}
@@ -210,19 +209,19 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 		
 		// [+] brain-ripper
 		// Temporarily change hash speed functional
-		inline bool IsHashing()
+		bool IsHashing()
 		{
 			return hasher.IsHashing();
 		}
-		inline size_t GetProgressValue()
+		size_t GetProgressValue()
 		{
 			return hasher.GetProgressValue();
 		}
-		inline uint64_t GetStartTime()
+		uint64_t GetStartTime()
 		{
 			return hasher.GetStartTime();
 		}
-		inline void GetProcessedFilesAndBytesCount(int64_t &bytes, size_t &files)
+		void GetProcessedFilesAndBytesCount(int64_t &bytes, size_t &files)
 		{
 			hasher.GetProcessedFilesAndBytesCount(bytes, files);
 		}
@@ -230,15 +229,15 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 		{
 			return Hasher::GetMaxProgressValue();
 		}
-		inline void EnableForceMinHashSpeed(int iMinHashSpeed)
+		void EnableForceMinHashSpeed(int iMinHashSpeed)
 		{
 			hasher.EnableForceMinHashSpeed(iMinHashSpeed);
 		}
-		inline void DisableForceMinHashSpeed()
+		void DisableForceMinHashSpeed()
 		{
 			hasher.DisableForceMinHashSpeed();
 		}
-		inline int GetMaxHashSpeed()
+		int GetMaxHashSpeed()
 		{
 			return hasher.GetMaxHashSpeed();
 		}
@@ -249,7 +248,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 		class Hasher : public Thread
 		{
 			public:
-				Hasher() : stop(false), running(false), paused(0), rebuild(false), currentSize(0),
+				Hasher() : m_stop(false), m_running(false), paused(0), m_rebuild(false), currentSize(0),
 					m_CurrentBytesLeft(0), //[+]IRainman
 					m_ForceMaxHashSpeed(0), dwMaxFiles(0), iMaxBytes(0), uiStartTime(0) { }
 					
@@ -281,12 +280,12 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 				}
 				void shutdown()
 				{
-					stop = true;
+					m_stop = true;
 					signal();
 				}
 				void scheduleRebuild()
 				{
-					rebuild = true;
+					m_rebuild = true;
 					signal();
 				}
 				
@@ -296,33 +295,33 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 					return m_ForceMaxHashSpeed != 0 ? m_ForceMaxHashSpeed : SETTING(MAX_HASH_SPEED);
 				}
 			private:
-				inline void getBytesAndFileLeft(int64_t& bytesLeft, size_t& filesLeft)
+				void getBytesAndFileLeft(int64_t& bytesLeft, size_t& filesLeft)
 				{
 					filesLeft = w.size();
-					if (running)
+					if (m_running)
 						filesLeft++;
 						
 					bytesLeft = currentSize + m_CurrentBytesLeft; // [!]IRainman
 				}
 			public:
-				inline void EnableForceMinHashSpeed(int iMinHashSpeed)
+				void EnableForceMinHashSpeed(int iMinHashSpeed)
 				{
 					m_ForceMaxHashSpeed = iMinHashSpeed;
 				}
-				inline void DisableForceMinHashSpeed()
+				void DisableForceMinHashSpeed()
 				{
 					m_ForceMaxHashSpeed = 0;
 				}
 				// [~] brain-ripper: Temporarily change hash speed functional
 				
-				inline bool IsHashing()
+				bool IsHashing() const
 				{
-					return running;
+					return m_running;
 				}
 				
-				inline size_t GetProgressValue()
+				size_t GetProgressValue()
 				{
-					if (!running || dwMaxFiles == 0 || iMaxBytes == 0)
+					if (!m_running || dwMaxFiles == 0 || iMaxBytes == 0)
 						return 0;
 						
 					int64_t bytesLeft;
@@ -335,12 +334,12 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 					return static_cast<size_t>(MAX_HASH_PROGRESS_VALUE * ((static_cast<double>(dwMaxFiles - filesLeft + 1) / static_cast<double>(dwMaxFiles)) * (static_cast<double>(iMaxBytes - bytesLeft) / static_cast<double>(iMaxBytes))));
 				}
 				
-				inline uint64_t GetStartTime()
+				uint64_t GetStartTime()
 				{
 					return IsHashing() ? uiStartTime : 0;
 				}
 				
-				inline void GetProcessedFilesAndBytesCount(int64_t &bytes, size_t &files)
+				void GetProcessedFilesAndBytesCount(int64_t &bytes, size_t &files)
 				{
 					if (IsHashing())
 					{
@@ -376,10 +375,10 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 				mutable FastCriticalSection cs; // [!] IRainman opt: use only spinlock here!
 				Semaphore m_s;
 				
-				volatile bool stop; // [!] IRainman fix: this variable is volatile.
-				volatile bool running; // [!] IRainman fix: this variable is volatile.
+				volatile bool m_stop; // [!] IRainman fix: this variable is volatile.
+				volatile bool m_running; // [!] IRainman fix: this variable is volatile.
 				int64_t paused; //[!] PPA -> int
-				volatile bool rebuild; // [!] IRainman fix: this variable is volatile.
+				volatile bool m_rebuild; // [!] IRainman fix: this variable is volatile.
 				//string currentFile;// [-]IRainman
 				int64_t currentSize;
 				

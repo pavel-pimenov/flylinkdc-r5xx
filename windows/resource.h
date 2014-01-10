@@ -1515,6 +1515,8 @@
 #define IDC_SEND_STATISTICS_TO_DEVELOPERS 2350
 #define IDC_ABOUTTAB                    2351
 #define IDC_CONVERT_TTH_HISTORY         2352
+#define IDC_COPY_TAG                    2353
+#define IDC_COPY_CID                    2354
 #define IDC_DOWNLOAD_TARGET             2500
 #define IDC_DOWNLOAD_TARGET_DIR         3000
 #define IDC_SELECT_WINDOW               3500

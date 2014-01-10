@@ -30,7 +30,7 @@
 #include "ThrottleManager.h"
 
 // [+] IRainman fix.
-#ifdef _DEBUG
+#ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES
 FastCriticalSection AdcSupports::g_debugCsUnknownAdcFeatures;
 boost::unordered_set<string> AdcSupports::g_debugUnknownAdcFeatures;
 
@@ -39,7 +39,7 @@ boost::unordered_set<string> NmdcSupports::g_debugUnknownNmdcConnection;
 
 FastCriticalSection NmdcSupports::g_debugCsUnknownNmdcTagParam;
 boost::unordered_set<string> NmdcSupports::g_debugUnknownNmdcTagParam;
-#endif
+#endif // FLYLINKDC_COLLECT_UNKNOWN_FEATURES
 // [~] IRainman fix.
 
 const string AdcSupports::CLIENT_PROTOCOL("ADC/1.0");
@@ -472,36 +472,35 @@ void AdcHub::handle(AdcCommand::MSG, AdcCommand& c) noexcept
 	if (c.getParameters().empty())
 		return;
 		
-	ChatMessage message(c.getParam(0), findUser(c.getFrom())); // [!] IRainman fix.
-	
-	if (!message.from)
+	unique_ptr<ChatMessage> message(new ChatMessage(c.getParam(0), findUser(c.getFrom())));
+	if (!message->from)
 		return;
 		
 	string temp;
 	
-	message.thirdPerson = c.hasFlag("ME", 1);
+	message->thirdPerson = c.hasFlag("ME", 1);
 	
 	if (c.getParam("TS", 1, temp))
-		message.timestamp = Util::toInt64(temp);
+		message->m_timestamp = Util::toInt64(temp);
 		
 	if (c.getParam("PM", 1, temp))  // add PM<group-cid> as well
 	{
-		message.to = findUser(c.getTo());
-		if (!message.to)
+		message->to = findUser(c.getTo());
+		if (!message->to)
 			return;
 			
-		message.replyTo = findUser(AdcCommand::toSID(temp));
-		if (!message.replyTo)
+		message->replyTo = findUser(AdcCommand::toSID(temp));
+		if (!message->replyTo)
 			return;
 			
-		if (allowPrivateMessagefromUser(message)) // [+] IRainman.
+		if (allowPrivateMessagefromUser(*message)) // [+] IRainman.
 		{
 			fire(ClientListener::Message(), this, message);
 		}
 	}
 	else
 	{
-		if (allowChatMessagefromUser(message)) // [+] IRainman.
+		if (allowChatMessagefromUser(*message)) // [+] IRainman.
 		{
 			fire(ClientListener::Message(), this, message);
 		}
@@ -792,7 +791,7 @@ void AdcHub::handle(AdcCommand::STA, AdcCommand& c) noexcept
 			return;
 		}
 	}
-	ChatMessage message(c.getParam(1), ou); // [!] IRainman fix.
+	unique_ptr<ChatMessage> message(new ChatMessage(c.getParam(1), ou));
 	fire(ClientListener::Message(), this, message);
 }
 
@@ -877,7 +876,7 @@ void AdcHub::handle(AdcCommand::GET, AdcCommand& c) noexcept
 			return;
 		}
 		
-		size_t n = ShareManager::getInstance()->getSharedFiles();
+		const size_t n = ShareManager::getInstance()->getSharedFiles();
 		
 		// When h >= 32, m can't go above 2^h anyway since it's stored in a size_t.
 		if (m > (static_cast<size_t>(5 * Util::roundUp((int64_t)(n * k / log(2.)), (int64_t)64))) || (h < 32 && m > static_cast<size_t>(1U << h)))
@@ -1104,7 +1103,7 @@ const vector<StringList>& AdcHub::getSearchExts()
 	/// @todo simplify this as searchExts[0] = { "mp3", "etc" } when VC++ supports initializer lists
 	
 	// these extensions *must* be sorted alphabetically!
-	
+	// TODO - перенести этот код на конфиг
 	{
 		StringList& l = xSearchExts[0];
 		l.push_back("ape");

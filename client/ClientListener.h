@@ -3,7 +3,7 @@
 
 #include "SearchQueue.h"
 
-struct ChatMessage;
+#include "ChatMessage.h"
 
 class ClientListener
 {
@@ -53,7 +53,7 @@ class ClientListener
 		virtual void on(Failed, const Client*, const string&) noexcept { }
 		virtual void on(GetPassword, const Client*) noexcept { }
 		virtual void on(HubUpdated, const Client*) noexcept { }
-		virtual void on(Message, const Client*, const ChatMessage&/* [-] IRainman fix, bool = false*/) noexcept { } // !SMT!-S
+		virtual void on(Message, const Client*, std::unique_ptr<ChatMessage>&) noexcept { }  // !SMT!-S
 		virtual void on(StatusMessage, const Client*, const string&, int = FLAG_NORMAL) noexcept { }
 		virtual void on(HubUserCommand, const Client*, int, int, const string&, const string&) noexcept { }
 		virtual void on(HubFull, const Client*) noexcept { }
@@ -64,7 +64,7 @@ class ClientListener
 		virtual void on(NmdcSearch, Client* aClient, const string& aSeeker, Search::SizeModes aSizeMode, int64_t aSize,
 		                Search::TypeModes aFileType, const string& aString, bool isPassive) noexcept { }
 		virtual void on(AdcSearch, const Client*, const AdcCommand&, const CID&) noexcept { }
-		virtual void on(CheatMessage, const Client*, const string&) noexcept { }
+		virtual void on(CheatMessage, const string&) noexcept { }
 		virtual void on(HubTopic, const Client*, const string&) noexcept { }
 		//virtual void on(UserReport, const Client*, const Identity&) noexcept { }
 		virtual void on(UserReport, const Client*, const string&) noexcept { } // [!] IRainman fix

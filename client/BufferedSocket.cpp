@@ -33,23 +33,19 @@
 // Polling is used for tasks...should be fixed...
 static const uint64_t POLL_TIMEOUT = 250;
 
-#pragma warning(push)
-#pragma warning(disable:4245)
 BufferedSocket::BufferedSocket(char aSeparator) :
-	m_separator(aSeparator), mode(MODE_LINE), dataBytes(0), rollback(0), m_state(STARTING),
+	m_separator(aSeparator), m_mode(MODE_LINE), m_dataBytes(0), m_rollback(0), m_state(STARTING),
 // [-] brain-ripper
 // should be rewritten using ThrottleManager
 //sleep(0), // !SMT!-S
-	m_disconnecting(false),
-	m_threadId(-1), // [+] IRainman fix.
+	m_is_disconnecting(false),
+	m_threadId(-1),
 	m_myInfoCount(0),
 	m_myInfoStop(false)
 {
 	start(64);
-	
 	Thread::safeInc(g_sockets); // [!] IRainman opt.
 }
-#pragma warning(pop)
 
 volatile long BufferedSocket::g_sockets = 0; // [!] IRainman opt.
 
@@ -60,13 +56,13 @@ BufferedSocket::~BufferedSocket()
 
 void BufferedSocket::setMode(Modes aMode, size_t aRollback)
 {
-	if (mode == aMode)
+	if (m_mode == aMode)
 	{
-		dcdebug("WARNING: Re-entering mode %d\n", mode);
+		dcdebug("WARNING: Re-entering mode %d\n", m_mode);
 		return;
 	}
 	
-	if (mode == MODE_ZPIPE && filterIn)
+	if (m_mode == MODE_ZPIPE && filterIn)
 	{
 		// delete the filter when going out of zpipe mode.
 		filterIn.reset();
@@ -75,7 +71,7 @@ void BufferedSocket::setMode(Modes aMode, size_t aRollback)
 	switch (aMode)
 	{
 		case MODE_LINE:
-			rollback = aRollback;
+			m_rollback = aRollback;
 			break;
 		case MODE_ZPIPE:
 			filterIn = std::unique_ptr<UnZFilter>(new UnZFilter); // [IntelC++ 2012 beta2] warning #734: "std::unique_ptr<_Ty, _Dx>::unique_ptr(const std::unique_ptr<_Ty, _Dx>::_Myt &) [with _Ty=UnZFilter, _Dx=std::default_delete<UnZFilter>]" (declared at line 2347 of "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\memory"), required for copy that was eliminated, is inaccessible
@@ -83,7 +79,7 @@ void BufferedSocket::setMode(Modes aMode, size_t aRollback)
 		case MODE_DATA:
 			break;
 	}
-	mode = aMode;
+	m_mode = aMode;
 }
 
 void BufferedSocket::setSocket(std::unique_ptr<Socket>& s) // [!] IRainman fix: add link
@@ -271,7 +267,7 @@ void BufferedSocket::threadRead()
 	if (m_state != RUNNING)
 		return;
 		
-	int left = (mode == MODE_DATA) ? ThrottleManager::getInstance()->read(sock.get(), &inbuf[0], (int)inbuf.size()) : sock->read(&inbuf[0], (int)inbuf.size());
+	int left = (m_mode == MODE_DATA) ? ThrottleManager::getInstance()->read(sock.get(), &inbuf[0], (int)inbuf.size()) : sock->read(&inbuf[0], (int)inbuf.size());
 	if (left == -1)
 	{
 		// EWOULDBLOCK, no data received...
@@ -290,7 +286,7 @@ void BufferedSocket::threadRead()
 	
 	while (left > 0)
 	{
-		switch (mode)
+		switch (m_mode)
 		{
 			case MODE_ZPIPE:
 			{
@@ -311,7 +307,7 @@ void BufferedSocket::threadRead()
 					if (!ret)
 					{
 						bufpos = total - left;
-						setMode(MODE_LINE, rollback);
+						setMode(MODE_LINE, m_rollback);
 						break;
 					}
 				}
@@ -364,7 +360,7 @@ void BufferedSocket::threadRead()
 					if (pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
 					{
 						const bool l_is_MyINFO = m_myInfoStop == false ? l.compare(0, 7, "$MyINFO", 7) == 0 : false;
-						const string l_line_item = l_is_MyINFO ? l.substr(8, pos) : l.substr(0, pos);
+						const string l_line_item = l_is_MyINFO ? l.substr(8, pos - 8) : l.substr(0, pos);
 						if (m_myInfoStop == false)
 						{
 							if (l_is_MyINFO)
@@ -376,6 +372,22 @@ void BufferedSocket::threadRead()
 							{
 								if (!l_all_myInfo.empty())
 								{
+#ifdef _DEBUG
+// #define FLYLINKDC_EMULATOR_4000_USERS
+#ifdef FLYLINKDC_EMULATOR_4000_USERS
+									static bool g_is_test = false;
+									if (!g_is_test)
+									{
+										g_is_test = true;
+										for (int i = 0; i < 4000; ++i)
+										{
+											char bbb[200];
+											snprintf(bbb, sizeof(bbb), "$ALL Guest%d <<Peers V:(r622),M:P,H:1/0/0,S:15,C:Кемерово>$ $%c$$3171624055$", i, 5);
+											l_all_myInfo.push_back(bbb);
+										}
+									}
+#endif // FLYLINKDC_EMULATOR_4000_USERS
+#endif
 									fire(BufferedSocketListener::MyInfoArray(), l_all_myInfo); // [+]PPA
 									l_all_myInfo.clear();
 								}
@@ -395,7 +407,7 @@ void BufferedSocket::threadRead()
 						left = l.length();
 					}
 					//dcassert(mode == MODE_LINE);
-					if (mode != MODE_LINE)
+					if (m_mode != MODE_LINE)
 					{
 						// dcassert(mode == MODE_LINE);
 						// TOOD ? m_myInfoStop = true;
@@ -419,16 +431,16 @@ void BufferedSocket::threadRead()
 			case MODE_DATA:
 				while (left > 0)
 				{
-					if (dataBytes == -1)
+					if (m_dataBytes == -1)
 					{
 						fire(BufferedSocketListener::Data(), &inbuf[bufpos], left);
-						bufpos += (left - rollback);
-						left = rollback;
-						rollback = 0;
+						bufpos += (left - m_rollback);
+						left = m_rollback;
+						m_rollback = 0;
 					}
 					else
 					{
-						const int high = (int)min(dataBytes, (int64_t)left);
+						const int high = (int)min(m_dataBytes, (int64_t)left);
 						dcassert(high != 0);
 						if (high != 0) // [+] IRainman fix.
 						{
@@ -436,11 +448,11 @@ void BufferedSocket::threadRead()
 							bufpos += high;
 							left -= high;
 							
-							dataBytes -= high;
+							m_dataBytes -= high;
 						}
-						if (dataBytes == 0)
+						if (m_dataBytes == 0)
 						{
-							mode = MODE_LINE;
+							m_mode = MODE_LINE;
 							fire(BufferedSocketListener::ModeChange());
 							break; // [DC++] break loop, in case setDataMode is called with less than read buffer size
 						}
@@ -449,7 +461,7 @@ void BufferedSocket::threadRead()
 				break;
 		}
 	}
-	if (mode == MODE_LINE && line.size() > static_cast<size_t>(SETTING(MAX_COMMAND_LENGTH)))
+	if (m_mode == MODE_LINE && line.size() > static_cast<size_t>(SETTING(MAX_COMMAND_LENGTH)))
 	{
 		throw SocketException(STRING(COMMAND_TOO_LONG));
 	}
@@ -817,7 +829,7 @@ void BufferedSocket::fail(const string& aError)
 
 void BufferedSocket::shutdown()
 {
-	m_disconnecting = true;
+	m_is_disconnecting = true;
 	// [!] IRainman fix: turning off the socket in the asynchronous mode is prohibited because
 	// the listeners of its events will have been destroyed by the time of processing the shutdown event.
 	{

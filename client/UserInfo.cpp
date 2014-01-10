@@ -169,12 +169,14 @@ tstring UserInfo::getText(int p_col) const
 		{
 			return Util::toStringW(getIdentity().getSlots());
 		}
-#ifdef IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB
 		case COLUMN_CID:
 		{
-			return Text::toT("CID:" + getIdentity().getUser()->getCID().toBase32());
+			return Text::toT(getIdentity().getCID());
 		}
-#endif
+		case COLUMN_TAG:
+		{
+			return Text::toT(getIdentity().getTag());
+		}
 		default:
 		{
 			dcassert(0);

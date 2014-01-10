@@ -45,42 +45,10 @@ class ClientManager : public Speaker<ClientManagerListener>,
 			bool m_is_op;
 		};
 		typedef std::vector<HubInfo> HubInfoArray;
-		static void getConnectedHubInfo(HubInfoArray& p_hub_info)
-		{
-			SharedLock l(g_csClients);
-			for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
-			{
-				if (i->second->isConnected())
-				{
-					HubInfo l_info;
-					l_info.m_hub_url  = i->second->getHubUrl();
-					l_info.m_hub_name = i->second->getHubName();
-					l_info.m_is_op = i->second->getMyIdentity().isOp();
-					p_hub_info.push_back(l_info);
-				}
-			}
-		}
-		static void getConnectedHubUrls(StringList& p_hub_url)
-		{
-			SharedLock l(g_csClients);
-			for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
-			{
-				if (i->second->isConnected())
-					p_hub_url.push_back(i->second->getHubUrl());
-			}
-		}
+		static void getConnectedHubInfo(HubInfoArray& p_hub_info);
+		static void getConnectedHubUrls(StringList& p_hub_url);
 #endif // IRAINMAN_NON_COPYABLE_CLIENTS_IN_CLIENT_MANAGER
-		static size_t getTotalUsers() // [+] IRainman.
-		{
-			size_t users = 0;
-			SharedLock l(g_csClients);
-			for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
-			{
-				users += i->second->getUserCount();
-			}
-			return users;
-		}
-		
+		static size_t getTotalUsers(); // [+] IRainman.
 		static StringList getHubs(const CID& cid, const string& hintUrl, bool priv);
 		static StringList getHubNames(const CID& cid, const string& hintUrl, bool priv);
 		static StringList getNicks(const CID& cid, const string& hintUrl, bool priv);
@@ -103,14 +71,14 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		
 		static bool isConnected(const string& aUrl)
 		{
-			SharedLock l(g_csClients);
+			webrtc::ReadLockScoped l(*g_csClients);
 			return g_clients.find(aUrl) != g_clients.end();
 		}
 		Client* findClient(const string& p_Url) const;
 //[+] FlylinkDC
 		static bool isOnline(const UserPtr& aUser)
 		{
-			SharedLock l(g_csOnlineUsers);
+			webrtc::ReadLockScoped l(*g_csOnlineUsers);
 			return g_onlineUsers.find(aUser->getCID()) != g_onlineUsers.end();
 		}
 //[~] FlylinkDC
@@ -181,23 +149,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		const string& getMyNick(const string& hubUrl) const; // [!] IRainman opt.
 		
 		// [+] brain-ripper
-		static bool getUserParams(const UserPtr& user, uint64_t& p_bytesShared, int& p_slots, int& p_limit, std::string& p_ip)
-		{
-			SharedLock l(g_csOnlineUsers);
-			const OnlineUser* u = getOnlineUserL(user);
-			if (u)
-			{
-				// [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'u->getIdentity()' expression repeatedly. clientmanager.h 160
-				const auto& i = u->getIdentity();
-				p_bytesShared = i.getBytesShared();
-				p_slots = i.getSlots();
-				p_limit = i.getLimit();
-				p_ip = i.getIp();
-				
-				return true;
-			}
-			return false;
-		}
+		static bool getUserParams(const UserPtr& user, uint64_t& p_bytesShared, int& p_slots, int& p_limit, std::string& p_ip);
 		// [+] IRainman fix.
 		struct UserParams
 		{
@@ -220,11 +172,11 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		public:\
 			LockInstance##CS() \
 			{\
-				ClientManager::##scope##_cs##CS.lockShared();\
+				ClientManager::##scope##_cs##CS->AcquireLockShared();\
 			}\
 			~LockInstance##CS()\
 			{\
-				ClientManager::##scope##_cs##CS.unlockShared();\
+				ClientManager::##scope##_cs##CS->ReleaseLockShared();\
 			}\
 			ClientManager* operator->()\
 			{\
@@ -238,27 +190,11 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		// [~] IRainman opt.
 #undef CREATE_LOCK_INSTANCE_CM
 		
-		static void setIPUser(const UserPtr& p_user, const string& p_ip, const uint16_t p_udpPort = 0)
-		{
-			// [!] TODO FlylinkDC++ Team - Зачем этот метод?
-			// Нужен! r8622
-			// L: Данный метод предназначен для обновления IP всем юзерам с этим CID.
-			if (p_ip.empty())
-				return;
-				
-			SharedLock l(g_csOnlineUsers);
-			const OnlinePairC p = g_onlineUsers.equal_range(p_user->getCID());
-			for (auto i = p.first; i != p.second; ++i)
-			{
-				i->second->getIdentity().setIp(p_ip);
-				if (p_udpPort != 0)
-					i->second->getIdentity().setUdpPort(p_udpPort);
-			}
-		}
+		static void setIPUser(const UserPtr& p_user, const string& p_ip, const uint16_t p_udpPort = 0);
 		
 		static UserPtr getUserByIp(const string &ip)
 		{
-			SharedLock l(g_csOnlineUsers);
+			webrtc::ReadLockScoped l(*g_csOnlineUsers);
 			for (auto i = g_onlineUsers.cbegin(); i != g_onlineUsers.cend(); ++i)
 				if (i->second->getIdentity().getIp() == ip)
 					return i->second->getUser();
@@ -267,7 +203,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 #ifndef IRAINMAN_IDENTITY_IS_NON_COPYABLE
 		static Identity getIdentity(const UserPtr& user)
 		{
-			SharedLock l(g_csOnlineUsers);
+			webrtc::ReadLockScoped l(*g_csOnlineUsers);
 			const OnlineUser* ou = getOnlineUserL(user);
 			if (ou)
 				return  ou->getIdentity(); // https://www.box.net/shared/1w3v80olr2oro7s1gqt4
@@ -293,7 +229,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		{
 		    int64_t l_share = 0;
 		    {
-		        SharedLock l(g_csOnlineUsers);
+		        webrtc::ReadLockScoped l(*g_csOnlineUsers);
 		        OnlineIterC i = g_onlineUsers.find(p->getCID());
 		        if (i != g_onlineUsers.end())
 		            l_share = i->second->getIdentity().getBytesShared();
@@ -345,6 +281,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		}
 	private:
 		void createMe(const string& cid, const string& nick);
+		static void cheatMessage(Client* p_client, const string& p_report);
 	public:
 		// [~] IRainman fix.
 		
@@ -402,12 +339,10 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		void connectionTimeout(const UserPtr& p);
 		void checkCheating(const UserPtr& p, DirectoryListing* dl);
 		void setClientStatus(const UserPtr& p, const string& aCheatString, const int aRawCommand, bool aBadClient);
-		void setPkLock(const UserPtr& p
 #ifdef IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
-		               , const string& aPk, const string& aLock
+		void setPkLock(const UserPtr& p, const string& aPk, const string& aLock);
 #endif
-		              );
-		              
+		
 // [!] IRainamn fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
 		void setSupports(const UserPtr& p, StringList& aSupports, const uint8_t knownUcSupports);
 #ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
@@ -430,11 +365,11 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static void clear()
 		{
 			{
-				UniqueLock l(g_csOnlineUsers);
+				webrtc::WriteLockScoped l(*g_csOnlineUsers);
 				g_onlineUsers.clear();
 			}
 			{
-				UniqueLock l(g_csUsers);
+				webrtc::WriteLockScoped l(*g_csUsers);
 #ifdef IRAINMAN_USE_NICKS_IN_CM
 				g_nicks.clear();
 #endif
@@ -451,7 +386,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		//mutable CriticalSection cs; [-] IRainman opt.
 		// =================================================
 		static Client::List g_clients;
-		static SharedCriticalSection g_csClients; // [+] IRainman opt.
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csClients; // [+] IRainman opt.
 		// =================================================
 #ifdef IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER
 # ifdef IRAINMAN_USE_NICKS_IN_CM
@@ -468,11 +403,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 #ifdef IRAINMAN_USE_NICKS_IN_CM
 		static NickMap g_nicks;
 #endif
-#ifdef IRAINMAN_USE_SEPARATE_CS_IN_CLIENT_MANAGER
-		static SharedCriticalSection g_csUsers; // [+] IRainman opt.
-#else
-		static SharedCriticalSection& g_csUsers; // [+] IRainman opt.
-#endif
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csUsers; // [+] IRainman opt.
 		// =================================================
 #ifdef IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER
 		typedef std::unordered_multimap<const CID*, OnlineUser*> OnlineMap; // TODO: not allow to replace UserPtr in Identity.
@@ -485,11 +416,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		typedef pair<OnlineIterC, OnlineIterC> OnlinePairC;
 		
 		static OnlineMap g_onlineUsers;
-#ifdef IRAINMAN_USE_SEPARATE_CS_IN_CLIENT_MANAGER
-		static SharedCriticalSection g_csOnlineUsers; // [+] IRainman opt.
-#else
-		static SharedCriticalSection& g_csOnlineUsers; // [+] IRainman opt.
-#endif
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csOnlineUsers; // [+] IRainman opt.
 		// =================================================
 		static UserPtr g_me; // [!] IRainman fix: this is static object.
 		static UserPtr g_uflylinkdc; // [+] IRainman fix.

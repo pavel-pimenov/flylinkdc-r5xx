@@ -231,7 +231,7 @@ bool Aac_f_master_Compute(int8u &num_env_bands_Master, int8u* f_Master, sbr_hand
 
 //---------------------------------------------------------------------------
 // Derived frequency border tables
-bool Aac_bands_Compute(int8u &num_env_bands_Master, int8u* f_Master, sbr_handler *sbr, int8u  k2)
+bool Aac_bands_Compute(const int8u &num_env_bands_Master, int8u* f_Master, sbr_handler *sbr, int8u  k2)
 {
     sbr->num_env_bands[1]=num_env_bands_Master-sbr->bs_xover_band;
     sbr->num_env_bands[0]=(sbr->num_env_bands[1]>>1)+(sbr->num_env_bands[1]-((sbr->num_env_bands[1]>>1)<<1));
@@ -294,7 +294,7 @@ bool Aac_Sbr_Compute(sbr_handler *sbr, int8u extension_sampling_frequency_index)
 }
 
 //---------------------------------------------------------------------------
-int16u File_Aac::sbr_huff_dec(sbr_huffman Table, const char* Name)
+int16u File_Aac::sbr_huff_dec(const sbr_huffman& Table, const char* Name)
 {
     int8u bit;
     int16s index = 0;

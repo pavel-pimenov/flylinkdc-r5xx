@@ -49,7 +49,6 @@ class AboutDlgIndex : public CDialogImpl<AboutDlgIndex>
 			SetDlgItemText(IDC_COMPT, (TSTRING(COMPILED_ON) + _T(' ') + Util::getCompileDate() + _T(' ') + Util::getCompileTime(_T("%H:%M:%S"))
 			                           + _T(",  Visual C++ version: ") + Text::toT(l_full_version)).c_str());
 			SetWindowText(CTSTRING(MENU_ABOUT));
-			
 			m_ctrTab.Attach(GetDlgItem(IDC_ABOUTTAB));
 			TCITEM tcItem;
 			tcItem.mask = TCIF_TEXT | TCIF_PARAM;

@@ -183,24 +183,19 @@ class FilteredOutputStream : public OutputStream
 				more = filter(wb, m, &buf[0], n);
 				wb += m;
 				len -= m;
-				// [!] IRainman fix: This test results in the elimination error generating the exception.
-				// [-] if (n > 0) //[+]PPA
+				if (n > 0) // [+]
 				{
-					if (n > 0) // [+]
-					{
-						written += f->write(&buf[0], n);
-					}
-					
-					if (!more)
-					{
-						if (len > 0)
-						{
-							throw Exception("Garbage data after end of stream");
-						}
-						return written;
-					}
+					written += f->write(&buf[0], n);
 				}
-				// [~] IRainman fix.
+				
+				if (!more)
+				{
+					if (len > 0)
+					{
+						throw Exception("Garbage data after end of stream");
+					}
+					return written;
+				}
 			}
 			return written;
 		}

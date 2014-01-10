@@ -660,11 +660,11 @@ LRESULT BaseChatFrame::onMultilineChatInputButton(WORD /*wNotifyCode*/, WORD /*w
 
 void BaseChatFrame::appendChatCtrlItems(OMenu& p_menu, const Client* client)
 {
-	if (!ChatCtrl::sSelectedIP.empty())
+	if (!ChatCtrl::g_sSelectedIP.empty())
 	{
-		p_menu.InsertSeparatorFirst(ChatCtrl::sSelectedIP);
+		p_menu.InsertSeparatorFirst(ChatCtrl::g_sSelectedIP);
 #ifdef IRAINMAN_ENABLE_WHOIS
-		p_menu.AppendMenu(MF_STRING, IDC_WHOIS_IP, (TSTRING(WHO_IS) + ChatCtrl::sSelectedIP).c_str());
+		p_menu.AppendMenu(MF_STRING, IDC_WHOIS_IP, (TSTRING(WHO_IS) + ChatCtrl::g_sSelectedIP).c_str());
 #endif
 		if (client) // add menus, necessary only for windows hub here.
 		{
@@ -672,9 +672,9 @@ void BaseChatFrame::appendChatCtrlItems(OMenu& p_menu, const Client* client)
 			{
 				p_menu.AppendMenu(MF_SEPARATOR);
 				
-				p_menu.AppendMenu(MF_STRING, IDC_BAN_IP, (_T("!banip ") + ChatCtrl::sSelectedIP).c_str());
+				p_menu.AppendMenu(MF_STRING, IDC_BAN_IP, (_T("!banip ") + ChatCtrl::g_sSelectedIP).c_str());
 				p_menu.SetMenuDefaultItem(IDC_BAN_IP);
-				p_menu.AppendMenu(MF_STRING, IDC_UNBAN_IP, (_T("!unban ") + ChatCtrl::sSelectedIP).c_str());
+				p_menu.AppendMenu(MF_STRING, IDC_UNBAN_IP, (_T("!unban ") + ChatCtrl::g_sSelectedIP).c_str());
 				
 				p_menu.AppendMenu(MF_SEPARATOR);
 			}
@@ -689,13 +689,13 @@ void BaseChatFrame::appendChatCtrlItems(OMenu& p_menu, const Client* client)
 	
 	p_menu.AppendMenu(MF_STRING, ID_EDIT_COPY, CTSTRING(COPY));
 	p_menu.AppendMenu(MF_STRING, IDC_COPY_ACTUAL_LINE,  CTSTRING(COPY_LINE));
-	if (!ChatCtrl::sSelectedURL.empty())
+	if (!ChatCtrl::g_sSelectedURL.empty())
 	{
-		p_menu.AppendMenu(MF_STRING, IDC_COPY_URL, Util::isMagnetLink(ChatCtrl::sSelectedURL) ? CTSTRING(COPY_MAGNET_LINK) : CTSTRING(COPY_URL));
+		p_menu.AppendMenu(MF_STRING, IDC_COPY_URL, Util::isMagnetLink(ChatCtrl::g_sSelectedURL) ? CTSTRING(COPY_MAGNET_LINK) : CTSTRING(COPY_URL));
 	}
 	
 	
-	if (!ChatCtrl::sSelectedText.empty())   // [+] SCALOlaz: add Search for Selected Text in Chat
+	if (!ChatCtrl::g_sSelectedText.empty())   // [+] SCALOlaz: add Search for Selected Text in Chat
 	{
 		p_menu.AppendMenu(MF_SEPARATOR);
 		appendInternetSearchItems(p_menu); // [!] IRainman fix.

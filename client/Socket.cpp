@@ -189,9 +189,7 @@ void Socket::connect(const string& aAddr, uint16_t aPort)
 	setPort(aPort);
 }
 
-namespace
-{
-inline uint64_t timeLeft(uint64_t start, uint64_t timeout)
+static uint64_t timeLeft(uint64_t start, uint64_t timeout)
 {
 	if (timeout == 0)
 	{
@@ -201,7 +199,6 @@ inline uint64_t timeLeft(uint64_t start, uint64_t timeout)
 	if (start + timeout < now)
 		throw SocketException(STRING(CONNECTION_TIMEOUT));
 	return start + timeout - now;
-}
 }
 
 void Socket::socksConnect(const string& aAddr, uint16_t aPort, uint64_t timeout)

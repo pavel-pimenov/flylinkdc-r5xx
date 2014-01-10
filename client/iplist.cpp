@@ -269,7 +269,14 @@ void IPList::addLine(std::string& Line, CFlyLog& p_log)
 	}
 	else
 	{
-		p_log.step(STRING(ERROR_PARSE) + ": [" + Line + "] line.empty() || line[0] == '#'" + STRING(SKIPPED));
+		if (Line.empty())
+		{
+			p_log.step(STRING(EMPTY_LINE_SKIPED));
+		}
+		else if (Line[0] == '#')
+		{
+			p_log.step(STRING(COMMENTED_LINE) + ": [" + Line + "] " + STRING(SKIPPED));
+		}
 	}
 }
 

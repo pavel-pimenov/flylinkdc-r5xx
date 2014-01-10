@@ -125,7 +125,8 @@ void CompatibilityManager::detectOsSupports()
 	    !CURRENT_VER_SP(6, 0, 2) && // Windows Vista SP2 & Windows Server 2008 SP2 // http://ru.wikipedia.org/wiki/Windows_Vista http://en.wikipedia.org/wiki/Windows_Server_2008
 #endif
 	    !CURRENT_VER_SP(6, 1, 1) && // Windows 7 SP1 & Windows Server 2008 R2 SP1  http://en.wikipedia.org/wiki/Windows_7 http://en.wikipedia.org/wiki/Windows_Server_2008_R2
-	    !CURRENT_VER_SP(6, 2, 0))   // Windows 8 & Windows Server 2012 http://en.wikipedia.org/wiki/Windows_8 http://ru.wikipedia.org/wiki/Windows_Server_2012
+	    !CURRENT_VER_SP(6, 2, 0) &&   // Windows 8 & Windows Server 2012 http://en.wikipedia.org/wiki/Windows_8 http://ru.wikipedia.org/wiki/Windows_Server_2012
+	    !CURRENT_VER_SP(6, 3, 0))   // Windows 8.1 & Windows Server 2012 R2 http://en.wikipedia.org/wiki/Windows_8.1 http://ru.wikipedia.org/wiki/Windows_Server_2012
 	{
 #ifdef FLYLINKDC_USE_CHECK_OLD_OS
 		set(RUNNING_AN_UNSUPPORTED_OS);
@@ -219,6 +220,10 @@ string CompatibilityManager::getIncompatibleSoftwareMessage()
 string CompatibilityManager::getFormatedOsVersion()
 {
 	string l_OS = Util::toString(getOsMajor()) + '.' + Util::toString(getOsMinor());
+	if (getOsType() == VER_NT_SERVER)
+	{
+		l_OS += " Server";
+	}
 	if (getOsSpMajor() > 0)
 	{
 		l_OS += " SP" + Util::toString(getOsSpMajor());
@@ -230,6 +235,224 @@ string CompatibilityManager::getFormatedOsVersion()
 	if (runningIsWow64())
 	{
 		l_OS += " (WOW64)";
+	}
+	return l_OS;
+}
+
+string CompatibilityManager::getProcArchString()
+{
+	string l_ProcArch;
+	//int l_ProcLevel = g_sysInfo.wProcessorLevel;
+	switch (g_sysInfo.wProcessorArchitecture)
+	{
+		case PROCESSOR_ARCHITECTURE_AMD64:
+			l_ProcArch = " x86-x64";
+			break;
+		case PROCESSOR_ARCHITECTURE_INTEL:
+			l_ProcArch = " x86";
+			break;
+		case PROCESSOR_ARCHITECTURE_IA64:
+			l_ProcArch = " Intel Itanium-based";
+			break;
+		default: // PROCESSOR_ARCHITECTURE_UNKNOWN
+			l_ProcArch = " Unknown";
+			break;
+	};
+	return l_ProcArch;
+}
+string CompatibilityManager::getWindowsVersionName()
+{
+	string l_OS = "Microsoft Windows ";
+	DWORD dwType;
+	
+// Check for unsupported OS
+//	if (VER_PLATFORM_WIN32_NT != g_osvi.dwPlatformId || getOsMajor() <= 4)
+//	{
+//		return false;
+//	}
+
+	// Test for the specific product.
+	if (getOsMajor() == 6)
+	{
+		if (getOsMinor() == 0)
+		{
+			if (getOsType() == VER_NT_WORKSTATION)
+				l_OS += "Vista ";
+			else
+				l_OS += "Server 2008 ";
+		}
+		if (getOsMinor() == 1)
+		{
+			if (getOsType() == VER_NT_WORKSTATION)
+				l_OS += "7 ";
+			else
+				l_OS += "Server 2008 R2 ";
+		}
+		if (getOsMinor() == 2)
+		{
+			if (getOsType() == VER_NT_WORKSTATION)
+				l_OS += "8 ";
+			else
+				l_OS += "Server 2012 ";
+		}
+		if (getOsMinor() == 3)
+		{
+			if (getOsType() == VER_NT_WORKSTATION)
+				l_OS += "8.1 ";
+			else
+				l_OS += "Server 2012 R2";
+		}
+		typedef BOOL(WINAPI * PGPI)(DWORD, DWORD, DWORD, DWORD, PDWORD);
+		PGPI pGPI = (PGPI)GetProcAddress(GetModuleHandle(TEXT("kernel32.dll")), "GetProductInfo");
+		if (pGPI)
+		{
+			pGPI(getOsMajor(), getOsMinor(), 0, 0, &dwType);
+			switch (dwType)
+			{
+				case PRODUCT_ULTIMATE:
+					l_OS += "Ultimate Edition";
+					break;
+				case PRODUCT_PROFESSIONAL:
+					l_OS += "Professional";
+					break;
+				case PRODUCT_HOME_PREMIUM:
+					l_OS += "Home Premium Edition";
+					break;
+				case PRODUCT_HOME_BASIC:
+					l_OS += "Home Basic Edition";
+					break;
+				case PRODUCT_ENTERPRISE:
+					l_OS += "Enterprise Edition";
+					break;
+				case PRODUCT_BUSINESS:
+					l_OS += "Business Edition";
+					break;
+				case PRODUCT_STARTER:
+					l_OS += "Starter Edition";
+					break;
+				case PRODUCT_CLUSTER_SERVER:
+					l_OS += "Cluster Server Edition";
+					break;
+				case PRODUCT_DATACENTER_SERVER:
+					l_OS += "Datacenter Edition";
+					break;
+				case PRODUCT_DATACENTER_SERVER_CORE:
+					l_OS += "Datacenter Edition (core installation)";
+					break;
+				case PRODUCT_ENTERPRISE_SERVER:
+					l_OS += "Enterprise Edition";
+					break;
+				case PRODUCT_ENTERPRISE_SERVER_CORE:
+					l_OS += "Enterprise Edition (core installation)";
+					break;
+				case PRODUCT_ENTERPRISE_SERVER_IA64:
+					l_OS += "Enterprise Edition for Itanium-based Systems";
+					break;
+				case PRODUCT_SMALLBUSINESS_SERVER:
+					l_OS += "Small Business Server";
+					break;
+				case PRODUCT_SMALLBUSINESS_SERVER_PREMIUM:
+					l_OS += "Small Business Server Premium Edition";
+					break;
+				case PRODUCT_STANDARD_SERVER:
+					l_OS += "Standard Edition";
+					break;
+				case PRODUCT_STANDARD_SERVER_CORE:
+					l_OS += "Standard Edition (core installation)";
+					break;
+				case PRODUCT_WEB_SERVER:
+					l_OS += "Web Server Edition";
+					break;
+			}
+		}
+	}
+	if (getOsMajor() == 5)
+	{
+		if (getOsMinor() == 2)
+		{
+			if (GetSystemMetrics(SM_SERVERR2))
+				l_OS += "Server 2003 R2, ";
+			else if (getOsSuiteMask() & VER_SUITE_STORAGE_SERVER)
+				l_OS += "Storage Server 2003";
+			else if (getOsSuiteMask() & VER_SUITE_WH_SERVER)
+				l_OS += "Home Server";
+			else if (getOsType() == VER_NT_WORKSTATION && getProcArch() == PROCESSOR_ARCHITECTURE_AMD64)
+			{
+				l_OS += "XP Professional x64 Edition";
+			}
+			else
+				l_OS += "Server 2003, ";  // Test for the server type.
+			if (getOsType() != VER_NT_WORKSTATION)
+			{
+				if (getProcArch() == PROCESSOR_ARCHITECTURE_IA64)
+				{
+					if (getOsSuiteMask() & VER_SUITE_DATACENTER)
+						l_OS += "Datacenter Edition for Itanium-based Systems";
+					else if (getOsSuiteMask() & VER_SUITE_ENTERPRISE)
+						l_OS += "Enterprise Edition for Itanium-based Systems";
+				}
+				else if (getProcArch() == PROCESSOR_ARCHITECTURE_AMD64)
+				{
+					if (getOsSuiteMask() & VER_SUITE_DATACENTER)
+						l_OS += "Datacenter x64 Edition";
+					else if (getOsSuiteMask() & VER_SUITE_ENTERPRISE)
+						l_OS += "Enterprise x64 Edition";
+					else
+						l_OS += "Standard x64 Edition";
+				}
+				else
+				{
+					if (getOsSuiteMask() & VER_SUITE_COMPUTE_SERVER)
+						l_OS += "Compute Cluster Edition";
+					else if (getOsSuiteMask() & VER_SUITE_DATACENTER)
+						l_OS += "Datacenter Edition";
+					else if (getOsSuiteMask() & VER_SUITE_ENTERPRISE)
+						l_OS += "Enterprise Edition";
+					else if (getOsSuiteMask() & VER_SUITE_BLADE)
+						l_OS += "Web Edition";
+					else
+						l_OS += "Standard Edition";
+				}
+			}
+		}
+		if (getOsMinor() == 1)
+		{
+			l_OS += "XP ";
+			if (getOsSuiteMask() & VER_SUITE_PERSONAL)
+				l_OS += "Home Edition";
+			else
+				l_OS += "Professional";
+		}
+		if (getOsMinor() == 0)
+		{
+			l_OS += "2000 ";
+			if (getOsType() == VER_NT_WORKSTATION)
+			{
+				l_OS += "Professional";
+			}
+			else
+			{
+				if (getOsSuiteMask() & VER_SUITE_DATACENTER)
+					l_OS += "Datacenter Server";
+				else if (getOsSuiteMask() & VER_SUITE_ENTERPRISE)
+					l_OS += "Advanced Server";
+				else
+					l_OS += "Server";
+			}
+		}
+	}
+	// Include service pack (if any) and build number.
+	if (wcslen(g_osvi.szCSDVersion) > 0)
+	{
+		l_OS += ' ' + Text::fromT(g_osvi.szCSDVersion);
+	}
+	/*  l_OS = l_OS + " (build " + g_osvi.dwBuildNumber + ")";*/
+	if (g_osvi.dwMajorVersion >= 6)
+	{
+		if ((getProcArch() == PROCESSOR_ARCHITECTURE_AMD64) || runningIsWow64())
+			l_OS += ", 64-bit";
+		else if (getProcArch() == PROCESSOR_ARCHITECTURE_INTEL)
+			l_OS += ", 32-bit";
 	}
 	return l_OS;
 }
@@ -246,24 +469,7 @@ void CompatibilityManager::generateSystemInfoForApp()
 	    + "\tPage size: " + Util::toString(getPageSize()) + " Bytes.\r\n" +
 #endif
 	    + "\tProcessor type: ";
-	    
-	switch (g_sysInfo.wProcessorArchitecture)
-	{
-		case PROCESSOR_ARCHITECTURE_AMD64:
-			g_startupInfo += "x86-x64";
-			break;
-		case PROCESSOR_ARCHITECTURE_INTEL:
-			g_startupInfo += "x86";
-			break;
-			/*
-			case PROCESSOR_ARCHITECTURE_IA64:
-			m_StartupInfo += "Intel Itanium-based";
-			break;
-			*/
-		default: // PROCESSOR_ARCHITECTURE_UNKNOWN
-			g_startupInfo += "Unknown";
-			break;
-	};
+	g_startupInfo += getProcArchString();
 	g_startupInfo += ".\r\n";
 	
 	g_startupInfo += generateGlobalMemoryStatusMessage();
@@ -273,14 +479,15 @@ void CompatibilityManager::generateSystemInfoForApp()
 #ifndef _WIN64
 	if (runningIsWow64())
 	{
-		g_startupInfo += "Windows WOW64";
+		g_startupInfo += "Windows WOW64 ";
 		g_startupInfo += "\r\n\r\nFor maximal performance needs to update your FlylinkDC to x64 version!";
 	}
 	else
 #endif
-		g_startupInfo += "Windows native";
+		g_startupInfo += "Windows native ";
 		
-	g_startupInfo += getFormatedOsVersion();
+	g_startupInfo += "\r\n\r\nOS: ";
+	g_startupInfo += getWindowsVersionName();   //getFormatedOsVersion();
 	
 #ifdef FLYLINKDC_USE_CHECK_OLD_OS
 	if (runningAnOldOS())
@@ -309,13 +516,9 @@ bool CompatibilityManager::getFromSystemIsAppRunningIsWow64()
 	if (kernel32)
 	{
 		typedef BOOL (WINAPI * LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
-		
-		LPFN_ISWOW64PROCESS fnIsWow64Process;
-		
-		fnIsWow64Process = (LPFN_ISWOW64PROCESS) GetProcAddress(kernel32, "IsWow64Process");
-		
+		LPFN_ISWOW64PROCESS fnIsWow64Process = (LPFN_ISWOW64PROCESS) GetProcAddress(kernel32, "IsWow64Process");
 		BOOL bIsWow64;
-		if (NULL != fnIsWow64Process)
+		if (fnIsWow64Process)
 		{
 			if (fnIsWow64Process(GetCurrentProcess(), &bIsWow64))
 			{
@@ -407,6 +610,15 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				PROCESS_MEMORY_COUNTERS pmc = {0};
 				pmc.cb = sizeof(pmc);
 				_GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc));
+				// Total RAM
+				MEMORYSTATUSEX curMem = {0};
+				curMem.dwLength = sizeof(curMem);
+				DWORDLONG l_FreePhysMemory = 0;
+				if (getGlobalMemoryStatusFromOS(&curMem))
+				{
+					g_TotalPhysMemory = curMem.ullTotalPhys;
+					l_FreePhysMemory = curMem.ullAvailPhys;
+				}
 				FILETIME tmpa = {0};
 				FILETIME tmpb = {0};
 				FILETIME kernelTimeFT = {0};
@@ -414,6 +626,10 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				GetProcessTimes(GetCurrentProcess(), &tmpa, &tmpb, &kernelTimeFT, &userTimeFT);
 				const int64_t kernelTime = kernelTimeFT.dwLowDateTime | (((int64_t)kernelTimeFT.dwHighDateTime) << 32); //-V112
 				const int64_t userTime = userTimeFT.dwLowDateTime | (((int64_t)userTimeFT.dwHighDateTime) << 32); //-V112
+				string l_procs;
+				const int digit_procs = getProcessorsCount();
+				if (digit_procs > 1)
+					l_procs = " x" + Util::toString(getProcessorsCount()) + " core(s)";
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 				dcassert(CFlylinkDBManager::isValidInstance());
 				if (CFlylinkDBManager::isValidInstance())
@@ -426,23 +642,23 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				          "HE "
 #endif
 				          "Compiled on: %s ]=-\r\n"
-				          "-=[ Uptime: %s. Cpu time: %s ]=-\r\n"
+				          "-=[ OS: %s ]=-\r\n"
+				          "-=[ CPU Clock: %.1f MHz%s. Memory (free): %s (%s) ]=-\r\n"
+				          "-=[ Uptime: %s. Cpu time: %s. System Uptime: %s ]=-\r\n"
 				          "-=[ Memory usage (peak): %s (%s). Virtual (peak): %s (%s) ]=-\r\n"
-				          "-=[ Files in share: %u. Total users: %i on hubs: %i ]=-\r\n"
-				          "-=[ Downloaded: %s. Uploaded: %s ]=-\r\n"
+				          "-=[ GDI units (peak): %d (%d). Handle (peak): %d (%d) ]=-\r\n"
+				          "-=[ Public share: %s. Files in share: %u ]=-\r\n"
+				          "-=[ Total users: %u on hubs: %u ]=-\r\n"
+				          "-=[ Downloaded: %s. Uploaded: %s ]=-"
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-				          "-=[ Total download: %s. Total upload: %s ]=-\r\n"
+				          "\r\n-=[ Total download: %s. Total upload: %s ]=-"
 #endif
-				          "-=[ System Uptime: %s]=-\r\n"
-				          "-=[ CPU Clock: %.1f MHz ]=-",
-				          A_VERSIONSTRING, Text::fromT(Util::getCompileDate()).c_str(), Util::formatSeconds(Util::getUpTime()).c_str(), Util::formatSeconds((kernelTime + userTime) / (10I64 * 1000I64 * 1000I64)).c_str(),
-				          Util::formatBytes(pmc.WorkingSetSize).c_str(), Util::formatBytes(pmc.PeakWorkingSetSize).c_str(),
-				          Util::formatBytes(pmc.PagefileUsage).c_str(), Util::formatBytes(pmc.PeakPagefileUsage).c_str(),
-				          ShareManager::getInstance()->getSharedFiles(), ClientManager::getTotalUsers(), Client::getTotalCounts(),
-				          Util::formatBytes(Socket::getTotalDown()).c_str(), Util::formatBytes(Socket::getTotalUp()).c_str(),
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-				          Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.m_download).c_str(), Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.m_upload).c_str(),
-#endif
+				          "\r\n",
+				          A_VERSIONSTRING, Text::fromT(Util::getCompileDate()).c_str(),
+				          CompatibilityManager::getWindowsVersionName().c_str(),
+				          //CompatibilityManager::getProcArchString().c_str(),
+				          CompatibilityManager::ProcSpeedCalc(), l_procs.c_str(), Util::formatBytes(g_TotalPhysMemory).c_str(), Util::formatBytes(l_FreePhysMemory).c_str(),
+				          Util::formatTime(Util::getUpTime()).c_str(), Util::formatSeconds((kernelTime + userTime) / (10I64 * 1000I64 * 1000I64)).c_str(),
 				          Util::formatTime(
 #ifdef FLYLINKDC_SUPPORT_WIN_XP
 				              GetTickCount()
@@ -450,7 +666,16 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				              GetTickCount64()
 #endif
 				              / 1000).c_str(),
-				          CompatibilityManager::ProcSpeedCalc());
+				          Util::formatBytes(pmc.WorkingSetSize).c_str(), Util::formatBytes(pmc.PeakWorkingSetSize).c_str(),
+				          Util::formatBytes(pmc.PagefileUsage).c_str(), Util::formatBytes(pmc.PeakPagefileUsage).c_str(),
+				          GetGuiResources(GetCurrentProcess(), GR_GDIOBJECTS), GetGuiResources(GetCurrentProcess(), 2/* GR_GDIOBJECTS_PEAK */),
+				          GetGuiResources(GetCurrentProcess(), GR_USEROBJECTS), GetGuiResources(GetCurrentProcess(), 4 /*GR_USEROBJECTS_PEAK*/),
+				          Util::formatBytes(ShareManager::getInstance()->getSharedSize()).c_str(), ShareManager::getInstance()->getSharedFiles(), ClientManager::getTotalUsers(), Client::getTotalCounts(),
+				          Util::formatBytes(Socket::getTotalDown()).c_str(), Util::formatBytes(Socket::getTotalUp()).c_str()
+#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+				          , Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.m_download).c_str(), Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.m_upload).c_str()
+#endif
+				         );
 			}
 			FreeLibrary(hInstPsapi);
 		}

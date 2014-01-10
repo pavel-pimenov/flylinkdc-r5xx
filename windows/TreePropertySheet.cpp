@@ -194,7 +194,10 @@ void TreePropertySheet::setTransp(int p_Layered)
 		SetWindowLongPtr(GWL_EXSTYLE, GetWindowLongPtr(GWL_EXSTYLE) | WS_EX_LAYERED /*| WS_EX_TRANSPARENT*/);
 		typedef bool (CALLBACK * LPFUNC)(HWND hwnd, COLORREF crKey, BYTE bAlpha, DWORD dwFlags);
 		LPFUNC _d_SetLayeredWindowAttributes = (LPFUNC)GetProcAddress(LoadLibrary(_T("user32")), "SetLayeredWindowAttributes");
-		_d_SetLayeredWindowAttributes(m_hWnd, 0, p_Layered, LWA_ALPHA);
+		if (_d_SetLayeredWindowAttributes)
+		{
+			_d_SetLayeredWindowAttributes(m_hWnd, 0, p_Layered, LWA_ALPHA);
+		}
 	}
 }
 LRESULT TreePropertySheet::onTranspChanged(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)

@@ -36,7 +36,10 @@
 #endif
 
 // [+] IRainman opt.
-extern bool g_TabsCloseButtonEnabled, g_TabsCloseButtonAlt, g_TabsGdiPlusEnabled;
+extern bool g_TabsCloseButtonEnabled;
+extern bool g_TabsCloseButtonAlt;
+extern bool g_TabsGdiPlusEnabled;
+extern bool g_isStartupProcess;
 extern CMenu g_mnu;
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
 extern Gdiplus::Pen g_pen_conter_side;
@@ -110,7 +113,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 #endif
 		void addTab(HWND hWnd, COLORREF color = RGB(0, 0, 0), uint16_t icon = 0, uint16_t stateIcon = 0, bool p_mini = false)
 		{
-			TabInfo* i = new TabInfo(hWnd, color, icon, (stateIcon != 0) ? stateIcon : icon);
+			TabInfo* i = new TabInfo(hWnd, color, icon, (stateIcon != 0) ? stateIcon : icon, !g_isStartupProcess);
 			dcassert(getTabInfo(hWnd) == NULL);
 			i->m_mini = p_mini;
 			if ((icon == IDR_HUB || icon == IDR_PRIVATE
@@ -551,17 +554,17 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 							)
 							{
 								bClose.EnableWindow(TRUE);
-								tab_tip2.DelTool(m_hWnd);
-								tab_tip2.AddTool(bClose, ResourceManager::CLOSE);
+								m_tab_tip_close.DelTool(m_hWnd);
+								m_tab_tip_close.AddTool(bClose, ResourceManager::CLOSE);
 								if (!BOOLSETTING(POPUPS_DISABLED) && BOOLSETTING(POPUPS_TABS_ENABLED)) // TODO -> updateTabs
-									tab_tip2.Activate(TRUE);
+									m_tab_tip_close.Activate(TRUE);
 									
 								cur_close = true;
 							}
 							else
 							{
 								bClose.EnableWindow(FALSE);
-								tab_tip2.Activate(FALSE);
+								m_tab_tip_close.Activate(FALSE);
 								cur_close = false;
 							}
 							bClose.ShowWindow(TRUE);
@@ -574,19 +577,19 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 					::GetWindowText(t->hWnd, &buf[0], len); //-V107
 					if (buf != current_tip)
 					{
-						tab_tip.DelTool(m_hWnd);
-						tab_tip.AddTool(m_hWnd, &buf[0]);
+						m_tab_tip.DelTool(m_hWnd);
+						m_tab_tip.AddTool(m_hWnd, &buf[0]);
 						if (!BOOLSETTING(POPUPS_DISABLED) && BOOLSETTING(POPUPS_TABS_ENABLED)) // TODO -> updateTabs
 						{
-							tab_tip.Activate(TRUE);
+							m_tab_tip.Activate(TRUE);
 						}
 						current_tip = buf;
 					}
 					return 1;
 				}
 			}
-			tab_tip.Activate(FALSE);
-			tab_tip2.Activate(FALSE);
+			m_tab_tip.Activate(FALSE);
+			m_tab_tip_close.Activate(FALSE);
 			current_tip.clear();
 			bClose.EnableWindow(FALSE);
 			bClose.ShowWindow(FALSE);
@@ -704,10 +707,10 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			
 			g_mnu.CreatePopupMenu();
 			
-			tab_tip.Create(m_hWnd, rcDefault, NULL, TTS_ALWAYSTIP | TTS_NOPREFIX);
-			tab_tip2.Create(m_hWnd, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP /*| TTS_BALLOON*/, WS_EX_TOPMOST);
-			tab_tip2.SetDelayTime(TTDT_AUTOPOP, 5000);
-			ATLASSERT(tab_tip2.IsWindow());
+			m_tab_tip.Create(m_hWnd, rcDefault, NULL, TTS_ALWAYSTIP | TTS_NOPREFIX);
+			m_tab_tip_close.Create(m_hWnd, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP /*| TTS_BALLOON*/, WS_EX_TOPMOST);
+			m_tab_tip_close.SetDelayTime(TTDT_AUTOPOP, 5000);
+			ATLASSERT(m_tab_tip_close.IsWindow());
 			
 			CDCHandle dc(::GetDC(m_hWnd)); // Error ~CDC() call DeleteDC
 			/*
@@ -989,7 +992,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				
 				static const size_t MAX_LENGTH = 20;
 				
-				TabInfo(HWND p_Wnd, COLORREF p_color, uint16_t p_icon, uint16_t p_stateIcon) :
+				TabInfo(HWND p_Wnd, COLORREF p_color, uint16_t p_icon, uint16_t p_stateIcon, bool p_is_update) :
 					hWnd(p_Wnd), m_len(0), m_xpos(0), m_row(0), m_dirty(false),
 					m_hCustomIcon(nullptr), m_bState(false), m_mini(false),
 					m_color_pen(p_color), m_icon(p_icon), m_stateIcon(p_stateIcon)
@@ -997,7 +1000,10 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 					memzero(&m_size, sizeof(m_size));
 					memzero(&m_boldSize, sizeof(m_boldSize));
 					name[0] = 0;
-					update();
+					if (p_is_update)
+					{
+						update();
+					}
 				}
 				
 				~TabInfo()
@@ -1189,8 +1195,8 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		HWND closing;
 		CButton chevron;
 		WTL::CBitmapButton bClose;
-		CFlyToolTipCtrl tab_tip;
-		CFlyToolTipCtrl tab_tip2;
+		CFlyToolTipCtrl m_tab_tip;
+		CFlyToolTipCtrl m_tab_tip_close;
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
 //		CPen black;
 //		CPen white;

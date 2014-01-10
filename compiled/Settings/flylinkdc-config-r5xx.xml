@@ -5,10 +5,16 @@
 	<fly-server 
 		ip ="82.196.7.135" 
 		port ="37015" 
+		stat_server_ip = "31.186.103.125"
+		stat_server_port = "37015"
 		mirror_read_only_server = ""
+		support_hub = "adcs://adcs.flylinkdc.com:2780"
 		min_size ="30000" 
 		max_size_value = "65536" 
 		minimal_interval = "1000"
+		winet_connect_timeout="10000" 
+                winet_receive_timeout="0"
+                winet_send_timeout="0"
 		zlib_compress_level = "9"
 		collect_lost_location = "1"	
 		scan ="avi,mkv,mp3,flac,ogg,mp4,mpg,divx,flv,mov,mpeg,wma"
@@ -20,7 +26,8 @@
 		send_full_mediainfo = "0"
 		parasitic_file = "id.bdmv,mcmf.xml,contenthash000.tbl,anydvd.xrl,online.crl,00001.clpi,00000.clpi,contentrevocation.lst"
 		block_share_ext = "jc!,ob!,dmf,mta,dmfr,!ut,!bt,bc!,getright,antifrag,pusd,dusd,download,crdownload,gltth,kwm,pwm"
-		block_share_name = "thumbs.db,~utorrentpartfile*,zbthumbnail.info,.~lock.*.*#"
+		block_share_name = "thumbs.db,zbthumbnail.info"
+		block_share_mask = "~utorrentpartfile*,.~lock.*.*#"
 		custom_compress_ext = "msi,3gp,avi,divx,flv,m4v,mkv,mov,mp4,mpg,mpeg,vob,wmv,bik,qt,rm,dts,aac,ac3,ape,fla,flac,m4a,mp1,mp2,mp3,ogg,wma,wv,mka,vqf,lqt,tiff,tif,jpg,gif,djvu,djv,part1,part2,part3,part4,part5,part6,part7,part8,part9,part10,cab,cso,0,000,7z,a01,ace,ain,alz,apz,ar,arc,arh,ari,arj,ark,axx,bhx,bz,bz2,bzip,bzip2,c00,c01,c02,car,cb7,cbr,cbz,deb,dgc,dist,f,fdp,gca,gz,gzi,gzip,ha,hbc,hbc2,hbe,hki,hki2,hpk,hyp,ice,ipg,ipk,ish,j,jgz,jic,kgb,lbr,lha,lzh,lzma,lzo,lzx,pak,paq6,paq7,paq8,par,par2,pbi,pea,pf,pim,pit,piz,pkg,puz,qda,r00,r01,r02,r03,r30,rar,rev,rk,rpm,rte,rzs,s00,s01,s02,sar,sdn,sea,sen,sfs,sfx,sh,shar,shr,sit,sitx,spt,sqx,sqz,tbz,tbz2,tg,tgz,tlz,tlzma,txz,tz,uha,wad,war,xef,xez,xmcdz,xpi,xz,y,z,z02,z04,zap,zip,zipx,zix,zoo,zpi,zz"
 	/>
 </Bootstraps>	

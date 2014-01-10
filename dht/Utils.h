@@ -70,7 +70,7 @@ class Utils
 			const uint32_t    cmd;
 		};
 		
-		static FastCriticalSection g_cs; // [!] IRainman opt: use spin lock here.
+		static FastCriticalSection g_Utilscs; // [!] IRainman opt: use spin lock here.
 		static boost::unordered_map<string, boost::unordered_multiset<uint32_t>> g_receivedPackets;
 		static std::list<const OutPacket> g_sentPackets;
 };

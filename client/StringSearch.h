@@ -57,7 +57,7 @@ class StringSearch
 		}
 		bool operator==(const StringSearch& rhs) const
 		{
-			return pattern == rhs.pattern;
+			return pattern.compare(rhs.pattern) == 0;
 		}
 		
 		const string& getPattern() const

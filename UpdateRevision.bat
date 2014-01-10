@@ -56,8 +56,8 @@ echo #define FLY_REVISION_H>> revision.h
 echo. >> revision.h
 echo #define VERSION_NUM %VERSION_NUM%>> revision.h
 echo #define REVISION_NUM %~1>> revision.h
-if "%BETA_STATE%"=="1" (echo #define BETA>> revision.h) else (echo //#define BETA>> revision.h)
-echo #define BETA_NUM   %BETA_NUM% // Number of beta. Does not matter if the #define BETA is disabled.>> revision.h
+if "%BETA_STATE%"=="1" (echo #define FLYLINKDC_BETA>> revision.h) else (echo //#define FLYLINKDC_BETA>> revision.h)
+echo #define BETA_NUM   %BETA_NUM% // Number of beta. Does not matter if the #define FLYLINKDC_BETA is disabled.>> revision.h
 echo. >> revision.h
 echo #endif>> revision.h
 

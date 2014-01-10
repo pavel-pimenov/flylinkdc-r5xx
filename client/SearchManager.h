@@ -59,6 +59,8 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 		void onSearchResult(const string& aLine)
 		{
 			onData((const uint8_t*)aLine.data(), aLine.length(), Util::emptyString);
+			// TODO - лишнее преобразование  aLine в массив батиков где в onData - создается дубликат string x()
+			// а третий параметр всегда пустой - это IP-шник
 		}
 		
 		void onRES(const AdcCommand& cmd, const UserPtr& from, const string& remoteIp = Util::emptyString);

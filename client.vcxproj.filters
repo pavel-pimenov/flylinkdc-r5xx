@@ -454,6 +454,9 @@
     <ClCompile Include="client\webrtc\system_wrappers\source\condition_variable_native_win.cc">
       <Filter>Source Files\webrtc</Filter>
     </ClCompile>
+    <ClCompile Include="client\TaskQueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client\AdcCommand.h">

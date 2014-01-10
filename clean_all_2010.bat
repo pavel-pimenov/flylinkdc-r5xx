@@ -16,5 +16,7 @@ del /S /F /Q compiled\update\*.rtf
 del /S /F /Q compiled\update\*.sign
 "%VS100COMNTOOLS%..\ide\devenv" FlylinkDC_2010.sln /Clean "Release|Win32"
 "%VS100COMNTOOLS%..\ide\devenv" FlylinkDC_2010.sln /Clean "Release|x64"
+"%VS100COMNTOOLS%..\ide\devenv" FlylinkDC_2010.sln /Clean "ReleaseFullOpt|Win32"
+"%VS100COMNTOOLS%..\ide\devenv" FlylinkDC_2010.sln /Clean "ReleaseFullOpt|x64"
 "%VS100COMNTOOLS%..\ide\devenv" FlylinkDC_2010.sln /Clean "Debug|Win32"
 "%VS100COMNTOOLS%..\ide\devenv" FlylinkDC_2010.sln /Clean "Debug|x64"

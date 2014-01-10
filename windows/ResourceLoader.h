@@ -25,28 +25,17 @@
 # define __ATLTYPES_H__
 #endif
 
-#if defined (PORTALBROWSER_EXPORTS)
-# include "Pointer.h"
-#else
 # include "../client/Singleton.h"
 # include "../client/Pointer.h"
 # include "../FlyFeatures/ThemeManager.h"
 
 # define USE_THEME_MANAGER
 
-#endif
-
 #include <atlimage.h>
 
-#if defined (PORTALBROWSER_EXPORTS)
-# include "util_flylinkdc.h"
-#endif
-
 class ExCImage : public CImage, public intrusive_ptr_base<ExCImage>
-#if !defined (PORTALBROWSER_EXPORTS)
 #ifdef _DEBUG
 	, boost::noncopyable
-#endif
 #endif
 {
 	public:

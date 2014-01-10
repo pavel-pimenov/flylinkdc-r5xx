@@ -341,7 +341,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		
 		void cheatMessage(const string& msg)
 		{
-			fire(ClientListener::CheatMessage(), this, msg);
+			fire(ClientListener::CheatMessage(), msg);
 		}
 		/* [!] IRainman fix
 		void reportUser(const Identity& i)
@@ -362,12 +362,10 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			return m_isActivMode; // [+] IRainman opt.
 			// [!]IRainman Fixed auto-adjust the connection type
 		}
-		
 		bool getExcludeCheck() const // [+] IRainman fix.
 		{
 			return m_exclChecks;
 		}
-		
 		void send(const string& aMessage)
 		{
 			send(aMessage.c_str(), aMessage.length());

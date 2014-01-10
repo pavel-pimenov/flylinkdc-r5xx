@@ -226,6 +226,7 @@
 		<String Name="CheckShowRealShare">, вказаний розмір = %[statedshareformat], реальний розмір = %[realshareformat]</String>
 		<String Name="ChooseFolder">Вибрати каталог</String>
 		<String Name="Cid">CID</String>
+		<String Name="Tag">Тег</String>
 		<String Name="Cipher">Шифр</String>
 		<String Name="Clear">Очистити чат</String>
 		<String Name="ClearSearchHistory">Очистити історію пошуку</String>

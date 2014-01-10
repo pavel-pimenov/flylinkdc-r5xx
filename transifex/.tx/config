@@ -231,6 +231,11 @@ file_filter = translations\wiki\<lang>\slots.txt
 host = https://www.transifex.com
 source_lang = en
 
+[flylinkdc.socket-error]
+file_filter = translations\wiki\<lang>\socketerror.txt
+host = https://www.transifex.com
+source_lang = en
+
 [flylinkdc.sounds]
 file_filter = translations\wiki\<lang>\sounds.txt
 host = https://www.transifex.com

@@ -27,11 +27,11 @@ static HBITMAP LoadImage(XMLParser::XMLNode &xNode, LPCWSTR pszAttrib, std::wstr
 static BYTE GetStyle(DWORD dwCmd)
 {
 	BYTE bStyle = BS_PUSHBUTTON;
-	for (size_t i = 0; i < _countof(ToolbarButtons); i++)
+	for (size_t i = 0; i < _countof(g_ToolbarButtons); i++)
 	{
-		if ((DWORD)ToolbarButtons[i].id == dwCmd)
+		if ((DWORD)g_ToolbarButtons[i].id == dwCmd)
 		{
-			if (ToolbarButtons[i].check)
+			if (g_ToolbarButtons[i].check)
 			{
 				bStyle = BS_CHECKBOX;
 				break;

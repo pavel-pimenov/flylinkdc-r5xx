@@ -9,7 +9,7 @@ call tools\ExtractVersion.bat %1 %2 %3 %4
 if errorlevel 1 goto :error
 
 call "%VS110COMNTOOLS%\..\..\VC\bin\amd64\vcvars64.bat"
-"%VS110COMNTOOLS%..\ide\devenv" FlylinkDC_2012.sln /Rebuild "Release|x64"
+"%VS110COMNTOOLS%..\ide\devenv" FlylinkDC_2012.sln /Rebuild "ReleaseFullOpt|x64"
 
 call Tools\MakePortalBrowserFileList.bat x64
 call src_gen_filename.bat -x64

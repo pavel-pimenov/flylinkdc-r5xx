@@ -141,9 +141,9 @@ class ADLSearchManager : public Singleton<ADLSearchManager>
 		// @internal
 		void matchRecurse(DestDirList& /*aDestList*/, DirectoryListing::Directory* /*aDir*/, string& /*aPath*/);
 		// Search for file match
-		void matchesFile(DestDirList& destDirVector, DirectoryListing::File *currentFile, string& fullPath);
+		void matchesFile(DestDirList& destDirVector, DirectoryListing::File *currentFile, const string& fullPath);
 		// Search for directory match
-		void matchesDirectory(DestDirList& destDirVector, DirectoryListing::Directory* currentDir, string& fullPath) const;
+		void matchesDirectory(DestDirList& destDirVector, DirectoryListing::Directory* currentDir, const string& fullPath) const;
 		// Step up directory
 		void stepUpDirectory(DestDirList& destDirVector) const;
 		

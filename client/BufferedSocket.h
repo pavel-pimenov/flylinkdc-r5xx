@@ -85,8 +85,8 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		/** Sets data mode for aBytes bytes. Must be called within onLine. */
 		void setDataMode(int64_t aBytes = -1)
 		{
-			mode = MODE_DATA;
-			dataBytes = aBytes;
+			m_mode = MODE_DATA;
+			m_dataBytes = aBytes;
 		}
 		/**
 		 * Rollback is an ugly hack to solve problems with compressed transfers where not all data received
@@ -100,7 +100,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		void setMode(Modes mode, size_t aRollback = 0);
 		Modes getMode() const
 		{
-			return mode;
+			return m_mode;
 		}
 		
 		// [+] brain-ripper:
@@ -189,7 +189,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		{
 			FastLock l(cs);
 			if (graceless)
-				m_disconnecting = true;
+				m_is_disconnecting = true;
 				
 			addTask(DISCONNECT, nullptr);
 		}
@@ -208,7 +208,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		}
 		bool socketIsDisconecting() const // [+] IRainman fix
 		{
-			return m_disconnecting || !hasSocket();
+			return m_is_disconnecting || !hasSocket();
 		}
 		bool is_all_my_info_loaded() const
 		{
@@ -305,16 +305,16 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		ByteVector sendBuf;
 		
 		string line;
-		int64_t dataBytes;
-		size_t rollback;
+		int64_t m_dataBytes;
+		size_t m_rollback;
 		
-		Modes mode;
+		Modes m_mode;
 		State m_state;
 		
 		std::unique_ptr<UnZFilter> filterIn;
 		std::unique_ptr<Socket> sock;
 		
-		volatile bool m_disconnecting; // [!] IRainman fix: this variable is volatile.
+		volatile bool m_is_disconnecting; // [!] IRainman fix: this variable is volatile.
 		
 		int run();
 		

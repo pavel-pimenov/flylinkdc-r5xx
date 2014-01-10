@@ -45,26 +45,26 @@ class Download : public Transfer, public Flags
 		/** @internal */
 		const string& getDownloadTarget() const
 		{
-			return (getTempTarget().empty() ? getPath() : getTempTarget());
+			return getTempTarget().empty() ? getPath() : getTempTarget();
 		}
 		
 		/** @internal */
 		TigerTree& getTigerTree()
 		{
-			return tt;
+			return m_tiger_tree;
 		}
 		const TigerTree& getTigerTree() const
 		{
-			return tt;
+			return m_tiger_tree;
 		}
 		
 		string& getPFS()
 		{
-			return pfs;
+			return m_pfs;
 		}
 		const string& getPFS() const
 		{
-			return pfs;
+			return m_pfs;
 		}
 		// [+] IRainman fix.
 		/*const QueueItem* getQueueItem() const
@@ -89,8 +89,8 @@ class Download : public Transfer, public Flags
 		GETSET(bool, treeValid, TreeValid);
 	private:
 		QueueItem* qi; // [+] IRainman fix.
-		TigerTree tt;
-		string pfs;
+		TigerTree  m_tiger_tree;
+		string     m_pfs;
 };
 
 #endif /*DOWNLOAD_H_*/

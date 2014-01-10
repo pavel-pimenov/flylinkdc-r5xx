@@ -513,49 +513,50 @@ void DirectoryListingFrame::changeDir(DirectoryListing::Directory* p_dir, BOOL p
 {
 	CWaitCursor l_cursor_wait;
 	CLockRedraw<> l_lock_draw(ctrlList);
-	m_updating = true; // TODO сделать классом RAII
-	// http://code.google.com/p/flylinkdc/issues/detail?id=1223
-	auto& l_prev_selected_file = m_selected_file_history[m_prev_directory];
-	string l_cur_selected_item_name = m_selected_file_history[p_dir];
-	if (const auto& l_cur_item = ctrlList.getSelectedItem())
 	{
-		if (m_prev_directory)
+		CFlyBusy l_busy(m_updating);
+		// http://code.google.com/p/flylinkdc/issues/detail?id=1223
+		auto& l_prev_selected_file = m_selected_file_history[m_prev_directory];
+		string l_cur_selected_item_name = m_selected_file_history[p_dir];
+		if (const auto& l_cur_item = ctrlList.getSelectedItem())
 		{
-			l_prev_selected_file = Text::fromT(l_cur_item->getText(COLUMN_FILENAME));
+			if (m_prev_directory)
+			{
+				l_prev_selected_file = Text::fromT(l_cur_item->getText(COLUMN_FILENAME));
+			}
 		}
-	}
-	m_prev_directory = p_dir;
-	ctrlList.DeleteAndCleanAllItems();
-	auto l_count = ctrlList.GetItemCount();
-	ItemInfo* l_last_item = nullptr;
-	for (auto i = p_dir->directories.cbegin(); i != p_dir->directories.cend(); ++i)
-	{
-		ItemInfo* ii = new ItemInfo(*i);
-		const auto& l_name = (*i)->getName();
-		if (!l_cur_selected_item_name.empty() && l_name == l_cur_selected_item_name)
+		m_prev_directory = p_dir;
+		ctrlList.DeleteAndCleanAllItems();
+		auto l_count = ctrlList.GetItemCount();
+		ItemInfo* l_last_item = nullptr;
+		for (auto i = p_dir->directories.cbegin(); i != p_dir->directories.cend(); ++i)
 		{
-			l_last_item = ii;
+			ItemInfo* ii = new ItemInfo(*i);
+			const auto& l_name = (*i)->getName();
+			if (!l_cur_selected_item_name.empty() && l_name == l_cur_selected_item_name)
+			{
+				l_last_item = ii;
+			}
+			ctrlList.insertItem(l_count++, ii, I_IMAGECALLBACK); // GetTypeDirectory(*i)
 		}
-		ctrlList.insertItem(l_count++, ii, I_IMAGECALLBACK); // GetTypeDirectory(*i)
-	}
-	for (auto j = p_dir->files.cbegin(); j != p_dir->files.cend(); ++j)
-	{
-		ItemInfo* ii = new ItemInfo(*j);
-		const auto& l_name = (*j)->getName();
-		if (!l_cur_selected_item_name.empty() && l_name == l_cur_selected_item_name)
+		for (auto j = p_dir->files.cbegin(); j != p_dir->files.cend(); ++j)
 		{
-			l_last_item = ii;
+			ItemInfo* ii = new ItemInfo(*j);
+			const auto& l_name = (*j)->getName();
+			if (!l_cur_selected_item_name.empty() && l_name == l_cur_selected_item_name)
+			{
+				l_last_item = ii;
+			}
+			ctrlList.insertItem(l_count++, ii, I_IMAGECALLBACK);
 		}
-		ctrlList.insertItem(l_count++, ii, I_IMAGECALLBACK);
+		ctrlList.resort();
+		if (l_last_item)
+		{
+			const auto l_sel_item = ctrlList.findItem(l_last_item);
+			ctrlList.SelectItem(l_sel_item); // Возвращаемся на запомненный файл.
+		}
+		ctrlList.SetRedraw(p_enableRedraw);
 	}
-	ctrlList.resort();
-	if (l_last_item)
-	{
-		const auto l_sel_item = ctrlList.findItem(l_last_item);
-		ctrlList.SelectItem(l_sel_item); // Возвращаемся на запомненный файл.
-	}
-	ctrlList.SetRedraw(p_enableRedraw);
-	m_updating = false; // TODO сделать классом RAII
 	updateStatus();
 	
 	if (!p_dir->getComplete())

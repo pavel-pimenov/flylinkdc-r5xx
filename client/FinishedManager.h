@@ -46,8 +46,11 @@ class FinishedItem
 			COLUMN_LAST
 		};
 		
-		FinishedItem(const string& aTarget, const HintedUser& aUser, int64_t aSize, int64_t aSpeed, time_t aTime, const string& aTTH = Util::emptyString, const string& aIP = Util::emptyString) :
+		FinishedItem(const string& aTarget, const HintedUser& aUser, int64_t aSize, int64_t aSpeed,
+		             const time_t aTime, const string& aTTH = Util::emptyString, const string& aIP = Util::emptyString) :
 			target(aTarget),
+			m_path(Text::toT(Util::getFilePath(aTarget))),
+			m_file_name(Util::getFileName(aTarget)),
 			cid(aUser.user->getCID()),
 			hub(aUser.hint),
 			hubs(Util::toString(ClientManager::getHubNames(aUser.user->getCID(), Util::emptyString))),
@@ -67,11 +70,11 @@ class FinishedItem
 			switch (col)
 			{
 				case COLUMN_FILE:
-					return Text::toT(Util::getFileName(getTarget()));
+					return Text::toT(m_file_name);
 				case COLUMN_DONE:
 					return Text::toT(Util::formatDigitalClock(getTime()));
 				case COLUMN_PATH:
-					return Text::toT(Util::getFilePath(getTarget()));
+					return m_path;
 				case COLUMN_NICK:
 					return Text::toT(getNick());
 				case COLUMN_HUB:
@@ -104,9 +107,12 @@ class FinishedItem
 			}
 		}
 		int getImageIndex() const;
-		
+		string getFileName() const
+		{
+			return m_file_name;
+		}
 		GETC(string, target, Target);
-		GETC(string, tth, Tth);
+		GETC(string, tth, TTH);
 		GETC(string, ip, IP); // [+] PPA
 		GETC(string, nick, Nick);
 		GETC(string, hubs, Hubs); // [+] http://code.google.com/p/flylinkdc/issues/detail?id=981
@@ -121,7 +127,8 @@ class FinishedItem
 		
 	private:
 		friend class FinishedManager;
-		
+		tstring m_path;
+		string m_file_name;
 };
 
 class FinishedManager : public Singleton<FinishedManager>,

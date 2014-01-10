@@ -516,7 +516,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		void updateStatus()
 		{
 			const int l_listCount = ctrlList.GetItemCount();
-			ctrlStatus.SetText(1, (Util::toStringW(l_listCount) + TSTRING(ITEMS)).c_str());
+			ctrlStatus.SetText(1, (Util::toStringW(l_listCount) + _T(' ') + TSTRING(ITEMS)).c_str());
 			ctrlStatus.SetText(2, Util::formatBytesW(totalBytes).c_str());
 			ctrlStatus.SetText(3, (Util::formatBytesW(l_listCount > 0 ? totalSpeed / l_listCount : 0) + _T('/') + WSTRING(S)).c_str());
 		}

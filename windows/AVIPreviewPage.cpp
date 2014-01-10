@@ -59,8 +59,6 @@ LRESULT AVIPreview::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	return 0;
 }
 
-void AVIPreview::write() { }
-
 void AVIPreview::addEntry(PreviewApplication::Ptr pa, int pos)
 {
 	TStringList lst;

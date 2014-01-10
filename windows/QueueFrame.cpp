@@ -350,7 +350,7 @@ void QueueFrame::on(QueueManagerListener::Added, const QueueItemPtr& aQI)
 {
 	QueueItemInfo* ii = new QueueItemInfo(aQI);
 	
-	tasks.add(ADD_ITEM, new QueueItemInfoTask(ii));
+	m_tasks.add(ADD_ITEM, new QueueItemInfoTask(ii));
 }
 
 void QueueFrame::addQueueItem(QueueItemInfo* ii, bool noSort)
@@ -400,7 +400,7 @@ QueueFrame::QueueItemInfo* QueueFrame::getItemInfo(const string& p_target) const
 		//static int g_count = 0;
 		//dcdebug("QueueFrame::getItemInfo  count = %d i->second->getTarget() = %s\n", ++g_count, i->second->getTarget().c_str());
 #endif
-		if (i->second->getTarget() == p_target)
+		if (i->second->getTarget() == p_target) // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=112726
 		{
 			return i->second;
 		}
@@ -659,7 +659,7 @@ void QueueFrame::removeDirectories(HTREEITEM ht)
 
 void QueueFrame::on(QueueManagerListener::Removed, const QueueItemPtr& aQI)
 {
-	tasks.add(REMOVE_ITEM, new StringTask(aQI->getTarget()));
+	m_tasks.add(REMOVE_ITEM, new StringTask(aQI->getTarget()));
 	
 	// we need to call speaker now to properly remove item before other actions
 	// [!] SSA - fixed bug with deadlock on opened QueueFrame
@@ -668,14 +668,14 @@ void QueueFrame::on(QueueManagerListener::Removed, const QueueItemPtr& aQI)
 
 void QueueFrame::on(QueueManagerListener::Moved, const QueueItemPtr& aQI, const string& oldTarget)
 {
-	tasks.add(REMOVE_ITEM, new StringTask(oldTarget));
+	m_tasks.add(REMOVE_ITEM, new StringTask(oldTarget));
 	
 	
 	// we need to call speaker now to properly remove item before other actions
 	// [!] SSA - fixed bug with deadlock on opened QueueFrame (Убрать в случае Deadlock'а по Move'у)
 	//onSpeaker(0, 0, 0, *reinterpret_cast<BOOL*>(NULL));
 	
-	tasks.add(ADD_ITEM, new QueueItemInfoTask(new QueueItemInfo(aQI)));
+	m_tasks.add(ADD_ITEM, new QueueItemInfoTask(new QueueItemInfo(aQI)));
 }
 
 void QueueFrame::on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept // [+] IRainman opt.
@@ -683,16 +683,18 @@ void QueueFrame::on(QueueManagerListener::Tick, const QueueItemList& p_list) noe
 	if (!MainFrame::isAppMinimized() && WinUtil::g_tabCtrl->isActive(m_hWnd))
 	{
 		on(QueueManagerListener::StatusUpdatedList(), p_list);
-		tasks.add(UPDATE_STATUSBAR, nullptr); // [!]IRainman optimize QueueFrame
+		m_tasks.add(UPDATE_STATUSBAR, nullptr); // [!]IRainman optimize QueueFrame
 	}
 }
 
 LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
+
 	TaskQueue::List t;
-	
-	tasks.get(t);
-	//m_spoken = false; [-] IRainman opt.
+	m_tasks.get(t);
+	if (t.empty())
+		return 0;
+	CFlyBusy l_busy(m_spoken);
 	
 	dcassert(m_closed == false);
 	for (auto ti = t.cbegin(); ti != t.cend(); ++ti)
@@ -716,7 +718,7 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 			case REMOVE_ITEM:
 			{
 				const auto& target = static_cast<StringTask&>(*ti->second);
-				const QueueItemInfo* ii = getItemInfo(target.getStr());
+				const QueueItemInfo* ii = getItemInfo(target.m_str);
 				if (!ii)
 				{
 					// Item already delete.
@@ -793,7 +795,7 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 			case UPDATE_STATUS:
 			{
 				auto& status = static_cast<StringTask&>(*ti->second);
-				ctrlStatus.SetText(1, Text::toT(status.getStr()).c_str());
+				ctrlStatus.SetText(1, Text::toT(status.m_str).c_str());
 			}
 			break;
 			case UPDATE_STATUSBAR://[+]IRainman optimize QueueFrame
@@ -807,7 +809,6 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 		}
 		delete ti->second;
 	}
-	m_spoken = false; // [+] IRainman opt
 	
 	return 0;
 }
@@ -1089,7 +1090,7 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 				//
 				{
 					SharedLock l(QueueItem::cs);
-					const auto& sources = ii->getQueueItem()->getSourcesL(); // Делать копию нелльзя - http://code.google.com/p/flylinkdc/issues/detail?id=1270
+					const auto& sources = ii->getQueueItem()->getSourcesL(); // Делать копию нельзя - http://code.google.com/p/flylinkdc/issues/detail?id=1270
 					// ниже сохраняем адрес итератора
 					for (auto i = sources.cbegin(); i != sources.cend(); ++i)
 					{
@@ -2072,7 +2073,7 @@ LRESULT QueueFrame::onRemoveOffline(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 		
 		UniqueLock l(QueueItem::cs);
 		const auto& sources = ii->getQueueItem()->getSourcesL();
-		for (auto i =  sources.cbegin(); i != sources.cend(); ++i)
+		for (auto i =  sources.cbegin(); i != sources.cend(); ++i) // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=111640
 		{
 			if (!i->first->isOnline())
 			{
@@ -2115,7 +2116,7 @@ void QueueFrame::onRechecked(const string& target, const string& message)
 	buf.resize(STRING(INTEGRITY_CHECK).length() + message.length() + target.length() + 16);
 	sprintf(&buf[0], CSTRING(INTEGRITY_CHECK), message.c_str(), target.c_str());
 	
-	tasks.add(UPDATE_STATUS, new StringTask(buf));
+	m_tasks.add(UPDATE_STATUS, new StringTask(buf));
 }
 
 void QueueFrame::on(QueueManagerListener::RecheckStarted, const string& target) noexcept

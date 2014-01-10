@@ -64,9 +64,8 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 	
 		typedef boost::unordered_map<string, StringList> SearchTypes;
 		typedef SearchTypes::iterator SearchTypesIter;
-//		typedef SearchTypes::const_iterator SearchTypesIterC;
-
-		static StringList connectionSpeeds;
+		
+		static StringList g_connectionSpeeds;
 		
 		enum StrSetting { STR_FIRST,
 		                  NICK = STR_FIRST, UPLOAD_SPEED, DESCRIPTION, DOWNLOAD_DIRECTORY, EMAIL, EXTERNAL_IP,
@@ -623,7 +622,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 #define SOUND_BEEP_BOOLSETTING(k) (SettingsManager::getBeepEnabled(SettingsManager::k))
 #define POPUP_ENABLED(k) (SettingsManager::getPopupEnabled(SettingsManager::k))
 
-#define SPLIT_SETTING(key) Util::splitSetting(SETTING(key))
+#define SPLIT_SETTING_AND_LOWER(key) Util::splitSettingAndLower(SETTING(key))
 // [~] IRainman: copy-past fix.
 
 #endif // !defined(SETTINGS_MANAGER_H)

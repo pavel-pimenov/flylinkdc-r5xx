@@ -289,7 +289,7 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 #endif
 				
 				// !SMT!-S
-				reinitUserMenu(itemI->hintedUser.user, itemI->hintedUser.hint);
+				reinitUserMenu(itemI->m_hintedUser.user, itemI->m_hintedUser.hint);
 				
 				if (getSelectedUser())
 				{
@@ -387,7 +387,7 @@ void TransferView::runUserCommand(UserCommand& uc)
 	while ((i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
 		const ItemInfo* itemI = ctrlTransfers.getItemData(i);
-		if (itemI->hintedUser.user && itemI->hintedUser.user->isOnline())  // [!] IRainman fix.
+		if (itemI->m_hintedUser.user && itemI->m_hintedUser.user->isOnline())  // [!] IRainman fix.
 		{
 			StringMap tmp = ucParams;
 			ucParams["fileFN"] = Text::fromT(itemI->m_target);
@@ -395,7 +395,7 @@ void TransferView::runUserCommand(UserCommand& uc)
 			// compatibility with 0.674 and earlier
 			ucParams["file"] = ucParams["fileFN"];
 			
-			ClientManager::getInstance()->userCommand(itemI->hintedUser, uc, tmp, true);
+			ClientManager::getInstance()->userCommand(itemI->m_hintedUser, uc, tmp, true);
 		}
 	}
 }
@@ -420,13 +420,13 @@ LRESULT TransferView::onForce(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 					ctrlTransfers.SetItemText(h, COLUMN_STATUS, CTSTRING(CONNECTING_FORCED));
 					
 				ii->transferFailed = false;
-				ConnectionManager::getInstance()->force(ii->hintedUser);
+				ConnectionManager::getInstance()->force(ii->m_hintedUser);
 			}
 		}
 		else
 		{
 			ii->transferFailed = false;
-			ConnectionManager::getInstance()->force(ii->hintedUser);
+			ConnectionManager::getInstance()->force(ii->m_hintedUser);
 		}
 	}
 	return 0;
@@ -437,7 +437,7 @@ void TransferView::ItemInfo::removeAll()
 	// Не удаляются отдачи через контекстное меню https://code.google.com/p/flylinkdc/issues/detail?id=1335
 	if (hits <= 1)
 	{
-		QueueManager::getInstance()->removeSource(hintedUser, QueueItem::Source::FLAG_REMOVED);
+		QueueManager::getInstance()->removeSource(m_hintedUser, QueueItem::Source::FLAG_REMOVED);
 	}
 	else
 	{
@@ -472,7 +472,7 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 			Colors::alternationBkColor(cd);
 #endif
-			if ((ii->status == ItemInfo::STATUS_RUNNING) && (colIndex == COLUMN_STATUS))
+			if ((ii->m_status == ItemInfo::STATUS_RUNNING) && (colIndex == COLUMN_STATUS))
 			{
 				if (!BOOLSETTING(SHOW_PROGRESS_BARS))
 				{
@@ -701,7 +701,7 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					{
 						DrawIconEx(dc, rc2.left - 20, rc2.top, g_user_icon, 16, 16, NULL, NULL, DI_NORMAL | DI_COMPAT);
 					}
-					else if (ii->status == ItemInfo::STATUS_RUNNING)
+					else if (ii->m_status == ItemInfo::STATUS_RUNNING)
 					{
 						RECT rc9 = rc2;
 						rc9.left -= 19; //[~] Sergey Shushkanov
@@ -857,7 +857,7 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (ii->download ? SETTIN
 				}
 			}
 			else if (colIndex != COLUMN_USER && colIndex != COLUMN_HUB && colIndex != COLUMN_STATUS && colIndex != COLUMN_LOCATION &&
-			         ii->status != ItemInfo::STATUS_RUNNING)
+			         ii->m_status != ItemInfo::STATUS_RUNNING)
 			{
 				cd->clrText = OperaColors::blendColors(Colors::bgColor, Colors::textColor, 0.4);
 				return CDRF_NEWFONT;
@@ -888,7 +888,7 @@ LRESULT TransferView::onDoubleClickTransfers(int /*idCtrl*/, LPNMHDR pnmh, BOOL&
 			switch (SETTING(TRANSFERLIST_DBLCLICK))
 			{
 				case 0:
-					i->pm(i->hintedUser.hint); // [!] IRainman fix.
+					i->pm(i->m_hintedUser.hint); // [!] IRainman fix.
 					break;
 				case 1:
 					i->getList(); // [!] IRainman fix.
@@ -896,7 +896,7 @@ LRESULT TransferView::onDoubleClickTransfers(int /*idCtrl*/, LPNMHDR pnmh, BOOL&
 				case 2:
 					i->matchQueue(); // [!] IRainman fix.
 				case 3:
-					i->grantSlotPeriod(i->hintedUser.hint, 600); // [!] IRainman fix.
+					i->grantSlotPeriod(i->m_hintedUser.hint, 600); // [!] IRainman fix.
 					break;
 				case 4:
 					i->addFav();
@@ -904,7 +904,7 @@ LRESULT TransferView::onDoubleClickTransfers(int /*idCtrl*/, LPNMHDR pnmh, BOOL&
 				case 5: // !SMT!-UI
 					i->statusString = TSTRING(CONNECTING_FORCED);
 					ctrlTransfers.updateItem(i);
-					ClientManager::getInstance()->connect(i->hintedUser, Util::toString(Util::rand())); // [!] IRainman fix.
+					ClientManager::getInstance()->connect(i->m_hintedUser, Util::toString(Util::rand())); // [!] IRainman fix.
 					break;
 				case 6:
 					i->browseList(); // [!] IRainman fix.
@@ -917,7 +917,7 @@ LRESULT TransferView::onDoubleClickTransfers(int /*idCtrl*/, LPNMHDR pnmh, BOOL&
 
 int TransferView::ItemInfo::compareItems(const ItemInfo* a, const ItemInfo* b, uint8_t col)
 {
-	if (a->status == b->status)
+	if (a->m_status == b->m_status)
 	{
 		if (a->download != b->download)
 		{
@@ -926,7 +926,7 @@ int TransferView::ItemInfo::compareItems(const ItemInfo* a, const ItemInfo* b, u
 	}
 	else
 	{
-		return (a->status == ItemInfo::STATUS_RUNNING) ? -1 : 1;
+		return (a->m_status == ItemInfo::STATUS_RUNNING) ? -1 : 1;
 	}
 	
 	switch (col)
@@ -970,7 +970,7 @@ TransferView::ItemInfo* TransferView::findItem(const UpdateInfo& ui, int& pos) c
 		}
 		else if (ui.download == ii->download && !ii->parent) // [!] IRainman fix.
 		{
-			const vector<ItemInfo*>& children = ctrlTransfers.findChildren(ii->getGroupCond());
+			const auto& children = ctrlTransfers.findChildren(ii->getGroupCond());
 			for (auto k = children.cbegin(); k != children.cend(); ++k)
 			{
 				ItemInfo* ii = *k;
@@ -987,11 +987,12 @@ TransferView::ItemInfo* TransferView::findItem(const UpdateInfo& ui, int& pos) c
 LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	TaskQueue::List t;
-	tasks.get(t);
+	m_tasks.get(t);
 	
 	if (t.empty()) // [+] IRainman opt
 		return 0;
 		
+	CFlyBusy l_busy(m_spoken);
 	CLockRedraw<> l_lock_draw(ctrlTransfers);
 	for (auto i = t.cbegin(); i != t.cend(); ++i)
 	{
@@ -1048,7 +1049,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 						if (ui.type == Transfer::TYPE_FILE || ui.type == Transfer::TYPE_TREE)
 						{
 							/* parent item must be updated with correct info about whole file */
-							if (ui.status == ItemInfo::STATUS_RUNNING && parent->status == ItemInfo::STATUS_RUNNING && parent->hits == -1)
+							if (ui.status == ItemInfo::STATUS_RUNNING && parent->m_status == ItemInfo::STATUS_RUNNING && parent->hits == -1)
 							{
 								ui.updateMask &= ~UpdateInfo::MASK_POS;
 								ui.updateMask &= ~UpdateInfo::MASK_ACTUAL;
@@ -1108,7 +1109,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 						                                ui->setStatus(ItemInfo::STATUS_WAITING);
 						                                ui->setRunning(0);
 						
-						                                tasks.add(UPDATE_PARENT, ui);
+						                                m_tasks.add(UPDATE_PARENT, ui);
 						                            }
 						                        }
 						
@@ -1127,7 +1128,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 					ItemInfo* ii = findItem(ui, pos);
 					if (ii)
 					{
-						ii->status = ui.status;
+						ii->m_status = ui.status;
 						ii->statusString = ui.statusString;
 						
 						if (!pp->parent->collapsed)
@@ -1147,9 +1148,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 		};
 		delete i->second;  // [1] https://www.box.net/shared/307aa981b9cef05fc096
 	}
-	
 	ctrlTransfers.resort();
-	m_spoken = false; // [+] IRainman opt.
 	return 0; //TODO crash
 }
 
@@ -1171,11 +1170,11 @@ LRESULT TransferView::onSearchAlternates(WORD /*wNotifyCode*/, WORD /*wID*/, HWN
 void TransferView::ItemInfo::update(const UpdateInfo& ui)
 {
 	if (ui.type != Transfer::TYPE_LAST)
-		type = ui.type;
+		m_type = ui.type;
 		
 	if (ui.updateMask & UpdateInfo::MASK_STATUS)
 	{
-		status = ui.status;
+		m_status = ui.status;
 	}
 	if (ui.updateMask & UpdateInfo::MASK_STATUS_STRING)
 	{
@@ -1313,17 +1312,17 @@ TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const Conn
 
 void TransferView::on(ConnectionManagerListener::Added, const ConnectionQueueItem* aCqi)
 {
-	tasks.add(ADD_ITEM, createUpdateInfoForAddedEvent(aCqi)); // [!] IRainman fix.
+	m_tasks.add(ADD_ITEM, createUpdateInfoForAddedEvent(aCqi)); // [!] IRainman fix.
 }
 
 void TransferView::on(ConnectionManagerListener::StatusChanged, const ConnectionQueueItem* aCqi)
 {
-	tasks.add(UPDATE_ITEM, createUpdateInfoForAddedEvent(aCqi)); // [!] IRainman fix.
+	m_tasks.add(UPDATE_ITEM, createUpdateInfoForAddedEvent(aCqi)); // [!] IRainman fix.
 }
 
 void TransferView::on(ConnectionManagerListener::Removed, const ConnectionQueueItem* aCqi)
 {
-	tasks.add(REMOVE_ITEM, new UpdateInfo(aCqi->getUser(), aCqi->getDownload())); // [!] IRainman fix.
+	m_tasks.add(REMOVE_ITEM, new UpdateInfo(aCqi->getUser(), aCqi->getDownload())); // [!] IRainman fix.
 }
 
 void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueItem* aCqi, const string& aReason)
@@ -1341,7 +1340,7 @@ void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueIt
 	}
 	
 	ui->setStatus(ItemInfo::STATUS_WAITING);
-	tasks.add(UPDATE_ITEM, ui);
+	m_tasks.add(UPDATE_ITEM, ui);
 }
 
 static tstring getFile(const Transfer::Type& type, const tstring& fileName)
@@ -1368,17 +1367,17 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 	switch (col)
 	{
 		case COLUMN_USER:
-			return (hits == -1) ? WinUtil::getNicks(hintedUser) : (Util::toStringW(hits) + _T(' ') + TSTRING(USERS));
+			return hits == -1 ? m_niks : (Util::toStringW(hits) + _T(' ') + TSTRING(USERS));
 		case COLUMN_HUB:
-			return (hits == -1) ? WinUtil::getHubNames(hintedUser).first : (Util::toStringW(running) + _T(' ') + TSTRING(NUMBER_OF_SEGMENTS));
+			return hits == -1 ? m_hubs : (Util::toStringW(running) + _T(' ') + TSTRING(NUMBER_OF_SEGMENTS));
 		case COLUMN_STATUS:
 			return statusString;
 		case COLUMN_TIMELEFT:
-			return (status == STATUS_RUNNING) ? Util::formatSecondsW(timeLeft) : Util::emptyStringT;
+			return m_status == STATUS_RUNNING ? Util::formatSecondsW(timeLeft) : Util::emptyStringT;
 		case COLUMN_SPEED:
-			return (status == STATUS_RUNNING) ? (Util::formatBytesW(m_speed) + _T('/') + WSTRING(S)) : Util::emptyStringT;
+			return m_status == STATUS_RUNNING ? (Util::formatBytesW(m_speed) + _T('/') + WSTRING(S)) : Util::emptyStringT;
 		case COLUMN_FILE:
-			return getFile(type, Util::getFileName(m_target)); // TODO: opt me please.
+			return getFile(m_type, Util::getFileName(m_target)); // TODO: opt me please.
 		case COLUMN_SIZE:
 			return Util::formatBytesW(size); // TODO: opt me please.
 		case COLUMN_PATH:
@@ -1394,9 +1393,9 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 		case COLUMN_CIPHER:
 			return cipher;
 		case COLUMN_SHARE:
-			return hintedUser.user ? Util::formatBytesW(hintedUser.user->getBytesShared()) : Util::emptyStringT;
+			return m_hintedUser.user ? Util::formatBytesW(m_hintedUser.user->getBytesShared()) : Util::emptyStringT;
 		case COLUMN_SLOTS:
-			return hintedUser.user ? Util::toStringW(hintedUser.user->getSlots()) : Util::emptyStringT;
+			return m_hintedUser.user ? Util::toStringW(m_hintedUser.user->getSlots()) : Util::emptyStringT;
 		case COLUMN_LOCATION:
 		{
 			// [!] IRainman opt: no need to get geolocation before the user sees it.
@@ -1437,7 +1436,7 @@ void TransferView::on(DownloadManagerListener::Requesting, const Download* d) no
 	ui->updateMask &= ~UpdateInfo::MASK_STATUS; // hack to avoid changing item status
 	ui->setStatusString(TSTRING(REQUESTING) + _T(' ') + getFile(d->getType(), Text::toT(Util::getFileName(d->getPath()))) + _T("..."));
 	
-	tasks.add(UPDATE_ITEM, ui);
+	m_tasks.add(UPDATE_ITEM, ui);
 }
 
 void TransferView::on(DownloadManagerListener::Starting, const Download* aDownload)
@@ -1450,7 +1449,7 @@ void TransferView::on(DownloadManagerListener::Starting, const Download* aDownlo
 	ui->setType(aDownload->getType());
 	// [-] ui->setIP(aDownload->getUserConnection().getRemoteIp()); // !SMT!-IP [-] IRainman opt.
 	
-	tasks.add(UPDATE_ITEM, ui);
+	m_tasks.add(UPDATE_ITEM, ui);
 }
 
 void TransferView::on(DownloadManagerListener::Tick, const DownloadMap& dl, uint64_t CurrentTick)
@@ -1510,7 +1509,7 @@ void TransferView::on(DownloadManagerListener::Tick, const DownloadMap& dl, uint
 			}
 			l_statusString += Text::tformat(TSTRING(DOWNLOADED_BYTES), pos.c_str(), percent, elapsed.c_str());
 			ui->setStatusString(l_statusString);
-			tasks.add(UPDATE_ITEM, ui);
+			m_tasks.add(UPDATE_ITEM, ui);
 		}
 	}
 }
@@ -1542,7 +1541,7 @@ void TransferView::on(DownloadManagerListener::Failed, const Download* aDownload
 	            TSTRING(USER) + _T(": ") + WinUtil::getNicks(ui->hintedUser) + _T('\n') +
 	            TSTRING(REASON) + _T(": ") + tmpReason, TSTRING(DOWNLOAD_FAILED) + _T(' '), NIIF_WARNING);
 	            
-	tasks.add(UPDATE_ITEM, ui);
+	m_tasks.add(UPDATE_ITEM, ui);
 }
 
 void TransferView::on(DownloadManagerListener::Status, const UserConnection* uc, const string& aReason) noexcept
@@ -1553,7 +1552,7 @@ void TransferView::on(DownloadManagerListener::Status, const UserConnection* uc,
 	ui->setPos(0);
 	ui->setStatusString(Text::toT(aReason));
 	
-	tasks.add(UPDATE_ITEM, ui);
+	m_tasks.add(UPDATE_ITEM, ui);
 }
 
 void TransferView::on(UploadManagerListener::Starting, const Upload* aUpload)
@@ -1573,7 +1572,7 @@ void TransferView::on(UploadManagerListener::Starting, const Upload* aUpload)
 		ui->setStatusString(TSTRING(UPLOAD_STARTING));
 	}
 	
-	tasks.add(UPDATE_ITEM, ui);
+	m_tasks.add(UPDATE_ITEM, ui);
 }
 
 void TransferView::on(UploadManagerListener::Tick, const UploadList& ul, uint64_t CurrentTick)
@@ -1634,7 +1633,7 @@ void TransferView::on(UploadManagerListener::Tick, const UploadList& ul, uint64_
 			l_statusString += Text::tformat(TSTRING(UPLOADED_BYTES), pos.c_str(), percent, elapsed.c_str());
 			
 			ui->setStatusString(l_statusString);
-			tasks.add(UPDATE_ITEM, ui);
+			m_tasks.add(UPDATE_ITEM, ui);
 		}
 	}
 }
@@ -1655,12 +1654,12 @@ void TransferView::onTransferComplete(const Transfer* aTransfer, const bool down
 		           TSTRING(USER) + _T(": ") + WinUtil::getNicks(aTransfer->getHintedUser()), TSTRING(UPLOAD_FINISHED_IDLE));
 	}
 	
-	tasks.add(UPDATE_ITEM, ui);
+	m_tasks.add(UPDATE_ITEM, ui);
 }
 
 void TransferView::ItemInfo::disconnect()
 {
-	ConnectionManager::getInstance()->disconnect(hintedUser.user, download);
+	ConnectionManager::getInstance()->disconnect(m_hintedUser.user, download);
 }
 
 LRESULT TransferView::onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -1805,7 +1804,7 @@ void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItemPtr& q
 	if (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP))
 		return;
 		
-	tasks.add(UPDATE_PARENT_WITH_PARSE, new QueueItemUpdateInfo(qi)); // [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
+	m_tasks.add(UPDATE_PARENT_WITH_PARSE, new QueueItemUpdateInfo(qi)); // [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
 }
 
 void TransferView::parseQueueItemUpdateInfo(QueueItemUpdateInfo* ui) // [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
@@ -1903,7 +1902,7 @@ void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, co
 	ui->setPos(0);
 	ui->setStatusString(TSTRING(DOWNLOAD_FINISHED_IDLE));
 	
-	tasks.add(UPDATE_ITEM, ui); // [!] IRainman opt.
+	m_tasks.add(UPDATE_ITEM, ui); // [!] IRainman opt.
 	
 	// update file item
 	ui = new UpdateInfo(download->getHintedUser(), true); // [!] IRainman fix.
@@ -1918,7 +1917,7 @@ void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, co
 	
 	SHOW_POPUP(POPUP_DOWNLOAD_FINISHED, TSTRING(FILE) + _T(": ") + Util::getFileName(ui->m_target), TSTRING(DOWNLOAD_FINISHED_IDLE));
 	
-	tasks.add(UPDATE_PARENT, ui);  // [!] IRainman opt.
+	m_tasks.add(UPDATE_PARENT, ui);  // [!] IRainman opt.
 }
 
 void TransferView::on(QueueManagerListener::Removed, const QueueItemPtr& qi) noexcept
@@ -1935,8 +1934,8 @@ void TransferView::on(QueueManagerListener::Removed, const QueueItemPtr& qi) noe
 	ui->setStatus(ItemInfo::STATUS_WAITING);
 	ui->setRunning(0);
 	
-	tasks.add(UPDATE_PARENT, ui);
-	//tasks.add(UPDATE_PARENT_WITH_PARSE_2, new QueueItemUpdateInfo(qi)); // [!] IRainman fix.
+	m_tasks.add(UPDATE_PARENT, ui);
+	//m_tasks.add(UPDATE_PARENT_WITH_PARSE_2, new QueueItemUpdateInfo(qi)); // [!] IRainman fix.
 }
 
 // [+] Flylink

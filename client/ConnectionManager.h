@@ -235,7 +235,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		friend class Server;
 		// [+] SSA private:
 	private:
-		SharedCriticalSection cs; // [!] IRainman fix.
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csConnection;
 		
 		/** All ConnectionQueueItems */
 		ConnectionQueueItem::List downloads;

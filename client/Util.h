@@ -97,92 +97,14 @@ static void AppendUriSeparator(T& p_path) //[+]SSA
 		if (p_path[ p_path.length() - 1 ] != URI_SEPARATOR)
 			p_path += URI_SEPARATOR;
 }
-
-#ifdef _WIN32
-static wstring ReplaceAllPathSeparatorToUriSeparator(const wstring& p_path)
-{
-	wstring l_out = p_path;
-	wstring::size_type i = 0;
-	while (true)
-	{
-		i = l_out.find(PATH_SEPARATOR, i);
-		if (i == wstring::npos)
-			break;
-			
-		l_out.replace(i, 1, URI_SEPARATOR_WSTR);
-		++i;
-	}
-	return l_out;
-}
-static string ReplaceAllPathSeparatorToUriSeparator(const string& p_path)
-{
-	string l_out = p_path;
-	string::size_type i = 0;
-	while (true)
-	{
-		i = l_out.find(PATH_SEPARATOR, i);
-		if (i == string::npos)
-			break;
-			
-		l_out.replace(i, 1, URI_SEPARATOR_STR);
-		++i;
-	}
-	return l_out;
-}
 static void ReplaceAllUriSeparatorToPathSeparator(string& p_InOutData)
 {
-	while (true)
-	{
-		const auto c = p_InOutData.find(URI_SEPARATOR);
-		if (c == string::npos)
-			break;
-			
-		p_InOutData.erase(c, 1);
-		p_InOutData.insert(c, PATH_SEPARATOR_STR);
-	}
+	std::replace(p_InOutData.begin(), p_InOutData.end(), URI_SEPARATOR, PATH_SEPARATOR);
 }
 static void ReplaceAllUriSeparatorToPathSeparator(wstring& p_InOutData)
 {
-	while (true)
-	{
-		const auto c = p_InOutData.find(URI_SEPARATOR);
-		if (c == wstring::npos)
-			break;
-			
-		p_InOutData.erase(c, 1);
-		p_InOutData.insert(c, PATH_SEPARATOR_WSTR);
-	}
+	std::replace(p_InOutData.begin(), p_InOutData.end(), _T(URI_SEPARATOR), _T(PATH_SEPARATOR));
 }
-/*************IRainman TODO**************
-template <class STR>
-static STR ReplaceAllPathSeparatorToUriSeparator(const STR& p_path)
-{
-    static const STR r((typeid(STR) == typeid(tstring) || typeid(STR) == typeid(wstring)) ? URI_SEPARATOR_WSTR : URI_SEPARATOR_STR);
-    STR l_out = p_path;
-    STR::size_type i = 0;
-    while (true)
-    {
-        i = l_out.find(PATH_SEPARATOR, 0);
-        if (i == STR::npos)
-            break;
-
-            l_out.replace(i, 1, r);
-    }
-    return l_out;
-}
-*****************************************/
-#else
-template <class STR>
-inline const STR& ReplaceAllPathSeparatorToUriSeparator(const STR& p_path)
-{
-	return p_path;
-}
-template <class STR>
-inline const STR& ReplaceAllUriSeparatorToPathSeparator(const STR& p_path)
-{
-	return p_path;
-}
-#endif
 
 template <class STR>
 static STR RemovePathSeparator(const STR& p_path) // [+] IRainman
@@ -1035,7 +957,7 @@ class Util
 		static wstring toStringW(int32_t val)
 		{
 			wchar_t buf[32];
-			snwprintf(buf, _countof(buf), L"%ld", val);
+			snwprintf(buf, _countof(buf), L"%d", val);
 			return buf;
 		}
 		
@@ -1325,7 +1247,7 @@ class Util
 		
 		// [+] IRainman: settings split and parse.
 		static StringList splitSettingAndReplaceSpace(string patternList);
-		static StringList splitSetting(const string& patternList)
+		static StringList splitSettingAndLower(const string& patternList)
 		{
 			return StringTokenizer<string>(Text::toLower(patternList), ';').getTokens();
 		}

@@ -107,29 +107,29 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		
 		AdcCommand getFileInfo(const string& aFile);
 		// [!] IRainman opt.
-		int64_t getShareSize()
+		int64_t getShareSize() const
 		{
 			dcassert(m_CurrentShareSize != -1); // TODO - баг. попытка получить размер шары до вызова internal_calcShareSize
-#ifndef FLYLINKDC_HE
-			internal_calcShareSize(); // [+]PPA
-#endif
 			return m_CurrentShareSize;
 		}
 	private:
-		void internal_calcShareSize() noexcept;
+		void internal_calcShareSize();
 	public:
 		// [~] IRainman opt.
-		int64_t getShareSize(const string& realPath) const noexcept;
+		int64_t getShareSize(const string& realPath) const;
 		
-		size_t getSharedFiles() const noexcept
+		size_t getSharedFiles() const
 		{
-		    // [-] SharedLock l(cs); [-] IRainman opt.
-		    return tthIndex.size();
+			webrtc::ReadLockScoped l(*g_csShare);
+			return tthIndex.size();
 		}
-		
-		string getShareSizeString()
+		string getShareSizeString() const
 		{
 			return Util::toString(getShareSize());
+		}
+		tstring getShareSizeformatBytesW() const
+		{
+			return Util::formatBytesW(getShareSize());
 		}
 		string getShareSizeString(const string& aDir) const
 		{
@@ -165,17 +165,18 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		{
 			if (!isShutdown())
 			{
-				SharedLock l(cs);
+				webrtc::ReadLockScoped l(*g_csShare);
 				return tthIndex.find(tth) != tthIndex.end();
 			}
 			return false;
 		}
 		
-		static size_t g_hits;
 		GETSET(string, bzXmlFile, BZXmlFile);
 		GETSET(int64_t, sharedSize, SharedSize);
 		
 	private:
+		static size_t g_hits;
+		
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 		static string getEmptyBZXmlFile()
 		{
@@ -445,7 +446,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		uint64_t lastXmlUpdate;
 		uint64_t lastFullUpdate;
 		
-		mutable SharedCriticalSection cs; // [!] IRainman opt.
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csShare;
 		
 		// List of root directory items
 		typedef std::list<Directory::Ptr> DirList;
@@ -549,7 +550,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		// [+] IRainman opt.
 		void on(SettingsManagerListener::ShareChanges) noexcept
 		{
-			auto skipList = SPLIT_SETTING(SKIPLIST_SHARE);
+			auto skipList = SPLIT_SETTING_AND_LOWER(SKIPLIST_SHARE);
 			
 			FastLock l(m_csSkipList);
 			swap(m_skipList, skipList);

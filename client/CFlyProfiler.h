@@ -123,47 +123,47 @@ struct Timer
 		Reset();
 	}
 	
-	inline bool IsEmpty() const
+	bool IsEmpty() const
 	{
 		return ticks == 0;
 	}
-	inline bool IsPaused() const
+	bool IsPaused() const
 	{
 		return paused;
 	}
-	inline void Unpause(u64 curticks)
+	void Unpause(u64 curticks)
 	{
 		started = curticks;
 		paused = false;
 	}
-	inline void Unpause()
+	void Unpause()
 	{
 		Unpause(getticks());
 	}
-	inline void Pause(u64 curticks)
+	void Pause(u64 curticks)
 	{
 		ticks += (curticks - started);
 		paused = true;
 	}
-	inline void Pause()
+	void Pause()
 	{
 		Pause(getticks());
 	}
-	inline void Start()
+	void Start()
 	{
 		++calls;
 		started = getticks();
 	}
-	inline void Stop()
+	void Stop()
 	{
 		ticks += (getticks() - started);
 	}
-	inline void Reset()
+	void Reset()
 	{
 		ticks = started = calls = 0;
 		paused = false;
 	}
-	inline void SoftStop()
+	void SoftStop()
 	{
 		if (!paused)
 		{
@@ -172,7 +172,7 @@ struct Timer
 			started = t;
 		}
 	}
-	inline void SoftReset()
+	void SoftReset()
 	{
 		ticks = 0;
 		calls = 1;

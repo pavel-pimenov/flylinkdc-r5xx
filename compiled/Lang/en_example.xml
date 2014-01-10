@@ -198,6 +198,7 @@
 	<string name="CheckShowRealShare">, stated size = %[shareshort], real size = %[realshareformat]</string>
 	<string name="ChooseFolder">Choose folder</string>
 	<string name="Cid">CID</string>
+	<string name="Tag">Tag</string>
 	<string name="Cipher">Cipher</string>
 	<string name="Clear">Clear chat</string>
 	<string name="ClearSearchHistory">Clear search history</string>
@@ -266,6 +267,7 @@
 	<string name="CommandTooLong">Maximum command length exceeded</string>
 	<string name="CommaNotFound">comma cannot be found</string>
 	<string name="Comment">Comment</string>
+	<string name="CommentedLine">Commented line</string>
 	<string name="CompiledOn">Compiled on:</string>
 	<string name="Compressed">Compressed</string>
 	<string name="CompressionError">Error during compression</string>
@@ -287,6 +289,7 @@
 	<string name="ConnectAll">Connect to all users</string>
 	<string name="ConnectFavuserHub">Connect to hub</string>
 	<string name="ConnectToSupportHub">Connect to support hub on each startup</string>
+	<string name="ContactListMenu">Contact list</string>
 	<string name="ContinueSearch">Continue</string>
 	<string name="Copy">Copy</string>
 	<string name="CopyAll">Copy all</string>
@@ -304,6 +307,8 @@
 	<string name="CopyNick">Copy nick</string>
 	<string name="CopyNickIp">Copy Nick+IP</string>
 	<string name="CopyApplication">Copy application</string>
+	<string name="CopyTag">Copy Tag</string>
+	<string name="CopyCid">Copy CID</string>
 	<string name="CopyTth">Copy TTH</string>
 	<string name="CopyUrl">Copy URL</string>
 	<string name="CouldNotOpenTargetFile">Could not open target file:</string>
@@ -419,6 +424,7 @@
 	<string name="Eb">EiB</string>
 	<string name="EditAccel">&amp;Edit</string>
 	<string name="Email">E-Mail</string>
+	<string name="EmptyLineSkiped">Empty line skipped</string>
 	<string name="EnableHubmodePic">Enable 'Mode Picture' for hubs</string>
 	<string name="EnableCountryflag">Add Country flag into 'Location' in userlist</string>
 	<string name="EnableLastIp">Store IP in a SQLite database</string>
@@ -483,7 +489,6 @@
 	<string name="FavoriteUsers">Favorite users</string>
 	<string name="FavoriteUserAdded">Favorite user is added</string>
 	<string name="Favuserlistdblclickaction">on Favorite User list</string>
-	<string name="ContactListMenu">Contact list</string>
 	<string name="FavuserOffline">Favorite user is offline</string>
 	<string name="FavuserOnline">Favorite user is online</string>
 	<string name="FavJoinShowingOff">Join/part of favorite users showing off</string>

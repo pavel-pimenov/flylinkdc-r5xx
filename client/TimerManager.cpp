@@ -49,6 +49,7 @@ TimerManager::~TimerManager()
 
 void TimerManager::shutdown()
 {
+	g_isStartupShutdownProcess = true;
 	m_mtx.unlock();
 	join();
 	// [+] IRainman fix.

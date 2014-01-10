@@ -22,6 +22,7 @@
 #ifdef _WIN32
 #include "typedefs.h"
 
+
 // http://code.google.com/p/flylinkdc/issues/detail?id=574
 class CompatibilityManager
 {
@@ -78,6 +79,7 @@ class CompatibilityManager
 			return g_comCtlVersion;
 		}
 		static string getFormatedOsVersion();
+		static string getWindowsVersionName();
 		static DWORD getOsMajor()
 		{
 			return g_osvi.dwMajorVersion;
@@ -89,6 +91,14 @@ class CompatibilityManager
 		static WORD getOsSpMajor()
 		{
 			return g_osvi.wServicePackMajor;
+		}
+		static BYTE getOsType()
+		{
+			return g_osvi.wProductType;
+		}
+		static BYTE getOsSuiteMask()
+		{
+			return g_osvi.wSuiteMask;
 		}
 		static OSVERSIONINFOEX& getVersionInfo() // [+] SSA Get System Info
 		{
@@ -116,6 +126,10 @@ class CompatibilityManager
 		static size_t getProcessorsCount()
 		{
 			return g_sysInfo.dwNumberOfProcessors;
+		}
+		static WORD getProcArch()
+		{
+			return g_sysInfo.wProcessorArchitecture;
 		}
 		static size_t getPageSize()
 		{
@@ -174,6 +188,7 @@ class CompatibilityManager
 		static void detectUncompatibleSoftware();
 		static LONG getComCtlVersionFromOS();
 		static void getSystemInfoFromOS();
+		static string getProcArchString();
 		static void generateSystemInfoForApp();
 		static bool getFromSystemIsAppRunningIsWow64();
 		static bool getGlobalMemoryStatusFromOS(MEMORYSTATUSEX* MsEx);

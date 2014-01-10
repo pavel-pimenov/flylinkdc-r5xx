@@ -131,7 +131,7 @@ class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_
 			USER_UPDATED
 		};
 		
-		class UserInfo : public UserInfoBase
+		class UserInfo : public UserInfoBase // class UserInfo уже есть в client - не хорошо дублировать имя
 		{
 			public:
 				UserInfo(const FavoriteUser& u) : user(u.getUser())

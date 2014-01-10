@@ -393,8 +393,8 @@ QueueItemPtr QueueManager::FileQueue::find(const string& p_target) const // [!] 
 
 void QueueManager::FileQueue::on(SettingsManagerListener::QueueChanges) noexcept
 {
-	auto highPrioFiles = SPLIT_SETTING(HIGH_PRIO_FILES);
-	auto lowPrioFiles = SPLIT_SETTING(LOW_PRIO_FILES);
+	auto highPrioFiles = SPLIT_SETTING_AND_LOWER(HIGH_PRIO_FILES);
+	auto lowPrioFiles = SPLIT_SETTING_AND_LOWER(LOW_PRIO_FILES);
 	
 	FastLock l(m_csPriorities);
 	swap(m_highPrioFiles, highPrioFiles);
@@ -630,7 +630,7 @@ void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr&
 	}
 }
 
-void QueueManager::Rechecker::execute(const string && p_file) // [!] IRainman core.
+void QueueManager::Rechecker::execute(const string& p_file) // [!] IRainman core.
 {
 	QueueItemPtr q;
 	int64_t tempSize;
@@ -960,7 +960,7 @@ void QueueManager::addList(const UserPtr& aUser, Flags::MaskType aFlags, const s
 	add(aInitialDir, -1, TTHValue(), aUser, (Flags::MaskType)(QueueItem::FLAG_USER_LIST | aFlags));
 }
 
-void QueueManager::DclstLoader::execute(const string && p_currentDclstFile) // [+] IRainman dclst support.
+void QueueManager::DclstLoader::execute(const string& p_currentDclstFile) // [+] IRainman dclst support.
 {
 	const string l_dclstFilePath = Util::getFilePath(p_currentDclstFile);
 	unique_ptr<DirectoryListing> dl(new DirectoryListing(HintedUser(UserPtr(), Util::emptyString)));
@@ -1432,7 +1432,7 @@ int QueueManager::matchListing(const DirectoryListing& dl) noexcept
 	return matches;
 }
 
-void QueueManager::FileListQueue::execute(const DirectoryListInfoPtr && list) // [+] IRainman fix: moved form MainFrame to core.
+void QueueManager::FileListQueue::execute(const DirectoryListInfoPtr& list) // [+] IRainman fix: moved form MainFrame to core.
 {
 	if (File::isExist(list->file))
 	{
@@ -1451,7 +1451,7 @@ void QueueManager::FileListQueue::execute(const DirectoryListInfoPtr && list) //
 	delete list;
 }
 
-void QueueManager::ListMatcher::execute(const StringList && list) // [+] IRainman fix: moved form MainFrame to core.
+void QueueManager::ListMatcher::execute(const StringList& list) // [+] IRainman fix: moved form MainFrame to core.
 {
 	for (auto i = list.cbegin(); i != list.cend(); ++i)
 	{
@@ -1472,7 +1472,7 @@ void QueueManager::ListMatcher::execute(const StringList && list) // [+] IRainma
 	}
 }
 
-void QueueManager::QueueManagerWaiter::execute(const WaiterFile && p_currentFile) // [+] IRainman: auto pausing running downloads before moving.
+void QueueManager::QueueManagerWaiter::execute(const WaiterFile& p_currentFile) // [+] IRainman: auto pausing running downloads before moving.
 {
 	const string& l_source = p_currentFile.getSource();
 	const string& l_target = p_currentFile.getTarget();

@@ -217,6 +217,53 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 {
 	// Сохраним маркеры времени завершения
 	{
+	
+#ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES
+		// [!] IRainman fix: supports cleanup.
+		string l_debugFeatures;
+		string l_debugConnections;
+		string l_debugTag;
+		{
+			FastLock l(AdcSupports::g_debugCsUnknownAdcFeatures);
+			const auto& l_debugUnknownFeatures = AdcSupports::g_debugUnknownAdcFeatures;
+			for (auto i = l_debugUnknownFeatures.begin(); i != l_debugUnknownFeatures.end(); ++i)
+			{
+				l_debugFeatures += *i + ',';
+			}
+			AdcSupports::g_debugUnknownAdcFeatures.clear();
+		}
+		{
+			FastLock l(NmdcSupports::g_debugCsUnknownNmdcConnection);
+			const auto& l_debugUnknownConnections = NmdcSupports::g_debugUnknownNmdcConnection;
+			for (auto i = l_debugUnknownConnections.begin(); i != l_debugUnknownConnections.end(); ++i)
+			{
+				l_debugConnections += *i + ',';
+			}
+			NmdcSupports::g_debugUnknownNmdcConnection.clear();
+		}
+		{
+			FastLock l(NmdcSupports::g_debugCsUnknownNmdcTagParam);
+			const auto& l_debugUnknownNmdcTagParam = NmdcSupports::g_debugUnknownNmdcTagParam;
+			for (auto i = l_debugUnknownNmdcTagParam.begin(); i != l_debugUnknownNmdcTagParam.end(); ++i)
+			{
+				l_debugTag += *i + ',';
+			}
+			NmdcSupports::g_debugUnknownNmdcTagParam.clear();
+		}
+		if (!l_debugFeatures.empty())
+		{
+			LogManager::getInstance()->message("Founded unknown ADC supports: " + l_debugFeatures);
+		}
+		if (!l_debugConnections.empty())
+		{
+			LogManager::getInstance()->message("Founded unknown NMDC connections: " + l_debugConnections);
+		}
+		if (!l_debugTag.empty())
+		{
+			LogManager::getInstance()->message("Founded unknown NMDC tag param: " + l_debugTag);
+		}
+#endif // FLYLINKDC_COLLECT_UNKNOWN_FEATURES
+		
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 		CFlyTickDelta l_delta(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_SHUTDOWN_CORE]);
 #endif
@@ -300,50 +347,6 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 #ifdef _WIN32
 		::WSACleanup();
 #endif
-		
-		// [!] IRainman fix:
-#ifdef _DEBUG
-		// [!] IRainman fix: supports cleanup.
-		string _debugFeatures;
-		string _debugConnections;
-		string _debugTag;
-		{
-			FastLock l(AdcSupports::g_debugCsUnknownAdcFeatures);
-			const auto& _debugUnknownFeatures = AdcSupports::g_debugUnknownAdcFeatures;
-			for (auto i = _debugUnknownFeatures.begin(); i != _debugUnknownFeatures.end(); ++i)
-			{
-				_debugFeatures += *i + ',';
-			}
-		}
-		{
-			FastLock l(NmdcSupports::g_debugCsUnknownNmdcConnection);
-			const auto& _debugUnknownConnections = NmdcSupports::g_debugUnknownNmdcConnection;
-			for (auto i = _debugUnknownConnections.begin(); i != _debugUnknownConnections.end(); ++i)
-			{
-				_debugConnections += *i + ',';
-			}
-		}
-		{
-			FastLock l(NmdcSupports::g_debugCsUnknownNmdcTagParam);
-			const auto& _debugUnknownNmdcTagParam = NmdcSupports::g_debugUnknownNmdcTagParam;
-			for (auto i = _debugUnknownNmdcTagParam.begin(); i != _debugUnknownNmdcTagParam.end(); ++i)
-			{
-				_debugTag += *i + ',';
-			}
-		}
-		if (!_debugFeatures.empty())
-		{
-			dcdebug("Founded unknown ADC supports: %s\n", _debugFeatures.c_str());
-		}
-		if (!_debugConnections.empty())
-		{
-			dcdebug("Founded unknown NMDC connections: %s\n", _debugConnections.c_str());
-		}
-		if (!_debugTag.empty())
-		{
-			dcdebug("Founded unknown NMDC tag param: %s\n", _debugTag.c_str());
-		}
-#endif // _DEBUG
 		
 		// [!] IRainman fix: Issue 1037 [BUG] иногда теряем объект User? https://code.google.com/p/flylinkdc/issues/detail?id=1037
 #ifdef _DEBUG

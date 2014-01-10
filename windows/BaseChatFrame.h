@@ -132,9 +132,9 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		}
 		LRESULT onSearchFileInInternet(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
-			if (!ChatCtrl::sSelectedText.empty())
+			if (!ChatCtrl::g_sSelectedText.empty())
 			{
-				searchFileInInternet(wID, ChatCtrl::sSelectedText);
+				searchFileInInternet(wID, ChatCtrl::g_sSelectedText);
 			}
 			return 0;
 		}

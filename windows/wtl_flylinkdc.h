@@ -20,15 +20,33 @@
 #define DCPLUSPLUS_WTL_FLYLINKDC_H
 
 #include <atlctrlx.h>
+#include "../client/w.h"
 #include "../client/SettingsManager.h"
 #include "../client/ResourceManager.h"
+
+class CFlyBusy
+{
+		bool& m_flag;
+	public:
+		CFlyBusy(bool& p_flag) : m_flag(p_flag)
+		{
+			//dcassert(p_flag == false);
+			m_flag = true;
+		}
+		~CFlyBusy()
+		{
+			m_flag = false;
+		}
+};
 
 class CFlyTimerAdapter
 {
 		UINT_PTR m_timer_id;
 		const HWND& m_hTimerWnd;
+	protected:
+		bool m_spoken;
 	public:
-		CFlyTimerAdapter(const HWND& p_hWnd) : m_hTimerWnd(p_hWnd), m_timer_id(0)
+		CFlyTimerAdapter(const HWND& p_hWnd) : m_hTimerWnd(p_hWnd), m_timer_id(0), m_spoken(false)
 		{
 		}
 		virtual ~CFlyTimerAdapter()
@@ -46,7 +64,6 @@ class CFlyTimerAdapter
 			}
 			return m_timer_id;
 		}
-		
 		void safe_destroy_timer()
 		{
 			dcassert(m_timer_id);
@@ -57,6 +74,20 @@ class CFlyTimerAdapter
 				m_timer_id = 0;
 			}
 		}
+		void speak()
+		{
+			ATLASSERT(::IsWindow(m_hTimerWnd));
+			if (!m_spoken)
+			{
+				m_spoken = true;
+				PostMessage(m_hTimerWnd, WM_SPEAKER, 0, 0);
+			}
+		}
+		void force_speak()
+		{
+			PostMessage(m_hTimerWnd, WM_SPEAKER, 0, 0);
+		}
+		
 #if 0 // TODO: needs review, see details here https://code.google.com/p/flylinkdc/source/detail?r=15539
 		void safe_destroy_timer_if_exists()
 		{

@@ -80,6 +80,25 @@ PropPage::Item NetworkPage::items[] =
 	{ 0, 0, PropPage::T_END }
 };
 
+LRESULT NetworkPage::OnEnKillfocusExternalIp(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	tstring l_externalIPW;
+	GET_TEXT(IDC_EXTERNAL_IP, l_externalIPW);
+	const auto l_externalIP = Text::fromT(l_externalIPW);
+	if (!l_externalIP.empty())
+	{
+		boost::system::error_code ec;
+		const auto l_ip = boost::asio::ip::address_v4::from_string(l_externalIP, ec);
+		// TODO - убрать count и попробовать без буста - http://stackoverflow.com/questions/318236/how-do-you-validate-that-a-string-is-a-valid-ip-address-in-c?
+		if (ec || std::count(l_externalIP.cbegin(), l_externalIP.cend(), '.') != 3)
+		{
+			const auto l_last_ip = SETTING(EXTERNAL_IP);
+			::MessageBox(NULL, Text::toT("Error IP = " + l_externalIP + ", restore last valid IP = " + l_last_ip).c_str(), _T("IP Error!"), MB_OK | MB_ICONERROR);
+			::SetWindowText(GetDlgItem(IDC_EXTERNAL_IP), Text::toT(SETTING(EXTERNAL_IP)).c_str());
+		}
+	}
+	return 0;
+}
 void NetworkPage::write()
 {
 	PropPage::write((HWND)(*this), items);
@@ -153,6 +172,9 @@ LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	PropPage::read((HWND)(*this), items);
 	
 	fixControls();
+	m_IPHint.Create(m_hWnd, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP | TTS_BALLOON, WS_EX_TOPMOST);
+	m_IPHint.SetDelayTime(TTDT_AUTOPOP, 15000);
+	dcassert(m_IPHint.IsWindow());
 	
 	desc.Attach(GetDlgItem(IDC_PORT_TCP));
 	desc.LimitText(5);
@@ -170,13 +192,16 @@ LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 #endif
 	m_ConnCheckUrl.init(GetDlgItem(IDC_CON_CHECK), _T(""));
 	BindCombo.Attach(GetDlgItem(IDC_BIND_ADDRESS));
-	WinUtil::getAddresses(BindCombo);
-	BindCombo.SetCurSel(BindCombo.FindString(0, Text::toT(SETTING(BIND_ADDRESS)).c_str()));
+	const auto l_tool_tip = WinUtil::getAddresses(BindCombo);
+	m_IPHint.SetMaxTipWidth(1024);
+	m_IPHint.AddTool(BindCombo, l_tool_tip.c_str());
+	const auto l_bind = Text::toT(SETTING(BIND_ADDRESS));
+	BindCombo.SetCurSel(BindCombo.FindString(0, l_bind.c_str()));
 	
 	if (BindCombo.GetCurSel() == -1)
 	{
-		BindCombo.AddString(Text::toT(SETTING(BIND_ADDRESS)).c_str());
-		BindCombo.SetCurSel(BindCombo.FindString(0, Text::toT(SETTING(BIND_ADDRESS)).c_str()));
+		BindCombo.AddString(l_bind.c_str());
+		BindCombo.SetCurSel(BindCombo.FindString(0, l_bind.c_str()));
 	}
 	BindCombo.Detach();
 	

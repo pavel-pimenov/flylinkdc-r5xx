@@ -223,6 +223,7 @@
 		<String Name="CheckShowRealShare">, указанный размер = %[statedshareformat], реальный размер = %[realshareformat]</String>
 		<String Name="ChooseFolder">Выбрать папку</String>
 		<String Name="Cid">CID</String>
+		<String Name="Tag">Тэг</String>
 		<String Name="Cipher">Шифр</String>
 		<String Name="Clear">Очистить чат</String>
 		<String Name="ClearSearchHistory">Очистить историю поиска</String>
@@ -318,6 +319,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="CommandTooLong">Команда слишком длинная</String>
 		<String Name="CommaNotFound">Запятая не найдена</String>
 		<String Name="Comment">Комментарий</String>
+		<String Name="CommentedLine">Закомментированная строка</String>
 		<String Name="CompiledOn">Собрано:</String>
 		<String Name="Compressed">Сжатый</String>
 		<String Name="CompressionError">Ошибка во время сжатия</String>
@@ -339,6 +341,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="ConnectAll">Соединиться со всеми пользователями</String>
 		<String Name="ConnectFavuserHub">Соединиться с хабом</String>
 		<String Name="ConnectToSupportHub">Присоединяться к хабу поддержки при каждом старте</String>
+		<String Name="ContactListMenu">Список контактов</String>
 		<String Name="ContinueSearch">Продолжить</String>
 		<String Name="Copy">Копировать</String>
 		<String Name="CopyAll">Копировать всё</String>
@@ -356,6 +359,8 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="CopyNick">Копировать ник</String>
 		<String Name="CopyNickIp">Копировать ник+IP</String>
 		<String Name="CopyApplication">Копировать приложение</String>
+		<String Name="CopyTag">Копировать тэг</String>
+		<String Name="CopyCid">Копировать CID</String>
 		<String Name="CopyTth">Копировать TTH</String>
 		<String Name="CopyUrl">Копировать URL</String>
 		<String Name="CouldNotOpenTargetFile">Папка для временных файлов недоступна:</String>
@@ -479,6 +484,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="Eb">ЭБ</String>
 		<String Name="EditAccel">&amp;Правка</String>
 		<String Name="Email">E-Mail</String>
+		<String Name="EmptyLineSkiped">Пустая строка пропущена</String>
 		<String Name="EnableHubmodePic">Показывать 'Иконку Режима' для хабов</String>
 		<String Name="EnableCountryflag">Добавить флаг Страны в 'Расположение' списка Пользователей</String>
 		<String Name="EnableLastIp">Сохранять IP в базе SQLite</String>
@@ -545,7 +551,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="FavoriteUsers">Избранные пользователи</String>
 		<String Name="FavoriteUserAdded">Пользователь добавлен в Избранное</String>
 		<String Name="Favuserlistdblclickaction">в списке любимых пользователей</String>
-		<String Name="ContactListMenu">Список контактов</String>
 		<String Name="FavuserOffline">Ушёл Друг</String>
 		<String Name="FavuserOnline">Пришёл Друг</String>
 		<String Name="FavJoinShowingOff">Показ "пришёл"/"ушёл" для друзей выключен</String>
@@ -747,7 +752,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="IpAutoUpdate">IP обновлён:</String>
 		<String Name="IpBare">IP</String>
 		<String Name="IpInChat">Пытаться показать IP пользователей в чате</String>
-		<String Name="Items">Выделено</String>
+		<String Name="Items">Записи</String>
 		<String Name="ItemExist">Пункт уже существует!</String>
 		<String Name="ItunesHelp">/itunes - Для показа в чате спама от iTunes
 

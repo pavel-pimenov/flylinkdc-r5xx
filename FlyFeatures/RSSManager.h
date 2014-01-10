@@ -203,7 +203,7 @@ class RSSManager :
 		FastCriticalSection csNews;
 		
 		void fail(const string& aError);
-		void execute(const RSSManagerTasks&& p_task);
+		void execute(const RSSManagerTasks& p_task);
 		
 		void updateAllFeeds();
 		

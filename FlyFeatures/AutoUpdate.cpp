@@ -104,7 +104,7 @@ void AutoUpdate::startUpdateManually()
 	addTask(START_UPDATE);
 }
 
-void AutoUpdate::execute(const AutoUpdateTasks&& p_task)
+void AutoUpdate::execute(const AutoUpdateTasks& p_task)
 {
 	dcassert (p_task == START_UPDATE);
 	startUpdateThisThread();

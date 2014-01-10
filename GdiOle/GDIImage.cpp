@@ -3,7 +3,7 @@
 #include "GdiImage.h"
 
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
-FastCriticalSection CGDIImage::g_cs;
+FastCriticalSection CGDIImage::g_GDIcs;
 std::unordered_set<CGDIImage*> CGDIImage::g_GDIImageSet;
 unsigned CGDIImage::g_AnimationDeathDetectCount = 0;
 unsigned CGDIImage::g_AnimationCount = 0;
@@ -353,7 +353,7 @@ CGDIImage *CGDIImage::CreateInstance(LPCWSTR pszFileName, HWND hCallbackWnd, DWO
 {
 	CGDIImage* l_image = new CGDIImage(pszFileName, hCallbackWnd, dwCallbackMsg);
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
-	FastLock l(g_cs);
+	FastLock l(g_GDIcs);
 	g_GDIImageSet.insert(l_image);
 #endif
 	return l_image;

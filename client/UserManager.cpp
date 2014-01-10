@@ -114,7 +114,7 @@ void UserManager::checkUser(const OnlineUserPtr& user)
 
 void UserManager::on(SettingsManagerListener::UsersChanges) noexcept
 {
-	auto protUsers = SPLIT_SETTING(PROT_USERS);
+	auto protUsers = SPLIT_SETTING_AND_LOWER(PROT_USERS);
 	
 	FastUniqueLock l(g_csProtectedUsers);
 	swap(g_protectedUsersLower, protUsers);

@@ -69,7 +69,7 @@ BOOL IDNA_convert_from_ACE (char *name, size_t *size);
         m_buf[0] = '\0';
       }
 
-      inline const char *convert_to_ACE (const char *name, int *error = NULL)
+      const char *convert_to_ACE (const char *name, int *error = NULL)
       {
 	strncpy_s (m_buf, sizeof(m_buf)-1, name, MAX_COPY_SIZE);
 	m_buf [sizeof(m_buf)-1] = '\0';
@@ -82,7 +82,7 @@ BOOL IDNA_convert_from_ACE (char *name, size_t *size);
         return (rc ? m_buf : NULL);
       }
 
-      inline const char *convert_from_ACE (const char *name, int *error = NULL)
+      const char *convert_from_ACE (const char *name, int *error = NULL)
       {
 	strncpy_s (m_buf, sizeof(m_buf)-1, name, MAX_COPY_SIZE);
 	m_buf [sizeof(m_buf)-1] = '\0';
@@ -95,12 +95,12 @@ BOOL IDNA_convert_from_ACE (char *name, size_t *size);
         return (rc ? m_buf : NULL);
       }
 
-      inline BOOL is_ACE (void)
+      BOOL is_ACE (void) const
       {
         return (strstr(m_buf,"xn--") ? TRUE : FALSE);
       }
 
-      inline void set_debug (int level, IDNA_debug_func func)
+      void set_debug (int level, IDNA_debug_func func)
       {
 	_idna_debug = level;
  	_idna_printf = func;

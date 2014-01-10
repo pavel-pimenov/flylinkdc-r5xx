@@ -337,7 +337,7 @@ void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility
 				sm["nick"] = getNick();
 				sm["cid"] = l_cid;
 				sm["ip"] = getIp();
-				// sm["tag"] = getStringParam("TA"); deprecated
+				sm["tag"] = getTag();
 				sm["description"] = getDescription();
 				sm["email"] = getEmail();
 				sm["share"] = Util::toString(getBytesShared());
@@ -358,12 +358,27 @@ void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility
 		sm[prefix + string((char*)(&i->first), 2)] =  i->second;
 	}
 }
-/* [-] IRainamn opt.
+// Вернул тэг - http://code.google.com/p/flylinkdc/source/detail?r=14812
 string Identity::getTag() const
 {
-    return getStringParam("TA");
+	//string l_tag; // TODO = getStringParam("TA");
+	//if (l_tag.empty())
+	//{
+	char l_tagItem[128];
+	l_tagItem[0] = 0;
+	_snprintf(l_tagItem, sizeof(l_tagItem), "<%s,M:%c,H:%u/%u/%u,S:%u>", // http://mydc.ru/topic915.html?p=6721#entry6721 TODO - нужно ли вертать L:
+	          //getApplication().c_str(),
+	          (getStringParam("AP") + " V:" + getStringParam("VE")).c_str(),
+	          isTcpActive() ? 'A' : 'P',
+	          getHubNormal(),
+	          getHubRegister(),
+	          getHubOperator(),
+	          getSlots());
+	return l_tagItem;
+	//l_tag = l_tagItem;
+	//}
+	//return l_tag;
 }
-   [-] IRainamn opt.*/
 string Identity::getApplication() const
 {
 	const auto& application = getStringParam("AP");

@@ -489,11 +489,12 @@ LRESULT WaitingUsersFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 {
 	// [!] IRainman opt.
 	TaskQueue::List t;
-	tasks.get(t);
+	m_tasks.get(t);
 	
 	if (t.empty())
 		return 0;
 		
+	CFlyBusy l_busy(m_spoken);
 	CLockRedraw<> lockCtrlList(m_ctrlList);
 	CLockRedraw<> lockCtrlQueued(ctrlQueued);
 	for (auto i = t.cbegin(); i != t.cend(); ++i)
@@ -561,8 +562,6 @@ LRESULT WaitingUsersFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 		}
 		delete i->second;
 	}
-	m_spoken = false;
-	// [~] IRainman opt.
 	return 0;
 }
 
@@ -592,7 +591,7 @@ void WaitingUsersFrame::on(UploadManagerListener::QueueUpdate) noexcept
 {
 	if (!MainFrame::isAppMinimized() && WinUtil::g_tabCtrl->isActive(m_hWnd)) // [+] IRainman opt.
 	{
-		tasks.add(UPDATE_ITEMS, nullptr);
+		m_tasks.add(UPDATE_ITEMS, nullptr);
 	}
 }
 

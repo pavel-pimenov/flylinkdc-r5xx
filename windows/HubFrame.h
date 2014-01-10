@@ -62,6 +62,7 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		
 		BEGIN_MSG_MAP(HubFrame)
 		MESSAGE_HANDLER(WM_SPEAKER, onSpeaker)
+		MESSAGE_RANGE_HANDLER(WM_SPEAKER_BEGIN, WM_SPEAKER_END, OnSpeakerRange)
 		NOTIFY_HANDLER(IDC_USERS, LVN_GETDISPINFO, ctrlUsers.onGetDispInfo)
 		NOTIFY_HANDLER(IDC_USERS, LVN_COLUMNCLICK, ctrlUsers.onColumnClick)
 		NOTIFY_HANDLER(IDC_USERS, LVN_GETINFOTIP, ctrlUsers.onInfoTip)
@@ -124,6 +125,8 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		MESSAGE_HANDLER(WM_LBUTTONDOWN, onSwitchPanels)
 #endif
 		END_MSG_MAP()
+		
+		LRESULT OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 		
 		LRESULT onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/);
 		LRESULT onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
@@ -315,17 +318,16 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		void firstLoadAllUsers();
 		void usermap2ListrView();
 		
-		UserInfo::OnlineUserMap userMap;
+		UserInfo::OnlineUserMap m_userMap;
 		TaskQueue m_tasks;
-		bool m_spoken; // [+] IRainman opt.
 		bool m_needsUpdateStats;
 		bool m_needsResort;
 		
 		static int g_columnIndexes[/* [!] IRainman: don't uncomment this! ПОКУСАЮ! COLUMN_LAST*/];
 		static int g_columnSizes[/* [!] IRainman: don't uncomment this! ПОКУСАЮ! COLUMN_LAST*/];
 		
-		bool updateUser(const OnlineUserTask& u);
-		void removeUser(const OnlineUserTask& u);
+		bool updateUser(const OnlineUserPtr& p_ou);
+		void removeUser(const OnlineUserPtr& p_ou);
 		
 		void InsertUserList(UserInfo* ui);
 		void updateUserList(); // [!] IRainman opt.
@@ -333,15 +335,16 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		bool matchFilter(UserInfo& ui, int sel, bool doSizeCompare = false, FilterModes mode = NONE, int64_t size = 0);
 		UserInfo* findUser(const tstring& p_nick)   // !SMT!-S
 		{
+			dcassert(!p_nick.empty());
 			if (p_nick.empty())
 				return nullptr;
 				
 			const OnlineUserPtr ou = client->findUser(Text::fromT(p_nick));
-			return ou ? userMap.findUser(ou) : nullptr;
+			return ou ? m_userMap.findUser(ou) : nullptr;
 		}
 		UserInfo* findUser(const OnlineUserPtr& user)
 		{
-			return userMap.findUser(user);
+			return m_userMap.findUser(user);
 		}
 		//const tstring& getNick(const UserPtr& aUser);
 		
@@ -366,67 +369,58 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept;
 		
 		// ClientListener
-		void on(Connecting, const Client*) noexcept;
+		void on(ClientListener::Connecting, const Client*) noexcept;
 		void on(ClientListener::Connected, const Client*) noexcept;
 		void on(ClientListener::UserUpdated, const Client*, const OnlineUserPtr&) noexcept; // !SMT!-fix
-		void on(UsersUpdated, const Client*, const OnlineUserList&) noexcept;
+		void on(ClientListener::UsersUpdated, const Client*, const OnlineUserList&) noexcept;
 		void on(ClientListener::UserRemoved, const Client*, const OnlineUserPtr&) noexcept;
-		void on(Redirect, const Client*, const string&) noexcept;
+		void on(ClientListener::Redirect, const Client*, const string&) noexcept;
 		void on(ClientListener::Failed, const Client*, const string&) noexcept;
-		void on(GetPassword, const Client*) noexcept;
-		void on(HubUpdated, const Client*) noexcept;
-		void on(Message, const Client*, const ChatMessage&/* [-] IRainman fix , bool thirdPerson*/) noexcept;
+		void on(ClientListener::GetPassword, const Client*) noexcept;
+		void on(ClientListener::HubUpdated, const Client*) noexcept;
+		void on(ClientListener::Message, const Client*, std::unique_ptr<ChatMessage>&) noexcept;
 		//void on(PrivateMessage, const Client*, const string &strFromUserName, const UserPtr&, const UserPtr&, const UserPtr&, const string&, bool = true) noexcept; // !SMT!-S [-] IRainman fix.
 		void on(NickTaken, const Client*) noexcept;
 #ifdef IRAINMAN_USE_SEARCH_FLOOD_FILTER
 		void on(SearchFlood, const Client*, const string&) noexcept;
 #endif
-		void on(CheatMessage, const Client*, const string&) noexcept;
-		void on(UserReport, const Client*, const string&) noexcept; // [+] IRainman
-		void on(HubTopic, const Client*, const string&) noexcept;
+		void on(ClientListener::CheatMessage, const string&) noexcept;
+		void on(ClientListener::UserReport, const Client*, const string&) noexcept; // [+] IRainman
+		void on(ClientListener::HubTopic, const Client*, const string&) noexcept;
+		void on(ClientListener::StatusMessage, const Client*, const string& line, int statusFlags);
 #ifdef RIP_USE_CONNECTION_AUTODETECT
-		void on(DirectModeDetected, const string&) noexcept;
+		void on(ClientListener::DirectModeDetected, const string&) noexcept;
 #endif
 		
 		struct StatusTask : public Task
-#ifdef _DEBUG
-				, virtual NonDerivable<StatusTask> // [+] IRainman fix.
-#endif
 		{
-			explicit StatusTask(const string& msg, bool _inChat = true) : str(msg), inChat(_inChat) { }
-			const string str;
-			const bool inChat;
+			explicit StatusTask(const string& p_msg, bool p_isInChat) : m_str(p_msg), m_isInChat(p_isInChat) { }
+			const string m_str;
+			const bool m_isInChat;
 		};
-		
-		void fastSpeak()
-		{
-			PostMessage(WM_SPEAKER);
-		}
-		
 		void speak(Tasks s)
 		{
-			m_tasks.add(static_cast<uint8_t>(s), nullptr); // 2012-05-03_22-05-14_YNJS7AEGAWCUMRBY2HTUTLYENU4OS2PKNJXT6ZY_77EFD949_crash-stack-r502-beta24-x64-build-9900.dmp
+			m_tasks.add(static_cast<uint8_t>(s), nullptr);
 		}
-		
-		// [~] !SMT!-fix
+#ifndef FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
 		void speak(Tasks s, const OnlineUserPtr& u)
 		{
 			m_tasks.add(static_cast<uint8_t>(s), new OnlineUserTask(u));
 		}
-		
-		void speak(Tasks s, const ChatMessage& message) // [!] IRainman: only messaging task speaking not spoking :)
-		{
-			m_tasks.add(static_cast<uint8_t>(s), new MessageTask(message));
-			fastSpeak();
-		}
+#endif
 		// [~] !SMT!-S
 		
 		void speak(Tasks s, const string& msg, bool inChat = true)
 		{
 			m_tasks.add(static_cast<uint8_t>(s), new StatusTask(msg, inChat));
 		}
-		
-		void on(StatusMessage, const Client*, const string& line, int statusFlags);
+#ifndef FLYLINKDC_PRIVATE_MESSAGE_USE_WIN_MESSAGES_Q
+		void speak(Tasks s, ChatMessage* p_message_ptr)
+		{
+			m_tasks.add(static_cast<uint8_t>(s), new MessageTask(p_message_ptr));
+			force_speak();
+		}
+#endif
 		
 	public:
 		static void addDupeUsersToSummaryMenu(const int64_t &share, const string& ip); // !SMT!-UI
@@ -462,15 +456,8 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		tstring m_filter;
 		string m_window_text;
 		uint8_t m_is_window_text_update;
-		void updateWindowText()
-		{
-			if (m_is_window_text_update)
-			{
-				// TODO - ограничить размер текста
-				SetWindowText(Text::toT(m_window_text).c_str());
-				m_is_window_text_update = 0;
-			}
-		}
+		void setWindowTitle(const string& p_text);
+		void updateWindowText();
 		CContainedWindow* m_ctrlFilterContainer;
 		CContainedWindow* m_ctrlFilterSelContainer;
 		

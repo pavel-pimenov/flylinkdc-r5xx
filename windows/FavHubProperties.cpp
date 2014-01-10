@@ -361,35 +361,7 @@ LRESULT FavHubProperties::OnChangeId(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 
 LRESULT FavHubProperties::onRandomNick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	// [!] IRainman fix: Please stop copy-past!
-	//// Create RND nick
-	//const size_t iNickLength = 16;
-	//const char samples[] = "0123456789";
-	//const char samples2[] = "_-";
-	//const char samples3[] = "User,Monk,Boys,Girl,True,Head,Hell,Hulk,Hawk,Fire,";
-	//
-	//std::vector<char> name(iNickLength);
-	//rand();
-	//size_t val = (size_t)( (double)rand() / (RAND_MAX + 1) * (sizeof(samples3) / 5 ) ) * 5;
-	//name[0] = samples3[val];
-	//name[1] = samples3[val+1];
-	//name[2] = samples3[val+2];
-	//name[3] = samples3[val+3];
-	//size_t val2 = (size_t)( (double)rand() / (RAND_MAX + 1) * ( sizeof(samples2) - 1 ) );
-	//name[4] = samples2[val2];
-	//
-	//for (size_t i = 5; i<iNickLength-1; i++)
-	//{
-	//  size_t value = (size_t)( (double)rand() / (RAND_MAX + 1) * ( sizeof(samples) - 1 ) );
-	//  name[i] = samples[value];
-	//}
-	//name[iNickLength-1] = 0;
-	//
-	//CString login;
-	//login.SetString(Text::toT(&name[0]).c_str());
-	
 	SetDlgItemText(IDC_HUBNICK, Text::toT(Util::getRandomNick()).c_str());
-	
 	return 0;
 }
 

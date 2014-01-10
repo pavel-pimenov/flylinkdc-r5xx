@@ -52,6 +52,10 @@ compiled\Settings\custom_menu.xml
 compiled\Settings\CustomCompressExt.ini
 compiled\Settings\CustomLocations.bmp
 compiled\Settings\CustomLocations.ini
+compiled\Settings\flylinkdc-config-r5xx.xml
+compiled\Settings\common\IPGrant.ini
+compiled\Settings\common\IPGuard.ini
+compiled\Settings\common\IPTrust.ini
 compiled\EmoPacks\*
 compiled\Lang\*
 compiled\Skin\*

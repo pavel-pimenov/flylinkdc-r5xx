@@ -17,8 +17,8 @@
  */
 
 #include "stdinc.h"
-#include "ChatMessage.h"
 #include "OnlineUser.h"
+#include "ChatMessage.h"
 
 string ChatMessage::format(/*const bool fullFormat [!] TODO */) const
 {
@@ -26,9 +26,9 @@ string ChatMessage::format(/*const bool fullFormat [!] TODO */) const
 	dcassert(!text.empty()); // [!] IRainman fix: Please do not send an empty message.
 	string tmp;
 	
-	if (timestamp)
+	if (m_timestamp)
 	{
-		tmp += '[' + Util::getShortTimeString(timestamp) + "] ";
+		tmp += '[' + Util::getShortTimeString(m_timestamp) + "] ";
 	}
 	/* [!] IRainman TODO: please don't delete this! Needs for WebAPI!
 	if (fullFormat)

@@ -42,7 +42,7 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		DECLARE_FRAME_WND_CLASS_EX(_T("WaitingUsersFrame"), IDR_UPLOAD_QUEUE, 0, COLOR_3DFACE);
 		
 		WaitingUsersFrame() : CFlyTimerAdapter(m_hWnd), m_showTree(true),
-			m_needsUpdateStatus(false), m_needsResort(false), m_spoken(false), // [+] IRainman opt.
+			m_needsUpdateStatus(false), m_needsResort(false),
 			showTreeContainer(_T("BUTTON"), this, SHOWTREE_MESSAGE_MAP)
 		{
 			memzero(statusSizes, sizeof(statusSizes));
@@ -97,7 +97,7 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		LRESULT onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled);
 		LRESULT onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 		{
-			if (!tasks.empty())
+			if (!m_tasks.empty())
 			{
 				speak();
 			}
@@ -212,17 +212,7 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		// [+] IRainman opt
 		bool m_needsUpdateStatus;
 		bool m_needsResort;
-		TaskQueue tasks;
-		bool m_spoken;
-		
-		void speak()
-		{
-			if (!m_spoken)
-			{
-				m_spoken = true;
-				PostMessage(WM_SPEAKER);
-			}
-		}
+		TaskQueue m_tasks;
 		
 		struct UploadQueueTask : public Task
 #ifdef _DEBUG
@@ -263,15 +253,15 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		// UploadManagerListener
 		void on(UploadManagerListener::QueueAdd, UploadQueueItem* aUQI) noexcept
 		{
-			tasks.add(ADD_ITEM, new UploadQueueTask(aUQI));
+			m_tasks.add(ADD_ITEM, new UploadQueueTask(aUQI));
 		}
 		void on(UploadManagerListener::QueueRemove, const UserPtr& aUser) noexcept
 		{
-			tasks.add(REMOVE, new UserTask(aUser));
+			m_tasks.add(REMOVE, new UserTask(aUser));
 		}
 		void on(UploadManagerListener::QueueItemRemove, UploadQueueItem* aUQI) noexcept
 		{
-			tasks.add(REMOVE_ITEM, new UploadQueueTask(aUQI));
+			m_tasks.add(REMOVE_ITEM, new UploadQueueTask(aUQI));
 		}
 		void on(UploadManagerListener::QueueUpdate) noexcept;
 		// SettingsManagerListener

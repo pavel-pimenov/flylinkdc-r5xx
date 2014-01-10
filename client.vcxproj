@@ -639,6 +639,7 @@
     </ClCompile>
     <ClCompile Include="client\StringDefs.cpp" />
     <ClCompile Include="client\StringPool.cpp" />
+    <ClCompile Include="client\TaskQueue.cpp" />
     <ClCompile Include="client\Text.cpp" />
     <ClCompile Include="client\Thread.cpp" />
     <ClCompile Include="client\ThrottleManager.cpp" />

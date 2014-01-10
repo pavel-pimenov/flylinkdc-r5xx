@@ -39,6 +39,7 @@
 #include "../windows/resource.h"
 #include "../GdiOle/GDIImage.h"
 #include "../client/FavoriteManager.h"
+#include "../windows/ChatBot.h"
 
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 #ifdef FLYLINKDC_SUPPORT_WIN_VISTA
@@ -574,9 +575,28 @@ void CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 		{
 			l_info["VID"] = l_VID_Array;
 		}
+		if(ChatBot::isLoaded())
+		{
+			l_info["is_chat_bot"] = 1;
+		}
+		if(SETTING(ENABLE_AUTO_BAN))
+		{
+			l_info["is_autoban"] = 1;
+		}
+		extern bool g_DisableSQLiteWAL;
+		if (g_DisableSQLiteWAL || BOOLSETTING(SQLITE_USE_JOURNAL_MEMORY))
+		{
+			l_info["is_journal_memory"] = 1;
+		}
+		//
+		const auto l_ISP_URL = SETTING(ISP_RESOURCE_ROOT_URL);
+		if(!l_ISP_URL.empty())
+		{
+			l_info["ISP_URL"] = l_ISP_URL;
+		}
 		// Агрегационные параметры
 		{
-		        Json::Value& l_stat_info = l_info["Stat"];
+		    Json::Value& l_stat_info = l_info["Stat"];
 			l_stat_info["Files"] = Util::toString(ShareManager::getInstance()->getSharedFiles());
 			l_stat_info["Size"]  = ShareManager::getInstance()->getShareSizeString();
 			l_stat_info["Users"] = Util::toString(ClientManager::getTotalUsers());

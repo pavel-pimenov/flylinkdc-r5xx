@@ -38,17 +38,19 @@
 #include "ExMessageBox.h" // [+] InfinitySky. From Apex.
 
 class TransferView : public CWindowImpl<TransferView>, private DownloadManagerListener,
-	private UploadManagerListener, private ConnectionManagerListener, private QueueManagerListener,
+	private UploadManagerListener,
+	private ConnectionManagerListener,
+	private QueueManagerListener,
 	public UserInfoBaseHandler<TransferView, UserInfoGuiTraits::NO_COPY>,
 	public PreviewBaseHandler<TransferView>, // [+] IRainman fix.
 	public UCHandler<TransferView>,
-	private SettingsManagerListener, private CFlyTimerAdapter
+	private SettingsManagerListener,
+	private CFlyTimerAdapter
 {
 	public:
 		DECLARE_WND_CLASS(_T("TransferView"))
 		
-		TransferView() : CFlyTimerAdapter(m_hWnd),
-			m_spoken(false) // [+] IRainman opt.
+		TransferView() : CFlyTimerAdapter(m_hWnd)
 		{
 		}
 		~TransferView();
@@ -108,7 +110,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		LRESULT onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 		{
-			if (!tasks.empty())
+			if (!m_tasks.empty())
 			{
 				speak();
 			}
@@ -261,10 +263,15 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 					STATUS_WAITING
 				};
 				
-				ItemInfo(const HintedUser& u, const bool isDownload) : hintedUser(u), download(isDownload), transferFailed(false),
-					status(STATUS_WAITING), pos(0), size(0), actual(0), m_speed(0), timeLeft(0),
-					collapsed(true), parent(nullptr), hits(-1), running(0), type(Transfer::TYPE_FILE)
+				ItemInfo(const HintedUser& u, const bool isDownload) : m_hintedUser(u), download(isDownload), transferFailed(false),
+					m_status(STATUS_WAITING), pos(0), size(0), actual(0), m_speed(0), timeLeft(0),
+					collapsed(true), parent(nullptr), hits(-1), running(0), m_type(Transfer::TYPE_FILE)
 				{
+					if (m_hintedUser.user)
+					{
+						m_niks = WinUtil::getNicks(m_hintedUser);
+						m_hubs = WinUtil::getHubNames(m_hintedUser).first;
+					}
 				}
 				
 				const bool download; // [!] is const member.
@@ -275,9 +282,9 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				int16_t hits;
 				
 				ItemInfo* parent;
-				HintedUser hintedUser; // [!] IRainman fix.
-				Status status;
-				Transfer::Type type;
+				HintedUser m_hintedUser; // [!] IRainman fix.
+				Status m_status;
+				Transfer::Type m_type;
 				
 				int64_t pos;
 				int64_t size;
@@ -288,6 +295,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				tstring statusString;
 				tstring cipher;
 				tstring m_target;
+				tstring m_niks;
+				tstring m_hubs;
 				mutable Util::CustomNetworkIndex m_location; // [+] IRainman opt.
 				
 #ifdef PPA_INCLUDE_COLUMN_RATIO
@@ -298,7 +307,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				
 				const UserPtr& getUser() const
 				{
-					return hintedUser.user;
+					return m_hintedUser.user;
 				}
 				
 				void disconnect();
@@ -350,7 +359,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			
 			bool operator==(const ItemInfo& ii) const
 			{
-				return download == ii.download && hintedUser.user == ii.hintedUser.user; // [!] IRainman fix.
+				return download == ii.download && hintedUser.user == ii.m_hintedUser.user; // [!] IRainman fix.
 			}
 			
 			UpdateInfo(const HintedUser& aUser, const bool isDownload, const bool isTransferFailed = false) :
@@ -359,7 +368,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			}
 			
 			UpdateInfo(const UserPtr& aUser, const bool isDownload, const bool isTransferFailed = false) :
-				updateMask(0), download(isDownload), hintedUser(HintedUser(aUser, Util::emptyString)), transferFailed(isTransferFailed), type(Transfer::TYPE_LAST), running(0)
+				updateMask(0), download(isDownload), hintedUser(HintedUser(aUser, Util::emptyString)), // fix empty string
+				transferFailed(isTransferFailed), type(Transfer::TYPE_LAST), running(0)
 			{
 			}
 			
@@ -484,18 +494,10 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		/*
 		void speak(uint8_t type, UpdateInfo* ui) deprecated
 		{
-		    tasks.add(type, ui);
+		    m_tasks.add(type, ui);
 		    // [-] speak(); // [-] IRainman opt.
 		}
 		*/
-		void speak() // [+] IRainman opt.
-		{
-			if (!m_spoken)
-			{
-				m_spoken = true;
-				PostMessage(WM_SPEAKER);
-			}
-		}
 		
 		ItemInfoList ctrlTransfers;
 		static int columnIndexes[];
@@ -512,8 +514,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		OMenu usercmdsMenu;
 		OMenu copyMenu; // !SMT!-UI
 		
-		TaskQueue tasks;
-		bool m_spoken; // [+] IRainman opt
+		TaskQueue m_tasks;
 		
 		StringMap ucLineParams;
 		

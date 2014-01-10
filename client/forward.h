@@ -31,7 +31,7 @@ class ADLSearch;
 
 class BufferedSocket;
 
-struct ChatMessage;
+class ChatMessage;
 
 class CID;
 

@@ -14,9 +14,10 @@
 #include "util/mutexlock.h"
 #include "util/random.h"
 
-typedef size_t ssize_t; // FlylinkDC++
 
 namespace leveldb {
+
+typedef size_t ssize_t; // FlylinkDC++
 
 #if 0
 static void DumpInternalIter(Iterator* iter) {

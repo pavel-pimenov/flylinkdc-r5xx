@@ -277,7 +277,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		
 		void push_json_statistic(const std::string& p_value);
 		void flush_lost_json_statistic();
-		
+		void clear_tiger_tree_cache(const TTHValue& p_root);
 		__int64 convert_tth_history();
 		static size_t getCountQueueSources()
 		{
@@ -436,5 +436,6 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		int     m_convert_ftype_stop_key;
 		size_t  m_count_json_stat;
 		static size_t g_count_queue_source;
+		std::unordered_map<TTHValue, TigerTree> m_tiger_tree_cache; // http://code.google.com/p/flylinkdc/issues/detail?id=1418
 };
 #endif

@@ -38,6 +38,7 @@ class NetworkPage : public CPropertyPage<IDD_NETWORK_PAGE>, public PropPage
 		
 		BEGIN_MSG_MAP(NetworkPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
+		COMMAND_HANDLER(IDC_EXTERNAL_IP, EN_KILLFOCUS, OnEnKillfocusExternalIp)
 		COMMAND_ID_HANDLER(IDC_CONNECTION_DETECTION, onClickedActive)
 		COMMAND_ID_HANDLER(IDC_DIRECT, onClickedActive)
 		COMMAND_ID_HANDLER(IDC_FIREWALL_PASSIVE, onClickedActive)
@@ -60,6 +61,7 @@ class NetworkPage : public CPropertyPage<IDD_NETWORK_PAGE>, public PropPage
 		LRESULT onClickedActive(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onCheckConn(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */);
+		LRESULT OnEnKillfocusExternalIp(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 #ifdef STRONG_USE_DHT
 		LRESULT onCheckDHTStats(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 #endif
@@ -76,6 +78,7 @@ class NetworkPage : public CPropertyPage<IDD_NETWORK_PAGE>, public PropPage
 		static TextItem texts[];
 		CEdit desc;
 		CFlyHyperLink m_ConnCheckUrl;
+		CFlyToolTipCtrl m_IPHint;
 		CComboBox BindCombo;
 		void fixControls();
 		

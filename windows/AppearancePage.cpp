@@ -149,7 +149,7 @@ void AppearancePage::GetThemeList()
 				if (hModule != NULL)
 				{
 					ResourceName* resourceName = (ResourceName*)::GetProcAddress((HMODULE)hModule, "ResourceName");
-					if (resourceName != NULL)
+					if (resourceName)
 					{
 						unique_ptr<wchar_t[]> buff(new wchar_t[256]);
 						buff.get()[0] = 0;

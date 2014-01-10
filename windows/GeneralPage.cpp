@@ -112,7 +112,7 @@ LRESULT GeneralPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	PropPage::translate((HWND)(*this), texts);
 	ctrlConnection.Attach(GetDlgItem(IDC_CONNECTION));
 	
-	for (auto i = SettingsManager::connectionSpeeds.cbegin(); i != SettingsManager::connectionSpeeds.cend(); ++i)
+	for (auto i = SettingsManager::g_connectionSpeeds.cbegin(); i != SettingsManager::g_connectionSpeeds.cend(); ++i)
 	{
 		ctrlConnection.AddString(Text::toT(*i).c_str());
 	}

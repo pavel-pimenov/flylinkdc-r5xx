@@ -1705,7 +1705,26 @@ string Util::getRandomNick()
 	static const size_t iNickLength = 20;
 	static const char samples[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 	static const char samples2[] = "_-";
-	static const string samples3[] = { "User", "Sun", "Moon", "Monkey", "Boys", "Girls", "True", "Head", "Hulk", "Hawk", "Fire", "Rabbit", "Water", "Smile", "Bear", "Cow", "Troll", "Cool", "Man", "Men", "Women", "Onotole", "Hedgehog", };
+	static const string samples3[] =
+	{
+		"Admin",
+		"Bear", "Boy",
+		"Cool", "Cow",
+		"Dolly",    "DCman",
+		"Eagle",    "Earth",
+		"Fire", "Flylink",
+		"Girl",
+		"Hawk", "Head", "Hedgehog", "Hulk",
+		"Indy",
+		"Jocker",
+		"Man",  "Men",  "Moon", "Monkey",
+		"Onotole",
+		"Rabbit",
+		"Smile",    "Sun",
+		"Troll",    "True",
+		"User",
+		"Water",    "Women",
+	};
 	
 	string name = samples3[Util::rand(_countof(samples3) - 1)];
 	name += samples2[Util::rand(_countof(samples2) - 1)];
@@ -2591,7 +2610,7 @@ void Util::playSound(const string& p_sound, const bool p_beep /* = false */)
 StringList Util::splitSettingAndReplaceSpace(string patternList)
 {
 	boost::replace_all(patternList, " ", "");
-	return splitSetting(patternList);
+	return splitSettingAndLower(patternList);
 }
 
 string Util::toSettingString(const StringList& patternList)

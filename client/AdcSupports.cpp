@@ -75,7 +75,7 @@ void AdcSupports::setSupports(Identity& id, StringList & su)
 							else CHECK_SUP(DHT0)
 								else CHECK_SUP_BIT(SEGA)
 								
-#ifdef _DEBUG
+#ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES
 									else
 									{
 										FastLock l(g_debugCsUnknownAdcFeatures);
@@ -154,7 +154,7 @@ void NmdcSupports::setStatus(Identity& id, const char status, const string& conn
 				else
 				{
 					coef = 0;
-#ifdef _DEBUG
+#ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES
 					FastLock l(g_debugCsUnknownNmdcConnection);
 					g_debugUnknownNmdcConnection.insert(postfix);
 #endif

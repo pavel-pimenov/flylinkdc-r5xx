@@ -56,7 +56,7 @@ class CGDIImage
 		HWND m_hCallbackWnd;
 		DWORD m_dwCallbackMsg;
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
-		static FastCriticalSection g_cs;
+		static FastCriticalSection g_GDIcs;
 		static std::unordered_set<CGDIImage*> g_GDIImageSet;
 		friend class CFlyServerAdapter;
 		static unsigned g_AnimationDeathDetectCount;
@@ -73,7 +73,7 @@ class CGDIImage
 
 		static bool isGDIImageLive(CGDIImage* p_image)
 		{
-			FastLock l(g_cs);
+			FastLock l(g_GDIcs);
 			const bool l_res = g_GDIImageSet.find(p_image) != g_GDIImageSet.end();
 			if(!l_res)
 				++g_AnimationDeathDetectCount;
@@ -81,7 +81,7 @@ class CGDIImage
 		}
 		static void GDIImageDeath(CGDIImage* p_image)
 		{
-			FastLock l(g_cs);
+			FastLock l(g_GDIcs);
 			const auto l_size = g_GDIImageSet.size();
 			g_GDIImageSet.erase(p_image);
 			dcassert(g_GDIImageSet.size() == l_size-1);

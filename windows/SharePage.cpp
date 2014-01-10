@@ -93,7 +93,7 @@ LRESULT SharePage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 		}
 	}
 	
-	ctrlTotal.SetWindowText(Util::formatBytesW(ShareManager::getInstance()->getShareSize()).c_str());
+	ctrlTotal.SetWindowText(ShareManager::getInstance()->getShareSizeformatBytesW().c_str());
 	
 	ft.SubclassWindow(GetDlgItem(IDC_TREE));
 	ft.SetStaticCtrl(&ctrlTotal);
@@ -212,7 +212,7 @@ LRESULT SharePage::onClickedRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 		item.iSubItem = 1;
 		ctrlDirectories.GetItem(&item);
 		ShareManager::getInstance()->removeDirectory(Text::fromT(buf.data()));
-		ctrlTotal.SetWindowText(Util::formatBytesW(ShareManager::getInstance()->getShareSize()).c_str());
+		ctrlTotal.SetWindowText(ShareManager::getInstance()->getShareSizeformatBytesW().c_str());
 		ctrlDirectories.DeleteItem(i);
 	}
 	
@@ -320,7 +320,7 @@ LRESULT SharePage::onClickedShare(int item)
 	}
 	
 	// Display the new total share size
-	ctrlTotal.SetWindowText(Util::formatBytesW(ShareManager::getInstance()->getShareSize()).c_str());
+	ctrlTotal.SetWindowText(ShareManager::getInstance()->getShareSizeformatBytesW().c_str());
 	return 0;
 }
 
@@ -347,7 +347,7 @@ void SharePage::addDirectory(const tstring& aPath)
 			int i = ctrlDirectories.insert(ctrlDirectories.GetItemCount(), virt.line);
 			ctrlDirectories.SetItemText(i, 1, path.c_str());
 			ctrlDirectories.SetItemText(i, 2, Util::formatBytesW(ShareManager::getInstance()->getShareSize(Text::fromT(path))).c_str());
-			ctrlTotal.SetWindowText(Util::formatBytesW(ShareManager::getInstance()->getShareSize()).c_str());
+			ctrlTotal.SetWindowText(ShareManager::getInstance()->getShareSizeformatBytesW().c_str());
 		}
 	}
 	catch (const ShareException& e)

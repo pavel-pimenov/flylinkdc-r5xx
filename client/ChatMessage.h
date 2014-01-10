@@ -21,34 +21,52 @@
 
 #include "forward.h"
 
-struct ChatMessage
+class ChatMessage
+#ifdef _DEBUG
+	: public boost::noncopyable
+#endif
+	
 {
-	string text;
-	
-	OnlineUserPtr from;
-	OnlineUserPtr to;
-	OnlineUserPtr replyTo;
-	
-	bool thirdPerson;
-	
-	time_t timestamp;
-	// [+] IRainman fix.
-	ChatMessage(const string& _text, const OnlineUserPtr& _from, const OnlineUserPtr& _to = nullptr, const OnlineUserPtr& _replyTo = nullptr, bool _thirdPerson = false)
-		: text(_text), from(_from), to(_to), replyTo(_replyTo), thirdPerson(_thirdPerson), timestamp(0)
-	{
-	
-	}
-	bool isPrivate() const
-	{
-		return to && replyTo;
-	}
-	static string formatNick(const string& nick, const bool thirdPerson)
-	{
-		// let's *not* obey the spec here and add a space after the star. :P
-		return thirdPerson ? "* " + nick + ' ' : '<' + nick + "> ";
-	}
-	// [~] IRainman fix.
-	string format() const;
+	public:
+		string text;
+		
+		OnlineUserPtr from;
+		OnlineUserPtr to;
+		OnlineUserPtr replyTo;
+		
+		bool thirdPerson;
+		
+		time_t m_timestamp; // TODO - разобраться когда оно нужно
+		// [+] IRainman fix.
+		ChatMessage(const string& _text, const OnlineUserPtr& _from, const OnlineUserPtr& _to = nullptr, const OnlineUserPtr& _replyTo = nullptr, bool _thirdPerson = false)
+			: text(_text), from(_from), to(_to), replyTo(_replyTo), thirdPerson(_thirdPerson), m_timestamp(0)
+		{
+		}
+		bool isPrivate() const
+		{
+			return to && replyTo;
+		}
+		static string formatNick(const string& nick, const bool thirdPerson)
+		{
+			// let's *not* obey the spec here and add a space after the star. :P
+			return thirdPerson ? "* " + nick + ' ' : '<' + nick + "> ";
+		}
+		void translate_me()
+		{
+			if (text.size() >= 4 && (strnicmp(text, "/me ", 4) == 0 ||
+			                         strnicmp(text, "+me ", 4) == 0))
+			{
+				/* [-] IRainman fix.
+				if (BOOLSETTING(NSL_IGNORE_ME))
+				    return;
+				*/
+				thirdPerson = true;
+				text = text.substr(4);
+			}
+			
+		}
+		// [~] IRainman fix.
+		string format() const;
 };
 
 #endif // !defined(DCPLUSPLUS_DCPP_CHAT_MESSAGE_H)

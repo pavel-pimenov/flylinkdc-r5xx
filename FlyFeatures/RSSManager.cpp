@@ -648,7 +648,7 @@ RSSManager::fail(const string& p_error)
 }
 
 void
-RSSManager::execute(const RSSManagerTasks&& p_task)
+RSSManager::execute(const RSSManagerTasks& p_task)
 {
 	dcassert (p_task == CHECK_NEWS);
 	updateAllFeeds();

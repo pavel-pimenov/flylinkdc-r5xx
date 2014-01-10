@@ -166,7 +166,7 @@ void LogManager::log(LogArea area, const StringMap& params, bool p_only_file /* 
 
 void LogManager::message(const string& msg, bool p_only_file /*= false */)
 {
-#if !defined(BETA) || defined(FLYLINKDC_HE)
+#if !defined(FLYLINKDC_BETA) || defined(FLYLINKDC_HE)
 	if (BOOLSETTING(LOG_SYSTEM))
 #endif
 	{

@@ -51,8 +51,7 @@ extern CAppModule _Module;
 #include <Shellapi.h>
 #endif // _WIN32
 
-#define WM_SPEAKER (WM_APP + 500)
-#endif
+#endif // DCPLUSPLUS_WIN32_STDAFX_H
 
 /**
  * @file

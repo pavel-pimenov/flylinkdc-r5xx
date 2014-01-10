@@ -2,7 +2,7 @@
 #include "bitmap.h"
 
 CBmp::CBmp(HBITMAP hBMP):
-	m_hDC(NULL), m_hBMP(hBMP)
+	m_hDC(NULL), m_hBMP(hBMP), m_hBMPorg(NULL)
 {
 }
 

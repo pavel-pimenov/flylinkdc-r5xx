@@ -11,6 +11,8 @@
 #include "ChatBot.h"
 #include "PrivateFrame.h"
 
+HINSTANCE ChatBot::g_ChatBotDll = nullptr;
+
 ChatBot::ChatBot() : m_qrycount(0)
 {
 	m_init.apiVersion = 2;
@@ -30,10 +32,10 @@ ChatBot::ChatBot() : m_qrycount(0)
 	m_init.QueryInfo = botQueryInfo_rc;
 	m_init.FreeInfo = botFreeInfo;
 	
-	m_hDll = ::LoadLibrary(_T("ChatBot.dll"));
-	if (m_hDll)
+	g_ChatBotDll = ::LoadLibrary(_T("ChatBot.dll"));
+	if (g_ChatBotDll)
 	{
-		BotInit::tInit initproc = (BotInit::tInit)GetProcAddress(m_hDll, "init");
+		BotInit::tInit initproc = (BotInit::tInit)GetProcAddress(g_ChatBotDll, "init");
 		if (initproc)
 		{
 			if (!initproc(&m_init))
@@ -44,9 +46,10 @@ ChatBot::ChatBot() : m_qrycount(0)
 
 ChatBot::~ChatBot()
 {
-	if (m_hDll)
+	if (g_ChatBotDll)
 	{
-		::FreeLibrary(m_hDll);
+		::FreeLibrary(g_ChatBotDll);
+		g_ChatBotDll = nullptr;
 	}
 }
 

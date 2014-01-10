@@ -246,7 +246,7 @@ bool UploadManager::hasUpload(UserConnection& p_newLeacher) const
 			   )
 			{
 				/*
-				#if defined(NIGHT_BUILD) || defined(DEBUG) || defined(BETA)
+				#if defined(NIGHT_BUILD) || defined(DEBUG) || defined(FLYLINKDC_BETA)
 				                char bufNewLeacherShare[64];
 				                char bufUploadUserShare[64];
 				                char bufShareDelta[64];
@@ -541,20 +541,11 @@ ok: //[!] TODO убрать goto
 #endif
 	                        ;
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
-	//[!] SSA - added forceBanCheck
-	//bool hasForceBan = false;
-	//if (!isFavorite)
-	//  hasForceBan = FavoriteManager::getInstance()->hasBan(aSource.getUser());
-#endif
-	//[!] IRainman autoban fix
-	
-	
-#ifdef IRAINMAN_ENABLE_AUTO_BAN
 	// !SMT!-S
-	if (/*!isFavorite && */(/*hasForceBan ||*/ SETTING(ENABLE_AUTO_BAN)))    //[+]IRainman SETTING(ENABLE_AUTO_BAN) // [!] SSA - enable for force Ban
+	if (!isFavorite && SETTING(ENABLE_AUTO_BAN))
 	{
 		// фавориты под автобан не попадают
-		if (!userlist && !isFavorite && !hasReserved && handleBan(aSource/*, hasForceBan, isFavorite || hasReserved*/))
+		if (!userlist && !hasReserved && handleBan(aSource))
 		{
 			delete is;
 			addFailedUpload(aSource, sourceFile, aStartPos, size);

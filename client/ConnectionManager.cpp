@@ -28,6 +28,7 @@
 #endif
 
 uint16_t ConnectionManager::iConnToMeCount = 0;
+std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csConnection = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 
 ConnectionManager::ConnectionManager() : floodCounter(0), server(nullptr),
 	secureServer(nullptr),
@@ -107,7 +108,7 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 	// [!] IRainman fix: Please do not mask the problem of endless checks on empty! If the user is empty - hence the functional is not working!
 	// [-] if (aUser) //[+] PPA [-] IRainman fix.
 	{
-		UniqueLock l(cs);
+		webrtc::WriteLockScoped l(*g_csConnection);
 		const ConnectionQueueItem::Iter i = find(downloads.begin(), downloads.end(), aUser);
 		if (i == downloads.end())
 		{
@@ -170,7 +171,7 @@ UserConnection* ConnectionManager::getConnection(bool aNmdc, bool secure) noexce
 	UserConnection* uc = new UserConnection(secure);
 	uc->addListener(this);
 	{
-		UniqueLock l(cs);
+		webrtc::WriteLockScoped l(*g_csConnection);
 		dcassert(m_userConnections.find(uc) == m_userConnections.end());
 		m_userConnections.insert(uc);
 	}
@@ -185,7 +186,7 @@ void ConnectionManager::putConnection(UserConnection* aConn)
 {
 	aConn->removeListener(this);
 	aConn->disconnect(true);
-	UniqueLock l(cs);
+	webrtc::WriteLockScoped l(*g_csConnection);
 	dcassert(m_userConnections.find(aConn) != m_userConnections.end());
 	m_userConnections.erase(aConn);
 }
@@ -198,7 +199,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 #endif
 	
 	{
-		SharedLock l(cs); // [!] IRainman opt.
+		webrtc::ReadLockScoped l(*g_csConnection);
 		
 		uint16_t attempts = 0;
 		
@@ -273,7 +274,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 	}
 	if (!removed.empty())
 	{
-		UniqueLock l(cs);
+		webrtc::WriteLockScoped l(*g_csConnection);
 #endif
 		for (auto m = removed.cbegin(); m != removed.cend(); ++m)
 		{
@@ -291,7 +292,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 
 void ConnectionManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 {
-	SharedLock l(cs);
+	webrtc::ReadLockScoped l(*g_csConnection);
 	
 	for (auto j = m_userConnections.cbegin(); j != m_userConnections.cend(); ++j)
 	{
@@ -443,7 +444,7 @@ bool ConnectionManager::checkIpFlood(const string& aServer, uint16_t aPort, cons
 	}
 	*/
 	// [~] IRainman fix: no data to lock!
-	SharedLock l(cs);
+	webrtc::ReadLockScoped l(*g_csConnection);
 	
 	// We don't want to be used as a flooding instrument
 	int count = 0;
@@ -740,7 +741,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 	
 	// First, we try looking in the pending downloads...hopefully it's one of them...
 	{
-		SharedLock l(cs);
+		webrtc::ReadLockScoped l(*g_csConnection);
 		for (auto i = downloads.cbegin(); i != downloads.cend(); ++i)
 		{
 			ConnectionQueueItem* cqi = *i;
@@ -786,7 +787,6 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 		aSource->setFlag(UserConnection::FLAG_OP);
 #endif
 		
-		
 	if (aSource->isSet(UserConnection::FLAG_INCOMING))
 	{
 		aSource->myNick(aSource->getToken());
@@ -822,12 +822,10 @@ void ConnectionManager::on(UserConnectionListener::CLock, UserConnection* aSourc
 	aSource->direction(aSource->getDirectionString(), aSource->getNumber());
 	aSource->key(CryptoManager::getInstance()->makeKey(aLock));
 	
-	if (aSource->getUser())
-		ClientManager::getInstance()->setPkLock(aSource->getUser()
 #ifdef IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
-		                                        , aPk, aLock
+	if (aSource->getUser())
+		ClientManager::getInstance()->setPkLock(aSource->getUser(), aPk, aLock);
 #endif
-		                                       );
 }
 
 void ConnectionManager::on(UserConnectionListener::Direction, UserConnection* aSource, const string& dir, const string& num) noexcept
@@ -902,7 +900,7 @@ void ConnectionManager::addDownloadConnection(UserConnection* uc)
 	dcassert(uc->isSet(UserConnection::FLAG_DOWNLOAD));
 	ConnectionQueueItem* cqi = nullptr;
 	{
-		SharedLock l(cs);
+		webrtc::ReadLockScoped l(*g_csConnection);
 		
 		const ConnectionQueueItem::Iter i = find(downloads.begin(), downloads.end(), uc->getUser());
 		if (i != downloads.end())
@@ -948,7 +946,7 @@ void ConnectionManager::addUploadConnection(UserConnection* uc)
 	
 	ConnectionQueueItem* cqi = nullptr;
 	{
-		UniqueLock l(cs);
+		webrtc::WriteLockScoped l(*g_csConnection);
 		
 		const auto i = find(uploads.begin(), uploads.end(), uc->getUser());
 		if (i == uploads.cend())
@@ -1052,7 +1050,7 @@ void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCo
 	
 	bool down;
 	{
-		SharedLock l(cs);
+		webrtc::ReadLockScoped l(*g_csConnection);
 		const ConnectionQueueItem::Iter i = find(downloads.begin(), downloads.end(), aSource->getUser());
 		
 		if (i != downloads.cend())
@@ -1118,7 +1116,7 @@ void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCo
 
 void ConnectionManager::force(const UserPtr& aUser)
 {
-	SharedLock l(cs);
+	webrtc::ReadLockScoped l(*g_csConnection);
 	
 	const ConnectionQueueItem::Iter i = find(downloads.begin(), downloads.end(), aUser);
 	if (i != downloads.end())
@@ -1166,13 +1164,12 @@ bool ConnectionManager::checkKeyprint(UserConnection *aSource)
 
 void ConnectionManager::failed(UserConnection* aSource, const string& aError, bool protocolError)
 {
-	// [-] Lock l(cs); [-] IRainman fix.
-	
+
 	if (aSource->isSet(UserConnection::FLAG_ASSOCIATED))
 	{
 		if (aSource->isSet(UserConnection::FLAG_DOWNLOAD))
 		{
-			UniqueLock l(cs); // [+] IRainman fix.
+			webrtc::WriteLockScoped l(*g_csConnection);
 			const ConnectionQueueItem::Iter i = find(downloads.begin(), downloads.end(), aSource->getUser());
 			dcassert(i != downloads.end());
 			ConnectionQueueItem* cqi = *i;
@@ -1190,7 +1187,7 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 		}
 		else if (aSource->isSet(UserConnection::FLAG_UPLOAD))
 		{
-			UniqueLock l(cs); // [+] IRainman fix.
+			webrtc::WriteLockScoped l(*g_csConnection);
 			const ConnectionQueueItem::Iter i = find(uploads.begin(), uploads.end(), aSource->getUser());
 			dcassert(i != uploads.end());
 			ConnectionQueueItem* cqi = *i;
@@ -1212,7 +1209,7 @@ void ConnectionManager::on(UserConnectionListener::ProtocolError, UserConnection
 
 void ConnectionManager::disconnect(const UserPtr& aUser)
 {
-	SharedLock l(cs);
+	webrtc::ReadLockScoped l(*g_csConnection);
 	for (auto i = m_userConnections.cbegin(); i != m_userConnections.cend(); ++i)
 	{
 		UserConnection* uc = *i;
@@ -1228,7 +1225,7 @@ void ConnectionManager::disconnect(const UserPtr& aUser)
 
 void ConnectionManager::disconnect(const UserPtr& aUser, bool isDownload) // [!] IRainman fix.
 {
-	SharedLock l(cs);
+	webrtc::ReadLockScoped l(*g_csConnection);
 	for (auto i = m_userConnections.cbegin(); i != m_userConnections.cend(); ++i)
 	{
 		UserConnection* uc = *i;
@@ -1254,7 +1251,7 @@ void ConnectionManager::shutdown()
 	TimerManager::getInstance()->removeListener(this);
 	disconnect();
 	{
-		SharedLock l(cs);
+		webrtc::ReadLockScoped l(*g_csConnection);
 		for (auto j = m_userConnections.cbegin(); j != m_userConnections.cend(); ++j)
 		{
 			(*j)->disconnect(true);
@@ -1264,7 +1261,7 @@ void ConnectionManager::shutdown()
 	while (true)
 	{
 		{
-			SharedLock l(cs);
+			webrtc::ReadLockScoped l(*g_csConnection);
 			if (m_userConnections.empty())
 			{
 				break;
@@ -1280,7 +1277,7 @@ void ConnectionManager::shutdown()
 	// [~]
 	// Сбрасываем рейтинг в базу пока не нашли причину почему тут остаются записи.
 	{
-		SharedLock l(cs);
+		webrtc::ReadLockScoped l(*g_csConnection);
 		for (auto i = downloads.cbegin(); i != downloads.cend(); ++i)
 		{
 			ConnectionQueueItem* cqi = *i;
@@ -1310,7 +1307,7 @@ void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* con
 // !SMT!-S
 void ConnectionManager::setUploadLimit(const UserPtr& aUser, int lim)
 {
-	SharedLock l(cs);
+	webrtc::ReadLockScoped l(*g_csConnection);
 	for (auto i = m_userConnections.cbegin(); i != m_userConnections.cend(); ++i)
 	{
 		if ((*i)->isSet(UserConnection::FLAG_UPLOAD) && (*i)->getUser() == aUser)

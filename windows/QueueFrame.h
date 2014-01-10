@@ -29,9 +29,11 @@
 #define SHOWTREE_MESSAGE_MAP 12
 
 class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_QUEUE > , public StaticFrame<QueueFrame, ResourceManager::DOWNLOAD_QUEUE, IDC_QUEUE>,
-	private QueueManagerListener, public CSplitterImpl<QueueFrame>,
+	private QueueManagerListener,
+	public CSplitterImpl<QueueFrame>,
 	public PreviewBaseHandler<QueueFrame, false>, // [+] IRainman fix.
-	private SettingsManagerListener, private CFlyTimerAdapter
+	private SettingsManagerListener,
+	private CFlyTimerAdapter
 #ifdef _DEBUG
 	, virtual NonDerivable<QueueFrame>, boost::noncopyable // [+] IRainman fix.
 #endif
@@ -39,7 +41,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 	public:
 		DECLARE_FRAME_WND_CLASS_EX(_T("QueueFrame"), IDR_QUEUE, 0, COLOR_3DFACE);
 		
-		QueueFrame() : CFlyTimerAdapter(m_hWnd), menuItems(0), queueSize(0), queueItems(0), m_spoken(false), m_dirty(false),
+		QueueFrame() : CFlyTimerAdapter(m_hWnd), menuItems(0), queueSize(0), queueItems(0), m_dirty(false),
 			usingDirMenu(false),  readdItems(0), fileLists(NULL), showTree(true),
 			showTreeContainer(WC_BUTTON, this, SHOWTREE_MESSAGE_MAP)
 		{
@@ -125,7 +127,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		LRESULT onCopy(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 		{
-			if (!tasks.empty())
+			if (!m_tasks.empty())
 			{
 				speak();
 			}
@@ -395,8 +397,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 			string target;
 		};
 		
-		TaskQueue tasks;
-		bool m_spoken;
+		TaskQueue m_tasks;
 		
 		OMenu browseMenu;
 		OMenu removeMenu;
@@ -454,18 +455,10 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		/*
 		void speak(uint8_t type, UpdateInfo* ui) deprecated
 		{
-		    tasks.add(type, ui);
+		    m_tasks.add(type, ui);
 		    // [-] speak(); // [-] IRainman opt.
 		}
 		*/
-		void speak() // [+] IRainman opt.
-		{
-			if (!m_spoken)
-			{
-				m_spoken = true;
-				PostMessage(WM_SPEAKER);
-			}
-		}
 		
 		bool isCurDir(const string& aDir) const
 		{
@@ -515,11 +508,11 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		void on(QueueManagerListener::Removed, const QueueItemPtr& aQI) noexcept;
 		void on(QueueManagerListener::SourcesUpdated, const QueueItemPtr& aQI) noexcept
 		{
-			tasks.add(UPDATE_ITEM, new UpdateTask(*aQI));
+			m_tasks.add(UPDATE_ITEM, new UpdateTask(*aQI));
 		}
 		void on(QueueManagerListener::StatusUpdated, const QueueItemPtr& aQI) noexcept
 		{
-			tasks.add(UPDATE_ITEM, new UpdateTask(*aQI));
+			m_tasks.add(UPDATE_ITEM, new UpdateTask(*aQI));
 		}
 		void on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept // [+] IRainman opt.
 		{

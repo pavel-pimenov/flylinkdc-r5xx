@@ -9,7 +9,7 @@ call tools\ExtractVersion.bat %1 %2 %3 %4
 if errorlevel 1 goto :error
 
 call "%VS100COMNTOOLS%\..\..\VC\bin\vcvars32.bat"
-"%VS100COMNTOOLS%..\ide\devenv" FlylinkDC_2010.sln /Rebuild "Release|Win32"
+"%VS100COMNTOOLS%..\ide\devenv" FlylinkDC_2010.sln /Rebuild "ReleaseFullOpt|Win32"
 
 if not exist .\compiled\FlylinkDC.exe goto :builderror
 

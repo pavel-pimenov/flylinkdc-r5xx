@@ -109,7 +109,10 @@
 
 int HashProgressDlg::g_is_execute = 0;
 
-bool g_TabsCloseButtonEnabled, g_TabsCloseButtonAlt, g_TabsGdiPlusEnabled;
+bool g_TabsCloseButtonEnabled;
+bool g_TabsCloseButtonAlt;
+bool g_TabsGdiPlusEnabled;
+bool g_isStartupProcess = true;
 CMenu g_mnu;
 
 int g_magic_width;
@@ -2254,45 +2257,47 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 	missedAutoConnect = false;
 	CFlyLockWindowUpdate l(WinUtil::mdiClient); // [+]PPA
 	HubFrame* frm = nullptr;
-	BaseChatFrame::g_isStartupProcess = true;
-	TimerManager::g_isStartupShutdownProcess  = true;
-	for (auto i = fl.cbegin(); i != fl.cend(); ++i)
 	{
-		FavoriteHubEntry* entry = *i;
-		if (entry->getConnect())
+		// TODO - убрать много флажков
+		CFlyBusy l_busy_1(BaseChatFrame::g_isStartupProcess);
+		CFlyBusy l_busy_2(g_isStartupProcess);
+		CFlyBusy l_busy_3(TimerManager::g_isStartupShutdownProcess);
+		for (auto i = fl.cbegin(); i != fl.cend(); ++i)
 		{
-			if (!entry->getNick().empty() || l_settingsNickExist)
+			FavoriteHubEntry* entry = *i;
+			if (entry->getConnect())
 			{
-				RecentHubEntry r;
-				r.setName(entry->getName());
-				r.setDescription(entry->getDescription());
-				r.setServer(entry->getServer());
-				FavoriteManager::getInstance()->addRecent(r);
-				frm = HubFrame::openWindow(Text::toT(entry->getServer()),
-				                           Text::toT(entry->getName()),
-				                           Text::toT(entry->getRawOne()),
-				                           Text::toT(entry->getRawTwo()),
-				                           Text::toT(entry->getRawThree()),
-				                           Text::toT(entry->getRawFour()),
-				                           Text::toT(entry->getRawFive()),
-				                           entry->getWindowPosX(),
-				                           entry->getWindowPosY(),
-				                           entry->getWindowSizeX(),
-				                           entry->getWindowSizeY(),
-				                           entry->getWindowType(),
-				                           entry->getChatUserSplit(),
-				                           entry->getUserListState());
+				if (!entry->getNick().empty() || l_settingsNickExist)
+				{
+					RecentHubEntry r;
+					r.setName(entry->getName());
+					r.setDescription(entry->getDescription());
+					r.setServer(entry->getServer());
+					FavoriteManager::getInstance()->addRecent(r);
+					frm = HubFrame::openWindow(Text::toT(entry->getServer()),
+					                           Text::toT(entry->getName()),
+					                           Text::toT(entry->getRawOne()),
+					                           Text::toT(entry->getRawTwo()),
+					                           Text::toT(entry->getRawThree()),
+					                           Text::toT(entry->getRawFour()),
+					                           Text::toT(entry->getRawFive()),
+					                           entry->getWindowPosX(),
+					                           entry->getWindowPosY(),
+					                           entry->getWindowSizeX(),
+					                           entry->getWindowSizeY(),
+					                           entry->getWindowType(),
+					                           entry->getChatUserSplit(),
+					                           entry->getUserListState());
+				}
+				else
+					missedAutoConnect = true;
 			}
-			else
-				missedAutoConnect = true;
 		}
-	}
-	// Создаем смайлы в конец
+		// Создаем смайлы в конец
 #ifdef IRAINMAN_INCLUDE_SMILE
-	CAGEmotionSetup::reCreateEmotionSetup();
+		CAGEmotionSetup::reCreateEmotionSetup();
 #endif
-	BaseChatFrame::g_isStartupProcess = false; // TODO RAII
-	TimerManager::g_isStartupShutdownProcess  = false;
+	}
 	UpdateLayout(true);
 	if (frm)
 	{

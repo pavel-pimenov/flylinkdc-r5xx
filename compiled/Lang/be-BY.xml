@@ -233,6 +233,7 @@
 		<String Name="CheckShowRealShare">, заяўлены памер = %[shareshort], сапраўдны = %[realshareformat]</String>
 		<String Name="ChooseFolder">Абярыце каталёґ</String>
 		<String Name="Cid">Азначальнік</String>
+		<String Name="Tag">Бірка</String>
 		<String Name="Cipher">Шыфр</String>
 		<String Name="Clear">Ачысьціць гутарку</String>
 		<String Name="ClearSearchHistory">Ачысьціць гісторыю пошуку</String>

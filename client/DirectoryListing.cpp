@@ -275,7 +275,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 			{
 				if (attribs.size() == 4) // http://code.google.com/p/flylinkdc/issues/detail?id=1402
 				{
-					string l_sharedGL = getAttrib(attribs, sShared, 4);
+					const string l_sharedGL = getAttrib(attribs, sShared, 4);
 					if (!l_sharedGL.empty())
 					{
 						const int64_t tmp_ts = _atoi64(l_sharedGL.c_str()) - 116444736000000000L ;

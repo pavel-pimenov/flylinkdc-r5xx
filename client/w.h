@@ -22,8 +22,6 @@
 #include "compiler.h"
 #include <boost/atomic.hpp>
 
-#ifdef _WIN32
-
 #include "w_flylinkdc.h"
 
 #ifndef STRICT
@@ -42,7 +40,31 @@
 #include <mmsystem.h>
 #include <tchar.h>
 
+// http://msdn.microsoft.com/en-us/library/windows/desktop/ms644930(v=vs.85).aspx
+// WM_USER through 0x7FFF
+// Integer messages for use by private window classes.
+// WM_APP through 0xBFFF
+// Messages available for use by applications.
+
+#define WM_SPEAKER (WM_APP + 500)
+#define WM_SPEAKER_UPDATE_USER (WM_USER + 1)
+#define WM_SPEAKER_CONNECTED (WM_USER + 2)
+#define WM_SPEAKER_DISCONNECTED (WM_USER + 3)
+#define WM_SPEAKER_ADD_CHAT_LINE  (WM_USER + 4)
+#define WM_SPEAKER_CHEATING_USER  (WM_USER + 5)
+#define WM_SPEAKER_USER_REPORT  (WM_USER + 6)
+
+#ifdef FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
+#define WM_SPEAKER_UPDATE_USER_JOIN (WM_USER + x)
 #endif
+
+#ifdef FLYLINKDC_REMOVE_USER_WIN_MESSAGES_Q
+#define WM_SPEAKER_REMOVE_USER (WM_USER + x)
+#endif
+
+#define WM_SPEAKER_BEGIN   WM_SPEAKER_UPDATE_USER
+#define WM_SPEAKER_END     WM_SPEAKER_USER_REPORT
+
 class CFlyTickDelta
 {
 	private:

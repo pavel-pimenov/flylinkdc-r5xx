@@ -34,7 +34,7 @@
 namespace dht
 {
 
-FastCriticalSection Utils::g_cs; // [!] IRainman opt: use spin lock here.
+FastCriticalSection Utils::g_Utilscs; // [!] IRainman opt: use spin lock here.
 boost::unordered_map<string, boost::unordered_multiset<uint32_t>> Utils::g_receivedPackets;
 std::list<const Utils::OutPacket> Utils::g_sentPackets;
 
@@ -125,7 +125,7 @@ bool Utils::checkFlood(const string& ip, const AdcCommand& cmd)
 			requestCmd = AdcCommand::CMD_GET;
 		case AdcCommand::CMD_RES: // default value of requestCmd
 			{
-				FastLock l(g_cs);
+				FastLock l(g_Utilscs);
 				for (auto i = g_sentPackets.cbegin(); i != g_sentPackets.cend(); ++i)
 				{
 					if (i->cmd == requestCmd && i->ip == ip)
@@ -139,7 +139,7 @@ bool Utils::checkFlood(const string& ip, const AdcCommand& cmd)
 			return false;
 	}
 	
-	FastLock l(g_cs);
+	FastLock l(g_Utilscs);
 	auto& packetsPerIp = g_receivedPackets[ip];
 	packetsPerIp.insert(cmd.getCommand());
 	
@@ -157,7 +157,7 @@ bool Utils::checkFlood(const string& ip, const AdcCommand& cmd)
  */
 void Utils::cleanFlood()
 {
-	FastLock l(g_cs);
+	FastLock l(g_Utilscs);
 	g_receivedPackets.clear();
 }
 
@@ -168,7 +168,7 @@ void Utils::trackOutgoingPacket(const string& ip, const AdcCommand& cmd)
 {
 	const uint64_t now = GET_TICK();
 
-	FastLock l(g_cs);
+	FastLock l(g_Utilscs);
 
 	switch (cmd.getCommand())
 	{

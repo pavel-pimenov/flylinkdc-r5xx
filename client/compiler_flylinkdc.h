@@ -27,10 +27,7 @@
 
 //#define IRAINMAN_INTEL_CPP_TEST 1
 
-#if !defined (PORTALBROWSER_EXPORTS)
 # define BOOST_NO_RTTI 1
-#endif
-
 #ifndef BOOST_ALL_NO_LIB
 #define BOOST_ALL_NO_LIB
 #endif
@@ -194,7 +191,7 @@ typedef unsigned __int64 uint64_t;
 #define IRAINMAN_SET_USER_IP_ON_LOGON // http://code.google.com/p/flylinkdc/issues/detail?id=1
 //#define IRAINMAN_INCLUDE_DETECTION_MANAGER // TODO: not fully function support: needs public test.
 #ifndef FLYLINKDC_HE
-# ifdef BETA
+# ifdef FLYLINKDC_BETA
 #  define AUTOUPDATE_NOT_DISABLE
 #  ifdef NIGHT_BUILD
 #   define HOURLY_CHECK_UPDATE
@@ -293,7 +290,6 @@ typedef unsigned __int64 uint64_t;
 // [!] IRainman opt: use policies without copying data.
 #   ifdef IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
 #    define IRAINMAN_USE_SEPARATE_CS_IN_QUEUE_MANAGER
-#    define IRAINMAN_USE_SEPARATE_CS_IN_CLIENT_MANAGER
 #    define IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
 #    define IRAINMAN_NON_COPYABLE_CLIENTS_IN_CLIENT_MANAGER
 #   endif // IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
@@ -409,7 +405,7 @@ typedef unsigned __int64 uint64_t;
 #define SCALOLAZ_BB_COLOR_BUTTON
 
 // TODO: feature not fully implemented, don't turn off this define!
-//#if defined(FLYLINKDC_HE) || !defined(BETA) // before the end of the experiments using the old menu, eliminates the hassle.
+//#if defined(FLYLINKDC_HE) || !defined(FLYLINKDC_BETA) // before the end of the experiments using the old menu, eliminates the hassle.
 //# define OLD_MENU_HEADER // [+] JhaoDa: if disable use new menu style, like Windows 7 +
 //#endif
 
@@ -436,6 +432,9 @@ typedef unsigned __int64 uint64_t;
 // #define FLYLINKDC_USE_SETTINGS_AUTO_UPDATE
 #define FLYLINKDC_USE_MEDIAINFO_SERVER
 #define FLYLINKDC_USE_GATHER_STATISTICS
+#ifdef FLYLINKDC_BETA
+#define FLYLINKDC_COLLECT_UNKNOWN_FEATURES
+#endif
 #ifdef _DEBUG
 // #define FLYLINKDC_USE_GATHER_IDENTITY_STAT
 #endif

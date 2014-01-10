@@ -92,7 +92,7 @@ vc11
 
 /compiled/Settings/files.xml.bz2
 
-/client/mrgtmp0
+/client/mrgtmp*
 
 FlylinkDC-*.7z
 /client/StringDefs.cpp

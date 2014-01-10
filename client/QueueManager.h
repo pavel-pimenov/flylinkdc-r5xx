@@ -62,7 +62,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 				explicit DclstLoader() { }
 				~DclstLoader() { }
 			private:
-				void execute(const string && p_dclstFile);
+				void execute(const string& p_dclstFile);
 		} dclstLoader;
 		// [~] IRainman dclst support.
 	public:
@@ -112,12 +112,12 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 	
 		class ListMatcher : public BackgroundTaskExecuter<StringList, Thread::LOW, 15000> // [<-] IRainman fix: moved from MainFrame to core.
 		{
-				void execute(const StringList && list);
+				void execute(const StringList& list);
 		} m_listMatcher;
 		
 		class FileListQueue: public BackgroundTaskExecuter<DirectoryListInfoPtr, Thread::LOW, 15000> // [<-] IRainman fix: moved from MainFrame to core.
 		{
-				void execute(const DirectoryListInfoPtr && list);
+				void execute(const DirectoryListInfoPtr& list);
 		} m_listQueue;
 		
 		// [+] IRainman: auto pausing running downloads before moving.
@@ -159,7 +159,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 					addTask(WaiterFile(p_source, p_target, p_Priority));
 				}
 			private:
-				void execute(const WaiterFile && p_waiterFile);
+				void execute(const WaiterFile& p_waiterFile);
 		} waiter;
 		// [~] IRainman: auto pausing running downloads before moving.
 	public:
@@ -337,7 +337,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 					addTask(make_pair(source, target));
 				}
 			private:
-				void execute(const pair<string, string> && p_next)
+				void execute(const pair<string, string>& p_next)
 				{
 					internal_moveFile(p_next.first, p_next.second);
 				}
@@ -373,7 +373,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 					addTask(p_file);
 				}
 			private:
-				void execute(const string && p_file);
+				void execute(const string& p_file);
 				QueueManager* qm;
 		} rechecker;
 		

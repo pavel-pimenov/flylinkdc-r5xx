@@ -32,8 +32,6 @@
 
 #include "Util.h"
 
-#pragma optimize("gt", on) // [!] IRainman change "t" to "gt" (add global optimization key)
-
 namespace Text
 {
 
@@ -621,5 +619,4 @@ void normalizeStringEnding(tstring& p_text)
 
 }// namespace Text
 
-#pragma optimize("", on)
 

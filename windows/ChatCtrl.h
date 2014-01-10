@@ -153,11 +153,11 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 		}
 		LRESULT OnNotify(int idCtrl, ENLINK pnmh);
 		
-		static tstring sSelectedLine;
-		static tstring sSelectedText;
-		static tstring sSelectedIP;
-		static tstring sSelectedUserName;
-		static tstring sSelectedURL;
+		static tstring g_sSelectedLine;
+		static tstring g_sSelectedText;
+		static tstring g_sSelectedIP;
+		static tstring g_sSelectedUserName;
+		static tstring g_sSelectedURL;
 	private:
 		CAtlString sMyNickLower; // [+] IRainman fix, todo replace to tstring?
 		TURLMap lURLMap;

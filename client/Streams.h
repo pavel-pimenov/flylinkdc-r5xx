@@ -167,7 +167,7 @@ class LimitedOutputStream : public OutputStream
 		
 		size_t write(const void* buf, size_t len)
 		{
-			dcassert(len > 0);
+			//dcassert(len > 0);
 			if (maxBytes < len)
 			{
 				throw FileException(STRING(TOO_MUCH_DATA));
@@ -262,7 +262,7 @@ class StringOutputStream : public OutputStream
 #endif
 {
 	public:
-		explicit StringOutputStream(string& out) : str(out) { }
+		explicit StringOutputStream(string& p_out) : m_str(p_out) { }
 		~StringOutputStream() { }
 		using OutputStream::write;
 		
@@ -272,11 +272,11 @@ class StringOutputStream : public OutputStream
 		}
 		size_t write(const void* buf, size_t len)
 		{
-			str.append((char*)buf, len);
+			m_str.append((char*)buf, len);
 			return len;
 		}
 	private:
-		string& str;
+		string& m_str;
 };
 
 #endif // !defined(STREAMS_H)

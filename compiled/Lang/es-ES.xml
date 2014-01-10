@@ -231,6 +231,7 @@ Por favor no comparta la carpeta %s.</String>
 		<String Name="CheckShowRealShare">, tamaño indicado = %[shareshort], tamaño real (lista) = %[realshareformat]</String>
 		<String Name="ChooseFolder">Escoger carpeta</String>
 		<String Name="Cid">CID</String>
+		<String Name="Tag">Tag</String>
 		<String Name="Cipher">Cifrado</String>
 		<String Name="Clear">Limpiar chat</String>
 		<String Name="ClearSearchHistory">Borrar historial de búsqueda</String>
@@ -345,6 +346,7 @@ Sólo una vez: Send only once per user from search frame
 		<String Name="ConnectAll">Conectar a todos los usuarios</String>
 		<String Name="ConnectFavuserHub">Conectar al Hub</String>
 		<String Name="ConnectToSupportHub">Conectar al soporte del Hub en cada inicio</String>
+		<String Name="ContactListMenu">Lista de usuarios favoritos</String>
 		<String Name="ContinueSearch">Continuar</String>
 		<String Name="Copy">Copiar</String>
 		<String Name="CopyAll">Copiar todo</String>
@@ -542,7 +544,6 @@ Activar la opción DHT?</String>
 		<String Name="FavoriteUsers">Usuarios favoritos</String>
 		<String Name="FavoriteUserAdded">Usuario añadido a la lista de favoritos</String>
 		<String Name="Favuserlistdblclickaction">En la lista de usuarios favoritos</String>
-		<String Name="ContactListMenu">Lista de usuarios favoritos</String>
 		<String Name="FavuserOffline">Usuario favorito desconectado</String>
 		<String Name="FavuserOnline">Usuario favorito conectado</String>
 		<String Name="FavJoinShowingOff">Desactivar Entra / Sale para usuarios favoritos</String>

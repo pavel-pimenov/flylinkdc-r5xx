@@ -160,7 +160,7 @@ class AutoUpdate :
 		
 		static void fail(const string& p_error);
 		static void message(const string& p_message);
-		void execute(const AutoUpdateTasks&& p_task);
+		void execute(const AutoUpdateTasks& p_task);
 		
 		virtual void on(TimerManagerListener::Hour, uint64_t aTick) noexcept;
 		

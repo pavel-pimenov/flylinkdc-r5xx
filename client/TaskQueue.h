@@ -31,13 +31,10 @@ class Task
 };
 
 class StringTask : public Task
-#ifdef _DEBUG
-	, virtual NonDerivable<StringTask> // [+] IRainman fix.
-#endif
 {
 	public:
-		StringTask(const string& str) : m_str(str) { }
-		GETC(string, m_str, Str);
+		StringTask(const string& p_str) : m_str(p_str) { }
+		string m_str;
 };
 
 class TaskQueue
@@ -55,22 +52,22 @@ class TaskQueue
 		
 		virtual ~TaskQueue()
 		{
-			deleteTasks(tasks);// [!] IRainman fix.
+			deleteTasks(m_tasks);// [!] IRainman fix.
 		}
 		
 		bool empty() const
 		{
-			return tasks.empty();
+			return m_tasks.empty();
 		}
 #if 0
 		size_t size()
 		{
-			FastLock l(cs);
+			FastLock l(m_csTaskQueue);
 			return tasks.size();
 		}
 		string get_debug_info()
 		{
-			FastLock l(cs);
+			FastLock l(m_csTaskQueue);
 			string l_tmp;
 			for (auto i = tasks.cbegin(); i != tasks.cend(); ++i)
 			{
@@ -81,36 +78,36 @@ class TaskQueue
 #endif
 		void add(uint8_t type, Task* data)
 		{
-			FastLock l(cs);
-			tasks.push_back(make_pair(type, data)); // [2] https://www.box.net/shared/6hnn9eeg42q1qammnlub
+			FastLock l(m_csTaskQueue);
+			m_tasks.push_back(make_pair(type, data)); // [2] https://www.box.net/shared/6hnn9eeg42q1qammnlub
 		}
-		void get(List& list)
+		void get(List& p_list)
 		{
 			// [!] IRainman fix: FlylinkDC != StrongDC: please be more attentive to the code during the merge.
-			FastLock l(cs);
-			swap(tasks, list);
+			FastLock l(m_csTaskQueue);
+			swap(m_tasks, p_list);
 		}
 		void clear()
 		{
 			// [!] IRainman fix: FlylinkDC != StrongDC: please be more attentive to the code during the merge.
-			List tmp;
+			List l_tmp;
 			{
-				FastLock l(cs);
-				swap(tasks, tmp);
+				FastLock l(m_csTaskQueue);
+				swap(m_tasks, l_tmp);
 			}
-			deleteTasks(tmp);
+			deleteTasks(l_tmp);
 			// [~] IRainman fix
 		}
 	private:
-		void deleteTasks(List& list)// [+] IRainman fix.
+		void deleteTasks(const List& p_list)// [+] IRainman fix.
 		{
-			for (auto i = list.cbegin(); i != list.cend(); ++i)
+			for (auto i = p_list.cbegin(); i != p_list.cend(); ++i)
 			{
 				delete i->second;
 			}
 		}
-		FastCriticalSection cs;
-		List tasks;
+		FastCriticalSection m_csTaskQueue;
+		List m_tasks;
 };
 
 #endif

@@ -437,7 +437,7 @@ void ADLSearchManager::save() const
 	catch (const SimpleXMLException&) { }
 }
 
-void ADLSearchManager::matchesFile(DestDirList& destDirVector, DirectoryListing::File *currentFile, string& fullPath)
+void ADLSearchManager::matchesFile(DestDirList& destDirVector, DirectoryListing::File *currentFile, const string& fullPath)
 {
 	// Add to any substructure being stored
 	for (auto id = destDirVector.begin(); id != destDirVector.end(); ++id)
@@ -505,7 +505,7 @@ void ADLSearchManager::matchesFile(DestDirList& destDirVector, DirectoryListing:
 	}
 }
 
-void ADLSearchManager::matchesDirectory(DestDirList& destDirVector, DirectoryListing::Directory* currentDir, string& fullPath) const
+void ADLSearchManager::matchesDirectory(DestDirList& destDirVector, DirectoryListing::Directory* currentDir, const string& fullPath) const
 {
 	// Add to any substructure being stored
 	for (auto id = destDirVector.begin(); id != destDirVector.end(); ++id)

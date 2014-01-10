@@ -31,7 +31,9 @@
 #define IGNORETTH_MESSAGE_MAP 7
 
 class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY > , public StaticFrame<SpyFrame, ResourceManager::SEARCH_SPY, IDC_SEARCH_SPY>,
-	private ClientManagerListener, private CFlyTimerAdapter, private SettingsManagerListener
+	private ClientManagerListener,
+	private CFlyTimerAdapter,
+	private SettingsManagerListener
 #ifdef _DEBUG
 	, virtual NonDerivable<SpyFrame>, boost::noncopyable // [+] IRainman fix.
 #endif
@@ -41,7 +43,7 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 #ifdef _BIG_BROTHER_MODE
 			, m_tick(0), m_log(NULL)
 #endif
-			, m_needsUpdateTime(true), m_spoken(false), m_needsResort(false) //[+]IRainman refactoring SpyFrame
+			, m_needsUpdateTime(true), m_needsResort(false) //[+]IRainman refactoring SpyFrame
 		{
 			memzero(m_perSecond, sizeof(m_perSecond));
 			ClientManager::getInstance()->addListener(this);
@@ -125,18 +127,9 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 		uint8_t m_current;
 		static const uint8_t AVG_TIME = 60;
 		uint16_t m_perSecond[AVG_TIME];
-		bool m_spoken;
 		bool m_needsResort;
 		TaskQueue m_tasks;
 		
-		void speak()
-		{
-			if (!m_spoken)
-			{
-				m_spoken = true;
-				PostMessage(WM_SPEAKER);
-			}
-		}
 		tstring m_searchString;
 		
 		//[+]IRainman refactoring SpyFrame

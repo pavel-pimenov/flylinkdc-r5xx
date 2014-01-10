@@ -30,7 +30,8 @@ lastNormalSpeed(0),
 #endif
                 qi(item),
                 Transfer(conn, item->getTarget(), item->getTTH()),
-                file(nullptr), treeValid(false)
+                file(nullptr),
+                treeValid(false)
 {
 	qi->inc(); // [+]
 	// [~] IRainman fix.
@@ -57,8 +58,13 @@ lastNormalSpeed(0),
 		
 	// TODO: убрать флажки после рефакторинга, ибо они всё равно бесполезны https://code.google.com/p/flylinkdc/issues/detail?id=1028
 	const bool l_is_type_file = getType() == TYPE_FILE && qi->getSize() != -1;
-	// TODO http://code.google.com/p/flylinkdc/issues/detail?id=1418
-	const bool l_is_check_tth = l_is_type_file && CFlylinkDBManager::getInstance()->getTree(getTTH(), getTigerTree()); // Часто дублируется Вызов
+	// http://code.google.com/p/flylinkdc/issues/detail?id=1418
+	bool l_check_tth_sql = false;
+	if (getTTH() != TTHValue()) // не зовем проверку на TTH = 0000000000000000000000000000000000 (файл-лист)
+	{
+		l_check_tth_sql = CFlylinkDBManager::getInstance()->getTree(getTTH(), m_tiger_tree);
+	}
+	const bool l_is_check_tth = l_is_type_file && l_check_tth_sql;
 	// ~TODO
 	
 	UniqueLock l(QueueItem::cs); // [+] IRainman fix.

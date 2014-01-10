@@ -723,6 +723,8 @@ void UserInfoGuiTraits::init()
 	copyUserMenu.AppendMenu(MF_STRING, IDC_COPY_EXACT_SHARE, CTSTRING(COPY_EXACT_SHARE));
 	copyUserMenu.AppendMenu(MF_STRING, IDC_COPY_DESCRIPTION, CTSTRING(COPY_DESCRIPTION));
 	copyUserMenu.AppendMenu(MF_STRING, IDC_COPY_APPLICATION, CTSTRING(COPY_APPLICATION));
+	copyUserMenu.AppendMenu(MF_STRING, IDC_COPY_TAG, CTSTRING(COPY_TAG));
+	copyUserMenu.AppendMenu(MF_STRING, IDC_COPY_CID, CTSTRING(COPY_CID));
 	copyUserMenu.AppendMenu(MF_STRING, IDC_COPY_EMAIL_ADDRESS, CTSTRING(COPY_EMAIL_ADDRESS));
 	copyUserMenu.AppendMenu(MF_STRING, IDC_COPY_IP, CTSTRING(COPY_IP));
 	copyUserMenu.AppendMenu(MF_STRING, IDC_COPY_NICK_IP, CTSTRING(COPY_NICK_IP));
@@ -2827,7 +2829,7 @@ void Preview::setupPreviewMenu(const string& target)
 	const auto& lst = FavoriteManager::getInstance()->getPreviewApps();
 	for (auto i = lst.cbegin(); i != lst.cend(); ++i)
 	{
-		const auto tok = Util::splitSetting((*i)->getExtension());
+		const auto tok = Util::splitSettingAndLower((*i)->getExtension());
 		for (auto si = tok.cbegin(); si != tok.cend(); ++si)
 		{
 			if (Util::isSameFileExt(targetLower, *si))
@@ -2969,7 +2971,10 @@ bool WinUtil::shutDown(int action)
 			{
 				typedef bool (CALLBACK * LPLockWorkStation)(void);
 				LPLockWorkStation _d_LockWorkStation = (LPLockWorkStation)GetProcAddress(LoadLibrary(_T("user32")), "LockWorkStation");
-				_d_LockWorkStation();
+				if (_d_LockWorkStation)
+				{
+					_d_LockWorkStation();
+				}
 			}
 			return true;
 		}
@@ -4070,8 +4075,9 @@ bool WinUtil::FillCustomMenu(CMenuHandle &menu, string& menuName) //[+] SSA: Cus
 }
 // [~] SSA: Custom menu support.
 #endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
-void WinUtil::getAddresses(CComboBox& BindCombo) // [<-] IRainman moved from Network Page.
+tstring WinUtil::getAddresses(CComboBox& BindCombo) // [<-] IRainman moved from Network Page.
 {
+	tstring l_result_tool_tip;
 	BindCombo.AddString(_T("0.0.0.0"));
 	IP_ADAPTER_INFO* AdapterInfo = nullptr;
 	DWORD dwBufLen = NULL;
@@ -4088,10 +4094,14 @@ void WinUtil::getAddresses(CComboBox& BindCombo) // [<-] IRainman moved from Net
 		PIP_ADAPTER_INFO pAdapterInfo = AdapterInfo;
 		while (pAdapterInfo)
 		{
-			IP_ADDR_STRING* pIpList = &(pAdapterInfo->IpAddressList);
+			IP_ADDR_STRING* pIpList = &pAdapterInfo->IpAddressList;
 			while (pIpList)
 			{
-				BindCombo.AddString(Text::toT(pIpList->IpAddress.String).c_str());
+				string l_ip_and_desc = pIpList->IpAddress.String;
+				l_result_tool_tip += Text::toT(l_ip_and_desc) + _T("\t");
+				l_result_tool_tip += Text::toT(pAdapterInfo->Description);
+				l_result_tool_tip += _T("\r\n");
+				BindCombo.AddString(Text::toT(l_ip_and_desc).c_str());
 				pIpList = pIpList->Next;
 			}
 			pAdapterInfo = pAdapterInfo->Next;
@@ -4101,6 +4111,7 @@ void WinUtil::getAddresses(CComboBox& BindCombo) // [<-] IRainman moved from Net
 	if (AdapterInfo)
 		HeapFree(GetProcessHeap(), 0, AdapterInfo);
 //-BugMaster: memory leak
+	return l_result_tool_tip;
 }
 
 // [+] InfinitySky.
@@ -4451,9 +4462,10 @@ int VideoImage::getMediaVideoIcon(const tstring& p_col)
 			// Uncomment this, if you want open all video size formats
 //  if (x_size >=200 && x_size<=640 && y_size>=140 && y_size<=480)
 //      l_size_result = 3; //Mobile or VHS
-//  else if (x_size >=640 && x_size<=1080 && y_size>=240 && y_size<=720)
-//      l_size_result = 2; //SD
-//	else
+//  else
+			if (x_size >= 640 && x_size <= 1080 && y_size >= 240 && y_size <= 720)
+				l_size_result = 2; //SD
+				
 			if (x_size >= 1080 && x_size <= 1920 && y_size >= 500 && y_size <= 1080)
 				l_size_result = 1; //HD
 				
