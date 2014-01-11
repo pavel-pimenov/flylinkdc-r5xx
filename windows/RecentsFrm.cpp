@@ -238,7 +238,6 @@ LRESULT RecentHubsFrame::onEdit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
 		{
 			r->setDescription(Text::fromT(dlg.line));
 			ctrlHubs.SetItemText(i, COLUMN_DESCRIPTION, Text::toT(r->getDescription()).c_str());
-			FavoriteManager::getInstance()->recentsave();
 		}
 	}
 	return 0;

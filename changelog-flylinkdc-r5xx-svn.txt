@@ -1,4 +1,61 @@
 ------------------------------------------------------------------------
+r16357 | pavel.pimenov@gmail.com | 2014-01-10 22:31:24 +0400 (Пт, 10 янв 2014) | 7 lines
+
+Merged revision(s) 16354-16356 from trunk:
+* Исправлено падение в https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=113332
+........
+# Метка переполнения плавющей точки 
+  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=48383
+  как исправить пока не знаю - возникла только у одного человека.
+
+------------------------------------------------------------------------
+r16353 | pavel.pimenov@gmail.com | 2014-01-10 22:06:26 +0400 (Пт, 10 янв 2014) | 7 lines
+
+Merged revision(s) 16352 from trunk:
+* Исправлено падение при ошибке создания Emptyfiles.xml.bz2
+  https://crash-server.com/Problem.aspx?ProblemID=51912
+  http://www.flickr.com/photos/96019675@N02/11874170733/
+ 
+
+
+------------------------------------------------------------------------
+r16351 | pavel.pimenov@gmail.com | 2014-01-10 21:41:35 +0400 (Пт, 10 янв 2014) | 34 lines
+
+Merged revision(s) 16330-16350 from trunk:
+# [lang] an auto commit from localization system...
+........
+# Маркеры падения 
+  - https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=111640
+  - https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=112726
+........
+# Сброс m_recentHubs в базу данных только когда что-то поменялось.
+........
+# Astyle
+........
+* r503-beta19
+* Очередь закачек. 
+  - Исправлен рекурсивный лок UniqueLock lqi(QueueItem::cs); в QueueFrame::onRemoveSource и QueueFrame::onRemoveOffline
+  - Исправлены падения в QueueFrame::updateStatus()
+  - Исправлены падения в QueueFrame::onRemoveOffline
+    https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=111640
+  - Ускорил обработку UPDATE_ITEM в QueueFrame::onSpeaker
+    не зовем getItemInfo если включено дерево и каталог не совпадает.
+    ctrlQueue.updateItem не зовем для записей очереди если их не видно на экране.
+........
+# Log [public-build]
+........
+# Сократил CRITICAL_SECTION_SPIN_COUNT до 2000 как в гугл-хроме
+........
+# r4xx
+  - Добаылены флаги /sqltrace и /nowal для включения трассировки и отключения режима wal для sqlite базы
+  - Для InitializeCriticalSectionAndSpinCount используется параметр 2000 как в Google Chrome
+........
+# fly-server сократил кол-во заголовков в postQuery
+........
+# MediaInfo 0.7.67
+........
+
+------------------------------------------------------------------------
 r16328 | pavel.pimenov@gmail.com | 2014-01-08 15:24:04 +0400 (Ср, 08 янв 2014) | 1 line
 
 * r502-sp10 build 16328

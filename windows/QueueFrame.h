@@ -161,7 +161,10 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		
 		LRESULT onSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /* bHandled */)
 		{
-			ctrlQueue.SetFocus();
+			if (ctrlQueue.IsWindow())
+			{
+				ctrlQueue.SetFocus();
+			}
 			return 0;
 		}
 		
@@ -265,6 +268,9 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		};
 		StringList m_tmp_target_to_delete; // [+] NightOrion bugfix deleting folder from queue
 		
+		std::vector<std::pair<std::string, UserPtr> > m_remove_source_array;
+		void removeSources();
+		
 		class QueueItemInfo;
 		friend class QueueItemInfo;
 		
@@ -279,6 +285,10 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				explicit QueueItemInfo(const QueueItemPtr& aQI) : qi(aQI)
 				{
 					qi->inc();
+					m_size   = qi->getSize();
+#ifdef _DEBUG
+					m_Target = qi->getTarget();
+#endif
 				}
 				
 				~QueueItemInfo()
@@ -337,12 +347,14 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				
 				const string& getTarget() const
 				{
+					dcassert(m_Target == qi->getTarget());
 					return qi->getTarget();
 				}
 				
 				int64_t getSize() const
 				{
-					return qi->getSize(); // [5] https://www.box.net/shared/3b3f3d75561df0d66772
+					dcassert(m_size == qi->getSize())
+					return m_size;
 				}
 				int64_t getDownloadedBytes() const
 				{
@@ -377,6 +389,10 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				
 			private:
 				const QueueItemPtr qi;
+#ifdef _DEBUG
+				string m_Target;
+#endif
+				int64_t m_size;
 		};
 		
 		struct QueueItemInfoTask :  public Task
@@ -384,8 +400,8 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				, virtual NonDerivable<QueueItemInfoTask> // [+] IRainman fix.
 #endif
 		{
-			explicit QueueItemInfoTask(QueueItemInfo* ii_) : ii(ii_) { }
-			QueueItemInfo* ii;
+			explicit QueueItemInfoTask(QueueItemInfo* p_ii) : m_ii(p_ii) { }
+			QueueItemInfo* m_ii;
 		};
 		
 		struct UpdateTask : public Task
@@ -393,8 +409,13 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				, virtual NonDerivable<UpdateTask> // [+] IRainman fix.
 #endif
 		{
-			explicit UpdateTask(const QueueItem& source) : target(source.getTarget()) { }
-			string target;
+				explicit UpdateTask(const string& p_target) : m_target(p_target) { }
+				const string& getTarget() const
+				{
+					return m_target;
+				}
+			private:
+				const string m_target;
 		};
 		
 		TaskQueue m_tasks;
@@ -483,7 +504,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		
 		void clearTree(HTREEITEM item);
 		
-		QueueItemInfo* getItemInfo(const string& target) const;
+		QueueItemInfo* getItemInfo(const string& target, const string& p_path) const;
 		
 		void removeSelected();
 		void removeSelectedDir();
@@ -508,11 +529,11 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		void on(QueueManagerListener::Removed, const QueueItemPtr& aQI) noexcept;
 		void on(QueueManagerListener::SourcesUpdated, const QueueItemPtr& aQI) noexcept
 		{
-			m_tasks.add(UPDATE_ITEM, new UpdateTask(*aQI));
+			m_tasks.add(UPDATE_ITEM, new UpdateTask(aQI->getTarget()));
 		}
 		void on(QueueManagerListener::StatusUpdated, const QueueItemPtr& aQI) noexcept
 		{
-			m_tasks.add(UPDATE_ITEM, new UpdateTask(*aQI));
+			m_tasks.add(UPDATE_ITEM, new UpdateTask(aQI->getTarget()));
 		}
 		void on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept // [+] IRainman opt.
 		{

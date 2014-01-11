@@ -133,7 +133,8 @@ void CBarShader::Draw(CDC& dc, int iLeft, int iTop, int P3DDepth)
 	rectSpan.top = iTop;
 	rectSpan.bottom = iTop + m_iHeight;
 	rectSpan.right = iLeft;
-	
+	// flylinkdc-r5xx_7.7.502.16176_20131211_210642.mini.dmp: 0xC0000091: Floating-point overflow.
+	// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=48383
 	int64_t iBytesInOnePixel = static_cast<int64_t>(m_dblBytesPerPixel + 0.5);
 	uint64_t qwStart = 0;
 	COLORREF crColor = m_Spans.GetNextValue(pos);

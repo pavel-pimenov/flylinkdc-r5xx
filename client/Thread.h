@@ -333,30 +333,34 @@ class CriticalSection
 	public:
 		void lock()
 		{
+			//dcassert(cs.RecursionCount == 0 || (cs.RecursionCount > 0 && tryLock() == true));
 			EnterCriticalSection(&cs);
-			dcdrun(counter++);
 		}
 		void unlock()
 		{
-			dcassert(--counter >= 0);
 			LeaveCriticalSection(&cs);
+			//dcassert(cs.RecursionCount == 0 || (cs.RecursionCount > 0 && tryLock() == true));
 		}
-		BOOL tryLock()
+		bool tryLock()
 		{
-			return TryEnterCriticalSection(&cs);
+			if (TryEnterCriticalSection(&cs) != FALSE)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
 		}
 		explicit CriticalSection()
 		{
-			dcdrun(counter = 0;);
 			InitializeCriticalSectionAndSpinCount(&cs, CRITICAL_SECTION_SPIN_COUNT); // [!] IRainman: InitializeCriticalSectionAndSpinCount
 		}
 		~CriticalSection()
 		{
-			dcassert(counter == 0);
 			DeleteCriticalSection(&cs);
 		}
 	private:
-		dcdrun(volatile long counter;)
 		CRITICAL_SECTION cs;
 #ifndef IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
 	public:

@@ -110,8 +110,8 @@ void UserInfoSimple::addSummaryMenu()
 #ifdef IRAINMAN_USE_SEPARATE_CS_IN_QUEUE_MANAGER
 		SharedLock l(QueueItem::cs);
 #endif
-		QueueManager::LockFileQueueShared qm;
-		const QueueItem::QIStringMap& downloads = qm.getQueue();
+		QueueManager::LockFileQueueShared l_fileQueue;
+		const auto& downloads = l_fileQueue.getQueueL();
 		for (auto j = downloads.cbegin(); j != downloads.cend(); ++j)
 		{
 			const QueueItemPtr& aQI = j->second;

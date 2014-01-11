@@ -18,7 +18,7 @@ for %%w in (flylinkdc-Install-*.iss) do (
 )
 call clear_installers.bat
 cd Output
-rem [!] call install-copy-www.bat
+call install-copy-www.bat
 
 goto :end
 

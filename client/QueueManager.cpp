@@ -2338,12 +2338,11 @@ void QueueManager::removeSource(const string& aTarget, const UserPtr& aUser, Fla
 	bool removeCompletely = false;
 	do
 	{
+		UniqueLock l(QueueItem::cs); // [!] IRainman fix.
 		QueueItemPtr q = fileQueue.find(aTarget);
 		if (!q)
 			return;
 			
-		UniqueLock l(QueueItem::cs); // [!] IRainman fix.
-		
 		if (!q->isSourceL(aUser))
 			return;
 			

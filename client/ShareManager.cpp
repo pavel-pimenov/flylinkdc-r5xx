@@ -76,11 +76,18 @@ ShareManager::ShareManager() : xmlListLen(0), bzXmlListLen(0),
 	const string emptyXmlName = getEmptyBZXmlFile();
 	if (!File::isExist(emptyXmlName))
 	{
-		FilteredOutputStream<BZFilter, true> emptyXmlFile(new File(emptyXmlName, File::WRITE, File::TRUNCATE | File::CREATE));
-		emptyXmlFile.write(SimpleXML::utf8Header);
-		emptyXmlFile.write("<FileListing Version=\"1\" CID=\"" + ClientManager::getMyCID().toBase32() + "\" Base=\"/\" Generator=\"DC++ " DCVERSIONSTRING "\">\r\n"); // Hide Share Mod
-		emptyXmlFile.write("</FileListing>");
-		emptyXmlFile.flush();
+		try
+		{
+			FilteredOutputStream<BZFilter, true> emptyXmlFile(new File(emptyXmlName, File::WRITE, File::TRUNCATE | File::CREATE));
+			emptyXmlFile.write(SimpleXML::utf8Header);
+			emptyXmlFile.write("<FileListing Version=\"1\" CID=\"" + ClientManager::getMyCID().toBase32() + "\" Base=\"/\" Generator=\"DC++ " DCVERSIONSTRING "\">\r\n"); // Hide Share Mod
+			emptyXmlFile.write("</FileListing>");
+			emptyXmlFile.flush();
+		}
+		catch (const Exception& e) // fix https://crash-server.com/Problem.aspx?ProblemID=51912
+		{
+			LogManager::getInstance()->message("Error create: " + emptyXmlName + " error = " + e.getError());
+		}
 	}
 #endif // IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 	

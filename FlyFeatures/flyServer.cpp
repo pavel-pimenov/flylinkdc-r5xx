@@ -142,8 +142,18 @@ bool CFlyServerConfig::isParasitFile(const string& p_file)
 const DHTServer& CFlyServerConfig::getRandomDHTServer()
 {
 	dcassert(!g_dht_servers.empty());
-	const int l_id = Util::rand(g_dht_servers.size());
-	return g_dht_servers[l_id];
+	if(!g_dht_servers.empty())
+	{
+	 const int l_id = Util::rand(g_dht_servers.size());
+	 return g_dht_servers[l_id];
+	}
+	else
+	{
+		// fix https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=113332
+		// TODO - Попытаться повторить.
+		g_dht_servers.push_back(DHTServer("http://ssa.in.ua/dcDHT.php", "")); 
+		return g_dht_servers[0];
+	}
 }
 #endif // STRONG_USE_DHT
 //======================================================================================================
@@ -734,8 +744,8 @@ string CFlyServerAdapter::CFlyServerJSON::postQuery(bool p_is_set, bool p_is_sta
 	}
 #endif
 	string l_result_query;
-	static const char g_hdrs[]		= "Content-Type: application/x-www-form-urlencoded";
-	static const size_t g_hdrs_len   = strlen(g_hdrs); // Можно заменить на (sizeof(g_hdrs)-1) ...
+	//static const char g_hdrs[]		= "Content-Type: application/x-www-form-urlencoded"; // TODO - оно нужно?
+	//static const size_t g_hdrs_len   = strlen(g_hdrs); // Можно заменить на (sizeof(g_hdrs)-1) ...
 	static LPCSTR g_accept[2]	= {"*/*", NULL};
 	std::vector<uint8_t> l_post_compress_query;
 	string l_log_string;
@@ -783,13 +793,16 @@ string CFlyServerAdapter::CFlyServerJSON::postQuery(bool p_is_set, bool p_is_sta
 // TODO	InternetSetOption(hSession, INTERNET_OPTION_SEND_TIMEOUT, &timeOut, sizeof(timeOut));
 	if(hSession)
 	{
-		CInternetHandle hConnect(InternetConnectA(hSession, l_Server.getIp().c_str(),l_Server.getPort(), NULL, NULL, INTERNET_SERVICE_HTTP, 0, 1));
+		DWORD dwFlags = 0; //INTERNET_FLAG_NO_COOKIES|INTERNET_FLAG_RELOAD|INTERNET_FLAG_NO_CACHE_WRITE|INTERNET_FLAG_PRAGMA_NOCACHE;
+		CInternetHandle hConnect(InternetConnectA(hSession, l_Server.getIp().c_str(),l_Server.getPort(), NULL, NULL, INTERNET_SERVICE_HTTP, dwFlags, NULL));
 		if(hConnect)
 		{
-			CInternetHandle hRequest(HttpOpenRequestA(hConnect, "POST", p_query , NULL, NULL, g_accept, 0, 1));
+			CInternetHandle hRequest(HttpOpenRequestA(hConnect, "POST", p_query , NULL, NULL, NULL /*g_accept*/, 0, NULL));
 			if(hRequest)
 			{
-				if(HttpSendRequestA(hRequest, g_hdrs, g_hdrs_len,  // Leak?
+				if(HttpSendRequestA(hRequest, 
+					    NULL,  //g_hdrs, 
+						NULL,  //g_hdrs_len,
 						l_is_zlib ? reinterpret_cast<LPVOID>(l_post_compress_query.data()) : LPVOID(p_body.data()), 
 						l_is_zlib ? l_post_compress_query.size() : p_body.size()))
 				{

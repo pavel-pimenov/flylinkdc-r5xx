@@ -355,7 +355,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 // Recent Hubs
 		const RecentHubEntry::List& getRecentHubs() const
 		{
-			return recentHubs;
+			return m_recentHubs;
 		}
 		
 		void addRecent(const RecentHubEntry& aEntry);
@@ -364,7 +364,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		
 		RecentHubEntry* getRecentHubEntry(const string& aServer) const
 		{
-			for (auto i = recentHubs.cbegin(); i != recentHubs.cend(); ++i)
+			for (auto i = m_recentHubs.cbegin(); i != m_recentHubs.cend(); ++i)
 			{
 				RecentHubEntry* r = *i;
 				if (stricmp(r->getServer(), aServer) == 0)
@@ -403,8 +403,8 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		// [~] IRainman fix.
 		void removeallRecent()
 		{
-			recentHubs.clear();
-			recentsave();
+			m_recentHubs.clear();
+			m_recent_dirty = true;
 		}
 		
 // User Commands
@@ -430,7 +430,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		bool load_from_url();
 #endif
 		void save();
-		void recentsave() const;
+		void recentsave();
 		static const string& getSupportHubURL();
 		size_t getCountFavsUsers() const;
 	private:
@@ -442,7 +442,8 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 #endif
 		FavDirList favoriteDirs; // [~] InfinitySky. Code from Apex.
 		FavHubGroups favHubGroups;
-		RecentHubEntry::List recentHubs;
+		RecentHubEntry::List m_recentHubs;
+		bool m_recent_dirty;
 		PreviewApplication::List previewApplications;
 		UserCommand::List userCommands;
 #ifdef PPA_USER_COMMANDS_HUBS_SET

@@ -1297,7 +1297,7 @@ void CFlylinkDBManager::load_ignore(StringSet& p_ignores)
 		{
 			const string l_nick = l_q.getstring(0);
 			p_ignores.insert(l_nick);
-			LogManager::getInstance()->message(STRING(IGNORE_USER_BY_NAME) + ": " + l_nick);
+			LogManager::getInstance()->message(STRING(IGNORE_USER_BY_NAME) + ": " + l_nick, true);
 		}
 	}
 	catch (const database_error& e)

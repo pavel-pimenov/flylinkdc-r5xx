@@ -54,7 +54,7 @@ FavoriteManager::FavoriteManager() : m_isNotEmpty(false), m_lastId(0),
 #ifdef IRAINMAN_ENABLE_HUB_LIST
 	m_useHttp(false), m_running(false), c(nullptr), m_lastServer(0), m_listType(TYPE_NORMAL),
 #endif
-	m_dontSave(0)
+	m_dontSave(0), m_recent_dirty(false)
 {
 	SettingsManager::getInstance()->addListener(this);
 	ClientManager::getInstance()->addListener(this);
@@ -69,7 +69,7 @@ FavoriteManager::~FavoriteManager()
 	shutdown();
 	
 	for_each(favoriteHubs.begin(), favoriteHubs.end(), DeleteFunction());
-	for_each(recentHubs.begin(), recentHubs.end(), DeleteFunction());
+	for_each(m_recentHubs.begin(), m_recentHubs.end(), DeleteFunction());
 	for_each(previewApplications.begin(), previewApplications.end(), DeleteFunction());
 }
 
@@ -220,6 +220,7 @@ void FavoriteManager::removeUserCommand(int cid)
 }
 void FavoriteManager::shutdown()
 {
+	recentsave();
 #ifdef IRAINMAN_ENABLE_HUB_LIST
 	if (c)
 	{
@@ -696,40 +697,38 @@ string FavoriteManager::getDownloadDirectory(const string& ext) const
 void FavoriteManager::addRecent(const RecentHubEntry& aEntry)
 {
 	RecentHubEntry::Iter i = getRecentHub(aEntry.getServer());
-	if (i != recentHubs.end())
+	if (i != m_recentHubs.end())
 	{
 		return;
 	}
 	RecentHubEntry* f = new RecentHubEntry(aEntry);
-	recentHubs.push_back(f);
+	m_recentHubs.push_back(f);
+	m_recent_dirty = true;
 	fire(FavoriteManagerListener::RecentAdded(), f);
-	recentsave();
 }
 
 void FavoriteManager::removeRecent(const RecentHubEntry* entry)
 {
-	const auto& i = find(recentHubs.begin(), recentHubs.end(), entry);
-	if (i == recentHubs.end())
+	const auto& i = find(m_recentHubs.begin(), m_recentHubs.end(), entry);
+	if (i == m_recentHubs.end())
 	{
 		return;
 	}
 	
 	fire(FavoriteManagerListener::RecentRemoved(), entry);
-	recentHubs.erase(i);
+	m_recentHubs.erase(i);
+	m_recent_dirty = true;
 	delete entry;
-	recentsave();
 }
 
 void FavoriteManager::updateRecent(const RecentHubEntry* entry)
 {
-	RecentHubEntry::Iter i = find(recentHubs.begin(), recentHubs.end(), entry);
-	if (i == recentHubs.end())
+	RecentHubEntry::Iter i = find(m_recentHubs.begin(), m_recentHubs.end(), entry);
+	if (i == m_recentHubs.end())
 	{
 		return;
 	}
-	
 	fire(FavoriteManagerListener::RecentUpdated(), entry);
-	recentsave();
 }
 
 #ifdef IRAINMAN_ENABLE_HUB_LIST
@@ -1000,24 +999,28 @@ void FavoriteManager::save()
 	}
 }
 
-void FavoriteManager::recentsave() const
+void FavoriteManager::recentsave()
 {
-	CFlyRegistryMap l_values;
-	for (auto i = recentHubs.cbegin(); i != recentHubs.cend(); ++i)
+	if (m_recent_dirty)
 	{
-		string l_recentHubs_token;
-		l_recentHubs_token += (*i)->getDescription();
-		l_recentHubs_token += '\n';
-		l_recentHubs_token += (*i)->getUsers();
-		l_recentHubs_token += '\n';
-		l_recentHubs_token += (*i)->getShared();
-		l_recentHubs_token += '\n';
-		l_recentHubs_token += (*i)->getServer();
-		l_recentHubs_token += '\n';
-		l_recentHubs_token += (*i)->getDateTime();
-		l_values[(*i)->getName()] = l_recentHubs_token;
+		CFlyRegistryMap l_values;
+		for (auto i = m_recentHubs.cbegin(); i != m_recentHubs.cend(); ++i)
+		{
+			string l_recentHubs_token;
+			l_recentHubs_token += (*i)->getDescription();
+			l_recentHubs_token += '\n';
+			l_recentHubs_token += (*i)->getUsers();
+			l_recentHubs_token += '\n';
+			l_recentHubs_token += (*i)->getShared();
+			l_recentHubs_token += '\n';
+			l_recentHubs_token += (*i)->getServer();
+			l_recentHubs_token += '\n';
+			l_recentHubs_token += (*i)->getDateTime();
+			l_values[(*i)->getName()] = l_recentHubs_token;
+		}
+		CFlylinkDBManager::getInstance()->save_registry(l_values, e_RecentHub);
+		m_recent_dirty = false;
 	}
-	CFlylinkDBManager::getInstance()->save_registry(l_values, e_RecentHub);
 }
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 bool FavoriteManager::load_from_url()
@@ -1117,7 +1120,7 @@ void FavoriteManager::load()
 	}
 	// [~] RedMaster
 	
-	const bool oldConfigExist = !recentHubs.empty(); // [+] IRainman fix: FlylinkDC stores recents hubs in the sqlite database, so you need to keep the values in the database after loading the file.
+	const bool oldConfigExist = !m_recentHubs.empty(); // [+] IRainman fix: FlylinkDC stores recents hubs in the sqlite database, so you need to keep the values in the database after loading the file.
 	
 	CFlyRegistryMap l_values;
 	CFlylinkDBManager::getInstance()->load_registry(l_values, e_RecentHub);
@@ -1137,12 +1140,13 @@ void FavoriteManager::load()
 				e->setDateTime(tok.getTokens()[4]);
 			}
 		}
-		recentHubs.push_back(e);
+		m_recentHubs.push_back(e);
+		m_recent_dirty = true;
 	}
 	// [+] IRainman fix: FlylinkDC stores recents hubs in the sqlite database, so you need to keep the values in the database after loading the file.
 	if (oldConfigExist)
 	{
-		recentsave();
+		m_recent_dirty = true;
 	}
 	// [~] IRainman fix.
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
@@ -1633,7 +1637,8 @@ void FavoriteManager::recentload(SimpleXML& aXml)
 			e->setShared(aXml.getChildAttrib("Shared"));
 			e->setServer(Util::formatDchubUrl(aXml.getChildAttrib("Server")));
 			e->setDateTime(aXml.getChildAttrib("DateTime"));
-			recentHubs.push_back(e);
+			m_recentHubs.push_back(e);
+			m_recent_dirty = true;
 		}
 		aXml.stepOut();
 	}
@@ -1642,12 +1647,12 @@ void FavoriteManager::recentload(SimpleXML& aXml)
 #ifdef IRAINMAN_ENABLE_HUB_LIST
 RecentHubEntry::Iter FavoriteManager::getRecentHub(const string& aServer) const
 {
-	for (auto i = recentHubs.cbegin(); i != recentHubs.cend(); ++i)
+	for (auto i = m_recentHubs.cbegin(); i != m_recentHubs.cend(); ++i)
 	{
 		if ((*i)->getServer() == aServer)
 			return i;
 	}
-	return recentHubs.end();
+	return m_recentHubs.end();
 }
 
 void FavoriteManager::setHubList(int aHubList)

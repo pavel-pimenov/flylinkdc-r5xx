@@ -160,10 +160,12 @@ void VideoPreview::clear()
 	_viewStarted = true;
 	if (!_currentFilePreview.empty())
 	{
-		QueueManager::LockFileQueueShared l_instance;
+		QueueManager::LockFileQueueShared l_fileQueue;
 		auto qi = QueueManager::getInstance()->fileQueue.find(_currentFilePreview);
 		if (qi)
-			qi->setDelegate(NULL);
+		{
+				qi->setDelegate(nullptr);
+		}
 	}
 	// Stop/Remove Items
 	SocketProcessorSIter i = _socketProcessors.begin();

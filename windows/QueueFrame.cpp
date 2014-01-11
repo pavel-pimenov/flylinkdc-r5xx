@@ -348,9 +348,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 
 void QueueFrame::on(QueueManagerListener::Added, const QueueItemPtr& aQI)
 {
-	QueueItemInfo* ii = new QueueItemInfo(aQI);
-	
-	m_tasks.add(ADD_ITEM, new QueueItemInfoTask(ii));
+	m_tasks.add(ADD_ITEM, new QueueItemInfoTask(new QueueItemInfo(aQI)));
 }
 
 void QueueFrame::addQueueItem(QueueItemInfo* ii, bool noSort)
@@ -386,11 +384,10 @@ void QueueFrame::addQueueItem(QueueItemInfo* ii, bool noSort)
 	}
 }
 
-QueueFrame::QueueItemInfo* QueueFrame::getItemInfo(const string& p_target) const
+QueueFrame::QueueItemInfo* QueueFrame::getItemInfo(const string& p_target, const string& p_path) const
 {
 	dcassert(m_closed == false);
-	const string l_path = Util::getFilePath(p_target);
-	DirectoryPairC items = m_directories.equal_range(l_path);
+	DirectoryPairC items = m_directories.equal_range(p_path);
 	// https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=101839
 	// https://www.crash-server.com/Problem.aspx?ProblemID=43187
 	// https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=30936
@@ -414,8 +411,8 @@ void QueueFrame::addQueueList()
 	CLockRedraw<true> l_lock_draw_dir(ctrlDirs);
 	{
 		// [!] IRainman opt.
-		QueueManager::LockFileQueueShared lockedInstance;
-		auto& li = lockedInstance.getQueue();
+		QueueManager::LockFileQueueShared l_fileQueue;
+		const auto& li = l_fileQueue.getQueueL();
 		for (auto j = li.cbegin(); j != li.cend(); ++j)
 		{
 			const QueueItemPtr& aQI = j->second;
@@ -705,9 +702,9 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 			{
 				const auto& iit = static_cast<QueueItemInfoTask&>(*ti->second);
 				
-				dcassert(ctrlQueue.findItem(iit.ii) == -1);
-				addQueueItem(iit.ii, false);
-				if (!iit.ii->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP)
+				dcassert(ctrlQueue.findItem(iit.m_ii) == -1);
+				addQueueItem(iit.m_ii, false);
+				if (!iit.m_ii->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP)
 				        && BOOLSETTING(BOLD_QUEUE))
 				{
 					setDirty();
@@ -718,7 +715,8 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 			case REMOVE_ITEM:
 			{
 				const auto& target = static_cast<StringTask&>(*ti->second);
-				const QueueItemInfo* ii = getItemInfo(target.m_str);
+				const auto l_path = Util::getFilePath(target.m_str);
+				const QueueItemInfo* ii = getItemInfo(target.m_str, l_path);
 				if (!ii)
 				{
 					// Item already delete.
@@ -772,22 +770,32 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 			case UPDATE_ITEM:
 			{
 				auto &ui = static_cast<UpdateTask&>(*ti->second);
-				QueueItemInfo* ii = getItemInfo(ui.target);
-				if (!ii)
-					break;
-					
-				if (!showTree || isCurDir(ii->getPath()))
+				const auto l_path = Util::getFilePath(ui.getTarget());
+				const bool l_is_cur_dir = isCurDir(l_path);
+				if (!showTree || l_is_cur_dir)
 				{
-					int pos = ctrlQueue.findItem(ii);
-					if (pos != -1)
+					const QueueItemInfo* ii = getItemInfo(ui.getTarget(), l_path);
+					if (!ii)
+						break;
+						
+					if (!showTree || l_is_cur_dir)
 					{
-						ctrlQueue.updateItem(pos, COLUMN_SEGMENTS);
-						ctrlQueue.updateItem(pos, COLUMN_PROGRESS);
-						ctrlQueue.updateItem(pos, COLUMN_PRIORITY);
-						ctrlQueue.updateItem(pos, COLUMN_USERS);
-						ctrlQueue.updateItem(pos, COLUMN_ERRORS);
-						ctrlQueue.updateItem(pos, COLUMN_STATUS);
-						ctrlQueue.updateItem(pos, COLUMN_DOWNLOADED);
+						const int pos = ctrlQueue.findItem(ii);
+						dcassert(pos != -1);
+						if (pos != -1)
+						{
+							const int l_top_index = ctrlQueue.GetTopIndex();
+							if (pos >= l_top_index && pos <= l_top_index + ctrlQueue.GetCountPerPage())
+							{
+								ctrlQueue.updateItem(pos, COLUMN_SEGMENTS);
+								ctrlQueue.updateItem(pos, COLUMN_PROGRESS);
+								ctrlQueue.updateItem(pos, COLUMN_PRIORITY);
+								ctrlQueue.updateItem(pos, COLUMN_USERS);
+								ctrlQueue.updateItem(pos, COLUMN_ERRORS);
+								ctrlQueue.updateItem(pos, COLUMN_STATUS);
+								ctrlQueue.updateItem(pos, COLUMN_DOWNLOADED);
+							}
+						}
 					}
 				}
 			}
@@ -1392,6 +1400,7 @@ LRESULT QueueFrame::onRemoveSource(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCt
 {
 	if (ctrlQueue.GetSelectedCount() == 1)
 	{
+		m_remove_source_array.clear();
 		int i = ctrlQueue.GetNextItem(-1, LVNI_SELECTED);
 		const QueueItemInfo* ii = ctrlQueue.getItemData(i);
 		if (wID == IDC_REMOVE_SOURCE)
@@ -1400,9 +1409,7 @@ LRESULT QueueFrame::onRemoveSource(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCt
 			const auto& sources = ii->getQueueItem()->getSourcesL();
 			for (auto si = sources.cbegin(); si != sources.cend(); ++si)
 			{
-				// TODO - внутри еще один рекурсивный UniqueLock lqi(QueueItem::cs);
-				// придумать как избавится от него
-				QueueManager::getInstance()->removeSource(ii->getTarget(), si->first, QueueItem::Source::FLAG_REMOVED);
+				m_remove_source_array.push_back(std::make_pair(ii->getTarget(), si->first));
 			}
 		}
 		else
@@ -1414,9 +1421,10 @@ LRESULT QueueFrame::onRemoveSource(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCt
 			if (omi)
 			{
 				UserPtr* s = (UserPtr*)omi->m_data;
-				QueueManager::getInstance()->removeSource(ii->getTarget(), *s, QueueItem::Source::FLAG_REMOVED);
+				m_remove_source_array.push_back(std::make_pair(ii->getTarget(), *s));
 			}
 		}
+		removeSources();
 	}
 	return 0;
 }
@@ -1673,12 +1681,9 @@ void QueueFrame::updateStatus()
 					const QueueItemInfo* ii = ctrlQueue.getItemData(i);
 					if (ii)
 					{
-						const int64_t l_size = ii->getSize(); // [5] https://www.box.net/shared/3b3f3d75561df0d66772
+						const int64_t l_size = ii->getSize();
 						if (l_size > 0)
 							total += l_size;
-						// 2012-05-03_22-00-59_XU5MNUJZMTMQRSM747KAIDWAUX5TB4W467OAELI_2DCDA2E5_crash-stack-r502-beta24-build-9900.dmp
-						// 2012-05-11_23-57-17_U4TZSIYHFC32XEVTFRRT6A5T746QRL3VBVRZ6OY_FDCFBE73_crash-stack-r502-beta26-x64-build-9946.dmp
-						// 2012-05-11_23-53-01_IZIM6B7B5FPUY3NUHXVN2J3JVYYHLXC5PNMVRTA_833FF3DF_crash-stack-r502-beta26-build-9946.dmp
 					}
 				}
 			}
@@ -1693,7 +1698,7 @@ void QueueFrame::updateStatus()
 			while ((i = ctrlQueue.GetNextItem(i, LVNI_SELECTED)) != -1)
 			{
 				const QueueItemInfo* ii = ctrlQueue.getItemData(i);
-				total += (ii->getSize() > 0) ? ii->getSize() : 0; // [1] https://www.box.net/shared/98f8cd9c265dca2fe830
+				total += (ii->getSize() > 0) ? ii->getSize() : 0;
 			}
 			
 		}
@@ -1770,7 +1775,8 @@ void QueueFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		ctrlStatus.SetParts(6, w);
 		
 		ctrlStatus.GetRect(0, sr);
-		ctrlShowTree.MoveWindow(sr);
+		if (ctrlShowTree.IsWindow())
+			ctrlShowTree.MoveWindow(sr);
 	}
 	
 	if (showTree)
@@ -2067,26 +2073,30 @@ LRESULT QueueFrame::onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 LRESULT QueueFrame::onRemoveOffline(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	int i = -1;
+	m_remove_source_array.clear();
 	while ((i = ctrlQueue.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
 		const QueueItemInfo* ii = ctrlQueue.getItemData(i);
-		
 		UniqueLock l(QueueItem::cs);
 		const auto& sources = ii->getQueueItem()->getSourcesL();
-		for (auto i =  sources.cbegin(); i != sources.cend(); ++i) // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=111640
+		for (auto i =  sources.cbegin(); i != sources.cend(); ++i)  // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=111640
 		{
 			if (!i->first->isOnline())
 			{
-				// TODO2
-				// TODO - внутри еще один рекурсивный UniqueLock lqi(QueueItem::cs);
-				// придумать как избавится от него
-				QueueManager::getInstance()->removeSource(ii->getTarget(), i->first, QueueItem::Source::FLAG_REMOVED);
+				m_remove_source_array.push_back(std::make_pair(ii->getTarget(), i->first));
 			}
 		}
 	}
+	removeSources();
 	return 0;
 }
-
+void QueueFrame::removeSources()
+{
+	for (auto j = m_remove_source_array.cbegin(); j != m_remove_source_array.cend(); ++j)
+	{
+		QueueManager::getInstance()->removeSource(j->first, j->second, QueueItem::Source::FLAG_REMOVED);
+	}
+}
 void QueueFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
 {
 	bool refresh = false;

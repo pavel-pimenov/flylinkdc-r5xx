@@ -318,7 +318,7 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 					bool slowDisconnect;
 					{
 						QueueManager::LockFileQueueShared l_fileQueue;
-						const QueueItem::QIStringMap& queue = l_fileQueue.getQueue();
+						const auto& queue = l_fileQueue.getQueueL();
 						const auto qi = queue.find(&target);
 						if (qi != queue.cend())
 							slowDisconnect = qi->second->isAutoDrop(); // [!]
@@ -1758,8 +1758,8 @@ LRESULT TransferView::onSlowDisconnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
 		{
 			string tmp = Text::fromT(ii->m_target);
 			
-			QueueManager::LockFileQueueShared qm;
-			const QueueItem::QIStringMap& queue = qm.getQueue();
+			QueueManager::LockFileQueueShared l_fileQueue;
+			const auto& queue = l_fileQueue.getQueueL();
 			const auto qi = queue.find(&tmp);
 			if (qi != queue.cend())
 				qi->second->changeAutoDrop(); // [!]

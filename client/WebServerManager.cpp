@@ -549,8 +549,8 @@ string WebServerManager::getDLQueue()
 #ifdef IRAINMAN_USE_SEPARATE_CS_IN_QUEUE_MANAGER
 	SharedLock l(QueueItem::cs);
 #endif
-	QueueManager::LockFileQueueShared qm;
-	const QueueItem::QIStringMap& li = qm.getQueue();
+	QueueManager::LockFileQueueShared l_fileQueue;
+	const auto& li = l_fileQueue.getQueueL();
 	for (auto j = li.cbegin(); j != li.cend(); ++j)
 	{
 		const QueueItemPtr& qi = j->second;

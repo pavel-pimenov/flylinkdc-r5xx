@@ -85,7 +85,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 					QueueManager::getInstance()->fileQueue.csFQ.unlockShared();
 				}
 				// [~] IRainman fix.
-				const QueueItem::QIStringMap& getQueue() noexcept
+				const QueueItem::QIStringMap& getQueueL() noexcept
 				{
 					return QueueManager::getInstance()->fileQueue.getQueueL(); // “ут L?
 				}

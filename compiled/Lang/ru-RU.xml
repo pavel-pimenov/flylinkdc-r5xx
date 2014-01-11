@@ -944,7 +944,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="MenuRefreshFileList">Обновить свой список файлов	F9</String>
 		<String Name="MenuRefreshFileListPurge">Очистить базу данных TTH от ненужных записей</String>
 		<String Name="MenuRefreshMediainfo">Обновить медиа информацию (только для бета-тестирования! долгий процесс без индикаторов)</String>
-		<String Name="MenuConvertTthHistoryIntoLeveldb">Преобразовать TTH истории SQLite в LevelDB</String>
+		<String Name="MenuConvertTthHistoryIntoLeveldb">Преобразовать историю TTH из SQLite в LevelDB</String>
 		<String Name="MenuRestoreAll">Развернуть всё</String>
 		<String Name="MenuRssNews">Ленты новостей	Ctrl+Shift+N</String>
 		<String Name="MenuSearch">&amp;Поиск	Ctrl+S</String>
