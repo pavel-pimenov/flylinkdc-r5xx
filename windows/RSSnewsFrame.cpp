@@ -200,21 +200,13 @@ void RSSNewsFrame::UpdateLayout(BOOL bResizeBars /*= TRUE*/)
 
 void RSSNewsFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
 {
-	bool refresh = false;
-	if (ctrlList.GetBkColor() != Colors::bgColor)
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
 	{
-		ctrlList.SetBkColor(Colors::bgColor);
-		ctrlList.SetTextBkColor(Colors::bgColor);
-		refresh = true;
-	}
-	if (ctrlList.GetTextColor() != Colors::textColor)
-	{
-		ctrlList.SetTextColor(Colors::textColor);
-		refresh = true;
-	}
-	if (refresh == true)
-	{
-		RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
+		if (ctrlList.isRedraw())
+		{
+			RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
+		}
 	}
 }
 void

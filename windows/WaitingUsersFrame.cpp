@@ -567,23 +567,14 @@ LRESULT WaitingUsersFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 
 void WaitingUsersFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
 {
-	bool refresh = false;
-	if (m_ctrlList.GetBkColor() != Colors::bgColor)
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
 	{
-		m_ctrlList.SetBkColor(Colors::bgColor);
-		m_ctrlList.SetTextBkColor(Colors::bgColor);
-		ctrlQueued.SetBkColor(Colors::bgColor);
-		refresh = true;
-	}
-	if (m_ctrlList.GetTextColor() != Colors::textColor)
-	{
-		m_ctrlList.SetTextColor(Colors::textColor);
-		ctrlQueued.SetTextColor(Colors::textColor);
-		refresh = true;
-	}
-	if (refresh == true)
-	{
-		RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
+		if (m_ctrlList.isRedraw())
+		{
+			ctrlQueued.SetBkColor(Colors::bgColor);
+			RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
+		}
 	}
 }
 

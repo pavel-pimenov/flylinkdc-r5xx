@@ -1293,15 +1293,20 @@ void ConnectionManager::shutdown()
 }
 
 // UserConnectionListener
-void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* conn, StringList& feat) noexcept // [!] IRainman fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
+void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* conn, StringList& feat) noexcept
 {
 	dcassert(conn->getUser()); // [!] IRainman fix: please don't problem maskerate.
-	//PROFILE_THREAD_SCOPED();
 	// [!] IRainman fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
-	uint8_t knownUcSupports = 0;
-	auto unknownUcSupports = UcSupports::setSupports(conn, feat, knownUcSupports);
-	ClientManager::getInstance()->setSupports(conn->getUser(), unknownUcSupports, knownUcSupports);
-	// [~] IRainman fix.
+	if (conn->getUser()) // 44 падения https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=48388
+	{
+		uint8_t knownUcSupports = 0;
+		auto unknownUcSupports = UcSupports::setSupports(conn, feat, knownUcSupports);
+		ClientManager::getInstance()->setSupports(conn->getUser(), unknownUcSupports, knownUcSupports);
+	}
+	else
+	{
+		LogManager::getInstance()->message("Error UserConnectionListener::Supports conn->getUser() == nullptr, url = " + conn->getHintedUser().hint);
+	}
 }
 
 // !SMT!-S

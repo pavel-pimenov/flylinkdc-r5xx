@@ -592,12 +592,15 @@ LRESULT PublicHubsFrame::onCopyHub(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 
 void PublicHubsFrame::updateDropDown()
 {
-	ctrlPubLists.ResetContent();
-	const StringList& lists = FavoriteManager::getInstance()->getHubLists();
-	for (auto idx = lists.cbegin(); idx != lists.cend(); ++idx)
-		ctrlPubLists.AddString(Text::toT(*idx).c_str());
-		
-	ctrlPubLists.SetCurSel(FavoriteManager::getInstance()->getSelectedHubList());
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
+	{
+		ctrlPubLists.ResetContent();
+		const StringList& lists = FavoriteManager::getInstance()->getHubLists();
+		for (auto idx = lists.cbegin(); idx != lists.cend(); ++idx)
+			ctrlPubLists.AddString(Text::toT(*idx).c_str());
+		ctrlPubLists.SetCurSel(FavoriteManager::getInstance()->getSelectedHubList());
+	}
 }
 
 bool PublicHubsFrame::parseFilter(FilterModes& mode, double& size)
@@ -835,23 +838,15 @@ void PublicHubsFrame::on(Corrupted, const string& l) noexcept
 
 void PublicHubsFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
 {
-	bool refresh = false;
-	if (ctrlHubs.GetBkColor() != Colors::bgColor)
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
 	{
-		ctrlHubs.SetBkColor(Colors::bgColor);
-		ctrlHubs.SetTextBkColor(Colors::bgColor);
-		refresh = true;
+		if (ctrlHubs.isRedraw())
+		{
+			RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
+		}
+		updateDropDown();
 	}
-	if (ctrlHubs.GetTextColor() != Colors::textColor)
-	{
-		ctrlHubs.SetTextColor(Colors::textColor);
-		refresh = true;
-	}
-	if (refresh == true)
-	{
-		RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
-	}
-	updateDropDown();
 }
 
 LRESULT PublicHubsFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)

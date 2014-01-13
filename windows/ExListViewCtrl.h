@@ -48,7 +48,7 @@ class ExListViewCtrl : public CWindowImpl<ExListViewCtrl, CListViewCtrl, CContro
 		MESSAGE_HANDLER(WM_CHAR, onChar)
 		CHAIN_MSG_MAP(arrowBase)
 		END_MSG_MAP()
-		
+		bool isRedraw();
 		void setSort(int aColumn, int aType, bool aAscending = true, int (*aFun)(LPARAM, LPARAM) = NULL)
 		{
 			bool doUpdateArrow = (aColumn != sortColumn || aAscending != ascending);

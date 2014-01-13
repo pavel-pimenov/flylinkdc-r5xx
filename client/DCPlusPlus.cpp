@@ -202,6 +202,7 @@ void preparingCoreToShutdown() // [+] IRainamn fix.
 	{
 		g_is_first = true;
 		TimerManager::getInstance()->shutdown();
+		WebServerManager::getInstance()->shutdown();
 		HashManager::getInstance()->shutdown();
 		ClientManager::getInstance()->shutdown(); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1374
 		ClientManager::getInstance()->prepareClose();

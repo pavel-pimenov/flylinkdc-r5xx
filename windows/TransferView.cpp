@@ -1772,22 +1772,14 @@ LRESULT TransferView::onSlowDisconnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
 
 void TransferView::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
 {
-	bool refresh = false;
-	if (ctrlTransfers.GetBkColor() != Colors::bgColor)
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
 	{
-		ctrlTransfers.SetBkColor(Colors::bgColor);
-		ctrlTransfers.SetTextBkColor(Colors::bgColor);
-		ctrlTransfers.setFlickerFree(Colors::bgBrush);
-		refresh = true;
-	}
-	if (ctrlTransfers.GetTextColor() != Colors::textColor)
-	{
-		ctrlTransfers.SetTextColor(Colors::textColor);
-		refresh = true;
-	}
-	if (refresh == true)
-	{
-		RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
+		if (ctrlTransfers.isRedraw())
+		{
+			ctrlTransfers.setFlickerFree(Colors::bgBrush);
+			RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
+		}
 	}
 }
 

@@ -420,21 +420,13 @@ LRESULT UsersFrame::onOpenUserLog(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 
 void UsersFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
 {
-	bool refresh = false;
-	if (ctrlUsers.GetBkColor() != Colors::bgColor)
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
 	{
-		ctrlUsers.SetBkColor(Colors::bgColor);
-		ctrlUsers.SetTextBkColor(Colors::bgColor);
-		refresh = true;
-	}
-	if (ctrlUsers.GetTextColor() != Colors::textColor)
-	{
-		ctrlUsers.SetTextColor(Colors::textColor);
-		refresh = true;
-	}
-	if (refresh == true)
-	{
-		RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
+		if (ctrlUsers.isRedraw())
+		{
+			RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
+		}
 	}
 }
 

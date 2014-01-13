@@ -1,4 +1,33 @@
 ------------------------------------------------------------------------
+r16368 | pavel.pimenov@gmail.com | 2014-01-12 14:37:56 +0400 (Вс, 12 янв 2014) | 18 lines
+
+Merged revision(s) 16359-16367 from trunk:
+# r503-beta20
+........
+# Log [public-build]
+........
+# Закрыл 44 падения https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=48388
+  Встречается не часто - об ошибке пишу в системный лог.
+........
+# WebServerManager при завершении приложения делал рестарт!
+  Возможное падение в https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=47918
+# Убрал путой SettingsManagerListener::Save в автоапдейте.
+........
+# Убрал копипаст в обработчках on(SettingsManagerListener::Save выполняющих изменения цветов при коррекции настроек
+........
+* Возможно поправил падения при завершении
+  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=47918
+........
+
+------------------------------------------------------------------------
+r16359 | pavel.pimenov@gmail.com | 2014-01-10 23:01:07 +0400 (Пт, 10 янв 2014) | 1 line
+
+# r503-beta20
+------------------------------------------------------------------------
+r16358 | pavel.pimenov@gmail.com | 2014-01-10 22:58:58 +0400 (Пт, 10 янв 2014) | 1 line
+
+# Log
+------------------------------------------------------------------------
 r16357 | pavel.pimenov@gmail.com | 2014-01-10 22:31:24 +0400 (Пт, 10 янв 2014) | 7 lines
 
 Merged revision(s) 16354-16356 from trunk:

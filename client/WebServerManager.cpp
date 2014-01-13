@@ -43,7 +43,6 @@ WebServerManager::WebServerManager(void) : started(false), page404(nullptr), sen
 
 WebServerManager::~WebServerManager(void)
 {
-	SettingsManager::getInstance()->removeListener(this);
 	Stop();
 }
 

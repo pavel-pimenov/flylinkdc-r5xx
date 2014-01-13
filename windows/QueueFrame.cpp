@@ -1128,7 +1128,7 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 						menuItems++;
 					}
 					readdItems = 0;
-					const auto& badSources = ii->getQueueItem()->getBadSourcesL(); // Делать копию нелльзя - http://code.google.com/p/flylinkdc/issues/detail?id=1270
+					const auto& badSources = ii->getQueueItem()->getBadSourcesL(); // Делать копию нельзя - http://code.google.com/p/flylinkdc/issues/detail?id=1270
 					// ниже сохраняем адрес итератора
 					for (auto i = badSources.cbegin(); i != badSources.cend(); ++i)
 					{
@@ -1942,7 +1942,7 @@ LRESULT QueueFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 		{
 			if (// [!] IRainman fix: needs for test! Please report to me if crashing here.
 			    // [-] qii && qii->getQueueItem() &&
-			    !qii->getQueueItem()->getBadSourcesL().empty()) // [!] IRainman fix done [7] https://www.box.net/shared/f516cb76187b328e4bf5
+			    !qii->getQueueItem()->getBadSourcesL().empty()) // TODO - падаем https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=117848
 			{
 				cd->clrText = SETTING(ERROR_COLOR);
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
@@ -2099,24 +2099,16 @@ void QueueFrame::removeSources()
 }
 void QueueFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
 {
-	bool refresh = false;
-	if (ctrlQueue.GetBkColor() != Colors::bgColor)
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
 	{
-		ctrlQueue.SetBkColor(Colors::bgColor);
-		ctrlQueue.SetTextBkColor(Colors::bgColor);
-		ctrlQueue.setFlickerFree(Colors::bgBrush);
-		ctrlDirs.SetBkColor(Colors::bgColor);
-		refresh = true;
-	}
-	if (ctrlQueue.GetTextColor() != Colors::textColor)
-	{
-		ctrlQueue.SetTextColor(Colors::textColor);
-		ctrlDirs.SetTextColor(Colors::textColor);
-		refresh = true;
-	}
-	if (refresh == true)
-	{
-		RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
+		if (ctrlQueue.isRedraw())
+		{
+			ctrlQueue.setFlickerFree(Colors::bgBrush);
+			ctrlDirs.SetBkColor(Colors::bgColor);
+			ctrlDirs.SetTextColor(Colors::textColor);
+			RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
+		}
 	}
 }
 

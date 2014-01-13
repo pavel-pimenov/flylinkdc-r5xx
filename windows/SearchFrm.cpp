@@ -3141,25 +3141,17 @@ LRESULT SearchFrame::onEditChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 
 void SearchFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
 {
-	bool refresh = false;
-	if (ctrlResults.GetBkColor() != Colors::bgColor)
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
 	{
-		ctrlResults.SetBkColor(Colors::bgColor);
-		ctrlResults.SetTextBkColor(Colors::bgColor);
-		ctrlResults.setFlickerFree(Colors::bgBrush);
-		ctrlHubs.SetBkColor(Colors::bgColor);
-		ctrlHubs.SetTextBkColor(Colors::bgColor);
-		refresh = true;
-	}
-	if (ctrlResults.GetTextColor() != Colors::textColor)
-	{
-		ctrlResults.SetTextColor(Colors::textColor);
-		ctrlHubs.SetTextColor(Colors::textColor);
-		refresh = true;
-	}
-	if (refresh == true)
-	{
-		RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
+		if (ctrlResults.isRedraw())
+		{
+			ctrlResults.setFlickerFree(Colors::bgBrush);
+			ctrlHubs.SetBkColor(Colors::bgColor);
+			ctrlHubs.SetTextBkColor(Colors::bgColor);
+			ctrlHubs.SetTextColor(Colors::textColor);
+			RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
+		}
 	}
 }
 

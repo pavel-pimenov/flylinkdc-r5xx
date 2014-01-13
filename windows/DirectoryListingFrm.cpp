@@ -1951,24 +1951,13 @@ LRESULT DirectoryListingFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/
 
 void DirectoryListingFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
 {
-	// TODO: please rewrite me.
-	bool refresh = false;
-	if (ctrlList.GetBkColor() != Colors::bgColor)
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
 	{
-		ctrlList.SetBkColor(Colors::bgColor);
-		ctrlList.SetTextBkColor(Colors::bgColor);
-		ctrlTree.SetBkColor(Colors::bgColor);
-		refresh = true;
-	}
-	if (ctrlList.GetTextColor() != Colors::textColor)
-	{
-		ctrlList.SetTextColor(Colors::textColor);
-		ctrlTree.SetTextColor(Colors::textColor);
-		refresh = true;
-	}
-	if (refresh == true)
-	{
-		RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
+		if (ctrlList.isRedraw())
+		{
+			RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
+		}
 	}
 }
 

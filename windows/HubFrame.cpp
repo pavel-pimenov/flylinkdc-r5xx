@@ -536,7 +536,6 @@ void HubFrame::onAfterActiveTab(HWND aWnd)
 {
 	if (!ClientManager::isShutdown())
 	{
-		dcassert(!ClientManager::isShutdown());
 		dcassert(m_hWnd);
 		createMessagePanel();
 	}
@@ -3626,20 +3625,18 @@ LRESULT HubFrame::onStyleChanged(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 
 void HubFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
 {
-	ctrlUsers.SetImageList(g_userImage.getIconList(), LVSIL_SMALL);
-	if (ctrlUsers.GetBkColor() != Colors::bgColor)
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
 	{
-		ctrlClient.SetBackgroundColor(Colors::bgColor);
-		ctrlUsers.SetBkColor(Colors::bgColor);
-		ctrlUsers.SetTextBkColor(Colors::bgColor);
-		ctrlUsers.setFlickerFree(Colors::bgBrush);
+		ctrlUsers.SetImageList(g_userImage.getIconList(), LVSIL_SMALL);
+		if (ctrlUsers.isRedraw())
+		{
+			ctrlClient.SetBackgroundColor(Colors::bgColor);
+			ctrlUsers.setFlickerFree(Colors::bgBrush);
+			RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
+		}
+		UpdateLayout();
 	}
-	if (ctrlUsers.GetTextColor() != Colors::textColor)
-	{
-		ctrlUsers.SetTextColor(Colors::textColor);
-	}
-	UpdateLayout();
-	RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
 }
 
 LRESULT HubFrame::onSizeMove(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)

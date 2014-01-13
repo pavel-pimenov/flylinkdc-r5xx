@@ -130,7 +130,8 @@ void CFlylinkDBManager::errorDB(const string& p_txt)
 	bool l_is_send = CFlyServerAdapter::CFlyServerJSON::pushError(l_error);
 	if (!l_is_send)
 	{
-		// TODO - скинуть ошибку в файл и не грузить crash-server логичискими ошибками
+		// TODO - скинуть ошибку в файл и не грузить crash-server логическими ошибками
+		// https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=51924
 		throw database_error(l_error.c_str());
 	}
 }

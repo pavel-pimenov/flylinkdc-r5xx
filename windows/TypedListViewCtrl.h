@@ -151,6 +151,23 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 				int cnt;
 		};
 #endif
+		bool isRedraw()
+		{
+			bool refresh = false;
+			if (GetBkColor() != Colors::bgColor)
+			{
+				SetBkColor(Colors::bgColor);
+				SetTextBkColor(Colors::bgColor);
+				refresh = true;
+			}
+			if (GetTextColor() != Colors::textColor)
+			{
+				SetTextColor(Colors::textColor);
+				refresh = true;
+			}
+			return refresh;
+		}
+		
 		void update_all_columns(const std::vector<int>& p_items)
 		{
 			if (!p_items.empty())

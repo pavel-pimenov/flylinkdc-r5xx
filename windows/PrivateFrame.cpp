@@ -636,9 +636,13 @@ void PrivateFrame::closeAllOffline()
 
 void PrivateFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
 {
-	ctrlClient.SetBackgroundColor(Colors::bgColor);
-	UpdateLayout();
-	RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
+	{
+		ctrlClient.SetBackgroundColor(Colors::bgColor);
+		UpdateLayout();
+		RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
+	}
 }
 
 // !SMT!-S

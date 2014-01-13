@@ -152,12 +152,6 @@ class AutoUpdate :
 			waitShutdown();
 		}
 		
-		// SettingsManagerListener
-		virtual void on(SettingsManagerListener::Save, SimpleXML& xml) noexcept
-		{
-			// load();
-		}
-		
 		static void fail(const string& p_error);
 		static void message(const string& p_message);
 		void execute(const AutoUpdateTasks& p_task);

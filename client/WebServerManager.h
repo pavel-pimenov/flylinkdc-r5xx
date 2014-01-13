@@ -173,7 +173,8 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 		// SettingsManagerListener
 		void on(SettingsManagerListener::Save, SimpleXML&) noexcept
 		{
-			if (BOOLSETTING(WEBSERVER))
+			dcassert(!ClientManager::isShutdown())
+			if (BOOLSETTING(WEBSERVER) && !ClientManager::isShutdown())
 			{
 				Restart();
 			}
@@ -186,6 +187,10 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 		void on(SearchManagerListener::SR, const SearchResultPtr& aResult) noexcept;
 		
 		void Start() noexcept;
+		void shutdown()
+		{
+			SettingsManager::getInstance()->removeListener(this);
+		}
 		void Restart()
 		{
 			Stop();
