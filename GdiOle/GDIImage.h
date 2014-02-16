@@ -9,7 +9,7 @@
 
 
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
-#include "../client/Thread.h"
+#include "../client/CFlyThread.h"
 #include "../client/debug.h"
 #endif // FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
 

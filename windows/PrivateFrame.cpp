@@ -414,7 +414,7 @@ void PrivateFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 	чтоб не портить расположение элементов Sergey Shushkanov */
 	const bool bUseMultiChat = BOOLSETTING(MULTILINE_CHAT_INPUT) || m_bUseTempMultiChat
 #ifdef MULTILINE_CHAT_IF_BIG_FONT_SET
-	                           || Fonts::fontHeight > FONT_SIZE_FOR_AUTO_MULTILINE_CHAT //[+] TEST VERSION Sergey Shushkanov
+	                           || Fonts::g_fontHeight > FONT_SIZE_FOR_AUTO_MULTILINE_CHAT //[+] TEST VERSION Sergey Shushkanov
 #endif
 	                           ;
 	                           

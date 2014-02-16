@@ -66,7 +66,7 @@ string ZipFileException::TranslateError(int e)
 	}
 }
 
-ZipFile::ZipFile(const string &file) : fp(NULL)
+ZipFile::ZipFile(const tstring &file) : fp(NULL)
 {
 	Open(file);
 }
@@ -76,10 +76,10 @@ ZipFile::~ZipFile()
 	Close();
 }
 
-void ZipFile::Open(const string &file)
+void ZipFile::Open(const tstring &file)
 {
 	Close();
-	fp = unzOpen(file.c_str());
+	fp = unzOpen64(file.c_str());
 	if (this->fp == NULL) throw ZipFileException("unzOpen");
 }
 

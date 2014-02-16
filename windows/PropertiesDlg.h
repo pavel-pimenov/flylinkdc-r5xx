@@ -21,11 +21,11 @@
 
 #include "PropPage.h"
 #include "TreePropertySheet.h"
-
+class NetworkPage;
 class PropertiesDlg : public TreePropertySheet
 {
 	public:
-		static const size_t m_numPages = 42;
+		static const size_t g_numPages = 42;
 		
 		BEGIN_MSG_MAP(PropertiesDlg)
 		COMMAND_ID_HANDLER(IDOK, onOK)
@@ -37,15 +37,20 @@ class PropertiesDlg : public TreePropertySheet
 		
 		PropertiesDlg(HWND parent, SettingsManager *s);
 		~PropertiesDlg();
-		static bool needUpdate;
-		static bool m_Create;
+		static bool g_needUpdate;
+		static bool g_is_create;
 		
 		LRESULT onOK(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 		LRESULT onCANCEL(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 	protected:
 		void write();
 		void cancel();
-		PropPage *pages[m_numPages];
+		PropPage *pages[g_numPages];
+	private:
+		NetworkPage *m_network_page;
+		
+		virtual void onTimerSec();
+		
 };
 
 #endif // !defined(PROPERTIES_DLG_H)

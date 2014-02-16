@@ -82,11 +82,11 @@ void Search::process()
 		cmd.addParam("TO", token);
 		
 		//node->setTimeout();
-		DHT::getInstance()->send(cmd, node->getIdentity().getIp(), node->getIdentity().getUdpPort(), node->getUser()->getCID(), node->getUdpKey());
+		DHT::getInstance()->send(cmd, node->getIdentity().getIpAsString(), node->getIdentity().getUdpPort(), node->getUser()->getCID(), node->getUdpKey());
 	}
 }
 
-SearchManager::SearchManager() : lastSearchFile(0)
+SearchManager::SearchManager() : m_lastTimeSearchFile(0)
 {
 }
 
@@ -118,7 +118,7 @@ void SearchManager::findNode(const CID& cid)
 void SearchManager::findFile(const string& tth, const string& token)
 {
 	// temporary fix to prevent UDP flood (search queue would be better here)
-	if (GET_TICK() - lastSearchFile < 10000)
+	if (GET_TICK() - m_lastTimeSearchFile < 10000)
 		return;
 		
 	if (isAlreadySearchingFor(tth))
@@ -151,7 +151,7 @@ void SearchManager::findFile(const string& tth, const string& token)
 	
 	search(*s);
 	
-	lastSearchFile = GET_TICK();
+	m_lastTimeSearchFile = GET_TICK();
 }
 
 /*
@@ -295,7 +295,7 @@ void SearchManager::processSearchRequest(const string& ip, uint16_t port, const 
 			{
 				xml.addTag("Node");
 				xml.addChildAttrib("CID", i->second->getUser()->getCID().toBase32());
-				xml.addChildAttrib("I4", i->second->getIdentity().getIp());
+				xml.addChildAttrib("I4", i->second->getIdentity().getIpAsString());
 				xml.addChildAttrib("U4", i->second->getIdentity().getUdpPort());
 				
 				empty = false;
@@ -476,7 +476,7 @@ void SearchManager::publishFile(const Node::Map& nodes, const string& tth, int64
 			cmd.addParam("PF", "1");
 			
 		//i->second->setTimeout();
-		DHT::getInstance()->send(cmd, node->getIdentity().getIp(), node->getIdentity().getUdpPort(), node->getUser()->getCID(), node->getUdpKey());
+		DHT::getInstance()->send(cmd, node->getIdentity().getIpAsString(), node->getIdentity().getUdpPort(), node->getUser()->getCID(), node->getUdpKey());
 	}
 }
 

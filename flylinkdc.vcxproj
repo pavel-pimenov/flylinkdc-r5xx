@@ -911,7 +911,6 @@
     <ClCompile Include="windows\WebServerPage.cpp" />
     <ClCompile Include="windows\WindowsPage.cpp" />
     <ClCompile Include="windows\WinUtil.cpp" />
-    <ClCompile Include="windows\WizardTestDlg.cpp" />
     <ClCompile Include="windows\WMPlayerRemoteApi.cpp" />
     <ClCompile Include="windows\PublicHubsFrm.cpp" />
   </ItemGroup>
@@ -1067,7 +1066,6 @@
     <ClInclude Include="windows\Wizards\WzSetIP.h" />
     <ClInclude Include="windows\Wizards\WzShare.h" />
     <ClInclude Include="windows\Wizards\WzStartup.h" />
-    <ClInclude Include="windows\WizardTestDlg.h" />
     <ClInclude Include="windows\Wnd.h" />
   </ItemGroup>
   <ItemGroup>
@@ -1083,10 +1081,11 @@
     <None Include="res\bold.png" />
     <None Include="res\CDM.ico" />
     <None Include="res\CloseIcon.png" />
+    <None Include="res\color.ico" />
+    <None Include="res\color.png" />
     <None Include="res\dclst.png" />
     <None Include="res\Download-Queue.ico" />
     <None Include="res\Error.ico" />
-    <None Include="res\Error.png" />
     <None Include="res\Fav-Users-States.png" />
     <None Include="res\Favorite-Users.ico" />
     <None Include="res\Favorites.ico" />
@@ -1101,12 +1100,10 @@
     <None Include="res\FlylinkDC_Update.ico" />
     <None Include="res\Folders.png" />
     <None Include="res\f_green_16.ico" />
-    <None Include="res\f_green_16.png" />
-    <None Include="res\f_p_16.png" />
+    <None Include="res\f_grey_16.ico" />
+    <None Include="res\f_question_16.ico" />
     <None Include="res\f_red_16.ico" />
-    <None Include="res\f_red_16.png" />
     <None Include="res\f_yellow_16.ico" />
-    <None Include="res\f_yellow_16.png" />
     <None Include="res\Hub.ico" />
     <None Include="res\HubOff.ico" />
     <None Include="res\Internet-Hubs.ico" />
@@ -1116,7 +1113,6 @@
     <None Include="res\Magnet.png" />
     <None Include="res\Mediafiles.png" />
     <None Include="res\MultiChat.ico" />
-    <None Include="res\MultiChat.png" />
     <None Include="res\Network-Statistics.ico" />
     <None Include="res\Notepad.ico" />
     <None Include="res\Pause.ico" />
@@ -1148,7 +1144,6 @@
     <None Include="res\strike.ico" />
     <None Include="res\strike.png" />
     <None Include="res\SwitchPanels.ico" />
-    <None Include="res\SwitchPanels.png" />
     <None Include="res\Toolbar-highlight.png" />
     <None Include="res\Toolbar-mini.png" />
     <None Include="res\Toolbar.png" />
@@ -1198,6 +1193,9 @@
     <ProjectReference Include="GdiOle\GdiOle.vcxproj">
       <Project>{22c938c3-474a-4bf5-9b28-482683f98ea1}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="openssl\openssl.vcxproj">
+      <Project>{b9f644c2-f9de-4648-b613-43755d81ea3b}</Project>
     </ProjectReference>
     <ProjectReference Include="XMLParser\XMLParser.vcxproj">
       <Project>{e2c19239-c1b8-40ab-9714-36342a013d66}</Project>

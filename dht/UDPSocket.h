@@ -26,7 +26,7 @@
 #include "../client/AdcCommand.h"
 #include "../client/CID.h"
 #include "../client/Socket.h"
-#include "../client/Thread.h"
+#include "../client/CFlyThread.h"
 
 namespace dht
 {
@@ -113,7 +113,7 @@ class UDPSocket :
 		void checkOutgoing(uint64_t& timer);
 		
 		void compressPacket(const string& data, uint8_t* destBuf, unsigned long& destSize);
-		bool decompressPacket(uint8_t* destBuf, unsigned long& destLen, const uint8_t* buf, size_t len);
+		int  decompressPacket(std::vector<uint8_t>& destBuf, const std::vector<uint8_t>& buf);
 		
 		void encryptPacket(const CID& targetCID, const UDPKey& udpKey, uint8_t* destBuf, unsigned long& destSize);
 		bool decryptPacket(uint8_t* buf, int& len, const string& remoteIp, bool& isUdpKeyValid);

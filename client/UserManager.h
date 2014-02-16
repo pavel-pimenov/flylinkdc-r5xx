@@ -22,6 +22,8 @@
 #include "FavoriteManager.h"
 #include "Wildcards.h"
 
+class ChatMessage;
+
 class UserManagerListener
 {
 	public:
@@ -132,6 +134,7 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 		}
 		static bool isInIgnoreList(const string& nick)
 		{
+			dcassert(!nick.empty());
 			FastSharedLock l(g_csIgnoreList);
 			dcassert(g_ignoreListLoaded);
 			return g_ignoreList.find(nick) != g_ignoreList.cend();

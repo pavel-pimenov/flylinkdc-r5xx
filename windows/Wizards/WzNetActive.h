@@ -26,9 +26,8 @@
 #include "resource.h"
 #include "../client/Util.h"
 #include "../FlyFeatures/WinFirewall.h"
-#include "UPNPCheckDlg.h"
+//#include "UPNPCheckDlg.h"
 #include "WinUtil.h"
-#include "WizardTestDlg.h"
 #include "../client/ConnectionManager.h"
 
 class WzNetActive : public CPropertyPageImpl<WzNetActive>
@@ -40,7 +39,8 @@ public:
 		StageFail = 0,
 		StageSuccess,
 		StageWait,
-		StageWarn
+		StageWarn,
+		StageUnknown
 	};
     // Construction
     WzNetActive() : CPropertyPageImpl<WzNetActive>( CTSTRING(WIZARD_TITLE)/*IDS_WIZARD_TITLE*/)
@@ -60,7 +60,6 @@ public:
 		COMMAND_ID_HANDLER(IDC_WIZARD_NETA_BTN_CHECKUPNP, OnBnClickedWizardNetaCheckUPNP)
 		COMMAND_ID_HANDLER(IDC_WIZARD_NETA_WINFIREWALL_BTN,OnBnClickedWizardNetaWinFirewalOpen)
 		COMMAND_ID_HANDLER(IDC_WIZARD_NETA_BTN_TEST, OnBnClickedWizardNetaBtnTest)
-		COMMAND_ID_HANDLER(IDC_WIZARD_NETA_BTN_SETUPTEST, OnBnClickedWizardNetaBtnSetupTest) 
 	END_MSG_MAP()
 
     // Message handlers
@@ -83,7 +82,6 @@ public:
 		SetDlgItemText(IDC_WIZARD_NETA_ROUTER_TITLE, CTSTRING(WIZARD_NETA_ROUTER_TITLE));
 		SetDlgItemText(IDC_WIZARD_NETA_BTN_SETUPROUTER, CTSTRING(WIZARD_NETA_BTN_SETUPROUTER));
 		SetDlgItemText(IDC_WIZARD_NETA_ROUTER_STATIC, CTSTRING(WIZARD_NETA_ROUTER_STATIC));
-		SetDlgItemText(IDC_WIZARD_NETA_BTN_SETUPTEST, CTSTRING(WIZARD_NETA_BTN_SETUPTEST));
 		SetDlgItemText(IDC_WIZARD_NETA_BTN_TEST, CTSTRING(WIZARD_NETA_BTN_TEST));
 #ifdef STRONG_USE_DHT
 		SetDlgItemText(IDC_WIZARD_NETA_USE_DHT, CTSTRING(WIZARD_NETA_USE_DHT));
@@ -172,7 +170,7 @@ public:
 			useServer = false;
 		}
 
-		UPNPCheckDlg dlg(tcp, udp, needPortCheck, SETTING(URL_TEST_IP), needUPNP, useServer);
+		UPNPCheckDlg dlg(tcp, udp, needPortCheck, needUPNP, useServer);
 		INT res = dlg.DoModal(*this);
 		if ( needUPNP )
 		{
@@ -229,7 +227,10 @@ public:
 				SetStage(IDC_WIZARD_NETA_WINFIREWALL_ICO, StageSuccess);
 				return;
 			}
-		}catch(...){ }
+		}
+		catch(...)
+		{
+		}
 		TCHAR in_pAuthorizedFilename[MAX_PATH] = { 0 };
 		::GetModuleFileName(NULL, in_pAuthorizedFilename, MAX_PATH);
 		try{
@@ -239,7 +240,10 @@ public:
 				SetStage(IDC_WIZARD_NETA_WINFIREWALL_ICO, StageSuccess);
 				return;
 			}
-		}catch(...){ }
+		}
+		catch(...)
+		{
+		}
 		uint16_t tcp, udp;
 		GetPortFromPage(tcp, udp);		
 		try{
@@ -249,7 +253,10 @@ public:
 				SetStage(IDC_WIZARD_NETA_WINFIREWALL_ICO, StageSuccess);
 				return;
 			}
-		}catch(...){ }
+		}
+		catch(...)
+		{
+		}
 		SetStage(IDC_WIZARD_NETA_WINFIREWALL_ICO, StageFail);
 		GetDlgItem(IDC_WIZARD_NETA_WINFIREWALL_BTN).EnableWindow(TRUE);
 	}
@@ -277,12 +284,6 @@ public:
 		return 0;
 	}
 
-	LRESULT OnBnClickedWizardNetaBtnSetupTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-	{
-		WizardTestDlg wzrdDlg;
-		wzrdDlg.DoModal(*this);
-		return 0;
-	}
 	LRESULT OnBnClickedWizardNetaCheckUPNP(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 	{
 		CheckUPNP(false, true);
@@ -359,25 +360,33 @@ public:
 
 	void SetStage(int ID, StagesIcon stage)
 	{
-		ExCImage img;
+	static HIconWrapper g_hModeActiveIco(IDR_ICON_SUCCESS_ICON);
+	static HIconWrapper g_hModePassiveIco(IDR_ICON_WARN_ICON);
+	static HIconWrapper g_hModeFailIco(IDR_ICON_FAIL_ICON);
+	static HIconWrapper g_hModeProcessIco(IDR_NETWORK_STATISTICS);
 		
-		int imageID = IDR_ICON_WAIT;
+	HIconWrapper* l_icon = nullptr;
 		switch (stage)
 		{
 		case StageFail:
-			imageID = IDR_ICON_FAIL; break;
+			l_icon = &g_hModeFailIco;
+			break;
 		case StageSuccess:
-			imageID = IDR_ICON_SUCCESS; break;
+			l_icon = &g_hModeActiveIco;
+			break;
 		case StageWarn:
-			imageID = IDR_ICON_WARN; break;
+			l_icon = &g_hModePassiveIco;
+			break;
 		case StageWait:
 		default:
-			imageID = IDR_ICON_WAIT; break;
+			l_icon = &g_hModeProcessIco;
+			break;
+	}
+	dcassert(l_icon);
+	if(l_icon)
+		{
+		 GetDlgItem(ID).SendMessage(STM_SETICON, (WPARAM)(HICON)*l_icon, 0L);
 		}
-
-		img.LoadFromResource(imageID, _T("PNG"));
-
-		GetDlgItem(ID).SendMessage(STM_SETIMAGE, IMAGE_BITMAP, LPARAM((HBITMAP)img)); 
 	}
 
 	int OnWizardNext()//OnKillActive()

@@ -8,7 +8,7 @@
 #include <boost/unordered/unordered_map.hpp>
 #include "QueueItem.h"
 #include "Singleton.h"
-#include "Thread.h"
+#include "CFlyThread.h"
 #include "sqlite/sqlite3x.hpp"
 #include "../dht/DHTType.h"
 #include "CFlyMediaInfo.h"
@@ -78,11 +78,15 @@ enum eTypeDIC
 
 struct CFlyLocationIP
 {
-	int64_t m_dic_country_location_ip;
 	uint32_t m_start_ip;
 	uint32_t m_stop_ip;
 	uint16_t m_flag_index;
-	CFlyLocationIP() : m_dic_country_location_ip(0), m_start_ip(0), m_stop_ip(0), m_flag_index(0)
+	string m_location;
+	CFlyLocationIP()
+	{
+	}
+	CFlyLocationIP(const std::string& p_location, uint32_t p_start_ip, uint32_t p_stop_ip, uint16_t p_flag_index) : m_location(p_location)
+		, m_start_ip(p_start_ip), m_stop_ip(p_stop_ip), m_flag_index(p_flag_index)
 	{
 	}
 };
@@ -130,9 +134,10 @@ enum eTypeSegment
 	e_ExtraSlot = 1,
 	e_RecentHub = 2,
 	e_SearchHistory = 3,
-	e_TimeStampGeoIP = 4,
-	e_TimeStampCustomLocation = 5,
-	e_CMDDebugFilterState = 6
+	// 4-5 - пропускаем старые маркеры e_TimeStampGeoIP + e_TimeStampCustomLocation
+	e_CMDDebugFilterState = 6,
+	e_TimeStampGeoIP = 7,
+	e_TimeStampCustomLocation = 8
 };
 struct CFlyRegistryValue
 {
@@ -168,17 +173,19 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void store_all_ratio_and_last_ip(uint32_t p_hub_id,
 		                                 const string& p_nick,
 		                                 const CFlyUploadDownloadMap* p_upload_download_stats,
+		                                 const __int64& p_count_messages,
 		                                 const boost::asio::ip::address_v4& p_last_ip);
 		uint32_t get_dic_hub_id(const string& p_hub);
 		void load_global_ratio();
+		void load_all_hub_into_cacheL();
 #ifdef _DEBUG
 		bool m_is_load_global_ratio;
 #endif
 		CFlyRatioItem load_ratio(uint32_t p_hub_id, const string& p_nick, CFlyUserRatioInfo& p_ratio_info, const  boost::asio::ip::address_v4& p_last_ip);
-		boost::asio::ip::address_v4 load_last_ip(uint32_t p_hub_id, const string& p_nick);
+		bool load_last_ip_and_user_stat(uint32_t p_hub_id, const string& p_nick, __int64& p_count_messages, boost::asio::ip::address_v4& p_last_ip);
 		void update_last_ip(uint32_t p_hub_id, const string& p_nick, const boost::asio::ip::address_v4& p_last_ip);
 	private:
-		void update_last_ipL(uint32_t p_hub_id, const string& p_nick, const boost::asio::ip::address_v4& p_last_ip);
+		void update_last_ipL(uint32_t p_hub_id, const string& p_nick, const __int64& p_count_messages, const boost::asio::ip::address_v4& p_last_ip);
 	public:
 		CFlyGlobalRatioItem  m_global_ratio;
 		double get_ratio() const;
@@ -228,7 +235,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void load_ignore(StringSet& p_ignores);
 		void save_ignore(const StringSet& p_ignores);
 		void load_registry(CFlyRegistryMap& p_values, int p_Segment);
-		void save_registry(const CFlyRegistryMap& p_values, int p_Segment);
+		void save_registry(const CFlyRegistryMap& p_values, int p_Segment, bool p_is_cleanup_old_value);
 		void load_registry(TStringList& p_values, int p_Segment);
 		void set_registry_variable_int64(eTypeSegment p_TypeSegment, __int64 p_value);
 		__int64 get_registry_variable_int64(eTypeSegment p_TypeSegment);
@@ -266,17 +273,32 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		uint16_t find_cache_locationL(uint32_t p_ip, int32_t& p_index);
 	public:
 		__int64 get_dic_country_id(const string& p_country);
+		void clear_dic_cache_country();
 		
 		void save_location(const CFlyLocationIPArray& p_geo_ip);
 		void get_location(uint32_t p_ip, int32_t& p_index);
 		void get_location_sql(uint32_t p_ip, int32_t& p_index);
 		__int64 get_dic_location_id(const string& p_location);
+		//void clear_dic_cache_location();
 		
 		void save_lost_location(const string& p_ip);
 		void get_lost_location(std::vector<std::string>& p_lost_ip_array);
 		
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+		void push_dc_command_statistic(const std::string& p_hub, const std::string& p_command,
+		                               const string& p_server, const string& p_port, const string& p_sender_nick);
+		void push_event_statistic(const std::string& p_event_type, const std::string& p_event_key,
+		                          const string& p_event_value,
+		                          const string& p_ip = Util::emptyString,
+		                          const string& p_port = Util::emptyString,
+		                          const string& p_hub = Util::emptyString,
+		                          const string& p_tth = Util::emptyString
+		                         );
+#endif // FLYLINKDC_USE_COLLECT_STAT
+#ifdef FLYLINKDC_USE_GATHER_STATISTICS
 		void push_json_statistic(const std::string& p_value);
 		void flush_lost_json_statistic();
+#endif // FLYLINKDC_USE_GATHER_STATISTICS
 		void clear_tiger_tree_cache(const TTHValue& p_root);
 		__int64 convert_tth_history();
 		static size_t getCountQueueSources()
@@ -324,10 +346,11 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		auto_ptr<sqlite3_command> m_load_mediainfo_ext_only_inform;
 		auto_ptr<sqlite3_command> m_load_mediainfo_base;
 		auto_ptr<sqlite3_command> m_insert_mediainfo;
-		auto_ptr<sqlite3_command> m_update_base_mediainfo;
 		
 		void merge_mediainfo_ext(const __int64 l_tth_id, const CFlyMediaInfo& p_media, bool p_delete_old_info);
-#endif
+#endif // FLYLINKDC_USE_MEDIAINFO_SERVER
+		
+		auto_ptr<sqlite3_command> m_update_base_mediainfo;
 		
 #ifdef STRONG_USE_DHT
 		auto_ptr<sqlite3_command> m_load_dht_nodes;
@@ -341,7 +364,14 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		auto_ptr<sqlite3_command> m_select_ratio_load;
 		auto_ptr<sqlite3_command> m_select_last_ip;
 		auto_ptr<sqlite3_command> m_insert_ratio;
+		
+#ifdef _DEBUG
+		auto_ptr<sqlite3_command> m_select_store_ip;
+#endif
 		auto_ptr<sqlite3_command> m_insert_store_ip;
+		auto_ptr<sqlite3_command> m_insert_store_message_count;
+		auto_ptr<sqlite3_command> m_insert_store_ip_and_message_count;
+		
 		auto_ptr<sqlite3_command> m_ins_fly_hash_block;
 		auto_ptr<sqlite3_command> m_insert_file;
 		auto_ptr<sqlite3_command> m_update_file;
@@ -404,9 +434,18 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		auto_ptr<sqlite3_command> m_insert_location_lost;
 		boost::unordered_set<string> m_lost_location_cache;
 		
+#ifdef FLYLINKDC_USE_GATHER_STATISTICS
 		auto_ptr<sqlite3_command> m_select_statistic_json;
 		auto_ptr<sqlite3_command> m_delete_statistic_json;
 		auto_ptr<sqlite3_command> m_insert_statistic_json;
+#endif  // FLYLINKDC_USE_GATHER_STATISTICS
+		
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+		auto_ptr<sqlite3_command> m_insert_statistic_dc_command;
+		auto_ptr<sqlite3_command> m_select_statistic_dc_command;
+		
+		auto_ptr<sqlite3_command> m_insert_event_stat;
+#endif
 		
 		auto_ptr<sqlite3_command> m_insert_fly_message;
 		static inline const string& getString(const StringMap& p_params, const char* p_type)
@@ -418,10 +457,11 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 				return Util::emptyString;
 		}
 		typedef boost::unordered_map<string, __int64> CFlyCacheDIC;
-		vector<CFlyCacheDIC> m_DIC;
+		std::vector<CFlyCacheDIC> m_DIC;
 		
-		__int64 findDIC_ID(const string& p_name, const eTypeDIC p_DIC, bool p_cache_result);
-		__int64 getDIC_ID(const string& p_name, const eTypeDIC p_DIC, bool p_create);
+		__int64 find_dic_idL(const string& p_name, const eTypeDIC p_DIC, bool p_cache_result);
+		__int64 get_dic_idL(const string& p_name, const eTypeDIC p_DIC, bool p_create);
+		//void clear_dic_cache(const eTypeDIC p_DIC);
 		
 		
 		bool safeAlter(const char* p_sql);

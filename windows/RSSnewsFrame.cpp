@@ -66,7 +66,7 @@ LRESULT RSSNewsFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	ctrlRemoveAll.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                     BS_PUSHBUTTON , 0, IDC_REMOVE_ALL);
 	ctrlRemoveAll.SetWindowText(CTSTRING(CDM_CLEAR));
-	ctrlRemoveAll.SetFont(Fonts::systemFont);
+	ctrlRemoveAll.SetFont(Fonts::g_systemFont);
 	
 	copyMenu.CreatePopupMenu();
 	copyMenu.AppendMenu(MF_STRING, IDC_COPY_URL, CTSTRING(RSS_URL));

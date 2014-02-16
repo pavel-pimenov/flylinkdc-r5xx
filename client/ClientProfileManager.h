@@ -4,7 +4,7 @@
 #ifdef IRAINMAN_INCLUDE_OLD_CLIENT_PROFILE_MANAGER
 
 #include "Util.h"
-#include "Thread.h"
+#include "CFlyThread.h"
 #include "Singleton.h"
 
 class ClientProfile

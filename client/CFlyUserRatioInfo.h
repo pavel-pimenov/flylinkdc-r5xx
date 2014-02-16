@@ -5,7 +5,7 @@
 
 #include <boost/unordered/unordered_map.hpp>
 #include <boost/asio/ip/address_v4.hpp>
-#include "Thread.h"
+#include "CFlyThread.h"
 
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 template <class T> class CFlyUploadDownloadPair
@@ -24,7 +24,8 @@ typedef CFlyUploadDownloadPair<double> CFlyGlobalRatioItem;
 typedef boost::unordered_map<unsigned long, CFlyUploadDownloadPair<uint64_t> > CFlyUploadDownloadMap; // TODO кей boost::asio::ip::address_v4
 struct CFlyRatioItem : public CFlyUploadDownloadPair<uint64_t>
 {
-	CFlyRatioItem()
+	uint64_t m_message_count;
+	CFlyRatioItem(): m_message_count(0)
 	{
 	}
 	~CFlyRatioItem()
@@ -37,10 +38,7 @@ struct CFlyUserRatioInfo : public CFlyRatioItem
 		, boost::noncopyable , virtual NonDerivable<CFlyUserRatioInfo>
 #endif
 {
-	private:
-		User*  m_user;
 	public:
-		CFlyUploadDownloadMap* m_ip_map_ptr;
 		CFlyUploadDownloadPair<uint64_t>& find_ip_map(const boost::asio::ip::address_v4& p_ip)
 		{
 			if (!m_ip_map_ptr)
@@ -56,12 +54,15 @@ struct CFlyUserRatioInfo : public CFlyRatioItem
 		bool try_load_ratio(const boost::asio::ip::address_v4& p_last_ip_from_sql);
 		void addUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
 		void addDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
+		void incMessagesCount();
 		void flushRatioL();
 		void setDirty(bool p_value)
 		{
 			m_is_dirty = p_value;
 		}
 	private:
+		CFlyUploadDownloadMap* m_ip_map_ptr;
+		User*  m_user;
 		bool      m_is_dirty;
 };
 #endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO

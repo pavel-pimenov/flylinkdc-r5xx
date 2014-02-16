@@ -291,7 +291,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				int64_t actual;
 				int64_t m_speed;
 				int64_t timeLeft;
-				tstring ip;
+				tstring m_ip;
 				tstring statusString;
 				tstring cipher;
 				tstring m_target;
@@ -460,14 +460,14 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			// !SMT!-IP
 			void setIP(const string& aIP)
 			{
-				dcassert(!(!ip.empty() && aIP.empty())); // Ловим случай http://code.google.com/p/flylinkdc/issues/detail?id=1298
-				Text::toT(aIP, ip); // [+] IRainman opt: This call is equivalent to ip = Text::toT(aIP); but it is a bit faster.
+				dcassert(!(!m_ip.empty() && aIP.empty())); // Ловим случай http://code.google.com/p/flylinkdc/issues/detail?id=1298
+				Text::toT(aIP, m_ip); // [+] IRainman opt: This call is equivalent to ip = Text::toT(aIP); but it is a bit faster.
 #ifdef PPA_INCLUDE_DNS
 				dns = Text::toT(Socket::nslookup(aIP));
 #endif
 				updateMask |= MASK_IP;
 			}
-			tstring ip;
+			tstring m_ip;
 		};
 		
 		// [+] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
@@ -476,14 +476,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				, virtual NonDerivable<QueueItemUpdateInfo>
 #endif
 		{
-			QueueItemUpdateInfo(const QueueItemPtr& queueItem) : m_queueItem(queueItem)
-			{
-				m_queueItem->inc();
-			}
-			~QueueItemUpdateInfo()
-			{
-				m_queueItem->dec();
-			}
+			QueueItemUpdateInfo(const QueueItemPtr& queueItem) : m_queueItem(queueItem) { }
 			QueueItemPtr m_queueItem;
 		};
 		

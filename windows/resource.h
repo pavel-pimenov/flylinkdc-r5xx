@@ -109,7 +109,6 @@
 #define IDR_ITALIC                      206
 #define IDR_TRANSCODE                   207
 #define IDD_CHECKTARGETDLG              208
-#define IDR_MULTI_CHAT                  209
 #define IDR_SENDMESSAGES_ICON           210
 #define IDR_SMILE_ICON                  211
 #define IDR_MULTI_CHAT_ICON             212
@@ -120,7 +119,7 @@
 #define IDR_AUTOUPDATE                  217
 #define IDR_SPLASH_NY1                  218
 #define IDR_SPLASH_NY2                  219
-#define IDR_CLOSE_ICON                  220
+#define IDR_CLOSE_PNG                  220
 #define IDD_UPDATE_DLG                  221
 #define IDD_DCLS_GENERATOR              222
 #define IDR_DCLST                       223
@@ -133,13 +132,8 @@
 #define IDD_WIZARD_SHARE                230
 #define IDD_WIZARD_NET_IP               231
 #define IDD_WIZARD_NET_ACTIVE           232
-#define IDR_ICON_SUCCESS                233
-#define IDR_ICON_WAIT                   234
-#define IDR_ICON_FAIL                   235
-#define IDR_ICON_WARN                   236
 #define IDD_UPNPCHECK                   237
 #define IDD_WIZARD_NETA_TESTSETUP       238
-#define IDD_WIZARD_NET_TESTSETUP        239
 #define IDD_SPEEDLIMIT_DLG              240
 #define IDD_INTEGRATION_PAGE            241
 #define IDR_SPLASH_WINTER               242
@@ -167,10 +161,8 @@
 #define IDD_MESSAGES_CHAT_PAGE          268
 #define IDR_FLY_SERVER_CONFIG           269
 #define IDD_REBUILD_MEDIAINFO_PROGRESS  270
-#define IDR_ERROR_PNG                   271
 #define IDR_FLYLINK_PNG                 272
 #define IDR_MAGNET_PNG                  273
-#define IDR_SWITCH_PANELS               274
 #define IDR_SWITCH_PANELS_ICON          275
 #define IDR_ICON_SUCCESS_ICON           276
 #define IDR_ICON_FAIL_ICON              277
@@ -188,6 +180,8 @@
 #define IDD_FLY_PROGRESS                289
 #define IDD_SEARCH_PAGE                 290
 #define IDR_COLOR_ICON                  291
+#define IDR_ICON_QUESTION_ICON          292
+#define IDR_ICON_PAUSE_ICON             293
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
 #define IDC_COPY_HUB                    1002
@@ -277,7 +271,6 @@
 #define IDC_PRIVATE_MESSAGE             1088
 #define IDC_VERSION                     1089
 #define IDC_GETLIST                     1090
-#define IDC_ROLLBACK                    1091
 #define IDC_EDIT                        1092
 #define IDC_NOTEPAD                     1093
 #define IDC_AWAY                        1094
@@ -425,6 +418,7 @@
 #define IDC_SETTINGS_UNFINISHED_DOWNLOAD_DIRECTORY 1236
 #define IDC_SETTINGS_PORT_TCP           1237
 #define IDC_SETTINGS_DOWNLOAD_LIMITS    1238
+#define IDC_NETWORK_WINFIREWALL_STATUS  1238
 #define IDC_SETTINGS_DOWNLOADS_MAX      1239
 #define IDC_SETTINGS_DOWNLOADS_SPEED_PAUSE 1240
 #define IDC_SETTINGS_SPEEDS_NOT_ACCURATE 1241
@@ -680,7 +674,6 @@
 #define IDC_REFRESH_SPIN                1491
 #define IDC_DIRECT                      1492
 #define IDC_PRIO_NORMAL_SIZE            1493
-#define IDC_ROLLBACK_SPIN               1494
 #define IDC_FIREWALL_UPNP               1495
 #define IDC_PRIO_LOW_SIZE               1496
 #define IDC_SHUTDOWNACTION              1497
@@ -749,7 +742,6 @@
 #define IDC_RAW                         1560
 #define IDC_LINK                        1561
 #define IDC_GROUP_PROPERTIES            1562
-#define IDC_CON_CHECK                   1563
 #define IDC_SUPPORT_MAIL                1564
 #define IDC_NAME_STATIC                 1565
 #define IDC_TABSTEXT                    1566
@@ -775,6 +767,7 @@
 #define IDC_GETIP                       1586
 #define IDC_IPUPDATE                    1587
 #define IDC_PRIO_FILE                   1588
+#define IDC_ADD_FLYLINKDC_WINFIREWALL   1588
 #define IDC_HIGHEST_STR                 1589
 #define IDC_LOWEST_STR                  1590
 #define IDC_HIGHEST                     1591
@@ -881,9 +874,6 @@
 #define IDC_OPCHAT                      1694
 #define IDC_ENABLE_WEBSERVER            1695
 #define IDC_OPCHAT_STR                  1696
-#define IDC_IP_URLTEST                  1697
-#define IDC_IP_URL_TEST                 1698
-#define IDC_URL_TEST_IP                 1699
 #define IDC_MAX_MSG_LENGTH              1700
 #define IDC_MAX_MSG_LENGTH_STR          1701
 #define IDC_POPUP_COLORS                1702
@@ -1213,8 +1203,6 @@
 #define IDC_WIZARD_NETA_UPNP_ICO        2039
 #define IDC_WIZARD_NETA_BTN_CHECKUPNP   2040
 #define IDC_UPNPCHECK_STATIC            2041
-#define IDC_WIZARD_NET_TSTURL           2042
-#define IDC_WIZARD_NET_TST_BTN_DEFAULT  2043
 #define IDC_SPEEDLIMITDLG_SLIDER        2044
 #define IDC_SPEEDLIMITDLG_EDIT          2045
 #define IDC_SECURITY_GROUP              2046
@@ -1516,7 +1504,13 @@
 #define IDC_ABOUTTAB                    2351
 #define IDC_CONVERT_TTH_HISTORY         2352
 #define IDC_COPY_TAG                    2353
+#define IDC_NETWORK_TEST_PORT_TCP_ICO   2353
 #define IDC_COPY_CID                    2354
+#define IDC_NETWORK_TEST_PORT_UDP_ICO   2354
+#define IDC_NETWORK_TEST_PORT_TLS_TCP_ICO 2355
+#define IDC_NETWORK_TEST_PORT_TCP_ICO4  2356
+#define IDC_NETWORK_TEST_PORT_DHT_UDP_ICO 2356
+#define IDC_NETWORK_WINFIREWALL_ICO     2357
 #define IDC_DOWNLOAD_TARGET             2500
 #define IDC_DOWNLOAD_TARGET_DIR         3000
 #define IDC_SELECT_WINDOW               3500
@@ -1572,15 +1566,17 @@
 #define ID_MEDIA_MENU_WINAMP_END        32807
 #define IDC_PROGRESS                    32809
 #define IDC_TIME                        32810
+#define IDC_SEARCH_PASSIVE              32811
+#define IDC_SEARCH_UDP_PORT_TEST        32812
 
 // Next default values for new objects
 //
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        292
+#define _APS_NEXT_RESOURCE_VALUE        293
 #define _APS_NEXT_COMMAND_VALUE         32789
-#define _APS_NEXT_CONTROL_VALUE         2353
+#define _APS_NEXT_CONTROL_VALUE         2354
 #define _APS_NEXT_SYMED_VALUE           2423
 #endif
 #endif

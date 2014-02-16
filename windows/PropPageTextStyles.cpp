@@ -245,7 +245,7 @@ void PropPageTextStyles::cancel()
 	{
 		SettingsManager::importDctheme(m_tempfile);
 		SendMessage(WM_DESTROY, 0, 0);
-		PropertiesDlg::needUpdate = true;
+		PropertiesDlg::g_needUpdate = true;
 		SendMessage(WM_INITDIALOG, 0, 0);
 		m_maincolor_changed = false;
 	}
@@ -547,7 +547,7 @@ LRESULT PropPageTextStyles::onImport(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 	}
 	SettingsManager::importDctheme(file);
 	SendMessage(WM_DESTROY, 0, 0);
-	PropertiesDlg::needUpdate = true;
+	PropertiesDlg::g_needUpdate = true;
 	SendMessage(WM_INITDIALOG, 0, 0);
 	m_maincolor_changed = true;
 	//  RefreshPreview();

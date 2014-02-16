@@ -1,0 +1,4 @@
+import set : difference ;
+
+lib engines : [ difference [ glob-tree *.c : .svn ] : ccgost/gostsum.c ] ;
+explicit engines ;

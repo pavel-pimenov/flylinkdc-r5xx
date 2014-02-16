@@ -21,7 +21,7 @@
 
 #ifdef IRAINMAN_USE_STRING_POOL
 
-#include "Thread.h"
+#include "CFlyThread.h"
 #include "TimerManager.h"
 
 class StringPool : public Singleton<StringPool>, private TimerManagerListener

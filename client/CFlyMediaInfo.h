@@ -23,7 +23,6 @@ struct CFlyServerCache
 class CFlyMediaInfo
 {
 	public:
-#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		struct ExtItem
 		{
 			enum
@@ -40,7 +39,7 @@ class CFlyMediaInfo
 			}
 		};
 		std::vector<ExtItem> m_ext_array; // TODO: add interface
-#endif // FLYLINKDC_USE_MEDIAINFO_SERVER
+		
 		uint16_t m_bitrate;
 		uint16_t m_mediaX;
 		uint16_t m_mediaY;
@@ -54,6 +53,7 @@ class CFlyMediaInfo
 		CFlyMediaInfo(const std::string& p_WH, uint16_t p_bitrate,
 		              const std::string& p_audio, const std::string& p_video): m_audio(p_audio), m_video(p_video)
 		{
+			dcassert(!m_audio.empty() || !m_video.empty());
 			init(p_WH, p_bitrate);
 		}
 		CFlyMediaInfo(const std::string& p_WH, uint16_t p_bitrate = 0)
@@ -116,7 +116,9 @@ class CFlyMediaInfo
 				{
 					if (p_audio.size() > 6 && p_audio[0] >= '1' && p_audio[0] <= '9' && // ѕроверим факт наличи€ в начале длительности
 					        (p_audio[1] == 'm' || p_audio[2] == 'n') || // "1mn XXs"
-					        (p_audio[2] == 'm' || p_audio[3] == 'n') ||   // "60mn XXs"
+					        (p_audio[1] == 's' || p_audio[2] == ' ') || // "1s XXXms"
+					        (p_audio[2] == 's' || p_audio[3] == ' ') || // "59s XXXms"
+					        (p_audio[2] == 'm' || p_audio[3] == 'n') ||   // "59mn XXs"
 					        (p_audio[1] == 'h') ||  // "1h XXmn"
 					        (p_audio[2] == 'h')     // "60h XXmn"
 					   )
@@ -124,6 +126,10 @@ class CFlyMediaInfo
 						Text::toT(p_audio.substr(0, l_pos - 1), p_column_duration);
 						if (l_pos + 2 < p_audio.length())
 							Text::toT(p_audio.substr(l_pos + 2), p_column_audio);
+					}
+					else
+					{
+						dcassert(0);
 					}
 				}
 			}

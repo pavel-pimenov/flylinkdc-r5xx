@@ -1430,18 +1430,23 @@ struct Fonts
 	static void init();
 	static void uninit()
 	{
-		::DeleteObject(font);
-		::DeleteObject(boldFont);
-		::DeleteObject(smallBoldFont);
+		::DeleteObject(g_font);
+		g_font = nullptr;
+		::DeleteObject(g_boldFont);
+		g_boldFont = nullptr;
+		::DeleteObject(g_halfFont);
+		g_halfFont = nullptr;
+		::DeleteObject(g_systemFont);
+		g_systemFont = nullptr;
 	}
 	
 	static void decodeFont(const tstring& setting, LOGFONT &dest);
 	
-	static HFONT font;
-	static int fontHeight;
-	static HFONT boldFont;
-	static HFONT systemFont;
-	static HFONT smallBoldFont;
+	static int g_fontHeight;
+	static HFONT g_font;
+	static HFONT g_boldFont;
+	static HFONT g_systemFont;
+	static HFONT g_halfFont;
 };
 
 class LastDir

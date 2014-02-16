@@ -207,6 +207,6 @@ void JAControl::JAStart()
 bool JAControl::isJARunning()
 {
 	m_hJAudio = ::FindWindow(L"COWON Jet-Audio Remocon Class", L"Jet-Audio Remote Control");
-	return ::IsWindow(m_hJAudio) == TRUE;
+	return ::IsWindow(m_hJAudio) != FALSE;
 }
 

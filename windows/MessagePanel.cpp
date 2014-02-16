@@ -27,14 +27,6 @@
 #include "AGEmotionSetup.h"
 #endif
 
-/*ExCImage MessagePanel::hEmoticonBmp(IDR_SMILE, _T("PNG"), _Module.get_m_hInst());
-ExCImage MessagePanel::hSendMessageBmp(IDR_SENDMESSAGE, _T("PNG"), _Module.get_m_hInst());
-ExCImage MessagePanel::hBold(IDR_BOLD, _T("PNG"), _Module.get_m_hInst());
-ExCImage MessagePanel::hUndeline(IDR_UNDERLINE, _T("PNG"), _Module.get_m_hInst());
-ExCImage MessagePanel::hStrike(IDR_STRIKE, _T("PNG"), _Module.get_m_hInst());
-ExCImage MessagePanel::hItalic(IDR_ITALIC, _T("PNG"), _Module.get_m_hInst());
-ExCImage MessagePanel::hTransCode(IDR_TRANSCODE, _T("PNG"), _Module.get_m_hInst()); [-] Sergey Shushkanov*/
-
 HIconWrapper MessagePanel::g_hSendMessageIco(IDR_SENDMESSAGES_ICON);
 HIconWrapper MessagePanel::g_hMultiChatIco(IDR_MULTI_CHAT_ICON);
 #ifdef IRAINMAN_INCLUDE_SMILE
@@ -127,7 +119,7 @@ LRESULT MessagePanel::InitPanel(HWND& p_hWnd, RECT &p_rcDefault)
 #endif
 	ctrlSizeSel.Create(m_hWnd, p_rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_HSCROLL |
 	                   WS_VSCROLL | CBS_DROPDOWNLIST, WS_EX_CLIENTEDGE);
-	ctrlSizeSel.SetFont(Fonts::font);
+	ctrlSizeSel.SetFont(Fonts::g_font);
 	
 	ctrlSizeSel.AddString(L"-2");
 	ctrlSizeSel.AddString(L"-1");

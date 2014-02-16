@@ -23,7 +23,7 @@
 #include <boost/range/algorithm/find.hpp>
 #include <utility>
 #include <vector>
-#include "Thread.h"
+#include "CFlyThread.h"
 #include "noexcept.h"
 template<typename Listener>
 class Speaker

@@ -25,6 +25,7 @@
 #include "FinishedManager.h"
 #include "../FlyFeatures/flyServer.h"
 
+
 const char* SearchManager::getTypeStr(int type)
 {
 	static const char* g_types[Search::TYPE_LAST] =
@@ -73,14 +74,14 @@ string SearchManager::normalizeWhitespace(const string& aString)
 	return normalized;
 }
 
-void SearchManager::search(const string& aName, int64_t aSize, Search::TypeModes aTypeMode /* = Search::TYPE_ANY */, Search::SizeModes aSizeMode /* = SIZE_ATLEAST */, const string& aToken /* = Util::emptyString */, void* aOwner /* = NULL */)
+void SearchManager::search(const string& aName, int64_t aSize, Search::TypeModes aTypeMode, Search::SizeModes aSizeMode, const string& aToken, void* aOwner, bool p_is_force_passive)
 {
-	ClientManager::getInstance()->search(aSizeMode, aSize, aTypeMode, normalizeWhitespace(aName), aToken, aOwner);
+	ClientManager::getInstance()->search(aSizeMode, aSize, aTypeMode, normalizeWhitespace(aName), aToken, aOwner, p_is_force_passive);
 }
 
-uint64_t SearchManager::search(const StringList& who, const string& aName, int64_t aSize /* = 0 */, Search::TypeModes aTypeMode /* = Search::TYPE_ANY */, Search::SizeModes aSizeMode /* = SIZE_ATLEAST */, const string& aToken /* = Util::emptyString */, const StringList& aExtList, void* aOwner /* = NULL */)
+uint64_t SearchManager::search(const StringList& who, const string& aName, int64_t aSize, Search::TypeModes aTypeMode, Search::SizeModes aSizeMode, const string& aToken, const StringList& aExtList, void* aOwner, bool p_is_force_passive)
 {
-	return ClientManager::getInstance()->search(who, aSizeMode, aSize, aTypeMode, normalizeWhitespace(aName), aToken, aExtList, aOwner);
+	return ClientManager::getInstance()->search(who, aSizeMode, aSize, aTypeMode, normalizeWhitespace(aName), aToken, aExtList, aOwner, p_is_force_passive);
 }
 
 void SearchManager::listen()
@@ -99,7 +100,9 @@ void SearchManager::listen()
 		}
 		else
 		{
-			port = socket->bind(static_cast<uint16_t>(SETTING(UDP_PORT)), SETTING(BIND_ADDRESS));
+			const auto l_ip = SETTING(BIND_ADDRESS);
+			const auto l_port = SETTING(UDP_PORT);
+			port = socket->bind(static_cast<uint16_t>(l_port), l_ip);
 		}
 		
 		start(64);
@@ -311,11 +314,11 @@ int SearchManager::UdpQueue::run()
 			if (!l_isTTH) // [+]FlylinkDC++ Team
 				l_hub_name_or_tth = Text::toUtf8(l_hub_name_or_tth, encoding);
 				
-			UserPtr user = ClientManager::findUser(nick, url); // TODO оптмизнуть makeCID
+			UserPtr user = ClientManager::findUser(nick, url); // TODO оптимизнуть makeCID
 			// не находим юзера "$SR snooper-06 Фильмы\Прошлой ночью в Нью-Йорке.avi1565253632 15/15TTH:LUWOOXBE2H77TUV4S4HNZQTVDXLPEYC757OUMLY (31.186.103.125:411)"
 			// при пустом url - можно не звать ClientManager::findUser - не найдем.
 			// сразу нужно переходить на ClientManager::findLegacyUser
-			// url не педедается прри коннекте к хабу через SOCKS5
+			// url не педедается при коннекте к хабу через SOCKS5
 			// TODO - если хаб только один - пытаться подставлять его?
 			if (!user)
 			{
@@ -335,7 +338,10 @@ int SearchManager::UdpQueue::run()
 			if (!remoteIp.empty())
 			{
 				user->setIP(remoteIp);
-				ClientManager::setIPUser(user, remoteIp); // TODO - может не нужно тут?
+#ifdef _DEBUG
+				//ClientManager::setIPUser(user, remoteIp); // TODO - может не нужно тут?
+#endif
+				// Тяжелая операция по мапе юзеров - только чтобы показать IP в списке ?
 			}
 			
 			string tth;
@@ -356,7 +362,9 @@ int SearchManager::UdpQueue::run()
 			                                          file, l_hub_name_or_tth, url, remoteIp, l_tth_value, Util::emptyString));
 			                                          
 			SearchManager::getInstance()->fire(SearchManagerListener::SR(), sr);
-			
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+			CFlylinkDBManager::getInstance()->push_event_statistic("SearchManager::UdpQueue::run()", "$SR", x, remoteIp, "", url, tth);
+#endif
 		}
 		else if (x.compare(1, 4, "RES ", 4) == 0 && x[x.length() - 1] == 0x0a)
 		{
@@ -378,8 +386,10 @@ int SearchManager::UdpQueue::run()
 			c.getParameters().erase(c.getParameters().begin());
 			
 			SearchManager::getInstance()->onRES(c, user, remoteIp);
-			
-		}
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+			CFlylinkDBManager::getInstance()->push_event_statistic("SearchManager::UdpQueue::run()", "RES", x, remoteIp, "", "", "");
+#endif
+		} // Тут нужен else?
 		if (x.compare(1, 4, "PSR ", 4) == 0 && x[x.length() - 1] == 0x0a)
 		{
 			AdcCommand c(x.substr(0, x.length() - 1));
@@ -395,15 +405,36 @@ int SearchManager::UdpQueue::run()
 			c.getParameters().erase(c.getParameters().begin());
 			
 			SearchManager::getInstance()->onPSR(c, user, remoteIp);
-			
-		} /*else if(x.compare(1, 4, "SCH ",4) == 0 && x[x.length() - 1] == 0x0a) {
-            try {
-                respond(AdcCommand(x.substr(0, x.length()-1)));
-            } catch(const ParseException& ) {
-            }
-        }*/ // Needs further DoS investigation
-
-
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+			CFlylinkDBManager::getInstance()->push_event_statistic("SearchManager::UdpQueue::run()", "PSR", x, remoteIp, "", "", "");
+#endif
+		}
+		else if (x.compare(0, 15, "$FLY-TEST-PORT ", 15) == 0)
+		{
+			//dcassert(SettingsManager::g_TestUDPSearchLevel <= 1);
+			const auto l_magic = x.substr(15, 39);
+			if (ClientManager::getMyCID().toBase32() == l_magic)
+			{
+				SettingsManager::g_TestUDPSearchLevel = true;
+				auto l_ip = x.substr(15 + 39);
+				if (l_ip.size() && l_ip[l_ip.size() - 1] == '|')
+					l_ip = l_ip.substr(0, l_ip.size() - 1);
+				SearchManager::getInstance()->fire(SearchManagerListener::UDPTest(), l_ip);
+			}
+			else
+			{
+				SettingsManager::g_TestUDPSearchLevel = false;
+				LogManager::getInstance()->message("Error magic value = " + l_magic);
+			}
+		}
+		/*else if(x.compare(1, 4, "SCH ",4) == 0 && x[x.length() - 1] == 0x0a) {
+		    try {
+		        respond(AdcCommand(x.substr(0, x.length()-1)));
+		    } catch(const ParseException& ) {
+		    }
+		}*/ // Needs further DoS investigation
+		
+		
 		sleep(10);
 	}
 	return 0;
@@ -470,7 +501,6 @@ void SearchManager::onRES(const AdcCommand& cmd, const UserPtr& from, const stri
 
 void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const string& remoteIp)
 {
-
 	uint16_t udpPort = 0;
 	uint32_t partialCount = 0;
 	string tth;
@@ -539,7 +569,9 @@ void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const string& rem
 		}
 	}
 	
-	ClientManager::setIPUser(from, remoteIp, udpPort);
+#ifdef _DEBUG
+	// ClientManager::setIPUser(from, remoteIp, udpPort);
+#endif
 	// TODO Ищем в OnlineUser а чуть выше ищем в UserPtr може тожно схлопнуть в один поиск для апдейта IP
 	
 	if (partialInfo.size() != partialCount)

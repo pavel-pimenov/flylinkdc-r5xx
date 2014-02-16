@@ -429,8 +429,10 @@ ShareManager::Directory::ShareFile::Set::const_iterator ShareManager::findFileL(
 	}
 	
 	const auto v = splitVirtualL(virtualFile);
-	auto it = find_if(v.first->m_files.begin(), v.first->m_files.end(),
-	                  Directory::ShareFile::StringComp(v.second));
+	auto it = std::find_if(v.first->m_files.begin(), v.first->m_files.end(),
+	                       [&](const Directory::ShareFile & p_file) -> bool {return stricmp(p_file.getName(), v.second) == 0;}
+	                       //Directory::ShareFile::StringComp(v.second)
+	                      );
 	if (it == v.first->m_files.end())
 		throw ShareException(UserConnection::FILE_NOT_AVAILABLE, virtualFile);
 	return it;
@@ -1179,21 +1181,22 @@ bool ShareManager::checkAttributs(const string& aName) const
 __int64 ShareManager::rebuildMediainfo(Directory& p_dir, CFlyLog& p_log, ShareManager::MediainfoFileArray& p_result)
 {
 	__int64 l_count = 0;
-	for (auto i = p_dir.directories.cbegin(); i != p_dir.directories.cend(); ++i)
+	for (auto i = p_dir.m_directories.cbegin(); i != p_dir.m_directories.cend(); ++i)
 	{
 		l_count += rebuildMediainfo(*i->second, p_log, p_result);
 	}
 	__int64 l_path_id = 0;
 	string l_real_path;
-	for (auto i = p_dir.files.cbegin(); i != p_dir.files.cend(); ++i)
+	for (auto i = p_dir.m_files.cbegin(); i != p_dir.m_files.cend(); ++i)
 	{
-		const Directory::File& l_file = *i;
+		const auto& l_file = *i;
 		if (g_fly_server_config.isMediainfoExt(Util::getFileExtWithoutDot(l_file.getLowName()))) // [!] IRainman opt.
 		{
 			if (l_path_id == 0)
 			{
 				l_real_path = Util::getFilePath(l_file.getRealPath());
-				l_path_id = CFlylinkDBManager::getInstance()->get_path_id(l_real_path, false, true);
+				bool l_is_no_mediaiinfo;
+				l_path_id = CFlylinkDBManager::getInstance()->get_path_id(l_real_path, false, true, l_is_no_mediaiinfo);
 			}
 			dcassert(l_path_id);
 			dcassert(!l_real_path.empty());
@@ -1966,9 +1969,27 @@ void ShareManager::Directory::search(SearchResultList& aResults, StringSearch::L
     unique_ptr<StringSearch::List> newStr;
     
     // Find any matches in the directory name
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+    int l_count_find = 0;
+#endif
     for (auto k = aStrings.cbegin(); k != aStrings.cend(); ++k)
 {
-	if (k->matchLower(getLowName())) // http://flylinkdc.blogspot.com/2010/08/1.html
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+	{
+		string l_tth;
+		const auto l_tth_pos = (*k).getPattern().find("TTH:");
+			if (l_tth_pos != string::npos)
+				l_tth = (*k).getPattern().c_str() + l_tth_pos + 7;
+			CFlylinkDBManager::getInstance()->push_event_statistic("ShareManager::Directory::search",
+			"find-" + Util::toString(++l_count_find),
+			(*k).getPattern(),
+			"",
+			"",
+			aClient->getHubUrlAndIP(),
+			l_tth);
+		}
+#endif
+		if (k->matchLower(getLowName())) // http://flylinkdc.blogspot.com/2010/08/1.html
 		{
 			if (!newStr.get())
 			{
@@ -2068,6 +2089,18 @@ void ShareManager::search(SearchResultList& results, const string& aString, Sear
 				l_fileMap->getParent()->getFullName() + l_fileMap->getName(), l_fileMap->getTTH());
 				incHits();
 			}
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+			{
+				CFlylinkDBManager::getInstance()->push_event_statistic("ShareManager::search",
+				                                                       "TTH",
+				                                                       aString,
+				                                                       "",
+				                                                       "",
+				                                                       aClient->getHubUrlAndIP(),
+				                                                       tth.toBase32());
+			}
+#endif
+			
 			results.push_back(sr);
 		}
 		return;
@@ -2082,11 +2115,26 @@ void ShareManager::search(SearchResultList& results, const string& aString, Sear
 	
 	StringSearch::List ssl;
 	ssl.reserve(sl.size());
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+	int l_count_find = 0;
+#endif
 	for (auto i = sl.cbegin(); i != sl.cend(); ++i)
 	{
 		if (!i->empty())
 		{
 			ssl.push_back(StringSearch(*i));
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+			{
+				CFlylinkDBManager::getInstance()->push_event_statistic("ShareManager::search",
+				"FileSearch-" + Util::toString(++l_count_find),
+				*i,
+				"",
+				"",
+				aClient->getHubUrlAndIP(),
+				"");
+			}
+#endif
+			
 		}
 	}
 	if (ssl.empty())

@@ -36,7 +36,20 @@ int TreePropertySheet::PropSheetProc(HWND hwndDlg, UINT uMsg, LPARAM lParam)
 	
 	return CPropertySheet::PropSheetCallback(hwndDlg, uMsg, lParam);
 }
-
+LRESULT TreePropertySheet::onDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+{
+	bHandled = FALSE;
+	safe_destroy_timer();
+	return 0;
+}
+LRESULT TreePropertySheet::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
+{
+	if (!m_spoken)
+	{
+		onTimerSec();
+	}
+	return 0;
+}
 LRESULT TreePropertySheet::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /* bHandled */)
 {
 	/* [-] IRainman fix.
@@ -83,7 +96,6 @@ LRESULT TreePropertySheet::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 #ifdef SCALOLAZ_PROPPAGE_HELPLINK
 void TreePropertySheet::addHelp()
 {
-	LPCTSTR help_str = CTSTRING(PROPERTIES_WIKIHELP);
 	m_Help.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE /*| MB_ICONINFORMATION */, 0, IDC_PROPPAGE_WIKIHELP);
 	m_Help.SetFont(GetFont());
 	CRect rectok, rectok2, wind2;
@@ -94,13 +106,16 @@ void TreePropertySheet::addHelp()
 	ScreenToClient(rectok);
 	ScreenToClient(rectok2);
 	ScreenToClient(wind2);
-	int width = WinUtil::getTextWidth((tstring) help_str, m_hWnd);     // calculate a center X
+	const int width = WinUtil::getTextWidth(CTSTRING(PROPERTIES_WIKIHELP), m_hWnd);     // calculate a center X
 	rectok2.left = ((wind2.right - wind2.left) / 2) - (width / 2) + 20;
 	rectok2.right = rectok2.left + width;
-	if (rectok2.right > rectok.left) rectok2.right = rectok.left - 5;
+	if (rectok2.right > rectok.left)
+	{
+		rectok2.right = rectok.left - 5;
+	}
 	rectok2.top += 5;
 	m_Help.MoveWindow(rectok2);
-	m_Help.SetLabel(help_str);
+	m_Help.SetLabel(CTSTRING(PROPERTIES_WIKIHELP));
 	genHelpLink(HwndToIndex(GetActivePage()));
 	idok.MoveWindow(rectok);
 }
@@ -108,7 +123,7 @@ void TreePropertySheet::addHelp()
 
 void TreePropertySheet::genHelpLink(int p_page)
 {
-	const TCHAR* l_HelpLinkTable[] =
+	static const TCHAR* g_HelpLinkTable[] =
 	{
 		L"general",
 		L"isp",
@@ -153,10 +168,10 @@ void TreePropertySheet::genHelpLink(int p_page)
 		L"sharemisc",
 		L"searchpage"
 	};
-	if (p_page < 0 || p_page >= _countof(l_HelpLinkTable) /*39*/)
+	if (p_page < 0 || p_page >= _countof(g_HelpLinkTable) /*39*/)
 		p_page = 0;
 		
-	const tstring l_url = WinUtil::GetWikiLink() + tstring(l_HelpLinkTable[p_page]);
+	const tstring l_url = WinUtil::GetWikiLink() + tstring(g_HelpLinkTable[p_page]);
 	
 	m_Help.SetHyperLink(l_url.c_str());
 	m_Help.SetHyperLinkExtendedStyle(/*HLINK_LEFTIMAGE |*/ HLINK_UNDERLINEHOVER);
@@ -183,7 +198,10 @@ void TreePropertySheet::addTransparency()
 	m_tooltip.SetDelayTime(TTDT_AUTOPOP, 15000);
 	dcassert(m_tooltip.IsWindow());
 	m_tooltip.AddTool(m_Slider, ResourceManager::TRANSPARENCY_PROPPAGE);
-	if (!BOOLSETTING(POPUPS_DISABLED)) m_tooltip.Activate(TRUE);
+	if (!BOOLSETTING(POPUPS_DISABLED))
+	{
+		m_tooltip.Activate(TRUE);
+	}
 }
 void TreePropertySheet::setTransp(int p_Layered)
 {
@@ -275,6 +293,7 @@ void TreePropertySheet::fillTree()
 		ctrlTree.SelectItem(findItem(SETTING(PAGE), ctrlTree.GetRootItem()));
 	else
 		ctrlTree.SelectItem(first);
+	create_timer(1000);
 }
 
 HTREEITEM TreePropertySheet::createTree(const tstring& str, HTREEITEM parent, int page)
@@ -364,21 +383,25 @@ LRESULT TreePropertySheet::onSelChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /* b
 	if (page == -1)
 	{
 		HTREEITEM next = ctrlTree.GetChildItem(nmtv->itemNew.hItem);
-		if (next == NULL)
+		if (next == nullptr)
 		{
 			next = ctrlTree.GetNextSiblingItem(nmtv->itemNew.hItem);
-			if (next == NULL)
+			if (next == nullptr)
 			{
 				next = ctrlTree.GetParentItem(nmtv->itemNew.hItem);
-				if (next != NULL)
+				if (next != nullptr)
+				{
 					next = ctrlTree.GetNextSiblingItem(next);
+				}
 			}
 		}
-		if (next != NULL)
+		if (next != nullptr)
 		{
 			ctrlTree.SelectItem(next);
 			if (SETTING(REMEMBER_SETTINGS_PAGE))
+			{
 				SET_SETTING(PAGE, (int)next);
+			}
 		}
 	}
 	else
@@ -387,12 +410,16 @@ LRESULT TreePropertySheet::onSelChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /* b
 		{
 			SetActivePage(page);
 			if (SETTING(REMEMBER_SETTINGS_PAGE))
+			{
 				SET_SETTING(PAGE, page);
+			}
 		}
 	}
 #ifdef SCALOLAZ_PROPPAGE_HELPLINK
 	if (BOOLSETTING(SETTINGS_WINDOW_WIKIHELP))
+	{
 		genHelpLink(HwndToIndex(GetActivePage()));
+	}
 #endif
 	return 0;
 }

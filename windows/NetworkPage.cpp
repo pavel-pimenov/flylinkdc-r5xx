@@ -18,10 +18,14 @@
 
 #include "stdafx.h"
 
+#include <comdef.h>
 #include "Resource.h"
 
 #include "NetworkPage.h"
 #include "WinUtil.h"
+#include "../FlyFeatures/flyServer.h"
+#include "../client/CryptoManager.h"
+#include "../client/webrtc/talk/base/winfirewall.h"
 
 PropPage::TextItem NetworkPage::texts[] =
 {
@@ -44,7 +48,6 @@ PropPage::TextItem NetworkPage::texts[] =
 	{ IDC_SETTINGS_BIND_ADDRESS, ResourceManager::SETTINGS_BIND_ADDRESS },
 	{ IDC_SETTINGS_BIND_ADDRESS_HELP, ResourceManager::SETTINGS_BIND_ADDRESS_HELP },
 	{ IDC_NATT, ResourceManager::ALLOW_NAT_TRAVERSAL },
-	{ IDC_CON_CHECK, ResourceManager::CHECK_SETTINGS },
 	{ IDC_IPUPDATE, ResourceManager::UPDATE_IP },
 	{ IDC_SETTINGS_UPDATE_IP_INTERVAL, ResourceManager::UPDATE_IP_INTERVAL },
 #ifdef STRONG_USE_DHT
@@ -53,6 +56,7 @@ PropPage::TextItem NetworkPage::texts[] =
 	{ IDC_SETTINGS_USE_DHT_NOTANSWER,  ResourceManager::USE_DHT_NOTANSWER },
 #endif
 	{ IDC_GETIP, ResourceManager::GET_IP },
+	{ IDC_ADD_FLYLINKDC_WINFIREWALL, ResourceManager::ADD_FLYLINKDC_WINFIREWALL },
 	
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
@@ -66,7 +70,6 @@ PropPage::Item NetworkPage::items[] =
 	{ IDC_PORT_TLS,         SettingsManager::TLS_PORT,      PropPage::T_INT },
 	{ IDC_OVERRIDE,         SettingsManager::NO_IP_OVERRIDE, PropPage::T_BOOL },
 	{ IDC_IP_GET_IP,        SettingsManager::URL_GET_IP,    PropPage::T_STR }, //[+]PPA
-	{ IDC_URL_TEST_IP,      SettingsManager::URL_TEST_IP,   PropPage::T_STR }, //[+]PPA
 	{ IDC_IPUPDATE,         SettingsManager::IPUPDATE,      PropPage::T_BOOL },
 	{ IDC_UPDATE_IP_INTERVAL, SettingsManager::IPUPDATE_INTERVAL, PropPage::T_INT },
 	{ IDC_BIND_ADDRESS,     SettingsManager::BIND_ADDRESS, PropPage::T_STR },
@@ -139,7 +142,7 @@ LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 #endif // PPA_INCLUDE_UPNP
 	
 #ifndef IRAINMAN_IP_AUTOUPDATE
-	::EnableWindow(GetDlgItem(IDC_GETIP), FALSE);
+	//::EnableWindow(GetDlgItem(IDC_GETIP), FALSE);
 	::EnableWindow(GetDlgItem(IDC_IPUPDATE), FALSE);
 #endif
 	
@@ -166,7 +169,6 @@ LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	CheckDlgButton(IDC_AUTODETECT, SETTING(INCOMING_AUTODETECT_FLAG));
 #else
 	::EnableWindow(GetDlgItem(IDC_AUTODETECT), FALSE);
-	GetDlgItem(IDC_AUTODETECT).ShowWindow(FALSE);
 #endif
 	
 	PropPage::read((HWND)(*this), items);
@@ -176,35 +178,34 @@ LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	m_IPHint.SetDelayTime(TTDT_AUTOPOP, 15000);
 	dcassert(m_IPHint.IsWindow());
 	
-	desc.Attach(GetDlgItem(IDC_PORT_TCP));
-	desc.LimitText(5);
-	desc.Detach();
-	desc.Attach(GetDlgItem(IDC_PORT_UDP));
-	desc.LimitText(5);
-	desc.Detach();
-	desc.Attach(GetDlgItem(IDC_PORT_TLS));
-	desc.LimitText(5);
-	desc.Detach();
+	m_desc.Attach(GetDlgItem(IDC_PORT_TCP));
+	m_desc.LimitText(5);
+	m_desc.Detach();
+	m_desc.Attach(GetDlgItem(IDC_PORT_UDP));
+	m_desc.LimitText(5);
+	m_desc.Detach();
+	m_desc.Attach(GetDlgItem(IDC_PORT_TLS));
+	m_desc.LimitText(5);
+	m_desc.Detach();
 #ifdef STRONG_USE_DHT
-	desc.Attach(GetDlgItem(IDC_PORT_DHT));
-	desc.LimitText(5);
-	desc.Detach();
+	m_desc.Attach(GetDlgItem(IDC_PORT_DHT));
+	m_desc.LimitText(5);
+	m_desc.Detach();
 #endif
-	m_ConnCheckUrl.init(GetDlgItem(IDC_CON_CHECK), _T(""));
-	BindCombo.Attach(GetDlgItem(IDC_BIND_ADDRESS));
-	const auto l_tool_tip = WinUtil::getAddresses(BindCombo);
+	m_BindCombo.Attach(GetDlgItem(IDC_BIND_ADDRESS));
+	const auto l_tool_tip = WinUtil::getAddresses(m_BindCombo);
 	m_IPHint.SetMaxTipWidth(1024);
-	m_IPHint.AddTool(BindCombo, l_tool_tip.c_str());
+	m_IPHint.AddTool(m_BindCombo, l_tool_tip.c_str());
 	const auto l_bind = Text::toT(SETTING(BIND_ADDRESS));
-	BindCombo.SetCurSel(BindCombo.FindString(0, l_bind.c_str()));
+	m_BindCombo.SetCurSel(m_BindCombo.FindString(0, l_bind.c_str()));
 	
-	if (BindCombo.GetCurSel() == -1)
+	if (m_BindCombo.GetCurSel() == -1)
 	{
-		BindCombo.AddString(l_bind.c_str());
-		BindCombo.SetCurSel(BindCombo.FindString(0, l_bind.c_str()));
+		m_BindCombo.AddString(l_bind.c_str());
+		m_BindCombo.SetCurSel(m_BindCombo.FindString(0, l_bind.c_str()));
 	}
-	BindCombo.Detach();
-	
+	m_BindCombo.Detach();
+	updateTestPortIcon(false);
 	return TRUE;
 }
 
@@ -218,7 +219,7 @@ void NetworkPage::fixControls()
 #ifdef STRONG_USE_DHT
 	const BOOL dht = IsDlgButtonChecked(IDC_SETTINGS_USE_DHT) == BST_CHECKED;
 #endif
-	const BOOL passive = IsDlgButtonChecked(IDC_FIREWALL_PASSIVE) == BST_CHECKED;
+	//const BOOL passive = IsDlgButtonChecked(IDC_FIREWALL_PASSIVE) == BST_CHECKED;
 	
 	::EnableWindow(GetDlgItem(IDC_DIRECT), !auto_detect);
 	::EnableWindow(GetDlgItem(IDC_FIREWALL_UPNP), !auto_detect);
@@ -227,29 +228,32 @@ void NetworkPage::fixControls()
 #ifdef STRONG_USE_DHT
 	::EnableWindow(GetDlgItem(IDC_UPDATE_IP_DHT), dht); // [!] IRainman  if DHT is enable allow update IP from packets taked place firewall.
 	::EnableWindow(GetDlgItem(IDC_PORT_DHT), dht);
+	//SetStage(IDC_NETWORK_TEST_PORT_DHT_UDP_ICO, dht ? StageWait : StageUnknown); // StageUnknown - не показывается
+	//::EnableWindow(GetDlgItem(IDC_NETWORK_TEST_PORT_DHT_UDP_ICO),dht);
+	
 	::EnableWindow(GetDlgItem(IDC_SETTINGS_USE_DHT_NOTANSWER), dht);
 #endif
 	::EnableWindow(GetDlgItem(IDC_SETTINGS_IP), !auto_detect);
 	::EnableWindow(GetDlgItem(IDC_EXTERNAL_IP), !auto_detect && (direct || upnp || nat || nat_traversal));
 	::EnableWindow(GetDlgItem(IDC_IP_GET_IP), !auto_detect && (upnp || nat)); //[+]PPA
-	::EnableWindow(GetDlgItem(IDC_URL_TEST_IP), !passive);
 	::EnableWindow(GetDlgItem(IDC_OVERRIDE), !auto_detect && (direct || upnp || nat || nat_traversal));
 #ifdef IRAINMAN_IP_AUTOUPDATE
-	::EnableWindow(GetDlgItem(IDC_GETIP), (upnp || nat));
+	//::EnableWindow(GetDlgItem(IDC_GETIP), (upnp || nat));
 	::EnableWindow(GetDlgItem(IDC_IPUPDATE), (upnp || nat));
 #endif
 	const BOOL ipupdate = (upnp || nat) && (IsDlgButtonChecked(IDC_IPUPDATE) == BST_CHECKED);
 	::EnableWindow(GetDlgItem(IDC_SETTINGS_UPDATE_IP_INTERVAL), ipupdate);
 	::EnableWindow(GetDlgItem(IDC_UPDATE_IP_INTERVAL), ipupdate);
-	::EnableWindow(GetDlgItem(IDC_PORT_TCP), !auto_detect && (upnp || nat));
-	::EnableWindow(GetDlgItem(IDC_PORT_UDP), !auto_detect && (upnp || nat));
-	::EnableWindow(GetDlgItem(IDC_PORT_TLS), !auto_detect && (upnp || nat));
-	::EnableWindow(GetDlgItem(IDC_CON_CHECK), !passive);
+	const BOOL l_port_enabled = !auto_detect && (upnp || nat);
+	::EnableWindow(GetDlgItem(IDC_PORT_TCP),  l_port_enabled);
+	::EnableWindow(GetDlgItem(IDC_PORT_UDP),  l_port_enabled);
+	::EnableWindow(GetDlgItem(IDC_PORT_TLS),  l_port_enabled && CryptoManager::getInstance()->TLSOk());
 	//::EnableWindow(GetDlgItem(IDC_NATT), passive); // for passive settings only,  [-] IRainman fix: why??
 	
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	::EnableWindow(GetDlgItem(IDC_AUTODETECT), !passive);
 #endif
+	TestWinFirewall();
 }
 
 LRESULT NetworkPage::onClickedActive(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -257,45 +261,203 @@ LRESULT NetworkPage::onClickedActive(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 	fixControls();
 	return 0;
 }
-
-LRESULT NetworkPage::onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */)
+void NetworkPage::updateTestPortIcon(bool p_is_wait)
 {
-	write();
-	const string& l_url = SETTING(URL_GET_IP);
-	if (Util::isHttpLink(l_url))
+	//if (::IsWindow(m_BindCombo))
 	{
-		CWaitCursor l_cursor_wait;
-		try
+		if (!p_is_wait)
 		{
-			::EnableWindow(GetDlgItem(IDC_GETIP), false);
-			fixControls();
-			auto l_ip = Util::getExternalIP(l_url, 500);
-			if (!l_ip.empty())
+			++m_count_test_port_tick;
+		}
+		auto calcIconsIndex = [&](const int p_icon, const boost::logic::tribool & p_status)
+		{
+			if (p_is_wait && m_count_test_port_tick == 0)
 			{
-				SetDlgItemText(IDC_EXTERNAL_IP, Text::toT(l_ip).c_str());
+				SetStage(p_icon, StageWait);
 			}
-		}
-		catch (Exception & e)
+			else if (p_status)
+			{
+				SetStage(p_icon, StageSuccess);
+			}
+			else if (!p_status) //  || (m_count_test_port_tick > 1 && boost::logic::indeterminate(p_status))
+			{
+				SetStage(p_icon, StageFail);
+			}
+			else
+			{
+				SetStage(p_icon, StageQuestion);
+			}
+		};
+		calcIconsIndex(IDC_NETWORK_TEST_PORT_TCP_ICO, SettingsManager::g_TestTCPLevel);
+		calcIconsIndex(IDC_NETWORK_TEST_PORT_UDP_ICO, SettingsManager::g_TestUDPSearchLevel);
+		if (CryptoManager::getInstance()->TLSOk())
 		{
-			// TODO - сюда никогда не попадаем?
-			::MessageBox(NULL, Text::toT(e.getError()).c_str(), _T("SetIP Error!"), MB_OK | MB_ICONERROR);
+			calcIconsIndex(IDC_NETWORK_TEST_PORT_TLS_TCP_ICO, SettingsManager::g_TestTSLLevel);
 		}
-		::EnableWindow(GetDlgItem(IDC_GETIP), true);
+		else
+		{
+			SetStage(IDC_NETWORK_TEST_PORT_TLS_TCP_ICO, StageUnknown);
+		}
+		const BOOL dht = IsDlgButtonChecked(IDC_SETTINGS_USE_DHT) == BST_CHECKED;
+		if (dht)
+		{
+			calcIconsIndex(IDC_NETWORK_TEST_PORT_DHT_UDP_ICO, SettingsManager::g_TestUDPDHTLevel);
+		}
+		else
+		{
+			SetStage(IDC_NETWORK_TEST_PORT_DHT_UDP_ICO, StageUnknown);
+		}
+	}
+}
+LRESULT NetworkPage::onAddWinFirewallException(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */)
+{
+//	http://www.dslreports.com/faq/dc/3.1_Software_Firewalls
+	talk_base::WinFirewall fw;
+	HRESULT hr = {0};
+	HRESULT hr_auth = {0};
+	bool authorized = true;
+	fw.Initialize(&hr);
+	TCHAR l_app_path[MAX_PATH];
+	l_app_path[0] = 0;
+	::GetModuleFileName(NULL, l_app_path, MAX_PATH);
+	// TODO - try
+	// https://github.com/zhaozongzhe/gmDev/blob/70a1a871bb350860bdfff46c91913815184badd6/gmSetup/fwCtl.cpp
+	const auto l_res = fw.AddApplicationW(l_app_path, _T("FlylinkDC++ client"), authorized, &hr_auth);
+	// "C:\\vc10\\r5xx\\compiled\\FlylinkDC_Debug.exe"
+	if (l_res)
+	{
+		::MessageBox(NULL, Text::toT("FlylinkDC_Debug.exe - OK").c_str(), _T("Windows Firewall"), MB_OK | MB_ICONINFORMATION);
 	}
 	else
-		::MessageBox(NULL, Text::toT(l_url).c_str(), _T("http:// URL Error !"), MB_OK | MB_ICONERROR);
+	{
+		_com_error l_error_message(hr_auth);
+		tstring l_message = _T("FlylinkDC++ module: ");
+		l_message += l_app_path;
+		l_message += Text::toT("\r\nError code = " + Util::toString(hr_auth) +
+		                       "\r\nError text = ") + l_error_message.ErrorMessage();
+		::MessageBox(NULL, l_message.c_str(), _T("Windows Firewall"), MB_OK | MB_ICONERROR);
+	}
+	TestWinFirewall();
+	return 0;
+}
+void NetworkPage::TestWinFirewall()
+{
+	talk_base::WinFirewall fw;
+	HRESULT hr = {0};
+	bool authorized;
+	fw.Initialize(&hr);
+	TCHAR l_app_path[MAX_PATH];
+	l_app_path[0] = 0;
+	::GetModuleFileName(NULL, l_app_path, MAX_PATH);
+	const auto l_res = fw.QueryAuthorizedW(l_app_path, &authorized);
+	if (l_res)
+	{
+		if (authorized)
+		{
+			SetStage(IDC_NETWORK_WINFIREWALL_ICO, StageSuccess);
+		}
+		else
+		{
+			SetStage(IDC_NETWORK_WINFIREWALL_ICO, StageFail);
+		}
+	}
+	else
+	{
+		SetStage(IDC_NETWORK_WINFIREWALL_ICO, StageQuestion);
+	}
+}
+LRESULT NetworkPage::onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */)
+{
+	TestWinFirewall();
+	SettingsManager::testPortLevelInit();
+	updateTestPortIcon(true);
+	write();
+	std::vector<unsigned short> l_udp_port, l_tcp_port;
+	l_udp_port.push_back(SETTING(UDP_PORT));
+#ifdef STRONG_USE_DHT
+	l_udp_port.push_back(SETTING(DHT_PORT));
+#endif
+	// TCP пока не работает.
+	l_tcp_port.push_back(SETTING(TCP_PORT));
+	if (CryptoManager::getInstance()->TLSOk())
+	{
+		l_tcp_port.push_back(SETTING(TLS_PORT));
+	}
+	string l_external_ip;
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
+	bool l_is_udp_port_send = CFlyServerAdapter::CFlyServerJSON::pushTestPort(ClientManager::getMyCID().toBase32(), l_udp_port, l_tcp_port, l_external_ip);
+	if (l_is_udp_port_send)
+	{
+		SetDlgItemText(IDC_EXTERNAL_IP, Text::toT(l_external_ip).c_str());
+	}
+	else
+#endif // FLYLINKDC_USE_MEDIAINFO_SERVER
+	{
+		const string& l_url = SETTING(URL_GET_IP);
+		if (Util::isHttpLink(l_url))
+		{
+			CWaitCursor l_cursor_wait;
+			try
+			{
+				::EnableWindow(GetDlgItem(IDC_GETIP), FALSE);
+				fixControls();
+				auto l_ip = Util::getExternalIP(l_url, 500);
+				if (!l_ip.empty())
+				{
+					SetDlgItemText(IDC_EXTERNAL_IP, Text::toT(l_ip).c_str());
+				}
+			}
+			catch (Exception & e)
+			{
+				// TODO - сюда никогда не попадаем?
+				::MessageBox(NULL, Text::toT(e.getError()).c_str(), _T("SetIP Error!"), MB_OK | MB_ICONERROR);
+			}
+			::EnableWindow(GetDlgItem(IDC_GETIP), TRUE);
+		}
+		else
+			::MessageBox(NULL, Text::toT(l_url).c_str(), _T("http:// URL Error !"), MB_OK | MB_ICONERROR);
+	}
 	return 0;
 }
 
-LRESULT NetworkPage::onCheckConn(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+
+void NetworkPage::SetStage(int ID, StagesIcon stage)
 {
-	write();
-	const string& aUrl = SETTING(URL_TEST_IP);
-	if (Util::isHttpLink(aUrl))
+	static HIconWrapper g_hModeActiveIco(IDR_ICON_SUCCESS_ICON);
+	static HIconWrapper g_hModePassiveIco(IDR_ICON_WARN_ICON);
+	static HIconWrapper g_hModeQuestionIco(IDR_ICON_QUESTION_ICON);
+	static HIconWrapper g_hModeFailIco(IDR_ICON_FAIL_ICON);
+	static HIconWrapper g_hModePauseIco(IDR_ICON_PAUSE_ICON);
+	static HIconWrapper g_hModeProcessIco(IDR_NETWORK_STATISTICS);
+	
+	HIconWrapper* l_icon = nullptr;
+	switch (stage)
 	{
-		WinUtil::openLink(Text::toT(aUrl) + _T("?port_IP=") + Util::toStringW(SETTING(TCP_PORT)) + _T("&port_PI=") + Util::toStringW(SETTING(UDP_PORT)) + _T("&ver=") + wstring(L_REVISION_NUM_STR));
+		case StageFail:
+			l_icon = &g_hModeFailIco;
+			break;
+		case StageSuccess:
+			l_icon = &g_hModeActiveIco;
+			break;
+		case StageWarn:
+			l_icon = &g_hModePassiveIco;
+			break;
+		case StageUnknown:
+			l_icon = &g_hModePauseIco;
+			break;
+		case StageQuestion:
+			l_icon = &g_hModeQuestionIco;
+			break;
+		case StageWait:
+		default:
+			l_icon = &g_hModeProcessIco;
+			break;
 	}
-	return 0;
+	dcassert(l_icon);
+	if (l_icon)
+	{
+		GetDlgItem(ID).SendMessage(STM_SETICON, (WPARAM)(HICON)*l_icon, 0L);
+	}
 }
 
 // [+] brain-ripper (rewriten by IRainman)

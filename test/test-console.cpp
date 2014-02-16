@@ -442,9 +442,83 @@ static string toString(int val)
 			return buf;
 		}
 
+class TestTimer
+{
+public:
+    TestTimer(const std::string & name) : name(name),
+        start(boost::date_time::microsec_clock<boost::posix_time::ptime>::local_time())
+    {
+    }
+    ~TestTimer()
+    {
+        using namespace std;
+        using namespace boost;
+        posix_time::ptime now(date_time::microsec_clock<posix_time::ptime>::local_time());
+        posix_time::time_duration d = now - start;
+        cout << name << " completed in " << d.total_milliseconds() / 1000.0 <<
+            " seconds   || ";
+    }
+private:
+    std::string name;
+    boost::posix_time::ptime start;
+};
+void UseVector(size_t dimension)
+{
+    TestTimer t("UseVector");
+    std::vector<char> pixels;
+    for(size_t i = 0; i < dimension; ++i)
+			pixels.push_back(1);
+}
+void UseVectorResize(size_t dimension)
+{
+    TestTimer t("UseVectorResize");
+    std::vector<char> pixels;
+	pixels.resize(dimension);
+    for(size_t i = 0; i < dimension; ++i)
+			pixels[i] = 1;
+}
+
+void UseVectorPushBack(size_t dimension)
+{
+    TestTimer t("UseVectorPushBack");
+        std::vector<char> pixels;  
+        pixels.reserve(dimension);
+        for(size_t i = 0; i < dimension; ++i)
+            pixels.push_back(1);
+}
 int _tmain(int argc, _TCHAR* argv[])
 {
-	const int max_count = 10000000;
+    for (size_t i=0; i < 1*1024*1024*1024; i += 100*1024*1024)
+	{
+     std::cout << "dimension = " << i/1024/1024 << " Mb: " << "\t";
+     UseVector(i);
+     UseVectorPushBack(i);
+	 UseVectorResize(i);
+	 std::cout << std::endl;
+	}
+    return 0;
+
+		const int max_count = 10000000;
+		{
+			std::vector<std::string> elements;
+			START_PERFORMANCE_CHECK(5);
+			for(int i=0; i<max_count;++i)
+			{
+				elements.push_back(std::string());
+			}
+			FINISH_PERFORMANCE_CHECK(5);
+		}
+
+		{
+			std::vector<std::string> elements;
+			START_PERFORMANCE_CHECK(6);
+			for(int i=0; i<max_count;++i)
+			{
+				elements.emplace_back(std::string());
+			}
+			FINISH_PERFORMANCE_CHECK(6);
+		}
+		return 0;
 {
 		boost::unordered_map<std::string,double> myrecipe;
 		START_PERFORMANCE_CHECK(5);

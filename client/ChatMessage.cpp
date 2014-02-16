@@ -22,8 +22,8 @@
 
 string ChatMessage::format(/*const bool fullFormat [!] TODO */) const
 {
-	dcassert(from); // [!] IRainman fix: You can not generate this event anonymously! Initialize 'from' user - initiated sending a message!
-	dcassert(!text.empty()); // [!] IRainman fix: Please do not send an empty message.
+	dcassert(m_from); // [!] IRainman fix: You can not generate this event anonymously! Initialize 'from' user - initiated sending a message!
+	dcassert(!m_text.empty()); // [!] IRainman fix: Please do not send an empty message.
 	string tmp;
 	
 	if (m_timestamp)
@@ -38,7 +38,7 @@ string ChatMessage::format(/*const bool fullFormat [!] TODO */) const
 	else
 	   [!] IRainman TODO */
 	{
-		tmp += text;
+		tmp += m_text;
 	}
 	
 	// Check all '<' and '[' after newlines as they're probably pastes...

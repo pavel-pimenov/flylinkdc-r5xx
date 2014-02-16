@@ -381,10 +381,6 @@ BEGIN
     EDITTEXT        IDC_SOCKET_IN_BUFFER,238,52,62,14,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "",IDC_READ_SPIN,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,289,52,11,14
     LTEXT           "B",IDC_B1,303,54,8,8
-    RTEXT           "Rollback",IDC_SETTINGS_ROLLBACK,6,71,83,8
-    EDITTEXT        IDC_ROLLBACK,92,69,44,14,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "",IDC_ROLLBACK_SPIN,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,125,69,11,14
-    LTEXT           "B",IDC_SETTINGS_B,139,72,8,8
     EDITTEXT        IDC_SOCKET_OUT_BUFFER,238,69,62,14,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "",IDC_WRITE_SPIN,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,289,69,11,14
     LTEXT           "B",IDC_B2,303,72,8,8
@@ -486,7 +482,7 @@ CAPTION "Dialog"
 FONT 8, "MS Shell Dlg", 400, 0, 0xEE
 BEGIN
     GROUPBOX        "Bind Address",IDC_SETTINGS_BIND_ADDRESS,4,2,316,27
-    RTEXT           "Network interface for all connections",IDC_SETTINGS_BIND_ADDRESS_HELP,7,13,206,8
+    RTEXT           "Network interface for all connections",IDC_SETTINGS_BIND_ADDRESS_HELP,7,13,195,8
     COMBOBOX        IDC_BIND_ADDRESS,215,11,99,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "Incoming Connection Settings (See help / FAQ if unsure)",IDC_SETTINGS_INCOMING,4,30,316,171,WS_GROUP
     CONTROL         "Enable automatic incoming connection type detection",IDC_CONNECTION_DETECTION,
@@ -497,35 +493,40 @@ BEGIN
     CONTROL         "UPnP (for modem/router only)",IDC_FIREWALL_UPNP,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,166,49,146,16
     CONTROL         "Firewall (passive mode, worst case)",IDC_FIREWALL_PASSIVE,
                     "Button",BS_AUTORADIOBUTTON | BS_MULTILINE | WS_TABSTOP,166,65,146,24
-    GROUPBOX        "External / WAN IP",IDC_SETTINGS_IP,9,90,199,71,BS_CENTER
-    EDITTEXT        IDC_EXTERNAL_IP,13,100,115,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "Get IP address",IDC_GETIP,132,100,70,14
-    EDITTEXT        IDC_IP_GET_IP,13,116,189,14,ES_AUTOHSCROLL
-    EDITTEXT        IDC_URL_TEST_IP,13,132,189,14,ES_AUTOHSCROLL
-    CTEXT           "Check settings",IDC_CON_CHECK,15,148,187,8
-    GROUPBOX        "Ports",IDC_SETTINGS_PORTS,214,90,100,71,BS_CENTER
-    LTEXT           "TCP",IDC_SETTINGS_PORT_TCP,244,102,15,8,NOT WS_GROUP
-    EDITTEXT        IDC_PORT_TCP,264,100,44,14,ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "UDP",IDC_SETTINGS_PORT_UDP,243,118,16,8
-    EDITTEXT        IDC_PORT_UDP,264,115,44,14,ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "TLS/TCP",IDC_SETTINGS_PORT_TLS,227,132,32,8,0,WS_EX_RIGHT
-    EDITTEXT        IDC_PORT_TLS,264,130,44,14,ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "DHT/UDP",IDC_SETTINGS_PORT_DHT,227,147,32,8,0,WS_EX_RIGHT
-    EDITTEXT        IDC_PORT_DHT,264,145,44,14,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Don't allow hub/UPnP to override",IDC_OVERRIDE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,163,306,10
+    GROUPBOX        "External / WAN IP",IDC_SETTINGS_IP,9,90,186,43,BS_CENTER
+    EDITTEXT        IDC_EXTERNAL_IP,12,98,180,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Test port and get IP address",IDC_GETIP,195,163,112,14
+    EDITTEXT        IDC_IP_GET_IP,12,114,180,14,ES_AUTOHSCROLL
+    GROUPBOX        "Ports",IDC_SETTINGS_PORTS,198,90,110,71,BS_CENTER
+    LTEXT           "TCP",IDC_SETTINGS_PORT_TCP,220,100,15,8,NOT WS_GROUP
+    EDITTEXT        IDC_PORT_TCP,240,98,44,14,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "UDP",IDC_SETTINGS_PORT_UDP,219,116,16,8
+    EDITTEXT        IDC_PORT_UDP,240,113,44,14,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "TLS/TCP",IDC_SETTINGS_PORT_TLS,203,130,32,8,0,WS_EX_RIGHT
+    EDITTEXT        IDC_PORT_TLS,240,129,44,14,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "DHT/UDP",IDC_SETTINGS_PORT_DHT,204,145,31,8,0,WS_EX_RIGHT
+    EDITTEXT        IDC_PORT_DHT,240,144,44,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Don't allow hub/UPnP to override",IDC_OVERRIDE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,167,169,10
     CONTROL         "Work in passive mode if specified active mode not available (autodetect)",IDC_AUTODETECT,
-                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,11,176,304,8
+                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,11,179,295,8
     CONTROL         "Allow NAT Traversal for connections with passive users",IDC_NATT,
-                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,11,188,304,8
+                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,11,190,302,8
     CONTROL         "Update IP on startup",IDC_IPUPDATE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,204,194,10
     LTEXT           "Update IP interval\r\n...",IDC_SETTINGS_UPDATE_IP_INTERVAL,9,216,231,16
     EDITTEXT        IDC_UPDATE_IP_INTERVAL,264,217,44,14,ES_AUTOHSCROLL | ES_NUMBER
     GROUPBOX        "DHT",IDC_SETTINGS_DHT,4,235,316,51
     CONTROL         "Enable DHT. Publish shared files on DHT and use it for searching alternate sources",IDC_SETTINGS_USE_DHT,
                     "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,11,243,306,16
-    CONTROL         "Do not ask again",IDC_SETTINGS_USE_DHT_NOTANSWER,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,18,262,144,8
+    CONTROL         "Do not ask again",IDC_SETTINGS_USE_DHT_NOTANSWER,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,20,260,142,8
     CONTROL         "Update IP on DHT firewall check",IDC_UPDATE_IP_DHT,
                     "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,11,274,306,8
+    ICON            "",IDC_NETWORK_TEST_PORT_TCP_ICO,287,98,20,20,0,WS_EX_CLIENTEDGE
+    ICON            "",IDC_NETWORK_TEST_PORT_UDP_ICO,287,113,20,20,0,WS_EX_CLIENTEDGE
+    ICON            "",IDC_NETWORK_TEST_PORT_TLS_TCP_ICO,287,129,20,20,0,WS_EX_CLIENTEDGE
+    ICON            "",IDC_NETWORK_TEST_PORT_DHT_UDP_ICO,287,144,20,20,0,WS_EX_CLIENTEDGE
+    ICON            "",IDC_NETWORK_WINFIREWALL_ICO,173,135,21,20,0,WS_EX_CLIENTEDGE
+    LTEXT           "Windows firewall for FlylinkDC++ status",IDC_NETWORK_WINFIREWALL_STATUS,15,136,156,8,NOT WS_GROUP
+    PUSHBUTTON      "Windows Firewall: FlylinkDC++ exception",IDC_ADD_FLYLINKDC_WINFIREWALL,11,149,151,14
 END
 
 IDD_CERTIFICATES_PAGE DIALOGEX 0, 0, 325, 300
@@ -1081,7 +1082,7 @@ BEGIN
     LTEXT           "Available styles",IDC_AVAILABLE_STYLES,10,11,106,8
     LISTBOX         IDC_TEXT_STYLES,10,21,150,101,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Preview",IDC_CZDC_PREVIEW,164,11,150,8
-    CONTROL         "",IDC_PREVIEW,"RichEdit20W",ES_MULTILINE | ES_READONLY | WS_TABSTOP,164,21,150,101,WS_EX_STATICEDGE
+    CONTROL         "",IDC_PREVIEW,"RichEdit20W",WS_TABSTOP | 0x804,164,21,150,101,WS_EX_STATICEDGE
     PUSHBUTTON      "Text color",IDC_TEXT_COLOR,22,125,90,14
     PUSHBUTTON      "Back color",IDC_BACK_COLOR,116,125,90,14
     PUSHBUTTON      "Text style",IDC_TEXT_STYLE,210,125,90,14
@@ -1570,25 +1571,24 @@ BEGIN
     GROUPBOX        "Ports",IDC_SETTINGS_PORTS,2,63,298,43,BS_CENTER
     LTEXT           "TCP",IDC_SETTINGS_PORT_TCP,7,73,15,8,NOT WS_GROUP
     EDITTEXT        IDC_PORT_TCP,25,71,36,14,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "",IDC_WIZARD_NETA_TCP_ICO,"Static",SS_BITMAP,70,72,20,20
+    ICON            "",IDC_WIZARD_NETA_TCP_ICO,70,72,20,20
     LTEXT           "UDP",IDC_SETTINGS_PORT_UDP,7,89,16,8
     EDITTEXT        IDC_PORT_UDP,25,86,36,14,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "",IDC_WIZARD_NETA_UDP_ICO,"Static",SS_BITMAP,70,87,20,20
+    ICON            "",IDC_WIZARD_NETA_UDP_ICO,70,87,20,20
     PUSHBUTTON      "Random",IDC_WIZARD_NETA_BTN_RAND,97,80,50,14
     CONTROL         "Set random ports on each start",IDC_WIZARD_NETA_USEDC,
                     "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,159,75,137,25
     GROUPBOX        "Firewall",IDC_WIZARD_NETA_FIREWALL_STATIC,2,104,298,39
     LTEXT           "Windows Firewall",IDC_WIZARD_NETA_WINFIREWALL,7,116,59,8
-    CONTROL         "",IDC_WIZARD_NETA_WINFIREWALL_ICO,"Static",SS_BITMAP,70,115,20,20
+    ICON            "",IDC_WIZARD_NETA_WINFIREWALL_ICO,70,115,20,20
     LTEXT           "If you have other setuped firewall or antivirus with firewall on your system, you should enable FlylinkDC++ application network operations in it.",IDC_WIZARD_NETA_WINFIREWALL_STATIC2,98,113,199,26
     PUSHBUTTON      "Open",IDC_WIZARD_NETA_WINFIREWALL_BTN,10,126,50,14
     GROUPBOX        "Router/ADSL Modem (this section only if you have such device)",IDC_WIZARD_NETA_ROUTER_TITLE,2,142,298,59
     LTEXT           "UPNP",IDC_WIZARD_NETA_UPNP,7,153,18,8
-    CONTROL         "",IDC_WIZARD_NETA_UPNP_ICO,"Static",SS_BITMAP,70,153,20,20
+    ICON            "",IDC_WIZARD_NETA_UPNP_ICO,70,153,20,20
     LTEXT           "If you have router or ADSL modem connected to network, you should setup it for FlylinkDC++. You must setup UPNP enabled on it, or make port forwarding.",IDC_WIZARD_NETA_ROUTER_STATIC,98,152,199,30
     PUSHBUTTON      "Check UPNP",IDC_WIZARD_NETA_BTN_CHECKUPNP,7,165,81,14
     PUSHBUTTON      "Setup Router",IDC_WIZARD_NETA_BTN_SETUPROUTER,7,182,285,14,WS_DISABLED
-    PUSHBUTTON      "Setup test utilities",IDC_WIZARD_NETA_BTN_SETUPTEST,0,205,119,14
     PUSHBUTTON      "Test FlylinkDC++ network connections",IDC_WIZARD_NETA_BTN_TEST,127,205,171,14
     CONTROL         "Enable Internet incoming / outgoing connections (DHT)",IDC_WIZARD_NETA_USE_DHT,
                     "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,1,222,294,10
@@ -1600,17 +1600,6 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     CONTROL         "",IDC_UPNPCHECK_PROGRESS,"msctls_progress32",WS_BORDER,7,15,272,14
     CTEXT           "",IDC_UPNPCHECK_STATIC,7,33,272,8
-END
-
-IDD_WIZARD_NET_TESTSETUP DIALOGEX 0, 0, 219, 43
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "FlylinkDC++ port test utlility URL"
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
-BEGIN
-    EDITTEXT        IDC_WIZARD_NET_TSTURL,3,7,212,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "Restore default",IDC_WIZARD_NET_TST_BTN_DEFAULT,3,24,103,14
-    DEFPUSHBUTTON   "OK",IDOK,111,24,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,166,24,50,14
 END
 
 IDD_SPEEDLIMIT_DLG DIALOGEX 0, 0, 48, 117
@@ -2652,14 +2641,6 @@ BEGIN
         BOTTOMMARGIN, 46
     END
 
-    IDD_WIZARD_NET_TESTSETUP, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 212
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 36
-    END
-
     IDD_SPEEDLIMIT_DLG, DIALOG
     BEGIN
         LEFTMARGIN, 3
@@ -2917,6 +2898,8 @@ IDR_AUTOUPDATE          ICON                    "res\\FlylinkDC_Update.ico"
 IDR_ICON_SUCCESS_ICON   ICON                    "res\\f_green_16.ico"
 IDR_ICON_FAIL_ICON      ICON                    "res\\f_red_16.ico"
 IDR_ICON_WARN_ICON      ICON                    "res\\f_yellow_16.ico"
+IDR_ICON_QUESTION_ICON  ICON                    "res\\f_question_16.ico"
+IDR_ICON_PAUSE_ICON     ICON                    "res\\f_grey_16.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2955,21 +2938,14 @@ IDR_STATE               PNG                     "res\\State.png"
 IDR_FAV_USERS_STATES    PNG                     "res\\Fav-Users-States.png"
 IDR_SMILE               PNG                     "res\\Smile.png"
 IDR_SENDMESSAGE         PNG                     "res\\addMessage.png"
-IDR_MULTI_CHAT          PNG                     "res\\MultiChat.png"
-IDR_SWITCH_PANELS       PNG                     "res\\SwitchPanels.png"
 IDR_BOLD                PNG                     "res\\bold.png"
 IDR_STRIKE              PNG                     "res\\strike.png"
 IDR_UNDERLINE           PNG                     "res\\underline.png"
 IDR_ITALIC              PNG                     "res\\italic.png"
 IDR_TRANSCODE           PNG                     "res\\transcode.png"
 IDR_COLOR               PNG                     "res\\color.png"
-IDR_CLOSE_ICON          PNG                     "res\\CloseIcon.png"
+IDR_CLOSE_PNG           PNG                     "res\\CloseIcon.png"
 IDR_DCLST               PNG                     "res\\dclst.png"
-IDR_ICON_SUCCESS        PNG                     "res\\f_green_16.png"
-IDR_ICON_WAIT           PNG                     "res\\f_p_16.png"
-IDR_ICON_FAIL           PNG                     "res\\f_red_16.png"
-IDR_ICON_WARN           PNG                     "res\\f_yellow_16.png"
-IDR_ERROR_PNG           PNG                     "res\\Error.png"
 IDR_FLYLINK_PNG         PNG                     "res\\FlyLink.png"
 IDR_MAGNET_PNG          PNG                     "res\\Magnet.png"
 IDR_SPLASH_FOOLS_DAY    PNG                     "res\\Splash\\Splash_fools_day.png"

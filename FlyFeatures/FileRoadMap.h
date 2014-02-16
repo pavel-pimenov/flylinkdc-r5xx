@@ -24,7 +24,7 @@
 #include <set>
 #include "../client/Util.h"
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
-#include "../client/Thread.h"
+#include "../client/CFlyThread.h"
 
 
 class FileRoadMapItem

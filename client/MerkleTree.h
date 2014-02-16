@@ -23,7 +23,6 @@
 #include "TigerHash.h"
 #include "HashValue.h"
 
-const uint64_t MIN_BLOCK_SIZE = 65536;
 
 /**
  * A class that represents a Merkle Tree hash. Storing
@@ -34,6 +33,8 @@ const uint64_t MIN_BLOCK_SIZE = 65536;
  * other hash to verify the integrity of a whole file, while
  * the leaves provide checking of smaller parts of the file.
  */
+const uint64_t MIN_BLOCK_SIZE = 65536;
+
 template < class Hasher, const size_t baseBlockSize = 1024 >
 class MerkleTree
 #ifdef _DEBUG

@@ -20,6 +20,7 @@
 #include "ClientManager.h"
 #include "StringTokenizer.h"
 #include "Download.h"
+#include "LogManager.h"
 
 const string UserConnection::FEATURE_MINISLOTS = "MiniSlots";
 const string UserConnection::FEATURE_XML_BZLIST = "XmlBZList";
@@ -84,8 +85,16 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 		cmd = aLine.substr(1, x - 1);
 		param = aLine.substr(x + 1);
 	}
-	
-	if (cmd == "MyNick")
+	if (cmd == "FLY-TEST-PORT")
+	{
+		const auto l_magic = param.substr(0, 39);
+		SettingsManager::g_TestTCPLevel = ClientManager::getMyCID().toBase32() == l_magic;
+		if (!SettingsManager::g_TestTCPLevel)
+		{
+			LogManager::getInstance()->message("Error magic value = " + l_magic);
+		}
+	}
+	else if (cmd == "MyNick")
 	{
 		if (!param.empty())
 			fire(UserConnectionListener::MyNick(), this, param);
@@ -263,12 +272,12 @@ void UserConnection::handle(AdcCommand::STA t, const AdcCommand& c)
 
 void UserConnection::on(Connected) noexcept
 {
-	setLastActivity(GET_TICK());
+	setLastActivity();
 	fire(UserConnectionListener::Connected(), this);
 }
 void UserConnection::on(Data, uint8_t* p_data, size_t p_len) noexcept
 {
-	setLastActivity(GET_TICK());
+	setLastActivity();
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	if (p_len)
 		getUser()->AddRatioDownload(getSocket()->getIp4(), p_len);
@@ -278,7 +287,7 @@ void UserConnection::on(Data, uint8_t* p_data, size_t p_len) noexcept
 
 void UserConnection::on(BytesSent, size_t p_Bytes, size_t p_Actual) noexcept
 {
-	setLastActivity(GET_TICK());
+	setLastActivity();
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	if (p_Actual)
 		getUser()->AddRatioUpload(getSocket()->getIp4(), p_Actual);
@@ -288,7 +297,7 @@ void UserConnection::on(BytesSent, size_t p_Bytes, size_t p_Actual) noexcept
 
 void UserConnection::on(ModeChange) noexcept
 {
-	setLastActivity(GET_TICK());
+	setLastActivity();
 	fire(UserConnectionListener::ModeChange(), this);
 }
 
@@ -366,7 +375,7 @@ void UserConnection::updateChunkSize(int64_t leafSize, int64_t lastChunk, uint64
 
 void UserConnection::send(const string& aString)
 {
-	setLastActivity(GET_TICK());
+	setLastActivity();
 	COMMAND_DEBUG(aString, DebugTask::CLIENT_OUT, getRemoteIpPort());
 	socket->write(aString);
 }

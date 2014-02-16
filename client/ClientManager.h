@@ -82,9 +82,17 @@ class ClientManager : public Speaker<ClientManagerListener>,
 			return g_onlineUsers.find(aUser->getCID()) != g_onlineUsers.end();
 		}
 //[~] FlylinkDC
-		void search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, void* aOwner = nullptr);
-		uint64_t search(const StringList& who, Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, void* aOwner = nullptr);
-		
+		void search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, void* aOwner, bool p_is_force_passive);
+		uint64_t search(const StringList& who,
+		                Search::SizeModes aSizeMode,
+		                int64_t aSize,
+		                Search::TypeModes aFileType,
+		                const string& aString,
+		                const string& aToken,
+		                const StringList& aExtList,
+		                void* aOwner,
+		                bool p_is_force_passive);
+		                
 		static void cancelSearch(void* aOwner);
 		
 		static void infoUpdated();
@@ -96,7 +104,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 #endif
 		                       , bool p_first_load
 		                      );
-		static UserPtr getUser(const CID& cid, bool p_create = true);
+		static UserPtr getUser(const CID& cid, bool p_create);
 		
 		static string findHub(const string& ipPort);
 		static string findHubEncoding(const string& aUrl);
@@ -192,12 +200,14 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		
 		static void setIPUser(const UserPtr& p_user, const string& p_ip, const uint16_t p_udpPort = 0);
 		
-		static UserPtr getUserByIp(const string &ip)
+		static UserPtr getUserByIp(const string &p_ip) // TODO - boost
 		{
 			webrtc::ReadLockScoped l(*g_csOnlineUsers);
 			for (auto i = g_onlineUsers.cbegin(); i != g_onlineUsers.cend(); ++i)
-				if (i->second->getIdentity().getIp() == ip)
+				if (i->second->getIdentity().getIpAsString() == p_ip) // TODO - boost
+				{
 					return i->second->getUser();
+				}
 			return nullptr;
 		}
 #ifndef IRAINMAN_IDENTITY_IS_NON_COPYABLE

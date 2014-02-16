@@ -73,10 +73,12 @@ FavoriteManager::~FavoriteManager()
 	for_each(previewApplications.begin(), previewApplications.end(), DeleteFunction());
 }
 
+#ifdef USE_SUPPORT_HUB
 const string& FavoriteManager::getSupportHubURL()
 {
 	return CFlyServerConfig::g_support_hub;
 }
+#endif // USE_SUPPORT_HUB
 
 size_t FavoriteManager::getCountFavsUsers() const
 {
@@ -1018,7 +1020,7 @@ void FavoriteManager::recentsave()
 			l_recentHubs_token += (*i)->getDateTime();
 			l_values[(*i)->getName()] = l_recentHubs_token;
 		}
-		CFlylinkDBManager::getInstance()->save_registry(l_values, e_RecentHub);
+		CFlylinkDBManager::getInstance()->save_registry(l_values, e_RecentHub, true);
 		m_recent_dirty = false;
 	}
 }
@@ -1101,7 +1103,7 @@ void FavoriteManager::load()
 		dcdebug("FavoriteManager::load: %s\n", e.getError().c_str());
 	}
 	
-	// [+] RedMaster add FlylinkDC supports hub
+#ifdef USE_SUPPORT_HUB
 	if (BOOLSETTING(CONNECT_TO_SUPPORT_HUB)) // [+] SSA
 	{
 		if (!g_SupportsHubExist)
@@ -1118,7 +1120,7 @@ void FavoriteManager::load()
 			}
 		}
 	}
-	// [~] RedMaster
+#endif // USE_SUPPORT_HUB
 	
 	const bool oldConfigExist = !m_recentHubs.empty(); // [+] IRainman fix: FlylinkDC stores recents hubs in the sqlite database, so you need to keep the values in the database after loading the file.
 	
@@ -1199,13 +1201,15 @@ void FavoriteManager::load(SimpleXML& aXml
 			aXml.resetCurrentChild();
 			while (aXml.findChild("Hub"))
 			{
-				// [+] RedMaster add FlylinkDC supports hub
 				const string& l_CurrentServerUrl = Util::formatDchubUrl(aXml.getChildAttrib("Server"));
+#ifdef USE_SUPPORT_HUB
 				if (l_CurrentServerUrl == getSupportHubURL())
 					g_SupportsHubExist = true;
-				else if (l_CurrentServerUrl == "adc://adchub.com:1687") // TODO - black list for spammers hub?
-					continue; // [!] IRainman fix - delete SEO hub.
-					
+				else
+#endif USE_SUPPORT_HUB
+					if (l_CurrentServerUrl == "adc://adchub.com:1687") // TODO - black list for spammers hub?
+						continue; // [!] IRainman fix - delete SEO hub.
+						
 				FavoriteHubEntry* e = new FavoriteHubEntry();
 				const string& l_Name = aXml.getChildAttrib("Name");
 				e->setName(l_Name);
@@ -1396,7 +1400,7 @@ void FavoriteManager::load(SimpleXML& aXml
 					}
 					else
 					{
-						u = ClientManager::getUser(CID(cid));
+						u = ClientManager::getUser(CID(cid), true);
 					}
 					
 #ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
@@ -1644,7 +1648,6 @@ void FavoriteManager::recentload(SimpleXML& aXml)
 	}
 }
 
-#ifdef IRAINMAN_ENABLE_HUB_LIST
 RecentHubEntry::Iter FavoriteManager::getRecentHub(const string& aServer) const
 {
 	for (auto i = m_recentHubs.cbegin(); i != m_recentHubs.cend(); ++i)
@@ -1655,6 +1658,7 @@ RecentHubEntry::Iter FavoriteManager::getRecentHub(const string& aServer) const
 	return m_recentHubs.end();
 }
 
+#ifdef IRAINMAN_ENABLE_HUB_LIST
 void FavoriteManager::setHubList(int aHubList)
 {
 	m_lastServer = aHubList;

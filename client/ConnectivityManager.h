@@ -23,6 +23,7 @@
 #include "Speaker.h"
 #include "Singleton.h"
 
+// TODO никак не используется
 class ConnectivityManagerListener
 {
 	public:

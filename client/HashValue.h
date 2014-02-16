@@ -52,15 +52,6 @@ struct HashValue
 	{
 		Encoder::fromBase32(p_base32, data, BYTES);
 	}
-	HashValue(const HashValue& rhs)
-	{
-		memcpy(data, rhs.data, BYTES);
-	}
-	HashValue& operator=(const HashValue& rhs)
-	{
-		memcpy(data, rhs.data, BYTES); // 2012-04-23_19-59-54_4RB534UR2JOIQQZ2R2FEXRQEHB7R6ZMUSPL6G7A_DD0D3A94_crash-stack-r502-beta21-build-9811.dmp
-		return *this;
-	}
 	bool operator!=(const HashValue& rhs) const
 	{
 		return !(*this == rhs);
@@ -73,7 +64,6 @@ struct HashValue
 	{
 		return memcmp(data, rhs.data, BYTES) < 0;
 	}
-	
 	std::string toBase32() const
 	{
 		return Encoder::toBase32(data, BYTES);

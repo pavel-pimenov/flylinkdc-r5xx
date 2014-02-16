@@ -53,27 +53,25 @@ using boost::adaptors::map_values;
 using boost::range::for_each;
 
 class DirectoryItem
+#ifdef _DEBUG
+	: private boost::noncopyable
+#endif
 {
 	public:
-		DirectoryItem() : priority(QueueItem::DEFAULT) { }
+		//DirectoryItem() : priority(QueueItem::DEFAULT) { }
 		DirectoryItem(const UserPtr& aUser, const string& aName, const string& aTarget,
-		              QueueItem::Priority p) : name(aName), target(aTarget), priority(p), user(aUser) { }
-		~DirectoryItem() { }
-		
-		UserPtr& getUser()
+		              QueueItem::Priority p) : name(aName), target(aTarget), priority(p), m_user(aUser) { }
+		              
+		const UserPtr& getUser() const
 		{
-			return user;
-		}
-		void setUser(const UserPtr& aUser)
-		{
-			user = aUser;
+			return m_user;
 		}
 		
 		GETSET(string, name, Name);
 		GETSET(string, target, Target);
 		GETSET(QueueItem::Priority, priority, Priority);
 	private:
-		UserPtr user;
+		const UserPtr m_user;
 };
 
 
@@ -91,7 +89,9 @@ QueueManager::FileQueue::~FileQueue()
 	
 	UniqueLock l(csFQ); // [+] IRainman fix. http://code.google.com/p/flylinkdc/issues/detail?id=1121
 	for (auto i = m_queue.cbegin(); i != m_queue.cend(); ++i)
+	{
 		i->second->dec();
+	}
 }
 
 QueueItemPtr QueueManager::FileQueue::add(const string& aTarget, int64_t aSize,
@@ -290,29 +290,35 @@ QueueItemPtr QueueManager::FileQueue::findAutoSearch(deque<string>& recent) cons
 #ifdef IRAINMAN_USE_SEPARATE_CS_IN_QUEUE_MANAGER
 	SharedLock ll(csFQ); // [+] IRainman fix.
 #endif
-	
 	dcassert(!m_queue.empty()); // https://crash-server.com/Problem.aspx?ProblemID=32091
 	// http://code.google.com/p/flylinkdc/issues/detail?id=1121
 	// We pick a start position at random, hoping that we will find something to search for...
-	const auto start = (QueueItem::QIStringMap::size_type)Util::rand((uint32_t)m_queue.size());
-	
-	auto i = m_queue.cbegin();
-	advance(i, start);
-	
-	QueueItemPtr cand = findCandidateL(i, m_queue.end(), recent);
-	if (cand == nullptr)
+	if (!m_queue.empty())
 	{
-		cand = findCandidateL(m_queue.begin(), i, recent);
-	}
-	else if (cand->getNextSegmentL(0, 0, 0, nullptr).getSize() == 0)
-	{
-		QueueItemPtr cand2 = findCandidateL(m_queue.begin(), i, recent);
-		if (cand2 != nullptr && cand2->getNextSegmentL(0, 0, 0, nullptr).getSize() != 0)
+		const auto start = (QueueItem::QIStringMap::size_type)Util::rand((uint32_t)m_queue.size());
+		
+		auto i = m_queue.cbegin();
+		advance(i, start);
+		
+		QueueItemPtr cand = findCandidateL(i, m_queue.end(), recent);
+		if (cand == nullptr)
 		{
-			cand = cand2;
+			cand = findCandidateL(m_queue.begin(), i, recent);
 		}
+		else if (cand->getNextSegmentL(0, 0, 0, nullptr).getSize() == 0)
+		{
+			QueueItemPtr cand2 = findCandidateL(m_queue.begin(), i, recent);
+			if (cand2 != nullptr && cand2->getNextSegmentL(0, 0, 0, nullptr).getSize() != 0)
+			{
+				cand = cand2;
+			}
+		}
+		return cand;
 	}
-	return cand;
+	else
+	{
+		return QueueItemPtr();
+	}
 }
 
 void QueueManager::FileQueue::move(const QueueItemPtr& qi, const string& aTarget)
@@ -420,8 +426,7 @@ QueueItemPtr QueueManager::UserQueue::getNextL(const UserPtr& aUser, QueueItem::
 				if (l_source->second.isSet(QueueItem::Source::FLAG_PARTIAL)) // TODO Crash
 				{
 					// check partial source
-					const int64_t blockSize = qi->getBlockSize();
-					const Segment segment = qi->getNextSegmentL(blockSize, wantedSize, lastSpeed, l_source->second.getPartialSource());
+					const Segment segment = qi->getNextSegmentL(qi->getBlockSizeSQL(), wantedSize, lastSpeed, l_source->second.getPartialSource());
 					if (allowRemove && segment.getStart() != -1 && segment.getSize() == 0)
 					{
 						// no other partial chunk from this user, remove him from queue
@@ -453,7 +458,7 @@ QueueItemPtr QueueManager::UserQueue::getNextL(const UserPtr& aUser, QueueItem::
 				}
 				if (!qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
 				{
-					const int64_t blockSize = qi->getBlockSize();
+					const auto blockSize = qi->getBlockSizeSQL();
 					const Segment segment = qi->getNextSegmentL(blockSize, wantedSize, lastSpeed, l_source->second.getPartialSource());
 					if (segment.getSize() == 0)
 					{
@@ -875,8 +880,7 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 			
 			PartsInfoReqParam* param = new PartsInfoReqParam;
 			
-			const int64_t blockSize = qi->getBlockSize();
-			qi->getPartialInfoL(param->parts, blockSize);
+			qi->getPartialInfoL(param->parts, qi->getBlockSizeSQL());
 			
 			param->tth = qi->getTTH().toBase32();
 			param->ip  = source->getIp();
@@ -951,7 +955,7 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 	
 	if (!searchString.empty())
 	{
-		SearchManager::getInstance()->search(searchString, 0, Search::TYPE_TTH, Search::SIZE_DONTCARE, "auto");
+		SearchManager::getInstance()->search_auto(searchString);
 	}
 }
 
@@ -1168,7 +1172,7 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& roo
 		if (l_newItem && //[+] FlylinkDC++ Team: Если файл-лист, или запрос IP - то его не нужно искать.
 		        BOOLSETTING(AUTO_SEARCH))
 		{
-			SearchManager::getInstance()->search(root.toBase32(), 0, Search::TYPE_TTH, Search::SIZE_DONTCARE, "auto");
+			SearchManager::getInstance()->search_auto(root.toBase32());
 		}
 	}
 }
@@ -2703,7 +2707,7 @@ void QueueLoader::startTag(const string& name, StringPairList& attribs, bool sim
 			}
 			else
 			{
-				user = ClientManager::getUser(CID(cid));
+				user = ClientManager::getUser(CID(cid), true);
 			}
 			
 			bool wantConnection;
@@ -3000,8 +3004,8 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 		}
 		
 		// Get my parts info
-		const int64_t blockSize = qi->getBlockSize();
-		qi->getPartialInfoL(outPartialInfo, blockSize);
+		const auto blockSize = qi->getBlockSizeSQL();
+		qi->getPartialInfoL(outPartialInfo, qi->getBlockSizeSQL());
 		
 		// Any parts for me?
 		wantConnection = qi->isNeededPartL(partialSource.getPartialInfo(), blockSize);
@@ -3083,8 +3087,7 @@ bool QueueManager::handlePartialSearch(const TTHValue& tth, PartsInfo& _outParts
 		if (!File::isExist(qi->isFinishedL() ? qi->getTarget() : qi->getTempTarget()))
 			return false;
 			
-		const int64_t blockSize = qi->getBlockSize();
-		qi->getPartialInfoL(_outPartsInfo, blockSize);
+		qi->getPartialInfoL(_outPartsInfo, qi->getBlockSizeSQL());
 	}
 	
 	return !_outPartsInfo.empty();
@@ -3184,7 +3187,7 @@ TTHValue* QueueManager::FileQueue::findPFSPubTTH()
 		{
 			if (cand == nullptr || cand->getNextPublishingTime() > qi->getNextPublishingTime() || (cand->getNextPublishingTime() == qi->getNextPublishingTime() && cand->getPriority() < qi->getPriority()))
 			{
-				if (qi->getDownloadedBytes() > qi->getBlockSize())
+				if (qi->getDownloadedBytes() > qi->getBlockSizeSQL())
 					cand = qi;
 			}
 		}

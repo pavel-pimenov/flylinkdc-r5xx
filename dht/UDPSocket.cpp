@@ -114,46 +114,64 @@ void UDPSocket::checkIncoming()
 	if (socket->wait(delay, Socket::WAIT_READ) == Socket::WAIT_READ)
 	{
 		sockaddr_in remoteAddr = { 0 };
-		std::unique_ptr<uint8_t[]> buf(new uint8_t[BUFSIZE]);
-		int len = socket->read(&buf[0], BUFSIZE, remoteAddr);
-		// 2012-05-03_22-00-59_BXMHFQ4XUPHO3PGC3R7LOLCOCEBV57NUA63QOVA_AE6E2832_crash-stack-r502-beta24-build-9900.dmp
-		// 2012-05-03_22-00-59_7E4TZRQNDSN3PPIVOY7FFMF3LDVYFBH27L7F6NI_9F52EA4D_crash-stack-r502-beta24-build-9900.dmp
+		std::vector<uint8_t> l_buf(BUFSIZE);
+		int len = socket->read(&l_buf[0], BUFSIZE, remoteAddr);
 		dcdrun(m_receivedBytes += len);
 		dcdrun(m_receivedPackets++);
 		
 		if (len > 1)
 		{
+			if(l_buf.size() > 16 &&  memcmp(l_buf.data(), "$FLY-TEST-PORT ",15) == 0)
+			{
+				if (l_buf.size() > 16 + 39 + 1)
+				{
+					const string l_magic((char*)l_buf.data() + 15,39);
+					SettingsManager::g_TestUDPDHTLevel = ClientManager::getMyCID().toBase32() == l_magic;
+					if(!SettingsManager::g_TestUDPDHTLevel)
+					{
+					LogManager::getInstance()->message("Error magic value = " + string());
+					}
+				}
+				return;
+			}
 			bool isUdpKeyValid = false;
-			if (buf[0] != ADC_PACKED_PACKET_HEADER && buf[0] != ADC_PACKET_HEADER)
+			if (l_buf[0] != ADC_PACKED_PACKET_HEADER && l_buf[0] != ADC_PACKET_HEADER)
 			{
 				// it seems to be encrypted packet
-				if (!decryptPacket(&buf[0], len, inet_ntoa(remoteAddr.sin_addr), isUdpKeyValid))
+				if (!decryptPacket(&l_buf[0], len, inet_ntoa(remoteAddr.sin_addr), isUdpKeyValid))
 					return;
 			}
 			//else
 			//  return; // non-encrypted packets are forbidden
 			
-			unsigned long destLen = BUFSIZE; // what size should be reserved?
-			std::unique_ptr<uint8_t[]> destBuf(new uint8_t[destLen]); //17662  [!] PVS V554    Incorrect use of unique_ptr. The memory allocated with 'new []' will be cleaned using 'delete'.
-			if (buf[0] == ADC_PACKED_PACKET_HEADER) // is this compressed packet?
+			l_buf.resize(len);
+			std::vector<uint8_t> l_destBuf(l_buf.size() * 5); // 
+			if (l_buf[0] == ADC_PACKED_PACKET_HEADER) // is this compressed packet?
 			{
-				if (!decompressPacket(destBuf.get(), destLen, buf.get(), len))
+				const auto l_res_uzlib = decompressPacket(l_destBuf, l_buf);
+				if (l_res_uzlib != Z_OK) 
+				{
+					LogManager::getInstance()->message("DHT Error decompress, Error = "+ Util::toString(l_res_uzlib));
 					return;
+			}
 			}
 			else
 			{
-				memcpy(destBuf.get(), buf.get(), len);
-				destLen = len;
+				l_destBuf = l_buf;
 			}
 			
 			// process decompressed packet
-			string s((char*)destBuf.get(), destLen);
-			if (s[0] == ADC_PACKET_HEADER && s[s.length() - 1] == ADC_PACKET_FOOTER) // is it valid ADC command?
+			if (l_destBuf[0] == ADC_PACKET_HEADER && l_destBuf[l_destBuf.size() - 1] == ADC_PACKET_FOOTER && l_destBuf.size() > 2) // is it valid ADC command?
 			{
+				const string s((char*)l_destBuf.data(), l_destBuf.size()-1);
+#ifdef _DEBUG
+				string s_debug((char*)l_destBuf.data(), l_destBuf.size());
+				dcassert(s == s_debug.substr(0, s_debug.length() - 1));
+#endif
 				string ip = inet_ntoa(remoteAddr.sin_addr);
 				uint16_t port = ntohs(remoteAddr.sin_port);
-				COMMAND_DEBUG(s.substr(0, s.length() - 1), DebugTask::HUB_IN,  ip + ':' + Util::toString(port));
-				DHT::getInstance()->dispatch(s.substr(0, s.length() - 1), ip, port, isUdpKeyValid);
+				COMMAND_DEBUG(s, DebugTask::HUB_IN,  ip + ':' + Util::toString(port));
+				DHT::getInstance()->dispatch(s, ip, port, isUdpKeyValid);
 			}
 			
 			sleep(25);
@@ -344,20 +362,33 @@ void UDPSocket::encryptPacket(const CID& targetCID, const UDPKey& udpKey, uint8_
 		RC4(&sentKey, destSize + 1, destBuf + 1, destBuf + 1);
 		destSize += 2;
 	}
+#else
+#error "include support RC4 (openSSL)"
 #endif
 }
-bool UDPSocket::decompressPacket(uint8_t* destBuf, unsigned long& destLen, const uint8_t* buf, size_t len)
+int  UDPSocket::decompressPacket(std::vector<uint8_t>& destBuf, const std::vector<uint8_t>& buf)
 {
 	// decompress incoming packet
-	int result = uncompress(destBuf, &destLen, buf + 1, len - 1);
-	if (result != Z_OK)
+	unsigned long l_decompress_size = destBuf.size();
+	int l_un_compress_result;
+	while (1)
 	{
-		// decompression error!!!
-		return false;
+		l_un_compress_result = uncompress(destBuf.data(), &l_decompress_size, buf.data() + 1, buf.size() - 1);
+		if (l_un_compress_result == Z_BUF_ERROR)
+			{
+				l_decompress_size *= 2;
+				destBuf.resize(l_decompress_size);
+				continue;
+			}
+			if (l_un_compress_result == Z_OK)
+			{
+				destBuf.resize(l_decompress_size);
+			}
+			break;
+	}
+	return l_un_compress_result;
 	}
 	
-	return true;
-}
 bool UDPSocket::decryptPacket(uint8_t* buf, int& len, const string& remoteIp, bool& isUdpKeyValid)
 {
 #ifdef HEADER_RC4_H

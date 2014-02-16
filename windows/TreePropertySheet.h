@@ -29,7 +29,9 @@
 
 #include "wtl_flylinkdc.h"
 
-class TreePropertySheet : public CPropertySheetImpl<TreePropertySheet>
+class TreePropertySheet : public CPropertySheetImpl<TreePropertySheet>,
+	protected CFlyTimerAdapter
+	
 #ifdef _DEBUG
 	, boost::noncopyable // [+] IRainman fix.
 #endif
@@ -38,19 +40,24 @@ class TreePropertySheet : public CPropertySheetImpl<TreePropertySheet>
 		virtual ~TreePropertySheet()
 		{
 			tree_icons.Destroy();
-		};
+		}
 		enum { WM_USER_INITDIALOG = WM_APP + 501 };
 		enum { TAB_MESSAGE_MAP = 13 };
 		TreePropertySheet(ATL::_U_STRINGorID title = (LPCTSTR)NULL, UINT uStartPage = 0, HWND hWndParent = NULL) :
 			CPropertySheetImpl<TreePropertySheet>(title, uStartPage, hWndParent), tabContainer(WC_TABCONTROL, this, TAB_MESSAGE_MAP)
+			, CFlyTimerAdapter(m_hWnd)
 		{
 		
 			m_psh.pfnCallback = &PropSheetProc;
 			m_psh.dwFlags |= PSH_RTLREADING;
 		}
-		
+		virtual void onTimerSec()
+		{
+		}
 		typedef CPropertySheetImpl<TreePropertySheet> baseClass;
 		BEGIN_MSG_MAP(TreePropertySheet)
+		MESSAGE_HANDLER(WM_TIMER, onTimer)
+		MESSAGE_HANDLER(WM_DESTROY, onDestroy)
 		MESSAGE_HANDLER(WM_COMMAND, baseClass::OnCommand)
 		MESSAGE_HANDLER(WM_USER_INITDIALOG, onInitDialog)
 		MESSAGE_HANDLER(WM_NOTIFYFORMAT, onNotifyFormat)
@@ -64,6 +71,8 @@ class TreePropertySheet : public CPropertySheetImpl<TreePropertySheet>
 		END_MSG_MAP()
 		
 		LRESULT onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
+		LRESULT onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+		LRESULT onDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
 		LRESULT onSetCurSel(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
 		
 		LRESULT onSelChanged(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
@@ -91,7 +100,6 @@ class TreePropertySheet : public CPropertySheetImpl<TreePropertySheet>
 #ifdef SCALOLAZ_PROPPAGE_HELPLINK
 		void addHelp();
 		void genHelpLink(int p_page);
-		LPCTSTR help_str;
 		CHyperLink m_Help;
 #endif
 	private:

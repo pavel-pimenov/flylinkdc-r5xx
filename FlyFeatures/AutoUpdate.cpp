@@ -26,8 +26,6 @@
 #include "fuSearch.h"
 #include "ZUtils.h"
 #include "BZUtils.h"
-#include <openssl/rsa.h>
-#include <openssl/sha.h>
 #include <openssl/pem.h>
 #include "FlylinkDCKey.h"
 #include "InetDownloaderReporter.h"
@@ -564,8 +562,6 @@ SettingsManager::IntSetting AutoUpdate::getSettingByTitle(const string& wTitle)
 		return SettingsManager::AUTOUPDATE_COLORTHEMES;
 	if (wTitle == "documentation")
 		return SettingsManager::AUTOUPDATE_DOCUMENTATION;
-	if (wTitle == "dhtserverlist")
-		return SettingsManager::AUTOUPDATE_DHTSERVERSLIST;
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
 	if (wTitle == "geoip")
 		return SettingsManager::AUTOUPDATE_GEOIP;

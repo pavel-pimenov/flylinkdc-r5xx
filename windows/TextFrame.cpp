@@ -61,7 +61,7 @@ LRESULT TextFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	               WS_VSCROLL | ES_AUTOVSCROLL | ES_MULTILINE | ES_NOHIDESEL | ES_READONLY, WS_EX_CLIENTEDGE);
 	               
 	ctrlPad.LimitText(0);
-	ctrlPad.SetFont(Fonts::font);
+	ctrlPad.SetFont(Fonts::g_font);
 	
 	try
 	{

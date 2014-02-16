@@ -40,7 +40,7 @@ class NmdcHub : public Client, private Flags
 		void hubMessage(const string& aMessage, bool thirdPerson = false);
 		void privateMessage(const OnlineUserPtr& aUser, const string& aMessage, bool thirdPerson = false); // !SMT!-S
 		void sendUserCmd(const UserCommand& command, const StringMap& params);
-		void search(Search::SizeModes aSizeType, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList);
+		virtual void search(Search::SizeModes aSizeType, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, bool p_is_force_passive);
 		void password(const string& aPass)
 		{
 			send("$MyPass " + fromUtf8(aPass) + '|');

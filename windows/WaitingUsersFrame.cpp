@@ -164,7 +164,7 @@ void WaitingUsersFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 #define setw(x) w[x] = max(w[x+1] - statusSizes[x], 0)
 		setw(2);
 		setw(1);
-		
+#undef setw
 		w[0] = 16;
 		
 		ctrlStatus.SetParts(4, w);
@@ -635,7 +635,7 @@ LRESULT WaitingUsersFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHan
 				HBITMAP pOldBmp = cdc.SelectBitmap(hBmp);
 				HDC& dc = cdc.m_hDC;
 				
-				HFONT oldFont = (HFONT)SelectObject(dc, Fonts::font);
+				HFONT oldFont = (HFONT)SelectObject(dc, Fonts::g_font);
 				SetBkMode(dc, TRANSPARENT);
 				
 				CBarShader statusBar(rc.bottom - rc.top, rc.right - rc.left, RGB(150, 0, 0), ii->getSize());
@@ -674,7 +674,10 @@ LRESULT WaitingUsersFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHan
 						g_flagImage.DrawLocation(cd->nmcd.hdc, ii->m_location, p);
 					}
 					top = rc2.top + (rc2.Height() - WinUtil::getTextHeight(cd->nmcd.hdc) - 1) / 2;
-					::ExtTextOut(cd->nmcd.hdc, rc2.left + 30, top + 1, ETO_CLIPPED, rc2, l_text.c_str(), l_text.length(), NULL);
+					if (!l_text.empty())
+					{
+						::ExtTextOut(cd->nmcd.hdc, rc2.left + 30, top + 1, ETO_CLIPPED, rc2, l_text.c_str(), l_text.length(), NULL);
+					}
 					return CDRF_SKIPDEFAULT;
 				}
 			}

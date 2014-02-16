@@ -246,12 +246,12 @@ class QueueItem : public Flags,
 		/**
 		 * Is specified parts needed by this download?
 		 */
-		bool isNeededPartL(const PartsInfo& partsInfo, int64_t blockSize);
+		bool isNeededPartL(const PartsInfo& partsInfo, int64_t p_blockSize);
 		
 		/**
 		 * Get shared parts info, max 255 parts range pairs
 		 */
-		void getPartialInfoL(PartsInfo& p_partialInfo, int64_t p_blockSize) const;
+		void getPartialInfoL(PartsInfo& p_partialInfo, uint64_t p_blockSize) const;
 		
 		uint64_t getDownloadedBytes() const // [+] IRainman opt.
 		{
@@ -338,14 +338,14 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 	private:
 		const TTHValue m_tthRoot;
 		bool m_dirty;
-		uint64_t m_block_size; // TODO: please fix the architect error, if this possible, see details here: http://code.google.com/p/flylinkdc/source/detail?r=12761
+		uint64_t m_block_size;
 		void calcBlockSize();
 	public:
 		const TTHValue& getTTH() const
 		{
 			return m_tthRoot;
 		}
-		uint64_t getBlockSize()
+		uint64_t getBlockSizeSQL()
 		{
 			if (m_block_size == 0)
 			{

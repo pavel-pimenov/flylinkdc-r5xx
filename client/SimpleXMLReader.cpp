@@ -232,8 +232,8 @@ bool SimpleXMLReader::elementAttr()
 	int c = charAt(0);
 	if (isNameStartChar(c))
 	{
-		attribs.push_back(StringPair());
-		append(attribs.back().first, MAX_NAME_SIZE, c);
+		attribs.push_back(StringPair()); // Hot point - 10%
+		append(attribs.back().first, MAX_NAME_SIZE, c); // MAX_NAME_SIZE - 260
 		
 		state = STATE_ELEMENT_ATTR_NAME;
 		advancePos(1);
@@ -467,7 +467,7 @@ bool SimpleXMLReader::comment()
 	return true;
 }
 
-bool SimpleXMLReader::cddata()
+bool SimpleXMLReader::cdata()
 {
 	while (bufSize() > 0)
 	{
@@ -845,14 +845,14 @@ bool SimpleXMLReader::process()
 				comment()
 				|| error("Error while parsing comment");
 				break;
-			case STATE_CDDATA:
-				cddata()
-				|| error("Error while parsing comment");
+			case STATE_CDATA:
+				cdata()
+				|| error("Error while parsing CDATA");
 				break;
 			case STATE_CONTENT:
 				skipSpace(true)
 				|| literal(LITN("<!--"), false, STATE_COMMENT)
-				|| literal(LITN("<![CDATA["), false, STATE_CDDATA)
+				|| literal(LITN("<![CDATA["), false, STATE_CDATA)
 				|| element()
 				|| literal(LITN("</"), false, STATE_ELEMENT_END)
 				|| content()

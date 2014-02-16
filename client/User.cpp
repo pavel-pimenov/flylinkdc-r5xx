@@ -118,8 +118,11 @@ void User::setIP(const boost::asio::ip::address_v4& p_last_ip)
 				FastLock l(g_ratio_cs);
 				if (m_ratio_ptr)
 				{
+					const auto l_message_count = m_ratio_ptr->m_message_count;
 					safe_delete(m_ratio_ptr);
 					initRatioL(p_last_ip);
+					if (m_ratio_ptr)
+						m_ratio_ptr->m_message_count = l_message_count;
 				}
 			}
 		}
@@ -133,12 +136,19 @@ void User::setIP(const boost::asio::ip::address_v4& p_last_ip)
 		m_last_ip = p_last_ip;
 	}
 }
-string User::getIP()
+boost::asio::ip::address_v4 User::getIP()
 {
 	FastLock l(g_ratio_cs);
 	initRatioL();
 	if (!m_last_ip.is_unspecified())
-		return m_last_ip.to_string();
+		return m_last_ip;
+	return boost::asio::ip::address_v4();
+}
+string User::getIPAsString()
+{
+	const auto& l_ip = getIP();
+	if (!l_ip.is_unspecified())
+		return l_ip.to_string();
 	return Util::emptyString;
 }
 uint64_t User::getBytesUpload()
@@ -148,6 +158,19 @@ uint64_t User::getBytesUpload()
 	if (m_ratio_ptr)
 	{
 		return m_ratio_ptr->m_upload;
+	}
+	else
+	{
+		return 0;
+	}
+}
+uint64_t User::getMessageCount()
+{
+	FastLock l(g_ratio_cs);
+	initRatioL();
+	if (m_ratio_ptr)
+	{
+		return m_ratio_ptr->m_message_count;
 	}
 	else
 	{
@@ -170,7 +193,23 @@ uint64_t User::getBytesDownload()
 void User::fixLastIP()
 {
 	FastLock l(g_ratio_cs);
-	initRatioL(m_last_ip);
+	//initRatioL(m_last_ip); чето странно
+	initRatioL();
+	setIP(m_last_ip);
+}
+void User::incMessageCount()
+{
+	FastLock l(g_ratio_cs);
+	if (m_ratio_ptr)
+	{
+		m_ratio_ptr->incMessagesCount();
+	}
+	else
+	{
+		initRatioL(boost::asio::ip::address_v4()); // IP-Пустышку
+		if (m_ratio_ptr)
+			m_ratio_ptr->incMessagesCount();
+	}
 }
 void User::AddRatioUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size)
 {
@@ -206,22 +245,21 @@ void User::initRatioL()
 	if (!m_nick.empty() && m_hub_id && !m_is_first_init_ratio)
 	{
 		m_is_first_init_ratio = true;
-		// Узнаем был ли в базе last_ip
-		const boost::asio::ip::address_v4 l_last_ip_from_sql = CFlylinkDBManager::getInstance()->load_last_ip(m_hub_id, m_nick);
-		if (!l_last_ip_from_sql.is_unspecified())
+		// Узнаем, есть ли в базе last_ip или счетчик мессаг
+		__int64 p_count_messages = 0;
+		boost::asio::ip::address_v4 l_last_ip_from_sql;
+		if (CFlylinkDBManager::getInstance()->load_last_ip_and_user_stat(m_hub_id, m_nick, p_count_messages, l_last_ip_from_sql))
 		{
 			m_last_ip = l_last_ip_from_sql;
-			CFlyUserRatioInfo* l_try_ratio = new CFlyUserRatioInfo(this); // TODO отказаться от попытки создания временного через new
-			if (l_try_ratio->try_load_ratio(l_last_ip_from_sql))
+			CFlyUserRatioInfo* l_try_ratio = nullptr;
+			if (p_count_messages || !l_last_ip_from_sql.is_unspecified())
 			{
-				// dcassert(m_ratio_ptr == nullptr); // TODO иногда тут падаем
-				safe_delete(m_ratio_ptr);
+				l_try_ratio = new CFlyUserRatioInfo(this);
+				l_try_ratio->m_message_count = p_count_messages;
+				if (!l_last_ip_from_sql.is_unspecified())
+					l_try_ratio->try_load_ratio(l_last_ip_from_sql);
+				delete m_ratio_ptr;
 				m_ratio_ptr = l_try_ratio;
-			}
-			else
-			{
-				// dcassert(0); Удалем когда не нашли рейтинги
-				delete l_try_ratio;
 			}
 		}
 	}
@@ -277,7 +315,7 @@ bool Identity::isTcpActive() const
 	}
 	else
 	{
-		return !getIp().empty() && user->isSet(User::TCP4);
+		return !getIp().is_unspecified() && user->isSet(User::TCP4);
 	}
 	// [~] IRainman fix.
 }
@@ -297,7 +335,7 @@ bool Identity::isUdpActive(const Client* client) const // [+] IRainman fix.
 bool Identity::isUdpActive() const
 {
 	// [!] IRainman fix.
-	if (getIp().empty() || !getUdpPort())
+	if (getIp().is_unspecified() || !getUdpPort())
 	{
 		return false;
 	}
@@ -336,7 +374,7 @@ void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility
 			{
 				sm["nick"] = getNick();
 				sm["cid"] = l_cid;
-				sm["ip"] = getIp();
+				sm["ip"] = getIpAsString();
 				sm["tag"] = getTag();
 				sm["description"] = getDescription();
 				sm["email"] = getEmail();
@@ -800,7 +838,7 @@ void Identity::getReport(string& p_report) const
 		}
 		appendIfValueNotEmpty("Known supports", getSupports());
 		
-		appendIfValueNotEmpty("IPv4 Address", formatIpString(getIp()));
+		appendIfValueNotEmpty("IPv4 Address", formatIpString(getIpAsString()));
 		// appendIfValueNotEmpty("IPv6 Address", formatIpString(getIp())); TODO
 		// [~] IRainman fix.
 		

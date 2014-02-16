@@ -105,7 +105,7 @@ UserPtr DirectoryListing::getUserFromFilename(const string& fileName)
 		                             );
 	}
 	
-	UserPtr u = ClientManager::getUser(cid);
+	UserPtr u = ClientManager::getUser(cid, true);
 	u->initLastNick(name.substr(0, i)); // [!] IRainman fix.
 	return u;
 }
@@ -135,8 +135,8 @@ class ListLoader : public SimpleXMLReader::CallBack
 	public:
 		ListLoader(DirectoryListing* aList, DirectoryListing::Directory* root,
 		           bool aUpdating, const UserPtr& p_user, bool p_own_list)
-			: list(aList), cur(root), base("/"), inListing(false),
-			  updating(aUpdating), user(p_user), m_own_list(p_own_list),
+			: list(aList), cur(root), base("/"), m_is_in_listing(false),
+			  m_is_updating(aUpdating), user(p_user), m_own_list(p_own_list),
 			  m_is_mediainfo_list(false), m_is_first_check_mediainfo_list(false),
 			  m_empty_file_name_counter(0)
 		{
@@ -162,8 +162,8 @@ class ListLoader : public SimpleXMLReader::CallBack
 		
 		StringMap params;
 		string base;
-		bool inListing;
-		bool updating;
+		bool m_is_in_listing;
+		bool m_is_updating;
 		bool m_own_list;
 		bool m_is_mediainfo_list;
 		bool m_is_first_check_mediainfo_list;
@@ -230,7 +230,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 		throw AbortException("ListLoader::startTag - " + STRING(ABORT_EM));
 	}
 	
-	if (inListing)
+	if (m_is_in_listing)
 	{
 		if (name == sFile)
 		{
@@ -250,7 +250,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 				return;
 			const TTHValue l_tth(l_h); /// @todo verify validity?
 			
-			if (updating)
+			if (m_is_updating)
 			{
 				// just update the current file if it is already there.
 				for (auto i = cur->files.cbegin(), iend = cur->files.cend(); i != iend; ++i)
@@ -303,15 +303,20 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 					{
 						l_i_ts = atoi(l_ts.c_str());
 					}
-					if (attribs.size() > 4)
+					if (attribs.size() > 4) // TODO - собрать комбинации всех случаев
 					{
 						l_hit = getAttrib(attribs, sHIT, 3);
-						const string& l_br = getAttrib(attribs, sBR, 4);
-						l_mediaXY = std::make_shared<CFlyMediaInfo> (getAttrib(attribs, sWH, 3),
-						                                             atoi(l_br.c_str()),
-						                                             getAttrib(attribs, sMAudio, 3),
-						                                             getAttrib(attribs, sMVideo, 3)
-						                                            );
+						const std::string& l_audio = getAttrib(attribs, sMAudio, 3);
+						const std::string& l_video = getAttrib(attribs, sMVideo, 3);
+						if (!l_audio.empty() || !l_video.empty())
+						{
+							const string& l_br = getAttrib(attribs, sBR, 4);
+							l_mediaXY = std::make_shared<CFlyMediaInfo> (getAttrib(attribs, sWH, 3),
+							                                             atoi(l_br.c_str()),
+							                                             l_audio,
+							                                             l_video
+							                                            );
+						}
 					}
 				}
 				l_i_hit = l_hit.empty() ? 0 : atoi(l_hit.c_str());
@@ -332,11 +337,11 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 					}
 					else
 					{
-						if (!CFlyServerConfig::isParasitFile(f->getName()))
+						if (!CFlyServerConfig::isParasitFile(f->getName())) // TODO - опимизнуть по расширениям
 						{
 							f->setFlag(DirectoryListing::FLAG_NOT_SHARED);
 							// TODO - копипаста
-							const auto l_status_file = CFlylinkDBManager::getInstance()->get_status_file(f->getTTH());
+							const auto l_status_file = CFlylinkDBManager::getInstance()->get_status_file(f->getTTH()); // TODO - унести в отдельную нитку?
 							if (l_status_file & CFlylinkDBManager::PREVIOUSLY_DOWNLOADED)
 								f->setFlag(DirectoryListing::FLAG_DOWNLOAD);
 							if (l_status_file & CFlylinkDBManager::PREVIOUSLY_BEEN_IN_SHARE)
@@ -357,7 +362,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 			}
 			const bool incomp = getAttrib(attribs, sIncomplete, 1) == "1";
 			DirectoryListing::Directory* d = nullptr;
-			if (updating)
+			if (m_is_updating)
 			{
 				for (auto i  = cur->directories.cbegin(); i != cur->directories.cend(); ++i)
 				{
@@ -425,7 +430,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 			{
 				if (!user)
 				{
-					user = ClientManager::getUser(l_CID);
+					user = ClientManager::getUser(l_CID, true);
 					list->setHintedUser(HintedUser(user, Util::emptyString));
 				}
 #ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
@@ -438,7 +443,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 		list->setIncludeSelf(l_getIncludeSelf == "1");
 		// [~] IRainman Delayed loading (dclst support)
 		
-		inListing = true;
+		m_is_in_listing = true;
 		
 		if (simple)
 		{
@@ -450,7 +455,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 
 void ListLoader::endTag(const string& name, const string&)
 {
-	if (inListing)
+	if (m_is_in_listing)
 	{
 		if (name == sDirectory)
 		{
@@ -459,7 +464,7 @@ void ListLoader::endTag(const string& name, const string&)
 		else if (name == sFileListing)
 		{
 			// cur should be root now...
-			inListing = false;
+			m_is_in_listing = false;
 		}
 	}
 }

@@ -179,7 +179,7 @@ LRESULT DirectoryListingFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 
 	CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);
 	ctrlStatus.Attach(m_hWndStatusBar);
-	ctrlStatus.SetFont(Fonts::boldFont); // [~] Sergey Shuhskanov
+	ctrlStatus.SetFont(Fonts::g_boldFont); // [~] Sergey Shuhskanov
 	statusContainer.SubclassWindow(ctrlStatus.m_hWnd);
 	
 	ctrlTree.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TVS_HASBUTTONS | TVS_LINESATROOT | TVS_HASLINES | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP, WS_EX_CLIENTEDGE, IDC_DIRECTORIES);
@@ -224,22 +224,22 @@ LRESULT DirectoryListingFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	ctrlFind.Create(ctrlStatus.m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                BS_PUSHBUTTON, 0, IDC_FIND);
 	ctrlFind.SetWindowText(CTSTRING(FIND));
-	ctrlFind.SetFont(Fonts::systemFont);
+	ctrlFind.SetFont(Fonts::g_systemFont);
 	
 	ctrlFindNext.Create(ctrlStatus.m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                    BS_PUSHBUTTON, 0, IDC_NEXT);
 	ctrlFindNext.SetWindowText(CTSTRING(NEXT));
-	ctrlFindNext.SetFont(Fonts::systemFont);
+	ctrlFindNext.SetFont(Fonts::g_systemFont);
 	
 	ctrlMatchQueue.Create(ctrlStatus.m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                      BS_PUSHBUTTON, 0, IDC_MATCH_QUEUE);
 	ctrlMatchQueue.SetWindowText(CTSTRING(MATCH_QUEUE));
-	ctrlMatchQueue.SetFont(Fonts::systemFont);
+	ctrlMatchQueue.SetFont(Fonts::g_systemFont);
 	
 	ctrlListDiff.Create(ctrlStatus.m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                    BS_PUSHBUTTON, 0, IDC_FILELIST_DIFF);
 	ctrlListDiff.SetWindowText(CTSTRING(FILE_LIST_DIFF));
-	ctrlListDiff.SetFont(Fonts::systemFont);
+	ctrlListDiff.SetFont(Fonts::g_systemFont);
 	
 	SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
 	SetSplitterPanes(ctrlTree.m_hWnd, ctrlList.m_hWnd);
@@ -1971,7 +1971,7 @@ LRESULT DirectoryListingFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM /*
 		case FINISHED:
 			m_loading = false;
 			initStatus();
-			ctrlStatus.SetFont(Fonts::systemFont);
+			ctrlStatus.SetFont(Fonts::g_systemFont);
 			ctrlStatus.SetText(0, (TSTRING(PROCESSED_FILE_LIST) + _T(' ') + Util::toStringW((GET_TICK() - m_FL_LoadSec) / 1000) + _T(' ') + TSTRING(S)).c_str());
 			ctrlTree.EnableWindow(TRUE);
 			
@@ -2378,7 +2378,7 @@ LRESULT DirectoryListingFrame::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM lPar
 		if (ctrlList.GetItemCount())
 		{
 			const auto l_tick = GET_TICK();
-			addFlyServerTask(l_tick);
+			addFlyServerTask(l_tick, false);
 		}
 #endif
 		if (m_count_item_changed > 0)

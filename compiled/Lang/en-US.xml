@@ -106,7 +106,6 @@ Are you sure to run another copy of program?</String>
 		<String Name="AutoupdateComponentLabel">Components to update</String>
 		<String Name="AutoupdateCustomlocation">Custom location database</String>
 		<String Name="AutoupdateShellExt">Shell extension</String>
-		<String Name="AutoupdateDhtserverslist">Update dht servers list</String>
 		<String Name="AutoupdateDocumentation">Documentation</String>
 		<String Name="AutoupdateDownloadedRemoveOrInstall">FlylinkDC++ update is downloaded. Update now? If not - update will be removed.</String>
 		<String Name="AutoupdateDownloadFailed">Update download failed.</String>
@@ -642,7 +641,7 @@ It does not contain any confidential information like  passwords, email addresse
 		<String Name="GdiPlusTabs">Use GDI+ styled tabs</String>
 		<String Name="GenerateCertificates">Generate certificates</String>
 		<String Name="GetFileList">Get File-list</String>
-		<String Name="GetIp">Get IP address</String>
+		<String Name="GetIp">Test port and get IP address</String>
 		<String Name="GetUserResponses">Get user response</String>
 		<String Name="GiveExtraSlot">GiveExtraSlot</String>
 		<String Name="Global">Overrides Fav. Hubs</String>
@@ -885,6 +884,7 @@ Empty = Default String -&gt; +me listens %[artist] - %[title] * listened to %[pe
 		<String Name="MaxSegmentsNumber">Max number of segments</String>
 		<String Name="MaxSize">Max size</String>
 		<String Name="MaxUsers">Max users</String>
+		<String Name="MessagesCount">Messages</String>
 		<String Name="Mb">MiB</String>
 		<String Name="Mbps">MiB/s</String>
 		<String Name="MediaAudio">Audio</String>
@@ -1290,6 +1290,8 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="SaveSearchSettingsText">Save Search settings</String>
 		<String Name="SaveSearchSettingsTooltip">This option involves maintaining search parameters: size, type, method, and so on.</String>
 		<String Name="Search">Search</String>
+		<String Name="SearchPassive">Search (passive)</String>
+		<String Name="SearchUdpPortTest">Test UDP port</String>
 		<String Name="SearchDetectTth">Automatically switch search type to TTH when one is found in search string</String>
 		<String Name="SearchDisaled">Search disabled</String>
 		<String Name="SearchEnabled">Search enabled again</String>
@@ -1304,7 +1306,7 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="SearchSpamFrom">Search spam detected from</String>
 		<String Name="SearchSpy">Search Spy</String>
 		<String Name="SearchString">Search String</String>
-		<String Name="SearchWikihelp">Nothing found? Visit FlyWiki page.</String>
+		<String Name="SearchDoesNotWork">Search does not work?</String>
 		<String Name="SearchesPer">Searches: %u/s, %u/min.</String>
 		<String Name="SearchingFor">Searching for</String>
 		<String Name="Sec">sec</String>
@@ -1548,7 +1550,6 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="SettingsRc">Remote control</String>
 		<String Name="SettingsRequiresRestart">Note: most of these options require that you restart FlylinkDC++</String>
 		<String Name="SettingsReset">Reset</String>
-		<String Name="SettingsRollback">Rollback</String>
 		<String Name="SettingsRssProp">RSS Properties</String>
 		<String Name="SettingsSaveTthInNtfsFilestream">Save TTH in NTFS filestream. Attention! When removing a tick stream will be deleted!</String>
 		<String Name="SettingsSbMaxSources">Max sources for match queue</String>
@@ -1566,6 +1567,7 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="SettingsShareSystem">Share system files</String>
 		<String Name="SettingsShareVirtual">Share virtual files (links in OS or files in virtual drive (etc. RAM))</String>
 		<String Name="SettingsShowFullHubInfoOnTab">Show full hub info on tab</String>
+		<String Name="SettingsNotboldFontOnActivityTab">Do not highlight in bold text activity in the tabs</String>
 		<String Name="SettingsShowInfoTips">Show InfoTips in lists</String>
 		<String Name="SettingsShowJoins">Show joins / parts in chat by default</String>
 		<String Name="SettingsShowProgressBars">Show progress bars for transfers (uses some CPU)</String>
@@ -1833,6 +1835,7 @@ Default: %H:%M:%S</String>
 		<String Name="Type">Type</String>
 		<String Name="U">U:</String>
 		<String Name="UdRatio">Upload/Download</String>
+		<String Name="FlyServerUdpTestPortWait">UDP port test…</String>
 		<String Name="UnableToCreateThread">Unable to create thread</String>
 		<String Name="UnableToOpenFilelist">Unable to open File-list:</String>
 		<String Name="UnableToOpenPort">Unable to open %s port(s). You must set up your connection manually</String>
@@ -2003,7 +2006,6 @@ It's also very likely that you will need to use %[rawtitle] instead of %[title] 
 		<String Name="WizardFinishLabel2">Now you can start using FlylinkDC++!</String>
 		<String Name="WizardNetaBtnCheckupnp">Check UPNP</String>
 		<String Name="WizardNetaBtnSetuprouter">Setup router</String>
-		<String Name="WizardNetaBtnSetuptest">Configure test utilities</String>
 		<String Name="WizardNetaBtnTest">Test FlylinkDC++ network connections</String>
 		<String Name="WizardNetaFirewallStatic">Firewall</String>
 		<String Name="WizardNetaNeedpassivemode">Wizard detected problems with FlylinkDC++ Active mode. Switch to Passive mode for network connections?</String>
@@ -2043,8 +2045,6 @@ Do not share folders with system files, please!</String>
  4. Setup your network configuration 
  5. Add favorite hubs</String>
 		<String Name="WizardStartupTxt3">Press Next button to continue…</String>
-		<String Name="RestoreDefaul">Restore default</String>
-		<String Name="WizardTestDlgTitle">FlylinkDC++ port test utility URL</String>
 		<String Name="WizardTitle">FlylinkDC++ Setup Wizard</String>
 		<String Name="WmpHelp">/wmp - Works with Windows Media Player 9+
 - %[version] - version of Windows Media Player

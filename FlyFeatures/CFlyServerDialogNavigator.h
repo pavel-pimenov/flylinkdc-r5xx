@@ -92,7 +92,7 @@ private:
 	  m_ctlList.SetColumnWidth(100);
 	 //  m_ctlList.m_bReadOnly = TRUE;
 	  addArray(_T("FileInfo"),m_FileInfo);
-	  addArray(_T("MediaiInfo"),m_MediaInfo);
+	  addArray(_T("MediaInfo"),m_MediaInfo);
 /*
 // TODO - убрать копипаст
 	  if(!m_FileInfo.empty())

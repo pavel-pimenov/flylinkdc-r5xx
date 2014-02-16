@@ -114,11 +114,7 @@ class UploadQueueItemInfo : public UserInfoBase // [<-] IRainman fix: moved from
 				case COLUMN_SHARE:
 					return compare(a->getShare(), b->getShare()); // !SMT!-UI
 				case COLUMN_IP:
-				{
-					const uint32_t a_ip = Socket::convertIP4(Text::fromT(a->getText(col)));
-					const uint32_t b_ip = Socket::convertIP4(Text::fromT(b->getText(col)));
-					return compare(a_ip, b_ip);
-				}
+					return compare(Socket::convertIP4(Text::fromT(a->getText(col))), Socket::convertIP4(Text::fromT(b->getText(col))));
 			}
 			return stricmp(a->getText(col), b->getText(col));
 			//-BugMaster: small optimization; fix; correct IP sorting

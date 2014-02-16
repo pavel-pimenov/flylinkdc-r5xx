@@ -78,9 +78,9 @@ class AboutDlgIndex : public CDialogImpl<AboutDlgIndex>
 			}
 			m_ctrTab.SetCurSel(m_pTabDialog);
 			
-			// for Custom Themes Bitmap
-			img_f.LoadFromResource(IDR_FLYLINK_PNG, _T("PNG"));
-			GetDlgItem(IDC_STATIC).SendMessage(STM_SETIMAGE, IMAGE_BITMAP, LPARAM((HBITMAP)img_f));
+			// for Custom Themes
+			m_png_logo.LoadFromResource(IDR_FLYLINK_PNG, _T("PNG"));
+			GetDlgItem(IDC_STATIC).SendMessage(STM_SETIMAGE, IMAGE_BITMAP, LPARAM((HBITMAP)m_png_logo));
 			m_hIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_MAINFRAME));   // [!] SSA - because of theme use
 			SetIcon((HICON)*m_hIcon, FALSE);
 			SetIcon((HICON)*m_hIcon, TRUE);
@@ -144,7 +144,7 @@ class AboutDlgIndex : public CDialogImpl<AboutDlgIndex>
 			return 0;
 		}
 	private:
-		ExCImage img_f;
+		ExCImage m_png_logo;
 		std::unique_ptr<HIconWrapper> m_hIcon;
 		
 		CTabCtrl m_ctrTab;

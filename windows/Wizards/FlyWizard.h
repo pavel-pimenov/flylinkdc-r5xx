@@ -28,8 +28,8 @@
 #include "Wizards/WzDownload.h"
 #include "Wizards/WzFinish.h"
 #include "Wizards/WzShare.h"
-#include "Wizards/WzSetIP.h"
-#include "Wizards/WzNetActive.h"
+//#include "Wizards/WzSetIP.h"
+//#include "Wizards/WzNetActive.h"
 
 class FlyWizard : public CPropertySheetImpl<FlyWizard>
 {
@@ -53,8 +53,8 @@ public:
 
 		AddPage ( m_pgStartup );
 		AddPage ( m_pgNick );
-		AddPage ( m_pgSetIP );
-		AddPage ( m_pgNetActive );
+//		AddPage ( m_pgSetIP );
+//		AddPage ( m_pgNetActive );
 		AddPage ( m_pgDownload);
 		AddPage ( m_pgShare);
 		AddPage ( m_pgFinish );
@@ -78,17 +78,14 @@ public:
 
 		return 0;
 	}
-
-
-
     // Property pages
 	WzStartup m_pgStartup;
 	WzDownload m_pgDownload;
 	WzFinish m_pgFinish;
 	WzNick m_pgNick;
 	WzShare m_pgShare;
-	WzSetIP m_pgSetIP;
-	WzNetActive m_pgNetActive;
+//	WzSetIP m_pgSetIP;
+//	WzNetActive m_pgNetActive;
     // Implementation
 protected:
     bool m_bCentered;

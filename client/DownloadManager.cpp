@@ -291,11 +291,14 @@ void DownloadManager::startData(UserConnection* aSource, int64_t start, int64_t 
 		return;
 	}
 	
+	const int64_t l_buf_size = SETTING(BUFFER_SIZE_FOR_DOWNLOADS) * 1024;
 	try
 	{
-		if ((d->getType() == Transfer::TYPE_FILE || d->getType() == Transfer::TYPE_FULL_LIST) && SETTING(BUFFER_SIZE_FOR_DOWNLOADS) > 0)
+		if ((d->getType() == Transfer::TYPE_FILE || d->getType() == Transfer::TYPE_FULL_LIST) && l_buf_size > 0)
 		{
-			d->setFile(new BufferedOutputStream<true>(d->getFile()));
+			const int64_t l_file_size = d->getSize();
+			const auto l_file = new BufferedOutputStream<true>(d->getFile(), std::min(l_file_size, l_buf_size));
+			d->setFile(l_file);
 		}
 	}
 	catch (const Exception& e)
@@ -305,6 +308,7 @@ void DownloadManager::startData(UserConnection* aSource, int64_t start, int64_t 
 	}
 	catch (...)
 	{
+		LogManager::getInstance()->message("catch (...) Error new BufferedOutputStream<true> l_buf_size (Mb) = " + Util::toString(l_buf_size / 1024 / 1024) + " email: ppa74@ya.ru");
 		delete d->getFile();
 		d->setFile(nullptr);
 		return;

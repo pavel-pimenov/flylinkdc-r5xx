@@ -29,10 +29,11 @@ class MerkleCheckOutputStream : public OutputStream
 		MerkleCheckOutputStream(const TreeType& aTree, OutputStream* aStream, int64_t start) : s(aStream), real(aTree), cur(aTree.getBlockSize()), verified(0), bufPos(0)
 		{
 			// Only start at block boundaries
-			dcassert(start % aTree.getBlockSize() == 0);
+			const auto l_blocksize = aTree.getBlockSize();
+			dcassert(start % l_blocksize == 0);
 			cur.setFileSize(start);
 			
-			size_t nBlocks = static_cast<size_t>(start / aTree.getBlockSize());
+			size_t nBlocks = static_cast<size_t>(start / l_blocksize);
 			if (nBlocks > aTree.getLeaves().size())
 			{
 				dcdebug("Invalid tree / parameters");

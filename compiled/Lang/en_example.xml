@@ -72,7 +72,6 @@
 	<string name="AutoupdateComponentLabel">Components to update</string>
 	<string name="AutoupdateCustomlocation">Custom location database</string>
 	<string name="AutoupdateShellExt">Shell extension</string>
-	<string name="AutoupdateDhtserverslist">Update dht servers list</string>
 	<string name="AutoupdateDocumentation">Documentation</string>
 	<string name="AutoupdateDownloadedRemoveOrInstall">FlylinkDC++ update is downloaded. Update now? If not - update will be removed.</string>
 	<string name="AutoupdateDownloadFailed">Update download failed.</string>
@@ -567,7 +566,8 @@
 	<string name="GdiPlusTabs">Use GDI+ styled tabs</string>
 	<string name="GenerateCertificates">Generate certificates</string>
 	<string name="GetFileList">Get File-list</string>
-	<string name="GetIp">Get IP address</string>
+	<string name="GetIp">Test port and get IP address</string>
+	<string name="AddFlylinkdcWinfirewall">Windows Firewall: FlylinkDC++ exception</string>
 	<string name="GetUserResponses">Get user response</string>
 	<string name="GiveExtraSlot">GiveExtraSlot</string>
 	<string name="Global">Overrides Fav. Hubs</string>
@@ -771,6 +771,7 @@
 	<string name="MaxSegmentsNumber">Max number of segments</string>
 	<string name="MaxSize">Max size</string>
 	<string name="MaxUsers">Max users</string>
+	<string name="MessagesCount">Messages</string>
 	<string name="Mb">MiB</string>
 	<string name="Mbps">MiB/s</string>
 	<string name="MediaAudio">Audio</string>
@@ -1145,6 +1146,8 @@
 	<string name="SaveSearchSettingsText">Save Search settings</string>
 	<string name="SaveSearchSettingsTooltip">This option involves maintaining search parameters: size, type, method, and so on.</string>
 	<string name="Search">Search</string>
+	<string name="SearchPassive">Search (passive)</string>
+	<string name="SearchUdpPortTest">Test UDP port</string>
 	<string name="SearchDetectTth">Automatically switch search type to TTH when one is found in search string</string>
 	<string name="SearchDisaled">Search disabled</string>
 	<string name="SearchEnabled">Search enabled again</string>
@@ -1159,7 +1162,7 @@
 	<string name="SearchSpamFrom">Search spam detected from</string>
 	<string name="SearchSpy">Search Spy</string>
 	<string name="SearchString">Search String</string>
-	<string name="SearchWikihelp">Nothing found? Visit FlyWiki page.</string>
+	<string name="SearchDoesNotWork">Search does not work?</string>
 	<string name="SearchesPer">Searches: %u/s, %u/min.</string>
 	<string name="SearchingFor">Searching for</string>
 	<string name="Sec">sec</string>
@@ -1285,7 +1288,6 @@
 	<string name="SettingsDirect">Direct connection</string>
 	<string name="SettingsDirectories">Directories</string>
 	<string name="SettingsDisplayCheatsInMainChat">Display cheats in main chat</string>
-	<string name="SettingsDontAddTthDctmp">Don't add expansion TTH.DCTMP to not up to the end loaded files</string>
 	<string name="SettingsDontChange">Don't change</string>
 	<string name="SettingsDontDlAlreadyShared">Don't download files already in share</string>
 	<string name="SettingsDownconn">Download attempts/sec</string>
@@ -1332,6 +1334,7 @@
 	<string name="SettingsLogDownloads">Log downloads</string>
 	<string name="SettingsLogFilelistTransfers">Log file list transfers</string>
 	<string name="SettingsLogFormatTraceSqlite">Log queries to the SQLite base</string>
+	<string name="SettingsLogFormatDdosTrace">Log DDoS detect</string>
 	<string name="SettingsLogIfSuppressPms">Log for PM if suppress PMS</string>
 	<string name="SettingsLogMainChat">Log main chat</string>
 	<string name="SettingsLogPrivateChat">Log private chat</string>
@@ -1401,7 +1404,6 @@
 	<string name="SettingsRc">Remote control</string>
 	<string name="SettingsRequiresRestart">Note: most of these options require that you restart FlylinkDC++</string>
 	<string name="SettingsReset">Reset</string>
-	<string name="SettingsRollback">Rollback</string>
 	<string name="SettingsRssProp">RSS Properties</string>
 	<string name="SettingsSaveTthInNtfsFilestream">Save TTH in NTFS filestream. Attention! When removing a tick stream will be deleted!</string>
 	<string name="SettingsSbMaxSources">Max sources for match queue</string>
@@ -1419,6 +1421,7 @@
 	<string name="SettingsShareSystem">Share system files</string>
 	<string name="SettingsShareVirtual">Share virtual files (links in OS or files in virtual drive (etc. RAM))</string>
 	<string name="SettingsShowFullHubInfoOnTab">Show full hub info on tab</string>
+	<string name="SettingsNotboldFontOnActivityTab">Do not highlight in bold text activity in the tabs</string>
 	<string name="SettingsShowInfoTips">Show InfoTips in lists</string>
 	<string name="SettingsShowJoins">Show joins / parts in chat by default</string>
 	<string name="SettingsShowProgressBars">Show progress bars for transfers (uses some CPU)</string>
@@ -1655,6 +1658,7 @@
 	<string name="Type">Type</string>
 	<string name="U">U:</string>
 	<string name="UdRatio">Upload/Download</string>
+	<string name="FlyServerUdpTestPortWait">UDP port test…</string>
 	<string name="UnableToCreateThread">Unable to create thread</string>
 	<string name="UnableToOpenFilelist">Unable to open File-list:</string>
 	<string name="UnableToOpenPort">Unable to open %s port(s). You must set up your connection manually</string>
@@ -1799,7 +1803,6 @@
 	<string name="WizardFinishLabel2">Now you can start using FlylinkDC++!</string>
 	<string name="WizardNetaBtnCheckupnp">Check UPNP</string>
 	<string name="WizardNetaBtnSetuprouter">Setup router</string>
-	<string name="WizardNetaBtnSetuptest">Configure test utilities</string>
 	<string name="WizardNetaBtnTest">Test FlylinkDC++ network connections</string>
 	<string name="WizardNetaFirewallStatic">Firewall</string>
 	<string name="WizardNetaNeedpassivemode">Wizard detected problems with FlylinkDC++ Active mode. Switch to Passive mode for network connections?</string>
@@ -1832,8 +1835,6 @@
 	<string name="WizardStartupTxt1">Welcome to FlylinkDC++ Setup Wizard!</string>
 	<string name="WizardStartupTxt2">This Wizard can help you to setup FlylinkDC++ client: \r\n 1. Default Nick\r\n 2. Download and Temp folders \r\n 3. Share your files to allow DC++ users to download them \r\n 4. Setup your network configuration \r\n 5. Add favorite hubs</string>
 	<string name="WizardStartupTxt3">Press Next button to continue…</string>
-	<string name="RestoreDefaul">Restore default</string>
-	<string name="WizardTestDlgTitle">FlylinkDC++ port test utility URL</string>
 	<string name="WizardTitle">FlylinkDC++ Setup Wizard</string>
 	<string name="WmpHelp">/wmp - Works with Windows Media Player 9+\r\n- %[version] - version of Windows Media Player\r\n- %[fullversion] - full version of Windows Media Player\r\n- %[status] - pre-formatted status string from Windows Media Player\r\n- %[title] - name of the currently playing item\r\n- %[elapsed] - time elapsed in (HH:)MM:SS\r\n- %[percent] - time elapsed presented as percentage from total length\r\n- %[bar] - ASCII progress bar, 10 characters wide no including brackets (ex. [----|-----])\r\n- %[length] - full length of the current item in (HH:)MM:SS\r\n- %[artist] - name of the artist for the currently playing item\r\n- %[album] - name of the album the current song is from\r\n- %[genre] - genre of the current media\r\n- %[bitrate] - bitrate for the playing media\r\n- %[year] - year of album publication (no WMP9 support)\r\n- %[size] - size of the currently playing file\r\n- %[rating] - users rating, represented with *'s (if available)\r\n\r\nEmpty = Default String -&gt; +me %[title] at %[bitrate] &lt;Windows Media Player %[version]&gt;</string>
 	<string name="WmpHelpDesc">Windows Media Player Help</string>

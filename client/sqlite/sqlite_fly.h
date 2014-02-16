@@ -11,7 +11,7 @@
 // #define SQLITE_OMIT_EXPLAIN
 // #define SQLITE_OMIT_FLOATING_POINT // необходимо для логов в sqlite ( datetime('now') )
 
-#define SQLITE_MAX_ATTACHED 7
+#define SQLITE_MAX_ATTACHED 9
 
 // TODO - Блокировки внутри sqlite лишние
 #define SQLITE_THREADSAFE 0

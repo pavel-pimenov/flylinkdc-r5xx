@@ -23,7 +23,7 @@
 
 #ifdef FLYLINKDC_TRACE_ENABLE
 
-#include "Thread.h"
+#include "CFlyThread.h"
 #include "File.h"
 
 class TraceManager : public Singleton<TraceManager>

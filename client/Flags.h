@@ -7,13 +7,7 @@ class Flags
 		typedef uint32_t MaskType;
 		
 		Flags() : flags(0) { }
-		Flags(const Flags& rhs) : flags(rhs.flags) { }
 		Flags(MaskType f) : flags(f) { }
-		Flags& operator=(const Flags& rhs)
-		{
-			flags = rhs.flags;
-			return *this;
-		}
 		bool isSet(MaskType aFlag) const
 		{
 			return (flags & aFlag) == aFlag;

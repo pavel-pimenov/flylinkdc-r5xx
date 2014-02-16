@@ -75,12 +75,12 @@ public:
    }
    void SetHorizontalFill(BOOL bHoriz)
    {
-      m_bHorizontal = bHoriz == TRUE;
+      m_bHorizontal = bHoriz != FALSE;
       if( IsWindow() ) Invalidate();
    }
    void SetActive(BOOL bActive = TRUE)
    {
-      m_bActive = bActive == TRUE;
+      m_bActive = bActive != FALSE;
       if( IsWindow() ) Invalidate();
    }
 
@@ -264,5 +264,21 @@ public:
   DECLARE_WND_CLASS(_T("WTL_GradientLabel"))
 };
 
+class CColorSwitch
+{
+	COLORREF m_color_stop;
+	CGradientLabelCtrl& m_label;
+public:
+	CColorSwitch(CGradientLabelCtrl& p_label, const COLORREF& p_color_start):
+	  m_label(p_label), 
+	  m_color_stop(p_label.m_clrText)
+	{
+		m_label.SetTextColor(p_color_start);
+	}
+	  ~CColorSwitch()
+	{
+		  m_label.SetTextColor(m_color_stop);
+	}
+};
 
 #endif //__GRADIENTLABEL_H__

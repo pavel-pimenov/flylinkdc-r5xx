@@ -77,11 +77,11 @@ HBRUSH Colors::bgBrush = nullptr;
 COLORREF Colors::textColor = 0;
 COLORREF Colors::bgColor = 0;
 
-HFONT Fonts::font = nullptr;
-int Fonts::fontHeight = 0;
-HFONT Fonts::boldFont = nullptr;
-HFONT Fonts::systemFont = nullptr;
-HFONT Fonts::smallBoldFont = nullptr;
+HFONT Fonts::g_font = nullptr;
+int Fonts::g_fontHeight = 0;
+HFONT Fonts::g_boldFont = nullptr;
+HFONT Fonts::g_systemFont = nullptr;
+HFONT Fonts::g_halfFont = nullptr;
 
 CMenu WinUtil::mainMenu;
 
@@ -647,7 +647,9 @@ void WinUtil::init(HWND hWnd)
 	
 	//help.AppendMenu(MF_SEPARATOR); [-] Sergey Shushkanov
 	help.AppendMenu(MF_STRING, IDC_SITES_FLYLINK_TRAC, CTSTRING(MENU_JOIN_TEAM)); // [~] Drakon
+#ifdef USE_SUPPORT_HUB
 	help.AppendMenu(MF_STRING, IDC_CONNECT_TO_FLYSUPPORT_HUB, CTSTRING(MENU_CONNECT_TO_HUB));
+#endif //USE_SUPPORT_HUB
 	
 	help.AppendMenu(MF_SEPARATOR);
 	help.AppendMenu(MF_STRING, IDC_UPDATE_DOMOLINK, CTSTRING(UPDATE_CHECK)); // [~]Drakon. Moved from "file."
@@ -780,29 +782,29 @@ void UserInfoGuiTraits::uninit()
 
 void Fonts::init()
 {
-	LOGFONT lf  = {0};
-	LOGFONT lf2 = {0};
-	::GetObject((HFONT)GetStockObject(DEFAULT_GUI_FONT), sizeof(lf), &lf);
+	LOGFONT lf[2] = {0};
+	::GetObject((HFONT)GetStockObject(DEFAULT_GUI_FONT), sizeof(lf[0]), &lf[0]);
 	// SettingsManager::getInstance()->setDefault(SettingsManager::TEXT_FONT, Text::fromT(encodeFont(lf))); // !SMT!-F
 	
 	//--------------------------------- [~] Sergey Shuhskanov
-	lf.lfWeight = FW_BOLD;
-	boldFont = ::CreateFontIndirect(&lf);
-	lf.lfHeight *= 5;
-	lf.lfHeight /= 6;
-	smallBoldFont = ::CreateFontIndirect(&lf);
+	lf[0].lfWeight = FW_BOLD;
+	g_boldFont = ::CreateFontIndirect(&lf[0]);
 	//---------------------------------
+	lf[1] = lf[0];
+	lf[1].lfHeight += 3;
+	lf[1].lfWeight = FW_NORMAL;
+	g_halfFont = ::CreateFontIndirect(&lf[1]);
 	
-	decodeFont(Text::toT(SETTING(TEXT_FONT)), lf);
-	::GetObject((HFONT)GetStockObject(ANSI_FIXED_FONT), sizeof(lf2), &lf2);
+	decodeFont(Text::toT(SETTING(TEXT_FONT)), lf[0]);
+	//::GetObject((HFONT)GetStockObject(ANSI_FIXED_FONT), sizeof(lf[1]), &lf[1]);
 	
-	lf2.lfHeight = lf.lfHeight;
-	lf2.lfWeight = lf.lfWeight;
-	lf2.lfItalic = lf.lfItalic;
+	//lf[1].lfHeight = lf[0].lfHeight;
+	//lf[1].lfWeight = lf[0].lfWeight;
+	//lf[1].lfItalic = lf[0].lfItalic;
 	
-	font = ::CreateFontIndirect(&lf);
-	fontHeight = WinUtil::getTextHeight(WinUtil::mainWnd, font);
-	systemFont = (HFONT)::GetStockObject(DEFAULT_GUI_FONT);
+	g_font = ::CreateFontIndirect(&lf[0]);
+	g_fontHeight = WinUtil::getTextHeight(WinUtil::mainWnd, g_font);
+	g_systemFont = (HFONT)::GetStockObject(DEFAULT_GUI_FONT);
 }
 
 void Colors::init()
@@ -1016,7 +1018,7 @@ bool WinUtil::browseFile(tstring& target, HWND owner /* = NULL */, bool save /* 
 	ofn.Flags = (save ? 0 : OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST);
 	
 	// Display the Open dialog box.
-	if ((save ? GetSaveFileName(&ofn) : GetOpenFileName(&ofn)) == TRUE)
+	if ((save ? GetSaveFileName(&ofn) : GetOpenFileName(&ofn)) != FALSE)
 	{
 		target = ofn.lpstrFile;
 		return true;
@@ -3048,7 +3050,7 @@ bool WinUtil::setListCtrlWatermark(HWND hListCtrl, UINT nID, COLORREF clr, int w
 				{
 					::SetBkColor(dst_hdc, clr);
 					RECT rc = { 0, 0, width, height };
-					::ExtTextOut(dst_hdc, 0, 0, ETO_OPAQUE, &rc, NULL, 0, NULL);
+					::ExtTextOut(dst_hdc, 0, 0, ETO_OPAQUE, &rc, NULL, 0, NULL); // TODO - тут выводится пустота?
 				}
 #endif // FLYLINKDC_SUPPORT_WIN_XP
 				// Draw the icon into the compatible DC
@@ -4071,7 +4073,7 @@ bool WinUtil::FillCustomMenu(CMenuHandle &menu, string& menuName) //[+] SSA: Cus
 		};
 	}
 	
-	return bRet == TRUE;
+	return bRet != FALSE;
 }
 // [~] SSA: Custom menu support.
 #endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
@@ -4542,7 +4544,7 @@ bool WinUtil::runElevated(
 	shex.lpDirectory    = pszDirectory;
 	shex.nShow          = SW_NORMAL;
 	
-	bool bRet = ::ShellExecuteEx(&shex) == TRUE;
+	bool bRet = ::ShellExecuteEx(&shex) != FALSE;
 	
 	//if (shex.hProcess)
 	//{

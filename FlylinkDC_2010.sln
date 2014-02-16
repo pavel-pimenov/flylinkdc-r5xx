@@ -2,6 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "flylinkdc", "flylinkdc.vcxproj", "{E82610AA-B6FD-4813-B5B9-E717CBD0F23B}"
 	ProjectSection(ProjectDependencies) = postProject
+		{B9F644C2-F9DE-4648-B613-43755D81EA3B} = {B9F644C2-F9DE-4648-B613-43755D81EA3B}
 		{BFA63DD8-95FC-7A39-5D84-D995B2863FE8} = {BFA63DD8-95FC-7A39-5D84-D995B2863FE8}
 	EndProjectSection
 EndProject
@@ -41,6 +42,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ZenLib", "Zenlib\ZenLib.vcxproj", "{0DA1DA7D-F393-4E7C-A7CE-CB5C6A67BC94}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "natpmp", "natpmp\natpmp.vcxproj", "{BFA63DD8-95FC-7A39-5D84-D995B2863FE8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "openssl", "openssl\openssl.vcxproj", "{B9F644C2-F9DE-4648-B613-43755D81EA3B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -262,6 +265,22 @@ Global
 		{BFA63DD8-95FC-7A39-5D84-D995B2863FE8}.ReleaseHE|Win32.Build.0 = ReleaseHE|Win32
 		{BFA63DD8-95FC-7A39-5D84-D995B2863FE8}.ReleaseHE|x64.ActiveCfg = ReleaseHE|x64
 		{BFA63DD8-95FC-7A39-5D84-D995B2863FE8}.ReleaseHE|x64.Build.0 = ReleaseHE|x64
+		{B9F644C2-F9DE-4648-B613-43755D81EA3B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B9F644C2-F9DE-4648-B613-43755D81EA3B}.Debug|Win32.Build.0 = Debug|Win32
+		{B9F644C2-F9DE-4648-B613-43755D81EA3B}.Debug|x64.ActiveCfg = Debug|x64
+		{B9F644C2-F9DE-4648-B613-43755D81EA3B}.Debug|x64.Build.0 = Debug|x64
+		{B9F644C2-F9DE-4648-B613-43755D81EA3B}.Release|Win32.ActiveCfg = Release|Win32
+		{B9F644C2-F9DE-4648-B613-43755D81EA3B}.Release|Win32.Build.0 = Release|Win32
+		{B9F644C2-F9DE-4648-B613-43755D81EA3B}.Release|x64.ActiveCfg = Release|x64
+		{B9F644C2-F9DE-4648-B613-43755D81EA3B}.Release|x64.Build.0 = Release|x64
+		{B9F644C2-F9DE-4648-B613-43755D81EA3B}.ReleaseFullOpt|Win32.ActiveCfg = ReleaseFullOpt|Win32
+		{B9F644C2-F9DE-4648-B613-43755D81EA3B}.ReleaseFullOpt|Win32.Build.0 = ReleaseFullOpt|Win32
+		{B9F644C2-F9DE-4648-B613-43755D81EA3B}.ReleaseFullOpt|x64.ActiveCfg = ReleaseFullOpt|x64
+		{B9F644C2-F9DE-4648-B613-43755D81EA3B}.ReleaseFullOpt|x64.Build.0 = ReleaseFullOpt|x64
+		{B9F644C2-F9DE-4648-B613-43755D81EA3B}.ReleaseHE|Win32.ActiveCfg = ReleaseHE|Win32
+		{B9F644C2-F9DE-4648-B613-43755D81EA3B}.ReleaseHE|Win32.Build.0 = ReleaseHE|Win32
+		{B9F644C2-F9DE-4648-B613-43755D81EA3B}.ReleaseHE|x64.ActiveCfg = ReleaseHE|x64
+		{B9F644C2-F9DE-4648-B613-43755D81EA3B}.ReleaseHE|x64.Build.0 = ReleaseHE|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

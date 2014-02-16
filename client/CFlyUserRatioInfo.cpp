@@ -27,6 +27,11 @@ void CFlyUserRatioInfo::addUpload(const boost::asio::ip::address_v4& p_ip, uint6
 	find_ip_map(p_ip).m_upload += p_size;
 	setDirty(true);
 }
+void CFlyUserRatioInfo::incMessagesCount()
+{
+	++m_message_count;
+	setDirty(true);
+}
 void CFlyUserRatioInfo::addDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size)
 {
 	dcassert(p_size);
@@ -40,13 +45,13 @@ void CFlyUserRatioInfo::flushRatioL()
 	if (m_is_dirty && m_user->getHubID() && !m_user->m_nick.empty()
 	        && CFlylinkDBManager::isValidInstance()) // fix https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&Login=Guest&DumpGroupID=86337
 	{
-		CFlylinkDBManager::getInstance()->store_all_ratio_and_last_ip(m_user->getHubID(), m_user->m_nick, m_ip_map_ptr, m_user->m_last_ip); // TODO зачем передавать туда m_user->m_last_ip?
+		CFlylinkDBManager::getInstance()->store_all_ratio_and_last_ip(m_user->getHubID(), m_user->m_nick, m_ip_map_ptr, m_message_count, m_user->m_last_ip); // TODO зачем передавать туда m_user->m_last_ip?
 		setDirty(false);
 	}
 }
 bool CFlyUserRatioInfo::try_load_ratio(const boost::asio::ip::address_v4& p_last_ip_from_sql)
 {
-	dcassert(!p_last_ip_from_sql.is_unspecified());
+	//dcassert(!p_last_ip_from_sql.is_unspecified());
 	if (m_user->getHubID() && !m_user->m_nick.empty()) // Не грузили данные по рейтингу?
 	{
 		const CFlyRatioItem& l_item = CFlylinkDBManager::getInstance()->load_ratio(

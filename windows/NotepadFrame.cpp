@@ -29,7 +29,7 @@ LRESULT NotepadFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	               WS_VSCROLL | ES_AUTOVSCROLL | ES_MULTILINE | ES_NOHIDESEL, WS_EX_CLIENTEDGE);
 	               
 	ctrlPad.LimitText(0);
-	ctrlPad.SetFont(Fonts::font);
+	ctrlPad.SetFont(Fonts::g_font);
 	string tmp;
 	try
 	{

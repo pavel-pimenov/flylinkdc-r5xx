@@ -106,7 +106,6 @@ many pornographic files and they will not be included in any following search re
 		<String Name="AutoupdateComponentLabel">Componentes para actualizar</String>
 		<String Name="AutoupdateCustomlocation">Actualización de la base de datos de ubicación personalizada</String>
 		<String Name="AutoupdateShellExt">Extensión de Shell</String>
-		<String Name="AutoupdateDhtserverslist">Actualizar la lista de servidores DHT</String>
 		<String Name="AutoupdateDocumentation">Documentación</String>
 		<String Name="AutoupdateDownloadedRemoveOrInstall">Descargada la actualización de FlylinkDC++. Actualizar ahora? Si no es así, la actualización será eliminada.</String>
 		<String Name="AutoupdateDownloadFailed">Fallo en la actualización.</String>
@@ -626,7 +625,6 @@ No contiene ninguna información confidencial como contraseñas, direcciones de 
 		<String Name="GdiPlusTabs">Usar estilo de pestañas GDI+</String>
 		<String Name="GenerateCertificates">Crear certificado</String>
 		<String Name="GetFileList">Descargar la lista de archivos</String>
-		<String Name="GetIp">Capturar IP</String>
 		<String Name="GetUserResponses">Obtener IP</String>
 		<String Name="GiveExtraSlot">Dar slot extra</String>
 		<String Name="Global">Anular Hubs favoritos</String>
@@ -867,6 +865,7 @@ En blanco = Por defecto Cadena -&gt; +me reproduciendo: %[artist] - %[title] * E
 		<String Name="MaxSegmentsNumber">Número máximo de segmentos</String>
 		<String Name="MaxSize">Tamaño Max.</String>
 		<String Name="MaxUsers">Usuarios máximos</String>
+		<String Name="MessagesCount">Mensajes</String>
 		<String Name="Mb">MiB</String>
 		<String Name="Mbps">MiB/s</String>
 		<String Name="MediaAudio">Audio</String>
@@ -1282,7 +1281,6 @@ En blanco = Por defecto cadena -&gt; +me reproduciendo en 'QCD/QMP %[version]': 
 		<String Name="SearchSpamFrom">Detectado Spam de búsqueda desde</String>
 		<String Name="SearchSpy">Espía de búsquedas</String>
 		<String Name="SearchString">Cadena de búsqueda</String>
-		<String Name="SearchWikihelp">No ha encontrado nada? Visita la página de FlyWiki.</String>
 		<String Name="SearchesPer">Búsquedas: %u/s, %u/min.</String>
 		<String Name="SearchingFor">Buscando por</String>
 		<String Name="Sec">segundos</String>
@@ -1523,7 +1521,6 @@ En blanco = Por defecto cadena -&gt; +me reproduciendo en 'QCD/QMP %[version]': 
 		<String Name="SettingsRc">Control remoto</String>
 		<String Name="SettingsRequiresRestart">Nota: Muchos de estos ajustes requieren reiniciar FlylinkDC++ para funcionar</String>
 		<String Name="SettingsReset">Restaurar</String>
-		<String Name="SettingsRollback">Rollback</String>
 		<String Name="SettingsRssProp">RSS Propiedades</String>
 		<String Name="SettingsSaveTthInNtfsFilestream">Guardar TTH en NTFS filestream. Atención! Al retirar la marca será eliminado!</String>
 		<String Name="SettingsSbMaxSources">Max coincidencias en cola</String>
@@ -1963,7 +1960,6 @@ Es muy probable que tengas que usar %[rawtitle] en lugar de %[title] para obtene
 		<String Name="WizardFinishLabel2">Ahora puedes comenzar a usar FlylinkDC++ !</String>
 		<String Name="WizardNetaBtnCheckupnp">Comprobación UPnP</String>
 		<String Name="WizardNetaBtnSetuprouter">Ajustes del Router</String>
-		<String Name="WizardNetaBtnSetuptest">Test de utilidades de configuración</String>
 		<String Name="WizardNetaBtnTest">Prueba de conexiones de red en FlylinkDC++</String>
 		<String Name="WizardNetaFirewallStatic">Cortafuegos</String>
 		<String Name="WizardNetaNeedpassivemode">El asistente ha detectado problemas con el modo activo. Cambiar a modo pasivo para las conexiones de red?</String>
@@ -2003,8 +1999,6 @@ Por favor, no compartir carpetas con archivos del sistema!</String>
  4. Configurar los ajustes de red 
  5. Añadir hubs favoritos</String>
 		<String Name="WizardStartupTxt3">Presionar siguiente para continuar…</String>
-		<String Name="RestoreDefaul">Restaurar por defecto</String>
-		<String Name="WizardTestDlgTitle">Dirección URL para utilidades de test de puertos</String>
 		<String Name="WizardTitle">Asistente de configuración de FlylinkDC++</String>
 		<String Name="WmpHelp">/wmp - Funciona con versiones de Windows Media Player 9+
 - %[version] - Versión de Windows Media Player

@@ -58,13 +58,13 @@ UserManager::~UserManager()
 
 UserManager::PasswordStatus UserManager::checkPrivateMessagePassword(const ChatMessage& pm)
 {
-	const UserPtr& user = pm.replyTo->getUser();
+	const UserPtr& user = pm.m_replyTo->getUser();
 	FastLock l(g_csPsw);
 	if (checkedPasswordUsers.find(user) != checkedPasswordUsers.cend())
 	{
 		return FREE;
 	}
-	else if (pm.text == SETTING(PM_PASSWORD))
+	else if (pm.m_text == SETTING(PM_PASSWORD))
 	{
 		waitingPasswordUsers.erase(user);
 		checkedPasswordUsers.insert(user);

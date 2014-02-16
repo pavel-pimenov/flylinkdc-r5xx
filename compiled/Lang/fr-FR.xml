@@ -96,7 +96,6 @@ Etes-vous sûr que vous souhaitez lancer une autre copie du programme?</String>
 		<String Name="AutoupdateComponentLabel">Composants à mettre à jour</String>
 		<String Name="AutoupdateCustomlocation">Mettre à jour la base de données custom location</String>
 		<String Name="AutoupdateShellExt">Extension du shell</String>
-		<String Name="AutoupdateDhtserverslist">Mise à jour de la liste des serveurs DHT</String>
 		<String Name="AutoupdateDocumentation">Documentation</String>
 		<String Name="AutoupdateDownloadedRemoveOrInstall">La mise à jour de FlylinkDC++ vient d'être téléchargée. Mettre à jour maintenant? En cas de refus, la mise à jour sera supprimée</String>
 		<String Name="AutoupdateDownloadFailed">Impossible de télécharger la mise à jour.</String>
@@ -614,7 +613,6 @@ Il ne contient aucune information confidentielle comme les mots de passe, adress
 		<String Name="GdiPlusTabs">Onglets colorés (Paramètres / Couleurs et polices)</String>
 		<String Name="GenerateCertificates">Générer certificats</String>
 		<String Name="GetFileList">Voir liste de fichiers</String>
-		<String Name="GetIp">Trouver l'adresse IP</String>
 		<String Name="GetUserResponses">Demande d'adresse IP</String>
 		<String Name="GiveExtraSlot">Extra-slot</String>
 		<String Name="Global">Remplace favoris Hubs</String>
@@ -850,6 +848,7 @@ Vide = Une chaîne par défaut :
 		<String Name="MaxSegmentsNumber">Nombre de parties max</String>
 		<String Name="MaxSize">Taille maximum</String>
 		<String Name="MaxUsers">Utilisateurs max</String>
+		<String Name="MessagesCount">Messages</String>
 		<String Name="Mb">MiB</String>
 		<String Name="Mbps">MiB/s</String>
 		<String Name="MediaAudio">Audio</String>
@@ -1250,7 +1249,6 @@ Vide = Une chaîne par défaut:
 		<String Name="SearchSpamFrom">Recherche spam détecté</String>
 		<String Name="SearchSpy">Espion de recherche</String>
 		<String Name="SearchString">Chaîne de recherche</String>
-		<String Name="SearchWikihelp">Rien trouvé? Visitez la page FlyWiki.</String>
 		<String Name="SearchesPer">Recherches: %u/s, %u/min.</String>
 		<String Name="SearchingFor">La recherche de…</String>
 		<String Name="Sec">sec</String>
@@ -1489,7 +1487,6 @@ Vide = Une chaîne par défaut:
 		<String Name="SettingsRc">Télécommande</String>
 		<String Name="SettingsRequiresRestart">Note: La plupart de ces paramètres nécessite le redémarrage de FlylinkDC++ pour être appliquée</String>
 		<String Name="SettingsReset">Reset</String>
-		<String Name="SettingsRollback">Rollback</String>
 		<String Name="SettingsRssProp">Propriétés RSS</String>
 		<String Name="SettingsSaveTthInNtfsFilestream">Enregistrer TTH dans le flux de NTFS. Attention: thread décocher seront supprimés</String>
 		<String Name="SettingsSbMaxSources">Max matches</String>
@@ -1916,7 +1913,6 @@ Aussi, probablement besoin d'utiliser %[rawtitle] au lieu de %[title], pour obte
 		<String Name="WizardFinishLabel2">Maintenant vous pouvez commencer à utiliser FlylinkDC++!</String>
 		<String Name="WizardNetaBtnCheckupnp">Essaier UPNP</String>
 		<String Name="WizardNetaBtnSetuprouter">Paramétrage du router</String>
-		<String Name="WizardNetaBtnSetuptest">Réglage des outils d'essaie de reseau</String>
 		<String Name="WizardNetaBtnTest">Essaier des connections de FlylinkDC++ à reseau</String>
 		<String Name="WizardNetaFirewallStatic">Pare-feu</String>
 		<String Name="WizardNetaNeedpassivemode">Assistant de configuration a détecté des problèmes avec le mode Actif de FlylinkDC++. Basculer à le mode Passif pour des connections reseau?</String>
@@ -1949,8 +1945,6 @@ Aussi, probablement besoin d'utiliser %[rawtitle] au lieu de %[title], pour obte
 		<String Name="WizardStartupTxt1">Bienvenue dans l'assistant de configuration de FlylinkDC++ !</String>
 		<String Name="WizardStartupTxt2">Cet assistant de configuration va vous aider de paramétrer votre FlylinkDC++ client: 1. Votre Nick par défaut; 2.Vos dossiers de téléchargement et pour des fichiers temporaires; 3. De partager vos fichiers afin de permettre aux utilisateurs de DC+ de les télécharger; 4. De paramétrer votre réseau; 5. D'ajouter vos hubs favoris</String>
 		<String Name="WizardStartupTxt3">Appuyez le bouton Suivant pour continuer…</String>
-		<String Name="RestoreDefaul">Restaurer des valeurs par défaut</String>
-		<String Name="WizardTestDlgTitle">L'adresse de l'outil d'essai des ports pour FlylinkDC++ </String>
 		<String Name="WizardTitle">FlylinkDC++ assistant de configuration</String>
 		<String Name="WmpHelp">/wmp - fonctionne avec Windows Media Player 9+
 

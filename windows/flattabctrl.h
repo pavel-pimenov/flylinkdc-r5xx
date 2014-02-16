@@ -701,7 +701,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			
 			// [+] SCALOlaz : Create a Close Button
 			CImageList CloseImages;
-			ResourceLoader::LoadImageList(IDR_CLOSE_ICON, CloseImages, 16, 16);
+			ResourceLoader::LoadImageList(IDR_CLOSE_PNG, CloseImages, 16, 16);
 			bClose.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE | BS_FLAT, 0, IDC_CLOSE_WINDOW);
 			bClose.SetImageList(CloseImages);
 			
@@ -722,7 +722,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			the CreateDC function; instead, it must use the DeleteDC function. ReleaseDC must be called from the same thread that called GetDC.
 			*/
 			{
-				CSelectFont l_font(dc, Fonts::systemFont);
+				CSelectFont l_font(dc, Fonts::g_systemFont);
 				//Получаем высоту шрифта
 				m_height_font = WinUtil::getTextHeight(dc);
 				//Высота вкладки равна высоте шрифта + отступы
@@ -769,7 +769,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			if (GetUpdateRect(&rc, FALSE))
 			{
 				CPaintDC dc(m_hWnd);
-				CSelectFont l_font(dc, Fonts::systemFont);
+				CSelectFont l_font(dc, Fonts::g_systemFont);
 				//ATLTRACE("%d, %d\n", rc.left, rc.right);
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
 				std::unique_ptr<Gdiplus::Graphics> graphics(new Gdiplus::Graphics(dc));
@@ -1121,11 +1121,11 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 							{
 								CDCHandle dc(::GetDC(hWnd)); // Error ~CDC() call DeleteDC
 								{
-									CSelectFont l_font(dc, Fonts::systemFont);
+									CSelectFont l_font(dc, Fonts::g_systemFont);
 									dc.GetTextExtent(name.data(), m_len, &m_size); //-V107
 								}
 								{
-									CSelectFont l_font(dc, Fonts::boldFont);
+									CSelectFont l_font(dc, Fonts::g_boldFont);
 									dc.GetTextExtent(name.data(), m_len, &m_boldSize); //-V107
 								}
 								if (g_TabsCloseButtonEnabled)
@@ -1149,7 +1149,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			public:
 				int getWidth() const
 				{
-					return (!m_mini ? (m_dirty ? m_boldSize.cx : m_size.cx) : 0) + FT_EXTRA_SPACE + 10 /*(m_hIcon != nullptr ? 10 : 0)*/ + 4; //-V112
+					return (!m_mini ? (m_dirty ? (!BOOLSETTING(NOTBOLD_FONT_ON_ACTIVITY_TAB) ? m_boldSize.cx : m_size.cx) : m_size.cx) : 0) + FT_EXTRA_SPACE + 10 /*(m_hIcon != nullptr ? 10 : 0)*/ + 4;  //-V112
 				}
 		};
 		
@@ -1495,9 +1495,9 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			
 			if (!tab->m_mini)
 			{
-				if (tab->m_dirty) // && !tab->m_bState  [+][-] SCALOlaz //ToDo: Not bolded font at offline tabs, needle fix in getWidth()
+				if (tab->m_dirty && !BOOLSETTING(NOTBOLD_FONT_ON_ACTIVITY_TAB)) // && !tab->m_bState  [+][-] SCALOlaz //ToDo: Not bolded font at offline tabs, needle fix in getWidth()
 				{
-					CSelectFont l_font(dc, Fonts::boldFont);
+					CSelectFont l_font(dc, Fonts::g_boldFont);
 					dc.TextOut(pos, ypos + height_plus, tab->name.data(), tab->m_len); // [~] Sergey Shuhskanov //-V107
 				}
 				else

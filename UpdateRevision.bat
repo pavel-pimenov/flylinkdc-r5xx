@@ -48,7 +48,6 @@ echo SYMUPLOAD %SYMBOL_SERVER_APP_KEY% %APP_VERSION_FOR_SYMBOL_SERVER%.%VERSION_
 move SymRegisterBinaries.bat "compiled"
 
 if "%BETA_STATE%"=="1" (echo UpdateMaker.exe -V%~1 -D%BETA_UPDATE_FOLDER% -U%BETA_UPDATE_URL% -B -MP -P"5">> CreateUpdate.bat) else (echo UpdateMaker.exe -V%~1 -D%RELEASE_UPDATE_FOLDER% -U%RELEASE_UPDATE_URL% -R -MP -P"5">> CreateUpdate.bat)
-if "%RELEASE_UPDATE_FOLDER%"=="%BETA_UPDATE_FOLDER%" echo copy %RELEASE_UPDATE_FOLDER%Update5_beta.* %RELEASE_UPDATE_FOLDER%Update5.*>> CreateUpdate.bat
 move CreateUpdate.bat "compiled"
 
 echo #ifndef FLY_REVISION_H> revision.h

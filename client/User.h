@@ -287,6 +287,7 @@ class User : public intrusive_ptr_base<User>, public Flags
 		void fixLastIP();
 		void AddRatioUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
 		void AddRatioDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
+		void incMessageCount();
 		void flushRatio();
 		tstring getUDratio();
 		tstring getUpload();
@@ -307,21 +308,30 @@ class User : public intrusive_ptr_base<User>, public Flags
 			else
 				return 0;
 		}
+		uint64_t getMessageCountRAW() const
+		{
+			if (m_ratio_ptr)
+				return m_ratio_ptr->m_message_count;
+			else
+				return 0;
+		}
 		bool isLastIP() // [+] IRainman fix.
 		{
 			FastLock l(g_ratio_cs);
 			if (m_ratio_ptr)
 			{
-				return m_last_ip.is_unspecified();
+				return !m_last_ip.is_unspecified();
 			}
 			else
 			{
 				return false;
 			}
 		}
-		string getIP();
+		boost::asio::ip::address_v4 getIP();
+		string getIPAsString();
 		uint64_t getBytesUpload();
 		uint64_t getBytesDownload();
+		uint64_t getMessageCount();
 		void initRatioL();
 		void initRatioL(const boost::asio::ip::address_v4& p_ip);
 		

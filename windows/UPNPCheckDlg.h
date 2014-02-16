@@ -19,7 +19,7 @@
 #ifndef _UPNP_CHECK_DLG_H_
 #define _UPNP_CHECK_DLG_H_
 
-#include "../client/Thread.h"
+#include "../client/CFlyThread.h"
 #include "../client/ConnectionManager.h"
 
 #pragma once
@@ -47,7 +47,7 @@ class UPNPCheckDlg : public CDialogImpl<UPNPCheckDlg>, public BASE_THREAD
 		MESSAGE_HANDLER(WM_SETFAIL, OnSetFAIL)
 		END_MSG_MAP()
 		
-		UPNPCheckDlg(uint16_t tcp, uint16_t udp, bool needPortCheck, const string& urlCheck, bool needUPNP, bool useServer);
+		UPNPCheckDlg(uint16_t tcp, uint16_t udp, bool needPortCheck, bool needUPNP, bool useServer);
 		~UPNPCheckDlg();
 		
 		LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
@@ -106,7 +106,6 @@ class UPNPCheckDlg : public CDialogImpl<UPNPCheckDlg>, public BASE_THREAD
 		bool _resultPort;
 		bool _isTCPOk;
 		bool _isUDPOk;
-		const string _urlCheck;
 		const bool _useServer;
 		ConnectionManager::Server* _serverTCP;
 		string m_device;

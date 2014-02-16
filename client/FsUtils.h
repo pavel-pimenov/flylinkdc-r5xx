@@ -1,7 +1,7 @@
 #ifndef FS_UTILS_H
 #define FS_UTILS_H
 
-#include "Thread.h"
+#include "CFlyThread.h"
 
 namespace FsUtils
 {

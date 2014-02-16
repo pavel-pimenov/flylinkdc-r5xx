@@ -78,11 +78,16 @@ int UserInfo::compareItems(const UserInfo* a, const UserInfo* b, int col)
 			PROFILE_THREAD_SCOPED_DESC("COLUMN_DOWNLOAD")
 			return compare(a->getUser()->getBytesDownloadRAW(), b->getUser()->getBytesDownloadRAW());
 		}
+		case COLUMN_MESSAGES:
+		{
+			PROFILE_THREAD_SCOPED_DESC("COLUMN_MESSAGES")
+			return compare(a->getUser()->getMessageCount(), b->getUser()->getMessageCount());
+		}
 #endif
 		case COLUMN_IP:
 		{
 			PROFILE_THREAD_SCOPED_DESC("COLUMN_IP")
-			return compare(Socket::convertIP4(a->getIdentity().getIp()), Socket::convertIP4(b->getIdentity().getIp()));
+			return compare(a->getIdentity().getIp(), b->getIdentity().getIp());
 		}
 	}
 	{
@@ -135,10 +140,22 @@ tstring UserInfo::getText(int p_col) const
 		{
 			return getUser()->getDownload();
 		}
+		case COLUMN_MESSAGES:
+		{
+			const auto l_count = getUser()->getMessageCount();
+			if (l_count)
+			{
+				return Text::toT(Util::toString(l_count));
+			}
+			else
+			{
+				return Util::emptyStringT;
+			}
+		}
 #endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		case COLUMN_IP:
 		{
-			return Text::toT(getIdentity().getIp());
+			return Text::toT(getIdentity().getIpAsString());
 		}
 		case COLUMN_GEO_LOCATION:
 		{
@@ -199,4 +216,21 @@ tstring UserInfo::getLimit() const
 tstring UserInfo::getDownloadSpeed() const
 {
 	return formatSpeedLimit(getIdentity().getDownloadSpeed());
+}
+
+void UserInfo::calcLocation()
+{
+	const auto& l_location = getLocation();
+	if (l_location.isNew())  //  || m_ou->getIdentity().is_ip_change_and_clear()
+	{
+		const auto& l_ip = getIp();
+		if (!l_ip.is_unspecified())
+		{
+			setLocation(Util::getIpCountry(l_ip.to_ulong())); // TODO - отдать бустовский объект?
+		}
+		//else
+		//{
+		//  setLocation(Util::CustomNetworkIndex(0, 0));
+		//}
+	}
 }

@@ -42,12 +42,16 @@ Client::Client(const string& p_HubURL, char separator_, bool secure_) :
 	m_exclChecks(false) // [+] IRainman fix.
 {
 	dcassert(p_HubURL == Text::toLower(p_HubURL));
+	const auto l_my_user = new User(ClientManager::getMyCID());
+	const auto l_hub_user = new User(CID());
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	m_HubID = CFlylinkDBManager::getInstance()->get_dic_hub_id(m_HubURL);
 	dcassert(m_HubID != 0);
+	l_my_user->setHubID(m_HubID); // ƒл€ сохранени€ кол-ва мессаг по самому себе
+	//l_hub_user->setHubID(m_HubID); // ƒл€ бота-хаба не сохран€ем пока
 #endif
-	m_myOnlineUser = new OnlineUser(UserPtr(new User(ClientManager::getMyCID())), *this, 0); // [+] IRainman fix.
-	m_hubOnlineUser = new OnlineUser(UserPtr(new User(CID())), *this, AdcCommand::HUB_SID); // [+] IRainman fix.
+	m_myOnlineUser = new OnlineUser(UserPtr(l_my_user), *this, 0); // [+] IRainman fix.
+	m_hubOnlineUser = new OnlineUser(UserPtr(l_hub_user), *this, AdcCommand::HUB_SID); // [+] IRainman fix.
 	
 	// [-] IRainman.
 	//m_hEventClientInitialized = CreateEvent(NULL, TRUE, FALSE, NULL);//[+]FlylinkDC
@@ -308,8 +312,10 @@ void Client::connect()
 #endif
 		sock = BufferedSocket::getSocket(m_separator);
 		sock->addListener(this);
-		sock->connect(m_address, m_port,
-		              m_secure, BOOLSETTING(ALLOW_UNTRUSTED_HUBS),
+		sock->connect(m_address,
+		              m_port,
+		              m_secure,
+		              BOOLSETTING(ALLOW_UNTRUSTED_HUBS),
 		              true);
 		dcdebug("Client::connect() %p\n", (void*)this);
 	}
@@ -350,7 +356,9 @@ void Client::on(Connected) noexcept
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
 		FastLock lock(csSock); // [+] brain-ripper
 #endif
-		m_ip      = sock->getIp();
+		boost::system::error_code ec;
+		m_ip      = boost::asio::ip::address_v4::from_string(sock->getIp(), ec);
+		dcassert(!ec);
 	}
 	if (sock->isSecure() && m_keyprint.compare(0, 7, "SHA256/", 7) == 0)
 	{
@@ -485,7 +493,7 @@ string Client::getLocalIp() const
 	// [!] IRainman fix:
 	// [!] If possible, always return the hub that IP, which he identified with us when you connect.
 	// [!] This saves the user from a variety of configuration problems.
-	const string& myUserIp = getMyIdentity().getIp(); // [!] opt, and fix done: [4] https://www.box.net/shared/c497f50da28f3dfcc60a
+	const string& myUserIp = getMyIdentity().getIpAsString(); // [!] opt, and fix done: [4] https://www.box.net/shared/c497f50da28f3dfcc60a
 	if (!myUserIp.empty())
 	{
 		return myUserIp; // [!] Best case - the server detected it.
@@ -515,13 +523,14 @@ string Client::getLocalIp() const
 	// [~] IRainman fix.
 }
 
-uint64_t Client::search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, void* owner)
+uint64_t Client::search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, void* owner, bool p_is_force_passive)
 {
 	dcdebug("Queue search %s\n", aString.c_str());
 	
 	if (searchQueue.interval)
 	{
 		Search s;
+		s.m_is_force_passive = p_is_force_passive;
 		s.m_fileTypes_bitmap = aFileType; // TODO - проверить что тут все ок.
 		s.size     = aSize;
 		s.query    = aString;
@@ -536,7 +545,7 @@ uint64_t Client::search(Search::SizeModes aSizeMode, int64_t aSize, Search::Type
 		return searchQueue.getSearchTime(owner, now) - now;
 	}
 	
-	search(aSizeMode, aSize, aFileType , aString, aToken, aExtList);
+	search(aSizeMode, aSize, aFileType , aString, aToken, aExtList, p_is_force_passive);
 	return 0;
 	
 }
@@ -561,12 +570,11 @@ void Client::on(Second, uint64_t aTick) noexcept
 	if (isConnected())
 	{
 		Search s;
-		
 		if (searchQueue.pop(s, aTick)) // [!] IRainman opt
 		{
 			// TODO - пробежатьс€ по битовой маске?
 			// ≈сли она там есть
-			search(s.sizeMode, s.size, Search::TypeModes(s.m_fileTypes_bitmap), s.query, s.token, s.exts);
+			search(s.sizeMode, s.size, Search::TypeModes(s.m_fileTypes_bitmap), s.query, s.token, s.exts, s.m_is_force_passive);
 		}
 	}
 }
@@ -581,11 +589,11 @@ OnlineUserPtr Client::getUser(const UserPtr& aUser)
 // [+] IRainman fix.
 bool Client::allowPrivateMessagefromUser(const ChatMessage& message)
 {
-	if (isMe(message.replyTo))
+	if (isMe(message.m_replyTo))
 	{
-		if (UserManager::expectPasswordFromUser(message.to->getUser())
+		if (UserManager::expectPasswordFromUser(message.m_to->getUser())
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
-		        || UploadManager::getInstance()->isBanReply(message.to->getUser()) // !SMT!-S
+		        || UploadManager::getInstance()->isBanReply(message.m_to->getUser()) // !SMT!-S
 #endif
 		   )
 		{
@@ -600,25 +608,25 @@ bool Client::allowPrivateMessagefromUser(const ChatMessage& message)
 	{
 		return false;
 	}
-	else if (UserManager::isInIgnoreList(message.replyTo->getIdentity().getNick())) // !SMT!-S
+	else if (UserManager::isInIgnoreList(message.m_replyTo->getIdentity().getNick())) // !SMT!-S
 	{
 		return false;
 	}
 	else if (BOOLSETTING(SUPPRESS_PMS))
 	{
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
-		if (UploadManager::getInstance()->isBanReply(message.replyTo->getUser())) // !SMT!-S
+		if (UploadManager::getInstance()->isBanReply(message.m_replyTo->getUser())) // !SMT!-S
 		{
 			return false;
 		}
 		else
 #endif
-			if (FavoriteManager::getInstance()->isNoFavUserOrUserIgnorePrivate(message.replyTo->getUser()))
+			if (FavoriteManager::getInstance()->isNoFavUserOrUserIgnorePrivate(message.m_replyTo->getUser()))
 			{
 				if (BOOLSETTING(LOG_IF_SUPPRESS_PMS))
 				{
 					LocalArray<char, 200> l_buf;
-					snprintf(l_buf.data(), l_buf.size(), CSTRING(LOG_IF_SUPPRESS_PMS), message.replyTo->getIdentity().getNick().c_str(), getHubName().c_str(), getHubUrl().c_str());
+					snprintf(l_buf.data(), l_buf.size(), CSTRING(LOG_IF_SUPPRESS_PMS), message.m_replyTo->getIdentity().getNick().c_str(), getHubName().c_str(), getHubUrl().c_str());
 					LogManager::getInstance()->message(l_buf.data());
 				}
 				return false;
@@ -628,14 +636,14 @@ bool Client::allowPrivateMessagefromUser(const ChatMessage& message)
 				return true;
 			}
 	}
-	else if (message.replyTo->getIdentity().isHub())
+	else if (message.m_replyTo->getIdentity().isHub())
 	{
-		if (BOOLSETTING(IGNORE_HUB_PMS) && !isInOperatorList(message.replyTo->getIdentity().getNick()))
+		if (BOOLSETTING(IGNORE_HUB_PMS) && !isInOperatorList(message.m_replyTo->getIdentity().getNick()))
 		{
-			fire(ClientListener::StatusMessage(), this, STRING(IGNORED_HUB_BOT_PM) + ": " + message.text);
+			fire(ClientListener::StatusMessage(), this, STRING(IGNORED_HUB_BOT_PM) + ": " + message.m_text);
 			return false;
 		}
-		else if (FavoriteManager::getInstance()->hasIgnorePM(message.replyTo->getUser()))
+		else if (FavoriteManager::getInstance()->hasIgnorePM(message.m_replyTo->getUser()))
 		{
 			return false;
 		}
@@ -644,14 +652,14 @@ bool Client::allowPrivateMessagefromUser(const ChatMessage& message)
 			return true;
 		}
 	}
-	else if (message.replyTo->getIdentity().isBot())
+	else if (message.m_replyTo->getIdentity().isBot())
 	{
-		if (BOOLSETTING(IGNORE_BOT_PMS) && !isInOperatorList(message.replyTo->getIdentity().getNick()))
+		if (BOOLSETTING(IGNORE_BOT_PMS) && !isInOperatorList(message.m_replyTo->getIdentity().getNick()))
 		{
-			fire(ClientListener::StatusMessage(), this, STRING(IGNORED_HUB_BOT_PM) + ": " + message.text);
+			fire(ClientListener::StatusMessage(), this, STRING(IGNORED_HUB_BOT_PM) + ": " + message.m_text);
 			return false;
 		}
-		else if (FavoriteManager::getInstance()->hasIgnorePM(message.replyTo->getUser()))
+		else if (FavoriteManager::getInstance()->hasIgnorePM(message.m_replyTo->getUser()))
 		{
 			return false;
 		}
@@ -660,7 +668,7 @@ bool Client::allowPrivateMessagefromUser(const ChatMessage& message)
 			return true;
 		}
 	}
-	else if (BOOLSETTING(PROTECT_PRIVATE) && !FavoriteManager::getInstance()->hasFreePM(message.replyTo->getUser())) // !SMT!-PSW
+	else if (BOOLSETTING(PROTECT_PRIVATE) && !FavoriteManager::getInstance()->hasFreePM(message.m_replyTo->getUser())) // !SMT!-PSW
 	{
 		switch (UserManager::checkPrivateMessagePassword(message))
 		{
@@ -676,19 +684,19 @@ bool Client::allowPrivateMessagefromUser(const ChatMessage& message)
 			{
 				StringMap params;
 				params["pm_pass"] = SETTING(PM_PASSWORD);
-				privateMessage(message.replyTo, Util::formatParams(SETTING(PM_PASSWORD_HINT), params, false), false);
+				privateMessage(message.m_replyTo, Util::formatParams(SETTING(PM_PASSWORD_HINT), params, false), false);
 				if (BOOLSETTING(PROTECT_PRIVATE_SAY))
 				{
-					fire(ClientListener::StatusMessage(), this, STRING(REJECTED_PRIVATE_MESSAGE_FROM) + ": " + message.replyTo->getIdentity().getNick());
+					fire(ClientListener::StatusMessage(), this, STRING(REJECTED_PRIVATE_MESSAGE_FROM) + ": " + message.m_replyTo->getIdentity().getNick());
 				}
 				return false;
 			}
 			case UserManager::CHECKED:
 			{
-				privateMessage(message.replyTo, SETTING(PM_PASSWORD_OK_HINT), true);
+				privateMessage(message.m_replyTo, SETTING(PM_PASSWORD_OK_HINT), true);
 				
 				// TODO needs?
-				// const tstring passwordOKMessage = _T('<') + message.replyTo->getUser()->getLastNickT() + _T("> ") + TSTRING(PRIVATE_CHAT_PASSWORD_OK_STARTED);
+				// const tstring passwordOKMessage = _T('<') + message.m_replyTo->getUser()->getLastNickT() + _T("> ") + TSTRING(PRIVATE_CHAT_PASSWORD_OK_STARTED);
 				// PrivateFrame::gotMessage(from, to, replyTo, passwordOKMessage, getHubHint(), myPM, pm.thirdPerson); // !SMT!-S
 				
 				return true;
@@ -702,9 +710,9 @@ bool Client::allowPrivateMessagefromUser(const ChatMessage& message)
 	}
 	else
 	{
-		if (FavoriteManager::getInstance()->hasIgnorePM(message.replyTo->getUser())
+		if (FavoriteManager::getInstance()->hasIgnorePM(message.m_replyTo->getUser())
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
-		        || UploadManager::getInstance()->isBanReply(message.replyTo->getUser()) // !SMT!-S
+		        || UploadManager::getInstance()->isBanReply(message.m_replyTo->getUser()) // !SMT!-S
 #endif
 		   )
 		{
@@ -717,9 +725,20 @@ bool Client::allowPrivateMessagefromUser(const ChatMessage& message)
 	}
 }
 
-bool Client::allowChatMessagefromUser(const ChatMessage& message)
+bool Client::allowChatMessagefromUser(const ChatMessage& message, const string& p_nick)
 {
-	if (isMe(message.from))
+	if (!message.m_from)
+	{
+		if (!p_nick.empty() && UserManager::isInIgnoreList(p_nick)) // http://code.google.com/p/flylinkdc/issues/detail?id=1432
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+	else if (isMe(message.m_from))
 	{
 		return true;
 	}
@@ -727,11 +746,11 @@ bool Client::allowChatMessagefromUser(const ChatMessage& message)
 	{
 		return false;
 	}
-	else if (UserManager::isInIgnoreList(message.from->getIdentity().getNick())) // !SMT!-S
+	if (BOOLSETTING(SUPPRESS_MAIN_CHAT) && !isOp())
 	{
 		return false;
 	}
-	if (BOOLSETTING(SUPPRESS_MAIN_CHAT) && !isOp())
+	else if (UserManager::isInIgnoreList(message.m_from->getIdentity().getNick())) // !SMT!-S
 	{
 		return false;
 	}

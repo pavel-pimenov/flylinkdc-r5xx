@@ -36,6 +36,12 @@
 #include "ConnectivityManager.h"
 
 StringList SettingsManager::g_connectionSpeeds;
+boost::logic::tribool SettingsManager::g_TestUDPSearchLevel = boost::logic::indeterminate;
+boost::logic::tribool SettingsManager::g_TestUDPDHTLevel = boost::logic::indeterminate;
+boost::logic::tribool SettingsManager::g_TestTCPLevel = boost::logic::indeterminate;
+boost::logic::tribool SettingsManager::g_TestTSLLevel = boost::logic::indeterminate;
+
+string SettingsManager::g_UDPTestExternalIP;
 
 
 // [!] IRainman opt: use this data as static.
@@ -80,9 +86,9 @@ const string SettingsManager::settingTags[] =
 	"ProfilesURL", "WinampFormat",
 	
 	"WebServerPowerUser", "WebServerPowerPass", "webServerBindAddress", // [+] IRainman
-	"WebServerLogFormat", "LogFormatCustomLocation", "LogFormatTraceSQLite", "WebServerUser", "WebServerPass", "LogFileMainChat",
+	"WebServerLogFormat", "LogFormatCustomLocation", "LogFormatTraceSQLite", "LogFormatDdosTrace", "WebServerUser", "WebServerPass", "LogFileMainChat",
 	"LogFilePrivateChat", "LogFileStatus", "LogFileUpload", "LogFileDownload", "LogFileSystem", "LogFormatSystem",
-	"LogFormatStatus", "LogFileWebServer", "LogFileCustomLocation", "LogTraceSQLite", "DirectoryListingFrameOrder", "DirectoryListingFrameWidths",
+	"LogFormatStatus", "LogFileWebServer", "LogFileCustomLocation", "LogTraceSQLite", "LogFileDdosTrace", "DirectoryListingFrameOrder", "DirectoryListingFrameWidths",
 	"MainFrameVisible", "SearchFrameVisible", "QueueFrameVisible", "HubFrameVisible", "UploadQueueFrameVisible",
 	"EmoticonsFileFlylinkDC",
 	"TLSPrivateKeyFile", "TLSCertificateFile", "TLSTrustedCertificatesPath",
@@ -96,7 +102,6 @@ const string SettingsManager::settingTags[] =
 	"Password", "PasswordHint", "PasswordOkHint",// !SMT!-PSW
 	"WebMagnet",//[+]necros
 	"RatioTemplate",//[+] WhiteD. Custom ratio message
-	"UrlTestIp", //[+]PPA
 	"UrlIPTrust", //[+]PPA
 	"ToolBarSettings",
 	"WinampToolBar", //[+] Drakon!
@@ -131,7 +136,7 @@ const string SettingsManager::settingTags[] =
 	
 	// Ints //
 	
-	"IncomingConnections", "InPort", "Slots", "Rollback", "AutoFollow", "ClearSearch",
+	"IncomingConnections", "InPort", "Slots", "AutoFollow", "ClearSearch",
 	"BackgroundColor", "TextColor", "ShareHidden",
 	"ShareVirtual", "ShareSystem", //[+] IRainman
 	"FilterMessages", "MinimizeToTray",
@@ -154,7 +159,7 @@ const string SettingsManager::settingTags[] =
 	"AutoSearchAutoMatch", "DownloadBarColor", "UploadBarColor", "LogSystem",
 	"LogCustomLocation", // [+] IRainman
 	"LogFilelistTransfers", "ShowStatusbar", "ShowToolbar", "ShowTransferview",
-	"SearchPassiveAlways", "SetMinislotSize", "ShutdownInterval", "DontAddTthDctmp",
+	"SearchPassiveAlways", "SetMinislotSize", "ShutdownInterval",
 	//"CzertHiddenSettingA", "CzertHiddenSettingB",// [-] IRainman SpeedLimiter
 	"ExtraSlots",
 	"TextGeneralBackColor", "TextGeneralForeColor", "TextGeneralBold", "TextGeneralItalic",
@@ -225,7 +230,7 @@ const string SettingsManager::settingTags[] =
 	"HubPosition", // [+] InfinitySky.
 	"SocketInBuffer2", "SocketOutBuffer2",
 	"ColorRunning", "ColorDownloaded", "ColorVerified", "ColorAvoiding", "AutoRefreshTime", "OpenWaitingUsers",
-	"BoldWaitingUsers", "AutoSearchLimit", "AutoKickNoFavs", "PromptPassword", "SpyFrameIgnoreTthSearches",
+	"BoldWaitingUsers", "NotboldFontOnActivityTab", "AutoSearchLimit", "AutoKickNoFavs", "PromptPassword", "SpyFrameIgnoreTthSearches",
 	"TLSPort", "UseTLS", "MaxCommandLength", "AllowUntrustedHubs", "AllowUntrustedClients",
 	"FastHash", "DownConnPerSec",
 	"HighestPrioSize", "HighPrioSize", "NormalPrioSize", "LowPrioSize", "LowestPrio",
@@ -398,8 +403,10 @@ const string SettingsManager::settingTags[] =
 	"PreviewUseVideoScroll", "PreviewClientAutoStart", // [+] SSA
 	"ProviderUseResources", // [+] SSA
 	"ProviderUseMenu", "ProviderUseHublist", "ProviderUseLocations", // [+] SSA
-	"AutoUpdateDHTServersList", // [+] SSA
-	"AutoUpdateGeoIP", "AutoUpdateCustomLocation", "AutoUpdateShellExt", // [+] IRainman
+	"AutoUpdateGeoIP", "AutoUpdateCustomLocation",
+#ifdef SSA_SHELL_INTEGRATION
+	"AutoUpdateShellExt", // [+] IRainman
+#endif
 #ifdef IRAINMAN_USE_BB_CODES
 	"FormatBBCodeColors", // [+] SSA
 #endif
@@ -479,7 +486,6 @@ void SettingsManager::setDefaults()
 	setDefault(INCOMING_CONNECTIONS, INCOMING_FIREWALL_UPNP); // [!] IRainman default passive -> incoming firewall upnp
 	setDefault(OUTGOING_CONNECTIONS, OUTGOING_DIRECT);
 	//setDefault(INCOMING_AUTODETECT_FLAG, false);// [!] IRainman require special algorithm for choosing a random user can add additional checks.
-	setDefault(ROLLBACK, 4096);
 //      setDefault(BAN_FEW_HUB, false); // [+] necros
 #ifdef PPA_INCLUDE_AUTO_FOLLOW
 	setDefault(AUTO_FOLLOW, TRUE);
@@ -542,6 +548,10 @@ void SettingsManager::setDefaults()
 #endif
 	setDefault(LOG_FILE_TRACE_SQLITE, "sqltrace.log");
 	setDefault(LOG_FORMAT_TRACE_SQLITE, "[%Y-%m-%d %H:%M:%S] %[sql]");
+	
+	setDefault(LOG_FILE_DDOS_TRACE, "ddos.log");
+	setDefault(LOG_FORMAT_DDOS_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
+	
 	setDefault(TIME_STAMPS_FORMAT, "%X"); // [!] IRainman fix: use system format time. "%H:%M:%S"
 //
 	setDefault(URL_HANDLER, TRUE);
@@ -649,6 +659,7 @@ void SettingsManager::setDefaults()
 	setDefault(BOLD_SEARCH, TRUE);
 	setDefault(BOLD_NEWRSS, TRUE);
 	setDefault(BOLD_WAITING_USERS, TRUE);
+	setDefault(NOTBOLD_FONT_ON_ACTIVITY_TAB, FALSE);
 #ifdef FLYLINKDC_HE
 	setDefault(AUTO_REFRESH_TIME, 360);
 #else
@@ -909,7 +920,6 @@ void SettingsManager::setDefaults()
 //	setDefault(SAVED_SEARCH_SIZE, "");
 	//setDefault(TABS_POS, 0); // [~] InfinitySky - 1) практичнее и удобнее; 2) понятнее новичкам (по схожести с браузерами и другими программами); 3) визуально проще заметить название на вкладке.
 	setDefault(HUB_POSITION, POS_RIGHT); // [+] InfinitySky.
-	//setDefault(DONT_ADD_TTH_DCTMP, false); // [+] NightOrion
 	setDefault(DOWNCONN_PER_SEC, 2);
 	
 	setDefault(HUBFRAME_COLUMNS_SORT, 0);   // COLUMN_NICK
@@ -1078,8 +1088,6 @@ void SettingsManager::setDefaults()
 	//[+]necros
 	setDefault(COPY_WMLINK, "<a href=\"%[magnet]\" title=\"%[name]\" target=\"_blank\">%[name] (%[size])</a>");
 	setDefault(URL_GET_IP, URL_GET_IP_DEFAULT); // [*] SkazochNik 19.01.2010
-	//[+] M.S.A
-	setDefault(URL_TEST_IP, URL_TEST_IP_DEFAULT); // [!] SSA "http://flylinkdc.com/test.php"); // [*] IRainman 08.01.2011
 	
 	//setDefault(UP_TRANSFER_COLORS, 0); // By Drakon // [~] InfinitySky. Отключено, так как нельзя поменять цвета.
 	//setDefault(STARTUP_BACKUP, 0); // by Drakon
@@ -1191,10 +1199,11 @@ void SettingsManager::setDefaults()
 	setDefault(AUTOUPDATE_COLORTHEMES, TRUE); // [+] SSA
 	setDefault(AUTOUPDATE_DOCUMENTATION, TRUE); // [+] SSA
 	setDefault(AUTOUPDATE_UPDATE_CHATBOT, TRUE); // [+] SSA
-	setDefault(AUTOUPDATE_DHTSERVERSLIST, TRUE); // [+] SSA
 	setDefault(AUTOUPDATE_GEOIP, TRUE); // [+] IRainman
 	setDefault(AUTOUPDATE_CUSTOMLOCATION, TRUE); // [+] IRainman
+#ifdef SSA_SHELL_INTEGRATION
 	setDefault(AUTOUPDATE_SHELL_EXT, TRUE); // [+] IRainman
+#endif
 	//setDefault(AUTOUPDATE_FORCE_RESTART, false); // [+] SSA
 	setDefault(AUTOUPDATE_ENABLE, TRUE); // [+] SSA
 	//setDefault(AUTOUPDATE_USE_CUSTOM_URL, false); //[+] SSA
@@ -1458,11 +1467,8 @@ void SettingsManager::load(const string& aFileName)
 	}
 #endif
 	string l_GET_IP = SETTING(URL_GET_IP);
-	string l_TEST_IP = SETTING(URL_TEST_IP);
 	boost::replace_all(l_GET_IP, "flylinkdc.ru/", "flylinkdc.com/");
-	boost::replace_all(l_TEST_IP, "flylinkdc.ru/", "flylinkdc.com/");
 	set(URL_GET_IP, l_GET_IP);
-	set(URL_TEST_IP, l_TEST_IP);
 	
 	string l_result = SETTING(PM_PASSWORD_HINT);
 	auto i = l_result.find("flyfromsky");
@@ -1565,6 +1571,7 @@ bool SettingsManager::set(StrSetting key, const string& value)
 		case LOG_FILE_WEBSERVER:
 		case LOG_FILE_CUSTOM_LOCATION:
 		case LOG_FILE_TRACE_SQLITE:
+		case LOG_FILE_DDOS_TRACE:
 #ifdef RIP_USE_LOG_PROTOCOL
 		case LOG_FILE_PROTOCOL:
 #endif
@@ -1579,7 +1586,6 @@ bool SettingsManager::set(StrSetting key, const string& value)
 		case WEBSERVER_BIND_ADDRESS:
 			// [+] IRainman fix.
 		case URL_GET_IP:
-		case URL_TEST_IP:
 		case PROFILES_URL:
 		case PORTAL_BROWSER_UPDATE_URL:
 		case URL_IPTRUST:
@@ -1732,7 +1738,7 @@ bool SettingsManager::set(IntSetting key, int value)
 		}
 		case BUFFER_SIZE_FOR_DOWNLOADS:
 		{
-			VERIFI(0, 16 * 1024);
+			VERIFI(0, 1024 * 1024);
 			break;
 		}
 		case SLOTS: //[+]PPA
@@ -2008,7 +2014,7 @@ void SettingsManager::save(const string& aFileName)
 	try
 	{
 		File out(aFileName + ".tmp", File::WRITE, File::CREATE | File::TRUNCATE);
-		BufferedOutputStream<false> f(&out);
+		BufferedOutputStream<false> f(&out, 1024);
 		f.write(SimpleXML::utf8Header);
 		xml.toXML(&f);
 		f.flush();
@@ -2369,7 +2375,7 @@ void SettingsManager::exportDctheme(const tstring& file)
 	try
 	{
 		File l_ff(file , File::WRITE, File::CREATE | File::TRUNCATE);
-		BufferedOutputStream<false> f(&l_ff);
+		BufferedOutputStream<false> f(&l_ff, 1024);
 		f.write(SimpleXML::utf8Header);
 		xml.toXML(&f);
 		f.flush();

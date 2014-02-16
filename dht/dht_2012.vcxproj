@@ -295,8 +295,8 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <OptimizeForWindowsApplication>true</OptimizeForWindowsApplication>
-      <PreprocessorDefinitions>NDEBUG;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <PreprocessorDefinitions>NDEBUG;OPENSSL_SYSNAME_WIN32;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Lib>
       <TargetMachine>MachineX86</TargetMachine>
@@ -334,7 +334,7 @@
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <OptimizeForWindowsApplication>true</OptimizeForWindowsApplication>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <PreprocessorDefinitions>NDEBUG;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;OPENSSL_SYSNAME_WIN32;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Lib>
       <TargetMachine>MachineX86</TargetMachine>
@@ -376,7 +376,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <OptimizeForWindowsApplication>true</OptimizeForWindowsApplication>
-      <PreprocessorDefinitions>NDEBUG;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;OPENSSL_SYSNAME_WIN32;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Lib>
       <TargetMachine>MachineX64</TargetMachine>
@@ -418,8 +418,8 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <OptimizeForWindowsApplication>true</OptimizeForWindowsApplication>
-      <PreprocessorDefinitions>NDEBUG;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <PreprocessorDefinitions>NDEBUG;OPENSSL_SYSNAME_WIN32;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Lib>
       <TargetMachine>MachineX64</TargetMachine>
@@ -462,7 +462,7 @@
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <OptimizeForWindowsApplication>true</OptimizeForWindowsApplication>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <PreprocessorDefinitions>NDEBUG;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;OPENSSL_SYSNAME_WIN32;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Lib>
       <TargetMachine>MachineX64</TargetMachine>

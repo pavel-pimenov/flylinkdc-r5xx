@@ -241,7 +241,12 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 						, virtual NonDerivable<ShareFile>  //, boost::noncopyable // TODO - сделать чтобы объект был не копируемым - boost::noncopyable
 #endif
 				{
+						/*
 						struct StringComp
+						#ifdef _DEBUG
+						    //: private boost::noncopyable
+						#endif
+						
 						{
 								explicit StringComp(const string& s) : m_a(s) { }
 								bool operator()(const ShareFile& b) const
@@ -250,8 +255,8 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 								}
 							private:
 								const string& m_a;
-								void operator=(const StringComp&); // [!] IRainman fix. что он тут фикс?
 						};
+						*/
 						
 						struct FileTraits
 						{
@@ -378,7 +383,8 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 				
 				ShareFile::Set::const_iterator findFileL(const string& aFile) const
 				{
-					return find_if(m_files.begin(), m_files.end(), Directory::ShareFile::StringComp(aFile));
+					return std::find_if(m_files.begin(), m_files.end(), [&](const ShareFile & p_file) -> bool {return stricmp(p_file.getName(), aFile) == 0;});
+					//Directory::ShareFile::StringComp(aFile));
 				}
 				
 				void mergeL(const Ptr& source);

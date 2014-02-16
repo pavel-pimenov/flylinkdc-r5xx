@@ -34,7 +34,7 @@ class OutputStream
 {
 	public:
 		//OutputStream() { } [-] IRainman.
-		virtual ~OutputStream() { }
+		virtual ~OutputStream() noexcept { }
 		
 		/**
 		 * @return The actual number of bytes written. len bytes will always be
@@ -121,8 +121,8 @@ class MemoryInputStream : public InputStream
 
 class IOStream : public InputStream, public OutputStream
 {
-	public:
-		virtual ~IOStream() noexcept {} // [cppcheck] [.\client\Streams.h:122]: (error) Class IOStream which is inherited by class SharedFileStream does not have a virtual destructor
+		//public:
+		//virtual ~IOStream() noexcept {} // [cppcheck] [.\client\Streams.h:122]: (error) Class IOStream which is inherited by class SharedFileStream does not have a virtual destructor
 };
 
 template<const bool managed>
@@ -198,7 +198,7 @@ class BufferedOutputStream : public OutputStream
 	public:
 		using OutputStream::write;
 		
-		explicit BufferedOutputStream(OutputStream* aStream, size_t aBufSize = SETTING(BUFFER_SIZE_FOR_DOWNLOADS) * 1024) : s(aStream), pos(0), buf(aBufSize) { }
+		explicit BufferedOutputStream(OutputStream* aStream, size_t aBufSize) : s(aStream), pos(0), buf(aBufSize), m_is_flush(false) { }
 		~BufferedOutputStream()
 		{
 			try
@@ -210,15 +210,30 @@ class BufferedOutputStream : public OutputStream
 			catch (const Exception&)
 			{
 			}
-			if (managed) delete s;
+			if (managed)
+			{
+				delete s;
+			}
 		}
 		
 		size_t flush()
 		{
 			if (pos > 0)
+			{
 				s->write(&buf[0], pos);
+				m_is_flush = false;
+			}
 			pos = 0;
-			s->flush();
+#ifdef FLYLINKDC_BETA
+// #define FLYLINKDC_DISABLE_FLUSH // Только для теста
+#endif
+#ifdef FLYLINKDC_DISABLE_FLUSH
+			if (m_is_flush == false)
+			{
+				s->flush();
+				m_is_flush = true;
+			}
+#endif // FLYLINKDC_DISABLE_FLUSH
 			return 0;
 		}
 		
@@ -232,6 +247,7 @@ class BufferedOutputStream : public OutputStream
 				if (pos == 0 && len >= bufSize)
 				{
 					s->write(b, len);
+					m_is_flush = false;
 					break;
 				}
 				else
@@ -241,9 +257,11 @@ class BufferedOutputStream : public OutputStream
 					b += n;
 					pos += n; /// [1] ? https://www.box.net/shared/2a9b903842d575efa031
 					len -= n;
+					dcassert(bufSize != 0);
 					if (pos == bufSize)
 					{
 						s->write(&buf[0], bufSize);
+						m_is_flush = false;
 						pos = 0;
 					}
 				}
@@ -254,6 +272,7 @@ class BufferedOutputStream : public OutputStream
 		OutputStream* s;
 		size_t pos;
 		ByteVector buf;
+		bool m_is_flush;
 };
 
 class StringOutputStream : public OutputStream

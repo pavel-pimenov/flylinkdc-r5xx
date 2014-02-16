@@ -1,5 +1,5 @@
-// Windows Template Library - WTL version 8.1
-// Copyright (C) Microsoft Corporation. All rights reserved.
+// Windows Template Library - WTL version 9.0
+// Copyright (C) Microsoft Corporation, WTL Team. All rights reserved.
 //
 // This file is a part of the Windows Template Library.
 // The use and distribution terms for this software are covered by the
@@ -3090,6 +3090,7 @@ public:
 		ATLTRY(pParam = new LVCompareParam[nCount]);
 		PFNLVCOMPARE pFunc = NULL;
 		TCHAR pszTemp[pT->m_cchCmpTextMax];
+                pszTemp[0] = 0;
 		bool bStrValue = false;
 
 		switch(wType)

@@ -139,16 +139,10 @@ QueueItem::Priority QueueItem::calculateAutoPriority() const
 //==========================================================================================
 static string getTempName(const string& aFileName, const TTHValue& aRoot)
 {
-	string tmp = aFileName;
-#ifdef NO_DONT_ADD_TTH_DCTMP //[+] NightOrion
-	if (!BOOLSETTING(DONT_ADD_TTH_DCTMP))
-#endif
-	{
-		tmp += '.' + aRoot.toBase32() + '.' + TEMP_EXTENSION;
-	}
+	string tmp = aFileName + '.' + aRoot.toBase32() + '.' + TEMP_EXTENSION;
 	return tmp;
 }
-
+//==========================================================================================
 void QueueItem::calcBlockSize()
 {
 	m_block_size = CFlylinkDBManager::getInstance()->getBlockSizeSQL(getTTH(), getSize());
@@ -302,7 +296,6 @@ const string& QueueItem::getTempTarget()
 	{
 		if (!SETTING(TEMP_DOWNLOAD_DIRECTORY).empty() && (File::getSize(getTarget()) == -1))
 		{
-#ifdef _WIN32
 			::StringMap sm;
 			if (target.length() >= 3 && target[1] == ':' && target[2] == '\\')
 				sm["targetdrive"] = target.substr(0, 3);
@@ -310,9 +303,6 @@ const string& QueueItem::getTempTarget()
 				sm["targetdrive"] = Util::getLocalPath().substr(0, 3);
 				
 			setTempTarget(Util::formatParams(SETTING(TEMP_DOWNLOAD_DIRECTORY), sm, false) + getTempName(getTargetFileName(), getTTH()));
-#else //_WIN32
-			setTempTarget(SETTING(TEMP_DOWNLOAD_DIRECTORY) + getTempName(getTargetFileName(), getTTH()));
-#endif //_WIN32
 		}
 		if (SETTING(TEMP_DOWNLOAD_DIRECTORY).empty())
 			setTempTarget(target.substr(0, target.length() - getTargetFileName().length()) + getTempName(getTargetFileName(), getTTH()));
@@ -671,24 +661,24 @@ void QueueItem::addSegmentL(const Segment& segment)
 	}
 }
 
-bool QueueItem::isNeededPartL(const PartsInfo& partsInfo, int64_t blockSize)
+bool QueueItem::isNeededPartL(const PartsInfo& partsInfo, int64_t p_blockSize)
 {
 	dcassert(partsInfo.size() % 2 == 0);
 	
 	auto i  = done.begin();
 	for (auto j = partsInfo.cbegin(); j != partsInfo.cend(); j += 2)
 	{
-		while (i != done.end() && (*i).getEnd() <= (*j) * blockSize)
+		while (i != done.end() && (*i).getEnd() <= (*j) * p_blockSize)
 			++i;
 			
-		if (i == done.end() || !((*i).getStart() <= (*j) * blockSize && (*i).getEnd() >= (*(j + 1)) * blockSize))
+		if (i == done.end() || !((*i).getStart() <= (*j) * p_blockSize && (*i).getEnd() >= (*(j + 1)) * p_blockSize))
 			return true;
 	}
 	
 	return false;
 }
 
-void QueueItem::getPartialInfoL(PartsInfo& p_partialInfo, int64_t p_blockSize) const
+void QueueItem::getPartialInfoL(PartsInfo& p_partialInfo, uint64_t p_blockSize) const
 {
 	dcassert(p_blockSize);
 	if (p_blockSize == 0) // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=31115

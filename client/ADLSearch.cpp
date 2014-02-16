@@ -658,7 +658,7 @@ void ADLSearchManager::matchListing(DirectoryListing& aDirList) noexcept
 	finalizeDestinationDirectories(destDirs, aDirList.getRoot());
 }
 
-void ADLSearchManager::matchRecurse(DestDirList &aDestList, DirectoryListing::Directory* aDir, string &aPath)
+void ADLSearchManager::matchRecurse(DestDirList &aDestList, DirectoryListing::Directory* aDir, const string &aPath)
 {
 	for (auto dirIt = aDir->directories.cbegin(); dirIt != aDir->directories.cend(); ++dirIt)
 	{

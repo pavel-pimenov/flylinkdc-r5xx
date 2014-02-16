@@ -62,9 +62,6 @@ AdvancedPage::ListItem AdvancedPage::listItems[] =
 	{ SettingsManager::ADC_DEBUG, ResourceManager::SETTINGS_ADC_DEBUG },
 	{ SettingsManager::NMDC_DEBUG, ResourceManager::SETTINGS_NMDC_DEBUG },
 #endif
-//#ifdef NO_DONT_ADD_TTH_DCTMP //[+] NightOrion
-//  { SettingsManager::DONT_ADD_TTH_DCTMP, ResourceManager::SETTINGS_DONT_ADD_TTH_DCTMP },
-//#endif
 	{ SettingsManager::SHOW_SHELL_MENU, ResourceManager::SETTINGS_SHOW_SHELL_MENU },
 	{ SettingsManager::OPEN_LOGS_INTERNAL, ResourceManager::OPEN_LOGS_INTERNAL },
 	{ SettingsManager::EXTERNAL_PREVIEW, ResourceManager::EXTERNAL_PREVIEW },

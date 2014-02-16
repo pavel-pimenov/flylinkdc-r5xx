@@ -202,11 +202,11 @@ void OperaColorsPage::write()
 
 LRESULT OperaColorsPage::onDrawItem(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
 {
-	if (PropertiesDlg::needUpdate)
+	if (PropertiesDlg::g_needUpdate)
 	{
 		SendMessage(WM_DESTROY, 0, 0);
 		SendMessage(WM_INITDIALOG, 0, 0);
-		PropertiesDlg::needUpdate = false;
+		PropertiesDlg::g_needUpdate = false;
 	}
 	bHandled = FALSE;
 	DRAWITEMSTRUCT* dis = (DRAWITEMSTRUCT*)lParam;

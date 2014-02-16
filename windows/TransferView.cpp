@@ -566,7 +566,7 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 				const  HLSCOLOR hls = RGB2HLS(clr);
 				LONG top = rc2.top + (rc2.Height() - WinUtil::getTextHeight(cd->nmcd.hdc) - 1) / 2 + 1;
 				
-				const HFONT oldFont = (HFONT)SelectObject(dc, Fonts::systemFont); //font -> systemfont [~]Sergey Shushkanov
+				const HFONT oldFont = (HFONT)SelectObject(dc, Fonts::g_systemFont); //font -> systemfont [~]Sergey Shushkanov
 				SetBkMode(dc, TRANSPARENT);
 				
 				// Get the color of this text bar - this way it ends up looking nice imo.
@@ -619,8 +619,12 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 						
 					if (useStealthyStyle)
 					{
+						const auto& l_stat = ii->getText(COLUMN_STATUS);
 						// Draw the text over entire item
-						::ExtTextOut(dc, rc2.left, top, ETO_CLIPPED, rc2, ii->getText(COLUMN_STATUS).c_str(), ii->getText(COLUMN_STATUS).length(), NULL);
+						if (!l_stat.empty())
+						{
+							::ExtTextOut(dc, rc2.left, top, ETO_CLIPPED, rc2, l_stat.c_str(), l_stat.length(), NULL);
+						}
 						
 						rc.right = rc.left + (int)(((int64_t)rc.Width()) * ii->actual / ii->size);
 						
@@ -752,7 +756,11 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (ii->download ? SETTIN
 				}
 				
 				// Draw the text, the other stuff here was moved upwards due to stealthy style being added
-				::ExtTextOut(dc, rc2.left, top, ETO_CLIPPED, rc2, ii->getText(COLUMN_STATUS).c_str(), ii->getText(COLUMN_STATUS).length(), NULL);
+				const auto& l_stat = ii->getText(COLUMN_STATUS);
+				if (!l_stat.empty())
+				{
+					::ExtTextOut(dc, rc2.left, top, ETO_CLIPPED, rc2, l_stat.c_str(), l_stat.length(), NULL);
+				}
 				
 				SelectObject(dc, oldFont);
 				::SetTextColor(dc, oldcol);
@@ -821,42 +829,42 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (ii->download ? SETTIN
 				DeleteObject(::SelectObject(cd->nmcd.hdc, oldpen));
 				DeleteObject(::SelectObject(cd->nmcd.hdc, oldbr));
 				
-				const wstring &str = ii->getText(colIndex);
-				
-				if (!str.empty())
+				LONG top = rc2.top + (rc2.Height() - 15) / 2;
+				if ((top - rc2.top) < 2)
+					top = rc2.top + 1;
+				// TODO fix copy-paste
+				if (ii->m_location.isNew() && !ii->m_ip.empty())
 				{
-					LONG top = rc2.top + (rc2.Height() - 15) / 2;
-					if ((top - rc2.top) < 2)
-						top = rc2.top + 1;
-					// TODO fix copy-paste
-					if (ii->m_location.isKnown())
+					ii->m_location = Util::getIpCountry(Text::fromT(ii->m_ip));
+				}
+				if (ii->m_location.isKnown())
+				{
+					int l_step = 0;
+					if (BOOLSETTING(ENABLE_COUNTRYFLAG) && ii->m_location.getCountryIndex())
 					{
-						int l_step = 0;
-						if (BOOLSETTING(ENABLE_COUNTRYFLAG) && ii->m_location.getCountryIndex())
-						{
-							const POINT ps = { rc2.left, top };
-							g_flagImage.DrawCountry(cd->nmcd.hdc, ii->m_location, ps);
-							l_step += 25;
-						}
-						const POINT p = { rc2.left + l_step, top };
-						if (ii->m_location.getFlagIndex())
-						{
-							g_flagImage.DrawLocation(cd->nmcd.hdc, ii->m_location, p);
-							l_step += 25;
-						}
-						top = rc2.top + (rc2.Height() - WinUtil::getTextHeight(cd->nmcd.hdc) - 1) / 2;
-						const auto& l_desc = ii->m_location.getDescription();
+						const POINT ps = { rc2.left, top };
+						g_flagImage.DrawCountry(cd->nmcd.hdc, ii->m_location, ps);
+						l_step += 25;
+					}
+					const POINT p = { rc2.left + l_step, top };
+					if (ii->m_location.getFlagIndex())
+					{
+						g_flagImage.DrawLocation(cd->nmcd.hdc, ii->m_location, p);
+						l_step += 25;
+					}
+					top = rc2.top + (rc2.Height() - WinUtil::getTextHeight(cd->nmcd.hdc) - 1) / 2;
+					const auto& l_desc = ii->m_location.getDescription();
+					if (!l_desc.empty())
+					{
 						::ExtTextOut(cd->nmcd.hdc, rc2.left + l_step + 5, top + 1, ETO_CLIPPED, rc2, l_desc.c_str(), l_desc.length(), nullptr);
 					}
-					else
-					{
-						top = rc2.top + (rc2.Height() - WinUtil::getTextHeight(cd->nmcd.hdc) - 1) / 2;
-						::ExtTextOut(cd->nmcd.hdc, rc2.left + 30, top + 1, ETO_CLIPPED, rc2, str.c_str(), str.size(), nullptr);
-					}
-					return CDRF_SKIPDEFAULT;
 				}
+				return CDRF_SKIPDEFAULT;
 			}
-			else if (colIndex != COLUMN_USER && colIndex != COLUMN_HUB && colIndex != COLUMN_STATUS && colIndex != COLUMN_LOCATION &&
+			else if (colIndex != COLUMN_USER &&
+			         colIndex != COLUMN_HUB &&
+			         colIndex != COLUMN_STATUS &&
+			         colIndex != COLUMN_LOCATION &&
 			         ii->m_status != ItemInfo::STATUS_RUNNING)
 			{
 				cd->clrText = OperaColors::blendColors(Colors::bgColor, Colors::textColor, 0.4);
@@ -1092,29 +1100,6 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 					case UPDATE_PARENT_WITH_PARSE:
 						parseQueueItemUpdateInfo(reinterpret_cast<QueueItemUpdateInfo*>(i->second)); // [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
 						break;
-						/*
-						                    case UPDATE_PARENT_WITH_PARSE_2:
-						                        {
-						                            auto qiui = reinterpret_cast<QueueItemUpdateInfo*>(i->second);
-						                            SharedLock l(QueueItem::cs);
-						                            for (auto it = qiui->m_queueItem->getSourcesL().begin(); it != qiui->m_queueItem->getSourcesL().end(); ++it)
-						                            {
-						                                auto ui = new UpdateInfo(it->getUser(), true);
-						
-						                                ui->setTarget(qiui->m_queueItem->getTarget());
-						                                ui->setPos(0);
-						                                ui->setActual(0);
-						                                ui->setTimeLeft(0);
-						                                ui->setStatusString(TSTRING(DISCONNECTED));
-						                                ui->setStatus(ItemInfo::STATUS_WAITING);
-						                                ui->setRunning(0);
-						
-						                                m_tasks.add(UPDATE_PARENT, ui);
-						                            }
-						                        }
-						
-						                        break;
-						*/
 				}
 				const auto& ui = static_cast<UpdateInfo&>(*i->second);
 				const ItemInfoList::ParentPair* pp = ctrlTransfers.findParentPair(ui.m_target);
@@ -1212,11 +1197,11 @@ void TransferView::ItemInfo::update(const UpdateInfo& ui)
 	}
 	if (ui.updateMask & UpdateInfo::MASK_IP)
 	{
-		dcassert(!ui.ip.empty()); // http://code.google.com/p/flylinkdc/issues/detail?id=1298
+		dcassert(!ui.m_ip.empty()); // http://code.google.com/p/flylinkdc/issues/detail?id=1298
 		// dcassert(ip.empty()); TODO: fix me please.
-		if (ip.empty()) // [+] IRainman fix: if IP is set already, not try to set twice. IP can not change during a single connection.
+		if (m_ip.empty()) // [+] IRainman fix: if IP is set already, not try to set twice. IP can not change during a single connection.
 		{
-			ip = ui.ip;
+			m_ip = ui.m_ip;
 #ifdef PPA_INCLUDE_COLUMN_RATIO
 			m_ratio_as_text = ui.hintedUser.user->getUDratio();// [+] brain-ripper
 #endif
@@ -1269,6 +1254,7 @@ void TransferView::updateItem(int ii, uint32_t updateMask)
 	if (updateMask & UpdateInfo::MASK_IP)
 	{
 		ctrlTransfers.updateItem(ii, COLUMN_IP);
+		// ctrlTransfers.updateItem(ii, COLUMN_LOCATION);
 	}
 	if (updateMask & UpdateInfo::MASK_SEGMENT)
 	{
@@ -1383,7 +1369,7 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 		case COLUMN_PATH:
 			return Util::getFilePath(m_target); // TODO: opt me please.
 		case COLUMN_IP:
-			return ip;
+			return m_ip;
 #ifdef PPA_INCLUDE_COLUMN_RATIO
 			// [~] brain-ripper
 			//case COLUMN_RATIO: return (status == STATUS_RUNNING) ? Util::toStringW(ratio()) : Util::emptyStringT;
@@ -1398,13 +1384,17 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 			return m_hintedUser.user ? Util::toStringW(m_hintedUser.user->getSlots()) : Util::emptyStringT;
 		case COLUMN_LOCATION:
 		{
-			// [!] IRainman opt: no need to get geolocation before the user sees it.
-			if (!m_location.isSet() && !ip.empty()) // [!] IRainman opt: Prevent multiple repeated requests to the database if the location has not been found!
-			{
-				m_location = Util::getIpCountry(Text::fromT(ip));
-			}
+			if (m_location.isKnown())
+				return m_location.getDescription();
+			else
+				return Util::emptyStringT;
+			/*          // [!] IRainman opt: no need to get geolocation before the user sees it.
+			            if (!m_location.isNew() && !m_ip.empty()) // [!] IRainman opt: Prevent multiple repeated requests to the database if the location has not been found!
+			            {
+			                m_location = Util::getIpCountry(Text::fromT(m_ip));
+			            }
 			
-			return m_location.isKnown() ? m_location.getDescription() : Util::emptyStringT;
+			*/
 		}
 		default:
 			return Util::emptyStringT;
@@ -1419,9 +1409,9 @@ void TransferView::starting(UpdateInfo* ui, const Transfer* t)
 	const UserConnection& uc = t->getUserConnection();
 	ui->setCipher(uc.getCipherName());
 	
-	const string& ip = uc.getRemoteIp();
+	const string ip = uc.getRemoteIp();
 	
-	ui->setIP(ip);
+	ui->setIP(ip); // https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=55732
 }
 
 void TransferView::on(DownloadManagerListener::Requesting, const Download* d) noexcept
@@ -1801,9 +1791,8 @@ void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItemPtr& q
 
 void TransferView::parseQueueItemUpdateInfo(QueueItemUpdateInfo* ui) // [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
 {
-	const auto& qi = ui->m_queueItem;
-	
-	ui->setTarget(qi->getTarget()); // TODO getTarget - возвращает мусорок... [!] IRainman fix: исправлено добавлением умного указателя.
+	const auto qi = ui->m_queueItem; // Сылку делать нельзя - падаем https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=114130
+	ui->setTarget(qi->getTarget());
 	ui->setType(Transfer::TYPE_FILE);
 	
 	if (qi->isRunningL())

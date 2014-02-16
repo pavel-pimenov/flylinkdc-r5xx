@@ -26,7 +26,6 @@
 #include "HIconWrapper.h"
 #include "wtl_flylinkdc.h"
 #include "leveldb/db.h"
-//#include "../openssl/include/openssl/crypto.h"
 //#include "MediaInfo/MediaInfo_Config.h"
 
 /*
@@ -121,7 +120,7 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			    _T("MediaInfoLib 0.7.67\r\n")//MediaInfoLib::MediaInfo_Version _T("\r\n")
 			    _T("WTL 8.1\r\n")
 			    _T("XMLParser 2.43\r\n") //XMLParser::XMLNode::getVersion()
-			    _T("InnoSetup 5.5.3");
+			    _T("InnoSetup 5.5.4");
 			CEdit ctrlPartySoftware(GetDlgItem(IDC_THIRD_PARTY_SOFTWARE));
 			ctrlPartySoftware.FmtLines(TRUE);
 			ctrlPartySoftware.AppendText(l_Party_Software, FALSE);

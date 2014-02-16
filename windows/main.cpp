@@ -21,7 +21,9 @@
 #include <signal.h>
 
 #ifdef _DEBUG
-//# define USE_FLYLINKDC_VLD // 3>LINK : fatal error LNK1104: cannot open file 'vld.lib' VLD качать тут http://vld.codeplex.com/
+#ifndef _WIN64
+// #define USE_FLYLINKDC_VLD // 3>LINK : fatal error LNK1104: cannot open file 'vld.lib' VLD качать тут http://vld.codeplex.com/
+#endif
 #endif
 #ifdef USE_FLYLINKDC_VLD
 //[!] ¬ключать только при наличии VLD и только в _DEBUG
@@ -475,10 +477,25 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	
 	//g_DisableSplash = true;
 #endif
-	extern bool g_DisableSQLiteWAL;
+	extern bool g_DisableSQLJournal;
+	extern bool g_UseWALJournal;
 	extern bool g_EnableSQLtrace;
+	extern bool g_UseSynchronousOff;
 	if (_tcsstr(lpstrCmdLine, _T("/nowal")) != NULL)
-		g_DisableSQLiteWAL = true;
+		g_DisableSQLJournal = true;
+	if (_tcsstr(lpstrCmdLine, _T("/sqlite_use_memory")) != NULL)
+		g_DisableSQLJournal = true;
+	if (_tcsstr(lpstrCmdLine, _T("/sqlite_use_wal")) != NULL)
+		g_UseWALJournal = true;
+	if (_tcsstr(lpstrCmdLine, _T("/sqlite_synchronous_off")) != NULL)
+		g_UseSynchronousOff = true;
+		
+	const auto l_debug_fly_server_url = _tcsstr(lpstrCmdLine, _T("/debug_fly_server_url="));
+	if (l_debug_fly_server_url != NULL)
+	{
+		extern string g_debug_fly_server_url;
+		g_debug_fly_server_url = Text::fromT(l_debug_fly_server_url + 22);
+	}
 	if (_tcsstr(lpstrCmdLine, _T("/sqltrace")) != NULL)
 		g_EnableSQLtrace = true;
 	if (_tcsstr(lpstrCmdLine, _T("/nologo")) != NULL)

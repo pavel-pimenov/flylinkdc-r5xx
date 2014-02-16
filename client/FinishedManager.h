@@ -171,6 +171,7 @@ class FinishedManager : public Singleton<FinishedManager>,
 		
 		void on(QueueManagerListener::Finished, const QueueItemPtr&, const string&, const Download*) noexcept;
 		void on(UploadManagerListener::Complete, const Upload*) noexcept;
+		string log(const CID& p_CID, const string& p_path, const string& p_message);
 		
 #ifdef IRAINMAN_USE_SEPARATE_CS_IN_FINISHED_MANAGER
 		FastSharedCriticalSection csD, csU; // [!] IRainman opt: add separate cs.

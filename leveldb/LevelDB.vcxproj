@@ -81,7 +81,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;LEVELDB_PLATFORM_WINDOWS;OS_WIN;SNAPPY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;LEVELDB_PLATFORM_WINDOWS;OS_WIN;NO_SNAPPY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -99,7 +99,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;LEVELDB_PLATFORM_WINDOWS;SNAPPY;OS_WIN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;LEVELDB_PLATFORM_WINDOWS;NO_SNAPPY;OS_WIN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -116,7 +116,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>SNAPPY;WIN32;NDEBUG;_LIB;LEVELDB_PLATFORM_WINDOWS;OS_WIN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NO_SNAPPY;WIN32;NDEBUG;_LIB;LEVELDB_PLATFORM_WINDOWS;OS_WIN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -141,7 +141,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>COMPILER_MSVC;SNAPPY;WIN32;NDEBUG;_LIB;LEVELDB_PLATFORM_WINDOWS;OS_WIN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>COMPILER_MSVC;NO_SNAPPY;WIN32;NDEBUG;_LIB;LEVELDB_PLATFORM_WINDOWS;OS_WIN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -205,7 +205,7 @@
     <ClCompile Include="util\filter_policy.cc" />
     <ClCompile Include="util\hash.cc" />
     <ClCompile Include="util\histogram.cc" />
-    <ClCompile Include="util\logging.cc" />
+    <ClCompile Include="util\leveldb_logging.cc" />
     <ClCompile Include="util\options.cc" />
     <ClCompile Include="util\status.cc" />
   </ItemGroup>

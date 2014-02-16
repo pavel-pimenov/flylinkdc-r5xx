@@ -431,7 +431,9 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 #endif
 		void save();
 		void recentsave();
+#ifdef USE_SUPPORT_HUB
 		static const string& getSupportHubURL();
+#endif //USE_SUPPORT_HUB
 		size_t getCountFavsUsers() const;
 	private:
 		void getFavoriteUsersNamesL(StringSet& p_users, bool p_is_ban) const;
@@ -492,12 +494,12 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		string publicListServer;
 		bool m_useHttp;
 		bool m_running;
-		uint16_t m_dontSave;
 		HttpConnection* c;
 		int m_lastServer;
 		HubTypes m_listType;
 		string m_downloadBuf;
 #endif
+		uint16_t m_dontSave;
 	public:
 		void prepareClose();
 		void shutdown();

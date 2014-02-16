@@ -14,7 +14,7 @@ LRESULT CDMDebugFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	ctrlPad.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	               WS_VSCROLL | ES_AUTOVSCROLL | ES_MULTILINE | ES_NOHIDESEL | ES_READONLY, WS_EX_CLIENTEDGE);
 	ctrlPad.LimitText(0);
-	ctrlPad.SetFont(Fonts::font);
+	ctrlPad.SetFont(Fonts::g_font);
 	
 	CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);
 	ctrlStatus.Attach(m_hWndStatusBar);
@@ -22,7 +22,7 @@ LRESULT CDMDebugFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	
 	ctrlClear.Create(ctrlStatus.m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_PUSHBUTTON, 0, IDC_CLEAR);
 	ctrlClear.SetWindowText(CTSTRING(CDM_CLEAR));
-	ctrlClear.SetFont(Fonts::systemFont);
+	ctrlClear.SetFont(Fonts::g_systemFont);
 	clearContainer.SubclassWindow(ctrlClear.m_hWnd);
 	
 	CFlyRegistryMap l_store_values;
@@ -31,44 +31,44 @@ LRESULT CDMDebugFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	
 	ctrlHubCommands.Create(ctrlStatus.m_hWnd, rcDefault, CTSTRING(CDM_HUB_COMMANDS), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, WS_EX_STATICEDGE);
 	ctrlHubCommands.SetButtonStyle(BS_AUTOCHECKBOX, false);
-	ctrlHubCommands.SetFont(Fonts::systemFont);
+	ctrlHubCommands.SetFont(Fonts::g_systemFont);
 	ctrlHubCommands.SetCheck(m_showHubCommands ? BST_CHECKED : BST_UNCHECKED);
 	HubCommandContainer.SubclassWindow(ctrlHubCommands.m_hWnd);
 	
 	m_showCommands = l_store_values["m_showCommands"];
 	ctrlCommands.Create(ctrlStatus.m_hWnd, rcDefault, CTSTRING(CDM_CLIENT_COMMANDS), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, WS_EX_STATICEDGE);
 	ctrlCommands.SetButtonStyle(BS_AUTOCHECKBOX, false);
-	ctrlCommands.SetFont(Fonts::systemFont);
+	ctrlCommands.SetFont(Fonts::g_systemFont);
 	ctrlCommands.SetCheck(m_showCommands ? BST_CHECKED : BST_UNCHECKED);
 	commandContainer.SubclassWindow(ctrlCommands.m_hWnd);
 	
 	m_showDetection = l_store_values["m_showDetection"];
 	ctrlDetection.Create(ctrlStatus.m_hWnd, rcDefault, CTSTRING(CDM_DETECTION), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, WS_EX_STATICEDGE);
 	ctrlDetection.SetButtonStyle(BS_AUTOCHECKBOX, false);
-	ctrlDetection.SetFont(Fonts::systemFont);
+	ctrlDetection.SetFont(Fonts::g_systemFont);
 	ctrlDetection.SetCheck(m_showDetection ? BST_CHECKED : BST_UNCHECKED);
 	detectionContainer.SubclassWindow(ctrlDetection.m_hWnd);
 	
 	m_bFilterIp = l_store_values["m_bFilterIp"];
 	ctrlFilterIp.Create(ctrlStatus.m_hWnd, rcDefault, CTSTRING(CDM_FILTER), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, WS_EX_STATICEDGE);
 	ctrlFilterIp.SetButtonStyle(BS_AUTOCHECKBOX, false);
-	ctrlFilterIp.SetFont(Fonts::systemFont);
+	ctrlFilterIp.SetFont(Fonts::g_systemFont);
 	ctrlFilterIp.SetCheck(m_bFilterIp ? BST_CHECKED : BST_UNCHECKED);
 	cFilterContainer.SubclassWindow(ctrlFilterIp.m_hWnd);
 	// add ES_AUTOHSCROLL - fix http://code.google.com/p/flylinkdc/issues/detail?id=1249
 	ctrlIPFilter.Create(ctrlStatus.m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | ES_NOHIDESEL | ES_AUTOHSCROLL, WS_EX_STATICEDGE, IDC_DEBUG_IP_FILTER_TEXT);
 	ctrlIPFilter.SetLimitText(22); // для IP+Port
-	ctrlIPFilter.SetFont(Fonts::font);
+	ctrlIPFilter.SetFont(Fonts::g_font);
 	eFilterContainer.SubclassWindow(ctrlStatus.m_hWnd);
 	
 	m_ctrlIncludeFilter.Create(ctrlStatus.m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | ES_NOHIDESEL | ES_AUTOHSCROLL, WS_EX_STATICEDGE, IDC_DEBUG_INCLUDE_FILTER_TEXT);
 	m_ctrlIncludeFilter.SetLimitText(100);
-	m_ctrlIncludeFilter.SetFont(Fonts::font);
+	m_ctrlIncludeFilter.SetFont(Fonts::g_font);
 	m_eIncludeFilterContainer.SubclassWindow(ctrlStatus.m_hWnd);
 	
 	m_ctrlExcludeFilter.Create(ctrlStatus.m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | ES_NOHIDESEL | ES_AUTOHSCROLL, WS_EX_STATICEDGE, IDC_DEBUG_EXCLUDE_FILTER_TEXT);
 	m_ctrlExcludeFilter.SetLimitText(100);
-	m_ctrlExcludeFilter.SetFont(Fonts::font);
+	m_ctrlExcludeFilter.SetFont(Fonts::g_font);
 	m_eExcludeFilterContainer.SubclassWindow(ctrlStatus.m_hWnd);
 	
 	m_hWndClient    = ctrlPad;
@@ -107,7 +107,7 @@ LRESULT CDMDebugFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 				l_values["m_showDetection"] = m_showDetection;
 			if (m_bFilterIp)
 				l_values["m_bFilterIp"] = m_bFilterIp;
-			CFlylinkDBManager::getInstance()->save_registry(l_values, e_CMDDebugFilterState);
+			CFlylinkDBManager::getInstance()->save_registry(l_values, e_CMDDebugFilterState, true);
 		}
 		
 		DebugManager::getInstance()->removeListener(this);

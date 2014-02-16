@@ -26,8 +26,19 @@
 
 class NetworkPage : public CPropertyPage<IDD_NETWORK_PAGE>, public PropPage
 {
+		enum StagesIcon
+		{
+			StageFail = 0,
+			StageSuccess,
+			StageWait,
+			StageWarn,
+			StageUnknown,
+			StageQuestion
+		};
+		void SetStage(int ID, StagesIcon stage);
+		void TestWinFirewall();
 	public:
-		NetworkPage(SettingsManager *s) : PropPage(s)
+		NetworkPage(SettingsManager *s) : PropPage(s), m_count_test_port_tick(0)
 		{
 			SetTitle(CTSTRING(SETTINGS_NETWORK));
 			m_psp.dwFlags |= PSP_RTLREADING;
@@ -49,18 +60,19 @@ class NetworkPage : public CPropertyPage<IDD_NETWORK_PAGE>, public PropPage
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 		COMMAND_ID_HANDLER(IDC_AUTODETECT, onClickedActive)
 #endif
-		COMMAND_ID_HANDLER(IDC_CON_CHECK, onCheckConn)
 #ifdef STRONG_USE_DHT
 		COMMAND_ID_HANDLER(IDC_SETTINGS_USE_DHT, onCheckDHTStats)
 #endif
 		COMMAND_ID_HANDLER(IDC_GETIP, onGetIP)
+		COMMAND_ID_HANDLER(IDC_ADD_FLYLINKDC_WINFIREWALL, onAddWinFirewallException)
+		
 		CHAIN_MSG_MAP(PropPage)
 		END_MSG_MAP()
 		
 		LRESULT onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		LRESULT onClickedActive(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-		LRESULT onCheckConn(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */);
+		LRESULT onAddWinFirewallException(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */);
 		LRESULT OnEnKillfocusExternalIp(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 #ifdef STRONG_USE_DHT
 		LRESULT onCheckDHTStats(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
@@ -73,13 +85,14 @@ class NetworkPage : public CPropertyPage<IDD_NETWORK_PAGE>, public PropPage
 		}
 		void write();
 		void cancel() {}
+		void updateTestPortIcon(bool p_is_wait);
 	private:
+		int m_count_test_port_tick;
 		static Item items[];
 		static TextItem texts[];
-		CEdit desc;
-		CFlyHyperLink m_ConnCheckUrl;
+		CEdit m_desc;
 		CFlyToolTipCtrl m_IPHint;
-		CComboBox BindCombo;
+		CComboBox m_BindCombo;
 		void fixControls();
 		
 };

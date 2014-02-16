@@ -31,8 +31,6 @@ class ADLSearch;
 
 class BufferedSocket;
 
-class ChatMessage;
-
 class CID;
 
 typedef std::vector<uint16_t> PartsInfo;

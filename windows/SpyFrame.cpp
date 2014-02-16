@@ -40,7 +40,7 @@ LRESULT SpyFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	
 	ctrlIgnoreTth.Create(ctrlStatus.m_hWnd, rcDefault, CTSTRING(IGNORE_TTH_SEARCHES), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 	ctrlIgnoreTth.SetButtonStyle(BS_AUTOCHECKBOX, false);
-	ctrlIgnoreTth.SetFont(Fonts::systemFont);
+	ctrlIgnoreTth.SetFont(Fonts::g_systemFont);
 	ctrlIgnoreTth.SetCheck(m_ignoreTTH);
 	ignoreTthContainer.SubclassWindow(ctrlIgnoreTth.m_hWnd);
 	

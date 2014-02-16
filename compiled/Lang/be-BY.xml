@@ -109,7 +109,6 @@
 		<String Name="AutoupdateColorthemes">Аздабленьне колерамі</String>
 		<String Name="AutoupdateComponentLabel">Якія складнікі абнаўляць</String>
 		<String Name="AutoupdateCustomlocation">База месцазнаходжаньня</String>
-		<String Name="AutoupdateDhtserverslist">Сьпіс паслужнікоў DHT</String>
 		<String Name="AutoupdateDocumentation">Дакумэнтацыя</String>
 		<String Name="AutoupdateDownloadedRemoveOrInstall">Сьцягнулі абнаўленьне «FlylinkDC++». Ці абнавіць зараз? Калі не абнавіць, абнаўленьне сатрэцца.</String>
 		<String Name="AutoupdateDownloadFailed">Не ўдалося сьцягнуць абнаўленьне.</String>
@@ -617,7 +616,6 @@
 		<String Name="GdiPlusTabs">Аздабляць карткі як у GDI+</String>
 		<String Name="GenerateCertificates">Стварыць пасьведчаньні</String>
 		<String Name="GetFileList">Атрымаць сьпіс файлаў</String>
-		<String Name="GetIp">Атрымаць IP</String>
 		<String Name="GetUserResponses">Атрымаць адказ (IP) карыстальніка</String>
 		<String Name="GiveExtraSlot">Дадаць шчыліну</String>
 		<String Name="Global">Пераважае над улюбёнымі асяродкамі</String>
@@ -857,6 +855,7 @@
 		<String Name="MaxSegmentsNumber">Найбольшая колькасьць частак</String>
 		<String Name="MaxSize">Найбольшы памер</String>
 		<String Name="MaxUsers">Найб. карыстальнікаў</String>
+		<String Name="MessagesCount">Паведамленьні</String>
 		<String Name="Mb">МіБ</String>
 		<String Name="Mbps">МіБ/с</String>
 		<String Name="MediaAudio">Гук</String>
@@ -1274,7 +1273,6 @@
 		<String Name="SearchSpamFrom">Выявілі непажаданы пошук ад</String>
 		<String Name="SearchSpy">Шпегаваць па шуканым</String>
 		<String Name="SearchString">Шукаць радок</String>
-		<String Name="SearchWikihelp">Нічога не знайшлі? Наведайце бачыну вікі — FlyWiki.</String>
 		<String Name="SearchesPer">Пошукі: %u/сэк., %u/хв.</String>
 		<String Name="SearchingFor">Шукаем</String>
 		<String Name="Sec">сэк.</String>
@@ -1513,7 +1511,6 @@
 		<String Name="SettingsRc">Адлегла кіраваць</String>
 		<String Name="SettingsRequiresRestart">Уважце: большасьць можнасьцяў вымагае нанова запусьціць праґраму</String>
 		<String Name="SettingsReset">Скінуць</String>
-		<String Name="SettingsRollback">Адкатваць</String>
 		<String Name="SettingsRssProp">Стужка навінаў</String>
 		<String Name="SettingsSaveTthInNtfsFilestream">Захоўваць скарот (TTH) у файластрумені NTFS. Увага: калі зьняць птушачку, струмень сатрэцца!</String>
 		<String Name="SettingsSbMaxSources">Крыніц у супадзеньнях ≤</String>
@@ -1939,7 +1936,6 @@
 		<String Name="WizardFinishLabel2">Цяпер можна пачынаць карыстацца «FlylinkDC++»!</String>
 		<String Name="WizardNetaBtnCheckupnp">Выпрабаваць UPNP</String>
 		<String Name="WizardNetaBtnSetuprouter">Уладкаваць маршрутавальнік</String>
-		<String Name="WizardNetaBtnSetuptest">Наставіць выпрабаваньні</String>
 		<String Name="WizardNetaBtnTest">Выпрабаваць сеткавыя злучэньні FlylinkDC++</String>
 		<String Name="WizardNetaFirewallStatic">Сетказаслона</String>
 		<String Name="WizardNetaNeedpassivemode">Непаладкі зь дзейным спосабам. Ці перайсьці да нядзейнага спосабу злучацца па сетцы?</String>
@@ -1979,8 +1975,6 @@
  4. Уладкаваць кліент згодна з настаўленьнямі сеткі. 
  5. Дадаць улюбёныя асяродкі.</String>
 		<String Name="WizardStartupTxt3">Каб працягваць, націсьніце «Далей»…</String>
-		<String Name="RestoreDefaul">Вярнуць пачатковыя</String>
-		<String Name="WizardTestDlgTitle">Спасылка на прыладу FlylinkDC++ выпрабоўваць порты</String>
 		<String Name="WizardTitle">Памочнік у наладах FlylinkDC++</String>
 		<String Name="WmpHelp">/wmp — Працуе з Windows Media Player 9+
    %[version] — вэрсія Windows Media Player

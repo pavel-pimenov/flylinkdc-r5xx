@@ -19,6 +19,7 @@
 #ifndef DCPLUSPLUS_DCPP_CONNECTION_MANAGER_H
 #define DCPLUSPLUS_DCPP_CONNECTION_MANAGER_H
 
+#include <boost/asio/ip/address_v4.hpp>
 #include "TimerManager.h"
 
 #include "UserConnection.h"
@@ -46,8 +47,8 @@ class ConnectionQueueItem
 			ACTIVE                      // In one up/downmanager
 		};
 		
-		ConnectionQueueItem(const UserPtr& aUser, bool aDownload) : token(Util::toString(Util::rand())),
-			lastAttempt(0), errors(0), state(WAITING), download(aDownload), m_user(aUser) { }
+		ConnectionQueueItem(const HintedUser& aUser, bool aDownload) : token(Util::toString(Util::rand())),
+			lastAttempt(0), errors(0), state(WAITING), download(aDownload), m_user(aUser), hubUrl(aUser.hint) { }
 			
 		const string& getToken() const
 		{
@@ -56,6 +57,7 @@ class ConnectionQueueItem
 		GETSET(uint64_t, lastAttempt, LastAttempt);
 		GETSET(int, errors, Errors); // Number of connection errors, or -1 after a protocol error
 		GETSET(State, state, State);
+		GETSET(string, hubUrl, HubUrl); // TODO - пока не доконца работает и не везде прокидывается
 		bool getDownload() const
 		{
 			return download;
@@ -167,12 +169,12 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 			                         );
 		}
 		
-		void nmdcConnect(const string& aServer, uint16_t aPort, const string& aMyNick, const string& hubUrl, const string& encoding,
+		void nmdcConnect(const string& aIPServer, uint16_t aPort, const string& aMyNick, const string& hubUrl, const string& encoding,
 #ifdef IRAINMAN_ENABLE_STEALTH_MODE
 		                 bool stealth,
 #endif
 		                 bool secure);
-		void nmdcConnect(const string& aServer, uint16_t aPort, uint16_t localPort, BufferedSocket::NatRoles natRole, const string& aNick, const string& hubUrl, const string& encoding,
+		void nmdcConnect(const string& aIPServer, uint16_t aPort, uint16_t localPort, BufferedSocket::NatRoles natRole, const string& aNick, const string& hubUrl, const string& encoding,
 #ifdef IRAINMAN_ENABLE_STEALTH_MODE
 		                 bool stealth,
 #endif
@@ -236,6 +238,8 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		// [+] SSA private:
 	private:
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csConnection;
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csDdosCheck;
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csTTHFilter;
 		
 		/** All ConnectionQueueItems */
 		ConnectionQueueItem::List downloads;
@@ -243,6 +247,46 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		
 		/** All active connections */
 		boost::unordered_set<UserConnection*> m_userConnections;
+		typedef std::pair<boost::asio::ip::address_v4, boost::asio::ip::address_v4> CFlyDDOSkey; // uint32_t boost::asio::ip::address_v4 в  ключе тупит
+		class CFlyTickDetect
+		{
+			public:
+				uint64_t m_first_tick;
+				uint64_t m_last_tick;
+				uint16_t m_count_connect;
+				uint16_t m_block_id;
+				CFlyTickDetect(): m_first_tick(0), m_last_tick(0), m_count_connect(0), m_block_id(0)
+				{
+				}
+		};
+		class CFlyTTHTick : public CFlyTickDetect
+		{
+		};
+		class CFlyDDoSTick : public CFlyTickDetect
+		{
+			public:
+				std::string m_type_block;
+				boost::unordered_set<uint16_t> m_ports;
+				std::vector<std::string> m_original_query_for_debug;
+				CFlyDDoSTick()
+				{
+				}
+				string getPorts() const
+				{
+					string l_ports;
+					string l_sep;
+					for (auto i = m_ports.cbegin(); i != m_ports.cend(); ++i)
+					{
+						l_ports += l_sep;
+						l_ports += Util::toString(*i);
+						l_sep = ",";
+					}
+					return " Port: " + l_ports;
+				}
+		};
+		std::map<CFlyDDOSkey, CFlyDDoSTick> m_ddos_map;
+		
+		std::unordered_map<string, CFlyTTHTick> m_tth_duplicate_search;
 		
 #define USING_IDLERS_IN_CONNECTION_MANAGER // [!] IRainman fix: don't disable this.
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
@@ -254,7 +298,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		
 		ExpectedMap m_expectedConnections;
 		
-		uint64_t floodCounter;
+		uint64_t m_floodCounter;
 		
 		Server* server;
 		Server* secureServer;
@@ -273,7 +317,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		void addUploadConnection(UserConnection* uc);
 		void addDownloadConnection(UserConnection* uc);
 		
-		ConnectionQueueItem* getCQI(const UserPtr& aUser, bool download);
+		ConnectionQueueItem* getCQI(const HintedUser& aHintedUser, bool download);
 		void putCQI(ConnectionQueueItem* cqi);
 		
 		void accept(const Socket& sock, bool secure) noexcept;
@@ -282,7 +326,13 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		
 		void failed(UserConnection* aSource, const string& aError, bool protocolError);
 		
-		bool checkIpFlood(const string& aServer, uint16_t aPort, const string& userInfo);
+	public:
+		bool checkIpFlood(const string& aIPServer, uint16_t aPort, const boost::asio::ip::address_v4 p_ip_hub, const string& userInfo, const string& p_HubInfo);
+		bool checkTTHDuplicateSearch(const string& p_search_command);
+	private:
+	
+		void cleanupTTHDuplicateSearch(const uint64_t p_tick);
+		void cleanupIpFlood(const uint64_t p_tick);
 		
 		// UserConnectionListener
 		void on(Connected, UserConnection*) noexcept;

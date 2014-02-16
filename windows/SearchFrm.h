@@ -106,6 +106,8 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 #endif
 		COMMAND_ID_HANDLER(IDC_REMOVE, onRemove)
 		COMMAND_ID_HANDLER(IDC_SEARCH, onSearch)
+		COMMAND_ID_HANDLER(IDC_SEARCH_PASSIVE, onSearchPassive)
+		COMMAND_ID_HANDLER(IDC_SEARCH_UDP_PORT_TEST, onUDPPortTest)
 		COMMAND_ID_HANDLER(IDC_SEARCH_PAUSE, onPause)
 		COMMAND_ID_HANDLER(IDC_COPY_NICK, onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_FILENAME, onCopy)
@@ -175,20 +177,21 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			modeContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
 			sizeModeContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
 			fileTypeContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
-			showUIContainer(WC_COMBOBOX, this, SHOWUI_MESSAGE_MAP),
-			slotsContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
-			collapsedContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
+			//showUIContainer(WC_COMBOBOX, this, SHOWUI_MESSAGE_MAP),
+			//slotsContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
+			//collapsedContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-			storeIPContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
+			//storeIPContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
 			m_storeIP(false),
 #endif
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-			m_FlyServerContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
-			m_FlyServerGradientContainer(WC_STATIC, this, SEARCH_MESSAGE_MAP),
+			//m_FlyServerContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
+			//m_FlyServerGradientContainer(WC_STATIC, this, SEARCH_MESSAGE_MAP),
 #endif
-			storeSettingsContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
-			purgeContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
-			doSearchContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
+			//storeSettingsContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
+			//purgeContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
+			//doSearchContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
+			//doSearchPassiveContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
 			resultsContainer(WC_LISTVIEW, this, SEARCH_MESSAGE_MAP),
 			hubsContainer(WC_LISTVIEW, this, SEARCH_MESSAGE_MAP),
 			ctrlFilterContainer(WC_EDIT, this, FILTER_MESSAGE_MAP),
@@ -204,11 +207,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			m_waitingResults(false),
 			m_needsUpdateStats(false), // [+] IRainman opt.
 			m_Theme(nullptr)
-#ifdef SCALOLAZ_SEARCH_HELPLINK
-			, m_widthHelp(50)
-#endif
 		{
-		
 		}
 		
 		~SearchFrame();
@@ -316,9 +315,15 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		
 		LRESULT onSearch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
-			onEnter();
+			onEnter(false);
 			return 0;
 		}
+		LRESULT onSearchPassive(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+		{
+			onEnter(true);
+			return 0;
+		}
+		LRESULT onUDPPortTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
 		LRESULT onKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 		{
@@ -595,16 +600,16 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		CButton ctrlPurge;
 		CButton ctrlPauseSearch;
 		CButton ctrlDoSearch;
-#ifdef SCALOLAZ_SEARCH_HELPLINK
-		int m_widthHelp;
-		CRect m_frect;
+		CButton ctrlDoSearchPassive;
+		
+		CButton ctrlDoUDPTestPort;
 		CHyperLink m_SearchHelp;
-#endif
+		
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		CButton m_ctrlFlyServer;
-		CContainedWindow m_FlyServerContainer;
+		//CContainedWindow m_FlyServerContainer;
 		CGradientLabelCtrl m_FlyServerGradientLabel;
-		CContainedWindow m_FlyServerGradientContainer;
+		//CContainedWindow m_FlyServerGradientContainer;
 #endif
 		CFlyToolTipCtrl m_tooltip;  // [+] SCALOlaz: add tooltips
 		BOOL ListMeasure(HWND hwnd, UINT uCtrlId, MEASUREITEMSTRUCT *mis);
@@ -616,17 +621,19 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		CContainedWindow modeContainer;
 		CContainedWindow sizeModeContainer;
 		CContainedWindow fileTypeContainer;
-		CContainedWindow slotsContainer;
-		CContainedWindow collapsedContainer;
+		//CContainedWindow slotsContainer;
+		//CContainedWindow collapsedContainer;
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-		CContainedWindow storeIPContainer;
+		//CContainedWindow storeIPContainer;
 		CButton m_ctrlStoreIP;
 		bool m_storeIP;
 #endif
-		CContainedWindow storeSettingsContainer;
-		CContainedWindow showUIContainer;
-		CContainedWindow purgeContainer;
-		CContainedWindow doSearchContainer;
+		//CContainedWindow storeSettingsContainer;
+		//CContainedWindow showUIContainer;
+		//CContainedWindow purgeContainer;
+		//CContainedWindow doSearchContainer;
+		//CContainedWindow doSearchPassiveContainer;
+		
 		CContainedWindow resultsContainer;
 		CContainedWindow hubsContainer;
 		CContainedWindow ctrlFilterContainer;
@@ -683,17 +690,25 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		FastCriticalSection cs; // [!] IRainman opt: use spin lock here.
 		
 	public:
-		static TStringList lastSearches;
+		static TStringList g_lastSearches;
 		
 	private:
 		static HIconWrapper g_purge_icon; // [~] Sergey Shushkanov
 		static HIconWrapper g_pause_icon; // [~] Sergey Shushkanov
 		static HIconWrapper g_search_icon; // [~] Sergey Shushkanov
 		
+		static HIconWrapper g_UDPOkIcon;
+		static HIconWrapper g_UDPWaitIcon;
+		static tstring      g_UDPTestText;
+		static bool         g_isUDPTestOK;
+		
+		CStatic m_ctrlUDPMode;
+		CStatic m_ctrlUDPTestResult;
+		
 		size_t m_droppedResults;
 		HTHEME m_Theme;
 		
-		StringMap ucLineParams;
+		StringMap m_ucLineParams;
 		
 		static int columnIndexes[];
 		static int columnSizes[];
@@ -735,11 +750,12 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 		void downloadSelected(const tstring& aDir, bool view = false);
 		void downloadWholeSelected(const tstring& aDir);
-		void onEnter();
+		void onEnter(bool p_is_force_passive);
 		void onTab(bool shift);
 		void download(SearchResult* aSR, const tstring& aDir, bool view);
 		
 		void on(SearchManagerListener::SR, const SearchResultPtr &aResult) noexcept;
+		void on(SearchManagerListener::UDPTest, const string& p_ip) noexcept;
 		//void on(SearchManagerListener::Searching, SearchQueueItem* aSearch) noexcept;
 		
 		// ClientManagerListener

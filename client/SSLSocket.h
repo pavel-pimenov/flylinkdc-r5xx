@@ -21,7 +21,7 @@
 
 #include "Socket.h"
 #include "Singleton.h"
-#include "SSL.h"
+#include "ssl.h"
 
 
 #ifndef SSL_SUCCESS

@@ -102,7 +102,6 @@
 		<String Name="AutoupdateColorthemes">Кольорові теми</String>
 		<String Name="AutoupdateComponentLabel">Компоненти для оновлення</String>
 		<String Name="AutoupdateCustomlocation">Оновити базу custom location</String>
-		<String Name="AutoupdateDhtserverslist">Оновлювати DHT список серверів</String>
 		<String Name="AutoupdateDocumentation">Документація</String>
 		<String Name="AutoupdateDownloadedRemoveOrInstall">Оновлення FlylinkDC++ додано. Оновити зараз? У разі відмови, скачані оновлення буде видалено</String>
 		<String Name="AutoupdateDownloadFailed">Не вдалося завантажити оновлення.</String>
@@ -614,7 +613,6 @@ Raw: відіслати raw-команду хабу (тільки для екс�
 		<String Name="GdiPlusTabs">Використовувати кольорові вкладки (Налаштування/Кольори і Шрифти)</String>
 		<String Name="GenerateCertificates">Створити сертифікати</String>
 		<String Name="GetFileList">Список файлів</String>
-		<String Name="GetIp">Знайти IP адресу</String>
 		<String Name="GetUserResponses">Визначити IP</String>
 		<String Name="GiveExtraSlot">Екстра-слот</String>
 		<String Name="Global">Перевизначає обрані хаби</String>
@@ -858,6 +856,7 @@ Raw: відіслати raw-команду хабу (тільки для екс�
 		<String Name="MaxSegmentsNumber">Макс. число сегментів</String>
 		<String Name="MaxSize">Макс. розмір</String>
 		<String Name="MaxUsers">Макс. юзерів</String>
+		<String Name="MessagesCount">Повідомлення</String>
 		<String Name="Mb">МіБ</String>
 		<String Name="Mbps">МіБ/с</String>
 		<String Name="MediaAudio">Аудио</String>
@@ -1258,7 +1257,6 @@ Raw: відіслати raw-команду хабу (тільки для екс�
 		<String Name="SearchSpamFrom">Пошук-спам виявлений</String>
 		<String Name="SearchSpy">Пошук-шпигун</String>
 		<String Name="SearchString">Рядок пошуку</String>
-		<String Name="SearchWikihelp">Нічого не знайдено? Подивіться інформацію на FlyWiki.</String>
 		<String Name="SearchesPer">Результати пошуку: %u/s, %u/хв.</String>
 		<String Name="SearchingFor">Шукаємо</String>
 		<String Name="Sec">сек</String>
@@ -1499,7 +1497,6 @@ Raw: відіслати raw-команду хабу (тільки для екс�
 		<String Name="SettingsRc">Віддалене управління</String>
 		<String Name="SettingsRequiresRestart">Примітка: Більшість з цих налаштувань вимагає перезавантаження FlylinkDC++ для їх застосування</String>
 		<String Name="SettingsReset">Скинути</String>
-		<String Name="SettingsRollback">Відкат</String>
 		<String Name="SettingsRssProp">Властивості стрічок новин</String>
 		<String Name="SettingsSaveTthInNtfsFilestream">Зберігати TTH в потоці NTFS. Увага: при знятої галочці потік буде знищений!</String>
 		<String Name="SettingsSbMaxSources">Макс. збігів</String>
@@ -1927,7 +1924,6 @@ Raw: відіслати raw-команду хабу (тільки для екс�
 		<String Name="WizardFinishLabel2">Тепер ви можете почати використовувати FlylinkDC++!</String>
 		<String Name="WizardNetaBtnCheckupnp">Перевірити UPNP</String>
 		<String Name="WizardNetaBtnSetuprouter">Налаштування роутеру</String>
-		<String Name="WizardNetaBtnSetuptest">Налаштування тестів</String>
 		<String Name="WizardNetaBtnTest">Перевірити налаштування з'єднання</String>
 		<String Name="WizardNetaFirewallStatic">Файрвол</String>
 		<String Name="WizardNetaNeedpassivemode">Помічник виявив проблеми з активним режимом FlylinkDC++. встановити пасивний режим для мережевих з'єднань?</String>
@@ -1966,8 +1962,6 @@ Raw: відіслати raw-команду хабу (тільки для екс�
 4. Установка конфігурації мережі
 5. Додати улюблені хаби</String>
 		<String Name="WizardStartupTxt3">Натисніть Далі для продовження…</String>
-		<String Name="RestoreDefaul">Відновити за замовчуванням</String>
-		<String Name="WizardTestDlgTitle">URL адреса утиліти перевірки портів для FlylinkDC++</String>
 		<String Name="WizardTitle">Майстер налаштування FlylinkDC++</String>
 		<String Name="WmpHelp">/wmp - працює з Windows Media Player 9+
 

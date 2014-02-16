@@ -33,7 +33,9 @@
 #include "IPGrant.h"
 #include "../FlyFeatures/flyServer.h"
 
-static const string UPLOAD_AREA = "Uploads";
+#ifdef _DEBUG
+boost::atomic_int UploadQueueItem::g_upload_queue_item_count;
+#endif
 
 UploadManager::UploadManager() noexcept :
 running(0), extra(0), lastGrant(0), lastFreeSlots(-1),
@@ -220,7 +222,7 @@ bool UploadManager::isBanReply(const UserPtr& user) const
 }
 #endif // IRAINMAN_ENABLE_AUTO_BAN
 // [+] FlylinkDC++
-bool UploadManager::hasUpload(UserConnection& p_newLeacher) const
+bool UploadManager::hasUpload(UserConnection& p_newLeacher, const string& p_source_file) const
 {
 	if (p_newLeacher.getSocket())
 	{
@@ -245,25 +247,24 @@ bool UploadManager::hasUpload(UserConnection& p_newLeacher) const
 			         newLeacherNick == uploadUserNick) // [+] back port from r4xx.
 			   )
 			{
-				/*
-				#if defined(NIGHT_BUILD) || defined(DEBUG) || defined(FLYLINKDC_BETA)
-				                char bufNewLeacherShare[64];
-				                char bufUploadUserShare[64];
-				                char bufShareDelta[64];
+#if defined(NIGHT_BUILD) || defined(DEBUG) || defined(FLYLINKDC_BETA)
+				char bufNewLeacherShare[64];
+				char bufUploadUserShare[64];
+				char bufShareDelta[64];
 				
-				                snprintf(bufNewLeacherShare, sizeof(bufNewLeacherShare), "%I64d", newLeacherShare);
-				                snprintf(bufUploadUserShare, sizeof(bufUploadUserShare), "%I64d", uploadUserShare);
-				                snprintf(bufShareDelta, sizeof(bufShareDelta), "%I64d", int64_t(std::abs(long(newLeacherShare - uploadUserShare))));
+				snprintf(bufNewLeacherShare, sizeof(bufNewLeacherShare), "%I64d", newLeacherShare);
+				snprintf(bufUploadUserShare, sizeof(bufUploadUserShare), "%I64d", uploadUserShare);
+				snprintf(bufShareDelta, sizeof(bufShareDelta), "%I64d", int64_t(std::abs(long(newLeacherShare - uploadUserShare))));
 				
-				                LogManager::getInstance()->message("[Drop duplicated connection] From IP =" + newLeacherIp
-				                                                   + ", share con = " + bufNewLeacherShare
-				                                                   + ", share exist = " + string(bufUploadUserShare)
-				                                                   + " delta = " + string(bufShareDelta)
-				                                                   + " nick con = " + p_newLeacher.getUser()->getLastNick()
-				                                                   + " nick exist = " + u->getUser()->getLastNick()
-				                                                  );
-				#endif
-				                                                  */
+				LogManager::getInstance()->ddos_message("[Drop duplicated connection] From IP =" + newLeacherIp
+				                                        + ", share con = " + bufNewLeacherShare
+				                                        + ", share exist = " + string(bufUploadUserShare)
+				                                        + " delta = " + string(bufShareDelta)
+				                                        + " nick con = " + p_newLeacher.getUser()->getLastNick()
+				                                        + " nick exist = " + u->getUser()->getLastNick()
+				                                        + " source file = " + p_source_file
+				                                       );
+#endif
 				return true;
 			}
 		}
@@ -308,10 +309,12 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 				          l_User.hint.c_str(),
 				          l_count_attempts,
 				          aFile.c_str());
-				LogManager::getInstance()->message(l_buf);
+				LogManager::getInstance()->ddos_message(l_buf);
 				if (aSource.isSet(UserConnection::FLAG_SUPPORTS_BANMSG))
+				{
 					aSource.error(UserConnection::PLEASE_UPDATE_YOUR_CLIENT);
-					
+				}
+				
 				return false;
 			}
 			/*
@@ -568,7 +571,7 @@ ok: //[!] TODO убрать goto
 		}
 		
 		bool isAutoSlot = getAutoSlot();
-		bool isHasUpload = hasUpload(aSource);
+		bool isHasUpload = hasUpload(aSource, sourceFile);
 		
 #ifdef SSA_IPGRANT_FEATURE // SSA - additional slots for special IP's
 		bool hasSlotByIP = false;
@@ -1356,7 +1359,7 @@ void UploadManager::save() const
 			values[i->first->getCID().toBase32()] = i->second;
 		}
 	}
-	CFlylinkDBManager::getInstance()->save_registry(values, e_ExtraSlot);
+	CFlylinkDBManager::getInstance()->save_registry(values, e_ExtraSlot, true);
 }
 
 // !SMT!-S
@@ -1367,7 +1370,7 @@ void UploadManager::load()
 	// [-] Lock l(cs); [-] IRainman opt.
 	for (auto k = l_values.cbegin(); k != l_values.cend(); ++k)
 	{
-		auto user = ClientManager::getUser(CID(k->first));
+		auto user = ClientManager::getUser(CID(k->first), true);
 		FastUniqueLock l(m_csReservedSlots); // [+] IRainman opt.
 		m_reservedSlots[user] = uint32_t(k->second.m_val_int64);
 	}
@@ -1387,10 +1390,10 @@ void UploadQueueItem::update()
 	setText(COLUMN_SHARE, Util::formatBytesW(getUser()->getBytesShared())); //[+]PPA
 	setText(COLUMN_SLOTS, Util::toStringW(getUser()->getSlots())); //[+]PPA
 	// !SMT!-IP
-	if (!m_location.isSet() && !getUser()->getIP().empty()) // [!] IRainman opt: Prevent multiple repeated requests to the database if the location has not been found!
+	if (!m_location.isNew() && !getUser()->getIP().is_unspecified()) // [!] IRainman opt: Prevent multiple repeated requests to the database if the location has not been found!
 	{
-		m_location = Util::getIpCountry(getUser()->getIP());
-		setText(COLUMN_IP, Text::toT(getUser()->getIP()));
+		m_location = Util::getIpCountry(getUser()->getIP().to_ulong());
+		setText(COLUMN_IP, Text::toT(getUser()->getIPAsString()));
 	}
 	if (m_location.isKnown())
 	{

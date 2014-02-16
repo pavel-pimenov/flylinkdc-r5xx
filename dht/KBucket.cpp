@@ -185,7 +185,7 @@ Node::Ptr RoutingTable::addOrUpdate(const UserPtr& u, const string& ip, uint16_t
 				}
 				
 				auto &id = node->getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'node->getIdentity()' expression repeatedly. kbucket.cpp 168
-				const auto& oldIp = id.getIp();
+				const auto& oldIp = id.getIpAsString();
 				const auto oldPort = id.getUdpPort();
 				if (ip != oldIp || oldPort != port)
 				{
@@ -396,7 +396,7 @@ void RoutingTable::saveNodes()
 		const Node::Ptr& node = k->second;
 		BootstrapNode l_node;
 		l_node.m_cid = node->getUser()->getCID();
-		l_node.m_ip = node->getIdentity().getIp();
+		l_node.m_ip = node->getIdentity().getIpAsString();
 		l_node.m_udpPort = node->getIdentity().getUdpPort();
 		const UDPKey l_key = node->getUdpKey();
 		if (!l_key.isZero())
@@ -435,7 +435,7 @@ void RoutingTable::checkExpiration(uint64_t aTick)
 			if (node->unique()) // is the only reference in this bucket?
 			{
 				// node is dead, remove it
-				const auto& ip   = node->getIdentity().getIp();
+				const auto& ip   = node->getIdentity().getIpAsString();
 				const auto port = node->getIdentity().getUdpPort();
 				g_ipMap.erase(ip + ':' + Util::toString(port));
 				
@@ -475,7 +475,7 @@ void RoutingTable::checkExpiration(uint64_t aTick)
 	{
 		// ping the oldest (expired) node
 		node->setTimeout(aTick);
-		DHT::getInstance()->info(node->getIdentity().getIp(), node->getIdentity().getUdpPort(), DHT::PING, node->getUser()->getCID(), node->getUdpKey());
+		DHT::getInstance()->info(node->getIdentity().getIpAsString(), node->getIdentity().getUdpPort(), DHT::PING, node->getUser()->getCID(), node->getUdpKey());
 	}
 	else
 	{

@@ -32,6 +32,7 @@
 
 // Polling is used for tasks...should be fixed...
 static const uint64_t POLL_TIMEOUT = 250;
+volatile long BufferedSocket::g_sockets = 0;
 
 BufferedSocket::BufferedSocket(char aSeparator) :
 	m_separator(aSeparator), m_mode(MODE_LINE), m_dataBytes(0), m_rollback(0), m_state(STARTING),
@@ -46,8 +47,6 @@ BufferedSocket::BufferedSocket(char aSeparator) :
 	start(64);
 	Thread::safeInc(g_sockets); // [!] IRainman opt.
 }
-
-volatile long BufferedSocket::g_sockets = 0; // [!] IRainman opt.
 
 BufferedSocket::~BufferedSocket()
 {
@@ -799,6 +798,7 @@ int BufferedSocket::run()
 		}
 		catch (const Exception& e)
 		{
+			//LogManager::getInstance()->message("BufferedSocket::run(), error = " + e.getError());
 			fail(e.getError());
 		}
 	}

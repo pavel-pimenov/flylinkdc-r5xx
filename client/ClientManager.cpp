@@ -95,13 +95,22 @@ void ClientManager::setIPUser(const UserPtr& p_user, const string& p_ip, const u
 	if (p_ip.empty())
 		return;
 		
-	webrtc::ReadLockScoped l(*g_csOnlineUsers);
+	webrtc::WriteLockScoped l(*g_csOnlineUsers);
 	const OnlinePairC p = g_onlineUsers.equal_range(p_user->getCID());
 	for (auto i = p.first; i != p.second; ++i)
 	{
+#ifdef _DEBUG
+		const auto l_old_ip = i->second->getIdentity().getIpAsString();
+		if (l_old_ip != p_ip)
+		{
+			LogManager::getInstance()->message("ClientManager::setIPUser, p_user = " + p_user->getLastNick() + " old ip = " + l_old_ip + " ip = " + p_ip);
+		}
+#endif
 		i->second->getIdentity().setIp(p_ip);
 		if (p_udpPort != 0)
+		{
 			i->second->getIdentity().setUdpPort(p_udpPort);
+		}
 	}
 }
 
@@ -116,7 +125,7 @@ bool ClientManager::getUserParams(const UserPtr& user, uint64_t& p_bytesShared, 
 		p_bytesShared = i.getBytesShared();
 		p_slots = i.getSlots();
 		p_limit = i.getLimit();
-		p_ip = i.getIp();
+		p_ip = i.getIpAsString();
 		
 		return true;
 	}
@@ -388,6 +397,10 @@ string ClientManager::findHub(const string& ipPort)
 	}
 	
 	string url;
+	boost::system::error_code ec;
+	const auto l_ip = boost::asio::ip::address_v4::from_string(ip, ec);
+	dcassert(!ec);
+	
 	webrtc::ReadLockScoped l(*g_csClients); // [+] IRainman opt.
 	for (auto j = g_clients.cbegin(); j != g_clients.cend(); ++j)
 	{
@@ -395,7 +408,7 @@ string ClientManager::findHub(const string& ipPort)
 		if (c->getPort() == port) // [!] IRainman opt.
 		{
 			// If exact match is found, return it
-			if (c->getIp() == ip) // [!] IRainman opt.
+			if (c->getIp() == l_ip)
 			{
 				url = c->getHubUrl();
 				break;
@@ -498,7 +511,7 @@ UserPtr ClientManager::getUser(const string& p_Nick, const string& p_HubURL
 	
 	webrtc::WriteLockScoped l(*g_csUsers);
 //	dcassert(p_first_load == false || p_first_load == true && g_users.find(cid) == g_users.end())
-	auto l_result_insert = g_users.insert(make_pair(cid, nullptr));
+	const auto& l_result_insert = g_users.insert(make_pair(cid, nullptr));
 	if (!l_result_insert.second)
 	{
 		const auto &l_user = l_result_insert.first->second;
@@ -532,7 +545,7 @@ UserPtr ClientManager::getUser(const string& p_Nick, const string& p_HubURL
 	return p;
 }
 
-UserPtr ClientManager::getUser(const CID& cid, bool p_create /* = true */)
+UserPtr ClientManager::getUser(const CID& cid, bool p_create)
 {
 	dcassert(!ClientManager::isShutdown());
 	webrtc::WriteLockScoped l(*g_csUsers);
@@ -731,7 +744,11 @@ void ClientManager::userCommand(const HintedUser& hintedUser, const UserCommand&
 	 * switched to storing only reliable HintedUsers (found with the token of the ADC command),
 	 * change this call to findOnlineUserHint. */
 	OnlineUser* ou = findOnlineUserL(hintedUser.user->getCID(), hintedUser.hint.empty() ? uc.getHub() : hintedUser.hint, false);
-	if (!ou || ou->getClientBase().type == ClientBase::DHT)
+	if (!ou
+#ifdef STRONG_USE_DHT
+	        || ou->getClientBase().type == ClientBase::DHT
+#endif
+	   )
 		return;
 		
 	auto& l_сlient = ou->getClient(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'ou->getClient()' expression repeatedly. clientmanager.cpp 591
@@ -755,7 +772,11 @@ void ClientManager::send(AdcCommand& cmd, const CID& cid)
 		OnlineUser& u = *i->second;
 		if (cmd.getType() == AdcCommand::TYPE_UDP && !u.getIdentity().isUdpActive())
 		{
-			if (u.getUser()->isNMDC() || u.getClientBase().type == Client::DHT)
+			if (u.getUser()->isNMDC()
+#ifdef STRONG_USE_DHT
+			        || u.getClientBase().type == Client::DHT
+#endif
+			   )
 				return;
 				
 			cmd.setType(AdcCommand::TYPE_DIRECT);
@@ -767,7 +788,19 @@ void ClientManager::send(AdcCommand& cmd, const CID& cid)
 			try
 			{
 				Socket udp;
-				udp.writeTo(u.getIdentity().getIp(), u.getIdentity().getUdpPort(), cmd.toString(getMyCID())); // [!] IRainman fix.
+				udp.writeTo(u.getIdentity().getIpAsString(), u.getIdentity().getUdpPort(), cmd.toString(getMyCID())); // [!] IRainman fix.
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+				const string l_sr = cmd.toString(getMyCID());
+				string l_tth;
+				const auto l_tth_pos = l_sr.find("TTH:");
+				if (l_tth_pos != string::npos)
+					l_tth = l_sr.substr(l_tth_pos + 4, 39);
+				CFlylinkDBManager::getInstance()->push_event_statistic("$AdcCommand", "UDP-write-adc", l_sr,
+				                                                       u.getIdentity().getIpAsString(),
+				                                                       Util::toString(u.getIdentity().getUdpPort()),
+				                                                       u.getClient().getHubUrlAndIP(),
+				                                                       l_tth);
+#endif
 			}
 			catch (const SocketException&)
 			{
@@ -844,22 +877,28 @@ void ClientManager::on(NmdcSearch, Client* aClient, const string& aSeeker, Searc
 		{
 			try
 			{
+				// Часто делаем?
 				Socket udp;
 				string ip, file, proto, query, fragment;
 				uint16_t port = 0;
 				Util::decodeUrl(aSeeker, proto, ip, port, file, query, fragment);
 				ip = Socket::resolve(ip);
-				
+				//
 				if (port == 0)
 					port = 412;
 				for (auto i = l.cbegin(); i != l.cend(); ++i)
 				{
 					const SearchResultPtr& sr = *i;
-#ifdef PPA_USE_HIGH_LOAD_FOR_SEARCH_ENGINE_IN_DEBUG
-					LogManager::getInstance()->message("udp.writeTo(ip, port, sr->toSR(*aClient))| toSR = "
-					                                   + sr->toSR(*aClient) + " ,ip = " + ip + " port = " + Util::toString(port));
-#endif
 					udp.writeTo(ip, port, sr->toSR(*aClient));
+					
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+					const string l_sr = sr->toSR(*aClient);
+					string l_tth;
+					const auto l_tth_pos = l_sr.find("TTH:");
+					if (l_tth_pos != string::npos)
+						l_tth = l_sr.substr(l_tth_pos + 4, 39);
+					CFlylinkDBManager::getInstance()->push_event_statistic("$SR", "UDP-write-dc", l_sr, ip, Util::toString(port), aClient->getHubUrl(), l_tth);
+#endif
 				}
 			}
 			catch (Exception& e)
@@ -880,7 +919,7 @@ void ClientManager::on(NmdcSearch, Client* aClient, const string& aSeeker, Searc
 			l_re = ClientManagerListener::SEARCH_PARTIAL_HIT; // !SMT!-S
 			string ip, file, proto, query, fragment;
 			uint16_t port = 0;
-			Util::decodeUrl(aSeeker, proto, ip, port, file, query, fragment);
+			Util::decodeUrl(aSeeker, proto, ip, port, file, query, fragment); // TODO - зачем тут такая штука?
 			
 			try
 			{
@@ -926,7 +965,7 @@ void ClientManager::on(AdcSearch, const Client* c, const AdcCommand& adc, const 
 	// [~] IRainman-S
 }
 
-void ClientManager::search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, void* aOwner)
+void ClientManager::search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, void* aOwner, bool p_is_force_passive)
 {
 #ifdef STRONG_USE_DHT
 	if (BOOLSETTING(USE_DHT) && aFileType == Search::TYPE_TTH)
@@ -938,12 +977,12 @@ void ClientManager::search(Search::SizeModes aSizeMode, int64_t aSize, Search::T
 		Client* c = i->second;
 		if (c->isConnected())
 		{
-			c->search(aSizeMode, aSize, aFileType, aString, aToken, StringList() /*ExtList*/, aOwner);
+			c->search(aSizeMode, aSize, aFileType, aString, aToken, StringList() /*ExtList*/, aOwner, p_is_force_passive);
 		}
 	}
 }
 
-uint64_t ClientManager::search(const StringList& who, Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, void* aOwner)
+uint64_t ClientManager::search(const StringList& who, Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, void* aOwner, bool p_is_force_passive)
 {
 #ifdef STRONG_USE_DHT
 	if (BOOLSETTING(USE_DHT) && aFileType == Search::TYPE_TTH)
@@ -957,7 +996,7 @@ uint64_t ClientManager::search(const StringList& who, Search::SizeModes aSizeMod
 		for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 			if (i->second->isConnected())
 			{
-				const uint64_t ret = i->second->search(aSizeMode, aSize, aFileType, aString, aToken, aExtList, aOwner);
+				const uint64_t ret = i->second->search(aSizeMode, aSize, aFileType, aString, aToken, aExtList, aOwner, p_is_force_passive);
 				estimateSearchSpan = max(estimateSearchSpan, ret);
 			}
 	}
@@ -971,7 +1010,7 @@ uint64_t ClientManager::search(const StringList& who, Search::SizeModes aSizeMod
 			const auto& i = g_clients.find(client);
 			if (i != g_clients.end() && i->second->isConnected())
 			{
-				const uint64_t ret = i->second->search(aSizeMode, aSize, aFileType, aString, aToken, aExtList, aOwner);
+				const uint64_t ret = i->second->search(aSizeMode, aSize, aFileType, aString, aToken, aExtList, aOwner, p_is_force_passive);
 				estimateSearchSpan = max(estimateSearchSpan, ret);
 			}
 		}

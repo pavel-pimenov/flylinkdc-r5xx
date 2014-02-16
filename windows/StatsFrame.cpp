@@ -53,7 +53,7 @@ LRESULT StatsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	
 	create_timer(1000);
 	
-	SetFont(Fonts::font);
+	SetFont(Fonts::g_font);
 	
 	bHandled = FALSE;
 #ifdef PPA_INCLUDE_SHOW_UD_RATIO
@@ -145,14 +145,14 @@ LRESULT StatsFrame::onPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		{
 			CSelectPen l_pen(dc, foregr);
 			{
-				CSelectFont l_font(dc, Fonts::font);
-				const int lines = g_height / (Fonts::fontHeight * LINE_HEIGHT);
+				CSelectFont l_font(dc, Fonts::g_font);
+				const int lines = g_height / (Fonts::g_fontHeight * LINE_HEIGHT);
 				const int lheight = g_height / (lines + 1);
 				
 				for (int i = 0; i < lines; ++i)
 				{
 					int ypos = lheight * (i + 1);
-					if (ypos > Fonts::fontHeight + 2)
+					if (ypos > Fonts::g_fontHeight + 2)
 					{
 						dc.MoveTo(rc.left, ypos);
 						dc.LineTo(rc.right, ypos);
@@ -161,7 +161,7 @@ LRESULT StatsFrame::onPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 					if (rc.left <= twidth)
 					{
 					
-						ypos -= Fonts::fontHeight + 2;
+						ypos -= Fonts::g_fontHeight + 2;
 						if (ypos < 0)
 							ypos = 0;
 						if (g_height == 0)

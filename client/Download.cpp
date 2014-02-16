@@ -67,7 +67,6 @@ lastNormalSpeed(0),
 	const bool l_is_check_tth = l_is_type_file && l_check_tth_sql;
 	// ~TODO
 	
-	UniqueLock l(QueueItem::cs); // [+] IRainman fix.
 	const auto& l_source_it = qi->getSourceL(getUser()); // [+] IRainman fix.
 	const auto& l_src = l_source_it->second;
 	if (l_src.isSet(QueueItem::Source::FLAG_PARTIAL))

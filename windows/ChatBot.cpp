@@ -81,7 +81,7 @@ bool ChatBot::botSendMessage2(int msgid, const WCHAR* objid, const void *param, 
 			return false;
 	}
 	
-	UserPtr user = ClientManager::getUser(CID(Text::fromT((WCHAR*)objid)));
+	const UserPtr user = crateUser(objid);
 	
 	if (user)
 	{
@@ -165,7 +165,7 @@ void ChatBot::onHubAction(BotInit::CODES c, const string& hubUrl)
 
 WCHAR* ChatBot::onQueryUserByCid(const WCHAR* cid)
 {
-	UserPtr user = ClientManager::getUser(CID(Text::fromT(cid)));
+	const UserPtr user = crateUser(cid);
 	if (!user)
 		return nullptr;
 		
@@ -180,7 +180,7 @@ WCHAR* ChatBot::onQueryUserByCid(const WCHAR* cid)
 			return nullptr;
 			
 		const Identity& id = ou->getIdentity();
-		const string ip = id.getIp();
+		const string& ip = id.getIpAsString();
 		
 		ps.addVariable(L"IP", Text::toT(ip).c_str());
 #ifdef PPA_INCLUDE_DNS
@@ -220,7 +220,7 @@ WCHAR* ChatBot::onQueryHubByUrl(const WCHAR* huburl)
 		ps.addVariable(L"HUBURL", huburl);
 		ps.addVariable(L"HUBNAME", Text::toT(c->getHubName()).c_str());
 		ps.addVariable(L"HUBDESC", Text::toT(c->getHubDescription()).c_str());
-		ps.addVariable(L"IP", Text::toT(c->getIp()).c_str());
+		ps.addVariable(L"IP", Text::toT(c->getIpAsString()).c_str());
 		ps.addVariable(L"PORT", Util::toStringW(c->getPort()).c_str());
 		return ps.cutParams();
 	}
@@ -264,10 +264,13 @@ WCHAR* ChatBot::onQueryRunningUploads(const WCHAR* /* cid */)
 	// todo: fixme
 	return nullptr;
 }
-
+UserPtr ChatBot::crateUser(const WCHAR* cid)
+{
+	return cid ? ClientManager::getUser(CID(Text::fromT(cid)), true) : nullptr;
+}
 WCHAR* ChatBot::onQueryDownloads(const WCHAR* cid)
 {
-	UserPtr user = cid ? ClientManager::getUser(CID(Text::fromT(cid))) : nullptr;
+	const UserPtr user = crateUser(cid);
 	if (user)
 	{
 		ParamSet ps;
@@ -300,7 +303,7 @@ WCHAR* ChatBot::onQueryDownloads(const WCHAR* cid)
 
 WCHAR* ChatBot::onQueryQueuedUploads(const WCHAR* cid)
 {
-	UserPtr user = cid ? ClientManager::getUser(CID(Text::fromT(cid))) : nullptr;
+	const UserPtr user = crateUser(cid);
 	if (user)
 	{
 		ParamSet ps;
@@ -412,7 +415,7 @@ void ChatBot::onMessageV1(const Identity& myId, const Identity& msgFrom, const t
 	ps.addVariable(L"CID", Text::toT(msgFrom.getUser()->getCID().toBase32()).c_str());
 	ps.addVariable(L"NICK", msgFrom.getNickT().c_str());
 	
-	const auto& ip = msgFrom.getIp();
+	const auto& ip = msgFrom.getIpAsString();
 	ps.addVariable(L"IP", Text::toT(ip).c_str());
 #ifdef PPA_INCLUDE_DNS
 	ps.addVariable(L"DNS", Text::toT(Socket::nslookup(ip)).c_str());

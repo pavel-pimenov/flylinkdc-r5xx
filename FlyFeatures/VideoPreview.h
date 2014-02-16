@@ -28,7 +28,6 @@
 #include "../client/Semaphore.h"
 #include "../client/SettingsManager.h"
 #include "../client/Socket.h"
-#include "../client/BufferedSocketListener.h"
 #include "../client/BufferedSocket.h"
 #include "../client/QueueItem.h"
 #include "../client/QueueManagerListener.h"

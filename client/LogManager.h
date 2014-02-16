@@ -47,10 +47,11 @@ class LogManager : public Singleton<LogManager>, public Speaker<LogManagerListen
 #endif
 		               CUSTOM_LOCATION, // [+] IRainman
 		               TRACE_SQLITE,
+		               DDOS_TRACE,
 		               LAST
 		             };
 		enum {FILE, FORMAT};
-		
+		void ddos_message(const string& params);
 		void log(LogArea area, const StringMap& params, bool p_only_file = false) noexcept;
 		void message(const string& msg, bool p_only_file = false);
 		
@@ -71,7 +72,7 @@ class LogManager : public Singleton<LogManager>, public Speaker<LogManagerListen
 		
 		int logOptions[LAST][2];
 #ifdef _DEBUG
-		boost::unordered_map<string, pair<string, size_t>> m_patchCache;
+		boost::unordered_map<string, pair<string, size_t> > m_patchCache;
 		size_t _debugTotal, _debugMissed;
 #else
 		boost::unordered_map<string, string> m_patchCache;
@@ -129,6 +130,11 @@ class CFlyLog
 			const uint64_t l_current = GET_TICK();
 			log("[Stop ] " + m_message + " [" + Util::toString(l_current - m_tc) + " ms, Total: " + Util::toString(l_current - m_start) + " ms]");
 		}
+		uint64_t calcSumTime() const
+		{
+			const uint64_t l_current = GET_TICK();
+			return l_current - m_start;
+		}
 		void step(const string& p_message_step, const bool p_reset_count = true)
 		{
 			const uint64_t l_current = GET_TICK();
@@ -136,7 +142,7 @@ class CFlyLog
 			if (p_reset_count)
 				m_tc = l_current;
 		}
-		void/*string*/ loadStep(const string& p_message_step, const bool p_reset_count = true)
+		void loadStep(const string& p_message_step, const bool p_reset_count = true)
 		{
 			const uint64_t l_current = GET_TICK();
 			const uint64_t l_step = l_current - m_tc;
@@ -146,14 +152,11 @@ class CFlyLog
 			if (p_reset_count)
 			{
 				log("[Step ] " + m_message + " Begin load " + p_message_step + " [" + Util::toString(l_step) + " ms]");
-				//return p_message_step + " loading " + Util::toString(l_total) + " ms after start";
 			}
 			else
 			{
 				log("[Step ] " + m_message + " End load " + p_message_step + " [" + Util::toString(l_step) + " ms and " + Util::toString(l_total) + " ms after start]");
-				//return p_message_step + " loading " + Util::toString(l_step) + " ms.";
 			}
-			//return Util::emptyString;
 		}
 };
 

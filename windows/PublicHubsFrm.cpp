@@ -95,32 +95,32 @@ LRESULT PublicHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	ctrlConfigure.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                     BS_PUSHBUTTON , 0, IDC_PUB_LIST_CONFIG);
 	ctrlConfigure.SetWindowText(CTSTRING(CONFIGURE));
-	ctrlConfigure.SetFont(Fonts::systemFont);
+	ctrlConfigure.SetFont(Fonts::g_systemFont);
 	
 	ctrlRefresh.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                   BS_PUSHBUTTON , 0, IDC_REFRESH_HUB_LIST);
 	ctrlRefresh.SetWindowText(CTSTRING(REFRESH));
-	ctrlRefresh.SetFont(Fonts::systemFont);
+	ctrlRefresh.SetFont(Fonts::g_systemFont);
 	
 	ctrlLists.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                 BS_GROUPBOX, WS_EX_TRANSPARENT);
-	ctrlLists.SetFont(Fonts::systemFont);
+	ctrlLists.SetFont(Fonts::g_systemFont);
 	ctrlLists.SetWindowText(CTSTRING(CONFIGURED_HUB_LISTS));
 	
 	ctrlPubLists.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                    WS_HSCROLL | WS_VSCROLL | CBS_DROPDOWNLIST, WS_EX_CLIENTEDGE, IDC_PUB_LIST_DROPDOWN);
-	ctrlPubLists.SetFont(Fonts::systemFont, FALSE);
+	ctrlPubLists.SetFont(Fonts::g_systemFont, FALSE);
 	// populate with values from the settings
 	updateDropDown();
 	
 	ctrlFilter.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                  ES_AUTOHSCROLL, WS_EX_CLIENTEDGE);
 	filterContainer.SubclassWindow(ctrlFilter.m_hWnd);
-	ctrlFilter.SetFont(Fonts::systemFont);
+	ctrlFilter.SetFont(Fonts::g_systemFont);
 	
 	ctrlFilterSel.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                     WS_HSCROLL | WS_VSCROLL | CBS_DROPDOWNLIST, WS_EX_CLIENTEDGE);
-	ctrlFilterSel.SetFont(Fonts::systemFont, FALSE);
+	ctrlFilterSel.SetFont(Fonts::g_systemFont, FALSE);
 	
 	//populate the filter list with the column names
 	for (int j = 0; j < COLUMN_LAST; j++)
@@ -133,7 +133,7 @@ LRESULT PublicHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	ctrlFilterDesc.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                      BS_GROUPBOX, WS_EX_TRANSPARENT);
 	ctrlFilterDesc.SetWindowText(CTSTRING(FILTER));
-	ctrlFilterDesc.SetFont(Fonts::systemFont);
+	ctrlFilterDesc.SetFont(Fonts::g_systemFont);
 	
 	FavoriteManager::getInstance()->addListener(this);
 	SettingsManager::getInstance()->addListener(this);

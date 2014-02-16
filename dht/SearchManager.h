@@ -102,7 +102,7 @@ class SearchManager :
 		/** Checks whether we are alreading searching for a term */
 		bool isAlreadySearchingFor(const string& term);
 		
-		uint64_t lastSearchFile;
+		uint64_t m_lastTimeSearchFile;
 		
 };
 

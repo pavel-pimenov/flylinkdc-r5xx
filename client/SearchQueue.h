@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "Thread.h"
+#include "CFlyThread.h"
 #include "typedefs.h"
 
 struct Search
@@ -44,7 +44,10 @@ struct Search
 		TYPE_CD_IMAGE, //[+] от flylinkdc++
 		TYPE_LAST
 	};
-	
+	Search() : m_is_force_passive(false), sizeMode(SIZE_DONTCARE), size(0), m_fileTypes_bitmap(0)
+	{
+	}
+	bool m_is_force_passive;
 	SizeModes   sizeMode;
 	int64_t   size;
 	uint16_t  m_fileTypes_bitmap;

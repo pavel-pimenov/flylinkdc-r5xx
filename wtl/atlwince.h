@@ -1,5 +1,5 @@
-// Windows Template Library - WTL version 8.1
-// Copyright (C) Microsoft Corporation. All rights reserved.
+// Windows Template Library - WTL version 9.0
+// Copyright (C) Microsoft Corporation, WTL Team. All rights reserved.
 //
 // This file is a part of the Windows Template Library.
 // The use and distribution terms for this software are covered by the
@@ -279,6 +279,7 @@ public:
 		T* pT = static_cast<T*>(this);
 		ATLASSERT(pT->IsWindow());
 		TCHAR sTitle[48];
+                sTitle[0] = 0;
 
 		// Preparation
 		CPaintDC dc(pT->m_hWnd);
@@ -2952,6 +2953,7 @@ public:
 			m_SpinCtrl.Attach(hSpin);
 #ifdef DEBUG
 			TCHAR sClassName[16];
+                        sClassName[0] = 0; 
 			::GetClassName(hSpin, sClassName, 16);
 			ATLASSERT(!_tcscmp(sClassName, UPDOWN_CLASS));
 			ATLASSERT(m_SpinCtrl.GetBuddy().m_hWnd == pT->m_hWnd);

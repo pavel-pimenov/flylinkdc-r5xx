@@ -17,7 +17,7 @@
  */
 
 #include "stdinc.h"
-#include "Thread.h"
+#include "CFlyThread.h"
 #include "CryptoManager.h"
 #include "BitInputStream.h"
 #include "BitOutputStream.h"
@@ -32,10 +32,9 @@
 
 
 #ifdef HEADER_OPENSSLV_H
-# include <openssl/bn.h>
-# include <openssl/err.h>
 # include <openssl/engine.h>
 # include <openssl/conf.h>
+/*
 # ifdef _DEBUG
 #  ifndef _WIN64
 #  pragma comment(lib, "libeay32.lib")
@@ -53,6 +52,8 @@
 #   pragma comment(lib, "ssleay64.lib")
 #endif
 #endif
+*/
+
 #elif defined YASSL_VERSION
 # pragma comment(lib, "taocrypt.lib")
 # pragma comment(lib, "yassl.lib")

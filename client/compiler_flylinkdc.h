@@ -221,8 +221,7 @@ typedef unsigned __int64 uint64_t;
 # define IRAINMAN_INCLUDE_RSS // Disable this to cut rss-manager from code.
 # define IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 #endif // FLYLINKDC_HE
-//#define IRAINMAN_ENABLE_SLOTS_AND_LIMIT_IN_DESCRIPTION // [-] cleanup user function.
-//#define IRAINMAN_ENABLE_FREE_SLOTS_IN_TAG // TODO: need to fix relation administrators hubs to clients and their fixed a desire to control whether all :)
+#define IRAINMAN_ENABLE_SLOTS_AND_LIMIT_IN_DESCRIPTION
 #define IRAINMAN_ENABLE_OP_VIP_MODE
 //#define IRAINMAN_ENABLE_STEALTH_MODE // [-] cleanup user function.
 #ifdef IRAINMAN_ENABLE_OP_VIP_MODE
@@ -349,7 +348,7 @@ typedef unsigned __int64 uint64_t;
 // http://msdn.microsoft.com/en-us/library/ee681827(VS.85).aspx#limits
 #define FULL_MAX_PATH 32760 + 255 + 255 + 8 // Maximum path name length + Maximum file size + Mashine name overhed in UNC path + UNC header
 // [+] NightOrion
-//#define NO_DONT_ADD_TTH_DCTMP //
+#define USE_SUPPORT_HUB
 //#define NIGHTORION_INTERNAL_TRANSLATE_SOCKET_ERRORS // Включить когда будет готов перевод.
 #ifndef FLYLINKDC_HE
 # define USE_APPDATA
@@ -387,7 +386,6 @@ typedef unsigned __int64 uint64_t;
 #endif
 #define SCALOLAZ_PROPPAGE_COLOR          //[+] SCALOlaz: Colorized background in Properties
 #define SCALOLAZ_PROPPAGE_HELPLINK       //[+] SCALOlaz: FlyWiki Help link per pages
-#define SCALOLAZ_SEARCH_HELPLINK         //[+] SCALOlaz: FlyWiki Help link for SearchFrm
 #define SCALOLAZ_HASH_HELPLINK          //[+] SCALOlaz: FlyWiki Help link for HashDialog
 #define SCALOLAZ_HUB_SWITCH_BTN    //[+] SCALOlaz: Switch Panels button, change location Chat - Userlist
 // TODO: SCALOLAZ_HUB_MODE - In some situations, spoils the whole interface and the process hangs. Need verifycation, optimization
@@ -398,9 +396,6 @@ typedef unsigned __int64 uint64_t;
 #ifdef SCALOLAZ_MEDIAVIDEO_ICO
 //# define PPA_MEDIAVIDEO_BOLD_TEXT  //May configured from Settings (Interface) as bool?
 #endif // SCALOLAZ_MEDIAVIDEO_ICO
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-# define SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP  // Use bright text color for 'last ip' & locations
-#endif
 #define SCALOLAZ_CHAT_REFFERING_TO_NICK
 #define SCALOLAZ_BB_COLOR_BUTTON
 
@@ -430,10 +425,16 @@ typedef unsigned __int64 uint64_t;
 #endif
 */
 // #define FLYLINKDC_USE_SETTINGS_AUTO_UPDATE
+//#define USE_REBUILD_MEDIAINFO
 #define FLYLINKDC_USE_MEDIAINFO_SERVER
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
+// #define FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION // Не собирается стата (некому обрабатывать)
 #define FLYLINKDC_USE_GATHER_STATISTICS
+#endif
 #ifdef FLYLINKDC_BETA
+#ifdef _DEBUG
 #define FLYLINKDC_COLLECT_UNKNOWN_FEATURES
+#endif
 #endif
 #ifdef _DEBUG
 // #define FLYLINKDC_USE_GATHER_IDENTITY_STAT
@@ -444,6 +445,10 @@ typedef unsigned __int64 uint64_t;
 
 
 #define FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE // http://code.google.com/p/flylinkdc/issues/detail?id=1255
+//#ifdef _DEBUG
+// #define FLYLINKDC_USE_COLLECT_STAT  // Собираем статистику команд коннектов и поиска для блокировки DDoS атак http://dchublist.ru/forum/viewtopic.php?f=6&t=1028&hilit=Ddos
+// #define FLYLINKDC_USE_LOG_FOR_DUPLICATE_TTH_SEARCH
+//#endif
 
 // Make sure we're using the templates from algorithm...
 #ifdef min

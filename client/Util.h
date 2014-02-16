@@ -19,6 +19,15 @@
 #ifndef DCPLUSPLUS_DCPP_UTIL_H
 #define DCPLUSPLUS_DCPP_UTIL_H
 
+#include <wininet.h>
+#include <atlcomtime.h>
+
+#include <array>
+#include "Text.h"
+#include "CFlyThread.h"
+#include "MerkleTree.h" // [+] SSA - иначе никак, где-то он уже включен
+#include "StringTokenizer.h"
+
 # define PATH_SEPARATOR '\\'
 # define PATH_SEPARATOR_STR "\\"
 # define PATH_SEPARATOR_WSTR L"\\"
@@ -28,15 +37,6 @@
 #define FLYLINKDC_REGISTRY_MEDIAINFO_CRASH_KEY  _T("MediaCrashInfo")
 #define FLYLINKDC_REGISTRY_SQLITE_ERROR  _T("SQLiteError")
 #define FLYLINKDC_REGISTRY_LEVELDB_ERROR  _T("LevelDBError")
-
-#include <wininet.h>
-#include <atlcomtime.h>
-
-#include <array>
-#include "Text.h"
-#include "Thread.h"
-#include "MerkleTree.h" // [+] SSA - иначе никак, где-то он уже включен
-#include "StringTokenizer.h"
 
 // [+] IRainman: copy-past fix.
 #define PLAY_SOUND(sound_key) Util::playSound(SOUND_SETTING(sound_key))
@@ -56,25 +56,17 @@ class CInternetHandle
 		{
 			if (m_hInternet)
 			{
-				::InternetCloseHandle(m_hInternet);
+#ifdef _DEBUG
+				BOOL l_res =
+#endif
+				    ::InternetCloseHandle(m_hInternet);
+				dcassert(l_res);
 			}
 		}
 		operator const HINTERNET() const
 		{
 			return m_hInternet;
 		}
-		/*
-		    BOOL QueryOption(DWORD dwOption, LPVOID lpBuffer, LPDWORD lpdwBufferLength)
-		    {
-		        _ASSERTE(m_hInternet != NULL); // should be executed on valid handle
-		        return ::InternetQueryOption(m_hInternet, dwOption, lpBuffer, lpdwBufferLength);
-		    }
-		    BOOL SetOption(DWORD dwOption, LPVOID lpBuffer, DWORD dwBufferLength)
-		    {
-		        _ASSERTE(m_hInternet != NULL); // should be executed on valid handle
-		        return ::InternetSetOption(m_hInternet, dwOption, lpBuffer, dwBufferLength);
-		    }
-		*/
 	protected:
 		const HINTERNET m_hInternet;
 };
@@ -1198,10 +1190,10 @@ class Util
 				{
 					return m_location_cache_index == -1;
 				}
-				bool isSet() const
-				{
-					return m_location_cache_index > 0;
-				}
+				//bool isSet() const
+				//{
+				//  return m_location_cache_index > 0;
+				//}
 				bool isKnown() const
 				{
 					return m_location_cache_index > 0 || m_country_cache_index;
@@ -1214,6 +1206,7 @@ class Util
 				int32_t m_location_cache_index;
 		};
 		
+		static CustomNetworkIndex getIpCountry(uint32_t p_ip);
 		static CustomNetworkIndex getIpCountry(const string& IP);
 		
 	private:

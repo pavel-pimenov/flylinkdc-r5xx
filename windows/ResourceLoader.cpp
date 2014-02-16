@@ -17,47 +17,56 @@ bool ExCImage::LoadFromResource(UINT id, LPCTSTR pType, HMODULE hInst
                                 // [-], bool useDefaultHINST [-] IRainman
                                ) noexcept
 {
-	_ASSERTE(m_hBuffer == nullptr);
+	dcassert(m_hBuffer == nullptr);
 	
 	HRSRC hResource = ::FindResource(hInst, MAKEINTRESOURCE(id), pType);
+	//dcassert(hResource);
 	if (!hResource)
 	{
 #if defined(USE_THEME_MANAGER)
 		hInst = nullptr; // [!] SSA - try to search in original resource
 		hResource = ::FindResource(hInst, MAKEINTRESOURCE(id), pType);
+		dcassert(hResource);
 		if (!hResource)
 #endif
 			return false;
 	}
 	
 	DWORD imageSize = ::SizeofResource(hInst, hResource);
+	dcassert(imageSize);
 	if (!imageSize)
 		return false;
 		
 	const HGLOBAL hGlobal = ::LoadResource(hInst, hResource);
+	dcassert(hGlobal);
 	if (!hGlobal)
 		return false;
 		
 	const void* pResourceData = ::LockResource(hGlobal);
+	dcassert(pResourceData);
 	if (!pResourceData)
 		return false;
 		
 	HRESULT res = E_FAIL;
 	m_hBuffer  = ::GlobalAlloc(GMEM_MOVEABLE, static_cast<size_t>(imageSize));
+	dcassert(m_hBuffer);
 	if (m_hBuffer)
 	{
 		void* pBuffer = ::GlobalLock(m_hBuffer);
+		dcassert(pBuffer);
 		if (pBuffer)
 		{
 			CopyMemory(pBuffer, pResourceData, static_cast<size_t>(imageSize));
-			
+			::GlobalUnlock(m_hBuffer);
+			// http://msdn.microsoft.com/en-us/library/windows/desktop/aa378980%28v=vs.85%29.aspx
 			IStream* pStream = nullptr;
-			if (::CreateStreamOnHGlobal(m_hBuffer, FALSE, &pStream) == S_OK)
+			const auto l_stream = ::CreateStreamOnHGlobal(m_hBuffer, FALSE, &pStream);
+			dcassert(l_stream == S_OK);
+			if (l_stream == S_OK)
 			{
 				res = Load(pStream); //Leak
 				safe_release(pStream);
 			}
-			::GlobalUnlock(m_hBuffer);
 		}
 		::GlobalFree(m_hBuffer);
 		m_hBuffer = nullptr;

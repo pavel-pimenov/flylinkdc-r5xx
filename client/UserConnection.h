@@ -363,6 +363,10 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		GETSET(string, token, Token);
 		GETSET(int64_t, speed, Speed);
 		GETSET(uint64_t, lastActivity, LastActivity);
+		void setLastActivity()
+		{
+			setLastActivity(GET_TICK());
+		}
 	private:
 		string m_last_encoding;
 	public:

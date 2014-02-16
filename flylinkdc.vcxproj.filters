@@ -283,9 +283,6 @@
     <ClCompile Include="windows\FileSharePage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="windows\WizardTestDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="windows\LimitEditDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -690,9 +687,6 @@
     <ClInclude Include="windows\Wizards\WzNetActive.h">
       <Filter>Wizard</Filter>
     </ClInclude>
-    <ClInclude Include="windows\WizardTestDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="windows\LimitEditDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1027,18 +1021,6 @@
     <None Include="res\dclst.png">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\f_green_16.png">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\f_yellow_16.png">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\f_p_16.png">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\f_red_16.png">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="res\Splash\Splash_5xx_NY1.png">
       <Filter>Resource Files</Filter>
     </None>
@@ -1048,16 +1030,10 @@
     <None Include="res\Splash\Splash_winter.png">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\MultiChat.png">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="res\MultiChat.ico">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\FlylinkDC_Update.ico">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\Error.png">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\FlyLink.png">
@@ -1067,9 +1043,6 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\f_green_16.ico">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\SwitchPanels.png">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\f_red_16.ico">
@@ -1096,7 +1069,21 @@
     <None Include="compiled\Settings\common\IPTrust.ini">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="compiled\Settings\flylinkdc-config-r5xx.xml" />
+    <None Include="res\color.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\color.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\f_grey_16.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\f_question_16.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="compiled\Settings\flylinkdc-config-r5xx.xml">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

@@ -126,7 +126,7 @@ OnlineUserPtr AdcHub::getUser(const uint32_t aSID, const CID& aCID)
 	// [~] IRainman fix.
 	else // User
 	{
-		UserPtr u = ClientManager::getUser(aCID);
+		UserPtr u = ClientManager::getUser(aCID, true);
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		u->setHubID(getHubID());
 #endif
@@ -473,7 +473,7 @@ void AdcHub::handle(AdcCommand::MSG, AdcCommand& c) noexcept
 		return;
 		
 	unique_ptr<ChatMessage> message(new ChatMessage(c.getParam(0), findUser(c.getFrom())));
-	if (!message->from)
+	if (!message->m_from)
 		return;
 		
 	string temp;
@@ -485,12 +485,12 @@ void AdcHub::handle(AdcCommand::MSG, AdcCommand& c) noexcept
 		
 	if (c.getParam("PM", 1, temp))  // add PM<group-cid> as well
 	{
-		message->to = findUser(c.getTo());
-		if (!message->to)
+		message->m_to = findUser(c.getTo());
+		if (!message->m_to)
 			return;
 			
-		message->replyTo = findUser(AdcCommand::toSID(temp));
-		if (!message->replyTo)
+		message->m_replyTo = findUser(AdcCommand::toSID(temp));
+		if (!message->m_replyTo)
 			return;
 			
 		if (allowPrivateMessagefromUser(*message)) // [+] IRainman.
@@ -500,7 +500,7 @@ void AdcHub::handle(AdcCommand::MSG, AdcCommand& c) noexcept
 	}
 	else
 	{
-		if (allowChatMessagefromUser(*message)) // [+] IRainman.
+		if (allowChatMessagefromUser(*message, Util::emptyString)) // [+] IRainman.
 		{
 			fire(ClientListener::Message(), this, message);
 		}
@@ -622,7 +622,7 @@ void AdcHub::handle(AdcCommand::ZON, AdcCommand& /*c*/) noexcept
 	try
 	{
 		sock->setMode(BufferedSocket::MODE_ZPIPE);
-		dcdebug("ZLIF mode enabled on hub: %s\n", this->getAddress().c_str());
+		dcdebug("ZLIF mode enabled on hub: %s\n", getHubUrlAndIP().c_str());
 	}
 	catch (const Exception& e)
 	{
@@ -723,13 +723,23 @@ void AdcHub::sendUDP(const AdcCommand& cmd) noexcept
 		{
 			return;
 		}
-		ip = ou->getIdentity().getIp();
+		ip = ou->getIdentity().getIpAsString();
 		port = ou->getIdentity().getUdpPort();
 		command = cmd.toString(ou->getUser()->getCID());
 	}
 	try
 	{
 		udp.writeTo(ip, port, command);
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+		const string l_sr = command;
+		string l_tth;
+		const auto l_tth_pos = l_sr.find("TTH:");
+		if (l_tth_pos != string::npos)
+			l_tth = l_sr.substr(l_tth_pos + 4, 39); // getHubUrl()
+		CFlylinkDBManager::getInstance()->push_event_statistic("$SR", "UDP-write-adc", l_sr, ip, Util::toString(port), "", l_tth);
+#endif
+		
+		
 	}
 	catch (const SocketException& e)
 	{
@@ -1229,7 +1239,7 @@ StringList AdcHub::parseSearchExts(int flag)
 	}
 	return ret;
 }
-void AdcHub::search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList)
+void AdcHub::search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, bool p_is_force_passive)
 {
 	if (state != STATE_NORMAL
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD

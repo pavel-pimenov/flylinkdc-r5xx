@@ -65,15 +65,16 @@
 #include "ShareMiscPage.h"
 #include "SearchPage.h"
 
-bool PropertiesDlg::needUpdate = false;
-bool PropertiesDlg::m_Create = false;
-PropertiesDlg::PropertiesDlg(HWND parent, SettingsManager *s) : TreePropertySheet(CTSTRING(SETTINGS), 0, parent)
+bool PropertiesDlg::g_needUpdate = false;
+bool PropertiesDlg::g_is_create = false;
+PropertiesDlg::PropertiesDlg(HWND parent, SettingsManager *s) : TreePropertySheet(CTSTRING(SETTINGS), 0, parent), m_network_page(nullptr)
 {
-	m_Create = true;
+	g_is_create = true;
 	size_t n = 0;
 	pages[n++] = new GeneralPage(s);
 	pages[n++] = new ProvidersPage(s);
-	pages[n++] = new NetworkPage(s);
+	m_network_page = new NetworkPage(s);
+	pages[n++] = m_network_page;
 	pages[n++] = new ProxyPage(s);
 	pages[n++] = new DownloadPage(s);
 	pages[n++] = new FavoriteDirsPage(s);
@@ -117,9 +118,9 @@ PropertiesDlg::PropertiesDlg(HWND parent, SettingsManager *s) : TreePropertyShee
 	pages[n++] = new FileSharePage(s);
 #endif
 	// after add new page need add a new string in TreePropertySheet.cpp, l_HelpLinkTable.
-	dcassert(n == m_numPages);
+	dcassert(n == g_numPages);
 	
-	for (size_t i = 0; i < m_numPages; i++)
+	for (size_t i = 0; i < g_numPages; i++)
 	{
 		AddPage(pages[i]->getPSP());
 	}
@@ -131,16 +132,28 @@ PropertiesDlg::PropertiesDlg(HWND parent, SettingsManager *s) : TreePropertyShee
 
 PropertiesDlg::~PropertiesDlg()
 {
-	for (size_t i = 0; i < m_numPages; i++)
+	for (size_t i = 0; i < g_numPages; i++)
 	{
-		delete pages[i];
+		if (m_network_page == pages[i])
+			m_network_page = nullptr;
+		safe_delete(pages[i]);
 	}
-	m_Create = false;
+	g_is_create = false;
 }
-
+void PropertiesDlg::onTimerSec()
+{
+	if (m_network_page)
+	{
+		const auto l_page = GetActivePage();
+		if (l_page == *m_network_page)
+		{
+			m_network_page->updateTestPortIcon(false);
+		}
+	}
+}
 void PropertiesDlg::write()
 {
-	for (size_t i = 0; i < m_numPages; i++)
+	for (size_t i = 0; i < g_numPages; i++)
 	{
 		// Check HWND of page to see if it has been created
 		const HWND page = PropSheet_IndexToHwnd((HWND) * this, i);
@@ -172,7 +185,7 @@ LRESULT PropertiesDlg::onCANCEL(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
 
 void PropertiesDlg::cancel()
 {
-	for (size_t i = 0; i < m_numPages; i++)
+	for (size_t i = 0; i < g_numPages; i++)
 	{
 		// Check HWND of page to see if it has been created
 		const HWND page = PropSheet_IndexToHwnd((HWND) * this, i);

@@ -55,17 +55,17 @@ LRESULT RecentHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	ctrlConnect.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_DISABLED | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                   BS_PUSHBUTTON , 0, IDC_CONNECT);
 	ctrlConnect.SetWindowText(CTSTRING(CONNECT));
-	ctrlConnect.SetFont(Fonts::systemFont); // [~] Sergey Shuhskanov
+	ctrlConnect.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
 	
 	ctrlRemove.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_DISABLED | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                  BS_PUSHBUTTON , 0, IDC_REMOVE);
 	ctrlRemove.SetWindowText(CTSTRING(REMOVE));
-	ctrlRemove.SetFont(Fonts::systemFont); // [~] Sergey Shuhskanov
+	ctrlRemove.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
 	
 	ctrlRemoveAll.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                     BS_PUSHBUTTON , 0, IDC_REMOVE_ALL);
 	ctrlRemoveAll.SetWindowText(CTSTRING(REMOVE_ALL));
-	ctrlRemoveAll.SetFont(Fonts::systemFont); // [~] Sergey Shuhskanov
+	ctrlRemoveAll.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
 	
 	FavoriteManager::getInstance()->addListener(this);
 	SettingsManager::getInstance()->addListener(this);

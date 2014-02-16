@@ -32,12 +32,19 @@ class UploadQueueItem : public intrusive_ptr_base<UploadQueueItem>, // [!] IRain
 {
 	public:
 		UploadQueueItem(const HintedUser& user, const string& file, int64_t pos, int64_t size) :
-			m_hintedUser(user), m_file(file), m_pos(pos), m_size(size), m_time(GET_TIME()), m_share(0), m_slots(0)
+			m_hintedUser(user), m_file(file), m_pos(pos), m_size(size), m_time(GET_TIME())
 		{
+#ifdef _DEBUG
+			++g_upload_queue_item_count;
+#endif
 			inc();
 		}
 		~UploadQueueItem()
 		{
+#ifdef _DEBUG
+			--g_upload_queue_item_count;
+#endif
+			//dec();
 		}
 		void update();
 		const UserPtr& getUser() const
@@ -66,15 +73,11 @@ class UploadQueueItem : public intrusive_ptr_base<UploadQueueItem>, // [!] IRain
 				case COLUMN_WAITING:
 					return compare(a->m_time, b->m_time);
 				case COLUMN_SLOTS:
-					return compare(a->m_slots, b->m_slots); // !SMT!-UI
+					return compare(a->getUser()->getSlots(), b->getUser()->getSlots()); // !SMT!-UI
 				case COLUMN_SHARE:
-					return compare(a->m_share, b->m_share); // !SMT!-UI
+					return compare(a->getUser()->getBytesShared(), b->getUser()->getBytesShared()); // !SMT!-UI
 				case COLUMN_IP:
-				{
-					const uint32_t a_ip = Socket::convertIP4(Text::fromT(a->getText(col)));
-					const uint32_t b_ip = Socket::convertIP4(Text::fromT(b->getText(col)));
-					return compare(a_ip, b_ip);
-				}
+					return compare(Socket::convertIP4(Text::fromT(a->getText(col))), Socket::convertIP4(Text::fromT(b->getText(col))));
 			}
 			return stricmp(a->getText(col), b->getText(col));
 			//-BugMaster: small optimization; fix; correct IP sorting
@@ -106,10 +109,10 @@ class UploadQueueItem : public intrusive_ptr_base<UploadQueueItem>, // [!] IRain
 		GETSET(int64_t, m_pos, Pos);
 		GETC(int64_t, m_size, Size);
 		GETC(uint64_t, m_time, Time);
-		
-		uint64_t m_share;
-		int m_slots;
 		Util::CustomNetworkIndex m_location;
+#ifdef _DEBUG
+		static boost::atomic_int g_upload_queue_item_count;
+#endif
 };
 
 class WaitingUser
@@ -317,7 +320,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		void on(AdcCommand::GFI, UserConnection*, const AdcCommand&) noexcept;
 		
 		bool prepareFile(UserConnection& aSource, const string& aType, const string& aFile, int64_t aResume, int64_t& aBytes, bool listRecursive = false);
-		bool hasUpload(UserConnection& aSource) const; // [+] FlylinkDC++
+		bool hasUpload(UserConnection& aSource, const string& p_source_file) const; // [+] FlylinkDC++
 		// !SMT!-S
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 		struct banmsg_t

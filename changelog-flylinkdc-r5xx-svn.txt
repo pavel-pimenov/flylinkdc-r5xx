@@ -1,4 +1,238 @@
 ------------------------------------------------------------------------
+r16604 | pavel.pimenov@gmail.com | 2014-02-14 19:23:50 +0400 (Пт, 14 фев 2014) | 14 lines
+
+Merged revision(s) 16599-16603 from trunk:
+# Убрал лишнюю вложенную блокировку UniqueLock l(QueueItem::cs) в Download::Download
+  она уже есть в QueueManager::getDownload
+........
+# WTL 9.0. merge - влил инициализацию массивов но не всех а только 0-го элемента
+........
+# Добавил стратовую загрузку всех хабов select id,name from fly_dic where dic=1
+# Убрал CLIENT_SUMMARY_SHARE_IS_ATOMIC и исключил появления отрицательной щары
+  (возникает при реконнекте и равна отрицательному размеру шары текущего пользователя)
+........
+# В команде "Quit" не делаем лишний поиск OnlineUserPtr u = findUser(nick);
+  он выполняется в putUser()
+........
+
+------------------------------------------------------------------------
+r16597 | pavel.pimenov@gmail.com | 2014-02-14 07:02:10 +0400 (Пт, 14 фев 2014) | 1 line
+
+# [merge]
+------------------------------------------------------------------------
+r16589 | pavel.pimenov@gmail.com | 2014-02-13 19:37:35 +0400 (Чт, 13 фев 2014) | 8 lines
+
+# r502-release 
+  Merged revision(s) 16587-16588 from trunk:
+Merged revision(s) 16587-16588 from trunk:
+# Сократил время запуска приложения при обновлении CustomLocations.ini & GeoIPCountryWhois.csv
+  - Изменил структуру таблиц 
+    ALTER TABLE location_db.fly_country_ip add column country text
+    ALTER TABLE location_db.fly_location_ip add column location text
+   Спасибо HackFresse (http://dchublist.ru/forum/viewtopic.php?f=6&t=1028&p=22239#p22239)
+------------------------------------------------------------------------
+r16584 | tret2003 | 2014-02-13 14:18:12 +0400 (Чт, 13 фев 2014) | 1 line
+
+#[merge] r502-release
+------------------------------------------------------------------------
+r16574 | tret2003 | 2014-02-13 07:56:27 +0400 (Чт, 13 фев 2014) | 1 line
+
+#[merge] r502-release
+------------------------------------------------------------------------
+r16562 | tret2003 | 2014-02-12 11:47:35 +0400 (Ср, 12 фев 2014) | 1 line
+
+#[merge] r502-release
+------------------------------------------------------------------------
+r16536 | pavel.pimenov@gmail.com | 2014-02-08 18:54:01 +0400 (Сб, 08 фев 2014) | 1 line
+
+#[merge] r502-release-sp-??
+------------------------------------------------------------------------
+r16531 | tret2003 | 2014-02-08 13:18:10 +0400 (Сб, 08 фев 2014) | 38 lines
+
+Объединённые ревизии 16417-16440 из trunk:
+# Добавил экран DHT
+........
+* openssl перевел на сборку из исходников
+........
+* openssl перевел на сборку из исходников (Часть 2)
+........
+# Рефакторинг в ClientManager::getUser и ChatBot
+........
+# В связи с этим  http://www.flylinkdc.ru/2014/01/sqlite.html
+  Перевел базу из режима WAL на PERSIST как в гугл-хроме
+	pragma_executor("journal_mode=PERSIST");
+	pragma_executor("journal_size_limit=16384"); // http://src.chromium.org/viewvc/chrome/trunk/src/sql/connection.cc
+	pragma_executor("secure_delete=OFF"); // http://www.sqlite.org/pragma.html#pragma_secure_delete
+	pragma_executor("synchronous=FULL");  // 
+
+........
+# Из окна поиска убрал лишние CContainedWindow (как я понял они нужены для перехвата нажатий Enter)
+  оставлены только там где может быть фокус.
+........
+* r503-beta24
+........
+# Правки файлов проектов для OpenSSL в VS2012 и VS2013
+........
+# Починил иконки в окне тестов портов.
+........
+# Обновление иконок теста портов зовем только если активная закладка - сетка
+........
+# Исправлен define r15724
+https://code.google.com/p/flylinkdc/source/detail?r=15724
+........
+# При ошибке в базе данных - вывожу путь где файлы базы данных лежат (99% юзеров не могут найти их)
+........
+# Убрал лишние включения хедеров от OpenSSL
+........
+* Удалил из мастера тестирование портов через старый php скрипт
+........
+
+------------------------------------------------------------------------
+r16414 | pavel.pimenov@gmail.com | 2014-01-26 16:16:31 +0400 (Вс, 26 янв 2014) | 138 lines
+
+Merged revision(s) 16369-16412 from trunk:
+# Возможно исправлено падение в TransferView::parseQueueItemUpdateInfo
+  - https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=114130 
+  - Убрал лишние m_queueItem->inc(); и m_queueItem->dec(); это делает сам intrusive_ptr
+........
+#  Хотелось бы вернуть обратно однуу маленькую штучку в сборке 502 - это показ количества свободных слотов в описании
+   http://www.flickr.com/photos/96019675@N02/11947595665/
+........
+* Начало решения проблемы - не работает поиск!
+  http://www.flylinkdc.ru/2014/01/flylinkdc.html
+* r503-beta21
+........
+#
+........
+# Градиентная подпись оставалась красной при тесте UDP-порта [public-build]
+........
+# InnoSetup 5.5.4u
+# Из автообновления убрал устаревший dhtServers.xml (TODO - разобраться почему генератор апдейтов не ругался на такой файл)
+# Забытый экран SSA_SHELL_INTEGRATION
+........
+# Убрал лишние конструкторы копии и operator= для Flags и HashValue
+........
+# заменил ... на …
+........
+# [lang] an auto commit from localization system...
+........
+# Восстановил сломанный инсталлер
+  
+........
+# [merge] ApexDC++ int64_t File::getSize 
+........
+* (Closed issue 1430) В окне «Очередь отдачи» не работает сортировка по колонке «шара»
+  http://code.google.com/p/flylinkdc/issues/detail?id=1430
+........
+* (Fixed issue 1431) http://code.google.com/p/flylinkdc/issues/detail?id=1431
+  - Убрал мертвую настройку ROLLBACK
+  - Если размер скачиваемого файла меньше буфера - заказываем размер только под файл.
+........
+# Log [public-build]
+........
+# Сдвинул кнопку теста портов
+........
+# Откатил все изменения в SharedFileStream - временная сборка с экраном FLYLINKDC_DISABLE_FLUSH (пользователь тестит)
+# Исключил двойной вызов flush в BufferedOutputStream
+   
+........
+# Вернул вызов flush в BufferedOutputStream
+........
+# (Часть 1) Тест всех портов в окне настроек http://www.flickr.com/photos/96019675@N02/12095901694/ (серверная часть TCP еще не доделана)
+  - Добавлена недокументированная команда $FLY-TEST-PORT (TODO - при обработке проверять CID)
+  - Добавил новую картинку f_grey_16.png но она почему-то пока не показывается (возможно что-то связано с темами)
+# В UDPSocket::checkIncoming убрал лишнее обрезание s.substr(0, s.length() - 1
+# В UDPSocket::decompressPacket поддержкал случай если пакет не распаковался в память из-за нехватки ram
+  при этом сразу не заказываем 16Кб - в нормальном режиме работы памяти нужно меньше (заказываю 5x от сжатого zlib контента)
+TODO - как заработает убрать копипаст- enum StagesIcon
+........
+# Добавлен файл в проекты 2012 и 2013 VS
+........
+* Updating the database ISPs
+   http://www.assembla.com/spaces/customlocations-greylink
+   Build on the base 1293, created 2014-01-23 19:52:54 +0700
+   Total in database:
+    - ISP - 1405
+    - ISPs logo - 1414
+    - Address range - 5982
+   Archive CustomLocations.7z created by NightOrion
+
+
+........
+* Updating the database ISPs
+   http://www.assembla.com/spaces/customlocations-greylink
+   Build on the base 1294, created 2014-01-23 20:04:38 +0700
+   Total in database:
+    - ISP - 1406
+    - ISPs logo - 1415
+    - Address range - 5983
+   Archive CustomLocations.7z created by NightOrion
+
+
+........
+# [lang] an auto commit from localization system...
+........
+* Тест всех портов http://www.flylinkdc.ru/2014/01/blog-post.html (часть 1)
+........
+* r502-beta23
+........
+# Добавил новые файлы в проект VS 2012 и 2013
+........
+# Не собиаралась версия x64
+........
+# Log [public-build]
+........
+# Исправлена утечка памяти при отрисовке иконок тестирования порта с помощью ExCImage и png (зачем тут использовали png - не понятно)
+  если никто не вспомнит - удалю файл из ресурса заменив эквивалентными *.ico
+      - f_green_16.png
+      - f_grey_16.png
+      - f_p_16.png
+      - f_red_16.png
+      - f_yellow_16.png
+........
+# ICO:
+f_grey_16: вместо крестика,- "пауза"
+
+
+........
+* Updating the database ISPs
+   http://www.assembla.com/spaces/customlocations-greylink
+   Build on the base 1296, created 2014-01-23 21:03:47 +0700
+   Total in database:
+    - ISP - 1408
+    - ISPs logo - 1417
+    - Address range - 5985
+   Archive CustomLocations.7z created by NightOrion
+
+
+........
+# Дополнение к http://www.flylinkdc.ru/2014/01/blog-post.html
+  - состояние портов перевел на boost::logic::tribool
+  - исправлены утечки GDI ресурсов
+  - удалил png картинки (использую иконки)
+........
+# Поправил иконку пауза
+........
+# Log [public-build]
+........
+# Правка проектов VS 2012 и 2013
+........
+# Исправлен спам по UDP в окне поиска при тесте портов
+........
+# innosetup 5.5.4
+........
+# Хаб поддержки перевел на dchub://dc.fly-server.ru
+........
+# Добавил экраны DHT
+........
+# Вернул случайно затёртое
+........
+
+------------------------------------------------------------------------
+r16413 | pavel.pimenov@gmail.com | 2014-01-26 16:12:03 +0400 (Вс, 26 янв 2014) | 1 line
+
+# r502 - опечатка
+------------------------------------------------------------------------
 r16368 | pavel.pimenov@gmail.com | 2014-01-12 14:37:56 +0400 (Вс, 12 янв 2014) | 18 lines
 
 Merged revision(s) 16359-16367 from trunk:

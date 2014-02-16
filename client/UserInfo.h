@@ -72,16 +72,9 @@ class UserInfo : public UserInfoBase
 	private:
 		const OnlineUserPtr m_ou; // [!] IRainman fix: use online user here!
 		Util::CustomNetworkIndex m_location; // [+] IRainman opt.
-#ifdef SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
-		bool m_is_ip_from_sql;
-#endif
 	public:
 	
-		explicit UserInfo(const OnlineUserPtr& p_ou) :
-#ifdef SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
-			m_is_ip_from_sql(false),
-#endif
-			m_ou(p_ou)
+		explicit UserInfo(const OnlineUserPtr& p_ou) : m_ou(p_ou)
 		{
 		}
 		static int compareItems(const UserInfo* a, const UserInfo* b, int col);
@@ -94,19 +87,15 @@ class UserInfo : public UserInfoBase
 #endif
 		}
 		tstring getText(int p_col) const;
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-#ifdef SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
-		bool isIPFromSQL() const
-		{
-			return m_is_ip_from_sql;
-		}
-#endif // SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
-#endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		bool isOP() const
 		{
 			return getIdentity().isOp();
 		}
-		string getIp() const
+		string getIpAsString() const
+		{
+			return getIdentity().getIpAsString();
+		}
+		boost::asio::ip::address_v4 getIp() const
 		{
 			return getIdentity().getIp();
 		}
@@ -119,28 +108,7 @@ class UserInfo : public UserInfoBase
 		{
 			return m_location;
 		}
-		const Util::CustomNetworkIndex& calcLocation()
-		{
-			auto& l_location = getLocation();
-			if (l_location.isNew())
-			{
-				const auto& l_ip = getIp();
-#ifdef SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
-				calcIpFromSQL(l_ip);
-#endif
-				if (!l_ip.empty())
-					setLocation(Util::getIpCountry(l_ip));
-// TODO             else
-// TODO                     setLocation(Util::CustomNetworkIndex(0,0));
-			}
-			return l_location;
-		}
-#ifdef SCALOLAZ_BRIGHTEN_LOCATION_WITH_LASTIP
-		void calcIpFromSQL(const string& p_ip)
-		{
-			m_is_ip_from_sql = p_ip.empty() && getUser()->isLastIP();
-		}
-#endif
+		void calcLocation();
 		void setLocation(const Util::CustomNetworkIndex& p_location)
 		{
 			m_location = p_location;

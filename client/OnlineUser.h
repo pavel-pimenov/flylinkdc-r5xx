@@ -82,6 +82,7 @@ class Identity
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 			CHANGES_UPLOAD = 1 << COLUMN_UPLOAD,
 			CHANGES_DOWNLOAD = 1 << COLUMN_DOWNLOAD,
+			COLUMN_MESSAGES = 1 << COLUMN_MESSAGES,
 #endif
 #ifdef PPA_INCLUDE_DNS
 			CHANGES_DNS = 1 << COLUMN_DNS, // !SMT!-IP
@@ -218,12 +219,23 @@ class Identity
 			getUser()->setIP(m_ip);
 			change(CHANGES_IP | CHANGES_GEO_LOCATION);
 		}
-		string getIp() const // "I4"
+		bool isFantomIP() const
+		{
+			return m_ip.is_unspecified();
+		}
+		boost::asio::ip::address_v4 getIp() const
+		{
+			if (!m_ip.is_unspecified())
+				return m_ip;
+			else
+				return getUser()->getIP();
+		}
+		string getIpAsString() const
 		{
 			if (!m_ip.is_unspecified())
 				return m_ip.to_string();
 			else
-				return getUser()->getIP();
+				return getUser()->getIPAsString();
 		}
 	private:
 		boost::asio::ip::address_v4 m_ip; // "I4" // [!] IRainman fix: needs here, details https://code.google.com/p/flylinkdc/issues/detail?id=1330
@@ -396,7 +408,20 @@ class Identity
 			e_TypeUInt16AttrLast
 		};
 		GSUINTBITS(16);
-		
+#if 0
+	public:
+		bool is_ip_change_and_clear()
+		{
+			//FastUniqueLock l(g_cs);
+			if (get_uint16(e_Changes) & CHANGES_IP)
+			{
+				get_uint16(e_Changes) &= ~CHANGES_IP;
+				return true;
+			}
+			return false;
+		}
+	private:
+#endif
 		void change(const uint16_t p_change)
 		{
 #ifdef IRAINMAN_USE_NG_FAST_USER_INFO
@@ -616,8 +641,11 @@ class OnlineUser :
 			COLUMN_IP,
 			//[+]PPA
 			COLUMN_LAST_IP,
+#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 			COLUMN_UPLOAD,
 			COLUMN_DOWNLOAD,
+			COLUMN_MESSAGES,
+#endif
 			//[~]PPA
 			COLUMN_EMAIL,
 #ifdef IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB

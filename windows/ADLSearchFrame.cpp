@@ -82,32 +82,32 @@ LRESULT ADLSearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	ctrlAdd.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	               BS_PUSHBUTTON , 0, IDC_ADD);
 	ctrlAdd.SetWindowText(CTSTRING(NEW));
-	ctrlAdd.SetFont(Fonts::systemFont); // [~] Sergey Shuhskanov
+	ctrlAdd.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
 	
 	ctrlEdit.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_DISABLED | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                BS_PUSHBUTTON , 0, IDC_EDIT);
 	ctrlEdit.SetWindowText(CTSTRING(PROPERTIES));
-	ctrlEdit.SetFont(Fonts::systemFont); // [~] Sergey Shuhskanov
+	ctrlEdit.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
 	
 	ctrlRemove.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_DISABLED | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                  BS_PUSHBUTTON , 0, IDC_REMOVE);
 	ctrlRemove.SetWindowText(CTSTRING(REMOVE));
-	ctrlRemove.SetFont(Fonts::systemFont); // [~] Sergey Shuhskanov
+	ctrlRemove.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
 	
 	ctrlMoveUp.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                  BS_PUSHBUTTON , 0, IDC_MOVE_UP);
 	ctrlMoveUp.SetWindowText(CTSTRING(MOVE_UP));
-	ctrlMoveUp.SetFont(Fonts::systemFont); // [~] Sergey Shuhskanov
+	ctrlMoveUp.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
 	
 	ctrlMoveDown.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                    BS_PUSHBUTTON , 0, IDC_MOVE_DOWN);
 	ctrlMoveDown.SetWindowText(CTSTRING(MOVE_DOWN));
-	ctrlMoveDown.SetFont(Fonts::systemFont); // [~] Sergey Shuhskanov
+	ctrlMoveDown.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
 	
 	ctrlHelp.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                BS_PUSHBUTTON , 0, IDC_HELP_FAQ);
 	ctrlHelp.SetWindowText(CTSTRING(WHATS_THIS));
-	ctrlHelp.SetFont(Fonts::systemFont); // [~] Sergey Shuhskanov
+	ctrlHelp.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
 	
 	// Create context menu
 	contextMenu.CreatePopupMenu();

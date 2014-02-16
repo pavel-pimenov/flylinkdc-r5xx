@@ -307,7 +307,10 @@ bool HashManager::getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int
 			}
 			const size_t audioCount = g_media_info_dll.Count_Get(MediaInfoLib::Stream_Audio);
 			p_media.m_bitrate  = 0;
-			std::string audioFormatString;
+			boost::unordered_map<string, uint16_t> l_audio_dup_filter;
+			// AC-3, 5.1, 448 Kbps | AC-3, 5.1, 640 Kbps | TrueHD / AC-3, 5.1, 640 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps"
+			// Превращаем в
+			// AC-3, 5.1, 640 Kbps | TrueHD / AC-3, 5.1, 640 Kbps | AC-3, 5.1, 448 Kbps (x7)
 			for (size_t i = 0; i < audioCount; i++)
 			{
 				const wstring l_sinfo = g_media_info_dll.Get(MediaInfoLib::Stream_Audio, i, _T("BitRate"));
@@ -333,10 +336,9 @@ bool HashManager::getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int
 				}
 				
 				const wstring sLanguage = g_media_info_dll.Get(MediaInfoLib::Stream_Audio, i, _T("Language/String1"));
-				
+				std::string audioFormatString;
 				if (!sFormat.empty() || !sBitRate.empty() || !sChannels.empty() || !sLanguage.empty())
 				{
-					audioFormatString += " |";
 					if (!sFormat.empty())
 					{
 						audioFormatString += ' ';
@@ -361,8 +363,23 @@ bool HashManager::getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int
 						audioFormatString += Text::fromT(sLanguage);
 						audioFormatString += ',';
 					}
-					audioFormatString = audioFormatString.substr(0, audioFormatString.length() - 1); // Remove last ,
+					if (!audioFormatString.empty() && audioFormatString[audioFormatString.length() - 1] == ',')
+					{
+						audioFormatString = audioFormatString.substr(0, audioFormatString.length() - 1); // Remove last ,
+					}
+					l_audio_dup_filter[audioFormatString]++;
 				}
+			}
+			std::string l_audio_all;
+			std::string l_sep;
+			for (auto k = l_audio_dup_filter.cbegin(); k != l_audio_dup_filter.cend(); ++k)
+			{
+				l_audio_all += l_sep;
+				if (k->second == 1)
+					l_audio_all += k->first;
+				else
+					l_audio_all += k->first + " (x" + Util::toString(k->second) + ")";
+				l_sep = " |";
 			}
 			wstring l_width;
 			wstring l_height;
@@ -383,7 +400,7 @@ bool HashManager::getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int
 				p_media.m_mediaY = 0;
 				
 			const wstring sDuration = g_media_info_dll.Get(MediaInfoLib::Stream_General, 0, _T("Duration/String"));
-			if (!sDuration.empty() || !audioFormatString.empty())
+			if (!sDuration.empty() || !l_audio_all.empty())
 			{
 				string audioGeneral;
 				if (!sDuration.empty())
@@ -393,8 +410,8 @@ bool HashManager::getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int
 				}
 				p_media.m_audio = audioGeneral.substr(0, audioGeneral.length() - 1); // Remove last ,
 				// No Duration => No sound
-				if (!audioFormatString.empty())
-					p_media.m_audio += audioFormatString;
+				if (!l_audio_all.empty())
+					p_media.m_audio += l_audio_all;
 			}
 			
 			const size_t videoCount =  g_media_info_dll.Count_Get(MediaInfoLib::Stream_Video);

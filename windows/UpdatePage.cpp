@@ -77,7 +77,6 @@ UpdatePage::ListItem UpdatePage::listComponents[] =
 	{ SettingsManager::AUTOUPDATE_ICONTHEMES, ResourceManager::AUTOUPDATE_ICONTHEMES}, // [+] SSA
 	{ SettingsManager::AUTOUPDATE_COLORTHEMES, ResourceManager::AUTOUPDATE_COLORTHEMES}, // [+] SSA
 	{ SettingsManager::AUTOUPDATE_DOCUMENTATION, ResourceManager::AUTOUPDATE_DOCUMENTATION}, // [+] SSA
-	{ SettingsManager::AUTOUPDATE_DHTSERVERSLIST, ResourceManager::AUTOUPDATE_DHTSERVERSLIST}, // [+] SSA
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
 	{ SettingsManager::AUTOUPDATE_GEOIP, ResourceManager::AUTOUPDATE_GEOIP}, // [+] IRainman
 	{ SettingsManager::AUTOUPDATE_CUSTOMLOCATION, ResourceManager::AUTOUPDATE_CUSTOMLOCATION}, // [+] IRainman

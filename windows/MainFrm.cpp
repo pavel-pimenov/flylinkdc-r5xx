@@ -1179,7 +1179,7 @@ HWND MainFrame::createQuickSearchBar()
 		
 		QuickSearchBoxContainer.SubclassWindow(QuickSearchBox.m_hWnd);
 		QuickSearchBox.SetExtendedUI();
-		QuickSearchBox.SetFont(Fonts::systemFont, FALSE);
+		QuickSearchBox.SetFont(Fonts::g_systemFont, FALSE);
 		
 		POINT pt;
 		pt.x = 10;
@@ -1518,10 +1518,10 @@ void MainFrame::updateQuickSearches(bool p_clean /*= false*/)
 		if (!p_clean)
 		{
 			//[+]IRainman
-			if (SearchFrame::lastSearches.empty())
-				CFlylinkDBManager::getInstance()->load_registry(SearchFrame::lastSearches, e_SearchHistory);
+			if (SearchFrame::g_lastSearches.empty())
+				CFlylinkDBManager::getInstance()->load_registry(SearchFrame::g_lastSearches, e_SearchHistory);
 				
-			for (auto i = SearchFrame::lastSearches.cbegin(); i != SearchFrame::lastSearches.cend(); ++i)//[~]IRainman
+			for (auto i = SearchFrame::g_lastSearches.cbegin(); i != SearchFrame::g_lastSearches.cend(); ++i)//[~]IRainman
 			{
 				QuickSearchBox.InsertString(0, i->c_str());
 			}
@@ -1906,6 +1906,7 @@ LRESULT MainFrame::OnAppAbout(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 	return 0;
 }
 
+#ifdef USE_SUPPORT_HUB
 LRESULT MainFrame::OnConnectToSupportHUB(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	RecentHubEntry r;
@@ -1917,7 +1918,7 @@ LRESULT MainFrame::OnConnectToSupportHUB(WORD /*wNotifyCode*/, WORD /*wID*/, HWN
 	
 	return 0;
 }
-
+#endif //USE_SUPPORT_HUB
 
 LRESULT MainFrame::onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
@@ -2026,7 +2027,7 @@ LRESULT MainFrame::onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 // При изменении настроек.
 LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	if (!PropertiesDlg::m_Create)
+	if (!PropertiesDlg::g_is_create)
 	{
 		PropertiesDlg dlg(m_hWnd, SettingsManager::getInstance());
 		
@@ -2042,13 +2043,14 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 #ifdef STRONG_USE_DHT
 		const bool lastDHTConn = BOOLSETTING(USE_DHT);
 #endif
-		const string& lastMapper = SETTING(MAPPER);
-		const string& lastBind = SETTING(BIND_ADDRESS);
+		const string lastMapper = SETTING(MAPPER);
+		const string lastBind   = SETTING(BIND_ADDRESS);
 		
 		const bool lastSortFavUsersFirst = BOOLSETTING(SORT_FAVUSERS_FIRST);
 		
 		if (dlg.DoModal(m_hWnd) == IDOK)
 		{
+			SettingsManager::testPortLevelInit();
 			SettingsManager::getInstance()->save();
 			if (missedAutoConnect && !SETTING(NICK).empty())
 			{

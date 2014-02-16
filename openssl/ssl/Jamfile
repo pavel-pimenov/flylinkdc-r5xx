@@ -1,0 +1,14 @@
+import set : difference ;
+
+local prevent_winsock_inclusion_in_windows_h = <target-os>windows:<define>_WINSOCKAPI_ ;
+
+obj ssl_ciph : ssl_ciph.c : $(prevent_winsock_inclusion_in_windows_h) ;
+obj ssl_sess : ssl_sess.c : $(prevent_winsock_inclusion_in_windows_h) ;
+obj t1_lib : t1_lib.c : $(prevent_winsock_inclusion_in_windows_h) ;
+
+lib ssl : [ difference [ glob *.c ] : ssl_task.c ssltest.c ssl_sess.c ssl_ciph.c t1_lib.c ]
+			 ssl_sess ssl_ciph t1_lib
+		  : <include>../crypto
+;
+
+explicit ssl ;

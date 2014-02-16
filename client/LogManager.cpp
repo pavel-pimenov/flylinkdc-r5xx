@@ -46,6 +46,9 @@ LogManager::LogManager()
 	logOptions[CUSTOM_LOCATION][FORMAT]   = SettingsManager::LOG_FORMAT_CUSTOM_LOCATION;
 	logOptions[TRACE_SQLITE][FILE]     = SettingsManager::LOG_FILE_TRACE_SQLITE;
 	logOptions[TRACE_SQLITE][FORMAT]   = SettingsManager::LOG_FORMAT_TRACE_SQLITE;
+	logOptions[DDOS_TRACE][FILE]     = SettingsManager::LOG_FILE_DDOS_TRACE;
+	logOptions[DDOS_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_DDOS_TRACE;
+	
 	
 	if (!CompatibilityManager::getStartupInfo().empty())
 		message(CompatibilityManager::getStartupInfo());
@@ -162,6 +165,13 @@ void LogManager::log(LogArea area, const StringMap& params, bool p_only_file /* 
 		const string msg = Util::formatParams(getSetting(area, FORMAT), params, false);
 		log(path, msg);
 	}
+}
+
+void LogManager::ddos_message(const string& p_message)
+{
+	StringMap params;
+	params["message"] = p_message;
+	LOG(DDOS_TRACE, params);
 }
 
 void LogManager::message(const string& msg, bool p_only_file /*= false */)

@@ -19,7 +19,7 @@
 #ifndef DCPLUSPLUS_DCPP_SEARCH_MANAGER_H
 #define DCPLUSPLUS_DCPP_SEARCH_MANAGER_H
 
-#include "Thread.h"
+#include "CFlyThread.h"
 #include "StringSearch.h" // [+] IRainman-S
 #include "SearchManagerListener.h"
 #include "AdcCommand.h"
@@ -30,23 +30,24 @@ class SocketException;
 class SearchManager : public Speaker<SearchManagerListener>, public Singleton<SearchManager>, public BASE_THREAD
 {
 	public:
-	
-	public:
 		static const char* getTypeStr(int type);
 		
-		void search(const string& aName, int64_t aSize, Search::TypeModes aTypeMode, Search::SizeModes aSizeMode, const string& aToken, void* aOwner = nullptr);
-		void search(const string& aName, const string& aSize, Search::TypeModes aTypeMode, Search::SizeModes aSizeMode, const string& aToken, void* aOwner = nullptr)
+		void search_auto(const string& aName)
 		{
-			search(aName, Util::toInt64(aSize), aTypeMode, aSizeMode, aToken, aOwner);
+			search(aName, 0, Search::TYPE_TTH, Search::SIZE_DONTCARE, "auto", nullptr, false);
 		}
+		void search(const string& aName, int64_t aSize, Search::TypeModes aTypeMode, Search::SizeModes aSizeMode, const string& aToken, void* aOwner, bool p_is_force_passive);
 		
-		uint64_t search(const StringList& who, const string& aName, int64_t aSize, Search::TypeModes aTypeMode, Search::SizeModes aSizeMode, const string& aToken, const StringList& aExtList, void* aOwner = nullptr);
-		uint64_t search(const StringList& who, const string& aName, const string& aSize, Search::TypeModes aTypeMode, Search::SizeModes aSizeMode, const string& aToken, const StringList& aExtList, void* aOwner = nullptr)
-		{
-			return search(who, aName, Util::toInt64(aSize), aTypeMode, aSizeMode, aToken, aExtList, aOwner);
-		}
-		//static string clean(const string& aSearchString);
-		
+		uint64_t search(const StringList& who,
+		                const string& aName,
+		                int64_t aSize,
+		                Search::TypeModes aTypeMode,
+		                Search::SizeModes aSizeMode,
+		                const string& aToken,
+		                const StringList& aExtList,
+		                void* aOwner,
+		                bool p_is_force_passive);
+		                
 		ClientManagerListener::SearchReply respond(const AdcCommand& cmd, const CID& cid, bool isUdpActive, const string& hubIpPort, StringSearch::List& reguest); // [!] IRainman-S add  StringSearch::List& reguest and return type
 		
 		uint16_t getPort() const

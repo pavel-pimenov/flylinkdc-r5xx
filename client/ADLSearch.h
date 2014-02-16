@@ -139,7 +139,7 @@ class ADLSearchManager : public Singleton<ADLSearchManager>
 		
 	private:
 		// @internal
-		void matchRecurse(DestDirList& /*aDestList*/, DirectoryListing::Directory* /*aDir*/, string& /*aPath*/);
+		void matchRecurse(DestDirList& /*aDestList*/, DirectoryListing::Directory* /*aDir*/, const string& /*aPath*/);
 		// Search for file match
 		void matchesFile(DestDirList& destDirVector, DirectoryListing::File *currentFile, const string& fullPath);
 		// Search for directory match

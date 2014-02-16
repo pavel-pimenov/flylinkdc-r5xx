@@ -1,10 +1,6 @@
 #ifndef SSL_H_
 #define SSL_H_
 
-// enable this 2 lines for compiling with GnuTLS
-//#define ssize_t size_t // this is needed for MSVC, maybe other compilers doesn't need it
-//#include <gnutls/openssl.h>
-
 // enable this for compiling with OpenSSL
 #include <openssl/ssl.h>
 
@@ -74,7 +70,9 @@ typedef scoped_handle<SSL_CTX, SSL_CTX_free> SSL_CTX;
 typedef scoped_handle<ASN1_INTEGER, ASN1_INTEGER_free> ASN1_INTEGER;
 typedef scoped_handle<BIGNUM, BN_free> BIGNUM;
 typedef scoped_handle<DH, DH_free> DH;
+#ifndef OPENSSL_NO_DSA
 typedef scoped_handle<DSA, DSA_free> DSA;
+#endif
 typedef scoped_handle<EVP_PKEY, EVP_PKEY_free> EVP_PKEY;
 typedef scoped_handle<RSA, RSA_free> RSA;
 typedef scoped_handle<X509, X509_free> X509;

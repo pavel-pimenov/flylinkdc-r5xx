@@ -98,7 +98,7 @@ uint16_t Socket::accept(const Socket& listeningSocket)
 	
 	do
 	{
-		m_sock = ::accept(listeningSocket.m_sock, (sockaddr*) & sock_addr, &sz);
+		m_sock = ::accept(listeningSocket.m_sock, (struct sockaddr*) & sock_addr, &sz);
 	}
 	while (m_sock == SOCKET_ERROR && getLastError() == EINTR);
 	check(m_sock);
@@ -147,7 +147,7 @@ uint16_t Socket::bind(uint16_t aPort, const string& aIp /* = 0.0.0.0 */)
 		check(::bind(m_sock, (sockaddr *)&sock_addr, sizeof(sock_addr)));
 	}
 	socklen_t size = sizeof(sock_addr);
-	getsockname(m_sock, (sockaddr*)&sock_addr, (socklen_t*)&size);
+	getsockname(m_sock, (struct sockaddr*)&sock_addr, (socklen_t*)&size);
 	return ntohs(sock_addr.sin_port);
 }
 
@@ -179,7 +179,7 @@ void Socket::connect(const string& aAddr, uint16_t aPort)
 	int result;
 	do
 	{
-		result = ::connect(m_sock, (sockaddr*) & serv_addr, sizeof(serv_addr));
+		result = ::connect(m_sock, (struct sockaddr*) & serv_addr, sizeof(serv_addr));
 	}
 	while (result < 0 && getLastError() == EINTR);
 	check(result, true);
@@ -452,7 +452,7 @@ int Socket::read(void* aBuffer, int aBufLen, sockaddr_in &remote)
 		if (m_sock == INVALID_SOCKET)// [+]IRainman
 			break;
 			
-		len = ::recvfrom(m_sock, (char*)aBuffer, aBufLen, 0, (sockaddr*) & remote_addr, &addr_length); // 2012-05-03_22-00-59_BXMHFQ4XUPHO3PGC3R7LOLCOCEBV57NUA63QOVA_AE6E2832_crash-stack-r502-beta24-build-9900.dmp
+		len = ::recvfrom(m_sock, (char*)aBuffer, aBufLen, 0, (struct sockaddr*) & remote_addr, &addr_length); // 2012-05-03_22-00-59_BXMHFQ4XUPHO3PGC3R7LOLCOCEBV57NUA63QOVA_AE6E2832_crash-stack-r502-beta24-build-9900.dmp
 #ifdef RIP_USE_LOG_PROTOCOL
 		if (len > 0 && BOOLSETTING(LOG_PROTOCOL))
 		{
@@ -572,19 +572,6 @@ void Socket::writeTo(const string& aAddr, uint16_t aPort, const void* aBuffer, i
 	if (aLen <= 0)
 		return;
 		
-	/* [-] IRainman
-	// Temporary fix to avoid spamming
-	if (aPort == 80 || aPort == 2501)
-	{
-	    // FlylinkDC Team TODO: this code do we need?
-	    // IRainman: Hubs are the same kick when sending requests to a foreign IP. So if a port is selected then it is really necessary.
-	    AutoArray<char> buf(256);
-	    snprintf(buf.get(), 256, CSTRING(ATTEMPT_TO_USE_SPAM_MESSAGE_S), aAddr.c_str());
-	    LogManager::getInstance()->message(buf.get());
-	    return;
-	}
-	*/
-	
 	uint8_t* buf = (uint8_t*)aBuffer;
 	if (m_sock == INVALID_SOCKET)
 	{
@@ -819,7 +806,7 @@ return Util::emptyString;
 }
 sockaddr_in sock_addr;
 socklen_t len = sizeof(sock_addr);
-if (getsockname(m_sock, (sockaddr*)&sock_addr, &len) == 0)
+if (getsockname(m_sock, (struct sockaddr*)&sock_addr, &len) == 0)
 {
 return inet_ntoa(sock_addr.sin_addr);
 }
@@ -833,7 +820,7 @@ uint16_t Socket::getLocalPort() noexcept
 		
 	sockaddr_in sock_addr;
 	socklen_t len = sizeof(sock_addr);
-	if (getsockname(m_sock, (sockaddr*)&sock_addr, &len) == 0)
+	if (getsockname(m_sock, (struct sockaddr*)&sock_addr, &len) == 0)
 	{
 		return ntohs(sock_addr.sin_port);
 	}

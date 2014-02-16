@@ -116,8 +116,8 @@ class SimpleXMLReader
 			
 			/// In <!-- comment field
 			STATE_COMMENT,
-			/// SSA - CDDATA
-			STATE_CDDATA,
+			/// SSA - CDATA
+			STATE_CDATA,
 			
 			STATE_CONTENT,
 			
@@ -178,7 +178,7 @@ class SimpleXMLReader
 		bool elementAttrValue();
 		
 		bool comment();
-		bool cddata();
+		bool cdata();
 		
 		bool content();
 		

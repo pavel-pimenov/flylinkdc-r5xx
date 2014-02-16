@@ -25,7 +25,7 @@ LRESULT HashProgressDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 	m_HashHelp.SetHyperLink(l_url.c_str());
 	m_HashHelp.SetHyperLinkExtendedStyle(/*HLINK_LEFTIMAGE |*/ HLINK_UNDERLINEHOVER);
 	m_HashHelp.SetLabel(CTSTRING(SETTINGS_MIN_MEDIAINFO_SIZE));
-	m_HashHelp.SetFont(Fonts::systemFont, FALSE);
+	m_HashHelp.SetFont(Fonts::g_systemFont, FALSE);
 #else //not SCALOLAZ_HASH_HELPLINK
 	SetDlgItemText(IDC_MEDIAINFO_SIZE_TXT, CTSTRING(SETTINGS_MIN_MEDIAINFO_SIZE));
 #endif //SCALOLAZ_HASH_HELPLINK

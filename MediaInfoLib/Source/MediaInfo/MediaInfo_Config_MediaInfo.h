@@ -49,7 +49,7 @@ public :
     //Constructor/Destructor
     MediaInfo_Config_MediaInfo();
     ~MediaInfo_Config_MediaInfo();
-    
+
     //General
     Ztring Option (const String &Option, const String &Value=Ztring());
 
@@ -283,6 +283,9 @@ public :
     bool          File_IsNotGrowingAnymore;
     int64u        File_Current_Offset;
     int64u        File_Current_Size;
+    int64u        File_IgnoreFramesBefore;
+    int64u        File_IgnoreFramesAfter;
+    float64       File_IgnoreFramesRate;
     int64u        File_Size;
     float32       ParseSpeed;
     #if MEDIAINFO_EVENTS

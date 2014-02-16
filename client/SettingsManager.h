@@ -22,10 +22,9 @@
 #include "Util.h"
 #include "Speaker.h"
 #include "Singleton.h"
-
+#include "..\boost\boost\logic\tribool.hpp"
 #define MAX_SOCKET_BUFFER_SIZE 64 * 1024 // [+] IRainman fix.
 
-#define URL_TEST_IP_DEFAULT  "http://flylinkdc.com/test.php"
 #define URL_GET_IP_DEFAULT  "http://checkip.dyndns.com"
 
 STANDARD_EXCEPTION(SearchTypeException);
@@ -66,6 +65,18 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		typedef SearchTypes::iterator SearchTypesIter;
 		
 		static StringList g_connectionSpeeds;
+		static boost::logic::tribool g_TestUDPSearchLevel;
+		static boost::logic::tribool g_TestUDPDHTLevel;
+		static boost::logic::tribool g_TestTCPLevel;
+		static boost::logic::tribool g_TestTSLLevel;
+		static void testPortLevelInit()
+		{
+			g_TestUDPSearchLevel = boost::logic::indeterminate;
+			g_TestUDPDHTLevel = boost::logic::indeterminate;
+			g_TestTCPLevel = boost::logic::indeterminate;
+			g_TestTSLLevel = boost::logic::indeterminate;
+		}
+		static string g_UDPTestExternalIP;
 		
 		enum StrSetting { STR_FIRST,
 		                  NICK = STR_FIRST, UPLOAD_SPEED, DESCRIPTION, DOWNLOAD_DIRECTORY, EMAIL, EXTERNAL_IP,
@@ -93,9 +104,9 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  PROFILES_URL, WINAMP_FORMAT,
 		                  
 		                  WEBSERVER_POWER_USER, WEBSERVER_POWER_PASS, WEBSERVER_BIND_ADDRESS,// [+] IRainman
-		                  LOG_FORMAT_WEBSERVER, LOG_FORMAT_CUSTOM_LOCATION, LOG_FORMAT_TRACE_SQLITE, WEBSERVER_USER, WEBSERVER_PASS, LOG_FILE_MAIN_CHAT,
+		                  LOG_FORMAT_WEBSERVER, LOG_FORMAT_CUSTOM_LOCATION, LOG_FORMAT_TRACE_SQLITE, LOG_FORMAT_DDOS_TRACE, WEBSERVER_USER, WEBSERVER_PASS, LOG_FILE_MAIN_CHAT,
 		                  LOG_FILE_PRIVATE_CHAT, LOG_FILE_STATUS, LOG_FILE_UPLOAD, LOG_FILE_DOWNLOAD, LOG_FILE_SYSTEM,
-		                  LOG_FORMAT_SYSTEM, LOG_FORMAT_STATUS, LOG_FILE_WEBSERVER, LOG_FILE_CUSTOM_LOCATION, LOG_FILE_TRACE_SQLITE, DIRECTORYLISTINGFRAME_ORDER, DIRECTORYLISTINGFRAME_WIDTHS,
+		                  LOG_FORMAT_SYSTEM, LOG_FORMAT_STATUS, LOG_FILE_WEBSERVER, LOG_FILE_CUSTOM_LOCATION, LOG_FILE_TRACE_SQLITE, LOG_FILE_DDOS_TRACE, DIRECTORYLISTINGFRAME_ORDER, DIRECTORYLISTINGFRAME_WIDTHS,
 		                  MAINFRAME_VISIBLE, SEARCHFRAME_VISIBLE, QUEUEFRAME_VISIBLE, HUBFRAME_VISIBLE, UPLOADQUEUEFRAME_VISIBLE,
 		                  EMOTICONS_FILE,
 		                  TLS_PRIVATE_KEY_FILE, TLS_CERTIFICATE_FILE, TLS_TRUSTED_CERTIFICATES_PATH,
@@ -109,7 +120,6 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  PM_PASSWORD, PM_PASSWORD_HINT, PM_PASSWORD_OK_HINT, // !SMT!-PSW
 		                  COPY_WMLINK,//[+]necros
 		                  RATIO_TEMPLATE, //[+] WhiteD. Custom ratio message
-		                  URL_TEST_IP,
 		                  URL_IPTRUST, //[+]PPA
 		                  TOOLBAR_SETTINGS, // [*]Drakon
 		                  WINAMPTOOLBAR,  // [*]Drakon
@@ -142,7 +152,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                };
 		                
 		enum IntSetting { INT_FIRST = STR_LAST + 1,
-		                  INCOMING_CONNECTIONS = INT_FIRST, TCP_PORT, SLOTS, ROLLBACK, AUTO_FOLLOW, CLEAR_SEARCH,
+		                  INCOMING_CONNECTIONS = INT_FIRST, TCP_PORT, SLOTS, AUTO_FOLLOW, CLEAR_SEARCH,
 		                  BACKGROUND_COLOR, TEXT_COLOR, SHARE_HIDDEN,
 		                  SHARE_VIRTUAL, SHARE_SYSTEM, // [+]IRainman
 		                  FILTER_MESSAGES, MINIMIZE_TRAY,
@@ -165,7 +175,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  AUTO_SEARCH_AUTO_MATCH, DOWNLOAD_BAR_COLOR, UPLOAD_BAR_COLOR, LOG_SYSTEM,
 		                  LOG_CUSTOM_LOCATION, // [+] IRainman
 		                  LOG_FILELIST_TRANSFERS, SHOW_STATUSBAR, SHOW_TOOLBAR, SHOW_TRANSFERVIEW,
-		                  SEARCH_PASSIVE, SET_MINISLOT_SIZE, SHUTDOWN_TIMEOUT, DONT_ADD_TTH_DCTMP,
+		                  SEARCH_PASSIVE, SET_MINISLOT_SIZE, SHUTDOWN_TIMEOUT,
 		                  // MAX_UPLOAD_SPEED_LIMIT, MAX_DOWNLOAD_SPEED_LIMIT, // [-]IRainman SpeedLimiter
 		                  EXTRA_SLOTS,
 		                  TEXT_GENERAL_BACK_COLOR, TEXT_GENERAL_FORE_COLOR, TEXT_GENERAL_BOLD, TEXT_GENERAL_ITALIC,
@@ -235,7 +245,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  HUB_POSITION, // [+] InfinitySky.
 		                  SOCKET_IN_BUFFER, SOCKET_OUT_BUFFER,
 		                  COLOR_RUNNING, COLOR_DOWNLOADED, COLOR_VERIFIED, COLOR_AVOIDING, AUTO_REFRESH_TIME, OPEN_WAITING_USERS,
-		                  BOLD_WAITING_USERS, AUTO_SEARCH_LIMIT, AUTO_KICK_NO_FAVS, PROMPT_PASSWORD, SPY_FRAME_IGNORE_TTH_SEARCHES,
+		                  BOLD_WAITING_USERS, NOTBOLD_FONT_ON_ACTIVITY_TAB, AUTO_SEARCH_LIMIT, AUTO_KICK_NO_FAVS, PROMPT_PASSWORD, SPY_FRAME_IGNORE_TTH_SEARCHES,
 		                  TLS_PORT, USE_TLS, MAX_COMMAND_LENGTH, ALLOW_UNTRUSTED_HUBS, ALLOW_UNTRUSTED_CLIENTS,
 		                  FAST_HASH, DOWNCONN_PER_SEC,
 		                  PRIO_HIGHEST_SIZE, PRIO_HIGH_SIZE, PRIO_NORMAL_SIZE, PRIO_LOW_SIZE, PRIO_LOWEST,
@@ -404,10 +414,11 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  INT_PREVIEW_USE_VIDEO_SCROLL, INT_PREVIEW_START_CLIENT,  // [+] SSA
 		                  PROVIDER_USE_RESOURCES, // [+] SSA
 		                  PROVIDER_USE_MENU, PROVIDER_USE_HUBLIST, PROVIDER_USE_PROVIDER_LOCATIONS, // [+] SSA
-		                  AUTOUPDATE_DHTSERVERSLIST, // [+] SSA
 		                  AUTOUPDATE_GEOIP, // [+] IRainman
 		                  AUTOUPDATE_CUSTOMLOCATION, // [+] IRainman
+#ifdef SSA_SHELL_INTEGRATION
 		                  AUTOUPDATE_SHELL_EXT, // [+] IRainman
+#endif
 #ifdef IRAINMAN_USE_BB_CODES
 		                  FORMAT_BB_CODES_COLORS, // [+] SSA
 #endif

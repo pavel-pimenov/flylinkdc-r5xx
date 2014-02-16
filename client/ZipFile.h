@@ -92,10 +92,10 @@ class ZipFile : private boost::noncopyable
 		typedef std::map<string, pair<FileInfo, FileContentType > > FileMap;
 		
 		ZipFile() : fp(NULL) { }
-		ZipFile(const string &file);
+		ZipFile(const tstring &file);
 		~ZipFile();
 		
-		void Open(const string &file);
+		void Open(const tstring &file);
 		void Close();
 		
 		bool IsOpen() const;

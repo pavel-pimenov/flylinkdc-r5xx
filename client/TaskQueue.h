@@ -19,7 +19,7 @@
 #ifndef DCPLUSPLUS_DCPP_TASK_H
 #define DCPLUSPLUS_DCPP_TASK_H
 
-#include "Thread.h"
+#include "CFlyThread.h"
 
 class Task
 #ifdef _DEBUG

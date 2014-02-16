@@ -26,15 +26,17 @@
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 #include "nmdchub.h"
 #endif
+#include "../FlyFeatures/flyServer.h"
 
 uint16_t ConnectionManager::iConnToMeCount = 0;
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csConnection = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csDdosCheck = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csTTHFilter = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 
-ConnectionManager::ConnectionManager() : floodCounter(0), server(nullptr),
+ConnectionManager::ConnectionManager() : m_floodCounter(0), server(nullptr),
 	secureServer(nullptr),
 	shuttingDown(false)
 {
-	// [-] TimerManager::getInstance()->addListener(this); [-] IRainman fix.
 	nmdcFeatures.reserve(5);
 	nmdcFeatures.push_back(UserConnection::FEATURE_MINISLOTS);
 	nmdcFeatures.push_back(UserConnection::FEATURE_XML_BZLIST);
@@ -81,6 +83,7 @@ void ConnectionManager::listen()
 	
 	if (!CryptoManager::getInstance()->TLSOk())
 	{
+		LogManager::getInstance()->message("Skipping secure port: " + Util::toString(SETTING(USE_TLS)));
 		dcdebug("Skipping secure port: %d\n", SETTING(USE_TLS));
 		return;
 	}
@@ -112,7 +115,7 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 		const ConnectionQueueItem::Iter i = find(downloads.begin(), downloads.end(), aUser);
 		if (i == downloads.end())
 		{
-			getCQI(aUser, true); // http://code.google.com/p/flylinkdc/issues/detail?id=1037
+			getCQI(HintedUser(aUser, Util::emptyString), true); // http://code.google.com/p/flylinkdc/issues/detail?id=1037
 			// Ќе сохран€ем указатель. а как и когда будем удал€ть ?
 			return;
 		}
@@ -129,17 +132,17 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 #endif
 }
 
-ConnectionQueueItem* ConnectionManager::getCQI(const UserPtr& aUser, bool download)
+ConnectionQueueItem* ConnectionManager::getCQI(const HintedUser& aHintedUser, bool download)
 {
-	ConnectionQueueItem* cqi = new ConnectionQueueItem(aUser, download);
+	ConnectionQueueItem* cqi = new ConnectionQueueItem(aHintedUser, download);
 	if (download)
 	{
-		dcassert(find(downloads.begin(), downloads.end(), aUser) == downloads.end());
+		dcassert(find(downloads.begin(), downloads.end(), aHintedUser) == downloads.end());
 		downloads.push_back(cqi);
 	}
 	else
 	{
-		dcassert(find(uploads.begin(), uploads.end(), aUser) == uploads.end());
+		dcassert(find(uploads.begin(), uploads.end(), aHintedUser) == uploads.end());
 		uploads.push_back(cqi);
 	}
 	
@@ -193,6 +196,11 @@ void ConnectionManager::putConnection(UserConnection* aConn)
 
 void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 {
+	if (((aTick / 1000) % (CFlyServerConfig::g_max_unique_tth_search + 2)) == 0)
+	{
+		cleanupTTHDuplicateSearch(aTick);
+	}
+	
 	ConnectionQueueItem::List removed;
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
 	UserList l_idlers;
@@ -244,8 +252,9 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 					{
 						if (startDown)
 						{
+							const string hubHint = cqi->getHubUrl(); // TODO - прокинуть туда хинт на хаб
 							cqi->setState(ConnectionQueueItem::CONNECTING);
-							ClientManager::getInstance()->connect(HintedUser(cqi->getUser(), Util::emptyString), cqi->getToken());
+							ClientManager::getInstance()->connect(HintedUser(cqi->getUser(), hubHint), cqi->getToken());
 							fire(ConnectionManagerListener::StatusChanged(), cqi);
 							attempts++;
 						}
@@ -270,12 +279,10 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 				}
 			}
 		}
-#ifdef IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
 	}
 	if (!removed.empty())
 	{
 		webrtc::WriteLockScoped l(*g_csConnection);
-#endif
 		for (auto m = removed.cbegin(); m != removed.cend(); ++m)
 		{
 			putCQI(*m);
@@ -290,15 +297,86 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 #endif
 }
 
+void ConnectionManager::cleanupIpFlood(const uint64_t p_tick)
+{
+	webrtc::WriteLockScoped l_ddos(*g_csDdosCheck);
+	for (auto j = m_ddos_map.cbegin(); j != m_ddos_map.cend();)
+	{
+		// ≈сли коннектов совершено меньше чем предел в течении минуты - убираем адрес из таблицы - с ним все хорошо!
+		const auto l_tick_delta = p_tick - j->second.m_first_tick;
+		const bool l_is_min_ban_close = j->second.m_count_connect < CFlyServerConfig::g_max_ddos_connect_to_me && l_tick_delta > 1000 * 60;
+		if (l_is_min_ban_close)
+		{
+#ifdef _DEBUG
+			LogManager::getInstance()->ddos_message("BlockID = " + Util::toString(j->second.m_block_id) + ", Removed mini-ban for: " +
+			                                        j->first.first.to_string() + j->second.getPorts() +
+			                                        " m_ddos_map.size() = " + Util::toString(m_ddos_map.size()));
+#endif
+		}
+		// ≈сли коннектов совершено много и IP находитс€ в бане, но уже прошло врем€ больше чем 10 ћинут(по умолчанию)
+		// “акже убираем запись из таблицы блокировки
+		const bool l_is_ddos_ban_close = j->second.m_count_connect > CFlyServerConfig::g_max_ddos_connect_to_me
+		                                 && l_tick_delta > CFlyServerConfig::g_ban_ddos_connect_to_me * 1000 * 60;
+		if (l_is_ddos_ban_close)
+		{
+			string l_type;
+			if (j->first.second.is_unspecified()) // ≈сли нет второго IP то это команада  ConnectToMe
+			{
+				l_type =  "IP-1:" + j->first.first.to_string() + j->second.getPorts();
+			}
+			else
+			{
+				l_type = " IP-1:" + j->first.first.to_string() + j->second.getPorts() + " IP-2: " + j->first.second.to_string();
+			}
+			LogManager::getInstance()->ddos_message("BlockID = " + Util::toString(j->second.m_block_id) + ", Removed DDoS lock " + j->second.m_type_block +
+			                                        ", Count connect = " + Util::toString(j->second.m_count_connect) + l_type +
+			                                        ", m_ddos_map.size() = " + Util::toString(m_ddos_map.size()));
+		}
+		if (l_is_ddos_ban_close || l_is_min_ban_close)
+			m_ddos_map.erase(j++);
+		else
+			++j;
+	}
+}
+void ConnectionManager::cleanupTTHDuplicateSearch(const uint64_t p_tick)
+{
+	webrtc::WriteLockScoped l_lock(*g_csTTHFilter);
+	
+	for (auto j = m_tth_duplicate_search.cbegin(); j != m_tth_duplicate_search.cend();)
+	{
+		if ((p_tick - j->second.m_first_tick) > 1000 * CFlyServerConfig::g_max_unique_tth_search)
+		{
+#ifdef FLYLINKDC_USE_LOG_FOR_DUPLICATE_TTH_SEARCH
+			if (j->second.m_count_connect > 1) // —обытие возникало больше одного раза - логируем?
+			{
+				LogManager::getInstance()->ddos_message(string(j->second.m_count_connect, '*') + " BlockID = " + Util::toString(j->second.m_block_id) +
+				                                        ", Unlock duplicate TTH search: " + j->first +
+				                                        ", Count connect = " + Util::toString(j->second.m_count_connect) +
+				                                        ", Hash map size: " + Util::toString(m_tth_duplicate_search.size()));
+			}
+#endif
+			m_tth_duplicate_search.erase(j++);
+		}
+		else
+			++j;
+	}
+}
 void ConnectionManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 {
+	cleanupIpFlood(aTick);
+	
 	webrtc::ReadLockScoped l(*g_csConnection);
 	
 	for (auto j = m_userConnections.cbegin(); j != m_userConnections.cend(); ++j)
 	{
-		if (((*j)->getLastActivity() + 180 * 1000) < aTick)
+		auto& l_connection = *j;
+#ifdef _DEBUG
+		if ((l_connection->getLastActivity() + 180 * 1000) < aTick)
+#else
+		if ((l_connection->getLastActivity() + 180 * 1000) < aTick) // «ачем так много минут висеть?
+#endif
 		{
-			(*j)->disconnect(true);
+			l_connection->disconnect(true);
 		}
 	}
 }
@@ -387,13 +465,13 @@ void ConnectionManager::accept(const Socket& sock, bool secure) noexcept
 	if (iConnToMeCount > 0)
 		iConnToMeCount--;
 		
-	if (now > floodCounter)
+	if (now > m_floodCounter)
 	{
-		floodCounter = now + FLOOD_ADD;
+		m_floodCounter = now + FLOOD_ADD;
 	}
 	else
 	{
-		if (now + FLOOD_TRIGGER < floodCounter)// [!] IRainman fix
+		if (now + FLOOD_TRIGGER < m_floodCounter)// [!] IRainman fix
 		{
 			Socket s;
 			try
@@ -404,19 +482,20 @@ void ConnectionManager::accept(const Socket& sock, bool secure) noexcept
 			{
 				// ...
 			}
+			LogManager::getInstance()->message("Connection flood detected, port = " + Util::toString(sock.getPort()) + " IP = " + sock.getIp());
 			dcdebug("Connection flood detected!\n");
 			return;
 		}
 		else
 		{
 			if (iConnToMeCount <= 0)
-				floodCounter += FLOOD_ADD;
+				m_floodCounter += FLOOD_ADD;
 		}
 	}
 	UserConnection* uc = getConnection(false, secure);
 	uc->setFlag(UserConnection::FLAG_INCOMING);
 	uc->setState(UserConnection::STATE_SUPNICK);
-	uc->setLastActivity(GET_TICK());
+	uc->setLastActivity();
 	try
 	{
 		uc->accept(sock);
@@ -427,23 +506,94 @@ void ConnectionManager::accept(const Socket& sock, bool secure) noexcept
 		delete uc;
 	}
 }
-
-bool ConnectionManager::checkIpFlood(const string& aServer, uint16_t aPort, const string& userInfo)
+bool ConnectionManager::checkTTHDuplicateSearch(const string& p_search_command)
 {
-	// [!] IRainman fix: no data to lock!
-	/* [-] IRainman
-	// Temporary fix to avoid spamming
-	if (aPort == 80 || aPort == 2501)
+	webrtc::WriteLockScoped l_ddos(*g_csTTHFilter);
+	const auto l_tick = GET_TICK();
+	CFlyTTHTick l_item;
+	l_item.m_first_tick = l_tick;
+	l_item.m_last_tick  = l_tick;
+	auto l_result = m_tth_duplicate_search.insert(std::pair<string, CFlyTTHTick>(p_search_command, l_item));
+	auto& l_cur_value = l_result.first->second;
+	++l_cur_value.m_count_connect;
+	if (l_result.second == false) // Ёлемент уже существует - проверим его счетчик и старость.
 	{
-	    // FlylinkDC Team TODO: this code do we need?
-	    // IRainman: Hubs are the same kick when sending requests to a foreign IP. So if a port is selected then it is really necessary.
-	    AutoArray<char> buf(512);
-	    snprintf(buf.get(), 512, CSTRING(ATTEMPT_TO_USE_SPAM_MESSAGE_CM), userInfo.c_str(), aServer.c_str(), aPort);
-	    LogManager::getInstance()->message(buf.get());
-	    return true;
+		l_cur_value.m_last_tick  = l_tick;
+		if (l_tick - l_cur_value.m_first_tick > 1000 * CFlyServerConfig::g_max_unique_tth_search)
+		{
+			// “ут можно сразу стереть элемент устаревший
+			return false;
+		}
+		if (l_cur_value.m_count_connect > 1)
+		{
+			static uint16_t g_block_id = 0;
+			if (l_cur_value.m_block_id == 0)
+			{
+				l_cur_value.m_block_id = ++g_block_id;
+			}
+			if (l_cur_value.m_count_connect >= 2)
+			{
+#ifdef FLYLINKDC_USE_LOG_FOR_DUPLICATE_TTH_SEARCH
+				LogManager::getInstance()->ddos_message(string(l_cur_value.m_count_connect, '*') + " BlockID = " + Util::toString(l_cur_value.m_block_id) +
+				                                        ", Lock TTH search = " + p_search_command +
+				                                        ", Count = " + Util::toString(l_cur_value.m_count_connect) +
+				                                        ", Hash map size: " + Util::toString(m_tth_duplicate_search.size()));
+#endif
+			}
+			return true;
+		}
 	}
-	*/
-	// [~] IRainman fix: no data to lock!
+	return false;
+}
+bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, const boost::asio::ip::address_v4 p_ip_hub, const string& p_userInfo, const string& p_HubInfo)
+{
+	{
+		boost::system::error_code ec;
+		const auto l_tick = GET_TICK();
+		const auto l_ip = boost::asio::ip::address_v4::from_string(aIPServer, ec);
+		const CFlyDDOSkey l_key(l_ip.to_ulong(), p_ip_hub);
+		dcassert(!ec);
+		if (!ec)
+		{
+			webrtc::WriteLockScoped l_ddos(*g_csDdosCheck);
+			CFlyDDoSTick l_item;
+			l_item.m_first_tick = l_tick;
+			l_item.m_last_tick = l_tick;
+			auto l_result = m_ddos_map.insert(std::pair<CFlyDDOSkey, CFlyDDoSTick>(l_key, l_item));
+			auto& l_cur_value = l_result.first->second;
+			++l_cur_value.m_count_connect;
+			l_cur_value.m_original_query_for_debug.push_back(" Time: [" + Util::getShortTimeString() +  "] Hub info = [" + p_HubInfo + "] UserInfo = [" + p_userInfo + "]"); // Ћог дл€ детальной отладки
+			if (l_result.second == false)
+			{
+				// Ёлемент уже существует
+				l_cur_value.m_last_tick = l_tick;   //  орректируем врем€ последней активности.
+				l_cur_value.m_ports.insert(aPort);  // —охраним последний порт
+				if (l_cur_value.m_count_connect == CFlyServerConfig::g_max_ddos_connect_to_me) // ѕревысили кол-во коннектов по одному IP
+				{
+					const string l_info   = "[Count limit: " + Util::toString(CFlyServerConfig::g_max_ddos_connect_to_me) + "]\t";
+					const string l_target = "[Target: " + aIPServer + l_cur_value.getPorts() + "]\t";
+					const string l_user_info = !p_userInfo.empty() ? "[UserInfo: " + p_userInfo + "]\t"  : "";
+					l_cur_value.m_type_block = "Type DDoS:" + p_ip_hub.is_unspecified() ? "[$ConnectToMe]" : "[$Search]";
+					static uint16_t g_block_id = 0;
+					l_cur_value.m_block_id = ++g_block_id;
+					LogManager::getInstance()->ddos_message("BlockID=" + Util::toString(l_cur_value.m_block_id) + ", " + l_cur_value.m_type_block + p_HubInfo + l_info + l_target + l_user_info);
+					for (auto k = l_cur_value.m_original_query_for_debug.cbegin() ; k != l_cur_value.m_original_query_for_debug.cend(); ++k)
+					{
+						LogManager::getInstance()->ddos_message(" BlockID=" + Util::toString(l_cur_value.m_block_id) + ", Detail info: " + *k);
+					}
+					l_cur_value.m_original_query_for_debug.clear();
+				}
+				if (l_cur_value.m_count_connect >= CFlyServerConfig::g_max_ddos_connect_to_me)
+				{
+					if ((l_cur_value.m_last_tick - l_cur_value.m_first_tick) < CFlyServerConfig::g_ban_ddos_connect_to_me * 1000 * 60)
+					{
+						return true; // Ћочим этот коннект до наступлени€ амнистии. TODO - проверить эту часть внимательей
+						// в след части фикса - проводить анализ протокола и коннекты на порты лочить на вечно.
+					}
+				}
+			}
+		}
+	}
 	webrtc::ReadLockScoped l(*g_csConnection);
 	
 	// We don't want to be used as a flooding instrument
@@ -453,15 +603,16 @@ bool ConnectionManager::checkIpFlood(const string& aServer, uint16_t aPort, cons
 	
 		const UserConnection& uc = **j;
 		
-		if (uc.socket == nullptr || !uc.socket->hasSocket()) // TODO 2012-04-23_22-28-18_ETFY7EDN5BIPZZSIMVUUBOZFZOGWBZY3F4D2HUA_2B5B184F_crash-stack-r501-build-9812.dmp
+		if (uc.socket == nullptr || !uc.socket->hasSocket())
 			continue;
 			
-		if (uc.getPort() == aPort && uc.getRemoteIp() == aServer) // https://www.box.net/shared/amuyfgz5q3o4f4ng8v76
+		if (uc.getPort() == aPort && uc.getRemoteIp() == aIPServer)
 		{
 			if (++count >= 5)
 			{
 				// More than 5 outbound connections to the same addr/port? Can't trust that..
-				dcdebug("ConnectionManager::connect Tried to connect more than 5 times to %s:%hu, connect dropped\n", aServer.c_str(), aPort);
+				// LogManager::getInstance()->message("ConnectionManager::connect Tried to connect more than 5 times to " + aIPServer + ":" + Util::toString(aPort));
+				dcdebug("ConnectionManager::connect Tried to connect more than 5 times to %s:%hu, connect dropped\n", aIPServer.c_str(), aPort);
 				return true;
 			}
 		}
@@ -469,14 +620,14 @@ bool ConnectionManager::checkIpFlood(const string& aServer, uint16_t aPort, cons
 	return false;
 }
 
-void ConnectionManager::nmdcConnect(const string& aServer, uint16_t aPort, const string& aNick, const string& hubUrl,
+void ConnectionManager::nmdcConnect(const string& aIPServer, uint16_t aPort, const string& aNick, const string& hubUrl,
                                     const string& encoding,
 #ifdef IRAINMAN_ENABLE_STEALTH_MODE
                                     bool stealth,
 #endif
                                     bool secure)
 {
-	nmdcConnect(aServer, aPort, 0, BufferedSocket::NAT_NONE, aNick, hubUrl,
+	nmdcConnect(aIPServer, aPort, 0, BufferedSocket::NAT_NONE, aNick, hubUrl,
 	            encoding,
 #ifdef IRAINMAN_ENABLE_STEALTH_MODE
 	            stealth,
@@ -484,7 +635,7 @@ void ConnectionManager::nmdcConnect(const string& aServer, uint16_t aPort, const
 	            secure);
 }
 
-void ConnectionManager::nmdcConnect(const string& aServer, uint16_t aPort, uint16_t localPort, BufferedSocket::NatRoles natRole, const string& aNick, const string& hubUrl,
+void ConnectionManager::nmdcConnect(const string& aIPServer, uint16_t aPort, uint16_t localPort, BufferedSocket::NatRoles natRole, const string& aNick, const string& hubUrl,
                                     const string& encoding,
 #ifdef IRAINMAN_ENABLE_STEALTH_MODE
                                     bool stealth,
@@ -494,7 +645,7 @@ void ConnectionManager::nmdcConnect(const string& aServer, uint16_t aPort, uint1
 	if (isShuttingDown())
 		return;
 		
-	if (checkIpFlood(aServer, aPort, "NMDC Hub: " + hubUrl))
+	if (checkIpFlood(aIPServer, aPort, boost::asio::ip::address_v4(), "", "[Hub: " + hubUrl + "]"))
 		return;
 		
 	UserConnection* uc = getConnection(true, secure); // [!] IRainman fix SSL connection on NMDC(S) hubs.
@@ -511,7 +662,7 @@ void ConnectionManager::nmdcConnect(const string& aServer, uint16_t aPort, uint1
 #endif
 	try
 	{
-		uc->connect(aServer, aPort, localPort, natRole);
+		uc->connect(aIPServer, aPort, localPort, natRole);
 	}
 	catch (const Exception&)
 	{
@@ -530,7 +681,7 @@ void ConnectionManager::adcConnect(const OnlineUser& aUser, uint16_t aPort, uint
 	if (isShuttingDown())
 		return;
 		
-	if (checkIpFlood(aUser.getIdentity().getIp(), aPort, "ADC Nick: " + aUser.getIdentity().getNick() + ", Hub: " + aUser.getClientBase().getHubName()))
+	if (checkIpFlood(aUser.getIdentity().getIpAsString(), aPort, boost::asio::ip::address_v4(), "", "[Hub: " + aUser.getClientBase().getHubName() + "]")) // "ADC Nick: " + aUser.getIdentity().getNick() +
 		return;
 		
 	UserConnection* uc = getConnection(false, secure);
@@ -546,7 +697,7 @@ void ConnectionManager::adcConnect(const OnlineUser& aUser, uint16_t aPort, uint
 #endif
 	try
 	{
-		uc->connect(aUser.getIdentity().getIp(), aPort, localPort, natRole);
+		uc->connect(aUser.getIdentity().getIpAsString(), aPort, localPort, natRole);
 	}
 	catch (const Exception&)
 	{
@@ -951,7 +1102,7 @@ void ConnectionManager::addUploadConnection(UserConnection* uc)
 		const auto i = find(uploads.begin(), uploads.end(), uc->getUser());
 		if (i == uploads.cend())
 		{
-			cqi = getCQI(uc->getUser(), false);
+			cqi = getCQI(uc->getHintedUser(), false);
 			cqi->setState(ConnectionQueueItem::ACTIVE);
 			uc->setFlag(UserConnection::FLAG_ASSOCIATED);
 			

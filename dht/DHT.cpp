@@ -244,7 +244,8 @@ Node::Ptr DHT::addNode(const CID& cid, const string& ip, uint16_t port, const UD
 {
 	dcassert(!ClientManager::isShutdown());
 	// create user as offline (only TCP connected users will be online)
-	UserPtr u = ClientManager::getUser(cid);
+	UserPtr u = ClientManager::getUser(cid, true); // TODO - утекает. если долго работать тут появляется много юзеров.
+												   // а когда их удаляем?
 		FastLock l(cs);
 	return m_bucket->addOrUpdate(u, ip, port, udpKey, update, isUdpKeyValid);
 }
@@ -352,10 +353,10 @@ void DHT::privateMessage(const OnlineUserPtr& ou, const string& aMessage, bool t
 	  cmd.addParam("ME", "1");
 
 	auto key = UDPKey();
-	key.m_ip = ou->getIdentity().getIp();
+	key.m_ip = ou->getIdentity().getIpAsString();
 	key.m_key = ou->getUser()->getCID();
 
-	send(cmd, ou->getIdentity().getIp(), ou->getIdentity().getUdpPort(), ou->getUser()->getCID(), key);
+	send(cmd, ou->getIdentity().getIpAsString(), ou->getIdentity().getUdpPort(), ou->getUser()->getCID(), key);
 }
 
 /*
@@ -731,7 +732,7 @@ void DHT::handle(AdcCommand::GET, const string& ip, uint16_t port, const UDPKey&
 		{
 			xml.addTag("Node");
 			xml.addChildAttrib("CID", i->second->getUser()->getCID().toBase32());
-			xml.addChildAttrib("I4", i->second->getIdentity().getIp());
+			xml.addChildAttrib("I4", i->second->getIdentity().getIpAsString());
 			xml.addChildAttrib("U4", i->second->getIdentity().getUdpPort());
 		}
 		

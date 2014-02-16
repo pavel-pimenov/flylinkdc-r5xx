@@ -70,15 +70,11 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		}
 		
 		// https://code.google.com/p/flylinkdc/issues/detail?id=1231
-//#define CLIENT_SUMMARY_SHARE_IS_ATOMIC
 //#define CLIENT_SUMMARY_SHARE_CLEANUP_IDENTITY
 #define CLIENT_SUMMARY_SHARE_NOT_FULL_DIAG
 
 		void clearAvailableBytes()
 		{
-#ifdef CLIENT_SUMMARY_SHARE_IS_ATOMIC
-			FastLock l(cs);
-#endif
 #ifndef CLIENT_SUMMARY_SHARE_NOT_FULL_DIAG
 			dcassert(m_availableBytes >= 0);
 #endif
@@ -86,12 +82,6 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		}
 		void decBytesShared(Identity& p_id)
 		{
-#ifdef CLIENT_SUMMARY_SHARE_CLEANUP_IDENTITY
-			changeBytesShared(p_id, 0);
-#else
-# ifdef CLIENT_SUMMARY_SHARE_IS_ATOMIC
-			FastLock l(cs);
-# endif
 			dcdrun(const auto oldSum = m_availableBytes);
 			dcassert(oldSum >= 0);
 			const auto old = p_id.getBytesShared();
@@ -101,15 +91,15 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			dcassert(old <= oldSum); // bug here.
 			dcassert(m_availableBytes >= 0);
 # endif
-#endif
+			if(m_availableBytes < 0 )
+			{
+				m_availableBytes = 0; // Заткнул - не могу понять почему так пока.
+			}
 		}
 		void changeBytesShared(Identity& p_id, const int64_t p_bytes)
 		{
 			// https://code.google.com/p/flylinkdc/issues/detail?id=1231
 			dcassert(p_bytes >= 0);
-#ifdef CLIENT_SUMMARY_SHARE_IS_ATOMIC
-			FastLock l(cs);
-#endif
 			dcdrun(const auto oldSum = m_availableBytes);
 			dcassert(oldSum >= 0);
 			const auto old = p_id.getBytesShared();
@@ -128,9 +118,6 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		int64_t getAvailableBytes() const
 		{
 			// https://code.google.com/p/flylinkdc/issues/detail?id=1231
-#ifdef CLIENT_SUMMARY_SHARE_IS_ATOMIC
-			FastLock l(cs);
-#endif
 #ifndef CLIENT_SUMMARY_SHARE_NOT_FULL_DIAG
 			dcassert(m_availableBytes >= 0);
 #endif
@@ -147,7 +134,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		virtual void privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson = false) = 0; // !SMT!-S
 		virtual void sendUserCmd(const UserCommand& command, const StringMap& params) = 0;
 		
-		uint64_t search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, void* owner);
+		uint64_t search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, void* owner, bool p_is_force_passive);
 		void cancelSearch(void* aOwner)
 		{
 			searchQueue.cancelSearch(aOwner);
@@ -178,7 +165,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		
 		bool isReady() const
 		{
-			return /*[-]IRainman fix: sock &&*/ state != STATE_CONNECTING && state != STATE_DISCONNECTED;
+			return state != STATE_CONNECTING && state != STATE_DISCONNECTED;
 		}
 		bool is_all_my_info_loaded() const
 		{
@@ -217,18 +204,21 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			return m_port;
 		}
-		const string& getAddress() const
+		string getIpAsString() const
 		{
-			return m_address;
+			return m_ip.to_string();
 		}
-		
-		const string& getIp() const
+		boost::asio::ip::address_v4 getIp() const
 		{
 			return m_ip;
 		}
 		string getIpPort() const
 		{
-			return getIp() + ':' + Util::toString(m_port);
+			return getIpAsString() + ':' + Util::toString(m_port);
+		}
+		string getHubUrlAndIP() const
+		{
+			return "[Hub: " + getHubUrl() + ", " + getIpPort() + "]";
 		}
 		string getLocalIp() const;
 		
@@ -304,7 +294,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		}
 		// [+] IRainman fix.
 		bool allowPrivateMessagefromUser(const ChatMessage& message);
-		bool allowChatMessagefromUser(const ChatMessage& message);
+		bool allowChatMessagefromUser(const ChatMessage& message, const string& p_nick);
 		
 		void processingPassword()
 		{
@@ -386,7 +376,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			return getHubIdentity().getDescription();
 		}
 		
-		virtual const string& getHubUrl() const
+		virtual const string& getHubUrl() const // Зачем тут виртуальность?
 		{
 			return m_HubURL;
 		}
@@ -571,7 +561,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		const FavoriteHubEntry* reloadSettings(bool updateNick);
 		
 		virtual void checkNick(string& p_nick) = 0;
-		virtual void search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList) = 0;
+		virtual void search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, bool p_is_force_passive) = 0;
 		
 		// TimerManagerListener
 		virtual void on(Second, uint64_t aTick) noexcept;
@@ -595,13 +585,14 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			return Wildcard::patternMatch(userName, m_opChat, ';', false);
 		}
-		
-		const string m_HubURL; // [!] IRainman fix: this is const member.
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		uint32_t m_HubID;
 #endif
+		const string m_HubURL; // [!] IRainman fix: this is const member.
 		string m_address;
-		string m_ip;
+		boost::asio::ip::address_v4 m_ip;
+		uint16_t m_port;
+		
 		string m_keyprint;
 		// [+] IRainman fix.
 		string m_opChat;
@@ -610,7 +601,6 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		
 		bool m_isActivMode;// [+] IRainman opt.
 		
-		uint16_t m_port;
 		char m_separator;
 		bool m_secure;
 		CountType m_countType;

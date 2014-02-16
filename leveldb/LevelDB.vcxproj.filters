@@ -123,7 +123,7 @@
     <ClCompile Include="util\histogram.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="util\logging.cc">
+    <ClCompile Include="util\leveldb_logging.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="util\options.cc">

@@ -26,7 +26,6 @@
 
 PropPage::TextItem SDCPage::texts[] =
 {
-	{ IDC_SETTINGS_ROLLBACK, ResourceManager::SETTINGS_ROLLBACK },
 	{ IDC_SETTINGS_B, ResourceManager::B },
 	{ IDC_B1, ResourceManager::B },
 	{ IDC_B2, ResourceManager::B },
@@ -49,7 +48,6 @@ PropPage::TextItem SDCPage::texts[] =
 
 PropPage::Item SDCPage::items[] =
 {
-	{ IDC_ROLLBACK, SettingsManager::ROLLBACK, PropPage::T_INT },
 	{ IDC_BUFFERSIZE, SettingsManager::BUFFER_SIZE_FOR_DOWNLOADS, PropPage::T_INT },
 #ifdef FLYLINKDC_SUPPORT_WIN_XP
 	{ IDC_SOCKET_IN_BUFFER, SettingsManager::SOCKET_IN_BUFFER, PropPage::T_INT },
@@ -69,8 +67,7 @@ LRESULT SDCPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	PropPage::read((HWND)*this, items);
 	
 	CUpDownCtrl updown;
-	SET_MIN_MAX(IDC_ROLLBACK_SPIN, 0, 65536);
-	SET_MIN_MAX(IDC_BUFFER_SPIN, 0, 4096);
+	SET_MIN_MAX(IDC_BUFFER_SPIN, 0, 1024  * 1024);
 	SET_MIN_MAX(IDC_READ_SPIN, 1024, 128 * 1024);
 	SET_MIN_MAX(IDC_WRITE_SPIN, 1024, 128 * 1024);
 	SET_MIN_MAX(IDC_CHAT_LINES_SPIN, 0, 999);

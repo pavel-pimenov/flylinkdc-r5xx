@@ -74,7 +74,7 @@ LRESULT FlySQLExplorer::OnCreate(UINT, WPARAM, LPARAM, BOOL& bHandled)
 	// Создаем статусбар
 	CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);
 	m_ctrlStatus.Attach(m_hWndStatusBar);
-	m_ctrlStatus.SetFont(Fonts::systemFont);
+	m_ctrlStatus.SetFont(Fonts::g_systemFont);
 	m_statusContainer.SubclassWindow(m_ctrlStatus.m_hWnd);
 	
 	// Создаем дерево в левой части фрейма

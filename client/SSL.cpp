@@ -17,7 +17,7 @@
  */
 
 #include "stdinc.h"
-#include "SSL.h"
+#include "ssl.h"
 
 #include "Util.h"
 

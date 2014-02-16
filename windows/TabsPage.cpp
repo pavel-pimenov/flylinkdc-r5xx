@@ -49,6 +49,7 @@ PropPage::ListItem TabsPage::optionItems[] =
 	{ SettingsManager::TABS_CLOSEBUTTONS_ALT, ResourceManager::TABS_CLOSEBUTTONS_ALT },
 	{ SettingsManager::STRIP_TOPIC, ResourceManager::SETTINGS_STRIP_TOPIC },    //AdvancedPage
 	{ SettingsManager::SHOW_FULL_HUB_INFO_ON_TAB, ResourceManager::SETTINGS_SHOW_FULL_HUB_INFO_ON_TAB }, // [+] NightOrion.
+	{ SettingsManager::NOTBOLD_FONT_ON_ACTIVITY_TAB, ResourceManager::SETTINGS_NOTBOLD_FONT_ON_ACTIVITY_TAB }, // [+] SCALOlaz
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 

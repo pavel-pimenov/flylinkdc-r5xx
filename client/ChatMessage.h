@@ -28,23 +28,21 @@ class ChatMessage
 	
 {
 	public:
-		string text;
-		
-		OnlineUserPtr from;
-		OnlineUserPtr to;
-		OnlineUserPtr replyTo;
-		
+		string m_text;
+		OnlineUserPtr m_from;
+		OnlineUserPtr m_to;
+		OnlineUserPtr m_replyTo;
+		time_t m_timestamp; // TODO - разобраться когда оно нужно
 		bool thirdPerson;
 		
-		time_t m_timestamp; // TODO - разобраться когда оно нужно
 		// [+] IRainman fix.
 		ChatMessage(const string& _text, const OnlineUserPtr& _from, const OnlineUserPtr& _to = nullptr, const OnlineUserPtr& _replyTo = nullptr, bool _thirdPerson = false)
-			: text(_text), from(_from), to(_to), replyTo(_replyTo), thirdPerson(_thirdPerson), m_timestamp(0)
+			: m_text(_text), m_from(_from), m_to(_to), m_replyTo(_replyTo), thirdPerson(_thirdPerson), m_timestamp(0)
 		{
 		}
 		bool isPrivate() const
 		{
-			return to && replyTo;
+			return m_to && m_replyTo;
 		}
 		static string formatNick(const string& nick, const bool thirdPerson)
 		{
@@ -53,15 +51,15 @@ class ChatMessage
 		}
 		void translate_me()
 		{
-			if (text.size() >= 4 && (strnicmp(text, "/me ", 4) == 0 ||
-			                         strnicmp(text, "+me ", 4) == 0))
+			if (m_text.size() >= 4 && (strnicmp(m_text, "/me ", 4) == 0 ||
+			                           strnicmp(m_text, "+me ", 4) == 0))
 			{
 				/* [-] IRainman fix.
 				if (BOOLSETTING(NSL_IGNORE_ME))
 				    return;
 				*/
 				thirdPerson = true;
-				text = text.substr(4);
+				m_text = m_text.substr(4);
 			}
 			
 		}

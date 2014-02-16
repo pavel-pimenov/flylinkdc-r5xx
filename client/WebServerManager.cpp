@@ -993,7 +993,7 @@ void WebServerManager::search(string search_str, Search::TypeModes search_type)
 		SearchManager::getInstance()->addListener(this);
 		// TODO: Get ADC searchtype extensions if any is selected
 		const StringList emptyList;
-		const uint64_t l_searchInterval = SearchManager::getInstance()->search(emptyList, search_str, 0, search_type, Search::SIZE_DONTCARE, token, emptyList, (void*)this);
+		const uint64_t l_searchInterval = SearchManager::getInstance()->search(emptyList, search_str, 0, search_type, Search::SIZE_DONTCARE, token, emptyList, (void*)this, false);
 		search_delay = Util::toString(l_searchInterval / 1000 + 15);
 		//Lock l(cs);
 		results.clear();

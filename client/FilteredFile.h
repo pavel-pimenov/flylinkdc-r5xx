@@ -36,6 +36,7 @@ class CountOutputStream : public OutputStream
 		size_t flush()
 		{
 			size_t n = s->flush();
+			dcassert(n);
 			count += n;
 			return n;
 		}

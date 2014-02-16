@@ -101,16 +101,16 @@ class PopupWnd : public CWindowImpl<PopupWnd, CWindow>
 			              
 			if (SETTING(POPUP_TYPE) == BALLOON)
 			{
-				label.SetFont(Fonts::boldFont);
+				label.SetFont(Fonts::g_boldFont);
 				label.SetWindowText(title.c_str());
-				label1.SetFont(Fonts::font);
+				label1.SetFont(Fonts::g_font);
 				label1.SetWindowText(msg.c_str());
 				bHandled = false;
 				return 1;
 			}
 			else if (SETTING(POPUP_TYPE) == CUSTOM || (SETTING(POPUP_TYPE) == SPLASH))
 			{
-				label.SetFont(Fonts::boldFont);
+				label.SetFont(Fonts::g_boldFont);
 				label.SetWindowText(title.c_str());
 			}
 			else

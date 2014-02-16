@@ -103,7 +103,7 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItemPtr& qi,
 	if (isFile || (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_DCLST_LIST) && BOOLSETTING(LOG_FILELIST_TRANSFERS)))
 	{
 		CFlylinkDBManager::getInstance()->clear_tiger_tree_cache(qi->getTTH());
-		const FinishedItemPtr item = new FinishedItem(qi->getTarget(), d->getHintedUser(), qi->getSize(), d->getRunningAverage(), GET_TIME(), qi->getTTH().toBase32(), d->getUser()->getIP());
+		const FinishedItemPtr item = new FinishedItem(qi->getTarget(), d->getHintedUser(), qi->getSize(), d->getRunningAverage(), GET_TIME(), qi->getTTH().toBase32(), d->getUser()->getIPAsString());
 		{
 			FastUniqueLock l(csD);
 			// TODO - fix copy-paste
@@ -118,12 +118,7 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItemPtr& qi,
 		}
 		
 		fire(FinishedManagerListener::AddedDl(), item);
-		
-		const size_t BUF_SIZE = STRING(FINISHED_DOWNLOAD).size() + FULL_MAX_PATH + 128;
-		std::unique_ptr<char[]> buf(new char[BUF_SIZE]);
-		snprintf(&buf[0], BUF_SIZE, CSTRING(FINISHED_DOWNLOAD), Util::getFileName(qi->getTarget()).c_str(),
-		         Util::toString(ClientManager::getNicks(d->getUser()->getCID(), Util::emptyString)).c_str());
-		LogManager::getInstance()->message(&buf[0]);
+		log(d->getUser()->getCID(), qi->getTarget(), STRING(FINISHED_DOWNLOAD));
 	}
 }
 
@@ -133,7 +128,7 @@ void FinishedManager::on(UploadManagerListener::Complete, const Upload* u) noexc
 	{
 		PLAY_SOUND(SOUND_UPLOADFILE);
 		
-		const FinishedItemPtr item = new FinishedItem(u->getPath(), u->getHintedUser(), u->getFileSize(), u->getRunningAverage(), GET_TIME(), Util::emptyString, u->getUser()->getIP());
+		const FinishedItemPtr item = new FinishedItem(u->getPath(), u->getHintedUser(), u->getFileSize(), u->getRunningAverage(), GET_TIME(), Util::emptyString, u->getUser()->getIPAsString());
 		{
 			FastUniqueLock l(csU);
 			// TODO - fix copy-paste
@@ -146,23 +141,27 @@ void FinishedManager::on(UploadManagerListener::Complete, const Upload* u) noexc
 			// [~] IRainman
 			m_uploads.push_back(item);
 		}
-		
 		fire(FinishedManagerListener::AddedUl(), item);
-		const auto l_file_name = Util::getFileName(u->getPath());
-		const size_t BUF_SIZE = STRING(FINISHED_UPLOAD).size() + FULL_MAX_PATH + 128;
-		{
-			std::unique_ptr<char[]> buf(new char[BUF_SIZE]);
-			snprintf(&buf[0], BUF_SIZE, CSTRING(FINISHED_UPLOAD), l_file_name.c_str(),
-			         Util::toString(ClientManager::getNicks(u->getUser()->getCID(), Util::emptyString)).c_str());
-			         
-			LogManager::getInstance()->message(&buf[0]);
-		}
+		const auto l_file_name = log(u->getUser()->getCID(), u->getPath(), STRING(FINISHED_UPLOAD));
 		const string l_name = Text::toLower(l_file_name);
 		const string l_path = Text::toLower(Util::getFilePath(u->getPath()));
 		CFlylinkDBManager::getInstance()->Hit(l_path, l_name);
 	}
 }
 
+string FinishedManager::log(const CID& p_CID, const string& p_path, const string& p_message)
+{
+	const auto l_file_name = Util::getFileName(p_path);
+	const size_t BUF_SIZE = p_message.size() + FULL_MAX_PATH + 128;
+	{
+		std::unique_ptr<char[]> buf(new char[BUF_SIZE]);
+		snprintf(&buf[0], BUF_SIZE, p_message.c_str(), l_file_name.c_str(),
+		         Util::toString(ClientManager::getNicks(p_CID, Util::emptyString)).c_str());
+		         
+		LogManager::getInstance()->message(&buf[0]);
+	}
+	return l_file_name;
+}
 /**
  * @file
  * $Id: FinishedManager.cpp 571 2011-07-27 19:18:04Z bigmuscle $

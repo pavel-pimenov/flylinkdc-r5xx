@@ -31,11 +31,25 @@
 #include "../jsoncpp/include/json/reader.h"
 #include "../jsoncpp/include/json/writer.h"
 #endif
-TStringList SearchFrame::lastSearches;
+
+#ifdef _DEBUG
+// #define FLYLINKDC_USE_ZMQ
+#endif
+#ifdef FLYLINKDC_USE_ZMQ
+#include "../zmq/include/zmq.h"
+#endif
+
+TStringList SearchFrame::g_lastSearches;
 
 HIconWrapper SearchFrame::g_purge_icon(IDR_PURGE);
 HIconWrapper SearchFrame::g_pause_icon(IDR_PAUSE);
 HIconWrapper SearchFrame::g_search_icon(IDR_SEARCH);
+
+HIconWrapper SearchFrame::g_UDPOkIcon(IDR_ICON_SUCCESS_ICON);
+//HIconWrapper SearchFrame::g_UDPFailIcon(IDR_ICON_FAIL_ICON);
+HIconWrapper SearchFrame::g_UDPWaitIcon(IDR_ICON_WARN_ICON);
+tstring SearchFrame::g_UDPTestText;
+bool SearchFrame::g_isUDPTestOK;
 
 int SearchFrame::columnIndexes[] =
 {
@@ -122,7 +136,6 @@ void SearchFrame::openWindow(const tstring& str /* = Util::emptyString */, LONGL
 	SearchFrame* pChild = new SearchFrame();
 	pChild->setInitial(str, size, mode, type);
 	pChild->CreateEx(WinUtil::mdiClient);
-	
 	g_frames.insert(FramePair(pChild->m_hWnd, pChild));
 }
 
@@ -174,7 +187,6 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	fixme:dbghelp:MiniDumpWriteDump NIY MiniDumpWithFullMemory
 	fixme:edit:EDIT_EM_FmtLines soft break enabled, not implemented
 	*/
-	
 	m_tooltip.Create(m_hWnd, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP /*| TTS_BALLOON*/, WS_EX_TOPMOST);
 	m_tooltip.SetDelayTime(TTDT_AUTOPOP, 15000);
 	dcassert(m_tooltip.IsWindow());
@@ -184,8 +196,8 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	
 	ctrlSearchBox.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                     WS_VSCROLL | CBS_DROPDOWN | CBS_AUTOHSCROLL, 0);
-	CFlylinkDBManager::getInstance()->load_registry(lastSearches, e_SearchHistory); //[+]PPA
-	for (auto i = lastSearches.cbegin(); i != lastSearches.cend(); ++i)
+	CFlylinkDBManager::getInstance()->load_registry(g_lastSearches, e_SearchHistory); //[+]PPA
+	for (auto i = g_lastSearches.cbegin(); i != g_lastSearches.cend(); ++i)
 	{
 		ctrlSearchBox.InsertString(0, i->c_str());
 	}
@@ -247,58 +259,58 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	                  ES_AUTOHSCROLL, WS_EX_CLIENTEDGE);
 	                  
 	ctrlFilterContainer.SubclassWindow(ctrlFilter.m_hWnd);
-	ctrlFilter.SetFont(Fonts::systemFont); // [~] Sergey Shuhskanov
+	ctrlFilter.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
 	
 	ctrlFilterSel.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_HSCROLL |
 	                     WS_VSCROLL | CBS_DROPDOWNLIST, WS_EX_CLIENTEDGE);
 	                     
 	ctrlFilterSelContainer.SubclassWindow(ctrlFilterSel.m_hWnd);
-	ctrlFilterSel.SetFont(Fonts::systemFont); // [~] Sergey Shuhskanov
+	ctrlFilterSel.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
 	
 	searchLabel.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
-	searchLabel.SetFont(Fonts::systemFont, FALSE);
+	searchLabel.SetFont(Fonts::g_systemFont, FALSE);
 	searchLabel.SetWindowText(CTSTRING(SEARCH_FOR));
 	
 	sizeLabel.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
-	sizeLabel.SetFont(Fonts::systemFont, FALSE);
+	sizeLabel.SetFont(Fonts::g_systemFont, FALSE);
 	sizeLabel.SetWindowText(CTSTRING(SIZE));
 	
 	typeLabel.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
-	typeLabel.SetFont(Fonts::systemFont, FALSE);
+	typeLabel.SetFont(Fonts::g_systemFont, FALSE);
 	typeLabel.SetWindowText(CTSTRING(FILE_TYPE));
 	
 	srLabel.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
-	srLabel.SetFont(Fonts::systemFont, FALSE);
+	srLabel.SetFont(Fonts::g_systemFont, FALSE);
 	srLabel.SetWindowText(CTSTRING(SEARCH_IN_RESULTS));
 	
 	optionLabel.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
-	optionLabel.SetFont(Fonts::systemFont, FALSE);
+	optionLabel.SetFont(Fonts::g_systemFont, FALSE);
 	optionLabel.SetWindowText(CTSTRING(SEARCH_OPTIONS));
 	if (!CompatibilityManager::isWine())
 	{
 		hubsLabel.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
-		hubsLabel.SetFont(Fonts::systemFont, FALSE);
+		hubsLabel.SetFont(Fonts::g_systemFont, FALSE);
 		hubsLabel.SetWindowText(CTSTRING(HUBS));
 	}
 	ctrlSlots.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_FREESLOTS);
 	ctrlSlots.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
-	ctrlSlots.SetFont(Fonts::systemFont, FALSE);
+	ctrlSlots.SetFont(Fonts::g_systemFont, FALSE);
 	ctrlSlots.SetWindowText(CTSTRING(ONLY_FREE_SLOTS));
-	slotsContainer.SubclassWindow(ctrlSlots.m_hWnd);
+	//slotsContainer.SubclassWindow(ctrlSlots.m_hWnd);
 	
 	ctrlCollapsed.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
 	ctrlCollapsed.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
-	ctrlCollapsed.SetFont(Fonts::systemFont, FALSE);
+	ctrlCollapsed.SetFont(Fonts::g_systemFont, FALSE);
 	ctrlCollapsed.SetWindowText(CTSTRING(EXPANDED_RESULTS));
-	collapsedContainer.SubclassWindow(ctrlCollapsed.m_hWnd);
+	//collapsedContainer.SubclassWindow(ctrlCollapsed.m_hWnd);
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	m_ctrlStoreIP.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
 	m_ctrlStoreIP.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
 	m_storeIP = BOOLSETTING(ENABLE_LAST_IP);
 	m_ctrlStoreIP.SetCheck(m_storeIP);
-	m_ctrlStoreIP.SetFont(Fonts::systemFont, FALSE);
+	m_ctrlStoreIP.SetFont(Fonts::g_systemFont, FALSE);
 	m_ctrlStoreIP.SetWindowText(CTSTRING(STORE_SEARCH_IP));
-	storeIPContainer.SubclassWindow(m_ctrlStoreIP.m_hWnd);
+	//storeIPContainer.SubclassWindow(m_ctrlStoreIP.m_hWnd);
 #endif
 	m_ctrlStoreSettings.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
 	m_ctrlStoreSettings.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
@@ -306,9 +318,10 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	{
 		m_ctrlStoreSettings.SetCheck(TRUE);
 	}
-	m_ctrlStoreSettings.SetFont(Fonts::systemFont, FALSE);
+	m_ctrlStoreSettings.SetFont(Fonts::g_systemFont, FALSE);
 	m_ctrlStoreSettings.SetWindowText(CTSTRING(SAVE_SEARCH_SETTINGS_TEXT));
-	storeSettingsContainer.SubclassWindow(m_ctrlStoreSettings.m_hWnd);
+	//storeSettingsContainer.SubclassWindow(m_ctrlStoreSettings.m_hWnd);
+	
 	m_tooltip.AddTool(m_ctrlStoreSettings, ResourceManager::SAVE_SEARCH_SETTINGS_TOOLTIP);
 	if (BOOLSETTING(FREE_SLOTS_DEFAULT))
 	{
@@ -319,21 +332,21 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	ctrlShowUI.Create(ctrlStatus.m_hWnd, rcDefault, _T("+/-"), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 	ctrlShowUI.SetButtonStyle(BS_AUTOCHECKBOX, false);
 	ctrlShowUI.SetCheck(1);
-	showUIContainer.SubclassWindow(ctrlShowUI.m_hWnd);
+	//showUIContainer.SubclassWindow(ctrlShowUI.m_hWnd);
+	
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	m_ctrlFlyServer.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
 	m_ctrlFlyServer.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
 	m_ctrlFlyServer.SetCheck(BOOLSETTING(ENABLE_FLY_SERVER));
-	//m_ctrlFlyServer.SetFont(Fonts::systemFont, FALSE);
 	
-	m_FlyServerContainer.SubclassWindow(m_ctrlFlyServer.m_hWnd);
+	//m_FlyServerContainer.SubclassWindow(m_ctrlFlyServer.m_hWnd);
 	
 	m_FlyServerGradientLabel.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
-	m_FlyServerGradientLabel.SetFont(Fonts::systemFont, FALSE);
+	m_FlyServerGradientLabel.SetFont(Fonts::g_systemFont, FALSE);
 	m_FlyServerGradientLabel.SetWindowText(CTSTRING(ENABLE_FLY_SERVER));
 	m_FlyServerGradientLabel.SetHorizontalFill(TRUE);
 	m_FlyServerGradientLabel.SetActive(BOOLSETTING(ENABLE_FLY_SERVER));
-	m_FlyServerGradientContainer.SubclassWindow(m_FlyServerGradientLabel.m_hWnd);
+	//m_FlyServerGradientContainer.SubclassWindow(m_FlyServerGradientLabel.m_hWnd);
 	
 //	m_fly_server_button.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN  |
 //	                 BS_CHECKBOX , 0, IDC_PURGE);
@@ -341,34 +354,40 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 //    m_fly_server_button.SubclassWindow(m_ctrlFlyServer);
 //    m_fly_server_button.SetBitmap(IDB_FLY_SERVER_AQUA);
 
-	//m_ctrlFlyServer.s
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 // Кнопка очистки истории. [<-] InfinitySky.
 	ctrlPurge.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_ICON |
 	                 BS_PUSHBUTTON , 0, IDC_PURGE);
 	ctrlPurge.SetIcon(g_purge_icon); // [+] InfinitySky. Иконка на кнопке очистки истории.
-	purgeContainer.SubclassWindow(ctrlPurge.m_hWnd);
+	//purgeContainer.SubclassWindow(ctrlPurge.m_hWnd);
 	m_tooltip.AddTool(ctrlPurge, ResourceManager::CLEAR_SEARCH_HISTORY);
 // Кнопка паузы. [<-] InfinitySky.
 	ctrlPauseSearch.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                       BS_PUSHBUTTON, 0, IDC_SEARCH_PAUSE);
 	ctrlPauseSearch.SetWindowText(CTSTRING(PAUSE_SEARCH));
-	ctrlPauseSearch.SetFont(Fonts::systemFont);
+	ctrlPauseSearch.SetFont(Fonts::g_systemFont);
 	ctrlPauseSearch.SetIcon(g_pause_icon); // [+] InfinitySky. Иконка на кнопке паузы.
 	
 // Кнопка поиска. [<-] InfinitySky.
 	ctrlDoSearch.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                    BS_PUSHBUTTON , 0, IDC_SEARCH);
 	ctrlDoSearch.SetWindowText(CTSTRING(SEARCH));
-	ctrlDoSearch.SetFont(Fonts::systemFont);
+	ctrlDoSearch.SetFont(Fonts::g_systemFont);
 	ctrlDoSearch.SetIcon(g_search_icon); // [+] InfinitySky. Иконка на кнопке поиска.
-	doSearchContainer.SubclassWindow(ctrlDoSearch.m_hWnd);
+	//doSearchContainer.SubclassWindow(ctrlDoSearch.m_hWnd);
 	
-	ctrlSearchBox.SetFont(Fonts::systemFont, FALSE);
-	ctrlSize.SetFont(Fonts::systemFont, FALSE);
-	ctrlMode.SetFont(Fonts::systemFont, FALSE);
-	ctrlSizeMode.SetFont(Fonts::systemFont, FALSE);
-	ctrlFiletype.SetFont(Fonts::systemFont, FALSE);
+	ctrlDoSearchPassive.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+	                           BS_PUSHBUTTON , 0, IDC_SEARCH_PASSIVE);
+	ctrlDoSearchPassive.SetWindowText(CTSTRING(SEARCH_PASSIVE));
+	ctrlDoSearchPassive.SetFont(Fonts::g_systemFont);
+	ctrlDoSearchPassive.EnableWindow(!g_isUDPTestOK);
+	//doSearchPassiveContainer.SubclassWindow(ctrlDoSearchPassive.m_hWnd);
+	
+	ctrlSearchBox.SetFont(Fonts::g_systemFont, FALSE);
+	ctrlSize.SetFont(Fonts::g_systemFont, FALSE);
+	ctrlMode.SetFont(Fonts::g_systemFont, FALSE);
+	ctrlSizeMode.SetFont(Fonts::g_systemFont, FALSE);
+	ctrlFiletype.SetFont(Fonts::g_systemFont, FALSE);
 	
 	ctrlMode.AddString(CTSTRING(ANY));
 	ctrlMode.AddString(CTSTRING(AT_LEAST));
@@ -429,11 +448,11 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	ctrlResults.setAscending(BOOLSETTING(SEARCH_COLUMNS_SORT_ASC));
 	
 	SET_LIST_COLOR(ctrlResults);
-	ctrlResults.SetFont(Fonts::systemFont, FALSE); // use Util::font instead to obey Appearace settings
+	ctrlResults.SetFont(Fonts::g_systemFont, FALSE); // use Util::font instead to obey Appearace settings
 	ctrlResults.setFlickerFree(Colors::bgBrush);
 	ctrlHubs.InsertColumn(0, _T("Dummy"), LVCFMT_LEFT, LVSCW_AUTOSIZE, 0);
 	SET_LIST_COLOR(ctrlHubs);
-	ctrlHubs.SetFont(Fonts::systemFont, FALSE); // use Util::font instead to obey Appearace settings
+	ctrlHubs.SetFont(Fonts::g_systemFont, FALSE); // use Util::font instead to obey Appearace settings
 	
 	copyMenu.CreatePopupMenu();
 	targetDirMenu.CreatePopupMenu();
@@ -493,15 +512,34 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	resultsMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(REMOVE));
 	resultsMenu.SetMenuDefaultItem(IDC_DOWNLOAD_FAVORITE_DIRS);
 	*/
-#ifdef SCALOLAZ_SEARCH_HELPLINK
-	m_SearchHelp.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE /*| MB_ICONINFORMATION*/ , 0, IDC_SEARCH_WIKIHELP);
-	const tstring l_url = WinUtil::GetWikiLink() + _T("faq");
+	m_ctrlUDPMode.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | SS_ICON | BS_CENTER | BS_PUSHBUTTON , 0);
+	if (g_isUDPTestOK)
+	{
+		m_ctrlUDPMode.SetIcon(g_UDPOkIcon);
+	}
+	else
+	{
+		m_ctrlUDPMode.SetIcon(g_UDPWaitIcon);
+	}
+	
+	
+	ctrlDoUDPTestPort.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+	                         BS_PUSHBUTTON , 0, IDC_SEARCH_UDP_PORT_TEST);
+	ctrlDoUDPTestPort.SetWindowText(CTSTRING(SEARCH_UDP_PORT_TEST));
+	ctrlDoUDPTestPort.SetFont(Fonts::g_systemFont);
+	
+	m_ctrlUDPTestResult.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+	m_ctrlUDPTestResult.SetFont(Fonts::g_systemFont, FALSE);
+	if (g_UDPTestText.empty())
+		g_UDPTestText = CTSTRING(FLY_SERVER_UDP_TEST_PORT_WAIT);
+	m_ctrlUDPTestResult.SetWindowText(g_UDPTestText.c_str());
+	
+	m_SearchHelp.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE, 0, IDC_SEARCH_WIKIHELP);
+	const tstring l_url = Text::toT(CFlyServerConfig::g_faq_search_does_not_work);
 	m_SearchHelp.SetHyperLink(l_url.c_str());
-	m_SearchHelp.SetHyperLinkExtendedStyle(/*HLINK_LEFTIMAGE |*/ HLINK_UNDERLINEHOVER);
-	m_SearchHelp.SetFont(Fonts::systemFont, FALSE);
-	m_SearchHelp.SetLabel(CTSTRING(SEARCH_WIKIHELP));
-	m_widthHelp = WinUtil::getTextWidth(CTSTRING(SEARCH_WIKIHELP), m_SearchHelp);
-#endif
+	m_SearchHelp.SetHyperLinkExtendedStyle(HLINK_UNDERLINEHOVER);
+	m_SearchHelp.SetFont(Fonts::g_systemFont, FALSE);
+	m_SearchHelp.SetLabel(CTSTRING(SEARCH_DOES_NOT_WORK));
 	
 	UpdateLayout();
 	for (int j = 0; j < COLUMN_LAST; j++)
@@ -521,7 +559,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	initHubs();
 	if (!m_initialString.empty())
 	{
-		lastSearches.push_back(m_initialString);
+		g_lastSearches.push_back(m_initialString);
 		ctrlSearchBox.InsertString(0, m_initialString.c_str());
 		ctrlSearchBox.SetCurSel(0);
 		ctrlMode.SetCurSel(m_initialMode);
@@ -531,7 +569,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 		BOOL tmp_Handled;
 		onEditChange(0, 0, NULL, tmp_Handled); // if in searchbox TTH - select filetypeTTH
 		
-		onEnter();
+		onEnter(false);
 	}
 	else
 	{
@@ -539,8 +577,8 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 		::EnableWindow(GetDlgItem(IDC_SEARCH_PAUSE), FALSE);
 		m_running = false;
 	}
-	
 	SettingsManager::getInstance()->addListener(this);
+	
 #ifdef FLYLINKDC_USE_WINDOWS_TIMER_SEARCH_FRAME
 	create_timer(1000);
 #else
@@ -665,7 +703,7 @@ BOOL SearchFrame::ListDraw(HWND /*hwnd*/, UINT /*uCtrlId*/, DRAWITEMSTRUCT *dis)
 }
 
 
-void SearchFrame::onEnter()
+void SearchFrame::onEnter(bool p_is_force_passive)
 {
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	clearFlyServerQueue();
@@ -711,7 +749,7 @@ void SearchFrame::onEnter()
 	::EnableWindow(GetDlgItem(IDC_SEARCH_PAUSE), TRUE);
 	ctrlPauseSearch.SetWindowText(CTSTRING(PAUSE_SEARCH));
 	
-	swap(m_search, StringTokenizer<string>(Text::fromT(s), ' ').getTokensForWrite()); // [~]IRainman optimize SearchFrame
+	m_search = StringTokenizer<string>(Text::fromT(s), ' ').getTokens(); // [~]IRainman optimize SearchFrame
 	s.clear();
 	{
 		FastLock l(cs);
@@ -759,7 +797,7 @@ void SearchFrame::onEnter()
 	m_isHash = (ftype == Search::TYPE_TTH);
 	
 	// Add new searches to the last-search dropdown list
-	if (!BOOLSETTING(FORGET_SEARCH_REQUEST) && find(lastSearches.begin(), lastSearches.end(), s) == lastSearches.end())
+	if (!BOOLSETTING(FORGET_SEARCH_REQUEST) && find(g_lastSearches.begin(), g_lastSearches.end(), s) == g_lastSearches.end())
 	{
 		int i = max(SETTING(SEARCH_HISTORY) - 1, 0);
 		
@@ -767,12 +805,12 @@ void SearchFrame::onEnter()
 			ctrlSearchBox.DeleteString(i);
 		ctrlSearchBox.InsertString(0, s.c_str());
 		
-		while (lastSearches.size() > (TStringList::size_type)i)
+		while (g_lastSearches.size() > (TStringList::size_type)i)
 		{
-			lastSearches.erase(lastSearches.begin());
+			g_lastSearches.erase(g_lastSearches.begin());
 		}
-		lastSearches.push_back(s);
-		CFlylinkDBManager::getInstance()->save_registry(lastSearches, e_SearchHistory); //[+]PPA
+		g_lastSearches.push_back(s);
+		CFlylinkDBManager::getInstance()->save_registry(g_lastSearches, e_SearchHistory); //[+]PPA
 	}
 	MainFrame::updateQuickSearches();//[+]IRainman
 	
@@ -810,8 +848,15 @@ void SearchFrame::onEnter()
 		
 		m_searchStartTime = GET_TICK();
 		// more 10 seconds for transfering results
-		m_searchEndTime = m_searchStartTime + SearchManager::getInstance()->search(clients, Text::fromT(s), llsize,
-		                                                                           ftype, m_sizeMode, m_token, extList, (void*)this)
+		m_searchEndTime = m_searchStartTime + SearchManager::getInstance()->search(clients,
+		                                                                           Text::fromT(s),
+		                                                                           llsize,
+		                                                                           ftype,
+		                                                                           m_sizeMode,
+		                                                                           m_token,
+		                                                                           extList,
+		                                                                           (void*)this,
+		                                                                           p_is_force_passive)
 #ifdef FLYLINKDC_HE
 		                  + 30000
 #else
@@ -834,6 +879,52 @@ void SearchFrame::onEnter()
 	//searches++;
 }
 
+LRESULT SearchFrame::onUDPPortTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	ctrlDoSearchPassive.EnableWindow(TRUE);
+	ctrlDoUDPTestPort.EnableWindow(FALSE);
+	SettingsManager::g_TestUDPSearchLevel = boost::logic::indeterminate;
+	g_UDPTestText = CTSTRING(FLY_SERVER_UDP_TEST_PORT_WAIT);
+	g_isUDPTestOK = false;
+	m_ctrlUDPMode.SetIcon(g_UDPWaitIcon);
+	m_ctrlUDPTestResult.SetWindowText(g_UDPTestText.c_str());
+	
+#ifdef FLYLINKDC_USE_ZMQ
+	void* context = zmq_ctx_new();
+	void* request = zmq_socket(context, ZMQ_REQ);
+	zmq_connect(request, "tcp://localhost:37016");
+	
+	for (int count = 0; count < 10; ++count)
+	{
+		zmq_msg_t req;
+		zmq_msg_init_size(&req, 5);
+		memcpy(zmq_msg_data(&req), "hello", 5);
+		dcdebug("Sending: hello - %d\n", count);
+		zmq_msg_send(&req, request, 0);
+		zmq_msg_close(&req);
+		zmq_msg_t reply;
+		zmq_msg_init(&reply);
+		zmq_msg_recv(&reply, request, 0);
+		dcdebug("Received: hello - %d\n", count);
+		zmq_msg_close(&reply);
+	}
+	// We never get here though.
+	zmq_close(request);
+	zmq_ctx_destroy(context);
+#endif
+	
+	return 0;
+}
+
+void SearchFrame::on(SearchManagerListener::UDPTest, const string& p_ip) noexcept
+{
+	const tstring l_ip_port = _T(" (") + Text::toT(p_ip) + _T(")");
+	g_UDPTestText = CTSTRING(OK) + l_ip_port;
+	g_isUDPTestOK = true;
+	m_ctrlUDPMode.SetIcon(g_UDPOkIcon);
+	m_ctrlUDPTestResult.SetWindowText(g_UDPTestText.c_str());
+	ctrlDoSearchPassive.EnableWindow(FALSE);
+}
 void SearchFrame::on(SearchManagerListener::SR, const SearchResultPtr &aResult) noexcept
 {
 	if (isClosedOrShutdown())
@@ -922,13 +1013,26 @@ void SearchFrame::mergeFlyServerInfo()
 {
 	if (isClosedOrShutdown())
 		return;
-	m_FlyServerGradientLabel.SetTextColor(RGB(255, 0, 0));
+	CColorSwitch l_color_lock(m_FlyServerGradientLabel, RGB(255, 0, 0));
 	CWaitCursor l_cursor_wait;
-	std::map<string, std::pair<SearchInfo*, CFlyServerCache> > l_si_map; // Соберем результат для последующего апдейта
-	std::map<TTHValue, uint64_t> l_tth_media_file_map; // Сохраним TTH файлов содержащих локальную медиаинфу для последующей передачи на сервер
+	if (boost::logic::indeterminate(SettingsManager::g_TestUDPSearchLevel))
+	{
+		string p_external_ip;
+		std::vector<unsigned short> l_udp_port, l_tcp_port;
+		l_udp_port.push_back(SETTING(UDP_PORT));
+		bool l_is_udp_port_send = CFlyServerAdapter::CFlyServerJSON::pushTestPort(ClientManager::getMyCID().toBase32(), l_udp_port, l_tcp_port, p_external_ip);
+		if (l_is_udp_port_send)
+		{
+			SettingsManager::g_TestUDPSearchLevel = true;
+			SettingsManager::g_UDPTestExternalIP = p_external_ip;
+			ctrlDoUDPTestPort.EnableWindow(TRUE);
+		}
+	}
 	const int l_item_count = isClosedOrShutdown() ? 0 : ctrlResults.GetItemCount();
 	if (l_item_count == 0)
 		return;
+	std::map<string, std::pair<SearchInfo*, CFlyServerCache> > l_si_map; // Соберем результат для последующего апдейта
+	std::map<TTHValue, uint64_t> l_tth_media_file_map; // Сохраним TTH файлов содержащих локальную медиаинфу для последующей передачи на сервер
 	const int l_top_index = isClosedOrShutdown() ? 0 : ctrlResults.GetTopIndex();
 	const int l_count_per_page = isClosedOrShutdown() ? 0 : ctrlResults.GetCountPerPage();
 	for (int j = l_top_index; j < l_item_count && j < l_top_index + l_count_per_page; ++j)
@@ -1093,7 +1197,6 @@ void SearchFrame::mergeFlyServerInfo()
 		CFlyServerJSON::connect(m_SetFlyServerArray, true); // Передать медиаинформацию на сервер (TODO - можно отложить и предать позже)
 		m_SetFlyServerArray.clear();
 	}
-	m_FlyServerGradientLabel.SetTextColor(RGB(0, 0, 0));
 }
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 
@@ -1109,10 +1212,11 @@ void SearchFrame::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 		if (!MainFrame::isAppMinimized() && WinUtil::g_tabCtrl->isActive(m_hWnd)) // [+] IRainman opt.
 		{
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-			if (ctrlResults.GetItemCount())
+			const bool l_is_force_for_udp_test = boost::logic::indeterminate(SettingsManager::g_TestUDPSearchLevel);
+			if (ctrlResults.GetItemCount() || l_is_force_for_udp_test)
 			{
 				// Проверить перед тем как запускать
-				addFlyServerTask(l_tick); // TODO - вешаемся на void Thread::start() в join();
+				addFlyServerTask(l_tick, l_is_force_for_udp_test);
 			}
 #endif
 			if (m_needsUpdateStats)
@@ -1197,7 +1301,7 @@ void SearchFrame::SearchInfo::calcImageIndex()
 
 int SearchFrame::SearchInfo::getImageIndex() const
 {
-	dcassert(m_icon_index >= 0);
+	//dcassert(m_icon_index >= 0);
 	return m_icon_index;
 }
 
@@ -1281,7 +1385,7 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 			// [-] PPA
 			//case COLUMN_CONNECTION: return Text::toT(ClientManager::getInstance()->getConnection(getUser()->getCID()));
 		case COLUMN_HUB:
-			return Text::toT(sr->getHubName());
+			return Text::toT(sr->getHubName() + " (" + sr->getHubURL() + ')');
 		case COLUMN_EXACT_SIZE:
 			return sr->getSize() > 0 ? Util::formatExactSize(sr->getSize()) : Util::emptyStringT;
 		case COLUMN_IP:
@@ -1805,6 +1909,14 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 		rc.left += 88 + 4; // Левая граница. [~] InfinitySky.
 		rc.right = rc.left + 88; // Правая граница. [~] InfinitySky.
 		ctrlDoSearch.MoveWindow(rc); // [<-] InfinitySky.
+		
+		// Search firewall
+		rc.left   -= 50;
+		rc.top    += 24;
+		rc.bottom += 17;
+		
+		ctrlDoSearchPassive.MoveWindow(rc);
+		
 		rc = l_tmp_rc;
 		
 		// "Size".
@@ -1816,7 +1928,7 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 		ctrlMode.MoveWindow(rc);
 		
 		// Надпись "Размер": (левая, верхняя, правая, нижняя границы).
-		sizeLabel.MoveWindow(rc.left + lMargin, rc.top - labelH, width - rMargin, labelH - 1);
+		sizeLabel.MoveWindow(rc.left + lMargin, rc.top - labelH, 40 /* width - rMargin */ , labelH - 1);
 		
 		// Поле для ввода.
 		rc.left = rc.right + lMargin; // Левая граница.
@@ -1916,7 +2028,7 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 		rc.left += width;
 	rc.top = rc.bottom + 2;
 	rc.bottom = rc.top + 22;
-	rc.right = rc.left + WinUtil::getTextWidth(CTSTRING(SEARCH_IN_RESULTS), m_hWnd);
+	rc.right = rc.left + WinUtil::getTextWidth(CTSTRING(SEARCH_IN_RESULTS), m_hWnd) - 20;
 	srLabel.MoveWindow(rc.left, rc.top + 4, rc.right - rc.left, rc.bottom - rc.top);
 	// Поле ввода
 	rc.left = rc.right + lMargin;
@@ -1926,15 +2038,32 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 	rc.left = rc.right + lMargin;
 	rc.right = rc.left + 120;
 	ctrlFilterSel.MoveWindow(rc);
-#ifdef SCALOLAZ_SEARCH_HELPLINK
-	m_frect = rc;
-	// [+] SCALOlaz: little copy paste for move WikiHelp on resize window
-	const size_t l_totalResult = m_resultsCount + m_pausedResults.size();
-	m_SearchHelp.MoveWindow(0, 0, 0, 0);
-	if (!l_totalResult && m_waitingResults)
-		m_SearchHelp.MoveWindow(m_frect.right + 20, m_frect.top + 4, m_widthHelp, 18);
-#endif
-		
+	
+	CRect l_rc_icon = rc;
+	
+	l_rc_icon.left  = l_rc_icon.right + 3;
+	l_rc_icon.right = l_rc_icon.left + 90;
+	ctrlDoUDPTestPort.MoveWindow(l_rc_icon);
+	
+	l_rc_icon.left = l_rc_icon.right + 5;
+	l_rc_icon.top  += 3;
+	l_rc_icon.bottom -= 3;
+	l_rc_icon.right = l_rc_icon.left + 16;
+	m_ctrlUDPMode.MoveWindow(l_rc_icon);
+	
+	const auto l_w = std::max(LONG(160), WinUtil::getTextWidth(g_UDPTestText, m_ctrlUDPTestResult));
+	l_rc_icon.right += l_w - 20;
+	l_rc_icon.left  += 19;
+	m_ctrlUDPTestResult.MoveWindow(l_rc_icon);
+	
+	
+	l_rc_icon.left  = l_rc_icon.right + 10;
+	l_rc_icon.right = rect.right;
+	//const size_t l_totalResult = m_resultsCount + m_pausedResults.size();
+	//m_SearchHelp.MoveWindow(0, 0, 0, 0);
+	//if (!l_totalResult && m_waitingResults)
+	m_SearchHelp.MoveWindow(l_rc_icon);
+	
 	const POINT pt = {10, 10};
 	const HWND hWnd = ctrlSearchBox.ChildWindowFromPoint(pt);
 	if (hWnd != NULL && !ctrlSearch.IsWindow() && hWnd != ctrlSearchBox.m_hWnd)
@@ -1948,10 +2077,10 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 
 void SearchFrame::runUserCommand(UserCommand & uc)
 {
-	if (!WinUtil::getUCParams(m_hWnd, uc, ucLineParams))
+	if (!WinUtil::getUCParams(m_hWnd, uc, m_ucLineParams))
 		return;
 		
-	StringMap ucParams = ucLineParams;
+	StringMap ucParams = m_ucLineParams;
 	
 	std::set<CID> users;
 	
@@ -2003,10 +2132,7 @@ LRESULT SearchFrame::onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOO
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	        hWnd == m_ctrlFlyServer.m_hWnd ||
 #endif
-#ifdef SCALOLAZ_SEARCH_HELPLINK
-	        hWnd == m_SearchHelp.m_hWnd ||
-#endif
-	        hWnd == ctrlCollapsed.m_hWnd || hWnd == srLabel.m_hWnd)
+	        hWnd == m_SearchHelp.m_hWnd || hWnd == ctrlCollapsed.m_hWnd || hWnd == srLabel.m_hWnd)
 	{
 		::SetBkColor(hDC, ::GetSysColor(COLOR_3DFACE));
 		::SetTextColor(hDC, ::GetSysColor(COLOR_BTNTEXT));
@@ -2039,7 +2165,14 @@ LRESULT SearchFrame::onChar(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL & 
 			{
 				if (uMsg == WM_KEYDOWN)
 				{
-					onEnter();
+					if (!g_isUDPTestOK)
+					{
+						onEnter(true);
+					}
+					else
+					{
+						onEnter(false);
+					}
 				}
 			}
 			break;
@@ -2228,16 +2361,6 @@ LRESULT SearchFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL
 			const size_t l_totalResult = m_resultsCount + m_pausedResults.size();
 			ctrlStatus.SetText(3, (Util::toStringW(l_totalResult) + _T('/') + Util::toStringW(m_resultsCount) + _T(' ') + WSTRING(FILES)).c_str());
 			ctrlStatus.SetText(4, (Util::toStringW(m_droppedResults) + _T(' ') + TSTRING(FILTERED)).c_str());
-#ifdef SCALOLAZ_SEARCH_HELPLINK
-			if (!l_totalResult && m_waitingResults)
-			{
-				m_SearchHelp.MoveWindow(m_frect.right + 20, m_frect.top + 4, m_widthHelp, 18);
-			}
-			else
-			{
-				m_SearchHelp.MoveWindow(0, 0, 0, 0);
-			}
-#endif
 			m_needsUpdateStats = false;
 		}
 		break;
@@ -2667,8 +2790,8 @@ LRESULT SearchFrame::onPurge(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*
 {
 	m_tooltip.Activate(FALSE);
 	ctrlSearchBox.ResetContent();
-	lastSearches.clear();
-	CFlylinkDBManager::getInstance()->save_registry(lastSearches, e_SearchHistory);//[+]IRainman
+	g_lastSearches.clear();
+	CFlylinkDBManager::getInstance()->save_registry(g_lastSearches, e_SearchHistory);//[+]IRainman
 	MainFrame::updateQuickSearches(true);//[+]IRainman
 	if (!BOOLSETTING(POPUPS_DISABLED))
 		m_tooltip.Activate(TRUE);
@@ -2787,7 +2910,7 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 					cd->clrTextBk = SETTING(DUPE_EX2_COLOR);
 				if (!si->columns[COLUMN_FLY_SERVER_RATING].empty())
 					cd->clrTextBk = OperaColors::brightenColor(cd->clrTextBk, -0.02f);
-				if (!si->m_location.isSet())
+				if (!si->m_location.isNew())
 				{
 					auto ip = si->getText(COLUMN_IP);
 					if (!ip.empty())
@@ -2801,7 +2924,9 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 							boost::system::error_code ec;
 							const auto l_ip = boost::asio::ip::address_v4::from_string(l_str_ip, ec);
 							dcassert(!ec);
-							CFlylinkDBManager::getInstance()->update_last_ip(si->getUser()->getHubID(), si->getUser()->getLastNick(), l_ip);
+							CFlylinkDBManager::getInstance()->update_last_ip(si->getUser()->getHubID(),
+							                                                 si->getUser()->getLastNick(),
+							                                                 l_ip);
 						}
 #endif
 					}
@@ -2863,7 +2988,10 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 					}
 					top = rc.top + (rc.Height() - WinUtil::getTextHeight(cd->nmcd.hdc) - 1) / 2;
 					const auto& l_desc = si->m_location.getDescription();
-					::ExtTextOut(cd->nmcd.hdc, rc.left + l_step + 5, top + 1, ETO_CLIPPED, rc, l_desc.c_str(), l_desc.length(), nullptr);
+					if (!l_desc.empty())
+					{
+						::ExtTextOut(cd->nmcd.hdc, rc.left + l_step + 5, top + 1, ETO_CLIPPED, rc, l_desc.c_str(), l_desc.length(), nullptr);
+					}
 				}
 				return CDRF_SKIPDEFAULT;
 			}

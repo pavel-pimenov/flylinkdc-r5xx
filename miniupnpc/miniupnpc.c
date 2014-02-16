@@ -1,8 +1,8 @@
-/* $Id: miniupnpc.c,v 1.113 2013/10/07 10:04:56 nanard Exp $ */
+/* $Id: miniupnpc.c,v 1.116 2014/01/31 14:09:03 nanard Exp $ */
 /* Project : miniupnp
  * Web : http://miniupnp.free.fr/
  * Author : Thomas BERNARD
- * copyright (c) 2005-2013 Thomas Bernard
+ * copyright (c) 2005-2014 Thomas Bernard
  * This software is subjet to the conditions detailed in the
  * provided LICENSE file. */
 #define __EXTENSIONS__ 1
@@ -69,6 +69,17 @@
 #if defined(__amigaos__) || defined(__amigaos4__)
 /* Amiga OS specific stuff */
 #define TIMEVAL struct timeval
+#endif
+
+
+#if defined(HAS_IP_MREQN) && defined(NEED_STRUCT_IP_MREQN)
+/* Several versions of glibc don't define this structure, define it here and compile with CFLAGS NEED_STRUCT_IP_MREQN */
+struct ip_mreqn
+{
+	struct in_addr	imr_multiaddr;		/* IP multicast address of group */
+	struct in_addr	imr_address;		/* local IP address of interface */
+	int		imr_ifindex;		/* Interface index */
+};
 #endif
 
 #include "miniupnpc.h"
@@ -534,7 +545,8 @@ upnpDiscover(int delay, const char * multicastif,
 		}
 	}
 
-	/* Avant d'envoyer le paquet on bind pour recevoir la reponse */
+	/* Before sending the packed, we first "bind" in order to be able
+	 * to receive the response */
     if (bind(sudp, (const struct sockaddr *)&sockudp_r,
 	         ipv6 ? sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in)) != 0)
 	{
@@ -549,6 +561,10 @@ upnpDiscover(int delay, const char * multicastif,
 		*error = UPNPDISCOVER_SUCCESS;
 	/* Calculating maximum response time in seconds */
 	mx = ((unsigned int)delay) / 1000u;
+	if(mx == 0) {
+		mx = 1;
+		delay = 1000;
+	}
 	/* receiving SSDP response packet */
 	for(n = 0; deviceList[deviceIndex]; deviceIndex++)
 	{

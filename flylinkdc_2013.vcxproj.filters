@@ -283,9 +283,6 @@
     <ClCompile Include="windows\FileSharePage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="windows\WizardTestDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="windows\LimitEditDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -690,9 +687,6 @@
     <ClInclude Include="windows\Wizards\WzNetActive.h">
       <Filter>Wizard</Filter>
     </ClInclude>
-    <ClInclude Include="windows\WizardTestDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="windows\LimitEditDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -801,6 +795,9 @@
     <ClInclude Include="windows\SearchPage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="windows\AboutLogDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -832,21 +829,6 @@
     <Image Include="res\dclst.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="res\Error.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\f_green_16.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\f_p_16.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\f_red_16.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\f_yellow_16.png">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="res\Fav-Users-States.png">
       <Filter>Resource Files</Filter>
     </Image>
@@ -866,9 +848,6 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\Mediafiles.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\MultiChat.png">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\PlayersControl-highlight.png">
@@ -914,9 +893,6 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\strike.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\SwitchPanels.png">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\Toolbar-highlight.png">
@@ -1088,6 +1064,18 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\Favorites.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\color.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\color.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\f_grey_16.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\f_question_16.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

@@ -290,22 +290,13 @@ size_t File::bz2CompressFile(const wstring& p_file, const wstring& p_file_bz2)
 
 int64_t File::getSize(const tstring& aFileName) noexcept
 {
-	WIN32_FIND_DATA fd;
-	HANDLE hFind = FindFirstFile(formatPath(aFileName).c_str(), &fd);
-	if (hFind == INVALID_HANDLE_VALUE)
-	{
-		return -1;
-	}
-	else
-	{
-		FindClose(hFind);
-		return ((int64_t)fd.nFileSizeHigh << 32 | (int64_t)fd.nFileSizeLow);
-	}
+	auto i = FileFindIter(aFileName);
+	return i != FileFindIter::end ? i->getSize() : -1;
 }
 
 bool File::isExist(const tstring& aFileName) noexcept // [+] IRainman
 {
-	DWORD attr = GetFileAttributes(formatPath(aFileName).c_str());
+	const DWORD attr = GetFileAttributes(formatPath(aFileName).c_str());
 	return (attr != INVALID_FILE_ATTRIBUTES);
 }
 

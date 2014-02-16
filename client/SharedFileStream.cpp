@@ -1,7 +1,6 @@
 /*
  * Copyright (C) 2003-2005 RevConnect, http://www.revconnect.com
  * Copyright (C) 2011      Big Muscle, http://strongdc.sf.net
- * Copyright (C) 2012      Alexey Solomin, a.rainman@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,57 +21,88 @@
 
 #include "SharedFileStream.h"
 
-#ifdef _WIN32
-# include "Winioctl.h"
-#endif
+FastCriticalSection SharedFileStream::g_cs;
+SharedFileStream::SharedFileHandleMap SharedFileStream::g_readpool;
+SharedFileStream::SharedFileHandleMap SharedFileStream::g_writepool;
 
-FastCriticalSection SharedFileStream::file_handle_poolCS;
-SharedFileStream::SharedFileHandleMap SharedFileStream::file_handle_pool;
-
-SharedFileStream::SharedFileHandle::SharedFileHandle(const string& aFileName, int access, int mode) : File(aFileName, access, mode), ref_cnt(1)
+SharedFileHandle::SharedFileHandle(const string& aPath, int aAccess, int aMode) :
+	File(aPath, aAccess, aMode), m_ref_cnt(1), m_path(aPath), m_mode(aMode)
 {
-#ifdef _WIN32
-	if (!SETTING(ANTI_FRAG))
-	{
-		// avoid allocation of large ranges of zeroes for unused segments
-		DWORD bytesReturned;
-		DeviceIoControl(h, FSCTL_SET_SPARSE, NULL, 0, NULL, 0, &bytesReturned, NULL);
-	}
-#endif
 }
 
-SharedFileStream::SharedFileStream(const string& aFileName, int access, int mode) : pos(-1)
+SharedFileStream::SharedFileStream(const string& aFileName, int aAccess, int aMode)
 {
-	FastLock l(file_handle_poolCS);
-	const auto i = file_handle_pool.find(aFileName);
-	if (i != file_handle_pool.end())
+	FastLock l(g_cs);
+	auto& pool = aAccess == File::READ ? g_readpool : g_writepool;
+	auto p = pool.find(aFileName);
+	if (p != pool.end())
 	{
-		shared_handle_ptr = i->second;
-		shared_handle_ptr->ref_cnt++;
+		m_sfh = p->second.get();
+		m_sfh->m_ref_cnt++;
 	}
 	else
 	{
-		shared_handle_ptr = new SharedFileHandle(aFileName, access, mode);
-		file_handle_pool.insert(make_pair(aFileName, shared_handle_ptr));
+		m_sfh = new SharedFileHandle(aFileName, aAccess, aMode);
+		pool[aFileName] = unique_ptr<SharedFileHandle>(m_sfh);
 	}
 }
 
 SharedFileStream::~SharedFileStream()
 {
-	FastLock l(file_handle_poolCS);
-	shared_handle_ptr->ref_cnt--;
-	if (shared_handle_ptr->ref_cnt == 0)
+	FastLock l(g_cs);
+	
+	m_sfh->m_ref_cnt--;
+	if (m_sfh->m_ref_cnt == 0)
 	{
-		for (auto i = file_handle_pool.cbegin(); i != file_handle_pool.cend(); ++i)
-		{
-			if (i->second == shared_handle_ptr)
-			{
-				file_handle_pool.erase(i);
-				delete shared_handle_ptr;
-				return;
-			}
-		}
-		
-		dcassert(0);
+		auto& pool = m_sfh->m_mode == File::READ ? g_readpool : g_writepool;
+		pool.erase(m_sfh->m_path);
 	}
 }
+
+size_t SharedFileStream::write(const void* buf, size_t len)
+{
+	FastLock l(m_sfh->m_cs);
+	
+	m_sfh->setPos(m_pos);
+	m_sfh->write(buf, len);
+	
+	m_pos += len;
+	return len;
+}
+
+size_t SharedFileStream::read(void* buf, size_t& len)
+{
+	FastLock l(m_sfh->m_cs);
+	
+	m_sfh->setPos(m_pos);
+	len = m_sfh->read(buf, len);
+	
+	m_pos += len;
+	return len;
+}
+
+int64_t SharedFileStream::getSize() const
+{
+	FastLock l(m_sfh->m_cs);
+	return m_sfh->getSize();
+}
+
+void SharedFileStream::setSize(int64_t newSize)
+{
+	FastLock l(m_sfh->m_cs);
+	m_sfh->setSize(newSize);
+}
+
+size_t SharedFileStream::flush()
+{
+	FastLock l(m_sfh->m_cs);
+	return m_sfh->flush();
+}
+
+void SharedFileStream::setPos(int64_t aPos)
+{
+	FastLock l(m_sfh->m_cs);
+	m_pos = aPos;
+}
+
+

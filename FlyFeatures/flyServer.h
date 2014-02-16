@@ -25,7 +25,7 @@
 
 #include <boost/atomic.hpp>
 
-#include "../client/Thread.h"
+#include "../client/CFlyThread.h"
 #include "../client/CFlyMediaInfo.h"
 #include "../client/MerkleTree.h"
 #include "../client/Util.h"
@@ -36,14 +36,12 @@
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 struct CServerItem
 {
-	CServerItem(const CServerItem& p_item) : m_ip(p_item.m_ip), m_port(p_item.m_port)
-	{
-	}
-	CServerItem(const string& p_ip = Util::emptyString, const uint16_t p_port = 0) : m_ip(p_ip), m_port(p_port)
+	CServerItem(const string& p_ip = Util::emptyString, const uint16_t p_port = 0) : m_ip(p_ip), m_port(p_port),m_time_response(0)
 	{
 	}
 	GETSET(string, m_ip, Ip);
 	GETSET(uint16_t, m_port, Port);
+	GETSET(uint32_t, m_time_response, TimeResponse);
 };
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 #ifdef STRONG_USE_DHT
@@ -102,11 +100,12 @@ class CFlyServerConfig
 #endif
   CFlyServerConfig() : 
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-    m_max_size_value(0), 
     m_min_file_size(0), 
     m_type(TYPE_FLYSERVER_TCP), 
     m_send_full_mediainfo(false),
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION
 	m_collect_lost_location(false),
+#endif
     m_zlib_compress_level(Z_BEST_COMPRESSION),
 #endif
 	m_time_load_config(0), 
@@ -116,35 +115,44 @@ class CFlyServerConfig
   ~CFlyServerConfig()
   {
   }
+public:
+ bool isSupportFile(const string& p_file_ext, uint64_t p_size) const;
+ bool isSupportTag (const string& p_tag) const;
+ void ConvertInform(string& p_inform) const;
 private:
+ StringSet m_include_tag; 
+ StringSet m_exclude_tag; 
+ std::vector<std::string> m_exclude_tag_inform;
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
  bool     m_send_full_mediainfo; // Если = true на сервер шлем данные если есть полная информация о медиа-файле
- bool     m_collect_lost_location; // Собирать статистику по потерянным локациям?
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION
+ bool     m_collect_lost_location;
+#endif
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION
+ bool     m_collect_lost_location;
+#endif
  int8_t      m_zlib_compress_level;
  type_server   m_type;
  uint64_t m_min_file_size;
- uint16_t m_max_size_value;
  // TODO boost::flat_set
  StringSet m_scan;  
- StringSet m_exclude_tag; 
- std::vector<std::string> m_exclude_tag_inform;
- StringSet m_include_tag; 
 //
  static std::vector<CServerItem> g_mirror_read_only_servers;
  static CServerItem g_main_server;
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
  static CServerItem g_stat_server;
 #endif
+ static CServerItem g_test_port_server;
 public:
-static const CServerItem& getStatServer()
+static CServerItem& getStatServer()
 {
 	return g_stat_server;
 }
-static const CServerItem& getRandomMirrorServer(bool p_is_set);
-//
-void ConvertInform(string& p_inform) const;
-bool isSupportFile(const string& p_file_ext, uint64_t p_size) const;
-bool isSupportTag (const string& p_tag) const;
+static CServerItem& getTestPortServer()
+{
+	return g_test_port_server;
+}
+static CServerItem& getRandomMirrorServer(bool p_is_set);
 //
 bool isInit() const
 {
@@ -154,11 +162,12 @@ bool isFullMediainfo() const
 {
 	return m_send_full_mediainfo;
 }  
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION
 bool isCollectLostLocation() const 
 {
 	return m_collect_lost_location;
 }  
-
+#endif
 int getZlibCompressLevel() const
 {
 	return m_zlib_compress_level;
@@ -199,7 +208,14 @@ public:
   static DWORD    g_winet_connect_timeout;
   static DWORD    g_winet_receive_timeout;
   static DWORD    g_winet_send_timeout;
+  static uint16_t g_winet_min_response_time_for_log;
+  static uint16_t g_max_ddos_connect_to_me;
+  static uint16_t g_max_unique_tth_search;
+  static uint16_t g_ban_ddos_connect_to_me;
+#ifdef USE_SUPPORT_HUB
   static string   g_support_hub;
+#endif // USE_SUPPORT_HUB
+  static string   g_faq_search_does_not_work;
 };
 //=======================================================================
 extern CFlyServerConfig g_fly_server_config; // TODO: cleanup call of this.
@@ -268,9 +284,9 @@ class CFlyServerAdapter
 			else
 			  return false;
 		}
-		void addFlyServerTask(uint64_t p_tick)
+		void addFlyServerTask(uint64_t p_tick, bool p_is_force)
 		{
-			if (BOOLSETTING(ENABLE_FLY_SERVER))
+			if (p_is_force || BOOLSETTING(ENABLE_FLY_SERVER))
 			{
 				if(!m_query_thread)
 				    m_query_thread = std::unique_ptr<CFlyServerQueryThread>(new CFlyServerQueryThread(this));
@@ -348,11 +364,22 @@ class CFlyServerAdapter
 			static void pushStatistic(const bool p_is_sync_run);
 #endif
 			static bool pushError(const string& p_error);
+			static bool pushTestPort(const string& p_magic,		
+				const std::vector<unsigned short>& p_udp_port,
+				const std::vector<unsigned short>& p_tcp_port,
+				string& p_external_ip);
 			
 			// TODO static void logout();
 			static string g_fly_server_id;
 			static string connect(const CFlyServerKeyArray& p_fileInfoArray, bool p_is_fly_set_query);
-			static string postQuery(bool p_is_set, bool p_is_stat_server, const char* p_query, const string& p_body, bool& p_is_send);		
+			static string postQuery(bool p_is_set, 
+				                    bool p_is_stat_server, 
+									bool p_is_test_port_server,
+									bool p_is_disable_zlib_in, 
+									bool p_is_disable_zlib_out,
+									const char* p_query, 
+									const string& p_body, 
+									bool& p_is_send);		
 		};
 
 		std::unique_ptr<CFlyServerQueryThread> m_query_thread;

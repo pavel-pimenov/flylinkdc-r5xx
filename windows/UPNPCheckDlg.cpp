@@ -38,7 +38,7 @@ extern "C" {
 #include <natupnp.h>
 
 
-UPNPCheckDlg::UPNPCheckDlg(uint16_t tcp, uint16_t udp, bool needPortCheck, const string&  urlCheck, bool needUPNP, bool useServer)
+UPNPCheckDlg::UPNPCheckDlg(uint16_t tcp, uint16_t udp, bool needPortCheck, bool needUPNP, bool useServer)
 	: _tcp(tcp)
 	, _udp(udp)
 	, _result(false)
@@ -46,7 +46,6 @@ UPNPCheckDlg::UPNPCheckDlg(uint16_t tcp, uint16_t udp, bool needPortCheck, const
 	, _stage(Util::emptyString)
 	, _needPortCheck(needPortCheck)
 	, _resultPort(false)
-	, _urlCheck(urlCheck)
 	, _serverTCP(nullptr)
 	, _isTCPOk(false)
 	, _isUDPOk(false)
@@ -111,9 +110,6 @@ UPNPCheckDlg::run()
 		success(CheckPorts(_isTCPOk, _isUDPOk));
 		return 1;
 	}
-	
-	
-	
 	try
 	{
 		setStage(STRING(UPNPCHECKDLG_MINI_INIT));//  "Checkning MiniUPNP..."
@@ -126,7 +122,6 @@ UPNPCheckDlg::run()
 			bool isSuccess = false;
 			bool portTestResult = false;
 			string tcpDesc = description + "Transfer port (" + Util::toString(_tcp) + " TCP)";
-			// FlylinkDC++Transfer port (27688 TCP)
 			if (MiniUPnPc_add(_tcp, "TCP", tcpDesc, service, url))
 			{
 				string udpDesc = description + "Search port (" + Util::toString(_udp) + " UDP)";
@@ -397,41 +392,7 @@ UPNPCheckDlg::WinUPnP_getStaticPortMappingCollection(IUPnPNAT* pUN)
 
 bool UPNPCheckDlg::CheckPorts(bool& isTCPOk, bool& isUDPOk)
 {
-	if (_urlCheck.empty())
-		return false;
-	isTCPOk = false;
-	isUDPOk = false;
-	bool bResult = false;
-	
-	string urlConnection = _urlCheck + "?port_IP=" + Util::toString(_tcp) + "&port_PI=" + Util::toString(_udp) + "&ver=" + A_REVISION_NUM_STR + "&result=xml";
-	string data;
-	size_t result = Util::getDataFromInet(_T(APPNAME), 2048, urlConnection, data);
-	if (result > 0 && !data.empty())
-	{
-		XMLParser::XMLResults xRes;
-		// Try to parse data
-		XMLParser::XMLNode xRootNode = XMLParser::XMLNode::parseString(data.c_str(), 0, &xRes);
-		if (xRes.error == XMLParser::eXMLErrorNone)
-		{
-			XMLParser::XMLNode testResult = xRootNode.getChildNode("testResult");
-			if (!testResult.isEmpty())
-			{
-				XMLParser::XMLNode tcp = testResult.getChildNode("tcp");
-				if (!tcp.isEmpty() && tcp.nText())
-				{
-					isTCPOk = strnicmp(tcp.getText(), "ok", 2) == 0;
-				}
-				XMLParser::XMLNode udp = testResult.getChildNode("udp");
-				if (!udp.isEmpty() && udp.nText())
-				{
-					isUDPOk = strnicmp(udp.getText(), "ok", 2) == 0;
-				}
-			}
-			bResult = true;
-		}
-	}
-	
-	return bResult;
+	return true;
 }
 
 string UPNPCheckDlg::MiniUPnPc_getExternalIP(string& url, string&  service)

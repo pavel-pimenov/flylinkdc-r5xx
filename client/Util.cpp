@@ -302,7 +302,6 @@ void Util::loadGeoIp()
 				uint16_t flagIndex = 0;
 				// [+] IRainman opt: http://en.wikipedia.org/wiki/ISO_3166-1 : 2013.08.12: Currently 249 countries, territories, or areas of geographical interest are assigned official codes in ISO 3166-1,
 				// http://www.assembla.com/spaces/customlocations-greylink 20130812-r1281, providers count - 1422
-				string countryFullNamePrev;
 				CFlyLocationIPArray l_sqlite_array;
 				l_sqlite_array.reserve(100000);
 				while (true)
@@ -325,18 +324,14 @@ void Util::loadGeoIp()
 					lineend = data.find('\n', pos);
 					if (lineend == string::npos) break;
 					pos += 2;
-					countryFullNamePrev = data.substr(pos, lineend - 1 - pos);
-					CFlyLocationIP l_item;
-					l_item.m_start_ip = startIP;
-					l_item.m_stop_ip  = stopIP;
-					l_item.m_dic_country_location_ip = CFlylinkDBManager::getInstance()->get_dic_country_id(countryFullNamePrev);
-					l_item.m_flag_index = flagIndex;
-					l_sqlite_array.push_back(l_item);
+					l_sqlite_array.push_back(CFlyLocationIP(data.substr(pos, lineend - 1 - pos), startIP, stopIP, flagIndex));
 					linestart = lineend + 1;
 				}
 				{
 					CFlyLog l_geo_log_sqlite("[GeoIp-sqlite]");
 					CFlylinkDBManager::getInstance()->save_geoip(l_sqlite_array);
+					// Отказались от справочников - не нужно
+					// CFlylinkDBManager::getInstance()->clear_dic_cache_country();
 				}
 				CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_TimeStampGeoIP, l_timeStampFile);
 			}
@@ -388,14 +383,7 @@ void Util::loadCustomlocations()// [!] IRainman: this function workings fine. Pl
 					const auto l_comma = l_fullNetStr.find(',');
 					if (l_comma != string::npos)
 					{
-						const string l_networkName = l_fullNetStr.substr(l_comma + 1);
-						//const auto l_index_offset = _countof(g_countryCodes) + 1;
-						CFlyLocationIP l_item;
-						l_item.m_start_ip = p_startIp;
-						l_item.m_stop_ip  = p_endIp;
-						l_item.m_dic_country_location_ip = CFlylinkDBManager::getInstance()->get_dic_location_id(l_networkName);
-						l_item.m_flag_index = Util::toInt(l_fullNetStr.c_str());
-						p_sqliteArray.push_back(l_item);
+						p_sqliteArray.push_back(CFlyLocationIP(l_fullNetStr.substr(l_comma + 1), p_startIp, p_endIp, Util::toInt(l_fullNetStr.c_str())));
 					}
 					else
 					{
@@ -460,8 +448,12 @@ void Util::loadCustomlocations()// [!] IRainman: this function workings fine. Pl
 			{
 				customLocationLog(l_currentLine, "Parser fatal error:" + e.getError());
 			}
-			CFlyLog l_logSqlite("[CustomLocation-sqlite]");
-			CFlylinkDBManager::getInstance()->save_location(l_sqliteArray);
+			{
+				CFlyLog l_logSqlite("[CustomLocation-sqlite]");
+				CFlylinkDBManager::getInstance()->save_location(l_sqliteArray);
+				// Отказались от справочников - не нужно
+				// CFlylinkDBManager::getInstance()->clear_dic_cache_location();
+			}
 			CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_TimeStampCustomLocation, l_timeStampFile);
 		}
 		else
@@ -1780,36 +1772,31 @@ uint8_t Util::CustomNetworkIndex::getCountryIndex() const
 	}
 }
 //======================================================================================================================================
-/*  getIpCountry
-    This function returns the full country name of an ip and abbreviation
-    for exemple: it returns { "PT", "Portugal" or ImageIndex, "Provider name" }.
-    more info: http://www.maxmind.com/app/csv
-*/
-// [!] IRainman: this function workings fine. Please don't merge from other project!
-Util::CustomNetworkIndex Util::getIpCountry(const string& p_ip)
+Util::CustomNetworkIndex Util::getIpCountry(uint32_t p_ip)
 {
-	const uint32_t l_ipNum = Socket::convertIP4(p_ip);
-	if (l_ipNum)
+	if (p_ip)
 	{
 		uint8_t l_country_index = 0;
-		if (!Util::isPrivateIp(l_ipNum))
+		if (!Util::isPrivateIp(p_ip))
 		{
-			CFlylinkDBManager::getInstance()->get_country(l_ipNum, l_country_index);
+			CFlylinkDBManager::getInstance()->get_country(p_ip, l_country_index);
 		}
 		int32_t  l_location_index = -1;
-		CFlylinkDBManager::getInstance()->get_location(l_ipNum, l_location_index);
+		CFlylinkDBManager::getInstance()->get_location(p_ip, l_location_index);
 		if (l_location_index > 0)
 		{
 			const CustomNetworkIndex l_index(l_location_index, l_country_index);
 			return l_index;
 		}
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION
 		else
 		{
 			if (g_fly_server_config.isCollectLostLocation() && BOOLSETTING(AUTOUPDATE_CUSTOMLOCATION) && AutoUpdate::getInstance()->isUpdate())
 			{
-				CFlylinkDBManager::getInstance()->save_lost_location(p_ip);
+				// CFlylinkDBManager::getInstance()->save_lost_location(p_ip);
 			}
 		}
+#endif //FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION
 		if (l_country_index)
 		{
 			const CustomNetworkIndex l_index(l_location_index, l_country_index);
@@ -1818,11 +1805,17 @@ Util::CustomNetworkIndex Util::getIpCountry(const string& p_ip)
 	}
 	else
 	{
-		dcdebug(string("Invalid IP on Util::getIpCountry: " + p_ip + '\n').c_str());
-		dcassert(!l_ipNum);
+		dcdebug(string("Invalid IP on Util::getIpCountry: " + Util::toString(p_ip) + '\n').c_str());
+		dcassert(!p_ip);
 	}
 	static const CustomNetworkIndex g_unknownLocationIndex(0, 0);
 	return g_unknownLocationIndex;
+}
+//======================================================================================================================================
+Util::CustomNetworkIndex Util::getIpCountry(const string& p_ip)
+{
+	const uint32_t l_ipNum = Socket::convertIP4(p_ip);
+	return getIpCountry(l_ipNum);
 }
 //======================================================================================================================================
 string Util::toAdcFile(const string& file)

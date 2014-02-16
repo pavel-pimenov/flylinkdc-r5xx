@@ -249,7 +249,9 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		COMMAND_ID_HANDLER(IDC_STATUS_DHT_OFF, onCheckDHTStats)
 #endif
 		COMMAND_ID_HANDLER(IDC_STATUS_AWAY_ON_OFF, onAway)
+#ifdef USE_SUPPORT_HUB
 		COMMAND_ID_HANDLER(IDC_CONNECT_TO_FLYSUPPORT_HUB, OnConnectToSupportHUB)
+#endif // USE_SUPPORT_HUB
 #ifdef SSA_WIZARD_FEATURE
 		COMMAND_ID_HANDLER(ID_FILE_SETTINGS_WIZARD, OnFileSettingsWizard)
 #endif
@@ -350,7 +352,9 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		LRESULT onAddMagnet(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT OnUpdateTotalResult(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled);
 		LRESULT OnUpdateResultReceive(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled);
+#ifdef USE_SUPPORT_HUB
 		LRESULT OnConnectToSupportHUB(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+#endif // USE_SUPPORT_HUB
 #ifdef SSA_WIZARD_FEATURE
 		LRESULT OnFileSettingsWizard(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 #endif

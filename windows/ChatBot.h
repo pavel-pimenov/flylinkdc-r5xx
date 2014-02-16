@@ -48,6 +48,9 @@ class ChatBot : public Singleton<ChatBot>
 		static bool  __stdcall botSendMessage2(int msgid, const WCHAR* objid, const void *param, unsigned paramsize);
 		static void* __stdcall botQueryInfo_rc(int qryid, const WCHAR* objid, const void *param, unsigned paramsize);
 		static void  __stdcall botFreeInfo(void *info);
+		
+	private:
+		static UserPtr crateUser(const WCHAR* cid);
 };
 
 

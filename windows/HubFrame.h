@@ -326,7 +326,7 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		static int g_columnIndexes[/* [!] IRainman: don't uncomment this! œŒ ”—¿ﬁ! COLUMN_LAST*/];
 		static int g_columnSizes[/* [!] IRainman: don't uncomment this! œŒ ”—¿ﬁ! COLUMN_LAST*/];
 		
-		bool updateUser(const OnlineUserPtr& p_ou);
+		bool updateUser(const OnlineUserPtr& p_ou, const int p_index_column);
 		void removeUser(const OnlineUserPtr& p_ou);
 		
 		void InsertUserList(UserInfo* ui);

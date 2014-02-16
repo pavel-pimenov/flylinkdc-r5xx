@@ -30,7 +30,7 @@ LRESULT BaseChatFrame::OnCreate(HWND p_hWnd, RECT &rcDefault)
 	                  WS_VSCROLL | ES_AUTOVSCROLL | ES_MULTILINE | ES_NOHIDESEL | ES_READONLY, WS_EX_STATICEDGE, IDC_CLIENT);
 	                  
 	ctrlClient.LimitText(0);
-	ctrlClient.SetFont(Fonts::font);
+	ctrlClient.SetFont(Fonts::g_font);
 	
 	ctrlClient.SetAutoURLDetect(false);
 	ctrlClient.SetEventMask(ctrlClient.GetEventMask() | ENM_LINK);
@@ -73,7 +73,7 @@ void BaseChatFrame::createMessageCtrl(ATL::CMessageMap *p_map, DWORD p_MsgMapID)
 		m_ctrlMessage->SetWindowText(m_LastMessage.c_str());
 		m_ctrlMessage->SetSel(m_LastSelPos);
 	}
-	m_ctrlMessage->SetFont(Fonts::font);
+	m_ctrlMessage->SetFont(Fonts::g_font);
 	m_ctrlMessage->SetLimitText(9999);
 	m_ctrlMessageContainer = new CContainedWindow(WC_EDIT, p_map, p_MsgMapID);
 	m_ctrlMessageContainer->SubclassWindow(m_ctrlMessage->m_hWnd);
@@ -620,7 +620,7 @@ void BaseChatFrame::addLine(const Identity& from, const bool bMyMess, const bool
 	const bool countryInChat = BOOLSETTING(COUNTRY_IN_CHAT);
 	if (ipInChat || countryInChat)
 	{
-		extra = getIpCountry(from.getIp(), m_timeStamps, ipInChat, countryInChat);
+		extra = getIpCountry(from.getIpAsString(), m_timeStamps, ipInChat, countryInChat);
 	}
 	if (m_timeStamps)
 	{
