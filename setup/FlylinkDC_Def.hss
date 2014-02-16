@@ -1,5 +1,5 @@
 
-#if VER < 0x05050300
+#if VER < 0x05050400
   #error Update your Inno Setup version
 #endif
 #ifndef UNICODE
@@ -36,6 +36,8 @@ AppMutex={{FLYDC-AEE8350A-B49A-4753-AB4B-E55479A48351}
 UsePreviousLanguage=no
 
 [Languages]
+
+#ifdef FLYLIKDC_USE_LICENSE
 Name: "en_US"; MessagesFile: "custom_lang\custom_messages-EN-US.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
 Name: "ru_RU"; MessagesFile: "custom_lang\custom_messages-RU-RU.isl"; InfoBeforeFile: "readme_ru-RU.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"; LicenseFile: "license_ru-RU.rtf"
 Name: "be_BY"; MessagesFile: "custom_lang\custom_messages-BE-BY.isl"; InfoBeforeFile: "readme_ru-RU.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"; LicenseFile: "license_ru-RU.rtf"
@@ -48,6 +50,7 @@ Name: "pl_PL"; MessagesFile: "custom_lang\custom_messages-PL-PL.isl"; InfoBefore
 Name: "de_DE"; MessagesFile: "custom_lang\custom_messages-DE-DE.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
 Name: "zh_CN"; MessagesFile: "custom_lang\custom_messages-ZH-CN.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
 Name: "pt_BR"; MessagesFile: "custom_lang\custom_messages-PT-BR.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
+
 ;Name: "eo_XX"; MessagesFile: "English.isl"
 ;Name: "et_EE"; MessagesFile: "English.isl"
 ;Name: "hu_HU"; MessagesFile: "English.isl"
@@ -55,6 +58,23 @@ Name: "pt_BR"; MessagesFile: "custom_lang\custom_messages-PT-BR.isl"; InfoBefore
 ;Name: "sq_AL"; MessagesFile: "English.isl"
 ;Name: "sv_SE"; MessagesFile: "English.isl"
 ;Name: "tr_TR"; MessagesFile: "English.isl"
+
+#else
+
+Name: "en_US"; MessagesFile: "custom_lang\custom_messages-EN-US.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
+Name: "ru_RU"; MessagesFile: "custom_lang\custom_messages-RU-RU.isl"; InfoBeforeFile: "readme_ru-RU.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"
+Name: "be_BY"; MessagesFile: "custom_lang\custom_messages-BE-BY.isl"; InfoBeforeFile: "readme_ru-RU.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"
+Name: "uk_UA"; MessagesFile: "custom_lang\custom_messages-UK-UA.isl"; InfoBeforeFile: "readme_ru-RU.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"
+Name: "fr_FR"; MessagesFile: "custom_lang\custom_messages-FR-FR.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
+Name: "es_ES"; MessagesFile: "custom_lang\custom_messages-ES-ES.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
+Name: "lv_LV"; MessagesFile: "custom_lang\custom_messages-LV-LV.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"
+Name: "it_IT"; MessagesFile: "custom_lang\custom_messages-IT-IT.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
+Name: "pl_PL"; MessagesFile: "custom_lang\custom_messages-PL-PL.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
+Name: "de_DE"; MessagesFile: "custom_lang\custom_messages-DE-DE.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
+Name: "zh_CN"; MessagesFile: "custom_lang\custom_messages-ZH-CN.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
+Name: "pt_BR"; MessagesFile: "custom_lang\custom_messages-PT-BR.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
+
+#endif
 
 [Files]
 Source: "..\compiled\Settings\custom_menu.xml"; DestDir: "{app}\Settings"; Flags: onlyifdoesntexist ignoreversion
@@ -154,7 +174,7 @@ end;
 
 procedure AboutButtonOnClick(Sender: TObject);
 begin
-  MsgBox('© 2006-2013, ' + CustomMessage('FlylinkTeam'), mbInformation, mb_Ok);
+  MsgBox('© 2006-2014, ' + CustomMessage('FlylinkTeam'), mbInformation, mb_Ok);
 end;
 
 procedure URLLabelOnClick(Sender: TObject);

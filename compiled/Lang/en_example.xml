@@ -1333,8 +1333,8 @@
 	<string name="SettingsLogDir">Log directory</string>
 	<string name="SettingsLogDownloads">Log downloads</string>
 	<string name="SettingsLogFilelistTransfers">Log file list transfers</string>
-	<string name="SettingsLogFormatTraceSqlite">Log queries to the SQLite base</string>
-	<string name="SettingsLogFormatDdosTrace">Log DDoS detect</string>
+	<string name="SettingsLogTraceSqlite">Log queries to the SQLite base</string>
+	<string name="SettingsLogDdosTrace">Log DDoS detect</string>
 	<string name="SettingsLogIfSuppressPms">Log for PM if suppress PMS</string>
 	<string name="SettingsLogMainChat">Log main chat</string>
 	<string name="SettingsLogPrivateChat">Log private chat</string>

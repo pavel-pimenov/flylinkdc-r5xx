@@ -1383,7 +1383,6 @@ Raw: відіслати raw-команду хабу (тільки для екс�
 		<String Name="SettingsDirect">Пряме з'єднання</String>
 		<String Name="SettingsDirectories">Каталоги</String>
 		<String Name="SettingsDisplayCheatsInMainChat">Показувати ошуканців в головному чаті</String>
-		<String Name="SettingsDontAddTthDctmp">Не додавати розширення TTH.DCTMP до повністю не завантажених файлів</String>
 		<String Name="SettingsDontChange">Не змінювати</String>
 		<String Name="SettingsDontDlAlreadyShared">Не завантажувати файли, що вже знаходяться в шарі</String>
 		<String Name="SettingsDownconn">Спроби завантажити/сек</String>

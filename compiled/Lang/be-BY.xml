@@ -1398,7 +1398,6 @@
 		<String Name="SettingsDirect">Простае злучэньне</String>
 		<String Name="SettingsDirectories">Каталёґі</String>
 		<String Name="SettingsDisplayCheatsInMainChat">Паказваць ашуканцаў у галоўнае гутарцы</String>
-		<String Name="SettingsDontAddTthDctmp">Не дадаваць пашырэньне «СКАРОТ.DCTMP» да файлаў, што яшчэ ня цалкам сьцягнуліся</String>
 		<String Name="SettingsDontChange">Не зьмяняць</String>
 		<String Name="SettingsDontDlAlreadyShared">Ня сьцягваць файлы, што ўжо маем абагуленымі</String>
 		<String Name="SettingsDownconn">Спробаў сьцягваць/сэк</String>

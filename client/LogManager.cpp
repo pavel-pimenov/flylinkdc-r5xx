@@ -169,9 +169,12 @@ void LogManager::log(LogArea area, const StringMap& params, bool p_only_file /* 
 
 void LogManager::ddos_message(const string& p_message)
 {
-	StringMap params;
-	params["message"] = p_message;
-	LOG(DDOS_TRACE, params);
+	if(BOOLSETTING(LOG_DDOS_TRACE))
+	{
+		StringMap params;
+		params["message"] = p_message;
+		LOG(DDOS_TRACE, params);
+	}
 }
 
 void LogManager::message(const string& msg, bool p_only_file /*= false */)

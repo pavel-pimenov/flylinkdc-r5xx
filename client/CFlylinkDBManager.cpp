@@ -84,9 +84,12 @@ int gf_busy_handler(void *p_params, int p_tryes)
 //========================================================================================================
 static void gf_trace_callback(void* p_udp, const char* p_sql)
 {
-	StringMap params;
-	params["sql"] = p_sql;
-	LOG(TRACE_SQLITE, params);
+	if(BOOLSETTING(LOG_SQLITE_TRACE))
+	{
+		StringMap params;
+		params["sql"] = p_sql;
+		LOG(TRACE_SQLITE, params);
+	}
 }
 //========================================================================================================
 //static void profile_callback( void* p_udp, const char* p_sql, sqlite3_uint64 p_time)

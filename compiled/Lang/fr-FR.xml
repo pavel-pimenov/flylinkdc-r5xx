@@ -1374,7 +1374,6 @@ Vide = Une chaîne par défaut:
 		<String Name="SettingsDirect">Connexion directe</String>
 		<String Name="SettingsDirectories">Dossiers</String>
 		<String Name="SettingsDisplayCheatsInMainChat">Afficher des utilisateurs tricheurs dans le chat principal</String>
-		<String Name="SettingsDontAddTthDctmp">Ne pas ajouter l'extension TTH.DCTMP aux fichiers incomplets</String>
 		<String Name="SettingsDontChange">Pas changer</String>
 		<String Name="SettingsDontDlAlreadyShared">Ne pas télécharger des fichiers qui sont déjà partagés</String>
 		<String Name="SettingsDownconn">Tentatives de téléchargement/sec</String>

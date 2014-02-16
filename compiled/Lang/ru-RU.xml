@@ -633,6 +633,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="GenerateCertificates">Создать сертификаты</String>
 		<String Name="GetFileList">Получить список файлов</String>
 		<String Name="GetIp">Тест портов и определение IP</String>
+		<String Name="AddFlylinkdcWinfirewall">Брандмауэр Windows: FlylinkDC++ исключение</String>
 		<String Name="GetUserResponses">Запросить IP</String>
 		<String Name="GiveExtraSlot">Экстра-слот</String>
 		<String Name="Global">Переопределяет избранные хабы</String>
@@ -1436,7 +1437,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsDirect">Прямое соединение</String>
 		<String Name="SettingsDirectories">Папки</String>
 		<String Name="SettingsDisplayCheatsInMainChat">Показывать обманщиков в главном чате</String>
-		<String Name="SettingsDontAddTthDctmp">Не добавлять расширение TTH.DCTMP к недокачанным файлам</String>
 		<String Name="SettingsDontChange">Не менять</String>
 		<String Name="SettingsDontDlAlreadyShared">Не скачивать файлы, уже находящиеся в шаре</String>
 		<String Name="SettingsDownconn">Попытки скачать/сек</String>
@@ -1482,7 +1482,8 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsLogDir">Папка для журналов</String>
 		<String Name="SettingsLogDownloads">Журнал скачивания</String>
 		<String Name="SettingsLogFilelistTransfers">Журнал полученных списков файлов</String>
-		<String Name="SettingsLogFormatTraceSqlite">Журнал обращений к базе SQLite</String>
+		<String Name="SettingsLogTraceSqlite">Журнал обращений к базе SQLite</String>
+		<String Name="SettingsLogDdosTrace">Журнал DDoS обнаружения</String>
 		<String Name="SettingsLogIfSuppressPms">Писать в журнал факт отклонения личного сообщения, если оно отключено</String>
 		<String Name="SettingsLogMainChat">Журнал главного чата</String>
 		<String Name="SettingsLogPrivateChat">Журнал личных сообщений</String>

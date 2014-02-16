@@ -284,9 +284,9 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 					return " Port: " + l_ports;
 				}
 		};
-		std::map<CFlyDDOSkey, CFlyDDoSTick> m_ddos_map;
-		
-		std::unordered_map<string, CFlyTTHTick> m_tth_duplicate_search;
+		std::map<CFlyDDOSkey, CFlyDDoSTick> m_ddos_map;	
+
+		boost::unordered_map<string, CFlyTTHTick> m_tth_duplicate_search;
 		
 #define USING_IDLERS_IN_CONNECTION_MANAGER // [!] IRainman fix: don't disable this.
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER

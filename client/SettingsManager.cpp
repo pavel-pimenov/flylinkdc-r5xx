@@ -158,6 +158,7 @@ const string SettingsManager::settingTags[] =
 	"SendBloom",
 	"AutoSearchAutoMatch", "DownloadBarColor", "UploadBarColor", "LogSystem",
 	"LogCustomLocation", // [+] IRainman
+	"LogSQLiteTrace", "LogDDOSTrace",
 	"LogFilelistTransfers", "ShowStatusbar", "ShowToolbar", "ShowTransferview",
 	"SearchPassiveAlways", "SetMinislotSize", "ShutdownInterval",
 	//"CzertHiddenSettingA", "CzertHiddenSettingB",// [-] IRainman SpeedLimiter
@@ -1559,6 +1560,7 @@ bool SettingsManager::set(StrSetting key, const string& value)
 		case LOG_FORMAT_SYSTEM:
 		case LOG_FORMAT_CUSTOM_LOCATION:
 		case LOG_FORMAT_TRACE_SQLITE:
+		case LOG_FORMAT_DDOS_TRACE:
 #ifdef RIP_USE_LOG_PROTOCOL
 		case LOG_FORMAT_PROTOCOL:
 #endif

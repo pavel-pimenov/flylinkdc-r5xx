@@ -508,7 +508,7 @@ void ConnectionManager::accept(const Socket& sock, bool secure) noexcept
 }
 bool ConnectionManager::checkTTHDuplicateSearch(const string& p_search_command)
 {
-	webrtc::WriteLockScoped l_ddos(*g_csTTHFilter);
+	webrtc::WriteLockScoped l_lock(*g_csTTHFilter);
 	const auto l_tick = GET_TICK();
 	CFlyTTHTick l_item;
 	l_item.m_first_tick = l_tick;

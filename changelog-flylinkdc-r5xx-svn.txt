@@ -1,4 +1,50 @@
 ------------------------------------------------------------------------
+r16623 | pavel.pimenov@gmail.com | 2014-02-16 12:42:38 +0400 (Вс, 16 фев 2014) | 13 lines
+
+# r502-release [merge]
+Merged revision(s) 16617 from trunk:
+# Маркер падения в size_t UploadManager::addFailedUpload 
+  https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128318
+# m_tth_duplicate_search перевел на boost::unordered_map
+........
+* mediainfo
++ GXF: support of DVCPRO HD
++ GXF: Media Type is reported
++ HEVC: added support of scaling_list_data 
++ HEVC: deactivated general_profile_compatibility_flag validity test because some encoders do not implement it correctly
+
+
+------------------------------------------------------------------------
+r16613 | tret2003 | 2014-02-15 13:37:47 +0400 (Сб, 15 фев 2014) | 23 lines
+
+Объединённые ревизии 16606-16612 из trunk:
+* Updating the database ISPs
+   http://www.assembla.com/spaces/customlocations-greylink
+   Build on the base 1299, created 2014-02-14 20:40:29 +0700
+   Total in database:
+    - ISP - 1407
+    - ISPs logo - 1416
+    - Address range - 5998
+   Archive CustomLocations.7z created by NightOrion
+
+
+........
+# Исправлено падение при нажатии кнопки - добавить приложение к виндовому фаерволу. (фича пока не пашет почему-то)
+   https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128105
+........
+# [lang] an auto commit from localization system...
+........
+# Маркер падения - https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128150
+  пока не понял почему падает...
+........
+* Исправлено поведение настроек журналов SQLite и DDOS
+........
+
+------------------------------------------------------------------------
+r16605 | pavel.pimenov@gmail.com | 2014-02-14 20:12:18 +0400 (Пт, 14 фев 2014) | 1 line
+
+# r502-sp13 вернул затертый rtf
+------------------------------------------------------------------------
 r16604 | pavel.pimenov@gmail.com | 2014-02-14 19:23:50 +0400 (Пт, 14 фев 2014) | 14 lines
 
 Merged revision(s) 16599-16603 from trunk:

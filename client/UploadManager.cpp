@@ -959,7 +959,7 @@ size_t UploadManager::addFailedUpload(const UserConnection& source, const string
 	if (it != m_slotQueue.end())
 	{
 		it->setToken(source.getToken());
-		for (auto fileIter = it->m_files.cbegin(); fileIter != it->m_files.cend(); ++fileIter)
+		for (auto fileIter = it->m_files.cbegin(); fileIter != it->m_files.cend(); ++fileIter) //TODO https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128318
 		{
 			if ((*fileIter)->getFile() == file)
 			{
@@ -1068,7 +1068,7 @@ void UploadManager::notifyQueuedUsersL(int64_t tick)
 		while (!m_slotQueue.empty() && freeslots > 0)
 		{
 			// let's keep him in the notifiedList until he asks for a file
-			const WaitingUser wu = m_slotQueue.front();
+			const WaitingUser wu = m_slotQueue.front(); // TODO -  https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128150
 			clearUserFilesL(wu.getUser());
 			
 			m_notifiedUsers[wu.getUser()] = tick;//[!]IRainman refactoring transfer mechanism

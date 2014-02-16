@@ -3,7 +3,7 @@ rem wget -c -t1 http://www.jrsoftware.org/files/istrans/Albanian-2/Albanian-2-5.
 rem ren Albanian-2-5.1.11.isl Albanian.isl
 
 del Belarusian.isl
-wget -c -t1 --no-check-certificate https://raw.github.com/jrsoftware/issrc/master/Files/Languages/Unofficial/Belarusian.isl
+wget --no-check-certificate https://raw.github.com/jrsoftware/issrc/master/Files/Languages/Unofficial/Belarusian.isl
 
 rem del Bosnian.isl
 rem wget -c -t1 http://www.jrsoftware.org/files/istrans/Bosnian-1/Bosnian-1-5.1.0.isl
@@ -14,7 +14,7 @@ rem wget -c -t1 http://www.jrsoftware.org/files/istrans/Bulgarian/Bulgarian-5.1.
 rem ren Bulgarian-5.1.11.isl Bulgarian.isl
 
 del ChineseSimplified.isl
-wget -c -t1 --no-check-certificate https://raw.github.com/jrsoftware/issrc/master/Files/Languages/Unofficial/ChineseSimplified.isl
+wget --no-check-certificate https://raw.github.com/jrsoftware/issrc/master/Files/Languages/Unofficial/ChineseSimplified.isl
 
 rem del Croatian.isl
 rem wget -c -t1 http://www.jrsoftware.org/files/istrans/Croatian-5/Croatian-5-5.1.11.isl
@@ -29,7 +29,7 @@ rem wget -c -t1 http://www.jrsoftware.org/files/istrans/Estonian-3/Estonian-3-5.
 rem ren Estonian-3-5.1.11.isl Estonian.isl
 
 del Latvian.isl
-wget -c -t1 --no-check-certificate https://raw.github.com/jrsoftware/issrc/master/Files/Languages/Unofficial/Latvian.isl
+wget --no-check-certificate https://raw.github.com/jrsoftware/issrc/master/Files/Languages/Unofficial/Latvian.isl
 
 rem del Macedonian.isl
 rem wget -c -t1 http://www.jrsoftware.org/files/istrans/Macedonian-2/Macedonian-2-5.1.11.isl

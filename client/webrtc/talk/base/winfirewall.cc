@@ -144,6 +144,8 @@ bool WinFirewall::AddApplicationW(const wchar_t* filename,
                                   const wchar_t* friendly_name,
                                   bool authorized,
                                   HRESULT* result) {
+  if(profile_ == nullptr) //[+] FlylinkDC++ https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128105
+	  return false;
   INetFwAuthorizedApplications* apps = NULL;
   HRESULT hr = profile_->get_AuthorizedApplications(&apps);
   if (SUCCEEDED(hr) && (apps != NULL)) {
