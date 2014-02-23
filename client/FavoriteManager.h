@@ -32,6 +32,7 @@
 #include "FavoriteManagerListener.h"
 #include "HubEntry.h"
 #include "FavHubGroup.h"
+#include "webrtc/system_wrappers/interface/rw_lock_wrapper.h"
 
 class PreviewApplication
 #ifdef _DEBUG
@@ -90,7 +91,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		}
 		void getPublicHubs(HubEntryList& p_hl)
 		{
-			FastSharedLock l(csPublicHubs);
+			webrtc::ReadLockScoped l(*g_csPublicHubs);
 			p_hl = publicListMatrix[publicListServer];
 		}
 		bool isDownloading() const
@@ -126,21 +127,11 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 			public:
 				LockInstanceUsers()
 				{
-					FavoriteManager::getInstance()->csUsers.
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-					lockShared();
-#else
-					lock();
-#endif
+					FavoriteManager::getInstance()->g_csUsers->AcquireLockShared();
 				}
 				~LockInstanceUsers()
 				{
-					FavoriteManager::getInstance()->csUsers.
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-					unlockShared();
-#else
-					unlock();
-#endif
+					FavoriteManager::getInstance()->g_csUsers->ReleaseLockShared();
 				}
 				const FavoriteMap& getFavoriteUsers() const
 				{
@@ -286,16 +277,16 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 				LockInstanceHubs(const bool unique = false) : m_unique(unique)
 				{
 					if (m_unique)
-						FavoriteManager::getInstance()->csHubs.lockUnique();
+						FavoriteManager::getInstance()->g_csHubs->AcquireLockExclusive();
 					else
-						FavoriteManager::getInstance()->csHubs.lockShared();
+						FavoriteManager::getInstance()->g_csHubs->AcquireLockShared();
 				}
 				~LockInstanceHubs()
 				{
 					if (m_unique)
-						FavoriteManager::getInstance()->csHubs.unlockUnique();
+						FavoriteManager::getInstance()->g_csHubs->ReleaseLockExclusive();
 					else
-						FavoriteManager::getInstance()->csHubs.unlockShared();
+						FavoriteManager::getInstance()->g_csHubs->ReleaseLockShared();
 				}
 				const FavHubGroups& getFavHubGroups() const
 				{
@@ -308,7 +299,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		};
 		void setFavHubGroups(FavHubGroups& p_favHubGroups)
 		{
-			FastUniqueLock l(csHubs);
+			webrtc::WriteLockScoped l(*g_csHubs);
 			swap(favHubGroups, p_favHubGroups);
 		}
 		// [!] IRainman fix.
@@ -340,11 +331,11 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 			public:
 				LockInstanceDirs()
 				{
-					FavoriteManager::getInstance()->csDirs.lockShared();
+					FavoriteManager::getInstance()->g_csDirs->AcquireLockShared();
 				}
 				~LockInstanceDirs()
 				{
-					FavoriteManager::getInstance()->csDirs.unlockShared();
+					FavoriteManager::getInstance()->g_csDirs->ReleaseLockShared();
 				}
 				const FavDirList& getFavoriteDirsL() const
 				{
@@ -418,9 +409,9 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		size_t countUserCommand(const string& p_Hub) const;
 		void removeHubUserCommands(int ctx, const string& hub);
 		
-		UserCommand::List getUserCommands() const
+		UserCommand::List getUserCommands() const // TODO - копия?
 		{
-			FastSharedLock l(csUserCommand);
+			webrtc::ReadLockScoped l(*g_csUserCommand);
 			return userCommands;
 		}
 		UserCommand::List getUserCommands(int ctx, const StringList& hub/* [-] IRainman fix, bool& op*/) const;
@@ -469,22 +460,11 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		FavoriteMap m_users;
 		StringSet   m_fav_users;
 		// [!] IRainman opt: replace one recursive mutex to multiply shared spin locks.
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-		mutable FastSharedCriticalSection csUsers;
-#else
-		mutable CriticalSection csUsers; // https://code.google.com/p/flylinkdc/issues/detail?id=1316
-#endif
-#ifdef IRAINMAN_USE_SEPARATE_CS_IN_FAVORITE_MANAGER
-		mutable FastSharedCriticalSection csHubs; // [+] fix.
-		mutable FastSharedCriticalSection csDirs; // [+] fix.
-		mutable FastSharedCriticalSection csPublicHubs;
-		mutable FastSharedCriticalSection csUserCommand;
-#else
-		mutable FastSharedCriticalSection& csHubs; // [+] fix.
-		mutable FastSharedCriticalSection& csDirs; // [+] fix.
-		mutable FastSharedCriticalSection& csPublicHubs;
-		mutable FastSharedCriticalSection& csUserCommand;
-#endif
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csUsers; // https://code.google.com/p/flylinkdc/issues/detail?id=1316
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csHubs; //
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csDirs; //
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csPublicHubs;
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csUserCommand;
 		
 		// [~] IRainman opt.
 #ifdef IRAINMAN_ENABLE_HUB_LIST

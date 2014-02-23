@@ -223,7 +223,7 @@ void VideoPreview::AddTempFileToPreview(QueueItem* tempItem, HWND serverReadyRep
 		_fileRoadMap = unique_ptr<FileRoadMap>(new FileRoadMap(_previewFileSize));
 		QueueItem::SegmentSet segments;
 		{
-			SharedLock l(QueueItem::cs);
+			RLock l(*QueueItem::g_cs);
 			segments =  tempItem->getDoneL();
 		}
 		for (auto i = segments.cbegin(); i != segments.cend(); ++i)

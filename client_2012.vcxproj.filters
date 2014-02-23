@@ -661,6 +661,18 @@
     <ClCompile Include="zmq\src\zmq_utils.cpp">
       <Filter>Source Files\zmq</Filter>
     </ClCompile>
+    <ClCompile Include="client\webrtc\talk\base\logging.cc">
+      <Filter>Source Files\webrtc\Talk</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\talk\base\stringutils.cc">
+      <Filter>Source Files\webrtc\Talk</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\talk\base\win32.cc">
+      <Filter>Source Files\webrtc\Talk</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\talk\base\winfirewall.cc">
+      <Filter>Source Files\webrtc\Talk</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client\AdcCommand.h">

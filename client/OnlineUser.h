@@ -412,7 +412,6 @@ class Identity
 	public:
 		bool is_ip_change_and_clear()
 		{
-			//FastUniqueLock l(g_cs);
 			if (get_uint16(e_Changes) & CHANGES_IP)
 			{
 				get_uint16(e_Changes) &= ~CHANGES_IP;
@@ -435,7 +434,6 @@ class Identity
 		uint16_t getChanges()
 		{
 			uint16_t ret = 0;
-			//FastUniqueLock l(g_cs);
 			std::swap(ret, get_uint16(e_Changes));
 			return ret;
 		}
@@ -629,6 +627,7 @@ class Identity
 class OnlineUser :
 	public intrusive_ptr_base<OnlineUser>, public UserInfoBase
 {
+		friend class NmdcHub;
 	public:
 		enum
 		{
@@ -752,9 +751,8 @@ class OnlineUser :
 		tstring getText(uint8_t col) const;
 	private:
 		Identity m_identity;
-		bool m_is_first_find;
-		friend class NmdcHub;
 		ClientBase& m_client;
+		bool m_is_first_find;
 };
 
 // http://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom-class-type-as-the-key

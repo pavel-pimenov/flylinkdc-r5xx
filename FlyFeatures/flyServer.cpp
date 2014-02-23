@@ -497,6 +497,7 @@ void CFlyServerAdapter::CFlyServerJSON::login()
 		Json::Value  l_root;   
 		Json::Value& l_info = l_root["login"];
 		l_info["CID"] = ClientManager::getMyCID().toBase32();
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION
 		std::vector<std::string> l_lost_ip_array;
 		CFlylinkDBManager::getInstance()->get_lost_location(l_lost_ip_array);
 		if(!l_lost_ip_array.empty())
@@ -508,6 +509,7 @@ void CFlyServerAdapter::CFlyServerJSON::login()
 				l_lost_ip[l_count_lost++] = *i;
 			}
 		}
+#endif
 		const std::string l_post_query = l_root.toStyledString();
 		bool l_is_send;
 		string l_result_query = postQuery(true,false,false,false,false,"fly-login",l_post_query,l_is_send);
@@ -611,11 +613,16 @@ static void getDiskAndMemoryStat(Json::Value& p_info)
 bool CFlyServerAdapter::CFlyServerJSON::pushTestPort(const string& p_magic,
 		const std::vector<unsigned short>& p_udp_port,
 		const std::vector<unsigned short>& p_tcp_port,
-		string& p_external_ip)
+		string& p_external_ip,
+		int p_timer_value)
 {
 		CFlyLog l_log("[fly-test-port]");
 		Json::Value  l_info;   
 		l_info["CID"] = p_magic;
+		if(p_timer_value)
+		{
+			l_info["Interval"] = p_timer_value;
+		}
 		auto initPort = [&](const std::vector<unsigned short>& p_port, const char* p_key) -> void
 		{
 			if(!p_port.empty())

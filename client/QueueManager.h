@@ -67,10 +67,10 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		// [~] IRainman dclst support.
 	public:
 		// [+] FlylinkDC
-		bool isQueueItem(const TTHValue& tth) const
+		bool isQueueItem(const TTHValue& p_tth) const
 		{
 			// [-] Lock l(cs); [-] IRainman fix.
-			return fileQueue.isQueueItem(tth);
+			return fileQueue.isQueueItem(p_tth);
 		}
 		class LockFileQueueShared
 		{
@@ -78,11 +78,19 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 				// [!] IRainman fix.
 				LockFileQueueShared()
 				{
-					QueueManager::getInstance()->fileQueue.csFQ.lockShared();
+#ifdef FLYLINKDC_USE_RWLOCK
+					QueueManager::getInstance()->fileQueue.g_csFQ->AcquireLockShared();
+#else
+					QueueManager::getInstance()->fileQueue.g_csFQ->lock();
+#endif
 				}
 				~LockFileQueueShared()
 				{
-					QueueManager::getInstance()->fileQueue.csFQ.unlockShared();
+#ifdef FLYLINKDC_USE_RWLOCK
+					QueueManager::getInstance()->fileQueue.g_csFQ->ReleaseLockShared();
+#else
+					QueueManager::getInstance()->fileQueue.g_csFQ->unlock();
+#endif
 				}
 				// [~] IRainman fix.
 				const QueueItem::QIStringMap& getQueueL() noexcept
@@ -302,7 +310,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 			const QueueItemPtr& qi = ql.front();
 #endif // IRAINMAN_FASTS_QUEUE_MANAGER
 				
-			SharedLock l(QueueItem::cs);
+			RLock l(*QueueItem::g_cs); // TODO - унести это ниже!
 			target = qi->isFinishedL() ? qi->getTarget() : qi->getTempTarget();
 			
 			return qi->isChunkDownloadedL(startPos, bytes);
@@ -421,12 +429,11 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 					return m_queue.empty();
 				}
 				
-#ifdef IRAINMAN_USE_SEPARATE_CS_IN_QUEUE_MANAGER
-				mutable SharedCriticalSection csFQ; // [+] IRainman fix.
+#ifdef FLYLINKDC_USE_RWLOCK
+				static std::unique_ptr<webrtc::RWLockWrapper> g_csFQ;
 #else
-				mutable SharedCriticalSection& csFQ; // [+] IRainman fix.
+				static std::unique_ptr<CriticalSection> g_csFQ;
 #endif
-				
 			private:
 				QueueItem::QIStringMap m_queue;
 				
@@ -453,7 +460,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		class UserQueue
 		{
 			public:
-				void add(const QueueItemPtr& qi); // [!] IRainman fix.
+				void addL(const QueueItemPtr& qi); // [!] IRainman fix.
 				void addL(const QueueItemPtr& qi, const UserPtr& aUser, bool p_is_first_load); // [!] IRainman fix.
 				QueueItemPtr getNextL(const UserPtr& aUser, QueueItem::Priority minPrio = QueueItem::LOWEST, int64_t wantedSize = 0, int64_t lastSpeed = 0, bool allowRemove = false); // [!] IRainman fix.
 				QueueItemPtr getRunningL(const UserPtr& aUser); // [!] IRainman fix.

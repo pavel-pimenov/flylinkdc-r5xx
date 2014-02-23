@@ -284,8 +284,8 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 					return " Port: " + l_ports;
 				}
 		};
-		std::map<CFlyDDOSkey, CFlyDDoSTick> m_ddos_map;	
-
+		std::map<CFlyDDOSkey, CFlyDDoSTick> m_ddos_map;
+		
 		boost::unordered_map<string, CFlyTTHTick> m_tth_duplicate_search;
 		
 #define USING_IDLERS_IN_CONNECTION_MANAGER // [!] IRainman fix: don't disable this.
@@ -327,7 +327,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		void failed(UserConnection* aSource, const string& aError, bool protocolError);
 		
 	public:
-		bool checkIpFlood(const string& aIPServer, uint16_t aPort, const boost::asio::ip::address_v4 p_ip_hub, const string& userInfo, const string& p_HubInfo);
+		bool checkIpFlood(const string& aIPServer, uint16_t aPort, const boost::asio::ip::address_v4& p_ip_hub, const string& userInfo, const string& p_HubInfo);
 		bool checkTTHDuplicateSearch(const string& p_search_command);
 	private:
 	

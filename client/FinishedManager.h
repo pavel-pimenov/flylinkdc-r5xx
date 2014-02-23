@@ -139,12 +139,12 @@ class FinishedManager : public Singleton<FinishedManager>,
 		{
 			if (upload)
 			{
-				csU.lockShared();
+				g_csU->AcquireLockShared();
 				return m_uploads;
 			}
 			else
 			{
-				csD.lockShared();
+				g_csD->AcquireLockShared();
 				return m_downloads;
 			}
 		}
@@ -152,11 +152,11 @@ class FinishedManager : public Singleton<FinishedManager>,
 		{
 			if (upload)
 			{
-				csU.unlockShared();
+				g_csU->ReleaseLockShared();
 			}
 			else
 			{
-				csD.unlockShared();
+				g_csD->ReleaseLockShared();
 			}
 		}
 		
@@ -173,12 +173,8 @@ class FinishedManager : public Singleton<FinishedManager>,
 		void on(UploadManagerListener::Complete, const Upload*) noexcept;
 		string log(const CID& p_CID, const string& p_path, const string& p_message);
 		
-#ifdef IRAINMAN_USE_SEPARATE_CS_IN_FINISHED_MANAGER
-		FastSharedCriticalSection csD, csU; // [!] IRainman opt: add separate cs.
-#else
-		FastSharedCriticalSection csD;
-		FastSharedCriticalSection& csU;
-#endif
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csD;
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csU;
 		FinishedItemList m_downloads;
 		FinishedItemList m_uploads;
 };

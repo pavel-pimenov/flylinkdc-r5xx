@@ -84,7 +84,7 @@ int gf_busy_handler(void *p_params, int p_tryes)
 //========================================================================================================
 static void gf_trace_callback(void* p_udp, const char* p_sql)
 {
-	if(BOOLSETTING(LOG_SQLITE_TRACE))
+	if (BOOLSETTING(LOG_SQLITE_TRACE))
 	{
 		StringMap params;
 		params["sql"] = p_sql;
@@ -598,7 +598,8 @@ CFlylinkDBManager::CFlylinkDBManager()
 		}
 		m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS user_db.user_info(\n"
 		                              "nick text not null, dic_hub integer not null, last_ip integer, message_count integer);");
-		m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS user_db.iu_user_info ON user_info(nick,dic_hub);");
+		m_flySQLiteDB.executenonquery("DROP INDEX IF EXISTS user_db.iu_user_info;"); //старый индекс был (nick,dic_hub)
+		m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS user_db.iu_user_info_hub_nick ON user_info(dic_hub,nick);");
 		
 		if (is_table_exists("fly_last_ip_nick_hub"))
 		{
@@ -654,11 +655,11 @@ CFlylinkDBManager::CFlylinkDBManager()
 void CFlylinkDBManager::load_all_hub_into_cacheL()
 {
 	auto_ptr<sqlite3_command> l_load_all_dic(new sqlite3_command(m_flySQLiteDB,
-                                                  "select id,name from fly_dic where dic=1"));
+	                                                             "select id,name from fly_dic where dic=1"));
 	sqlite3_reader l_q = l_load_all_dic.get()->executereader();
 	while (l_q.read())
 	{
-		const auto& l_res = m_DIC[e_DIC_HUB - 1].insert(std::make_pair(l_q.getstring(1),l_q.getint(0)));
+		const auto& l_res = m_DIC[e_DIC_HUB - 1].insert(std::make_pair(l_q.getstring(1), l_q.getint(0)));
 		dcassert(l_res.second == true);
 	}
 }
@@ -958,6 +959,7 @@ void CFlylinkDBManager::flush_lost_json_statistic()
 	}
 }
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION
 //========================================================================================================
 void CFlylinkDBManager::get_lost_location(std::vector<std::string>& p_lost_ip_array)
 {
@@ -1039,6 +1041,7 @@ void CFlylinkDBManager::save_lost_location(const string& p_ip)
 		}
 	}
 }
+#endif
 //========================================================================================================
 void CFlylinkDBManager::get_location(uint32_t p_ip, int32_t& p_index)
 {
@@ -1134,11 +1137,11 @@ uint16_t CFlylinkDBManager::find_cache_locationL(uint32_t p_ip, int32_t& p_index
 	return 0;
 }
 //========================================================================================================
-bool CFlylinkDBManager::find_cache_countryL(uint32_t p_ip, uint8_t& p_index)
+bool CFlylinkDBManager::find_cache_countryL(uint32_t p_ip, uint16_t& p_index)
 {
 	dcassert(p_ip);
 	p_index = 0;
-	dcassert(m_country_cache.size() <= 255);
+	dcassert(m_country_cache.size() <= 0xFFFF);
 	for (auto i =  m_country_cache.begin(); i !=  m_country_cache.end(); ++i)
 	{
 		++p_index;
@@ -1151,7 +1154,7 @@ bool CFlylinkDBManager::find_cache_countryL(uint32_t p_ip, uint8_t& p_index)
 	return false;
 }
 //========================================================================================================
-void CFlylinkDBManager::get_country(uint32_t p_ip, uint8_t& p_index)
+void CFlylinkDBManager::get_country(uint32_t p_ip, uint16_t& p_index)
 {
 	dcassert(p_ip);
 	FastLock l(m_cache_location_cs);
@@ -1162,7 +1165,6 @@ void CFlylinkDBManager::get_country(uint32_t p_ip, uint8_t& p_index)
 		if (get_country_sqlite(p_ip, l_location))
 		{
 			m_country_cache.push_back(l_location);
-			dcassert(m_country_cache.size() <= 255)
 			p_index = m_country_cache.size();
 		}
 	}
@@ -1588,7 +1590,7 @@ static void setSectionString(const QueueItemPtr& p_QueueItem, const string& strS
 		
 		if ((Sections.size() & 1) == 0)
 		{
-			UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+			WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 			for (auto i = Sections.cbegin(); i < Sections.cend(); i += 2)
 			{
 				int64_t start = Util::toInt64(i->c_str());
@@ -1619,12 +1621,12 @@ size_t CFlylinkDBManager::load_queue()
 		                            "TempTarget,"
 		                            //"Downloaded,"    //[-] merge, obsolete
 		                            "AutoPriority,"
-		                            "MaxSegments,\n"
-		                            "CID,\n" //12
-		                            "Nick,\n"
-		                            "CountSubSource\n"
-		                            //",HubHint\n"
-		                            "from fly_queue where size > 0"; // todo убрать в будущих версиях
+		                            "MaxSegments,"
+		                            "CID," //12
+		                            "Nick,"
+		                            "CountSubSource"
+		                            //",HubHint "
+		                            " from fly_queue where size > 0"; // todo убрать в будущих версиях
 		if (!m_get_fly_queue.get())
 			m_get_fly_queue = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB, l_sql));
 		sqlite3_reader l_q = m_get_fly_queue.get()->executereader();
@@ -1768,7 +1770,7 @@ void CFlylinkDBManager::addSource(const QueueItemPtr& p_QueueItem, const CID& p_
 		bool wantConnection = false;
 		try
 		{
-			UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+			WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 			wantConnection = QueueManager::getInstance()->addSourceL(p_QueueItem, l_user, 0, true) && l_user->isOnline(); // Добавить флаг ускоренной загрузки первый раз.
 		}
 		catch (const Exception& e)
@@ -1888,7 +1890,7 @@ bool CFlylinkDBManager::merge_queue_item(QueueItemPtr& p_QueueItem)
 		
 		l_sql->bind(10, l_id);
 		{
-			// [!] SharedLock l(QueueItem::cs); // [+] IRainman fix. // TODO после исправления dead lock вернуть данную блокировку https://code.google.com/p/flylinkdc/issues/detail?id=1028
+			// RLock l(*QueueItem::g_cs);; // [+] IRainman fix. // TODO после исправления dead lock вернуть данную блокировку https://code.google.com/p/flylinkdc/issues/detail?id=1028
 			const auto &l_sources = p_QueueItem->getSourcesL(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'p_QueueItem->getSourcesL()' expression repeatedly. cflylinkdbmanager.cpp 1245
 			const auto l_count_normal_source = l_sources.size();
 #ifdef IRAINMAN_SAVE_BAD_SOURCE
@@ -2054,25 +2056,67 @@ void CFlylinkDBManager::load_global_ratio()
 	}
 }
 //========================================================================================================
-bool CFlylinkDBManager::load_last_ip_and_user_stat(uint32_t p_hub_id, const string& p_nick, __int64& p_count_messages, boost::asio::ip::address_v4& p_last_ip)
+bool CFlylinkDBManager::load_last_ip_and_user_stat(uint32_t p_hub_id, const string& p_nick, uint32_t& p_message_count, boost::asio::ip::address_v4& p_last_ip)
 {
 	try
 	{
 		Lock l(m_cs);
-		p_count_messages = 0;
-		if (!m_select_last_ip.get())
-			m_select_last_ip = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                 "select last_ip, message_count from user_db.user_info where nick=? and dic_hub=?"));
-		sqlite3_command* l_sql_command = m_select_last_ip.get();
+		p_message_count = 0;
+		auto l_find_cache_item = m_last_ip_cache.find(p_hub_id);
+		if (l_find_cache_item == m_last_ip_cache.end()) // Хаб первый раз? (TODO - добавить задержку на кол-во запросов. если больше N - выполнить пакетную загрузку)
+		{
+			auto& l_cache_item = m_last_ip_cache[p_hub_id];
+			if (!m_select_all_last_ip_and_message_count.get())
+			{
+				m_select_all_last_ip_and_message_count = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+				                                                                   "select last_ip,message_count,nick"
+				                                                                   //"(select flag_index ||'~'|| location from location_db.fly_location_ip where start_ip <= last_ip and stop_ip > last_ip limit 1) location_id,\n"
+				                                                                   //"(select flag_index ||'~'|| country from location_db.fly_country_ip where start_ip <= last_ip and stop_ip > last_ip) country_id\n"
+				                                                                   " from user_db.user_info where dic_hub=?"));
+			}
+			sqlite3_command* l_sql_command = m_select_all_last_ip_and_message_count.get();
+			l_sql_command->bind(1, __int64(p_hub_id));
+			sqlite3_reader l_q = l_sql_command->executereader();
+			while (l_q.read())
+			{
+				CFlyLastIPCacheItem l_item;
+				l_item.m_last_ip = boost::asio::ip::address_v4((unsigned long)l_q.getint64(0));
+				l_item.m_message_count = l_q.getint64(1);
+				l_cache_item.insert(std::make_pair(l_q.getstring(2), l_item));
+			}
+		}
+		auto& l_hub_cache = m_last_ip_cache[p_hub_id];
+		const auto& l_cache_nick_item = l_hub_cache.find(p_nick);
+		if (l_cache_nick_item != l_hub_cache.end())
+		{
+			p_message_count = l_cache_nick_item->second.m_message_count;
+			p_last_ip = l_cache_nick_item->second.m_last_ip;
+			return true;
+		}
+#if 0
+		// В кэше найти не удалось - ищем точечно
+		if (!m_select_last_ip_and_message_count.get())
+			m_select_last_ip_and_message_count = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+			                                                               "select last_ip, message_count from user_db.user_info where nick=? and dic_hub=?"));
+		sqlite3_command* l_sql_command = m_select_last_ip_and_message_count.get();
 		l_sql_command->bind(1, p_nick, SQLITE_STATIC);
 		l_sql_command->bind(2, __int64(p_hub_id));
 		sqlite3_reader l_q = l_sql_command->executereader();
+		auto& l_item = l_hub_cache[p_nick];
 		if (l_q.read())
 		{
 			p_last_ip = boost::asio::ip::address_v4((unsigned long)l_q.getint64(0));
-			p_count_messages = l_q.getint64(1);
+			p_message_count = l_q.getint64(1);
+			l_item.m_last_ip = p_last_ip;
+			l_item.m_message_count = p_message_count;
 			return true;
 		}
+		else
+		{
+			l_item.m_last_ip = boost::asio::ip::address_v4();
+			l_item.m_message_count = 0;
+		}
+#endif
 	}
 	catch (const database_error& e)
 	{
@@ -2170,7 +2214,7 @@ void CFlylinkDBManager::clear_dic_cache(const eTypeDIC p_DIC)
 void CFlylinkDBManager::store_all_ratio_and_last_ip(uint32_t p_hub_id,
                                                     const string& p_nick,
                                                     const CFlyUploadDownloadMap* p_upload_download_stats,
-                                                    const __int64& p_count_messages,
+                                                    const uint32_t p_message_count,
                                                     const boost::asio::ip::address_v4& p_last_ip)
 {
 	Lock l(m_cs);
@@ -2198,13 +2242,13 @@ void CFlylinkDBManager::store_all_ratio_and_last_ip(uint32_t p_hub_id,
 				l_last_ip_id = get_dic_idL(boost::asio::ip::address_v4(i->first).to_string(), e_DIC_IP, true); // Внешний цикл для создания последнего IP - вложенные транзакции нельзя
 			}
 		}
-		sqlite3_transaction l_trans_insert(m_flySQLiteDB);
 		if (p_upload_download_stats && !p_upload_download_stats->empty())
 		{
+			sqlite3_transaction l_trans_insert(m_flySQLiteDB); // Рейтинг пока пишем сразу в базу не отложенно
 			if (!m_insert_ratio.get())
 				m_insert_ratio = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
 				                                                               "insert or replace into fly_ratio (dic_ip,dic_nick,dic_hub,upload,download) values(?,?,?,?,?)"));
-			// TODO select (ip >> 24) || '.' || ((ip >> 16) & 255) || '.' || ((ip >> 8) & 255) || '.' || (ip & 255) from (select 1213412 ip)
+			// TODO провести конвертацию в другой формат и файл БД + отказаться от DIC
 			sqlite3_command* l_sql = m_insert_ratio.get();
 			l_sql->bind(2, l_dic_nick);
 			l_sql->bind(3, __int64(p_hub_id));
@@ -2221,10 +2265,10 @@ void CFlylinkDBManager::store_all_ratio_and_last_ip(uint32_t p_hub_id,
 					l_sql->executenonquery();
 				}
 			}
+			l_trans_insert.commit();
 		}
 		// Иначе фиксируем только последний IP
-		update_last_ipL(p_hub_id, p_nick, p_count_messages, p_last_ip);
-		l_trans_insert.commit();
+		update_last_ip_deferredL(p_hub_id, p_nick, p_message_count, p_last_ip);
 	}
 	catch (const database_error& e)
 	{
@@ -2238,10 +2282,8 @@ void CFlylinkDBManager::update_last_ip(uint32_t p_hub_id, const string& p_nick, 
 	Lock l(m_cs);
 	try
 	{
-		sqlite3_transaction l_trans_insert(m_flySQLiteDB);
-		const __int64 l_count_messages = 0; // счетчик мессаг не зануляем
-		update_last_ipL(p_hub_id, p_nick, l_count_messages, p_last_ip);
-		l_trans_insert.commit();
+		const __int64 l_message_count = 0; // счетчик мессаг не зануляем
+		update_last_ip_deferredL(p_hub_id, p_nick, l_message_count, p_last_ip);
 	}
 	catch (const database_error& e)
 	{
@@ -2249,12 +2291,55 @@ void CFlylinkDBManager::update_last_ip(uint32_t p_hub_id, const string& p_nick, 
 	}
 }
 //========================================================================================================
-void CFlylinkDBManager::update_last_ipL(uint32_t p_hub_id, const string& p_nick, const __int64& p_count_messages, const boost::asio::ip::address_v4& p_last_ip)
+void CFlylinkDBManager::shutdown()
+{
+	flush_all_last_ip_and_message_count();
+}
+//========================================================================================================
+void CFlylinkDBManager::flush_all_last_ip_and_message_count()
+{
+	Lock l(m_cs);
+	try
+	{
+		CFlyLog l_log("[sqlite - flysh-user-info]");
+		int l_count = 0;
+		sqlite3_transaction l_trans_insert(m_flySQLiteDB);
+		for (auto h = m_last_ip_cache.begin(); h != m_last_ip_cache.end(); ++h)
+		{
+			for (auto i = h->second.begin(); i != h->second.end(); ++i)
+			{
+				if (i->second.m_is_item_dirty)
+				{
+					++l_count;
+					if (!m_insert_store_all_ip_and_message_count.get())
+						m_insert_store_all_ip_and_message_count = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+						                                                                    "insert or replace into user_db.user_info (nick,dic_hub,last_ip,message_count) values(?,?,?,?)"));
+					sqlite3_command* l_sql = m_insert_store_all_ip_and_message_count.get();
+					l_sql->bind(1, i->first, SQLITE_STATIC);
+					l_sql->bind(2, __int64(h->first));
+					l_sql->bind(3, __int64(i->second.m_last_ip.to_ulong()));
+					l_sql->bind(4, __int64(i->second.m_message_count));
+					l_sql->executenonquery();
+					i->second.m_is_item_dirty = false;
+				}
+			}
+		}
+		l_log.log("Save dirty record user_db.user_info:" + Util::toString(l_count));
+		l_trans_insert.commit();
+	}
+	catch (const database_error& e)
+	{
+		errorDB("SQLite - flush_all_last_ip_and_message_count: " + e.getError());
+	}
+}
+//========================================================================================================
+void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string& p_nick, const uint32_t p_message_count, const boost::asio::ip::address_v4& p_last_ip)
 {
 	dcassert(p_hub_id);
 	dcassert(!p_nick.empty());
 #if _DEBUG
 	{
+#if 0
 		if (!m_select_store_ip.get())
 			m_select_store_ip = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
 			                                                                  "select last_ip, message_count from user_db.user_info where nick=? and dic_hub=?"));
@@ -2263,13 +2348,19 @@ void CFlylinkDBManager::update_last_ipL(uint32_t p_hub_id, const string& p_nick,
 		sqlite3_reader l_q = m_select_store_ip.get()->executereader();
 		while (l_q.read())
 		{
-			dcassert(p_count_messages >= l_q.getint64(1));
-			//dcassert(l_q.getstring(0).empty() && p_last_ip.is_unspecified());
+			const auto l_current_count = l_q.getint64(1);
+			if (p_message_count < l_current_count)
+			{
+				dcassert(p_message_count >= l_current_count);
+			}
 		}
+#endif
 	}
 #endif
-	if (!p_last_ip.is_unspecified() && p_count_messages)
+	auto& l_hub_cache_item = m_last_ip_cache[p_hub_id][p_nick];
+	if (!p_last_ip.is_unspecified() && p_message_count)
 	{
+#if 0
 		if (!m_insert_store_ip_and_message_count.get())
 			m_insert_store_ip_and_message_count = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
 			                                                                "insert or replace into user_db.user_info (nick,dic_hub,last_ip,message_count) values(?,?,?,?)"));
@@ -2277,13 +2368,21 @@ void CFlylinkDBManager::update_last_ipL(uint32_t p_hub_id, const string& p_nick,
 		l_sql->bind(1, p_nick, SQLITE_STATIC);
 		l_sql->bind(2, __int64(p_hub_id));
 		l_sql->bind(3, __int64(p_last_ip.to_ulong()));
-		l_sql->bind(4, p_count_messages);
+		l_sql->bind(4, __int64(p_message_count));
 		l_sql->executenonquery();
+#endif
+		if (l_hub_cache_item.m_last_ip != p_last_ip || l_hub_cache_item.m_message_count != p_message_count)
+		{
+			l_hub_cache_item.m_is_item_dirty = true;
+		}
+		l_hub_cache_item.m_last_ip = p_last_ip;
+		l_hub_cache_item.m_message_count = p_message_count;
 	}
 	else
 	{
 		if (!p_last_ip.is_unspecified())
 		{
+#if 0
 			if (!m_insert_store_ip.get())
 				m_insert_store_ip = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
 				                                                                  "insert or replace into user_db.user_info (nick,dic_hub,last_ip) values(?,?,?)"));
@@ -2292,17 +2391,31 @@ void CFlylinkDBManager::update_last_ipL(uint32_t p_hub_id, const string& p_nick,
 			l_sql->bind(2, __int64(p_hub_id));
 			l_sql->bind(3, __int64(p_last_ip.to_ulong()));
 			l_sql->executenonquery();
+#endif
+			if (l_hub_cache_item.m_last_ip != p_last_ip)
+			{
+				l_hub_cache_item.m_is_item_dirty = true;
+			}
+			
+			l_hub_cache_item.m_last_ip = p_last_ip;
 		}
-		if (p_count_messages)
+		if (p_message_count)
 		{
+#if 0
 			if (!m_insert_store_message_count.get())
 				m_insert_store_message_count = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
 				                                                                             "insert or replace into user_db.user_info (nick,dic_hub,message_count) values(?,?,?)"));
 			sqlite3_command* l_sql = m_insert_store_message_count.get();
 			l_sql->bind(1, p_nick, SQLITE_STATIC);
 			l_sql->bind(2, __int64(p_hub_id));
-			l_sql->bind(3, p_count_messages);
+			l_sql->bind(3, __int64(p_message_count));
 			l_sql->executenonquery();
+#endif
+			if (l_hub_cache_item.m_message_count != p_message_count)
+			{
+				l_hub_cache_item.m_is_item_dirty = true;
+			}
+			l_hub_cache_item.m_message_count = p_message_count;
 		}
 	}
 }
@@ -3175,7 +3288,16 @@ __int64 CFlylinkDBManager::addTree(const TigerTree& p_tt)
 //========================================================================================================
 CFlylinkDBManager::~CFlylinkDBManager()
 {
+	shutdown();
 #ifdef _DEBUG
+	for (auto h = m_last_ip_cache.cbegin(); h != m_last_ip_cache.cend(); ++h)
+	{
+		for (auto i = h->second.begin(); i != h->second.end(); ++i)
+		{
+			dcassert(i->second.m_is_item_dirty == false);
+		}
+	}
+	
 	{
 		FastLock l(m_cache_location_cs);
 		dcdebug("CFlylinkDBManager::m_country_cache size = %d\n", m_country_cache.size());
@@ -3312,27 +3434,37 @@ void CFlylinkDBManager::log(const int p_area, const StringMap& p_params)
 __int64 CFlylinkDBManager::convert_tth_history()
 {
 #ifdef FLYLINKDC_USE_LEVELDB
-	Lock l(m_cs);
 	__int64 l_count = 0;
-	try
+	if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_IsTTHLevelDBConvert) == 0)
 	{
-		auto_ptr<sqlite3_command> l_sql = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-		                                                            "select tth, sum(val) from ( "
-		                                                            "select 1 val, tth from fly_tth "
-		                                                            "union all "
-		                                                            "select 2 val, tth from fly_hash) "
-		                                                            "group by tth"));
-		sqlite3_reader l_q = l_sql->executereader();
-		while (l_q.read())
+		Lock l(m_cs);
+		try
 		{
-			m_flyLevelDB.set_bit(TTHValue(l_q.getstring(0)), l_q.getint(1));
-			++l_count;
+			auto_ptr<sqlite3_command> l_sql = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+			                                                            "select tth, sum(val) from ( "
+			                                                            "select 1 val, tth from fly_tth "
+			                                                            "union all "
+			                                                            "select 2 val, tth from fly_hash) "
+			                                                            "group by tth"));
+			sqlite3_reader l_q = l_sql->executereader();
+			while (l_q.read())
+			{
+				vector<uint8_t> l_tth;
+				l_q.getblob(0, l_tth);
+				dcassert(l_tth.size() == 24);
+				if (l_tth.size() == 24)
+				{
+					m_flyLevelDB.set_bit(TTHValue(&l_tth[0]), l_q.getint(1));
+					++l_count;
+				}
+			}
+			CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_IsTTHLevelDBConvert, 1);
+			return l_count;
 		}
-		return l_count;
-	}
-	catch (const database_error& e)
-	{
-		errorDB("SQLite - convert_tth_history: " + e.getError());
+		catch (const database_error& e)
+		{
+			errorDB("SQLite - convert_tth_history: " + e.getError());
+		}
 	}
 	return l_count;
 #endif

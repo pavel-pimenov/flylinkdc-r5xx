@@ -137,7 +137,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 			return Text::toT(Util::getFileName(getTarget())); // [!] IRainman fix done [13] https://www.box.net/shared/0lg6ozkidynjg7ezkhgz
 		case COLUMN_STATUS:
 		{
-			SharedLock l(QueueItem::cs);
+			RLock l(*QueueItem::g_cs);
 			if (isFinishedL())
 			{
 				return TSTRING(DOWNLOAD_FINISHED_IDLE);
@@ -245,7 +245,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 		case COLUMN_USERS:
 		{
 			tstring tmp;
-			SharedLock l(QueueItem::cs);
+			RLock l(*QueueItem::g_cs);
 			const auto& sources = qi->getSourcesL();
 			for (auto j = sources.cbegin(); j != sources.cend(); ++j)
 			{
@@ -288,7 +288,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 		case COLUMN_ERRORS:
 		{
 			tstring tmp;
-			SharedLock l(QueueItem::cs);
+			RLock l(*QueueItem::g_cs);
 			const auto& badSources = qi->getBadSourcesL();
 			for (auto j = badSources.cbegin(); j != badSources.cend(); ++j)
 			{
@@ -1097,7 +1097,7 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 				int pmItems = 0;
 				//
 				{
-					SharedLock l(QueueItem::cs);
+					RLock l(*QueueItem::g_cs);
 					const auto& sources = ii->getQueueItem()->getSourcesL(); // ƒелать копию нельз€ - http://code.google.com/p/flylinkdc/issues/detail?id=1270
 					// ниже сохран€ем адрес итератора
 					for (auto i = sources.cbegin(); i != sources.cend(); ++i)
@@ -1405,7 +1405,7 @@ LRESULT QueueFrame::onRemoveSource(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCt
 		const QueueItemInfo* ii = ctrlQueue.getItemData(i);
 		if (wID == IDC_REMOVE_SOURCE)
 		{
-			UniqueLock l(QueueItem::cs);
+			WLock l(*QueueItem::g_cs);
 			const auto& sources = ii->getQueueItem()->getSourcesL();
 			for (auto si = sources.cbegin(); si != sources.cend(); ++si)
 			{
@@ -2077,7 +2077,7 @@ LRESULT QueueFrame::onRemoveOffline(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 	while ((i = ctrlQueue.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
 		const QueueItemInfo* ii = ctrlQueue.getItemData(i);
-		UniqueLock l(QueueItem::cs);
+		WLock l(*QueueItem::g_cs);
 		const auto& sources = ii->getQueueItem()->getSourcesL();
 		for (auto i =  sources.cbegin(); i != sources.cend(); ++i)  // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=111640
 		{

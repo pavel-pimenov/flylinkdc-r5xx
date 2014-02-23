@@ -30,14 +30,15 @@ UserManager::CheckedUserSet UserManager::checkedPasswordUsers;
 UserManager::WaitingUserMap UserManager::waitingPasswordUsers;
 
 FastCriticalSection UserManager::g_csPsw;
-FastSharedCriticalSection UserManager::g_csIgnoreList;
+std::unique_ptr<webrtc::RWLockWrapper> UserManager::g_csIgnoreList = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+std::unique_ptr<webrtc::RWLockWrapper> UserManager::g_csProtectedUsers = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 
 StringList UserManager::g_protectedUsersLower;
-FastSharedCriticalSection UserManager::g_csProtectedUsers;
 
 void UserManager::saveIgnoreList()
 {
-	FastSharedLock l(g_csIgnoreList);
+
+	webrtc::ReadLockScoped l(*g_csIgnoreList);
 	dcassert(g_ignoreListLoaded); // [!] IRainman fix: You can not save the ignore list if it was not pre-loaded - it will erase the data!
 	CFlylinkDBManager::getInstance()->save_ignore(g_ignoreList);
 }
@@ -116,6 +117,6 @@ void UserManager::on(SettingsManagerListener::UsersChanges) noexcept
 {
 	auto protUsers = SPLIT_SETTING_AND_LOWER(PROT_USERS);
 	
-	FastUniqueLock l(g_csProtectedUsers);
+	webrtc::WriteLockScoped l(*g_csProtectedUsers);
 	swap(g_protectedUsersLower, protUsers);
 }

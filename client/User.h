@@ -20,6 +20,7 @@
 #define DCPLUSPLUS_DCPP_USER_H
 
 #include <boost/asio/ip/address_v4.hpp>
+#include "webrtc/system_wrappers/interface/rw_lock_wrapper.h"
 
 #include "Pointer.h"
 #include "CID.h"
@@ -295,7 +296,7 @@ class User : public intrusive_ptr_base<User>, public Flags
 		
 		uint64_t getBytesUploadRAW() const
 		{
-			FastLock l(g_ratio_cs);
+			webrtc::ReadLockScoped l(*g_ratio_cs);
 			if (m_ratio_ptr)
 				return m_ratio_ptr->m_upload;
 			else
@@ -303,21 +304,15 @@ class User : public intrusive_ptr_base<User>, public Flags
 		}
 		uint64_t getBytesDownloadRAW() const
 		{
+			webrtc::ReadLockScoped l(*g_ratio_cs);
 			if (m_ratio_ptr)
 				return m_ratio_ptr->m_download;
 			else
 				return 0;
 		}
-		uint64_t getMessageCountRAW() const
-		{
-			if (m_ratio_ptr)
-				return m_ratio_ptr->m_message_count;
-			else
-				return 0;
-		}
 		bool isLastIP() // [+] IRainman fix.
 		{
-			FastLock l(g_ratio_cs);
+			webrtc::ReadLockScoped l(*g_ratio_cs);
 			if (m_ratio_ptr)
 			{
 				return !m_last_ip.is_unspecified();
@@ -332,8 +327,8 @@ class User : public intrusive_ptr_base<User>, public Flags
 		uint64_t getBytesUpload();
 		uint64_t getBytesDownload();
 		uint64_t getMessageCount();
-		void initRatioL();
-		void initRatioL(const boost::asio::ip::address_v4& p_ip);
+		void initRatio();
+		void initRatio(const boost::asio::ip::address_v4& p_ip);
 		
 #endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	private:
@@ -342,7 +337,7 @@ class User : public intrusive_ptr_base<User>, public Flags
 		CFlyUserRatioInfo* m_ratio_ptr;
 		uint32_t  m_hub_id;
 		bool      m_is_first_init_ratio;
-		static FastCriticalSection g_ratio_cs;
+		static std::unique_ptr<webrtc::RWLockWrapper> g_ratio_cs;
 #endif
 };
 

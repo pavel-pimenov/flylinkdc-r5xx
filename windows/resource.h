@@ -1511,6 +1511,8 @@
 #define IDC_NETWORK_TEST_PORT_TCP_ICO4  2356
 #define IDC_NETWORK_TEST_PORT_DHT_UDP_ICO 2356
 #define IDC_NETWORK_WINFIREWALL_ICO     2357
+#define IDC_BTN_REFRESH_FILELIST        2358
+#define IDC_EDIT_MAX_HASH_SPEED_SLIDER  2359
 #define IDC_DOWNLOAD_TARGET             2500
 #define IDC_DOWNLOAD_TARGET_DIR         3000
 #define IDC_SELECT_WINDOW               3500
@@ -1570,13 +1572,13 @@
 #define IDC_SEARCH_UDP_PORT_TEST        32812
 
 // Next default values for new objects
-//
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        293
 #define _APS_NEXT_COMMAND_VALUE         32789
-#define _APS_NEXT_CONTROL_VALUE         2354
+#define _APS_NEXT_CONTROL_VALUE         2360
 #define _APS_NEXT_SYMED_VALUE           2423
 #endif
 #endif

@@ -60,7 +60,8 @@ class ClientBase
 class Client : public ClientBase, public Speaker<ClientListener>, public BufferedSocketListener, protected TimerManagerListener
 {
 	protected:
-		mutable FastCriticalSection cs; // [!] IRainman opt: use spinlock here!
+		std::unique_ptr<webrtc::RWLockWrapper> m_cs;
+		//  mutable FastCriticalSection m_cs; // [!] IRainman opt: use spinlock here!
 		void fire_user_updated(const OnlineUserList& p_list)
 		{
 			if (!p_list.empty())
@@ -91,7 +92,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			dcassert(old <= oldSum); // bug here.
 			dcassert(m_availableBytes >= 0);
 # endif
-			if(m_availableBytes < 0 )
+			if (m_availableBytes < 0)
 			{
 				m_availableBytes = 0; // «аткнул - не могу пон€ть почему так пока.
 			}

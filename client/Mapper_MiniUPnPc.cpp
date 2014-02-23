@@ -19,6 +19,7 @@
 #include "stdinc.h"
 #include "Mapper_MiniUPnPc.h"
 #include "SettingsManager.h"
+#include "LogManager.h"
 
 extern "C" {
 #ifndef STATICLIB
@@ -26,8 +27,10 @@ extern "C" {
 #endif
 #include "../miniupnpc/miniupnpc.h"
 #include "../miniupnpc/upnpcommands.h"
-#pragma comment(lib, "iphlpapi.lib")
+#include "../miniupnpc/upnperrors.h"
 }
+
+#pragma comment(lib, "iphlpapi.lib")
 
 const string Mapper_MiniUPnPc::g_name = "MiniUPnP";
 
@@ -69,25 +72,57 @@ void Mapper_MiniUPnPc::uninit()
 {
 }
 
+void Mapper_MiniUPnPc::log_error(const int p_error_code, const char* p_name)
+{
+	string l_error = strupnperror(p_error_code);
+	l_error += " Code = " + Util::toString(p_error_code);
+	LogManager::getInstance()->message("[miniupnpc] " + string(p_name) + " error = " + l_error);
+}
+
 bool Mapper_MiniUPnPc::add(const unsigned short port, const Protocol protocol, const string& description)
 {
 	const string port_ = Util::toString(port);
-	return UPNP_AddPortMapping(m_url.c_str(), m_service.c_str(), port_.c_str(), port_.c_str(),
-	                           Util::getLocalOrBindIp(true).c_str(), // http://code.google.com/p/flylinkdc/issues/detail?id=1359
-	                           description.c_str(), protocols[protocol], 0, 0) == UPNPCOMMAND_SUCCESS;
+	const auto l_upnp_res = UPNP_AddPortMapping(m_url.c_str(), m_service.c_str(), port_.c_str(), port_.c_str(),
+	                                            Util::getLocalOrBindIp(true).c_str(), // http://code.google.com/p/flylinkdc/issues/detail?id=1359
+	                                            description.c_str(), protocols[protocol], 0, 0);
+	if (l_upnp_res == UPNPCOMMAND_SUCCESS)
+	{
+		return true;
+	}
+	else
+	{
+		log_error(l_upnp_res, "UPNP_AddPortMapping");
+	}
+	return false;
 }
 
 bool Mapper_MiniUPnPc::remove(const unsigned short port, const Protocol protocol)
 {
-	return UPNP_DeletePortMapping(m_url.c_str(), m_service.c_str(), Util::toString(port).c_str(),
-	                              protocols[protocol], 0) == UPNPCOMMAND_SUCCESS;
+	const auto l_upnp_res = UPNP_DeletePortMapping(m_url.c_str(), m_service.c_str(), Util::toString(port).c_str(),
+	                                               protocols[protocol], 0);
+	if (l_upnp_res == UPNPCOMMAND_SUCCESS)
+	{
+		return true;
+	}
+	else
+	{
+		log_error(l_upnp_res, "UPNP_DeletePortMapping");
+	}
+	return false;
 }
 
 
 string Mapper_MiniUPnPc::getExternalIP()
 {
 	char buf[32] = {0};
-	if (UPNP_GetExternalIPAddress(m_url.c_str(), m_service.c_str(), buf) == UPNPCOMMAND_SUCCESS)
+	const auto l_upnp_res = UPNP_GetExternalIPAddress(m_url.c_str(), m_service.c_str(), buf);
+	if (l_upnp_res == UPNPCOMMAND_SUCCESS)
+	{
 		return buf;
+	}
+	else
+	{
+		log_error(l_upnp_res, "UPNP_GetExternalIPAddress");
+	}
 	return Util::emptyString;
 }

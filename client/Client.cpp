@@ -27,6 +27,7 @@ boost::atomic<uint16_t> Client::counts[COUNT_UNCOUNTED];
 string Client::g_last_search_string;
 
 Client::Client(const string& p_HubURL, char separator_, bool secure_) :
+	m_cs(std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock())),
 	m_reconnDelay(120), m_lastActivity(GET_TICK()),
 	//registered(false), [-] IRainman fix.
 	autoReconnect(false),

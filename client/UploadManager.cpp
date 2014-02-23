@@ -37,6 +37,9 @@
 boost::atomic_int UploadQueueItem::g_upload_queue_item_count;
 #endif
 
+std::unique_ptr<webrtc::RWLockWrapper> UploadManager::g_csReservedSlots = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+std::unique_ptr<webrtc::RWLockWrapper> UploadManager::g_csBans = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+
 UploadManager::UploadManager() noexcept :
 running(0), extra(0), lastGrant(0), lastFreeSlots(-1),
         fireballStartTick(0), isFireball(false), isFileServer(false), extraPartial(0),
@@ -174,7 +177,7 @@ bool UploadManager::handleBan(UserConnection& aSource/*, bool forceBan, bool noC
 			const auto& key = user->getCID().toBase32();
 			bool sendPm;
 			{
-				FastUniqueLock l(m_csBans); // [+] IRainman opt.
+				webrtc::WriteLockScoped l(*g_csBans); // [+] IRainman opt.
 				auto t = m_lastBans.find(key);
 				if (t == m_lastBans.end()) // new banned user
 				{
@@ -213,7 +216,7 @@ bool UploadManager::isBanReply(const UserPtr& user) const
 {
 	const auto& key = user->getCID().toBase32();
 	{
-		FastSharedLock l(m_csBans); // [+] IRainman opt.
+		webrtc::ReadLockScoped l(*g_csBans); // [+] IRainman opt.
 		const auto t = m_lastBans.find(key);
 		if (t != m_lastBans.end())
 			return (TimerManager::getTick() - t->second.tick) < 2000;
@@ -528,7 +531,7 @@ ok: //[!] TODO убрать goto
 	//[!] IRainman autoban fix: please check this code after merge
 	bool hasReserved;
 	{
-		FastSharedLock l(m_csReservedSlots); // [+] IRainman opt.
+		webrtc::ReadLockScoped l(*g_csReservedSlots); // [+] IRainman opt.
 		hasReserved = m_reservedSlots.find(aSource.getUser()) != m_reservedSlots.end();
 	}
 	if (!hasReserved)
@@ -768,7 +771,7 @@ void UploadManager::removeUpload(Upload* aUpload, bool delay)
 void UploadManager::reserveSlot(const HintedUser& hintedUser, uint64_t aTime)
 {
 	{
-		FastUniqueLock l(m_csReservedSlots); // [!] IRainman opt.
+		webrtc::WriteLockScoped l(*g_csReservedSlots); // [!] IRainman opt.
 		m_reservedSlots[hintedUser.user] = GET_TICK() + aTime * 1000;
 	}
 	save(); // !SMT!-S
@@ -797,7 +800,7 @@ void UploadManager::reserveSlot(const HintedUser& hintedUser, uint64_t aTime)
 void UploadManager::unreserveSlot(const HintedUser& hintedUser)
 {
 	{
-		FastUniqueLock l(m_csReservedSlots); // [!] IRainman opt.
+		webrtc::WriteLockScoped l(*g_csReservedSlots); // [!] IRainman opt.
 		m_reservedSlots.erase(hintedUser.user);
 	}
 	save(); // !SMT!-S
@@ -1021,7 +1024,7 @@ void UploadManager::addConnection(UserConnection* p_conn)
 
 void UploadManager::testSlotTimeout(uint64_t aTick /*= GET_TICK()*/)
 {
-	FastUniqueLock l(m_csReservedSlots); // [+] IRainman opt.
+	webrtc::WriteLockScoped l(*g_csReservedSlots); // [+] IRainman opt.
 	for (auto j = m_reservedSlots.cbegin(); j != m_reservedSlots.cend();)
 	{
 		if (j->second < aTick)  // !SMT!-S
@@ -1343,7 +1346,7 @@ void UploadManager::abortUpload(const string& aFile, bool waiting)
 // !SMT!-S
 time_t UploadManager::getReservedSlotTime(const UserPtr& aUser) const
 {
-	FastSharedLock l(m_csReservedSlots); // [!] IRainman opt.
+	webrtc::ReadLockScoped l(*g_csReservedSlots); // [!] IRainman opt.
 	SlotMap::const_iterator j = m_reservedSlots.find(aUser);
 	return j != m_reservedSlots.end() ? j->second : 0;
 }
@@ -1353,7 +1356,7 @@ void UploadManager::save() const
 {
 	CFlyRegistryMap values;
 	{
-		FastSharedLock l(m_csReservedSlots); // [!] IRainman opt.
+		webrtc::ReadLockScoped l(*g_csReservedSlots); // [!] IRainman opt.
 		for (auto i = m_reservedSlots.cbegin(); i != m_reservedSlots.cend(); ++i)
 		{
 			values[i->first->getCID().toBase32()] = i->second;
@@ -1371,7 +1374,7 @@ void UploadManager::load()
 	for (auto k = l_values.cbegin(); k != l_values.cend(); ++k)
 	{
 		auto user = ClientManager::getUser(CID(k->first), true);
-		FastUniqueLock l(m_csReservedSlots); // [+] IRainman opt.
+		webrtc::WriteLockScoped l(*g_csReservedSlots); // [+] IRainman opt.
 		m_reservedSlots[user] = uint32_t(k->second.m_val_int64);
 	}
 	testSlotTimeout();

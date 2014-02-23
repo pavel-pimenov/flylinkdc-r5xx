@@ -53,7 +53,8 @@ namespace WTL
 #define SPLIT_FIXEDBARSIZE		0x00000010
 
 // Note: SPLIT_PROPORTIONAL and SPLIT_RIGHTALIGNED/SPLIT_BOTTOMALIGNED are 
-// mutually exclusive. If both are set, splitter defaults to SPLIT_PROPORTIONAL
+// mutually exclusive. If both are set, splitter defaults to SPLIT_PROPORTIONAL.
+// SPLIT_GRADIENTBAR doesn't wotk with _ATL_NO_MSIMG
 
 
 template <class T, bool t_bVertical = true>
@@ -389,7 +390,7 @@ public:
 		{
 			dc.FillRect(&rect, COLOR_3DFACE);
 
-#if (!defined(_WIN32_WCE) || (_WIN32_WCE >= 420))
+#if !defined(_ATL_NO_MSIMG) || (_WIN32_WCE >= 420)
 			if((m_dwExtendedStyle & SPLIT_GRADIENTBAR) != 0)
 			{
 				RECT rect2 = rect;
@@ -400,7 +401,7 @@ public:
 
 				dc.GradientFillRect(rect2, ::GetSysColor(COLOR_3DFACE), ::GetSysColor(COLOR_3DSHADOW), t_bVertical);
 			}
-#endif // !defined(_WIN32_WCE) || (_WIN32_WCE >= 420)
+#endif // !defined(_ATL_NO_MSIMG) || (_WIN32_WCE >= 420)
 
 			// draw 3D edge if needed
 			T* pT = static_cast<T*>(this);
@@ -454,15 +455,25 @@ public:
 		return 1;
 	}
 
-	LRESULT OnPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+	LRESULT OnPaint(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 	{
 		T* pT = static_cast<T*>(this);
+
 		// try setting position if not set
 		if(m_nSinglePane == SPLIT_PANE_NONE && m_xySplitterPos == -1)
 			pT->SetSplitterPos();
+
 		// do painting
+		if(wParam != NULL)
+		{
+			pT->DrawSplitter((HDC)wParam);
+		}
+		else
+		{
 		CPaintDC dc(pT->m_hWnd);
 		pT->DrawSplitter(dc.m_hDC);
+		}
+
 		return 0;
 	}
 

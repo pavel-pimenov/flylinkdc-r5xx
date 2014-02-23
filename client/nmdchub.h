@@ -75,7 +75,7 @@ class NmdcHub : public Client, private Flags
 		
 		void getUserList(OnlineUserList& p_list) const
 		{
-			FastLock l(cs);
+			webrtc::ReadLockScoped l(*m_cs);
 			for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 			{
 				p_list.push_back(i->second);
@@ -206,7 +206,7 @@ class NmdcHub : public Client, private Flags
 		}
 		void version()
 		{
-			send("$Version 1,0091|");
+			send("$Version 1,0091|"); // TODO - ?
 		}
 		void getNickList()
 		{

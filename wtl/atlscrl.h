@@ -510,7 +510,7 @@ public:
 				pT->UpdateWindow();
 			}
 		}
-		else		// can't scroll vertically, scroll horizontally
+		else if(m_sizeAll.cx > m_sizeClient.cx)   // can't scroll vertically, scroll horizontally
 		{
 			for(int i = 0; i < zTotal; i += WHEEL_DELTA)
 			{

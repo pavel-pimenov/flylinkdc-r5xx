@@ -25,7 +25,14 @@
 #include "WinUtil.h"
 #include "../FlyFeatures/flyServer.h"
 #include "../client/CryptoManager.h"
+
+//#define FLYLINKDC_USE_SSA_WINFIREWALL
+
+#ifdef FLYLINKDC_USE_SSA_WINFIREWALL
+#include "../FlyFeatures/WinFirewall.h"
+#else
 #include "../client/webrtc/talk/base/winfirewall.h"
+#endif
 
 PropPage::TextItem NetworkPage::texts[] =
 {
@@ -206,6 +213,8 @@ LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	}
 	m_BindCombo.Detach();
 	updateTestPortIcon(false);
+	//::SendMessage(m_hWnd, TDM_SET_BUTTON_ELEVATION_REQUIRED_STATE, IDC_ADD_FLYLINKDC_WINFIREWALL, true);
+	//SetButtonElevationRequiredState(IDC_ADD_FLYLINKDC_WINFIREWALL,);
 	return TRUE;
 }
 
@@ -311,18 +320,27 @@ void NetworkPage::updateTestPortIcon(bool p_is_wait)
 }
 LRESULT NetworkPage::onAddWinFirewallException(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */)
 {
+	TCHAR l_app_path[MAX_PATH];
+	l_app_path[0] = 0;
+	::GetModuleFileName(NULL, l_app_path, MAX_PATH);
+#ifdef FLYLINKDC_USE_SSA_WINFIREWALL
+	try
+	{
+		WinFirewall::WindowFirewallSetAppAuthorization(Text::toT(APPNAME).c_str(), l_app_path);
+	}
+	catch (...)
+	{
+	}
+#else
 //	http://www.dslreports.com/faq/dc/3.1_Software_Firewalls
 	talk_base::WinFirewall fw;
 	HRESULT hr = {0};
 	HRESULT hr_auth = {0};
 	bool authorized = true;
 	fw.Initialize(&hr);
-	TCHAR l_app_path[MAX_PATH];
-	l_app_path[0] = 0;
-	::GetModuleFileName(NULL, l_app_path, MAX_PATH);
 	// TODO - try
 	// https://github.com/zhaozongzhe/gmDev/blob/70a1a871bb350860bdfff46c91913815184badd6/gmSetup/fwCtl.cpp
-	const auto l_res = fw.AddApplicationW(l_app_path, _T("FlylinkDC++ client"), authorized, &hr_auth);
+	const auto l_res = fw.AddApplicationW(l_app_path, Text::toT(APPNAME).c_str(), authorized, &hr_auth);
 	// "C:\\vc10\\r5xx\\compiled\\FlylinkDC_Debug.exe"
 	if (l_res)
 	{
@@ -337,19 +355,32 @@ LRESULT NetworkPage::onAddWinFirewallException(WORD /* wNotifyCode */, WORD /*wI
 		                       "\r\nError text = ") + l_error_message.ErrorMessage();
 		::MessageBox(NULL, l_message.c_str(), _T("Windows Firewall"), MB_OK | MB_ICONERROR);
 	}
+#endif
 	TestWinFirewall();
 	return 0;
 }
 void NetworkPage::TestWinFirewall()
 {
+	TCHAR l_app_path[MAX_PATH];
+	l_app_path[0] = 0;
+	::GetModuleFileName(NULL, l_app_path, MAX_PATH);
+#ifdef FLYLINKDC_USE_SSA_WINFIREWALL
+	bool l_res = false;
+	try
+	{
+		l_res = WinFirewall::IsWindowsFirewallAppEnabled(l_app_path) != FALSE;
+	}
+	catch (...)
+	{
+	}
+	bool authorized = l_res;
+#else
 	talk_base::WinFirewall fw;
 	HRESULT hr = {0};
 	bool authorized;
 	fw.Initialize(&hr);
-	TCHAR l_app_path[MAX_PATH];
-	l_app_path[0] = 0;
-	::GetModuleFileName(NULL, l_app_path, MAX_PATH);
 	const auto l_res = fw.QueryAuthorizedW(l_app_path, &authorized);
+#endif
 	if (l_res)
 	{
 		if (authorized)
@@ -372,6 +403,8 @@ LRESULT NetworkPage::onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndC
 	SettingsManager::testPortLevelInit();
 	updateTestPortIcon(true);
 	write();
+	string l_external_ip;
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	std::vector<unsigned short> l_udp_port, l_tcp_port;
 	l_udp_port.push_back(SETTING(UDP_PORT));
 #ifdef STRONG_USE_DHT
@@ -383,8 +416,6 @@ LRESULT NetworkPage::onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndC
 	{
 		l_tcp_port.push_back(SETTING(TLS_PORT));
 	}
-	string l_external_ip;
-#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	bool l_is_udp_port_send = CFlyServerAdapter::CFlyServerJSON::pushTestPort(ClientManager::getMyCID().toBase32(), l_udp_port, l_tcp_port, l_external_ip);
 	if (l_is_udp_port_send)
 	{
@@ -401,7 +432,7 @@ LRESULT NetworkPage::onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndC
 			{
 				::EnableWindow(GetDlgItem(IDC_GETIP), FALSE);
 				fixControls();
-				auto l_ip = Util::getExternalIP(l_url, 500);
+				auto l_ip = Util::getWANIP(l_url, 500);
 				if (!l_ip.empty())
 				{
 					SetDlgItemText(IDC_EXTERNAL_IP, Text::toT(l_ip).c_str());
@@ -415,7 +446,9 @@ LRESULT NetworkPage::onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndC
 			::EnableWindow(GetDlgItem(IDC_GETIP), TRUE);
 		}
 		else
+		{
 			::MessageBox(NULL, Text::toT(l_url).c_str(), _T("http:// URL Error !"), MB_OK | MB_ICONERROR);
+		}
 	}
 	return 0;
 }

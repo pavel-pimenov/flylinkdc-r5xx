@@ -149,6 +149,19 @@ bool BaseChatFrame::adjustChatInputSize(BOOL& bHandled)
 	}
 	return needsAdjust;
 }
+LRESULT BaseChatFrame::onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	const HWND hWnd = (HWND)lParam;
+	const HDC hDC = (HDC)wParam;
+	if (hWnd == ctrlClient.m_hWnd || (m_ctrlMessage && hWnd == m_ctrlMessage->m_hWnd)) // TODO: please verify this!
+	{
+		::SetBkColor(hDC, Colors::bgColor);
+		::SetTextColor(hDC, Colors::textColor);
+		return (LRESULT)Colors::bgBrush;
+	}
+	bHandled = FALSE;
+	return FALSE;
+}
 
 void BaseChatFrame::insertLineHistoryToChatInput(const WPARAM wParam, BOOL& bHandled)
 {

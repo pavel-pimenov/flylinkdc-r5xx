@@ -31,6 +31,12 @@
 
 
 bool FavoriteManager::g_SupportsHubExist = false;
+std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csUsers = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csHubs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csDirs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csPublicHubs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csUserCommand = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+
 // [+] IRainman mimicry function
 const FavoriteManager::mimicrytag FavoriteManager::g_MimicryTags[] =
 {
@@ -48,9 +54,6 @@ const FavoriteManager::mimicrytag FavoriteManager::g_MimicryTags[] =
 };
 
 FavoriteManager::FavoriteManager() : m_isNotEmpty(false), m_lastId(0),
-#ifndef IRAINMAN_USE_SEPARATE_CS_IN_FAVORITE_MANAGER
-	csDirs(csUsers), csHubs(csUsers), csPublicHubs(csUsers), csUserCommand(csUsers),
-#endif
 #ifdef IRAINMAN_ENABLE_HUB_LIST
 	m_useHttp(false), m_running(false), c(nullptr), m_lastServer(0), m_listType(TYPE_NORMAL),
 #endif
@@ -82,11 +85,7 @@ const string& FavoriteManager::getSupportHubURL()
 
 size_t FavoriteManager::getCountFavsUsers() const
 {
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-	FastSharedLock l(csUsers);
-#else
-	Lock l(csUsers);
-#endif
+	webrtc::ReadLockScoped l(*g_csUsers);
 	return m_users.size();
 }
 void FavoriteManager::splitClientId(const string& p_id, string& p_name, string& p_version)
@@ -118,7 +117,7 @@ UserCommand FavoriteManager::addUserCommand(int type, int ctx, Flags::MaskType f
 	UserCommand uc(m_lastId++, type, ctx, flags, name, command, to, hub);
 	{
 		// No dupes, add it...
-		FastUniqueLock l(csUserCommand);
+		webrtc::WriteLockScoped l(*g_csUserCommand);
 #ifdef PPA_USER_COMMANDS_HUBS_SET
 		if (!hub.empty())
 		{
@@ -137,7 +136,7 @@ UserCommand FavoriteManager::addUserCommand(int type, int ctx, Flags::MaskType f
 
 bool FavoriteManager::getUserCommand(int cid, UserCommand& uc) const
 {
-	FastSharedLock l(csUserCommand);
+	webrtc::ReadLockScoped l(*g_csUserCommand);
 	for (auto i = userCommands.cbegin(); i != userCommands.cend(); ++i)
 	{
 		if (i->getId() == cid)
@@ -152,7 +151,7 @@ bool FavoriteManager::getUserCommand(int cid, UserCommand& uc) const
 bool FavoriteManager::moveUserCommand(int cid, int pos)
 {
 	dcassert(pos == -1 || pos == 1);
-	FastUniqueLock l(csUserCommand);
+	webrtc::WriteLockScoped l(*g_csUserCommand);
 	for (auto i = userCommands.begin(); i != userCommands.end(); ++i)
 	{
 		if (i->getId() == cid)
@@ -167,7 +166,7 @@ bool FavoriteManager::moveUserCommand(int cid, int pos)
 void FavoriteManager::updateUserCommand(const UserCommand& uc)
 {
 	{
-		FastUniqueLock l(csUserCommand);
+		webrtc::WriteLockScoped l(*g_csUserCommand);
 		for (auto i = userCommands.begin(); i != userCommands.end(); ++i)
 		{
 			if (i->getId() == uc.getId())
@@ -185,7 +184,7 @@ void FavoriteManager::updateUserCommand(const UserCommand& uc)
 
 int FavoriteManager::findUserCommand(const string& aName, const string& p_Hub) const
 {
-	FastSharedLock l(csUserCommand);
+	webrtc::ReadLockScoped l(*g_csUserCommand);
 #ifdef PPA_USER_COMMANDS_HUBS_SET
 	if (isHubExistsL(p_Hub))
 #endif
@@ -204,7 +203,7 @@ int FavoriteManager::findUserCommand(const string& aName, const string& p_Hub) c
 void FavoriteManager::removeUserCommand(int cid)
 {
 	{
-		FastUniqueLock l(csUserCommand);
+		webrtc::WriteLockScoped l(*g_csUserCommand);
 		for (auto i = userCommands.cbegin(); i != userCommands.cend(); ++i)
 		{
 			if (i->getId() == cid)
@@ -234,7 +233,7 @@ void FavoriteManager::shutdown()
 void FavoriteManager::prepareClose()
 {
 	CFlyLog l_log("[User command cleanup]");
-	FastUniqueLock l(csUserCommand);
+	webrtc::WriteLockScoped l(*g_csUserCommand);
 #ifdef PPA_USER_COMMANDS_HUBS_SET
 	m_userCommandsHubUrl.clear();
 #endif
@@ -244,7 +243,7 @@ size_t FavoriteManager::countUserCommand(const string& p_Hub) const
 {
 	size_t l_count = 0;
 	{
-		FastSharedLock l(csUserCommand);
+		webrtc::ReadLockScoped l(*g_csUserCommand);
 #ifdef PPA_USER_COMMANDS_HUBS_SET
 		if (isHubExistsL(p_Hub))
 #endif
@@ -260,7 +259,7 @@ size_t FavoriteManager::countUserCommand(const string& p_Hub) const
 }
 void FavoriteManager::removeUserCommand(const string& p_Hub)
 {
-	FastUniqueLock l(csUserCommand);
+	webrtc::WriteLockScoped l(*g_csUserCommand);
 #ifdef PPA_USER_COMMANDS_HUBS_SET
 	if (isHubExistsL(p_Hub))
 #endif
@@ -315,7 +314,7 @@ void FavoriteManager::removeUserCommand(const string& p_Hub)
 
 void FavoriteManager::removeHubUserCommands(int ctx, const string& p_Hub)
 {
-	FastUniqueLock l(csUserCommand);
+	webrtc::WriteLockScoped l(*g_csUserCommand);
 #ifdef PPA_USER_COMMANDS_HUBS_SET
 	if (isHubExistsL(p_Hub))
 #endif
@@ -386,11 +385,7 @@ bool FavoriteManager::getFavUserParam(const UserPtr& aUser, FavoriteUser::MaskTy
 	dcassert(!ClientManager::isShutdown());
 	if (isNotEmpty()) // [+]PPA
 	{
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-		FastSharedLock l(csUsers);
-#else
-		Lock l(csUsers);
-#endif
+		webrtc::ReadLockScoped l(*g_csUsers);
 		const auto l_user = m_users.find(aUser->getCID());
 		if (l_user != m_users.end())
 		{
@@ -407,11 +402,7 @@ bool FavoriteManager::isNoFavUserOrUserIgnorePrivate(const UserPtr& aUser) const
 	dcassert(!ClientManager::isShutdown());
 	if (isNotEmpty()) // [+]PPA
 	{
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-		FastSharedLock l(csUsers);
-#else
-		Lock l(csUsers);
-#endif
+		webrtc::ReadLockScoped l(*g_csUsers);
 		const auto l_user = m_users.find(aUser->getCID());
 		return l_user == m_users.end() || l_user->second.isSet(FavoriteUser::FLAG_IGNORE_PRIVATE);
 	}
@@ -430,11 +421,7 @@ bool FavoriteManager::getFavoriteUser(const UserPtr& p_user, FavoriteUser& p_fav
 	dcassert(!ClientManager::isShutdown());
 	if (isNotEmpty()) // [+]PPA
 	{
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-		FastSharedLock l(csUsers);
-#else
-		Lock l(csUsers);
-#endif
+		webrtc::ReadLockScoped l(*g_csUsers);
 		const auto l_user = m_users.find(p_user->getCID());
 		if (l_user != m_users.end())
 		{
@@ -450,11 +437,7 @@ bool FavoriteManager::isFavoriteUser(const UserPtr& aUser, bool& p_is_ban) const
 	dcassert(!ClientManager::isShutdown());
 	if (isNotEmpty()) // [+]PPA
 	{
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-		FastSharedLock l(csUsers);
-#else
-		Lock l(csUsers);
-#endif
+		webrtc::ReadLockScoped l(*g_csUsers);
 		const auto& l_find = m_users.find(aUser->getCID());
 		if (l_find != m_users.end())
 		{
@@ -489,11 +472,7 @@ void FavoriteManager::addFavoriteUser(const UserPtr& aUser)
 	// [!] SSA see _addUserIfnotExist function
 	{
 		FavoriteMap::iterator i;
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-		FastUniqueLock l(csUsers);
-#else
-		Lock l(csUsers);
-#endif
+		webrtc::WriteLockScoped l(*g_csUsers);
 		if (!addUserL(aUser, i))
 			return;
 			
@@ -505,11 +484,7 @@ void FavoriteManager::addFavoriteUser(const UserPtr& aUser)
 void FavoriteManager::removeFavoriteUser(const UserPtr& aUser)
 {
 	{
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-		FastUniqueLock l(csUsers);
-#else
-		Lock l(csUsers);
-#endif
+		webrtc::WriteLockScoped l(*g_csUsers);
 		const FavoriteMap::const_iterator i = m_users.find(aUser->getCID());
 		if (i == m_users.end())
 			return;
@@ -525,11 +500,7 @@ string FavoriteManager::getUserUrl(const UserPtr& aUser) const
 {
 	if (isNotEmpty()) // [+]PPA
 	{
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-		FastSharedLock l(csUsers);
-#else
-		Lock l(csUsers);
-#endif
+		webrtc::ReadLockScoped l(*g_csUsers);
 		const auto& i = m_users.find(aUser->getCID());
 		if (i != m_users.end())
 		{
@@ -556,7 +527,7 @@ FavoriteHubEntry* FavoriteManager::addFavorite(const FavoriteHubEntry& aEntry, c
 	FavoriteHubEntry* f = new FavoriteHubEntry(aEntry);
 	f->setConnect(p_autostart == ADD);// [+] IRainman fav options
 	{
-		FastUniqueLock l(csHubs); // [+] IRainman fix.
+		webrtc::WriteLockScoped l(*g_csHubs); // [+] IRainman fix.
 		favoriteHubs.push_back(f);
 	}
 	fire(FavoriteManagerListener::FavoriteAdded(), f);
@@ -567,7 +538,7 @@ FavoriteHubEntry* FavoriteManager::addFavorite(const FavoriteHubEntry& aEntry, c
 void FavoriteManager::removeFavorite(const FavoriteHubEntry* entry)
 {
 	{
-		FastUniqueLock l(csHubs); // [+] IRainman fix.
+		webrtc::WriteLockScoped l(*g_csHubs); // [+] IRainman fix.
 		FavoriteHubEntryList::iterator i = find(favoriteHubs.begin(), favoriteHubs.end(), entry);
 		if (i == favoriteHubs.end())
 			return;
@@ -584,7 +555,7 @@ bool FavoriteManager::addFavoriteDir(string aDirectory, const string& aName, con
 	AppendPathSeparator(aDirectory); //[+]PPA
 	
 	{
-		FastUniqueLock l(csDirs);
+		webrtc::WriteLockScoped l(*g_csDirs);
 		for (auto i = favoriteDirs.cbegin(); i != favoriteDirs.cend(); ++i)
 		{
 			if ((strnicmp(aDirectory, i->dir, i->dir.length()) == 0) && (strnicmp(aDirectory, i->dir, aDirectory.length()) == 0))
@@ -615,7 +586,7 @@ bool FavoriteManager::removeFavoriteDir(const string& aName)
 	
 	bool upd = false;
 	{
-		FastUniqueLock l(csDirs);
+		webrtc::WriteLockScoped l(*g_csDirs);
 		for (auto j = favoriteDirs.cbegin(); j != favoriteDirs.cend(); ++j)
 		{
 			if (stricmp(j->dir.c_str(), d.c_str()) == 0)
@@ -637,7 +608,7 @@ bool FavoriteManager::renameFavoriteDir(const string& aName, const string& anoth
 {
 	bool upd = false;
 	{
-		FastUniqueLock l(csDirs);
+		webrtc::WriteLockScoped l(*g_csDirs);
 		for (auto j = favoriteDirs.begin(); j != favoriteDirs.end(); ++j)
 		{
 			if (stricmp(j->name.c_str(), aName.c_str()) == 0)
@@ -659,7 +630,7 @@ bool FavoriteManager::updateFavoriteDir(const string& aName, const string& dir, 
 {
 	bool upd = false;
 	{
-		FastUniqueLock l(csDirs);
+		webrtc::WriteLockScoped l(*g_csDirs);
 		for (auto j = favoriteDirs.begin(); j != favoriteDirs.end(); ++j)
 		{
 			if (stricmp(j->name.c_str(), aName.c_str()) == 0)
@@ -683,7 +654,7 @@ string FavoriteManager::getDownloadDirectory(const string& ext) const
 {
 	if (ext.size() > 1)
 	{
-		FastSharedLock l(csDirs);
+		webrtc::ReadLockScoped l(*g_csDirs);
 		for (auto i = favoriteDirs.cbegin(); i != favoriteDirs.cend(); ++i)
 		{
 			for (auto j = i->ext.cbegin(); j != i->ext.cend(); ++j) // [!] IRainman opt.
@@ -771,7 +742,7 @@ bool FavoriteManager::onHttpFinished(bool fromHttp) noexcept
 	MemoryInputStream mis(m_downloadBuf);
 	bool success = true;
 	
-	FastUniqueLock l(csPublicHubs);
+	webrtc::WriteLockScoped l(*g_csPublicHubs);
 	HubEntryList& list = publicListMatrix[publicListServer];
 	list.clear();
 	
@@ -831,7 +802,7 @@ void FavoriteManager::save()
 		xml.stepIn();
 		
 		{
-			FastSharedLock l(csHubs); // [+] IRainman fix.
+			webrtc::ReadLockScoped l(*g_csHubs); // [+] IRainman fix.
 			for (auto i = favHubGroups.cbegin(), iend = favHubGroups.cend(); i != iend; ++i)
 			{
 				xml.addTag("Group");
@@ -903,11 +874,7 @@ void FavoriteManager::save()
 		xml.addTag("Users");
 		xml.stepIn();
 		{
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-			FastSharedLock l(csUsers); // [+] IRainman opt.
-#else
-			Lock l(csUsers);
-#endif
+			webrtc::ReadLockScoped l(*g_csUsers);
 			for (auto i = m_users.cbegin(), iend = m_users.cend(); i != iend; ++i)
 			{
 				const auto &u = i->second; // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'i->second' expression repeatedly. favoritemanager.cpp 687
@@ -937,7 +904,7 @@ void FavoriteManager::save()
 		xml.addTag("UserCommands");
 		xml.stepIn();
 		{
-			FastSharedLock l(csUserCommand); // [+] IRainman opt.
+			webrtc::ReadLockScoped l(*g_csUserCommand); // [+] IRainman opt.
 			for (auto i = userCommands.cbegin(); i != userCommands.cend(); ++i)
 			{
 				if (!i->isSet(UserCommand::FLAG_NOSAVE))
@@ -957,7 +924,7 @@ void FavoriteManager::save()
 		xml.addTag("FavoriteDirs");
 		xml.stepIn();
 		{
-			FastSharedLock l(csDirs);
+			webrtc::ReadLockScoped l(*g_csDirs);
 			for (auto i = favoriteDirs.cbegin(), iend = favoriteDirs.cend(); i != iend; ++i)
 			{
 				xml.addTag("Directory", i->dir);
@@ -1115,7 +1082,7 @@ void FavoriteManager::load()
 			e->setDescription(STRING(SUPPORTS_SERVER_DESC));
 			e->setServer(getSupportHubURL());
 			{
-				FastUniqueLock l(csHubs);
+				webrtc::WriteLockScoped l(*g_csHubs);
 				favoriteHubs.push_back(e);
 			}
 		}
@@ -1188,7 +1155,7 @@ void FavoriteManager::load(SimpleXML& aXml
 			if (!p_is_url)
 #endif
 			{
-				FastUniqueLock l(csHubs); // [+] IRainman fix.
+				webrtc::WriteLockScoped l(*g_csHubs); // [+] IRainman fix.
 				while (aXml.findChild("Group"))
 				{
 					const string& name = aXml.getChildAttrib("Name");
@@ -1308,7 +1275,7 @@ void FavoriteManager::load(SimpleXML& aXml
 					{
 						FavHubGroupProperties props = { aXml.getBoolChildAttrib("Public") };
 						
-						FastUniqueLock l(csHubs); // [+] IRainman fix.
+						webrtc::WriteLockScoped l(*g_csHubs); // [+] IRainman fix.
 						
 						favHubGroups["ISP"] = props;
 						favHubGroups["ISP Recycled"] = props;
@@ -1323,7 +1290,7 @@ void FavoriteManager::load(SimpleXML& aXml
 					else
 					{
 						{
-							FastUniqueLock l(csHubs);
+							webrtc::WriteLockScoped l(*g_csHubs);
 							favoriteHubs.push_back(e);
 						}
 						if (p_is_url)
@@ -1345,7 +1312,7 @@ void FavoriteManager::load(SimpleXML& aXml
 					if (l_ISPDelete)
 					{
 						needSave = true;
-						FastUniqueLock l(csHubs);
+						webrtc::WriteLockScoped l(*g_csHubs);
 						FavoriteHubEntryList::iterator i = find(favoriteHubs.begin(), favoriteHubs.end(), l_HubEntry);
 						if (i != favoriteHubs.end())
 						{
@@ -1358,7 +1325,7 @@ void FavoriteManager::load(SimpleXML& aXml
 				}
 #else
 					{
-						FastUniqueLock l(csHubs);
+						webrtc::WriteLockScoped l(*g_csHubs);
 						favoriteHubs.push_back(e);
 					}
 #endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
@@ -1403,11 +1370,7 @@ void FavoriteManager::load(SimpleXML& aXml
 						u = ClientManager::getUser(CID(cid), true);
 					}
 					
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-					FastUniqueLock l(csUsers);
-#else
-					Lock l(csUsers);
-#endif
+					webrtc::WriteLockScoped l(*g_csUsers);
 					FavoriteMap::iterator i = m_users.insert(make_pair(u->getCID(), FavoriteUser(u, nick, hubUrl))).first;
 					
 					if (aXml.getBoolChildAttrib("IgnorePrivate")) // !SMT!-S
@@ -1466,11 +1429,7 @@ void FavoriteManager::userUpdated(const OnlineUser& info)
 	if (isNotEmpty()) // [+]PPA
 	{
 		{
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-			FastUniqueLock l(csUsers);
-#else
-			Lock l(csUsers);
-#endif
+			webrtc::WriteLockScoped l(*g_csUsers);
 			FavoriteMap::iterator i = m_users.find(info.getUser()->getCID());
 			if (i == m_users.end())
 				return;
@@ -1483,7 +1442,7 @@ void FavoriteManager::userUpdated(const OnlineUser& info)
 
 FavoriteHubEntry* FavoriteManager::getFavoriteHubEntry(const string& aServer) const
 {
-	FastSharedLock l(csHubs); // [+] IRainman fix.
+	webrtc::ReadLockScoped l(*g_csHubs); // [+] IRainman fix.
 #ifdef _DEBUG
 	static int g_count;
 	static string g_last_url;
@@ -1509,7 +1468,7 @@ FavoriteHubEntry* FavoriteManager::getFavoriteHubEntry(const string& aServer) co
 FavoriteHubEntryList FavoriteManager::getFavoriteHubs(const string& group) const
 {
 	FavoriteHubEntryList ret;
-	FastSharedLock l(csHubs);
+	webrtc::ReadLockScoped l(*g_csHubs);
 	for (auto i = favoriteHubs.cbegin(), iend = favoriteHubs.cend(); i != iend; ++i)
 	{
 		if ((*i)->getGroup() == group)
@@ -1530,7 +1489,7 @@ bool FavoriteManager::isPrivate(const string& p_url) const
 			const string& name = fav->getGroup();
 			if (!name.empty())
 			{
-				FastSharedLock l(csHubs); // [+] IRainman fix.
+				webrtc::ReadLockScoped l(*g_csHubs); // [+] IRainman fix.
 				FavHubGroups::const_iterator group = favHubGroups.find(name);
 				if (group != favHubGroups.end())
 				{
@@ -1548,11 +1507,7 @@ void FavoriteManager::setUploadLimit(const UserPtr& aUser, int lim, bool createU
 	ConnectionManager::getInstance()->setUploadLimit(aUser, lim);
 	{
 		FavoriteMap::iterator i;
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-		FastUniqueLock l(csUsers);
-#else
-		Lock l(csUsers);
-#endif
+		webrtc::WriteLockScoped l(*g_csUsers);
 		const bool added = addUserL(aUser, i, createUser);
 		if (i == m_users.end())
 			return;
@@ -1568,11 +1523,7 @@ bool FavoriteManager::getFlag(const UserPtr& aUser, FavoriteUser::Flags f) const
 	dcassert(!ClientManager::isShutdown());
 	if (isNotEmpty()) // [+]PPA
 	{
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-		FastSharedLock l(csUsers);
-#else
-		Lock l(csUsers);
-#endif
+		webrtc::ReadLockScoped l(*g_csUsers);
 		FavoriteMap::const_iterator i = m_users.find(aUser->getCID());
 		if (i != m_users.end())
 		{
@@ -1587,11 +1538,7 @@ void FavoriteManager::setFlag(const UserPtr& aUser, FavoriteUser::Flags f, bool 
 	dcassert(!ClientManager::isShutdown());
 	{
 		FavoriteMap::iterator i;
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-		FastUniqueLock l(csUsers);
-#else
-		Lock l(csUsers);
-#endif
+		webrtc::WriteLockScoped l(*g_csUsers);
 		const bool added = addUserL(aUser, i, createUser);
 		if (i == m_users.end())
 			return;
@@ -1611,11 +1558,7 @@ void FavoriteManager::setUserDescription(const UserPtr& aUser, const string& des
 	if (isNotEmpty()) // [+]PPA
 	{
 		{
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-			FastUniqueLock l(csUsers);
-#else
-			Lock l(csUsers);
-#endif
+			webrtc::WriteLockScoped l(*g_csUsers);
 			FavoriteMap::iterator i = m_users.find(aUser->getCID());
 			if (i == m_users.end())
 				return;
@@ -1686,7 +1629,7 @@ void FavoriteManager::refresh(bool forceDownload /* = false */)
 			m_useHttp = false;
 			string fileDate;
 			{
-				FastUniqueLock l(csPublicHubs);
+				webrtc::WriteLockScoped l(*g_csPublicHubs);
 				publicListMatrix[publicListServer].clear();
 			}
 			m_listType = (stricmp(path.substr(path.size() - 4), ".bz2") == 0) ? TYPE_BZIP2 : TYPE_NORMAL; //-V112
@@ -1725,7 +1668,7 @@ void FavoriteManager::refresh(bool forceDownload /* = false */)
 		m_running = true; // [+] IRainman fix.
 		m_useHttp = true;
 		{
-			FastUniqueLock l(csPublicHubs);
+			webrtc::WriteLockScoped l(*g_csPublicHubs);
 			publicListMatrix[publicListServer].clear();
 		}
 		fire(FavoriteManagerListener::DownloadStarting(), publicListServer);
@@ -1748,7 +1691,7 @@ UserCommand::List FavoriteManager::getUserCommands(int ctx, const StringList& hu
 	
 	UserCommand::List lst;
 	{
-		FastSharedLock l(csUserCommand);
+		webrtc::ReadLockScoped l(*g_csUserCommand);
 		for (auto i = userCommands.cbegin(); i != userCommands.cend(); ++i)
 		{
 			const UserCommand& uc = *i;
@@ -1865,11 +1808,7 @@ void FavoriteManager::on(UserDisconnected, const UserPtr& user) noexcept
 	if (isNotEmpty()) // [+]PPA
 	{
 		{
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-			FastUniqueLock l(csUsers);
-#else
-			Lock l(csUsers);
-#endif
+			webrtc::WriteLockScoped l(*g_csUsers);
 			FavoriteMap::iterator i = m_users.find(user->getCID());
 			if (i == m_users.end())
 				return;
@@ -1889,11 +1828,7 @@ void FavoriteManager::on(UserConnected, const UserPtr& user) noexcept
 		if (isNotEmpty()) // [+]PPA
 		{
 			{
-#ifdef IRAINMAN_USE_SHARED_SPIN_LOCK_FOR_USERS
-				FastSharedLock l(csUsers);
-#else
-				Lock l(csUsers);
-#endif
+				webrtc::ReadLockScoped l(*g_csUsers);
 				FavoriteMap::const_iterator i = m_users.find(user->getCID());
 				if (i == m_users.end())
 					return;

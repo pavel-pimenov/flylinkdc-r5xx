@@ -274,9 +274,7 @@ WCHAR* ChatBot::onQueryDownloads(const WCHAR* cid)
 	if (user)
 	{
 		ParamSet ps;
-#ifdef IRAINMAN_USE_SEPARATE_CS_IN_QUEUE_MANAGER
-		SharedLock l(QueueItem::cs);
-#endif
+		RLock l(*QueueItem::g_cs);
 		QueueManager::LockFileQueueShared l_fileQueue;
 		const auto& downloads = l_fileQueue.getQueueL();
 		for (auto j = downloads.cbegin(); j != downloads.cend(); ++j)

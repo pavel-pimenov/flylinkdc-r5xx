@@ -44,7 +44,8 @@ Identity::StringDictionaryReductionPointers Identity::g_infoDic;
 Identity::StringDictionaryIndex Identity::g_infoDicIndex;
 
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-FastCriticalSection User::g_ratio_cs;
+
+std::unique_ptr<webrtc::RWLockWrapper> User::g_ratio_cs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 
 void User::setLastNick(const string& p_nick)
 {
@@ -57,14 +58,16 @@ void User::setLastNick(const string& p_nick)
 		if (m_nick != p_nick)
 		{
 			const bool l_is_change_nick = !m_nick.empty() && !p_nick.empty();
-			FastLock l(g_ratio_cs);
 			if (l_is_change_nick)
 			{
 				if (m_ratio_ptr)
 				{
-					safe_delete(m_ratio_ptr);
+					{
+						webrtc::WriteLockScoped l(*g_ratio_cs);
+						safe_delete(m_ratio_ptr);
+					}
 					m_nick = p_nick;
-					initRatioL();
+					initRatio();
 				}
 			}
 			else
@@ -115,12 +118,14 @@ void User::setIP(const boost::asio::ip::address_v4& p_last_ip)
 			const bool l_is_change_ip = !m_last_ip.is_unspecified() && !p_last_ip.is_unspecified();
 			if (l_is_change_ip)
 			{
-				FastLock l(g_ratio_cs);
 				if (m_ratio_ptr)
 				{
 					const auto l_message_count = m_ratio_ptr->m_message_count;
-					safe_delete(m_ratio_ptr);
-					initRatioL(p_last_ip);
+					{
+						webrtc::WriteLockScoped l(*g_ratio_cs);
+						safe_delete(m_ratio_ptr);
+					}
+					initRatio(p_last_ip);
 					if (m_ratio_ptr)
 						m_ratio_ptr->m_message_count = l_message_count;
 				}
@@ -138,8 +143,7 @@ void User::setIP(const boost::asio::ip::address_v4& p_last_ip)
 }
 boost::asio::ip::address_v4 User::getIP()
 {
-	FastLock l(g_ratio_cs);
-	initRatioL();
+	initRatio();
 	if (!m_last_ip.is_unspecified())
 		return m_last_ip;
 	return boost::asio::ip::address_v4();
@@ -153,8 +157,8 @@ string User::getIPAsString()
 }
 uint64_t User::getBytesUpload()
 {
-	FastLock l(g_ratio_cs);
-	initRatioL();
+	initRatio();
+	webrtc::ReadLockScoped l(*g_ratio_cs);
 	if (m_ratio_ptr)
 	{
 		return m_ratio_ptr->m_upload;
@@ -166,8 +170,8 @@ uint64_t User::getBytesUpload()
 }
 uint64_t User::getMessageCount()
 {
-	FastLock l(g_ratio_cs);
-	initRatioL();
+	initRatio();
+	webrtc::ReadLockScoped l(*g_ratio_cs);
 	if (m_ratio_ptr)
 	{
 		return m_ratio_ptr->m_message_count;
@@ -179,8 +183,8 @@ uint64_t User::getMessageCount()
 }
 uint64_t User::getBytesDownload()
 {
-	FastLock l(g_ratio_cs);
-	initRatioL();
+	initRatio();
+	webrtc::ReadLockScoped l(*g_ratio_cs);
 	if (m_ratio_ptr)
 	{
 		return m_ratio_ptr->m_download;
@@ -192,74 +196,78 @@ uint64_t User::getBytesDownload()
 }
 void User::fixLastIP()
 {
-	FastLock l(g_ratio_cs);
-	//initRatioL(m_last_ip); чето странно
-	initRatioL();
+	initRatio();
 	setIP(m_last_ip);
 }
 void User::incMessageCount()
 {
-	FastLock l(g_ratio_cs);
 	if (m_ratio_ptr)
 	{
 		m_ratio_ptr->incMessagesCount();
 	}
 	else
 	{
-		initRatioL(boost::asio::ip::address_v4()); // IP-Пустышку
+		initRatio(boost::asio::ip::address_v4()); // IP-Пустышку
 		if (m_ratio_ptr)
 			m_ratio_ptr->incMessagesCount();
 	}
 }
 void User::AddRatioUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size)
 {
-	FastLock l(g_ratio_cs);
-	initRatioL(p_ip);
+	initRatio(p_ip);
+	webrtc::ReadLockScoped l(*g_ratio_cs);
 	if (m_ratio_ptr)
 		m_ratio_ptr->addUpload(p_ip, p_size);
 }
 void User::AddRatioDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size)
 {
-	FastLock l(g_ratio_cs);
-	initRatioL(p_ip);
+	initRatio(p_ip);
+	webrtc::ReadLockScoped l(*g_ratio_cs);
 	if (m_ratio_ptr)
 		m_ratio_ptr->addDownload(p_ip, p_size);
 }
 void User::flushRatio()
 {
-	FastLock l(g_ratio_cs);
+	webrtc::ReadLockScoped l(*g_ratio_cs);
 	if (m_ratio_ptr)
 		m_ratio_ptr->flushRatioL();
 }
-void User::initRatioL(const boost::asio::ip::address_v4& p_ip)
+void User::initRatio(const boost::asio::ip::address_v4& p_ip)
 {
 	if (m_ratio_ptr == nullptr && !m_nick.empty() && m_hub_id)
 	{
+		webrtc::WriteLockScoped l(*g_ratio_cs);
 		m_ratio_ptr = new CFlyUserRatioInfo(this);
 		m_ratio_ptr->try_load_ratio(p_ip);
 		m_ratio_ptr->setDirty(true);
 	}
 }
-void User::initRatioL()
+void User::initRatio()
 {
 	if (!m_nick.empty() && m_hub_id && !m_is_first_init_ratio)
 	{
 		m_is_first_init_ratio = true;
 		// Узнаем, есть ли в базе last_ip или счетчик мессаг
-		__int64 p_count_messages = 0;
+		uint32_t l_message_count = 0;
 		boost::asio::ip::address_v4 l_last_ip_from_sql;
-		if (CFlylinkDBManager::getInstance()->load_last_ip_and_user_stat(m_hub_id, m_nick, p_count_messages, l_last_ip_from_sql))
+		if (CFlylinkDBManager::getInstance()->load_last_ip_and_user_stat(m_hub_id, m_nick, l_message_count, l_last_ip_from_sql))
 		{
 			m_last_ip = l_last_ip_from_sql;
 			CFlyUserRatioInfo* l_try_ratio = nullptr;
-			if (p_count_messages || !l_last_ip_from_sql.is_unspecified())
+			if (l_message_count || !l_last_ip_from_sql.is_unspecified())
 			{
 				l_try_ratio = new CFlyUserRatioInfo(this);
-				l_try_ratio->m_message_count = p_count_messages;
+				l_try_ratio->m_message_count = l_message_count;
 				if (!l_last_ip_from_sql.is_unspecified())
 					l_try_ratio->try_load_ratio(l_last_ip_from_sql);
-				delete m_ratio_ptr;
-				m_ratio_ptr = l_try_ratio;
+				{
+					webrtc::WriteLockScoped l(*g_ratio_cs);
+					if (m_ratio_ptr)
+					{
+						delete m_ratio_ptr;
+					}
+					m_ratio_ptr = l_try_ratio;
+				}
 			}
 		}
 	}
@@ -285,7 +293,7 @@ tstring User::getUpload()
 
 tstring User::getUDratio()
 {
-	FastLock l(g_ratio_cs);
+	webrtc::ReadLockScoped l(*g_ratio_cs);
 	if (m_ratio_ptr && (m_ratio_ptr->m_download || m_ratio_ptr->m_upload))
 		return Util::toStringW(m_ratio_ptr->m_download ? ((double)m_ratio_ptr->m_upload / (double)m_ratio_ptr->m_download) : 0) +
 		       L" (" + Util::formatBytesW(m_ratio_ptr->m_upload) + _T('/') + Util::formatBytesW(m_ratio_ptr->m_download) + L")";

@@ -96,6 +96,17 @@ struct CFlyLocationDesc : public CFlyLocationIP
 };
 typedef std::vector<CFlyLocationIP> CFlyLocationIPArray;
 
+struct CFlyLastIPCacheItem
+{
+	boost::asio::ip::address_v4 m_last_ip;
+	uint32_t m_message_count;
+	bool m_is_item_dirty;
+	// TODO - добавить сохранение страны + провайдера и индексов иконок.
+	CFlyLastIPCacheItem(): m_message_count(0), m_is_item_dirty(false)
+	{
+	}
+};
+
 struct CFlyFileInfo
 {
 	int64_t  m_size;
@@ -137,7 +148,8 @@ enum eTypeSegment
 	// 4-5 - пропускаем старые маркеры e_TimeStampGeoIP + e_TimeStampCustomLocation
 	e_CMDDebugFilterState = 6,
 	e_TimeStampGeoIP = 7,
-	e_TimeStampCustomLocation = 8
+	e_TimeStampCustomLocation = 8,
+	e_IsTTHLevelDBConvert = 9
 };
 struct CFlyRegistryValue
 {
@@ -167,13 +179,14 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 	public:
 		CFlylinkDBManager();
 		~CFlylinkDBManager();
+		void shutdown();
 		void push_download_tth(const TTHValue& p_tth);
 		void push_add_share_tth_(const TTHValue& p_tth);
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		void store_all_ratio_and_last_ip(uint32_t p_hub_id,
 		                                 const string& p_nick,
 		                                 const CFlyUploadDownloadMap* p_upload_download_stats,
-		                                 const __int64& p_count_messages,
+		                                 const uint32_t p_message_count,
 		                                 const boost::asio::ip::address_v4& p_last_ip);
 		uint32_t get_dic_hub_id(const string& p_hub);
 		void load_global_ratio();
@@ -182,10 +195,11 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		bool m_is_load_global_ratio;
 #endif
 		CFlyRatioItem load_ratio(uint32_t p_hub_id, const string& p_nick, CFlyUserRatioInfo& p_ratio_info, const  boost::asio::ip::address_v4& p_last_ip);
-		bool load_last_ip_and_user_stat(uint32_t p_hub_id, const string& p_nick, __int64& p_count_messages, boost::asio::ip::address_v4& p_last_ip);
+		bool load_last_ip_and_user_stat(uint32_t p_hub_id, const string& p_nick, uint32_t& p_message_count, boost::asio::ip::address_v4& p_last_ip);
 		void update_last_ip(uint32_t p_hub_id, const string& p_nick, const boost::asio::ip::address_v4& p_last_ip);
 	private:
-		void update_last_ipL(uint32_t p_hub_id, const string& p_nick, const __int64& p_count_messages, const boost::asio::ip::address_v4& p_last_ip);
+		void update_last_ip_deferredL(uint32_t p_hub_id, const string& p_nick, uint32_t p_message_count, const boost::asio::ip::address_v4& p_last_ip);
+		void flush_all_last_ip_and_message_count();
 	public:
 		CFlyGlobalRatioItem  m_global_ratio;
 		double get_ratio() const;
@@ -254,12 +268,24 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif //STRONG_USE_DHT
 		
 		void save_geoip(const CFlyLocationIPArray& p_geo_ip);
-		void get_country(uint32_t p_ip, uint8_t& p_index);
-		CFlyLocationDesc get_country_from_cache(uint8_t p_index)
+		void get_country(uint32_t p_ip, uint16_t& p_index);
+		uint16_t get_country_index_from_cache(uint16_t p_index)
+		{
+			dcassert(p_index > 0);
+			FastLock l(m_cache_location_cs);
+			return m_country_cache[p_index - 1].m_flag_index;
+		}
+		CFlyLocationDesc get_country_from_cache(uint16_t p_index)
 		{
 			dcassert(p_index > 0);
 			FastLock l(m_cache_location_cs);
 			return m_country_cache[p_index - 1];
+		}
+		uint16_t get_location_index_from_cache(int32_t p_index)
+		{
+			dcassert(p_index > 0);
+			FastLock l(m_cache_location_cs);
+			return m_location_cache[p_index - 1].m_flag_index;
 		}
 		CFlyLocationDesc get_location_from_cache(int32_t p_index)
 		{
@@ -269,7 +295,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		}
 	private:
 		uint8_t  get_country_sqlite(uint32_t p_ip, CFlyLocationDesc& p_location);
-		bool find_cache_countryL(uint32_t p_ip, uint8_t& p_index);
+		bool find_cache_countryL(uint32_t p_ip, uint16_t& p_index);
 		uint16_t find_cache_locationL(uint32_t p_ip, int32_t& p_index);
 	public:
 		__int64 get_dic_country_id(const string& p_country);
@@ -281,8 +307,10 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		__int64 get_dic_location_id(const string& p_location);
 		//void clear_dic_cache_location();
 		
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION
 		void save_lost_location(const string& p_ip);
 		void get_lost_location(std::vector<std::string>& p_lost_ip_array);
+#endif
 		
 #ifdef FLYLINKDC_USE_COLLECT_STAT
 		void push_dc_command_statistic(const std::string& p_hub, const std::string& p_command,
@@ -362,15 +390,18 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif // STRONG_USE_DHT
 		auto_ptr<sqlite3_command> m_add_tree_find;
 		auto_ptr<sqlite3_command> m_select_ratio_load;
-		auto_ptr<sqlite3_command> m_select_last_ip;
+		//auto_ptr<sqlite3_command> m_select_last_ip_and_message_count;
+		auto_ptr<sqlite3_command> m_select_all_last_ip_and_message_count;
+		boost::unordered_map<uint32_t, boost::unordered_map<std::string, CFlyLastIPCacheItem> > m_last_ip_cache;
 		auto_ptr<sqlite3_command> m_insert_ratio;
 		
 #ifdef _DEBUG
 		auto_ptr<sqlite3_command> m_select_store_ip;
 #endif
-		auto_ptr<sqlite3_command> m_insert_store_ip;
-		auto_ptr<sqlite3_command> m_insert_store_message_count;
-		auto_ptr<sqlite3_command> m_insert_store_ip_and_message_count;
+		//auto_ptr<sqlite3_command> m_insert_store_ip;
+		//auto_ptr<sqlite3_command> m_insert_store_message_count;
+		//auto_ptr<sqlite3_command> m_insert_store_ip_and_message_count;
+		auto_ptr<sqlite3_command> m_insert_store_all_ip_and_message_count;
 		
 		auto_ptr<sqlite3_command> m_ins_fly_hash_block;
 		auto_ptr<sqlite3_command> m_insert_file;

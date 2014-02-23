@@ -26,10 +26,10 @@
 #include "LogManager.h"
 #include "CFlylinkDBManager.h"
 
+std::unique_ptr<webrtc::RWLockWrapper> FinishedManager::g_csD = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+std::unique_ptr<webrtc::RWLockWrapper> FinishedManager::g_csU = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+
 FinishedManager::FinishedManager()
-#ifndef IRAINMAN_USE_SEPARATE_CS_IN_FINISHED_MANAGER
-	: csU(csD)
-#endif
 {
 	QueueManager::getInstance()->addListener(this);
 	UploadManager::getInstance()->addListener(this);
@@ -40,20 +40,20 @@ FinishedManager::~FinishedManager()
 	QueueManager::getInstance()->removeListener(this);
 	UploadManager::getInstance()->removeListener(this);
 	{
-		FastUniqueLock l(csD); // TODO: needs?
+		webrtc::WriteLockScoped l(*g_csD);
 		for_each(m_downloads.begin(), m_downloads.end(), DeleteFunction());
 	}
 	{
-		FastUniqueLock l(csU); // TODO: needs?
+		webrtc::WriteLockScoped l(*g_csU);
 		for_each(m_uploads.begin(), m_uploads.end(), DeleteFunction());
 	}
 }
 
 void FinishedManager::remove(FinishedItemPtr item, bool upload /* = false */)
 {
-	auto remove = [item](FinishedItemList & listptr, FastSharedCriticalSection & cs) -> void
+	auto remove = [item](FinishedItemList & listptr, std::unique_ptr<webrtc::RWLockWrapper> & cs) -> void
 	{
-		FastUniqueLock l(cs);
+		webrtc::WriteLockScoped l(*cs);
 		const FinishedItemList::const_iterator it = find(listptr.begin(), listptr.end(), item);
 		
 		if (it != listptr.end())
@@ -64,30 +64,30 @@ void FinishedManager::remove(FinishedItemPtr item, bool upload /* = false */)
 	
 	if (upload)
 	{
-		remove(m_uploads, csU);
+		remove(m_uploads, g_csU);
 	}
 	else
 	{
-		remove(m_downloads, csD);
+		remove(m_downloads, g_csD);
 	}
 }
 
 void FinishedManager::removeAll(bool upload /* = false */)
 {
-	auto removeAll = [](FinishedItemList & listptr, FastSharedCriticalSection & cs) -> void
+	auto removeAll = [](FinishedItemList & listptr, std::unique_ptr<webrtc::RWLockWrapper> & cs) -> void
 	{
-		FastUniqueLock l(cs);
+		webrtc::WriteLockScoped l(*cs);
 		for_each(listptr.begin(), listptr.end(), DeleteFunction());
 		listptr.clear();
 	};
 	
 	if (upload)
 	{
-		removeAll(m_uploads, csU);
+		removeAll(m_uploads, g_csU);
 	}
 	else
 	{
-		removeAll(m_downloads, csD);
+		removeAll(m_downloads, g_csD);
 	}
 }
 
@@ -105,7 +105,7 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItemPtr& qi,
 		CFlylinkDBManager::getInstance()->clear_tiger_tree_cache(qi->getTTH());
 		const FinishedItemPtr item = new FinishedItem(qi->getTarget(), d->getHintedUser(), qi->getSize(), d->getRunningAverage(), GET_TIME(), qi->getTTH().toBase32(), d->getUser()->getIPAsString());
 		{
-			FastUniqueLock l(csD);
+			webrtc::WriteLockScoped l(*g_csD);
 			// TODO - fix copy-paste
 			// [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
 			while (!m_downloads.empty() && m_downloads.size() > static_cast<size_t>(SETTING(MAX_FINISHED_DOWNLOADS)))
@@ -130,7 +130,7 @@ void FinishedManager::on(UploadManagerListener::Complete, const Upload* u) noexc
 		
 		const FinishedItemPtr item = new FinishedItem(u->getPath(), u->getHintedUser(), u->getFileSize(), u->getRunningAverage(), GET_TIME(), Util::emptyString, u->getUser()->getIPAsString());
 		{
-			FastUniqueLock l(csU);
+			webrtc::WriteLockScoped l(*g_csU);
 			// TODO - fix copy-paste
 			// [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
 			while (!m_uploads.empty() && m_uploads.size() > static_cast<size_t>(SETTING(MAX_FINISHED_UPLOADS)))

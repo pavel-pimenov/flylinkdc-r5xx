@@ -47,11 +47,22 @@ class HashProgressDlg : public CDialogImpl<HashProgressDlg>, private CFlyTimerAd
 		COMMAND_ID_HANDLER(IDC_BTN_ABORT, OnBnClickedBtnAbort)
 		COMMAND_HANDLER(IDC_EDIT_MAX_HASH_SPEED, EN_CHANGE, OnEnChangeEditMaxHashSpeed)
 		COMMAND_ID_HANDLER(IDC_PAUSE, onPause)
+		COMMAND_ID_HANDLER(IDC_BTN_REFRESH_FILELIST, onRefresh)
+		MESSAGE_HANDLER(WM_HSCROLL, onSlideChangeMaxHashSpeed)
 		END_MSG_MAP()
 		
 		LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		
 		LRESULT onPause(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+		
+		LRESULT onSlideChangeMaxHashSpeed(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+
+		LRESULT onRefresh(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+		{
+			ShareManager::getInstance()->setDirty();
+			ShareManager::getInstance()->refresh(true);
+			return 0;
+		}
 		
 		LRESULT onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 		{
@@ -77,6 +88,7 @@ class HashProgressDlg : public CDialogImpl<HashProgressDlg>, private CFlyTimerAd
 		
 		LRESULT OnEnChangeEditMaxHashSpeed(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
+			m_Slider.SetPos(GetDlgItemInt(IDC_EDIT_MAX_HASH_SPEED, NULL, FALSE));
 			HashManager::getInstance()->EnableForceMinHashSpeed(GetDlgItemInt(IDC_EDIT_MAX_HASH_SPEED, NULL, FALSE));
 			return 0;
 		}
@@ -89,6 +101,7 @@ class HashProgressDlg : public CDialogImpl<HashProgressDlg>, private CFlyTimerAd
 		CProgressBarCtrl progress;
 		CButton ExitOnDoneButton;
 		string m_cur_mediainfo_file_tth;
+		CTrackBarCtrl m_Slider;
 #ifdef SCALOLAZ_HASH_HELPLINK
 		CFlyHyperLink m_HashHelp;
 #endif

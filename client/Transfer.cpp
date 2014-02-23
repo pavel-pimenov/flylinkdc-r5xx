@@ -50,8 +50,8 @@ void Transfer::tick(uint64_t p_CurrentTick)
 	//[!]IRainman refactoring transfer mechanism
 	FastLock l(m_cs);
 	setLastTick(p_CurrentTick);
-	
-	//if (!samples.empty()) [!]IRainman: do not touch it
+	dcassert(!m_samples.empty());
+	if (!m_samples.empty()) // https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=57070
 	{
 		if (m_actual && m_samples.back().second == m_actual)
 			m_samples.back().first = m_lastTick; // Position hasn't changed, just update the time
@@ -65,15 +65,6 @@ void Transfer::tick(uint64_t p_CurrentTick)
 		if (m_samples.size() > SPEED_APPROXIMATION_INTERVAL_S && ticks > SPEED_APPROXIMATION_INTERVAL_S * 1000)
 			m_samples.pop_front();
 	}
-	
-	// [!] IRainman fix: complite.
-	// 2012-04-18_11-27-14_KURJ2LHEQPW6GCTWTYBSY7X3VJS3GEJHOK7RCGY_9A5426AF_crash-stack-r502-beta18-x64-build-9768.dmp
-	// 2012-04-23_22-36-14_MQRSOVHEE6WA3YCANG7D36TKPR52TDPSSND7AUI_47AD139A_crash-stack-r501-x64-build-9812.dmp
-	// 2012-04-23_22-36-14_J7AE3TLFTSHPJDYLFJGR5S3Z6QEAQSSTMIUVJ2A_EB7F1FF7_crash-stack-r501-x64-build-9812.dmp
-	// 2012-04-27_18-43-09_ZVZTEP5ULRFDTRIK6S7DEZFKNC7NJOCOPRJUD2Y_90F7E6FC_crash-stack-r502-beta22-build-9854.dmp
-	// 2012-05-03_22-00-59_2T3FXPPUYEB6HQLNPNPQINIDDHHU4EUUB2VNBGA_1F949D6A_crash-stack-r502-beta24-build-9900.dmp
-	// 2012-06-07_20-46-18_RTU7QYLE2AQZRI2MHIPEGVCPI2VTOOBIWLAMWQA_08251EBA_crash-stack-r502-beta30-build-10270.dmp
-	// 2012-06-17_22-40-29_3X4MWYTLOXY7HXS3KAILFKVJVC6MYX5EEMWQC6A_4B216112_crash-stack-r502-beta36-x64-build-10378.dmp
 }
 
 int64_t Transfer::getSecondsLeft(const bool wholeFile) const

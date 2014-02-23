@@ -75,7 +75,7 @@ AdcHub::~AdcHub()
 }
 void AdcHub::getUserList(OnlineUserList& p_list) const
 {
-	FastLock l(cs);
+	webrtc::ReadLockScoped l(*m_cs);
 	for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 	{
 		if (i->first != AdcCommand::HUB_SID)
@@ -86,7 +86,7 @@ void AdcHub::getUserList(OnlineUserList& p_list) const
 }
 OnlineUserPtr AdcHub::findUser(const string& aNick) const
 {
-	FastLock l(cs);
+	webrtc::ReadLockScoped l(*m_cs);
 	for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 	{
 		if (i->second->getIdentity().getNick() == aNick)
@@ -106,14 +106,14 @@ OnlineUserPtr AdcHub::getUser(const uint32_t aSID, const CID& aCID)
 	// [+] IRainman fix.
 	if (aCID.isZero())
 	{
-		FastLock l(cs);
+		webrtc::WriteLockScoped l(*m_cs);
 		ou = m_users.insert(make_pair(aSID, getHubOnlineUser().get())).first->second;
 		ou->inc();
 	}
 	else if (ClientManager::isMe(aCID))
 	{
 		{
-			FastLock l(cs);
+			webrtc::WriteLockScoped l(*m_cs);
 			ou = m_users.insert(make_pair(aSID, getMyOnlineUser().get())).first->second;
 			ou->inc();
 		}
@@ -131,7 +131,7 @@ OnlineUserPtr AdcHub::getUser(const uint32_t aSID, const CID& aCID)
 		u->setHubID(getHubID());
 #endif
 		OnlineUser* newUser = new OnlineUser(u, *this, aSID);
-		FastLock l(cs);
+		webrtc::WriteLockScoped l(*m_cs);
 		ou = m_users.insert(make_pair(aSID, newUser)).first->second;
 		ou->inc();
 	}
@@ -148,14 +148,14 @@ OnlineUserPtr AdcHub::getUser(const uint32_t aSID, const CID& aCID)
 
 OnlineUserPtr AdcHub::findUser(const uint32_t aSID) const// [!] IRainman fix return OnlineUserPtr
 {
-	FastLock l(cs);
+	webrtc::ReadLockScoped l(*m_cs);
 	const auto& i = m_users.find(aSID);
 	return i == m_users.end() ? nullptr : i->second;
 }
 
 OnlineUserPtr AdcHub::findUser(const CID& aCID) const// [!] IRainman fix return OnlineUserPtr
 {
-	FastLock l(cs);
+	webrtc::ReadLockScoped l(*m_cs);
 	for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 	{
 		if (i->second->getUser()->getCID() == aCID)
@@ -170,7 +170,7 @@ void AdcHub::putUser(const uint32_t aSID, bool disconnect)
 {
 	OnlineUserPtr ou = 0;
 	{
-		FastLock l(cs);
+		webrtc::WriteLockScoped l(*m_cs);
 		SIDMap::iterator i = m_users.find(aSID);
 		if (i == m_users.end())
 			return;
@@ -190,7 +190,7 @@ void AdcHub::clearUsers()
 {
 	if (ClientManager::isShutdown())
 	{
-		FastLock l(cs);
+		webrtc::WriteLockScoped l(*m_cs);
 		for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 		{
 			i->second->dec();
@@ -202,7 +202,7 @@ void AdcHub::clearUsers()
 		clearAvailableBytes();
 		SIDMap tmp;
 		{
-			FastLock l(cs);
+			webrtc::WriteLockScoped l(*m_cs);
 			m_users.swap(tmp);
 		}
 		
@@ -549,7 +549,7 @@ void AdcHub::handle(AdcCommand::QUI, AdcCommand& c) noexcept
 			fire(ClientListener::StatusMessage(), this, tmp, ClientListener::FLAG_IS_SPAM);
 		}
 		
-		putUser(s, c.getParam("DI", 1, tmp));
+		putUser(s, c.getParam("DI", 1, tmp)); // TODO тут внутри повторно ищем юзера (OnlineUserPtr victim = findUser(s);)
 	}
 	
 	if (s == sid)
@@ -711,7 +711,7 @@ void AdcHub::sendUDP(const AdcCommand& cmd) noexcept
 	string ip;
 	uint16_t port;
 	{
-		FastLock l(cs);
+		webrtc::ReadLockScoped l(*m_cs);
 		const auto& i = m_users.find(cmd.getTo());
 		if (i == m_users.end())
 		{
@@ -1083,7 +1083,7 @@ void AdcHub::sendUserCmd(const UserCommand& command, const StringMap& params)
 		else
 		{
 			const string& to = command.getTo();
-			FastLock l(cs);
+			webrtc::ReadLockScoped l(*m_cs);
 			for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 			{
 				if (i->second->getIdentity().getNick() == to)
@@ -1571,8 +1571,7 @@ void AdcHub::refreshUserList(bool)
 	OnlineUserList v;
 	{
 		// [!] IRainman fix potential deadlock.
-		FastLock l(cs);
-		
+		webrtc::ReadLockScoped l(*m_cs);
 		for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 		{
 			if (i->first != AdcCommand::HUB_SID)

@@ -74,8 +74,7 @@ void NmdcHub::refreshUserList(bool refreshOnly)
 		v.reserve(m_users.size());
 		{
 			// [!] IRainman fix potential deadlock.
-			FastLock l(cs);
-			
+			webrtc::ReadLockScoped l(*m_cs);
 			for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 			{
 				v.push_back(i->second);
@@ -164,7 +163,7 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 	if (p_hub)
 	{
 		{
-			FastLock l(cs);
+			webrtc::WriteLockScoped l(*m_cs);
 			ou = m_users.insert(make_pair(aNick, getHubOnlineUser().get())).first->second;
 			ou->inc();
 		}
@@ -173,7 +172,7 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 	else if (aNick == getMyNick())
 	{
 		{
-			FastLock l(cs);
+			webrtc::WriteLockScoped l(*m_cs);
 			ou = m_users.insert(make_pair(aNick, getMyOnlineUser().get())).first->second;
 			ou->inc();
 		}
@@ -189,7 +188,7 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 		                       );
 		OnlineUser* newUser = new OnlineUser(p, *this, 0);
 		{
-			FastLock l(cs);
+			webrtc::WriteLockScoped l(*m_cs);
 			ou = m_users.insert(make_pair(aNick, newUser)).first->second; //2012-06-09_18-19-42_JBOQDRXR35PEW7OJOPLNPXJSQDETX4IUV3SHOHA_DEF32407_crash-stack-r501-x64-build-10294.dmp
 			ou->inc();
 		}
@@ -213,7 +212,7 @@ void NmdcHub::supports(const StringList& feat)
 
 OnlineUserPtr NmdcHub::findUser(const string& aNick) const
 {
-	FastLock l(cs);
+	webrtc::ReadLockScoped l(*m_cs);
 	const auto& i = m_users.find(aNick); // [3] https://www.box.net/shared/03a0bb07362fc510b8a5
 	return i == m_users.end() ? nullptr : i->second; // 2012-04-29_13-38-26_EJMPFXUHZAKEQON7Y6X7EIKZVS3S3GMF43CWO3Y_C95F3090_crash-stack-r501-build-9869.dmp
 }
@@ -222,7 +221,7 @@ void NmdcHub::putUser(const string& aNick)
 {
 	OnlineUserPtr ou;
 	{
-		FastLock l(cs);
+		webrtc::WriteLockScoped l(*m_cs);
 		const auto& i = m_users.find(aNick);
 		if (i == m_users.end())
 			return;
@@ -230,7 +229,7 @@ void NmdcHub::putUser(const string& aNick)
 		m_users.erase(i);
 	}
 	decBytesShared(ou->getIdentity());
-		
+	
 	if (!ou->getUser()->getCID().isZero()) // [+] IRainman fix.
 		ClientManager::getInstance()->putOffline(ou); // [2] https://www.box.net/shared/7b796492a460fe528961
 		
@@ -242,7 +241,7 @@ void NmdcHub::clearUsers()
 {
 	if (ClientManager::isShutdown())
 	{
-		FastLock l(cs);
+		webrtc::WriteLockScoped l(*m_cs);
 		for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 		{
 			i->second->dec();
@@ -254,7 +253,7 @@ void NmdcHub::clearUsers()
 		clearAvailableBytes();
 		NickMap u2;
 		{
-			FastLock l(cs);
+			webrtc::WriteLockScoped l(*m_cs);
 			u2.swap(m_users);
 		}
 		for (auto i = u2.cbegin(); i != u2.cend(); ++i)
@@ -1386,7 +1385,7 @@ void NmdcHub::onLine(const string& aLine)
 	{
 		dcassert(0);
 		dcdebug("NmdcHub::onLine Unknown command %s\n", aLine.c_str());
-		LogManager::getInstance()->message("NmdcHub::onLine Unknown hub = " + getHubUrl() + " command = " + cmd + " param = " + param);
+		LogManager::getInstance()->message("NmdcHub::onLine Unknown command! hub = [" + getHubUrl() + "], command = [" + cmd + "], param = [" + param + "]");
 	}
 	
 	if (!bMyInfoCommand && m_bLastMyInfoCommand == FIRST_MYINFO)
@@ -1816,7 +1815,10 @@ void NmdcHub::myInfoParse(const string& param) noexcept
 		l_share_size = 0;
 		LogManager::getInstance()->message("ShareSize < 0 !, param = " + param);
 	}
-	changeBytesShared(ou->getIdentity(), l_share_size);
+	if (l_share_size)
+	{
+		changeBytesShared(ou->getIdentity(), l_share_size);
+	}
 	
 	/* [-] IRainman fix.
 	if (ou->getUser() == getMyIdentity().getUser())

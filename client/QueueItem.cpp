@@ -24,7 +24,11 @@
 #include "File.h"
 #include <boost/atomic.hpp>
 
-SharedCriticalSection QueueItem::cs; // [+] IRainman fix.
+#ifdef FLYLINKDC_USE_RWLOCK
+std::unique_ptr<webrtc::RWLockWrapper> QueueItem::g_cs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+#else
+std::unique_ptr<CriticalSection> QueueItem::g_cs = std::unique_ptr<CriticalSection>(new CriticalSection);
+#endif
 
 QueueItem::QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, Flags::MaskType aFlag,
                      time_t aAdded, const TTHValue& p_tth) :
@@ -62,7 +66,7 @@ QueueItem::~QueueItem()
 int16_t QueueItem::calcTransferFlag(bool& partial, bool& trusted, bool& untrusted, bool& tthcheck, bool& zdownload, bool& chunked, double& ratio) const
 {
 	int16_t segs = 0;
-	SharedLock l(cs);
+	RLock l(*QueueItem::g_cs);
 	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 	{
 		const Download *d = i->second;
@@ -193,7 +197,7 @@ bool QueueItem::countOnlineUsersGreatOrEqualThanL(const size_t maxValue) const /
 
 void QueueItem::getOnlineUsers(UserList& list) const
 {
-	SharedLock l(cs); // [+] IRainman fix.
+	RLock l(*QueueItem::g_cs); // [+] IRainman fix.
 	for (auto i = m_sources.cbegin(); i != m_sources.cend(); ++i)
 	{
 		if (i->first->isOnline())
@@ -312,7 +316,7 @@ const string& QueueItem::getTempTarget()
 #ifdef _DEBUG
 bool QueueItem::isSourceValid(const QueueItem::Source* p_source_ptr)
 {
-	SharedLock l(cs);
+	RLock l(*g_cs);
 	for (auto i = m_sources.cbegin(); i != m_sources.cend(); ++i)
 	{
 		if (p_source_ptr == &i->second)
@@ -738,7 +742,7 @@ void QueueItem::getPartialInfoL(PartsInfo& p_partialInfo, uint64_t p_blockSize) 
 // [+] IRainman fix.
 void QueueItem::getChunksVisualisation(vector<pair<Segment, Segment>>& p_runnigChunksAndDownloadBytes, vector<Segment>& p_doneChunks) const
 {
-	SharedLock l(cs); // [+] IRainman fix.
+	RLock l(*QueueItem::g_cs); // [+] IRainman fix.
 	
 	p_runnigChunksAndDownloadBytes.reserve(m_downloads.size()); // [!] IRainman fix done: [9] https://www.box.net/shared/9ccc91535264c1609a1e
 	// m_downloads.size() для list - дорого!

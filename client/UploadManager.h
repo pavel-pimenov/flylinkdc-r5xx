@@ -282,7 +282,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		typedef std::unordered_map<UserPtr, uint64_t, User::Hash> SlotMap;
 		
 		SlotMap m_reservedSlots;
-		mutable FastSharedCriticalSection m_csReservedSlots; // [+] IRainman opt.
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csReservedSlots;
 		
 		SlotMap m_notifiedUsers;
 		SlotQueue m_slotQueue;
@@ -339,7 +339,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		bool handleBan(UserConnection& aSource/*, bool forceBan, bool noChecks*/);
 		static bool hasAutoBan(const UserPtr& aUser);
 		BanMap m_lastBans;
-		mutable FastSharedCriticalSection m_csBans; // [+] IRainman opt.
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csBans;
 #endif // IRAINMAN_ENABLE_AUTO_BAN
 };
 

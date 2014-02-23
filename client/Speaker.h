@@ -25,6 +25,9 @@
 #include <vector>
 #include "CFlyThread.h"
 #include "noexcept.h"
+
+#include "webrtc/system_wrappers/interface/rw_lock_wrapper.h"
+
 template<typename Listener>
 class Speaker
 {

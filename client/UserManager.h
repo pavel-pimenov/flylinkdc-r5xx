@@ -110,14 +110,14 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 		
 		static const IgnoreMap& getIgnoreList() //TODO
 		{
-			//FastLock l(g_csIgnoreList);
+			//webrtc::ReadLockScoped l(*g_csIgnoreList);
 			dcassert(g_ignoreListLoaded);
 			return g_ignoreList;
 		}
 		static void addToIgnoreList(const string& userName)
 		{
 			{
-				FastUniqueLock l(g_csIgnoreList);
+				webrtc::WriteLockScoped l(*g_csIgnoreList);
 				dcassert(g_ignoreListLoaded);
 				g_ignoreList.insert(userName);
 			}
@@ -126,7 +126,7 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 		static void removeFromIgnoreList(const string& userName)
 		{
 			{
-				FastUniqueLock l(g_csIgnoreList);
+				webrtc::WriteLockScoped l(*g_csIgnoreList);
 				dcassert(g_ignoreListLoaded);
 				g_ignoreList.erase(userName);
 			}
@@ -135,14 +135,14 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 		static bool isInIgnoreList(const string& nick)
 		{
 			dcassert(!nick.empty());
-			FastSharedLock l(g_csIgnoreList);
+			webrtc::ReadLockScoped l(*g_csIgnoreList);
 			dcassert(g_ignoreListLoaded);
 			return g_ignoreList.find(nick) != g_ignoreList.cend();
 		}
 		static void setIgnoreList(const IgnoreMap& newlist)
 		{
 			{
-				FastUniqueLock l(g_csIgnoreList);
+				webrtc::WriteLockScoped l(*g_csIgnoreList);
 				g_ignoreList = newlist;
 			}
 			saveIgnoreList();
@@ -154,7 +154,7 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 		}
 		static bool isInProtectedUserList(const string& userName)
 		{
-			FastSharedLock l(g_csProtectedUsers);
+			webrtc::ReadLockScoped l(*g_csProtectedUsers);
 			return Wildcard::patternMatchLowerCase(Text::toLower(userName), g_protectedUsersLower, false);
 		}
 		
@@ -170,7 +170,8 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 		static WaitingUserMap waitingPasswordUsers;
 		
 		static FastCriticalSection g_csPsw;
-		static FastSharedCriticalSection g_csIgnoreList;
+		
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csIgnoreList;
 		
 		friend class Singleton<UserManager>;
 		UserManager();
@@ -184,7 +185,7 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 		}
 		
 		static StringList g_protectedUsersLower;
-		static FastSharedCriticalSection g_csProtectedUsers;
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csProtectedUsers;
 };
 
 #endif // !defined(DCPLUSPLUS_DCPP_USER_MANAGER_H)

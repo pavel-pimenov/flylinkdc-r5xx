@@ -545,13 +545,13 @@ bool ConnectionManager::checkTTHDuplicateSearch(const string& p_search_command)
 	}
 	return false;
 }
-bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, const boost::asio::ip::address_v4 p_ip_hub, const string& p_userInfo, const string& p_HubInfo)
+bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, const boost::asio::ip::address_v4& p_ip_hub, const string& p_userInfo, const string& p_HubInfo)
 {
 	{
 		boost::system::error_code ec;
 		const auto l_tick = GET_TICK();
 		const auto l_ip = boost::asio::ip::address_v4::from_string(aIPServer, ec);
-		const CFlyDDOSkey l_key(l_ip.to_ulong(), p_ip_hub);
+		const CFlyDDOSkey l_key(l_ip, p_ip_hub);
 		dcassert(!ec);
 		if (!ec)
 		{

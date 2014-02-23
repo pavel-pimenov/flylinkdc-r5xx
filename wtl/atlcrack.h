@@ -1325,12 +1325,12 @@ public: \
 			return TRUE; \
 	}
 
-// BOOL OnDeviceChange(UINT nEventType, DWORD dwData)
+// BOOL OnDeviceChange(UINT nEventType, DEV_BROADCAST_HDR* pHdr)
 #define MSG_WM_DEVICECHANGE(func) \
 	if (uMsg == WM_DEVICECHANGE) \
 	{ \
 		SetMsgHandled(TRUE); \
-		lResult = (LRESULT)func((UINT)wParam, (DWORD)lParam); \
+		lResult = (LRESULT)func((UINT)wParam, (DEV_BROADCAST_HDR*)lParam); \
 		if(IsMsgHandled()) \
 			return TRUE; \
 	}
@@ -1638,7 +1638,7 @@ public: \
 			return TRUE; \
 	}
 
-#endif /* _WIN32_WINNT >= 0x0400 */
+#endif // _WIN32_WINNT >= 0x0400
 
 #if(WINVER >= 0x0500)
 
@@ -1695,7 +1695,7 @@ public: \
 			return TRUE; \
 	}
 
-#endif /* WINVER >= 0x0500 */
+#endif // WINVER >= 0x0500
 
 #if(_WIN32_WINNT >= 0x0500)
 
@@ -1846,7 +1846,7 @@ public: \
 			return TRUE; \
 	}
 
-// OnThemeChanged()
+// void OnThemeChanged()
 #define MSG_WM_THEMECHANGED(func) \
 	if (uMsg == WM_THEMECHANGED) \
 	{ \
@@ -1857,7 +1857,21 @@ public: \
 			return TRUE; \
 	}
 
-#endif /* _WIN32_WINNT >= 0x0501 */
+#endif // _WIN32_WINNT >= 0x0501
+
+#if (_WIN32_WINNT >= 0x0600)
+
+// BOOL OnMouseHWheel(UINT nFlags, short zDelta, CPoint pt)
+#define MSG_WM_MOUSEHWHEEL(func) \
+	if (uMsg == WM_MOUSEHWHEEL) \
+	{ \
+		SetMsgHandled(TRUE); \
+		lResult = (LRESULT)func((UINT)LOWORD(wParam), (short)HIWORD(wParam), _WTYPES_NS::CPoint(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))); \
+		if(IsMsgHandled()) \
+			return TRUE; \
+	}
+
+#endif // (_WIN32_WINNT >= 0x0600)
 
 ///////////////////////////////////////////////////////////////////////////////
 // ATL defined messages

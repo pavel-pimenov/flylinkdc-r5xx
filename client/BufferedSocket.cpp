@@ -29,6 +29,7 @@
 #include "ResourceManager.h"
 #include "IpGuard.h"
 #include "ClientManager.h"
+#include "Util.h"
 
 // Polling is used for tasks...should be fixed...
 static const uint64_t POLL_TIMEOUT = 250;
@@ -372,13 +373,16 @@ void BufferedSocket::threadRead()
 								if (!l_all_myInfo.empty())
 								{
 #ifdef _DEBUG
-// #define FLYLINKDC_EMULATOR_4000_USERS
+#define FLYLINKDC_EMULATOR_4000_USERS
+#endif
+								
 #ifdef FLYLINKDC_EMULATOR_4000_USERS
 									static bool g_is_test = false;
+									const int l_count_guest = 4000;
 									if (!g_is_test)
 									{
 										g_is_test = true;
-										for (int i = 0; i < 4000; ++i)
+										for (int i = 0; i < l_count_guest; ++i)
 										{
 											char bbb[200];
 											snprintf(bbb, sizeof(bbb), "$ALL Guest%d <<Peers V:(r622),M:P,H:1/0/0,S:15,C:Кемерово>$ $%c$$3171624055$", i, 5);
@@ -386,9 +390,22 @@ void BufferedSocket::threadRead()
 										}
 									}
 #endif // FLYLINKDC_EMULATOR_4000_USERS
-#endif
+									
 									fire(BufferedSocketListener::MyInfoArray(), l_all_myInfo); // [+]PPA
 									l_all_myInfo.clear();
+#ifdef FLYLINKDC_EMULATOR_4000_USERS
+// Генерируем случайные IP-адреса
+									for (int i = 0; i < l_count_guest; ++i)
+									{
+										char bbb[200];
+										boost::system::error_code ec;
+										const auto l_start = boost::asio::ip::address_v4::from_string("200.23.17.18", ec);
+										const auto l_stop = boost::asio::ip::address_v4::from_string("240.200.17.18", ec);
+										boost::asio::ip::address_v4 l_rnd_ip(Util::rand(l_start.to_ulong(), l_stop.to_ulong()));
+										snprintf(bbb, sizeof(bbb), "$UserIP Guest%d %s$$", i, l_rnd_ip.to_string().c_str());
+										fire(BufferedSocketListener::Line(), bbb);
+									}
+#endif
 								}
 								m_myInfoStop = true; // закончился стартовый поток $MyINFO
 							}

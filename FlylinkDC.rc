@@ -289,30 +289,32 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,237,131,60,14
 END
 
-IDD_HASH_PROGRESS DIALOGEX 0, 0, 430, 136
+IDD_HASH_PROGRESS DIALOGEX 0, 0, 466, 131
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Creating file hash..."
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    LTEXT           "Please wait while DC++ hashes your files (they won't be shared until they've been hashed)...",IDC_HASH_INDEXING,6,4,419,8
-    LTEXT           "Current file...",IDC_CURRENT_FILE,6,13,420,18,SS_CENTERIMAGE
-    GROUPBOX        "Statistics",IDC_STATISTICS,4,41,255,38
-    LTEXT           "0.0 files/hour",IDC_FILES_PER_HOUR,9,50,246,8
-    LTEXT           "0.0 MiB/s",IDC_HASH_SPEED,9,59,246,8
-    LTEXT           "0:00:00 left",IDC_TIME_LEFT,9,68,246,8
-    GROUPBOX        "Maximum hashing speed",IDC_CURRENT_HASH_SPEED,263,41,162,38
-    LTEXT           "Temporarily change maximum speed of hashing (Mb/s)",IDC_CHANGE_HASH_SPEED,269,51,111,26
-    EDITTEXT        IDC_EDIT_MAX_HASH_SPEED,383,56,39,14,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "",IDC_HASH_PROGRESS,"msctls_progress32",PBS_SMOOTH,4,99,370,12
-    PUSHBUTTON      "Pause",IDC_PAUSE,377,98,50,14
+    LTEXT           "Please wait while DC++ hashes your files (they won't be shared until they've been hashed)...",IDC_HASH_INDEXING,9,4,419,8
+    LTEXT           "Current file...",IDC_CURRENT_FILE,9,13,449,18,SS_CENTERIMAGE
+    GROUPBOX        "Statistics",IDC_STATISTICS,4,41,195,41
+    LTEXT           "0.0 files/hour",IDC_FILES_PER_HOUR,9,50,185,8
+    LTEXT           "0.0 MiB/s",IDC_HASH_SPEED,9,60,185,8
+    LTEXT           "0:00:00 left",IDC_TIME_LEFT,9,71,185,8
+    GROUPBOX        "Maximum hashing speed",IDC_CURRENT_HASH_SPEED,201,41,262,41
+    LTEXT           "Temporarily change maximum speed of hashing (Mb/s)",IDC_CHANGE_HASH_SPEED,204,50,214,18
+    EDITTEXT        IDC_EDIT_MAX_HASH_SPEED,421,49,39,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "",IDC_HASH_PROGRESS,"msctls_progress32",PBS_SMOOTH,4,99,287,12
+    PUSHBUTTON      "Pause",IDC_PAUSE,292,98,50,14
     DEFPUSHBUTTON   "Run in background",IDOK,3,114,126,14
     CONTROL         "Exit program after completion of hashing",IDC_BTN_EXIT_ON_DONE,
-                    "Button",BS_AUTOCHECKBOX | BS_VCENTER | WS_TABSTOP,132,117,166,8
-    PUSHBUTTON      "Abort hashing",IDC_BTN_ABORT,301,114,126,14
-    RTEXT           "Mediainfo hash size:",IDC_MEDIAINFO_SIZE_TXT,4,87,339,8
-    RTEXT           "0",IDC_MEDIAINFO_SIZE,353,86,50,8
-    LTEXT           "MiB",IDC_MEDIAINFO_SIZE_MB,411,86,10,8
-    LTEXT           "Current TTH...",IDC_CURRENT_TTH,6,28,252,13,SS_CENTERIMAGE
+                    "Button",BS_AUTOCHECKBOX | BS_VCENTER | WS_TABSTOP,151,117,166,8
+    PUSHBUTTON      "Abort hashing",IDC_BTN_ABORT,342,114,122,14
+    RTEXT           "Mediainfo hash size:",IDC_MEDIAINFO_SIZE_TXT,207,86,179,8
+    RTEXT           "0",IDC_MEDIAINFO_SIZE,390,86,50,8
+    LTEXT           "MiB",IDC_MEDIAINFO_SIZE_MB,448,86,10,8
+    LTEXT           "Current TTH...",IDC_CURRENT_TTH,9,28,265,13,SS_CENTERIMAGE
+    PUSHBUTTON      "Refresh file list",IDC_BTN_REFRESH_FILELIST,342,98,122,14
+    CONTROL         "",IDC_EDIT_MAX_HASH_SPEED_SLIDER,"msctls_trackbar32",TBS_BOTH | TBS_NOTICKS | WS_TABSTOP,204,69,256,12
 END
 
 IDD_POPUPS_PAGE DIALOGEX 0, 0, 325, 300
@@ -520,11 +522,11 @@ BEGIN
     CONTROL         "Do not ask again",IDC_SETTINGS_USE_DHT_NOTANSWER,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,20,260,142,8
     CONTROL         "Update IP on DHT firewall check",IDC_UPDATE_IP_DHT,
                     "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,11,274,306,8
-    ICON            "",IDC_NETWORK_TEST_PORT_TCP_ICO,287,98,20,20,0,WS_EX_CLIENTEDGE
-    ICON            "",IDC_NETWORK_TEST_PORT_UDP_ICO,287,113,20,20,0,WS_EX_CLIENTEDGE
-    ICON            "",IDC_NETWORK_TEST_PORT_TLS_TCP_ICO,287,129,20,20,0,WS_EX_CLIENTEDGE
-    ICON            "",IDC_NETWORK_TEST_PORT_DHT_UDP_ICO,287,144,20,20,0,WS_EX_CLIENTEDGE
-    ICON            "",IDC_NETWORK_WINFIREWALL_ICO,173,135,21,20,0,WS_EX_CLIENTEDGE
+    ICON            "",IDC_NETWORK_TEST_PORT_TCP_ICO,287,98,20,20
+    ICON            "",IDC_NETWORK_TEST_PORT_UDP_ICO,287,113,20,20
+    ICON            "",IDC_NETWORK_TEST_PORT_TLS_TCP_ICO,287,129,20,20
+    ICON            "",IDC_NETWORK_TEST_PORT_DHT_UDP_ICO,287,144,20,20
+    ICON            "",IDC_NETWORK_WINFIREWALL_ICO,173,135,20,20
     LTEXT           "Windows firewall for FlylinkDC++ status",IDC_NETWORK_WINFIREWALL_STATUS,15,136,156,8,NOT WS_GROUP
     PUSHBUTTON      "Windows Firewall: FlylinkDC++ exception",IDC_ADD_FLYLINKDC_WINFIREWALL,11,149,151,14
 END
@@ -1586,8 +1588,8 @@ BEGIN
     GROUPBOX        "Router/ADSL Modem (this section only if you have such device)",IDC_WIZARD_NETA_ROUTER_TITLE,2,142,298,59
     LTEXT           "UPNP",IDC_WIZARD_NETA_UPNP,7,153,18,8
     ICON            "",IDC_WIZARD_NETA_UPNP_ICO,70,153,20,20
-    LTEXT           "If you have router or ADSL modem connected to network, you should setup it for FlylinkDC++. You must setup UPNP enabled on it, or make port forwarding.",IDC_WIZARD_NETA_ROUTER_STATIC,98,152,199,30
-    PUSHBUTTON      "Check UPNP",IDC_WIZARD_NETA_BTN_CHECKUPNP,7,165,81,14
+    LTEXT           "If you have router or ADSL modem connected to network, you should setup it for FlylinkDC++. You must setup UPnP enabled on it, or make port forwarding.",IDC_WIZARD_NETA_ROUTER_STATIC,98,152,199,30
+    PUSHBUTTON      "Check UPnP",IDC_WIZARD_NETA_BTN_CHECKUPNP,7,165,81,14
     PUSHBUTTON      "Setup Router",IDC_WIZARD_NETA_BTN_SETUPROUTER,7,182,285,14,WS_DISABLED
     PUSHBUTTON      "Test FlylinkDC++ network connections",IDC_WIZARD_NETA_BTN_TEST,127,205,171,14
     CONTROL         "Enable Internet incoming / outgoing connections (DHT)",IDC_WIZARD_NETA_USE_DHT,
@@ -1957,10 +1959,11 @@ BEGIN
     IDD_HASH_PROGRESS, DIALOG
     BEGIN
         LEFTMARGIN, 4
-        RIGHTMARGIN, 426
-        VERTGUIDE, 252
+        RIGHTMARGIN, 462
+        VERTGUIDE, 9
+        VERTGUIDE, 194
         TOPMARGIN, 7
-        BOTTOMMARGIN, 129
+        BOTTOMMARGIN, 124
     END
 
     IDD_POPUPS_PAGE, DIALOG

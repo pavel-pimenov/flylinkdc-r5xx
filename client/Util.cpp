@@ -1737,21 +1737,22 @@ tstring Util::CustomNetworkIndex::getDescription() const
 		const CFlyLocationDesc l_res =  CFlylinkDBManager::getInstance()->get_location_from_cache(m_location_cache_index);
 		return l_res.m_description;
 	}
-	else if (m_country_cache_index)
+	else if (m_country_cache_index > 0)
 	{
 		const CFlyLocationDesc l_res =  CFlylinkDBManager::getInstance()->get_country_from_cache(m_country_cache_index);
 		return l_res.m_description;
 	}
 	else
+	{
 		return Util::emptyStringT;
+	}
 }
 //======================================================================================================================================
 int16_t Util::CustomNetworkIndex::getFlagIndex() const
 {
 	if (m_location_cache_index > 0)
 	{
-		const CFlyLocationDesc l_res =  CFlylinkDBManager::getInstance()->get_location_from_cache(m_location_cache_index);
-		return l_res.m_flag_index;
+		return CFlylinkDBManager::getInstance()->get_location_index_from_cache(m_location_cache_index);
 	}
 	else
 	{
@@ -1759,12 +1760,11 @@ int16_t Util::CustomNetworkIndex::getFlagIndex() const
 	}
 }
 //======================================================================================================================================
-uint8_t Util::CustomNetworkIndex::getCountryIndex() const
+int16_t Util::CustomNetworkIndex::getCountryIndex() const
 {
-	if (m_country_cache_index)
+	if (m_country_cache_index > 0)
 	{
-		const CFlyLocationDesc l_res =  CFlylinkDBManager::getInstance()->get_country_from_cache(m_country_cache_index);
-		return l_res.m_flag_index;
+		return CFlylinkDBManager::getInstance()->get_country_index_from_cache(m_country_cache_index);
 	}
 	else
 	{
@@ -1776,7 +1776,7 @@ Util::CustomNetworkIndex Util::getIpCountry(uint32_t p_ip)
 {
 	if (p_ip)
 	{
-		uint8_t l_country_index = 0;
+		uint16_t l_country_index = 0;
 		if (!Util::isPrivateIp(p_ip))
 		{
 			CFlylinkDBManager::getInstance()->get_country(p_ip, l_country_index);
@@ -1793,7 +1793,7 @@ Util::CustomNetworkIndex Util::getIpCountry(uint32_t p_ip)
 		{
 			if (g_fly_server_config.isCollectLostLocation() && BOOLSETTING(AUTOUPDATE_CUSTOMLOCATION) && AutoUpdate::getInstance()->isUpdate())
 			{
-				// CFlylinkDBManager::getInstance()->save_lost_location(p_ip);
+				CFlylinkDBManager::getInstance()->save_lost_location(p_ip);
 			}
 		}
 #endif //FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION
@@ -2153,7 +2153,7 @@ bool Util::setRegistryValueString(const tstring& p_key, const tstring& p_value)
 	return status == ERROR_SUCCESS;
 }
 
-string Util::getExternalIP(const string& p_url, LONG p_timeOut /* = 500 */)
+string Util::getWANIP(const string& p_url, LONG p_timeOut /* = 500 */)
 {
 	CFlyLog l_log("[GetIP]");
 	string l_downBuf;

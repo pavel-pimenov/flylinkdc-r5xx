@@ -34,6 +34,7 @@ class Mapper_MiniUPnPc : public Mapper
 		
 		bool add(const unsigned short port, const Protocol protocol, const string& description);
 		bool remove(const unsigned short port, const Protocol protocol);
+		static void log_error(const int p_error_code, const char* p_name);
 		
 		uint32_t renewal() const
 		{

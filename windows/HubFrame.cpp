@@ -287,6 +287,8 @@ void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
 			const int fmt = (j == COLUMN_SHARED || j == COLUMN_EXACT_SHARED || j == COLUMN_SLOTS) ? LVCFMT_RIGHT : LVCFMT_LEFT;
 			ctrlUsers.InsertColumn(j, TSTRING_I(g_columnNames[j]), fmt, g_columnSizes[j], j); //-V107
 		}
+		ctrlUsers.setColumnOwnerDraw(COLUMN_GEO_LOCATION);
+		ctrlUsers.setColumnOwnerDraw(COLUMN_IP);
 		if (p_fhe)
 		{
 			WinUtil::splitTokens(g_columnIndexes, p_fhe->getHeaderOrder(), COLUMN_LAST);
@@ -2681,6 +2683,33 @@ void HubFrame::firstLoadAllUsers()
 	ctrlUsers.resort();
 	m_needsResort = false;
 }
+
+LRESULT HubFrame::onHubFrmCtlColor(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	const HWND hWnd = (HWND)lParam;
+	const HDC hDC = (HDC)wParam;
+	if (m_ctrlFilter && hWnd == m_ctrlFilter->m_hWnd)
+	{
+		/*
+		const auto l_length = m_ctrlFilter->GetWindowTextLength();
+		if (l_length > 0 && l_length < 2)   // HighLighting on control field only for 1 or 2 symbols !
+		{
+		    // Revert colors fore-back
+		    ::SetTextColor(hDC, SETTING(TEXT_SYSTEM_BACK_COLOR));
+		    ::SetBkColor(hDC, SETTING(TEXT_SYSTEM_FORE_COLOR));
+		}
+		else
+		*/
+		{
+			// Normal colors
+			::SetTextColor(hDC, SETTING(TEXT_SYSTEM_FORE_COLOR));
+			::SetBkColor(hDC, SETTING(TEXT_SYSTEM_BACK_COLOR));
+		}
+		return (LRESULT)Colors::bgBrush;
+	}
+	return BaseChatFrame::onCtlColor(uMsg, wParam, lParam, bHandled);
+}
+
 LRESULT HubFrame::onShowUsers(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 {
 	bHandled = FALSE;

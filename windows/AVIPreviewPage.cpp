@@ -49,7 +49,7 @@ LRESULT AVIPreview::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	SET_LIST_COLOR_IN_SETTING(ctrlCommands);
 	
 	// Do specialized reading here
-	PreviewApplication::List lst = FavoriteManager::getInstance()->getPreviewApps();
+	const PreviewApplication::List lst = FavoriteManager::getInstance()->getPreviewApps();
 	auto cnt = ctrlCommands.GetItemCount();
 	for (auto i = lst.cbegin(); i != lst.cend(); ++i)
 	{

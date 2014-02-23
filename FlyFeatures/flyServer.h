@@ -128,9 +128,6 @@ private:
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION
  bool     m_collect_lost_location;
 #endif
-#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION
- bool     m_collect_lost_location;
-#endif
  int8_t      m_zlib_compress_level;
  type_server   m_type;
  uint64_t m_min_file_size;
@@ -367,7 +364,8 @@ class CFlyServerAdapter
 			static bool pushTestPort(const string& p_magic,		
 				const std::vector<unsigned short>& p_udp_port,
 				const std::vector<unsigned short>& p_tcp_port,
-				string& p_external_ip);
+				string& p_external_ip,
+				int p_timer_value = 0);
 			
 			// TODO static void logout();
 			static string g_fly_server_id;

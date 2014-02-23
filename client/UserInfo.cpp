@@ -89,6 +89,12 @@ int UserInfo::compareItems(const UserInfo* a, const UserInfo* b, int col)
 			PROFILE_THREAD_SCOPED_DESC("COLUMN_IP")
 			return compare(a->getIdentity().getIp(), b->getIdentity().getIp());
 		}
+		case COLUMN_GEO_LOCATION:
+		{
+			const_cast<UserInfo*>(a)->calcLocation();
+			const_cast<UserInfo*>(b)->calcLocation();
+			return Util::DefaultSort(a->getText(col).c_str(), b->getText(col).c_str());
+		}
 	}
 	{
 		PROFILE_THREAD_SCOPED_DESC("COLUMN_DEFAULT")
@@ -228,9 +234,9 @@ void UserInfo::calcLocation()
 		{
 			setLocation(Util::getIpCountry(l_ip.to_ulong())); // TODO - отдать бустовский объект?
 		}
-		//else
-		//{
-		//  setLocation(Util::CustomNetworkIndex(0, 0));
-		//}
+		else
+		{
+			setLocation(Util::CustomNetworkIndex(0, 0));
+		}
 	}
 }

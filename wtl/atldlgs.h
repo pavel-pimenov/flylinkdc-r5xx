@@ -3070,7 +3070,7 @@ public:
 
 	INT MapDialogUnitsY(INT y) const
 	{
-		return ::MulDiv(y, m_sizeUnits.cx, 8);  // DLU to Pixels Y
+		return ::MulDiv(y, m_sizeUnits.cy, 8);  // DLU to Pixels Y
 	}
 
 	POINT MapDialogUnits(POINT pt) const

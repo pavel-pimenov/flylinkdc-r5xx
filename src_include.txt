@@ -20,7 +20,6 @@ Tools\*.exe
 GdiOle
 FlyFeatures
 openssl
-openssl\lib\*.lib
 MediaInfoLib
 Zenlib
 miniupnpc

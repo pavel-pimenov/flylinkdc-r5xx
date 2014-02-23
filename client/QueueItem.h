@@ -21,10 +21,20 @@
 
 #include "Segment.h"
 #include "HintedUser.h"
+#include "webrtc/system_wrappers/interface/rw_lock_wrapper.h"
 
 static const string TEMP_EXTENSION = "dctmp";
 
 class QueueManager;
+
+#ifdef FLYLINKDC_USE_RWLOCK
+#define RLock webrtc::ReadLockScoped
+#define WLock webrtc::WriteLockScoped
+#else
+#define RLock Lock
+#define WLock Lock
+#endif
+
 
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 class QueueItemDelegate
@@ -174,7 +184,11 @@ class QueueItem : public Flags,
 		void getOnlineUsers(UserList& l) const;
 		
 		// [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
-		static SharedCriticalSection cs;
+#ifdef FLYLINKDC_USE_RWLOCK
+		static std::unique_ptr<webrtc::RWLockWrapper> g_cs;
+#else
+		static std::unique_ptr<CriticalSection> g_cs;
+#endif
 		// [~]
 		
 		SourceMap& getSourcesL() // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
@@ -263,7 +277,7 @@ class QueueItem : public Flags,
 		/* [-] IRainman no needs! Please lock fully consciously!
 		uint64_t calcAverageSpeedAndDownloadedBytes() const
 		{
-		    SharedLock l(cs);
+		    RLock l(*QueueItem::g_cs);
 		    return calcAverageSpeedAndDownloadedBytesL();
 		}
 		[-] */
@@ -290,7 +304,7 @@ class QueueItem : public Flags,
 		bool removeDownloadL(const UserPtr& p_user);
 		size_t getDownloadsSegmentCount() const
 		{
-			// SharedLock l(cs); [!] IRainman opt: no needs for dqueue.
+			// RLock l(*QueueItem::g_cs);
 			return m_downloads.size();
 		}
 		
@@ -300,7 +314,7 @@ class QueueItem : public Flags,
 		void addSegmentL(const Segment& segment);
 		void resetDownloaded()
 		{
-			UniqueLock l(cs); // [+] IRainman fix.
+			WLock l(*g_cs);
 			done.clear();
 		}
 		
@@ -316,7 +330,7 @@ class QueueItem : public Flags,
 		bool isWaitingL() const
 		{
 			// TODO https://code.google.com/p/flylinkdc/issues/detail?id=1081
-			//SharedLock l(cs); // [+] IRainman fix.
+			//RLock l(*QueueItem::g_cs);
 			return m_downloads.empty();
 		}
 		

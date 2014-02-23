@@ -25,7 +25,7 @@
 
 #ifdef PPA_INCLUDE_IPFILTER
 
-#include <Winsock2.h>
+#include <winsock2.h>
 
 #include "iplist.h"
 #include "Util.h"

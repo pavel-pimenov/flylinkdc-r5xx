@@ -22,12 +22,6 @@
 #include <sys/syslimits.h>
 #endif
 
-#ifdef IRAINMAN_USE_SEPARATE_CS_IN_QUEUE_MANAGER
-#ifndef IRAINMAN_USE_SHARED_SPIN_LOCK
-#error You can not include a directive IRAINMAN_USE_SEPARATE_CS_IN_QUEUE_MANAGER without the inclusion directive IRAINMAN_USE_SHARED_SPIN_LOCK because it will lead to deadlocks!
-#endif
-#endif
-
 #include <boost/range/adaptor/map.hpp>
 #include <boost/range/algorithm/for_each.hpp>
 #include "QueueManager.h"
@@ -74,11 +68,14 @@ class DirectoryItem
 		const UserPtr m_user;
 };
 
+#ifdef FLYLINKDC_USE_RWLOCK
+std::unique_ptr<webrtc::RWLockWrapper> QueueManager::FileQueue::g_csFQ = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+#else
+std::unique_ptr<CriticalSection> QueueManager::FileQueue::g_csFQ = std::unique_ptr<CriticalSection>(new CriticalSection);
+#endif
+
 
 QueueManager::FileQueue::FileQueue()
-#ifndef IRAINMAN_USE_SEPARATE_CS_IN_QUEUE_MANAGER
-	: csFQ(QueueItem::cs)
-#endif
 {
 	SettingsManager::getInstance()->addListener(this);
 }
@@ -87,7 +84,7 @@ QueueManager::FileQueue::~FileQueue()
 {
 	SettingsManager::getInstance()->removeListener(this);
 	
-	UniqueLock l(csFQ); // [+] IRainman fix. http://code.google.com/p/flylinkdc/issues/detail?id=1121
+	WLock l_lock_fq(*g_csFQ); // [+] IRainman fix. http://code.google.com/p/flylinkdc/issues/detail?id=1121
 	for (auto i = m_queue.cbegin(); i != m_queue.cend(); ++i)
 	{
 		i->second->dec();
@@ -166,14 +163,14 @@ QueueItemPtr QueueManager::FileQueue::add(const string& aTarget, int64_t aSize,
 
 void QueueManager::FileQueue::add(const QueueItemPtr& qi) // [!] IRainman fix.
 {
-	UniqueLock l(csFQ); // [+] IRainman fix.
+	WLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
 	m_queue.insert(make_pair(const_cast<string*>(&qi->getTarget()), qi));
 }
 
 void QueueManager::FileQueue::remove(const QueueItemPtr& qi) // [!] IRainman fix.
 {
 	{
-		UniqueLock l(csFQ); // [+] IRainman fix.
+		WLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
 		m_queue.erase(const_cast<string*>(&qi->getTarget()));
 	}
 	const auto l_id = qi->getFlyQueueID();
@@ -184,7 +181,7 @@ void QueueManager::FileQueue::remove(const QueueItemPtr& qi) // [!] IRainman fix
 
 void QueueManager::FileQueue::find(QueueItemList& sl, int64_t aSize, const string& suffix) const
 {
-	SharedLock l(csFQ); // [+] IRainman fix.
+	RLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
 	for (auto i = m_queue.cbegin(); i != m_queue.cend(); ++i)
 	{
 		if (i->second->getSize() == aSize)
@@ -199,7 +196,7 @@ void QueueManager::FileQueue::find(QueueItemList& sl, int64_t aSize, const strin
 
 void QueueManager::FileQueue::find(QueueItemList& ql, const TTHValue& tth) const
 {
-	SharedLock l(csFQ); // [+] IRainman fix.
+	RLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
 	for (auto i = m_queue.cbegin(); i != m_queue.cend(); ++i)
 	{
 		const QueueItemPtr& qi = i->second;
@@ -212,7 +209,7 @@ void QueueManager::FileQueue::find(QueueItemList& ql, const TTHValue& tth) const
 
 QueueItemPtr QueueManager::FileQueue::find(const TTHValue& tth) const // [+] IRainman opt.
 {
-	SharedLock l(csFQ);
+	RLock l_lock_fq(*g_csFQ);
 	for (auto i = m_queue.cbegin(); i != m_queue.cend(); ++i)
 	{
 		const QueueItemPtr& qi = i->second;
@@ -226,7 +223,7 @@ QueueItemPtr QueueManager::FileQueue::find(const TTHValue& tth) const // [+] IRa
 
 bool QueueManager::FileQueue::isQueueItem(const TTHValue& tth) const // [+] IRainman opt.
 {
-	SharedLock l(csFQ);
+	RLock l_lock_fq(*g_csFQ);
 	for (auto i = m_queue.cbegin(); i != m_queue.cend(); ++i)
 	{
 		const QueueItemPtr& qi = i->second;
@@ -286,10 +283,8 @@ static QueueItemPtr findCandidateL(const QueueItem::QIStringMap::const_iterator&
 
 QueueItemPtr QueueManager::FileQueue::findAutoSearch(deque<string>& recent) const // [!] IRainman fix.
 {
-	UniqueLock l(QueueItem::cs); // [+] IRainman fix.
-#ifdef IRAINMAN_USE_SEPARATE_CS_IN_QUEUE_MANAGER
-	SharedLock ll(csFQ); // [+] IRainman fix.
-#endif
+	WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+	RLock l_lock_fq(*g_csFQ);
 	dcassert(!m_queue.empty()); // https://crash-server.com/Problem.aspx?ProblemID=32091
 	// http://code.google.com/p/flylinkdc/issues/detail?id=1121
 	// We pick a start position at random, hoping that we will find something to search for...
@@ -324,7 +319,7 @@ QueueItemPtr QueueManager::FileQueue::findAutoSearch(deque<string>& recent) cons
 void QueueManager::FileQueue::move(const QueueItemPtr& qi, const string& aTarget)
 {
 	{
-		UniqueLock l(csFQ); // [+] IRainman fix.
+		WLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
 		m_queue.erase(const_cast<string*>(&qi->getTarget()));
 	}
 	qi->dec(); // [+] IRainman fix.
@@ -336,7 +331,7 @@ void QueueManager::FileQueue::move(const QueueItemPtr& qi, const string& aTarget
 bool QueueManager::UserQueue::userIsDownloadedFiles(const UserPtr& aUser, QueueItemList& p_status_update_array)
 {
 	bool hasDown = false;
-	SharedLock l(QueueItem::cs); // [!] IRainman fix. DeadLock[3]
+	RLock l(*QueueItem::g_cs); // [!] IRainman fix. DeadLock[3]
 	for (size_t i = 0; i < QueueItem::LAST; ++i)
 	{
 		const auto j = m_userQueue[i].find(aUser);
@@ -351,15 +346,13 @@ bool QueueManager::UserQueue::userIsDownloadedFiles(const UserPtr& aUser, QueueI
 }
 #endif // IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
 
-void QueueManager::UserQueue::add(const QueueItemPtr& qi) // [!] IRainman fix.
+void QueueManager::UserQueue::addL(const QueueItemPtr& qi) // [!] IRainman fix.
 {
-	UniqueLock lqi(QueueItem::cs); // [+] IRainman fix.
 	for (auto i = qi->getSourcesL().cbegin(); i != qi->getSourcesL().cend(); ++i)
 	{
 		addL(qi, i->first, false);
 	}
 }
-
 void QueueManager::UserQueue::addL(const QueueItemPtr& qi, const UserPtr& aUser, bool p_is_first_load) // [!] IRainman fix.
 {
 	auto& uq = m_userQueue[qi->getPriority()][aUser];
@@ -379,7 +372,7 @@ void QueueManager::UserQueue::addL(const QueueItemPtr& qi, const UserPtr& aUser,
 
 bool QueueManager::FileQueue::getTTH(const string& p_name, TTHValue& p_tth) const
 {
-	SharedLock l(csFQ);
+	RLock l_lock_fq(*g_csFQ);
 	auto i = m_queue.find(const_cast<string*>(&p_name));
 	if (i != m_queue.cend())
 	{
@@ -390,7 +383,7 @@ bool QueueManager::FileQueue::getTTH(const string& p_name, TTHValue& p_tth) cons
 }
 QueueItemPtr QueueManager::FileQueue::find(const string& p_target) const // [!] IRainman fix.
 {
-	SharedLock l(csFQ); // [+] IRainman fix.
+	RLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
 	auto i = m_queue.find(const_cast<string*>(&p_target)); // TODO - fix http://code.google.com/p/flylinkdc/issues/detail?id=1246
 	if (i != m_queue.cend())
 		return i->second;
@@ -505,7 +498,7 @@ void QueueManager::FileQueue::getUserSettingsPriority(const string& target, Queu
 size_t QueueManager::FileQueue::getRunningFileCount(const size_t p_stop_key) const
 {
 	size_t l_cnt = 0;
-	SharedLock l(csFQ); // [+] IRainman fix.
+	RLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
 	for (auto i = m_queue.cbegin(); i != m_queue.cend(); ++i)
 	{
 		const QueueItemPtr& q = i->second;
@@ -528,10 +521,8 @@ size_t QueueManager::FileQueue::getRunningFileCount(const size_t p_stop_key) con
 
 void QueueManager::FileQueue::calcPriorityAndGetRunningFiles(QueueItem::PriorityArray& p_changedPriority, QueueItemList& p_runningFiles)
 {
-#ifdef IRAINMAN_USE_SEPARATE_CS_IN_QUEUE_MANAGER
-	SharedLock l(QueueItem::cs);
-#endif
-	SharedLock ll(csFQ); // [+] IRainman fix.
+	RLock l(*QueueItem::g_cs);
+	RLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
 	for (auto i = m_queue.cbegin(); i != m_queue.cend(); ++i)
 	{
 		const QueueItemPtr& q = i->second;
@@ -562,10 +553,10 @@ bool QueueManager::UserQueue::removeDownloadL(const QueueItemPtr& qi, const User
 
 void QueueManager::UserQueue::setQIPriority(const QueueItemPtr& qi, QueueItem::Priority p) // [!] IRainman fix.
 {
-	UniqueLock l(QueueItem::cs); // [+] IRainamn fix.
+	WLock l(*QueueItem::g_cs); // [+] IRainamn fix.
 	removeQueueItemL(qi, false);
 	qi->setPriority(p); // TODO для установки приоритета - нужно удалить и снова добавить запись в контейнер? - это зовется очень часто
-	add(qi);
+	addL(qi);
 }
 
 QueueItemPtr QueueManager::UserQueue::getRunningL(const UserPtr& aUser) // [!] IRainman fix.
@@ -789,7 +780,7 @@ void QueueManager::Rechecker::execute(const string& p_file) // [!] IRainman core
 	}
 	
 	{
-		UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+		WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 		for (auto i = sizes.cbegin(); i != sizes.cend(); ++i)
 		{
 			q->addSegmentL(Segment(i->first, i->second));
@@ -868,7 +859,7 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 	
 	{
 		PFSSourceList sl;
-		SharedLock l(QueueItem::cs); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1236
+		RLock l(*QueueItem::g_cs); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1236
 		//find max 10 pfs sources to exchange parts
 		//the source basis interval is 5 minutes
 		fileQueue.findPFSSourcesL(sl);
@@ -1137,7 +1128,7 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& roo
 			// [!] IRainman fix.
 			bool isFinished;
 			{
-				SharedLock l(QueueItem::cs); // [+]
+				RLock l(*QueueItem::g_cs); // [+]
 				isFinished = q->isFinishedL();
 			}
 			if (isFinished)
@@ -1150,7 +1141,7 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& roo
 		}
 		if (aUser)
 		{
-			UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+			WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 			l_wantConnection = addSourceL(q, aUser, (Flags::MaskType)(addBad ? QueueItem::Source::FLAG_MASK : 0));
 		}
 		else
@@ -1179,7 +1170,7 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& roo
 
 void QueueManager::readdAll(const QueueItemPtr& q) throw(QueueException) // [+] IRainman opt.
 {
-	UniqueLock l(QueueItem::cs);
+	WLock l(*QueueItem::g_cs);
 	const auto& badSources = q->getBadSourcesL();
 	for (auto s = badSources.cbegin(); s != badSources.cend(); ++s)
 	{
@@ -1196,7 +1187,7 @@ void QueueManager::readd(const string& target, const UserPtr& aUser) throw(Queue
 	{
 		// [-] Lock l(cs); [-] IRainman fix.
 		QueueItemPtr q = fileQueue.find(target);
-		UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+		WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 		if (q && q->isBadSourceL(aUser))
 		{
 			wantConnection = addSourceL(q, aUser, QueueItem::Source::FLAG_MASK);
@@ -1265,7 +1256,7 @@ bool QueueManager::addSourceL(const QueueItemPtr& qi, const UserPtr& aUser, Flag
 	dcassert(aUser); // [!] IRainman fix: Unable to add a source if the user is empty! Check your code!
 	bool wantConnection;
 	{
-		// [-] UniqueLock l(QueueItem::cs); // [-] IRainman fix.
+		// [-] WLock l(*QueueItem::g_cs); // [-] IRainman fix.
 		
 		//dcassert(p_is_first_load == true && !userQueue.getRunningL(aUser) || p_is_first_load == false);
 		if (p_is_first_load)
@@ -1358,7 +1349,7 @@ void QueueManager::addDirectory(const string& aDir, const UserPtr& aUser, const 
 
 QueueItem::Priority QueueManager::hasDownload(const UserPtr& aUser) noexcept
 {
-	UniqueLock l(QueueItem::cs); // [!] IRainman fix.
+	WLock l(*QueueItem::g_cs); // [!] IRainman fix.
 	QueueItemPtr qi = userQueue.getNextL(aUser, QueueItem::LOWEST);
 	if (!qi)
 	{
@@ -1401,10 +1392,8 @@ int QueueManager::matchListing(const DirectoryListing& dl) noexcept
 		buildMap(dl.getRoot(), l_tthMap); // [!]
 		dcassert(!l_tthMap.empty());
 		{
-			UniqueLock l(QueueItem::cs);
-#ifdef IRAINMAN_USE_SEPARATE_CS_IN_QUEUE_MANAGER
-			SharedLock ll(fileQueue.csFQ);
-#endif
+			WLock l(*QueueItem::g_cs);
+			RLock l_lock_fq(*fileQueue.g_csFQ);
 			// [~] IRainman fix.
 			for (auto i = fileQueue.getQueueL().cbegin(); i != fileQueue.getQueueL().cend(); ++i)
 			{
@@ -1557,7 +1546,7 @@ void QueueManager::move(const string& aSource, const string& aTarget) noexcept
 				return; // TODO спросить юзера!
 				
 			{
-				UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+				WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 				for (auto i = qs->getSourcesL().cbegin(); i != qs->getSourcesL().cend(); ++i)
 				{
 					try
@@ -1583,7 +1572,7 @@ void QueueManager::move(const string& aSource, const string& aTarget) noexcept
 
 bool QueueManager::getQueueInfo(const UserPtr& aUser, string& aTarget, int64_t& aSize, int& aFlags) noexcept
 {
-	UniqueLock l(QueueItem::cs); // [!] IRainman fix.
+	WLock l(*QueueItem::g_cs); // [!] IRainman fix.
 	const QueueItemPtr qi = userQueue.getNextL(aUser);
 	if (!qi)
 		return false;
@@ -1629,7 +1618,7 @@ Download* QueueManager::getDownload(UserConnection& aSource, string& aMessage) n
 	Download* d;
 	QueueItemPtr q;
 	{
-		UniqueLock l(QueueItem::cs); // [+] IRainman fix. // TOOD Dead lock [3] https://code.google.com/p/flylinkdc/issues/detail?id=1028
+		WLock l(*QueueItem::g_cs); // [+] IRainman fix. // TOOD Dead lock [3] https://code.google.com/p/flylinkdc/issues/detail?id=1028
 		
 		q = userQueue.getNextL(u, QueueItem::LOWEST, aSource.getChunkSize(), aSource.getSpeed(), true);
 		
@@ -1716,8 +1705,6 @@ void QueueManager::setFile(Download* d)
 {
 	if (d->getType() == Transfer::TYPE_FILE)
 	{
-		// [-] ReadLock lfq(fileQueue.csFQ); // [-] IRainman fix.
-		
 		QueueItemPtr qi = fileQueue.find(d->getPath());
 		if (!qi)
 		{
@@ -1730,7 +1717,7 @@ void QueueManager::setFile(Download* d)
 			
 			bool found = false;
 			// ok, we got a fast slot, so it's possible to disconnect original user now
-			SharedLock l(QueueItem::cs); // [+] IRainman fix.
+			RLock l(*QueueItem::g_cs); // [+] IRainman fix.
 			for (auto i = qi->getDownloadsL().cbegin(); i != qi->getDownloadsL().cend(); ++i)
 			{
 				const auto& j = i->second;
@@ -1868,7 +1855,7 @@ void QueueManager::moveStuckFile(const QueueItemPtr& qi)
 	moveFile(qi->getTempTarget(), qi->getTarget());
 	
 	{
-		UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+		WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 		if (qi->isFinishedL())
 		{
 			userQueue.removeQueueItemL(qi);
@@ -1885,7 +1872,7 @@ void QueueManager::moveStuckFile(const QueueItemPtr& qi)
 	else
 	{
 		{
-			UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+			WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 			qi->addSegmentL(Segment(0, qi->getSize()));
 		}
 		fire(QueueManagerListener::StatusUpdated(), qi);
@@ -1915,7 +1902,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 	bool downloadList = false;
 	
 	{
-		// [-] UniqueLock l(QueueItem::cs); // [-] IRainman fix.
+		// [-] WLock l(*QueueItem::g_cs); // [-] IRainman fix.
 		
 		OutputStream* l_file = aDownload->getFile();
 		if (l_file != nullptr) // [+] IRainman fix.
@@ -1969,7 +1956,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 				fire(QueueManagerListener::Removed(), q);
 				
 				{
-					UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+					WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 					userQueue.removeQueueItemL(q);
 				}
 				
@@ -2004,7 +1991,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 						HashManager::getInstance()->addTree(aDownload->getTigerTree());
 						
 						{
-							UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+							WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 							userQueue.removeDownloadL(q, aDownload->getUser()); // [!] IRainman fix.
 						}
 						
@@ -2026,7 +2013,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 							dir = q->getTempTarget();
 							
 							{
-								UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+								WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 								q->addSegmentL(Segment(0, q->getSize()));
 							}
 						}
@@ -2035,7 +2022,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 							aDownload->setOverlapped(false);
 							
 							{
-								UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+								WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 								q->addSegmentL(aDownload->getSegment());
 							}
 						}
@@ -2044,7 +2031,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 						bool isFinishedFile;
 						if (isFile)
 						{
-							SharedLock l(QueueItem::cs); // [+] IRainman fix.
+							RLock l(*QueueItem::g_cs); // [+] IRainman fix.
 							isFinishedFile = q->isFinishedL();
 						}
 						else
@@ -2059,7 +2046,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 								UploadManager::getInstance()->abortUpload(q->getTempTarget());
 								
 								{
-									UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+									WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 									// Disconnect all possible overlapped downloads
 									for (auto i = q->getDownloadsL().cbegin(); i != q->getDownloadsL().cend(); ++i)
 									{
@@ -2091,7 +2078,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 							fire(QueueManagerListener::Finished(), q, dir, aDownload);
 							
 							{
-								UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+								WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 								if (q->isSet(QueueItem::FLAG_USER_LIST)) // [<-] IRainman fix: moved form MainFrame to core.
 								{
 									// [!] IRainman fix: please always match listing without hint!
@@ -2119,7 +2106,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 						else
 						{
 							{
-								UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+								WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 								userQueue.removeDownloadL(q, aDownload->getUser()); // [!] IRainman fix.
 							}
 							
@@ -2137,7 +2124,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 					{
 						bool isEmpty;
 						{
-							SharedLock l(QueueItem::cs); // [+] IRainman fix.
+							RLock l(*QueueItem::g_cs); // [+] IRainman fix.
 							isEmpty = q->calcAverageSpeedAndCalcAndGetDownloadedBytesL() == 0;
 						}
 						if (isEmpty)
@@ -2161,7 +2148,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 								dcassert(downloaded < aDownload->getSize());
 								
 								{
-									UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+									WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 									q->addSegmentL(Segment(aDownload->getStartPos(), downloaded));
 								}
 								
@@ -2176,7 +2163,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 					}
 					
 					{
-						UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+						WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 						userQueue.removeDownloadL(q, aDownload->getUser()); // [!] IRainman fix.
 					}
 					
@@ -2185,7 +2172,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 					if (aDownload->isSet(Download::FLAG_OVERLAP))
 					{
 						// overlapping segment disconnected, unoverlap original segment
-						UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+						WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 						q->setOverlappedL(aDownload->getSegment(), false); // [!] IRainman fix.
 					}
 				}
@@ -2292,9 +2279,9 @@ void QueueManager::remove(const string& aTarget) noexcept
 			
 		if (q->isSet(QueueItem::FLAG_DIRECTORY_DOWNLOAD))
 		{
-			SharedLock ll(QueueItem::cs); // [+] IRainman fix.
+			RLock l(*QueueItem::g_cs); // [+] IRainman fix.
 			dcassert(q->getSourcesL().size() == 1);
-			FastLock l(csDirectories); // [+] IRainman fix.
+			FastLock l_lock(csDirectories); // [+] IRainman fix.
 			for_each(directories.equal_range(q->getSourcesL().begin()->first) | map_values, DeleteFunction()); // Мутное место
 			directories.erase(q->getSourcesL().begin()->first);
 		}
@@ -2304,7 +2291,7 @@ void QueueManager::remove(const string& aTarget) noexcept
 		
 		if (q->isRunningL())
 		{
-			SharedLock l(QueueItem::cs); // [+] IRainman fix.
+			RLock l(*QueueItem::g_cs); // [+] IRainman fix.
 			const auto& d = q->getDownloadsL();
 			for (auto i = d.cbegin(); i != d.cend(); ++i)
 			{
@@ -2319,7 +2306,7 @@ void QueueManager::remove(const string& aTarget) noexcept
 		fire(QueueManagerListener::Removed(), q);
 		
 		{
-			UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+			WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 			if (!q->isFinishedL())
 			{
 				userQueue.removeQueueItemL(q);
@@ -2342,7 +2329,7 @@ void QueueManager::removeSource(const string& aTarget, const UserPtr& aUser, Fla
 	bool removeCompletely = false;
 	do
 	{
-		UniqueLock l(QueueItem::cs); // [!] IRainman fix.
+		WLock l(*QueueItem::g_cs); // [!] IRainman fix.
 		QueueItemPtr q = fileQueue.find(aTarget);
 		if (!q)
 			return;
@@ -2399,7 +2386,7 @@ void QueueManager::removeSource(const UserPtr& aUser, Flags::MaskType reason) no
 		// [!] IRainman fix.
 		// [-] Lock l(cs);
 		QueueItemPtr qi;
-		UniqueLock l(QueueItem::cs);
+		WLock l(*QueueItem::g_cs);
 		// [~] IRainman fix.
 		while ((qi = userQueue.getNextL(aUser, QueueItem::PAUSED)) != nullptr)
 		{
@@ -2459,7 +2446,7 @@ void QueueManager::setPriority(const string& aTarget, QueueItem::Priority p) noe
 		{
 			bool isFinished;
 			{
-				SharedLock l(QueueItem::cs); // [+] IRainman fix.
+				RLock l(*QueueItem::g_cs); // [+] IRainman fix.
 				isFinished = q->isFinishedL();
 			}
 			if (!isFinished)
@@ -2530,10 +2517,8 @@ void QueueManager::saveQueue(bool force) noexcept
 	//l_log.step("save data to DB");
 	// [-] Lock l(cs); [-] IRainman fix.
 	{
-		SharedLock lcs(QueueItem::cs); // TODO после исправления дедлока - убрать данную блокировку. https://code.google.com/p/flylinkdc/issues/detail?id=1028
-#ifdef IRAINMAN_USE_SEPARATE_CS_IN_QUEUE_MANAGER
-		SharedLock lfq(fileQueue.csFQ); // [+] IRainman fix.
-#endif
+		RLock l(*QueueItem::g_cs); // TODO после исправления дедлока - убрать данную блокировку. https://code.google.com/p/flylinkdc/issues/detail?id=1028
+		RLock l_lock_fq(*fileQueue.g_csFQ);
 		for (auto i = fileQueue.getQueueL().begin(); i != fileQueue.getQueueL().end(); ++i)
 		{
 			auto& qi  = i->second;
@@ -2663,7 +2648,7 @@ void QueueLoader::startTag(const string& name, StringPairList& attribs, bool sim
 				if (downloaded > 0)
 				{
 					{
-						UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+						WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 						qi->addSegmentL(Segment(0, downloaded));
 					}
 					qi->setPriority(qi->calculateAutoPriority());
@@ -2686,7 +2671,7 @@ void QueueLoader::startTag(const string& name, StringPairList& attribs, bool sim
 			if (size > 0 && start >= 0 && (start + size) <= cur->getSize())
 			{
 				{
-					UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+					WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 					cur->addSegmentL(Segment(start, size));
 				}
 				cur->setPriority(cur->calculateAutoPriority());
@@ -2713,7 +2698,7 @@ void QueueLoader::startTag(const string& name, StringPairList& attribs, bool sim
 			bool wantConnection;
 			try
 			{
-				UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+				WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 				wantConnection = qm->addSourceL(cur, user, 0) && user->isOnline();
 			}
 			catch (const Exception&)
@@ -2766,7 +2751,7 @@ void QueueManager::on(SearchManagerListener::SR, const SearchResultPtr& sr) noex
 		
 		if (!matches.empty()) // [+] IRainman opt.
 		{
-			UniqueLock l(QueueItem::cs); // [!] http://code.google.com/p/flylinkdc/issues/detail?id=1082
+			WLock l(*QueueItem::g_cs); // [!] http://code.google.com/p/flylinkdc/issues/detail?id=1082
 			for (auto i = matches.cbegin(); i != matches.cend(); ++i)
 			{
 				const QueueItemPtr& qi = *i;
@@ -2826,7 +2811,7 @@ void QueueManager::on(ClientManagerListener::UserConnected, const UserPtr& aUser
 #ifdef IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
 	bool hasDown = false;
 	{
-		SharedLock l(QueueItem::cs); // [!] IRainman fix.
+		RLock l(*QueueItem::g_cs); // [!] IRainman fix.
 		for (size_t i = 0; i < QueueItem::LAST; ++i)
 		{
 			const auto j = userQueue.getListL(i).find(aUser);
@@ -2854,7 +2839,7 @@ void QueueManager::on(ClientManagerListener::UserConnected, const UserPtr& aUser
 void QueueManager::on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) noexcept
 {
 #ifdef IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
-	SharedLock l(QueueItem::cs); // [!] IRainman fix.
+	RLock l(*QueueItem::g_cs); // [!] IRainman fix.
 	for (size_t i = 0; i < QueueItem::LAST; ++i)
 	{
 		const auto j = userQueue.getListL(i).find(aUser);
@@ -2906,7 +2891,7 @@ bool QueueManager::dropSource(Download* d)
 	bool   allowDropSource;
 	uint64_t overallSpeed;
 	{
-		SharedLock l(QueueItem::cs); // [!] IRainman fix.
+		RLock l(*QueueItem::g_cs); // [!] IRainman fix.
 		
 		QueueItemPtr q = userQueue.getRunningL(d->getUser());
 		
@@ -2989,7 +2974,7 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 		QueueItemPtr qi = ql.front();
 #endif // IRAINMAN_FASTS_QUEUE_MANAGER
 			
-		UniqueLock l(QueueItem::cs); // [+] IRainman fix.
+		WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 		
 		// don't add sources to finished files
 		// this could happen when "Keep finished files in queue" is enabled
@@ -3081,7 +3066,7 @@ bool QueueManager::handlePartialSearch(const TTHValue& tth, PartsInfo& _outParts
 			return false;
 		}
 		
-		SharedLock l(QueueItem::cs); // [+] IRainman fix.
+		RLock l(*QueueItem::g_cs); // [+] IRainman fix.
 		
 		// don't share when file does not exist
 		if (!File::isExist(qi->isFinishedL() ? qi->getTarget() : qi->getTempTarget()))
@@ -3102,10 +3087,7 @@ void QueueManager::FileQueue::findPFSSourcesL(PFSSourceList& sl)
 #endif
 	const uint64_t now = GET_TICK();
 	// http://code.google.com/p/flylinkdc/issues/detail?id=1121
-#ifdef IRAINMAN_USE_SEPARATE_CS_IN_QUEUE_MANAGER
-	SharedLock l(csFQ); // [+] IRainman fix.
-#endif
-	
+	RLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
 	for (auto i = m_queue.cbegin(); i != m_queue.cend(); ++i)
 	{
 		const auto& q = i->second;
@@ -3167,10 +3149,8 @@ TTHValue* QueueManager::FileQueue::findPFSPubTTH()
 {
 	const uint64_t now = GET_TICK();
 	QueueItemPtr cand;
-#ifdef IRAINMAN_USE_SEPARATE_CS_IN_QUEUE_MANAGER
-	SharedLock ll(QueueItem::cs);
-#endif
-	SharedLock l(csFQ); // [+] IRainman fix.
+	RLock l(*QueueItem::g_cs);
+	RLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
 	
 	for (auto i = m_queue.cbegin(); i != m_queue.cend(); ++i)
 	{

@@ -516,12 +516,10 @@ public:
 	
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 	{
-#ifdef _DEBUG
 		T* pT = static_cast<T*>(this);
 		ATLASSERT(t_bModal == pT->m_bModal);
-#endif
-		StdPlatformInit();
-		StdShidInit();
+		pT->StdPlatformInit();
+		pT->StdShidInit();
 		return bHandled = FALSE;
 	}
 };
@@ -678,13 +676,11 @@ public:
 
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 	{
-#ifdef _DEBUG
 		T* pT = static_cast<T*>(this);
 		ATLASSERT(t_bModal == pT->m_bModal);
-#endif
-		StdPlatformInit();
-		DlgResize_Init(FALSE);
-		StdShidInit();
+		pT->StdPlatformInit();
+		pT->DlgResize_Init(FALSE);
+		pT->StdShidInit();
 		return bHandled = FALSE;
 	}
 };
@@ -742,9 +738,10 @@ public:
 
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 	{
-		StdPlatformInit();
-		DlgResize_Init(FALSE);
-		StdShidInit();
+		T* pT = static_cast<T*>(this);
+		pT->StdPlatformInit();
+		pT->DlgResize_Init(FALSE);
+		pT->StdShidInit();
 		return bHandled = FALSE;
 	}
 };
@@ -785,7 +782,7 @@ public:
 		ATLASSERT(pT->IsWindow());
 		if (wParam == SETTINGCHANGE_RESET)
 		{
-			SetOrientation(DRA::GetDisplayMode());
+			pT->SetOrientation(DRA::GetDisplayMode());
 			pT->StdPlatformInit();
 			pT->StdShidInit();
 		}
@@ -823,7 +820,7 @@ public:
 		ATLASSERT(t_bModal == pT->m_bModal);
 #endif
 		if (DRA::GetDisplayMode() == DRA::Landscape)
-			SetOrientation(DRA::Landscape);
+			pT->SetOrientation(DRA::Landscape);
 		pT->StdPlatformInit();
 		pT->StdShidInit();
 		return bHandled = FALSE;

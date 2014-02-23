@@ -1073,7 +1073,7 @@ class Util
 		static bool setRegistryValueString(const tstring& p_key, const tstring& p_value);
 		static bool deleteRegistryValue(const tstring& p_value);
 		
-		static string getExternalIP(const string& p_url, LONG p_timeOut = 500);
+		static string getWANIP(const string& p_url, LONG p_timeOut = 500);
 		
 		static size_t getDataFromInet(LPCWSTR agent, const DWORD frameBufferSize, const string& url, string& data, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
 		static uint64_t getBinaryDataFromInet(LPCWSTR agent, const DWORD frameBufferSize, const string& url, std::vector<byte>& p_dataOut, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
@@ -1178,31 +1178,27 @@ class Util
 			public:
 				explicit CustomNetworkIndex() :
 					m_location_cache_index(-1),
-					m_country_cache_index(0)
+					m_country_cache_index(-1)
 				{
 				}
-				explicit CustomNetworkIndex(int16_t p_location_cache_index, uint8_t p_country_cache_index) :
+				explicit CustomNetworkIndex(int16_t p_location_cache_index, int16_t p_country_cache_index) :
 					m_location_cache_index(p_location_cache_index),
 					m_country_cache_index(p_country_cache_index)
 				{
 				}
 				bool isNew() const
 				{
-					return m_location_cache_index == -1;
+					return m_location_cache_index == -1 && m_country_cache_index == -1;
 				}
-				//bool isSet() const
-				//{
-				//  return m_location_cache_index > 0;
-				//}
 				bool isKnown() const
 				{
-					return m_location_cache_index > 0 || m_country_cache_index;
+					return m_location_cache_index > 0 || m_country_cache_index > 0 ;
 				}
 				tstring getDescription() const;
 				int16_t getFlagIndex() const;
-				uint8_t getCountryIndex() const;
+				int16_t  getCountryIndex() const;
 			private:
-				uint8_t m_country_cache_index;
+				int16_t  m_country_cache_index;
 				int32_t m_location_cache_index;
 		};
 		

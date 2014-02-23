@@ -29,14 +29,15 @@
 class ColumnInfo
 {
 	public:
-		ColumnInfo(const tstring &aName, int aPos, int aFormat, int aWidth): name(aName), pos(aPos), width(aWidth),
-			format(aFormat), visible(true) {}
+		ColumnInfo(const tstring &aName, int aPos, int aFormat, int aWidth): m_name(aName), m_pos(aPos), m_width(aWidth),
+			m_format(aFormat), m_is_visible(true), m_is_owner_draw(false) {}
 		~ColumnInfo() {}
-		tstring name;
-		bool visible;
-		int pos;
-		int width;
-		int format;
+		int m_format;
+		int16_t m_width;
+		int8_t  m_pos;
+		bool m_is_visible;
+		bool m_is_owner_draw;
+		tstring m_name;
 };
 
 template<class T, int ctrlId>
@@ -52,7 +53,6 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		}
 		~TypedListViewCtrl()
 		{
-			for_each(m_columnList.begin(), m_columnList.end(), DeleteFunction());
 		}
 		
 		typedef TypedListViewCtrl<T, ctrlId> thisClass;
@@ -198,6 +198,15 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 				}
 			}
 		}
+		void autosize_columns()
+		{
+			const int l_columns = GetHeader().GetItemCount();
+			for (int i = 0; i < l_columns; ++i)
+			{
+				SetColumnWidth(i, LVSCW_AUTOSIZE);
+			}
+		}
+		
 		LRESULT onChar(UINT /*msg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 		{
 			if ((GetKeyState(VkKeyScan('A') & 0xFF) & 0xFF00) > 0 && (GetKeyState(VK_CONTROL) & 0xFF00) > 0)
@@ -232,7 +241,18 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 					if (di->item.mask & LVIF_TEXT)
 					{
 						di->item.mask |= LVIF_DI_SETITEM;
-						setText(di->item, ((T*)di->item.lParam)->getText(m_columnIndexes[static_cast<size_t>(di->item.iSubItem)]));
+						const auto l_sub_item = static_cast<size_t>(di->item.iSubItem);
+						const auto& l_column_info = m_columnList[l_sub_item];
+						if (l_column_info.m_is_owner_draw == false)
+						{
+							const auto l_index = m_columnIndexes[l_sub_item];
+							const auto& l_text = ((T*)di->item.lParam)->getText(l_index); // TODO - на OwnerDraw пропускать вызов getText
+							setText(di->item, l_text);
+						}
+						else
+						{
+							//dcdebug("!!!!!!!!!!! OWNER_DRAW - onGetDispInfo l_index = %d \n", l_sub_item);
+						}
 					}
 					if (di->item.mask & LVIF_IMAGE) // http://support.microsoft.com/KB/141834
 					{
@@ -343,6 +363,16 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		{
 			if (sortColumn != -1)
 			{
+				/*
+				if(m_columnList[sortColumn].m_is_owner_draw) //TODO - проверить сортировку
+				                {
+				                        const int l_item_count = GetItemCount();
+				                        for(int i=0;i<l_item_count;++i)
+				                        {
+				                          // updateItem(i,sortColumn);
+				                        }
+				                }
+				*/
 				SortItems(&compareFunc, (LPARAM)this);
 			}
 		}
@@ -350,12 +380,11 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		int insertItem(const T* item, int image)
 		{
 			return insertItem(getSortPos(item), item, image);
-			// 2012-06-17_22-40-29_WLKKNKN2VQZTGIBREBJAGIOA2SD57ZYUC5ZQOAQ_5912005A_crash-stack-r502-beta36-x64-build-10378.dmp
 		}
 		int insertItem(int i, const T* item, int image)
 		{
 			return InsertItem(LVIF_TEXT | LVIF_PARAM | LVIF_IMAGE, i,
-			                  LPSTR_TEXTCALLBACK, 0, 0, image, (LPARAM)item); // // TODO I_IMAGECALLBACK
+			                  LPSTR_TEXTCALLBACK, 0, 0, image, (LPARAM)item); // TODO I_IMAGECALLBACK
 		}
 		
 		T* getItemData(const int iItem) const
@@ -472,7 +501,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		{
 			const int l_cnt = GetHeader().GetItemCount();
 			for (int j = 0; j < l_cnt; ++j)
-				SetItemText(i, j, LPSTR_TEXTCALLBACK); // TODO r501-sp2 2012-04-23_22-28-18_LZMLSV7Q6UANHUZGIWHCZXZAWHMHANQL2BKYAZY_5ECFDF20_crash-stack-r501-build-9812.dmp
+				SetItemText(i, j, LPSTR_TEXTCALLBACK);
 		}
 		
 		void updateItem(int i, int col)
@@ -608,8 +637,11 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		
 		int InsertColumn(uint8_t nCol, const tstring &columnHeading, int nFormat = LVCFMT_LEFT, int nWidth = -1, int nSubItem = -1)
 		{
-			if (nWidth == 0) nWidth = 80;
-			m_columnList.push_back(new ColumnInfo(columnHeading, nCol, nFormat, nWidth));
+			if (nWidth == 0)
+			{
+				nWidth = 80;
+			}
+			m_columnList.push_back(ColumnInfo(columnHeading, nCol, nFormat, nWidth));
 			m_columnIndexes.push_back(nCol);
 			return CListViewCtrl::InsertColumn(nCol, columnHeading.c_str(), nFormat, nWidth, nSubItem);
 		}
@@ -637,8 +669,8 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 			int j = 0;
 			for (auto i = m_columnList.cbegin(); i != m_columnList.cend(); ++i, ++j)
 			{
-				headerMenu.AppendMenu(MF_STRING, IDC_HEADER_MENU, (*i)->name.c_str());
-				if ((*i)->visible)
+				headerMenu.AppendMenu(MF_STRING, IDC_HEADER_MENU, i->m_name.c_str());
+				if (i->m_is_visible)
 					headerMenu.CheckMenuItem(j, MF_BYPOSITION | MF_CHECKED);
 			}
 			headerMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
@@ -718,25 +750,28 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		
 		LRESULT onHeaderMenu(UINT /*msg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 		{
-			ColumnInfo * ci = m_columnList[wParam];
-			ci->visible = ! ci->visible;
+			ColumnInfo& ci = m_columnList[wParam];
+			ci.m_is_visible = ! ci.m_is_visible;
 #ifndef IRAINMAN_NOT_USE_COUNT_UPDATE_INFO_IN_LIST_VIEW_CTRL
 			m_count_update_info++;
 #endif
 			{
 				CLockRedraw<true> l_lock_draw(m_hWnd);
-				if (!ci->visible)
+				if (!ci.m_is_visible)
 				{
 					removeColumn(ci);
 				}
 				else
 				{
-					if (ci->width == 0) ci->width = 80;
-					CListViewCtrl::InsertColumn(ci->pos, ci->name.c_str(), ci->format, ci->width, static_cast<int>(wParam));
+					if (ci.m_width == 0)
+					{
+						ci.m_width = 80;
+					}
+					CListViewCtrl::InsertColumn(ci.m_pos, ci.m_name.c_str(), ci.m_format, ci.m_width, static_cast<int>(wParam));
 					LVCOLUMN lvcl = {0};
 					lvcl.mask = LVCF_ORDER;
-					lvcl.iOrder = ci->pos;
-					SetColumn(ci->pos, &lvcl);
+					lvcl.iOrder = ci.m_pos;
+					SetColumn(ci.m_pos, &lvcl);
 					updateAllImages(true); //[+]PPA
 				}
 				
@@ -782,31 +817,30 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 				lvc.pszText = l_buf;
 				l_buf[0] = 0;
 				GetColumn(i, &lvc);
-				for (auto  j = m_columnList.cbegin(); j != m_columnList.cend(); ++j)
+				for (auto j = m_columnList.begin(); j != m_columnList.end(); ++j)
 				{
-					if (_tcscmp(l_buf.data(), (*j)->name.c_str()) == 0)
+					if (_tcscmp(l_buf.data(), j->m_name.c_str()) == 0)
 					{
-						(*j)->pos = lvc.iOrder;
-						(*j)->width = lvc.cx;
+						j->m_pos = lvc.iOrder;
+						j->m_width = lvc.cx;
 						break;
 					}
 				}
 			}
 			string l_separator;
-			for (auto i = m_columnList.cbegin(); i != m_columnList.cend(); ++i)
+			for (auto i = m_columnList.begin(); i != m_columnList.end(); ++i)
 			{
-				ColumnInfo* ci = *i;
-				if (ci->visible)
+				if (i->m_is_visible)
 				{
 					visible += l_separator + "1";
 				}
 				else
 				{
-					ci->pos = size++; // TODO зачем это?
+					i->m_pos = size++; // TODO зачем это?
 					visible += l_separator + "0";
 				}
-				order  += l_separator + Util::toString((*i)->pos);
-				widths += l_separator + Util::toString((*i)->width);
+				order  += l_separator + Util::toString(i->m_pos);
+				widths += l_separator + Util::toString(i->m_width);
 				if (l_separator.empty())
 					l_separator  = ",";
 			}
@@ -818,12 +852,12 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 			const StringList& l = tok.getTokens();
 			CLockRedraw<> l_lock_draw(m_hWnd); // [+] IRainman opt.
 			auto i = l.cbegin();
-			for (auto j = m_columnList.cbegin(); j != m_columnList.cend() && i != l.cend(); ++i, ++j)
+			for (auto j = m_columnList.begin(); j != m_columnList.end() && i != l.cend(); ++i, ++j)
 			{
 			
 				if (Util::toInt(*i) == 0)
 				{
-					(*j)->visible = false;
+					j->m_is_visible = false;
 					removeColumn(*j);
 				}
 			}
@@ -841,7 +875,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 			{
 				if (columns[i] == j)
 				{
-					lvc.iOrder = m_columnList[i]->pos = columns[i];
+					lvc.iOrder = m_columnList[i].m_pos = columns[i];
 					SetColumn(static_cast<int>(i), &lvc);
 					
 					j++; //-V127 An overflow of the 32-bit 'j' variable is possible inside a long cycle which utilizes a memsize-type loop counter. typedlistviewctrl.h 720
@@ -867,7 +901,10 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		{
 			return GetSelectedCount() > 0 ? getItemData(GetNextItem(-1, LVNI_SELECTED)) : nullptr;
 		}
-		
+		void setColumnOwnerDraw(const uint8_t p_col)
+		{
+			m_columnList[p_col].m_is_owner_draw = true;
+		}
 	private:
 		int sortColumn;
 #ifndef IRAINMAN_NOT_USE_COUNT_UPDATE_INFO_IN_LIST_VIEW_CTRL
@@ -885,10 +922,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 			return (t->sortAscending ? result : -result);
 		}
 		
-		typedef vector< ColumnInfo* > ColumnList;
-//		typedef ColumnList::const_iterator ColumnIter;
-
-		ColumnList m_columnList;
+		vector<ColumnInfo> m_columnList;
 		vector<uint8_t> m_columnIndexes;
 		
 		void updateAllImages(bool p_updateItems = false)
@@ -907,7 +941,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 					updateItem(i);
 			}
 		}
-		void removeColumn(ColumnInfo* ci)
+		void removeColumn(ColumnInfo& ci)
 		{
 			AutoArray<TCHAR> l_buf(512);
 			l_buf[0] = 0;
@@ -918,16 +952,16 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 			for (int k = 0; k < GetHeader().GetItemCount(); ++k)
 			{
 				GetColumn(k, &lvcl);
-				if (_tcscmp(ci->name.c_str(), lvcl.pszText) == 0)
+				if (_tcscmp(ci.m_name.c_str(), lvcl.pszText) == 0)
 				{
-					ci->width = lvcl.cx;
-					ci->pos = lvcl.iOrder;
+					ci.m_width = lvcl.cx;
+					ci.m_pos = lvcl.iOrder;
 					
 					int itemCount = GetHeader().GetItemCount();
 					if (itemCount >= 0 && sortColumn > itemCount - 2)
 						setSortColumn(0);
 						
-					if (sortColumn == ci->pos)
+					if (sortColumn == ci.m_pos)
 						setSortColumn(0);
 						
 					DeleteColumn(k);
@@ -958,7 +992,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 				
 				for (size_t j = 0; j < m_columnList.size(); ++j)
 				{
-					if (stricmp(m_columnList[j]->name.c_str(), lvcl.pszText) == 0)
+					if (stricmp(m_columnList[j].m_name.c_str(), lvcl.pszText) == 0)
 					{
 						m_columnIndexes.push_back(static_cast<uint8_t>(j));
 						break;

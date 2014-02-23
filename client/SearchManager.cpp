@@ -331,7 +331,7 @@ int SearchManager::UdpQueue::run()
 				                                    );
 				if (!user)
 				{
-					LogManager::getInstance()->message("Error ClientManager::findLegacyUser nick = " + nick + " url = " + url);
+					//LogManager::getInstance()->message("Error ClientManager::findLegacyUser nick = " + nick + " url = " + url);
 					continue;
 				}
 			}

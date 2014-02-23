@@ -1,9 +1,11 @@
 Version 0.4.29, 2013-05-13
 --------------
++ Ztring: Adding some Date_From_Seconds_* methods
 x Ztring: Ztring_NoZero option was not correctly implemented
 x File: Write only is not possible with ios_base::out (file is truncated) on Linux
 x Dir: Include_Dirs only was not working
 x File: accepts Windows "\\?\" magic value
+x Thread: Is* methods were not handling all cases
 
 Version 0.4.28, 2012-08-06
 --------------

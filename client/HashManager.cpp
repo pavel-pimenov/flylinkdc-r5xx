@@ -311,6 +311,7 @@ bool HashManager::getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int
 			// AC-3, 5.1, 448 Kbps | AC-3, 5.1, 640 Kbps | TrueHD / AC-3, 5.1, 640 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps"
 			// Превращаем в
 			// AC-3, 5.1, 640 Kbps | TrueHD / AC-3, 5.1, 640 Kbps | AC-3, 5.1, 448 Kbps (x7)
+			dcassert(audioCount);
 			for (size_t i = 0; i < audioCount; i++)
 			{
 				const wstring l_sinfo = g_media_info_dll.Get(MediaInfoLib::Stream_Audio, i, _T("BitRate"));
@@ -405,13 +406,14 @@ bool HashManager::getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int
 				string audioGeneral;
 				if (!sDuration.empty())
 				{
-					audioGeneral += Text::fromT(sDuration);
-					audioGeneral += ',';
+					audioGeneral += Text::fromT(sDuration) + " |";
 				}
-				p_media.m_audio = audioGeneral.substr(0, audioGeneral.length() - 1); // Remove last ,
+				p_media.m_audio = audioGeneral;
 				// No Duration => No sound
 				if (!l_audio_all.empty())
+				{
 					p_media.m_audio += l_audio_all;
+				}
 			}
 			
 			const size_t videoCount =  g_media_info_dll.Count_Get(MediaInfoLib::Stream_Video);

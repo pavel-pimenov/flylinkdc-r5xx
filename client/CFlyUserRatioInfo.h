@@ -24,7 +24,7 @@ typedef CFlyUploadDownloadPair<double> CFlyGlobalRatioItem;
 typedef boost::unordered_map<unsigned long, CFlyUploadDownloadPair<uint64_t> > CFlyUploadDownloadMap; // TODO кей boost::asio::ip::address_v4
 struct CFlyRatioItem : public CFlyUploadDownloadPair<uint64_t>
 {
-	uint64_t m_message_count;
+	uint32_t m_message_count;
 	CFlyRatioItem(): m_message_count(0)
 	{
 	}

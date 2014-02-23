@@ -481,7 +481,6 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		}
 #endif
 		ShowWindow(SW_RESTORE);
-		
 	}
 #ifdef IRAINMAN_IP_AUTOUPDATE
 	if (BOOLSETTING(IPUPDATE) && isAllowIPUpdate())
@@ -939,6 +938,7 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			if (!PostMessage(WM_SPEAKER, STATS, (LPARAM)Stats))
 			{
 				dcassert(0);
+				LogManager::getInstance()->message("Error PostMessage(WM_SPEAKER, STATS, (LPARAM)Stats) - mailto ppa74@ya.ru");
 				g_CountSTATS--;
 				delete Stats;
 			}
@@ -1628,7 +1628,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 					statusSizes[i] = w;
 					u = true;
 				}
-				ctrlStatus.SetText(i + 1, str[i].c_str());
+				ctrlStatus.SetText(i + 1, str[i].c_str()); // https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&Login=Guest&DumpGroupID=127864
 			}
 			int l_res = ::ReleaseDC(ctrlStatus.m_hWnd, dc);
 			dcassert(l_res);
@@ -2144,28 +2144,39 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 	}
 	return 0;
 }
-
-
 #ifdef IRAINMAN_IP_AUTOUPDATE
-
-
 void MainFrame::getIPupdate()
 {
-	const auto& l_url = SETTING(URL_GET_IP);
-	if (Util::isHttpLink(l_url))
+	string l_external_ip;
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
+	std::vector<unsigned short> l_udp_port, l_tcp_port;
+	// l_udp_port.push_back(SETTING(UDP_PORT));
+	bool l_is_udp_port_send = CFlyServerAdapter::CFlyServerJSON::pushTestPort(ClientManager::getMyCID().toBase32(), l_udp_port, l_tcp_port, l_external_ip,
+	                                                                          SETTING(IPUPDATE_INTERVAL));
+	if (l_is_udp_port_send && !l_external_ip.empty())
 	{
-		const string l_ip = Util::getExternalIP(l_url);
-		if (!l_ip.empty())
-		{
-			SET_SETTING(EXTERNAL_IP, l_ip);
-			LogManager::getInstance()->message(STRING(IP_AUTO_UPDATE) + ' ' + l_ip);
-		}
-		else
-			LogManager::getInstance()->message("Error IP AutoUpdate");
+		SET_SETTING(EXTERNAL_IP, l_external_ip);
+		LogManager::getInstance()->message(STRING(IP_AUTO_UPDATE) + ' ' + l_external_ip + " ");
 	}
 	else
+#endif
 	{
-		LogManager::getInstance()->message("Error IP AutoUpdate"); // TODO translate
+		const auto& l_url = SETTING(URL_GET_IP);
+		if (Util::isHttpLink(l_url))
+		{
+			l_external_ip = Util::getWANIP(l_url);
+			if (!l_external_ip.empty())
+			{
+				SET_SETTING(EXTERNAL_IP, l_external_ip);
+				LogManager::getInstance()->message(STRING(IP_AUTO_UPDATE) + ' ' + l_external_ip);
+			}
+			else
+				LogManager::getInstance()->message("Error IP AutoUpdate from URL: " + l_url);
+		}
+		else
+		{
+			LogManager::getInstance()->message("Error IP AutoUpdate. URL: " + l_url); // TODO translate
+		}
 	}
 }
 #endif
@@ -2925,7 +2936,7 @@ static DWORD WINAPI converttthHistoryThreadFunc(void* params)
 LRESULT MainFrame::onConvertTTHHistory(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	ThreadParams l_params;
-	CProgressDlg <ThreadParams, IDD_FLY_PROGRESS, IDC_TIME > l_dlg(converttthHistoryThreadFunc, &l_params, _T("Пожалуйста, подождите"));
+	CProgressDlg <ThreadParams, IDD_FLY_PROGRESS, IDC_TIME > l_dlg(converttthHistoryThreadFunc, &l_params, CWSTRING(PLEASE_WAIT));
 	l_dlg.Start();
 	return 0;
 }

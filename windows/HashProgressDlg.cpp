@@ -14,6 +14,7 @@ LRESULT HashProgressDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 	SetDlgItemText(IDC_STATISTICS, CTSTRING(HASH_PROGRESS_STATS));
 	SetDlgItemText(IDC_HASH_INDEXING, CTSTRING(HASH_PROGRESS_TEXT));
 	SetDlgItemText(IDC_BTN_ABORT, CTSTRING(HASH_ABORT_TEXT));
+	SetDlgItemText(IDC_BTN_REFRESH_FILELIST, CTSTRING(HASH_REFRESH_FILE_LIST));
 	SetDlgItemText(IDC_BTN_EXIT_ON_DONE, CTSTRING(EXIT_ON_HASHING_DONE_TEXT));
 	SetDlgItemText(IDC_CHANGE_HASH_SPEED, CTSTRING(CHANGE_HASH_SPEED_TEXT));
 	SetDlgItemText(IDC_CURRENT_HASH_SPEED, CTSTRING(CURRENT_HASH_SPEED_TEXT));
@@ -39,7 +40,10 @@ LRESULT HashProgressDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 		ExitOnDoneButton.ShowWindow(SW_HIDE);
 		
 	SetDlgItemInt(IDC_EDIT_MAX_HASH_SPEED, HashManager::getInstance()->GetMaxHashSpeed(), FALSE);
-	
+	m_Slider.Attach(GetDlgItem(IDC_EDIT_MAX_HASH_SPEED_SLIDER));
+	m_Slider.SetRange(0, 100);
+	m_Slider.SetPos(HashManager::getInstance()->GetMaxHashSpeed());
+
 	progress.Attach(GetDlgItem(IDC_HASH_PROGRESS));
 	progress.SetRange(0, HashManager::GetMaxProgressValue());
 	updateStats();
@@ -71,6 +75,7 @@ LRESULT HashProgressDlg::onDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 	HashManager::getInstance()->setPriority(Thread::IDLE);
 	HashManager::getInstance()->DisableForceMinHashSpeed();
 	progress.Detach();
+	m_Slider.Detach();
 	return 0;
 }
 
@@ -96,6 +101,7 @@ void HashProgressDlg::updateStats()
 			PostMessage(WM_CLOSE);
 			return;
 		}
+		::EnableWindow(GetDlgItem(IDC_BTN_REFRESH_FILELIST), TRUE);
 	}
 	const int64_t diff = tick - HashManager::getInstance()->GetStartTime();
 	const bool paused = HashManager::getInstance()->isHashingPaused();
@@ -115,7 +121,7 @@ void HashProgressDlg::updateStats()
 	}
 	else
 	{
-	
+		::EnableWindow(GetDlgItem(IDC_BTN_REFRESH_FILELIST), FALSE);
 		int64_t processedBytes;
 		size_t processedFiles;
 		HashManager::getInstance()->GetProcessedFilesAndBytesCount(processedBytes, processedFiles);
@@ -169,4 +175,11 @@ void HashProgressDlg::updateStats()
 	
 	progress.SetPos(HashManager::getInstance()->GetProgressValue());
 	SetDlgItemText(IDC_PAUSE, paused ? CTSTRING(RESUME) : CTSTRING(PAUSED)); // KUL - hash progress dialog patch
+}
+
+LRESULT HashProgressDlg::onSlideChangeMaxHashSpeed(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+	SetDlgItemInt(IDC_EDIT_MAX_HASH_SPEED, m_Slider.GetPos(), FALSE);
+	HashManager::getInstance()->EnableForceMinHashSpeed(GetDlgItemInt(IDC_EDIT_MAX_HASH_SPEED, NULL, FALSE));
+	return 0;
 }

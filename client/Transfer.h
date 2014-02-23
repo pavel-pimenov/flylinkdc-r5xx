@@ -164,7 +164,7 @@ class Transfer
 		typedef deque<Sample> SampleList;
 		
 		SampleList m_samples;
-		mutable FastCriticalSection m_cs; // [!]IRainman refactoring transfer mechanism
+		FastCriticalSection m_cs; // [!]IRainman refactoring transfer mechanism
 		
 		/** The file being transferred */
 #ifdef IRAINMAN_USE_NG_TRANSFERS

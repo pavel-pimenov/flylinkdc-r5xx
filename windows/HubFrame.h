@@ -76,7 +76,7 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
 		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu) // 2012-04-29_13-46-19_6YBC2BUJRYPCJLE2L63SZAFLWGMNBOSFJB64BTI_5FE1A0BF_crash-stack-r501-x64-build-9869.dmp
 		MESSAGE_HANDLER(WM_CTLCOLORSTATIC, onCtlColor)
-		MESSAGE_HANDLER(WM_CTLCOLOREDIT, onCtlColor)
+		MESSAGE_HANDLER(WM_CTLCOLOREDIT, onHubFrmCtlColor)
 		MESSAGE_HANDLER(FTM_CONTEXTMENU, onTabContextMenu)
 		MESSAGE_HANDLER(WM_MOUSEMOVE, onStyleChange)
 		MESSAGE_HANDLER(WM_CAPTURECHANGED, onStyleChanged)
@@ -126,6 +126,7 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 #endif
 		END_MSG_MAP()
 		
+		LRESULT onHubFrmCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 		LRESULT OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 		
 		LRESULT onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/);
