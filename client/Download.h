@@ -30,7 +30,7 @@ class Download : public Transfer, public Flags
 			FLAG_USER_GET_IP    = 0x200     // [+] SSA
 		};
 		
-		explicit Download(UserConnection& conn, QueueItem* item) noexcept; // [!] IRainman fix.
+		explicit Download(UserConnection* p_conn, QueueItem* item) noexcept; // [!] IRainman fix.
 		
 		void getParams(const UserConnection& aSource, StringMap& params);
 		

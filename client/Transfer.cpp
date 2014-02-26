@@ -28,10 +28,10 @@ const string Transfer::g_type_names[] =
 const string Transfer::g_user_list_name = "files.xml";
 const string Transfer::g_user_list_name_bz = "files.xml.bz2";
 
-Transfer::Transfer(UserConnection& p_conn, const string& p_path, const TTHValue& p_tth) :
+Transfer::Transfer(UserConnection* p_conn, const string& p_path, const TTHValue& p_tth) :
 	m_type(TYPE_FILE), m_runningAverage(0), // [!] IRainman opt.
-	m_path(p_path), m_tth(p_tth), m_actual(0), m_pos(0), m_userConnection(p_conn), m_startPos(0),
-	m_isSecure(p_conn.isSecure()), m_isTrusted(p_conn.isTrusted()),
+	m_path(p_path), m_tth(p_tth), m_actual(0), m_pos(0), m_userConnection(p_conn), m_hinted_user(p_conn->getHintedUser()), m_startPos(0),
+	m_isSecure(p_conn->isSecure()), m_isTrusted(p_conn->isTrusted()),
 	m_start(0), m_lastTick(GET_TICK()) // [!] IRainman fix.
 {
 	// [!] IRainman refactoring transfer mechanism
@@ -62,8 +62,10 @@ void Transfer::tick(uint64_t p_CurrentTick)
 		const int64_t bytes = m_actual - m_samples.front().second;
 		m_runningAverage = bytes * 1000I64 / (ticks ? ticks : 1I64);
 		
-		if (m_samples.size() > SPEED_APPROXIMATION_INTERVAL_S && ticks > SPEED_APPROXIMATION_INTERVAL_S * 1000)
+		if (ticks > SPEED_APPROXIMATION_INTERVAL_S * 1000 && m_samples.size() > SPEED_APPROXIMATION_INTERVAL_S)
+		{
 			m_samples.pop_front();
+		}
 	}
 }
 

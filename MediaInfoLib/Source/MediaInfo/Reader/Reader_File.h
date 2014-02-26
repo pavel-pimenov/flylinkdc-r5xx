@@ -81,6 +81,7 @@ public :
         HANDLE Condition_WaitingForMoreData;
     #endif //WINDOWS
     CriticalSection CS;
+    MediaInfo_Internal* MI_Internal;
 #endif // FLYLINKDC_ZENLIB_USE_THREAD
 };
 

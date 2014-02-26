@@ -175,7 +175,7 @@
 	<string name="CertificateGenerationFailed">TLS disabled, failed to generate certificate:</string>
 	<string name="CertificateNotTrusted">Certificate is not trusted, unable to connect</string>
 	<string name="Certificates">Certificates</string>
-	<string name="ChangeHashSpeedText">Temporarily change maximum speed of indexing (MiB/s)</string>
+	<string name="ChangeHashSpeedText">Temporarily change maximum speed of indexing (MiB/s) (0 - unlimited)</string>
 	<string name="ChangeLanguage">Language changed</string>
 	<string name="ChangeLanguageInfo">Restart the program to change the language</string>
 	<string name="Chatdblclickaction">on User in chat</string>
@@ -602,6 +602,7 @@
 	<string name="HashProgressText">Please wait while FlylinkDC++ indexes your files (they won't be shared until they have been indexed)…</string>
 	<string name="HashReadFailed">Unable to read hash data file</string>
 	<string name="HashRebuilt">Hash database rebuilt</string>
+	<string name="HashRefreshFileList">Refresh file list</string>
 	<string name="Height">Height</string>
 	<string name="Hibernate">Hibernate</string>
 	<string name="HideShare">Hide share in this hub</string>
@@ -1684,11 +1685,11 @@
 	<string name="UploadFinishedIdle">Upload finished, idle…</string>
 	<string name="UploadSpeedLimit">Upload Speed Limit</string>
 	<string name="UploadStarting">Upload starting…</string>
-	<string name="UpnpcheckdlgMiniInit">Checking MiniUPNP…</string>
-	<string name="UpnpcheckdlgMiniOpen">Open ports in MiniUPNP…</string>
+	<string name="UpnpcheckdlgMiniInit">Checking MiniUPnP…</string>
+	<string name="UpnpcheckdlgMiniOpen">Open ports in MiniUPnP…</string>
 	<string name="UpnpcheckdlgPortCheck">Checking ports…</string>
-	<string name="UpnpcheckdlgWinInit">Checking WinUPNP…</string>
-	<string name="UpnpcheckdlgWinOpen">Open ports in WinUPNP…</string>
+	<string name="UpnpcheckdlgWinInit">Checking WinUPnP…</string>
+	<string name="UpnpcheckdlgWinOpen">Open ports in WinUPnP…</string>
 	<string name="UpnpAnotherInProgress">Another UPnP port mapping attempt is in progress…</string>
 	<string name="UpnpFailedToCreateMappings">Failed to create port mappings.</string>
 	<string name="UpnpFailedToGetExternalIp">Failed to get external IP.</string>
@@ -1801,12 +1802,12 @@
 	<string name="WizardDownloaddirStatic">Help: Use non-system folders on drive with more than 10 GB free space (recommended)…</string>
 	<string name="WizardFinishLabel1">Wizard Setup completed</string>
 	<string name="WizardFinishLabel2">Now you can start using FlylinkDC++!</string>
-	<string name="WizardNetaBtnCheckupnp">Check UPNP</string>
+	<string name="WizardNetaBtnCheckupnp">Check UPnP</string>
 	<string name="WizardNetaBtnSetuprouter">Setup router</string>
 	<string name="WizardNetaBtnTest">Test FlylinkDC++ network connections</string>
 	<string name="WizardNetaFirewallStatic">Firewall</string>
 	<string name="WizardNetaNeedpassivemode">Wizard detected problems with FlylinkDC++ Active mode. Switch to Passive mode for network connections?</string>
-	<string name="WizardNetaRouterStatic">If you have router or ADSL modem connected to network, you should configure it for FlylinkDC++. You have to enable UPNP on it or configure a Port Forwarding.</string>
+	<string name="WizardNetaRouterStatic">If you have router or ADSL modem connected to network, you should configure it for FlylinkDC++. You have to enable UPnP on it or configure a Port Forwarding.</string>
 	<string name="WizardNetaRouterTitle">Router/ADSL Modem (this section only if you have such device)</string>
 	<string name="WizardNetaSetupfailed">FlylinkDC++ Active mode was not configured</string>
 	<string name="WizardNetaSetupsuccess">FlylinkDC++ Active mode was configured successfully</string>

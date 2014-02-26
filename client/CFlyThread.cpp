@@ -26,8 +26,8 @@
 #endif
 #include "Util.h"
 
-
-#if USE_WIN_THREAD_NAME
+//#define FLYLINKDC_USE_WIN_THREAD_NAME
+#ifdef FLYLINKDC_USE_WIN_THREAD_NAME
 
 // (c) chromium\home\chrome-svn\tarball\chromium\src\third_party\webrtc\system_wrappers\source
 // set_thread_name_win.h
@@ -43,7 +43,7 @@ typedef struct tagTHREADNAME_INFO
 } THREADNAME_INFO;
 #pragma pack(pop)
 
-static void SetThreadName(DWORD dwThreadID, char* threadName)
+static void SetThreadName(DWORD dwThreadID, const char* threadName)
 {
 	THREADNAME_INFO info;
 	info.dwType = 0x1000;
@@ -60,7 +60,7 @@ static void SetThreadName(DWORD dwThreadID, char* threadName)
 	}
 }
 
-#endif // USE_WIN_THREAD_NAME
+#endif // FLYLINKDC_USE_WIN_THREAD_NAME
 void Thread::setThreadPriority(Priority p)
 {
 	const BOOL l_res = ::SetThreadPriority(m_threadHandle, p);
@@ -75,7 +75,7 @@ void Thread::setThreadPriority(Priority p)
 	}
 }
 
-void Thread::start(unsigned int p_stack_size)
+void Thread::start(unsigned int p_stack_size, const char* p_name /* = nullptr */)
 {
 	join();
 	p_stack_size *= 1024;
@@ -104,7 +104,11 @@ void Thread::start(unsigned int p_stack_size)
 	else
 	{
 		m_threadHandle = h;
-#ifdef USE_WIN_THREAD_NAME
+#ifdef FLYLINKDC_USE_WIN_THREAD_NAME
+		if (p_name)
+		{
+			//SetThreadName(-1, p_name);
+		}
 		// TODO - SetThreadName http://msdn.microsoft.com/en-us/library/xcb2z8hs.aspx
 #endif
 	}

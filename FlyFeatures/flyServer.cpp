@@ -879,7 +879,7 @@ string CFlyServerAdapter::CFlyServerJSON::postQuery(bool p_is_set,
 	const string l_log_marker = "[fly-server][" + l_Server.getIp() + ":" + Util::toString(l_Server.getPort()) + "]";
 	CFlyLog l_fly_server_log(l_log_marker);
 #ifdef PPA_INCLUDE_IPGUARD
-	if (BOOLSETTING(ENABLE_IPGUARD))
+	if (BOOLSETTING(ENABLE_IPGUARD) && IpGuard::isValidInstance()) 
 	{
 		string l_reason;
 		if (IpGuard::getInstance()->check(l_Server.getIp(), l_reason))

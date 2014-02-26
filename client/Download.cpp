@@ -24,19 +24,19 @@
 #include "HashManager.h"
 
 // [!] IRainman fix.
-Download::Download(UserConnection& conn, QueueItem* item) noexcept :
+Download::Download(UserConnection* p_conn, QueueItem* item) noexcept :
 #ifdef PPA_INCLUDE_DROP_SLOW
 lastNormalSpeed(0),
 #endif
                 qi(item),
-                Transfer(conn, item->getTarget(), item->getTTH()),
+                Transfer(p_conn, item->getTarget(), item->getTTH()),
                 file(nullptr),
                 treeValid(false)
 {
 	qi->inc(); // [+]
 	// [~] IRainman fix.
 	
-	conn.setDownload(this);
+	p_conn->setDownload(this);
 	
 	// [-] QueueItem::SourceConstIter source = qi.getSource(getUser()); [-] IRainman fix.
 	
@@ -77,9 +77,9 @@ lastNormalSpeed(0),
 		if (l_is_check_tth)
 		{
 			setTreeValid(true);
-			setSegment(qi->getNextSegmentL(getTigerTree().getBlockSize(), conn.getChunkSize(), conn.getSpeed(), l_src.getPartialSource()));
+			setSegment(qi->getNextSegmentL(getTigerTree().getBlockSize(), p_conn->getChunkSize(), p_conn->getSpeed(), l_src.getPartialSource()));
 		}
-		else if (conn.isSet(UserConnection::FLAG_SUPPORTS_TTHL) && !l_src.isSet(QueueItem::Source::FLAG_NO_TREE) && qi->getSize() > MIN_BLOCK_SIZE) // [!] IRainman opt.
+		else if (p_conn->isSet(UserConnection::FLAG_SUPPORTS_TTHL) && !l_src.isSet(QueueItem::Source::FLAG_NO_TREE) && qi->getSize() > MIN_BLOCK_SIZE) // [!] IRainman opt.
 		{
 			// Get the tree unless the file is small (for small files, we'd probably only get the root anyway)
 			setType(TYPE_TREE);
@@ -109,7 +109,7 @@ lastNormalSpeed(0),
 
 Download::~Download()
 {
-	getUserConnection().setDownload(nullptr);
+	getUserConnection()->setDownload(nullptr);
 	qi->dec(); // [+] IRainman fix.
 }
 

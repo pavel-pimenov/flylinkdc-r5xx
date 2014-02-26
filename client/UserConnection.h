@@ -237,11 +237,15 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		{
 			return m_hintedUser.user; // [!] IRainman add HintedUser
 		}
-		UserPtr& getUser()
+		const UserPtr& getUser()
 		{
 			return m_hintedUser.user; // [!] IRainman add HintedUser
 		}
 		const HintedUser& getHintedUser() const
+		{
+			return m_hintedUser; // [!] IRainman add HintedUser
+		}
+		const HintedUser& getHintedUser()
 		{
 			return m_hintedUser; // [!] IRainman add HintedUser
 		}
@@ -443,13 +447,13 @@ class UserConnection : public Speaker<UserConnectionListener>,
 class UcSupports // [+] IRainman fix.
 {
 	public:
-		static StringList setSupports(UserConnection* conn, StringList& feat, uint8_t& knownUcSupports)
+		static StringList setSupports(UserConnection* p_conn, StringList& feat, uint8_t& knownUcSupports)
 		{
 			StringList unknownSupports;
 			for (auto i = feat.cbegin(); i != feat.cend(); ++i)
 			{
 			
-#define CHECK_FEAT(feature) if (*i == UserConnection::FEATURE_##feature) { conn->setFlag(UserConnection::FLAG_SUPPORTS_##feature); knownUcSupports |= UserConnection::FLAG_SUPPORTS_##feature; }
+#define CHECK_FEAT(feature) if (*i == UserConnection::FEATURE_##feature) { p_conn->setFlag(UserConnection::FLAG_SUPPORTS_##feature); knownUcSupports |= UserConnection::FLAG_SUPPORTS_##feature; }
 			
 				CHECK_FEAT(MINISLOTS)
 				else CHECK_FEAT(XML_BZLIST)

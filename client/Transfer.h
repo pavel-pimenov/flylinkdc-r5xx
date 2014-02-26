@@ -43,7 +43,7 @@ class Transfer
 		static const string g_user_list_name;
 		static const string g_user_list_name_bz;
 		
-		explicit Transfer(UserConnection& p_conn, const string& p_path, const TTHValue& p_tth); // [!] IRainman opt.
+		explicit Transfer(UserConnection* p_conn, const string& p_path, const TTHValue& p_tth); // [!] IRainman opt.
 		virtual ~Transfer() { }
 		int64_t getPos() const
 		{
@@ -104,18 +104,16 @@ class Transfer
 		//[+]FlylinkDC
 		UserPtr& getUser()
 		{
-			return getUserConnection().getUser(); // [9] https://www.box.net/shared/4dd3aa9dc4ef80e9e368
+			return m_hinted_user.user;
 		}
 		const UserPtr& getUser() const
 		{
-			return getUserConnection().getUser();
+			return m_hinted_user.user;
 		}
-		//[~]FlylinkDC
 		const HintedUser& getHintedUser() const // [!] IRainman opt: add const link.
 		{
-			return getUserConnection().getHintedUser();
+			return m_hinted_user;
 		}
-		
 		const string& getPath() const
 		{
 			return m_path;
@@ -124,14 +122,13 @@ class Transfer
 		{
 			return m_tth;
 		}
-		
-		UserConnection& getUserConnection()
+		const UserConnection* getUserConnection() const
 		{
-			return m_userConnection; //TODO - check
+			return m_userConnection;
 		}
-		const UserConnection& getUserConnection() const
+		UserConnection* getUserConnection()
 		{
-			return m_userConnection; //TODO - check
+			return m_userConnection;
 		}
 		
 		GETSET(Segment, m_segment, Segment);
@@ -149,9 +146,9 @@ class Transfer
 			m_samples.push_back(Sample(m_start, 0));
 		}
 		// [-] GETSET(uint64_t, start, Start);
-		const uint64_t getLastActivity() const
+		const uint64_t getLastActivity()
 		{
-			return getUserConnection().getLastActivity();
+			return getUserConnection()->getLastActivity();
 		}
 		// [~] IRainman refactoring transfer mechanism
 		GETSET(uint64_t, m_lastTick, LastTick);
@@ -188,7 +185,8 @@ class Transfer
 		int64_t m_startPos;
 		/** Actual speed */
 		int64_t m_runningAverage;
-		UserConnection& m_userConnection;
+		UserConnection* m_userConnection;
+		HintedUser m_hinted_user;
 };
 
 #endif /*TRANSFER_H_*/

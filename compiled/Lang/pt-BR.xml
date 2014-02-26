@@ -667,6 +667,7 @@ Se você selecionar 'Não', esses hubs serão simplesmente mudou-se para o princ
 		<String Name="HashProgressText">Por favor aguarde enquanto FlylinkDC++ indexa seus arquivos (Eles não podem ser compartilhados até a indexação tenha terminado)</String>
 		<String Name="HashReadFailed">Inábil para ler dados do arquivo de hash</String>
 		<String Name="HashRebuilt">Banco de dados de hash reconstruida</String>
+		<String Name="HashRefreshFileList">Atualizar lista de arquivos</String>
 		<String Name="Height">Altura</String>
 		<String Name="Hibernate">Hibernar</String>
 		<String Name="HideShare">Ocultar compartilhamento neste hub</String>
@@ -1850,11 +1851,11 @@ Ou você não está conectado à Internet ou você configurou a conexão de form
 		<String Name="UploadFinishedIdle">Envio concluído, ocioso…</String>
 		<String Name="UploadSpeedLimit">Limite de Velocidade de Envio</String>
 		<String Name="UploadStarting">inciando envio…</String>
-		<String Name="UpnpcheckdlgMiniInit">Checando MiniUPNP</String>
-		<String Name="UpnpcheckdlgMiniOpen">Abrir portas em MiniUPNP…</String>
+		<String Name="UpnpcheckdlgMiniInit">Checando MiniUPnP…</String>
+		<String Name="UpnpcheckdlgMiniOpen">Abrir portas em MiniUPnP…</String>
 		<String Name="UpnpcheckdlgPortCheck">Checando portas…</String>
-		<String Name="UpnpcheckdlgWinInit">Verificando WinUPNP…</String>
-		<String Name="UpnpcheckdlgWinOpen">Abrir portas em WinUPNP…</String>
+		<String Name="UpnpcheckdlgWinInit">Verificando WinUPnP…</String>
+		<String Name="UpnpcheckdlgWinOpen">Abrir portas em WinUPnP…</String>
 		<String Name="UpnpAnotherInProgress">Outra tentativa de mapeamento de portas UPnP está em andamento…</String>
 		<String Name="UpnpFailedToCreateMappings">Falha ao criar mapeamentos de porta.</String>
 		<String Name="UpnpFailedToGetExternalIp">Falha ao obter o IP externo.</String>
@@ -1991,7 +1992,7 @@ It's also very likely that you will need to use %[rawtitle] instead of %[title] 
 		<String Name="WizardDownloaddirStatic">Ajuda: Use pastas fora do sistema na unidade com mais de 10 GB de espaço livre (recomendado)…</String>
 		<String Name="WizardFinishLabel1">Assistente de instalação completado</String>
 		<String Name="WizardFinishLabel2">Agora você pode começar a usar FlylinkDC++!</String>
-		<String Name="WizardNetaBtnCheckupnp">Checar UPNP</String>
+		<String Name="WizardNetaBtnCheckupnp">Checar UPnP</String>
 		<String Name="WizardNetaBtnSetuprouter">Configurar Roteador</String>
 		<String Name="WizardNetaBtnTest">Testar Conexões de Rede</String>
 		<String Name="WizardNetaFirewallStatic">Firewall</String>

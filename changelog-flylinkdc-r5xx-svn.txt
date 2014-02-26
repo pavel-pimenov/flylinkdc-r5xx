@@ -1,4 +1,74 @@
 ------------------------------------------------------------------------
+r16727 | pavel.pimenov@gmail.com | 2014-02-26 19:04:28 +0400 (Ср, 26 фев 2014) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r16726 | pavel.pimenov@gmail.com | 2014-02-26 19:01:39 +0400 (Ср, 26 фев 2014) | 4 lines
+
+Merged revision(s) 16722 from trunk:
+# Заменил сервер на более хороший 146.185.183.102 (пока так-же купил в digitalocean - остальные хосты тормозные)
+........
+
+------------------------------------------------------------------------
+r16720 | tret2003 | 2014-02-26 18:45:16 +0400 (Ср, 26 фев 2014) | 17 lines
+
+Объединённые ревизии 16711-16719 из trunk:
+# Исправлены падения если IpGuard не создан
+  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=56303
+  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=56687
+  
+........
+* Исправлена конвертация в user_db.user_info
+  Таблицу fly_last_ip_nick_hub убиваем и больше не создаем.
+* [Fixed issue 1438] Неверный порядок отображения одновременных сообщений
+  http://code.google.com/p/flylinkdc/issues/detail?id=1438
+  
+........
+* (Fixed issue 1435) fix http://code.google.com/p/flylinkdc/issues/detail?id=1435
+........
+* r502-beta34
+........
+
+------------------------------------------------------------------------
+r16710 | pavel.pimenov@gmail.com | 2014-02-25 21:52:43 +0400 (Вт, 25 фев 2014) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r16709 | pavel.pimenov@gmail.com | 2014-02-25 20:41:35 +0400 (Вт, 25 фев 2014) | 18 lines
+
+Merged revision(s) 16706-16708 from trunk:
+# Исправлено падение в QueueManager::putDownload [public-build] 
+# Маркеры падения в void TransferView::starting 
+  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=55732
+  https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128264
+  UserConnection перевел везде на указатели.
+  TODO - void TransferView::starting
+   1. Пповерять валидность getUserConnection перед использованием + лог
+   2. m_userConnection - перевести на shared_ptr 
+........
+* Исправлены падения в void TransferView::starting
+  // https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=55732
+  // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128264
+# Вернул логирование в CFlylinkDBManager::flush_all_last_ip_and_message_count
+........
+# log [public-build]
+........
+
+------------------------------------------------------------------------
+r16703 | pavel.pimenov@gmail.com | 2014-02-24 18:45:34 +0400 (Пн, 24 фев 2014) | 1 line
+
+# log
+------------------------------------------------------------------------
+r16702 | pavel.pimenov@gmail.com | 2014-02-24 18:13:50 +0400 (Пн, 24 фев 2014) | 3 lines
+
+* r502-release sp Merged revision(s) 16696-16701 from trunk:
+# Исправлены падения с вложенными транзакциями если включено логирование в базу данных - срочно перевыпустить релиз r502
+
+------------------------------------------------------------------------
+r16693 | pavel.pimenov@gmail.com | 2014-02-22 12:09:30 +0400 (Сб, 22 фев 2014) | 1 line
+
+# log
+------------------------------------------------------------------------
 r16690 | tret2003 | 2014-02-22 11:27:47 +0400 (Сб, 22 фев 2014) | 1 line
 
 #[merge] r502-release

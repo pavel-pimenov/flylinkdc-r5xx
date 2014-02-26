@@ -18,7 +18,7 @@
 #include <boost/thread.hpp>
 #include <limits>
 #include "../client/CFlyProfiler.h"
-#include "../client/thread.h"
+#include "../client/CFlyThread.h"
 #include "cperformance.h"
 #include "FastAlloc.h"
 #include "cycle.h"
@@ -488,6 +488,8 @@ void UseVectorPushBack(size_t dimension)
 }
 int _tmain(int argc, _TCHAR* argv[])
 {
+	typedef std::pair<boost::asio::ip::address_v4, boost::asio::ip::address_v4> CFlyDDOSkey;
+	boost::unordered_map<CFlyDDOSkey, int> ip4_map;
     for (size_t i=0; i < 1*1024*1024*1024; i += 100*1024*1024)
 	{
      std::cout << "dimension = " << i/1024/1024 << " Mb: " << "\t";

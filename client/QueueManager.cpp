@@ -1639,7 +1639,7 @@ Download* QueueManager::getDownload(UserConnection& aSource, string& aMessage) n
 			}
 		}
 		
-		d = new Download(aSource, q.get()); // [!] IRainman fix.
+		d = new Download(&aSource, q.get()); // [!] IRainman fix.
 		
 		userQueue.addDownloadL(q, d);
 	}
@@ -1731,7 +1731,7 @@ void QueueManager::setFile(Download* d)
 					found = true;
 					
 					// disconnect slow chunk
-					j->getUserConnection().disconnect();
+					j->getUserConnection()->disconnect();
 					break;
 				}
 			}
@@ -1894,7 +1894,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 	UserList getConn;
 	string fileName;
 	const HintedUser& hintedUser = aDownload->getHintedUser();
-	const UserPtr& user = aDownload->getUser();
+	UserPtr user = aDownload->getUser(); // —сылку нельз€ - нужно держать юзера.
 	
 	dcassert(user); // [!] IRainman fix: putDownload call with empty by the user can not because you can not even attempt to download with an empty user!
 	
@@ -2051,7 +2051,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 									for (auto i = q->getDownloadsL().cbegin(); i != q->getDownloadsL().cend(); ++i)
 									{
 										if (i->second != aDownload)
-											i->second->getUserConnection().disconnect();
+											i->second->getUserConnection()->disconnect();
 									}
 								}
 							}
@@ -2065,7 +2065,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 							if (BOOLSETTING(LOG_DOWNLOADS) && (BOOLSETTING(LOG_FILELIST_TRANSFERS) || aDownload->getType() == Transfer::TYPE_FILE))
 							{
 								StringMap params;
-								aDownload->getParams(aDownload->getUserConnection(), params);
+								aDownload->getParams(*aDownload->getUserConnection(), params);
 								LOG(DOWNLOAD, params);
 							}
 							//[+]PPA
@@ -2199,7 +2199,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 	}
 	
 	// partial file list failed, redownload full list
-	if (user->isOnline() && downloadList)
+	if (downloadList && user->isOnline())
 	{
 		try
 		{
@@ -2936,7 +2936,7 @@ bool QueueManager::dropSource(Download* d)
 				}
 				else
 				{
-					d->getUserConnection().disconnect();
+					d->getUserConnection()->disconnect();
 				}
 			}
 		}

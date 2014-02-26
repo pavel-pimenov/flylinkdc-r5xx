@@ -809,7 +809,7 @@ void NmdcHub::onLine(const string& aLine)
 					port.erase(port.size() - 1);
 					
 					// Trigger connection attempt sequence locally ...
-					ConnectionManager::getInstance()->nmdcConnect(server, static_cast<uint16_t>(Util::toInt(port)), sock->getLocalPort(),
+					ConnectionManager::getInstance()->nmdcConnect(server, static_cast<uint16_t>(Util::toInt(port)), m_client_sock->getLocalPort(),
 					                                              BufferedSocket::NAT_CLIENT, getMyNick(), getHubUrl(),
 					                                              getEncoding(),
 #ifdef IRAINMAN_ENABLE_STEALTH_MODE
@@ -822,7 +822,7 @@ void NmdcHub::onLine(const string& aLine)
 					                                             );
 					                                             
 					// ... and signal other client to do likewise.
-					send("$ConnectToMe " + senderNick + ' ' + getLocalIp() + ":" + Util::toString(sock->getLocalPort()) + (secure ? "RS" : "R") + '|');
+					send("$ConnectToMe " + senderNick + ' ' + getLocalIp() + ":" + Util::toString(m_client_sock->getLocalPort()) + (secure ? "RS" : "R") + '|');
 					break;
 				}
 				else if (port[port.size() - 1] == 'R')
@@ -830,7 +830,7 @@ void NmdcHub::onLine(const string& aLine)
 					port.erase(port.size() - 1);
 					
 					// Trigger connection attempt sequence locally
-					ConnectionManager::getInstance()->nmdcConnect(server, static_cast<uint16_t>(Util::toInt(port)), sock->getLocalPort(),
+					ConnectionManager::getInstance()->nmdcConnect(server, static_cast<uint16_t>(Util::toInt(port)), m_client_sock->getLocalPort(),
 					                                              BufferedSocket::NAT_SERVER, getMyNick(), getHubUrl(),
 					                                              getEncoding(),
 #ifdef IRAINMAN_ENABLE_STEALTH_MODE
@@ -889,7 +889,7 @@ void NmdcHub::onLine(const string& aLine)
 			              ;
 			// NMDC v2.205 supports "$ConnectToMe sender_nick remote_nick ip:port", but many NMDC hubsofts block it
 			// sender_nick at the end should work at least in most used hubsofts
-			send("$ConnectToMe " + fromUtf8(u->getIdentity().getNick()) + ' ' + getLocalIp() + ":" + Util::toString(sock->getLocalPort()) + (secure ? "NS " : "N ") + fromUtf8(getMyNick()) + '|');
+			send("$ConnectToMe " + fromUtf8(u->getIdentity().getNick()) + ' ' + getLocalIp() + ":" + Util::toString(m_client_sock->getLocalPort()) + (secure ? "NS " : "N ") + fromUtf8(getMyNick()) + '|');
 		}
 		else
 		{
@@ -1107,9 +1107,9 @@ void NmdcHub::onLine(const string& aLine)
 	}
 	else if (cmd == "ForceMove")
 	{
-		dcassert(sock);
-		if (sock)
-			sock->disconnect(false);
+		dcassert(m_client_sock);
+		if (m_client_sock)
+			m_client_sock->disconnect(false);
 		fire(ClientListener::Redirect(), this, param);
 	}
 	else if (cmd == "HubIsFull")
@@ -1118,9 +1118,9 @@ void NmdcHub::onLine(const string& aLine)
 	}
 	else if (cmd == "ValidateDenide")        // Mind the spelling...
 	{
-		dcassert(sock);
-		if (sock)
-			sock->disconnect(false);
+		dcassert(m_client_sock);
+		if (m_client_sock)
+			m_client_sock->disconnect(false);
 		fire(ClientListener::NickTaken(), this);
 	}
 	else if (cmd == "UserIP")
@@ -1358,7 +1358,7 @@ void NmdcHub::onLine(const string& aLine)
 	{
 		try
 		{
-			sock->setMode(BufferedSocket::MODE_ZPIPE);
+			m_client_sock->setMode(BufferedSocket::MODE_ZPIPE);
 		}
 		catch (const Exception& e)
 		{

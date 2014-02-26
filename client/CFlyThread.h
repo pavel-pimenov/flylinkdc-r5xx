@@ -118,8 +118,9 @@ class ThreadPool : public BaseThread
 			}
 			
 			WaitForSingleObject(m_hDoneEvent, INFINITE);
-			CloseHandle(m_hDoneEvent);
+			HANDLE l_thread = m_hDoneEvent;
 			m_hDoneEvent = INVALID_HANDLE_VALUE;
+			CloseHandle(l_thread);
 		}
 };
 #endif // RIP_USE_THREAD_POOL
@@ -251,17 +252,22 @@ class Thread : public BaseThread
 		virtual ~Thread()
 		{
 			if (m_threadHandle != INVALID_HANDLE_VALUE)
-				CloseHandle(m_threadHandle);
+			{
+				HANDLE l_thread = m_threadHandle;
+				m_threadHandle  = INVALID_HANDLE_VALUE;
+				CloseHandle(l_thread);
+			}
 		}
 		
-		void start(unsigned int p_stack_size);
+		void start(unsigned int p_stack_size, const char* p_name = nullptr);
 		void join()
 		{
 			if (m_threadHandle != INVALID_HANDLE_VALUE)
 			{
 				WaitForSingleObject(m_threadHandle, INFINITE);
-				CloseHandle(m_threadHandle);
+				HANDLE l_thread = m_threadHandle;
 				m_threadHandle = INVALID_HANDLE_VALUE;
+				CloseHandle(l_thread);
 			}
 		}
 		static int getThreadsCount();

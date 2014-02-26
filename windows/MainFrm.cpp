@@ -532,7 +532,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		}
 	}
 	
-	TimerManager::getInstance()->start(0);
+	TimerManager::getInstance()->start(0, "TimerManager");
 	SetWindowText(T_APPNAME_WITH_VERSION);
 	MainFrame::createMainMenu();
 	

@@ -100,3 +100,4 @@ FlylinkDC-*.7z
 /compiled/Settings/common/CustomLocations.bmp
 /compiled/Settings/common/CustomLocations.ini
 /compiled/UpdateTools/FlyUpdate/commit_update.bat
+/openssl/openssl.vcxproj.user

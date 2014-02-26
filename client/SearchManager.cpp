@@ -105,7 +105,7 @@ void SearchManager::listen()
 			port = socket->bind(static_cast<uint16_t>(l_port), l_ip);
 		}
 		
-		start(64);
+		start(64, "SearchManager");
 	}
 	catch (...)
 	{
@@ -306,13 +306,13 @@ int SearchManager::UdpQueue::run()
 			// [!] IRainman fix: не падаем!!!! Это диагностическое предупреждение!!!
 			// [-] string encoding;
 			// [-] if (!url.empty())
-			const string encoding = ClientManager::findHubEncoding(url); // [!]
+			const string l_encoding = ClientManager::findHubEncoding(url); // [!]
 			// [~]
-			nick = Text::toUtf8(nick, encoding);
-			file = Text::toUtf8(file, encoding);
+			nick = Text::toUtf8(nick, l_encoding);
+			file = Text::toUtf8(file, l_encoding);
 			const bool l_isTTH = isTTHBase64(l_hub_name_or_tth);
 			if (!l_isTTH) // [+]FlylinkDC++ Team
-				l_hub_name_or_tth = Text::toUtf8(l_hub_name_or_tth, encoding);
+				l_hub_name_or_tth = Text::toUtf8(l_hub_name_or_tth, l_encoding);
 				
 			UserPtr user = ClientManager::findUser(nick, url); // TODO оптимизнуть makeCID
 			// не находим юзера "$SR snooper-06 Фильмы\Прошлой ночью в Нью-Йорке.avi1565253632 15/15TTH:LUWOOXBE2H77TUV4S4HNZQTVDXLPEYC757OUMLY (31.186.103.125:411)"

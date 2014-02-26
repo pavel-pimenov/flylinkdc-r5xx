@@ -672,6 +672,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="HashProgressText">Подождите, пока FlylinkDC++ прохеширует Ваши файлы (они не будут расшарены пока не прохешируются)…</String>
 		<String Name="HashReadFailed">Невозможно прочесть базу данных хеша</String>
 		<String Name="HashRebuilt">База данных хеша обновлена</String>
+		<String Name="HashRefreshFileList">Обновить файл-лист</String>
 		<String Name="Height">Высота</String>
 		<String Name="Hibernate">Спящий режим</String>
 		<String Name="HideShare">Спрятать шару на этом хабе</String>
@@ -1461,7 +1462,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsFilterMessages">Фильтровать kick и отладочные сообщения</String>
 		<String Name="SettingsFirewallNat">Брандмауэр с ручным перенаправлением портов</String>
 		<String Name="SettingsFirewallPassive">Брандмауэр (Пассивный режим: для тех, кто не умеет пробрасывать порты)</String>
-		<String Name="SettingsFirewallUpnp">UPNP (модем/роутер)</String>
+		<String Name="SettingsFirewallUpnp">UPnP (модем/роутер)</String>
 		<String Name="SettingsFormat">Формат</String>
 		<String Name="SettingsGeneral">Общие</String>
 		<String Name="SettingsGetFavoriteDir">Выберите каталог:</String>
@@ -1873,11 +1874,11 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="UploadFinishedIdle">Отдача завершена, ожидание…</String>
 		<String Name="UploadSpeedLimit">Ограничить скорость</String>
 		<String Name="UploadStarting">Отдача началась…</String>
-		<String Name="UpnpcheckdlgMiniInit">Проверка MiniUPNP…</String>
-		<String Name="UpnpcheckdlgMiniOpen">Открытие портов в MiniUPNP…</String>
+		<String Name="UpnpcheckdlgMiniInit">Проверка MiniUPnP…</String>
+		<String Name="UpnpcheckdlgMiniOpen">Открытие портов в MiniUPnP…</String>
 		<String Name="UpnpcheckdlgPortCheck">Проверка портов…</String>
-		<String Name="UpnpcheckdlgWinInit">Проверка WinUPNP…</String>
-		<String Name="UpnpcheckdlgWinOpen">Открытие портов в WinUPNP…</String>
+		<String Name="UpnpcheckdlgWinInit">Проверка WinUPnP…</String>
+		<String Name="UpnpcheckdlgWinOpen">Открытие портов в WinUPnP…</String>
 		<String Name="UpnpAnotherInProgress">Другая попытка UPnP проброса портов в процессе…</String>
 		<String Name="UpnpFailedToCreateMappings">Невозможно создать распределение портов. Настройте NAT сами.</String>
 		<String Name="UpnpFailedToGetExternalIp">Невозможно определить внешний IP.</String>
@@ -2017,12 +2018,12 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="WizardDownloaddirStatic">Помощь: Используйте несистемные каталоги на дисках с более чем 10 Гб свободного места (рекомендуется)…</String>
 		<String Name="WizardFinishLabel1">Мастер настройки FlylinkDC++ завершил работу.</String>
 		<String Name="WizardFinishLabel2">Теперь вы можете начать использовать FlylinkDC++!</String>
-		<String Name="WizardNetaBtnCheckupnp">Проверить UPNP</String>
+		<String Name="WizardNetaBtnCheckupnp">Проверить UPnP</String>
 		<String Name="WizardNetaBtnSetuprouter">Настройка роутера</String>
 		<String Name="WizardNetaBtnTest">Проверить настройки соединения</String>
 		<String Name="WizardNetaFirewallStatic">Файрвол</String>
 		<String Name="WizardNetaNeedpassivemode">Помощник обнаружил проблемы с активным режимом FlylinkDC++. Установить пассивный режим для сетевых соединений?</String>
-		<String Name="WizardNetaRouterStatic">Если у вас есть роутер или ADSL модем, подключенный к сети, вы должны настроить его для FlylinkDC++. Вы должны включить на нем UPNP или настроить проброс портов.</String>
+		<String Name="WizardNetaRouterStatic">Если у вас есть роутер или ADSL модем, подключенный к сети, вы должны настроить его для FlylinkDC++. Вы должны включить на нем UPnP или настроить проброс портов.</String>
 		<String Name="WizardNetaRouterTitle">Настройка Роутера/ADSL модема (если у вас они установлены/есть)</String>
 		<String Name="WizardNetaSetupfailed">Настройка активного режима FlylinkDC++ не удалась</String>
 		<String Name="WizardNetaSetupsuccess">Активный режим FlylinkDC++ был настроен успешно</String>

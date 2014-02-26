@@ -98,7 +98,7 @@ class StringSearch;
 
 class TigerHash;
 
-class Transfer;
+//class Transfer;
 
 typedef HashValue<TigerHash> TTHValue;
 

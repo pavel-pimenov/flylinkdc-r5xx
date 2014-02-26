@@ -4,7 +4,7 @@
 	<server url="http://ssa.in.ua/dcDHT.php"/>
 	<fly-server 
 		ip_infobox ="109.120.164.244"
-		ip ="82.196.7.135" 
+		ip ="146.185.183.102"
 		port ="37015" 
 		stat_server_ip = "31.186.103.125"
 		stat_server_port = "37015"

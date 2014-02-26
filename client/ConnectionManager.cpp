@@ -32,6 +32,7 @@ uint16_t ConnectionManager::iConnToMeCount = 0;
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csConnection = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csDdosCheck = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csTTHFilter = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+boost::unordered_set<UserConnection*> ConnectionManager::g_userConnections;
 
 ConnectionManager::ConnectionManager() : m_floodCounter(0), server(nullptr),
 	secureServer(nullptr),
@@ -57,7 +58,7 @@ ConnectionManager::ConnectionManager() : m_floodCounter(0), server(nullptr),
 ConnectionManager::~ConnectionManager()
 {
 	dcassert(shuttingDown == true);
-	dcassert(m_userConnections.empty());
+	dcassert(g_userConnections.empty());
 	//shutdown();
 	
 	// [!] http://code.google.com/p/flylinkdc/issues/detail?id=1037
@@ -168,6 +169,19 @@ void ConnectionManager::putCQI(ConnectionQueueItem* cqi)
 	delete cqi;
 }
 
+bool ConnectionManager::getCipherNameAndIP(UserConnection* p_conn, string& p_chiper_name, string& p_ip)
+{
+	webrtc::ReadLockScoped l(*g_csConnection);
+	const auto l_conn = g_userConnections.find(p_conn);
+	dcassert(l_conn != g_userConnections.end());
+	if (l_conn != g_userConnections.end())
+	{
+		p_chiper_name = p_conn->getCipherName();
+		p_ip = p_conn->getRemoteIp(); // TODO - перевести на boost?
+		return true;
+	}
+	return false;
+}
 UserConnection* ConnectionManager::getConnection(bool aNmdc, bool secure) noexcept
 {
 	dcassert(shuttingDown == false);
@@ -175,8 +189,8 @@ UserConnection* ConnectionManager::getConnection(bool aNmdc, bool secure) noexce
 	uc->addListener(this);
 	{
 		webrtc::WriteLockScoped l(*g_csConnection);
-		dcassert(m_userConnections.find(uc) == m_userConnections.end());
-		m_userConnections.insert(uc);
+		dcassert(g_userConnections.find(uc) == g_userConnections.end());
+		g_userConnections.insert(uc);
 	}
 	if (aNmdc)
 	{
@@ -190,8 +204,8 @@ void ConnectionManager::putConnection(UserConnection* aConn)
 	aConn->removeListener(this);
 	aConn->disconnect(true);
 	webrtc::WriteLockScoped l(*g_csConnection);
-	dcassert(m_userConnections.find(aConn) != m_userConnections.end());
-	m_userConnections.erase(aConn);
+	dcassert(g_userConnections.find(aConn) != g_userConnections.end());
+	g_userConnections.erase(aConn);
 }
 
 void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
@@ -367,7 +381,7 @@ void ConnectionManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcep
 	
 	webrtc::ReadLockScoped l(*g_csConnection);
 	
-	for (auto j = m_userConnections.cbegin(); j != m_userConnections.cend(); ++j)
+	for (auto j = g_userConnections.cbegin(); j != g_userConnections.cend(); ++j)
 	{
 		auto& l_connection = *j;
 #ifdef _DEBUG
@@ -598,7 +612,7 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 	
 	// We don't want to be used as a flooding instrument
 	int count = 0;
-	for (auto j = m_userConnections.cbegin(); j != m_userConnections.cend(); ++j)
+	for (auto j = g_userConnections.cbegin(); j != g_userConnections.cend(); ++j)
 	{
 	
 		const UserConnection& uc = **j;
@@ -883,8 +897,9 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 		}
 #endif // RIP_USE_CONNECTION_AUTODETECT
 		aSource->setToken(i.m_Nick);
-		aSource->setHubUrl(i.m_HubUrl);
-		aSource->setEncoding(ClientManager::findHubEncoding(i.m_HubUrl));
+		aSource->setHubUrl(i.m_HubUrl); // TODO - тут юзера почему-то еще нет
+		const auto l_encoding = ClientManager::findHubEncoding(i.m_HubUrl);
+		aSource->setEncoding(l_encoding);
 	}
 	
 	const string nick = Text::toUtf8(aNick, aSource->getEncoding());// TODO IRAINMAN_USE_UNICODE_IN_NMDC
@@ -1361,15 +1376,15 @@ void ConnectionManager::on(UserConnectionListener::ProtocolError, UserConnection
 void ConnectionManager::disconnect(const UserPtr& aUser)
 {
 	webrtc::ReadLockScoped l(*g_csConnection);
-	for (auto i = m_userConnections.cbegin(); i != m_userConnections.cend(); ++i)
+	for (auto i = g_userConnections.cbegin(); i != g_userConnections.cend(); ++i)
 	{
 		UserConnection* uc = *i;
 		if (uc->getUser() == aUser)
 			uc->disconnect(true);
 	}
 	/*
-	    const auto & l_find = m_userConnections.find(aUser);
-	    if(l_find != m_userConnections.end())
+	    const auto & l_find = g_userConnections.find(aUser);
+	    if(l_find != g_userConnections.end())
 	        l_find->second->disconnect(true);
 	*/
 }
@@ -1377,7 +1392,7 @@ void ConnectionManager::disconnect(const UserPtr& aUser)
 void ConnectionManager::disconnect(const UserPtr& aUser, bool isDownload) // [!] IRainman fix.
 {
 	webrtc::ReadLockScoped l(*g_csConnection);
-	for (auto i = m_userConnections.cbegin(); i != m_userConnections.cend(); ++i)
+	for (auto i = g_userConnections.cbegin(); i != g_userConnections.cend(); ++i)
 	{
 		UserConnection* uc = *i;
 		dcassert(uc);
@@ -1388,8 +1403,8 @@ void ConnectionManager::disconnect(const UserPtr& aUser, bool isDownload) // [!]
 		}
 	}
 	/*
-	    const auto & l_find = m_userConnections.find(aUser);
-	    if(l_find != m_userConnections.end())
+	    const auto & l_find = g_userConnections.find(aUser);
+	    if(l_find != g_userConnections.end())
 	        if(l_find->second->isSet((Flags::MaskType)(isDownload ? UserConnection::FLAG_DOWNLOAD : UserConnection::FLAG_UPLOAD)))
 	            l_find->second->disconnect(true);
 	*/
@@ -1403,7 +1418,7 @@ void ConnectionManager::shutdown()
 	disconnect();
 	{
 		webrtc::ReadLockScoped l(*g_csConnection);
-		for (auto j = m_userConnections.cbegin(); j != m_userConnections.cend(); ++j)
+		for (auto j = g_userConnections.cbegin(); j != g_userConnections.cend(); ++j)
 		{
 			(*j)->disconnect(true);
 		}
@@ -1413,7 +1428,7 @@ void ConnectionManager::shutdown()
 	{
 		{
 			webrtc::ReadLockScoped l(*g_csConnection);
-			if (m_userConnections.empty())
+			if (g_userConnections.empty())
 			{
 				break;
 			}
@@ -1444,19 +1459,19 @@ void ConnectionManager::shutdown()
 }
 
 // UserConnectionListener
-void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* conn, StringList& feat) noexcept
+void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* p_conn, StringList& feat) noexcept
 {
-	dcassert(conn->getUser()); // [!] IRainman fix: please don't problem maskerate.
+	dcassert(p_conn->getUser()); // [!] IRainman fix: please don't problem maskerate.
 	// [!] IRainman fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
-	if (conn->getUser()) // 44 падения https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=48388
+	if (p_conn->getUser()) // 44 падения https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=48388
 	{
 		uint8_t knownUcSupports = 0;
-		auto unknownUcSupports = UcSupports::setSupports(conn, feat, knownUcSupports);
-		ClientManager::getInstance()->setSupports(conn->getUser(), unknownUcSupports, knownUcSupports);
+		auto unknownUcSupports = UcSupports::setSupports(p_conn, feat, knownUcSupports);
+		ClientManager::getInstance()->setSupports(p_conn->getUser(), unknownUcSupports, knownUcSupports);
 	}
 	else
 	{
-		LogManager::getInstance()->message("Error UserConnectionListener::Supports conn->getUser() == nullptr, url = " + conn->getHintedUser().hint);
+		LogManager::getInstance()->message("Error UserConnectionListener::Supports conn->getUser() == nullptr, url = " + p_conn->getHintedUser().hint);
 	}
 }
 
@@ -1464,7 +1479,7 @@ void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* con
 void ConnectionManager::setUploadLimit(const UserPtr& aUser, int lim)
 {
 	webrtc::ReadLockScoped l(*g_csConnection);
-	for (auto i = m_userConnections.cbegin(); i != m_userConnections.cend(); ++i)
+	for (auto i = g_userConnections.cbegin(); i != g_userConnections.cend(); ++i)
 	{
 		if ((*i)->isSet(UserConnection::FLAG_UPLOAD) && (*i)->getUser() == aUser)
 		{
@@ -1472,8 +1487,8 @@ void ConnectionManager::setUploadLimit(const UserPtr& aUser, int lim)
 		}
 	}
 	/*
-	    const auto & l_find = m_userConnections.find(aUser);
-	    if(l_find != m_userConnections.end() && l_find->second->isSet(UserConnection::FLAG_UPLOAD))
+	    const auto & l_find = g_userConnections.find(aUser);
+	    if(l_find != g_userConnections.end() && l_find->second->isSet(UserConnection::FLAG_UPLOAD))
 	        l_find->second->setUploadLimit(lim);
 	*/
 }

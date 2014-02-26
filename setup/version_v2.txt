@@ -1,1 +1,0 @@
-Result:='FlylinkDC++ r501-beta70 build 9074'; 

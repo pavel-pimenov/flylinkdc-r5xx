@@ -237,10 +237,12 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) noexcept
 				{
 					nick = "[nick unknown]";
 				}
-				fire(ClientListener::StatusMessage(), this, ou->getIdentity().getNick() + " (" + ou->getIdentity().getSIDString() +
-				     ") has same CID {" + cid + "} as " + nick + " (" + AdcCommand::fromSID(c.getFrom()) + "), ignoring.", ClientListener::FLAG_IS_SPAM);
-				     
-				LogManager::getInstance()->message("Magic spam message filtered on hub: " + getHubUrl() + "."); // [+] IRainman fix.
+				// fix http://code.google.com/p/flylinkdc/issues/detail?id=1435
+				const string l_message = ou->getIdentity().getNick() + " (" + ou->getIdentity().getSIDString() +
+				                         ") has same CID {" + cid + "} as " + nick + " (" + AdcCommand::fromSID(c.getFrom()) + "), ignoring.";
+				fire(ClientListener::StatusMessage(), this, l_message, ClientListener::FLAG_IS_SPAM);
+				
+				LogManager::getInstance()->ddos_message("Magic spam message filtered on hub: " + getHubUrl() + " detail:" + l_message);
 				return;
 			}
 		}
@@ -621,7 +623,7 @@ void AdcHub::handle(AdcCommand::ZON, AdcCommand& /*c*/) noexcept
 {
 	try
 	{
-		sock->setMode(BufferedSocket::MODE_ZPIPE);
+		m_client_sock->setMode(BufferedSocket::MODE_ZPIPE);
 		dcdebug("ZLIF mode enabled on hub: %s\n", getHubUrlAndIP().c_str());
 	}
 	catch (const Exception& e)
@@ -672,7 +674,7 @@ void AdcHub::handle(AdcCommand::RCM, AdcCommand& c) noexcept
 	// If they respond with their own, symmetric, RNT command, both
 	// clients call ConnectionManager::adcConnect.
 	send(AdcCommand(AdcCommand::CMD_NAT, ou->getIdentity().getSID(), AdcCommand::TYPE_DIRECT).
-	addParam(protocol).addParam(Util::toString(sock->getLocalPort())).addParam(token));
+	addParam(protocol).addParam(Util::toString(m_client_sock->getLocalPort())).addParam(token));
 }
 
 void AdcHub::handle(AdcCommand::CMD, AdcCommand& c) noexcept
@@ -943,12 +945,12 @@ void AdcHub::handle(AdcCommand::NAT, AdcCommand& c) noexcept
 	}
 	
 	// Trigger connection attempt sequence locally ...
-	dcdebug("triggering connecting attempt in NAT: remote port = %s, local IP = %s, local port = %d\n", port.c_str(), sock->getLocalIp().c_str(), sock->getLocalPort());
-	ConnectionManager::getInstance()->adcConnect(*ou, static_cast<uint16_t>(Util::toInt(port)), sock->getLocalPort(), BufferedSocket::NAT_CLIENT, token, secure);
+	dcdebug("triggering connecting attempt in NAT: remote port = %s, local IP = %s, local port = %d\n", port.c_str(), m_client_sock->getLocalIp().c_str(), m_client_sock->getLocalPort());
+	ConnectionManager::getInstance()->adcConnect(*ou, static_cast<uint16_t>(Util::toInt(port)), m_client_sock->getLocalPort(), BufferedSocket::NAT_CLIENT, token, secure);
 	
 	// ... and signal other client to do likewise.
 	send(AdcCommand(AdcCommand::CMD_RNT, ou->getIdentity().getSID(), AdcCommand::TYPE_DIRECT).addParam(protocol).
-	addParam(Util::toString(sock->getLocalPort())).addParam(token));
+	addParam(Util::toString(m_client_sock->getLocalPort())).addParam(token));
 }
 
 void AdcHub::handle(AdcCommand::RNT, AdcCommand& c) noexcept
@@ -983,14 +985,14 @@ void AdcHub::handle(AdcCommand::RNT, AdcCommand& c) noexcept
 	}
 	
 	// Trigger connection attempt sequence locally
-	dcdebug("triggering connecting attempt in RNT: remote port = %s, local IP = %s, local port = %d\n", port.c_str(), sock->getLocalIp().c_str(), sock->getLocalPort());
-	ConnectionManager::getInstance()->adcConnect(*ou, static_cast<uint16_t>(Util::toInt(port)), sock->getLocalPort(), BufferedSocket::NAT_SERVER, token, secure);
+	dcdebug("triggering connecting attempt in RNT: remote port = %s, local IP = %s, local port = %d\n", port.c_str(), m_client_sock->getLocalIp().c_str(), m_client_sock->getLocalPort());
+	ConnectionManager::getInstance()->adcConnect(*ou, static_cast<uint16_t>(Util::toInt(port)), m_client_sock->getLocalPort(), BufferedSocket::NAT_SERVER, token, secure);
 }
 
 void AdcHub::handle(AdcCommand::ZOF, AdcCommand& c) noexcept
 {
 	try {
-		sock->setMode(BufferedSocket::MODE_LINE);
+		m_client_sock->setMode(BufferedSocket::MODE_LINE);
 	}
 	catch (const Exception& e)
 	{

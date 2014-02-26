@@ -246,7 +246,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		ConnectionQueueItem::List uploads;
 		
 		/** All active connections */
-		boost::unordered_set<UserConnection*> m_userConnections;
+		static boost::unordered_set<UserConnection*> g_userConnections;
 		typedef std::pair<boost::asio::ip::address_v4, boost::asio::ip::address_v4> CFlyDDOSkey; // uint32_t boost::asio::ip::address_v4 в  ключе тупит
 		class CFlyTickDetect
 		{
@@ -310,7 +310,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		
 		~ConnectionManager();
 		
-		void setIP(UserConnection* p_uc, ConnectionQueueItem* p_qi); // [+]PPA
+		static void setIP(UserConnection* p_uc, ConnectionQueueItem* p_qi); // [+]PPA
 		UserConnection* getConnection(bool aNmdc, bool secure) noexcept;
 		void putConnection(UserConnection* aConn);
 		
@@ -327,6 +327,8 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		void failed(UserConnection* aSource, const string& aError, bool protocolError);
 		
 	public:
+		static bool getCipherNameAndIP(UserConnection* p_conn, string& p_chiper_name, string& p_ip);
+		
 		bool checkIpFlood(const string& aIPServer, uint16_t aPort, const boost::asio::ip::address_v4& p_ip_hub, const string& userInfo, const string& p_HubInfo);
 		bool checkTTHDuplicateSearch(const string& p_search_command);
 	private:

@@ -1213,7 +1213,7 @@ void TransferView::ItemInfo::update(const UpdateInfo& ui)
 	if (ui.updateMask & UpdateInfo::MASK_CIPHER)
 	{
 		dcassert(cipher.empty()); // [+] IRainman fix: if cipher is set already, not try to set twice. Cipher can not change during a single connection.
-		cipher = ui.cipher;
+		cipher = ui.m_cipher;
 	}
 	if (ui.updateMask & UpdateInfo::MASK_SEGMENT)
 	{
@@ -1406,12 +1406,15 @@ void TransferView::starting(UpdateInfo* ui, const Transfer* t)
 	ui->setPos(t->getPos());
 	ui->setTarget(t->getPath());
 	ui->setType(t->getType());
-	const UserConnection& uc = t->getUserConnection();
-	ui->setCipher(uc.getCipherName());
-	
-	const string ip = uc.getRemoteIp();
-	
-	ui->setIP(ip); // https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=55732
+	string l_chiper_name;
+	string l_ip;
+	const auto l_result = ConnectionManager::getCipherNameAndIP(const_cast<UserConnection*>(t->getUserConnection()) , l_chiper_name, l_ip);
+	dcassert(l_result);
+	ui->setCipher(l_chiper_name);
+	ui->setIP(l_ip);
+	// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=55732
+	// bad alloc - https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128264
+	// getUserConnection - мертвый?
 }
 
 void TransferView::on(DownloadManagerListener::Requesting, const Download* d) noexcept
@@ -1437,7 +1440,7 @@ void TransferView::on(DownloadManagerListener::Starting, const Download* aDownlo
 	ui->setStatusString(TSTRING(DOWNLOAD_STARTING));
 	ui->setTarget(aDownload->getPath());
 	ui->setType(aDownload->getType());
-	// [-] ui->setIP(aDownload->getUserConnection().getRemoteIp()); // !SMT!-IP [-] IRainman opt.
+	// [-] ui->setIP(aDownload->getUserConnection()->getRemoteIp()); // !SMT!-IP [-] IRainman opt.
 	
 	m_tasks.add(UPDATE_ITEM, ui);
 }
@@ -1512,7 +1515,7 @@ void TransferView::on(DownloadManagerListener::Failed, const Download* aDownload
 	ui->setSize(aDownload->getSize());
 	ui->setTarget(aDownload->getPath());
 	ui->setType(aDownload->getType());
-	// [-] ui->setIP(aDownload->getUserConnection().getRemoteIp()); // !SMT!-IP [-] IRainman opt.
+	// [-] ui->setIP(aDownload->getUserConnection()->getRemoteIp()); // !SMT!-IP [-] IRainman opt.
 	
 	tstring tmpReason = Text::toT(aReason);
 	if (aDownload->isSet(Download::FLAG_SLOWUSER))
@@ -1555,7 +1558,7 @@ void TransferView::on(UploadManagerListener::Starting, const Upload* aUpload)
 	ui->setActual(aUpload->getStartPos() + aUpload->getActual());
 	ui->setSize(aUpload->getType() == Transfer::TYPE_TREE ? aUpload->getSize() : aUpload->getFileSize());
 	ui->setRunning(1);
-	// [-] ui->setIP(aUpload->getUserConnection().getRemoteIp()); // !SMT!-IP [-] IRainman opt.
+	// [-] ui->setIP(aUpload->getUserConnection()->getRemoteIp()); // !SMT!-IP [-] IRainman opt.
 	
 	if (!aUpload->isSet(Upload::FLAG_RESUMED))
 	{

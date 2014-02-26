@@ -110,7 +110,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 		
 		void startup()
 		{
-			hasher.start(0);
+			hasher.start(0, "HashManager");
 		}
 		
 		void shutdown()

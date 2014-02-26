@@ -171,7 +171,7 @@ class VideoPreview :
 			, _tempFilename(Util::emptyString)
 		{
 			_ask2Download.reserve(10);
-			start(64);
+			start(64, "VideoPreview");
 		}
 		
 		virtual ~VideoPreview();

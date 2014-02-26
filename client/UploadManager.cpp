@@ -240,11 +240,11 @@ bool UploadManager::hasUpload(UserConnection& p_newLeacher, const string& p_sour
 			const Upload* u = *i;
 			dcassert(u);
 			dcassert(u->getUser());
-			const auto& uploadUserIp = u->getUserConnection().getSocket()->getIp();
+			const auto& uploadUserIp = u->getUserConnection()->getSocket()->getIp(); // TODO - boost
 			const auto& uploadUserShare = u->getUser()->getBytesShared(); // [!] IRainamn fix, old code: ClientManager::getInstance()->getBytesShared(u.getUser());
 			const auto& uploadUserNick = u->getUser()->getLastNick();
 			
-			if (u->getUserConnection().getSocket() &&
+			if (u->getUserConnection()->getSocket() &&
 			        newLeacherIp == uploadUserIp &&
 			        (newLeacherShare == uploadUserShare ||
 			         newLeacherNick == uploadUserNick) // [+] back port from r4xx.
@@ -612,7 +612,7 @@ ok: //[!] TODO убрать goto
 			else
 			{
 				delete is;
-				aSource.maxedOut(addFailedUpload(aSource, sourceFile, aStartPos, fileSize));
+				aSource.maxedOut(addFailedUpload(aSource, sourceFile, aStartPos, fileSize)); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=130703
 				aSource.disconnect();
 				return false;
 			}
@@ -649,7 +649,7 @@ ok: //[!] TODO убрать goto
 		for (auto i = m_delayUploads.cbegin(); i != m_delayUploads.cend(); ++i)
 		{
 			Upload* up = *i;
-			if (&aSource == &up->getUserConnection())
+			if (&aSource == up->getUserConnection())
 			{
 				m_delayUploads.erase(i);
 				if (sourceFile != up->getPath())
@@ -666,7 +666,7 @@ ok: //[!] TODO убрать goto
 		}
 	}
 	
-	Upload* u = new Upload(aSource, sourceFile); // [!] IRainman fix.
+	Upload* u = new Upload(&aSource, sourceFile); // [!] IRainman fix.
 	u->setStream(is);
 	u->setSegment(Segment(start, size));
 	
@@ -945,7 +945,7 @@ void UploadManager::logUpload(const Upload* u)
 	if (BOOLSETTING(LOG_UPLOADS) && u->getType() != Transfer::TYPE_TREE && (BOOLSETTING(LOG_FILELIST_TRANSFERS) || u->getType() != Transfer::TYPE_FULL_LIST))
 	{
 		StringMap params;
-		u->getParams(u->getUserConnection(), params);
+		u->getParams(*u->getUserConnection(), params);
 		LOG(UPLOAD, params);
 	}
 	
@@ -962,6 +962,7 @@ size_t UploadManager::addFailedUpload(const UserConnection& source, const string
 	if (it != m_slotQueue.end())
 	{
 		it->setToken(source.getToken());
+		// https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=130703
 		for (auto fileIter = it->m_files.cbegin(); fileIter != it->m_files.cend(); ++fileIter) //TODO https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128318
 		{
 			if ((*fileIter)->getFile() == file)
@@ -971,7 +972,6 @@ size_t UploadManager::addFailedUpload(const UserConnection& source, const string
 			}
 		}
 	}
-	
 	UploadQueueItem* uqi = new UploadQueueItem(source.getHintedUser(), file, pos, size);
 	if (it == m_slotQueue.end())
 	{
@@ -1221,7 +1221,7 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 				ticks.push_back(u); // https://www.box.net/shared/83e9d01b2bbd06812496
 				u->tick(aTick); // [!]IRainman refactoring transfer mechanism
 			}
-			u->getUserConnection().getSocket()->updateSocketBucket(getUserConnectionAmountL(u->getUser()));// [+] IRainman SpeedLimiter
+			u->getUserConnection()->getSocket()->updateSocketBucket(getUserConnectionAmountL(u->getUser()));// [+] IRainman SpeedLimiter
 			l_currentSpeed += u->getRunningAverage();//[+] IRainman refactoring transfer mechanism
 		}
 		runningAverage = l_currentSpeed; // [+] IRainman refactoring transfer mechanism
@@ -1309,7 +1309,7 @@ void UploadManager::abortUpload(const string& aFile, bool waiting)
 			
 			if (u->getPath() == aFile)
 			{
-				u->getUserConnection().disconnect(true);
+				u->getUserConnection()->disconnect(true);
 				nowait = false;
 			}
 		}

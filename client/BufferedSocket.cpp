@@ -45,7 +45,7 @@ BufferedSocket::BufferedSocket(char aSeparator) :
 	m_myInfoCount(0),
 	m_myInfoStop(false)
 {
-	start(64);
+	start(64, "BufferedSocket");
 	Thread::safeInc(g_sockets); // [!] IRainman opt.
 }
 
@@ -871,9 +871,6 @@ void BufferedSocket::shutdown()
 	// [~] IRainman fix.
 }
 
-#ifdef FLYLINKDC_HE
-inline // [+] IRainman opt.
-#endif
 void BufferedSocket::addTask(Tasks task, TaskData* data)
 {
 	dcassert(task == DISCONNECT || task == SHUTDOWN || task == UPDATED || sock.get());

@@ -1364,6 +1364,7 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 #endif
 		break;
 		
+#ifdef FLYLINKDC_ADD_CHAT_LINE_USE_WIN_MESSAGES_Q
 		case WM_SPEAKER_ADD_CHAT_LINE:
 		{
 			dcassert(!ClientManager::isShutdown());
@@ -1384,7 +1385,7 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 			}
 		}
 		break;
-		
+#endif // FLYLINKDC_ADD_CHAT_LINE_USE_WIN_MESSAGES_Q
 		
 		
 		
@@ -1611,6 +1612,30 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 			}
 			break;
 #endif // FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
+#ifndef FLYLINKDC_ADD_CHAT_LINE_USE_WIN_MESSAGES_Q
+			case ADD_CHAT_LINE:
+			{
+				dcassert(!ClientManager::isShutdown());
+				MessageTask& l_task = static_cast<MessageTask&>(*i->second);
+				auto_ptr<ChatMessage> msg(l_task.m_message_ptr);
+				l_task.m_message_ptr = nullptr;
+				if (msg->m_from)
+				{
+					const Identity& from    = msg->m_from->getIdentity();
+					const bool myMess       = ClientManager::isMe(msg->m_from);
+					addLine(from, myMess, msg->thirdPerson, Text::toT(msg->format()), Colors::g_ChatTextGeneral);
+					auto& l_user = msg->m_from->getUser();
+					l_user->incMessageCount();
+					const auto l_ou_ptr = new OnlineUserPtr(msg->m_from);
+					PostMessage(WM_SPEAKER_UPDATE_USER, WPARAM(l_ou_ptr), LPARAM(COLUMN_MESSAGES));
+				}
+				else
+				{
+					BaseChatFrame::addLine(Text::toT(msg->m_text), Colors::g_ChatTextPrivate);
+				}
+			}
+			break;
+#endif // FLYLINKDC_ADD_CHAT_LINE_USE_WIN_MESSAGES_Q
 			case ADD_STATUS_LINE:
 			{
 				dcassert(!ClientManager::isShutdown());
@@ -1727,12 +1752,13 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 						BaseChatFrame::addLine(TSTRING(PRIVATE_MESSAGE_FROM) + _T(' ') + id.getNickT() + _T(": ") + text, Colors::g_ChatTextPrivate);
 					}
 					// !SMT!-S
-					HWND hMainWnd = MainFrame::getMainFrame()->m_hWnd;//GetTopLevelWindow();
+					const HWND hMainWnd = MainFrame::getMainFrame()->m_hWnd;//GetTopLevelWindow();
 					::PostMessage(hMainWnd, WM_SPEAKER, MainFrame::SET_PM_TRAY_ICON, NULL); //-V106
 				}
 			}
 			break;
 #endif
+			
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 			case DIRECT_MODE_DETECTED:
 			{
@@ -3082,15 +3108,13 @@ void HubFrame::on(ClientListener::Message, const Client*,  std::unique_ptr<ChatM
 	}
 	else
 	{
+#ifndef FLYLINKDC_ADD_CHAT_LINE_USE_WIN_MESSAGES_Q
+		speak(ADD_CHAT_LINE, l_message_ptr); // fix ? http://code.google.com/p/flylinkdc/issues/detail?id=1438
+#else
 		PostMessage(WM_SPEAKER_ADD_CHAT_LINE, WPARAM(l_message_ptr));
+#endif
 	}
 }
-/*[-] IRainman fix.
-void HubFrame::on(PrivateMessage, const Client*, const string &strFromUserName, const UserPtr& from, const UserPtr &to, const UserPtr &replyTo, const string& line, bool thirdPerson) noexcept   // !SMT!-S
-{
-speak(PRIVATE_MESSAGE, strFromUserName, from, to, replyTo, Util::formatMessage(line), thirdPerson); // !SMT!-S
-}
-[~]*/
 void HubFrame::on(ClientListener::NickTaken, const Client*) noexcept
 {
 	speak(ADD_STATUS_LINE, STRING(NICK_TAKEN), true);

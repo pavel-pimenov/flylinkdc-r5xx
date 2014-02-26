@@ -548,7 +548,7 @@ void DownloadManager::abortDownload(const string& aTarget)
 		if (d->getPath() == aTarget)
 		{
 			dcdebug("Trying to close connection for download %p\n", d);
-			d->getUserConnection().disconnect(true);
+			d->getUserConnection()->disconnect(true);
 		}
 	}
 }

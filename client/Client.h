@@ -170,13 +170,13 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		}
 		bool is_all_my_info_loaded() const
 		{
-			return sock && sock->is_all_my_info_loaded();
+			return m_client_sock && m_client_sock->is_all_my_info_loaded();
 		}
 		
 		void set_all_my_info_loaded()
 		{
-			if (sock)
-				sock->set_all_my_info_loaded();
+			if (m_client_sock)
+				m_client_sock->set_all_my_info_loaded();
 		}
 		
 		bool isSecure() const;
@@ -534,7 +534,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		} state;
 		
 		SearchQueue searchQueue;
-		BufferedSocket* sock;
+		BufferedSocket* m_client_sock;
 		void reset_socket(); //[+]FlylinkDC++ Team
 		
 		// [+] brain-ripper

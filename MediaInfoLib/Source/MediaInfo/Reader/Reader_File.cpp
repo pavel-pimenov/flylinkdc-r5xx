@@ -130,6 +130,9 @@ Reader_File::~Reader_File()
         #endif //WINDOWS
         delete ThreadInstance;
 
+        MI_Internal->Config.File_Buffer=NULL;
+        MI_Internal->Config.File_Buffer_Size=0;
+        MI_Internal->Config.File_Buffer_Size_Max=0;
         delete[] Buffer;
     }
 }
@@ -209,6 +212,7 @@ size_t Reader_File::Format_Test_PerParser(MediaInfo_Internal* MI, const String &
 {
 #ifdef FLYLINKDC_ZENLIB_USE_THREAD
     //Init
+    MI_Internal=MI;
     ThreadInstance=NULL;
     Buffer_End2=0; //Is also used for counting bytes before activating the thread
 #endif // FLYLINKDC_ZENLIB_USE_THREAD
@@ -533,7 +537,17 @@ size_t Reader_File::Format_Test_PerParser_Continue (MediaInfo_Internal* MI)
                     CS.Enter();
                 
                     if (ThreadInstance->IsExited())
-                        break;
+                    {
+                        if (IsLooping)
+                        {
+                            IsLooping=false;
+                            Buffer_End=Buffer_End2;
+                            Buffer_End2=0;
+                            Buffer_Begin=0;
+                        }
+                        else
+                            break;
+                    }
                 }
                 MI->Config.File_Buffer=Buffer+Buffer_Begin;
                 CS.Leave();

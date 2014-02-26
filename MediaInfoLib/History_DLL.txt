@@ -1,4 +1,4 @@
-Notes:
+﻿Notes:
 ------
 + Added
 - Deleted
@@ -22,12 +22,14 @@ Version 0.7.68, 2014-
 + HEVC: deactivated general_profile_compatibility_flag validity test because some encoders do not implement it correctly
 + MPEG-4/MOV: Speed improvement, especially for full parsing of 100+ GB files.
 + File reading: Speed improvement of big files, especially for full parsing, with the help of a dedicated reading thread
++ Java binding: adding support of memory buffer as input, example with InputStream class (from RandomAccessFile or from FileUrl, including Amazon S3 authorization)
 x STL: better support of non-English characters during decode
 x MXF: some properties were not displayed with OP-Atom files
 x JPEG-2000: wrong implmentation of COD parsing, with undefined behavior for some files
 x MXF: potential crash with small files
 x AAF: potential crash with small files
 x HLS: potential crash with small files
+x MXF: some video streams were wrongly detected as MPEG-2 video
 
 Version 0.7.67, 2014-01-10
 --------------
@@ -50,7 +52,7 @@ x QuickTime: false-positive detection of incoherency between container and raw s
 x MXF: Dolby E stream not detected in some cases
 x #P78, HEVC: general_level_idc shall be set equal to a value of 30 times the level number, not 10 times, thanks to Kurtnoise
 x C# binding example: was not working with 2GB+ files, was parsing sometimes the whole file
-x #B802, AAC: Infinite loop, thanks to S�bastien Michel
+x #B802, AAC: Infinite loop, thanks to Sébastien Michel
 x #B805, AC-3: Segfault on files falsely recognized as AC3 files, thanks to Gildas Desnos
 x #B808, PCM: Infinite loop, thanks to Gildas Desnos
 x #B809, APE tags: Infinite loop, thanks to Gildas Desnos

@@ -22,7 +22,7 @@
 
 // [!] IRainman fix.
 static const TTHValue g_empty_tth;
-Upload::Upload(UserConnection& p_conn, const string& p_path) :
+Upload::Upload(UserConnection* p_conn, const string& p_path) :
 	stream(nullptr), fileSize(-1), m_delayTime(0)
 #ifdef IRAINMAN_USE_NG_TRANSFERS
 	, path(p_path)
@@ -32,12 +32,12 @@ Upload::Upload(UserConnection& p_conn, const string& p_path) :
 #endif
 // [~] IRainman fix.
 {
-	p_conn.setUpload(this);
+	p_conn->setUpload(this);
 }
 
 Upload::~Upload()
 {
-	getUserConnection().setUpload(nullptr);
+	getUserConnection()->setUpload(nullptr);
 	delete stream;
 }
 

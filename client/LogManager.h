@@ -104,6 +104,7 @@ class LogManager : public Singleton<LogManager>, public Speaker<LogManagerListen
 };
 
 #define LOG(area, msg)  LogManager::getInstance()->log(LogManager::area, msg)
+#define LOG_FORCE_FILE(area, msg)  LogManager::getInstance()->log(LogManager::area, msg, true)
 
 class CFlyLog
 {

@@ -152,16 +152,15 @@ void LogManager::log(const string& p_area, const string& p_msg) noexcept
 
 void LogManager::log(LogArea area, const StringMap& params, bool p_only_file /* = false */) noexcept
 {
-	if (!p_only_file && BOOLSETTING(FLY_SQLITE_LOG))
+	if (!p_only_file && BOOLSETTING(FLY_SQLITE_LOG) && CFlylinkDBManager::isValidInstance())
 	{
-		dcassert(CFlylinkDBManager::isValidInstance());
-		if (CFlylinkDBManager::isValidInstance())
-			CFlylinkDBManager::getInstance()->log(area, params); // [2] https://www.box.net/shared/9e63916273d37e5b2932
+		dcassert(area != TRACE_SQLITE);
+		CFlylinkDBManager::getInstance()->log(area, params);
 	}
 	else
 	{
 		//Lock l(cs); [-] IRainman fix: no needs lock here, see log function.
-		const string path = SETTING(LOG_DIRECTORY) + Util::formatParams(getSetting(area, FILE), params, false); // [9] https://www.box.net/shared/8d5744849d5f76a255e1
+		const string path = SETTING(LOG_DIRECTORY) + Util::formatParams(getSetting(area, FILE), params, false);
 		const string msg = Util::formatParams(getSetting(area, FORMAT), params, false);
 		log(path, msg);
 	}
@@ -169,7 +168,7 @@ void LogManager::log(LogArea area, const StringMap& params, bool p_only_file /* 
 
 void LogManager::ddos_message(const string& p_message)
 {
-	if(BOOLSETTING(LOG_DDOS_TRACE))
+	if (BOOLSETTING(LOG_DDOS_TRACE))
 	{
 		StringMap params;
 		params["message"] = p_message;

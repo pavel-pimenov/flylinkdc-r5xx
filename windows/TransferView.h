@@ -392,65 +392,99 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			// [~]
 			void setRunning(int16_t aRunning)
 			{
-				running = aRunning;
-				updateMask |= MASK_SEGMENT;
+				if (running != aRunning)
+				{
+					running = aRunning;
+					updateMask |= MASK_SEGMENT;
+				}
 			}
 			int16_t running;
 			void setStatus(ItemInfo::Status aStatus)
 			{
-				status = aStatus;
-				updateMask |= MASK_STATUS;
+				if (status != aStatus)
+				{
+					status = aStatus;
+					updateMask |= MASK_STATUS;
+				}
 			}
 			ItemInfo::Status status;
 			void setPos(int64_t aPos)
 			{
-				pos = aPos;
-				updateMask |= MASK_POS;
+				if (pos != aPos)
+				{
+					pos = aPos;
+					updateMask |= MASK_POS;
+				}
 			}
 			int64_t pos;
 			void setSize(int64_t aSize)
 			{
-				size = aSize;
-				updateMask |= MASK_SIZE;
+				if (size != aSize)
+				{
+					size = aSize;
+					updateMask |= MASK_SIZE;
+				}
 			}
 			int64_t size;
 			void setActual(int64_t aActual)
 			{
-				actual = aActual;
-				updateMask |= MASK_ACTUAL;
+				if (actual != aActual)
+				{
+					actual = aActual;
+					updateMask |= MASK_ACTUAL;
+				}
 			}
 			int64_t actual;
 			void setSpeed(int64_t aSpeed)
 			{
-				speed = aSpeed;
-				updateMask |= MASK_SPEED;
+				if (speed != aSpeed)
+				{
+					speed = aSpeed;
+					updateMask |= MASK_SPEED;
+				}
 			}
 			int64_t speed;
 			void setTimeLeft(int64_t aTimeLeft)
 			{
-				timeLeft = aTimeLeft;
-				updateMask |= MASK_TIMELEFT;
+				if (timeLeft != aTimeLeft)
+				{
+					timeLeft = aTimeLeft;
+					updateMask |= MASK_TIMELEFT;
+				}
 			}
 			int64_t timeLeft;
 			void setStatusString(const tstring& aStatusString)
 			{
-				statusString = aStatusString;
-				updateMask |= MASK_STATUS_STRING;
+				if (statusString != aStatusString)
+				{
+					statusString = aStatusString;
+					updateMask |= MASK_STATUS_STRING;
+				}
 			}
 			tstring statusString;
 			void setTarget(const string& aTarget)
 			{
-				Text::toT(aTarget, m_target); // [+] IRainman opt: This call is equivalent to target = Text::toT(aTarget); but it is a bit faster.
-				parseTarget(aTarget);
-				updateMask |= MASK_FILE;
+				const auto l_new_value = Text::toT(aTarget);
+				if (l_new_value != m_target)
+				{
+					m_target = l_new_value;
+					parseTarget(aTarget);
+					updateMask |= MASK_FILE;
+				}
 			}
 			tstring m_target;
 			void setCipher(const string& aCipher)
 			{
-				Text::toT(aCipher, cipher); // [+] IRainman opt: This call is equivalent to cipher = Text::toT(aCipher); but it is a bit faster.
-				updateMask |= MASK_CIPHER;
+				if (aCipher.empty() && m_cipher.empty())
+					return;
+				const auto l_new_value = Text::toT(aCipher);
+				if (l_new_value != m_cipher)
+				{
+					m_cipher = l_new_value;
+					updateMask |= MASK_CIPHER;
+				}
 			}
-			tstring cipher;
+			tstring m_cipher;
 			void setType(const Transfer::Type& aType)
 			{
 				type = aType;
@@ -460,14 +494,18 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			// !SMT!-IP
 			void setIP(const string& aIP)
 			{
-				dcassert(!(!m_ip.empty() && aIP.empty())); // Ловим случай http://code.google.com/p/flylinkdc/issues/detail?id=1298
-				Text::toT(aIP, m_ip); // [+] IRainman opt: This call is equivalent to ip = Text::toT(aIP); but it is a bit faster.
+				const auto l_new_value = Text::toT(aIP);
+				if (l_new_value != m_ip)
+				{
+					dcassert(!(!m_ip.empty() && aIP.empty())); // Ловим случай http://code.google.com/p/flylinkdc/issues/detail?id=1298
+					m_ip = l_new_value;
 #ifdef PPA_INCLUDE_DNS
-				dns = Text::toT(Socket::nslookup(aIP));
+					dns = Text::toT(Socket::nslookup(aIP));
 #endif
-				updateMask |= MASK_IP;
+					updateMask |= MASK_IP;
+				}
 			}
-			tstring m_ip;
+			tstring m_ip; // TODO - зачем тут tstring?
 		};
 		
 		// [+] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082

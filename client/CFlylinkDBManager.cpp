@@ -88,7 +88,7 @@ static void gf_trace_callback(void* p_udp, const char* p_sql)
 	{
 		StringMap params;
 		params["sql"] = p_sql;
-		LOG(TRACE_SQLITE, params);
+		LOG_FORCE_FILE(TRACE_SQLITE, params); // Всегда в файл
 	}
 }
 //========================================================================================================
@@ -490,9 +490,14 @@ CFlylinkDBManager::CFlylinkDBManager()
 		    "CREATE TABLE IF NOT EXISTS location_db.fly_country_ip(start_ip integer not null,stop_ip integer not null,country text,flag_index integer);");
 		safeAlter("ALTER TABLE location_db.fly_country_ip add column country text");
 		
-		m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS\n"
-		                              "location_db.i_fly_country_ip ON fly_country_ip(start_ip,stop_ip);");
-		                              
+		m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS location_db.i_fly_country_ip ON fly_country_ip(start_ip,stop_ip);");
+		/*
+		m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS i_fly_country_ip ON fly_country_ip(start_ip,stop_ip);");
+		ALTER TABLE location_db.fly_country_ip ADD COLUMN idx INTEGER;
+		UPDATE fly_country_ip SET idx = (stop_ip - (stop_ip % 65536));
+		CREATE INDEX IF NOT EXISTS location_db.i_idx_fly_country_ip ON fly_country_ip(idx);
+		*/
+		
 		m_flySQLiteDB.executenonquery(
 		    "CREATE TABLE IF NOT EXISTS location_db.fly_location_ip(start_ip integer not null,stop_ip integer not null,location text,flag_index integer);");
 		    
@@ -500,7 +505,7 @@ CFlylinkDBManager::CFlylinkDBManager()
 		
 		m_flySQLiteDB.executenonquery(
 		    "CREATE TABLE IF NOT EXISTS location_db.fly_location_ip_lost(ip text PRIMARY KEY not null,is_send_fly_server integer);");
-		m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS\n"
+		m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS "
 		                              "location_db.i_fly_location_ip ON fly_location_ip(start_ip,stop_ip);"); // Индекс делаем не уникальный
 		                              
 #ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
@@ -604,35 +609,35 @@ CFlylinkDBManager::CFlylinkDBManager()
 		if (is_table_exists("fly_last_ip_nick_hub"))
 		{
 			// Конвертим ip в бинарный формат
-			sqlite3_transaction l_trans(m_flySQLiteDB);
 			auto_ptr<sqlite3_command> l_src_sql = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
 			                                                                "select nick,dic_hub,ip from fly_last_ip_nick_hub"));
+			try
 			{
 				sqlite3_reader l_q = l_src_sql->executereader();
-				
+				sqlite3_transaction l_trans(m_flySQLiteDB);
 				auto_ptr<sqlite3_command> l_trg_sql = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-				                                                                "insert into user_db.user_info (nick,dic_hub,last_ip) values(?,?,?)"));
+				                                                                "insert or replace into user_db.user_info (nick,dic_hub,last_ip) values(?,?,?)"));
 				while (l_q.read())
 				{
-					l_trg_sql.get()->bind(1, l_q.getstring(0), SQLITE_TRANSIENT);
-					l_trg_sql.get()->bind(2, l_q.getint64(1));
-					
 					boost::system::error_code ec;
 					const auto l_ip = boost::asio::ip::address_v4::from_string(l_q.getstring(2), ec);
 					dcassert(!ec);
 					if (!ec)
 					{
+						l_trg_sql.get()->bind(1, l_q.getstring(0), SQLITE_TRANSIENT);
+						l_trg_sql.get()->bind(2, l_q.getint64(1));
 						l_trg_sql.get()->bind(3, sqlite_int64(l_ip.to_ulong()));
 						l_trg_sql.get()->executenonquery();
 					}
 				}
+				l_trans.commit();
 			}
-			l_trans.commit();
+			catch (const database_error& e)
+			{
+				// Гасим ошибки БД при конвертации
+				LogManager::getInstance()->message("[SQLite] Error convert user_db.user_info = " + e.getError());
+			}
 			m_flySQLiteDB.executenonquery("DROP TABLE IF EXISTS fly_last_ip_nick_hub");
-			// Создаем таблицу-пустышку (без нее падает обновления)
-			// позже ее убить
-			m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS fly_last_ip_nick_hub(\n"
-			                              "nick text not null, dic_hub integer not null,ip text);");
 		}
 		load_all_hub_into_cacheL();
 		//safeAlter("ALTER TABLE fly_last_ip_nick_hub add column message_count integer");
@@ -2301,31 +2306,33 @@ void CFlylinkDBManager::flush_all_last_ip_and_message_count()
 	Lock l(m_cs);
 	try
 	{
-		CFlyLog l_log("[sqlite - flysh-user-info]");
+		CFlyLog l_log("[sqlite - flush-user-info]");
 		int l_count = 0;
-		sqlite3_transaction l_trans_insert(m_flySQLiteDB);
-		for (auto h = m_last_ip_cache.begin(); h != m_last_ip_cache.end(); ++h)
 		{
-			for (auto i = h->second.begin(); i != h->second.end(); ++i)
+			sqlite3_transaction l_trans_insert(m_flySQLiteDB);
+			for (auto h = m_last_ip_cache.begin(); h != m_last_ip_cache.end(); ++h)
 			{
-				if (i->second.m_is_item_dirty)
+				for (auto i = h->second.begin(); i != h->second.end(); ++i)
 				{
-					++l_count;
-					if (!m_insert_store_all_ip_and_message_count.get())
-						m_insert_store_all_ip_and_message_count = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-						                                                                    "insert or replace into user_db.user_info (nick,dic_hub,last_ip,message_count) values(?,?,?,?)"));
-					sqlite3_command* l_sql = m_insert_store_all_ip_and_message_count.get();
-					l_sql->bind(1, i->first, SQLITE_STATIC);
-					l_sql->bind(2, __int64(h->first));
-					l_sql->bind(3, __int64(i->second.m_last_ip.to_ulong()));
-					l_sql->bind(4, __int64(i->second.m_message_count));
-					l_sql->executenonquery();
-					i->second.m_is_item_dirty = false;
+					if (i->second.m_is_item_dirty)
+					{
+						++l_count;
+						if (!m_insert_store_all_ip_and_message_count.get())
+							m_insert_store_all_ip_and_message_count = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+							                                                                    "insert or replace into user_db.user_info (nick,dic_hub,last_ip,message_count) values(?,?,?,?)"));
+						sqlite3_command* l_sql = m_insert_store_all_ip_and_message_count.get();
+						l_sql->bind(1, i->first, SQLITE_STATIC);
+						l_sql->bind(2, __int64(h->first));
+						l_sql->bind(3, __int64(i->second.m_last_ip.to_ulong()));
+						l_sql->bind(4, __int64(i->second.m_message_count));
+						l_sql->executenonquery();
+						i->second.m_is_item_dirty = false;
+					}
 				}
 			}
+			l_trans_insert.commit();
 		}
 		l_log.log("Save dirty record user_db.user_info:" + Util::toString(l_count));
-		l_trans_insert.commit();
 	}
 	catch (const database_error& e)
 	{
