@@ -1096,7 +1096,6 @@
     <Image Include="res\CDM.ico" />
     <Image Include="res\CloseIcon.png" />
     <Image Include="res\color.ico" />
-    <Image Include="res\color.png" />
     <Image Include="res\dclst.png" />
     <Image Include="res\Download-Queue.ico" />
     <Image Include="res\Error.ico" />

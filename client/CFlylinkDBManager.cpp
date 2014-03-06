@@ -518,23 +518,15 @@ CFlylinkDBManager::CFlylinkDBManager()
 #endif // FLYLINKDC_USE_GATHER_IDENTITY_STAT
 		m_flySQLiteDB.executenonquery(
 		    "CREATE TABLE IF NOT EXISTS stat_db.fly_statistic(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,stat_value_json text not null,stat_time int64, flush_time int64);");
-		const bool l_is_fly_last_ip_nick_hub_exists = is_table_exists("fly_last_ip_nick_hub");
-		if (l_rev <= 388 && l_is_fly_last_ip_nick_hub_exists == false)
-		{
-			const bool l_first_convert = is_table_exists("fly_last_ip");
-			if (!l_first_convert)
-			{
-				m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS fly_last_ip(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,\n"
-				                              "dic_nick integer not null, dic_hub integer not null,dic_ip integer not null);");
-				m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_last_ip ON fly_last_ip(dic_nick,dic_hub);");
-				sqlite3_transaction l_trans(m_flySQLiteDB);
-				m_flySQLiteDB.executenonquery("insert into fly_last_ip(dic_nick,dic_hub,dic_ip)\n"
-				                              "select dic_nick,dic_hub,max(dic_ip) from fly_ratio where download=0 or upload=0\n"
-				                              "group by dic_nick,dic_hub");
-				m_flySQLiteDB.executenonquery("delete from fly_ratio where download=0 and upload=0");
-				l_trans.commit();
-			}
-		}
+		// Таблицы - мертвые
+		m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS fly_last_ip(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
+		                              "dic_nick integer not null, dic_hub integer not null,dic_ip integer not null);");
+		m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_last_ip ON fly_last_ip(dic_nick,dic_hub);");
+		m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS fly_last_ip_nick_hub("
+		                              "nick text not null, dic_hub integer not null,ip text);");
+		m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_last_ip_nick_hub ON fly_last_ip_nick_hub(nick,dic_hub);");
+		// Они не используются в версиях r502 но для отката назад нужны
+		
 #ifdef FLYLINKDC_USE_COLLECT_STAT
 		m_flySQLiteDB.executenonquery(
 		    "CREATE TABLE IF NOT EXISTS stat_db.fly_dc_command_log(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL\n"
@@ -582,63 +574,44 @@ CFlylinkDBManager::CFlylinkDBManager()
 		}
 		//safeAlter("ALTER TABLE fly_queue add column HubHint text"); // TODO - колонки не используются. удалить?
 		//safeAlter("ALTER TABLE fly_queue_source add column HubHint text"); // TODO - колонки не используются. удалить?
-		const bool l_fly_last_ip_convert2 = is_table_exists("fly_last_ip");
-		if (l_fly_last_ip_convert2 && l_is_fly_last_ip_nick_hub_exists == false)
-		{
-			m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS fly_last_ip_nick_hub(\n"
-			                              "nick text not null, dic_hub integer not null,ip text);");
-			m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_last_ip_nick_hub ON fly_last_ip_nick_hub(nick,dic_hub);");
-			sqlite3_transaction l_trans(m_flySQLiteDB);
-			m_flySQLiteDB.executenonquery("insert into fly_last_ip_nick_hub(nick,dic_hub,ip)\n"
-			                              "select nick,dic_hub, max(ip) from (\n"
-			                              "select (select name from fly_dic where id = dic_nick) nick,\n"
-			                              "dic_hub, (select name from fly_dic where id = dic_ip) ip from fly_last_ip)\n"
-			                              "where nick is not null and ip is not null\n"
-			                              "group by nick,dic_hub");
-			l_trans.commit();
-		}
-		if (l_fly_last_ip_convert2)
-		{
-			m_flySQLiteDB.executenonquery("drop table IF EXISTS fly_last_ip");
-		}
 		m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS user_db.user_info(\n"
 		                              "nick text not null, dic_hub integer not null, last_ip integer, message_count integer);");
 		m_flySQLiteDB.executenonquery("DROP INDEX IF EXISTS user_db.iu_user_info;"); //старый индекс был (nick,dic_hub)
 		m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS user_db.iu_user_info_hub_nick ON user_info(dic_hub,nick);");
 		
-		if (is_table_exists("fly_last_ip_nick_hub"))
+		/*
 		{
-			// Конвертим ip в бинарный формат
-			auto_ptr<sqlite3_command> l_src_sql = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                "select nick,dic_hub,ip from fly_last_ip_nick_hub"));
-			try
-			{
-				sqlite3_reader l_q = l_src_sql->executereader();
-				sqlite3_transaction l_trans(m_flySQLiteDB);
-				auto_ptr<sqlite3_command> l_trg_sql = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-				                                                                "insert or replace into user_db.user_info (nick,dic_hub,last_ip) values(?,?,?)"));
-				while (l_q.read())
-				{
-					boost::system::error_code ec;
-					const auto l_ip = boost::asio::ip::address_v4::from_string(l_q.getstring(2), ec);
-					dcassert(!ec);
-					if (!ec)
-					{
-						l_trg_sql.get()->bind(1, l_q.getstring(0), SQLITE_TRANSIENT);
-						l_trg_sql.get()->bind(2, l_q.getint64(1));
-						l_trg_sql.get()->bind(3, sqlite_int64(l_ip.to_ulong()));
-						l_trg_sql.get()->executenonquery();
-					}
-				}
-				l_trans.commit();
-			}
-			catch (const database_error& e)
-			{
-				// Гасим ошибки БД при конвертации
-				LogManager::getInstance()->message("[SQLite] Error convert user_db.user_info = " + e.getError());
-			}
-			m_flySQLiteDB.executenonquery("DROP TABLE IF EXISTS fly_last_ip_nick_hub");
+		    // Конвертим ip в бинарный формат
+		    auto_ptr<sqlite3_command> l_src_sql = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+		                                                                    "select nick,dic_hub,ip from fly_last_ip_nick_hub"));
+		    try
+		    {
+		        sqlite3_reader l_q = l_src_sql->executereader();
+		        sqlite3_transaction l_trans(m_flySQLiteDB);
+		        auto_ptr<sqlite3_command> l_trg_sql = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+		                                                                        "insert or replace into user_db.user_info (nick,dic_hub,last_ip) values(?,?,?)"));
+		        while (l_q.read())
+		        {
+		            boost::system::error_code ec;
+		            const auto l_ip = boost::asio::ip::address_v4::from_string(l_q.getstring(2), ec);
+		            dcassert(!ec);
+		            if (!ec)
+		            {
+		                l_trg_sql.get()->bind(1, l_q.getstring(0), SQLITE_TRANSIENT);
+		                l_trg_sql.get()->bind(2, l_q.getint64(1));
+		                l_trg_sql.get()->bind(3, sqlite_int64(l_ip.to_ulong()));
+		                l_trg_sql.get()->executenonquery();
+		            }
+		        }
+		        l_trans.commit();
+		    }
+		    catch (const database_error& e)
+		    {
+		        // Гасим ошибки БД при конвертации
+		        LogManager::getInstance()->message("[SQLite] Error convert user_db.user_info = " + e.getError());
+		    }
 		}
+		*/
 		load_all_hub_into_cacheL();
 		//safeAlter("ALTER TABLE fly_last_ip_nick_hub add column message_count integer");
 		

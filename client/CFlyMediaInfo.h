@@ -129,7 +129,8 @@ class CFlyMediaInfo
 					}
 					else
 					{
-						dcassert(0);
+						p_column_audio = Text::toT(p_audio); // ≈сли не распарсили - показывает что есть
+						dcassert(0); // fix "1 076 Kbps,23mn 9s | MPEG Audio, 160 Kbps, 2 channels"
 					}
 				}
 			}

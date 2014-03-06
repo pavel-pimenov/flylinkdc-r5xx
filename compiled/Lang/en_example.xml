@@ -819,6 +819,7 @@
 	<string name="MenuHomepage">Homepage</string>
 	<string name="MenuHorizontalTile">Horizontal Tile</string>
 	<string name="MenuJoinTeam">FlylinkDC++ source code…</string>
+	<string name="MenuChangeFlylinkLocation">Change FlylinkDC++ location…</string>
 	<string name="MenuMinimizeAll">Minimize &amp;all</string>
 	<string name="MenuNetworkStatistics">Network statistics</string>
 	<string name="MenuNotepad">&amp;Notepad\tCtrl+N</string>

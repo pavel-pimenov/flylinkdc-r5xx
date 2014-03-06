@@ -284,15 +284,10 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 					   )
 						m_needsResort = true;
 				}
-				
-				//Bolded activity in SpyFrame
-				if (BOOLSETTING(BOLD_SEARCH))
-				{
-					setDirty();
-				}
-				
+#ifdef FLYLINKDC_USE_SOUND_AND_POPUP_IN_SEARCH_SPY
 				SHOW_POPUP(POPUP_SEARCH_SPY, m_CurrentTime + _T(" : ") + l_SeekersNames + _T("\r\n") + l_search, TSTRING(SEARCH_SPY)); // [+] SCALOlaz: Spy Popup. Thanks to tret2003 (NightOrion) with tstring
 				PLAY_SOUND(SOUND_SEARCHSPY);
+#endif
 			}
 			break;
 			case TICK_AVG:

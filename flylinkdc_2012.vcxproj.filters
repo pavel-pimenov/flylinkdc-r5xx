@@ -1069,9 +1069,6 @@
     <Image Include="res\color.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="res\color.png">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="res\f_grey_16.ico">
       <Filter>Resource Files</Filter>
     </Image>

@@ -824,6 +824,7 @@ enum Strings   // @DontAdd
 	MENU_HOMEPAGE, // "Homepage"
 	MENU_HORIZONTAL_TILE, // "Horizontal Tile"
 	MENU_JOIN_TEAM, // "FlylinkDC++ source code…"
+	MENU_CHANGE_FLYLINK_LOCATION, // "Change FlylinkDC++ location…"
 	MENU_MINIMIZE_ALL, // "Minimize &all"
 	MENU_NETWORK_STATISTICS, // "Network statistics"
 	MENU_NOTEPAD, // "&Notepad\tCtrl+N"

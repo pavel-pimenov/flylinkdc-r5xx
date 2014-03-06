@@ -3845,7 +3845,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 						return CDRF_SKIPDEFAULT;
 					}
 			bHandled = FALSE;
-			return 0;
+			return CDRF_DODEFAULT;
 		}
 		case CDDS_ITEMPREPAINT:
 		{

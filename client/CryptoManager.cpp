@@ -586,61 +586,21 @@ void CryptoManager::decodeBZ2(const uint8_t* is, size_t sz, string& os)
 
 string CryptoManager::keySubst(const uint8_t* aKey, size_t len, size_t n)
 {
-	AutoArray<uint8_t> temp(len + n * 10);
-	
+	AutoArray<char> temp(len + n * 10 + 1);
 	size_t j = 0;
-	
 	for (size_t i = 0; i < len; i++)
 	{
 		if (isExtra(aKey[i]))
 		{
-			temp[j++] = '/';
-			temp[j++] = '%';
-			temp[j++] = 'D';
-			temp[j++] = 'C';
-			temp[j++] = 'N';
-			switch (aKey[i])
-			{
-				case 0:
-					temp[j++] = '0';
-					temp[j++] = '0';
-					temp[j++] = '0';
-					break;
-				case 5:
-					temp[j++] = '0';
-					temp[j++] = '0';
-					temp[j++] = '5';
-					break;
-				case 36:
-					temp[j++] = '0';
-					temp[j++] = '3';
-					temp[j++] = '6';
-					break;
-				case 96:
-					temp[j++] = '0';
-					temp[j++] = '9';
-					temp[j++] = '6';
-					break;
-				case 124:
-					temp[j++] = '1';
-					temp[j++] = '2';
-					temp[j++] = '4';
-					break;
-				case 126:
-					temp[j++] = '1';
-					temp[j++] = '2';
-					temp[j++] = '6';
-					break;
-			}
-			temp[j++] = '%';
-			temp[j++] = '/';
+			const auto l_extra_len = sprintf(&temp[j], "/%%DCN%03d%%/", (int) aKey[i]);
+			j += l_extra_len;
 		}
 		else
 		{
 			temp[j++] = aKey[i];
 		}
 	}
-	return string((char*)(uint8_t*)temp, j);
+	return string((char*)temp, j);
 }
 
 string CryptoManager::makeKey(const string& aLock)

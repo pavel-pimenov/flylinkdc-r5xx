@@ -138,7 +138,7 @@ class KickDlg : public CDialogImpl<KickDlg>
 		LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
 	private:
-		tstring Msgs[20];
+		tstring m_Msgs[20];
 };
 
 #endif // !defined(LINE_DLG_H)

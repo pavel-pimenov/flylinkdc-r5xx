@@ -148,6 +148,9 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  DCLST_FOLDER_DIR, // [+] SSA
 		                  INT_PREVIEW_CLIENT_PATH, // [+] SSA
 		                  SAVED_SEARCH_SIZE,
+		                  FLY_LOCATOR_COUNTRY,
+		                  FLY_LOCATOR_CITY,
+		                  FLY_LOCATOR_ISP,
 		                  STR_LAST
 		                };
 		                
@@ -174,7 +177,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  SEND_BLOOM,
 		                  AUTO_SEARCH_AUTO_MATCH, DOWNLOAD_BAR_COLOR, UPLOAD_BAR_COLOR, LOG_SYSTEM,
 		                  LOG_CUSTOM_LOCATION, // [+] IRainman
-						  LOG_SQLITE_TRACE, LOG_DDOS_TRACE,
+		                  LOG_SQLITE_TRACE, LOG_DDOS_TRACE,
 		                  LOG_FILELIST_TRANSFERS, SHOW_STATUSBAR, SHOW_TOOLBAR, SHOW_TRANSFERVIEW,
 		                  SEARCH_PASSIVE, SET_MINISLOT_SIZE, SHUTDOWN_TIMEOUT,
 		                  // MAX_UPLOAD_SPEED_LIMIT, MAX_DOWNLOAD_SPEED_LIMIT, // [-]IRainman SpeedLimiter
@@ -571,7 +574,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		}
 		static const StringList& getExtensions(const string& name); // [!] IRainman opt.
 		
-		static unsigned short getNewPortValue(unsigned short p_OldPortValue = 0)// [+] IRainman
+		static unsigned short getNewPortValue(unsigned short p_OldPortValue)// [+] IRainman
 		{
 			unsigned short l_NewPortValue;
 			do

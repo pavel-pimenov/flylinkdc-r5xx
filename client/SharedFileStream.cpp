@@ -64,7 +64,7 @@ size_t SharedFileStream::write(const void* buf, size_t len)
 	FastLock l(m_sfh->m_cs);
 	
 	m_sfh->setPos(m_pos);
-	m_sfh->write(buf, len);
+	m_sfh->write(buf, len); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=132490
 	
 	m_pos += len;
 	return len;

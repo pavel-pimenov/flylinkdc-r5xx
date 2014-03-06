@@ -30,9 +30,15 @@
 
 uint16_t ConnectionManager::iConnToMeCount = 0;
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csConnection = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csDownloads = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csUploads = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csDdosCheck = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csTTHFilter = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+
 boost::unordered_set<UserConnection*> ConnectionManager::g_userConnections;
+ConnectionQueueItem::List ConnectionManager::g_downloads;
+ConnectionQueueItem::List ConnectionManager::g_uploads;
+
 
 ConnectionManager::ConnectionManager() : m_floodCounter(0), server(nullptr),
 	secureServer(nullptr),
@@ -62,8 +68,8 @@ ConnectionManager::~ConnectionManager()
 	//shutdown();
 	
 	// [!] http://code.google.com/p/flylinkdc/issues/detail?id=1037
-	dcassert(downloads.empty());
-	dcassert(uploads.empty());
+	dcassert(g_downloads.empty());
+	dcassert(g_uploads.empty());
 	// [~]
 }
 
@@ -112,19 +118,21 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 	// [!] IRainman fix: Please do not mask the problem of endless checks on empty! If the user is empty - hence the functional is not working!
 	// [-] if (aUser) //[+] PPA [-] IRainman fix.
 	{
-		webrtc::WriteLockScoped l(*g_csConnection);
-		const ConnectionQueueItem::Iter i = find(downloads.begin(), downloads.end(), aUser);
-		if (i == downloads.end())
+		webrtc::WriteLockScoped l(*g_csDownloads);
+		const ConnectionQueueItem::Iter i = find(g_downloads.begin(), g_downloads.end(), aUser);
+		if (i == g_downloads.end())
 		{
-			getCQI(HintedUser(aUser, Util::emptyString), true); // http://code.google.com/p/flylinkdc/issues/detail?id=1037
+			getCQI_L(HintedUser(aUser, Util::emptyString), true); // http://code.google.com/p/flylinkdc/issues/detail?id=1037
 			// Ќе сохран€ем указатель. а как и когда будем удал€ть ?
 			return;
 		}
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
 		else
 		{
-			if (find(checkIdle.begin(), checkIdle.end(), aUser) == checkIdle.end())
-				checkIdle.push_back(aUser);
+			if (find(m_checkIdle.begin(), m_checkIdle.end(), aUser) == m_checkIdle.end())
+			{
+				m_checkIdle.push_back(aUser); // TODO - Ћок?
+			}
 		}
 #endif
 	}
@@ -133,35 +141,35 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 #endif
 }
 
-ConnectionQueueItem* ConnectionManager::getCQI(const HintedUser& aHintedUser, bool download)
+ConnectionQueueItem* ConnectionManager::getCQI_L(const HintedUser& aHintedUser, bool download)
 {
 	ConnectionQueueItem* cqi = new ConnectionQueueItem(aHintedUser, download);
 	if (download)
 	{
-		dcassert(find(downloads.begin(), downloads.end(), aHintedUser) == downloads.end());
-		downloads.push_back(cqi);
+		dcassert(find(g_downloads.begin(), g_downloads.end(), aHintedUser) == g_downloads.end());
+		g_downloads.push_back(cqi);
 	}
 	else
 	{
-		dcassert(find(uploads.begin(), uploads.end(), aHintedUser) == uploads.end());
-		uploads.push_back(cqi);
+		dcassert(find(g_uploads.begin(), g_uploads.end(), aHintedUser) == g_uploads.end());
+		g_uploads.push_back(cqi);
 	}
 	
-	fire(ConnectionManagerListener::Added(), cqi);
+	fire(ConnectionManagerListener::Added(), cqi); // TODO - выбросить фаер без блокировки наруже
 	return cqi;
 }
 
-void ConnectionManager::putCQI(ConnectionQueueItem* cqi)
+void ConnectionManager::putCQI_L(ConnectionQueueItem* cqi)
 {
-	fire(ConnectionManagerListener::Removed(), cqi);
+	fire(ConnectionManagerListener::Removed(), cqi); // TODO - зоветс€ фаер под локом?
 	if (cqi->getDownload())
 	{
-		downloads.erase_and_check(cqi);
+		g_downloads.erase_and_check(cqi);
 	}
 	else
 	{
 		UploadManager::getInstance()->removeDelayUpload(cqi->getUser());
-		uploads.erase_and_check(cqi);
+		g_uploads.erase_and_check(cqi);
 	}
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	cqi->getUser()->flushRatio(); //[+]PPA branches-dev/ppa/issue-1035
@@ -215,21 +223,17 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 		cleanupTTHDuplicateSearch(aTick);
 	}
 	
-	ConnectionQueueItem::List removed;
+	ConnectionQueueItem::List l_removed;
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
 	UserList l_idlers;
 #endif
-	
 	{
-		webrtc::ReadLockScoped l(*g_csConnection);
-		
+		webrtc::ReadLockScoped l(*g_csDownloads);
 		uint16_t attempts = 0;
-		
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
-		l_idlers.swap(checkIdle); // [!] IRainman opt: use swap.
+		l_idlers.swap(m_checkIdle); // [!] IRainman opt: use swap.
 #endif
-		
-		for (auto i = downloads.cbegin(); i != downloads.cend(); ++i)
+		for (auto i = g_downloads.cbegin(); i != g_downloads.cend(); ++i)
 		{
 			ConnectionQueueItem* cqi = *i;
 			if (cqi->getState() != ConnectionQueueItem::ACTIVE) // crash - https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=44111
@@ -237,7 +241,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 				if (!cqi->getUser()->isOnline())
 				{
 					// Not online anymore...remove it from the pending...
-					removed.push_back(cqi);
+					l_removed.push_back(cqi);
 					continue;
 				}
 				
@@ -256,7 +260,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 					
 					if (prio == QueueItem::PAUSED)
 					{
-						removed.push_back(cqi);
+						l_removed.push_back(cqi);
 						continue;
 					}
 					
@@ -294,12 +298,20 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 			}
 		}
 	}
-	if (!removed.empty())
+	if (!l_removed.empty())
 	{
-		webrtc::WriteLockScoped l(*g_csConnection);
-		for (auto m = removed.cbegin(); m != removed.cend(); ++m)
+		for (auto m = l_removed.cbegin(); m != l_removed.cend(); ++m)
 		{
-			putCQI(*m);
+			if ((*m)->getDownload())
+			{
+				webrtc::WriteLockScoped l(*g_csDownloads);
+				putCQI_L(*m);
+			}
+			else
+			{
+				webrtc::WriteLockScoped l(*g_csUploads);
+				putCQI_L(*m);
+			}
 		}
 	}
 	
@@ -907,8 +919,8 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 	
 	// First, we try looking in the pending downloads...hopefully it's one of them...
 	{
-		webrtc::ReadLockScoped l(*g_csConnection);
-		for (auto i = downloads.cbegin(); i != downloads.cend(); ++i)
+		webrtc::ReadLockScoped l(*g_csDownloads);
+		for (auto i = g_downloads.cbegin(); i != g_downloads.cend(); ++i)
 		{
 			ConnectionQueueItem* cqi = *i;
 			cqi->setErrors(0);
@@ -1066,10 +1078,10 @@ void ConnectionManager::addDownloadConnection(UserConnection* uc)
 	dcassert(uc->isSet(UserConnection::FLAG_DOWNLOAD));
 	ConnectionQueueItem* cqi = nullptr;
 	{
-		webrtc::ReadLockScoped l(*g_csConnection);
+		webrtc::ReadLockScoped l(*g_csDownloads);
 		
-		const ConnectionQueueItem::Iter i = find(downloads.begin(), downloads.end(), uc->getUser());
-		if (i != downloads.end())
+		const ConnectionQueueItem::Iter i = find(g_downloads.begin(), g_downloads.end(), uc->getUser());
+		if (i != g_downloads.end())
 		{
 			cqi = *i;
 			if (cqi->getState() == ConnectionQueueItem::WAITING || cqi->getState() == ConnectionQueueItem::CONNECTING)
@@ -1112,12 +1124,12 @@ void ConnectionManager::addUploadConnection(UserConnection* uc)
 	
 	ConnectionQueueItem* cqi = nullptr;
 	{
-		webrtc::WriteLockScoped l(*g_csConnection);
+		webrtc::WriteLockScoped l(*g_csUploads);
 		
-		const auto i = find(uploads.begin(), uploads.end(), uc->getUser());
-		if (i == uploads.cend())
+		const auto i = find(g_uploads.begin(), g_uploads.end(), uc->getUser());
+		if (i == g_uploads.cend())
 		{
-			cqi = getCQI(uc->getHintedUser(), false);
+			cqi = getCQI_L(uc->getHintedUser(), false);
 			cqi->setState(ConnectionQueueItem::ACTIVE);
 			uc->setFlag(UserConnection::FLAG_ASSOCIATED);
 			
@@ -1216,16 +1228,13 @@ void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCo
 	
 	bool down;
 	{
-		webrtc::ReadLockScoped l(*g_csConnection);
-		const ConnectionQueueItem::Iter i = find(downloads.begin(), downloads.end(), aSource->getUser());
+		webrtc::ReadLockScoped l(*g_csDownloads);
+		const ConnectionQueueItem::Iter i = find(g_downloads.begin(), g_downloads.end(), aSource->getUser());
 		
-		if (i != downloads.cend())
+		if (i != g_downloads.cend())
 		{
 			(*i)->setErrors(0);
-			
-			const string& to = (*i)->getToken();
-			
-			if (to == token)
+			if ((*i)->getToken() == token)
 			{
 				down = true;
 			}
@@ -1282,10 +1291,10 @@ void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCo
 
 void ConnectionManager::force(const UserPtr& aUser)
 {
-	webrtc::ReadLockScoped l(*g_csConnection);
+	webrtc::ReadLockScoped l(*g_csDownloads);
 	
-	const ConnectionQueueItem::Iter i = find(downloads.begin(), downloads.end(), aUser);
-	if (i != downloads.end())
+	const ConnectionQueueItem::Iter i = find(g_downloads.begin(), g_downloads.end(), aUser);
+	if (i != g_downloads.end())
 	{
 		(*i)->setLastAttempt(0);
 	}
@@ -1335,17 +1344,17 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 	{
 		if (aSource->isSet(UserConnection::FLAG_DOWNLOAD))
 		{
-			webrtc::WriteLockScoped l(*g_csConnection);
-			const ConnectionQueueItem::Iter i = find(downloads.begin(), downloads.end(), aSource->getUser());
-			dcassert(i != downloads.end());
+			webrtc::WriteLockScoped l(*g_csDownloads); // TODO http://code.google.com/p/flylinkdc/issues/detail?id=1439
+			const ConnectionQueueItem::Iter i = find(g_downloads.begin(), g_downloads.end(), aSource->getUser());
+			dcassert(i != g_downloads.end());
 			ConnectionQueueItem* cqi = *i;
 			cqi->setState(ConnectionQueueItem::WAITING);
 			cqi->setLastAttempt(GET_TICK());
 			cqi->setErrors(protocolError ? -1 : (cqi->getErrors() + 1));
 			fire(ConnectionManagerListener::Failed(), cqi, aError);
-			if (isShuttingDown())
+			if (isShuttingDown()) // TODO
 			{
-				putCQI(cqi); // ”дал€ть всегда нельз€ - только при разрушении
+				putCQI_L(cqi); // ”дал€ть всегда нельз€ - только при разрушении
 				// (Closed issue 983) https://code.google.com/p/flylinkdc/issues/detail?id=983 Ѕесконечные подключени€ дл€ скачки файл-листа
 				// TODO - Ќайти более другое решение бага
 			}
@@ -1353,11 +1362,11 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 		}
 		else if (aSource->isSet(UserConnection::FLAG_UPLOAD))
 		{
-			webrtc::WriteLockScoped l(*g_csConnection);
-			const ConnectionQueueItem::Iter i = find(uploads.begin(), uploads.end(), aSource->getUser());
-			dcassert(i != uploads.end());
+			webrtc::WriteLockScoped l(*g_csUploads); // http://code.google.com/p/flylinkdc/issues/detail?id=1439
+			const ConnectionQueueItem::Iter i = find(g_uploads.begin(), g_uploads.end(), aSource->getUser());
+			dcassert(i != g_uploads.end());
 			ConnectionQueueItem* cqi = *i;
-			putCQI(cqi);
+			putCQI_L(cqi);
 		}
 	}
 	putConnection(aSource);
@@ -1443,16 +1452,21 @@ void ConnectionManager::shutdown()
 	// [~]
 	// —брасываем рейтинг в базу пока не нашли причину почему тут остаютс€ записи.
 	{
-		webrtc::ReadLockScoped l(*g_csConnection);
-		for (auto i = downloads.cbegin(); i != downloads.cend(); ++i)
 		{
-			ConnectionQueueItem* cqi = *i;
-			cqi->getUser()->flushRatio();
+			webrtc::ReadLockScoped l(*g_csDownloads);
+			for (auto i = g_downloads.cbegin(); i != g_downloads.cend(); ++i)
+			{
+				ConnectionQueueItem* cqi = *i;
+				cqi->getUser()->flushRatio();
+			}
 		}
-		for (auto i = uploads.cbegin(); i != uploads.cend(); ++i)
 		{
-			ConnectionQueueItem* cqi = *i;
-			cqi->getUser()->flushRatio();
+			webrtc::ReadLockScoped l(*g_csUploads);
+			for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
+			{
+				ConnectionQueueItem* cqi = *i;
+				cqi->getUser()->flushRatio();
+			}
 		}
 	}
 #endif

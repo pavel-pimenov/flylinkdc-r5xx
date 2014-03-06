@@ -210,7 +210,8 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		COMMAND_ID_HANDLER(ID_WINDOW_MINIMIZE_ALL, onWindowMinimizeAll)
 		COMMAND_ID_HANDLER(ID_WINDOW_RESTORE_ALL, onWindowRestoreAll)
 		COMMAND_ID_HANDLER(IDC_SHUTDOWN, onShutDown)
-		COMMAND_ID_HANDLER(IDC_UPDATE_DOMOLINK, onUpdate)
+		COMMAND_ID_HANDLER(IDC_UPDATE_FLYLINKDC, onUpdate)
+		COMMAND_ID_HANDLER(IDC_FLYLINKDC_LOCATION, onChangeLocation)
 		COMMAND_ID_HANDLER(IDC_DISABLE_SOUNDS, onDisableSounds)
 		COMMAND_ID_HANDLER(IDC_DISABLE_POPUPS, onDisablePopups) // [+] InfinitySky.
 		COMMAND_ID_HANDLER(IDC_CLOSE_DISCONNECTED, onCloseWindows)
@@ -326,6 +327,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		LRESULT onAway(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onLimiter(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onUpdate(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+		LRESULT onChangeLocation(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onDisableSounds(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onDisablePopups(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/); // [+] InfinitySky.
 		LRESULT onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);

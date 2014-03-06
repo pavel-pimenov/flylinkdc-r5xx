@@ -129,7 +129,7 @@ class WaitingUser
 		{
 			return m_user;
 		}
-		std::set<UploadQueueItem*> m_files;
+		std::set<UploadQueueItem*> m_files; // Опасно торчит указатель
 		GETC(UserPtr, m_user, User);
 		GETSET(string, m_token, Token);
 };

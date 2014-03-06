@@ -785,6 +785,7 @@
     <ClCompile Include="windows\Bitmap.cpp" />
     <ClCompile Include="windows\CDMDebugFrame.cpp" />
     <ClCompile Include="windows\CertificatesPage.cpp" />
+    <ClCompile Include="windows\CFlyLocationDlg.cpp" />
     <ClCompile Include="windows\ChatBot.cpp" />
     <ClCompile Include="windows\ChatCtrl.cpp" />
     <ClCompile Include="windows\CheckTargetDlg.cpp" />
@@ -931,6 +932,7 @@
     <ClInclude Include="windows\Bitmap.h" />
     <ClInclude Include="windows\CDMDebugFrame.h" />
     <ClInclude Include="windows\CertificatesPage.h" />
+    <ClInclude Include="windows\CFlyLocationDlg.h" />
     <ClInclude Include="windows\ChatBot.h" />
     <ClInclude Include="windows\ChatCtrl.h" />
     <ClInclude Include="windows\CheckTargetDlg.h" />
@@ -1082,7 +1084,6 @@
     <None Include="res\CDM.ico" />
     <None Include="res\CloseIcon.png" />
     <None Include="res\color.ico" />
-    <None Include="res\color.png" />
     <None Include="res\dclst.png" />
     <None Include="res\Download-Queue.ico" />
     <None Include="res\Error.ico" />

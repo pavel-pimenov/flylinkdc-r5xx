@@ -151,7 +151,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		LRESULT onRemoveAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			UINT checkState = BOOLSETTING(CONFIRM_DELETE) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
-			if (checkState == BST_CHECKED || ::MessageBox(0, CTSTRING(REALLY_REMOVE), T_APPNAME_WITH_VERSION, CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES) // [~] InfinitySky.
+			if (checkState == BST_CHECKED || ::MessageBox(NULL, CTSTRING(REALLY_REMOVE), T_APPNAME_WITH_VERSION, CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES) // [~] InfinitySky.
 				ctrlTransfers.forEachSelected(&ItemInfo::removeAll); // [6] https://www.box.net/shared/4eed8e2e275210b6b654
 			// Let's update the setting unchecked box means we bug user again...
 			SET_SETTING(CONFIRM_DELETE, checkState != BST_CHECKED); // [+] InfinitySky.

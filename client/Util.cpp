@@ -1638,7 +1638,7 @@ string Util::formatTime(uint64_t rest, const bool withSecond /*= true*/)
 #define TEMPERING_SHIFT_T(y)  (y << 15)
 #define TEMPERING_SHIFT_L(y)  (y >> 18)
 
-static std::vector<unsigned long> g_mt(N); /* the array for the state vector  */
+static std::vector<unsigned long> g_mt(N + 1); /* the array for the state vector  */
 static int g_mti = N + 1; /* mti==N+1 means mt[N] is not initialized */
 
 /* initializing the array with a NONZERO seed */

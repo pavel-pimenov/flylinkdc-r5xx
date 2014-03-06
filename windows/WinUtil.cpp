@@ -159,7 +159,7 @@ const toolbarButton g_ToolbarButtons[] =
 	{IDC_AWAY, 17, true, ResourceManager::AWAY},
 	{IDC_SHUTDOWN, 18, true, ResourceManager::SHUTDOWN},
 	{IDC_LIMITER, 19, true, ResourceManager::SETCZDC_ENABLE_LIMITING},
-	{IDC_UPDATE_DOMOLINK, 20, false, ResourceManager::UPDATE_CHECK},
+	{IDC_UPDATE_FLYLINKDC, 20, false, ResourceManager::UPDATE_CHECK},
 	{IDC_DISABLE_SOUNDS, 21, true, ResourceManager::DISABLE_SOUNDS},
 	{IDC_OPEN_DOWNLOADS, 22, false, ResourceManager::MENU_OPEN_DOWNLOADS_DIR},
 	{IDC_REFRESH_FILE_LIST, 23, false, ResourceManager::MENU_REFRESH_FILE_LIST},
@@ -655,11 +655,20 @@ void WinUtil::init(HWND hWnd)
 #endif //USE_SUPPORT_HUB
 	
 	help.AppendMenu(MF_SEPARATOR);
-	help.AppendMenu(MF_STRING, IDC_UPDATE_DOMOLINK, CTSTRING(UPDATE_CHECK)); // [~]Drakon. Moved from "file."
+	help.AppendMenu(MF_STRING, IDC_UPDATE_FLYLINKDC, CTSTRING(UPDATE_CHECK)); // [~]Drakon. Moved from "file."
 	help.AppendMenu(MF_STRING, ID_APP_ABOUT, CTSTRING(MENU_ABOUT));
 	
 	mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)help, CTSTRING(MENU_HLP)); // [~] Drakon
 	
+#ifdef _DEBUG
+	CMenuHandle l_menu_flylinkdc_location;
+	// IDC_FLYLINKDC_LOCATION l_menu_flylinkdc_location.se
+	l_menu_flylinkdc_location.CreatePopupMenu();
+	l_menu_flylinkdc_location.AppendMenu(MF_STRING, IDC_FLYLINKDC_LOCATION, CTSTRING(MENU_CHANGE_FLYLINK_LOCATION)); //  _T("Change FlylinkDC++ location!")
+	string l_text_flylinkdc_location = "|||||||||| Lipetsk-beeline ||||||||||";
+	//mainMenu.AppendMenu(MF_POPUP, l_menu_flylinkdc_location, Text::toT(l_text_flylinkdc_location).c_str());
+	mainMenu.AppendMenu(MF_STRING, l_menu_flylinkdc_location, Text::toT(l_text_flylinkdc_location).c_str());
+#endif
 	g_fileImage.init();
 	
 #ifdef SCALOLAZ_MEDIAVIDEO_ICO

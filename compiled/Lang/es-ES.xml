@@ -208,7 +208,7 @@ many pornographic files and they will not be included in any following search re
 		<String Name="CertificateGenerationFailed">TLS desactivado, imposible generar el certificado:</String>
 		<String Name="CertificateNotTrusted">El certificado no es de confianza, imposible conectar</String>
 		<String Name="Certificates">Certificados</String>
-		<String Name="ChangeHashSpeedText">Cambiada a (ver Ajustes- Avanzado-Expertos) (MiB/s)</String>
+		<String Name="ChangeHashSpeedText">Cambiada a (ver Ajustes- Avanzado-Expertos) (MiB/s) (0 - ilimitado)</String>
 		<String Name="ChangeLanguage">Idioma cambiado</String>
 		<String Name="ChangeLanguageInfo">Es necesario reiniciar el programa para cambiar el idioma</String>
 		<String Name="Chatdblclickaction">En usuario del chat</String>

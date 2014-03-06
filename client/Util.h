@@ -248,6 +248,12 @@ class AutoArray
 {
 		typedef T* TPtr;
 	public:
+#ifdef _DEBUG
+		explicit AutoArray(size_t size, char p_fill) : p(new T[size])
+		{
+			memset(p, p_fill, size);
+		}
+#endif
 		explicit AutoArray(size_t size) : p(new T[size]) { }
 		~AutoArray()
 		{

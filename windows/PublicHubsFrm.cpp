@@ -860,28 +860,29 @@ LRESULT PublicHubsFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHan
 			
 		case CDDS_ITEMPREPAINT:
 		{
-			cd->clrText = Colors::textColor;
-			const auto fhe = FavoriteManager::getInstance()->getFavoriteHubEntry(getPubServer((int)cd->nmcd.dwItemSpec));
-			if (fhe)
+			if (cd->iSubItem == COLUMN_NAME)
 			{
-				if (fhe->getConnect())
+				cd->clrText = Colors::textColor;
+				const auto fhe = FavoriteManager::getInstance()->getFavoriteHubEntry(getPubServer((int)cd->nmcd.dwItemSpec));
+				if (fhe)
 				{
-					cd->clrTextBk = SETTING(HUB_IN_FAV_CONNECT_BK_COLOR);
+					if (fhe->getConnect())
+					{
+						cd->clrTextBk = SETTING(HUB_IN_FAV_CONNECT_BK_COLOR);
+					}
+					else
+					{
+						cd->clrTextBk = SETTING(HUB_IN_FAV_BK_COLOR);
+					}
 				}
-				else
-				{
-					cd->clrTextBk = SETTING(HUB_IN_FAV_BK_COLOR);
-				}
-			}
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
-			Colors::alternationBkColor(cd); // [+] IRainman
+				Colors::alternationBkColor(cd); // [+] IRainman
 #endif
-			return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
+				return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
+			}
 		}
-		default:
-			return CDRF_DODEFAULT;
 	}
-	
+	return CDRF_DODEFAULT;
 }
 
 #endif // End of IRAINMAN_ENABLE_HUB_LIST

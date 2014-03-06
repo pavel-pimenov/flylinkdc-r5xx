@@ -343,6 +343,9 @@
     <ClCompile Include="windows\HashProgressDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="windows\CFlyLocationDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="windows\AboutDlg.h">
@@ -798,6 +801,9 @@
     <ClInclude Include="windows\AboutLogDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="windows\CFlyLocationDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="FlylinkDC_version.rc">
@@ -1070,9 +1076,6 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\color.ico">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\color.png">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\f_grey_16.ico">

@@ -32,6 +32,7 @@
 #include <cfloat>
 #if MEDIAINFO_EVENTS
     #include "MediaInfo/MediaInfo_Events_Internal.h"
+    #include "MediaInfo/MediaInfo_Config_PerPackage.h"
 #endif //MEDIAINFO_EVENTS
 using namespace std;
 //---------------------------------------------------------------------------
@@ -134,30 +135,41 @@ void File__ReferenceFilesHelper_InfoFromFileName (File__ReferenceFilesHelper::re
             const Ztring &Test=List[Pos][List[Pos].size()-1-Pos2];
 
             //ChannelLayout
-            if (Test!=__T("l")
+            if (ChannelLayout_Pos==(size_t)-1
+             && Test!=__T("l")
              && Test!=__T("r")
+             && Test!=__T("lt")
+             && Test!=__T("rt")
              && Test!=__T("c")
+             && Test!=__T("lf")
              && Test!=__T("lfe")
              && Test!=__T("sub")
              && Test!=__T("ls")
              && Test!=__T("rs")
-             && Test!=__T("b"))
+             && Test!=__T("b")
+             && Test!=__T("mono"))
                 IsChannelLayout=false;
 
             //Language
-            if (Test!=__T("deu")
+            if (Language_Pos==(size_t)-1
+             && Test!=__T("ara")
+             && Test!=__T("deu")
              && Test!=__T("eng")
              && Test!=__T("fra")
              && Test!=__T("fre")
              && Test!=__T("ita")
+             && Test!=__T("jpn")
+             && Test!=__T("rus")
              && Test!=__T("spa"))
                 IsLanguage=false;
         }
 
-        if (IsChannelLayout)
+        if (IsChannelLayout && ChannelLayout_Pos==(size_t)-1)
             ChannelLayout_Pos=Pos2;
-        if (IsLanguage)
+        if (IsLanguage && Language_Pos==(size_t)-1)
             Language_Pos=Pos2;
+        if (ChannelLayout_Pos!=(size_t)-1 && Language_Pos!=(size_t)-1)
+            break;
     }
 
     //ChannelLayout
@@ -171,19 +183,31 @@ void File__ReferenceFilesHelper_InfoFromFileName (File__ReferenceFilesHelper::re
                 ChannelPositions2=__T("1/0/0");
                 ChannelLayout=__T("L");
             }
+            if (List[Pos][List[Pos].size()-1-ChannelLayout_Pos]==__T("lt"))
+            {
+                ChannelPositions=__T("Front: Lt");
+                ChannelPositions2=__T("1/0/0");
+                ChannelLayout=__T("Lt");
+            }
+            if (List[Pos][List[Pos].size()-1-ChannelLayout_Pos]==__T("rt"))
+            {
+                ChannelPositions=__T("Front: Rt");
+                ChannelPositions2=__T("1/0/0");
+                ChannelLayout=__T("Rt");
+            }
             if (List[Pos][List[Pos].size()-1-ChannelLayout_Pos]==__T("r"))
             {
                 ChannelPositions=__T("Front: R");
                 ChannelPositions2=__T("1/0/0");
                 ChannelLayout=__T("R");
             }
-            if (List[Pos][List[Pos].size()-1-ChannelLayout_Pos]==__T("c"))
+            if (List[Pos][List[Pos].size()-1-ChannelLayout_Pos]==__T("c") || List[Pos][List[Pos].size()-1-ChannelLayout_Pos]==__T("mono"))
             {
                 ChannelPositions=__T("Front: C");
                 ChannelPositions2=__T("1/0/0");
                 ChannelLayout=__T("C");
             }
-            if (List[Pos][List[Pos].size()-1-ChannelLayout_Pos]==__T("lfe") || List[Pos][List[Pos].size()-1-ChannelLayout_Pos]==__T("sub"))
+            if (List[Pos][List[Pos].size()-1-ChannelLayout_Pos]==__T("lf") || List[Pos][List[Pos].size()-1-ChannelLayout_Pos]==__T("lfe") || List[Pos][List[Pos].size()-1-ChannelLayout_Pos]==__T("sub"))
             {
                 ChannelPositions=__T("LFE");
                 ChannelPositions2=__T(".1");
@@ -216,21 +240,29 @@ void File__ReferenceFilesHelper_InfoFromFileName (File__ReferenceFilesHelper::re
     //Language
     if (Language_Pos!=(size_t)-1)
         for (size_t Pos=0; Pos<List.size(); Pos++)
-        {
-            Ztring Language;
-            if (List[Pos][List[Pos].size()-1-Language_Pos]==__T("deu"))
-                Language=__T("de");
-            if (List[Pos][List[Pos].size()-1-Language_Pos]==__T("eng"))
-                Language=__T("en");
-            if (List[Pos][List[Pos].size()-1-Language_Pos]==__T("fra") || List[Pos][List[Pos].size()-1-Language_Pos]==__T("fre"))
-                Language=__T("fr");
-            if (List[Pos][List[Pos].size()-1-Language_Pos]==__T("ita"))
-                Language=__T("it");
-            if (List[Pos][List[Pos].size()-1-Language_Pos]==__T("spa"))
-                Language=__T("es");
+            if (1+Language_Pos<List[Pos].size())
+            {
+                Ztring Language;
+                if (List[Pos][List[Pos].size()-1-Language_Pos]==__T("ara"))
+                    Language=__T("ar");
+                if (List[Pos][List[Pos].size()-1-Language_Pos]==__T("deu"))
+                    Language=__T("de");
+                if (List[Pos][List[Pos].size()-1-Language_Pos]==__T("eng"))
+                    Language=__T("en");
+                if (List[Pos][List[Pos].size()-1-Language_Pos]==__T("fra") || List[Pos][List[Pos].size()-1-Language_Pos]==__T("fre"))
+                    Language=__T("fr");
+                if (List[Pos][List[Pos].size()-1-Language_Pos]==__T("ita"))
+                    Language=__T("it");
+                if (List[Pos][List[Pos].size()-1-Language_Pos]==__T("jpn"))
+                    Language=__T("ja");
+                if (List[Pos][List[Pos].size()-1-Language_Pos]==__T("rus"))
+                    Language=__T("ru");
+                if (List[Pos][List[Pos].size()-1-Language_Pos]==__T("spa"))
+                    Language=__T("es");
 
-            (*Iterators[Pos]).Infos["Language"]=Language;
-        }
+                if (!Language.empty())
+                    (*Iterators[Pos]).Infos["Language"]=Language;
+            }
 }
 void File__ReferenceFilesHelper::ParseReferences()
 {
@@ -313,6 +345,14 @@ void File__ReferenceFilesHelper::ParseReferences()
 
         //InfoFromFileName
         File__ReferenceFilesHelper_InfoFromFileName(References);
+
+        #if MEDIAINFO_EVENTS
+            if (MI->Config->Config_PerPackage==NULL)
+            {
+                MI->Config->Config_PerPackage=new MediaInfo_Config_PerPackage;
+                MI->Config->Config_PerPackage->CountOfPackages=References.size();
+            }
+        #endif //MEDIAINFO_EVENTS
 
         //Configuring file names
         Reference=References.begin();
@@ -506,7 +546,7 @@ void File__ReferenceFilesHelper::ParseReferences()
                 if (Reference->StreamKind!=Stream_Max)
                 {
                     MI->Fill(Reference->StreamKind, Reference->StreamPos, "Source_Info", "Missing");
-                    if (MI->Retrieve(Reference->StreamKind, Reference->StreamPos, General_ID).empty())
+                    if (MI->Retrieve(Reference->StreamKind, Reference->StreamPos, General_ID).empty() && Reference->StreamID!=(int64u)-1)
                         MI->Fill(Reference->StreamKind, Reference->StreamPos, General_ID, Reference->StreamID);
                     for (std::map<string, Ztring>::iterator Info=Reference->Infos.begin(); Info!=Reference->Infos.end(); ++Info)
                     {
@@ -1293,8 +1333,12 @@ MediaInfo_Internal* File__ReferenceFilesHelper::MI_Create()
             MI_Temp->Option(__T("File_MD5"), __T("1"));
     #endif //MEDIAINFO_MD5
     #if MEDIAINFO_EVENTS
+        MI_Temp->Config.Config_PerPackage=Config->Config_PerPackage;
         if (Config->Event_CallBackFunction_IsSet())
+        {
             MI_Temp->Option(__T("File_Event_CallBackFunction"), Config->Event_CallBackFunction_Get());
+            MI_Temp->Config.Config_PerPackage->Event_CallBackFunction_Set(Config->Event_CallBackFunction_Get());
+        }
         MI_Temp->Config.File_Names_RootDirectory=FileName(MI->File_Name).Path_Get();
         if (Reference->FileNames.size()>1)
             MI_Temp->Option(__T("File_TestContinuousFileNames"), __T("0"));

@@ -93,6 +93,8 @@
 #endif
 #include "../FlyFeatures/CProgressDlg.h"
 #include "../FlyFeatures/flyfeatures.h" // [+] SSA
+#include "CFlyLocationDlg.h"
+
 #include "resource.h"
 
 
@@ -296,7 +298,8 @@ void MainFrame::createMainMenu(void) // [+]Drakon. Enlighting functions.
 	m_CmdBar.m_arrCommand.Add(ID_WINDOW_MINIMIZE_ALL);
 	m_CmdBar.m_arrCommand.Add(ID_WINDOW_RESTORE_ALL);
 	m_CmdBar.m_arrCommand.Add(ID_GET_TTH);
-	m_CmdBar.m_arrCommand.Add(IDC_UPDATE_DOMOLINK);
+	m_CmdBar.m_arrCommand.Add(IDC_UPDATE_FLYLINKDC);
+	m_CmdBar.m_arrCommand.Add(IDC_FLYLINKDC_LOCATION);
 	m_CmdBar.m_arrCommand.Add(IDC_OPEN_MY_LIST);
 	m_CmdBar.m_arrCommand.Add(IDC_MATCH_ALL);
 	m_CmdBar.m_arrCommand.Add(IDC_REFRESH_FILE_LIST);
@@ -808,8 +811,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 int MainFrame::tuneTransferSplit()
 {
 	m_nProportionalPos = SETTING(TRANSFER_SPLIT_SIZE);
-	//dcassert(m_nProportionalPos > 200);
-	if (m_nProportionalPos < 100)
+	if (m_nProportionalPos < 300)
 		m_nProportionalPos = 8000; // TODO - пофиксить http://code.google.com/p/flylinkdc/issues/detail?id=1398
 	SET_SETTING(TRANSFER_SPLIT_SIZE, m_nProportionalPos);
 	SetSplitterPanes(m_hWndMDIClient, transferView.m_hWnd);
@@ -2610,7 +2612,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 				
 				CRect rc;
 				GetWindowRect(rc);
-				if (BOOLSETTING(SHOW_TRANSFERVIEW))
+				if (m_nProportionalPos > 300) // http://code.google.com/p/flylinkdc/issues/detail?id=1398
 				{
 					SET_SETTING(TRANSFER_SPLIT_SIZE, m_nProportionalPos);
 				}
@@ -3378,6 +3380,21 @@ LRESULT MainFrame::onAway(WORD , WORD , HWND, BOOL&)
 	return 0;
 }
 
+LRESULT MainFrame::onChangeLocation(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	CFlyLocationDlg l_dlg;
+	if (l_dlg.DoModal() == IDOK)
+	{
+		if (!l_dlg.isEmpty())
+		{
+			SET_SETTING(FLY_LOCATOR_COUNTRY, Text::fromT(l_dlg.m_Country));
+			SET_SETTING(FLY_LOCATOR_CITY, Text::fromT(l_dlg.m_City));
+			SET_SETTING(FLY_LOCATOR_ISP, Text::fromT(l_dlg.m_Provider));
+		}
+	}
+	
+	return S_OK;
+}
 LRESULT MainFrame::onUpdate(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	AutoUpdate::getInstance()->startUpdateManually();

@@ -238,12 +238,14 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		// [+] SSA private:
 	private:
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csConnection;
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csDownloads;
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csUploads;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csDdosCheck;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csTTHFilter;
 		
 		/** All ConnectionQueueItems */
-		ConnectionQueueItem::List downloads;
-		ConnectionQueueItem::List uploads;
+		static ConnectionQueueItem::List g_downloads;
+		static ConnectionQueueItem::List g_uploads;
 		
 		/** All active connections */
 		static boost::unordered_set<UserConnection*> g_userConnections;
@@ -290,7 +292,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		
 #define USING_IDLERS_IN_CONNECTION_MANAGER // [!] IRainman fix: don't disable this.
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
-		UserList checkIdle;
+		UserList m_checkIdle;
 #endif
 		
 		StringList nmdcFeatures;
@@ -317,8 +319,8 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		void addUploadConnection(UserConnection* uc);
 		void addDownloadConnection(UserConnection* uc);
 		
-		ConnectionQueueItem* getCQI(const HintedUser& aHintedUser, bool download);
-		void putCQI(ConnectionQueueItem* cqi);
+		ConnectionQueueItem* getCQI_L(const HintedUser& aHintedUser, bool download);
+		void putCQI_L(ConnectionQueueItem* cqi);
 		
 		void accept(const Socket& sock, bool secure) noexcept;
 		

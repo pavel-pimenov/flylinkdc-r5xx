@@ -182,6 +182,7 @@
 #define IDR_COLOR_ICON                  291
 #define IDR_ICON_QUESTION_ICON          292
 #define IDR_ICON_PAUSE_ICON             293
+#define IDD_LOCATION_DIALOG             294
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
 #define IDC_COPY_HUB                    1002
@@ -970,7 +971,7 @@
 #define IDC_PSWD_CHNG_CONFIRM_NEW       1799
 #define IDC_UPDATE_VERSION_CURRENT_LBL  1800
 #define IDC_PSWD_CHNG_NEW               1801
-#define IDC_UPDATE_DOMOLINK             1802
+#define IDC_UPDATE_FLYLINKDC            1802
 #define IDC_UPDATE                      1803
 #define IDC_EXCLUSIVE_HUB               1804
 #define IDC_STATUS_HASH_PROGRESS        1805
@@ -1513,7 +1514,15 @@
 #define IDC_NETWORK_WINFIREWALL_ICO     2357
 #define IDC_BTN_REFRESH_FILELIST        2358
 #define IDC_EDIT_MAX_HASH_SPEED_SLIDER  2359
+#define IDC_LOCATION_CITY               2360
+#define IDC_LOCATION_CITY_DESCRIPTION   2361
+#define IDC_LOCATION_PROVIDER_DESCRIPTION 2362
+#define IDC_LOCATION_PROVIDER           2363
+#define IDC_LOCATION_COUNTRY_DESCRIPTION 2366
+#define IDC_LOCATION_CITY2              2367
+#define IDC_LOCATION_COUNTRY            2367
 #define IDC_DOWNLOAD_TARGET             2500
+#define IDC_FLYLINKDC_LOCATION          2501
 #define IDC_DOWNLOAD_TARGET_DIR         3000
 #define IDC_SELECT_WINDOW               3500
 #define IDC_USER_COMMAND                4000
@@ -1572,13 +1581,13 @@
 #define IDC_SEARCH_UDP_PORT_TEST        32812
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        293
+#define _APS_NEXT_RESOURCE_VALUE        295
 #define _APS_NEXT_COMMAND_VALUE         32789
-#define _APS_NEXT_CONTROL_VALUE         2360
+#define _APS_NEXT_CONTROL_VALUE         2362
 #define _APS_NEXT_SYMED_VALUE           2423
 #endif
 #endif

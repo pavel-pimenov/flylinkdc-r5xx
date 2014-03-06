@@ -123,7 +123,8 @@ void NetworkPage::write()
 	else if (IsDlgButtonChecked(IDC_FIREWALL_PASSIVE))
 		ct = SettingsManager::INCOMING_FIREWALL_PASSIVE;
 		
-	if (SETTING(INCOMING_CONNECTIONS) != ct)
+	const auto l_current_set = SETTING(INCOMING_CONNECTIONS);
+	if (l_current_set != ct)
 	{
 		settings->set(SettingsManager::INCOMING_CONNECTIONS, ct);
 	}

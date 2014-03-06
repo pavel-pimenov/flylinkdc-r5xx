@@ -1848,6 +1848,21 @@ BEGIN
     LTEXT           "Static",IDC_TIME,15,36,111,12
 END
 
+IDD_LOCATION_DIALOG DIALOGEX 0, 0, 250, 120
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "FlylinkDC++ locator"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,135,96,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,189,96,50,14
+    GROUPBOX        "City",IDC_LOCATION_CITY_DESCRIPTION,10,36,230,29
+    COMBOBOX        IDC_LOCATION_CITY,15,47,220,111,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "ISP - Provider",IDC_LOCATION_PROVIDER_DESCRIPTION,9,65,230,29
+    COMBOBOX        IDC_LOCATION_PROVIDER,15,77,220,111,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Country",IDC_LOCATION_COUNTRY_DESCRIPTION,10,7,230,29
+    COMBOBOX        IDC_LOCATION_COUNTRY,15,18,220,111,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2824,6 +2839,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 56
     END
+
+    IDD_LOCATION_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 243
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 113
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -2946,7 +2969,6 @@ IDR_STRIKE              PNG                     "res\\strike.png"
 IDR_UNDERLINE           PNG                     "res\\underline.png"
 IDR_ITALIC              PNG                     "res\\italic.png"
 IDR_TRANSCODE           PNG                     "res\\transcode.png"
-IDR_COLOR               PNG                     "res\\color.png"
 IDR_CLOSE_PNG           PNG                     "res\\CloseIcon.png"
 IDR_DCLST               PNG                     "res\\dclst.png"
 IDR_FLYLINK_PNG         PNG                     "res\\FlyLink.png"

@@ -197,7 +197,7 @@ Etes-vous sûr que vous souhaitez lancer une autre copie du programme?</String>
 		<String Name="CertificateGenerationFailed">TLS désactivé, impossible de générer le certificat:</String>
 		<String Name="CertificateNotTrusted">Le certificat n'est pas fiable, ne peut pas communiquer</String>
 		<String Name="Certificates">Certificats</String>
-		<String Name="ChangeHashSpeedText">Modifier temporairement la vitesse maximale de hachage (МB/S)</String>
+		<String Name="ChangeHashSpeedText">Modifier temporairement la vitesse maximale de hachage (МiB/S) (0 - illimité)</String>
 		<String Name="ChangeLanguage">Langue est changée</String>
 		<String Name="ChangeLanguageInfo">Redémarrez le programme pour changer la langue</String>
 		<String Name="Chatdblclickaction">Chat sur double click sur utilisateur</String>

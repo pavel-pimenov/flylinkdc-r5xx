@@ -130,9 +130,11 @@ const string SettingsManager::settingTags[] =
 	"DclstFolder", // [+] SSA
 	"PreviewClientPath", // [+] SSA
 	"SavedSearchSize",
+	"FlyLocatorCountry",
+	"FlyLocatorCity",
+	"FlyLocatorISP",
 //	"MainDomain",
 	"SENTRY",
-	
 	
 	// Ints //
 	
@@ -476,7 +478,7 @@ void SettingsManager::setDefaults()
 		setDefault(DOWNLOAD_DIRECTORY, Util::getDownloadsPath());
 	//setDefault(TEMP_DOWNLOAD_DIRECTORY, "");
 	setDefault(SLOTS, 15); // [!] PPA 2->15
-	setDefault(WEBSERVER_PORT, getNewPortValue());//[!]IRainman
+	setDefault(WEBSERVER_PORT, getNewPortValue(0));//[!]IRainman
 	setDefault(TCP_PORT, getNewPortValue(get(WEBSERVER_PORT)));//[!]IRainman
 	setDefault(TLS_PORT, getNewPortValue(get(TCP_PORT)));//[!]IRainman
 	setDefault(UDP_PORT, get(TCP_PORT));//[!]IRainman
@@ -875,7 +877,7 @@ void SettingsManager::setDefaults()
 	//setDefault(POPUP_UPLOAD_FINISHED, false);
 	//setDefault(POPUP_PM, false);
 	setDefault(POPUP_NEW_PM, TRUE);
-	setDefault(POPUP_SEARCH_SPY, TRUE);
+	setDefault(POPUP_SEARCH_SPY, FALSE);
 	//setDefault(POPUP_TYPE, 0);
 	//setDefault(POPUP_AWAY, false);
 	setDefault(POPUP_MINIMIZED, TRUE);
@@ -1266,6 +1268,19 @@ void SettingsManager::setDefaults()
 	// TODO - грузить это из сети и отложенно когда понадобится.
 	// http://code.google.com/p/flylinkdc/issues/detail?id=1279
 	
+	// Генерим случайные порты при каждом старте если INCOMING_DIRECT (нахрена - пока не понятно)
+	// TODO - сделать отдельной галкой
+	const auto l_current_connection = SETTING(INCOMING_CONNECTIONS);
+	if (l_current_connection == INCOMING_DIRECT)
+	{
+		set(TCP_PORT, getNewPortValue(get(WEBSERVER_PORT)));//[!]IRainman
+		set(TLS_PORT, getNewPortValue(get(TCP_PORT)));//[!]IRainman
+		set(UDP_PORT, get(TCP_PORT));//[!]IRainman
+#ifdef STRONG_USE_DHT
+		set(DHT_PORT, getNewPortValue(get(UDP_PORT)));//[!]IRainman
+#endif
+	}
+	
 	Util::shrink_to_fit(&strDefaults[STR_FIRST], &strDefaults[STR_LAST]); // [+] IRainman opt.
 }
 
@@ -1378,20 +1393,6 @@ void SettingsManager::load(const string& aFileName)
 #endif
 	}
 	
-	if (l_version <= 5562 && SETTING(INCOMING_CONNECTIONS) != INCOMING_FIREWALL_PASSIVE)
-	{
-		set(AUTO_DETECT_CONNECTION, false); //Don't touch if it works
-	}
-	
-	if (SETTING(INCOMING_CONNECTIONS) == INCOMING_DIRECT)
-	{
-		set(TCP_PORT, getNewPortValue(get(WEBSERVER_PORT)));//[!]IRainman
-		set(TLS_PORT, getNewPortValue(get(TCP_PORT)));//[!]IRainman
-		set(UDP_PORT, get(TCP_PORT));//[!]IRainman
-#ifdef STRONG_USE_DHT
-		set(DHT_PORT, getNewPortValue(get(UDP_PORT)));//[!]IRainman
-#endif
-	}
 	const string& languageFile = get(LANGUAGE_FILE);
 	if (languageFile.empty() || l_version <= 7589 || !File::isExist(Util::getLocalisationPath() + languageFile))// [+] FlylinkDC
 	{

@@ -56,7 +56,9 @@ Sounds::snds Sounds::g_sounds[] =
 	{ ResourceManager::FAVUSER_ONLINE,  SettingsManager::SOUND_FAVUSER, ""},
 	{ ResourceManager::FAVUSER_OFFLINE,      SettingsManager::SOUND_FAVUSER_OFFLINE, ""},
 	{ ResourceManager::SOUND_TYPING_NOTIFY, SettingsManager::SOUND_TYPING_NOTIFY, ""},
+#ifdef FLYLINKDC_USE_SOUND_AND_POPUP_IN_SEARCH_SPY
 	{ ResourceManager::SOUND_SEARCHSPY, SettingsManager::SOUND_SEARCHSPY, ""}
+#endif
 };
 
 LRESULT Sounds::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)

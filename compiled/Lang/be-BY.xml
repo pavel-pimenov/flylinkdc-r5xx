@@ -210,7 +210,7 @@
 		<String Name="CertificateGenerated">Стварылі новае пасьведчаньне TLS</String>
 		<String Name="CertificateGenerationFailed">TLS не задзейнічаны, не ўдалося стварыць пасьведчаньне:</String>
 		<String Name="CertificateNotTrusted">Не магу злучыцца: пасьведчаньне не даверанае</String>
-		<String Name="ChangeHashSpeedText">Часова зьмяніць найвялікшую хуткасьць (у МіБ/с)</String>
+		<String Name="ChangeHashSpeedText">Часова зьмяніць найвялікшую хуткасьць (у МіБ/с) (0 - без абмежаванняў)</String>
 		<String Name="ChangeLanguage">Зьмянілі мову</String>
 		<String Name="ChangeLanguageInfo">Каб мова зьмянілася, запусьціце праґраму нанова</String>
 		<String Name="Chatdblclickaction">па карыстальніку ў гутарцы</String>
@@ -381,6 +381,12 @@
 		<String Name="CustDesc">Настаўленьні апісаньня</String>
 		<String Name="CzdcRatiomsg">Шаблён паведамленьня суадносінаў</String>
 		<String Name="D">С:</String>
+		<String Name="DataBaseErrorString">Узьнікла памылка доступу да базы дадзеных.
+Калі ласка, адпраўце яе тэкст альбо скрыншот распрацоўнікам на адрас ppa74@ya.ru</String>
+		<String Name="DataBaseLockedString">Узьнікла памылка доступу да базы дадзеных (файл базы дадзеных FlylinkDC_*.sqlite заблакаваны)
+Калі ласка, зачыніце блакавальную праграму ці адпраўце тэкст/скрыншот памылкі распрацоўнікам на адрас ppa74@ya.ru
+
+Націсніце Ок для паўторнай спробы (тайм-аут 5 секунд)</String>
 		<String Name="Day">дзень</String>
 		<String Name="Days">дні</String>
 		<String Name="DclstgenInfoborder">Зьвесткі файла DCLST</String>
@@ -497,6 +503,9 @@
 		<String Name="ErrorGeneratingCertificate">Далі хібу, калі стваралі пасьведчаньне</String>
 		<String Name="ErrorGetTthStream">Не знайшлі скароту ў струмені NTFS, таму ён створыцца нанова:</String>
 		<String Name="ErrorHashing">Не ўдалося стварыць скарот да</String>
+		<String Name="ErrorMediainfoScan">Пры сканаваньні файла %s в MediaInfoLib узьнікла памылка:
+%s
+Калі магчыма, адпраўце гэты файл для аналізу на адрас ppa74@ya.ru</String>
 		<String Name="ErrorOnIpAutoUpdate">Далі хібу, калі самарушна абнаўляўся IP:</String>
 		<String Name="ErrorString">Памылка</String>
 		<String Name="ErrIpfilter">Не знайшлі файл IPTrust.ini…</String>

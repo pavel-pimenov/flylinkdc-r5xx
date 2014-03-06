@@ -200,7 +200,7 @@
 		<String Name="CertificateGenerationFailed">TLS отключен, не могу сгенерировать сертификат:</String>
 		<String Name="CertificateNotTrusted">Сертификат ненадежен, невозможно соединиться</String>
 		<String Name="Certificates">Сертификаты</String>
-		<String Name="ChangeHashSpeedText">Временно изменить максимальную скорость хеширования (МБ/с)</String>
+		<String Name="ChangeHashSpeedText">Временно изменить максимальную скорость хеширования (МБ/с) (0 - без ограничений)</String>
 		<String Name="ChangeLanguage">Язык изменён</String>
 		<String Name="ChangeLanguageInfo">Перезапустите программу для изменения языка</String>
 		<String Name="Chatdblclickaction">на Нике в чате</String>
@@ -633,7 +633,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="GenerateCertificates">Создать сертификаты</String>
 		<String Name="GetFileList">Получить список файлов</String>
 		<String Name="GetIp">Тест портов и определение IP</String>
-		<String Name="AddFlylinkdcWinfirewall">Брандмауэр Windows: FlylinkDC++ исключение</String>
+		<String Name="AddFlylinkdcWinfirewall">Брандмауэр Windows: исключение</String>
 		<String Name="GetUserResponses">Запросить IP</String>
 		<String Name="GiveExtraSlot">Экстра-слот</String>
 		<String Name="Global">Переопределяет избранные хабы</String>

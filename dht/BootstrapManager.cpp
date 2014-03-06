@@ -104,11 +104,16 @@ bool BootstrapManager::bootstrap(const string& p_sub_agent)
 			
 			while (remoteXml.findChild("Node"))
 			{
-				const CID cid     = CID(remoteXml.getChildAttrib("CID"));
-				const string& i4   = remoteXml.getChildAttrib("I4");
-				const string& u4   = remoteXml.getChildAttrib("U4");
-				dcassert(Util::toInt(u4)); // http://ssa.in.ua/dcDHT.php?cid=00&encryption=0 U4 может вернуться нулем
-				addBootstrapNode(i4, static_cast<uint16_t>(Util::toInt(u4)), cid, UDPKey());
+				const string l_cid_str = remoteXml.getChildAttrib("CID");
+				dcassert(l_cid_str.length() == 39);
+				if(l_cid_str.length() == 39)
+				{
+					const CID cid(l_cid_str);
+					const string& i4   = remoteXml.getChildAttrib("I4");
+					const string& u4   = remoteXml.getChildAttrib("U4");
+					dcassert(Util::toInt(u4)); // http://ssa.in.ua/dcDHT.php?cid=00&encryption=0 U4 может вернуться нулем
+					addBootstrapNode(i4, static_cast<uint16_t>(Util::toInt(u4)), cid, UDPKey());
+				}
 			}
 			remoteXml.stepOut();
 		}

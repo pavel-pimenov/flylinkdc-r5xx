@@ -210,7 +210,7 @@ Are you sure to run another copy of program?</String>
 		<String Name="CertificateGenerationFailed">TLS disabled, failed to generate certificate:</String>
 		<String Name="CertificateNotTrusted">Certificate is not trusted, unable to connect</String>
 		<String Name="Certificates">Certificates</String>
-		<String Name="ChangeHashSpeedText">Temporarily change maximum speed of indexing (MiB/s)</String>
+		<String Name="ChangeHashSpeedText">Temporarily change maximum speed of indexing (MiB/s) (0 - unlimited)</String>
 		<String Name="ChangeLanguage">Language changed</String>
 		<String Name="ChangeLanguageInfo">Restart the program to change the language</String>
 		<String Name="Chatdblclickaction">on User in chat</String>

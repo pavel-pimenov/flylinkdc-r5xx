@@ -261,7 +261,7 @@ class BufferedOutputStream : public OutputStream
 					if (pos == bufSize)
 					{
 						s->write(&buf[0], bufSize);
-						m_is_flush = false;
+						m_is_flush = false; // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=132490
 						pos = 0;
 					}
 				}
