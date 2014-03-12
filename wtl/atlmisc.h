@@ -1724,10 +1724,23 @@ public:
 
 			// should be on type modifier or specifier
 			int nModifier = 0;
-			if(lpsz[0] == _T('I') && lpsz[1] == _T('6') && lpsz[2] == _T('4'))
+			if(lpsz[0] == _T('I'))
 			{
-				lpsz += 3;
-				nModifier = FORCE_INT64;
+				if((lpsz[1] == _T('6')) && (lpsz[2] == _T('4')))
+				{
+					lpsz += 3;
+					nModifier = FORCE_INT64;
+				}
+				else if((lpsz[1] == _T('3')) && (lpsz[2] == _T('2')))
+				{
+					lpsz += 3;
+				}
+				else
+				{
+					lpsz++;
+					if(sizeof(size_t) == 8)
+						nModifier = FORCE_INT64;
+				}
 			}
 			else
 			{
@@ -1783,7 +1796,7 @@ public:
 				else
 				{
 					nItemLen = lstrlen(pstrNextArg);
-					nItemLen = max(1, nItemLen);
+					nItemLen = __max(1, nItemLen);
 				}
 				break;
 			}
@@ -1799,7 +1812,7 @@ public:
 				else
 				{
 					nItemLen = (int)wcslen(pstrNextArg);
-					nItemLen = max(1, nItemLen);
+					nItemLen = __max(1, nItemLen);
 				}
 #else // _UNICODE
 				LPCSTR pstrNextArg = va_arg(argList, LPCSTR);
@@ -1814,7 +1827,7 @@ public:
 #else
 					nItemLen = lstrlenA(pstrNextArg);
 #endif
-					nItemLen = max(1, nItemLen);
+					nItemLen = __max(1, nItemLen);
 				}
 #endif // _UNICODE
 				break;
@@ -1835,7 +1848,7 @@ public:
 #else
 					nItemLen = lstrlenA(pstrNextArg);
 #endif
-					nItemLen = max(1, nItemLen);
+					nItemLen = __max(1, nItemLen);
 				}
 				break;
 			}
@@ -1851,7 +1864,7 @@ public:
 				else
 				{
 					nItemLen = (int)wcslen(pstrNextArg);
-					nItemLen = max(1, nItemLen);
+					nItemLen = __max(1, nItemLen);
 				}
 				break;
 			}
@@ -1860,9 +1873,9 @@ public:
 			// adjust nItemLen for strings
 			if (nItemLen != 0)
 			{
-				nItemLen = max(nItemLen, nWidth);
+				nItemLen = __max(nItemLen, nWidth);
 				if (nPrecision != 0)
-					nItemLen = min(nItemLen, nPrecision);
+					nItemLen = __min(nItemLen, nPrecision);
 			}
 			else
 			{
@@ -1880,7 +1893,7 @@ public:
 					else
 						va_arg(argList, int);
 					nItemLen = 32;
-					nItemLen = max(nItemLen, nWidth + nPrecision);
+					nItemLen = __max(nItemLen, nWidth + nPrecision);
 					break;
 
 #ifndef _ATL_USE_CSTRING_FLOAT
@@ -1906,7 +1919,7 @@ public:
 				case _T('G'):
 					va_arg(argList, double);
 					nItemLen = 128;
-					nItemLen = max(nItemLen, nWidth + nPrecision);
+					nItemLen = __max(nItemLen, nWidth + nPrecision);
 					break;
 				case _T('f'):
 					{
@@ -1915,7 +1928,7 @@ public:
 						// 309 zeroes == max precision of a double
 						// 6 == adjustment in case precision is not specified,
 						//   which means that the precision defaults to 6
-						int cchLen = max(nWidth, 312 + nPrecision + 6);
+						int cchLen = __max(nWidth, 312 + nPrecision + 6);
 						CTempBuffer<TCHAR, _WTL_STACK_ALLOC_THRESHOLD> buff;
 						LPTSTR pszTemp = buff.Allocate(cchLen);
 						if(pszTemp != NULL)
@@ -1934,7 +1947,7 @@ public:
 				case _T('p'):
 					va_arg(argList, void*);
 					nItemLen = 32;
-					nItemLen = max(nItemLen, nWidth + nPrecision);
+					nItemLen = __max(nItemLen, nWidth + nPrecision);
 					break;
 
 				// no output
@@ -2022,8 +2035,7 @@ public:
 #endif
 
 		// try fixed buffer first (to avoid wasting space in the heap)
-		TCHAR szTemp[256];
-                szTemp[0] = 0;  
+		TCHAR szTemp[256] = { 0 };
 		int nCount =  sizeof(szTemp) / sizeof(szTemp[0]);
 		int nLen = _LoadString(nID, szTemp, nCount);
 		if (nCount - nLen > CHAR_FUDGE)
@@ -2943,7 +2955,7 @@ public:
 		int nIndex = m_arrDocs.GetSize() - (nItemID - t_nFirstID) - 1;
 		if(nIndex < 0 || nIndex >= m_arrDocs.GetSize())
 			return FALSE;
-		if(wcslen(m_arrDocs[nIndex].szDocName) >= cchLength) // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlmisc.h 2945
+		if(lstrlen(m_arrDocs[nIndex].szDocName) >= cchLength)
 			return FALSE;
 		SecureHelper::strcpy_x(lpstrDocName, cchLength, m_arrDocs[nIndex].szDocName);
 
@@ -3063,7 +3075,7 @@ public:
 		}
 
 		// delete unused keys
-		for(nItem = m_arrDocs.GetSize() + 1; nItem < m_nMaxEntries_Max; nItem++)
+		for(nItem = m_arrDocs.GetSize() + 1; nItem <= m_nMaxEntries_Max; nItem++)
 		{
 			TCHAR szBuff[m_cchItemNameLen] = { 0 };
 			SecureHelper::wsprintf_x(szBuff, m_cchItemNameLen, pT->GetRegItemName(), nItem);
@@ -3084,28 +3096,31 @@ public:
 		ATLASSERT(::IsMenu(m_hMenu));
 
 		int nItems = ::GetMenuItemCount(m_hMenu);
-		int nInsertPoint;
-		for(nInsertPoint = 0; nInsertPoint < nItems; nInsertPoint++)
+		int nInsertPoint = 0;
+		for(int i = 0; i < nItems; i++)
 		{
 			CMenuItemInfo mi;
 			mi.fMask = MIIM_ID;
-			::GetMenuItemInfo(m_hMenu, nInsertPoint, TRUE, &mi);
+			::GetMenuItemInfo(m_hMenu, i, TRUE, &mi);
 			if (mi.wID == t_nFirstID)
+			{
+				nInsertPoint = i;
 				break;
+			}
 		}
+
 		ATLASSERT(nInsertPoint < nItems && "You need a menu item with an ID = t_nFirstID");
 
-		int nItem;
-		for(nItem = t_nFirstID; nItem < t_nFirstID + m_nMaxEntries; nItem++)
+		for(int j = t_nFirstID; j < (t_nFirstID + m_nMaxEntries); j++)
 		{
 			// keep the first one as an insertion point
-			if (nItem != t_nFirstID)
-				::DeleteMenu(m_hMenu, nItem, MF_BYCOMMAND);
+			if (j != t_nFirstID)
+				::DeleteMenu(m_hMenu, j, MF_BYCOMMAND);
 		}
 
 		TCHAR szItemText[t_cchItemLen + 6] = { 0 };   // add space for &, 2 digits, and a space
 		int nSize = m_arrDocs.GetSize();
-		nItem = 0;
+		int nItem = 0;
 		if(nSize > 0)
 		{
 			for(nItem = 0; nItem < nSize; nItem++)
@@ -3124,6 +3139,7 @@ public:
 					ATLASSERT(bRet);
 					SecureHelper::wsprintf_x(szItemText, t_cchItemLen + 6, _T("&%i %s"), nItem + 1, szBuff);
 				}
+
 				::InsertMenu(m_hMenu, nInsertPoint + nItem, MF_BYPOSITION | MF_STRING, t_nFirstID + nItem, szItemText);
 			}
 		}
@@ -3220,10 +3236,10 @@ public:
 		return nFileSize.QuadPart;
 	}
 
-	BOOL GetFileName(LPTSTR lpstrFileName, size_t cchLength) const
+	BOOL GetFileName(LPTSTR lpstrFileName, int cchLength) const
 	{
 		ATLASSERT(m_hFind != NULL);
-		if(wcslen(m_fd.cFileName) >= cchLength) // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlmisc.h 3225
+		if(lstrlen(m_fd.cFileName) >= cchLength)
 			return FALSE;
 
 		if(m_bFound)
@@ -3232,11 +3248,11 @@ public:
 		return m_bFound;
 	}
 
-	BOOL GetFilePath(LPTSTR lpstrFilePath, size_t cchLength) const
+	BOOL GetFilePath(LPTSTR lpstrFilePath, int cchLength) const
 	{
 		ATLASSERT(m_hFind != NULL);
 
-		size_t nLen = wcslen(m_lpszRoot); // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlmisc.h 3238
+		int nLen = lstrlen(m_lpszRoot);
 #ifndef _WIN32_WCE
 		ATLASSERT(nLen > 0);
 		if(nLen == 0)
@@ -3248,7 +3264,7 @@ public:
 		bool bAddSep = ((nLen == 0) || (m_lpszRoot[nLen - 1] != _T('\\') && m_lpszRoot[nLen - 1] !=_T('/')));
 #endif // _WIN32_WCE
 
-		if((wcslen(m_lpszRoot) + (bAddSep ?  1 : 0)) >= cchLength) // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlmisc.h 3250
+		if((lstrlen(m_lpszRoot) + (bAddSep ?  1 : 0)) >= cchLength)
 			return FALSE;
 
 		SecureHelper::strcpy_x(lpstrFilePath, cchLength, m_lpszRoot);
@@ -3265,7 +3281,7 @@ public:
 	}
 
 #ifndef _WIN32_WCE
-	BOOL GetFileTitle(LPTSTR lpstrFileTitle, size_t cchLength) const
+	BOOL GetFileTitle(LPTSTR lpstrFileTitle, int cchLength) const
 	{
 		ATLASSERT(m_hFind != NULL);
 
@@ -3273,7 +3289,7 @@ public:
 		if(!GetFileName(szBuff, MAX_PATH))
 			return FALSE;
 
-		if(wcslen(szBuff) >= cchLength || cchLength < 1) // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlmisc.h 3275
+		if(lstrlen(szBuff) >= cchLength || cchLength < 1)
 			return FALSE;
 
 		// find the last dot
@@ -3287,7 +3303,7 @@ public:
 	}
 #endif // !_WIN32_WCE
 
-	BOOL GetFileURL(LPTSTR lpstrFileURL, size_t cchLength) const
+	BOOL GetFileURL(LPTSTR lpstrFileURL, int cchLength) const
 	{
 		ATLASSERT(m_hFind != NULL);
 
@@ -3295,7 +3311,7 @@ public:
 		if(!GetFilePath(szBuff, MAX_PATH))
 			return FALSE;
 		LPCTSTR lpstrFileURLPrefix = _T("file://");
-		if(wcslen(szBuff) + wcslen(lpstrFileURLPrefix) >= cchLength) // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlmisc.h 3297
+		if(lstrlen(szBuff) + lstrlen(lpstrFileURLPrefix) >= cchLength)
 			return FALSE;
 		SecureHelper::strcpy_x(lpstrFileURL, cchLength, lpstrFileURLPrefix);
 		SecureHelper::strcat_x(lpstrFileURL, cchLength, szBuff);
@@ -3303,10 +3319,10 @@ public:
 		return TRUE;
 	}
 
-	BOOL GetRoot(LPTSTR lpstrRoot, size_t cchLength) const
+	BOOL GetRoot(LPTSTR lpstrRoot, int cchLength) const
 	{
 		ATLASSERT(m_hFind != NULL);
-		if(wcslen(m_lpszRoot) >= cchLength) // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlmisc.h 3308
+		if(lstrlen(m_lpszRoot) >= cchLength)
 			return FALSE;
 
 		SecureHelper::strcpy_x(lpstrRoot, cchLength, m_lpszRoot);
@@ -3495,7 +3511,7 @@ public:
 		{
 			pstrName = _T("*.*");
 		}
-		else if(wcslen(pstrName) >= MAX_PATH) // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlmisc.h 3497
+		else if(lstrlen(pstrName) >= MAX_PATH)
 		{
 			ATLASSERT(FALSE);
 			return FALSE;
@@ -3638,17 +3654,17 @@ inline bool _IsDBCSTrailByte(LPCTSTR lpstr, int nChar)
 #endif // _UNICODE
 }
 
-inline bool AtlCompactPath(LPTSTR lpstrOut, LPCTSTR lpstrIn, size_t cchLen)
+inline bool AtlCompactPath(LPTSTR lpstrOut, LPCTSTR lpstrIn, int cchLen)
 {
 	ATLASSERT(lpstrOut != NULL);
 	ATLASSERT(lpstrIn != NULL);
 	ATLASSERT(cchLen > 0);
 
 	LPCTSTR szEllipsis = _T("...");
-	const size_t cchEndEllipsis = 3U;
-	const size_t cchMidEllipsis = 4U;
+	const int cchEndEllipsis = 3;
+	const int cchMidEllipsis = 4;
 
-	if(wcslen(lpstrIn) < cchLen) // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlmisc.h 3650
+	if(lstrlen(lpstrIn) < cchLen)
 	{
 		SecureHelper::strcpy_x(lpstrOut, cchLen, lpstrIn);
 		return true;
@@ -3672,7 +3688,7 @@ inline bool AtlCompactPath(LPTSTR lpstrOut, LPCTSTR lpstrIn, size_t cchLen)
 				&& pPath[1] && pPath[1] != _T('\\') && pPath[1] != _T('/'))
 			lpstrFileName = pPath + 1;
 	}
-	size_t cchFileName = wcslen(lpstrFileName); // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlmisc.h 3674
+	int cchFileName = lstrlen(lpstrFileName);
 
 	// handle just the filename without a path
 	if(lpstrFileName == lpstrIn && cchLen > cchEndEllipsis)
@@ -3692,17 +3708,16 @@ inline bool AtlCompactPath(LPTSTR lpstrOut, LPCTSTR lpstrIn, size_t cchLen)
 	// handle just ellipsis
 	if((cchLen < (cchMidEllipsis + cchEndEllipsis)))
 	{
-		for(size_t i = 0; i < cchLen - 1; i++)
+		for(int i = 0; i < cchLen - 1; i++)
 			lpstrOut[i] = ((i + 1) == cchMidEllipsis) ? chSlash : _T('.');
 		lpstrOut[cchLen - 1] = 0;
 		return true;
 	}
 
 	// calc how much we have to copy
-	size_t cchToCopy; // [!] PVS V547 Expression 'cchToCopy < 0' is always false. Unsigned type value is never < 0. atlmisc.h 3703
-	if (cchLen > (cchMidEllipsis + cchFileName + 1))
-		cchToCopy = cchLen - (cchMidEllipsis + cchFileName) - 1;
-	else
+	int cchToCopy = cchLen - (cchMidEllipsis + cchFileName) - 1;
+
+	if(cchToCopy < 0)
 		cchToCopy = 0;
 
 #ifndef _UNICODE

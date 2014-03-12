@@ -609,7 +609,7 @@ int64u File::Size_Get()
                 if (bRet == FALSE)
                     return (int64u)-1;
                 Size=x.QuadPart;
-            #else 
+            #else
                 DWORD High;DWORD Low=GetFileSize(File_Handle, &High);
                 if (Low==INVALID_FILE_SIZE && GetLastError()!=NO_ERROR)
                     return (int64u)-1;
@@ -719,7 +719,7 @@ Ztring File::Modified_Get()
             int Result=stat(File_Name.To_Local().c_str(), &Stat);
             if (Result<0)
                 return __T(""); //Error
-            Ztring Time; Time.Date_From_Seconds_1970(Stat.st_mtime);
+            Ztring Time; Time.Date_From_Seconds_1970((int64s)Stat.st_mtime);
             return Time;
         #elif defined WINDOWS
             FILETIME TimeFT;

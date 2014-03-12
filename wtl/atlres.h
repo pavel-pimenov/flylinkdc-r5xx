@@ -150,6 +150,9 @@
 #define ID_EDIT_SELECT_ALL              0xE12A
 #define ID_EDIT_UNDO                    0xE12B
 #define ID_EDIT_REDO                    0xE12C
+#define ID_EDIT_DELETE                  ID_EDIT_CLEAR
+#define ID_EDIT_FIND_NEXT               ID_EDIT_REPEAT
+#define ID_EDIT_FIND_PREV               0xE12D
 
 // Window commands
 #define ID_WINDOW_NEW                   0xE130

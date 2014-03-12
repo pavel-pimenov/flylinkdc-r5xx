@@ -849,8 +849,10 @@ void PublicHubsFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noex
 	}
 }
 
-LRESULT PublicHubsFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
+LRESULT PublicHubsFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled */)
 {
+	return CDRF_DODEFAULT;
+#ifdef SCALOLAZ_USE_COLOR_HUB_IN_FAV
 	LPNMLVCUSTOMDRAW cd = reinterpret_cast<LPNMLVCUSTOMDRAW>(pnmh);
 	
 	switch (cd->nmcd.dwDrawStage)
@@ -860,29 +862,27 @@ LRESULT PublicHubsFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHan
 			
 		case CDDS_ITEMPREPAINT:
 		{
-			if (cd->iSubItem == COLUMN_NAME)
+			cd->clrText = Colors::textColor;
+			const auto fhe = FavoriteManager::getInstance()->getFavoriteHubEntry(getPubServer((int)cd->nmcd.dwItemSpec));
+			if (fhe)
 			{
-				cd->clrText = Colors::textColor;
-				const auto fhe = FavoriteManager::getInstance()->getFavoriteHubEntry(getPubServer((int)cd->nmcd.dwItemSpec));
-				if (fhe)
+				if (fhe->getConnect())
 				{
-					if (fhe->getConnect())
-					{
-						cd->clrTextBk = SETTING(HUB_IN_FAV_CONNECT_BK_COLOR);
-					}
-					else
-					{
-						cd->clrTextBk = SETTING(HUB_IN_FAV_BK_COLOR);
-					}
+					cd->clrTextBk = SETTING(HUB_IN_FAV_CONNECT_BK_COLOR);
 				}
-#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
-				Colors::alternationBkColor(cd); // [+] IRainman
-#endif
-				return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
+				else
+				{
+					cd->clrTextBk = SETTING(HUB_IN_FAV_BK_COLOR);
+				}
 			}
+			return CDRF_NEWFONT;
 		}
+		return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
 	}
-	return CDRF_DODEFAULT;
+}
+return CDRF_DODEFAULT;
+#endif // SCALOLAZ_USE_COLOR_HUB_IN_FAV
+
 }
 
 #endif // End of IRAINMAN_ENABLE_HUB_LIST

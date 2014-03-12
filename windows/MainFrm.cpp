@@ -152,6 +152,7 @@ int64_t MainFrame::g_downdiff = 0;
 // [~] IRainman Speedmeter
 
 MainFrame::MainFrame() :
+	CSplitterImpl(false),
 	CFlyTimerAdapter(m_hWnd),
 	m_second_count(60),
 	m_trayMessage(0),

@@ -220,7 +220,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		
 		bool getTree(const TTHValue& p_root, TigerTree& p_tt);
 		unsigned __int64 getBlockSizeSQL(const TTHValue& p_root, __int64 p_size);
-		__int64 get_path_id(string p_path, bool p_create, bool p_case_convet, bool& p_is_no_mediainfo);
+		__int64 get_path_id(string p_path, bool p_create, bool p_case_convet, bool& p_is_no_mediainfo, bool p_sweep_path);
 		__int64 addTree(const TigerTree& tt);
 		bool findTTH(const string& aPath, const string& aFileName, TTHValue& p_tth);
 		

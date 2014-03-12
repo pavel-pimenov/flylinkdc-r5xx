@@ -41,6 +41,8 @@
   #endif
 #endif
 
+// Note: Define _WTL_CMDBAR_VISTA_STD_MENUBAR to use Vista standard menubar look with Vista menus
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Classes in this file:
@@ -535,8 +537,7 @@ public:
 
 			T* pT = static_cast<T*>(this);
 			pT;   // avoid level 4 warning
-			TCHAR szString[pT->_nMaxMenuItemTextLength];
-                        szString[0] = 0;
+			TCHAR szString[pT->_nMaxMenuItemTextLength] = { 0 };
 			for(int i = 0; i < nItems; i++)
 			{
 				CMenuItemInfo mii;
@@ -547,7 +548,7 @@ public:
 				BOOL bRet = ::GetMenuItemInfo(m_hMenu, i, TRUE, &mii);
 				ATLASSERT(bRet);
 				// If we have more than the buffer, we assume we have bitmaps bits
-				if(wcslen(szString) > pT->_nMaxMenuItemTextLength - 1) // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlctrlw.h 549
+				if(lstrlen(szString) > pT->_nMaxMenuItemTextLength - 1)
 				{
 					mii.fType = MFT_BITMAP;
 					::SetMenuItemInfo(m_hMenu, i, TRUE, &mii);
@@ -561,7 +562,7 @@ public:
 				btn.iBitmap = 0;
 				btn.idCommand = i;
 				btn.fsState = (BYTE)(((mii.fState & MFS_DISABLED) == 0) ? TBSTATE_ENABLED : 0);
-				btn.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | TBSTYLE_DROPDOWN;
+				btn.fsStyle = BTNS_BUTTON | BTNS_AUTOSIZE | BTNS_DROPDOWN;
 				btn.dwData = 0;
 				btn.iString = 0;
 
@@ -1288,8 +1289,7 @@ public:
 
 			T* pT = static_cast<T*>(this);
 			pT;   // avoid level 4 warning
-			TCHAR szString[pT->_nMaxMenuItemTextLength];
-                        szString[0] = 0;
+			TCHAR szString[pT->_nMaxMenuItemTextLength] = { 0 };
 			BOOL bRet = FALSE;
 			for(int i = 0; i < menuPopup.GetMenuItemCount(); i++)
 			{
@@ -1320,7 +1320,7 @@ public:
 								break;
 							}
 						}
-						int cchLen = wcslen(szString) + 1; // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlctrlw.h 1321
+						int cchLen = lstrlen(szString) + 1;
 						pMI->lpstrText = NULL;
 						ATLTRY(pMI->lpstrText = new TCHAR[cchLen]);
 						ATLASSERT(pMI->lpstrText != NULL);
@@ -1381,7 +1381,7 @@ public:
 							mii.fMask = MIIM_DATA | MIIM_TYPE | MIIM_STATE;
 							mii.fType = pMI->fType;
 							mii.dwTypeData = pMI->lpstrText;
-							mii.cch = wcslen(pMI->lpstrText); // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlctrlw.h 1382
+							mii.cch = lstrlen(pMI->lpstrText);
 							mii.dwItemData = NULL;
 
 							bRet = menuPopup.SetMenuItemInfo(i, TRUE, &mii);
@@ -1471,8 +1471,7 @@ public:
 			int nCount = ::GetMenuItemCount(menu);
 			int nRetCode = MNC_EXECUTE;
 			BOOL bRet = FALSE;
-			TCHAR szString[pT->_nMaxMenuItemTextLength];
-                        szString[0]=0;
+			TCHAR szString[pT->_nMaxMenuItemTextLength] = { 0 };
 			WORD wMnem = 0;
 			bool bFound = false;
 			for(int i = 0; i < nCount; i++)
@@ -1806,6 +1805,16 @@ public:
 			}
 			else if(lpTBCustomDraw->nmcd.dwDrawStage == CDDS_ITEMPREPAINT)
 			{
+#if _WTL_CMDBAR_VISTA_MENUS && defined(_WTL_CMDBAR_VISTA_STD_MENUBAR)
+				if(m_bVistaMenus)
+				{
+					::SetRectEmpty(&lpTBCustomDraw->rcText);
+					lRet = CDRF_NOTIFYPOSTPAINT;
+					bHandled = TRUE;
+				}
+				else
+#endif // _WTL_CMDBAR_VISTA_MENUS && defined(_WTL_CMDBAR_VISTA_STD_MENUBAR)
+				{
 				if(m_bFlatMenus)
 				{
 #ifndef COLOR_MENUHILIGHT
@@ -1823,13 +1832,47 @@ public:
 					{
 						lpTBCustomDraw->clrText = ::GetSysColor(COLOR_GRAYTEXT);
 					}
+
+						_ParentCustomDrawHelper(lpTBCustomDraw);
+
+						lRet = CDRF_SKIPDEFAULT;
+						bHandled = TRUE;
+					}
+					else if(!m_bParentActive)
+					{
+						lpTBCustomDraw->clrText = ::GetSysColor(COLOR_GRAYTEXT);
+						bHandled = TRUE;
+					}
+				}
+			}
+#if _WTL_CMDBAR_VISTA_MENUS && defined(_WTL_CMDBAR_VISTA_STD_MENUBAR)
+			else if (lpTBCustomDraw->nmcd.dwDrawStage == CDDS_ITEMPOSTPAINT)
+			{
+				bool bDisabled = ((lpTBCustomDraw->nmcd.uItemState & CDIS_DISABLED) == CDIS_DISABLED);
+				if(bDisabled || !m_bParentActive)
+					lpTBCustomDraw->clrText = ::GetSysColor(COLOR_GRAYTEXT);
+
+				_ParentCustomDrawHelper(lpTBCustomDraw);
+
+				lRet = CDRF_SKIPDEFAULT;
+				bHandled = TRUE;
+			}
+#endif // _WTL_CMDBAR_VISTA_MENUS && defined(_WTL_CMDBAR_VISTA_STD_MENUBAR)
+		}
+		return lRet;
+	}
+
+	void _ParentCustomDrawHelper(LPNMTBCUSTOMDRAW lpTBCustomDraw)
+	{
 					CDCHandle dc = lpTBCustomDraw->nmcd.hdc;
 					dc.SetTextColor(lpTBCustomDraw->clrText);
 					dc.SetBkMode(lpTBCustomDraw->nStringBkMode);
+
 					HFONT hFont = GetFont();
 					HFONT hFontOld = NULL;
 					if(hFont != NULL)
 						hFontOld = dc.SelectFont(hFont);
+
 					const int cchText = 200;
 					TCHAR szText[cchText] = { 0 };
 					TBBUTTONINFO tbbi = { 0 };
@@ -1838,20 +1881,11 @@ public:
 					tbbi.pszText = szText;
 					tbbi.cchText = cchText;
 					GetButtonInfo((int)lpTBCustomDraw->nmcd.dwItemSpec, &tbbi);
+
 					dc.DrawText(szText, -1, &lpTBCustomDraw->nmcd.rc, DT_SINGLELINE | DT_CENTER | DT_VCENTER | (m_bShowKeyboardCues ? 0 : DT_HIDEPREFIX));
+
 					if(hFont != NULL)
 						dc.SelectFont(hFontOld);
-					lRet = CDRF_SKIPDEFAULT;
-					bHandled = TRUE;
-				}
-				else if(!m_bParentActive)
-				{
-					lpTBCustomDraw->clrText = ::GetSysColor(COLOR_GRAYTEXT);
-					bHandled = TRUE;
-				}
-			}
-		}
-		return lRet;
 	}
 
 // Message hook handlers
@@ -2327,7 +2361,7 @@ public:
 	void DrawMenuText(CDCHandle& dc, RECT& rc, LPCTSTR lpstrText, COLORREF color)
 	{
 		int nTab = -1;
-		const int l_len = (int)wcslen(lpstrText);// V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlctrlw.h 2327
+		const int l_len = lstrlen(lpstrText);
 		for(int i = 0; i < l_len; i++)
 		{
 			if(lpstrText[i] == _T('\t'))
@@ -2480,7 +2514,7 @@ public:
 			const DWORD ROP_DSna = 0x00220326L;
 
 			// draw mask
-			RECT rcSource = { 0, 0, min(size.cx, rc.right - rc.left), min(size.cy, rc.bottom - rc.top) };
+			RECT rcSource = { 0, 0, __min(size.cx, rc.right - rc.left), __min(size.cy, rc.bottom - rc.top) };
 			dcMask.DrawFrameControl(&rcSource, DFC_MENU, bRadio ? DFCS_MENUBULLET : DFCS_MENUCHECK);
 
 			// draw shadow if disabled
@@ -2596,7 +2630,7 @@ public:
 			cy += cyMargin;
 
 			// height of item is the bigger of these two
-			lpMeasureItemStruct->itemHeight = max(cy, (int)m_szButton.cy);
+			lpMeasureItemStruct->itemHeight = __max(cy, (int)m_szButton.cy);
 
 			// width is width of text plus a bunch of stuff
 			cx += 2 * s_kcxTextMargin;   // L/R margin for readability
@@ -2829,7 +2863,7 @@ public:
 						mii.fType = pMI->fType;
 						mii.fState = pMI->fState;
 						mii.dwTypeData = pMI->lpstrText;
-						mii.cch = wcslen(pMI->lpstrText); // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlctrlw.h 2828
+						mii.cch = lstrlen(pMI->lpstrText);
 						mii.dwItemData = NULL;
 
 						bRet = menuPopup.SetMenuItemInfo(i, TRUE, &mii);
@@ -3030,27 +3064,7 @@ public:
 
 #if _WTL_CMDBAR_VISTA_MENUS
 		// check if we should use Vista menus
-		bool bVistaMenus = (RunTimeHelper::IsVista() && RunTimeHelper::IsCommCtrl6() && ((m_dwExtendedStyle & CBR_EX_NOVISTAMENUS) == 0));
-
-		if(bVistaMenus)
-		{
-			HMODULE hThemeDLL = ::LoadLibrary(_T("uxtheme.dll"));
-			if(hThemeDLL != NULL)
-			{
-				typedef BOOL (STDAPICALLTYPE *PFN_IsThemeActive)();
-				PFN_IsThemeActive pfnIsThemeActive = (PFN_IsThemeActive)::GetProcAddress(hThemeDLL, "IsThemeActive");
-				ATLASSERT(pfnIsThemeActive != NULL);
-				bVistaMenus = bVistaMenus && (pfnIsThemeActive != NULL) && (pfnIsThemeActive() != FALSE);
-
-				typedef BOOL (STDAPICALLTYPE *PFN_IsAppThemed)();
-				PFN_IsAppThemed pfnIsAppThemed = (PFN_IsAppThemed)::GetProcAddress(hThemeDLL, "IsAppThemed");
-				ATLASSERT(pfnIsAppThemed != NULL);
-				bVistaMenus = bVistaMenus && (pfnIsAppThemed != NULL) && (pfnIsAppThemed() != FALSE);
-
-				::FreeLibrary(hThemeDLL);
-			}
-		}
-
+		bool bVistaMenus = (((m_dwExtendedStyle & CBR_EX_NOVISTAMENUS) == 0) && RunTimeHelper::IsVista() && RunTimeHelper::IsThemeAvailable());
 		if(!bVistaMenus && m_bVistaMenus && (m_hMenu != NULL) && (m_arrCommand.GetSize() > 0))
 		{
 			T* pT = static_cast<T*>(this);

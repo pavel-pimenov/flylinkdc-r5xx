@@ -205,16 +205,17 @@ public:
 	}
 
 #ifndef _WIN32_WCE
-	int GetExtLogPen(EXTLOGPEN* pLogPen) const
+	int GetExtLogPen(EXTLOGPEN* pLogPen, int nSize = sizeof(EXTLOGPEN)) const
 	{
 		ATLASSERT(m_hPen != NULL);
-		return ::GetObject(m_hPen, sizeof(EXTLOGPEN), pLogPen);
+		return ::GetObject(m_hPen, nSize, pLogPen);
 	}
 
-	bool GetExtLogPen(EXTLOGPEN& ExtLogPen) const
+	bool GetExtLogPen(EXTLOGPEN& ExtLogPen, int nSize = sizeof(EXTLOGPEN)) const
 	{
 		ATLASSERT(m_hPen != NULL);
-		return (::GetObject(m_hPen, sizeof(EXTLOGPEN), &ExtLogPen) == sizeof(EXTLOGPEN));
+		int nRet = ::GetObject(m_hPen, nSize, &ExtLogPen);
+		return ((nRet > 0) && (nRet <= nSize));
 	}
 #endif // !_WIN32_WCE
 };
@@ -1219,7 +1220,7 @@ public:
 	{
 	}
 
-	virtual ~CDCT()
+	~CDCT()
 	{
 		if(t_bManaged && m_hDC != NULL)
 			::DeleteDC(Detach());
@@ -1982,7 +1983,7 @@ public:
 	}
 #endif // !_WIN32_WCE
 
-	BOOL Polyline(LPPOINT lpPoints, int nCount)
+	BOOL Polyline(const POINT* lpPoints, int nCount)
 	{
 		ATLASSERT(m_hDC != NULL);
 		return ::Polyline(m_hDC, lpPoints, nCount);
@@ -2190,14 +2191,14 @@ public:
 	}
 #endif // !_WIN32_WCE
 
-	BOOL Polygon(LPPOINT lpPoints, int nCount)
+	BOOL Polygon(const POINT* lpPoints, int nCount)
 	{
 		ATLASSERT(m_hDC != NULL);
 		return ::Polygon(m_hDC, lpPoints, nCount);
 	}
 
 #ifndef _WIN32_WCE
-	BOOL PolyPolygon(LPPOINT lpPoints, LPINT lpPolyCounts, int nCount)
+	BOOL PolyPolygon(const POINT* lpPoints, const INT* lpPolyCounts, int nCount)
 	{
 		ATLASSERT(m_hDC != NULL);
 		return ::PolyPolygon(m_hDC, lpPoints, lpPolyCounts, nCount);
@@ -2487,7 +2488,7 @@ public:
 	{
 		ATLASSERT(m_hDC != NULL);
 		if(nCount == -1)
-			nCount = wcslen(lpszString); // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlgdi.h 2490
+			nCount = lstrlen(lpszString);
 		return ::TextOut(m_hDC, x, y, lpszString, nCount);
 	}
 #endif // !_WIN32_WCE
@@ -2496,7 +2497,7 @@ public:
 	{
 		ATLASSERT(m_hDC != NULL);
 		if(nCount == -1)
-			nCount = wcslen(lpszString); // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlgdi.h 2499
+			nCount = lstrlen(lpszString);
 		return ::ExtTextOut(m_hDC, x, y, nOptions, lpRect, lpszString, nCount, lpDxWidths);
 	}
 
@@ -2505,7 +2506,7 @@ public:
 	{
 		ATLASSERT(m_hDC != NULL);
 		if(nCount == -1)
-			nCount = wcslen(lpszString); // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlgdi.h 2508
+			nCount = lstrlen(lpszString);
 		LONG lRes = ::TabbedTextOut(m_hDC, x, y, lpszString, nCount, nTabPositions, lpnTabStopPositions, nTabOrigin);
 		SIZE size = { GET_X_LPARAM(lRes), GET_Y_LPARAM(lRes) };
 		return size;
@@ -2562,7 +2563,7 @@ public:
 	{
 		ATLASSERT(m_hDC != NULL);
 		if(nCount == -1)
-			nCount = wcslen(lpszString); // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlgdi.h 2565
+			nCount = lstrlen(lpszString);
 		return ::GetTextExtentPoint32(m_hDC, lpszString, nCount, lpSize);
 	}
 
@@ -2577,7 +2578,7 @@ public:
 	{
 		ATLASSERT(m_hDC != NULL);
 		if(nCount == -1)
-			nCount = wcslen(lpszString); // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlgdi.h 2580
+			nCount = lstrlen(lpszString);
 		return ::GetTabbedTextExtent(m_hDC, lpszString, nCount, nTabPositions, lpnTabStopPositions);
 	}
 
@@ -3046,7 +3047,7 @@ public:
 	static CBrushHandle PASCAL GetHalftoneBrush()
 	{
 		HBRUSH halftoneBrush = NULL;
-		WORD grayPattern[8];
+		WORD grayPattern[8] = { 0 };
 		for(int i = 0; i < 8; i++)
 			grayPattern[i] = (WORD)(0x5555 << (i & 1));
 		HBITMAP grayBitmap = CreateBitmap(8, 8, 1, 1, &grayPattern);
@@ -3437,7 +3438,7 @@ public:
 	HBITMAP m_hBmpOld;
 
 // Constructor/destructor
-	CMemoryDC(HDC hDC, RECT& rcPaint) : m_hDCOriginal(hDC), m_hBmpOld(NULL)
+	CMemoryDC(HDC hDC, const RECT& rcPaint) : m_hDCOriginal(hDC), m_hBmpOld(NULL)
 	{
 		m_rcPaint = rcPaint;
 		CreateCompatibleDC(m_hDCOriginal);
@@ -3673,8 +3674,8 @@ public:
 // DIBINFO16 - To avoid color table problems in WinCE we only create this type of Dib
 struct DIBINFO16 // a BITMAPINFO with 2 additional color bitfields
 {
-    BITMAPINFOHEADER    bmiHeader;
-    RGBQUAD             bmiColors[3];
+	BITMAPINFOHEADER bmiHeader;
+	RGBQUAD bmiColors[3];
 
 	DIBINFO16(SIZE size) 
 	{

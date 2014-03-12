@@ -407,23 +407,24 @@ void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility
 // Вернул тэг - http://code.google.com/p/flylinkdc/source/detail?r=14812
 string Identity::getTag() const
 {
-	//string l_tag; // TODO = getStringParam("TA");
-	//if (l_tag.empty())
-	//{
-	char l_tagItem[128];
-	l_tagItem[0] = 0;
-	_snprintf(l_tagItem, sizeof(l_tagItem), "<%s,M:%c,H:%u/%u/%u,S:%u>", // http://mydc.ru/topic915.html?p=6721#entry6721 TODO - нужно ли вертать L:
-	          //getApplication().c_str(),
-	          (getStringParam("AP") + " V:" + getStringParam("VE")).c_str(),
-	          isTcpActive() ? 'A' : 'P',
-	          getHubNormal(),
-	          getHubRegister(),
-	          getHubOperator(),
-	          getSlots());
-	return l_tagItem;
-	//l_tag = l_tagItem;
-	//}
-	//return l_tag;
+	if (isAppNameExists())
+	{
+		char l_tagItem[128];
+		l_tagItem[0] = 0;
+		_snprintf(l_tagItem, sizeof(l_tagItem), "<%s,M:%c,H:%u/%u/%u,S:%u>", // http://mydc.ru/topic915.html?p=6721#entry6721 TODO - нужно ли вертать L:
+		          //getApplication().c_str(),
+		          (getStringParam("AP") + " V:" + getStringParam("VE")).c_str(),
+		          isTcpActive() ? 'A' : 'P',
+		          getHubNormal(),
+		          getHubRegister(),
+		          getHubOperator(),
+		          getSlots());
+		return l_tagItem;
+	}
+	else
+	{
+		return Util::emptyString;
+	}
 }
 string Identity::getApplication() const
 {
@@ -520,21 +521,38 @@ string Identity::getStringParam(const char* name) const // [!] IRainman fix.
 	{
 		case TAG('A', 'P'):
 		{
-			webrtc::ReadLockScoped l(*g_rw_cs);
-			const string& l_value = getDicValL(getDicAP());
+			const auto l_dic_value = getDicAP();
+			if (l_dic_value > 0)
+			{
+				webrtc::ReadLockScoped l(*g_rw_cs);
+				
+				const string& l_value = getDicValL(l_dic_value);
 #ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
-			CFlylinkDBManager::getInstance()->identity_get(name, l_value); // TODO вывести из лока g_rw_cs
+				CFlylinkDBManager::getInstance()->identity_get(name, l_value); // TODO вывести из лока g_rw_cs
 #endif
-			return l_value;
+				return l_value;
+			}
+			else
+			{
+				return Util::emptyString;
+			}
 		}
 		case TAG('V', 'E'):
 		{
-			webrtc::ReadLockScoped l(*g_rw_cs);
-			const string& l_value = getDicValL(getDicVE());
+			const auto l_dic_value = getDicVE();
+			if (l_dic_value > 0)
+			{
+				webrtc::ReadLockScoped l(*g_rw_cs);
+				const string& l_value = getDicValL(l_dic_value);
 #ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
-			CFlylinkDBManager::getInstance()->identity_get(name, l_value); // TODO вывести из лока g_rw_cs
+				CFlylinkDBManager::getInstance()->identity_get(name, l_value); // TODO вывести из лока g_rw_cs
 #endif
-			return l_value;
+				return l_value;
+			}
+			else
+			{
+				return Util::emptyString;
+			}
 		}
 		case TAG('E', 'M'):
 		{

@@ -265,6 +265,8 @@ LRESULT RecentHubsFrame::onItemchangedDirectories(int /*idCtrl*/, LPNMHDR pnmh, 
 
 LRESULT RecentHubsFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
+	return CDRF_DODEFAULT;
+#ifdef SCALOLAZ_USE_COLOR_HUB_IN_FAV
 	LPNMLVCUSTOMDRAW cd = reinterpret_cast<LPNMLVCUSTOMDRAW>(pnmh);
 	
 	switch (cd->nmcd.dwDrawStage)
@@ -295,5 +297,5 @@ LRESULT RecentHubsFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHan
 		default:
 			return CDRF_DODEFAULT;
 	}
-	
+#endif
 }

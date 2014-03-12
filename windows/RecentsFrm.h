@@ -220,7 +220,7 @@ class RecentHubsFrame : public MDITabChildWindowImpl < RecentHubsFrame, RGB(0, 0
 			return 0;
 		}
 		
-		const string getRecentServer(int pos)
+		const string getRecentServer(int pos)const
 		{
 			return ctrlHubs.ExGetItemText(pos, COLUMN_SERVER);
 		}

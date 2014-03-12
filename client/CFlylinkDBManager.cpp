@@ -2522,7 +2522,6 @@ void CFlylinkDBManager::SweepPath()
 				l_trans.commit();
 			}
 		}
-		LoadPathCache();
 		{
 			CFlyLog l(STRING(DELETE_FROM_FLY_HASH_BLOCK));
 			sqlite3_transaction l_trans(m_flySQLiteDB);
@@ -2574,11 +2573,11 @@ void CFlylinkDBManager::LoadPathCache()
 	}
 }
 //========================================================================================================
-__int64 CFlylinkDBManager::get_path_id(string p_path, bool p_create, bool p_case_convet, bool& p_is_no_mediainfo)
+__int64 CFlylinkDBManager::get_path_id(string p_path, bool p_create, bool p_case_convet, bool& p_is_no_mediainfo, bool p_sweep_path)
 {
 	Lock l(m_cs);
 	p_is_no_mediainfo = false;
-	if (m_last_path_id != 0 && m_last_path_id != -1 && p_path == m_last_path)
+	if (m_last_path_id != 0 && m_last_path_id != -1 && p_path == m_last_path && p_sweep_path == false)
 		return m_last_path_id;
 		
 	m_last_path = p_path;
@@ -2628,7 +2627,7 @@ bool CFlylinkDBManager::findTTH(const string& p_fname, const string& p_fpath, TT
 	try
 	{
 		bool p_is_no_mediainfo;
-		const __int64 l_path_id = get_path_id(p_fpath, false, true, p_is_no_mediainfo);
+		const __int64 l_path_id = get_path_id(p_fpath, false, true, p_is_no_mediainfo, false);
 		if (!l_path_id)
 			return 0;
 		if (!m_findTTH.get())
@@ -3064,7 +3063,7 @@ void CFlylinkDBManager::Hit(const string& p_Path, const string& p_FileName)
 	try
 	{
 		bool p_is_no_mediainfo;
-		const __int64 l_path_id = get_path_id(p_Path, false, true, p_is_no_mediainfo);
+		const __int64 l_path_id = get_path_id(p_Path, false, true, p_is_no_mediainfo, false);
 		if (!l_path_id)
 			return;
 		if (!m_upload_file.get())
@@ -3201,7 +3200,7 @@ __int64 CFlylinkDBManager::merge_file(const string& p_Path, const string& p_file
 	try
 	{
 		bool p_is_no_mediainfo;
-		p_path_id = get_path_id(p_Path, true, p_case_convet, p_is_no_mediainfo);
+		p_path_id = get_path_id(p_Path, true, p_case_convet, p_is_no_mediainfo, false);
 		dcassert(p_path_id);
 		if (!p_path_id)
 			return 0;

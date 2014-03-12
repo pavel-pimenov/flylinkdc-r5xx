@@ -280,8 +280,7 @@ public:
 			HMONITOR hMonitorNear = ::MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
 			if(hMonitorNear != NULL)
 			{
-				MONITORINFO mi = { 0 };
-				mi.cbSize = sizeof(MONITORINFO);
+				MONITORINFO mi = { sizeof(MONITORINFO) };
 				if(::GetMonitorInfo(hMonitorNear, &mi) != FALSE)
 				{
 					if(x < mi.rcWork.left)

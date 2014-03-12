@@ -190,7 +190,11 @@ tstring UserInfo::getText(int p_col) const
 		}
 		case COLUMN_SLOTS:
 		{
-			return Util::toStringW(getIdentity().getSlots());
+			const auto l_slot = getIdentity().getSlots();
+			if (l_slot)
+				return Util::toStringW(l_slot);
+			else
+				return Util::emptyStringT;
 		}
 		case COLUMN_CID:
 		{

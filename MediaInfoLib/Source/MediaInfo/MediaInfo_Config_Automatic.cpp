@@ -1095,7 +1095,7 @@ void MediaInfo_Config_Format (InfoMap &Info)
     "LXF;;;M;Lxf;;lxf;video/lxf;\n"
     "Matroska;;;M;Mk;;mkv mk3d mka mks;;http://packs.matroska.org/\n"
     "MPEG-PS;;;M;MpegPs;;mpeg mpg m2p vob pss;video/MP2P;\n"
-    "MPEG-TS;;;M;MpegTs;;ts m2t m2s m4t m4s ts tp trp;video/MP2T;\n"
+    "MPEG-TS;;;M;MpegTs;;ts m2t m2s m2ts m4t m4s ts tp trp;video/MP2T;\n"
     "MPEG-4;;;M;Mpeg4;;mp4 m4v m4a m4b m4p 3gpp 3gp 3gpp2 3g2 k3g jpm jpx mqv ismv isma f4v;video/mp4;\n"
     "MTV;;;M;Other;Chinese hack of MPEG-1 layer 3;mtv;;http://en.wikipedia.org/wiki/Chinese_MP4/MTV_Player\n"
     "MXF;;;M;Mxf;;mxf;application/mxf;\n"
@@ -1514,9 +1514,10 @@ void MediaInfo_Config_CodecID_Video_Riff (InfoMap &Info)
     Info.Separator_Set(0, __T("\n"));
     Info.Write(Ztring().From_UTF8(
     "0x00000000;RGB;;Basic Windows bitmap format. 1, 4 and 8 bpp versions are palettised. 16, 24 and 32bpp contain raw RGB samples;http://www.fourcc.org/indexrgb.htm;;;;\n"
-    "0x00000001;RLE;;Run length encoded 8bpp RGB image;http://www.fourcc.org/indexrgb.htm;;;;\n"
-    "0x00000002;RLE;;Run length encoded 4bpp RGB image;http://www.fourcc.org/indexrgb.htm;;;;\n"
-    "0x00000003;RGB;;Raw RGB with arbitrary sample packing within a pixel. Packing and precision of R, G and B components is determined by bit masks for each;http://www.fourcc.org/indexrgb.htm;;;;\n"
+    "0x01000000;RLE;;Run length encoded 8bpp RGB image;http://www.fourcc.org/indexrgb.htm;;;;\n"
+    "0x02000010;MPEG Video;;;;;;YUV;4:2:0\n"
+    "0x02000000;RLE;;Run length encoded 4bpp RGB image;http://www.fourcc.org/indexrgb.htm;;;;\n"
+    "0x03000000;RGB;;Raw RGB with arbitrary sample packing within a pixel. Packing and precision of R, G and B components is determined by bit masks for each;http://www.fourcc.org/indexrgb.htm;;;;\n"
     "1978;RGB;A.M.Paredes predictor;;http://www.pegasusimaging.com/cgi-bin/download2.cgi?LVIDB;;;RGB;\n"
     " BIT;RGB;;;;;;RGB;\n"
     " JPG;JPEG;;;;;;YUV\n"

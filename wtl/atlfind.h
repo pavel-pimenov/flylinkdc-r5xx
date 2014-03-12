@@ -881,8 +881,7 @@ public:
 						LPFN_DllGetVersion fnDllGetVersion = (LPFN_DllGetVersion)::GetProcAddress(hModule, "DllGetVersion");
 						if(fnDllGetVersion != NULL)
 						{
-							DLLVERSIONINFO_private version = { 0 };
-							version.cbSize = sizeof(DLLVERSIONINFO_private);
+							DLLVERSIONINFO_private version = { sizeof(DLLVERSIONINFO_private) };
 							if(SUCCEEDED(fnDllGetVersion(&version)))
 							{
 								if(version.dwMajorVersion >= 6)
@@ -972,7 +971,7 @@ public:
 			else
 			{
 				// won't wraparound backwards
-				ft.chrg.cpMin = max(ft.chrg.cpMin, 0);
+				ft.chrg.cpMin = __max(ft.chrg.cpMin, 0);
 			}
 		}
 

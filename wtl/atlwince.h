@@ -278,8 +278,7 @@ public:
 	{
 		T* pT = static_cast<T*>(this);
 		ATLASSERT(pT->IsWindow());
-		TCHAR sTitle[48];
-                sTitle[0] = 0;
+		TCHAR sTitle[48] = { 0 };
 
 		// Preparation
 		CPaintDC dc(pT->m_hWnd);
@@ -2633,7 +2632,7 @@ public:
 	BOOL SetItemState(int iIndex, UINT uState, UINT uMask)
 	{
 		ATLASSERT(::IsWindow(m_hWnd));
-		LV_ITEM lvi = { 0 };
+		LVITEM lvi = { 0 };
 		lvi.stateMask = uMask;
 		lvi.state = uState;
 		return (BOOL)::SendMessage(m_hWnd, DLM_SETITEMSTATE, (WPARAM)iIndex, (LPARAM)&lvi);
@@ -2949,8 +2948,7 @@ public:
 		{
 			m_SpinCtrl.Attach(hSpin);
 #ifdef DEBUG
-			TCHAR sClassName[16];
-                        sClassName[0] = 0; 
+			TCHAR sClassName[16] = { 0 };
 			::GetClassName(hSpin, sClassName, 16);
 			ATLASSERT(!_tcscmp(sClassName, UPDOWN_CLASS));
 			ATLASSERT(m_SpinCtrl.GetBuddy().m_hWnd == pT->m_hWnd);

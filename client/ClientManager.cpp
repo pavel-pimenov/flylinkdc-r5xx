@@ -615,7 +615,7 @@ CID ClientManager::makeCid(const string& aNick, const string& aHubUrl)
 
 void ClientManager::putOnline(const OnlineUserPtr& ou) noexcept
 {
-	dcassert(!isShutdown());
+	//dcassert(!isShutdown());
 	if (!isShutdown()) // Вернул проверку на всякий случай.
 	{
 		// [!] IRainman fix: don't put any hub to online or offline! Any hubs as user is always offline!

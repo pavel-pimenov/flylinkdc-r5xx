@@ -498,6 +498,9 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	}
 	if (_tcsstr(lpstrCmdLine, _T("/sqltrace")) != NULL)
 		g_EnableSQLtrace = true;
+#ifdef _DEBUG
+	// g_EnableSQLtrace = true;
+#endif
 	if (_tcsstr(lpstrCmdLine, _T("/nologo")) != NULL)
 		g_DisableSplash = true;
 	if (_tcsstr(lpstrCmdLine, _T("/q")) != NULL)

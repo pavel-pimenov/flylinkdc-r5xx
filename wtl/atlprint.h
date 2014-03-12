@@ -196,8 +196,7 @@ public:
 	{
 		ClosePrinter();
 		const int cchBuff = 512;
-		TCHAR buffer[cchBuff];
-		buffer[0] = 0;
+		TCHAR buffer[cchBuff] = { 0 };
 		::GetProfileString(_T("windows"), _T("device"), _T(",,,"), buffer, cchBuff);
 		int nLen = lstrlen(buffer);
 		if (nLen != 0)

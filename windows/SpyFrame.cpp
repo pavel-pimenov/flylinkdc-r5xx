@@ -38,11 +38,18 @@ LRESULT SpyFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	SET_EXTENDENT_LIST_VIEW_STYLE(ctrlSearches);
 	SET_LIST_COLOR(ctrlSearches);
 	
-	ctrlIgnoreTth.Create(ctrlStatus.m_hWnd, rcDefault, CTSTRING(IGNORE_TTH_SEARCHES), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
-	ctrlIgnoreTth.SetButtonStyle(BS_AUTOCHECKBOX, false);
-	ctrlIgnoreTth.SetFont(Fonts::g_systemFont);
-	ctrlIgnoreTth.SetCheck(m_ignoreTTH);
-	ignoreTthContainer.SubclassWindow(ctrlIgnoreTth.m_hWnd);
+	m_ctrlIgnoreTTH.Create(ctrlStatus.m_hWnd, rcDefault, CTSTRING(IGNORE_TTH_SEARCHES), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+	m_ctrlIgnoreTTH.SetButtonStyle(BS_AUTOCHECKBOX, false);
+	m_ctrlIgnoreTTH.SetFont(Fonts::g_systemFont);
+	m_ctrlIgnoreTTH.SetCheck(m_ignoreTTH);
+	m_ignoreTTHContainer.SubclassWindow(m_ctrlIgnoreTTH.m_hWnd);
+	
+	m_ctrlShowNick.Create(ctrlStatus.m_hWnd, rcDefault, CTSTRING(SETTINGS_SHOW_SEEKERS_IN_SPY_FRAME), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+	m_ctrlShowNick.SetButtonStyle(BS_AUTOCHECKBOX, false);
+	m_ctrlShowNick.SetFont(Fonts::g_systemFont);
+	m_ctrlShowNick.SetCheck(m_showNick);
+	m_ShowNickContainer.SubclassWindow(m_ctrlShowNick.m_hWnd);
+	
 	
 	WinUtil::splitTokens(columnIndexes, SETTING(SPYFRAME_ORDER), COLUMN_LAST);
 	WinUtil::splitTokensWidth(columnSizes, SETTING(SPYFRAME_WIDTHS), COLUMN_LAST);
@@ -108,6 +115,7 @@ LRESULT SpyFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 		SET_SETTING(SEARCH_SPY_COLUMNS_SORT_ASC, ctrlSearches.isAscending());
 		
 		SET_SETTING(SPY_FRAME_IGNORE_TTH_SEARCHES, m_ignoreTTH);
+		SET_SETTING(SHOW_SEEKERS_IN_SPY_FRAME, m_showNick);
 #ifdef _BIG_BROTHER_MODE
 		if (m_log)
 			delete m_log;
@@ -155,7 +163,7 @@ void SpyFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		int w[6];
 		ctrlStatus.GetClientRect(sr);
 		
-		int tmp = (sr.Width()) > 616 ? 516 : ((sr.Width() > 116) ? sr.Width() - 100 : 16);
+		const int tmp = (sr.Width()) > 616 ? 516 : ((sr.Width() > 116) ? sr.Width() - 100 : 16);
 		
 		w[0] = 170;
 		w[1] = sr.right - tmp - 150;
@@ -167,7 +175,10 @@ void SpyFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		ctrlStatus.SetParts(6, w);
 		
 		ctrlStatus.GetRect(0, sr);
-		ctrlIgnoreTth.MoveWindow(sr);
+		m_ctrlIgnoreTTH.MoveWindow(sr);
+		sr.MoveToX(170);
+		sr.right += 150;
+		m_ctrlShowNick.MoveWindow(sr);
 	}
 	
 	ctrlSearches.MoveWindow(&rect);
@@ -213,7 +224,7 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 						m_searches[si->s].i = 1;
 					}
 					
-					if (BOOLSETTING(SHOW_SEEKERS_IN_SPY_FRAME))// [+] IRainman
+					if (m_showNick)// [+] IRainman
 					{
 						if (::strncmp(si->seeker.c_str(), "Hub:", 4))
 						{
@@ -273,6 +284,7 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 				else
 				{
 					TCHAR tmp[32];
+					tmp[0] = 0;
 					ctrlSearches.GetItemText(j, COLUMN_COUNT, tmp, 32);
 					ctrlSearches.SetItemText(j, COLUMN_COUNT, Util::toStringW(Util::toInt(tmp) + 1).c_str());
 					ctrlSearches.SetItemText(j, COLUMN_USERS, l_SeekersNames.c_str());
@@ -283,6 +295,10 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 					        ctrlSearches.getSortColumn() == COLUMN_TIME
 					   )
 						m_needsResort = true;
+				}
+				if (BOOLSETTING(BOLD_SEARCH))
+				{
+					setDirty();
 				}
 #ifdef FLYLINKDC_USE_SOUND_AND_POPUP_IN_SEARCH_SPY
 				SHOW_POPUP(POPUP_SEARCH_SPY, m_CurrentTime + _T(" : ") + l_SeekersNames + _T("\r\n") + l_search, TSTRING(SEARCH_SPY)); // [+] SCALOlaz: Spy Popup. Thanks to tret2003 (NightOrion) with tstring

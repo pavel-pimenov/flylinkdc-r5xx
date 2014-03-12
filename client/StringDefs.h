@@ -1432,7 +1432,7 @@ enum Strings   // @DontAdd
 	SETTINGS_SHOW_INFO_TIPS, // "Show InfoTips in lists"
 	SETTINGS_SHOW_JOINS, // "Show joins / parts in chat by default"
 	SETTINGS_SHOW_PROGRESS_BARS, // "Show progress bars for transfers (uses some CPU)"
-	SETTINGS_SHOW_SEEKERS_IN_SPY_FRAME, // "Show seekers in Search spy (uses some CPU!)"
+	SETTINGS_SHOW_SEEKERS_IN_SPY_FRAME, // "Show seekers"
 	SETTINGS_SHOW_SHELL_MENU, // "Show shell menu in finished transfers"
 	SETTINGS_SKIPLIST_SHARE, // "Share skiplist (wildcard: *, separator: ;)"
 	SETTINGS_SKIP_ZERO_BYTE, // "Skip zero-byte files"

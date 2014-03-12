@@ -166,7 +166,7 @@ public:
 
 	int GetToolTipTextLength() const
 	{
-		return (m_lpstrToolTipText == NULL) ? -1 : wcslen(m_lpstrToolTipText); // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlctrlx.h 169
+		return (m_lpstrToolTipText == NULL) ? -1 : lstrlen(m_lpstrToolTipText);
 	}
 
 	bool GetToolTipText(LPTSTR lpstrText, int nLength) const
@@ -195,7 +195,7 @@ public:
 			return true;
 		}
 
-		int cchLen = wcslen(lpstrText) + 1; // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlctrlx.h 198
+		int cchLen = lstrlen(lpstrText) + 1;
 		ATLTRY(m_lpstrToolTipText = new TCHAR[cchLen]);
 		if(m_lpstrToolTipText == NULL)
 			return false;
@@ -839,7 +839,7 @@ public:
 		if(m_lpstrLabel == NULL)
 			return false;
 		ATLASSERT(lpstrBuffer != NULL);
-		if(nLength <= wcslen(m_lpstrLabel)) // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlctrlx.h 842
+		if(nLength <= lstrlen(m_lpstrLabel))
 			return false;
 
 		SecureHelper::strcpy_x(lpstrBuffer, nLength, m_lpstrLabel);
@@ -851,7 +851,7 @@ public:
 	{
 		delete [] m_lpstrLabel;
 		m_lpstrLabel = NULL;
-		int cchLen = wcslen(lpstrLabel) + 1; // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlctrlx.h 854
+		int cchLen = lstrlen(lpstrLabel) + 1;
 		ATLTRY(m_lpstrLabel = new TCHAR[cchLen]);
 		if(m_lpstrLabel == NULL)
 			return false;
@@ -871,7 +871,7 @@ public:
 		if(m_lpstrHyperLink == NULL)
 			return false;
 		ATLASSERT(lpstrBuffer != NULL);
-		if(nLength <= wcslen(m_lpstrHyperLink)) // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlctrlx.h 874
+		if(nLength <= lstrlen(m_lpstrHyperLink))
 			return false;
 
 		SecureHelper::strcpy_x(lpstrBuffer, nLength, m_lpstrHyperLink);
@@ -883,7 +883,7 @@ public:
 	{
 		delete [] m_lpstrHyperLink;
 		m_lpstrHyperLink = NULL;
-		int cchLen = wcslen(lpstrLink) + 1; // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlctrlx.h 886
+		int cchLen = lstrlen(lpstrLink) + 1;
 		ATLTRY(m_lpstrHyperLink = new TCHAR[cchLen]);
 		if(m_lpstrHyperLink == NULL)
 			return false;
@@ -943,7 +943,7 @@ public:
 		RECT rcLink = rect;
 		dc.DrawText(_T("NS"), -1, &rcLink, DT_LEFT | uFormat | DT_CALCRECT);
 		dc.SelectFont(hFontOld);
-		return max(rcText.bottom - rcText.top, rcLink.bottom - rcLink.top);
+		return __max(rcText.bottom - rcText.top, rcLink.bottom - rcLink.top);
 	}
 
 	bool GetIdealSize(SIZE& size) const
@@ -1001,7 +1001,7 @@ public:
 
 			dc.SelectFont(hFontOld);
 
-			int cyMax = max(rcLeft.bottom, max(rcLink.bottom, rcRight.bottom));
+			int cyMax = __max(rcLeft.bottom, __max(rcLink.bottom, rcRight.bottom));
 			::SetRect(&rcAll, rcLeft.left, rcLeft.top, rcRight.right, cyMax);
 		}
 		else
@@ -1626,7 +1626,7 @@ public:
 		cchRight = 0;
 
 		LPTSTR lpstrText = (m_lpstrLabel != NULL) ? m_lpstrLabel : m_lpstrHyperLink;
-		int cchText = wcslen(lpstrText); // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlctrlx.h 1629
+		int cchText = lstrlen(lpstrText);
 		bool bOutsideLink = true;
 		for(int i = 0; i < cchText; i++)
 		{
@@ -1937,8 +1937,7 @@ public:
 	HWND Create(HWND hWndParent, UINT nTextID = ATL_IDS_IDLEMESSAGE, DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP, UINT nID = ATL_IDW_STATUS_BAR)
 	{
 		const int cchMax = 128;   // max text length is 127 for status bars (+1 for null)
-		TCHAR szText[cchMax];
-		szText[0] = 0;
+		TCHAR szText[cchMax] = { 0 };
 		::LoadString(ModuleHelper::GetResourceInstance(), nTextID, szText, cchMax);
 		return Create(hWndParent, szText, dwStyle, nID);
 	}
@@ -1989,7 +1988,7 @@ public:
 			else
 			{
 				::LoadString(ModuleHelper::GetResourceInstance(), pPanes[i], szBuff, cchBuff);
-				dc.GetTextExtent(szBuff, wcslen(szBuff), &size); // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlctrlx.h 1992
+				dc.GetTextExtent(szBuff, lstrlen(szBuff), &size);
 				T* pT = static_cast<T*>(this);
 				pT;
 				pPanesPos[i] = cxLeft + size.cx + arrBorders[2] + 2 * pT->m_cxPaneMargin;
@@ -2371,7 +2370,7 @@ public:
 
 	int GetTitleLength() const
 	{
-		return wcslen(m_szTitle); // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlctrlx.h 2374
+		return lstrlen(m_szTitle);
 	}
 
 // Methods
@@ -2690,7 +2689,7 @@ public:
 			TBBUTTON tbbtn = { 0 };
 			tbbtn.idCommand = pT->m_nCloseBtnID;
 			tbbtn.fsState = TBSTATE_ENABLED;
-			tbbtn.fsStyle = TBSTYLE_BUTTON;
+			tbbtn.fsStyle = BTNS_BUTTON;
 			m_tb.AddButtons(1, &tbbtn);
 
 			m_tb.SetBitmapSize(m_cxImageTB, m_cyImageTB);
@@ -2725,7 +2724,7 @@ public:
 		{
 			int cyFont = abs(lf.lfHeight) + m_cxyBorder + 2 * m_cxyTextOffset;
 			int cyBtn = m_cyImageTB + m_cxyBtnAddTB + m_cxyBorder + 2 * m_cxyBtnOffset;
-			m_cxyHeader = max(cyFont, cyBtn);
+			m_cxyHeader = __max(cyFont, cyBtn);
 		}
 	}
 
@@ -2771,9 +2770,9 @@ public:
 		dc.SetBkMode(TRANSPARENT);
 		T* pT = static_cast<T*>(this);
 		HFONT hFontOld = dc.SelectFont(pT->GetTitleFont());
-#ifdef _WIN32_WCE
+#if defined(_WIN32_WCE) && !defined(DT_END_ELLIPSIS)
 		const UINT DT_END_ELLIPSIS = 0;
-#endif // _WIN32_WCE
+#endif // defined(_WIN32_WCE) && !defined(DT_END_ELLIPSIS)
 
 		if(IsVertical())
 		{
@@ -3089,8 +3088,7 @@ public:
 		LVCompareParam* pParam = NULL;
 		ATLTRY(pParam = new LVCompareParam[nCount]);
 		PFNLVCOMPARE pFunc = NULL;
-		TCHAR pszTemp[pT->m_cchCmpTextMax];
-                pszTemp[0] = 0;
+		TCHAR pszTemp[pT->m_cchCmpTextMax] = { 0 };
 		bool bStrValue = false;
 
 		switch(wType)
@@ -4002,7 +4000,7 @@ public:
 
 		T* pT = static_cast<T*>(this);
 
-		int cchBuff = wcslen(lpstrTitle) + 1; // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlctrlx.h 4317
+		int cchBuff = lstrlen(lpstrTitle) + 1;
 		LPTSTR lpstrBuff = NULL;
 		ATLTRY(lpstrBuff = new TCHAR[cchBuff]);
 		if(lpstrBuff == NULL)
@@ -4104,7 +4102,7 @@ public:
 
 		T* pT = static_cast<T*>(this);
 
-		int cchBuff = wcslen(lpstrTitle) + 1; // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlctrlx.h 4317
+		int cchBuff = lstrlen(lpstrTitle) + 1;
 		LPTSTR lpstrBuff = NULL;
 		ATLTRY(lpstrBuff = new TCHAR[cchBuff]);
 		if(lpstrBuff == NULL)
@@ -4307,7 +4305,7 @@ public:
 		{
 			// Append menu items for all pages
 			const int cchPrefix = 3;   // 2 digits + space
-			nMenuItemsCount = min(min(nPageCount, nMenuItemsCount), (int)m_nMenuItemsMax);
+			nMenuItemsCount = __min(__min(nPageCount, nMenuItemsCount), (int)m_nMenuItemsMax);
 			ATLASSERT(nMenuItemsCount < 100);   // 2 digits only
 			if(nMenuItemsCount >= 100)
 				nMenuItemsCount = 99;
@@ -4315,7 +4313,7 @@ public:
 			for(int i = 0; i < nMenuItemsCount; i++)
 			{
 				LPCTSTR lpstrTitle = GetPageTitle(i);
-				int nLen = wcslen(lpstrTitle); // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlctrlx.h 4317
+				int nLen = lstrlen(lpstrTitle);
 				CTempBuffer<TCHAR, _WTL_STACK_ALLOC_THRESHOLD> buff;
 				LPTSTR lpstrText = buff.Allocate(cchPrefix + nLen + 1);
 				ATLASSERT(lpstrText != NULL);
@@ -4751,6 +4749,8 @@ public:
 	void ShowTabControl(bool bShow)
 	{
 		m_tab.ShowWindow(bShow ? SW_SHOWNOACTIVATE : SW_HIDE);
+		T* pT = static_cast<T*>(this);
+		pT->UpdateLayout();
 	}
 
 	void UpdateLayout()
@@ -4758,11 +4758,15 @@ public:
 		RECT rect;
 		GetClientRect(&rect);
 
+		int cyOffset = 0;
 		if(m_tab.IsWindow() && ((m_tab.GetStyle() & WS_VISIBLE) != 0))
+		{
 			m_tab.SetWindowPos(NULL, 0, 0, rect.right - rect.left, m_cyTabHeight, SWP_NOZORDER);
+			cyOffset = m_cyTabHeight;
+		}
 
 		if(m_nActivePage != -1)
-			::SetWindowPos(GetPageHWND(m_nActivePage), NULL, 0, m_cyTabHeight, rect.right - rect.left, rect.bottom - rect.top - m_cyTabHeight, SWP_NOZORDER);
+			::SetWindowPos(GetPageHWND(m_nActivePage), NULL, 0, cyOffset, rect.right - rect.left, rect.bottom - rect.top - cyOffset, SWP_NOZORDER);
 	}
 
 	void UpdateMenu()
@@ -4781,7 +4785,7 @@ public:
 			T* pT = static_cast<T*>(this);
 			LPCTSTR lpstrTitle = pT->GetPageTitle(m_nActivePage);
 			LPCTSTR lpstrDivider = pT->GetTitleDividerText();
-			int cchBuffer = m_cchTitleBarLength + wcslen(lpstrDivider) + wcslen(m_lpstrTitleBarBase) + 1; // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlctrlx.h 4783
+			int cchBuffer = m_cchTitleBarLength + lstrlen(lpstrDivider) + lstrlen(m_lpstrTitleBarBase) + 1;
 			CTempBuffer<TCHAR, _WTL_STACK_ALLOC_THRESHOLD> buff;
 			LPTSTR lpstrPageTitle = buff.Allocate(cchBuffer);
 			ATLASSERT(lpstrPageTitle != NULL);
@@ -4907,12 +4911,12 @@ public:
 		ATLVERIFY(m_ilDrag.Add(bmp.m_hBitmap, RGB(255, 0, 255)) != -1);
 	}
 
-	void ShortenTitle(LPCTSTR lpstrTitle, LPTSTR lpstrShortTitle, size_t cchShortTitle)
+	void ShortenTitle(LPCTSTR lpstrTitle, LPTSTR lpstrShortTitle, int cchShortTitle)
 	{
-		if(wcslen(lpstrTitle) >= cchShortTitle) // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlctrlx.h 4911
+		if(lstrlen(lpstrTitle) >= cchShortTitle)
 		{
 			LPCTSTR lpstrEllipsis = _T("...");
-			size_t cchEllipsis = wcslen(lpstrEllipsis); // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlctrlx.h 4914
+			int cchEllipsis = lstrlen(lpstrEllipsis);
 			SecureHelper::strncpy_x(lpstrShortTitle, cchShortTitle, lpstrTitle, cchShortTitle - cchEllipsis - 1);
 			SecureHelper::strcat_x(lpstrShortTitle, cchShortTitle, lpstrEllipsis);
 		}

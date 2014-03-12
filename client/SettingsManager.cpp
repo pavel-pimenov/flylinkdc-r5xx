@@ -671,7 +671,7 @@ void SettingsManager::setDefaults()
 	setDefault(AUTO_SEARCH_LIMIT, 15);
 	//setDefault(AUTO_KICK_NO_FAVS, false);
 	setDefault(PROMPT_PASSWORD, TRUE);
-	setDefault(SPY_FRAME_IGNORE_TTH_SEARCHES, TRUE);
+	setDefault(SPY_FRAME_IGNORE_TTH_SEARCHES, FALSE);
 	//setDefault(USE_TLS, false); //[+]PPA
 	setDefault(MAX_COMMAND_LENGTH, 16 * 1024 * 1024);
 	setDefault(ALLOW_UNTRUSTED_CLIENTS, TRUE);
@@ -686,7 +686,9 @@ void SettingsManager::setDefaults()
 	//setDefault(HUB_SLOTS, 0);
 	setDefault(TEXT_FONT, "Arial,-12,400,0"); // !SMT!-F [~] InfinitySky - бережём зрение.
 	setDefault(DROP_MULTISOURCE_ONLY, TRUE);
-	setDefault(PROFILES_URL, "https://dcaml.svn.sourceforge.net/svnroot/dcaml/");
+#ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
+	setDefault(PROFILES_URL, "https://dcaml.svn.sourceforge.net/svnroot/dcaml/"); // TODO - убрать
+#endif
 	setDefault(EXTRA_SLOTS, 10); //[+]PPA
 	setDefault(SHUTDOWN_TIMEOUT, 150);
 	//setDefault(SEARCH_PASSIVE, false); //[+] PPA
@@ -1142,8 +1144,10 @@ void SettingsManager::setDefaults()
 	setDefault(TAB_SELECTED_TEXT_COLOR, RGB(0, 100, 121));  //[+] SCALOlaz [~] Sergey Shuhskanov
 	setDefault(TAB_OFFLINE_TEXT_COLOR, RGB(159, 64, 0));    //[+]
 	setDefault(TAB_ACTIVITY_TEXT_COLOR, RGB(0, 128, 0));    //[+]
+#ifdef SCALOLAZ_USE_COLOR_HUB_IN_FAV
 	setDefault(HUB_IN_FAV_BK_COLOR, RGB(191, 180, 26));
 	setDefault(HUB_IN_FAV_CONNECT_BK_COLOR, RGB(191, 236, 26));
+#endif
 	//make sure the total of the following and PROGRESS_BACK_COLOR are under 255,255,255, since they are added together
 	setDefault(COLOR_AVOIDING, RGB(100, 0, 0));
 	
@@ -1181,7 +1185,7 @@ void SettingsManager::setDefaults()
 	setDefault(LANGUAGE_FILE, g_default_lang_file_name);
 	setDefault(MIN_MULTI_CHUNK_SIZE, 2); // [+] IRainman
 	setDefault(MIN_MEDIAINFO_SIZE, 1); // [+] PPA
-	//setDefault(SHOW_SEEKERS_IN_SPY_FRAME, false); // [+] IRainman
+	setDefault(SHOW_SEEKERS_IN_SPY_FRAME, TRUE); // [+] IRainman
 #ifdef FLYLINKDC_HE
 	setDefault(REDUCE_PRIORITY_IF_MINIMIZED_TO_TRAY, TRUE); // [+] IRainman
 #endif
@@ -2216,8 +2220,10 @@ void SettingsManager::importDctheme(const tstring& file, const bool asDefault /*
 			importData("TabOfflineTextColor", TAB_OFFLINE_TEXT_COLOR);
 			importData("TabActivityTextColor", TAB_ACTIVITY_TEXT_COLOR);
 			// Favorite Hubs Colors
+#ifdef SCALOLAZ_USE_COLOR_HUB_IN_FAV
 			importData("HubInFavoriteBkColor", HUB_IN_FAV_BK_COLOR);
 			importData("HubInFavoriteConnectBkColor", HUB_IN_FAV_CONNECT_BK_COLOR);
+#endif
 			// FileList Colors
 			importData("BanColor", BAN_COLOR);
 			importData("DupeColor", DUPE_COLOR);
@@ -2356,8 +2362,10 @@ void SettingsManager::exportDctheme(const tstring& file)
 	exportData("TabOfflineTextColor", TAB_OFFLINE_TEXT_COLOR);
 	exportData("TabActivityTextColor", TAB_ACTIVITY_TEXT_COLOR);
 	// Favorite Hubs Colors
+#ifdef SCALOLAZ_USE_COLOR_HUB_IN_FAV
 	exportData("HubInFavoriteBkColor", HUB_IN_FAV_BK_COLOR);
 	exportData("HubInFavoriteConnectBkColor", HUB_IN_FAV_CONNECT_BK_COLOR);
+#endif
 	// FileList Colors
 	exportData("BanColor", BAN_COLOR);
 	exportData("DupeColor", DUPE_COLOR);

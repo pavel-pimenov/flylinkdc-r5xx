@@ -56,7 +56,7 @@ class HashProgressDlg : public CDialogImpl<HashProgressDlg>, private CFlyTimerAd
 		LRESULT onPause(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
 		LRESULT onSlideChangeMaxHashSpeed(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/);
-
+		
 		LRESULT onRefresh(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			ShareManager::getInstance()->setDirty();
@@ -88,7 +88,10 @@ class HashProgressDlg : public CDialogImpl<HashProgressDlg>, private CFlyTimerAd
 		
 		LRESULT OnEnChangeEditMaxHashSpeed(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
-			m_Slider.SetPos(GetDlgItemInt(IDC_EDIT_MAX_HASH_SPEED, NULL, FALSE));
+			if (::IsWindow(m_Slider)) // TODO - без этого падаем в _DEBUG
+			{
+				m_Slider.SetPos(GetDlgItemInt(IDC_EDIT_MAX_HASH_SPEED, NULL, FALSE));
+			}
 			HashManager::getInstance()->EnableForceMinHashSpeed(GetDlgItemInt(IDC_EDIT_MAX_HASH_SPEED, NULL, FALSE));
 			return 0;
 		}

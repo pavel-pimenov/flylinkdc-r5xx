@@ -90,8 +90,7 @@ public:
 					LPCTSTR lpsz = m_wc.lpszClassName;
 					WNDPROC proc = m_wc.lpfnWndProc;
 
-					WNDCLASSEX wc = { 0 };
-					wc.cbSize = sizeof(WNDCLASSEX);
+					WNDCLASSEX wc = { sizeof(WNDCLASSEX) };
 					// try process local class first
 					if(!::GetClassInfoEx(ModuleHelper::GetModuleInstance(), m_lpszOrigName, &wc))
 					{
@@ -408,6 +407,16 @@ public:
 	{
 		ATLASSERT(m_hWnd == NULL);
 
+#if (_ATL_VER >= 0x0800)
+		// Allocate the thunk structure here, where we can fail gracefully.
+		BOOL bRet = m_thunk.Init(NULL, NULL);
+		if(bRet == FALSE)
+		{
+			::SetLastError(ERROR_OUTOFMEMORY);
+			return NULL;
+		}
+#endif // (_ATL_VER >= 0x0800)
+
 		if(atom == 0)
 			return NULL;
 
@@ -461,7 +470,7 @@ public:
 			pTBBtn[0].iBitmap = cxSeparator / 2;
 			pTBBtn[0].idCommand = 0;
 			pTBBtn[0].fsState = 0;
-			pTBBtn[0].fsStyle = TBSTYLE_SEP;
+			pTBBtn[0].fsStyle = BTNS_SEP;
 			pTBBtn[0].dwData = 0;
 			pTBBtn[0].iString = 0;
 		}
@@ -474,7 +483,7 @@ public:
 				pTBBtn[j].iBitmap = nBmp++;
 				pTBBtn[j].idCommand = pItems[i];
 				pTBBtn[j].fsState = TBSTATE_ENABLED;
-				pTBBtn[j].fsStyle = TBSTYLE_BUTTON;
+				pTBBtn[j].fsStyle = BTNS_BUTTON;
 				pTBBtn[j].dwData = 0;
 				pTBBtn[j].iString = 0;
 			}
@@ -483,7 +492,7 @@ public:
 				pTBBtn[j].iBitmap = cxSeparator;
 				pTBBtn[j].idCommand = 0;
 				pTBBtn[j].fsState = 0;
-				pTBBtn[j].fsStyle = TBSTYLE_SEP;
+				pTBBtn[j].fsStyle = BTNS_SEP;
 				pTBBtn[j].dwData = 0;
 				pTBBtn[j].iString = 0;
 			}
@@ -537,9 +546,9 @@ public:
 		}
 
 		::SendMessage(hWnd, TB_ADDBUTTONS, nItems, (LPARAM)pTBBtn);
-		::SendMessage(hWnd, TB_SETBITMAPSIZE, 0, MAKELONG(pData->wWidth, max(pData->wHeight, cyFontHeight)));
+		::SendMessage(hWnd, TB_SETBITMAPSIZE, 0, MAKELONG(pData->wWidth, __max(pData->wHeight, cyFontHeight)));
 		const int cxyButtonMargin = 7;
-		::SendMessage(hWnd, TB_SETBUTTONSIZE, 0, MAKELONG(pData->wWidth + cxyButtonMargin, max(pData->wHeight, cyFontHeight) + cxyButtonMargin));
+		::SendMessage(hWnd, TB_SETBUTTONSIZE, 0, MAKELONG(pData->wWidth + cxyButtonMargin, __max(pData->wHeight, cyFontHeight) + cxyButtonMargin));
 
 		return hWnd;
 	}
@@ -562,10 +571,8 @@ public:
 		}
 
 		// Initialize and send the REBARINFO structure
-		REBARINFO rbi = { 0 };
-		rbi.cbSize = sizeof(REBARINFO);
-		rbi.fMask  = 0;
-		if(!::SendMessage(hWndReBar, RB_SETBARINFO, 0, (LPARAM)&rbi))
+		REBARINFO rbi = { sizeof(REBARINFO), 0 };
+		if(::SendMessage(hWndReBar, RB_SETBARINFO, 0, (LPARAM)&rbi) == 0)
 		{
 			ATLTRACE2(atlTraceUI, 0, _T("Failed to initialize rebar.\n"));
 			::DestroyWindow(hWndReBar);
@@ -722,8 +729,7 @@ public:
 #endif // _WIN32_WCE
 	{
 		const int cchMax = 128;   // max text length is 127 for status bars (+1 for null)
-		TCHAR szText[cchMax];
-		szText[0] = 0;
+		TCHAR szText[cchMax] = { 0 };
 		::LoadString(ModuleHelper::GetResourceInstance(), nTextID, szText, cchMax);
 		return CreateSimpleStatusBar(szText, dwStyle, nID);
 	}
@@ -808,7 +814,7 @@ public:
 	void UpdateBarsPosition(RECT& rect, BOOL bResizeBars = TRUE)
 	{
 		// resize toolbar
-		if(m_hWndToolBar != NULL && ((DWORD)::GetWindowLongPtr(m_hWndToolBar, GWL_STYLE) & WS_VISIBLE)) // V303. The function is deprecated in the Win64 system. It is safer to use the 'foo' function
+		if(m_hWndToolBar != NULL && ((DWORD)::GetWindowLong(m_hWndToolBar, GWL_STYLE) & WS_VISIBLE))
 		{
 			if(bResizeBars != FALSE)
 			{
@@ -821,7 +827,7 @@ public:
 		}
 
 		// resize status bar
-		if(m_hWndStatusBar != NULL && ((DWORD)::GetWindowLongPtr(m_hWndStatusBar, GWL_STYLE) & WS_VISIBLE)) // V303. The function is deprecated in the Win64 system. It is safer to use the 'foo' function
+		if(m_hWndStatusBar != NULL && ((DWORD)::GetWindowLong(m_hWndStatusBar, GWL_STYLE) & WS_VISIBLE))
 		{
 			if(bResizeBars != FALSE)
 				::SendMessage(m_hWndStatusBar, WM_SIZE, 0, 0);
@@ -876,8 +882,7 @@ public:
 		else
 		{
 			const int cchBuff = 256;
-			TCHAR szBuff[cchBuff];
-			szBuff[0] = 0;
+			TCHAR szBuff[cchBuff] = { 0 };
 			if(!(wFlags & MF_POPUP))
 			{
 				WORD wID = LOWORD(wParam);
@@ -929,13 +934,10 @@ public:
 	LRESULT OnToolTipTextA(int idCtrl, LPNMHDR pnmh, BOOL& /*bHandled*/)
 	{
 		LPNMTTDISPINFOA pDispInfo = (LPNMTTDISPINFOA)pnmh;
-		pDispInfo->szText[0] = 0;
-
 		if((idCtrl != 0) && !(pDispInfo->uFlags & TTF_IDISHWND))
 		{
 			const int cchBuff = 256;
-			char szBuff[cchBuff];
-			szBuff[0] = 0;
+			char szBuff[cchBuff] = { 0 };
 			int nRet = ::LoadStringA(ModuleHelper::GetResourceInstance(), idCtrl, szBuff, cchBuff);
 			for(int i = 0; i < nRet; i++)
 			{
@@ -957,13 +959,10 @@ public:
 	LRESULT OnToolTipTextW(int idCtrl, LPNMHDR pnmh, BOOL& /*bHandled*/)
 	{
 		LPNMTTDISPINFOW pDispInfo = (LPNMTTDISPINFOW)pnmh;
-		pDispInfo->szText[0] = 0;
-
 		if((idCtrl != 0) && !(pDispInfo->uFlags & TTF_IDISHWND))
 		{
 			const int cchBuff = 256;
-			wchar_t szBuff[cchBuff];
-			szBuff[0] = 0;
+			wchar_t szBuff[cchBuff] = { 0 };
 			int nRet = ::LoadStringW(ModuleHelper::GetResourceInstance(), idCtrl, szBuff, cchBuff);
 			for(int i = 0; i < nRet; i++)
 			{
@@ -1055,9 +1054,7 @@ public:
 					tbbi.dwMask = TBIF_TEXT;
 					tbbi.pszText = szBuff;
 					tbbi.cchText = cchBuff;
-					if(wnd.SendMessage(TB_GETBUTTONINFO, tbb.idCommand, (LPARAM)&tbbi) == -1 || szBuff[0] == 0 ) 
-						 // [!]PVS-Studio V805	Decreased performance. It is inefficient to identify an empty string by using 'lstrlenW(str) == 0' 
-						 // construct. A more efficient way is to check: str[0] == '\0'.	flylinkdc	atlframe.h	1073	False
+					if(wnd.SendMessage(TB_GETBUTTONINFO, tbb.idCommand, (LPARAM)&tbbi) == -1 || lstrlen(szBuff) == 0)
 					{
 						// no text for this button, try a resource string
 						lpstrText = _T("");
@@ -1164,8 +1161,7 @@ public:
 	HWND CreateEx(HWND hWndParent = NULL, ATL::_U_RECT rect = NULL, DWORD dwStyle = 0, DWORD dwExStyle = 0, LPVOID lpCreateParam = NULL)
 	{
 		const int cchName = 256;
-		TCHAR szWindowName[cchName];
-		szWindowName[0] = 0;
+		TCHAR szWindowName[cchName] = { 0 };
 #ifndef _WIN32_WCE
 		::LoadString(ModuleHelper::GetResourceInstance(), T::GetWndClassInfo().m_uCommonResourceID, szWindowName, cchName);
 		HMENU hMenu = ::LoadMenu(ModuleHelper::GetResourceInstance(), MAKEINTRESOURCE(T::GetWndClassInfo().m_uCommonResourceID));
@@ -1456,8 +1452,7 @@ public:
 	HWND CreateEx(HWND hWndParent = NULL, ATL::_U_RECT rect = NULL, DWORD dwStyle = 0, DWORD dwExStyle = 0, LPVOID lpCreateParam = NULL)
 	{
 		const int cchName = 256;
-		TCHAR szWindowName[cchName];
-		szWindowName[0] = 0;
+		TCHAR szWindowName[cchName] = { 0 };
 		::LoadString(ModuleHelper::GetResourceInstance(), T::GetWndClassInfo().m_uCommonResourceID, szWindowName, cchName);
 		HMENU hMenu = ::LoadMenu(ModuleHelper::GetResourceInstance(), MAKEINTRESOURCE(T::GetWndClassInfo().m_uCommonResourceID));
 
@@ -1734,8 +1729,7 @@ public:
 	HWND CreateEx(HWND hWndParent, ATL::_U_RECT rect = NULL, LPCTSTR lpcstrWindowName = NULL, DWORD dwStyle = 0, DWORD dwExStyle = 0, LPVOID lpCreateParam = NULL)
 	{
 		const int cchName = 256;
-		TCHAR szWindowName[cchName];
-		szWindowName[0] = 0;
+		TCHAR szWindowName[cchName] = { 0 };
 		if(lpcstrWindowName == NULL)
 		{
 			::LoadString(ModuleHelper::GetResourceInstance(), T::GetWndClassInfo().m_uCommonResourceID, szWindowName, cchName);
@@ -1768,7 +1762,7 @@ public:
 			return FALSE;
 
 		// need to adjust the client edge style as max/restore happens
-		DWORD dwStyle = ::GetWindowLongPtr(m_hWndMDIClient, GWL_EXSTYLE); // V303. The function is deprecated in the Win64 system. It is safer to use the 'foo' function
+		DWORD dwStyle = ::GetWindowLong(m_hWndMDIClient, GWL_EXSTYLE);
 		DWORD dwNewStyle = dwStyle;
 		if(hWndChild != NULL && ((GetExStyle() & WS_EX_CLIENTEDGE) == 0) && ((GetStyle() & WS_MAXIMIZE) != 0))
 			dwNewStyle &= ~(WS_EX_CLIENTEDGE);
@@ -1781,7 +1775,7 @@ public:
 			::RedrawWindow(m_hWndMDIClient, NULL, NULL,
 				RDW_INVALIDATE | RDW_ALLCHILDREN);
 			// remove/add WS_EX_CLIENTEDGE to MDI client area
-			::SetWindowLongPtr(m_hWndMDIClient, GWL_EXSTYLE, dwNewStyle);
+			::SetWindowLong(m_hWndMDIClient, GWL_EXSTYLE, dwNewStyle);
 			::SetWindowPos(m_hWndMDIClient, NULL, 0, 0, 0, 0,
 				SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE |
 				SWP_NOZORDER | SWP_NOCOPYBITS);
@@ -2436,7 +2430,7 @@ public:
 				{
 					delete [] pUIData->m_lpstrText;
 					pUIData->m_lpstrText = NULL;
-					int nStrLen = wcslen(lpstrText); // V303 The function 'lstrlen' is deprecated in the Win64 system. It is safer to use the 'wcslen' function. atlframe.h 2439
+					int nStrLen = lstrlen(lpstrText);
 					ATLTRY(pUIData->m_lpstrText = new TCHAR[nStrLen + 1]);
 					if(pUIData->m_lpstrText == NULL)
 					{
@@ -3064,10 +3058,6 @@ public:
 	}
 
 // ToolBar
-#ifndef BTNS_SEP
-  #define BTNS_SEP TBSTYLE_SEP
-#endif // BTNS_SEP compatibility
-
 #if !defined(_WIN32_WCE) || (defined(_AUTOUI_CE_TOOLBAR) && defined(TBIF_BYINDEX))
 	bool UIAddToolBar(HWND hWndToolBar)
 	{
@@ -3269,6 +3259,7 @@ public:
 		if((dwStyle & dwForceStyle) != dwForceStyle)
 			pT->ModifyStyle(0, dwForceStyle);
 
+#ifndef _WIN32_WCE
 		// Adding this style removes an empty icon that dialogs with WS_THICKFRAME have.
 		// Setting icon to NULL is required when XP themes are active.
 		// Note: This will not prevent adding an icon for the dialog using SetIcon()
@@ -3278,6 +3269,7 @@ public:
 			if(pT->GetIcon(FALSE) == NULL)
 				pT->SetIcon(NULL, FALSE);
 		}
+#endif
 
 		// Cleanup in case of multiple initialization
 		// block: first check for the gripper control, destroy it if needed
@@ -3420,11 +3412,10 @@ public:
 				int j = 1;
 				for(j = 1; j < nGroupCount; j++)
 				{
-					const auto &l_data = m_arrData[i + j].m_rect; // V807 Decreased performance. Consider creating a reference to avoid using the 'm_arrData[i + j].m_rect' expression repeatedly. atlframe.h 3423
-					rectGroup.left = min(rectGroup.left, l_data.left);
-					rectGroup.top = min(rectGroup.top, l_data.top);
-					rectGroup.right = max(rectGroup.right, l_data.right);
-					rectGroup.bottom = max(rectGroup.bottom, l_data.bottom);
+					rectGroup.left = __min(rectGroup.left, m_arrData[i + j].m_rect.left);
+					rectGroup.top = __min(rectGroup.top, m_arrData[i + j].m_rect.top);
+					rectGroup.right = __max(rectGroup.right, m_arrData[i + j].m_rect.right);
+					rectGroup.bottom = __max(rectGroup.bottom, m_arrData[i + j].m_rect.bottom);
 				}
 
 				for(j = 0; j < nGroupCount; j++)

@@ -28,7 +28,8 @@
 #include "FlatTabCtrl.h"
 #include "ExListViewCtrl.h"
 
-#define IGNORETTH_MESSAGE_MAP 7
+#define SPYFRAME_IGNORETTH_MESSAGE_MAP 7
+#define SPYFRAME_SHOW_NICK 8
 
 class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY > , public StaticFrame<SpyFrame, ResourceManager::SEARCH_SPY, IDC_SEARCH_SPY>,
 	private ClientManagerListener,
@@ -39,7 +40,11 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 #endif
 {
 	public:
-		SpyFrame() : CFlyTimerAdapter(m_hWnd), m_total(0), m_current(0), m_ignoreTTH(BOOLSETTING(SPY_FRAME_IGNORE_TTH_SEARCHES)), ignoreTthContainer(WC_BUTTON, this, IGNORETTH_MESSAGE_MAP)
+		SpyFrame() : CFlyTimerAdapter(m_hWnd), m_total(0), m_current(0),
+			m_ignoreTTH(BOOLSETTING(SPY_FRAME_IGNORE_TTH_SEARCHES)),
+			m_showNick(BOOLSETTING(SHOW_SEEKERS_IN_SPY_FRAME)),
+			m_ignoreTTHContainer(WC_BUTTON, this, SPYFRAME_IGNORETTH_MESSAGE_MAP),
+			m_ShowNickContainer(WC_BUTTON, this, SPYFRAME_SHOW_NICK)
 #ifdef _BIG_BROTHER_MODE
 			, m_tick(0), m_log(NULL)
 #endif
@@ -80,8 +85,10 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 		NOTIFY_HANDLER(IDC_RESULTS, LVN_COLUMNCLICK, onColumnClickResults)
 		NOTIFY_HANDLER(IDC_RESULTS, NM_CUSTOMDRAW, onCustomDraw) // !SMT!-S
 		CHAIN_MSG_MAP(baseClass)
-		ALT_MSG_MAP(IGNORETTH_MESSAGE_MAP)
+		ALT_MSG_MAP(SPYFRAME_IGNORETTH_MESSAGE_MAP)
 		MESSAGE_HANDLER(BM_SETCHECK, onIgnoreTth)
+		ALT_MSG_MAP(SPYFRAME_SHOW_NICK)
+		MESSAGE_HANDLER(BM_SETCHECK, onShowNick)
 		END_MSG_MAP()
 		
 		LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
@@ -102,6 +109,13 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 		
 		void UpdateLayout(BOOL bResizeBars = TRUE);
 		
+		LRESULT onShowNick(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
+		{
+			bHandled = FALSE;
+			m_showNick = (wParam == BST_CHECKED);
+			return 0;
+		}
+		
 		LRESULT onIgnoreTth(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 		{
 			bHandled = FALSE;
@@ -121,8 +135,10 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 		
 		ExListViewCtrl ctrlSearches;
 		CStatusBarCtrl ctrlStatus;
-		CContainedWindow ignoreTthContainer;
-		CButton ctrlIgnoreTth;
+		CContainedWindow m_ignoreTTHContainer;
+		CContainedWindow m_ShowNickContainer;
+		CButton m_ctrlIgnoreTTH;
+		CButton m_ctrlShowNick;
 		uint64_t m_total;
 		uint8_t m_current;
 		static const uint8_t AVG_TIME = 60;
@@ -149,6 +165,7 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 		//[~]IRainman
 		
 		bool m_ignoreTTH;
+		bool m_showNick;
 		
 		// [-] FastCriticalSection cs; // [-] IRainman fix: all data to needs to be lock usde in one thread.
 		

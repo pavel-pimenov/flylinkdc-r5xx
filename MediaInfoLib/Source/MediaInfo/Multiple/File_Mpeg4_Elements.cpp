@@ -1526,7 +1526,7 @@ void File_Mpeg4::mdat()
     if (IsSecondPass && !mdat_Pos.empty() && mdat_Pos.begin()->Offset<File_Offset+Buffer_Offset+Element_TotalSize_Get())
     {
         //Next piece of data
-        mdat_Pos_Temp=mdat_Pos.data();
+        mdat_Pos_Temp=&mdat_Pos[0];
         IsParsing_mdat=true;
         mdat_StreamJump();
 
@@ -1686,7 +1686,7 @@ void File_Mpeg4::mdat_xxxx()
                         {
                             if (mdat_Pos_Temp->Offset>=File_Offset_Next)
                                 break;
-                }
+                        }
                     else
                         mdat_Pos_Temp=mdat_Pos_Max;
                 }
@@ -3377,9 +3377,12 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_co64()
     int32u Count;
     Get_B4 (Count,                                              "Number of entries");
 
+	if (Count==0)
+		return;
+
     std::vector<int64u> &stco=Streams[moov_trak_tkhd_TrackID].stco;
     stco.resize(Count<FrameCount_MaxPerStream?Count:FrameCount_MaxPerStream);
-    int64u* stco_Data=stco.data();
+    int64u* stco_Data=&stco[0];
 
     for (int32u Pos=0; Pos<Count; Pos++)
     {

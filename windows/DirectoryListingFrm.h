@@ -149,6 +149,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		COMMAND_ID_HANDLER(IDC_VIEW_AS_TEXT, onViewAsText)
 #endif
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
+		MESSAGE_HANDLER(WM_SPEAKER_MERGE_FLY_SERVER, onMergeFlyServerResult)
 		COMMAND_ID_HANDLER(IDC_VIEW_FLYSERVER_INFORM, onShowFlyServerProperty)
 #ifdef _DEBUG
 		COMMAND_ID_HANDLER(IDC_GET_TTH_MEDIAINFO_SERVER, onGetTTHMediainfoServer)
@@ -198,6 +199,9 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		LRESULT onOpenFolder(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/); // [+] NightOrion
 		LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
 		LRESULT onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
+		LRESULT onMergeFlyServerResult(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
+#endif
 		LRESULT onDownload(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onDownloadWithPrio(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onDownloadDir(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
@@ -603,6 +607,13 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 	private:
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		void mergeFlyServerInfo();
+		int scan_list_view_from_merge();
+		typedef std::map<TTHValue, ItemInfo*> CFlyMergeItem;
+		CFlyMergeItem m_merge_item_map; // TODO - организовать кэш для медиаинфы, чтобы лишний раз не ходить на флай-сервер c get-запросами
+		std::map<TTHValue, uint64_t> m_tth_media_file_map;
+		void push_mediainfo_to_fly_server();
+		void prepare_mediainfo_to_fly_serverL();
+		CriticalSection m_cs_fly_server;
 #endif
 		int m_count_item_changed;
 };

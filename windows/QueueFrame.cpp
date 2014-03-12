@@ -1907,14 +1907,14 @@ void QueueFrame::clearTree(HTREEITEM item)
 // Put it here to avoid a copy for each recursion...
 void QueueFrame::moveNode(HTREEITEM item, HTREEITEM parent)
 {
-	static TCHAR tmpBuf[1024];
-	tmpBuf[0] = 0;
+	static TCHAR g_tmpBuf[1024];
+	g_tmpBuf[0] = 0;
 	TVINSERTSTRUCT tvis = {0};
 	tvis.itemex.hItem = item;
 	tvis.itemex.mask = TVIF_CHILDREN | TVIF_HANDLE | TVIF_IMAGE | TVIF_INTEGRAL | TVIF_PARAM |
 	                   TVIF_SELECTEDIMAGE | TVIF_STATE | TVIF_TEXT;
-	tvis.itemex.pszText = tmpBuf;
-	tvis.itemex.cchTextMax = _countof(tmpBuf);//[!] IRainman use _countof(Array) ;)
+	tvis.itemex.pszText = g_tmpBuf;
+	tvis.itemex.cchTextMax = _countof(g_tmpBuf);//[!] IRainman use _countof(Array) ;)
 	ctrlDirs.GetItem((TVITEM*)&tvis.itemex);
 	tvis.hInsertAfter = TVI_SORT;
 	tvis.hParent = parent;

@@ -67,8 +67,10 @@ PropPageTextStyles::clrs PropPageTextStyles::colours[] =
 	{ResourceManager::DUPE_EX2,    SettingsManager::DUPE_EX2_COLOR, 0},         //[+]
 	{ResourceManager::BAN_COLOR_DLG,    SettingsManager::BAN_COLOR, 0},         //[+]
 	
+#ifdef SCALOLAZ_USE_COLOR_HUB_IN_FAV
 	{ResourceManager::HUB_IN_FAV_BK_COLOR,   SettingsManager::HUB_IN_FAV_BK_COLOR, 0},
 	{ResourceManager::HUB_IN_FAV_CONNECT_BK_COLOR,   SettingsManager::HUB_IN_FAV_CONNECT_BK_COLOR, 0},
+#endif
 };
 // [++]NSL
 LRESULT PropPageTextStyles::onSelectColor(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)

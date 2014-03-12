@@ -49,7 +49,7 @@
 
 class HIconWrapper;
 class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFrame>,
-	public CMessageFilter, public CIdleHandler, public CSplitterImpl<MainFrame, false>,
+	public CMessageFilter, public CIdleHandler, public CSplitterImpl<MainFrame>,
 	public Thread, // TODO убрать наследование сократив размер класса и перевести на агрегацию (используется редко только для расчета ID_GET_TTH)
 	private CFlyTimerAdapter,
 	private QueueManagerListener,
@@ -127,7 +127,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 			UIUpdateToolBar();
 			return FALSE;
 		}
-		typedef CSplitterImpl<MainFrame, false> splitterBase;
+		typedef CSplitterImpl<MainFrame> splitterBase;
 		BEGIN_MSG_MAP(MainFrame)
 		MESSAGE_HANDLER(WM_PARENTNOTIFY, onParentNotify)
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
@@ -434,7 +434,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		LRESULT OnFileExit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			m_menuclose = true; // [+] InfinitySky. Закрытие через меню.
-			PostMessage(WM_CLOSE); // Посылка команды закрытия.
+			PostMessage(WM_CLOSE);
 			return 0;
 		}
 		

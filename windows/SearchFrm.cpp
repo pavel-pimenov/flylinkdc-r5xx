@@ -1041,9 +1041,7 @@ void SearchFrame::mergeFlyServerInfo()
 		if (isClosedOrShutdown())
 			return;
 		SearchInfo* si2 = ctrlResults.getItemData(j);
-		if (si2 == nullptr)
-			continue;
-		if (si2->m_already_processed || si2->parent) // ”же не первый раз или это дочерний узел по TTH?
+		if (si2 == nullptr || si2->m_already_processed || si2->parent) // ”же не первый раз или это дочерний узел по TTH?
 			continue;
 		si2->m_already_processed = true;
 		const auto& sr2 = si2->sr;

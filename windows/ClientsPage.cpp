@@ -23,7 +23,7 @@ PropPage::TextItem ClientsPage::texts[] =
 
 PropPage::Item ClientsPage::items[] =
 {
-	{ IDC_UPDATE_URL, SettingsManager::PROFILES_URL, PropPage::T_STR },
+	{ IDC_UPDATE_URL, SettingsManager::PROFILES_URL, PropPage::T_STR }, // TODO - похерить
 	{ 0, 0, PropPage::T_END }
 };
 

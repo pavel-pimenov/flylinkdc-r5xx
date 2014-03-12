@@ -189,7 +189,7 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 		void updateList();
 		void updateDropDown();
 		
-		const string getPubServer(int pos)
+		const string getPubServer(int pos) const
 		{
 			return ctrlHubs.ExGetItemText(pos, COLUMN_SERVER);
 		}

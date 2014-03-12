@@ -110,7 +110,10 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		int64_t getShareSize() const
 		{
 			dcassert(m_CurrentShareSize != -1); // TODO - баг. попытка получить размер шары до вызова internal_calcShareSize
-			return m_CurrentShareSize;
+			if (m_CurrentShareSize == -1)
+				return 0;
+			else
+				return m_CurrentShareSize;
 		}
 	private:
 		void internal_calcShareSize();
@@ -248,13 +251,13 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 						#endif
 						
 						{
-								explicit StringComp(const string& s) : m_a(s) { }
-								bool operator()(const ShareFile& b) const
-								{
-									return stricmp(m_a, b.getName()) == 0;
-								}
-							private:
-								const string& m_a;
+						        explicit StringComp(const string& s) : m_a(s) { }
+						        bool operator()(const ShareFile& b) const
+						        {
+						            return stricmp(m_a, b.getName()) == 0;
+						        }
+						    private:
+						        const string& m_a;
 						};
 						*/
 						

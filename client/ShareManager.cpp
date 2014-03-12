@@ -972,7 +972,7 @@ void ShareManager::internal_calcShareSize() // [!] IRainman opt.
 ShareManager::Directory::Ptr ShareManager::buildTreeL(const string& aName, const Directory::Ptr& aParent, bool p_is_job)
 {
 	bool p_is_no_mediainfo;
-	__int64 l_path_id = CFlylinkDBManager::getInstance()->get_path_id(Text::toLower(aName), !p_is_job, false, p_is_no_mediainfo);
+	__int64 l_path_id = CFlylinkDBManager::getInstance()->get_path_id(Text::toLower(aName), !p_is_job, false, p_is_no_mediainfo, m_sweep_path);
 	Directory::Ptr dir = Directory::create(Util::getLastDir(aName), aParent);
 	
 	auto lastFileIter = dir->m_files.begin();
@@ -1395,6 +1395,7 @@ int ShareManager::run()
 			m_sweep_guard = true;
 #endif
 			CFlylinkDBManager::getInstance()->SweepPath();
+			CFlylinkDBManager::getInstance()->LoadPathCache();
 		}
 		
 		{
@@ -2415,7 +2416,7 @@ void ShareManager::on(QueueManagerListener::FileMoved, const string& n) noexcept
 				const string fname = Text::toLower(Util::getFileName(n));
 				const string fpath = Text::toLower(Util::getFilePath(n));
 				bool p_is_no_mediainfo;
-				const __int64 l_path_id = CFlylinkDBManager::getInstance()->get_path_id(fpath, true, false, p_is_no_mediainfo);
+				const __int64 l_path_id = CFlylinkDBManager::getInstance()->get_path_id(fpath, true, false, p_is_no_mediainfo, true);
 				TTHValue l_tth;
 				HashManager::getInstance()->checkTTH(fname, fpath, l_path_id, File::getSize(n), 0, l_tth);
 			}

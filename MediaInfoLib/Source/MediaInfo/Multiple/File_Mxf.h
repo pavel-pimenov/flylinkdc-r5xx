@@ -61,6 +61,7 @@ public :
 
 protected :
     //Streams management
+    void Streams_Accept();
     void Streams_Fill ();
     void Streams_Finish ();
     void Streams_Finish_Preface (const int128u &PrefaceUID);
@@ -733,6 +734,8 @@ protected :
     void           ChooseParser__Aaf_GC_Compound(const essences::iterator &Essence, const descriptors::iterator &Descriptor);
     void           ChooseParser__Avid(const essences::iterator &Essence, const descriptors::iterator &Descriptor);
     void           ChooseParser__Avid_Picture(const essences::iterator &Essence, const descriptors::iterator &Descriptor);
+    void           ChooseParser__Sony(const essences::iterator &Essence, const descriptors::iterator &Descriptor);
+    void           ChooseParser__Sony_Picture(const essences::iterator &Essence, const descriptors::iterator &Descriptor);
     void           ChooseParser(const essences::iterator &Essence, const descriptors::iterator &Descriptor);
     void           ChooseParser__FromEssenceContainer(const essences::iterator &Essence, const descriptors::iterator &Descriptor);
     void           ChooseParser_Avc(const essences::iterator &Essence, const descriptors::iterator &Descriptor);

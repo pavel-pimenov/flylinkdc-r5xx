@@ -1,4 +1,46 @@
 ------------------------------------------------------------------------
+r16804 | pavel.pimenov@gmail.com | 2014-03-12 15:04:14 +0400 (Ср, 12 мар 2014) | 35 lines
+
+Merged revision(s) 16773-16801 from trunk:
+# Отключил подкраску SettingsManager::HUB_IN_FAV_BK_COLOR и SettingsManager::HUB_IN_FAV_CONNECT_BK_COLOR экраном.
+  включить после исключения копипаста в LRESULT RecentHubsFrame::onCustomDraw и LRESULT PublicHubsFrame::onCustomDraw 
+........
+# Кнопку активации ников в поиске-шпионе перенес в само окно (в настройках ее сложно найти)
+........
+# Убрал отображение в колонке Tag пустого шаблона (<%s,M:%c,H:%u/%u/%u,S:%u>) если сам тэг хаб не отдает. (аналогично для колонки "Слоты")
+# Если версия приложения и его имя не известно - возвращаем пустые значения без лишней блокировки критической секции
+........
+# Забыл убрать лишный вызов getDicVE
+........
+# OnEnChangeEditMaxHashSpeed забыта проверка на валидность ползунка. падаем в _DEBUG конфигурации при открытии диалога
+........
+# При тесте http://code.google.com/p/flylinkdc/issues/detail?id=1440
+  нашел баг - если расшарен всего один корневой каталог то команда отчистить не нужные TTH записи сносила из базы данные этого одного каталога
+  что приводило к рехешу файлов из него.
+  также убрал рекурсивный лок при вызове LoadPathCache из SweepPath
+........
+# Дополнение r16742
+https://code.google.com/p/flylinkdc/source/detail?r=16742
+........
+* Обновил WTL
+* Обновил mediainfo
+ + MXF: detection of Sony RAW SQ (by reverse engineering, not sure)
+ + F432, AVI: detection of MPEG Video with Codec Id 0x02000010
+ + AVI: detection of captions inside MPEG Video
+ x B833, FLV: some (out of specs) files were no more fully detected
+ x Files with the wrong extension: the file was sometimes fully read (very slow!)
+........
+# Переписал алгоритм работы с флай-сервером в окне файлов DirectoryListingFrame::mergeFlyServerInfo()
+  из потока не обращаемся к GUI эелементам (иногда возникают блокировки)
+  TODO - сделать аналогичное в окне поиска и обобщить код
+# r503-beta37
+
+
+------------------------------------------------------------------------
+r16803 | pavel.pimenov@gmail.com | 2014-03-12 14:58:00 +0400 (Ср, 12 мар 2014) | 1 line
+
+# Log
+------------------------------------------------------------------------
 r16770 | pavel.pimenov@gmail.com | 2014-03-05 16:42:10 +0400 (Ср, 05 мар 2014) | 15 lines
 
 Merged revision(s) 16754-16768 from trunk:

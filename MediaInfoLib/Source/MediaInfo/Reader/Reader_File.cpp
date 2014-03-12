@@ -545,7 +545,8 @@ size_t Reader_File::Format_Test_PerParser_Continue (MediaInfo_Internal* MI)
                             Buffer_End2=0;
                             Buffer_Begin=0;
                         }
-                        else
+
+                        MI->Config.File_Buffer_Size=Buffer_End-Buffer_Begin;
                             break;
                     }
                 }

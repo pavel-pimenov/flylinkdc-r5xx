@@ -546,6 +546,11 @@ class Identity
 		// [!] IRainman fix.
 		string getStringParam(const char* name) const;
 		void setStringParam(const char* p_name, const string& p_val);
+		bool isAppNameExists() const
+		{
+			const auto l_id_app = getDicAP();
+			return l_id_app > 0;
+		}
 		// [~] IRainman fix.
 		
 		string setCheat(const ClientBase& c, const string& aCheatDescription, bool aBadClient);
@@ -595,6 +600,7 @@ class Identity
 		
 		const string& getDicValL(uint16_t p_index) const
 		{
+			dcassert(p_index > 0);
 			if (p_index > 0)
 			{
 				return *g_infoDic[p_index - 1];
