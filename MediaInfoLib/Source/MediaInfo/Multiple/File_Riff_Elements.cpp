@@ -2373,9 +2373,6 @@ void File_Riff::AVI__movi()
         }
     }
 
-    //Filling
-    movi_Size+=Element_TotalSize_Get();
-
     //Probing rec (with index, this is not always tested in the flow
     if (Element_Size<12)
     {
@@ -2384,6 +2381,10 @@ void File_Riff::AVI__movi()
     }
     if (CC4(Buffer+Buffer_Offset+8)==0x72656320) //"rec "
         rec__Present=true;
+
+    //Filling
+    if (!SecondPass)
+        movi_Size+=Element_TotalSize_Get();
 
     //We must parse moov?
     if (NeedOldIndex || (stream_Count==0 && Index_Pos.empty()))

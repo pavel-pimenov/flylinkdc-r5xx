@@ -1,4 +1,32 @@
 ------------------------------------------------------------------------
+r16817 | pavel.pimenov@gmail.com | 2014-03-12 23:52:15 +0400 (—р, 12 мар 2014) | 21 lines
+
+Merged revision(s) 16808-16816 from trunk:
+# »сключил лишние вызовы холостых обновлений окна статуса
+  там найдены подозрительные точки падени€
+   https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&Login=Guest&DumpGroupID=127864
+   https://www.crash-server.com/UploadedReport.aspx?DumpID=1474566
+  m_ctrlStatus.SetText(1, str[0].c_str()); вообще никогда не срабатывает - разобратьс€ зачем так сделано
+  и почему позици€ 1 холоста€.
+........
+# r503-beta38
+ [mediainfo][merge]
+ x #B833, FLV: some (out of specs) files were no more fully detected
+ x #B828, HEVC/H265: parsing of final specification (vui_parameters() specs were modified)
+ x #B831, MPEG Audio: files with MusiFile header/trailer are correctly detected (but header/trailer are currently discarded)
+ x MOV: better display of metadata when tvsh atom is present
+ + MPEG-4/MOV: showing non-media streams (e.g. hint/rtp tracks)
+ x AVI: Huge files (2GB+, with OpenDML) were sometimes parsed slowly
+ ........
+# ћаркер падени€
+  https://www.crash-server.com/Problem.aspx?ClientID=ppa&Login=Guest&ProblemID=58736
+  падаем со слов пользователей при клике на магнит в чате и выборе "ƒобавить в очередь дл€ скачивани€"
+
+------------------------------------------------------------------------
+r16805 | pavel.pimenov@gmail.com | 2014-03-12 15:51:06 +0400 (—р, 12 мар 2014) | 1 line
+
+# Log
+------------------------------------------------------------------------
 r16804 | pavel.pimenov@gmail.com | 2014-03-12 15:04:14 +0400 (—р, 12 мар 2014) | 35 lines
 
 Merged revision(s) 16773-16801 from trunk:

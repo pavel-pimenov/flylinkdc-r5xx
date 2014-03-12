@@ -1330,7 +1330,7 @@ void ClientManager::sendRawCommand(const OnlineUser& ou, const int aRawCommand)
 
 void ClientManager::setListLength(const UserPtr& p, const string& listLen)
 {
-	webrtc::ReadLockScoped l(*g_csOnlineUsers);
+	webrtc::ReadLockScoped l(*g_csOnlineUsers); // TODO Write
 	OnlineIterC i = g_onlineUsers.find(p->getCID());
 	if (i != g_onlineUsers.end())
 	{

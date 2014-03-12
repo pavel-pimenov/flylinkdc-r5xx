@@ -190,7 +190,7 @@ MainFrame::MainFrame() :
 	m_diff(GET_TICK()) // [!] IRainman fix.
 {
 	g_anyMF = this;
-	memzero(statusSizes, sizeof(statusSizes));
+	memzero(m_statusSizes, sizeof(m_statusSizes));
 }
 
 MainFrame::~MainFrame()
@@ -576,21 +576,18 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	rebar = m_hWndToolBar;
 	ToolbarManager::getInstance()->applyTo(rebar, "MainToolBar");
 	
-	ctrlStatus.Attach(m_hWndStatusBar);
-	ctrlStatus.SetSimple(FALSE); // https://www.box.net/shared/6d96012d9690dc892187
+	m_ctrlStatus.Attach(m_hWndStatusBar);
+	m_ctrlStatus.SetSimple(FALSE); // https://www.box.net/shared/6d96012d9690dc892187
 	int w[STATUS_PART_LAST - 1] = {0};
-	ctrlStatus.SetParts(STATUS_PART_LAST - 1, w);
-	HDC l_dc = ::GetDC(ctrlStatus.m_hWnd); //[+]PPA
-	statusSizes[0] = WinUtil::getTextWidth(TSTRING(AWAY_STATUS), l_dc); // for "AWAY_STATUS" segment
-	int l_res = ::ReleaseDC(ctrlStatus.m_hWnd, l_dc); //[+]PPA
-	dcassert(l_res);
+	m_ctrlStatus.SetParts(STATUS_PART_LAST - 1, w);
+	m_statusSizes[0] = WinUtil::getTextWidth(TSTRING(AWAY_STATUS), m_ctrlStatus.m_hWnd);
 	
 	RECT rect = {0};
-	ctrlHashProgress.Create(ctrlStatus, &rect, L"Hashing", WS_CHILD | PBS_SMOOTH, 0, IDC_STATUS_HASH_PROGRESS);
+	ctrlHashProgress.Create(m_ctrlStatus, &rect, L"Hashing", WS_CHILD | PBS_SMOOTH, 0, IDC_STATUS_HASH_PROGRESS);
 	ctrlHashProgress.SetRange(0, HashManager::GetMaxProgressValue());
 	ctrlHashProgress.SetStep(1);
 	
-	ctrlUpdateProgress.Create(ctrlStatus, &rect, L"Updating", WS_CHILD | PBS_SMOOTH, 0, IDC_STATUS_HASH_PROGRESS);
+	ctrlUpdateProgress.Create(m_ctrlStatus, &rect, L"Updating", WS_CHILD | PBS_SMOOTH, 0, IDC_STATUS_HASH_PROGRESS);
 	ctrlUpdateProgress.SetRange(0, 100);
 	ctrlUpdateProgress.SetStep(1);
 	
@@ -603,9 +600,9 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	tabAWAYMenu.CreatePopupMenu();  // [+] add context menu on DHT area in status bar
 	tabAWAYMenu.AppendMenu(MF_STRING, IDC_STATUS_AWAY_ON_OFF, CTSTRING(AWAY));
 	
-	ctrlLastLines.Create(ctrlStatus, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP | TTS_BALLOON, WS_EX_TOPMOST);
+	ctrlLastLines.Create(m_ctrlStatus, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP | TTS_BALLOON, WS_EX_TOPMOST);
 	ctrlLastLines.SetWindowPos(HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-	ctrlLastLines.AddTool(ctrlStatus.m_hWnd);
+	ctrlLastLines.AddTool(m_ctrlStatus.m_hWnd);
 	ctrlLastLines.SetDelayTime(TTDT_AUTOPOP, 15000);
 	
 	CreateMDIClient();
@@ -1585,7 +1582,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 		bool u = false;
 #endif
 		const TStringList& str = *pstr;
-		if (ctrlStatus.IsWindow())
+		if (m_ctrlStatus.IsWindow())
 		{
 #ifndef IRAINMAN_FAST_FLAT_TAB
 			bool u = false;
@@ -1618,23 +1615,40 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 				ctrlUpdateProgress.ShowWindow(SW_HIDE);
 			}
 			
-			HDC dc = ::GetDC(ctrlStatus.m_hWnd);
-			
-			ctrlStatus.SetText(1, str[0].c_str());
-			const uint8_t count = str.size();
-			for (uint8_t i = 1; i < count; i++)
 			{
-				uint8_t w = WinUtil::getTextWidth(str[i], dc);
-				
-				if (statusSizes[i] < w)
+				//CLockRedraw<true> l_lock_draw(m_ctrlStatus.m_hWnd);
+				BOOL l_result;
+				if (m_statusText[0] != str[0])
 				{
-					statusSizes[i] = w;
-					u = true;
+					m_statusText[0] = str[0];
+					l_result = m_ctrlStatus.SetText(1, str[0].c_str()); // TODO никогда не срабатывает...
+					dcassert(l_result);
 				}
-				ctrlStatus.SetText(i + 1, str[i].c_str()); // https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&Login=Guest&DumpGroupID=127864
+				const uint8_t count = str.size();
+				dcassert(count < STATUS_PART_LAST);
+				for (uint8_t i = 1; i < count; i++)
+				{
+					if (m_statusText[i] != str[i])
+					{
+						m_statusText[i] = str[i];
+						const uint8_t w = WinUtil::getTextWidth(str[i], m_ctrlStatus.m_hWnd);
+						if (i < STATUS_PART_LAST && m_statusSizes[i] < w)
+						{
+							m_statusSizes[i] = w;
+							u = true;
+						}
+						//dcdebug("ctrlStatus.SetText[%d] = [%s]\n", int(i), Text::fromT(str[i]).c_str());
+						
+						l_result = m_ctrlStatus.SetText(i + 1, str[i].c_str()); // https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&Login=Guest&DumpGroupID=127864
+						dcassert(l_result);
+						// https://www.crash-server.com/UploadedReport.aspx?DumpID=1474566
+					}
+					else
+					{
+						//dcdebug("!!! Duplicate ctrlStatus.SetText[%d] = [%s]\n", int(i), Text::fromT(str[i]).c_str());
+					}
+				}
 			}
-			int l_res = ::ReleaseDC(ctrlStatus.m_hWnd, dc);
-			dcassert(l_res);
 			
 			if (g_isShutdown)
 			{
@@ -1645,19 +1659,19 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 					{
 						m_ShutdownIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_SHUTDOWN));
 					}
-					ctrlStatus.SetIcon(STATUS_PART_SHUTDOWN_TIME, *m_ShutdownIcon);
+					m_ctrlStatus.SetIcon(STATUS_PART_SHUTDOWN_TIME, *m_ShutdownIcon);
 					isShutdownStatus = true;
 				}
 				if (DownloadManager::getInstance()->getDownloadCount() > 0)
 				{
 					iCurrentShutdownTime = iSec;
-					ctrlStatus.SetText(STATUS_PART_SHUTDOWN_TIME, _T(""));
+					m_ctrlStatus.SetText(STATUS_PART_SHUTDOWN_TIME, _T(""));
 				}
 				else
 				{
 					const int timeout = SETTING(SHUTDOWN_TIMEOUT);
 					const int64_t timeLeft = timeout - (iSec - iCurrentShutdownTime);
-					ctrlStatus.SetText(STATUS_PART_SHUTDOWN_TIME, (_T(' ') + Util::formatSecondsW(timeLeft, timeLeft < 3600)).c_str(), SBT_POPOUT);
+					m_ctrlStatus.SetText(STATUS_PART_SHUTDOWN_TIME, (_T(' ') + Util::formatSecondsW(timeLeft, timeLeft < 3600)).c_str(), SBT_POPOUT);
 					if (iCurrentShutdownTime + timeout <= iSec)
 					{
 						// We better not try again. It WON'T work...
@@ -1671,8 +1685,8 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 						}
 						else
 						{
-							ctrlStatus.SetText(STATUS_PART_MESSAGE, CTSTRING(FAILED_TO_SHUTDOWN));
-							ctrlStatus.SetText(STATUS_PART_SHUTDOWN_TIME, _T(""));
+							m_ctrlStatus.SetText(STATUS_PART_MESSAGE, CTSTRING(FAILED_TO_SHUTDOWN));
+							m_ctrlStatus.SetText(STATUS_PART_SHUTDOWN_TIME, _T(""));
 						}
 					}
 				}
@@ -1681,8 +1695,8 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 			{
 				if (isShutdownStatus)
 				{
-					ctrlStatus.SetText(STATUS_PART_SHUTDOWN_TIME, _T(""));
-					ctrlStatus.SetIcon(STATUS_PART_SHUTDOWN_TIME, NULL);
+					m_ctrlStatus.SetText(STATUS_PART_SHUTDOWN_TIME, _T(""));
+					m_ctrlStatus.SetIcon(STATUS_PART_SHUTDOWN_TIME, NULL);
 					isShutdownStatus = false;
 				}
 			}
@@ -1703,10 +1717,10 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 	else if (wParam == STATUS_MESSAGE)
 	{
 		string* msg = (string*)lParam; // [!] IRainman opt
-		if (!m_closing && ctrlStatus.IsWindow())
+		if (!m_closing && m_ctrlStatus.IsWindow())
 		{
 			const tstring line = Text::toT(Util::formatDigitalClock("[%H:%M:%S] ", GET_TIME()) + *msg);
-			ctrlStatus.SetText(STATUS_PART_MESSAGE, line.c_str());
+			m_ctrlStatus.SetText(STATUS_PART_MESSAGE, line.c_str());
 			
 			const tstring::size_type rpos = line.find(_T('\r'));
 			if (rpos == tstring::npos)
@@ -2769,13 +2783,13 @@ void MainFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		// position bars and offset their dimensions
 		UpdateBarsPosition(rect, bResizeBars);
 		
-		if (ctrlStatus.IsWindow() && ctrlLastLines.IsWindow())
+		if (m_ctrlStatus.IsWindow() && ctrlLastLines.IsWindow())
 		{
 			CRect sr;
 			int w[STATUS_PART_LAST];
 			
 			bool bIsHashing = HashManager::getInstance()->IsHashing();
-			ctrlStatus.GetClientRect(sr);
+			m_ctrlStatus.GetClientRect(sr);
 			if (bIsHashing)
 			{
 				w[STATUS_PART_HASH_PROGRESS] = sr.right - 20;
@@ -2785,7 +2799,7 @@ void MainFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 				w[STATUS_PART_SHUTDOWN_TIME] = sr.right - 20;
 				
 			w[STATUS_PART_8] = w[STATUS_PART_SHUTDOWN_TIME] - 60;
-#define setw(x) w[x] = max(w[x+1] - statusSizes[x], 0)
+#define setw(x) w[x] = max(w[x+1] - m_statusSizes[x], 0)
 			setw(STATUS_PART_7);
 			setw(STATUS_PART_UPLOAD);
 			setw(STATUS_PART_DOWNLOAD);
@@ -2798,13 +2812,13 @@ void MainFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 			setw(STATUS_PART_1);
 			setw(STATUS_PART_MESSAGE);
 			
-			ctrlStatus.SetParts(STATUS_PART_LAST - 1 + bIsHashing, w);
+			m_ctrlStatus.SetParts(STATUS_PART_LAST - 1 + bIsHashing, w);
 			ctrlLastLines.SetMaxTipWidth(max(w[4], 400));
 			
 			if (bIsHashing)
 			{
 				RECT rect;
-				ctrlStatus.GetRect(STATUS_PART_HASH_PROGRESS, &rect);
+				m_ctrlStatus.GetRect(STATUS_PART_HASH_PROGRESS, &rect);
 				
 				rect.right = w[STATUS_PART_HASH_PROGRESS] - 1;
 				ctrlHashProgress.MoveWindow(&rect);
@@ -2813,22 +2827,21 @@ void MainFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 			{
 				// [+] SSA
 				RECT updateRect;
-				ctrlStatus.GetRect(STATUS_PART_1, &updateRect);
+				m_ctrlStatus.GetRect(STATUS_PART_1, &updateRect);
 				updateRect.right = w[STATUS_PART_1] - 1;
 				ctrlUpdateProgress.MoveWindow(&updateRect);
 			}
 			
 #ifdef STRONG_USE_DHT
-			ctrlStatus.GetRect(STATUS_PART_DHT, &m_tabDHTRect);       // Get DHT Area Rect
+			m_ctrlStatus.GetRect(STATUS_PART_DHT, &m_tabDHTRect);       // Get DHT Area Rect
 #endif
 			//tabDHTRect.right -= 2;
-			ctrlStatus.GetRect(STATUS_PART_1, &m_tabAWAYRect);    // Get AWAY Area Rect
+			m_ctrlStatus.GetRect(STATUS_PART_1, &m_tabAWAYRect);    // Get AWAY Area Rect
 			
 #ifdef SCALOLAZ_SPEEDLIMIT_DLG
-			ctrlStatus.GetRect(STATUS_PART_7, &tabSPEED_INRect);
-			ctrlStatus.GetRect(STATUS_PART_8, &tabSPEED_OUTRect);
+			m_ctrlStatus.GetRect(STATUS_PART_7, &tabSPEED_INRect);
+			m_ctrlStatus.GetRect(STATUS_PART_8, &tabSPEED_OUTRect);
 #endif
-			
 		}
 		CRect rc = rect;
 		CRect rc2 = rect;

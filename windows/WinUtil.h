@@ -1555,7 +1555,11 @@ class WinUtil
 		static LONG getTextWidth(const tstring& str, HDC dc)
 		{
 			SIZE sz = { 0, 0 };
-			::GetTextExtentPoint32(dc, str.c_str(), str.length(), &sz); //-V107
+			dcassert(str.length());
+			if (str.length())
+			{
+				::GetTextExtentPoint32(dc, str.c_str(), str.length(), &sz); //-V107
+			}
 			return sz.cx;
 		}
 		

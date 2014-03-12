@@ -577,7 +577,10 @@ void DirectoryListing::logMatchedFiles(const UserPtr& p_user, int p_count) //[+]
 	string l_tmp;
 	l_tmp.resize(l_BUF_SIZE);
 	snprintf(&l_tmp[0], l_tmp.size(), CSTRING(MATCHED_FILES), p_count);
-	LogManager::getInstance()->message(Util::toString(ClientManager::getNicks(p_user->getCID(), Util::emptyString)) + string(": ") + l_tmp.c_str());
+	// Util::toString(ClientManager::getNicks(p_user->getCID(), Util::emptyString)) падает https://www.crash-server.com/Problem.aspx?ClientID=ppa&Login=Guest&ProblemID=58736
+        // падаем со слов пользователей при клике на магнит в чате и выборе "Добавить в очередь для скачивания"
+	const string l_last_nick = p_user->getLastNick();
+	LogManager::getInstance()->message(l_last_nick + string(": ") + l_tmp.c_str());
 }
 
 struct HashContained

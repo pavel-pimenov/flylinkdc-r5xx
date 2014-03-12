@@ -637,7 +637,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		TStringList m_lastLinesList;
 		tstring m_lastLines;
 		CFlyToolTipCtrl ctrlLastLines;
-		CStatusBarCtrl ctrlStatus;
+		CStatusBarCtrl m_ctrlStatus;
 		CProgressBarCtrl ctrlHashProgress;
 		CProgressBarCtrl ctrlUpdateProgress;
 		bool m_bHashProgressVisible;
@@ -737,7 +737,8 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		bool m_menuclose; // [+] InfinitySky.
 		bool m_custom_app_icon_exist; // [+] InfinitySky.
 		bool m_closing;
-		uint8_t statusSizes[STATUS_PART_LAST];
+		uint8_t m_statusSizes[STATUS_PART_LAST];
+		tstring m_statusText[STATUS_PART_LAST];
 		HANDLE m_stopperThread;
 		bool missedAutoConnect;
 		HWND createToolbar();
