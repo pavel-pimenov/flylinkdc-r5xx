@@ -166,7 +166,7 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		
 		void removeSelectedUser()
 		{
-			const UserPtr& User = getCurrentdUser();
+			const UserPtr User = getCurrentdUser();
 			if (User)
 			{
 				UploadManager::LockInstanceQueue lockedInstance; // [+] IRainman opt.

@@ -488,6 +488,15 @@ void UseVectorPushBack(size_t dimension)
 }
 int _tmain(int argc, _TCHAR* argv[])
 {
+	CRITICAL_SECTION cs;
+	InitializeCriticalSectionAndSpinCount(&cs, 100); 
+//	InitializeCriticalSection(&cs); 
+	EnterCriticalSection(&cs);
+	EnterCriticalSection(&cs);
+	LeaveCriticalSection(&cs);
+	LeaveCriticalSection(&cs);
+	DeleteCriticalSection(&cs);
+
 	typedef std::pair<boost::asio::ip::address_v4, boost::asio::ip::address_v4> CFlyDDOSkey;
 	boost::unordered_map<CFlyDDOSkey, int> ip4_map;
     for (size_t i=0; i < 1*1024*1024*1024; i += 100*1024*1024)

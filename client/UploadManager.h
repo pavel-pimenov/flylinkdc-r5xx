@@ -117,20 +117,24 @@ class UploadQueueItem : public intrusive_ptr_base<UploadQueueItem>, // [!] IRain
 
 class WaitingUser
 #ifdef _DEBUG
-// TODO : public boost::noncopyable
+//    : public boost::noncopyable
 #endif
 {
 	public:
-		WaitingUser(const UserPtr& user, const std::string& token, UploadQueueItem* p_uqi) : m_user(user), m_token(token)
+		WaitingUser(const HintedUser& p_hintedUser, const std::string& p_token, UploadQueueItem* p_uqi) : m_hintedUser(p_hintedUser), m_token(p_token)
 		{
-			m_files.insert(p_uqi);
+			m_waiting_files.insert(p_uqi);
 		}
 		operator const UserPtr&() const
 		{
-			return m_user;
+			return m_hintedUser.user;
 		}
-		std::set<UploadQueueItem*> m_files; // Опасно торчит указатель
-		GETC(UserPtr, m_user, User);
+		UserPtr getUser() const
+		{
+			return m_hintedUser.user;
+		}
+		boost::unordered_set<UploadQueueItem*> m_waiting_files; // Опасно торчит указатель
+		HintedUser m_hintedUser;
 		GETSET(string, m_token, Token);
 };
 
@@ -181,6 +185,8 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		void reserveSlot(const HintedUser& hintedUser, uint64_t aTime);
 		void unreserveSlot(const HintedUser& hintedUser);
 		void clearUserFilesL(const UserPtr&);
+		void clearWaitingFilesL(const WaitingUser& p_wu);
+		
 		
 		class LockInstanceQueue // [+] IRainman opt.
 		{
@@ -199,7 +205,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 				}
 		};
 		
-		typedef list<WaitingUser> SlotQueue; // [!] IRainman opt: change container to list from vector.
+		typedef std::list<WaitingUser> SlotQueue;
 		const SlotQueue& getUploadQueueL() const
 		{
 			return m_slotQueue;
@@ -289,7 +295,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		mutable CriticalSection m_csQueue; // [+] IRainman opt.
 		
 		size_t addFailedUpload(const UserConnection& source, const string& file, int64_t pos, int64_t size);
-		void notifyQueuedUsersL(int64_t tick);//[!]IRainman refactoring transfer mechanism add int64_t tick
+		void notifyQueuedUsers(int64_t p_tick);//[!]IRainman refactoring transfer mechanism add int64_t tick
 		
 		friend class Singleton<UploadManager>;
 		UploadManager() noexcept;

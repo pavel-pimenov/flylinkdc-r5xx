@@ -121,11 +121,9 @@ void User::setIP(const boost::asio::ip::address_v4& p_last_ip)
 				if (m_ratio_ptr)
 				{
 					const auto l_message_count = m_ratio_ptr->m_message_count;
-					{
-						webrtc::WriteLockScoped l(*g_ratio_cs);
-						safe_delete(m_ratio_ptr);
-					}
-					initRatio(p_last_ip);
+					webrtc::WriteLockScoped l(*g_ratio_cs);
+					safe_delete(m_ratio_ptr);
+					initRatioL(p_last_ip);
 					if (m_ratio_ptr)
 						m_ratio_ptr->m_message_count = l_message_count;
 				}
@@ -207,22 +205,23 @@ void User::incMessageCount()
 	}
 	else
 	{
-		initRatio(boost::asio::ip::address_v4()); // IP-Пустышку
+		webrtc::WriteLockScoped l(*g_ratio_cs);
+		initRatioL(boost::asio::ip::address_v4()); // IP-Пустышку
 		if (m_ratio_ptr)
 			m_ratio_ptr->incMessagesCount();
 	}
 }
 void User::AddRatioUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size)
 {
-	initRatio(p_ip);
-	webrtc::ReadLockScoped l(*g_ratio_cs);
+	webrtc::WriteLockScoped l(*g_ratio_cs);
+	initRatioL(p_ip);
 	if (m_ratio_ptr)
 		m_ratio_ptr->addUpload(p_ip, p_size);
 }
 void User::AddRatioDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size)
 {
-	initRatio(p_ip);
-	webrtc::ReadLockScoped l(*g_ratio_cs);
+	webrtc::WriteLockScoped l(*g_ratio_cs);
+	initRatioL(p_ip);
 	if (m_ratio_ptr)
 		m_ratio_ptr->addDownload(p_ip, p_size);
 }
@@ -232,11 +231,10 @@ void User::flushRatio()
 	if (m_ratio_ptr)
 		m_ratio_ptr->flushRatioL();
 }
-void User::initRatio(const boost::asio::ip::address_v4& p_ip)
+void User::initRatioL(const boost::asio::ip::address_v4& p_ip)
 {
 	if (m_ratio_ptr == nullptr && !m_nick.empty() && m_hub_id)
 	{
-		webrtc::WriteLockScoped l(*g_ratio_cs);
 		m_ratio_ptr = new CFlyUserRatioInfo(this);
 		m_ratio_ptr->try_load_ratio(p_ip);
 		m_ratio_ptr->setDirty(true);

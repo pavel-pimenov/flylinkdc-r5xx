@@ -328,7 +328,7 @@ class User : public intrusive_ptr_base<User>, public Flags
 		uint64_t getBytesDownload();
 		uint64_t getMessageCount();
 		void initRatio();
-		void initRatio(const boost::asio::ip::address_v4& p_ip);
+		void initRatioL(const boost::asio::ip::address_v4& p_ip);
 		
 #endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	private:

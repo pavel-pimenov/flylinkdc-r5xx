@@ -289,6 +289,9 @@ void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
 		}
 		ctrlUsers.setColumnOwnerDraw(COLUMN_GEO_LOCATION);
 		ctrlUsers.setColumnOwnerDraw(COLUMN_IP);
+		ctrlUsers.setColumnOwnerDraw(COLUMN_UPLOAD);
+		ctrlUsers.setColumnOwnerDraw(COLUMN_DOWNLOAD);
+		ctrlUsers.setColumnOwnerDraw(COLUMN_MESSAGES);
 		if (p_fhe)
 		{
 			WinUtil::splitTokens(g_columnIndexes, p_fhe->getHeaderOrder(), COLUMN_LAST);
@@ -3757,7 +3760,18 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			}
 			else
 #endif
-				if (l_column_id == COLUMN_IP)
+				if (l_column_id == COLUMN_UPLOAD || l_column_id == COLUMN_DOWNLOAD || l_column_id == COLUMN_MESSAGES)
+				{
+					const tstring l_value = ui->getText(l_column_id);
+					if (!l_value.empty())
+					{
+						ctrlUsers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
+						SetTextColor(cd->nmcd.hdc, cd->clrText);
+						::ExtTextOut(cd->nmcd.hdc, rc.left + 6, rc.top + 2, ETO_CLIPPED, rc, l_value.c_str(), l_value.length(), NULL);
+					}
+					return CDRF_SKIPDEFAULT;
+				}
+				else if (l_column_id == COLUMN_IP)
 				{
 					const bool l_is_fantom_ip = ui->getOnlineUser()->getIdentity().isFantomIP();
 					const tstring l_ip = ui->getText(COLUMN_IP);
@@ -3768,82 +3782,76 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 						//const COLORREF col_brit = OperaColors::brightenColor(cd->clrText, l_is_fantom_ip ? 0.6f : 0.4f);
 						//ctrlUsers.SetItemFilled(cd, rc, /*color_text*/ col_brit, /*color_text_unfocus*/ col_brit);
 						ctrlUsers.SetItemFilled(cd, rc, cd->clrText, cd->clrText);
-						
-						if (!l_ip.empty())
-						{
-							unique_ptr<CSelectFont> l_font(!l_is_fantom_ip ? nullptr : unique_ptr<CSelectFont>(new CSelectFont(cd->nmcd.hdc, Fonts::g_halfFont)));
-							::ExtTextOut(cd->nmcd.hdc, rc.left + 6, rc.top + 2, ETO_CLIPPED, rc, l_ip.c_str(), l_ip.length(), NULL);
-						}
+						unique_ptr<CSelectFont> l_font(!l_is_fantom_ip ? nullptr : unique_ptr<CSelectFont>(new CSelectFont(cd->nmcd.hdc, Fonts::g_halfFont)));
+						::ExtTextOut(cd->nmcd.hdc, rc.left + 6, rc.top + 2, ETO_CLIPPED, rc, l_ip.c_str(), l_ip.length(), NULL);
 					}
 					return CDRF_SKIPDEFAULT;
 				}
-				else
-					// !SMT!-IP
-					if (l_column_id == COLUMN_GEO_LOCATION)
-					{
-						ctrlUsers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
-						if (BOOLSETTING(USE_EXPLORER_THEME)
+				else if (l_column_id == COLUMN_GEO_LOCATION)
+				{
+					ctrlUsers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
+					if (BOOLSETTING(USE_EXPLORER_THEME)
 #ifdef FLYLINKDC_SUPPORT_WIN_2000
-						        && CompatibilityManager::IsXPPlus()
+					        && CompatibilityManager::IsXPPlus()
 #endif
-						   )
+					   )
+					{
+					
+						SetTextColor(cd->nmcd.hdc, cd->clrText);
+						if (m_Theme)
 						{
-						
-							SetTextColor(cd->nmcd.hdc, cd->clrText);
-							if (m_Theme)
-							{
 #if _MSC_VER < 1700 // [!] FlylinkDC++
-								const auto l_res = DrawThemeBackground(m_Theme, cd->nmcd.hdc, LVP_LISTITEM, 3, &rc, &rc);
+							const auto l_res = DrawThemeBackground(m_Theme, cd->nmcd.hdc, LVP_LISTITEM, 3, &rc, &rc);
 #else
-								const auto l_res = DrawThemeBackground(m_Theme, cd->nmcd.hdc, 1, 3, &rc, &rc);
+							const auto l_res = DrawThemeBackground(m_Theme, cd->nmcd.hdc, 1, 3, &rc, &rc);
 #endif // _MSC_VER < 1700
-								//dcassert(l_res == S_OK);
-								if (l_res != S_OK)
-								{
-									ctrlUsers.SetItemFilled(cd, rc,  cd->clrText, cd->clrText);  // TODO fix copy-paste
-								}
-							}
-							else
+							//dcassert(l_res == S_OK);
+							if (l_res != S_OK)
 							{
-								ctrlUsers.SetItemFilled(cd, rc, cd->clrText , cd->clrText); // TODO fix copy-paste
+								ctrlUsers.SetItemFilled(cd, rc,  cd->clrText, cd->clrText);  // TODO fix copy-paste
 							}
 						}
 						else
 						{
 							ctrlUsers.SetItemFilled(cd, rc, cd->clrText , cd->clrText); // TODO fix copy-paste
 						}
-						// TODO fix copy-paste
-						const auto& l_location = ui->getLocation();
-						if (l_location.isKnown())
-						{
-							rc.left += 2;
-							LONG top = rc.top + (rc.Height() - 15) / 2;
-							if ((top - rc.top) < 2)
-								top = rc.top + 1;
-							// TODO: move this to FlagImage and cleanup!
-							int l_step = 0;
-							if (BOOLSETTING(ENABLE_COUNTRYFLAG) && l_location.getCountryIndex())
-							{
-								const POINT ps = { rc.left, top };
-								g_flagImage.DrawCountry(cd->nmcd.hdc, l_location, ps);
-								l_step += 25;
-							}
-							const POINT p = { rc.left + l_step, top };
-							if (l_location.getFlagIndex())
-							{
-								g_flagImage.DrawLocation(cd->nmcd.hdc, l_location, p);
-								l_step += 25;
-							}
-							// ~TODO: move this to FlagImage and cleanup!
-							top = rc.top + (rc.Height() - WinUtil::getTextHeight(cd->nmcd.hdc) - 1) / 2;
-							const auto& l_desc = l_location.getDescription();
-							if (!l_desc.empty())
-							{
-								::ExtTextOut(cd->nmcd.hdc, rc.left + l_step + 5, top + 1, ETO_CLIPPED, rc, l_desc.c_str(), l_desc.length(), nullptr);
-							}
-						}
-						return CDRF_SKIPDEFAULT;
 					}
+					else
+					{
+						ctrlUsers.SetItemFilled(cd, rc, cd->clrText , cd->clrText); // TODO fix copy-paste
+					}
+					// TODO fix copy-paste
+					const auto& l_location = ui->getLocation();
+					if (l_location.isKnown())
+					{
+						rc.left += 2;
+						LONG top = rc.top + (rc.Height() - 15) / 2;
+						if ((top - rc.top) < 2)
+							top = rc.top + 1;
+						// TODO: move this to FlagImage and cleanup!
+						int l_step = 0;
+						if (BOOLSETTING(ENABLE_COUNTRYFLAG) && l_location.getCountryIndex())
+						{
+							const POINT ps = { rc.left, top };
+							g_flagImage.DrawCountry(cd->nmcd.hdc, l_location, ps);
+							l_step += 25;
+						}
+						const POINT p = { rc.left + l_step, top };
+						if (l_location.getFlagIndex())
+						{
+							g_flagImage.DrawLocation(cd->nmcd.hdc, l_location, p);
+							l_step += 25;
+						}
+						// ~TODO: move this to FlagImage and cleanup!
+						top = rc.top + (rc.Height() - WinUtil::getTextHeight(cd->nmcd.hdc) - 1) / 2;
+						const auto& l_desc = l_location.getDescription();
+						if (!l_desc.empty())
+						{
+							::ExtTextOut(cd->nmcd.hdc, rc.left + l_step + 5, top + 1, ETO_CLIPPED, rc, l_desc.c_str(), l_desc.length(), nullptr);
+						}
+					}
+					return CDRF_SKIPDEFAULT;
+				}
 			bHandled = FALSE;
 			return CDRF_DODEFAULT;
 		}

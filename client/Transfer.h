@@ -110,7 +110,7 @@ class Transfer
 		{
 			return m_hinted_user.user;
 		}
-		const HintedUser& getHintedUser() const // [!] IRainman opt: add const link.
+		HintedUser getHintedUser() const
 		{
 			return m_hinted_user;
 		}

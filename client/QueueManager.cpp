@@ -1893,10 +1893,10 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 {
 	UserList getConn;
 	string fileName;
-	const HintedUser& hintedUser = aDownload->getHintedUser();
-	UserPtr user = aDownload->getUser(); // —сылку нельз€ - нужно держать юзера.
+	const HintedUser l_hintedUser = aDownload->getHintedUser();
+	UserPtr l_user = aDownload->getUser(); // —сылку нельз€ - нужно держать юзера.
 	
-	dcassert(user); // [!] IRainman fix: putDownload call with empty by the user can not because you can not even attempt to download with an empty user!
+	dcassert(l_user); // [!] IRainman fix: putDownload call with empty by the user can not because you can not even attempt to download with an empty user!
 	
 	Flags::MaskType flags = 0;
 	bool downloadList = false;
@@ -1941,7 +1941,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 					}
 					else
 					{
-						fire(QueueManagerListener::PartialList(), hintedUser, aDownload->getPFS());
+						fire(QueueManagerListener::PartialList(), l_hintedUser, aDownload->getPFS());
 					}
 				}
 				else
@@ -2195,15 +2195,15 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 	
 	if (!fileName.empty())
 	{
-		processList(fileName, hintedUser, flags);
+		processList(fileName, l_hintedUser, flags);
 	}
 	
 	// partial file list failed, redownload full list
-	if (downloadList && user->isOnline())
+	if (downloadList && l_user->isOnline())
 	{
 		try
 		{
-			addList(user, flags);
+			addList(l_user, flags);
 		}
 		catch (const Exception&) {}
 	}

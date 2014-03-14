@@ -80,7 +80,7 @@ void UserInfoSimple::addSummaryMenu()
 			if (uit->getUser() == getUser())
 			{
 				uint8_t l_count_menu = 0; // [+]PPA
-				for (auto i = uit->m_files.cbegin(); i != uit->m_files.cend(); ++i)
+				for (auto i = uit->m_waiting_files.cbegin(); i != uit->m_waiting_files.cend(); ++i)
 				{
 					if (!caption)
 					{

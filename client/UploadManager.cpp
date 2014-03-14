@@ -57,7 +57,7 @@ UploadManager::~UploadManager()
 		Lock l(m_csQueue); // [!] IRainman opt.
 		for (auto ii = m_slotQueue.cbegin(); ii != m_slotQueue.cend(); ++ii)
 		{
-			for (auto i = ii->m_files.cbegin(); i != ii->m_files.cend(); ++i)
+			for (auto i = ii->m_waiting_files.cbegin(); i != ii->m_waiting_files.cend(); ++i)
 			{
 				(*i)->dec();
 			}
@@ -963,7 +963,7 @@ size_t UploadManager::addFailedUpload(const UserConnection& source, const string
 	{
 		it->setToken(source.getToken());
 		// https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=130703
-		for (auto fileIter = it->m_files.cbegin(); fileIter != it->m_files.cend(); ++fileIter) //TODO https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128318
+		for (auto fileIter = it->m_waiting_files.cbegin(); fileIter != it->m_waiting_files.cend(); ++fileIter) //TODO https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128318
 		{
 			if ((*fileIter)->getFile() == file)
 			{
@@ -976,17 +976,28 @@ size_t UploadManager::addFailedUpload(const UserConnection& source, const string
 	if (it == m_slotQueue.end())
 	{
 		++queue_position;
-		m_slotQueue.push_back(WaitingUser(source.getUser(), source.getToken(), uqi));
+		//WaitingUser l_wu;
+		//l_wu.m_hintedUser = source.getHintedUser();
+		//l_wu.setToken(source.getToken());
+		//l_wu.m_files.insert(uqi);
+		m_slotQueue.push_back(WaitingUser(source.getHintedUser(), source.getToken(), uqi));
 	}
 	else
 	{
-		it->m_files.insert(uqi);
+		it->m_waiting_files.insert(uqi);
 	}
 	// Crash https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=29270
 	fire(UploadManagerListener::QueueAdd(), uqi);
 	return queue_position;
 }
-
+void UploadManager::clearWaitingFilesL(const WaitingUser& p_wu)
+{
+	for (auto i = p_wu.m_waiting_files.cbegin(); i != p_wu.m_waiting_files.cend(); ++i)
+	{
+		fire(UploadManagerListener::QueueItemRemove(), (*i));
+		(*i)->dec();
+	}
+}
 void UploadManager::clearUserFilesL(const UserPtr& aUser)
 {
 	auto it = std::find_if(m_slotQueue.cbegin(), m_slotQueue.cend(), [&](const UserPtr & u)
@@ -995,11 +1006,7 @@ void UploadManager::clearUserFilesL(const UserPtr& aUser)
 	});
 	if (it != m_slotQueue.end())
 	{
-		for (auto i = it->m_files.cbegin(); i != it->m_files.cend(); ++i)
-		{
-			fire(UploadManagerListener::QueueItemRemove(), (*i));
-			(*i)->dec();
-		}
+		clearWaitingFilesL(*it);
 		fire(UploadManagerListener::QueueRemove(), aUser);
 		m_slotQueue.erase(it);
 	}
@@ -1059,28 +1066,40 @@ void UploadManager::removeConnection(UserConnection* aSource)
 	aSource->setSlotType(UserConnection::NOSLOT);
 }
 
-void UploadManager::notifyQueuedUsersL(int64_t tick)
+void UploadManager::notifyQueuedUsers(int64_t p_tick)
 {
+	// Сверху лочится чере m_csQueue
 	if (m_slotQueue.empty())
 		return; //no users to notify
-		
-	size_t freeslots = getFreeSlots();
-	if (freeslots > 0)
+	vector<WaitingUser> l_notifyList;
 	{
-		freeslots -= m_notifiedUsers.size();
-		while (!m_slotQueue.empty() && freeslots > 0)
+		Lock l(m_csQueue); // [+] IRainman opt.
+		int freeslots = getFreeSlots();
+		if (freeslots > 0)
 		{
-			// let's keep him in the notifiedList until he asks for a file
-			const WaitingUser wu = m_slotQueue.front(); // TODO -  https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128150
-			clearUserFilesL(wu.getUser());
-			
-			m_notifiedUsers[wu.getUser()] = tick;//[!]IRainman refactoring transfer mechanism
-			
-			ClientManager::getInstance()->connect(HintedUser(wu.getUser(), Util::emptyString), wu.getToken());
-			
-			freeslots--;
+			freeslots -= m_notifiedUsers.size();
+			while (freeslots > 0 && !m_slotQueue.empty())
+			{
+				// let's keep him in the connectingList until he asks for a file
+				const WaitingUser& wu = m_slotQueue.front(); // TODO -  https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128150
+				//         https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=56833
+				clearWaitingFilesL(wu);
+				fire(UploadManagerListener::QueueRemove(), wu.getUser()); // TODO унести из лока?
+				m_slotQueue.pop_front();
+				if (wu.getUser()->isOnline())
+				{
+					m_notifiedUsers[wu.getUser()] = p_tick;
+					l_notifyList.push_back(wu);
+					freeslots--;
+				}
+			}
 		}
 	}
+	for (auto it = l_notifyList.cbegin(); it != l_notifyList.cend(); ++it)
+	{
+		ClientManager::getInstance()->connect(it->m_hintedUser, it->getToken());
+	}
+	
 }
 
 void UploadManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
@@ -1232,10 +1251,8 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 		}
 	}
 	
-	{
-		Lock l(m_csQueue); // [+] IRainman opt.
-		notifyQueuedUsersL(aTick);
-	}
+	notifyQueuedUsers(aTick);
+	
 	fire(UploadManagerListener::QueueUpdate());
 	
 	if (!isFireball)

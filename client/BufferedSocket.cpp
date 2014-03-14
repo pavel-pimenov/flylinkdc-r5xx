@@ -373,7 +373,7 @@ void BufferedSocket::threadRead()
 								if (!l_all_myInfo.empty())
 								{
 #ifdef _DEBUG
-#define FLYLINKDC_EMULATOR_4000_USERS
+// #define FLYLINKDC_EMULATOR_4000_USERS
 #endif
 								
 #ifdef FLYLINKDC_EMULATOR_4000_USERS

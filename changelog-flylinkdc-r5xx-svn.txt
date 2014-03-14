@@ -1,4 +1,53 @@
 ------------------------------------------------------------------------
+r16836 | pavel.pimenov@gmail.com | 2014-03-14 02:30:14 +0400 (Пт, 14 мар 2014) | 7 lines
+
+Merged revision(s) 16833-16835 from trunk:
+........
+* Исправлено падение https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=61681
+........
+# Маркер проблемы http://code.google.com/p/flylinkdc/issues/detail?id=1443
+........
+
+------------------------------------------------------------------------
+r16833 | pavel.pimenov@gmail.com | 2014-03-14 01:24:13 +0400 (Пт, 14 мар 2014) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r16832 | pavel.pimenov@gmail.com | 2014-03-14 00:51:58 +0400 (Пт, 14 мар 2014) | 10 lines
+
+Merged revision(s) 16829-16831 from trunk:
+# WaitingUser перевел на HintedUser 
+# К сожалению падение https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=56833
+ не исправлено - в void UploadManager::notifyQueuedUsers
+ исключил создание копии объекта const WaitingUser& wu = m_slotQueue.front()
+ падаем на нем.
+........
+# В WaitingUser std::set<UploadQueueItem*> перевел на boost::unordered_set<UploadQueueItem*>
+  В UploadManager::notifyQueuedUsers убрал лищний поиск по m_slotQueue в clearUserFilesL
+
+------------------------------------------------------------------------
+r16828 | pavel.pimenov@gmail.com | 2014-03-13 18:02:19 +0400 (Чт, 13 мар 2014) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r16827 | pavel.pimenov@gmail.com | 2014-03-13 17:29:23 +0400 (Чт, 13 мар 2014) | 11 lines
+
+Merged revision(s) 16821-16826 from trunk:
+* (Fixed issue 1442) http://code.google.com/p/flylinkdc/issues/detail?id=1442
+   След колонки переведены на ручную отрисовку   
+     ctrlUsers.setColumnOwnerDraw(COLUMN_UPLOAD);
+     ctrlUsers.setColumnOwnerDraw(COLUMN_DOWNLOAD);
+     ctrlUsers.setColumnOwnerDraw(COLUMN_MESSAGES);
+........
+# Возможно исправил падения в UploadManager::notifyQueuedUsers
+  https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128150
+  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=56833
+
+------------------------------------------------------------------------
+r16818 | pavel.pimenov@gmail.com | 2014-03-13 00:33:50 +0400 (Чт, 13 мар 2014) | 1 line
+
+# Log
+------------------------------------------------------------------------
 r16817 | pavel.pimenov@gmail.com | 2014-03-12 23:52:15 +0400 (Ср, 12 мар 2014) | 21 lines
 
 Merged revision(s) 16808-16816 from trunk:

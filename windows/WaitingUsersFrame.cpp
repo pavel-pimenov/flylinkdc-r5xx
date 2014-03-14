@@ -195,7 +195,7 @@ LRESULT WaitingUsersFrame::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 {
 	if (getSelectedUser())
 	{
-		UserPtr User = getCurrentdUser();
+		const UserPtr User = getCurrentdUser();
 		if (User)
 		{
 			UploadManager::LockInstanceQueue lockedInstance; // [+] IRainman opt.
@@ -306,9 +306,9 @@ void WaitingUsersFrame::LoadAll()
 		for (auto uit = users.cbegin(); uit != users.cend(); ++uit)
 		{
 			UQFUsers.push_back(uit->getUser());
-			ctrlQueued.InsertItem(TVIF_PARAM | TVIF_TEXT, (uit->getUser()->getLastNickT() + _T(" - ") + WinUtil::getHubNames(uit->getUser()->getCID(), Util::emptyString).first).c_str(),
+			ctrlQueued.InsertItem(TVIF_PARAM | TVIF_TEXT, (uit->getUser()->getLastNickT() + _T(" - ") + Text::toT(uit->m_hintedUser.hint)).c_str(),
 			                      0, 0, 0, 0, (LPARAM)(new UserItem(uit->getUser())), TVI_ROOT, TVI_LAST);
-			for (auto i = uit->m_files.cbegin(); i != uit->m_files.cend(); ++i)
+			for (auto i = uit->m_waiting_files.cbegin(); i != uit->m_waiting_files.cend(); ++i)
 			{
 				AddFile(*i);
 			}
@@ -351,6 +351,8 @@ LRESULT WaitingUsersFrame::onItemChanged(int /*idCtrl*/, LPNMHDR /* pnmh */, BOO
 	
 	while (userNode)
 	{
+		CLockRedraw<> l_lock_draw(m_ctrlList);
+		CLockRedraw<true> l_lock_draw_q(ctrlQueued);
 		m_ctrlList.DeleteAllItems();
 		UserItem* ui = reinterpret_cast<UserItem *>(ctrlQueued.GetItemData(userNode));
 		if (ui)
@@ -363,9 +365,7 @@ LRESULT WaitingUsersFrame::onItemChanged(int /*idCtrl*/, LPNMHDR /* pnmh */, BOO
 			});
 			if (it != users.end())
 			{
-				CLockRedraw<> l_lock_draw(m_ctrlList);
-				CLockRedraw<true> l_lock_draw_q(ctrlQueued);
-				for (auto i = it->m_files.cbegin(); i != it->m_files.cend(); ++i)
+				for (auto i = it->m_waiting_files.cbegin(); i != it->m_waiting_files.cend(); ++i)
 				{
 					AddFile(*i);
 				}

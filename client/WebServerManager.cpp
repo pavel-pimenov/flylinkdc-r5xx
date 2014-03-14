@@ -679,7 +679,7 @@ string WebServerManager::getULQueue()
 		const auto& users = lockedInstance->getUploadQueueL();
 		for (auto ii = users.cbegin(); ii != users.cend(); ++ii)
 		{
-			for (auto i = ii->m_files.cbegin(); i != ii->m_files.cend(); ++i)
+			for (auto i = ii->m_waiting_files.cbegin(); i != ii->m_waiting_files.cend(); ++i)
 			{
 				ret_queue_list += "<tr>\n<td>" + Util::toString(ClientManager::getNicks(ii->getUser()->getCID(), Util::emptyString)) + "</td>\n";
 				ret_queue_list += "<td>" + Util::getFileName((*i)->getFile()) + "</td>\n</tr>\n";

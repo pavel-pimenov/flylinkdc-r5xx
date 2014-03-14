@@ -88,6 +88,7 @@ vc11
 /compiled/Settings/Emptyfiles.xml.bz2
 /compiled/Settings/*.sqlite-shm
 /compiled/Settings/*.sqlite-wal
+/compiled/Settings/*.sqlite-journal
 /compiled/Settings/IPTrust.ini
 
 /compiled/Settings/files.xml.bz2
@@ -100,5 +101,5 @@ FlylinkDC-*.7z
 /compiled/Settings/common/CustomLocations.bmp
 /compiled/Settings/common/CustomLocations.ini
 /compiled/UpdateTools/FlyUpdate/commit_update.bat
+
 /openssl/openssl.vcxproj.user
-/compiled/Settings/*.sqlite-journal

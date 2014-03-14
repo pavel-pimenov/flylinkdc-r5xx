@@ -311,7 +311,7 @@ WCHAR* ChatBot::onQueryQueuedUploads(const WCHAR* cid)
 		{
 			if (uit->getUser() == user)
 			{
-				for (auto i = uit->m_files.cbegin(); i != uit->m_files.cend(); ++i)
+				for (auto i = uit->m_waiting_files.cbegin(); i != uit->m_waiting_files.cend(); ++i)
 				{
 					ps.addVariable(L"CID", Text::toT(uit->getUser()->getCID().toBase32()).c_str());
 					ps.addVariable(L"FILENAME", Text::toT((*i)->getFile()).c_str());

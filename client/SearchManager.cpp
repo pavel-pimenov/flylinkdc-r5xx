@@ -300,6 +300,9 @@ int SearchManager::UdpQueue::run()
 			
 			const string hubIpPort = x.substr(i, j - i);
 			const string url = ClientManager::findHub(hubIpPort); // TODO - внутри линейный поиск. оптимизнуть
+			// Иногда вместо IP приходит домен "$SR chen video\multfilm\Ну, погоди!\Ну, погоди! 2.avi33492992 5/5TTH:B4O5M74UPKZ7I23CH36NA3SZOUZTJLWNVEIJMTQ (dc.a-galaxy.com:411)|"
+			// http://code.google.com/p/flylinkdc/issues/detail?id=1443
+			// Это не обрабатывается в функции - поправить.
 			// для dc.dly-server.ru - возвращается его IP-шник "31.186.103.125:411"
 			// url оказывается пустым https://www.box.net/shared/ayirspvdjk2boix4oetr
 			// падаем на dcassert в следующем вызове findHubEncoding.
