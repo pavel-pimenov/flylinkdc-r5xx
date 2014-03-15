@@ -38,6 +38,22 @@ class CFlyBusy
 			m_flag = false;
 		}
 };
+#if 0
+template <class T> class CFlyFrameInstallerFlag
+{
+		static uint32_t g_count_instance;
+	public:
+		CFlyFrameInstallerFlag()
+		{
+			++g_count_instance;
+		}
+		~CFlyFrameInstallerFlag()
+		{
+			--g_count_instance;
+		}
+};
+template <class T> uint32_t CFlyFrameInstallerFlag<T>::g_count_instance;
+#endif
 
 class CFlyTimerAdapter
 {

@@ -28,8 +28,10 @@
 
 #define SHOWTREE_MESSAGE_MAP 12
 
-class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(0, 0, 0), IDR_UPLOAD_QUEUE > , public StaticFrame<WaitingUsersFrame, ResourceManager::WAITING_USERS, IDC_UPLOAD_QUEUE>,
-	private UploadManagerListener, public CSplitterImpl<WaitingUsersFrame>,
+class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(0, 0, 0), IDR_UPLOAD_QUEUE > ,
+	public StaticFrame<WaitingUsersFrame, ResourceManager::WAITING_USERS, IDC_UPLOAD_QUEUE>,
+	private UploadManagerListener,
+	public CSplitterImpl<WaitingUsersFrame>,
 	public UserInfoBaseHandler<WaitingUsersFrame>, // [+] IRainman fix: add user menu.
 	private SettingsManagerListener,
 	private CFlyTimerAdapter
@@ -45,11 +47,13 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 			m_needsUpdateStatus(false), m_needsResort(false),
 			showTreeContainer(_T("BUTTON"), this, SHOWTREE_MESSAGE_MAP)
 		{
+			++UploadManager::g_count_WaitingUsersFrame;
 			memzero(statusSizes, sizeof(statusSizes));
 		}
 		
 		~WaitingUsersFrame()
 		{
+			--UploadManager::g_count_WaitingUsersFrame;
 		}
 		
 		enum

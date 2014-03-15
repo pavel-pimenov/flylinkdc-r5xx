@@ -335,7 +335,7 @@ void ConnectionManager::cleanupIpFlood(const uint64_t p_tick)
 		{
 #ifdef _DEBUG
 			LogManager::getInstance()->ddos_message("BlockID = " + Util::toString(j->second.m_block_id) + ", Removed mini-ban for: " +
-			                                        j->first.first.to_string() + j->second.getPorts() +
+			                                        j->first.first + j->second.getPorts() + ", Hub IP = " + j->first.second.to_string() +
 			                                        " m_ddos_map.size() = " + Util::toString(m_ddos_map.size()));
 #endif
 		}
@@ -348,11 +348,11 @@ void ConnectionManager::cleanupIpFlood(const uint64_t p_tick)
 			string l_type;
 			if (j->first.second.is_unspecified()) // Если нет второго IP то это команада  ConnectToMe
 			{
-				l_type =  "IP-1:" + j->first.first.to_string() + j->second.getPorts();
+				l_type =  "IP-1:" + j->first.first + j->second.getPorts();
 			}
 			else
 			{
-				l_type = " IP-1:" + j->first.first.to_string() + j->second.getPorts() + " IP-2: " + j->first.second.to_string();
+				l_type = " IP-1:" + j->first.first + j->second.getPorts() + " IP-2: " + j->first.second.to_string();
 			}
 			LogManager::getInstance()->ddos_message("BlockID = " + Util::toString(j->second.m_block_id) + ", Removed DDoS lock " + j->second.m_type_block +
 			                                        ", Count connect = " + Util::toString(j->second.m_count_connect) + l_type +
@@ -574,48 +574,51 @@ bool ConnectionManager::checkTTHDuplicateSearch(const string& p_search_command)
 bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, const boost::asio::ip::address_v4& p_ip_hub, const string& p_userInfo, const string& p_HubInfo)
 {
 	{
-		boost::system::error_code ec;
 		const auto l_tick = GET_TICK();
-		const auto l_ip = boost::asio::ip::address_v4::from_string(aIPServer, ec);
-		const CFlyDDOSkey l_key(l_ip, p_ip_hub);
-		dcassert(!ec);
-		if (!ec)
+		// boost::system::error_code ec;
+		// const auto l_ip = boost::asio::ip::address_v4::from_string(aIPServer, ec);
+		const CFlyDDOSkey l_key(aIPServer, p_ip_hub);
+		// dcassert(!ec); // TODO - тут бывает и Host
+		
+		webrtc::WriteLockScoped l_ddos(*g_csDdosCheck);
+		CFlyDDoSTick l_item;
+		l_item.m_first_tick = l_tick;
+		l_item.m_last_tick = l_tick;
+		auto l_result = m_ddos_map.insert(std::pair<CFlyDDOSkey, CFlyDDoSTick>(l_key, l_item));
+		auto& l_cur_value = l_result.first->second;
+		++l_cur_value.m_count_connect;
+		string l_debug_key = " Time: " + Util::getShortTimeString() + " Hub info = " + p_HubInfo;
+		if(!p_userInfo.empty())
 		{
-			webrtc::WriteLockScoped l_ddos(*g_csDdosCheck);
-			CFlyDDoSTick l_item;
-			l_item.m_first_tick = l_tick;
-			l_item.m_last_tick = l_tick;
-			auto l_result = m_ddos_map.insert(std::pair<CFlyDDOSkey, CFlyDDoSTick>(l_key, l_item));
-			auto& l_cur_value = l_result.first->second;
-			++l_cur_value.m_count_connect;
-			l_cur_value.m_original_query_for_debug.push_back(" Time: [" + Util::getShortTimeString() +  "] Hub info = [" + p_HubInfo + "] UserInfo = [" + p_userInfo + "]"); // Лог для детальной отладки
-			if (l_result.second == false)
+		  l_debug_key + " UserInfo = [" + p_userInfo + "]";
+		}
+		l_cur_value.m_original_query_for_debug[l_debug_key]++;
+		if (l_result.second == false)
+		{
+			// Элемент уже существует
+			l_cur_value.m_last_tick = l_tick;   // Корректируем время последней активности.
+			l_cur_value.m_ports.insert(aPort);  // Сохраним последний порт
+			if (l_cur_value.m_count_connect == CFlyServerConfig::g_max_ddos_connect_to_me) // Превысили кол-во коннектов по одному IP
 			{
-				// Элемент уже существует
-				l_cur_value.m_last_tick = l_tick;   // Корректируем время последней активности.
-				l_cur_value.m_ports.insert(aPort);  // Сохраним последний порт
-				if (l_cur_value.m_count_connect == CFlyServerConfig::g_max_ddos_connect_to_me) // Превысили кол-во коннектов по одному IP
+				const string l_info   = "[Count limit: " + Util::toString(CFlyServerConfig::g_max_ddos_connect_to_me) + "]\t";
+				const string l_target = "[Target: " + aIPServer + l_cur_value.getPorts() + "]\t";
+				const string l_user_info = !p_userInfo.empty() ? "[UserInfo: " + p_userInfo + "]\t"  : "";
+				l_cur_value.m_type_block = "Type DDoS:" + p_ip_hub.is_unspecified() ? "[$ConnectToMe]" : "[$Search]";
+				static uint16_t g_block_id = 0;
+				l_cur_value.m_block_id = ++g_block_id;
+				LogManager::getInstance()->ddos_message("BlockID=" + Util::toString(l_cur_value.m_block_id) + ", " + l_cur_value.m_type_block + p_HubInfo + l_info + l_target + l_user_info);
+				for (auto k = l_cur_value.m_original_query_for_debug.cbegin() ; k != l_cur_value.m_original_query_for_debug.cend(); ++k)
 				{
-					const string l_info   = "[Count limit: " + Util::toString(CFlyServerConfig::g_max_ddos_connect_to_me) + "]\t";
-					const string l_target = "[Target: " + aIPServer + l_cur_value.getPorts() + "]\t";
-					const string l_user_info = !p_userInfo.empty() ? "[UserInfo: " + p_userInfo + "]\t"  : "";
-					l_cur_value.m_type_block = "Type DDoS:" + p_ip_hub.is_unspecified() ? "[$ConnectToMe]" : "[$Search]";
-					static uint16_t g_block_id = 0;
-					l_cur_value.m_block_id = ++g_block_id;
-					LogManager::getInstance()->ddos_message("BlockID=" + Util::toString(l_cur_value.m_block_id) + ", " + l_cur_value.m_type_block + p_HubInfo + l_info + l_target + l_user_info);
-					for (auto k = l_cur_value.m_original_query_for_debug.cbegin() ; k != l_cur_value.m_original_query_for_debug.cend(); ++k)
-					{
-						LogManager::getInstance()->ddos_message(" BlockID=" + Util::toString(l_cur_value.m_block_id) + ", Detail info: " + *k);
-					}
-					l_cur_value.m_original_query_for_debug.clear();
+					LogManager::getInstance()->ddos_message("  Detail BlockID=" + Util::toString(l_cur_value.m_block_id) + " " + k->first + " Count:" + Util::toString(k->second)); // TODO - сдать дубликаты + показать кол-во
 				}
-				if (l_cur_value.m_count_connect >= CFlyServerConfig::g_max_ddos_connect_to_me)
+				l_cur_value.m_original_query_for_debug.clear();
+			}
+			if (l_cur_value.m_count_connect >= CFlyServerConfig::g_max_ddos_connect_to_me)
+			{
+				if ((l_cur_value.m_last_tick - l_cur_value.m_first_tick) < CFlyServerConfig::g_ban_ddos_connect_to_me * 1000 * 60)
 				{
-					if ((l_cur_value.m_last_tick - l_cur_value.m_first_tick) < CFlyServerConfig::g_ban_ddos_connect_to_me * 1000 * 60)
-					{
-						return true; // Лочим этот коннект до наступления амнистии. TODO - проверить эту часть внимательей
-						// в след части фикса - проводить анализ протокола и коннекты на порты лочить на вечно.
-					}
+					return true; // Лочим этот коннект до наступления амнистии. TODO - проверить эту часть внимательей
+					// в след части фикса - проводить анализ протокола и коннекты на порты лочить на вечно.
 				}
 			}
 		}

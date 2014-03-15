@@ -1546,10 +1546,15 @@ class WinUtil
 		
 		static LONG getTextWidth(const tstring& str, HWND hWnd)
 		{
-			const HDC dc = ::GetDC(hWnd);
-			const LONG sz = getTextWidth(str, dc);
-			const int l_res = ::ReleaseDC(mainWnd, dc);
-			dcassert(l_res);
+			LONG sz = 0;
+			dcassert(str.length());
+			if (str.length())
+			{
+				const HDC dc = ::GetDC(hWnd);
+				sz = getTextWidth(str, dc);
+				const int l_res = ::ReleaseDC(mainWnd, dc);
+				dcassert(l_res);
+			}
 			return sz;
 		}
 		static LONG getTextWidth(const tstring& str, HDC dc)

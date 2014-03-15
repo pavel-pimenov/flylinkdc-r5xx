@@ -249,7 +249,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		
 		/** All active connections */
 		static boost::unordered_set<UserConnection*> g_userConnections;
-		typedef std::pair<boost::asio::ip::address_v4, boost::asio::ip::address_v4> CFlyDDOSkey; // uint32_t boost::asio::ip::address_v4 в  ключе тупит
+		typedef std::pair<std::string, boost::asio::ip::address_v4> CFlyDDOSkey; // uint32_t boost::asio::ip::address_v4 в  ключе тупит
 		class CFlyTickDetect
 		{
 			public:
@@ -269,7 +269,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 			public:
 				std::string m_type_block;
 				boost::unordered_set<uint16_t> m_ports;
-				std::vector<std::string> m_original_query_for_debug;
+				boost::unordered_map<std::string, uint32_t> m_original_query_for_debug;
 				CFlyDDoSTick()
 				{
 				}

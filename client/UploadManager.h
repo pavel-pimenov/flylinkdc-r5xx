@@ -146,6 +146,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		mutable FastCriticalSection csDos; // [+] IRainman opt.
 #endif
 	public:
+		static uint32_t g_count_WaitingUsersFrame;
 		/** @return Number of uploads. */
 		size_t getUploadCount()
 		{

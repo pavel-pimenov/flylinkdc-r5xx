@@ -36,6 +36,7 @@
 #ifdef _DEBUG
 boost::atomic_int UploadQueueItem::g_upload_queue_item_count;
 #endif
+uint32_t UploadManager::g_count_WaitingUsersFrame = 0;
 
 std::unique_ptr<webrtc::RWLockWrapper> UploadManager::g_csReservedSlots = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> UploadManager::g_csBans = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
@@ -987,14 +988,20 @@ size_t UploadManager::addFailedUpload(const UserConnection& source, const string
 		it->m_waiting_files.insert(uqi);
 	}
 	// Crash https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=29270
-	fire(UploadManagerListener::QueueAdd(), uqi);
+	if (g_count_WaitingUsersFrame)
+	{
+		fire(UploadManagerListener::QueueAdd(), uqi);
+	}
 	return queue_position;
 }
 void UploadManager::clearWaitingFilesL(const WaitingUser& p_wu)
 {
 	for (auto i = p_wu.m_waiting_files.cbegin(); i != p_wu.m_waiting_files.cend(); ++i)
 	{
-		fire(UploadManagerListener::QueueItemRemove(), (*i));
+		if (g_count_WaitingUsersFrame)
+		{
+			fire(UploadManagerListener::QueueItemRemove(), (*i));
+		}
 		(*i)->dec();
 	}
 }
@@ -1007,7 +1014,10 @@ void UploadManager::clearUserFilesL(const UserPtr& aUser)
 	if (it != m_slotQueue.end())
 	{
 		clearWaitingFilesL(*it);
-		fire(UploadManagerListener::QueueRemove(), aUser);
+		if (g_count_WaitingUsersFrame)
+		{
+			fire(UploadManagerListener::QueueRemove(), aUser);
+		}
 		m_slotQueue.erase(it);
 	}
 }
@@ -1084,14 +1094,17 @@ void UploadManager::notifyQueuedUsers(int64_t p_tick)
 				const WaitingUser& wu = m_slotQueue.front(); // TODO -  https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128150
 				//         https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=56833
 				clearWaitingFilesL(wu);
-				fire(UploadManagerListener::QueueRemove(), wu.getUser()); // TODO унести из лока?
-				m_slotQueue.pop_front();
+				if (g_count_WaitingUsersFrame)
+				{
+					fire(UploadManagerListener::QueueRemove(), wu.getUser()); // TODO унести из лока?
+				}
 				if (wu.getUser()->isOnline())
 				{
 					m_notifiedUsers[wu.getUser()] = p_tick;
 					l_notifyList.push_back(wu);
 					freeslots--;
 				}
+				m_slotQueue.pop_front();
 			}
 		}
 	}
@@ -1253,7 +1266,10 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	
 	notifyQueuedUsers(aTick);
 	
-	fire(UploadManagerListener::QueueUpdate());
+	if (g_count_WaitingUsersFrame)
+	{
+		fire(UploadManagerListener::QueueUpdate());
+	}
 	
 	if (!isFireball)
 	{

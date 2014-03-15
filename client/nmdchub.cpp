@@ -1383,7 +1383,7 @@ void NmdcHub::onLine(const string& aLine)
 	// [~] IRainman.
 	else
 	{
-		dcassert(0);
+		//dcassert(0);
 		dcdebug("NmdcHub::onLine Unknown command %s\n", aLine.c_str());
 		LogManager::getInstance()->message("NmdcHub::onLine Unknown command! hub = [" + getHubUrl() + "], command = [" + cmd + "], param = [" + param + "]");
 	}

@@ -382,24 +382,24 @@ string ClientManager::findHub(const string& ipPort)
 		
 	// [-] Lock l(cs); IRainman opt.
 	
-	string ip;
+	string ip_or_host;
 	uint16_t port;
 	const auto i = ipPort.find(':');
 	if (i == string::npos)
 	{
-		ip = ipPort;
+		ip_or_host = ipPort;
 		port = 411;
 	}
 	else
 	{
-		ip = ipPort.substr(0, i);
+		ip_or_host = ipPort.substr(0, i);
 		port = static_cast<uint16_t>(Util::toInt(ipPort.substr(i + 1)));
 	}
 	
 	string url;
 	boost::system::error_code ec;
-	const auto l_ip = boost::asio::ip::address_v4::from_string(ip, ec);
-	dcassert(!ec);
+	const auto l_ip = boost::asio::ip::address_v4::from_string(ip_or_host, ec);
+	//dcassert(!ec);
 	
 	webrtc::ReadLockScoped l(*g_csClients); // [+] IRainman opt.
 	for (auto j = g_clients.cbegin(); j != g_clients.cend(); ++j)
@@ -408,15 +408,19 @@ string ClientManager::findHub(const string& ipPort)
 		if (c->getPort() == port) // [!] IRainman opt.
 		{
 			// If exact match is found, return it
-			if (c->getIp() == l_ip)
+			if (ec)
+			{
+				if (c->getAddress() == ip_or_host)
+				{
+					url = c->getHubUrl();
+					break;
+				}
+			}
+			else if (c->getIp() == l_ip)
 			{
 				url = c->getHubUrl();
 				break;
 			}
-			// [-] IRainman fix: port is always correct! If the port does not match the first time, then on the same IP address, there are several hubs.
-			// [-] // Port is not always correct, so use this as a best guess...
-			// [-] url = c->getHubUrl();
-			// [~]
 		}
 	}
 #ifdef IRAINMAN_CORRRECT_CALL_FOR_CLIENT_MANAGER_DEBUG

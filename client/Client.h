@@ -209,6 +209,10 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			return m_ip.to_string();
 		}
+		const string& getAddress() const
+		{
+			return m_address;
+		}
 		boost::asio::ip::address_v4 getIp() const
 		{
 			return m_ip;

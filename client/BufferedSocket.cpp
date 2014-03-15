@@ -375,7 +375,7 @@ void BufferedSocket::threadRead()
 #ifdef _DEBUG
 // #define FLYLINKDC_EMULATOR_4000_USERS
 #endif
-								
+
 #ifdef FLYLINKDC_EMULATOR_4000_USERS
 									static bool g_is_test = false;
 									const int l_count_guest = 4000;
@@ -390,8 +390,10 @@ void BufferedSocket::threadRead()
 										}
 									}
 #endif // FLYLINKDC_EMULATOR_4000_USERS
-									
-									fire(BufferedSocketListener::MyInfoArray(), l_all_myInfo); // [+]PPA
+									if (!ClientManager::isShutdown())
+									{
+										fire(BufferedSocketListener::MyInfoArray(), l_all_myInfo); // [+]PPA
+									}
 									l_all_myInfo.clear();
 #ifdef FLYLINKDC_EMULATOR_4000_USERS
 // Генерируем случайные IP-адреса
@@ -412,7 +414,10 @@ void BufferedSocket::threadRead()
 						}
 						if (l_all_myInfo.empty())
 						{
-							fire(BufferedSocketListener::Line(), l_line_item); // // TODO - отказаться от временной переменной l и скользить по окну inbuf
+							if (!ClientManager::isShutdown())
+							{
+								fire(BufferedSocketListener::Line(), l_line_item); // TODO - отказаться от временной переменной l и скользить по окну inbuf
+							}
 						}
 					}
 					
@@ -436,7 +441,10 @@ void BufferedSocket::threadRead()
 				//
 				if (!l_all_myInfo.empty())
 				{
-					fire(BufferedSocketListener::MyInfoArray(), l_all_myInfo); // [+]PPA
+					if (!ClientManager::isShutdown())
+					{
+						fire(BufferedSocketListener::MyInfoArray(), l_all_myInfo); // [+]PPA
+					}
 					l_all_myInfo.clear();
 				}
 				if (pos == string::npos)
