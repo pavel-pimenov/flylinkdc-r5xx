@@ -61,7 +61,6 @@ CriticalSection DirectoryListingFrame::g_csUsersMap;
 DirectoryListingFrame::~DirectoryListingFrame()
 {
 	dcassert(m_merge_item_map.empty());
-	dcassert(m_tth_media_file_map.empty());
 	Lock l(g_csUsersMap);
 	if (dl->getUser() && !dl->getUser()->getCID().isZero() && g_usersMap.find(dl->getUser()) != g_usersMap.end())
 		g_usersMap.erase(dl->getUser());
@@ -145,7 +144,7 @@ DirectoryListingFrame::DirectoryListingFrame(const HintedUser& aHintedUser, int6
 	CFlyTimerAdapter(m_hWnd),
 	statusContainer(STATUSCLASSNAME, this, STATUS_MESSAGE_MAP), treeContainer(WC_TREEVIEW, this, CONTROL_MESSAGE_MAP),
 	listContainer(WC_LISTVIEW, this, CONTROL_MESSAGE_MAP), historyIndex(0), m_loading(true),
-	treeRoot(NULL), skipHits(0), files(0), speed(aSpeed), m_updating(false),
+	treeRoot(NULL), m_skipHits(0), files(0), speed(aSpeed), m_updating(false),
 #ifdef USE_OFFLINE_ICON_FOR_FILELIST
 	isoffline(false), /* <[+] InfinitySky */
 #endif // USE_OFFLINE_ICON_FOR_FILELIST
@@ -1696,18 +1695,18 @@ void DirectoryListingFrame::findFile(bool findNext)
 			return;
 			
 		findStr = Text::fromT(dlg.line);
-		skipHits = 0;
+		m_skipHits = 0;
 	}
 	else
 	{
-		skipHits++;
+		m_skipHits++;
 	}
 	
 	if (findStr.empty())
 		return;
 		
 	// Do a search
-	int foundFile = -1, skipHitsTmp = skipHits;
+	int foundFile = -1, skipHitsTmp = m_skipHits;
 	HTREEITEM const oldDir = ctrlTree.GetSelectedItem();
 	HTREEITEM const foundDir = findFile(StringSearch(findStr), ctrlTree.GetRootItem(), foundFile, skipHitsTmp);
 	ctrlTree.SetRedraw(TRUE);
@@ -2263,8 +2262,8 @@ LRESULT DirectoryListingFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wPar
 				m_tth_media_file_map.erase(l_tth);
 			}
 		}
-		prepare_mediainfo_to_fly_serverL(); // Соберем TTH, которые нужно отправить на флай-сервер в обмен на инфу.
 	}
+	prepare_mediainfo_to_fly_serverL(); // Соберем TTH, которые нужно отправить на флай-сервер в обмен на инфу.
 	m_merge_item_map.clear();
 #if 0
 	TODO - апдейты по колонкам не пашут иногда
@@ -2328,42 +2327,6 @@ int DirectoryListingFrame::scan_list_view_from_merge()
 		}
 	}
 	return m_GetFlyServerArray.size();
-}
-//===================================================================================================================================
-void DirectoryListingFrame::prepare_mediainfo_to_fly_serverL()
-{
-	// Обойдем кандидатов для предачи на сервер.
-	// Массив - есть у нас в базе, но нет на fly-server
-	for (auto i = m_tth_media_file_map.begin(); i != m_tth_media_file_map.end(); ++i)
-	{
-		CFlyMediaInfo l_media_info;
-		if (CFlylinkDBManager::getInstance()->load_media_info(i->first, l_media_info, false))
-		{
-			bool l_is_send_info = l_media_info.isMedia() && g_fly_server_config.isFullMediainfo() == false; // Есть медиаинфа и сервер не ждет полный комплект?
-			if (g_fly_server_config.isFullMediainfo()) // Если сервер ждет от нас только полный комплект - проверим наличие атрибутной составялющей
-				l_is_send_info = l_media_info.isMediaAttrExists();
-			if (l_is_send_info)
-			{
-				CFlyServerKey l_info(i->first, i->second);
-				l_info.m_media = l_media_info; // Получили медиаинформацию с локальной базы
-				m_SetFlyServerArray.push_back(l_info);
-			}
-		}
-	}
-	m_tth_media_file_map.clear();
-}
-//===================================================================================================================================
-void DirectoryListingFrame::push_mediainfo_to_fly_server()
-{
-	CFlyServerKeyArray l_copy_map;
-	{
-		Lock l(m_cs_fly_server);
-		l_copy_map.swap(m_SetFlyServerArray);
-	}
-	if (!l_copy_map.empty())
-	{
-		CFlyServerJSON::connect(l_copy_map, true); // Передать медиаинформацию на сервер (TODO - можно отложить и предать позже)
-	}
 }
 //===================================================================================================================================
 void DirectoryListingFrame::mergeFlyServerInfo()

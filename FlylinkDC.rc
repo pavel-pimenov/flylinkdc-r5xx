@@ -2926,6 +2926,9 @@ IDR_ICON_FAIL_ICON      ICON                    "res\\f_red_16.ico"
 IDR_ICON_WARN_ICON      ICON                    "res\\f_yellow_16.ico"
 IDR_ICON_QUESTION_ICON  ICON                    "res\\f_question_16.ico"
 IDR_ICON_PAUSE_ICON     ICON                    "res\\f_grey_16.ico"
+IDR_ICON_MEDICAL_BAG    ICON                    "res\\medical_bag.ico"
+IDR_ICON_THERMOMETR_BAG ICON                    "res\\thermometer2.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

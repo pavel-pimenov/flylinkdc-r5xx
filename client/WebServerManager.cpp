@@ -986,12 +986,12 @@ void WebServerManager::search(string search_str, Search::TypeModes search_type)
 			search_str = g_tth + search_str; // [!] IRainman opt.
 		}
 		
-		token = Util::toString(Util::rand());
+		m_token = Util::toString(Util::rand());
 		
 		SearchManager::getInstance()->addListener(this);
 		// TODO: Get ADC searchtype extensions if any is selected
 		const StringList emptyList;
-		const uint64_t l_searchInterval = SearchManager::getInstance()->search(emptyList, search_str, 0, search_type, Search::SIZE_DONTCARE, token, emptyList, (void*)this, false);
+		const uint64_t l_searchInterval = SearchManager::getInstance()->search(emptyList, search_str, 0, search_type, Search::SIZE_DONTCARE, m_token, emptyList, (void*)this, false);
 		search_delay = Util::toString(l_searchInterval / 1000 + 15);
 		//Lock l(cs);
 		results.clear();
@@ -1006,7 +1006,7 @@ void WebServerManager::on(SearchManagerListener::SR, const SearchResultPtr& aRes
 {
 	{
 		FastLock l(cs);
-		if (!aResult->getToken().empty() && token != aResult->getToken())
+		if (!aResult->getToken().empty() && m_token != aResult->getToken())
 			return;
 			
 		if (row < static_cast<size_t>SETTING(WEBSERVER_SEARCHSIZE))

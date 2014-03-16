@@ -61,6 +61,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		void renameDirectory(const string& realPath, const string& virtualName);
 		
 		string toRealPath(const TTHValue& tth) const; // !PPA!
+		static bool checkType(const string& aString, Search::TypeModes aType);
 		
 		bool destinationShared(const string& file_or_dir_name) const; // [+] IRainman opt.
 		bool getRealPathAndSize(const TTHValue& tth, string& path, int64_t& size) const;

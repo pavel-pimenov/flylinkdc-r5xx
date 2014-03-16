@@ -33,7 +33,7 @@ class ClientBase
 {
 	public:
 	
-		ClientBase() : type(DIRECT_CONNECT) { }
+		ClientBase() : m_type(DIRECT_CONNECT) { }
 		virtual ~ClientBase() {} // [cppcheck]
 		
 		enum P2PType { DIRECT_CONNECT
@@ -41,17 +41,17 @@ class ClientBase
 		               , DHT
 #endif
 		             };
-		P2PType type;
+		P2PType m_type;
 		
 		P2PType getType() const
 		{
-			return type;
+			return m_type;
 		}
 		
 		virtual const string& getHubUrl() const = 0;
 		virtual const string& getHubName() const = 0; // [!] IRainman opt.
 		virtual bool isOp() const = 0;
-		virtual void connect(const OnlineUser& user, const string& token) = 0;
+		virtual void connect(const OnlineUser& user, const string& p_token) = 0;
 		virtual void privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson = false) = 0;
 		
 };
@@ -130,7 +130,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		virtual void connect();
 		virtual void disconnect(bool graceless);
 		
-		virtual void connect(const OnlineUser& user, const string& token) = 0;
+		virtual void connect(const OnlineUser& user, const string& p_token) = 0;
 		virtual void hubMessage(const string& aMessage, bool thirdPerson = false) = 0;
 		virtual void privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson = false) = 0; // !SMT!-S
 		virtual void sendUserCmd(const UserCommand& command, const StringMap& params) = 0;

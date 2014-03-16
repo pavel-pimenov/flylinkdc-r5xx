@@ -648,6 +648,20 @@ class Util
 			const auto i = path.rfind('.');
 			return i != string::npos ? path.substr(i + 1) : Util::emptyString;
 		}
+		static string getFileDoubleExtWithoutDot(const string& path)
+		{
+			auto i = path.rfind('.');
+			if (i != string::npos && i)
+			{
+				i = path.rfind('.', i - 1);
+				if (i != string::npos)
+				{
+					const auto l_res_2exe = path.substr(i + 1);
+					return l_res_2exe;
+				}
+			}
+			return Util::emptyString;
+		}
 		static wstring getFileExtWithoutDot(const wstring& path)
 		{
 			const auto i = path.rfind('.');

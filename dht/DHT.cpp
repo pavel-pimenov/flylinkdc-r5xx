@@ -41,10 +41,10 @@
 namespace dht
 {
 
-DHT::DHT(void) : m_bucket(nullptr), m_lastPacket(0), requestFWCheck(true), firewalled(true)
+DHT::DHT(void) : m_bucket(nullptr), m_lastPacket(0), requestFWCheck(true), m_firewalled(true)
 {
 	lastExternalIP = Util::getLocalOrBindIp(true); // hack
-	type = ClientBase::DHT;
+	m_type = ClientBase::DHT;
 	
 	IndexManager::newInstance();
 }
@@ -73,7 +73,7 @@ void DHT::start()
 		return;
 		
 	// start with global firewalled status
-	firewalled = !ClientManager::isActive(nullptr);
+	m_firewalled = !ClientManager::isActive(nullptr);
 	requestFWCheck = true;
 	//
 	
@@ -173,12 +173,12 @@ void DHT::dispatch(const string& aLine, const string& ip, uint16_t port, bool is
 		string internalUdpPort;
 		if (cmd.getParam("FW", 1, internalUdpPort))
 		{
-			bool firewalled = (Util::toInt(internalUdpPort) != port);
+			bool l_firewalled = (Util::toInt(internalUdpPort) != port);
 			/* TODO if(firewalled)
 			    node->getUser()->setFlag(User::PASSIVE);*/
 			
 			// send him his external ip and port
-			AdcCommand l_cmd(AdcCommand::SEV_SUCCESS, AdcCommand::SUCCESS, !firewalled ? "UDP port opened" : "UDP port closed", AdcCommand::TYPE_UDP);
+			AdcCommand l_cmd(AdcCommand::SEV_SUCCESS, AdcCommand::SUCCESS, !l_firewalled ? "UDP port opened" : "UDP port closed", AdcCommand::TYPE_UDP);
 			l_cmd.addParam("FC", "FWCHECK");
 			l_cmd.addParam("I4", ip);
 			l_cmd.addParam("U4", Util::toString(port));
@@ -271,10 +271,10 @@ void DHT::checkExpiration(uint64_t aTick)
 /*
  * Finds the file in the network
  */
-void DHT::findFile(const string& tth, const string& token)
+void DHT::findFile(const string& tth, const string& p_token)
 {
 	if (isConnected())
-		SearchManager::getInstance()->findFile(tth, token);
+		SearchManager::getInstance()->findFile(tth, p_token);
 }
 
 /*
@@ -336,10 +336,10 @@ void DHT::info(const string& ip, uint16_t port, uint32_t type, const CID& target
 /*
  * Sends Connect To Me request to online node
  */
-void DHT::connect(const OnlineUser& ou, const string& token)
+void DHT::connect(const OnlineUser& ou, const string& p_token)
 {
 	// this is DHT's node, so we can cast ou to Node
-	ConnectionManager::getInstance()->connect((Node*)&ou, token);
+	ConnectionManager::getInstance()->connect((Node*)&ou, p_token);
 }
 
 /*
@@ -650,16 +650,16 @@ void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t /*port*/, const
 				if (fw >= 0)
 				{
 					// we are probably firewalled, so our internal UDP port is unaccessible
-					if (externalIP != lastExternalIP || !firewalled)
+					if (externalIP != lastExternalIP || !m_firewalled)
 						LogManager::getInstance()->message("DHT: " + STRING(DHT_FIREWALLED_UDP) + " (IP: " + externalIP + ") port:" + externalUdpPort);
-					firewalled = true;
+					m_firewalled = true;
 				}
 				else
 				{
-					if (externalIP != lastExternalIP || firewalled)
+					if (externalIP != lastExternalIP || m_firewalled)
 						LogManager::getInstance()->message("DHT: " + STRING(DHT_OUR_UPD_PORT_OPEND) + " (IP: " + externalIP + ") port:" + externalUdpPort);
 						
-					firewalled = false;
+					m_firewalled = false;
 				}
 
 				dcassert(!externalIP.empty())

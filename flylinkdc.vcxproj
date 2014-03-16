@@ -1074,7 +1074,9 @@
     <None Include="compiled\Settings\common\IPGrant.ini" />
     <None Include="compiled\Settings\common\IPGuard.ini" />
     <None Include="compiled\Settings\common\IPTrust.ini" />
-    <None Include="compiled\Settings\flylinkdc-config-r5xx.xml" />
+    <None Include="compiled\Settings\flylinkdc-config-r5xx.xml">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="res\addMessage.ico" />
     <None Include="res\addMessage.png" />
     <None Include="res\ADLSearch.ico" />

@@ -130,7 +130,7 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 		
 		size_t row;
 		
-		string token;
+		string m_token;
 		
 	public:
 		typedef struct

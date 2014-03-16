@@ -74,7 +74,6 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 		typedef PreviewBaseHandler<SearchFrame> prevBase; // [+] IRainman fix.
 #endif
-		
 		BEGIN_MSG_MAP(SearchFrame)
 		NOTIFY_HANDLER(IDC_RESULTS, LVN_GETDISPINFO, ctrlResults.onGetDispInfo)
 		NOTIFY_HANDLER(IDC_RESULTS, LVN_COLUMNCLICK, ctrlResults.onColumnClick)
@@ -112,6 +111,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		COMMAND_ID_HANDLER(IDC_COPY_NICK, onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_FILENAME, onCopy)
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
+		MESSAGE_HANDLER(WM_SPEAKER_MERGE_FLY_SERVER, onMergeFlyServerResult)
 		COMMAND_ID_HANDLER(IDC_COPY_FLYSERVER_INFORM, onCopy)
 		COMMAND_ID_HANDLER(IDC_VIEW_FLYSERVER_INFORM, onShowFlyServerProperty)
 #endif
@@ -138,7 +138,6 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		COMMAND_ID_HANDLER(IDC_CLOSE_ALL_SEARCH_FRAME, onCloseAll) // [+] InfinitySky.
 		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow) // [+] InfinitySky.
 		COMMAND_CODE_HANDLER(CBN_EDITCHANGE, onEditChange)
-		
 		COMMAND_ID_HANDLER(IDC_DOWNLOADTO, onDownloadTo)
 		COMMAND_ID_HANDLER(IDC_FILETYPES, onFiletypeChange) // [+] SCALOlaz: save type
 		COMMAND_ID_HANDLER(IDC_SEARCH_SIZEMODE, onFiletypeChange)
@@ -200,6 +199,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			m_showUI(true), m_onlyFree(false), m_isHash(false), m_droppedResults(0), m_resultsCount(0),
 			m_expandSR(false),
 			m_storeSettings(false), m_isExactSize(false), m_exactSize2(0), m_sizeMode(Search::SIZE_DONTCARE), /*searches(0),*/
+			m_ftype(Search::TYPE_ANY),
 			m_lastFindTTH(false),
 			m_running(false),
 			m_searchEndTime(0),
@@ -223,6 +223,10 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		LRESULT onCtlColor(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		LRESULT onDoubleClickResults(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
 		LRESULT onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/);
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
+		LRESULT onMergeFlyServerResult(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
+#endif
+		
 		LRESULT onSearchByTTH(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onMarkAsDownloaded(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
@@ -678,6 +682,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		bool m_isExactSize;
 		bool m_waitingResults;
 		bool m_needsUpdateStats; // [+] IRainman opt.
+		Search::TypeModes m_ftype;
 		int64_t m_exactSize2;
 		Search::SizeModes m_sizeMode;
 		size_t m_resultsCount;
@@ -746,7 +751,11 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		typedef std::map<int, TARGET_STRUCT> TargetsMap; // !SMT!-S
 		TargetsMap dlTargets; // !SMT!-S
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-		void mergeFlyServerInfo(); // Сольем ответ от сервера с результатом в окошке результатов поиска
+		void mergeFlyServerInfo();
+		int scan_list_view_from_merge();
+		typedef std::map<TTHValue, std::pair<SearchInfo*, CFlyServerCache> > CFlyMergeItem;
+		CFlyMergeItem m_merge_item_map; // TODO - организовать кэш для медиаинфы, чтобы лишний раз не ходить на флай-сервер c get-запросами
+		
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 		void downloadSelected(const tstring& aDir, bool view = false);
 		void downloadWholeSelected(const tstring& aDir);

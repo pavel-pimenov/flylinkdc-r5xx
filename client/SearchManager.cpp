@@ -351,8 +351,6 @@ int SearchManager::UdpQueue::run()
 			if (l_isTTH)
 			{
 				tth = l_hub_name_or_tth.substr(4);
-				const StringList names = ClientManager::getHubNames(user->getCID(), Util::emptyString);
-				l_hub_name_or_tth = names.empty() ? STRING(OFFLINE) : Util::toString(names);
 			}
 			
 			if (tth.empty() && type == SearchResult::TYPE_FILE)
@@ -362,7 +360,7 @@ int SearchManager::UdpQueue::run()
 			
 			const TTHValue l_tth_value(tth);
 			const SearchResultPtr sr(new SearchResult(user, type, slots, freeSlots, size,
-			                                          file, l_hub_name_or_tth, url, remoteIp, l_tth_value, Util::emptyString));
+			                                          file, Util::emptyString, url, remoteIp, l_tth_value, Util::emptyString));
 			                                          
 			SearchManager::getInstance()->fire(SearchManagerListener::SR(), sr);
 #ifdef FLYLINKDC_USE_COLLECT_STAT
@@ -455,7 +453,7 @@ void SearchManager::onRES(const AdcCommand& cmd, const UserPtr& from, const stri
 	int64_t size = -1;
 	string file;
 	string tth;
-	string token;
+	string l_token;
 	
 	for (auto i = cmd.getParameters().cbegin(); i != cmd.getParameters().cend(); ++i)
 	{
@@ -478,7 +476,7 @@ void SearchManager::onRES(const AdcCommand& cmd, const UserPtr& from, const stri
 		}
 		else if (str.compare(0, 2, "TO", 2) == 0)
 		{
-			token = str.substr(2);
+			l_token = str.substr(2);
 		}
 	}
 	
@@ -497,7 +495,7 @@ void SearchManager::onRES(const AdcCommand& cmd, const UserPtr& from, const stri
 			
 		const uint8_t slots = ClientManager::getInstance()->getSlots(from->getCID());
 		const SearchResultPtr sr(new SearchResult(from, type, slots, (uint8_t)freeSlots, size,
-		                                          file, hubName, hub, remoteIp, TTHValue(tth), token));
+		                                          file, hubName, hub, remoteIp, TTHValue(tth), l_token));
 		fire(SearchManagerListener::SR(), sr);
 	}
 }

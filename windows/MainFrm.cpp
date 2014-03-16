@@ -573,8 +573,8 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	
 	CreateSimpleStatusBar();
 	
-	rebar = m_hWndToolBar;
-	ToolbarManager::getInstance()->applyTo(rebar, "MainToolBar");
+	m_rebar = m_hWndToolBar;
+	ToolbarManager::getInstance()->applyTo(m_rebar, "MainToolBar");
 	
 	m_ctrlStatus.Attach(m_hWndStatusBar);
 	m_ctrlStatus.SetSimple(FALSE); // https://www.box.net/shared/6d96012d9690dc892187
@@ -1077,21 +1077,21 @@ HWND MainFrame::createToolbar()    //[~]Drakon. Enlighting toolbars.
 		InitPortalBrowserToolbarItems(largeImages, largeImagesHot, ctrlToolbar, false);
 #endif
 		ctrlToolbar.AutoSize();
-		if (rebar.IsWindow())   // resize of reband to fix position of chevron
+		if (m_rebar.IsWindow())   // resize of reband to fix position of chevron
 		{
-			const int nCount = rebar.GetBandCount();
+			const int nCount = m_rebar.GetBandCount();
 			for (int i = 0; i < nCount; i++)
 			{
 				REBARBANDINFO rbBand = {0};
 				rbBand.cbSize = sizeof(REBARBANDINFO);
 				rbBand.fMask = RBBIM_IDEALSIZE | RBBIM_CHILD;
-				rebar.GetBandInfo(i, &rbBand);
+				m_rebar.GetBandInfo(i, &rbBand);
 				if (rbBand.hwndChild == ctrlToolbar.m_hWnd)
 				{
 					RECT rect = { 0, 0, 0, 0 };
 					ctrlToolbar.GetItemRect(ctrlToolbar.GetButtonCount() - 1, &rect);
 					rbBand.cxIdeal = rect.right;
-					rebar.SetBandInfo(i, &rbBand);
+					m_rebar.SetBandInfo(i, &rbBand);
 				}
 			} // for
 		}
@@ -3156,9 +3156,9 @@ LRESULT MainFrame::OnViewToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 {
 	static BOOL bVisible = TRUE;    // initially visible
 	bVisible = !bVisible;
-	CReBarCtrl rebar = m_hWndToolBar;
-	int nBandIndex = rebar.IdToIndex(ATL_IDW_BAND_FIRST + 1);   // toolbar is 2nd added band
-	rebar.ShowBand(nBandIndex, bVisible);
+	CReBarCtrl l_rebar = m_hWndToolBar;
+	int nBandIndex = l_rebar.IdToIndex(ATL_IDW_BAND_FIRST + 1);   // toolbar is 2nd added band
+	l_rebar.ShowBand(nBandIndex, bVisible);
 	UISetCheck(ID_VIEW_TOOLBAR, bVisible);
 	UpdateLayout();
 	SET_SETTING(SHOW_TOOLBAR, bVisible);
@@ -3170,9 +3170,9 @@ LRESULT MainFrame::OnViewWinampBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 {
 	static BOOL bVisible = TRUE;    // initially visible
 	bVisible = !bVisible;
-	CReBarCtrl rebar = m_hWndToolBar;
-	int nBandIndex = rebar.IdToIndex(ATL_IDW_BAND_FIRST + 3);   // toolbar is 3nd added band
-	rebar.ShowBand(nBandIndex, bVisible);
+	CReBarCtrl l_rebar = m_hWndToolBar;
+	int nBandIndex = l_rebar.IdToIndex(ATL_IDW_BAND_FIRST + 3);   // toolbar is 3nd added band
+	l_rebar.ShowBand(nBandIndex, bVisible);
 	UISetCheck(ID_TOGGLE_TOOLBAR, bVisible);
 	UpdateLayout();
 	SET_SETTING(SHOW_WINAMP_CONTROL, bVisible);
@@ -3184,9 +3184,9 @@ LRESULT MainFrame::OnViewQuickSearchBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 {
 	static BOOL bVisible = TRUE;    // initially visible
 	bVisible = !bVisible;
-	CReBarCtrl rebar = m_hWndToolBar;
-	int nBandIndex = rebar.IdToIndex(ATL_IDW_BAND_FIRST + 2);   // toolbar is 4th added band
-	rebar.ShowBand(nBandIndex, bVisible);
+	CReBarCtrl l_rebar = m_hWndToolBar;
+	int nBandIndex = l_rebar.IdToIndex(ATL_IDW_BAND_FIRST + 2);   // toolbar is 4th added band
+	l_rebar.ShowBand(nBandIndex, bVisible);
 	UISetCheck(ID_TOGGLE_QSEARCH, bVisible);
 	UpdateLayout();
 	SET_SETTING(SHOW_QUICK_SEARCH, bVisible);

@@ -81,13 +81,13 @@ class DHT :
 		void checkExpiration(uint64_t aTick);
 		
 		/** Finds the file in the network */
-		void findFile(const string& tth, const string& token = Util::toString(Util::rand()));
+		void findFile(const string& p_tth, const string& p_token = Util::toString(Util::rand()));
 		
 		/** Sends our info to specified ip:port */
 		void info(const string& ip, uint16_t port, uint32_t type, const CID& targetCID, const UDPKey& udpKey);
 		
 		/** Sends Connect To Me request to online node */
-		void connect(const OnlineUser& ou, const string& token);
+		void connect(const OnlineUser& ou, const string& p_token);
 		
 		/** Sends private message to online node */
 		void privateMessage(const OnlineUserPtr& ou, const string& aMessage, bool thirdPerson  = false);
@@ -105,7 +105,7 @@ class DHT :
 		/** Returns if our UDP port is open */
 		bool isFirewalled() const
 		{
-			return firewalled;
+			return m_firewalled;
 		}
 		
 		/** Returns our IP got from the last firewall check */
@@ -172,7 +172,7 @@ class DHT :
 		/** IPs who we received firewalled status from */
 		StringSet firewalledWanted;
 		boost::unordered_map<string, std::pair<string, uint16_t>> firewalledChecks;
-		bool firewalled;
+		bool m_firewalled;
 		bool requestFWCheck;
 		
 		/** Finds "max" closest nodes and stores them to the list */

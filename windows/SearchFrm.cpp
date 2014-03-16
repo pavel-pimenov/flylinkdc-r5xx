@@ -25,6 +25,7 @@
 #include "../client/QueueManager.h"
 #include "../client/SearchQueue.h"
 #include "../client/ClientManager.h"
+#include "../client/ShareManager.h"
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 #include "../FlyFeatures/CFlyServerDialogNavigator.h"
 #include "../jsoncpp/include/json/value.h"
@@ -782,7 +783,7 @@ void SearchFrame::onEnter(bool p_is_force_passive)
 	ctrlStatus.SetText(3, _T(""));
 	ctrlStatus.SetText(4, _T(""));
 	
-	Search::TypeModes ftype = Search::TypeModes(ctrlFiletype.GetCurSel());
+	m_ftype = Search::TypeModes(ctrlFiletype.GetCurSel());
 	m_isExactSize = (m_sizeMode == Search::SIZE_EXACT);
 	m_exactSize2 = llsize;
 	
@@ -794,7 +795,7 @@ void SearchFrame::onEnter(bool p_is_force_passive)
 	m_droppedResults = 0;
 	m_resultsCount = 0;
 	m_running = true;
-	m_isHash = (ftype == Search::TYPE_TTH);
+	m_isHash = (m_ftype == Search::TYPE_TTH);
 	
 	// Add new searches to the last-search dropdown list
 	if (!BOOLSETTING(FORGET_SEARCH_REQUEST) && find(g_lastSearches.begin(), g_lastSearches.end(), s) == g_lastSearches.end())
@@ -824,23 +825,23 @@ void SearchFrame::onEnter(bool p_is_force_passive)
 	ClientManager::cancelSearch((void*)this);
 	
 	// Get ADC searchtype extensions if any is selected
-	StringList extList;
+	StringList l_extList;
 	try
 	{
-		if (ftype == Search::TYPE_ANY)
+		if (m_ftype == Search::TYPE_ANY)
 		{
 			// Custom searchtype
 			// disabled with current GUI extList = SettingsManager::getInstance()->getExtensions(Text::fromT(fileType->getText()));
 		}
-		else if (ftype > Search::TYPE_ANY && ftype < Search::TYPE_DIRECTORY)
+		else if (m_ftype > Search::TYPE_ANY && m_ftype < Search::TYPE_DIRECTORY)
 		{
 			// Predefined searchtype
-			extList = SettingsManager::getExtensions(string(1, '0' + ftype));
+			l_extList = SettingsManager::getExtensions(string(1, '0' + m_ftype));
 		}
 	}
 	catch (const SearchTypeException&)
 	{
-		ftype = Search::TYPE_ANY;
+		m_ftype = Search::TYPE_ANY;
 	}
 	
 	{
@@ -851,10 +852,10 @@ void SearchFrame::onEnter(bool p_is_force_passive)
 		m_searchEndTime = m_searchStartTime + SearchManager::getInstance()->search(clients,
 		                                                                           Text::fromT(s),
 		                                                                           llsize,
-		                                                                           ftype,
+		                                                                           m_ftype,
 		                                                                           m_sizeMode,
 		                                                                           m_token,
-		                                                                           extList,
+		                                                                           l_extList,
 		                                                                           (void*)this,
 		                                                                           p_is_force_passive)
 #ifdef FLYLINKDC_HE
@@ -956,14 +957,27 @@ void SearchFrame::on(SearchManagerListener::SR, const SearchResultPtr &aResult) 
 		}
 		else
 		{
+			if (m_ftype != Search::TYPE_EXECUTABLE && m_ftype != Search::TYPE_ANY && m_ftype != Search::TYPE_DIRECTORY)
+			{
+				const string l_ext = "x" + Util::getFileExt(aResult->getFileName());
+				const bool l_is_executable = ShareManager::checkType(l_ext, Search::TYPE_EXECUTABLE);
+				if (l_is_executable)
+				{
+					LogManager::getInstance()->message("Search: ignore virus result: " + aResult->getFileName() +
+					" Hub: " + aResult->getHubURL() + " Nick: " + aResult->getUser()->getLastNick());
+					// http://dchublist.ru/forum/viewtopic.php?p=22426#p22426
+					m_droppedResults++;
+					return;
+				}
+			}
 			// match all here
 			for (auto j = m_search.cbegin(); j != m_search.cend(); ++j)
 			{
 				if ((*j->begin() != '-' &&
-				Util::findSubString(aResult->getFile(), *j) == -1) ||
-				(*j->begin() == '-' &&
-				j->size() != 1 &&
-				Util::findSubString(aResult->getFile(), j->substr(1)) != -1)
+				        Util::findSubString(aResult->getFile(), *j) == -1) ||
+				        (*j->begin() == '-' &&
+				         j->size() != 1 &&
+				         Util::findSubString(aResult->getFile(), j->substr(1)) != -1)
 				   )
 				{
 					m_droppedResults++;
@@ -984,7 +998,7 @@ void SearchFrame::on(SearchManagerListener::SR, const SearchResultPtr &aResult) 
 	dcdebug("Name = %s, size = %lld Mb limit = %lld Mb, m_sizeMode = %d\r\n",
 	        aResult->getFileName().c_str(), l_size / 1024 / 1024, m_exactSize2 / 1024 / 1024, m_sizeMode);
 #endif
-	if ((m_onlyFree && aResult->getFreeSlots() < 1) || (m_isExactSize && (aResult->getSize() != m_exactSize2)))
+	if ((m_onlyFree && aResult->getFreeSlots() < 1) || (m_isExactSize && aResult->getSize() != m_exactSize2))
 	{
 		m_droppedResults++;
 		//PostMessage(WM_SPEAKER, FILTER_RESULT);//[-]IRainman optimize SearchFrame
@@ -1008,7 +1022,149 @@ void SearchFrame::on(SearchManagerListener::Searching, SearchQueueItem* aSearch)
 */
 //===================================================================================================================================
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-// TODO: please fix copy-past.
+//===================================================================================================================================
+int SearchFrame::scan_list_view_from_merge()
+{
+	const int l_item_count = ctrlResults.GetItemCount();
+	if (l_item_count == 0)
+		return 0;
+	const int l_top_index = ctrlResults.GetTopIndex();
+	const int l_count_per_page = ctrlResults.GetCountPerPage();
+	for (int j = l_top_index; j < l_item_count && j < l_top_index + l_count_per_page; ++j)
+	{
+		dcassert(!isClosedOrShutdown());
+		SearchInfo* si2 = ctrlResults.getItemData(j);
+		if (si2 == nullptr || si2->m_already_processed || si2->parent) // Уже не первый раз или это дочерний узел по TTH?
+			continue;
+		si2->m_already_processed = true;
+		const auto& sr2 = si2->sr;
+		const auto l_file_size = sr2->getSize();
+		if (l_file_size)
+		{
+			const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(sr2->getFileName())); // TODO - расширение есть в Columns но в T-формате
+			if (g_fly_server_config.isSupportFile(l_file_ext, l_file_size))
+			{
+				const TTHValue& l_tth = sr2->getTTH();
+				CFlyServerKey l_info(l_tth, l_file_size);
+				CFlyServerCache l_fly_server_cache;
+				if (CFlylinkDBManager::getInstance()->find_fly_server_cache(l_tth, l_fly_server_cache))
+				{
+					l_info.m_only_counter = true; // Нашли информацию в локальной базе.
+					l_info.m_is_cache = true; // Для статистики
+				}
+				
+				Lock l(m_cs_fly_server);
+				m_merge_item_map.insert(make_pair(l_tth, make_pair(si2, l_fly_server_cache)));
+				if (l_info.m_only_counter)
+				{
+					m_tth_media_file_map[l_tth] = l_file_size; // Регистрируем кандидата на передачу информации
+				}
+				m_GetFlyServerArray.push_back(l_info);
+			}
+		}
+	}
+	return m_GetFlyServerArray.size();
+}
+//===================================================================================================================================
+LRESULT SearchFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
+{
+	ctrlDoUDPTestPort.EnableWindow(TRUE);
+	std::vector<int> l_update_index;
+	{
+		std::unique_ptr<Json::Value> l_root(reinterpret_cast<Json::Value*>(wParam));
+		const Json::Value& l_arrays = (*l_root)["array"];
+		const Json::Value::ArrayIndex l_count = l_arrays.size();
+		Lock l(m_cs_fly_server);
+		for (Json::Value::ArrayIndex i = 0; i < l_count; ++i)
+		{
+			const Json::Value& l_cur_item_in = l_arrays[i];
+			const TTHValue l_tth = TTHValue(l_cur_item_in["tth"].asString());
+			bool l_is_know_tth = false;
+			const auto l_si_find = m_merge_item_map.find(l_tth);
+			if (l_si_find != m_merge_item_map.end())
+			{
+				SearchInfo* l_si = l_si_find->second.first;
+				int l_cur_item = -1;
+				dcassert(!isClosedOrShutdown());
+				if (!isClosedOrShutdown())
+					l_cur_item = ctrlResults.findItem(l_si);
+				else
+					return 0;
+				if (l_cur_item >= 0)
+				{
+					const Json::Value& l_result_counter = l_cur_item_in["info"];
+					const Json::Value& l_result_base_media = l_cur_item_in["media"];
+					const int l_count_media = Util::toInt(l_result_counter["count_media"].asString());
+					if (l_count_media > 0) // Медиаинфа на сервере уже лежит? - не пытаемся ее послать снова
+					{
+						l_is_know_tth |= true;
+					}
+					CFlyServerCache& l_mediainfo_cache = l_si_find->second.second;
+					if (l_mediainfo_cache.m_audio.empty()) // В локальной базе пусто?
+					{
+						l_mediainfo_cache.m_audio     = l_result_base_media["fly_audio"].asString();
+						l_mediainfo_cache.m_audio_br  = l_result_base_media["fly_audio_br"].asString();
+						l_mediainfo_cache.m_xy    = l_result_base_media["fly_xy"].asString();
+						l_mediainfo_cache.m_video = l_result_base_media["fly_video"].asString();
+						if (!l_mediainfo_cache.m_audio.empty())
+						{
+							CFlylinkDBManager::getInstance()->save_fly_server_cache(TTHValue(l_tth), l_mediainfo_cache);
+						}
+					}
+					l_si->columns[COLUMN_BITRATE]  = Text::toT(l_mediainfo_cache.m_audio_br);
+					l_si->columns[COLUMN_MEDIA_XY] =  Text::toT(l_mediainfo_cache.m_xy);
+					l_si->columns[COLUMN_MEDIA_VIDEO] =  Text::toT(l_mediainfo_cache.m_video);
+					if (!l_mediainfo_cache.m_audio.empty())
+						l_is_know_tth |= true;
+					CFlyMediaInfo::translateDuration(l_mediainfo_cache.m_audio, l_si->columns[COLUMN_MEDIA_AUDIO], l_si->columns[COLUMN_DURATION]);
+					const string l_count_query = l_result_counter["count_query"].asString();
+					if (!l_count_query.empty())
+					{
+						l_update_index.push_back(l_cur_item);
+						l_si->columns[COLUMN_FLY_SERVER_RATING] =  Text::toT(l_count_query);
+						if (l_count_query == "1")
+							l_is_know_tth = false; // Файл на сервер первый раз появился.
+					}
+				}
+			}
+			if (l_is_know_tth) // Если сервер расказал об этом TTH с медиаинфой, то не шлем ему ничего
+			{
+				m_tth_media_file_map.erase(l_tth);
+			}
+		}
+	}
+	prepare_mediainfo_to_fly_serverL(); // Соберем TTH, которые нужно отправить на флай-сервер в обмен на инфу.
+	m_merge_item_map.clear();
+#if 1
+//			TODO - апдейты по колонкам не пашут иногда
+// http://code.google.com/p/flylinkdc/issues/detail?id=1113
+	const static int l_array[] =
+	{
+		COLUMN_BITRATE , COLUMN_MEDIA_XY, COLUMN_MEDIA_VIDEO , COLUMN_MEDIA_AUDIO, COLUMN_DURATION, COLUMN_FLY_SERVER_RATING
+	};
+	const static std::vector<int> l_columns(l_array, l_array + _countof(l_array));
+	dcassert(!isClosedOrShutdown());
+	if (!isClosedOrShutdown())
+	{
+		ctrlResults.update_columns(l_update_index, l_columns);
+	}
+	else
+	{
+		return 0;
+	}
+#else
+	if (!isClosedOrShutdown())
+	{
+		ctrlResults.update_all_columns(l_update_index);
+	}
+	else
+	{
+		return 0;
+	}
+#endif
+	return 0;
+}
+//===================================================================================================================================
 void SearchFrame::mergeFlyServerInfo()
 {
 	if (isClosedOrShutdown())
@@ -1025,175 +1181,33 @@ void SearchFrame::mergeFlyServerInfo()
 		{
 			SettingsManager::g_TestUDPSearchLevel = true;
 			SettingsManager::g_UDPTestExternalIP = p_external_ip;
-			ctrlDoUDPTestPort.EnableWindow(TRUE);
-		}
-	}
-	const int l_item_count = isClosedOrShutdown() ? 0 : ctrlResults.GetItemCount();
-	if (l_item_count == 0)
-		return;
-	std::map<string, std::pair<SearchInfo*, CFlyServerCache> > l_si_map; // Соберем результат для последующего апдейта
-	std::map<TTHValue, uint64_t> l_tth_media_file_map; // Сохраним TTH файлов содержащих локальную медиаинфу для последующей передачи на сервер
-	const int l_top_index = isClosedOrShutdown() ? 0 : ctrlResults.GetTopIndex();
-	const int l_count_per_page = isClosedOrShutdown() ? 0 : ctrlResults.GetCountPerPage();
-	for (int j = l_top_index; j < l_item_count && j < l_top_index + l_count_per_page; ++j)
-	{
-		dcassert(!isClosedOrShutdown());
-		if (isClosedOrShutdown())
-			return;
-		SearchInfo* si2 = ctrlResults.getItemData(j);
-		if (si2 == nullptr || si2->m_already_processed || si2->parent) // Уже не первый раз или это дочерний узел по TTH?
-			continue;
-		si2->m_already_processed = true;
-		const auto& sr2 = si2->sr;
-		const auto l_file_size = sr2->getSize();
-		if (l_file_size)
-		{
-			const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(sr2->getFileName())); // TODO - расширение есть в Columns
-			if (g_fly_server_config.isSupportFile(l_file_ext, l_file_size))
-			{
-				const TTHValue& l_tth = sr2->getTTH();
-				l_tth_media_file_map[l_tth] = l_file_size; // Кандидат на передачу информации на сервер.
-				CFlyServerKey l_info(l_tth, l_file_size);
-				CFlyServerCache l_fly_server_cache;
-				if (CFlylinkDBManager::getInstance()->find_fly_server_cache(l_tth, l_fly_server_cache))
-				{
-					l_info.m_only_counter = true; // Нашли информацию в локальной базе.
-					l_info.m_is_cache = true; // Для статистики
-				}
-				const string l_fly_server_key = l_tth.toBase32() + Util::toString(l_file_size);
-				l_si_map.insert(make_pair(l_fly_server_key, make_pair(si2, l_fly_server_cache)));
-				m_GetFlyServerArray.push_back(l_info);
-			}
 		}
 	}
 	dcassert(!isClosedOrShutdown());
-	if (!isClosedOrShutdown() && !m_GetFlyServerArray.empty())
+	if (!isClosedOrShutdown())
 	{
-		const string l_json_result = CFlyServerJSON::connect(m_GetFlyServerArray, false); // послать запрос на сервер для получения медиаинформации.
-		m_GetFlyServerArray.clear();
-		Json::Value l_root;
-		Json::Reader l_reader;
-		const bool l_parsingSuccessful = l_reader.parse(l_json_result, l_root);
-		if (!l_parsingSuccessful && !l_json_result.empty())
+		if (!m_GetFlyServerArray.empty())
 		{
-			l_tth_media_file_map.clear(); // Если возникла ошибка передачи запроса на чтение, запись не шлем.
-			LogManager::getInstance()->message("Failed to parse json configuration: l_json_result = " + l_json_result);
-		}
-		else
-		{
-			std::vector<int> l_update_index;
-			const Json::Value& l_arrays = l_root["array"];
-			const Json::Value::ArrayIndex l_count = l_arrays.size();
-			for (Json::Value::ArrayIndex i = 0; i < l_count; ++i)
+			const string l_json_result = CFlyServerJSON::connect(m_GetFlyServerArray, false); // послать запрос на сервер для получения медиаинформации.
+			m_GetFlyServerArray.clear();
+			Json::Value* l_root = new Json::Value;
+			Json::Reader l_reader;
+			const bool l_parsingSuccessful = l_reader.parse(l_json_result, *l_root);
+			if (!l_parsingSuccessful && !l_json_result.empty())
 			{
-				const Json::Value& l_cur_item_in = l_arrays[i];
-				const string l_size_str = l_cur_item_in["size"].asString();
-				const string l_tth = l_cur_item_in["tth"].asString();
-				bool l_is_know_tth = false;
-				auto l_si_find = l_si_map.find(l_tth + l_size_str);
-				if (l_si_find != l_si_map.end())
 				{
-					SearchInfo* l_si = l_si_find->second.first;
-					int l_cur_item = -1;
-					dcassert(!isClosedOrShutdown());
-					if (!isClosedOrShutdown())
-						l_cur_item = ctrlResults.findItem(l_si);
-					else
-						return;
-					if (l_cur_item >= 0)
-					{
-						const Json::Value& l_result_counter = l_cur_item_in["info"];
-						const Json::Value& l_result_base_media = l_cur_item_in["media"];
-						const int l_count_media = Util::toInt(l_result_counter["count_media"].asString());
-						if (l_count_media > 0) // Медиаинфа на сервере уже лежит? - не пытаемся ее послать снова
-						{
-							l_is_know_tth |= true;
-						}
-						CFlyServerCache& l_mediainfo_cache = l_si_find->second.second;
-						if (l_mediainfo_cache.m_audio.empty()) // В локальной базе пусто?
-						{
-							l_mediainfo_cache.m_audio     = l_result_base_media["fly_audio"].asString();
-							l_mediainfo_cache.m_audio_br  = l_result_base_media["fly_audio_br"].asString();
-							l_mediainfo_cache.m_xy    = l_result_base_media["fly_xy"].asString();
-							l_mediainfo_cache.m_video = l_result_base_media["fly_video"].asString();
-							if (!l_mediainfo_cache.m_audio.empty())
-							{
-								CFlylinkDBManager::getInstance()->save_fly_server_cache(TTHValue(l_tth), l_mediainfo_cache);
-							}
-						}
-						l_si->columns[COLUMN_BITRATE]  = Text::toT(l_mediainfo_cache.m_audio_br);
-						l_si->columns[COLUMN_MEDIA_XY] =  Text::toT(l_mediainfo_cache.m_xy);
-						l_si->columns[COLUMN_MEDIA_VIDEO] =  Text::toT(l_mediainfo_cache.m_video);
-						if (!l_mediainfo_cache.m_audio.empty())
-							l_is_know_tth |= true;
-						CFlyMediaInfo::translateDuration(l_mediainfo_cache.m_audio, l_si->columns[COLUMN_MEDIA_AUDIO], l_si->columns[COLUMN_DURATION]);
-						const string l_count_query = l_result_counter["count_query"].asString();
-						if (!l_count_query.empty())
-						{
-							l_update_index.push_back(l_cur_item);
-							l_si->columns[COLUMN_FLY_SERVER_RATING] =  Text::toT(l_count_query);
-							if (l_count_query == "1")
-								l_is_know_tth = false; // Файл на сервер первый раз появился.
-						}
-					}
+					Lock l(m_cs_fly_server);
+					m_tth_media_file_map.clear(); // Если возникла ошибка передачи запроса на чтение, запись не шлем.
 				}
-				if (l_is_know_tth) // Если сервер расказал об этом TTH с медиаинфой, то не шлем ему ничего
-				{
-					l_tth_media_file_map.erase(TTHValue(l_tth));
-				}
-			}
-#if 1
-//			TODO - апдейты по колонкам не пашут иногда
-// http://code.google.com/p/flylinkdc/issues/detail?id=1113
-			const static int l_array[] =
-			{
-				COLUMN_BITRATE , COLUMN_MEDIA_XY, COLUMN_MEDIA_VIDEO , COLUMN_MEDIA_AUDIO, COLUMN_DURATION, COLUMN_FLY_SERVER_RATING
-			};
-			const static std::vector<int> l_columns(l_array, l_array + _countof(l_array));
-			dcassert(!isClosedOrShutdown());
-			if (!isClosedOrShutdown())
-			{
-				ctrlResults.update_columns(l_update_index, l_columns);
+				delete l_root;
+				LogManager::getInstance()->message("Failed to parse json configuration: l_json_result = " + l_json_result);
 			}
 			else
 			{
-				return;
-			}
-#else
-			if (!isClosedOrShutdown())
-			{
-				ctrlResults.update_all_columns(l_update_index);
-			}
-			else
-			{
-				return;
-			}
-#endif
-		}
-	}
-	
-	// Обойдем кандидатов для предачи на сервер.
-	// Массив - есть у нас в базе, но нет на fly-server
-	for (auto i = l_tth_media_file_map.begin(); i != l_tth_media_file_map.end(); ++i)
-	{
-		CFlyMediaInfo l_media_info;
-		if (CFlylinkDBManager::getInstance()->load_media_info(TTHValue(i->first), l_media_info, false))
-		{
-			bool l_is_send_info = l_media_info.isMedia() && g_fly_server_config.isFullMediainfo() == false; // Есть медиаинфа и сервер не ждет полный комплект?
-			if (g_fly_server_config.isFullMediainfo()) // Если сервер ждет от нас только полный комплект - проверим наличие атрибутной составялющей
-				l_is_send_info = l_media_info.isMediaAttrExists();
-			if (l_is_send_info)
-			{
-				CFlyServerKey l_info(i->first, i->second);
-				l_info.m_media = l_media_info; // Получили медиаинформацию с локальной базы
-				m_SetFlyServerArray.push_back(l_info);
+				PostMessage(WM_SPEAKER_MERGE_FLY_SERVER, WPARAM(l_root));
 			}
 		}
-	}
-	if (!m_SetFlyServerArray.empty())
-	{
-		CFlyServerJSON::connect(m_SetFlyServerArray, true); // Передать медиаинформацию на сервер (TODO - можно отложить и предать позже)
-		m_SetFlyServerArray.clear();
+		push_mediainfo_to_fly_server(); // Сбросим на флай-сервер медиаинфу, что нашли у себя а там ее еще нет
 	}
 }
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -1211,7 +1225,7 @@ void SearchFrame::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 		{
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 			const bool l_is_force_for_udp_test = boost::logic::indeterminate(SettingsManager::g_TestUDPSearchLevel);
-			if (ctrlResults.GetItemCount() || l_is_force_for_udp_test)
+			if (scan_list_view_from_merge() || l_is_force_for_udp_test)
 			{
 				// Проверить перед тем как запускать
 				addFlyServerTask(l_tick, l_is_force_for_udp_test);
@@ -2508,12 +2522,12 @@ LRESULT SearchFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 				}
 			}
 			
-			SearchInfo::CheckTTH cs = ctrlResults.forEachSelectedT(SearchInfo::CheckTTH());
+			SearchInfo::CheckTTH SIcheck = ctrlResults.forEachSelectedT(SearchInfo::CheckTTH());
 			
-			if (cs.hasTTH)
+			if (SIcheck.hasTTH)
 			{
 				targets.clear();
-				QueueManager::getInstance()->getTargets(TTHValue(Text::fromT(cs.tth)), targets);
+				QueueManager::getInstance()->getTargets(TTHValue(Text::fromT(SIcheck.tth)), targets);
 				
 				if (!targets.empty())
 				{
@@ -2592,7 +2606,7 @@ LRESULT SearchFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 				resultsMenu.EnableMenuItem(IDC_VIEW_FLYSERVER_INFORM, MF_BYCOMMAND | MFS_DISABLED);
 			}
 #endif
-			appendUcMenu(resultsMenu, UserCommand::CONTEXT_SEARCH, cs.hubs);
+			appendUcMenu(resultsMenu, UserCommand::CONTEXT_SEARCH, SIcheck.hubs);
 			
 			copyMenu.InsertSeparatorFirst(TSTRING(USERINFO));
 			resultsMenu.InsertSeparatorFirst(sr ? Text::CropStrLength(sr->getFileName()) : TSTRING(FILES)); // [~] SCALOlaz: CropStrLength - crop long string
@@ -2908,7 +2922,8 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 					cd->clrTextBk = SETTING(DUPE_EX2_COLOR);
 				if (!si->columns[COLUMN_FLY_SERVER_RATING].empty())
 					cd->clrTextBk = OperaColors::brightenColor(cd->clrTextBk, -0.02f);
-				if (!si->m_location.isNew())
+				si->sr->calcHubName();
+				if (si->m_location.isNew())
 				{
 					auto ip = si->getText(COLUMN_IP);
 					if (!ip.empty())

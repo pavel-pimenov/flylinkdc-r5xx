@@ -169,9 +169,9 @@ void UDPSocket::checkIncoming()
 				dcassert(s == s_debug.substr(0, s_debug.length() - 1));
 #endif
 				string ip = inet_ntoa(remoteAddr.sin_addr);
-				uint16_t port = ntohs(remoteAddr.sin_port);
-				COMMAND_DEBUG(s, DebugTask::HUB_IN,  ip + ':' + Util::toString(port));
-				DHT::getInstance()->dispatch(s, ip, port, isUdpKeyValid);
+				uint16_t l_port = ntohs(remoteAddr.sin_port);
+				COMMAND_DEBUG(s, DebugTask::HUB_IN,  ip + ':' + Util::toString(l_port));
+				DHT::getInstance()->dispatch(s, ip, l_port, isUdpKeyValid);
 			}
 			
 			sleep(25);
@@ -304,7 +304,7 @@ int UDPSocket::run()
 /*
  * Sends command to ip and port
  */
-void UDPSocket::send(AdcCommand& cmd, const string& ip, uint16_t port, const CID& targetCID, const UDPKey& udpKey)
+void UDPSocket::send(AdcCommand& cmd, const string& ip, uint16_t p_port, const CID& targetCID, const UDPKey& udpKey)
 {
 	// store packet for antiflooding purposes
 	Utils::trackOutgoingPacket(ip, cmd);
@@ -312,9 +312,9 @@ void UDPSocket::send(AdcCommand& cmd, const string& ip, uint16_t port, const CID
 	// pack data
 	cmd.addParam("UK", Utils::getUdpKey(ip).toBase32()); // add our key for the IP address
 	string command = cmd.toString(ClientManager::getMyCID()); // [!] IRainman fix.
-	COMMAND_DEBUG(command, DebugTask::HUB_OUT, ip + ':' + Util::toString(port));
+	COMMAND_DEBUG(command, DebugTask::HUB_OUT, ip + ':' + Util::toString(p_port));
 	
-	Packet* p = new Packet(ip, port, command, targetCID, udpKey);
+	Packet* p = new Packet(ip, p_port, command, targetCID, udpKey);
 	
 	FastLock l(cs);
 	sendQueue.push_back(p);

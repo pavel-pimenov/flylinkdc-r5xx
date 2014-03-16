@@ -750,7 +750,7 @@ void ClientManager::userCommand(const HintedUser& hintedUser, const UserCommand&
 	OnlineUser* ou = findOnlineUserL(hintedUser.user->getCID(), hintedUser.hint.empty() ? uc.getHub() : hintedUser.hint, false);
 	if (!ou
 #ifdef STRONG_USE_DHT
-	        || ou->getClientBase().type == ClientBase::DHT
+	        || ou->getClientBase().m_type == ClientBase::DHT
 #endif
 	   )
 		return;
@@ -778,7 +778,7 @@ void ClientManager::send(AdcCommand& cmd, const CID& cid)
 		{
 			if (u.getUser()->isNMDC()
 #ifdef STRONG_USE_DHT
-			        || u.getClientBase().type == Client::DHT
+			        || u.getClientBase().m_type == Client::DHT
 #endif
 			   )
 				return;
@@ -1230,7 +1230,7 @@ OnlineUserPtr ClientManager::findDHTNode(const CID& cid)
 		if (!ou->getUser()->isSet(User::DHT0))
 			break;
 			
-		if (ou->getClientBase().type == Client::DHT)
+		if (ou->getClientBase().m_type == Client::DHT)
 			return ou;
 	}
 	return nullptr;
@@ -1357,7 +1357,7 @@ void ClientManager::fileListDisconnected(const UserPtr& p)
 		OnlineIterC i = g_onlineUsers.find(p->getCID());
 		if (i != g_onlineUsers.end()
 #ifdef STRONG_USE_DHT
-		        && i->second->getClientBase().type != ClientBase::DHT
+		        && i->second->getClientBase().m_type != ClientBase::DHT
 #endif
 		   )
 		{
@@ -1390,7 +1390,7 @@ void ClientManager::connectionTimeout(const UserPtr& p)
 		OnlineIterC i = g_onlineUsers.find(p->getCID());
 		if (i != g_onlineUsers.end()
 #ifdef STRONG_USE_DHT
-		        && i->second->getClientBase().type != ClientBase::DHT
+		        && i->second->getClientBase().m_type != ClientBase::DHT
 #endif
 		   )
 		{
@@ -1434,7 +1434,7 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl)
 		OnlineIterC i = g_onlineUsers.find(p->getCID());
 		if (i == g_onlineUsers.end()
 #ifdef STRONG_USE_DHT
-		        || i->second->getClientBase().type == ClientBase::DHT
+		        || i->second->getClientBase().m_type == ClientBase::DHT
 #endif
 		   )
 			return;
@@ -1499,7 +1499,7 @@ void ClientManager::setClientStatus(const UserPtr& p, const string& aCheatString
 		OnlineIterC i = g_onlineUsers.find(p->getCID());
 		if (i == g_onlineUsers.end()
 #ifdef STRONG_USE_DHT
-		        || i->second->getClientBase().type == ClientBase::DHT
+		        || i->second->getClientBase().m_type == ClientBase::DHT
 #endif
 		   )
 			return;
@@ -1595,7 +1595,7 @@ void ClientManager::reportUser(const HintedUser& user)
 		OnlineUser* ou = findOnlineUserL(user.user->getCID(), user.hint, priv);
 		if (!ou
 #ifdef STRONG_USE_DHT
-		        || ou->getClientBase().type == ClientBase::DHT
+		        || ou->getClientBase().m_type == ClientBase::DHT
 #endif
 		   )
 			return;

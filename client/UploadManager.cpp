@@ -1426,7 +1426,7 @@ void UploadQueueItem::update()
 	setText(COLUMN_SHARE, Util::formatBytesW(getUser()->getBytesShared())); //[+]PPA
 	setText(COLUMN_SLOTS, Util::toStringW(getUser()->getSlots())); //[+]PPA
 	// !SMT!-IP
-	if (!m_location.isNew() && !getUser()->getIP().is_unspecified()) // [!] IRainman opt: Prevent multiple repeated requests to the database if the location has not been found!
+	if (m_location.isNew() && !getUser()->getIP().is_unspecified()) // [!] IRainman opt: Prevent multiple repeated requests to the database if the location has not been found!
 	{
 		m_location = Util::getIpCountry(getUser()->getIP().to_ulong());
 		setText(COLUMN_IP, Text::toT(getUser()->getIPAsString()));

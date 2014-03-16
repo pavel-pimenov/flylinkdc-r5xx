@@ -185,6 +185,7 @@ public:
 private:
  static StringSet g_parasitic_files;
  static StringSet g_mediainfo_ext;
+ static StringSet g_virus_ext;
  static StringSet g_block_share_ext;
  static StringSet g_custom_compress_ext;
  static StringSet g_block_share_name;
@@ -199,6 +200,7 @@ public:
 
   static bool isParasitFile(const string& p_file);
   static bool isMediainfoExt(const string& p_ext);
+  static bool isVirusExt(const string& p_ext);
   static bool isCompressExt(const string& p_ext);
   static bool isBlockShare(const string& p_name);
   string DBDelete();
@@ -265,6 +267,7 @@ class CFlyServerAdapter
 			dcassert(m_debugWaits);
 			dcassert(m_GetFlyServerArray.empty());
 			dcassert(m_SetFlyServerArray.empty());
+			dcassert(m_tth_media_file_map.empty());
 		}
 		virtual void mergeFlyServerInfo() = 0;
 		void waitForFlyServerStop()
@@ -298,6 +301,10 @@ class CFlyServerAdapter
 	protected:
 		CFlyServerKeyArray	m_GetFlyServerArray;    // «апросы на получени€ медиаинформации. TODO - сократить размер структуры дл€ запроса.
 		CFlyServerKeyArray	m_SetFlyServerArray;    // «апросы на передачу медиаинформации если она у нас есть в базе и ее ниразу не слали.
+		std::map<TTHValue, uint64_t> m_tth_media_file_map;
+		::CriticalSection m_cs_fly_server;
+		void prepare_mediainfo_to_fly_serverL();
+		void push_mediainfo_to_fly_server();
 
 	private:
 		dcdrun(bool m_debugWaits;)

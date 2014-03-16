@@ -102,51 +102,52 @@ LRESULT QueuePage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	spin.SetRange32(2, 100000);
 	spin.Detach();
 	
-	ctrlMultiSource.Attach(GetDlgItem(IDC_MULTISOURCE_COMBO));
-	ctrlMultiSource.AddString(CTSTRING(DISABLED));
-	ctrlMultiSource.AddString(CTSTRING(AUTOMATIC));
-	ctrlMultiSource.SetCurSel(SETTING(MULTI_CHUNK));
+	m_ctrlMultiSource.Attach(GetDlgItem(IDC_MULTISOURCE_COMBO));
+	m_ctrlMultiSource.AddString(CTSTRING(DISABLED));
+	m_ctrlMultiSource.AddString(CTSTRING(AUTOMATIC));
+	m_ctrlMultiSource.SetCurSel(SETTING(MULTI_CHUNK));
+	m_ctrlMultiSource.Detach();
 	
 	// Do specialized reading here
 	
 	// Add Combo: Download Action - if file exist
-	downlaskClick.Attach(GetDlgItem(IDC_DOWNLOAD_ASK_COMBO));
-	downlaskClick.AddString(CTSTRING(ON_DOWNLOAD_ASK));
-	downlaskClick.AddString(CTSTRING(ON_DOWNLOAD_REPLACE));
-	downlaskClick.AddString(CTSTRING(ON_DOWNLOAD_AUTORENAME));
-	downlaskClick.AddString(CTSTRING(ON_DOWNLOAD_SKIP));
-	downlaskClick.SetCurSel(0);         // Set default, if parameter not set in Settings
+	m_downlaskClick.Attach(GetDlgItem(IDC_DOWNLOAD_ASK_COMBO));
+	m_downlaskClick.AddString(CTSTRING(ON_DOWNLOAD_ASK));
+	m_downlaskClick.AddString(CTSTRING(ON_DOWNLOAD_REPLACE));
+	m_downlaskClick.AddString(CTSTRING(ON_DOWNLOAD_AUTORENAME));
+	m_downlaskClick.AddString(CTSTRING(ON_DOWNLOAD_SKIP));
+	m_downlaskClick.SetCurSel(0);         // Set default, if parameter not set in Settings
 	
 	switch (SETTING(ON_DOWNLOAD_SETTING))
 	{
 		case SettingsManager::ON_DOWNLOAD_ASK:
 			//      CheckDlgButton(IDC_ON_DOWNLOAD_ASK, BST_CHECKED);
-			downlaskClick.SetCurSel(0); // Add Combo
+			m_downlaskClick.SetCurSel(0); // Add Combo
 			break;
 		case SettingsManager::ON_DOWNLOAD_REPLACE:
 			//      CheckDlgButton(IDC_ON_DOWNLOAD_REPLACE, BST_CHECKED);
-			downlaskClick.SetCurSel(1); // Add
+			m_downlaskClick.SetCurSel(1); // Add
 			break;
 		case SettingsManager::ON_DOWNLOAD_RENAME:
 			//      CheckDlgButton(IDC_ON_DOWNLOAD_AUTORENAME, BST_CHECKED);
-			downlaskClick.SetCurSel(2); // Add
+			m_downlaskClick.SetCurSel(2); // Add
 			break;
 		case SettingsManager::ON_DOWNLOAD_SKIP:
 			//      CheckDlgButton(IDC_ON_DOWNLOAD_SKIP, BST_CHECKED);
-			downlaskClick.SetCurSel(3); // Add
+			m_downlaskClick.SetCurSel(3); // Add
 			break;
 		default:                        // Add Combo
-			downlaskClick.SetCurSel(0);
+			m_downlaskClick.SetCurSel(0);
 			break;
 	}
-	downlaskClick.Detach();             // Add Combo
+	m_downlaskClick.Detach();             // Add Combo
 	
 	return TRUE;
 }
 
 void QueuePage::write()
 {
-	settings->set(SettingsManager::MULTI_CHUNK, ctrlMultiSource.GetCurSel());
+	settings->set(SettingsManager::MULTI_CHUNK, m_ctrlMultiSource.GetCurSel());
 	
 	PropPage::write((HWND)*this, items, 0, 0);
 	PropPage::write((HWND)*this, items, optionItems, GetDlgItem(IDC_OTHER_QUEUE_OPTIONS));

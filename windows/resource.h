@@ -183,6 +183,8 @@
 #define IDR_ICON_QUESTION_ICON          292
 #define IDR_ICON_PAUSE_ICON             293
 #define IDD_LOCATION_DIALOG             294
+#define IDR_ICON_MEDICAL_BAG            295
+#define IDR_ICON_THERMOMETR_BAG         296
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
 #define IDC_COPY_HUB                    1002

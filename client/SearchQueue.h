@@ -44,25 +44,25 @@ struct Search
 		TYPE_CD_IMAGE, //[+] от flylinkdc++
 		TYPE_LAST
 	};
-	Search() : m_is_force_passive(false), sizeMode(SIZE_DONTCARE), size(0), m_fileTypes_bitmap(0)
+	Search() : m_is_force_passive(false), m_sizeMode(SIZE_DONTCARE), m_size(0), m_fileTypes_bitmap(0)
 	{
 	}
-	bool m_is_force_passive;
-	SizeModes   sizeMode;
-	int64_t   size;
+	bool      m_is_force_passive;
+	SizeModes m_sizeMode;
+	int64_t   m_size;
 	uint16_t  m_fileTypes_bitmap;
-	string    query;
-	string    token;
-	StringList  exts;
-	std::unordered_set<void*> owners;
+	string    m_query;
+	string    m_token;
+	StringList  m_exts;
+	std::unordered_set<void*> m_owners;
 	
 	bool operator==(const Search& rhs) const
 	{
 		BOOST_STATIC_ASSERT(TYPE_LAST < 16); // Иначе не влезет в m_fileTypes_bitmap
-		return sizeMode == rhs.sizeMode &&
-		       size == rhs.size &&
+		return m_sizeMode == rhs.m_sizeMode &&
+		       m_size == rhs.m_size &&
 		       m_fileTypes_bitmap == rhs.m_fileTypes_bitmap &&
-		       query == rhs.query;
+		       m_query == rhs.m_query;
 	}
 };
 

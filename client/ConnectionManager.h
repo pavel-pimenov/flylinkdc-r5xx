@@ -47,12 +47,12 @@ class ConnectionQueueItem
 			ACTIVE                      // In one up/downmanager
 		};
 		
-		ConnectionQueueItem(const HintedUser& aUser, bool aDownload) : token(Util::toString(Util::rand())),
+		ConnectionQueueItem(const HintedUser& aUser, bool aDownload) : m_token(Util::toString(Util::rand())),
 			lastAttempt(0), errors(0), state(WAITING), download(aDownload), m_user(aUser), hubUrl(aUser.hint) { }
 			
 		const string& getToken() const
 		{
-			return token;
+			return m_token;
 		}
 		GETSET(uint64_t, lastAttempt, LastAttempt);
 		GETSET(int, errors, Errors); // Number of connection errors, or -1 after a protocol error
@@ -72,7 +72,7 @@ class ConnectionQueueItem
 			return m_user;
 		}
 	private:
-		const string token;
+		const string m_token;
 		UserPtr m_user;
 		const bool download;
 };

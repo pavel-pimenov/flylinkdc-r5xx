@@ -67,8 +67,8 @@ class QueuePage : public CPropertyPage<IDD_QUEUE_PAGE>, public PropPage
 		
 		ExListViewCtrl ctrlList; // [+] IRainman
 		
-		CComboBox ctrlMultiSource;
-		CComboBox downlaskClick;
+		CComboBox m_ctrlMultiSource;
+		CComboBox m_downlaskClick;
 };
 
 #endif // !defined(QUEUE_PAGE_H)

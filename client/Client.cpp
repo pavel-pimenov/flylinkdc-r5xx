@@ -526,7 +526,7 @@ string Client::getLocalIp() const
 	// [~] IRainman fix.
 }
 
-uint64_t Client::search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, void* owner, bool p_is_force_passive)
+uint64_t Client::search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, void* p_owner, bool p_is_force_passive)
 {
 	dcdebug("Queue search %s\n", aString.c_str());
 	
@@ -535,17 +535,17 @@ uint64_t Client::search(Search::SizeModes aSizeMode, int64_t aSize, Search::Type
 		Search s;
 		s.m_is_force_passive = p_is_force_passive;
 		s.m_fileTypes_bitmap = aFileType; // TODO - проверить что тут все ок.
-		s.size     = aSize;
-		s.query    = aString;
-		s.sizeMode = aSizeMode;
-		s.token    = aToken;
-		s.exts     = aExtList;
-		s.owners.insert(owner);
+		s.m_size     = aSize;
+		s.m_query    = aString;
+		s.m_sizeMode = aSizeMode;
+		s.m_token    = aToken;
+		s.m_exts     = aExtList;
+		s.m_owners.insert(p_owner);
 		
 		searchQueue.add(s);
 		
-		uint64_t now = GET_TICK(); // [+] IRainman opt
-		return searchQueue.getSearchTime(owner, now) - now;
+		const uint64_t now = GET_TICK(); // [+] IRainman opt
+		return searchQueue.getSearchTime(p_owner, now) - now;
 	}
 	
 	search(aSizeMode, aSize, aFileType , aString, aToken, aExtList, p_is_force_passive);
@@ -577,7 +577,7 @@ void Client::on(Second, uint64_t aTick) noexcept
 		{
 			// TODO - пробежаться по битовой маске?
 			// Если она там есть
-			search(s.sizeMode, s.size, Search::TypeModes(s.m_fileTypes_bitmap), s.query, s.token, s.exts, s.m_is_force_passive);
+			search(s.m_sizeMode, s.m_size, Search::TypeModes(s.m_fileTypes_bitmap), s.m_query, s.m_token, s.m_exts, s.m_is_force_passive);
 		}
 	}
 }

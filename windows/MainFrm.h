@@ -599,7 +599,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		std::unique_ptr<HIconWrapper> m_pmicon;
 		std::unique_ptr<HIconWrapper> m_emptyicon;//[+]IRainman
 		
-		CReBarCtrl rebar;
+		CReBarCtrl m_rebar;
 		
 		bool getPassword(); // !SMT!-f
 		

@@ -23,7 +23,7 @@
 
 bool SearchQueue::add(const Search& s)
 {
-	dcassert(s.owners.size() == 1);
+	dcassert(s.m_owners.size() == 1);
 	dcassert(interval >= 10000); // min interval is 10 seconds.
 	
 	Lock l(cs);
@@ -33,11 +33,11 @@ bool SearchQueue::add(const Search& s)
 		// check dupe
 		if (*i == s)
 		{
-			void* aOwner = *s.owners.begin();
-			i->owners.insert(aOwner);
+			void* aOwner = *s.m_owners.begin();
+			i->m_owners.insert(aOwner);
 			
 			// if previous search was autosearch and current one isn't, it should be readded before autosearches
-			if (s.token != "auto" && i->token == "auto")
+			if (s.m_token != "auto" && i->m_token == "auto")
 			{
 				// FlylinkDC Team TODO не стирать,  делать swap или что то ещё, теряем овнеров :( пока не осознал чем это грозит (L.)
 				searchQueue.erase(i);
@@ -48,7 +48,7 @@ bool SearchQueue::add(const Search& s)
 		}
 	}
 	
-	if (s.token == "auto")
+	if (s.m_token == "auto")
 	{
 		// Insert last (automatic search)
 		searchQueue.push_back(s);
@@ -66,7 +66,7 @@ bool SearchQueue::add(const Search& s)
 			// Insert before the automatic searches (manual search)
 			for (auto i = searchQueue.cbegin(); i != searchQueue.cend(); ++i)
 			{
-				if (i->token == "auto")
+				if (i->m_token == "auto")
 				{
 					searchQueue.insert(i, s);
 					added = true;
@@ -117,9 +117,9 @@ uint64_t SearchQueue::getSearchTime(void* aOwner, uint64_t now)
 	{
 		x += interval;
 		
-		if (i->owners.find(aOwner) != i->owners.end()) // [!] IRainman opt.
+		if (i->m_owners.find(aOwner) != i->m_owners.end()) // [!] IRainman opt.
 			return x;
-		else if (i->owners.empty())
+		else if (i->m_owners.empty()) // Проверку на пустоту поднять выше?
 			break;
 	}
 	
@@ -132,7 +132,7 @@ bool SearchQueue::cancelSearch(void* aOwner)
 	for (auto i = searchQueue.begin(); i != searchQueue.end(); ++i)
 	{
 		// [!] IRainman opt.
-		auto &l_owners = i->owners; // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'i->owners' expression repeatedly. searchqueue.cpp 135
+		auto &l_owners = i->m_owners; // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'i->owners' expression repeatedly. searchqueue.cpp 135
 		const auto j = l_owners.find(aOwner);
 		if (j != l_owners.end())
 		{

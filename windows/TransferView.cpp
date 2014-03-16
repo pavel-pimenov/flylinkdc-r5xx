@@ -1388,13 +1388,6 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 				return m_location.getDescription();
 			else
 				return Util::emptyStringT;
-			/*          // [!] IRainman opt: no need to get geolocation before the user sees it.
-			            if (!m_location.isNew() && !m_ip.empty()) // [!] IRainman opt: Prevent multiple repeated requests to the database if the location has not been found!
-			            {
-			                m_location = Util::getIpCountry(Text::fromT(m_ip));
-			            }
-			
-			*/
 		}
 		default:
 			return Util::emptyStringT;

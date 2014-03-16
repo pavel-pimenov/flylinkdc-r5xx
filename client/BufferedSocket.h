@@ -301,8 +301,8 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		void resizeInBuf();
 #endif
 		
-		ByteVector writeBuf;
-		ByteVector sendBuf;
+		ByteVector m_writeBuf;
+		ByteVector m_sendBuf;
 		
 		string line;
 		int64_t m_dataBytes;

@@ -87,6 +87,7 @@ string CFlyServerConfig::g_support_hub = "dchub://dc.fly-server.ru";
 string CFlyServerConfig::g_faq_search_does_not_work = "http://www.flylinkdc.ru/2014/01/flylinkdc.html";
 StringSet CFlyServerConfig::g_parasitic_files;
 StringSet CFlyServerConfig::g_mediainfo_ext;
+StringSet CFlyServerConfig::g_virus_ext;
 StringSet CFlyServerConfig::g_block_share_ext;
 StringSet CFlyServerConfig::g_custom_compress_ext;
 StringSet CFlyServerConfig::g_block_share_name;
@@ -404,6 +405,11 @@ void CFlyServerConfig::loadConfig()
 						checkStrKey(n);
 						g_mediainfo_ext.insert(n);
 					});
+					l_xml.getChildAttribSplit("virus_ext", g_virus_ext, [this](const string& n)
+					{
+						checkStrKey(n);
+						g_virus_ext.insert(n);
+					});
 					l_xml.getChildAttribSplit("block_share_ext", g_block_share_ext, [this](const string& n)
 					{
 						checkStrKey(n);
@@ -439,6 +445,10 @@ void CFlyServerConfig::loadConfig()
 			l_fly_server_log.step("parseXML Problem:" + e.getError());
 		}
 	}
+}
+bool CFlyServerConfig::isVirusExt(const string& p_ext)
+{
+	return isCheckName(g_virus_ext, p_ext);
 }
 bool CFlyServerConfig::isMediainfoExt(const string& p_ext)
 {
@@ -489,6 +499,42 @@ string CFlyServerConfig::DBDelete()
 //}
 //======================================================================================================
 string CFlyServerAdapter::CFlyServerJSON::g_fly_server_id;
+//===================================================================================================================================
+void CFlyServerAdapter::push_mediainfo_to_fly_server()
+{
+	CFlyServerKeyArray l_copy_map;
+	{
+		Lock l(m_cs_fly_server);
+		l_copy_map.swap(m_SetFlyServerArray);
+	}
+	if (!l_copy_map.empty())
+	{
+		CFlyServerJSON::connect(l_copy_map, true); // Передать медиаинформацию на сервер (TODO - можно отложить и предать позже)
+	}
+}
+//======================================================================================================
+void CFlyServerAdapter::prepare_mediainfo_to_fly_serverL()
+{
+	// Обойдем кандидатов для предачи на сервер.
+	// Массив - есть у нас в базе, но нет на fly-server
+	for (auto i = m_tth_media_file_map.begin(); i != m_tth_media_file_map.end(); ++i)
+	{
+		CFlyMediaInfo l_media_info;
+		if (CFlylinkDBManager::getInstance()->load_media_info(i->first, l_media_info, false))
+		{
+			bool l_is_send_info = l_media_info.isMedia() && g_fly_server_config.isFullMediainfo() == false; // Есть медиаинфа и сервер не ждет полный комплект?
+			if (g_fly_server_config.isFullMediainfo()) // Если сервер ждет от нас только полный комплект - проверим наличие атрибутной составялющей
+				l_is_send_info = l_media_info.isMediaAttrExists();
+			if (l_is_send_info)
+			{
+				CFlyServerKey l_info(i->first, i->second);
+				l_info.m_media = l_media_info; // Получили медиаинформацию с локальной базы
+				m_SetFlyServerArray.push_back(l_info);
+			}
+		}
+	}
+	m_tth_media_file_map.clear();
+}
 //======================================================================================================
 void CFlyServerAdapter::CFlyServerJSON::login()
 {

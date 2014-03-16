@@ -79,7 +79,7 @@ void Search::process()
 		AdcCommand cmd(AdcCommand::CMD_SCH, AdcCommand::TYPE_UDP);
 		cmd.addParam("TR", term);
 		cmd.addParam("TY", Util::toString(type));
-		cmd.addParam("TO", token);
+		cmd.addParam("TO", m_token);
 		
 		//node->setTimeout();
 		DHT::getInstance()->send(cmd, node->getIdentity().getIpAsString(), node->getIdentity().getUdpPort(), node->getUser()->getCID(), node->getUdpKey());
@@ -107,7 +107,7 @@ void SearchManager::findNode(const CID& cid)
 	Search* s = new Search();
 	s->type = Search::TYPE_NODE;
 	s->term = cid.toBase32();
-	s->token = Util::toString(Util::rand());
+	s->m_token = Util::toString(Util::rand());
 	
 	search(*s);
 }
@@ -115,7 +115,7 @@ void SearchManager::findNode(const CID& cid)
 /*
  * Performs value lookup in the network
  */
-void SearchManager::findFile(const string& tth, const string& token)
+void SearchManager::findFile(const string& tth, const string& p_token)
 {
 	// temporary fix to prevent UDP flood (search queue would be better here)
 	if (GET_TICK() - m_lastTimeSearchFile < 10000)
@@ -147,7 +147,7 @@ void SearchManager::findFile(const string& tth, const string& token)
 	Search* s = new Search();
 	s->type = Search::TYPE_FILE;
 	s->term = tth;
-	s->token = token;
+	s->m_token = p_token;
 	
 	search(*s);
 	
@@ -170,7 +170,7 @@ void SearchManager::findStore(const string& tth, int64_t size, bool partial)
 	s->term = tth;
 	s->filesize = size;
 	s->partial = partial;
-	s->token = Util::toString(Util::rand());
+	s->m_token = Util::toString(Util::rand());
 	
 	search(*s);
 }
@@ -206,7 +206,7 @@ void SearchManager::search(Search& s)
 	
 	FastLock l(cs);
 	// store search
-	searches[&s.token] = &s;
+	searches[&s.m_token] = &s;
 	
 	s.process();
 }
@@ -326,8 +326,8 @@ void SearchManager::processSearchRequest(const string& ip, uint16_t port, const 
  */
 void SearchManager::processSearchResult(const AdcCommand& cmd)
 {
-	string token;
-	if (!cmd.getParam("TO", 1, token))
+	string l_token;
+	if (!cmd.getParam("TO", 1, l_token))
 		return; // missing search token?
 		
 	string nodes;
@@ -335,7 +335,7 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
 		return; // missing search token?
 		
 	FastLock l(cs);
-	SearchMap::iterator i = searches.find(&token);
+	SearchMap::iterator i = searches.find(&l_token);
 	if (i == searches.end())
 	{
 		// we didn't search for this
@@ -394,7 +394,7 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
 				else
 				{
 					// create search result: hub name+ip => "DHT", file name => TTH
-					SearchResultPtr sr(new SearchResult(source->getUser(), SearchResult::TYPE_FILE, 0, 0, size, s->term, DHT::getInstance()->getHubName(), DHT::getInstance()->getHubUrl(), i4, TTHValue(s->term), token));
+					SearchResultPtr sr(new SearchResult(source->getUser(), SearchResult::TYPE_FILE, 0, 0, size, s->term, DHT::getInstance()->getHubName(), DHT::getInstance()->getHubUrl(), i4, TTHValue(s->term), l_token));
 					if (!source->isOnline())
 					{
 						// node is not online, try to contact him if we didn't contact him recently
@@ -429,7 +429,7 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
 				continue;
 			}
 			
-			const string& i4 = xml.getChildAttrib("I4");
+			const string i4 = xml.getChildAttrib("I4");
 			uint16_t u4 = static_cast<uint16_t>(xml.getIntChildAttrib("U4"));
 			
 			// don't bother with private IPs

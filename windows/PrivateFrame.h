@@ -156,7 +156,7 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 		
 		const UserPtr& getUser()
 		{
-			return replyTo;
+			return m_replyTo;
 		}
 	private:
 		PrivateFrame(const HintedUser& replyTo_, const string& myNick);
@@ -169,7 +169,7 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 		
 #define MAX_PM_FRAMES 200
 		
-		const UserPtr replyTo; // [+] IRainman fix: this is const ptr.
+		const UserPtr m_replyTo; // [+] IRainman fix: this is const ptr.
 		tstring m_replyToRealName; // [+] IRainman fix.
 		
 		CContainedWindow ctrlClientContainer;
@@ -189,7 +189,7 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 		}
 		void on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) noexcept
 		{
-			if (aUser == replyTo)
+			if (aUser == m_replyTo)
 			{
 				PostMessage(WM_SPEAKER, USER_UPDATED);
 			}

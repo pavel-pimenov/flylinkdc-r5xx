@@ -1783,7 +1783,7 @@ static const string type2Video[] = { ".rm", ".divx", ".mpeg", ".mp1v", ".mp2v", 
 		dcassert(!x[i].empty() && x[i][0] == '.' && x[i].length() != 4); \
 	}
 
-static bool checkType(const string& aString, Search::TypeModes aType)
+bool ShareManager::checkType(const string& aString, Search::TypeModes aType)
 {
 	if (aType == Search::TYPE_ANY)
 		return true;

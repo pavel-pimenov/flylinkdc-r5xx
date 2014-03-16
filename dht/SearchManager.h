@@ -41,7 +41,7 @@ struct Search {
 	Node::Map triedNodes;       // nodes where search request has already been sent to
 	Node::Map respondedNodes;   // nodes who responded to this search request
 	
-	string token;           // search identificator
+	string m_token;           // search identificator
 	string term;            // search term (TTH/CID)
 	uint64_t lifeTime;      // time when this search has been started //[!] Member variable 'Search::lifeTime' is not initialized in the constructor.
 	int64_t filesize;       // file size
@@ -64,7 +64,7 @@ class SearchManager :
 		void findNode(const CID& cid);
 		
 		/** Performs value lookup in the network */
-		void findFile(const string& tth, const string& token);
+		void findFile(const string& p_tth, const string& p_token);
 		
 		/** Performs node lookup to store key/value pair in the network */
 		void findStore(const string& tth, int64_t size, bool partial);

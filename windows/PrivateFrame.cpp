@@ -33,8 +33,8 @@
 
 PrivateFrame::FrameMap PrivateFrame::g_frames;
 
-PrivateFrame::PrivateFrame(const HintedUser& replyTo_, const string& myNick) : replyTo(replyTo_.user),
-	m_replyToRealName(replyTo->getLastNickT()),
+PrivateFrame::PrivateFrame(const HintedUser& replyTo_, const string& myNick) : m_replyTo(replyTo_.user),
+	m_replyToRealName(m_replyTo->getLastNickT()),
 	m_created(false), m_isoffline(false),
 	ctrlClientContainer(WC_EDIT, this, PM_MESSAGE_MAP) // !Decker!
 {
@@ -55,9 +55,9 @@ void PrivateFrame::doDestroyFrame()
 StringMap PrivateFrame::getFrameLogParams() const
 {
 	StringMap params;
-	params["hubNI"] = Util::toString(ClientManager::getHubNames(replyTo->getCID(), getHubHint()));
-	params["hubURL"] = Util::toString(ClientManager::getHubs(replyTo->getCID(), getHubHint()));
-	params["userCID"] = replyTo->getCID().toBase32();
+	params["hubNI"] = Util::toString(ClientManager::getHubNames(m_replyTo->getCID(), getHubHint()));
+	params["hubURL"] = Util::toString(ClientManager::getHubs(m_replyTo->getCID(), getHubHint()));
+	params["userCID"] = m_replyTo->getCID().toBase32();
 	params["userNI"] = Text::fromT(m_replyToRealName);
 	params["myCID"] = ClientManager::getMyCID().toBase32();
 	return params;
@@ -243,7 +243,7 @@ LRESULT PrivateFrame::onLButton(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam,
 
 void PrivateFrame::processFrameMessage(const tstring& fullMessageText, bool& resetInputMessageText)
 {
-	if (replyTo->isOnline())
+	if (m_replyTo->isOnline())
 	{
 		sendMessage(fullMessageText);
 	}
@@ -274,7 +274,7 @@ void PrivateFrame::processFrameCommand(const tstring& fullMessageText, const tst
 	{
 		BOOL bTmp;
 		clearUserMenu();
-		reinitUserMenu(replyTo, getHubHint());
+		reinitUserMenu(m_replyTo, getHubHint());
 		onGetList(0, 0, 0, bTmp);
 	}
 	else if (stricmp(cmd.c_str(), _T("log")) == 0)
@@ -285,7 +285,7 @@ void PrivateFrame::processFrameCommand(const tstring& fullMessageText, const tst
 
 void PrivateFrame::sendMessage(const tstring& msg, bool thirdperson /*= false*/)
 {
-	ClientManager::getInstance()->privateMessage(HintedUser(replyTo, getHubHint()), Text::fromT(msg), thirdperson);
+	ClientManager::getInstance()->privateMessage(HintedUser(m_replyTo, getHubHint()), Text::fromT(msg), thirdperson);
 }
 
 LRESULT PrivateFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
@@ -301,7 +301,7 @@ LRESULT PrivateFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	}
 	else
 	{
-		g_frames.erase(replyTo);
+		g_frames.erase(m_replyTo);
 		
 		bHandled = FALSE;
 		return 0;
@@ -355,9 +355,9 @@ LRESULT PrivateFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 	//#ifdef OLD_MENU_HEADER //[~]JhaoDa
 	tabMenu.InsertSeparatorFirst(m_replyToRealName);
 	//#endif
-	reinitUserMenu(replyTo, getHubHint()); // [!] IRainman fix.
+	reinitUserMenu(m_replyTo, getHubHint()); // [!] IRainman fix.
 	appendAndActivateUserItems(tabMenu); // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=621
-	appendUcMenu(tabMenu, UserCommand::CONTEXT_USER, ClientManager::getHubs(replyTo->getCID(), getHubHint()));
+	appendUcMenu(tabMenu, UserCommand::CONTEXT_USER, ClientManager::getHubs(m_replyTo->getCID(), getHubHint()));
 	if (!(tabMenu.GetMenuState(tabMenu.GetMenuItemCount() - 1, MF_BYPOSITION) & MF_SEPARATOR))
 	{
 		tabMenu.AppendMenu(MF_SEPARATOR);
@@ -378,7 +378,7 @@ void PrivateFrame::runUserCommand(UserCommand& uc)
 	if (!WinUtil::getUCParams(m_hWnd, uc, ucLineParams))
 		return;
 	StringMap ucParams = ucLineParams;
-	ClientManager::getInstance()->userCommand(HintedUser(replyTo, getHubHint()), uc, ucParams, true);
+	ClientManager::getInstance()->userCommand(HintedUser(m_replyTo, getHubHint()), uc, ucParams, true);
 	// TODO тут ucParams не используется позже
 }
 
@@ -472,15 +472,15 @@ void PrivateFrame::updateTitle()
 	//[+]FlylinkDC++ Team
 	if (m_closed)
 		return;
-	if (!replyTo)
+	if (!m_replyTo)
 		return;
 	//[~]FlylinkDC++ Team
-	pair<tstring, bool> hubs = WinUtil::getHubNames(replyTo, getHubHint());
+	pair<tstring, bool> hubs = WinUtil::getHubNames(m_replyTo, getHubHint());
 	
 	bool banIcon = false;
 	Flags::MaskType l_flags;
 	int l_ul;
-	if (FavoriteManager::getInstance()->getFavUserParam(replyTo, l_flags, l_ul))
+	if (FavoriteManager::getInstance()->getFavUserParam(m_replyTo, l_flags, l_ul))
 	{
 		banIcon = FavoriteManager::hasUploadBan(l_ul) || FavoriteManager::hasIgnorePM(l_flags); // TODO - переписать на получения иконки
 	}
@@ -499,7 +499,7 @@ void PrivateFrame::updateTitle()
 		// if when you open the window it was already known the real name - use it.
 		if (m_replyToRealName.empty())
 		{
-			m_replyToRealName = replyTo->getLastNickT();
+			m_replyToRealName = m_replyTo->getLastNickT();
 		}
 		if (m_isoffline)
 		{
@@ -555,7 +555,7 @@ LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 		
 	if (reinterpret_cast<HWND>(wParam) == ctrlClient)
 	{
-		ctrlClient.OnRButtonDown(pt, replyTo);
+		ctrlClient.OnRButtonDown(pt, m_replyTo);
 		const int i = ctrlClient.CharFromPos(p);
 		const int line = ctrlClient.LineFromChar(i);
 		const int c = LOWORD(i) - ctrlClient.LineIndex(line);
@@ -574,7 +574,7 @@ LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 		}
 		if (x.substr(start, (m_replyToRealName.length() + 2)) == (_T('<') + m_replyToRealName + _T('>')))
 		{
-			if (!replyTo->isOnline())
+			if (!m_replyTo->isOnline())
 			{
 				return S_OK;
 			}
@@ -582,9 +582,9 @@ LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 			menu.CreatePopupMenu();
 			clearUserMenu();
 			
-			reinitUserMenu(replyTo, getHubHint()); // [!] IRainman fix.
+			reinitUserMenu(m_replyTo, getHubHint()); // [!] IRainman fix.
 			
-			appendUcMenu(menu, UserCommand::CONTEXT_USER, ClientManager::getHubs(replyTo->getCID(), getHubHint()));
+			appendUcMenu(menu, UserCommand::CONTEXT_USER, ClientManager::getHubs(m_replyTo->getCID(), getHubHint()));
 			if (!(menu.GetMenuState(menu.GetMenuItemCount() - 1, MF_BYPOSITION) & MF_SEPARATOR))
 			{
 				menu.AppendMenu(MF_SEPARATOR);

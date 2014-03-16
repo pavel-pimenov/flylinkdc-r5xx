@@ -282,18 +282,18 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		{
 			public:
 			
-				explicit QueueItemInfo(const QueueItemPtr& aQI) : qi(aQI)
+				explicit QueueItemInfo(const QueueItemPtr& aQI) : m_qi(aQI)
 				{
-					qi->inc();
-					m_size   = qi->getSize();
+					m_qi->inc();
+					m_size   = m_qi->getSize();
 #ifdef _DEBUG
-					m_Target = qi->getTarget();
+					m_Target = m_qi->getTarget();
 #endif
 				}
 				
 				~QueueItemInfo()
 				{
-					qi->dec();
+					m_qi->dec();
 				}
 				
 				void remove()
@@ -328,7 +328,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				
 				const QueueItemPtr& getQueueItem() const
 				{
-					return qi;
+					return m_qi;
 				}
 				string getPath() const
 				{
@@ -337,58 +337,58 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				
 				bool isSet(Flags::MaskType aFlag) const
 				{
-					return (qi->getFlags() & aFlag) == aFlag;
+					return (m_qi->getFlags() & aFlag) == aFlag;
 				}
 				
 				bool isAnySet(Flags::MaskType aFlag) const
 				{
-					return (qi->getFlags() & aFlag) != 0;
+					return (m_qi->getFlags() & aFlag) != 0;
 				}
 				
 				const string& getTarget() const
 				{
-					dcassert(m_Target == qi->getTarget());
-					return qi->getTarget();
+					dcassert(m_Target == m_qi->getTarget());
+					return m_qi->getTarget();
 				}
 				
 				int64_t getSize() const
 				{
-					dcassert(m_size == qi->getSize())
+					dcassert(m_size == m_qi->getSize())
 					return m_size;
 				}
 				int64_t getDownloadedBytes() const
 				{
-					return qi->getDownloadedBytes();
+					return m_qi->getDownloadedBytes();
 				}
 				time_t getAdded() const
 				{
-					return qi->getAdded();
+					return m_qi->getAdded();
 				}
 				const TTHValue& getTTH() const
 				{
-					return qi->getTTH();
+					return m_qi->getTTH();
 				}
 				
 				QueueItem::Priority getPriority() const
 				{
-					return qi->getPriority();
+					return m_qi->getPriority();
 				}
 				bool isWaitingL() const
 				{
-					return qi->isWaitingL();
+					return m_qi->isWaitingL();
 				}
 				bool isFinishedL() const
 				{
-					return qi->isFinishedL();
+					return m_qi->isFinishedL();
 				}
 				
 				bool getAutoPriority() const
 				{
-					return qi->getAutoPriority();
+					return m_qi->getAutoPriority();
 				}
 				
 			private:
-				const QueueItemPtr qi;
+				const QueueItemPtr m_qi;
 #ifdef _DEBUG
 				string m_Target;
 #endif

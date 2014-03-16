@@ -244,8 +244,8 @@ void Socket::socksConnect(const string& aAddr, uint16_t aPort, uint64_t timeout)
 		connStr.insert(connStr.end(), paddr, paddr + 4); //-V112
 	}
 	
-	uint16_t port = htons(aPort);
-	uint8_t* pport = (uint8_t*) & port;
+	uint16_t l_port = htons(aPort);
+	uint8_t* pport = (uint8_t*) & l_port;
 	connStr.push_back(pport[0]);
 	connStr.push_back(pport[1]);
 	

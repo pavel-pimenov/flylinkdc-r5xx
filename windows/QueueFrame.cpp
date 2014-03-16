@@ -142,8 +142,8 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 			{
 				return TSTRING(DOWNLOAD_FINISHED_IDLE);
 			}
-			const size_t l_online = QueueManager::countOnlineUsersL(qi); // [!] IRainman fix done 2012-04-29_13-46-19_NRAIMLXLGO4PGYESCVW76KIYPJCSLGLGP2LS2WY_712318D1_crash-stack-r501-x64-build-9869.dmp
-			const size_t l_count_source = qi->getSourcesCountL();
+			const size_t l_online = QueueManager::countOnlineUsersL(m_qi); // [!] IRainman fix done 2012-04-29_13-46-19_NRAIMLXLGO4PGYESCVW76KIYPJCSLGLGP2LS2WY_712318D1_crash-stack-r501-x64-build-9869.dmp
+			const size_t l_count_source = m_qi->getSourcesCountL();
 			if (isWaitingL())
 			{
 				if (l_online > 0)
@@ -246,7 +246,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 		{
 			tstring tmp;
 			RLock l(*QueueItem::g_cs);
-			const auto& sources = qi->getSourcesL();
+			const auto& sources = m_qi->getSourcesL();
 			for (auto j = sources.cbegin(); j != sources.cend(); ++j)
 			{
 				if (!tmp.empty())
@@ -263,7 +263,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 		case COLUMN_LOCAL_PATH: // TODO fix copy-paste
 		{
 			tstring l_result;
-			if (!qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_USER_GET_IP))
+			if (!m_qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_USER_GET_IP))
 			{
 				l_result = Text::toT(ShareManager::getInstance()->toRealPath(getTTH()));
 				if (l_result.empty())
@@ -289,7 +289,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 		{
 			tstring tmp;
 			RLock l(*QueueItem::g_cs);
-			const auto& badSources = qi->getBadSourcesL();
+			const auto& badSources = m_qi->getBadSourcesL();
 			for (auto j = badSources.cbegin(); j != badSources.cend(); ++j)
 			{
 				if (!j->second.isSet(QueueItem::Source::FLAG_REMOVED))
@@ -337,7 +337,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 		}
 		case COLUMN_TTH:
 		{
-			return qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_USER_GET_IP) ? Util::emptyStringT : Text::toT(getTTH().toBase32());
+			return m_qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_USER_GET_IP) ? Util::emptyStringT : Text::toT(getTTH().toBase32());
 		}
 		default:
 		{

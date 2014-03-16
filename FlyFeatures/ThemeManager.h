@@ -68,9 +68,9 @@ class ThemeManager :
 	
 		static void unloadResourceLib();
 		
-		static void setResourceLibInstance(HMODULE instance)
+		static void setResourceLibInstance(HMODULE p_instance)
 		{
-			g_resourceLibInstance = instance;
+			g_resourceLibInstance = p_instance;
 		}
 		
 		friend class Singleton<ThemeManager>;

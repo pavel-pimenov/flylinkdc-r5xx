@@ -2626,7 +2626,47 @@ int FileImage::getIconIndex(const string& aFileName)
 {
 	if (BOOLSETTING(USE_SYSTEM_ICONS))
 	{
-		const auto x = Text::toLower(Util::getFileExtWithoutDot(aFileName)); //TODO часто зовем
+		auto x = Text::toLower(Util::getFileExtWithoutDot(aFileName)); //TODO часто зовем
+		if (x.compare(0, 3, "exe", 3) == 0)
+		{
+			// Проверка на двойные расширения
+			string xx = Util::getFileName(aFileName);
+			xx = Text::toLower(Util::getFileDoubleExtWithoutDot(xx));
+			if (!xx.empty())
+			{
+				if (CFlyServerConfig::isVirusExt(xx))
+				{
+					static HIconWrapper g_hExeIcon(IDR_ICON_THERMOMETR_BAG);
+					static int g_virus_exe_icon_index = 0;
+					if (!g_virus_exe_icon_index)
+					{
+						m_images.AddIcon(g_hExeIcon);
+						m_imageCount++;
+						g_virus_exe_icon_index = m_imageCount - 1;
+					}
+					return g_virus_exe_icon_index;
+				}
+				// Проверим медиа-расширение.exe
+				const auto i = xx.rfind('.');
+				dcassert(i != string::npos);
+				if (i != string::npos)
+				{
+					const auto base_x = xx.substr(0, i);
+					if (CFlyServerConfig::isMediainfoExt(base_x))
+					{
+						static HIconWrapper g_hMedicalIcon(IDR_ICON_MEDICAL_BAG);
+						static int g_media_virus_exe_icon_index = 0;
+						if (!g_media_virus_exe_icon_index)
+						{
+							m_images.AddIcon(g_hMedicalIcon);
+							m_imageCount++;
+							g_media_virus_exe_icon_index = m_imageCount - 1;
+						}
+						return g_media_virus_exe_icon_index;
+					}
+				}
+			}
+		}
 		if (!x.empty())
 		{
 			//FastLock l(m_cs);
@@ -2636,9 +2676,9 @@ int FileImage::getIconIndex(const string& aFileName)
 				return j->second;
 			}
 		}
-		const auto fn = Text::toT(Util::getFileName(aFileName));
+		x = "x." + x;
 		SHFILEINFO fi = { 0 };
-		if (SHGetFileInfo(fn.c_str(), FILE_ATTRIBUTE_NORMAL, &fi, sizeof(fi), SHGFI_ICON | SHGFI_SMALLICON | SHGFI_USEFILEATTRIBUTES))
+		if (SHGetFileInfo(Text::toT(x).c_str(), FILE_ATTRIBUTE_NORMAL, &fi, sizeof(fi), SHGFI_ICON | SHGFI_SMALLICON | SHGFI_USEFILEATTRIBUTES))
 		{
 			//FastLock l(m_cs);
 			m_images.AddIcon(fi.hIcon);

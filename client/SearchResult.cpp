@@ -29,9 +29,11 @@
 SearchResult::SearchResult(const UserPtr& aUser, Types aType, uint8_t aSlots, uint8_t aFreeSlots,
                            int64_t aSize, const string& aFile, const string& aHubName,
                            const string& aHubURL, const string& ip, const TTHValue& aTTH, const string& aToken) :
-	file(aFile), hubName(aHubName), hubURL(aHubURL), user(aUser),
-	size(aSize), type(aType), slots(aSlots), freeSlots(aFreeSlots), IP(ip),
-	tth(aTTH), token(aToken),
+	file(aFile),
+	m_hubName(aHubName),
+	hubURL(aHubURL), user(aUser),
+	size(aSize), m_type(aType), slots(aSlots), freeSlots(aFreeSlots), IP(ip),
+	tth(aTTH), m_token(aToken),
 	m_is_tth_share(false),
 	m_is_tth_remembrance(false),
 	m_is_tth_download(false),
@@ -40,7 +42,7 @@ SearchResult::SearchResult(const UserPtr& aUser, Types aType, uint8_t aSlots, ui
 }
 
 SearchResult::SearchResult(Types aType, int64_t aSize, const string& aFile, const TTHValue& aTTH) :
-	file(aFile), user(ClientManager::getMe_UseOnlyForNonHubSpecifiedTasks()), size(aSize), type(aType), slots(UploadManager::getInstance()->getSlots()),
+	file(aFile), user(ClientManager::getMe_UseOnlyForNonHubSpecifiedTasks()), size(aSize), m_type(aType), slots(UploadManager::getInstance()->getSlots()),
 	freeSlots(UploadManager::getInstance()->getFreeSlots()),
 	tth(aTTH),
 	m_is_tth_remembrance(false),
@@ -49,12 +51,19 @@ SearchResult::SearchResult(Types aType, int64_t aSize, const string& aFile, cons
 {
 	m_is_tth_share = aType == TYPE_FILE; // Constructor for ShareManager
 }
-
+void SearchResult::calcHubName()
+{
+	if (m_hubName.empty())
+	{
+		const StringList names = ClientManager::getHubNames(user->getCID(), Util::emptyString);
+		m_hubName = names.empty() ? STRING(OFFLINE) : Util::toString(names);
+	}
+}
 void SearchResult::checkTTH()
 {
 	if (m_is_tth_check == false)
 	{
-		if (type == TYPE_FILE)
+		if (m_type == TYPE_FILE)
 		{
 			m_is_tth_share = ShareManager::getInstance()->isTTHShared(tth);
 			if (m_is_tth_share == false)
@@ -89,7 +98,7 @@ string SearchResult::toSR(const Client& c) const
 //#else
 	const string acpFile = Text::fromUtf8(file, c.getEncoding());
 //#endif
-	if (type == TYPE_FILE)
+	if (m_type == TYPE_FILE)
 	{
 		tmp.append(acpFile);
 		tmp.append(1, '\x05');
@@ -111,9 +120,9 @@ string SearchResult::toSR(const Client& c) const
 	return tmp;
 }
 
-AdcCommand SearchResult::toRES(char type) const
+AdcCommand SearchResult::toRES(char p_type) const
 {
-	AdcCommand cmd(AdcCommand::CMD_RES, type);
+	AdcCommand cmd(AdcCommand::CMD_RES, p_type);
 	cmd.addParam("SI", Util::toString(size));
 	cmd.addParam("SL", Util::toString(freeSlots));
 	cmd.addParam("FN", Util::toAdcFile(file));

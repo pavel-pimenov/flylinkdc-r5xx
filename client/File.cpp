@@ -92,15 +92,15 @@ int64_t File::getTimeStamp(const string& aFileName) throw(FileException)
 
 void File::setTimeStamp(const string& aFileName, const uint64_t stamp) throw(FileException)
 {
-	HANDLE h = CreateFile(formatPath(Text::toT(aFileName)).c_str(), FILE_WRITE_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
-	if (h == INVALID_HANDLE_VALUE)
+	HANDLE hCreate = CreateFile(formatPath(Text::toT(aFileName)).c_str(), FILE_WRITE_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+	if (hCreate == INVALID_HANDLE_VALUE)
 		throw FileException(Util::translateError(GetLastError()) + ": " + aFileName);
-	if (!SetFileTime(h, NULL, NULL, (FILETIME*)&stamp))
+	if (!SetFileTime(hCreate, NULL, NULL, (FILETIME*)&stamp))
 	{
-		CloseHandle(h); //[+]PPA
+		CloseHandle(hCreate); //[+]PPA
 		throw FileException(Util::translateError(GetLastError()) + ": " + aFileName);
 	}
-	CloseHandle(h);
+	CloseHandle(hCreate);
 }
 //[~]Greylink
 

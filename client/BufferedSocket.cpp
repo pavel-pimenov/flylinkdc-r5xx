@@ -507,8 +507,8 @@ void BufferedSocket::threadSendFile(InputStream* file)
 	const size_t bufSize = MAX_SOCKET_BUFFER_SIZE;
 #endif
 	
-	ByteVector readBuf(bufSize); // https://www.box.net/shared/07ab0210ed0f83ab842e
-	ByteVector writeBuf(bufSize);
+	ByteVector l_readBuf(bufSize); // https://www.box.net/shared/07ab0210ed0f83ab842e
+	ByteVector l_writeBuf(bufSize);
 	
 	size_t readPos = 0;
 	
@@ -521,11 +521,11 @@ void BufferedSocket::threadSendFile(InputStream* file)
 		// should be rewritten using ThrottleManager
 		//int UserSleep = getSleep(); // !SMT!-S
 		
-		if (!readDone && readBuf.size() > readPos)
+		if (!readDone && l_readBuf.size() > readPos)
 		{
 			// Fill read buffer
-			size_t bytesRead = readBuf.size() - readPos;
-			size_t actual = file->read(&readBuf[readPos], bytesRead);
+			size_t bytesRead = l_readBuf.size() - readPos;
+			size_t actual = file->read(&l_readBuf[readPos], bytesRead);
 			
 			if (bytesRead > 0)
 			{
@@ -558,15 +558,15 @@ void BufferedSocket::threadSendFile(InputStream* file)
 			return;
 		}
 		
-		readBuf.swap(writeBuf);
-		readBuf.resize(bufSize);
-		writeBuf.resize(readPos);
+		l_readBuf.swap(l_writeBuf);
+		l_readBuf.resize(bufSize);
+		l_writeBuf.resize(readPos);
 		readPos = 0;
 		
 		size_t writePos = 0, writeSize = 0;
 		int written = 0;
 		
-		while (writePos < writeBuf.size())
+		while (writePos < l_writeBuf.size())
 		{
 			if (socketIsDisconecting()) // [!] IRainman fix
 				return;
@@ -574,12 +574,12 @@ void BufferedSocket::threadSendFile(InputStream* file)
 			if (written == -1)
 			{
 				// workaround for OpenSSL (crashes when previous write failed and now retrying with different writeSize)
-				written = sock->write(&writeBuf[writePos], writeSize);
+				written = sock->write(&l_writeBuf[writePos], writeSize);
 			}
 			else
 			{
-				writeSize = min(sockSize / 2, writeBuf.size() - writePos);
-				written = ThrottleManager::getInstance()->write(sock.get(), &writeBuf[writePos], writeSize);
+				writeSize = min(sockSize / 2, l_writeBuf.size() - writePos);
+				written = ThrottleManager::getInstance()->write(sock.get(), &l_writeBuf[writePos], writeSize);
 			}
 			
 			if (written > 0)
@@ -593,11 +593,11 @@ void BufferedSocket::threadSendFile(InputStream* file)
 				// [-] brain-ripper
 				// should be rewritten using ThrottleManager
 				//if(!readDone && readPos < readBuf.size() && UserSleep <= 0)  // !SMT!-S
-				if (!readDone && readPos < readBuf.size())
+				if (!readDone && readPos < l_readBuf.size())
 				{
 					// Read a little since we're blocking anyway...
-					size_t bytesRead = min(readBuf.size() - readPos, readBuf.size() / 2);
-					size_t actual = file->read(&readBuf[readPos], bytesRead);
+					size_t bytesRead = min(l_readBuf.size() - readPos, l_readBuf.size() / 2);
+					size_t actual = file->read(&l_readBuf[readPos], bytesRead);
 					
 					if (bytesRead > 0)
 					{
@@ -638,10 +638,10 @@ void BufferedSocket::write(const char* aBuf, size_t aLen)
 	if (!hasSocket())
 		return;
 	FastLock l(cs);
-	if (writeBuf.empty())
+	if (m_writeBuf.empty())
 		addTask(SEND_DATA, nullptr);
 		
-	writeBuf.insert(writeBuf.end(), aBuf, aBuf + aLen); // [1] std::bad_alloc nomem https://www.box.net/shared/nmobw6wofukhcdr7lx4h
+	m_writeBuf.insert(m_writeBuf.end(), aBuf, aBuf + aLen); // [1] std::bad_alloc nomem https://www.box.net/shared/nmobw6wofukhcdr7lx4h
 }
 
 void BufferedSocket::threadSendData()
@@ -651,13 +651,13 @@ void BufferedSocket::threadSendData()
 		
 	{
 		FastLock l(cs);
-		if (writeBuf.empty())
+		if (m_writeBuf.empty())
 			return;
 			
-		writeBuf.swap(sendBuf);
+		m_writeBuf.swap(m_sendBuf);
 	}
 	
-	size_t left = sendBuf.size();
+	size_t left = m_sendBuf.size();
 	size_t done = 0;
 	while (left > 0)
 	{
@@ -675,7 +675,7 @@ void BufferedSocket::threadSendData()
 		
 		if (w & Socket::WAIT_WRITE)
 		{
-			int n = sock->write(&sendBuf[done], left); // adguard - https://www.box.net/shared/9201edaa1fa1b83a8d3c
+			int n = sock->write(&m_sendBuf[done], left); // adguard - https://www.box.net/shared/9201edaa1fa1b83a8d3c
 			if (n > 0)
 			{
 				left -= n;
@@ -683,7 +683,7 @@ void BufferedSocket::threadSendData()
 			}
 		}
 	}
-	sendBuf.clear();
+	m_sendBuf.clear();
 }
 
 bool BufferedSocket::checkEvents()

@@ -31,8 +31,8 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		using Client::send;
 		using Client::connect;
 		
-		void connect(const OnlineUser& user, const string& token);
-		void connect(const OnlineUser& user, const string& token, bool secure);
+		void connect(const OnlineUser& user, const string& p_token);
+		void connect(const OnlineUser& user, const string& p_token, bool secure);
 		
 		void hubMessage(const string& aMessage, bool thirdPerson = false);
 		void privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson = false);
@@ -131,8 +131,8 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		
 		void sendSearch(AdcCommand& c);
 		void sendUDP(const AdcCommand& cmd) noexcept;
-		void unknownProtocol(uint32_t target, const string& protocol, const string& token);
-		bool secureAvail(uint32_t target, const string& protocol, const string& token);
+		void unknownProtocol(uint32_t target, const string& protocol, const string& p_token);
+		bool secureAvail(uint32_t target, const string& protocol, const string& p_token);
 		
 		// [-] IRainman see class Client, not rewrite this!
 		//void on(Connecting) noexcept

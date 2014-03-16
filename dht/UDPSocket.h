@@ -76,7 +76,7 @@ class UDPSocket :
 		}
 		
 		/** Sends command to ip and port */
-		void send(AdcCommand& cmd, const string& ip, uint16_t port, const CID& targetCID, const UDPKey& udpKey);
+		void send(AdcCommand& cmd, const string& ip, uint16_t p_port, const CID& targetCID, const UDPKey& udpKey);
 		
 	private:
 	

@@ -297,7 +297,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		
 		void send(AdcCommand& c, const CID& to);
 		
-		void connect(const HintedUser& user, const string& token);
+		void connect(const HintedUser& user, const string& p_token);
 		void privateMessage(const HintedUser& user, const string& msg, bool thirdPerson);
 		void userCommand(const HintedUser& user, const UserCommand& uc, StringMap& params, bool compatibility);
 		

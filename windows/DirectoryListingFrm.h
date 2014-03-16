@@ -567,7 +567,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		tstring m_error;
 		string size;
 		
-		int skipHits;
+		int m_skipHits;
 		
 		size_t files;
 		int64_t speed;      /**< Speed at which this file list was downloaded */
@@ -610,10 +610,6 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		int scan_list_view_from_merge();
 		typedef std::map<TTHValue, ItemInfo*> CFlyMergeItem;
 		CFlyMergeItem m_merge_item_map; // TODO - организовать кэш для медиаинфы, чтобы лишний раз не ходить на флай-сервер c get-запросами
-		std::map<TTHValue, uint64_t> m_tth_media_file_map;
-		void push_mediainfo_to_fly_server();
-		void prepare_mediainfo_to_fly_serverL();
-		CriticalSection m_cs_fly_server;
 #endif
 		int m_count_item_changed;
 };

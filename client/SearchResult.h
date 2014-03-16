@@ -55,7 +55,6 @@ class SearchResult : public intrusive_ptr_base<SearchResult>
 		{
 			return Util::toString(getFreeSlots()) + '/' + Util::toString(getSlots());
 		}
-		
 		const string& getFile() const
 		{
 			return file;
@@ -66,15 +65,17 @@ class SearchResult : public intrusive_ptr_base<SearchResult>
 		}
 		const string& getHubName() const
 		{
-			return hubName;
+			return m_hubName;
 		}
+		void calcHubName();
+		
 		int64_t getSize() const
 		{
 			return size; // 2012-06-09_18-15-11_AED5TO72V7NDNHNH4GNUHSODFQV7M6IMKGVUK6I_413105D2_crash-stack-r501-build-10294.dmp
 		}
 		Types getType() const
 		{
-			return type;
+			return m_type;
 		}
 		size_t getSlots() const
 		{
@@ -99,7 +100,7 @@ class SearchResult : public intrusive_ptr_base<SearchResult>
 		}
 		const string& getToken() const
 		{
-			return token;
+			return m_token;
 		}
 		
 		bool m_is_tth_share;
@@ -114,10 +115,10 @@ class SearchResult : public intrusive_ptr_base<SearchResult>
 		TTHValue tth;
 		
 		string file;
-		string hubName;
+		string m_hubName;
 		string hubURL;
 		string IP;
-		string token;
+		string m_token;
 		
 		int64_t size;
 		
@@ -125,7 +126,7 @@ class SearchResult : public intrusive_ptr_base<SearchResult>
 		size_t freeSlots;
 		
 		UserPtr user;
-		Types type;
+		Types m_type;
 		bool m_is_tth_check;
 };
 
