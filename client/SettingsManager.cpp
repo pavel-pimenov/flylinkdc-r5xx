@@ -88,7 +88,8 @@ const string SettingsManager::settingTags[] =
 	"WebServerPowerUser", "WebServerPowerPass", "webServerBindAddress", // [+] IRainman
 	"WebServerLogFormat", "LogFormatCustomLocation", "LogFormatTraceSQLite", "LogFormatDdosTrace", "WebServerUser", "WebServerPass", "LogFileMainChat",
 	"LogFilePrivateChat", "LogFileStatus", "LogFileUpload", "LogFileDownload", "LogFileSystem", "LogFormatSystem",
-	"LogFormatStatus", "LogFileWebServer", "LogFileCustomLocation", "LogTraceSQLite", "LogFileDdosTrace", "DirectoryListingFrameOrder", "DirectoryListingFrameWidths",
+	"LogFormatStatus", "LogFileWebServer", "LogFileCustomLocation", "LogTraceSQLite", "LogFileDdosTrace",
+	"DirectoryListingFrameOrder", "DirectoryListingFrameWidths",
 	"MainFrameVisible", "SearchFrameVisible", "QueueFrameVisible", "HubFrameVisible", "UploadQueueFrameVisible",
 	"EmoticonsFileFlylinkDC",
 	"TLSPrivateKeyFile", "TLSCertificateFile", "TLSTrustedCertificatesPath",
@@ -106,7 +107,8 @@ const string SettingsManager::settingTags[] =
 	"ToolBarSettings",
 	"WinampToolBar", //[+] Drakon!
 #ifdef RIP_USE_LOG_PROTOCOL
-	"LogFileProtocol", "LogFormatProtocol",
+	"LogFileProtocol",
+	"LogFormatProtocol",
 #endif
 	"CustomMenuURL", // [+] SSA
 	"RssNewsOrder",   // [+] SSA

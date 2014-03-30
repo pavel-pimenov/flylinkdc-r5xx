@@ -258,21 +258,19 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		void putOnline(const OnlineUserPtr& ou) noexcept; // [!] IRainman fix.
 		void putOffline(const OnlineUserPtr& ou, bool disconnect = false) noexcept; // [!] IRainman fix.
 		
-		// [!] IRainman fix: getMe() is deprecated in FlylinkDC++. For identification user of as the this client please use isMe()
-		// [-] const UserPtr& getMe();
-		static bool isMe(const CID& cid)
+		static bool isMe(const CID& p_cid)
 		{
-			return cid == getMyCID();
+			return p_cid == getMyCID();
 		}
-		static bool isMe(const UserPtr& user)
+		static bool isMe(const UserPtr& p_user)
 		{
-			dcassert(user); // If there crashes: means forgotten somewhere above cause getFlylinkDCUser() or getFlylinkDCIdentity() ;)
-			return isMe(user->getCID());
+			dcassert(p_user); // If there crashes: means forgotten somewhere above cause getFlylinkDCUser() or getFlylinkDCIdentity() ;)
+			return isMe(p_user->getCID());
 		}
-		static bool isMe(const OnlineUserPtr& user)
+		static bool isMe(const OnlineUserPtr& p_user)
 		{
-			dcassert(user); // If there crashes: means forgotten somewhere above cause getFlylinkDCUser() or getFlylinkDCIdentity() ;)
-			return isMe(user->getUser());
+			dcassert(p_user); // If there crashes: means forgotten somewhere above cause getFlylinkDCUser() or getFlylinkDCIdentity() ;)
+			return isMe(p_user->getUser());
 		}
 		static const UserPtr& getMe_UseOnlyForNonHubSpecifiedTasks() // [!] IRainman fix.
 		{

@@ -135,12 +135,12 @@ class VideoPreview :
 		}
 		const string& GetFilePreviewTempName() const
 		{
-			return _tempFilename;
+			return m_tempFilename;
 		}
 		void SetDownloadSegment(int64_t pos, int64_t size);
 		bool IsPreviewFileExists() const
 		{
-			return !_currentFilePreview.compare(_tempFilename);
+			return !_currentFilePreview.compare(m_tempFilename);
 		}
 		bool CanUseFile() const
 		{
@@ -168,7 +168,7 @@ class VideoPreview :
 			, _previewFileSize(0)
 			, _canUseFile(true)
 			, _viewStarted(true)
-			, _tempFilename(Util::emptyString)
+			, m_tempFilename(Util::emptyString)
 		{
 			_ask2Download.reserve(10);
 			start(64, "VideoPreview");
@@ -259,7 +259,7 @@ class VideoPreview :
 		bool _isAcceptConnection;
 		std::string _currentFilePreview;
 		int64_t _previewFileSize;
-		string _tempFilename;
+		string m_tempFilename;
 		HWND _callWnd;
 		HWND _logWnd;
 		bool _canUseFile;

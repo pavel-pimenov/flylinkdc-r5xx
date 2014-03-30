@@ -41,6 +41,9 @@ class File : public IOStream
 			WRITE = GENERIC_WRITE,
 			RW = READ | WRITE
 		};
+		File(): h(INVALID_HANDLE_VALUE)
+		{
+		}
 		File(const tstring& aFileName, int access, int mode, bool isAbsolutePath = true)
 		{
 			init(aFileName, access, mode, isAbsolutePath); // [1] https://www.box.net/shared/75247d259e1ee4eab670
@@ -184,9 +187,6 @@ class File : public IOStream
 		
 	protected:
 		HANDLE h;
-	private:
-		File(const File&);
-		File& operator=(const File&);
 };
 
 class FileFindIter

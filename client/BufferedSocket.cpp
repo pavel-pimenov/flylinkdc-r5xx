@@ -62,10 +62,10 @@ void BufferedSocket::setMode(Modes aMode, size_t aRollback)
 		return;
 	}
 	
-	if (m_mode == MODE_ZPIPE && filterIn)
+	if (m_mode == MODE_ZPIPE && m_ZfilterIn)
 	{
 		// delete the filter when going out of zpipe mode.
-		filterIn.reset();
+		m_ZfilterIn.reset();
 	}
 	
 	switch (aMode)
@@ -74,7 +74,7 @@ void BufferedSocket::setMode(Modes aMode, size_t aRollback)
 			m_rollback = aRollback;
 			break;
 		case MODE_ZPIPE:
-			filterIn = std::unique_ptr<UnZFilter>(new UnZFilter); // [IntelC++ 2012 beta2] warning #734: "std::unique_ptr<_Ty, _Dx>::unique_ptr(const std::unique_ptr<_Ty, _Dx>::_Myt &) [with _Ty=UnZFilter, _Dx=std::default_delete<UnZFilter>]" (declared at line 2347 of "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\memory"), required for copy that was eliminated, is inaccessible
+			m_ZfilterIn = std::unique_ptr<UnZFilter>(new UnZFilter); // [IntelC++ 2012 beta2] warning #734: "std::unique_ptr<_Ty, _Dx>::unique_ptr(const std::unique_ptr<_Ty, _Dx>::_Myt &) [with _Ty=UnZFilter, _Dx=std::default_delete<UnZFilter>]" (declared at line 2347 of "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\memory"), required for copy that was eliminated, is inaccessible
 			break;
 		case MODE_DATA:
 			break;
@@ -300,7 +300,7 @@ void BufferedSocket::threadRead()
 				{
 					size_t in = BUF_SIZE;
 					size_t used = left;
-					bool ret = (*filterIn)(&inbuf[0] + total - left, used, &buffer[0], in);
+					bool ret = (*m_ZfilterIn)(&inbuf[0] + total - left, used, &buffer[0], in);
 					left -= used;
 					l.append(&buffer[0], in);
 					// if the stream ends before the data runs out, keep remainder of data in inbuf

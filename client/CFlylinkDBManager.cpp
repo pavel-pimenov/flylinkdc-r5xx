@@ -1604,7 +1604,7 @@ size_t CFlylinkDBManager::load_queue()
 		                            "Nick,"
 		                            "CountSubSource"
 		                            //",HubHint "
-		                            " from fly_queue where size > 0"; // todo убрать в будущих версиях
+		                            " from fly_queue where size > 0 and TempTarget is not null"; // todo убрать в будущих версиях
 		if (!m_get_fly_queue.get())
 			m_get_fly_queue = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB, l_sql));
 		sqlite3_reader l_q = m_get_fly_queue.get()->executereader();
@@ -1647,7 +1647,22 @@ size_t CFlylinkDBManager::load_queue()
 				continue;
 			//if(tthRoot.empty()) ?
 			//  continue;
-			const string l_tempTarget = l_q.getstring(7);
+			string l_tempTarget = l_q.getstring(7);
+			if (l_tempTarget.length() >= MAX_PATH)
+			{
+				const auto i = l_tempTarget.rfind(PATH_SEPARATOR);
+				if (l_tempTarget.length() - i >= MAX_PATH || i == string::npos) // Имя файла больше MAX_PATH - обрежем
+				{
+					string l_file_name = Util::getFileName(l_tempTarget);
+					dcassert(l_file_name.length() >= MAX_PATH);
+					if (l_file_name.length() >= MAX_PATH)
+					{
+						const string l_file_path = Util::getFilePath(l_tempTarget);
+						Util::fixFileNameMaxPathLimit(l_file_name);
+						l_tempTarget = l_file_path + l_file_name;
+					}
+				}
+			}
 			const uint8_t l_maxSegments = uint8_t(l_q.getint(9));
 			
 			const __int64 l_ID = l_q.getint64(0);

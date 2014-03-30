@@ -1056,6 +1056,11 @@ LRESULT HubFrame::onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 			case IDC_COPY_EMAIL_ADDRESS:
 				sCopy += id.getEmail();
 				break;
+			case IDC_COPY_GEO_LOCATION:
+			{
+				sCopy += Text::fromT(Util::getIpCountry(id.getIp().to_ulong()).getDescription());
+				break;
+			}
 			case IDC_COPY_IP:
 				sCopy += id.getIpAsString();
 				break;
@@ -1072,6 +1077,7 @@ LRESULT HubFrame::onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 				// TODO translate
 				sCopy += "User info:\r\n"
 				         "\t" + STRING(NICK) + ": " + id.getNick() + "\r\n" +
+				         "\tLocation: " + Text::fromT(Util::getIpCountry(id.getIp().to_ulong()).getDescription()) + "\r\n" +
 				         "\tNicks: " + Util::toString(ClientManager::getNicks(u->getCID(), Util::emptyString)) + "\r\n" +
 				         "\t" + STRING(HUBS) + ": " + Util::toString(ClientManager::getHubs(u->getCID(), Util::emptyString)) + "\r\n" +
 				         "\t" + STRING(SHARED) + ": " + Identity::formatShareBytes(u->getBytesShared()) + (u->isNMDC() ? Util::emptyString : "(" + STRING(SHARED_FILES) + ": " + Util::toString(id.getSharedFiles()) + ")") + "\r\n" +

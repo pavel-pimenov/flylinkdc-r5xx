@@ -24,13 +24,13 @@
 #include "HashManager.h"
 
 // [!] IRainman fix.
-Download::Download(UserConnection* p_conn, QueueItem* item) noexcept :
+Download::Download(UserConnection* p_conn, QueueItem* item, const string& p_ip, const string& p_chiper_name) noexcept :
 #ifdef PPA_INCLUDE_DROP_SLOW
 lastNormalSpeed(0),
 #endif
                 qi(item),
-                Transfer(p_conn, item->getTarget(), item->getTTH()),
-                file(nullptr),
+                Transfer(p_conn, item->getTarget(), item->getTTH(), p_ip, p_chiper_name),
+                m_download_file(nullptr),
                 treeValid(false)
 {
 	qi->inc(); // [+]
@@ -150,7 +150,7 @@ AdcCommand Download::getCommand(bool zlib) const
 	return cmd;
 }
 
-void Download::getParams(const UserConnection& aSource, StringMap& params)
+void Download::getParams(const UserConnection* aSource, StringMap& params)
 {
 	Transfer::getParams(aSource, params);
 	params["target"] = getPath();

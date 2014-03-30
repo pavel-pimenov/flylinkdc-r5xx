@@ -701,7 +701,7 @@ public:
 			rbBand.fMask = RBBIM_SIZE;
 			BOOL bRet = (BOOL)::SendMessage(m_hWndToolBar, RB_GETBANDINFO, i, (LPARAM)&rbBand);
 			ATLASSERT(bRet);
-			RECT rect = { 0, 0, 0, 0 };
+			RECT rect = { 0 };
 			::SendMessage(m_hWndToolBar, RB_GETBANDBORDERS, i, (LPARAM)&rect);
 			rbBand.cx += rect.left + rect.right;
 			bRet = (BOOL)::SendMessage(m_hWndToolBar, RB_SETBANDINFO, i, (LPARAM)&rbBand);
@@ -1021,7 +1021,7 @@ public:
 			bRet = (BOOL)wnd.SendMessage(TB_GETITEMRECT, i, (LPARAM)&rcButton);
 			ATLASSERT(bRet);
 			bool bEnabled = ((tbb.fsState & TBSTATE_ENABLED) != 0);
-			if(rcButton.right > rcClient.right)
+			if((rcButton.right > rcClient.right) || (rcButton.bottom > rcClient.bottom))
 			{
 				if(tbb.fsStyle & BTNS_SEP)
 				{
@@ -1501,7 +1501,9 @@ public:
 		if(!bRet)
 		{
 			if(uMsg != WM_NCDESTROY)
+			{
 				lRes = pThis->DefWindowProc(uMsg, wParam, lParam);
+			}
 			else
 			{
 				// unsubclass, if needed
@@ -1525,11 +1527,11 @@ public:
 		if(pThis->m_dwState & WINSTATE_DESTROYED && pThis->m_pCurrentMsg == NULL)
 		{
 			// clear out window handle
-			HWND hWnd = pThis->m_hWnd;
+			HWND hWndThis = pThis->m_hWnd;
 			pThis->m_hWnd = NULL;
 			pThis->m_dwState &= ~WINSTATE_DESTROYED;
 			// clean up after window is destroyed
-			pThis->OnFinalMessage(hWnd);
+			pThis->OnFinalMessage(hWndThis);
 		}
 #endif // (_ATL_VER >= 0x0700)
 		return lRes;
@@ -1827,7 +1829,7 @@ public:
 
 		if(!(lpWndPos->flags & SWP_NOSIZE))
 		{
-			RECT rectClient;
+			RECT rectClient = { 0 };
 			if(UpdateClientEdge(&rectClient) && ((GetStyle() & WS_MAXIMIZE) != 0))
 			{
 				::AdjustWindowRectEx(&rectClient, GetStyle(), FALSE, GetExStyle());
@@ -2789,8 +2791,8 @@ public:
 		const _AtlUpdateUIMap* pMap = pT->GetUpdateUIMap();
 		m_pUIMap = pMap;
 		ATLASSERT(m_pUIMap != NULL);
-		int nCount;
-		for(nCount = 1; pMap->m_nID != (WORD)-1; nCount++)
+		int nCount = 1;
+		for( ; pMap->m_nID != (WORD)-1; nCount++)
 			pMap++;
 
 		// check for duplicates (debug only)
@@ -2998,7 +3000,7 @@ public:
 			if(m_arrUIMap[i].m_nID == nID) // matching UI map element
 			{
 				WORD wType = m_arrUIMap[i].m_wType & ~t_wType;
-				if (wType) // has other types 
+				if (wType != 0)   // has other types 
 				{
 					m_arrUIMap[i].m_wType = wType; // keep other types
 					return true;
@@ -3030,7 +3032,7 @@ public:
 				// Add submenu to UI map
 				UIAddMenu(mii.hSubMenu, bSetText);
 			}
-			else if (mii.wID)
+			else if (mii.wID != 0)
 			{
 				// Add element to UI map
 				UIAddElement<UPDUI_MENUPOPUP>(mii.wID);
@@ -3087,7 +3089,8 @@ public:
 		// Add children controls if any
 		for (ATL::CWindow wCtl = ::GetWindow(hWnd, GW_CHILD); wCtl.IsWindow(); wCtl = wCtl.GetWindow(GW_HWNDNEXT))
 		{
-			if (int id = wCtl.GetDlgCtrlID())
+			int id = wCtl.GetDlgCtrlID();
+			if(id != 0)
 				UIAddElement<UPDUI_CHILDWINDOW>(id);
 		}
 
@@ -3430,7 +3433,7 @@ public:
 			}
 			else // one control entry
 			{
-				RECT rectGroup = { 0, 0, 0, 0 };
+				RECT rectGroup = { 0 };
 				pT->DlgResize_PositionControl(cxWidth, cyHeight, rectGroup, m_arrData[i], false);
 			}
 		}

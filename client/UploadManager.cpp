@@ -78,12 +78,12 @@ UploadManager::~UploadManager()
 }
 // !SMT!-S
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
-bool UploadManager::handleBan(UserConnection& aSource/*, bool forceBan, bool noChecks*/)
+bool UploadManager::handleBan(UserConnection* aSource/*, bool forceBan, bool noChecks*/)
 {
-	const UserPtr& user = aSource.getUser();
+	const UserPtr& user = aSource->getUser();
 	if (!user->isOnline()) // if not online, cheat (connection without hub)
 	{
-		aSource.disconnect();
+		aSource->disconnect();
 		return true;
 	}
 	bool l_is_ban = false;
@@ -92,7 +92,7 @@ bool UploadManager::handleBan(UserConnection& aSource/*, bool forceBan, bool noC
 	bool banByRules = banType != User::BAN_NONE;
 	if (banByRules)
 	{
-		FavoriteHubEntry* hub = FavoriteManager::getInstance()->getFavoriteHubEntry(aSource.getHubUrl());
+		FavoriteHubEntry* hub = FavoriteManager::getInstance()->getFavoriteHubEntry(aSource->getHubUrl());
 		if (hub && hub->getExclChecks())
 			banByRules = false;
 	}
@@ -164,11 +164,11 @@ bool UploadManager::handleBan(UserConnection& aSource/*, bool forceBan, bool noC
 		LogManager::getInstance()->message("User:" + user->getLastNick() + ' ' + logline); //[+]PPA
 	}
 #endif
-	// old const bool sendStatus = aSource.isSet(UserConnection::FLAG_SUPPORTS_BANMSG);
+	// old const bool sendStatus = aSource->isSet(UserConnection::FLAG_SUPPORTS_BANMSG);
 	
 	if (!BOOLSETTING(BAN_STEALTH))
 	{
-		aSource.error(banstr);
+		aSource->error(banstr);
 		
 		if (BOOLSETTING(BAN_FORCE_PM))
 		{
@@ -202,13 +202,13 @@ bool UploadManager::handleBan(UserConnection& aSource/*, bool forceBan, bool noC
 			}
 			if (sendPm)
 			{
-				ClientManager::getInstance()->privateMessage(aSource.getHintedUser(), banstr, false);
+				ClientManager::getInstance()->privateMessage(aSource->getHintedUser(), banstr, false);
 			}
 			// [~] IRainman fix.
 		}
 	}
 	
-//	if (BOOLSETTING(BAN_STEALTH)) aSource.maxedOut();
+//	if (BOOLSETTING(BAN_STEALTH)) aSource->maxedOut();
 
 	return true;
 }
@@ -226,13 +226,13 @@ bool UploadManager::isBanReply(const UserPtr& user) const
 }
 #endif // IRAINMAN_ENABLE_AUTO_BAN
 // [+] FlylinkDC++
-bool UploadManager::hasUpload(UserConnection& p_newLeacher, const string& p_source_file) const
+bool UploadManager::hasUpload(const UserConnection* p_newLeacher, const string& p_source_file) const
 {
-	if (p_newLeacher.getSocket())
+	if (p_newLeacher->getSocket())
 	{
-		const auto& newLeacherIp = p_newLeacher.getSocket()->getIp();
-		const auto& newLeacherShare = p_newLeacher.getUser()->getBytesShared(); // [!] IRainamn fix, old code: ClientManager::getInstance()->getBytesShared(aSource.getUser());
-		const auto& newLeacherNick = p_newLeacher.getUser()->getLastNick();
+		const auto& newLeacherIp = p_newLeacher->getSocket()->getIp();
+		const auto& newLeacherShare = p_newLeacher->getUser()->getBytesShared(); // [!] IRainamn fix, old code: ClientManager::getInstance()->getBytesShared(aSource->getUser());
+		const auto& newLeacherNick = p_newLeacher->getUser()->getLastNick();
 		
 		Lock l(m_csUploads); // [+] IRainman opt.
 		
@@ -264,7 +264,7 @@ bool UploadManager::hasUpload(UserConnection& p_newLeacher, const string& p_sour
 				                                        + ", share con = " + bufNewLeacherShare
 				                                        + ", share exist = " + string(bufUploadUserShare)
 				                                        + " delta = " + string(bufShareDelta)
-				                                        + " nick con = " + p_newLeacher.getUser()->getLastNick()
+				                                        + " nick con = " + p_newLeacher->getUser()->getLastNick()
 				                                        + " nick exist = " + u->getUser()->getLastNick()
 				                                        + " source file = " + p_source_file
 				                                       );
@@ -276,20 +276,22 @@ bool UploadManager::hasUpload(UserConnection& p_newLeacher, const string& p_sour
 	return false;
 }
 // [~] FlylinkDC++
-bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, const string& aFile, int64_t aStartPos, int64_t& aBytes, bool listRecursive)
+bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, const string& aFile, int64_t aStartPos, int64_t& aBytes, bool listRecursive)
 {
 	dcdebug("Preparing %s %s " I64_FMT " " I64_FMT " %d\n", aType.c_str(), aFile.c_str(), aStartPos, aBytes, listRecursive);
 	
 	if (aFile.empty() || aStartPos < 0 || aBytes < -1 || aBytes == 0)
 	{
-		aSource.fileNotAvail("Invalid request");
+		aSource->fileNotAvail("Invalid request");
 		return false;
 	}
+	const auto l_ip = aSource->getRemoteIp();
+	const auto l_chiper_name = aSource->getCipherName();
 	const bool l_is_TypeTree = aType == Transfer::g_type_names[Transfer::TYPE_TREE];
 #ifdef PPA_INCLUDE_DOS_GUARD
 	if (l_is_TypeTree) // && aFile == "TTH/HDWK5FVECXJDLTECQ6TY435WWEE7RU25RSQYYWY"
 	{
-		const HintedUser& l_User = aSource.getHintedUser();
+		const HintedUser& l_User = aSource->getHintedUser();
 		if (l_User.user)
 		{
 			// [!] IRainman opt: CID on ADC hub is unique to all hubs,
@@ -314,9 +316,9 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 				          l_count_attempts,
 				          aFile.c_str());
 				LogManager::getInstance()->ddos_message(l_buf);
-				if (aSource.isSet(UserConnection::FLAG_SUPPORTS_BANMSG))
+				if (aSource->isSet(UserConnection::FLAG_SUPPORTS_BANMSG))
 				{
-					aSource.error(UserConnection::PLEASE_UPDATE_YOUR_CLIENT);
+					aSource->error(UserConnection::PLEASE_UPDATE_YOUR_CLIENT);
 				}
 				
 				return false;
@@ -324,8 +326,8 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 			/*
 			if(l_count_dos > 50)
 			     {
-			         LogManager::getInstance()->message("[DoS] disconnect " + aSource.getUser()->getLastNick());
-			         aSource.disconnect();
+			         LogManager::getInstance()->message("[DoS] disconnect " + aSource->getUser()->getLastNick());
+			         aSource->disconnect();
 			         return false;
 			     }
 			*/
@@ -343,9 +345,9 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 	
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 	bool ishidingShare;
-	if (aSource.getUser())
+	if (aSource->getUser())
 	{
-		const FavoriteHubEntry* fhe = FavoriteManager::getInstance()->getFavoriteHubEntry(aSource.getHintedUser().hint);
+		const FavoriteHubEntry* fhe = FavoriteManager::getInstance()->getFavoriteHubEntry(aSource->getHintedUser().hint);
 		ishidingShare = fhe && fhe->getHideShare();
 	}
 	else
@@ -388,7 +390,7 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 				
 				if ((start + size) > sz)
 				{
-					aSource.fileNotAvail();
+					aSource->fileNotAvail();
 					delete f;
 					return false;
 				}
@@ -409,7 +411,7 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 			if (ishidingShare)
 			{
-				aSource.fileNotAvail();
+				aSource->fileNotAvail();
 				return false;
 			}
 #endif
@@ -418,7 +420,7 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 			MemoryInputStream* mis = ShareManager::getInstance()->getTree(aFile);
 			if (!mis)
 			{
-				aSource.fileNotAvail();
+				aSource->fileNotAvail();
 				return false;
 			}
 			
@@ -438,7 +440,7 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 			                                                                         );
 			if (!mis)
 			{
-				aSource.fileNotAvail();
+				aSource->fileNotAvail();
 				return false;
 			}
 			
@@ -450,7 +452,7 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 		}
 		else
 		{
-			aSource.fileNotAvail("Unknown file type");
+			aSource->fileNotAvail("Unknown file type");
 			return false;
 		}
 	}
@@ -464,6 +466,7 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 			
 			if (QueueManager::getInstance()->isChunkDownloaded(fileHash, aStartPos, aBytes, sourceFile))
 			{
+				dcassert(!sourceFile.empty());
 				try
 				{
 					auto ss = new SharedFileStream(sourceFile, File::READ, File::OPEN | File::SHARED | File::NO_CACHE_HINT);
@@ -474,7 +477,7 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 					
 					if ((start + size) > fileSize)
 					{
-						aSource.fileNotAvail();
+						aSource->fileNotAvail();
 						delete ss;
 						return false;
 					}
@@ -513,19 +516,19 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 				}
 			}
 		}
-		aSource.fileNotAvail(e.getError());
+		aSource->fileNotAvail(e.getError());
 		return false;
 	}
 	catch (const Exception& e)
 	{
 		LogManager::getInstance()->message(STRING(UNABLE_TO_SEND_FILE) + ' ' + sourceFile + ": " + e.getError());
-		aSource.fileNotAvail();
+		aSource->fileNotAvail();
 		return false;
 	}
 	
 ok: //[!] TODO убрать goto
 
-	uint8_t slotType = aSource.getSlotType();
+	uint8_t slotType = aSource->getSlotType();
 	
 	// [-] Lock l(cs); [-] IRainman opt.
 	
@@ -533,17 +536,17 @@ ok: //[!] TODO убрать goto
 	bool hasReserved;
 	{
 		webrtc::ReadLockScoped l(*g_csReservedSlots); // [+] IRainman opt.
-		hasReserved = m_reservedSlots.find(aSource.getUser()) != m_reservedSlots.end();
+		hasReserved = m_reservedSlots.find(aSource->getUser()) != m_reservedSlots.end();
 	}
 	if (!hasReserved)
 	{
-		hasReserved = BOOLSETTING(EXTRASLOT_TO_DL) && DownloadManager::getInstance()->checkFileDownload(aSource.getUser());// !SMT!-S
+		hasReserved = BOOLSETTING(EXTRASLOT_TO_DL) && DownloadManager::getInstance()->checkFileDownload(aSource->getUser());// !SMT!-S
 	}
 	
-	const bool isFavorite = FavoriteManager::getInstance()->hasAutoGrantSlot(aSource.getUser())
+	const bool isFavorite = FavoriteManager::getInstance()->hasAutoGrantSlot(aSource->getUser())
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 # ifdef IRAINMAN_ENABLE_OP_VIP_MODE
-	                        || (SETTING(AUTOBAN_PPROTECT_OP) && aSource.getUser()->isSet(UserConnection::FLAG_OP))
+	                        || (SETTING(AUTOBAN_PPROTECT_OP) && aSource->getUser()->isSet(UserConnection::FLAG_OP))
 # endif
 #endif
 	                        ;
@@ -556,7 +559,7 @@ ok: //[!] TODO убрать goto
 		{
 			delete is;
 			addFailedUpload(aSource, sourceFile, aStartPos, size);
-			aSource.disconnect();
+			aSource->disconnect();
 			return false;
 		}
 	}
@@ -565,13 +568,13 @@ ok: //[!] TODO убрать goto
 	if (slotType != UserConnection::STDSLOT || hasReserved)
 	{
 		//[-] IRainman autoban fix: please check this code after merge
-		//bool hasReserved = reservedSlots.find(aSource.getUser()) != reservedSlots.end();
-		//bool isFavorite = FavoriteManager::getInstance()->hasSlot(aSource.getUser());
+		//bool hasReserved = reservedSlots.find(aSource->getUser()) != reservedSlots.end();
+		//bool isFavorite = FavoriteManager::getInstance()->hasSlot(aSource->getUser());
 		bool hasFreeSlot = getFreeSlots() > 0;
 		if (hasFreeSlot)
 		{
 			Lock l(m_csQueue);  // [+] IRainman opt.
-			hasFreeSlot = (m_slotQueue.empty() && m_notifiedUsers.empty() || (m_notifiedUsers.find(aSource.getUser()) != m_notifiedUsers.end()));
+			hasFreeSlot = (m_slotQueue.empty() && m_notifiedUsers.empty() || (m_notifiedUsers.find(aSource->getUser()) != m_notifiedUsers.end()));
 		}
 		
 		bool isAutoSlot = getAutoSlot();
@@ -583,7 +586,7 @@ ok: //[!] TODO убрать goto
 		{
 			if (!(hasReserved || isFavorite || isAutoSlot || hasFreeSlot || isHasUpload))
 			{
-				hasSlotByIP = IpGrant::getInstance()->check(aSource.getRemoteIp());
+				hasSlotByIP = IpGrant::getInstance()->check(aSource->getRemoteIp());
 			}
 		}
 #endif // SSA_IPGRANT_FEATURE
@@ -594,10 +597,10 @@ ok: //[!] TODO убрать goto
 		     )
 		        || isHasUpload)
 		{
-			bool supportsFree = aSource.isSet(UserConnection::FLAG_SUPPORTS_MINISLOTS);
+			bool supportsFree = aSource->isSet(UserConnection::FLAG_SUPPORTS_MINISLOTS);
 			bool allowedFree = (slotType == UserConnection::EXTRASLOT)
 #ifdef IRAINMAN_ENABLE_OP_VIP_MODE
-			                   || aSource.isSet(UserConnection::FLAG_OP)
+			                   || aSource->isSet(UserConnection::FLAG_OP)
 #endif
 			                   || getFreeExtraSlots() > 0;
 			bool partialFree = partial && ((slotType == UserConnection::PARTIALSLOT) || (extraPartial < SETTING(EXTRA_PARTIAL_SLOTS)));
@@ -613,8 +616,8 @@ ok: //[!] TODO убрать goto
 			else
 			{
 				delete is;
-				aSource.maxedOut(addFailedUpload(aSource, sourceFile, aStartPos, fileSize)); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=130703
-				aSource.disconnect();
+				aSource->maxedOut(addFailedUpload(aSource, sourceFile, aStartPos, fileSize)); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=130703
+				aSource->disconnect();
 				return false;
 			}
 		}
@@ -622,7 +625,7 @@ ok: //[!] TODO убрать goto
 		{
 #ifdef SSA_IPGRANT_FEATURE
 			if (hasSlotByIP)
-				LogManager::getInstance()->message("IpGrant: " + STRING(GRANTED_SLOT_BY_IP) + ' ' + aSource.getRemoteIp());
+				LogManager::getInstance()->message("IpGrant: " + STRING(GRANTED_SLOT_BY_IP) + ' ' + aSource->getRemoteIp());
 #endif
 			slotType = UserConnection::STDSLOT;
 		}
@@ -634,10 +637,10 @@ ok: //[!] TODO убрать goto
 		Lock l(m_csQueue);  // [+] IRainman opt.
 		
 		// remove file from upload queue
-		clearUserFilesL(aSource.getUser());
+		clearUserFilesL(aSource->getUser());
 		
 		// remove user from notified list
-		const auto& cu = m_notifiedUsers.find(aSource.getUser());
+		const auto& cu = m_notifiedUsers.find(aSource->getUser());
 		if (cu != m_notifiedUsers.end())
 		{
 			m_notifiedUsers.erase(cu);
@@ -650,7 +653,7 @@ ok: //[!] TODO убрать goto
 		for (auto i = m_delayUploads.cbegin(); i != m_delayUploads.cend(); ++i)
 		{
 			Upload* up = *i;
-			if (&aSource == up->getUserConnection())
+			if (aSource == up->getUserConnection())
 			{
 				m_delayUploads.erase(i);
 				if (sourceFile != up->getPath())
@@ -667,7 +670,7 @@ ok: //[!] TODO убрать goto
 		}
 	}
 	
-	Upload* u = new Upload(&aSource, sourceFile); // [!] IRainman fix.
+	Upload* u = new Upload(aSource, sourceFile, l_ip, l_chiper_name); // [!] IRainman fix.
 	u->setStream(is);
 	u->setSegment(Segment(start, size));
 	
@@ -689,10 +692,10 @@ ok: //[!] TODO убрать goto
 		increaseUserConnectionAmountL(u->getUser());// [+] IRainman SpeedLimiter
 	}
 	
-	if (aSource.getSlotType() != slotType)
+	if (aSource->getSlotType() != slotType)
 	{
 		// remove old count
-		switch (aSource.getSlotType())
+		switch (aSource->getSlotType())
 		{
 			case UserConnection::STDSLOT:
 				running--;
@@ -719,7 +722,7 @@ ok: //[!] TODO убрать goto
 		}
 		
 		// user got a slot
-		aSource.setSlotType(slotType);
+		aSource->setSlotType(slotType);
 	}
 	
 	return true;
@@ -820,7 +823,7 @@ void UploadManager::on(UserConnectionListener::Get, UserConnection* aSource, con
 	}
 	
 	int64_t bytes = -1;
-	if (prepareFile(*aSource, Transfer::g_type_names[Transfer::TYPE_FILE], Util::toAdcFile(aFile), aResume, bytes))
+	if (prepareFile(aSource, Transfer::g_type_names[Transfer::TYPE_FILE], Util::toAdcFile(aFile), aResume, bytes))
 	{
 		aSource->setState(UserConnection::STATE_SEND);
 		aSource->fileLength(Util::toString(aSource->getUpload()->getSize()));
@@ -862,7 +865,7 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 	int64_t aStartPos = Util::toInt64(c.getParam(2));
 	int64_t aBytes = Util::toInt64(c.getParam(3));
 	
-	if (prepareFile(*aSource, type, fname, aStartPos, aBytes, c.hasFlag("RE", 4)))
+	if (prepareFile(aSource, type, fname, aStartPos, aBytes, c.hasFlag("RE", 4)))
 	{
 		Upload* u = aSource->getUpload();
 		dcassert(u != nullptr);
@@ -874,7 +877,7 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 		
 		string l_name = Util::getFileName(u->getPath());
 		string l_ext = Util::getFileExtWithoutDot(l_name);
-		if (l_ext == TEMP_EXTENSION && l_name.length() > 46) // 46 it one character first dot + 39 characters TTH + 6 characters .dctmp
+		if (l_name.length() > 46 && l_ext == g_dc_temp_extension)  // 46 it one character first dot + 39 characters TTH + 6 characters .dctmp
 		{
 			l_name = l_name.erase(l_name.length() - 46);
 			l_ext = Util::getFileExtWithoutDot(l_name);
@@ -946,23 +949,23 @@ void UploadManager::logUpload(const Upload* u)
 	if (BOOLSETTING(LOG_UPLOADS) && u->getType() != Transfer::TYPE_TREE && (BOOLSETTING(LOG_FILELIST_TRANSFERS) || u->getType() != Transfer::TYPE_FULL_LIST))
 	{
 		StringMap params;
-		u->getParams(*u->getUserConnection(), params);
+		u->getParams(u->getUserConnection(), params);
 		LOG(UPLOAD, params);
 	}
 	
 	fire(UploadManagerListener::Complete(), u);
 }
 
-size_t UploadManager::addFailedUpload(const UserConnection& source, const string& file, int64_t pos, int64_t size)
+size_t UploadManager::addFailedUpload(const UserConnection* aSource, const string& file, int64_t pos, int64_t size)
 {
 	size_t queue_position = 0;
 	
 	Lock l(m_csQueue); // [+] IRainman opt.
 	
-	auto it = std::find_if(m_slotQueue.begin(), m_slotQueue.end(), [&](const UserPtr & u) -> bool { ++queue_position; return u == source.getUser(); });
+	auto it = std::find_if(m_slotQueue.begin(), m_slotQueue.end(), [&](const UserPtr & u) -> bool { ++queue_position; return u == aSource->getUser(); });
 	if (it != m_slotQueue.end())
 	{
-		it->setToken(source.getToken());
+		it->setToken(aSource->getToken());
 		// https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=130703
 		for (auto fileIter = it->m_waiting_files.cbegin(); fileIter != it->m_waiting_files.cend(); ++fileIter) //TODO https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128318
 		{
@@ -973,7 +976,7 @@ size_t UploadManager::addFailedUpload(const UserConnection& source, const string
 			}
 		}
 	}
-	UploadQueueItem* uqi = new UploadQueueItem(source.getHintedUser(), file, pos, size);
+	UploadQueueItem* uqi = new UploadQueueItem(aSource->getHintedUser(), file, pos, size);
 	if (it == m_slotQueue.end())
 	{
 		++queue_position;
@@ -981,7 +984,7 @@ size_t UploadManager::addFailedUpload(const UserConnection& source, const string
 		//l_wu.m_hintedUser = source.getHintedUser();
 		//l_wu.setToken(source.getToken());
 		//l_wu.m_files.insert(uqi);
-		m_slotQueue.push_back(WaitingUser(source.getHintedUser(), source.getToken(), uqi));
+		m_slotQueue.push_back(WaitingUser(aSource->getHintedUser(), aSource->getToken(), uqi));
 	}
 	else
 	{

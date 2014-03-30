@@ -600,10 +600,10 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	tabAWAYMenu.CreatePopupMenu();  // [+] add context menu on DHT area in status bar
 	tabAWAYMenu.AppendMenu(MF_STRING, IDC_STATUS_AWAY_ON_OFF, CTSTRING(AWAY));
 	
-	ctrlLastLines.Create(m_ctrlStatus, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP | TTS_BALLOON, WS_EX_TOPMOST);
-	ctrlLastLines.SetWindowPos(HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-	ctrlLastLines.AddTool(m_ctrlStatus.m_hWnd);
-	ctrlLastLines.SetDelayTime(TTDT_AUTOPOP, 15000);
+	m_ctrlLastLines.Create(m_ctrlStatus, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP | TTS_BALLOON, WS_EX_TOPMOST);
+	m_ctrlLastLines.SetWindowPos(HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+	m_ctrlLastLines.AddTool(m_ctrlStatus.m_hWnd);
+	m_ctrlLastLines.SetDelayTime(TTDT_AUTOPOP, 15000);
 	
 	CreateMDIClient();
 	m_CmdBar.SetMDIClient(m_hWndMDIClient);
@@ -2783,7 +2783,7 @@ void MainFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		// position bars and offset their dimensions
 		UpdateBarsPosition(rect, bResizeBars);
 		
-		if (m_ctrlStatus.IsWindow() && ctrlLastLines.IsWindow())
+		if (m_ctrlStatus.IsWindow() && m_ctrlLastLines.IsWindow())
 		{
 			CRect sr;
 			int w[STATUS_PART_LAST];
@@ -2813,7 +2813,7 @@ void MainFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 			setw(STATUS_PART_MESSAGE);
 			
 			m_ctrlStatus.SetParts(STATUS_PART_LAST - 1 + bIsHashing, w);
-			ctrlLastLines.SetMaxTipWidth(max(w[4], 400));
+			m_ctrlLastLines.SetMaxTipWidth(max(w[4], 400));
 			
 			if (bIsHashing)
 			{

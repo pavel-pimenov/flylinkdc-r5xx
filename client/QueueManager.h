@@ -132,26 +132,26 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		struct WaiterFile
 		{
 			public:
-				WaiterFile(): priority(QueueItem::NORMAL) {}
+				WaiterFile(): m_priority(QueueItem::NORMAL) {} // TODO - имя файла пустое
 				WaiterFile(const string& p_source, const string& p_target, QueueItem::Priority priority) :
-					source(p_source), target(p_target), priority(priority)
+					m_source(p_source), m_target(p_target), m_priority(priority)
 				{}
 				const string& getSource() const
 				{
-					return source;
+					return m_source;
 				}
 				const string& getTarget() const
 				{
-					return target;
+					return m_target;
 				}
 				QueueItem::Priority getPriority() const
 				{
-					return priority;
+					return m_priority;
 				}
 			private:
-				string source;
-				string target;
-				QueueItem::Priority priority;
+				string m_source;
+				string m_target;
+				QueueItem::Priority m_priority;
 		};
 		class QueueManagerWaiter : public BackgroundTaskExecuter<WaiterFile>
 #ifdef _DEBUG
@@ -183,13 +183,13 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 			m_listQueue.forceStop();
 			waiter.forceStop();
 			dclstLoader.forceStop();
-			mover.forceStop();
+			m_mover.forceStop();
 			rechecker.forceStop();
 		}
 		//[~] FlylinkDC
 		
 		/** Readd a source that was removed */
-		void readd(const string& target, const UserPtr& aUser) throw(QueueException);
+		void readd(const string& p_target, const UserPtr& aUser) throw(QueueException);
 		void readdAll(const QueueItemPtr& q) throw(QueueException); // [+] IRainman opt.
 		/** Add a directory to the queue (downloads filelist and matches the directory). */
 		void addDirectory(const string& aDir, const UserPtr& aUser, const string& aTarget,
@@ -240,7 +240,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		}
 		
 		bool getQueueInfo(const UserPtr& aUser, string& aTarget, int64_t& aSize, int& aFlags) noexcept;
-		Download* getDownload(UserConnection& aSource, string& aMessage) noexcept;
+		Download* getDownload(UserConnection* aSource, string& aMessage) noexcept;
 		void putDownload(Download* aDownload, bool finished, bool reportFinish = true) noexcept;
 		void setFile(Download* download);
 		
@@ -268,7 +268,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 			return fileQueue.getRunningFileCount(p_stop_key);
 		}
 	public:
-		bool getTargetByRoot(const TTHValue& tth, string& target, string& tempTarget)
+		bool getTargetByRoot(const TTHValue& tth, string& p_target, string& p_tempTarget)
 		{
 			// [-] Lock l(cs); [-] IRainman fix.
 #ifdef IRAINMAN_FASTS_QUEUE_MANAGER
@@ -287,11 +287,11 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 			const QueueItemPtr& qi = ql.front();
 #endif // IRAINMAN_FASTS_QUEUE_MANAGER
 				
-			target = qi->getTarget();
-			tempTarget = qi->getTempTarget();
+			p_target     = qi->getTarget();
+			p_tempTarget = qi->getTempTarget();
 			return true;
 		}
-		bool isChunkDownloaded(const TTHValue& tth, int64_t startPos, int64_t& bytes, string& target)
+		bool isChunkDownloaded(const TTHValue& tth, int64_t startPos, int64_t& bytes, string& p_target)
 		{
 			// [-] Lock l(cs); [-] IRainman fix.
 #ifdef IRAINMAN_FASTS_QUEUE_MANAGER
@@ -311,7 +311,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 #endif // IRAINMAN_FASTS_QUEUE_MANAGER
 				
 			RLock l(*QueueItem::g_cs); // TODO - унести это ниже!
-			target = qi->isFinishedL() ? qi->getTarget() : qi->getTempTarget();
+			p_target = qi->isFinishedL() ? qi->getTarget() : qi->getTempTarget();
 			
 			return qi->isChunkDownloadedL(startPos, bytes);
 		}
@@ -340,16 +340,16 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 				explicit FileMover() { }
 				~FileMover() { }
 				
-				void moveFile(const string& source, const string& target)
+				void moveFile(const string& source, const string& p_target)
 				{
-					addTask(make_pair(source, target));
+					addTask(make_pair(source, p_target));
 				}
 			private:
 				void execute(const pair<string, string>& p_next)
 				{
 					internal_moveFile(p_next.first, p_next.second);
 				}
-		} mover;
+		} m_mover;
 		
 		typedef vector<pair<QueueItem::SourceConstIter, const QueueItemPtr> > PFSSourceList;
 		
@@ -445,7 +445,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 					on(SettingsManagerListener::QueueChanges());
 				}
 				
-				void getUserSettingsPriority(const string& target, QueueItem::Priority& p_prio) const;
+				void getUserSettingsPriority(const string& p_target, QueueItem::Priority& p_prio) const;
 				
 				StringList m_highPrioFiles;
 				StringList m_lowPrioFiles;
@@ -521,8 +521,8 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		void processList(const string& name, const HintedUser& hintedUser, int flags);
 		
 		void load(const SimpleXML& aXml);
-		void moveFile(const string& source, const string& target);
-		static void internal_moveFile(const string& source, const string& target);
+		void moveFile(const string& source, const string& p_target);
+		static void internal_moveFile(const string& source, const string& p_target);
 		void moveStuckFile(const QueueItemPtr& qi); // [!] IRainman fix.
 		void rechecked(const QueueItemPtr& qi); // [!] IRainman fix.
 		

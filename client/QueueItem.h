@@ -23,7 +23,8 @@
 #include "HintedUser.h"
 #include "webrtc/system_wrappers/interface/rw_lock_wrapper.h"
 
-static const string TEMP_EXTENSION = "dctmp";
+
+extern const string g_dc_temp_extension;
 
 class QueueManager;
 

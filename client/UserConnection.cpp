@@ -216,7 +216,7 @@ void UserConnection::connect(const string& aServer, uint16_t aPort, uint16_t loc
 {
 	dcassert(!socket);
 	
-	socket = BufferedSocket::getSocket(0);
+	socket = BufferedSocket::getBufferedSocket(0);
 	socket->addListener(this);
 	socket->connect(aServer, aPort, localPort, natRole, isSet(FLAG_SECURE), BOOLSETTING(ALLOW_UNTRUSTED_CLIENTS), true);
 }
@@ -224,7 +224,7 @@ void UserConnection::connect(const string& aServer, uint16_t aPort, uint16_t loc
 void UserConnection::accept(const Socket& aServer)
 {
 	dcassert(!socket);
-	socket = BufferedSocket::getSocket(0);
+	socket = BufferedSocket::getBufferedSocket(0);
 	socket->addListener(this);
 	const bool bAllowUntrusred = BOOLSETTING(ALLOW_UNTRUSTED_CLIENTS);
 	setPort(socket->accept(aServer, isSet(FLAG_SECURE), bAllowUntrusred));

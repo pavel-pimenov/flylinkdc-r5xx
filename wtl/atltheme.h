@@ -554,7 +554,7 @@ inline bool AtlDrawThemeClientEdge(HTHEME hTheme, HWND hWnd, HRGN hRgnUpdate = N
 	::DrawThemeBackground(hTheme, dc, nPartID, nStateID, &rect, NULL);
 
 	// Use background brush too, since theme border might not cover everything
-	if(cxBorder < cxEdge && cyBorder < cyEdge)
+	if((cxBorder < cxEdge) && (cyBorder < cyEdge))
 	{
 		if(hBrush == NULL)
 // need conditional code because types don't match in winuser.h

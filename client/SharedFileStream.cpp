@@ -22,18 +22,22 @@
 #include "SharedFileStream.h"
 
 FastCriticalSection SharedFileStream::g_cs;
+#ifdef FLYLINKDC_USE_SHARED_FILE_STREAM_RW_POOL
 SharedFileStream::SharedFileHandleMap SharedFileStream::g_readpool;
 SharedFileStream::SharedFileHandleMap SharedFileStream::g_writepool;
-
-SharedFileHandle::SharedFileHandle(const string& aPath, int aAccess, int aMode) :
-	File(aPath, aAccess, aMode), m_ref_cnt(1), m_path(aPath), m_mode(aMode)
-{
-}
+#else
+SharedFileStream::SharedFileHandleMap SharedFileStream::g_rwpool;
+#endif
 
 SharedFileStream::SharedFileStream(const string& aFileName, int aAccess, int aMode)
 {
+	dcassert(!aFileName.empty());
 	FastLock l(g_cs);
+#ifdef FLYLINKDC_USE_SHARED_FILE_STREAM_RW_POOL
 	auto& pool = aAccess == File::READ ? g_readpool : g_writepool;
+#else
+	auto& pool = g_rwpool;
+#endif
 	auto p = pool.find(aFileName);
 	if (p != pool.end())
 	{
@@ -43,6 +47,18 @@ SharedFileStream::SharedFileStream(const string& aFileName, int aAccess, int aMo
 	else
 	{
 		m_sfh = new SharedFileHandle(aFileName, aAccess, aMode);
+		try
+		{
+			m_sfh->init();
+		}
+		catch (FileException& e)
+		{
+			// TODO - слать ошибку в автомате для анализа причин
+			tstring l_email_message = Text::toT(string("\r\nError in SharedFileStream::SharedFileStream. aFileName = [") + aFileName + "]\r\n" +
+			                                    "Error = " + e.getError() + "\r\nSend screenshot (or text - press ctrl+c for copy to clipboard) e-mail ppa74@ya.ru for diagnostic error!");
+			::MessageBox(NULL, l_email_message.c_str() , _T(APPNAME)  , MB_OK | MB_ICONERROR);
+			throw;
+		}
 		pool[aFileName] = unique_ptr<SharedFileHandle>(m_sfh);
 	}
 }
@@ -54,17 +70,21 @@ SharedFileStream::~SharedFileStream()
 	m_sfh->m_ref_cnt--;
 	if (m_sfh->m_ref_cnt == 0)
 	{
+#ifdef FLYLINKDC_USE_SHARED_FILE_STREAM_RW_POOL
 		auto& pool = m_sfh->m_mode == File::READ ? g_readpool : g_writepool;
+#else
+		auto& pool = g_rwpool;
+#endif
 		pool.erase(m_sfh->m_path);
 	}
 }
 
 size_t SharedFileStream::write(const void* buf, size_t len)
 {
-	FastLock l(m_sfh->m_cs);
+	Lock l(m_sfh->m_cs);
 	
-	m_sfh->setPos(m_pos);
-	m_sfh->write(buf, len); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=132490
+	m_sfh->m_file.setPos(m_pos);
+	m_sfh->m_file.write(buf, len); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=132490
 	
 	m_pos += len;
 	return len;
@@ -72,10 +92,10 @@ size_t SharedFileStream::write(const void* buf, size_t len)
 
 size_t SharedFileStream::read(void* buf, size_t& len)
 {
-	FastLock l(m_sfh->m_cs);
+	Lock l(m_sfh->m_cs);
 	
-	m_sfh->setPos(m_pos);
-	len = m_sfh->read(buf, len);
+	m_sfh->m_file.setPos(m_pos);
+	len = m_sfh->m_file.read(buf, len);
 	
 	m_pos += len;
 	return len;
@@ -83,25 +103,25 @@ size_t SharedFileStream::read(void* buf, size_t& len)
 
 int64_t SharedFileStream::getSize() const
 {
-	FastLock l(m_sfh->m_cs);
-	return m_sfh->getSize();
+	Lock l(m_sfh->m_cs);
+	return m_sfh->m_file.getSize();
 }
 
 void SharedFileStream::setSize(int64_t newSize)
 {
-	FastLock l(m_sfh->m_cs);
-	m_sfh->setSize(newSize);
+	Lock l(m_sfh->m_cs);
+	m_sfh->m_file.setSize(newSize);
 }
 
 size_t SharedFileStream::flush()
 {
-	FastLock l(m_sfh->m_cs);
-	return m_sfh->flush();
+	Lock l(m_sfh->m_cs);
+	return m_sfh->m_file.flush();
 }
 
 void SharedFileStream::setPos(int64_t aPos)
 {
-	FastLock l(m_sfh->m_cs);
+	Lock l(m_sfh->m_cs);
 	m_pos = aPos;
 }
 

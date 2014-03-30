@@ -260,7 +260,7 @@ public:
 		// draw 3D border if required
 		if((m_dwExtendedStyle & (BMPBTN_AUTO3D_SINGLE | BMPBTN_AUTO3D_DOUBLE)) != 0)
 		{
-			RECT rect;
+			RECT rect = { 0 };
 			GetClientRect(&rect);
 
 			if(m_fPressed == 1)
@@ -2594,7 +2594,7 @@ public:
 #if (_WIN32_IE >= 0x0400)
 		RECT& rc = lpNMCustomDraw->rc;
 #else // !(_WIN32_IE >= 0x0400)
-		RECT rc;
+		RECT rc = { 0 };
 		m_tb.GetItemRect(0, &rc);
 #endif // !(_WIN32_IE >= 0x0400)
 
@@ -4755,7 +4755,7 @@ public:
 
 	void UpdateLayout()
 	{
-		RECT rect;
+		RECT rect = { 0 };
 		GetClientRect(&rect);
 
 		int cyOffset = 0;

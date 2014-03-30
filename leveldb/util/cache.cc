@@ -210,7 +210,7 @@ Cache::Handle* LRUCache::Lookup(const Slice& key, uint32_t hash) {
   MutexLock l(&mutex_);
   LRUHandle* e = table_.Lookup(key, hash);
   if (e != NULL) {
-    e->refs++;
+    e->refs++;     // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=139382
     LRU_Remove(e);
     LRU_Append(e);
   }

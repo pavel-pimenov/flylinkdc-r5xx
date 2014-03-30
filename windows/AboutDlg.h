@@ -74,10 +74,10 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			    
 			    _T("\r\nPatches:\r\n")
 			    _T("SMT\r\nBugMaster (ApexDC++ mod 2)\r\nKlirik\r\nnecros\r\nDecker\r\nDrakon\r\nmt2006 wine(Linux)\r\n")
-			    _T("WhiteD\r\n ZagZag\r\nNSLQQQ\r\n")
+			    _T("WhiteD\r\nZagZag\r\nNSLQQQ\r\n")
 			    
 			    _T("\r\nWeb-Interface, PHP:\r\n")
-			    _T("IRainman\r\n Paul\r\n Iceberg\r\n M.S.A\r\n SkazochNik\r\n")
+			    _T("IRainman\r\nPaul\r\nIceberg\r\nM.S.A\r\nSkazochNik\r\n")
 			    
 			    _T("\r\nRSS, CustomMenu:\r\n")
 			    _T("Sergey Stolper\r\n")
@@ -86,19 +86,19 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			    _T("lazybadger\r\n")
 			    
 			    _T("\r\nDesign:\r\n")
-			    _T("moltiplico\r\n KS!ON\r\n Dodge-X (баннер)\r\n Сергей Шушканов\r\n")
+			    _T("moltiplico\r\nKS!ON\r\nDodge-X (баннер)\r\nСергей Шушканов\r\n")
 			    
 			    _T("\r\nDocumentation:\r\n")
 			    _T("Berik (модемы)\r\nM.S.A.\r\n")
 			    
 			    _T("\r\nBugreports:\r\n")
-			    _T("Squork\r\n joedm\r\n")
+			    _T("Squork\r\njoedm\r\n")
 			    
 			    _T("\r\nTranslators:\r\n")
-			    _T("Nikitos\r\n Tankafett\r\n R00T_ADMIN\r\n i.Kliok\r\n hat3k\r\n VladV\r\n Xcell\r\n BlackRiderUA\r\n Havokdan\r\n")
+			    _T("Nikitos\r\nTankafett\r\nR00T_ADMIN\r\ni.Kliok\r\nhat3k\r\nVladV\r\nXcell\r\nBlackRiderUA\r\nHavokdan\r\nIlya Shumov")
 			    
 			    _T("\r\nBeta-testers:\r\n")
-			    _T(" Pafuntik\r\n kotik\r\n Tirael\r\n MoonRainbow\r\n BlackRiderUA\r\n Black-code\r\n JhaoDa\r\n Papochka\r\n R00T_ADMIN\r\n Nikitos\r\n -_SoRuS_-\r\n Леонид Жилин lss.jilin@gmail.com\r\n ShadoWx");
+			    _T(" Pafuntik\r\nkotik\r\nTirael\r\nMoonRainbow\r\nBlackRiderUA\r\nBlack-code\r\nJhaoDa\r\nPapochka\r\nR00T_ADMIN\r\nNikitos\r\n-_SoRuS_-\r\nЛеонид Жилин lss.jilin@gmail.com\r\nShadoWx");
 			CEdit ctrlThanks(GetDlgItem(IDC_THANKS));
 			ctrlThanks.FmtLines(TRUE);
 			ctrlThanks.AppendText(l_thanks, TRUE);

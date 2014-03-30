@@ -3,7 +3,7 @@
 	<Strings>
 		<String Name="AbortEm">Abortar!</String>
 		<String Name="AboutLinks">Links</String>
-		<String Name="AboutParticipants">O projetos participantes</String>
+		<String Name="AboutParticipants">Os participantes do projeto</String>
 		<String Name="AboutSideProjects">Projetos paralelos</String>
 		<String Name="AboutStatistics">Estatísticas</String>
 		<String Name="AboutText">Um DC++ Cliente com código fonte aberto</String>
@@ -341,6 +341,7 @@ In the parameters, you can use %[xxx] variables and date/time specifiers (%Y, %m
 		<String Name="CopyAll">Copiar Tudo</String>
 		<String Name="CopyDescription">Copiar Descrição</String>
 		<String Name="CopyEmailAddress">Copiar endereço de email</String>
+		<String Name="CopyGeoLocation">Copiar localização</String>
 		<String Name="CopyExactShare">Copiar Compartilhamento Exato</String>
 		<String Name="CopyFullMagnetLink">Copiar Link Magnético Completo</String>
 		<String Name="CopyHub">Copiar endereço para área de transferência</String>
@@ -918,6 +919,7 @@ Empty = Default String -&gt; +me listens %[artist] - %[title] * listened to %[pe
 		<String Name="MenuHomepage">Homepage</String>
 		<String Name="MenuHorizontalTile">Títulos Horizontais</String>
 		<String Name="MenuJoinTeam">FlylinkDC++ código-fonte…</String>
+		<String Name="MenuChangeFlylinkLocation">Mudar localização do FlylinkDC++…</String>
 		<String Name="MenuMinimizeAll">Minimizar &amp;Tudo</String>
 		<String Name="MenuNetworkStatistics">Estatísticas de Rede</String>
 		<String Name="MenuNotepad">&amp;Bloco de notas	Ctrl+N</String>
@@ -1558,7 +1560,7 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="SettingsShowInfoTips">Exibir dicas em listas</String>
 		<String Name="SettingsShowJoins">Mostrar entradas / saídas no chat por padrão</String>
 		<String Name="SettingsShowProgressBars">Exibir barra de progresso para transferências (usa algum CPU)</String>
-		<String Name="SettingsShowSeekersInSpyFrame">Mostrar os candidatos em busca de espionagem (usa algum CPU!)</String>
+		<String Name="SettingsShowSeekersInSpyFrame">Mostrar os candidatos</String>
 		<String Name="SettingsShowShellMenu">Exibir o menu do shell em transferências acabados</String>
 		<String Name="SettingsSkiplistShare">Não compartilhar(coringa *, separador: ;)</String>
 		<String Name="SettingsSkipZeroByte">Pular arquivos zero-bytes</String>

@@ -295,7 +295,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		SlotQueue m_slotQueue;
 		mutable CriticalSection m_csQueue; // [+] IRainman opt.
 		
-		size_t addFailedUpload(const UserConnection& source, const string& file, int64_t pos, int64_t size);
+		size_t addFailedUpload(const UserConnection* aSource, const string& file, int64_t pos, int64_t size);
 		void notifyQueuedUsers(int64_t p_tick);//[!]IRainman refactoring transfer mechanism add int64_t tick
 		
 		friend class Singleton<UploadManager>;
@@ -326,8 +326,8 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		void on(AdcCommand::GET, UserConnection*, const AdcCommand&) noexcept;
 		void on(AdcCommand::GFI, UserConnection*, const AdcCommand&) noexcept;
 		
-		bool prepareFile(UserConnection& aSource, const string& aType, const string& aFile, int64_t aResume, int64_t& aBytes, bool listRecursive = false);
-		bool hasUpload(UserConnection& aSource, const string& p_source_file) const; // [+] FlylinkDC++
+		bool prepareFile(UserConnection* aSource, const string& aType, const string& aFile, int64_t aResume, int64_t& aBytes, bool listRecursive = false);
+		bool hasUpload(const UserConnection* aSource, const string& p_source_file) const; // [+] FlylinkDC++
 		// !SMT!-S
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 		struct banmsg_t
@@ -343,7 +343,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 			}
 		};
 		typedef boost::unordered_map<string, banmsg_t> BanMap;
-		bool handleBan(UserConnection& aSource/*, bool forceBan, bool noChecks*/);
+		bool handleBan(UserConnection* aSource/*, bool forceBan, bool noChecks*/);
 		static bool hasAutoBan(const UserPtr& aUser);
 		BanMap m_lastBans;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csBans;

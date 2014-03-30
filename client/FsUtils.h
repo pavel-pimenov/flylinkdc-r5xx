@@ -40,7 +40,10 @@ class CFsTypeDetector
 		
 		bool IsStreamSupported(FsUtils_LPCtSTR pwcFileName);
 		LRESULT OnDeviceChange(LPARAM lParam, WPARAM wParam);
-		void SetNotifyWnd(HWND hWnd);
+		void SetNotifyWnd(HWND hWnd)
+		{
+			m_hWnd = hWnd;
+		}
 		
 		// Follow function work only since Vista.
 		// Can implement it dynamically, if needed
@@ -51,6 +54,9 @@ class CFsTypeDetector
 		{
 			bool bSupportStream;
 			HDEVNOTIFY hNotify;
+			VOL_STRUCT(bool p_SupportStream = false): bSupportStream(p_SupportStream), hNotify(nullptr)
+			{
+			}
 		};
 		
 		typedef std::unordered_map<FsUtils_str, VOL_STRUCT> tCACHE;

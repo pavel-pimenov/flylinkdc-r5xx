@@ -295,14 +295,16 @@ class CFlyServerAdapter
 		}
 		void clearFlyServerQueue()
 		{
+			Lock l(g_cs_fly_server);
 			m_GetFlyServerArray.clear();
 			m_SetFlyServerArray.clear();
 		}
 	protected:
 		CFlyServerKeyArray	m_GetFlyServerArray;    // «апросы на получени€ медиаинформации. TODO - сократить размер структуры дл€ запроса.
 		CFlyServerKeyArray	m_SetFlyServerArray;    // «апросы на передачу медиаинформации если она у нас есть в базе и ее ниразу не слали.
-		std::map<TTHValue, uint64_t> m_tth_media_file_map;
-		::CriticalSection m_cs_fly_server;
+		std::unordered_map<TTHValue, uint64_t> m_tth_media_file_map;
+		static std::unordered_map<TTHValue, std::pair<CFlyServerInfo*, CFlyServerCache> > g_fly_server_cache;
+		static ::CriticalSection g_cs_fly_server;
 		void prepare_mediainfo_to_fly_serverL();
 		void push_mediainfo_to_fly_server();
 
@@ -372,7 +374,7 @@ class CFlyServerAdapter
 				const std::vector<unsigned short>& p_udp_port,
 				const std::vector<unsigned short>& p_tcp_port,
 				string& p_external_ip,
-				int p_timer_value = 0);
+				int p_timer_value);
 			
 			// TODO static void logout();
 			static string g_fly_server_id;

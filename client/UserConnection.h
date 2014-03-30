@@ -421,7 +421,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 			if (socket)
 			{
 				socket->removeListeners();
-				BufferedSocket::putSocket(socket);
+				BufferedSocket::putBufferedSocket(socket);
 			}
 		}
 		

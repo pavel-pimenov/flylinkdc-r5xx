@@ -911,6 +911,7 @@ public:
 		MESSAGE_HANDLER(GetGetBarMessage(), OnInternalGetBar)
 		MESSAGE_HANDLER(WM_SETTINGCHANGE, OnSettingChange)
 		MESSAGE_HANDLER(WM_MENUCHAR, OnMenuChar)
+		MESSAGE_HANDLER(WM_KILLFOCUS, OnKillFocus)
 
 		MESSAGE_HANDLER(WM_KEYDOWN, OnKeyDown)
 		MESSAGE_HANDLER(WM_KEYUP, OnKeyUp)
@@ -1575,6 +1576,15 @@ public:
 		return lRet;
 	}
 
+	LRESULT OnKillFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+	{
+		if(m_bUseKeyboardCues && m_bShowKeyboardCues)
+			ShowKeyboardCues(false);
+
+		bHandled = FALSE;
+		return 1;
+	}
+
 	LRESULT OnDrawItem(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
 	{
 		LPDRAWITEMSTRUCT lpDrawItemStruct = (LPDRAWITEMSTRUCT)lParam;
@@ -2033,7 +2043,7 @@ public:
 							ATL::AtlGetCommCtrlVersion(&dwMajor, &dwMinor);
 							if(dwMajor <= 4 || (dwMajor == 5 && dwMinor < 80))
 							{
-								RECT rect;
+								RECT rect = { 0 };
 								GetItemRect(nHot, &rect);
 								PostMessage(WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(rect.left, rect.top));
 							}
@@ -2616,7 +2626,7 @@ public:
 				hOldFont = dc.SelectFont(m_fontMenu);
 			}
 
-			RECT rcText = { 0, 0, 0, 0 };
+			RECT rcText = { 0 };
 			dc.DrawText(pmd->lpstrText, -1, &rcText, DT_SINGLELINE | DT_LEFT | DT_VCENTER | DT_CALCRECT);
 			int cx = rcText.right - rcText.left;
 			dc.SelectFont(hOldFont);
@@ -2885,7 +2895,7 @@ public:
 		if(nBtn == -1)
 			return -1;
 #if (_WIN32_IE >= 0x0500)
-		RECT rcClient;
+		RECT rcClient = { 0 };
 		GetClientRect(&rcClient);
 #endif // (_WIN32_IE >= 0x0500)
 		int nNextBtn;
@@ -2896,7 +2906,7 @@ public:
 			TBBUTTON tbb = { 0 };
 			GetButton(nNextBtn, &tbb);
 #if (_WIN32_IE >= 0x0500)
-			RECT rcBtn;
+			RECT rcBtn = { 0 };
 			GetItemRect(nNextBtn, &rcBtn);
 			if(rcBtn.right > rcClient.right)
 			{
@@ -3010,7 +3020,7 @@ public:
 		// check if we need extra spacing for menu item text
 		CWindowDC dc(m_hWnd);
 		HFONT hFontOld = dc.SelectFont(m_fontMenu);
-		RECT rcText = { 0, 0, 0, 0 };
+		RECT rcText = { 0 };
 		dc.DrawText(_T("\t"), -1, &rcText, DT_SINGLELINE | DT_LEFT | DT_VCENTER | DT_CALCRECT);
 		if((rcText.right - rcText.left) < 4)
 		{
@@ -3505,7 +3515,7 @@ public:
 
 		// get DC and window rectangle
 		CWindowDC dc(m_hWnd);
-		RECT rect;
+		RECT rect = { 0 };
 		GetWindowRect(&rect);
 		int cxWidth = rect.right - rect.left;
 		int cyHeight = rect.bottom - rect.top;

@@ -93,6 +93,9 @@ StringSet CFlyServerConfig::g_custom_compress_ext;
 StringSet CFlyServerConfig::g_block_share_name;
 StringList CFlyServerConfig::g_block_share_mask;
 
+std::unordered_map<TTHValue, std::pair<CFlyServerInfo*, CFlyServerCache> > CFlyServerAdapter::g_fly_server_cache;
+CriticalSection CFlyServerAdapter::g_cs_fly_server;
+
 //======================================================================================================
 bool CFlyServerConfig::isSupportTag(const string& p_tag) const
 {
@@ -415,7 +418,7 @@ void CFlyServerConfig::loadConfig()
 						checkStrKey(n);
 						g_block_share_ext.insert(n);
 					});
-					g_block_share_ext.insert(TEMP_EXTENSION);
+					g_block_share_ext.insert(g_dc_temp_extension);
 					l_xml.getChildAttribSplit("custom_compress_ext", g_custom_compress_ext, [this](const string& n)
 					{
 						checkStrKey(n);
@@ -504,7 +507,7 @@ void CFlyServerAdapter::push_mediainfo_to_fly_server()
 {
 	CFlyServerKeyArray l_copy_map;
 	{
-		Lock l(m_cs_fly_server);
+		Lock l(g_cs_fly_server);
 		l_copy_map.swap(m_SetFlyServerArray);
 	}
 	if (!l_copy_map.empty())

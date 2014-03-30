@@ -2,7 +2,7 @@
 #define FLY_REVISION_H
  
 #define VERSION_NUM 502
-#define REVISION_NUM 16871
+#define REVISION_NUM 16941
 //#define FLYLINKDC_BETA
 #define BETA_NUM    // Number of beta. Does not matter if the #define FLYLINKDC_BETA is disabled.
  

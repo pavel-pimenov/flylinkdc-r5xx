@@ -1781,7 +1781,7 @@ public:
 
 	void UpdateLayout()
 	{
-		RECT rect;
+		RECT rect = { 0 };
 		GetClientRect(&rect);
 
 		if(m_tab.IsWindow() && ((m_tab.GetStyle() & WS_VISIBLE) != 0))

@@ -35,7 +35,7 @@ class PopupManager : public Singleton< PopupManager >, private TimerManagerListe
 #endif
 {
 	public:
-		PopupManager() : height(90), width(200), offset(0), activated(true), id(0), popuptype(0), m_hBitmap(0)
+		PopupManager() : height(90), width(200), offset(0), m_is_activated(true), m_id(0), m_popuptype(0), m_hBitmap(0)
 		{
 			TimerManager::getInstance()->addListener(this);
 		}
@@ -63,7 +63,7 @@ class PopupManager : public Singleton< PopupManager >, private TimerManagerListe
 		
 		void Mute(bool mute)
 		{
-			activated = !mute;
+			m_is_activated = !mute;
 		}
 		
 	private:
@@ -77,17 +77,17 @@ class PopupManager : public Singleton< PopupManager >, private TimerManagerListe
 		//if we have multiple windows displayed,
 		//keep track of where the new one will be displayed
 		uint16_t offset;
+		int m_popuptype;
+		
+		//id of the popup to keep track of them
+		uint32_t m_id;
 		
 		//turn on/off popups completely
-		bool activated;
+		bool m_is_activated;
 		
 		//for custom popups
 		HBITMAP m_hBitmap;
 		string PopupImage;
-		int popuptype;
-		
-		//id of the popup to keep track of them
-		uint32_t id;
 		
 		// TimerManagerListener
 		void on(TimerManagerListener::Second, uint64_t tick) noexcept;

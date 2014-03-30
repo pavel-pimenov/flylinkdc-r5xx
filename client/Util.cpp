@@ -556,7 +556,19 @@ static const char badChars[] =
 	31, '<', '>', '\\', '"', '|', '?', '*', 0
 };
 #endif
-
+void Util::fixFileNameMaxPathLimit(string& p_File)
+{
+	const int l_limit = MAX_PATH - 46;
+	if (p_File.length() >= l_limit) // 46 it one character first dot + 39 characters TTH + 6 characters .dctmp
+	{
+		const string l_orig_file = p_File;
+		string l_ext = Util::getFileExt(p_File);
+		p_File       = p_File.erase(l_limit);
+		p_File      += l_ext;
+		dcassert(p_File == Util::validateFileName(p_File));
+		LogManager::getInstance()->message("Fix MAX_PATH limit [" + l_orig_file + "] convert -> [" + p_File + "] http://code.google.com/p/flylinkdc/issues/detail?id=1447");
+	}
+}
 /**
  * Replaces all strange characters in a file with '_'
  * @todo Check for invalid names such as nul and aux...

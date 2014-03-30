@@ -28,12 +28,17 @@ const string Transfer::g_type_names[] =
 const string Transfer::g_user_list_name = "files.xml";
 const string Transfer::g_user_list_name_bz = "files.xml.bz2";
 
-Transfer::Transfer(UserConnection* p_conn, const string& p_path, const TTHValue& p_tth) :
+Transfer::Transfer(UserConnection* p_conn, const string& p_path, const TTHValue& p_tth, const string& p_ip, const string& p_chiper_name) :
 	m_type(TYPE_FILE), m_runningAverage(0), // [!] IRainman opt.
 	m_path(p_path), m_tth(p_tth), m_actual(0), m_pos(0), m_userConnection(p_conn), m_hinted_user(p_conn->getHintedUser()), m_startPos(0),
 	m_isSecure(p_conn->isSecure()), m_isTrusted(p_conn->isTrusted()),
-	m_start(0), m_lastTick(GET_TICK()) // [!] IRainman fix.
+	m_start(0), m_lastTick(GET_TICK()), // [!] IRainman fix.
+	m_chiper_name(p_chiper_name),
+	m_ip(p_ip) // TODO - перевести на boost? падаем
+	// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62265
 {
+	// p_conn->getRemoteIp()
+	// p_conn->getCipherName()
 	// [!] IRainman refactoring transfer mechanism
 	m_samples.push_back(Sample(m_lastTick, 0));
 }
@@ -77,14 +82,14 @@ int64_t Transfer::getSecondsLeft(const bool wholeFile) const
 	return bytesLeft / ((avg > 0) ? avg : 1);
 }
 
-void Transfer::getParams(const UserConnection& aSource, StringMap& params) const
+void Transfer::getParams(const UserConnection* aSource, StringMap& params) const
 {
-	const auto& hint = aSource.getHintedUser().hint;
-	const auto& user = aSource.getUser();
+	const auto& hint = aSource->getHintedUser().hint;
+	const auto& user = aSource->getUser();
 	
 	params["userCID"] = user->getCID().toBase32();
 	params["userNI"] = !user->getLastNick().empty() ? user->getLastNick() : Util::toString(ClientManager::getNicks(user->getCID(), Util::emptyString));
-	params["userI4"] = aSource.getRemoteIp();
+	params["userI4"] = aSource->getRemoteIp();
 	
 	StringList hubNames = ClientManager::getHubNames(user->getCID(), hint);
 	if (hubNames.empty())

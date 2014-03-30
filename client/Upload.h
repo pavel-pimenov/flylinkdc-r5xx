@@ -19,17 +19,17 @@ class Upload : public Transfer, public Flags
 			FLAG_PARTIAL = 0x10
 		};
 		
-		explicit Upload(UserConnection* p_conn, const string& p_path); // [!] IRainman fix.
+		explicit Upload(UserConnection* p_conn, const string& p_path, const string& p_ip, const string& p_chiper_name); // [!] IRainman fix.
 		~Upload();
 		
-		void getParams(const UserConnection& p_source, StringMap& p_params) const;
+		void getParams(const UserConnection* p_source, StringMap& p_params) const;
 		
 	private:
 #ifdef IRAINMAN_USE_NG_TRANSFERS
 		const string path; // TODO: maybe it makes sense to back up the line after the original problem will be eliminated. In the Upload to inheritance so not very nice.
 #endif
 		GETSET(int64_t, fileSize, FileSize);
-		GETSET(InputStream*, stream, Stream);
+		GETSET(InputStream*, m_stream, Stream);
 		
 		uint8_t m_delayTime;
 };

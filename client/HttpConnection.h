@@ -88,7 +88,7 @@ class HttpConnection : BufferedSocketListener, public Speaker<HttpConnectionList
 			{
 				m_http_socket->removeListeners();
 				m_http_socket->disconnect();
-				BufferedSocket::putSocket(m_http_socket, p_delete);
+				BufferedSocket::putBufferedSocket(m_http_socket, p_delete);
 			}
 		}
 		

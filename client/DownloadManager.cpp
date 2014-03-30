@@ -187,7 +187,7 @@ void DownloadManager::checkDownloads(UserConnection* aConn)
 	}
 	
 	string errorMessage;
-	Download* d = qm->getDownload(*aConn, errorMessage);
+	Download* d = qm->getDownload(aConn, errorMessage);
 	
 	if (!d)
 	{
@@ -297,8 +297,8 @@ void DownloadManager::startData(UserConnection* aSource, int64_t start, int64_t 
 		if ((d->getType() == Transfer::TYPE_FILE || d->getType() == Transfer::TYPE_FULL_LIST) && l_buf_size > 0)
 		{
 			const int64_t l_file_size = d->getSize();
-			const auto l_file = new BufferedOutputStream<true>(d->getFile(), std::min(l_file_size, l_buf_size));
-			d->setFile(l_file);
+			const auto l_file = new BufferedOutputStream<true>(d->getDownloadFile(), std::min(l_file_size, l_buf_size));
+			d->setDownloadFile(l_file);
 		}
 	}
 	catch (const Exception& e)
@@ -309,8 +309,8 @@ void DownloadManager::startData(UserConnection* aSource, int64_t start, int64_t 
 	catch (...)
 	{
 		LogManager::getInstance()->message("catch (...) Error new BufferedOutputStream<true> l_buf_size (Mb) = " + Util::toString(l_buf_size / 1024 / 1024) + " email: ppa74@ya.ru");
-		delete d->getFile();
-		d->setFile(nullptr);
+		delete d->getDownloadFile();
+		d->setDownloadFile(nullptr);
 		return;
 	}
 	
@@ -318,17 +318,17 @@ void DownloadManager::startData(UserConnection* aSource, int64_t start, int64_t 
 	{
 		typedef MerkleCheckOutputStream<TigerTree, true> MerkleStream;
 		
-		d->setFile(new MerkleStream(d->getTigerTree(), d->getFile(), d->getStartPos()));
+		d->setDownloadFile(new MerkleStream(d->getTigerTree(), d->getDownloadFile(), d->getStartPos()));
 		d->setFlag(Download::FLAG_TTH_CHECK);
 	}
 	
 	// Check that we don't get too many bytes
-	d->setFile(new LimitedOutputStream(d->getFile(), bytes));
+	d->setDownloadFile(new LimitedOutputStream(d->getDownloadFile(), bytes));
 	
 	if (z)
 	{
 		d->setFlag(Download::FLAG_ZDOWNLOAD);
-		d->setFile(new FilteredOutputStream<UnZFilter, true>(d->getFile()));
+		d->setDownloadFile(new FilteredOutputStream<UnZFilter, true> (d->getDownloadFile()));
 	}
 	
 	// [!] IRainman refactoring transfer mechanism
@@ -364,10 +364,10 @@ void DownloadManager::on(UserConnectionListener::Data, UserConnection* aSource, 
 	dcassert(d != nullptr);
 	try
 	{
-		d->addPos(d->getFile()->write(aData, aLen), aLen); // TODO // r502-sp2 2012-04-23_22-28-18_ETFY7EDN5BIPZZSIMVUUBOZFZOGWBZY3F4D2HUA_2C747F0D_crash-stack-r501-build-9812.dmp // 2012-05-03_22-00-59_WNNHCEA5ALKEWJ3V6JCDBFS75243SQ455Y6NG7Q_059D0ACA_crash-stack-r502-beta24-build-9900.dmp
+		d->addPos(d->getDownloadFile()->write(aData, aLen), aLen); // TODO // r502-sp2 2012-04-23_22-28-18_ETFY7EDN5BIPZZSIMVUUBOZFZOGWBZY3F4D2HUA_2C747F0D_crash-stack-r501-build-9812.dmp // 2012-05-03_22-00-59_WNNHCEA5ALKEWJ3V6JCDBFS75243SQ455Y6NG7Q_059D0ACA_crash-stack-r502-beta24-build-9900.dmp
 		// [-] d->tick(aSource->getLastActivity()); [-]IRainman refactoring transfer mechanism
 		
-		if (d->getFile()->eof())
+		if (d->getDownloadFile()->eof())
 		{
 			endData(aSource);
 			aSource->setLineMode(0);
@@ -392,7 +392,7 @@ void DownloadManager::endData(UserConnection* aSource)
 	
 	if (d->getType() == Transfer::TYPE_TREE)
 	{
-		d->getFile()->flush();
+		d->getDownloadFile()->flush();
 		
 		int64_t bl = 1024;
 		auto &l_getTigerTree = d->getTigerTree(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'd->getTigerTree()' expression repeatedly. downloadmanager.cpp 404
@@ -421,7 +421,7 @@ void DownloadManager::endData(UserConnection* aSource)
 		// First, finish writing the file (flushing the buffers and closing the file...)
 		try
 		{
-			d->getFile()->flush();
+			d->getDownloadFile()->flush();
 		}
 		catch (const Exception& e) //http://bazaar.launchpad.net/~dcplusplus-team/dcplusplus/trunk/revision/2154
 		{
@@ -518,13 +518,13 @@ void DownloadManager::removeConnection(UserConnection* p_conn)
 
 void DownloadManager::removeDownload(Download* d)
 {
-	if (d->getFile())
+	if (d->getDownloadFile())
 	{
 		if (d->getActual() > 0)
 		{
 			try
 			{
-				d->getFile()->flush();
+				d->getDownloadFile()->flush();
 			}
 			catch (const Exception&)
 			{

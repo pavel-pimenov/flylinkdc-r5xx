@@ -1059,7 +1059,7 @@ public:
 
 	void DoPrePaint(CDCHandle dc, RECT& rc)
 	{
-		RECT rcClient;
+		RECT rcClient = { 0 };
 		GetClientRect(&rcClient);
 		RECT rcArea = rcClient;
 		T* pT = static_cast<T*>(this);

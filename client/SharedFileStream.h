@@ -22,14 +22,22 @@
 
 #include "File.h"
 
-struct SharedFileHandle : File
+struct SharedFileHandle
 {
-	SharedFileHandle(const string& aPath, int aAccess, int aMode);
-	
-	FastCriticalSection m_cs;
-	int m_ref_cnt;
+	SharedFileHandle(const string& aPath, int aAccess, int aMode) :
+		m_ref_cnt(1), m_path(aPath), m_mode(aMode), m_access(aAccess)
+	{
+	}
+	void init()
+	{
+		m_file.init(Text::toT(m_path), m_access, m_mode, true);
+	}
+	CriticalSection m_cs;
+	File  m_file;
 	string m_path;
+	int m_ref_cnt;
 	int m_mode;
+	int m_access;
 };
 
 class SharedFileStream : public IOStream
@@ -50,8 +58,12 @@ class SharedFileStream : public IOStream
 		size_t flush();
 		
 		static FastCriticalSection g_cs;
+#ifdef FLYLINKDC_USE_SHARED_FILE_STREAM_RW_POOL
 		static SharedFileHandleMap g_readpool;
 		static SharedFileHandleMap g_writepool;
+#else
+		static SharedFileHandleMap g_rwpool;
+#endif
 		
 		void setPos(int64_t aPos);
 	private:

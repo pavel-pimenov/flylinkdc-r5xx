@@ -92,9 +92,11 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		
 		BOOL PreTranslateMessage(MSG* pMsg)
 		{
-			if ((pMsg->message >= WM_MOUSEFIRST) && (pMsg->message <= WM_MOUSELAST))
-				ctrlLastLines.RelayEvent(pMsg);
-				
+			if (pMsg->message >= WM_MOUSEFIRST && pMsg->message <= WM_MOUSELAST)
+			{
+				m_ctrlLastLines.RelayEvent(pMsg);
+			}
+			
 			if (!IsWindow())
 				return FALSE;
 				
@@ -636,7 +638,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		
 		TStringList m_lastLinesList;
 		tstring m_lastLines;
-		CFlyToolTipCtrl ctrlLastLines;
+		CFlyToolTipCtrl m_ctrlLastLines;
 		CStatusBarCtrl m_ctrlStatus;
 		CProgressBarCtrl ctrlHashProgress;
 		CProgressBarCtrl ctrlUpdateProgress;

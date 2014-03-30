@@ -43,7 +43,7 @@ class Transfer
 		static const string g_user_list_name;
 		static const string g_user_list_name_bz;
 		
-		explicit Transfer(UserConnection* p_conn, const string& p_path, const TTHValue& p_tth); // [!] IRainman opt.
+		explicit Transfer(UserConnection* p_conn, const string& p_path, const TTHValue& p_tth, const string& p_ip, const string& p_chiper_name); // [!] IRainman opt.
 		virtual ~Transfer() { }
 		int64_t getPos() const
 		{
@@ -100,7 +100,7 @@ class Transfer
 		
 		int64_t getSecondsLeft(const bool wholeFile = false) const;
 		
-		void getParams(const UserConnection& aSource, StringMap& params) const;
+		void getParams(const UserConnection* aSource, StringMap& params) const;
 		//[+]FlylinkDC
 		UserPtr& getUser()
 		{
@@ -129,6 +129,14 @@ class Transfer
 		UserConnection* getUserConnection()
 		{
 			return m_userConnection;
+		}
+		const string& getChiperName() const
+		{
+			return m_chiper_name;
+		}
+		const string& getIP() const
+		{
+			return m_ip;
 		}
 		
 		GETSET(Segment, m_segment, Segment);
@@ -187,6 +195,8 @@ class Transfer
 		int64_t m_runningAverage;
 		UserConnection* m_userConnection;
 		HintedUser m_hinted_user;
+		const string m_chiper_name;
+		const string m_ip;
 };
 
 #endif /*TRANSFER_H_*/

@@ -177,6 +177,7 @@ void ConnectionManager::putCQI_L(ConnectionQueueItem* cqi)
 	delete cqi;
 }
 
+#if 0
 bool ConnectionManager::getCipherNameAndIP(UserConnection* p_conn, string& p_chiper_name, string& p_ip)
 {
 	webrtc::ReadLockScoped l(*g_csConnection);
@@ -190,6 +191,7 @@ bool ConnectionManager::getCipherNameAndIP(UserConnection* p_conn, string& p_chi
 	}
 	return false;
 }
+#endif
 UserConnection* ConnectionManager::getConnection(bool aNmdc, bool secure) noexcept
 {
 	dcassert(shuttingDown == false);
@@ -528,8 +530,7 @@ void ConnectionManager::accept(const Socket& sock, bool secure) noexcept
 	}
 	catch (const Exception&)
 	{
-		putConnection(uc);
-		delete uc;
+		deleteConnection(uc);
 	}
 }
 bool ConnectionManager::checkTTHDuplicateSearch(const string& p_search_command)
@@ -588,9 +589,9 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 		auto& l_cur_value = l_result.first->second;
 		++l_cur_value.m_count_connect;
 		string l_debug_key = " Time: " + Util::getShortTimeString() + " Hub info = " + p_HubInfo;
-		if(!p_userInfo.empty())
+		if (!p_userInfo.empty())
 		{
-		  l_debug_key + " UserInfo = [" + p_userInfo + "]";
+			l_debug_key + " UserInfo = [" + p_userInfo + "]";
 		}
 		l_cur_value.m_original_query_for_debug[l_debug_key]++;
 		if (l_result.second == false)
@@ -695,8 +696,7 @@ void ConnectionManager::nmdcConnect(const string& aIPServer, uint16_t aPort, uin
 	}
 	catch (const Exception&)
 	{
-		putConnection(uc);
-		delete uc; // https://www.box.net/shared/0eeae406dbcda0198604
+		deleteConnection(uc);
 	}
 }
 
@@ -730,8 +730,7 @@ void ConnectionManager::adcConnect(const OnlineUser& aUser, uint16_t aPort, uint
 	}
 	catch (const Exception&)
 	{
-		putConnection(uc);
-		delete uc;
+		deleteConnection(uc);
 	}
 }
 
@@ -1076,21 +1075,21 @@ void ConnectionManager::setIP(UserConnection* p_uc, ConnectionQueueItem* p_qi)
 //#endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
 }
 
-void ConnectionManager::addDownloadConnection(UserConnection* uc)
+void ConnectionManager::addDownloadConnection(UserConnection* p_conn)
 {
-	dcassert(uc->isSet(UserConnection::FLAG_DOWNLOAD));
+	dcassert(p_conn->isSet(UserConnection::FLAG_DOWNLOAD));
 	ConnectionQueueItem* cqi = nullptr;
 	{
 		webrtc::ReadLockScoped l(*g_csDownloads);
 		
-		const ConnectionQueueItem::Iter i = find(g_downloads.begin(), g_downloads.end(), uc->getUser());
+		const ConnectionQueueItem::Iter i = find(g_downloads.begin(), g_downloads.end(), p_conn->getUser());
 		if (i != g_downloads.end())
 		{
 			cqi = *i;
 			if (cqi->getState() == ConnectionQueueItem::WAITING || cqi->getState() == ConnectionQueueItem::CONNECTING)
 			{
 				cqi->setState(ConnectionQueueItem::ACTIVE);
-				uc->setFlag(UserConnection::FLAG_ASSOCIATED);
+				p_conn->setFlag(UserConnection::FLAG_ASSOCIATED);
 				
 #ifdef FLYLINKDC_USE_CONNECTED_EVENT
 				fire(ConnectionManagerListener::Connected(), cqi);
@@ -1104,18 +1103,18 @@ void ConnectionManager::addDownloadConnection(UserConnection* uc)
 	
 	if (cqi)
 	{
-		DownloadManager::getInstance()->addConnection(uc);
-		setIP(uc, cqi); //[+]PPA
+		DownloadManager::getInstance()->addConnection(p_conn);
+		setIP(p_conn, cqi); //[+]PPA
 	}
 	else
 	{
-		putConnection(uc);
+		putConnection(p_conn);
 	}
 }
 
-void ConnectionManager::addUploadConnection(UserConnection* uc)
+void ConnectionManager::addUploadConnection(UserConnection* p_conn)
 {
-	dcassert(uc->isSet(UserConnection::FLAG_UPLOAD));
+	dcassert(p_conn->isSet(UserConnection::FLAG_UPLOAD));
 	
 #ifdef IRAINMAN_DISALLOWED_BAN_MSG
 	if (uc->isSet(UserConnection::FLAG_SUPPORTS_BANMSG))
@@ -1129,12 +1128,12 @@ void ConnectionManager::addUploadConnection(UserConnection* uc)
 	{
 		webrtc::WriteLockScoped l(*g_csUploads);
 		
-		const auto i = find(g_uploads.begin(), g_uploads.end(), uc->getUser());
+		const auto i = find(g_uploads.begin(), g_uploads.end(), p_conn->getUser());
 		if (i == g_uploads.cend())
 		{
-			cqi = getCQI_L(uc->getHintedUser(), false);
+			cqi = getCQI_L(p_conn->getHintedUser(), false);
 			cqi->setState(ConnectionQueueItem::ACTIVE);
-			uc->setFlag(UserConnection::FLAG_ASSOCIATED);
+			p_conn->setFlag(UserConnection::FLAG_ASSOCIATED);
 			
 #ifdef FLYLINKDC_USE_CONNECTED_EVENT
 			fire(ConnectionManagerListener::Connected(), cqi);
@@ -1144,12 +1143,12 @@ void ConnectionManager::addUploadConnection(UserConnection* uc)
 	}
 	if (cqi)
 	{
-		UploadManager::getInstance()->addConnection(uc);
-		setIP(uc, cqi); //[+]PPA
+		UploadManager::getInstance()->addConnection(p_conn);
+		setIP(p_conn, cqi); //[+]PPA
 	}
 	else
 	{
-		putConnection(uc);
+		putConnection(p_conn);
 	}
 }
 

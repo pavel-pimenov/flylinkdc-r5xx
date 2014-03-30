@@ -722,6 +722,7 @@ class Util
 		
 		static string validateFileName(string aFile);
 		static string cleanPathChars(string aNick);
+		static void fixFileNameMaxPathLimit(string& p_File);
 		
 		static string formatBytes(const string& aString)
 		{

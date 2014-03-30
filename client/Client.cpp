@@ -105,7 +105,7 @@ void Client::reset_socket()
 	if (m_client_sock)
 	{
 		m_client_sock->removeListeners();
-		BufferedSocket::putSocket(m_client_sock);
+		BufferedSocket::putBufferedSocket(m_client_sock);
 	}
 #endif
 }
@@ -313,7 +313,7 @@ void Client::connect()
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
 		FastLock lock(csSock); // [+] brain-ripper
 #endif
-		m_client_sock = BufferedSocket::getSocket(m_separator);
+		m_client_sock = BufferedSocket::getBufferedSocket(m_separator);
 		m_client_sock->addListener(this);
 		m_client_sock->connect(m_address,
 		                       m_port,

@@ -30,9 +30,9 @@ class Download : public Transfer, public Flags
 			FLAG_USER_GET_IP    = 0x200     // [+] SSA
 		};
 		
-		explicit Download(UserConnection* p_conn, QueueItem* item) noexcept; // [!] IRainman fix.
+		explicit Download(UserConnection* p_conn, QueueItem* item, const string& p_ip, const string& p_chiper_name) noexcept; // [!] IRainman fix.
 		
-		void getParams(const UserConnection& aSource, StringMap& params);
+		void getParams(const UserConnection* aSource, StringMap& params);
 		
 		~Download();
 		
@@ -85,7 +85,7 @@ class Download : public Transfer, public Flags
 #ifdef PPA_INCLUDE_DROP_SLOW
 		GETSET(uint64_t, lastNormalSpeed, LastNormalSpeed);
 #endif
-		GETSET(OutputStream*, file, File);
+		GETSET(OutputStream*, m_download_file, DownloadFile);
 		GETSET(bool, treeValid, TreeValid);
 	private:
 		QueueItem* qi; // [+] IRainman fix.

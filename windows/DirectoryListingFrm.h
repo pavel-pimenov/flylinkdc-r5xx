@@ -607,9 +607,10 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 	private:
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		void mergeFlyServerInfo();
-		int scan_list_view_from_merge();
-		typedef std::map<TTHValue, ItemInfo*> CFlyMergeItem;
+		bool scan_list_view_from_merge();
+		typedef std::unordered_map<TTHValue, ItemInfo*> CFlyMergeItem;
 		CFlyMergeItem m_merge_item_map; // TODO - организовать кэш для медиаинфы, чтобы лишний раз не ходить на флай-сервер c get-запросами
+		void update_column_after_merge(std::vector<int> p_update_index);
 #endif
 		int m_count_item_changed;
 };

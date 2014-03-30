@@ -199,7 +199,7 @@ void VideoPreview::AddExistingFileToPreview(const string& previewFile, const int
 	clear();
 	_currentFilePreview = previewFile;
 	_previewFileSize = previewFileSize;
-	_tempFilename = previewFile;
+	m_tempFilename = previewFile;
 	_fileRoadMap = unique_ptr<FileRoadMap>(new FileRoadMap(_previewFileSize));
 	setFileAlreadyDownloaded();
 	LogManager::getInstance()->message("Existing file preview - " + previewFile);
@@ -219,7 +219,7 @@ void VideoPreview::AddTempFileToPreview(QueueItem* tempItem, HWND serverReadyRep
 		_callWnd = serverReadyReport;
 		_currentFilePreview = tempItem->getTarget();
 		_previewFileSize = tempItem->getSize();
-		_tempFilename = tempItem->getTempTarget();
+		m_tempFilename = tempItem->getTempTarget();
 		_fileRoadMap = unique_ptr<FileRoadMap>(new FileRoadMap(_previewFileSize));
 		QueueItem::SegmentSet segments;
 		{
@@ -425,7 +425,7 @@ void VideoPreview::on(QueueManagerListener::FileMoved, const string& n) noexcept
 	if (n.compare(_currentFilePreview) == 0)
 	{
 		Lock l(csRoadMap);
-		_tempFilename = n;
+		m_tempFilename = n;
 		_canUseFile = true;
 		LocalArray<CHAR, 256>buff;
 		snprintf(buff.data(), buff.size(), "All file %s now available", n.c_str());
@@ -585,7 +585,9 @@ int VideoPreviewSocketProcessor::run()
 					}
 					if (VideoPreview::getInstance()->CanUseFile())
 					{
-						unique_ptr<SharedFileStream> openedFile(new SharedFileStream(VideoPreview::getInstance()->GetFilePreviewTempName(),  File::READ, File::OPEN | File::CREATE | File::NO_CACHE_HINT));
+						try
+						{
+						unique_ptr<SharedFileStream> openedFile(new SharedFileStream(VideoPreview::getInstance()->GetFilePreviewTempName(),  File::READ, File::OPEN | File::SHARED | File::CREATE | File::NO_CACHE_HINT));
 						if (openedFile.get() != NULL)
 						{
 							if (VideoPreview::getInstance()->IsAvailableData(filePosition, BlockSize))
@@ -648,6 +650,12 @@ int VideoPreviewSocketProcessor::run()
 						{
 							::Sleep(1);
 						}
+
+					}
+					catch (Exception& e)					
+					{
+						LogManager::getInstance()->message("[VideoPreviewSocketProcessor] Error open SharedFileStream for file = [" + VideoPreview::getInstance()->GetFilePreviewTempName() + "] Error =" +e.getError());
+					}
 					}
 					else
 					{

@@ -978,11 +978,11 @@ TransferView::ItemInfo* TransferView::findItem(const UpdateInfo& ui, int& pos) c
 		}
 		else if (ui.download == ii->download && !ii->parent) // [!] IRainman fix.
 		{
-			const auto& children = ctrlTransfers.findChildren(ii->getGroupCond());
+			const auto& children = ctrlTransfers.findChildren(ii->getGroupCond()); // TODO - ссылка?
 			for (auto k = children.cbegin(); k != children.cend(); ++k)
 			{
 				ItemInfo* ii = *k;
-				if (ui == *ii)
+				if (ui == *ii)       // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=139847  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62292
 				{
 					return ii;
 				}
@@ -1006,7 +1006,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	{
 		switch (i->first)
 		{
-			case ADD_ITEM:
+			case TRANSFER_ADD_ITEM:
 			{
 				auto &ui = static_cast<UpdateInfo&>(*i->second);
 				ItemInfo* ii = new ItemInfo(ui.hintedUser, ui.download);
@@ -1021,7 +1021,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 				}
 			}
 			break;
-			case REMOVE_ITEM:
+			case TRANSFER_REMOVE_ITEM:
 			{
 				const auto &ui = static_cast<UpdateInfo&>(*i->second);
 				
@@ -1042,7 +1042,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 				}
 			}
 			break;
-			case UPDATE_ITEM:
+			case TRANSFER_UPDATE_ITEM:
 			{
 				auto &ui = static_cast<UpdateInfo&>(*i->second);
 				
@@ -1091,13 +1091,13 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 				}
 			}
 			break;
-			case UPDATE_PARENT:
-			case UPDATE_PARENT_WITH_PARSE:
+			case TRANSFER_UPDATE_PARENT:
+			case TRANSFER_UPDATE_PARENT_WITH_PARSE:
 				//case UPDATE_PARENT_WITH_PARSE_2:
 			{
 				switch (i->first)
 				{
-					case UPDATE_PARENT_WITH_PARSE:
+					case TRANSFER_UPDATE_PARENT_WITH_PARSE:
 						parseQueueItemUpdateInfo(reinterpret_cast<QueueItemUpdateInfo*>(i->second)); // [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
 						break;
 				}
@@ -1145,8 +1145,9 @@ LRESULT TransferView::onSearchAlternates(WORD /*wNotifyCode*/, WORD /*wID*/, HWN
 		const ItemInfo *l_ii = ctrlTransfers.getItemData(i);
 		TTHValue l_tth;
 		if (l_ii && getTTH(l_ii, l_tth))
+		{
 			WinUtil::searchHash(l_tth);
-			
+		}
 	}
 	
 	return 0;
@@ -1298,17 +1299,17 @@ TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const Conn
 
 void TransferView::on(ConnectionManagerListener::Added, const ConnectionQueueItem* aCqi)
 {
-	m_tasks.add(ADD_ITEM, createUpdateInfoForAddedEvent(aCqi)); // [!] IRainman fix.
+	m_tasks.add(TRANSFER_ADD_ITEM, createUpdateInfoForAddedEvent(aCqi)); // [!] IRainman fix.
 }
 
 void TransferView::on(ConnectionManagerListener::StatusChanged, const ConnectionQueueItem* aCqi)
 {
-	m_tasks.add(UPDATE_ITEM, createUpdateInfoForAddedEvent(aCqi)); // [!] IRainman fix.
+	m_tasks.add(TRANSFER_UPDATE_ITEM, createUpdateInfoForAddedEvent(aCqi)); // [!] IRainman fix.
 }
 
 void TransferView::on(ConnectionManagerListener::Removed, const ConnectionQueueItem* aCqi)
 {
-	m_tasks.add(REMOVE_ITEM, new UpdateInfo(aCqi->getUser(), aCqi->getDownload())); // [!] IRainman fix.
+	m_tasks.add(TRANSFER_REMOVE_ITEM, new UpdateInfo(aCqi->getUser(), aCqi->getDownload())); // [!] IRainman fix.
 }
 
 void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueItem* aCqi, const string& aReason)
@@ -1326,7 +1327,7 @@ void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueIt
 	}
 	
 	ui->setStatus(ItemInfo::STATUS_WAITING);
-	m_tasks.add(UPDATE_ITEM, ui);
+	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
 
 static tstring getFile(const Transfer::Type& type, const tstring& fileName)
@@ -1399,15 +1400,10 @@ void TransferView::starting(UpdateInfo* ui, const Transfer* t)
 	ui->setPos(t->getPos());
 	ui->setTarget(t->getPath());
 	ui->setType(t->getType());
-	string l_chiper_name;
-	string l_ip;
-	const auto l_result = ConnectionManager::getCipherNameAndIP(const_cast<UserConnection*>(t->getUserConnection()) , l_chiper_name, l_ip);
-	dcassert(l_result);
-	ui->setCipher(l_chiper_name);
-	ui->setIP(l_ip);
-	// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=55732
-	// bad alloc - https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128264
-	// getUserConnection - мертвый?
+	//const auto l_result = ConnectionManager::getCipherNameAndIP(const_cast<UserConnection*>(t->getUserConnection()) , l_chiper_name, l_ip);
+	//dcassert(l_result);
+	ui->setCipher(t->getChiperName());
+	ui->setIP(t->getIP());
 }
 
 void TransferView::on(DownloadManagerListener::Requesting, const Download* d) noexcept
@@ -1422,7 +1418,7 @@ void TransferView::on(DownloadManagerListener::Requesting, const Download* d) no
 	ui->updateMask &= ~UpdateInfo::MASK_STATUS; // hack to avoid changing item status
 	ui->setStatusString(TSTRING(REQUESTING) + _T(' ') + getFile(d->getType(), Text::toT(Util::getFileName(d->getPath()))) + _T("..."));
 	
-	m_tasks.add(UPDATE_ITEM, ui);
+	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
 
 void TransferView::on(DownloadManagerListener::Starting, const Download* aDownload)
@@ -1435,7 +1431,7 @@ void TransferView::on(DownloadManagerListener::Starting, const Download* aDownlo
 	ui->setType(aDownload->getType());
 	// [-] ui->setIP(aDownload->getUserConnection()->getRemoteIp()); // !SMT!-IP [-] IRainman opt.
 	
-	m_tasks.add(UPDATE_ITEM, ui);
+	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
 
 void TransferView::on(DownloadManagerListener::Tick, const DownloadMap& dl, uint64_t CurrentTick)
@@ -1495,7 +1491,7 @@ void TransferView::on(DownloadManagerListener::Tick, const DownloadMap& dl, uint
 			}
 			l_statusString += Text::tformat(TSTRING(DOWNLOADED_BYTES), pos.c_str(), percent, elapsed.c_str());
 			ui->setStatusString(l_statusString);
-			m_tasks.add(UPDATE_ITEM, ui);
+			m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 		}
 	}
 }
@@ -1527,18 +1523,18 @@ void TransferView::on(DownloadManagerListener::Failed, const Download* aDownload
 	            TSTRING(USER) + _T(": ") + WinUtil::getNicks(ui->hintedUser) + _T('\n') +
 	            TSTRING(REASON) + _T(": ") + tmpReason, TSTRING(DOWNLOAD_FAILED) + _T(' '), NIIF_WARNING);
 	            
-	m_tasks.add(UPDATE_ITEM, ui);
+	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
 
-void TransferView::on(DownloadManagerListener::Status, const UserConnection* uc, const string& aReason) noexcept
+void TransferView::on(DownloadManagerListener::Status, const UserConnection* p_conn, const string& aReason) noexcept
 {
 	// dcassert(const_cast<UserConnection*>(uc)->getDownload()); // TODO при окончании закачки это поле уже пустое https://www.box.net/shared/4cknwlue3njzksmciu63
-	UpdateInfo* ui = new UpdateInfo(uc->getHintedUser(), true); // [!] IRainman fix.
+	UpdateInfo* ui = new UpdateInfo(p_conn->getHintedUser(), true); // [!] IRainman fix.
 	ui->setStatus(ItemInfo::STATUS_WAITING);
 	ui->setPos(0);
 	ui->setStatusString(Text::toT(aReason));
 	
-	m_tasks.add(UPDATE_ITEM, ui);
+	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
 
 void TransferView::on(UploadManagerListener::Starting, const Upload* aUpload)
@@ -1558,7 +1554,7 @@ void TransferView::on(UploadManagerListener::Starting, const Upload* aUpload)
 		ui->setStatusString(TSTRING(UPLOAD_STARTING));
 	}
 	
-	m_tasks.add(UPDATE_ITEM, ui);
+	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
 
 void TransferView::on(UploadManagerListener::Tick, const UploadList& ul, uint64_t CurrentTick)
@@ -1619,7 +1615,7 @@ void TransferView::on(UploadManagerListener::Tick, const UploadList& ul, uint64_
 			l_statusString += Text::tformat(TSTRING(UPLOADED_BYTES), pos.c_str(), percent, elapsed.c_str());
 			
 			ui->setStatusString(l_statusString);
-			m_tasks.add(UPDATE_ITEM, ui);
+			m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 		}
 	}
 }
@@ -1640,7 +1636,7 @@ void TransferView::onTransferComplete(const Transfer* aTransfer, const bool down
 		           TSTRING(USER) + _T(": ") + WinUtil::getNicks(aTransfer->getHintedUser()), TSTRING(UPLOAD_FINISHED_IDLE));
 	}
 	
-	m_tasks.add(UPDATE_ITEM, ui);
+	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
 
 void TransferView::ItemInfo::disconnect()
@@ -1782,7 +1778,7 @@ void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItemPtr& q
 	if (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP))
 		return;
 		
-	m_tasks.add(UPDATE_PARENT_WITH_PARSE, new QueueItemUpdateInfo(qi)); // [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
+	m_tasks.add(TRANSFER_UPDATE_PARENT_WITH_PARSE, new QueueItemUpdateInfo(qi)); // [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
 }
 
 void TransferView::parseQueueItemUpdateInfo(QueueItemUpdateInfo* ui) // [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
@@ -1879,7 +1875,7 @@ void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, co
 	ui->setPos(0);
 	ui->setStatusString(TSTRING(DOWNLOAD_FINISHED_IDLE));
 	
-	m_tasks.add(UPDATE_ITEM, ui); // [!] IRainman opt.
+	m_tasks.add(TRANSFER_UPDATE_ITEM, ui); // [!] IRainman opt.
 	
 	// update file item
 	ui = new UpdateInfo(download->getHintedUser(), true); // [!] IRainman fix.
@@ -1894,7 +1890,7 @@ void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, co
 	
 	SHOW_POPUP(POPUP_DOWNLOAD_FINISHED, TSTRING(FILE) + _T(": ") + Util::getFileName(ui->m_target), TSTRING(DOWNLOAD_FINISHED_IDLE));
 	
-	m_tasks.add(UPDATE_PARENT, ui);  // [!] IRainman opt.
+	m_tasks.add(TRANSFER_UPDATE_PARENT, ui);  // [!] IRainman opt.
 }
 
 void TransferView::on(QueueManagerListener::Removed, const QueueItemPtr& qi) noexcept
@@ -1911,7 +1907,7 @@ void TransferView::on(QueueManagerListener::Removed, const QueueItemPtr& qi) noe
 	ui->setStatus(ItemInfo::STATUS_WAITING);
 	ui->setRunning(0);
 	
-	m_tasks.add(UPDATE_PARENT, ui);
+	m_tasks.add(TRANSFER_UPDATE_PARENT, ui);
 	//m_tasks.add(UPDATE_PARENT_WITH_PARSE_2, new QueueItemUpdateInfo(qi)); // [!] IRainman fix.
 }
 

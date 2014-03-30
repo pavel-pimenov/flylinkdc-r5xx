@@ -1834,9 +1834,11 @@ void NmdcHub::myInfoParse(const string& param) noexcept
 
 void NmdcHub::on(BufferedSocketListener::MyInfoArray, const StringList& p_myInfoArray) noexcept
 {
+	const auto l_ip_port = getIpPort();
 	for (auto i = p_myInfoArray.cbegin(); i != p_myInfoArray.end(); ++i)
 	{
 		myInfoParse(toUtf8(*i));
+		COMMAND_DEBUG(*i, DebugTask::HUB_IN, l_ip_port);
 	}
 }
 

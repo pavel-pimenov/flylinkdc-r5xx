@@ -30,7 +30,7 @@ void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bo
 	if (BaseChatFrame::g_isStartupProcess == true)
 		return;
 		
-	if (!activated)
+	if (!m_is_activated)
 		return;
 		
 	if (!Util::getAway() && BOOLSETTING(POPUP_AWAY) && !preview)
@@ -68,7 +68,7 @@ void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bo
 	if (SETTING(POPUP_TYPE) == CUSTOM && PopupImage != SETTING(POPUPFILE))
 	{
 		PopupImage = SETTING(POPUPFILE);
-		popuptype = SETTING(POPUP_TYPE);
+		m_popuptype = SETTING(POPUP_TYPE);
 		m_hBitmap = (HBITMAP)::LoadImage(NULL, (Text::toT(PopupImage).c_str()), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
 	}
 //		if (m_hBitmap && SETTING(POPUP_TYPE) == CUSTOM)
@@ -107,7 +107,7 @@ void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bo
 	CRect rc(screenWidth - width , screenHeight - height - offset, screenWidth, screenHeight - offset);
 	
 	//Create a new popup
-	PopupWnd *p = new PopupWnd(msg, aTitle, rc, id++, m_hBitmap);
+	PopupWnd *p = new PopupWnd(msg, aTitle, rc, m_id++, m_hBitmap);
 	p->height = height; // save the height, for removal
 	
 	if (SETTING(POPUP_TYPE) != /*CUSTOM*/ BALLOON)

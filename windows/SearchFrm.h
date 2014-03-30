@@ -752,9 +752,10 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		TargetsMap dlTargets; // !SMT!-S
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		void mergeFlyServerInfo();
-		int scan_list_view_from_merge();
-		typedef std::map<TTHValue, std::pair<SearchInfo*, CFlyServerCache> > CFlyMergeItem;
+		bool scan_list_view_from_merge();
+		typedef std::unordered_map<TTHValue, std::pair<SearchInfo*, CFlyServerCache> > CFlyMergeItem;
 		CFlyMergeItem m_merge_item_map; // TODO - организовать кэш для медиаинфы, чтобы лишний раз не ходить на флай-сервер c get-запросами
+		void update_column_after_merge(std::vector<int> p_update_index);
 		
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 		void downloadSelected(const tstring& aDir, bool view = false);

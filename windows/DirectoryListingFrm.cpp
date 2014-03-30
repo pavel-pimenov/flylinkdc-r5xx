@@ -60,7 +60,9 @@ CriticalSection DirectoryListingFrame::g_csUsersMap;
 
 DirectoryListingFrame::~DirectoryListingFrame()
 {
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	dcassert(m_merge_item_map.empty());
+#endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 	Lock l(g_csUsersMap);
 	if (dl->getUser() && !dl->getUser()->getCID().isZero() && g_usersMap.find(dl->getUser()) != g_usersMap.end())
 		g_usersMap.erase(dl->getUser());
@@ -2212,13 +2214,13 @@ LRESULT DirectoryListingFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wPar
 		std::unique_ptr<Json::Value> l_root(reinterpret_cast<Json::Value*>(wParam));
 		const Json::Value& l_arrays = (*l_root)["array"];
 		const Json::Value::ArrayIndex l_count = l_arrays.size();
-		Lock l(m_cs_fly_server);
+		Lock l(g_cs_fly_server);
 		for (Json::Value::ArrayIndex i = 0; i < l_count; ++i)
 		{
 			const Json::Value& l_cur_item_in = l_arrays[i];
 			const TTHValue l_tth = TTHValue(l_cur_item_in["tth"].asString());
 			bool l_is_know_tth = false;
-			auto l_si_find = m_merge_item_map.find(l_tth);
+			const auto l_si_find = m_merge_item_map.find(l_tth);
 			if (l_si_find != m_merge_item_map.end())
 			{
 				int l_cur_item = -1;
@@ -2255,6 +2257,13 @@ LRESULT DirectoryListingFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wPar
 						if (l_count_query == "1")
 							l_is_know_tth = false; // Файл на сервер первый раз появился.
 					}
+					CFlyServerCache l_cache;
+					l_cache.m_ratio = Util::toInt(l_count_query);
+					l_cache.m_audio = l_result_base_media["fly_audio"].asString();
+					l_cache.m_audio_br = l_result_base_media["fly_audio_br"].asString();
+					l_cache.m_video = l_result_base_media["fly_video"].asString();
+					l_cache.m_xy = l_result_base_media["fly_xy"].asString();
+					g_fly_server_cache[l_tth] = std::make_pair(l_si_find->second, l_cache); // Сохраняем рейтинг и медиаинфу в кэше
 				}
 			}
 			if (l_is_know_tth) // Если сервер расказал об этом TTH с медиаинфой, то не шлем ему ничего
@@ -2265,6 +2274,12 @@ LRESULT DirectoryListingFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wPar
 	}
 	prepare_mediainfo_to_fly_serverL(); // Соберем TTH, которые нужно отправить на флай-сервер в обмен на инфу.
 	m_merge_item_map.clear();
+	update_column_after_merge(l_update_index);
+	return 0;
+}
+//===================================================================================================================================
+void DirectoryListingFrame::update_column_after_merge(std::vector<int> p_update_index)
+{
 #if 0
 	TODO - апдейты по колонкам не пашут иногда
 http://code.google.com/p/flylinkdc/issues/detail?id=1113
@@ -2286,47 +2301,70 @@ http://code.google.com/p/flylinkdc/issues/detail?id=1113
 	dcassert(!isClosedOrShutdown());
 	if (!isClosedOrShutdown())
 	{
-		ctrlList.update_all_columns(l_update_index);
+		ctrlList.update_all_columns(p_update_index);
 	}
 #endif
-	return 0;
 }
 //===================================================================================================================================
-int DirectoryListingFrame::scan_list_view_from_merge()
+bool DirectoryListingFrame::scan_list_view_from_merge()
 {
 	const int l_item_count = ctrlList.GetItemCount();
 	if (l_item_count == 0)
 		return 0;
+	std::vector<int> l_update_index;
 	const int l_top_index = ctrlList.GetTopIndex();
 	const int l_count_per_page = ctrlList.GetCountPerPage();
 	for (int j = l_top_index; j < l_item_count && j < l_top_index + l_count_per_page; ++j)
 	{
 		dcassert(!isClosedOrShutdown());
-		ItemInfo* i2 = ctrlList.getItemData(j);
-		if (i2 == nullptr || i2->m_already_processed || i2->type != ItemInfo::FILE) // Уже не первый раз или это не файл?
+		ItemInfo* l_item_info = ctrlList.getItemData(j);
+		if (l_item_info == nullptr || l_item_info->m_already_processed || l_item_info->type != ItemInfo::FILE) // Уже не первый раз или это не файл?
 			continue;
-		i2->m_already_processed = true;
-		const auto l_file_size = i2->file->getSize();
+		l_item_info->m_already_processed = true;
+		const auto l_file_size = l_item_info->file->getSize();
 		if (l_file_size)
 		{
-			const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(i2->file->getName())); // TODO - расширение есть в Columns но в T-формате
+			const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(l_item_info->file->getName())); // TODO - расширение есть в Columns но в T-формате
 			if (g_fly_server_config.isSupportFile(l_file_ext, l_file_size))
 			{
-				const TTHValue& l_tth = i2->file->getTTH();
-				CFlyServerKey l_info(l_tth, l_file_size);
-				Lock l(m_cs_fly_server);
-				m_merge_item_map.insert(make_pair(l_tth, i2));
-				l_info.m_only_counter  = !i2->columns[COLUMN_MEDIA_AUDIO].empty(); // Колонка базовой медиаинфы уже заполенна - запросим с сервера только рейтинги
-				if (l_info.m_only_counter) // TODO - определить точнее есть у нас инфа по файлу или нет?
+				const TTHValue& l_tth = l_item_info->file->getTTH();
+				Lock l(g_cs_fly_server);
+				const auto l_find_ratio = g_fly_server_cache.find(l_tth);
+				if (l_find_ratio == g_fly_server_cache.end()) // Если значение рейтинга есть в кэше то не запрашиваем о нем инфу с сервера
 				{
-					m_tth_media_file_map[l_tth] = l_file_size; // Регистрируем кандидата на передачу информации
+					CFlyServerKey l_info(l_tth, l_file_size);
+					m_merge_item_map.insert(make_pair(l_tth, l_item_info));
+					l_info.m_only_counter  = !l_item_info->columns[COLUMN_MEDIA_AUDIO].empty(); // Колонка базовой медиаинфы уже заполенна - запросим с сервера только рейтинги
+					if (l_info.m_only_counter) // TODO - определить точнее есть у нас инфа по файлу или нет?
+					{
+						m_tth_media_file_map[l_tth] = l_file_size; // Регистрируем кандидата на передачу информации
+					}
+					// TODO - обратиться к локальной базе вдруг у нас уже инфа есть?
+					m_GetFlyServerArray.push_back(l_info);
 				}
-				// TODO - обратиться к локальной базе вдруг у нас уже инфа есть?
-				m_GetFlyServerArray.push_back(l_info);
+				else
+				{
+					l_update_index.push_back(j);
+					const auto& l_cache = l_find_ratio->second.second;
+					if (l_item_info->columns[COLUMN_FLY_SERVER_RATING].empty())
+						l_item_info->columns[COLUMN_FLY_SERVER_RATING] = Text::toT(Util::toString(l_cache.m_ratio));
+					if (l_item_info->columns[COLUMN_BITRATE].empty())
+						l_item_info->columns[COLUMN_BITRATE]  = Text::toT(l_cache.m_audio_br);
+					if (l_item_info->columns[COLUMN_MEDIA_XY].empty())
+						l_item_info->columns[COLUMN_MEDIA_XY] =  Text::toT(l_cache.m_xy);
+					if (l_item_info->columns[COLUMN_MEDIA_VIDEO].empty())
+						l_item_info->columns[COLUMN_MEDIA_VIDEO] =  Text::toT(l_cache.m_video);
+					if (l_item_info->columns[COLUMN_MEDIA_AUDIO].empty())
+					{
+						CFlyMediaInfo::translateDuration(l_cache.m_audio, l_item_info->columns[COLUMN_MEDIA_AUDIO], l_item_info->columns[COLUMN_DURATION]);
+					}
+				}
+				
 			}
 		}
 	}
-	return m_GetFlyServerArray.size();
+	update_column_after_merge(l_update_index);
+	return m_GetFlyServerArray.size() || m_SetFlyServerArray.size();
 }
 //===================================================================================================================================
 void DirectoryListingFrame::mergeFlyServerInfo()
@@ -2347,7 +2385,7 @@ void DirectoryListingFrame::mergeFlyServerInfo()
 			if (!l_parsingSuccessful && !l_json_result.empty())
 			{
 				{
-					Lock l(m_cs_fly_server);
+					Lock l(g_cs_fly_server);
 					m_tth_media_file_map.clear(); // Если возникла ошибка передачи запроса на чтение, запись не шлем.
 				}
 				delete l_root;

@@ -224,16 +224,12 @@ class BufferedOutputStream : public OutputStream
 				m_is_flush = false;
 			}
 			pos = 0;
-#ifdef FLYLINKDC_BETA
-// #define FLYLINKDC_DISABLE_FLUSH // Только для теста
-#endif
-#ifdef FLYLINKDC_DISABLE_FLUSH
-			if (m_is_flush == false)
+			// Делаем сброс пока всегда.
+			// if (m_is_flush == false)
 			{
 				s->flush();
 				m_is_flush = true;
 			}
-#endif // FLYLINKDC_DISABLE_FLUSH
 			return 0;
 		}
 		

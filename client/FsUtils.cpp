@@ -1,5 +1,8 @@
 #include "stdinc.h"
 #include "FsUtils.h"
+
+#include "..\client\LogManager.h"
+
 #include <Dbt.h>
 
 #define INITGUID
@@ -32,30 +35,37 @@ bool CFsTypeDetector::IsStreamSupported(FsUtils_LPCtSTR pwcFileName)
 			
 			wcRootPath[5] = FsUtils_L(':');
 			
+			bool bRet = false;
 			DWORD dwVolumeFlags = 0;
-			FsUtils_GetVolumeInformation(&wcRootPath[4], NULL, 0, NULL, NULL, &dwVolumeFlags, NULL, 0);
-			
-			const bool bRet = (dwVolumeFlags & FILE_NAMED_STREAMS) != 0;
-			
-			DEV_BROADCAST_HANDLE dbh = {0};
-			dbh.dbch_size = sizeof(DEV_BROADCAST_HANDLE);
-			dbh.dbch_devicetype = DBT_DEVTYP_HANDLE;
-			
-			wcRootPath[6] = 0;
-			dbh.dbch_handle = FsUtils_CreateFile(wcRootPath, 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, NULL);
-			
-			VOL_STRUCT vs = {bRet, NULL};
-			
-			if (dbh.dbch_handle != NULL && dbh.dbch_handle != INVALID_HANDLE_VALUE)
+			const BOOL l_ret_volume = FsUtils_GetVolumeInformation(&wcRootPath[4], NULL, 0, NULL, NULL, &dwVolumeFlags, NULL, 0);
+			dcassert(l_ret_volume);
+			if (l_ret_volume != FALSE)
 			{
-				vs.hNotify = RegisterDeviceNotification(m_hWnd, &dbh, DEVICE_NOTIFY_WINDOW_HANDLE);
+				bRet = (dwVolumeFlags & FILE_NAMED_STREAMS) != 0;
 				
-				CloseHandle(dbh.dbch_handle);
+				DEV_BROADCAST_HANDLE dbh = {0};
+				dbh.dbch_size = sizeof(DEV_BROADCAST_HANDLE);
+				dbh.dbch_devicetype = DBT_DEVTYP_HANDLE;
+				
+				wcRootPath[6] = 0;
+				dbh.dbch_handle = FsUtils_CreateFile(wcRootPath, 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, NULL);
+				
+				VOL_STRUCT vs(bRet);
+				
+				if (dbh.dbch_handle != NULL && dbh.dbch_handle != INVALID_HANDLE_VALUE)
+				{
+					vs.hNotify = RegisterDeviceNotification(m_hWnd, &dbh, DEVICE_NOTIFY_WINDOW_HANDLE);
+					
+					CloseHandle(dbh.dbch_handle);
+				}
+				
+				wcRootPath[5] = 0;
+				m_cache[&wcRootPath[4]] = vs;
 			}
-			
-			wcRootPath[5] = 0;
-			m_cache[&wcRootPath[4]] = vs;
-			
+			else
+			{
+				LogManager::getInstance()->message("GetVolumeInformation [" + string(pwcFileName) + "] error = " + Util::translateError(GetLastError()));
+			}
 			return bRet;
 		}
 	}
@@ -99,7 +109,7 @@ bool CFsTypeDetector::IsStreamSupported(FsUtils_LPCtSTR pwcFileName)
 				
 				const bool bRet = (dwVolumeFlags & FILE_NAMED_STREAMS) != 0;
 				
-				VOL_STRUCT vs = {bRet, NULL};
+				VOL_STRUCT vs(bRet);
 				m_cache[strRemotePath] = vs;
 				
 				return bRet;
@@ -179,9 +189,5 @@ LRESULT CFsTypeDetector::OnDeviceChange(LPARAM lParam, WPARAM wParam)
 	return true;
 }
 
-void CFsTypeDetector::SetNotifyWnd(HWND hWnd)
-{
-	m_hWnd = hWnd;
-}
 
 } // namespace FsUtils

@@ -740,6 +740,7 @@ void UserInfoGuiTraits::init()
 	copyUserMenu.AppendMenu(MF_STRING, IDC_COPY_TAG, CTSTRING(COPY_TAG));
 	copyUserMenu.AppendMenu(MF_STRING, IDC_COPY_CID, CTSTRING(COPY_CID));
 	copyUserMenu.AppendMenu(MF_STRING, IDC_COPY_EMAIL_ADDRESS, CTSTRING(COPY_EMAIL_ADDRESS));
+	copyUserMenu.AppendMenu(MF_STRING, IDC_COPY_GEO_LOCATION, CTSTRING(COPY_GEO_LOCATION));
 	copyUserMenu.AppendMenu(MF_STRING, IDC_COPY_IP, CTSTRING(COPY_IP));
 	copyUserMenu.AppendMenu(MF_STRING, IDC_COPY_NICK_IP, CTSTRING(COPY_NICK_IP));
 	
@@ -3721,7 +3722,7 @@ string WinUtil::getWMPSpam(HWND playerWnd /*= NULL*/)
 					}
 					else if (bstrUserRating == "1")
 					{
-						params["rating"] = '*';
+						params["rating"] = "*";
 					}
 					else if (bstrUserRating == "25")
 					{
@@ -3753,7 +3754,7 @@ string WinUtil::getWMPSpam(HWND playerWnd /*= NULL*/)
 				if (elapsed > 0 && length >= elapsed)
 				{
 					int intPercent;
-					if (length > 0)
+					if (int(length) > 0)
 					{
 						intPercent = int(elapsed * 100.0 / length);
 					}
@@ -4514,10 +4515,9 @@ int VideoImage::getMediaVideoIcon(const tstring& p_col)
 			const int y_size = _wtoi(p_col.c_str() + l_pos + 1);
 			
 			// Uncomment this, if you want open all video size formats
-//  if (x_size >=200 && x_size<=640 && y_size>=140 && y_size<=480)
-//      l_size_result = 3; //Mobile or VHS
-//  else
-			if (x_size >= 640 && x_size <= 1080 && y_size >= 240 && y_size <= 720)
+			if (x_size >= 200 && x_size <= 640 && y_size >= 140 && y_size <= 480)
+				l_size_result = 3; //Mobile or VHS
+			else if (x_size >= 640 && x_size <= 1080 && y_size >= 240 && y_size <= 720)
 				l_size_result = 2; //SD
 				
 			if (x_size >= 1080 && x_size <= 1920 && y_size >= 500 && y_size <= 1080)

@@ -29,7 +29,7 @@
 		<String Name="AdlsDownload">Согласование скачивания</String>
 		<String Name="AdlsEnabled">Включено</String>
 		<String Name="AdlsFullPath">Полный путь</String>
-		<String Name="AdlsProperties">Свойства Авто-поиска</String>
+		<String Name="AdlsProperties">Свойства Автопоиска</String>
 		<String Name="AdlsSearchString">Строка поиска</String>
 		<String Name="AdlsSizeMax">Макс. размер файла</String>
 		<String Name="AdlsSizeMin">Мин. размер файла</String>
@@ -58,7 +58,7 @@
 3) Если в настройках программы стоит "Закончить на первом совпадении из Автопоиска" (Настройки -&gt;Дополнительно), то автопоиск остановится после первого совпадения.
 При этом важен порядок чередования правил поиска.
 Например, если вверху автопоиска стоит правило, 'xxx' с назначением 'discard', то все файлы с этим именем не будут включены в автопоиск.</String>
-		<String Name="AdlSearch">Авто-поиск</String>
+		<String Name="AdlSearch">Автопоиск</String>
 		<String Name="AdlTitle">ADL-поиск, описание</String>
 		<String Name="Ago">тому назад</String>
 		<String Name="All">Все</String>
@@ -139,13 +139,13 @@
 		<String Name="AutoupdateUrlLabel">Сервер обновлений</String>
 		<String Name="AutoupdateUseCustomUrl">Использовать неофициальный сервер обновлений</String>
 		<String Name="AutoupdateUtilities">Утилиты</String>
-		<String Name="AutoConnect">Авто-соединение / Название</String>
+		<String Name="AutoConnect">Автосоединение / Название</String>
 		<String Name="AutoConnectAdded">Автоподключение добавлено</String>
 		<String Name="AutoConnectRemoved">Автоподключение убрано</String>
 		<String Name="AutoConnectStartOff">Удалить автоподключение при старте</String>
 		<String Name="AutoConnectStartOn">Включить автоподключение при старте</String>
-		<String Name="AutoGrantNick">Авто выдача слота / Ник</String>
-		<String Name="AutoGrant">Авто-выдача слота</String>
+		<String Name="AutoGrantNick">Автовыдача слота / Ник</String>
+		<String Name="AutoGrant">Автовыдача слота</String>
 		<String Name="AverageUpload">Скорость отдачи</String>
 		<String Name="AvCheckThisFile">Антивирус проверил файл</String>
 		<String Name="Away">Ушёл</String>
@@ -156,7 +156,7 @@
 		<String Name="Back">Назад</String>
 		<String Name="BalloonPopups">Всплывающие сообщения</String>
 		<String Name="BanmsgPeriod">Период сообщений (0 - отключить ЛС), мин</String>
-		<String Name="BanColorDlg">Список файлов - Авто-бан</String>
+		<String Name="BanColorDlg">Список файлов - Автобан</String>
 		<String Name="BanForcePm">ЛС, даже если клиент умеет показывать бан в списке закачек</String>
 		<String Name="BanLimit">Лимитер ниже, кБ</String>
 		<String Name="BanMessage">Сообщение бана</String>
@@ -346,6 +346,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="CopyAll">Копировать всё</String>
 		<String Name="CopyDescription">Копировать описание</String>
 		<String Name="CopyEmailAddress">Копировать e-mail</String>
+		<String Name="CopyGeoLocation">Копировать расположение</String>
 		<String Name="CopyExactShare">Копировать точную шару</String>
 		<String Name="CopyFullMagnetLink">Копировать полную магнет-ссылку</String>
 		<String Name="CopyHub">Копировать адрес в буфер обмена</String>
@@ -898,7 +899,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="Menubar">Меню</String>
 		<String Name="MenuAbout">О программе</String>
 		<String Name="MenuAddMagnet">Добавить магнет-ссылку…	Ctrl+M</String>
-		<String Name="MenuAdlSearch">Авто-поиск	Ctrl+Shift+S</String>
+		<String Name="MenuAdlSearch">Автопоиск	Ctrl+Shift+S</String>
 		<String Name="MenuArrange">Упорядочить значки</String>
 		<String Name="MenuCascade">Каскадом</String>
 		<String Name="MenuCdmdebugMessages">CDM-отладчик</String>
@@ -1264,7 +1265,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="ReplaceReplace">Заменить новым</String>
 		<String Name="ReplaceSkip">Пропустить</String>
 		<String Name="Report">Отчёт</String>
-		<String Name="ReportAlternates">Отчет об авто-поиске альтернатив в строке состояния</String>
+		<String Name="ReportAlternates">Отчет об автопоиске альтернатив в строке состояния</String>
 		<String Name="ReportBugs">Сообщайте об ошибках</String>
 		<String Name="Requesting">Запрос</String>
 		<String Name="Resume">Возобновить</String>
@@ -1384,8 +1385,8 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsArgument">Параметры</String>
 		<String Name="SettingsAutoupdateProp">Автообновление</String>
 		<String Name="SettingsAutoAway">Включение режима "ушёл" при сворачивании (и обратно при восстановлении)</String>
-		<String Name="SettingsAutoBan">Авто бан</String>
-		<String Name="SettingsAutoDropSegmentedSource">Только при сегментированном скачивании (больше 2-х источников)</String>
+		<String Name="SettingsAutoBan">Автобан</String>
+		<String Name="SettingsAutoDropSegmentedSource">Только при сегментированном скачивании (больше двух источников)</String>
 		<String Name="SettingsAutoFollow">Автоматическое следование перенаправлениям</String>
 		<String Name="SettingsAutoKick">Автоматически отключать пользователя, покинувшего хаб</String>
 		<String Name="SettingsAutoKickNoFavs">Не отключать автоматически друга, покинувшего хаб</String>
@@ -1394,8 +1395,8 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsAutoRefreshTime">Обновление шары</String>
 		<String Name="SettingsAutoSearch">Поиск альтернативных ТТН-источников каждые</String>
 		<String Name="SettingsAutoSearchAutoMatch">Автоматическое добавление в очередь (для автопоиска) (если нажмешь галку - начнет качать много файл-листов!)</String>
-		<String Name="SettingsAutoSearchLimit">Макс. кол-во источников для авто-поиска</String>
-		<String Name="SettingsAutoSlots">Макс. авто-слотов</String>
+		<String Name="SettingsAutoSearchLimit">Макс. кол-во источников для автопоиска</String>
+		<String Name="SettingsAutoSlots">Макс. автослотов</String>
 		<String Name="SettingsAvipreview">Предпросмотр</String>
 		<String Name="SettingsBadSoftware">Включить обнаружение конфликтующих программ</String>
 		<String Name="SettingsBanMessage">Вы забанены. Расшарьте больше файлов или откройте больше слотов!</String>
@@ -1450,7 +1451,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsEnd">Конец</String>
 		<String Name="SettingsExtensions">Расширения</String>
 		<String Name="SettingsExternalIp">Внешний / WAN IP</String>
-		<String Name="SettingsFakedetect">Авто бан</String>
+		<String Name="SettingsFakedetect">Автобан</String>
 		<String Name="SettingsFakeSet">Детектор поддельной шары</String>
 		<String Name="SettingsFavoriteDirs">Избранные пути для скачивания</String>
 		<String Name="SettingsFavoriteDirsPage">Избранные пути</String>
@@ -1575,7 +1576,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsShowInfoTips">Показывать подсказки в списках</String>
 		<String Name="SettingsShowJoins">Показывать "пришёл"/"ушёл" в чате по умолчанию</String>
 		<String Name="SettingsShowProgressBars">Показывать строки прогресса для передач (немного повышает нагрузку на процессор)</String>
-		<String Name="SettingsShowSeekersInSpyFrame">Показывать ищущих в поиске-шпионе (повышает нагрузку на систему)</String>
+		<String Name="SettingsShowSeekersInSpyFrame">Показать ищущих</String>
 		<String Name="SettingsShowShellMenu">Показать меню оболочки после окончания передачи</String>
 		<String Name="SettingsSkiplistShare">Не добавлять в шару (групповой символ: *, разделитель: ;)</String>
 		<String Name="SettingsSkipZeroByte">Пропускать файлы нулевого размера</String>
@@ -1783,7 +1784,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="ThemeChangeThemeInfo">Перезапустите программу, чтобы изменить тему</String>
 		<String Name="ThemeDefaultName">Тема по умолчанию</String>
 		<String Name="ThisFileWasInMyShare">Этот файл был у меня в шаре…</String>
-		<String Name="ThisFunctionalIsDisabled">Этот функционал находится в разработке, либо отключен в данной версии</String>
+		<String Name="ThisFunctionalIsDisabled">Этот функционал находится в разработке либо отключен в данной версии</String>
 		<String Name="ThisVersionReleased">Есть релиз этой версии или более новый</String>
 		<String Name="Threshold">Порог пользователей</String>
 		<String Name="TicksSpeedDown">Значение "максимальной" скорости приёма:</String>

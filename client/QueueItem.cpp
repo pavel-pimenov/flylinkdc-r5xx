@@ -30,6 +30,8 @@ std::unique_ptr<webrtc::RWLockWrapper> QueueItem::g_cs = std::unique_ptr<webrtc:
 std::unique_ptr<CriticalSection> QueueItem::g_cs = std::unique_ptr<CriticalSection>(new CriticalSection);
 #endif
 
+const string g_dc_temp_extension = "dctmp";
+
 QueueItem::QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, Flags::MaskType aFlag,
                      time_t aAdded, const TTHValue& p_tth) :
 	target(aTarget), maxSegments(1), fileBegin(0),
@@ -141,10 +143,12 @@ QueueItem::Priority QueueItem::calculateAutoPriority() const
 	return priority;
 }
 //==========================================================================================
-static string getTempName(const string& aFileName, const TTHValue& aRoot)
+static string getDCTempName(const string& aFileName, const TTHValue& aRoot)
 {
-	string tmp = aFileName + '.' + aRoot.toBase32() + '.' + TEMP_EXTENSION;
-	return tmp;
+	string l_temp_name = aFileName;
+	Util::fixFileNameMaxPathLimit(l_temp_name);
+	l_temp_name = l_temp_name + '.' + aRoot.toBase32() + '.' + g_dc_temp_extension;
+	return l_temp_name;
 }
 //==========================================================================================
 void QueueItem::calcBlockSize()
@@ -218,7 +222,7 @@ void QueueItem::addSourceL(const UserPtr& aUser)
 	}
 	else
 	{
-		m_sources.insert(std::make_pair(aUser, Source()));
+		m_sources.insert(std::make_pair(aUser, Source()));  // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=139307
 	}
 }
 // [+] fix ? http://code.google.com/p/flylinkdc/issues/detail?id=1236 .
@@ -298,7 +302,8 @@ const string& QueueItem::getTempTarget()
 {
 	if (!isSet(QueueItem::FLAG_USER_LIST) && m_tempTarget.empty())
 	{
-		if (!SETTING(TEMP_DOWNLOAD_DIRECTORY).empty() && (File::getSize(getTarget()) == -1))
+		const auto l_dc_temp_name = getDCTempName(getTargetFileName(), getTTH());
+		if (!SETTING(TEMP_DOWNLOAD_DIRECTORY).empty() && File::getSize(getTarget()) == -1)
 		{
 			::StringMap sm;
 			if (target.length() >= 3 && target[1] == ':' && target[2] == '\\')
@@ -306,10 +311,12 @@ const string& QueueItem::getTempTarget()
 			else
 				sm["targetdrive"] = Util::getLocalPath().substr(0, 3);
 				
-			setTempTarget(Util::formatParams(SETTING(TEMP_DOWNLOAD_DIRECTORY), sm, false) + getTempName(getTargetFileName(), getTTH()));
+			setTempTarget(Util::formatParams(SETTING(TEMP_DOWNLOAD_DIRECTORY), sm, false) + l_dc_temp_name);
 		}
 		if (SETTING(TEMP_DOWNLOAD_DIRECTORY).empty())
-			setTempTarget(target.substr(0, target.length() - getTargetFileName().length()) + getTempName(getTargetFileName(), getTTH()));
+		{
+			setTempTarget(target.substr(0, target.length() - getTargetFileName().length()) + l_dc_temp_name);
+		}
 	}
 	return m_tempTarget;
 }

@@ -108,7 +108,7 @@ void HttpConnection::downloadFile(const string& aUrl, const string& aUserAgent)
 		
 	if (!m_http_socket)
 	{
-		m_http_socket = BufferedSocket::getSocket(0x0a);
+		m_http_socket = BufferedSocket::getBufferedSocket(0x0a);
 	}
 	m_http_socket->addListener(this);
 	try

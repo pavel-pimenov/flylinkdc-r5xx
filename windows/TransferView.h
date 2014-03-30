@@ -195,11 +195,11 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 	private:
 		enum
 		{
-			ADD_ITEM,
-			REMOVE_ITEM,
-			UPDATE_ITEM,
-			UPDATE_PARENT,
-			UPDATE_PARENT_WITH_PARSE, // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=1082
+			TRANSFER_ADD_ITEM,
+			TRANSFER_REMOVE_ITEM,
+			TRANSFER_UPDATE_ITEM,
+			TRANSFER_UPDATE_PARENT,
+			TRANSFER_UPDATE_PARENT_WITH_PARSE, // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=1082
 			//UPDATE_PARENT_WITH_PARSE_2
 		};
 		

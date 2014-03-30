@@ -312,12 +312,17 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		
 		~ConnectionManager();
 		
-		static void setIP(UserConnection* p_uc, ConnectionQueueItem* p_qi); // [+]PPA
+		static void setIP(UserConnection* p_conn, ConnectionQueueItem* p_qi); // [+]PPA
 		UserConnection* getConnection(bool aNmdc, bool secure) noexcept;
-		void putConnection(UserConnection* aConn);
+		void putConnection(UserConnection* p_conn);
+		void deleteConnection(UserConnection* p_conn)
+		{
+			putConnection(p_conn);
+			delete p_conn;
+		}
 		
-		void addUploadConnection(UserConnection* uc);
-		void addDownloadConnection(UserConnection* uc);
+		void addUploadConnection(UserConnection* p_conn);
+		void addDownloadConnection(UserConnection* p_conn);
 		
 		ConnectionQueueItem* getCQI_L(const HintedUser& aHintedUser, bool download);
 		void putCQI_L(ConnectionQueueItem* cqi);
@@ -329,7 +334,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		void failed(UserConnection* aSource, const string& aError, bool protocolError);
 		
 	public:
-		static bool getCipherNameAndIP(UserConnection* p_conn, string& p_chiper_name, string& p_ip);
+		//static bool getCipherNameAndIP(UserConnection* p_conn, string& p_chiper_name, string& p_ip);
 		
 		bool checkIpFlood(const string& aIPServer, uint16_t aPort, const boost::asio::ip::address_v4& p_ip_hub, const string& userInfo, const string& p_HubInfo);
 		bool checkTTHDuplicateSearch(const string& p_search_command);

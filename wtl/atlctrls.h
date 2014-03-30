@@ -7921,10 +7921,10 @@ public:
 		return (int)::SendMessage(m_hWnd, EM_LINELENGTH, nLine, 0L);
 	}
 
-	BOOL LineScroll(int nLines, int nChars = 0)
+	BOOL LineScroll(int nLines)
 	{
 		ATLASSERT(::IsWindow(m_hWnd));
-		return (BOOL)::SendMessage(m_hWnd, EM_LINESCROLL, nChars, nLines);
+		return (BOOL)::SendMessage(m_hWnd, EM_LINESCROLL, 0, nLines);
 	}
 
 	void ReplaceSel(LPCTSTR lpszNewText, BOOL bCanUndo = FALSE)

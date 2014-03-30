@@ -51,12 +51,12 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		 * @param sep Line separator
 		 * @return An unconnected socket
 		 */
-		static BufferedSocket* getSocket(char sep)
+		static BufferedSocket* getBufferedSocket(char sep)
 		{
 			return new BufferedSocket(sep);
 		}
 		
-		static void putSocket(BufferedSocket*& p_sock, bool p_delete = false)
+		static void putBufferedSocket(BufferedSocket*& p_sock, bool p_delete = false)
 		{
 			if (p_sock)
 			{
@@ -311,7 +311,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		Modes m_mode;
 		State m_state;
 		
-		std::unique_ptr<UnZFilter> filterIn;
+		std::unique_ptr<UnZFilter> m_ZfilterIn;
 		std::unique_ptr<Socket> sock;
 		
 		volatile bool m_is_disconnecting; // [!] IRainman fix: this variable is volatile.

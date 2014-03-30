@@ -567,9 +567,6 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 		ctrlSize.SetWindowText(Util::toStringW(m_initialSize).c_str());
 		ctrlFiletype.SetCurSel(m_initialType);
 		
-		BOOL tmp_Handled;
-		onEditChange(0, 0, NULL, tmp_Handled); // if in searchbox TTH - select filetypeTTH
-		
 		onEnter(false);
 	}
 	else
@@ -706,6 +703,9 @@ BOOL SearchFrame::ListDraw(HWND /*hwnd*/, UINT /*uCtrlId*/, DRAWITEMSTRUCT *dis)
 
 void SearchFrame::onEnter(bool p_is_force_passive)
 {
+	BOOL tmp_Handled;
+	onEditChange(0, 0, NULL, tmp_Handled); // if in searchbox TTH - select filetypeTTH
+	
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	clearFlyServerQueue();
 #endif
@@ -1023,21 +1023,22 @@ void SearchFrame::on(SearchManagerListener::Searching, SearchQueueItem* aSearch)
 //===================================================================================================================================
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 //===================================================================================================================================
-int SearchFrame::scan_list_view_from_merge()
+bool SearchFrame::scan_list_view_from_merge()
 {
 	const int l_item_count = ctrlResults.GetItemCount();
 	if (l_item_count == 0)
 		return 0;
+	std::vector<int> l_update_index;
 	const int l_top_index = ctrlResults.GetTopIndex();
 	const int l_count_per_page = ctrlResults.GetCountPerPage();
 	for (int j = l_top_index; j < l_item_count && j < l_top_index + l_count_per_page; ++j)
 	{
 		dcassert(!isClosedOrShutdown());
-		SearchInfo* si2 = ctrlResults.getItemData(j);
-		if (si2 == nullptr || si2->m_already_processed || si2->parent) // Уже не первый раз или это дочерний узел по TTH?
+		SearchInfo* l_item_info = ctrlResults.getItemData(j);
+		if (l_item_info == nullptr || l_item_info->m_already_processed || l_item_info->parent) // Уже не первый раз или это дочерний узел по TTH?
 			continue;
-		si2->m_already_processed = true;
-		const auto& sr2 = si2->sr;
+		l_item_info->m_already_processed = true;
+		const auto& sr2 = l_item_info->sr;
 		const auto l_file_size = sr2->getSize();
 		if (l_file_size)
 		{
@@ -1046,24 +1047,44 @@ int SearchFrame::scan_list_view_from_merge()
 			{
 				const TTHValue& l_tth = sr2->getTTH();
 				CFlyServerKey l_info(l_tth, l_file_size);
-				CFlyServerCache l_fly_server_cache;
-				if (CFlylinkDBManager::getInstance()->find_fly_server_cache(l_tth, l_fly_server_cache))
+				Lock l(g_cs_fly_server);
+				const auto l_find_ratio = g_fly_server_cache.find(l_tth);
+				if (l_find_ratio == g_fly_server_cache.end()) // Если значение рейтинга есть в кэше то не запрашиваем о нем инфу с сервера
 				{
-					l_info.m_only_counter = true; // Нашли информацию в локальной базе.
-					l_info.m_is_cache = true; // Для статистики
+					CFlyServerCache l_fly_server_cache;
+					if (CFlylinkDBManager::getInstance()->find_fly_server_cache(l_tth, l_fly_server_cache))
+					{
+						l_info.m_only_counter = true; // Нашли информацию в локальной базе.
+						l_info.m_is_cache = true; // Для статистики
+					}
+					m_merge_item_map.insert(make_pair(l_tth, make_pair(l_item_info, l_fly_server_cache)));
+					if (l_info.m_only_counter)
+					{
+						m_tth_media_file_map[l_tth] = l_file_size; // Регистрируем кандидата на передачу информации
+					}
+					m_GetFlyServerArray.push_back(l_info);
 				}
-				
-				Lock l(m_cs_fly_server);
-				m_merge_item_map.insert(make_pair(l_tth, make_pair(si2, l_fly_server_cache)));
-				if (l_info.m_only_counter)
+				else
 				{
-					m_tth_media_file_map[l_tth] = l_file_size; // Регистрируем кандидата на передачу информации
+					l_update_index.push_back(j);
+					const auto& l_cache = l_find_ratio->second.second;
+					if (l_item_info->columns[COLUMN_FLY_SERVER_RATING].empty())
+						l_item_info->columns[COLUMN_FLY_SERVER_RATING] = Text::toT(Util::toString(l_cache.m_ratio));
+					if (l_item_info->columns[COLUMN_BITRATE].empty())
+						l_item_info->columns[COLUMN_BITRATE]  = Text::toT(l_cache.m_audio_br);
+					if (l_item_info->columns[COLUMN_MEDIA_XY].empty())
+						l_item_info->columns[COLUMN_MEDIA_XY] =  Text::toT(l_cache.m_xy);
+					if (l_item_info->columns[COLUMN_MEDIA_VIDEO].empty())
+						l_item_info->columns[COLUMN_MEDIA_VIDEO] =  Text::toT(l_cache.m_video);
+					if (l_item_info->columns[COLUMN_MEDIA_AUDIO].empty())
+					{
+						CFlyMediaInfo::translateDuration(l_cache.m_audio, l_item_info->columns[COLUMN_MEDIA_AUDIO], l_item_info->columns[COLUMN_DURATION]);
+					}
 				}
-				m_GetFlyServerArray.push_back(l_info);
 			}
 		}
 	}
-	return m_GetFlyServerArray.size();
+	return m_GetFlyServerArray.size() || m_SetFlyServerArray.size();
 }
 //===================================================================================================================================
 LRESULT SearchFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
@@ -1074,7 +1095,7 @@ LRESULT SearchFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wParam, LPARAM
 		std::unique_ptr<Json::Value> l_root(reinterpret_cast<Json::Value*>(wParam));
 		const Json::Value& l_arrays = (*l_root)["array"];
 		const Json::Value::ArrayIndex l_count = l_arrays.size();
-		Lock l(m_cs_fly_server);
+		Lock l(g_cs_fly_server);
 		for (Json::Value::ArrayIndex i = 0; i < l_count; ++i)
 		{
 			const Json::Value& l_cur_item_in = l_arrays[i];
@@ -1125,6 +1146,9 @@ LRESULT SearchFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wParam, LPARAM
 						if (l_count_query == "1")
 							l_is_know_tth = false; // Файл на сервер первый раз появился.
 					}
+					CFlyServerCache l_cache = l_mediainfo_cache;
+					l_cache.m_ratio = Util::toInt(l_count_query);
+					g_fly_server_cache[l_tth] = std::make_pair(l_si_find->second.first, l_cache); // Сохраняем рейтинг и медиаинфу в кэше
 				}
 			}
 			if (l_is_know_tth) // Если сервер расказал об этом TTH с медиаинфой, то не шлем ему ничего
@@ -1135,6 +1159,12 @@ LRESULT SearchFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wParam, LPARAM
 	}
 	prepare_mediainfo_to_fly_serverL(); // Соберем TTH, которые нужно отправить на флай-сервер в обмен на инфу.
 	m_merge_item_map.clear();
+	update_column_after_merge(l_update_index);
+	return 0;
+}
+//===================================================================================================================================
+void SearchFrame::update_column_after_merge(std::vector<int> p_update_index)
+{
 #if 1
 //			TODO - апдейты по колонкам не пашут иногда
 // http://code.google.com/p/flylinkdc/issues/detail?id=1113
@@ -1146,23 +1176,22 @@ LRESULT SearchFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wParam, LPARAM
 	dcassert(!isClosedOrShutdown());
 	if (!isClosedOrShutdown())
 	{
-		ctrlResults.update_columns(l_update_index, l_columns);
+		ctrlResults.update_columns(p_update_index, l_columns);
 	}
 	else
 	{
-		return 0;
+		return;
 	}
 #else
 	if (!isClosedOrShutdown())
 	{
-		ctrlResults.update_all_columns(l_update_index);
+		ctrlResults.update_all_columns(p_update_index);
 	}
 	else
 	{
-		return 0;
+		return;
 	}
 #endif
-	return 0;
 }
 //===================================================================================================================================
 void SearchFrame::mergeFlyServerInfo()
@@ -1176,7 +1205,7 @@ void SearchFrame::mergeFlyServerInfo()
 		string p_external_ip;
 		std::vector<unsigned short> l_udp_port, l_tcp_port;
 		l_udp_port.push_back(SETTING(UDP_PORT));
-		bool l_is_udp_port_send = CFlyServerAdapter::CFlyServerJSON::pushTestPort(ClientManager::getMyCID().toBase32(), l_udp_port, l_tcp_port, p_external_ip);
+		bool l_is_udp_port_send = CFlyServerAdapter::CFlyServerJSON::pushTestPort(ClientManager::getMyCID().toBase32(), l_udp_port, l_tcp_port, p_external_ip, 0);
 		if (l_is_udp_port_send)
 		{
 			SettingsManager::g_TestUDPSearchLevel = true;
@@ -1196,7 +1225,7 @@ void SearchFrame::mergeFlyServerInfo()
 			if (!l_parsingSuccessful && !l_json_result.empty())
 			{
 				{
-					Lock l(m_cs_fly_server);
+					Lock l(g_cs_fly_server);
 					m_tth_media_file_map.clear(); // Если возникла ошибка передачи запроса на чтение, запись не шлем.
 				}
 				delete l_root;
@@ -1211,6 +1240,7 @@ void SearchFrame::mergeFlyServerInfo()
 	}
 }
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
+//===================================================================================================================================
 
 #ifdef FLYLINKDC_USE_WINDOWS_TIMER_SEARCH_FRAME
 LRESULT SearchFrame::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
@@ -2274,11 +2304,11 @@ LRESULT SearchFrame::onBitziLookup(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 
 void SearchFrame::addSearchResult(SearchInfo * si)
 {
-	const SearchResultPtr &sr = si->sr;
-	const auto& user      = sr->getUser(); // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'sr->getUser()' expression repeatedly. searchfrm.cpp 1844
+	const SearchResultPtr sr = si->sr;
+	const auto l_user        = sr->getUser();
 	if (!sr->getIP().empty())
 	{
-		user->setIP(sr->getIP());
+		l_user->setIP(sr->getIP());
 	}
 	// Check previous search results for dupes
 	if (!si->getText(COLUMN_TTH).empty())
@@ -2286,17 +2316,21 @@ void SearchFrame::addSearchResult(SearchInfo * si)
 		SearchInfoList::ParentPair* pp = ctrlResults.findParentPair(sr->getTTH());
 		if (pp)
 		{
-			if (user->getCID() == pp->parent->getUser()->getCID() && sr->getFile() == pp->parent->sr->getFile())
+			if (l_user->getCID() == pp->parent->getUser()->getCID() && sr->getFile() == pp->parent->sr->getFile())
 			{
 				delete si;
 				return;
 			}
 			for (auto k = pp->children.cbegin(); k != pp->children.cend(); ++k)
 			{
-				if (user->getCID() == (*k)->getUser()->getCID() && sr->getFile() == (*k)->sr->getFile())
+				// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62243
+				if (l_user->getCID() == (*k)->getUser()->getCID())
 				{
-					delete si;
-					return;
+					if (sr->getFile() == (*k)->sr->getFile())
+					{
+						delete si;
+						return;
+					}
 				}
 			}
 		}
@@ -2307,10 +2341,13 @@ void SearchFrame::addSearchResult(SearchInfo * si)
 		{
 			const SearchInfo* si2 = (*s).second.parent;
 			const auto& sr2 = si2->sr;
-			if (user->getCID() == sr2->getUser()->getCID() && sr->getFile() == sr2->getFile())
+			if (l_user->getCID() == sr2->getUser()->getCID())
 			{
-				delete si;
-				return;
+				if (sr->getFile() == sr2->getFile())
+				{
+					delete si;
+					return;
+				}
 			}
 		}
 	}
