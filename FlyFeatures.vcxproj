@@ -369,6 +369,11 @@
     <ClInclude Include="FlyFeatures\VideoPreview.h" />
     <ClInclude Include="FlyFeatures\WinFirewall.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="GdiOle\GdiOle.vcxproj">
+      <Project>{22c938c3-474a-4bf5-9b28-482683f98ea1}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

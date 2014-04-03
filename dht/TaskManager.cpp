@@ -91,20 +91,19 @@ void TaskManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 		}
 		if(l_need_dht_download)
 		{
-		string l_sub_agent; // TODO - похоронить
 		const bool l_15000 = aTick - lastBootstrap > 15000;
 		const bool l_nodes_cnt = aTick - lastBootstrap >= 2000 &&l_dht->getNodesCount() < 2 * DHT_K;
 		if (l_15000 || l_nodes_cnt)
 		 {
 			// bootstrap if we doesn't know any remote node
-			const bool l_result = BootstrapManager::getInstance()->process(l_sub_agent); 
+			const bool l_result = BootstrapManager::getInstance()->process(); 
 			if(l_result == false)
 			{
 				m_lastDownloadDHTError = aTick;
 			}
 			else
 			{
-					m_lastDownloadDHTError = 0;
+				m_lastDownloadDHTError = 0;
 			}
 			lastBootstrap = aTick;
 		 }

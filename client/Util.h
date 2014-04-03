@@ -97,6 +97,14 @@ static void ReplaceAllUriSeparatorToPathSeparator(wstring& p_InOutData)
 {
 	std::replace(p_InOutData.begin(), p_InOutData.end(), _T(URI_SEPARATOR), _T(PATH_SEPARATOR));
 }
+static void ReplaceAllPathSeparatorToUriSeparator(wstring& p_InOutData)
+{
+	std::replace(p_InOutData.begin(), p_InOutData.end(), _T(PATH_SEPARATOR), _T(URI_SEPARATOR));
+}
+static void ReplaceAllPathSeparatorToUriSeparator(string& p_InOutData)
+{
+	std::replace(p_InOutData.begin(), p_InOutData.end(), PATH_SEPARATOR, URI_SEPARATOR);
+}
 
 template <class STR>
 static STR RemovePathSeparator(const STR& p_path) // [+] IRainman

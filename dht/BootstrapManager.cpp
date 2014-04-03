@@ -43,7 +43,7 @@ BootstrapManager::~BootstrapManager(void)
 {
 }
 
-bool BootstrapManager::bootstrap(const string& p_sub_agent)
+bool BootstrapManager::bootstrap()
 {
 //[?]   Lock l(cs);
 	if (bootstrapNodes.empty())
@@ -64,7 +64,7 @@ bool BootstrapManager::bootstrap(const string& p_sub_agent)
 		l_dht_log.step(STRING(DOWNLOAD) + ": " + l_url);
         string l_agent = l_server.getAgent();
 		if(l_agent.empty())
-			l_agent += '-' + p_sub_agent;
+			l_agent = APPNAME " " A_VERSIONSTRING;
 		std::vector<byte> l_data;
 		const size_t l_size = Util::getBinaryDataFromInet(Text::toT(l_agent).c_str(), 4096, l_url, l_data, 500);
 		if (l_size == 0)
@@ -135,7 +135,7 @@ void BootstrapManager::addBootstrapNode(const string& ip, uint16_t udpPort, cons
 	bootstrapNodes.push_back(l_node);
 }
 
-bool BootstrapManager::process(const string& p_sub_agent)
+bool BootstrapManager::process()
 {
 	Lock l(m_cs);
 	if (!bootstrapNodes.empty())
@@ -153,7 +153,7 @@ bool BootstrapManager::process(const string& p_sub_agent)
 	}
 	else
 	{
-		return bootstrap(p_sub_agent);
+		return bootstrap();
 	}
 }
 

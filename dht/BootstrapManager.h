@@ -34,8 +34,8 @@ class BootstrapManager :
 		BootstrapManager(void);
 		~BootstrapManager(void);
 		
-		bool bootstrap(const string& p_sub_agent);
-		bool process(const string& p_sub_agent);
+		bool bootstrap();
+		bool process();
 		void addBootstrapNode(const string& ip, uint16_t udpPort, const CID& targetCID, const UDPKey& udpKey);
 		
 	private:

@@ -256,6 +256,13 @@
     <Manifest>
       <AdditionalManifestFiles>res\FlylinkDC.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
+    <PostBuildEvent>
+      <Command>"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\signtool.exe" sign /a /d "FlylinkDC++ r5xx" /du "http://flylinkdc.blogspot.com" /t http://timestamp.verisign.com/scripts/timstamp.dll "$(SolutionDir)compiled\FlylinkDC_Debug.exe"
+</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>sign</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Midl>
@@ -314,6 +321,12 @@
     <Manifest>
       <AdditionalManifestFiles>res\FlylinkDC.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
+    <PostBuildEvent>
+      <Command>"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\signtool.exe" sign /a /d "FlylinkDC++ x64" /du "http://flylinkdc.blogspot.com" /t http://timestamp.verisign.com/scripts/timstamp.dll "$(SolutionDir)compiled\FlylinkDC_Debug_x64.exe"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>sign</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Midl>
@@ -385,6 +398,12 @@
     <Manifest>
       <AdditionalManifestFiles>res\FlylinkDC.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
+    <PostBuildEvent>
+      <Command>"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\signtool.exe" sign /a /d "FlylinkDC++ x86" /du "http://flylinkdc.blogspot.com" /t http://timestamp.verisign.com/scripts/timstamp.dll "$(SolutionDir)compiled\FlylinkDC.exe"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>sign</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseFullOpt|Win32'">
     <Midl>
@@ -457,6 +476,12 @@
     <Manifest>
       <AdditionalManifestFiles>res\FlylinkDC.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
+    <PostBuildEvent>
+      <Command>"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\signtool.exe" sign /a /d "FlylinkDC++ x86" /du "http://flylinkdc.blogspot.com" /t http://timestamp.verisign.com/scripts/timstamp.dll "$(SolutionDir)compiled\FlylinkDC.exe"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>sign</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseHE|Win32'">
     <Midl>
@@ -529,6 +554,12 @@
     <Manifest>
       <AdditionalManifestFiles>res\FlylinkDC.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
+    <PostBuildEvent>
+      <Command>"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\signtool.exe" sign /a /d "FlylinkDC++ x86" /du "http://flylinkdc.blogspot.com" /t http://timestamp.verisign.com/scripts/timstamp.dll "$(SolutionDir)compiled\FlylinkDC.exe"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>sign</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Midl>
@@ -605,6 +636,12 @@
       <AdditionalManifestFiles>res\FlylinkDC.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
       <VerboseOutput>true</VerboseOutput>
     </Manifest>
+    <PostBuildEvent>
+      <Command>"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\signtool.exe" sign /a /d "FlylinkDC++ x64" /du "http://flylinkdc.blogspot.com" /t http://timestamp.verisign.com/scripts/timstamp.dll "$(SolutionDir)compiled\FlylinkDC_x64.exe"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>sign</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseFullOpt|x64'">
     <Midl>
@@ -682,6 +719,12 @@
       <AdditionalManifestFiles>res\FlylinkDC.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
       <VerboseOutput>true</VerboseOutput>
     </Manifest>
+    <PostBuildEvent>
+      <Command>"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\signtool.exe" sign /a /d "FlylinkDC++ x64" /du "http://flylinkdc.blogspot.com" /t http://timestamp.verisign.com/scripts/timstamp.dll "$(SolutionDir)compiled\FlylinkDC_x64.exe"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>sign</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseHE|x64'">
     <Midl>
@@ -759,6 +802,12 @@
       <AdditionalManifestFiles>res\FlylinkDC.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
       <VerboseOutput>true</VerboseOutput>
     </Manifest>
+    <PostBuildEvent>
+      <Command>"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\signtool.exe" sign /a /d "FlylinkDC++ x64" /du "http://flylinkdc.blogspot.com" /t http://timestamp.verisign.com/scripts/timstamp.dll "$(SolutionDir)compiled\FlylinkDC_x64.exe"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>sign</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">
     <ClCompile>

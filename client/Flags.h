@@ -39,4 +39,4 @@ class Flags
 };
 
 
-#endif /*FLAGS_H_*/
+#endif /* DCPLUSPLUS_CLIENT_FLAGS_H_ */
