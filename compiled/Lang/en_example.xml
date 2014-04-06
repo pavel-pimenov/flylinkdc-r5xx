@@ -74,7 +74,7 @@
 	<string name="AutoupdateShellExt">Shell extension</string>
 	<string name="AutoupdateDocumentation">Documentation</string>
 	<string name="AutoupdateDownloadedRemoveOrInstall">FlylinkDC++ update is downloaded. Update now? If not - update will be removed.</string>
-	<string name="AutoupdateDownloadFailed">Update download failed.</string>
+	<string name="AutoupdateDownloadFailed">Update download failed (Please send email ppa74@ya.ru)</string>
 	<string name="AutoupdateDownloadFinished">Update files are downloaded successfully.</string>
 	<string name="AutoupdateDownloadRestart">Restart FlylinkDC++ to install the update?</string>
 	<string name="AutoupdateDownloadStart1">FlylinkDC++ found new update</string>
@@ -87,7 +87,7 @@
 	<string name="AutoupdateError">FlylinkDC++ update error</string>
 	<string name="AutoupdateErrorStartFlyupdateFailed">The FlyUpdate utility does not start. Error:</string>
 	<string name="AutoupdateErrorUpdateFile">Error on updating file:</string>
-	<string name="AutoupdateErrorVerif">Verification error</string>
+	<string name="AutoupdateErrorVerif">Verification error - (Please send email ppa74@ya.ru)</string>
 	<string name="AutoupdateExe">Binary module</string>
 	<string name="AutoupdateForceRestart">Restart application after update download</string>
 	<string name="AutoupdateGeoip">GeoIP database</string>

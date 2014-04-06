@@ -30,11 +30,11 @@
 
 #ifndef DIMEDIT
 #define DIMEDIT
+#pragma once
 
 #include <string>
-
 #include <AtlCrack.h>
-#include <../client/Util.h>
+#include "../client/Util.h"
 
 class CDimEdit : public CWindowImpl< CDimEdit, CEdit >
 {

@@ -799,7 +799,7 @@ bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, TigerTree&
 		}
 		else
 		{
-			h = ::CreateFile(Text::toT(fname).c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
+			h = ::CreateFile(File::formatPath(Text::toT(fname)).c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
 			                 FILE_FLAG_NO_BUFFERING | FILE_FLAG_OVERLAPPED, NULL);
 			if (h == INVALID_HANDLE_VALUE)
 				return false;

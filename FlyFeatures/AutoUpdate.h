@@ -163,8 +163,8 @@ class AutoUpdate :
 		void runFlyUpdate();
 		
 		static SettingsManager::IntSetting getSettingByTitle(const string& wTitle);
-		static bool needUpdateFile(const AutoUpdateFile& file, const string& outputFolder);
-		static bool prepareFile(const AutoUpdateFile& file, const string& tempFolder);
+		static bool needUpdateFile(const AutoUpdateFile& p_file, const string& p_outputFolder);
+		static bool prepareFile(const AutoUpdateFile& p_file, const string& p_tempFolder);
 		static string getTempFolderForUpdate(const string &version);
 		static bool verifyUpdate(byte* signData, size_t signDataSize, const string& data, size_t dataSize);
 		

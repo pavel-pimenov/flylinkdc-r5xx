@@ -1,3 +1,5 @@
+#pragma once
+
 #include "atlcoll.h"
 
 class CBarShader

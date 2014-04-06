@@ -395,7 +395,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		friend class ThreadedDirectoryListing;
 		uint64_t m_FL_LoadSec;
 		void getItemColor(const Flags::MaskType flags, COLORREF &fg, COLORREF &bg); // !SMT!-UI
-		void changeDir(DirectoryListing::Directory* p_dir, BOOL p_enableRedraw);
+		void changeDir(DirectoryListing::Directory* p_dir);
 		HTREEITEM findFile(const StringSearch& str, HTREEITEM root, int &foundFile, int &skipHits);
 		void updateStatus();
 		void initStatus();
@@ -427,9 +427,6 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 				const tstring& getText(int col) const
 				{
 					dcassert(col >= 0 && col < COLUMN_LAST);
-					// [-] IRainman fix: It's not even funny. This is sad. :(
-					// [-] if (col >= COLUMN_LAST || col < 0)
-					// [-]  return Util::emptyStringT; // TODO Log
 					return columns[col];
 				}
 				
@@ -449,9 +446,6 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 				static int compareItems(const ItemInfo* a, const ItemInfo* b, int col)
 				{
 					dcassert(col >= 0 && col < COLUMN_LAST);
-					// [-] IRainman fix: It's not even funny. This is sad. :(
-					// [-] if (col >= COLUMN_LAST || col < 0)
-					// [-]  return 0; // TODO Log
 					if (a->type == DIRECTORY)
 					{
 						if (b->type == DIRECTORY)

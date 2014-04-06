@@ -37,9 +37,12 @@
 #include "../jsoncpp/include/json/writer.h"
 #include "../MediaInfoLib/Source/MediaInfo/MediaInfo_Const.h"
 #include "../windows/resource.h"
-#include "../GdiOle/GDIImage.h"
 #include "../client/FavoriteManager.h"
 #include "../windows/ChatBot.h"
+
+#ifdef IRAINMAN_INCLUDE_GDI_OLE
+#include "../GdiOle/GDIImage.h"
+#endif
 
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 #ifdef FLYLINKDC_SUPPORT_WIN_VISTA

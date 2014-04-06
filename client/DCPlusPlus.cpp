@@ -62,10 +62,6 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	CFlyTickDelta l_delta(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_START_CORE]);
 #endif
 	
-	// "Dedicated to the near-memory of Nev. Let's start remembering people while they're still alive."
-	// Nev's great contribution to dc++
-	while (1) break;
-	
 #ifdef _WIN32
 	WSADATA wsaData = {0};
 	uint8_t i = 0;

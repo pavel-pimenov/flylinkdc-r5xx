@@ -30,6 +30,7 @@
 #include "FlylinkDCKey.h"
 #include "InetDownloaderReporter.h"
 
+static const string g_dev_error = "\r\nPlease send a text or a screenshot of the error to developers ppa74@ya.ru";
 static const wstring UPDATE_FILE_NAME = L"flylink.upd";
 
 static const string UPDATE_RELEASE_URL = "http://www.fly-server.ru/update/5xx/release";
@@ -470,7 +471,7 @@ void AutoUpdate::startUpdateThisThread()
 									}
 									catch (const FileException& /*e*/)
 									{
-										message(STRING(AUTOUPDATE_ERROR_UPDATE_FILE) + ' ' + Text::fromT(flagName));
+										message(STRING(AUTOUPDATE_ERROR_UPDATE_FILE) + ' ' + Text::fromT(flagName) + g_dev_error);
 									}
 								}
 #if defined(IRAINMAN_AUTOUPDATE_ALL_USERS_DATA) && defined (ALLOW_RELOAD_INTERNALBD_IN_RUNTIME)
@@ -583,9 +584,9 @@ SettingsManager::IntSetting AutoUpdate::getSettingByTitle(const string& wTitle)
 #endif
 }
 
-bool AutoUpdate::needUpdateFile(const AutoUpdateFile& file, const string& outputFolder)
+bool AutoUpdate::needUpdateFile(const AutoUpdateFile& p_file, const string& p_outputFolder)
 {
-	switch (file.m_sys)
+	switch (p_file.m_sys)
 	{
 #ifdef IRAINMAN_AUTOUPDATE_ARCH_DIFFERENCE
 #else // IRAINMAN_AUTOUPDATE_ARCH_DIFFERENCE
@@ -603,26 +604,26 @@ bool AutoUpdate::needUpdateFile(const AutoUpdateFile& file, const string& output
 	//            if found. Check size, if not equal return true;
 	//                                  if equal. Check TTH. If not equal return true;
 	//                                                                    return false;
-	string filePath = outputFolder;
+	string filePath = p_outputFolder;
 	AppendPathSeparator(filePath);
-	filePath += file.m_sPath;
+	filePath += p_file.m_sPath;
 	AppendPathSeparator(filePath);
-	filePath += file.m_sName;
+	filePath += p_file.m_sName;
 	
 	int64_t outFileSize = 0;
 	
 	const FileFindIter fiter(filePath);
 	if (fiter != FileFindIter::end)
 	{
-		if (fiter->getSize() == file.m_size)
+		if (fiter->getSize() == p_file.m_size)
 		{
 			// Calculate TTH (in string)
-			const int c_size_buf = std::min(file.m_size,static_cast<int64_t>(1024*1024));
+			const int c_size_buf = std::min(p_file.m_size,static_cast<int64_t>(1024*1024));
 			unique_ptr<TigerTree>  tth;
 			if (Util::getTTH_MD5(filePath, c_size_buf, &tth))
 			{
 				const string l_TTH_str = tth.get()->getRoot().toBase32();
-				if (l_TTH_str == file.m_sTTH)
+				if (l_TTH_str == p_file.m_sTTH)
 					return false;
 			}
 			else
@@ -725,7 +726,7 @@ bool AutoUpdate::prepareFile(const AutoUpdateFile& file, const string& tempFolde
 			}
 			catch (const FileException& e)
 			{
-				const string l_ErrorString = e.getError() + ' ' + destinationPath;
+				const string l_ErrorString = e.getError() + ' ' + destinationPath + g_dev_error;
 				fail(STRING(ERROR_STRING) + '[' + l_ErrorString + ']');
 				::MessageBox(0, Text::toT(l_ErrorString).c_str(), CTSTRING(AUTOUPDATE_ERROR), MB_ICONSTOP);
 				return false;

@@ -58,7 +58,7 @@ void File::init(const tstring& aFileName, int access, int mode, bool isAbsoluteP
 	}
 	const DWORD shared = FILE_SHARE_READ | (mode & SHARED ? (FILE_SHARE_WRITE | FILE_SHARE_DELETE) : 0);
 	
-	const tstring& outPath = isAbsolutePath ? formatPath(aFileName) : aFileName;
+	const tstring outPath = isAbsolutePath ? formatPath(aFileName) : aFileName;
 	
 	h = ::CreateFile(outPath.c_str(), access, shared, nullptr, m, mode & NO_CACHE_HINT ? 0 : FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
 	

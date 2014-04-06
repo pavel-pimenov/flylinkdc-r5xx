@@ -1,6 +1,5 @@
 del .\compiled\FlylinkDC_x64.exe
 del .\compiled\FlylinkDC_x64.pdb
-
 rem call UpdateRevision.bat %1 %2 %3 %4
 if errorlevel 1 goto :error
 
@@ -11,6 +10,8 @@ call "%VS100COMNTOOLS%\..\..\VC\bin\amd64\vcvars64.bat"
 "%VS100COMNTOOLS%..\ide\devenv" FlylinkDC_2010.sln /Rebuild "ReleaseFullOpt|x64"
 
 if not exist .\compiled\FlylinkDC_x64.exe goto :builderror
+
+"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\signtool.exe" sign /a /d "FlylinkDC++ r5xx" /du "http://flylinkdc.blogspot.com" /t http://timestamp.verisign.com/scripts/timstamp.dll ".\compiled\FlylinkDC_x64.exe"
 
 call Tools\MakePortalBrowserFileList.bat x64
 call src_gen_filename.bat -x64

@@ -17,8 +17,6 @@
  */
 
 #include "stdinc.h"
-#ifdef _WIN32
-
 #include <WinError.h>
 #include <winnt.h>
 #include <ImageHlp.h>
@@ -746,4 +744,3 @@ void CompatibilityManager::restoreProcessPriority()
 		SetPriorityClass(GetCurrentProcess(), g_oldPriorityClass);
 }
 
-#endif // _WIN32

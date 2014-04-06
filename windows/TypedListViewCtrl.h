@@ -535,9 +535,8 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 			return i;
 		}
 		
-		void DeleteAndCleanAllItems() // [+] IRainman
+		void DeleteAndCleanAllItemsNoLock()
 		{
-			CLockRedraw<> l_lock_draw(m_hWnd);
 			const int l_cnt = GetItemCount();
 			for (int i = 0; i < l_cnt; i++)
 			{
@@ -545,6 +544,11 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 				delete si;
 			}
 			DeleteAllItems();
+		}
+		void DeleteAndCleanAllItems() // [+] IRainman
+		{
+			CLockRedraw<> l_lock_draw(m_hWnd);
+			DeleteAndCleanAllItemsNoLock();
 		}
 		
 		int getSortPos(const T* a) const

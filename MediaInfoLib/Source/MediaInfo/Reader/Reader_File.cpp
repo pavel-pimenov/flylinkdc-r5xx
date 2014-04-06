@@ -46,6 +46,7 @@ namespace MediaInfoLib
 {
 
 #ifdef FLYLINKDC_ZENLIB_USE_THREAD
+#if MEDIAINFO_READTHREAD
 void Reader_File_Thread::Entry()
 {
     for (;;)
@@ -111,6 +112,7 @@ void Reader_File_Thread::Entry()
     }
 }
 #endif // FLYLINKDC_ZENLIB_USE_THREAD
+#endif //MEDIAINFO_READTHREAD
 
 const size_t Buffer_NoJump=128*1024;
 
@@ -118,23 +120,25 @@ const size_t Buffer_NoJump=128*1024;
 //---------------------------------------------------------------------------
 Reader_File::~Reader_File()
 {
-    if (ThreadInstance)
-    {
-        ThreadInstance->RequestTerminate();
-        SetEvent(Condition_WaitingForMorePlace);
-        while (!ThreadInstance->IsExited())
-            Sleep(0);
-        #ifdef WINDOWS
-            CloseHandle(Condition_WaitingForMorePlace);
-            CloseHandle(Condition_WaitingForMoreData);
-        #endif //WINDOWS
-        delete ThreadInstance;
+    #if MEDIAINFO_READTHREAD
+        if (ThreadInstance)
+        {
+            ThreadInstance->RequestTerminate();
+            SetEvent(Condition_WaitingForMorePlace);
+            while (!ThreadInstance->IsExited())
+                Sleep(0);
+            #ifdef WINDOWS
+                CloseHandle(Condition_WaitingForMorePlace);
+                CloseHandle(Condition_WaitingForMoreData);
+            #endif //WINDOWS
+            delete ThreadInstance;
 
-        MI_Internal->Config.File_Buffer=NULL;
-        MI_Internal->Config.File_Buffer_Size=0;
-        MI_Internal->Config.File_Buffer_Size_Max=0;
-        delete[] Buffer;
-    }
+            MI_Internal->Config.File_Buffer=NULL;
+            MI_Internal->Config.File_Buffer_Size=0;
+            MI_Internal->Config.File_Buffer_Size_Max=0;
+            delete[] Buffer;
+        }
+    #endif //MEDIAINFO_READTHREAD
 }
 #endif // FLYLINKDC_ZENLIB_USE_THREAD
 
@@ -213,8 +217,10 @@ size_t Reader_File::Format_Test_PerParser(MediaInfo_Internal* MI, const String &
 #ifdef FLYLINKDC_ZENLIB_USE_THREAD
     //Init
     MI_Internal=MI;
-    ThreadInstance=NULL;
-    Buffer_End2=0; //Is also used for counting bytes before activating the thread
+    #if MEDIAINFO_READTHREAD
+        ThreadInstance=NULL;
+        Buffer_End2=0; //Is also used for counting bytes before activating the thread
+    #endif //MEDIAINFO_READTHREAD
 #endif // FLYLINKDC_ZENLIB_USE_THREAD
 
     //Opening the file
@@ -299,20 +305,22 @@ size_t Reader_File::Format_Test_PerParser_Continue (MediaInfo_Internal* MI)
         Status=MI->Open_Buffer_Continue(MI->Config.File_Buffer, MI->Config.File_Buffer_Size);
 
 #ifdef FLYLINKDC_ZENLIB_USE_THREAD
-        if (ThreadInstance && !MI->Config.File_Buffer_Repeat)
-        {
-            CS.Enter();
-            Buffer_Begin+=MI->Config.File_Buffer_Size;
-            #ifdef WINDOWS
-                if (Buffer_Begin==Buffer_Max)
-                {
-                    CS.Leave();
-                    SetEvent(Condition_WaitingForMorePlace);
-                }
-                else
-            #endif //WINDOWS
-                    CS.Leave();
-        }
+        #if MEDIAINFO_READTHREAD
+            if (ThreadInstance && !MI->Config.File_Buffer_Repeat)
+            {
+                CS.Enter();
+                Buffer_Begin+=MI->Config.File_Buffer_Size;
+                #ifdef WINDOWS
+                    if (Buffer_Begin==Buffer_Max)
+                    {
+                        CS.Leave();
+                        SetEvent(Condition_WaitingForMorePlace);
+                    }
+                    else
+                #endif //WINDOWS
+                        CS.Leave();
+            }
+        #endif //MEDIAINFO_READTHREAD
 #endif // FLYLINKDC_ZENLIB_USE_THREAD
         #if MEDIAINFO_DEMUX
             //Demux
@@ -380,30 +388,32 @@ size_t Reader_File::Format_Test_PerParser_Continue (MediaInfo_Internal* MI)
                 #endif //MEDIAINFO_DEBUG
 
 #ifdef FLYLINKDC_ZENLIB_USE_THREAD
-                if (ThreadInstance)
-                {
-                    ThreadInstance->RequestTerminate();
-                    SetEvent(Condition_WaitingForMorePlace);
-                    while (!ThreadInstance->IsExited())
-                        Sleep(0);
-                    #ifdef WINDOWS
-                        CloseHandle(Condition_WaitingForMorePlace);
-                        CloseHandle(Condition_WaitingForMoreData);
-                    #endif //WINDOWS
-                    delete ThreadInstance; ThreadInstance=NULL;
+                #if MEDIAINFO_READTHREAD
+                    if (ThreadInstance)
+                    {
+                        ThreadInstance->RequestTerminate();
+                        SetEvent(Condition_WaitingForMorePlace);
+                        while (!ThreadInstance->IsExited())
+                            Sleep(0);
+                        #ifdef WINDOWS
+                            CloseHandle(Condition_WaitingForMorePlace);
+                            CloseHandle(Condition_WaitingForMoreData);
+                        #endif //WINDOWS
+                        delete ThreadInstance; ThreadInstance=NULL;
 
-                    MI->Config.File_Buffer=NULL;
-                    MI->Config.File_Buffer_Size=0;
-                    MI->Config.File_Buffer_Size_Max=0;
-                    Buffer_Max=0;
-                    delete[] Buffer; Buffer=NULL;
-                    Buffer_Begin=0;
-                    Buffer_End=0;
-                    Buffer_End2=0;
-                    IsLooping=false;
-                }
-                if (Buffer_End2!=(size_t)-1)
-                    Buffer_End2=0;
+                        MI->Config.File_Buffer=NULL;
+                        MI->Config.File_Buffer_Size=0;
+                        MI->Config.File_Buffer_Size_Max=0;
+                        Buffer_Max=0;
+                        delete[] Buffer; Buffer=NULL;
+                        Buffer_Begin=0;
+                        Buffer_End=0;
+                        Buffer_End2=0;
+                        IsLooping=false;
+                    }
+                    if (Buffer_End2!=(size_t)-1)
+                        Buffer_End2=0;
+                #endif //MEDIAINFO_READTHREAD
 #endif // FLYLINKDC_ZENLIB_USE_THREAD
 
                 int64u GoTo=Partial_Begin+MI->Open_Buffer_Continue_GoTo_Get();
@@ -446,29 +456,31 @@ size_t Reader_File::Format_Test_PerParser_Continue (MediaInfo_Internal* MI)
             }
 
 #ifdef FLYLINKDC_ZENLIB_USE_THREAD
-            if (ThreadInstance==NULL && Buffer_End2!=(size_t)-1 && Buffer_End2>=16*1024*1024)
-            {
-                if (!MI->Config.File_IsGrowing && MI->Config.File_Names.size()==1)
+            #if MEDIAINFO_READTHREAD
+                if (ThreadInstance==NULL && Buffer_End2!=(size_t)-1 && Buffer_End2>=16*1024*1024)
                 {
-                    delete[] MI->Config.File_Buffer; MI->Config.File_Buffer=NULL;
-                    MI->Config.File_Buffer_Size_Max=0;
-                    Buffer_Max=64*1024*1024;
-                    Buffer=new int8u[Buffer_Max];
-                    Buffer_Begin=0;
-                    Buffer_End=0;
-                    Buffer_End2=0;
-                    IsLooping=false;
-                    #ifdef WINDOWS
-                        Condition_WaitingForMorePlace=CreateEvent(NULL, FALSE, FALSE, NULL);
-                        Condition_WaitingForMoreData=CreateEvent(NULL, FALSE, FALSE, NULL);
-                    #endif //WINDOWS
-                    ThreadInstance=new Reader_File_Thread();
-                    ThreadInstance->Base=this;
-                    ThreadInstance->Run();
+                    if (!MI->Config.File_IsGrowing && MI->Config.File_Names.size()==1)
+                    {
+                        delete[] MI->Config.File_Buffer; MI->Config.File_Buffer=NULL;
+                        MI->Config.File_Buffer_Size_Max=0;
+                        Buffer_Max=64*1024*1024;
+                        Buffer=new int8u[Buffer_Max];
+                        Buffer_Begin=0;
+                        Buffer_End=0;
+                        Buffer_End2=0;
+                        IsLooping=false;
+                        #ifdef WINDOWS
+                            Condition_WaitingForMorePlace=CreateEvent(NULL, FALSE, FALSE, NULL);
+                            Condition_WaitingForMoreData=CreateEvent(NULL, FALSE, FALSE, NULL);
+                        #endif //WINDOWS
+                        ThreadInstance=new Reader_File_Thread();
+                        ThreadInstance->Base=this;
+                        ThreadInstance->Run();
+                    }
+                    else
+                        Buffer_End2=(size_t)-1;
                 }
-                else
-                    Buffer_End2=(size_t)-1;
-            }
+            #endif //MEDIAINFO_READTHREAD
 #endif // FLYLINKDC_ZENLIB_USE_THREAD
 
             //Handling of hints
@@ -476,9 +488,11 @@ size_t Reader_File::Format_Test_PerParser_Continue (MediaInfo_Internal* MI)
                 break; //Problem while config
             if (
 #ifdef FLYLINKDC_ZENLIB_USE_THREAD
-				ThreadInstance==NULL && 
+                #if MEDIAINFO_READTHREAD
+                    ThreadInstance==NULL && 
+                #endif //MEDIAINFO_READTHREAD
 #endif // FLYLINKDC_ZENLIB_USE_THREAD
-				MI->Config.File_Buffer_Size_ToRead>MI->Config.File_Buffer_Size_Max)
+                MI->Config.File_Buffer_Size_ToRead>MI->Config.File_Buffer_Size_Max)
             {
                 delete[] MI->Config.File_Buffer;
                 if (MI->Config.File_Buffer_Size_Max==0)
@@ -491,9 +505,11 @@ size_t Reader_File::Format_Test_PerParser_Continue (MediaInfo_Internal* MI)
             //Testing multiple file per stream
             if (
 #ifdef FLYLINKDC_ZENLIB_USE_THREAD
-				ThreadInstance==NULL && 
+                #if MEDIAINFO_READTHREAD
+                    ThreadInstance==NULL && 
+                #endif //MEDIAINFO_READTHREAD
 #endif // FLYLINKDC_ZENLIB_USE_THREAD
-				F.Position_Get()>=F.Size_Get())
+                F.Position_Get()>=F.Size_Get())
             {
                 if (MI->Config.File_Names_Pos<MI->Config.File_Names.size())
                 {
@@ -509,57 +525,61 @@ size_t Reader_File::Format_Test_PerParser_Continue (MediaInfo_Internal* MI)
             }
 
 #ifdef FLYLINKDC_ZENLIB_USE_THREAD
-            if (ThreadInstance)
-            {
-                CS.Enter();
-                #ifdef WINDOWS
-                    if (Buffer_End2+Buffer_End-Buffer_Begin<Buffer_Max/8*7)
-                    {
-                        CS.Leave();
-                        SetEvent(Condition_WaitingForMorePlace);
-                        CS.Enter();
-                    }
-                #endif //WINDOWS
-
-                for (;;)
+            #if MEDIAINFO_READTHREAD
+                if (ThreadInstance)
                 {
-                    MI->Config.File_Buffer_Size=Buffer_End-Buffer_Begin;
-
-                    if (MI->Config.File_Buffer_Size)
-                        break;
-
-                    CS.Leave();
-                    #ifdef WINDOWS
-                        WaitForSingleObject(Condition_WaitingForMoreData, INFINITE);
-                    #else //WINDOWS
-                        Sleep(0);
-                    #endif //WINDOWS
                     CS.Enter();
-                
-                    if (ThreadInstance->IsExited())
-                    {
-                        if (IsLooping)
+                    #ifdef WINDOWS
+                        if (Buffer_End2+Buffer_End-Buffer_Begin<Buffer_Max/8*7)
                         {
-                            IsLooping=false;
-                            Buffer_End=Buffer_End2;
-                            Buffer_End2=0;
-                            Buffer_Begin=0;
+                            CS.Leave();
+                            SetEvent(Condition_WaitingForMorePlace);
+                            CS.Enter();
                         }
+                    #endif //WINDOWS
 
+                    for (;;)
+                    {
                         MI->Config.File_Buffer_Size=Buffer_End-Buffer_Begin;
+
+                        if (MI->Config.File_Buffer_Size)
                             break;
+
+                        CS.Leave();
+                        #ifdef WINDOWS
+                            WaitForSingleObject(Condition_WaitingForMoreData, INFINITE);
+                        #else //WINDOWS
+                            Sleep(0);
+                        #endif //WINDOWS
+                        CS.Enter();
+                
+                        if (ThreadInstance->IsExited())
+                        {
+                            if (IsLooping)
+                            {
+                                IsLooping=false;
+                                Buffer_End=Buffer_End2;
+                                Buffer_End2=0;
+                                Buffer_Begin=0;
+                            }
+
+                            MI->Config.File_Buffer_Size=Buffer_End-Buffer_Begin;
+                            break;
+                        }
                     }
+                    MI->Config.File_Buffer=Buffer+Buffer_Begin;
+                    CS.Leave();
+                    if (MI->Config.File_Buffer_Size>MI->Config.File_Buffer_Size_ToRead)
+                        MI->Config.File_Buffer_Size=MI->Config.File_Buffer_Size_ToRead;
                 }
-                MI->Config.File_Buffer=Buffer+Buffer_Begin;
-                CS.Leave();
-                if (MI->Config.File_Buffer_Size>MI->Config.File_Buffer_Size_ToRead)
-                    MI->Config.File_Buffer_Size=MI->Config.File_Buffer_Size_ToRead;
-            }
-            else
+                else
+            #endif //MEDIAINFO_READTHREAD
             {
                 MI->Config.File_Buffer_Size=F.Read(MI->Config.File_Buffer, (F.Position_Get()+MI->Config.File_Buffer_Size_ToRead<(Partial_End<=MI->Config.File_Size?Partial_End:MI->Config.File_Size))?MI->Config.File_Buffer_Size_ToRead:((size_t)((Partial_End<=MI->Config.File_Size?Partial_End:MI->Config.File_Size)-F.Position_Get())));
-                if (ThreadInstance==NULL && Buffer_End2!=(size_t)-1)
-                    Buffer_End2+=MI->Config.File_Buffer_Size;
+                #if MEDIAINFO_READTHREAD
+                    if (ThreadInstance==NULL && Buffer_End2!=(size_t)-1)
+                        Buffer_End2+=MI->Config.File_Buffer_Size;
+                #endif //MEDIAINFO_READTHREAD
             }
 
             /* High CPU usage
@@ -647,20 +667,22 @@ size_t Reader_File::Format_Test_PerParser_Continue (MediaInfo_Internal* MI)
             Status=MI->Open_Buffer_Continue(MI->Config.File_Buffer, MI->Config.File_Buffer_Size); // https://www.box.net/shared/7941dd9ab25e5cfb3803
             
 #ifdef FLYLINKDC_ZENLIB_USE_THREAD
-            if (ThreadInstance && !MI->Config.File_Buffer_Repeat)
-            {
-                CS.Enter();
-                Buffer_Begin+=MI->Config.File_Buffer_Size;
-                #ifdef WINDOWS
-                    if (Buffer_Begin==Buffer_Max)
-                    {
-                        CS.Leave();
-                        SetEvent(Condition_WaitingForMorePlace);
-                    }
-                    else
-                #endif //WINDOWS
-                       CS.Leave();
-            }
+            #if MEDIAINFO_READTHREAD
+                if (ThreadInstance && !MI->Config.File_Buffer_Repeat)
+                {
+                    CS.Enter();
+                    Buffer_Begin+=MI->Config.File_Buffer_Size;
+                    #ifdef WINDOWS
+                        if (Buffer_Begin==Buffer_Max)
+                        {
+                            CS.Leave();
+                            SetEvent(Condition_WaitingForMorePlace);
+                        }
+                        else
+                    #endif //WINDOWS
+                           CS.Leave();
+                }
+            #endif //MEDIAINFO_READTHREAD
 #endif // FLYLINKDC_ZENLIB_USE_THREAD
 
             if (MI->Config.File_Buffer_Size==0)
@@ -687,29 +709,31 @@ size_t Reader_File::Format_Test_PerParser_Continue (MediaInfo_Internal* MI)
 
     //Deleting buffer
 #ifdef FLYLINKDC_ZENLIB_USE_THREAD
-    if (ThreadInstance)
-    {
-        ThreadInstance->RequestTerminate();
-        SetEvent(Condition_WaitingForMorePlace);
-        while (!ThreadInstance->IsExited())
-            Sleep(0);
-        #ifdef WINDOWS
-            CloseHandle(Condition_WaitingForMorePlace);
-            CloseHandle(Condition_WaitingForMoreData);
-        #endif //WINDOWS
-        delete ThreadInstance; ThreadInstance=NULL;
+    #if MEDIAINFO_READTHREAD
+        if (ThreadInstance)
+        {
+            ThreadInstance->RequestTerminate();
+            SetEvent(Condition_WaitingForMorePlace);
+            while (!ThreadInstance->IsExited())
+                Sleep(0);
+            #ifdef WINDOWS
+                CloseHandle(Condition_WaitingForMorePlace);
+                CloseHandle(Condition_WaitingForMoreData);
+            #endif //WINDOWS
+            delete ThreadInstance; ThreadInstance=NULL;
 
-        MI->Config.File_Buffer=NULL;
-        MI->Config.File_Buffer_Size=0;
-        MI->Config.File_Buffer_Size_Max=0;
-        Buffer_Max=0;
-        delete[] Buffer; Buffer=NULL;
-        Buffer_Begin=0;
-        Buffer_End=0;
-        Buffer_End2=0;
-        IsLooping=false;
-    }
-    else
+            MI->Config.File_Buffer=NULL;
+            MI->Config.File_Buffer_Size=0;
+            MI->Config.File_Buffer_Size_Max=0;
+            Buffer_Max=0;
+            delete[] Buffer; Buffer=NULL;
+            Buffer_Begin=0;
+            Buffer_End=0;
+            Buffer_End2=0;
+            IsLooping=false;
+        }
+        else
+    #endif //MEDIAINFO_READTHREAD
 #endif // FLYLINKDC_ZENLIB_USE_THREAD
     {
         delete[] MI->Config.File_Buffer; MI->Config.File_Buffer=NULL;

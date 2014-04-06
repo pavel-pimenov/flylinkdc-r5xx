@@ -272,10 +272,12 @@ class CFlyServerAdapter
 		virtual void mergeFlyServerInfo() = 0;
 		void waitForFlyServerStop()
 		{
-			dcdrun(m_debugWaits = true;)
 			if(m_query_thread)
+				{
+			dcdrun(m_debugWaits = true;)
 			   m_query_thread->join(); // Дождемся завершения.
 		}
+			}
 
 		bool is_fly_server_active() const
 		{

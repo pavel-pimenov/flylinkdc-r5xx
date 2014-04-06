@@ -457,7 +457,7 @@ LRESULT DirectoryListingFrame::onSelChangedDirectories(int /*idCtrl*/, LPNMHDR p
 	if (p->itemNew.state & TVIS_SELECTED)
 	{
 		DirectoryListing::Directory* d = (DirectoryListing::Directory*)p->itemNew.lParam;
-		changeDir(d, TRUE);
+		changeDir(d);
 		addHistory(dl->getPath(d));
 	}
 	return 0;
@@ -512,7 +512,7 @@ FileImage::TypeDirectoryImages DirectoryListingFrame::GetTypeDirectory(const Dir
 	return FileImage::DIR_ICON;
 }
 
-void DirectoryListingFrame::changeDir(DirectoryListing::Directory* p_dir, BOOL p_enableRedraw)
+void DirectoryListingFrame::changeDir(DirectoryListing::Directory* p_dir)
 {
 	CWaitCursor l_cursor_wait;
 	CLockRedraw<> l_lock_draw(ctrlList);
@@ -529,7 +529,7 @@ void DirectoryListingFrame::changeDir(DirectoryListing::Directory* p_dir, BOOL p
 			}
 		}
 		m_prev_directory = p_dir;
-		ctrlList.DeleteAndCleanAllItems();
+		ctrlList.DeleteAndCleanAllItemsNoLock();
 		auto l_count = ctrlList.GetItemCount();
 		ItemInfo* l_last_item = nullptr;
 		for (auto i = p_dir->directories.cbegin(); i != p_dir->directories.cend(); ++i)
@@ -558,7 +558,6 @@ void DirectoryListingFrame::changeDir(DirectoryListing::Directory* p_dir, BOOL p
 			const auto l_sel_item = ctrlList.findItem(l_last_item);
 			ctrlList.SelectItem(l_sel_item); // Возвращаемся на запомненный файл.
 		}
-		ctrlList.SetRedraw(p_enableRedraw);
 	}
 	updateStatus();
 	
@@ -1648,7 +1647,7 @@ HTREEITEM DirectoryListingFrame::findFile(const StringSearch& str, HTREEITEM roo
 	}
 	
 	// Force list pane to contain files of current dir
-	changeDir(dir, FALSE);
+	changeDir(dir);
 	
 	// Check file names in list pane
 	for (int i = 0; i < ctrlList.GetItemCount(); i++)

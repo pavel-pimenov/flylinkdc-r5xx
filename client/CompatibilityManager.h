@@ -22,7 +22,6 @@
 #ifdef _WIN32
 #include "typedefs.h"
 
-
 // http://code.google.com/p/flylinkdc/issues/detail?id=574
 class CompatibilityManager
 {

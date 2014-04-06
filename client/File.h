@@ -162,6 +162,7 @@ class File : public IOStream
 		
 		static tstring formatPath(const tstring& path)
 		{
+			dcassert(std::count(path.cbegin(), path.cend(), L'/') == 0);
 			if (path.size() < MAX_PATH - 1)
 				return path;
 				
@@ -228,7 +229,7 @@ class FileFindIter
 			bool isSystem() const;
 			bool isTemporary() const;
 			bool isVirtual() const;
-			bool isFileSizeCorrupted() const;
+			//bool isFileSizeCorrupted() const;
 		};
 		
 		DirData& operator*()

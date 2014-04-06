@@ -31,6 +31,9 @@
 # define PATH_SEPARATOR '\\'
 # define PATH_SEPARATOR_STR "\\"
 # define PATH_SEPARATOR_WSTR L"\\"
+#define URI_SEPARATOR '/'
+#define URI_SEPARATOR_STR "/"
+#define URI_SEPARATOR_WSTR L"/"
 
 #define FLYLINKDC_REGISTRY_PATH _T("SOFTWARE\\FlylinkDC++")
 #define FLYLINKDC_REGISTRY_MEDIAINFO_FREEZE_KEY _T("MediaFreezeInfo")
@@ -75,19 +78,34 @@ template <class T>
 void AppendPathSeparator(T& p_path) //[+]PPA
 {
 	if (!p_path.empty())
-		if (p_path[ p_path.length() - 1 ] != PATH_SEPARATOR)
-			p_path += PATH_SEPARATOR;
+	{
+		const auto l_last_char = p_path[ p_path.length() - 1 ];
+			if (l_last_char != PATH_SEPARATOR && l_last_char != URI_SEPARATOR)
+			{
+					p_path += PATH_SEPARATOR;
+			}
+			else
+			{
+			dcassert(l_last_char != URI_SEPARATOR)
+			}
+	}
 }
 
-#define URI_SEPARATOR '/'
-#define URI_SEPARATOR_STR "/"
-#define URI_SEPARATOR_WSTR L"/"
 template <class T>
 static void AppendUriSeparator(T& p_path) //[+]SSA
 {
 	if (!p_path.empty())
-		if (p_path[ p_path.length() - 1 ] != URI_SEPARATOR)
-			p_path += URI_SEPARATOR;
+	{
+		const auto l_last_char = p_path[ p_path.length() - 1 ];
+		if (l_last_char != URI_SEPARATOR && l_last_char != PATH_SEPARATOR)
+		{
+				p_path += URI_SEPARATOR;
+		}
+		else
+		{
+			dcassert(l_last_char != PATH_SEPARATOR)
+		}
+	}
 }
 static void ReplaceAllUriSeparatorToPathSeparator(string& p_InOutData)
 {
