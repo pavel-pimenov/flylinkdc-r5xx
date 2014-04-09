@@ -1768,7 +1768,7 @@ void NmdcHub::myInfoParse(const string& param) noexcept
 	}
 	else
 	{
-		ou->getIdentity().setDescription(Util::emptyString);
+		ou->getIdentity().setDescription(tmpDesc); //
 	}
 	
 	i = j + 3;
@@ -1837,7 +1837,7 @@ void NmdcHub::on(BufferedSocketListener::MyInfoArray, const StringList& p_myInfo
 	const auto l_ip_port = getIpPort();
 	for (auto i = p_myInfoArray.cbegin(); i != p_myInfoArray.end(); ++i)
 	{
-		myInfoParse(toUtf8(*i));
+		myInfoParse(toUtf8(*i)); // Разобраться почему тут toUtf8
 		COMMAND_DEBUG(*i, DebugTask::HUB_IN, l_ip_port);
 	}
 }

@@ -6645,7 +6645,7 @@ public:
 		return (int)::SendMessage(m_hWnd, TBM_GETSELSTART, 0, 0L);
 	}
 
-	void SetSelStart(int nMin, BOOL bRedraw = TRUE)
+	void SetSelStart(int nMin, BOOL bRedraw = FALSE)
 	{
 		ATLASSERT(::IsWindow(m_hWnd));
 		::SendMessage(m_hWnd, TBM_SETSELSTART, bRedraw, (LPARAM)nMin);
@@ -6657,7 +6657,7 @@ public:
 		return (int)::SendMessage(m_hWnd, TBM_GETSELEND, 0, 0L);
 	}
 
-	void SetSelEnd(int nMax, BOOL bRedraw = TRUE)
+	void SetSelEnd(int nMax, BOOL bRedraw = FALSE)
 	{
 		ATLASSERT(::IsWindow(m_hWnd));
 		::SendMessage(m_hWnd, TBM_SETSELEND, bRedraw, (LPARAM)nMax);

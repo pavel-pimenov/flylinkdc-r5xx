@@ -285,7 +285,9 @@ const string SettingsManager::settingTags[] =
 	"NonHubsFront", "BlendOffline", "MaxResizeLines",
 	"UseCustomListBackground",
 	"EnableIpGuard", "DefaultPolicy",
+#ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
 	"FlyTextLog", "UseSQLiteLog",
+#endif // FLYLINKDC_LOG_IN_SQLITE_BASE
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	"IncomingAutodetectFlag",
 #endif
@@ -1000,8 +1002,10 @@ void SettingsManager::setDefaults()
 	
 	setDefault(ENABLE_FLY_SERVER, TRUE);
 	
+#ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
 	//setDefault(FLY_SQLITE_LOG, false); // [+] PPA
 	setDefault(FLY_TEXT_LOG, !BOOLSETTING(FLY_SQLITE_LOG)); // [+] PPA
+#endif //FLYLINKDC_LOG_IN_SQLITE_BASE
 #ifdef IRAINMAN_INCLUDE_TEXT_FORMATTING
 	//setDefault(FORMAT_BIU, false);
 #endif

@@ -353,6 +353,7 @@ typedef unsigned __int64 uint64_t;
 #ifndef FLYLINKDC_HE
 # define USE_APPDATA
 #endif
+#define FLYLINKDC_LOG_IN_SQLITE_BASE
 
 //#define NIGHTORION_USE_STATISTICS_REQUEST
 

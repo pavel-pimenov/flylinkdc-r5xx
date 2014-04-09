@@ -212,7 +212,9 @@ CFlylinkDBManager::CFlylinkDBManager()
 					sqlite3_trace(m_flySQLiteDB.get_db(), gf_trace_callback, NULL);
 					// sqlite3_profile(m_flySQLiteDB.get_db(), profile_callback, NULL);
 				}
+#ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
 				m_flySQLiteDB.executenonquery("attach database 'FlylinkDC_log.sqlite' as log_db");
+#endif // FLYLINKDC_LOG_IN_SQLITE_BASE
 				m_flySQLiteDB.executenonquery("attach database 'FlylinkDC_mediainfo.sqlite' as media_db");
 				m_flySQLiteDB.executenonquery("attach database 'FlylinkDC_dht.sqlite' as dht_db");
 				m_flySQLiteDB.executenonquery("attach database 'FlylinkDC_stat.sqlite' as stat_db");
@@ -271,11 +273,13 @@ CFlylinkDBManager::CFlylinkDBManager()
 		}
 		pragma_executor("temp_store=MEMORY");
 		
+#ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
 		// Log_DB
 		m_flySQLiteDB.executenonquery(
 		    "CREATE TABLE IF NOT EXISTS log_db.fly_log(id integer PRIMARY KEY AUTOINCREMENT,"
 		    "sdate text not null, type integer not null,body text, hub text, nick text,\n"
 		    "ip text, file text, source text, target text,fsize int64,fchunk int64,extra text,userCID text);");
+#endif // FLYLINKDC_LOG_IN_SQLITE_BASE
 		// DHT_DB
 		m_flySQLiteDB.executenonquery(
 		    "CREATE TABLE IF NOT EXISTS dht_db.fly_dht_node(\n"
@@ -3393,6 +3397,7 @@ CFlylinkDBManager::FileStatus CFlylinkDBManager::get_status_file(const TTHValue&
 #endif // FLYLINKDC_USE_LEVELDB
 }
 //========================================================================================================
+#ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
 void CFlylinkDBManager::log(const int p_area, const StringMap& p_params)
 {
 	Lock l(m_cs); // [2] https://www.box.net/shared/9e63916273d37e5b2932
@@ -3424,6 +3429,7 @@ void CFlylinkDBManager::log(const int p_area, const StringMap& p_params)
 		errorDB("SQLite - log: " + e.getError() + " parrent message: " + getString(p_params, "message"));
 	}
 }
+#endif // FLYLINKDC_LOG_IN_SQLITE_BASE
 //========================================================================================================
 __int64 CFlylinkDBManager::convert_tth_history()
 {

@@ -300,7 +300,9 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  MAX_RESIZE_LINES,
 		                  USE_CUSTOM_LIST_BACKGROUND,
 		                  ENABLE_IPGUARD, DEFAULT_POLICY,
+#ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
 		                  FLY_TEXT_LOG, FLY_SQLITE_LOG,
+#endif // FLYLINKDC_LOG_IN_SQLITE_BASE
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 		                  INCOMING_AUTODETECT_FLAG,
 #endif

@@ -27,8 +27,10 @@
 
 PropPage::TextItem LogPage::texts[] =
 {
+#ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
 	{ IDC_FLY_LOG_SQLITE,                    ResourceManager::SETTINGS_USE_SQLITE_FOR_LOGS },
 	{ IDC_FLY_LOG_TEXT,                      ResourceManager::SETTINGS_USE_TEXT_FOR_LOGS },
+#endif // FLYLINKDC_LOG_IN_SQLITE_BASE
 	{ IDC_SETTINGS_LOGGING,                  ResourceManager::SETTINGS_LOGGING },
 	{ IDC_SETTINGS_LOG_DIR,                  ResourceManager::DIRECTORY },
 	{ IDC_SETTINGS_FORMAT,                   ResourceManager::SETTINGS_FORMAT },
@@ -42,8 +44,10 @@ PropPage::TextItem LogPage::texts[] =
 PropPage::Item LogPage::items[] =
 {
 	{ IDC_LOG_DIRECTORY,                   SettingsManager::LOG_DIRECTORY,          PropPage::T_STR },
+#ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
 	{ IDC_FLY_LOG_SQLITE,                  SettingsManager::FLY_SQLITE_LOG,         PropPage::T_BOOL },
 	{ IDC_FLY_LOG_TEXT,                    SettingsManager::FLY_TEXT_LOG,           PropPage::T_BOOL },
+#endif // FLYLINKDC_LOG_IN_SQLITE_BASE
 	{ IDC_SETTINGS_MAX_FINISHED_UPLOADS,   SettingsManager::MAX_FINISHED_UPLOADS,   PropPage::T_INT },
 	{ IDC_SETTINGS_MAX_FINISHED_DOWNLOADS, SettingsManager::MAX_FINISHED_DOWNLOADS, PropPage::T_INT },
 	{ 0,                                   0,                                       PropPage::T_END }
@@ -112,7 +116,11 @@ void LogPage::setEnabled()
 		BOOL checkState = (logOptions.GetCheckState(sel) == BST_CHECKED);
 		
 		::EnableWindow(GetDlgItem(IDC_LOG_FORMAT), checkState);
-		::EnableWindow(GetDlgItem(IDC_LOG_FILE), checkState && (IsDlgButtonChecked(IDC_FLY_LOG_TEXT) == BST_CHECKED));
+		::EnableWindow(GetDlgItem(IDC_LOG_FILE), checkState 
+#ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
+			&& (IsDlgButtonChecked(IDC_FLY_LOG_TEXT) == BST_CHECKED)
+#endif // FLYLINKDC_LOG_IN_SQLITE_BASE
+			);
 		
 		SetDlgItemText(IDC_LOG_FILE, options[sel].first.c_str());
 		SetDlgItemText(IDC_LOG_FORMAT, options[sel].second.c_str());
@@ -130,9 +138,13 @@ void LogPage::setEnabled()
 	}
 	
 	logOptions.Detach();
-	
+#ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
 	::EnableWindow(GetDlgItem(IDC_LOG_DIRECTORY), IsDlgButtonChecked(IDC_FLY_LOG_SQLITE) == BST_UNCHECKED);
 	::EnableWindow(GetDlgItem(IDC_BROWSE_LOG), IsDlgButtonChecked(IDC_FLY_LOG_SQLITE) == BST_UNCHECKED);
+#else
+	::EnableWindow(GetDlgItem(IDC_LOG_DIRECTORY), TRUE);
+	::EnableWindow(GetDlgItem(IDC_BROWSE_LOG), TRUE);
+#endif // FLYLINKDC_LOG_IN_SQLITE_BASE
 }
 
 LRESULT LogPage::onItemChanged(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)

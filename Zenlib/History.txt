@@ -1,3 +1,7 @@
+Version 0.4.30
+--------------
+x int128: was not compiling on Cygwin
+
 Version 0.4.29, 2013-05-13
 --------------
 + Ztring: Adding some Date_From_Seconds_* methods

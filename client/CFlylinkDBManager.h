@@ -241,7 +241,9 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
 		void SweepFiles(__int64 p_path_id, const CFlyDirMap& p_sweep_files);
 #endif
+#ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
 		void log(const int p_area, const StringMap& p_params);
+#endif // FLYLINKDC_LOG_IN_SQLITE_BASE
 		size_t load_queue();
 		void addSource(const QueueItemPtr& p_QueueItem, const CID& p_cid, const string& p_nick/*, const string& p_hub_hint*/);
 		bool merge_queue_item(QueueItemPtr& p_QueueItem);

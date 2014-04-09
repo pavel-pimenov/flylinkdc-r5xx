@@ -845,7 +845,6 @@ void ClientManager::on(NmdcSearch, Client* aClient, const string& aSeeker, Searc
 {
 
 	ClientManagerListener::SearchReply l_re = ClientManagerListener::SEARCH_MISS; // !SMT!-S
-	
 	SearchResultList l;
 #ifdef PPA_USE_HIGH_LOAD_FOR_SEARCH_ENGINE_IN_DEBUG
 	ShareManager::getInstance()->search(l, aString, aSizeMode, aSize, aFileType, aClient, isPassive ? 100 : 200);

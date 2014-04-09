@@ -152,12 +152,14 @@ void LogManager::log(const string& p_area, const string& p_msg) noexcept
 
 void LogManager::log(LogArea area, const StringMap& params, bool p_only_file /* = false */) noexcept
 {
+#ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
 	if (!p_only_file && BOOLSETTING(FLY_SQLITE_LOG) && CFlylinkDBManager::isValidInstance())
 	{
 		dcassert(area != TRACE_SQLITE);
 		CFlylinkDBManager::getInstance()->log(area, params);
 	}
 	else
+#endif // FLYLINKDC_LOG_IN_SQLITE_BASE
 	{
 		//Lock l(cs); [-] IRainman fix: no needs lock here, see log function.
 		const string path = SETTING(LOG_DIRECTORY) + Util::formatParams(getSetting(area, FILE), params, false);
