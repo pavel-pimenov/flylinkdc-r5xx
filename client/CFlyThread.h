@@ -212,7 +212,7 @@ class Thread : public BaseThread
 		
 		class ConditionLocker
 #ifdef _DEBUG
-			: private boost::noncopyable, virtual NonDerivable<ConditionLocker>
+			: private boost::noncopyable
 #endif
 		{
 			public:
@@ -231,7 +231,7 @@ class Thread : public BaseThread
 		
 		class ConditionLockerWithSpin
 #ifdef _DEBUG
-			: private boost::noncopyable, virtual NonDerivable<ConditionLockerWithSpin>
+			: private boost::noncopyable
 #endif
 		{
 			public:
@@ -333,7 +333,7 @@ typedef Lock FastLock;
 #else
 class CriticalSection
 #ifdef _DEBUG
-	: boost::noncopyable , virtual NonDerivable<CriticalSection> // [+] IRainman fix.
+	: boost::noncopyable 
 #endif
 {
 	public:
@@ -427,7 +427,7 @@ class CriticalSection
 
 class FastCriticalSection
 #ifdef _DEBUG
-	: boost::noncopyable , virtual NonDerivable<FastCriticalSection> // [+] IRainman fix.
+	: boost::noncopyable 
 #endif
 {
 	public:
@@ -475,7 +475,7 @@ typedef CriticalSection FastCriticalSection;
 template<class T>
 class LockBase
 #ifdef _DEBUG
-	: boost::noncopyable, virtual NonDerivable<LockBase<T>> // [+] IRainman fix.
+	: boost::noncopyable
 #endif
 {
 	public:
@@ -750,7 +750,7 @@ typedef Lock FastLock;
 
 class FastSharedCriticalSection
 #ifdef _DEBUG
-	: boost::noncopyable, virtual NonDerivable<FastSharedCriticalSection>
+	: boost::noncopyable
 #endif
 {
 	private:
@@ -828,7 +828,7 @@ class FastSharedCriticalSection
 
 class SharedCriticalSection
 #ifdef _DEBUG
-	: boost::noncopyable, virtual NonDerivable<SharedCriticalSection>
+	: boost::noncopyable
 #endif
 {
 	private:
@@ -1041,7 +1041,7 @@ typedef CriticalSection SharedCriticalSection;
 template<class T>
 class SharedLockBase
 #ifdef _DEBUG
-	: boost::noncopyable, virtual NonDerivable<SharedLockBase<T>>
+	: boost::noncopyable
 #endif
 {
 	private:
@@ -1069,7 +1069,7 @@ typedef Lock SharedLock;
 template<class T>
 class UniqueLockBase
 #ifdef _DEBUG
-	: boost::noncopyable, virtual NonDerivable<UniqueLockBase<T>>
+	: boost::noncopyable
 #endif
 {
 	private:
@@ -1097,7 +1097,7 @@ typedef Lock UniqueLock;
 template<class T>
 class BaseTryUniqueLock
 #ifdef _DEBUG
-	: boost::noncopyable, virtual NonDerivable<BaseTryUniqueLock<T>>
+	: boost::noncopyable
 #endif
 {
 	private:

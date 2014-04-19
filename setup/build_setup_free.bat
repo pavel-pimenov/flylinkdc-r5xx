@@ -14,7 +14,7 @@ GOTO Loop
 
 :ProcessAllScripts
 for %%w in (flylinkdc-Install-*.iss) do (
-"C:\Program Files (x86)\Inno Setup 5\ISCC.exe" /Q /O"output" /F"%%~nw" "%%w"
+"C:\Program Files (x86)\Inno Setup 5\ISCC.exe" /Q /O"output" /F"%%~nw" "%%w" "/ssignppafly5=C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\signtool.exe sign /a /d $qFlylinkDC++ r5xx$q /du $qhttp://flylinkdc.blogspot.com$q /t $qhttp://timestamp.verisign.com/scripts/timstamp.dll$q $f"
 )
 call clear_installers.bat
 cd Output

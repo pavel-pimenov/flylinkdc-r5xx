@@ -548,8 +548,13 @@ class Identity
 		void setStringParam(const char* p_name, const string& p_val);
 		bool isAppNameExists() const
 		{
-			const auto l_id_app = getDicAP();
-			return l_id_app > 0;
+			if (getDicAP() > 0)
+				return true;
+			else
+			if (getDicVE() > 0)
+				return true;
+			else
+				return false;
 		}
 		// [~] IRainman fix.
 		

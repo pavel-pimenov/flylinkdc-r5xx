@@ -610,9 +610,6 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 };
 
 class ThreadedDirectoryListing : public BASE_THREAD
-#ifdef _DEBUG
-	, virtual NonDerivable<ThreadedDirectoryListing>
-#endif
 {
 	public:
 		ThreadedDirectoryListing(DirectoryListingFrame* pWindow,

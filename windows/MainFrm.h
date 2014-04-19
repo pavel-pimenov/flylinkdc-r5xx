@@ -805,9 +805,6 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 		class StatisticSender : public BASE_THREAD
-#ifdef _DEBUG
-			, virtual NonDerivable<StatisticSender>
-#endif
 		{
 			private:
 				bool m_is_sync_run;
@@ -819,19 +816,13 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 				}
 			public:
 				StatisticSender() : m_is_sync_run(false)
-#ifdef _DEBUG
-					, m_MinuteElapsed(120 - 1) // Стартуем первый раз через 1 минуту
-#else
 					, m_MinuteElapsed(120 - 2) // Стартуем первый раз через 2 минуты
-#endif
 				{
 				}
 				void tryStartThread(const bool p_is_sync_run)
 				{
 					m_is_sync_run = p_is_sync_run;
-#ifndef _DEBUG  // В релизе раз в час
-					if (++m_MinuteElapsed % 60 == 0 || p_is_sync_run)
-#endif
+					if (++m_MinuteElapsed % 60 == 0 || p_is_sync_run) // Передачу делаем раз в час. (TODO - вынести в настройку)
 					{
 						m_MinuteElapsed = 0;
 						try

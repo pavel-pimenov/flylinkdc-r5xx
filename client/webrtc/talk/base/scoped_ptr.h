@@ -88,7 +88,7 @@
 #ifndef TALK_BASE_SCOPED_PTR_H__
 #define TALK_BASE_SCOPED_PTR_H__
 
-#include <cstddef>             // for std::ptrdiff_t
+#include <stddef.h>  // for ptrdiff_t
 #include <stdlib.h>            // for free() decl
 
 #include <algorithm>  // For std::swap().

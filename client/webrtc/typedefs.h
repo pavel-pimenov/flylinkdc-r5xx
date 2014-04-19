@@ -14,13 +14,6 @@
 #ifndef WEBRTC_TYPEDEFS_H_
 #define WEBRTC_TYPEDEFS_H_
 
-// For access to standard POSIXish features, use WEBRTC_POSIX instead of a
-// more specific macro.
-#if defined(WEBRTC_MAC) || defined(WEBRTC_LINUX) || \
-    defined(WEBRTC_ANDROID)
-#define WEBRTC_POSIX
-#endif
-
 // Processor architecture detection.  For more info on what's defined, see:
 //   http://msdn.microsoft.com/en-us/library/b0084kay.aspx
 //   http://www.agner.org/optimize/calling_conventions.pdf
@@ -28,6 +21,9 @@
 #if defined(_M_X64) || defined(__x86_64__)
 #define WEBRTC_ARCH_X86_FAMILY
 #define WEBRTC_ARCH_X86_64
+#define WEBRTC_ARCH_64_BITS
+#define WEBRTC_ARCH_LITTLE_ENDIAN
+#elif defined(__aarch64__)
 #define WEBRTC_ARCH_64_BITS
 #define WEBRTC_ARCH_LITTLE_ENDIAN
 #elif defined(_M_IX86) || defined(__i386__)
@@ -48,6 +44,9 @@
 #elif defined(__MIPSEL__)
 #define WEBRTC_ARCH_32_BITS
 #define WEBRTC_ARCH_LITTLE_ENDIAN
+#elif defined(__pnacl__)
+#define WEBRTC_ARCH_32_BITS
+#define WEBRTC_ARCH_LITTLE_ENDIAN
 #else
 #error Please add support for your architecture in typedefs.h
 #endif
@@ -56,14 +55,15 @@
 #error Define either WEBRTC_ARCH_LITTLE_ENDIAN or WEBRTC_ARCH_BIG_ENDIAN
 #endif
 
-#if defined(__SSE2__) || defined(_MSC_VER)
-#define WEBRTC_USE_SSE2
+#if (defined(WEBRTC_ARCH_X86_FAMILY) && !defined(__SSE2__)) ||  \
+    (defined(WEBRTC_ARCH_ARM_V7) && !defined(WEBRTC_ARCH_ARM_NEON))
+#define WEBRTC_CPU_DETECTION
 #endif
 
 #if !defined(_MSC_VER)
 #include <stdint.h>
 #else
-// Define C99 equivalent types, since MSVC doesn't provide stdint.h.
+// Define C99 equivalent types, since pre-2010 MSVC doesn't provide stdint.h.
 typedef signed char         int8_t;
 typedef signed short        int16_t;
 typedef signed int          int32_t;

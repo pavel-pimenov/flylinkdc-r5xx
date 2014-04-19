@@ -149,7 +149,7 @@ class UserInfo : public UserInfoBase
 		typedef std::unordered_map<OnlineUserPtr, UserInfo*, OnlineUser::Hash> OnlineUserMapBase; // [!] IRainman fix: use online user here.
 		class OnlineUserMap : public OnlineUserMapBase
 #ifdef _DEBUG
-			, virtual NonDerivable<OnlineUserMap>, boost::noncopyable // [+] IRainman fix.
+			, boost::noncopyable // [+] IRainman fix.
 #endif
 		{
 			public:

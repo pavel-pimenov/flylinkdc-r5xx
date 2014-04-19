@@ -3371,7 +3371,8 @@ public:
 		ATLASSERT(IsValid());
 
 		// DWORD align data
-		m_pPtr = (LPBYTE)(DWORD_PTR)((DWORD)(DWORD_PTR)(m_pPtr + 3) & (~3));
+		const DWORD_PTR dwDwordAlignBits = sizeof(DWORD) - 1;
+		m_pPtr = (LPBYTE)(((DWORD_PTR)m_pPtr + dwDwordAlignBits) & (~dwDwordAlignBits));
 
 		if (IsTemplateEx())
 		{

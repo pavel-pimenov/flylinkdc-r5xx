@@ -642,7 +642,10 @@ void NmdcHub::onLine(const string& aLine)
 		{
 			// [!] IRainman fix: strongly check
 			const auto& myNick = getMyNick();
-			if (seeker.compare(4, myNick.size(), myNick) == 0) // [!] fix done [5] https://www.box.net/shared/qptgptxlocc0gmpo69q0
+			if (isPassive && // seeker в начале может не содержать "Hub:" - падаем
+				             // https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=64297
+				             // https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=63507
+				seeker.compare(4, myNick.size(), myNick) == 0) // [!] fix done [5] https://www.box.net/shared/qptgptxlocc0gmpo69q0
 			{
 				return;
 			}

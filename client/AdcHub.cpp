@@ -274,7 +274,6 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) noexcept
 	{
 		if (i->length() < 2)
 			continue;
-			
 		// [+] brain-ripper
 		switch (*(short*)i->c_str())
 		{
@@ -387,6 +386,18 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) noexcept
 				u->setFlag(User::AWAY);
 				break;
 			}
+#ifdef _DEBUG
+			case TAG('V', 'E'):
+			{
+			 id.setStringParam("VE", i->substr(2));
+			 break;
+			}
+			case TAG('A', 'P'):
+			{
+			 id.setStringParam("AP", i->substr(2)); 
+			 break;
+			}
+#endif
 			default:
 			{
 				id.setStringParam(i->c_str(), i->substr(2));

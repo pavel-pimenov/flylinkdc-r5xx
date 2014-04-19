@@ -409,9 +409,18 @@ string Identity::getTag() const
 	{
 		char l_tagItem[128];
 		l_tagItem[0] = 0;
+		string l_version;
+		if(getDicAP())
+		{
+			l_version = getStringParam("AP") + " V:" + getStringParam("VE");
+		}
+		else
+		{
+			l_version = getStringParam("VE");
+		}
 		_snprintf(l_tagItem, sizeof(l_tagItem), "<%s,M:%c,H:%u/%u/%u,S:%u>", // http://mydc.ru/topic915.html?p=6721#entry6721 TODO - нужно ли вертать L:
 		          //getApplication().c_str(),
-		          (getStringParam("AP") + " V:" + getStringParam("VE")).c_str(),
+		          l_version.c_str(),
 		          isTcpActive() ? 'A' : 'P',
 		          getHubNormal(),
 		          getHubRegister(),
@@ -428,18 +437,15 @@ string Identity::getApplication() const
 {
 	const auto& application = getStringParam("AP");
 	const auto& version = getStringParam("VE");
-	
 	if (version.empty())
 	{
 		return application;
 	}
-	
 	if (application.empty())
 	{
 		// AP is an extension, so we can't guarantee that the other party supports it, so default to VE.
 		return version;
 	}
-	
 	return application + ' ' + version;
 }
 

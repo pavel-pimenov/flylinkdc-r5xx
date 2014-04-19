@@ -11,6 +11,10 @@
 #ifndef WEBRTC_COMMON_TYPES_H_
 #define WEBRTC_COMMON_TYPES_H_
 
+#include <stddef.h>
+#include <string.h>
+#include <vector>
+
 #include "webrtc/typedefs.h"
 
 #if defined(_MSC_VER)
@@ -33,7 +37,7 @@
 
 #define RTP_PAYLOAD_NAME_SIZE 32
 
-#if defined(WEBRTC_WIN)
+#if defined(WEBRTC_WIN) || defined(WIN32)
 // Compares two strings without regard to case.
 #define STR_CASE_CMP(s1, s2) ::_stricmp(s1, s2)
 // Compares characters of two strings without regard to case.
@@ -89,7 +93,6 @@ enum TraceModule
     kTraceAudioDevice        = 0x0012,
     kTraceVideoRenderer      = 0x0014,
     kTraceVideoCapture       = 0x0015,
-    kTraceVideoPreocessing       = 0x0016,
     kTraceRemoteBitrateEstimator = 0x0017,
 };
 
@@ -157,71 +160,6 @@ enum FrameType
     kVideoFrameDelta       = 4,    // depends on the previus frame
 };
 
-// Interface for encrypting and decrypting regular data and rtp/rtcp packets.
-// Implement this interface if you wish to provide an encryption scheme to
-// the voice or video engines.
-class Encryption
-{
-public:
-    // Encrypt the given data.
-    //
-    // Args:
-    //   channel: The channel to encrypt data for.
-    //   in_data: The data to encrypt. This data is bytes_in bytes long.
-    //   out_data: The buffer to write the encrypted data to. You may write more
-    //       bytes of encrypted data than what you got as input, up to a maximum
-    //       of webrtc::kViEMaxMtu if you are encrypting in the video engine, or
-    //       webrtc::kVoiceEngineMaxIpPacketSizeBytes for the voice engine.
-    //   bytes_in: The number of bytes in the input buffer.
-    //   bytes_out: The number of bytes written in out_data.
-    virtual void encrypt(
-        int channel,
-        unsigned char* in_data,
-        unsigned char* out_data,
-        int bytes_in,
-        int* bytes_out) = 0;
-
-    // Decrypts the given data. This should reverse the effects of encrypt().
-    //
-    // Args:
-    //   channel_no: The channel to decrypt data for.
-    //   in_data: The data to decrypt. This data is bytes_in bytes long.
-    //   out_data: The buffer to write the decrypted data to. You may write more
-    //       bytes of decrypted data than what you got as input, up to a maximum
-    //       of webrtc::kViEMaxMtu if you are encrypting in the video engine, or
-    //       webrtc::kVoiceEngineMaxIpPacketSizeBytes for the voice engine.
-    //   bytes_in: The number of bytes in the input buffer.
-    //   bytes_out: The number of bytes written in out_data.
-    virtual void decrypt(
-        int channel,
-        unsigned char* in_data,
-        unsigned char* out_data,
-        int bytes_in,
-        int* bytes_out) = 0;
-
-    // Encrypts a RTCP packet. Otherwise, this method has the same contract as
-    // encrypt().
-    virtual void encrypt_rtcp(
-        int channel,
-        unsigned char* in_data,
-        unsigned char* out_data,
-        int bytes_in,
-        int* bytes_out) = 0;
-
-    // Decrypts a RTCP packet. Otherwise, this method has the same contract as
-    // decrypt().
-    virtual void decrypt_rtcp(
-        int channel,
-        unsigned char* in_data,
-        unsigned char* out_data,
-        int bytes_in,
-        int* bytes_out) = 0;
-
-protected:
-    virtual ~Encryption() {}
-    Encryption() {}
-};
-
 // External transport callback interface
 class Transport
 {
@@ -255,6 +193,24 @@ class RtcpStatisticsCallback {
 
   virtual void StatisticsUpdated(const RtcpStatistics& statistics,
                                  uint32_t ssrc) = 0;
+};
+
+// Statistics for RTCP packet types.
+struct RtcpPacketTypeCounter {
+  RtcpPacketTypeCounter()
+    : nack_packets(0),
+      fir_packets(0),
+      pli_packets(0) {}
+
+  void Add(const RtcpPacketTypeCounter& other) {
+    nack_packets += other.nack_packets;
+    fir_packets += other.fir_packets;
+    pli_packets += other.pli_packets;
+  }
+
+  uint32_t nack_packets;
+  uint32_t fir_packets;
+  uint32_t pli_packets;
 };
 
 // Data usage statistics for a (rtp) stream
@@ -315,14 +271,26 @@ class FrameCountObserver {
 // ==================================================================
 
 // Each codec supported can be described by this structure.
-struct CodecInst
-{
+struct CodecInst {
     int pltype;
     char plname[RTP_PAYLOAD_NAME_SIZE];
     int plfreq;
     int pacsize;
     int channels;
     int rate;  // bits/sec unlike {start,min,max}Bitrate elsewhere in this file!
+
+  bool operator==(const CodecInst& other) const {
+    return pltype == other.pltype &&
+           (STR_CASE_CMP(plname, other.plname) == 0) &&
+           plfreq == other.plfreq &&
+           pacsize == other.pacsize &&
+           channels == other.channels &&
+           rate == other.rate;
+  }
+
+  bool operator!=(const CodecInst& other) const {
+    return !(*this == other);
+  }
 };
 
 // RTP
@@ -584,8 +552,7 @@ enum VP8ResilienceMode {
 };
 
 // VP8 specific
-struct VideoCodecVP8
-{
+struct VideoCodecVP8 {
     bool                 pictureLossIndicationOn;
     bool                 feedbackModeOn;
     VideoCodecComplexity complexity;
@@ -596,6 +563,23 @@ struct VideoCodecVP8
     bool                 automaticResizeOn;
     bool                 frameDroppingOn;
     int                  keyFrameInterval;
+
+  bool operator==(const VideoCodecVP8& other) const {
+    return pictureLossIndicationOn == other.pictureLossIndicationOn &&
+           feedbackModeOn == other.feedbackModeOn &&
+           complexity == other.complexity &&
+           resilience == other.resilience &&
+           numberOfTemporalLayers == other.numberOfTemporalLayers &&
+           denoisingOn == other.denoisingOn &&
+           errorConcealmentOn == other.errorConcealmentOn &&
+           automaticResizeOn == other.automaticResizeOn &&
+           frameDroppingOn == other.frameDroppingOn &&
+           keyFrameInterval == other.keyFrameInterval;
+  }
+
+  bool operator!=(const VideoCodecVP8& other) const {
+    return !(*this == other);
+  }
 };
 
 // Video codec types
@@ -617,8 +601,7 @@ union VideoCodecUnion
 
 // Simulcast is when the same stream is encoded multiple times with different
 // settings such as resolution.
-struct SimulcastStream
-{
+struct SimulcastStream {
     unsigned short      width;
     unsigned short      height;
     unsigned char       numberOfTemporalLayers;
@@ -626,6 +609,20 @@ struct SimulcastStream
     unsigned int        targetBitrate;  // kilobits/sec.
     unsigned int        minBitrate;  // kilobits/sec.
     unsigned int        qpMax; // minimum quality
+
+  bool operator==(const SimulcastStream& other) const {
+    return width == other.width &&
+           height == other.height &&
+           numberOfTemporalLayers == other.numberOfTemporalLayers &&
+           maxBitrate == other.maxBitrate &&
+           targetBitrate == other.targetBitrate &&
+           minBitrate == other.minBitrate &&
+           qpMax == other.qpMax;
+  }
+
+  bool operator!=(const SimulcastStream& other) const {
+    return !(*this == other);
+  }
 };
 
 enum VideoCodecMode {
@@ -634,8 +631,7 @@ enum VideoCodecMode {
 };
 
 // Common video codec properties
-struct VideoCodec
-{
+struct VideoCodec {
     VideoCodecType      codecType;
     char                plName[kPayloadNameSize];
     unsigned char       plType;
@@ -646,6 +642,8 @@ struct VideoCodec
     unsigned int        startBitrate;  // kilobits/sec.
     unsigned int        maxBitrate;  // kilobits/sec.
     unsigned int        minBitrate;  // kilobits/sec.
+  unsigned int        targetBitrate;  // kilobits/sec.
+
     unsigned char       maxFramerate;
 
     VideoCodecUnion     codecSpecific;
@@ -659,6 +657,34 @@ struct VideoCodec
     // When using an external encoder/decoder this allows to pass
     // extra options without requiring webrtc to be aware of them.
     Config*  extra_options;
+
+  bool operator==(const VideoCodec& other) const {
+    bool ret = codecType == other.codecType &&
+               (STR_CASE_CMP(plName, other.plName) == 0) &&
+               plType == other.plType &&
+               width == other.width &&
+               height == other.height &&
+               startBitrate == other.startBitrate &&
+               maxBitrate == other.maxBitrate &&
+               minBitrate == other.minBitrate &&
+               targetBitrate == other.targetBitrate &&
+               maxFramerate == other.maxFramerate &&
+               qpMax == other.qpMax &&
+               numberOfSimulcastStreams == other.numberOfSimulcastStreams &&
+               mode == other.mode;
+    if (ret && codecType == kVideoCodecVP8) {
+      ret &= (codecSpecific.VP8 == other.codecSpecific.VP8);
+    }
+
+    for (unsigned char i = 0; i < other.numberOfSimulcastStreams && ret; ++i) {
+      ret &= (simulcastStream[i] == other.simulcastStream[i]);
+    }
+    return ret;
+  }
+
+  bool operator!=(const VideoCodec& other) const {
+    return !(*this == other);
+  }
 };
 
 // Bandwidth over-use detector options.  These are used to drive
@@ -704,7 +730,78 @@ struct PacketTime {
                         // If unknown, this value will be set to zero.
 };
 
+struct RTPHeaderExtension {
+  RTPHeaderExtension()
+      : hasTransmissionTimeOffset(false),
+        transmissionTimeOffset(0),
+        hasAbsoluteSendTime(false),
+        absoluteSendTime(0),
+        hasAudioLevel(false),
+        audioLevel(0) {}
+
+  bool hasTransmissionTimeOffset;
+  int32_t transmissionTimeOffset;
+  bool hasAbsoluteSendTime;
+  uint32_t absoluteSendTime;
+
+  // Audio Level includes both level in dBov and voiced/unvoiced bit. See:
+  // https://datatracker.ietf.org/doc/draft-lennox-avt-rtp-audio-level-exthdr/
+  bool hasAudioLevel;
+  uint8_t audioLevel;
+};
+
+struct RTPHeader {
+  RTPHeader()
+      : markerBit(false),
+        payloadType(0),
+        sequenceNumber(0),
+        timestamp(0),
+        ssrc(0),
+        numCSRCs(0),
+        paddingLength(0),
+        headerLength(0),
+        payload_type_frequency(0),
+        extension() {
+    memset(&arrOfCSRCs, 0, sizeof(arrOfCSRCs));
+  }
+
+  bool markerBit;
+  uint8_t payloadType;
+  uint16_t sequenceNumber;
+  uint32_t timestamp;
+  uint32_t ssrc;
+  uint8_t numCSRCs;
+  uint32_t arrOfCSRCs[kRtpCsrcSize];
+  uint8_t paddingLength;
+  uint16_t headerLength;
+  int payload_type_frequency;
+  RTPHeaderExtension extension;
+};
+
+struct VideoStream {
+  VideoStream()
+      : width(0),
+        height(0),
+        max_framerate(-1),
+        min_bitrate_bps(-1),
+        target_bitrate_bps(-1),
+        max_bitrate_bps(-1),
+        max_qp(-1) {}
+
+  size_t width;
+  size_t height;
+  int max_framerate;
+
+  int min_bitrate_bps;
+  int target_bitrate_bps;
+  int max_bitrate_bps;
+
+  int max_qp;
+
+  // Bitrate thresholds for enabling additional temporal layers.
+  std::vector<int> temporal_layers;
+};
+
 }  // namespace webrtc
 
 #endif  // WEBRTC_COMMON_TYPES_H_
-

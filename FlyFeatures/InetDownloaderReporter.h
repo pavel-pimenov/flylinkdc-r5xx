@@ -29,11 +29,7 @@
 #define WM_IDR_RESULT_RECEIVED WM_USER+0x16
 #define WM_IDR_CURRENT_STAGE WM_USER+0x17
 
-class InetDownloadReporter :
-	public IDateReceiveReporter, public Singleton<InetDownloadReporter>
-#ifdef _DEBUG
-	, virtual NonDerivable<InetDownloadReporter> // [+] IRainman fix.
-#endif
+class InetDownloadReporter : public IDateReceiveReporter, public Singleton<InetDownloadReporter>
 {
 		typedef std::deque<HWND> HWNDReceivers;
 		typedef HWNDReceivers::const_iterator HWNDReceiversIter;

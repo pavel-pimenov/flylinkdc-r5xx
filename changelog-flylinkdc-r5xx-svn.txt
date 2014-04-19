@@ -1,4 +1,52 @@
 ------------------------------------------------------------------------
+r17085 | pavel.pimenov@gmail.com | 2014-04-18 11:33:28 +0400 (Пт, 18 апр 2014) | 5 lines
+
+Merged revision(s) 17081-17082 from trunk:
+# Исправлены падения если в seeker - находится мусорок http://yadi.sk/d/WtdtH7BGMhYsP
+  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=64297
+  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=63507
+
+------------------------------------------------------------------------
+r17084 | pavel.pimenov@gmail.com | 2014-04-18 11:30:09 +0400 (Пт, 18 апр 2014) | 1 line
+
+# log
+------------------------------------------------------------------------
+r17080 | pavel.pimenov@gmail.com | 2014-04-17 19:46:26 +0400 (Чт, 17 апр 2014) | 1 line
+
+# webrtc - не собиралось
+------------------------------------------------------------------------
+r17077 | pavel.pimenov@gmail.com | 2014-04-17 19:31:46 +0400 (Чт, 17 апр 2014) | 25 lines
+
+Merged revision(s) 17048-17075 from trunk:
+# fly-server
+  Обобщил метод CFlyServerJSON::connect(m_GetFlyServerArray с сообщением WM_SPEAKER_MERGE_FLY_SERVER
+........
+# [strongdc-sqlite][merge]
+........
+# (issue 1459) http://code.google.com/p/flylinkdc/issues/detail?id=1459
+  - На adc хабах флай отображается урезанно без имени приложения
+  Починил показ тегов с adc хаба если не передается параметр AP а есть только VE
+........
+# [strongdc-sqlite][merge]
+  - Добавил иконку качаства видео в окно поиска.
+........
+* StrongDC++ sqlite build 17057
+........
+# [setup]
+  Замена dchub://dc.yarcom.ru на dchub://dc.yarhub.ru
+........
+# [webrtc] 
+........
+* Исправлена ошибка с затиранием команд пользователей в момент закрытия приложения (Спасибо Артему за багрепорт)
+........
+# Убрал лишние virtual NonDerivable
+........
+
+------------------------------------------------------------------------
+r17076 | pavel.pimenov@gmail.com | 2014-04-17 19:27:36 +0400 (Чт, 17 апр 2014) | 1 line
+
+# log
+------------------------------------------------------------------------
 r17033 | pavel.pimenov@gmail.com | 2014-04-09 19:40:06 +0400 (Ср, 09 апр 2014) | 5 lines
 
 Merged revision(s) 17030-17031 from trunk:

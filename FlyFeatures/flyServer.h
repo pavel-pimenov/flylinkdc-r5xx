@@ -256,9 +256,9 @@ typedef std::vector<CFlyServerKey> CFlyServerKeyArray;
 class CFlyServerAdapter
 {
 	public:
-		CFlyServerAdapter() 
+		CFlyServerAdapter(const HWND& p_hWnd): m_hMediaWnd(p_hWnd)
 #ifdef _DEBUG
-			 :m_debugWaits(false)
+			 ,m_debugWaits(false)
 #endif
 		{
 		}
@@ -272,9 +272,9 @@ class CFlyServerAdapter
 		virtual void mergeFlyServerInfo() = 0;
 		void waitForFlyServerStop()
 		{
+			dcdrun(m_debugWaits = true;)
 			if(m_query_thread)
 				{
-			dcdrun(m_debugWaits = true;)
 			   m_query_thread->join(); // Дождемся завершения.
 		}
 			}
@@ -309,14 +309,13 @@ class CFlyServerAdapter
 		static ::CriticalSection g_cs_fly_server;
 		void prepare_mediainfo_to_fly_serverL();
 		void push_mediainfo_to_fly_server();
+		void post_message_for_update_mediainfo();
 
 	private:
 		dcdrun(bool m_debugWaits;)
+		const HWND& m_hMediaWnd;			
 	public:
 		class CFlyServerQueryThread : public Thread
-#ifdef _DEBUG
-			, virtual NonDerivable<CFlyServerQueryThread>
-#endif
 		{
 			public:
 				CFlyServerQueryThread(CFlyServerAdapter* p_adapter) : m_previous_tick(0), m_adapter(p_adapter)
@@ -364,7 +363,7 @@ class CFlyServerAdapter
 		
 		struct CFlyServerJSON
 #ifdef _DEBUG
-			: virtual NonDerivable<CFlyServerJSON>, boost::noncopyable
+			: boost::noncopyable
 #endif
 		{
 			static void login();

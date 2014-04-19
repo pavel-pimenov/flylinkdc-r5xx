@@ -154,7 +154,7 @@ LogMessage::LogMessage(const char* file, int line, LoggingSeverity sev,
       case ERRCTX_ERRNO:
         tmp << " " << strerror(err);
         break;
-#ifdef WIN32
+#ifdef WIN32 // FlylinkDC++
       case ERRCTX_HRESULT: {
         char msgbuf[256];
         DWORD flags = FORMAT_MESSAGE_FROM_SYSTEM;

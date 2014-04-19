@@ -21,13 +21,13 @@ md "output\r%VERSION_NUM%%BETA_STATE%%REVISION_NUM%"
 
 if "%1"=="" goto :ProcessAllScripts
 for %%w in (%1) do (
-"C:\Program Files (x86)\Inno Setup 5\ISCC.exe" /Q /O"output\r%VERSION_NUM%%BETA_STATE%%REVISION_NUM%" /F"Setup%%~nw-r%VERSION_NUM%%BETA_STATE%%REVISION_NUM%" "%%w"
+"C:\Program Files (x86)\Inno Setup 5\ISCC.exe" /Q /O"output\r%VERSION_NUM%%BETA_STATE%%REVISION_NUM%" /F"Setup%%~nw-r%VERSION_NUM%%BETA_STATE%%REVISION_NUM%" "%%w"  "/ssignppafly5=C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\signtool.exe sign /a /d $qFlylinkDC++ r5xx$q /du $qhttp://flylinkdc.blogspot.com$q /t $qhttp://timestamp.verisign.com/scripts/timstamp.dll$q $f"
 )
 goto :end
 
 :ProcessAllScripts
 for %%w in (*.iss) do (
-"C:\Program Files (x86)\Inno Setup 5\ISCC.exe" /Q /O"output\r%VERSION_NUM%%BETA_STATE%%REVISION_NUM%" /F"Setup%%~nw-r%VERSION_NUM%%BETA_STATE%%REVISION_NUM%" "%%w"
+"C:\Program Files (x86)\Inno Setup 5\ISCC.exe" /Q /O"output\r%VERSION_NUM%%BETA_STATE%%REVISION_NUM%" /F"Setup%%~nw-r%VERSION_NUM%%BETA_STATE%%REVISION_NUM%" "%%w" "/ssignppafly5=C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\signtool.exe sign /a /d $qFlylinkDC++ r5xx$q /du $qhttp://flylinkdc.blogspot.com$q /t $qhttp://timestamp.verisign.com/scripts/timstamp.dll$q $f"
 )
 
 goto :end

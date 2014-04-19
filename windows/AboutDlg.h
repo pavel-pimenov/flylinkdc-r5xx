@@ -95,7 +95,7 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			    _T("Squork\r\njoedm\r\n")
 			    
 			    _T("\r\nTranslators:\r\n")
-			    _T("Nikitos\r\nTankafett\r\nR00T_ADMIN\r\ni.Kliok\r\nhat3k\r\nVladV\r\nXcell\r\nBlackRiderUA\r\nHavokdan\r\nIlya Shumov\r\n")
+			    _T("Nikitos\r\nTankafett\r\nR00T_ADMIN\r\ni.Kliok\r\nhat3k\r\nVladV\r\nXcell\r\nBlackRiderUA\r\nHavokdan\r\nShumoffon\r\n")
 			    
 			    _T("\r\nBeta-testers:\r\n")
 			    _T(" Pafuntik\r\nkotik\r\nTirael\r\nMoonRainbow\r\nBlackRiderUA\r\nBlack-code\r\nJhaoDa\r\nPapochka\r\nR00T_ADMIN\r\nNikitos\r\n-_SoRuS_-\r\nЛеонид Жилин lss.jilin@gmail.com\r\nShadoWx");

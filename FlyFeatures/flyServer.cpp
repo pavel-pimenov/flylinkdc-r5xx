@@ -506,6 +506,40 @@ string CFlyServerConfig::DBDelete()
 //======================================================================================================
 string CFlyServerAdapter::CFlyServerJSON::g_fly_server_id;
 //===================================================================================================================================
+void CFlyServerAdapter::post_message_for_update_mediainfo()
+{
+		if (!m_GetFlyServerArray.empty())
+		{
+			const string l_json_result = CFlyServerJSON::connect(m_GetFlyServerArray, false); // послать запрос на сервер для получения медиаинформации.
+			m_GetFlyServerArray.clear();
+			if(!l_json_result.empty())
+			{
+			Json::Value* l_root = new Json::Value;
+			Json::Reader l_reader;
+			const bool l_parsingSuccessful = l_reader.parse(l_json_result, *l_root);
+			if (!l_parsingSuccessful && !l_json_result.empty())
+			{
+				{
+					Lock l(g_cs_fly_server);
+					m_tth_media_file_map.clear();  // Если возникла ошибка передачи запроса на чтение, запись не шлем.
+				}
+				delete l_root;
+				LogManager::getInstance()->message("Failed to parse json configuration: l_json_result = " + l_json_result);
+			}
+			else
+			{
+				PostMessage(m_hMediaWnd, WM_SPEAKER_MERGE_FLY_SERVER, WPARAM(l_root),LPARAM(NULL));
+			}
+			}
+			else
+			{
+				Lock l(g_cs_fly_server);
+				m_tth_media_file_map.clear(); // Если возникла ошибка передачи запроса на чтение, запись не шлем.
+			}
+		}
+		push_mediainfo_to_fly_server(); // Сбросим на флай-сервер медиаинфу, что нашли у себя а там ее еще нет
+}
+//===================================================================================================================================
 void CFlyServerAdapter::push_mediainfo_to_fly_server()
 {
 	CFlyServerKeyArray l_copy_map;

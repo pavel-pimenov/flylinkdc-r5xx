@@ -220,7 +220,7 @@ string AutoUpdate::getUpdateFilesList(const string& p_componentName,
 				}
 			}
 			return p_serverUrl + p_descr;
-		};
+		}
 bool AutoUpdateObject::checkSignXML(const string& p_url_sign) const
 {
 	std::vector<byte> l_signData;

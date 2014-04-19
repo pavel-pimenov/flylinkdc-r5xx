@@ -237,7 +237,6 @@ void FavoriteManager::prepareClose()
 #ifdef PPA_USER_COMMANDS_HUBS_SET
 	m_userCommandsHubUrl.clear();
 #endif
-	userCommands.clear();
 }
 size_t FavoriteManager::countUserCommand(const string& p_Hub) const
 {
