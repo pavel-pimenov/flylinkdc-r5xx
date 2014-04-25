@@ -470,6 +470,7 @@ Inclure DHT?</String>
 		<String Name="DuplicateSource">Source en double</String>
 		<String Name="Duration">Durée</String>
 		<String Name="Eb">EiB</String>
+		<String Name="Edit">Modifier</String>
 		<String Name="EditAccel">&amp;Modif.</String>
 		<String Name="Email">E-Mail</String>
 		<String Name="EnableHubmodePic">Afficher l'icone de mode pour des Hubs</String>
@@ -1938,7 +1939,6 @@ Aussi, probablement besoin d'utiliser %[rawtitle] au lieu de %[title], pour obte
 		<String Name="WizardShareAlreadyin">Ce dossier est déjà partagé</String>
 		<String Name="WizardShareAlreadyindesc">Description du dossier existe déjà</String>
 		<String Name="WizardShareDeletefolderquestion">Voulez-vous de-partager ce dossier?</String>
-		<String Name="Edit">Modifier</String>
 		<String Name="WizardShareStatic">Vous pouvez ajouter des dossiers à partager avec les autres utilisateurs. Tous ses sous-dossiers et ses fichiers dans ces dossiers sont téléchargéables par des utilisateurs des hubs connectés. Merci de ne pas partager vos dossiers du système d'exploitation svp!</String>
 		<String Name="WizardShareToSmall">Votre part de grêle. Partager des fichiers plus.</String>
 		<String Name="WizardStartupTxt1">Bienvenue dans l'assistant de configuration de FlylinkDC++ !</String>

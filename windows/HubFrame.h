@@ -62,6 +62,7 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		
 		BEGIN_MSG_MAP(HubFrame)
 		MESSAGE_HANDLER(WM_SPEAKER, onSpeaker)
+		//MESSAGE_HANDLER(WM_SPEAKER_FIRST_USER_JOIN, OnSpeakerFirstUserJoin)
 		MESSAGE_RANGE_HANDLER(WM_SPEAKER_BEGIN, WM_SPEAKER_END, OnSpeakerRange)
 		NOTIFY_HANDLER(IDC_USERS, LVN_GETDISPINFO, ctrlUsers.onGetDispInfo)
 		NOTIFY_HANDLER(IDC_USERS, LVN_COLUMNCLICK, ctrlUsers.onColumnClick)
@@ -128,7 +129,8 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		
 		LRESULT onHubFrmCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 		LRESULT OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-		
+//		LRESULT OnSpeakerFirstUserJoin(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+
 		LRESULT onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/);
 		LRESULT onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onCopyHubInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
@@ -319,6 +321,43 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		void firstLoadAllUsers();
 		void usermap2ListrView();
 		
+#if 0
+		class CFlyUserMap : public Thread
+		{
+			public:
+				CFlyUserMap() : m_hub_frame(nullptr), m_is_first_run(false)
+				{
+				}
+				~CFlyUserMap()
+				{
+				}
+				int run()
+				{
+					m_hub_frame->usermap2ListrView();
+					return 0;
+				}
+				void process_init_user_list(HubFrame* p_hub_frame)
+				{
+					if (is_active())
+					{
+						return;
+					}
+					else
+					{
+						m_is_first_run = true;
+						m_hub_frame = p_hub_frame;
+						start(64);
+					}
+				}
+			private:
+				HubFrame* m_hub_frame;
+				bool m_is_first_run;
+		} m_userMapInitThread;
+		
+		//std::unique_ptr<webrtc::RWLockWrapper> m_userMapCS;
+		CriticalSection m_userMapCS;
+#endif
+		
 		UserInfo::OnlineUserMap m_userMap;
 		TaskQueue m_tasks;
 		bool m_needsUpdateStats;
@@ -341,11 +380,20 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 				return nullptr;
 				
 			const OnlineUserPtr ou = client->findUser(Text::fromT(p_nick));
-			return ou ? m_userMap.findUser(ou) : nullptr;
+			if (ou)
+			{
+				//webrtc::ReadLockScoped l(*m_userMapCS);
+				//Lock l(m_userMapCS);
+				return m_userMap.findUser(ou);
+			}
+			else
+			{
+				return nullptr;
+			}
 		}
-		UserInfo* findUser(const OnlineUserPtr& user)
+		UserInfo* findUser(const OnlineUserPtr& p_user)
 		{
-			return m_userMap.findUser(user);
+			return m_userMap.findUser(p_user);
 		}
 		//const tstring& getNick(const UserPtr& aUser);
 		

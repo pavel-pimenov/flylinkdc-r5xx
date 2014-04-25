@@ -279,7 +279,7 @@ void UserConnection::on(Data, uint8_t* p_data, size_t p_len) noexcept
 {
 	setLastActivity();
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-	if (p_len)
+	if (p_len && BOOLSETTING(ENABLE_RATIO_USER_LIST))
 		getUser()->AddRatioDownload(getSocket()->getIp4(), p_len);
 #endif
 	fire(UserConnectionListener::Data(), this, p_data, p_len);
@@ -289,7 +289,7 @@ void UserConnection::on(BytesSent, size_t p_Bytes, size_t p_Actual) noexcept
 {
 	setLastActivity();
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-	if (p_Actual)
+	if (p_Actual && BOOLSETTING(ENABLE_RATIO_USER_LIST))
 		getUser()->AddRatioUpload(getSocket()->getIp4(), p_Actual);
 #endif
 	fire(UserConnectionListener::BytesSent(), this, p_Bytes, p_Actual);

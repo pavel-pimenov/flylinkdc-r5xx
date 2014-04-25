@@ -221,7 +221,6 @@ void CDMDebugFrame::addLine(DebugTask& task)
 	{
 		ctrlPad.SetRedraw(TRUE);
 	}
-	//setDirty();
 }
 
 LRESULT CDMDebugFrame::onClear(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)

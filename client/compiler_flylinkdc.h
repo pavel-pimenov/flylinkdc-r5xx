@@ -250,13 +250,6 @@ typedef unsigned __int64 uint64_t;
 // http://code.google.com/p/flylinkdc/issues/detail?id=916
 // http://code.google.com/p/flylinkdc/issues/detail?id=944
 //#endif
-#if defined(NIGHT_BUILD)
-//# define IRAINMAN_TEST_FAST_UI_FOR_SHARING
-//# define IRAINMAN_USE_UNICODE_IN_NMDC // TODO: before transmission to the hub to try to convert the message to Ansi bit by bit, and the only thing that could not convert - convert to Unicode.
-#endif
-//#ifndef _DEBUG
-# define IRAINMAN_FASTS_QUEUE_MANAGER // ¬ключил во всех конфигураци€х TODO http://code.google.com/p/flylinkdc/issues/detail?id=1092
-//#endif
 //#define IRAINMAN_USE_SEARCH_FLOOD_FILTER // TODO L: оптимизировать поиск несколько другим способом: не отвечать на одинаковые запросы от одного искател€ в течении определЄнного промежутка времени, модификацию сделать внутри SearchManager - только это даст реальный эффект при большом числе открытых хабов.
 //#define IRAINMAN_ENABLE_TTH_GET_FLAG // This code is off. All clients support ADC teams have this flag is always set. Our version 4xx also do not use it. He is unlikely to ever need. Leave only to simplify merge.
 //#define IRAINMAN_CONNECTION_MANAGER_TOKENS_DEBUG // TODO: must correct work with tokens in the ConnectionManager. This error runs either with Strong, or even from a very long time. After confirming correct downloads, I'll probably fix the problem.

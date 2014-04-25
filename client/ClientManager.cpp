@@ -873,8 +873,9 @@ void ClientManager::on(NmdcSearch, Client* aClient, const string& aSeeker, Searc
 			}
 			
 			if (!str.empty())
+			{
 				aClient->send(str);
-				
+			}
 		}
 		else
 		{
@@ -917,23 +918,30 @@ void ClientManager::on(NmdcSearch, Client* aClient, const string& aSeeker, Searc
 	{
 		PartsInfo partialInfo;
 		TTHValue aTTH(aString.c_str() + 4);  //[+]FlylinkDC++ opt. //-V112
-		if (QueueManager::getInstance()->handlePartialSearch(aTTH, partialInfo))
+#ifdef _DEBUG
+//		LogManager::getInstance()->message("[Try] handlePartialSearch TTH = " + aString);
+#endif
+		if (QueueManager::getInstance()->handlePartialSearch(aTTH, partialInfo)) // TODO - часто ищется по ТТХ
 		{
+#ifdef _DEBUG
+			LogManager::getInstance()->message("[OK] handlePartialSearch TTH = " + aString);
+#endif
 			l_re = ClientManagerListener::SEARCH_PARTIAL_HIT; // !SMT!-S
 			string ip, file, proto, query, fragment;
 			uint16_t port = 0;
-			Util::decodeUrl(aSeeker, proto, ip, port, file, query, fragment); // TODO - зачем тут такая штука?
+			Util::decodeUrl(aSeeker, proto, ip, port, file, query, fragment); // TODO - зачем тут такая штука - по протоколу ведь aSeeker = IP:Port ?
+			dcassert(aSeeker == ip + ':' + Util::toString(port));
 			
 			try
 			{
 				AdcCommand cmd = SearchManager::getInstance()->toPSR(true, aClient->getMyNick(), aClient->getIpPort(), aTTH.toBase32(), partialInfo);
-				Socket s;
-				s.writeTo(Socket::resolve(ip), port, cmd.toString(getMyCID())); // [!] IRainman fix.
+				Socket udp;
+				udp.writeTo(Socket::resolve(ip), port, cmd.toString(getMyCID())); // TODO - зачем тут resolve кроме IP может быть что-то другое?
 			}
 			catch (Exception& e)
 			{
 #ifdef _DEBUG
-				LogManager::getInstance()->message("ClientManager::on(NmdcSearch, Partial search caught error = " + e.getError());
+				LogManager::getInstance()->message("ClientManager::on(NmdcSearch, Partial search caught error = " + e.getError() + " TTH = " + aString);
 				dcdebug("Partial search caught error\n");
 #endif
 			}

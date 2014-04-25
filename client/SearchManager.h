@@ -100,7 +100,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 				deque<pair<string, string>> resultList;
 				
 				volatile bool stop; // [!] IRainman fix: this variable is volatile.
-		} m_queue;
+		} m_queue_thread;
 		
 		// [-] CriticalSection cs; [-] FlylinkDC++
 		unique_ptr<Socket> socket;

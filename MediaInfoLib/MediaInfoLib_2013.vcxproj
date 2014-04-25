@@ -378,6 +378,7 @@
     <ClCompile Include="Source\MediaInfo\Audio\File_Celt.cpp" />
     <ClCompile Include="Source\MediaInfo\Audio\File_ChannelGrouping.cpp" />
     <ClCompile Include="Source\MediaInfo\Audio\File_DolbyE.cpp" />
+    <ClCompile Include="Source\MediaInfo\Audio\File_OpenMG.cpp" />
     <ClCompile Include="Source\MediaInfo\Audio\File_Opus.cpp" />
     <ClCompile Include="Source\MediaInfo\Audio\File_Pcm_M2ts.cpp" />
     <ClCompile Include="Source\MediaInfo\Audio\File_Pcm_Vob.cpp" />
@@ -398,6 +399,8 @@
     <ClCompile Include="Source\MediaInfo\File_Dummy.cpp" />
     <ClCompile Include="Source\MediaInfo\File_Other.cpp" />
     <ClCompile Include="Source\MediaInfo\File_Unknown.cpp" />
+    <ClCompile Include="Source\MediaInfo\Image\File_ArriRaw.cpp" />
+    <ClCompile Include="Source\MediaInfo\Image\File_Dds.cpp" />
     <ClCompile Include="Source\MediaInfo\Image\File_Dpx.cpp" />
     <ClCompile Include="Source\MediaInfo\Image\File_Exr.cpp" />
     <ClCompile Include="Source\MediaInfo\Image\File_Pcx.cpp" />
@@ -407,6 +410,7 @@
     <ClCompile Include="Source\MediaInfo\MediaInfo_Config.cpp" />
     <ClCompile Include="Source\MediaInfo\MediaInfo_Config_Automatic.cpp" />
     <ClCompile Include="Source\MediaInfo\MediaInfo_Config_MediaInfo.cpp" />
+    <ClCompile Include="Source\MediaInfo\MediaInfo_Config_PerPackage.cpp" />
     <ClCompile Include="Source\MediaInfo\MediaInfo_File.cpp" />
     <ClCompile Include="Source\MediaInfo\MediaInfo_Inform.cpp" />
     <ClCompile Include="Source\MediaInfo\MediaInfo_Internal.cpp" />
@@ -580,6 +584,7 @@
     <ClInclude Include="Source\MediaInfo\Audio\File_Celt.h" />
     <ClInclude Include="Source\MediaInfo\Audio\File_ChannelGrouping.h" />
     <ClInclude Include="Source\MediaInfo\Audio\File_DolbyE.h" />
+    <ClInclude Include="Source\MediaInfo\Audio\File_OpenMG.h" />
     <ClInclude Include="Source\MediaInfo\Audio\File_Opus.h" />
     <ClInclude Include="Source\MediaInfo\Audio\File_Pcm_M2ts.h" />
     <ClInclude Include="Source\MediaInfo\Audio\File_Pcm_Vob.h" />
@@ -598,6 +603,8 @@
     <ClInclude Include="Source\MediaInfo\File_Dummy.h" />
     <ClInclude Include="Source\MediaInfo\File_Other.h" />
     <ClInclude Include="Source\MediaInfo\File_Unknown.h" />
+    <ClInclude Include="Source\MediaInfo\Image\File_ArriRaw.h" />
+    <ClInclude Include="Source\MediaInfo\Image\File_Dds.h" />
     <ClInclude Include="Source\MediaInfo\Image\File_Dpx.h" />
     <ClInclude Include="Source\MediaInfo\Image\File_Exr.h" />
     <ClInclude Include="Source\MediaInfo\Image\File_Pcx.h" />
@@ -606,6 +613,7 @@
     <ClInclude Include="Source\MediaInfo\MediaInfo.h" />
     <ClInclude Include="Source\MediaInfo\MediaInfo_Config.h" />
     <ClInclude Include="Source\MediaInfo\MediaInfo_Config_MediaInfo.h" />
+    <ClInclude Include="Source\MediaInfo\MediaInfo_Config_PerPackage.h" />
     <ClInclude Include="Source\MediaInfo\MediaInfo_Const.h" />
     <ClInclude Include="Source\MediaInfo\MediaInfo_Events.h" />
     <ClInclude Include="Source\MediaInfo\MediaInfo_Events_Internal.h" />

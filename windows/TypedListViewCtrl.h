@@ -242,17 +242,18 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 					{
 						di->item.mask |= LVIF_DI_SETITEM;
 						const auto l_sub_item = static_cast<size_t>(di->item.iSubItem);
-						const auto& l_column_info = m_columnList[l_sub_item];
-						if (l_column_info.m_is_owner_draw == false)
+						//const auto& l_column_info = m_columnList[l_sub_item];
+						//if (l_column_info.m_is_owner_draw == false) // TODO - на OwnerDraw пропускать вызов getText
+						// Если не делать SetText - глючит инфа в подсказке на юзере
 						{
 							const auto l_index = m_columnIndexes[l_sub_item];
-							const auto& l_text = ((T*)di->item.lParam)->getText(l_index); // TODO - на OwnerDraw пропускать вызов getText
+							const auto& l_text = ((T*)di->item.lParam)->getText(l_index);
 							setText(di->item, l_text);
 						}
-						else
-						{
-							//dcdebug("!!!!!!!!!!! OWNER_DRAW - onGetDispInfo l_index = %d \n", l_sub_item);
-						}
+						//else
+						//{
+						//dcdebug("!!!!!!!!!!! OWNER_DRAW - onGetDispInfo l_index = %d \n", l_sub_item);
+						//}
 					}
 					if (di->item.mask & LVIF_IMAGE) // http://support.microsoft.com/KB/141834
 					{
@@ -646,7 +647,9 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 				nWidth = 80;
 			}
 			m_columnList.push_back(ColumnInfo(columnHeading, nCol, nFormat, nWidth));
+			m_columnList.shrink_to_fit();
 			m_columnIndexes.push_back(nCol);
+			m_columnIndexes.shrink_to_fit();
 			return CListViewCtrl::InsertColumn(nCol, columnHeading.c_str(), nFormat, nWidth, nSubItem);
 		}
 		// [+] InfinitySky. Alpha for PNG.

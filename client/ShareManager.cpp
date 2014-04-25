@@ -513,26 +513,26 @@ void ShareManager::load(SimpleXML& aXml)
 #endif
 }
 
-static const string SDIRECTORY = "Directory";
-static const string SFILE = "File";
-static const string SNAME = "Name";
-static const string SSIZE = "Size";
-static const string STTH = "TTH";
-static const string SHIT = "HIT";
-static const string STS = "TS";
-static const string SBR = "BR";
-static const string SWH = "WH";
-static const string SMVideo = "MV";
-static const string SMAudio = "MA";
+const string g_SDirectory = "Directory";
+const string g_SFile = "File";
+const string g_SName = "Name";
+const string g_SSize = "Size";
+const string g_STTH = "TTH";
+const string g_SHit = "HIT";
+const string g_STS = "TS";
+const string g_SBR = "BR";
+const string g_SWH = "WH";
+const string g_SMVideo = "MV";
+const string g_SMAudio = "MA";
 
 struct ShareLoader : public SimpleXMLReader::CallBack
 {
 		ShareLoader(ShareManager::DirList& aDirs) : dirs(aDirs), cur(0), depth(0) { }
 		void startTag(const string& p_name, StringPairList& p_attribs, bool p_simple)
 		{
-			if (p_name == SDIRECTORY)
+			if (p_name == g_SDirectory)
 			{
-				const string& name = getAttrib(p_attribs, SNAME, 0);
+				const string& name = getAttrib(p_attribs, g_SName, 0);
 				if (!name.empty())
 				{
 					if (depth == 0)
@@ -565,31 +565,31 @@ struct ShareLoader : public SimpleXMLReader::CallBack
 					depth++;
 				}
 			}
-			else if (cur && p_name == SFILE)
+			else if (cur && p_name == g_SFile)
 			{
-				const string& fname = getAttrib(p_attribs, SNAME, 0);
-				const string& size = getAttrib(p_attribs, SSIZE, 1);
-				const string& root = getAttrib(p_attribs, STTH, 2);
+				const string& fname = getAttrib(p_attribs, g_SName, 0);
+				const string& size = getAttrib(p_attribs, g_SSize, 1);
+				const string& root = getAttrib(p_attribs, g_STTH, 2);
 				if (fname.empty() || size.empty() || (root.size() != 39))
 				{
 					dcdebug("Invalid file found: %s\n", fname.c_str());
 					return;
 				}
 				auto it = cur->m_files.insert(ShareManager::Directory::ShareFile(fname, Util::toInt64(size), cur, TTHValue(root),
-				                                                                 atoi(getAttrib(p_attribs, SHIT, 3).c_str()),
-				                                                                 atoi(getAttrib(p_attribs, STS, 3).c_str()),
+				                                                                 atoi(getAttrib(p_attribs, g_SHit, 3).c_str()),
+				                                                                 atoi(getAttrib(p_attribs, g_STS, 3).c_str()),
 				                                                                 ShareManager::getFType(fname)
 				                                                                )
 				                             );
 				dcassert(it.second);
 				if (it.second && p_attribs.size() > 4) // Это уже наша шара. тут медиаинфа если больше 4-х.
 				{
-					const string& l_audio = getAttrib(p_attribs, SMAudio, 3);
-					const string& l_video = getAttrib(p_attribs, SMVideo, 3);
+					const string& l_audio = getAttrib(p_attribs, g_SMAudio, 3);
+					const string& l_video = getAttrib(p_attribs, g_SMVideo, 3);
 					if (!l_audio.empty() || !l_video.empty())
 					{
-						auto l_media_ptr = std::make_shared<CFlyMediaInfo>(CFlyMediaInfo(getAttrib(p_attribs, SWH, 3),
-						                                                                 atoi(getAttrib(p_attribs, SBR, 4).c_str()),
+						auto l_media_ptr = std::make_shared<CFlyMediaInfo>(CFlyMediaInfo(getAttrib(p_attribs, g_SWH, 3),
+						                                                                 atoi(getAttrib(p_attribs, g_SBR, 4).c_str()),
 						                                                                 l_audio,
 						                                                                 l_video));
 						l_media_ptr->calcEscape();
@@ -605,7 +605,7 @@ struct ShareLoader : public SimpleXMLReader::CallBack
 		}
 		void endTag(const string& p_name, const string&)
 		{
-			if (p_name == SDIRECTORY)
+			if (p_name == g_SDirectory)
 			{
 				depth--;
 				if (cur)
@@ -1533,11 +1533,11 @@ void ShareManager::generateXmlList()
 			{
 				if (File::deleteFile(Util::getConfigPath() + *i))
 				{
-					l_creation_log.log("Delete: " + *i);
+					l_creation_log.log("Delete: " + Util::getConfigPath() + *i);
 				}
 				else
 				{
-					l_creation_log.log("Error delete: " + *i);
+					l_creation_log.log("Error delete: " + Util::getConfigPath() + *i + "[ " + Util::translateError(GetLastError()) + "]");
 				}
 			}
 		}
@@ -1690,7 +1690,7 @@ void ShareManager::Directory::filesToXml(OutputStream& xmlFile, string& indent, 
 		xmlFile.write(LITERAL("\" TTH=\""));
 		tmp2.clear();
 		xmlFile.write(f.getTTH().toBase32(tmp2));
-		if (f.getHit())
+		if (f.getHit() && BOOLSETTING(ENABLE_HIT_FILE_LIST))
 		{
 			xmlFile.write(LITERAL("\" HIT=\""));
 			xmlFile.write(Util::toString(f.getHit()));

@@ -201,7 +201,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <DisableSpecificWarnings>4100;4127;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>NDEBUG;WIN32;MEDIAINFO_TRACE_NO;MEDIAINFO_EVENTS_NO;MEDIAINFO_DEMUX_NO;MEDIAINFO_DVDIF_ANALYZE_NO;MEDIAINFO_MPEGTS_DUPLICATE_NO;MEDIAINFO_NEXTPACKET_NO;MEDIAINFO_SEEK_NO;MEDIAINFO_IBI_NO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;MEDIAINFO_TRACE_NO;MEDIAINFO_EVENTS_NO;MEDIAINFO_DEMUX_NO;MEDIAINFO_DUPLICATE_NO;MEDIAINFO_DVDIF_ANALYZE_NO;MEDIAINFO_MPEGTS_DUPLICATE_NO;MEDIAINFO_LIBCURL_DLL_RUNTIME;MEDIAINFO_LIBCURL_NO;MEDIAINFO_SEEK_NO;MEDIAINFO_IBI_NO;MEDIAINFO_NEXTPACKET_NO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -229,7 +229,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <DisableSpecificWarnings>4100;4127;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>WIN32;NDEBUG;MEDIAINFO_TRACE_NO;MEDIAINFO_EVENTS_NO;MEDIAINFO_DEMUX_NO;MEDIAINFO_DVDIF_ANALYZE_NO;MEDIAINFO_MPEGTS_DUPLICATE_NO;MEDIAINFO_NEXTPACKET_NO;MEDIAINFO_SEEK_NO;MEDIAINFO_IBI_NO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;MEDIAINFO_TRACE_NO;MEDIAINFO_EVENTS_NO;MEDIAINFO_DEMUX_NO;MEDIAINFO_DUPLICATE_NO;MEDIAINFO_DVDIF_ANALYZE_NO;MEDIAINFO_MPEGTS_DUPLICATE_NO;MEDIAINFO_LIBCURL_DLL_RUNTIME;MEDIAINFO_LIBCURL_NO;MEDIAINFO_SEEK_NO;MEDIAINFO_IBI_NO;MEDIAINFO_NEXTPACKET_NO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -259,7 +259,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <DisableSpecificWarnings>4100;4127;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>WIN32;NDEBUG;MEDIAINFO_TRACE_NO;MEDIAINFO_EVENTS_NO;MEDIAINFO_DEMUX_NO;MEDIAINFO_DVDIF_ANALYZE_NO;MEDIAINFO_MPEGTS_DUPLICATE_NO;MEDIAINFO_NEXTPACKET_NO;MEDIAINFO_SEEK_NO;MEDIAINFO_IBI_NO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;MEDIAINFO_TRACE_NO;MEDIAINFO_EVENTS_NO;MEDIAINFO_DEMUX_NO;MEDIAINFO_DUPLICATE_NO;MEDIAINFO_DVDIF_ANALYZE_NO;MEDIAINFO_MPEGTS_DUPLICATE_NO;MEDIAINFO_LIBCURL_DLL_RUNTIME;MEDIAINFO_LIBCURL_NO;MEDIAINFO_SEEK_NO;MEDIAINFO_IBI_NO;MEDIAINFO_NEXTPACKET_NO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -374,6 +374,7 @@
     <ClCompile Include="Source\MediaInfo\Audio\File_Celt.cpp" />
     <ClCompile Include="Source\MediaInfo\Audio\File_ChannelGrouping.cpp" />
     <ClCompile Include="Source\MediaInfo\Audio\File_DolbyE.cpp" />
+    <ClCompile Include="Source\MediaInfo\Audio\File_OpenMG.cpp" />
     <ClCompile Include="Source\MediaInfo\Audio\File_Opus.cpp" />
     <ClCompile Include="Source\MediaInfo\Audio\File_Pcm_M2ts.cpp" />
     <ClCompile Include="Source\MediaInfo\Audio\File_Pcm_Vob.cpp" />
@@ -394,6 +395,8 @@
     <ClCompile Include="Source\MediaInfo\File_Dummy.cpp" />
     <ClCompile Include="Source\MediaInfo\File_Other.cpp" />
     <ClCompile Include="Source\MediaInfo\File_Unknown.cpp" />
+    <ClCompile Include="Source\MediaInfo\Image\File_ArriRaw.cpp" />
+    <ClCompile Include="Source\MediaInfo\Image\File_Dds.cpp" />
     <ClCompile Include="Source\MediaInfo\Image\File_Dpx.cpp" />
     <ClCompile Include="Source\MediaInfo\Image\File_Exr.cpp" />
     <ClCompile Include="Source\MediaInfo\Image\File_Pcx.cpp" />
@@ -577,6 +580,7 @@
     <ClInclude Include="Source\MediaInfo\Audio\File_Celt.h" />
     <ClInclude Include="Source\MediaInfo\Audio\File_ChannelGrouping.h" />
     <ClInclude Include="Source\MediaInfo\Audio\File_DolbyE.h" />
+    <ClInclude Include="Source\MediaInfo\Audio\File_OpenMG.h" />
     <ClInclude Include="Source\MediaInfo\Audio\File_Opus.h" />
     <ClInclude Include="Source\MediaInfo\Audio\File_Pcm_M2ts.h" />
     <ClInclude Include="Source\MediaInfo\Audio\File_Pcm_Vob.h" />
@@ -595,6 +599,8 @@
     <ClInclude Include="Source\MediaInfo\File_Dummy.h" />
     <ClInclude Include="Source\MediaInfo\File_Other.h" />
     <ClInclude Include="Source\MediaInfo\File_Unknown.h" />
+    <ClInclude Include="Source\MediaInfo\Image\File_ArriRaw.h" />
+    <ClInclude Include="Source\MediaInfo\Image\File_Dds.h" />
     <ClInclude Include="Source\MediaInfo\Image\File_Dpx.h" />
     <ClInclude Include="Source\MediaInfo\Image\File_Exr.h" />
     <ClInclude Include="Source\MediaInfo\Image\File_Pcx.h" />

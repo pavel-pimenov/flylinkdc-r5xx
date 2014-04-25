@@ -69,8 +69,9 @@ class User : public intrusive_ptr_base<User>, public Flags
 			DHT_BIT,
 			NAT_BIT,
 #ifdef PPA_INCLUDE_IPFILTER
-			PG_BLOCK_BIT
+			PG_BLOCK_BIT,
 #endif
+			CHANGE_IP_BIT
 		};
 		
 		/** Each flag is set if it's true in at least one hub */
@@ -107,8 +108,9 @@ class User : public intrusive_ptr_base<User>, public Flags
 			NAT0 = 1 << NAT_BIT,
 			
 #ifdef PPA_INCLUDE_IPFILTER
-			PG_BLOCK = 1 << PG_BLOCK_BIT
+			PG_BLOCK = 1 << PG_BLOCK_BIT,
 #endif
+			CHANGE_IP = 1 << CHANGE_IP_BIT
 		};
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 		enum DefinedAutoBanFlags

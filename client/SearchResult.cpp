@@ -85,7 +85,7 @@ string SearchResult::toSR(const Client& c) const
 	// File:        "$SR %s %s%c%s %d/%d%c%s (%s)|"
 	// Directory:   "$SR %s %s %d/%d%c%s (%s)|"
 	string tmp;
-	tmp.reserve(128);
+	tmp.reserve(128 + file.size());
 	tmp.append("$SR ", 4);
 //#ifdef IRAINMAN_USE_UNICODE_IN_NMDC
 //	tmp.append(c.getMyNick());

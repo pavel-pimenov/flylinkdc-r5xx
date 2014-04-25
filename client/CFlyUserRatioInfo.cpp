@@ -52,7 +52,7 @@ void CFlyUserRatioInfo::flushRatioL()
 bool CFlyUserRatioInfo::try_load_ratio(const boost::asio::ip::address_v4& p_last_ip_from_sql)
 {
 	//dcassert(!p_last_ip_from_sql.is_unspecified());
-	if (m_user->getHubID() && !m_user->m_nick.empty()) // Не грузили данные по рейтингу?
+	if (BOOLSETTING(ENABLE_RATIO_USER_LIST) && m_user->getHubID() && !m_user->m_nick.empty()) // Не грузили данные по рейтингу?
 	{
 		const CFlyRatioItem& l_item = CFlylinkDBManager::getInstance()->load_ratio(
 		                                  m_user->getHubID(),

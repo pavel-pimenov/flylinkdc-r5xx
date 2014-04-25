@@ -136,7 +136,11 @@ void User::setIP(const boost::asio::ip::address_v4& p_last_ip)
 	}
 	else
 	{
-		m_last_ip = p_last_ip;
+		if (m_last_ip != p_last_ip)
+		{
+			m_last_ip = p_last_ip;
+			setFlag(CHANGE_IP);
+		}
 	}
 }
 boost::asio::ip::address_v4 User::getIP()
@@ -195,7 +199,10 @@ uint64_t User::getBytesDownload()
 void User::fixLastIP()
 {
 	initRatio();
-	setIP(m_last_ip);
+	if (!m_last_ip.is_unspecified())
+	{
+		setIP(m_last_ip);
+	}
 }
 void User::incMessageCount()
 {
@@ -230,6 +237,16 @@ void User::flushRatio()
 	webrtc::ReadLockScoped l(*g_ratio_cs);
 	if (m_ratio_ptr)
 		m_ratio_ptr->flushRatioL();
+	else
+	{
+		if (isSet(CHANGE_IP))
+		{
+			if (getHubID() && !m_nick.empty() && CFlylinkDBManager::isValidInstance())
+			{
+				CFlylinkDBManager::getInstance()->update_last_ip(getHubID(), m_nick, m_last_ip);
+			}
+		}
+	}
 }
 void User::initRatioL(const boost::asio::ip::address_v4& p_ip)
 {
@@ -268,6 +285,7 @@ void User::initRatio()
 				}
 			}
 		}
+		unsetFlag(CHANGE_IP);
 	}
 }
 
@@ -410,7 +428,7 @@ string Identity::getTag() const
 		char l_tagItem[128];
 		l_tagItem[0] = 0;
 		string l_version;
-		if(getDicAP())
+		if (getDicAP())
 		{
 			l_version = getStringParam("AP") + " V:" + getStringParam("VE");
 		}

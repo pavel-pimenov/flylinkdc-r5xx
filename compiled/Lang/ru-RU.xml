@@ -203,7 +203,7 @@
 		<String Name="ChangeHashSpeedText">Временно изменить максимальную скорость хеширования (МБ/с) (0 - без ограничений)</String>
 		<String Name="ChangeLanguage">Язык изменён</String>
 		<String Name="ChangeLanguageInfo">Перезапустите программу для изменения языка</String>
-		<String Name="Chatdblclickaction">на Нике в чате</String>
+		<String Name="Chatdblclickaction">на нике в чате</String>
 		<String Name="ChatAnimSmiles">Использовать анимированные смайлы в чате</String>
 		<String Name="ChatCommands">Команды чата</String>
 		<String Name="ChatMessage">Сообщение чата</String>
@@ -482,6 +482,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="DuplicateSource">Дубликат источника</String>
 		<String Name="Duration">Длительность</String>
 		<String Name="Eb">ЭБ</String>
+		<String Name="Edit">Изменить</String>
 		<String Name="EditAccel">&amp;Правка</String>
 		<String Name="Email">E-Mail</String>
 		<String Name="EmptyLineSkiped">Пустая строка пропущена</String>
@@ -489,6 +490,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="EnableCountryflag">Добавить флаг Страны в 'Расположение' списка Пользователей</String>
 		<String Name="EnableLastIp">Сохранять IP в базе SQLite</String>
 		<String Name="EnableFlyServer">Искать в облаке</String>
+		<String Name="EnableHitFilelist">Включить счётчик скачивания файла в списке файлов</String>
 		<String Name="EnableMultiSource">Включить сегментирование</String>
 		<String Name="EnablePopups">Включить всплывающие подсказки</String>
 		<String Name="EnableSounds">Включить звуки</String>
@@ -931,6 +933,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="MenuHomepage">Домашняя страница</String>
 		<String Name="MenuHorizontalTile">Горизонтально</String>
 		<String Name="MenuJoinTeam">Исходный код FlylinkDC++…</String>
+		<String Name="MenuChangeFlylinkLocation">Изменить местонахождение FlylinkDC++</String>
 		<String Name="MenuMinimizeAll">Свернуть &amp;всё</String>
 		<String Name="MenuNetworkStatistics">Сетевая статистика</String>
 		<String Name="MenuNotepad">&amp;Блокнот	Ctrl+N</String>
@@ -2047,7 +2050,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="WizardShareAlreadyin">Выбранный каталог уже расшарен</String>
 		<String Name="WizardShareAlreadyindesc">Такое имя папки уже есть</String>
 		<String Name="WizardShareDeletefolderquestion">Убрать этот каталог из списка доступных к скачиванию?</String>
-		<String Name="Edit">Изменить</String>
 		<String Name="WizardShareStatic">Вы можете добавить тут каталоги, содержимое которых могут скачивать пользователи хабов, к которым вы подключитесь.
 Не выставляйте в доступ каталоги с системными файлами и содержащими конфиденциальную информацию!</String>
 		<String Name="WizardShareToSmall">Вы расшарили слишком мало. Расшарьте больше файлов.</String>

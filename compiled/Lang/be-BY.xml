@@ -12,7 +12,7 @@
 		<String Name="Action">Дзеяньне</String>
 		<String Name="Active">Дзейны</String>
 		<String Name="ActiveNotice">На асяродку выявілі дзейны спосаб.</String>
-		<String Name="ActiveSearchString">Задзейнічаны / Шукаць радок</String>
+		<String Name="ActiveSearchString">Дзейнічае / Шукаць радок</String>
 		<String Name="Add">&amp;Дадаць</String>
 		<String Name="Add2">Дадаць</String>
 		<String Name="Added">Дадалі</String>
@@ -26,7 +26,7 @@
 		<String Name="AddToFavoritesHubs">Дадаць да ўлюбёных</String>
 		<String Name="AdlsDestination">Прызначаны каталёґ</String>
 		<String Name="AdlsDiscard">Адкінуць</String>
-		<String Name="AdlsDownload">Сьцягваць сабе</String>
+		<String Name="AdlsDownload">Спампоўваць сабе</String>
 		<String Name="AdlsEnabled">Дзейнічае</String>
 		<String Name="AdlsFullPath">Поўны шлях</String>
 		<String Name="AdlsProperties">Уласьцівасьці самарушнага пошуку</String>
@@ -35,14 +35,14 @@
 		<String Name="AdlsSizeMin">Найменшы,</String>
 		<String Name="AdlsType">Від крыніцы</String>
 		<String Name="AdlsUnits">памер; адзінкі:</String>
-		<String Name="AdlBrief">Самарушны пошук ёсьць прыладаю хутка шукаць у пераліках каталёґаў, што сьцягваюцца з карыстальнікаў. 
+		<String Name="AdlBrief">Самарушны пошук дазваляе хутка шукаць у пераліках каталёґаў, што спампоўваюцца з карыстальнікаў. 
 Стварыце новы самарушны пошук: упішыце, напрыклад, «.avi» як радок, які трэба шукаць. 
-Калі вы сьцягнеце пералік каталёґаў, усе файлы «AVI», каб іх было хутчэй знайсьці, 
+Калі вы спампуеце пералік каталёґаў, усе файлы «AVI», каб іх было хутчэй знайсьці, 
 адлюструюцца ў каталёґу з назваю &lt;&lt;&lt;ADLSearch&gt;&gt;&gt;. Гэта прыкладна тое самае, што 
 звычайным чынам некалькі разоў шукаць у каталёґах. 
 
 Адмысловыя можнасьці: 
-1. Птушачка «Задзейнічаны» паказвае, ці выкарыстоўваецца гэты пошук. 
+1. Птушачка «Дзейнічае» паказвае, ці выкарыстоўваецца гэты пошук. 
 2. «Від крыніцы» можа быць наступным: 
      «Назва файла» — шукаем у назвах файлаў,
 
@@ -59,8 +59,8 @@
 Дадатковыя магчымасьці:
 
 1. «%y.%m.%d», упісанае ў поле пошуку, будзе замяняцца на сёньняшнюю дату.   
-Каб зьмяніць падмену, можна ўпісаць y/m/d, — ці пакінуць частку пустою.   
-«%[nick]» будзе замяняцца на мянушку карыстальніка, зь якога сьцягнулі пералік каталёґаў. 
+Каб зьмяніць падмену, можна ўпісаць y/m/d, — ці пакінуць частку пустою.  
+«%[nick]» будзе замяняцца на мянушку карыстальніка, зь якога спампавалі пералік каталёґаў. 
 
 2. Калі назваць каталёґ «discard», ён ня будзе паказвацца ў агульным выніку. 
 Гэта карысна з магчымасьцю № 3, каб пазбаўляцца нецікавых вынікаў. 
@@ -76,11 +76,11 @@
 		<String Name="AdlTitle">Апісаньне самарушнага пошуку</String>
 		<String Name="Ago">таму</String>
 		<String Name="All">Усе</String>
-		<String Name="AllowAll">дазваляць усе</String>
+		<String Name="AllowAll">Дазволіць усё</String>
 		<String Name="AllowNatTraversal">Дазволіць NAT Traversal на злучэньнях зь нядзейн. карыстальнікамі</String>
 		<String Name="All3UsersOffline">Усе тры карыстальнікі ня ў сетцы</String>
 		<String Name="All4UsersOffline">Усе чатыры карыстальнікі ня ў сетцы</String>
-		<String Name="AllDownloadSlotsTaken">Усе шчыліны сьцягваньня занятыя</String>
+		<String Name="AllDownloadSlotsTaken">Усе шчыліны спампоўваць занятыя</String>
 		<String Name="AllFileSlotsTaken">Усе шчыліны файлаў занятыя</String>
 		<String Name="AllUsersOffline">Усе (%d) карыстальнікі ня ў сетцы</String>
 		<String Name="AlreadyIgnored">Карыстальнік ужо ў сьпісе тых, каго не заўважаць!</String>
@@ -93,8 +93,8 @@
 		<String Name="Ask">Запытацца</String>
 		<String Name="AskSlot">Запытацца на шчыліну</String>
 		<String Name="AskSlotTemplate">Вітаю, %[nick]. Дай мне, калі ласка, шчыліну на %[filename].</String>
-		<String Name="AttemptToUseSpamMessageCm">Нехта (%s) паспрабаваў скарыстацца вашым кліентам, каб рассылаць лухту %s:%d; калі ласка, намоўце ўладальніку асяродку, каб ён выправіў гэта</String>
-		<String Name="AttemptToUseSpamMessageS">Нехта паспрабаваў скарыстацца вашым кліентам, каб рассылаць лухту %s; калі ласка, намоўце ўладальніку асяродку, каб ён выправіў гэта</String>
+		<String Name="AttemptToUseSpamMessageCm">Нехта (%s) паспрабаваў скарыстацца вашым кліентам, каб рассылаць лухту %s:%d. Намоўце ўладальніку асяродку, каб ён выправіў гэта</String>
+		<String Name="AttemptToUseSpamMessageS">Нехта паспрабаваў скарыстацца вашым кліентам, каб рассылаць лухту %s. Намоўце ўладальніку асяродку, каб ён выправіў гэта</String>
 		<String Name="AtHubYouHaveRightOperator">Вы маеце правы апэратара на асяродку %s</String>
 		<String Name="AtLeast">Ня меней за</String>
 		<String Name="AtMost">Ня болей за</String>
@@ -109,38 +109,37 @@
 		<String Name="AutoupdateColorthemes">Аздабленьне колерамі</String>
 		<String Name="AutoupdateComponentLabel">Якія складнікі абнаўляць</String>
 		<String Name="AutoupdateCustomlocation">База месцазнаходжаньня</String>
+		<String Name="AutoupdateShellExt">Пашырэньне абалонкі</String>
 		<String Name="AutoupdateDocumentation">Дакумэнтацыя</String>
-		<String Name="AutoupdateDownloadedRemoveOrInstall">Сьцягнулі абнаўленьне «FlylinkDC++». Ці абнавіць зараз? Калі не абнавіць, абнаўленьне сатрэцца.</String>
-		<String Name="AutoupdateDownloadFailed">Не ўдалося сьцягнуць абнаўленьне.</String>
-		<String Name="AutoupdateDownloadFinished">Файлы абнаўленьня сьцягнулі.</String>
+		<String Name="AutoupdateDownloadedRemoveOrInstall">Спампавалі абнаўленьне «FlylinkDC++». Ці абнавіць зараз? Калі не абнавіць, абнаўленьне сатрэцца.</String>
+		<String Name="AutoupdateDownloadFinished">Файлы абнаўленьня спампавалі.</String>
 		<String Name="AutoupdateDownloadRestart">Ці запусьціць нанова «FlylinkDC++», каб усталяваць абнаўленьне?</String>
 		<String Name="AutoupdateDownloadStart1">FlylinkDC++ знайшоў абнаўленьне</String>
-		<String Name="AutoupdateDownloadStart2">і ўжо можна пачаць сьцягваць:</String>
+		<String Name="AutoupdateDownloadStart2">і ўжо можна пачаць спампоўваць: </String>
 		<String Name="AutoupdateDownloadStart3">Ці абнавіць праґраму?</String>
-		<String Name="AutoupdateDownloadSuccess">сьцягнулі файл абнаўленьня</String>
+		<String Name="AutoupdateDownloadSuccess">спампавалі файл абнаўленьня</String>
 		<String Name="AutoupdateDownloadUpdateonexit">Яны ўсталююцца па выхадзе з праґрамы.</String>
 		<String Name="AutoupdateEmopacks">Наборы пачуцьцезнакаў</String>
 		<String Name="AutoupdateEnable">Абнаўляць самарушна</String>
 		<String Name="AutoupdateError">Не ўдалося абнавіць «FlylinkDC++»</String>
 		<String Name="AutoupdateErrorStartFlyupdateFailed">Прылада «FlyUpdate» не запусьцілася. Памылка:</String>
 		<String Name="AutoupdateErrorUpdateFile">Далі хібу, калі абнаўлялі файл:</String>
-		<String Name="AutoupdateErrorVerif">Далі хібу, калі спраўджалі</String>
 		<String Name="AutoupdateExe">Выканальныя файлы</String>
-		<String Name="AutoupdateForceRestart">Запусьціць праґраму нанова, як сьцягнецца абнаўленьне</String>
+		<String Name="AutoupdateForceRestart">Запусьціць праґраму нанова, як спампуецца абнаўленьне</String>
 		<String Name="AutoupdateGeoip">База «GeoIP»</String>
 		<String Name="AutoupdateHourly">Штогадзіны</String>
 		<String Name="AutoupdateIconthemes">Наборы значак</String>
 		<String Name="AutoupdateIgnored">Абнаўленьне прапусьцілі</String>
 		<String Name="AutoupdateLang">Пакунак мовы</String>
 		<String Name="AutoupdatePortalbrowser">Аглядальнік пляцовак</String>
-		<String Name="AutoupdateReady">сьцягнулі; ужо можна абнаўляць</String>
+		<String Name="AutoupdateReady">спампавалі; ужо можна абнаўляць</String>
 		<String Name="AutoupdateRunonstartup">Абнаўляцца па запуску самарушна</String>
 		<String Name="AutoupdateScheduleLabel">Расклад абнаўленьня</String>
 		<String Name="AutoupdateShowupdateready">Папярэджваць, што трэба нанова запусьціць праґраму</String>
 		<String Name="AutoupdateSounds">Гукі</String>
 		<String Name="AutoupdateStartattime">Абнаўляцца штодзень а:</String>
 		<String Name="AutoupdateStarted">Пачынаем абнаўляцца</String>
-		<String Name="AutoupdateSuccess">сьцягнулі</String>
+		<String Name="AutoupdateSuccess">спампавалі</String>
 		<String Name="AutoupdateTempIgnore">Часова не зважаем на абнаўленьні</String>
 		<String Name="AutoupdateTitle">Абнаўленьне «FlylinkDC++»</String>
 		<String Name="AutoupdateToBetaServ">Абнаўляць да бэта-вэрсіяў</String>
@@ -158,8 +157,8 @@
 		<String Name="AutoConnectStartOff">Не злучацца па запуску</String>
 		<String Name="AutoConnectStartOn">Злучацца па запуску</String>
 		<String Name="AutoGrantNick">Даваць шчыліну / Мянушка</String>
-		<String Name="AutoGrant">Даваць шчыліну</String>
-		<String Name="AverageUpload">Хуткасьць зацягваць</String>
+		<String Name="AutoGrant">Дадаваць шчыліну</String>
+		<String Name="AverageUpload">Хуткасьць запампоўваць</String>
 		<String Name="AvCheckThisFile">Спраўджаны супрацьвірусам</String>
 		<String Name="Away">Адсутнічаю</String>
 		<String Name="AwayModeOff">Выйшлі са стану «адсутнічаю»</String>
@@ -171,7 +170,7 @@
 		<String Name="BanmsgPeriod">Час (хв.) між паведамл. (0 = не паведамляць)</String>
 		<String Name="BanColorDlg">Выгнаньне (с. ф.)</String>
 		<String Name="BanForcePm">Паведамляць нат калі кліент можа сам паказваць выгнаньне</String>
-		<String Name="BanLimit">Абмежав. хутк. зацягваць (КіБ) &lt;</String>
+		<String Name="BanLimit">Абмежав. хутк. запампоўваць (КіБ) &lt;</String>
 		<String Name="BanMessage">Паведамляць:</String>
 		<String Name="BanShare">Абагуленае (ҐіБ) меней за</String>
 		<String Name="BanSlots">Шчылінаў &lt;</String>
@@ -187,10 +186,11 @@
 		<String Name="BbcodePanelStrike">Закрэсьлены</String>
 		<String Name="BbcodePanelTranslate">Ператварыць (выбраны) тэкст</String>
 		<String Name="BbcodePanelUnderline">Падкрэсьлены</String>
+		<String Name="BbcodePanelColor">Колер</String>
 		<String Name="Bitrate">Бітаў за сэкунду</String>
-		<String Name="BitziLookup">Bitzi Lookup</String>
+		<String Name="BitziLookup">Bitzi-пошук</String>
 		<String Name="BlendOfflineSearch">Зьмешваць вынікі пошуку ў адлучаных</String>
-		<String Name="BlockedIncomingConn">Забаранілі ўваходнае злучэньне з</String>
+		<String Name="BlockedIncomingConn">Забаранілі ўваходнае злучэньне з </String>
 		<String Name="BothUsersOffline">Абодва карыстальнікі ня ў сетцы</String>
 		<String Name="Browse">Зірнуць…</String>
 		<String Name="BrowseFileList">Прагледзець сьпіс файлаў</String>
@@ -206,15 +206,18 @@
 		<String Name="CdmDetection">Выкрыцьцё</String>
 		<String Name="CdmFilter">Прасеяць</String>
 		<String Name="CdmHubCommands">Загады асяродку</String>
+		<String Name="CdmWatchingAll">Сачыць за ўсімі</String>
 		<String Name="CertificateFileNotChosen">Не абралі файл пасьведчаньня</String>
 		<String Name="CertificateGenerated">Стварылі новае пасьведчаньне TLS</String>
 		<String Name="CertificateGenerationFailed">TLS не задзейнічаны, не ўдалося стварыць пасьведчаньне:</String>
 		<String Name="CertificateNotTrusted">Не магу злучыцца: пасьведчаньне не даверанае</String>
-		<String Name="ChangeHashSpeedText">Часова зьмяніць найвялікшую хуткасьць (у МіБ/с) (0 - без абмежаванняў)</String>
+		<String Name="Certificates">Пасьведчаньні</String>
+		<String Name="ChangeHashSpeedText">Часова зьмяніць найвялікшую хуткасьць (МіБ/с, 0 — неабмежаваная)</String>
 		<String Name="ChangeLanguage">Зьмянілі мову</String>
 		<String Name="ChangeLanguageInfo">Каб мова зьмянілася, запусьціце праґраму нанова</String>
 		<String Name="Chatdblclickaction">па карыстальніку ў гутарцы</String>
 		<String Name="ChatAnimSmiles">Выкарыстоўваць ажыўленыя пачуцьцезнакі ў гутарцы</String>
+		<String Name="ChatCommands">Загады гутаркі</String>
 		<String Name="ChatMessage">Паведамленьне гутаркі</String>
 		<String Name="ChatRefferingToNick">Ставіць пасьля звароту да мянушкі коску</String>
 		<String Name="CheatingDescription">Апісаньне ашуканства</String>
@@ -237,7 +240,7 @@
 		<String Name="Clear">Ачысьціць гутарку</String>
 		<String Name="ClearSearchHistory">Ачысьціць гісторыю пошуку</String>
 		<String Name="ClientId">Азначальнік і вэрсія</String>
-		<String Name="ClientProfileDownloadFailed">Не ўдалося сьцягнуць профілі кліентаў.</String>
+		<String Name="ClientProfileDownloadFailed">Не ўдалося спампаваць профілі кліентаў.</String>
 		<String Name="ClientProfileNowUpdated">Абнавілі профілі кліентаў.</String>
 		<String Name="Close">Зачыніць</String>
 		<String Name="CloseConnection">Скончыць злучэньне</String>
@@ -277,7 +280,7 @@
 		<String Name="CmdPublicSystemInfo">Даслаць у гутарку зьвесткі пра сыстэму</String>
 		<String Name="CmdReplaceWithLastInsertedNick">Замяняе на апошнюю ўстаўленую ў гутарку мянушку</String>
 		<String Name="CmdRmFav">Выкрэсьлівае дзейны асяродак з улюбёных</String>
-		<String Name="CmdSaveQueue">Захаваць чаргу сьцягванага</String>
+		<String Name="CmdSaveQueue">Захаваць чаргу спампоўванага</String>
 		<String Name="CmdSendPm">Дасылае асабістае (паведамленьне) (карыстальніку)</String>
 		<String Name="CmdShareRefresh">Абнаўляе сьпіс абагуленых файлаў</String>
 		<String Name="CmdShowJoins">Паказваць або не, хто ўваходзіць або выходзіць, у галоўнае гутарцы</String>
@@ -328,9 +331,10 @@
 		<String Name="CommandTooLong">Загад задаўгі</String>
 		<String Name="CommaNotFound">не знайшлі коску</String>
 		<String Name="Comment">Заўвага</String>
+		<String Name="CommentedLine">Радок з заўвагаю</String>
 		<String Name="CompiledOn">Сабралі:</String>
 		<String Name="Compressed">Сьціснуты</String>
-		<String Name="CompressionError">Далі хібу, калі сьціскалі</String>
+		<String Name="CompressionError">Не ўдалося сьціснуць</String>
 		<String Name="Configure">&amp;Наставіць</String>
 		<String Name="ConfiguredHubLists">Настаўленыя сьпісы асяродкаў сеціва</String>
 		<String Name="Connect">&amp;Злучыцца</String>
@@ -339,15 +343,17 @@
 		<String Name="ConnectingForced">Злучаемся (прымусова)…</String>
 		<String Name="ConnectingTo">Злучаемся з</String>
 		<String Name="Connection">Злучэньне</String>
+		<String Name="ConnectionBlocked">Злучэньня забаранілі</String>
 		<String Name="ConnectionClosed">Злучэньне зачынілі</String>
 		<String Name="ConnectionDetection">Самастойна выяўляць спосаб уваходных злучэньняў</String>
-		<String Name="ConnectionTimeout">Злучэньне па-за часам</String>
+		<String Name="ConnectionTimeout">Выйшаў час злучэньня</String>
 		<String Name="Connectivity">Злучэньне:</String>
 		<String Name="ConnectivityError">Памылка злучэньня:</String>
 		<String Name="ConnectivityRestored">Злучэньне аднавілі</String>
 		<String Name="ConnectAll">Злучыцца з усімі карыстальнікамі</String>
 		<String Name="ConnectFavuserHub">Злучыцца з асяродкам</String>
 		<String Name="ConnectToSupportHub">Злучацца з асяродкам падтрымкі па кожным запуску</String>
+		<String Name="ContactListMenu">Сьпіс кантактаў</String>
 		<String Name="ContinueSearch">Працягваць</String>
 		<String Name="Copy">Перапісаць</String>
 		<String Name="CopyAll">Перапісаць усё</String>
@@ -364,6 +370,9 @@
 		<String Name="CopyMlinkTempl">Перапісаць маґніт-спасылку як спасылку сеціва</String>
 		<String Name="CopyNick">Перапісаць мянушку</String>
 		<String Name="CopyNickIp">Перапісаць мянушку ды IP</String>
+		<String Name="CopyApplication">Перапісаць праґраму</String>
+		<String Name="CopyTag">Перапісаць бірку</String>
+		<String Name="CopyCid">Перапісаць азначальнік ячэйкі (CID)</String>
 		<String Name="CopyTth">Перапісаць скарот (TTH)</String>
 		<String Name="CopyUrl">Перапісаць спасылку (URL)</String>
 		<String Name="CouldNotOpenTargetFile">Не магу адчыніць прызначаны файл:</String>
@@ -381,14 +390,16 @@
 		<String Name="CustDesc">Настаўленьні апісаньня</String>
 		<String Name="CzdcRatiomsg">Шаблён паведамленьня суадносінаў</String>
 		<String Name="D">С:</String>
-		<String Name="DataBaseErrorString">Узьнікла памылка доступу да базы дадзеных.
-Калі ласка, адпраўце яе тэкст альбо скрыншот распрацоўнікам на адрас ppa74@ya.ru</String>
-		<String Name="DataBaseLockedString">Узьнікла памылка доступу да базы дадзеных (файл базы дадзеных FlylinkDC_*.sqlite заблакаваны)
-Калі ласка, зачыніце блакавальную праграму ці адпраўце тэкст/скрыншот памылкі распрацоўнікам на адрас ppa74@ya.ru
+		<String Name="DataBaseErrorString">
+Не ўдалося атрымаць доступ да базы зьвестак.
+Вышліце распрацоўцам (ppa74@ya.ru) тэкст памылкі або здымак экрана з памылкаю</String>
+		<String Name="DataBaseLockedString">
+Не ўдалося атрымаць доступ да базы зьвестак: файл базы «FlylinkDC_*.sqlite» замкнёны!
+Вызваліце базу зьвестак або вышліце распрацоўцам (ppa74@ya.ru) тэкст памылкі або здымак экрана з памылкаю
 
-Націсніце Ок для паўторнай спробы (тайм-аут 5 секунд)</String>
-		<String Name="Day">дзень</String>
-		<String Name="Days">дні</String>
+Каб паспрабаваць яшчэ раз (тэрмін —5 сэк.), націсьніце «Добра»</String>
+		<String Name="Day">суткі</String>
+		<String Name="Days">сут.</String>
 		<String Name="DclstgenInfoborder">Зьвесткі файла DCLST</String>
 		<String Name="DclstgenInfoFilesstatic">Агульная колькасьць файлаў:</String>
 		<String Name="DclstgenInfoFoldersstatic">Агульная колькасьць каталёґаў:</String>
@@ -396,41 +407,41 @@
 		<String Name="DclstgenMetafilecannotbecreated">Нельга стварыць файл DCLST: сыстэма дала хібу (глядзіце справаздачу)</String>
 		<String Name="DclstgenMetafilecannotbeshared">Нельга дадаць да абагуленага. Перасуньце файл DCLST ва ўжо абагулены каталёґ</String>
 		<String Name="DclstgenMetafilecannotmoved">Нельга так назваць файл; абярыце іншую назву (каталёґ)</String>
-		<String Name="DclstgenMetafileready">Файлы DCLST могуць зацягвацца карыстальнікамі</String>
+		<String Name="DclstgenMetafileready">Файлы DCLST могуць запампоўвацца карыстальнікамі</String>
 		<String Name="DclstgenNameborder">Файл DCLST</String>
 		<String Name="DclstgenRenameas">Назваць DCLST…</String>
 		<String Name="DclstgenSaveas">Захаваць DCLST як…</String>
 		<String Name="DclstgenShare">Абагуліць зараз жа</String>
 		<String Name="DclstgenTitle">Стваральнік файла DCLST</String>
 		<String Name="DclstIncludeself">Ствараць рэкурсіўныя файлы</String>
-		<String Name="DclstShellDesc">Выклічнік сьцягваць файл DCLST</String>
+		<String Name="DclstShellDesc">Выклічнік спампоўваць файл DCLST</String>
 		<String Name="DclsAnotherFolder">Ствараць файл DCLST у каталёґу:</String>
 		<String Name="DclsClickAction">Пстрык па маґніт-спасылцы DCLST:</String>
-		<String Name="DclsCreateInFolder">Ствараць файл DCLST у каталёґу сьцягнутага</String>
+		<String Name="DclsCreateInFolder">Ствараць файл DCLST у каталёґу спампаванага</String>
 		<String Name="DclsGenerateList">Стварыць файл DCLST…</String>
 		<String Name="DclsGeneratorborder">Стваральнік DCLST</String>
 		<String Name="DclsUse">Падтрымваць DCLST у «FlylinkDC++»</String>
-		<String Name="DecompressionError">Далі хібу, калі распакоўвалі</String>
+		<String Name="DecompressionError">Не ўдалося распакаваць</String>
 		<String Name="Default">Як звычайна</String>
 		<String Name="DefaultAwayMessage">Вітаю, %[userNI]! Я адсутнічаю. Шчасьліва!</String>
-		<String Name="DefPasswordHint">Карыстальнік вырашыў не атрымваць асабістыя паведамленьні. Калі маеце пільную патрэбу, скарыстайце пароль «%[pm_pass]». Ня злоўжывайце: тых, хто будзе прасіць шчылінаў, павыганяюць, і яны застануцца навек у сьпісе незаўважаных і ня здолеюць нічога сьцягнуць, хоць бы й будуць стаяць у чарзе.</String>
+		<String Name="DefPasswordHint">Карыстальнік вырашыў не атрымваць асабістыя паведамленьні. Калі маеце пільную патрэбу, скарыстайце пароль «%[pm_pass]». Ня злоўжывайце: тых, хто будзе прасіць шчылінаў, павыганяюць, і яны застануцца навек у сьпісе незаўважаных і ня здолеюць нічога спампаваць, хоць бы й будуць стаяць у чарзе.</String>
 		<String Name="DefPasswordOkHint">Слушны пароль. Доступ адкрылі.</String>
 		<String Name="DeleteChecked">Сьціраць спраўджаныя сьпісы файлаў</String>
 		<String Name="DeleteFromFlyHashBlock">Выкрасьліць з Fly_hash_block…</String>
-		<String Name="DenyAll">забараняць усе</String>
+		<String Name="DenyAll">Забараняць усё</String>
 		<String Name="DepthStr">Глыбіня:</String>
 		<String Name="Description">Апісаньне</String>
 		<String Name="Destination">Месца прызначэньня</String>
 		<String Name="DeterminConType">Вызначаецца від злучэньня…</String>
 		<String Name="DhtBootstrappingStarted">DHT пачаў загружаць</String>
-		<String Name="DhtBootstrapError">Памылка загрузкі з DHT:</String>
+		<String Name="DhtBootstrapError">Памылка загрузкі з DHT: </String>
 		<String Name="DhtDisable">Забараніць DHT</String>
 		<String Name="DhtDisabled">DHT: не ўжываецца</String>
 		<String Name="DhtEnable">Задзейнічаць DHT</String>
 		<String Name="DhtEnabled">DHT зноўку задзейнічалі</String>
 		<String Name="DhtFirewalledUdp">Стан: UDP празь сетказаслону</String>
 		<String Name="DhtOurUpdPortOpend">Падобна, што порт UDP ўжо адчынены</String>
-		<String Name="DhtWarning">Калі скарыстацца гэтаю асаблівасьцю, гэта дазволіць сьцягваць і зацягваць у вонкавую сетку. Карыстайцеся гэтым толькі тады, калі вы разумееце, што робіце.
+		<String Name="DhtWarning">Гэтая магчымасьць дазваляе спампоўваць з вонкавае сеткі і запампоўваць у вонкавую сетку. Карыстайцеся гэтым толькі тады, калі вы разумееце, што робіце.
 
 Ці задзейнічаць DHT?</String>
 		<String Name="Directory">Каталёґ</String>
@@ -448,7 +459,7 @@
 		<String Name="DisconnectAll">Адлучыць усіх карыстальнікаў</String>
 		<String Name="DisconnectRaw">Адлучыць загадам</String>
 		<String Name="DisconnectUser">Адлучыць карыстальніка(ў)</String>
-		<String Name="Dl">Сьц:</String>
+		<String Name="Dl">Сп.:</String>
 		<String Name="DnsBare">DNS</String>
 		<String Name="Document">Дакумэнт</String>
 		<String Name="Done">Зроблена</String>
@@ -458,39 +469,44 @@
 		<String Name="DontShareTempDirectory">Нельга абагуляць часовы каталёґ</String>
 		<String Name="DosAtack">[DoS] Напаў %s з асяродку %s. Колькасьць спробаў &gt; %d. Файл = %s</String>
 		<String Name="DoubleClickAction">Падвойны пстрык</String>
-		<String Name="Download">Сьцягнуць</String>
-		<String Name="Downloaded">Сьцягнулі</String>
-		<String Name="DownloadedBytes">Сьцягнулі %s (%.01f%%) за %s</String>
-		<String Name="DownloadedFrom">сьцягнулі з</String>
-		<String Name="DownloadedParts">Сьцягнутыя часткі</String>
-		<String Name="Downloading">Сьцягваем…</String>
-		<String Name="DownloadingHubList">Сьцягваем сьпіс асяродкаў сеціва…</String>
-		<String Name="DownloadingList">Сьцягваем сьпіс…</String>
-		<String Name="DownloadsRunning">Калі ласка, спыніце тое, што ўжо сьцягваецца</String>
-		<String Name="DownloadFailed">Не ўдалося сьцягнуць:</String>
-		<String Name="DownloadFinishedIdle">Сьцягнулі, бязьдзейнічаем…</String>
-		<String Name="DownloadQueue">Чарга сьцягванага</String>
-		<String Name="DownloadStarting">Пачынаем сьцягваць…</String>
-		<String Name="DownloadTo">Сьцягнуць у…</String>
-		<String Name="DownloadWholeDir">Сьцягнуць увесь каталёґ</String>
-		<String Name="DownloadWholeDirTo">Сьцягнуць увесь каталёґ у…</String>
-		<String Name="DownloadWithPriority">Сьцягнуць зь пяршынствам…</String>
+		<String Name="Download">Спампаваць</String>
+		<String Name="Downloaded">Спампавалі</String>
+		<String Name="DownloadedBytes">Спампавалі %s (%.01f%%) за %s</String>
+		<String Name="DownloadedFrom">спампавалі з</String>
+		<String Name="DownloadedParts">Спампаваныя часткі</String>
+		<String Name="Downloading">Спампоўваецца…</String>
+		<String Name="DownloadingHubList">Спампоўваецца сьпіс асяродкаў сеціва…</String>
+		<String Name="DownloadingList">Спампоўваецца сьпіс…</String>
+		<String Name="DownloadsRunning">Спыніце тое, што ўжо спампоўваецца</String>
+		<String Name="DownloadFailed">Не ўдалося спампаваць:</String>
+		<String Name="DownloadFinishedIdle">Спампавалі, бязьдзейнічаем…</String>
+		<String Name="DownloadQueue">Чарга спампоўваць</String>
+		<String Name="DownloadStarting">Пачынаем спампоўваць…</String>
+		<String Name="DownloadTo">Спампаваць у…</String>
+		<String Name="DownloadWholeDir">Спампаваць увесь каталёґ</String>
+		<String Name="DownloadWholeDirTo">Спампаваць увесь каталёґ у…</String>
+		<String Name="DownloadWithPriority">Спампаваць зь пяршынствам…</String>
 		<String Name="DupeColorDlg">Абагуленае</String>
-		<String Name="DupeEx1">Сьцягвалі (с. ф.)</String>
+		<String Name="DupeEx1">Спампавалі (с. ф.)</String>
 		<String Name="DupeEx2">Абагулялі (с. ф.)</String>
 		<String Name="DuplicateExtensions">падвойнае пашырэньне</String>
 		<String Name="DuplicateRange">Падвоены абсяг</String>
 		<String Name="DuplicateSource">Падвоеная крыніца</String>
 		<String Name="Duration">Працягласьць</String>
 		<String Name="Eb">ЁіБ</String>
+		<String Name="Edit">Правіць</String>
 		<String Name="EditAccel">&amp;Рэдаґаваць</String>
 		<String Name="Email">Эл. пошта</String>
+		<String Name="EmptyLineSkiped">Прапусьцілі парожні радок</String>
 		<String Name="EnableHubmodePic">Паказваць значак стану асяродкаў</String>
+		<String Name="EnableCountryflag">Дадаваць сьцяг краіны ў поле «Месца» сьпіса карыстальнікаў</String>
+		<String Name="EnableLastIp">Захоўваць IP у базе зьвестак SQLite</String>
+		<String Name="EnableFlyServer">Ужываць воблака fly-паслужніка</String>
 		<String Name="EnableMultiSource">Дазволіць шмат крыніцаў</String>
 		<String Name="EnablePopups">Дазволіць вынырцы</String>
 		<String Name="EnableSounds">Дазволіць гучэць</String>
 		<String Name="EnterGroupName">Трэба ўпісаць назву суполкі!</String>
-		<String Name="EnterNick">Калі ласка, упішыце мянушку ў акне наладаў!</String>
+		<String Name="EnterNick">Упішыце мянушку ў акне наладаў!</String>
 		<String Name="EnterPassword">Упішыце пароль</String>
 		<String Name="EnterSearchString">Упішыце, які радок шукаць</String>
 		<String Name="Errors">Памылкі</String>
@@ -500,17 +516,19 @@
 		<String Name="ErrorCreatingRegistryKeyDclst">Далі хібу, калі ў рэестры стваралі ключ да файла DCLST</String>
 		<String Name="ErrorCreatingRegistryKeyMagnet">Далі хібу, калі стваралі ключ magnet у рэестры</String>
 		<String Name="ErrorDeleteTthStream">Далі хібу, калі сьціралі зьвесткі скаротаў у струмені NTFS</String>
-		<String Name="ErrorGeneratingCertificate">Далі хібу, калі стваралі пасьведчаньне</String>
+		<String Name="ErrorGeneratingCertificate">Не ўдалося стварыць пасьведчаньне</String>
 		<String Name="ErrorGetTthStream">Не знайшлі скароту ў струмені NTFS, таму ён створыцца нанова:</String>
-		<String Name="ErrorHashing">Не ўдалося стварыць скарот да</String>
-		<String Name="ErrorMediainfoScan">Пры сканаваньні файла %s в MediaInfoLib узьнікла памылка:
-%s
-Калі магчыма, адпраўце гэты файл для аналізу на адрас ppa74@ya.ru</String>
-		<String Name="ErrorOnIpAutoUpdate">Далі хібу, калі самарушна абнаўляўся IP:</String>
+		<String Name="ErrorHashing">Не ўдалося стварыць скарот: </String>
+		<String Name="ErrorMediainfoScan">Далі хібу, калі аглядалі файл «%s» бібліятэцы «MediaInfoLib»:
+с
+Калі магчыма, дашліце файл на аналіз па адрасе ppa74@ya.ru.</String>
+		<String Name="ErrorOnIpAutoUpdate">Не ўдалося самарушна абнавіць IP:</String>
+		<String Name="ErrorParse">Не ўдалося разабраць</String>
 		<String Name="ErrorString">Памылка</String>
 		<String Name="ErrIpfilter">Не знайшлі файл IPTrust.ini…</String>
 		<String Name="ExactShared">Абагуленае (дакладна)</String>
 		<String Name="ExactSize">Дакладны памер</String>
+		<String Name="ExceptSpecified">апроч пазначаных</String>
 		<String Name="ExclusiveHub">Прымусіць асяродак думаць, што ён — адзіны</String>
 		<String Name="ExclChecks">Ня спраўджаць кліентаў і на ашуканства</String>
 		<String Name="Executable">Выканальны файл</String>
@@ -518,16 +536,17 @@
 		<String Name="ExpandedResults">Разьвінуць вынікі пошуку</String>
 		<String Name="ExpandAll">Разьвінуць усё</String>
 		<String Name="ExternalPreview">Праглядаць тэкставыя файлы ў вонкавай праґраме</String>
-		<String Name="ExtraslotToDl">Дадатковую шчыліну карыстальнікам, зь якіх сьцягваю</String>
+		<String Name="ExtraslotToDl">Дадатковую шчыліну карыстальнікам, зь якіх спампоўваю</String>
 		<String Name="ExtraHubSlots">Шчылінаў на асяродак</String>
 		<String Name="ExtraSlotsSet">Вызначыць дадатковыя шчыліны</String>
+		<String Name="ExtraSlotByIp">Дадаваць шчыліны запампоўваць паводле IP</String>
 		<String Name="ExtraSlotTimeout">Тэрмін дадатковае шчыліны</String>
 		<String Name="ExtraSlotTimeFormat">Упішыце час (ГГ:ХВ ці ДД:ГГ:ХВ)</String>
 		<String Name="FailedToConnect">Не ўдалося злучыцца</String>
 		<String Name="FailedToLoad">Не ўдалося прачытаць</String>
 		<String Name="FailedToLoadCertificate">Не ўдалося прачытаць файл пасьведчаньня</String>
 		<String Name="FailedToLoadPrivateKey">Не ўдалося прачытаць асабісты ключ</String>
-		<String Name="FailedToLoadTrustedCertificateFrom">Не ўдалося прачытаць даверанае пасьведчаньне ў</String>
+		<String Name="FailedToLoadTrustedCertificateFrom">Не ўдалося прачытаць даверанае пасьведчаньне ў </String>
 		<String Name="FailedToMakeDump">Не ўдалося стварыць звалку. Упэўніцеся, што ў каталёґу «Windows\System32» ёсьць файл «dbghelp.dll».</String>
 		<String Name="FailedToShutdown">Не ўдалося спыніць асьветар!</String>
 		<String Name="FakeshareRaw">Падробленае абагуленае</String>
@@ -564,14 +583,14 @@
 		<String Name="FileshareWarning">Адсюль і сюды файлы можна дадаваць, перасоўваючы іх</String>
 		<String Name="FilesLeft">файлаў засталося</String>
 		<String Name="FilesPerHour">файлаў за гадзіну</String>
-		<String Name="FileAlreadyFinished">Файл ужо скончылі сьцягваць</String>
+		<String Name="FileAlreadyFinished">Файл ужо скончылі спампоўваць</String>
 		<String Name="FileInTheQueue">Файл у чарзе</String>
 		<String Name="FileList">Сьпіс файлаў</String>
 		<String Name="FileListDiff">Знайсьці розьніцу</String>
 		<String Name="FileListRefreshFailed">Не ўдалося абнавіць сьпіс файлаў:</String>
 		<String Name="FileListRefreshFinished">Сьпіс файлаў абнавілі</String>
 		<String Name="FileListRefreshInitiated">Распачалі абнаўляць сьпіс файлаў</String>
-		<String Name="FileListRefreshInProgress">Сьпіс файлаў зараз абнаўляецца. Калі ласка, пачакайце, пакуль ён абновіцца, каб паспрабаваць абнавіць ізноў.</String>
+		<String Name="FileListRefreshInProgress">Сьпіс файлаў зараз абнаўляецца. Дачакайцеся, пакуль ён абновіцца, каб паспрабаваць абнавіць ізноў.</String>
 		<String Name="FileNotAvailable">Файл недаступны</String>
 		<String Name="FileType">Від файла</String>
 		<String Name="FileWithDifferentSize">Файл зь іншым памерам ужо стаіць у чарзе</String>
@@ -579,14 +598,15 @@
 		<String Name="Filter">Пра&amp;сеяць</String>
 		<String Name="Filtered">прасеялі</String>
 		<String Name="Find">Шукаць</String>
-		<String Name="FinishedDownload">Сьцягнулі: %s</String>
-		<String Name="FinishedDownloads">Сьцягнутае</String>
-		<String Name="FinishedUpload">Зацягнулі: %s да %s</String>
-		<String Name="FinishedUploads">Зацягнутае</String>
+		<String Name="FinishedDownload">Спампавалі: %s</String>
+		<String Name="FinishedDownloads">Спампаванае</String>
+		<String Name="FinishedUpload">Запампавалі: %s да %s</String>
+		<String Name="FinishedUploads">Запампаванае</String>
 		<String Name="FlyServerRating">Ацэнка</String>
 		<String Name="FlyServerInform">Зьвесткі мэдыя</String>
+		<String Name="FlyServerInformView">Зірнуць звьесткі мэдыя</String>
 		<String Name="Flyupdate">Абнаўляльнік «FlylinkDC++»</String>
-		<String Name="FlyupdateCannotupdate">Не ўдалося самарушна абнавіць «FlylinkDC++». Калі ласка, сьцягніце апошні пакунак усталяваньня «FlylinkDC++» і запусьціце яго самастойна</String>
+		<String Name="FlyupdateCannotupdate">Не ўдалося самарушна абнавіць «FlylinkDC++». Спампуйце апошні пакунак усталяваньня праґрамы «FlylinkDC++» і запусьціце яго самастойна</String>
 		<String Name="FlyupdateCheckupdatebase">Запытваемся на абнаўленьні…</String>
 		<String Name="FlyupdateDeletetingfiles">Сьціраюцца часовыя файлы абнаўленьня…</String>
 		<String Name="FlyupdateDeletetingfolders">Сьціраюцца часовыя каталёґі абнаўленьня…</String>
@@ -602,13 +622,14 @@
 		<String Name="Flyversion04">Я дзялюся, значыць я існую.</String>
 		<String Name="Flyversion05">Прыйшоў, пашукаў, знайшоў…</String>
 		<String Name="Flyversion06">Прыйшоў, абагуліў, даслаў…</String>
-		<String Name="Flyversion07">Я магу сьцягваць адзін файл зь некалькіх карыстальнікаў адначасова :)</String>
+		<String Name="Flyversion07">Я магу спампоўваць адзін файл зь некалькіх карыстальнікаў адначасова :)</String>
 		<String Name="Folder">Каталёґ</String>
-		<String Name="Foldername">Імя каталёґ</String>
+		<String Name="Foldername">Назва каталёґа</String>
 		<String Name="FoobarError">Не запусьцілі вэрсіі Foobar2000, якая падтрымваецца, або не ўсталявалі складніку «foo_winamp_spam»</String>
 		<String Name="Forbidden">Забаронена</String>
 		<String Name="ForbiddenFiles">Забароненыя файлы</String>
 		<String Name="ForceAttempt">Прымусіць паспрабаваць</String>
+		<String Name="ForgetSearchRequest">Забывацца на пошукавыя запыты</String>
 		<String Name="FormatBbCodes">Аздабляць кодамі BB</String>
 		<String Name="FormatBbCodesColors">Прымаць коды BB</String>
 		<String Name="FormatBotMessage">Аздабляць паведамленьні ад ботаў</String>
@@ -617,14 +638,16 @@
 		<String Name="FtpSendLink">Падрабязьней пра «звал»</String>
 		<String Name="FtpSendQuestion">Апошнім разам кліент аварыйна скончыў працаваць. Каб дапамагчы аўтарам знайсьці прычыну гэтага, раіцца даслаць сьціснуты файл.
 Гэты файл зьмяшчае толькі звал стосу («стэку») ды апісаньне памылкі.
-У файле няма ніякіх таемных зьвестак накшталт пароляў, адрасоў эл. пошты ці нумароў банкаўскіх картак.</String>
-		<String Name="FtpSendQuestion2">Ці сапраўды даслаць аварыйны звал стосу распрацоўнікам?</String>
-		<String Name="FullFilelistNfo">Паказваць поўныя зьвесткі пра сьпісы файлаў у чарзе сьцягванага</String>
+У файле няма ніякіх таемных зьвестак накшталт пароляў, адрасоў эл. пошты ці нумароў банкаўскіх картак.</String>
+		<String Name="FtpSendQuestion2">Ці сапраўды даслаць аварыйны звал стосу распрацоўцам?</String>
+		<String Name="FullFilelistNfo">Паказваць поўныя зьвесткі пра сьпісы файлаў у чарзе спампоўванага</String>
 		<String Name="Gb">ҐіБ</String>
 		<String Name="Gbps">ҐіБ/с</String>
 		<String Name="GdiPlusTabs">Аздабляць карткі як у GDI+</String>
 		<String Name="GenerateCertificates">Стварыць пасьведчаньні</String>
 		<String Name="GetFileList">Атрымаць сьпіс файлаў</String>
+		<String Name="GetIp">Паспрабаваць порт і атрымаць адрас IP</String>
+		<String Name="AddFlylinkdcWinfirewall">Сетказаслона Windows: выключэньне праґрамы «FlylinkDC++»</String>
 		<String Name="GetUserResponses">Атрымаць адказ (IP) карыстальніка</String>
 		<String Name="GiveExtraSlot">Дадаць шчыліну</String>
 		<String Name="Global">Пераважае над улюбёнымі асяродкамі</String>
@@ -635,10 +658,12 @@
 		<String Name="GrantExtraSlotDay">Даць дадатковую шчыліну (на дзень)</String>
 		<String Name="GrantExtraSlotHour">Даць дадатковую шчыліну (на гадзіну)</String>
 		<String Name="GrantExtraSlotWeek">Даць дадатковую шчыліну (на тыдзень)</String>
+		<String Name="GrantIpGroup">Дадатковыя шчыліны запампоўваць паводле IP</String>
 		<String Name="GrantSlotsMenu">Дадатковыя шчыліны</String>
+		<String Name="GrantedSlotByIp">Дадалі шчыліну карыстальніку паводле IP</String>
 		<String Name="Green">Зялёны</String>
 		<String Name="Group">Суполка:</String>
-		<String Name="GroupsContains">зьмяшчае</String>
+		<String Name="GroupsContains">зьмяшчае </String>
 		<String Name="GroupsGroup">Суполка</String>
 		<String Name="GroupsPrivate">Адасобленая</String>
 		<String Name="GroupsPrivateCheckbox">Пазначыць усе асяродкі гэтае суполкі адасобленымі</String>
@@ -658,9 +683,10 @@
 		<String Name="HashProgress">Ствараецца паказальнік файлаў…</String>
 		<String Name="HashProgressBackground">Запусьціць на тле</String>
 		<String Name="HashProgressStats">Статыстыка</String>
-		<String Name="HashProgressText">Калі ласка, пачакайце, пакуль праґрама заносіць файлы ў паказальнік (файлы абагуляцца толькі пасьля гэтага)…</String>
-		<String Name="HashReadFailed">Не магу прачытаць файл зьвестак скаротаў</String>
+		<String Name="HashProgressText">Пачакайце, пакуль праґрама заносіць файлы ў паказальнік (файлы абагуляцца толькі пасьля гэтага)…</String>
+		<String Name="HashReadFailed">Не ўдалося прачытаць файл зьвестак скаротаў</String>
 		<String Name="HashRebuilt">Адбудавалі базу зьвестак</String>
+		<String Name="HashRefreshFileList">Абнавіць сьпіс файлаў</String>
 		<String Name="Height">Вышыня</String>
 		<String Name="Hibernate">усыпіць</String>
 		<String Name="HideShare">Схаваць абагуленае на гэтым асяродку</String>
@@ -674,13 +700,13 @@
 		<String Name="Hours">гадз.</String>
 		<String Name="Hub">Асяродак</String>
 		<String Name="HublistCacheCorrupted">Сьпіс асяродкаў са сховішча сапсаваны ці не падтрымваецца…</String>
-		<String Name="HublistDownloadCorrupted">Сьцягнуты сьпіс асяродкаў сапсаваны ці не падтрымваецца…</String>
+		<String Name="HublistDownloadCorrupted">Спампаваны сьпіс асяродкаў сапсаваны ці не падтрымваецца…</String>
 		<String Name="Hubs">Асяродкі</String>
 		<String Name="HubAddress">Адрас асяродку</String>
 		<String Name="HubConnected">Злучыліся з асяродкам</String>
 		<String Name="HubDisconnected">Адлучыліся ад асяродку</String>
 		<String Name="HubList">Сьпіс асяродкаў</String>
-		<String Name="HubListDownloaded">Сьцягнулі сьпіс асяродкаў…</String>
+		<String Name="HubListDownloaded">Спампавалі сьпіс асяродкаў…</String>
 		<String Name="HubListEdit">Рэдаґаваць сьпіс асяродкаў</String>
 		<String Name="HubListLoadedFromCache">Сьпіс асяродкаў прачыталі са сховішча…</String>
 		<String Name="HubListWarning">Калі вы адчыняеце вакно «Асяродкі сеціва», вы мусіце ведаць, што гэта можа змусіць перадаваць дадзеныя вонкі (у сеціва). Калі ваш тарыф абмяжоўвае ўваходнае перадаванае, гэта можа запаволіць доступ да вонкавых крыніцаў з прычыны абмежаванага парогу хуткасьці, або істотна павялічыць выдаткі на сеціва.
@@ -688,13 +714,18 @@
 Ці паказаць сьпіс асяродкаў?</String>
 		<String Name="HubName">Назва</String>
 		<String Name="HubSegments">Асяродак / часткі</String>
-		<String Name="HubTopic">Тэма асяродку:</String>
+		<String Name="HubTopic">Тэма асяродку: </String>
 		<String Name="HubUsers">карыст.</String>
 		<String Name="HubUsersPositionText">Разьмесьціць сьпіс карыстальнікаў</String>
+		<String Name="IgnoredHubBotPm">Адхілілі асабістае паведамленьне ад асяродку ці бота</String>
 		<String Name="IgnoredUsers">Не заўважаць карыстальнікаў</String>
 		<String Name="IgnoreClear">Ачысьціць</String>
+		<String Name="AccesToPersonalMessages">Доступ да асабістых паведамленьняў</String>
+		<String Name="IgnoreS">Не заўважаць</String>
 		<String Name="IgnorePrivate">Не заўважаць асабістыя паведамленьні</String>
 		<String Name="IgnoreTthSearches">Не зважаць на TTH</String>
+		<String Name="AddToFavIgnorePm">Не зважаць на паведамленьні ад карыстальніка</String>
+		<String Name="IgnoreUserByName">Не заўважаць карыстальніка па імені</String>
 		<String Name="Incoming">уваходны</String>
 		<String Name="IncompatibleSoftwareFound">Знайшлі несумяшчальную праґраму: %s
 Кліент можа працаваць няўстойліва. Ці паказаць падрабязнасьці?</String>
@@ -722,12 +753,12 @@
 		<String Name="InvalidNumberOfSlots">Хібная колькасьць шчылінаў</String>
 		<String Name="InvalidRange">Хібны абсяг</String>
 		<String Name="InvalidSize">Хібны памер</String>
-		<String Name="InvalidTargetFile">Хібнае прызначэньне (адсутнічае каталёґ; спраўдзіце перадвызначаныя налады каталёґа сьцягваць)</String>
+		<String Name="InvalidTargetFile">Хібнае прызначэньне (адсутнічае каталёґ; спраўдзіце перадвызначаныя налады каталёґа спампоўванага)</String>
 		<String Name="InvalidTimeFormat">Хібны фармат часу</String>
-		<String Name="InvalidTree">Скарот (TTH) сьцягнутага не адпавядае скароту крыніцы</String>
+		<String Name="InvalidTree">Скарот (TTH) спампаванага не адпавядае скароту крыніцы</String>
 		<String Name="InvertMarks">Пазначыць наадварот</String>
 		<String Name="Ip">Адрас IP:</String>
-		<String Name="IpfilterBlockOutConnection">забаранілі выходнае злучэньне з</String>
+		<String Name="IpfilterBlockOutConnection">Забаранілі выходнае злучэньне —</String>
 		<String Name="Ipguard">Вартавы IP (IPGuard)</String>
 		<String Name="IpguardDefaultPolicy">Што рабіць:</String>
 		<String Name="IpguardEnable">Вартаваць IP</String>
@@ -761,7 +792,7 @@
 		<String Name="ItunesHelpDesc">Дапамога па «iTunes»</String>
 		<String Name="ItunesNotPlay">У iTunes нічога не прайграецца</String>
 		<String Name="ItunesNotRun">Не запушчаная вэрсія iTunes, якая можа падтрымвацца</String>
-		<String Name="IDownloadedThisFile">Я сьцягваў гэны файл</String>
+		<String Name="IDownloadedThisFile">Файл спампоўваўся</String>
 		<String Name="JaHelp">/ja — каб спавяшчаць зьвесткі JetAudio
 
    %[filepath] — назва файла, што зараз грае
@@ -787,9 +818,9 @@
 		<String Name="Kb">КіБ</String>
 		<String Name="Kbps">КіБ/с</String>
 		<String Name="KbpsDisable">КіБ/с (0=вым.)</String>
-		<String Name="KeepDlHistory">Захоўваць гісторыю сьцягванага між сэансамі</String>
-		<String Name="KeepFinishedFilesOption">Пакідаць сьцягнутыя файлы</String>
-		<String Name="KeepUlHistory">Захоўваць гісторыю зацягванага між сэансамі</String>
+		<String Name="KeepDlHistory">Захоўваць гісторыю спампоўванага між сэансамі</String>
+		<String Name="KeepFinishedFilesOption">Пакідаць спампаваныя файлы</String>
+		<String Name="KeepUlHistory">Захоўваць гісторыю запампоўванага між сэансамі</String>
 		<String Name="KickUser">Даць высьпятка</String>
 		<String Name="KickUserFile">Даць высьпятка карыстальнікам з файлам</String>
 		<String Name="Kilo">к</String>
@@ -799,20 +830,20 @@
 		<String Name="LastIp">Апошні IP</String>
 		<String Name="LastSeen">Апошні раз бачылі</String>
 		<String Name="LastSuccesfullyConnected">Калі апошні раз злучыліся</String>
-		<String Name="LeafCorrupted">Пашкоджаны файл; нанова сьцягваем %s…</String>
+		<String Name="LeafCorrupted">Пашкоджаны файл; нанова спампоўваем «%s»…</String>
 		<String Name="Left">засталося</String>
 		<String Name="LeftColor">Колер леваруч</String>
-		<String Name="LibCrash">Праґрама «%s» выклікала неапрацаванае пярэчаньне ў «FlylinkDC++». Калі ласка, перастаўце яе ці абнавіце, або скарыстайце штось іншае замест.</String>
-		<String Name="Limit">Граніца зацягваньня</String>
+		<String Name="LibCrash">Праґрама «%s» выклікала неапрацаванае пярэчаньне ў «FlylinkDC++». Перастаўце яе ці абнавіце, або скарыстайце штось іншае замест.</String>
+		<String Name="Limit">Граніца запампоўваньня</String>
 		<String Name="LimiterOff">Перадаваньне не абмяжоўваецца</String>
 		<String Name="LimiterOn">Перадаваньне абмяжоўваецца</String>
 		<String Name="ListenerFailed">Не ўдалося праслухаць гняздо (трэба нанова запусьціць праґраму):</String>
 		<String Name="ListlenMismatch">Не адпав. даўж. сьпісу</String>
 		<String Name="Load">Чытаецца:</String>
 		<String Name="Loaded">Прачыталі</String>
-		<String Name="Loading">«FlylinkDC++» запускаецца, пачакайце, калі ласка…</String>
+		<String Name="Loading">Пачакайце: праґрама «FlylinkDC++» запускаецца…</String>
 		<String Name="LoadingFile">чытаецца файл:</String>
-		<String Name="LoadTthFromNtfs">Прачыталі скарот TTH з NTFS:</String>
+		<String Name="LoadTthFromNtfs">Прачыталі скарот (TTH) з NTFS: </String>
 		<String Name="LocalNetNatDetect">Выявілі мясцовую сетку і, магчыма, NAT; спрабуем адлюстраваць порты з дапамогаю UPnP…</String>
 		<String Name="LocalPath">Мясцовы шлях</String>
 		<String Name="LocationBare">Месца</String>
@@ -834,8 +865,8 @@
 		<String Name="MagnetDlgHash">Скарот файла:</String>
 		<String Name="MagnetDlgNothing">Нічога не рабіць</String>
 		<String Name="MagnetDlgOpenDclst">Адчыніць файл DCLST</String>
-		<String Name="MagnetDlgOpenFile">Адчыняць сьцягнуты файл</String>
-		<String Name="MagnetDlgQueue">Дадаць файл у чаргу сьцягваць</String>
+		<String Name="MagnetDlgOpenFile">Адчыняць спампаваны файл</String>
+		<String Name="MagnetDlgQueue">Дадаць файл у чаргу спампоўваць</String>
 		<String Name="MagnetDlgQueueDclst">Дадаць зьмесьціва гэтага файла DCLST да чаргі</String>
 		<String Name="MagnetDlgRemember">Наступным разам рабіць тое самае адразу</String>
 		<String Name="MagnetDlgSaveas">Захаваць як…</String>
@@ -844,20 +875,20 @@
 		<String Name="MagnetDlgTextBad">Праґрама атрымала маґніт-спасылку, але спасылка ня мае чыннага скароту, які можна выкарыстоўваць у сетцы «Direct Connect». Таму нічога рабіць ня будзем.</String>
 		<String Name="MagnetDlgTextGood">Праґрама выявіла маґніт-спасылку, што зьмяшчае скарот, які можна пашукаць у сетцы «Direct Connect». Што вы жадаеце зрабіць?</String>
 		<String Name="MagnetDlgTitle">Выявілі маґніт-спасылку</String>
-		<String Name="MagnetHandlerDesc">Сьцягнуць файлы зь сеткі Direct Connect</String>
+		<String Name="MagnetHandlerDesc">Спампаваць файлы зь сеткі «Direct Connect»</String>
 		<String Name="MagnetShellDesc">Упішыце маґніт-спасылку</String>
 		<String Name="MagnetStartView">Прагледзець</String>
 		<String Name="MainWindowCreationFailed">Не ўдалося стварыць галоўнае вакно!
 </String>
 		<String Name="Manage">Кіраваць</String>
 		<String Name="ManageGroups">Кіраваць суполкамі</String>
-		<String Name="MarkAsDownloaded">Пазначыць, што сьцягнулі</String>
+		<String Name="MarkAsDownloaded">Пазначыць, што спампавалі</String>
 		<String Name="MaskNotFound">Маску не знайшлі</String>
 		<String Name="Match">Супадзеньне</String>
 		<String Name="MatchedFiles">Супала %d файлаў</String>
 		<String Name="MatchQueue">Параўнаць чаргу</String>
-		<String Name="MaxFinishedDownloads">Найбольшая колькасьць сьцягнутага</String>
-		<String Name="MaxFinishedUploads">Найбольшая колькасьць зацягнутага</String>
+		<String Name="MaxFinishedDownloads">Найбольшая колькасьць спампаванага</String>
+		<String Name="MaxFinishedUploads">Найбольшая колькасьць запампаванага</String>
 		<String Name="MaxHubs">Найб. асяродкаў</String>
 		<String Name="MaxMsgLength">Даўжыня ≤</String>
 		<String Name="MaxResizeLines">Найбольшы памер поля ўводу гутаркі</String>
@@ -894,15 +925,15 @@
 		<String Name="MenuConnectToHub">Злучыцца з асяродкам падтрымкі FlylinkDC++</String>
 		<String Name="MenuDiscuss">Форумы</String>
 		<String Name="MenuDonate">Ахвяраваць</String>
-		<String Name="MenuDownloadQueue">&amp;Чарга сьцягванага	Ctrl+D</String>
+		<String Name="MenuDownloadQueue">&amp;Чарга спампоўванага	Ctrl+D</String>
 		<String Name="MenuExit">&amp;Выйсьці</String>
 		<String Name="MenuFaq">Пытаньні й адказы</String>
 		<String Name="MenuFavoriteHubs">Улюбёныя &amp;асяродкі	Ctrl+F</String>
 		<String Name="MenuFavoriteUsers">&amp;Улюбёнцы	Ctrl+Shift+F</String>
 		<String Name="MenuFile">&amp;Файл</String>
 		<String Name="MenuFileRecentHubs">&amp;Нядаўнія асяродкі</String>
-		<String Name="MenuFinishedDownloads">Сьцягнутае	Ctrl+Shift+D</String>
-		<String Name="MenuFinishedUploads">Зацягнутае	Ctrl+Shift+U</String>
+		<String Name="MenuFinishedDownloads">Спампаванае	Ctrl+Shift+D</String>
+		<String Name="MenuFinishedUploads">Запампаванае	Ctrl+Shift+U</String>
 		<String Name="MenuFollowRedirect">Перана&amp;кіравацца	Ctrl+T</String>
 		<String Name="MenuHashProgress">Поступ стварэньня паказальніку	Ctrl+H</String>
 		<String Name="MenuHelp">&amp;Дапамога…	F1</String>
@@ -910,16 +941,16 @@
 		<String Name="MenuHlp">Дапамога</String>
 		<String Name="MenuHomepage">Хатняя бачына</String>
 		<String Name="MenuHorizontalTile">Разьмеркаваць зь&amp;верху ўніз</String>
-		<String Name="MenuJoinTeam">Выточны код FlylinkDC++…</String>
+		<String Name="MenuJoinTeam">Выточны код «FlylinkDC++»…</String>
 		<String Name="MenuMinimizeAll">Най&amp;меншыць усё</String>
 		<String Name="MenuNetworkStatistics">Статыстыка сеткі</String>
 		<String Name="MenuNotepad">&amp;Нататнік	Ctrl+N</String>
-		<String Name="MenuOpenDownloadsDir">Адчыніць каталёґ сьцягнутага</String>
+		<String Name="MenuOpenDownloadsDir">Адчыніць каталёґ спампаванага</String>
 		<String Name="MenuOpenFileList">Адчыніць сьпіс файлаў…	Ctrl+L</String>
-		<String Name="MenuOpenMatchAll">Параўнаць сьцягнутыя сьпісы</String>
+		<String Name="MenuOpenMatchAll">Параўнаць спампаваныя сьпісы</String>
 		<String Name="MenuOpenOwnList">Адчыніць уласны сьпіс файлаў	F8</String>
-		<String Name="MenuOpenSqlexplorer">Адчыніць «SQLExplorer»</String>
-		<String Name="MenuPreviewLogDlg">Занатоўваць дыялёґ «Сьцягваць-праглядаць»</String>
+		<String Name="MenuOpenSqlexplorer">Адчыніць аглядальнік базы SQLExplorer</String>
+		<String Name="MenuPreviewLogDlg">Занатоўваць дыялёґ «Пампаваць-праглядаць»</String>
 		<String Name="MenuPublicHubs">Асяродкі &amp;сеціва	Ctrl+I</String>
 		<String Name="MenuQuickConnect">&amp;Хутка злучыцца…	F2</String>
 		<String Name="MenuReconnect">Нанова &amp;злучыцца	F5</String>
@@ -927,6 +958,7 @@
 		<String Name="MenuRefreshFileList">Абнавіць сьпіс файлаў	F9</String>
 		<String Name="MenuRefreshFileListPurge">Вычысьціць базу скаротаў (TTH)</String>
 		<String Name="MenuRefreshMediainfo">Абнавіць зьвесткі мэдыя (толькі для выпрабоўцаў! займае шмат часу, поступ не паказваецца)</String>
+		<String Name="MenuConvertTthHistoryIntoLeveldb">Ператварыць гісторыю скаротаў SQLite у LevelDB</String>
 		<String Name="MenuRestoreAll">Аднавіць усё</String>
 		<String Name="MenuRssNews">Стужка навінаў	Ctrl+Shift+N</String>
 		<String Name="MenuSearch">&amp;Шукаць	Ctrl+S</String>
@@ -982,8 +1014,8 @@
 		<String Name="Name">Назва</String>
 		<String Name="NameCommandEmpty">Назва і загад мусяць быць не пустымі</String>
 		<String Name="NameOrDirNotEmpty">Назва ці каталёґ мусіць быць не пустым</String>
-		<String Name="NeedUserFilesMenu">У чарзе сьцягваць з гэтага карыстальніка</String>
-		<String Name="NetlimiterWarning">Выявілася, што на асьветары маецца «NetLimiter». Часта празь яе аварыйна выходзіць «FlylinkDC++», спыняюцца зацягваньні, запавольваецца сьцягваньне. Калі ласка, высталюйце «NetLimiter» ды скарыстайце штось іншае замест яе (напрыклад, убудаваны абмежавальнік).</String>
+		<String Name="NeedUserFilesMenu">У чарзе спампоўваць з карыстальніка</String>
+		<String Name="NetlimiterWarning">Выявілася, што на асьветары маецца «NetLimiter». Часта празь яе аварыйна выходзіць праґрама «FlylinkDC++», спыняецца запампоўванае, запавольваецца спампоўванае. Высталюйце праґраму «NetLimiter» ды скарыстайце штось іншае замест яе (напрыклад, убудаваны абмежавальнік).</String>
 		<String Name="NetworkStatistics">Статыстыка сеткі</String>
 		<String Name="New">С&amp;тварыць…</String>
 		<String Name="NewsBlog">Дзёньнік навінаў</String>
@@ -993,8 +1025,9 @@
 		<String Name="NewRssNews">Новае ў стужцы навінаў</String>
 		<String Name="Next">Наперад</String>
 		<String Name="Nick">Мянушка</String>
-		<String Name="NickTaken">Гэтую мянушку ўжо забралі. Калі ласка, абярыце іншую!</String>
+		<String Name="NickTaken">Гэтую мянушку ўжо забралі. Абярыце іншую!</String>
 		<String Name="NickUnknown">(Мянушка невядомая)</String>
+		<String Name="AddNickToChat">Уставіць мянушку ў гутарку</String>
 		<String Name="No">Не</String>
 		<String Name="None">Бяз гукаў</String>
 		<String Name="NonHubsFront">Зьмяшчаць не асяродкі на пярэднім пляне</String>
@@ -1003,18 +1036,19 @@
 		<String Name="NormalPriority">Звычайнае</String>
 		<String Name="Notepad">Нататнік</String>
 		<String Name="NotChecked">Ня спраўдзілі</String>
-		<String Name="NotListening">Ня чую злучэньняў — калі ласка, запусьціце FlylinkDC++ нанова</String>
+		<String Name="NotListening">Ня чую злучэньняў — запусьціце «FlylinkDC++» нанова</String>
 		<String Name="NoAction">Няма дзеяньня</String>
 		<String Name="NoAdls">Не шукаць самарушна на гэтым асяродку</String>
 		<String Name="NoCertificateFileSet">TLS не задзейнічаны, файл пасьведчаньня ня вызначаны</String>
 		<String Name="NoDirectorySpecified">Ня вызначылі каталёґ</String>
-		<String Name="NoDownloadsFromBot">Не спрабуйце сьцягваць з ботаў</String>
-		<String Name="NoDownloadsFromPassive">Нельга сьцягваць у нядзейных карыстальнікаў, калі вы таксама нядзейны</String>
-		<String Name="NoDownloadsFromSelf">Вы спрабуеце сьцягнуць у самога сябе</String>
+		<String Name="NoDownloadsFromBot">Не спрабуйце спампоўваць з ботаў</String>
+		<String Name="NoDownloadsFromPassive">Нельга спампоўваць у нядзейных карыстальнікаў, калі вы — таксама нядзейны карыстальнік</String>
+		<String Name="NoDownloadsFromSelf">Вы спрабуеце спампаваць у самога сябе</String>
 		<String Name="NoErrors">Няма памылак</String>
 		<String Name="NoFreeBlock">Няма вольнага блёку</String>
 		<String Name="NoFullTree">Няма доступу да поўнага дрэва</String>
 		<String Name="NoLogForHub">Справаздача асяродкаў не існуе</String>
+		<String Name="NoLogForStatus">Справаздача станаў не існуе</String>
 		<String Name="NoLogForUser">Справаздача карыстальнікаў не існуе</String>
 		<String Name="NoMatches">Няма супадзеньняў</String>
 		<String Name="NoMediaSpam">Абраны прайгравальнік не дазваляе спавяшчаць, што грае</String>
@@ -1022,7 +1056,7 @@
 		<String Name="NoSlotsAvailable">Чакайце сваёй чаргі</String>
 		<String Name="NoTthCheat">Пазначаць кліентаў, што ня цалкам падтрымваюць TTH як дрэнных ці як ашуканцаў</String>
 		<String Name="NoUsers">Няма карыстальнікаў</String>
-		<String Name="NoUsersToDownloadFrom">Няма ў каго сьцягваць</String>
+		<String Name="NoUsersToDownloadFrom">Няма ў каго спампоўваць</String>
 		<String Name="NslIgnoreMe">Не заўважаць паведамленьні «/me» (ад трэцяе асобы)</String>
 		<String Name="NumberOfSegments">частка(і,ак)</String>
 		<String Name="Offline">Ня ў сетцы</String>
@@ -1032,7 +1066,7 @@
 		<String Name="OnlyFreeSlots">Толькі тыя, хто мае вольныя шчыліны</String>
 		<String Name="OnlyTth">Вынікі толькі з TTH</String>
 		<String Name="OnlyWhereOp">Дзе я апэратар</String>
-		<String Name="OnDownloadingSegment">Калі файл, які сьцягваецца, ужо існуе:</String>
+		<String Name="OnDownloadingSegment">Калі файл, які спампоўваецца, ужо існуе:</String>
 		<String Name="OnDownloadAsk">Запытацца карыстальніка</String>
 		<String Name="OnDownloadAutorename">Самарушна даць новую назву</String>
 		<String Name="OnDownloadReplace">Замяніць стары (калі «пакідаем скончаныя файлы», будзе = «Запытацца карыстальніка»)</String>
@@ -1045,10 +1079,12 @@
 		<String Name="OpenUserLog">Адчыніць справаздачу карыстальніка</String>
 		<String Name="Outgoing">выходны</String>
 		<String Name="OverlappedSlowSegment">Перахапіў хутчэйшы карыстальнік</String>
-		<String Name="OverlapChunks">Скідваць павольныя часткі на карысьць хутчэйшых, калі файл амаль сьцягнуўся</String>
+		<String Name="OverlapChunks">Скідваць павольныя часткі на карысьць хутчэйшых, калі файл амаль спампаваўся</String>
+		<String Name="OutdatedOsDetected">Праґрама «FlylinkDC++» працуе на састарэлай вэрсіі апэрацыйнае сыстэмы, якая болей не падтрымваецца таварыствам «Майкрасафт». У такіх умовах мы ня можам ручацца, што праґрама будзе працаваць належным чынам. Ці паказаць падрабязнасьці?</String>
 		<String Name="OwnCertificateFile">Уласнае пасьведчаньне</String>
 		<String Name="Parts">Выйшаў:</String>
 		<String Name="PassiveNotice">Вы злучыліся з асяродкам нядзейным спосабам!!! Мы раім далучацца дзейным спосабам!!!</String>
+		<String Name="PassiveSearchNotice">Выкарыстоўваецца дзейны спосаб злучацца і нядзейны спосаб шукаць. Не карыстайцеся нядзейным пошукам, калі можаце хоць-што знайсьці безь яго, бо вы не атрымваеце вынікаў ад нядзейных кліентаў!</String>
 		<String Name="PassiveUser">Нядзейны карыстальнік</String>
 		<String Name="Password">Пароль</String>
 		<String Name="PasswordDesc">Упішыце пароль</String>
@@ -1061,8 +1097,8 @@
 		<String Name="Pk">Радок PK</String>
 		<String Name="Play">Граць</String>
 		<String Name="PleaseGetNewVersion">
-Калі ласка, атрымайце новую вэрсію</String>
-		<String Name="PleaseWait">Калі ласка, чакайце</String>
+Атрымайце новую вэрсію</String>
+		<String Name="PleaseWait">Чакайце</String>
 		<String Name="PmPreview">Праглядаць паведамленьні ў вынырцах</String>
 		<String Name="PopupsInprogram">Падказкі ў інтэрфэйсе</String>
 		<String Name="PopupsInBbcodepanel">У панэлі кодаў BB</String>
@@ -1073,15 +1109,15 @@
 		<String Name="PopupCheatingUser">Калі знайшлі ашуканца</String>
 		<String Name="PopupColors">Колеры вынырца</String>
 		<String Name="PopupCustom">Наставіць вынырцы</String>
-		<String Name="PopupDownloadFailed">Калі не ўдалося сьцягнуць</String>
-		<String Name="PopupDownloadFinished">Калі скончылі сьцягваць</String>
-		<String Name="PopupDownloadStart">Калі пачынаем сьцягваць</String>
+		<String Name="PopupDownloadFailed">Калі не ўдалося спампаваць</String>
+		<String Name="PopupDownloadFinished">Калі скончылі спампоўваць</String>
+		<String Name="PopupDownloadStart">Калі пачынаем спампоўваць</String>
 		<String Name="PopupFavoriteConnected">Калі далучыўся ўлюбёнец</String>
 		<String Name="PopupFavoriteDisconnected">Калі ўлюбёнец адлучыўся</String>
 		<String Name="PopupFont">&amp;Тэкст</String>
 		<String Name="PopupHubConnected">Калі злучыліся з асяродкам</String>
 		<String Name="PopupHubDisconnected">Калі адлучыліся ад асяродку</String>
-		<String Name="PopupImage">Відарыс вынырца</String>
+		<String Name="PopupImage">Выява вынырца</String>
 		<String Name="PopupNewFoldershare">Калі каталёґ абагуляецца з мэню абалонкі</String>
 		<String Name="PopupNewPm">Калі атрымалі новае паведамленьне</String>
 		<String Name="PopupNewRssnews">Калі ёсьць навіны</String>
@@ -1091,13 +1127,13 @@
 		<String Name="PopupTime">Тэрмін (сэк.)</String>
 		<String Name="PopupTitleFont">&amp;Загаловак</String>
 		<String Name="PopupType">Від вынырца</String>
-		<String Name="PopupUploadFinished">Калі скончылі зацягваць</String>
+		<String Name="PopupUploadFinished">Калі скончылі запампоўваць</String>
 		<String Name="PopupWindow">Ваконца</String>
 		<String Name="Port">Порт:</String>
 		<String Name="PortalBrowser">Аглядальнік пляцовак</String>
 		<String Name="PowerOff">вымкнуць асьветар</String>
 		<String Name="PowerUser">Імя спраўніка</String>
-		<String Name="PressFollow">Націсьніце «Перанакіравацца», каб злучыцца з</String>
+		<String Name="PressFollow">Націсьніце «Перанакіравацца», каб злучыцца з </String>
 		<String Name="PreviewLogDlg">Справаздача прагляду</String>
 		<String Name="PreviewMenu">Паглядзець</String>
 		<String Name="PreviousFolders">Папярэднія каталёґі</String>
@@ -1110,13 +1146,13 @@
 		<String Name="PrivateKeyFile">Файл асабістага ключа</String>
 		<String Name="PrivateKeyFileNotChosen">Не абралі файл асабістага ключа</String>
 		<String Name="PrivateMessage">Асабістае паведамленьне</String>
-		<String Name="PrivateMessageFrom">Асабістае паведамленьне ад</String>
+		<String Name="PrivateMessageFrom">Асабістае паведамленьне ад </String>
 		<String Name="PrivatePasswordHelp">Можна ўжываць:
 
  %[pm_pass] — пароль</String>
 		<String Name="PrivatePasswordHelpDesc">Дапамога па шаблёне паролю</String>
 		<String Name="ProcessedFileList">Сьпіс файлаў апрацавалі за</String>
-		<String Name="ProcessingFileList">Апрацоўваецца сьпіс файлаў, гэта можа заняць пэўны час, калі сьпіс вялікі…</String>
+		<String Name="ProcessingFileList">Апрацоўваецца сьпіс файлаў (гэта можа заняць пэўны час)…</String>
 		<String Name="ProfileCount">Колькасьць</String>
 		<String Name="ProfileMessage">Паведамленьне</String>
 		<String Name="ProfileNfo">Зьвесткі профілю</String>
@@ -1126,11 +1162,11 @@
 		<String Name="ProgressbarOdcStyle">Выгляд як у oDC</String>
 		<String Name="ProgressbarStealthyStyle">Патаемны выгляд стужкі поступу</String>
 		<String Name="ProgressbarStealthyStyleIco">Значак патаемнага выгляду</String>
-		<String Name="ProgressbarStealthyStyleIcoSpeedignore">Вымяраць хуткасьць, не зважаючы на агульную хуткасьць зацягваць</String>
+		<String Name="ProgressbarStealthyStyleIcoSpeedignore">Вымяраць хуткасьць, не зважаючы на агульную хуткасьць запампоўваць</String>
 		<String Name="ProgressAvoiding">Стужка чаргі: звычайныя кавалкі</String>
 		<String Name="ProgressBack">Паліца перадаваньня: тло</String>
 		<String Name="ProgressCompress">Паліца перад.: распакав. частка</String>
-		<String Name="ProgressDownloaded">Стужка чаргі: сьцягнутыя кавалкі</String>
+		<String Name="ProgressDownloaded">Стужка чаргі: спампаваныя кавалкі</String>
 		<String Name="ProgressRunning">Паліца чаргі: дзейныя кавалкі</String>
 		<String Name="ProgressSegment">Паліца перад.: дзейная частка</String>
 		<String Name="ProgressVerified">Стужка чаргі: правераныя кавалкі</String>
@@ -1152,7 +1188,7 @@
 		<String Name="PrvDlgServerGroup">Паслужнік прагляду</String>
 		<String Name="PrvDlgServerStateStatic">Стан паслужніка прагляду</String>
 		<String Name="PrvDlgVideoNameStatic">Праглядаецца відэа:</String>
-		<String Name="PrvDlgVideoStatusDown">Прагляд сьцягваецца</String>
+		<String Name="PrvDlgVideoStatusDown">Прагляд спампоўваецца</String>
 		<String Name="PrvDlgVideoStatusExist">Прагляд відэа ўжо існуе на дыску</String>
 		<String Name="PsrDelay">Пасылаць $PSR з затрымкаю (у сэкундах)</String>
 		<String Name="PublicHubs">Асяродкі сеціва</String>
@@ -1188,9 +1224,9 @@
 		<String Name="Ratio">Суадносіны</String>
 		<String Name="RatioMsgHelp">Можна ўжываць:
 
- %[ratio]	 суадносіны зацягнулі/сьцягнулі
- %[up]	 зацягнулі
- %[down]	 сьцягнулі</String>
+ %[ratio]	 суадносіны запампавалі/спампавалі
+ %[up]	 запампавалі
+ %[down]	 спампавалі</String>
 		<String Name="RatioMsgHelpDesc">Дапамога па шаблёне суадносінаў</String>
 		<String Name="RawSet">Наўпроставыя загады</String>
 		<String Name="RawTexts">Назвы загадаў (ня ўпісвайце тут самі наўпроставыя загады)</String>
@@ -1223,16 +1259,17 @@
 		<String Name="RemoveFromAll">Выкрасьліць карыстальніка з чаргі</String>
 		<String Name="RemoveFromFavorites">Выкрасьліць з улюбёнцаў</String>
 		<String Name="RemoveFromFavoritesHubs">Выкрасьліць з улюбёных асяродкаў</String>
-		<String Name="RemoveFromFavBan">Дазволіць карыстальніку зацягваць</String>
+		<String Name="RemoveFromFavBan">Дазволіць карыстальніку запампоўваць</String>
+		<String Name="RemoveFromFavIgnorePm">Зноўку заўважаць на паведамленьні карыстальніка</String>
 		<String Name="RemoveOffline">Выкрасьліць адлучаных карыстальнікаў</String>
 		<String Name="RemoveSource">Выкрасьліць крыніцу</String>
 		<String Name="Rename">Назваць</String>
 		<String Name="RenamedTo">пераназваны ў</String>
 		<String Name="ReplaceApply">Рабіць тое самае з усімі наступнымі</String>
 		<String Name="ReplaceBorderExists">Існы файл:</String>
-		<String Name="ReplaceBorderNew">Файл, які сьцягваецца:</String>
+		<String Name="ReplaceBorderNew">Файл, які спампоўваецца:</String>
 		<String Name="ReplaceDateExists">Калі стварылі:</String>
-		<String Name="ReplaceDescr">FlylinkDC++ выявіў, што файл, які сьцягваецца, ужо існуе тут: %s. Абярыце, што трэба рабіць:</String>
+		<String Name="ReplaceDescr">Праґрама «FlylinkDC++» выявіла, што файл, які спампоўваецца, ужо існуе тут: %s. Абярыце, што трэба рабіць:</String>
 		<String Name="ReplaceDlgTitle">Такі файл ужо існуе</String>
 		<String Name="ReplaceRename">Даць новую назву: %s</String>
 		<String Name="ReplaceReplace">Замяніць новым файлам</String>
@@ -1244,7 +1281,7 @@
 		<String Name="Resume">Працягваць</String>
 		<String Name="RetrievingData">Атрымваем зьвесткі</String>
 		<String Name="RightColor">Колер праваруч</String>
-		<String Name="RollbackInconsistency">Адрабляем разыходжаньне: існы файл не супадае з тым, што сьцягваецца</String>
+		<String Name="RollbackInconsistency">Адрабляем разыходжаньне: існы файл не супадае з тым, што спампоўваецца</String>
 		<String Name="RssautorefreshTimeStr">Абнаўляць навіны кожныя</String>
 		<String Name="RssdlgCodeing">Кадоўка стужкі:</String>
 		<String Name="RssdlgName">Назва стужкі:</String>
@@ -1268,6 +1305,8 @@
 		<String Name="SaveSearchSettingsText">Захаваць налады пошуку</String>
 		<String Name="SaveSearchSettingsTooltip">Гэта дазваляе захаваць такія налады, як від файла, памер, спосаб шукаць і г. д.</String>
 		<String Name="Search">Шукаць</String>
+		<String Name="SearchPassive">Пошук (нядзейны)</String>
+		<String Name="SearchUdpPortTest">Выпрабаваць порт UDP</String>
 		<String Name="SearchDetectTth">Калі ў полі пошуку выявілі скарот (TTH), пачынаць шукаць па скаротах</String>
 		<String Name="SearchDisaled">Шукаць забаронена</String>
 		<String Name="SearchEnabled">Зноўку можна шукаць</String>
@@ -1279,15 +1318,16 @@
 		<String Name="SearchForFile">Шукаць файл</String>
 		<String Name="SearchInResults">Шукаць у выніках</String>
 		<String Name="SearchOptions">Можнасьці пошуку</String>
-		<String Name="SearchSpamFrom">Выявілі непажаданы пошук ад</String>
+		<String Name="SearchSpamFrom">Выявілі непажаданы пошук ад </String>
 		<String Name="SearchSpy">Шпегаваць па шуканым</String>
 		<String Name="SearchString">Шукаць радок</String>
-		<String Name="SearchesPer">Пошукі: %u/сэк., %u/хв.</String>
-		<String Name="SearchingFor">Шукаем</String>
+		<String Name="SearchDoesNotWork">Пошук не працуе?</String>
+		<String Name="SearchesPer">Пошукі: %u/сэк., %u/хв.</String>
+		<String Name="SearchingFor">Шукаем </String>
 		<String Name="Sec">сэк.</String>
 		<String Name="Seconds">сэк.</String>
 		<String Name="SecurityAskOnShareFromShell">Перапытвацца, калі каталёґ абагуляецца з мэню абалонкі</String>
-		<String Name="SecurityShareFromShellQuestion">Ці хочаце абагуліць гэты каталёґ? Зьмесьціва абагуленага каталёґа змогуць сьцягнуць іншыя карыстальнікі!</String>
+		<String Name="SecurityShareFromShellQuestion">Ці хочаце абагуліць гэты каталёґ? Зьмесьціва абагуленага каталёґа змогуць спампаваць іншыя карыстальнікі!</String>
 		<String Name="SeekBeyondEnd">Запыталіся шукаць па-за мяжою дадзеных</String>
 		<String Name="Segment">Частка</String>
 		<String Name="Segments">Частак</String>
@@ -1308,12 +1348,12 @@
 		<String Name="SetczdcEnableLimiting">Абмяжоўваць хуткасьці</String>
 		<String Name="SetczdcErrorColor">Колер памылкі</String>
 		<String Name="SetczdcHDownSpeed">І агульная хуткасьць файла болей за</String>
-		<String Name="SetczdcIDownSpeed">Спыняць сьцягваць, калі хуткасьць &lt;</String>
+		<String Name="SetczdcIDownSpeed">Спыняць спампоўваць, калі хуткасьць &lt;</String>
 		<String Name="SetczdcMagnetUriHandler">Усталяваць апрацоўнік маґніт-спасылак па запуску</String>
 		<String Name="SetczdcMagnetUrlTemplate">Шаблён маґніт-спасылкі (URL)</String>
 		<String Name="SetczdcMinFileSize">І памер файла болей за</String>
 		<String Name="SetczdcNoteSmallUp">* «Драбяза» — сьпісы файлаў і малыя файлы.</String>
-		<String Name="SetczdcPartialSlots">Дадатковыя шчыліны часткова сьцягнутым файлам</String>
+		<String Name="SetczdcPartialSlots">Дадатковыя шчыліны часткова спампаваным файлам</String>
 		<String Name="SetczdcPassiveSearch">Заўжды шукаць нядзейным спосабам (ужывайце толькі калі ведаеце, што гэта значыць)</String>
 		<String Name="SetczdcPmLines">Радкоў зь гісторыі па новым АП (асабістым паведамленьні)</String>
 		<String Name="SetczdcPrivateSound">Гук асабістага паведамленьня</String>
@@ -1322,9 +1362,9 @@
 		<String Name="SetczdcProgressbarText">Колер тэксту паліцы</String>
 		<String Name="SetczdcSecondaryLimiting">Другарадны абмежавальнік перадаваньня</String>
 		<String Name="SetczdcSlotAskTemplate">Шаблён запытвацца шчыліну</String>
-		<String Name="SetczdcSlowDisconnect">Спыняць павольнае сьцягваньне</String>
+		<String Name="SetczdcSlowDisconnect">Спыняць, калі спампоўваецца павольна</String>
 		<String Name="SetczdcSmallFiles">Малыя — файлы ≤</String>
-		<String Name="SetczdcSmallUpSlots">Шчыліны зацягваць</String>
+		<String Name="SetczdcSmallUpSlots">Шчыліны запампоўваць</String>
 		<String Name="SetczdcStyles">Наяўныя стылі</String>
 		<String Name="SetczdcTextColor">Колер тэксту</String>
 		<String Name="SetczdcTextStyle">Стыль тэксту</String>
@@ -1346,15 +1386,17 @@
 		<String Name="SettingsAllowUntrustedHubs">Дазволіць злучацца праз TLS з асяродкамі без давераных пасьведчаньняў</String>
 		<String Name="SettingsAlwaysFileserver">Заўжды файлавы паслужнік</String>
 		<String Name="SettingsAlwaysFireball">Заўжды хуткі</String>
-		<String Name="SettingsAntiFrag">Ужываць спосаб сьцягваць, які памяншае ўрыўкавасьць</String>
-		<String Name="SettingsAntiFragFrame">Спосаб сьцягваць, які памяншае ўрыўкавасьць (фраґмэнтаванасьць)</String>
+		<String Name="Fileserver">Файлавы паслужнік</String>
+		<String Name="Fireball">Хуткі</String>
+		<String Name="SettingsAntiFrag">Ужываць спосаб спампоўваць, які памяншае ўрыўкавасьць</String>
+		<String Name="SettingsAntiFragFrame">Спосаб спампоўваць, які памяншае ўрыўкавасьць (фраґмэнтаванасьць)</String>
 		<String Name="SettingsAntiFragMax">Найвялікшы памер файла (0 = не абмяжоўваць)</String>
 		<String Name="SettingsAppearance">Налады выгляду</String>
 		<String Name="SettingsArgument">Довады</String>
 		<String Name="SettingsAutoupdateProp">Абнаўленьні</String>
 		<String Name="SettingsAutoAway">У стан «адсутнічаю», калі найменшылі (і вяртацца, калі аднавілі)</String>
 		<String Name="SettingsAutoBan">Самарушна выганяць</String>
-		<String Name="SettingsAutoDropSegmentedSource">Толькі калі сьцягваем па частках (болей за 2 дзейныя крыніцы)</String>
+		<String Name="SettingsAutoDropSegmentedSource">Толькі калі спампоўваецца па частках (болей за 2 дзейныя крыніцы)</String>
 		<String Name="SettingsAutoFollow">Самарушна перанакіроўвацца</String>
 		<String Name="SettingsAutoKick">Адлучаць карыстальніка, які выйшаў з асяродку</String>
 		<String Name="SettingsAutoKickNoFavs">Не адлучаць улюбёнцаў, калі яны выходзяць з асяродку</String>
@@ -1396,10 +1438,10 @@
 		<String Name="SettingsConfirmExit">Калі выходзім з праґрамы</String>
 		<String Name="SettingsConfirmHubgroupRemoval">Калі сьціраем суполку асяродкаў</String>
 		<String Name="SettingsConfirmHubRemoval">Калі прыбіраем улюбёны асяродак</String>
-		<String Name="SettingsConfirmItemRemoval">Калі выкрасьляем пункт чаргі сьцягванага</String>
+		<String Name="SettingsConfirmItemRemoval">Калі выкрасьляем пункт чаргі спампоўванага</String>
 		<String Name="SettingsConfirmOpenInetHubs">Калі адчыняем асяродак сеціва</String>
 		<String Name="SettingsConnectionAutodetect">Працаваць нядзейным спосабам, калі вызначаны дзейны спосаб недаступны (выяўляецца самарушна)</String>
-		<String Name="SettingsCzdcExtraDownloads">Дадатковыя шчыліны, калі сьцягваем з высокім пяршынствам</String>
+		<String Name="SettingsCzdcExtraDownloads">Дадатковыя шчыліны, калі спампоўваецца з высокім пяршынствам</String>
 		<String Name="SettingsDclsPage">Падтрымка DCLST</String>
 		<String Name="SettingsDefaultAwayMsg">Звычайнае тлумачэньне адсутнасьці</String>
 		<String Name="SettingsDefaultClick">Звычайнае дзеяньне</String>
@@ -1408,12 +1450,12 @@
 		<String Name="SettingsDirectories">Каталёґі</String>
 		<String Name="SettingsDisplayCheatsInMainChat">Паказваць ашуканцаў у галоўнае гутарцы</String>
 		<String Name="SettingsDontChange">Не зьмяняць</String>
-		<String Name="SettingsDontDlAlreadyShared">Ня сьцягваць файлы, што ўжо маем абагуленымі</String>
-		<String Name="SettingsDownconn">Спробаў сьцягваць/сэк</String>
-		<String Name="SettingsDownloads">Сьцягванае</String>
-		<String Name="SettingsDownloadsMax">Шчылінаў сьцягваць (0 = не абмяжоўваць) ≤</String>
-		<String Name="SettingsDownloadsSpeedPause">Ня сьцягваць новае, калі хуткасьць (у КіБ/с, 0 = не забараняць) перавышае гэтае значэньне</String>
-		<String Name="SettingsDownloadDirectory">Звычайны каталёґ сьцягнутага</String>
+		<String Name="SettingsDontDlAlreadyShared">Не спампоўваць файлы, што ўжо маем абагуленымі</String>
+		<String Name="SettingsDownconn">Спробаў спампоўваць/сэк</String>
+		<String Name="SettingsDownloads">Спампоўванае</String>
+		<String Name="SettingsDownloadsMax">Шчылінаў спампоўваць (0 = не абмяжоўваць) ≤</String>
+		<String Name="SettingsDownloadsSpeedPause">Не спампоўваць новае, калі хуткасьць (у КіБ/с, 0 = не забараняць) перавышае гэтае значэньне</String>
+		<String Name="SettingsDownloadDirectory">Звычайны каталёґ спампаванага</String>
 		<String Name="SettingsDownloadLimits">Абмежаваньні</String>
 		<String Name="SettingsDupeColor">Сьпіс файлаў — ужо абагуленыя</String>
 		<String Name="SettingsEnd">Канец</String>
@@ -1421,7 +1463,7 @@
 		<String Name="SettingsExternalIp">Вонкавы / WAN IP</String>
 		<String Name="SettingsFakedetect">Самарушна выганяць</String>
 		<String Name="SettingsFakeSet">Выкрываць падробленае абагуленае</String>
-		<String Name="SettingsFavoriteDirs">Улюбёныя каталёґі на сьцягванае</String>
+		<String Name="SettingsFavoriteDirs">Улюбёныя каталёґі на спампоўванае</String>
 		<String Name="SettingsFavoriteDirsPage">Улюбёныя каталёґі</String>
 		<String Name="SettingsFavoriteDirExt">Пашырэньні: (avi;mov;divx)</String>
 		<String Name="SettingsFavShowJoins">Паведамляць, калі ўлюбёнец увайшоў ці выйшаў</String>
@@ -1431,7 +1473,7 @@
 		<String Name="SettingsFilterMessages">Не паказваць паведамленьні наладкі (і як даюць высьпятка таксама)</String>
 		<String Name="SettingsFirewallNat">Сетказаслона з ручным перасыланьнем портаў</String>
 		<String Name="SettingsFirewallPassive">Сетказаслона (нядзейны спосаб, найгоршы)</String>
-		<String Name="SettingsFirewallUpnp">UPnP (мадэм/маршрутызатар)</String>
+		<String Name="SettingsFirewallUpnp">UPnP (толькі для злучара ці маршрутавальніка)</String>
 		<String Name="SettingsFormat">Выгляд</String>
 		<String Name="SettingsGeneral">Агульныя</String>
 		<String Name="SettingsGetFavoriteDir">Абярыце каталёґ:</String>
@@ -1441,7 +1483,7 @@
 		<String Name="SettingsIncoming">Налады ўваходных злучэньняў (гл. «Дапамогу» ці «ПіА»)</String>
 		<String Name="SettingsIntegrationProp">Убудоўваньне</String>
 		<String Name="SettingsIntPreviewPage">Убудаваны прайгравальнік</String>
-		<String Name="SettingsIpblock">IPTrust.ini (сьцягваць і зацягваць)</String>
+		<String Name="SettingsIpblock">IPTrust.ini (спампоўваць і запампоўваць)</String>
 		<String Name="SettingsIpblockDownloadUrlStr">Спасылка:</String>
 		<String Name="SettingsKeepLists">Не сьціраць сьпісы файлаў, калі выходзім</String>
 		<String Name="SettingsLanguage">Мова</String>
@@ -1450,15 +1492,18 @@
 		<String Name="SettingsLogs">Справаздачы</String>
 		<String Name="SettingsLogCustomLocation">Занатоўваць падзеі месцазнаходжаньня</String>
 		<String Name="SettingsLogDir">Каталёґ справаздачы</String>
-		<String Name="SettingsLogDownloads">Занатоўваць, што сьцягваем</String>
+		<String Name="SettingsLogDownloads">Занатоўваць, што спампоўваецца</String>
 		<String Name="SettingsLogFilelistTransfers">Занатоўваць перададзеныя сьпісы файлаў</String>
+		<String Name="SettingsLogTraceSqlite">Занатоўваць запыты да базы SQLite</String>
+		<String Name="SettingsLogDdosTrace">Занатоўваць выяўленыя напады DDoS</String>
 		<String Name="SettingsLogIfSuppressPms">Адзначаць у справаздачы адкінутыя паведамленьні</String>
 		<String Name="SettingsLogMainChat">Занатоўваць галоўную гутарку</String>
 		<String Name="SettingsLogPrivateChat">Занатоўваць асабістую гутарку</String>
 		<String Name="SettingsLogStatusMessages">Занатоўваць паведамленьні стану</String>
 		<String Name="SettingsLogSystemMessages">Занатоўваць паведамленьні сыстэмы</String>
-		<String Name="SettingsLogUploads">Занатоўваць, што зацягваем</String>
+		<String Name="SettingsLogUploads">Занатоўваць, што запампоўваецца</String>
 		<String Name="SettingsLogWebserver">Занатоўваць паслужнік сеціва</String>
+		<String Name="SettingsLogProtocol">Занатоўваць вузел TCP</String>
 		<String Name="SettingsMaxCompress">Узровень сьціск. ≤</String>
 		<String Name="SettingsMaxHashSpeed">Хутк. ств. скар. ≤</String>
 		<String Name="SettingsMaxTabRows">Найбольшая колькасьць радкоў</String>
@@ -1467,7 +1512,7 @@
 		<String Name="SettingsMinimizeOnStartup">Наймяншаць па запуску праґрамы</String>
 		<String Name="SettingsMinimizeTray">Наймяншаць у сподак</String>
 		<String Name="SettingsMinMediainfoSize">Найм. памер файлаў «mediainfo»</String>
-		<String Name="SettingsMinMultiChunkSize">Найм. памер файла, каб сьцягваць па частках</String>
+		<String Name="SettingsMinMultiChunkSize">Найм. памер файла, каб спампоўваць па частках</String>
 		<String Name="SettingsMisc">Разнастайныя</String>
 		<String Name="SettingsMouseOver">Пад мышшу</String>
 		<String Name="SettingsName">Назва</String>
@@ -1489,6 +1534,7 @@
 		<String Name="SettingsPersonalInformation">Асабістыя зьвесткі</String>
 		<String Name="SettingsPmBeep">Надакучаць гукамі штораз па новым асабістым паведамленьні</String>
 		<String Name="SettingsPmBeepOpen">Надакучаць гукамі, калі адчынілі вакно асабістага паведамленьня</String>
+		<String Name="SettingsChatHistory">Гісторыя гутаркі</String>
 		<String Name="SettingsPopunderFilelist">Адчыняць новыя вокны сьпісаў файлаў на заднім пляне</String>
 		<String Name="SettingsPopunderPm">Адчыняць новыя вокны асаб. паведамленьняў на заднім пляне</String>
 		<String Name="SettingsPopupBotPms">Адчыняць асабістыя паведамленьні ад ботаў у асобных вокнах</String>
@@ -1523,7 +1569,7 @@
 		<String Name="SettingsSaveTthInNtfsFilestream">Захоўваць скарот (TTH) у файластрумені NTFS. Увага: калі зьняць птушачку, струмень сатрэцца!</String>
 		<String Name="SettingsSbMaxSources">Крыніц у супадзеньнях ≤</String>
 		<String Name="SettingsSearchHistory">Гісторыя пошуку</String>
-		<String Name="SettingsSegment">Сьцягваць па частках</String>
+		<String Name="SettingsSegment">Спампоўваць па частках</String>
 		<String Name="SettingsSelectColor">Выбраць</String>
 		<String Name="SettingsSelectTextFace">Стыль &amp;тэксту</String>
 		<String Name="SettingsSelectWindowColor">Колер вакна</String>
@@ -1536,6 +1582,7 @@
 		<String Name="SettingsShareSystem">Абагуліць сыстэмныя файлы</String>
 		<String Name="SettingsShareVirtual">Абагуліць уяўныя файлы (спасылкі ў АС ці файлы на ўяўных прыладах, у тым ліку АЗП)</String>
 		<String Name="SettingsShowFullHubInfoOnTab">Паказваць на картцы ўсё пра асяродак</String>
+		<String Name="SettingsNotboldFontOnActivityTab">Не вылучаць тоўстым тэкст укладак пры дзейнасьці</String>
 		<String Name="SettingsShowInfoTips">Паказваць падказкі ў сьпісах</String>
 		<String Name="SettingsShowJoins">Звычайна паказваць у гутарцы, калі хто ўваходзіць ці выходзіць</String>
 		<String Name="SettingsShowProgressBars">Паказваць паліцу поступу перадаваньня (крыху карыстае працэсар)</String>
@@ -1553,6 +1600,7 @@
 		<String Name="SettingsSortFavusersFirst">Упарадкаваць першымі ўлюбёнцаў</String>
 		<String Name="SettingsSounds">Гукі</String>
 		<String Name="SettingsSpeedsNotAccurate">Уважце: хуткасьць зьмяняецца, таму гэта вызначаецца недакладна…</String>
+		<String Name="SettingsStatisticsSend">Дазволіць праґраме зьбіраць і высылаць распрацоўцам безыменную статыстыку выкарыстаньня праґрамы.</String>
 		<String Name="SettingsStatusInChat">Паказваць апісаньні стану ў галоўнай гутарцы</String>
 		<String Name="SettingsStripTopic">Схаваць тэмы асяродку</String>
 		<String Name="SettingsTabs">Карткі</String>
@@ -1567,21 +1615,21 @@
 		<String Name="SettingsToggleActiveWindow">Перамыкаць вокны, калі абіраем ужо дзейную картку</String>
 		<String Name="SettingsToolbar">Паліца прыладаў</String>
 		<String Name="SettingsToolbarAdd">Дадаць →</String>
-		<String Name="SettingsToolbarImage">Відарысы паліцы прыладаў</String>
+		<String Name="SettingsToolbarImage">Выявы паліцы прыладаў</String>
 		<String Name="SettingsToolbarRemove">← Прыняць</String>
 		<String Name="SettingsUdpPort">Порт UDP</String>
-		<String Name="SettingsUnfinishedDownloadDirectory">Каталёґ яшчэ ня сьцягнутага (пуста = у звычайны каталёґ)</String>
+		<String Name="SettingsUnfinishedDownloadDirectory">Каталёґ яшчэ не спампаванага (пуста = у звычайны каталёґ)</String>
 		<String Name="SettingsUpdateIp">Абнаўляць IP, як спраўдж. с/засл. DHT (па запуску; потым 1 раз/гадз.)</String>
 		<String Name="SettingsUploads">Абагуленае</String>
 		<String Name="SettingsUploadsMinSpeed">Дадаць шчыліну, калі хуткасьць &lt; (0 = не дадаваць)</String>
-		<String Name="SettingsUploadsSlots">Шчыліны зацягв.</String>
-		<String Name="SettingsUploadLineSpeed">Хуткасьць (зацягваць)</String>
+		<String Name="SettingsUploadsSlots">Шчыліны запамп.</String>
+		<String Name="SettingsUploadLineSpeed">Хуткасьць (запампоўваць)</String>
 		<String Name="SettingsUrlHandler">Усталяваць апрацоўнік URL па запуску (каб апрацоўваць спасылкі «dchub://»)</String>
 		<String Name="SettingsUserCommands">Загады карыстальніка</String>
 		<String Name="SettingsUserList">Сьпіс карыстальнікаў</String>
 		<String Name="SettingsUserMenu">Пункты мэню карыстальніка</String>
 		<String Name="SettingsUseCtrlForLineHistory">Гартаць гісторыю дасланага па «Ctrl»</String>
-		<String Name="SettingsUseExtensionDownto">Ужываць пашырэньні файлаў, каб сьцягваць з пошуку</String>
+		<String Name="SettingsUseExtensionDownto">Ужываць пашырэньні файлаў, каб спампоўваць з пошуку</String>
 		<String Name="SettingsUseOldSharingUi">Cтары выгляд вакна абагуляць каталёґі</String>
 		<String Name="SettingsUseSqliteForLogs">Ужываць базу зьвестак SQLite (FlylinkDC_log.sqlite)</String>
 		<String Name="SettingsUseSystemIcons">Ужываць значкі сыстэмы, калі аглядаем файлы (крыху замінае аглядаць)</String>
@@ -1602,7 +1650,7 @@
 		<String Name="Shared">Абагуленае</String>
 		<String Name="SharedFiles">Абагуленыя файлы</String>
 		<String Name="ShareNewFolderError">Нельга абагуліць каталёґ:</String>
-		<String Name="ShareNewFolderMessage">Абагулілі каталёґ. Ягонае зьмесьціва могуць сьцягваць карыстальнікі</String>
+		<String Name="ShareNewFolderMessage">Абагулілі каталёґ. Ягонае зьмесьціва могуць спампоўваць карыстальнікі</String>
 		<String Name="ShowBbcodePanel">Паказваць панэль кодаў BB</String>
 		<String Name="ShowCurrentSpeedInTitle">Паказваць дзейную хуткасьць у загалоўку</String>
 		<String Name="ShowCustomMiniIconOnTaskbar">Паказваць маленькі значак на паліцы задач, калі ўжываецца іншы значак праґрамы</String>
@@ -1620,6 +1668,7 @@
 		<String Name="SizeExact">Дакладны</String>
 		<String Name="SizeMin">Найменшы памер</String>
 		<String Name="SkipRename">Новая ўяўная назва супадае са старою — прапускаем…</String>
+		<String Name="Skipped">Прапусьцілі.</String>
 		<String Name="Slots">Шчыліны</String>
 		<String Name="SlotsSet">Вызначылі шчыліны</String>
 		<String Name="SlotControlGroup">Кіраваць шчылінамі</String>
@@ -1629,15 +1678,27 @@
 		<String Name="SlowUser">Павольны карыстальнік</String>
 		<String Name="SmallFileSizeSet">Вызначылі памер малых файлаў</String>
 		<String Name="SmileSelectWndAnimSmiles">Выкарыстоўваць ажыўленыя значкі ў ваконцы абіраць усьмешку</String>
+		<String Name="SocketErrorNote">Падрабязьней пра «памылку вузла Windows» — на вікі-бачыне праґрамы «FlylinkDC»:</String>
 		<String Name="SocketErrorWsaeaddrnotavail">Запытаны адрас не адпавядае гэтаму зьмесьціву.</String>
-		<String Name="SocketErrorWsaeconnrefused">Злучэньне не ўсталявалі: прызначаны кампутар адхіліў яго.</String>
+		<String Name="SocketErrorWsaenetdown">У дзеяньнях з гняздом трапілася мёртвая сетка.</String>
+		<String Name="SocketErrorWsaenetunreach">У дзеяньнях з гняздом трапілася недасяжная сетка.</String>
+		<String Name="SocketErrorWsaenetreset">Злучэньне разарвалася: праверачныя запыты выявілі памылку.</String>
+		<String Name="SocketErrorWsaeconnaborted">Праґрама на вашым кампутары скасавала ўсталяванае злучэньне.</String>
+		<String Name="SocketErrorWsaeconnreset">Адлеглы вузел прымусова зачыніў існае злучэньне.</String>
+		<String Name="SocketErrorWsaenobufs">Не ўдаецца выканаць дзеяньне на гнязьдзе: сыстэме бракуе прасторы буфэраў, або перапоўнілася чарга.</String>
+		<String Name="SocketErrorWsaeisconn">Запыт злучыцца зрабілі на ўжо адчыненым гнязьдзе.</String>
+		<String Name="SocketErrorWsaetimedout">Або не ўдалося злучыцца, бо другі бок цягам пэўнага часу не адказаў належным чынам, або ўсталяванае злучэньне перапынілася, бо далучаны вузел ня змог адказаць.</String>
+		<String Name="SocketErrorWsaeconnrefused">Не ўдаецца злучыцца: прызначаны кампутар адхіліў злучэньне.</String>
+		<String Name="SocketErrorWsaeloop">Не ўдаецца ператварыць назву.</String>
+		<String Name="SocketErrorWsaenametoolong">Частка назвы або назва задоўгія.</String>
+		<String Name="SocketErrorWsaehostdown">Не ўдалося правесьці дзеяньне з гняздом: прызначаны вузел не працуе.</String>
 		<String Name="SocksAuthFailed">Не ўдалося апазнацца на паслужніку SOCKS (кепскі пароль ці ўліковае ймя?)</String>
 		<String Name="SocksAuthUnsupported">Паслужнік SOCKS не падтрымвае апазнаваньня «ўліковае ймя — пароль»</String>
 		<String Name="SocksFailed">Паслужніку Socks не ўдалося наладзіць злучэньне</String>
 		<String Name="SocksNeedsAuth">Паслужнік SOCKS патрабуе апазнацца</String>
 		<String Name="SocksSetupError">Не ўдалося наладзіць паслужнік SOCKS перасылаць UDP (спраўдзіце адрас і порт SOCKS)</String>
-		<String Name="SoundDownloadBegins">Пачалі сьцягваць</String>
-		<String Name="SoundDownloadFinished">Скончылі сьцягваць</String>
+		<String Name="SoundDownloadBegins">Пачалі спампоўваць</String>
+		<String Name="SoundDownloadFinished">Скончылі спампоўваць</String>
 		<String Name="SoundFakerFound">Знайшлі ашуканца</String>
 		<String Name="SoundSearchspy">Новы пункт у сьпісе шпега</String>
 		<String Name="SoundSourceAdded">Дадалі іншую крыніцу</String>
@@ -1645,20 +1706,22 @@
 		<String Name="SoundThemeDefaultName">Пачатковы набор гукаў «FlylinkDC++»</String>
 		<String Name="SoundTthInvalid">Пашкоджаны файл</String>
 		<String Name="SoundTypingNotify">Калі друкую</String>
-		<String Name="SoundUploadFinished">Скончылі зацягваць</String>
-		<String Name="SourceTooOld">Нельга сьцягнуць: другі кліент ня цалкам падтрымвае скароты TTH</String>
+		<String Name="SoundUploadFinished">Скончылі запампоўваць</String>
+		<String Name="SourceTooOld">Нельга спампаваць: другі кліент ня цалкам падтрымвае скароты TTH</String>
 		<String Name="SourceType">Від крыніцы</String>
 		<String Name="SpaceNotFound">прагал не знайшлі</String>
 		<String Name="SpecifySearchString">Вызначце дакладней, які радок шукаць</String>
 		<String Name="SpecifyServer">Вызначце дакладней, зь якім паслужніком злучацца</String>
 		<String Name="Speed">Хуткасьць</String>
 		<String Name="SpeedLimit">Абмежаваньне хуткасьці</String>
-		<String Name="SpeedLimitManual">Вызначыць граніцу зацягваньня</String>
+		<String Name="SpeedLimitManual">Вызначыць граніцу запампоўваньня</String>
 		<String Name="SplashBeta">Бэта-вэрсія. Чытаецца…</String>
 		<String Name="SplashRelease">Чытаецца…</String>
 		<String Name="SqliteUseExclusiveLockMode">Замыкаць базу зьвестак SQLite ад іншых. Гэта палепшыць выніковасьць.</String>
 		<String Name="SqliteUseJournalMemory">Трымаць файл справаздачы SQLite у памяці. База зьвестак можа пашкодзіцца, калі сыстэма ці праґрама дадуць хібу.</String>
 		<String Name="SslError">Памылка SSL</String>
+		<String Name="StartIpEqual">Пачатковы і канцавы адрасы IP аднолькавыя. Прамежак дадалі як адзін адрас IP.</String>
+		<String Name="StartIpGreater">Пачатковы адрас IP большы за канцавы.</String>
 		<String Name="Started">Пачалі</String>
 		<String Name="StartupBackup">Захоўваць адноўку наладаў па запуску</String>
 		<String Name="StartviewExistingFile">Прагледзець файл…</String>
@@ -1692,6 +1755,9 @@
 		<String Name="TabOfflineTextColor">Колер тэксту карткі адлучанага</String>
 		<String Name="TabSelectedColor">Колер абранае карткі</String>
 		<String Name="TabSelectedTextColor">Колер тэксту абранае карткі</String>
+		<String Name="HubInFavBkColor">Асяродкі — упадабаны асяродак</String>
+		<String Name="HubInFavConnectBkColor">Асяродкі — злучацца па запуску</String>
+		<String Name="Application">Праґрама</String>
 		<String Name="TargetFilenameTooLong">Прызначылі задаўгую назву файла</String>
 		<String Name="TargetFileExists">Файл ужо існуе ў прызначаным месцы</String>
 		<String Name="TargetRemoved">Мэта зьнікла</String>
@@ -1700,7 +1766,17 @@
 		<String Name="Techsupport">Падтрымка FlylinkDC++</String>
 		<String Name="TextFakepercent">Адсотак неадпаведнасьці</String>
 		<String Name="TextManual">Самастойна вызначыць колькасьць частак</String>
+		<String Name="TextStatRequest">Каб удасканаліць сваю працу, праґрама «FlylinkDC++» зьбірае безыменную статыстыку
+выкарыстаньня праґрамы і перадае яе распрацоўцам 
+Законы шмат якіх краін патрабуюць, каб вы далі праґраме «FlylinkDC++»
+дазвол на гэта.
+Ці дазволіць праґраме зьбіраць і высылаць распрацоўцам безыменную статыстыку выкарыстаньня праґрамы?</String>
+		<String Name="TextStatInfo">Каб удасканаліць сваю працу, праґрама «FlylinkDC++» зьбірае безыменную статыстыку
+выкарыстаньня праґрамы і перадае яе распрацоўцам 
+Законы шмат якіх краін патрабуюць, каб праґрама «FlylinkDC++»
+паведаміла пра гэта.</String>
 		<String Name="TextStr">Тэкст</String>
+		<String Name="FavEnemyUser">Варожы карыстальнік, забарона хуткасьці</String>
 		<String Name="FavUser">Улюбёнец</String>
 		<String Name="GeneralText">Галоўны тэкст</String>
 		<String Name="MyMessage">Маё ўласнае паведамленьне</String>
@@ -1720,13 +1796,12 @@
 		<String Name="ThisFunctionalIsDisabled">Гэтая магчымасьць яшчэ распрацоўваецца ці не працуе ў гэтай вэрсіі.</String>
 		<String Name="ThisVersionReleased">Ёсьць выпуск гэтае ці навейшае вэрсіі</String>
 		<String Name="Threshold">Парог карыстальнікаў</String>
-		<String Name="TicksSpeedDown">Хутк. сьцягв.
-
+		<String Name="TicksSpeedDown">Хутк. спамп.
 на 5 рысак</String>
-		<String Name="TicksSpeedUp">Хутк. зацягв.
-
+		<String Name="TicksSpeedUp">Хутк. запамп.
 на 5 рысак</String>
 		<String Name="Time">Час</String>
+		<String Name="Timeout">Час чаканьня</String>
 		<String Name="TimeoutRaw">Часаспын загадам</String>
 		<String Name="TimestampsDisabled">Не выкарыстоўваем часадзнакі</String>
 		<String Name="TimestampsEnabled">Задзейнічалі часадзнакі</String>
@@ -1776,32 +1851,35 @@
 		<String Name="TwoColors">Два колеры</String>
 		<String Name="Type">Від</String>
 		<String Name="U">З:</String>
-		<String Name="UdRatio">Сьцягнулі/Зацягнулі</String>
-		<String Name="UnableToCreateThread">Не магу стварыць ніць</String>
+		<String Name="UdRatio">Спампавалі/Запампавалі</String>
+		<String Name="FlyServerUdpTestPortWait">Выпрабоўваецца порт UDP…</String>
+		<String Name="UnableToCreateThread">Не ўдаецца стварыць ніць</String>
 		<String Name="UnableToOpenFilelist">Не магу адчыніць сьпіс файлаў:</String>
 		<String Name="UnableToOpenPort">Не магу адчыніць порт(ы) %s. Вы мусіце наладзіць злучэньне самастойна</String>
-		<String Name="UnableToRename">Не магу даць новую назву</String>
-		<String Name="UnableToSendFile">Не магу даслаць файл</String>
+		<String Name="UnableToRename">Не магу даць новую назву </String>
+		<String Name="UnableToSendFile">Не магу даслаць файл </String>
 		<String Name="UnfinishedFileNotFound">Не знайшлі няскончанага файла</String>
 		<String Name="UnfinishedFileTooSmall">Няскончаны файл замалы</String>
+		<String Name="UnignoreUserByName">Зноўку заўважаць карыстальніка па імені</String>
 		<String Name="Unknown">Невядома</String>
 		<String Name="UnknownCommand">Невядомы загад:</String>
 		<String Name="UnknownError">Невядомая памылка: 0x%x</String>
 		<String Name="UnknownModeNotice">Невядомы від злучэньня.
 Або не злучыліся зь сецівам, або кепска наставілі злучэньне, або няма доступу да паслужніка асяродка.</String>
 		<String Name="UnnamedMagnetLink">Маґніт-спасылка бяз назвы</String>
-		<String Name="Up">Зац.:</String>
+		<String Name="Up">Зап.:</String>
 		<String Name="Update">Абнавіць</String>
 		<String Name="UpdateCheck">Паглядзець абнаўленьні</String>
 		<String Name="UpdateIp">Абнаўляць IP па запуску</String>
 		<String Name="UpdateIpInterval">Прамежак між абнаўленьнямі IP (хв.)
 (0 = абнаўляць толькі па запуску)</String>
-		<String Name="Upload">Зацягванае</String>
-		<String Name="UploadedBytes">Зацягнулі %s (%.01f%%) за %s</String>
-		<String Name="UploadedTo">зацягнулі да</String>
-		<String Name="UploadFinishedIdle">Зацягнулі, бязьдзейнічаем…</String>
-		<String Name="UploadSpeedLimit">Граніца хуткасьці зацягваньня</String>
-		<String Name="UploadStarting">Пачынаем зацягваць…</String>
+		<String Name="Upload">Запампавалі</String>
+		<String Name="Uploaded">Зацягнулі</String>
+		<String Name="UploadedBytes">Запампавалі %s (%.01f%%) за %s</String>
+		<String Name="UploadedTo">запампавалі да</String>
+		<String Name="UploadFinishedIdle">Запампавалі, бязьдзейнічаем…</String>
+		<String Name="UploadSpeedLimit">Граніца хуткасьці запампоўваць</String>
+		<String Name="UploadStarting">Пачынаем запампоўваць…</String>
 		<String Name="UpnpcheckdlgMiniInit">Спраўджаецца MiniUPnP…</String>
 		<String Name="UpnpcheckdlgMiniOpen">Адчыняем порты ў MiniUPnP…</String>
 		<String Name="UpnpcheckdlgPortCheck">Спраўджаюцца порты…</String>
@@ -1821,7 +1899,7 @@
 		<String Name="UpnpTryNextMethodTransfer">Спрабуем наступны спосаб для порту перадаваньня!</String>
 		<String Name="UpnpTryNextMethodWeb">Спрабуем наступны спосаб для порту паслужніка сеціва!</String>
 		<String Name="Uptime">Час працы:</String>
-		<String Name="UpTransferColors">Колеры поступу зацягваньня (паказвае колькасьць адчыненых шчылінаў у таго, хто сьцягвае)</String>
+		<String Name="UpTransferColors">Колеры поступу запампоўванага (паказвае колькасьць адчыненых шчылінаў у таго, хто спампоўвае)</String>
 		<String Name="User">Карыстач</String>
 		<String Name="Userinfo">Зьвесткі пра карыстальніка</String>
 		<String Name="Userlistdblclickaction">у сьпісе карыстальнікаў</String>
@@ -1854,7 +1932,7 @@
 		<String Name="UserWentOffline">Карыстальнік ня ў сетцы</String>
 		<String Name="UserWentOnline">Карыстальнік у сетцы</String>
 		<String Name="Use12HourFormat">12-гадзінны выгляд</String>
-		<String Name="UseAntivir">Спраўджаць сьцягнутае на вірусы</String>
+		<String Name="UseAntivir">Спраўджаць спампаванае на вірусы</String>
 		<String Name="UseAutoMultiChatSwitch">Самарушна пераходзіць да шматрадковае гутаркі</String>
 		<String Name="UseBitrateFixForSpam">Выпраўляць зьвесткі (бітаў за сэкунду, чашчыня) ад прайгравальнікаў QCD ці QMP</String>
 		<String Name="UseCustomListBackground">Ужываць карыстальніцкі выгляд тла сьпісу</String>
@@ -1879,10 +1957,11 @@
 		<String Name="WaitingUsersOnline">Чакаем (%d з %d карыстальніку(аў) далучаны(я))</String>
 		<String Name="WaitingUserOnline">Чакаем (карыстальнік далучаны)</String>
 		<String Name="Warning">Перасьцярога</String>
+		<String Name="WarningParse">Разбор: перасьцярога</String>
 		<String Name="WarningValueAutoAdjusted">Значэньні зьмененых наладаў самарушна зьмяніліся</String>
 		<String Name="Webserver">Паслужнік сеціва</String>
 		<String Name="WebserverAddMagnetLink">Дадаць маґніт-спасылку</String>
-		<String Name="WebserverAllowChangeDownloadDir">Дазволіць зьмяняць каталёґ сьцягванага.
+		<String Name="WebserverAllowChangeDownloadDir">Дазволіць зьмяняць каталёґ спампоўванага.
 Перасьцярога: гэта можа быць небясьпечным!</String>
 		<String Name="WebserverAllowUpnp">Дазволіць адлюстроўваць порты празь UPnP.
 Перасьцярога: гэта можа быць небясьпечным!</String>
@@ -1902,7 +1981,7 @@
 		<String Name="Weeks">тыдн.</String>
 		<String Name="Welcome">Вітаем</String>
 		<String Name="WhatsThis">Што &amp;гэта?</String>
-		<String Name="WhoIs">Кім ёсьць</String>
+		<String Name="WhoIs">Кім ёсьць </String>
 		<String Name="Width">Шырыня</String>
 		<String Name="WinampBack">Назад</String>
 		<String Name="WinampHelp">/winamp — працуе з Winamp 1.x, 2.x, 5.x (Winamp 3 не падтрымваецца)
@@ -1941,21 +2020,21 @@
 		<String Name="WindowsStyleUrl">Спасылкі выглядаюць як звычайна ў Windows</String>
 		<String Name="WizardDownloaddirStatic">Даведка: на дысках, большых за 10 ҐБ, раіцца ўжываць не сыстэмныя каталёґі…</String>
 		<String Name="WizardFinishLabel1">Скончылі ўладкоўваць</String>
-		<String Name="WizardFinishLabel2">Цяпер можна пачынаць карыстацца «FlylinkDC++»!</String>
+		<String Name="WizardFinishLabel2">Цяпер можна пачынаць карыстацца праґрамаю «FlylinkDC++»!</String>
 		<String Name="WizardNetaBtnCheckupnp">Выпрабаваць UPnP</String>
 		<String Name="WizardNetaBtnSetuprouter">Уладкаваць маршрутавальнік</String>
 		<String Name="WizardNetaBtnTest">Выпрабаваць сеткавыя злучэньні FlylinkDC++</String>
 		<String Name="WizardNetaFirewallStatic">Сетказаслона</String>
 		<String Name="WizardNetaNeedpassivemode">Непаладкі зь дзейным спосабам. Ці перайсьці да нядзейнага спосабу злучацца па сетцы?</String>
-		<String Name="WizardNetaRouterStatic">Калі да сеткі далучылі маршрутавальнік або злучар ADSL, трэба наладзіць яго для FlylinkDC++. Трэба або дазволіць на ім UPnP, або наставіць перасылаць порты.</String>
+		<String Name="WizardNetaRouterStatic">Калі да сеткі далучылі маршрутавальнік або злучар ADSL, трэба наладзіць яго для праґрамы «FlylinkDC++». Трэба або дазволіць на ім UPnP або наставіць перасылаць порты.</String>
 		<String Name="WizardNetaRouterTitle">Маршрутавальнік або злучар ADSL (калі маеце такую прыладу)</String>
-		<String Name="WizardNetaSetupfailed">Не наставілі FlylinkDC++ працаваць дзейным спосабам</String>
+		<String Name="WizardNetaSetupfailed">Не наставілі «FlylinkDC++» працаваць дзейным спосабам</String>
 		<String Name="WizardNetaSetupsuccess">«FlylinkDC++» наставілі працаваць дзейным спосабам</String>
-		<String Name="WizardNetaTitle">Гэтая бачына дапаможа ўладкаваць сетку для FlylinkDC++</String>
+		<String Name="WizardNetaTitle">Гэтая бачына дапаможа ўладкаваць сетку для праґрамы «FlylinkDC++»</String>
 		<String Name="WizardNetaUsedc">Выпадкова вызначаць порты па кожным запуску</String>
 		<String Name="WizardNetaUseDht">Дазволіць уваходныя ды выходныя злучэньні зь сецівам (DHT)</String>
 		<String Name="WizardNetaWinfirewall">С/заслона Windows</String>
-		<String Name="WizardNetaWinfirewallStatic2">Калі ў вашай сыстэме працуе іншая сетказаслона (або супрацьвірус зь сетказаслонаю), наладзьце яе так, каб яна дазваляла FlylinkDC++ працаваць зь сеткаю.</String>
+		<String Name="WizardNetaWinfirewallStatic2">Калі ў вашай сыстэме працуе іншая сетказаслона (або супрацьвірус зь сетказаслонаю), наладзьце яе так, каб яна дазваляла праґраме «FlylinkDC++» працаваць зь сеткаю.</String>
 		<String Name="WizardNetIpAutoIpupdate">Самарушна абнаўляць IP па кожным запуску</String>
 		<String Name="WizardNetIpDetectIp">Выявіць адрас IP</String>
 		<String Name="WizardNetIpStatic">Звычайны адрас, каб злучацца з асяродкамі</String>
@@ -1971,15 +2050,14 @@
 		<String Name="WizardShareAlreadyindesc">Такое апісаньне ўжо існуе</String>
 		<String Name="WizardShareDeletefolderquestion">
 Ці хочаце выкрасьліць гэты каталёґ?</String>
-		<String Name="Edit">Правіць</String>
-		<String Name="WizardShareStatic">Можна дадаць каталёґі, якія абагуляцца для іншых карыстальнікаў. Карыстальнікі далучаных асяродкаў змогуць сьцягваць усе ўкладзеныя каталёґі ды файлы зь іх.
-Калі ласка, не абагуляйце сыстэмныя файлы!</String>
+		<String Name="WizardShareStatic">Можна дадаць каталёґі, якія абагуляцца для іншых карыстальнікаў. Карыстальнікі далучаных асяродкаў змогуць спампоўваць зь іх усе ўкладзеныя каталёґі ды файлы.
+Не абагуляйце сыстэмныя файлы!</String>
 		<String Name="WizardShareToSmall">Вы замала абагулілі. Абагуліце болей файлаў.</String>
 		<String Name="WizardStartupTxt1">Памочнік у наладах «FlylinkDC++» вітае вас!</String>
 		<String Name="WizardStartupTxt2">Гэты сродак дапаможа вам наладзіць у кліенце FlylinkDC++: 
  1. Мянушку.
- 2. Каталёґ на сьцягванае ды на часовыя файлы. 
- 3. Абагуліць файлы, каб карыстальнікі сеткі DC++ маглі сьцягваць іх. 
+ 2. Каталёґ на спампоўванае ды на часовыя файлы. 
+ 3. Абагуліць файлы, каб карыстальнікі сеткі DC++ маглі спампоўваць іх. 
  4. Уладкаваць кліент згодна з настаўленьнямі сеткі. 
  5. Дадаць улюбёныя асяродкі.</String>
 		<String Name="WizardStartupTxt3">Каб працягваць, націсьніце «Далей»…</String>
@@ -2007,6 +2085,10 @@
 		<String Name="WmpHelpDesc">Дапамога па «Windows Media Player»</String>
 		<String Name="WmpNotPlay">У Windows Media Player нічога не прайграецца</String>
 		<String Name="WmpNotRun">Не запушчаная вэрсія Windows Media Player, якая можа падтрымвацца</String>
+		<String Name="WrongIp">Хібны адрас IP.</String>
+		<String Name="WrongMask">Хібная маска.</String>
+		<String Name="WrongEndIp">У прамежку IP хібны канец.</String>
+		<String Name="WrongStartIp">У прамежку IP хібны пачатак.</String>
 		<String Name="Yb">ЁіБ</String>
 		<String Name="Yellow">Жоўты</String>
 		<String Name="Yes">Так</String>

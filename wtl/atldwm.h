@@ -28,11 +28,11 @@
 
 #if (_WIN32_WINNT < 0x0600)
 	#error atldwm.h requires _WIN32_WINNT >= 0x0600
-#endif // (_WIN32_WINNT < 0x0600)
+#endif
 
 #ifndef _DWMAPI_H_
 #include <dwmapi.h>
-#endif // _DWMAPI_H_
+#endif
 #pragma comment(lib, "dwmapi.lib")
 
 // Note: To create an application that also runs on older versions of Windows,
@@ -292,12 +292,11 @@ public:
 
 // Constructor
 	CDwmThumbnailT(HTHUMBNAIL hThumbnail = NULL) : m_hThumbnail(hThumbnail)
-	{
-	}
+	{ }
 
 	~CDwmThumbnailT()
 	{
-		if(t_bManaged && m_hThumbnail != NULL)
+		if(t_bManaged && (m_hThumbnail != NULL))
 			Unregister();
 	}
 
@@ -382,8 +381,7 @@ typedef CDwmThumbnailT<false, CDwm> CDwmThumbnailHandle;
 // CAeroControlImpl - Base class for controls on Glass
 
 template <class T, class TBase = ATL::CWindow, class TWinTraits = ATL::CControlWinTraits>
-class CAeroControlImpl :
-	public CThemeImpl<T>,
+class CAeroControlImpl : public CThemeImpl<T>,
 	public CBufferedPaintImpl<T>,
 	public ATL::CWindowImpl<T, TBase, TWinTraits>
 {
@@ -419,13 +417,16 @@ public:
 	{
 		T* pT = static_cast<T*>(this);
 		pT->Init();
+
 		bHandled = FALSE;
 		return 0;
 	}
 
 	LRESULT OnActivate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 	{
-		if(IsThemingSupported()) Invalidate(FALSE);
+		if(IsThemingSupported())
+			Invalidate(FALSE);
+
 		bHandled = FALSE;
 		return 0;
 	}
@@ -460,7 +461,7 @@ public:
 	{
 		T* pT = static_cast<T*>(this);
 		LRESULT lRes = 0;
-		if( ::DwmDefWindowProc(pT->m_hWnd, uMsg, wParam, lParam, &lRes) )
+		if(::DwmDefWindowProc(pT->m_hWnd, uMsg, wParam, lParam, &lRes) != FALSE)
 			return lRes;
 
 		return _windowClass::DefWindowProc(uMsg, wParam, lParam);
@@ -502,8 +503,6 @@ public:
 
 #endif // __ATLTHEME_H__
 
-
 }; // namespace WTL
-
 
 #endif // __ATLDWM_H__

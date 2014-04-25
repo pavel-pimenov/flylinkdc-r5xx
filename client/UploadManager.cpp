@@ -251,7 +251,7 @@ bool UploadManager::hasUpload(const UserConnection* p_newLeacher, const string& 
 			         newLeacherNick == uploadUserNick) // [+] back port from r4xx.
 			   )
 			{
-#if defined(NIGHT_BUILD) || defined(DEBUG) || defined(FLYLINKDC_BETA)
+#if defined(NIGHT_BUILD) || defined(_DEBUG) || defined(FLYLINKDC_BETA)
 				char bufNewLeacherShare[64];
 				char bufUploadUserShare[64];
 				char bufShareDelta[64];
@@ -259,7 +259,7 @@ bool UploadManager::hasUpload(const UserConnection* p_newLeacher, const string& 
 				snprintf(bufNewLeacherShare, sizeof(bufNewLeacherShare), "%I64d", newLeacherShare);
 				snprintf(bufUploadUserShare, sizeof(bufUploadUserShare), "%I64d", uploadUserShare);
 				snprintf(bufShareDelta, sizeof(bufShareDelta), "%I64d", int64_t(std::abs(long(newLeacherShare - uploadUserShare))));
-				
+#if 0
 				LogManager::getInstance()->ddos_message("[Drop duplicated connection] From IP =" + newLeacherIp
 				                                        + ", share con = " + bufNewLeacherShare
 				                                        + ", share exist = " + string(bufUploadUserShare)
@@ -268,6 +268,7 @@ bool UploadManager::hasUpload(const UserConnection* p_newLeacher, const string& 
 				                                        + " nick exist = " + u->getUser()->getLastNick()
 				                                        + " source file = " + p_source_file
 				                                       );
+#endif
 #endif
 				return true;
 			}

@@ -743,11 +743,11 @@ Ztring EbuCore_Transform_Video(Ztring &ToReturn, MediaInfo_Internal &MI, size_t 
     if (!MI.Get(Stream_Video, StreamPos, Video_CodecID).empty() || !MI.Get(Stream_Video, StreamPos, Video_Format_Commercial_IfAny).empty())
     {
         ToReturn+=__T("\t\t\t\t<ebucore:codec>\n");
-    if (!MI.Get(Stream_Video, StreamPos, Video_CodecID).empty())
-    {
-        ToReturn+=__T("\t\t\t\t\t<ebucore:codecIdentifier>\n");
-        ToReturn+=__T("\t\t\t\t\t\t<dc:identifier>")+MI.Get(Stream_Video, StreamPos, Video_CodecID)+__T("</dc:identifier>\n");
-        ToReturn+=__T("\t\t\t\t\t</ebucore:codecIdentifier>\n");
+        if (!MI.Get(Stream_Video, StreamPos, Video_CodecID).empty())
+        {
+            ToReturn+=__T("\t\t\t\t\t<ebucore:codecIdentifier>\n");
+            ToReturn+=__T("\t\t\t\t\t\t<dc:identifier>")+MI.Get(Stream_Video, StreamPos, Video_CodecID)+__T("</dc:identifier>\n");
+            ToReturn+=__T("\t\t\t\t\t</ebucore:codecIdentifier>\n");
         }
         if (!MI.Get(Stream_Video, StreamPos, Video_Format_Commercial_IfAny).empty())
             ToReturn+=__T("\t\t\t\t\t<ebucore:name>")+MI.Get(Stream_Video, StreamPos, Video_Format_Commercial_IfAny)+__T("</ebucore:name>\n");
@@ -861,11 +861,11 @@ Ztring EbuCore_Transform_Audio(Ztring &ToReturn, MediaInfo_Internal &MI, size_t 
     if (!MI.Get(Stream_Audio, StreamPos, Audio_CodecID).empty() || !MI.Get(Stream_Audio, StreamPos, Audio_Format_Commercial_IfAny).empty())
     {
         ToReturn+=__T("\t\t\t\t<ebucore:codec>\n");
-    if (!MI.Get(Stream_Audio, StreamPos, Audio_CodecID).empty())
-    {
-        ToReturn+=__T("\t\t\t\t\t<ebucore:codecIdentifier>\n");
-        ToReturn+=__T("\t\t\t\t\t\t<dc:identifier>")+MI.Get(Stream_Audio, StreamPos, Audio_CodecID)+__T("</dc:identifier>\n");
-        ToReturn+=__T("\t\t\t\t\t</ebucore:codecIdentifier>\n");
+        if (!MI.Get(Stream_Audio, StreamPos, Audio_CodecID).empty())
+        {
+            ToReturn+=__T("\t\t\t\t\t<ebucore:codecIdentifier>\n");
+            ToReturn+=__T("\t\t\t\t\t\t<dc:identifier>")+MI.Get(Stream_Audio, StreamPos, Audio_CodecID)+__T("</dc:identifier>\n");
+            ToReturn+=__T("\t\t\t\t\t</ebucore:codecIdentifier>\n");
         }
         if (!MI.Get(Stream_Audio, StreamPos, Audio_Format_Commercial_IfAny).empty())
             ToReturn+=__T("\t\t\t\t\t<ebucore:name>")+MI.Get(Stream_Audio, StreamPos, Audio_Format_Commercial_IfAny)+__T("</ebucore:name>\n");
@@ -961,8 +961,8 @@ Ztring EbuCore_Transform_Text(Ztring &ToReturn, MediaInfo_Internal &MI, size_t S
         if (!MI.Get(Stream_Text, StreamPos, Text_CodecID).empty() || !MI.Get(Stream_Text, StreamPos, Text_Format_Commercial_IfAny).empty())
         {
             ToReturn+=__T("\t\t\t\t<ebucore:codec>\n");
-        if (!MI.Get(Stream_Text, StreamPos, Text_CodecID).empty())
-        {
+            if (!MI.Get(Stream_Text, StreamPos, Text_CodecID).empty())
+            {
                 ToReturn+=__T("\t\t\t\t\t<ebucore:codecIdentifier>\n");
                 ToReturn+=__T("\t\t\t\t\t\t<dc:identifier>")+MI.Get(Stream_Text, StreamPos, Text_CodecID)+__T("</dc:identifier>\n");
                 ToReturn+=__T("\t\t\t\t\t</ebucore:codecIdentifier>\n");
@@ -1035,7 +1035,7 @@ Ztring Export_EbuCore::Transform(MediaInfo_Internal &MI)
         ToReturn+=__T("\t\t\t</ebucore:containerFormat>\n");
     }
     else
-    ToReturn+=__T("/>\n");
+        ToReturn+=__T("/>\n");
 
     //format - dataFormat
     for (size_t Pos=0; Pos<MI.Count_Get(Stream_Text); Pos++)

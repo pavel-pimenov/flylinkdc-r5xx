@@ -74,20 +74,20 @@ class Socket
 			WAIT_WRITE = 0x04 //-V112
 		};
 		
-		enum
+		enum SocketType
 		{
-			TYPE_TCP,
-			TYPE_UDP
+			TYPE_TCP = 0, // IPPROTO_TCP
+			TYPE_UDP = 1  // IPPROTO_UDP
 		};
 		
 		Socket() : m_sock(INVALID_SOCKET), connected(false)
 			, m_maxSpeed(0), m_currentBucket(0) //[+] IRainman SpeedLimiter
-			, type(0), port(0)
+			, m_type(TYPE_TCP), port(0)
 		{
 		}
 		Socket(const string& aIp, uint16_t aPort) : m_sock(INVALID_SOCKET), connected(false)
 			, m_maxSpeed(0), m_currentBucket(0) //[+] IRainman SpeedLimiter
-			, type(0)
+			, m_type(TYPE_TCP)
 		{
 			connect(aIp, aPort);
 		}
@@ -223,7 +223,7 @@ class Socket
 		uint16_t getLocalPort() noexcept;
 		
 		// Low level interface
-		virtual void create(uint8_t aType = TYPE_TCP);
+		virtual void create(SocketType aType = TYPE_TCP);
 		
 		/** Binds a socket to a certain local port and possibly IP. */
 		virtual uint16_t bind(uint16_t aPort = 0, const string& aIp = "0.0.0.0");
@@ -285,7 +285,7 @@ class Socket
 		
 	protected:
 	
-		uint8_t type;
+		SocketType m_type;
 		bool connected;
 		
 		

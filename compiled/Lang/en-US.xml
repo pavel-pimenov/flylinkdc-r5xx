@@ -22,7 +22,7 @@
 		<String Name="AddLimit">Speed limit</String>
 		<String Name="AddSlots">Amount of slots</String>
 		<String Name="AddToDescription">Add to description:</String>
-		<String Name="AddToFavorites">Add To Favorites</String>
+		<String Name="AddToFavorites">Add to favorites</String>
 		<String Name="AddToFavoritesHubs">Add to favorites hubs</String>
 		<String Name="AdlsDestination">Destination directory</String>
 		<String Name="AdlsDiscard">Discard</String>
@@ -108,7 +108,7 @@ Are you sure to run another copy of program?</String>
 		<String Name="AutoupdateShellExt">Shell extension</String>
 		<String Name="AutoupdateDocumentation">Documentation</String>
 		<String Name="AutoupdateDownloadedRemoveOrInstall">FlylinkDC++ update is downloaded. Update now? If not - update will be removed.</String>
-		<String Name="AutoupdateDownloadFailed">Update download failed.</String>
+		<String Name="AutoupdateDownloadFailed">Update download failed (Please send email ppa74@ya.ru)</String>
 		<String Name="AutoupdateDownloadFinished">Update files are downloaded successfully.</String>
 		<String Name="AutoupdateDownloadRestart">Restart FlylinkDC++ to install the update?</String>
 		<String Name="AutoupdateDownloadStart1">FlylinkDC++ found new update</String>
@@ -121,7 +121,7 @@ Are you sure to run another copy of program?</String>
 		<String Name="AutoupdateError">FlylinkDC++ update error</String>
 		<String Name="AutoupdateErrorStartFlyupdateFailed">The FlyUpdate utility does not start. Error:</String>
 		<String Name="AutoupdateErrorUpdateFile">Error on updating file:</String>
-		<String Name="AutoupdateErrorVerif">Verification error</String>
+		<String Name="AutoupdateErrorVerif">Verification error - (Please send email ppa74@ya.ru)</String>
 		<String Name="AutoupdateExe">Binary module</String>
 		<String Name="AutoupdateForceRestart">Restart application after update download</String>
 		<String Name="AutoupdateGeoip">GeoIP database</String>
@@ -491,6 +491,7 @@ Turn DHT feature on?</String>
 		<String Name="DuplicateSource">Duplicate source</String>
 		<String Name="Duration">Duration</String>
 		<String Name="Eb">EiB</String>
+		<String Name="Edit">Edit</String>
 		<String Name="EditAccel">&amp;Edit</String>
 		<String Name="Email">E-Mail</String>
 		<String Name="EmptyLineSkiped">Empty line skipped</String>
@@ -498,6 +499,7 @@ Turn DHT feature on?</String>
 		<String Name="EnableCountryflag">Add Country flag into 'Location' in userlist</String>
 		<String Name="EnableLastIp">Store IP in a SQLite database</String>
 		<String Name="EnableFlyServer">Use fly-server cloud</String>
+		<String Name="EnableHitFilelist">Enable file downloads counter in file list</String>
 		<String Name="EnableMultiSource">Enable multi-source</String>
 		<String Name="EnablePopups">Enable popups</String>
 		<String Name="EnableSounds">Enable sounds</String>
@@ -2037,7 +2039,6 @@ It's also very likely that you will need to use %[rawtitle] instead of %[title] 
 		<String Name="WizardShareAlreadyindesc">Such folder description already exists</String>
 		<String Name="WizardShareDeletefolderquestion">
 Do you want to delete this folder?</String>
-		<String Name="Edit">Edit</String>
 		<String Name="WizardShareStatic">You can add folders which will be shared with other users. All subfolders and files in selected folders can be downloaded by users from connected hubs.
 Do not share folders with system files, please!</String>
 		<String Name="WizardShareToSmall">Your share to small. Share more files.</String>

@@ -589,9 +589,7 @@ void NmdcHub::onLine(const string& aLine)
 			return;
 			
 		const auto seeker = param.substr(i, j - i);
-		
 		const auto isPassive = seeker.compare(0, 4, "Hub:", 4) == 0;
-		const auto meActive = isActive();
 		
 #ifdef FLYLINKDC_USE_COLLECT_STAT
 		string l_tth;
@@ -631,25 +629,25 @@ void NmdcHub::onLine(const string& aLine)
 			}
 		}
 		// Filter own searches
-		if (meActive && !isPassive)
+		if (isPassive)
+		{
+			// [!] PPA fix
+			// seeker в начале может не содержать "Hub:" - падаем
+			// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=64297
+			// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=63507
+			const auto& myNick = getMyNick();
+			dcassert(seeker.size() > 4);
+			if (seeker.compare(4, myNick.size(), myNick) == 0) // [!] IRainman fix: strongly check
+			{
+				return;
+			}
+		}
+		else if (isActive())
 		{
 			if (seeker == ((getFavIp().empty() ? getLocalIp() : getFavIp()) + ":" + Util::toString(SearchManager::getInstance()->getPort())))
 			{
 				return;
 			}
-		}
-		else
-		{
-			// [!] IRainman fix: strongly check
-			const auto& myNick = getMyNick();
-			if (isPassive && // seeker в начале может не содержать "Hub:" - падаем
-				             // https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=64297
-				             // https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=63507
-				seeker.compare(4, myNick.size(), myNick) == 0) // [!] fix done [5] https://www.box.net/shared/qptgptxlocc0gmpo69q0
-			{
-				return;
-			}
-			// [~] IRainman fix.
 		}
 		i = j + 1;
 #ifdef IRAINMAN_USE_SEARCH_FLOOD_FILTER
@@ -705,15 +703,32 @@ void NmdcHub::onLine(const string& aLine)
 		j = param.find('?', i);
 		if (j == string::npos || i == j)
 			return;
-		string size = param.substr(i, j - i);
+		int64_t l_size;
+		if ((j - i) == 1 && param[i] == '0')
+		{
+			l_size = 0;
+		}
+		else
+		{
+			l_size = _atoi64(param.c_str() + i);
+		}
 		i = j + 1;
 		j = param.find('?', i);
 		if (j == string::npos || i == j)
 			return;
-		const Search::TypeModes type = Search::TypeModes(Util::toInt(param.substr(i, j - i)) - 1);
+		const int l_type_search = atoi(param.c_str() + i);
+		const Search::TypeModes type = Search::TypeModes(l_type_search - 1);
 		i = j + 1;
-		string terms = unescape(param.substr(i));
-		
+		string terms;
+		if (type == Search::TYPE_TTH && (param.size() - i) == 39 + 4) // 39+4 = strlen("TTH:VGUKIR6NLP6LQB7P5NDCZGUSR3MFHRMRO3VJLWY")
+		{
+			terms = param.substr(i);
+		}
+		else
+		{
+			terms = unescape(param.substr(i));
+		}
+		dcassert(!terms.empty());
 		if (!terms.empty())
 		{
 			if (isPassive)
@@ -733,11 +748,17 @@ void NmdcHub::onLine(const string& aLine)
 				
 				// ignore if we or remote client don't support NAT traversal in passive mode
 				// although many NMDC hubs won't send us passive if we're in passive too, so just in case...
-				if (!meActive && (!u->getUser()->isSet(User::NAT0) || !BOOLSETTING(ALLOW_NAT_TRAVERSAL)))
+				if (!isActive() && (!u->getUser()->isSet(User::NAT0) || !BOOLSETTING(ALLOW_NAT_TRAVERSAL)))
 					return;
 			}
 			
-			fire(ClientListener::NmdcSearch(), this, seeker, a, Util::toInt64(size), type, terms, isPassive);
+			fire(ClientListener::NmdcSearch(), this, seeker, a, l_size, type, terms, isPassive);
+		}
+		else
+		{
+#ifdef FLYLINKDC_BETA
+			LogManager::getInstance()->message("Error $Search command = " + param + " Hub: " + getHubUrl());
+#endif
 		}
 	}
 	else if (cmd == "MyINFO")

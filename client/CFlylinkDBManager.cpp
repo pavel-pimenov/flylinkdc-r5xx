@@ -2264,7 +2264,7 @@ void CFlylinkDBManager::store_all_ratio_and_last_ip(uint32_t p_hub_id,
 			}
 			l_trans_insert.commit();
 		}
-		// Иначе фиксируем только последний IP
+		// Иначе фиксируем только последний IP и cчетчик мессаг
 		update_last_ip_deferredL(p_hub_id, p_nick, p_message_count, p_last_ip);
 	}
 	catch (const database_error& e)

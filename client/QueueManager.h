@@ -66,12 +66,6 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		} dclstLoader;
 		// [~] IRainman dclst support.
 	public:
-		// [+] FlylinkDC
-		bool isQueueItem(const TTHValue& p_tth) const
-		{
-			// [-] Lock l(cs); [-] IRainman fix.
-			return fileQueue.isQueueItem(p_tth);
-		}
 		class LockFileQueueShared
 		{
 			public:
@@ -271,22 +265,9 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		bool getTargetByRoot(const TTHValue& tth, string& p_target, string& p_tempTarget)
 		{
 			// [-] Lock l(cs); [-] IRainman fix.
-#ifdef IRAINMAN_FASTS_QUEUE_MANAGER
-			QueueItemPtr qi = fileQueue.find(tth);
+			QueueItemPtr qi = fileQueue.findQueueItem(tth);
 			if (!qi)
 				return false;
-#else
-			QueueItemList ql;
-			fileQueue.find(ql, tth);
-				
-			if (ql.empty())
-				return false;
-				
-			dcassert(ql.size() == 1); // [+] IRainman fix.
-				
-			const QueueItemPtr& qi = ql.front();
-#endif // IRAINMAN_FASTS_QUEUE_MANAGER
-				
 			p_target     = qi->getTarget();
 			p_tempTarget = qi->getTempTarget();
 			return true;
@@ -294,22 +275,9 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		bool isChunkDownloaded(const TTHValue& tth, int64_t startPos, int64_t& bytes, string& p_target)
 		{
 			// [-] Lock l(cs); [-] IRainman fix.
-#ifdef IRAINMAN_FASTS_QUEUE_MANAGER
-			QueueItemPtr qi = fileQueue.find(tth);
+			QueueItemPtr qi = fileQueue.findQueueItem(tth);
 			if (!qi)
 				return false;
-#else
-			QueueItemList ql;
-			fileQueue.find(ql, tth);
-				
-			if (ql.empty())
-				return false;
-				
-			dcassert(ql.size() == 1); // [+] IRainman fix.
-				
-			const QueueItemPtr& qi = ql.front();
-#endif // IRAINMAN_FASTS_QUEUE_MANAGER
-				
 			RLock l(*QueueItem::g_cs); // TODO - унести это ниже!
 			p_target = qi->isFinishedL() ? qi->getTarget() : qi->getTempTarget();
 			
@@ -399,10 +367,9 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 				QueueItemPtr find(const string& p_target) const;
 				void find(QueueItemList& sl, int64_t aSize, const string& ext) const;
 				void find(StringList& sl, int64_t aSize, const string& ext) const;
-				void find(QueueItemList& ql, const TTHValue& tth) const;
-				QueueItemPtr find(const TTHValue& tth) const; // [+] IRainman opt.
+				void find(QueueItemList& p_ql, const TTHValue& p_tth) const;
+				QueueItemPtr findQueueItem(const TTHValue& p_tth) const; // [+] IRainman opt.
 				static uint8_t getMaxSegments(const uint64_t filesize);
-				bool isQueueItem(const TTHValue& tth) const; // [+] IRainman opt.
 				// find some PFS sources to exchange parts info
 				void findPFSSourcesL(PFSSourceList&);
 				
@@ -415,6 +382,10 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 				{
 					return m_queue.size();
 				}
+				bool empty() const // [+] IRainman opt.
+				{
+					return m_queue.empty();
+				}
 				QueueItem::QIStringMap& getQueueL()
 				{
 					return m_queue;
@@ -424,11 +395,6 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 				void move(const QueueItemPtr& qi, const string& aTarget); // [!] IRainman fix.
 				void remove(const QueueItemPtr& qi); // [!] IRainman fix.
 				
-				bool empty() const // [+] IRainman opt.
-				{
-					return m_queue.empty();
-				}
-				
 #ifdef FLYLINKDC_USE_RWLOCK
 				static std::unique_ptr<webrtc::RWLockWrapper> g_csFQ;
 #else
@@ -436,6 +402,8 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 #endif
 			private:
 				QueueItem::QIStringMap m_queue;
+				std::unordered_map<TTHValue, int> m_queue_tth_map;
+				void remove_internal(const QueueItemPtr& qi);
 				
 				// [+] IRainman opt.
 				void on(SettingsManagerListener::QueueChanges) noexcept;

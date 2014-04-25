@@ -16,10 +16,11 @@
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
-#include "MediaInfoList_Internal.h"
+#include "MediaInfo/MediaInfoList_Internal.h"
 #include "ZenLib/File.h"
 #include "ZenLib/Dir.h"
 #include "MediaInfo/Reader/Reader_Directory.h"
+#include "MediaInfo/File__Analyse_Automatic.h"
 using namespace ZenLib;
 using namespace std;
 //---------------------------------------------------------------------------
@@ -166,7 +167,34 @@ void MediaInfoList_Internal::Entry()
             Info.push_back(MI);
             ToParse.pop();
             ToParse_AlreadyDone++;
+
+            //Removing sequences of files from the list
+            if (!MI->Get(Stream_General, 0, General_CompleteName_Last).empty())
+            {
+                Ztring CompleteName_Begin=MI->Get(Stream_General, 0, General_CompleteName);
+                Ztring CompleteName_Last=MI->Get(Stream_General, 0, General_CompleteName_Last);
+                size_t Pos=0;
+                for (; Pos<CompleteName_Begin.size(); Pos++)
+                {
+                    if (Pos>=CompleteName_Last.size())
+                        break;
+                    if (CompleteName_Begin[Pos]!=CompleteName_Last[Pos])
+                        break;
+                }
+                if (Pos<CompleteName_Begin.size())
+                {
+                    CompleteName_Begin.resize(Pos);
+                    while (!ToParse.empty() && ToParse.front().find(CompleteName_Begin)==0)
+                    {
+                        ToParse.pop();
+                        ToParse_Total--;
+                    }
+                }
+            }
+
             State=ToParse_AlreadyDone*10000/ToParse_Total;
+            //if ((ToParse_AlreadyDone%10)==0)
+            //    printf("%f done (%i/%i %s)\n", ((float)State)/100, (int)ToParse_AlreadyDone, (int)ToParse_Total, Ztring(ToParse.front()).To_UTF8().c_str());
         }
         if (IsTerminating() || State==10000)
         {

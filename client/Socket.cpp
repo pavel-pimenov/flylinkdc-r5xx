@@ -67,7 +67,7 @@ string SocketException::errorToString(int aError) noexcept
 	return msg;
 }
 
-void Socket::create(uint8_t aType /* = TYPE_TCP */)
+void Socket::create(SocketType aType /* = TYPE_TCP */)
 {
 	if (m_sock != INVALID_SOCKET)
 		disconnect();
@@ -83,7 +83,7 @@ void Socket::create(uint8_t aType /* = TYPE_TCP */)
 		default:
 			dcassert(0);
 	}
-	type = aType;
+	m_type = aType;
 	setBlocking(false);
 }
 
@@ -111,7 +111,7 @@ uint16_t Socket::accept(const Socket& listeningSocket)
 	::WSAAsyncSelect(m_sock, NULL, 0, 0);
 #endif
 	
-	type = TYPE_TCP;
+	m_type = TYPE_TCP;
 	
 	// remote IP
 	setIp(inet_ntoa(sock_addr.sin_addr));
@@ -388,9 +388,9 @@ int Socket::read(void* aBuffer, int aBufLen)
 {
 	int len = 0;
 	
-	dcassert(type == TYPE_TCP || type == TYPE_UDP);
+	dcassert(m_type == TYPE_TCP || m_type == TYPE_UDP);
 	
-	if (type == TYPE_TCP)
+	if (m_type == TYPE_TCP)
 	{
 		do
 		{
@@ -441,7 +441,7 @@ int Socket::read(void* aBuffer, int aBufLen)
 
 int Socket::read(void* aBuffer, int aBufLen, sockaddr_in &remote)
 {
-	dcassert(type == TYPE_UDP);
+	dcassert(m_type == TYPE_UDP);
 	
 	sockaddr_in remote_addr = { 0 };
 	socklen_t addr_length = sizeof(remote_addr);
@@ -579,7 +579,7 @@ void Socket::writeTo(const string& aAddr, uint16_t aPort, const void* aBuffer, i
 		setSocketOpt(SO_SNDTIMEO, 250);
 	}
 	
-	dcassert(type == TYPE_UDP);
+	dcassert(m_type == TYPE_UDP);
 	
 	sockaddr_in serv_addr;
 	

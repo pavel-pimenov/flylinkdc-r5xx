@@ -193,19 +193,37 @@ static const string sBase = "Base";
 static const string sCID = "CID";// [+] IRainman Delayed loading (dclst support)
 static const string sGenerator = "Generator";
 static const string sIncludeSelf = "IncludeSelf"; // [+] SSA IncludeSelf attrib (dclst support)
-static const string sDirectory = "Directory";
 static const string sIncomplete = "Incomplete";
-static const string sFile = "File";
-static const string sName = "Name";
-static const string sSize = "Size";
-static const string sTTH = "TTH";
-static const string sHIT = "HIT";
-static const string sTS = "TS";
+
+/*
+TODO - убрать копипаст
+extern const string g_SDirectory;
+extern const string g_SFile;
+extern const string g_SName;
+extern const string g_SSize;
+extern const string g_STTH;
+extern const string g_SHit;
+extern const string g_STS;
+extern const string g_SBR;
+extern const string g_SWH;
+extern const string g_SMVideo;
+extern const string g_SMAudio;
+*/
+
+const string g_SDirectory = "Directory";
+const string g_SFile = "File";
+const string g_SName = "Name";
+const string g_SSize = "Size";
+const string g_STTH = "TTH";
+const string g_SHit = "HIT";
+const string g_STS = "TS";
+const string g_SBR = "BR";
+const string g_SWH = "WH";
+const string g_SMVideo = "MV";
+const string g_SMAudio = "MA";
+
+
 static const string sShared = "Shared";
-static const string sBR = "BR";
-static const string sWH = "WH";
-static const string sMVideo = "MV";
-static const string sMAudio = "MA";
 
 void ListLoader::startTag(const string& name, StringPairList& attribs, bool simple)
 {
@@ -232,20 +250,20 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 	
 	if (m_is_in_listing)
 	{
-		if (name == sFile)
+		if (name == g_SFile)
 		{
 			dcassert(attribs.size() >= 3); // Иногда есть Shared - 4-тый атрибут.
 			// это тэг от грея. его тоже можно обработать и записать в TS. хотя там 64 битное время
-			const string& l_name = getAttrib(attribs, sName, 0);
+			const string& l_name = getAttrib(attribs, g_SName, 0);
 			if (l_name.empty())
 				return;
 				
-			const string& l_s = getAttrib(attribs, sSize, 1);
+			const string& l_s = getAttrib(attribs, g_SSize, 1);
 			if (l_s.empty())
 				return;
 			const auto l_size = Util::toInt64(l_s);
 			
-			const string& l_h = getAttrib(attribs, sTTH, 2);
+			const string& l_h = getAttrib(attribs, g_STTH, 2);
 			if (l_h.empty())
 				return;
 			const TTHValue l_tth(l_h); /// @todo verify validity?
@@ -288,7 +306,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 				string l_ts;
 				if (l_i_ts == 0)
 				{
-					l_ts = getAttrib(attribs, sTS, 3); // TODO проверить  attribs.size() >= 4 если = 4 или 3 то TS нет и можно не искать
+					l_ts = getAttrib(attribs, g_STS, 3); // TODO проверить  attribs.size() >= 4 если = 4 или 3 то TS нет и можно не искать
 				}
 				if (!m_is_first_check_mediainfo_list)
 				{
@@ -305,13 +323,13 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 					}
 					if (attribs.size() > 4) // TODO - собрать комбинации всех случаев
 					{
-						l_hit = getAttrib(attribs, sHIT, 3);
-						const std::string& l_audio = getAttrib(attribs, sMAudio, 3);
-						const std::string& l_video = getAttrib(attribs, sMVideo, 3);
+						l_hit = getAttrib(attribs, g_SHit, 3);
+						const std::string& l_audio = getAttrib(attribs, g_SMAudio, 3);
+						const std::string& l_video = getAttrib(attribs, g_SMVideo, 3);
 						if (!l_audio.empty() || !l_video.empty())
 						{
-							const string& l_br = getAttrib(attribs, sBR, 4);
-							l_mediaXY = std::make_shared<CFlyMediaInfo> (getAttrib(attribs, sWH, 3),
+							const string& l_br = getAttrib(attribs, g_SBR, 4);
+							l_mediaXY = std::make_shared<CFlyMediaInfo> (getAttrib(attribs, g_SWH, 3),
 							                                             atoi(l_br.c_str()),
 							                                             l_audio,
 							                                             l_video
@@ -351,9 +369,9 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 				}//[+] FlylinkDC++
 			}
 		}
-		else if (name == sDirectory)
+		else if (name == g_SDirectory)
 		{
-			string l_file_name = getAttrib(attribs, sName, 0);
+			string l_file_name = getAttrib(attribs, g_SName, 0);
 			if (l_file_name.empty())
 			{
 				//  throw SimpleXMLException("Directory missing name attribute");
@@ -457,7 +475,7 @@ void ListLoader::endTag(const string& name, const string&)
 {
 	if (m_is_in_listing)
 	{
-		if (name == sDirectory)
+		if (name == g_SDirectory)
 		{
 			cur = cur->getParent();
 		}
@@ -578,7 +596,7 @@ void DirectoryListing::logMatchedFiles(const UserPtr& p_user, int p_count) //[+]
 	l_tmp.resize(l_BUF_SIZE);
 	snprintf(&l_tmp[0], l_tmp.size(), CSTRING(MATCHED_FILES), p_count);
 	// Util::toString(ClientManager::getNicks(p_user->getCID(), Util::emptyString)) падает https://www.crash-server.com/Problem.aspx?ClientID=ppa&Login=Guest&ProblemID=58736
-        // падаем со слов пользователей при клике на магнит в чате и выборе "Добавить в очередь для скачивания"
+	// падаем со слов пользователей при клике на магнит в чате и выборе "Добавить в очередь для скачивания"
 	const string l_last_nick = p_user->getLastNick();
 	LogManager::getInstance()->message(l_last_nick + string(": ") + l_tmp.c_str());
 }

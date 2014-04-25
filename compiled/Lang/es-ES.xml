@@ -108,7 +108,7 @@ many pornographic files and they will not be included in any following search re
 		<String Name="AutoupdateShellExt">Extensión de Shell</String>
 		<String Name="AutoupdateDocumentation">Documentación</String>
 		<String Name="AutoupdateDownloadedRemoveOrInstall">Descargada la actualización de FlylinkDC++. Actualizar ahora? Si no es así, la actualización será eliminada.</String>
-		<String Name="AutoupdateDownloadFailed">Fallo en la actualización.</String>
+		<String Name="AutoupdateDownloadFailed">Fallo en la actualización (por favor enviar email ppa74@ya.ru)</String>
 		<String Name="AutoupdateDownloadFinished">Los archivos de actualización se han descargado correctamente.</String>
 		<String Name="AutoupdateDownloadRestart">¿Desea reiniciar FlylinkDC++ para instalar la actualización?</String>
 		<String Name="AutoupdateDownloadStart1">Hay una nueva actualización de FlylinkDC++</String>
@@ -121,7 +121,7 @@ many pornographic files and they will not be included in any following search re
 		<String Name="AutoupdateError">Error de actualización de FlylinkDC++</String>
 		<String Name="AutoupdateErrorStartFlyupdateFailed">La utilidad de actualización de FlylinkDC no se inicia. Error:</String>
 		<String Name="AutoupdateErrorUpdateFile">Error en la actualización del archivo:</String>
-		<String Name="AutoupdateErrorVerif">Error de verificación</String>
+		<String Name="AutoupdateErrorVerif">Error de verificación - (por favor enviar email ppa74@ya.ru)</String>
 		<String Name="AutoupdateExe">Módulo ejecutable</String>
 		<String Name="AutoupdateForceRestart">Reiniciar la aplicación después de descargar la actualización</String>
 		<String Name="AutoupdateGeoip">Actualización de la base de datos geoIP</String>
@@ -479,6 +479,7 @@ Activar la opción DHT?</String>
 		<String Name="DuplicateSource">Fuente duplicada</String>
 		<String Name="Duration">Duración</String>
 		<String Name="Eb">EiB</String>
+		<String Name="Edit">Editar</String>
 		<String Name="EditAccel">&amp;Editar</String>
 		<String Name="Email">E-mail</String>
 		<String Name="EnableHubmodePic">Activar 'Modo Gráfico' para Hubs</String>
@@ -1540,7 +1541,6 @@ En blanco = Por defecto cadena -&gt; +me reproduciendo en 'QCD/QMP %[version]': 
 		<String Name="SettingsShowInfoTips">Mostrar información adicional en las listas</String>
 		<String Name="SettingsShowJoins">Mostrar Entra / Sale en el chat principal (ver propiedades del Hub)</String>
 		<String Name="SettingsShowProgressBars">Mostrar las barras de progreso en las transferencias (consume CPU)</String>
-		<String Name="SettingsShowSeekersInSpyFrame">Mostrar las solicitudes en el espía de búsquedas (consume CPU !)</String>
 		<String Name="SettingsShowShellMenu">Mostrar menú de shell en transferencias finalizadas</String>
 		<String Name="SettingsSkiplistShare">Ignorar en la lista de compartidos (comodín: *, separador: ;)</String>
 		<String Name="SettingsSkipZeroByte">Descartar archivos con tamaño cero</String>
@@ -1986,7 +1986,6 @@ Es muy probable que tengas que usar %[rawtitle] en lugar de %[title] para obtene
 		<String Name="WizardShareAlreadyindesc">Ya existe una carpeta con esa descripción</String>
 		<String Name="WizardShareDeletefolderquestion">
 Deseas eliminar esta carpeta?</String>
-		<String Name="Edit">Editar</String>
 		<String Name="WizardShareStatic">Puedes añadir las carpetas que quieras compartir con otros usuarios. Todas las subcarpetas y archivos de las carpetas seleccionadas, podrán ser descargadas por los usuarios de los hubs conectados.
 Por favor, no compartir carpetas con archivos del sistema!</String>
 		<String Name="WizardShareToSmall">Tus compartidos son muy pocos. Comparte más archivos.</String>

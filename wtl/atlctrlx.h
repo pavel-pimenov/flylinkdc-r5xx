@@ -4134,6 +4134,10 @@ public:
 			return false;
 		}
 
+		// adjust active page index, if inserted before it
+		if(nPage <= m_nActivePage)
+			m_nActivePage++;
+
 		SetActivePage(nItem);
 		pT->OnPageActivated(m_nActivePage);
 

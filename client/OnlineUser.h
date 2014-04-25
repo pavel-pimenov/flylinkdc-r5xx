@@ -408,7 +408,6 @@ class Identity
 			e_TypeUInt16AttrLast
 		};
 		GSUINTBITS(16);
-#if 0
 	public:
 		bool is_ip_change_and_clear()
 		{
@@ -420,7 +419,6 @@ class Identity
 			return false;
 		}
 	private:
-#endif
 		void change(const uint16_t p_change)
 		{
 #ifdef IRAINMAN_USE_NG_FAST_USER_INFO
@@ -550,8 +548,7 @@ class Identity
 		{
 			if (getDicAP() > 0)
 				return true;
-			else
-			if (getDicVE() > 0)
+			else if (getDicVE() > 0)
 				return true;
 			else
 				return false;

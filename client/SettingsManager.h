@@ -296,6 +296,8 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  DUPE_EX1_COLOR, DUPE_EX2_COLOR, NSL_IGNORE_ME,// [+]NSL
 		                  ENABLE_LAST_IP,
 		                  ENABLE_FLY_SERVER,
+		                  ENABLE_HIT_FILE_LIST,
+		                  ENABLE_RATIO_USER_LIST,
 		                  NON_HUBS_FRONT, BLEND_OFFLINE_SEARCH,
 		                  MAX_RESIZE_LINES,
 		                  USE_CUSTOM_LIST_BACKGROUND,

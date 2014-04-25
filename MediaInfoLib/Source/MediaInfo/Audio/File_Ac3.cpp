@@ -2247,7 +2247,7 @@ bool File_Ac3::FrameSynchPoint_Test()
         else if (bsid>0x0A && bsid<=0x10)
         {
             int16u frmsiz=CC2(Buffer+Buffer_Offset+2)&0x07FF;
-                Size=2+frmsiz*2;
+            Size=2+frmsiz*2;
         }
         if (Size>=6)
         {

@@ -24,14 +24,6 @@
 #include "ServerSocket.h"
 #include "SearchManager.h"
 
-#ifdef _DEBUG
-//#define _DEBUG_WEB_SERVER_
-#endif;
-
-#if defined(NIGHT_BUILD)
-#define IRAINMAN_NG_WEB_SERVER_CORE
-#endif
-
 static const uint64_t WEB_SERVER_USER_SESSION_TIMEOUT = 300;
 
 class WebServerListener

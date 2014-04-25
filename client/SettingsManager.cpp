@@ -282,6 +282,8 @@ const string SettingsManager::settingTags[] =
 	"DupeEx1Color", "DupeEx2Color", "IgnoreMe",// [+] NSL
 	"EnableLastIP", //[+]PPA
 	"EnableFlyServer", //[+]PPA
+	"EnableHitFileList", //[+]PPA
+	"EnableRatioUserList", //[+]PPA
 	"NonHubsFront", "BlendOffline", "MaxResizeLines",
 	"UseCustomListBackground",
 	"EnableIpGuard", "DefaultPolicy",
@@ -1001,6 +1003,8 @@ void SettingsManager::setDefaults()
 	setDefault(ENABLE_LAST_IP, TRUE);
 	
 	setDefault(ENABLE_FLY_SERVER, TRUE);
+	setDefault(ENABLE_HIT_FILE_LIST, TRUE);
+	setDefault(ENABLE_RATIO_USER_LIST, TRUE);
 	
 #ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
 	//setDefault(FLY_SQLITE_LOG, false); // [+] PPA

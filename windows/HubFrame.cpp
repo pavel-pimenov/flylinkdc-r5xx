@@ -214,6 +214,7 @@ HubFrame::HubFrame(const tstring& aServer,
 	, m_is_window_text_update(0)
 	, m_Theme(nullptr)
 {
+	//m_userMapCS = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 	m_showUsersStore = p_UserListState;
 	m_showUsers = false;
 	client = ClientManager::getInstance()->getClient(Text::fromT(aServer));
@@ -1180,7 +1181,11 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 #endif
 			PROFILE_THREAD_SCOPED_DESC("HubFrame::updateUser-NEW_USER")
 			ui = new UserInfo(p_ou);
-			m_userMap.insert(make_pair(p_ou, ui));
+			{
+				//webrtc::WriteLockScoped l(*m_userMapCS);
+				//Lock l(m_userMapCS);
+				m_userMap.insert(make_pair(p_ou, ui));
+			}
 			if (m_showUsers)// [+] IRainman optimization
 			{
 				//dcassert(!client->is_all_my_info_loaded());
@@ -1208,6 +1213,8 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 			{
 				ctrlUsers.deleteItem(ui);
 			}
+			//webrtc::WriteLockScoped l(*m_userMapCS);
+			//Lock l(m_userMapCS);
 			m_userMap.erase(ui->getOnlineUser());
 			delete ui;
 			return true;
@@ -1280,6 +1287,8 @@ void HubFrame::removeUser(const OnlineUserPtr& p_ou)
 	{
 		ctrlUsers.deleteItem(ui);  // Lock - redraw при закрытии?
 	}
+	//webrtc::WriteLockScoped l(*m_userMapCS);
+	//Lock l(m_userMapCS);
 	m_userMap.erase(p_ou);
 	delete ui;
 }
@@ -2213,9 +2222,15 @@ void HubFrame::clearUserList()
 		CLockRedraw<> l_lock_draw(ctrlUsers); // TODO это нужно или опустить ниже?
 		ctrlUsers.DeleteAllItems();
 	}
-	for (auto i = m_userMap.cbegin(); i != m_userMap.cend(); ++i)
-		delete i->second; //[2] https://www.box.net/shared/202f89c842ee60bdecb9
-	m_userMap.clear();
+	{
+		//webrtc::WriteLockScoped l(*m_userMapCS);
+		//Lock l(m_userMapCS);
+		for (auto i = m_userMap.cbegin(); i != m_userMap.cend(); ++i)
+		{
+			delete i->second; //[2] https://www.box.net/shared/202f89c842ee60bdecb9
+		}
+		m_userMap.clear();
+	}
 }
 
 void HubFrame::clearTaskList()
@@ -2698,6 +2713,56 @@ LRESULT HubFrame::onChar(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled
 	}
 	return 0;
 }
+// WM_SPEAKER_FIRST_USER_JOIN
+#if 0
+LRESULT HubFrame::OnSpeakerFirstUserJoin(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	unique_ptr<std::vector<OnlineUserPtr> > l_user_array(reinterpret_cast<std::vector<OnlineUserPtr> * >(wParam));
+	for (auto i = l_user_array->begin(); i != l_user_array->end(); ++i)
+	{
+		const auto l_user_info = m_userMap.findUser(*i);
+		if (l_user_info)
+		{
+			ctrlUsers.insertItem(l_user_info, I_IMAGECALLBACK);
+		}
+	}
+	return 0;
+}
+void HubFrame::usermap2ListrView()
+{
+	dcassert(ctrlUsers.GetItemCount() == 0);
+	//webrtc::ReadLockScoped l(*m_userMapCS);
+	std::vector<const UserInfo*> l_user_array;
+	{
+		Lock l(m_userMapCS);
+		l_user_array.reserve(m_userMap.size());
+		for (auto i = m_userMap.cbegin(); i != m_userMap.cend(); ++i)
+		{
+			const UserInfo* ui = i->second;
+			l_user_array.push_back(ui);
+#ifdef IRAINMAN_USE_HIDDEN_USERS
+			dcassert(ui->isHidden() == false);
+#endif
+		}
+	}
+	for (auto i = l_user_array.begin(); i != l_user_array.end(); ++i)
+	{
+		ctrlUsers.insertItem(*i, I_IMAGECALLBACK);
+	}
+}
+void HubFrame::firstLoadAllUsers()
+{
+	//CWaitCursor l_cursor_wait;
+	m_needsResort = false;
+	//CLockRedraw<> l_lock_draw(ctrlUsers);
+	m_userMapInitThread.process_init_user_list(this);
+	//usermap2ListrView();
+	ctrlUsers.resort();
+	m_needsResort = false;
+}
+
+#endif
+
 void HubFrame::usermap2ListrView()
 {
 	for (auto i = m_userMap.cbegin(); i != m_userMap.cend(); ++i)
@@ -3338,6 +3403,7 @@ void HubFrame::updateUserList() // [!] IRainman opt.
 	if (m_filter.empty())
 	{
 		usermap2ListrView();
+		//m_userMapInitThread.process_init_user_list(this);
 	}
 	else
 	{
@@ -3346,6 +3412,8 @@ void HubFrame::updateUserList() // [!] IRainman opt.
 		dcassert(m_ctrlFilterSel);
 		const int sel = getFilterSelPos();
 		const bool doSizeCompare = sel == COLUMN_SHARED && parseFilter(mode, size);
+		//webrtc::ReadLockScoped l(*m_userMapCS);
+		//Lock l(m_userMapCS);
 		for (auto i = m_userMap.cbegin(); i != m_userMap.cend(); ++i)
 		{
 			UserInfo* ui = i->second;
@@ -3913,6 +3981,8 @@ void HubFrame::addDupeUsersToSummaryMenu(const int64_t &share, const string& ip)
 	for (auto f = g_frames.cbegin(); f != g_frames.cend(); ++f)
 	{
 		const auto& frame = f->second;
+		//webrtc::ReadLockScoped l(*frame->m_userMapCS);
+		//Lock l(frame->m_userMapCS);
 		for (auto i = frame->m_userMap.cbegin(); i != frame->m_userMap.cend(); ++i) // TODO https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=28097
 		{
 			const auto& l_id = i->second->getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'i->second->getIdentity()' expression repeatedly. hubframe.cpp 3673

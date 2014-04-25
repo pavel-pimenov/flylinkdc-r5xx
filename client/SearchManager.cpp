@@ -119,7 +119,7 @@ void SearchManager::disconnect() noexcept
 	if (socket.get())
 	{
 		m_stop = true;
-		m_queue.shutdown();
+		m_queue_thread.shutdown();
 		socket->disconnect();
 		port = 0;
 		
@@ -137,7 +137,7 @@ int SearchManager::run()
 	std::unique_ptr<uint8_t[]> buf(new uint8_t[BUFSIZE]);
 	int len;
 	sockaddr_in remoteAddr = { 0 };
-	m_queue.start(0);
+	m_queue_thread.start(0);
 	while (!m_stop)
 	{
 		try
@@ -444,7 +444,7 @@ int SearchManager::UdpQueue::run()
 void SearchManager::onData(const uint8_t* buf, size_t aLen, const string& remoteIp)
 {
 	string x((char*)buf, aLen);
-	m_queue.addResult(x, remoteIp);
+	m_queue_thread.addResult(x, remoteIp);
 }
 
 void SearchManager::onRES(const AdcCommand& cmd, const UserPtr& from, const string& remoteIp)

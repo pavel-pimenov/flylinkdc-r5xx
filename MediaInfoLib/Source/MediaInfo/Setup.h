@@ -582,6 +582,9 @@
 #if !defined(MEDIAINFO_AUDIO_NO) && !defined(MEDIAINFO_MPEGA_NO) && !defined(MEDIAINFO_MPEGA_YES)
     #define MEDIAINFO_MPEGA_YES
 #endif
+#if !defined(MEDIAINFO_AUDIO_NO) && !defined(MEDIAINFO_OPENMG_NO) && !defined(MEDIAINFO_OPENMG_YES)
+    #define MEDIAINFO_OPENMG_YES
+#endif
 #if !defined(MEDIAINFO_AUDIO_NO) && !defined(MEDIAINFO_OPUS_NO) && !defined(MEDIAINFO_OPUS_YES)
     #define MEDIAINFO_OPUS_YES
 #endif
@@ -690,8 +693,14 @@
 
 //---------------------------------------------------------------------------
 // Image
+#if !defined(MEDIAINFO_IMAGE_NO) && !defined(MEDIAINFO_ARRIRAW_NO) && !defined(MEDIAINFO_ARRIRAW_YES)
+    #define MEDIAINFO_ARRIRAW_YES
+#endif
 #if !defined(MEDIAINFO_IMAGE_NO) && !defined(MEDIAINFO_BMP_NO) && !defined(MEDIAINFO_BMP_YES)
     #define MEDIAINFO_BMP_YES
+#endif
+#if !defined(MEDIAINFO_IMAGE_NO) && !defined(MEDIAINFO_DDS_NO) && !defined(MEDIAINFO_DDS_YES)
+    #define MEDIAINFO_DDS_YES
 #endif
 #if !defined(MEDIAINFO_IMAGE_NO) && !defined(MEDIAINFO_DPX_NO) && !defined(MEDIAINFO_DPX_YES)
     #define MEDIAINFO_DPX_YES

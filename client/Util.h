@@ -80,14 +80,14 @@ void AppendPathSeparator(T& p_path) //[+]PPA
 	if (!p_path.empty())
 	{
 		const auto l_last_char = p_path[ p_path.length() - 1 ];
-			if (l_last_char != PATH_SEPARATOR && l_last_char != URI_SEPARATOR)
-			{
-					p_path += PATH_SEPARATOR;
-			}
-			else
-			{
+		if (l_last_char != PATH_SEPARATOR && l_last_char != URI_SEPARATOR)
+		{
+			p_path += PATH_SEPARATOR;
+		}
+		else
+		{
 			dcassert(l_last_char != URI_SEPARATOR)
-			}
+		}
 	}
 }
 
@@ -99,7 +99,7 @@ static void AppendUriSeparator(T& p_path) //[+]SSA
 		const auto l_last_char = p_path[ p_path.length() - 1 ];
 		if (l_last_char != URI_SEPARATOR && l_last_char != PATH_SEPARATOR)
 		{
-				p_path += URI_SEPARATOR;
+			p_path += URI_SEPARATOR;
 		}
 		else
 		{
@@ -836,6 +836,9 @@ class Util
 		
 		static int64_t toInt64(const string& aString) // [+] IRainman opt
 		{
+			//if(aString.size() == 1 && aString[0] == '0')
+			//  return 0;
+			//else
 			return toInt64(aString.c_str());
 		}
 		
@@ -850,6 +853,9 @@ class Util
 		
 		static int64_t toInt64(const wstring& aString) // [+] IRainman opt
 		{
+			//if(aString.size() == 1 && aString[0] == L'0')
+			//  return 0;
+			//else
 			return toInt64(aString.c_str());
 		}
 		
