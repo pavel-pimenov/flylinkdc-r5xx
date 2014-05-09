@@ -65,10 +65,10 @@ QueueItem::~QueueItem()
 #endif
 }
 //==========================================================================================
-int16_t QueueItem::calcTransferFlag(bool& partial, bool& trusted, bool& untrusted, bool& tthcheck, bool& zdownload, bool& chunked, double& ratio) const
+int16_t QueueItem::calcTransferFlagL(bool& partial, bool& trusted, bool& untrusted, bool& tthcheck, bool& zdownload, bool& chunked, double& ratio) const
 {
 	int16_t segs = 0;
-	RLock l(*QueueItem::g_cs);
+	// Пока убрал т.к. вешаемся. RLock l(*QueueItem::g_cs);
 	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 	{
 		const Download *d = i->second;
@@ -425,7 +425,6 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 					{
 						overlaps = block.overlaps(i->second->getSegment());
 					}
-					
 				}
 				if (!overlaps)
 					break;
@@ -439,7 +438,6 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 				return Segment(startPreviewPosition, blockSize);
 			}
 		}
-		
 	}
 #endif // SSA_VIDEO_PREVIEW_FEATURE
 	

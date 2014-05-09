@@ -42,9 +42,9 @@ std::unique_ptr<webrtc::RWLockWrapper> UploadManager::g_csReservedSlots = std::u
 std::unique_ptr<webrtc::RWLockWrapper> UploadManager::g_csBans = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 
 UploadManager::UploadManager() noexcept :
-running(0), extra(0), lastGrant(0), lastFreeSlots(-1),
-        fireballStartTick(0), isFireball(false), isFileServer(false), extraPartial(0),
-        runningAverage(0)//[+] IRainman refactoring transfer mechanism
+m_running(0), extra(0), lastGrant(0), lastFreeSlots(-1),
+          fireballStartTick(0), isFireball(false), isFileServer(false), extraPartial(0),
+          m_runningAverage(0)//[+] IRainman refactoring transfer mechanism
 {
 	ClientManager::getInstance()->addListener(this);
 	TimerManager::getInstance()->addListener(this);
@@ -696,32 +696,9 @@ ok: //[!] TODO убрать goto
 	if (aSource->getSlotType() != slotType)
 	{
 		// remove old count
-		switch (aSource->getSlotType())
-		{
-			case UserConnection::STDSLOT:
-				running--;
-				break;
-			case UserConnection::EXTRASLOT:
-				extra--;
-				break;
-			case UserConnection::PARTIALSLOT:
-				extraPartial--;
-				break;
-		}
+		process_slot(aSource->getSlotType(), -1);
 		// set new slot count
-		switch (slotType)
-		{
-			case UserConnection::STDSLOT:
-				running++;
-				break;
-			case UserConnection::EXTRASLOT:
-				extra++;
-				break;
-			case UserConnection::PARTIALSLOT:
-				extraPartial++;
-				break;
-		}
-		
+		process_slot(slotType, 1);
 		// user got a slot
 		aSource->setSlotType(slotType);
 	}
@@ -747,7 +724,7 @@ bool UploadManager::getAutoSlot()
 	if (SETTING(MIN_UPLOAD_SPEED) == 0)
 		return false;
 	/** Max slots */
-	if (getSlots() + SETTING(AUTO_SLOTS) < running)
+	if (getSlots() + SETTING(AUTO_SLOTS) < m_running)
 		return false;
 	/** Only grant one slot per 30 sec */
 	if (GET_TICK() < getLastGrant() + 30 * 1000)
@@ -865,7 +842,10 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 	const string& fname = c.getParam(1);
 	int64_t aStartPos = Util::toInt64(c.getParam(2));
 	int64_t aBytes = Util::toInt64(c.getParam(3));
-	
+#ifdef _DEBUG
+//	LogManager::getInstance()->message("on(AdcCommand::GET aStartPos = " + Util::toString(aStartPos) + " aBytes = " + Util::toString(aBytes));
+#endif
+
 	if (prepareFile(aSource, type, fname, aStartPos, aBytes, c.hasFlag("RE", 4)))
 	{
 		Upload* u = aSource->getUpload();
@@ -1058,25 +1038,26 @@ void UploadManager::testSlotTimeout(uint64_t aTick /*= GET_TICK()*/)
 		}
 	}
 }
-
+void UploadManager::process_slot(uint8_t p_slot_type, int p_delta)
+{
+	switch (p_slot_type)
+	{
+		case UserConnection::STDSLOT:
+			m_running += p_delta;
+			break;
+		case UserConnection::EXTRASLOT:
+			extra += p_delta;
+			break;
+		case UserConnection::PARTIALSLOT:
+			extraPartial += p_delta;
+			break;
+	}
+}
 void UploadManager::removeConnection(UserConnection* aSource)
 {
 	dcassert(aSource->getUpload() == nullptr);
 	aSource->removeListener(this);
-	
-	// slot lost
-	switch (aSource->getSlotType())
-	{
-		case UserConnection::STDSLOT:
-			running--;
-			break;
-		case UserConnection::EXTRASLOT:
-			extra--;
-			break;
-		case UserConnection::PARTIALSLOT:
-			extraPartial--;
-			break;
-	}
+	process_slot(aSource->getSlotType(), -1);
 	aSource->setSlotType(UserConnection::NOSLOT);
 }
 
@@ -1260,7 +1241,7 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 			u->getUserConnection()->getSocket()->updateSocketBucket(getUserConnectionAmountL(u->getUser()));// [+] IRainman SpeedLimiter
 			l_currentSpeed += u->getRunningAverage();//[+] IRainman refactoring transfer mechanism
 		}
-		runningAverage = l_currentSpeed; // [+] IRainman refactoring transfer mechanism
+		m_runningAverage = l_currentSpeed; // [+] IRainman refactoring transfer mechanism
 		
 		if (!ticks.empty())
 		{

@@ -392,7 +392,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 				}
 				void calcPriorityAndGetRunningFiles(QueueItem::PriorityArray& p_changedPriority, QueueItemList& p_runningFiles);
 				size_t getRunningFileCount(const size_t p_stop_key) const;
-				void move(const QueueItemPtr& qi, const string& aTarget); // [!] IRainman fix.
+				void moveTarget(const QueueItemPtr& qi, const string& aTarget); // [!] IRainman fix.
 				void remove(const QueueItemPtr& qi); // [!] IRainman fix.
 				
 #ifdef FLYLINKDC_USE_RWLOCK

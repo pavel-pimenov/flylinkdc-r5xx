@@ -1897,15 +1897,22 @@ LRESULT MainFrame::onCopyData(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, B
 {
 	// [~]SSA - JetAudioControl
 	if (m_jaControl.get()->ProcessCopyData((PCOPYDATASTRUCT) lParam))
+	{
 		return true;
-		
-	if (!getPassword()) return false; // !SMT!-f
+	}
+	
+	if (!getPassword())
+	{
+		return false; // !SMT!-f
+	}
+	const tstring cmdLine = (LPCTSTR)(((COPYDATASTRUCT *)lParam)->lpData);
 	if (IsIconic())
 	{
-		ShowWindow(SW_RESTORE);
+		if (!Util::isTorrentLink(cmdLine)) // fix https://code.google.com/p/flylinkdc/issues/detail?id=1469
+		{
+			ShowWindow(SW_RESTORE);
+		}
 	}
-	tstring cmdLine = (LPCTSTR)(((COPYDATASTRUCT *)lParam)->lpData);
-	
 	parseCommandLine(WinUtil::getAppName() + L' ' + cmdLine);
 	return true;
 }

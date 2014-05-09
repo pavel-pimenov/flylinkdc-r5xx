@@ -101,6 +101,10 @@ class QueueItem : public Flags,
 			FLAG_OPEN_FILE          = 0x1000,
 		};
 		
+		bool isUserList() const
+		{
+			return isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP);
+		}
 		/**
 		 * Source parts info
 		 * Meaningful only when Source::FLAG_PARTIAL is set
@@ -389,7 +393,7 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 		GETSET_DIRTY(int64_t, flyQueueID, FlyQueueID);
 		GETSET_DIRTY(int, flyCountSourceInSQL, FlyCountSourceInSQL);
 		
-		int16_t calcTransferFlag(bool& partial, bool& trusted, bool& untrusted, bool& tthcheck, bool& zdownload, bool& chunked, double& ratio) const;
+		int16_t calcTransferFlagL(bool& partial, bool& trusted, bool& untrusted, bool& tthcheck, bool& zdownload, bool& chunked, double& ratio) const;
 		QueueItem::Priority calculateAutoPriority() const;
 		
 		bool isAutoDrop() const // [+] IRainman fix.

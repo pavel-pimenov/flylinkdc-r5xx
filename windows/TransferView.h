@@ -199,8 +199,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			TRANSFER_REMOVE_ITEM,
 			TRANSFER_UPDATE_ITEM,
 			TRANSFER_UPDATE_PARENT,
-			TRANSFER_UPDATE_PARENT_WITH_PARSE, // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=1082
-			//UPDATE_PARENT_WITH_PARSE_2
+			TRANSFER_UPDATE_PARENT_WITH_PARSE // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=1082
 		};
 		
 		enum
@@ -508,17 +507,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			tstring m_ip; // TODO - зачем тут tstring?
 		};
 		
-		// [+] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
-		struct QueueItemUpdateInfo : public UpdateInfo
-#ifdef _DEBUG
-				, virtual NonDerivable<QueueItemUpdateInfo>
-#endif
-		{
-			QueueItemUpdateInfo(const QueueItemPtr& queueItem) : m_queueItem(queueItem) { }
-			QueueItemPtr m_queueItem;
-		};
-		
-		void parseQueueItemUpdateInfo(QueueItemUpdateInfo* ui);
+		void parseQueueItemUpdateInfoL(UpdateInfo* p_ui, QueueItemPtr p_queueItem);
 		// [~] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
 		
 		UpdateInfo* createUpdateInfoForAddedEvent(const ConnectionQueueItem* aCqi); // [+] IRainman fix.

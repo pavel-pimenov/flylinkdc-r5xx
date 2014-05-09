@@ -44,6 +44,7 @@ public:
 
 	BEGIN_MSG_MAP(CNavigatorDlg)
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
+		MESSAGE_HANDLER(WM_CLOSE, OnClose)
         // NOTIFY_HANDLER(IDC_FLY_SERVER_LISTBOX, PIN_BROWSE, OnBrowse)
 
 #ifdef USE_FLY_SERVER_USE_IE_EXPLORER
@@ -222,7 +223,14 @@ private:
 		pUnk->Release();
 	}
 #endif
-LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+LRESULT OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+{
+	bHandled = FALSE;
+	EndDialog(IDOK);
+	return 0;
+}
+
+LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& bHandled)
 {
 	if (wID == IDOK)
 	{

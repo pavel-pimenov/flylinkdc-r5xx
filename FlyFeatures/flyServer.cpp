@@ -187,7 +187,7 @@ inline static void checkStrKey(const string& p_str) // TODO: move to Util.
 //======================================================================================================
 void CFlyServerConfig::ConvertInform(string& p_inform) const
 {
-	// TODO - убрать лишние строки из результат
+	// TODO - убрать лишние строки из результата
 	if(!m_exclude_tag_inform.empty())
 	{
 	string l_result_line;
@@ -238,7 +238,7 @@ void CFlyServerConfig::loadConfig()
 		LPCSTR l_res_data;
 		std::string l_data;
 #ifdef _DEBUG
-  // #define USE_FLYSERVER_LOCAL_FILE
+   #define USE_FLYSERVER_LOCAL_FILE
 #endif
 #ifdef USE_FLYSERVER_LOCAL_FILE
 		const string l_url_config_file = "file://C:/vc10/etc/flylinkdc-config-r5xx.xml"; 
@@ -695,6 +695,16 @@ static void getDiskAndMemoryStat(Json::Value& p_info)
 			//l_disk_info["SysFree"] = 
 			//l_disk_info["sqliteFree"] = 
 		}
+		{
+		Json::Value& l_screen_info = p_info["Screen"];
+		static RECT g_desktop;
+		if(g_desktop.right == 0)
+		{
+	          GetWindowRect(GetDesktopWindow(), &g_desktop);
+		}
+		l_screen_info["X"] = g_desktop.right;
+		l_screen_info["Y"] = g_desktop.bottom;
+	}
 }
 //======================================================================================================
 bool CFlyServerAdapter::CFlyServerJSON::pushTestPort(const string& p_magic,
@@ -798,6 +808,7 @@ void CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 		{
 			l_info["VID"] = l_VID_Array;
 		}
+#ifndef USE_STRONGDC_SQLITE
 		if(ChatBot::isLoaded())
 		{
 			l_info["is_chat_bot"] = 1;
@@ -806,6 +817,7 @@ void CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 		{
 			l_info["is_autoban"] = 1;
 		}
+#endif // USE_STRONGDC_SQLITE
 		extern bool g_DisableSQLJournal;
 		if (g_DisableSQLJournal || BOOLSETTING(SQLITE_USE_JOURNAL_MEMORY))
 		{

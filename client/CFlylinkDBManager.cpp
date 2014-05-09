@@ -3076,7 +3076,7 @@ __int64 CFlylinkDBManager::get_tth_idL(const TTHValue& p_tth, bool p_create /*= 
 	return 0;
 }
 //========================================================================================================
-void CFlylinkDBManager::Hit(const string& p_Path, const string& p_FileName)
+void CFlylinkDBManager::incHit(const string& p_Path, const string& p_FileName)
 {
 	Lock l(m_cs);
 	try

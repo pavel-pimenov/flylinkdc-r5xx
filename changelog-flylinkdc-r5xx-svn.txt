@@ -1,4 +1,71 @@
 ------------------------------------------------------------------------
+r17170 | pavel.pimenov@gmail.com | 2014-05-09 10:55:14 +0400 (Пт, 09 май 2014) | 26 lines
+
+Merged revision(s) 17155-17168 from trunk:
+* (Fixed issue 1469) Неверная магнет ссылка для флая приводит к постоянному возвращению фокуса окна
+  https://code.google.com/p/flylinkdc/issues/detail?id=1469
+  TODO - доделать автодетект торрент клиента
+........
+# Поправка к https://code.google.com/p/flylinkdc/issues/detail?id=1469
+........
+* Updating the database ISPs
+   http://www.assembla.com/spaces/customlocations-greylink
+   Build on the base 1302, created 2014-05-07 12:34:34 +0700
+   Total in database:
+    - ISP - 1407
+    - ISPs logo - 1416
+    - Address range - 5998
+   Archive CustomLocations.7z created by NightOrion
+........
+# Убрал лишний мембер в CFlyLog
+........
+# Убрал дублирование кода в UploadManager::process_slot
+........
+# Рефакторинг
+........
+* (Fixed issue 1469) Добавил сообщение об ошибке если флайлинк не нашел торрент клиента
+ https://code.google.com/p/flylinkdc/issues/detail?id=1469
+........
+
+------------------------------------------------------------------------
+r17169 | pavel.pimenov@gmail.com | 2014-05-09 10:50:08 +0400 (Пт, 09 май 2014) | 1 line
+
+# log
+------------------------------------------------------------------------
+r17149 | pavel.pimenov@gmail.com | 2014-05-02 15:13:43 +0400 (Пт, 02 май 2014) | 3 lines
+
+Merged revision(s) 17148 from trunk:
+# Временно убрал лок в QueueItem::calcTransferFlag - вешаемся иногда
+
+------------------------------------------------------------------------
+r17148 | pavel.pimenov@gmail.com | 2014-05-02 15:09:13 +0400 (Пт, 02 май 2014) | 1 line
+
+# Временно убрал лок в QueueItem::calcTransferFlag - вешаемся иногда
+------------------------------------------------------------------------
+r17147 | pavel.pimenov@gmail.com | 2014-05-02 13:37:44 +0400 (Пт, 02 май 2014) | 17 lines
+
+Merged revision(s) 17130-17146 from trunk:
+........
+* (Closed issue 1466) https://code.google.com/p/flylinkdc/issues/detail?id=1466
+........
+# В QueueManager::FileQueue::move убрал непонятный qi->dec()
+........
+# Заменил велосипедную подмену "\r\n" и "\n" на пробелы на стандартные аглогитмы
+# Компрессию блоков выполняем маскимальную (9)- те файлы что не жмутся совсем не обрабатываются zlib-ом
+  остальные пытаемся сжать получше.
+# fly-server - статистика по разрешению экрана (для piwik)
+........
+# Маркер падения https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=155631
+# Возможно исправлены падения 
+  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62749
+  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62956  
+
+
+------------------------------------------------------------------------
+r17128 | pavel.pimenov@gmail.com | 2014-04-25 14:14:37 +0400 (Пт, 25 апр 2014) | 1 line
+
+# Log
+------------------------------------------------------------------------
 r17127 | pavel.pimenov@gmail.com | 2014-04-25 13:39:05 +0400 (Пт, 25 апр 2014) | 3 lines
 
 Merged revision(s) 17125-17126 from trunk:

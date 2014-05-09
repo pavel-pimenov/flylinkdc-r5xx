@@ -148,7 +148,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 	public:
 		static uint32_t g_count_WaitingUsersFrame;
 		/** @return Number of uploads. */
-		size_t getUploadCount()
+		size_t getUploadCount() const
 		{
 			// [-] Lock l(m_csUploads); [-] IRainman opt.
 			return m_uploads.size();
@@ -160,12 +160,12 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		 *
 		 * @return Running average download speed in Bytes/s
 		 */
-		int64_t getRunningAverage()
+		int64_t getRunningAverage() const
 		{
-			return runningAverage;//[+] IRainman refactoring transfer mechanism
+			return m_runningAverage;//[+] IRainman refactoring transfer mechanism
 		}
 		
-		int getSlots() const
+		static int getSlots()
 		{
 			return (max(SETTING(SLOTS), max(SETTING(HUB_SLOTS), 0) * Client::getTotalCounts()));
 		}
@@ -173,7 +173,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		/** @return Number of free slots. */
 		int getFreeSlots() const
 		{
-			return max((getSlots() - running), 0);
+			return max((getSlots() - m_running), 0);
 		}
 		
 		/** @internal */
@@ -239,15 +239,15 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 	private:
 		bool isFireball;
 		bool isFileServer;
-		int running;
-		
-		int64_t runningAverage;//[+] IRainman refactoring transfer mechanism
-		
+		int  m_running;
+		int64_t m_runningAverage;//[+] IRainman refactoring transfer mechanism
 		uint64_t fireballStartTick;
 		
 		UploadList m_uploads;
 		UploadList m_delayUploads;
 		mutable CriticalSection m_csUploads; // [!] IRainman opt.
+		
+		void process_slot(uint8_t p_slot_type, int p_delta);
 		
 		// [+] IRainman SpeedLimiter
 		typedef pair<UserPtr, unsigned int> CurrentConnectionPair;
@@ -334,7 +334,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		{
 			uint32_t tick;
 			int slots, share, limit, min_slots, max_slots, min_share, min_limit;
-			bool same(const banmsg_t &a) const
+			bool same(const banmsg_t& a) const
 			{
 				return ((slots ^ a.slots) | (share ^ a.share) | (limit ^ a.limit) |
 				        (min_slots ^ a.min_slots) |

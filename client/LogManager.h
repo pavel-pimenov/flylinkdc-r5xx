@@ -112,24 +112,32 @@ class CFlyLog
 		const string m_message;
 		const uint64_t m_start;
 		uint64_t m_tc;
-		const bool m_useCmdDebug;
+		bool m_skip_start;
 		void log(const string& p_msg)
 		{
-			if (m_useCmdDebug)
-			{
-				COMMAND_DEBUG(p_msg, DebugTask::CLIENT_OUT, "127.0.0.1");
-			}
 			LogManager::getInstance()->message(p_msg);
 		}
 	public:
-		CFlyLog(const string& p_message, bool p_use_cmd_debug = false) : m_message(p_message), m_start(GET_TICK()), m_tc(m_start), m_useCmdDebug(p_use_cmd_debug)
+		CFlyLog(const string& p_message
+		        , bool p_skip_start = true
+		       ) :
+			m_start(GET_TICK()),
+			m_message(p_message),
+			m_tc(m_start),
+			m_skip_start(p_skip_start) // TODO - может оно не нужно?
 		{
-			log("[Start] " + m_message);
+			if (!m_skip_start)
+			{
+				log("[Start] " + m_message);
+			}
 		}
 		~CFlyLog()
 		{
-			const uint64_t l_current = GET_TICK();
-			log("[Stop ] " + m_message + " [" + Util::toString(l_current - m_tc) + " ms, Total: " + Util::toString(l_current - m_start) + " ms]");
+			//if(!m_skip_start_stop)
+			{
+				const uint64_t l_current = GET_TICK();
+				log("[Stop ] " + m_message + " [" + Util::toString(l_current - m_tc) + " ms, Total: " + Util::toString(l_current - m_start) + " ms]");
+			}
 		}
 		uint64_t calcSumTime() const
 		{

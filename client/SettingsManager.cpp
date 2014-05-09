@@ -576,11 +576,7 @@ void SettingsManager::setDefaults()
 	setDefault(SHOW_PROGRESS_BARS, TRUE);
 	setDefault(DEFAULT_AWAY_MESSAGE, STRING(DEFAULT_AWAY_MESSAGE));
 	setDefault(MAX_TAB_ROWS, 7); // [~] InfinitySky.
-#ifdef FLYLINKDC_HE
 	setDefault(MAX_COMPRESSION, 9);
-#else
-	setDefault(MAX_COMPRESSION, 5);
-#endif
 	setDefault(ANTI_FRAG, TRUE);
 	//setDefault(ANTI_FRAG_MAX, 0);
 	// [-] setDefault(NO_AWAYMSG_TO_BOTS, TRUE); [-] IRainman fix.

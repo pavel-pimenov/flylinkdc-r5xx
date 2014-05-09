@@ -440,17 +440,10 @@ class Util
 		}
 #endif
 		// [+] http://code.google.com/p/flylinkdc/issues/detail?id=223
-		/*template<class Tstr> */
 		static bool isTorrentLink(const tstring& sFileName)
 		{
 			return (sFileName.find(_T("xt=urn:btih:")) != tstring::npos &&
 			        sFileName.find(_T("xt=urn:tree:tiger:")) == tstring::npos);
-		}
-		
-		/*template<class Tstr> */static bool isTorrentLink(const string& sFileName)
-		{
-			return (sFileName.find("xt=urn:btih:") != string::npos &&
-			        sFileName.find("xt=urn:tree:tiger:") == string::npos);
 		}
 		// [~] http://code.google.com/p/flylinkdc/issues/detail?id=223
 		static bool isHttpLink(const tstring& p_url)

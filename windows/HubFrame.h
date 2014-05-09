@@ -236,7 +236,7 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		{
 			if (client->isConnected())
 			{
-				clearUserList();
+				clearUserList(false);
 				client->refreshUserList(false);
 			}
 			return 0;
@@ -375,6 +375,7 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		bool matchFilter(UserInfo& ui, int sel, bool doSizeCompare = false, FilterModes mode = NONE, int64_t size = 0);
 		UserInfo* findUser(const tstring& p_nick)   // !SMT!-S
 		{
+			dcassert(!m_is_fynally_clear_user_list);
 			dcassert(!p_nick.empty());
 			if (p_nick.empty())
 				return nullptr;
@@ -393,6 +394,11 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		}
 		UserInfo* findUser(const OnlineUserPtr& p_user)
 		{
+			dcassert(!m_is_fynally_clear_user_list);
+			//if(m_is_fynally_clear_user_list)
+			//{
+			//  LogManager::getInstance()->message("findUser after m_is_fynally_clear_user_list = " + p_user->getUser()->getLastNick());
+			//}
 			return m_userMap.findUser(p_user);
 		}
 		//const tstring& getNick(const UserPtr& aUser);
@@ -404,7 +410,7 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		
 		void autoConnectStart();
 		
-		void clearUserList();
+		void clearUserList(bool p_is_fynally_clear_user_list);
 		void clearTaskList();
 		
 		void appendHubAndUsersItems(OMenu& p_menu, const bool isChat);
@@ -509,7 +515,7 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		void updateWindowText();
 		CContainedWindow* m_ctrlFilterContainer;
 		CContainedWindow* m_ctrlFilterSelContainer;
-		
+		bool m_is_fynally_clear_user_list;
 		bool m_showJoins;
 		bool m_favShowJoins;
 		bool m_isUpdateColumnsInfoProcessed;

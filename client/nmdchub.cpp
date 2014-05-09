@@ -17,6 +17,8 @@
 */
 
 #include "stdinc.h"
+#include <boost/algorithm/string.hpp>
+
 #include "NmdcHub.h"
 #include "ShareManager.h"
 #include "CryptoManager.h"
@@ -942,12 +944,9 @@ void NmdcHub::onLine(const string& aLine)
 		// If no " - " found, first word goes to hub name, rest to description
 		
 		string::size_type i;
-		while ((i = param.find("\r\n")) != string::npos)
-			param.replace(i, 2, " ");
-			
-		while ((i = param.find('\n')) != string::npos) // [+] IRainman fix.
-			param.replace(i, 1, " ");
-			
+		boost::replace_all(param, "\r\n", " ");
+		std::replace(param.begin(), param.end(), '\n', ' ');
+		
 		OnlineUserPtr ou;// [+] IRainman fix.
 		string hubnick;
 		

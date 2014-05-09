@@ -16,7 +16,7 @@
 	<string name="Add2">Add</string>
 	<string name="Added">Added</string>
 	<string name="AddingMagnetLink">Adding a magnet link</string>
-	<string name="AddressForUpdateError">address for updates is blank or invalid.</string>
+	<string name="AddressForUpdateError">Address for updates is blank or invalid.</string>
 	<string name="AddAsSource">Add as source</string>
 	<string name="AddLimit">Speed limit</string>
 	<string name="AddSlots">Amount of slots</string>
@@ -1261,7 +1261,8 @@
 	<string name="SettingsBindAddressHelp">Network interface for all connections</string>
 	<string name="SettingsBoldOptions">Tab bolding on content change</string>
 	<string name="SettingsBtHelp">As example enter:\n\"C:\\\\Program Files (x86)\\uTorrent\\uTorrent.exe\" - to associate default uTorrent path on 64 bit platform\n\"C:\\\\Program Files\\uTorrent\\uTorrent.exe\" - to associate default uTorrent path on 32 bit platform</string>
-	<string name="BittorrentProgramm">BitTorrent program for magnets:</string>
+	<string name="SettingsBittorrentProgramm">BitTorrent program for magnets:</string>
+	<string name="SettingsBittorrentErrorConfig">FlylinkDC++ could not open the link because settings not specified a torrent client (Menu-&gt;File-&gt;Settings-&gt;Downloads-&gt;Path for bittorrent client)</string>
 	<string name="SettingsCertificates">Security</string>
 	<string name="SettingsChange">&amp;Change</string>
 	<string name="SettingsClearSearch">Clear search box after each search</string>

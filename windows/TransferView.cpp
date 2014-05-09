@@ -1093,14 +1093,17 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 			break;
 			case TRANSFER_UPDATE_PARENT:
 			case TRANSFER_UPDATE_PARENT_WITH_PARSE:
-				//case UPDATE_PARENT_WITH_PARSE_2:
 			{
+#if 0 // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=152461
 				switch (i->first)
 				{
 					case TRANSFER_UPDATE_PARENT_WITH_PARSE:
-						parseQueueItemUpdateInfo(reinterpret_cast<QueueItemUpdateInfo*>(i->second)); // [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
+						// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62956
+						// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62749
+						parseQueueItemUpdateInfo(reinterpret_cast<QueueItemUpdateInfo*>(i->second));
 						break;
-				}
+				} //
+#endif
 				const auto& ui = static_cast<UpdateInfo&>(*i->second);
 				const ItemInfoList::ParentPair* pp = ctrlTransfers.findParentPair(ui.m_target);
 				
@@ -1775,15 +1778,15 @@ void TransferView::on(QueueManagerListener::Tick, const QueueItemList& p_list) n
 
 void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItemPtr& qi) noexcept
 {
-	if (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP))
+	if (qi->isUserList())
 		return;
-		
-	m_tasks.add(TRANSFER_UPDATE_PARENT_WITH_PARSE, new QueueItemUpdateInfo(qi)); // [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
+	auto l_ui = new UpdateInfo();
+	parseQueueItemUpdateInfoL(l_ui, qi);
+	m_tasks.add(TRANSFER_UPDATE_PARENT_WITH_PARSE, l_ui); // [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
 }
 
-void TransferView::parseQueueItemUpdateInfo(QueueItemUpdateInfo* ui) // [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
+void TransferView::parseQueueItemUpdateInfoL(UpdateInfo* ui, QueueItemPtr qi) // [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
 {
-	const auto qi = ui->m_queueItem; // —ылку делать нельз€ - падаем https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=114130
 	ui->setTarget(qi->getTarget());
 	ui->setType(Transfer::TYPE_FILE);
 	
@@ -1792,7 +1795,7 @@ void TransferView::parseQueueItemUpdateInfo(QueueItemUpdateInfo* ui) // [!] IRai
 		double ratio = 0;
 		bool partial = false, trusted = false, untrusted = false, tthcheck = false, zdownload = false, chunked = false;
 		const int64_t totalSpeed = qi->getAverageSpeed(); // [!] IRainman opt.
-		const int16_t segs = qi->calcTransferFlag(partial, trusted, untrusted, tthcheck, zdownload, chunked, ratio);
+		const int16_t segs = qi->calcTransferFlagL(partial, trusted, untrusted, tthcheck, zdownload, chunked, ratio);
 		ui->setRunning(segs);
 		if (segs > 0)
 		{
@@ -1861,11 +1864,11 @@ void TransferView::parseQueueItemUpdateInfo(QueueItemUpdateInfo* ui) // [!] IRai
 		ui->setStatus(ItemInfo::STATUS_WAITING);
 		ui->setRunning(0);
 	}
-}
+} // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=152461
 
 void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string&, const Download* download) noexcept
 {
-	if (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP))
+	if (qi->isUserList())
 		return;
 		
 	// update download item
@@ -1895,7 +1898,7 @@ void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, co
 
 void TransferView::on(QueueManagerListener::Removed, const QueueItemPtr& qi) noexcept
 {
-	if (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP))
+	if (qi->isUserList())
 		return;
 		
 	UpdateInfo* ui = new UpdateInfo(); // [!] IRainman fix.
@@ -1908,7 +1911,6 @@ void TransferView::on(QueueManagerListener::Removed, const QueueItemPtr& qi) noe
 	ui->setRunning(0);
 	
 	m_tasks.add(TRANSFER_UPDATE_PARENT, ui);
-	//m_tasks.add(UPDATE_PARENT_WITH_PARSE_2, new QueueItemUpdateInfo(qi)); // [!] IRainman fix.
 }
 
 // [+] Flylink

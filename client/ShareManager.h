@@ -277,46 +277,14 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 						
 						ShareFile(const string& aName, int64_t aSize, Directory::Ptr aParent, const TTHValue& aRoot, uint32_t aHit, uint32_t aTs,
 						          Search::TypeModes aftype) :
-							tth(aRoot), size(aSize), parent(aParent.get()), hit(aHit), ts(aTs), ftype(aftype), m_media_ptr(nullptr)
+							tth(aRoot), size(aSize), parent(aParent.get()), m_hit(aHit), ts(aTs), ftype(aftype), m_media_ptr(nullptr)
 						{
 							setName(aName);
 						}
-						/*                        ShareFile(const ShareFile& rhs) :
-						                                    CFlyLowerName(rhs),
-						                            ftype(rhs.ftype),
-						                                    ts(rhs.ts),
-						                                    hit(rhs.hit),
-						                                    tth(rhs.getTTH()),
-						                                    size(rhs.getSize()),
-						                                    parent(rhs.getParent()),
-						                                    m_media_ptr(rhs.m_media_ptr)
-						                        {
-						                        }
-						*/
 					public:
 						~ShareFile()
 						{
 						}
-						
-						/*                      ShareFile& operator=(const ShareFile& rhs)
-						                        {
-						                            init(rhs);
-						                            size = rhs.size;
-						                            parent = rhs.parent;
-						                            tth = rhs.tth;
-						                            hit = rhs.hit;
-						                            ts = rhs.ts;
-						                            m_media = rhs.m_media;
-						                            ftype = rhs.ftype;
-						                            return *this;
-						                        }
-						*/
-						
-						//private:
-//						bool operator==(const ShareFile& rhs) const
-//						{
-//							return getParent() == rhs.getParent() && getLowName() == rhs.getLowName();
-//						}
 					public:
 						string getADCPath() const
 						{
@@ -333,7 +301,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 						
 						GETSET(int64_t, size, Size);
 						GETSET(Directory*, parent, Parent);
-						GETSET(uint32_t, hit, Hit);
+						GETC(uint32_t, m_hit, Hit);
 						GETSET(uint32_t, ts, TS);
 						std::shared_ptr<CFlyMediaInfo> m_media_ptr;
 						void initMediainfo(std::shared_ptr<CFlyMediaInfo>& p_media_ptr)

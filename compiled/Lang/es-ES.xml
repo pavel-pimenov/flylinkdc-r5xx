@@ -184,6 +184,7 @@ many pornographic files and they will not be included in any following search re
 		<String Name="BbcodePanelStrike">Fuente tachada</String>
 		<String Name="BbcodePanelTranslate">Texto (seleccionado) Transcode</String>
 		<String Name="BbcodePanelUnderline">Fuente subrayada</String>
+		<String Name="BbcodePanelColor">Color</String>
 		<String Name="Bitrate">Tasa de bits</String>
 		<String Name="BitziLookup">Búsqueda en Bitzi.com</String>
 		<String Name="BlendOfflineSearch">Mezcla de resultados de búsqueda en línea</String>
@@ -1811,6 +1812,7 @@ Por defecto: %H:%M:%S</String>
 		<String Name="UpdateIpInterval">Intervalo en minutos para actualizar IP
 (0 = actualiza sólo al arrancar)</String>
 		<String Name="Upload">Enviado</String>
+		<String Name="Uploaded">Subido</String>
 		<String Name="UploadedBytes">Enviados %s (%.01f%%)  en  %s h.</String>
 		<String Name="UploadedTo">Enviado a</String>
 		<String Name="UploadFinishedIdle">Envío finalizado, en espera…</String>

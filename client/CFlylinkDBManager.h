@@ -233,7 +233,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif
 		static void errorDB(const string& p_txt);
 		
-		void Hit(const string& p_Path, const string& p_FileName);
+		void incHit(const string& p_Path, const string& p_FileName);
 		bool checkTTH(const string& fname, __int64 path_id, int64_t aSize, int64_t aTimeStamp, TTHValue& p_out_tth);
 		void LoadPathCache();
 		void SweepPath();

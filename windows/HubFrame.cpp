@@ -206,6 +206,7 @@ HubFrame::HubFrame(const tstring& aServer,
 #endif
 	, m_tabMenuShown(false)
 	, m_showJoins(false)
+	, m_is_fynally_clear_user_list(false)
 	, m_favShowJoins(false)
 	, m_isUpdateColumnsInfoProcessed(false)
 	, m_tabMenu(nullptr)
@@ -1184,6 +1185,7 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 			{
 				//webrtc::WriteLockScoped l(*m_userMapCS);
 				//Lock l(m_userMapCS);
+				dcassert(!m_is_fynally_clear_user_list);
 				m_userMap.insert(make_pair(p_ou, ui));
 			}
 			if (m_showUsers)// [+] IRainman optimization
@@ -1276,21 +1278,25 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 
 void HubFrame::removeUser(const OnlineUserPtr& p_ou)
 {
-	UserInfo* ui = findUser(p_ou);
-	if (!ui)
-		return;
-		
-#ifdef IRAINMAN_USE_HIDDEN_USERS
-	dcassert(ui->isHidden() == false);
-#endif
-	if (m_showUsers)
+	dcassert(!m_is_fynally_clear_user_list);
+	//if(!m_is_fynally_clear_user_list)
 	{
-		ctrlUsers.deleteItem(ui);  // Lock - redraw при закрытии?
+		UserInfo* ui = findUser(p_ou);
+		if (!ui)
+			return;
+			
+#ifdef IRAINMAN_USE_HIDDEN_USERS
+		dcassert(ui->isHidden() == false);
+#endif
+		if (m_showUsers)
+		{
+			ctrlUsers.deleteItem(ui);  // Lock - redraw при закрытии?
+		}
+		//webrtc::WriteLockScoped l(*m_userMapCS);
+		//Lock l(m_userMapCS);
+		m_userMap.erase(p_ou);
+		delete ui;
 	}
-	//webrtc::WriteLockScoped l(*m_userMapCS);
-	//Lock l(m_userMapCS);
-	m_userMap.erase(p_ou);
-	delete ui;
 }
 
 void HubFrame::addStatus(const tstring& aLine, const bool bInChat /*= true*/, const bool bHistory /*= true*/, const CHARFORMAT2& cf /*= WinUtil::m_ChatTextSystem*/)
@@ -1428,6 +1434,7 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 		
 		case WM_SPEAKER_CONNECTED:
 		{
+			m_is_fynally_clear_user_list = false;
 			dcassert(!ClientManager::isShutdown());
 			addStatus(TSTRING(CONNECTED), true, true, Colors::g_ChatTextServer);
 			setTabColor(RGB(0, 255, 0));
@@ -1451,7 +1458,7 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 		case WM_SPEAKER_DISCONNECTED:
 		{
 			dcassert(!ClientManager::isShutdown());
-			clearUserList();
+			clearUserList(true);
 			setTabColor(RGB(255, 0, 0));
 			setIconState();
 			PLAY_SOUND(SOUND_HUBDISCON);
@@ -2197,27 +2204,14 @@ LRESULT HubFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 	else
 	{
 		clearTaskList();
-		clearUserList();
+		clearUserList(true);
 		bHandled = FALSE;
 		return 0;
 	}
 }
-/* [-] IRainman fix.
-const string& HubFrame::getHubHint() const
+void HubFrame::clearUserList(bool p_is_fynally_clear_user_list)
 {
-    Client* l_client = getClient();
-    return l_client ? l_client->getHubUrl() : Util::emptyString; //[24] https://www.box.net/shared/7c1959f6e1cff66ef72c  https://www.box.net/shared/15b9c3ed5b769d5f6a2d
-    // TODO 2012-04-20_22-34-39_BKO32K2I7VK6XDBLHQBKYIGFEH3Q2AJIM5ZWAZI_A5A1D879_crash-stack-r502-beta20-build-9794.dmp
-    // 2012-04-27_18-47-20_GHN3CDZCMJKHX4NER2G23LHYGPQJDYDP63UQNJY_1BF7FE17_crash-stack-r502-beta22-x64-build-9854.dmp
-    // 2012-04-29_06-52-32_5HOPCRAULMWYJWGXMPINWI4LXEYMYNG2XVK5W4I_B5CB162B_crash-stack-r502-beta23-build-9860.dmp
-    // 2012-05-11_23-57-17_ND2ECRYDTN5DHTZLDWHO2VETYFXMT3D7XRCNY4A_F6599807_crash-stack-r502-beta26-x64-build-9946.dmp
-    // 2012-06-09_18-15-11_HPBFJ7PDHH4MSFNZYFIPGNTDPZ45DH3FZMV3FQQ_9009D338_crash-stack-r501-build-10294.dmp
-    // 2012-06-17_22-40-29_AZ46YXHC7VYZWC6D56B5JTN254A2TYKOVUJ2OGQ_CF38B0D3_crash-stack-r502-beta36-x64-build-10378.dmp
-    // 2012-06-25_22-17-42_OHUFDRKV6T6IU77SALTOCCN7LDYKICYNXLCEGHA_438E1A51_crash-stack-r502-beta39-build-10495.dmp
-}
-*/
-void HubFrame::clearUserList()
-{
+	m_is_fynally_clear_user_list = p_is_fynally_clear_user_list;
 	{
 		CLockRedraw<> l_lock_draw(ctrlUsers); // TODO это нужно или опустить ниже?
 		ctrlUsers.DeleteAllItems();
@@ -2859,7 +2853,7 @@ LRESULT HubFrame::onFollow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/,
 		server = m_redirect;
 		// the client is dead, long live the client!
 		client->removeListener(this);
-		clearUserList();
+		clearUserList(true);
 		ClientManager::getInstance()->putClient(client);
 		clearTaskList();
 		client = ClientManager::getInstance()->getClient(l_redirect);

@@ -17,7 +17,7 @@
 		<String Name="Add2">Adicionar</String>
 		<String Name="Added">Adicionado</String>
 		<String Name="AddingMagnetLink">Adicionando um link magnético</String>
-		<String Name="AddressForUpdateError">endereço para atualização está em branco ou é inválido</String>
+		<String Name="AddressForUpdateError">Endereço para atualização está em branco ou é inválido.</String>
 		<String Name="AddAsSource">Adic. como fonte</String>
 		<String Name="AddLimit">Limite de Velocidade</String>
 		<String Name="AddSlots">Quantidade de slots</String>
@@ -485,6 +485,8 @@ Ligar DHT?</String>
 		<String Name="EnableCountryflag">Adicionar bandeira do país em 'Local' na lista de usuários</String>
 		<String Name="EnableLastIp">Armazenar IP em um banco de dados SQLite</String>
 		<String Name="EnableFlyServer">Usar nuvem de fly-server</String>
+		<String Name="EnableHitFileList">Habilitar contador de downloads na lista de arquivos</String>
+		<String Name="EnableRatioUserList">Habilitar  download/upload na lista de usuários</String>
 		<String Name="EnableMultiSource">Habilitar Segmentos</String>
 		<String Name="EnablePopups">Habilitar popups</String>
 		<String Name="EnableSounds">Habilitar sons</String>
@@ -678,7 +680,7 @@ Se você selecionar 'Não', esses hubs serão simplesmente mudou-se para o princ
 		<String Name="HighPriority">AltaPrioridade</String>
 		<String Name="Hits">Acertos:</String>
 		<String Name="HitCount">Acertos</String>
-		<String Name="HitRatio">Hit Ratio:</String>
+		<String Name="HitRatio">Proporção de Acertos:</String>
 		<String Name="Hour">Hora</String>
 		<String Name="Hours">Horas</String>
 		<String Name="Hub">Hub</String>
@@ -1196,7 +1198,7 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="QueueUpdating">Habilitar atualização da fila em tempo real (usa mais CPU quanto maior for a fila!)</String>
 		<String Name="QuickConnect">Conectar Rápido</String>
 		<String Name="Rating">Avaliação</String>
-		<String Name="Ratio">Ratio</String>
+		<String Name="Ratio">Proporção</String>
 		<String Name="RatioMsgHelp">Você pode usar:
 
  %[ratio]	 up/down ratio

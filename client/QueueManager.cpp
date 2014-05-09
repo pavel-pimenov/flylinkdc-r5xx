@@ -327,10 +327,10 @@ QueueItemPtr QueueManager::FileQueue::findAutoSearch(deque<string>& recent) cons
 	}
 }
 
-void QueueManager::FileQueue::move(const QueueItemPtr& qi, const string& aTarget)
+void QueueManager::FileQueue::moveTarget(const QueueItemPtr& qi, const string& aTarget)
 {
 	remove_internal(qi);
-	qi->dec(); // [+] IRainman fix.
+	//[-]PPA qi->dec(); // [+] IRainman fix. // ??????
 	qi->setTarget(aTarget);
 	add(qi);
 }
@@ -1537,7 +1537,7 @@ void QueueManager::move(const string& aSource, const string& aTarget) noexcept
 		{
 			// Good, update the target and move in the queue...
 			fire(QueueManagerListener::Moved(), qs, aSource);
-			fileQueue.move(qs, l_target);
+			fileQueue.moveTarget(qs, l_target);
 			//fire(QueueManagerListener::Added(), qs);// [-]IRainman
 			setDirty();
 		}
@@ -1896,7 +1896,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 {
 	UserList getConn;
 	string fileName;
-	const HintedUser l_hintedUser = aDownload->getHintedUser();
+	const HintedUser l_hintedUser = aDownload->getHintedUser(); // crash https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=155631
 	UserPtr l_user = aDownload->getUser(); // —сылку нельз€ - нужно держать юзера.
 	
 	dcassert(l_user); // [!] IRainman fix: putDownload call with empty by the user can not because you can not even attempt to download with an empty user!

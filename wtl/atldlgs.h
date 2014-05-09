@@ -2217,7 +2217,7 @@ public:
 #ifndef _WIN32_WCE
 
 // global helper
-static HDC _AtlCreateDC(HGLOBAL hDevNames, HGLOBAL hDevMode)
+static inline HDC _AtlCreateDC(HGLOBAL hDevNames, HGLOBAL hDevMode)
 {
 	if(hDevNames == NULL)
 		return NULL;
@@ -2238,6 +2238,9 @@ static HDC _AtlCreateDC(HGLOBAL hDevNames, HGLOBAL hDevMode)
 		::GlobalUnlock(hDevMode);
 	return hDC;
 }
+
+#pragma warning(push)
+#pragma warning(disable: 4512)   // assignment operator could not be generated
 
 template <class T>
 class ATL_NO_VTABLE CPrintDialogImpl : public CCommonDialogImplBase
@@ -2454,6 +2457,8 @@ public:
 	CPrintDialog(PRINTDLG& pdInit) : CPrintDialogImpl<CPrintDialog>(pdInit)
 	{ }
 };
+
+#pragma warning(pop)
 
 #endif // _WIN32_WCE
 
