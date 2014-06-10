@@ -204,17 +204,6 @@ class QueueItem : public Flags,
 		{
 			return m_badSources;
 		}
-		/*
-		        const SourceMap& getSourcesL() const // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
-		        {
-		            return m_sources;
-		        }
-		
-		        const SourceMap& getBadSourcesL() const // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
-		        {
-		            return m_badSources;
-		        }
-		*/
 #ifdef _DEBUG
 		bool isSourceValid(const QueueItem::Source* p_source_ptr);
 #endif
@@ -226,24 +215,14 @@ class QueueItem : public Flags,
 		{
 			return Util::getFileName(getTarget());
 		}
-		SourceIter getSourceL(const UserPtr& aUser) // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
+		SourceIter findSourceL(const UserPtr& aUser) // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
 		{
 			return m_sources.find(aUser); // [!] IRainman fix done: [6] https://www.box.net/shared/898c1974fa8c47f9614b
 		}
-		SourceIter getBadSourceL(const UserPtr& aUser) // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
+		SourceIter findBadSourceL(const UserPtr& aUser) // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
 		{
 			return m_badSources.find(aUser);
 		}
-#if 0
-		SourceConstIter getSourceL(const UserPtr& aUser) const // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
-		{
-			return m_sources.find(aUser);
-		}
-		SourceConstIter getBadSourceL(const UserPtr& aUser) const // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
-		{
-			return m_badSources.find(aUser);
-		}
-#endif
 		bool isSourceL(const UserPtr& aUser) const
 		{
 			return m_sources.find(aUser) != m_sources.end();

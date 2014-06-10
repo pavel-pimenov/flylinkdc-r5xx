@@ -47,8 +47,8 @@ static ResourceManager::Strings columnNames[] = { ResourceManager::FILE, Resourc
 LRESULT StatsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
 	// [+]IRainman
-	DownloadManager::getInstance()->addListener(this);
-	UploadManager::getInstance()->addListener(this);
+	//DownloadManager::getInstance()->addListener(this);
+	//UploadManager::getInstance()->addListener(this);
 	// [~]IRainman
 	
 	create_timer(1000);
@@ -81,8 +81,8 @@ LRESULT StatsFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		m_closed = true;
 		safe_destroy_timer();
 		// [+]IRainman
-		DownloadManager::getInstance()->removeListener(this);
-		UploadManager::getInstance()->removeListener(this);
+		//DownloadManager::getInstance()->removeListener(this);
+		//UploadManager::getInstance()->removeListener(this);
 		// [~]IRainman
 		
 		WinUtil::setButtonPressed(IDC_NET_STATS, false);
@@ -143,9 +143,9 @@ LRESULT StatsFrame::onPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		dc.SetBkColor(Colors::bgColor);
 		
 		{
-			CSelectPen l_pen(dc, foregr);
+			CSelectPen l_pen(dc, foregr); //-V808
 			{
-				CSelectFont l_font(dc, Fonts::g_font);
+				CSelectFont l_font(dc, Fonts::g_font); //-V808
 				const int lines = g_height / (Fonts::g_fontHeight * LINE_HEIGHT);
 				const int lheight = g_height / (lines + 1);
 				
@@ -184,21 +184,21 @@ LRESULT StatsFrame::onPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 			}
 		}
 		{
-			CSelectPen l_pen(dc, m_UploadSocketPen);
+			CSelectPen l_pen(dc, m_UploadSocketPen); //-V808
 			drawLine(dc, m_UpSockets, rc, clientRC);
 		}
 		
 		{
-			CSelectPen l_pen(dc, m_DownloadSocketPen);
+			CSelectPen l_pen(dc, m_DownloadSocketPen); //-V808
 			drawLine(dc, m_DownSockets, rc, clientRC);
 		}
 		// [+]IRainman
 		{
-			CSelectPen l_pen(dc, m_UploadsPen);
+			CSelectPen l_pen(dc, m_UploadsPen); //-V808
 			drawLine(dc, m_Uploads, rc, clientRC);
 		}
 		{
-			CSelectPen l_pen(dc, m_DownloadsPen);
+			CSelectPen l_pen(dc, m_DownloadsPen); //-V808
 			drawLine(dc, m_Downloads, rc, clientRC);
 		}
 		// [~]IRainman

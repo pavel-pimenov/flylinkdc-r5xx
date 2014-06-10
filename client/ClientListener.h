@@ -28,9 +28,6 @@ class ClientListener
 		typedef X<13> HubUserCommand;
 		typedef X<14> HubFull;
 		typedef X<15> NickTaken;
-#ifdef IRAINMAN_USE_SEARCH_FLOOD_FILTER
-		typedef X<16> SearchFlood;
-#endif
 		typedef X<17> NmdcSearch;
 		typedef X<18> AdcSearch;
 		typedef X<19> CheatMessage;
@@ -58,9 +55,6 @@ class ClientListener
 		virtual void on(HubUserCommand, const Client*, int, int, const string&, const string&) noexcept { }
 		virtual void on(HubFull, const Client*) noexcept { }
 		virtual void on(NickTaken, const Client*) noexcept { }
-#ifdef IRAINMAN_USE_SEARCH_FLOOD_FILTER
-		virtual void on(SearchFlood, const Client*, const string&) noexcept { }
-#endif
 		virtual void on(NmdcSearch, Client* aClient, const string& aSeeker, Search::SizeModes aSizeMode, int64_t aSize,
 		                Search::TypeModes aFileType, const string& aString, bool isPassive) noexcept { }
 		virtual void on(AdcSearch, const Client*, const AdcCommand&, const CID&) noexcept { }

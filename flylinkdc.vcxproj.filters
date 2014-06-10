@@ -1087,6 +1087,8 @@
     <None Include="compiled\Settings\flylinkdc-config-r5xx.xml">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="res\medical_bag.ico" />
+    <None Include="res\thermometer2.ico" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

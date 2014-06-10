@@ -458,7 +458,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	if (BOOLSETTING(SETTINGS_STATISTICS_ASK))
 	{
 		MessageBox(CTSTRING(TEXT_STAT_INFO), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_TOPMOST);
-		SET_SETTING(USE_STATICTICS_SEND, true);
+		SET_SETTING(USE_FLY_SERVER_STATICTICS_SEND, true);
 		SET_SETTING(SETTINGS_STATISTICS_ASK, false);
 	}
 #endif // NIGHTORION_USE_STATISTICS_REQUEST
@@ -1468,12 +1468,11 @@ LRESULT MainFrame::onQuickSearchEditChange(WORD /*wNotifyCode*/, WORD /*wID*/, H
 	{
 		uint32_t nTextLen = 0;
 		HWND hWndCombo = QuickSearchBox.m_hWnd;
-		_TCHAR *pEnteredText = nullptr;
 		DWORD dwStartSel = 0, dwEndSel = 0;
 		
 		// Get the text length from the combobox, then copy it into a newly allocated buffer.
 		nTextLen = ::SendMessage(hWndCombo, WM_GETTEXTLENGTH, NULL, NULL);
-		pEnteredText = new _TCHAR[nTextLen + 1];
+		_TCHAR *pEnteredText = new _TCHAR[nTextLen + 1];
 		::SendMessage(hWndCombo, WM_GETTEXT, (WPARAM)nTextLen + 1, (LPARAM)pEnteredText);
 		::SendMessage(hWndCombo, CB_GETEDITSEL, (WPARAM)&dwStartSel, (LPARAM)&dwEndSel);
 		

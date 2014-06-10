@@ -80,7 +80,7 @@ void TaskManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 		bool l_need_dht_download = true;
 		if(m_lastDownloadDHTError) // Были ошибки загрузки - ждем полчасика и не ломимся на DHT сервер?
 		{
-			if(aTick - m_lastDownloadDHTError > 60 * 30 * 1000) // TODO - конфигурируем число ? 
+			if(aTick - m_lastDownloadDHTError > 60 * 30 * 1000) // TODO! - конфигурируем число ? 
 				                                     // TODO-2 отмечаем сервер как глючный и не выбираем рандомно его некоторое время
 			{
 				l_need_dht_download = true;
@@ -92,7 +92,10 @@ void TaskManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 		if(l_need_dht_download)
 		{
 		const bool l_15000 = aTick - lastBootstrap > 15000;
-		const bool l_nodes_cnt = aTick - lastBootstrap >= 2000 &&l_dht->getNodesCount() < 2 * DHT_K;
+		const bool l_nodes_cnt = (aTick - lastBootstrap) >= 2000 && l_dht->getNodesCount() == 0; // < 2 * DHT_K; 
+		// TODO В оригинальном StrongDC++ тут на 0 проверяется
+		// if (aTick - lastBootstrap > 15000 || (DHT::getInstance()->getNodesCount() == 0 && aTick - lastBootstrap >= 2000))
+		// 2 * DHT_K Слава мержил из ветки wx - узнать где он это нашел.
 		if (l_15000 || l_nodes_cnt)
 		 {
 			// bootstrap if we doesn't know any remote node

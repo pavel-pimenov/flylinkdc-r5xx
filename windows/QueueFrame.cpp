@@ -1369,7 +1369,8 @@ LRESULT QueueFrame::onReadd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BO
 		{
 			try
 			{
-				QueueManager::getInstance()->readdAll(ii->getQueueItem());
+				auto l_item = ii->getQueueItem();
+				QueueManager::getInstance()->readdAll(l_item);
 			}
 			catch (const QueueException& e)
 			{
@@ -1381,10 +1382,11 @@ LRESULT QueueFrame::onReadd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BO
 			OMenuItem* omi = (OMenuItem*)mi.dwItemData;
 			if (omi)
 			{
-				UserPtr* s = (UserPtr*)omi->m_data;
+				const UserPtr s = *(UserPtr*)omi->m_data; // TODO - https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62702
+				// Ìונעגûי ‏חונ
 				try
 				{
-					QueueManager::getInstance()->readd(ii->getTarget(), *s);
+					QueueManager::getInstance()->readd(ii->getTarget(), s);
 				}
 				catch (const QueueException& e)
 				{
@@ -1869,7 +1871,7 @@ void QueueFrame::onTab()
 void QueueFrame::updateQueue()
 {
 	dcassert(m_closed == false);
-	CWaitCursor l_cursor_wait;
+	CWaitCursor l_cursor_wait; //-V808
 	ctrlQueue.DeleteAllItems();
 	pair<DirectoryIter, DirectoryIter> i;
 	if (showTree)

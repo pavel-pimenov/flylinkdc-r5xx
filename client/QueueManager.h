@@ -183,8 +183,8 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		//[~] FlylinkDC
 		
 		/** Readd a source that was removed */
-		void readd(const string& p_target, const UserPtr& aUser) throw(QueueException);
-		void readdAll(const QueueItemPtr& q) throw(QueueException); // [+] IRainman opt.
+		void readd(const string& p_target, const UserPtr& aUser);
+		void readdAll(const QueueItemPtr& q); // [+] IRainman opt.
 		/** Add a directory to the queue (downloads filelist and matches the directory). */
 		void addDirectory(const string& aDir, const UserPtr& aUser, const string& aTarget,
 		                  QueueItem::Priority p = QueueItem::DEFAULT) noexcept;
@@ -315,7 +315,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 			private:
 				void execute(const pair<string, string>& p_next)
 				{
-					internal_moveFile(p_next.first, p_next.second);
+					internalMoveFile(p_next.first, p_next.second);
 				}
 		} m_mover;
 		
@@ -490,7 +490,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		
 		void load(const SimpleXML& aXml);
 		void moveFile(const string& source, const string& p_target);
-		static void internal_moveFile(const string& source, const string& p_target);
+		static void internalMoveFile(const string& source, const string& p_target);
 		void moveStuckFile(const QueueItemPtr& qi); // [!] IRainman fix.
 		void rechecked(const QueueItemPtr& qi); // [!] IRainman fix.
 		

@@ -95,11 +95,10 @@ class FavDirDlg : public CDialogImpl<FavDirDlg>
 		FavDirDlg(const FavDirDlg&)
 		{
 			dcassert(0);
-		};
+		}
 		CEdit ctrlName;
 		CEdit ctrlDirectory;
 		CEdit ctrlExtensions;
-		
 };
 
 #endif // !defined(FAV_DIR_DLG_H)

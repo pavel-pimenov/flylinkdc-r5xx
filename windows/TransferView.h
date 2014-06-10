@@ -77,7 +77,6 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		COMMAND_ID_HANDLER(IDC_SEARCH_ALTERNATES, onSearchAlternates)
 		COMMAND_ID_HANDLER(IDC_REMOVE, onRemove)
 		COMMAND_ID_HANDLER(IDC_REMOVEALL, onRemoveAll)
-		COMMAND_ID_HANDLER(IDC_SEARCH_ALTERNATES, onSearchAlternates)
 		COMMAND_ID_HANDLER(IDC_DISCONNECT_ALL, onDisconnectAll)
 		COMMAND_ID_HANDLER(IDC_COLLAPSE_ALL, onCollapseAll)
 		COMMAND_ID_HANDLER(IDC_EXPAND_ALL, onExpandAll)

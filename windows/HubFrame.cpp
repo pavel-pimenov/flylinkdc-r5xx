@@ -1399,7 +1399,7 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 				const bool myMess       = ClientManager::isMe(msg->m_from);
 				addLine(from, myMess, msg->thirdPerson, Text::toT(msg->format()), Colors::g_ChatTextGeneral);
 				auto& l_user = msg->m_from->getUser();
-				l_user->incMessageCount();
+				l_user->incMessagesCount();
 				const auto l_ou_ptr = new OnlineUserPtr(msg->m_from);
 				PostMessage(WM_SPEAKER_UPDATE_USER, WPARAM(l_ou_ptr), LPARAM(COLUMN_MESSAGES));
 			}
@@ -1650,7 +1650,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 					const bool myMess       = ClientManager::isMe(msg->m_from);
 					addLine(from, myMess, msg->thirdPerson, Text::toT(msg->format()), Colors::g_ChatTextGeneral);
 					auto& l_user = msg->m_from->getUser();
-					l_user->incMessageCount();
+					l_user->incMessagesCount();
 					const auto l_ou_ptr = new OnlineUserPtr(msg->m_from);
 					PostMessage(WM_SPEAKER_UPDATE_USER, WPARAM(l_ou_ptr), LPARAM(COLUMN_MESSAGES));
 				}
@@ -2770,7 +2770,7 @@ void HubFrame::usermap2ListrView()
 }
 void HubFrame::firstLoadAllUsers()
 {
-	CWaitCursor l_cursor_wait;
+	CWaitCursor l_cursor_wait; //-V808
 	m_needsResort = false;
 	CLockRedraw<> l_lock_draw(ctrlUsers);
 	usermap2ListrView();
@@ -3187,12 +3187,6 @@ void HubFrame::on(ClientListener::NickTaken, const Client*) noexcept
 {
 	speak(ADD_STATUS_LINE, STRING(NICK_TAKEN), true);
 }
-#ifdef IRAINMAN_USE_SEARCH_FLOOD_FILTER
-void HubFrame::on(SearchFlood, const Client*, const string& line) noexcept
-{
-	speak(ADD_STATUS_LINE, STRING(SEARCH_SPAM_FROM) + ' ' + line, true);
-}
-#endif
 void HubFrame::on(ClientListener::CheatMessage, const string& line) noexcept
 {
 	const auto l_message_ptr = new string(line);

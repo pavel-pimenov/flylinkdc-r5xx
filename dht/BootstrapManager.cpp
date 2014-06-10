@@ -35,38 +35,76 @@
 namespace dht
 {
 
-BootstrapManager::BootstrapManager(void)
+BootstrapManager::BootstrapManager(void):m_count_dht_test_ok(0)
 {
 }
 
 BootstrapManager::~BootstrapManager(void)
 {
+	dcassert(m_dht_bootstrap_count.empty());
+	dcassert(m_count_dht_test_ok == 0);
 }
 
+void BootstrapManager::dht_live_check(const char* p_operation,const string& p_param)
+{
+    create_url_for_dht_server(); // TODO - потестить это внимательнее
+	if(!m_dht_bootstrap_count.empty())
+	{
+		CFlyLog l_dht_log(p_operation);
+		for(auto i=m_dht_bootstrap_count.cbegin();i!= m_dht_bootstrap_count.cend();++i)
+		{
+		 std::vector<byte> l_data;
+		 const string l_url = i->first + p_param;
+		 l_dht_log.step("Bootstrap count = " + Util::toString(i->second) + ", URL: " + l_url);
+		 Util::getBinaryDataFromInet(Text::toT(m_user_agent).c_str(), 4096, l_url, l_data, 1000);
+		}
+	}
+}
+void BootstrapManager::flush_live_check()
+{
+	if(m_count_dht_test_ok)
+	{
+	  dht_live_check("[DHT live check]","&live=1");
+	  m_count_dht_test_ok = 0;
+	}
+}
+void BootstrapManager::shutdown()
+{
+	dht_live_check("[Shutdown DHT]","&stop=1");
+    m_dht_bootstrap_count.clear();
+	m_count_dht_test_ok = 0;
+}
+string BootstrapManager::create_url_for_dht_server()
+{
+	const DHTServer& l_server = CFlyServerConfig::getRandomDHTServer();
+    m_user_agent = l_server.getAgent();
+	string l_url = l_server.getUrl() + "?cid=" + ClientManager::getMyCID().toBase32() + "&encryption=1";  // [!] IRainman fix.
+	// store only active nodes to database
+	if (ClientManager::isActive(nullptr))
+	{
+		l_url += "&u4=" + Util::toString(DHT::getInstance()->getPort());
+	}
+	m_dht_bootstrap_count[l_url]++;
+	return l_url;
+}
 bool BootstrapManager::bootstrap()
 {
-//[?]   Lock l(cs);
+	if(m_user_agent.empty())
+	{
+		create_url_for_dht_server();
+	}
 	if (bootstrapNodes.empty())
 	{
 		CFlyLog l_dht_log("[DHT]");
 		l_dht_log.step(STRING(DHT_BOOTSTRAPPING_STARTED));// [!]NightOrion(translate)
 		
-		// TODO: make URL settable
-		const DHTServer& l_server = CFlyServerConfig::getRandomDHTServer();
-		
-		string l_url = l_server.getUrl() + "?cid=" + ClientManager::getMyCID().toBase32() + "&encryption=1";  // [!] IRainman fix.
-		
-		// store only active nodes to database
-		if (ClientManager::isActive(nullptr))
-		{
-			l_url += "&u4=" + Util::toString(DHT::getInstance()->getPort());
-		}
+		const string l_url = create_url_for_dht_server();
+
 		l_dht_log.step(STRING(DOWNLOAD) + ": " + l_url);
-        string l_agent = l_server.getAgent();
-		if(l_agent.empty())
-			l_agent = APPNAME " " A_VERSIONSTRING;
+		if(m_user_agent.empty())
+			m_user_agent = APPNAME " " A_VERSIONSTRING;
 		std::vector<byte> l_data;
-		const size_t l_size = Util::getBinaryDataFromInet(Text::toT(l_agent).c_str(), 4096, l_url, l_data, 500);
+		const size_t l_size = Util::getBinaryDataFromInet(Text::toT(m_user_agent).c_str(), 4096, l_url, l_data, 2000);
 		if (l_size == 0)
 		{
 			l_dht_log.step(STRING(ERROR_STRING));
@@ -138,6 +176,7 @@ void BootstrapManager::addBootstrapNode(const string& ip, uint16_t udpPort, cons
 bool BootstrapManager::process()
 {
 	Lock l(m_cs);
+	flush_live_check();
 	if (!bootstrapNodes.empty())
 	{
 		// send bootstrap request

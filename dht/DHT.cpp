@@ -37,7 +37,7 @@
 #include "../client/ShareManager.h"
 #include "../client/UploadManager.h"
 #include "../client/User.h"
-
+#include "../FlyFeatures/flyServer.h"
 namespace dht
 {
 
@@ -94,7 +94,15 @@ void DHT::start()
 		
 		TaskManager::getInstance()->start();
 		
-		socket.listen();// [+] IRainman fix.
+		m_dht_socket.listen();// [+] IRainman fix.
+		// Запускаем тест порта DHT - TODO в отдельном потоке
+		{
+			string l_external_ip;
+			std::vector<unsigned short> l_udp_port, l_tcp_port;
+			l_udp_port.push_back(SETTING(DHT_PORT));
+			bool l_is_udp_port_send = CFlyServerAdapter::CFlyServerJSON::pushTestPort(ClientManager::getMyCID().toBase32(), l_udp_port, l_tcp_port, l_external_ip, 0);
+			dcassert(l_is_udp_port_send);
+		}
 	}
 	
 	// [-] IRainman fix. socket.listen();
@@ -109,8 +117,9 @@ void DHT::stop(bool exiting)
 	
 	if (exiting || !BOOLSETTING(USE_DHT))
 	{
+		BootstrapManager::getInstance()->shutdown();
 		CFlyLog l_TaskManagerLog("DHT::stop");
-		socket.disconnect(); // [+] IRainman fix.
+		m_dht_socket.disconnect(); // [+] IRainman fix.
 		
 		TaskManager::getInstance()->stop(); // [+] IRainman fix.
 		
@@ -234,7 +243,7 @@ void DHT::send(AdcCommand& cmd, const string& ip, uint16_t port, const CID& targ
 			}
 		}
 	}
-	socket.send(cmd, ip, port, targetCID, udpKey);
+	m_dht_socket.send(cmd, ip, port, targetCID, udpKey);
 }
 
 /*

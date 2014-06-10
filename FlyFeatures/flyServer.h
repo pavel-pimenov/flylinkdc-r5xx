@@ -220,12 +220,20 @@ public:
 extern CFlyServerConfig g_fly_server_config; // TODO: cleanup call of this.
 //=======================================================================
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-class CFlyServerKey
+class CFlyTTHKey 
 {
 	public:
 		TTHValue m_tth;
-	//	string m_file_name;
 		int64_t m_file_size;
+		CFlyTTHKey(const TTHValue& p_tth, int64_t p_file_size):
+		m_tth(p_tth),m_file_size(p_file_size)
+		{
+		}
+};
+//=======================================================================
+class CFlyServerKey : public CFlyTTHKey
+{
+	public:
 		uint32_t m_hit;
 		uint32_t m_time_hash;
 		uint32_t m_time_file;
@@ -235,7 +243,7 @@ class CFlyServerKey
 		bool m_only_counter;  // Запрашиваем только счетчики
 		bool m_is_cache;      // Признак найденности в локальном кеше
 		CFlyServerKey(const TTHValue& p_tth, int64_t p_file_size):
-			m_tth(p_tth),m_file_size(p_file_size), m_hit(0),m_time_hash(0),m_time_file(0), m_only_ext_info(false), m_only_counter(false),m_is_cache(false)
+			CFlyTTHKey(p_tth,p_file_size),m_hit(0),m_time_hash(0),m_time_file(0), m_only_ext_info(false), m_only_counter(false),m_is_cache(false)
 		{
 		//	m_file_name = Util::getFileName(p_file_name);
 		}
@@ -252,6 +260,7 @@ struct CFlyServerInfo
 };
 //=======================================================================
 typedef std::vector<CFlyServerKey> CFlyServerKeyArray;
+typedef std::vector<CFlyTTHKey> CFlyTTHKeyArray;
 //=======================================================================
 class CFlyServerAdapter
 {
@@ -379,6 +388,9 @@ class CFlyServerAdapter
 			
 			// TODO static void logout();
 			static string g_fly_server_id;
+			static CFlyTTHKeyArray g_download_counter;
+			static void addDownloadCounter (const CFlyTTHKey& p_file);
+			static void sendDownloadCounter();
 			static string connect(const CFlyServerKeyArray& p_fileInfoArray, bool p_is_fly_set_query);
 			static string postQuery(bool p_is_set, 
 				                    bool p_is_stat_server, 

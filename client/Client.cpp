@@ -23,7 +23,7 @@
 #include "CompatibilityManager.h" // [+] IRainman
 #include "Wildcards.h"
 
-boost::atomic<uint16_t> Client::counts[COUNT_UNCOUNTED];
+boost::atomic<uint16_t> Client::g_counts[COUNT_UNCOUNTED];
 string Client::g_last_search_string;
 
 Client::Client(const string& p_HubURL, char separator_, bool secure_) :
@@ -469,7 +469,7 @@ void Client::updateCounts(bool aRemove)
 	// We always remove the count and then add the correct one if requested...
 	if (m_countType != COUNT_UNCOUNTED)
 	{
-		--counts[m_countType];
+		--g_counts[m_countType];
 		m_countType = COUNT_UNCOUNTED;
 	}
 	
@@ -487,7 +487,7 @@ void Client::updateCounts(bool aRemove)
 		{
 			m_countType = COUNT_NORMAL;
 		}
-		++counts[m_countType];
+		++g_counts[m_countType];
 	}
 }
 

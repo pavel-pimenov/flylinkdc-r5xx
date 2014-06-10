@@ -1451,9 +1451,9 @@ FavoriteHubEntry* FavoriteManager::getFavoriteHubEntry(const string& aServer) co
 	}
 	else
 	{
-		LogManager::getInstance()->message("FavoriteManager::getFavoriteHubEntry DUP call! srv = " + aServer +
-		                                   " favoriteHubs.size() = " + Util::toString(favoriteHubs.size()) +
-		                                   " g_count = " + Util::toString(++g_count));
+		// LogManager::getInstance()->message("FavoriteManager::getFavoriteHubEntry DUP call! srv = " + aServer +
+		//                                    " favoriteHubs.size() = " + Util::toString(favoriteHubs.size()) +
+		//                                    " g_count = " + Util::toString(++g_count));
 	}
 #endif
 	for (auto i = favoriteHubs.cbegin(); i != favoriteHubs.cend(); ++i)

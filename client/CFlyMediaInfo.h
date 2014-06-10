@@ -14,12 +14,12 @@
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 struct CFlyServerCache
 {
-	int m_ratio;
+	std::string m_ratio;
 	std::string m_video;
 	std::string m_audio;
 	std::string m_audio_br;
 	std::string m_xy;
-	CFlyServerCache(): m_ratio(0)
+	CFlyServerCache()
 	{
 	}
 };

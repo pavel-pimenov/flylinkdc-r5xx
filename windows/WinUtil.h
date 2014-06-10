@@ -1503,6 +1503,9 @@ class WinUtil
 		
 		static HIconWrapper g_banIconOnline; // !SMT!-UI
 		static HIconWrapper g_banIconOffline; // !SMT!-UI
+		static HIconWrapper g_hMedicalIcon;
+		static HIconWrapper g_hThermometerIcon;
+		static HIconWrapper g_hCrutchIcon;
 		
 		static std::unique_ptr<HIconWrapper> g_HubOnIcon;
 		static std::unique_ptr<HIconWrapper> g_HubOffIcon;

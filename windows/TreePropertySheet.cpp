@@ -249,7 +249,7 @@ void TreePropertySheet::hideTab()
 void TreePropertySheet::addTree()
 {
 	// Insert the space to the left
-	CRect rcWindow, rcPage;
+	CRect rcPage;
 	
 	const HWND page = IndexToHwnd(0);
 	::GetWindowRect(page, &rcPage);

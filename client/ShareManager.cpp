@@ -1190,7 +1190,7 @@ __int64 ShareManager::rebuildMediainfo(Directory& p_dir, CFlyLog& p_log, ShareMa
 	for (auto i = p_dir.m_files.cbegin(); i != p_dir.m_files.cend(); ++i)
 	{
 		const auto& l_file = *i;
-		if (g_fly_server_config.isMediainfoExt(Util::getFileExtWithoutDot(l_file.getLowName()))) // [!] IRainman opt.
+		if (CFlyServerConfig::isMediainfoExt(Util::getFileExtWithoutDot(l_file.getLowName()))) // [!] IRainman opt.
 		{
 			if (l_path_id == 0)
 			{
@@ -1226,7 +1226,7 @@ __int64 ShareManager::rebuildMediainfo(CFlyLog& p_log)
 	__int64 l_dir_count = 0;
 	for (auto j = l_result.cbegin(); j != l_result.cend(); ++j)
 	{
-		if (g_fly_server_config.isMediainfoExt(Text::toLower(Util::getFileExtWithoutDot(j->m_file_name))))
+		if (CFlyServerConfig::isMediainfoExt(Text::toLower(Util::getFileExtWithoutDot(j->m_file_name))))
 		{
 			CFlyMediaInfo l_out_media;
 			if (HashManager::getInstance()->getMediaInfo(j->m_path + j->m_file_name, l_out_media, j->m_size, j->m_tth, true))

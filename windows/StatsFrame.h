@@ -58,9 +58,9 @@ struct RatioInfo
 #endif
 
 class StatsFrame : public MDITabChildWindowImpl < StatsFrame, RGB(0, 0, 0), IDR_NETWORK_STATISTICS > , public StaticFrame<StatsFrame, ResourceManager::NETWORK_STATISTICS, IDC_NET_STATS>
-	, private UploadManagerListener
+	//, private UploadManagerListener
 	, private CFlyTimerAdapter
-	, private DownloadManagerListener // [+]IRainman
+	//, private DownloadManagerListener // [+]IRainman
 {
 #ifdef PPA_INCLUDE_SHOW_UD_RATIO
 		TypedListViewCtrl<RatioInfo, IDC_UD_RATIO> ctrlRatio;

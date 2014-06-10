@@ -34,6 +34,7 @@
 #include "SearchResult.h"
 #include "SharedFileStream.h"
 #include "ADLSearch.h"
+#include "../FlyFeatures/flyServer.h"
 
 
 #ifdef STRONG_USE_DHT
@@ -156,8 +157,16 @@ QueueItemPtr QueueManager::FileQueue::add(const string& aTarget, int64_t aSize,
 			File::renameFile(aTempTarget + ".antifrag", qi->getTempTarget());
 		}
 	}
-	dcassert(find(aTarget) == NULL);
-	add(qi);
+	dcassert(find(aTarget) == nullptr);
+	if (find(aTarget) == nullptr)
+	{
+		add(qi);
+	}
+	else
+	{
+		safe_delete(qi);
+		LogManager::getInstance()->message("Skip duplicate target QueueManager::FileQueue::add file = " + aTarget);
+	}
 	return qi;
 }
 
@@ -363,6 +372,8 @@ void QueueManager::UserQueue::addL(const QueueItemPtr& qi) // [!] IRainman fix.
 }
 void QueueManager::UserQueue::addL(const QueueItemPtr& qi, const UserPtr& aUser, bool p_is_first_load) // [!] IRainman fix.
 {
+	const auto l_index = qi->getPriority();
+	dcassert(l_index < QueueItem::LAST);
 	auto& uq = m_userQueue[qi->getPriority()][aUser];
 	
 // ѕри первой загрузки очереди из базы не зовем calcAverageSpeedAndCalcAndGetDownloadedBytesL
@@ -375,7 +386,6 @@ void QueueManager::UserQueue::addL(const QueueItemPtr& qi, const UserPtr& aUser,
 	{
 		uq.push_back(qi);
 	}
-	
 }
 
 bool QueueManager::FileQueue::getTTH(const string& p_name, TTHValue& p_tth) const
@@ -421,7 +431,7 @@ QueueItemPtr QueueManager::UserQueue::getNextL(const UserPtr& aUser, QueueItem::
 			for (auto j = i->second.cbegin(); j != i->second.cend(); ++j)
 			{
 				const QueueItemPtr& qi = *j;
-				QueueItem::SourceConstIter l_source = qi->getSourceL(aUser); // [!] IRainman fix done: [10] https://www.box.net/shared/6ea561f898012606519a
+				const auto l_source = qi->findSourceL(aUser); // [!] IRainman fix done: [10] https://www.box.net/shared/6ea561f898012606519a
 				if (l_source == qi->m_sources.end()) //[+]PPA
 					continue;
 				if (l_source->second.isSet(QueueItem::Source::FLAG_PARTIAL)) // TODO Crash
@@ -1064,7 +1074,7 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& aRo
 #if 0
 		if (q == nullptr &&
 		        l_newItem &&
-		        (BOOLSETTING(MULTI_CHUNK) && aSize > SETTING(MIN_MULTI_CHUNK_SIZE) * 1024 * 1024) // [+] IRainman size in MB.
+		        (BOOLSETTING(ENABLE_MULTI_CHUNK) && aSize > SETTING(MIN_MULTI_CHUNK_SIZE) * 1024 * 1024) // [+] IRainman size in MB.
 		   )
 		{
 			// q = fileQueue.findQueueItem(aRoot);
@@ -1114,7 +1124,10 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& aRo
 			}
 			// [~] SSA - check file exist
 			q = fileQueue.add(l_target, aSize, aFlags, QueueItem::DEFAULT, l_tempTarget, GET_TIME(), aRoot);
-			fire(QueueManagerListener::Added(), q);
+			if (q)
+			{
+				fire(QueueManagerListener::Added(), q);
+			}
 		}
 		else
 		{
@@ -1141,7 +1154,7 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& aRo
 			
 			q->setFlag(aFlags);
 		}
-		if (aUser)
+		if (aUser && q)
 		{
 			WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 			l_wantConnection = addSourceL(q, aUser, (Flags::MaskType)(addBad ? QueueItem::Source::FLAG_MASK : 0));
@@ -1170,37 +1183,34 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& aRo
 	}
 }
 
-void QueueManager::readdAll(const QueueItemPtr& q) throw(QueueException) // [+] IRainman opt.
+void QueueManager::readdAll(const QueueItemPtr& q)
 {
-	WLock l(*QueueItem::g_cs);
-	const auto& badSources = q->getBadSourcesL();
-	for (auto s = badSources.cbegin(); s != badSources.cend(); ++s)
+	QueueItem::SourceMap l_badSources;
 	{
-		if (addSourceL(q, s->first, QueueItem::Source::FLAG_MASK))
-		{
-			ConnectionManager::getInstance()->getDownloadConnection(s->first);
-		}
+		WLock l(*QueueItem::g_cs);
+		l_badSources = q->getBadSourcesL(); // fix https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62702
+	}
+	for (auto s = l_badSources.cbegin(); s != l_badSources.cend(); ++s)
+	{
+		readd(q->getTarget(), s->first);
 	}
 }
 
-void QueueManager::readd(const string& p_target, const UserPtr& aUser) throw(QueueException)
+void QueueManager::readd(const string& p_target, const UserPtr& aUser)
 {
-	bool wantConnection;
+	bool wantConnection = false;
 	{
-		// [-] Lock l(cs); [-] IRainman fix.
 		QueueItemPtr q = fileQueue.find(p_target);
 		WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 		if (q && q->isBadSourceL(aUser))
 		{
 			wantConnection = addSourceL(q, aUser, QueueItem::Source::FLAG_MASK);
 		}
-		else
-		{
-			wantConnection = false;
-		}
 	}
 	if (wantConnection && aUser->isOnline())
+	{
 		ConnectionManager::getInstance()->getDownloadConnection(aUser);
+	}
 }
 
 void QueueManager::setDirty()
@@ -1622,6 +1632,7 @@ Download* QueueManager::getDownload(UserConnection* aSource, string& aMessage) n
 	QueueItemPtr q;
 	{
 		WLock l(*QueueItem::g_cs); // [+] IRainman fix. // TOOD Dead lock [3] https://code.google.com/p/flylinkdc/issues/detail?id=1028
+		//TODO- LOCK ?? QueueManager::LockFileQueueShared l_fileQueue; //[+]PPA
 		
 		q = userQueue.getNextL(u, QueueItem::LOWEST, aSource->getChunkSize(), aSource->getSpeed(), true);
 		
@@ -1823,11 +1834,11 @@ void QueueManager::moveFile(const string& source, const string& p_target)
 	}
 	else
 	{
-		internal_moveFile(source, p_target);
+		internalMoveFile(source, p_target);
 	}
 }
 
-void QueueManager::internal_moveFile(const string& source, const string& p_target)
+void QueueManager::internalMoveFile(const string& source, const string& p_target)
 {
 	try
 	{
@@ -2075,6 +2086,18 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 							if (!q->isSet(Download::FLAG_XML_BZ_LIST) && !q->isSet(Download::FLAG_USER_GET_IP) && !q->isSet(Download::FLAG_PARTIAL))
 							{
 								CFlylinkDBManager::getInstance()->push_download_tth(q->getTTH());
+								if (BOOLSETTING(ENABLE_FLY_SERVER))
+								{
+									const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(aDownload->getPath()));
+									if (CFlyServerConfig::isMediainfoExt(l_file_ext))
+									{
+										CFlyTTHKey l_file(q->getTTH(), q->getSize());
+										CFlyServerAdapter::CFlyServerJSON::addDownloadCounter(l_file);
+#ifdef _DEBUG
+										//CFlyServerAdapter::CFlyServerJSON::sendDownloadCounter();
+#endif
+									}
+								}
 							}
 							//[~]PPA
 							
@@ -2350,7 +2373,11 @@ void QueueManager::removeSource(const string& aTarget, const UserPtr& aUser, Fla
 		
 		if (reason == QueueItem::Source::FLAG_NO_TREE)
 		{
-			q->getSourceL(aUser)->second.setFlag(reason);
+			const auto& l_source = q->findSourceL(aUser);
+			if (l_source != q->m_sources.end())
+			{
+				l_source->second.setFlag(reason);
+			}
 			return;
 		}
 		
@@ -2983,10 +3010,10 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 		wantConnection = qi->isNeededPartL(partialSource.getPartialInfo(), blockSize);
 		
 		// If this user isn't a source and has no parts needed, ignore it
-		QueueItem::SourceIter si = qi->getSourceL(aUser);
+		auto si = qi->findSourceL(aUser);
 		if (si == qi->getSourcesL().end())
 		{
-			si = qi->getBadSourceL(aUser);
+			si = qi->findBadSourceL(aUser);
 			
 			if (si != qi->getBadSourcesL().end() && si->second.isSet(QueueItem::Source::FLAG_TTH_INCONSISTENCY))
 				return false;
@@ -3000,7 +3027,7 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 			{
 				// add this user as partial file sharing source
 				qi->addSourceL(aUser);
-				si = qi->getSourceL(aUser);
+				si = qi->findSourceL(aUser);
 				si->second.setFlag(QueueItem::Source::FLAG_PARTIAL);
 				
 				QueueItem::PartialSource* ps = new QueueItem::PartialSource(partialSource.getMyNick(),

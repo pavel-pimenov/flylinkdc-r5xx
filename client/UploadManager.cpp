@@ -42,7 +42,7 @@ std::unique_ptr<webrtc::RWLockWrapper> UploadManager::g_csReservedSlots = std::u
 std::unique_ptr<webrtc::RWLockWrapper> UploadManager::g_csBans = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 
 UploadManager::UploadManager() noexcept :
-m_running(0), extra(0), lastGrant(0), lastFreeSlots(-1),
+m_running(0), extra(0), lastGrant(0), m_lastFreeSlots(-1),
           fireballStartTick(0), isFireball(false), isFileServer(false), extraPartial(0),
           m_runningAverage(0)//[+] IRainman refactoring transfer mechanism
 {
@@ -529,7 +529,7 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 	
 ok: //[!] TODO убрать goto
 
-	uint8_t slotType = aSource->getSlotType();
+	auto slotType = aSource->getSlotType();
 	
 	// [-] Lock l(cs); [-] IRainman opt.
 	
@@ -1038,7 +1038,7 @@ void UploadManager::testSlotTimeout(uint64_t aTick /*= GET_TICK()*/)
 		}
 	}
 }
-void UploadManager::process_slot(uint8_t p_slot_type, int p_delta)
+void UploadManager::process_slot(UserConnection::SlotTypes p_slot_type, int p_delta)
 {
 	switch (p_slot_type)
 	{
@@ -1164,10 +1164,10 @@ void UploadManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 		ConnectionManager::getInstance()->disconnect(*i, false);
 	}
 	
-	int freeSlots = getFreeSlots();
-	if (freeSlots != lastFreeSlots)
+	const int l_freeSlots = getFreeSlots();
+	if (l_freeSlots != m_lastFreeSlots)
 	{
-		lastFreeSlots = freeSlots;
+		m_lastFreeSlots = l_freeSlots;
 	}
 }
 

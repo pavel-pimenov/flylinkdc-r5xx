@@ -282,7 +282,7 @@ bool HashManager::getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int
 		if (p_size < SETTING(MIN_MEDIAINFO_SIZE) * 1024 * 1024) // TODO: p_size?
 			return false;
 		const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(p_name));
-		if (!g_fly_server_config.isMediainfoExt(l_file_ext))
+		if (!CFlyServerConfig::isMediainfoExt(l_file_ext))
 			return false;
 		char l_size[22];
 		l_size[0] = 0;
@@ -311,7 +311,7 @@ bool HashManager::getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int
 			// AC-3, 5.1, 448 Kbps | AC-3, 5.1, 640 Kbps | TrueHD / AC-3, 5.1, 640 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps"
 			// Превращаем в
 			// AC-3, 5.1, 640 Kbps | TrueHD / AC-3, 5.1, 640 Kbps | AC-3, 5.1, 448 Kbps (x7)
-			dcassert(audioCount);
+			// dcassert(audioCount);
 			for (size_t i = 0; i < audioCount; i++)
 			{
 				const wstring l_sinfo = g_media_info_dll.Get(MediaInfoLib::Stream_Audio, i, _T("BitRate"));

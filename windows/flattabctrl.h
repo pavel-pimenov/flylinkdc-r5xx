@@ -722,7 +722,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			the CreateDC function; instead, it must use the DeleteDC function. ReleaseDC must be called from the same thread that called GetDC.
 			*/
 			{
-				CSelectFont l_font(dc, Fonts::g_systemFont);
+				CSelectFont l_font(dc, Fonts::g_systemFont); //-V808
 				//Получаем высоту шрифта
 				m_height_font = WinUtil::getTextHeight(dc);
 				//Высота вкладки равна высоте шрифта + отступы
@@ -769,7 +769,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			if (GetUpdateRect(&rc, FALSE))
 			{
 				CPaintDC dc(m_hWnd);
-				CSelectFont l_font(dc, Fonts::g_systemFont);
+				CSelectFont l_font(dc, Fonts::g_systemFont); //-V808
 				//ATLTRACE("%d, %d\n", rc.left, rc.right);
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
 				std::unique_ptr<Gdiplus::Graphics> graphics(new Gdiplus::Graphics(dc));
@@ -1121,11 +1121,11 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 							{
 								CDCHandle dc(::GetDC(hWnd)); // Error ~CDC() call DeleteDC
 								{
-									CSelectFont l_font(dc, Fonts::g_systemFont);
+									CSelectFont l_font(dc, Fonts::g_systemFont); //-V808
 									dc.GetTextExtent(name.data(), m_len, &m_size); //-V107
 								}
 								{
-									CSelectFont l_font(dc, Fonts::g_boldFont);
+									CSelectFont l_font(dc, Fonts::g_boldFont); //-V808
 									dc.GetTextExtent(name.data(), m_len, &m_boldSize); //-V107
 								}
 								if (g_TabsCloseButtonEnabled)
@@ -1256,48 +1256,61 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			const int tabAnim = 0;
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
 			//Контур вкладки
-			Gdiplus::GraphicsPath tabsPatch;
+			Gdiplus::GraphicsPath tabsPath;
 			
 			// TODO вынести большую часть проверок в updateTabs()
 			//Цвет заливки в заивисимости от настроек и состояния вкладки
-			const DWORD color_tab = !g_TabsGdiPlusEnabled ? (aActive ? g_color_filllight : g_color_face) : (!tab->m_bState ? (aActive ? SETTING(TAB_SELECTED_COLOR) : (tab->m_dirty ? SETTING(TAB_ACTIVITY_COLOR) : g_color_face)) : SETTING(TAB_OFFLINE_COLOR));
-			//const DWORD color_gr = !g_TabsGdiPlusEnabled ? (aActive ? g_color_filllight : g_color_shadow) : (!tab->m_bState ? (aActive ? SETTING(TAB_SELECTED_COLOR) : (tab->m_dirty ? SETTING(TAB_ACTIVITY_COLOR) : g_color_shadow)) : SETTING(TAB_OFFLINE_COLOR));
 			
-			//Градиент заливки
-			Gdiplus::LinearGradientBrush tabBrush(Gdiplus::RectF(pos, ((WinUtil::GetTabsPosition() == SettingsManager::TABS_TOP) ? (ypos + tabAnim + 3) : ypos), magic_width, ((SETTING(TABS_POS) == 0 || SETTING(TABS_POS) == 1) ? (m_height - tabAnim - 2) : m_height)), g_color_light, g_color_face, Gdiplus::LinearGradientModeVertical);
-			//Смена цветов градиента для вкладок снизу
-			const bool l_isBottom = WinUtil::GetTabsPosition() == SettingsManager::TABS_BOTTOM;
-			const Gdiplus::Color l_colors[] =
+			unique_ptr<Gdiplus::LinearGradientBrush> l_tabBrush;
+			if (CompatibilityManager::isOsVistaPlus())
 			{
-				l_isBottom ? g_color_face_gdi : g_color_light_gdi,
-				Gdiplus::Color(60, GetRValue(color_tab), GetGValue(color_tab), GetBValue(color_tab)),
-				Gdiplus::Color(135, GetRValue(color_tab), GetGValue(color_tab), GetBValue(color_tab)),
-				l_isBottom ? g_color_light_gdi : g_color_face_gdi
-			};
-			static const Gdiplus::REAL g_positions[] =
-			{
-				0.0f,
-				0.40f,
-				0.60f,
-				1.0f
-			};
-			static const Gdiplus::REAL g_positions2[] =
-			{
-				0.0f,
-				0.15f,
-				0.98f,
-				1.0f
-			};
-			BOOST_STATIC_ASSERT(_countof(l_colors) == _countof(g_positions) && _countof(l_colors) == _countof(g_positions2));
-			if (g_TabsCloseButtonAlt)
-			{
-				tabBrush.SetInterpolationColors(l_colors, g_positions2, _countof(l_colors));
+				l_tabBrush = unique_ptr<Gdiplus::LinearGradientBrush>(
+				                 new Gdiplus::LinearGradientBrush(Gdiplus::RectF(pos, ((WinUtil::GetTabsPosition() == SettingsManager::TABS_TOP) ? (ypos + tabAnim + 3) : ypos), magic_width, ((SETTING(TABS_POS) == 0 || SETTING(TABS_POS) == 1) ? (m_height - tabAnim - 2) : m_height)),
+				                                                  g_color_light,
+				                                                  g_color_face,
+				                                                  Gdiplus::LinearGradientModeVertical)
+				             );
 			}
-			else
+			if (l_tabBrush)
 			{
-				tabBrush.SetInterpolationColors(l_colors, g_positions, _countof(l_colors));
+				const DWORD l_color_tab = !g_TabsGdiPlusEnabled ? (aActive ? g_color_filllight : g_color_face) : (!tab->m_bState ? (aActive ? SETTING(TAB_SELECTED_COLOR) : (tab->m_dirty ? SETTING(TAB_ACTIVITY_COLOR) : g_color_face)) : SETTING(TAB_OFFLINE_COLOR));
+				//const DWORD l_color_gr = !g_TabsGdiPlusEnabled ? (aActive ? g_color_filllight : g_color_shadow) : (!tab->m_bState ? (aActive ? SETTING(TAB_SELECTED_COLOR) : (tab->m_dirty ? SETTING(TAB_ACTIVITY_COLOR) : g_color_shadow)) : SETTING(TAB_OFFLINE_COLOR));
+				
+				//Градиент заливки
+				//Смена цветов градиента для вкладок снизу
+				const bool l_isBottom = WinUtil::GetTabsPosition() == SettingsManager::TABS_BOTTOM;
+				const Gdiplus::Color l_colors[] =
+				{
+					l_isBottom ? g_color_face_gdi : g_color_light_gdi,
+					Gdiplus::Color(60, GetRValue(l_color_tab), GetGValue(l_color_tab), GetBValue(l_color_tab)),
+					Gdiplus::Color(135, GetRValue(l_color_tab), GetGValue(l_color_tab), GetBValue(l_color_tab)),
+					l_isBottom ? g_color_light_gdi : g_color_face_gdi
+				};
+				static const Gdiplus::REAL g_positions[] =
+				{
+					0.0f,
+					0.40f,
+					0.60f,
+					1.0f
+				};
+				static const Gdiplus::REAL g_positions2[] =
+				{
+					0.0f,
+					0.15f,
+					0.98f,
+					1.0f
+				};
+				BOOST_STATIC_ASSERT(_countof(l_colors) == _countof(g_positions) && _countof(l_colors) == _countof(g_positions2));
+				if (g_TabsCloseButtonAlt)
+				{
+					l_tabBrush->SetInterpolationColors(l_colors, g_positions2, _countof(l_colors));
+				}
+				else
+				{
+					l_tabBrush->SetInterpolationColors(l_colors, g_positions, _countof(l_colors));
+				}
+				//Конец градиента заливки
 			}
-			//Конец градиента заливки
 			
 #else
 			
@@ -1337,9 +1350,9 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 					height_plus = (m_height + 3 + tabAnim - m_height_font) / 2;
 					height_plus_ico = (m_height + 4 + tabAnim - 16) / 2; //-V112
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
-					tabsPatch.AddLine(pos, ypos + m_height, pos, ypos + 6 + tabAnim);
-					tabsPatch.AddLine(pos + 4, ypos + 2 + tabAnim, pos + magic_width - 5, ypos + 2 + tabAnim); //-V112
-					tabsPatch.AddLine(pos + magic_width, ypos + 6 + tabAnim, pos + magic_width, ypos + m_height);
+					tabsPath.AddLine(pos, ypos + m_height, pos, ypos + 6 + tabAnim);
+					tabsPath.AddLine(pos + 4, ypos + 2 + tabAnim, pos + magic_width - 5, ypos + 2 + tabAnim); //-V112
+					tabsPath.AddLine(pos + magic_width, ypos + 6 + tabAnim, pos + magic_width, ypos + m_height);
 #endif // IRAINMAN_USE_GDI_PLUS_TAB
 				}
 				break;
@@ -1349,9 +1362,9 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 					height_plus = (m_height - 2 - tabAnim - m_height_font) / 2;
 					height_plus_ico = (m_height - 2 - tabAnim - 16) / 2;
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
-					tabsPatch.AddLine(pos, ypos, pos, ypos + m_height - 6 - tabAnim);
-					tabsPatch.AddLine(pos + 4, ypos + m_height - 2 - tabAnim, pos + magic_width - 5, ypos + m_height - 2 - tabAnim); //-V112
-					tabsPatch.AddLine(pos + magic_width, ypos + m_height - 6 - tabAnim, pos + magic_width, ypos);
+					tabsPath.AddLine(pos, ypos, pos, ypos + m_height - 6 - tabAnim);
+					tabsPath.AddLine(pos + 4, ypos + m_height - 2 - tabAnim, pos + magic_width - 5, ypos + m_height - 2 - tabAnim); //-V112
+					tabsPath.AddLine(pos + magic_width, ypos + m_height - 6 - tabAnim, pos + magic_width, ypos);
 #endif // IRAINMAN_USE_GDI_PLUS_TAB
 				}
 				break;
@@ -1364,39 +1377,26 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 					height_plus_ico = (m_height + 2 - 16) / 2;
 					magic_width -= 1;
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
-					tabsPatch.AddLine(pos + 1, ypos + 5, pos + 1, ypos + m_height - 5);
-					tabsPatch.AddLine(pos + 5, ypos + m_height - 1, pos + magic_width - 9, ypos + m_height - 1);
-					tabsPatch.AddLine(pos + magic_width - 4, ypos + m_height - 5, pos + magic_width - 4, ypos + 5); //-V112
-					tabsPatch.AddLine(pos + magic_width - 9, ypos + 1, pos + 5, ypos + 1);
+					tabsPath.AddLine(pos + 1, ypos + 5, pos + 1, ypos + m_height - 5);
+					tabsPath.AddLine(pos + 5, ypos + m_height - 1, pos + magic_width - 9, ypos + m_height - 1);
+					tabsPath.AddLine(pos + magic_width - 4, ypos + m_height - 5, pos + magic_width - 4, ypos + 5); //-V112
+					tabsPath.AddLine(pos + magic_width - 9, ypos + 1, pos + 5, ypos + 1);
 #endif // IRAINMAN_USE_GDI_PLUS_TAB
 				}
 				break;
 			}
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
 			//Заливка вкладки
-			graphics->FillPath(&tabBrush, &tabsPatch); //[4]  https://www.box.net/shared/2b24970b81c979fc60e5
+			if (l_tabBrush)
+			{
+				graphics->FillPath(l_tabBrush.get(), &tabsPath);
+			}
 			
-			/*
-			Error #349: LEAK 65543 direct bytes 0x0657ec30-0x0658ec37 + 0 indirect bytes
-			# 0 gdiplus.dll!GdipCreateSolidFill                                           +0x1c6    (0x717a7246 <gdiplus.dll+0x47246>)
-			# 1 gdiplus.dll!GdipCreateSolidFill                                           +0x58c6a  (0x717ffcea <gdiplus.dll+0x9fcea>)
-			# 2 gdiplus.dll!GdipCreateSolidFill                                           +0x10026  (0x717b70a6 <gdiplus.dll+0x570a6>)
-			# 3 gdiplus.dll!GdipCreateSolidFill                                           +0x5b64a  (0x718026ca <gdiplus.dll+0xa26ca>)
-			# 4 gdiplus.dll!GdipCreateSolidFill                                           +0x701d6  (0x71817256 <gdiplus.dll+0xb7256>)
-			# 5 gdiplus.dll!GdipCreateSolidFill                                           +0x70bd8  (0x71817c58 <gdiplus.dll+0xb7c58>)
-			# 6 gdiplus.dll!GdipCreateSolidFill                                           +0xfc85   (0x717b6d05 <gdiplus.dll+0x56d05>)
-			# 7 gdiplus.dll!GdipCreateSolidFill                                           +0xfd99   (0x717b6e19 <gdiplus.dll+0x56e19>)
-			# 8 gdiplus.dll!GdipCreateSolidFill                                           +0x10e2f  (0x717b7eaf <gdiplus.dll+0x57eaf>)
-			# 9 gdiplus.dll!GdipFillPath                                                  +0x111    (0x7179ce81 <gdiplus.dll+0x3ce81>)
-			#10 Gdiplus::Graphics::FillPath                                                [c:\program files (x86)\microsoft sdks\windows\v7.0a\include\gdiplusgraphics.h:1136]
-			#11 FlatTabCtrlImpl<FlatTabCtrl,ATL::CWindow,ATL::CWinTraits<1442840576,0> >::drawTab [c:\vc10\r5xx\windows\flattabctrl.h:1359]
-			
-			*/
 			//Отрисовка контура поверх заливки
 			//Создание "ручек" для контура
 			Gdiplus::Pen pen(aActive ? Gdiplus::Color(0, 0, 0) : Gdiplus::Color(90, 60, 90) , 1);
 			pen.SetDashStyle(aActive ? Gdiplus::DashStyleDot : Gdiplus::DashStyleSolid);
-			graphics->DrawPath(&pen, &tabsPatch);
+			graphics->DrawPath(&pen, &tabsPath);
 #else
 			if (tab->m_row != (rows - 1))
 			{
@@ -1497,7 +1497,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			{
 				if (tab->m_dirty && !BOOLSETTING(NOTBOLD_FONT_ON_ACTIVITY_TAB)) // && !tab->m_bState  [+][-] SCALOlaz //ToDo: Not bolded font at offline tabs, needle fix in getWidth()
 				{
-					CSelectFont l_font(dc, Fonts::g_boldFont);
+					CSelectFont l_font(dc, Fonts::g_boldFont); //-V808
 					dc.TextOut(pos, ypos + height_plus, tab->name.data(), tab->m_len); // [~] Sergey Shuhskanov //-V107
 				}
 				else

@@ -261,13 +261,20 @@ void ChatCtrl::AppendText(const Identity& id, const bool bMyMess, const bool bTh
 				tstring l_cur_smile;
 				for (auto pEmotion = Emoticons.cbegin(); pEmotion != Emoticons.cend(); ++pEmotion)
 				{
-					l_pos = sText.find((*pEmotion)->getEmotionText());
+					const auto& l_smile = (*pEmotion)->getEmotionText();
+					l_pos = sText.find(l_smile);
+					// TODO Иногда бывает смайл BD он встречается в TTH - проверим это..
+					// найти в тексте TTH где по краям пробелы и заменить его на ссылку
+					// пример
+					// magnet:?xl=0&dn=OZGC4NAHZZV3TCDE5X4H5TUXIRJY4DJ63FK6BZQ&xt=urn:tree:tiger:OZGC4NAHZZV3TCDE5X4H5TUXIRJY4DJ63FK6BZQ
 					if (l_pos != tstring::npos)
 					{
 						if (l_pos < l_min_pos)
 						{
+							//if(sText.length() - l_pos  > l_smile.size() + 1
+							//   && Util::isTTHChar(sText[l_pos]) && )
 							l_min_pos = l_pos;
-							l_cur_smile   = (*pEmotion)->getEmotionText().c_str();
+							l_cur_smile   = l_smile.c_str();
 							pFoundEmotion = (*pEmotion);
 						}
 					}

@@ -32,6 +32,9 @@ namespace dht
 {
 
 struct Packet
+#ifdef _DEBUG
+	: boost::noncopyable
+#endif
 {
 	/** Public constructor */
 	Packet(const string& ip_, uint16_t port_, const std::string& data_, const CID& _targetCID, const UDPKey& _udpKey) :

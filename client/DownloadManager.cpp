@@ -439,8 +439,10 @@ void DownloadManager::endData(UserConnection* aSource)
 	removeDownload(d);
 	
 	if (d->getType() != Transfer::TYPE_FILE)
+	{
 		fire(DownloadManagerListener::Complete(), d, d->getType() == Transfer::TYPE_TREE);
-		
+	}
+	
 	QueueManager::getInstance()->putDownload(d, true, false);
 	checkDownloads(aSource);
 }

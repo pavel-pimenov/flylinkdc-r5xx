@@ -210,7 +210,7 @@ LRESULT OMenu::onDrawItem(HWND /*hWnd*/, UINT /*uMsg*/, WPARAM wParam, LPARAM lP
 				dc.SetBkMode(TRANSPARENT);
 				dc.SetTextColor(OperaColors::TextFromBackground(SETTING(MENUBAR_LEFT_COLOR)));
 				{
-					CSelectFont l_font(dc, Fonts::g_boldFont);
+					CSelectFont l_font(dc, Fonts::g_boldFont); //-V808
 					dc.DrawText(mi->text.c_str(), mi->text.length(), rc, DT_CENTER | DT_NOPREFIX | DT_SINGLELINE | DT_VCENTER);
 				}
 				

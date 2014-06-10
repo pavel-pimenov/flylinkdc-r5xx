@@ -242,7 +242,7 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) noexcept
 				                         ") has same CID {" + cid + "} as " + nick + " (" + AdcCommand::fromSID(c.getFrom()) + "), ignoring.";
 				fire(ClientListener::StatusMessage(), this, l_message, ClientListener::FLAG_IS_SPAM);
 				
-				LogManager::getInstance()->ddos_message("Magic spam message filtered on hub: " + getHubUrl() + " detail:" + l_message);
+				//LogManager::getInstance()->ddos_message("Magic spam message filtered on hub: " + getHubUrl() + " detail:" + l_message);
 				return;
 			}
 		}
@@ -389,13 +389,13 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) noexcept
 #ifdef _DEBUG
 			case TAG('V', 'E'):
 			{
-			 id.setStringParam("VE", i->substr(2));
-			 break;
+				id.setStringParam("VE", i->substr(2));
+				break;
 			}
 			case TAG('A', 'P'):
 			{
-			 id.setStringParam("AP", i->substr(2)); 
-			 break;
+				id.setStringParam("AP", i->substr(2));
+				break;
 			}
 #endif
 			default:
@@ -1498,9 +1498,9 @@ void AdcHub::info(bool p_force)
 	}
 	else
 	{
-		addParam(m_lastInfoMap, c, "HN", Util::toString(counts[COUNT_NORMAL]));
-		addParam(m_lastInfoMap, c, "HR", Util::toString(counts[COUNT_REGISTERED]));
-		addParam(m_lastInfoMap, c, "HO", Util::toString(counts[COUNT_OP]));
+		addParam(m_lastInfoMap, c, "HN", Util::toString(g_counts[COUNT_NORMAL]));
+		addParam(m_lastInfoMap, c, "HR", Util::toString(g_counts[COUNT_REGISTERED]));
+		addParam(m_lastInfoMap, c, "HO", Util::toString(g_counts[COUNT_OP]));
 	}
 	// [~] Flylink++ Exclusive hub mode
 	// [!] IRainman mimicry function

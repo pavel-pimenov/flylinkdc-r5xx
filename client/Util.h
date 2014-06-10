@@ -1123,6 +1123,8 @@ class Util
 		
 		static size_t getDataFromInet(LPCWSTR agent, const DWORD frameBufferSize, const string& url, string& data, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
 		static uint64_t getBinaryDataFromInet(LPCWSTR agent, const DWORD frameBufferSize, const string& url, std::vector<byte>& p_dataOut, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
+		static string getExtInternetError();
+		
 		
 		// static string formatMessage(const string& message);[-] IRainman fix
 #ifdef _WIN32
@@ -1299,13 +1301,16 @@ class Util
 #endif
 		
 		// Identify TTH.
-		template<typename string_t>
-		static bool isTTH(const string_t& p_TTH)
+		inline static bool isTTHChar(const TCHAR c)
+		{
+			return (c >= L'0' && c <= L'9') || (c >= L'A' && c <= L'Z');
+		}
+		static bool isTTH(const tstring& p_TTH)
 		{
 			dcassert(p_TTH.size() == 39);
 			for (size_t i = 0; i < 39; i++)
 			{
-				if (!((p_TTH[i] >= '0' && p_TTH[i] <= '9') || (p_TTH[i] >= 'A' && p_TTH[i] <= 'Z')))
+				if (!isTTHChar(p_TTH[i]))
 				{
 					return false;
 				}

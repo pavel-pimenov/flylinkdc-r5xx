@@ -1179,6 +1179,9 @@ void File_Mpegv::Streams_Update()
                 Ztring LawRating=(*Text_Positions[Text_Positions_Pos].Parser)->Retrieve(Stream_General, 0, General_LawRating);
                 if (!LawRating.empty())
                     Fill(Stream_General, 0, General_LawRating, LawRating, true);
+                Ztring Title=(*Text_Positions[Text_Positions_Pos].Parser)->Retrieve(Stream_General, 0, General_Title);
+                if (!Title.empty() && Retrieve(Stream_General, 0, General_Title).empty())
+                    Fill(Stream_General, 0, General_Title, Title);
 
                 if (IsNewStream)
                 {
@@ -1440,6 +1443,9 @@ void File_Mpegv::Streams_Fill()
             Ztring LawRating=GA94_06_Parser->Retrieve(Stream_General, 0, General_LawRating);
             if (!LawRating.empty())
                 Fill(Stream_General, 0, General_LawRating, LawRating, true);
+            Ztring Title=GA94_06_Parser->Retrieve(Stream_General, 0, General_Title);
+            if (!Title.empty() && Retrieve(Stream_General, 0, General_Title).empty())
+                Fill(Stream_General, 0, General_Title, Title);
         }
     #endif //defined(MEDIAINFO_AFDBARDATA_YES)
     #if defined(MEDIAINFO_AFDBARDATA_YES)
@@ -1511,20 +1517,20 @@ void File_Mpegv::Streams_Finish()
     {
         TimeCode Time_Begin_TC;
         Time_Begin_TC.FramesPerSecond=(int8u)ceil(FrameRate);
-        Time_Begin_TC.DropFrame=(FrameRate-ceil(FrameRate))?true:false;
+        Time_Begin_TC.DropFrame=group_start_IsParsed?group_start_drop_frame_flag:((FrameRate-ceil(FrameRate))?true:false);
         Time_Begin_TC.Hours=(int8u)(Time_Begin_Seconds/3600);
         Time_Begin_TC.Minutes=(int8u)((Time_Begin_Seconds%3600)/60);
         Time_Begin_TC.Seconds=(int8u)(Time_Begin_Seconds%60);
         Time_Begin_TC.Frames=(int8u)Time_Begin_Frames;
         TimeCode Time_End_TC;
         Time_End_TC.FramesPerSecond=(int8u)ceil(FrameRate);
-        Time_End_TC.DropFrame=(FrameRate-ceil(FrameRate))?true:false;
+        Time_End_TC.DropFrame=Time_Begin_TC.DropFrame;
         Time_End_TC.Hours=(int8u)(Time_End_Seconds/3600);
         Time_End_TC.Minutes=(int8u)((Time_End_Seconds%3600)/60);
         Time_End_TC.Seconds=(int8u)(Time_End_Seconds%60);
         Time_End_TC.Frames=(int8u)Time_End_Frames;
-        int32u Time_Begin_FrameCount=Time_Begin_TC.ToFrames();
-        int32u Time_End_FrameCount=Time_End_TC.ToFrames();
+        int64u Time_Begin_FrameCount=Time_Begin_TC.ToFrames();
+        int64u Time_End_FrameCount = Time_End_TC.ToFrames();
         Fill(Stream_Video, 0, Video_FrameCount, Time_End_FrameCount-Time_Begin_FrameCount, 0);
         Fill(Stream_Video, 0, Video_Duration, (Time_End_FrameCount-Time_Begin_FrameCount)/FrameRate*1000, 0);
     }
@@ -2859,6 +2865,7 @@ void File_Mpegv::slice_start_macroblock_motion_vectors(bool s)
                                 motion_vector_count=1;
                                 break;
                     }
+                    break;
         default :   Trusted_IsNot("frame_motion_type problem");
                     Element_Trace_End0();
                     return;
@@ -3467,6 +3474,9 @@ void File_Mpegv::user_data_start_GA94_03()
                     Demux(TemporalReference[GA94_03_Pos]->GA94_03->Data, TemporalReference[GA94_03_Pos]->GA94_03->Size, ContentType_MainStream);
                     Demux_Level=Demux_Level_Save;
                 #endif // MEDIAINFO_DEMUX
+                #if defined(MEDIAINFO_EIA608_YES) || defined(MEDIAINFO_EIA708_YES)
+                    GA94_03_Parser->ServiceDescriptors=ServiceDescriptors;
+                #endif
                 ((File_DtvccTransport*)GA94_03_Parser)->AspectRatio=MPEG_Version==1?Mpegv_aspect_ratio1[aspect_ratio_information]:Mpegv_aspect_ratio2[aspect_ratio_information];
                 Open_Buffer_Continue(GA94_03_Parser, TemporalReference[GA94_03_Pos]->GA94_03->Data, TemporalReference[GA94_03_Pos]->GA94_03->Size);
 
@@ -3650,7 +3660,8 @@ void File_Mpegv::extension_start()
 
     switch (extension_start_code_identifier)
     {
-        case  1 :{ //Sequence
+        case  1 : //Sequence
+                {
                     //Parsing
                     Peek_SB(profile_and_level_indication_escape);
                     if (profile_and_level_indication_escape)
@@ -3690,7 +3701,8 @@ void File_Mpegv::extension_start()
                     FILLING_END();
                 }
                 break;
-        case  2 :{ //Sequence Display
+        case  2 : //Sequence Display
+                {
                     //Parsing
                     Get_S1 ( 3, video_format,                   "video_format"); Param_Info1(Mpegv_video_format[video_format]);
                     TEST_SB_GET (  colour_description,          "colour_description");
@@ -3704,7 +3716,8 @@ void File_Mpegv::extension_start()
                     BS_End();
                 }
                 break;
-        case  5 :{ //Sequence Scalable Extension
+        case  5 : //Sequence Scalable Extension
+                {
                     //Parsing
                     Skip_S2(10,                                 "lower_layer_temporal_reference");
                     Mark_1();
@@ -3725,7 +3738,8 @@ void File_Mpegv::extension_start()
                     BS_End();
                 }
                 break;
-        case  8 :{ //Picture Coding
+        case  8 : //Picture Coding
+                {
                     //Parsing
                     #if MEDIAINFO_MACROBLOCKS
                     if (Macroblocks_Parse)
@@ -3839,21 +3853,24 @@ void File_Mpegv::extension_start()
                     }
                 FILLING_END();
                 break;
-        case  9 :{ //Picture Spatial Scalable Extension
+        case  9 : //Picture Spatial Scalable Extension
+                {
                     //Parsing
                     Skip_S1(4,                                  "data");
                     BS_End();
                     Skip_XX(Element_Size-Element_Offset,        "data");
                 }
                 break;
-        case 10 :{ //Picture Temporal Scalable Extension
+        case 10 : //Picture Temporal Scalable Extension
+                {
                     //Parsing
                     Skip_S1(4,                                  "data");
                     BS_End();
                     Skip_XX(Element_Size-Element_Offset,        "data");
                 }
                 break;
-        default:{
+        default :
+                {
                     //Parsing
                     Skip_S1(4,                                  "data");
                     BS_End();
@@ -3939,7 +3956,7 @@ void File_Mpegv::group_start()
 
     FILLING_BEGIN();
         temporal_reference_Adapt();
-        
+
         //NextCode
         if (!Status[IsAccepted])
         {

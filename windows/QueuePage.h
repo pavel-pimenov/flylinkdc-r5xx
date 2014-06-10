@@ -46,10 +46,16 @@ class QueuePage : public CPropertyPage<IDD_QUEUE_PAGE>, public PropPage
 		BEGIN_MSG_MAP(QueuePage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
 		NOTIFY_HANDLER(IDC_OTHER_QUEUE_OPTIONS, NM_CUSTOMDRAW, ctrlList.onCustomDraw) // [+] IRainman
+		COMMAND_ID_HANDLER(IDC_MULTISOURCE, onClickedActive)
 		CHAIN_MSG_MAP(PropPage)
 		END_MSG_MAP()
 		
 		LRESULT onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+		LRESULT onClickedActive(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+		{
+			fixControls();
+			return 0;
+		}
 		
 		// Common PropPage interface
 		PROPSHEETPAGE *getPSP()
@@ -58,8 +64,8 @@ class QueuePage : public CPropertyPage<IDD_QUEUE_PAGE>, public PropPage
 		}
 		void write();
 		void cancel() {}
-	protected:
-	
+		
+	private:
 		static Item items[];
 		static TextItem texts[];
 		static ListItem optionItems[];
@@ -67,8 +73,9 @@ class QueuePage : public CPropertyPage<IDD_QUEUE_PAGE>, public PropPage
 		
 		ExListViewCtrl ctrlList; // [+] IRainman
 		
-		CComboBox m_ctrlMultiSource;
 		CComboBox m_downlaskClick;
+		void fixControls();
+		
 };
 
 #endif // !defined(QUEUE_PAGE_H)

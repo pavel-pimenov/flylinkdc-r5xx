@@ -1,5 +1,7 @@
 Version 0.4.30
 --------------
++ New MemoryUtils.h functions for SSE2 memcpy
++ Removed Win9X support
 x int128: was not compiling on Cygwin
 
 Version 0.4.29, 2013-05-13
@@ -36,7 +38,7 @@ Version 0.4.25, 2012-03-13
 
 Version 0.4.24, 2012-01-24
 --------------
-+ Convertion from ctime style date to ISO date
++ Conversion from ctime style date to ISO date
 + GNU: more generic test of size_t as a long (e.g. for s390)
 x Read of text arrays of data was not well done if separator is bigger than 1 character
 x UTF-8 to UCS4 conversion was buggy with 4-byte characters
@@ -287,7 +289,7 @@ x small bugfixes
 
 Version 0.3.2.2 2007-11-02
 ---------------
-x Ztring comparaison bug
+x Ztring comparison bug
 x Memory leaks
 
 Version 0.3.2.1 2007-10-07
@@ -296,7 +298,7 @@ Version 0.3.2.1 2007-10-07
 + OpenFolder_Show method for Windows
 + int128u/s
 + Win9X support does not request Microsoft unicows.lib anymore
-x Win9X support was brocken, is back now
+x Win9X support was broken, is back now
 x Several small bug fixes
 
 Version 0.3.2.0 2007-08-17

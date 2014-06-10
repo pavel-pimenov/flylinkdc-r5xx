@@ -49,7 +49,7 @@ PropPage::TextItem GeneralPage::texts[] =
 	{ IDC_TECHSUPPORT_BORDER, ResourceManager::TECHSUPPORT },
 	{ IDC_CONNECT_TO_SUPPORT_HUB, ResourceManager::CONNECT_TO_SUPPORT_HUB },
 	{ IDC_SETTINGS_LANGUAGE, ResourceManager::SETTINGS_LANGUAGE },
-	{ IDC_SEND_STATISTICS_TO_DEVELOPERS, ResourceManager::SETTINGS_STATISTICS_SEND },
+	{ IDC_USE_FLY_SERVER_STATICTICS_SEND, ResourceManager::SETTINGS_STATISTICS_SEND },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -65,7 +65,7 @@ PropPage::Item GeneralPage::items[] =
 	{ IDC_CHECK_ADD_SLOTS, SettingsManager::ADD_DESCRIPTION_SLOTS,    PropPage::T_BOOL },
 #endif
 	{ IDC_CONNECT_TO_SUPPORT_HUB, SettingsManager::CONNECT_TO_SUPPORT_HUB, PropPage::T_BOOL },
-	{ IDC_SEND_STATISTICS_TO_DEVELOPERS, SettingsManager::USE_STATICTICS_SEND, PropPage::T_BOOL },
+	{ IDC_USE_FLY_SERVER_STATICTICS_SEND, SettingsManager::USE_FLY_SERVER_STATICTICS_SEND, PropPage::T_BOOL },
 	{ 0, 0, PropPage::T_END }
 };
 
@@ -77,6 +77,7 @@ void GeneralPage::write()
 	if (SETTING(LANGUAGE_FILE) != l_filelang)
 	{
 		settings->set(SettingsManager::LANGUAGE_FILE, l_filelang);
+		SettingsManager::getInstance()->save();
 		ResourceManager::loadLanguage(Util::getLocalisationPath() + l_filelang);
 		if (m_languagesList.size() != 1)
 			MessageBox(CTSTRING(CHANGE_LANGUAGE_INFO), CTSTRING(CHANGE_LANGUAGE), MB_OK | MB_ICONEXCLAMATION);

@@ -364,6 +364,9 @@ void File_MpegPs::Streams_Fill_PerStream(size_t StreamID, ps_stream &Temp, kindo
         Ztring LawRating=Temp.Parsers[0]->Retrieve(Stream_General, 0, General_LawRating);
         if (!LawRating.empty())
             Fill(Stream_General, 0, General_LawRating, LawRating, true);
+        Ztring Title=Temp.Parsers[0]->Retrieve(Stream_General, 0, General_Title);
+        if (!Title.empty() && Retrieve(Stream_General, 0, General_Title).empty())
+            Fill(Stream_General, 0, General_Title, Title);
     }
 
     //By the TS stream_type
@@ -689,6 +692,9 @@ void File_MpegPs::Streams_Finish_PerStream(size_t StreamID, ps_stream &Temp, kin
         Ztring LawRating=Temp.Parsers[0]->Retrieve(Stream_General, 0, General_LawRating);
         if (!LawRating.empty())
             Fill(Stream_General, 0, General_LawRating, LawRating, true);
+        Ztring Title=Temp.Parsers[0]->Retrieve(Stream_General, 0, General_Title);
+        if (!Title.empty() && Retrieve(Stream_General, 0, General_Title).empty())
+            Fill(Stream_General, 0, General_Title, Title);
     }
 
     //Duration if it is missing from the parser
@@ -2359,13 +2365,13 @@ void File_MpegPs::pack_start()
         {
         #endif //MEDIAINFO_TRACE
             //Parsing
-            Streams[0xBA].TimeStamp_End.PTS.TimeStamp=((Buffer[Buffer_Pos  ]&0x38)<<30)
-                                                    | ((Buffer[Buffer_Pos  ]&0x03)<<28)
-                                                    | ((Buffer[Buffer_Pos+1]     )<<20)
-                                                    | ((Buffer[Buffer_Pos+2]&0xF8)<<15)
-                                                    | ((Buffer[Buffer_Pos+2]&0x03)<<13)
-                                                    | ((Buffer[Buffer_Pos+3]     )<< 5)
-                                                    | ((Buffer[Buffer_Pos+4]&0xF8)>> 3);
+            Streams[0xBA].TimeStamp_End.PTS.TimeStamp=(((int64u)(Buffer[Buffer_Pos    ] & 0x38)) << 30)
+                                                    | (((int64u)(Buffer[Buffer_Pos    ] & 0x03)) << 28)
+                                                    | (((int64u)(Buffer[Buffer_Pos + 1]       )) << 20)
+                                                    | (((int64u)(Buffer[Buffer_Pos + 2] & 0xF8)) << 15)
+                                                    | (((int64u)(Buffer[Buffer_Pos + 2] & 0x03)) << 13)
+                                                    | (((int64u)(Buffer[Buffer_Pos + 3]       )) <<  5)
+                                                    | (((int64u)(Buffer[Buffer_Pos + 4] & 0xF8)) >>  3);
             if (!Status[IsAccepted])
             {
                 program_mux_rate                     =((Buffer[Buffer_Pos+6]     )<<14)
@@ -3122,6 +3128,7 @@ void File_MpegPs::private_stream_2()
                                     case 0xA1 : private_stream_2_TSHV_A1(); break;
                                     default   : Skip_XX(Element_Size, "Unknown");
                                 }
+                                break;
             default         : Skip_XX(Element_Size,             "Unknown");
         }
 
@@ -3398,8 +3405,7 @@ void File_MpegPs::video_stream()
             #endif //MEDIAINFO_SEEK
         }
         #if MEDIAINFO_SEEK
-            if (Unsynch_Frame_Counts.find(stream_id)!=Unsynch_Frame_Counts.end())
-                Unsynch_Frame_Counts.erase(stream_id);
+            Unsynch_Frame_Counts.erase(stream_id);
         #endif //MEDIAINFO_SEEK
     }
 
@@ -3947,6 +3953,9 @@ void File_MpegPs::xxx_stream_Parse(ps_stream &Temp, int8u &stream_Count)
             #if MEDIAINFO_IBI
                 Temp.Parsers[Pos]->Ibi_SynchronizationOffset_Current=Ibi_SynchronizationOffset_Current;
             #endif //MEDIAINFO_IBI
+            #if defined(MEDIAINFO_EIA608_YES) || defined(MEDIAINFO_EIA708_YES)
+                Temp.Parsers[Pos]->ServiceDescriptors=ServiceDescriptors;
+            #endif
             Open_Buffer_Continue(Temp.Parsers[Pos], Buffer+Buffer_Offset+(size_t)Element_Offset, (size_t)(Element_Size-Element_Offset));
             if (IsSub && Temp.Parsers[Pos]->Frame_Count_NotParsedIncluded!=(int64u)-1)
                 Frame_Count_NotParsedIncluded=Temp.Parsers[Pos]->Frame_Count_NotParsedIncluded;

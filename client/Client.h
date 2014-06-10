@@ -32,20 +32,28 @@ class ClientBase
 #endif
 {
 	public:
-	
 		ClientBase() : m_type(DIRECT_CONNECT) { }
 		virtual ~ClientBase() {} // [cppcheck]
 		
-		enum P2PType { DIRECT_CONNECT
+		enum P2PType { DIRECT_CONNECT // Никак не используется TODO DHT - заменить на bool??
 #ifdef STRONG_USE_DHT
 		               , DHT
 #endif
 		             };
+	protected:
 		P2PType m_type;
-		
+	public:
 		P2PType getType() const
 		{
 			return m_type;
+		}
+		bool isDHT() const
+		{
+#ifdef STRONG_USE_DHT
+			return m_type == DHT;
+#else
+			return false;
+#endif
 		}
 		
 		virtual const string& getHubUrl() const = 0;
@@ -61,7 +69,6 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 {
 	protected:
 		std::unique_ptr<webrtc::RWLockWrapper> m_cs;
-		//  mutable FastCriticalSection m_cs; // [!] IRainman opt: use spinlock here!
 		void fire_user_updated(const OnlineUserList& p_list)
 		{
 			if (!p_list.empty())
@@ -234,13 +241,13 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		
 		static int getTotalCounts()
 		{
-			return counts[COUNT_NORMAL] + counts[COUNT_REGISTERED] + counts[COUNT_OP];
+			return g_counts[COUNT_NORMAL] + g_counts[COUNT_REGISTERED] + g_counts[COUNT_OP];
 		}
 		
 		static string getCounts()
 		{
 			char buf[128];
-			return string(buf, snprintf(buf, _countof(buf), "%u/%u/%u", counts[COUNT_NORMAL].load(), counts[COUNT_REGISTERED].load(), counts[COUNT_OP].load()));
+			return string(buf, snprintf(buf, _countof(buf), "%u/%u/%u", g_counts[COUNT_NORMAL].load(), g_counts[COUNT_REGISTERED].load(), g_counts[COUNT_OP].load()));
 		}
 //[+]FlylinkDC
 		const string& getCountsIndivid() const
@@ -525,7 +532,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			COUNT_UNCOUNTED,
 		};
 		
-		static boost::atomic<uint16_t> counts[COUNT_UNCOUNTED];
+		static boost::atomic<uint16_t> g_counts[COUNT_UNCOUNTED];
 		
 		enum States
 		{

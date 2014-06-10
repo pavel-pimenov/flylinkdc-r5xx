@@ -433,7 +433,6 @@ void PrivateFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 	rc.top = rc.bottom - h * chat_columns - 7; // !Decker!
 	rc.left += 2; //[~] Sergey Shushkanov
 	rc.right -= iButtonPanelLength + 2; //[~] Sergey Shushkanov
-	CRect ctrlMessageRect = rc;
 	if (m_ctrlMessage)
 		m_ctrlMessage->MoveWindow(rc);
 		
@@ -546,7 +545,6 @@ LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 	POINT cpt;
 	GetCursorPos(&cpt);
 	
-	CRect rc;            // client area of window
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };        // location of mouse click
 	OMenu Mnu;
 	

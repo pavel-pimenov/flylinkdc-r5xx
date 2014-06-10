@@ -436,9 +436,6 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		void on(ClientListener::Message, const Client*, std::unique_ptr<ChatMessage>&) noexcept;
 		//void on(PrivateMessage, const Client*, const string &strFromUserName, const UserPtr&, const UserPtr&, const UserPtr&, const string&, bool = true) noexcept; // !SMT!-S [-] IRainman fix.
 		void on(NickTaken, const Client*) noexcept;
-#ifdef IRAINMAN_USE_SEARCH_FLOOD_FILTER
-		void on(SearchFlood, const Client*, const string&) noexcept;
-#endif
 		void on(ClientListener::CheatMessage, const string&) noexcept;
 		void on(ClientListener::UserReport, const Client*, const string&) noexcept; // [+] IRainman
 		void on(ClientListener::HubTopic, const Client*, const string&) noexcept;

@@ -21,6 +21,7 @@
 
 #include "../client/QueueManager.h"
 #include "../client/ClientManager.h"
+#include "../client/util_flylinkdc.h"
 #include "DirectoryListingFrm.h"
 #include "LineDlg.h"
 #include "PrivateFrame.h"
@@ -515,7 +516,7 @@ FileImage::TypeDirectoryImages DirectoryListingFrame::GetTypeDirectory(const Dir
 
 void DirectoryListingFrame::changeDir(DirectoryListing::Directory* p_dir)
 {
-	CWaitCursor l_cursor_wait;
+	CWaitCursor l_cursor_wait; //-V808
 	CLockRedraw<> l_lock_draw(ctrlList);
 	{
 		CFlyBusy l_busy(m_updating);
@@ -788,7 +789,7 @@ LRESULT DirectoryListingFrame::onDownloadDirTo(WORD , WORD , HWND , BOOL&)
 	HTREEITEM t = ctrlTree.GetSelectedItem();
 	if (t != NULL)
 	{
-		CWaitCursor l_cursor_wait;
+		CWaitCursor l_cursor_wait; //-V808
 		DirectoryListing::Directory* dir = (DirectoryListing::Directory*)ctrlTree.GetItemData(t);
 		tstring target = Text::toT(SETTING(DOWNLOAD_DIRECTORY));
 		if (WinUtil::browseDirectory(target, m_hWnd))
@@ -1893,7 +1894,7 @@ LRESULT DirectoryListingFrame::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
 LRESULT DirectoryListingFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
 	m_before_close = true;
-	CWaitCursor l_cursor_wait;
+	CWaitCursor l_cursor_wait; //-V808
 	if (m_loading)
 	{
 		//tell the thread to abort and wait until we get a notification
@@ -2250,15 +2251,23 @@ LRESULT DirectoryListingFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wPar
 						CFlyMediaInfo::translateDuration(l_fly_audio, l_si_find->second->columns[COLUMN_MEDIA_AUDIO], l_si_find->second->columns[COLUMN_DURATION]);
 					}
 					const string l_count_query = l_result_counter["count_query"].asString();
-					if (!l_count_query.empty())
+					const string l_count_download = l_result_counter["count_download"].asString();
+					if (!l_count_query.empty() || !l_count_download.empty())
 					{
 						l_update_index.push_back(l_cur_item);
 						l_si_find->second->columns[COLUMN_FLY_SERVER_RATING] =  Text::toT(l_count_query);
+						if (!l_count_download.empty())
+						{
+							if (l_si_find->second->columns[COLUMN_FLY_SERVER_RATING].empty())
+								l_si_find->second->columns[COLUMN_FLY_SERVER_RATING] = Text::toT("0/" + l_count_download); // TODO fix copy-paste
+							else
+								l_si_find->second->columns[COLUMN_FLY_SERVER_RATING] = Text::toT(l_count_query + '/' + l_count_download);
+						}
 						if (l_count_query == "1")
 							l_is_know_tth = false; // Файл на сервер первый раз появился.
 					}
 					CFlyServerCache l_cache;
-					l_cache.m_ratio = Util::toInt(l_count_query);
+					l_cache.m_ratio = Text::fromT(l_si_find->second->columns[COLUMN_FLY_SERVER_RATING]);
 					l_cache.m_audio = l_result_base_media["fly_audio"].asString();
 					l_cache.m_audio_br = l_result_base_media["fly_audio_br"].asString();
 					l_cache.m_video = l_result_base_media["fly_video"].asString();
@@ -2347,7 +2356,7 @@ bool DirectoryListingFrame::scan_list_view_from_merge()
 					l_update_index.push_back(j);
 					const auto& l_cache = l_find_ratio->second.second;
 					if (l_item_info->columns[COLUMN_FLY_SERVER_RATING].empty())
-						l_item_info->columns[COLUMN_FLY_SERVER_RATING] = Text::toT(Util::toString(l_cache.m_ratio));
+						l_item_info->columns[COLUMN_FLY_SERVER_RATING] = Text::toT(l_cache.m_ratio);
 					if (l_item_info->columns[COLUMN_BITRATE].empty())
 						l_item_info->columns[COLUMN_BITRATE]  = Text::toT(l_cache.m_audio_br);
 					if (l_item_info->columns[COLUMN_MEDIA_XY].empty())
@@ -2371,7 +2380,7 @@ void DirectoryListingFrame::mergeFlyServerInfo()
 {
 	if (isClosedOrShutdown())
 		return;
-	CWaitCursor l_cursor_wait;
+	CWaitCursor l_cursor_wait; //-V808
 	dcassert(!isClosedOrShutdown());
 	if (!isClosedOrShutdown())
 	{

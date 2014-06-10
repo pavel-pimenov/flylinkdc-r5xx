@@ -77,7 +77,12 @@ int gf_busy_handler(void *p_params, int p_tryes)
 	if (p_tryes && p_tryes % 5 == 0)
 	{
 		const string l_message = STRING(DATA_BASE_LOCKED_STRING);
-		MessageBox(NULL, Text::toT(l_message).c_str(), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_OK | MB_ICONERROR | MB_TOPMOST);
+		static bool g_is_MessageBox = false; // TODO - fix copy-paste
+		CFlyBusy l_busy(g_is_MessageBox);
+		if (g_is_MessageBox)
+		{
+			MessageBox(NULL, Text::toT(l_message).c_str(), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_OK | MB_ICONERROR | MB_TOPMOST);
+		}
 	}
 	return 1;
 }
@@ -161,7 +166,14 @@ void CFlylinkDBManager::errorDB(const string& p_txt)
 	}
 	Util::setRegistryValueString(FLYLINKDC_REGISTRY_SQLITE_ERROR , Text::toT(l_error));
 	LogManager::getInstance()->message(p_txt, true); // ¬сегда логируем в файл (т.к. база может быть битой)
-	MessageBox(NULL, Text::toT(l_message).c_str(), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_OK | MB_ICONERROR | MB_TOPMOST);
+	static bool g_is_MessageBox = false; // TODO - fix copy-paste
+	{
+		CFlyBusy l_busy(g_is_MessageBox);
+		if (g_is_MessageBox)
+		{
+			MessageBox(NULL, Text::toT(l_message).c_str(), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_OK | MB_ICONERROR | MB_TOPMOST);
+		}
+	}
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	bool l_is_send = CFlyServerAdapter::CFlyServerJSON::pushError(l_error);
 	if (!l_is_send)
@@ -888,7 +900,7 @@ void CFlylinkDBManager::push_json_statistic(const std::string& p_value)
 //========================================================================================================
 void CFlylinkDBManager::flush_lost_json_statistic()
 {
-	if (BOOLSETTING(USE_STATICTICS_SEND)) // ќтсылка статистики разрешена?
+	if (BOOLSETTING(USE_FLY_SERVER_STATICTICS_SEND)) // ќтсылка статистики разрешена?
 	{
 		Lock l(m_cs);
 		try
@@ -1573,6 +1585,7 @@ static void setSectionString(const QueueItemPtr& p_QueueItem, const string& strS
 		if ((Sections.size() & 1) == 0)
 		{
 			WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+			//TODO- LOCK ?? QueueManager::LockFileQueueShared l_fileQueue; //[+]PPA
 			for (auto i = Sections.cbegin(); i < Sections.cend(); i += 2)
 			{
 				int64_t start = Util::toInt64(i->c_str());
@@ -1608,7 +1621,7 @@ size_t CFlylinkDBManager::load_queue()
 		                            "Nick,"
 		                            "CountSubSource"
 		                            //",HubHint "
-		                            " from fly_queue where size > 0 and TempTarget is not null"; // todo убрать в будущих верси€х
+		                            " from fly_queue";
 		if (!m_get_fly_queue.get())
 			m_get_fly_queue = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB, l_sql));
 		sqlite3_reader l_q = m_get_fly_queue.get()->executereader();
@@ -1768,6 +1781,7 @@ void CFlylinkDBManager::addSource(const QueueItemPtr& p_QueueItem, const CID& p_
 		try
 		{
 			WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+			//TODO- LOCK ??      QueueManager::LockFileQueueShared l_fileQueue; //[+]PPA
 			wantConnection = QueueManager::getInstance()->addSourceL(p_QueueItem, l_user, 0, true) && l_user->isOnline(); // ƒобавить флаг ускоренной загрузки первый раз.
 		}
 		catch (const Exception& e)
@@ -2082,7 +2096,7 @@ bool CFlylinkDBManager::load_last_ip_and_user_stat(uint32_t p_hub_id, const stri
 				l_cache_item.insert(std::make_pair(l_q.getstring(2), l_item));
 			}
 		}
-		auto& l_hub_cache = m_last_ip_cache[p_hub_id];
+		auto& l_hub_cache = m_last_ip_cache[p_hub_id]; // TODO - убрать лишний поиск. его нашли уже выше
 		const auto& l_cache_nick_item = l_hub_cache.find(p_nick);
 		if (l_cache_nick_item != l_hub_cache.end())
 		{
@@ -2308,6 +2322,33 @@ void CFlylinkDBManager::flush_all_last_ip_and_message_count()
 				{
 					if (i->second.m_is_item_dirty)
 					{
+#ifdef _DEBUG
+						{
+							// ѕроверим что данные не затираютс€
+							if (!m_check_message_count.get())
+								m_check_message_count = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+								"select message_count from user_db.user_info where nick=? and dic_hub=?"));
+							sqlite3_command* l_sql_command = m_check_message_count.get();
+							l_sql_command->bind(1, i->first, SQLITE_STATIC);
+							l_sql_command->bind(2, __int64(h->first));
+							sqlite3_reader l_q = l_sql_command->executereader();
+							if (l_q.read())
+							{
+								const auto l_message_count = l_q.getint64(0);
+								if (l_message_count > i->second.m_message_count)
+								{
+									dcassert(0);
+									l_log.log("Error update message_count for user = " + i->first +
+									" new_message_count = " + Util::toString(i->second.m_message_count) +
+									" sqlite_message_count = " + Util::toString(l_message_count)
+									         );
+									// ¬ базе оказалось знаение больше чем пишетс€ - не затираем его нужно разбиратьс€ когда так получаетс€
+									i->second.m_is_item_dirty = false;
+									continue;
+								}
+							}
+						}
+#endif
 						++l_count;
 						if (!m_insert_store_all_ip_and_message_count.get())
 							m_insert_store_all_ip_and_message_count = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,

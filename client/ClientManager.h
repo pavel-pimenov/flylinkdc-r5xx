@@ -49,6 +49,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static void getConnectedHubUrls(StringList& p_hub_url);
 #endif // IRAINMAN_NON_COPYABLE_CLIENTS_IN_CLIENT_MANAGER
 		static size_t getTotalUsers(); // [+] IRainman.
+		static std::map<string, std::pair<size_t, int64_t> > getClientStat();
 		static StringList getHubs(const CID& cid, const string& hintUrl, bool priv);
 		static StringList getHubNames(const CID& cid, const string& hintUrl, bool priv);
 		static StringList getNicks(const CID& cid, const string& hintUrl, bool priv);
@@ -200,15 +201,19 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		
 		static void setIPUser(const UserPtr& p_user, const string& p_ip, const uint16_t p_udpPort = 0);
 		
-		static UserPtr getUserByIp(const string &p_ip) // TODO - boost
+		static StringList getUserByIp(const string &p_ip) // TODO - boost
 		{
+			StringList l_result;
+			l_result.reserve(1);
 			webrtc::ReadLockScoped l(*g_csOnlineUsers);
 			for (auto i = g_onlineUsers.cbegin(); i != g_onlineUsers.cend(); ++i)
+			{
 				if (i->second->getIdentity().getIpAsString() == p_ip) // TODO - boost
 				{
-					return i->second->getUser();
+					l_result.push_back(i->second->getUser()->getLastNick());
 				}
-			return nullptr;
+			}
+			return l_result;
 		}
 #ifndef IRAINMAN_IDENTITY_IS_NON_COPYABLE
 		static Identity getIdentity(const UserPtr& user)

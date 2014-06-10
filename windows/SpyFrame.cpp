@@ -231,11 +231,11 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 							const string::size_type l_twopt = si->seeker.find(':');
 							if (l_twopt != string::npos)
 							{
-								si->seeker = si->seeker.substr(0, l_twopt);
-								const UserPtr u = ClientManager::getUserByIp(si->seeker);
-								if (u)
+								const string l_ip = si->seeker.substr(0, l_twopt);
+								const StringList users = ClientManager::getUserByIp(l_ip);
+								if (!users.empty())
 								{
-									si->seeker = u->getLastNick();
+									si->seeker = "[IP:" + l_ip + "] Users:" + Util::toString(users);
 								}
 							}
 						}

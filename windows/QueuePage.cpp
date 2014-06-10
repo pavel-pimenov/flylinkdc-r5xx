@@ -34,6 +34,7 @@ PropPage::TextItem QueuePage::texts[] =
 	{ IDC_SETTINGS_ANTI_FRAG_FRAME, ResourceManager::SETTINGS_ANTI_FRAG_FRAME },
 	{ IDC_SETTINGS_MB, ResourceManager::MB },
 	{ IDC_AUTOSEGMENT, ResourceManager::SETTINGS_AUTO_SEARCH },
+	{ IDC_MULTISOURCE, ResourceManager::ENABLE_MULTI_SOURCE },
 	{ IDC_DONTBEGIN, ResourceManager::DONT_ADD_SEGMENT_TEXT },
 	{ IDC_MULTISOURCE, ResourceManager::ENABLE_MULTI_SOURCE },
 	{ IDC_MINUTES, ResourceManager::MINUTES },
@@ -52,6 +53,7 @@ PropPage::TextItem QueuePage::texts[] =
 
 PropPage::Item QueuePage::items[] =
 {
+	{ IDC_MULTISOURCE, SettingsManager::ENABLE_MULTI_CHUNK, PropPage::T_BOOL },
 	{ IDC_AUTOSEGMENT, SettingsManager::AUTO_SEARCH, PropPage::T_BOOL },
 	{ IDC_DONTBEGIN, SettingsManager::DONT_BEGIN_SEGMENT, PropPage::T_BOOL },
 	{ IDC_BEGIN_EDIT, SettingsManager::DONT_BEGIN_SEGMENT_SPEED, PropPage::T_INT },
@@ -64,7 +66,6 @@ PropPage::Item QueuePage::items[] =
 
 PropPage::ListItem QueuePage::optionItems[] =
 {
-	{ SettingsManager::MULTI_CHUNK, ResourceManager::ENABLE_MULTI_SOURCE },
 	{ SettingsManager::AUTO_SEARCH_AUTO_MATCH, ResourceManager::SETTINGS_AUTO_SEARCH_AUTO_MATCH },
 	{ SettingsManager::SKIP_ZERO_BYTE, ResourceManager::SETTINGS_SKIP_ZERO_BYTE },
 //[-]PPA может приводить к неполному скачиванию папки (например DVD - диска)
@@ -102,12 +103,6 @@ LRESULT QueuePage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	spin.SetRange32(2, 100000);
 	spin.Detach();
 	
-	m_ctrlMultiSource.Attach(GetDlgItem(IDC_MULTISOURCE_COMBO));
-	m_ctrlMultiSource.AddString(CTSTRING(DISABLED));
-	m_ctrlMultiSource.AddString(CTSTRING(AUTOMATIC));
-	m_ctrlMultiSource.SetCurSel(SETTING(MULTI_CHUNK));
-	m_ctrlMultiSource.Detach();
-	
 	// Do specialized reading here
 	
 	// Add Combo: Download Action - if file exist
@@ -141,14 +136,29 @@ LRESULT QueuePage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 			break;
 	}
 	m_downlaskClick.Detach();             // Add Combo
-	
+	fixControls();
 	return TRUE;
+}
+void QueuePage::fixControls()
+{
+	const BOOL l_is_checked = IsDlgButtonChecked(IDC_MULTISOURCE) == BST_CHECKED;
+	
+	::EnableWindow(GetDlgItem(IDC_AUTOSEGMENT), l_is_checked);
+	::EnableWindow(GetDlgItem(IDC_DONTBEGIN), l_is_checked);
+	::EnableWindow(GetDlgItem(IDC_CHUNKCOUNT), l_is_checked);
+	::EnableWindow(GetDlgItem(IDC_AUTO_SEARCH_SPIN), l_is_checked);
+	::EnableWindow(GetDlgItem(IDC_AUTO_SEARCH_EDIT), l_is_checked);
+	::EnableWindow(GetDlgItem(IDC_BEGIN_EDIT), l_is_checked);
+	::EnableWindow(GetDlgItem(IDC_MINUTES), l_is_checked);
+	::EnableWindow(GetDlgItem(IDC_KBPS), l_is_checked);
+	::EnableWindow(GetDlgItem(IDC_SEG_NUMBER), l_is_checked);
+	//::EnableWindow(GetDlgItem(), l_is_checked);
+	//::EnableWindow(GetDlgItem(), l_is_checked);
+	
 }
 
 void QueuePage::write()
 {
-	settings->set(SettingsManager::MULTI_CHUNK, m_ctrlMultiSource.GetCurSel());
-	
 	PropPage::write((HWND)*this, items, 0, 0);
 	PropPage::write((HWND)*this, items, optionItems, GetDlgItem(IDC_OTHER_QUEUE_OPTIONS));
 	
@@ -164,9 +174,9 @@ void QueuePage::write()
 	        ct = SettingsManager::ON_DOWNLOAD_SKIP;
 	*/
 	// Add Combo
-	CComboBox downlaskClick;
-	downlaskClick.Attach(GetDlgItem(IDC_DOWNLOAD_ASK_COMBO));
-	switch (downlaskClick.GetCurSel())
+	CComboBox l_downlaskClick;
+	l_downlaskClick.Attach(GetDlgItem(IDC_DOWNLOAD_ASK_COMBO));
+	switch (l_downlaskClick.GetCurSel())
 	{
 		case 0:
 			ct = SettingsManager::ON_DOWNLOAD_ASK;
@@ -181,7 +191,7 @@ void QueuePage::write()
 			ct = SettingsManager::ON_DOWNLOAD_SKIP;
 			break;
 	}
-	downlaskClick.Detach();
+	l_downlaskClick.Detach();
 	// ~Add Combo
 	
 	settings->set(SettingsManager::ON_DOWNLOAD_SETTING, ct);

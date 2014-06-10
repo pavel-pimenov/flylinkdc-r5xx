@@ -174,7 +174,7 @@ class AdcCommand
 			return parameters;
 		}
 		
-		string toString(const CID& aCID) const;
+		string toString(const CID& aCID, bool nmdc = false) const;
 		string toString(uint32_t sid, bool nmdc = false) const;
 		
 		AdcCommand& addParam(const string& name, const string& value)

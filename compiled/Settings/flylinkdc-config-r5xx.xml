@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <Bootstraps>
-	<server url="http://strongdc.sourceforge.net/bootstrap/" agent="StrongDC++ v2.43"/>
-	<server url="http://ssa.in.ua/dcDHT.php"/>
+	<server url="http://dht.fly-server.ru/dcDHT.php"/>
 	<fly-server 
-		ip_infobox ="109.120.164.244"
-		ip ="146.185.183.102"
+		ip ="media.fly-server.ru"
 		port ="37015" 
-		stat_server_ip = "31.186.103.125"
+		stat_server_ip = "stat.fly-server.ru"
 		stat_server_port = "37015"
-		test_server_ip = "109.120.164.244" 
+		test_server_ip = "test.fly-server.ru" 
                 test_server_port = "37015" 
 		mirror_read_only_server = ""
 		support_hub = "dchub://dc.fly-server.ru"
@@ -23,9 +21,9 @@
 		mediainfo_ext ="3gp,avi,divx,flv,m4v,mkv,dts,mov,mp4,mpg,mpeg,vob,wmv,bik,qt,rm,aac,ac3,ape,fla,flac,m4a,mp1,mp2,mp3,ogg,wma,wv,mka,vqf,lqt,ts,tp,mod,m2ts,webm" 
 		virus_ext ="exe.exe" 
 		type= "http" 
-		exclude_tag = "Format_Settings_Matrix_Data,Codec/Extensions,Format/Extensions,Cover,Cover_Type,Cover_Mime,StreamSize_Proportion,Cover_Data,Encoded_Library_Settings,CodecID/Url,Codec/Url,CompleteName,UniqueID,UniqueID/String,Encoded_Application,Format/Url,FolderName,File_Created_Date_Local,File_Modified_Date,File_Modified_Date_Local,FileName,FileSize,File_Created_Date,Tagged_Date,Album replay gain,Album replay gain peak,Comment,Copyright,Cover,Cover type,Cover MIME,GRACENOTEFILEID,GRACENOTEEXTDATA,Overall bit rate mode,Overall bit rate,NOTES,Alignment,Menu ID,Replay gain,Replay gain peak,Source,Forced,Encoded_Library/Date,Cover_Description,Encoded_Date,EncodedBy,Encoded_Library/Version,Encoded_Library,HeaderSize,ISRC,Mastered_Date,Menu_Codec_List,MenuCount,Mood,Original/Released_Date,Source_Duration_LastFrame,Source_StreamSize_Encoded,TimeCode_FirstFrame"
+		exclude_tag = "Format_Settings_Matrix_Data,Codec/Extensions,Format/Extensions,Cover,Cover_Type,Cover_Mime,StreamSize_Proportion,Cover_Data,Encoded_Library_Settings,CodecID/Url,Codec/Url,CompleteName,UniqueID,Unique ID,UniqueID/String,Encoded_Application,Format/Url,FolderName,File_Created_Date_Local,File_Modified_Date,File_Modified_Date_Local,FileName,FileSize,File_Created_Date,Tagged_Date,Album replay gain,Album replay gain peak,Comment,Copyright,Cover type,Cover MIME,GRACENOTEFILEID,GRACENOTEEXTDATA,Overall bit rate mode,Overall bit rate,NOTES,Alignment,Menu ID,Replay gain,Replay gain peak,Source,Forced,Encoded_Library/Date,Cover_Description,Encoded_Date,EncodedBy,Encoded_Library/Version,Encoded_Library,HeaderSize,ISRC,Mastered_Date,Menu_Codec_List,MenuCount,Mood,Original/Released_Date,Source_Duration_LastFrame,Source_StreamSize_Encoded,TimeCode_FirstFrame"
 		include_tag = ""
-		exclude_tag_inform = "ID,Complete name,Encoding settings,Encoded date,Tagged date,,Album replay gain,Album replay gain peak,Comment,Copyright,Cover,Cover type,Cover MIME,GRACENOTEFILEID,GRACENOTEEXTDATA,Overall bit rate mode,Overall bit rate,NOTES,Alignment,Forced,Menu ID,Replay gain,Replay gain peak,Source"
+		exclude_tag_inform = "File size,Log eac,LOG EAC,METADATA_BLOCK_PICTURE,iTunMOVI,LOG,Part_ID,cuesheet,Cuesheet,COVERART,Duration,LOGFILE,Logfile,Unique ID,ID,Complete name,Encoding settings,Encoded date,Tagged date,Album replay gain,Album replay gain peak,Comment,Copyright,Cover,Cover type,Cover MIME,GRACENOTEFILEID,GRACENOTEEXTDATA,Overall bit rate mode,Overall bit rate,NOTES,Alignment,Forced,Menu ID,Replay gain,Replay gain peak,Source"
 		send_full_mediainfo = "0"
 		parasitic_file = "id.bdmv,mcmf.xml,contenthash000.tbl,anydvd.xrl,online.crl,00001.clpi,00000.clpi,contentrevocation.lst"
 		block_share_ext = "jc!,ob!,dmf,mta,dmfr,!ut,!bt,bc!,getright,antifrag,pusd,dusd,download,crdownload,gltth,kwm,pwm"

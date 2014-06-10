@@ -42,9 +42,7 @@ namespace MediaInfoLib
 {
 
 class File__Analyze;
-#ifdef FLY_MEDIAINFO_USE_INTERNET
 class Internet__Base;
-#endif
 class Reader__Base;
 
 //***************************************************************************
@@ -118,12 +116,11 @@ private :
     friend class File_DcpCpl;//Theses classes need access to internal structure for optimization. There is recursivity with theses formats
     friend class File_DcpPkl;//Theses classes need access to internal structure for optimization. There is recursivity with theses formats
     friend class File__ReferenceFilesHelper; //Theses classes need access to internal structure for optimization. There is recursivity with theses formats
+    friend class Reader_File; //For Info member
 
     //Parsing handles
     File__Analyze*  Info;
-#ifdef FLY_MEDIAINFO_USE_INTERNET
-    Internet__Base* Internet;
-#endif
+    //Internet__Base* Internet;
     #if !defined(MEDIAINFO_READER_NO)
         Reader__Base*   Reader;
     #endif //defined(MEDIAINFO_READER_NO)

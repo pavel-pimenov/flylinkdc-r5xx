@@ -559,8 +559,6 @@ CAPTION "Queue"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     GROUPBOX        "Segmented downloading",IDC_SETTINGS_SEGMENT,4,2,316,74
-    LTEXT           "Enable multi-source",IDC_MULTISOURCE,11,13,173,8
-    COMBOBOX        IDC_MULTISOURCE_COMBO,224,10,90,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Automatically search for alternative TTH source every",IDC_AUTOSEGMENT,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,28,225,8
     EDITTEXT        IDC_AUTO_SEARCH_EDIT,240,25,44,14,ES_AUTOHSCROLL | ES_NUMBER
@@ -582,6 +580,7 @@ BEGIN
     CONTROL         "",IDC_OTHER_QUEUE_OPTIONS,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,4,112,316,88
     GROUPBOX        "On downloading file, which already exists",IDC_ON_DOWNLOADING_SEGMENT,4,202,316,28
     COMBOBOX        IDC_DOWNLOAD_ASK_COMBO,10,212,304,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Enable multi-source",IDC_MULTISOURCE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,12,225,8
 END
 
 IDD_PRIORITY_PAGE DIALOGEX 0, 0, 325, 300
@@ -813,7 +812,7 @@ BEGIN
     CTEXT           "Is your language not displayed?",IDC_LANG_LINK,165,123,149,10
     CONTROL         "Connect to support hub on each startup",IDC_CONNECT_TO_SUPPORT_HUB,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,143,303,10
-    CONTROL         "Allow the program to collect and send anonymous usage statistics to developers.",IDC_SEND_STATISTICS_TO_DEVELOPERS,
+    CONTROL         "Allow the program to collect and send anonymous usage statistics to developers.",IDC_USE_FLY_SERVER_STATICTICS_SEND,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,156,303,10
 END
 
@@ -2928,7 +2927,7 @@ IDR_ICON_QUESTION_ICON  ICON                    "res\\f_question_16.ico"
 IDR_ICON_PAUSE_ICON     ICON                    "res\\f_grey_16.ico"
 IDR_ICON_MEDICAL_BAG    ICON                    "res\\medical_bag.ico"
 IDR_ICON_THERMOMETR_BAG ICON                    "res\\thermometer2.ico"
-
+IDR_ICON_CRUTCH         ICON                    "res\\crutch.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

@@ -492,7 +492,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 									return 0;
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 							case COLUMN_FLY_SERVER_RATING:
-								return compare(Util::toInt64(a->columns[col]), Util::toInt64(b->columns[col]));
+								return compare(Util::toInt64(a->columns[col]), Util::toInt64(b->columns[col])); // TODO - распарсить x/y
 #endif
 							case COLUMN_MEDIA_XY:
 								if (a->file->m_media && b->file->m_media)

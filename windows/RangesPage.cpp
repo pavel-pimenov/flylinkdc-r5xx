@@ -39,7 +39,6 @@ LRESULT RangesPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	PropPage::translate((HWND)(*this), texts);
 	PropPage::read((HWND)*this, items);
 	m_isEnabledIPGuard = BOOLSETTING(ENABLE_IPGUARD);
-	CRect rc;
 	
 	ctrlPolicy.Attach(GetDlgItem(IDC_DEFAULT_POLICY));
 	ctrlPolicy.AddString(CTSTRING(ALLOW_ALL));

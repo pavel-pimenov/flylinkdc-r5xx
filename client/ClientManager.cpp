@@ -77,6 +77,23 @@ Client* ClientManager::getClient(const string& p_HubURL)
 	
 	return c;
 }
+std::map<string, std::pair<size_t, int64_t> > ClientManager::getClientStat()
+{
+	std::map<string, std::pair<size_t, int64_t>> l_stat;
+	webrtc::ReadLockScoped l(*g_csClients);
+	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
+	{
+		if (i->second->isConnected())
+		{
+			l_stat[i->first] = std::make_pair(i->second->getUserCount(), i->second->getAvailableBytes());
+		}
+		else
+		{
+			l_stat[i->first] = std::make_pair(0, 0);
+		}
+	}
+	return l_stat;
+}
 size_t ClientManager::getTotalUsers()
 {
 	size_t users = 0;
@@ -748,11 +765,7 @@ void ClientManager::userCommand(const HintedUser& hintedUser, const UserCommand&
 	 * switched to storing only reliable HintedUsers (found with the token of the ADC command),
 	 * change this call to findOnlineUserHint. */
 	OnlineUser* ou = findOnlineUserL(hintedUser.user->getCID(), hintedUser.hint.empty() ? uc.getHub() : hintedUser.hint, false);
-	if (!ou
-#ifdef STRONG_USE_DHT
-	        || ou->getClientBase().m_type == ClientBase::DHT
-#endif
-	   )
+	if (!ou || ou->isDHT())
 		return;
 		
 	auto& l_ñlient = ou->getClient(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'ou->getClient()' expression repeatedly. clientmanager.cpp 591
@@ -776,11 +789,7 @@ void ClientManager::send(AdcCommand& cmd, const CID& cid)
 		OnlineUser& u = *i->second;
 		if (cmd.getType() == AdcCommand::TYPE_UDP && !u.getIdentity().isUdpActive())
 		{
-			if (u.getUser()->isNMDC()
-#ifdef STRONG_USE_DHT
-			        || u.getClientBase().m_type == Client::DHT
-#endif
-			   )
+			if (u.getUser()->isNMDC() || u.isDHT())
 				return;
 				
 			cmd.setType(AdcCommand::TYPE_DIRECT);
@@ -1237,7 +1246,7 @@ OnlineUserPtr ClientManager::findDHTNode(const CID& cid)
 		if (!ou->getUser()->isSet(User::DHT0))
 			break;
 			
-		if (ou->getClientBase().m_type == Client::DHT)
+		if (ou->isDHT())
 			return ou;
 	}
 	return nullptr;
@@ -1362,10 +1371,7 @@ void ClientManager::fileListDisconnected(const UserPtr& p)
 	{
 		webrtc::ReadLockScoped l(*g_csOnlineUsers);
 		OnlineIterC i = g_onlineUsers.find(p->getCID());
-		if (i != g_onlineUsers.end()
-#ifdef STRONG_USE_DHT
-		        && i->second->getClientBase().m_type != ClientBase::DHT
-#endif
+		if (i != g_onlineUsers.end()  && !i->second->isDHT()
 		   )
 		{
 			OnlineUser* ou = i->second;
@@ -1395,10 +1401,7 @@ void ClientManager::connectionTimeout(const UserPtr& p)
 	{
 		webrtc::ReadLockScoped l(*g_csOnlineUsers);
 		OnlineIterC i = g_onlineUsers.find(p->getCID());
-		if (i != g_onlineUsers.end()
-#ifdef STRONG_USE_DHT
-		        && i->second->getClientBase().m_type != ClientBase::DHT
-#endif
+		if (i != g_onlineUsers.end()  && !i->second->isDHT()
 		   )
 		{
 			OnlineUser& ou = *i->second;
@@ -1439,10 +1442,7 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl)
 	{
 		webrtc::ReadLockScoped l(*g_csOnlineUsers);
 		OnlineIterC i = g_onlineUsers.find(p->getCID());
-		if (i == g_onlineUsers.end()
-#ifdef STRONG_USE_DHT
-		        || i->second->getClientBase().m_type == ClientBase::DHT
-#endif
+		if (i == g_onlineUsers.end() || i->second->isDHT()
 		   )
 			return;
 			
@@ -1504,11 +1504,7 @@ void ClientManager::setClientStatus(const UserPtr& p, const string& aCheatString
 	{
 		webrtc::ReadLockScoped l(*g_csOnlineUsers);
 		OnlineIterC i = g_onlineUsers.find(p->getCID());
-		if (i == g_onlineUsers.end()
-#ifdef STRONG_USE_DHT
-		        || i->second->getClientBase().m_type == ClientBase::DHT
-#endif
-		   )
+		if (i == g_onlineUsers.end() || i->second->isDHT())
 			return;
 			
 		ou = i->second;
@@ -1600,11 +1596,7 @@ void ClientManager::reportUser(const HintedUser& user)
 	{
 		webrtc::ReadLockScoped l(*g_csOnlineUsers);
 		OnlineUser* ou = findOnlineUserL(user.user->getCID(), user.hint, priv);
-		if (!ou
-#ifdef STRONG_USE_DHT
-		        || ou->getClientBase().m_type == ClientBase::DHT
-#endif
-		   )
+		if (!ou || ou->isDHT())
 			return;
 			
 		ou->getIdentity().getReport(report);// [+] FlylinkDC report

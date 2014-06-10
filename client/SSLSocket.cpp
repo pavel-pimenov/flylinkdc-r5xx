@@ -28,10 +28,6 @@
 # include <openssl/err.h>
 #endif
 
-#ifdef YASSL_VERSION
-# include <yassl_int.hpp>
-#endif
-
 SSLSocket::SSLSocket(SSL_CTX* context) : ctx(context), ssl(0)
 #ifndef HEADER_OPENSSLV_H
 	, finished(false)

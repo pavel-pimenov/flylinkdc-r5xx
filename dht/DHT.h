@@ -59,7 +59,7 @@ class DHT :
 		
 		uint16_t getPort() const
 		{
-			return socket.getPort();
+			return m_dht_socket.getPort();
 		}
 		
 		/** Process incoming command */
@@ -154,7 +154,7 @@ class DHT :
 		template<typename T> void handle(T, const Node::Ptr&user, AdcCommand&) { }
 		
 		/** UDP socket */
-		UDPSocket   socket;
+		UDPSocket   m_dht_socket;
 		
 		/** Routing table */
 		RoutingTable*   m_bucket;

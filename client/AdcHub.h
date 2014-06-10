@@ -44,7 +44,6 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		
 		size_t getUserCount() const
 		{
-			//FastLock l(cs); // [-] https://code.google.com/p/flylinkdc/issues/detail?id=1231 experiment!
 			return m_users.size();
 		}
 		

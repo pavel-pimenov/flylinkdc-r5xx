@@ -99,6 +99,10 @@ dcdrun(bool Preview::_debugIsClean = true;)
 // [~] IRainman fix.
 HIconWrapper WinUtil::g_banIconOnline(IDR_BANNED_ONLINE); // !SMT!-UI
 HIconWrapper WinUtil::g_banIconOffline(IDR_BANNED_OFF); // !SMT!-UI
+HIconWrapper WinUtil::g_hMedicalIcon(IDR_ICON_MEDICAL_BAG);
+HIconWrapper WinUtil::g_hThermometerIcon(IDR_ICON_THERMOMETR_BAG);
+HIconWrapper WinUtil::g_hCrutchIcon(IDR_ICON_CRUTCH);
+
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOnIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOffIcon;
 //static WinUtil::ShareMap WinUtil::UsersShare; // !SMT!-UI
@@ -2638,11 +2642,10 @@ int FileImage::getIconIndex(const string& aFileName)
 			{
 				if (CFlyServerConfig::isVirusExt(xx))
 				{
-					static HIconWrapper g_hExeIcon(IDR_ICON_THERMOMETR_BAG);
 					static int g_virus_exe_icon_index = 0;
 					if (!g_virus_exe_icon_index)
 					{
-						m_images.AddIcon(g_hExeIcon);
+						m_images.AddIcon(WinUtil::g_hThermometerIcon);
 						m_imageCount++;
 						g_virus_exe_icon_index = m_imageCount - 1;
 					}
@@ -2656,11 +2659,10 @@ int FileImage::getIconIndex(const string& aFileName)
 					const auto base_x = xx.substr(0, i);
 					if (CFlyServerConfig::isMediainfoExt(base_x))
 					{
-						static HIconWrapper g_hMedicalIcon(IDR_ICON_MEDICAL_BAG);
 						static int g_media_virus_exe_icon_index = 0;
 						if (!g_media_virus_exe_icon_index)
 						{
-							m_images.AddIcon(g_hMedicalIcon);
+							m_images.AddIcon(WinUtil::g_hMedicalIcon);
 							m_imageCount++;
 							g_media_virus_exe_icon_index = m_imageCount - 1;
 						}

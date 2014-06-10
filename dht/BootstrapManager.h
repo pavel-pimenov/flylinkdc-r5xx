@@ -35,11 +35,22 @@ class BootstrapManager :
 		~BootstrapManager(void);
 		
 		bool bootstrap();
+		void shutdown();
+		void inc_live_check()
+		{
+			++m_count_dht_test_ok;
+		}
+		void flush_live_check();
+		string create_url_for_dht_server();
 		bool process();
 		void addBootstrapNode(const string& ip, uint16_t udpPort, const CID& targetCID, const UDPKey& udpKey);
 		
 	private:
+		void dht_live_check(const char* p_operation,const string& p_param);
 
+		int m_count_dht_test_ok;
+		std::unordered_map<string, int> m_dht_bootstrap_count;
+		std::string m_user_agent;
 		CriticalSection m_cs;
 		/** List of bootstrap nodes */
 		deque<BootstrapNode> bootstrapNodes;

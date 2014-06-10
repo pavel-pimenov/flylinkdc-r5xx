@@ -383,7 +383,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 			m_last_encoding = p_encoding;
 		}
 		GETSET(States, state, State);
-		GETSET(uint8_t, slotType, SlotType);
+		GETSET(SlotTypes, slotType, SlotType);
 		
 		BufferedSocket const* getSocket() const
 		{

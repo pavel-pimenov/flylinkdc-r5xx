@@ -35,7 +35,7 @@ struct Node :
 	public OnlineUser
 {
 		typedef boost::intrusive_ptr<Node> Ptr;
-		typedef std::map<CID, Node::Ptr> Map;
+		typedef std::map<CID, Node::Ptr> Map; // map менять нельзя - контейнер должен быть сортирован
 		
 		Node(const UserPtr& u);
 		~Node() noexcept { }

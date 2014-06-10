@@ -20,11 +20,10 @@
 #define DCPLUSPLUS_DCPP_UPLOAD_MANAGER_H
 
 #include <set>
-#include "UserConnectionListener.h"
 #include "Singleton.h"
 #include "UploadManagerListener.h"
-#include "ClientManager.h"
 #include "ClientManagerListener.h"
+#include "UserConnection.h"
 
 class UploadQueueItem : public intrusive_ptr_base<UploadQueueItem>, // [!] IRainman fix: cleanup.
 	public ColumnBase< 12 >, // [+] PPA. TODO fix me: use COLUMN_LAST.
@@ -247,7 +246,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		UploadList m_delayUploads;
 		mutable CriticalSection m_csUploads; // [!] IRainman opt.
 		
-		void process_slot(uint8_t p_slot_type, int p_delta);
+		void process_slot(UserConnection::SlotTypes p_slot_type, int p_delta);
 		
 		// [+] IRainman SpeedLimiter
 		typedef pair<UserPtr, unsigned int> CurrentConnectionPair;
@@ -284,7 +283,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		}
 		// [~] IRainman SpeedLimiter
 		
-		int lastFreeSlots; /// amount of free slots at the previous minute
+		int m_lastFreeSlots; /// amount of free slots at the previous minute
 		
 		typedef std::unordered_map<UserPtr, uint64_t, User::Hash> SlotMap;
 		

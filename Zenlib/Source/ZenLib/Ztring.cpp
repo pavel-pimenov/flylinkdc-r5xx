@@ -235,13 +235,6 @@ Ztring& Ztring::From_Unicode (const wchar_t* S)
                 assign(wxConvCurrent->cWC2MB(S));
         #else //ZENLIB_USEWX
             #ifdef WINDOWS
-                #ifndef ZENLIB_NO_WIN9X_SUPPORT
-                if (IsWin9X())
-                {
-                    clear();
-                    return *this; //Is not possible, UTF-8 is not supported by Win9X
-                }
-                #endif //ZENLIB_NO_WIN9X_SUPPORT
                 int Size=WideCharToMultiByte(CP_UTF8, 0, S, -1, NULL, 0, NULL, NULL);
                 if (Size!=0)
                 {
@@ -680,7 +673,7 @@ Ztring& Ztring::From_ISO_8859_2(const char* S, size_type Start, size_type Length
     return *this;
 }
 
-Ztring& Ztring::From_GUID (const int128u& S) //[!]PVS-Studio V801	Decreased performance. It is better to redefine the first function argument as a reference. Consider replacing 'const .. S' with 'const .. &S'.
+Ztring& Ztring::From_GUID (const int128u& S)
 {
     Ztring S1;
     S1.From_CC1((int8u) ((S.hi&0x000000FF00000000LL)>>32)); append(S1);
@@ -699,7 +692,7 @@ Ztring& Ztring::From_GUID (const int128u& S) //[!]PVS-Studio V801	Decreased perf
     return *this;
 }
 
-Ztring& Ztring::From_UUID (const int128u& S) //[!]PVS-Studio V801	Decreased performance. It is better to redefine the first function argument as a reference. Consider replacing 'const .. S' with 'const .. &S'.
+Ztring& Ztring::From_UUID (const int128u& S)
 {
     Ztring S1;
     S1.From_CC2((int16u)((S.hi&0xFFFF000000000000LL)>>48)); assign(S1);
@@ -1029,7 +1022,7 @@ Ztring& Ztring::From_Number (const int64u I, int8u Radix)
         }
         else
         {
-            toStringStream Stream; // https://www.box.net/shared/869a372c99e34ce5d171
+            toStringStream Stream;
             Stream << setbase(Radix) << I;
             assign(Stream.str());
         }
@@ -1038,7 +1031,7 @@ Ztring& Ztring::From_Number (const int64u I, int8u Radix)
     return *this;
 }
 
-Ztring& Ztring::From_Number (const int128u& I, int8u Radix) // [!]PVS-Studio V801	Decreased performance. It is better to redefine the first function argument as a reference. Consider replacing 'const .. S' with 'const .. &S'.
+Ztring& Ztring::From_Number (const int128u& I, int8u Radix)
 {
     From_Local(I.toString(Radix));
 
@@ -1374,7 +1367,7 @@ Ztring& Ztring::Date_From_String (const char* Value, size_t Value_Size)
             ToReturn+=__T(" ");
             ToReturn+=Date.FormatISOTime();
         }
-        else if (ToReturn.size()<5)
+        else
             ToReturn+=DateS;
 
         assign (ToReturn.c_str());

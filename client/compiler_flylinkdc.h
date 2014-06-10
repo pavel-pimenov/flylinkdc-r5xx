@@ -213,7 +213,6 @@ typedef unsigned __int64 uint64_t;
 # define IRAINMAN_FULL_UPNP_LOG
 #endif
 #define IRAINMAN_TEMPORARY_DISABLE_XXX_ICON // TODO refactoring this code, or complitly delete.
-//#define IRAINMAN_AV_CHECK // TODO Don't check partial file, check file after download! Increase system performance :)
 #define SPEED_APPROXIMATION_INTERVAL_S 30 // [!]IRainman: Interval of speed approximation in seconds.
 #ifndef FLYLINKDC_HE
 # define IRAINMAN_ENABLE_AUTO_BAN
@@ -250,7 +249,6 @@ typedef unsigned __int64 uint64_t;
 // http://code.google.com/p/flylinkdc/issues/detail?id=916
 // http://code.google.com/p/flylinkdc/issues/detail?id=944
 //#endif
-//#define IRAINMAN_USE_SEARCH_FLOOD_FILTER // TODO L: оптимизировать поиск несколько другим способом: не отвечать на одинаковые запросы от одного искателя в течении определённого промежутка времени, модификацию сделать внутри SearchManager - только это даст реальный эффект при большом числе открытых хабов.
 //#define IRAINMAN_ENABLE_TTH_GET_FLAG // This code is off. All clients support ADC teams have this flag is always set. Our version 4xx also do not use it. He is unlikely to ever need. Leave only to simplify merge.
 //#define IRAINMAN_CONNECTION_MANAGER_TOKENS_DEBUG // TODO: must correct work with tokens in the ConnectionManager. This error runs either with Strong, or even from a very long time. After confirming correct downloads, I'll probably fix the problem.
 //#define IRAINMAN_CORRRECT_CALL_FOR_CLIENT_MANAGER_DEBUG // TODO: correct the error with the transfer of incorrect addresses in ClientManager :: findHub: error or very old or relatively new and due to the large merzh in the making of the branches r5xx.

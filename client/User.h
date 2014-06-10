@@ -290,7 +290,7 @@ class User : public intrusive_ptr_base<User>, public Flags
 		void fixLastIP();
 		void AddRatioUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
 		void AddRatioDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
-		void incMessageCount();
+		void incMessagesCount();
 		void flushRatio();
 		tstring getUDratio();
 		tstring getUpload();
@@ -329,7 +329,7 @@ class User : public intrusive_ptr_base<User>, public Flags
 		uint64_t getBytesUpload();
 		uint64_t getBytesDownload();
 		uint64_t getMessageCount();
-		void initRatio();
+		void initRatio(bool p_force = false);
 		void initRatioL(const boost::asio::ip::address_v4& p_ip);
 		
 #endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO

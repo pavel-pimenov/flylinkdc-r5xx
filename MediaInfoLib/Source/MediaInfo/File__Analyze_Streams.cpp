@@ -736,9 +736,9 @@ void File__Analyze::Fill (stream_t StreamKind, size_t StreamPos, size_t Paramete
                 Clear(Stream_Audio, StreamPos, Audio_Video_Delay);
             ZtringList AudioDelay; AudioDelay.Separator_Set(0, __T(" / ")); AudioDelay.Write(Retrieve(Stream_Audio, StreamPos, Audio_Delay));
             ZtringList VideoDelay; VideoDelay.Separator_Set(0, __T(" / ")); VideoDelay.Write(Retrieve(Stream_Video, 0, Video_Delay));
-            if (AudioDelay.size()<=VideoDelay.size())
+            if (!AudioDelay.empty() && !VideoDelay.empty() && AudioDelay.size() <= VideoDelay.size())
             {
-                Fill(Stream_Audio, StreamPos, Audio_Video_Delay, AudioDelay(AudioDelay.size()-1).To_int64s()-VideoDelay(AudioDelay.size()-1).To_int64s(), 10);
+                Fill(Stream_Audio, StreamPos, Audio_Video_Delay, AudioDelay(AudioDelay.size()-1).To_int64s()-VideoDelay(VideoDelay.size()-1).To_int64s(), 10);
                 if (VideoDelay.size()==1 && Retrieve(Stream_Audio, StreamPos, Audio_Video_Delay).To_int64u()==0)
                     for (size_t Pos=Audio_Video_Delay+1; Pos<=Audio_Video_Delay+4; Pos++)
                         if (Pos<(*Stream)[Stream_Audio][StreamPos].size())
@@ -787,9 +787,9 @@ void File__Analyze::Fill (stream_t StreamKind, size_t StreamPos, size_t Paramete
                 Clear(Stream_Audio, StreamPos, Audio_Video0_Delay);
             ZtringList AudioDelay; AudioDelay.Separator_Set(0, __T(" / ")); AudioDelay.Write(Retrieve(Stream_Audio, StreamPos, Audio_Delay));
             ZtringList VideoDelay; VideoDelay.Separator_Set(0, __T(" / ")); VideoDelay.Write(Retrieve(Stream_Video, 0, Video_Delay));
-            if (AudioDelay.size()<=VideoDelay.size())
+            if (!AudioDelay.empty() && !VideoDelay.empty() && AudioDelay.size() <= VideoDelay.size())
             {
-                Fill(Stream_Audio, StreamPos, Audio_Video0_Delay, AudioDelay(AudioDelay.size()-1).To_int64s()-VideoDelay(AudioDelay.size()-1).To_int64s(), 10);
+                Fill(Stream_Audio, StreamPos, Audio_Video0_Delay, AudioDelay(AudioDelay.size() - 1).To_int64s() - VideoDelay(VideoDelay.size() - 1).To_int64s(), 10);
                 if (VideoDelay.size()==1 && Retrieve(Stream_Audio, StreamPos, Audio_Video0_Delay).To_int64u()==0)
                     for (size_t Pos=Audio_Video0_Delay+1; Pos<=Audio_Video0_Delay+4; Pos++)
                         if (Pos<(*Stream)[Stream_Audio][StreamPos].size())
@@ -2239,7 +2239,7 @@ void File__Analyze::CodecID_Fill(const Ztring &Value, stream_t StreamKind, size_
 {
     if (StreamKind_CodecID==Stream_Max)
         StreamKind_CodecID=StreamKind;
-        
+
     Fill(StreamKind, StreamPos, Fill_Parameter(StreamKind, Generic_CodecID), Value);
     const Ztring &C1=MediaInfoLib::Config.CodecID_Get(StreamKind_CodecID, Format, Value, InfoCodecID_Format);
     Fill(StreamKind, StreamPos, Fill_Parameter(StreamKind, Generic_Format), C1.empty()?Value:C1, true);

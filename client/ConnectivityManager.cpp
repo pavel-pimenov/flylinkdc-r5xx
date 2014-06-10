@@ -246,34 +246,37 @@ void ConnectivityManager::mappingFinished(const string& mapper)
 	running = false;
 }
 
-void ConnectivityManager::listen()
+void ConnectivityManager::listen() // TODO - fix copy-paste
 {
 	try
 	{
 		ConnectionManager::getInstance()->listen();
 	}
-	catch (const Exception&)
+	catch (const Exception& e)
 	{
-		throw Exception("TCP/TLS");
+		throw Exception("TCP/TLS listen error = " + e.getError());
 	}
-	
 	try
 	{
 		SearchManager::getInstance()->listen();
 	}
-	catch (const Exception&)
+	catch (const Exception& e)
 	{
-		throw Exception("UDP");
+		throw Exception("UDP listen error = " + e.getError());
 	}
 	
 #ifdef STRONG_USE_DHT
 	try
 	{
+		if (dht::DHT::getInstance()->getPort() &&  dht::DHT::getInstance()->getPort() != SETTING(DHT_PORT))
+		{
+			// TODO dht::DHT::getInstance()->stop(); это не пашет - нужно разрушение
+		}
 		dht::DHT::getInstance()->start();
 	}
-	catch (const Exception&)
+	catch (const Exception& e)
 	{
-		throw Exception("DHT");
+		throw Exception("DHT listen error = " + e.getError());
 	}
 #endif
 }

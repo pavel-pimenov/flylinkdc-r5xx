@@ -52,7 +52,6 @@ class NmdcHub : public Client, private Flags
 		
 		size_t getUserCount() const
 		{
-			//FastLock l(cs); // [-] https://code.google.com/p/flylinkdc/issues/detail?id=1231 experiment!
 			return m_users.size();
 		}
 		
@@ -124,12 +123,6 @@ class NmdcHub : public Client, private Flags
 		uint8_t m_supportFlags;
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 		bool m_hubSupportsSlots;//[+] FlylinkDC
-#endif
-		
-#ifdef IRAINMAN_USE_SEARCH_FLOOD_FILTER
-		typedef list<pair<string, uint64_t> > FloodMap;
-		FloodMap seekers;
-		FloodMap flooders;
 #endif
 		
 #ifdef RIP_USE_CONNECTION_AUTODETECT
@@ -221,10 +214,6 @@ class NmdcHub : public Client, private Flags
 		void myInfo(bool alwaysSend);
 		void myInfoParse(const string& param);
 		void supports(const StringList& feat);
-#ifdef IRAINMAN_USE_SEARCH_FLOOD_FILTER
-		void clearFlooders(uint64_t tick);
-#endif
-		
 		void updateFromTag(Identity& id, const string & tag);
 		
 		virtual void checkNick(string& p_nick);

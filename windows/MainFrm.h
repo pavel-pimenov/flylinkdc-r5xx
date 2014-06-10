@@ -812,6 +812,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 				int run()
 				{
 					CFlyServerAdapter::CFlyServerJSON::pushStatistic(m_is_sync_run);
+					CFlyServerAdapter::CFlyServerJSON::sendDownloadCounter();
 					return 0;
 				}
 			public:

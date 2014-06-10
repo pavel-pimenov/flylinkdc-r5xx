@@ -398,6 +398,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		auto_ptr<sqlite3_command> m_insert_ratio;
 		
 #ifdef _DEBUG
+		auto_ptr<sqlite3_command> m_check_message_count;
 		auto_ptr<sqlite3_command> m_select_store_ip;
 #endif
 		//auto_ptr<sqlite3_command> m_insert_store_ip;

@@ -214,7 +214,7 @@ void QueueItem::getOnlineUsers(UserList& list) const
 void QueueItem::addSourceL(const UserPtr& aUser)
 {
 	dcassert(!isSourceL(aUser));
-	SourceIter i = getBadSourceL(aUser);
+	SourceIter i = findBadSourceL(aUser);
 	if (i != m_badSources.end())
 	{
 		m_sources.insert(*i);
@@ -266,7 +266,7 @@ bool QueueItem::isChunkDownloadedL(int64_t startPos, int64_t& len) const
 
 void QueueItem::removeSourceL(const UserPtr& aUser, Flags::MaskType reason)
 {
-	SourceIter i = getSourceL(aUser); // crash - https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=42877 && http://www.flickr.com/photos/96019675@N02/10488126423/
+	SourceIter i = findSourceL(aUser); // crash - https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=42877 && http://www.flickr.com/photos/96019675@N02/10488126423/
 	dcassert(i != m_sources.end());
 	// [-] IRainman fix: is not possible in normal state! Please don't problem maskerate.
 //	if (i != m_sources.end()) //[+]PPA
@@ -354,7 +354,7 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 		return Segment(0, -1);
 	}
 	
-	if (!BOOLSETTING(MULTI_CHUNK))
+	if (!BOOLSETTING(ENABLE_MULTI_CHUNK))
 	{
 		if (!m_downloads.empty())
 		{

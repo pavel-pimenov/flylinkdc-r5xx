@@ -111,6 +111,21 @@ template <class T> class CFlyTestStatistic
 };
 #endif // _DEBUG
 
+class CFlyBusy
+{
+		bool& m_flag;
+	public:
+		CFlyBusy(bool& p_flag) : m_flag(p_flag)
+		{
+			//dcassert(p_flag == false);
+			m_flag = true;
+		}
+		~CFlyBusy()
+		{
+			m_flag = false;
+		}
+};
+
 template <class T> inline void safe_delete(T* & p)
 {
 	if (p != nullptr)

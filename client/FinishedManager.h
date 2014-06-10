@@ -40,9 +40,6 @@ class FinishedItem
 			COLUMN_SIZE,
 			COLUMN_SPEED,
 			COLUMN_IP, //[+] PPA
-#ifdef IRAINMAN_AV_CHECK
-			COLUMN_ANTIVIR_CHECK,
-#endif
 			COLUMN_LAST
 		};
 		
@@ -56,12 +53,6 @@ class FinishedItem
 			hubs(Util::toString(ClientManager::getHubNames(aUser.user->getCID(), Util::emptyString))),
 			size(aSize), avgSpeed(aSpeed), time(aTime), tth(aTTH), ip(aIP), nick(aUser.user->getLastNick())
 		{
-#ifdef IRAINMAN_AV_CHECK
-			if (SETTINGS(USE_ANTIVIR) && SETTINGS(ANTIVIR_AUTO_CHECK))
-				setAVchecked(::ShellExecute(NULL, NULL, Text::toT(SETTINGS(ANTIVIR_PATH)).c_str(), Text::toT('\"' + target + '\"').c_str(), NULL, SW_HIDE) != -1);
-			else
-				setAVchecked(false);
-#endif // IRAINMAN_AV_CHECK
 		}
 		
 		const tstring getText(int col) const
@@ -85,10 +76,6 @@ class FinishedItem
 					return Util::formatBytesW(getAvgSpeed()) + _T('/') + WSTRING(S);
 				case COLUMN_IP:
 					return Text::toT(getIP()); //[+]PPA
-#ifdef IRAINMAN_AV_CHECK
-				case COLUMN_ANTIVIR_CHECK:
-					return getAVchecked() ? TSTRING(CHECKED) : TSTRING(NOT_CHECKED);
-#endif
 				default:
 					return Util::emptyStringT;
 			}
@@ -121,10 +108,6 @@ class FinishedItem
 		GETC(int64_t, size, Size);
 		GETC(int64_t, avgSpeed, AvgSpeed);
 		GETC(time_t, time, Time);
-#ifdef IRAINMAN_AV_CHECK
-		GETSET(bool, avChecked, AVchecked);
-#endif
-		
 	private:
 		friend class FinishedManager;
 		tstring m_path;

@@ -7,17 +7,6 @@
 namespace ssl
 {
 
-#ifdef YASSL_VERSION
-using namespace yaSSL;
-
-#define SSL_is_init_finished(a)     (a->getStates().getHandShake() == handShakeReady)
-#elif !defined HEADER_OPENSSLV_H
-#define SSL_is_init_finished(a)     finished
-#endif
-
-#ifndef SSL_SUCCESS
-#define SSL_SUCCESS 1
-#endif
 
 template < typename T, void (__cdecl *Release)(T*) >
 class scoped_handle

@@ -1129,6 +1129,7 @@
     <None Include="res\Magnet.ico" />
     <None Include="res\Magnet.png" />
     <None Include="res\Mediafiles.png" />
+    <None Include="res\medical_bag.ico" />
     <None Include="res\MultiChat.ico" />
     <None Include="res\Network-Statistics.ico" />
     <None Include="res\Notepad.ico" />
@@ -1161,6 +1162,7 @@
     <None Include="res\strike.ico" />
     <None Include="res\strike.png" />
     <None Include="res\SwitchPanels.ico" />
+    <None Include="res\thermometer2.ico" />
     <None Include="res\Toolbar-highlight.png" />
     <None Include="res\Toolbar-mini.png" />
     <None Include="res\Toolbar.png" />

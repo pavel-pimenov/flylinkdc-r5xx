@@ -164,7 +164,7 @@ void Utils::cleanFlood()
 /*
  * Stores outgoing request to avoid receiving invalid responses
  */
-void Utils::trackOutgoingPacket(const string& ip, const AdcCommand& cmd)
+void Utils::trackOutgoingPacket(const string& ip, const AdcCommand& cmd) // TODO - move 2 DHT
 {
 	const uint64_t now = GET_TICK();
 
@@ -189,7 +189,11 @@ void Utils::trackOutgoingPacket(const string& ip, const AdcCommand& cmd)
 	{
 		const uint64_t diff = now - g_sentPackets.front().time;
 		if (diff >= TIME_FOR_RESPONSE)
+		{		   
 			g_sentPackets.pop_front();
+			LogManager::getInstance()->dht_message("[Utils::trackOutgoingPacket] Clean up old items: cmd [" + 
+				Util::toString(g_sentPackets.front().cmd) + "] ip = [" + g_sentPackets.front().ip + "] diffTime = " + Util::toString(diff));
+		}
 		else
 			break;
 	}
@@ -198,7 +202,7 @@ void Utils::trackOutgoingPacket(const string& ip, const AdcCommand& cmd)
 /*
  * Generates UDP key for specified IP address
  */
-CID Utils::getUdpKey(const string& targetIp)
+CID Utils::getUdpKey(const string& targetIp) // TODO - часто зовется.
 {
 	CID myUdpKey = CID(SETTING(DHT_KEY));
 	

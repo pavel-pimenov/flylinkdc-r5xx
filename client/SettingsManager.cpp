@@ -86,9 +86,9 @@ const string SettingsManager::settingTags[] =
 	"ProfilesURL", "WinampFormat",
 	
 	"WebServerPowerUser", "WebServerPowerPass", "webServerBindAddress", // [+] IRainman
-	"WebServerLogFormat", "LogFormatCustomLocation", "LogFormatTraceSQLite", "LogFormatDdosTrace", "WebServerUser", "WebServerPass", "LogFileMainChat",
+	"WebServerLogFormat", "LogFormatCustomLocation", "LogFormatTraceSQLite", "LogFormatDdosTrace", "LogFormatDHTTrace", "WebServerUser", "WebServerPass", "LogFileMainChat",
 	"LogFilePrivateChat", "LogFileStatus", "LogFileUpload", "LogFileDownload", "LogFileSystem", "LogFormatSystem",
-	"LogFormatStatus", "LogFileWebServer", "LogFileCustomLocation", "LogTraceSQLite", "LogFileDdosTrace",
+	"LogFormatStatus", "LogFileWebServer", "LogFileCustomLocation", "LogTraceSQLite", "LogFileDdosTrace", "LogFileDHTTrace",
 	"DirectoryListingFrameOrder", "DirectoryListingFrameWidths",
 	"MainFrameVisible", "SearchFrameVisible", "QueueFrameVisible", "HubFrameVisible", "UploadQueueFrameVisible",
 	"EmoticonsFileFlylinkDC",
@@ -162,7 +162,7 @@ const string SettingsManager::settingTags[] =
 	"SendBloom",
 	"AutoSearchAutoMatch", "DownloadBarColor", "UploadBarColor", "LogSystem",
 	"LogCustomLocation", // [+] IRainman
-	"LogSQLiteTrace", "LogDDOSTrace",
+	"LogSQLiteTrace", "LogDDOSTrace", "LogDHTTrace",
 	"LogFilelistTransfers", "ShowStatusbar", "ShowToolbar", "ShowTransferview",
 	"SearchPassiveAlways", "SetMinislotSize", "ShutdownInterval",
 	//"CzertHiddenSettingA", "CzertHiddenSettingB",// [-] IRainman SpeedLimiter
@@ -221,7 +221,7 @@ const string SettingsManager::settingTags[] =
 	"FileListAndClientCheckedColour", "BadClientColour", "BadFilelistColour", "DontDLAlreadyShared", "RealTimeQueueUpdate",
 	"ConfirmOpenInetHubs", // [+] InfinitySky.
 	"ConfirmHubRemoval", "ConfirmHubgroupRemoval", "ConfirmUserRemoval", "SuppressMainChat", "ProgressBackColor", "ProgressCompressColor", "ProgressSegmentColor",
-	"OpenNewWindow", "FileSlots",  "UDPPort", "MultiChunk",
+	"OpenNewWindow", "FileSlots",  "UDPPort", "EnableMultiChunk",
 	"UserListDoubleClick", "TransferListDoubleClick", "ChatDoubleClick", "AdcDebug", "NmdcDebug",
 	"ToggleActiveWindow", "ProgressbaroDCStyle", "SearchHistory",
 	//"BadSoftDetections", "DetectBadSoft", [-]
@@ -269,9 +269,6 @@ const string SettingsManager::settingTags[] =
 	"StartupBackup", // [+] Drakon
 	
 	"GlobalHubFrameConf",
-#ifdef IRAINMAN_AV_CHECK
-	"UseAntiVir", "AntivirPath", "AntivirAutoCheck",
-#endif
 	"IgnoreUseRegExpOrWc", "StealthyIndicateSpeeds",
 	"ColourDupe", "NoTigerTreeHashCheat",
 	"DeleteChecked", "Topmost", "LockToolbars",
@@ -560,6 +557,9 @@ void SettingsManager::setDefaults()
 	
 	setDefault(LOG_FILE_DDOS_TRACE, "ddos.log");
 	setDefault(LOG_FORMAT_DDOS_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
+	
+	setDefault(LOG_FILE_DHT_TRACE, "dht.log");
+	setDefault(LOG_FORMAT_DHT_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
 	
 	setDefault(TIME_STAMPS_FORMAT, "%X"); // [!] IRainman fix: use system format time. "%H:%M:%S"
 //
@@ -895,7 +895,7 @@ void SettingsManager::setDefaults()
 	setDefault(PROGRESS_OVERRIDE_COLORS, TRUE);
 	setDefault(PROGRESS_OVERRIDE_COLORS2, TRUE);
 	setDefault(MAX_AUTO_MATCH_SOURCES, 5);
-	setDefault(MULTI_CHUNK, TRUE);
+	setDefault(ENABLE_MULTI_CHUNK, TRUE);
 	//setDefault(USERLIST_DBLCLICK, 0); // [~] brain-ripper: changed default value from GET_FILE_LIST to BROWSE_FILE_LIST // [~] InfinitySky: чтобы не было вопросов, почему не качается, как надо. Обратно BROWSE_FILE_LIST на GET_FILE_LIST
 	//setDefault(TRANSFERLIST_DBLCLICK, 0);
 	setDefault(CHAT_DBLCLICK, 1);
@@ -1103,11 +1103,6 @@ void SettingsManager::setDefaults()
 	//setDefault(UP_TRANSFER_COLORS, 0); // By Drakon // [~] InfinitySky. Отключено, так как нельзя поменять цвета.
 	//setDefault(STARTUP_BACKUP, 0); // by Drakon
 	//setDefault(GLOBAL_HUBFRAME_CONF, false);
-#ifdef IRAINMAN_AV_CHECK
-	//setDefault(USE_ANTIVIR, false);
-	//setDefault(ANTIVIR_PATH, "");
-	setDefault(ANTIVIR_AUTO_CHECK, TRUE); // if disable user checks files manually in Finished frame
-#endif // IRAINMAN_AV_CHECK
 	//setDefault(IGNORE_USE_REGEXP_OR_WC, false);
 	//setDefault(STEALTHY_INDICATE_SPEEDS, false);
 	setDefault(COLOUR_DUPE, RGB(0, 174, 87));
@@ -1259,7 +1254,7 @@ void SettingsManager::setDefaults()
 #ifdef NIGHTORION_USE_STATISTICS_REQUEST
 	setDefault(SETTINGS_STATISTICS_ASK, TRUE);
 #endif
-	setDefault(USE_STATICTICS_SEND, TRUE);
+	setDefault(USE_FLY_SERVER_STATICTICS_SEND, TRUE);
 #ifdef FLYLINKDC_USE_CHECK_OLD_OS
 	setDefault(REPORT_TO_USER_IF_OUTDATED_OS_DETECTED, TRUE); // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=1032
 #endif
@@ -1280,6 +1275,7 @@ void SettingsManager::setDefaults()
 	
 	// Генерим случайные порты при каждом старте если INCOMING_DIRECT (нахрена - пока не понятно)
 	// TODO - сделать отдельной галкой
+#if 0 // Отключил генерацию случайных портов при прямом соедиении
 	const auto l_current_connection = SETTING(INCOMING_CONNECTIONS);
 	if (l_current_connection == INCOMING_DIRECT)
 	{
@@ -1290,6 +1286,7 @@ void SettingsManager::setDefaults()
 		set(DHT_PORT, getNewPortValue(get(UDP_PORT)));//[!]IRainman
 #endif
 	}
+#endif
 	
 	Util::shrink_to_fit(&strDefaults[STR_FIRST], &strDefaults[STR_LAST]); // [+] IRainman opt.
 }
@@ -1585,6 +1582,7 @@ bool SettingsManager::set(StrSetting key, const string& value)
 		case LOG_FILE_CUSTOM_LOCATION:
 		case LOG_FILE_TRACE_SQLITE:
 		case LOG_FILE_DDOS_TRACE:
+		case LOG_FILE_DHT_TRACE:
 #ifdef RIP_USE_LOG_PROTOCOL
 		case LOG_FILE_PROTOCOL:
 #endif

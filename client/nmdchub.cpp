@@ -588,8 +588,13 @@ void NmdcHub::onLine(const string& aLine)
 		string::size_type i = 0;
 		string::size_type j = param.find(' ', i);
 		if (j == string::npos || i == j)
+		{
+#ifdef FLYLINKDC_BETA
+			LogManager::getInstance()->message("Error [part 1] $Search command = " + param + " Hub: " + getHubUrl());
+#endif
 			return;
-			
+		}
+		
 		const auto seeker = param.substr(i, j - i);
 		const auto isPassive = seeker.compare(0, 4, "Hub:", 4) == 0;
 		
@@ -641,6 +646,9 @@ void NmdcHub::onLine(const string& aLine)
 			dcassert(seeker.size() > 4);
 			if (seeker.compare(4, myNick.size(), myNick) == 0) // [!] IRainman fix: strongly check
 			{
+#ifdef FLYLINKDC_BETA
+				LogManager::getInstance()->message("Error [part 2] $Search command = " + param + " Hub: " + getHubUrl());
+#endif
 				return;
 			}
 		}
@@ -648,46 +656,13 @@ void NmdcHub::onLine(const string& aLine)
 		{
 			if (seeker == ((getFavIp().empty() ? getLocalIp() : getFavIp()) + ":" + Util::toString(SearchManager::getInstance()->getPort())))
 			{
+#ifdef FLYLINKDC_BETA
+				LogManager::getInstance()->message("Error [part 3] $Search command = " + param + " Hub: " + getHubUrl());
+#endif
 				return;
 			}
 		}
 		i = j + 1;
-#ifdef IRAINMAN_USE_SEARCH_FLOOD_FILTER
-		uint64_t tick = GET_TICK();
-		clearFlooders(tick);
-		
-		seekers.push_back(make_pair(seeker, tick));
-		
-		// First, check if it's a flooder
-		for (auto fi = flooders.cbegin(); fi != flooders.cend(); ++fi)
-		{
-			if (fi->first == seeker) // TODO - линейны й поиск. не эффективно
-			{
-				return;
-			}
-		}
-		
-		int count = 0;
-		for (auto fi = seekers.cbegin(); fi != seekers.cend(); ++fi)
-		{
-			if (fi->first == seeker) // [1] https://www.box.net/shared/9gb1e0hkp4220a7vwidj
-				count++;
-				
-			if (count > 7)
-			{
-				if (isOp())
-				{
-					if (isPassive)
-						fire(ClientListener::SearchFlood(), this, seeker.substr(4));
-					else
-						fire(ClientListener::SearchFlood(), this, seeker + ' ' + STRING(NICK_UNKNOWN));
-				}
-				
-				flooders.push_back(make_pair(seeker, tick));
-				return;
-			}
-		}
-#endif // IRAINMAN_USE_SEARCH_FLOOD_FILTER
 		Search::SizeModes a;
 		if (param[i] == 'F')
 		{
@@ -704,7 +679,12 @@ void NmdcHub::onLine(const string& aLine)
 		i += 4;
 		j = param.find('?', i);
 		if (j == string::npos || i == j)
+		{
+#ifdef FLYLINKDC_BETA
+			LogManager::getInstance()->message("Error [part 4] $Search command = " + param + " Hub: " + getHubUrl());
+#endif
 			return;
+		}
 		int64_t l_size;
 		if ((j - i) == 1 && param[i] == '0')
 		{
@@ -717,7 +697,12 @@ void NmdcHub::onLine(const string& aLine)
 		i = j + 1;
 		j = param.find('?', i);
 		if (j == string::npos || i == j)
+		{
+#ifdef FLYLINKDC_BETA
+			LogManager::getInstance()->message("Error [part 5] $Search command = " + param + " Hub: " + getHubUrl());
+#endif
 			return;
+		}
 		const int l_type_search = atoi(param.c_str() + i);
 		const Search::TypeModes type = Search::TypeModes(l_type_search - 1);
 		i = j + 1;
@@ -759,7 +744,7 @@ void NmdcHub::onLine(const string& aLine)
 		else
 		{
 #ifdef FLYLINKDC_BETA
-			LogManager::getInstance()->message("Error $Search command = " + param + " Hub: " + getHubUrl());
+			LogManager::getInstance()->message("Error [part 5] $Search command = " + param + " Hub: " + getHubUrl());
 #endif
 		}
 	}
@@ -1722,20 +1707,6 @@ void NmdcHub::sendUserCmd(const UserCommand& command, const StringMap& params)
 		send(fromUtf8(cmd));
 	}
 }
-#ifdef IRAINMAN_USE_SEARCH_FLOOD_FILTER
-void NmdcHub::clearFlooders(uint64_t aTick)
-{
-	while (!seekers.empty() && seekers.front().second + (5 * 1000) < aTick)
-	{
-		seekers.pop_front();
-	}
-	
-	while (!flooders.empty() && flooders.front().second + (120 * 1000) < aTick)
-	{
-		flooders.pop_front();
-	}
-}
-#endif // IRAINMAN_USE_SEARCH_FLOOD_FILTER
 void NmdcHub::on(BufferedSocketListener::Connected) noexcept
 {
 	Client::on(Connected());

@@ -2219,6 +2219,27 @@ size_t Util::getDataFromInet(LPCWSTR agent, const DWORD frameBufferSize, const s
 	
 	return l_bin_size;
 }
+string Util::getExtInternetError()
+{
+	wstring l_error;
+	DWORD dwLen = 0;
+	DWORD dwErr = 0;
+	InternetGetLastResponseInfo(&dwErr, NULL, &dwLen);
+	if (::GetLastError() == ERROR_INSUFFICIENT_BUFFER && dwLen)
+	{
+		dwLen++;
+		dcassert(dwLen);
+		if (dwLen)
+		{
+			l_error.resize(dwLen);
+			InternetGetLastResponseInfo(&dwErr, &l_error[0], &dwLen);
+		}
+	}
+	if (dwLen)
+		return "Ext Error = " + Text::fromT(l_error) + " [Code = " + Util::toString(dwErr) + "]";
+	else
+		return translateError(GetLastError());
+}
 //[+] SSA
 uint64_t Util::getBinaryDataFromInet(LPCWSTR agent, const DWORD frameBufferSize, const string& url, std::vector<byte>& p_dataOut, LONG timeOut /*=0*/, IDateReceiveReporter* reporter /* = NULL */)
 {
@@ -2231,7 +2252,7 @@ uint64_t Util::getBinaryDataFromInet(LPCWSTR agent, const DWORD frameBufferSize,
 	CInternetHandle hInternet(InternetOpen(agent, INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0));
 	if (!hInternet)
 	{
-		LogManager::getInstance()->message("InternetOpen [" + url + "] error = " + Util::translateError(GetLastError()));
+		LogManager::getInstance()->message("InternetOpen [" + url + "] error = " + getExtInternetError());
 		dcassert(0);
 		return 0;
 	}
@@ -2244,7 +2265,7 @@ uint64_t Util::getBinaryDataFromInet(LPCWSTR agent, const DWORD frameBufferSize,
 	if (!hURL)
 	{
 		dcassert(0);
-		LogManager::getInstance()->message("InternetOpenUrl [" + url + "] error = " + Util::translateError(GetLastError()));
+		LogManager::getInstance()->message("InternetOpenUrl [" + url + "] error = " + getExtInternetError());
 		// TODO - залогировать коды ошибок для статы
 		return 0;
 	}
@@ -2257,7 +2278,7 @@ uint64_t Util::getBinaryDataFromInet(LPCWSTR agent, const DWORD frameBufferSize,
 		if (!InternetReadFile(hURL, &p_dataOut[totalBytesRead], frameBufferSize, &l_BytesRead))
 		{
 			dcassert(0);
-			LogManager::getInstance()->message("InternetReadFile [" + url + "] error = " + Util::translateError(GetLastError()));
+			LogManager::getInstance()->message("InternetReadFile [" + url + "] error = " + getExtInternetError());
 			// TODO - залогировать коды ошибок для статы
 			return 0;
 		}
@@ -2283,6 +2304,7 @@ uint64_t Util::getBinaryDataFromInet(LPCWSTR agent, const DWORD frameBufferSize,
 		p_dataOut.clear();
 		totalBytesRead = 0;
 	}
+	p_dataOut.resize(totalBytesRead);
 	return totalBytesRead;
 }
 

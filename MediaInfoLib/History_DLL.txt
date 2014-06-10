@@ -8,6 +8,28 @@ bug reports and feature request are here:
 https://sourceforge.net/p/mediainfo/_list/tickets
 
 
+Version 0.7.70, 2014-
+--------------
++ CDP: using CDP service descriptor for the list of 708 services + language information
++ MXF: Audio "frame rate" (how PCM content is split in packets) information
++ MXF: Audio block alignment byte size (hidden by default)
++ VC-3: adding the commercial name "DNxHD" + bitrate class
++ MXF: SMPTE ST 377-4 (MXF Multichannel Audio Labeling Framework)
++ MXF: "ChannelLayoutID" new field (hidden by default) containing the MXF Channel Assignment Label
++ Wave64: Duration
++ CDP: frame rate
++ IMF: improvements (still work in progress)
++ QuickTime: ia13 CodecID
++ CDP: using ccsvcinfo_section() for service presence and language information
++ MXF/CDP: law rating (from CEA-608 XDS) information added (other containers were already supported)
++ CEA-608: Program name information
++ BMP: support of OS/2 headers
+x MPEG Video: was not correctly handling 1000:1001 frame rates and NDF time codes combination during frame count computing
+x XDCAM: information about the MXF header presence was not provided if MOV header has a glbl atom
+x Some specific C++11 code is removed for full compatibility with older C++
+x MXF: Time codes values were buggy in case of MXF with pre-charge ("Origin" not 0)
+x MPEG-4 Visual: wrong analysis in case on video_object_layer_shape not set to regular
+
 Version 0.7.69, 2014-04-24
 --------------
 + MPEG-TS: support of HEVC streams with stream_type of 36
@@ -40,7 +62,7 @@ Version 0.7.68, 2014-04-02
 + Node.js examples added, in contrib directory
 + GXF: support of DVCPRO HD
 + GXF: Media Type is reported
-+ HEVC: added support of scaling_list_data 
++ HEVC: added support of scaling_list_data
 + HEVC: deactivated general_profile_compatibility_flag validity test because some encoders do not implement it correctly
 + MPEG-4/MOV: Speed improvement, especially for full parsing of 100+ GB files.
 + File reading: Speed improvement of big files, especially for full parsing, with the help of a dedicated reading thread
@@ -101,7 +123,7 @@ x #B805, AC-3: Segfault on files falsely recognized as AC3 files, thanks to Gild
 x #B808, PCM: Infinite loop, thanks to Gildas Desnos
 x #B809, APE tags: Infinite loop, thanks to Gildas Desnos
 x #B810, AVC: Infinite loop, thanks to Gildas Desnos
-x #B813, CLI_Compile.sh bug ("eats all resources" while compiling) 
+x #B813, CLI_Compile.sh bug ("eats all resources" while compiling)
 x LATM: false-positive detection of some files
 x MXF: Crash with some files
 

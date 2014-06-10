@@ -529,7 +529,7 @@ void FolderTree::DisplayDrives(HTREEITEM hParent, bool bUseSetRedraw /* = true *
 
 void FolderTree::DisplayPath(const tstring &sPath, HTREEITEM hParent, bool bUseSetRedraw /* = true */)
 {
-	CWaitCursor l_cursor_wait;
+	CWaitCursor l_cursor_wait; //-V808
 	
 	//Speed up the job by turning off redraw
 	if (bUseSetRedraw)
@@ -1410,7 +1410,7 @@ LRESULT FolderTree::OnRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHandled)
 
 LRESULT FolderTree::OnChecked(HTREEITEM hItem, BOOL &bHandled)
 {
-	CWaitCursor l_cursor_wait;
+	CWaitCursor l_cursor_wait; //-V808
 	FolderTreeItemInfo* pItem = (FolderTreeItemInfo*) GetItemData(hItem);
 	if (!Util::validatePath(Text::fromT(pItem->m_sFQPath)))
 	{
@@ -1470,7 +1470,7 @@ LRESULT FolderTree::OnChecked(HTREEITEM hItem, BOOL &bHandled)
 
 LRESULT FolderTree::OnUnChecked(HTREEITEM hItem, BOOL& /*bHandled*/)
 {
-	CWaitCursor l_cursor_wait;
+	CWaitCursor l_cursor_wait; //-V808
 #ifdef IRAINMAN_TEST_FAST_UI_FOR_SHARING
 	ShareManager::getInstance()->refresh(true, false, false);
 #endif

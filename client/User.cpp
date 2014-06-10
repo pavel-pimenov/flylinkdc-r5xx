@@ -204,19 +204,14 @@ void User::fixLastIP()
 		setIP(m_last_ip);
 	}
 }
-void User::incMessageCount()
+void User::incMessagesCount()
 {
+	if (m_ratio_ptr == nullptr)
+	{
+		initRatio(true);
+	}
 	if (m_ratio_ptr)
-	{
 		m_ratio_ptr->incMessagesCount();
-	}
-	else
-	{
-		webrtc::WriteLockScoped l(*g_ratio_cs);
-		initRatioL(boost::asio::ip::address_v4()); // IP-Пустышку
-		if (m_ratio_ptr)
-			m_ratio_ptr->incMessagesCount();
-	}
 }
 void User::AddRatioUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size)
 {
@@ -257,19 +252,19 @@ void User::initRatioL(const boost::asio::ip::address_v4& p_ip)
 		m_ratio_ptr->setDirty(true);
 	}
 }
-void User::initRatio()
+void User::initRatio(bool p_force /* = false */)
 {
-	if (!m_nick.empty() && m_hub_id && !m_is_first_init_ratio)
+	if (!m_nick.empty() && m_hub_id && (!m_is_first_init_ratio || p_force))
 	{
 		m_is_first_init_ratio = true;
 		// Узнаем, есть ли в базе last_ip или счетчик мессаг
 		uint32_t l_message_count = 0;
 		boost::asio::ip::address_v4 l_last_ip_from_sql;
-		if (CFlylinkDBManager::getInstance()->load_last_ip_and_user_stat(m_hub_id, m_nick, l_message_count, l_last_ip_from_sql))
+		if (CFlylinkDBManager::getInstance()->load_last_ip_and_user_stat(m_hub_id, m_nick, l_message_count, l_last_ip_from_sql) || p_force)
 		{
 			m_last_ip = l_last_ip_from_sql;
 			CFlyUserRatioInfo* l_try_ratio = nullptr;
-			if (l_message_count || !l_last_ip_from_sql.is_unspecified())
+			if (l_message_count || !l_last_ip_from_sql.is_unspecified() || p_force)
 			{
 				l_try_ratio = new CFlyUserRatioInfo(this);
 				l_try_ratio->m_message_count = l_message_count;
@@ -285,7 +280,10 @@ void User::initRatio()
 				}
 			}
 		}
-		unsetFlag(CHANGE_IP);
+		if (!p_force)
+		{
+			unsetFlag(CHANGE_IP);
+		}
 	}
 }
 
@@ -1347,6 +1345,12 @@ User::DefinedAutoBanFlags User::hasAutoBan(Client *p_Client, const bool p_is_fav
 	return static_cast<DefinedAutoBanFlags>(iBan);
 }
 #endif // IRAINMAN_ENABLE_AUTO_BAN
+
+bool OnlineUser::isDHT() const
+{
+	return m_client.isDHT();
+}
+
 //[~]FlylinkDC
 /**
  * @file

@@ -68,6 +68,7 @@ PropPage::ListItem LogPage::listItems[] =
 	{ SettingsManager::LOG_CUSTOM_LOCATION,     ResourceManager::SETTINGS_LOG_CUSTOM_LOCATION }, // [+]IRainman
 	{ SettingsManager::LOG_SQLITE_TRACE,        ResourceManager::SETTINGS_LOG_TRACE_SQLITE },
 	{ SettingsManager::LOG_DDOS_TRACE,          ResourceManager::SETTINGS_LOG_DDOS_TRACE },
+	{ SettingsManager::LOG_DHT_TRACE,           ResourceManager::SETTINGS_LOG_DHT_TRACE },
 	{ SettingsManager::LOG_FILELIST_TRANSFERS,  ResourceManager::SETTINGS_LOG_FILELIST_TRANSFERS },
 	{ SettingsManager::LOG_IF_SUPPRESS_PMS,     ResourceManager::SETTINGS_LOG_IF_SUPPRESS_PMS }, // [+]IRainman
 	{ 0,                                        ResourceManager::SETTINGS_AUTO_AWAY }
@@ -116,12 +117,12 @@ void LogPage::setEnabled()
 		BOOL checkState = (logOptions.GetCheckState(sel) == BST_CHECKED);
 		
 		::EnableWindow(GetDlgItem(IDC_LOG_FORMAT), checkState);
-		::EnableWindow(GetDlgItem(IDC_LOG_FILE), checkState 
+		::EnableWindow(GetDlgItem(IDC_LOG_FILE), checkState
 #ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
-			&& (IsDlgButtonChecked(IDC_FLY_LOG_TEXT) == BST_CHECKED)
+		               && (IsDlgButtonChecked(IDC_FLY_LOG_TEXT) == BST_CHECKED)
 #endif // FLYLINKDC_LOG_IN_SQLITE_BASE
-			);
-		
+		              );
+		              
 		SetDlgItemText(IDC_LOG_FILE, options[sel].first.c_str());
 		SetDlgItemText(IDC_LOG_FORMAT, options[sel].second.c_str());
 		

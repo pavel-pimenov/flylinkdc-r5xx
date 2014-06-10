@@ -557,26 +557,16 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 template <class T, int title, int id, int icon>
 int FinishedFrameBase<T, title, id, icon>::columnIndexes[] = { FinishedItem::COLUMN_DONE, FinishedItem::COLUMN_FILE,
                                                                FinishedItem::COLUMN_PATH, FinishedItem::COLUMN_NICK, FinishedItem::COLUMN_HUB, FinishedItem::COLUMN_SIZE, FinishedItem::COLUMN_SPEED,
-                                                               FinishedItem::COLUMN_IP,
-#ifdef IRAINMAN_AV_CHECK
-                                                               FinishedItem::COLUMN_ANTIVIR_CHECK,
-#endif
+                                                               FinishedItem::COLUMN_IP
                                                              };
 
 template <class T, int title, int id, int icon>
 int FinishedFrameBase<T, title, id, icon>::columnSizes[] = { 100, 110, 290, 125, 80, 80, 80
                                                              , 80
-#ifdef IRAINMAN_AV_CHECK
-                                                             , 30
-#endif
                                                            };
 static ResourceManager::Strings columnNames[] = { ResourceManager::FILENAME, ResourceManager::TIME, ResourceManager::PATH,
                                                   ResourceManager::NICK, ResourceManager::HUB, ResourceManager::SIZE, ResourceManager::SPEED,
-                                                  ResourceManager::IP_BARE,
-#ifdef IRAINMAN_AV_CHECK
-                                                  ResourceManager::AV_CHECK_THIS_FILE,
-#endif
-//ResourceManager::CRC_CHECKED, TODO
+                                                  ResourceManager::IP_BARE
                                                 };
 
 #endif // !defined(FINISHED_FRAME_BASE_H)

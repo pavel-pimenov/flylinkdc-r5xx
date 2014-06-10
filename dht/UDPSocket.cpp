@@ -129,7 +129,17 @@ void UDPSocket::checkIncoming()
 					SettingsManager::g_TestUDPDHTLevel = ClientManager::getMyCID().toBase32() == l_magic;
 					if(!SettingsManager::g_TestUDPDHTLevel)
 					{
-					LogManager::getInstance()->message("Error magic value = " + string());
+					  LogManager::getInstance()->message("DHT Error magic value = " + l_magic);
+					}
+					else
+					{
+						if(DHT::isValidInstance() && port == DHT::getInstance()->getPort()) // Тест прошел по порту DHT?
+						{
+							if(BootstrapManager::isValidInstance())
+							{
+								BootstrapManager::getInstance()->inc_live_check(); 
+							}
+						}
 					}
 				}
 				return;
@@ -139,13 +149,16 @@ void UDPSocket::checkIncoming()
 			{
 				// it seems to be encrypted packet
 				if (!decryptPacket(&l_buf[0], len, inet_ntoa(remoteAddr.sin_addr), isUdpKeyValid))
+				{
+					LogManager::getInstance()->message("DHT Error decryptPacket");
 					return;
+			}
 			}
 			//else
 			//  return; // non-encrypted packets are forbidden
 			
 			l_buf.resize(len);
-			std::vector<uint8_t> l_destBuf(l_buf.size() * 5); // 
+			std::vector<uint8_t> l_destBuf(l_buf.size() * 10); // TODO - заиспользовать функцию авто-расширения буфера
 			if (l_buf[0] == ADC_PACKED_PACKET_HEADER) // is this compressed packet?
 			{
 				const auto l_res_uzlib = decompressPacket(l_destBuf, l_buf);
@@ -172,6 +185,15 @@ void UDPSocket::checkIncoming()
 				uint16_t l_port = ntohs(remoteAddr.sin_port);
 				COMMAND_DEBUG(s, DebugTask::HUB_IN,  ip + ':' + Util::toString(l_port));
 				DHT::getInstance()->dispatch(s, ip, l_port, isUdpKeyValid);
+
+				{
+				LogManager::getInstance()->dht_message("[UDPSocket::checkIncoming()] cmd [" + s +
+					"] ip:port = [" + ip + ":" + Util::toString(l_port) + "] isUdpKeyValid = " + Util::toString(isUdpKeyValid));
+				}
+			}
+			else
+			{
+				LogManager::getInstance()->message("DHT Error ADC_PACKET_HEADER || ADC_PACKET_FOOTER l_destBuf.size() = " + Util::toString(l_destBuf.size()));
 			}
 			
 			sleep(25);
@@ -207,7 +229,17 @@ void UDPSocket::checkOutgoing(uint64_t& timer)
 		try
 		{
 			unsigned long length = compressBound(packet->data.length()) + 2; //-V614
+#if 0
+			{
+				LogManager::getInstance()->dht_message("[UDPSocket::checkOutgoing()] before compress " 
+					" ip:port = [" + packet->ip + ":" + Util::toString(packet->port) + "] " 
+					" udpKey = [ " + packet->udpKey.m_key.toBase32() +  " ip = " + packet->udpKey.m_ip + "]"
+					" TargetCID = [" + packet->targetCID.toBase32() + " ] "
+					" data = " + packet->data );
+			}
+#endif
 			std::unique_ptr<uint8_t[]> data(new uint8_t[length]); // 17662   [!] PVS  V554    Incorrect use of unique_ptr. The memory allocated with 'new []' will be cleaned using 'delete'.
+
 			// compress packet
 			compressPacket(packet->data, data.get(), length);
 			
@@ -311,13 +343,22 @@ void UDPSocket::send(AdcCommand& cmd, const string& ip, uint16_t p_port, const C
 	
 	// pack data
 	cmd.addParam("UK", Utils::getUdpKey(ip).toBase32()); // add our key for the IP address
-	string command = cmd.toString(ClientManager::getMyCID()); // [!] IRainman fix.
+	const string command = cmd.toString(ClientManager::getMyCID()); // [!] IRainman fix.
 	COMMAND_DEBUG(command, DebugTask::HUB_OUT, ip + ':' + Util::toString(p_port));
 	
 	Packet* p = new Packet(ip, p_port, command, targetCID, udpKey);
 	
+	{
 	FastLock l(cs);
 	sendQueue.push_back(p);
+}
+	string l_udp_key_log;
+	if(!udpKey.isZero())
+	{
+		 l_udp_key_log = " udpKey = [ " + udpKey.m_key.toBase32() + + " ip = " + udpKey.m_ip + "]";
+	}
+	LogManager::getInstance()->dht_message("[UDPSocket::send] cmd [" + cmd.toString(ClientManager::getMyCID(),true) +
+		      "] ip:port = [" + ip + ":" + Util::toString(p_port) + "] TargetCID=" + targetCID.toBase32() + l_udp_key_log);
 }
 
 void UDPSocket::compressPacket(const string& data, uint8_t* destBuf, unsigned long& destSize)

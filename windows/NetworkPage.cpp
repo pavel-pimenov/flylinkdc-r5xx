@@ -411,7 +411,6 @@ LRESULT NetworkPage::onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndC
 #ifdef STRONG_USE_DHT
 	l_udp_port.push_back(SETTING(DHT_PORT));
 #endif
-	// TCP пока не работает.
 	l_tcp_port.push_back(SETTING(TCP_PORT));
 	if (CryptoManager::getInstance()->TLSOk())
 	{
@@ -428,7 +427,7 @@ LRESULT NetworkPage::onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndC
 		const string& l_url = SETTING(URL_GET_IP);
 		if (Util::isHttpLink(l_url))
 		{
-			CWaitCursor l_cursor_wait;
+			CWaitCursor l_cursor_wait; //-V808
 			try
 			{
 				::EnableWindow(GetDlgItem(IDC_GETIP), FALSE);

@@ -191,9 +191,9 @@ void AdcCommand::parse(const string& aLine, bool nmdc /* = false */)
 	}
 }
 
-string AdcCommand::toString(const CID& aCID) const
+string AdcCommand::toString(const CID& aCID, bool nmdc /* = false */) const
 {
-	return getHeaderString(aCID) + getParamString(false);
+	return getHeaderString(aCID) + getParamString(nmdc);
 }
 
 string AdcCommand::toString(uint32_t sid /* = 0 */, bool nmdc /* = false */) const

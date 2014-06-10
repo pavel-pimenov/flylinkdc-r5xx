@@ -1069,7 +1069,7 @@ bool SearchFrame::scan_list_view_from_merge()
 					l_update_index.push_back(j);
 					const auto& l_cache = l_find_ratio->second.second;
 					if (l_item_info->columns[COLUMN_FLY_SERVER_RATING].empty())
-						l_item_info->columns[COLUMN_FLY_SERVER_RATING] = Text::toT(Util::toString(l_cache.m_ratio));
+						l_item_info->columns[COLUMN_FLY_SERVER_RATING] = Text::toT(l_cache.m_ratio);
 					if (l_item_info->columns[COLUMN_BITRATE].empty())
 						l_item_info->columns[COLUMN_BITRATE]  = Text::toT(l_cache.m_audio_br);
 					if (l_item_info->columns[COLUMN_MEDIA_XY].empty())
@@ -1139,15 +1139,23 @@ LRESULT SearchFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wParam, LPARAM
 						l_is_know_tth |= true;
 					CFlyMediaInfo::translateDuration(l_mediainfo_cache.m_audio, l_si->columns[COLUMN_MEDIA_AUDIO], l_si->columns[COLUMN_DURATION]);
 					const string l_count_query = l_result_counter["count_query"].asString();
-					if (!l_count_query.empty())
+					const string l_count_download = l_result_counter["count_download"].asString();
+					if (!l_count_query.empty() || !l_count_download.empty())
 					{
 						l_update_index.push_back(l_cur_item);
 						l_si->columns[COLUMN_FLY_SERVER_RATING] =  Text::toT(l_count_query);
+						if (!l_count_download.empty())
+						{
+							if (l_si->columns[COLUMN_FLY_SERVER_RATING].empty())
+								l_si->columns[COLUMN_FLY_SERVER_RATING] = Text::toT("0/" + l_count_download); // TODO fix copy-paste
+							else
+								l_si->columns[COLUMN_FLY_SERVER_RATING] = Text::toT(l_count_query + '/' + l_count_download);
+						}
 						if (l_count_query == "1")
 							l_is_know_tth = false; // Файл на сервер первый раз появился.
 					}
 					CFlyServerCache l_cache = l_mediainfo_cache;
-					l_cache.m_ratio = Util::toInt(l_count_query);
+					l_cache.m_ratio = Text::fromT(l_si->columns[COLUMN_FLY_SERVER_RATING]);
 					g_fly_server_cache[l_tth] = std::make_pair(l_si_find->second.first, l_cache); // Сохраняем рейтинг и медиаинфу в кэше
 				}
 			}
@@ -1199,7 +1207,7 @@ void SearchFrame::mergeFlyServerInfo()
 	if (isClosedOrShutdown())
 		return;
 	CColorSwitch l_color_lock(m_FlyServerGradientLabel, RGB(255, 0, 0));
-	CWaitCursor l_cursor_wait;
+	CWaitCursor l_cursor_wait; //-V808
 	if (boost::logic::indeterminate(SettingsManager::g_TestUDPSearchLevel))
 	{
 		string p_external_ip;
@@ -1289,7 +1297,7 @@ int SearchFrame::SearchInfo::compareItems(const SearchInfo* a, const SearchInfo*
 		case COLUMN_SIZE:
 		case COLUMN_EXACT_SIZE:
 			return compare(a->sr->getSize(), b->sr->getSize());
-		case COLUMN_FLY_SERVER_RATING:
+		case COLUMN_FLY_SERVER_RATING: // TODO - распарсить x/y
 		case COLUMN_BITRATE:
 			return compare(Util::toInt64(a->columns[col]), Util::toInt64(b->columns[col]));
 		case COLUMN_MEDIA_XY:
@@ -1351,7 +1359,8 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 		case COLUMN_HITS:
 			return hits == 0 ? Util::emptyStringT : Util::toStringW(hits + 1) + _T(' ') + TSTRING(USERS);
 		case COLUMN_NICK:
-			return Text::toT(Util::toString(ClientManager::getNicks(getUser()->getCID(), sr->getHubURL())));
+			return Text::toT(Util::toString(ClientManager::getNicks(getUser()->getCID(), sr->getHubURL()))); // Често зовется фаворит - манагер
+			// TODO - сохранить ник в columns и показывать его от туда?
 		case COLUMN_TYPE:
 			if (sr->getType() == SearchResult::TYPE_FILE)
 			{
@@ -1453,12 +1462,12 @@ void SearchFrame::SearchInfo::Download::operator()(const SearchInfo* si)
 			
 		if (si->sr->getType() == SearchResult::TYPE_FILE)
 		{
-			string target = Text::fromT(tgt + si->getText(COLUMN_FILENAME));
+			const string target = Text::fromT(tgt + si->getText(COLUMN_FILENAME));
 			QueueManager::getInstance()->add(target, si->sr->getSize(),
 			                                 si->sr->getTTH(), HintedUser(si->sr->getUser(), si->sr->getHubURL()), mask);
 			                                 
-			const vector<SearchInfo*>& children = sf->getUserList().findChildren(si->getGroupCond());
-			for (auto i = children.cbegin(); i != children.cend(); ++i)
+			const vector<SearchInfo*> l_children = sf->getUserList().findChildren(si->getGroupCond()); // Ссылку делать нельзя
+			for (auto i = l_children.cbegin(); i != l_children.cend(); ++i)  // Тут вектор иногда инвалидирует
 			{
 				SearchInfo* j = *i;
 				try
@@ -1467,7 +1476,6 @@ void SearchFrame::SearchInfo::Download::operator()(const SearchInfo* si)
 					{
 						QueueManager::getInstance()->add(target, j->sr->getSize(), j->sr->getTTH(), HintedUser(j->getUser(), j->sr->getHubURL()), mask);
 					}
-					// 2012-05-11_23-53-01_53K6HGTRVGQAKI74O3BI3ZHIJADWHTCMT6WQDTQ_4502E9D6_crash-stack-r502-beta26-build-9946.dmp
 				}
 				catch (const Exception&)
 				{
@@ -1580,7 +1588,7 @@ void SearchFrame::SearchInfo::CheckTTH::operator()(const SearchInfo* si)
 	else if (!hubs.empty())
 	{
 		// we will merge hubs of all users to ensure we can use OP commands in all hubs
-		StringList sl = ClientManager::getHubs(si->sr->getUser()->getCID(), Util::emptyString);
+		const StringList sl = ClientManager::getHubs(si->sr->getUser()->getCID(), Util::emptyString);
 		hubs.insert(hubs.end(), sl.begin(), sl.end());
 #if 0
 		Util::intersect(hubs, ClientManager::getHubs(si->sr->getUser()->getCID()));
@@ -1815,7 +1823,7 @@ LRESULT SearchFrame::onDoubleClickResults(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*
 LRESULT SearchFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL & bHandled)
 {
 	m_before_close = true;
-	CWaitCursor l_cursor_wait;
+	CWaitCursor l_cursor_wait; //-V808
 	if (!m_closed)
 	{
 		m_closed = true;

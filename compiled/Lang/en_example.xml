@@ -64,7 +64,6 @@
 	<string name="Audio">Audio</string>
 	<string name="Auto">Auto</string>
 	<string name="AutobanHint">* Set all values = 0 to disable Auto BAN</string>
-	<string name="Automatic">Automatic</string>
 	<string name="AutomaticSetupActivModeFailed">Automatic setup of active mode has failed. You may want to set up your connection manually for better connectivity</string>
 	<string name="Autoupdate">Autoupdate:</string>
 	<string name="AutoupdateCancel">Canceled by user</string>
@@ -123,7 +122,6 @@
 	<string name="AutoGrantNick">Auto grant slot / Nick</string>
 	<string name="AutoGrant">Auto grant slot</string>
 	<string name="AverageUpload">Upload speed</string>
-	<string name="AvCheckThisFile">Antivirus checked the file</string>
 	<string name="Away">Away</string>
 	<string name="AwayModeOff">Away mode off</string>
 	<string name="AwayModeOn">Away mode on:</string>
@@ -185,7 +183,6 @@
 	<string name="ChatRefferingToNick">Use ',' in referring to Nick in chat</string>
 	<string name="CheatingDescription">Cheating description</string>
 	<string name="CheatingUser">Cheating User found</string>
-	<string name="Checked">Checked</string>
 	<string name="Check0byteShare">zero bytes real size</string>
 	<string name="CheckFilelist">Check File-List</string>
 	<string name="CheckForbidden">Shared forbidden file: %s</string>
@@ -530,7 +527,7 @@
 	<string name="FinishedDownloads">Finished downloads</string>
 	<string name="FinishedUpload">Upload finished: %s To: %s</string>
 	<string name="FinishedUploads">Finished Uploads</string>
-	<string name="FlyServerRating">Rating</string>
+	<string name="FlyServerRating">Search/Download</string>
 	<string name="FlyServerInform">Media Inform</string>
 	<string name="FlyServerInformView">View Media Inform</string>
 	<string name="Flyupdate">FlylinkDC++ Updater</string>
@@ -905,7 +902,6 @@
 	<string name="Normal">Normal</string>
 	<string name="NormalPriority">NormalPriority</string>
 	<string name="Notepad">Notepad</string>
-	<string name="NotChecked">Not checked</string>
 	<string name="NotListening">Not listening for connections - please restart FlylinkDC++</string>
 	<string name="NoAction">No Action</string>
 	<string name="NoAdls">Don't perform ADLSearches in this Hub</string>
@@ -1342,6 +1338,7 @@
 	<string name="SettingsLogFilelistTransfers">Log file list transfers</string>
 	<string name="SettingsLogTraceSqlite">Log queries to the SQLite base</string>
 	<string name="SettingsLogDdosTrace">Log DDoS detect</string>
+	<string name="SettingsLogDhtTrace">Log DHT</string>
 	<string name="SettingsLogIfSuppressPms">Log for PM if suppress PMS</string>
 	<string name="SettingsLogMainChat">Log main chat</string>
 	<string name="SettingsLogPrivateChat">Log private chat</string>
@@ -1743,7 +1740,6 @@
 	<string name="UserWentOffline">User went offline</string>
 	<string name="UserWentOnline">User went online</string>
 	<string name="Use12HourFormat">Use 12 hour format</string>
-	<string name="UseAntivir">Check finished files for viruses</string>
 	<string name="UseAutoMultiChatSwitch">Use automatic switch to Multiline chat</string>
 	<string name="UseBitrateFixForSpam">Use Bitrate/Sample fix for QCD/QMP players</string>
 	<string name="UseCustomListBackground">Use custom list background style</string>

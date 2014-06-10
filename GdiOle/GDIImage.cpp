@@ -22,7 +22,7 @@ CGDIImage::CGDIImage(LPCWSTR pszFileName, HWND hCallbackWnd, DWORD dwCallbackMsg
 	dcassert(!isShutdown());
 	InitializeCriticalSectionAndSpinCount(&m_csCallback, CRITICAL_SECTION_SPIN_COUNT); // [!] IRainman opt.
 	m_pImage = new Gdiplus::Image(pszFileName);
-	if (m_pImage && m_pImage->GetLastStatus() != Gdiplus::Ok)
+	if (m_pImage->GetLastStatus() != Gdiplus::Ok)
 		safe_delete(m_pImage);
 	if (!m_pImage)
 		return;

@@ -94,6 +94,24 @@ public :
     int8u*              OriginalBuffer;
     size_t              OriginalBuffer_Size;
     size_t              OriginalBuffer_Capacity;
+    #if defined(MEDIAINFO_EIA608_YES) || defined(MEDIAINFO_EIA708_YES)
+        struct servicedescriptor
+        {
+            string language;
+        };
+        typedef std::map<int8u, servicedescriptor> servicedescriptors608;
+        typedef std::map<int8u, servicedescriptor> servicedescriptors708;
+        struct servicedescriptors
+        {
+            #if defined(MEDIAINFO_EIA608_YES)
+                std::map<int8u, servicedescriptor> ServiceDescriptors608;
+            #endif
+            #if defined(MEDIAINFO_EIA708_YES)
+                std::map<int8u, servicedescriptor> ServiceDescriptors708;
+            #endif
+        };
+        servicedescriptors* ServiceDescriptors;
+    #endif
 
     //Out
     int64u PTS_Begin;                  //In nanoseconds
@@ -649,7 +667,7 @@ public :
     void Get_UTF16B (int64u Bytes, Ztring      &Info);
     void Get_UTF16L (int64u Bytes, Ztring      &Info);
     inline void Get_Local  (int64u Bytes, Ztring      &Info, const char*) {Get_Local(Bytes, Info);}
-    inline void Get_ISO_6937_2 (int64u Bytes, Ztring  &Info, const char*) {Get_ISO_8859_1(Bytes, Info);}
+    inline void Get_ISO_6937_2 (int64u Bytes, Ztring  &Info, const char*) {Get_ISO_6937_2(Bytes, Info);}
     inline void Get_ISO_8859_1 (int64u Bytes, Ztring  &Info, const char*) {Get_ISO_8859_1(Bytes, Info);}
     inline void Get_ISO_8859_2 (int64u Bytes, Ztring  &Info, const char*) {Get_ISO_8859_2(Bytes, Info);}
     inline void Get_ISO_8859_5 (int64u Bytes, Ztring  &Info, const char*) {Get_ISO_8859_5(Bytes, Info);}

@@ -729,6 +729,7 @@ class OnlineUser :
 		{
 			return (const Client&)m_client;
 		}
+		bool isDHT() const;
 		ClientBase& getClientBase()
 		{
 			return m_client;

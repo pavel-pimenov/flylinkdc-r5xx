@@ -604,7 +604,7 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 				const string l_info   = "[Count limit: " + Util::toString(CFlyServerConfig::g_max_ddos_connect_to_me) + "]\t";
 				const string l_target = "[Target: " + aIPServer + l_cur_value.getPorts() + "]\t";
 				const string l_user_info = !p_userInfo.empty() ? "[UserInfo: " + p_userInfo + "]\t"  : "";
-				l_cur_value.m_type_block = "Type DDoS:" + p_ip_hub.is_unspecified() ? "[$ConnectToMe]" : "[$Search]";
+				l_cur_value.m_type_block = "Type DDoS:" + std::string(p_ip_hub.is_unspecified() ? "[$ConnectToMe]" : "[$Search]");
 				static uint16_t g_block_id = 0;
 				l_cur_value.m_block_id = ++g_block_id;
 				LogManager::getInstance()->ddos_message("BlockID=" + Util::toString(l_cur_value.m_block_id) + ", " + l_cur_value.m_type_block + p_HubInfo + l_info + l_target + l_user_info);

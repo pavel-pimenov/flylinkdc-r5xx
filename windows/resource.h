@@ -119,7 +119,7 @@
 #define IDR_AUTOUPDATE                  217
 #define IDR_SPLASH_NY1                  218
 #define IDR_SPLASH_NY2                  219
-#define IDR_CLOSE_PNG                  220
+#define IDR_CLOSE_PNG                   220
 #define IDD_UPDATE_DLG                  221
 #define IDD_DCLS_GENERATOR              222
 #define IDR_DCLST                       223
@@ -185,6 +185,7 @@
 #define IDD_LOCATION_DIALOG             294
 #define IDR_ICON_MEDICAL_BAG            295
 #define IDR_ICON_THERMOMETR_BAG         296
+#define IDR_ICON_CRUTCH             297
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
 #define IDC_COPY_HUB                    1002
@@ -489,6 +490,7 @@
 #define IDC_PREVIEW_EXTENSION           1303
 #define IDC_AUTOSEGMENT                 1304
 #define IDC_SETTINGS_SEGMENT_BAR_COLOR  1305
+#define IDC_IDC_MULTISOURCE             1305
 #define IDC_COPY_TTH                    1306
 #define IDC_DONTBEGIN                   1307
 #define IDC_EDIT1                       1308
@@ -659,7 +661,6 @@
 #define IDC_STATIC8                     1473
 #define IDC_REGEXP_TESTER_COMBO         1474
 #define IDC_LISTLEN                     1475
-#define IDC_MULTISOURCE_COMBO           1476
 #define IDC_PUB_LIST_CONFIG             1477
 #define IDC_ODC_STYLE                   1478
 #define IDC_OVERRIDE                    1479
@@ -1503,7 +1504,7 @@
 #define IDC_MEDIAINFO_SIZE_MB           2347
 #define IDC_THEME_COMBO2                2348
 #define IDC_VIEW_FLYSERVER_INFORM       2349
-#define IDC_SEND_STATISTICS_TO_DEVELOPERS 2350
+#define IDC_USE_FLY_SERVER_STATICTICS_SEND 2350
 #define IDC_ABOUTTAB                    2351
 #define IDC_CONVERT_TTH_HISTORY         2352
 #define IDC_COPY_TAG                    2353
@@ -1522,7 +1523,7 @@
 #define IDC_LOCATION_PROVIDER           2363
 #define IDC_LOCATION_COUNTRY_DESCRIPTION 2366
 #define IDC_LOCATION_COUNTRY            2367
-#define IDC_COPY_GEO_LOCATION               2368
+#define IDC_COPY_GEO_LOCATION           2368
 #define IDC_DOWNLOAD_TARGET             2500
 #define IDC_FLYLINKDC_LOCATION          2501
 #define IDC_DOWNLOAD_TARGET_DIR         3000

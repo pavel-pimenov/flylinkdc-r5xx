@@ -284,7 +284,7 @@ void RoutingTable::getClosestNodes(const CID& cid, Node::Map& closest, unsigned 
 				node->getUser()->isSet(User::TCP4) // [!] IRainamn fix.
 				)
 			{
-				CID distance = Utils::getDistance(cid, node->getUser()->getCID());
+				const CID distance = Utils::getDistance(cid, node->getUser()->getCID());
 				
 				if (closest.size() < max)
 				{

@@ -45,6 +45,7 @@ class Reader_File_Thread : public Thread
 {
 public:
     Reader_File* Base;
+    size_t ReadSize_Max;
     void Entry();
 };
 #endif // FLYLINKDC_ZENLIB_USE_THREAD

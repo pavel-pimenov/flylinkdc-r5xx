@@ -162,19 +162,20 @@ class SimpleXML
 		template<class T>
 		void getChildAttribSplit(const string& aName,
 		                         T& aCollection,
-		                         std::function<void(const string&)> inserter,
-		                         const string& aDefault = Util::emptyString, // Не юзаются. зачем?
-		                         const char aToken = ',' // Не юзаются. зачем?
+		                         std::function<void(const string&)> inserter
 		                        ) const // [+] IRainman
 		{
-			const StringTokenizer<string> tokinizer(getChildAttrib(aName, aDefault), aToken);
+			const StringTokenizer<string> tokinizer(getChildAttrib(aName), ',');
 			const auto& tokens = tokinizer.getTokens();
 			aCollection.clear();
-			/* TODO
-			if (std::is_member_function_pointer<decltype(&T::reserve)>::value)
-			    aCollection.reserve(tokens.size());
-			    */
+#ifdef _DEBUG
+			std::set<string> l_dup_check;
+			for (auto i = tokens.cbegin(); i != tokens.cend(); ++i)
+				l_dup_check.insert(*i);
+			dcassert(l_dup_check.size() == tokens.size());
+#endif
 			for_each(tokens.cbegin(), tokens.cend(), inserter);
+			
 		}
 		int64_t getLongLongChildAttrib(const string& aName) const
 		{
@@ -286,7 +287,7 @@ class SimpleXML
 				const string& getAttrib(const string& aName, const string& aDefault = Util::emptyString) const
 				{
 					StringPairList::const_iterator i = find_if(attribs.begin(), attribs.end(), CompareFirst<string, string>(aName));
-					return (i == attribs.end()) ? aDefault : i->second;
+					return i == attribs.end() ? aDefault : i->second;
 				}
 				void toXML(int indent, OutputStream* f);
 				

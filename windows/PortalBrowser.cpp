@@ -223,6 +223,10 @@ static void LoadExternalPortalBrowserXML()
 	{
 		LogManager::getInstance()->message(l_log_message + " [Ok]");
 		std::ofstream l_file_out(l_filename.c_str());
+		if (!l_file_out.is_open())
+		{
+			LogManager::getInstance()->message("Error create PortalBrowser.xml file: " + Text::fromT(l_filename));
+		}
 		l_file_out.write(l_data.c_str(), l_data.size());
 		LogManager::getInstance()->message(Text::fromT(l_filename) + " [" + STRING(SAVE) + ']');
 	}

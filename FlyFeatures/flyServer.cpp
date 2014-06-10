@@ -238,7 +238,7 @@ void CFlyServerConfig::loadConfig()
 		LPCSTR l_res_data;
 		std::string l_data;
 #ifdef _DEBUG
-   #define USE_FLYSERVER_LOCAL_FILE
+   // #define USE_FLYSERVER_LOCAL_FILE
 #endif
 #ifdef USE_FLYSERVER_LOCAL_FILE
 		const string l_url_config_file = "file://C:/vc10/etc/flylinkdc-config-r5xx.xml"; 
@@ -505,6 +505,7 @@ string CFlyServerConfig::DBDelete()
 //}
 //======================================================================================================
 string CFlyServerAdapter::CFlyServerJSON::g_fly_server_id;
+CFlyTTHKeyArray CFlyServerAdapter::CFlyServerJSON:: g_download_counter;
 //===================================================================================================================================
 void CFlyServerAdapter::post_message_for_update_mediainfo()
 {
@@ -704,6 +705,10 @@ static void getDiskAndMemoryStat(Json::Value& p_info)
 		}
 		l_screen_info["X"] = g_desktop.right;
 		l_screen_info["Y"] = g_desktop.bottom;
+		// TODO - определ€ть тип NAT
+		//	http://ilya-314.livejournal.com/109479.html
+		//  http://system-administrators.info/?p=1468
+		//  https://github.com/limlabs/stunclient
 	}
 }
 //======================================================================================================
@@ -798,7 +803,7 @@ void CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 		{
 		l_info["IsShutdown"] = "1"; // ѕоставим маркер останова фла€
 		}
-		dcassert(!g_fly_server_id.empty());
+		//dcassert(!g_fly_server_id.empty());
 		
 		getDiskAndMemoryStat(l_info);
 
@@ -844,9 +849,27 @@ void CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 		    Json::Value& l_stat_info = l_info["Stat"];
 			l_stat_info["Files"] = Util::toString(ShareManager::getInstance()->getSharedFiles());
 			l_stat_info["Size"]  = ShareManager::getInstance()->getShareSizeString();
+			// TODO - эти параметры можно посчитать из массива Clients
 			l_stat_info["Users"] = Util::toString(ClientManager::getTotalUsers());
-			// TODO l_stat_info["MaxUsers"] = 
 			l_stat_info["Hubs"]  = Util::toString(Client::getTotalCounts());
+			{
+				const auto l_stat = ClientManager::getClientStat();
+				if(!l_stat.empty())
+				{
+				 int j = 0;
+				 for(auto i = l_stat.cbegin(); i != l_stat.cend();++i )
+				 {
+					 auto& l_item = l_stat_info["Clients"][j++];
+					 l_item["url"]   = i->first;
+					 if(i->second.first || i->second.second)
+					 {
+					  l_item["Count"] = i->second.first;
+					  l_item["Share"] = i->second.second;
+					 }
+				 }
+				}
+			}
+			// TODO l_stat_info["MaxUsers"] = 
 			l_stat_info["DBQueueSources"] =  CFlylinkDBManager::getCountQueueSources();        
 			l_stat_info["FavUsers"] = FavoriteManager::getInstance()->getCountFavsUsers();
 			l_stat_info["Threads"]  =  Thread::getThreadsCount();
@@ -943,7 +966,7 @@ void CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 		}
 		const std::string l_post_query = l_info.toStyledString();
 		bool l_is_send = false;
-		if(BOOLSETTING(USE_STATICTICS_SEND) && p_is_sync_run == false)
+		if(BOOLSETTING(USE_FLY_SERVER_STATICTICS_SEND) && p_is_sync_run == false)
 		{
 		  postQuery(true,true,false,false,false,"fly-stat",l_post_query,l_is_send);
 		}
@@ -951,9 +974,11 @@ void CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 			           // ≈сли не удалось отправить или отключено/отложено. 
 			           // собираем стату локально (чтобы в будущем построить аналитику на клиенте)
 		{
-			 // ѕередача не удалась - скинем данные в локальную базу
+			 if(BOOLSETTING(USE_FLY_SERVER_STATICTICS_SEND))
+			 {
 			CFlylinkDBManager::getInstance()->push_json_statistic(l_post_query);
 		}
+}
 }
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
 //======================================================================================================
@@ -975,7 +1000,7 @@ string CFlyServerAdapter::CFlyServerJSON::postQuery(bool p_is_set,
 	{
 		l_Server.setIp(g_debug_fly_server_url); // ѕерекрываем адрес флай-сервера дл€ всех сервисов на отладочный
 	}
-	const string l_log_marker = "[fly-server][" + l_Server.getIp() + ":" + Util::toString(l_Server.getPort()) + "]";
+	const string l_log_marker = "[" + l_Server.getIp() + ":" + Util::toString(l_Server.getPort()) + "]";
 	CFlyLog l_fly_server_log(l_log_marker);
 #ifdef PPA_INCLUDE_IPGUARD
 	if (BOOLSETTING(ENABLE_IPGUARD) && IpGuard::isValidInstance()) 
@@ -1032,7 +1057,7 @@ string CFlyServerAdapter::CFlyServerJSON::postQuery(bool p_is_set,
 	   l_timeOut = 1000;
 	if(!InternetSetOption(hSession, INTERNET_OPTION_CONNECT_TIMEOUT, &l_timeOut, sizeof(l_timeOut)))
 	{
-		l_fly_server_log.step("Error InternetSetOption INTERNET_OPTION_CONNECT_TIMEOUT: " + Util::translateError(GetLastError()));
+		l_fly_server_log.step("Error InternetSetOption INTERNET_OPTION_CONNECT_TIMEOUT: " + Util::getExtInternetError());
 	}
 	InternetSetOption(hSession, INTERNET_OPTION_RECEIVE_TIMEOUT, &CFlyServerConfig::g_winet_receive_timeout, sizeof(CFlyServerConfig::g_winet_receive_timeout));
 	InternetSetOption(hSession, INTERNET_OPTION_SEND_TIMEOUT, &CFlyServerConfig::g_winet_send_timeout, sizeof(CFlyServerConfig::g_winet_send_timeout));
@@ -1071,7 +1096,7 @@ string CFlyServerAdapter::CFlyServerJSON::postQuery(bool p_is_set,
 						const BOOL bResult = InternetReadFile(hRequest, l_MessageBody.data(),l_dwBytesAvailable, &dwBytesRead);
 						if (!bResult)
 						{
-							l_fly_server_log.step(" InternetReadFile error " + Util::translateError(GetLastError()));
+							l_fly_server_log.step(" InternetReadFile error " + Util::getExtInternetError());
 							break;
 						}
 						if (dwBytesRead == 0)
@@ -1144,25 +1169,62 @@ std::string l_hex_dump;
 				}
 				else
 				{
-					l_fly_server_log.step("HttpSendRequest error " + Util::translateError(GetLastError()));
+					l_fly_server_log.step("HttpSendRequest error " + Util::getExtInternetError());
 				}
 			}
 			else
 			{
-				l_fly_server_log.step("HttpOpenRequest error " + Util::translateError(GetLastError()));
+				l_fly_server_log.step("HttpOpenRequest error " + Util::getExtInternetError());
 			}
 		}
 		else
 		{
-			l_fly_server_log.step("InternetConnect error " + Util::translateError(GetLastError()));
+			l_fly_server_log.step("InternetConnect error " + Util::getExtInternetError());
 		}
 	}
 	else
 	{
-		l_fly_server_log.step("InternetOpen error " + Util::translateError(GetLastError()));
+		l_fly_server_log.step("InternetOpen error " + Util::getExtInternetError());
 	}
 	l_Server.setTimeResponse(l_fly_server_log.calcSumTime());
 	return l_result_query;
+}
+//======================================================================================================
+void CFlyServerAdapter::CFlyServerJSON::addDownloadCounter(const CFlyTTHKey& p_file)
+{
+	Lock l(g_cs_fly_server);
+	g_download_counter.push_back(p_file);
+}
+//======================================================================================================
+void CFlyServerAdapter::CFlyServerJSON::sendDownloadCounter()
+{
+	if(!g_download_counter.empty())
+	{
+	CFlyTTHKeyArray l_copy_array;
+	{
+		Lock l(g_cs_fly_server);
+		l_copy_array.swap(g_download_counter);
+	}
+	login();
+	Json::Value  l_root;   
+	Json::Value& l_arrays = l_root["array"];
+	int l_count = 0;
+	for(auto i = l_copy_array.cbegin(); i != l_copy_array.cend(); ++i)
+	{
+	 Json::Value& l_array_item = l_arrays[l_count++];
+	 l_array_item["tth"]  = i->m_tth.toBase32();
+	 l_array_item["size"] = Util::toString(i->m_file_size);
+	}
+    const std::string l_post_query = l_root.toStyledString();
+    bool l_is_send;
+    if(l_count)
+     {
+      postQuery(true, false, false, false, true,"fly-download",l_post_query,l_is_send);
+     }
+	}
+   // TODO - словить исключение и если нужно сохранить l_copy_array в базе.
+   // чтобы не потер€ть счетчики.
+   return;
 }
 //======================================================================================================
 string CFlyServerAdapter::CFlyServerJSON::connect(const CFlyServerKeyArray& p_fileInfoArray, bool p_is_fly_set_query )

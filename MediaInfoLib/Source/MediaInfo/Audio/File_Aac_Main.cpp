@@ -37,9 +37,9 @@ namespace MediaInfoLib
 //***************************************************************************
 
 //---------------------------------------------------------------------------
-extern const int32u Aac_sampling_frequency[]=
+extern const int32u Aac_sampling_frequency[13]=
 {96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050,
- 16000, 12000, 11025,  8000,  7350,     0,     0,     0,};
+ 16000, 12000, 11025,  8000,  7350};
 
 //---------------------------------------------------------------------------
 const char* Aac_Adts_ID[]=
@@ -357,7 +357,7 @@ void File_Aac::AudioSpecificConfig (size_t End)
             //~ break;
         default:
             Element_Begin1("not implemented part");
-            Skip_BS(Data_BS_Remain()-(End==(size_t)-1)?0:End,   "(Not implemented)");
+            Skip_BS(Data_BS_Remain()-((End==(size_t)-1)?0:End), "(Not implemented)");
             Element_End0();
             FILLING_BEGIN()
                 if (Mode==File_Aac::Mode_ADIF || Mode==File_Aac::Mode_ADTS)
@@ -393,7 +393,7 @@ void File_Aac::AudioSpecificConfig (size_t End)
                 if ( ! directMapping )
                 {
                     Element_Begin1("not implemented part");
-                    Skip_BS(Data_BS_Remain()-(End==(size_t)-1)?0:End, "(Not implemented)");
+                    Skip_BS(Data_BS_Remain()-((End==(size_t)-1)?0:End), "(Not implemented)");
                     Element_End0();
                     if (Mode==File_Aac::Mode_ADIF || Mode==File_Aac::Mode_ADTS)
                         File__Tags_Helper::Finish();
