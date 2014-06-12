@@ -140,7 +140,7 @@ const string SettingsManager::settingTags[] =
 	
 	// Ints //
 	
-	"IncomingConnections", "InPort", "Slots", "AutoFollow", "ClearSearch",
+	"IncomingConnections", "ForcePassiveIncomingConnections", "InPort", "Slots", "AutoFollow", "ClearSearch",
 	"BackgroundColor", "TextColor", "ShareHidden",
 	"ShareVirtual", "ShareSystem", //[+] IRainman
 	"FilterMessages", "MinimizeToTray",

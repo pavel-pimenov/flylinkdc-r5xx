@@ -1506,6 +1506,7 @@ class WinUtil
 		static HIconWrapper g_hMedicalIcon;
 		static HIconWrapper g_hThermometerIcon;
 		static HIconWrapper g_hCrutchIcon;
+		static HIconWrapper g_hHelpIcon;
 		
 		static std::unique_ptr<HIconWrapper> g_HubOnIcon;
 		static std::unique_ptr<HIconWrapper> g_HubOffIcon;

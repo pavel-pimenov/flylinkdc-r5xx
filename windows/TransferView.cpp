@@ -89,6 +89,11 @@ static ResourceManager::Strings columnNames[] = { ResourceManager::USER, Resourc
                                                   , ResourceManager::SHARED, //[+]PPA
                                                   ResourceManager::SLOTS //[+]PPA
                                                 };
+
+TransferView::TransferView() : CFlyTimerAdapter(m_hWnd)
+{
+}
+
 TransferView::~TransferView()
 {
 	m_arrows.Destroy();
@@ -99,6 +104,10 @@ TransferView::~TransferView()
 
 LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
+	m_tooltip.Create(m_hWnd, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP /*| TTS_BALLOON*/, WS_EX_TOPMOST);
+	m_tooltip.SetDelayTime(TTDT_AUTOPOP, 15000);
+	dcassert(m_tooltip.IsWindow());
+	
 	ResourceLoader::LoadImageList(IDR_ARROWS, m_arrows, 16, 16);
 	ResourceLoader::LoadImageList(IDR_TSPEEDS, m_speedImages, 16, 16);
 	ResourceLoader::LoadImageList(IDR_TSPEEDS_BW, m_speedImagesBW, 16, 16);
@@ -128,6 +137,18 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	ctrlTransfers.setFlickerFree(Colors::bgBrush);
 	
 	ctrlTransfers.SetImageList(m_arrows, LVSIL_SMALL);
+	
+	m_PassiveModeButton.Create(m_hWnd,
+	                           rcDefault,
+	                           NULL,
+	                           //WS_CHILD| WS_VISIBLE | BS_ICON | BS_AUTOCHECKBOX| BS_PUSHLIKE | BS_FLAT
+	                           WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_ICON | BS_AUTOCHECKBOX | BS_FLAT
+	                           , 0,
+	                           IDC_FORCE_PASSIVE_MODE);
+	m_PassiveModeButton.SetIcon(WinUtil::g_hHelpIcon);
+	//purgeContainer.SubclassWindow(ctrlPurge.m_hWnd);
+	//m_PassiveModeButton.SetCheck(BST_CHECKED);
+	setButtonState();
 	
 	// [-] brain-ripper
 	// Make menu dynamic (in context menu handler), since its content depends of which
@@ -201,6 +222,10 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	return 0;
 }
 
+void TransferView::setButtonState()
+{
+	m_tooltip.AddTool(m_PassiveModeButton, ResourceManager::SETTINGS_FIREWALL_PASSIVE_FORCE);
+}
 void TransferView::prepareClose()
 {
 	safe_destroy_timer();
@@ -218,11 +243,26 @@ void TransferView::prepareClose()
 	
 	//WinUtil::UnlinkStaticMenus(transferMenu); // !SMT!-UI
 }
+LRESULT TransferView::onForcePassiveMode(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	if (m_PassiveModeButton.GetCheck() == BST_CHECKED)
+	{
+		SettingsManager::getInstance()->set(SettingsManager::FORCE_PASSIVE_INCOMING_CONNECTIONS, 1);
+	}
+	else
+	{
+		SettingsManager::getInstance()->set(SettingsManager::FORCE_PASSIVE_INCOMING_CONNECTIONS, 0);
+	}
+	setButtonState();
+	return 0;
+}
 
 LRESULT TransferView::onSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	RECT rc;
 	GetClientRect(&rc);
+	m_PassiveModeButton.MoveWindow(2, 2, 45, 24);
+	rc.left += 45;
 	ctrlTransfers.MoveWindow(&rc);
 	
 	return 0;

@@ -81,6 +81,7 @@ uint16_t CFlyServerConfig::g_winet_min_response_time_for_log = 200;
 DWORD CFlyServerConfig::g_winet_receive_timeout = 1000; 
 DWORD CFlyServerConfig::g_winet_send_timeout    = 1000; 
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
+uint16_t CFlyServerConfig::g_min_interval_dth_connect = 60; // К DHT обращаемся не чаще раз в 60 секунд (найти причину почему это происходит)
 uint16_t CFlyServerConfig::g_max_ddos_connect_to_me = 10; // Не более 10 коннектов на один IP в течении минуты
 uint16_t CFlyServerConfig::g_ban_ddos_connect_to_me = 10; // Блокируем подключения к этом IP в течении 10 минут
 uint16_t CFlyServerConfig::g_max_unique_tth_search  = 10; // Не принимаем в течении 10 секунд одинаковых поисков по TTH для одного и того-же целевого IP:PORT (UDP)
@@ -347,6 +348,7 @@ void CFlyServerConfig::loadConfig()
 					initUINT16("max_unique_tth_search",g_max_unique_tth_search,3);
 					initUINT16("max_ddos_connect_to_me",g_max_ddos_connect_to_me,3);
 					initUINT16("ban_ddos_connect_to_me",g_ban_ddos_connect_to_me,3);
+					initUINT16("min_interval_dth_connect",g_min_interval_dth_connect,60); // Пока нет в XML
 					initDWORD("winet_connect_timeout",g_winet_connect_timeout);
 					initDWORD("winet_receive_timeout",g_winet_receive_timeout);
 					initDWORD("winet_send_timeout",g_winet_send_timeout);

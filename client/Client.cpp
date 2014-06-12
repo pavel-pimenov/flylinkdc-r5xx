@@ -506,7 +506,7 @@ string Client::getLocalIp() const
 	{
 		return Socket::resolve(getFavIp());
 	}
-	const auto& settingIp = SETTING(EXTERNAL_IP);
+	const auto settingIp = SETTING(EXTERNAL_IP);
 	if (!BOOLSETTING(NO_IP_OVERRIDE) && !settingIp.empty() &&
 	        SETTING(INCOMING_CONNECTIONS) != SettingsManager::INCOMING_DIRECT)   // !SMT!-F
 	{

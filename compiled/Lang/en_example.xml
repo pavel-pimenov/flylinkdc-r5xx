@@ -450,6 +450,7 @@
 	<string name="ErrorOnIpAutoUpdate">Internal error on IP auto update:</string>
 	<string name="ErrorParse">Error parse</string>
 	<string name="ErrorString">Error</string>
+	<string name="DhtSkipSpamConnect">Skip frequent connect to DHT... please check DHT port. Min interval = </string>
 	<string name="ErrIpfilter">IPTrust.ini not found…</string>
 	<string name="ExactShared">Exact share</string>
 	<string name="ExactSize">Exact size</string>
@@ -1315,6 +1316,7 @@
 	<string name="SettingsFilterMessages">Filter kick and debug messages</string>
 	<string name="SettingsFirewallNat">Firewall with manual port forwarding</string>
 	<string name="SettingsFirewallPassive">Firewall (passive, the worst case)</string>
+	<string name="SettingsFirewallPassiveForce">Force firewall mode (passive!)</string>
 	<string name="SettingsFirewallUpnp">UPnP (for modem/router only)</string>
 	<string name="SettingsFormat">Format</string>
 	<string name="SettingsGeneral">General</string>

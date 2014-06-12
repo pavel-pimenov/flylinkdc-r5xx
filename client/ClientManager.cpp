@@ -1205,7 +1205,7 @@ int ClientManager::getMode(const FavoriteHubEntry* p_hub
 				// If autodetection turned on, use passive mode until
 				// active mode detected
 				if (mode != SettingsManager::INCOMING_FIREWALL_PASSIVE && SETTING(INCOMING_AUTODETECT_FLAG) &&
-				        !(Util::isAdcHub(aHubUrl)) // [!] IRainman temporary fix http://code.google.com/p/flylinkdc/issues/detail?id=363
+				        !Util::isAdcHub(aHubUrl) // [!] IRainman temporary fix http://code.google.com/p/flylinkdc/issues/detail?id=363
 				   )
 				{
 					mode = SettingsManager::INCOMING_FIREWALL_PASSIVE;

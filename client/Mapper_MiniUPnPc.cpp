@@ -22,8 +22,8 @@
 #include "LogManager.h"
 
 extern "C" {
-#ifndef STATICLIB
-#define STATICLIB
+#ifndef MINIUPNP_STATICLIB
+#define MINIUPNP_STATICLIB
 #endif
 #include "../miniupnpc/miniupnpc.h"
 #include "../miniupnpc/upnpcommands.h"

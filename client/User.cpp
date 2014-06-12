@@ -318,14 +318,17 @@ tstring User::getUDratio()
 
 bool Identity::isTcpActive(const Client* client) const // [+] IRainman fix.
 {
-	if (ClientManager::isMe(user))
-	{
-		return client->isActive(); // userlist should display our real mode
-	}
-	else
-	{
-		return isTcpActive();
-	}
+	return isTcpActive();
+	/*
+	if (ClientManager::isMe(user)) // Часто зовется
+	    {
+	        return client->isActive(); // userlist should display our real mode
+	    }
+	    else
+	    {
+	        return isTcpActive();
+	    }
+	*/
 }
 
 bool Identity::isTcpActive() const

@@ -2075,6 +2075,7 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 		{
 			SettingsManager::testPortLevelInit();
 			SettingsManager::getInstance()->save();
+			transferView.setButtonState();
 			if (missedAutoConnect && !SETTING(NICK).empty())
 			{
 				PostMessage(WM_SPEAKER, AUTO_CONNECT);
@@ -3733,7 +3734,7 @@ LRESULT MainFrame::onCheckDHTStats(WORD /* wNotifyCode */, WORD /*wID*/, HWND /*
 			return TRUE;
 		}
 	}
-	SET_SETTING(USE_DHT, !l_currentDhtStateIsEnable);
+	SET_SETTING(USE_DHT, !l_currentDhtStateIsEnable); // TODO - не поддерживается смена номера порта
 	// TODO: please fix me http://code.google.com/p/flylinkdc/issues/detail?id=1003
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 	if (l_currentDhtStateIsEnable)

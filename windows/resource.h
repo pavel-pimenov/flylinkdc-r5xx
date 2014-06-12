@@ -186,6 +186,7 @@
 #define IDR_ICON_MEDICAL_BAG            295
 #define IDR_ICON_THERMOMETR_BAG         296
 #define IDR_ICON_CRUTCH             297
+#define IDR_ICON_HELP                   298
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
 #define IDC_COPY_HUB                    1002
@@ -1521,6 +1522,8 @@
 #define IDC_LOCATION_CITY_DESCRIPTION   2361
 #define IDC_LOCATION_PROVIDER_DESCRIPTION 2362
 #define IDC_LOCATION_PROVIDER           2363
+#define IDC_FORCE_PASSIVE_MODE          2364
+
 #define IDC_LOCATION_COUNTRY_DESCRIPTION 2366
 #define IDC_LOCATION_COUNTRY            2367
 #define IDC_COPY_GEO_LOCATION           2368

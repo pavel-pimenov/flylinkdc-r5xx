@@ -279,9 +279,6 @@ CFlylinkDBManager::CFlylinkDBManager()
 			{
 				pragma_executor("synchronous=FULL");
 			}
-#ifndef FLYLINKDC_USE_GATHER_IDENTITY_STAT
-			pragma_executor("count_changes=OFF");  //
-#endif
 		}
 		pragma_executor("temp_store=MEMORY");
 		

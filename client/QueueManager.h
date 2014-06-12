@@ -253,9 +253,9 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		bool dropSource(Download* d);
 #endif
 	private:
-		void calcPriorityAndGetRunningFiles(QueueItem::PriorityArray& p_proir_array, QueueItemList& p_running_file)
+		void calcPriorityAndGetRunningFilesL(QueueItem::PriorityArray& p_proir_array, QueueItemList& p_running_file)
 		{
-			fileQueue.calcPriorityAndGetRunningFiles(p_proir_array, p_running_file);
+			fileQueue.calcPriorityAndGetRunningFilesL(p_proir_array, p_running_file);
 		}
 		size_t getRunningFileCount(const size_t p_stop_key) const //[+]PPA opt.
 		{
@@ -390,7 +390,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 				{
 					return m_queue;
 				}
-				void calcPriorityAndGetRunningFiles(QueueItem::PriorityArray& p_changedPriority, QueueItemList& p_runningFiles);
+				void calcPriorityAndGetRunningFilesL(QueueItem::PriorityArray& p_changedPriority, QueueItemList& p_runningFiles);
 				size_t getRunningFileCount(const size_t p_stop_key) const;
 				void moveTarget(const QueueItemPtr& qi, const string& aTarget); // [!] IRainman fix.
 				void remove(const QueueItemPtr& qi); // [!] IRainman fix.

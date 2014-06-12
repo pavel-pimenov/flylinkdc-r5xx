@@ -55,7 +55,7 @@ void BootstrapManager::dht_live_check(const char* p_operation,const string& p_pa
 		{
 		 std::vector<byte> l_data;
 		 const string l_url = i->first + p_param;
-		 l_dht_log.step("Bootstrap count = " + Util::toString(i->second) + ", URL: " + l_url);
+		 l_dht_log.step("Bootstrap count = " + Util::toString(i->second.first) + ", URL: " + l_url);
 		 Util::getBinaryDataFromInet(Text::toT(m_user_agent).c_str(), 4096, l_url, l_data, 1000);
 		}
 	}
@@ -78,13 +78,15 @@ string BootstrapManager::create_url_for_dht_server()
 {
 	const DHTServer& l_server = CFlyServerConfig::getRandomDHTServer();
     m_user_agent = l_server.getAgent();
+	if(m_user_agent.empty())
+	   m_user_agent = APPNAME " " A_VERSIONSTRING;
 	string l_url = l_server.getUrl() + "?cid=" + ClientManager::getMyCID().toBase32() + "&encryption=1";  // [!] IRainman fix.
 	// store only active nodes to database
 	if (ClientManager::isActive(nullptr))
 	{
 		l_url += "&u4=" + Util::toString(DHT::getInstance()->getPort());
 	}
-	m_dht_bootstrap_count[l_url]++;
+	m_dht_bootstrap_count[l_url].first++;
 	return l_url;
 }
 bool BootstrapManager::bootstrap()
@@ -96,13 +98,22 @@ bool BootstrapManager::bootstrap()
 	if (bootstrapNodes.empty())
 	{
 		CFlyLog l_dht_log("[DHT]");
+		const string l_url = create_url_for_dht_server();
+		auto& l_check_spam = m_dht_bootstrap_count[l_url];
+		const auto l_tick = GET_TICK();
+		if(l_check_spam.second)
+		{
+		 if(l_tick - l_check_spam.second < int(CFlyServerConfig::g_min_interval_dth_connect) * 1000) // TODO - в конфиг?
+		 {
+			l_dht_log.step(STRING(DHT_SKIP_SPAM_CONNECT) + Util::toString(CFlyServerConfig::g_min_interval_dth_connect) + ' ' + STRING(SEC));
+			return false;
+		 }
+		}
+		l_check_spam.second = l_tick;
 		l_dht_log.step(STRING(DHT_BOOTSTRAPPING_STARTED));// [!]NightOrion(translate)
 		
-		const string l_url = create_url_for_dht_server();
 
 		l_dht_log.step(STRING(DOWNLOAD) + ": " + l_url);
-		if(m_user_agent.empty())
-			m_user_agent = APPNAME " " A_VERSIONSTRING;
 		std::vector<byte> l_data;
 		const size_t l_size = Util::getBinaryDataFromInet(Text::toT(m_user_agent).c_str(), 4096, l_url, l_data, 2000);
 		if (l_size == 0)
@@ -164,7 +175,6 @@ bool BootstrapManager::bootstrap()
 	}
 	return true;
 }
-
 
 void BootstrapManager::addBootstrapNode(const string& ip, uint16_t udpPort, const CID& targetCID, const UDPKey& udpKey)
 {

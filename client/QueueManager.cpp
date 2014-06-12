@@ -537,10 +537,8 @@ size_t QueueManager::FileQueue::getRunningFileCount(const size_t p_stop_key) con
 	return l_cnt;
 }
 
-void QueueManager::FileQueue::calcPriorityAndGetRunningFiles(QueueItem::PriorityArray& p_changedPriority, QueueItemList& p_runningFiles)
+void QueueManager::FileQueue::calcPriorityAndGetRunningFilesL(QueueItem::PriorityArray& p_changedPriority, QueueItemList& p_runningFiles)
 {
-	RLock l(*QueueItem::g_cs);
-	RLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
 	for (auto i = m_queue.cbegin(); i != m_queue.cend(); ++i)
 	{
 		const QueueItemPtr& q = i->second;
@@ -2898,12 +2896,12 @@ void QueueManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	QueueItem::PriorityArray l_priorities;
 	
 	{
+		RLock l(*QueueItem::g_cs);
+		RLock l_lock_fq(*FileQueue::g_csFQ);
 		QueueItemList l_runningItems;
-		// [-] Lock l(cs); [-] IRainman fix.
-		calcPriorityAndGetRunningFiles(l_priorities, l_runningItems);
+		calcPriorityAndGetRunningFilesL(l_priorities, l_runningItems);
 		if (!l_runningItems.empty())
 		{
-			// TODO - QueueItemList - fire with no lock. Probably needs lock csFQ here.
 			fire(QueueManagerListener::Tick(), l_runningItems); // [!] IRainman opt.
 		}
 	}

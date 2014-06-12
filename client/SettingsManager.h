@@ -156,7 +156,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                };
 		                
 		enum IntSetting { INT_FIRST = STR_LAST + 1,
-		                  INCOMING_CONNECTIONS = INT_FIRST, TCP_PORT, SLOTS, AUTO_FOLLOW, CLEAR_SEARCH,
+		                  INCOMING_CONNECTIONS = INT_FIRST, FORCE_PASSIVE_INCOMING_CONNECTIONS, TCP_PORT, SLOTS, AUTO_FOLLOW, CLEAR_SEARCH,
 		                  BACKGROUND_COLOR, TEXT_COLOR, SHARE_HIDDEN,
 		                  SHARE_VIRTUAL, SHARE_SYSTEM, // [+]IRainman
 		                  FILTER_MESSAGES, MINIMIZE_TRAY,

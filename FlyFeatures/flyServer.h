@@ -211,6 +211,7 @@ public:
   static uint16_t g_max_ddos_connect_to_me;
   static uint16_t g_max_unique_tth_search;
   static uint16_t g_ban_ddos_connect_to_me;
+  static uint16_t g_min_interval_dth_connect;
 #ifdef USE_SUPPORT_HUB
   static string   g_support_hub;
 #endif // USE_SUPPORT_HUB

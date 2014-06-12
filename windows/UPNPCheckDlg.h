@@ -26,6 +26,8 @@
 
 #ifdef SSA_WIZARD_FEATURE
 
+#ifdef SSA_WIZARD_FEATURE_UPNP
+
 #define WM_SETSTAGE     WM_USER + 0x03
 #define WM_SETOK        WM_USER + 0x04
 #define WM_SETFAIL      WM_USER + 0x05
@@ -110,6 +112,8 @@ class UPNPCheckDlg : public CDialogImpl<UPNPCheckDlg>, public BASE_THREAD
 		ConnectionManager::Server* _serverTCP;
 		string m_device;
 };
+
+#endif // SSA_WIZARD_FEATURE_UPNP
 
 #endif // SSA_WIZARD_FEATURE
 

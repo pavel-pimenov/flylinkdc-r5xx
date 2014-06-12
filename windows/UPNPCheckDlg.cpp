@@ -19,6 +19,9 @@
 
 #include "stdafx.h"
 #include "Resource.h"
+
+#ifdef SSA_WIZARD_FEATURE_UPNP
+
 #include "UPNPCheckDlg.h"
 #include "../client/Util.h"
 #include "../client/SettingsManager.h"
@@ -28,8 +31,8 @@
 
 ///"Mapper_MiniUPnPc.h"
 extern "C" {
-#ifndef STATICLIB
-#define STATICLIB
+#ifndef MINIUPNP_STATICLIB
+#define MINIUPNP_STATICLIB
 #endif
 #include "../miniupnpc/miniupnpc.h"
 #include "../miniupnpc/upnpcommands.h"
@@ -425,3 +428,5 @@ bool UPNPCheckDlg::StopPortListener()
 }
 
 #endif // SSA_WIZARD_FEATURE
+
+#endif // SSA_WIZARD_FEATURE_UPNP
