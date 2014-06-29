@@ -362,7 +362,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			// return ClientManager::isActive(hubUrl); [-] IRainman opt.
 			return m_isActivMode
-			       && !SETTING(FORCE_PASSIVE_INCOMING_CONNECTIONS); // Принудительный вариант
+			       && !SETTING(FORCE_PASSIVE_INCOMING_CONNECTIONS);
 			// [!]IRainman Fixed auto-adjust the connection type
 		}
 		bool getExcludeCheck() const // [+] IRainman fix.

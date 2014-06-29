@@ -50,6 +50,8 @@ LogManager::LogManager()
 	logOptions[DDOS_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_DDOS_TRACE;
 	logOptions[DHT_TRACE][FILE]     = SettingsManager::LOG_FILE_DHT_TRACE;
 	logOptions[DHT_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_DHT_TRACE;
+	logOptions[PSR_TRACE][FILE]     = SettingsManager::LOG_FILE_PSR_TRACE;
+	logOptions[PSR_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_PSR_TRACE;
 	
 	
 	if (!CompatibilityManager::getStartupInfo().empty())
@@ -177,6 +179,16 @@ void LogManager::ddos_message(const string& p_message)
 		StringMap params;
 		params["message"] = p_message;
 		LOG(DDOS_TRACE, params);
+	}
+}
+
+void LogManager::psr_message(const string& p_message)
+{
+	if (BOOLSETTING(LOG_PSR_TRACE))
+	{
+		StringMap params;
+		params["message"] = p_message;
+		LOG(PSR_TRACE, params);
 	}
 }
 

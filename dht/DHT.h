@@ -55,6 +55,7 @@ class DHT :
 		
 		/** Starts DHT. */
 		void start();
+		static void test_dht_port();
 		void stop(bool exiting = false);
 		
 		uint16_t getPort() const

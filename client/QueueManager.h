@@ -434,8 +434,8 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 				QueueItemPtr getRunningL(const UserPtr& aUser); // [!] IRainman fix.
 				void addDownloadL(const QueueItemPtr& qi, Download* d); // [!] IRainman fix: this function needs external lock.
 				bool removeDownloadL(const QueueItemPtr& qi, const UserPtr& d); // [!] IRainman fix: this function needs external lock.
-				void removeQueueItemL(const QueueItemPtr& qi, bool removeRunning = true); // [!] IRainman fix.
-				void removeUserL(const QueueItemPtr& qi, const UserPtr& aUser, bool removeRunning = true); // [!] IRainman fix.
+				void removeQueueItemL(const QueueItemPtr& qi, bool p_is_remove_running = true); // [!] IRainman fix.
+				void removeUserL(const QueueItemPtr& qi, const UserPtr& aUser, bool p_is_remove_running, bool p_is_find_sources = true); // [!] IRainman fix.
 				void setQIPriority(const QueueItemPtr& qi, QueueItem::Priority p); // [!] IRainman fix.
 				// [+] IRainman fix.
 				typedef std::unordered_map<UserPtr, QueueItemList, User::Hash> UserQueueMap; // TODO - set ?

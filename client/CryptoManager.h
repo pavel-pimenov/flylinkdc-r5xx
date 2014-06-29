@@ -93,7 +93,8 @@ class CryptoManager : public Singleton<CryptoManager>
 			return (b == 0 || b == 5 || b == 124 || b == 96 || b == 126 || b == 36);
 		}
 		
-		void loadKeyprint(const string& file) noexcept;
+		void loadKeyprint() noexcept;
+		static FILE* openSertFile() noexcept;
 };
 
 #endif // !defined(CRYPTO_MANAGER_H)

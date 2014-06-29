@@ -206,7 +206,7 @@ CFlylinkDBManager::CFlylinkDBManager()
 		DWORD dwRet = GetCurrentDirectory(MAX_PATH, l_dir_buffer);
 		if (!dwRet)
 		{
-			errorDB("SQLite - CFlylinkDBManager: error GetCurrentDirectory " + Util::translateError(GetLastError()));
+			errorDB("SQLite - CFlylinkDBManager: error GetCurrentDirectory " + Util::translateError());
 		}
 		else
 		{
@@ -243,7 +243,7 @@ CFlylinkDBManager::CFlylinkDBManager()
 			else
 			{
 				errorDB("SQLite - CFlylinkDBManager: error SetCurrentDirectory l_db_path = " + Util::getConfigPath()
-				        + " Error: " +  Util::translateError(GetLastError()));
+				        + " Error: " +  Util::translateError());
 			}
 		}
 		
@@ -503,7 +503,7 @@ CFlylinkDBManager::CFlylinkDBManager()
 		    "CREATE TABLE IF NOT EXISTS location_db.fly_country_ip(start_ip integer not null,stop_ip integer not null,country text,flag_index integer);");
 		safeAlter("ALTER TABLE location_db.fly_country_ip add column country text");
 		
-		m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS location_db.i_fly_country_ip ON fly_country_ip(start_ip,stop_ip);");
+		m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS location_db.i_fly_country_ip ON fly_country_ip(start_ip);");
 		/*
 		m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS i_fly_country_ip ON fly_country_ip(start_ip,stop_ip);");
 		ALTER TABLE location_db.fly_country_ip ADD COLUMN idx INTEGER;
@@ -519,7 +519,7 @@ CFlylinkDBManager::CFlylinkDBManager()
 		m_flySQLiteDB.executenonquery(
 		    "CREATE TABLE IF NOT EXISTS location_db.fly_location_ip_lost(ip text PRIMARY KEY not null,is_send_fly_server integer);");
 		m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS "
-		                              "location_db.i_fly_location_ip ON fly_location_ip(start_ip,stop_ip);"); // Индекс делаем не уникальный
+		                              "location_db.i_fly_location_ip ON fly_location_ip(start_ip);");
 		                              
 #ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
 		m_flySQLiteDB.executenonquery(
@@ -1053,8 +1053,9 @@ void CFlylinkDBManager::get_location_sql(uint32_t p_ip, int32_t& p_index)
 	{
 		if (!m_select_location.get())
 			m_select_location = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                  "select location,start_ip,stop_ip,flag_index "
-			                                                                  "from location_db.fly_location_ip where start_ip <= ? and stop_ip > ? limit 1"));
+			                                                                  "select location,start_ip,stop_ip,flag_index from "
+			                                                                  "(select location,start_ip,stop_ip,flag_index from location_db.fly_location_ip where start_ip <=? order by start_ip desc limit 1) "
+			                                                                  "where stop_ip >=?"));
 		m_select_location.get()->bind(1, __int64(p_ip));
 		m_select_location.get()->bind(2, __int64(p_ip));
 		sqlite3_reader l_q = m_select_location.get()->executereader();
@@ -1167,10 +1168,65 @@ uint8_t CFlylinkDBManager::get_country_sqlite(uint32_t p_ip, CFlyLocationDesc& p
 	Lock l(m_cs);
 	try
 	{
+		// http://www.sql.ru/forum/783621/faq-nahozhdenie-zapisey-gde-zadannoe-znachenie-nahoditsya-mezhdu-znacheniyami-poley
+		// http://habrahabr.ru/post/138067/
+		//
+		/*
+		.timer ON
+		.stats ON
+		
+		sqlite> select country, flag_index,start_ip,stop_ip from fly_country_ip where start_ip <= 3642671164 and stop_ip > 3642671164;
+		Ukraine|227|3642671104|3642675199
+		Memory Used:                         2424360 (max 2430776) bytes
+		Number of Outstanding Allocations:   670 (max 683)
+		Number of Pcache Overflow Bytes:     2348992 (max 2352216) bytes
+		Number of Scratch Overflow Bytes:    0 (max 0) bytes
+		Largest Allocation:                  64000 bytes
+		Largest Pcache Allocation:           4244 bytes
+		Largest Scratch Allocation:          0 bytes
+		Lookaside Slots Used:                13 (max 65)
+		Successful lookaside attempts:       267
+		Lookaside failures due to size:      56
+		Lookaside failures due to OOM:       0
+		Pager Heap Usage:                    2342920 bytes
+		Page cache hits:                     552
+		Page cache misses:                   0
+		Page cache writes:                   0
+		Schema Heap Usage:                   2384 bytes
+		Statement Heap/Lookaside Usage:      3560 bytes
+		Fullscan Steps:                      0
+		Sort Operations:                     0
+		Autoindex Inserts:                   0
+		CPU Time: user 0.109201 sys 0.000000
+		sqlite> SELECT country, flag_index,start_ip,stop_ip FROM (SELECT * FROM fly_country_ip WHERE start_ip <= 3642671164 ORDER BY start_ip DESC LIMIT 1)  WHERE stop_ip >= 3642671164;
+		Ukraine|227|3642671104|3642675199
+		Memory Used:                         2424856 (max 2430776) bytes
+		Number of Outstanding Allocations:   671 (max 683)
+		Number of Pcache Overflow Bytes:     2348992 (max 2352216) bytes
+		Number of Scratch Overflow Bytes:    0 (max 0) bytes
+		Largest Allocation:                  64000 bytes
+		Largest Pcache Allocation:           4244 bytes
+		Largest Scratch Allocation:          0 bytes
+		Lookaside Slots Used:                12 (max 65)
+		Successful lookaside attempts:       344
+		Lookaside failures due to size:      67
+		Lookaside failures due to OOM:       0
+		Pager Heap Usage:                    2342920 bytes
+		Page cache hits:                     7
+		Page cache misses:                   0
+		Page cache writes:                   0
+		Schema Heap Usage:                   2384 bytes
+		Statement Heap/Lookaside Usage:      3928 bytes
+		Fullscan Steps:                      0
+		Sort Operations:                     0
+		Autoindex Inserts:                   0
+		CPU Time: user 0.000000 sys 0.000000
+		*/
 		if (!m_select_geoip.get())
 			m_select_geoip = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                               "select country, flag_index,start_ip,stop_ip "
-			                                                               "from location_db.fly_country_ip where start_ip <= ? and stop_ip > ?"));
+			                                                               "select country,flag_index,start_ip,stop_ip from "
+			                                                               "(select country,flag_index,start_ip,stop_ip from location_db.fly_country_ip where start_ip <=? order by start_ip desc limit 1) "
+			                                                               "where stop_ip >=?"));
 		m_select_geoip.get()->bind(1, __int64(p_ip));
 		m_select_geoip.get()->bind(2, __int64(p_ip));
 		sqlite3_reader l_q = m_select_geoip.get()->executereader();

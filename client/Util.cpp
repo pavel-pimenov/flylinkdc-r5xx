@@ -80,6 +80,19 @@ NUMBERFMT Util::g_nf = { 0 };
 // [~] IRainman opt.
 bool Util::g_localMode = true;
 
+tstring g_full_user_agent = Text::toT(string(APPNAME
+#ifdef FLYLINKDC_HE
+                                             "HE"
+#endif
+                                             " " A_VERSIONSTRING
+#ifdef _DEBUG
+                                             " DEBUG"
+#else
+                                             ""
+#endif
+                                            ));
+
+
 static void sgenrand(unsigned long seed);
 
 extern "C" void bz_internal_error(int errcode)
@@ -285,7 +298,7 @@ void Util::loadGeoIp()
 #ifndef USE_SETTINGS_PATH_TO_UPDATA_DATA
 		                            true
 #endif
-		                        ) + "GeoIpCountryWhois.csv";
+		                        ) + "GeoIPCountryWhois.csv";
 		                        
 		try
 		{
@@ -1872,7 +1885,7 @@ string Util::getIETFLang()
 	return l_lang;
 }
 
-string Util::translateError(int aError)
+string Util::translateError(DWORD aError)
 {
 #ifdef _WIN32
 #ifdef NIGHTORION_INTERNAL_TRANSLATE_SOCKET_ERRORS
@@ -1911,7 +1924,32 @@ string Util::translateError(int aError)
 			    FORMAT_MESSAGE_FROM_SYSTEM |
 			    FORMAT_MESSAGE_IGNORE_INSERTS;
 			    
-			LPCVOID lpSource;
+			LPCVOID lpSource = nullptr;
+			// Обработаем расширенные ошибки по инету
+			// http://stackoverflow.com/questions/20435591/internetgetlastresponseinfo-returns-strange-characters-instead-of-error-message
+			{
+				wstring l_error;
+				DWORD dwLen = 0;
+				DWORD dwErr = aError;
+				if (dwErr == ERROR_INTERNET_EXTENDED_ERROR)
+				{
+					InternetGetLastResponseInfo(&dwErr, NULL, &dwLen); //
+					if (::GetLastError() == ERROR_INSUFFICIENT_BUFFER && dwLen)
+					{
+						dwLen++;
+						dcassert(dwLen);
+						if (dwLen)
+						{
+							l_error.resize(dwLen);
+							InternetGetLastResponseInfo(&dwErr, &l_error[0], &dwLen);
+						}
+					}
+					if (dwLen)
+					{
+						return "Internet Error = " + Text::fromT(l_error) + " [Code = " + Util::toString(dwErr) + "]";
+					}
+				}
+			}
 			// http://code.google.com/p/flylinkdc/issues/detail?id=1077
 			// http://stackoverflow.com/questions/2159458/why-is-formatmessage-failing-to-find-a-message-for-wininet-errors/2159488#2159488
 			if (aError >= INTERNET_ERROR_BASE && aError < INTERNET_ERROR_LAST)
@@ -1925,10 +1963,6 @@ string Util::translateError(int aError)
 			TODO: Load text for errors from other libraries?
 			}
 			*/
-			else
-			{
-				lpSource = NULL;
-			}
 			
 			LPTSTR lpMsgBuf = 0;
 			DWORD chars = FormatMessage(
@@ -2169,7 +2203,7 @@ string Util::getWANIP(const string& p_url, LONG p_timeOut /* = 500 */)
 {
 	CFlyLog l_log("[GetIP]");
 	string l_downBuf;
-	getDataFromInet(_T("GetIP"), 4096, p_url, l_downBuf, p_timeOut);
+	getDataFromInet(p_url, l_downBuf, p_timeOut);
 	if (!l_downBuf.empty())
 	{
 		SimpleXML xml;
@@ -2200,14 +2234,14 @@ string Util::getWANIP(const string& p_url, LONG p_timeOut /* = 500 */)
 		}
 	}
 	else
-		l_log.step("Error download : " + Util::translateError(GetLastError()));
+		l_log.step("Error download : " + Util::translateError());
 	return Util::emptyString;
 }
 //[+] SSA
-size_t Util::getDataFromInet(LPCWSTR agent, const DWORD frameBufferSize, const string& url, string& data, LONG timeOut /*=0*/, IDateReceiveReporter* reporter /* = NULL */)
+size_t Util::getDataFromInet(const string& url, string& data, LONG timeOut /*=0*/, IDateReceiveReporter* reporter /* = NULL */)
 {
 	std::vector<byte> l_bin_data;
-	const size_t l_bin_size = Util::getBinaryDataFromInet(agent, frameBufferSize, url, l_bin_data, timeOut, reporter);
+	const size_t l_bin_size = Util::getBinaryDataFromInet(url, l_bin_data, timeOut, reporter);
 	if (l_bin_size)
 	{
 		data = string((char*)l_bin_data.data(), l_bin_size);
@@ -2219,53 +2253,76 @@ size_t Util::getDataFromInet(LPCWSTR agent, const DWORD frameBufferSize, const s
 	
 	return l_bin_size;
 }
+#if 0
 string Util::getExtInternetError()
 {
 	wstring l_error;
 	DWORD dwLen = 0;
-	DWORD dwErr = 0;
-	InternetGetLastResponseInfo(&dwErr, NULL, &dwLen);
-	if (::GetLastError() == ERROR_INSUFFICIENT_BUFFER && dwLen)
+	DWORD dwErr = GetLastError();
+	if (dwErr == ERROR_INTERNET_EXTENDED_ERROR)
 	{
-		dwLen++;
-		dcassert(dwLen);
-		if (dwLen)
+		InternetGetLastResponseInfo(&dwErr, NULL, &dwLen);
+		if (::GetLastError() == ERROR_INSUFFICIENT_BUFFER && dwLen)
 		{
-			l_error.resize(dwLen);
-			InternetGetLastResponseInfo(&dwErr, &l_error[0], &dwLen);
+			dwLen++;
+			dcassert(dwLen);
+			if (dwLen)
+			{
+				l_error.resize(dwLen);
+				InternetGetLastResponseInfo(&dwErr, &l_error[0], &dwLen);
+			}
 		}
+		if (dwLen)
+			return "Internet Error = " + Text::fromT(l_error) + " [Code = " + Util::toString(dwErr) + "]";
 	}
-	if (dwLen)
-		return "Ext Error = " + Text::fromT(l_error) + " [Code = " + Util::toString(dwErr) + "]";
-	else
-		return translateError(GetLastError());
+	return translateError(dwErr);
 }
+#endif
 //[+] SSA
-uint64_t Util::getBinaryDataFromInet(LPCWSTR agent, const DWORD frameBufferSize, const string& url, std::vector<byte>& p_dataOut, LONG timeOut /*=0*/, IDateReceiveReporter* reporter /* = NULL */)
+uint64_t Util::getBinaryDataFromInet(const string& url, std::vector<byte>& p_dataOut, LONG timeOut /*=0*/, IDateReceiveReporter* reporter /* = NULL */)
 {
+	const DWORD frameBufferSize = 4096;
 	dcassert(frameBufferSize);
 	dcassert(!url.empty());
 	// FlylinkDC++ Team TODO: http://code.google.com/p/flylinkdc/issues/detail?id=632
 	if (url.empty())
 		return 0;
 		
-	CInternetHandle hInternet(InternetOpen(agent, INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0));
+	CInternetHandle hInternet(InternetOpen(g_full_user_agent.c_str(), INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0));
 	if (!hInternet)
 	{
-		LogManager::getInstance()->message("InternetOpen [" + url + "] error = " + getExtInternetError());
+		LogManager::getInstance()->message("InternetOpen [" + url + "] error = " + translateError());
 		dcassert(0);
 		return 0;
 	}
 	
 	
 	if (timeOut)
+	{
 		InternetSetOption(hInternet, INTERNET_OPTION_CONNECT_TIMEOUT, &timeOut, sizeof(timeOut));
-		
-	CInternetHandle hURL(InternetOpenUrlA(hInternet, url.c_str(), NULL, 0, INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_RELOAD , 0));
+	}
+	// https://github.com/ak48disk/simulationcraft/blob/392937fde95bdc4f13ccd3681e2fa61813856bb6/engine/interfaces/sc_http.cpp
+	// http://msdn.microsoft.com/en-us/library/ms906346.aspx
+	// Проверить а конфиг файл действительно менятеся.
+	// INTERNET_FLAG_NO_CACHE_WRITE - использовать если файл большой
+	// INTERNET_FLAG_RESYNCHRONIZE - использовать для xml и rtf  + конфиг
+	DWORD l_cache_flag = INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_RELOAD;
+	if (url.size() > 6)
+	{
+		const auto l_ext3 = url.c_str() + url.size() - 4;
+		const auto l_ext4 = url.c_str() + url.size() - 5;
+		if (strcmp(l_ext3, ".xml") == 0 || // TODO - Унести в конфиг
+		        strcmp(l_ext3, ".rtf") == 0 ||
+		        strcmp(l_ext4, ".sign") == 0)
+		{
+			l_cache_flag = INTERNET_FLAG_RESYNCHRONIZE;
+		}
+	}
+	CInternetHandle hURL(InternetOpenUrlA(hInternet, url.c_str(), NULL, 0, l_cache_flag , 0));
 	if (!hURL)
 	{
 		dcassert(0);
-		LogManager::getInstance()->message("InternetOpenUrl [" + url + "] error = " + getExtInternetError());
+		LogManager::getInstance()->message("InternetOpenUrl [" + url + "] error = " + translateError());
 		// TODO - залогировать коды ошибок для статы
 		return 0;
 	}
@@ -2278,7 +2335,7 @@ uint64_t Util::getBinaryDataFromInet(LPCWSTR agent, const DWORD frameBufferSize,
 		if (!InternetReadFile(hURL, &p_dataOut[totalBytesRead], frameBufferSize, &l_BytesRead))
 		{
 			dcassert(0);
-			LogManager::getInstance()->message("InternetReadFile [" + url + "] error = " + getExtInternetError());
+			LogManager::getInstance()->message("InternetReadFile [" + url + "] error = " + translateError());
 			// TODO - залогировать коды ошибок для статы
 			return 0;
 		}

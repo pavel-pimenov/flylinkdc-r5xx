@@ -63,7 +63,7 @@ void SettingsAutoUpdate::_StartFileUpdateThisThread(const string& localPath, con
 	try
 	{
 		File temp(tempPath, File::WRITE, File::CREATE | File::TRUNCATE);
-		if (Util::getDataFromInet(_T(APPNAME), 2048, urlPath, temp))
+		if (Util::getDataFromInet(urlPath, temp))
 		{
 			if (temp.isOpen())
 				temp.close();

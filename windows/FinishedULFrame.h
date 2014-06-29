@@ -28,7 +28,7 @@ class FinishedULFrame : public FinishedFrameBase<FinishedULFrame, ResourceManage
 	public:
 		FinishedULFrame()
 		{
-			upload = true;
+			m_type = FinishedManager::e_Upload;
 			boldFinished = SettingsManager::BOLD_FINISHED_UPLOADS;
 			columnOrder = SettingsManager::FINISHED_UL_ORDER;
 			columnWidth = SettingsManager::FINISHED_UL_WIDTHS;
@@ -41,14 +41,14 @@ class FinishedULFrame : public FinishedFrameBase<FinishedULFrame, ResourceManage
 		
 	private:
 	
-		void on(AddedUl, FinishedItem* entry) noexcept
+		void on(AddedUl, const FinishedItem* p_entry) noexcept
 		{
-			PostMessage(WM_SPEAKER, SPEAK_ADD_LINE, (WPARAM)entry);
+			PostMessage(WM_SPEAKER, SPEAK_ADD_LINE, (WPARAM)p_entry);
 		}
 		
-		void on(RemovedUl, FinishedItem* entry) noexcept // [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
+		void on(RemovedUl, const FinishedItem* p_entry) noexcept // [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
 		{
-			PostMessage(WM_SPEAKER, SPEAK_REMOVE_LINE, (WPARAM)entry);
+			PostMessage(WM_SPEAKER, SPEAK_REMOVE_LINE, (WPARAM)p_entry);
 		}
 };
 

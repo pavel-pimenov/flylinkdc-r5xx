@@ -28,7 +28,7 @@ class FinishedFrame : public FinishedFrameBase<FinishedFrame, ResourceManager::F
 	public:
 		FinishedFrame()
 		{
-			upload = false;
+			m_type = FinishedManager::e_Download;
 			boldFinished = SettingsManager::BOLD_FINISHED_DOWNLOADS;
 			columnOrder = SettingsManager::FINISHED_ORDER;
 			columnWidth = SettingsManager::FINISHED_WIDTHS;
@@ -39,14 +39,14 @@ class FinishedFrame : public FinishedFrameBase<FinishedFrame, ResourceManager::F
 		DECLARE_FRAME_WND_CLASS_EX(_T("FinishedFrame"), IDR_FINISHED_DL, 0, COLOR_3DFACE);
 		
 	private:
-		void on(AddedDl, FinishedItem* entry) noexcept
+		void on(AddedDl, const FinishedItem* p_entry) noexcept
 		{
-			PostMessage(WM_SPEAKER, SPEAK_ADD_LINE, (WPARAM)entry);
+			PostMessage(WM_SPEAKER, SPEAK_ADD_LINE, (WPARAM)p_entry);
 		}
 		
-		void on(RemovedDl, FinishedItem* entry) noexcept // [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
+		void on(RemovedDl, const FinishedItem* p_entry) noexcept // [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
 		{
-			PostMessage(WM_SPEAKER, SPEAK_REMOVE_LINE, (WPARAM)entry);
+			PostMessage(WM_SPEAKER, SPEAK_REMOVE_LINE, (WPARAM)p_entry);
 		}
 };
 

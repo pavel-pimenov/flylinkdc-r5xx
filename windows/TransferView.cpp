@@ -225,6 +225,7 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 void TransferView::setButtonState()
 {
 	m_tooltip.AddTool(m_PassiveModeButton, ResourceManager::SETTINGS_FIREWALL_PASSIVE_FORCE);
+	UpdateLayout();
 }
 void TransferView::prepareClose()
 {
@@ -257,14 +258,21 @@ LRESULT TransferView::onForcePassiveMode(WORD /*wNotifyCode*/, WORD /*wID*/, HWN
 	return 0;
 }
 
-LRESULT TransferView::onSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+void TransferView::UpdateLayout()
 {
 	RECT rc;
 	GetClientRect(&rc);
-	m_PassiveModeButton.MoveWindow(2, 2, 45, 24);
-	rc.left += 45;
+	if (BOOLSETTING(SHOW_TRANSFERVIEW_TOOLBAR))
+	{
+		m_PassiveModeButton.MoveWindow(2, 2, 45, 24);
+		rc.left += 45;
+	}
 	ctrlTransfers.MoveWindow(&rc);
-	
+}
+
+LRESULT TransferView::onSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+	UpdateLayout();
 	return 0;
 }
 
@@ -1312,7 +1320,7 @@ void TransferView::updateItem(int ii, uint32_t updateMask)
 
 TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const ConnectionQueueItem* aCqi) // [+] IRainman fix.
 {
-	UpdateInfo* ui = new UpdateInfo(aCqi->getUser(), aCqi->getDownload());
+	UpdateInfo* ui = new UpdateInfo(aCqi->getUser(), aCqi->isDownload());
 	if (ui->download)
 	{
 		string target;
@@ -1352,12 +1360,12 @@ void TransferView::on(ConnectionManagerListener::StatusChanged, const Connection
 
 void TransferView::on(ConnectionManagerListener::Removed, const ConnectionQueueItem* aCqi)
 {
-	m_tasks.add(TRANSFER_REMOVE_ITEM, new UpdateInfo(aCqi->getUser(), aCqi->getDownload())); // [!] IRainman fix.
+	m_tasks.add(TRANSFER_REMOVE_ITEM, new UpdateInfo(aCqi->getUser(), aCqi->isDownload())); // [!] IRainman fix.
 }
 
 void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueItem* aCqi, const string& aReason)
 {
-	UpdateInfo* ui = new UpdateInfo(aCqi->getUser(), aCqi->getDownload()); // [!] IRainman fix.
+	UpdateInfo* ui = new UpdateInfo(aCqi->getUser(), aCqi->isDownload()); // [!] IRainman fix.
 #ifdef PPA_INCLUDE_IPFILTER
 	if (ui->hintedUser.user->isSet(User::PG_BLOCK))
 	{

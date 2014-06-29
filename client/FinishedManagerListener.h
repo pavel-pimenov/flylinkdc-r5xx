@@ -35,10 +35,10 @@ class FinishedManagerListener
 		typedef X<2> RemovedUl; // [+] IRainman
 		typedef X<3> RemovedDl; // [+] IRainman
 		
-		virtual void on(AddedDl, FinishedItem*) noexcept { }
-		virtual void on(AddedUl, FinishedItem*) noexcept { }
-		virtual void on(RemovedUl, FinishedItem*) noexcept { } // [+] IRainman
-		virtual void on(RemovedDl, FinishedItem*) noexcept { } // [+] IRainman
+		virtual void on(AddedDl, const FinishedItem*) noexcept { }
+		virtual void on(AddedUl, const FinishedItem*) noexcept { }
+		virtual void on(RemovedUl, const FinishedItem*) noexcept { } // [+] IRainman
+		virtual void on(RemovedDl, const FinishedItem*) noexcept { } // [+] IRainman
 		
 };
 

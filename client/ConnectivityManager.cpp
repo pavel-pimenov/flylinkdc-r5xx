@@ -64,12 +64,6 @@ void ConnectivityManager::detectConnection()
 	fire(ConnectivityManagerListener::Started());
 	
 	// restore connectivity settings to their default value.
-	SettingsManager::getInstance()->unset(SettingsManager::TCP_PORT);
-	SettingsManager::getInstance()->unset(SettingsManager::UDP_PORT);
-	SettingsManager::getInstance()->unset(SettingsManager::TLS_PORT);
-#ifdef STRONG_USE_DHT
-	SettingsManager::getInstance()->unset(SettingsManager::DHT_PORT);
-#endif
 	SettingsManager::getInstance()->unset(SettingsManager::EXTERNAL_IP);
 	SettingsManager::getInstance()->unset(SettingsManager::NO_IP_OVERRIDE);
 	SettingsManager::getInstance()->unset(SettingsManager::BIND_ADDRESS);
@@ -214,7 +208,7 @@ string ConnectivityManager::getInformation() const
 	           field(SETTING(BIND_ADDRESS)) %
 	           field(Util::toString(ConnectionManager::getInstance()->getPort())) %
 	           field(Util::toString(ConnectionManager::getInstance()->getSecurePort())) %
-	           field(Util::toString(SearchManager::getInstance()->getPort())) %
+	           field(Util::toString(SearchManager::getInstance()->getSearchPort())) %
 #ifdef STRONG_USE_DHT
 	           field(Util::toString(dht::DHT::getInstance()->getPort())) %
 #else

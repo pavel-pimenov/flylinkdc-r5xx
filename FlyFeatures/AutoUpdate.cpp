@@ -161,7 +161,7 @@ string AutoUpdate::getUpdateFilesList(const string& p_componentName,
 			const string l_serverUpdateFile = p_serverUrl + p_file;
 			const string l_log_url_info = " (" + p_componentName + ')' + " ( URL:" + l_serverUpdateFile + ')';
 		        // 60 sec - http://code.google.com/p/flylinkdc/issues/detail?id=1403
-			size_t l_dataSize =  Util::getDataFromInet(T_VERSIONSTRING, 4096, l_serverUpdateFile, p_autoUpdateObject->m_update_xml,60000); 
+			size_t l_dataSize =  Util::getDataFromInet(l_serverUpdateFile, p_autoUpdateObject->m_update_xml,60000); 
 			if (l_dataSize)
 			{
 				message(STRING(AUTOUPDATE_DOWNLOAD_SUCCESS) + l_log_url_info);
@@ -224,7 +224,7 @@ string AutoUpdate::getUpdateFilesList(const string& p_componentName,
 bool AutoUpdateObject::checkSignXML(const string& p_url_sign) const
 {
 	std::vector<byte> l_signData;
-	const size_t l_signDataSize = Util::getBinaryDataFromInet(T_VERSIONSTRING, 128+1, p_url_sign, l_signData); // update*.sign fize == 128
+	const size_t l_signDataSize = Util::getBinaryDataFromInet(p_url_sign, l_signData); // update*.sign fize == 128
 	return l_signDataSize != 0 && AutoUpdate::verifyUpdate(l_signData.data(), l_signDataSize, m_update_xml, m_update_xml.length());
 }
 void AutoUpdate::startUpdateThisThread()
@@ -363,10 +363,10 @@ void AutoUpdate::startUpdateThisThread()
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
 						//string basesRtfData;
 #endif
-						size_t l_dataRTFSize = Util::getDataFromInet(T_VERSIONSTRING, 4096, programUpdateDescription, programRtfData);
+						size_t l_dataRTFSize = Util::getDataFromInet(programUpdateDescription, programRtfData);
 						// l_programRtfData.resize(dataRTFSize); // TODO - зачем это?
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
-						//dataRTFSize = Util::getDataFromInet(T_VERSIONSTRING, 4096, basesUpdateDescription, basesRtfData);
+						//dataRTFSize = Util::getDataFromInet(basesUpdateDescription, basesRtfData);
 						//basesRtfData.resize(dataRTFSize);
 #endif
 						idResult = (UpdateResult)m_guiDelegate->ShowDialogUpdate(l_message, programRtfData, l_files4Description
@@ -666,7 +666,7 @@ bool AutoUpdate::prepareFile(const AutoUpdateFile& file, const string& tempFolde
 	std::vector<byte> l_binary_data;
 	IDateReceiveReporter* reporter = InetDownloadReporter::getInstance();
         // 60 sec - http://code.google.com/p/flylinkdc/issues/detail?id=1403
-	int64_t sizeRead = Util::getBinaryDataFromInet(T_VERSIONSTRING, 4096, file.m_sDownloadURL, l_binary_data, 60000, reporter); // TODO - передать размер буфера сразу
+	int64_t sizeRead = Util::getBinaryDataFromInet(file.m_sDownloadURL, l_binary_data, 60000, reporter); // TODO - передать размер буфера сразу
 	if (sizeRead == file.m_packedSize)
 	{
 		/*
@@ -936,7 +936,7 @@ void AutoUpdate::runFlyUpdate()
 		}
 		else
 		{
-			MessageBox(nullptr, (TSTRING(AUTOUPDATE_ERROR_START_FLYUPDATE_FAILED) + Text::toT(Util::translateError(GetLastError()))).c_str(), CTSTRING(AUTOUPDATE_ERROR), MB_OK | MB_ICONERROR);
+			MessageBox(nullptr, (TSTRING(AUTOUPDATE_ERROR_START_FLYUPDATE_FAILED) + Text::toT(Util::translateError())).c_str(), CTSTRING(AUTOUPDATE_ERROR), MB_OK | MB_ICONERROR);
 		}
 	}
 }

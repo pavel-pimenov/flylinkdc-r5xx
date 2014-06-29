@@ -52,12 +52,6 @@
 #pragma comment(lib, "psapi.lib")
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
 
-const static string g_full_user_agent = APPNAME 
-#ifdef FLYLINKDC_HE
-	"HE"
-#endif
-	" " A_VERSIONSTRING;
-
 string g_debug_fly_server_url;
 CFlyServerConfig g_fly_server_config;
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
@@ -99,7 +93,7 @@ StringList CFlyServerConfig::g_block_share_mask;
 
 std::unordered_map<TTHValue, std::pair<CFlyServerInfo*, CFlyServerCache> > CFlyServerAdapter::g_fly_server_cache;
 CriticalSection CFlyServerAdapter::g_cs_fly_server;
-
+extern tstring g_full_user_agent;
 //======================================================================================================
 bool CFlyServerConfig::isSupportTag(const string& p_tag) const
 {
@@ -249,7 +243,7 @@ void CFlyServerConfig::loadConfig()
 #endif
 		l_fly_server_log.step("Download:" + l_url_config_file);
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-		if (Util::getDataFromInet(Text::toT(g_full_user_agent).c_str(), 4096, l_url_config_file, l_data, 0) == 0)
+		if (Util::getDataFromInet(l_url_config_file, l_data, 0) == 0)
 		{
 			l_fly_server_log.step("Error download! Config will be loaded from internal resources");
 #endif //FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -626,7 +620,7 @@ static void getDiskAndMemoryStat(Json::Value& p_info)
 		{
 			  p_info["CID"] = ClientManager::getMyCID().toBase32(); 
 		}
-		p_info["Client"] = g_full_user_agent;
+		p_info["Client"] = Text::fromT(g_full_user_agent);
 		p_info["OS"] = CompatibilityManager::getFormatedOsVersion();
 		p_info["CPUCount"] = CompatibilityManager::getProcessorsCount();
 		{
@@ -1053,13 +1047,13 @@ string CFlyServerAdapter::CFlyServerJSON::postQuery(bool p_is_set,
 	}
 	const bool l_is_zlib = !l_post_compress_query.empty();
 // Передача
-	CInternetHandle hSession(InternetOpenA(g_full_user_agent.c_str(),INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0));
+	CInternetHandle hSession(InternetOpen(g_full_user_agent.c_str(),INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0));
 	DWORD l_timeOut = CFlyServerConfig::g_winet_connect_timeout;
 	if(l_timeOut <= 500)
 	   l_timeOut = 1000;
 	if(!InternetSetOption(hSession, INTERNET_OPTION_CONNECT_TIMEOUT, &l_timeOut, sizeof(l_timeOut)))
 	{
-		l_fly_server_log.step("Error InternetSetOption INTERNET_OPTION_CONNECT_TIMEOUT: " + Util::getExtInternetError());
+		l_fly_server_log.step("Error InternetSetOption INTERNET_OPTION_CONNECT_TIMEOUT: " + Util::translateError());
 	}
 	InternetSetOption(hSession, INTERNET_OPTION_RECEIVE_TIMEOUT, &CFlyServerConfig::g_winet_receive_timeout, sizeof(CFlyServerConfig::g_winet_receive_timeout));
 	InternetSetOption(hSession, INTERNET_OPTION_SEND_TIMEOUT, &CFlyServerConfig::g_winet_send_timeout, sizeof(CFlyServerConfig::g_winet_send_timeout));
@@ -1098,7 +1092,7 @@ string CFlyServerAdapter::CFlyServerJSON::postQuery(bool p_is_set,
 						const BOOL bResult = InternetReadFile(hRequest, l_MessageBody.data(),l_dwBytesAvailable, &dwBytesRead);
 						if (!bResult)
 						{
-							l_fly_server_log.step(" InternetReadFile error " + Util::getExtInternetError());
+							l_fly_server_log.step(" InternetReadFile error " + Util::translateError());
 							break;
 						}
 						if (dwBytesRead == 0)
@@ -1171,22 +1165,22 @@ std::string l_hex_dump;
 				}
 				else
 				{
-					l_fly_server_log.step("HttpSendRequest error " + Util::getExtInternetError());
+					l_fly_server_log.step("HttpSendRequest error " + Util::translateError());
 				}
 			}
 			else
 			{
-				l_fly_server_log.step("HttpOpenRequest error " + Util::getExtInternetError());
+				l_fly_server_log.step("HttpOpenRequest error " + Util::translateError());
 			}
 		}
 		else
 		{
-			l_fly_server_log.step("InternetConnect error " + Util::getExtInternetError());
+			l_fly_server_log.step("InternetConnect error " + Util::translateError());
 		}
 	}
 	else
 	{
-		l_fly_server_log.step("InternetOpen error " + Util::getExtInternetError());
+		l_fly_server_log.step("InternetOpen error " + Util::translateError());
 	}
 	l_Server.setTimeResponse(l_fly_server_log.calcSumTime());
 	return l_result_query;

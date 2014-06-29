@@ -73,6 +73,8 @@ public :
         /// @brief convert an Unicode encoded string into Ztring
     Ztring& From_Unicode (const std::wstring &S)                                {return From_Unicode(S.c_str());};
     #endif //WSTRING_MISSING
+        /// @brief convert an Unicode encoded wchar_t into Ztring
+    Ztring& From_Unicode (const wchar_t S);
         /// @brief convert an Unicode encoded string into Ztring
     Ztring& From_Unicode (const wchar_t *S);
         /// @brief convert an Unicode encoded string into Ztring

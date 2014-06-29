@@ -221,6 +221,46 @@ bool Ztring::Assign_FromFile (const Ztring &FileName)
 // Conversions
 //***************************************************************************
 
+Ztring& Ztring::From_Unicode (const wchar_t S)
+{
+    #ifdef _UNICODE
+        append(1, S);
+    #else
+        #ifdef ZENLIB_USEWX
+            size_type OK=wxConvCurrent->WC2MB(NULL, &S, 1);
+            if (OK!=0 && OK!=Error)
+                assign(wxConvCurrent->cWC2MB(S, 1));
+        #else //ZENLIB_USEWX
+            #if 0//def WINDOWS
+                int Size=WideCharToMultiByte(CP_UTF8, 0, &S, 1, NULL, 0, NULL, NULL);
+                if (Size!=0)
+                {
+                    char* AnsiString=new char[Size+1];
+                    WideCharToMultiByte(CP_UTF8, 0, &S, 1, AnsiString, Size, NULL, NULL);
+                    AnsiString[Size]='\0';
+                    assign (AnsiString);
+                    delete[] AnsiString;
+                }
+                else
+                    clear();
+            #else //WINDOWS
+                size_t Size=wcstombs(NULL, &S, 1);
+                if (Size!=0 && Size!=(size_t)-1)
+                {
+                    char* AnsiString=new char[Size+1];
+                    Size=wcstombs(AnsiString, &S, 1);
+                    AnsiString[Size]='\0';
+                    assign (AnsiString);
+                    delete[] AnsiString;
+                }
+                else
+                    clear();
+            #endif
+        #endif //ZENLIB_USEWX
+    #endif
+    return *this;
+}
+
 Ztring& Ztring::From_Unicode (const wchar_t* S)
 {
     if (S==NULL)

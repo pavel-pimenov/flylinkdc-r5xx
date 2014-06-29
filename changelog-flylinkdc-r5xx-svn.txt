@@ -1,4 +1,108 @@
 ------------------------------------------------------------------------
+r17354 | pavel.pimenov@gmail.com | 2014-06-29 09:31:13 +0400 (Вс, 29 июн 2014) | 26 lines
+
+Merged revision(s) 17339-17353 from trunk:
+# Log [public-build]
+........
+* Ошибка в CryptoManager - никогда не загружался сертификат в loadKeyprint
+  в результате чего не работал TLS
+  TOOD Проверить на тесте что все стало ОК.
+........
+* Добавлено логирование "partial search result" LogManager::getInstance()->psr_message
+  TODO - скрыть в релизной ветке?
+Уже по логу нашел факт дубликатной отсылки пакетов по UDP
+[2014-06-25 19:02:12] [ClientManager::on(NmdcSearch] Send UDP IP = 91.192.99.251 param->udpPort = 24744 cmd = UPSR TN7CM6SXSJSQJFRJHKHMCO2GIUA7HP5V5M6PUAA NIFlylinkDC-dev-debug2 HI82.196.7.135:411 U46235 TRE6UVDNI7ZOHPMX7M32LZGPCP22CWZAE3HVJM53I PC2 PI0,65,81,89
+[2014-06-25 19:02:36] [ClientManager::on(NmdcSearch] Send UDP IP = 91.192.99.251 param->udpPort = 24744 cmd = UPSR TN7CM6SXSJSQJFRJHKHMCO2GIUA7HP5V5M6PUAA NIFlylinkDC-dev-debug2 HI82.196.7.135:411 U46235 TRE6UVDNI7ZOHPMX7M32LZGPCP22CWZAE3HVJM53I PC2 PI0,65,81,89
+[2014-06-25 19:02:47] [ClientManager::on(NmdcSearch] Send UDP IP = 91.192.99.251 param->udpPort = 24744 cmd = UPSR TN7CM6SXSJSQJFRJHKHMCO2GIUA7HP5V5M6PUAA NIFlylinkDC-dev-debug2 HI82.196.7.135:411 U46235 TRE6UVDNI7ZOHPMX7M32LZGPCP22CWZAE3HVJM53I PC2 PI0,65,81,89
+........
+# Потерянный вызов checkCertificate
+  Обобщил FILE* f = fopen(SETTING(TLS_CERTIFICATE_FILE).c_str(), "r");
+........
+# Добавил контроль проброса порта TLS
+# В ConnectionManager::Server::Server была забыта операция m_server_ip   = p_server_ip; (ошибка мержа из StrongDC++?)
+........
+* Убрал рандомную подмену портов каждый раз при автоматическом способе подключения а также актуализацию их значений в настроках. (Спасибо Диме)
+  http://www.youtube.com/watch?v=VmwZt_W0RLQ&feature=youtu.be
+........
+# DHT - дополнительно выполняем тест порта DHT после успешного проброса.
+
+
+------------------------------------------------------------------------
+r17339 | pavel.pimenov@gmail.com | 2014-06-24 22:45:54 +0400 (Вт, 24 июн 2014) | 1 line
+
+# Log [public-build]
+------------------------------------------------------------------------
+r17338 | pavel.pimenov@gmail.com | 2014-06-24 21:59:27 +0400 (Вт, 24 июн 2014) | 14 lines
+
+Merged revision(s) 17322-17337 from trunk:
+# Маркер падения https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=78346
+# Исправлено залипание кнопки "Соединить" в окне избранных хабов
+# Ускорил запрос к GeoIP http://habrahabr.ru/post/138067/
+# Убюрал лишний поиск в void QueueManager::UserQueue::removeUserL
+  но причина падений в https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=78346
+  пока не понятна - она осталась самая критичная..
+* Исправлены падения в GDI+
+  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=77953
+  убрал отрисовку рамки через GDI+  
+* Добавлена менюшка отключения "Спасательного круга"
+  TODO - не сохраняется состояние. туплю не могу найти где оно вертается в 1-ку
+# Вернул запоминание спасательного круга.
+
+------------------------------------------------------------------------
+r17322 | pavel.pimenov@gmail.com | 2014-06-19 21:01:29 +0400 (Чт, 19 июн 2014) | 1 line
+
+# Log [public-build]
+------------------------------------------------------------------------
+r17321 | pavel.pimenov@gmail.com | 2014-06-19 20:06:34 +0400 (Чт, 19 июн 2014) | 9 lines
+
+Merged revision(s) 17311-17318 from trunk:
+# Исправлена обработка ERROR_INTERNET_EXTENDED_ERROR
+........
+* Сократили внешний траф при старте флайлинка 
+  редкоизменяемые и мелкие файлы с расширением .xml, .rtf, .sign загружаются с сервера с флагом INTERNET_FLAG_RESYNCHRONIZE
+  остальные с INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_RELOAD
+........
+* Исправлена ошибка когда при старте передавалась на хаб нулевая шара (возникало если не было файла files.xml.bz2)
+
+------------------------------------------------------------------------
+r17311 | pavel.pimenov@gmail.com | 2014-06-17 20:52:27 +0400 (Вт, 17 июн 2014) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r17310 | pavel.pimenov@gmail.com | 2014-06-17 20:16:33 +0400 (Вт, 17 июн 2014) | 11 lines
+
+Merged revision(s) 17303-17309 from trunk:
+* (fixed issue 601) 
+  https://code.google.com/p/flylinkdc/issues/detail?id=601
+  Исправлены падения https://yadi.sk/d/QwrWyQgETkzWV
+  возникали от этой issue https://code.google.com/p/flylinkdc/issues/detail?id=601
+  если клиент скачал или отдал больше 1000 файлов и при этом открыты окна "Завершенные отдачи/загрузки"
+  приложение через некоторое время падало т.к. не была реализована часть SPEAK_REMOVE_LINE :(
+  для повторения падения достаточно выставить мелкие значения тут   https://yadi.sk/d/5Yv-GwNxTm3Ew
+  и покачать что-то при открытом окне загрузок.
+
+
+------------------------------------------------------------------------
+r17303 | pavel.pimenov@gmail.com | 2014-06-16 20:19:40 +0400 (Пн, 16 июн 2014) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r17302 | pavel.pimenov@gmail.com | 2014-06-16 19:46:15 +0400 (Пн, 16 июн 2014) | 4 lines
+
+Merged revision(s) 17299-17300 from trunk:
+# Исправлено падение в DHT
+
+
+------------------------------------------------------------------------
+r17301 | pavel.pimenov@gmail.com | 2014-06-16 19:39:57 +0400 (Пн, 16 июн 2014) | 2 lines
+
+# Маркер падения 
+  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=77059
+------------------------------------------------------------------------
+r17299 | pavel.pimenov@gmail.com | 2014-06-11 20:19:29 +0400 (Ср, 11 июн 2014) | 1 line
+
+# Log
+------------------------------------------------------------------------
 r17298 | pavel.pimenov@gmail.com | 2014-06-11 19:45:40 +0400 (Ср, 11 июн 2014) | 9 lines
 
 Merged revision(s) 17295-17297 from trunk:

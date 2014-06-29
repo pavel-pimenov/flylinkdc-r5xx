@@ -38,7 +38,7 @@ void PGLoader::load(const string& p_data /*= Util::emptyString*/)
 			try
 			{
 				const string l_log_message = STRING(DOWNLOAD) + ": " + l_url;
-				if (Util::getDataFromInet(_T("PGLoader::IPTrust"), 4096, l_url, l_data, 0) == 0)
+				if (Util::getDataFromInet(l_url, l_data, 0) == 0)
 				{
 					l_IPTrust_log.step(l_log_message + " [" + STRING(ERROR_STRING) + ']');
 				}

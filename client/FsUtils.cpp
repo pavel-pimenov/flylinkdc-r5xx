@@ -64,7 +64,7 @@ bool CFsTypeDetector::IsStreamSupported(FsUtils_LPCtSTR pwcFileName)
 			}
 			else
 			{
-				LogManager::getInstance()->message("GetVolumeInformation [" + string(pwcFileName) + "] error = " + Util::translateError(GetLastError()));
+				LogManager::getInstance()->message("GetVolumeInformation [" + string(pwcFileName) + "] error = " + Util::translateError());
 			}
 			return bRet;
 		}

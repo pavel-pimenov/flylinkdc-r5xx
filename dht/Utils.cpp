@@ -190,9 +190,9 @@ void Utils::trackOutgoingPacket(const string& ip, const AdcCommand& cmd) // TODO
 		const uint64_t diff = now - g_sentPackets.front().time;
 		if (diff >= TIME_FOR_RESPONSE)
 		{		   
-			g_sentPackets.pop_front();
 			LogManager::getInstance()->dht_message("[Utils::trackOutgoingPacket] Clean up old items: cmd [" + 
 				Util::toString(g_sentPackets.front().cmd) + "] ip = [" + g_sentPackets.front().ip + "] diffTime = " + Util::toString(diff));
+			g_sentPackets.pop_front();
 		}
 		else
 			break;

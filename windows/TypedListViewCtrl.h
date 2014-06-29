@@ -438,7 +438,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 			l_fi.psz = b.c_str();
 			return FindItem(&l_fi, start);
 		}
-		
+#if 0
 		void forEach(void (T::*func)())
 		{
 			const int l_cnt = GetItemCount();
@@ -449,6 +449,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 					(itemData->*func)();
 			}
 		}
+#endif
 		void forEachSelected(void (T::*func)())
 		{
 			CLockRedraw<> l_lock_draw(m_hWnd); // [+] IRainman opt.

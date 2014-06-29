@@ -86,9 +86,9 @@ const string SettingsManager::settingTags[] =
 	"ProfilesURL", "WinampFormat",
 	
 	"WebServerPowerUser", "WebServerPowerPass", "webServerBindAddress", // [+] IRainman
-	"WebServerLogFormat", "LogFormatCustomLocation", "LogFormatTraceSQLite", "LogFormatDdosTrace", "LogFormatDHTTrace", "WebServerUser", "WebServerPass", "LogFileMainChat",
+	"WebServerLogFormat", "LogFormatCustomLocation", "LogFormatTraceSQLite", "LogFormatDdosTrace", "LogFormatDHTTrace", "LogFormatPSRTrace", "WebServerUser", "WebServerPass", "LogFileMainChat",
 	"LogFilePrivateChat", "LogFileStatus", "LogFileUpload", "LogFileDownload", "LogFileSystem", "LogFormatSystem",
-	"LogFormatStatus", "LogFileWebServer", "LogFileCustomLocation", "LogTraceSQLite", "LogFileDdosTrace", "LogFileDHTTrace",
+	"LogFormatStatus", "LogFileWebServer", "LogFileCustomLocation", "LogTraceSQLite", "LogFileDdosTrace", "LogFileDHTTrace", "LogFilePSRTrace",
 	"DirectoryListingFrameOrder", "DirectoryListingFrameWidths",
 	"MainFrameVisible", "SearchFrameVisible", "QueueFrameVisible", "HubFrameVisible", "UploadQueueFrameVisible",
 	"EmoticonsFileFlylinkDC",
@@ -162,8 +162,8 @@ const string SettingsManager::settingTags[] =
 	"SendBloom",
 	"AutoSearchAutoMatch", "DownloadBarColor", "UploadBarColor", "LogSystem",
 	"LogCustomLocation", // [+] IRainman
-	"LogSQLiteTrace", "LogDDOSTrace", "LogDHTTrace",
-	"LogFilelistTransfers", "ShowStatusbar", "ShowToolbar", "ShowTransferview",
+	"LogSQLiteTrace", "LogDDOSTrace", "LogDHTTrace", "LogPSRTrace",
+	"LogFilelistTransfers", "ShowStatusbar", "ShowToolbar", "ShowTransferview", "ShowTransferViewToolbar",
 	"SearchPassiveAlways", "SetMinislotSize", "ShutdownInterval",
 	//"CzertHiddenSettingA", "CzertHiddenSettingB",// [-] IRainman SpeedLimiter
 	"ExtraSlots",
@@ -274,7 +274,7 @@ const string SettingsManager::settingTags[] =
 	"DeleteChecked", "Topmost", "LockToolbars",
 	//"AutoCompleteSearch",//[-]IRainman always is true!
 	"KeepDLHistory", "KeepULHistory", "ShowQSearch",
-	"SearchDetectHash", "FullFileListNfo", "GdiPlusTabs", "UseTabsCloseButton", "AltTypeTabsCloseButton",
+	"SearchDetectHash", "FullFileListNfo", "UseTabsCloseButton", "AltTypeTabsCloseButton",
 	"ViewGridcontrols", // [+] ZagZag
 	"DupeEx1Color", "DupeEx2Color", "IgnoreMe",// [+] NSL
 	"EnableLastIP", //[+]PPA
@@ -481,12 +481,12 @@ void SettingsManager::setDefaults()
 		setDefault(DOWNLOAD_DIRECTORY, Util::getDownloadsPath());
 	//setDefault(TEMP_DOWNLOAD_DIRECTORY, "");
 	setDefault(SLOTS, 15); // [!] PPA 2->15
-	setDefault(WEBSERVER_PORT, getNewPortValue(0));//[!]IRainman
-	setDefault(TCP_PORT, getNewPortValue(get(WEBSERVER_PORT)));//[!]IRainman
-	setDefault(TLS_PORT, getNewPortValue(get(TCP_PORT)));//[!]IRainman
-	setDefault(UDP_PORT, get(TCP_PORT));//[!]IRainman
+	setDefault(WEBSERVER_PORT, 0);
+	setDefault(TCP_PORT, 0);
+	setDefault(TLS_PORT, 0);
+	setDefault(UDP_PORT, 0);
 #ifdef STRONG_USE_DHT
-	setDefault(DHT_PORT, getNewPortValue(get(UDP_PORT)));//[!]IRainman
+	setDefault(DHT_PORT, 0);
 #endif
 	setDefault(AUTO_DETECT_CONNECTION, TRUE);// [!] IRainman default enable connection autodect
 	setDefault(INCOMING_CONNECTIONS, INCOMING_FIREWALL_UPNP); // [!] IRainman default passive -> incoming firewall upnp
@@ -561,6 +561,9 @@ void SettingsManager::setDefaults()
 	setDefault(LOG_FILE_DHT_TRACE, "dht.log");
 	setDefault(LOG_FORMAT_DHT_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
 	
+	setDefault(LOG_FILE_PSR_TRACE, "psr.log");
+	setDefault(LOG_FORMAT_PSR_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
+	
 	setDefault(TIME_STAMPS_FORMAT, "%X"); // [!] IRainman fix: use system format time. "%H:%M:%S"
 //
 	setDefault(URL_HANDLER, TRUE);
@@ -596,9 +599,10 @@ void SettingsManager::setDefaults()
 #endif
 	setDefault(FAV_SHOW_JOINS, TRUE); // [~] InfinitySky.
 	//setDefault(LOG_STATUS_MESSAGES, false);
-#ifndef FLYLINKDC_HE
+	
 	setDefault(SHOW_TRANSFERVIEW, TRUE);
-#endif
+	setDefault(SHOW_TRANSFERVIEW_TOOLBAR, TRUE);
+	
 	setDefault(SHOW_STATUSBAR, TRUE);
 	setDefault(SHOW_TOOLBAR, TRUE);
 	//setDefault(POPUNDER_PM, false);
@@ -1116,7 +1120,6 @@ void SettingsManager::setDefaults()
 	setDefault(SHOW_QUICK_SEARCH, TRUE);
 	setDefault(SEARCH_DETECT_TTH, TRUE);
 	//setDefault(FULL_FILELIST_NFO, false);
-	setDefault(GDI_PLUS_TABS, TRUE);
 	setDefault(TABS_CLOSEBUTTONS, TRUE);
 	//setDefault(TABS_CLOSEBUTTONS_ALT, false);
 	//setDefault(VIEW_GRIDCONTROLS, false); // [+] ZagZag
@@ -1272,22 +1275,6 @@ void SettingsManager::setDefaults()
 	setSearchTypeDefaults();
 	// TODO - грузить это из сети и отложенно когда понадобится.
 	// http://code.google.com/p/flylinkdc/issues/detail?id=1279
-	
-	// Генерим случайные порты при каждом старте если INCOMING_DIRECT (нахрена - пока не понятно)
-	// TODO - сделать отдельной галкой
-#if 0 // Отключил генерацию случайных портов при прямом соедиении
-	const auto l_current_connection = SETTING(INCOMING_CONNECTIONS);
-	if (l_current_connection == INCOMING_DIRECT)
-	{
-		set(TCP_PORT, getNewPortValue(get(WEBSERVER_PORT)));//[!]IRainman
-		set(TLS_PORT, getNewPortValue(get(TCP_PORT)));//[!]IRainman
-		set(UDP_PORT, get(TCP_PORT));//[!]IRainman
-#ifdef STRONG_USE_DHT
-		set(DHT_PORT, getNewPortValue(get(UDP_PORT)));//[!]IRainman
-#endif
-	}
-#endif
-	
 	Util::shrink_to_fit(&strDefaults[STR_FIRST], &strDefaults[STR_LAST]); // [+] IRainman opt.
 }
 
@@ -1364,6 +1351,17 @@ void SettingsManager::load(const string& aFileName)
 	catch (const SimpleXMLException&) // TODO Битый конфиг XML https://crash-server.com/Problem.aspx?ProblemID=15638
 	{
 		dcassert(0);
+	}
+	
+	if (SETTING(TCP_PORT) == 0)
+	{
+		set(WEBSERVER_PORT, getNewPortValue(0));
+		set(TCP_PORT, getNewPortValue(get(WEBSERVER_PORT)));
+		set(TLS_PORT, getNewPortValue(get(TCP_PORT)));
+		set(UDP_PORT, get(TCP_PORT));
+#ifdef STRONG_USE_DHT
+		set(DHT_PORT, getNewPortValue(get(UDP_PORT)));
+#endif
 	}
 	
 	if (SETTING(PRIVATE_ID).length() != 39 || CID(SETTING(PRIVATE_ID)).isZero())
@@ -1583,6 +1581,7 @@ bool SettingsManager::set(StrSetting key, const string& value)
 		case LOG_FILE_TRACE_SQLITE:
 		case LOG_FILE_DDOS_TRACE:
 		case LOG_FILE_DHT_TRACE:
+		case LOG_FILE_PSR_TRACE:
 #ifdef RIP_USE_LOG_PROTOCOL
 		case LOG_FILE_PROTOCOL:
 #endif
@@ -1705,7 +1704,7 @@ bool SettingsManager::set(IntSetting key, int value)
 	}
 #define GET_NEW_PORT_VALUE_IF_CONFLICTS(conflict_key)\
 	{\
-		const int l_current_conflicts_port = get(conflict_key);\
+		const int l_current_conflicts_port = get(conflict_key,false);\
 		if (value == l_current_conflicts_port)\
 		{\
 			value = getNewPortValue(l_current_conflicts_port);\

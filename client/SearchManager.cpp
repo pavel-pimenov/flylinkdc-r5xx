@@ -44,7 +44,7 @@ const char* SearchManager::getTypeStr(int type)
 }
 
 SearchManager::SearchManager() :
-	port(0),
+	m_search_port(0),
 	m_stop(false)
 {
 
@@ -96,14 +96,15 @@ void SearchManager::listen()
 		socket->setInBufSize();
 		if (BOOLSETTING(AUTO_DETECT_CONNECTION))
 		{
-			port = socket->bind(0, Util::emptyString);
+			m_search_port = socket->bind(0, Util::emptyString);
 		}
 		else
 		{
 			const auto l_ip = SETTING(BIND_ADDRESS);
 			const auto l_port = SETTING(UDP_PORT);
-			port = socket->bind(static_cast<uint16_t>(l_port), l_ip);
+			m_search_port = socket->bind(static_cast<uint16_t>(l_port), l_ip);
 		}
+		SET_SETTING(UDP_PORT, m_search_port);
 		
 		start(64, "SearchManager");
 	}
@@ -121,7 +122,7 @@ void SearchManager::disconnect() noexcept
 		m_stop = true;
 		m_queue_thread.shutdown();
 		socket->disconnect();
-		port = 0;
+		m_search_port = 0;
 		
 		join();
 		
@@ -169,7 +170,7 @@ int SearchManager::run()
 				socket->create(Socket::TYPE_UDP);
 				socket->setBlocking(true);
 				socket->setInBufSize();
-				socket->bind(port, SETTING(BIND_ADDRESS));
+				socket->bind(m_search_port, SETTING(BIND_ADDRESS));
 				if (failed)
 				{
 					LogManager::getInstance()->message(STRING(SEARCH_ENABLED));
@@ -593,11 +594,18 @@ void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const string& rem
 		{
 			AdcCommand l_cmd = SearchManager::getInstance()->toPSR(false, ps.getMyNick(), hubIpPort, tth, outPartialInfo);
 			ClientManager::getInstance()->send(l_cmd, from->getCID());
+			LogManager::getInstance()->psr_message(
+			    "[SearchManager::respond] hubIpPort = " + hubIpPort +
+			    " ps.getMyNick() = " + ps.getMyNick() +
+			    " tth = " + tth +
+			    " outPartialInfo.size() = " + Util::toString(outPartialInfo.size())
+			);
+			
 		}
-		catch (...)
+		catch (const Exception& e)
 		{
 			dcdebug("Partial search caught error\n");
-			// TODO log
+			LogManager::getInstance()->psr_message("Partial search caught error = " + e.getError());
 		}
 	}
 	
@@ -635,6 +643,11 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 			AdcCommand cmd = toPSR(true, Util::emptyString, hubIpPort, tth, partialInfo);
 			ClientManager::getInstance()->send(cmd, from);
 			l_sr = ClientManagerListener::SEARCH_PARTIAL_HIT; // [+] IRainman-S
+			LogManager::getInstance()->psr_message(
+			    "[SearchManager::respond] hubIpPort = " + hubIpPort +
+			    " tth = " + tth +
+			    " partialInfo.size() = " + Util::toString(partialInfo.size())
+			);
 		}
 	}
 	else
@@ -690,7 +703,7 @@ AdcCommand SearchManager::toPSR(bool wantResponse, const string& myNick, const s
 		cmd.addParam("NI", Text::utf8ToAcp(myNick));
 		
 	cmd.addParam("HI", hubIpPort);
-	cmd.addParam("U4", Util::toString(wantResponse ? getPort() : 0)); // —юда по ошибке подавс€ не урл к хабу. && ClientManager::isActive(hubIpPort)
+	cmd.addParam("U4", Util::toString(wantResponse ? getSearchPort() : 0)); // —юда по ошибке подавс€ не урл к хабу. && ClientManager::isActive(hubIpPort)
 	cmd.addParam("TR", tth);
 	cmd.addParam("PC", Util::toString(partialInfo.size() / 2));
 	cmd.addParam("PI", getPartsString(partialInfo));

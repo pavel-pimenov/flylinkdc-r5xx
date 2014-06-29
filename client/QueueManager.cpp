@@ -441,7 +441,7 @@ QueueItemPtr QueueManager::UserQueue::getNextL(const UserPtr& aUser, QueueItem::
 					if (allowRemove && segment.getStart() != -1 && segment.getSize() == 0)
 					{
 						// no other partial chunk from this user, remove him from queue
-						removeUserL(qi, aUser);
+						removeUserL(qi, aUser, true);
 						qi->removeSourceL(aUser, QueueItem::Source::FLAG_NO_NEED_PARTS);
 						m_lastError = STRING(NO_NEEDED_PART);
 						return nullptr; // airDC++ http://code.google.com/p/flylinkdc/issues/detail?id=1365
@@ -581,30 +581,35 @@ QueueItemPtr QueueManager::UserQueue::getRunningL(const UserPtr& aUser) // [!] I
 	return i == m_running.cend() ? nullptr : i->second;
 }
 
-void QueueManager::UserQueue::removeQueueItemL(const QueueItemPtr& qi, bool removeRunning) // [!] IRainman fix.
+void QueueManager::UserQueue::removeQueueItemL(const QueueItemPtr& qi, bool p_is_remove_running) // [!] IRainman fix.
 {
 	const auto& s = qi->getSourcesL();
 	for (auto i = s.cbegin(); i != s.cend(); ++i)
 	{
-		removeUserL(qi, i->first, removeRunning);
+		removeUserL(qi, i->first, p_is_remove_running,
+		            false); // Не делаем лишний поиск в  qi->isSourceL(aUser)
 	}
 }
 
-void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr& aUser, bool removeRunning /* = true */) // [!] IRainman fix.
+void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr& aUser, bool p_is_remove_running, bool p_is_find_sources /*= true */)  // [!] IRainman fix.
 {
-	if (removeRunning
+	if (p_is_remove_running
 	        && qi == getRunningL(aUser) // Нужен ли поиск дополнительный перед удалением?
 	   )
 	{
 		removeDownloadL(qi, aUser); // [!] IRainman fix.
 	}
-	const bool isSource = qi->isSourceL(aUser);
-	if (!isSource)
+	bool l_isSource = !p_is_find_sources;
+	if (!l_isSource)
 	{
-		LogManager::getInstance()->message("Error QueueManager::UserQueue::removeUserL [dcassert(isSource)] aUser = [" +
-		                                   aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
-		dcassert(isSource);
-		return;
+		l_isSource = qi->isSourceL(aUser); // crash https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=78346
+		if (!l_isSource)
+		{
+			LogManager::getInstance()->message("Error QueueManager::UserQueue::removeUserL [dcassert(isSource)] aUser = [" +
+			                                   aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
+			dcassert(l_isSource);
+			return;
+		}
 	}
 	
 	auto& ulm = m_userQueue[qi->getPriority()];
@@ -940,13 +945,23 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 		
 		try
 		{
-			AdcCommand cmd = SearchManager::getInstance()->toPSR(true, param->myNick, param->hubIpPort, param->tth, param->parts);
+			const AdcCommand cmd = SearchManager::getInstance()->toPSR(true, param->myNick, param->hubIpPort, param->tth, param->parts);
 			Socket s;
 			s.writeTo(param->ip, param->udpPort, cmd.toString(ClientManager::getMyCID()));
+			LogManager::getInstance()->psr_message(
+			    "[PartsInfoReq] Send UDP IP = " + param->ip +
+			    " param->udpPort = " + Util::toString(param->udpPort) +
+			    " cmd = " + cmd.toString(ClientManager::getMyCID())
+			);
 		}
-		catch (...)
+		catch (Exception& e)
 		{
 			dcdebug("Partial search caught error\n");
+			LogManager::getInstance()->psr_message(
+			    "[Partial search caught error] Error = " + e.getError() +
+			    " IP = " + param->ip +
+			    " param->udpPort = " + Util::toString(param->udpPort)
+			);
 		}
 		
 		delete param;
@@ -2387,7 +2402,7 @@ void QueueManager::removeSource(const string& aTarget, const UserPtr& aUser, Fla
 		}
 		if (!q->isFinishedL())
 		{
-			userQueue.removeUserL(q, aUser);
+			userQueue.removeUserL(q, aUser, true);
 		}
 		q->removeSourceL(aUser, reason);
 		
@@ -2424,7 +2439,7 @@ void QueueManager::removeSource(const UserPtr& aUser, Flags::MaskType reason) no
 			}
 			else
 			{
-				userQueue.removeUserL(qi, aUser);
+				userQueue.removeUserL(qi, aUser, true);
 				qi->removeSourceL(aUser, reason);
 				fire(QueueManagerListener::SourcesUpdated(), qi);
 				setDirty();
@@ -2441,7 +2456,7 @@ void QueueManager::removeSource(const UserPtr& aUser, Flags::MaskType reason) no
 			else
 			{
 				userQueue.removeDownloadL(qi, aUser); // [!] IRainman fix.
-				userQueue.removeUserL(qi, aUser);
+				userQueue.removeUserL(qi, aUser, true);
 				isRunning = true;
 				qi->removeSourceL(aUser, reason);
 				fire(QueueManagerListener::StatusUpdated(), qi);
@@ -2986,6 +3001,8 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 		QueueItemPtr qi = fileQueue.findQueueItem(tth);
 		if (!qi)
 			return false;
+		LogManager::getInstance()->psr_message("[QueueManager::handlePartialResult] findQueueItem - OK TTH = " + tth.toBase32());
+		
 		WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 		
 		// don't add sources to finished files
@@ -2997,6 +3014,8 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 		if (qi->getSize() < PARTIAL_SHARE_MIN_SIZE)
 		{
 			dcassert(0);
+			LogManager::getInstance()->psr_message(
+			    "[QueueManager::handlePartialResult] qi->getSize() < PARTIAL_SHARE_MIN_SIZE. qi->getSize() = " + Util::toString(qi->getSize()));
 			return false;
 		}
 		
@@ -3035,6 +3054,12 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 				userQueue.addL(qi, aUser, false);
 				dcassert(si != qi->getSourcesL().end());
 				fire(QueueManagerListener::SourcesUpdated(), qi);
+				LogManager::getInstance()->psr_message(
+				    "[QueueManager::handlePartialResult] new QueueItem::PartialSource = nick = " + partialSource.getMyNick() +
+				    " HubIpPort = " + partialSource.getHubIpPort() +
+				    " IP = " + partialSource.getIp() +
+				    " UDP port = " + Util::toString(partialSource.getUdpPort())
+				);
 			}
 		}
 		
@@ -3122,7 +3147,6 @@ void QueueManager::FileQueue::findPFSSourcesL(PFSSourceList& sl)
 		}
 #endif
 //////////////////
-
 	}
 	// TODO: opt this function.
 	// copy to results

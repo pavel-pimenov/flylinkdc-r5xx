@@ -56,7 +56,7 @@ void BootstrapManager::dht_live_check(const char* p_operation,const string& p_pa
 		 std::vector<byte> l_data;
 		 const string l_url = i->first + p_param;
 		 l_dht_log.step("Bootstrap count = " + Util::toString(i->second.first) + ", URL: " + l_url);
-		 Util::getBinaryDataFromInet(Text::toT(m_user_agent).c_str(), 4096, l_url, l_data, 1000);
+		 Util::getBinaryDataFromInet(l_url, l_data, 1000);
 		}
 	}
 }
@@ -64,7 +64,8 @@ void BootstrapManager::flush_live_check()
 {
 	if(m_count_dht_test_ok)
 	{
-	  dht_live_check("[DHT live check]","&live=1");
+	  static uint32_t g_live_count = 0;
+	  dht_live_check("[DHT live check]","&live=" + Util::toString(++g_live_count));
 	  m_count_dht_test_ok = 0;
 	}
 }
@@ -78,7 +79,7 @@ string BootstrapManager::create_url_for_dht_server()
 {
 	const DHTServer& l_server = CFlyServerConfig::getRandomDHTServer();
     m_user_agent = l_server.getAgent();
-	if(m_user_agent.empty())
+	if(m_user_agent.empty()) // TODO - убить агента
 	   m_user_agent = APPNAME " " A_VERSIONSTRING;
 	string l_url = l_server.getUrl() + "?cid=" + ClientManager::getMyCID().toBase32() + "&encryption=1";  // [!] IRainman fix.
 	// store only active nodes to database
@@ -115,7 +116,7 @@ bool BootstrapManager::bootstrap()
 
 		l_dht_log.step(STRING(DOWNLOAD) + ": " + l_url);
 		std::vector<byte> l_data;
-		const size_t l_size = Util::getBinaryDataFromInet(Text::toT(m_user_agent).c_str(), 4096, l_url, l_data, 2000);
+		const size_t l_size = Util::getBinaryDataFromInet(l_url, l_data, 2000);
 		if (l_size == 0)
 		{
 			l_dht_log.step(STRING(ERROR_STRING));
@@ -183,10 +184,14 @@ void BootstrapManager::addBootstrapNode(const string& ip, uint16_t udpPort, cons
 	bootstrapNodes.push_back(l_node);
 }
 
-bool BootstrapManager::process()
+void BootstrapManager::live_check_process()
 {
 	Lock l(m_cs);
 	flush_live_check();
+}
+bool BootstrapManager::process()
+{
+	Lock l(m_cs);
 	if (!bootstrapNodes.empty())
 	{
 		// send bootstrap request

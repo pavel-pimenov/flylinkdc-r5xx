@@ -70,7 +70,7 @@ void Thread::setThreadPriority(Priority p)
 #if defined (_CONSOLE)
 		dcdebug("Error setThreadPriority = %s", GetLastError());
 #else
-		dcdebug("Error setThreadPriority = %s", Util::translateError(GetLastError()).c_str());
+		dcdebug("Error setThreadPriority = %s", Util::translateError().c_str());
 #endif
 	}
 }

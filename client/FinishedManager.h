@@ -46,8 +46,8 @@ class FinishedItem
 		FinishedItem(const string& aTarget, const HintedUser& aUser, int64_t aSize, int64_t aSpeed,
 		             const time_t aTime, const string& aTTH = Util::emptyString, const string& aIP = Util::emptyString) :
 			target(aTarget),
-			m_path(Text::toT(Util::getFilePath(aTarget))),
-			m_file_name(Util::getFileName(aTarget)),
+			//m_path(Text::toT(Util::getFilePath(aTarget))),
+			//m_file_name(Util::getFileName(aTarget)),
 			cid(aUser.user->getCID()),
 			hub(aUser.hint),
 			hubs(Util::toString(ClientManager::getHubNames(aUser.user->getCID(), Util::emptyString))),
@@ -61,11 +61,11 @@ class FinishedItem
 			switch (col)
 			{
 				case COLUMN_FILE:
-					return Text::toT(m_file_name);
+					return Text::toT(Util::getFileName(getTarget()));
 				case COLUMN_DONE:
 					return Text::toT(Util::formatDigitalClock(getTime()));
 				case COLUMN_PATH:
-					return m_path;
+					return Text::toT(Util::getFilePath(getTarget()));
 				case COLUMN_NICK:
 					return Text::toT(getNick());
 				case COLUMN_HUB:
@@ -94,10 +94,6 @@ class FinishedItem
 			}
 		}
 		int getImageIndex() const;
-		string getFileName() const
-		{
-			return m_file_name;
-		}
 		GETC(string, target, Target);
 		GETC(string, tth, TTH);
 		GETC(string, ip, IP); // [+] PPA
@@ -110,41 +106,29 @@ class FinishedItem
 		GETC(time_t, time, Time);
 	private:
 		friend class FinishedManager;
-		tstring m_path;
-		string m_file_name;
 };
 
 class FinishedManager : public Singleton<FinishedManager>,
 	public Speaker<FinishedManagerListener>, private QueueManagerListener, private UploadManagerListener
 {
 	public:
-		const FinishedItemList& lockList(const bool upload)
+		enum eType
 		{
-			if (upload)
-			{
-				g_csU->AcquireLockShared();
-				return m_uploads;
-			}
-			else
-			{
-				g_csD->AcquireLockShared();
-				return m_downloads;
-			}
+			e_Download = 0,
+			e_Upload = 1
+		};
+		const FinishedItemList& lockList(eType p_type)
+		{
+			g_cs[p_type]->AcquireLockShared();
+			return m_finished[p_type];
 		}
-		void unlockList(const bool upload)
+		void unlockList(eType p_upload)
 		{
-			if (upload)
-			{
-				g_csU->ReleaseLockShared();
-			}
-			else
-			{
-				g_csD->ReleaseLockShared();
-			}
+			g_cs[p_upload]->ReleaseLockShared();
 		}
 		
-		void remove(FinishedItemPtr item, bool upload = false);
-		void removeAll(bool upload = false);
+		void removeItem(FinishedItem* item, eType p_type);
+		void removeAll(eType p_type);
 		
 	private:
 		friend class Singleton<FinishedManager>;
@@ -155,11 +139,10 @@ class FinishedManager : public Singleton<FinishedManager>,
 		void on(QueueManagerListener::Finished, const QueueItemPtr&, const string&, const Download*) noexcept;
 		void on(UploadManagerListener::Complete, const Upload*) noexcept;
 		string log(const CID& p_CID, const string& p_path, const string& p_message);
+		void rotation_items(FinishedItem* p_item, eType p_type);
 		
-		static std::unique_ptr<webrtc::RWLockWrapper> g_csD;
-		static std::unique_ptr<webrtc::RWLockWrapper> g_csU;
-		FinishedItemList m_downloads;
-		FinishedItemList m_uploads;
+		static std::unique_ptr<webrtc::RWLockWrapper> g_cs[2]; // index = eType
+		FinishedItemList m_finished[2]; // index = eType
 };
 
 #endif // !defined(FINISHED_MANAGER_H)

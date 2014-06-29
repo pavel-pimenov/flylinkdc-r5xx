@@ -111,8 +111,8 @@ UserCommand FavoriteManager::addUserCommand(int type, int ctx, Flags::MaskType f
 	string l_all = name + command + to + hub;
 	if (l_all.length() > g_max_len)
 		g_max_len = l_all.length();
-	LogManager::getInstance()->message("FavoriteManager::addUserCommand g_count = " + Util::toString(++g_count)
-	                                   +  " g_max_len = " + Util::toString(g_max_len) + " str =  " + l_all);
+//	LogManager::getInstance()->message("FavoriteManager::addUserCommand g_count = " + Util::toString(++g_count)
+//	                                   +  " g_max_len = " + Util::toString(g_max_len) + " str =  " + l_all);
 #endif
 	UserCommand uc(m_lastId++, type, ctx, flags, name, command, to, hub);
 	{
@@ -1005,7 +1005,7 @@ bool FavoriteManager::load_from_url()
 			l_url += "ISP_favorites.xml";
 			string l_data;
 			const string l_log_message = "Download: " + l_url;
-			const size_t l_size = Util::getDataFromInet(_T("FavoriteManager::load_from_url"), 4096, l_url, l_data);
+			const size_t l_size = Util::getDataFromInet(l_url, l_data);
 			if (l_size == 0)
 			{
 				LogManager::getInstance()->message("[ISPFavorite] " + l_log_message + " [Error]");

@@ -2637,6 +2637,7 @@ void MediaInfo_Config_CodecID_Text_Mpeg4 (InfoMap &Info)
     "subp;VobSub;;The same subtitle format used on DVDs\n"
     "text;Apple text;;;http://www.apple.com/quicktime/download/standalone.html\n"
     "sbtl;Apple text;(iPhone);;http://www.apple.com/quicktime/download/standalone.html\n"
+    "dfxp;TTML\n"
     "tx3g;Timed text;;;http://www.apple.com/quicktime/download/standalone.html\n"
     "enct;(Encrypted);;\n"
     ));
@@ -5785,7 +5786,7 @@ void MediaInfo_Config_Summary (ZtringListList &Info)
     Info.Write(Ztring().From_UTF8(
     "General;[%Format%][ (%Format_Profile%)][ (%Format_Commercial_IfAny%)]$if(%Format%,$: $)%FileSize/String%[, %Duration/String%]\n"
     "Video;[%Language/String%, ][%BitRate/String%$if(%BitRate_Nominal/String%, \\(%BitRate_Nominal/String%\\)), ][%Width%*][%Height%][ (%DisplayAspectRatio/String%), ][$at$ %FrameRate/String%, ][%Format%][ (%CodecID/Hint%)][ (%Standard%)]$if(%MuxingMode%, \\(%MuxingMode%\\))$if(%Format_Version%, \\(%Format_Version%\\))$if(%Format_Profile%, \\(%Format_Profile%\\))$if(%Format_Settings%, \\(%Format_Settings%\\))[ (%Format_Commercial_IfAny%)]\n"
-    "Audio;[%Language/String%, ][%BitRate/String%$if(%BitRate_Nominal/String%, \\(%BitRate_Nominal/String%\\)), ][%SamplingRate/String%, ][%BitDepth/String%, ][%Channel(s)/String%, ][%Format%][ (%CodecID/Hint%)]$if(%MuxingMode%, \\(%MuxingMode%\\))$if(%Format_Version%, \\(%Format_Version%\\))$if(%Format_Profile%, \\(%Format_Profile%\\))$if(%Format_Settings%, \\(%Format_Settings%\\))[ (%Format_Commercial_IfAny%)]\n"
+    "Audio;[%Language/String%, ][%BitRate/String%$if(%BitRate_Nominal/String%, \\(%BitRate_Nominal/String%\\)), ][%SamplingRate/String%, ][%BitDepth/String%, ][%Channel(s)_Original/String%  / ][%Channel(s)/String%, ][%Format%][ (%CodecID/Hint%)]$if(%MuxingMode%, \\(%MuxingMode%\\))$if(%Format_Version%, \\(%Format_Version%\\))$if(%Format_Profile%, \\(%Format_Profile%\\))$if(%Format_Settings%, \\(%Format_Settings%\\))[ (%Format_Commercial_IfAny%)]\n"
     "Text;[%Language/String%, ][%Format%][ (%Format_Commercial_IfAny%)]$if(%MuxingMode%, \\(%MuxingMode%\\))\n"
     "Image;[%Language/String%, ][%Width%*][%Height%][ (%DisplayAspectRatio/String%)][, %Format%]\n"
     "Chapters;[%Language/String%, ]%Total% chapters[, %Format%][ (%Format_Commercial_IfAny%)]\n"

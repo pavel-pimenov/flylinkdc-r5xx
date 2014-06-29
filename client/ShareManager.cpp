@@ -872,42 +872,43 @@ void ShareManager::removeDirectory(const string& realPath)
 		
 	HashManager::getInstance()->stopHashing(realPath);
 	
-	webrtc::WriteLockScoped l(*g_csShare);
-	
-	auto i = shares.find(realPath);
-	if (i == shares.end())
 	{
-		return;
-	}
-	
-	const string l_Name = i->second; // —сылку не делать. fix http://www.flickr.com/photos/96019675@N02/9515345001/
-	for (auto j = m_list_directories.cbegin(); j != m_list_directories.cend();)
-	{
-		if (stricmp((*j)->getName(), l_Name) == 0)
+		webrtc::WriteLockScoped l(*g_csShare);
+		auto i = shares.find(realPath);
+		if (i == shares.end())
 		{
-			m_list_directories.erase(j++);
+			return;
 		}
-		else
+		const string l_Name = i->second; // —сылку не делать. fix http://www.flickr.com/photos/96019675@N02/9515345001/
+		for (auto j = m_list_directories.cbegin(); j != m_list_directories.cend();)
 		{
-			++j;
+			if (stricmp((*j)->getName(), l_Name) == 0)
+			{
+				m_list_directories.erase(j++);
+			}
+			else
+			{
+				++j;
+			}
 		}
-	}
-	
-	shares.erase(i);
-	
-	HashManager::HashPauser pauser;
-	
-	// Readd all directories with the same vName
-	for (i = shares.begin(); i != shares.end(); ++i)
-	{
-		if (stricmp(i->second, l_Name) == 0 && checkAttributs(i->first))// [!]IRainman checkHidden(i->first)
+		
+		shares.erase(i);
+		
+		HashManager::HashPauser pauser;
+		
+		// Readd all directories with the same vName
+		for (i = shares.begin(); i != shares.end(); ++i)
 		{
-			Directory::Ptr dp = buildTreeL(i->first, 0, true);
-			dp->setName(i->second);
-			mergeL(dp);
+			if (stricmp(i->second, l_Name) == 0 && checkAttributs(i->first))// [!]IRainman checkHidden(i->first)
+			{
+				Directory::Ptr dp = buildTreeL(i->first, 0, true);
+				dp->setName(i->second);
+				mergeL(dp);
+			}
 		}
+		rebuildIndicesL();
 	}
-	rebuildIndicesL();
+	internal_calcShareSize();
 	setDirty();
 }
 
@@ -967,6 +968,7 @@ void ShareManager::internal_calcShareSize() // [!] IRainman opt.
 			m_CurrentShareSize = l_CurrentShareSize;
 		}
 	}
+	dcassert(sharedSize == m_CurrentShareSize);
 }
 
 ShareManager::Directory::Ptr ShareManager::buildTreeL(const string& aName, const Directory::Ptr& aParent, bool p_is_job)
@@ -1409,6 +1411,7 @@ int ShareManager::run()
 			
 			rebuildIndicesL();
 		}
+		internal_calcShareSize();
 		refreshDirs = false;
 		
 		LogManager::getInstance()->message(STRING(FILE_LIST_REFRESH_FINISHED));
@@ -1537,7 +1540,7 @@ void ShareManager::generateXmlList()
 				}
 				else
 				{
-					l_creation_log.log("Error delete: " + Util::getConfigPath() + *i + "[ " + Util::translateError(GetLastError()) + "]");
+					l_creation_log.log("Error delete: " + Util::getConfigPath() + *i + "[ " + Util::translateError() + "]");
 				}
 			}
 		}

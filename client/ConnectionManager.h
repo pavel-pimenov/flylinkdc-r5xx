@@ -48,7 +48,7 @@ class ConnectionQueueItem
 		};
 		
 		ConnectionQueueItem(const HintedUser& aUser, bool aDownload) : m_token(Util::toString(Util::rand())),
-			lastAttempt(0), errors(0), state(WAITING), download(aDownload), m_user(aUser), hubUrl(aUser.hint) { }
+			lastAttempt(0), errors(0), state(WAITING), m_is_download(aDownload), m_user(aUser), hubUrl(aUser.hint) { }
 			
 		const string& getToken() const
 		{
@@ -58,9 +58,9 @@ class ConnectionQueueItem
 		GETSET(int, errors, Errors); // Number of connection errors, or -1 after a protocol error
 		GETSET(State, state, State);
 		GETSET(string, hubUrl, HubUrl); // TODO - пока не доконца работает и не везде прокидывается
-		bool getDownload() const
+		bool isDownload() const
 		{
-			return download;
+			return m_is_download;
 		}
 		
 		UserPtr& getUser()
@@ -71,10 +71,14 @@ class ConnectionQueueItem
 		{
 			return m_user;
 		}
+		const HintedUser getHintedUser() const
+		{
+			return HintedUser(m_user, hubUrl);
+		}
 	private:
 		const string m_token;
 		UserPtr m_user;
-		const bool download;
+		const bool m_is_download;
 };
 
 class ExpectedMap
@@ -201,11 +205,11 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		
 		uint16_t getPort() const
 		{
-			return server ? static_cast<uint16_t>(server->getPort()) : 0;
+			return server ? static_cast<uint16_t>(server->getServerPort()) : 0;
 		}
 		uint16_t getSecurePort() const
 		{
-			return secureServer ? static_cast<uint16_t>(secureServer->getPort()) : 0;
+			return secureServer ? static_cast<uint16_t>(secureServer->getServerPort()) : 0;
 		}
 		
 		static uint16_t iConnToMeCount;
@@ -215,9 +219,9 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		{
 			public:
 				Server(bool p_secure, uint16_t p_port, const string& p_ip = "0.0.0.0");
-				uint16_t getPort() const
+				uint16_t getServerPort() const
 				{
-					return m_port;
+					return m_server_port;
 				}
 				~Server()
 				{
@@ -228,8 +232,8 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 				int run() noexcept;
 				
 				Socket m_sock;
-				uint16_t m_port;
-				string m_ip;
+				uint16_t m_server_port;
+				string m_server_ip; // TODO - в DC++ этого уже нет.
 				bool m_secure;
 				volatile bool m_die; // [!] IRainman fix: this variable is volatile.
 		};
@@ -327,7 +331,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		ConnectionQueueItem* getCQI_L(const HintedUser& aHintedUser, bool download);
 		void putCQI_L(ConnectionQueueItem* cqi);
 		
-		void accept(const Socket& sock, bool secure) noexcept;
+		void accept(const Socket& sock, bool secure, Server* p_server) noexcept;
 		
 		bool checkKeyprint(UserConnection *aSource);
 		

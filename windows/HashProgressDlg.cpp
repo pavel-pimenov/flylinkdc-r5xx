@@ -43,7 +43,7 @@ LRESULT HashProgressDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 	m_Slider.Attach(GetDlgItem(IDC_EDIT_MAX_HASH_SPEED_SLIDER));
 	m_Slider.SetRange(0, 100);
 	m_Slider.SetPos(HashManager::getInstance()->GetMaxHashSpeed());
-
+	
 	progress.Attach(GetDlgItem(IDC_HASH_PROGRESS));
 	progress.SetRange(0, HashManager::GetMaxProgressValue());
 	updateStats();

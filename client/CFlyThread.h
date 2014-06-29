@@ -333,7 +333,7 @@ typedef Lock FastLock;
 #else
 class CriticalSection
 #ifdef _DEBUG
-	: boost::noncopyable 
+	: boost::noncopyable
 #endif
 {
 	public:
@@ -427,7 +427,7 @@ class CriticalSection
 
 class FastCriticalSection
 #ifdef _DEBUG
-	: boost::noncopyable 
+	: boost::noncopyable
 #endif
 {
 	public:

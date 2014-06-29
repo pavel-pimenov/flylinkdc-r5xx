@@ -637,7 +637,11 @@ class Util
 		
 		static string getIETFLang();
 		
-		static string translateError(int aError);
+		static string translateError(DWORD aError);
+		static string translateError()
+		{
+			return translateError(GetLastError());
+		}
 		
 		static TCHAR* strstr(const TCHAR *str1, const TCHAR *str2, int *pnIdxFound); //[+]PPA
 		
@@ -1121,9 +1125,8 @@ class Util
 		
 		static string getWANIP(const string& p_url, LONG p_timeOut = 500);
 		
-		static size_t getDataFromInet(LPCWSTR agent, const DWORD frameBufferSize, const string& url, string& data, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
-		static uint64_t getBinaryDataFromInet(LPCWSTR agent, const DWORD frameBufferSize, const string& url, std::vector<byte>& p_dataOut, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
-		static string getExtInternetError();
+		static size_t getDataFromInet(const string& url, string& data, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
+		static uint64_t getBinaryDataFromInet(const string& url, std::vector<byte>& p_dataOut, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
 		
 		
 		// static string formatMessage(const string& message);[-] IRainman fix

@@ -654,10 +654,11 @@ void NmdcHub::onLine(const string& aLine)
 		}
 		else if (isActive())
 		{
-			if (seeker == ((getFavIp().empty() ? getLocalIp() : getFavIp()) + ":" + Util::toString(SearchManager::getInstance()->getPort())))
+			if (seeker == ((getFavIp().empty() ? getLocalIp() : getFavIp()) + ":" + Util::toString(SearchManager::getInstance()->getSearchPort())))
 			{
 #ifdef FLYLINKDC_BETA
-				LogManager::getInstance()->message("Error [part 3] $Search command = " + param + " Hub: " + getHubUrl());
+				// Тут блокируем поиск на самого себя.
+				// LogManager::getInstance()->message("Error [part 3] $Search command = " + param + " Hub: " + getHubUrl());
 #endif
 				return;
 			}
@@ -1583,7 +1584,7 @@ void NmdcHub::search(Search::SizeModes aSizeType, int64_t aSize, Search::TypeMod
 	const bool l_is_passive = p_is_force_passive || BOOLSETTING(SEARCH_PASSIVE);
 	if (isActive() && !l_is_passive)
 	{
-		tmp2 = (getFavIp().empty() ? getLocalIp() : getFavIp()) + ':' + Util::toString(SearchManager::getInstance()->getPort());
+		tmp2 = (getFavIp().empty() ? getLocalIp() : getFavIp()) + ':' + Util::toString(SearchManager::getInstance()->getSearchPort());
 	}
 	else
 	{

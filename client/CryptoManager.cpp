@@ -358,7 +358,7 @@ void CryptoManager::loadCertificates() noexcept
 		return;
 	}
 	
-	if (!File::isExist(cert) || !File::isExist(key))
+	if (!File::isExist(cert) || !File::isExist(key) || !checkCertificate())
 	{
 		// Try to generate them...
 		try
@@ -431,13 +431,14 @@ void CryptoManager::loadCertificates() noexcept
 			LogManager::getInstance()->message(STRING(FAILED_TO_LOAD_TRUSTED_CERTIFICATE_FROM)  + ' ' +  *i);
 		}
 	}
+	loadKeyprint();
 	certsLoaded = true;
 }
 
 
 bool CryptoManager::checkCertificate() noexcept
 {
-	FILE* f = fopen(SETTING(TLS_CERTIFICATE_FILE).c_str(), "r");
+	FILE* f = openSertFile();
 	if (!f)
 	{
 		return false;
@@ -508,14 +509,23 @@ const vector<uint8_t>& CryptoManager::getKeyprint() const noexcept
     return keyprint;
 }
 
-void CryptoManager::loadKeyprint(const string& /*file*/) noexcept
+FILE* CryptoManager::openSertFile() noexcept
 {
 	FILE* f = fopen(SETTING(TLS_CERTIFICATE_FILE).c_str(), "r");
 	if (!f)
 	{
+		LogManager::getInstance()->message("Unable open cert file: " + SETTING(TLS_CERTIFICATE_FILE));
+	}
+	return f;
+}
+
+void CryptoManager::loadKeyprint() noexcept
+{
+	FILE* f = openSertFile();
+	if (!f)
+	{
 		return;
 	}
-	
 	X509* tmpx509 = nullptr;
 	PEM_read_X509(f, &tmpx509, NULL, NULL);
 	fclose(f);

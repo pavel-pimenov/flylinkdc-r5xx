@@ -1580,6 +1580,8 @@
 #define ID_TEXT_TRANSCODE               32786
 #define ID_MEDIA_MENU_WINAMP_START      32787
 #define ID_DISCONNECT                   32788
+#define ID_VIEW_TRANSFER_VIEW_TOOLBAR   32789
+
 #define ID_MEDIA_MENU_WINAMP_END        32807
 #define IDC_PROGRESS                    32809
 #define IDC_TIME                        32810

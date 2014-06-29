@@ -81,6 +81,7 @@ void ConnectionManager::listen()
 	if (BOOLSETTING(AUTO_DETECT_CONNECTION))
 	{
 		server = new Server(false, 0, Util::emptyString);
+		SET_SETTING(TCP_PORT, server->getServerPort());
 	}
 	else
 	{
@@ -98,6 +99,7 @@ void ConnectionManager::listen()
 	if (BOOLSETTING(AUTO_DETECT_CONNECTION))
 	{
 		secureServer = new Server(true, 0, Util::emptyString);
+		SET_SETTING(TLS_PORT, secureServer->getServerPort());
 	}
 	else
 	{
@@ -162,7 +164,7 @@ ConnectionQueueItem* ConnectionManager::getCQI_L(const HintedUser& aHintedUser, 
 void ConnectionManager::putCQI_L(ConnectionQueueItem* cqi)
 {
 	fire(ConnectionManagerListener::Removed(), cqi); // TODO - зоветс€ фаер под локом?
-	if (cqi->getDownload())
+	if (cqi->isDownload())
 	{
 		g_downloads.erase_and_check(cqi);
 	}
@@ -304,7 +306,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 	{
 		for (auto m = l_removed.cbegin(); m != l_removed.cend(); ++m)
 		{
-			if ((*m)->getDownload())
+			if ((*m)->isDownload())
 			{
 				webrtc::WriteLockScoped l(*g_csDownloads);
 				putCQI_L(*m);
@@ -413,13 +415,14 @@ static const uint64_t FLOOD_TRIGGER = 20000;
 static const uint64_t FLOOD_ADD = 2000;
 
 ConnectionManager::Server::Server(bool p_secure
-                                  , uint16_t p_port, const string& p_ip /* = "0.0.0.0" */) :
+                                  , uint16_t p_port, const string& p_server_ip /* = "0.0.0.0" */) :
 	m_secure(p_secure),
 	m_die(false)
 {
 	m_sock.create();
 	m_sock.setSocketOpt(SO_REUSEADDR, 1);
-	m_port = m_sock.bind(p_port, p_ip); // [7] Wizard https://www.box.net/shared/45acc9cef68ecb499cb5
+	m_server_port = m_sock.bind(p_port, p_server_ip); // [7] Wizard https://www.box.net/shared/45acc9cef68ecb499cb5
+	m_server_ip   = p_server_ip; // в AirDC++ и дургих этого уже нет
 	m_sock.listen();
 	start(64);
 }
@@ -437,7 +440,7 @@ int ConnectionManager::Server::run() noexcept
 				auto ret = m_sock.wait(POLL_TIMEOUT, Socket::WAIT_READ);
 				if (ret == Socket::WAIT_READ)
 				{
-					ConnectionManager::getInstance()->accept(m_sock, m_secure);
+					ConnectionManager::getInstance()->accept(m_sock, m_secure, this);
 				}
 			}
 		}
@@ -452,7 +455,7 @@ int ConnectionManager::Server::run() noexcept
 			{
 				m_sock.disconnect();
 				m_sock.create();
-				m_sock.bind(m_port, m_ip);
+				m_sock.bind(m_server_port, m_server_ip);
 				m_sock.listen();
 				if (failed)
 				{
@@ -486,7 +489,7 @@ int ConnectionManager::Server::run() noexcept
  * Someone's connecting, accept the connection and wait for identification...
  * It's always the other fellow that starts sending if he made the connection.
  */
-void ConnectionManager::accept(const Socket& sock, bool secure) noexcept
+void ConnectionManager::accept(const Socket& sock, bool secure, Server* p_server) noexcept
 {
 	uint32_t now = GET_TICK();
 	
@@ -517,7 +520,9 @@ void ConnectionManager::accept(const Socket& sock, bool secure) noexcept
 		else
 		{
 			if (iConnToMeCount <= 0)
+			{
 				m_floodCounter += FLOOD_ADD;
+			}
 		}
 	}
 	UserConnection* uc = getConnection(false, secure);
@@ -528,8 +533,22 @@ void ConnectionManager::accept(const Socket& sock, bool secure) noexcept
 	{
 		uc->accept(sock);
 	}
-	catch (const Exception&)
+	catch (const Exception& e)
 	{
+#ifdef _DEBUG
+		LogManager::getInstance()->message("uc->accept(sock) Error = " + e.getError());
+#endif
+		dcdebug("uc->accept(sock); error\n");
+		// ќбработка теста порта TLS
+		if (secure && p_server)
+		{
+			const auto l_remote_port = p_server->getServerPort();
+			if (l_remote_port == SETTING(TLS_PORT)) // TODO проверить тут IP внешнего сервера - он должен совпадать с test.fly-server.ru
+			{
+				SettingsManager::g_TestTSLLevel = true; // ѕроверьть магическое число тут не знаю как - считаем если пришел accept на этот порт, то он открыт
+				// ClientManager::getMyCID().toBase32() == l_magic;
+			}
+		}
 		deleteConnection(uc);
 	}
 }
@@ -1360,7 +1379,6 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 				// (Closed issue 983) https://code.google.com/p/flylinkdc/issues/detail?id=983 Ѕесконечные подключени€ дл€ скачки файл-листа
 				// TODO - Ќайти более другое решение бага
 			}
-			
 		}
 		else if (aSource->isSet(UserConnection::FLAG_UPLOAD))
 		{

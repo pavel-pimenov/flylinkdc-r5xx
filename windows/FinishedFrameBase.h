@@ -41,7 +41,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 	public:
 		typedef MDITabChildWindowImpl < T, RGB(0, 0, 0), icon > baseClass;
 		
-		FinishedFrameBase() : totalBytes(0), totalSpeed(0), upload(false) { }
+		FinishedFrameBase() : totalBytes(0), totalSpeed(0), m_type(FinishedManager::e_Download) { }
 		virtual ~FinishedFrameBase() { }
 		
 		BEGIN_MSG_MAP(T)
@@ -106,8 +106,8 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			
 			SettingsManager::getInstance()->addListener(this);
 			FinishedManager::getInstance()->addListener(this);
-			updateList(FinishedManager::getInstance()->lockList(upload));
-			FinishedManager::getInstance()->unlockList(upload);
+			updateList(FinishedManager::getInstance()->lockList(m_type));
+			FinishedManager::getInstance()->unlockList(m_type);
 			
 			ctxMenu.CreatePopupMenu();
 //			ctxMenu.AppendMenu(MF_STRING, IDC_VIEW_AS_TEXT, CTSTRING(VIEW_AS_TEXT));
@@ -173,7 +173,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		{
 			switch (wParam)
 			{
-				case SPEAK_ADD_LINE:
+				case SPEAK_ADD_LINE: //  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=77059
 				{
 					FinishedItem* entry = reinterpret_cast<FinishedItem*>(lParam);
 					addEntry(entry); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=110193 + http://www.flickr.com/photos/96019675@N02/11199325634/
@@ -185,19 +185,18 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				case SPEAK_REMOVE_LINE: // [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
 				{
 					FinishedItem* entry = reinterpret_cast<FinishedItem*>(lParam);
-					delete entry; // Возможно тут падает из-за этого https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=47103
-					
-					/* TODO remove from the frame
-					const int i = ctrlList.findItem( MagicFunction(entry) );
-					ItemInfo *ii = ctrlList.getItemData(i);
-					ctrlList.DeleteItem(i);
-					
-					delete ii;
-					delete ff;
-					delete entry;
-					
+					const int l_cnt = ctrlList.GetItemCount();
+					for (int i = 0; i < l_cnt; ++i)
+					{
+						auto l_item = ctrlList.getItemData(i);
+						if (l_item && l_item->entry == entry)
+						{
+							ctrlList.DeleteItem(i);
+							delete l_item;
+							break;
+						}
+					}
 					updateStatus();
-					*/
 				}
 				break;
 				/* TODO
@@ -227,12 +226,11 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 					while ((i = ctrlList.GetNextItem(-1, LVNI_SELECTED)) != -1)
 					{
 						ItemInfo *ii = ctrlList.getItemData(i);
-						FinishedManager::getInstance()->remove(ii->entry, upload);
-						ctrlList.DeleteItem(i);
-						
-						totalBytes -= ii->entry->getSize(); // https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=28506
+						totalBytes -= ii->entry->getSize();
 						totalSpeed -= ii->entry->getAvgSpeed();
-						
+						FinishedManager::getInstance()->removeItem(ii->entry, m_type);
+						safe_delete(ii->entry);
+						ctrlList.DeleteItem(i);
 						delete ii;
 						p = i;
 					}
@@ -241,10 +239,8 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 					break;
 				}
 				case IDC_TOTAL:
-					FinishedManager::getInstance()->removeAll(upload);
-					
 					ctrlList.DeleteAndCleanAllItems(); // [!] IRainman
-					
+					FinishedManager::getInstance()->removeAll(m_type);
 					totalBytes = 0;
 					totalSpeed = 0;
 					updateStatus();
@@ -498,7 +494,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		int64_t totalBytes;
 		int64_t totalSpeed;
 		
-		bool upload;
+		FinishedManager::eType m_type;
 		SettingsManager::IntSetting boldFinished;
 		SettingsManager::StrSetting columnWidth;
 		SettingsManager::StrSetting columnOrder;

@@ -32,6 +32,8 @@
 
 9. https://flylinkdc.googlecode.com/svn/branches-dev/ppa/issue-843-fly-server
 
+10. https://flylinkdc.googlecode.com/svn/branches-dev/ppa/issue-1478
+
 p.s.
 Команда создания ветки из ствола
-svn copy https://flylinkdc.googlecode.com/svn/trunk https://flylinkdc.googlecode.com/svn/branches-dev/ppa/issue-843-fly-server -m"# fly-server"
+svn copy https://flylinkdc.googlecode.com/svn/trunk https://flylinkdc.googlecode.com/svn/branches-dev/ppa/issue-1478 -m"# Fix crash TransferView::UpdateInfo::UpdateInfo"

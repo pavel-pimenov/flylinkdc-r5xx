@@ -66,7 +66,7 @@ void File::init(const tstring& aFileName, int access, int mode, bool isAbsoluteP
 	{
 //[!] Не включать - падаем на рекурсии
 //        LogManager::getInstance()->message("File::File error = " + Util::toString(GetLastError()) + " File = " + aFileName);
-		throw FileException(Util::translateError(GetLastError()));
+		throw FileException(Util::translateError());
 	}
 }
 
@@ -85,7 +85,7 @@ int64_t File::getTimeStamp(const string& aFileName) throw(FileException)
 	WIN32_FIND_DATA fd;
 	HANDLE hFind = FindFirstFile(Text::toT(formatPath(aFileName)).c_str(), &fd);
 	if (hFind == INVALID_HANDLE_VALUE)
-		throw FileException(Util::translateError(GetLastError()) + ": " + aFileName);
+		throw FileException(Util::translateError() + ": " + aFileName);
 	FindClose(hFind);
 	return *(int64_t*)&fd.ftLastWriteTime;
 }
@@ -94,11 +94,11 @@ void File::setTimeStamp(const string& aFileName, const uint64_t stamp) throw(Fil
 {
 	HANDLE hCreate = CreateFile(formatPath(Text::toT(aFileName)).c_str(), FILE_WRITE_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
 	if (hCreate == INVALID_HANDLE_VALUE)
-		throw FileException(Util::translateError(GetLastError()) + ": " + aFileName);
+		throw FileException(Util::translateError() + ": " + aFileName);
 	if (!SetFileTime(hCreate, NULL, NULL, (FILETIME*)&stamp))
 	{
 		CloseHandle(hCreate); //[+]PPA
-		throw FileException(Util::translateError(GetLastError()) + ": " + aFileName);
+		throw FileException(Util::translateError() + ": " + aFileName);
 	}
 	CloseHandle(hCreate);
 }
@@ -188,7 +188,7 @@ void File::setPos(int64_t pos) throw(FileException)
 	LARGE_INTEGER x = {0};
 	x.QuadPart = pos;
 	if (!::SetFilePointerEx(h, x, &x, FILE_BEGIN))
-		throw(FileException(Util::translateError(GetLastError()))); //[+]PPA
+		throw(FileException(Util::translateError())); //[+]PPA
 }
 void File::setEndPos(int64_t pos) throw(FileException)
 {
@@ -196,7 +196,7 @@ void File::setEndPos(int64_t pos) throw(FileException)
 	LARGE_INTEGER x = {0};
 	x.QuadPart = pos;
 	if (!::SetFilePointerEx(h, x, &x, FILE_END))
-		throw(FileException(Util::translateError(GetLastError()))); //[+]PPA
+		throw(FileException(Util::translateError())); //[+]PPA
 }
 
 void File::movePos(int64_t pos) throw(FileException)
@@ -205,7 +205,7 @@ void File::movePos(int64_t pos) throw(FileException)
 	LARGE_INTEGER x = {0};
 	x.QuadPart = pos;
 	if (!::SetFilePointerEx(h, x, &x, FILE_CURRENT))
-		throw(FileException(Util::translateError(GetLastError()))); //[+]PPA
+		throw(FileException(Util::translateError())); //[+]PPA
 }
 
 size_t File::read(void* buf, size_t& len)
@@ -213,7 +213,7 @@ size_t File::read(void* buf, size_t& len)
 	DWORD x = 0;
 	if (!::ReadFile(h, buf, (DWORD)len, &x, NULL))
 	{
-		throw(FileException(Util::translateError(GetLastError())));
+		throw(FileException(Util::translateError()));
 	}
 	len = x;
 	return x;
@@ -224,7 +224,7 @@ size_t File::write(const void* buf, size_t len)
 	DWORD x = 0;
 	if (!::WriteFile(h, buf, (DWORD)len, &x, NULL))
 	{
-		throw FileException(Util::translateError(GetLastError()));
+		throw FileException(Util::translateError());
 	}
 	if (x != len)
 	{
@@ -237,14 +237,14 @@ void File::setEOF()
 	dcassert(isOpen());
 	if (!SetEndOfFile(h))
 	{
-		throw FileException(Util::translateError(GetLastError()));
+		throw FileException(Util::translateError());
 	}
 }
 
 size_t File::flush()
 {
 	if (isOpen() && !FlushFileBuffers(h))
-		throw FileException(Util::translateError(GetLastError()));
+		throw FileException(Util::translateError());
 	return 0;
 }
 
@@ -262,7 +262,7 @@ void File::copyFile(const tstring& source, const tstring& target)
 {
 	if (!::CopyFile(formatPath(source).c_str(), formatPath(target).c_str(), FALSE))
 	{
-		throw FileException(Util::translateError(GetLastError())); // 2012-05-03_22-05-14_LZE57W5HZ7NI3VC773UG4DNJ4QIKP7Q7AEBLWOA_AA236F48_crash-stack-r502-beta24-x64-build-9900.dmp
+		throw FileException(Util::translateError()); // 2012-05-03_22-05-14_LZE57W5HZ7NI3VC773UG4DNJ4QIKP7Q7AEBLWOA_AA236F48_crash-stack-r502-beta24-x64-build-9900.dmp
 	}
 }
 #ifndef _CONSOLE

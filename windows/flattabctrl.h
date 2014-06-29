@@ -38,7 +38,6 @@
 // [+] IRainman opt.
 extern bool g_TabsCloseButtonEnabled;
 extern bool g_TabsCloseButtonAlt;
-extern bool g_TabsGdiPlusEnabled;
 extern bool g_isStartupProcess;
 extern CMenu g_mnu;
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
@@ -798,9 +797,6 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 					/*Различное колличество контуров разделителей для положения сверху/снизу:
 					int r = (l_tabspos == SettingsManager::TABS_TOP) ? 0 : 1;
 					no needs */
-#ifndef IRAINMAN_USE_GDI_PLUS_TAB
-					// TODO HPEN oldpen = g_TabsGdiPlusEnabled ? dc.SelectPen(defaultgrey) : dc.SelectPen(black);
-#endif
 					for (; r < getRows(); r++) //Рисуем контур разделитель вкладок
 					{
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
@@ -954,7 +950,6 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 #endif // IRAINMAN_USE_GDI_PLUS_TAB
 			g_magic_width = ((WinUtil::GetTabsPosition() == SettingsManager::TABS_LEFT || WinUtil::GetTabsPosition() == SettingsManager::TABS_RIGHT) ? 29 : 0);
 			
-			g_TabsGdiPlusEnabled = BOOLSETTING(GDI_PLUS_TABS);
 			g_TabsCloseButtonEnabled = BOOLSETTING(TABS_CLOSEBUTTONS);
 			
 			if (g_TabsCloseButtonEnabled)
@@ -1256,8 +1251,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			const int tabAnim = 0;
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
 			//Контур вкладки
-			Gdiplus::GraphicsPath tabsPath;
-			
+			unique_ptr<Gdiplus::GraphicsPath> l_tabsPath;
 			// TODO вынести большую часть проверок в updateTabs()
 			//Цвет заливки в заивисимости от настроек и состояния вкладки
 			
@@ -1270,12 +1264,42 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				                                                  g_color_face,
 				                                                  Gdiplus::LinearGradientModeVertical)
 				             );
+				l_tabsPath = unique_ptr<Gdiplus::GraphicsPath>(new Gdiplus::GraphicsPath);
 			}
 			if (l_tabBrush)
 			{
-				const DWORD l_color_tab = !g_TabsGdiPlusEnabled ? (aActive ? g_color_filllight : g_color_face) : (!tab->m_bState ? (aActive ? SETTING(TAB_SELECTED_COLOR) : (tab->m_dirty ? SETTING(TAB_ACTIVITY_COLOR) : g_color_face)) : SETTING(TAB_OFFLINE_COLOR));
-				//const DWORD l_color_gr = !g_TabsGdiPlusEnabled ? (aActive ? g_color_filllight : g_color_shadow) : (!tab->m_bState ? (aActive ? SETTING(TAB_SELECTED_COLOR) : (tab->m_dirty ? SETTING(TAB_ACTIVITY_COLOR) : g_color_shadow)) : SETTING(TAB_OFFLINE_COLOR));
+				DWORD l_color_tab;
+				if (!tab->m_bState)
+				{
+					if (aActive)
+						l_color_tab = SETTING(TAB_SELECTED_COLOR);
+					else if (tab->m_dirty)
+						l_color_tab = SETTING(TAB_ACTIVITY_COLOR);
+					else
+						l_color_tab = g_color_face;
+				}
+				else
+				{
+					l_color_tab = SETTING(TAB_OFFLINE_COLOR);
+				}
 				
+				/*              const DWORD l_color_tab;
+				                if(!g_TabsGdiPlusEnabled)
+				                  l_color_tab  = (aActive ? g_color_filllight : g_color_face)
+				                else
+				                {
+				                        if(!tab->m_bState)
+				                       if(aActive)
+				                           l_color_tab = SETTING(TAB_SELECTED_COLOR)
+				                      else
+				                        if(tab->m_dirty)
+				                            l_color_tab = SETTING(TAB_ACTIVITY_COLOR);
+				                        else
+				                            l_color_tab = g_color_face;
+				                  }
+				                 else
+				                      l_color_tab = SETTING(TAB_OFFLINE_COLOR);
+				*/
 				//Градиент заливки
 				//Смена цветов градиента для вкладок снизу
 				const bool l_isBottom = WinUtil::GetTabsPosition() == SettingsManager::TABS_BOTTOM;
@@ -1350,9 +1374,12 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 					height_plus = (m_height + 3 + tabAnim - m_height_font) / 2;
 					height_plus_ico = (m_height + 4 + tabAnim - 16) / 2; //-V112
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
-					tabsPath.AddLine(pos, ypos + m_height, pos, ypos + 6 + tabAnim);
-					tabsPath.AddLine(pos + 4, ypos + 2 + tabAnim, pos + magic_width - 5, ypos + 2 + tabAnim); //-V112
-					tabsPath.AddLine(pos + magic_width, ypos + 6 + tabAnim, pos + magic_width, ypos + m_height);
+					if (l_tabsPath)
+					{
+						l_tabsPath->AddLine(pos, ypos + m_height, pos, ypos + 6 + tabAnim);
+						l_tabsPath->AddLine(pos + 4, ypos + 2 + tabAnim, pos + magic_width - 5, ypos + 2 + tabAnim); //-V112
+						l_tabsPath->AddLine(pos + magic_width, ypos + 6 + tabAnim, pos + magic_width, ypos + m_height);
+					}
 #endif // IRAINMAN_USE_GDI_PLUS_TAB
 				}
 				break;
@@ -1362,9 +1389,12 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 					height_plus = (m_height - 2 - tabAnim - m_height_font) / 2;
 					height_plus_ico = (m_height - 2 - tabAnim - 16) / 2;
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
-					tabsPath.AddLine(pos, ypos, pos, ypos + m_height - 6 - tabAnim);
-					tabsPath.AddLine(pos + 4, ypos + m_height - 2 - tabAnim, pos + magic_width - 5, ypos + m_height - 2 - tabAnim); //-V112
-					tabsPath.AddLine(pos + magic_width, ypos + m_height - 6 - tabAnim, pos + magic_width, ypos);
+					if (l_tabsPath)
+					{
+						l_tabsPath->AddLine(pos, ypos, pos, ypos + m_height - 6 - tabAnim);
+						l_tabsPath->AddLine(pos + 4, ypos + m_height - 2 - tabAnim, pos + magic_width - 5, ypos + m_height - 2 - tabAnim); //-V112
+						l_tabsPath->AddLine(pos + magic_width, ypos + m_height - 6 - tabAnim, pos + magic_width, ypos);
+					}
 #endif // IRAINMAN_USE_GDI_PLUS_TAB
 				}
 				break;
@@ -1377,26 +1407,87 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 					height_plus_ico = (m_height + 2 - 16) / 2;
 					magic_width -= 1;
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
-					tabsPath.AddLine(pos + 1, ypos + 5, pos + 1, ypos + m_height - 5);
-					tabsPath.AddLine(pos + 5, ypos + m_height - 1, pos + magic_width - 9, ypos + m_height - 1);
-					tabsPath.AddLine(pos + magic_width - 4, ypos + m_height - 5, pos + magic_width - 4, ypos + 5); //-V112
-					tabsPath.AddLine(pos + magic_width - 9, ypos + 1, pos + 5, ypos + 1);
+					if (l_tabsPath)
+					{
+						l_tabsPath->AddLine(pos + 1, ypos + 5, pos + 1, ypos + m_height - 5);
+						l_tabsPath->AddLine(pos + 5, ypos + m_height - 1, pos + magic_width - 9, ypos + m_height - 1);
+						l_tabsPath->AddLine(pos + magic_width - 4, ypos + m_height - 5, pos + magic_width - 4, ypos + 5); //-V112
+						l_tabsPath->AddLine(pos + magic_width - 9, ypos + 1, pos + 5, ypos + 1);
+					}
 #endif // IRAINMAN_USE_GDI_PLUS_TAB
 				}
 				break;
 			}
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
 			//Заливка вкладки
-			if (l_tabBrush)
+			if (l_tabBrush && l_tabsPath)
 			{
-				graphics->FillPath(l_tabBrush.get(), &tabsPath);
+				graphics->FillPath(l_tabBrush.get(), l_tabsPath.get());
 			}
 			
 			//Отрисовка контура поверх заливки
-			//Создание "ручек" для контура
-			Gdiplus::Pen pen(aActive ? Gdiplus::Color(0, 0, 0) : Gdiplus::Color(90, 60, 90) , 1);
-			pen.SetDashStyle(aActive ? Gdiplus::DashStyleDot : Gdiplus::DashStyleSolid);
-			graphics->DrawPath(&pen, &tabsPath);
+			//Создание "ручек" для контура - падаем под XP
+			//Gdiplus::Pen pen(aActive ? Gdiplus::Color(0, 0, 0) : Gdiplus::Color(90, 60, 90) , 1);
+			//pen.SetDashStyle(aActive ? Gdiplus::DashStyleDot : Gdiplus::DashStyleSolid);
+			//graphics->DrawPath(&pen, &tabsPath);
+			
+//////////////////
+			{
+				POINT p[4];
+				p[0].x = pos + tab->getWidth();
+				p[0].y = ypos;
+				p[1].x = pos + tab->getWidth();
+				p[1].y = ypos + getTabHeight() - 1;
+				p[2].x = pos;
+				p[2].y = ypos + getTabHeight() - 1;
+				p[3].x = pos;
+				p[3].y = ypos;
+				CPen l_pen;
+				l_pen.CreatePen(PS_SOLID, 1, tab->m_color_pen);
+				HPEN oldpen = dc.SelectPen(l_pen);
+				if (tab->m_row != (rows - 1))
+				{
+					dc.MoveTo(p[3]);
+					dc.LineTo(p[0]);
+				}
+				int sep_cut = aActive ? 0 : 2;
+				dc.MoveTo(p[0].x, p[0].y + sep_cut);
+				dc.LineTo(p[1].x, p[1].y - sep_cut);
+				dc.MoveTo(p[2].x, p[2].y - sep_cut);
+				dc.LineTo(p[3].x, p[3].y + sep_cut);
+				if (aActive)
+				{
+					dc.MoveTo(p[1]);
+					dc.LineTo(p[2]);
+				}
+				dc.SelectPen(oldpen);
+			}
+#if 0
+			RECT l_rec;
+			l_rec.left = pos + 2;
+			l_rec.right = pos + tab->getWidth();
+			l_rec.bottom = ypos + 4;
+			l_rec.top = ypos + getTabHeight() - (aActive ? 1 : 0);
+			
+			// dc.DrawEdge(&l_rec, aActive ? EDGE_RAISED : EDGE_BUMP, BF_RECT);
+			if (aActive)
+			{
+				dc.DrawEdge(&l_rec, EDGE_RAISED, BF_RECT);
+			}
+#endif
+			if (aActive)
+			{
+				//DeleteObject(dc.SelectBrush(oldbrush)); // ???  http://www.cracklab.ru/pro/cpp.php?r=beginners&d=zgrt182
+				//
+				// ВАЖНО
+				// Что не надо делать в WinAPI:
+				// Удалять (DeleteObject) объект, полученный по SelectObject.
+			}
+			else
+			{
+				//dc.SelectBrush(oldbrush);
+			}
+////////////
 #else
 			if (tab->m_row != (rows - 1))
 			{
@@ -1431,7 +1522,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				dc.SelectBrush(oldbrush);
 			}
 #endif // IRAINMAN_USE_GDI_PLUS_TAB
-			
+
 			dc.SetBkMode(TRANSPARENT);
 			
 			// [!] SSA http://code.google.com/p/flylinkdc/issues/detail?id=394 - проблема в случае с Лог файлом. Почему нет иконки??
@@ -1479,8 +1570,17 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				
 			// TODO вынести большую часть проверок в updateTabs()
 //			COLORREF oldclr = tab->m_bState ? dc.SetTextColor(g_color_shadow) : dc.SetTextColor(GetSysColor(COLOR_BTNTEXT)); // [+] Sergey Shuhskanov and Dmitriy F
-			const COLORREF oldclr = !g_TabsGdiPlusEnabled ? (tab->m_bState ? dc.SetTextColor(g_color_shadow) : dc.SetTextColor(GetSysColor(COLOR_BTNTEXT))) : (!tab->m_bState ? (aActive ? dc.SetTextColor(SETTING(TAB_SELECTED_TEXT_COLOR)) : (tab->m_dirty ? dc.SetTextColor(SETTING(TAB_ACTIVITY_TEXT_COLOR)) : dc.SetTextColor(GetSysColor(COLOR_BTNTEXT)))) : dc.SetTextColor(SETTING(TAB_OFFLINE_TEXT_COLOR)));    //[~] SCALOlaz
-			
+			const COLORREF oldclr = !tab->m_bState ?
+			                        (aActive ?
+			                         dc.SetTextColor(SETTING(TAB_SELECTED_TEXT_COLOR))
+			                         :
+			                         (tab->m_dirty ?
+			                          dc.SetTextColor(SETTING(TAB_ACTIVITY_TEXT_COLOR))
+			                          :
+			                          dc.SetTextColor(GetSysColor(COLOR_BTNTEXT))))
+				                        :
+				                        dc.SetTextColor(SETTING(TAB_OFFLINE_TEXT_COLOR));    //[~] SCALOlaz
+				                        
 			//Цвет шрифта в зависимости от состояния юзера или хаба
 			//DWORD color_text_tab = tab->m_bState ? g_color_shadow : GetSysColor(COLOR_BTNTEXT);
 			
@@ -1494,7 +1594,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			
 			
 			if (!tab->m_mini)
-			{
+		{
 				if (tab->m_dirty && !BOOLSETTING(NOTBOLD_FONT_ON_ACTIVITY_TAB)) // && !tab->m_bState  [+][-] SCALOlaz //ToDo: Not bolded font at offline tabs, needle fix in getWidth()
 				{
 					CSelectFont l_font(dc, Fonts::g_boldFont); //-V808
@@ -1898,11 +1998,8 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 		}
 		void setTabColor(COLORREF color)
 		{
-			if (!g_TabsGdiPlusEnabled)
-			{
-				dcassert(getTab());
-				getTab()->setColor(m_hWnd, color);
-			}
+			dcassert(getTab());
+			getTab()->setColor(m_hWnd, color);
 		}
 		void setIconState()
 		{

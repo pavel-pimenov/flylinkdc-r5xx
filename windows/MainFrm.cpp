@@ -113,7 +113,6 @@ int HashProgressDlg::g_is_execute = 0;
 
 bool g_TabsCloseButtonEnabled;
 bool g_TabsCloseButtonAlt;
-bool g_TabsGdiPlusEnabled;
 bool g_isStartupProcess = true;
 CMenu g_mnu;
 
@@ -642,6 +641,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	UISetCheck(ID_VIEW_TOOLBAR, 1);
 	UISetCheck(ID_VIEW_STATUS_BAR, 1);
 	UISetCheck(ID_VIEW_TRANSFER_VIEW, 1);
+	UISetCheck(ID_VIEW_TRANSFER_VIEW_TOOLBAR, BOOLSETTING(SHOW_TRANSFERVIEW_TOOLBAR));
 	UISetCheck(ID_TOGGLE_TOOLBAR, 1);
 	UISetCheck(ID_TOGGLE_QSEARCH, 1);
 	
@@ -803,6 +803,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	g_fly_server_stat.stopTick(CFlyServerStatistics::TIME_START_GUI);
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
 	create_timer(1000);
+	transferView.UpdateLayout();
 	return 0;
 }
 
@@ -3244,9 +3245,18 @@ void MainFrame::ViewTransferView(BOOL bVisible)
 
 LRESULT MainFrame::OnViewTransferView(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	BOOL bVisible = !transferView.IsWindowVisible();
+	const BOOL bVisible = !transferView.IsWindowVisible();
 	ViewTransferView(bVisible);
 	SET_SETTING(SHOW_TRANSFERVIEW, bVisible);
+	return 0;
+}
+LRESULT MainFrame::OnViewTransferViewToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	const BOOL bVisible = !BOOLSETTING(SHOW_TRANSFERVIEW_TOOLBAR);
+	SET_SETTING(SHOW_TRANSFERVIEW_TOOLBAR, bVisible);
+	ctrlToolbar.CheckButton(ID_VIEW_TRANSFER_VIEW_TOOLBAR, bVisible);
+	UISetCheck(ID_VIEW_TRANSFER_VIEW_TOOLBAR, bVisible);
+	transferView.UpdateLayout();
 	return 0;
 }
 

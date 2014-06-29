@@ -26,11 +26,13 @@
 #include "LogManager.h"
 #include "CFlylinkDBManager.h"
 
-std::unique_ptr<webrtc::RWLockWrapper> FinishedManager::g_csD = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
-std::unique_ptr<webrtc::RWLockWrapper> FinishedManager::g_csU = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+std::unique_ptr<webrtc::RWLockWrapper> FinishedManager::g_cs[2];
 
 FinishedManager::FinishedManager()
 {
+	g_cs[e_Download] = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+	g_cs[e_Upload] = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+	
 	QueueManager::getInstance()->addListener(this);
 	UploadManager::getInstance()->addListener(this);
 }
@@ -40,55 +42,54 @@ FinishedManager::~FinishedManager()
 	QueueManager::getInstance()->removeListener(this);
 	UploadManager::getInstance()->removeListener(this);
 	{
-		webrtc::WriteLockScoped l(*g_csD);
-		for_each(m_downloads.begin(), m_downloads.end(), DeleteFunction());
+		webrtc::WriteLockScoped l(*g_cs[e_Upload]);
+		for_each(m_finished[e_Upload].begin(), m_finished[e_Upload].end(), DeleteFunction());
 	}
 	{
-		webrtc::WriteLockScoped l(*g_csU);
-		for_each(m_uploads.begin(), m_uploads.end(), DeleteFunction());
-	}
-}
-
-void FinishedManager::remove(FinishedItemPtr item, bool upload /* = false */)
-{
-	auto remove = [item](FinishedItemList & listptr, std::unique_ptr<webrtc::RWLockWrapper> & cs) -> void
-	{
-		webrtc::WriteLockScoped l(*cs);
-		const FinishedItemList::const_iterator it = find(listptr.begin(), listptr.end(), item);
-		
-		if (it != listptr.end())
-			listptr.erase(it);
-			
-		delete item; // [+] IRainman fix memory leak.
-	};
-	
-	if (upload)
-	{
-		remove(m_uploads, g_csU);
-	}
-	else
-	{
-		remove(m_downloads, g_csD);
+		webrtc::WriteLockScoped l(*g_cs[e_Download]);
+		for_each(m_finished[e_Download].begin(), m_finished[e_Download].end(), DeleteFunction());
 	}
 }
 
-void FinishedManager::removeAll(bool upload /* = false */)
+void FinishedManager::removeItem(FinishedItem* p_item, eType p_type)
 {
-	auto removeAll = [](FinishedItemList & listptr, std::unique_ptr<webrtc::RWLockWrapper> & cs) -> void
-	{
-		webrtc::WriteLockScoped l(*cs);
-		for_each(listptr.begin(), listptr.end(), DeleteFunction());
-		listptr.clear();
-	};
+	webrtc::WriteLockScoped l(*g_cs[p_type]);
+	const auto it = find(m_finished[p_type].begin(), m_finished[p_type].end(), p_item);
 	
-	if (upload)
+	if (it != m_finished[p_type].end())
 	{
-		removeAll(m_uploads, g_csU);
+		m_finished[p_type].erase(it);
 	}
 	else
 	{
-		removeAll(m_downloads, g_csD);
+		dcassert(0);
 	}
+}
+
+void FinishedManager::removeAll(eType p_type)
+{
+	webrtc::WriteLockScoped l(*g_cs[p_type]);
+	for_each(m_finished[p_type].begin(), m_finished[p_type].end(), DeleteFunction());
+	m_finished[p_type].clear();
+}
+
+void FinishedManager::rotation_items(FinishedItem* p_item, eType p_type)
+{
+	webrtc::WriteLockScoped l(*g_cs[p_type]);
+	// [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
+	auto& l_item_array = m_finished[p_type];
+	while (!l_item_array.empty() &&
+	        l_item_array.size() > static_cast<size_t>(p_type == e_Download ? SETTING(MAX_FINISHED_DOWNLOADS) : SETTING(MAX_FINISHED_UPLOADS)))
+	{
+		if (p_type == e_Download)
+			fire(FinishedManagerListener::RemovedDl(), *l_item_array.cbegin());
+		else
+			fire(FinishedManagerListener::RemovedUl(), *l_item_array.cbegin());
+		delete *l_item_array.cbegin();
+		l_item_array.pop_front();
+	}
+	// [~] IRainman
+	l_item_array.push_back(p_item);
 }
 
 void FinishedManager::on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string&, const Download* d) noexcept
@@ -103,20 +104,8 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItemPtr& qi,
 	if (isFile || (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_DCLST_LIST) && BOOLSETTING(LOG_FILELIST_TRANSFERS)))
 	{
 		CFlylinkDBManager::getInstance()->clear_tiger_tree_cache(qi->getTTH());
-		const FinishedItemPtr item = new FinishedItem(qi->getTarget(), d->getHintedUser(), qi->getSize(), d->getRunningAverage(), GET_TIME(), qi->getTTH().toBase32(), d->getUser()->getIPAsString());
-		{
-			webrtc::WriteLockScoped l(*g_csD);
-			// TODO - fix copy-paste
-			// [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
-			while (!m_downloads.empty() && m_downloads.size() > static_cast<size_t>(SETTING(MAX_FINISHED_DOWNLOADS)))
-			{
-				delete *m_downloads.cbegin();
-				m_downloads.pop_front();
-			}
-			// [~] IRainman
-			m_downloads.push_back(item);
-		}
-		
+		FinishedItem* item = new FinishedItem(qi->getTarget(), d->getHintedUser(), qi->getSize(), d->getRunningAverage(), GET_TIME(), qi->getTTH().toBase32(), d->getUser()->getIPAsString());
+		rotation_items(item, e_Download);
 		fire(FinishedManagerListener::AddedDl(), item);
 		log(d->getUser()->getCID(), qi->getTarget(), STRING(FINISHED_DOWNLOAD));
 	}
@@ -128,19 +117,8 @@ void FinishedManager::on(UploadManagerListener::Complete, const Upload* u) noexc
 	{
 		PLAY_SOUND(SOUND_UPLOADFILE);
 		
-		const FinishedItemPtr item = new FinishedItem(u->getPath(), u->getHintedUser(), u->getFileSize(), u->getRunningAverage(), GET_TIME(), Util::emptyString, u->getUser()->getIPAsString());
-		{
-			webrtc::WriteLockScoped l(*g_csU);
-			// TODO - fix copy-paste
-			// [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
-			while (!m_uploads.empty() && m_uploads.size() > static_cast<size_t>(SETTING(MAX_FINISHED_UPLOADS)))
-			{
-				delete *m_uploads.cbegin();
-				m_uploads.pop_front();
-			}
-			// [~] IRainman
-			m_uploads.push_back(item);
-		}
+		FinishedItem* item = new FinishedItem(u->getPath(), u->getHintedUser(), u->getFileSize(), u->getRunningAverage(), GET_TIME(), Util::emptyString, u->getUser()->getIPAsString());
+		rotation_items(item, e_Upload);
 		fire(FinishedManagerListener::AddedUl(), item);
 		const auto l_file_name = log(u->getUser()->getCID(), u->getPath(), STRING(FINISHED_UPLOAD));
 		const string l_name = Text::toLower(l_file_name);

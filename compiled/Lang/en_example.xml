@@ -565,7 +565,6 @@
 	<string name="FullFilelistNfo">Display full info for File-lists in download queue</string>
 	<string name="Gb">GiB</string>
 	<string name="Gbps">GiB/s</string>
-	<string name="GdiPlusTabs">Use GDI+ styled tabs</string>
 	<string name="GenerateCertificates">Generate certificates</string>
 	<string name="GetFileList">Get File-list</string>
 	<string name="GetIp">Test port and get IP address</string>
@@ -854,6 +853,7 @@
 	<string name="MenuTopmost">Always on top\tAlt+W</string>
 	<string name="MenuTransfers">&amp;Transfers</string>
 	<string name="MenuTransferView">T&amp;ransfers\tCtrl+3</string>
+	<string name="MenuTransferViewToolbar">Transfers toolbar</string>
 	<string name="MenuTth">Get TTH + MD5 for file…</string>
 	<string name="MenuVerticalTile">Vertical tile</string>
 	<string name="MenuView">&amp;View</string>
@@ -1341,6 +1341,7 @@
 	<string name="SettingsLogTraceSqlite">Log queries to the SQLite base</string>
 	<string name="SettingsLogDdosTrace">Log DDoS detect</string>
 	<string name="SettingsLogDhtTrace">Log DHT</string>
+	<string name="SettingsLogPsrTrace">Log PSR (partial search results)</string>
 	<string name="SettingsLogIfSuppressPms">Log for PM if suppress PMS</string>
 	<string name="SettingsLogMainChat">Log main chat</string>
 	<string name="SettingsLogPrivateChat">Log private chat</string>

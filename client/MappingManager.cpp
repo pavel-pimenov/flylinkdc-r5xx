@@ -110,14 +110,12 @@ int MappingManager::run()
 	ScopedFunctor([this] { m_busy.clear(); });
 	
 	// cache these
-	const unsigned short
-	conn_port = ConnectionManager::getInstance()->getPort(),
-	secure_port = ConnectionManager::getInstance()->getSecurePort(),
-	search_port = SearchManager::getInstance()->getPort()
+	const unsigned short conn_port = ConnectionManager::getInstance()->getPort();
+	const unsigned short secure_port = ConnectionManager::getInstance()->getSecurePort();
+	const unsigned short search_port = SearchManager::getInstance()->getSearchPort();
 #ifdef STRONG_USE_DHT
-	              , dht_port = dht::DHT::getInstance()->getPort()
+	const unsigned short dht_port = dht::DHT::getInstance()->getPort();
 #endif
-	                           ;
 	if (renewal
 	        && getOpened()) //[+]FlylinkDC++ Team
 	{
@@ -144,7 +142,7 @@ int MappingManager::run()
 		addRule(secure_port, Mapper::PROTOCOL_TCP, ("Encrypted transfer"));
 		addRule(search_port, Mapper::PROTOCOL_UDP, ("Search"));
 #ifdef STRONG_USE_DHT
-		addRule(dht_port, Mapper::PROTOCOL_UDP, ("DHT"));
+		addRule(dht_port, Mapper::PROTOCOL_UDP, (dht::NetworkName));
 #endif
 		
 		auto minutes = mapper.renewal();
@@ -206,6 +204,10 @@ int MappingManager::run()
 				}
 				else
 				{
+					if (protocol == Mapper::PROTOCOL_UDP && port == SETTING(DHT_PORT) /* && description == dht::NetworkName */)
+					{
+						dht::DHT::test_dht_port();
+					}
 					l_info = "Successfully Port Forwarding ";
 					l_is_ok = true;
 				}
@@ -218,7 +220,7 @@ int MappingManager::run()
 		        addRule(secure_port, Mapper::PROTOCOL_TCP, ("Encrypted transfer")) &&
 		        addRule(search_port, Mapper::PROTOCOL_UDP, ("Search"))
 #ifdef STRONG_USE_DHT
-		        && addRule(dht_port, Mapper::PROTOCOL_UDP, ("DHT"))
+		        && addRule(dht_port, Mapper::PROTOCOL_UDP, (dht::NetworkName))
 #endif
 		     ))
 			continue;

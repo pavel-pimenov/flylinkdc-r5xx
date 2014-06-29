@@ -43,7 +43,6 @@ PropPage::TextItem TabsPage::textItem[] =
 // Опции вкладок.
 PropPage::ListItem TabsPage::optionItems[] =
 {
-	{ SettingsManager::GDI_PLUS_TABS, ResourceManager::GDI_PLUS_TABS },
 	{ SettingsManager::NON_HUBS_FRONT, ResourceManager::NON_HUBS_FRONT },
 	{ SettingsManager::TABS_CLOSEBUTTONS, ResourceManager::TABS_CLOSEBUTTONS },
 	{ SettingsManager::TABS_CLOSEBUTTONS_ALT, ResourceManager::TABS_CLOSEBUTTONS_ALT },

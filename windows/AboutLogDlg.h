@@ -42,7 +42,7 @@ class AboutLogDlg : public CDialogImpl<AboutLogDlg>
 			//ctrlThanks.AppendText((l_thanks).c_str(), TRUE);
 			//ctrlThanks.Detach();
 			
-			//size_t dataRTFSize = Util::getDataFromInet(T_VERSIONSTRING, 4096, programUpdateDescription, m_rtfData);
+			//size_t dataRTFSize = Util::getDataFromInet(programUpdateDescription, m_rtfData);
 			//m_rtfData.resize(dataRTFSize);
 			//WinUtil::FillRichEditFromString((HWND)GetDlgItem(IDC_THANKS), m_rtfData);   // TODO please refactoring this to use unicode.
 			

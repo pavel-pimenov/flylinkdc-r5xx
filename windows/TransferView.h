@@ -522,6 +522,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		ItemInfoList ctrlTransfers;
 		CButton m_PassiveModeButton;
 	public:
+		void UpdateLayout();
 		void setButtonState();
 	private:
 	

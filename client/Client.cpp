@@ -63,7 +63,7 @@ Client::Client(const string& p_HubURL, char separator_, bool secure_) :
 	{
 		m_keyprint = Util::decodeQuery(query)["kp"];
 #ifdef _DEBUG
-		LogManager::getInstance()->message("keyprint = " + m_keyprint);
+		LogManager::getInstance()->message("m_keyprint = " + m_keyprint);
 #endif
 	}
 #ifdef _DEBUG

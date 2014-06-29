@@ -63,6 +63,8 @@ void TaskManager::start()
 void TaskManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 {
 	dcdrun(Thread::ConditionLocker b(m_debugIsTimerExecute);)
+    BootstrapManager::getInstance()->live_check_process();
+
 //	CFlyLog l_TaskManagerLog("TimerManagerListener::Second aTick = " + Util::toString(aTick) + " GetCurrentThreadId() = " + Util::toString(GetCurrentThreadId()));
 	auto l_dht = DHT::getInstance();
 	if (l_dht->isConnected() && l_dht->getNodesCount() >= DHT_K)
@@ -111,21 +113,18 @@ void TaskManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 			lastBootstrap = aTick;
 		 }
 		}
-	}
-	
+	}	
 	if (aTick >= nextSearchTime)
 	{
 		SearchManager::getInstance()->processSearches();
 		nextSearchTime = aTick + SEARCH_PROCESSTIME;
-	}
-	
+	}	
 	if (aTick >= nextSelfLookup)
 	{
 		// find myself in the network
 		SearchManager::getInstance()->findNode(ClientManager::getMyCID()); // [!] IRainman fix.
 		nextSelfLookup = aTick + SELF_LOOKUP_TIMER;
-	}
-	
+	}	
 	if (aTick >= nextFirewallCheck)
 	{
 		l_dht->setRequestFWCheck();

@@ -53,8 +53,7 @@ class FavoriteUser;
 class File;
 
 class FinishedItem;
-typedef FinishedItem* FinishedItemPtr;
-typedef std::deque<FinishedItemPtr> FinishedItemList; // [!] IRainman opt: change vector to deque
+typedef std::deque<FinishedItem*> FinishedItemList; // [!] IRainman opt: change vector to deque
 
 class FinishedManager;
 

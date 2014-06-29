@@ -35,8 +35,9 @@ class BootstrapManager :
 		~BootstrapManager(void);
 		
 		bool bootstrap();
-		bool process  ();
+		bool process();
 		void shutdown();
+		void live_check_process();
 		void inc_live_check()
 		{
 			++m_count_dht_test_ok;

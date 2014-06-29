@@ -738,7 +738,7 @@ void HubFrame::processFrameCommand(const tstring& fullMessageText, const tstring
 		const tstring l_con = TSTRING(IP) + Text::toT(client->getLocalIp()) + _T(", ") +
 		                      TSTRING(PORT) + _T(' ') +
 		                      _T("TCP: ") + Util::toStringW(ConnectionManager::getInstance()->getPort()) + _T('/') +
-		                      _T("UDP: ") + Util::toStringW(SearchManager::getInstance()->getPort()) + _T('/') +
+		                      _T("UDP: ") + Util::toStringW(SearchManager::getInstance()->getSearchPort()) + _T('/') +
 		                      _T("TLS: ") + Util::toStringW(ConnectionManager::getInstance()->getSecurePort()) + _T('/')
 #ifdef STRONG_USE_DHT
 		                      + _T("DHT: ") + Util::toStringW(dht::DHT::getInstance()->getPort())

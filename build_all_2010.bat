@@ -13,7 +13,11 @@ copy changelog-flylinkdc*.txt "U:\webdav\src-bin-pdb"
 copy ..\flylinkdc-update\5xx\stable-lib-dll\*.dll .\compiled\PortalBrowser
 cd setup 
 call build_setup_base.bat
+cd ..
+cd compiled
+call SymRegisterBinaries.bat
 goto:end
+
 
 :builderror
 echo Compilation error. Building terminated.

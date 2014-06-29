@@ -250,7 +250,7 @@ StringList ClientManager::getHubNames(const CID& cid, const string& hintUrl, boo
 {
 	//Lock l(cs); [-] IRainman opt.
 #ifdef _DEBUG
-	LogManager::getInstance()->message("[!!!!!!!] ClientManager::getHubNames cid = " + cid.toBase32() + " hintUrl = " + hintUrl + " priv = " + Util::toString(priv));
+	//LogManager::getInstance()->message("[!!!!!!!] ClientManager::getHubNames cid = " + cid.toBase32() + " hintUrl = " + hintUrl + " priv = " + Util::toString(priv));
 #endif
 	StringList lst;
 	if (!priv)
@@ -943,12 +943,23 @@ void ClientManager::on(NmdcSearch, Client* aClient, const string& aSeeker, Searc
 			
 			try
 			{
-				AdcCommand cmd = SearchManager::getInstance()->toPSR(true, aClient->getMyNick(), aClient->getIpPort(), aTTH.toBase32(), partialInfo);
+				const AdcCommand cmd = SearchManager::getInstance()->toPSR(true, aClient->getMyNick(), aClient->getIpPort(), aTTH.toBase32(), partialInfo);
 				Socket udp;
 				udp.writeTo(Socket::resolve(ip), port, cmd.toString(getMyCID())); // TODO - зачем тут resolve кроме IP может быть что-то другое?
+				LogManager::getInstance()->psr_message(
+				    "[ClientManager::on(NmdcSearch] Send UDP IP = " + ip +
+				    " param->udpPort = " + Util::toString(port) +
+				    " cmd = " + cmd.toString(getMyCID())
+				);
 			}
 			catch (Exception& e)
 			{
+				LogManager::getInstance()->psr_message(
+				    "[Partial search caught error] Error = " + e.getError() +
+				    " IP = " + ip +
+				    " param->udpPort = " + Util::toString(port)
+				);
+				
 #ifdef _DEBUG
 				LogManager::getInstance()->message("ClientManager::on(NmdcSearch, Partial search caught error = " + e.getError() + " TTH = " + aString);
 				dcdebug("Partial search caught error\n");
@@ -1045,7 +1056,7 @@ void ClientManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) noexcep
 		webrtc::WriteLockScoped l(*g_csUsers);
 		// Collect some garbage...
 #ifdef _DEBUG
-		CFlyLog l_log("[ClientManager::Minute GC]");
+		// CFlyLog l_log("[ClientManager::Minute GC]");
 #endif
 		UserMap::const_iterator i = g_users.begin();
 		while (i != g_users.end())

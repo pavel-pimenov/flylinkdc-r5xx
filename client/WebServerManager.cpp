@@ -505,7 +505,7 @@ string WebServerManager::getFinished(bool uploads)
 	TplSetParam(ret, "LANG_SIZE", STRING(SIZE));
 	
 	string ret_fin_list;
-	const FinishedItemList& fl = FinishedManager::getInstance()->lockList(uploads);
+	const FinishedItemList& fl = FinishedManager::getInstance()->lockList(uploads ? FinishedManager::e_Upload : FinishedManager::e_Download);
 	for (auto i = fl.cbegin(); (i != fl.cend()); ++i)
 	{
 		ret_fin_list += "<tr>\n";
@@ -514,7 +514,7 @@ string WebServerManager::getFinished(bool uploads)
 		ret_fin_list += "<td>" + Util::formatBytes((*i)->getSize()) + "</td>\n";
 		ret_fin_list += "</tr>\n";
 	}
-	FinishedManager::getInstance()->unlockList(uploads);
+	FinishedManager::getInstance()->unlockList(uploads ? FinishedManager::e_Upload : FinishedManager::e_Download);
 	TplSetParam(ret, "FINISHED_LIST", ret_fin_list);
 	return ret;
 }

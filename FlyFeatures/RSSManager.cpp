@@ -150,7 +150,7 @@ RSSFeed::UpdateFeedOldParser(const string& data)
 size_t
 RSSFeed::GetData(const string& url, string& data)
 {
-	return Util::getDataFromInet(_T("RSSFeed::GetData"), 4096, url, data);
+	return Util::getDataFromInet(url, data);
 }
 
 
@@ -194,7 +194,7 @@ time_t RSSFeed::convertPubDate(const string& p_str_date) // move Util::
 
 		if( !InternetTimeToSystemTimeA(p_str_date.c_str(), &pTime, 0) && !InternetTimeToSystemTimeA(("Mon, " + p_str_date).c_str(), &pTime, 0) ) // http://code.google.com/p/flylinkdc/issues/detail?id=1061
 		{
-			LogManager::getInstance()->message("Error InternetTimeToSystemTime p_str_date = " + p_str_date + " error = " + Util::translateError(GetLastError()));
+			LogManager::getInstance()->message("Error InternetTimeToSystemTime p_str_date = " + p_str_date + " error = " + Util::translateError());
 		}
 		else
 		{

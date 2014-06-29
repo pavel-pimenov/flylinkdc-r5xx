@@ -764,8 +764,6 @@ static const size_t BUF_SIZE = g_HashBufferSize;
 
 #endif // FLYLINKDC_HE
 
-#ifdef _WIN32
-
 bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, TigerTree& tth, int64_t size)
 {
 	HANDLE h = INVALID_HANDLE_VALUE;
@@ -898,12 +896,12 @@ bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, TigerTree&
 				case ERROR_IO_PENDING:
 					if (!GetOverlappedResult(h, &over, &rn, TRUE))
 					{
-						dcdebug("Error 0x%x: %s\n", GetLastError(), Util::translateError(GetLastError()).c_str());
+						dcdebug("Error 0x%x: %s\n", GetLastError(), Util::translateError().c_str());
 						goto cleanup;
 					}
 					break;
 				default:
-					dcdebug("Error 0x%x: %s\n", GetLastError(), Util::translateError(GetLastError()).c_str());
+					dcdebug("Error 0x%x: %s\n", GetLastError(), Util::translateError().c_str());
 					goto cleanup;
 			}
 		}
@@ -922,92 +920,6 @@ cleanup:
 	::CloseHandle(h);
 	return ok;
 }
-
-#else // !_WIN32
-
-bool HashManager::Hasher::fastHash(const string& filename, uint8_t* , TigerTree& tth, int64_t size)
-{
-	int fd = open(Text::fromUtf8(filename).c_str(), O_RDONLY);
-	if (fd == -1)
-	{
-		dcdebug("Error opening file %s: %s\n", filename.c_str(), Util::translateError(errno).c_str());
-		return false;
-	}
-
-	int64_t size_left = size;
-	int64_t pos = 0;
-	int64_t size_read = 0;
-	void *buf = 0;
-	bool ok = false;
-
-	uint64_t lastRead = GET_TICK();
-	while (pos <= size && !stop)
-	{
-		if (size_left > 0)
-		{
-			size_read = std::min(size_left, BUF_SIZE);
-			buf = mmap(0, size_read, PROT_READ, MAP_SHARED, fd, pos);
-			if (buf == MAP_FAILED)
-			{
-				dcdebug("Error calling mmap for file %s: %s\n", filename.c_str(), Util::translateError(errno).c_str());
-				break;
-			}
-
-			if (posix_madvise(buf, size_read, POSIX_MADV_SEQUENTIAL | POSIX_MADV_WILLNEED) == -1)
-			{
-				dcdebug("Error calling madvise for file %s: %s\n", filename.c_str(), Util::translateError(errno).c_str());
-				break;
-			}
-
-			if (GetMaxHashSpeed() > 0)
-			{
-				const uint64_t now = GET_TICK();
-				const uint64_t minTime = size_read * 1000LL / (GetMaxHashSpeed() * 1024LL * 1024LL);
-				if (lastRead + minTime > now)
-				{
-					const uint64_t diff = now - lastRead;
-					sleep(minTime - diff);
-				}
-				lastRead = lastRead + minTime;
-			}
-			else
-			{
-				lastRead = GET_TICK();
-			}
-		}
-		else
-		{
-			size_read = 0;
-		}
-
-		tth.update(buf, size_read);
-
-		{
-			FastLock l(cs);
-			currentSize = max(static_cast<uint64_t>(currentSize - size_read), static_cast<uint64_t>(0));
-		}
-
-		if (size_left == 0)
-		{
-			ok = true;
-			break;
-		}
-
-		instantPause();
-
-		if (munmap(buf, size_read) == -1)
-		{
-			dcdebug("Error calling munmap for file %s: %s\n", filename.c_str(), Util::translateError(errno).c_str());
-			break;
-		}
-		pos += size_read;
-		size_left -= size_read;
-	}
-	close(fd);
-	return ok;
-}
-
-#endif // !_WIN32
 
 int HashManager::Hasher::run()
 {

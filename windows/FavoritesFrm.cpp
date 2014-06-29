@@ -577,16 +577,20 @@ void FavoriteHubsFrame::fillList()
 
 LRESULT FavoriteHubsFrame::onItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
-	NMITEMACTIVATE* l = (NMITEMACTIVATE*)pnmh;
-	if (!m_nosave && l->iItem != -1 && ((l->uNewState & LVIS_STATEIMAGEMASK) != (l->uOldState & LVIS_STATEIMAGEMASK)))
+	const NMITEMACTIVATE* l = (NMITEMACTIVATE*)pnmh;
+	if (l->iItem != -1)
 	{
-		::EnableWindow(GetDlgItem(IDC_CONNECT), ctrlHubs.GetItemState(l->iItem, LVIS_SELECTED));
-		::EnableWindow(GetDlgItem(IDC_REMOVE), ctrlHubs.GetItemState(l->iItem, LVIS_SELECTED));
-		::EnableWindow(GetDlgItem(IDC_EDIT), ctrlHubs.GetItemState(l->iItem, LVIS_SELECTED));
-		FavoriteHubEntry* f = (FavoriteHubEntry*)ctrlHubs.GetItemData(l->iItem);
-		const bool l_connect = ctrlHubs.GetCheckState(l->iItem) != FALSE;
-		f->setConnect(l_connect);
-		FavoriteManager::getInstance()->save();
+		const auto l_enabled = ctrlHubs.GetItemState(l->iItem, LVIS_SELECTED);
+		::EnableWindow(GetDlgItem(IDC_CONNECT), l_enabled);
+		::EnableWindow(GetDlgItem(IDC_REMOVE), l_enabled);
+		::EnableWindow(GetDlgItem(IDC_EDIT), l_enabled);
+		if (!m_nosave && ((l->uNewState & LVIS_STATEIMAGEMASK) != (l->uOldState & LVIS_STATEIMAGEMASK)))
+		{
+			FavoriteHubEntry* f = (FavoriteHubEntry*)ctrlHubs.GetItemData(l->iItem);
+			const bool l_connect = ctrlHubs.GetCheckState(l->iItem) != FALSE;
+			f->setConnect(l_connect);
+			FavoriteManager::getInstance()->save();
+		}
 	}
 	return 0;
 }

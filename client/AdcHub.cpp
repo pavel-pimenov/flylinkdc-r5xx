@@ -847,6 +847,7 @@ void AdcHub::handle(AdcCommand::PSR, AdcCommand& c) noexcept
 	if (!ou)
 	{
 		dcdebug("Invalid user in AdcHub::onPSR\n");
+		LogManager::getInstance()->psr_message("Invalid user in AdcHub::onPSR = " + c.toString(c.getFrom()));
 		return;
 	}
 	SearchManager::getInstance()->onPSR(c, ou->getUser());
@@ -1554,7 +1555,7 @@ void AdcHub::info(bool p_force)
 	
 	if (isActive())
 	{
-		addParam(m_lastInfoMap, c, "U4", Util::toString(SearchManager::getInstance()->getPort()));
+		addParam(m_lastInfoMap, c, "U4", Util::toString(SearchManager::getInstance()->getSearchPort()));
 		su += "," + AdcSupports::TCP4_FEATURE;
 		su += "," + AdcSupports::UDP4_FEATURE;
 	}
