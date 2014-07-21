@@ -35,17 +35,21 @@ uint16_t Socket::udpPort;
 
 #ifdef _DEBUG
 
-SocketException::SocketException(int aError) noexcept
+SocketException::SocketException(DWORD aError) noexcept
 :
 Exception("SocketException: " + errorToString(aError))
 {
+	m_error_code = aError;
 	dcdebug("Thrown: %s\n", what()); //-V111
 }
 
 #else // _DEBUG
 
-SocketException::SocketException(int aError) noexcept :
-Exception(errorToString(aError)) { }
+SocketException::SocketException(DWORD aError) noexcept :
+Exception(errorToString(aError))
+{
+	m_error_code = aError;
+}
 
 #endif
 
@@ -135,15 +139,18 @@ uint16_t Socket::accept(const Socket& listeningSocket)
 
 uint16_t Socket::bind(uint16_t aPort, const string& aIp /* = 0.0.0.0 */)
 {
-	sockaddr_in sock_addr;
+	sockaddr_in sock_addr = { { 0 } };
 	
 	sock_addr.sin_family = AF_INET;
 	sock_addr.sin_port = htons(aPort);
 	sock_addr.sin_addr.s_addr = inet_addr(aIp.c_str());
 	if (::bind(m_sock, (sockaddr *)&sock_addr, sizeof(sock_addr)) == SOCKET_ERROR)
 	{
-		dcdebug("Bind failed, retrying with INADDR_ANY: %s\n", SocketException(getLastError()).getError().c_str()); //-V111
+		const string l_error = Util::translateError();
+		dcdebug("Bind failed, retrying with INADDR_ANY: %s\n", l_error.c_str()); //-V111
 		sock_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+		//TODO - обработать ошибку с 10048 - занят порт
+		LogManager::getInstance()->message("uint16_t Socket::bind Error! IP = " + aIp + " aPort=" + Util::toString(aPort) + " Error = " + l_error);
 		check(::bind(m_sock, (sockaddr *)&sock_addr, sizeof(sock_addr)));
 	}
 	socklen_t size = sizeof(sock_addr);
@@ -159,7 +166,7 @@ void Socket::listen()
 
 void Socket::connect(const string& aAddr, uint16_t aPort)
 {
-	sockaddr_in  serv_addr;
+	sockaddr_in  serv_addr = { { 0 } };
 	
 	if (m_sock == INVALID_SOCKET)
 	{
@@ -581,7 +588,7 @@ void Socket::writeTo(const string& aAddr, uint16_t aPort, const void* aBuffer, i
 	
 	dcassert(m_type == TYPE_UDP);
 	
-	sockaddr_in serv_addr;
+	sockaddr_in serv_addr  = { { 0 } };
 	
 	if (aAddr.empty() || aPort == 0)
 	{
@@ -756,7 +763,7 @@ bool Socket::waitAccepted(uint64_t /*millis*/)
 string Socket::resolve(const string& aDns)
 {
 #ifdef _WIN32
-	sockaddr_in sock_addr;
+	sockaddr_in sock_addr  = { { 0 } };
 	
 	memzero(&sock_addr, sizeof(sock_addr));
 	sock_addr.sin_port = 0;
@@ -804,7 +811,7 @@ string Socket::getLocalIp() const noexcept
 {
 return Util::emptyString;
 }
-sockaddr_in sock_addr;
+sockaddr_in sock_addr  = { { 0 } };
 socklen_t len = sizeof(sock_addr);
 if (getsockname(m_sock, (struct sockaddr*)&sock_addr, &len) == 0)
 {
@@ -818,7 +825,7 @@ uint16_t Socket::getLocalPort() noexcept
 	if (m_sock == INVALID_SOCKET)
 		return 0;
 		
-	sockaddr_in sock_addr;
+	sockaddr_in sock_addr = { { 0 } };
 	socklen_t len = sizeof(sock_addr);
 	if (getsockname(m_sock, (struct sockaddr*)&sock_addr, &len) == 0)
 	{

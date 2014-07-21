@@ -387,7 +387,6 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  AUTOUPDATE_STARTATTIME,
 		                  AUTOUPDATE_SHOWUPDATEREADY,
 		                  AUTOUPDATE_TIME,
-		                  AUTOUPDATE_UPDATE_UNKNOWN,
 		                  AUTOUPDATE_EXE,
 		                  AUTOUPDATE_UTILITIES,
 		                  AUTOUPDATE_LANG,
@@ -560,6 +559,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		void save(const string& aFileName);
 		void setDefaults(); // !SMT!-S
 		void loadOtherSettings();
+		static void generateNewTCPPort();
 		
 		// Search types
 		static void validateSearchTypeName(const string& name);

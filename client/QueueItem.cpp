@@ -251,7 +251,7 @@ bool QueueItem::isChunkDownloadedL(int64_t startPos, int64_t& len) const
 	if (len <= 0)
 		return false;
 		
-	for (auto i = done.cbegin(); i != done.cend(); ++i)
+	for (auto i = m_done_segment.cbegin(); i != m_done_segment.cend(); ++i)
 	{
 		const int64_t& start = i->getStart();
 		const int64_t& end   = i->getEnd();
@@ -364,9 +364,9 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 		int64_t start = 0;
 		int64_t end = getSize();
 		
-		if (!done.empty())
+		if (!m_done_segment.empty())
 		{
-			const Segment& first = *done.begin();
+			const Segment& first = *m_done_segment.begin();
 			
 			if (first.getStart() > 0)
 			{
@@ -376,9 +376,9 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 			{
 				start = Util::roundDown(first.getEnd(), blockSize);
 				
-				if (done.size() > 1)
+				if (m_done_segment.size() > 1)
 				{
-					const Segment& second = *(++done.begin());
+					const Segment& second = *(++m_done_segment.begin());
 					end = Util::roundUp(second.getStart(), blockSize);
 				}
 			}
@@ -409,10 +409,10 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 				int64_t endPreviewPosition = startPreviewPosition + blockSize;
 				Segment block(startPreviewPosition, blockSize);
 				overlaps = false;
-				for (auto i = done.cbegin(); !overlaps && i != done.cend(); ++i)
+				for (auto i = m_done_segment.cbegin(); !overlaps && i != m_done_segment.cend(); ++i)
 				{
-					int64_t dstart = i->getStart();
-					int64_t dend = i->getEnd();
+					const int64_t dstart = i->getStart();
+					const int64_t dend = i->getEnd();
 					// We accept partial overlaps, only consider the block done if it is fully consumed by the done block
 					if (dstart <= startPreviewPosition && dend >= endPreviewPosition)
 					{
@@ -479,7 +479,7 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 		int64_t end = std::min(getSize(), start + curSize);
 		Segment block(start, end - start);
 		bool overlaps = false;
-		for (auto i = done.cbegin(); !overlaps && i != done.cend(); ++i)
+		for (auto i = m_done_segment.cbegin(); !overlaps && i != m_done_segment.cend(); ++i)
 		{
 			if (curSize <= blockSize)
 			{
@@ -602,12 +602,30 @@ void QueueItem::setOverlappedL(const Segment& p_segment, const bool p_isOverlapp
 	}
 }
 
+string QueueItem::getSectionStringL()
+{
+	string l_strSections;
+	for (auto i = m_done_segment.cbegin(); i != m_done_segment.cend(); ++i)
+	{
+		// TODO - sprintf ?
+		l_strSections += Util::toString(i->getStart());
+		l_strSections += ' ';
+		l_strSections += Util::toString(i->getSize());
+		l_strSections += ' ';
+	}
+	if (!l_strSections.empty()) // TODO ?
+	{
+		l_strSections.resize(l_strSections.size() - 1);
+	}
+	
+	return l_strSections;
+}
 uint64_t QueueItem::calcAverageSpeedAndCalcAndGetDownloadedBytesL() const // [!] IRainman opt.
 {
 	uint64_t l_totalDownloaded = 0;
 	uint64_t l_totalSpeed = 0; // Скорость 64 битная нужна?
 	// count done segments
-	for (auto i = done.cbegin(); i != done.cend(); ++i)
+	for (auto i = m_done_segment.cbegin(); i != m_done_segment.cend(); ++i)
 	{
 		l_totalDownloaded += i->getSize();
 	}
@@ -638,7 +656,7 @@ void QueueItem::addSegmentL(const Segment& segment)
 		m_delegater->addSegment(segment.getStart(), segment.getSize());
 #endif
 	dcassert(segment.getOverlapped() == false);
-	done.insert(segment);
+	m_done_segment.insert(segment);
 #ifdef _DEBUG
 	LogManager::getInstance()->message("QueueItem::addSegmentL, setDirty = true! id = " +
 	                                   Util::toString(this->getFlyQueueID()) + " target = " + this->getTarget()
@@ -648,20 +666,20 @@ void QueueItem::addSegmentL(const Segment& segment)
 	                                  );
 #endif
 	// Consolidate segments
-	if (done.size() == 1)
+	if (m_done_segment.size() == 1)
 		return;
 	setDirty();
 	
-	for (auto i = ++done.cbegin() ; i != done.cend();)
+	for (auto i = ++m_done_segment.cbegin() ; i != m_done_segment.cend();)
 	{
 		SegmentSet::iterator prev = i;
 		--prev;
 		if (prev->getEnd() >= i->getStart())
 		{
 			Segment big(prev->getStart(), i->getEnd() - prev->getStart());
-			done.erase(prev);
-			done.erase(i++);
-			done.insert(big);
+			m_done_segment.erase(prev);
+			m_done_segment.erase(i++);
+			m_done_segment.insert(big);
 		}
 		else
 		{
@@ -674,13 +692,13 @@ bool QueueItem::isNeededPartL(const PartsInfo& partsInfo, int64_t p_blockSize)
 {
 	dcassert(partsInfo.size() % 2 == 0);
 	
-	auto i  = done.begin();
+	auto i  = m_done_segment.begin();
 	for (auto j = partsInfo.cbegin(); j != partsInfo.cend(); j += 2)
 	{
-		while (i != done.end() && (*i).getEnd() <= (*j) * p_blockSize)
+		while (i != m_done_segment.end() && (*i).getEnd() <= (*j) * p_blockSize)
 			++i;
 			
-		if (i == done.end() || !((*i).getStart() <= (*j) * p_blockSize && (*i).getEnd() >= (*(j + 1)) * p_blockSize))
+		if (i == m_done_segment.end() || !((*i).getStart() <= (*j) * p_blockSize && (*i).getEnd() >= (*(j + 1)) * p_blockSize))
 			return true;
 	}
 	
@@ -693,10 +711,10 @@ void QueueItem::getPartialInfoL(PartsInfo& p_partialInfo, uint64_t p_blockSize) 
 	if (p_blockSize == 0) // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=31115
 		return;
 		
-	const size_t maxSize = min(done.size() * 2, (size_t)510);
+	const size_t maxSize = min(m_done_segment.size() * 2, (size_t)510);
 	p_partialInfo.reserve(maxSize);
 	
-	for (auto i = done.cbegin(); i != done.cend() && p_partialInfo.size() < maxSize; ++i)
+	for (auto i = m_done_segment.cbegin(); i != m_done_segment.cend() && p_partialInfo.size() < maxSize; ++i)
 	{
 	
 		uint16_t s = (uint16_t)(i->getStart() / p_blockSize);
@@ -755,8 +773,8 @@ void QueueItem::getChunksVisualisation(vector<pair<Segment, Segment>>& p_runnigC
 	{
 		p_runnigChunksAndDownloadBytes.push_back(make_pair(i->second->getSegment(), Segment(i->second->getStartPos(), i->second->getPos()))); // https://www.box.net/shared/1004787fe85503e7d4d9
 	}
-	p_doneChunks.reserve(done.size());
-	for (auto i = done.cbegin(); i != done.cend(); ++i)
+	p_doneChunks.reserve(m_done_segment.size());
+	for (auto i = m_done_segment.cbegin(); i != m_done_segment.cend(); ++i)
 	{
 		p_doneChunks.push_back(*i);
 	}

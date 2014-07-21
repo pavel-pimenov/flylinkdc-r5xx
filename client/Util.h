@@ -513,34 +513,7 @@ class Util
 			return isSameFileExt(file, dcls, lower) || isSameFileExt(file, dclst, lower);
 		}
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
-		static bool isStreamingVideoFile(const tstring& file, const bool lower = false) // [+] SSA
-		{
-			// TODO autoupdate this list.
-			static const tstring avi = _T(".avi");
-			static const tstring mkv = _T(".mkv");
-			static const tstring mpeg = _T(".mpeg");
-			static const tstring mpg = _T(".mpg");
-			
-			return isSameFileExt(file, avi, lower)
-			       || isSameFileExt(file, mkv, lower)
-			       || isSameFileExt(file, mpeg, lower)
-			       || isSameFileExt(file, mpg, lower);
-			       
-		}
-		static bool isStreamingVideoFile(const string& file, const bool lower = false) // [+] SSA
-		{
-			// TODO autoupdate this list.
-			static const string avi = ".avi";
-			static const string mkv = ".mkv";
-			static const string mpeg = ".mpeg";
-			static const string mpg = ".mpg";
-			
-			return isSameFileExt(file, avi, lower)
-			       || isSameFileExt(file, mkv, lower)
-			       || isSameFileExt(file, mpeg, lower)
-			       || isSameFileExt(file, mpg, lower);
-			       
-		}
+		static bool isStreamingVideoFile(const string& p_file); // [+] SSA
 #endif // SSA_VIDEO_PREVIEW_FEATURE
 		
 		/** Path of temporary storage */

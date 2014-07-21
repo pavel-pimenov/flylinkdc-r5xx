@@ -31,12 +31,12 @@ class FileRoadMapItem
 {
 	public:
 		FileRoadMapItem(int64_t pos_, int64_t size_) : pos(pos_), size(size_) {}
-		const int64_t getLastPosition()
+		const int64_t getLastPosition() const
 		{
 			return pos + size;
 		}
 		
-		friend bool operator < (const FileRoadMapItem &left, const FileRoadMapItem &right)
+		friend bool operator < (const FileRoadMapItem &left, const FileRoadMapItem &right) 
 		{
 			return left.getPosition() < right.getPosition();
 		}
@@ -46,23 +46,17 @@ class FileRoadMapItem
 };
 
 typedef std::set<FileRoadMapItem> MapItems;
-//typedef MapItems::const_iterator MapItemsCIter;
-//typedef MapItems::iterator MapItemsIter;
 
 typedef std::vector<FileRoadMapItem> MapVItems;
 
 class FileRoadMap
 {
-
 	public:
 		FileRoadMap(int64_t totalSize) : m_totalSize(totalSize)
 		{
-			// [-] m_map.clear(); [-] IRainman fix.
 		}
 		~FileRoadMap()
 		{
-			// [-] FastLock l(cs); [-] IRainman fix.
-			// [-] m_map.clear(); [-] IRainman fix.
 		}
 		void AddSegment(int64_t pos, int64_t size);
 		

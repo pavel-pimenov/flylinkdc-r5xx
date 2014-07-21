@@ -812,6 +812,7 @@ void Fonts::init()
 	lf[1] = lf[0];
 	lf[1].lfHeight += 3;
 	lf[1].lfWeight = FW_NORMAL;
+	//lf[1].lfUnderline = 1; // https://code.google.com/p/flylinkdc/issues/detail?id=1477
 	g_halfFont = ::CreateFontIndirect(&lf[1]);
 	
 	decodeFont(Text::toT(SETTING(TEXT_FONT)), lf[0]);
@@ -2542,7 +2543,7 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 					break;
 					case MA_ASK:
 					{
-						MagnetDlg dlg(Text::toT(fhash), Text::toT(Text::toUtf8(fname)), fsize, dirsize, l_isDCLST
+						MagnetDlg dlg(TTHValue(fhash), Text::toT(Text::toUtf8(fname)), fsize, dirsize, l_isDCLST
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 						              , isViewMedia
 #endif
@@ -2552,7 +2553,7 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 					break;
 				};
 			}
-			else if (fname.length() > 0 && fhash.empty())
+			else if (!fname.empty() && fhash.empty())
 			{
 				SearchFrame::openWindow(Text::toT(fname), fsize, (fsize == 0) ? Search::SIZE_DONTCARE : Search::SIZE_EXACT , Search::TYPE_ANY);
 			}
@@ -4765,6 +4766,34 @@ void WinUtil::StartPreviewClient()
 	}
 }
 #endif // SSA_VIDEO_PREVIEW_FEATURE
+
+bool WinUtil::GetDlgItemText(HWND p_Dlg, int p_ID, tstring& p_str)
+{
+	const auto l_id = GetDlgItem(p_Dlg, p_ID);
+	if (l_id == NULL)
+	{
+		dcassert(0);
+		throw Exception("GetDlgItemText error");
+	}
+	else
+	{
+		const int l_size = ::GetWindowTextLength(l_id);
+		if (l_size > 0)
+		{
+			p_str.resize(l_size + 1);
+			p_str[0] = 0;
+			const auto l_size_text = ::GetDlgItemText(p_Dlg, p_ID, &p_str[0], l_size + 1);
+			p_str.resize(l_size_text);
+			return true;
+		}
+		else
+		{
+			p_str.clear();
+		}
+		
+	}
+	return false;
+}
 
 bool Colors::getColorFromString(const tstring& colorText, COLORREF& color)
 {

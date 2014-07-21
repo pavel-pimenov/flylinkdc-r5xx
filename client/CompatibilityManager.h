@@ -143,6 +143,9 @@ class CompatibilityManager
 		static WORD getDllPlatform(const string& fullpath);
 		static void reduceProcessPriority();
 		static void restoreProcessPriority();
+		
+		static FINDEX_INFO_LEVELS g_find_file_level;
+		static DWORD g_find_file_flags;
 	private:
 		static DWORD g_oldPriorityClass;
 		static string g_incopatibleSoftwareList;

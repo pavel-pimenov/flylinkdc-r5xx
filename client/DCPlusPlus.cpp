@@ -103,6 +103,7 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	// Загрузку конфига нужно делать раньше
 	// LOAD_STEP("Fly server", g_fly_server_config.loadConfig());
 	
+	LOAD_STEP("SQLite database init... Please wait!!!", CFlylinkDBManager::newInstance());
 	LOAD_STEP("Geo IP", Util::loadGeoIp());
 	
 	LOAD_STEP("Custom Locations", Util::loadCustomlocations());

@@ -228,12 +228,16 @@ void TreePropertySheet::hideTab()
 {
 	CRect rcClient, rcTab, rcPage, rcWindow;
 	CWindow tab = GetTabControl();
-	CWindow page = IndexToHwnd(0);
+	CWindow l_page = IndexToHwnd(0);
 	GetClientRect(&rcClient);
 	tab.GetWindowRect(&rcTab);
 	tab.ShowWindow(SW_HIDE);
-	page.GetClientRect(&rcPage);
-	page.MapWindowPoints(m_hWnd, &rcPage);
+	if (l_page.IsWindow())
+	{
+		dcassert(0);
+		l_page.GetClientRect(&rcPage);
+		l_page.MapWindowPoints(m_hWnd, &rcPage);
+	}
 	GetWindowRect(&rcWindow);
 	::MapWindowPoints(NULL, m_hWnd, (LPPOINT)&rcTab, 2);
 	

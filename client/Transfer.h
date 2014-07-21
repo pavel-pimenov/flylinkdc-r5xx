@@ -159,6 +159,10 @@ class Transfer
 			return getUserConnection()->getLastActivity();
 		}
 		// [~] IRainman refactoring transfer mechanism
+		const string& getUserConnectionToken() const
+		{
+			return getUserConnection()->getUserConnectionToken();
+		}
 		GETSET(uint64_t, m_lastTick, LastTick);
 		const bool m_isSecure;
 		const bool m_isTrusted;

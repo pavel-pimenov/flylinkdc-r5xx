@@ -83,7 +83,12 @@ int64_t File::getLastWriteTime()const noexcept
 int64_t File::getTimeStamp(const string& aFileName) throw(FileException)
 {
 	WIN32_FIND_DATA fd;
-	HANDLE hFind = FindFirstFile(Text::toT(formatPath(aFileName)).c_str(), &fd);
+	HANDLE hFind = FindFirstFileEx(Text::toT(formatPath(aFileName)).c_str(),
+	                               CompatibilityManager::g_find_file_level,
+	                               &fd,
+	                               FindExSearchNameMatch,
+	                               NULL,
+	                               0);
 	if (hFind == INVALID_HANDLE_VALUE)
 		throw FileException(Util::translateError() + ": " + aFileName);
 	FindClose(hFind);
@@ -366,7 +371,12 @@ StringList File::findFiles(const string& path, const string& pattern, bool p_app
 	};
 	// [~] FlylinkDC
 	WIN32_FIND_DATA data;
-	HANDLE hFind = FindFirstFile(formatPath(Text::toT(path + pattern)).c_str(), &data);
+	HANDLE hFind = FindFirstFileEx(formatPath(Text::toT(path + pattern)).c_str(),
+	                               CompatibilityManager::g_find_file_level,
+	                               &data,
+	                               FindExSearchNameMatch,
+	                               NULL,
+	                               0);
 	if (hFind != INVALID_HANDLE_VALUE)
 	{
 		do
@@ -385,7 +395,12 @@ StringList File::findFiles(const string& path, const string& pattern, bool p_app
 
 void FileFindIter::init(const tstring& path)
 {
-	m_handle = FindFirstFile(File::formatPath(path).c_str(), &m_data);
+	m_handle = FindFirstFileEx(File::formatPath(path).c_str(),
+	                           CompatibilityManager::g_find_file_level,
+	                           &m_data,
+	                           FindExSearchNameMatch,
+	                           NULL,
+	                           CompatibilityManager::g_find_file_flags);
 }
 
 FileFindIter::~FileFindIter()

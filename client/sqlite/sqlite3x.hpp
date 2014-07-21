@@ -65,7 +65,7 @@ namespace sqlite3x {
 		long long insertid();
 		void setbusytimeout(int ms);
 
-		void executenonquery(const char *sql);
+		const char* executenonquery(const char *sql);
 		void executenonquery(const std::string &sql);
 #ifdef SQLITE_USE_UNICODE
 		void executenonquery(const wchar_t *sql);

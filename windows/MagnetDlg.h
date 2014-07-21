@@ -33,7 +33,7 @@ class MagnetDlg : public CDialogImpl<MagnetDlg >
 	public:
 		enum { IDD = IDD_MAGNET };
 		
-		MagnetDlg(const tstring& aHash, const tstring& aFileName, const int64_t aSize, const int64_t dSize = 0, bool isDCLST = false
+		MagnetDlg(const TTHValue& aHash, const tstring& aFileName, const int64_t aSize, const int64_t dSize = 0, bool isDCLST = false
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 		          , bool isViewMedia = false
 #endif
@@ -71,8 +71,9 @@ class MagnetDlg : public CDialogImpl<MagnetDlg >
 		}
 #endif
 	private:
-		tstring mHash, mFileName;
-		ExCImage img_m;
+		TTHValue mHash;
+		tstring mFileName;
+		ExCImage mImg;
 		int64_t mSize;
 		int64_t mdSize;
 		bool mIsDCLST;

@@ -3835,12 +3835,13 @@ void MainFrame::AddFolderShareFromShell(const tstring& infolder)
 	tstring folder = infolder;
 	AppendPathSeparator(folder);
 	const string l_folder = Text::fromT(folder);
-	StringPairList directories = ShareManager::getInstance()->getDirectories();
+	CFlyDirItemArray directories;
+	ShareManager::getInstance()->getDirectories(directories);
 	bool bFound = false;
 	for (auto j = directories.cbegin(); j != directories.cend(); ++j)
 	{
 		// Compare with
-		if (!l_folder.compare(j->second))
+		if (!l_folder.compare(j->m_path))
 		{
 			bFound = true;
 			break;
@@ -3862,6 +3863,7 @@ void MainFrame::AddFolderShareFromShell(const tstring& infolder)
 		{
 			try
 			{
+				CWaitCursor l_cursor_wait;
 				tstring lastName = Util::getLastDir(folder);
 				ShareManager::getInstance()->addDirectory(l_folder, Text::fromT(lastName));
 				tstring mmessage = folder;

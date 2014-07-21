@@ -1725,7 +1725,7 @@ public:
 	BOOL HasSelection() const
 	{
 		const T* pT = static_cast<const T*>(this);
-		int nMin, nMax;
+		int nMin = 0, nMax = 0;
 		::SendMessage(pT->m_hWnd, EM_GETSEL, (WPARAM)&nMin, (LPARAM)&nMax);
 		return (nMin != nMax);
 	}
@@ -4544,6 +4544,9 @@ public:
 #if (_WIN32_IE >= 0x0600)
 	HTREEITEM GetNextSelectedItem() const
 	{
+#ifndef TVGN_NEXTSELECTED
+		const WORD TVGN_NEXTSELECTED = 0x000B;
+#endif
 		ATLASSERT(::IsWindow(m_hWnd));
 		return (HTREEITEM)::SendMessage(m_hWnd, TVM_GETNEXTITEM, TVGN_NEXTSELECTED, 0L);
 	}
@@ -4913,6 +4916,9 @@ public:
 #if (_WIN32_IE >= 0x0600)
 	CTreeItemT<TBase> GetNextSelectedItem() const
 	{
+#ifndef TVGN_NEXTSELECTED
+		const WORD TVGN_NEXTSELECTED = 0x000B;
+#endif
 		ATLASSERT(::IsWindow(m_hWnd));
 		HTREEITEM hTreeItem = (HTREEITEM)::SendMessage(m_hWnd, TVM_GETNEXTITEM, TVGN_NEXTSELECTED, 0L);
 		return CTreeItemT<TBase>(hTreeItem, (CTreeViewCtrlExT<TBase>*)this);
@@ -8687,12 +8693,18 @@ public:
 #if (_WIN32_IE >= 0x0600)
 	DWORD GetExtendedStyle() const
 	{
+#ifndef RB_GETEXTENDEDSTYLE
+	const UINT RB_GETEXTENDEDSTYLE = WM_USER + 42;
+#endif
 		ATLASSERT(::IsWindow(m_hWnd));
 		return (DWORD)::SendMessage(m_hWnd, RB_GETEXTENDEDSTYLE, 0, 0L);
 	}
 
 	DWORD SetExtendedStyle(DWORD dwStyle, DWORD dwMask)
 	{
+#ifndef RB_SETEXTENDEDSTYLE
+		const UINT RB_SETEXTENDEDSTYLE = WM_USER + 41;
+#endif
 		ATLASSERT(::IsWindow(m_hWnd));
 		return (DWORD)::SendMessage(m_hWnd, RB_SETEXTENDEDSTYLE, dwMask, dwStyle);
 	}

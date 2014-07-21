@@ -746,13 +746,13 @@ int WebServerSocket::run()
 	int test = 0;
 	while (++test < 10000)
 	{
-		const int size = recv(sock, &header[0], g_size_buf, 0);
+		const int size = recv(m_www_sock, &header[0], g_size_buf, 0);
 		if (size == -1)
 			continue;
 			
 		header.resize(static_cast<size_t>(size));
 		
-		const string IP = inet_ntoa(from.sin_addr);
+		const string IP = inet_ntoa(m_from.sin_addr);
 		
 		dcdebug("Webserver incoming: %s from IP %s\n", header.c_str(), IP.c_str()); //-V111
 		
@@ -791,7 +791,7 @@ int WebServerSocket::run()
 #ifdef _DEBUG_WEB_SERVER_
 				printf("sending: %s\n", (headerF).c_str());
 #endif
-				::send(sock, headerF.c_str(), static_cast<int>(headerF.size()), 0);
+				::send(m_www_sock, headerF.c_str(), static_cast<int>(headerF.size()), 0);
 				break;
 			}
 			
@@ -962,12 +962,12 @@ int WebServerSocket::run()
 			{
 				WebServerManager::getInstance()->getLoginPage(header);
 			}
-			::send(sock, header.c_str(), static_cast<int>(header.size()), 0);
+			::send(m_www_sock, header.c_str(), static_cast<int>(header.size()), 0);
 			break;
 		}
 	}
-	::closesocket(sock); // TOOD узнать зачем в веб сервере используется сырой сокет а не С++ обертка? и где ::shutdown(sock, SD_BOTH);?
-	sock = NULL;
+	::closesocket(m_www_sock); // TOOD узнать зачем в веб сервере используется сырой сокет а не С++ обертка? и где ::shutdown(m_www_sock, SD_BOTH);?
+	m_www_sock = INVALID_SOCKET;
 	delete this;// Cleanup the thread object
 	return 0;
 }

@@ -29,6 +29,25 @@
 
 class SocketException;
 
+class TokenManager
+{
+	public:
+		string getToken() noexcept;
+		string makeToken() noexcept;
+		bool addToken(const string& aToken) noexcept;
+		void removeToken(const string& aToken) noexcept;
+		~TokenManager()
+		{
+#ifdef _DEBUG
+			FastLock l(m_cs);
+			dcassert(m_tokens.empty());
+#endif
+		}
+	private:
+		StringSet m_tokens;
+		FastCriticalSection m_cs;
+};
+
 class ConnectionQueueItem
 #ifdef _DEBUG
 	: boost::noncopyable
@@ -47,12 +66,13 @@ class ConnectionQueueItem
 			ACTIVE                      // In one up/downmanager
 		};
 		
-		ConnectionQueueItem(const HintedUser& aUser, bool aDownload) : m_token(Util::toString(Util::rand())),
+		ConnectionQueueItem(const HintedUser& aUser, bool aDownload, const string& aToken) :
+			m_connection_queue_token(aToken),
 			lastAttempt(0), errors(0), state(WAITING), m_is_download(aDownload), m_user(aUser), hubUrl(aUser.hint) { }
 			
-		const string& getToken() const
+		const string& getConnectionQueueToken() const
 		{
-			return m_token;
+			return m_connection_queue_token;
 		}
 		GETSET(uint64_t, lastAttempt, LastAttempt);
 		GETSET(int, errors, Errors); // Number of connection errors, or -1 after a protocol error
@@ -62,7 +82,6 @@ class ConnectionQueueItem
 		{
 			return m_is_download;
 		}
-		
 		UserPtr& getUser()
 		{
 			return m_user;
@@ -76,7 +95,7 @@ class ConnectionQueueItem
 			return HintedUser(m_user, hubUrl);
 		}
 	private:
-		const string m_token;
+		const string m_connection_queue_token;
 		UserPtr m_user;
 		const bool m_is_download;
 };
@@ -160,6 +179,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 	public Singleton<ConnectionManager>
 {
 	public:
+		TokenManager m_tokens;
 		void nmdcExpect(const string& aNick, const string& aMyNick, const string& aHubUrl
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 		                , ExpectedMap::DefinedExpectedReason reason = ExpectedMap::REASON_DEFAULT
@@ -328,7 +348,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		void addUploadConnection(UserConnection* p_conn);
 		void addDownloadConnection(UserConnection* p_conn);
 		
-		ConnectionQueueItem* getCQI_L(const HintedUser& aHintedUser, bool download);
+		ConnectionQueueItem* getCQI_L(const HintedUser& aHintedUser, bool download, const string& aToken);
 		void putCQI_L(ConnectionQueueItem* cqi);
 		
 		void accept(const Socket& sock, bool secure, Server* p_server) noexcept;
@@ -368,6 +388,12 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		// TimerManagerListener
 		void on(TimerManagerListener::Second, uint64_t aTick) noexcept;
 		void on(TimerManagerListener::Minute, uint64_t aTick) noexcept;
+		
+		// ClientManagerListener
+		void on(ClientManagerListener::UserConnected, const OnlineUser& aUser, bool) noexcept { onUserUpdated(aUser.getUser()); }
+		void on(ClientManagerListener::UserDisconnected, const UserPtr& aUser, bool) noexcept { onUserUpdated(aUser); }
+		
+		void onUserUpdated(const UserPtr& aUser);
 		
 };
 

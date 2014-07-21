@@ -127,7 +127,6 @@
 #define IDD_WIZARD_STARTUP              225
 #define IDD_WIZARD_NICK                 226
 #define IDD_WIZARD_DOWNLOAD             227
-#define IDD_WIZARD_FINISH               228
 #define WM_CENTER_ALL                   229
 #define IDD_WIZARD_SHARE                230
 #define IDD_WIZARD_NET_IP               231
@@ -1486,7 +1485,6 @@
 #define IDC_SEARCH_MODE                 2328
 #define IDC_SEARCH_WIKIHELP             2329
 #define IDC_SEARCH_FILE_IN_GOOGLE       2330
-#define IDC_SEARCH_FILE_IN_NIGMA        2331
 #define IDC_SEARCH_FILE_IN_YANDEX       2332
 #define IDC_COPY_HUB_URL                2333
 #define IDC_COPY_FULL_MAGNET_LINK       2334

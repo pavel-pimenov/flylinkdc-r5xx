@@ -559,7 +559,12 @@ void FolderTree::DisplayPath(const tstring &sPath, HTREEITEM hParent, bool bUseS
 	AppendPathSeparator(sFile);
 	
 	WIN32_FIND_DATA fData;
-	HANDLE hFind = FindFirstFile((sFile + _T('*')).c_str(), &fData);
+	HANDLE hFind = FindFirstFileEx((sFile + _T('*')).c_str(),
+	                               CompatibilityManager::g_find_file_level,
+	                               &fData,
+	                               FindExSearchNameMatch,
+	                               NULL,
+	                               CompatibilityManager::g_find_file_flags);
 	if (hFind != INVALID_HANDLE_VALUE)
 	{
 		do
@@ -776,7 +781,12 @@ bool FolderTree::HasGotSubEntries(const tstring &p_Directory)
 			sFile = p_Directory + _T("\\*.*");
 			
 		WIN32_FIND_DATA fData;
-		HANDLE hFind = FindFirstFile(sFile.c_str(), &fData);
+		HANDLE hFind = FindFirstFileEx(sFile.c_str(),
+		                               CompatibilityManager::g_find_file_level,
+		                               &fData,
+		                               FindExSearchNameMatch,
+		                               NULL,
+		                               CompatibilityManager::g_find_file_flags);
 		if (hFind != INVALID_HANDLE_VALUE)
 		{
 			do
@@ -1441,6 +1451,7 @@ LRESULT FolderTree::OnChecked(HTREEITEM hItem, BOOL &bHandled)
 			                          
 			if (virt.DoModal() == IDOK)
 			{
+				CWaitCursor l_cursor_wait;
 #ifdef IRAINMAN_TEST_FAST_UI_FOR_SHARING
 				ShareManager::getInstance()->refresh(true, false, false);
 #endif
@@ -1534,24 +1545,25 @@ bool FolderTree::GetHasSharedChildren(HTREEITEM hItem)
 	else
 		return false;
 		
-	const StringPairList Dirs = ShareManager::getInstance()->getDirectories();
+	CFlyDirItemArray Dirs;
+	ShareManager::getInstance()->getDirectories(Dirs);
 	
 	for (auto i = Dirs.cbegin(); i != Dirs.cend(); ++i)
 	{
-		if (i->second.size() > searchStr.size() + startPos)
+		if (i->m_path.size() > searchStr.size() + startPos)
 		{
-			if (stricmp(i->second.substr(startPos, searchStr.size()), searchStr) == 0)
+			if (stricmp(i->m_path.substr(startPos, searchStr.size()), searchStr) == 0)
 			{
 				if (searchStr.size() <= 3)
 				{
-					const auto l_is_exists = File::isExist(i->second);
+					const auto l_is_exists = File::isExist(i->m_path);
 					return l_is_exists;
 				}
 				else
 				{
-					if (i->second.substr(searchStr.size()).substr(0, 1) == "\\")
+					if (i->m_path.substr(searchStr.size()).substr(0, 1) == "\\")
 					{
-						const auto l_is_exists = File::isExist(i->second);
+						const auto l_is_exists = File::isExist(i->m_path);
 						return l_is_exists;
 					}
 					else

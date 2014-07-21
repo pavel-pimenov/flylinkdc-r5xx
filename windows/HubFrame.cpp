@@ -31,7 +31,7 @@
 #ifdef STRONG_USE_DHT
 #include "../dht/DHT.h"
 #endif
-#include "../windows/MainFrm.h"
+#include "MainFrm.h"
 #include "../client/LogManager.h"
 #include "../client/AdcCommand.h"
 #include "../client/SettingsManager.h"
@@ -42,6 +42,7 @@
 #include "../client/ResourceManager.h"
 #endif
 #include "FavHubProperties.h"
+#include "BarShader.h"
 
 
 HubFrame::FrameMap HubFrame::g_frames;
@@ -1437,7 +1438,7 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 			m_is_fynally_clear_user_list = false;
 			dcassert(!ClientManager::isShutdown());
 			addStatus(TSTRING(CONNECTED), true, true, Colors::g_ChatTextServer);
-			setTabColor(RGB(0, 255, 0));
+			setTabColor(RGB(10, 10, 10));
 			unsetIconState();
 			
 			ctrlClient.setHubParam(client->getHubUrl(), client->getMyNick()); // [+] IRainman fix.
@@ -1459,7 +1460,7 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 		{
 			dcassert(!ClientManager::isShutdown());
 			clearUserList(true);
-			setTabColor(RGB(255, 0, 0));
+			setTabColor(RGB(128, 0, 0));
 			setIconState();
 			PLAY_SOUND(SOUND_HUBDISCON);
 			SHOW_POPUP(POPUP_HUB_DISCONNECTED, Text::toT(client->getHubUrl()), TSTRING(DISCONNECTED));
@@ -3629,26 +3630,28 @@ void HubFrame::appendHubAndUsersItems(OMenu& p_menu, const bool isChat)
 
 LRESULT HubFrame::onSelectUser(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	if (!getSelectedUser())
+	if (getSelectedUser())
 	{
-		// No nick selected
-		return 0;
+		const int pos = ctrlUsers.findItem(getSelectedUser()->getIdentity().getNickT());
+		if (pos != -1)
+		{
+			CLockRedraw<> l_lock_draw(ctrlUsers);
+			const auto l_count_per_page = ctrlUsers.GetCountPerPage();
+			const int items = ctrlUsers.GetItemCount();
+			for (int i = 0; i < items; ++i)
+			{
+				ctrlUsers.SetItemState(i, i == pos ? LVIS_SELECTED | LVIS_FOCUSED : 0, LVIS_SELECTED | LVIS_FOCUSED);
+			}
+			ctrlUsers.EnsureVisible(pos, FALSE);
+			const auto l_top_index = ctrlUsers.GetTopIndex();
+			if (pos - l_top_index >= 0)
+			{
+				ctrlUsers.EnsureVisible(pos - l_top_index, FALSE);
+			}
+			const auto l_last_pos = pos + l_count_per_page / 2; //  fix https://code.google.com/p/flylinkdc/issues/detail?id=1476
+			ctrlUsers.EnsureVisible(l_last_pos, FALSE);
+		}
 	}
-	
-	const int pos = ctrlUsers.findItem(getSelectedUser()->getIdentity().getNickT());
-	if (pos == -1)
-	{
-		// User not found is list
-		return 0;
-	}
-	
-	CLockRedraw<> l_lock_draw(ctrlUsers);
-	const int items = ctrlUsers.GetItemCount();
-	for (int i = 0; i < items; ++i)
-	{
-		ctrlUsers.SetItemState(i, i == pos ? LVIS_SELECTED | LVIS_FOCUSED : 0, LVIS_SELECTED | LVIS_FOCUSED);
-	}
-	ctrlUsers.EnsureVisible(pos, FALSE);
 	return 0;
 }
 
@@ -3844,8 +3847,22 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 						//const COLORREF col_brit = OperaColors::brightenColor(cd->clrText, l_is_fantom_ip ? 0.6f : 0.4f);
 						//ctrlUsers.SetItemFilled(cd, rc, /*color_text*/ col_brit, /*color_text_unfocus*/ col_brit);
 						ctrlUsers.SetItemFilled(cd, rc, cd->clrText, cd->clrText);
-						unique_ptr<CSelectFont> l_font(!l_is_fantom_ip ? nullptr : unique_ptr<CSelectFont>(new CSelectFont(cd->nmcd.hdc, Fonts::g_halfFont)));
+						const auto l_old_color = cd->clrText;
+						if (l_is_fantom_ip)
+						{
+							cd->clrText = OperaColors::blendColors(cd->clrText, SETTING(BACKGROUND_COLOR), 0.4);
+							SetTextColor(cd->nmcd.hdc, cd->clrText);
+						}
 						::ExtTextOut(cd->nmcd.hdc, rc.left + 6, rc.top + 2, ETO_CLIPPED, rc, l_ip.c_str(), l_ip.length(), NULL);
+						if (l_is_fantom_ip) // fix https://code.google.com/p/flylinkdc/issues/detail?id=1477
+						{
+							cd->clrText =  l_old_color;
+							SetTextColor(cd->nmcd.hdc, cd->clrText);
+							const auto l_width_ip = WinUtil::getTextWidth(l_ip, cd->nmcd.hdc); // TODO - cache ?
+							::ExtTextOut(cd->nmcd.hdc, rc.left + 6 + l_width_ip + 1, rc.top - 1 , ETO_CLIPPED, rc, _T("*"), 1, NULL);
+						}
+						//unique_ptr<CSelectFont> l_font(!l_is_fantom_ip ? nullptr : unique_ptr<CSelectFont>(new CSelectFont(cd->nmcd.hdc, Fonts::g_halfFont)));
+						//::ExtTextOut(cd->nmcd.hdc, rc.left + 6, rc.top + 2, ETO_CLIPPED, rc, l_ip.c_str(), l_ip.length(), NULL);
 					}
 					return CDRF_SKIPDEFAULT;
 				}

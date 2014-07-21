@@ -39,6 +39,47 @@ boost::unordered_set<UserConnection*> ConnectionManager::g_userConnections;
 ConnectionQueueItem::List ConnectionManager::g_downloads;
 ConnectionQueueItem::List ConnectionManager::g_uploads;
 
+string TokenManager::makeToken() noexcept
+{
+	string l_token;
+	FastLock l(m_cs);
+	do {
+		l_token = Util::toString(Util::rand());
+	}
+	while (m_tokens.find(l_token) != m_tokens.end());
+	m_tokens.insert(l_token);
+	return l_token;
+}
+
+string TokenManager::getToken() noexcept
+{
+	FastLock l(m_cs);
+	const string l_token = Util::toString(Util::rand());
+	m_tokens.insert(l_token);
+	return l_token;
+}
+
+bool TokenManager::addToken(const string& aToken) noexcept
+{
+	FastLock l(m_cs);
+	if (m_tokens.find(aToken) == m_tokens.end())
+	{
+		m_tokens.insert(aToken);
+		return true;
+	}
+	return false;
+}
+
+void TokenManager::removeToken(const string& aToken) noexcept
+{
+	FastLock l(m_cs);
+	auto p = m_tokens.find(aToken);
+	if (p != m_tokens.end())
+		m_tokens.erase(p);
+	else
+		dcassert(0);
+}
+
 
 ConnectionManager::ConnectionManager() : m_floodCounter(0), server(nullptr),
 	secureServer(nullptr),
@@ -77,17 +118,18 @@ void ConnectionManager::listen()
 {
 	disconnect();
 	uint16_t port;
+	string l_bind = SETTING(BIND_ADDRESS);
 	
 	if (BOOLSETTING(AUTO_DETECT_CONNECTION))
 	{
 		server = new Server(false, 0, Util::emptyString);
-		SET_SETTING(TCP_PORT, server->getServerPort());
 	}
 	else
 	{
 		port = static_cast<uint16_t>(SETTING(TCP_PORT));
-		server = new Server(false, port, SETTING(BIND_ADDRESS));
+		server = new Server(false, port, l_bind);
 	}
+	SET_SETTING(TCP_PORT, server->getServerPort());
 	
 	if (!CryptoManager::getInstance()->TLSOk())
 	{
@@ -104,7 +146,7 @@ void ConnectionManager::listen()
 	else
 	{
 		port = static_cast<uint16_t>(SETTING(TLS_PORT));
-		secureServer = new Server(true, port, SETTING(BIND_ADDRESS));
+		secureServer = new Server(true, port, l_bind);
 	}
 }
 
@@ -124,7 +166,7 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 		const ConnectionQueueItem::Iter i = find(g_downloads.begin(), g_downloads.end(), aUser);
 		if (i == g_downloads.end())
 		{
-			getCQI_L(HintedUser(aUser, Util::emptyString), true); // http://code.google.com/p/flylinkdc/issues/detail?id=1037
+			getCQI_L(HintedUser(aUser, Util::emptyString), true, Util::emptyString); // http://code.google.com/p/flylinkdc/issues/detail?id=1037
 			// Ќе сохран€ем указатель. а как и когда будем удал€ть ?
 			return;
 		}
@@ -143,9 +185,9 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 #endif
 }
 
-ConnectionQueueItem* ConnectionManager::getCQI_L(const HintedUser& aHintedUser, bool download)
+ConnectionQueueItem* ConnectionManager::getCQI_L(const HintedUser& aHintedUser, bool download, const string& aToken)
 {
-	ConnectionQueueItem* cqi = new ConnectionQueueItem(aHintedUser, download);
+	ConnectionQueueItem* cqi = new ConnectionQueueItem(aHintedUser, download, !aToken.empty() ? aToken : m_tokens.makeToken());
 	if (download)
 	{
 		dcassert(find(g_downloads.begin(), g_downloads.end(), aHintedUser) == g_downloads.end());
@@ -176,6 +218,7 @@ void ConnectionManager::putCQI_L(ConnectionQueueItem* cqi)
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	cqi->getUser()->flushRatio(); //[+]PPA branches-dev/ppa/issue-1035
 #endif
+	m_tokens.removeToken(cqi->getConnectionQueueToken());
 	delete cqi;
 }
 
@@ -218,6 +261,33 @@ void ConnectionManager::putConnection(UserConnection* aConn)
 	webrtc::WriteLockScoped l(*g_csConnection);
 	dcassert(g_userConnections.find(aConn) != g_userConnections.end());
 	g_userConnections.erase(aConn);
+}
+
+void ConnectionManager::onUserUpdated(const UserPtr& aUser)
+{
+
+	{
+		webrtc::ReadLockScoped l(*g_csDownloads);
+		for (auto i = g_downloads.cbegin(); i != g_downloads.cend(); ++i)
+		{
+			ConnectionQueueItem* cqi = *i;
+			if (cqi->getUser() == aUser)
+			{
+				fire(ConnectionManagerListener::UserUpdated(), cqi);
+			}
+		}
+	}
+	{
+		webrtc::ReadLockScoped l(*g_csUploads);
+		for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
+		{
+			ConnectionQueueItem* cqi = *i;
+			if (cqi->getUser() == aUser)
+			{
+				fire(ConnectionManagerListener::UserUpdated(), cqi);
+			}
+		}
+	}
 }
 
 void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
@@ -276,7 +346,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 						{
 							const string hubHint = cqi->getHubUrl(); // TODO - прокинуть туда хинт на хаб
 							cqi->setState(ConnectionQueueItem::CONNECTING);
-							ClientManager::getInstance()->connect(HintedUser(cqi->getUser(), hubHint), cqi->getToken());
+							ClientManager::getInstance()->connect(HintedUser(cqi->getUser(), hubHint), cqi->getConnectionQueueToken());
 							fire(ConnectionManagerListener::StatusChanged(), cqi);
 							attempts++;
 						}
@@ -421,8 +491,8 @@ ConnectionManager::Server::Server(bool p_secure
 {
 	m_sock.create();
 	m_sock.setSocketOpt(SO_REUSEADDR, 1);
-	m_server_port = m_sock.bind(p_port, p_server_ip); // [7] Wizard https://www.box.net/shared/45acc9cef68ecb499cb5
 	m_server_ip   = p_server_ip; // в AirDC++ и дургих этого уже нет
+	m_server_port = m_sock.bind(p_port, p_server_ip); // [7] Wizard https://www.box.net/shared/45acc9cef68ecb499cb5
 	m_sock.listen();
 	start(64);
 }
@@ -698,7 +768,7 @@ void ConnectionManager::nmdcConnect(const string& aIPServer, uint16_t aPort, uin
 		return;
 		
 	UserConnection* uc = getConnection(true, secure); // [!] IRainman fix SSL connection on NMDC(S) hubs.
-	uc->setToken(aNick);
+	uc->setUserConnectionToken(aNick); // “окен = ник?
 	uc->setHubUrl(hubUrl);
 	uc->setEncoding(encoding);
 	uc->setState(UserConnection::STATE_CONNECT);
@@ -733,7 +803,7 @@ void ConnectionManager::adcConnect(const OnlineUser& aUser, uint16_t aPort, uint
 		return;
 		
 	UserConnection* uc = getConnection(false, secure);
-	uc->setToken(aToken);
+	uc->setUserConnectionToken(aToken);
 	uc->setEncoding(Text::g_utf8);
 	uc->setState(UserConnection::STATE_CONNECT);
 	uc->setHubUrl(&aUser.getClient() == nullptr ? "DHT" : aUser.getClient().getHubUrl());
@@ -847,7 +917,7 @@ void ConnectionManager::on(UserConnectionListener::Connected, UserConnection* aS
 	dcassert(aSource->getState() == UserConnection::STATE_CONNECT);
 	if (aSource->isSet(UserConnection::FLAG_NMDC))
 	{
-		aSource->myNick(aSource->getToken());
+		aSource->myNick(aSource->getUserConnectionToken());
 		aSource->lock(CryptoManager::getInstance()->getLock(), CryptoManager::getInstance()->getPk() + "Ref=" + aSource->getHubUrl());
 	}
 	else
@@ -929,7 +999,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 			return;
 		}
 #endif // RIP_USE_CONNECTION_AUTODETECT
-		aSource->setToken(i.m_Nick);
+		aSource->setUserConnectionToken(i.m_Nick);
 		aSource->setHubUrl(i.m_HubUrl); // TODO - тут юзера почему-то еще нет
 		const auto l_encoding = ClientManager::findHubEncoding(i.m_HubUrl);
 		aSource->setEncoding(l_encoding);
@@ -988,7 +1058,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 		
 	if (aSource->isSet(UserConnection::FLAG_INCOMING))
 	{
-		aSource->myNick(aSource->getToken());
+		aSource->myNick(aSource->getUserConnectionToken());
 		aSource->lock(CryptoManager::getInstance()->getLock(), CryptoManager::getInstance()->getPk());
 	}
 	
@@ -1150,9 +1220,9 @@ void ConnectionManager::addUploadConnection(UserConnection* p_conn)
 		const auto i = find(g_uploads.begin(), g_uploads.end(), p_conn->getUser());
 		if (i == g_uploads.cend())
 		{
-			cqi = getCQI_L(p_conn->getHintedUser(), false);
-			cqi->setState(ConnectionQueueItem::ACTIVE);
 			p_conn->setFlag(UserConnection::FLAG_ASSOCIATED);
+			cqi = getCQI_L(p_conn->getHintedUser(), false, p_conn->getUserConnectionToken());
+			cqi->setState(ConnectionQueueItem::ACTIVE);
 			
 #ifdef FLYLINKDC_USE_CONNECTED_EVENT
 			fire(ConnectionManagerListener::Connected(), cqi);
@@ -1227,10 +1297,10 @@ void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCo
 		return;
 	}
 	
-	string token;
+	string l_token;
 	if (aSource->isSet(UserConnection::FLAG_INCOMING))
 	{
-		if (!cmd.getParam("TO", 0, token))
+		if (!cmd.getParam("TO", 0, l_token))
 		{
 			aSource->send(AdcCommand(AdcCommand::SEV_FATAL, AdcCommand::ERROR_GENERIC, "TO missing"));
 			putConnection(aSource);
@@ -1239,7 +1309,7 @@ void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCo
 	}
 	else
 	{
-		token = aSource->getToken();
+		l_token = aSource->getUserConnectionToken();
 	}
 	
 	if (aSource->isSet(UserConnection::FLAG_INCOMING))
@@ -1247,6 +1317,7 @@ void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCo
 		aSource->inf(false);
 	}
 	
+	dcassert(!l_token.empty());
 	bool down;
 	{
 		webrtc::ReadLockScoped l(*g_csDownloads);
@@ -1255,7 +1326,7 @@ void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCo
 		if (i != g_downloads.cend())
 		{
 			(*i)->setErrors(0);
-			if ((*i)->getToken() == token)
+			if ((*i)->getConnectionQueueToken() == l_token) // TODO - мутоное место Ќик с рандомным числом никогда ведь не могут быть равны?
 			{
 				down = true;
 			}
@@ -1317,6 +1388,7 @@ void ConnectionManager::force(const UserPtr& aUser)
 	const ConnectionQueueItem::Iter i = find(g_downloads.begin(), g_downloads.end(), aUser);
 	if (i != g_downloads.end())
 	{
+		fire(ConnectionManagerListener::Forced(), *i);
 		(*i)->setLastAttempt(0);
 	}
 }

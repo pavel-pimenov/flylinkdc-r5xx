@@ -37,8 +37,11 @@ class ConnectionManagerListener
 		typedef X<2> Removed;
 		typedef X<3> Failed;
 		typedef X<4> StatusChanged;
+		typedef X<5> UserUpdated;
+		typedef X<6> Forced;
+		
 #ifdef RIP_USE_CONNECTION_AUTODETECT
-		typedef X<5> DirectModeDetected; // [+] brain-ripper
+		typedef X<7> DirectModeDetected; // [+] brain-ripper
 #endif
 		
 		virtual void on(Added, const ConnectionQueueItem*) noexcept { }
@@ -51,6 +54,9 @@ class ConnectionManagerListener
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 		virtual void on(DirectModeDetected, const string&) noexcept { }
 #endif
+		virtual void on(UserUpdated, const ConnectionQueueItem*) noexcept { }
+		virtual void on(Forced, const ConnectionQueueItem*) noexcept { }
+		
 };
 
 #endif // !defined(CONNECTION_MANAGER_LISTENER_H)

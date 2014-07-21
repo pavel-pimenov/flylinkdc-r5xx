@@ -4840,9 +4840,10 @@ public:
 	int CalcTabHeight()
 	{
 		int nCount = m_tab.GetItemCount();
+		TCHAR szText[] = _T("NS");
 		TCITEMEXTRA tcix = { 0 };
 		tcix.tciheader.mask = TCIF_TEXT;
-		tcix.tciheader.pszText = _T("NS");
+		tcix.tciheader.pszText = szText;
 		int nIndex = m_tab.InsertItem(nCount, tcix);
 
 		RECT rect = { 0, 0, 1000, 1000 };

@@ -12659,19 +12659,46 @@ void File_Mxf::ChooseParser_Pcm(const essences::iterator &Essence, const descrip
 {
     Essence->second.StreamKind=Stream_Audio;
 
+    int8u Channels=0;
+    if (Descriptor!=Descriptors.end())
+    {
+        if (Descriptor->second.Infos.find("Channel(s)")!=Descriptor->second.Infos.end())
+            Channels=Descriptor->second.Infos["Channel(s)"].To_int8u();
+
+        //Handling some buggy cases
+        if (Channels>1 && Descriptor->second.BlockAlign!=(int16u)-1 && Descriptor->second.QuantizationBits!=(int32u)-1)
+        {
+            if (((int32u)Descriptor->second.BlockAlign)*8==Descriptor->second.QuantizationBits)
+                Descriptor->second.BlockAlign*=Channels; //BlockAlign is by channel, it should be by block.
+        }
+    }
+
     //Creating the parser
     #if defined(MEDIAINFO_PCM_YES)
         File_Pcm* Parser=new File_Pcm;
         if (Descriptor!=Descriptors.end())
         {
-            if (Descriptor->second.Infos.find("Channel(s)")!=Descriptor->second.Infos.end())
-                Parser->Channels=Descriptor->second.Infos["Channel(s)"].To_int8u();
+            if (Channels)
+                Parser->Channels=Channels;
             if (Parser->Channels && Descriptor->second.BlockAlign!=(int16u)-1)
                 Parser->BitDepth=(int8u)(Descriptor->second.BlockAlign*8/Parser->Channels);
             else if (Descriptor->second.QuantizationBits<256)
                 Parser->BitDepth=(int8u)Descriptor->second.QuantizationBits;
             else if (Descriptor->second.Infos.find("BitDepth")!=Descriptor->second.Infos.end())
                 Parser->BitDepth=Descriptor->second.Infos["BitDepth"].To_int8u();
+            //Handling of quantization bits not being same as BlockAlign/Channels
+            if (Channels && Descriptor->second.BlockAlign!=(int16u)-1 && Descriptor->second.QuantizationBits!=(int32u)-1)
+            {
+                if (Channels*Descriptor->second.QuantizationBits!=((int32u)Descriptor->second.BlockAlign)*8)
+                {
+                    //Moving Bit depth info to the "Significant" piece of etadata
+                    if (Descriptor->second.QuantizationBits<256)
+                        Parser->BitDepth_Significant=(int8u)Descriptor->second.QuantizationBits;
+                    else
+                        Parser->BitDepth_Significant=Parser->BitDepth;
+                    Parser->BitDepth=((int8u)Descriptor->second.BlockAlign)*8/Channels;
+                }
+            }
             if (Descriptor->second.Infos.find("Format_Settings_Endianness")!=Descriptor->second.Infos.end())
             {
                 if (Descriptor->second.Infos["Format_Settings_Endianness"]==__T("Big"))

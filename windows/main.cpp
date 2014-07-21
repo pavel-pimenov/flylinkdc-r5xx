@@ -156,8 +156,6 @@ static void checkCommonControls()
 #endif // FLYLINKDC_SUPPORT_WIN_2000
 
 static tstring g_sSplashText;
-static tstring g_sTitle;
-static tstring g_Loadtext;
 static const int g_splash_size_x = 347;
 static const int g_splash_size_y = 93;
 
@@ -180,12 +178,6 @@ LRESULT CALLBACK splashCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		rc3.top = rc3.bottom - 20;
 		ExCImage hi;
 		// TODO. Нужно реализовать прозрачность из WinUtil.cpp.
-		
-#ifdef FLYLINKDC_BETA
-		g_Loadtext = TSTRING(SPLASH_BETA);
-#else
-		g_Loadtext = TSTRING(SPLASH_RELEASE);
-#endif
 		
 		//ResourceLoader::LoadImageList(IDR_SPLASH, hi, 354, 370);
 		static int l_month = 0;
@@ -236,10 +228,11 @@ LRESULT CALLBACK splashCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		const HFONT hFont = CreateFontIndirect(&logFont);
 		CSelectFont l_font(dc, hFont); //-V808
 		::SetTextColor(dc, RGB(179, 179, 179)); // [~] Sergey Shushkanov
-		const tstring l_progress = g_sSplashText + _T(' ') + g_sTitle;
+		const tstring l_progress = g_sSplashText;
 		::DrawText(dc, l_progress.c_str(), l_progress.length(), &rc2, DT_CENTER); //-V107
 		::SetTextColor(dc, RGB(120, 120, 120));
-		::DrawText(dc, g_Loadtext.c_str(), g_Loadtext.length(), &rc3, DT_CENTER);
+		const tstring l_version = T_VERSIONSTRING;
+		::DrawText(dc, l_version.c_str(), l_version.length(), &rc3, DT_CENTER);
 		DeleteObject(hFont);
 		int l_res = ReleaseDC(hwnd, dc);
 		dcassert(l_res);
@@ -248,7 +241,7 @@ LRESULT CALLBACK splashCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
-void callBack(void* p_x, const tstring& p_a)
+void splash_callBack(void* p_x, const tstring& p_a)
 {
 	g_sSplashText = p_a; // [!]NightOrion(translate)
 	SendMessage((HWND)p_x, WM_PAINT, 0, 0);
@@ -300,9 +293,6 @@ void CreateSplash()
 		g_splash.SetWindowPos(NULL, &rc, SWP_SHOWWINDOW);
 		g_splash.SetWindowLongPtr(GWLP_WNDPROC, (LONG_PTR)&splashCallback);
 		g_splash.CenterWindow();
-		
-		g_sTitle = T_VERSIONSTRING;
-		//  g_sTitle += _T(" (SQLite ") _T(SQLITE_VERSION) _T(")");
 		g_splash.SetFocus();
 		g_splash.RedrawWindow();
 	}
@@ -314,11 +304,7 @@ void DestroySplash() // [+] IRainman
 	{
 		DestroyAndDetachWindow(g_splash);
 		DestroyAndDetachWindow(g_dummy);
-		// [+] IRainman fix.
-		g_sTitle.clear();
-		g_Loadtext.clear();
 		g_sSplashText.clear();
-		// [~] IRainman fix.
 	}
 }
 
@@ -353,12 +339,10 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	CMessageLoop theLoop;
 	_Module.AddMessageLoop(&theLoop);
 	
-	CreateSplash(); //[+]PPA
-	
 	ChatBot::newInstance(); // !SMT!-CB
 	
-	startup(callBack, g_DisableSplash ? (void*)0 : (void*)g_splash.m_hWnd, GuiInit, NULL);
-	startupFlyFeatures(callBack, g_DisableSplash ? (void*)0 : (void*)g_splash.m_hWnd); // [+] SSA
+	startup(splash_callBack, g_DisableSplash ? (void*)0 : (void*)g_splash.m_hWnd, GuiInit, NULL);
+	startupFlyFeatures(splash_callBack, g_DisableSplash ? (void*)0 : (void*)g_splash.m_hWnd); // [+] SSA
 	WinUtil::initThemeIcons();
 	static int nRet;
 	{
@@ -366,9 +350,11 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 		MainFrame wndMain;
 #ifdef SSA_WIZARD_FEATURE
 		if (g_ShowWizard)
+		{
 			wndMain.SetWizardMode();
+		}
 #endif
-			
+		
 		CRect rc = wndMain.rcDefault;
 		
 		if ((SETTING(MAIN_WINDOW_POS_X) != CW_USEDEFAULT) &&
@@ -498,9 +484,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	}
 	if (_tcsstr(lpstrCmdLine, _T("/sqltrace")) != NULL)
 		g_EnableSQLtrace = true;
-#ifdef _DEBUG
-	// g_EnableSQLtrace = true;
-#endif
 	if (_tcsstr(lpstrCmdLine, _T("/nologo")) != NULL)
 		g_DisableSplash = true;
 	if (_tcsstr(lpstrCmdLine, _T("/q")) != NULL)
@@ -564,10 +547,10 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	const bool l_is_create_wide = SettingsManager::getInstance()->LoadLanguage();
 	ResourceManager::startup(l_is_create_wide);
 	SettingsManager::getInstance()->setDefaults(); // !SMT!-S: allow localized defaults in string settings
-	
 	LogManager::newInstance();
+	CreateSplash(); //[+]PPA
+	
 	g_fly_server_config.loadConfig();
-	CFlylinkDBManager::newInstance();
 	TimerManager::newInstance();
 	ClientManager::newInstance();
 	

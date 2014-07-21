@@ -788,6 +788,15 @@ size_t DirectoryListing::Directory::getTotalFileCount(bool adl) const
 	}
 	return x;
 }
+size_t DirectoryListing::Directory::getTotalFolderCount() const
+{
+	size_t x = directories.size();
+	for (auto i = directories.cbegin(); i != directories.cend(); ++i)
+	{
+		x += (*i)->getTotalFolderCount();
+	}
+	return x;
+}
 
 // !fulDC! !SMT!-UI
 void DirectoryListing::Directory::checkDupes(const DirectoryListing* lst)

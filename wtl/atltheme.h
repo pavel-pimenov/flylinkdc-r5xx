@@ -38,9 +38,7 @@
   #endif
 #endif
 
-#ifndef _UXTHEME_H_
 #include <uxtheme.h>
-#endif
 #pragma comment(lib, "uxtheme.lib")
 
 // Note: To create an application that also runs on older versions of Windows,

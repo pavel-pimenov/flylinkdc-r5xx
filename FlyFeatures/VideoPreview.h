@@ -207,14 +207,11 @@ class VideoPreview :
 		
 		void addTask(Tasks task, TaskData* data)
 		{
-			m_tasks.push_back(make_pair(task, data)); // [17] https://www.box.net/shared/413787c8a8b82d46bea1
-			// TODO 2012-04-19_22-29-09_B46BTBWW4BE63AJI7PFECZ6XMCKIZBFLOARAWRI_B5540360_crash-stack-r502-beta19-build-9788.dmp
-			// 2012-04-23_20-04-20_OZJ2EQXWZYW6V333A2W5HBCNLUGLVFTLC54Q7BQ_A0B55B4D_crash-stack-r502-beta21-x64-build-9811.dmp
-			// 2012-04-27_18-47-20_DPP42GQ5GG7Y5Q45X5O6LX6QUQMJRZ7XQPGYBZA_609C4718_crash-stack-r502-beta22-x64-build-9854.dmp
-			// 2012-05-03_22-00-59_DH44NU7Q27X73ZHG4QE3SRW5TJAKEFHDJCWYZYA_9D0F01A3_crash-stack-r502-beta24-build-9900.dmp
-			// 2012-04-29_13-38-26_QOI7FPEPIEFQMGPLI3NH6ZYLCH6OY3J2NK2GGWA_782BE6B5_crash-stack-r501-build-9869.dmp
-			// 2012-06-07_20-46-18_TDVHZQHC36F6FFTXLMDWUFKSRODNHKVTJ4G5WDY_13F3F998_crash-stack-r502-beta30-build-10270.dmp
-			taskSem.signal(); //https://www.box.net/shared/178779c9b2ea58f7df03
+		   {
+		    Lock l(cs);
+		    m_tasks.push_back(make_pair(task, data));
+		   }
+		   taskSem.signal();
 		}
 		bool _serverStarted;
 		

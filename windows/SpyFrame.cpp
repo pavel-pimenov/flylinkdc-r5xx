@@ -449,6 +449,11 @@ void SpyFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
 }
 
 // !SMT!-S
+inline static COLORREF blendColors(COLORREF a, COLORREF b)
+{
+	return ((uint32_t)a & 0xFEFEFE) / 2 + ((uint32_t)b & 0xFEFEFE) / 2;
+}
+
 LRESULT SpyFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
 	LPNMLVCUSTOMDRAW plvcd = reinterpret_cast<LPNMLVCUSTOMDRAW>(pnmh);
@@ -465,7 +470,7 @@ LRESULT SpyFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 			plvcd->clrTextBk = SETTING(DUPE_COLOR);
 		else if (re == ClientManagerListener::SEARCH_PARTIAL_HIT)
 			//if it's a partial hit, try to use some simple blending
-			plvcd->clrTextBk = WinUtil::blendColors(SETTING(DUPE_COLOR), SETTING(BACKGROUND_COLOR));
+			plvcd->clrTextBk = blendColors(SETTING(DUPE_COLOR), SETTING(BACKGROUND_COLOR));
 			
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 		Colors::alternationBkColor(plvcd); // [+] IRainman

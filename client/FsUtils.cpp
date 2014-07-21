@@ -1,7 +1,7 @@
 #include "stdinc.h"
 #include "FsUtils.h"
 
-#include "..\client\LogManager.h"
+#include "LogManager.h"
 
 #include <Dbt.h>
 

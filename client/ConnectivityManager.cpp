@@ -242,13 +242,32 @@ void ConnectivityManager::mappingFinished(const string& mapper)
 
 void ConnectivityManager::listen() // TODO - fix copy-paste
 {
-	try
+	string l_exceptions;
+	for (int i = 0; i < 5; ++i)
 	{
-		ConnectionManager::getInstance()->listen();
-	}
-	catch (const Exception& e)
-	{
-		throw Exception("TCP/TLS listen error = " + e.getError());
+		try
+		{
+			ConnectionManager::getInstance()->listen();
+		}
+		catch (const SocketException& e)
+		{
+			if (e.getErrorCode() == 10048)
+			{
+				if (i == 0)
+				{
+					SET_SETTING(TCP_PORT, 0); // Первую попытку делаем подключаясь к порту = 0
+					continue;
+				}
+				SettingsManager::generateNewTCPPort();
+				LogManager::getInstance()->message("Try bind random TCP Port = " + Util::toString(SETTING(TCP_PORT)));
+				continue;
+			}
+			else
+			{
+				l_exceptions += " * TCP/TLS listen error = " + e.getError() + "\r\n";
+			}
+		}
+		break;
 	}
 	try
 	{
@@ -256,7 +275,7 @@ void ConnectivityManager::listen() // TODO - fix copy-paste
 	}
 	catch (const Exception& e)
 	{
-		throw Exception("UDP listen error = " + e.getError());
+		l_exceptions += " * UDP listen error = " + e.getError() + "\r\n";
 	}
 	
 #ifdef STRONG_USE_DHT
@@ -270,9 +289,13 @@ void ConnectivityManager::listen() // TODO - fix copy-paste
 	}
 	catch (const Exception& e)
 	{
-		throw Exception("DHT listen error = " + e.getError());
+		l_exceptions += " * DHT listen error = " + e.getError() + "\r\n";
 	}
 #endif
+	if (!l_exceptions.empty())
+	{
+		throw Exception("ConnectivityManager::listen() error:\r\n" + l_exceptions);
+	}
 }
 
 void ConnectivityManager::disconnect()

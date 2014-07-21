@@ -233,20 +233,20 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		struct CFlyTargetInfo
 		{
 				friend class TransferView;
-				bool m_isFilelist;
+				bool m_is_file_list;
 			protected:
-				CFlyTargetInfo() : m_isFilelist(false)
+				CFlyTargetInfo() : m_is_file_list(false)
 				{
 				}
 			public:
 				bool isFileList() const
 				{
-					return m_isFilelist;
+					return m_is_file_list;
 				}
 				void parseTarget(const string& p_target)
 				{
-					m_isFilelist = p_target.find(Util::getListPath()) != string::npos ||
-					               p_target.find(Util::getConfigPath()) != string::npos;
+					m_is_file_list = p_target.find(Util::getListPath()) != string::npos ||
+					                 p_target.find(Util::getConfigPath()) != string::npos;
 				}
 		};
 		struct UpdateInfo;
@@ -263,14 +263,10 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				};
 				
 				ItemInfo(const HintedUser& u, const bool isDownload) : m_hintedUser(u), download(isDownload), transferFailed(false),
-					m_status(STATUS_WAITING), pos(0), size(0), actual(0), m_speed(0), timeLeft(0),
+					m_status(STATUS_WAITING), m_pos(0), m_size(0), m_actual(0), m_speed(0), m_timeLeft(0),
 					collapsed(true), parent(nullptr), hits(-1), running(0), m_type(Transfer::TYPE_FILE)
 				{
-					if (m_hintedUser.user)
-					{
-						m_niks = WinUtil::getNicks(m_hintedUser);
-						m_hubs = WinUtil::getHubNames(m_hintedUser).first;
-					}
+					update_nicks();
 				}
 				
 				const bool download; // [!] is const member.
@@ -285,16 +281,16 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				Status m_status;
 				Transfer::Type m_type;
 				
-				int64_t pos;
-				int64_t size;
-				int64_t actual;
+				int64_t m_pos;
+				int64_t m_size;
+				int64_t m_actual;
 				int64_t m_speed;
-				int64_t timeLeft;
+				int64_t m_timeLeft;
 				tstring m_ip;
-				tstring statusString;
-				tstring cipher;
+				tstring m_statusString;
+				tstring m_cipher;
 				tstring m_target;
-				tstring m_niks;
+				tstring m_nicks;
 				tstring m_hubs;
 				mutable Util::CustomNetworkIndex m_location; // [+] IRainman opt.
 				
@@ -303,7 +299,14 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 #endif
 				
 				void update(const UpdateInfo& ui);
-				
+				void update_nicks()
+				{
+					if (m_hintedUser.user)
+					{
+						m_nicks = WinUtil::getNicks(m_hintedUser);
+						m_hubs = WinUtil::getHubNames(m_hintedUser).first;
+					}
+				}
 				const UserPtr& getUser() const
 				{
 					return m_hintedUser.user;
@@ -314,7 +317,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				
 				double getProgressPosition() const
 				{
-					return (pos > 0) ? (double)actual / (double)pos : 1.0;
+					return (m_pos > 0) ? (double)m_actual / (double)m_pos : 1.0;
 				}
 				const tstring getText(uint8_t col) const;
 				static int compareItems(const ItemInfo* a, const ItemInfo* b, uint8_t col);
@@ -330,7 +333,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 					ii->running = 0;
 					ii->hits = 0;
 					ii->m_target = m_target;
-					ii->statusString = TSTRING(CONNECTING);
+					ii->m_statusString = TSTRING(CONNECTING);
 					return ii;
 				}
 				const tstring& getGroupCond() const
@@ -353,27 +356,28 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				MASK_IP             = 0x80,
 				MASK_STATUS_STRING  = 0x100,
 				MASK_SEGMENT        = 0x200,
-				MASK_CIPHER         = 0x400
+				MASK_CIPHER         = 0x400,
+				MASK_USER           = 0x800
 			};
 			
 			bool operator==(const ItemInfo& ii) const
 			{
-				return download == ii.download && hintedUser.user == ii.m_hintedUser.user; // [!] IRainman fix.
+				return download == ii.download && m_hintedUser.user == ii.m_hintedUser.user; // [!] IRainman fix.
 			}
 			
+#if 0
 			UpdateInfo(const HintedUser& aUser, const bool isDownload, const bool isTransferFailed = false) :
-				updateMask(0), hintedUser(aUser), download(isDownload), transferFailed(isTransferFailed), type(Transfer::TYPE_LAST), running(0)
+				updateMask(0), m_hintedUser(aUser), download(isDownload), transferFailed(isTransferFailed), type(Transfer::TYPE_LAST), running(0)
 			{
 			}
-			
+#endif
 			UpdateInfo(const UserPtr& aUser, const bool isDownload, const bool isTransferFailed = false) :
-				updateMask(0), download(isDownload), hintedUser(HintedUser(aUser, Util::emptyString)), // fix empty string
+				updateMask(0), download(isDownload), m_hintedUser(HintedUser(aUser, Util::emptyString)), // fix empty string
 				transferFailed(isTransferFailed), type(Transfer::TYPE_LAST), running(0)
 			{
 			}
-			
 			UpdateInfo() :
-				updateMask(0), download(true), hintedUser(HintedUser(nullptr, Util::emptyString)), transferFailed(false), type(Transfer::TYPE_LAST), running(0)
+				updateMask(0), download(true), m_hintedUser(HintedUser(nullptr, Util::emptyString)), transferFailed(false), type(Transfer::TYPE_LAST), running(0)
 			{
 			}
 			
@@ -384,7 +388,13 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			uint32_t updateMask;
 			
 			// [!] IRainman fix.
-			HintedUser hintedUser; // [!]
+			HintedUser m_hintedUser; // [!]
+			void setHintedUser(const HintedUser& aUser)
+			{
+				m_hintedUser = aUser;
+				updateMask |= MASK_USER;
+			}
+			
 			
 			const bool download; // [!] is const member.
 			const bool transferFailed; // [!] is const member.

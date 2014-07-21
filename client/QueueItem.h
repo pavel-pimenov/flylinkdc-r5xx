@@ -299,12 +299,12 @@ class QueueItem : public Flags,
 		void resetDownloaded()
 		{
 			WLock l(*g_cs);
-			done.clear();
+			m_done_segment.clear();
 		}
 		
 		bool isFinishedL() const
 		{
-			return done.size() == 1 && *done.begin() == Segment(0, getSize());
+			return m_done_segment.size() == 1 && *m_done_segment.begin() == Segment(0, getSize());
 		}
 		
 		bool isRunningL() const
@@ -355,10 +355,11 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 		
 		DownloadMap m_downloads;
 		
-		SegmentSet done;
+		SegmentSet m_done_segment;
+		string getSectionStringL();
 		const SegmentSet& getDoneL() const
 		{
-			return done;
+			return m_done_segment;
 		}
 		
 		GETSET_DIRTY(string, target, Target);

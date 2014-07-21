@@ -946,7 +946,7 @@ size_t UploadManager::addFailedUpload(const UserConnection* aSource, const strin
 	auto it = std::find_if(m_slotQueue.begin(), m_slotQueue.end(), [&](const UserPtr & u) -> bool { ++queue_position; return u == aSource->getUser(); });
 	if (it != m_slotQueue.end())
 	{
-		it->setToken(aSource->getToken());
+		it->setToken(aSource->getUserConnectionToken());
 		// https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=130703
 		for (auto fileIter = it->m_waiting_files.cbegin(); fileIter != it->m_waiting_files.cend(); ++fileIter) //TODO https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128318
 		{
@@ -965,7 +965,7 @@ size_t UploadManager::addFailedUpload(const UserConnection* aSource, const strin
 		//l_wu.m_hintedUser = source.getHintedUser();
 		//l_wu.setToken(source.getToken());
 		//l_wu.m_files.insert(uqi);
-		m_slotQueue.push_back(WaitingUser(aSource->getHintedUser(), aSource->getToken(), uqi));
+		m_slotQueue.push_back(WaitingUser(aSource->getHintedUser(), aSource->getUserConnectionToken(), uqi));
 	}
 	else
 	{

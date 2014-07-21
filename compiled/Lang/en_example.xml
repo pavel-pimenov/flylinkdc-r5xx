@@ -110,7 +110,6 @@
 	<string name="AutoupdateUpdateChatbot">ChatBot packs</string>
 	<string name="AutoupdateUpdateIgnoreButton">Ignore this update</string>
 	<string name="AutoupdateUpdateNowButton">Update now</string>
-	<string name="AutoupdateUpdateUnknown">Update unknown components</string>
 	<string name="AutoupdateUrlLabel">Update server</string>
 	<string name="AutoupdateUseCustomUrl">Use a custom update server URL</string>
 	<string name="AutoupdateUtilities">Utilities</string>
@@ -354,7 +353,6 @@
 	<string name="DefPasswordHint">User has disabled receiving PMs. Use password '%[pm_pass]' in case of emergency. Don't abuse: slot-askers will be banned+ignored forever and will not download even in queue order.</string>
 	<string name="DefPasswordOkHint">Password correct. Access granted</string>
 	<string name="DeleteChecked">Delete checked file-lists</string>
-	<string name="DeleteFromFlyHashBlock">Delete from Fly_hash_block…</string>
 	<string name="DenyAll">Deny all</string>
 	<string name="DepthStr">Depth:</string>
 	<string name="Description">Description</string>
@@ -500,7 +498,7 @@
 	<string name="FilelistUnavailable">File-list is unavailable</string>
 	<string name="Filename">Filename</string>
 	<string name="Files">Files</string>
-	<string name="Files2">Files</string>
+	<string name="Folders">Folders</string>
 	<string name="FileshareBorder">File share</string>
 	<string name="FileshareIncFilelist">Include advanced file share into file list</string>
 	<string name="FileshareReindex">Reindex</string>
@@ -1092,6 +1090,7 @@
 	<string name="Reliability">Reliability</string>
 	<string name="Reload">Reload</string>
 	<string name="ReloadDir">Reload dir…</string>
+	<string name="ScanDir">Scan dir…</string>
 	<string name="RemainedAttempts">Remained attempts</string>
 	<string name="RememberSettingsPage">Remember the page in the settings window</string>
 	<string name="RememberSettingsWindowPos">Remember the settings window position</string>
@@ -1155,7 +1154,6 @@
 	<string name="SearchDisaled">Search disabled</string>
 	<string name="SearchEnabled">Search enabled again</string>
 	<string name="SearchFileInGoogle">Search in Google</string>
-	<string name="SearchFileInNigma">Search in Nigma</string>
 	<string name="SearchFileInYandex">Search in Yandex</string>
 	<string name="SearchFor">Search for</string>
 	<string name="SearchForAlternates">Search for alternates</string>
@@ -1561,8 +1559,6 @@
 	<string name="Speed">Speed</string>
 	<string name="SpeedLimit">Speed limit</string>
 	<string name="SpeedLimitManual">Manually set upload limit</string>
-	<string name="SplashBeta">Beta version. Loading…</string>
-	<string name="SplashRelease">Loading…</string>
 	<string name="SqliteUseExclusiveLockMode">Use the exclusive lock on mode of SQLite database. This option improves performance.</string>
 	<string name="SqliteUseJournalMemory">Keeps a SQLite log file in a memory. It may cause database corruption due an error in the program or system.</string>
 	<string name="SslError">SSL error</string>
@@ -1805,8 +1801,6 @@
 	<string name="WinampVolUp">Volume up</string>
 	<string name="WindowsStyleUrl">Use windows style for URL</string>
 	<string name="WizardDownloaddirStatic">Help: Use non-system folders on drive with more than 10 GB free space (recommended)…</string>
-	<string name="WizardFinishLabel1">Wizard Setup completed</string>
-	<string name="WizardFinishLabel2">Now you can start using FlylinkDC++!</string>
 	<string name="WizardNetaBtnCheckupnp">Check UPnP</string>
 	<string name="WizardNetaBtnSetuprouter">Setup router</string>
 	<string name="WizardNetaBtnTest">Test FlylinkDC++ network connections</string>
@@ -1838,7 +1832,7 @@
 	<string name="WizardShareStatic">You can add folders which will be shared with other users. All subfolders and files in selected folders can be downloaded by users from connected hubs.\r\nDo not share folders with system files, please!</string>
 	<string name="WizardShareToSmall">Your share to small. Share more files.</string>
 	<string name="WizardStartupTxt1">Welcome to FlylinkDC++ Setup Wizard!</string>
-	<string name="WizardStartupTxt2">This Wizard can help you to setup FlylinkDC++ client: \r\n 1. Default Nick\r\n 2. Download and Temp folders \r\n 3. Share your files to allow DC++ users to download them \r\n 4. Setup your network configuration \r\n 5. Add favorite hubs</string>
+	<string name="WizardStartupTxt2">This Wizard can help you to setup FlylinkDC++ client: \r\n 1. Default Nick\r\n 2. Download and Temp folders \r\n 3. Share your files to allow DC++ users to download them \r\n</string>
 	<string name="WizardStartupTxt3">Press Next button to continue…</string>
 	<string name="WizardTitle">FlylinkDC++ Setup Wizard</string>
 	<string name="WmpHelp">/wmp - Works with Windows Media Player 9+\r\n- %[version] - version of Windows Media Player\r\n- %[fullversion] - full version of Windows Media Player\r\n- %[status] - pre-formatted status string from Windows Media Player\r\n- %[title] - name of the currently playing item\r\n- %[elapsed] - time elapsed in (HH:)MM:SS\r\n- %[percent] - time elapsed presented as percentage from total length\r\n- %[bar] - ASCII progress bar, 10 characters wide no including brackets (ex. [----|-----])\r\n- %[length] - full length of the current item in (HH:)MM:SS\r\n- %[artist] - name of the artist for the currently playing item\r\n- %[album] - name of the album the current song is from\r\n- %[genre] - genre of the current media\r\n- %[bitrate] - bitrate for the playing media\r\n- %[year] - year of album publication (no WMP9 support)\r\n- %[size] - size of the currently playing file\r\n- %[rating] - users rating, represented with *'s (if available)\r\n\r\nEmpty = Default String -&gt; +me %[title] at %[bitrate] &lt;Windows Media Player %[version]&gt;</string>

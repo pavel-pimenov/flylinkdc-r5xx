@@ -334,24 +334,24 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 class WebServerSocket : public BASE_THREAD
 {
 	public:
-		WebServerSocket() : sock(NULL)
+		WebServerSocket() : m_www_sock(INVALID_SOCKET)
 		{
-			memzero(&from, sizeof(from));
+			memzero(&m_from, sizeof(m_from));
 		}
 		void accept(ServerSocket *s)
 		{
-			int fromlen = sizeof(from);
+			int fromlen = sizeof(m_from);
 #ifdef _DEBUG_WEB_SERVER_
 			printf("accepting\n");
 #endif
-			sock = ::accept(s->getSock(), (struct sockaddr*) & from, &fromlen); // http://msdn.microsoft.com/en-us/library/windows/desktop/ms737526(v=vs.85).aspx
+			m_www_sock = ::accept(s->getSock(), (struct sockaddr*) & m_from, &fromlen); // http://msdn.microsoft.com/en-us/library/windows/desktop/ms737526(v=vs.85).aspx
 			u_long b = 1;
-			ioctlsocket(sock, FIONBIO, &b);
+			ioctlsocket(m_www_sock, FIONBIO, &b);
 		}
 		
 		int run();
 		
 	private:
-		sockaddr_in from;
-		SOCKET sock;
+		sockaddr_in m_from;
+		SOCKET m_www_sock;
 };

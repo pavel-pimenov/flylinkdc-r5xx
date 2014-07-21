@@ -274,9 +274,7 @@ class InternetSearchBaseHandler // [+] IRainman fix.
 	protected:
 		BEGIN_MSG_MAP(InternetSearchBaseHandler)
 		COMMAND_ID_HANDLER(IDC_SEARCH_FILE_IN_GOOGLE, onSearchFileInInternet)
-		COMMAND_ID_HANDLER(IDC_SEARCH_FILE_IN_NIGMA, onSearchFileInInternet)
 		COMMAND_ID_HANDLER(IDC_SEARCH_FILE_IN_YANDEX, onSearchFileInInternet)
-		//COMMAND_ID_HANDLER(IDC_SEARCH_FILE_IN_YAHOO, onSearchFileInInternet)
 		END_MSG_MAP()
 		
 		virtual LRESULT onSearchFileInInternet(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) = 0;
@@ -284,7 +282,6 @@ class InternetSearchBaseHandler // [+] IRainman fix.
 		void appendInternetSearchItems(CMenu& p_menu)
 		{
 			p_menu.AppendMenu(MF_STRING, IDC_SEARCH_FILE_IN_GOOGLE, CTSTRING(SEARCH_FILE_IN_GOOGLE));
-			p_menu.AppendMenu(MF_STRING, IDC_SEARCH_FILE_IN_NIGMA, CTSTRING(SEARCH_FILE_IN_NIGMA));
 			p_menu.AppendMenu(MF_STRING, IDC_SEARCH_FILE_IN_YANDEX, CTSTRING(SEARCH_FILE_IN_YANDEX));
 		}
 		
@@ -295,9 +292,6 @@ class InternetSearchBaseHandler // [+] IRainman fix.
 			{
 				case IDC_SEARCH_FILE_IN_GOOGLE:
 					url += _T("https://www.google.com/search?hl=") + WinUtil::GetLang() + _T("&q=");
-					break;
-				case IDC_SEARCH_FILE_IN_NIGMA:
-					url += _T("http://nigma.ru/?t=web&s=");
 					break;
 				case IDC_SEARCH_FILE_IN_YANDEX:
 					url += _T("http://yandex.ru/yandsearch?text=");
@@ -1757,43 +1751,7 @@ class WinUtil
 		static string getMPCSpam();
 		static string getWinampSpam(HWND playerWnd = NULL, int playerType = 0);
 		static string getJASpam();
-		/*
-		static string getActionStr(int raw)
-		{
-		    switch(raw) {
-		        case 0: return STRING(NO_ACTION); break;
-		        case 1: return SETTING(RAW1_TEXT); break;
-		        case 2: return SETTING(RAW2_TEXT); break;
-		        case 3: return SETTING(RAW3_TEXT); break;
-		        case 4: return SETTING(RAW4_TEXT); break;
-		        case 5: return SETTING(RAW5_TEXT); break;
-		        default: return STRING(NO_ACTION); break;
-		    }
-		}
-		*/
-		// !SMT!-UI
-		static COLORREF blendColors(COLORREF a, COLORREF b)
-		{
-			return ((uint32_t)a & 0xFEFEFE) / 2 + ((uint32_t)b & 0xFEFEFE) / 2;
-		}
 		
-		/* [-] IRainman fix
-		static tstring findNickInTString(const tstring &aLine)// FDM extension
-		{
-		    // set to 0, to fix warning C4701
-		    tstring::size_type i = 0;
-		    tstring::size_type j = 0;
-		
-		    //Check For <Nick>
-		    if (((i = aLine.find_first_of('<')) != tstring::npos) && ((j = aLine.find_first_of('>')) != tstring::npos && j > i))
-		        return aLine.substr(i + 1, j - i - 1).c_str();
-		    //Check for * Nick
-		    if ((aLine.find(_T("***")) == tstring::npos) && ((i = Util::findSubString(aLine.c_str(), _T("* "))) != tstring::npos) && ((j = aLine.find(' ', 2)) != tstring::npos && j > i))
-		        return aLine.substr(i + 2, j - i - 2).c_str();
-		
-		    return Util::emptyStringT;
-		}
-		[-] IRainman fix */
 		
 // FDM extension
 		static tstring getNicks(const CID& cid, const string& hintUrl);
@@ -1906,17 +1864,6 @@ class WinUtil
 				
 			return text.size();
 		}
-		/*
-		template<class xxString>
-		static size_t GetDlgItemText(xxString& text, const int IDC_XXX)
-		{
-		    text.resize(::GetWindowTextLength(::GetDlgItem(nullptr correct? , IDC_XXX)));
-		    if (text.size() > 0)
-		        ::GetDlgItemText(nullptr correct? , IDC_XXX, &text[0], text.size() + 1);
-		
-		    return text.size();
-		}
-		*/
 		template<class xxString, class xxComponent>
 		static size_t GetWindowText(xxString& text, const xxComponent& element)
 		{
@@ -1927,6 +1874,7 @@ class WinUtil
 			}
 			return text.size();
 		}
+		static bool GetDlgItemText(HWND p_Dlg, int p_ID, tstring& p_str);
 		
 		static tstring fromAtlString(const CAtlString& str)
 		{

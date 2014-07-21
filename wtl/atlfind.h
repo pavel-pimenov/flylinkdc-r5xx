@@ -860,27 +860,11 @@ public:
 				if((ovi.dwMajorVersion == 5 && ovi.dwMinorVersion >= 1) || (ovi.dwMajorVersion > 5))
 #endif // _versionhelpers_H_INCLUDED_
 				{
-					// We use DLLVERSIONINFO_private so we don't have to depend on shlwapi.h
-					typedef struct _DLLVERSIONINFO_private
+					DWORD dwMajor = 0, dwMinor = 0;
+					HRESULT hRet = ATL::AtlGetCommCtrlVersion(&dwMajor, &dwMinor);
+					if(SUCCEEDED(hRet))
 					{
-						DWORD cbSize;
-						DWORD dwMajorVersion;
-						DWORD dwMinorVersion;
-						DWORD dwBuildNumber;
-						DWORD dwPlatformID;
-					} DLLVERSIONINFO_private;
-
-					HMODULE hModule = ::LoadLibrary("comctl32.dll");
-					if(hModule != NULL)
-					{
-						typedef HRESULT (CALLBACK *LPFN_DllGetVersion)(DLLVERSIONINFO_private *);
-						LPFN_DllGetVersion fnDllGetVersion = (LPFN_DllGetVersion)::GetProcAddress(hModule, "DllGetVersion");
-						if(fnDllGetVersion != NULL)
-						{
-							DLLVERSIONINFO_private version = { sizeof(DLLVERSIONINFO_private) };
-							if(SUCCEEDED(fnDllGetVersion(&version)))
-							{
-								if(version.dwMajorVersion >= 6)
+						if(dwMajor >= 6)
 								{
 									pThisNoConst->m_bShadowBufferNeeded = TRUE;
 
@@ -889,11 +873,6 @@ public:
 								}
 							}
 						}
-
-						::FreeLibrary(hModule);
-						hModule = NULL;
-					}
-				}
 #endif // !_UNICODE
 			}
 		}

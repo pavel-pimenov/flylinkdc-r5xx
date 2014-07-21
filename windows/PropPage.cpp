@@ -25,13 +25,8 @@
 #include "../client/SettingsManager.h"
 #include "WinUtil.h"
 
-#define SETTING_STR_MAXLEN 1024
-
 void PropPage::read(HWND page, Item const* items, ListItem* listItems /* = NULL */, HWND list /* = 0 */)
 {
-#if DIM_EDIT_EXPERIMENT
-	CDimEdit *tempCtrl;
-#endif
 	dcassert(page != NULL);
 	
 	if (items != NULL) // [+] SSA
@@ -42,16 +37,6 @@ void PropPage::read(HWND page, Item const* items, ListItem* listItems /* = NULL 
 			switch (i->type)
 			{
 				case T_STR:
-#if DIM_EDIT_EXPERIMENT
-					tempCtrl = new CDimEdit;
-					if (tempCtrl)
-					{
-						tempCtrl->SubclassWindow(GetDlgItem(page, i->itemID));
-						tempCtrl->SetDimText(settings->get((SettingsManager::StrSetting)i->setting, true));
-						tempCtrl->SetDimColor(RGB(192, 192, 192));
-						ctrlMap[i->itemID] = tempCtrl;
-					}
-#endif
 					if (GetDlgItem(page, i->itemID) == NULL)
 					{
 						// Control not exist ? Why ??
@@ -129,33 +114,14 @@ void PropPage::write(HWND page, Item const* items, ListItem* listItems /* = NULL
 			{
 				case T_STR:
 				{
-					if (GetDlgItem(page, i->itemID) == NULL)
-					{
-						// Control not exist ? Why ??
-						throw;
-					}
-					buf.resize(SETTING_STR_MAXLEN);
-					buf.resize(::GetDlgItemText(page, i->itemID, &buf[0], SETTING_STR_MAXLEN));
+					WinUtil::GetDlgItemText(page, i->itemID, buf);
 					l_showUserWarning |= settings->set((SettingsManager::StrSetting)i->setting, Text::fromT(buf));// [!] IRainman
-#if DIM_EDIT_EXPERIMENT
-					if (ctrlMap[i->itemID])
-					{
-						safe_unsubclass_window(ctrlMap[i->itemID]);
-						delete ctrlMap[i->itemID];
-						ctrlMap.erase(i->itemID);
-					}
-#endif
+					// Crash https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=78416
 					break;
 				}
 				case T_INT:
 				{
-					if (GetDlgItem(page, i->itemID) == NULL)
-					{
-						// Control not exist ? Why ??
-						throw;
-					}
-					buf.resize(SETTING_STR_MAXLEN);
-					buf.resize(::GetDlgItemText(page, i->itemID, &buf[0], SETTING_STR_MAXLEN));
+					WinUtil::GetDlgItemText(page, i->itemID, buf);
 					l_showUserWarning |= settings->set((SettingsManager::IntSetting)i->setting, Util::toInt(buf));// [!] IRainman
 					break;
 				}
@@ -164,6 +130,7 @@ void PropPage::write(HWND page, Item const* items, ListItem* listItems /* = NULL
 					if (GetDlgItem(page, i->itemID) == NULL)
 					{
 						// Control not exist ? Why ??
+						dcassert(0);
 						throw;
 					}
 					if (::IsDlgButtonChecked(page, i->itemID) == BST_CHECKED)
@@ -173,7 +140,7 @@ void PropPage::write(HWND page, Item const* items, ListItem* listItems /* = NULL
 					break;
 				}
 				case T_END:
-					dcassert(false);
+					dcassert(0);
 					break;
 			}
 		}

@@ -47,15 +47,19 @@ class SocketException : public Exception
 	public:
 #ifdef _DEBUG
 	SocketException(const string& aError) noexcept :
-		Exception("SocketException: " + aError) { }
+		Exception("SocketException: " + aError), m_error_code(0) { }
 #else //_DEBUG
 	SocketException(const string& aError) noexcept :
-		Exception(aError) { }
+		Exception(aError), m_error_code(0) { }
 #endif // _DEBUG
-		
-		SocketException(int aError) noexcept;
+		SocketException(DWORD aError) noexcept;
+		DWORD getErrorCode() const
+		{
+			return m_error_code;
+		}
 	private:
 		static string errorToString(int aError) noexcept;
+		DWORD m_error_code;
 };
 
 class ServerSocket;

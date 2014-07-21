@@ -633,7 +633,7 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 				}
 				
 				// Draw the background and border of the bar
-				if (ii->size == 0) ii->size = 1;
+				if (ii->m_size == 0) ii->m_size = 1;
 				
 				if (useODCstyle || useStealthyStyle)
 				{
@@ -674,9 +674,9 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 							::ExtTextOut(dc, rc2.left, top, ETO_CLIPPED, rc2, l_stat.c_str(), l_stat.length(), NULL);
 						}
 						
-						rc.right = rc.left + (int)(((int64_t)rc.Width()) * ii->actual / ii->size);
+						rc.right = rc.left + (int)(((int64_t)rc.Width()) * ii->m_actual / ii->m_size);
 						
-						if (ii->pos != 0)
+						if (ii->m_pos != 0)
 							rc.bottom -= 1;
 							
 						rc.top += 1;
@@ -715,22 +715,22 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 				// Draw the background and border of the bar
 				if (!useODCstyle && !useStealthyStyle)
 				{
-					CBarShader statusBar(rc.bottom - rc.top, rc.right - rc.left, SETTING(PROGRESS_BACK_COLOR), ii->size);
+					CBarShader statusBar(rc.bottom - rc.top, rc.right - rc.left, SETTING(PROGRESS_BACK_COLOR), ii->m_size);
 					
-					rc.right = rc.left + (int)(rc.Width() * ii->pos / ii->size);
+					rc.right = rc.left + (int)(rc.Width() * ii->m_pos / ii->m_size);
 					if (!ii->download)
 					{
-						statusBar.FillRange(0, ii->actual, HLS_TRANSFORM(clr, -20, 30));
-						statusBar.FillRange(ii->actual, ii->actual,  clr);
+						statusBar.FillRange(0, ii->m_actual, HLS_TRANSFORM(clr, -20, 30));
+						statusBar.FillRange(ii->m_actual, ii->m_actual,  clr);
 					}
 					else
 					{
-						statusBar.FillRange(0, ii->actual, clr);
+						statusBar.FillRange(0, ii->m_actual, clr);
 						if (ii->parent)
-							statusBar.FillRange(ii->actual, ii->actual, SETTING(PROGRESS_SEGMENT_COLOR));
+							statusBar.FillRange(ii->m_actual, ii->m_actual, SETTING(PROGRESS_SEGMENT_COLOR));
 					}
-					if (ii->pos > ii->actual)
-						statusBar.FillRange(ii->actual, ii->pos, SETTING(PROGRESS_COMPRESS_COLOR));
+					if (ii->m_pos > ii->m_actual)
+						statusBar.FillRange(ii->m_actual, ii->m_pos, SETTING(PROGRESS_COMPRESS_COLOR));
 						
 					statusBar.Draw(cdc, rc.top, rc.left, SETTING(PROGRESS_3DDEPTH));
 				}
@@ -738,7 +738,7 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 				{
 					if (!useStealthyStyle)
 					{
-						int right = rc.left + (int)((int64_t)rc.Width() * ii->actual / ii->size);
+						int right = rc.left + (int)((int64_t)rc.Width() * ii->m_actual / ii->m_size);
 						COLORREF a, b;
 						OperaColors::EnlightenFlood(clr, a, b);
 						OperaColors::FloodFill(cdc, rc.left + 1, rc.top + 1, right, rc.bottom - 1, a, b, BOOLSETTING(PROGRESSBAR_ODC_BUMPED));
@@ -958,7 +958,7 @@ LRESULT TransferView::onDoubleClickTransfers(int /*idCtrl*/, LPNMHDR pnmh, BOOL&
 					i->addFav();
 					break;
 				case 5: // !SMT!-UI
-					i->statusString = TSTRING(CONNECTING_FORCED);
+					i->m_statusString = TSTRING(CONNECTING_FORCED);
 					ctrlTransfers.updateItem(i);
 					ClientManager::getInstance()->connect(i->m_hintedUser, Util::toString(Util::rand())); // [!] IRainman fix.
 					break;
@@ -994,11 +994,11 @@ int TransferView::ItemInfo::compareItems(const ItemInfo* a, const ItemInfo* b, u
 		case COLUMN_STATUS:
 			return compare(a->getProgressPosition(), b->getProgressPosition());
 		case COLUMN_TIMELEFT:
-			return compare(a->timeLeft, b->timeLeft);
+			return compare(a->m_timeLeft, b->m_timeLeft);
 		case COLUMN_SPEED:
 			return compare(a->m_speed, b->m_speed);
 		case COLUMN_SIZE:
-			return compare(a->size, b->size);
+			return compare(a->m_size, b->m_size);
 #ifdef PPA_INCLUDE_COLUMN_RATIO
 			//case COLUMN_RATIO:
 			//  return compare(a->getRatio(), b->getRatio());
@@ -1057,7 +1057,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 			case TRANSFER_ADD_ITEM:
 			{
 				auto &ui = static_cast<UpdateInfo&>(*i->second);
-				ItemInfo* ii = new ItemInfo(ui.hintedUser, ui.download);
+				ItemInfo* ii = new ItemInfo(ui.m_hintedUser, ui.download);
 				ii->update(ui);
 				if (ii->download)
 				{
@@ -1158,14 +1158,14 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 				if (!pp)
 					break;
 					
-				if (ui.hintedUser.user)
+				if (ui.m_hintedUser.user)
 				{
 					int pos = -1;
 					ItemInfo* ii = findItem(ui, pos);
 					if (ii)
 					{
 						ii->m_status = ui.status;
-						ii->statusString = ui.statusString;
+						ii->m_statusString = ui.statusString;
 						
 						if (!pp->parent->collapsed)
 						{
@@ -1217,20 +1217,20 @@ void TransferView::ItemInfo::update(const UpdateInfo& ui)
 	{
 		// No slots etc from transfermanager better than disconnected from connectionmanager
 		if (!transferFailed)
-			statusString = ui.statusString;
+			m_statusString = ui.statusString;
 		transferFailed = ui.transferFailed;
 	}
 	if (ui.updateMask & UpdateInfo::MASK_SIZE)
 	{
-		size = ui.size;
+		m_size = ui.size;
 	}
 	if (ui.updateMask & UpdateInfo::MASK_POS)
 	{
-		pos = ui.pos;
+		m_pos = ui.pos;
 	}
 	if (ui.updateMask & UpdateInfo::MASK_ACTUAL)
 	{
-		actual = ui.actual;
+		m_actual = ui.actual;
 		//[-]PPA        columns[COLUMN_RATIO] = Util::toStringW(getRatio());
 		//[?]       columns[COLUMN_SHARE] = Util::formatBytesW(ui.user->getBytesShared());
 	}
@@ -1241,11 +1241,11 @@ void TransferView::ItemInfo::update(const UpdateInfo& ui)
 	if (ui.updateMask & UpdateInfo::MASK_FILE)
 	{
 		m_target = ui.m_target;
-		m_isFilelist = ui.m_isFilelist;
+		m_is_file_list = ui.m_is_file_list;
 	}
 	if (ui.updateMask & UpdateInfo::MASK_TIMELEFT)
 	{
-		timeLeft = ui.timeLeft;
+		m_timeLeft = ui.timeLeft;
 	}
 	if (ui.updateMask & UpdateInfo::MASK_IP)
 	{
@@ -1255,7 +1255,7 @@ void TransferView::ItemInfo::update(const UpdateInfo& ui)
 		{
 			m_ip = ui.m_ip;
 #ifdef PPA_INCLUDE_COLUMN_RATIO
-			m_ratio_as_text = ui.hintedUser.user->getUDratio();// [+] brain-ripper
+			m_ratio_as_text = ui.m_hintedUser.user->getUDratio();// [+] brain-ripper
 #endif
 #ifdef PPA_INCLUDE_DNS
 			columns[COLUMN_DNS] = ui.dns; // !SMT!-IP
@@ -1264,12 +1264,20 @@ void TransferView::ItemInfo::update(const UpdateInfo& ui)
 	}
 	if (ui.updateMask & UpdateInfo::MASK_CIPHER)
 	{
-		dcassert(cipher.empty()); // [+] IRainman fix: if cipher is set already, not try to set twice. Cipher can not change during a single connection.
-		cipher = ui.m_cipher;
+		dcassert(m_cipher.empty()); // [+] IRainman fix: if cipher is set already, not try to set twice. Cipher can not change during a single connection.
+		m_cipher = ui.m_cipher;
 	}
 	if (ui.updateMask & UpdateInfo::MASK_SEGMENT)
 	{
 		running = ui.running;
+	}
+	if (ui.updateMask & UpdateInfo::MASK_USER)
+	{
+		if (!m_hintedUser.isEQU(ui.m_hintedUser))
+		{
+			m_hintedUser = ui.m_hintedUser;
+			update_nicks();
+		}
 	}
 }
 
@@ -1315,6 +1323,10 @@ void TransferView::updateItem(int ii, uint32_t updateMask)
 	if (updateMask & UpdateInfo::MASK_CIPHER)
 	{
 		ctrlTransfers.updateItem(ii, COLUMN_CIPHER);
+	}
+	if (updateMask & UpdateInfo::MASK_USER)
+	{
+		ctrlTransfers.updateItem(ii, COLUMN_USER);
 	}
 }
 
@@ -1367,7 +1379,7 @@ void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueIt
 {
 	UpdateInfo* ui = new UpdateInfo(aCqi->getUser(), aCqi->isDownload()); // [!] IRainman fix.
 #ifdef PPA_INCLUDE_IPFILTER
-	if (ui->hintedUser.user->isSet(User::PG_BLOCK))
+	if (ui->m_hintedUser.user->isSet(User::PG_BLOCK))
 	{
 		ui->setStatusString(TSTRING(CONNECTION_BLOCKED) + _T(" [IPTrust.ini]"));
 	}
@@ -1405,19 +1417,19 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 	switch (col)
 	{
 		case COLUMN_USER:
-			return hits == -1 ? m_niks : (Util::toStringW(hits) + _T(' ') + TSTRING(USERS));
+			return hits == -1 ? m_nicks : (Util::toStringW(hits) + _T(' ') + TSTRING(USERS));
 		case COLUMN_HUB:
 			return hits == -1 ? m_hubs : (Util::toStringW(running) + _T(' ') + TSTRING(NUMBER_OF_SEGMENTS));
 		case COLUMN_STATUS:
-			return statusString;
+			return m_statusString;
 		case COLUMN_TIMELEFT:
-			return m_status == STATUS_RUNNING ? Util::formatSecondsW(timeLeft) : Util::emptyStringT;
+			return m_status == STATUS_RUNNING ? Util::formatSecondsW(m_timeLeft) : Util::emptyStringT;
 		case COLUMN_SPEED:
 			return m_status == STATUS_RUNNING ? (Util::formatBytesW(m_speed) + _T('/') + WSTRING(S)) : Util::emptyStringT;
 		case COLUMN_FILE:
 			return getFile(m_type, Util::getFileName(m_target)); // TODO: opt me please.
 		case COLUMN_SIZE:
-			return Util::formatBytesW(size); // TODO: opt me please.
+			return Util::formatBytesW(m_size); // TODO: opt me please.
 		case COLUMN_PATH:
 			return Util::getFilePath(m_target); // TODO: opt me please.
 		case COLUMN_IP:
@@ -1429,7 +1441,7 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 			return m_ratio_as_text;
 #endif
 		case COLUMN_CIPHER:
-			return cipher;
+			return m_cipher; // + _T(" [Token: ") + Text::toT(this->m_transfer_item_token) + _T("]");
 		case COLUMN_SHARE:
 			return m_hintedUser.user ? Util::formatBytesW(m_hintedUser.user->getBytesShared()) : Util::emptyStringT;
 		case COLUMN_SLOTS:
@@ -1457,17 +1469,23 @@ void TransferView::starting(UpdateInfo* ui, const Transfer* t)
 	ui->setIP(t->getIP());
 }
 
-void TransferView::on(DownloadManagerListener::Requesting, const Download* d) noexcept
+void TransferView::on(DownloadManagerListener::Requesting, const Download* aDownload) noexcept
 {
-	UpdateInfo* ui = new UpdateInfo(d->getHintedUser(), true); // [!] IRainman fix.
+#ifdef _DEBUG
+	LogManager::getInstance()->message("Requesting " + aDownload->getUserConnectionToken());
+#endif
+	UpdateInfo* ui = new UpdateInfo(aDownload->getHintedUser(), true); // [!] IRainman fix.
+	// TODO - AirDC++
+	// if (hubChanged)
+	//  ui->setUser(d->getHintedUser());
 	
-	starting(ui, d);
+	starting(ui, aDownload);
 	
-	ui->setActual(d->getActual());
-	ui->setSize(d->getSize());
+	ui->setActual(aDownload->getActual());
+	ui->setSize(aDownload->getSize());
 	ui->setStatus(ItemInfo::STATUS_RUNNING);
 	ui->updateMask &= ~UpdateInfo::MASK_STATUS; // hack to avoid changing item status
-	ui->setStatusString(TSTRING(REQUESTING) + _T(' ') + getFile(d->getType(), Text::toT(Util::getFileName(d->getPath()))) + _T("..."));
+	ui->setStatusString(TSTRING(REQUESTING) + _T(' ') + getFile(aDownload->getType(), Text::toT(Util::getFileName(aDownload->getPath()))) + _T("..."));
 	
 	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
@@ -1571,7 +1589,7 @@ void TransferView::on(DownloadManagerListener::Failed, const Download* aDownload
 	
 	SHOW_POPUPF(POPUP_DOWNLOAD_FAILED,
 	            TSTRING(FILE) + _T(": ") + Util::getFileName(ui->m_target) + _T('\n') +
-	            TSTRING(USER) + _T(": ") + WinUtil::getNicks(ui->hintedUser) + _T('\n') +
+	            TSTRING(USER) + _T(": ") + WinUtil::getNicks(ui->m_hintedUser) + _T('\n') +
 	            TSTRING(REASON) + _T(": ") + tmpReason, TSTRING(DOWNLOAD_FAILED) + _T(' '), NIIF_WARNING);
 	            
 	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
@@ -1673,6 +1691,9 @@ void TransferView::on(UploadManagerListener::Tick, const UploadList& ul, uint64_
 
 void TransferView::onTransferComplete(const Transfer* aTransfer, const bool download, const string& aFileName, const bool isTree)
 {
+#ifdef _DEBUG
+	LogManager::getInstance()->message("Transfer complete " + aTransfer->getUserConnectionToken());
+#endif
 	UpdateInfo* ui = new UpdateInfo(aTransfer->getHintedUser(), download); // [!] IRainman fix.
 	
 	ui->setStatus(ItemInfo::STATUS_WAITING);
@@ -1713,7 +1734,7 @@ LRESULT TransferView::onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hW
 		{
 			startMediaPreview(wID, target
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
-			                  , ii->size
+			                  , ii->m_size
 #endif
 			                 );
 		}
@@ -1977,9 +1998,9 @@ LRESULT TransferView::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, B
 			if (wID == IDC_COPY_TTH)
 				l_sdata = Text::toT(l_tth.toBase32());
 			else if (wID == IDC_COPY_LINK)
-				l_sdata = Text::toT(Util::getMagnet(l_tth, Text::fromT(Util::getFileName(l_ii->m_target)), l_ii->size));
+				l_sdata = Text::toT(Util::getMagnet(l_tth, Text::fromT(Util::getFileName(l_ii->m_target)), l_ii->m_size));
 			else if (wID == IDC_COPY_WMLINK)
-				l_sdata = Text::toT(Util::getWebMagnet(l_tth, Text::fromT(Util::getFileName(l_ii->m_target)), l_ii->size));
+				l_sdata = Text::toT(Util::getWebMagnet(l_tth, Text::fromT(Util::getFileName(l_ii->m_target)), l_ii->m_size));
 			else
 				l_sdata = l_ii->getText(columnId);
 				

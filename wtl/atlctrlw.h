@@ -1422,9 +1422,9 @@ public:
 
 	LRESULT OnSettingChange(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 	{
-#ifndef SPI_GETKEYBOARDCUES
+#ifndef SPI_SETKEYBOARDCUES
 		const UINT SPI_SETKEYBOARDCUES = 0x100B;
-#endif // !SPI_GETKEYBOARDCUES
+#endif // !SPI_SETKEYBOARDCUES
 #ifndef SPI_GETFLATMENU
 		const UINT SPI_SETFLATMENU = 0x1023;
 #endif // !SPI_GETFLATMENU
@@ -4103,7 +4103,7 @@ public:
 #ifndef _WTL_NO_AUTO_THEME
 		if(m_hTheme != NULL)
 		{
-#ifndef TMSCHEMA_H
+#if !defined(TMSCHEMA_H) && !defined(__VSSYM32_H__)
 			const int WP_MDICLOSEBUTTON = 20;
 			const int CBS_NORMAL = 1;
 			const int CBS_PUSHED = 3;
@@ -4116,7 +4116,7 @@ public:
 			const int MINBS_NORMAL = 1;
 			const int MINBS_PUSHED = 3;
 			const int MINBS_DISABLED = 4;
-#endif // TMSCHEMA_H
+#endif // !defined(TMSCHEMA_H) && !defined(__VSSYM32_H__)
 			if(nBtn == -1 || nBtn == 0)
 				m_pfnDrawThemeBackground(m_hTheme, dc, WP_MDICLOSEBUTTON, m_bParentActive ? ((m_nBtnPressed == 0) ? CBS_PUSHED : CBS_NORMAL) : CBS_DISABLED, &pRects[0], NULL);
 			if(nBtn == -1 || nBtn == 1)

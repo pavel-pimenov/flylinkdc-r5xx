@@ -128,10 +128,7 @@ int64_t	AutoUpdate::checkFilesToNeedsUpdate(AutoUpdateFiles& p_files4Update, Aut
 	int64_t l_local_totalSize = 0;
 	for (auto i = p_modules.cbegin(); i != p_modules.cend(); ++i)
 					{
-						if (
-#ifdef FLYLINKDC_HE
-							i->m_iSetting != SettingsManager::INT_LAST &&
-#endif
+						if (i->m_iSetting != SettingsManager::INT_LAST &&
 							SettingsManager::getInstance()->getBool(i->m_iSetting, true))
 			{
 							for (auto j = i->m_Files.cbegin(); j != i->m_Files.cend(); ++j)
@@ -344,7 +341,7 @@ void AutoUpdate::startUpdateThisThread()
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
 					+ l_files4UpdateInAllUsersSettings.size()
 #endif
-					) + ' ' + STRING(FILES2) + "). ";
+					) + ' ' + STRING(FILES) + "). ";
 				message(l_message);
 
 				const bool l_userAsk = BOOLSETTING(AUTOUPDATE_SHOWUPDATEREADY) || m_manualUpdate;
@@ -577,11 +574,7 @@ SettingsManager::IntSetting AutoUpdate::getSettingByTitle(const string& wTitle)
 	if (wTitle == "chatbot")
 	    return SettingsManager::AUTOUPDATE_UPDATE_CHATBOT;
 	*/
-#ifdef FLYLINKDC_HE
 	return SettingsManager::INT_LAST;
-#else
-	return SettingsManager::AUTOUPDATE_UPDATE_UNKNOWN;
-#endif
 }
 
 bool AutoUpdate::needUpdateFile(const AutoUpdateFile& p_file, const string& p_outputFolder)

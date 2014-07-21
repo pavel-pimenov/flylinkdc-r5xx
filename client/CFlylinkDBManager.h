@@ -172,6 +172,25 @@ struct CFlyRegistryValue
 		return Text::toT(m_val_str);
 	}
 };
+struct CFlyBaseDirItem
+{
+	string m_synonym;
+	int64_t m_path_id;
+	CFlyBaseDirItem(): m_path_id(0)
+	{
+	}
+	CFlyBaseDirItem(const string& p_synonym, int64_t p_path_id): m_synonym(p_synonym), m_path_id(p_path_id)
+	{
+	}
+};
+struct CFlyDirItem : public CFlyBaseDirItem
+{
+	string m_path;
+	CFlyDirItem(const string& p_synonym, const string& p_path, int64_t p_path_id): CFlyBaseDirItem(p_synonym, p_path_id), m_path(p_path)
+	{
+	}
+};
+typedef std::vector<CFlyDirItem> CFlyDirItemArray;
 typedef boost::unordered_map<string, CFlyRegistryValue> CFlyRegistryMap;
 typedef boost::unordered_map<string, CFlyPathItem> CFlyPathCache;
 class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
@@ -181,7 +200,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		~CFlylinkDBManager();
 		void shutdown();
 		void push_download_tth(const TTHValue& p_tth);
-		void push_add_share_tth_(const TTHValue& p_tth);
+		void push_add_share_tth(const TTHValue& p_tth);
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		void store_all_ratio_and_last_ip(uint32_t p_hub_id,
 		                                 const string& p_nick,
@@ -200,6 +219,10 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 	private:
 		void update_last_ip_deferredL(uint32_t p_hub_id, const string& p_nick, uint32_t p_message_count, const boost::asio::ip::address_v4& p_last_ip);
 		void flush_all_last_ip_and_message_count();
+		__int64 add_treeL(const TigerTree& p_tt);
+		__int64 get_path_idL(string p_path, bool p_create, bool p_case_convet, bool& p_is_no_mediainfo, bool p_sweep_path);
+		__int64 find_path_idL(const string& p_path);
+		__int64 create_path_idL(const string& p_path, bool p_is_skip_dup_val_index);
 	public:
 		CFlyGlobalRatioItem  m_global_ratio;
 		double get_ratio() const;
@@ -221,12 +244,21 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		bool getTree(const TTHValue& p_root, TigerTree& p_tt);
 		unsigned __int64 getBlockSizeSQL(const TTHValue& p_root, __int64 p_size);
 		__int64 get_path_id(string p_path, bool p_create, bool p_case_convet, bool& p_is_no_mediainfo, bool p_sweep_path);
-		__int64 addTree(const TigerTree& tt);
-		bool findTTH(const string& aPath, const string& aFileName, TTHValue& p_tth);
+		bool findTTH(const string& aPath, const string& aFileName, TTHValue& p_tth, __int64& p_path_id);
 		
+		void addTree(const TigerTree& p_tt);
 		__int64 merge_file(const string& p_path, const string& p_file_name, const int64_t p_time_stamp,
 		                   const TigerTree& p_tt, bool p_case_convet,
 		                   __int64& p_path_id);
+	private:
+		void prepare_scan_folderL(const tstring& p_path);
+		bool merge_mediainfoL(const __int64 p_tth_id, const __int64 p_path_id, const string& p_file_name, const CFlyMediaInfo& p_media);
+		__int64 merge_fileL(const string& p_path, const string& p_file_name, const int64_t p_time_stamp,
+		                    const TigerTree& p_tt, bool p_case_convet,
+		                    __int64& p_path_id);
+	public:
+		void flush_hash();
+		
 		bool merge_mediainfo(const __int64 p_tth_id, const __int64 p_path_id, const string& p_file_name, const CFlyMediaInfo& p_media);
 #ifdef USE_REBUILD_MEDIAINFO
 		bool rebuild_mediainfo(const __int64 p_path_id, const string& p_file_name, const CFlyMediaInfo& p_media, const TTHValue& p_tth);
@@ -235,7 +267,13 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		
 		void incHit(const string& p_Path, const string& p_FileName);
 		bool checkTTH(const string& fname, __int64 path_id, int64_t aSize, int64_t aTimeStamp, TTHValue& p_out_tth);
-		void LoadPathCache();
+		void load_path_cache();
+		void scan_path(CFlyDirItemArray& p_directories);
+		size_t get_count_folders()
+		{
+			Lock l(m_cs);
+			return m_path_cache.size();
+		}
 		void SweepPath();
 		void LoadDir(__int64 p_path_id, CFlyDirMap& p_dir_map, bool p_is_no_mediainfo);
 #ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
@@ -246,7 +284,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif // FLYLINKDC_LOG_IN_SQLITE_BASE
 		size_t load_queue();
 		void addSource(const QueueItemPtr& p_QueueItem, const CID& p_cid, const string& p_nick/*, const string& p_hub_hint*/);
-		bool merge_queue_item(QueueItemPtr& p_QueueItem);
+		bool merge_queue_itemL(QueueItemPtr& p_QueueItem);
 		void remove_queue_item(const __int64 p_id);
 		void load_ignore(StringSet& p_ignores);
 		void save_ignore(const StringSet& p_ignores);
@@ -261,6 +299,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		bool find_fly_server_cache(const TTHValue& p_tth, CFlyServerCache& p_value);
 		void save_fly_server_cache(const TTHValue& p_tth, const CFlyServerCache& p_value);
 #endif
+		void add_file(__int64 p_path_id, const string& p_file_name, int64_t p_time_stamp, const TigerTree& p_tth, int64_t p_size, CFlyMediaInfo& p_out_media);
 #ifdef STRONG_USE_DHT
 		void save_dht_nodes(const std::vector<dht::BootstrapNode>& p_dht_nodes);
 		bool load_dht_nodes(std::vector<dht::BootstrapNode>& p_dht_nodes);
@@ -350,10 +389,13 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		// If two threads share such an object, they must protect access to it using their own locking protocol.
 		// More details are available in the public header files.
 		sqlite3_connection m_flySQLiteDB;
+		boost::unordered_map<string, CFlyHashCacheItem> m_cache_hash_files;
 		
 #ifdef FLYLINKDC_USE_LEVELDB
 		// FastCriticalSection    m_leveldb_cs;
 		CFlyLevelDB        m_flyLevelDB;
+#else
+		auto_ptr<sqlite3_command> m_get_status_file;
 #endif // FLYLINKDC_USE_LEVELDB
 		
 		CFlyPathCache m_path_cache;
@@ -406,7 +448,8 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		//auto_ptr<sqlite3_command> m_insert_store_ip_and_message_count;
 		auto_ptr<sqlite3_command> m_insert_store_all_ip_and_message_count;
 		
-		auto_ptr<sqlite3_command> m_ins_fly_hash_block;
+		auto_ptr<sqlite3_command> m_insert_fly_hash_block;
+		auto_ptr<sqlite3_command> m_update_fly_hash_block;
 		auto_ptr<sqlite3_command> m_insert_file;
 		auto_ptr<sqlite3_command> m_update_file;
 		auto_ptr<sqlite3_command> m_check_tth_sql;
@@ -415,18 +458,15 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		auto_ptr<sqlite3_command> m_set_ftype;
 		auto_ptr<sqlite3_command> m_load_path_cache;
 		auto_ptr<sqlite3_command> m_sweep_dir_sql;
-		auto_ptr<sqlite3_command> m_sweep_path;
 		auto_ptr<sqlite3_command> m_sweep_path_file;
 		auto_ptr<sqlite3_command> m_get_path_id;
 		auto_ptr<sqlite3_command> m_get_tth_id;
 		auto_ptr<sqlite3_command> m_findTTH;
-		auto_ptr<sqlite3_command> m_get_status_file;
 		auto_ptr<sqlite3_command> m_upload_file;
 		auto_ptr<sqlite3_command> m_get_tree;
 		auto_ptr<sqlite3_command> m_get_blocksize;  // [+] brain-ripper
 		auto_ptr<sqlite3_command> m_insert_fly_hash;
 		auto_ptr<sqlite3_command> m_insert_fly_path;
-		auto_ptr<sqlite3_command> m_insert_fly_tth;
 		auto_ptr<sqlite3_command> m_insert_fly_queue;
 		auto_ptr<sqlite3_command> m_insert_fly_queue_source;
 		auto_ptr<sqlite3_command> m_del_fly_queue;
@@ -502,7 +542,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void pragma_executor(const char* p_pragma);
 		void updateFileInfo(const string& p_fname, __int64 p_path_id,
 		                    int64_t p_Size, int64_t p_TimeStamp, __int64 p_tth_id);
-		__int64 get_tth_idL(const TTHValue& p_tth, bool p_create);
+		__int64 get_tth_idL(const TTHValue& p_tth);
 		
 		__int64 m_queue_id;
 		__int64 m_last_path_id;

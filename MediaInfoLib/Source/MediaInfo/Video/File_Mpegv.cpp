@@ -1293,6 +1293,8 @@ void File_Mpegv::Streams_Fill()
                 Fill(Stream_Video, 0, Video_ScanOrder, Interlaced_Top?"TFF":"BFF");
                 Fill(Stream_Video, 0, Video_Interlacement, Interlaced_Top?"TFF":"BFF");
             }
+            if (!(PictureStructure_Field && PictureStructure_Frame) && !(!PictureStructure_Field && !PictureStructure_Frame))
+                Fill(Stream_Video, 0, Video_Format_Settings_PictureStructure, PictureStructure_Field?"Field":"Frame");
         }
         std::string TempRef;
         for (size_t Pos=0; Pos<TemporalReference.size(); Pos++)
@@ -1366,9 +1368,9 @@ void File_Mpegv::Streams_Fill()
         Fill(Stream_Video, 0, Video_Encoded_Library, Library);
         Fill(Stream_Video, 0, Video_Encoded_Library_Name, Library_Name);
         Fill(Stream_Video, 0, Video_Encoded_Library_Version, Library_Version);
-        Fill(Stream_Video, 0, General_Encoded_Library, Library);
-        Fill(Stream_Video, 0, General_Encoded_Library_Name, Library_Name);
-        Fill(Stream_Video, 0, General_Encoded_Library_Version, Library_Version);
+        Fill(Stream_General, 0, General_Encoded_Library, Library);
+        Fill(Stream_General, 0, General_Encoded_Library_Name, Library_Name);
+        Fill(Stream_General, 0, General_Encoded_Library_Version, Library_Version);
     }
 
     //Delay
@@ -1700,6 +1702,8 @@ void File_Mpegv::Synched_Init()
     progressive_frame_Count=0;
     Interlaced_Top=0;
     Interlaced_Bottom=0;
+    PictureStructure_Field=0;
+    PictureStructure_Frame=0;
     display_horizontal_size=0;
     display_vertical_size=0;
     vbv_delay=0;
@@ -2489,7 +2493,8 @@ void File_Mpegv::slice_start()
         if (PTS_LastIFrame!=(int64u)-1)
         {
             FrameInfo.PTS=PTS_LastIFrame+(temporal_reference-temporal_reference_LastIFrame)*tc;
-            if (PTS_Begin==(int64u)-1 && picture_coding_type==1) //IFrame
+            if ((PTS_Begin==(int64u)-1 && picture_coding_type==1) //IFrame
+             || (IFrame_Count<2 && group_start_IsParsed && group_start_closed_gop && FrameInfo.PTS<PTS_Begin))
                 PTS_Begin=FrameInfo.PTS;
         }
 
@@ -3806,6 +3811,7 @@ void File_Mpegv::extension_start()
                                 Interlaced_Top++;
                             else
                                 Interlaced_Bottom++;
+                            PictureStructure_Frame++;
                             FirstFieldFound=false;
                             if (TemporalReference_Offset+temporal_reference>=TemporalReference.size())
                                 TemporalReference.resize(TemporalReference_Offset+temporal_reference+1);
@@ -3828,6 +3834,7 @@ void File_Mpegv::extension_start()
                                     Interlaced_Bottom++;
                             }
                             FirstFieldFound=!FirstFieldFound;
+                            PictureStructure_Field++;
                         }
                     }
                     else
@@ -3837,6 +3844,7 @@ void File_Mpegv::extension_start()
                             Interlaced_Top++;
                         else
                             Interlaced_Bottom++;
+                        PictureStructure_Frame++;
                         if (picture_structure==3)           //Frame
                         {
                             if (TemporalReference_Offset+temporal_reference>=TemporalReference.size())

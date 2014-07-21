@@ -38,6 +38,11 @@ struct HintedUser
 		return user == rhs.user;
 		// ignore the hint, we don't want lists with multiple instances of the same user...
 	}
+	bool isEQU(const HintedUser& rhs) const
+	{
+		return hint == rhs.hint && user == rhs.user;
+		// ignore the hint, we don't want lists with multiple instances of the same user...
+	}
 	
 	operator UserPtr() const
 	{

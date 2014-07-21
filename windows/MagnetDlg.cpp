@@ -36,15 +36,15 @@ LRESULT MagnetDlg::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	{
 		SetDlgItemText(IDC_MAGNET_QUEUE, CTSTRING(MAGNET_DLG_QUEUE_DCLST));
 		// for Custom Themes Bitmap
-		img_m.LoadFromResource(IDR_DCLST, _T("PNG"));
+		mImg.LoadFromResource(IDR_DCLST, _T("PNG"));
 	}
 	else
 	{
 		SetDlgItemText(IDC_MAGNET_QUEUE, CTSTRING(MAGNET_DLG_QUEUE));
 		// for Custom Themes Bitmap
-		img_m.LoadFromResource(IDR_MAGNET_PNG, _T("PNG"));
+		mImg.LoadFromResource(IDR_MAGNET_PNG, _T("PNG"));
 	}
-	GetDlgItem(IDC_MAGNET_PIC).SendMessage(STM_SETIMAGE, IMAGE_BITMAP, LPARAM((HBITMAP)img_m));
+	GetDlgItem(IDC_MAGNET_PIC).SendMessage(STM_SETIMAGE, IMAGE_BITMAP, LPARAM((HBITMAP)mImg));
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 	SetDlgItemText(IDC_MAGNET_START_VIEW, CTSTRING(MAGNET_START_VIEW));
 #else
@@ -69,7 +69,7 @@ LRESULT MagnetDlg::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	SetDlgItemText(IDC_MAGNET_TEXT, CTSTRING(MAGNET_DLG_TEXT_GOOD));
 	
 	// file details
-	SetDlgItemText(IDC_MAGNET_DISP_HASH, mHash.c_str());
+	SetDlgItemText(IDC_MAGNET_DISP_HASH, Text::toT(mHash.toBase32()).c_str());
 	
 	// handling UTF8 input text
 	{
@@ -128,19 +128,18 @@ LRESULT MagnetDlg::onCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, 
 		}
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 		const bool viewMediaIfPossible = (IsDlgButtonChecked(IDC_MAGNET_QUEUE) == TRUE) && (IsDlgButtonChecked(IDC_MAGNET_START_VIEW) == TRUE);
-		const bool isViewMedia = viewMediaIfPossible ? Util::isStreamingVideoFile(mFileName) : false;
+		const bool isViewMedia = viewMediaIfPossible ? Util::isStreamingVideoFile(Text::fromT(mFileName)) : false;
 #endif
 		if (IsDlgButtonChecked(IDC_MAGNET_SEARCH))
 		{
-			TTHValue tmphash(Text::fromT(mHash));
-			WinUtil::searchHash(tmphash);
+			WinUtil::searchHash(mHash);
 		}
 		else if (IsDlgButtonChecked(IDC_MAGNET_QUEUE))
 		{
 			try
 			{
 				const string target = Text::fromT(mFileName);
-				QueueManager::getInstance()->add(target, mSize, TTHValue(Text::fromT(mHash)), HintedUser(UserPtr(), Util::emptyString),
+				QueueManager::getInstance()->add(target, mSize, mHash, HintedUser(UserPtr(), Util::emptyString),
 				                                 isDCLST() ? QueueItem::FLAG_DCLST_LIST : // [!] SSA - add dclst download
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 				                                 (isViewMedia ? QueueItem::FLAG_MEDIA_VIEW : 0)
@@ -159,7 +158,7 @@ LRESULT MagnetDlg::onCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, 
 			try
 			{
 				// [!] SSA
-				QueueManager::getInstance()->add(Text::fromT(mFileName), mSize, TTHValue(Text::fromT(mHash)), HintedUser(UserPtr(), Util::emptyString), isDCLST() ? (QueueItem::FLAG_CLIENT_VIEW | QueueItem::FLAG_DCLST_LIST) : QueueItem::FLAG_OPEN_FILE);
+				QueueManager::getInstance()->add(Text::fromT(mFileName), mSize, mHash, HintedUser(UserPtr(), Util::emptyString), isDCLST() ? (QueueItem::FLAG_CLIENT_VIEW | QueueItem::FLAG_DCLST_LIST) : QueueItem::FLAG_OPEN_FILE);
 			}
 			catch (const Exception& e)
 			{

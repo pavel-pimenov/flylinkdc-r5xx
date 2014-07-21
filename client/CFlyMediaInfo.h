@@ -140,4 +140,19 @@ class CFlyMediaInfo
 			}
 		}
 };
+
+struct CFlyHashCacheItem
+{
+	__int64 m_path_id;
+	int64_t m_size;
+	int64_t m_time_stamp;
+	TigerTree m_tth;
+	CFlyMediaInfo m_out_media;
+	CFlyHashCacheItem(__int64 p_path_id, int64_t p_time_stamp, const TigerTree& p_tth, int64_t p_size, CFlyMediaInfo& p_out_media)
+		: m_path_id(p_path_id), m_time_stamp(p_time_stamp), m_tth(p_tth), m_size(p_size), m_out_media(p_out_media)
+	{
+	}
+};
+
+
 #endif

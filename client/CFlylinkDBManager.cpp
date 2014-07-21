@@ -89,7 +89,7 @@ int gf_busy_handler(void *p_params, int p_tryes)
 //========================================================================================================
 static void gf_trace_callback(void* p_udp, const char* p_sql)
 {
-	if (BOOLSETTING(LOG_SQLITE_TRACE))
+	if (BOOLSETTING(LOG_SQLITE_TRACE) || g_EnableSQLtrace)
 	{
 		StringMap params;
 		params["sql"] = p_sql;
@@ -219,7 +219,7 @@ CFlylinkDBManager::CFlylinkDBManager()
 				// Пример реализации обработчика -
 				// https://github.com/iso9660/linux-sdk/blob/d819f98a72776fced31131b1bc22a4bcb4c492bb/SDKLinux/LFC/Data/sqlite3db.cpp
 				// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=17660
-				if (g_EnableSQLtrace)
+				if (BOOLSETTING(LOG_SQLITE_TRACE) || g_EnableSQLtrace)
 				{
 					sqlite3_trace(m_flySQLiteDB.get_db(), gf_trace_callback, NULL);
 					// sqlite3_profile(m_flySQLiteDB.get_db(), profile_callback, NULL);
@@ -324,10 +324,6 @@ CFlylinkDBManager::CFlylinkDBManager()
 		m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS media_db.iu_fly_media_param ON fly_media(tth_id,stream_type,channel,param);");
 		
 		m_flySQLiteDB.executenonquery("create table IF NOT EXISTS fly_revision(rev integer NOT NULL);");
-		m_flySQLiteDB.executenonquery("create table IF NOT EXISTS fly_tth(\n"
-		                              "tth char(24) PRIMARY KEY NOT NULL);");
-		m_flySQLiteDB.executenonquery("create table IF NOT EXISTS fly_hash(\n"
-		                              "id integer PRIMARY KEY AUTOINCREMENT NOT NULL, tth char(24) NOT NULL UNIQUE);");
 		m_flySQLiteDB.executenonquery(
 		    "CREATE TABLE IF NOT EXISTS fly_file(dic_path integer not null,\n"
 		    "name text not null,\n"
@@ -350,7 +346,34 @@ CFlylinkDBManager::CFlylinkDBManager()
 		// m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS i_fly_file_dic_path ON fly_file(dic_path);");
 		m_flySQLiteDB.executenonquery(
 		    "CREATE TABLE IF NOT EXISTS fly_hash_block(tth_id integer PRIMARY KEY NOT NULL,\n"
-		    "tiger_tree blob,file_size int64 not null,block_size int64);");
+		    "tiger_tree blob,file_size int64 not null,block_size int64,tth char(24) NOT NULL);");
+#define FLYLINKDC_USE_FAST_CONVERT
+		if (is_table_exists("fly_hash"))
+		{
+			CFlyLog l_convert_log("[SQLite DB convert]");
+#ifdef FLYLINKDC_USE_FAST_CONVERT
+			m_flySQLiteDB.executenonquery("pragma synchronous=OFF;");
+			m_flySQLiteDB.executenonquery("pragma journal_mode=MEMORY;");
+#endif
+			safeAlter("ALTER TABLE fly_hash_block add column tth char(24)");
+			l_convert_log.step(m_flySQLiteDB.executenonquery("update fly_hash_block set tth = (select tth from fly_hash fh where fh.id = fly_hash_block.tth_id) where tth is null"));
+			l_convert_log.step(m_flySQLiteDB.executenonquery("delete from fly_hash_block where tth is null"));
+			l_convert_log.step(m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_hash_block_tth ON fly_hash_block(tth)"));
+			l_convert_log.step(m_flySQLiteDB.executenonquery("drop table fly_hash"));
+#ifdef FLYLINKDC_USE_FAST_CONVERT
+			if (!g_UseSynchronousOff)
+			{
+				m_flySQLiteDB.executenonquery("pragma synchronous=FULL;");
+			}
+			if (!(g_DisableSQLJournal || BOOLSETTING(SQLITE_USE_JOURNAL_MEMORY)))
+			{
+				if (g_UseWALJournal)
+					m_flySQLiteDB.executenonquery("pragma journal_mode=WAL;");
+				else
+					m_flySQLiteDB.executenonquery("pragma journal_mode=PERSIST;");
+			}
+#endif
+		}
 		m_flySQLiteDB.executenonquery("create table IF NOT EXISTS fly_path(\n"
 		                              "id integer PRIMARY KEY AUTOINCREMENT NOT NULL, name text NOT NULL UNIQUE);");
 		m_flySQLiteDB.executenonquery("create table IF NOT EXISTS fly_dic(\n"
@@ -1602,25 +1625,6 @@ void CFlylinkDBManager::save_ignore(const StringSet& p_ignores)
 }
 //========================================================================================================
 // [+] brain-ripper
-static string getSectionStringL(const QueueItemPtr& p_QueueItem)
-{
-	string l_strSections;
-	for (auto i = p_QueueItem->getDoneL().cbegin(); i != p_QueueItem->getDoneL().cend(); ++i)
-	{
-		l_strSections += Util::toString(i->getStart());
-		l_strSections += ' ';
-		l_strSections += Util::toString(i->getSize());
-		l_strSections += ' ';
-	}
-	if (!l_strSections.empty()) // TODO ?
-	{
-		l_strSections.resize(l_strSections.size() - 1);
-	}
-	
-	return l_strSections;
-}
-//========================================================================================================
-// [+] brain-ripper
 //TODO - унести как метод в QueueItem
 static void setSectionString(const QueueItemPtr& p_QueueItem, const string& strSectionString)
 {
@@ -1889,7 +1893,7 @@ void CFlylinkDBManager::remove_queue_item(const __int64 p_id)
 	}
 }
 //========================================================================================================
-bool CFlylinkDBManager::merge_queue_item(QueueItemPtr& p_QueueItem)
+bool CFlylinkDBManager::merge_queue_itemL(QueueItemPtr& p_QueueItem)
 {
 	try
 	{
@@ -1941,7 +1945,7 @@ bool CFlylinkDBManager::merge_queue_item(QueueItemPtr& p_QueueItem)
 		//l_sql->bind(5, l_is_multi ? p_QueueItem->chunkInfo->getVerifiedBlocksString() : "");
 		
 		// [+] merge
-		l_sql->bind(4, getSectionStringL(p_QueueItem), SQLITE_TRANSIENT);
+		l_sql->bind(4, p_QueueItem->getSectionStringL(), SQLITE_TRANSIENT);
 		
 		l_sql->bind(5, p_QueueItem->getAdded());
 		l_sql->bind(6, p_QueueItem->getTTH().data, 24, SQLITE_TRANSIENT);
@@ -2048,7 +2052,7 @@ bool CFlylinkDBManager::merge_queue_item(QueueItemPtr& p_QueueItem)
 					l_sql_source->executenonquery(); // TODO - копипаст
 					l_cont_insert_sub_source++;
 #ifdef _DEBUG
-//					LogManager::getInstance()->message("[CFlylinkDBManager::merge_queue_item] insert into fly_queue_source CID = "
+//					LogManager::getInstance()->message("[CFlylinkDBManager::merge_queue_itemL] insert into fly_queue_source CID = "
 //					                                   + l_cid.toBase32() + " nick = " + l_user->getLastNick(),true
 //					                                  );
 //
@@ -2088,7 +2092,7 @@ bool CFlylinkDBManager::merge_queue_item(QueueItemPtr& p_QueueItem)
 	}
 	catch (const database_error& e)
 	{
-		errorDB("SQLite - merge_queue_item: " + e.getError());
+		errorDB("SQLite - merge_queue_itemL: " + e.getError());
 	}
 	return false;
 }
@@ -2565,8 +2569,8 @@ __int64 CFlylinkDBManager::get_dic_idL(const string& p_name, const eTypeDIC p_DI
 			l_sql->bind(1, p_DIC);
 			l_sql->bind(2, p_name, SQLITE_STATIC);
 			l_sql->executenonquery();
-			l_trans.commit();
 			l_Cache_ID = m_flySQLiteDB.insertid();
+			l_trans.commit();
 		}
 		return l_Cache_ID;
 	}
@@ -2613,39 +2617,43 @@ void CFlylinkDBManager::SweepPath()
 	Lock l(m_cs);
 	try
 	{
-		for (auto i = m_path_cache.cbegin(); i != m_path_cache.cend(); ++i)
 		{
-			if (i->second.m_is_found == false)
+			sqlite3_transaction l_trans(m_flySQLiteDB);
+			for (auto i = m_path_cache.cbegin(); i != m_path_cache.cend(); ++i)
 			{
+				if (i->second.m_is_found == false)
 				{
 					if (!m_sweep_path_file.get())
 						m_sweep_path_file = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
 						                                                                  "delete from fly_file where dic_path=?"));
-					sqlite3_transaction l_trans(m_flySQLiteDB);
 					m_sweep_path_file.get()->bind(1, i->second.m_path_id);
 					m_sweep_path_file.get()->executenonquery();
-					l_trans.commit();
 				}
-				if (!m_sweep_path.get())
-					m_sweep_path = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-					                                                             "delete from fly_path where id=?"));
-				sqlite3_transaction l_trans(m_flySQLiteDB);
-				m_sweep_path.get()->bind(1, i->second.m_path_id);
-				m_sweep_path.get()->executenonquery();
-				l_trans.commit();
 			}
+			l_trans.commit();
+		}
+		load_path_cache();
+		{
+			const char* l_clean_path = "delete from fly_path where not exists (select * from fly_file where dic_path=fly_path.id)";
+			CFlyLog l(l_clean_path);
+			sqlite3_transaction l_trans(m_flySQLiteDB);
+			m_flySQLiteDB.executenonquery(l_clean_path);
+			l_trans.commit();
 		}
 		{
-			CFlyLog l(STRING(DELETE_FROM_FLY_HASH_BLOCK));
+			const char* l_clean_sql_hash = "delete from fly_hash_block where tth_id not in(select tth_id from fly_file)";
+			// TODO - Версия 2 delete from fly_hash_block where not exists (select 1 from fly_file ff where ff.tth_id = fly_hash_block.tth_id)
+			CFlyLog l(l_clean_sql_hash);
 			sqlite3_transaction l_trans(m_flySQLiteDB);
-			m_flySQLiteDB.executenonquery("delete FROM fly_hash_block where tth_id not in(select tth_id from fly_file)");
+			m_flySQLiteDB.executenonquery(l_clean_sql_hash);
 			l_trans.commit();
 			m_tiger_tree_cache.clear();
 		}
 		{
-			CFlyLog l("delete from media_db.fly_media where tth_id not in(select tth_id from fly_file)");
+			const char* l_clean_sql_media = "delete from media_db.fly_media where tth_id not in(select tth_id from fly_file)";
+			CFlyLog l(l_clean_sql_media);
 			sqlite3_transaction l_trans(m_flySQLiteDB);
-			m_flySQLiteDB.executenonquery("delete from media_db.fly_media where tth_id not in(select tth_id from fly_file)");
+			m_flySQLiteDB.executenonquery(l_clean_sql_media);
 			l_trans.commit();
 		}
 #ifdef PPA_USE_VACUUM
@@ -2660,7 +2668,62 @@ void CFlylinkDBManager::SweepPath()
 	}
 }
 //========================================================================================================
-void CFlylinkDBManager::LoadPathCache()
+void CFlylinkDBManager::prepare_scan_folderL(const tstring& p_path)
+{
+	WIN32_FIND_DATA fData;
+	dcassert(p_path[p_path.size() - 1] == L'\\');
+	HANDLE hFind = FindFirstFileEx(File::formatPath((p_path + _T('*'))).c_str(),
+	                               CompatibilityManager::g_find_file_level,
+	                               &fData,
+	                               FindExSearchLimitToDirectories, // Only Folder
+	                               NULL,
+	                               CompatibilityManager::g_find_file_flags);
+	                               
+	if (hFind != INVALID_HANDLE_VALUE)
+	{
+		do
+		{
+			const tstring l_folder_name = fData.cFileName;
+			if ((fData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) &&
+			        (l_folder_name != Util::m_dotT) &&
+			        (l_folder_name != Util::m_dot_dotT))
+			{
+				const tstring l_lower_folder_nameT = p_path + l_folder_name + _T("\\");
+				const string l_lower_folder_name = Text::toLower(Text::fromT(l_lower_folder_nameT));
+				if (m_path_cache.find(l_lower_folder_name) == m_path_cache.end())
+				{
+					create_path_idL(l_lower_folder_name, true);
+				}
+				prepare_scan_folderL(l_lower_folder_nameT);
+			}
+		}
+		while (FindNextFile(hFind, &fData));
+		FindClose(hFind);
+	}
+}
+//========================================================================================================
+void CFlylinkDBManager::scan_path(CFlyDirItemArray& p_directories)
+{
+	load_path_cache();
+	CFlyLog log(STRING(SCAN_DIR));
+	try
+	{
+		Lock l(m_cs);
+		sqlite3_transaction l_trans(m_flySQLiteDB);
+		for (auto j = p_directories.begin(); j != p_directories.end(); ++j)
+		{
+			prepare_scan_folderL(Text::toT(j->m_path)); // TODO - хранить сразу в tstring и отдавать туда ID каталога?
+		}
+		l_trans.commit();
+	}
+	catch (const database_error& e)
+	{
+		errorDB("SQLite - scan_path: " + e.getError()); // TODO translate
+		return;
+	}
+}
+//========================================================================================================
+void CFlylinkDBManager::load_path_cache()
 {
 	CFlyLog log(STRING(RELOAD_DIR));
 	Lock l(m_cs);
@@ -2681,7 +2744,7 @@ void CFlylinkDBManager::LoadPathCache()
 	}
 	catch (const database_error& e)
 	{
-		errorDB("SQLite - LoadPathCache: " + e.getError()); // TODO translate
+		errorDB("SQLite - load_path_cache: " + e.getError()); // TODO translate
 		return;
 	}
 }
@@ -2689,6 +2752,46 @@ void CFlylinkDBManager::LoadPathCache()
 __int64 CFlylinkDBManager::get_path_id(string p_path, bool p_create, bool p_case_convet, bool& p_is_no_mediainfo, bool p_sweep_path)
 {
 	Lock l(m_cs);
+	return get_path_idL(p_path, p_create, p_case_convet, p_is_no_mediainfo, p_sweep_path);
+}
+//========================================================================================================
+__int64 CFlylinkDBManager::create_path_idL(const string& p_path, bool p_is_skip_dup_val_index)
+{
+	try
+	{
+		if (!m_insert_fly_path.get())
+			m_insert_fly_path = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+			                                                                  "insert into fly_path (name) values(?)"));
+		m_insert_fly_path.get()->bind(1, p_path, SQLITE_STATIC);
+		m_insert_fly_path.get()->executenonquery();
+		const __int64 l_last_path_id = m_flySQLiteDB.insertid();
+		m_path_cache.insert(std::make_pair(p_path, CFlyPathItem(l_last_path_id, true, false)));
+		return l_last_path_id;
+	}
+	catch (const database_error& e)
+	{
+		if (p_is_skip_dup_val_index == false)
+		{
+			errorDB("SQLite - create_path_idL: " + e.getError());
+			throw;
+		}
+	}
+	return 0;
+}
+//========================================================================================================
+__int64 CFlylinkDBManager::find_path_idL(const string& p_path)
+{
+	// Этот запрос должен всегда возвращать пустоту
+	if (!m_get_path_id.get())
+		m_get_path_id = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+		                                                              "select id from fly_path where name=?;"));
+	m_get_path_id.get()->bind(1, p_path, SQLITE_STATIC);
+	const __int64 l_last_path_id = m_get_path_id.get()->executeint64_no_throw();
+	return l_last_path_id;
+}
+//========================================================================================================
+__int64 CFlylinkDBManager::get_path_idL(string p_path, bool p_create, bool p_case_convet, bool& p_is_no_mediainfo, bool p_sweep_path)
+{
 	p_is_no_mediainfo = false;
 	if (m_last_path_id != 0 && m_last_path_id != -1 && p_path == m_last_path && p_sweep_path == false)
 		return m_last_path_id;
@@ -2698,7 +2801,7 @@ __int64 CFlylinkDBManager::get_path_id(string p_path, bool p_create, bool p_case
 		p_path = Text::toLower(p_path);
 	try
 	{
-		CFlyPathCache::iterator l_item_iter = m_path_cache.find(p_path);
+		auto l_item_iter = m_path_cache.find(p_path);
 		if (l_item_iter != m_path_cache.end())
 		{
 			l_item_iter->second.m_is_found = true;
@@ -2706,49 +2809,42 @@ __int64 CFlylinkDBManager::get_path_id(string p_path, bool p_create, bool p_case
 			p_is_no_mediainfo = l_item_iter->second.m_is_no_mediainfo;
 			return m_last_path_id;
 		}
-		if (!m_get_path_id.get())
-			m_get_path_id = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                              "select id from fly_path where name=?;"));
-		m_get_path_id.get()->bind(1, p_path, SQLITE_STATIC);
-		m_last_path_id = m_get_path_id.get()->executeint64_no_throw();
+		m_last_path_id = find_path_idL(p_path);
+		dcassert(m_last_path_id == 0);
 		if (m_last_path_id)
+		{
 			return m_last_path_id;
+		}
 		else if (p_create)
 		{
 			sqlite3_transaction l_trans(m_flySQLiteDB);
-			if (!m_insert_fly_path.get())
-				m_insert_fly_path = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-				                                                                  "insert into fly_path (name) values(?)"));
-			m_insert_fly_path.get()->bind(1, p_path, SQLITE_STATIC);
-			m_insert_fly_path.get()->executenonquery();
+			m_last_path_id = create_path_idL(p_path, false);
 			l_trans.commit();
-			m_last_path_id = m_flySQLiteDB.insertid();
-			m_path_cache[p_path] = CFlyPathItem(m_last_path_id, true, false);
 			return m_last_path_id;
 		}
 	}
 	catch (const database_error& e)
 	{
-		errorDB("SQLite - get_path_id: " + e.getError()); // TODO translate
+		errorDB("SQLite - get_path_idL: " + e.getError()); // TODO translate
 	}
 	return 0;
 }
 //========================================================================================================
-bool CFlylinkDBManager::findTTH(const string& p_fname, const string& p_fpath, TTHValue& p_tth)
+bool CFlylinkDBManager::findTTH(const string& p_fname, const string& p_fpath, TTHValue& p_tth, __int64& p_path_id)
 {
 	Lock l(m_cs);
 	try
 	{
 		bool p_is_no_mediainfo;
-		const __int64 l_path_id = get_path_id(p_fpath, false, true, p_is_no_mediainfo, false);
-		if (!l_path_id)
+		p_path_id = get_path_idL(p_fpath, false, true, p_is_no_mediainfo, false);
+		if (!p_path_id)
 			return 0;
 		if (!m_findTTH.get())
 			m_findTTH = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                          "select tth from fly_hash where id = (select tth_id from fly_file where name=? and dic_path=?)"));
+			                                                          "select tth from fly_hash_block where tth_id = (select tth_id from fly_file where name=? and dic_path=?)"));
 		sqlite3_command* l_sql = m_findTTH.get();
 		l_sql->bind(1, p_fname, SQLITE_STATIC);
-		l_sql->bind(2, l_path_id);
+		l_sql->bind(2, p_path_id);
 		sqlite3_reader l_q = m_findTTH.get()->executereader();
 		if (l_q.read())
 		{
@@ -2803,13 +2899,13 @@ bool CFlylinkDBManager::load_media_info(const TTHValue& p_tth, CFlyMediaInfo& p_
 	Lock l(m_cs);
 	try
 	{
-		const __int64 l_tth_id = get_tth_idL(p_tth, false);
+		const __int64 l_tth_id = get_tth_idL(p_tth);
 		if (l_tth_id)
 		{
 			// Читаем базовую инфу (TODO - если есть в памяти попробовать забрать из нее)
 			if (!m_load_mediainfo_base.get())
 				m_load_mediainfo_base = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-				                                                                      "select bitrate,media_x,media_y,media_video,media_audio from fly_file where tth_id = ? limit 1"));
+				                                                                      "select bitrate,media_x,media_y,media_video,media_audio from fly_file where tth_id=? limit 1"));
 			m_load_mediainfo_base.get()->bind(1, l_tth_id);
 			sqlite3_reader l_q_base = m_load_mediainfo_base.get()->executereader();
 			if (l_q_base.read()) // забираем всегда одну запись. (limit = 1) в шаре может быть несколько одинаковых файлов в разных каталогах.
@@ -2875,16 +2971,16 @@ void CFlylinkDBManager::LoadDir(__int64 p_path_id, CFlyDirMap& p_dir_map, bool p
 		{
 			if (!m_load_dir_sql.get())
 				m_load_dir_sql = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-				                                                               "select size,stamp,tth,name,hit,stamp_share,ftype,bitrate,media_x,media_y,media_video,media_audio from fly_file ff,fly_hash fh where "
-				                                                               "ff.dic_path=? and ff.tth_id=fh.id"));
+				                                                               "select size,stamp,tth,name,hit,stamp_share,ftype,bitrate,media_x,media_y,media_video,media_audio from fly_file ff,fly_hash_block fhb where "
+				                                                               "ff.dic_path=? and ff.tth_id=fhb.tth_id"));
 			l_sql = m_load_dir_sql.get();
 		}
 		else
 		{
 			if (!m_load_dir_sql_without_mediainfo.get())
 				m_load_dir_sql_without_mediainfo = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-				                                                             "select size,stamp,tth,name,hit,stamp_share,ftype from fly_file ff,fly_hash fh where "
-				                                                             "ff.dic_path=? and ff.tth_id=fh.id"));
+				                                                             "select size,stamp,tth,name,hit,stamp_share,ftype from fly_file ff,fly_hash_block fhb where "
+				                                                             "ff.dic_path=? and ff.tth_id=fhb.tth_id"));
 				                                                             
 			l_sql = m_load_dir_sql_without_mediainfo.get();
 		}
@@ -2996,10 +3092,10 @@ bool CFlylinkDBManager::checkTTH(const string& p_fname, __int64 p_path_id,
 	{
 		if (!m_check_tth_sql.get())
 			m_check_tth_sql = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                "select size,stamp,tth from fly_file ff,fly_hash fh where\n"
-			                                                                "fh.id=ff.tth_id and ff.name=? and ff.dic_path=?"));
+			                                                                "select size,stamp,tth from fly_file ff,fly_hash_block fhb where\n"
+			                                                                "fhb.tth_id=ff.tth_id and ff.name=? and ff.dic_path=?"));
 		// TODO - тут индекс по tth_id не мешается?
-		// Протестировать и забрать tth из fly_hash подзапросом
+		// Протестировать и забрать tth из fly_hash_block подзапросом
 		//
 		dcassert(p_fname == Text::toLower(p_fname));
 		m_check_tth_sql.get()->bind(1, p_fname, SQLITE_STATIC);
@@ -3037,7 +3133,7 @@ unsigned __int64 CFlylinkDBManager::getBlockSizeSQL(const TTHValue& p_root, __in
 	{
 		if (!m_get_blocksize.get())
 			m_get_blocksize = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                "select file_size,block_size from fly_hash_block where tth_id=(select id from fly_hash where tth=?)"));
+			                                                                "select file_size,block_size from fly_hash_block where tth=?"));
 			                                                                
 		m_get_blocksize->bind(1, p_root.data, 24, SQLITE_STATIC);
 		sqlite3_reader l_q = m_get_blocksize.get()->executereader();
@@ -3088,7 +3184,7 @@ bool CFlylinkDBManager::getTree(const TTHValue& p_root, TigerTree& p_tt)
 		}
 		if (!m_get_tree.get())
 			m_get_tree = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                           "select tiger_tree,file_size,block_size from fly_hash_block where tth_id=(select id from fly_hash where tth=?)"));
+			                                                           "select tiger_tree,file_size,block_size from fly_hash_block where tth=?"));
 		m_get_tree->bind(1, p_root.data, 24, SQLITE_STATIC);
 		sqlite3_reader l_q = m_get_tree.get()->executereader();
 		if (l_q.read())
@@ -3098,7 +3194,7 @@ bool CFlylinkDBManager::getTree(const TTHValue& p_root, TigerTree& p_tt)
 			if (l_blocksize == 0)
 				l_blocksize = TigerTree::getMaxBlockSize(l_file_size);
 				
-			if (l_file_size <= MIN_BLOCK_SIZE)
+			if (l_file_size <= MIN_BLOCK_SIZE) // TODO - тут возможно этого делать нельзя.
 			{
 				p_tt = TigerTree(l_file_size, l_blocksize, p_root);
 				m_tiger_tree_cache.insert(make_pair(p_root, p_tt));
@@ -3137,31 +3233,17 @@ bool CFlylinkDBManager::getTree(const TTHValue& p_root, TigerTree& p_tt)
 	return false;
 }
 //========================================================================================================
-__int64 CFlylinkDBManager::get_tth_idL(const TTHValue& p_tth, bool p_create /*= true*/)
+__int64 CFlylinkDBManager::get_tth_idL(const TTHValue& p_tth)
 {
 	try
 	{
 		if (!m_get_tth_id.get())
 			m_get_tth_id = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                             "select id from fly_hash where tth=?"));
+			                                                             "select tth_id from fly_hash_block where tth=?"));
 		sqlite3_command* l_sql = m_get_tth_id.get();
 		l_sql->bind(1, p_tth.data, 24, SQLITE_STATIC);
-		if (const __int64 l_ID = l_sql->executeint64_no_throw())
-			return l_ID;
-		else if (p_create)
-		{
-			sqlite3_transaction l_trans(m_flySQLiteDB);
-			if (!m_insert_fly_hash.get())
-				m_insert_fly_hash = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-				                                                                  "insert into fly_hash (tth) values(?)"));
-			sqlite3_command* l_sql_insert = m_insert_fly_hash.get();
-			l_sql_insert->bind(1, p_tth.data, 24, SQLITE_STATIC);
-			l_sql_insert->executenonquery();
-			l_trans.commit();
-			return m_flySQLiteDB.insertid();
-		}
-		else
-			return 0;
+		const __int64 l_ID = l_sql->executeint64_no_throw();
+		return l_ID;
 	}
 	catch (const database_error& e)
 	{
@@ -3176,7 +3258,7 @@ void CFlylinkDBManager::incHit(const string& p_Path, const string& p_FileName)
 	try
 	{
 		bool p_is_no_mediainfo;
-		const __int64 l_path_id = get_path_id(p_Path, false, true, p_is_no_mediainfo, false);
+		const __int64 l_path_id = get_path_idL(p_Path, false, true, p_is_no_mediainfo, false);
 		if (!l_path_id)
 			return;
 		if (!m_upload_file.get())
@@ -3240,7 +3322,7 @@ bool CFlylinkDBManager::rebuild_mediainfo(const __int64 p_path_id, const string&
 		dcassert(p_path_id);
 		if (!p_path_id)
 			return false;
-		const __int64 l_tth_id = get_tth_idL(p_tth, false);
+		const __int64 l_tth_id = get_tth_idL(p_tth);
 		if (!l_tth_id)
 			return false;
 		dcassert(l_tth_id);
@@ -3255,12 +3337,69 @@ bool CFlylinkDBManager::rebuild_mediainfo(const __int64 p_path_id, const string&
 }
 #endif // USE_REBUILD_MEDIAINFO
 //========================================================================================================
+void CFlylinkDBManager::add_file(__int64 p_path_id, const string& p_file_name, int64_t p_time_stamp, const TigerTree& p_tth, int64_t p_size, CFlyMediaInfo& p_out_media)
+{
+	dcassert(!p_file_name.empty());
+	dcassert(!Util::getFileName(p_file_name).empty());
+	size_t l_size_cache = 0;
+	{
+		Lock l(m_cs);
+		m_cache_hash_files.insert(make_pair(p_file_name, CFlyHashCacheItem(p_path_id, p_time_stamp, p_tth, p_size, p_out_media)));
+		l_size_cache = m_cache_hash_files.size();
+	}
+	if (l_size_cache > 100)
+	{
+		flush_hash();
+	}
+}
+//========================================================================================================
+void CFlylinkDBManager::flush_hash()
+{
+	try
+	{
+		Lock l(m_cs);
+		if (!m_cache_hash_files.empty())
+		{
+			sqlite3_transaction l_trans(m_flySQLiteDB);
+			for (auto i = m_cache_hash_files.begin(); i != m_cache_hash_files.end(); ++i)
+			{
+				const string l_name = Text::toLower(Util::getFileName(i->first));
+				dcassert(!l_name.empty());
+				string l_path;
+				if (i->second.m_path_id == 0)
+				{
+					l_path = Text::toLower(Util::getFilePath(i->first));
+					dcassert(!l_path.empty());
+				}
+				const int64_t l_tth_id = merge_fileL(l_path, l_name, i->second.m_time_stamp, i->second.m_tth, false, i->second.m_path_id);
+				if (i->second.m_out_media.isMedia())
+				{
+					merge_mediainfoL(l_tth_id, i->second.m_path_id, l_name, i->second.m_out_media); // Если медиаинфу расчитали - скинем ее в базу
+				}
+			}
+			m_cache_hash_files.clear();
+			l_trans.commit();
+		}
+	}
+	catch (const database_error& e)
+	{
+		errorDB("SQLite - flush_hash: " + e.getError()); // TODO translate
+	}
+}
+//========================================================================================================
 bool CFlylinkDBManager::merge_mediainfo(const __int64 p_tth_id, const __int64 p_path_id, const string& p_file_name, const CFlyMediaInfo& p_media)
 {
 	Lock l(m_cs);
+	sqlite3_transaction l_trans(m_flySQLiteDB);
+	const auto l_res = merge_mediainfoL(p_tth_id, p_path_id, p_file_name, p_media);
+	l_trans.commit();
+	return l_res;
+}
+//========================================================================================================
+bool CFlylinkDBManager::merge_mediainfoL(const __int64 p_tth_id, const __int64 p_path_id, const string& p_file_name, const CFlyMediaInfo& p_media)
+{
 	try
 	{
-		sqlite3_transaction l_trans(m_flySQLiteDB);
 		if (!m_update_base_mediainfo.get())
 			m_update_base_mediainfo = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
 			                                                                        "update fly_file set\n"
@@ -3294,12 +3433,11 @@ bool CFlylinkDBManager::merge_mediainfo(const __int64 p_tth_id, const __int64 p_
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		merge_mediainfo_ext(p_tth_id, p_media, false);
 #endif
-		l_trans.commit();
 		return true;
 	}
 	catch (const database_error& e)
 	{
-		errorDB("SQLite - merge_mediainfo: " + e.getError()); // TODO translate
+		errorDB("SQLite - merge_mediainfoL: " + e.getError()); // TODO translate
 	}
 	return false;
 }
@@ -3308,23 +3446,43 @@ __int64 CFlylinkDBManager::merge_file(const string& p_Path, const string& p_file
                                       const int64_t p_time_stamp, const TigerTree& p_tt,
                                       bool p_case_convet, __int64& p_path_id)
 {
-	__int64 l_tth_id = 0;
 	Lock l(m_cs);
+	sqlite3_transaction l_trans(m_flySQLiteDB);
+	const auto l_res = merge_fileL(p_Path, p_file_name, p_time_stamp, p_tt, p_case_convet, p_path_id);
+	l_trans.commit();
+	return l_res;
+}
+//========================================================================================================
+__int64 CFlylinkDBManager::merge_fileL(const string& p_Path, const string& p_file_name,
+                                       const int64_t p_time_stamp, const TigerTree& p_tt,
+                                       bool p_case_convet, __int64& p_path_id)
+{
+	__int64 l_tth_id = 0;
 	try
 	{
 		bool p_is_no_mediainfo;
-		p_path_id = get_path_id(p_Path, true, p_case_convet, p_is_no_mediainfo, false);
+		if (p_path_id == 0)
+		{
+			dcassert(0);
+			p_path_id = get_path_idL(p_Path, true, p_case_convet, p_is_no_mediainfo, false);
+		}
+		else
+		{
+#ifdef _DEBUG
+			//__int64 l_temp_path = get_path_idL(p_Path, true, p_case_convet, p_is_no_mediainfo, false);
+			//dcassert(l_temp_path == p_path_id);
+#endif
+		}
 		dcassert(p_path_id);
 		if (!p_path_id)
 			return 0;
-		l_tth_id = addTree(p_tt); // Отдельная транзакция
+		l_tth_id = add_treeL(p_tt);
 		dcassert(l_tth_id);
 		if (!l_tth_id)
 			return 0;
-		sqlite3_transaction l_trans(m_flySQLiteDB);
 		if (!m_insert_file.get())
 			m_insert_file = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                              "insert or replace into fly_file (tth_id, dic_path, name, size, stamp, stamp_share, ftype)\n"
+			                                                              "insert or replace into fly_file(tth_id,dic_path,name,size,stamp,stamp_share,ftype) "
 			                                                              "values(?,?,?,?,?,?,?);"));
 		sqlite3_command* l_sql = m_insert_file.get();
 		l_sql->bind(1, l_tth_id);
@@ -3336,50 +3494,75 @@ __int64 CFlylinkDBManager::merge_file(const string& p_Path, const string& p_file
 		l_sql->bind(6, int64_t(File::currentTime()));
 		l_sql->bind(7, ShareManager::getFType(p_file_name));
 		l_sql->executenonquery();
-		l_trans.commit();
 		return l_tth_id;
 	}
 	catch (const database_error& e)
 	{
-		errorDB("SQLite - merge_file: " + e.getError()); // TODO translate
+		errorDB("SQLite - merge_fileL: " + e.getError()); // TODO translate
 	}
 	return l_tth_id;
 }
 //========================================================================================================
-__int64 CFlylinkDBManager::addTree(const TigerTree& p_tt)
+void CFlylinkDBManager::addTree(const TigerTree& p_tt)
 {
 	Lock l(m_cs);
+	sqlite3_transaction l_trans(m_flySQLiteDB);
+	add_treeL(p_tt);
+	l_trans.commit();
+}
+//========================================================================================================
+__int64 CFlylinkDBManager::add_treeL(const TigerTree& p_tt)
+{
 	m_tiger_tree_cache.erase(p_tt.getRoot()); // Сбросим кэш, чтобы случайно не достать старую карту.
-	const __int64 l_tth_id = get_tth_idL(p_tt.getRoot(), true); // TODO делается коммит - сделать операцию атомарной
-	dcassert(l_tth_id != 0);
-	if (!l_tth_id) // Этого не может быть
-		return 0;
 	try
 	{
-		const int l_size = p_tt.getLeaves().size() * TTHValue::BYTES;
 		const __int64 l_file_size = p_tt.getFileSize();
-		sqlite3_transaction l_trans(m_flySQLiteDB);
-		if (!m_ins_fly_hash_block.get())
-			m_ins_fly_hash_block = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                     "insert or replace into fly_hash_block (tth_id,file_size,tiger_tree,block_size) values(?,?,?,?)"));
-		sqlite3_command* l_sql = m_ins_fly_hash_block.get();
-		l_sql->bind(1, l_tth_id);
-		l_sql->bind(2, l_file_size);
-		l_sql->bind(3, p_tt.getLeaves()[0].data,  l_file_size > MIN_BLOCK_SIZE ? l_size : 0, SQLITE_STATIC);
-		l_sql->bind(4, p_tt.getBlockSize());
+		__int64 l_tth_id = get_tth_idL(p_tt.getRoot()); // insert or replace не пашет почему-то когда 2 ключа. и tth_id увеличивается
+		sqlite3_command* l_sql;
+		if (l_tth_id == 0)
+		{
+			if (!m_insert_fly_hash_block.get())
+				m_insert_fly_hash_block = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+				                                                                        "insert into fly_hash_block(file_size,tiger_tree,block_size,tth) values(?,?,?,?)"));
+			l_sql = m_insert_fly_hash_block.get();
+		}
+		else
+		{
+			if (!m_update_fly_hash_block.get())
+				m_update_fly_hash_block = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+				                                                                        "update fly_hash_block set file_size=?,tiger_tree=?,block_size=? where tth=?"));
+			l_sql = m_update_fly_hash_block.get();
+		}
+		l_sql->bind(1, l_file_size);
+		if (l_file_size > MIN_BLOCK_SIZE)
+		{
+			const int l_size = p_tt.getLeaves().size() * TTHValue::BYTES;
+			l_sql->bind(2, p_tt.getLeaves()[0].data,  l_size, SQLITE_STATIC);
+		}
+		else
+		{
+			l_sql->bind(2);
+		}
+		l_sql->bind(3, p_tt.getBlockSize());
+		l_sql->bind(4, p_tt.getRoot().data, 24, SQLITE_STATIC);
 		l_sql->executenonquery();
-		l_trans.commit();
+		if (l_tth_id == 0)
+		{
+			l_tth_id = m_flySQLiteDB.insertid();
+		}
+		dcassert(l_tth_id);
 		return l_tth_id;
 	}
 	catch (const database_error& e)
 	{
-		errorDB("SQLite - addTree: " + e.getError()); // TODO translate
+		errorDB("SQLite - add_treeL: " + e.getError()); // TODO translate
 	}
 	return 0;
 }
 //========================================================================================================
 CFlylinkDBManager::~CFlylinkDBManager()
 {
+	dcassert(m_cache_hash_files.empty());
 	shutdown();
 #ifdef _DEBUG
 	for (auto h = m_last_ip_cache.cbegin(); h != m_last_ip_cache.cend(); ++h)
@@ -3424,7 +3607,7 @@ tstring CFlylinkDBManager::get_ratioW() const
 }
 #endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
 //========================================================================================================
-void CFlylinkDBManager::push_add_share_tth_(const TTHValue& p_tth)
+void CFlylinkDBManager::push_add_share_tth(const TTHValue& p_tth)
 {
 #ifdef FLYLINKDC_USE_LEVELDB
 	m_flyLevelDB.set_bit(p_tth, PREVIOUSLY_BEEN_IN_SHARE);
@@ -3435,22 +3618,6 @@ void CFlylinkDBManager::push_download_tth(const TTHValue& p_tth)
 {
 #ifdef FLYLINKDC_USE_LEVELDB
 	m_flyLevelDB.set_bit(p_tth, PREVIOUSLY_DOWNLOADED);
-#else
-	Lock l(m_cs);
-	try
-	{
-		sqlite3_transaction l_trans(m_flySQLiteDB);
-		if (!m_insert_fly_tth.get())
-			m_insert_fly_tth = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                 "insert or replace into fly_tth(tth) values(?)"));
-		m_insert_fly_tth.get()->bind(1, p_tth.data, 24, SQLITE_STATIC);
-		m_insert_fly_tth.get()->executenonquery();
-		l_trans.commit();
-	}
-	catch (const database_error& e)
-	{
-		errorDB("SQLite - push_download_tth: " + e.getError()); // TODO translate
-	}
 #endif // FLYLINKDC_USE_LEVELDB
 }
 //========================================================================================================
@@ -3468,9 +3635,7 @@ CFlylinkDBManager::FileStatus CFlylinkDBManager::get_status_file(const TTHValue&
 	{
 		if (!m_get_status_file.get())
 			m_get_status_file = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                  "select 1 from fly_tth where tth=?\r\n"
-			                                                                  "union all\r\n"
-			                                                                  "select 2 from fly_hash where tth=?"));
+			                                                                  "select 2 from fly_hash_block where tth=?"));
 		sqlite3_command* l_sql = m_get_status_file.get();
 		l_sql->bind(1, p_tth.data, 24, SQLITE_STATIC);
 		l_sql->bind(2, p_tth.data, 24, SQLITE_STATIC);
@@ -3536,9 +3701,7 @@ __int64 CFlylinkDBManager::convert_tth_history()
 		{
 			auto_ptr<sqlite3_command> l_sql = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
 			                                                            "select tth, sum(val) from ( "
-			                                                            "select 1 val, tth from fly_tth "
-			                                                            "union all "
-			                                                            "select 2 val, tth from fly_hash) "
+			                                                            "select 2 val, tth from fly_hash_block) "
 			                                                            "group by tth"));
 			sqlite3_reader l_q = l_sql->executereader();
 			while (l_q.read())

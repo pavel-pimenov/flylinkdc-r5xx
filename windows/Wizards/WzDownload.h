@@ -91,7 +91,7 @@ public:
 
 	int OnSetActive()
 	{
-		SetWizardButtons ( PSWIZB_BACK | PSWIZB_NEXT );
+		SetWizardButtons ( PSWIZB_BACK | PSWIZB_FINISH );
 		return 0;
 	}
 
@@ -102,12 +102,18 @@ public:
 		tstring ddir;
 		ddir.resize(1024);
 		ddir.resize(::GetDlgItemText(m_hWnd, IDC_WIZARD_DOWNLOADDIR, &ddir[0], 1024));
-		SET_SETTING(DOWNLOAD_DIRECTORY, Text::fromT(ddir));
+		if(ddir.size())
+		{
+			SET_SETTING(DOWNLOAD_DIRECTORY, Text::fromT(ddir));
+		}
 
 		tstring tdir;
 		tdir.resize(1024);
 		tdir.resize(::GetDlgItemText(m_hWnd, IDC_WIZARD_TEMP_DOWNLOAD_DIRECTORY, &tdir[0], 1024));
-		SET_SETTING( TEMP_DOWNLOAD_DIRECTORY, Text::fromT(tdir) );
+		if(tdir.size())
+		{
+		  SET_SETTING( TEMP_DOWNLOAD_DIRECTORY, Text::fromT(tdir) );
+		}
 		return FALSE;       // allow deactivation
 		}
 		catch(Exception & e)

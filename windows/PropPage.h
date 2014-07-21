@@ -25,7 +25,6 @@
 #include "ResourceLoader.h"
 #include "WinUtil.h"
 #endif
-#define DIM_EDIT_EXPERIMENT 0
 
 class SettingsManager;
 #include "../client/ResourceManager.h"
@@ -128,9 +127,6 @@ class PropPage
 		
 	protected:
 	
-#if DIM_EDIT_EXPERIMENT
-		std::map<WORD, CDimEdit *> ctrlMap;
-#endif
 		SettingsManager *settings;
 		void read(HWND page, Item const* items, ListItem* listItems = NULL, HWND list = NULL);
 		void write(HWND page, Item const* items, ListItem* listItems = NULL, HWND list = NULL);

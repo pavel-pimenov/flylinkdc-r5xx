@@ -235,4 +235,5 @@ class CFlyLockWindowUpdate
 		if (var.size()) GetDlgItemText(id, &var[0], var.size() + 1); \
 	}
 
+
 #endif // DCPLUSPLUS_WTL_FLYLINKDC_H

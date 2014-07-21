@@ -2048,8 +2048,7 @@ Do not share folders with system files, please!</String>
  1. Default Nick
  2. Download and Temp folders 
  3. Share your files to allow DC++ users to download them 
- 4. Setup your network configuration 
- 5. Add favorite hubs</String>
+</String>
 		<String Name="WizardStartupTxt3">Press Next button to continue…</String>
 		<String Name="WizardTitle">FlylinkDC++ Setup Wizard</String>
 		<String Name="WmpHelp">/wmp - Works with Windows Media Player 9+

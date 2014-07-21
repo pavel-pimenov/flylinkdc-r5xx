@@ -48,6 +48,8 @@ class OutputStream;
 class MemoryInputStream;
 
 struct ShareLoader;
+
+
 class ShareManager : public Singleton<ShareManager>, private SettingsManagerListener, private BASE_THREAD, private TimerManagerListener,
 	private HashManagerListener, private QueueManagerListener
 {
@@ -96,7 +98,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		
 		bool findByRealPathName(const string& realPathname, TTHValue* outTTHPtr, string* outfilenamePtr = NULL, int64_t* outSizePtr = NULL); // [+] SSA
 		
-		StringPairList getDirectories() const noexcept;
+		void getDirectories(CFlyDirItemArray& p_dirs) const noexcept;
 		
 		MemoryInputStream* generatePartialList(const string& dir, bool recurse
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
@@ -176,7 +178,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		}
 		
 		GETSET(string, bzXmlFile, BZXmlFile);
-		GETSET(int64_t, sharedSize, SharedSize);
+		GETSET(int64_t, m_sharedSize, SharedSize);
 		
 	private:
 		static size_t g_hits;
@@ -417,12 +419,12 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		bool update;
 		bool initial;
 		
-		int listN;
+		unsigned m_listN;
 		
-		boost::atomic_flag refreshing;
+		boost::atomic_flag m_is_refreshing;
 		
-		uint64_t lastXmlUpdate;
-		uint64_t lastFullUpdate;
+		uint64_t m_lastXmlUpdate;
+		uint64_t m_lastFullUpdate;
 		
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShare;
 		
@@ -431,7 +433,9 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		DirList m_list_directories;
 		
 		/** Map real name to virtual name - multiple real names may be mapped to a single virtual one */
-		StringMap shares;
+		typedef boost::unordered_map<string, CFlyBaseDirItem> ShareMap;
+		ShareMap m_shares;
+		
 		
 #ifdef STRONG_USE_DHT
 		friend class ::dht::IndexManager;
@@ -450,7 +454,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		
 		Directory::ShareFile::Set::const_iterator findFileL(const string& virtualFile) const;
 		
-		Directory::Ptr buildTreeL(const string& aName, const Directory::Ptr& aParent, bool p_is_job);
+		Directory::Ptr buildTreeL(__int64& p_path_id, const string& p_path, const Directory::Ptr& p_parent /* , bool p_is_job */);
 #ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
 		bool m_sweep_guard;
 #endif
@@ -544,11 +548,13 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 			return m_skipList.empty();
 		}
 		StringList m_skipList;
+		int m_count_sec;
 		mutable FastCriticalSection m_csSkipList;
 		// [~] IRainman opt.
 		
 		// TimerManagerListener
 		void on(TimerManagerListener::Minute, uint64_t tick) noexcept;
+		void on(TimerManagerListener::Second, uint64_t tick) noexcept;
 		void load(SimpleXML& aXml);
 		void save(SimpleXML& aXml);
 		

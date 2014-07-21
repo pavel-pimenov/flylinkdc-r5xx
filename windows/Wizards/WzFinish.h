@@ -22,6 +22,7 @@
 
 #ifdef SSA_WIZARD_FEATURE
 
+#if 0
 #include "resource.h"
 
 class WzFinish : public CPropertyPageImpl<WzFinish>
@@ -73,6 +74,8 @@ public:
 	private:
 		ExCImage img_f;	
 };
+
+#endif
 
 #endif // SSA_WIZARD_FEATURE
 

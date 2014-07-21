@@ -67,10 +67,10 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 			hasher.join();
 		}
 		
-		void hashFile(const string& fileName, int64_t aSize)
+		void hashFile(__int64 p_path_id, const string& fileName, int64_t aSize)
 		{
-			// Lock l(cs); [-] IRainman fix: this lock is epic fail...
-			hasher.hashFile(fileName, aSize);
+			dcassert(p_path_id);
+			hasher.hashFile(p_path_id, fileName, aSize);
 		}
 		
 		/**
@@ -91,7 +91,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 		
 		void addTree(const string& aFileName, int64_t aTimeStamp, const TigerTree& tt, int64_t p_Size)
 		{
-			hashDone(aFileName, aTimeStamp, tt, -1, false, p_Size);
+			hashDone(0, aFileName, aTimeStamp, tt, -1, false, p_Size); // __int64 p_path_id,
 		}
 		void addTree(const TigerTree& p_tree);
 		
@@ -248,11 +248,11 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 		class Hasher : public Thread
 		{
 			public:
-				Hasher() : m_stop(false), m_running(false), paused(0), m_rebuild(false), currentSize(0),
+				Hasher() : m_stop(false), m_running(false), paused(0), m_rebuild(false), m_currentSize(0), m_path_id(0),
 					m_CurrentBytesLeft(0), //[+]IRainman
 					m_ForceMaxHashSpeed(0), dwMaxFiles(0), iMaxBytes(0), uiStartTime(0) { }
 					
-				void hashFile(const string& fileName, int64_t size);
+				void hashFile(__int64 p_path_id, const string& fileName, int64_t size);
 				
 				/// @return whether hashing was already paused
 				bool pause();
@@ -290,18 +290,18 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 				}
 				
 				// [+] brain-ripper: Temporarily change hash speed functional
-				int GetMaxHashSpeed()
+				int GetMaxHashSpeed() const
 				{
 					return m_ForceMaxHashSpeed != 0 ? m_ForceMaxHashSpeed : SETTING(MAX_HASH_SPEED);
 				}
 			private:
-				void getBytesAndFileLeft(int64_t& bytesLeft, size_t& filesLeft)
+				void getBytesAndFileLeft(int64_t& bytesLeft, size_t& filesLeft) const
 				{
 					filesLeft = w.size();
 					if (m_running)
 						filesLeft++;
 						
-					bytesLeft = currentSize + m_CurrentBytesLeft; // [!]IRainman
+					bytesLeft = m_currentSize + m_CurrentBytesLeft; // [!]IRainman
 				}
 			public:
 				void EnableForceMinHashSpeed(int iMinHashSpeed)
@@ -369,7 +369,12 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 			private:
 				// Case-sensitive (faster), it is rather unlikely that case changes, and if it does it's harmless.
 				// map because it's sorted (to avoid random hash order that would create quite strange shares while hashing)
-				typedef std::map<string, int64_t> WorkMap;
+				struct CFlyHashTaskItem
+				{
+					int64_t m_file_size;
+					int64_t m_path_id;
+				};
+				typedef std::map<string, CFlyHashTaskItem> WorkMap;
 				
 				WorkMap w;
 				mutable FastCriticalSection cs; // [!] IRainman opt: use only spinlock here!
@@ -380,7 +385,8 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 				int64_t paused; //[!] PPA -> int
 				volatile bool m_rebuild; // [!] IRainman fix: this variable is volatile.
 				//string currentFile;// [-]IRainman
-				int64_t currentSize;
+				int64_t m_currentSize;
+				__int64 m_path_id;
 				
 				void instantPause();
 				
@@ -399,24 +405,19 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 		
 		friend class Hasher;
 		
-		bool addFile(const string& p_file_name, int64_t p_time_stamp, const TigerTree& p_tth, int64_t p_size, CFlyMediaInfo& p_out_media);
+		void addFile(__int64 p_path_id, const string& p_file_name, int64_t p_time_stamp, const TigerTree& p_tth, int64_t p_size, CFlyMediaInfo& p_out_media);
+	private:
 #ifdef IRAINMAN_NTFS_STREAM_TTH
-		bool addFileFromStream(const string& p_name, const TigerTree& p_TT, int64_t p_size);
+		void addFileFromStream(int64_t p_path_id, const string& p_name, const TigerTree& p_TT, int64_t p_size);
 #endif
 		
 		Hasher hasher;
 		
-		// mutable CriticalSection cs; [-] IRainman fix: no data to lock.
-		
-		/** Single node tree where node = root, no storage in HashData.dat */
-		static const int64_t SMALL_TREE = -1;
-		
-		void hashDone(const string& aFileName, int64_t aTimeStamp, const TigerTree& tth, int64_t speed,
+		void hashDone(__int64 p_path_id, const string& aFileName, int64_t aTimeStamp, const TigerTree& tth, int64_t speed,
 		              bool p_is_ntfs,
 		              int64_t p_Size);
 		void doRebuild()
 		{
-			// Lock l(cs); [-] IRainman fix: no data to lock.
 			rebuild();
 		}
 };

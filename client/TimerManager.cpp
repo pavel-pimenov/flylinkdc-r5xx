@@ -32,7 +32,6 @@
 
 using namespace boost::posix_time;
 static auto g_start = microsec_clock::universal_time(); // [!] IRainamn fix.
-static volatile bool g_running = false; // [+] IRainman fix.
 
 bool TimerManager::g_isStartupShutdownProcess = false;
 
@@ -40,7 +39,6 @@ TimerManager::TimerManager()
 {
 	// This mutex will be unlocked only upon shutdown
 	m_mtx.lock();
-	g_running = true; // [+] IRainman fix.
 }
 
 TimerManager::~TimerManager()
@@ -52,12 +50,6 @@ void TimerManager::shutdown()
 	g_isStartupShutdownProcess = true;
 	m_mtx.unlock();
 	join();
-	// [+] IRainman fix.
-	while (g_running)
-	{
-		sleep(10);
-	}
-	// [~] IRainman fix.
 }
 
 int TimerManager::run()
@@ -120,7 +112,6 @@ int TimerManager::run()
 	
 	m_mtx.unlock();
 	dcdebug("TimerManager done\n");
-	g_running = false; // [+] IRainman fix.
 	return 0;
 }
 

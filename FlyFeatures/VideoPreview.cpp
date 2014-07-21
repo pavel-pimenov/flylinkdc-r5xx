@@ -487,6 +487,7 @@ int VideoPreviewSocketProcessor::run()
 	string header = buff.data();
 	header = header.substr(0, static_cast<size_t>(size));
 	
+	VideoPreview::getInstance()->AddLogInfo("Header = " + header);
 	parseHeader(header);
 	size_t BlockSize = SETTING(INT_PREVIEW_SERVER_SPEED) * 1024;
 	if (BlockSize == 0)
@@ -548,7 +549,7 @@ int VideoPreviewSocketProcessor::run()
 		// Accept new socket thread
 		if (VideoPreview::getInstance() != NULL && endValue > 0)
 		{
-			std::string content_type = "application/avi";
+			const std::string content_type = "application/avi";
 			
 			std::string data = "HTTP/1.1 200 OK\nContent-type: ";
 			data += content_type;

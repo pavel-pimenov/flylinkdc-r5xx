@@ -1048,7 +1048,7 @@ public:
 					// get button's text
 					const int cchBuff = 200;
 					TCHAR szBuff[cchBuff] = { 0 };
-					LPTSTR lpstrText = szBuff;
+					LPCTSTR lpstrText = szBuff;
 					TBBUTTONINFO tbbi = { 0 };
 					tbbi.cbSize = sizeof(TBBUTTONINFO);
 					tbbi.dwMask = TBIF_TEXT;
@@ -3069,7 +3069,7 @@ public:
 	bool UIAddToolBar(HWND hWndToolBar)
 	{
 		ATLASSERT(::IsWindow(hWndToolBar));
-		TBBUTTONINFO tbbi = {sizeof TBBUTTONINFO, TBIF_COMMAND | TBIF_STYLE | TBIF_BYINDEX};
+		TBBUTTONINFO tbbi = { sizeof(TBBUTTONINFO), TBIF_COMMAND | TBIF_STYLE | TBIF_BYINDEX };
 
 		// Add toolbar buttons
 		for (int uItem = 0; ::SendMessage(hWndToolBar, TB_GETBUTTONINFO, uItem, (LPARAM)&tbbi) != -1; uItem++)

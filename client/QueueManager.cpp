@@ -2086,7 +2086,11 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 							// Check if we need to move the file
 							if (aDownload->getType() == Transfer::TYPE_FILE && !aDownload->getTempTarget().empty() && (stricmp(aDownload->getPath().c_str(), aDownload->getTempTarget().c_str()) != 0))
 							{
-								moveFile(aDownload->getTempTarget(), aDownload->getPath());
+								if (!q->isSet(Download::FLAG_USER_GET_IP)) // fix  https://code.google.com/p/flylinkdc/issues/detail?id=1480
+									// TODO !q->isSet(Download::FLAG_USER_CHECK)
+								{
+									moveFile(aDownload->getTempTarget(), aDownload->getPath());
+								}
 							}
 							
 							if (BOOLSETTING(LOG_DOWNLOADS) && (BOOLSETTING(LOG_FILELIST_TRANSFERS) || aDownload->getType() == Transfer::TYPE_FILE))
@@ -2561,7 +2565,7 @@ void QueueManager::saveQueue(bool force) noexcept
 	// [-] Lock l(cs); [-] IRainman fix.
 	{
 		RLock l(*QueueItem::g_cs); // TODO после исправления дедлока - убрать данную блокировку. https://code.google.com/p/flylinkdc/issues/detail?id=1028
-		RLock l_lock_fq(*fileQueue.g_csFQ);
+		RLock l_lock_fq(*FileQueue::g_csFQ);
 		for (auto i = fileQueue.getQueueL().begin(); i != fileQueue.getQueueL().end(); ++i)
 		{
 			auto& qi  = i->second;
@@ -2571,9 +2575,9 @@ void QueueManager::saveQueue(bool force) noexcept
 				{
 #ifdef _DEBUG
 					const auto& l_first = i->first;
-					LogManager::getInstance()->message("merge_queue_item(qi) getFlyQueueID = " + Util::toString(qi->getFlyQueueID()) + " *l_first = " + *l_first);
+					LogManager::getInstance()->message("merge_queue_itemL(qi) getFlyQueueID = " + Util::toString(qi->getFlyQueueID()) + " *l_first = " + *l_first);
 #endif
-					if (CFlylinkDBManager::getInstance()->merge_queue_item(qi))
+					if (CFlylinkDBManager::getInstance()->merge_queue_itemL(qi))
 					{
 						qi->setDirty(false);
 					}
@@ -2917,6 +2921,8 @@ void QueueManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 		calcPriorityAndGetRunningFilesL(l_priorities, l_runningItems);
 		if (!l_runningItems.empty())
 		{
+			// Внутри зовется
+			// int16_t QueueItem::calcTransferFlagL где нужен лок на  RLock l(*QueueItem::g_cs);
 			fire(QueueManagerListener::Tick(), l_runningItems); // [!] IRainman opt.
 		}
 	}

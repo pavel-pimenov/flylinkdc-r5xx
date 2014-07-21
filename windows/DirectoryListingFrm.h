@@ -100,6 +100,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 			STATUS_TEXT,
 			STATUS_SPEED,
 			STATUS_TOTAL_FILES,
+			STATUS_TOTAL_FOLDERS,
 			STATUS_TOTAL_SIZE,
 			STATUS_SELECTED_FILES,
 			STATUS_SELECTED_SIZE,

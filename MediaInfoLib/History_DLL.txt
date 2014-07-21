@@ -11,6 +11,7 @@ https://sourceforge.net/p/mediainfo/_list/tickets
 Version 0.7.70, 2014-
 --------------
 + CDP: using CDP service descriptor for the list of 708 services + language information
++ MXF: showing the real bit depth ("Quantization bits"); the count of bits stored in the file is in a new field "Stored bit depth" if it differs
 + MXF: Audio "frame rate" (how PCM content is split in packets) information
 + MXF: Audio block alignment byte size (hidden by default)
 + VC-3: adding the commercial name "DNxHD" + bitrate class
@@ -26,8 +27,12 @@ Version 0.7.70, 2014-
 + BMP: support of OS/2 headers
 + HLS: com.apple.streaming.transportStreamTimestamp support
 + ISM: ISMT / text (TTML) streams support
++ MXF: detection of buggy BlockAlign from some muxers, so PCM bit depth is corectly detected despite the buggy metadata
++ HEVC: library name of some encoding libraries
++ MPEG-2 Video: picture structure for interlaced content (interlaced content can have a frame structure)
 x HEVC: some streams with VUI were not parsed
 x MPEG Video: was not correctly handling 1000:1001 frame rates and NDF time codes combination during frame count computing
+x MPEG Video: was not correctly detecting the time stamp of the first frame in case of closed GOP with first frame not the I-frame
 x XDCAM: information about the MXF header presence was not provided if MOV header has a glbl atom
 x Some specific C++11 code is removed for full compatibility with older C++
 x MXF: Time codes values were buggy in case of MXF with pre-charge ("Origin" not 0)

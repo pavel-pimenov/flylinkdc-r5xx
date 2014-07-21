@@ -437,9 +437,13 @@ void DirectoryListingFrame::initStatus()
 	files = dl->getTotalFileCount();
 	size = Util::formatBytes(dl->getTotalSize());
 	
-	tstring tmp = TSTRING(FILES) + _T(": ") + Util::toStringW(dl->getTotalFileCount(true));
+	tstring tmp = TSTRING(FILES) + _T(": ") + Util::toStringW(files);
 	statusSizes[STATUS_TOTAL_FILES] = WinUtil::getTextWidth(tmp, m_hWnd);
 	ctrlStatus.SetText(STATUS_TOTAL_FILES, tmp.c_str());
+	
+	tmp = TSTRING(FOLDERS) + _T(": ") + Util::toStringW(dl->getTotalFolderCount());
+	statusSizes[STATUS_TOTAL_FOLDERS] = WinUtil::getTextWidth(tmp, m_hWnd);
+	ctrlStatus.SetText(STATUS_TOTAL_FOLDERS, tmp.c_str());
 	
 	tmp = TSTRING(SIZE) + _T(": ") + Util::formatBytesW(dl->getTotalSize(true));
 	statusSizes[STATUS_TOTAL_SIZE] = WinUtil::getTextWidth(tmp, m_hWnd);
@@ -1236,7 +1240,6 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 		{
 			fileMenu.EnableMenuItem(IDC_SEARCH_ALTERNATES, MF_BYCOMMAND | MFS_ENABLED);
 			fileMenu.EnableMenuItem(IDC_SEARCH_FILE_IN_GOOGLE, MF_BYCOMMAND | MFS_ENABLED);
-			fileMenu.EnableMenuItem(IDC_SEARCH_FILE_IN_NIGMA, MF_BYCOMMAND | MFS_ENABLED);
 			fileMenu.EnableMenuItem(IDC_SEARCH_FILE_IN_YANDEX, MF_BYCOMMAND | MFS_ENABLED);
 			fileMenu.EnableMenuItem(IDC_GENERATE_DCLST_FILE, MF_BYCOMMAND | MFS_DISABLED); // [+] SSA
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -1303,7 +1306,6 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 			int iCount = ctrlList.GetSelectedCount();
 			fileMenu.EnableMenuItem(IDC_SEARCH_ALTERNATES, MF_BYCOMMAND | MFS_DISABLED);
 			fileMenu.EnableMenuItem(IDC_SEARCH_FILE_IN_GOOGLE, MF_BYCOMMAND | MFS_DISABLED);
-			fileMenu.EnableMenuItem(IDC_SEARCH_FILE_IN_NIGMA, MF_BYCOMMAND | MFS_DISABLED);
 			fileMenu.EnableMenuItem(IDC_SEARCH_FILE_IN_YANDEX, MF_BYCOMMAND | MFS_DISABLED);
 			activatePreviewItems(fileMenu);
 			//fileMenu.EnableMenuItem((UINT)(HMENU)copyMenu, MF_BYCOMMAND | MFS_DISABLED); // !SMT!-UI
@@ -2317,62 +2319,65 @@ http://code.google.com/p/flylinkdc/issues/detail?id=1113
 //===================================================================================================================================
 bool DirectoryListingFrame::scan_list_view_from_merge()
 {
-	const int l_item_count = ctrlList.GetItemCount();
-	if (l_item_count == 0)
-		return 0;
-	std::vector<int> l_update_index;
-	const int l_top_index = ctrlList.GetTopIndex();
-	const int l_count_per_page = ctrlList.GetCountPerPage();
-	for (int j = l_top_index; j < l_item_count && j < l_top_index + l_count_per_page; ++j)
+	if (BOOLSETTING(ENABLE_FLY_SERVER))
 	{
-		dcassert(!isClosedOrShutdown());
-		ItemInfo* l_item_info = ctrlList.getItemData(j);
-		if (l_item_info == nullptr || l_item_info->m_already_processed || l_item_info->type != ItemInfo::FILE) // Уже не первый раз или это не файл?
-			continue;
-		l_item_info->m_already_processed = true;
-		const auto l_file_size = l_item_info->file->getSize();
-		if (l_file_size)
+		const int l_item_count = ctrlList.GetItemCount();
+		if (l_item_count == 0)
+			return 0;
+		std::vector<int> l_update_index;
+		const int l_top_index = ctrlList.GetTopIndex();
+		const int l_count_per_page = ctrlList.GetCountPerPage();
+		for (int j = l_top_index; j < l_item_count && j < l_top_index + l_count_per_page; ++j)
 		{
-			const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(l_item_info->file->getName())); // TODO - расширение есть в Columns но в T-формате
-			if (g_fly_server_config.isSupportFile(l_file_ext, l_file_size))
+			dcassert(!isClosedOrShutdown());
+			ItemInfo* l_item_info = ctrlList.getItemData(j);
+			if (l_item_info == nullptr || l_item_info->m_already_processed || l_item_info->type != ItemInfo::FILE) // Уже не первый раз или это не файл?
+				continue;
+			l_item_info->m_already_processed = true;
+			const auto l_file_size = l_item_info->file->getSize();
+			if (l_file_size)
 			{
-				const TTHValue& l_tth = l_item_info->file->getTTH();
-				Lock l(g_cs_fly_server);
-				const auto l_find_ratio = g_fly_server_cache.find(l_tth);
-				if (l_find_ratio == g_fly_server_cache.end()) // Если значение рейтинга есть в кэше то не запрашиваем о нем инфу с сервера
+				const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(l_item_info->file->getName())); // TODO - расширение есть в Columns но в T-формате
+				if (g_fly_server_config.isSupportFile(l_file_ext, l_file_size))
 				{
-					CFlyServerKey l_info(l_tth, l_file_size);
-					m_merge_item_map.insert(make_pair(l_tth, l_item_info));
-					l_info.m_only_counter  = !l_item_info->columns[COLUMN_MEDIA_AUDIO].empty(); // Колонка базовой медиаинфы уже заполенна - запросим с сервера только рейтинги
-					if (l_info.m_only_counter) // TODO - определить точнее есть у нас инфа по файлу или нет?
+					const TTHValue& l_tth = l_item_info->file->getTTH();
+					Lock l(g_cs_fly_server);
+					const auto l_find_ratio = g_fly_server_cache.find(l_tth);
+					if (l_find_ratio == g_fly_server_cache.end()) // Если значение рейтинга есть в кэше то не запрашиваем о нем инфу с сервера
 					{
-						m_tth_media_file_map[l_tth] = l_file_size; // Регистрируем кандидата на передачу информации
+						CFlyServerKey l_info(l_tth, l_file_size);
+						m_merge_item_map.insert(make_pair(l_tth, l_item_info));
+						l_info.m_only_counter  = !l_item_info->columns[COLUMN_MEDIA_AUDIO].empty(); // Колонка базовой медиаинфы уже заполенна - запросим с сервера только рейтинги
+						if (l_info.m_only_counter) // TODO - определить точнее есть у нас инфа по файлу или нет?
+						{
+							m_tth_media_file_map[l_tth] = l_file_size; // Регистрируем кандидата на передачу информации
+						}
+						// TODO - обратиться к локальной базе вдруг у нас уже инфа есть?
+						m_GetFlyServerArray.push_back(l_info);
 					}
-					// TODO - обратиться к локальной базе вдруг у нас уже инфа есть?
-					m_GetFlyServerArray.push_back(l_info);
-				}
-				else
-				{
-					l_update_index.push_back(j);
-					const auto& l_cache = l_find_ratio->second.second;
-					if (l_item_info->columns[COLUMN_FLY_SERVER_RATING].empty())
-						l_item_info->columns[COLUMN_FLY_SERVER_RATING] = Text::toT(l_cache.m_ratio);
-					if (l_item_info->columns[COLUMN_BITRATE].empty())
-						l_item_info->columns[COLUMN_BITRATE]  = Text::toT(l_cache.m_audio_br);
-					if (l_item_info->columns[COLUMN_MEDIA_XY].empty())
-						l_item_info->columns[COLUMN_MEDIA_XY] =  Text::toT(l_cache.m_xy);
-					if (l_item_info->columns[COLUMN_MEDIA_VIDEO].empty())
-						l_item_info->columns[COLUMN_MEDIA_VIDEO] =  Text::toT(l_cache.m_video);
-					if (l_item_info->columns[COLUMN_MEDIA_AUDIO].empty())
+					else
 					{
-						CFlyMediaInfo::translateDuration(l_cache.m_audio, l_item_info->columns[COLUMN_MEDIA_AUDIO], l_item_info->columns[COLUMN_DURATION]);
+						l_update_index.push_back(j);
+						const auto& l_cache = l_find_ratio->second.second;
+						if (l_item_info->columns[COLUMN_FLY_SERVER_RATING].empty())
+							l_item_info->columns[COLUMN_FLY_SERVER_RATING] = Text::toT(l_cache.m_ratio);
+						if (l_item_info->columns[COLUMN_BITRATE].empty())
+							l_item_info->columns[COLUMN_BITRATE]  = Text::toT(l_cache.m_audio_br);
+						if (l_item_info->columns[COLUMN_MEDIA_XY].empty())
+							l_item_info->columns[COLUMN_MEDIA_XY] =  Text::toT(l_cache.m_xy);
+						if (l_item_info->columns[COLUMN_MEDIA_VIDEO].empty())
+							l_item_info->columns[COLUMN_MEDIA_VIDEO] =  Text::toT(l_cache.m_video);
+						if (l_item_info->columns[COLUMN_MEDIA_AUDIO].empty())
+						{
+							CFlyMediaInfo::translateDuration(l_cache.m_audio, l_item_info->columns[COLUMN_MEDIA_AUDIO], l_item_info->columns[COLUMN_DURATION]);
+						}
 					}
+					
 				}
-				
 			}
 		}
+		update_column_after_merge(l_update_index);
 	}
-	update_column_after_merge(l_update_index);
 	return m_GetFlyServerArray.size() || m_SetFlyServerArray.size();
 }
 //===================================================================================================================================

@@ -173,11 +173,11 @@ void HashManager::SetFsDetectorNotifyWnd(HWND hWnd)
 }
 #endif
 
-bool HashManager::addFileFromStream(const string& p_name, const TigerTree& p_TT, int64_t p_size)
+void HashManager::addFileFromStream(int64_t p_path_id, const string& p_name, const TigerTree& p_TT, int64_t p_size)
 {
 	const int64_t l_TimeStamp = File::getTimeStamp(p_name);
 	CFlyMediaInfo l_out_media;
-	return addFile(p_name, l_TimeStamp, p_TT, p_size, l_out_media);
+	addFile(p_path_id, p_name, l_TimeStamp, p_TT, p_size, l_out_media);
 }
 #endif // IRAINMAN_NTFS_STREAM_TTH
 
@@ -492,12 +492,12 @@ bool HashManager::checkTTH(const string& fname, const string& fpath, int64_t p_p
 		TigerTree l_TT;
 		if (m_streamstore.loadTree(name, l_TT)) // [!] IRainman fix: no needs to lock.
 		{
-			addFileFromStream(name, l_TT, aSize); // [!] IRainman fix: no needs to lock.
+			addFileFromStream(p_path_id, name, l_TT, aSize); // [!] IRainman fix: no needs to lock.
 		}
 		else
 		{
 #endif // IRAINMAN_NTFS_STREAM_TTH      
-			hasher.hashFile(name, aSize); // [!] IRainman fix: no needs to lock.
+			hasher.hashFile(p_path_id, name, aSize); // [!] IRainman fix: no needs to lock.
 			return false;
 			
 #ifdef IRAINMAN_NTFS_STREAM_TTH
@@ -524,7 +524,8 @@ const TTHValue HashManager::getTTH(const string& fname, const string& fpath, int
 {
 	// Lock l(cs); [-] IRainman fix.
 	TTHValue l_tth;
-	bool l_is_find_tth = CFlylinkDBManager::getInstance()->findTTH(fname, fpath, l_tth); // [!] IRainman fix: no needs to lock.
+	__int64 l_path_id = 0;
+	bool l_is_find_tth = CFlylinkDBManager::getInstance()->findTTH(fname, fpath, l_tth, l_path_id); // [!] IRainman fix: no needs to lock.
 	if (!l_is_find_tth)
 	{
 		const string name = fpath + fname;
@@ -532,8 +533,8 @@ const TTHValue HashManager::getTTH(const string& fname, const string& fpath, int
 		TigerTree l_TT;
 		if (m_streamstore.loadTree(name, l_TT)) // [!] IRainman fix: no needs to lock.
 		{
-			addFileFromStream(name, l_TT, aSize); // [!] IRainman fix: no needs to lock.
-			l_is_find_tth = CFlylinkDBManager::getInstance()->findTTH(fname, fpath, l_tth);
+			addFileFromStream(l_path_id, name, l_TT, aSize); // [!] IRainman fix: no needs to lock.
+			l_is_find_tth = CFlylinkDBManager::getInstance()->findTTH(fname, fpath, l_tth, l_path_id); // Зачем тут зовется второй раз findTTH?
 			dcassert(l_is_find_tth);
 			if (!l_is_find_tth)
 			{
@@ -544,7 +545,7 @@ const TTHValue HashManager::getTTH(const string& fname, const string& fpath, int
 		{
 #endif // IRAINMAN_NTFS_STREAM_TTH
 		
-			hasher.hashFile(name , aSize); // [!] IRainman fix: no needs to lock.
+			hasher.hashFile(l_path_id, name, aSize); // [!] IRainman fix: no needs to lock.
 			throw HashException(Util::emptyString);
 			
 #ifdef IRAINMAN_NTFS_STREAM_TTH
@@ -558,7 +559,7 @@ const TTHValue HashManager::getTTH(const string& fname, const string& fpath, int
 	return l_tth;
 }
 
-void HashManager::hashDone(const string& aFileName, int64_t aTimeStamp, const TigerTree& tth, int64_t speed,
+void HashManager::hashDone(__int64 p_path_id, const string& aFileName, int64_t aTimeStamp, const TigerTree& tth, int64_t speed,
                            bool p_is_ntfs, int64_t p_size)
 {
 	// Lock l(cs); [-] IRainman fix: no data to lock.
@@ -571,7 +572,7 @@ void HashManager::hashDone(const string& aFileName, int64_t aTimeStamp, const Ti
 	CFlyMediaInfo l_out_media;
 	try
 	{
-		addFile(aFileName, aTimeStamp, tth, p_size, l_out_media);
+		addFile(p_path_id, aFileName, aTimeStamp, tth, p_size, l_out_media);
 #ifdef IRAINMAN_NTFS_STREAM_TTH
 		if (BOOLSETTING(SAVE_TTH_IN_NTFS_FILESTREAM))
 		{
@@ -592,7 +593,7 @@ void HashManager::hashDone(const string& aFileName, int64_t aTimeStamp, const Ti
 		return;
 	}
 	fire(HashManagerListener::TTHDone(), aFileName, tth.getRoot(), aTimeStamp, l_out_media, p_size);
-	CFlylinkDBManager::getInstance()->push_download_tth(tth.getRoot());
+	CFlylinkDBManager::getInstance()->push_add_share_tth(tth.getRoot());
 	
 	string fn = aFileName;
 	if (count(fn.begin(), fn.end(), PATH_SEPARATOR) >= 2)
@@ -612,28 +613,23 @@ void HashManager::hashDone(const string& aFileName, int64_t aTimeStamp, const Ti
 	}
 }
 
-bool HashManager::addFile(const string& p_file_name, int64_t p_time_stamp, const TigerTree& p_tth, int64_t p_size, CFlyMediaInfo& p_out_media)
+
+void HashManager::addFile(__int64 p_path_id, const string& p_file_name, int64_t p_time_stamp, const TigerTree& p_tth, int64_t p_size, CFlyMediaInfo& p_out_media)
 {
-	const string l_name = Text::toLower(Util::getFileName(p_file_name));
-	const string l_path = Text::toLower(Util::getFilePath(p_file_name));
+	dcassert(p_path_id);
 	p_out_media.init(); // TODO - делается двойной инит
-	int64_t l_path_id = 0;
-	const int64_t l_tth_id = CFlylinkDBManager::getInstance()->merge_file(l_path, l_name, p_time_stamp, p_tth, false , l_path_id);
-	if (getMediaInfo(p_file_name, p_out_media, p_size, p_tth.getRoot()))
-	{
-		return CFlylinkDBManager::getInstance()->merge_mediainfo(l_tth_id, l_path_id, l_name, p_out_media); // Если медиаинфу расчитали - скинем ее в базу
-	}
-	else
-	{
-		dcassert(l_tth_id != 0);
-		return l_tth_id != 0;
-	}
+	getMediaInfo(p_file_name, p_out_media, p_size, p_tth.getRoot());
+	CFlylinkDBManager::getInstance()->add_file(p_path_id, p_file_name, p_time_stamp, p_tth, p_size, p_out_media);
 }
 
-void HashManager::Hasher::hashFile(const string& fileName, int64_t size)
+void HashManager::Hasher::hashFile(__int64 p_path_id, const string& fileName, int64_t size)
 {
 	FastLock l(cs);
-	if (w.insert(make_pair(fileName, size)). second)
+	CFlyHashTaskItem l_task_item;
+	l_task_item.m_file_size = size;
+	l_task_item.m_path_id   = p_path_id;
+	
+	if (w.insert(make_pair(fileName, l_task_item)). second)
 	{
 		m_CurrentBytesLeft += size;// [+]IRainman
 		if (paused > 0)
@@ -688,9 +684,9 @@ void HashManager::Hasher::stopHashing(const string& baseDir)
 	{
 		for (auto i = w.cbegin(); i != w.cend();)
 		{
-			if (strnicmp(baseDir, i->first, baseDir.length()) == 0)
+			if (strnicmp(baseDir, i->first, baseDir.length()) == 0) // TODO сравнивать ID каталогов?
 			{
-				m_CurrentBytesLeft -= i->second;// [+]IRainman
+				m_CurrentBytesLeft -= i->second.m_file_size;
 				w.erase(i++);
 			}
 			else
@@ -705,7 +701,8 @@ void HashManager::Hasher::stopHashing(const string& baseDir)
 	dwMaxFiles = 0;
 	iMaxBytes = 0;
 	m_fname.erase();
-	currentSize = 0;
+	m_currentSize = 0;
+	m_path_id = 0;
 }
 
 void HashManager::Hasher::instantPause()
@@ -879,7 +876,7 @@ bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, TigerTree&
 		
 		{
 			FastLock l(cs);
-			currentSize = max(currentSize - hn, _LL(0));
+			m_currentSize = max(m_currentSize - hn, _LL(0));
 		}
 		
 		if (size == 0)
@@ -946,8 +943,9 @@ int HashManager::Hasher::run()
 			if (!w.empty())
 			{
 				m_fname = w.begin()->first;
-				currentSize = w.begin()->second;
-				m_CurrentBytesLeft -= currentSize;// [+]IRainman
+				m_currentSize = w.begin()->second.m_file_size;
+				m_path_id = w.begin()->second.m_path_id;
+				m_CurrentBytesLeft -= m_currentSize;// [+]IRainman
 				w.erase(w.begin());
 				last = w.empty();
 				if (!m_running)
@@ -1044,7 +1042,7 @@ int HashManager::Hasher::run()
 									tth->update(buf, n);
 									{
 										FastLock l(cs);
-										currentSize = max(static_cast<uint64_t>(currentSize - n), static_cast<uint64_t>(0)); // TODO - max от 0 для беззнакового?
+										m_currentSize = max(static_cast<uint64_t>(m_currentSize - n), static_cast<uint64_t>(0)); // TODO - max от 0 для беззнакового?
 									}
 									l_sizeLeft -= n;
 									
@@ -1073,14 +1071,14 @@ int HashManager::Hasher::run()
 #ifdef IRAINMAN_NTFS_STREAM_TTH
 					if (l_is_ntfs)
 					{
-						HashManager::getInstance()->hashDone(m_fname, timestamp, *tth, speed, l_is_ntfs, l_size);
+						HashManager::getInstance()->hashDone(m_path_id, m_fname, timestamp, *tth, speed, l_is_ntfs, l_size);
 					}
 					else
 #endif
 						if (tth)
 						{
 							tth->finalize();
-							HashManager::getInstance()->hashDone(m_fname, timestamp, *tth, speed, l_is_ntfs, l_size);
+							HashManager::getInstance()->hashDone(m_path_id, m_fname, timestamp, *tth, speed, l_is_ntfs, l_size);
 						}
 				}
 			}
@@ -1092,7 +1090,8 @@ int HashManager::Hasher::run()
 		{
 			FastLock l(cs);
 			m_fname.clear();
-			currentSize = 0;
+			m_currentSize = 0;
+			m_path_id = 0;
 			
 			if (w.empty())
 			{
@@ -1123,7 +1122,9 @@ HashManager::HashPauser::HashPauser()
 HashManager::HashPauser::~HashPauser()
 {
 	if (resume)
+	{
 		HashManager::getInstance()->resumeHashing();
+	}
 }
 
 bool HashManager::pauseHashing()

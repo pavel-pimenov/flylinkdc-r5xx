@@ -66,9 +66,10 @@ void sqlite3_connection::setbusytimeout(int ms) {
 		throw database_error(this);
 }
 
-void sqlite3_connection::executenonquery(const char *sql) {
+const char * sqlite3_connection::executenonquery(const char *sql) {
 	check_db_open();
 	sqlite3_command(*this, sql).executenonquery();
+	return sql;
 }
 
 void sqlite3_connection::executenonquery(const std::string &sql) {

@@ -376,7 +376,6 @@ const string SettingsManager::settingTags[] =
 	"AutoUpdateRunAtTime",
 	"AutoUpdateShowReady",
 	"AutoUpdateTime",
-	"AutoUpdateUpdateUnknown",
 	"AutoUpdateExe",
 	"AutoUpdateUtilities",
 	"AutoUpdateLang",
@@ -388,7 +387,7 @@ const string SettingsManager::settingTags[] =
 	"AutoUpdateColorThemes",
 	"AutoUpdateDocumentation",
 	"AutoUpdateChatBot",
-	"AutoUpdateForceRestart",
+	"AutoUpdateForceRestartFlag",
 	"ExtraSlotByIP",
 	"DCLSRegister", // [+] IRainman dcls support
 	"AutoUpdateToBeta", // [+] SSA - update to beta version
@@ -533,8 +532,8 @@ void SettingsManager::setDefaults()
 // Параметры подверженные падению - провести дополнительную валиадцию
 	setDefault(LOG_FORMAT_POST_DOWNLOAD, "%Y-%m-%d %H:%M:%S: %[target] " + STRING(DOWNLOADED_FROM) + " %[userNI] (%[userCID]), %[fileSI] (%[fileSIchunk]), %[speed], %[time]");
 	setDefault(LOG_FORMAT_POST_UPLOAD, "%Y-%m-%d %H:%M:%S %[source] " + STRING(UPLOADED_TO) + " %[userNI] (%[userCID]), %[fileSI] (%[fileSIchunk]), %[speed], %[time]");
-	setDefault(LOG_FORMAT_MAIN_CHAT, "[%Y-%m-%d %H:%M%:%S [extra]] %[message]");
-	setDefault(LOG_FORMAT_PRIVATE_CHAT, "[%Y-%m-%d %H:%M%:%S [extra]] %[message]");
+	setDefault(LOG_FORMAT_MAIN_CHAT, "[%Y-%m-%d %H:%M:%S [extra]] %[message]");
+	setDefault(LOG_FORMAT_PRIVATE_CHAT, "[%Y-%m-%d %H:%M:%S [extra]] %[message]");
 	setDefault(LOG_FORMAT_STATUS, "[%Y-%m-%d %H:%M:%S] %[message]");
 	setDefault(LOG_FORMAT_SYSTEM, "[%Y-%m-%d %H:%M:%S] %[message]");
 	setDefault(LOG_FORMAT_CUSTOM_LOCATION, "[%[line]] - %[error]"); // [+] IRainman
@@ -1195,7 +1194,6 @@ void SettingsManager::setDefaults()
 #endif
 	setDefault(ON_DOWNLOAD_SETTING, ON_DOWNLOAD_ASK); //[+] SSA
 	// [+] SSA - AutoUpdate
-	//setDefault(AUTOUPDATE_UPDATE_UNKNOWN, false); // [+] SSA
 	setDefault(AUTOUPDATE_EXE, TRUE); // [+] SSA
 	setDefault(AUTOUPDATE_UTILITIES, TRUE); // [+] SSA
 	setDefault(AUTOUPDATE_LANG, TRUE); // [+] SSA
@@ -1215,7 +1213,7 @@ void SettingsManager::setDefaults()
 #ifdef SSA_SHELL_INTEGRATION
 	setDefault(AUTOUPDATE_SHELL_EXT, TRUE); // [+] IRainman
 #endif
-	//setDefault(AUTOUPDATE_FORCE_RESTART, false); // [+] SSA
+	setDefault(AUTOUPDATE_FORCE_RESTART, TRUE); // [+] SSA
 	setDefault(AUTOUPDATE_ENABLE, TRUE); // [+] SSA
 	//setDefault(AUTOUPDATE_USE_CUSTOM_URL, false); //[+] SSA
 	
@@ -1510,6 +1508,10 @@ void SettingsManager::load(const string& aFileName)
 	{
 		File::ensureDirectory(l_path);
 	}
+}
+void SettingsManager::generateNewTCPPort()
+{
+	set(TCP_PORT, getNewPortValue(get(TCP_PORT)));
 }
 
 void SettingsManager::loadOtherSettings()

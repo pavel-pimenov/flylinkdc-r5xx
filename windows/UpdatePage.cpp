@@ -55,9 +55,6 @@ PropPage::Item UpdatePage::items[] =
 UpdatePage::ListItem UpdatePage::listItems[] =
 {
 	{ SettingsManager::AUTOUPDATE_SHOWUPDATEREADY, ResourceManager::AUTOUPDATE_SHOWUPDATEREADY}, // [+] SSA
-#ifndef FLYLINKDC_HE
-	{ SettingsManager::AUTOUPDATE_UPDATE_UNKNOWN, ResourceManager::AUTOUPDATE_UPDATE_UNKNOWN}, // [+] SSA
-#endif
 	{ SettingsManager::AUTOUPDATE_FORCE_RESTART, ResourceManager::AUTOUPDATE_FORCE_RESTART}, // [+] SSA
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };

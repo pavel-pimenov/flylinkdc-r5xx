@@ -1770,7 +1770,11 @@ public:
 	}
 
 // COM Server methods
+#if (_MSC_VER >= 1300)
+	LONG Unlock() throw()
+#else
 	LONG Unlock()
+#endif
 	{
 		LONG lRet = CComModule::Unlock();
 		if(lRet == 0)

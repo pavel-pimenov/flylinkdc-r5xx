@@ -1041,7 +1041,7 @@ void AdcHub::connect(const OnlineUser& user, const string& token, bool secure)
 		}
 		proto = &AdcSupports::CLIENT_PROTOCOL;
 	}
-	
+	// DC++ TODO ConnectionManager::getInstance()->m_tokens.addToken(token);
 	if (isActive())
 	{
 		uint16_t port = secure ? ConnectionManager::getInstance()->getSecurePort() : ConnectionManager::getInstance()->getPort();

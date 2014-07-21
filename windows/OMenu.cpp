@@ -255,7 +255,12 @@ void CEmotionMenu::CreateEmotionMenu(const POINT& p_pt, const HWND& p_hWnd, int 
 	}
 	// nacteme seznam emoticon packu (vsechny *.xml v adresari EmoPacks)
 	WIN32_FIND_DATA data;
-	HANDLE hFind = FindFirstFile(Text::toT(Util::getEmoPacksPath() + "*.xml").c_str(), &data);
+	HANDLE hFind = FindFirstFileEx(Text::toT(Util::getEmoPacksPath() + "*.xml").c_str(),
+	                               CompatibilityManager::g_find_file_level,
+	                               &data,
+	                               FindExSearchNameMatch,
+	                               NULL,
+	                               0);
 	if (hFind != INVALID_HANDLE_VALUE)
 	{
 		do

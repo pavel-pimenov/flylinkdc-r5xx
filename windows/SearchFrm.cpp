@@ -1025,60 +1025,63 @@ void SearchFrame::on(SearchManagerListener::Searching, SearchQueueItem* aSearch)
 //===================================================================================================================================
 bool SearchFrame::scan_list_view_from_merge()
 {
-	const int l_item_count = ctrlResults.GetItemCount();
-	if (l_item_count == 0)
-		return 0;
-	std::vector<int> l_update_index;
-	const int l_top_index = ctrlResults.GetTopIndex();
-	const int l_count_per_page = ctrlResults.GetCountPerPage();
-	for (int j = l_top_index; j < l_item_count && j < l_top_index + l_count_per_page; ++j)
+	if (BOOLSETTING(ENABLE_FLY_SERVER))
 	{
-		dcassert(!isClosedOrShutdown());
-		SearchInfo* l_item_info = ctrlResults.getItemData(j);
-		if (l_item_info == nullptr || l_item_info->m_already_processed || l_item_info->parent) // Уже не первый раз или это дочерний узел по TTH?
-			continue;
-		l_item_info->m_already_processed = true;
-		const auto& sr2 = l_item_info->sr;
-		const auto l_file_size = sr2->getSize();
-		if (l_file_size)
+		const int l_item_count = ctrlResults.GetItemCount();
+		if (l_item_count == 0)
+			return 0;
+		std::vector<int> l_update_index;
+		const int l_top_index = ctrlResults.GetTopIndex();
+		const int l_count_per_page = ctrlResults.GetCountPerPage();
+		for (int j = l_top_index; j < l_item_count && j < l_top_index + l_count_per_page; ++j)
 		{
-			const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(sr2->getFileName())); // TODO - расширение есть в Columns но в T-формате
-			if (g_fly_server_config.isSupportFile(l_file_ext, l_file_size))
+			dcassert(!isClosedOrShutdown());
+			SearchInfo* l_item_info = ctrlResults.getItemData(j);
+			if (l_item_info == nullptr || l_item_info->m_already_processed || l_item_info->parent) // Уже не первый раз или это дочерний узел по TTH?
+				continue;
+			l_item_info->m_already_processed = true;
+			const auto& sr2 = l_item_info->sr;
+			const auto l_file_size = sr2->getSize();
+			if (l_file_size)
 			{
-				const TTHValue& l_tth = sr2->getTTH();
-				CFlyServerKey l_info(l_tth, l_file_size);
-				Lock l(g_cs_fly_server);
-				const auto l_find_ratio = g_fly_server_cache.find(l_tth);
-				if (l_find_ratio == g_fly_server_cache.end()) // Если значение рейтинга есть в кэше то не запрашиваем о нем инфу с сервера
+				const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(sr2->getFileName())); // TODO - расширение есть в Columns но в T-формате
+				if (g_fly_server_config.isSupportFile(l_file_ext, l_file_size))
 				{
-					CFlyServerCache l_fly_server_cache;
-					if (CFlylinkDBManager::getInstance()->find_fly_server_cache(l_tth, l_fly_server_cache))
+					const TTHValue& l_tth = sr2->getTTH();
+					CFlyServerKey l_info(l_tth, l_file_size);
+					Lock l(g_cs_fly_server);
+					const auto l_find_ratio = g_fly_server_cache.find(l_tth);
+					if (l_find_ratio == g_fly_server_cache.end()) // Если значение рейтинга есть в кэше то не запрашиваем о нем инфу с сервера
 					{
-						l_info.m_only_counter = true; // Нашли информацию в локальной базе.
-						l_info.m_is_cache = true; // Для статистики
+						CFlyServerCache l_fly_server_cache;
+						if (CFlylinkDBManager::getInstance()->find_fly_server_cache(l_tth, l_fly_server_cache))
+						{
+							l_info.m_only_counter = true; // Нашли информацию в локальной базе.
+							l_info.m_is_cache = true; // Для статистики
+						}
+						m_merge_item_map.insert(make_pair(l_tth, make_pair(l_item_info, l_fly_server_cache)));
+						if (l_info.m_only_counter)
+						{
+							m_tth_media_file_map[l_tth] = l_file_size; // Регистрируем кандидата на передачу информации
+						}
+						m_GetFlyServerArray.push_back(l_info);
 					}
-					m_merge_item_map.insert(make_pair(l_tth, make_pair(l_item_info, l_fly_server_cache)));
-					if (l_info.m_only_counter)
+					else
 					{
-						m_tth_media_file_map[l_tth] = l_file_size; // Регистрируем кандидата на передачу информации
-					}
-					m_GetFlyServerArray.push_back(l_info);
-				}
-				else
-				{
-					l_update_index.push_back(j);
-					const auto& l_cache = l_find_ratio->second.second;
-					if (l_item_info->columns[COLUMN_FLY_SERVER_RATING].empty())
-						l_item_info->columns[COLUMN_FLY_SERVER_RATING] = Text::toT(l_cache.m_ratio);
-					if (l_item_info->columns[COLUMN_BITRATE].empty())
-						l_item_info->columns[COLUMN_BITRATE]  = Text::toT(l_cache.m_audio_br);
-					if (l_item_info->columns[COLUMN_MEDIA_XY].empty())
-						l_item_info->columns[COLUMN_MEDIA_XY] =  Text::toT(l_cache.m_xy);
-					if (l_item_info->columns[COLUMN_MEDIA_VIDEO].empty())
-						l_item_info->columns[COLUMN_MEDIA_VIDEO] =  Text::toT(l_cache.m_video);
-					if (l_item_info->columns[COLUMN_MEDIA_AUDIO].empty())
-					{
-						CFlyMediaInfo::translateDuration(l_cache.m_audio, l_item_info->columns[COLUMN_MEDIA_AUDIO], l_item_info->columns[COLUMN_DURATION]);
+						l_update_index.push_back(j);
+						const auto& l_cache = l_find_ratio->second.second;
+						if (l_item_info->columns[COLUMN_FLY_SERVER_RATING].empty())
+							l_item_info->columns[COLUMN_FLY_SERVER_RATING] = Text::toT(l_cache.m_ratio);
+						if (l_item_info->columns[COLUMN_BITRATE].empty())
+							l_item_info->columns[COLUMN_BITRATE]  = Text::toT(l_cache.m_audio_br);
+						if (l_item_info->columns[COLUMN_MEDIA_XY].empty())
+							l_item_info->columns[COLUMN_MEDIA_XY] =  Text::toT(l_cache.m_xy);
+						if (l_item_info->columns[COLUMN_MEDIA_VIDEO].empty())
+							l_item_info->columns[COLUMN_MEDIA_VIDEO] =  Text::toT(l_cache.m_video);
+						if (l_item_info->columns[COLUMN_MEDIA_AUDIO].empty())
+						{
+							CFlyMediaInfo::translateDuration(l_cache.m_audio, l_item_info->columns[COLUMN_MEDIA_AUDIO], l_item_info->columns[COLUMN_DURATION]);
+						}
 					}
 				}
 			}

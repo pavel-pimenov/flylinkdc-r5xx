@@ -236,7 +236,7 @@ void UserConnection::inf(bool withToken)
 	c.addParam("ID", ClientManager::getMyCID().toBase32());
 	if (withToken)
 	{
-		c.addParam("TO", getToken());
+		c.addParam("TO", getUserConnectionToken());
 	}
 	send(c);
 }

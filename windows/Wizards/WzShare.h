@@ -76,12 +76,13 @@ public:
 		ctrlDirectories.InsertColumn(0, CTSTRING(NAME), LVCFMT_LEFT, rc.Width() / 4, 0);
 		ctrlDirectories.InsertColumn(1, CTSTRING(DIRECTORY), LVCFMT_LEFT, rc.Width() * 3 / 4, 1);
 
-		StringPairList directories =  ShareManager::getInstance()->getDirectories();
+		CFlyDirItemArray directories;
+		ShareManager::getInstance()->getDirectories(directories);
 		auto cnt = ctrlDirectories.GetItemCount();
 		for (auto j = directories.cbegin(); j != directories.cend(); ++j)
 		{
-			int i = ctrlDirectories.insert(cnt++, Text::toT(j->first));
-			ctrlDirectories.SetItemText(i, 1, Text::toT(j->second).c_str());
+			int i = ctrlDirectories.insert(cnt++, Text::toT(j->m_synonym));
+			ctrlDirectories.SetItemText(i, 1, Text::toT(j->m_path).c_str());
 			// ctrlDirectories.SetItemText(i, 2, Text::toT(j->second).c_str());
 		}
 		ctrlDirectories.Detach();
@@ -321,13 +322,13 @@ public:
 		try
 		{
 		// Save 
-		StringPairList directories =  ShareManager::getInstance()->getDirectories();
+		CFlyDirItemArray directories;
+		ShareManager::getInstance()->getDirectories(directories);
 
-		StringPairList newList;
-		StringPairList renameList;
-//[-] PVS-Studio V808		StringPairList removeList;
+		CFlyDirItemArray newList;
+		CFlyDirItemArray renameList;
 
-		StringPairList directoriesNew;
+		CFlyDirItemArray directoriesNew;
 		const auto cnt = ctrlDirectories.GetItemCount();
 		for (int i = 0; i<cnt; i++)
 		{
@@ -342,16 +343,16 @@ public:
 			{
 				desc = path;
 			}				
-			StringPair pair(Text::fromT(desc), Text::fromT(target));
+			CFlyDirItem pair(Text::fromT(desc), Text::fromT(target),0);
 			directoriesNew.push_back(pair);
 			bool bFound = false;
 			for (auto j = directories.cbegin(); j != directories.cend(); ++j)
 			{
 				// found
-				if (j->second.compare(pair.second) == 0 )
+				if (j->m_path.compare(pair.m_path) == 0 )
 				{
 					bFound = true;
-					if (j->first.compare(pair.first) != 0)
+					if (j->m_synonym.compare(pair.m_synonym) != 0)
 						renameList.push_back( pair );
 					break;
 				}
@@ -365,16 +366,14 @@ public:
 			bool bFind = false;
 			for (auto j = directoriesNew.cbegin(); j != directoriesNew.cend(); ++j)
 			{
-				if ( i->second.compare(j->second) == 0){
+				if ( i->m_path.compare(j->m_path) == 0){
 					bFind = true;
 					break;
 				}
 			}	
 			if (!bFind)
 			{
-				// 1. Remove from shareManager
-				// removeList.push_back( StringPair(i->first, i->second) );
-				ShareManager::getInstance()->removeDirectory(i->second);
+				ShareManager::getInstance()->removeDirectory(i->m_path);
 			}
 		}
 
@@ -385,12 +384,13 @@ public:
 		// 2. Rename
 		for (auto i = renameList.cbegin(); i != renameList.cend(); ++i)
 		{
-			ShareManager::getInstance()->renameDirectory(i->second, i->first);
+			ShareManager::getInstance()->renameDirectory(i->m_path, i->m_synonym);
 		}
 		// 3. Add new
 		for (auto i = newList.cbegin(); i != newList.cend(); ++i)
 		{
-			ShareManager::getInstance()->addDirectory(i->second, i->first); // [5] Wizard https://www.box.net/shared/5466d41c6918d84996bc
+			CWaitCursor l_cursor_wait;
+			ShareManager::getInstance()->addDirectory(i->m_path, i->m_synonym); // [5] Wizard https://www.box.net/shared/5466d41c6918d84996bc
 		}
 
 		ctrlDirectories.Detach();

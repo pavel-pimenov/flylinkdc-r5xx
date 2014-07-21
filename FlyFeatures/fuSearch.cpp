@@ -37,12 +37,16 @@ bool FileUpdateSearch::Scan()
 // !!! Folder should always ends with "\" !!!
 bool FileUpdateSearch::ProcessFolder(const wstring& folder)
 {
-	WIN32_FIND_DATA ffd = {0};
+	WIN32_FIND_DATA ffd;	
 	wstring searchPattern = folder;
 	searchPattern += L'*';
 	
-	HANDLE hFind = FindFirstFileEx(searchPattern.c_str(), FindExInfoStandard, &ffd,
-	                               FindExSearchNameMatch, NULL, 0);
+	HANDLE hFind = FindFirstFileEx(searchPattern.c_str(), 
+								   FindExInfoStandard, // CompatibilityManager::g_find_file_level,
+								   &ffd, 
+	                               FindExSearchNameMatch, 
+								   NULL, 
+								   0);
 	if (hFind == INVALID_HANDLE_VALUE)
 		return false;
 	do

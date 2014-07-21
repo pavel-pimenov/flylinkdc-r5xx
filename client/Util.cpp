@@ -291,7 +291,7 @@ static int getFlagIndexByCode(uint16_t p_countryCode) // [!] IRainman: countryCo
 void Util::loadGeoIp()
 {
 	{
-		CFlyLog l_log("[GeoIp]");
+		CFlyLog l_log("[GeoIP]");
 		// This product includes GeoIP data created by MaxMind, available from http://maxmind.com/
 		// Updates at http://www.maxmind.com/app/geoip_country
 		const string fileName = getConfigPath(
@@ -341,7 +341,7 @@ void Util::loadGeoIp()
 					linestart = lineend + 1;
 				}
 				{
-					CFlyLog l_geo_log_sqlite("[GeoIp-sqlite]");
+					CFlyLog l_geo_log_sqlite("[GeoIP-sqlite]");
 					CFlylinkDBManager::getInstance()->save_geoip(l_sqlite_array);
 					// Отказались от справочников - не нужно
 					// CFlylinkDBManager::getInstance()->clear_dic_cache_country();
@@ -1065,7 +1065,7 @@ string Util::getLocalOrBindIp(const bool p_check_bind_address)
 		const hostent* he = gethostbyname(buf);
 		if (he == nullptr || he->h_addr_list[0] == 0)
 			return Util::emptyString;
-		sockaddr_in dest = {0};
+		sockaddr_in dest  = { { 0 } };
 		int i = 0;
 		// We take the first ip as default, but if we can find a better one, use it instead...
 		memcpy(&dest.sin_addr, he->h_addr_list[i++], he->h_length);
@@ -1428,8 +1428,13 @@ uint64_t Util::getDirSize(const string &sFullPath)
 	uint64_t total = 0;
 	
 	WIN32_FIND_DATA fData;
-	HANDLE hFind = FindFirstFile(Text::toT(sFullPath + "\\*").c_str(), &fData);
-	
+	HANDLE hFind = FindFirstFileEx(Text::toT(sFullPath + "\\*").c_str(),
+	                               CompatibilityManager::g_find_file_level,
+	                               &fData,
+	                               FindExSearchNameMatch,
+	                               NULL,
+	                               CompatibilityManager::g_find_file_flags);
+	                               
 	if (hFind != INVALID_HANDLE_VALUE)
 	{
 		const string l_tmp_path = SETTING(TEMP_DOWNLOAD_DIRECTORY);
@@ -2198,7 +2203,13 @@ bool Util::setRegistryValueString(const tstring& p_key, const tstring& p_value)
 	dcassert(status == ERROR_SUCCESS);
 	return status == ERROR_SUCCESS;
 }
-
+#ifdef SSA_VIDEO_PREVIEW_FEATURE
+bool Util::isStreamingVideoFile(const string& p_file) // [+] SSA
+{
+	const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(p_file));
+	return CFlyServerConfig::isMediainfoExt(l_file_ext);
+}
+#endif
 string Util::getWANIP(const string& p_url, LONG p_timeOut /* = 500 */)
 {
 	CFlyLog l_log("[GetIP]");

@@ -83,17 +83,8 @@ LRESULT SharePage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 		ctrlDirectories.InsertColumn(0, CTSTRING(VIRTUAL_NAME), LVCFMT_LEFT, 80, 0);
 		ctrlDirectories.InsertColumn(1, CTSTRING(DIRECTORY), LVCFMT_LEFT, 197, 1);
 		ctrlDirectories.InsertColumn(2, CTSTRING(SIZE), LVCFMT_RIGHT, 90, 2);
-		StringPairList directories = ShareManager::getInstance()->getDirectories();
-		auto cnt = ctrlDirectories.GetItemCount();
-		for (auto j = directories.cbegin(); j != directories.cend(); ++j)
-		{
-			int i = ctrlDirectories.insert(cnt++, Text::toT(j->first));
-			ctrlDirectories.SetItemText(i, 1, Text::toT(j->second).c_str());
-			ctrlDirectories.SetItemText(i, 2, Util::formatBytesW(ShareManager::getInstance()->getShareSize(j->second)).c_str());
-		}
 	}
-	
-	ctrlTotal.SetWindowText(ShareManager::getInstance()->getShareSizeformatBytesW().c_str());
+	directoryListInit();
 	
 	ft.SubclassWindow(GetDlgItem(IDC_TREE));
 	ft.SetStaticCtrl(&ctrlTotal);
@@ -287,6 +278,26 @@ LRESULT SharePage::onClickedShareVirtual(WORD /*wNotifyCode*/, WORD /*wID*/, HWN
 	return onClickedShare(2);
 }
 
+void SharePage::directoryListInit()
+{
+	if (BOOLSETTING(USE_OLD_SHARING_UI))
+	{
+		// Clear the GUI list, for insertion of updated shares
+		ctrlDirectories.DeleteAllItems();
+		CFlyDirItemArray directories;
+		ShareManager::getInstance()->getDirectories(directories);
+		
+		auto cnt = ctrlDirectories.GetItemCount();
+		for (auto j = directories.cbegin(); j != directories.cend(); ++j)
+		{
+			int i = ctrlDirectories.insert(cnt++, Text::toT(j->m_synonym));
+			ctrlDirectories.SetItemText(i, 1, Text::toT(j->m_path).c_str());
+			ctrlDirectories.SetItemText(i, 2, Util::formatBytesW(ShareManager::getInstance()->getShareSize(j->m_path)).c_str());
+		}
+	}
+	// Display the new total share size
+	ctrlTotal.SetWindowText(ShareManager::getInstance()->getShareSizeformatBytesW().c_str());
+}
 LRESULT SharePage::onClickedShare(int item)
 {
 	// Save the checkbox state so that ShareManager knows to include/exclude hidden files
@@ -304,23 +315,7 @@ LRESULT SharePage::onClickedShare(int item)
 	// Hopefully people won't click the checkbox enough for it to be an issue. :-)
 	ShareManager::getInstance()->setDirty();
 	ShareManager::getInstance()->refresh(true, false, false);
-	
-	if (BOOLSETTING(USE_OLD_SHARING_UI))
-	{
-		// Clear the GUI list, for insertion of updated shares
-		ctrlDirectories.DeleteAllItems();
-		StringPairList directories = ShareManager::getInstance()->getDirectories();
-		auto cnt = ctrlDirectories.GetItemCount();
-		for (auto j = directories.cbegin(); j != directories.cend(); ++j)
-		{
-			int i = ctrlDirectories.insert(cnt++, Text::toT(j->first));
-			ctrlDirectories.SetItemText(i, 1, Text::toT(j->second).c_str());
-			ctrlDirectories.SetItemText(i, 2, Util::formatBytesW(ShareManager::getInstance()->getShareSize(j->second)).c_str());
-		}
-	}
-	
-	// Display the new total share size
-	ctrlTotal.SetWindowText(ShareManager::getInstance()->getShareSizeformatBytesW().c_str());
+	directoryListInit();
 	return 0;
 }
 
@@ -343,6 +338,7 @@ void SharePage::addDirectory(const tstring& aPath)
 		                          Util::getLastDir(Text::fromT(path))));
 		if (virt.DoModal(m_hWnd) == IDOK)
 		{
+			CWaitCursor l_cursor_wait;
 			ShareManager::getInstance()->addDirectory(Text::fromT(path), Text::fromT(virt.line));
 			int i = ctrlDirectories.insert(ctrlDirectories.GetItemCount(), virt.line);
 			ctrlDirectories.SetItemText(i, 1, path.c_str());

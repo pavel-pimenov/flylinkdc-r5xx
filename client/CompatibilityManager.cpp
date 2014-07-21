@@ -45,6 +45,18 @@ bool CompatibilityManager::g_supports[LAST_SUPPORTS];
 LONG CompatibilityManager::g_comCtlVersion = 0;
 DWORD CompatibilityManager::g_oldPriorityClass = 0;
 
+FINDEX_INFO_LEVELS CompatibilityManager::g_find_file_level = FindExInfoStandard;
+// http://msdn.microsoft.com/ru-ru/library/windows/desktop/aa364415%28v=vs.85%29.aspx
+// FindExInfoBasic
+//     The FindFirstFileEx function does not query the short file name, improving overall enumeration speed.
+//     The data is returned in a WIN32_FIND_DATA structure, and the cAlternateFileName member is always a NULL string.
+//     Windows Server 2008, Windows Vista, Windows Server 2003, and Windows XP:  This value is not supported until Windows Server 2008 R2 and Windows 7.
+DWORD CompatibilityManager::g_find_file_flags = 0;
+// http://msdn.microsoft.com/ru-ru/library/windows/desktop/aa364419%28v=vs.85%29.aspx
+// Uses a larger buffer for directory queries, which can increase performance of the find operation.
+// Windows Server 2008, Windows Vista, Windows Server 2003, and Windows XP:  This value is not supported until Windows Server 2008 R2 and Windows 7.
+
+
 void CompatibilityManager::init()
 {
 	setWine(detectWine());
@@ -56,6 +68,11 @@ void CompatibilityManager::init()
 	getSystemInfoFromOS();
 	generateSystemInfoForApp();
 	detectUncompatibleSoftware();
+	if (CompatibilityManager::isWin7Plus())
+	{
+		g_find_file_level = FindExInfoBasic;
+		g_find_file_flags = FIND_FIRST_EX_LARGE_FETCH;
+	}
 }
 
 void CompatibilityManager::getSystemInfoFromOS()

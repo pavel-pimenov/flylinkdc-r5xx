@@ -910,6 +910,26 @@ void File_MpegPs::Read_Buffer_Init()
 }
 
 //---------------------------------------------------------------------------
+#if MEDIAINFO_ADVANCED2
+void File_MpegPs::Read_Buffer_SegmentChange()
+{
+    if (!Streams.empty())
+        for (size_t StreamID=0; StreamID<0x100; StreamID++)
+        {
+            for (size_t Pos=0; Pos<Streams[StreamID].Parsers.size(); Pos++)
+                if (Streams[StreamID].Parsers[Pos])
+                    Streams[StreamID].Parsers[Pos]->Open_Buffer_SegmentChange();
+            for (size_t Pos=0; Pos<Streams_Private1[StreamID].Parsers.size(); Pos++)
+                if (Streams_Private1[StreamID].Parsers[Pos])
+                    Streams_Private1[StreamID].Parsers[Pos]->Open_Buffer_SegmentChange();
+            for (size_t Pos=0; Pos<Streams_Extension[StreamID].Parsers.size(); Pos++)
+                if (Streams_Extension[StreamID].Parsers[Pos])
+                    Streams_Extension[StreamID].Parsers[Pos]->Open_Buffer_SegmentChange();
+        }
+}
+#endif //MEDIAINFO_ADVANCED2
+
+//---------------------------------------------------------------------------
 void File_MpegPs::Read_Buffer_Unsynched()
 {
     Searching_TimeStamp_Start=false;
@@ -3994,6 +4014,13 @@ void File_MpegPs::xxx_stream_Parse(ps_stream &Temp, int8u &stream_Count)
             {
                 stream_Count--;
                 Temp.IsFilled=true;
+            }
+
+            //Checking cases with B-frames displayed before the first I-frame
+            if (Temp.Parsers.size()==1 && Temp.Parsers[0]->PTS_Begin!=(int64u)-1 && Temp.TimeStamp_Start.PTS.TimeStamp!=(int64u)-1 && float64_int64s(((float64)Temp.Parsers[0]->PTS_Begin)*90/1000000)<Temp.TimeStamp_Start.PTS.TimeStamp)
+            {
+                Temp.TimeStamp_Start.PTS.File_Pos=File_Offset+Buffer_Offset-Header_Size;
+                Temp.TimeStamp_Start.PTS.TimeStamp=float64_int64s(((float64)Temp.Parsers[0]->PTS_Begin)*90/1000000); //TODO: same denominator for the time stamp
             }
         }
     //FrameInfo.PCR=(int64u)-1;

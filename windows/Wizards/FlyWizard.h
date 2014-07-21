@@ -26,7 +26,7 @@
 #include "Wizards/WzStartup.h"
 #include "Wizards/WzNick.h"
 #include "Wizards/WzDownload.h"
-#include "Wizards/WzFinish.h"
+//#include "Wizards/WzFinish.h"
 #include "Wizards/WzShare.h"
 //#include "Wizards/WzSetIP.h"
 //#include "Wizards/WzNetActive.h"
@@ -57,7 +57,7 @@ public:
 //		AddPage ( m_pgNetActive );
 		AddPage ( m_pgDownload);
 		AddPage ( m_pgShare);
-		AddPage ( m_pgFinish );
+//		AddPage ( m_pgFinish );
 
 	}
 
@@ -81,7 +81,7 @@ public:
     // Property pages
 	WzStartup m_pgStartup;
 	WzDownload m_pgDownload;
-	WzFinish m_pgFinish;
+//	WzFinish m_pgFinish;
 	WzNick m_pgNick;
 	WzShare m_pgShare;
 //	WzSetIP m_pgSetIP;

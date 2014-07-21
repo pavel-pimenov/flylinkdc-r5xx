@@ -88,6 +88,8 @@ class SharePage : public CPropertyPage<IDD_SHARE_PAGE>, public PropPage
 		
 		void addDirectory(const tstring& aPath);
 		FolderTree ft;
+	private:
+		void directoryListInit();
 };
 
 #endif // !defined(SHARE_PAGE_H)

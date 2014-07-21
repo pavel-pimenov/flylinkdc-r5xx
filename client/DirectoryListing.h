@@ -117,6 +117,7 @@ class DirectoryListing : public UserInfoBase
 				virtual ~Directory();
 				
 				size_t   getTotalFileCount(bool adls = false) const;
+				size_t   getTotalFolderCount() const;
 				uint64_t getTotalSize(bool adls = false) const;
 				uint64_t getTotalHit() const;
 				int64_t getTotalTS() const;
@@ -171,6 +172,10 @@ class DirectoryListing : public UserInfoBase
 		size_t getTotalFileCount(bool adls = false)
 		{
 			return root->getTotalFileCount(adls);
+		}
+		size_t getTotalFolderCount()
+		{
+			return root->getTotalFolderCount();
 		}
 		
 		const Directory* getRoot() const

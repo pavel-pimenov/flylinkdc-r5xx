@@ -378,20 +378,20 @@ struct CharFormat : CHARFORMAT2
 	// Default constructor
 	CharFormat()
 	{
-		cbSize = sizeof CHARFORMAT2;
+		cbSize = sizeof(CHARFORMAT2);
 		Reset();
 	}
 
 	// Copy constructor
 	CharFormat(const CharFormat& cf)
 	{
-		CopyMemory(this, &cf, sizeof CHARFORMAT2);
+		::CopyMemory(this, &cf, sizeof(CHARFORMAT2));
 	}
 
 	// Assign operator
 	CharFormat& operator =(const CharFormat& cf)
 	{
-		CopyMemory(this, &cf, sizeof CHARFORMAT2);
+		::CopyMemory(this, &cf, sizeof(CHARFORMAT2));
 		return (*this);
 	}
 
@@ -610,6 +610,7 @@ private:
 	void PutColor(IPropertyStore* pStore)
 	{
 		if ((dwMask & CFM_COLOR) != 0)
+		{
 			if ((dwEffects & CFE_AUTOCOLOR) == 0)
 			{
 				SetPropertyVal(UI_PKEY_FontProperties_ForegroundColorType, UI_SWATCHCOLORTYPE_RGB, &propvar);
@@ -623,6 +624,7 @@ private:
 				SetPropertyVal(UI_PKEY_FontProperties_ForegroundColorType, UI_SWATCHCOLORTYPE_AUTOMATIC, &propvar);
 				pStore->SetValue(UI_PKEY_FontProperties_ForegroundColorType, propvar);
 			}
+	}
 	}
 
 	void PutBackColor(IPropertyStore* pStore)
@@ -897,7 +899,7 @@ public:
 
 	CollectionImpl() : m_size(t_items)
 	{
-		FillMemory(m_auItemCat, sizeof m_auItemCat, 0xff); // UI_COLLECTION_INVALIDINDEX
+		::FillMemory(m_auItemCat, sizeof(m_auItemCat), 0xff); // UI_COLLECTION_INVALIDINDEX
 	}
 
 	UINT32 m_auItemCat[t_items];
@@ -1133,7 +1135,7 @@ public:
 	
 	ItemCollectionImpl()
 	{
-		ZeroMemory(m_aBitmap, sizeof m_aBitmap);
+		::ZeroMemory(m_aBitmap, sizeof(m_aBitmap));
 	}
 
 	CBitmap m_aBitmap[t_items];
@@ -1215,8 +1217,8 @@ public:
 
 	CommandCollectionImpl()
 	{
-		ZeroMemory(m_auCmd, sizeof m_auCmd);
-		ZeroMemory(m_aCmdType, sizeof m_aCmdType);
+		::ZeroMemory(m_auCmd, sizeof(m_auCmd));
+		::ZeroMemory(m_aCmdType, sizeof(m_aCmdType));
 	}
 
 	UINT32 m_auCmd[t_items];

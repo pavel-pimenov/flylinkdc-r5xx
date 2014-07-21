@@ -71,7 +71,8 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		
 		static void waitShutdown()
 		{
-			while (g_sockets > 0)
+			int l_max_count = 500;
+			while (g_sockets > 0 && --l_max_count)
 			{
 				sleep(10); // TODO - Если слишком долго ждем. спросить диалогом и если ответят "да" - закрыться
 				// TODO - случай зависания передать на флай-сервер.
