@@ -1452,10 +1452,7 @@ LRESULT FolderTree::OnChecked(HTREEITEM hItem, BOOL &bHandled)
 			if (virt.DoModal() == IDOK)
 			{
 				CWaitCursor l_cursor_wait;
-#ifdef IRAINMAN_TEST_FAST_UI_FOR_SHARING
-				ShareManager::getInstance()->refresh(true, false, false);
-#endif
-				ShareManager::getInstance()->addDirectory(Text::fromT(path), Text::fromT(virt.line)); // TODO hotpoint, mb add queue for this call and run it after OK is pressed?
+				ShareManager::getInstance()->addDirectory(Text::fromT(path), Text::fromT(virt.line), true); // TODO hotpoint, mb add queue for this call and run it after OK is pressed?
 			}
 			else
 			{
@@ -1482,9 +1479,6 @@ LRESULT FolderTree::OnChecked(HTREEITEM hItem, BOOL &bHandled)
 LRESULT FolderTree::OnUnChecked(HTREEITEM hItem, BOOL& /*bHandled*/)
 {
 	CWaitCursor l_cursor_wait; //-V808
-#ifdef IRAINMAN_TEST_FAST_UI_FOR_SHARING
-	ShareManager::getInstance()->refresh(true, false, false);
-#endif
 	FolderTreeItemInfo* pItem = (FolderTreeItemInfo*) GetItemData(hItem);
 	
 	HTREEITEM hSharedParent = HasSharedParent(hItem);

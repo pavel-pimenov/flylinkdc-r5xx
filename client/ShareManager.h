@@ -58,7 +58,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		 * @param aDirectory Physical directory location
 		 * @param aName Virtual name
 		 */
-		void addDirectory(const string& realPath, const string &virtualName);
+		void addDirectory(const string& realPath, const string &virtualName, bool p_is_job);
 		void removeDirectory(const string& realPath);
 		void renameDirectory(const string& realPath, const string& virtualName);
 		
@@ -454,7 +454,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		
 		Directory::ShareFile::Set::const_iterator findFileL(const string& virtualFile) const;
 		
-		Directory::Ptr buildTreeL(__int64& p_path_id, const string& p_path, const Directory::Ptr& p_parent /* , bool p_is_job */);
+		Directory::Ptr buildTreeL(__int64& p_path_id, const string& p_path, const Directory::Ptr& p_parent, bool p_is_job);
 #ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
 		bool m_sweep_guard;
 #endif

@@ -161,7 +161,16 @@ tstring UserInfo::getText(int p_col) const
 #endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		case COLUMN_IP:
 		{
-			return Text::toT(getIdentity().getIpAsString());
+			if (!getIdentity().isUseIP6())
+			{
+				// TODO dcassert(getIdentity().getIP6().empty());
+				return Text::toT(getIdentity().getIpAsString());
+			}
+			else
+			{
+				dcassert(getIdentity().getIpAsString().empty());
+				return Text::toT(getIdentity().getIP6());
+			}
 		}
 		case COLUMN_GEO_LOCATION:
 		{

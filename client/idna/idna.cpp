@@ -22,12 +22,9 @@
 
 #include "punycode.h"
 #include "idna.h"
-
-#define CRITICAL_SECTION_SPIN_COUNT 10000 // [+] IRainman opt.
+#include "../CFlyThread.h"
 
 #pragma warning( disable : 4127 )
-
-#define ARGSUSED(foo)  (void)foo
 
 #ifdef UNICODE
   #define STR_FMT  "%S"
@@ -38,27 +35,19 @@
 #endif
 
 #ifdef IDNA_DEBUG_ENABLED
-#define IDNA_DEBUG(lvl, args) \
-        do { \
-          if (_idna_debug >= lvl && _idna_printf) { \
-            (*_idna_printf) ("%s(%u): ", __FILE__, __LINE__); \
-            (*_idna_printf) args; \
-            if (_idna_printf == printf) \
-               fflush (stdout); \
-          } \
-        } while (0)
-
-int            _idna_winnls_errno = 0;
-int            _idna_errno = 0;
-int            _idna_debug = 0;
-int (MS_CDECL *_idna_printf) (const char *fmt, ...) = printf;
+#define IDNA_DEBUG dcdebug("IDNA: "); dcdebug 
 #endif // IDNA_DEBUG_ENABLED
 
 /*
  * The following string is used to convert printable
  * Punycode characters to ASCII:
  */
-static const char print_ascii[] = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+#ifdef IDNA_DEBUG_ENABLED
+extern "C" {
+int _idna_errno, _idna_winnls_errno;
+}
+#endif
+static const char g_print_ascii[] = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
                                   "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
                                   " !\"#$%&'()*+,-./"
                                   "0123456789:;<=>?"
@@ -66,24 +55,25 @@ static const char print_ascii[] = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
                                   "PQRSTUVWXYZ[\\]^_"
                                   "`abcdefghijklmno"
                                   "pqrstuvwxyz{|}~\n";
-
-static CRITICAL_SECTION critSection;
-static UINT             cur_cp = CP_ACP;
+static CriticalSection g_critSection;
+static WORD            g_cur_cp = CP_ACP;
 
 /*
  * Get ANSI/system codepage.
  */
-static inline UINT IDNA_GetCodePage (void)
+static UINT IDNA_GetCodePage (void)
 {
 #ifdef IDNA_DEBUG_ENABLED
   CPINFOEX CPinfo;
   UINT     CP = 0;
 
-  IDNA_DEBUG (2, ("OEM codepage %u\n", GetOEMCP()));
+  IDNA_DEBUG ("OEM codepage %u\n", GetOEMCP());
   CP = GetACP();
 
   if (GetCPInfoEx(CP, 0, &CPinfo))
-     IDNA_DEBUG (2, ("ACP-name " STR_FMT "\n", CPinfo.CodePageName));
+  {
+		 IDNA_DEBUG ("ACP-name " STR_FMT "\n", CPinfo.CodePageName);
+  }
   return (CP);
 #else
 	return GetACP();
@@ -106,18 +96,24 @@ static BOOL CALLBACK print_cp_info (LPTSTR cp_str)
   if(!IsValidCodePage(cp))
   {
 #ifdef IDNA_DEBUG_ENABLED
-    IDNA_DEBUG (1, ("INVALID CODEPAGE: %u\n", cp));
+    IDNA_DEBUG ("INVALID CODEPAGE: %u\n", cp);
 #endif
+	dcassert(0);
     return (TRUE);
   }
   if (cp == cp_requested)
      cp_found = TRUE;
 #ifdef IDNA_DEBUG_ENABLED
-  IDNA_DEBUG (3, ("CP: %5u, ", cp));
+  IDNA_DEBUG ("CP: %5u, ", cp);
 
   if (GetCPInfoEx(cp, 0, &cp_info))
-       IDNA_DEBUG (3, ("name: " STR_FMT "\n", cp_info.CodePageName));
-  else IDNA_DEBUG (3, ("name: <unknown>\n"));
+   {
+		   IDNA_DEBUG ("name: " STR_FMT "\n", cp_info.CodePageName);
+  }
+  else 
+  {
+		  IDNA_DEBUG ("name: <unknown>\n");
+  }
 #endif
   return (TRUE);
 }
@@ -125,7 +121,7 @@ static BOOL CALLBACK print_cp_info (LPTSTR cp_str)
 /*
  * Check if given codepage is available
  */
-static inline BOOL IDNA_CheckCodePage (UINT cp)
+static BOOL IDNA_CheckCodePage (UINT cp)
 {
   cp_requested = cp;
   cp_found = FALSE;
@@ -133,26 +129,17 @@ static inline BOOL IDNA_CheckCodePage (UINT cp)
   return (cp_found);
 }
 
-static void IDNA_exit (void)
-{
-  DeleteCriticalSection (&critSection);
-}
-
 /*
  * A safer strncpy()
  */
-static inline char *StrLcpy (char *dst, const char *src, size_t len)
+static char *StrLcpy (char *dst, const char *src, size_t len)
 {
   assert (src != NULL);
   assert (dst != NULL);
   assert (len > 0);
 
-  size_t src_len = strlen(src);
-  if (src_len < len)
-  {
-     strcpy_s (dst, src_len+1, src);
-	 return dst;
-  }
+  if (strlen(src) < len)
+     return strcpy (dst, src);
 
   memcpy (dst, src, len);
   dst [len-1] = '\0';
@@ -173,17 +160,16 @@ BOOL IDNA_init (WORD cp)
 #ifdef IDNA_DEBUG_ENABLED
     _idna_errno = IDNAERR_ILL_CODEPAGE;
     _idna_winnls_errno = GetLastError();
-    IDNA_DEBUG (0, ("IDNA_init: %s\n", IDNA_strerror(_idna_errno)));
+    IDNA_DEBUG ("IDNA_init: %s\n", IDNA_strerror(_idna_errno));
 #endif // IDNA_DEBUG_ENABLED
+	dcassert(0);
     return (FALSE);
   }
 
-  cur_cp = cp;
+  g_cur_cp = cp;
 #ifdef IDNA_DEBUG_ENABLED
-  IDNA_DEBUG (2, ("IDNA_init: Using codepage %u\n", cp));
+  IDNA_DEBUG ("IDNA_init: Using codepage %u\n", cp);
 #endif
-  InitializeCriticalSectionAndSpinCount(&critSection, CRITICAL_SECTION_SPIN_COUNT); // [!] IRainman: InitializeCriticalSectionAndSpinCount
-  atexit (IDNA_exit);
   return (TRUE);
 }
 #ifdef IDNA_DEBUG_ENABLED
@@ -214,7 +200,7 @@ const char *IDNA_strerror (int err)
                             LANG_NEUTRAL, buf, sizeof(buf)-1, NULL))
             return (buf);
   }
-  sprintf_s (buf, 200,  "Unknown %d", err);
+  sprintf_s (buf, sizeof(buf),  "Unknown %d", err);
   return (buf);
 }
 #endif // IDNA_DEBUG_ENABLED
@@ -223,15 +209,16 @@ const char *IDNA_strerror (int err)
  */
 static BOOL conv_to_unicode (char ch, wchar_t *wc)
 {
-  int rc = MultiByteToWideChar (cur_cp, 0, (LPCSTR)&ch, 1, wc, 1);
+  int rc = MultiByteToWideChar (g_cur_cp, 0, (LPCSTR)&ch, 1, wc, 1);
 
   if (rc == 0)
   {
 #ifdef IDNA_DEBUG_ENABLED
     _idna_winnls_errno = GetLastError();
     _idna_errno = IDNAERR_WINNLS;
-    IDNA_DEBUG (1, ("conv_to_unicode failed; %s\n", IDNA_strerror(_idna_winnls_errno)));
+    IDNA_DEBUG ("conv_to_unicode failed; %s\n", IDNA_strerror(_idna_winnls_errno));
 #endif // IDNA_DEBUG_ENABLED
+	dcassert(0);
     return (FALSE);
   }
   return (TRUE);
@@ -241,17 +228,18 @@ static BOOL conv_to_unicode (char ch, wchar_t *wc)
  * Convert a single Unicode codepoint to ASCII in active codepage.
  * Allow 4 byte GB18030 Simplified Chinese to be converted.
  */
-static inline BOOL conv_to_ascii (wchar_t wc, char *ch, int *len)
+static BOOL conv_to_ascii (wchar_t wc, char *ch, int *len)
 {
-  const int rc = WideCharToMultiByte (cur_cp, 0, &wc, 1, (LPSTR)ch, 4, NULL, NULL);
+  const int rc = WideCharToMultiByte (g_cur_cp, 0, &wc, 1, (LPSTR)ch, 4, NULL, NULL);
 
   if (rc == 0)
   {
 #ifdef IDNA_DEBUG_ENABLED
     _idna_winnls_errno = GetLastError();
     _idna_errno = IDNAERR_WINNLS;
-    IDNA_DEBUG (1, ("conv_to_ascii failed; %s\n", IDNA_strerror(_idna_winnls_errno)));
+    IDNA_DEBUG ("conv_to_ascii failed; %s\n", IDNA_strerror(_idna_winnls_errno));
 #endif // IDNA_DEBUG_ENABLED
+	dcassert(0);
     return (FALSE);
   }
   *len = rc;
@@ -261,7 +249,7 @@ static inline BOOL conv_to_ascii (wchar_t wc, char *ch, int *len)
 /*
  * Split a domain-name into labels (no trailing dots)
  */
-static inline char **split_labels (const char *name)
+static char **split_labels (const char *name)
 {
   static char  buf [MAX_HOST_LABELS][MAX_HOST_LEN];
   static char *res [MAX_HOST_LABELS+1];
@@ -283,7 +271,7 @@ static inline char **split_labels (const char *name)
   }
   res[i] = NULL;
 #ifdef IDNA_DEBUG_ENABLED
-  IDNA_DEBUG (3, ("split_labels: `%s', %d labels\n", name, i));
+  IDNA_DEBUG ("split_labels: '%s', %d labels\n", name, i);
 #endif
   return (res);
 }
@@ -306,12 +294,12 @@ static char *convert_to_ACE (const char *name)
 
     c = *p++;
     if (!conv_to_unicode ((char)c, &ucs))
-       goto convert_to_ACE_exit;
+       break;
 
     ucs_input[i] = ucs;
     ucs_case[i]  = 0;
 #ifdef IDNA_DEBUG_ENABLED
-    IDNA_DEBUG (3, ("%c -> u+%04X\n", c, ucs));
+    IDNA_DEBUG ("%c -> u+%04X\n", c, ucs);
 #endif
   }
   in_len  = i;
@@ -323,7 +311,7 @@ static char *convert_to_ACE (const char *name)
 #ifdef IDNA_DEBUG_ENABLED
     _idna_errno = IDNAERR_PUNYCODE_BASE + status;
 #endif
-	goto convert_to_ACE_exit;
+	out_len = 0;
   }
 
   for (i = 0; i < (int)out_len; i++)
@@ -333,30 +321,31 @@ static char *convert_to_ACE (const char *name)
     {
 #ifdef IDNA_DEBUG_ENABLED
       _idna_errno = IDNAERR_PUNY_ENCODE;
-      IDNA_DEBUG (1, ("illegal Punycode result: %c (%d)\n", c, c));
+      IDNA_DEBUG ("illegal Punycode result: %c (%d)\n", c, c);
 #endif
-      goto convert_to_ACE_exit;
+	  dcassert(0);
+      break;
     }
-    if (!print_ascii[c])
+    if (!g_print_ascii[c])
     {
 #ifdef IDNA_DEBUG_ENABLED
       _idna_errno = IDNAERR_PUNY_ENCODE;
-      IDNA_DEBUG (1, ("Punycode not ASCII: %c (%d)\n", c, c));
+      IDNA_DEBUG ("Punycode not ASCII: %c (%d)\n", c, c);
 #endif
-      goto convert_to_ACE_exit;
+	  dcassert(0);
+      break;
     }
-    out_buf[i] = print_ascii[c];
+    out_buf[i] = g_print_ascii[c];
   }
   out_buf[i] = '\0';
 #ifdef IDNA_DEBUG_ENABLED
-  IDNA_DEBUG (2, ("punycode_encode: status %d, out_len %d, out_buf `%s'\n",
-              status, out_len, out_buf));
+  IDNA_DEBUG ("punycode_encode: status %d, out_len %d, out_buf '%s'\n",
+              status, out_len, out_buf);
 #endif
-  // [-] if (status == punycode_success && i == (int)out_len)   /* encoding and ASCII conversion okay */
+  if (status == punycode_success && i == (int)out_len)   /* encoding and ASCII conversion okay */
      return (out_buf);
 
-convert_to_ACE_exit:
-  return (NULL);
+  return NULL;
 }
 
 /*
@@ -381,31 +370,28 @@ static char *convert_from_ACE (const char *name)
 #ifdef IDNA_DEBUG_ENABLED
     _idna_errno = IDNAERR_PUNYCODE_BASE + status;
 #endif
-	goto convert_from_ACE_exit;
+	dcassert(0);
+	ucs_len = 0;
   }
 
   for (i = j = 0; i < ucs_len && j < sizeof(out_buf)-4; i++)
   {
     wchar_t ucs = (wchar_t)ucs_output[i];
-    int     len/* [-] please see conv_to_ascii function = 0*/; //[+] idna.cpp(358): error #12144: "len" is possibly uninitialized
+    int     len =0; /* [-] please see conv_to_ascii function = 0*/; //[+] idna.cpp(358): error #12144: "len" is possibly uninitialized
     if (!conv_to_ascii(ucs, out_buf+j, &len))
-       goto convert_from_ACE_exit;
+       break;
 #ifdef IDNA_DEBUG_ENABLED
-    IDNA_DEBUG (3, ("%c+%04X -> %.*s\n",
-                ucs_case[i] ? 'U' : 'u', ucs, len, out_buf+j));
+    IDNA_DEBUG ("%c+%04X -> %.*s\n",
+                ucs_case[i] ? 'U' : 'u', ucs, len, out_buf+j);
 #endif
     j += len;
   }
   out_buf[j] = '\0';
 #ifdef IDNA_DEBUG_ENABLED
-  IDNA_DEBUG (2, ("punycode_decode: status %d, out_len %d, out_buf `%s'\n",
-              status, ucs_len, out_buf));
+  IDNA_DEBUG ("punycode_decode: status %d, out_len %d, out_buf '%s'\n",
+              status, ucs_len, out_buf);
 #endif
-  // [-] return (status == punycode_success ? out_buf : NULL);
-  return out_buf;
-
-convert_from_ACE_exit:
-  return (NULL);
+ return (status == punycode_success ? out_buf : NULL);
 }
 
 
@@ -414,7 +400,7 @@ convert_from_ACE_exit:
  *
  * 1) Convert each label separately. "www", "tromsø" and "no"
  * 2) "tromsø" -> u+0074 u+0072 u+006F u+006D u+0073 u+00F8
- * 3) Pass this through `punycode_encode()' which gives "troms-zua".
+ * 3) Pass this through 'punycode_encode()' which gives "troms-zua".
  * 4) Repeat for all labels with non-ASCII letters.
  * 5) Prepending "xn--" for each converted label gives "www.xn--troms-zua.no".
  *
@@ -435,9 +421,7 @@ BOOL IDNA_convert_to_ACE (
   int    i;
   size_t len = 0;
   BOOL   rc = FALSE;
-#ifdef IDNA_USE_STATIC_BUFFERS
-  EnterCriticalSection (&critSection);
-#endif
+  Lock l(g_critSection);
   labels = split_labels (name);
 
   for (i = 0; labels[i]; i++)
@@ -457,8 +441,9 @@ BOOL IDNA_convert_to_ACE (
       if (len + 5 + strlen(ace) > *size)
       {
 #ifdef IDNA_DEBUG_ENABLED
-        IDNA_DEBUG (1, ("input length exceeded\n"));
+        IDNA_DEBUG ("input length exceeded\n");
 #endif
+		dcassert(0);
         goto quit;
       }
 	  name += sprintf (name, "xn--%s.", ace);
@@ -468,26 +453,25 @@ BOOL IDNA_convert_to_ACE (
       if (len + 1 + strlen(labels[i]) > *size)
       {
 #ifdef IDNA_DEBUG_ENABLED
-        IDNA_DEBUG (1, ("input length exceeded\n"));
+        IDNA_DEBUG ("input length exceeded\n");
 #endif
+		dcassert(0);
         goto quit;
       }
       name += sprintf (name, "%s.", labels[i]);
     }
   }
-  if (in_name != name)   /* drop trailing '.' */
+  if (in_name > name)   /* drop trailing '.' */
      name--;
   len = name - in_name;
   *name = '\0';
   *size = len;
 #ifdef IDNA_DEBUG_ENABLED
-  IDNA_DEBUG (2, ("IDNA_convert_to_ACE: `%s', %d bytes\n", in_name, len));
+  IDNA_DEBUG ("IDNA_convert_to_ACE: '%s', %d bytes\n", in_name, len);
 #endif
   rc = TRUE;
-
 quit:
-  LeaveCriticalSection (&critSection);
-  return (rc);
+  return rc;
 }
 
 /*
@@ -505,7 +489,7 @@ BOOL IDNA_convert_from_ACE (
   int    i;
   BOOL   rc = FALSE;
 
-  EnterCriticalSection (&critSection);
+  Lock l(g_critSection);
 
   labels  = split_labels (name);
 
@@ -529,7 +513,6 @@ BOOL IDNA_convert_from_ACE (
   rc = TRUE;
 
 quit:
-  LeaveCriticalSection (&critSection);
   return (rc);
 }
 

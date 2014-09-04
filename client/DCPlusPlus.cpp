@@ -267,7 +267,8 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		CFlyTickDelta l_delta(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_SHUTDOWN_CORE]);
 #endif
 #ifdef _DEBUG
-		dcdebug("shutdown start - User::g_user_counts = %d OnlineUser::g_online_user_counts = %d\n", int(User::g_user_counts), int(OnlineUser::g_online_user_counts)); // [!] IRainman fix: Issue 1037 [BUG] иногда теряем объект User? https://code.google.com/p/flylinkdc/issues/detail?id=1037
+		dcdebug("shutdown start - User::g_user_counts = %d OnlineUser::g_online_user_counts = %d\n", int(User::g_user_counts), int(OnlineUser::g_online_user_counts));
+		// [!] IRainman fix: Issue 1037 иногда теряем объект User? https://code.google.com/p/flylinkdc/issues/detail?id=1037
 #endif
 #ifdef STRONG_USE_DHT
 		dht::DHT::getInstance()->stop(true); // [+] IRainman fix.
@@ -346,8 +347,7 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 #ifdef _WIN32
 		::WSACleanup();
 #endif
-		
-		// [!] IRainman fix: Issue 1037 [BUG] иногда теряем объект User? https://code.google.com/p/flylinkdc/issues/detail?id=1037
+		// [!] IRainman fix: Issue 1037 иногда теряем объект User? https://code.google.com/p/flylinkdc/issues/detail?id=1037
 #ifdef _DEBUG
 		dcdebug("shutdown end - User::g_user_counts = %d OnlineUser::g_online_user_counts = %d\n", int(User::g_user_counts), int(OnlineUser::g_online_user_counts));
 		//dcassert(User::g_user_counts == 2); // ClientManager::g_uflylinkdc and ClientManager::g_me destroyed only with the full completion of the program, all the other user must be destroyed already by this time.

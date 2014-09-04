@@ -107,6 +107,10 @@ class CompatibilityManager
 		{
 			return !g_incopatibleSoftwareList.empty();
 		}
+		static const string& getIncompatibleSoftwareList()
+		{
+			return g_incopatibleSoftwareList;
+		}
 		static string getIncompatibleSoftwareMessage();
 		static string generateGlobalMemoryStatusMessage();
 		static string generateFullSystemStatusMessage();
@@ -187,13 +191,14 @@ class CompatibilityManager
 		
 		static void detectOsSupports();
 		static bool detectWine();// [+] PPA
-		static void detectUncompatibleSoftware();
 		static LONG getComCtlVersionFromOS();
 		static void getSystemInfoFromOS();
 		static string getProcArchString();
 		static void generateSystemInfoForApp();
 		static bool getFromSystemIsAppRunningIsWow64();
 		static bool getGlobalMemoryStatusFromOS(MEMORYSTATUSEX* MsEx);
+	public:
+		static void detectUncompatibleSoftware();
 };
 
 #endif // _WIN32

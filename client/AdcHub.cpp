@@ -314,9 +314,14 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) noexcept
 				break;
 			}
 			case TAG('I', '6'):
+			{
+				id.setIP6(i->substr(2));
+				id.setUseIP6();
+				break;
+			}
 			case TAG('U', '6'):
 			{
-				// TODO
+				id.setUdpPort(Util::toInt(i->substr(2)));
 				break;
 			}
 			case TAG('E', 'M'):
@@ -1052,7 +1057,7 @@ void AdcHub::connect(const OnlineUser& user, const string& token, bool secure)
 			return;
 		}
 		send(AdcCommand(AdcCommand::CMD_CTM, user.getIdentity().getSID(), AdcCommand::TYPE_DIRECT).addParam(*proto).addParam(Util::toString(port)).addParam(token));
-		ConnectionManager::iConnToMeCount++;
+		ConnectionManager::g_ConnToMeCount++;
 	}
 	else
 	{

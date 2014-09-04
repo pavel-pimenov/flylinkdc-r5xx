@@ -351,11 +351,15 @@ bool File_Jpeg::Demux_UnpacketizeContainer_Test()
             FrameRate*=2; //Now field rate
         if (FrameRate)
             FrameInfo.DUR=float64_int64s(1000000000/FrameRate); //Actually, field or frame rate
-        if (FrameInfo.DTS!=(int64u)-1 && FrameInfo.DUR!=(int64u)-1)
-            FrameInfo.DTS+=FrameInfo.DUR;
     }
 
     Demux_UnpacketizeContainer_Demux();
+
+    if (Interlaced)
+    {
+        if (FrameInfo.DTS!=(int64u)-1 && FrameInfo.DUR!=(int64u)-1)
+            FrameInfo.DTS+=FrameInfo.DUR;
+    }
 
     return true;
 }
@@ -894,6 +898,7 @@ void File_Jpeg::SOF_()
                             switch (SamplingFactors[0].Vi)
                             {
                                 case 1 : ChromaSubsampling="4:1:1"; break;
+                                case 2 : ChromaSubsampling="4:1:0"; break;
                                 default: ;
                             }
                             break;

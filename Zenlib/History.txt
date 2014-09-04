@@ -3,6 +3,7 @@ Version 0.4.30
 + New MemoryUtils.h functions for SSE2 memcpy
 + Ztring::From_Unicode(const wchar_t S)
 + Removed Win9X support
++ CMake: scripts improvements, thanks to Ivan Romanov
 x int128: was not compiling on Cygwin
 
 Version 0.4.29, 2013-05-13

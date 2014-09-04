@@ -1493,7 +1493,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
     CONTROL         "",IDC_WIZARD_STARTUP_PICT,"Static",SS_BITMAP | SS_REALSIZEIMAGE,0,0,15,13
     CTEXT           "Welcome to FlylinkDC++ Setup Wizard!",IDC_WIZARD_STARTUP_TXT1,6,59,292,21
-    LTEXT           "This Wizard can help you to setup FlylinkDC++ client: \r\n 1. Default Nick\r\n 2. Download and Temp folders \r\n 3. Share your files for DC++ users can download them \r\n 4. Setup your network configuration \r\n 5. Add favorites hubs",IDC_WIZARD_STARTUP_TXT2,6,94,292,84
+    LTEXT           "This Wizard can help you to setup FlylinkDC++ client: \r\n 1. Default Nick\r\n 2. Download and Temp folders \r\n 3. Share your files for DC++ users can download them \r\n",IDC_WIZARD_STARTUP_TXT2,6,94,292,84
     LTEXT           "Press Next button to Continue...",IDC_WIZARD_STARTUP_TXT3,6,189,290,8
 END
 
@@ -1527,14 +1527,6 @@ BEGIN
     LTEXT           "",IDC_WIZARD_DOWNDIR_HELP,4,121,295,60
 END
 
-IDD_WIZARD_FINISH DIALOGEX 0, 0, 303, 201
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-FONT 8, "MS Shell Dlg", 400, 0, 0x0
-BEGIN
-    CONTROL         "",IDC_WIZARD_STARTUP_PICT,"Static",SS_BITMAP,0,0,15,13
-    CTEXT           "Wizard Setup Finished",IDC_WIZARD_FINISH_LABEL1,4,66,295,17
-    CTEXT           "Now you can start to work with FlylinkDC++!",IDC_WIZARD_FINISH_LABEL2,4,104,295,17
-END
 
 IDD_WIZARD_SHARE DIALOGEX 0, 0, 303, 201
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
@@ -2629,11 +2621,6 @@ BEGIN
         RIGHTMARGIN, 301
     END
 
-    IDD_WIZARD_FINISH, DIALOG
-    BEGIN
-        RIGHTMARGIN, 301
-    END
-
     IDD_WIZARD_SHARE, DIALOG
     BEGIN
         RIGHTMARGIN, 301
@@ -2927,8 +2914,8 @@ IDR_ICON_QUESTION_ICON  ICON                    "res\\f_question_16.ico"
 IDR_ICON_PAUSE_ICON     ICON                    "res\\f_grey_16.ico"
 IDR_ICON_MEDICAL_BAG    ICON                    "res\\medical_bag.ico"
 IDR_ICON_THERMOMETR_BAG ICON                    "res\\thermometer2.ico"
-IDR_ICON_CRUTCH         ICON                    "res\\crutch.ico"
-IDR_ICON_HELP           ICON                    "res\\help.ico"
+//IDR_ICON_CRUTCH         ICON                    "res\\crutch.ico"
+IDR_ICON_FIREWALL           ICON                    "res\\firewall.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

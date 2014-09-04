@@ -22,6 +22,7 @@
 #include "../client/Util.h"
 #include "../client/ResourceManager.h"
 #include "../client/LogManager.h"
+#include "../client/CompatibilityManager.h"
 #include "../client/file.h"
 #include "fuSearch.h"
 #include "ZUtils.h"

@@ -12,6 +12,7 @@
 #include "sqlite/sqlite3x.hpp"
 #include "../dht/DHTType.h"
 #include "CFlyMediaInfo.h"
+#include "LogManager.h"
 
 #define FLYLINKDC_USE_LEVELDB // https://code.google.com/p/flylinkdc/issues/detail?id=1097
 
@@ -149,7 +150,8 @@ enum eTypeSegment
 	e_CMDDebugFilterState = 6,
 	e_TimeStampGeoIP = 7,
 	e_TimeStampCustomLocation = 8,
-	e_IsTTHLevelDBConvert = 9
+	e_IsTTHLevelDBConvert = 9,
+	e_IncopatibleSoftwareList = 10
 };
 struct CFlyRegistryValue
 {
@@ -219,6 +221,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 	private:
 		void update_last_ip_deferredL(uint32_t p_hub_id, const string& p_nick, uint32_t p_message_count, const boost::asio::ip::address_v4& p_last_ip);
 		void flush_all_last_ip_and_message_count();
+		void add_tree_internal_bind_and_executeL(sqlite3_command* p_sql, const TigerTree& p_tt);
 		__int64 add_treeL(const TigerTree& p_tt);
 		__int64 get_path_idL(string p_path, bool p_create, bool p_case_convet, bool& p_is_no_mediainfo, bool p_sweep_path);
 		__int64 find_path_idL(const string& p_path);
@@ -244,9 +247,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		bool getTree(const TTHValue& p_root, TigerTree& p_tt);
 		unsigned __int64 getBlockSizeSQL(const TTHValue& p_root, __int64 p_size);
 		__int64 get_path_id(string p_path, bool p_create, bool p_case_convet, bool& p_is_no_mediainfo, bool p_sweep_path);
-		bool findTTH(const string& aPath, const string& aFileName, TTHValue& p_tth, __int64& p_path_id);
-		
-		void addTree(const TigerTree& p_tt);
+		void add_tree(const TigerTree& p_tt);
 		__int64 merge_file(const string& p_path, const string& p_file_name, const int64_t p_time_stamp,
 		                   const TigerTree& p_tt, bool p_case_convet,
 		                   __int64& p_path_id);
@@ -274,7 +275,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 			Lock l(m_cs);
 			return m_path_cache.size();
 		}
-		void SweepPath();
+		void sweep_db();
 		void LoadDir(__int64 p_path_id, CFlyDirMap& p_dir_map, bool p_is_no_mediainfo);
 #ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
 		void SweepFiles(__int64 p_path_id, const CFlyDirMap& p_sweep_files);
@@ -293,6 +294,8 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void load_registry(TStringList& p_values, int p_Segment);
 		void set_registry_variable_int64(eTypeSegment p_TypeSegment, __int64 p_value);
 		__int64 get_registry_variable_int64(eTypeSegment p_TypeSegment);
+		void set_registry_variable_string(eTypeSegment p_TypeSegment, const string& p_value);
+		string get_registry_variable_string(eTypeSegment p_TypeSegment);
 		void save_registry(const TStringList& p_values, int p_Segment);
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		bool load_media_info(const TTHValue& p_tth, CFlyMediaInfo& p_media_info, bool p_only_inform);
@@ -376,6 +379,10 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		}
 	private:
 		void delete_queue_sources(const __int64 p_id);
+		void convert_fly_hash_block_crate_unicque_tthL(CFlyLogFile& p_convert_log);
+		void convert_fly_hash_blockL();
+		void convert_fly_hash_block_internalL();
+		void clean_fly_hash_blockL();
 		
 		mutable CriticalSection m_cs;
 		// TODO CriticalSection m_leveldb_cs;
@@ -432,6 +439,9 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		auto_ptr<sqlite3_command> m_check_expiration_dht_files;
 		auto_ptr<sqlite3_command> m_delete_dht_nodes;
 #endif // STRONG_USE_DHT
+		auto_ptr<sqlite3_command> m_fly_hash_block_convert_loop;
+		auto_ptr<sqlite3_command> m_fly_hash_block_convert_update;
+		auto_ptr<sqlite3_command> m_fly_hash_block_convert_drop_dup;
 		auto_ptr<sqlite3_command> m_add_tree_find;
 		auto_ptr<sqlite3_command> m_select_ratio_load;
 		//auto_ptr<sqlite3_command> m_select_last_ip_and_message_count;
@@ -461,7 +471,6 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		auto_ptr<sqlite3_command> m_sweep_path_file;
 		auto_ptr<sqlite3_command> m_get_path_id;
 		auto_ptr<sqlite3_command> m_get_tth_id;
-		auto_ptr<sqlite3_command> m_findTTH;
 		auto_ptr<sqlite3_command> m_upload_file;
 		auto_ptr<sqlite3_command> m_get_tree;
 		auto_ptr<sqlite3_command> m_get_blocksize;  // [+] brain-ripper

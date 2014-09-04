@@ -489,7 +489,6 @@ FastCriticalSection csTest;
 	DISALLOW('U','4');\
 	DISALLOW('U','6');\
 	DISALLOW('I','4');\
-	DISALLOW('I','6');\
 	DISALLOW('S','S');\
 	DISALLOW('C','T');\
 	DISALLOW('S','I');\

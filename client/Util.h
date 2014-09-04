@@ -1216,7 +1216,7 @@ class Util
 				}
 				bool isKnown() const
 				{
-					return m_location_cache_index > 0 || m_country_cache_index > 0 ;
+					return m_location_cache_index >= 0 || m_country_cache_index >= 0 ;
 				}
 				tstring getDescription() const;
 				int16_t getFlagIndex() const;

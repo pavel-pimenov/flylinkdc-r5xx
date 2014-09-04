@@ -15,6 +15,9 @@
 //---------------------------------------------------------------------------
 
 #include <cstring>
+#ifdef ZENLIB_MEMUTILS_SSE2
+    #include <emmintrin.h>
+#endif //ZENLIB_MEMUTILS_SSE2
 
 namespace ZenLib
 {
@@ -167,7 +170,7 @@ namespace ZenLib
     //-----------------------------------------------------------------------
     // 1024 bits - To Unaligned
 
-    inline void memcpy_Unaligned_Unaligned_Once1024 (void* destination, const void* source)
+    inline void memcpy_Unaligned_Unaligned_Once1024 (void* destination, const void* source, size_t)
     {
         __m128i* destination16=(__m128i*)destination;
         const __m128i* source16=(__m128i*)source;

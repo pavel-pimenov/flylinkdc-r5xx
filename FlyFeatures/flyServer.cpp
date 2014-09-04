@@ -27,7 +27,8 @@
 #include "../client/ShareManager.h"
 #include "../client/LogManager.h"
 #include "../client/SimpleXML.h"
-#include "../client/StringTokenizer.h"
+//#include "../client/StringTokenizer.h"
+#include "../client/CompatibilityManager.h"
 #include "../client/Wildcards.h"
 #ifdef PPA_INCLUDE_IPGUARD
 #include "../client/IpGuard.h"
@@ -766,7 +767,8 @@ bool CFlyServerAdapter::CFlyServerJSON::pushTestPort(const string& p_magic,
 //======================================================================================================
 bool CFlyServerAdapter::CFlyServerJSON::pushError(const string& p_error)
 {
-		CFlyLog l_log("[fly-error-sql]");
+		CFlyLog l_log("[fly-error]");
+    l_log.step(p_error);
 		Json::Value  l_info;   
 		l_info["error"] = p_error;
 		l_info["ID"]  = g_fly_server_id;
@@ -858,10 +860,14 @@ void CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 				 {
 					 auto& l_item = l_stat_info["Clients"][j++];
 					 l_item["url"]   = i->first;
-					 if(i->second.first || i->second.second)
+					 if(!i->second.empty())
 					 {
-					  l_item["Count"] = i->second.first;
-					  l_item["Share"] = i->second.second;
+					  l_item["Count"] = i->second.m_count_user;
+					  l_item["Share"] = i->second.m_share_size;
+					  if(i->second.m_message_count)
+					  {
+							l_item["Messages"] = i->second.m_message_count;
+					  }
 					 }
 				 }
 				}
@@ -993,6 +999,7 @@ string CFlyServerAdapter::CFlyServerJSON::postQuery(bool p_is_set,
 	CServerItem& l_Server =	p_is_test_port_server ? CFlyServerConfig::getTestPortServer() :
 		                       p_is_stat_server ? CFlyServerConfig::getStatServer() : 
 	                        CFlyServerConfig::getRandomMirrorServer(p_is_set);
+  dcassert(!l_Server.getIp().empty());
 	if(!g_debug_fly_server_url.empty())
 	{
 		l_Server.setIp(g_debug_fly_server_url); // Перекрываем адрес флай-сервера для всех сервисов на отладочный

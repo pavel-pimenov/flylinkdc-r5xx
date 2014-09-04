@@ -145,7 +145,7 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	                           WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_ICON | BS_AUTOCHECKBOX | BS_FLAT
 	                           , 0,
 	                           IDC_FORCE_PASSIVE_MODE);
-	m_PassiveModeButton.SetIcon(WinUtil::g_hHelpIcon);
+	m_PassiveModeButton.SetIcon(WinUtil::g_hFirewallIcon);
 	//purgeContainer.SubclassWindow(ctrlPurge.m_hWnd);
 	//m_PassiveModeButton.SetCheck(BST_CHECKED);
 	setButtonState();
@@ -888,14 +888,14 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (ii->download ? SETTIN
 				if (ii->m_location.isKnown())
 				{
 					int l_step = 0;
-					if (BOOLSETTING(ENABLE_COUNTRYFLAG) && ii->m_location.getCountryIndex())
+					if (BOOLSETTING(ENABLE_COUNTRYFLAG))
 					{
 						const POINT ps = { rc2.left, top };
 						g_flagImage.DrawCountry(cd->nmcd.hdc, ii->m_location, ps);
 						l_step += 25;
 					}
 					const POINT p = { rc2.left + l_step, top };
-					if (ii->m_location.getFlagIndex())
+					if (ii->m_location.getFlagIndex()  > 0)
 					{
 						g_flagImage.DrawLocation(cd->nmcd.hdc, ii->m_location, p);
 						l_step += 25;
@@ -1935,13 +1935,13 @@ void TransferView::parseQueueItemUpdateInfoL(UpdateInfo* ui, QueueItemPtr qi) //
 	}
 } // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=152461
 
-void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string&, const Download* download) noexcept
+void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string&, const Download* p_download) noexcept
 {
 	if (qi->isUserList())
 		return;
 		
 	// update download item
-	UpdateInfo* ui = new UpdateInfo(download->getHintedUser(), true); // [!] IRainman fix.
+	UpdateInfo* ui = new UpdateInfo(p_download->getHintedUser(), true); // [!] IRainman fix.
 	
 	ui->setStatus(ItemInfo::STATUS_WAITING);
 	ui->setPos(0);
@@ -1950,7 +1950,7 @@ void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, co
 	m_tasks.add(TRANSFER_UPDATE_ITEM, ui); // [!] IRainman opt.
 	
 	// update file item
-	ui = new UpdateInfo(download->getHintedUser(), true); // [!] IRainman fix.
+	ui = new UpdateInfo(p_download->getHintedUser(), true); // [!] IRainman fix.
 	
 	ui->setTarget(qi->getTarget());
 	ui->setPos(0);

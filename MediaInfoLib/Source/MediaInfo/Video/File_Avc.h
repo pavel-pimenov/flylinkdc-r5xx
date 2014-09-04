@@ -78,6 +78,7 @@ private :
                         cbr_flag=x.cbr_flag;
                         //initial_cpb_removal_delay=x.initial_cpb_removal_delay;
                         //initial_cpb_removal_delay_offset=x.initial_cpb_removal_delay_offset;
+                        return *this;
                     }
 
                 private:
@@ -106,6 +107,8 @@ private :
                     cpb_removal_delay_length_minus1=x.cpb_removal_delay_length_minus1;
                     dpb_output_delay_length_minus1=x.dpb_output_delay_length_minus1;
                     time_offset_length=x.time_offset_length;
+
+                    return *this;
                 }
 
             private:
@@ -124,6 +127,8 @@ private :
                 bitstream_restriction_struct &operator=(const bitstream_restriction_struct &b)
                 {
                     max_num_reorder_frames=b.max_num_reorder_frames;
+
+                    return *this;
                 }
 
             private:

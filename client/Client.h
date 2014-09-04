@@ -26,6 +26,19 @@
 #include "BufferedSocket.h"
 #include "ChatMessage.h"
 
+struct CFlyClientStatistic
+{
+	uint32_t  m_count_user;
+	uint32_t  m_message_count;
+	int64_t   m_share_size;
+	CFlyClientStatistic(): m_count_user(0), m_share_size(0), m_message_count(0)
+	{
+	}
+	bool empty() const
+	{
+		return m_count_user == 0 && m_message_count == 0 && m_share_size == 0;
+	}
+};
 class ClientBase
 #ifdef _DEBUG
 	: boost::noncopyable // [+] IRainman fix.
@@ -415,6 +428,8 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		[-]     return hubIdentity;
 		[-] }
 		*/
+	private:
+		uint32_t m_message_count;
 	protected:
 		OnlineUserPtr m_myOnlineUser;
 		OnlineUserPtr m_hubOnlineUser;
@@ -478,6 +493,19 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		
 		GETM(uint64_t, m_lastActivity, LastActivity);
 		GETSET(uint32_t, m_reconnDelay, ReconnDelay);
+		uint32_t getMessagesCount() const
+		{
+			return m_message_count;
+		}
+		void incMessagesCount()
+		{
+			++m_message_count;
+		}
+		void clearMessagesCount()
+		{
+			m_message_count = 0;
+		}
+		
 //#ifndef IRAINMAN_USE_UNICODE_IN_NMDC
 		GETSET(string, m_encoding, Encoding);
 //#endif

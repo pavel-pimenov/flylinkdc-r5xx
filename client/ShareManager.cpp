@@ -704,7 +704,7 @@ static const ForbiddenPath g_forbiddenPaths[] =
 };
 #endif
 // [~] IRainman
-void ShareManager::addDirectory(const string& realPath, const string& virtualName)
+void ShareManager::addDirectory(const string& realPath, const string& virtualName, bool p_is_job)
 {
 	if (realPath.empty() || virtualName.empty())
 	{
@@ -788,7 +788,7 @@ void ShareManager::addDirectory(const string& realPath, const string& virtualNam
 		CFlylinkDBManager::getInstance()->scan_path(directories);
 		webrtc::WriteLockScoped l(*g_csShare);
 		__int64 l_path_id = 0;
-		Directory::Ptr dp = buildTreeL(l_path_id, realPath, Directory::Ptr() /* p_is_job, true */);
+		Directory::Ptr dp = buildTreeL(l_path_id, realPath, Directory::Ptr(), p_is_job);
 		
 		const string vName = validateVirtual(virtualName);
 		dp->setName(vName);
@@ -905,7 +905,7 @@ void ShareManager::removeDirectory(const string& realPath)
 		{
 			if (stricmp(i->second.m_synonym, l_Name) == 0 && checkAttributs(i->first))// [!]IRainman checkHidden(i->first)
 			{
-				Directory::Ptr dp = buildTreeL(i->second.m_path_id, i->first, 0 /* p_is_job, true */);
+				Directory::Ptr dp = buildTreeL(i->second.m_path_id, i->first, Directory::Ptr(), true);
 				dp->setName(i->second.m_synonym);
 				mergeL(dp);
 			}
@@ -919,7 +919,7 @@ void ShareManager::removeDirectory(const string& realPath)
 void ShareManager::renameDirectory(const string& realPath, const string& virtualName)
 {
 	removeDirectory(realPath);
-	addDirectory(realPath, virtualName);
+	addDirectory(realPath, virtualName, false);
 }
 
 ShareManager::DirList::const_iterator ShareManager::getByVirtualL(const string& virtualName) const
@@ -975,13 +975,12 @@ void ShareManager::internal_calcShareSize() // [!] IRainman opt.
 	dcassert(m_sharedSize == m_CurrentShareSize);
 }
 
-ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const string& aName, const Directory::Ptr& aParent /*, bool p_is_job*/)
+ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const string& aName, const Directory::Ptr& aParent, bool p_is_job)
 {
 	bool p_is_no_mediainfo = false;
-	//dcassert(p_path_id);
 	if (p_path_id == 0)
 	{
-		p_path_id = CFlylinkDBManager::getInstance()->get_path_id(Text::toLower(aName), true, false, p_is_no_mediainfo, m_sweep_path); // !p_is_job пока отключил
+		p_path_id = CFlylinkDBManager::getInstance()->get_path_id(Text::toLower(aName), !p_is_job, false, p_is_no_mediainfo, m_sweep_path);
 	}
 	Directory::Ptr dir = Directory::create(Util::getLastDir(aName), aParent);
 	
@@ -1057,7 +1056,7 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 			        && isShareFolder(newName))
 			{
 				__int64 l_path_id = 0;
-				dir->m_directories[l_file_name] = buildTreeL(l_path_id, newName, dir /*, p_is_job */);
+				dir->m_directories[l_file_name] = buildTreeL(l_path_id, newName, dir, p_is_job);
 			}
 		}
 		else
@@ -1388,7 +1387,7 @@ int ShareManager::run()
 			{
 				if (checkAttributs(i->m_path))
 				{
-					Directory::Ptr dp = buildTreeL(i->m_path_id, i->m_path, Directory::Ptr() /* p_is_job, false */);
+					Directory::Ptr dp = buildTreeL(i->m_path_id, i->m_path, Directory::Ptr(), false);
 					dp->setName(i->m_synonym);
 					newDirs.push_back(dp);
 				}
@@ -1400,7 +1399,7 @@ int ShareManager::run()
 #ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
 			m_sweep_guard = true;
 #endif
-			CFlylinkDBManager::getInstance()->SweepPath();
+			CFlylinkDBManager::getInstance()->sweep_db();
 		}
 		
 		{

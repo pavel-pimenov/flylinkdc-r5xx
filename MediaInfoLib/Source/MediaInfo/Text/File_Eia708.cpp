@@ -52,9 +52,6 @@ File_Eia708::File_Eia708()
     StandAloneCommand=false;
     HasContent=false;
     DataDetected=0x0000000000000000LL;
-
-    //Tests
-    DFx_WindowID_Last=0xFF;
 }
 
 //---------------------------------------------------------------------------
@@ -1355,7 +1352,7 @@ void File_Eia708::DFx(int8u WindowID)
 //---------------------------------------------------------------------------
 void File_Eia708::Character_Fill(wchar_t Character)
 {
-    Param_Info1(Ztring().From_Unicode(Character));
+    Param_Info1(Ztring().From_Unicode(&Character, 1)); //(Character) after new ZenLib release
 
     int8u WindowID=Streams[service_number]->WindowID;
     if (WindowID==(int8u)-1)

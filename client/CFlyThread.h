@@ -31,6 +31,7 @@ typedef DWORD ThreadID;
 #endif
 #ifdef _DEBUG
 #include <boost/noncopyable.hpp>
+#include <set>
 #endif
 
 #include "Exception.h"

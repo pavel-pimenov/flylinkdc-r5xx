@@ -1,4 +1,317 @@
 ------------------------------------------------------------------------
+r17520 | pavel.pimenov@gmail.com | 2014-09-02 22:21:37 +0400 (Вт, 02 сен 2014) | 10 lines
+
+Merged revision(s) 17517-17519 from trunk:
+# Log
+........
+# Расширено логирование в SharedFileStream::SharedFileStream
+  вывожу код ошибки. 
+* r5xx - исправлена утечка ресурса в SharedFileStream::SharedFileStream если не смогли открыть файл.
+........
+# Непонятные падения от юзера https://drdump.com/Problem.aspx?ClientID=ppa&ProblemID=87489
+........
+
+------------------------------------------------------------------------
+r17517 | pavel.pimenov@gmail.com | 2014-09-02 19:54:37 +0400 (Вт, 02 сен 2014) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r17511 | pavel.pimenov@gmail.com | 2014-09-01 19:34:10 +0400 (Пн, 01 сен 2014) | 7 lines
+
+Merged revision(s) 17509 from trunk:
+# Логируем ошибку в SharedFileStream
+  https://code.google.com/p/flylinkdc/issues/detail?id=1490
+# В fixFileNameMaxPathLimit добавил запас в 10 символов для расширения
+# r503-beta83
+........
+
+------------------------------------------------------------------------
+r17510 | pavel.pimenov@gmail.com | 2014-09-01 19:30:50 +0400 (Пн, 01 сен 2014) | 3 lines
+
+# r4xx
+  Исправлены падения в void ConnectionManager::on(UserConnectionListener::Failed
+  Убрал мертвые методы в CFlylinkDBManager
+------------------------------------------------------------------------
+r17496 | pavel.pimenov@gmail.com | 2014-08-28 18:51:29 +0400 (Чт, 28 авг 2014) | 5 lines
+
+Merged revision(s) 17494-17495 from trunk:
+* Возможно исправлены падения вида
+  https://drdump.com/Problem.aspx?ClientID=ppa&ProblemID=87237
+* Исправлена ошибка уникальности при построении индекса iu_fly_last_ip_nick_hub или iu_fly_last_ip
+
+------------------------------------------------------------------------
+r17494 | pavel.pimenov@gmail.com | 2014-08-27 19:36:40 +0400 (Ср, 27 авг 2014) | 2 lines
+
+# Log [public-build]
+
+------------------------------------------------------------------------
+r17493 | pavel.pimenov@gmail.com | 2014-08-27 18:43:34 +0400 (Ср, 27 авг 2014) | 3 lines
+
+Merged revision(s) 17491-17492 from trunk:
+* Сообщение о несовместимом ПО выводим только один раз.
+
+------------------------------------------------------------------------
+r17491 | pavel.pimenov@gmail.com | 2014-08-27 06:46:05 +0400 (Ср, 27 авг 2014) | 2 lines
+
+# Log [public-build]
+
+------------------------------------------------------------------------
+r17488 | pavel.pimenov@gmail.com | 2014-08-26 21:57:43 +0400 (Вт, 26 авг 2014) | 11 lines
+
+Merged revision(s) 17480-17487 from trunk:
+........
+# Отключил спам об ошибке 10048 в лог
+* Добавлена новая конфликтующая программа networx.dll - NetWorx
+  приводящая к падению BSOD http://flylinkdc.com/forum/viewtopic.php?f=23&t=1248
+  - Добавил логирование сообщения о несовместимости ПО. 
+........
+*(Fixed issue 1487) IPv6 - не отображается IP в списке пользователей
+  https://code.google.com/p/flylinkdc/issues/detail?id=1487
+........
+
+------------------------------------------------------------------------
+r17480 | pavel.pimenov@gmail.com | 2014-08-18 21:27:24 +0400 (Пн, 18 авг 2014) | 2 lines
+
+# Log [public-build]
+
+------------------------------------------------------------------------
+r17479 | pavel.pimenov@gmail.com | 2014-08-18 19:25:00 +0400 (Пн, 18 авг 2014) | 4 lines
+
+Merged revision(s) 17467-17478 from trunk:
+* OpenSSL 1.0.1i http://www.openssl.org
+* SQLite 3.8.6 http://sqlite.org/releaselog/3_8_6.html
+
+------------------------------------------------------------------------
+r17466 | pavel.pimenov@gmail.com | 2014-07-29 21:21:32 +0400 (Вт, 29 июл 2014) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r17465 | pavel.pimenov@gmail.com | 2014-07-29 19:55:20 +0400 (Вт, 29 июл 2014) | 11 lines
+
+Merged revision(s) 17461-17463 from trunk:
+# Убрал неиспользуемую функцию CFlylinkDBManager::findTTH
+# Исправлена проблема - при чистом запуске не создавался уникальный индекс
+  CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_hash_block_tth ON fly_hash_block(tth)
+........
+# Оптимизирована вставка TTH дерева insert into fly_hash_block(file_size,tiger_tree,block_size,tth) values(?,?,?,?)
+  не выполняем лишний select...
+  TODO - разобраться почему не пашет insert or replace into fly_hash_block(file_size,tiger_tree,block_size,tth) values(?,?,?,?)
+  он зачем-то увеличивает поле tth_id до максимума
+........
+
+------------------------------------------------------------------------
+r17464 | pavel.pimenov@gmail.com | 2014-07-29 19:51:04 +0400 (Вт, 29 июл 2014) | 1 line
+
+# log
+------------------------------------------------------------------------
+r17460 | pavel.pimenov@gmail.com | 2014-07-28 18:32:22 +0400 (Пн, 28 июл 2014) | 3 lines
+
+Merged revision(s) 17456-17458 from trunk:
+* Исправлена ошибка SQLite - get_path_idL: cannot start a transaction within a transaction
+
+------------------------------------------------------------------------
+r17459 | pavel.pimenov@gmail.com | 2014-07-28 18:19:21 +0400 (Пн, 28 июл 2014) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r17455 | pavel.pimenov@gmail.com | 2014-07-27 16:20:37 +0400 (Вс, 27 июл 2014) | 6 lines
+
+Merged revision(s) 17449-17454 from trunk:
+* Логирование операций к базе перевел принудительно на файлы даже если в настройках стоит - вести лог в БД
+  возникают ошибки вида: cannot start a transaction within a transaction parrent message: delete from fly_hash_block where...
+  TODO - может придумать и определять этот файл динамически...
+* Ускорил время проставления галки на каталоге с большим кол-вом вложений
+
+------------------------------------------------------------------------
+r17449 | pavel.pimenov@gmail.com | 2014-07-25 19:02:56 +0400 (Пт, 25 июл 2014) | 2 lines
+
+# Log [public-build]
+
+------------------------------------------------------------------------
+r17448 | pavel.pimenov@gmail.com | 2014-07-25 17:49:21 +0400 (Пт, 25 июл 2014) | 4 lines
+
+Merged revision(s) 17443-17447 from trunk:
+# Поправил алгоритм конвертации БД 
+  - Перед этой операцией зачищаем лишнее
+  - Исправлена ошибка "SQLite - CFlylinkDBManager: UNIQUE constraint failed: fly_hash_block.tth"
+------------------------------------------------------------------------
+r17442 | pavel.pimenov@gmail.com | 2014-07-23 18:58:30 +0400 (Ср, 23 июл 2014) | 5 lines
+
+Merged revision(s) 17433-17441 from trunk:
+* (Fixed issue 1485) Не показывает пользователя в списке по команде "найти в списке"
+   https://code.google.com/p/flylinkdc/issues/detail?id=1485
+* Починил подключение к хабам с урлами из национальных букв (dchub://винтерзете.рф)
+
+------------------------------------------------------------------------
+r17432 | pavel.pimenov@gmail.com | 2014-07-21 18:59:25 +0400 (Пн, 21 июл 2014) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r17431 | pavel.pimenov@gmail.com | 2014-07-21 18:19:25 +0400 (Пн, 21 июл 2014) | 18 lines
+
+Merged revision(s) 17416-17430 from trunk:
+* Исправлено падение https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=78416
+* Исправлено падение в OnWizardNext
+* Исправлен возможный закусь памяти в #define GET_TEXT(id, var)
+* Изменения а автообновлении. теперь по умолчанию программа предлагает перезапуститься после загрузки обновок.
+* У скорена конвертация БД к новому формату за счет временного отключения журнала
+			m_flySQLiteDB.executenonquery("pragma synchronous=OFF;");
+			m_flySQLiteDB.executenonquery("pragma journal_mode=MEMORY;");
+на 360 меговой базе ускорение с 38 до 8 секунд.
+* Из мастера инсталляции убрал последнее окно с поздравлением. 
+* (Fixed issue 1479) Убрал лишние транзакции при выполнении команды "очистить базу данных от ненужных хешей"
+   должно стать быстрее при обработке шары в 10-ки тыс каталогов. https://code.google.com/p/flylinkdc/issues/detail?id=1479
+* В окне просмотра файл-листов дополнительно показываем кол-во каталогов
+# Добавил диагностику и фикс возможного падения в ShareManager::getFType
+* Возможно исправил ошибку Error 10048 (Address already in use) Binding Socket
+# Исправил формат в LOG_FORMAT_MAIN_CHAT и LOG_FORMAT_PRIVATE_CHAT - затесался лишний знак алкоголя после M [%Y-%m-%d %H:%M%:%S [extra]] %[message]
+  спасибо Ilya K за баг репорт. http://www.flylinkdc.ru/2014/06/sqlite-ip-geoip.html 
+
+------------------------------------------------------------------------
+r17415 | pavel.pimenov@gmail.com | 2014-07-15 22:12:38 +0400 (Вт, 15 июл 2014) | 6 lines
+
+Merged revision(s) 17413-17414 from trunk:
+# Опимизация установки галки на каталоге, где очень много вложений ShareManager::addDirectory
+........
+# Убрал ядовитые цвета вкладок
+........
+
+------------------------------------------------------------------------
+r17412 | pavel.pimenov@gmail.com | 2014-07-15 20:27:36 +0400 (Вт, 15 июл 2014) | 47 lines
+
+Merged revision(s) 17392-17411 from trunk:
+........
+# Починил включение лога SQLite через галку в GUI
+# Сплеш-окно запускаю раньше (чтобы было видно когда идет конвертация БД в новый формат)
+........
+* Issue 1479 Медленное хеширование мелких файлов.
+  - Сброс данных в базу каждые 10 сек или после 100 файлов
+  https://code.google.com/p/flylinkdc/issues/detail?id=1479
+........
+# Если порт TCP занят и возникает ошибка bind-а в ConnectivityManager::listen
+  пытаемся подключится 5 раз под другим портом
+  TODO - протестировать автоматическое выделение свободного порта без итераций с rand
+........
+# Добавил именованную структуру CFlyDirItem для сокращения обращение к БД для получения ID каталога
+........
+# Убрал дублирование кода в SharePage
+........
+# Добавил скрипты генерации тестовых файлов и каталогов. (с)taterxdc
+........
+# Убрал лишнии Lock в CFlylinkDBManager::get_path_idL
+  TODO  
+   - убрать лишний запрос select id from fly_path where name=?
+   - пакет insert into fly_path (name) values(?) оформить в одной транзакции
+........
+* (Fixed issue 1482)  Не получается исключить папку из шары, если родительская директория помечена.
+   https://code.google.com/p/flylinkdc/issues/detail?id=1482
+........
+* Перевел на функцию FindFirstFileEx и добавил два флага для оптимизации операций сканирования каталогов под Windows 7 и выше
+ http://msdn.microsoft.com/ru-ru/library/windows/desktop/aa364415%28v=vs.85%29.aspx
+ FindExInfoBasic
+     The FindFirstFileEx function does not query the short file name, improving overall enumeration speed.
+     The data is returned in a WIN32_FIND_DATA structure, and the cAlternateFileName member is always a NULL string.
+     Windows Server 2008, Windows Vista, Windows Server 2003, and Windows XP:  This value is not supported until Windows Server 2008 R2 and Windows 7.
+     http://msdn.microsoft.com/ru-ru/library/windows/desktop/aa364419%28v=vs.85%29.aspx
+ dwAdditionalFlags
+     Uses a larger buffer for directory queries, which can increase performance of the find operation.
+     Windows Server 2008, Windows Vista, Windows Server 2003, and Windows XP:  This value is not supported until Windows Server 2008 R2 and Windows 7.
+  TODO - сделать обертку над FindFirstFileEx
+ ........
+# К телеметрии добавил кол-во расшаренных каталогов
+........
+* Обтимизированно создание каталогов в базе данных
+  TODO - но пока выполняется двойной прооход файловой системы
+         потестировать что это хорошо на разных размерах шар.
+  TODO - потестить подмерзание при включении логирования sqlite
+........
+
+------------------------------------------------------------------------
+r17392 | pavel.pimenov@gmail.com | 2014-07-10 22:08:45 +0400 (Чт, 10 июл 2014) | 1 line
+
+# Log [public-build]
+------------------------------------------------------------------------
+r17391 | pavel.pimenov@gmail.com | 2014-07-10 19:22:25 +0400 (Чт, 10 июл 2014) | 74 lines
+
+Merged revision(s) 17355-17390 from trunk:
+# Log [public-build]
+........
+* Обновлены либы crash-server
+........
+# AirDC++ merge 
+  - Add TokenManager
+  - Add ClientManagerListener::UserConnected
+  - Add ClientManagerListener::UserDisconnected
+........
+# r503-beta68
+# [mediainfo]
+ + MXF: detection of buggy BlockAlign from some muxers, so PCM bit depth is corectly detected despite the buggy metadata
+
+........
+* (Closed issue 1477) Разный размер шрифта в столбце IP
+  https://code.google.com/p/flylinkdc/issues/detail?id=1477
+........
+* (Closed issue 1476) Контекстное меню ника в чате - "Найти в списке" помещает юзера в конец/начало списка.
+  https://code.google.com/p/flylinkdc/issues/detail?id=1476
+........
+# Убрал поисковик nigma
+........
+# (Fixed issue 1476) Part 2
+  https://code.google.com/p/flylinkdc/issues/detail?id=1476 
+........
+# Начал разбираться с функцией - Качай-смотри
+  Добавил к логу заголовок
+  VideoPreview::getInstance()->AddLogInfo("Header = " + header);
+  Функция у меня пока не работает вообще - к поддерживаемым расширениям добавил все что в конфиге
+  а не только avi, mkv, mpeg, mpg 
+# Косметика MagnetDlg
+# r503-beta69
+........
+# Log [public-build]
+........
+* Updating the database ISPs
+   http://www.assembla.com/spaces/customlocations-greylink
+   Build on the base 1303, created 2014-05-27 00:44:36 +0700
+   Total in database:
+    - ISP - 1407
+    - ISPs logo - 1416
+    - Address range - 5998
+   Archive CustomLocations.7z created by NightOrion
+........
+# wget --tries=999
+........
+# Перевел все svn::externals на https:// (глючит после обновления тортилки)
+  TODO - сократить кол-во externals (особенно которые редко меняются)
+  Кандидаты
+   https://flylinkdc.googlecode.com/svn/extension/WEBserver WEBserver
+   https://flylinkdc.googlecode.com/svn/extension/PortalBrowser/compiled/PortalBrowser PortalBrowser
+  
+........
+# В DirectoryListingFrame и SearchFrame забыта проверка if(BOOLSETTING(ENABLE_FLY_SERVER))
+# Косметика в FileRoadMap
+........
+# Фикс падения в VideoPreview - в addTask забыли Lock l(cs);
+........
+* Починил включение логов sqlite через кей FlylinkDC.exe /sqltrace
+........
+* (Fixed issue 1480)  Get user response. Unable to rename.
+  https://code.google.com/p/flylinkdc/issues/detail?id=1480
+........
+* Попытка исправить зависон при автообновлении
+  https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/10
+........
+# Убрал возможный зависон в waitShutdown (ждем 5 сек)
+........
+* Частичное исправление https://code.google.com/p/flylinkdc/issues/detail?id=1479
+  - Удалена таблица fly_hash
+  - Сокращен расчет ID каталога (раньше искал для каждого файла)
+........
+
+------------------------------------------------------------------------
+r17355 | pavel.pimenov@gmail.com | 2014-06-29 10:06:33 +0400 (Вс, 29 июн 2014) | 1 line
+
+# Log [public-build]
+------------------------------------------------------------------------
 r17354 | pavel.pimenov@gmail.com | 2014-06-29 09:31:13 +0400 (Вс, 29 июн 2014) | 26 lines
 
 Merged revision(s) 17339-17353 from trunk:

@@ -88,8 +88,8 @@ class Identity
 			CHANGES_DNS = 1 << COLUMN_DNS, // !SMT!-IP
 #endif
 			//[-]PPA        CHANGES_PK = 1 << COLUMN_PK,
-			CHANGE_CID = 1 << COLUMN_CID,
-			CHANGE_TAG = 1 << COLUMN_TAG
+			CHANGES_CID = 1 << COLUMN_CID,
+			CHANGES_TAG = 1 << COLUMN_TAG
 		};
 // [~] IRAINMAN_USE_NG_FAST_USER_INFO
 		enum ClientType
@@ -101,8 +101,9 @@ class Identity
 			CT_OWNER = 0x10,
 			CT_HUB = 0x20, //-V112
 #ifdef IRAINMAN_USE_HIDDEN_USERS
-			CT_HIDDEN = 0x40
+			CT_HIDDEN = 0x40,
 #endif
+			CT_USE_IP6 = 0x80
 		};
 		
 		Identity()
@@ -157,6 +158,7 @@ class Identity
 
 		GSMC(Description, "DE", CHANGES_DESCRIPTION) // ok
 		GSMC(Email, "EM", CHANGES_EMAIL) // ok
+		GSMC(IP6, "I6", CHANGES_IP) // ok
 		
 		void setNick(const string& p_nick) // "NI"
 		{
@@ -359,6 +361,15 @@ class Identity
 		bool isBot() const // "CT"
 		{
 			return getClientTypeBit(CT_BOT);
+		}
+		
+		void setUseIP6() // "CT"
+		{
+			return setClientTypeBit(CT_USE_IP6, true);
+		}
+		bool isUseIP6() const // "CT"
+		{
+			return getClientTypeBit(CT_USE_IP6);
 		}
 		
 		void setOp(bool op) // "CT"

@@ -347,7 +347,7 @@ bool File_Hevc::Demux_UnpacketizeContainer_Test()
     size_t          Buffer_Temp_Size=0;
     bool            RandomAccess=true; //Default, in case of problem
 
-    if ((MustParse_VPS_SPS_PPS || SizedBlocks) && Demux_Transcode_Iso14496_15_to_Iso14496_10)
+    if ((MustParse_VPS_SPS_PPS || SizedBlocks) && Demux_Transcode_Iso14496_15_to_AnnexB)
     {
         if (MustParse_VPS_SPS_PPS)
             return true; //Wait for SPS and PPS
@@ -430,11 +430,11 @@ bool File_Hevc::Demux_UnpacketizeContainer_Test()
         if (RandomAccess)
         {
             for (video_parameter_set_structs::iterator Data_Item=video_parameter_sets.begin(); Data_Item!=video_parameter_sets.end(); ++Data_Item)
-                TranscodedBuffer_Size+=(*Data_Item)->Iso14496_10_Buffer_Size;
+                TranscodedBuffer_Size+=(*Data_Item)->AnnexB_Buffer_Size;
             for (seq_parameter_set_structs::iterator Data_Item=seq_parameter_sets.begin(); Data_Item!=seq_parameter_sets.end(); ++Data_Item)
-                TranscodedBuffer_Size+=(*Data_Item)->Iso14496_10_Buffer_Size;
+                TranscodedBuffer_Size+=(*Data_Item)->AnnexB_Buffer_Size;
             for (pic_parameter_set_structs::iterator Data_Item=pic_parameter_sets.begin(); Data_Item!=pic_parameter_sets.end(); ++Data_Item)
-                TranscodedBuffer_Size+=(*Data_Item)->Iso14496_10_Buffer_Size;
+                TranscodedBuffer_Size+=(*Data_Item)->AnnexB_Buffer_Size;
         }
 
         //Copying
@@ -444,18 +444,18 @@ bool File_Hevc::Demux_UnpacketizeContainer_Test()
         {
             for (video_parameter_set_structs::iterator Data_Item=video_parameter_sets.begin(); Data_Item!=video_parameter_sets.end(); ++Data_Item)
             {
-                std::memcpy(TranscodedBuffer+TranscodedBuffer_Pos, (*Data_Item)->Iso14496_10_Buffer, (*Data_Item)->Iso14496_10_Buffer_Size);
-                TranscodedBuffer_Pos+=(*Data_Item)->Iso14496_10_Buffer_Size;
+                std::memcpy(TranscodedBuffer+TranscodedBuffer_Pos, (*Data_Item)->AnnexB_Buffer, (*Data_Item)->AnnexB_Buffer_Size);
+                TranscodedBuffer_Pos+=(*Data_Item)->AnnexB_Buffer_Size;
             }
             for (seq_parameter_set_structs::iterator Data_Item=seq_parameter_sets.begin(); Data_Item!=seq_parameter_sets.end(); ++Data_Item)
             {
-                std::memcpy(TranscodedBuffer+TranscodedBuffer_Pos, (*Data_Item)->Iso14496_10_Buffer, (*Data_Item)->Iso14496_10_Buffer_Size);
-                TranscodedBuffer_Pos+=(*Data_Item)->Iso14496_10_Buffer_Size;
+                std::memcpy(TranscodedBuffer+TranscodedBuffer_Pos, (*Data_Item)->AnnexB_Buffer, (*Data_Item)->AnnexB_Buffer_Size);
+                TranscodedBuffer_Pos+=(*Data_Item)->AnnexB_Buffer_Size;
             }
             for (pic_parameter_set_structs::iterator Data_Item=pic_parameter_sets.begin(); Data_Item!=pic_parameter_sets.end(); ++Data_Item)
             {
-                std::memcpy(TranscodedBuffer+TranscodedBuffer_Pos, (*Data_Item)->Iso14496_10_Buffer, (*Data_Item)->Iso14496_10_Buffer_Size);
-                TranscodedBuffer_Pos+=(*Data_Item)->Iso14496_10_Buffer_Size;
+                std::memcpy(TranscodedBuffer+TranscodedBuffer_Pos, (*Data_Item)->AnnexB_Buffer, (*Data_Item)->AnnexB_Buffer_Size);
+                TranscodedBuffer_Pos+=(*Data_Item)->AnnexB_Buffer_Size;
             }
         }
         while (Buffer_Offset<Buffer_Size)
@@ -578,8 +578,14 @@ bool File_Hevc::Demux_UnpacketizeContainer_Test()
 
     if (!Status[IsAccepted])
     {
-        Accept("HEVC");
         if (Config->Demux_EventWasSent)
+            return false;
+        File_Hevc* MI=new File_Hevc;
+        Open_Buffer_Init(MI);
+        Open_Buffer_Continue(MI, Buffer, Buffer_Size);
+        bool IsOk=MI->Status[IsAccepted];
+        delete MI;
+        if (!IsOk)
             return false;
     }
 
@@ -632,7 +638,7 @@ void File_Hevc::Synched_Init()
         Streams[Pos].Searching_Payload=true; //unspecified
 
     #if MEDIAINFO_DEMUX
-        Demux_Transcode_Iso14496_15_to_Iso14496_10=Config->Demux_Avc_Transcode_Iso14496_15_to_Iso14496_10_Get();
+        Demux_Transcode_Iso14496_15_to_AnnexB=Config->Demux_Hevc_Transcode_Iso14496_15_to_AnnexB_Get();
     #endif //MEDIAINFO_DEMUX
 }
 
@@ -923,22 +929,22 @@ void File_Hevc::Data_Parse()
     }
 
     #if MEDIAINFO_DEMUX
-        if (Demux_Transcode_Iso14496_15_to_Iso14496_10)
+        if (Demux_Transcode_Iso14496_15_to_AnnexB)
         {
             if (Element_Code==32)
             {
                 std::vector<video_parameter_set_struct*>::iterator Data_Item=video_parameter_sets.begin();
                 if (Data_Item!=video_parameter_sets.end() && (*Data_Item))
                 {
-                    delete[] (*Data_Item)->Iso14496_10_Buffer;
-                    (*Data_Item)->Iso14496_10_Buffer_Size=(size_t)(Element_Size+5);
-                    (*Data_Item)->Iso14496_10_Buffer=new int8u[(*Data_Item)->Iso14496_10_Buffer_Size];
-                    (*Data_Item)->Iso14496_10_Buffer[0]=0x00;
-                    (*Data_Item)->Iso14496_10_Buffer[1]=0x00;
-                    (*Data_Item)->Iso14496_10_Buffer[2]=0x01;
-                    (*Data_Item)->Iso14496_10_Buffer[3]=Buffer[Buffer_Offset-2];
-                    (*Data_Item)->Iso14496_10_Buffer[4]=Buffer[Buffer_Offset-1];
-                    std::memcpy((*Data_Item)->Iso14496_10_Buffer+5, Buffer+Buffer_Offset, (size_t)Element_Size);
+                    delete[] (*Data_Item)->AnnexB_Buffer;
+                    (*Data_Item)->AnnexB_Buffer_Size=(size_t)(Element_Size+5);
+                    (*Data_Item)->AnnexB_Buffer=new int8u[(*Data_Item)->AnnexB_Buffer_Size];
+                    (*Data_Item)->AnnexB_Buffer[0]=0x00;
+                    (*Data_Item)->AnnexB_Buffer[1]=0x00;
+                    (*Data_Item)->AnnexB_Buffer[2]=0x01;
+                    (*Data_Item)->AnnexB_Buffer[3]=Buffer[Buffer_Offset-2];
+                    (*Data_Item)->AnnexB_Buffer[4]=Buffer[Buffer_Offset-1];
+                    std::memcpy((*Data_Item)->AnnexB_Buffer+5, Buffer+Buffer_Offset, (size_t)Element_Size);
                 }
             }
             if (Element_Code==33)
@@ -946,15 +952,15 @@ void File_Hevc::Data_Parse()
                 std::vector<seq_parameter_set_struct*>::iterator Data_Item=seq_parameter_sets.begin();
                 if (Data_Item!=seq_parameter_sets.end() && (*Data_Item))
                 {
-                    delete[] (*Data_Item)->Iso14496_10_Buffer;
-                    (*Data_Item)->Iso14496_10_Buffer_Size=(size_t)(Element_Size+5);
-                    (*Data_Item)->Iso14496_10_Buffer=new int8u[(*Data_Item)->Iso14496_10_Buffer_Size];
-                    (*Data_Item)->Iso14496_10_Buffer[0]=0x00;
-                    (*Data_Item)->Iso14496_10_Buffer[1]=0x00;
-                    (*Data_Item)->Iso14496_10_Buffer[2]=0x01;
-                    (*Data_Item)->Iso14496_10_Buffer[3]=Buffer[Buffer_Offset-2];
-                    (*Data_Item)->Iso14496_10_Buffer[4]=Buffer[Buffer_Offset-1];
-                    std::memcpy((*Data_Item)->Iso14496_10_Buffer+5, Buffer+Buffer_Offset, (size_t)Element_Size);
+                    delete[] (*Data_Item)->AnnexB_Buffer;
+                    (*Data_Item)->AnnexB_Buffer_Size=(size_t)(Element_Size+5);
+                    (*Data_Item)->AnnexB_Buffer=new int8u[(*Data_Item)->AnnexB_Buffer_Size];
+                    (*Data_Item)->AnnexB_Buffer[0]=0x00;
+                    (*Data_Item)->AnnexB_Buffer[1]=0x00;
+                    (*Data_Item)->AnnexB_Buffer[2]=0x01;
+                    (*Data_Item)->AnnexB_Buffer[3]=Buffer[Buffer_Offset-2];
+                    (*Data_Item)->AnnexB_Buffer[4]=Buffer[Buffer_Offset-1];
+                    std::memcpy((*Data_Item)->AnnexB_Buffer+5, Buffer+Buffer_Offset, (size_t)Element_Size);
                 }
             }
             if (Element_Code==34)
@@ -962,15 +968,15 @@ void File_Hevc::Data_Parse()
                 std::vector<pic_parameter_set_struct*>::iterator Data_Item=pic_parameter_sets.begin();
                 if (Data_Item!=pic_parameter_sets.end() && (*Data_Item))
                 {
-                    delete[] (*Data_Item)->Iso14496_10_Buffer;
-                    (*Data_Item)->Iso14496_10_Buffer_Size=(size_t)(Element_Size+5);
-                    (*Data_Item)->Iso14496_10_Buffer=new int8u[(*Data_Item)->Iso14496_10_Buffer_Size];
-                    (*Data_Item)->Iso14496_10_Buffer[0]=0x00;
-                    (*Data_Item)->Iso14496_10_Buffer[1]=0x00;
-                    (*Data_Item)->Iso14496_10_Buffer[2]=0x01;
-                    (*Data_Item)->Iso14496_10_Buffer[3]=Buffer[Buffer_Offset-2];
-                    (*Data_Item)->Iso14496_10_Buffer[4]=Buffer[Buffer_Offset-1];
-                    std::memcpy((*Data_Item)->Iso14496_10_Buffer+5, Buffer+Buffer_Offset, (size_t)Element_Size);
+                    delete[] (*Data_Item)->AnnexB_Buffer;
+                    (*Data_Item)->AnnexB_Buffer_Size=(size_t)(Element_Size+5);
+                    (*Data_Item)->AnnexB_Buffer=new int8u[(*Data_Item)->AnnexB_Buffer_Size];
+                    (*Data_Item)->AnnexB_Buffer[0]=0x00;
+                    (*Data_Item)->AnnexB_Buffer[1]=0x00;
+                    (*Data_Item)->AnnexB_Buffer[2]=0x01;
+                    (*Data_Item)->AnnexB_Buffer[3]=Buffer[Buffer_Offset-2];
+                    (*Data_Item)->AnnexB_Buffer[4]=Buffer[Buffer_Offset-1];
+                    std::memcpy((*Data_Item)->AnnexB_Buffer+5, Buffer+Buffer_Offset, (size_t)Element_Size);
                 }
             }
         }
@@ -1018,7 +1024,7 @@ void File_Hevc::slice_segment_layer()
             return;
 
         //Count of I-Frames
-        if (first_slice_segment_in_pic_flag && Element_Code==19)
+        if (first_slice_segment_in_pic_flag && (Element_Code==19 || Element_Code==20))
             IFrame_Count++;
 
         if (first_slice_segment_in_pic_flag)
@@ -1819,6 +1825,8 @@ void File_Hevc::sei_message_user_data_unregistered(int32u payloadSize)
     {
         case 0x214892b89bCC7f42LL : Element_Info1("Ateme");
                                      sei_message_user_data_unregistered_Ateme(payloadSize-16); break;
+        case 0xDB4717b509DEA22CLL : Element_Info1("x265");
+                                     sei_message_user_data_unregistered_x265(payloadSize-16); break;
         default :
                     Element_Info1("unknown");
                     Skip_XX(payloadSize-16,                     "data");
@@ -1842,6 +1850,112 @@ void File_Hevc::sei_message_user_data_unregistered_Ateme(int32u payloadSize)
             Encoded_Library_Version=Encoded_Library.substr(Pos);
         }
     }
+}
+
+//---------------------------------------------------------------------------
+// SEI - 5 - x265
+void File_Hevc::sei_message_user_data_unregistered_x265(int32u payloadSize)
+{
+    //Parsing
+    Ztring Data;
+    Peek_Local(payloadSize, Data);
+    if (Data.size()!=payloadSize && Data.size()+1!=payloadSize)
+    {
+        Skip_XX(payloadSize,                                    "Unknown");
+        return; //This is not a text string
+    }
+    size_t Data_Pos_Before=0;
+    size_t Loop=0;
+    do
+    {
+        size_t Data_Pos=Data.find(__T(" - "), Data_Pos_Before);
+        if (Data_Pos==std::string::npos)
+            Data_Pos=Data.size();
+        if (Data.find(__T("options: "), Data_Pos_Before)==Data_Pos_Before)
+        {
+            Element_Begin1("options");
+            size_t Options_Pos_Before=Data_Pos_Before;
+            Encoded_Library_Settings.clear();
+            do
+            {
+                size_t Options_Pos=Data.find(__T(" "), Options_Pos_Before);
+                if (Options_Pos==std::string::npos)
+                    Options_Pos=Data.size();
+                Ztring option;
+                Get_Local (Options_Pos-Options_Pos_Before, option, "option");
+                Options_Pos_Before=Options_Pos;
+                do
+                {
+                    Ztring Separator;
+                    Peek_Local(1, Separator);
+                    if (Separator==__T(" "))
+                    {
+                        Skip_Local(1,                               "separator");
+                        Options_Pos_Before+=1;
+                    }
+                    else
+                        break;
+                }
+                while (Options_Pos_Before!=Data.size());
+
+                //Filling
+                if (option!=__T("options:") && !(!option.empty() && option[0]>=__T('0') && option[0]<=__T('9')) && option.find(__T("fps="))!=0 && option.find(__T("bitdepth="))!=0) //Ignoring redundant information e.g. width, height, frame rate, bit depth
+                {
+                    if (!Encoded_Library_Settings.empty())
+                        Encoded_Library_Settings+=__T(" / ");
+                    Encoded_Library_Settings+=option;
+                }
+            }
+            while (Options_Pos_Before!=Data.size());
+            Element_End0();
+        }
+        else
+        {
+            Ztring Value;
+            Get_Local(Data_Pos-Data_Pos_Before, Value,          "data");
+
+            //Saving
+            if (Loop==0)
+            {
+                //Cleaning a little the value
+                while (!Value.empty() && Value[0]<0x30)
+                    Value.erase(Value.begin());
+                while (!Value.empty() && Value[Value.size()-1]<0x30)
+                    Value.erase(Value.end()-1);
+                size_t Value_Pos=Value.find(__T(" "));
+                if (Value_Pos!=string::npos)
+                    Value.resize(Value_Pos);
+                Encoded_Library=Value;
+            }
+            if (Loop==1 && Encoded_Library.find(__T("x265"))==0)
+            {
+                size_t Value_Pos=Value.find(__T(" 8bpp"));
+                if (Value_Pos!=string::npos)
+                    Value.resize(Value_Pos);
+
+                Encoded_Library+=__T(" - ");
+                Encoded_Library+=Value;
+            }
+        }
+        Data_Pos_Before=Data_Pos;
+        if (Data_Pos_Before+3<=Data.size())
+        {
+            Skip_Local(3,                                       "separator");
+            Data_Pos_Before+=3;
+        }
+
+        Loop++;
+    }
+    while (Data_Pos_Before!=Data.size());
+
+    //Encoded_Library
+    if (Encoded_Library.find(__T("x265 - "))==0)
+    {
+        Encoded_Library_Name=__T("x265");
+        Encoded_Library_Version=Encoded_Library.SubString(__T("x265 - "), Ztring());
+    }
+    else
+        Encoded_Library_Name=Encoded_Library;
 }
 
 //---------------------------------------------------------------------------

@@ -42,7 +42,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		DECLARE_FRAME_WND_CLASS_EX(_T("QueueFrame"), IDR_QUEUE, 0, COLOR_3DFACE);
 		
 		QueueFrame() : CFlyTimerAdapter(m_hWnd), menuItems(0), queueSize(0), queueItems(0), m_dirty(false),
-			usingDirMenu(false),  readdItems(0), fileLists(NULL), showTree(true),
+			usingDirMenu(false),  readdItems(0), m_fileLists(nullptr), showTree(true),
 			showTreeContainer(WC_BUTTON, this, SHOWTREE_MESSAGE_MAP)
 		{
 			memzero(statusSizes, sizeof(statusSizes));
@@ -437,7 +437,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		int menuItems;
 		int readdItems;
 		
-		HTREEITEM fileLists;
+		HTREEITEM m_fileLists;
 		
 		typedef pair<string, QueueItemInfo*> DirectoryMapPair;
 		typedef std::unordered_multimap<string, QueueItemInfo*, noCaseStringHash, noCaseStringEq> DirectoryMap;

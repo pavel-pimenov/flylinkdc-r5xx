@@ -436,9 +436,13 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	// [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=574
 	if (CompatibilityManager::isIncompatibleSoftwareFound())
 	{
-		if (MessageBox(Text::toT(CompatibilityManager::getIncompatibleSoftwareMessage()).c_str(), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON1 | MB_TOPMOST) == IDYES)
+		if (CFlylinkDBManager::getInstance()->get_registry_variable_string(e_IncopatibleSoftwareList) != CompatibilityManager::getIncompatibleSoftwareList())
 		{
-			WinUtil::openLink(WinUtil::GetWikiLink() + _T("incompatiblesoftware"));
+			CFlylinkDBManager::getInstance()->set_registry_variable_string(e_IncopatibleSoftwareList, CompatibilityManager::getIncompatibleSoftwareList());
+			if (MessageBox(Text::toT(CompatibilityManager::getIncompatibleSoftwareMessage()).c_str(), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON1 | MB_TOPMOST) == IDYES)
+			{
+				WinUtil::openLink(WinUtil::GetWikiLink() + _T("incompatiblesoftware"));
+			}
 		}
 	}
 #ifdef FLYLINKDC_USE_CHECK_OLD_OS
@@ -2529,7 +2533,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 		if (!m_closing)   // [+] SSA
 		{
 #ifdef _DEBUG
-			dcdebug("MainFrame::OnClose first - User::g_user_counts = %d\n", int(User::g_user_counts)); // [!] IRainman fix: Issue 1037 [BUG] иногда теряем объект User? https://code.google.com/p/flylinkdc/issues/detail?id=1037
+			dcdebug("MainFrame::OnClose first - User::g_user_counts = %d\n", int(User::g_user_counts)); // [!] IRainman fix: Issue 1037 иногда теряем объект User? https://code.google.com/p/flylinkdc/issues/detail?id=1037
 #endif
 			if (SETTING(PROTECT_CLOSE) && !m_oldshutdown && Text::toT(SETTING(PASSWORD)) != _T("LWPNACQDBZRYXW3VHJVCJ64QBZNGHOHHHZWCLNQ") && !Text::toT(SETTING(PASSWORD)).empty())
 			{
@@ -2664,7 +2668,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 		else
 		{
 #ifdef _DEBUG
-			dcdebug("MainFrame::OnClose second - User::g_user_counts = %d\n", int(User::g_user_counts)); // [!] IRainman fix: Issue 1037 [BUG] иногда теряем объект User? https://code.google.com/p/flylinkdc/issues/detail?id=1037
+			dcdebug("MainFrame::OnClose second - User::g_user_counts = %d\n", int(User::g_user_counts)); // [!] IRainman fix: Issue 1037 иногда теряем объект User? https://code.google.com/p/flylinkdc/issues/detail?id=1037
 #endif
 			// This should end immediately, as it only should be the stopper that sends another WM_CLOSE
 			WaitForSingleObject(m_stopperThread, 60 * 1000);
@@ -2672,7 +2676,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			m_stopperThread = nullptr;
 			bHandled = FALSE;
 #ifdef _DEBUG
-			dcdebug("MainFrame::OnClose third - User::g_user_counts = %d\n", int(User::g_user_counts)); // [!] IRainman fix: Issue 1037 [BUG] иногда теряем объект User? https://code.google.com/p/flylinkdc/issues/detail?id=1037
+			dcdebug("MainFrame::OnClose third - User::g_user_counts = %d\n", int(User::g_user_counts)); // [!] IRainman fix: Issue 1037 иногда теряем объект User? https://code.google.com/p/flylinkdc/issues/detail?id=1037
 #endif
 		}
 	}
@@ -3337,14 +3341,14 @@ void MainFrame::on(QueueManagerListener::PartialList, const HintedUser& aUser, c
 	PostMessage(WM_SPEAKER, BROWSE_LISTING, (LPARAM)new DirectoryBrowseInfo(aUser, text));
 }
 
-void MainFrame::on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string& dir, const Download* download) noexcept
+void MainFrame::on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string& dir, const Download* p_download) noexcept
 {
 	if (qi->isSet(QueueItem::FLAG_CLIENT_VIEW))
 	{
 		if (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_DCLST_LIST))
 		{
 			// This is a file listing, show it...
-			auto dirInfo = new QueueManager::DirectoryListInfo(download->getHintedUser(), qi->getListName(), dir, download->getRunningAverage(), qi->isSet(QueueItem::FLAG_DCLST_LIST));
+			auto dirInfo = new QueueManager::DirectoryListInfo(p_download->getHintedUser(), qi->getListName(), dir, p_download->getRunningAverage(), qi->isSet(QueueItem::FLAG_DCLST_LIST));
 			
 			PostMessage(WM_SPEAKER, DOWNLOAD_LISTING, (LPARAM)dirInfo);
 		}
@@ -3865,7 +3869,7 @@ void MainFrame::AddFolderShareFromShell(const tstring& infolder)
 			{
 				CWaitCursor l_cursor_wait;
 				tstring lastName = Util::getLastDir(folder);
-				ShareManager::getInstance()->addDirectory(l_folder, Text::fromT(lastName));
+				ShareManager::getInstance()->addDirectory(l_folder, Text::fromT(lastName), true);
 				tstring mmessage = folder;
 				mmessage += L" (";
 				mmessage += lastName;

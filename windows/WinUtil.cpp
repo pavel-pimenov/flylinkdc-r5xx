@@ -101,8 +101,8 @@ HIconWrapper WinUtil::g_banIconOnline(IDR_BANNED_ONLINE); // !SMT!-UI
 HIconWrapper WinUtil::g_banIconOffline(IDR_BANNED_OFF); // !SMT!-UI
 HIconWrapper WinUtil::g_hMedicalIcon(IDR_ICON_MEDICAL_BAG);
 HIconWrapper WinUtil::g_hThermometerIcon(IDR_ICON_THERMOMETR_BAG);
-HIconWrapper WinUtil::g_hCrutchIcon(IDR_ICON_CRUTCH);
-HIconWrapper WinUtil::g_hHelpIcon(IDR_ICON_HELP);
+//HIconWrapper WinUtil::g_hCrutchIcon(IDR_ICON_CRUTCH);
+HIconWrapper WinUtil::g_hFirewallIcon(IDR_ICON_FIREWALL);
 
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOnIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOffIcon;

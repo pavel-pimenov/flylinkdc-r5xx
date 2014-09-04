@@ -571,13 +571,13 @@ static const char badChars[] =
 #endif
 void Util::fixFileNameMaxPathLimit(string& p_File)
 {
-	const int l_limit = MAX_PATH - 46;
+	const int l_limit = MAX_PATH - 46 - 10; // https://code.google.com/p/flylinkdc/issues/detail?id=1490
 	if (p_File.length() >= l_limit) // 46 it one character first dot + 39 characters TTH + 6 characters .dctmp
 	{
 		const string l_orig_file = p_File;
 		string l_ext = Util::getFileExt(p_File);
 		p_File       = p_File.erase(l_limit);
-		p_File      += l_ext;
+		p_File  += l_ext;
 		dcassert(p_File == Util::validateFileName(p_File));
 		LogManager::getInstance()->message("Fix MAX_PATH limit [" + l_orig_file + "] convert -> [" + p_File + "] http://code.google.com/p/flylinkdc/issues/detail?id=1447");
 	}
@@ -851,15 +851,15 @@ void Util::decodeUrl(const string& url, string& protocol, string& host, uint16_t
 	fragment = url.substr(fragmentStart, fragmentEnd - fragmentStart);  //http://bazaar.launchpad.net/~dcplusplus-team/dcplusplus/trunk/revision/2606
 	if (!Text::isAscii(host))
 	{
-		static const BOOL success = IDNA_init(0);// [!] IRainman opt: no needs to reinit (+static const).
-		if (success)
+		static const BOOL l_is_success = IDNA_init(0);// [!] IRainman opt: no needs to reinit (+static const).
+		if (l_is_success)
 		{
+			const string l_host_acp = Text::utf8ToAcp(host);
 			// http://www.rfc-editor.org/rfc/rfc3490.txt
-			// [!] IRainman fix: no needs! string hostUTF8 = Text::utf8ToAcp(host);
 			LocalArray<char, MAX_HOST_LEN> buff;
 			size_t size = MAX_HOST_LEN;
 			memzero(buff.data(), buff.size());
-			memcpy(buff.data(), host.c_str(), min(buff.size(), host.size()));// [!] IRainman opt. add size
+			memcpy(buff.data(), l_host_acp.c_str(), min(buff.size(), l_host_acp.size()));
 			if (IDNA_convert_to_ACE(buff.data(), &size))
 			{
 				host = buff.data();

@@ -15,6 +15,7 @@
 		<Hub Name="• PRIME-HUB • - • Welcome •" Connect="1" Description="Игра УгадайКа. Приятное общение! Работает круглосуточно. Добро Пожаловать!.px." Server="dchub://prime-hub.ru:411" Encoding="Russian_Russia.1251" UserListState="1"/>
 		<Hub Name="GoDC Network" Connect="1" Description="Хаб проекта GoDC-Network" Server="dchub://godc.ru:411" Encoding="Russian_Russia.1251" UserListState="1"/>
 		<Hub Name="kurskhub.ru" Connect="1" Description="kurskhub.ru" Nick="" Password="" Server="dchub://kurskhub.ru" Encoding="Russian_Russia.1251" UserListState="1"/>
+		<Hub Name="dc.kcahdep.ru" Connect="1" Description="Северная Пальмира" Nick="" Password="" Server="dchub://dc.kcahdep.ru" Encoding="Russian_Russia.1251" UserListState="1"/>
 		<Hub Name="dc.fly-server.ru:411" Connect="1" Description="dc.fly-server.ru" Nick="" Password="" Server="dchub://dc.fly-server.ru" Encoding="Russian_Russia.1251" UserListState="1"/>
 	</Hubs>
 </Favorites>

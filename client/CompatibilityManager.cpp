@@ -33,6 +33,7 @@
 #include "CompatibilityManager.h"
 #include "CFlylinkDBManager.h"
 #include "ShareManager.h"
+#include "../FlyFeatures/flyServer.h"
 
 #pragma comment(lib, "Imagehlp.lib")
 
@@ -67,7 +68,6 @@ void CompatibilityManager::init()
 	detectOsSupports();
 	getSystemInfoFromOS();
 	generateSystemInfoForApp();
-	detectUncompatibleSoftware();
 	if (CompatibilityManager::isWin7Plus())
 	{
 		g_find_file_level = FindExInfoBasic;
@@ -185,15 +185,24 @@ static const DllInfo g_IncompatibleDll[] =
 	_T("radhslib.dll"), "Naomi web filter",
 	_T("AmlMaple.dll"), "Aml Maple",
 	_T("sdata.dll"), "Trojan-PSW.Win32.LdPinch.ajgw",
-	_T("flash8.dll"), "not-a-virus:AdWare.Win32.AdMedia.a",
 	_T("browsemngr.dll"), "Browser Manager",
-	_T("owexplorer_10615.dll"), "Overwolf Overlay",
 	_T("owexplorer_10616.dll"), "Overwolf Overlay",
+	_T("owexplorer_10615.dll"), "Overwolf Overlay",
+	_T("owexplorer_20125.dll"), "Overwolf Overlay",
+	_T("owexplorer_2006.dll"), "Overwolf Overlay",
+	_T("owexplorer_20018.dll"), "Overwolf Overlay",
+	_T("owexplorer_2000.dll"), "Overwolf Overlay",
+	_T("owexplorer_20018.dll"), "Overwolf Overlay",
+	_T("owexplorer_20015.dll"), "Overwolf Overlay",
 	_T("owexplorer_1069.dll"), "Overwolf Overlay",
+	_T("owexplorer_10614.dll"), "Overwolf Overlay",
 	_T("am32_33707.dll"), "Ad Muncher",
 	_T("am32_32562.dll"), "Ad Muncher",
+	_T("am64_33707.dll"), "Ad Muncher x64",
+	_T("am64_32130.dll"), "Ad Muncher x64",
 	_T("browserprotect.dll"), "Browserprotect",
 	_T("searchresultstb.dll"), "DTX Toolbar",
+	_T("networx.dll"), "NetWorx",
 	nullptr, nullptr, // termination
 };
 
@@ -203,11 +212,13 @@ void CompatibilityManager::detectUncompatibleSoftware()
 	// TODO http://code.google.com/p/flylinkdc/issues/detail?id=606 http://stackoverflow.com/questions/420185/how-to-get-the-version-info-of-a-dll-in-c
 	for (; currentDllInfo->dllName; ++currentDllInfo)
 	{
-		HMODULE hIncompatibleDll = GetModuleHandle(currentDllInfo->dllName);
+		const HMODULE hIncompatibleDll = GetModuleHandle(currentDllInfo->dllName);
 		if (hIncompatibleDll)
 		{
 			g_incopatibleSoftwareList += "\r\n";
-			g_incopatibleSoftwareList += Text::fromT(currentDllInfo->dllName);
+			const auto l_dll = Text::fromT(currentDllInfo->dllName);
+			g_incopatibleSoftwareList += l_dll;
+			CFlyServerAdapter::CFlyServerJSON::pushError("[BUG][4] CompatibilityManager::detectUncompatibleSoftware = " + l_dll);
 			if (currentDllInfo->info)
 			{
 				g_incopatibleSoftwareList += " - ";
@@ -221,11 +232,12 @@ void CompatibilityManager::detectUncompatibleSoftware()
 
 string CompatibilityManager::getIncompatibleSoftwareMessage()
 {
+	dcassert(isIncompatibleSoftwareFound());
 	if (isIncompatibleSoftwareFound())
 	{
 		string temp;
 		temp.resize(32768);
-		temp.resize(sprintf_s(&temp[0], temp.size(), CSTRING(INCOMPATIBLE_SOFTWARE_FOUND), g_incopatibleSoftwareList.c_str())); //-V111
+		temp.resize(sprintf_s(&temp[0], temp.size() - 1, CSTRING(INCOMPATIBLE_SOFTWARE_FOUND), g_incopatibleSoftwareList.c_str())); //-V111
 		temp += ' ' + Util::getWikiLink() + "incompatiblesoftware";
 		return temp;
 	}

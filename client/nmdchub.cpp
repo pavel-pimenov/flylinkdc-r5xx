@@ -646,9 +646,6 @@ void NmdcHub::onLine(const string& aLine)
 			dcassert(seeker.size() > 4);
 			if (seeker.compare(4, myNick.size(), myNick) == 0) // [!] IRainman fix: strongly check
 			{
-#ifdef FLYLINKDC_BETA
-				LogManager::getInstance()->message("Error [part 2] $Search command = " + param + " Hub: " + getHubUrl());
-#endif
 				return;
 			}
 		}
@@ -656,10 +653,6 @@ void NmdcHub::onLine(const string& aLine)
 		{
 			if (seeker == ((getFavIp().empty() ? getLocalIp() : getFavIp()) + ":" + Util::toString(SearchManager::getInstance()->getSearchPort())))
 			{
-#ifdef FLYLINKDC_BETA
-				// Тут блокируем поиск на самого себя.
-				// LogManager::getInstance()->message("Error [part 3] $Search command = " + param + " Hub: " + getHubUrl());
-#endif
 				return;
 			}
 		}
@@ -745,7 +738,7 @@ void NmdcHub::onLine(const string& aLine)
 		else
 		{
 #ifdef FLYLINKDC_BETA
-			LogManager::getInstance()->message("Error [part 5] $Search command = " + param + " Hub: " + getHubUrl());
+			LogManager::getInstance()->message("Error [part 6] $Search command = " + param + " Hub: " + getHubUrl());
 #endif
 		}
 	}
@@ -1439,7 +1432,7 @@ void NmdcHub::connectToMe(const OnlineUser& aUser
 	                                             , reason
 #endif
 	                                            );
-	ConnectionManager::iConnToMeCount++;
+	ConnectionManager::g_ConnToMeCount++;
 	
 	const bool secure = CryptoManager::getInstance()->TLSOk() && aUser.getUser()->isSet(User::TLS)
 #ifdef IRAINMAN_ENABLE_STEALTH_MODE

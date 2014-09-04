@@ -232,7 +232,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 			return secureServer ? static_cast<uint16_t>(secureServer->getServerPort()) : 0;
 		}
 		
-		static uint16_t iConnToMeCount;
+		static uint16_t g_ConnToMeCount;
 		// [-] SSA private:
 		
 		class Server : public BASE_THREAD

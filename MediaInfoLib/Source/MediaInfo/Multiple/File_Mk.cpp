@@ -37,6 +37,12 @@
 #if defined(MEDIAINFO_HEVC_YES)
     #include "MediaInfo/Video/File_Hevc.h"
 #endif
+#if defined(MEDIAINFO_FFV1_YES)
+    #include "MediaInfo/Video/File_Ffv1.h"
+#endif
+#if defined(MEDIAINFO_HUFFYUV_YES)
+    #include "MediaInfo/Video/File_HuffYuv.h"
+#endif
 #if defined(MEDIAINFO_VC1_YES)
     #include "MediaInfo/Video/File_Vc1.h"
 #endif
@@ -45,6 +51,9 @@
 #endif
 #if defined(MEDIAINFO_MPEGV_YES)
     #include "MediaInfo/Video/File_Mpegv.h"
+#endif
+#if defined(MEDIAINFO_PRORES_YES)
+    #include "MediaInfo/Video/File_ProRes.h"
 #endif
 #if defined(MEDIAINFO_VP8_YES)
     #include "MediaInfo/Video/File_Vp8.h"
@@ -2655,7 +2664,17 @@ void File_Mk::Segment_Tracks_TrackEntry_CodecPrivate_vids()
         Element_Begin1("Private data");
 		stream& l_StreamTrackNumber = Stream[TrackNumber]; // [+]FlylinkDC++ Team
         if (l_StreamTrackNumber.Parser)
+        {
+            #if defined(MEDIAINFO_FFV1_YES)
+                if (Compression==0x46465631) //FFV1
+                    ((File_Ffv1*)l_StreamTrackNumber.Parser)->IsOutOfBandData=true; //TODO: implement ISOutOfBandData in a generic maner
+            #endif
+            #if defined(MEDIAINFO_FFV1_YES)
+                if (Compression==0x46465648) //FFVH
+                    ((File_HuffYuv*)l_StreamTrackNumber.Parser)->IsOutOfBandData=true; //TODO: implement ISOutOfBandData in a generic maner
+            #endif
             Open_Buffer_Continue(l_StreamTrackNumber.Parser);
+        }
         else
             Skip_XX(Data_Remain(),                                  "Unknown");
         Element_End0();
@@ -3340,9 +3359,6 @@ void File_Mk::CodecID_Manage()
     }
 
     //Creating the parser
-#ifdef _DEBUG
-	const int64u l_TrackNumber =  TrackNumber; // [+]FlylinkDC++ Team
-#endif
 	stream& l_StreamTrackNumber = Stream[TrackNumber]; // [+]FlylinkDC++ Team
 
     #if defined(MEDIAINFO_MPEG4V_YES) || defined(MEDIAINFO_AVC_YES) || defined(MEDIAINFO_HEVC_YES) || defined(MEDIAINFO_VC1_YES) || defined(MEDIAINFO_DIRAC_YES) || defined(MEDIAINFO_MPEGV_YES) || defined(MEDIAINFO_VP8_YES) || defined(MEDIAINFO_OGG_YES)
@@ -3382,13 +3398,25 @@ void File_Mk::CodecID_Manage()
             ((File_Hevc*)l_StreamTrackNumber.Parser)->MustParse_VPS_SPS_PPS_FromMatroska=true;
             ((File_Hevc*)l_StreamTrackNumber.Parser)->SizedBlocks=true;
             #if MEDIAINFO_DEMUX
-                if (Config->Demux_Avc_Transcode_Iso14496_15_to_Iso14496_10_Get())
+                if (Config->Demux_Hevc_Transcode_Iso14496_15_to_AnnexB_Get())
                 {
                     Stream[TrackNumber].Parser->Demux_Level=2; //Container
                     Stream[TrackNumber].Parser->Demux_UnpacketizeContainer=true;
                 }
             #endif //MEDIAINFO_DEMUX
         }
+    }
+    #endif
+    #if defined(MEDIAINFO_FFV1_YES)
+    else if (Format==__T("FFV1"))
+    {
+        Stream[TrackNumber].Parser=new File_Ffv1;
+    }
+    #endif
+    #if defined(MEDIAINFO_HUFFYUV_YES)
+    else if (Format==__T("HuffYUV"))
+    {
+        Stream[TrackNumber].Parser=new File_HuffYuv;
     }
     #endif
     #if defined(MEDIAINFO_VC1_YES)
@@ -3412,6 +3440,12 @@ void File_Mk::CodecID_Manage()
         l_StreamTrackNumber.Parser=new File_Mpegv;
         ((File_Mpegv*)l_StreamTrackNumber.Parser)->FrameIsAlwaysComplete=true;
         ((File_Mpegv*)l_StreamTrackNumber.Parser)->Frame_Count_Valid=1;
+    }
+    #endif
+    #if defined(MEDIAINFO_PRORES_YES)
+    else if (Format==__T("ProRes"))
+    {
+        Stream[TrackNumber].Parser=new File_ProRes;
     }
     #endif
     #if defined(MEDIAINFO_VP8_YES)

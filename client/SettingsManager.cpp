@@ -532,8 +532,8 @@ void SettingsManager::setDefaults()
 // Параметры подверженные падению - провести дополнительную валиадцию
 	setDefault(LOG_FORMAT_POST_DOWNLOAD, "%Y-%m-%d %H:%M:%S: %[target] " + STRING(DOWNLOADED_FROM) + " %[userNI] (%[userCID]), %[fileSI] (%[fileSIchunk]), %[speed], %[time]");
 	setDefault(LOG_FORMAT_POST_UPLOAD, "%Y-%m-%d %H:%M:%S %[source] " + STRING(UPLOADED_TO) + " %[userNI] (%[userCID]), %[fileSI] (%[fileSIchunk]), %[speed], %[time]");
-	setDefault(LOG_FORMAT_MAIN_CHAT, "[%Y-%m-%d %H:%M:%S [extra]] %[message]");
-	setDefault(LOG_FORMAT_PRIVATE_CHAT, "[%Y-%m-%d %H:%M:%S [extra]] %[message]");
+	setDefault(LOG_FORMAT_MAIN_CHAT, "[%Y-%m-%d %H:%M:%S %[extra]] %[message]");
+	setDefault(LOG_FORMAT_PRIVATE_CHAT, "[%Y-%m-%d %H:%M:%S %[extra]] %[message]");
 	setDefault(LOG_FORMAT_STATUS, "[%Y-%m-%d %H:%M:%S] %[message]");
 	setDefault(LOG_FORMAT_SYSTEM, "[%Y-%m-%d %H:%M:%S] %[message]");
 	setDefault(LOG_FORMAT_CUSTOM_LOCATION, "[%[line]] - %[error]"); // [+] IRainman
@@ -1590,7 +1590,17 @@ bool SettingsManager::set(StrSetting key, const string& value)
 		case TIME_STAMPS_FORMAT:
 		{
 			string l_new_value = value;
-			l_auto = Text::safe_strftime_translate(l_new_value);
+			if (key == LOG_FORMAT_MAIN_CHAT || key == LOG_FORMAT_PRIVATE_CHAT)
+			{
+				const char* l_extra_temlate = " [extra]";
+				if (value.find(l_extra_temlate) != string::npos)
+				{
+					l_auto = false;
+					boost::replace_all(l_new_value, l_extra_temlate, " %[extra]");
+					boost::replace_all(l_new_value, "%H:%M%:%S", "%H:%M:%S");
+				}
+			}
+			l_auto |= Text::safe_strftime_translate(l_new_value);
 			strSettings[key - STR_FIRST] = l_new_value;
 		}
 		break;

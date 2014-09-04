@@ -22,6 +22,7 @@
 #include "IpGuard.h"
 #include "LogManager.h"
 #include "ResourceManager.h"
+#include "CompatibilityManager.h"
 
 /// @todo remove when MinGW has this
 #ifdef __MINGW32__
@@ -150,7 +151,8 @@ uint16_t Socket::bind(uint16_t aPort, const string& aIp /* = 0.0.0.0 */)
 		dcdebug("Bind failed, retrying with INADDR_ANY: %s\n", l_error.c_str()); //-V111
 		sock_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 		//TODO - обработать ошибку с 10048 - занят порт
-		LogManager::getInstance()->message("uint16_t Socket::bind Error! IP = " + aIp + " aPort=" + Util::toString(aPort) + " Error = " + l_error);
+		// - отключил спам
+		// LogManager::getInstance()->message("uint16_t Socket::bind Error! IP = " + aIp + " aPort=" + Util::toString(aPort) + " Error = " + l_error);
 		check(::bind(m_sock, (sockaddr *)&sock_addr, sizeof(sock_addr)));
 	}
 	socklen_t size = sizeof(sock_addr);

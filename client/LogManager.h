@@ -19,10 +19,9 @@
 #ifndef DCPLUSPLUS_DCPP_LOG_MANAGER_H
 #define DCPLUSPLUS_DCPP_LOG_MANAGER_H
 
-#include "File.h"
-#include "CFlylinkDBManager.h"
-#include "CompatibilityManager.h"
-#include "DebugManager.h"
+#include "Singleton.h"
+#include "Speaker.h"
+#include "Util.h"
 
 class LogManagerListener
 {
@@ -59,15 +58,8 @@ class LogManager : public Singleton<LogManager>, public Speaker<LogManagerListen
 		void log(LogArea area, const StringMap& params, bool p_only_file = false) noexcept;
 		void message(const string& msg, bool p_only_file = false);
 		
-		const string& getSetting(int area, int sel) const
-		{
-			return SettingsManager::get(static_cast<SettingsManager::StrSetting>(logOptions[area][sel]), true);
-		}
-		
-		void saveSetting(int area, int sel, const string& setting)
-		{
-			SettingsManager::set(static_cast<SettingsManager::StrSetting>(logOptions[area][sel]), setting);
-		}
+		const string& getSetting(int area, int sel) const;
+		void saveSetting(int area, int sel, const string& setting);
 		
 	private:
 		void log(const string& p_area, const string& p_msg) noexcept;
@@ -117,59 +109,26 @@ class CFlyLog
 		const uint64_t m_start;
 		uint64_t m_tc;
 		bool m_skip_start;
+		bool m_only_file;
 		void log(const string& p_msg)
 		{
-			LogManager::getInstance()->message(p_msg);
+			LogManager::getInstance()->message(p_msg, m_only_file);
 		}
 	public:
 		CFlyLog(const string& p_message
 		        , bool p_skip_start = true
-		       ) :
-			m_start(GET_TICK()),
-			m_message(p_message),
-			m_tc(m_start),
-			m_skip_start(p_skip_start) // TODO - может оно не нужно?
+		                              , bool p_only_file  = false
+		       );
+		~CFlyLog();
+		uint64_t calcSumTime() const;
+		void step(const string& p_message_step, const bool p_reset_count = true);
+		void loadStep(const string& p_message_step, const bool p_reset_count = true);
+};
+class CFlyLogFile : public CFlyLog
+{
+	public:
+		CFlyLogFile(const string& p_message) : CFlyLog(p_message, true, true)
 		{
-			if (!m_skip_start)
-			{
-				log("[Start] " + m_message);
-			}
-		}
-		~CFlyLog()
-		{
-			//if(!m_skip_start_stop)
-			{
-				const uint64_t l_current = GET_TICK();
-				log("[Stop ] " + m_message + " [" + Util::toString(l_current - m_tc) + " ms, Total: " + Util::toString(l_current - m_start) + " ms]");
-			}
-		}
-		uint64_t calcSumTime() const
-		{
-			const uint64_t l_current = GET_TICK();
-			return l_current - m_start;
-		}
-		void step(const string& p_message_step, const bool p_reset_count = true)
-		{
-			const uint64_t l_current = GET_TICK();
-			log("[Step ] " + m_message + ' ' + p_message_step + " [" + Util::toString(l_current - m_tc) + " ms]");
-			if (p_reset_count)
-				m_tc = l_current;
-		}
-		void loadStep(const string& p_message_step, const bool p_reset_count = true)
-		{
-			const uint64_t l_current = GET_TICK();
-			const uint64_t l_step = l_current - m_tc;
-			const uint64_t l_total = l_current - m_start;
-			
-			m_tc = l_current;
-			if (p_reset_count)
-			{
-				log("[Step ] " + m_message + " Begin load " + p_message_step + " [" + Util::toString(l_step) + " ms]");
-			}
-			else
-			{
-				log("[Step ] " + m_message + " End load " + p_message_step + " [" + Util::toString(l_step) + " ms and " + Util::toString(l_total) + " ms after start]");
-			}
 		}
 };
 

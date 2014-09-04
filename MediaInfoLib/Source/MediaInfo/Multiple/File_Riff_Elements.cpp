@@ -37,11 +37,20 @@
     #include "MediaInfo/Multiple/File_Ogg.h"
     #include "MediaInfo/Multiple/File_Ogg_SubElement.h"
 #endif
+#if defined(MEDIAINFO_FFV1_YES)
+    #include "MediaInfo/Video/File_Ffv1.h"
+#endif
+#if defined(MEDIAINFO_HUFFYUV_YES)
+    #include "MediaInfo/Video/File_HuffYuv.h"
+#endif
 #if defined(MEDIAINFO_MPEG4V_YES)
     #include "MediaInfo/Video/File_Mpeg4v.h"
 #endif
 #if defined(MEDIAINFO_MPEGV_YES)
     #include "MediaInfo/Video/File_Mpegv.h"
+#endif
+#if defined(MEDIAINFO_PRORES_YES)
+    #include "MediaInfo/Video/File_ProRes.h"
 #endif
 #if defined(MEDIAINFO_AVC_YES)
     #include "MediaInfo/Video/File_Avc.h"
@@ -1787,6 +1796,20 @@ void File_Riff::AVI__hdlr_strl_strf_vids()
 
     //Creating the parser
          if (0);
+    #if defined(MEDIAINFO_FFV1_YES)
+    else if (MediaInfoLib::Config.CodecID_Get(Stream_Video, InfoCodecID_Format_Riff, Ztring().From_CC4(Compression), InfoCodecID_Format)==__T("FFV1"))
+    {
+        File_Ffv1* Parser=new File_Ffv1;
+        Stream[Stream_ID].Parsers.push_back(Parser);
+    }
+    #endif
+    #if defined(MEDIAINFO_HUFFYUV_YES)
+    else if (MediaInfoLib::Config.CodecID_Get(Stream_Video, InfoCodecID_Format_Riff, Ztring().From_CC4(Compression), InfoCodecID_Format)==__T("HuffYUV"))
+    {
+        File_HuffYuv* Parser=new File_HuffYuv;
+        Stream[Stream_ID].Parsers.push_back(Parser);
+    }
+    #endif
     #if defined(MEDIAINFO_MPEGV_YES)
     else if (MediaInfoLib::Config.CodecID_Get(Stream_Video, InfoCodecID_Format_Riff, Ztring().From_CC4(Compression), InfoCodecID_Format)==__T("MPEG Video"))
     {
@@ -1807,6 +1830,13 @@ void File_Riff::AVI__hdlr_strl_strf_vids()
         if (MediaInfoLib::Config.ParseSpeed_Get()>=0.5)
             Parser->ShouldContinueParsing=true;
         l_StreamStream_ID.Parsers.push_back(Parser);
+    }
+    #endif
+    #if defined(MEDIAINFO_PRORES_YES)
+    else if (MediaInfoLib::Config.CodecID_Get(Stream_Video, InfoCodecID_Format_Riff, Ztring().From_CC4(Compression), InfoCodecID_Format)==__T("ProRes"))
+    {
+        File_ProRes* Parser=new File_ProRes;
+        Stream[Stream_ID].Parsers.push_back(Parser);
     }
     #endif
     #if defined(MEDIAINFO_AVC_YES)
@@ -1878,6 +1908,10 @@ void File_Riff::AVI__hdlr_strl_strf_vids()
          if (0);
     else if (MediaInfoLib::Config.CodecID_Get(Stream_Video, InfoCodecID_Format_Riff, Ztring().From_CC4(Compression))==__T("AVC"))
         AVI__hdlr_strl_strf_vids_Avc();
+    else if (MediaInfoLib::Config.CodecID_Get(Stream_Video, InfoCodecID_Format_Riff, Ztring().From_CC4(Compression))==__T("FFV1"))
+        AVI__hdlr_strl_strf_vids_Ffv1();
+    else if (MediaInfoLib::Config.CodecID_Get(Stream_Video, InfoCodecID_Format_Riff, Ztring().From_CC4(Compression))==__T("HuffYUV"))
+        AVI__hdlr_strl_strf_vids_HuffYUV(Resolution, Height);
     else Skip_XX(Element_Size-Element_Offset,                   "Unknown");
 	assert(l_StartStream_ID == Stream_ID);
 }
@@ -1915,6 +1949,38 @@ void File_Riff::AVI__hdlr_strl_strf_vids_Avc()
         }
     #else //MEDIAINFO_AVC_YES
         Skip_XX(Element_Size-Element_Offset,                    "(AVC headers)");
+    #endif
+    Element_End0();
+}
+
+//---------------------------------------------------------------------------
+void File_Riff::AVI__hdlr_strl_strf_vids_Ffv1()
+{
+    //Parsing
+    Element_Begin1("FFV1 options");
+    #if defined(MEDIAINFO_FFV1_YES)
+        File_Ffv1* Parser=(File_Ffv1*)Stream[Stream_ID].Parsers[0];
+        Parser->IsOutOfBandData=true;
+        Open_Buffer_Continue(Parser);
+    #else //MEDIAINFO_FFV1_YES
+        Skip_XX(Element_Size-Element_Offset,                    "(FFV1 headers)");
+    #endif
+    Element_End0();
+}
+
+//---------------------------------------------------------------------------
+void File_Riff::AVI__hdlr_strl_strf_vids_HuffYUV(int16u BitCount, int32u Height)
+{
+    //Parsing
+    Element_Begin1("HuffYUV options");
+    #if defined(MEDIAINFO_HUFFYUV_YES)
+        File_HuffYuv* Parser=(File_HuffYuv*)Stream[Stream_ID].Parsers[0];
+        Parser->IsOutOfBandData=true;
+        Parser->BitCount=BitCount;
+        Parser->Height=Height;
+        Open_Buffer_Continue(Parser);
+    #else //MEDIAINFO_HUFFYUV_YES
+        Skip_XX(Element_Size-Element_Offset,                    "(HuffYUV headers)");
     #endif
     Element_End0();
 }

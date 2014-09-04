@@ -2,6 +2,7 @@
 #include "FsUtils.h"
 
 #include "LogManager.h"
+#include "Util.h"
 
 #include <Dbt.h>
 

@@ -553,6 +553,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	g_fly_server_config.loadConfig();
 	TimerManager::newInstance();
 	ClientManager::newInstance();
+	CompatibilityManager::detectUncompatibleSoftware();
 	
 	ThrottleManager::getInstance()->startup(); // [+] IRainman fix.
 	

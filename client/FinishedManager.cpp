@@ -92,7 +92,7 @@ void FinishedManager::rotation_items(FinishedItem* p_item, eType p_type)
 	l_item_array.push_back(p_item);
 }
 
-void FinishedManager::on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string&, const Download* d) noexcept
+void FinishedManager::on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string&, const Download* p_download) noexcept
 {
 	const bool isFile = !qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP);
 	
@@ -104,10 +104,10 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItemPtr& qi,
 	if (isFile || (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_DCLST_LIST) && BOOLSETTING(LOG_FILELIST_TRANSFERS)))
 	{
 		CFlylinkDBManager::getInstance()->clear_tiger_tree_cache(qi->getTTH());
-		FinishedItem* item = new FinishedItem(qi->getTarget(), d->getHintedUser(), qi->getSize(), d->getRunningAverage(), GET_TIME(), qi->getTTH().toBase32(), d->getUser()->getIPAsString());
+		FinishedItem* item = new FinishedItem(qi->getTarget(), p_download->getHintedUser(), qi->getSize(), p_download->getRunningAverage(), GET_TIME(), qi->getTTH().toBase32(), p_download->getUser()->getIPAsString());
 		rotation_items(item, e_Download);
 		fire(FinishedManagerListener::AddedDl(), item);
-		log(d->getUser()->getCID(), qi->getTarget(), STRING(FINISHED_DOWNLOAD));
+		log(p_download->getUser()->getCID(), qi->getTarget(), STRING(FINISHED_DOWNLOAD));
 	}
 }
 

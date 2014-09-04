@@ -1317,7 +1317,10 @@ class FlagImage : public BaseImageList
 		using BaseImageList::Draw;
 		void DrawCountry(HDC p_DC, const Util::CustomNetworkIndex& p_country, const POINT& p_pt)
 		{
-			Draw(p_DC, p_country.getCountryIndex(), p_pt);
+			if (p_country.getCountryIndex() > 0)
+			{
+				Draw(p_DC, p_country.getCountryIndex(), p_pt);
+			}
 		}
 		void DrawLocation(HDC p_DC, const Util::CustomNetworkIndex& p_location, const POINT& p_pt)
 		{
@@ -1499,8 +1502,8 @@ class WinUtil
 		static HIconWrapper g_banIconOffline; // !SMT!-UI
 		static HIconWrapper g_hMedicalIcon;
 		static HIconWrapper g_hThermometerIcon;
-		static HIconWrapper g_hCrutchIcon;
-		static HIconWrapper g_hHelpIcon;
+		//static HIconWrapper g_hCrutchIcon;
+		static HIconWrapper g_hFirewallIcon;
 		
 		static std::unique_ptr<HIconWrapper> g_HubOnIcon;
 		static std::unique_ptr<HIconWrapper> g_HubOffIcon;

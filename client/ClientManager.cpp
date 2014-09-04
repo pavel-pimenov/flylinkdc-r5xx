@@ -77,20 +77,24 @@ Client* ClientManager::getClient(const string& p_HubURL)
 	
 	return c;
 }
-std::map<string, std::pair<size_t, int64_t> > ClientManager::getClientStat()
+std::map<string, CFlyClientStatistic > ClientManager::getClientStat()
 {
-	std::map<string, std::pair<size_t, int64_t>> l_stat;
+	std::map<string, CFlyClientStatistic> l_stat;
 	webrtc::ReadLockScoped l(*g_csClients);
 	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 	{
+		CFlyClientStatistic l_item;
 		if (i->second->isConnected())
 		{
-			l_stat[i->first] = std::make_pair(i->second->getUserCount(), i->second->getAvailableBytes());
+			l_item.m_count_user = i->second->getUserCount();
+			l_item.m_share_size = i->second->getAvailableBytes();
+			l_item.m_message_count = i->second->getMessagesCount();
+			if (l_item.m_message_count)
+			{
+				i->second->clearMessagesCount();
+			}
 		}
-		else
-		{
-			l_stat[i->first] = std::make_pair(0, 0);
-		}
+		l_stat[i->first] = l_item;
 	}
 	return l_stat;
 }

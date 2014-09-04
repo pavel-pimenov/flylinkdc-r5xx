@@ -62,7 +62,7 @@ inline bool HashManager::StreamStore::validateCheckSum(const TTHStreamHeader& p_
 }
 void HashManager::addTree(const TigerTree& p_tree)
 {
-	CFlylinkDBManager::getInstance()->addTree(p_tree);
+	CFlylinkDBManager::getInstance()->add_tree(p_tree);
 }
 
 bool HashManager::StreamStore::loadTree(const string& p_filePath, TigerTree& p_Tree, int64_t p_FileSize)
@@ -519,46 +519,6 @@ bool HashManager::checkTTH(const string& fname, const string& fpath, int64_t p_p
 #endif // IRAINMAN_NTFS_STREAM_TTH
 	return true;
 }
-
-const TTHValue HashManager::getTTH(const string& fname, const string& fpath, int64_t aSize) throw(HashException)
-{
-	// Lock l(cs); [-] IRainman fix.
-	TTHValue l_tth;
-	__int64 l_path_id = 0;
-	bool l_is_find_tth = CFlylinkDBManager::getInstance()->findTTH(fname, fpath, l_tth, l_path_id); // [!] IRainman fix: no needs to lock.
-	if (!l_is_find_tth)
-	{
-		const string name = fpath + fname;
-#ifdef IRAINMAN_NTFS_STREAM_TTH
-		TigerTree l_TT;
-		if (m_streamstore.loadTree(name, l_TT)) // [!] IRainman fix: no needs to lock.
-		{
-			addFileFromStream(l_path_id, name, l_TT, aSize); // [!] IRainman fix: no needs to lock.
-			l_is_find_tth = CFlylinkDBManager::getInstance()->findTTH(fname, fpath, l_tth, l_path_id); // Зачем тут зовется второй раз findTTH?
-			dcassert(l_is_find_tth);
-			if (!l_is_find_tth)
-			{
-				throw HashException("Error HashManager::getTTH - CFlylinkDBManager::getInstance()->findTTH! - mail ppa74@ya.ru");
-			}
-		}
-		else
-		{
-#endif // IRAINMAN_NTFS_STREAM_TTH
-		
-			hasher.hashFile(l_path_id, name, aSize); // [!] IRainman fix: no needs to lock.
-			throw HashException(Util::emptyString);
-			
-#ifdef IRAINMAN_NTFS_STREAM_TTH
-		}
-		if (!BOOLSETTING(SAVE_TTH_IN_NTFS_FILESTREAM))
-		{
-			HashManager::getInstance()->m_streamstore.deleteStream(name); // [!] IRainman fix: no needs to lock.
-		}
-#endif // IRAINMAN_NTFS_STREAM_TTH
-	}
-	return l_tth;
-}
-
 void HashManager::hashDone(__int64 p_path_id, const string& aFileName, int64_t aTimeStamp, const TigerTree& tth, int64_t speed,
                            bool p_is_ntfs, int64_t p_size)
 {

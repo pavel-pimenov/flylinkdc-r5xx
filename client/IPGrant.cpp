@@ -19,6 +19,7 @@
 #include "stdinc.h"
 
 #include "IpGrant.h"
+#include "File.h"
 #include "../windows/resource.h"
 
 #ifdef SSA_IPGRANT_FEATURE

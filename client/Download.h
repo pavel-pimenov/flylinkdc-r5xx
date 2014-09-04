@@ -45,7 +45,10 @@ class Download : public Transfer, public Flags
 		/** @internal */
 		const string& getDownloadTarget() const
 		{
-			return getTempTarget().empty() ? getPath() : getTempTarget();
+			if (getTempTarget().empty())
+				return getPath();
+			else
+				return getTempTarget();
 		}
 		
 		/** @internal */

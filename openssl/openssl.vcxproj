@@ -3447,16 +3447,6 @@
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='ReleaseHE|x64'">$(SolutionDir)openssl;$(SolutionDir)openssl\include;$(SolutionDir)openssl\crypto</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='ReleaseFullOpt|x64'">$(SolutionDir)openssl;$(SolutionDir)openssl\include;$(SolutionDir)openssl\crypto</AdditionalIncludeDirectories>
     </ClCompile>
-    <ClCompile Include="crypto\pkcs7\example.c">
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)openssl;$(SolutionDir)openssl\include;$(SolutionDir)openssl\crypto</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)openssl;$(SolutionDir)openssl\include;$(SolutionDir)openssl\crypto</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)openssl;$(SolutionDir)openssl\include;$(SolutionDir)openssl\crypto</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='ReleaseHE|Win32'">$(SolutionDir)openssl;$(SolutionDir)openssl\include;$(SolutionDir)openssl\crypto</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='ReleaseFullOpt|Win32'">$(SolutionDir)openssl;$(SolutionDir)openssl\include;$(SolutionDir)openssl\crypto</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)openssl;$(SolutionDir)openssl\include;$(SolutionDir)openssl\crypto</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='ReleaseHE|x64'">$(SolutionDir)openssl;$(SolutionDir)openssl\include;$(SolutionDir)openssl\crypto</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='ReleaseFullOpt|x64'">$(SolutionDir)openssl;$(SolutionDir)openssl\include;$(SolutionDir)openssl\crypto</AdditionalIncludeDirectories>
-    </ClCompile>
     <ClCompile Include="crypto\pkcs7\pk7_asn1.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)openssl;$(SolutionDir)openssl\include;$(SolutionDir)openssl\crypto</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)openssl;$(SolutionDir)openssl\include;$(SolutionDir)openssl\crypto</AdditionalIncludeDirectories>

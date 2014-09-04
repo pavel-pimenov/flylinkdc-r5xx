@@ -435,12 +435,12 @@ HTREEITEM QueueFrame::addDirectory(const string& dir, bool isFileList /* = false
 	{
 		// We assume we haven't added it yet, and that all filelists go to the same
 		// directory...
-		dcassert(fileLists == NULL);
+		dcassert(m_fileLists == nullptr);
 		tvi.hParent = NULL;
 		tvi.item.pszText = _T("File Lists");
 		tvi.item.lParam = (LPARAM) new string(dir);
-		fileLists = ctrlDirs.InsertItem(&tvi);
-		return fileLists;
+		m_fileLists = ctrlDirs.InsertItem(&tvi);
+		return m_fileLists;
 	}
 	
 	// More complicated, we have to find the last available tree item and then see...
@@ -458,9 +458,9 @@ HTREEITEM QueueFrame::addDirectory(const string& dir, bool isFileList /* = false
 		
 		next = ctrlDirs.GetRootItem();
 		
-		while (next != NULL)
+		while (next != nullptr)
 		{
-			if (next != fileLists)
+			if (next != m_fileLists)
 			{
 				string* stmp = reinterpret_cast<string*>(ctrlDirs.GetItemData(next));
 				if (strnicmp(*stmp, dir, 3) == 0)
@@ -549,9 +549,9 @@ HTREEITEM QueueFrame::addDirectory(const string& dir, bool isFileList /* = false
 	
 	while (i < dir.length())
 	{
-		while (next != NULL)
+		while (next != nullptr)
 		{
-			if (next != fileLists)
+			if (next != m_fileLists)
 			{
 				const string& n = getDir(next);
 				if (!n.empty() && strnicmp(n.c_str() + i, dir.c_str() + i, n.length() - i) == 0) // i = 56 https://www.box.net/shared/3571b0c47c1a8360aec0  n = {npos=4294967295 } https://www.box.net/shared/487b71099375c9313d2a
@@ -593,23 +593,23 @@ void QueueFrame::removeDirectory(const string& dir, bool isFileList /* = false *
 	string::size_type i = 0;
 	
 	HTREEITEM next = ctrlDirs.GetRootItem();
-	HTREEITEM parent = NULL;
+	HTREEITEM parent = nullptr;
 	
 	if (isFileList)
 	{
-		dcassert(fileLists != NULL);
-		delete reinterpret_cast<string*>(ctrlDirs.GetItemData(fileLists));
-		ctrlDirs.DeleteItem(fileLists);
-		fileLists = NULL;
+		dcassert(m_fileLists != nullptr);
+		delete reinterpret_cast<string*>(ctrlDirs.GetItemData(m_fileLists));
+		ctrlDirs.DeleteItem(m_fileLists);
+		m_fileLists = nullptr;
 		return;
 	}
 	else
 	{
 		while (i < dir.length())
 		{
-			while (next != NULL)
+			while (next != nullptr)
 			{
-				if (next != fileLists)
+				if (next != m_fileLists)
 				{
 					const string& n = getDir(next);
 					if (strnicmp(n.c_str() + i, dir.c_str() + i, n.length() - i) == 0)

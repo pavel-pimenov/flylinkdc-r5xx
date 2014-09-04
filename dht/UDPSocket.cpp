@@ -113,7 +113,7 @@ void UDPSocket::checkIncoming()
 {
 	if (socket->wait(delay, Socket::WAIT_READ) == Socket::WAIT_READ)
 	{
-		sockaddr_in remoteAddr = { 0 };
+		sockaddr_in remoteAddr =  { { 0 } };
 		std::vector<uint8_t> l_buf(BUFSIZE);
 		int len = socket->read(&l_buf[0], BUFSIZE, remoteAddr);
 		dcdrun(m_receivedBytes += len);
@@ -164,7 +164,7 @@ void UDPSocket::checkIncoming()
 				const auto l_res_uzlib = decompressPacket(l_destBuf, l_buf);
 				if (l_res_uzlib != Z_OK) 
 				{
-					LogManager::getInstance()->message("DHT Error decompress, Error = "+ Util::toString(l_res_uzlib));
+					LogManager::getInstance()->message("DHT Error decompress, Error = "+ Util::toString(l_res_uzlib) + " len = " + Util::toString(len));
 					return;
 			}
 			}

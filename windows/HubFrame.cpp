@@ -1652,6 +1652,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 					addLine(from, myMess, msg->thirdPerson, Text::toT(msg->format()), Colors::g_ChatTextGeneral);
 					auto& l_user = msg->m_from->getUser();
 					l_user->incMessagesCount();
+					client->incMessagesCount();
 					const auto l_ou_ptr = new OnlineUserPtr(msg->m_from);
 					PostMessage(WM_SPEAKER_UPDATE_USER, WPARAM(l_ou_ptr), LPARAM(COLUMN_MESSAGES));
 				}
@@ -1853,7 +1854,7 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		{
 			CRect sr;
 			m_ctrlStatus->GetClientRect(sr);
-			int tmp = sr.Width() > 332 ? 232 : (sr.Width() > 132 ? sr.Width() - 100 : 32);
+			const int tmp = sr.Width() > 332 ? 232 : (sr.Width() > 132 ? sr.Width() - 100 : 32);
 			int szCipherLen = m_ctrlStatus->GetTextLength(1);
 			
 			if (szCipherLen)
@@ -3643,13 +3644,11 @@ LRESULT HubFrame::onSelectUser(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
 				ctrlUsers.SetItemState(i, i == pos ? LVIS_SELECTED | LVIS_FOCUSED : 0, LVIS_SELECTED | LVIS_FOCUSED);
 			}
 			ctrlUsers.EnsureVisible(pos, FALSE);
-			const auto l_top_index = ctrlUsers.GetTopIndex();
-			if (pos - l_top_index >= 0)
+			const auto l_last_pos = pos + l_count_per_page / 2; // fix https://code.google.com/p/flylinkdc/issues/detail?id=1476
+			if (!ctrlUsers.EnsureVisible(l_last_pos, FALSE))
 			{
-				ctrlUsers.EnsureVisible(pos - l_top_index, FALSE);
+				ctrlUsers.EnsureVisible(pos, FALSE);
 			}
-			const auto l_last_pos = pos + l_count_per_page / 2; //  fix https://code.google.com/p/flylinkdc/issues/detail?id=1476
-			ctrlUsers.EnsureVisible(l_last_pos, FALSE);
 		}
 	}
 	return 0;
@@ -3827,7 +3826,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 #endif
 				if (l_column_id == COLUMN_UPLOAD || l_column_id == COLUMN_DOWNLOAD || l_column_id == COLUMN_MESSAGES)
 				{
-					const tstring l_value = ui->getText(l_column_id);
+					const tstring& l_value = ui->getText(l_column_id);
 					if (!l_value.empty())
 					{
 						ctrlUsers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
@@ -3838,10 +3837,10 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 				}
 				else if (l_column_id == COLUMN_IP)
 				{
-					const bool l_is_fantom_ip = ui->getOnlineUser()->getIdentity().isFantomIP();
-					const tstring l_ip = ui->getText(COLUMN_IP);
+					const tstring& l_ip = ui->getText(COLUMN_IP);
 					if (!l_ip.empty())
 					{
+						const bool l_is_fantom_ip = ui->getOnlineUser()->getIdentity().isFantomIP();
 						CRect rc;
 						ctrlUsers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
 						//const COLORREF col_brit = OperaColors::brightenColor(cd->clrText, l_is_fantom_ip ? 0.6f : 0.4f);
@@ -3909,14 +3908,14 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 							top = rc.top + 1;
 						// TODO: move this to FlagImage and cleanup!
 						int l_step = 0;
-						if (BOOLSETTING(ENABLE_COUNTRYFLAG) && l_location.getCountryIndex())
+						if (BOOLSETTING(ENABLE_COUNTRYFLAG))
 						{
 							const POINT ps = { rc.left, top };
 							g_flagImage.DrawCountry(cd->nmcd.hdc, l_location, ps);
 							l_step += 25;
 						}
 						const POINT p = { rc.left + l_step, top };
-						if (l_location.getFlagIndex())
+						if (l_location.getFlagIndex() > 0)
 						{
 							g_flagImage.DrawLocation(cd->nmcd.hdc, l_location, p);
 							l_step += 25;

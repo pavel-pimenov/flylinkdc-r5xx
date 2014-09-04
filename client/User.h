@@ -192,7 +192,7 @@ class User : public intrusive_ptr_base<User>, public Flags
 		}
 		
 #ifdef _DEBUG
-		static boost::atomic_int g_user_counts; // [!] IRainman fix: Issue 1037 [BUG] иногда теряем объект User? https://code.google.com/p/flylinkdc/issues/detail?id=1037
+		static boost::atomic_int g_user_counts; // [!] IRainman fix: Issue 1037 Иногда теряем объект User? https://code.google.com/p/flylinkdc/issues/detail?id=1037
 #endif
 		
 		const CID& getCID() const

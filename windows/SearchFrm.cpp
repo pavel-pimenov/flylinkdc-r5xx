@@ -3014,14 +3014,14 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 				if (si->m_location.isKnown())
 				{
 					int l_step = 0;
-					if (BOOLSETTING(ENABLE_COUNTRYFLAG) && si->m_location.getCountryIndex())
+					if (BOOLSETTING(ENABLE_COUNTRYFLAG))
 					{
 						const POINT ps = { rc.left, top };
 						g_flagImage.DrawCountry(cd->nmcd.hdc, si->m_location, ps);
 						l_step += 25;
 					}
 					const POINT p = { rc.left + l_step, top };
-					if (si->m_location.getFlagIndex())
+					if (si->m_location.getFlagIndex() > 0)
 					{
 						g_flagImage.DrawLocation(cd->nmcd.hdc, si->m_location, p);
 						l_step += 25;

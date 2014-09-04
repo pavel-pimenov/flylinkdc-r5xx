@@ -86,9 +86,6 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 			hasher.setThreadPriority(p);
 		}
 		
-		/** @return TTH root */
-		const TTHValue getTTH(const string& fname, const string& fpath, int64_t aSize) throw(HashException);
-		
 		void addTree(const string& aFileName, int64_t aTimeStamp, const TigerTree& tt, int64_t p_Size)
 		{
 			hashDone(0, aFileName, aTimeStamp, tt, -1, false, p_Size); // __int64 p_path_id,

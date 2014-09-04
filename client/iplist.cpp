@@ -24,12 +24,11 @@
 #include "stdinc.h"
 
 #ifdef PPA_INCLUDE_IPFILTER
-
 #include <winsock2.h>
-
+#include <boost/algorithm/string.hpp>
 #include "iplist.h"
 #include "Util.h"
-#include <boost/algorithm/string.hpp>
+#include "ResourceManager.h"
 
 IPList::IPList()
 {

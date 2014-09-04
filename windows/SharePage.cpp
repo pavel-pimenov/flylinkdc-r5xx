@@ -339,7 +339,7 @@ void SharePage::addDirectory(const tstring& aPath)
 		if (virt.DoModal(m_hWnd) == IDOK)
 		{
 			CWaitCursor l_cursor_wait;
-			ShareManager::getInstance()->addDirectory(Text::fromT(path), Text::fromT(virt.line));
+			ShareManager::getInstance()->addDirectory(Text::fromT(path), Text::fromT(virt.line), true);
 			int i = ctrlDirectories.insert(ctrlDirectories.GetItemCount(), virt.line);
 			ctrlDirectories.SetItemText(i, 1, path.c_str());
 			ctrlDirectories.SetItemText(i, 2, Util::formatBytesW(ShareManager::getInstance()->getShareSize(Text::fromT(path))).c_str());

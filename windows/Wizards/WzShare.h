@@ -390,7 +390,7 @@ public:
 		for (auto i = newList.cbegin(); i != newList.cend(); ++i)
 		{
 			CWaitCursor l_cursor_wait;
-			ShareManager::getInstance()->addDirectory(i->m_path, i->m_synonym); // [5] Wizard https://www.box.net/shared/5466d41c6918d84996bc
+			ShareManager::getInstance()->addDirectory(i->m_path, i->m_synonym, true); 
 		}
 
 		ctrlDirectories.Detach();

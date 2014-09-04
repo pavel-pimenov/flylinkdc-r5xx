@@ -18,6 +18,10 @@
 
 #include "stdinc.h"
 #include "LogManager.h"
+#include "SettingsManager.h"
+#include "CFlylinkDBManager.h"
+#include "CompatibilityManager.h"
+#include "TimerManager.h"
 
 LogManager::LogManager()
 #ifdef _DEBUG
@@ -153,6 +157,15 @@ void LogManager::log(const string& p_area, const string& p_msg) noexcept
 	}
 #endif
 }
+const string& LogManager::getSetting(int area, int sel) const
+{
+	return SettingsManager::get(static_cast<SettingsManager::StrSetting>(logOptions[area][sel]), true);
+}
+
+void LogManager::saveSetting(int area, int sel, const string& setting)
+{
+	SettingsManager::set(static_cast<SettingsManager::StrSetting>(logOptions[area][sel]), setting);
+}
 
 void LogManager::log(LogArea area, const StringMap& params, bool p_only_file /* = false */) noexcept
 {
@@ -217,6 +230,59 @@ void LogManager::message(const string& msg, bool p_only_file /*= false */)
 		fire(LogManagerListener::Message(), msg);
 	}
 }
+CFlyLog::CFlyLog(const string& p_message
+                 , bool p_skip_start /* = true */
+                 , bool p_only_file  /* = false */
+                ) :
+	m_start(GET_TICK()),
+	m_message(p_message),
+	m_tc(m_start),
+	m_skip_start(p_skip_start), // TODO - может оно не нужно?
+	m_only_file(p_only_file)
+{
+	if (!m_skip_start)
+	{
+		log("[Start] " + m_message);
+	}
+}
+
+CFlyLog::~CFlyLog()
+{
+	//if(!m_skip_start_stop)
+	{
+		const uint64_t l_current = GET_TICK();
+		log("[Stop ] " + m_message + " [" + Util::toString(l_current - m_tc) + " ms, Total: " + Util::toString(l_current - m_start) + " ms]");
+	}
+}
+uint64_t CFlyLog::calcSumTime() const
+{
+	const uint64_t l_current = GET_TICK();
+	return l_current - m_start;
+}
+void CFlyLog::step(const string& p_message_step, const bool p_reset_count /*= true */)
+{
+	const uint64_t l_current = GET_TICK();
+	log("[Step ] " + m_message + ' ' + p_message_step + " [" + Util::toString(l_current - m_tc) + " ms]");
+	if (p_reset_count)
+		m_tc = l_current;
+}
+void CFlyLog::loadStep(const string& p_message_step, const bool p_reset_count /*= true */)
+{
+	const uint64_t l_current = GET_TICK();
+	const uint64_t l_step = l_current - m_tc;
+	const uint64_t l_total = l_current - m_start;
+	
+	m_tc = l_current;
+	if (p_reset_count)
+	{
+		log("[Step ] " + m_message + " Begin load " + p_message_step + " [" + Util::toString(l_step) + " ms]");
+	}
+	else
+	{
+		log("[Step ] " + m_message + " End load " + p_message_step + " [" + Util::toString(l_step) + " ms and " + Util::toString(l_total) + " ms after start]");
+	}
+}
+
 
 /**
  * @file

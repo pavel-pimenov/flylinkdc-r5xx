@@ -28,7 +28,7 @@
 #endif
 #include "../FlyFeatures/flyServer.h"
 
-uint16_t ConnectionManager::iConnToMeCount = 0;
+uint16_t ConnectionManager::g_ConnToMeCount = 0;
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csConnection = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csDownloads = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csUploads = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
@@ -563,8 +563,8 @@ void ConnectionManager::accept(const Socket& sock, bool secure, Server* p_server
 {
 	uint32_t now = GET_TICK();
 	
-	if (iConnToMeCount > 0)
-		iConnToMeCount--;
+	if (g_ConnToMeCount > 0)
+		g_ConnToMeCount--;
 		
 	if (now > m_floodCounter)
 	{
@@ -589,7 +589,7 @@ void ConnectionManager::accept(const Socket& sock, bool secure, Server* p_server
 		}
 		else
 		{
-			if (iConnToMeCount <= 0)
+			if (g_ConnToMeCount <= 0)
 			{
 				m_floodCounter += FLOOD_ADD;
 			}
@@ -1440,16 +1440,23 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 			webrtc::WriteLockScoped l(*g_csDownloads); // TODO http://code.google.com/p/flylinkdc/issues/detail?id=1439
 			const ConnectionQueueItem::Iter i = find(g_downloads.begin(), g_downloads.end(), aSource->getUser());
 			dcassert(i != g_downloads.end());
-			ConnectionQueueItem* cqi = *i;
-			cqi->setState(ConnectionQueueItem::WAITING);
-			cqi->setLastAttempt(GET_TICK());
-			cqi->setErrors(protocolError ? -1 : (cqi->getErrors() + 1));
-			fire(ConnectionManagerListener::Failed(), cqi, aError);
-			if (isShuttingDown()) // TODO
+			if (i == g_downloads.end())
 			{
-				putCQI_L(cqi); // Удалять всегда нельзя - только при разрушении
-				// (Closed issue 983) https://code.google.com/p/flylinkdc/issues/detail?id=983 Бесконечные подключения для скачки файл-листа
-				// TODO - Найти более другое решение бага
+				CFlyServerAdapter::CFlyServerJSON::pushError("[BUG][5] ConnectionManager::failed (i == g_downloads.end()) aError = " + aError);
+			}
+			else
+			{
+				ConnectionQueueItem* cqi = *i;
+				cqi->setState(ConnectionQueueItem::WAITING);
+				cqi->setLastAttempt(GET_TICK());
+				cqi->setErrors(protocolError ? -1 : (cqi->getErrors() + 1));
+				fire(ConnectionManagerListener::Failed(), cqi, aError);
+				if (isShuttingDown()) // TODO
+				{
+					putCQI_L(cqi); // Удалять всегда нельзя - только при разрушении
+					// (Closed issue 983) https://code.google.com/p/flylinkdc/issues/detail?id=983 Бесконечные подключения для скачки файл-листа
+					// TODO - Найти более другое решение бага
+				}
 			}
 		}
 		else if (aSource->isSet(UserConnection::FLAG_UPLOAD))
@@ -1457,8 +1464,15 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 			webrtc::WriteLockScoped l(*g_csUploads); // http://code.google.com/p/flylinkdc/issues/detail?id=1439
 			const ConnectionQueueItem::Iter i = find(g_uploads.begin(), g_uploads.end(), aSource->getUser());
 			dcassert(i != g_uploads.end());
-			ConnectionQueueItem* cqi = *i;
-			putCQI_L(cqi);
+			if (i == g_uploads.end())
+			{
+				CFlyServerAdapter::CFlyServerJSON::pushError("[BUG][6] ConnectionManager::failed (i == g_uploads.end()) aError = " + aError);
+			}
+			else
+			{
+				ConnectionQueueItem* cqi = *i;
+				putCQI_L(cqi);
+			}
 		}
 	}
 	putConnection(aSource);
