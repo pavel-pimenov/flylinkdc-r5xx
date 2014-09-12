@@ -83,6 +83,7 @@ class Identity
 			CHANGES_UPLOAD = 1 << COLUMN_UPLOAD,
 			CHANGES_DOWNLOAD = 1 << COLUMN_DOWNLOAD,
 			CHANGES_MESSAGES = 1 << COLUMN_MESSAGES,
+			CHANGES__ANTIVIRUS = 1 << COLUMN_ANTIVIRUS,
 #endif
 #ifdef PPA_INCLUDE_DNS
 			CHANGES_DNS = 1 << COLUMN_DNS, // !SMT!-IP
@@ -92,6 +93,13 @@ class Identity
 			CHANGES_TAG = 1 << COLUMN_TAG
 		};
 // [~] IRAINMAN_USE_NG_FAST_USER_INFO
+		enum VirusType
+		{
+			VT_NICK  = 0x01,
+			VT_SHARE = 0x02,
+			VT_IP    = 0x04,
+			VT_CALC  = 0x08
+		};
 		enum ClientType
 		{
 			CT_BOT = 0x01,
@@ -109,10 +117,12 @@ class Identity
 		Identity()
 		{
 			memzero(&m_bits_info, sizeof(m_bits_info));
+			m_virus_type = 0;
 		}
 		Identity(const UserPtr& ptr, uint32_t aSID) : user(ptr)
 		{
 			memzero(&m_bits_info, sizeof(m_bits_info));
+			m_virus_type = 0;
 			setSID(aSID);
 		}
 		
@@ -223,7 +233,14 @@ class Identity
 		}
 		bool isFantomIP() const
 		{
-			return m_ip.is_unspecified();
+			if (m_ip.is_unspecified())
+			{
+				if (isUseIP6())
+					return false;
+				else
+					return true;
+			}
+			return false;
 		}
 		boost::asio::ip::address_v4 getIp() const
 		{
@@ -237,12 +254,32 @@ class Identity
 			if (!m_ip.is_unspecified())
 				return m_ip.to_string();
 			else
-				return getUser()->getIPAsString();
+			{
+				if (isUseIP6())
+				{
+					return getIP6();
+				}
+				else
+				{
+					return getUser()->getIPAsString();
+				}
+			}
 		}
 	private:
 		boost::asio::ip::address_v4 m_ip; // "I4" // [!] IRainman fix: needs here, details https://code.google.com/p/flylinkdc/issues/detail?id=1330
 	public:
-	
+		unsigned char m_virus_type;
+		void setVirusType(unsigned char p_virus_type_mask)
+		{
+			m_virus_type |= p_virus_type_mask;
+		}
+		unsigned char getVirusType() const
+		{
+			return m_virus_type & Identity::VT_CALC;
+		}
+		unsigned char calcVirusType();
+		string getVirusDesc() const;
+		
 // Нужна ли тут блокировка?
 // L: с одной стороны надо блокировать такие операции,
 // а с другой эти данные всегда изменяются в одном потоке,
@@ -654,6 +691,7 @@ class OnlineUser :
 			COLUMN_NICK = COLUMN_FIRST,
 			COLUMN_SHARED,
 			COLUMN_EXACT_SHARED,
+			COLUMN_ANTIVIRUS,
 			COLUMN_DESCRIPTION,
 			COLUMN_CONNECTION,
 			COLUMN_IP,

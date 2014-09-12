@@ -325,6 +325,10 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				{
 					return g_fileImage.getIconIndex(getTarget());
 				}
+				static uint8_t getStateImageIndex()
+				{
+					return 0;
+				}
 				
 				const QueueItemPtr& getQueueItem() const
 				{

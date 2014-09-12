@@ -8,7 +8,17 @@ bug reports and feature request are here:
 https://sourceforge.net/p/mediainfo/_list/tickets
 
 
-Version 0.7.70, 2014-
+Version 0.7.71, 2014-
+--------------
++ AS-11 (Core, Segmentation, UK DPP items) display
++ MXF: option --File_Mxf_TimeCodeFromMaterialPackage for using the time code track from Material package instead of Source package (CLI/DLL only)
++ Duration in HH:MM:SS:FF format (hidden by default)
++ AVC: detection of Intra profiles
++ MXF: both Material and Source package time codes are displayed
+x Time code striped/not striped information is moved from "Format_Settings" to "TimeCode_Striped"
+x SMPTE ST 337: infinite loop during scanning of some non ST 337 streams
+
+Version 0.7.70, 2014-09-03
 --------------
 + DTS Neural Audio: display of DTS Neural Audio descriptor information (matrix encoded channels count and position), sponsored by Numericable
 + FFV1: version, bit depth, color space, chroma subsampling, versions 0 to 3, sponsored by NOA Audio Solutions
@@ -40,6 +50,7 @@ Version 0.7.70, 2014-
 + ProRes: more details about ProRes in AVI or Matroska
 + DV: support of AVd1 CodecID
 + CMake: scripts improvements, thanks to Ivan Romanov
++ Matroska: file name of attachments, thanks to Marshall
 x HEVC: some streams with VUI were not parsed
 x MPEG Video: was not correctly handling 1000:1001 frame rates and NDF time codes combination during frame count computing
 x MPEG Video: was not correctly detecting the time stamp of the first frame in case of closed GOP with first frame not the I-frame

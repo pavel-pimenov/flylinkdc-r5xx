@@ -56,6 +56,7 @@ enum Strings   // @DontAdd
 	ALTERNATES_SEND, // "Searching TTH alternates for:"
 	ALWAYS_ASK, // "Always perform this check"
 	ANY, // "Any"
+	ANTIVIRUS, // "Antivirus"
 	ASCROLL_CHAT, // "Autoscroll chat"
 	ASK, // "Ask"
 	ASK_SLOT, // "Ask for slot"

@@ -191,10 +191,66 @@ namespace Elements
     //Item - Elements - Relational - Essence and Metadata Relationships - Essence to Essence Relationships
     UUID(SubDescriptors,                                        060E2B34, 01010109, 06010104, 06100000)
 
+    //Item - Elements - User organization registred for public use - AAF Association - AS-11 core metadata framework
+    UUID(AS11_Core_SerieTitle,                                  060E2B34, 01010101, 0D010701, 0B010101)
+    UUID(AS11_Core_ProgrammeTitle,                              060E2B34, 01010101, 0D010701, 0B010102)
+    UUID(AS11_Core_EpisodeTitleNumber,                          060E2B34, 01010101, 0D010701, 0B010103)
+    UUID(AS11_Core_ShimName,                                    060E2B34, 01010101, 0D010701, 0B010104)
+    UUID(AS11_Core_AudioTrackLayout,                            060E2B34, 01010101, 0D010701, 0B010105)
+    UUID(AS11_Core_PrimaryAudioLanguage,                        060E2B34, 01010101, 0D010701, 0B010106)
+    UUID(AS11_Core_ClosedCaptionsPresent,                       060E2B34, 01010101, 0D010701, 0B010107)
+    UUID(AS11_Core_08,                                          060E2B34, 01010101, 0D010701, 0B010108)
+    UUID(AS11_Core_ClosedCaptionsLanguage,                      060E2B34, 01010101, 0D010701, 0B010109)
+    UUID(AS11_Core_ClosedCaptionsType,                          060E2B34, 01010101, 0D010701, 0B01010A)
+
+    //Item - Elements - User organization registred for public use - AAF Association - AS-11 segmentation metadata framework
+    UUID(AS11_Segment_PartNumber,                               060E2B34, 01010101, 0D010701, 0B020101)
+    UUID(AS11_Segment_PartTotal,                                060E2B34, 01010101, 0D010701, 0B020102)
+
+    //Item - Elements - User organization registred for public use - DPP - AS-11 UK DPP metadata framework
+    UUID(AS11_UKDPP_ProductionNumber,                            060E2B34, 01010101, 0D0C0101, 01010100)
+    UUID(AS11_UKDPP_Synopsis,                                    060E2B34, 01010101, 0D0C0101, 01010200)
+    UUID(AS11_UKDPP_Originator,                                  060E2B34, 01010101, 0D0C0101, 01010300)
+    UUID(AS11_UKDPP_CopyrightYear,                               060E2B34, 01010101, 0D0C0101, 01010400)
+    UUID(AS11_UKDPP_OtherIdentifier,                             060E2B34, 01010101, 0D0C0101, 01010500)
+    UUID(AS11_UKDPP_OtherIdentifierType,                         060E2B34, 01010101, 0D0C0101, 01010600)
+    UUID(AS11_UKDPP_Genre,                                       060E2B34, 01010101, 0D0C0101, 01010700)
+    UUID(AS11_UKDPP_Distributor,                                 060E2B34, 01010101, 0D0C0101, 01010800)
+    UUID(AS11_UKDPP_PictureRatio,                                060E2B34, 01010101, 0D0C0101, 01010900)
+    UUID(AS11_UKDPP_3D,                                          060E2B34, 01010101, 0D0C0101, 01010A00)
+    UUID(AS11_UKDPP_3DType,                                      060E2B34, 01010101, 0D0C0101, 01010B00)
+    UUID(AS11_UKDPP_ProductPlacement,                            060E2B34, 01010101, 0D0C0101, 01010C00)
+    UUID(AS11_UKDPP_FpaPass,                                     060E2B34, 01010101, 0D0C0101, 01010D00)
+    UUID(AS11_UKDPP_FpaManufacturer,                             060E2B34, 01010101, 0D0C0101, 01010E00)
+    UUID(AS11_UKDPP_FpaVersion,                                  060E2B34, 01010101, 0D0C0101, 01010F00)
+    UUID(AS11_UKDPP_VideoComments,                               060E2B34, 01010101, 0D0C0101, 01011000)
+    UUID(AS11_UKDPP_SecondaryAudioLanguage,                      060E2B34, 01010101, 0D0C0101, 01011100)
+    UUID(AS11_UKDPP_TertiaryAudioLanguage,                       060E2B34, 01010101, 0D0C0101, 01011200)
+    UUID(AS11_UKDPP_AudioLoudnessStandard,                       060E2B34, 01010101, 0D0C0101, 01011300)
+    UUID(AS11_UKDPP_AudioComments,                               060E2B34, 01010101, 0D0C0101, 01011400)
+    UUID(AS11_UKDPP_LineUpStart,                                 060E2B34, 01010101, 0D0C0101, 01011500)
+    UUID(AS11_UKDPP_IdentClockStart,                             060E2B34, 01010101, 0D0C0101, 01011600)
+    UUID(AS11_UKDPP_TotalNumberOfParts,                          060E2B34, 01010101, 0D0C0101, 01011700)
+    UUID(AS11_UKDPP_TotalProgrammeDuration,                      060E2B34, 01010101, 0D0C0101, 01011800)
+    UUID(AS11_UKDPP_AudioDescriptionPresent,                     060E2B34, 01010101, 0D0C0101, 01011900)
+    UUID(AS11_UKDPP_AudioDescriptionType,                        060E2B34, 01010101, 0D0C0101, 01011A00)
+    UUID(AS11_UKDPP_OpenCaptionsPresent,                         060E2B34, 01010101, 0D0C0101, 01011B00)
+    UUID(AS11_UKDPP_OpenCaptionsType,                            060E2B34, 01010101, 0D0C0101, 01011C00)
+    UUID(AS11_UKDPP_OpenCaptionsLanguage,                        060E2B34, 01010101, 0D0C0101, 01011D00)
+    UUID(AS11_UKDPP_SigningPresent,                              060E2B34, 01010101, 0D0C0101, 01011E00)
+    UUID(AS11_UKDPP_SignLanguage,                                060E2B34, 01010101, 0D0C0101, 01011F00)
+    UUID(AS11_UKDPP_CompletionDate,                              060E2B34, 01010101, 0D0C0101, 01012000)
+    UUID(AS11_UKDPP_TextlessElementsExist,                       060E2B34, 01010101, 0D0C0101, 01012100)
+    UUID(AS11_UKDPP_ProgrammeHasText,                            060E2B34, 01010101, 0D0C0101, 01012200)
+    UUID(AS11_UKDPP_ProgrammeTextLanguage,                       060E2B34, 01010101, 0D0C0101, 01012300)
+    UUID(AS11_UKDPP_ContactEmail,                                060E2B34, 01010101, 0D0C0101, 01012400)
+    UUID(AS11_UKDPP_ContactTelephoneNumber,                      060E2B34, 01010101, 0D0C0101, 01012500)
+
     //Item - Elements - User organization registred for public use - AAF Association - Generic Container - Version 1
     UUID(GenericContainer_Aaf,                                  060E2B34, 01020101, 0D010301, 00000000)
 
     //Groups - Elements - User organization registred for public use - AAF Association - AAF Attributes - AAF Information Attributes - Version 1 - Enumerated Attributes
+    UUID(DMSegment_Filler,                                      060E2B34, 02530101, 0D010101, 01010900)
     UUID(Sequence,                                              060E2B34, 02530101, 0D010101, 01010F00)
     UUID(SourceClip,                                            060E2B34, 02530101, 0D010101, 01011100)
     UUID(TimecodeComponent,                                     060E2B34, 02530101, 0D010101, 01011400)
@@ -268,6 +324,15 @@ namespace Elements
 
     //Groups - Elements - User organization registred for public use - AAF Association - Descriptive Metadata Scheme - Version 1 (SystemScheme (SMPTE 380M))
     UUID(DMScheme1,                                             060E2B34, 02530101, 0D010401, 01010100)
+
+    //Groups - Elements - User organization registred for public use - AAF Association - AS-11 core metadata framework
+    UUID(AS11_AAF_Core,                                         060E2B34, 02530101, 0D010701, 0B010100)
+
+    //Groups - Elements - User organization registred for public use - AAF Association - AS-11 segmentation metadata framework
+    UUID(AS11_AAF_Segmentation,                                 060E2B34, 02530101, 0D010701, 0B020100)
+
+    //Groups - Elements - User organization registred for public use - DPP - AS-11 UK DPP metadata framework
+    UUID(AS11_AAF_UKDPP,                                        060E2B34, 02530101, 0D0C0101, 01010000)
 
     //Item - Elements - User organization registred for private use - Avid - Generic Container - Version 1
     UUID(GenericContainer_Avid,                                 060E2B34, 01020101, 0E040301, 00000000)
@@ -357,7 +422,7 @@ const char* Mxf_MPEG2_CodedContentType(int8u CodedContentType)
 }
 
 //---------------------------------------------------------------------------
-const char* Mxf_OperationalPattern(const int128u &OperationalPattern)
+const char* Mxf_OperationalPattern(const int128u OperationalPattern)
 {
     //Item and Package Complexity
     int32u Code_Compare4=(int32u)OperationalPattern.lo;
@@ -390,7 +455,7 @@ const char* Mxf_OperationalPattern(const int128u &OperationalPattern)
 }
 
 //---------------------------------------------------------------------------
-const char* Mxf_EssenceElement(const int128u &EssenceElement)
+const char* Mxf_EssenceElement(const int128u EssenceElement)
 {
     if ((EssenceElement.hi&0xFFFFFFFFFFFFFF00LL)!=0x060E2B3401020100LL)
         return "";
@@ -479,7 +544,7 @@ const char* Mxf_EssenceElement(const int128u &EssenceElement)
 }
 
 //---------------------------------------------------------------------------
-const char* Mxf_EssenceContainer(const int128u &EssenceContainer)
+const char* Mxf_EssenceContainer(const int128u EssenceContainer)
 {
     if ((EssenceContainer.hi&0xFFFFFFFFFFFFFF00LL)!=0x060E2B3404010100LL)
         return "";
@@ -664,7 +729,7 @@ const char* Mxf_EssenceContainer_Mapping(int8u Code6, int8u Code7, int8u Code8)
 }
 
 //---------------------------------------------------------------------------
-const char* Mxf_EssenceCompression(const int128u &EssenceCompression)
+const char* Mxf_EssenceCompression(const int128u EssenceCompression)
 {
     if ((EssenceCompression.hi&0xFFFFFFFFFFFFFF00LL)!=0x060E2B3404010100LL || !((EssenceCompression.lo&0xFF00000000000000LL)==0x0400000000000000LL || (EssenceCompression.lo&0xFF00000000000000LL)==0x0E00000000000000LL))
         return "";
@@ -864,7 +929,7 @@ const char* Mxf_EssenceCompression(const int128u &EssenceCompression)
 }
 
 //---------------------------------------------------------------------------
-const char* Mxf_EssenceCompression_Version(const int128u &EssenceCompression)
+const char* Mxf_EssenceCompression_Version(const int128u EssenceCompression)
 {
     int8u Code2=(int8u)((EssenceCompression.lo&0x00FF000000000000LL)>>48);
     int8u Code3=(int8u)((EssenceCompression.lo&0x0000FF0000000000LL)>>40);
@@ -933,14 +998,22 @@ const char* Mxf_EssenceCompression_Version(const int128u &EssenceCompression)
 }
 
 //---------------------------------------------------------------------------
-const char* Mxf_Sequence_DataDefinition(const int128u &DataDefinition)
+const char* Mxf_Sequence_DataDefinition(const int128u DataDefinition)
 {
     int8u Code4=(int8u)((DataDefinition.lo&0x000000FF00000000LL)>>32);
     int8u Code5=(int8u)((DataDefinition.lo&0x00000000FF000000LL)>>24);
 
     switch (Code4)
     {
-        case 0x01 : return "Time";
+        case 0x01 :
+                    switch (Code5)
+                    {
+                        case 0x01 :
+                        case 0x02 :
+                        case 0x03 : return "Time";
+                        case 0x10 : return "Descriptive Metadata";
+                        default   : return "";
+                    }
         case 0x02 :
                     switch (Code5)
                     {
@@ -996,7 +1069,7 @@ int8u Mxf_FrameLayout_Multiplier(int8u FrameLayout)
 }
 
 //---------------------------------------------------------------------------
-const char* Mxf_ColorPrimaries(const int128u& ColorPrimaries)
+const char* Mxf_ColorPrimaries(const int128u ColorPrimaries)
 {
     int32u Code_Compare4=(int32u)ColorPrimaries.lo;
     switch ((int8u)(Code_Compare4>>16))
@@ -1009,7 +1082,7 @@ const char* Mxf_ColorPrimaries(const int128u& ColorPrimaries)
 }
 
 //---------------------------------------------------------------------------
-const char* Mxf_TransferCharacteristic(const int128u& TransferCharacteristic)
+const char* Mxf_TransferCharacteristic(const int128u TransferCharacteristic)
 {
     int32u Code_Compare4=(int32u)TransferCharacteristic.lo;
     switch ((int8u)(Code_Compare4>>16))
@@ -1026,7 +1099,7 @@ const char* Mxf_TransferCharacteristic(const int128u& TransferCharacteristic)
 }
 
 //---------------------------------------------------------------------------
-const char* Mxf_CodingEquations(const int128u& CodingEquations)
+const char* Mxf_CodingEquations(const int128u CodingEquations)
 {
     int32u Code_Compare4=(int32u)CodingEquations.lo;
     switch ((int8u)(Code_Compare4>>16))
@@ -1133,7 +1206,7 @@ const char* Mxf_ChannelAssignment_ChannelPositions2(const int128u ChannelLayout,
 }
 
 //---------------------------------------------------------------------------
-const char* Mxf_ChannelAssignment_ChannelLayout(const int128u& ChannelLayout, int32u ChannelsCount=(int32u)-1)
+const char* Mxf_ChannelAssignment_ChannelLayout(const int128u ChannelLayout, int32u ChannelsCount=(int32u)-1)
 {
     //Sound Channel Labeling
     if ((ChannelLayout.hi&0xFFFFFFFFFFFFFF00LL)!=0x060E2B3404010100LL && (ChannelLayout.lo&0xFFFFFFFF00000000LL)!=0x0402021000000000LL)
@@ -1178,7 +1251,7 @@ const char* Mxf_ChannelAssignment_ChannelLayout(const int128u& ChannelLayout, in
         default   : return "";
     }
 }
-const char* Mxf_ChannelAssignment_ChannelLayout(const int128u& ChannelLayout)
+const char* Mxf_ChannelAssignment_ChannelLayout(const int128u ChannelLayout)
 {
     return Mxf_ChannelAssignment_ChannelLayout(ChannelLayout, (int32u)-1);
 }
@@ -1401,6 +1474,251 @@ string MXF_MCALabelDictionaryID_ChannelLayout(const std::vector<int128u> &MCALab
 
     return ToReturn;
 }
+
+//---------------------------------------------------------------------------
+const size_t Mxf_AS11_ClosedCaptionType_Count=2;
+const char* Mxf_AS11_ClosedCaptionType[Mxf_AS11_ClosedCaptionType_Count]=
+{
+    "Hard of Hearing",
+    "Translation",
+};
+
+//---------------------------------------------------------------------------
+const size_t Mxf_AS11_AudioTrackLayout_Count=0x35;
+const char* Mxf_AS11_AudioTrackLayout[Mxf_AS11_AudioTrackLayout_Count]=
+{
+    "EBU R 48: 1a",
+    "EBU R 48: 1b",
+    "EBU R 48: 1c",
+    "EBU R 48: 2a",
+    "EBU R 48: 2b",
+    "EBU R 48: 2c",
+    "EBU R 48: 3a",
+    "EBU R 48: 3b",
+    "EBU R 48: 4a",
+    "EBU R 48: 4b",
+    "EBU R 48: 4c",
+    "EBU R 48: 5a",
+    "EBU R 48: 5b",
+    "EBU R 48: 6a",
+    "EBU R 48: 6b",
+    "EBU R 48: 7a",
+    "EBU R 48: 7b",
+    "EBU R 48: 8a",
+    "EBU R 48: 8b",
+    "EBU R 48: 8c",
+    "EBU R 48: 9a",
+    "EBU R 48: 9b",
+    "EBU R 48: 10a",
+    "EBU R 48: 11a",
+    "EBU R 48: 11b",
+    "EBU R 48: 11c",
+    "EBU R 123: 2a",
+    "EBU R 123: 4a",
+    "EBU R 123: 4b",
+    "EBU R 123: 4c",
+    "EBU R 123: 8a",
+    "EBU R 123: 8b",
+    "EBU R 123: 8c",
+    "EBU R 123: 8d",
+    "EBU R 123: 8e",
+    "EBU R 123: 8f",
+    "EBU R 123: 8g",
+    "EBU R 123: 8h",
+    "EBU R 123: 8i",
+    "EBU R 123: 12a",
+    "EBU R 123: 12b",
+    "EBU R 123: 12c",
+    "EBU R 123: 12d",
+    "EBU R 123: 12e",
+    "EBU R 123: 12f",
+    "EBU R 123: 12g",
+    "EBU R 123: 12h",
+    "EBU R 123: 16a",
+    "EBU R 123: 16b",
+    "EBU R 123: 16c",
+    "EBU R 123: 16d",
+    "EBU R 123: 16e",
+    "EBU R 123: 16f",
+};
+struct mxf_as11_audiotracklayout_assignment
+{
+    size_t Count;
+    const char* Assign[16];
+};
+const mxf_as11_audiotracklayout_assignment Mxf_AS11_AudioTrackLayout_ChannelPositions[Mxf_AS11_AudioTrackLayout_Count]=
+{
+    {  2, "Front: C", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, }, //48 1a
+    {  4, "Front: C", NULL, "Front: C", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, }, //48 1b
+    {  8, "Front: C", NULL, "Front: C", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, }, //48 1c
+    {  2, "Front: L", "Front: R", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, }, //48 2a
+    {  4, "Front: L", "Front: R", "Front: L", "Front: R", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, }, //48 2b
+    {  8, "Front: L", "Front: R", "Front: L", "Front: R", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, }, //48 2c
+    {  4, "Front: L", "Front: R", "Front: L", "Front: R", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, }, //48 3a
+    {  8, "Front: L", "Front: R", "Front: L", "Front: R", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, }, //48 3b
+    {  2, "EBU R 48: 4a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  4, "EBU R 48: 4b", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 48: 4c", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  4, "EBU R 48: 5a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 48: 5b", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  4, "EBU R 48: 6a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 48: 6b", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  4, "EBU R 48: 7a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 48: 7b", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  2, "EBU R 48: 8a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  4, "EBU R 48: 8b", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 48: 8c", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  4, "EBU R 48: 9a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 48: 9b", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  2, "EBU R 48: 10a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  4, "EBU R 48: 11a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 48: 11b", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 48: 11c", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  2, "EBU R 123: 2a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  4, "EBU R 123: 4a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  4, "EBU R 123: 4b", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  4, "EBU R 123: 4c", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 123: 8a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 123: 8b", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 123: 8c", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 123: 8d", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 123: 8e", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 123: 8f", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 123: 8g", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 123: 8h", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 123: 8i", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    { 12, "EBU R 123: 12a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    { 12, "EBU R 123: 12b", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    { 12, "EBU R 123: 12c", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    { 12, "EBU R 123: 12d", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    { 12, "EBU R 123: 12e", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    { 12, "EBU R 123: 12f", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    { 12, "EBU R 123: 12g", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    { 12, "EBU R 123: 12h", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    { 16, "Front: L", "Front: R", "Front: L", "Front: R", "Front: C", "LFE", "Side: L", "Side: R", "Front: L", "Front: R", "Front: L", "Front: R", "Front: C", "LFE", "Side: L", "Side: R", }, //123 16a
+    { 16, "Front: L", "Front: R", "Front: C", "LFE", "Side: L", "Side: R", "Front: L", "Front: R", "Front: C", "LFE", "Side: L", "Side: R", }, //123 16b
+    { 16, "Front: L", "Front: R", "Front: L", "Front: R", "Front: L", "Front: R", "Front: C", "LFE", "Side: L", "Side: R", "Front: L", "Front: R", "Front: C", "LFE", "Side: L", "Side: R", }, //123 16c
+    { 16, "Front: L", "Front: R", "Front: C", "LFE", "Side: L", "Side: R", "Front: L", "Front: R", "Front: L", "Front: R", "Front: C", "LFE", "Side: L", "Side: R", "Front: L", "Front: R", }, //123 16d
+    { 16, "Front: L", "Front: R", "Front: C", "LFE", "Side: L", "Side: R", "Front: L", "Front: R", "Front: C", "LFE", "Side: L", "Side: R", "Side: L", "Side: R", "Side: L", "Side: R", }, //123 16e
+    { 16, "Front: L", "Front: R", NULL, NULL, "Front: L", "Front: R", NULL, NULL, "Front: L", "Front: R", NULL, NULL, "Front: L", "Front: R", "Front: L", "Front: R", }, //123 16f
+};
+const mxf_as11_audiotracklayout_assignment Mxf_AS11_AudioTrackLayout_ChannelLayout[Mxf_AS11_AudioTrackLayout_Count]=
+{
+    {  2, "C", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, }, //48 1a
+    {  4, "C", NULL, "C", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, }, //48 1b
+    {  8, "C", NULL, "C", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, }, //48 1c
+    {  2, "L", "R", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, }, //48 2a
+    {  4, "L", "R", "L", "R", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, }, //48 2b
+    {  8, "L", "R", "L", "R", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, }, //48 2c
+    {  4, "L", "R", "L", "R", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, }, //48 3a
+    {  8, "L", "R", "L", "R", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, }, //48 3b
+    {  2, "EBU R 48: 4a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  4, "EBU R 48: 4b", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 48: 4c", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  4, "EBU R 48: 5a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 48: 5b", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  4, "EBU R 48: 6a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 48: 6b", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  4, "EBU R 48: 7a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 48: 7b", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  2, "EBU R 48: 8a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  4, "EBU R 48: 8b", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 48: 8c", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  4, "EBU R 48: 9a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 48: 9b", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  2, "EBU R 48: 10a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  4, "EBU R 48: 11a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 48: 11b", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 48: 11c", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  2, "EBU R 123: 2a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  4, "EBU R 123: 4a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  4, "EBU R 123: 4b", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  4, "EBU R 123: 4c", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 123: 8a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 123: 8b", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 123: 8c", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 123: 8d", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 123: 8e", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 123: 8f", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 123: 8g", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 123: 8h", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    {  8, "EBU R 123: 8i", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    { 12, "EBU R 123: 12a", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    { 12, "EBU R 123: 12b", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    { 12, "EBU R 123: 12c", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    { 12, "EBU R 123: 12d", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    { 12, "EBU R 123: 12e", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    { 12, "EBU R 123: 12f", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    { 12, "EBU R 123: 12g", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    { 12, "EBU R 123: 12h", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, },
+    { 16, "L", "R", "C", "LFE", "Ls", "Rs", "L", "R", "L", "R", "C", "LFE", "Ls", "Rs", "L", "R", }, //123 16a
+    { 16, "L", "R", "L", "R", "C", "LFE", "Ls", "Rs", "L", "R", "L", "R", "C", "LFE", "Ls", "Rs", }, //123 16b
+    { 16, "L", "R", "L", "R", "L", "R", "C", "LFE", "Ls", "Rs", "L", "R", "C", "LFE", "Ls", "Rs", }, //123 16c
+    { 16, "L", "R", "C", "LFE", "Ls", "Rs", "L", "R", "L", "R", "C", "LFE", "Ls", "Rs", "L", "R", }, //123 16d
+    { 16, "L", "R", "C", "LFE", "Ls", "Rs", "L", "R", "C", "LFE", "Ls", "Rs", "L", "R", "L", "R", }, //123 16e
+    { 16, "L", "R", NULL, NULL, "L", "R", NULL, NULL, "L", "R", NULL, NULL, "L", "R", "L", "R", }, //123 16f
+};
+
+
+//---------------------------------------------------------------------------
+const size_t Mxf_AS11_FpaPass_Count=3;
+const char* Mxf_AS11_FpaPass[Mxf_AS11_FpaPass_Count]=
+{
+    "Yes",
+    "No",
+    "Not tested",
+};
+
+//---------------------------------------------------------------------------
+const size_t Mxf_AS11_SigningPresent_Count=3;
+const char* Mxf_AS11_SigningPresent[Mxf_AS11_SigningPresent_Count]=
+{
+    "Yes",
+    "No",
+    "Signer only",
+};
+
+//---------------------------------------------------------------------------
+const size_t Mxf_AS11_3D_Type_Count=4;
+const char* Mxf_AS11_3D_Type[Mxf_AS11_3D_Type_Count]=
+{
+    "Side by side",
+    "Dual",
+    "Left eye only",
+    "Right eye only",
+};
+
+//---------------------------------------------------------------------------
+const size_t Mxf_AS11_AudioLoudnessStandard_Count=2;
+const char* Mxf_AS11_AudioLoudnessStandard[Mxf_AS11_AudioLoudnessStandard_Count]=
+{
+    "",
+    "EBU R 128",
+};
+
+//---------------------------------------------------------------------------
+const size_t Mxf_AS11_AudioDescriptionType_Count=2;
+const char* Mxf_AS11_AudioDescriptionType[Mxf_AS11_AudioDescriptionType_Count]=
+{
+    "Control data / Narration",
+    "AD Mix",
+};
+
+//---------------------------------------------------------------------------
+const size_t Mxf_AS11_OpenCaptionsType_Count=2;
+const char* Mxf_AS11_OpenCaptionsType[Mxf_AS11_OpenCaptionsType_Count]=
+{
+    "Hard of Hearing",
+    "Translation",
+};
+
+//---------------------------------------------------------------------------
+const size_t Mxf_AS11_SignLanguage_Count=2;
+const char* Mxf_AS11_SignLanguage[Mxf_AS11_SignLanguage_Count]=
+{
+    "BSL (British Sign Language)",
+    "BSL (Makaton)",
+};
 
 //---------------------------------------------------------------------------
 extern const char* Mpegv_profile_and_level_indication_profile[];
@@ -1734,7 +2052,7 @@ void File_Mxf::Streams_Finish()
         if (!SystemScheme->second.IsTimeCode) //Already done somewhere else
         {
             Stream_Prepare(Stream_Other);
-            Fill(Stream_Other, StreamPos_Last, "ID", __T("System scheme 1-")+Ztring().From_Number(SystemScheme->first>8)+__T('-')+Ztring().From_Number(SystemScheme->first&0xFF));
+            Fill(Stream_Other, StreamPos_Last, "ID", __T("System scheme 1-")+Ztring().From_Number((int8u)(SystemScheme->first>8))+__T('-')+Ztring().From_Number((int8u)(SystemScheme->first&0xFF)));
             Fill(Stream_Other, StreamPos_Last, "MuxingMode", "System scheme 1");
         }
     }
@@ -1766,7 +2084,7 @@ void File_Mxf::Streams_Finish()
 }
 
 //---------------------------------------------------------------------------
-void File_Mxf::Streams_Finish_Preface (const int128u &PrefaceUID)
+void File_Mxf::Streams_Finish_Preface (const int128u PrefaceUID)
 {
     prefaces::iterator Preface=Prefaces.find(PrefaceUID);
     if (Preface==Prefaces.end())
@@ -1775,13 +2093,27 @@ void File_Mxf::Streams_Finish_Preface (const int128u &PrefaceUID)
     //ContentStorage
     Streams_Finish_ContentStorage(Preface->second.ContentStorage);
 
+    //ContenStorage, for AS11
+    Streams_Finish_ContentStorage_ForAS11(Preface->second.ContentStorage);
+
     //Identifications
     for (size_t Pos=0; Pos<Preface->second.Identifications.size(); Pos++)
         Streams_Finish_Identification(Preface->second.Identifications[Pos]);
 }
 
 //---------------------------------------------------------------------------
-void File_Mxf::Streams_Finish_ContentStorage (const int128u &ContentStorageUID)
+void File_Mxf::Streams_Finish_Preface_ForTimeCode (const int128u PrefaceUID)
+{
+    prefaces::iterator Preface=Prefaces.find(PrefaceUID);
+    if (Preface==Prefaces.end())
+        return;
+
+    //ContentStorage
+    Streams_Finish_ContentStorage_ForTimeCode(Preface->second.ContentStorage);
+}
+
+//---------------------------------------------------------------------------
+void File_Mxf::Streams_Finish_ContentStorage (const int128u ContentStorageUID)
 {
     contentstorages::iterator ContentStorage=ContentStorages.find(ContentStorageUID);
     if (ContentStorage==ContentStorages.end())
@@ -1792,7 +2124,30 @@ void File_Mxf::Streams_Finish_ContentStorage (const int128u &ContentStorageUID)
 }
 
 //---------------------------------------------------------------------------
-void File_Mxf::Streams_Finish_Package (const int128u &PackageUID)
+void File_Mxf::Streams_Finish_ContentStorage_ForTimeCode (const int128u ContentStorageUID)
+{
+    contentstorages::iterator ContentStorage=ContentStorages.find(ContentStorageUID);
+    if (ContentStorage==ContentStorages.end())
+        return;
+
+    //Searching the right Time code track first TODO: this is an hack in order to get material or source time code, we need to have something more conform in the future
+    for (size_t Pos=0; Pos<ContentStorage->second.Packages.size(); Pos++)
+        Streams_Finish_Package_ForTimeCode(ContentStorage->second.Packages[Pos]);
+}
+
+//---------------------------------------------------------------------------
+void File_Mxf::Streams_Finish_ContentStorage_ForAS11 (const int128u ContentStorageUID)
+{
+    contentstorages::iterator ContentStorage=ContentStorages.find(ContentStorageUID);
+    if (ContentStorage==ContentStorages.end())
+        return;
+
+    for (size_t Pos=0; Pos<ContentStorage->second.Packages.size(); Pos++)
+        Streams_Finish_Package_ForAS11(ContentStorage->second.Packages[Pos]);
+}
+
+//---------------------------------------------------------------------------
+void File_Mxf::Streams_Finish_Package (const int128u PackageUID)
 {
     packages::iterator Package=Packages.find(PackageUID);
     if (Package==Packages.end() || !Package->second.IsSourcePackage)
@@ -1805,7 +2160,29 @@ void File_Mxf::Streams_Finish_Package (const int128u &PackageUID)
 }
 
 //---------------------------------------------------------------------------
-void File_Mxf::Streams_Finish_Track(const int128u &TrackUID)
+void File_Mxf::Streams_Finish_Package_ForTimeCode (const int128u PackageUID)
+{
+    packages::iterator Package=Packages.find(PackageUID);
+    if (Package==Packages.end())
+        return;
+
+    for (size_t Pos=0; Pos<Package->second.Tracks.size(); Pos++)
+        Streams_Finish_Track_ForTimeCode(Package->second.Tracks[Pos], Package->second.IsSourcePackage);
+}
+
+//---------------------------------------------------------------------------
+void File_Mxf::Streams_Finish_Package_ForAS11 (const int128u PackageUID)
+{
+    packages::iterator Package=Packages.find(PackageUID);
+    if (Package==Packages.end() || Package->second.IsSourcePackage)
+        return;
+    
+    for (size_t Pos=0; Pos<Package->second.Tracks.size(); Pos++)
+        Streams_Finish_Track_ForAS11(Package->second.Tracks[Pos]);
+}
+
+//---------------------------------------------------------------------------
+void File_Mxf::Streams_Finish_Track(const int128u TrackUID)
 {
     tracks::iterator Track=Tracks.find(TrackUID);
     if (Track==Tracks.end() || Track->second.Stream_Finish_Done)
@@ -1824,7 +2201,42 @@ void File_Mxf::Streams_Finish_Track(const int128u &TrackUID)
 }
 
 //---------------------------------------------------------------------------
-void File_Mxf::Streams_Finish_Essence(int32u EssenceUID, const int128u& TrackUID)
+void File_Mxf::Streams_Finish_Track_ForTimeCode(const int128u TrackUID, bool IsSourcePackage)
+{
+    tracks::iterator Track=Tracks.find(TrackUID);
+    if (Track==Tracks.end() || Track->second.Stream_Finish_Done)
+        return;
+
+    StreamKind_Last=Stream_Max;
+    StreamPos_Last=(size_t)-1;
+
+    //Sequence
+    Streams_Finish_Component_ForTimeCode(Track->second.Sequence, Track->second.EditRate_Real?Track->second.EditRate_Real:Track->second.EditRate, Track->second.TrackID, Track->second.Origin, IsSourcePackage);
+}
+
+//---------------------------------------------------------------------------
+void File_Mxf::Streams_Finish_Track_ForAS11(const int128u TrackUID)
+{
+    tracks::iterator Track=Tracks.find(TrackUID);
+    if (Track==Tracks.end() || Track->second.Stream_Finish_Done)
+        return;
+
+    StreamKind_Last=Stream_Max;
+    StreamPos_Last=(size_t)-1;
+
+    //Sequence
+    Streams_Finish_Component_ForAS11(Track->second.Sequence, Track->second.EditRate_Real?Track->second.EditRate_Real:Track->second.EditRate, Track->second.TrackID, Track->second.Origin);
+
+    //TrackName
+    if (StreamKind_Last!=Stream_Max && !Track->second.TrackName.empty())
+        Fill(StreamKind_Last, StreamPos_Last, "Title", Track->second.TrackName);
+    
+    //Done
+    Track->second.Stream_Finish_Done=true;
+}
+
+//---------------------------------------------------------------------------
+void File_Mxf::Streams_Finish_Essence(int32u EssenceUID, int128u TrackUID)
 {
     essences::iterator Essence=Essences.find(EssenceUID);
     if (Essence==Essences.end() || Essence->second.Stream_Finish_Done)
@@ -2253,7 +2665,7 @@ void File_Mxf::Streams_Finish_Essence(int32u EssenceUID, const int128u& TrackUID
 }
 
 //---------------------------------------------------------------------------
-void File_Mxf::Streams_Finish_Descriptor(const int128u &DescriptorUID, const int128u &PackageUID)
+void File_Mxf::Streams_Finish_Descriptor(const int128u DescriptorUID, const int128u PackageUID)
 {
     descriptors::iterator Descriptor=Descriptors.find(DescriptorUID);
     if (Descriptor==Descriptors.end())
@@ -2692,7 +3104,7 @@ void File_Mxf::Streams_Finish_Descriptor(const int128u &DescriptorUID, const int
 }
 
 //---------------------------------------------------------------------------
-void File_Mxf::Streams_Finish_Locator(const int128u &DescriptorUID, const int128u &LocatorUID)
+void File_Mxf::Streams_Finish_Locator(const int128u DescriptorUID, const int128u LocatorUID)
 {
     descriptors::iterator Descriptor=Descriptors.find(DescriptorUID);
     if (Descriptor==Descriptors.end())
@@ -2780,7 +3192,7 @@ void File_Mxf::Streams_Finish_CommercialNames ()
 }
 
 //---------------------------------------------------------------------------
-void File_Mxf::Streams_Finish_Component(const int128u &ComponentUID, float64 EditRate, int32u TrackID, int64u Origin)
+void File_Mxf::Streams_Finish_Component(const int128u ComponentUID, float64 EditRate, int32u TrackID, int64u Origin)
 {
     components::iterator Component=Components.find(ComponentUID);
     if (Component==Components.end())
@@ -2836,6 +3248,14 @@ void File_Mxf::Streams_Finish_Component(const int128u &ComponentUID, float64 Edi
         if (Retrieve(StreamKind_Last, StreamPos_Last, "FrameRate").empty())
             Fill(StreamKind_Last, StreamPos_Last, "FrameRate", EditRate);
     }
+}
+
+//---------------------------------------------------------------------------
+void File_Mxf::Streams_Finish_Component_ForTimeCode(const int128u ComponentUID, float64 EditRate, int32u TrackID, int64u Origin, bool IsSourcePackage)
+{
+    components::iterator Component=Components.find(ComponentUID);
+    if (Component==Components.end())
+        return;
 
     //For the sequence, searching Structural componenents
     for (size_t Pos=0; Pos<Component->second.StructuralComponents.size(); Pos++)
@@ -2843,28 +3263,235 @@ void File_Mxf::Streams_Finish_Component(const int128u &ComponentUID, float64 Edi
         components::iterator Component2=Components.find(Component->second.StructuralComponents[Pos]);
         if (Component2!=Components.end() && Component2->second.TimeCode_StartTimecode!=(int64u)-1 && !Config->File_IsReferenced_Get())
         {
-            bool IsDuplicate=false;
+            /*bool IsDuplicate=false;
             for (size_t Pos2=0; Pos2<Count_Get(Stream_Other); Pos2++)
                 if (Ztring::ToZtring(TrackID)==Retrieve(Stream_Other, Pos2, "ID"))
                     IsDuplicate=true;
-            if (!IsDuplicate)
+            if (!IsDuplicate)*/
             {
                 //Note: Origin is not part of the StartTimecode for the first frame in the source package. From specs: "For a Timecode Track with a single Timecode Component and with origin N, where N greater than 0, the timecode value at the Zero Point of the Track equals the start timecode of the Timecode Component incremented by N units."
                 TimeCode TC(Component2->second.TimeCode_StartTimecode+Config->File_IgnoreFramesBefore, (int8u)Component2->second.TimeCode_RoundedTimecodeBase, Component2->second.TimeCode_DropFrame);
                 Stream_Prepare(Stream_Other);
-                Fill(Stream_Other, StreamPos_Last, Other_ID, TrackID);
+                Fill(Stream_Other, StreamPos_Last, Other_ID, Ztring::ToZtring(TrackID)+(IsSourcePackage?__T("-Source"):__T("-Material")));
                 Fill(Stream_Other, StreamPos_Last, Other_Type, "Time code");
                 Fill(Stream_Other, StreamPos_Last, Other_Format, "MXF TC");
-                //Fill(Stream_Other, StreamPos_Last, Other_MuxingMode, "Time code track");
                 Fill(Stream_Other, StreamPos_Last, Other_TimeCode_FirstFrame, TC.ToString().c_str());
-                Fill(Stream_Other, StreamPos_Last, Other_TimeCode_Settings, "Striped");
+                Fill(Stream_Other, StreamPos_Last, Other_TimeCode_Settings, IsSourcePackage?__T("Source Package"):__T("Material Package"));
+                Fill(Stream_Other, StreamPos_Last, Other_TimeCode_Striped, "Yes");
+            }
+
+            if ((!TimeCodeFromMaterialPackage && IsSourcePackage) || (TimeCodeFromMaterialPackage && !IsSourcePackage))
+            {
+                TimeCode_RoundedTimecodeBase=Component2->second.TimeCode_RoundedTimecodeBase;
+                TimeCode_StartTimecode=Component2->second.TimeCode_StartTimecode;
+                TimeCode_DropFrame=Component2->second.TimeCode_DropFrame;
+
+                DTS_Delay=((float64)TimeCode_StartTimecode)/TimeCode_RoundedTimecodeBase;
+                if (TimeCode_DropFrame)
+                {
+                    DTS_Delay*=1001;
+                    DTS_Delay/=1000;
+                }
+                FrameInfo.DTS=float64_int64s(DTS_Delay*1000000000);
+                #if MEDIAINFO_DEMUX
+                    Config->Demux_Offset_DTS_FromStream=FrameInfo.DTS;
+                #endif //MEDIAINFO_DEMUX
             }
         }
     }
 }
 
 //---------------------------------------------------------------------------
-void File_Mxf::Streams_Finish_Identification (const int128u &IdentificationUID)
+void File_Mxf::Streams_Finish_Component_ForAS11(const int128u ComponentUID, float64 EditRate, int32u TrackID, int64u Origin)
+{
+    components::iterator Component=Components.find(ComponentUID);
+    if (Component==Components.end())
+        return;
+
+    //Computing frame rate
+    int64u TC_Temp=0;
+    int8u FrameRate_TempI;
+    bool DropFrame_Temp;
+    if (TimeCode_RoundedTimecodeBase && TimeCode_StartTimecode!=(int64u)-1 && TimeCode_RoundedTimecodeBase<256)
+    {
+        TC_Temp=TimeCode_StartTimecode;
+        FrameRate_TempI=(int8u)TimeCode_RoundedTimecodeBase;
+        DropFrame_Temp=TimeCode_DropFrame;
+    }
+    else
+    {
+        TC_Temp=0;
+        Ztring FrameRateS=Retrieve(Stream_Video, 0, Video_FrameRate);
+        int32u FrameRate_TempI32=float32_int32s(FrameRateS.To_float32());
+        if (FrameRate_TempI32 && FrameRate_TempI32<256)
+        {
+            FrameRate_TempI=(int8u)FrameRate_TempI32;
+            float32 FrameRateF=FrameRateS.To_float32();
+            float FrameRateF_Min=((float32)FrameRate_TempI)/((float32)1.002);
+            float FrameRateF_Max=(float32)FrameRate_TempI;
+            if (FrameRateF>=FrameRateF_Min && FrameRateF<FrameRateF_Max)
+                DropFrame_Temp=true;
+            else
+                DropFrame_Temp=false;
+        }
+        else
+        {
+            FrameRate_TempI=25;
+            DropFrame_Temp=false;
+        }
+    }
+
+    //For the sequence, searching Structural componenents
+    int64u Duration_CurrentPos=0;
+    int64u Duration_Programme=0;
+    for (size_t Pos=0; Pos<Component->second.StructuralComponents.size(); Pos++)
+    {
+        // AS-11
+        dmsegments::iterator DMSegment=DMSegments.find(Component->second.StructuralComponents[Pos]);
+        if (DMSegment!=DMSegments.end())
+        {
+            as11s::iterator AS11=AS11s.find(DMSegment->second.Framework);
+            if (AS11!=AS11s.end())
+            {
+                if (StreamKind_Last==Stream_Max)
+                {
+                    Stream_Prepare(Stream_Other);
+                    Fill(Stream_Other, StreamPos_Last, Other_ID, TrackID);
+                    Fill(Stream_Other, StreamPos_Last, Other_Type, "Metadata");
+                    if (AS11->second.Type==as11::Type_Segmentation)
+                    {
+                        if (AS11->second.PartTotal!=(int16u)-1)
+                            Fill(Stream_Other, StreamPos_Last, "PartTotal", AS11->second.PartTotal);
+                    }
+                }
+                
+                switch (AS11->second.Type)
+                {
+                    case as11::Type_Core:
+                                                    Fill(Stream_Other, StreamPos_Last, "Format", "AS-11 Core");
+                                                    Fill(Stream_Other, StreamPos_Last, "SerieTitle", AS11->second.SerieTitle);
+                                                    Fill(Stream_Other, StreamPos_Last, "ProgrammeTitle", AS11->second.ProgrammeTitle);
+                                                    Fill(Stream_Other, StreamPos_Last, "EpisodeTitleNumber", AS11->second.EpisodeTitleNumber);
+                                                    Fill(Stream_Other, StreamPos_Last, "ShimName", AS11->second.ShimName);
+                                                    if (AS11->second.AudioTrackLayout<Mxf_AS11_AudioTrackLayout_Count)
+                                                    {
+                                                        Fill(Stream_Other, StreamPos_Last, "AudioTrackLayout", Mxf_AS11_AudioTrackLayout[AS11->second.AudioTrackLayout]);
+
+                                                        //Per track
+                                                        const mxf_as11_audiotracklayout_assignment &ChP=Mxf_AS11_AudioTrackLayout_ChannelPositions[AS11->second.AudioTrackLayout];
+                                                        const mxf_as11_audiotracklayout_assignment &ChL=Mxf_AS11_AudioTrackLayout_ChannelLayout[AS11->second.AudioTrackLayout];
+                                                        if (Count_Get(Stream_Audio)>=ChP.Count)
+                                                            for (size_t Pos=0; Pos<ChP.Count; ++Pos)
+                                                            {
+                                                                if (ChP.Assign[Pos])
+                                                                    Fill(Stream_Audio, Pos, Audio_ChannelPositions, ChP.Assign[Pos]);
+                                                                if (ChL.Assign[Pos])
+                                                                    Fill(Stream_Audio, Pos, Audio_ChannelLayout, ChL.Assign[Pos]);
+                                                                Fill(Stream_Audio, Pos, Audio_ChannelLayoutID, Mxf_AS11_AudioTrackLayout[AS11->second.AudioTrackLayout]);
+                                                            }
+                                                    }
+                                                    Fill(Stream_Other, StreamPos_Last, "PrimaryAudioLanguage", AS11->second.PrimaryAudioLanguage);
+                                                    //(*Stream_More)[Stream_Other][StreamPos_Last](Ztring().From_Local("PrimaryAudioLanguage"), Info_Options)=__T("N NT");
+                                                    //if (MediaInfoLib::Config.Iso639_Find(AS11->second.PrimaryAudioLanguage).empty())
+                                                    //    Fill(Stream_Other, StreamPos_Last, "PrimaryAudioLanguage/String", MediaInfoLib::Config.Iso639_Translate(AS11->second.PrimaryAudioLanguage));
+                                                    if (AS11->second.ClosedCaptionsPresent<2)
+                                                        Fill(Stream_Other, StreamPos_Last, "ClosedCaptionsPresent", AS11->second.ClosedCaptionsPresent?"Yes":"No");
+                                                    if (AS11->second.ClosedCaptionsType<Mxf_AS11_ClosedCaptionType_Count)
+                                                        Fill(Stream_Other, StreamPos_Last, "ClosedCaptionType", Mxf_AS11_ClosedCaptionType[AS11->second.ClosedCaptionsType]);
+                                                    Fill(Stream_Other, StreamPos_Last, "ClosedCaptionsLanguage", AS11->second.ClosedCaptionsLanguage);
+                                                    break;
+                    case as11::Type_Segmentation:
+                                                    Fill(Stream_Other, StreamPos_Last, "Format", "AS-11 Segmentation", Unlimited, true, true);
+                                                    if (AS11->second.PartNumber!=(int16u)-1 && AS11->second.PartTotal!=(int16u)-1)
+                                                    {
+                                                        string S;
+                                                        S+=TimeCode(TC_Temp+Duration_CurrentPos, FrameRate_TempI, DropFrame_Temp).ToString();
+                                                        if (DMSegment->second.Duration!=(int64u)-1)
+                                                        {
+                                                            S+=" + ";
+                                                            S+=TimeCode(DMSegment->second.Duration, FrameRate_TempI, DropFrame_Temp).ToString();
+                                                            S+=" = ";
+                                                            Duration_CurrentPos+=DMSegment->second.Duration;
+                                                            S+=TimeCode(TC_Temp+Duration_CurrentPos, FrameRate_TempI, DropFrame_Temp).ToString();
+                                                            Duration_Programme+=DMSegment->second.Duration;
+                                                        }
+                                                        Fill(Stream_Other, StreamPos_Last, Ztring::ToZtring(AS11->second.PartNumber).To_UTF8().c_str(), S);
+                                                    }
+                                                    break;
+                    case as11::Type_UKDPP:
+                                                    Fill(Stream_Other, StreamPos_Last, "Format", "AS-11 UKDPP");
+                                                    Fill(Stream_Other, StreamPos_Last, "ProductionNumber", AS11->second.ProductionNumber);
+                                                    Fill(Stream_Other, StreamPos_Last, "Synopsis", AS11->second.Synopsis);
+                                                    Fill(Stream_Other, StreamPos_Last, "Originator", AS11->second.Originator);
+                                                    if (AS11->second.CopyrightYear!=(int16u)-1)
+                                                        Fill(Stream_Other, StreamPos_Last, "CopyrightYear", AS11->second.CopyrightYear);
+                                                    Fill(Stream_Other, StreamPos_Last, "OtherIdentifier", AS11->second.OtherIdentifier);
+                                                    Fill(Stream_Other, StreamPos_Last, "OtherIdentifierType", AS11->second.OtherIdentifierType);
+                                                    Fill(Stream_Other, StreamPos_Last, "Genre", AS11->second.Genre);
+                                                    Fill(Stream_Other, StreamPos_Last, "Distributor", AS11->second.Distributor);
+                                                    Fill(Stream_Other, StreamPos_Last, "PictureRatio", Ztring::ToZtring(AS11->second.PictureRatio_N)+__T(':')+Ztring::ToZtring(AS11->second.PictureRatio_D));
+                                                    if (AS11->second.ThreeD!=(int8u)-1)
+                                                        Fill(Stream_Other, StreamPos_Last, "3D", AS11->second.ThreeD?__T("Yes"):__T("No"));
+                                                    if (AS11->second.ThreeDType<Mxf_AS11_3D_Type_Count)
+                                                        Fill(Stream_Other, StreamPos_Last, "3DType", Mxf_AS11_3D_Type[AS11->second.ThreeDType]);
+                                                    if (AS11->second.ProductPlacement!=(int8u)-1)
+                                                        Fill(Stream_Other, StreamPos_Last, "ProductPlacement", AS11->second.ProductPlacement?__T("Yes"):__T("No"));
+                                                    if (AS11->second.ThreeDType<Mxf_AS11_FpaPass_Count)
+                                                        Fill(Stream_Other, StreamPos_Last, "FpaPass", Mxf_AS11_FpaPass[AS11->second.FpaPass]);
+                                                    Fill(Stream_Other, StreamPos_Last, "FpaManufacturer", AS11->second.FpaManufacturer);
+                                                    Fill(Stream_Other, StreamPos_Last, "FpaVersion", AS11->second.FpaVersion);
+                                                    Fill(Stream_Other, StreamPos_Last, "VideoComments", AS11->second.VideoComments);
+                                                    if (AS11->second.SecondaryAudioLanguage!=__T("zxx"))
+                                                        Fill(Stream_Other, StreamPos_Last, "SecondaryAudioLanguage", AS11->second.SecondaryAudioLanguage);
+                                                    if (AS11->second.TertiaryAudioLanguage!=__T("zxx"))
+                                                        Fill(Stream_Other, StreamPos_Last, "TertiaryAudioLanguage", AS11->second.TertiaryAudioLanguage);
+                                                    if (AS11->second.AudioLoudnessStandard<Mxf_AS11_AudioLoudnessStandard_Count)
+                                                        Fill(Stream_Other, StreamPos_Last, "AudioLoudnessStandard", Mxf_AS11_AudioLoudnessStandard[AS11->second.AudioLoudnessStandard]);
+                                                    Fill(Stream_Other, StreamPos_Last, "AudioComments", AS11->second.AudioComments);
+                                                    if (AS11->second.LineUpStart!=(int64u)-1)
+                                                        Fill(Stream_Other, StreamPos_Last, "LineUpStart", Ztring().From_UTF8(TimeCode(TC_Temp+AS11->second.LineUpStart, FrameRate_TempI, DropFrame_Temp).ToString()));
+                                                    if (AS11->second.IdentClockStart!=(int64u)-1)
+                                                        Fill(Stream_Other, StreamPos_Last, "IdentClockStart", Ztring().From_UTF8(TimeCode(TC_Temp+AS11->second.IdentClockStart, FrameRate_TempI, DropFrame_Temp).ToString()));
+                                                    if (AS11->second.TotalNumberOfParts!=(int16u)-1)
+                                                        Fill(Stream_Other, StreamPos_Last, "TotalNumberOfParts", AS11->second.TotalNumberOfParts);
+                                                    if (AS11->second.TotalProgrammeDuration!=(int64u)-1)
+                                                        Fill(Stream_Other, StreamPos_Last, "TotalProgrammeDuration", Ztring().From_UTF8(TimeCode(AS11->second.TotalProgrammeDuration, FrameRate_TempI, DropFrame_Temp).ToString()));
+                                                    if (AS11->second.AudioDescriptionPresent!=(int8u)-1)
+                                                        Fill(Stream_Other, StreamPos_Last, "AudioDescriptionPresent", AS11->second.AudioDescriptionPresent?__T("Yes"):__T("No"));
+                                                    if (AS11->second.AudioDescriptionType<Mxf_AS11_AudioDescriptionType_Count)
+                                                        Fill(Stream_Other, StreamPos_Last, "AudioDescriptionType", Mxf_AS11_AudioLoudnessStandard[AS11->second.AudioDescriptionType]);
+                                                    if (AS11->second.OpenCaptionsPresent!=(int8u)-1)
+                                                        Fill(Stream_Other, StreamPos_Last, "OpenCaptionsPresent", AS11->second.OpenCaptionsPresent?__T("Yes"):__T("No"));
+                                                    if (AS11->second.OpenCaptionsType<Mxf_AS11_OpenCaptionsType_Count)
+                                                        Fill(Stream_Other, StreamPos_Last, "OpenCaptionsType", Mxf_AS11_OpenCaptionsType[AS11->second.OpenCaptionsType]);
+                                                    Fill(Stream_Other, StreamPos_Last, "OpenCaptionsLanguage", AS11->second.OpenCaptionsLanguage);
+                                                    if (AS11->second.SigningPresent<Mxf_AS11_SigningPresent_Count)
+                                                        Fill(Stream_Other, StreamPos_Last, "SigningPresent", Mxf_AS11_SigningPresent[AS11->second.SigningPresent]);
+                                                    if (AS11->second.SignLanguage<Mxf_AS11_SignLanguage_Count)
+                                                        Fill(Stream_Other, StreamPos_Last, "SignLanguage", Mxf_AS11_SignLanguage[AS11->second.SignLanguage]);
+                                                    //if (AS11->second.CompletionDate!=(int64u)-1)
+                                                    //    Fill(Stream_Other, StreamPos_Last, "CompletionDate", Ztring::ToZtring(AS11->second.CompletionDate)+__T(" (TODO: Timestamp translation)")); //TODO: Timestamp
+                                                    if (AS11->second.TextlessElementsExist!=(int8u)-1)
+                                                        Fill(Stream_Other, StreamPos_Last, "TextlessElementsExist", AS11->second.TextlessElementsExist?__T("Yes"):__T("No"));
+                                                    if (AS11->second.ProgrammeHasText!=(int8u)-1)
+                                                        Fill(Stream_Other, StreamPos_Last, "ProgrammeHasText", AS11->second.ProgrammeHasText?__T("Yes"):__T("No"));
+                                                    Fill(Stream_Other, StreamPos_Last, "ProgrammeTextLanguage", AS11->second.ProgrammeTextLanguage);
+                                                    Fill(Stream_Other, StreamPos_Last, "ContactEmail", AS11->second.ContactEmail);
+                                                    Fill(Stream_Other, StreamPos_Last, "ContactTelephoneNumber", AS11->second.ContactTelephoneNumber);
+                                                    break;
+                    default: ;
+                }
+            }
+            else if (DMSegment->second.IsAs11SegmentFiller && DMSegment->second.Duration!=(int64u)-1)
+                Duration_CurrentPos+=DMSegment->second.Duration;
+        }
+    }
+    if (Duration_Programme)
+        Fill(Stream_Other, StreamPos_Last, "Total Programme Duration", TimeCode(Duration_Programme, FrameRate_TempI, DropFrame_Temp).ToString());
+}
+
+//---------------------------------------------------------------------------
+void File_Mxf::Streams_Finish_Identification (const int128u IdentificationUID)
 {
     identifications::iterator Identification=Identifications.find(IdentificationUID);
     if (Identification==Identifications.end())
@@ -2915,6 +3542,9 @@ void File_Mxf::Read_Buffer_Init()
          Demux_UnpacketizeContainer=Config->Demux_Unpacketize_Get();
          Demux_Rate=Config->Demux_Rate_Get();
     #endif //MEDIAINFO_DEMUX
+
+    //Config
+    TimeCodeFromMaterialPackage=Config->File_Mxf_TimeCodeFromMaterialPackage_Get();
 }
 
 //---------------------------------------------------------------------------
@@ -3278,7 +3908,6 @@ void File_Mxf::Read_Buffer_Unsynched()
     }
     if (Partitions_IsCalculatingSdtiByteCount)
         Partitions_IsCalculatingSdtiByteCount=false;
-    Essences_FirstEssence_Parsed=false;
 
     #if MEDIAINFO_SEEK
         IndexTables_Pos=0;
@@ -4254,6 +4883,7 @@ void File_Mxf::Data_Parse()
     ELEMENT(TerminatingFiller,                                  "Terminating Filler")
     ELEMENT(XmlDocumentText,                                    "XML Document Text")
     ELEMENT(SubDescriptors,                                     "Sub Descriptors")
+    ELEMENT(DMSegment_Filler,                                   "Descriptive Metadata Segment, Filler")
     ELEMENT(Sequence,                                           "Sequence")
     ELEMENT(SourceClip,                                         "Source Clip")
     ELEMENT(TimecodeComponent,                                  "Timecode Component")
@@ -4329,9 +4959,12 @@ void File_Mxf::Data_Parse()
         if (0) {}
         ELEMENT(SystemScheme1,                                  "SystemScheme1")
     }
+    ELEMENT(AS11_AAF_Core,                                      "AS-11 core metadata framework")
+    ELEMENT(AS11_AAF_Segmentation,                              "AS-11 segmentation metadata framework")
+    ELEMENT(AS11_AAF_UKDPP,                                     "AS-11 UK DPP metadata framework")
     ELEMENT(DMScheme1,                                          "Descriptive Metadata Scheme 1") //SMPTE 380M
-    ELEMENT(Omneon_010201010100,                                "Omneon (010201010100)")
-    ELEMENT(Omneon_010201020100,                                "Omneon (010201020100)")
+    ELEMENT(Omneon_010201010100,                                "Omneon .01.02.01.01.01.00")
+    ELEMENT(Omneon_010201020100,                                "Omneon .01.02.01.02.01.00")
     else if (Code_Compare1==Elements::GenericContainer_Aaf1
           && ((Code_Compare2)&0xFFFFFF00)==(Elements::GenericContainer_Aaf2&0xFFFFFF00)
           && (Code_Compare3==Elements::GenericContainer_Aaf3
@@ -4344,6 +4977,8 @@ void File_Mxf::Data_Parse()
         #if MEDIAINFO_DEMUX || MEDIAINFO_SEEK
         if (!Essences_FirstEssence_Parsed)
         {
+            Streams_Finish_Preface_ForTimeCode(Preface_Current); //Configuring DTS_Delay
+
             if (Descriptors.size()==1 && Descriptors.begin()->second.StreamKind==Stream_Audio)
             {
                 //Configuring bitrate is not available in descriptor
@@ -5041,6 +5676,7 @@ void File_Mxf::DMSegment()
 {
     switch(Code2)
     {
+        ELEMENT(0202, DMSegment_Duration,                       "Duration")
         ELEMENT(6101, DMSegment_DMFramework,                    "DM Framework")
         ELEMENT(6102, DMSegment_TrackIDs,                       "Track IDs")
         default: StructuralComponent();
@@ -5554,6 +6190,20 @@ void File_Mxf::RandomIndexMetadata()
 }
 
 //---------------------------------------------------------------------------
+void File_Mxf::DMSegment_Filler()
+{
+    switch(Code2)
+    {
+        ELEMENT(0202, DMSegment_Duration,                       "Duration")
+        default: StructuralComponent();
+    }
+
+    FILLING_BEGIN();
+        DMSegments[InstanceUID].IsAs11SegmentFiller=true;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
 void File_Mxf::Sequence()
 {
     switch(Code2)
@@ -5634,6 +6284,148 @@ void File_Mxf::SystemScheme1()
         #endif //MEDIAINFO_TRACE
         default: InterchangeObject();
     }
+}
+
+//---------------------------------------------------------------------------
+//
+void File_Mxf::AS11_AAF_Core()
+{
+    if (Code2>=0x8000)
+    {
+        // Not a short code
+        std::map<int16u, int128u>::iterator Primer_Value=Primer_Values.find(Code2);
+        if (Primer_Value!=Primer_Values.end())
+        {
+            int32u Code_Compare1=Primer_Value->second.hi>>32;
+            int32u Code_Compare2=(int32u)Primer_Value->second.hi;
+            int32u Code_Compare3=Primer_Value->second.lo>>32;
+            int32u Code_Compare4=(int32u)Primer_Value->second.lo;
+            if(0);
+            ELEMENT_UUID(AS11_Core_SerieTitle,                  "Serie Title")
+            ELEMENT_UUID(AS11_Core_ProgrammeTitle,              "Programme Title")
+            ELEMENT_UUID(AS11_Core_EpisodeTitleNumber,          "Episode Title Number")
+            ELEMENT_UUID(AS11_Core_ShimName,                    "Shim Name")
+            ELEMENT_UUID(AS11_Core_AudioTrackLayout,            "Audio Track Layout")
+            ELEMENT_UUID(AS11_Core_PrimaryAudioLanguage,        "Primary Audio Language")
+            ELEMENT_UUID(AS11_Core_ClosedCaptionsPresent,       "Closed Captions Present")
+            ELEMENT_UUID(AS11_Core_08,                          ".08")
+            ELEMENT_UUID(AS11_Core_ClosedCaptionsType,          "Closed Captions Type")
+            ELEMENT_UUID(AS11_Core_ClosedCaptionsLanguage,      "Closed Captions Language")
+            else
+            {
+                Element_Info1(Ztring().From_UUID(Primer_Value->second));
+                Skip_XX(Length2,                                "Data");
+            }
+
+            return;
+        }
+    }
+
+    StructuralComponent();
+
+    if (Code2==0x3C0A) //InstanceIUD
+        AS11s[InstanceUID].Type=as11::Type_Core;
+}
+
+//---------------------------------------------------------------------------
+//
+void File_Mxf::AS11_AAF_Segmentation()
+{
+    if (Code2>=0x8000)
+    {
+        // Not a short code
+        std::map<int16u, int128u>::iterator Primer_Value=Primer_Values.find(Code2);
+        if (Primer_Value!=Primer_Values.end())
+        {
+            int32u Code_Compare1=Primer_Value->second.hi>>32;
+            int32u Code_Compare2=(int32u)Primer_Value->second.hi;
+            int32u Code_Compare3=Primer_Value->second.lo>>32;
+            int32u Code_Compare4=(int32u)Primer_Value->second.lo;
+            if(0);
+            ELEMENT_UUID(AS11_Segment_PartNumber,               "Part Number")
+            ELEMENT_UUID(AS11_Segment_PartTotal,                "Part Total")
+            else
+            {
+                Element_Info1(Ztring().From_UUID(Primer_Value->second));
+                Skip_XX(Length2,                                "Data");
+            }
+
+            return;
+        }
+    }
+
+    StructuralComponent();
+
+    if (Code2==0x3C0A) //InstanceIUD
+        AS11s[InstanceUID].Type=as11::Type_Segmentation;
+}
+
+//---------------------------------------------------------------------------
+//
+void File_Mxf::AS11_AAF_UKDPP()
+{
+    if (Code2>=0x8000)
+    {
+        // Not a short code
+        std::map<int16u, int128u>::iterator Primer_Value=Primer_Values.find(Code2);
+        if (Primer_Value!=Primer_Values.end())
+        {
+            int32u Code_Compare1=Primer_Value->second.hi>>32;
+            int32u Code_Compare2=(int32u)Primer_Value->second.hi;
+            int32u Code_Compare3=Primer_Value->second.lo>>32;
+            int32u Code_Compare4=(int32u)Primer_Value->second.lo;
+            if(0);
+            ELEMENT_UUID(AS11_UKDPP_ProductionNumber,           "Production Number")
+            ELEMENT_UUID(AS11_UKDPP_Synopsis,                   "Synopsis")
+            ELEMENT_UUID(AS11_UKDPP_Originator,                 "Originator")
+            ELEMENT_UUID(AS11_UKDPP_CopyrightYear,              "Copyright Year")
+            ELEMENT_UUID(AS11_UKDPP_OtherIdentifier,            "Other Identifier")
+            ELEMENT_UUID(AS11_UKDPP_OtherIdentifierType,        "Other Identifier Type")
+            ELEMENT_UUID(AS11_UKDPP_Genre,                      "Genre")
+            ELEMENT_UUID(AS11_UKDPP_Distributor,                "Distributor")
+            ELEMENT_UUID(AS11_UKDPP_PictureRatio,               "Picture Ratio")
+            ELEMENT_UUID(AS11_UKDPP_3D,                         "3D")
+            ELEMENT_UUID(AS11_UKDPP_3DType,                     "3D Type")
+            ELEMENT_UUID(AS11_UKDPP_ProductPlacement,           "Product Placement")
+            ELEMENT_UUID(AS11_UKDPP_FpaPass,                    "FPA Pass")
+            ELEMENT_UUID(AS11_UKDPP_FpaManufacturer,            "FPA Manufacturer")
+            ELEMENT_UUID(AS11_UKDPP_FpaVersion,                 "FPA Version")
+            ELEMENT_UUID(AS11_UKDPP_VideoComments,              "Video Comments")
+            ELEMENT_UUID(AS11_UKDPP_SecondaryAudioLanguage,     "Secondary Audio Language")
+            ELEMENT_UUID(AS11_UKDPP_TertiaryAudioLanguage,      "Tertiary Audio Language")
+            ELEMENT_UUID(AS11_UKDPP_AudioLoudnessStandard,      "Audio Loudness Standard")
+            ELEMENT_UUID(AS11_UKDPP_AudioComments,              "Audio Comments")
+            ELEMENT_UUID(AS11_UKDPP_LineUpStart,                "Line Up Start")
+            ELEMENT_UUID(AS11_UKDPP_IdentClockStart,            "Ident Clock Start")
+            ELEMENT_UUID(AS11_UKDPP_TotalNumberOfParts,         "Total Number Of Parts")
+            ELEMENT_UUID(AS11_UKDPP_TotalProgrammeDuration,     "Total Programme Duration")
+            ELEMENT_UUID(AS11_UKDPP_AudioDescriptionPresent,    "Audio Description Present")
+            ELEMENT_UUID(AS11_UKDPP_AudioDescriptionType,       "Audio Description Type")
+            ELEMENT_UUID(AS11_UKDPP_OpenCaptionsPresent,        "Open Captions Present")
+            ELEMENT_UUID(AS11_UKDPP_OpenCaptionsType,           "Open Captions Type")
+            ELEMENT_UUID(AS11_UKDPP_OpenCaptionsLanguage,       "Open Captions Language")
+            ELEMENT_UUID(AS11_UKDPP_SigningPresent,             "Signing Present")
+            ELEMENT_UUID(AS11_UKDPP_SignLanguage,               "Sign Language")
+            ELEMENT_UUID(AS11_UKDPP_CompletionDate,             "Completion Date")
+            ELEMENT_UUID(AS11_UKDPP_TextlessElementsExist,      "Textless Elements Exist")
+            ELEMENT_UUID(AS11_UKDPP_ProgrammeHasText,           "Programme Has Text")
+            ELEMENT_UUID(AS11_UKDPP_ProgrammeTextLanguage,      "Programme Text Language")
+            ELEMENT_UUID(AS11_UKDPP_ContactEmail,               "Contact Email")
+            ELEMENT_UUID(AS11_UKDPP_ContactTelephoneNumber,     "Contact Telephone Number")
+            else
+            {
+                Element_Info1(Ztring().From_UUID(Primer_Value->second));
+                Skip_XX(Length2,                                "Data");
+            }
+
+            return;
+        }
+    }
+
+    StructuralComponent();
+
+    if (Code2==0x3C0A) //InstanceIUD
+        AS11s[InstanceUID].Type=as11::Type_UKDPP;
 }
 
 //---------------------------------------------------------------------------
@@ -6447,8 +7239,8 @@ void File_Mxf::Omneon_010201010100()
     //Parsing
     switch(Code2)
     {
-        ELEMENT(8001, Omneon_010201010100_8001,                 "Omneon (80.01)")
-        ELEMENT(8003, Omneon_010201010100_8003,                 "Omneon (80.03)")
+        ELEMENT(8001, Omneon_010201010100_8001,                 "Omneon .80.01")
+        ELEMENT(8003, Omneon_010201010100_8003,                 "Omneon .80.03")
         default: GenerationInterchangeObject();
     }
 }
@@ -6459,11 +7251,11 @@ void File_Mxf::Omneon_010201020100()
     //Parsing
     switch(Code2)
     {
-        ELEMENT(8002, Omneon_010201020100_8002,                 "Omneon (80.02)")
-        ELEMENT(8003, Omneon_010201020100_8003,                 "Omneon (80.03)")
-        ELEMENT(8004, Omneon_010201020100_8004,                 "Omneon (80.04)")
-        ELEMENT(8005, Omneon_010201020100_8005,                 "Omneon (80.05)")
-        ELEMENT(8006, Omneon_010201020100_8006,                 "Omneon (80.06)")
+        ELEMENT(8002, Omneon_010201020100_8002,                 "Omneon .80.02")
+        ELEMENT(8003, Omneon_010201020100_8003,                 "Omneon .80.03")
+        ELEMENT(8004, Omneon_010201020100_8004,                 "Omneon .80.04")
+        ELEMENT(8005, Omneon_010201020100_8005,                 "Omneon .80.05")
+        ELEMENT(8006, Omneon_010201020100_8006,                 "Omneon .80.06")
         default: GenerationInterchangeObject();
     }
 }
@@ -6697,6 +7489,19 @@ void File_Mxf::ContentStorage_EssenceContainerData()
     {
         Skip_UUID(                                              "EssenceContainer");
     }
+}
+
+//---------------------------------------------------------------------------
+// 0x0202
+void File_Mxf::DMSegment_Duration()
+{
+    //Parsing
+    int64u Data;
+    Get_B8 (Data,                                               "Data"); Element_Info1(Data); //units of edit rate
+
+    FILLING_BEGIN();
+        DMSegments[InstanceUID].Duration=Data;
+    FILLING_END();
 }
 
 //---------------------------------------------------------------------------
@@ -8984,6 +9789,647 @@ void File_Mxf::WaveAudioDescriptor_ChannelAssignment()
 }
 
 //---------------------------------------------------------------------------
+// AAF
+void File_Mxf::AS11_Core_SerieTitle()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].SerieTitle=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// AAF
+void File_Mxf::AS11_Core_ProgrammeTitle()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].ProgrammeTitle=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// AAF
+void File_Mxf::AS11_Core_EpisodeTitleNumber()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].EpisodeTitleNumber=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// AAF
+void File_Mxf::AS11_Core_ShimName()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].ShimName=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// AAF
+void File_Mxf::AS11_Core_AudioTrackLayout()
+{
+    //Parsing
+    int8u Value;
+    Get_B1 (Value,                                               "Value"); Element_Info1C(Value<Mxf_AS11_AudioTrackLayout_Count, Mxf_AS11_AudioTrackLayout[Value]);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].AudioTrackLayout=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// AAF
+void File_Mxf::AS11_Core_PrimaryAudioLanguage()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].PrimaryAudioLanguage=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// AAF
+void File_Mxf::AS11_Core_ClosedCaptionsPresent()
+{
+    int8u Value;
+    Get_B1 (Value,                                              "Value"); Element_Info1(Value?"Yes":"No");
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].ClosedCaptionsPresent=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// AAF
+void File_Mxf::AS11_Core_08()
+{
+    //Parsing
+    Info_B1(Value,                                              "Value"); Element_Info1(Value);
+}
+
+//---------------------------------------------------------------------------
+// AAF
+void File_Mxf::AS11_Core_ClosedCaptionsType()
+{
+    //Parsing
+    if (Length2==2)
+    {
+        //Found in 1 file, what is it?
+        Info_B1(Value1,                                         "Value 1"); Element_Info1(Value1);
+        Info_B1(Value2,                                         "Value 2"); Element_Info1(Value2);
+        Element_Info1("2 bytes in this file vs 1 byte in specs?");
+        return;
+    }
+        
+    int8u Value;
+    Get_B1 (Value,                                              "Value"); Element_Info1C(Value<Mxf_AS11_ClosedCaptionType_Count, Mxf_AS11_ClosedCaptionType[Value]);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].ClosedCaptionsType=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// AAF
+void File_Mxf::AS11_Core_ClosedCaptionsLanguage()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].ClosedCaptionsLanguage=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// AAF
+void File_Mxf::AS11_Segment_PartNumber()
+{
+    //Parsing
+    int16u Value;
+    Get_B2 (Value,                                              "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+         AS11s[InstanceUID].PartNumber=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// AAF
+void File_Mxf::AS11_Segment_PartTotal()
+{
+    //Parsing
+    int16u Value;
+    Get_B2 (Value,                                              "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+         AS11s[InstanceUID].PartTotal=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101010100
+void File_Mxf::AS11_UKDPP_ProductionNumber()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].ProductionNumber=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101010200
+void File_Mxf::AS11_UKDPP_Synopsis()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].Synopsis=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101010300
+void File_Mxf::AS11_UKDPP_Originator()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].Originator=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101010400
+void File_Mxf::AS11_UKDPP_CopyrightYear()
+{
+    //Parsing
+    int16u Value;
+    Get_B2 (Value,                                              "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].CopyrightYear=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101010500
+void File_Mxf::AS11_UKDPP_OtherIdentifier()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].OtherIdentifier=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101010600
+void File_Mxf::AS11_UKDPP_OtherIdentifierType()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].OtherIdentifierType=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101010700
+void File_Mxf::AS11_UKDPP_Genre()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].Genre=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101010800
+void File_Mxf::AS11_UKDPP_Distributor()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].Distributor=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101010900
+void File_Mxf::AS11_UKDPP_PictureRatio()
+{
+    //Parsing
+    int32u Numerator, Denominator;
+    Get_B4 (Numerator,                                          "Numerator");
+    Get_B4 (Denominator,                                        "Denominator");
+    Element_Info1(Ztring::ToZtring(Numerator)+__T(':')+Ztring::ToZtring(Denominator));
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].PictureRatio_N=Numerator;
+        AS11s[InstanceUID].PictureRatio_D=Denominator;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101010A00
+void File_Mxf::AS11_UKDPP_3D()
+{
+    int8u Value;
+    Get_B1 (Value,                                              "Value"); Element_Info1(Value?"Yes":"No");
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].ThreeD=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101010B00
+void File_Mxf::AS11_UKDPP_3DType()
+{
+    //Parsing
+    int8u Value;
+    Get_B1 (Value,                                              "Value"); Element_Info1C(Value<Mxf_AS11_3D_Type_Count, Mxf_AS11_3D_Type[Value]);
+
+    FILLING_BEGIN();
+        if (Value<Mxf_AS11_3D_Type_Count)
+            AS11s[InstanceUID].ThreeDType=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101010C00
+void File_Mxf::AS11_UKDPP_ProductPlacement()
+{
+    int8u Value;
+    Get_B1 (Value,                                              "Value"); Element_Info1(Value?"Yes":"No");
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].ProductPlacement=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101010D00
+void File_Mxf::AS11_UKDPP_FpaPass()
+{
+    //Parsing
+    int8u Value;
+    Get_B1 (Value,                                              "Value"); Element_Info1C(Value<Mxf_AS11_FpaPass_Count, Mxf_AS11_FpaPass[Value]);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].FpaPass=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101010E00
+void File_Mxf::AS11_UKDPP_FpaManufacturer()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].FpaManufacturer=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101010F00
+void File_Mxf::AS11_UKDPP_FpaVersion()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].FpaVersion=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101011000
+void File_Mxf::AS11_UKDPP_VideoComments()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].VideoComments=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101011100
+void File_Mxf::AS11_UKDPP_SecondaryAudioLanguage()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+         AS11s[InstanceUID].SecondaryAudioLanguage=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+void File_Mxf::AS11_UKDPP_TertiaryAudioLanguage()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+         AS11s[InstanceUID].TertiaryAudioLanguage=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101011300
+void File_Mxf::AS11_UKDPP_AudioLoudnessStandard()
+{
+    //Parsing
+    int8u Value;
+    Get_B1 (Value,                                              "Value"); Element_Info1C(Value<Mxf_AS11_AudioLoudnessStandard_Count, Mxf_AS11_AudioLoudnessStandard[Value]);
+
+    FILLING_BEGIN();
+         AS11s[InstanceUID].AudioLoudnessStandard=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101011400
+void File_Mxf::AS11_UKDPP_AudioComments()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].AudioComments=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101011500
+void File_Mxf::AS11_UKDPP_LineUpStart()
+{
+    //Parsing
+    int64u Value;
+    Get_B8 (Value,                                              "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].LineUpStart=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101011600
+void File_Mxf::AS11_UKDPP_IdentClockStart()
+{
+    //Parsing
+    int64u Value;
+    Get_B8 (Value,                                              "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].IdentClockStart=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101011700
+void File_Mxf::AS11_UKDPP_TotalNumberOfParts()
+{
+    //Parsing
+    int16u Value;
+    Get_B2 (Value,                                              "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].TotalNumberOfParts=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101011800
+void File_Mxf::AS11_UKDPP_TotalProgrammeDuration()
+{
+    //Parsing
+    int64u Value;
+    Get_B8 (Value,                                              "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].TotalProgrammeDuration=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101011900
+void File_Mxf::AS11_UKDPP_AudioDescriptionPresent()
+{
+    //Parsing
+    int8u Value;
+    Get_B1 (Value,                                              "Value"); Element_Info1(Value?"Yes":"No");
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].AudioDescriptionPresent=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101011A00
+void File_Mxf::AS11_UKDPP_AudioDescriptionType()
+{
+    //Parsing
+    int8u Value;
+    Get_B1 (Value,                                              "Value"); Element_Info1C(Value<Mxf_AS11_AudioDescriptionType_Count, Mxf_AS11_AudioDescriptionType[Value]);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].AudioDescriptionType=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101011B00
+void File_Mxf::AS11_UKDPP_OpenCaptionsPresent()
+{
+    //Parsing
+    int8u Value;
+    Get_B1 (Value,                                              "Value"); Element_Info1(Value?"Yes":"No");
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].OpenCaptionsPresent=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101011C00
+void File_Mxf::AS11_UKDPP_OpenCaptionsType()
+{
+    //Parsing
+    int8u Value;
+    Get_B1 (Value,                                              "Value"); Element_Info1C(Value<Mxf_AS11_OpenCaptionsType_Count, Mxf_AS11_OpenCaptionsType[Value]);
+
+    FILLING_BEGIN();
+         AS11s[InstanceUID].OpenCaptionsType=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101011D00
+void File_Mxf::AS11_UKDPP_OpenCaptionsLanguage()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].OpenCaptionsLanguage=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101011E00
+void File_Mxf::AS11_UKDPP_SigningPresent()
+{
+    //Parsing
+    int8u Value;
+    Get_B1 (Value,                                              "Value"); Element_Info1C(Value<Mxf_AS11_SigningPresent_Count, Mxf_AS11_SigningPresent[Value]);
+
+    FILLING_BEGIN();
+         AS11s[InstanceUID].SigningPresent=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101011F00
+void File_Mxf::AS11_UKDPP_SignLanguage()
+{
+    //Parsing
+    int8u Value;
+    Get_B1 (Value,                                              "Value"); Element_Info1C(Value<Mxf_AS11_SignLanguage_Count, Mxf_AS11_SignLanguage[Value]);
+
+    FILLING_BEGIN();
+         AS11s[InstanceUID].SignLanguage=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101012000
+void File_Mxf::AS11_UKDPP_CompletionDate()
+{
+    //Parsing
+    int64u Value;
+    Get_B8 (Value,                                              "Value"); Element_Info1(Value); //TODO: Timestamp
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].CompletionDate=Value;
+   FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101012100
+void File_Mxf::AS11_UKDPP_TextlessElementsExist()
+{
+    //Parsing
+    int8u Value;
+    Get_B1 (Value,                                              "Value"); Element_Info1(Value?"Yes":"No");
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].TextlessElementsExist=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101012200
+void File_Mxf::AS11_UKDPP_ProgrammeHasText()
+{
+    //Parsing
+    int8u Value;
+    Get_B1 (Value,                                              "Value"); Element_Info1(Value?"Yes":"No");
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].ProgrammeHasText=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101012300
+void File_Mxf::AS11_UKDPP_ProgrammeTextLanguage()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].ProgrammeTextLanguage=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101012400
+void File_Mxf::AS11_UKDPP_ContactEmail()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].ContactEmail=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// DPP .010101012500
+void File_Mxf::AS11_UKDPP_ContactTelephoneNumber()
+{
+    //Parsing
+    Ztring Value;
+    Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].ContactTelephoneNumber=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
 // 0x8001
 void File_Mxf::Omneon_010201010100_8001()
 {
@@ -9088,7 +10534,7 @@ void File_Mxf::Info_Rational()
 }
 
 //---------------------------------------------------------------------------
-void File_Mxf::Get_UL(int128u &Value, const char* Name, const char* (*Param) (const int128u&))
+void File_Mxf::Get_UL(int128u &Value, const char* Name, const char* (*Param) (int128u))
 {
     #ifdef MEDIAINFO_MINIMIZE_SIZE
         Skip_UUID();
@@ -10178,8 +11624,8 @@ void File_Mxf::Info_UL_02xx01_Groups()
                                         case 0x01 :
                                             {
                                             Param_Info1("MXF / AAF Association compatible sets & packs");
-                                            Info_B1(Code6,      "Set Kind (1)"); //See table 14
-                                            Info_B1(Code7,      "Set Kind (2)"); //See table 14
+                                            Info_B1(Code6,      "Set Kind (1)"); //See table 17
+                                            Info_B1(Code7,      "Set Kind (2)"); //See table 17
                                             Info_B1(Code8,      "Reserved");
                                             }
                                             break;
@@ -10444,13 +11890,85 @@ void File_Mxf::Info_UL_040101_Values()
             Info_B1(Code2,                                      "Code (2)");
             switch (Code2)
             {
-                case 0x03 :
+                case 0x01 :
                     {
+                    Param_Info1("Globally Unique Identifiers");
                     Info_B1(Code3,                              "Code (3)");
                     switch (Code3)
                     {
+                        case 0x01 :
+                            {
+                            Param_Info1("SDTI Payload Identifiers");
+                            Skip_B5(                            "Data");
+                            }
+                            break;
                         case 0x02 :
-                            Skip_B5(                            "Track identifier");
+                            {
+                            Param_Info1("File Format Identifiers");
+                            Skip_B5(                            "Data");
+                            }
+                            break;
+                        case 0x03 :
+                            {
+                            Param_Info1("Definition Identifiers");
+                            Skip_B5(                            "Data");
+                            }
+                            break;
+                        default   :
+                            Skip_B5(                            "Unknown");
+                    }
+                    }
+                    break;
+                case 0x02 :
+                    {
+                    Param_Info1("Globally Unique Locators");
+                    Info_B1(Code3,                              "Code (3)");
+                    Skip_B5(                                    "Unknown");
+                    }
+                    break;
+                case 0x03 :
+                    {
+                    Param_Info1("Locally Unique Identifiers");
+                    Info_B1(Code3,                              "Code (3)");
+                    switch (Code3)
+                    {
+                        case 0x01 :
+                            {
+                            Param_Info1("For Information Only Do Not Use");
+                            Skip_B5(                            "Unknown");
+                            }
+                            break;
+                        case 0x02 :
+                            {
+                            Param_Info1("Track Identifiers");
+                            Info_B1(Code4,                      "Kind");
+                            switch (Code4)
+                            {
+                                case 0x01 :
+                                    {
+                                    Param_Info1("Metadata Track Kinds");
+                                    Skip_B1(                    "Unknown");
+                                    Skip_B3(                    "Unknown");
+                                    }
+                                    break;
+                                case 0x02 :
+                                    {
+                                    Param_Info1("Essence Track Kinds");
+                                    Skip_B1(                    "Unknown");
+                                    Skip_B3(                    "Unknown");
+                                    }
+                                    break;
+                                case 0x03 :
+                                    {
+                                    Param_Info1("Other Track Kinds");
+                                    Skip_B1(                    "Unknown");
+                                    Skip_B3(                    "Unknown");
+                                    }
+                                    break;
+                                default   :
+                                    Skip_B4(                    "Unknown");
+                            }
+                            }
                             break;
                         default   :
                             Skip_B5(                            "Unknown");

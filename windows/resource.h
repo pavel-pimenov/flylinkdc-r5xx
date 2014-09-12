@@ -108,6 +108,7 @@
 #define IDR_UNDERLINE                   205
 #define IDR_ITALIC                      206
 #define IDR_TRANSCODE                   207
+#define IDR_STATE_USERS                 209
 #define IDD_CHECKTARGETDLG              208
 #define IDR_SENDMESSAGES_ICON           210
 #define IDR_SMILE_ICON                  211

@@ -97,6 +97,14 @@ struct CFlyLocationDesc : public CFlyLocationIP
 };
 typedef std::vector<CFlyLocationIP> CFlyLocationIPArray;
 
+struct CFlyAntivirusItem
+{
+	boost::asio::ip::address_v4 m_ip;
+	int64_t m_share;
+	CFlyAntivirusItem(): m_share(0)
+	{
+	}
+};
 struct CFlyLastIPCacheItem
 {
 	boost::asio::ip::address_v4 m_last_ip;
@@ -151,7 +159,9 @@ enum eTypeSegment
 	e_TimeStampGeoIP = 7,
 	e_TimeStampCustomLocation = 8,
 	e_IsTTHLevelDBConvert = 9,
-	e_IncopatibleSoftwareList = 10
+	e_IncopatibleSoftwareList = 10,
+	e_TimeStampAntivirusDB = 11,
+	e_DeleteCounterAntivirusDB = 12
 };
 struct CFlyRegistryValue
 {
@@ -270,6 +280,8 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		bool checkTTH(const string& fname, __int64 path_id, int64_t aSize, int64_t aTimeStamp, TTHValue& p_out_tth);
 		void load_path_cache();
 		void scan_path(CFlyDirItemArray& p_directories);
+		int sync_antivirus_db(const string& p_antivirus_db, uint64_t p_unixtime);
+		void purge_antivirus_db(uint64_t p_delete_counter);
 		size_t get_count_folders()
 		{
 			Lock l(m_cs);
@@ -446,7 +458,19 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		auto_ptr<sqlite3_command> m_select_ratio_load;
 		//auto_ptr<sqlite3_command> m_select_last_ip_and_message_count;
 		auto_ptr<sqlite3_command> m_select_all_last_ip_and_message_count;
+		auto_ptr<sqlite3_command> m_select_antivirus_db;
+		auto_ptr<sqlite3_command> m_find_virus_nick;
+		
 		boost::unordered_map<uint32_t, boost::unordered_map<std::string, CFlyLastIPCacheItem> > m_last_ip_cache;
+		CriticalSection m_antivirus_cs;
+		boost::unordered_set<std::string> m_virus_user;
+		boost::unordered_set<int64_t> m_virus_share;
+		boost::unordered_set<unsigned long> m_virus_ip4;
+		//boost::unordered_map<std::string, CFlyAntivirusItem > m_antivirus_cache;
+	public:
+		int calc_antivirus_flag(const string& p_nick, const boost::asio::ip::address_v4& p_ip4, int64_t p_share);
+	private:
+	
 		auto_ptr<sqlite3_command> m_insert_ratio;
 		
 #ifdef _DEBUG
@@ -496,6 +520,9 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		auto_ptr<sqlite3_command> m_select_geoip;
 		auto_ptr<sqlite3_command> m_insert_geoip;
 		auto_ptr<sqlite3_command> m_delete_geoip;
+		
+		auto_ptr<sqlite3_command> m_merge_antivirus_db;
+		auto_ptr<sqlite3_command> m_delete_antivirus_db;
 		
 		auto_ptr<sqlite3_command> m_select_location;
 		auto_ptr<sqlite3_command> m_select_count_location;

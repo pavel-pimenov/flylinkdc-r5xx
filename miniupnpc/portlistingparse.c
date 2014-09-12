@@ -127,7 +127,7 @@ data(void * d, const char * data, int l)
 
 /* Parse the PortMappingList XML document for IGD version 2
  */
-MINIUPNP_LIBSPEC void
+void
 ParsePortListing(const char * buffer, int bufsize,
                  struct PortMappingParserData * pdata)
 {
@@ -146,7 +146,7 @@ ParsePortListing(const char * buffer, int bufsize,
 	parsexml(&parser);
 }
 
-MINIUPNP_LIBSPEC void
+void
 FreePortListing(struct PortMappingParserData * pdata)
 {
 	struct PortMapping * pm;

@@ -291,6 +291,10 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 						//[?] di->item.mask |= LVIF_DI_SETITEM;
 						di->item.iImage = ((T*)di->item.lParam)->getImageIndex();
 					}
+					if (di->item.iSubItem == 0 && di->item.mask & LVIF_STATE)
+					{
+						di->item.state = INDEXTOSTATEIMAGEMASK(((T*)di->item.lParam)->getStateImageIndex());
+					}
 				}
 			}
 			return 0;
@@ -377,7 +381,17 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 				SortItems(&compareFunc, (LPARAM)this);
 			}
 		}
-		
+		/*
+		        int insertItemState(const T* item, int image, int state)
+		        {
+		            return insertItemState(getSortPos(item), item, image, INDEXTOSTATEIMAGEMASK(state));
+		        }
+		        int insertItemState(int i, const T* item, int image, int state)
+		        {
+		            return InsertItem(LVIF_TEXT | LVIF_PARAM | LVIF_IMAGE | LVIF_STATE, i,
+		                              LPSTR_TEXTCALLBACK, state, LVIS_STATEIMAGEMASK, image, (LPARAM)item); // TODO I_IMAGECALLBACK
+		        }
+		*/
 		int insertItem(const T* item, int image)
 		{
 			return insertItem(getSortPos(item), item, image);

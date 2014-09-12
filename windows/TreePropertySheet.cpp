@@ -234,7 +234,6 @@ void TreePropertySheet::hideTab()
 	tab.ShowWindow(SW_HIDE);
 	if (l_page.IsWindow())
 	{
-		dcassert(0);
 		l_page.GetClientRect(&rcPage);
 		l_page.MapWindowPoints(m_hWnd, &rcPage);
 	}

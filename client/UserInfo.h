@@ -106,6 +106,8 @@ class UserInfo : public UserInfoBase
 		{
 			return UserInfoBase::getImage(*m_ou);
 		}
+		uint8_t getStateImageIndex() const;
+		void calcVirusType();
 		// [+] IRainman opt.
 		const Util::CustomNetworkIndex& getLocation() const
 		{
@@ -134,6 +136,10 @@ class UserInfo : public UserInfoBase
 		const UserPtr& getUser() const
 		{
 			return m_ou->getUser();
+		}
+		Identity& getIdentityRW()
+		{
+			return m_ou->getIdentity();
 		}
 		const Identity& getIdentity() const
 		{

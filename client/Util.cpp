@@ -2252,7 +2252,8 @@ string Util::getWANIP(const string& p_url, LONG p_timeOut /* = 500 */)
 size_t Util::getDataFromInet(const string& url, string& data, LONG timeOut /*=0*/, IDateReceiveReporter* reporter /* = NULL */)
 {
 	std::vector<byte> l_bin_data;
-	const size_t l_bin_size = Util::getBinaryDataFromInet(url, l_bin_data, timeOut, reporter);
+	CFlyHTTPDownloader l_http_downloader;
+	const size_t l_bin_size = l_http_downloader.getBinaryDataFromInet(url, l_bin_data, timeOut, reporter);
 	if (l_bin_size)
 	{
 		data = string((char*)l_bin_data.data(), l_bin_size);
@@ -2290,7 +2291,7 @@ string Util::getExtInternetError()
 }
 #endif
 //[+] SSA
-uint64_t Util::getBinaryDataFromInet(const string& url, std::vector<byte>& p_dataOut, LONG timeOut /*=0*/, IDateReceiveReporter* reporter /* = NULL */)
+uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vector<byte>& p_dataOut, LONG timeOut /*=0*/, IDateReceiveReporter* reporter /* = NULL */)
 {
 	const DWORD frameBufferSize = 4096;
 	dcassert(frameBufferSize);
@@ -2302,12 +2303,10 @@ uint64_t Util::getBinaryDataFromInet(const string& url, std::vector<byte>& p_dat
 	CInternetHandle hInternet(InternetOpen(g_full_user_agent.c_str(), INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0));
 	if (!hInternet)
 	{
-		LogManager::getInstance()->message("InternetOpen [" + url + "] error = " + translateError());
+		LogManager::getInstance()->message("InternetOpen [" + url + "] error = " + Util::translateError());
 		dcassert(0);
 		return 0;
 	}
-	
-	
 	if (timeOut)
 	{
 		InternetSetOption(hInternet, INTERNET_OPTION_CONNECT_TIMEOUT, &timeOut, sizeof(timeOut));
@@ -2333,7 +2332,7 @@ uint64_t Util::getBinaryDataFromInet(const string& url, std::vector<byte>& p_dat
 	if (!hURL)
 	{
 		dcassert(0);
-		LogManager::getInstance()->message("InternetOpenUrl [" + url + "] error = " + translateError());
+		LogManager::getInstance()->message("InternetOpenUrl [" + url + "] error = " + Util::translateError());
 		// TODO - залогировать коды ошибок для статы
 		return 0;
 	}
@@ -2346,8 +2345,8 @@ uint64_t Util::getBinaryDataFromInet(const string& url, std::vector<byte>& p_dat
 		if (!InternetReadFile(hURL, &p_dataOut[totalBytesRead], frameBufferSize, &l_BytesRead))
 		{
 			dcassert(0);
-			LogManager::getInstance()->message("InternetReadFile [" + url + "] error = " + translateError());
-			// TODO - залогировать коды ошибок для статы
+			LogManager::getInstance()->message("InternetReadFile [" + url + "] error = " + Util::translateError());
+			//// TODO - залогировать коды ошибок для статы
 			return 0;
 		}
 		if (l_BytesRead == 0)
@@ -2365,6 +2364,21 @@ uint64_t Util::getBinaryDataFromInet(const string& url, std::vector<byte>& p_dat
 					break;
 				}
 			}
+		}
+	}
+	if (!m_get_http_header_item.empty())
+	{
+		vector<char> l_buf(m_get_http_header_item.size() + 1);
+		strcpy(&l_buf[0], m_get_http_header_item.c_str());
+		DWORD dwBufSize = l_buf.size();
+		auto bResult = HttpQueryInfoA(hURL, HTTP_QUERY_CUSTOM, &l_buf[0], &dwBufSize, NULL);
+		if (!bResult)
+		{
+			m_get_http_header_item.clear();
+		}
+		else
+		{
+			m_get_http_header_item = &l_buf[0];
 		}
 	}
 	if (isUserCancel)

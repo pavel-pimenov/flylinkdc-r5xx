@@ -84,6 +84,13 @@ int UserInfo::compareItems(const UserInfo* a, const UserInfo* b, int col)
 			return compare(a->getUser()->getMessageCount(), b->getUser()->getMessageCount());
 		}
 #endif
+		case COLUMN_ANTIVIRUS:
+		{
+			PROFILE_THREAD_SCOPED_DESC("COLUMN_ANTIVIRUS")
+			const_cast<UserInfo*>(a)->calcVirusType();
+			const_cast<UserInfo*>(b)->calcVirusType();
+			return compare(a->getStateImageIndex(), b->getStateImageIndex());
+		}
 		case COLUMN_IP:
 		{
 			PROFILE_THREAD_SCOPED_DESC("COLUMN_IP")
@@ -146,6 +153,10 @@ tstring UserInfo::getText(int p_col) const
 		{
 			return getUser()->getDownload();
 		}
+		case COLUMN_ANTIVIRUS:
+		{
+			return Text::toT(getIdentity().getVirusDesc());
+		}
 		case COLUMN_MESSAGES:
 		{
 			const auto l_count = getUser()->getMessageCount();
@@ -168,7 +179,7 @@ tstring UserInfo::getText(int p_col) const
 			}
 			else
 			{
-				dcassert(getIdentity().getIpAsString().empty());
+				//dcassert(getIdentity().getIpAsString().empty());
 				return Text::toT(getIdentity().getIP6());
 			}
 		}
@@ -235,6 +246,30 @@ tstring UserInfo::getLimit() const
 tstring UserInfo::getDownloadSpeed() const
 {
 	return formatSpeedLimit(getIdentity().getDownloadSpeed());
+}
+
+uint8_t UserInfo::getStateImageIndex() const
+{
+	const auto l_type = getIdentity().m_virus_type;
+	if (l_type & ~Identity::VT_CALC)
+	{
+		if (l_type & Identity::VT_NICK && l_type & Identity::VT_SHARE)
+			return 3;
+		if (l_type & Identity::VT_SHARE && l_type & Identity::VT_IP)
+			return 4;
+		if (l_type & Identity::VT_SHARE)
+			return 1;
+		if (l_type & Identity::VT_IP)
+			return 2;
+		if (l_type & Identity::VT_NICK)
+			return 2;
+	}
+	return 0;
+}
+
+void UserInfo::calcVirusType()
+{
+	getIdentityRW().calcVirusType();
 }
 
 void UserInfo::calcLocation()

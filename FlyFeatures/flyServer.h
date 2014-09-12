@@ -197,6 +197,7 @@ private:
  }
 public:
   void loadConfig();
+  static void SyncAntivirusDB();
 
   static bool isParasitFile(const string& p_file);
   static bool isMediainfoExt(const string& p_ext);
@@ -216,6 +217,7 @@ public:
   static string   g_support_hub;
 #endif // USE_SUPPORT_HUB
   static string   g_faq_search_does_not_work;
+  static string   g_antivirus_db_url;
 };
 //=======================================================================
 extern CFlyServerConfig g_fly_server_config; // TODO: cleanup call of this.

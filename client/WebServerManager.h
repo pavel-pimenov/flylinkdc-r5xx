@@ -166,13 +166,16 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 		void on(SettingsManagerListener::Save, SimpleXML&) noexcept
 		{
 			dcassert(!ClientManager::isShutdown())
-			if (BOOLSETTING(WEBSERVER) && !ClientManager::isShutdown())
+			if (!ClientManager::isShutdown())
 			{
-				Restart();
-			}
-			else
-			{
-				Stop();
+				if (BOOLSETTING(WEBSERVER))
+				{
+					Restart();
+				}
+				else
+				{
+					Stop();
+				}
 			}
 		}
 		// SearchManagerListener

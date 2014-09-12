@@ -1303,8 +1303,14 @@ class UserImage : public BaseImageList
 			init();
 		}
 };
+class UserStateImage : public BaseImageList
+{
+	public:
+		void init();
+};
 
 extern UserImage g_userImage;
+extern UserStateImage g_userStateImage;
 
 class FlagImage : public BaseImageList
 {

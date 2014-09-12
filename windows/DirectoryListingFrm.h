@@ -510,6 +510,10 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 					dcassert(m_icon_index >= 0);
 					return m_icon_index;
 				}
+				static uint8_t getStateImageIndex()
+				{
+					return 0;
+				}
 				void calcImageIndex()
 				{
 					if (m_icon_index < 0)

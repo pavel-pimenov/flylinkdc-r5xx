@@ -541,7 +541,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		bool isInSkipList(const string& lowerName) const
 		{
 			FastLock l(m_csSkipList);
-			return Wildcard::patternMatchLowerCase(lowerName, m_skipList); // https://www.box.net/shared/vrbq7dqu5gqzdiu4gjop
+			return Wildcard::patternMatchLowerCase(lowerName, m_skipList);
 		}
 		bool skipListEmpty() const
 		{

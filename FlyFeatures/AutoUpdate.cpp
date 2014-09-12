@@ -34,8 +34,8 @@
 static const string g_dev_error = "\r\nPlease send a text or a screenshot of the error to developers ppa74@ya.ru";
 static const wstring UPDATE_FILE_NAME = L"flylink.upd";
 
-static const string UPDATE_RELEASE_URL = "http://www.fly-server.ru/update/5xx/release";
-static const string UPDATE_BETA_URL = "http://www.fly-server.ru/update/5xx/beta";
+static const string UPDATE_RELEASE_URL = "http://update.fly-server.ru/update/5xx/release";
+static const string UPDATE_BETA_URL = "http://update.fly-server.ru/update/5xx/beta";
 
 static const string UPDATE_FILEDOWNLOAD_B = "Update5_beta.xml";
 static const string UPDATE_SIGNFILEDOWNLOAD_B = "Update5_beta.sign";
@@ -46,7 +46,7 @@ static const string UPDATE_SIGNFILEDOWNLOAD_R = "Update5.sign";
 static const string UPDATE_DESCRIPTION_R = "Update5.rtf";
 
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
-static const string UPDATE_AU_URL = "http://www.fly-server.ru/update/alluser";
+static const string UPDATE_AU_URL = "http://update.fly-server.ru/update/alluser";
 static const string UPDATE_UPDATE_FILE = "UpdateAU.xml";
 static const string UPDATE_SIGN_FILE = "UpdateAU.sign";
 static const string UPDATE_DESCRIPTION_FILE = "UpdateAU.rtf";
@@ -222,7 +222,8 @@ string AutoUpdate::getUpdateFilesList(const string& p_componentName,
 bool AutoUpdateObject::checkSignXML(const string& p_url_sign) const
 {
 	std::vector<byte> l_signData;
-	const size_t l_signDataSize = Util::getBinaryDataFromInet(p_url_sign, l_signData); // update*.sign fize == 128
+  CFlyHTTPDownloader l_http_downloader;
+	const size_t l_signDataSize = l_http_downloader.getBinaryDataFromInet(p_url_sign, l_signData); // update*.sign fize == 128
 	return l_signDataSize != 0 && AutoUpdate::verifyUpdate(l_signData.data(), l_signDataSize, m_update_xml, m_update_xml.length());
 }
 void AutoUpdate::startUpdateThisThread()
@@ -660,7 +661,8 @@ bool AutoUpdate::prepareFile(const AutoUpdateFile& file, const string& tempFolde
 	std::vector<byte> l_binary_data;
 	IDateReceiveReporter* reporter = InetDownloadReporter::getInstance();
         // 60 sec - http://code.google.com/p/flylinkdc/issues/detail?id=1403
-	int64_t sizeRead = Util::getBinaryDataFromInet(file.m_sDownloadURL, l_binary_data, 60000, reporter); // TODO - передать размер буфера сразу
+  CFlyHTTPDownloader l_http_downloader;
+	int64_t sizeRead = l_http_downloader.getBinaryDataFromInet(file.m_sDownloadURL, l_binary_data, 60000, reporter); // TODO - передать размер буфера сразу
 	if (sizeRead == file.m_packedSize)
 	{
 		/*

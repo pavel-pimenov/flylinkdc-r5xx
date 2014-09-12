@@ -693,7 +693,7 @@ void NmdcHub::onLine(const string& aLine)
 		if (j == string::npos || i == j)
 		{
 #ifdef FLYLINKDC_BETA
-			LogManager::getInstance()->message("Error [part 5] $Search command = " + param + " Hub: " + getHubUrl());
+			// LogManager::getInstance()->message("Error [part 5] $Search command = " + param + " Hub: " + getHubUrl());
 #endif
 			return;
 		}
@@ -738,7 +738,7 @@ void NmdcHub::onLine(const string& aLine)
 		else
 		{
 #ifdef FLYLINKDC_BETA
-			LogManager::getInstance()->message("Error [part 6] $Search command = " + param + " Hub: " + getHubUrl());
+			// LogManager::getInstance()->message("Error [part 6] $Search command = " + param + " Hub: " + getHubUrl());
 #endif
 		}
 	}
@@ -1159,7 +1159,15 @@ void NmdcHub::onLine(const string& aLine)
 						continue;
 						
 					const string l_ip = it->substr(j + 1);
-					ou->getIdentity().setIp(l_ip);
+					if (l_ip.size() > 15)
+					{
+						ou->getIdentity().setIP6(l_ip);
+						ou->getIdentity().setUseIP6();
+					}
+					else
+					{
+						ou->getIdentity().setIp(l_ip);
+					}
 					v.push_back(ou);
 				}
 			}

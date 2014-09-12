@@ -1514,6 +1514,8 @@ void ShareManager::generateXmlList()
 			}
 			catch (const FileException&)
 			{
+				l_creation_log.log("Error File::renameFile  newXmlName = " + newXmlName +
+				                   " l_XmlListFileName = " + l_XmlListFileName + " Error = " + Util::translateError());
 				// Ignore, this is for caching only...
 			}
 			bzXmlRef = unique_ptr<File>(new File(newXmlName, File::READ, File::OPEN));
@@ -1522,6 +1524,7 @@ void ShareManager::generateXmlList()
 		}
 		catch (const Exception&)
 		{
+			//    l_creation_log.log("Error File::renameFile  newXmlName = " + newXmlName + " l_XmlListFileName = " + l_XmlListFileName + " Error = " Util::translateError());
 			// No new file lists...
 		}
 		

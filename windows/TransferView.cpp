@@ -42,6 +42,7 @@ HIconWrapper TransferView::g_user_icon(IDR_TUSER);
 int TransferView::columnIndexes[] =
 {
 	COLUMN_USER,
+	COLUMN_ANTIVIRUS,
 	COLUMN_HUB,
 	COLUMN_STATUS,
 	COLUMN_TIMELEFT,
@@ -61,6 +62,7 @@ int TransferView::columnIndexes[] =
 int TransferView::columnSizes[] =
 {
 	150, // COLUMN_USER
+	5,  // ANTIVIRUS
 	150, // COLUMN_HUB
 	250, // COLUMN_STATUS
 	75,  // COLUMN_TIMELEFT
@@ -78,8 +80,15 @@ int TransferView::columnSizes[] =
 	75,  // COLUMN_SLOTS
 };
 
-static ResourceManager::Strings columnNames[] = { ResourceManager::USER, ResourceManager::HUB_SEGMENTS, ResourceManager::STATUS,
-                                                  ResourceManager::TIME_LEFT, ResourceManager::SPEED, ResourceManager::FILENAME, ResourceManager::SIZE, ResourceManager::PATH,
+static ResourceManager::Strings columnNames[] = { ResourceManager::USER,
+                                                  ResourceManager::ANTIVIRUS,
+                                                  ResourceManager::HUB_SEGMENTS,
+                                                  ResourceManager::STATUS,
+                                                  ResourceManager::TIME_LEFT,
+                                                  ResourceManager::SPEED,
+                                                  ResourceManager::FILENAME,
+                                                  ResourceManager::SIZE,
+                                                  ResourceManager::PATH,
                                                   ResourceManager::CIPHER,
                                                   ResourceManager::LOCATION_BARE,
                                                   ResourceManager::IP_BARE
@@ -841,6 +850,27 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (ii->download ? SETTIN
 				}
 				return CDRF_SKIPDEFAULT;
 			}
+			else if (colIndex == COLUMN_ANTIVIRUS)
+			{
+				ItemInfo* ii = (ItemInfo*)cd->nmcd.lItemlParam;
+				if (!ii) //[+]PPA падаем под wine
+					return CDRF_DODEFAULT;
+				ctrlTransfers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
+				ctrlTransfers.SetItemFilled(cd, rc, cd->clrText, cd->clrText);
+				const tstring& l_value = ii->getText(colIndex);
+				if (!l_value.empty())
+				{
+					int l_step = 0;
+					LONG top = rc.top + (rc.Height() - 15) / 2;
+					if ((top - rc.top) < 2)
+						top = rc.top + 1;
+					const POINT ps = { rc.left, top };
+					g_userStateImage.Draw(cd->nmcd.hdc, 3 , ps);
+					l_step += 17;
+					::ExtTextOut(cd->nmcd.hdc, rc.left + 6 + l_step, rc.top + 2, ETO_CLIPPED, rc, l_value.c_str(), l_value.length(), NULL);
+				}
+				return CDRF_SKIPDEFAULT;
+			}
 			else if (colIndex == COLUMN_LOCATION)   // !SMT!-IP
 			{
 				ItemInfo* ii = (ItemInfo*)cd->nmcd.lItemlParam;
@@ -1411,7 +1441,15 @@ static tstring getFile(const Transfer::Type& type, const tstring& fileName)
 	}
 	return file;
 }
-
+void TransferView::ItemInfo::update_nicks()
+{
+	if (m_hintedUser.user)
+	{
+		m_nicks = WinUtil::getNicks(m_hintedUser);
+		m_hubs = WinUtil::getHubNames(m_hintedUser).first;
+		m_antivirus_text = Text::toT(Util::toString(ClientManager::getAntivirusNicks(m_hintedUser.user->getCID())));
+	}
+}
 const tstring TransferView::ItemInfo::getText(uint8_t col) const
 {
 	switch (col)
@@ -1446,6 +1484,8 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 			return m_hintedUser.user ? Util::formatBytesW(m_hintedUser.user->getBytesShared()) : Util::emptyStringT;
 		case COLUMN_SLOTS:
 			return m_hintedUser.user ? Util::toStringW(m_hintedUser.user->getSlots()) : Util::emptyStringT;
+		case COLUMN_ANTIVIRUS:
+			return m_antivirus_text;
 		case COLUMN_LOCATION:
 		{
 			if (m_location.isKnown())

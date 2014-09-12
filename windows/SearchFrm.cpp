@@ -58,6 +58,7 @@ int SearchFrame::columnIndexes[] =
 	COLUMN_LOCAL_PATH,
 	COLUMN_HITS,
 	COLUMN_NICK,
+	COLUMN_ANTIVIRUS,
 	COLUMN_TYPE,
 	COLUMN_SIZE,
 	COLUMN_PATH,
@@ -81,7 +82,7 @@ int SearchFrame::columnSizes[] =
 {
 	210,
 //70,
-	80, 100, 50, 80, 100, 40,
+	80, 100, 50, 5, 80, 100, 40,
 // COLUMN_FLY_SERVER_RATING
 	50,
 	50, 100, 100, 100,
@@ -100,6 +101,7 @@ static ResourceManager::Strings columnNames[] = {ResourceManager::FILE,
                                                  ResourceManager::LOCAL_PATH,
                                                  ResourceManager::HIT_COUNT,
                                                  ResourceManager::USER,
+                                                 ResourceManager::ANTIVIRUS,
                                                  ResourceManager::TYPE,
                                                  ResourceManager::SIZE,
                                                  ResourceManager::PATH,
@@ -451,6 +453,9 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	SET_LIST_COLOR(ctrlResults);
 	ctrlResults.SetFont(Fonts::g_systemFont, FALSE); // use Util::font instead to obey Appearace settings
 	ctrlResults.setFlickerFree(Colors::bgBrush);
+	ctrlResults.setColumnOwnerDraw(COLUMN_LOCATION);
+	ctrlResults.setColumnOwnerDraw(COLUMN_ANTIVIRUS);
+	
 	ctrlHubs.InsertColumn(0, _T("Dummy"), LVCFMT_LEFT, LVSCW_AUTOSIZE, 0);
 	SET_LIST_COLOR(ctrlHubs);
 	ctrlHubs.SetFont(Fonts::g_systemFont, FALSE); // use Util::font instead to obey Appearace settings
@@ -601,7 +606,10 @@ LRESULT SearchFrame::onDrawItem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& b
 	const DRAWITEMSTRUCT* dis = (DRAWITEMSTRUCT*)lParam;
 	bHandled = FALSE;
 	
-	if (wParam == IDC_FILETYPES) return ListDraw(hwnd, wParam, (DRAWITEMSTRUCT*)lParam);
+	if (wParam == IDC_FILETYPES)
+	{
+		return ListDraw(hwnd, wParam, (DRAWITEMSTRUCT*)lParam);
+	}
 	else if (dis->CtlID == ATL_IDW_STATUS_BAR && dis->itemID == 1)
 	{
 		if (m_searchStartTime > 0)
@@ -1086,6 +1094,7 @@ bool SearchFrame::scan_list_view_from_merge()
 				}
 			}
 		}
+		update_column_after_merge(l_update_index);
 	}
 	return m_GetFlyServerArray.size() || m_SetFlyServerArray.size();
 }
@@ -1194,6 +1203,7 @@ void SearchFrame::update_column_after_merge(std::vector<int> p_update_index)
 		return;
 	}
 #else
+	dcassert(!isClosedOrShutdown());
 	if (!isClosedOrShutdown())
 	{
 		ctrlResults.update_all_columns(p_update_index);
@@ -1211,16 +1221,20 @@ void SearchFrame::mergeFlyServerInfo()
 		return;
 	CColorSwitch l_color_lock(m_FlyServerGradientLabel, RGB(255, 0, 0));
 	CWaitCursor l_cursor_wait; //-V808
-	if (boost::logic::indeterminate(SettingsManager::g_TestUDPSearchLevel))
+	if (m_TestPortGuard == false)
 	{
-		string p_external_ip;
-		std::vector<unsigned short> l_udp_port, l_tcp_port;
-		l_udp_port.push_back(SETTING(UDP_PORT));
-		bool l_is_udp_port_send = CFlyServerAdapter::CFlyServerJSON::pushTestPort(ClientManager::getMyCID().toBase32(), l_udp_port, l_tcp_port, p_external_ip, 0);
-		if (l_is_udp_port_send)
+		m_TestPortGuard = true;
+		if (boost::logic::indeterminate(SettingsManager::g_TestUDPSearchLevel))
 		{
-			SettingsManager::g_TestUDPSearchLevel = true;
-			SettingsManager::g_UDPTestExternalIP = p_external_ip;
+			string p_external_ip;
+			std::vector<unsigned short> l_udp_port, l_tcp_port;
+			l_udp_port.push_back(SETTING(UDP_PORT));
+			bool l_is_udp_port_send = CFlyServerAdapter::CFlyServerJSON::pushTestPort(ClientManager::getMyCID().toBase32(), l_udp_port, l_tcp_port, p_external_ip, 0);
+			if (l_is_udp_port_send)
+			{
+				SettingsManager::g_TestUDPSearchLevel = true;
+				SettingsManager::g_UDPTestExternalIP = p_external_ip;
+			}
 		}
 	}
 	dcassert(!isClosedOrShutdown());
@@ -1362,7 +1376,7 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 		case COLUMN_HITS:
 			return hits == 0 ? Util::emptyStringT : Util::toStringW(hits + 1) + _T(' ') + TSTRING(USERS);
 		case COLUMN_NICK:
-			return Text::toT(Util::toString(ClientManager::getNicks(getUser()->getCID(), sr->getHubURL()))); // Често зовется фаворит - манагер
+			return Text::toT(Util::toString(ClientManager::getNicks(getUser()->getCID(), sr->getHubURL(), false)));
 			// TODO - сохранить ник в columns и показывать его от туда?
 		case COLUMN_TYPE:
 			if (sr->getType() == SearchResult::TYPE_FILE)
@@ -1392,6 +1406,10 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 			{
 				return Text::toT(sr->getFile());
 			}
+		case COLUMN_ANTIVIRUS:
+		{
+			return Text::toT(Util::toString(ClientManager::getAntivirusNicks(getUser()->getCID())));
+		}
 		case COLUMN_LOCAL_PATH:
 		{
 			tstring l_result;
@@ -1774,6 +1792,7 @@ bool SearchFrame::showFlyServerProperty(const SearchInfo* p_item_info)
 		COLUMN_LOCAL_PATH,
 		COLUMN_HITS,
 		COLUMN_NICK,
+		COLUMN_ANTIVIRUS,
 		COLUMN_TYPE,
 		COLUMN_SIZE,
 		COLUMN_PATH,
@@ -2982,11 +3001,30 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 			const SearchInfo* si = reinterpret_cast<SearchInfo*>(cd->nmcd.lItemlParam);
 			if (!si)
 				return CDRF_DODEFAULT;
-			if (ctrlResults.findColumn(cd->iSubItem) == COLUMN_LOCATION)
+			const auto l_column_id = ctrlResults.findColumn(cd->iSubItem);
+			if (l_column_id == COLUMN_ANTIVIRUS)
 			{
 				CRect rc;
 				ctrlResults.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
-				
+				ctrlResults.SetItemFilled(cd, rc, cd->clrText, cd->clrText);
+				const tstring& l_value = si->getText(l_column_id);
+				if (!l_value.empty())
+				{
+					LONG top = rc.top + (rc.Height() - 15) / 2;
+					if ((top - rc.top) < 2)
+						top = rc.top + 1;
+					int l_step = 0;
+					const POINT ps = { rc.left, top };
+					g_userStateImage.Draw(cd->nmcd.hdc, 3 , ps);
+					l_step += 17;
+					::ExtTextOut(cd->nmcd.hdc, rc.left + 6 + l_step, rc.top + 2, ETO_CLIPPED, rc, l_value.c_str(), l_value.length(), NULL);
+				}
+				return CDRF_SKIPDEFAULT;
+			}
+			if (l_column_id == COLUMN_LOCATION)
+			{
+				CRect rc;
+				ctrlResults.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
 				if (BOOLSETTING(USE_EXPLORER_THEME)
 #ifdef FLYLINKDC_SUPPORT_WIN_2000
 				        && CompatibilityManager::IsXPPlus()

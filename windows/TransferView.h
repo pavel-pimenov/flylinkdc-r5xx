@@ -206,6 +206,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		{
 			COLUMN_FIRST,
 			COLUMN_USER = COLUMN_FIRST,
+			COLUMN_ANTIVIRUS,
 			COLUMN_HUB,
 			COLUMN_STATUS,
 			COLUMN_TIMELEFT,
@@ -278,6 +279,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				
 				ItemInfo* parent;
 				HintedUser m_hintedUser; // [!] IRainman fix.
+				tstring m_antivirus_text;
 				Status m_status;
 				Transfer::Type m_type;
 				
@@ -299,14 +301,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 #endif
 				
 				void update(const UpdateInfo& ui);
-				void update_nicks()
-				{
-					if (m_hintedUser.user)
-					{
-						m_nicks = WinUtil::getNicks(m_hintedUser);
-						m_hubs = WinUtil::getHubNames(m_hintedUser).first;
-					}
-				}
+				void update_nicks();
 				const UserPtr& getUser() const
 				{
 					return m_hintedUser.user;

@@ -718,6 +718,42 @@ void FavoriteUser::update(const OnlineUser& info) // !SMT!-fix
 	setUrl(info.getClient().getHubUrl());
 }
 
+unsigned char Identity::calcVirusType()
+{
+	if (!(m_virus_type & Identity::VT_CALC))
+	{
+		const auto l_virus_type = CFlylinkDBManager::getInstance()->calc_antivirus_flag(getNick(), getIp(), getBytesShared());
+		setVirusType(l_virus_type | Identity::VT_CALC);
+	}
+	return getVirusType();
+}
+string Identity::getVirusDesc() const
+{
+	string l_result;
+	if (m_virus_type & ~VT_CALC)
+	{
+		if (m_virus_type & VT_NICK)
+		{
+			l_result   += "+Nick";
+		}
+		if (m_virus_type & VT_SHARE)
+		{
+			l_result += "+Share";
+		}
+		if (m_virus_type & VT_IP)
+		{
+			l_result += "+IP";
+		}
+	}
+	if (!l_result.empty())
+	{
+		return l_result.substr(1);
+	}
+	else
+	{
+		return l_result;
+	}
+}
 string Identity::setCheat(const ClientBase& c, const string& aCheatDescription, bool aBadClient)
 {
 	if (!c.isOp() || isOp())

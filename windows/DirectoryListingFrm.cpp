@@ -2372,7 +2372,6 @@ bool DirectoryListingFrame::scan_list_view_from_merge()
 							CFlyMediaInfo::translateDuration(l_cache.m_audio, l_item_info->columns[COLUMN_MEDIA_AUDIO], l_item_info->columns[COLUMN_DURATION]);
 						}
 					}
-					
 				}
 			}
 		}

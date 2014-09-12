@@ -187,6 +187,8 @@ TODO:
 	StringPool::newInstance(); // [+] IRainman opt.
 #endif
 	
+	LOAD_STEP("Antivirus DB", CFlyServerConfig::SyncAntivirusDB());
+	
 #undef LOAD_STEP
 #undef LOAD_STEP_L
 }
@@ -276,6 +278,9 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		dcdebug("shutdown (after closing last hub (DHT::stop) - User::g_user_counts = %d OnlineUser::g_online_user_counts = %d\n", int(User::g_user_counts), int(OnlineUser::g_online_user_counts)); // [+] IRainman fix.
 #endif
 #endif
+		QueueManager::getInstance()->saveQueue(true);
+		SettingsManager::getInstance()->save();
+		
 		preparingCoreToShutdown(); // Зовем тут второй раз т.к. вероятно при автообновлении оно не зовется.
 		ConnectionManager::getInstance()->shutdown();
 		MappingManager::getInstance()->close();
@@ -288,8 +293,6 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 			BufferedSocket::waitShutdown();
 		}
 		
-		QueueManager::getInstance()->saveQueue(true);
-		SettingsManager::getInstance()->save();
 #ifdef IRAINMAN_USE_STRING_POOL
 		StringPool::deleteInstance(); // [+] IRainman opt.
 #endif

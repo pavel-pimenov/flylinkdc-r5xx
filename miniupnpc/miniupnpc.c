@@ -1,4 +1,4 @@
-/* $Id: miniupnpc.c,v 1.118 2014/06/10 09:43:41 nanard Exp $ */
+/* $Id: miniupnpc.c,v 1.119 2014/06/27 13:28:22 nanard Exp $ */
 /* Project : miniupnp
  * Web : http://miniupnp.free.fr/
  * Author : Thomas BERNARD
@@ -6,7 +6,7 @@
  * This software is subjet to the conditions detailed in the
  * provided LICENSE file. */
 #define __EXTENSIONS__ 1
-#if !defined(MACOSX) && !defined(__sun)
+#if !defined(__APPLE__) && !defined(__sun)
 #if !defined(_XOPEN_SOURCE) && !defined(__OpenBSD__) && !defined(__NetBSD__)
 #ifndef __cplusplus
 #define _XOPEN_SOURCE 600
@@ -17,7 +17,7 @@
 #endif
 #endif
 
-#if !defined(__DragonFly__) && !defined(__OpenBSD__) && !defined(__NetBSD__) && !defined(MACOSX) && !defined(_WIN32) && !defined(__CYGWIN__) && !defined(__sun) && !defined(__GNU__) && !defined(__FreeBSD_kernel__)
+#if !defined(__DragonFly__) && !defined(__OpenBSD__) && !defined(__NetBSD__) && !defined(__APPLE__) && !defined(_WIN32) && !defined(__CYGWIN__) && !defined(__sun) && !defined(__GNU__) && !defined(__FreeBSD_kernel__)
 #define HAS_IP_MREQN
 #endif
 
@@ -1024,7 +1024,7 @@ free_and_return:
  * return value :
  *   0 - Not ok
  *   1 - OK */
-MINIUPNP_LIBSPEC int
+int
 UPNP_GetIGDFromUrl(const char * rootdescurl,
                    struct UPNPUrls * urls,
                    struct IGDdatas * data,

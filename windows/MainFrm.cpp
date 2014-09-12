@@ -195,7 +195,7 @@ MainFrame::MainFrame() :
 MainFrame::~MainFrame()
 {
 	m_CmdBar.m_hImageList = NULL;
-	images.Destroy();
+	m_images.Destroy();
 	largeImages.Destroy();
 	largeImagesHot.Destroy();
 	winampImages.Destroy();
@@ -259,7 +259,7 @@ void MainFrame::createMainMenu(void) // [+]Drakon. Enlighting functions.
 	}
 #endif
 	
-	ResourceLoader::LoadImageList(IDR_TOOLBAR_MINI, images, 16, 16);
+	ResourceLoader::LoadImageList(IDR_TOOLBAR_MINI, m_images, 16, 16);
 	ResourceLoader::LoadImageList(IDR_PLAYERS_CONTROL_MINI, winampimages, 16, 16);
 	
 	//dcassert(images.GetImageCount() == iMainToolbarImages);
@@ -267,12 +267,12 @@ void MainFrame::createMainMenu(void) // [+]Drakon. Enlighting functions.
 	
 	for (int i = 0; i < winampimages.GetImageCount(); i++)
 	{
-		images.AddIcon(winampimages.GetIcon(i));
+		m_images.AddIcon(winampimages.GetIcon(i));
 	}
 	
 	winampimages.Destroy();
 	
-	m_CmdBar.m_hImageList = images;
+	m_CmdBar.m_hImageList = m_images;
 	/*
 	m_CmdBar.m_arrCommand.Add(ID_FILE_CONNECT);
 	m_CmdBar.m_arrCommand.Add(ID_FILE_RECONNECT);
@@ -386,7 +386,7 @@ void MainFrame::createMainMenu(void) // [+]Drakon. Enlighting functions.
 	}
 	
 #ifdef RIP_USE_PORTAL_BROWSER
-	InitPortalBrowserMenuImages(images, m_CmdBar);
+	InitPortalBrowserMenuImages(m_images, m_CmdBar);
 #endif
 	
 #if _WTL_CMDBAR_VISTA_MENUS
@@ -3092,19 +3092,19 @@ LRESULT MainFrame::onTaskbarButton(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 	const int l_sizeTip = _countof(buttons[0].szTip) - 1;
 	buttons[0].dwMask = THB_ICON | THB_TOOLTIP | THB_FLAGS;
 	buttons[0].iId = IDC_OPEN_DOWNLOADS;
-	buttons[0].hIcon = images.GetIcon(22); // Номер иконки.
+	buttons[0].hIcon = m_images.GetIcon(22);
 	wcsncpy(buttons[0].szTip, CWSTRING(MENU_OPEN_DOWNLOADS_DIR), l_sizeTip);
 	buttons[0].dwFlags = THBF_ENABLED;
 	
 	buttons[1].dwMask = THB_ICON | THB_TOOLTIP | THB_FLAGS;
 	buttons[1].iId = ID_FILE_SETTINGS;
-	buttons[1].hIcon = images.GetIcon(15);
+	buttons[1].hIcon = m_images.GetIcon(15);
 	wcsncpy(buttons[1].szTip, CWSTRING(SETTINGS), l_sizeTip);
 	buttons[1].dwFlags = THBF_ENABLED;
 	
 	buttons[2].dwMask = THB_ICON | THB_TOOLTIP | THB_FLAGS;
 	buttons[2].iId = IDC_REFRESH_FILE_LIST;
-	buttons[2].hIcon = images.GetIcon(23);
+	buttons[2].hIcon = m_images.GetIcon(23);
 	wcsncpy(buttons[2].szTip, CWSTRING(CMD_SHARE_REFRESH), l_sizeTip);
 	buttons[2].dwFlags = THBF_ENABLED;
 	if (taskbarList)

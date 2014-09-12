@@ -649,7 +649,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		FlatTabCtrl m_ctrlTab;
 		// FlylinkDC Team TODO: needs?
 		static int g_CountSTATS; //[+]PPA
-		CImageList images;
+		CImageList m_images;
 		CToolBarCtrl ctrlToolbar;
 		CToolBarCtrl ctrlWinampToolbar;
 		

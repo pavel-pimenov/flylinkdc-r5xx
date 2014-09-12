@@ -144,6 +144,10 @@ class RSSNewsFrame : public MDITabChildWindowImpl < RSSNewsFrame, RGB(0, 0, 0), 
 				{
 					return 0;
 				}
+				static uint8_t getStateImageIndex()
+				{
+					return 0;
+				}
 				
 				const RSSItem* m_entry;
 		};

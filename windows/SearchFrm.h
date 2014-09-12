@@ -202,6 +202,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			m_storeSettings(false), m_isExactSize(false), m_exactSize2(0), m_sizeMode(Search::SIZE_DONTCARE), /*searches(0),*/
 			m_ftype(Search::TYPE_ANY),
 			m_lastFindTTH(false),
+			m_TestPortGuard(false),
 			m_running(false),
 			m_searchEndTime(0),
 			m_searchStartTime(0),
@@ -397,6 +398,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			COLUMN_LOCAL_PATH,
 			COLUMN_HITS,
 			COLUMN_NICK,
+			COLUMN_ANTIVIRUS,
 			COLUMN_TYPE,
 			COLUMN_SIZE,
 			COLUMN_PATH,
@@ -570,6 +572,10 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			{
 				return 0;
 			}
+			static uint8_t getStateImageIndex()
+			{
+				return 0;
+			}
 			
 			tstring url;
 			tstring name;
@@ -651,6 +657,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		CButton m_ctrlStoreSettings;
 		bool m_showUI;
 		bool m_lastFindTTH;
+		bool m_TestPortGuard;
 		
 		CImageList images;
 		SearchInfoList ctrlResults;

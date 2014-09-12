@@ -2942,6 +2942,7 @@ IDR_PLAYERS_CONTROL_HL  PNG                     "res\\PlayersControl-highlight.p
 IDR_PLAYERS_CONTROL_MINI PNG                     "res\\PlayersControl-mini.png"
 IDR_SETTINGS_ICONS      PNG                     "res\\Settings-icons.png"
 IDR_USERS               PNG                     "res\\Users.png"
+IDR_STATE_USERS         PNG                     "res\\StateUsers.png"
 IDR_FLAGS               PNG                     "res\\Flags.png"
 IDR_ARROWS              PNG                     "res\\Arrows.png"
 IDR_TSPEEDS             PNG                     "res\\TranferSpeeds.png"

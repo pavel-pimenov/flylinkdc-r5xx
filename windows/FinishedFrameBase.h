@@ -482,6 +482,10 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				{
 					return g_fileImage.getIconIndex(entry->getTarget());
 				}
+				static uint8_t getStateImageIndex()
+				{
+					return 0;
+				}
 				
 				FinishedItem* entry;
 		};

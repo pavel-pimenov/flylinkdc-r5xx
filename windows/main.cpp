@@ -408,7 +408,6 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 			
 			DestroySplash();
 			
-			//[-]PPA        AutoUpdateGUIMethod* l_guiDelegate = dynamic_cast<AutoUpdateGUIMethod*>(&wndMain);
 			AutoUpdateGUIMethod* l_guiDelegate = &wndMain;
 			
 			loadingAfterGuiFlyFeatures(wndMain, l_guiDelegate);

@@ -68,6 +68,7 @@ OnlineUserPtr UserInfoBaseHandlerTraitsUser<OnlineUserPtr>::g_user = nullptr;
 
 FileImage g_fileImage;
 UserImage g_userImage;
+UserStateImage g_userStateImage;
 FlagImage g_flagImage;
 #ifdef SCALOLAZ_MEDIAVIDEO_ICO
 VideoImage g_videoImage;
@@ -461,6 +462,11 @@ static LRESULT CALLBACK KeyboardProc(int code, WPARAM wParam, LPARAM lParam)
 	return CallNextHookEx(WinUtil::g_hook, code, wParam, lParam);
 }
 
+void UserStateImage::init()
+{
+	ResourceLoader::LoadImageList(IDR_STATE_USERS, m_images, 16, 16);
+}
+
 void UserImage::init()
 {
 	if (SETTING(USERLIST_IMAGE).empty())
@@ -684,6 +690,7 @@ void WinUtil::init(HWND hWnd)
 	g_flagImage.init();
 	
 	g_userImage.init();
+	g_userStateImage.init();
 	
 	Colors::init();
 	
@@ -944,6 +951,7 @@ void WinUtil::uninit()
 {
 	g_fileImage.uninit();
 	g_userImage.uninit();
+	g_userStateImage.uninit();
 	g_flagImage.uninit();
 #ifdef SCALOLAZ_MEDIAVIDEO_ICO
 	g_videoImage.uninit();

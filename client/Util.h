@@ -46,6 +46,17 @@
 #define PLAY_SOUND_BEEP(sound_key) { if (SOUND_BEEP_BOOLSETTING(sound_key)) Util::playSound(SOUND_SETTING(SOUND_BEEPFILE), true); }
 // [~] IRainman: copy-past fix.
 
+
+class IDateReceiveReporter
+{
+		// FlylinkDC++ Team TODO: http://code.google.com/p/flylinkdc/issues/detail?id=632
+	public:
+		virtual bool ReportResultWait(DWORD totalDataWait) = 0;
+		virtual bool ReportResultReceive(DWORD currentDataReceive) = 0;
+		virtual bool SetCurrentStage(std::string& value) = 0;
+};
+
+
 class CInternetHandle
 #ifdef _DEBUG
 	: private virtual NonDerivable<CInternetHandle>, boost::noncopyable // [+] IRainman fix.
@@ -72,6 +83,13 @@ class CInternetHandle
 		}
 	protected:
 		const HINTERNET m_hInternet;
+};
+
+class CFlyHTTPDownloader
+{
+	public:
+		string m_get_http_header_item; // TODO - vector
+		uint64_t getBinaryDataFromInet(const string& url, std::vector<byte>& p_dataOut, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
 };
 
 template <class T>
@@ -333,16 +351,6 @@ class LocalArray
 			memzero(m_data, sizeof(m_data));
 		}
 };
-
-class IDateReceiveReporter
-{
-		// FlylinkDC++ Team TODO: http://code.google.com/p/flylinkdc/issues/detail?id=632
-	public:
-		virtual bool ReportResultWait(DWORD totalDataWait) = 0;
-		virtual bool ReportResultReceive(DWORD currentDataReceive) = 0;
-		virtual bool SetCurrentStage(std::string& value) = 0;
-};
-
 
 class MD5Calc;
 class Util
@@ -1099,7 +1107,6 @@ class Util
 		static string getWANIP(const string& p_url, LONG p_timeOut = 500);
 		
 		static size_t getDataFromInet(const string& url, string& data, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
-		static uint64_t getBinaryDataFromInet(const string& url, std::vector<byte>& p_dataOut, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
 		
 		
 		// static string formatMessage(const string& message);[-] IRainman fix

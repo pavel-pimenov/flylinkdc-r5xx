@@ -60,6 +60,7 @@ HIconWrapper HubFrame::g_hModeNoneIco(IDR_ICON_FAIL_ICON);
 int HubFrame::g_columnSizes[] = { 100,    // COLUMN_NICK
                                   75,     // COLUMN_SHARED
                                   150,    // COLUMN_EXACT_SHARED
+                                  5,      // COLUMN_ANTIVIRUS
                                   150,    // COLUMN_DESCRIPTION
                                   150,    // COLUMN_APPLICATION
 #ifdef IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB
@@ -94,6 +95,7 @@ int HubFrame::g_columnSizes[] = { 100,    // COLUMN_NICK
 int HubFrame::g_columnIndexes[] = { COLUMN_NICK,
                                     COLUMN_SHARED,
                                     COLUMN_EXACT_SHARED,
+                                    COLUMN_ANTIVIRUS,
                                     COLUMN_DESCRIPTION,
                                     COLUMN_APPLICATION,
 #ifdef IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB
@@ -127,6 +129,7 @@ int HubFrame::g_columnIndexes[] = { COLUMN_NICK,
 static ResourceManager::Strings g_columnNames[] = { ResourceManager::NICK,            // COLUMN_NICK
                                                     ResourceManager::SHARED,          // COLUMN_SHARED
                                                     ResourceManager::EXACT_SHARED,    // COLUMN_EXACT_SHARED
+                                                    ResourceManager::ANTIVIRUS,         //COLUMN_ANTIVIRUS
                                                     ResourceManager::DESCRIPTION,     // COLUMN_DESCRIPTION
                                                     ResourceManager::APPLICATION,     // COLUMN_APPLICATION
 #ifdef IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB
@@ -295,6 +298,8 @@ void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
 		ctrlUsers.setColumnOwnerDraw(COLUMN_UPLOAD);
 		ctrlUsers.setColumnOwnerDraw(COLUMN_DOWNLOAD);
 		ctrlUsers.setColumnOwnerDraw(COLUMN_MESSAGES);
+		ctrlUsers.setColumnOwnerDraw(COLUMN_ANTIVIRUS);
+		// ctrlUsers.SetCallbackMask(ctrlUsers.GetCallbackMask() | LVIS_STATEIMAGEMASK);
 		if (p_fhe)
 		{
 			WinUtil::splitTokens(g_columnIndexes, p_fhe->getHeaderOrder(), COLUMN_LAST);
@@ -335,6 +340,7 @@ void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
 			ctrlUsers.setAscending(BOOLSETTING(HUBFRAME_COLUMNS_SORT_ASC));
 		}
 		ctrlUsers.SetImageList(g_userImage.getIconList(), LVSIL_SMALL);
+		//!!!!ctrlUsers.SetImageList(g_userStateImage.getIconList(), LVSIL_STATE);
 		m_Theme = GetWindowTheme(ctrlUsers.m_hWnd);
 		m_showJoins = p_fhe ? p_fhe->getShowJoins() : BOOLSETTING(SHOW_JOINS);
 		m_favShowJoins = BOOLSETTING(FAV_SHOW_JOINS);
@@ -3526,6 +3532,10 @@ bool HubFrame::matchFilter(UserInfo& ui, int sel, bool doSizeCompare, FilterMode
 				{
 					ui.calcLocation();
 				}
+				else if (sel == COLUMN_ANTIVIRUS)
+				{
+					ui.calcVirusType();
+				}
 				const tstring s = ui.getText(static_cast<uint8_t>(sel));
 				if (regex_search(s.begin(), s.end(), reg))
 					insert = true;
@@ -3763,6 +3773,7 @@ void HubFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
 	if (!ClientManager::isShutdown())
 	{
 		ctrlUsers.SetImageList(g_userImage.getIconList(), LVSIL_SMALL);
+		//!!!!ctrlUsers.SetImageList(g_userStateImage.getIconList(), LVSIL_STATE);
 		if (ctrlUsers.isRedraw())
 		{
 			ctrlClient.SetBackgroundColor(Colors::bgColor);
@@ -3824,14 +3835,24 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			}
 			else
 #endif
-				if (l_column_id == COLUMN_UPLOAD || l_column_id == COLUMN_DOWNLOAD || l_column_id == COLUMN_MESSAGES)
+				if (l_column_id == COLUMN_UPLOAD || l_column_id == COLUMN_DOWNLOAD || l_column_id == COLUMN_MESSAGES || l_column_id == COLUMN_ANTIVIRUS)
 				{
+					ctrlUsers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
+					ctrlUsers.SetItemFilled(cd, rc, cd->clrText, cd->clrText);
 					const tstring& l_value = ui->getText(l_column_id);
 					if (!l_value.empty())
 					{
-						ctrlUsers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
-						SetTextColor(cd->nmcd.hdc, cd->clrText);
-						::ExtTextOut(cd->nmcd.hdc, rc.left + 6, rc.top + 2, ETO_CLIPPED, rc, l_value.c_str(), l_value.length(), NULL);
+						int l_step = 0;
+						if (l_column_id == COLUMN_ANTIVIRUS)
+						{
+							LONG top = rc.top + (rc.Height() - 15) / 2;
+							if ((top - rc.top) < 2)
+								top = rc.top + 1;
+							const POINT ps = { rc.left, top };
+							g_userStateImage.Draw(cd->nmcd.hdc, 3 , ps);
+							l_step += 17;
+						}
+						::ExtTextOut(cd->nmcd.hdc, rc.left + 6 + l_step, rc.top + 2, ETO_CLIPPED, rc, l_value.c_str(), l_value.length(), NULL);
 					}
 					return CDRF_SKIPDEFAULT;
 				}
@@ -3856,7 +3877,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 						if (l_is_fantom_ip) // fix https://code.google.com/p/flylinkdc/issues/detail?id=1477
 						{
 							cd->clrText =  l_old_color;
-							SetTextColor(cd->nmcd.hdc, cd->clrText);
+							//SetTextColor(cd->nmcd.hdc, cd->clrText);
 							const auto l_width_ip = WinUtil::getTextWidth(l_ip, cd->nmcd.hdc); // TODO - cache ?
 							::ExtTextOut(cd->nmcd.hdc, rc.left + 6 + l_width_ip + 1, rc.top - 1 , ETO_CLIPPED, rc, _T("*"), 1, NULL);
 						}
@@ -3940,6 +3961,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			{
 //				PROFILE_THREAD_SCOPED_DESC("CDDS_ITEMPREPAINT");
 				ui->calcLocation(); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=120907
+				ui->calcVirusType();
 				Colors::getUserColor(ui->getUser(), cd->clrText, cd->clrTextBk, ui->getOnlineUser()); // !SMT!-UI
 				dcassert(client);
 				if (client->isOp()) // Возможно фикс https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=38000

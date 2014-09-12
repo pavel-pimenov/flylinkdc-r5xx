@@ -101,6 +101,7 @@ bool File_Xdcam_Clip::FileHeader_Begin()
                     //int8u ReadByHuman=Ztring(MediaInfo::Option_Static(__T("ReadByHuman_Get"))).To_int8u();
                     //MediaInfo::Option_Static(__T("ReadByHuman"), __T("0"));
                     MediaInfo_Internal MI;
+                    MI.Option(__T("File_IsReferenced"), __T("1"));
                     if (MI.Open(MXF_File))
                     {
                         //MediaInfo::Option_Static(__T("ReadByHuman"), ReadByHuman?__T("1"):__T("0"));
@@ -125,7 +126,20 @@ bool File_Xdcam_Clip::FileHeader_Begin()
             //Device
             Element=Root->FirstChildElement("Device");
             if (Element)
-                Fill(Stream_General, 0, General_Encoded_Application, string(Element->Attribute("manufacturer"))+" "+Element->Attribute("modelName"), true, true);
+            {
+                const char* manufacturer=Element->Attribute("manufacturer");
+                if (manufacturer)
+                {
+                    string manufacturer_modelName(manufacturer);
+                    const char* modelName=Element->Attribute("modelName");
+                    if (modelName)
+                    {
+                        manufacturer_modelName+=' ';
+                        manufacturer_modelName+=modelName;
+                    }
+                    Fill(Stream_General, 0, General_Encoded_Application, manufacturer_modelName, true, true);
+                }
+            }
 
             if (File_Size_Total!=File_Size)
                 Fill(Stream_General, 0, General_FileSize, File_Size_Total, 10, true);

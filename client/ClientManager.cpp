@@ -276,6 +276,20 @@ StringList ClientManager::getHubNames(const CID& cid, const string& hintUrl, boo
 	return lst;
 }
 //[+]FlylinkDC
+StringList ClientManager::getAntivirusNicks(const CID& p_cid)
+{
+	StringSet ret;
+	webrtc::ReadLockScoped l(*g_csOnlineUsers); // [+] IRainman opt.
+	const OnlinePairC op = g_onlineUsers.equal_range(p_cid);
+	for (auto i = op.first; i != op.second; ++i)
+	{
+		if (i->second->getIdentity().calcVirusType())
+		{
+			ret.insert(i->second->getIdentity().getVirusDesc());
+		}
+	}
+	return StringList(ret.begin(), ret.end());
+}
 StringList ClientManager::getNicks(const CID& p_cid, const string& hintUrl, bool priv)
 {
 	//Lock l(cs); [-] IRainman opt.

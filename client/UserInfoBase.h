@@ -66,6 +66,11 @@ class UserInfoBase
 		
 		virtual const UserPtr& getUser() const = 0;
 		static uint8_t getImage(const OnlineUser& ou); // [!] IRainman fix: use online user here!
+		static uint8_t getStateImageIndex()
+		{
+			return 0;
+		}
+		
 };
 
 struct FavUserTraits // [!] IRainman moved from WinUtil and review.

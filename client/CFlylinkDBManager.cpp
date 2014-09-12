@@ -106,7 +106,7 @@ static void gf_trace_callback(void* p_udp, const char* p_sql)
 //========================================================================================================
 void CFlylinkDBManager::pragma_executor(const char* p_pragma)
 {
-	static const char* l_db_name[] = {"main", "media_db", "dht_db", "stat_db", "location_db", "user_db"};
+	static const char* l_db_name[] = {"main", "media_db", "dht_db", "stat_db", "location_db", "user_db", "antivirus_db"};
 	for (int i = 0; i < _countof(l_db_name); ++i)
 	{
 		string l_sql = "pragma ";
@@ -235,6 +235,8 @@ CFlylinkDBManager::CFlylinkDBManager()
 				m_flySQLiteDB.executenonquery("attach database 'FlylinkDC_stat.sqlite' as stat_db");
 				m_flySQLiteDB.executenonquery("attach database 'FlylinkDC_locations.sqlite' as location_db");
 				m_flySQLiteDB.executenonquery("attach database 'FlylinkDC_user.sqlite' as user_db");
+				m_flySQLiteDB.executenonquery("attach database 'FlylinkDC_antivirus.sqlite' as antivirus_db");
+				
 				
 #ifdef FLYLINKDC_USE_LEVELDB
 				// Тут обязательно полный путь. иначе при смене рабочего каталога levelDB не сомжет открыть базу.
@@ -552,7 +554,7 @@ CFlylinkDBManager::CFlylinkDBManager()
 		
 #ifdef FLYLINKDC_USE_COLLECT_STAT
 		m_flySQLiteDB.executenonquery(
-		    "CREATE TABLE IF NOT EXISTS stat_db.fly_dc_command_log(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL\n"
+		    "CREATE TABLE IF NOT EXISTS stat_db.fly_dc_command_log(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL"
 		    ",hub text not null,command text not null,server text,port text, sender_nick text, counter int64, last_time text not null);");
 		m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS stat_db.iu_fly_dc_command_log ON fly_dc_command_log(hub,command);");
 		m_flySQLiteDB.executenonquery(
@@ -597,10 +599,15 @@ CFlylinkDBManager::CFlylinkDBManager()
 		}
 		//safeAlter("ALTER TABLE fly_queue add column HubHint text"); // TODO - колонки не используются. удалить?
 		//safeAlter("ALTER TABLE fly_queue_source add column HubHint text"); // TODO - колонки не используются. удалить?
-		m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS user_db.user_info(\n"
+		m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS user_db.user_info("
 		                              "nick text not null, dic_hub integer not null, last_ip integer, message_count integer);");
 		m_flySQLiteDB.executenonquery("DROP INDEX IF EXISTS user_db.iu_user_info;"); //старый индекс был (nick,dic_hub)
 		m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS user_db.iu_user_info_hub_nick ON user_info(dic_hub,nick);");
+		
+		m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS antivirus_db.fly_suspect_user("
+		                              "nick text not null,ip4 int not null,share int64 not null);"); // ,unixtime int64 not null
+		m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS antivirus_db.iu_suspect_user_nick ON fly_suspect_user(nick,ip4);");
+		
 		
 		/*
 		{
@@ -1399,6 +1406,87 @@ void CFlylinkDBManager::save_geoip(const CFlyLocationIPArray& p_geo_ip)
 	}
 }
 //========================================================================================================
+void CFlylinkDBManager::purge_antivirus_db(uint64_t p_delete_counter)
+{
+	Lock l(m_cs);
+	try
+	{
+		sqlite3_transaction l_trans(m_flySQLiteDB);
+		if (!m_delete_antivirus_db.get())
+			m_delete_antivirus_db = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+			                                                                      "delete from antivirus_db.fly_suspect_user"));
+		m_delete_antivirus_db.get()->executenonquery();
+		l_trans.commit();
+		set_registry_variable_int64(e_DeleteCounterAntivirusDB, p_delete_counter);
+		set_registry_variable_int64(e_TimeStampAntivirusDB, 0);
+	}
+	catch (const database_error& e)
+	{
+		errorDB("SQLite - purge_antivirus_db: " + e.getError());
+	}
+}
+//========================================================================================================
+int CFlylinkDBManager::sync_antivirus_db(const string& p_antivirus_db, uint64_t p_unixtime)
+{
+	int l_count_new_user = 0;
+	{
+		Lock l(m_cs);
+		try
+		{
+			sqlite3_transaction l_trans(m_flySQLiteDB);
+			if (!m_merge_antivirus_db.get())
+				m_merge_antivirus_db = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+				                                                                     "insert or replace into antivirus_db.fly_suspect_user(nick,share,ip4) values(?,?,?)"));
+			int l_pos = 0;
+			int l_nick_pos = 0;
+			int l_nick_len = 0;
+			string l_ip4;
+			auto l_sql = m_merge_antivirus_db.get();
+			while (true)
+			{
+				l_nick_pos = l_pos;
+				auto l_sep_pos = p_antivirus_db.find('|', l_pos);
+				if (l_sep_pos == string::npos)
+					break;
+				l_nick_len = l_sep_pos - l_nick_pos;
+				string l_nick = Text::toUtf8(p_antivirus_db.substr(l_nick_pos, l_nick_len));
+				l_pos      = l_sep_pos + 1;
+				l_sep_pos = p_antivirus_db.find('|', l_pos);
+				if (l_sep_pos == string::npos)
+					break;
+				l_ip4 = p_antivirus_db.substr(l_pos, l_sep_pos - l_pos);
+				boost::system::error_code ec;
+				const auto l_boost_ip4 = boost::asio::ip::address_v4::from_string(l_ip4, ec);
+				dcassert(!ec);
+				l_pos = l_sep_pos + 1;
+				const int64_t l_share = _atoi64(p_antivirus_db.c_str() + l_pos);
+				dcassert(l_share);
+				l_pos = l_sep_pos + 1;
+				l_sep_pos = p_antivirus_db.find('\n', l_pos);
+				if (l_sep_pos == string::npos)
+					break;
+				l_pos = l_sep_pos + 1;
+				l_sql->bind(1, l_nick, SQLITE_STATIC);
+				l_sql->bind(2, l_share);
+				l_sql->bind(3, int64_t(l_boost_ip4.to_ulong()));
+				l_sql->executenonquery();
+				++l_count_new_user;
+			}
+			l_trans.commit();
+		}
+		catch (const database_error& e)
+		{
+			errorDB("SQLite - sync_antivirus_db: " + e.getError());
+		}
+	}
+	if (l_count_new_user)
+	{
+		set_registry_variable_int64(e_TimeStampAntivirusDB, p_unixtime);
+	}
+	dcassert(l_count_new_user);
+	return l_count_new_user;
+}
+//========================================================================================================
 void CFlylinkDBManager::set_registry_variable_string(eTypeSegment p_TypeSegment, const string& p_value)
 {
 	CFlyRegistryMap l_store_values;
@@ -1484,7 +1572,8 @@ void CFlylinkDBManager::save_registry(const CFlyRegistryMap& p_values, int p_Seg
 	Lock l(m_cs);
 	try
 	{
-		sqlite3_transaction l_trans(m_flySQLiteDB);
+		// sqlite3_transaction l_trans(m_flySQLiteDB);
+		// SQLite - save_registry: cannot start a transaction within a transaction"
 		if (!m_insert_registry.get())
 			m_insert_registry = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
 			                                                                  "insert or replace into fly_registry (segment,key,val_str,val_number,tick_count) values(?,?,?,?,?)"));
@@ -1507,7 +1596,7 @@ void CFlylinkDBManager::save_registry(const CFlyRegistryMap& p_values, int p_Seg
 			m_delete_registry->bind(2, l_tick);
 			m_delete_registry.get()->executenonquery();
 		}
-		l_trans.commit();
+		//l_trans.commit();
 	}
 	catch (const database_error& e)
 	{
@@ -2233,12 +2322,75 @@ void CFlylinkDBManager::load_global_ratio()
 	}
 }
 //========================================================================================================
+int CFlylinkDBManager::calc_antivirus_flag(const string& p_nick, const boost::asio::ip::address_v4& p_ip4, int64_t p_share)
+{
+	int l_result = 0;
+	Lock l_vir(m_antivirus_cs);
+	if (m_virus_user.find(p_nick) != m_virus_user.end())
+	{
+		l_result |= Identity::VT_NICK;
+		Lock l(m_cs);
+		m_find_virus_nick = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+		                                                                  "select ip4,share from antivirus_db.fly_suspect_user where nick=?"));
+		m_find_virus_nick.get()->bind(1, p_nick, SQLITE_STATIC);
+		sqlite3_reader l_q = m_find_virus_nick.get()->executereader();
+		while (l_q.read())
+		{
+			if (p_ip4 == boost::asio::ip::address_v4((unsigned long)l_q.getint64(0)))
+			{
+				l_result |= Identity::VT_IP;
+			}
+			if (p_share == l_q.getint64(1))
+			{
+				l_result |= Identity::VT_SHARE;
+			}
+		}
+	}
+	if ((l_result & Identity::VT_SHARE) == 0)
+	{
+		if (m_virus_share.find(p_share) != m_virus_share.end())
+		{
+			l_result |= Identity::VT_SHARE;
+		}
+	}
+	if ((l_result & Identity::VT_IP) == 0)
+	{
+		if (m_virus_ip4.find(p_ip4.to_ulong()) != m_virus_ip4.end())
+		{
+			l_result |= Identity::VT_IP;
+		}
+	}
+	return l_result;
+}
+//========================================================================================================
 bool CFlylinkDBManager::load_last_ip_and_user_stat(uint32_t p_hub_id, const string& p_nick, uint32_t& p_message_count, boost::asio::ip::address_v4& p_last_ip)
 {
 	try
 	{
+		Lock l_vir(m_antivirus_cs);
 		Lock l(m_cs);
 		p_message_count = 0;
+		if (m_virus_user.empty())
+		{
+			m_select_antivirus_db = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+			                                                                      "select nick,ip4,share FROM antivirus_db.fly_suspect_user"));
+			sqlite3_reader l_q = m_select_antivirus_db.get()->executereader();
+			while (l_q.read())
+			{
+				m_virus_user.insert(l_q.getstring(0));
+				m_virus_ip4.insert((unsigned long)l_q.getint64(1));
+				m_virus_share.insert(l_q.getint64(2));
+				//dcassert(l_res.second);
+				//CFlyAntivirusItem l_item;
+				//l_item.m_ip = boost::asio::ip::address_v4((unsigned long)l_q.getint64(1));
+				//l_item.m_share = l_q.getint64(2);
+				//  m_antivirus_cache.insert(std::make_pair(l_q.getstring(0), l_item));
+			}
+			//if(m_antivirus_cache.empty())
+			//{
+			//  m_antivirus_cache["!"] = CFlyAntivirusItem(); // Пустышка. TODO - поправить немного
+			//}
+		}
 		auto l_find_cache_item = m_last_ip_cache.find(p_hub_id);
 		if (l_find_cache_item == m_last_ip_cache.end()) // Хаб первый раз? (TODO - добавить задержку на кол-во запросов. если больше N - выполнить пакетную загрузку)
 		{
@@ -2411,6 +2563,7 @@ void CFlylinkDBManager::store_all_ratio_and_last_ip(uint32_t p_hub_id,
 #ifdef _DEBUG
 			if (p_upload_download_stats->size() == 1)
 			{
+				dcassert(p_upload_download_stats->cbegin()->first);
 				dcassert(p_upload_download_stats->cbegin()->first == p_last_ip.to_ulong());
 			}
 #endif
