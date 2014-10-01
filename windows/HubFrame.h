@@ -295,6 +295,8 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		static FrameMap g_frames;
 		
 		tstring m_shortHubName;
+		uint8_t m_hub_name_update_count;
+		void onTimerHubUpdated();
 		uint8_t m_second_count;
 		void setShortHubName(const tstring& p_name);
 		tstring m_redirect;

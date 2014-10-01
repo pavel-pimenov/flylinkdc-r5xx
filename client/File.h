@@ -133,11 +133,33 @@ class File : public IOStream
 			return isExist(Text::toT(filename), outFileSize, outFiletime);
 		}
 		
-		static void ensureDirectory(const tstring& aFile) noexcept;
-		static void ensureDirectory(const string& aFile) noexcept // [+] IRainman opt.
+		static void ensureDirectory(const tstring& aFile);
+		static void ensureDirectory(const string& aFile)  // [+] IRainman opt.
 		{
-			dcassert(!aFile.empty());
 			ensureDirectory(Text::toT(aFile));
+		}
+		
+		static void addTrailingSlash(tstring& p_path)
+		{
+			dcassert(!p_path.empty());
+			if (!p_path.empty())
+			{
+				if (p_path[p_path.size() - 1] != _T('\\') && p_path[p_path.size() - 1] != _T('/'))
+				{
+					p_path += _T('\\');
+				}
+			}
+		}
+		static void addTrailingSlash(string& p_path)
+		{
+			dcassert(!p_path.empty());
+			if (!p_path.empty())
+			{
+				if (p_path[p_path.size() - 1] != '\\' && p_path[p_path.size() - 1] != '/')
+				{
+					p_path += '\\';
+				}
+			}
 		}
 		
 		static bool isAbsolute(const string& path) noexcept

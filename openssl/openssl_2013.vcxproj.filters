@@ -1785,9 +1785,6 @@
     <ClCompile Include="crypto\pkcs7\bio_pk7.c">
       <Filter>Source Files\crypto\pkcs7</Filter>
     </ClCompile>
-    <ClCompile Include="crypto\pkcs7\example.c">
-      <Filter>Source Files\crypto\pkcs7</Filter>
-    </ClCompile>
     <ClCompile Include="crypto\pkcs7\pk7_asn1.c">
       <Filter>Source Files\crypto\pkcs7</Filter>
     </ClCompile>

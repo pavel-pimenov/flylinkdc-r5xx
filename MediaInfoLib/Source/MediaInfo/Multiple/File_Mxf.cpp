@@ -199,9 +199,9 @@ namespace Elements
     UUID(AS11_Core_AudioTrackLayout,                            060E2B34, 01010101, 0D010701, 0B010105)
     UUID(AS11_Core_PrimaryAudioLanguage,                        060E2B34, 01010101, 0D010701, 0B010106)
     UUID(AS11_Core_ClosedCaptionsPresent,                       060E2B34, 01010101, 0D010701, 0B010107)
-    UUID(AS11_Core_08,                                          060E2B34, 01010101, 0D010701, 0B010108)
+    UUID(AS11_Core_ClosedCaptionsType,                          060E2B34, 01010101, 0D010701, 0B010108)
     UUID(AS11_Core_ClosedCaptionsLanguage,                      060E2B34, 01010101, 0D010701, 0B010109)
-    UUID(AS11_Core_ClosedCaptionsType,                          060E2B34, 01010101, 0D010701, 0B01010A)
+    UUID(AS11_Core_ShimVersion,                                 060E2B34, 01010101, 0D010701, 0B01010A)
 
     //Item - Elements - User organization registred for public use - AAF Association - AS-11 segmentation metadata framework
     UUID(AS11_Segment_PartNumber,                               060E2B34, 01010101, 0D010701, 0B020101)
@@ -2131,8 +2131,19 @@ void File_Mxf::Streams_Finish_ContentStorage_ForTimeCode (const int128u ContentS
         return;
 
     //Searching the right Time code track first TODO: this is an hack in order to get material or source time code, we need to have something more conform in the future
+    // Material Package then Source Package
     for (size_t Pos=0; Pos<ContentStorage->second.Packages.size(); Pos++)
-        Streams_Finish_Package_ForTimeCode(ContentStorage->second.Packages[Pos]);
+    {
+        packages::iterator Package=Packages.find(ContentStorage->second.Packages[Pos]);
+        if (Package!=Packages.end() && !Package->second.IsSourcePackage)
+            Streams_Finish_Package_ForTimeCode(ContentStorage->second.Packages[Pos]);
+    }
+    for (size_t Pos=0; Pos<ContentStorage->second.Packages.size(); Pos++)
+    {
+        packages::iterator Package=Packages.find(ContentStorage->second.Packages[Pos]);
+        if (Package!=Packages.end() && Package->second.IsSourcePackage)
+            Streams_Finish_Package_ForTimeCode(ContentStorage->second.Packages[Pos]);
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -2176,7 +2187,7 @@ void File_Mxf::Streams_Finish_Package_ForAS11 (const int128u PackageUID)
     packages::iterator Package=Packages.find(PackageUID);
     if (Package==Packages.end() || Package->second.IsSourcePackage)
         return;
-    
+
     for (size_t Pos=0; Pos<Package->second.Tracks.size(); Pos++)
         Streams_Finish_Track_ForAS11(Package->second.Tracks[Pos]);
 }
@@ -2230,7 +2241,7 @@ void File_Mxf::Streams_Finish_Track_ForAS11(const int128u TrackUID)
     //TrackName
     if (StreamKind_Last!=Stream_Max && !Track->second.TrackName.empty())
         Fill(StreamKind_Last, StreamPos_Last, "Title", Track->second.TrackName);
-    
+
     //Done
     Track->second.Stream_Finish_Done=true;
 }
@@ -3263,22 +3274,15 @@ void File_Mxf::Streams_Finish_Component_ForTimeCode(const int128u ComponentUID, 
         components::iterator Component2=Components.find(Component->second.StructuralComponents[Pos]);
         if (Component2!=Components.end() && Component2->second.TimeCode_StartTimecode!=(int64u)-1 && !Config->File_IsReferenced_Get())
         {
-            /*bool IsDuplicate=false;
-            for (size_t Pos2=0; Pos2<Count_Get(Stream_Other); Pos2++)
-                if (Ztring::ToZtring(TrackID)==Retrieve(Stream_Other, Pos2, "ID"))
-                    IsDuplicate=true;
-            if (!IsDuplicate)*/
-            {
-                //Note: Origin is not part of the StartTimecode for the first frame in the source package. From specs: "For a Timecode Track with a single Timecode Component and with origin N, where N greater than 0, the timecode value at the Zero Point of the Track equals the start timecode of the Timecode Component incremented by N units."
-                TimeCode TC(Component2->second.TimeCode_StartTimecode+Config->File_IgnoreFramesBefore, (int8u)Component2->second.TimeCode_RoundedTimecodeBase, Component2->second.TimeCode_DropFrame);
-                Stream_Prepare(Stream_Other);
-                Fill(Stream_Other, StreamPos_Last, Other_ID, Ztring::ToZtring(TrackID)+(IsSourcePackage?__T("-Source"):__T("-Material")));
-                Fill(Stream_Other, StreamPos_Last, Other_Type, "Time code");
-                Fill(Stream_Other, StreamPos_Last, Other_Format, "MXF TC");
-                Fill(Stream_Other, StreamPos_Last, Other_TimeCode_FirstFrame, TC.ToString().c_str());
-                Fill(Stream_Other, StreamPos_Last, Other_TimeCode_Settings, IsSourcePackage?__T("Source Package"):__T("Material Package"));
-                Fill(Stream_Other, StreamPos_Last, Other_TimeCode_Striped, "Yes");
-            }
+            //Note: Origin is not part of the StartTimecode for the first frame in the source package. From specs: "For a Timecode Track with a single Timecode Component and with origin N, where N greater than 0, the timecode value at the Zero Point of the Track equals the start timecode of the Timecode Component incremented by N units."
+            TimeCode TC(Component2->second.TimeCode_StartTimecode+Config->File_IgnoreFramesBefore, (int8u)Component2->second.TimeCode_RoundedTimecodeBase, Component2->second.TimeCode_DropFrame);
+            Stream_Prepare(Stream_Other);
+            Fill(Stream_Other, StreamPos_Last, Other_ID, Ztring::ToZtring(TrackID)+(IsSourcePackage?__T("-Source"):__T("-Material")));
+            Fill(Stream_Other, StreamPos_Last, Other_Type, "Time code");
+            Fill(Stream_Other, StreamPos_Last, Other_Format, "MXF TC");
+            Fill(Stream_Other, StreamPos_Last, Other_TimeCode_FirstFrame, TC.ToString().c_str());
+            Fill(Stream_Other, StreamPos_Last, Other_TimeCode_Settings, IsSourcePackage?__T("Source Package"):__T("Material Package"));
+            Fill(Stream_Other, StreamPos_Last, Other_TimeCode_Striped, "Yes");
 
             if ((!TimeCodeFromMaterialPackage && IsSourcePackage) || (TimeCodeFromMaterialPackage && !IsSourcePackage))
             {
@@ -3364,7 +3368,7 @@ void File_Mxf::Streams_Finish_Component_ForAS11(const int128u ComponentUID, floa
                             Fill(Stream_Other, StreamPos_Last, "PartTotal", AS11->second.PartTotal);
                     }
                 }
-                
+
                 switch (AS11->second.Type)
                 {
                     case as11::Type_Core:
@@ -3373,6 +3377,16 @@ void File_Mxf::Streams_Finish_Component_ForAS11(const int128u ComponentUID, floa
                                                     Fill(Stream_Other, StreamPos_Last, "ProgrammeTitle", AS11->second.ProgrammeTitle);
                                                     Fill(Stream_Other, StreamPos_Last, "EpisodeTitleNumber", AS11->second.EpisodeTitleNumber);
                                                     Fill(Stream_Other, StreamPos_Last, "ShimName", AS11->second.ShimName);
+                                                    if (AS11->second.ShimVersion_Major!=(int8u)-1)
+                                                    {
+                                                       Ztring Version=Ztring::ToZtring(AS11->second.ShimVersion_Major);
+                                                       if (AS11->second.ShimVersion_Minor!=(int8u)-1)
+                                                       {
+                                                           Version+=__T('.');
+                                                           Version+=Ztring::ToZtring(AS11->second.ShimVersion_Minor);
+                                                       }
+                                                       Fill(Stream_Other, StreamPos_Last, "ShimVersion", Version);
+                                                    }
                                                     if (AS11->second.AudioTrackLayout<Mxf_AS11_AudioTrackLayout_Count)
                                                     {
                                                         Fill(Stream_Other, StreamPos_Last, "AudioTrackLayout", Mxf_AS11_AudioTrackLayout[AS11->second.AudioTrackLayout]);
@@ -6308,9 +6322,9 @@ void File_Mxf::AS11_AAF_Core()
             ELEMENT_UUID(AS11_Core_AudioTrackLayout,            "Audio Track Layout")
             ELEMENT_UUID(AS11_Core_PrimaryAudioLanguage,        "Primary Audio Language")
             ELEMENT_UUID(AS11_Core_ClosedCaptionsPresent,       "Closed Captions Present")
-            ELEMENT_UUID(AS11_Core_08,                          ".08")
             ELEMENT_UUID(AS11_Core_ClosedCaptionsType,          "Closed Captions Type")
             ELEMENT_UUID(AS11_Core_ClosedCaptionsLanguage,      "Closed Captions Language")
+            ELEMENT_UUID(AS11_Core_ShimVersion,                 "Shim Version")
             else
             {
                 Element_Info1(Ztring().From_UUID(Primer_Value->second));
@@ -9880,26 +9894,9 @@ void File_Mxf::AS11_Core_ClosedCaptionsPresent()
 
 //---------------------------------------------------------------------------
 // AAF
-void File_Mxf::AS11_Core_08()
-{
-    //Parsing
-    Info_B1(Value,                                              "Value"); Element_Info1(Value);
-}
-
-//---------------------------------------------------------------------------
-// AAF
 void File_Mxf::AS11_Core_ClosedCaptionsType()
 {
     //Parsing
-    if (Length2==2)
-    {
-        //Found in 1 file, what is it?
-        Info_B1(Value1,                                         "Value 1"); Element_Info1(Value1);
-        Info_B1(Value2,                                         "Value 2"); Element_Info1(Value2);
-        Element_Info1("2 bytes in this file vs 1 byte in specs?");
-        return;
-    }
-        
     int8u Value;
     Get_B1 (Value,                                              "Value"); Element_Info1C(Value<Mxf_AS11_ClosedCaptionType_Count, Mxf_AS11_ClosedCaptionType[Value]);
 
@@ -9918,6 +9915,21 @@ void File_Mxf::AS11_Core_ClosedCaptionsLanguage()
 
     FILLING_BEGIN();
         AS11s[InstanceUID].ClosedCaptionsLanguage=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+// AAF
+void File_Mxf::AS11_Core_ShimVersion()
+{
+    //Parsing
+    int8u Major, Minor;
+    Get_B1 (Major,                                              "Major"); Element_Info1(Major);
+    Get_B1 (Minor,                                              "Minor"); Element_Info1(Minor);
+
+    FILLING_BEGIN();
+        AS11s[InstanceUID].ShimVersion_Major=Major;
+        AS11s[InstanceUID].ShimVersion_Minor=Minor;
     FILLING_END();
 }
 

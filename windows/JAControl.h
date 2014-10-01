@@ -19,7 +19,7 @@
 
 #ifndef _JA_CONTROL_H_
 #define _JA_CONTROL_H_
-#include <windows.h>
+
 #include <string>
 #include <sstream>
 #include "JetAudio6_API.h"

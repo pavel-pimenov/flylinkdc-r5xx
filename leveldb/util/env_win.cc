@@ -34,6 +34,8 @@
 #undef DeleteFile
 #endif
 
+#pragma comment(lib, "Shlwapi.lib") // [+]FlylinkDC++
+
 //Declarations
 namespace leveldb
 {

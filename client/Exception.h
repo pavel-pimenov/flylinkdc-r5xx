@@ -20,6 +20,8 @@
 #define DCPLUSPLUS_DCPP_EXCEPTION_H
 
 #include <string>
+#include <exception>
+
 #include "debug.h"
 #include "noexcept.h"
 
@@ -46,6 +48,8 @@ class Exception : public std::exception
 		}
 	protected:
 		const string error; // [!] IRainman: this is const string.
+	private:
+		Exception& operator = (const Exception& Source);
 };
 
 #ifdef _DEBUG

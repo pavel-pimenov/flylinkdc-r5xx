@@ -3,9 +3,7 @@
 ; customer: ppa@lipetsk.ru
 
 #define PPA_PORTAL_MERGE
-;//#define YANDEX_DEBUG
-#define YANDEX_VID_PREFIX 6
-#define YANDEX_VID_INDEX 0
+#define YANDEX_VID_PREFIX 502
 
 [Setup]
 ArchitecturesAllowed=x64

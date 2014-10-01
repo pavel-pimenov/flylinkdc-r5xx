@@ -2792,7 +2792,8 @@ void File_Mpeg4::moov_trak()
         moov_trak_tkhd_Rotation=0;
         Stream_Prepare(Stream_Max); //clear filling
         Streams.erase((int32u)-1);
-        Fill(StreamKind_Last, StreamPos_Last, General_StreamOrder, Streams.size());
+        Fill(StreamKind_Last, StreamPos_Last, General_StreamOrder, StreamOrder);
+        ++StreamOrder;
     FILLING_END();
 }
 
@@ -4227,6 +4228,9 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxxSound()
 
             //PCM parser
             File_Pcm* Parser=new File_Pcm;
+            Parser->Channels=(int8u)Channels;
+            Parser->SamplingRate=SampleRate;
+            Parser->BitDepth=(int8u)SampleSize;
             #if MEDIAINFO_DEMUX
                 if (Config->Demux_Unpacketize_Get())
                 {

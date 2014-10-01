@@ -48,11 +48,11 @@ class CFlyLevelDB
 		~CFlyLevelDB();
 		
 		bool open_level_db(const string& p_db_name);
-		bool get_value(const void* p_key, size_t p_key_len, bool p_cache, string& p_result);
+		bool get_value(const void* p_key, size_t p_key_len, string& p_result);
 		bool set_value(const void* p_key, size_t p_key_len, const void* p_val, size_t p_val_len);
-		bool get_value(const TTHValue& p_tth, bool p_cache, string& p_result)
+		bool get_value(const TTHValue& p_tth, string& p_result)
 		{
-			return get_value(p_tth.data, p_tth.BYTES, p_cache, p_result);
+			return get_value(p_tth.data, p_tth.BYTES, p_result);
 		}
 		bool set_value(const TTHValue& p_tth, const string& p_status)
 		{
@@ -160,8 +160,9 @@ enum eTypeSegment
 	e_TimeStampCustomLocation = 8,
 	e_IsTTHLevelDBConvert = 9,
 	e_IncopatibleSoftwareList = 10,
-	e_TimeStampAntivirusDB = 11,
-	e_DeleteCounterAntivirusDB = 12
+	// 11, - не занимать
+	e_DeleteCounterAntivirusDB = 12,
+	e_TimeStampAntivirusDB = 13
 };
 struct CFlyRegistryValue
 {
@@ -466,7 +467,6 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		boost::unordered_set<std::string> m_virus_user;
 		boost::unordered_set<int64_t> m_virus_share;
 		boost::unordered_set<unsigned long> m_virus_ip4;
-		//boost::unordered_map<std::string, CFlyAntivirusItem > m_antivirus_cache;
 	public:
 		int calc_antivirus_flag(const string& p_nick, const boost::asio::ip::address_v4& p_ip4, int64_t p_share);
 	private:

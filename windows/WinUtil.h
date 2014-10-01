@@ -394,7 +394,9 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 		BEGIN_MSG_MAP(UserInfoBaseHandler)
 		COMMAND_ID_HANDLER(IDC_GETLIST, onGetList)
 		COMMAND_ID_HANDLER(IDC_BROWSELIST, onBrowseList)
+#ifdef IRAINMAN_INCLUDE_USER_CHECK
 		COMMAND_ID_HANDLER(IDC_CHECKLIST, onCheckList)
+#endif
 		COMMAND_ID_HANDLER(IDC_GET_USER_RESPONSES, onGetUserResponses)
 		COMMAND_ID_HANDLER(IDC_MATCH_QUEUE, onMatchQueue)
 		COMMAND_ID_HANDLER(IDC_PRIVATE_MESSAGE, onPrivateMessage)
@@ -631,11 +633,13 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			doAction(&UserInfoBase::doReport, m_selectedHint);
 			return 0;
 		}
+#ifdef IRAINMAN_INCLUDE_USER_CHECK
 		LRESULT onCheckList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			doAction(&UserInfoBase::checkList);
 			return 0;
 		}
+#endif
 		LRESULT onGetUserResponses(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			doAction(&UserInfoBase::getUserResponses);

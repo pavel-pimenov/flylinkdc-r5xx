@@ -78,7 +78,7 @@ RSSFeed::UpdateFeedNewXML()
 	string data;
 	try
 	{
-		GetData(feedURL, data);
+		GetRSSData(feedURL, data);
 		XMLParser::XMLResults xRes;
 		XMLParser::XMLNode xRootNode = XMLParser::XMLNode::parseString(Text::toUtf8(data).c_str(), 0, &xRes);
 		if (xRes.error == XMLParser::eXMLErrorNone)
@@ -124,14 +124,9 @@ RSSFeed::UpdateFeedOldParser(const string& data)
 	SimpleXML xml;
 	try
 	{
-		//GetData(feedURL, data);
-		
 		xml.fromXML(data);
-		
 		xml.resetCurrentChild();
-
-		RssFormat rssFormat = DetectRSSFormat(&xml, XML_SIMPLE);
-
+		const RssFormat rssFormat = DetectRSSFormat(&xml, XML_SIMPLE);
 		switch (rssFormat)
 		{
 			case RSS_2_0:
@@ -148,9 +143,9 @@ RSSFeed::UpdateFeedOldParser(const string& data)
 }
 
 size_t
-RSSFeed::GetData(const string& url, string& data)
+RSSFeed::GetRSSData(const string& url, string& data)
 {
-	return Util::getDataFromInet(url, data);
+	return Util::getDataFromInet(url, data, 1000);
 }
 
 
@@ -758,8 +753,7 @@ void RSSManager::on(TimerManagerListener::Minute, uint64_t tick) noexcept
 {
 	if (SETTING(RSS_AUTO_REFRESH_TIME) > 0)
 	{
-		minuteCounter++;
-		if (minuteCounter >= (unsigned int) SETTING(RSS_AUTO_REFRESH_TIME))
+		if (++minuteCounter >= (unsigned int) SETTING(RSS_AUTO_REFRESH_TIME))
 		{
 			updateFeeds(); // [!] IRainman fix done [2] https://www.box.net/shared/be613d6f54c533c0e1ff
 			minuteCounter = 0;

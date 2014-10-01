@@ -1,5 +1,5 @@
 
-#if VER < 0x05050400
+#if VER < 0x05050500
   #error Update your Inno Setup version
 #endif
 #ifndef UNICODE
@@ -35,6 +35,9 @@ AppMutex={{FLYDC-AEE8350A-B49A-4753-AB4B-E55479A48351}
 ;AppMutex={{FLYDC-AEE8350A-B49A-4753-AB4B-E55479A48350}
 UsePreviousLanguage=no
 SignTool=signppafly5
+; signppafly5 "C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\signtool.exe" sign /a /d $qFlylinkDC++ r5xx$q /du $qhttp://flylinkdc.blogspot.com$q /t $qhttp://timestamp.verisign.com/scripts/timstamp.dll$q  $f
+; signppafly4 "C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\signtool.exe" sign /a /d $qFlylinkDC++ r4xx$q /du $qhttp://flylinkdc.blogspot.com$q /t $qhttp://timestamp.verisign.com/scripts/timstamp.dll$q  $f
+; signppastrong "C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\signtool.exe" sign /a /d $qStrongDC++ sqlite$q /du $qhttp://flylinkdc.blogspot.com$q /t $qhttp://timestamp.verisign.com/scripts/timstamp.dll$q  $f
 
 [Languages]
 
@@ -266,11 +269,7 @@ l_VID_VALUE : string;
 begin
 
 #ifdef  YANDEX_VID_PREFIX
-   #if YANDEX_VID_PREFIX > 9
-     l_VID_VALUE := IntToStr({#YANDEX_VID_PREFIX} * 1000000 + {#YANDEX_VID_INDEX});
-   #else
-     l_VID_VALUE := IntToStr({#YANDEX_VID_PREFIX} * 10000000 + {#YANDEX_VID_INDEX});
-   #endif
+    l_VID_VALUE := IntToStr({#YANDEX_VID_PREFIX});
     RegDeleteValue(HKEY_CURRENT_USER, 'Software\FlylinkDC++\VID', l_VID_VALUE);
 #endif
 

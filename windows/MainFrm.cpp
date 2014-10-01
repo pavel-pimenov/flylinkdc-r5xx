@@ -814,7 +814,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 int MainFrame::tuneTransferSplit()
 {
 	m_nProportionalPos = SETTING(TRANSFER_SPLIT_SIZE);
-	if (m_nProportionalPos < 300)
+	if (m_nProportionalPos < 1000 || m_nProportionalPos > 6000)
 		m_nProportionalPos = 8000; // TODO - пофиксить http://code.google.com/p/flylinkdc/issues/detail?id=1398
 	SET_SETTING(TRANSFER_SPLIT_SIZE, m_nProportionalPos);
 	SetSplitterPanes(m_hWndMDIClient, transferView.m_hWnd);

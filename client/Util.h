@@ -1446,7 +1446,7 @@ class BackgroundTaskExecuter : public BASE_THREAD
 #endif
 		{
 		}
-		virtual ~BackgroundTaskExecuter() noexcept
+		virtual ~BackgroundTaskExecuter()
 		{
 			dcassert(m_runningThreadId == -1);
 			dcassert(!m_active);

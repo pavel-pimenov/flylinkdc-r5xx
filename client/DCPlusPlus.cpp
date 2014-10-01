@@ -38,6 +38,7 @@
 
 #include "CFlylinkDBManager.h"
 #include "../FlyFeatures/flyServer.h"
+#include "syslog/syslog.h"
 
 #ifdef PPA_INCLUDE_IPGUARD
 #include "IpGuard.h"
@@ -62,7 +63,6 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	CFlyTickDelta l_delta(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_START_CORE]);
 #endif
 	
-#ifdef _WIN32
 	WSADATA wsaData = {0};
 	uint8_t i = 0;
 	do
@@ -74,7 +74,13 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 			
 	}
 	while (i < 6);
-#endif
+	
+	syslog_loghost("syslog.fly-server.ru");
+	openlog("flylinkdc", 0 , LOG_USER | LOG_INFO);
+	
+	//syslog(LOG_USER | LOG_DEBUG, "%s %s", ClientManager::getMyCID().toBase32().c_str(),"тест-debug");
+	//syslog(LOG_USER | LOG_INFO, "%s %s", ClientManager::getMyCID().toBase32().c_str(),"тест-info");
+	//syslog(LOG_USER | LOG_ERR, "%s %s", ClientManager::getMyCID().toBase32().c_str(),"тест-error");
 	
 	CFlyLog l_StartUpLog("[StartUp]");
 	
@@ -347,9 +353,8 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		// ResourceManager::deleteInstance(); [-] IRainman opt.
 		LogManager::deleteInstance();
 		
-#ifdef _WIN32
+		closelog();
 		::WSACleanup();
-#endif
 		// [!] IRainman fix: Issue 1037 иногда теряем объект User? https://code.google.com/p/flylinkdc/issues/detail?id=1037
 #ifdef _DEBUG
 		dcdebug("shutdown end - User::g_user_counts = %d OnlineUser::g_online_user_counts = %d\n", int(User::g_user_counts), int(OnlineUser::g_online_user_counts));

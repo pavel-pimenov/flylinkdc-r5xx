@@ -22,6 +22,7 @@
 #include "LogManager.h"
 #include "FilteredFile.h"
 #include "BZUtils.h"
+#include "../FlyFeatures/flyServer.h"
 #endif
 
 #include "CompatibilityManager.h" // [+] IRainman
@@ -332,12 +333,54 @@ void File::ensureDirectory(const tstring& aFile) noexcept
 	start++;
 	while ((start = aFile.find_first_of(_T("\\/"), start)) != tstring::npos)
 	{
-		::CreateDirectory((formatPath(aFile.substr(0, start + 1))).c_str(), NULL); //TODO Crash r501 sp1
+		::CreateDirectory(formatPath(aFile.substr(0, start + 1)).c_str(), NULL);
 		start++;
 	}
 }
 
-
+#if 0
+void File::ensureDirectory(tstring aFile)
+{
+	dcassert(!aFile.empty());
+	// dcassert(aFile[aFile.size()-1] == _T('\\') || aFile[aFile.size()-1] == _T('/'));
+	// addTrailingSlash(aFile);
+	// Skip the first dir...
+	// aFile = _T("D:\\TempDC\\gta4_complete_dvd2.iso.FD3FBG7AR4MJZYATYNW2EV3BJPGRRLKK6TX4UTA.dctmp");
+	tstring::size_type start = 0;
+	if (aFile.size() > 2 && aFile[0] == L'\\' && aFile[1] == L'\\')
+		start++;
+	else
+		start = aFile.find_first_of(_T("\\/"), start);
+	if (start == tstring::npos)
+		return;
+	start++;
+	while ((start = aFile.find_first_of(_T("\\/"), start)) != tstring::npos)
+	{
+		const auto l_dir = aFile.substr(0, start + 1);
+		const BOOL result = ::CreateDirectory(formatPath(l_dir).c_str(), NULL);
+		if (result == FALSE)
+		{
+			const auto l_last_error_code = GetLastError();
+			if (l_last_error_code != ERROR_ALREADY_EXISTS)
+			{
+				const string l_error = "Error File::ensureDirectory: " +  Text::fromT(aFile) + " error = " + Util::translateError(l_last_error_code);
+				const tstring l_email_message = Text::toT(l_error + "\r\nSend screenshot (or text - press ctrl+c for copy to clipboard) e-mail ppa74@ya.ru for diagnostic error!");
+				// ::MessageBox(NULL, l_email_message.c_str() , _T(APPNAME)  , MB_OK | MB_ICONERROR);
+				// Отрубил месаагу - глючит сетевом диске
+				// Error File::ensureDirectory: \\FLYLINKDC-SERV\video\Metallica_-_Sad_But_True.mpg.KMTY5VOGVN7YESAWLKR7FKJPXQT5J5B2PYEFDGY.dctmp error = Синтаксическая ошибка в имени файла, имени папки или метке тома.[error: 123]
+				if (LogManager::isValidInstance())
+				{
+					CFlyServerAdapter::CFlyServerJSON::pushError("[BUG][10] " + l_error);
+					LogManager::getInstance()->message(l_error);
+				}
+				// TODO - исключить выброс исключения - пусть дальше ковыляет
+				// throw FileException(l_error);
+			}
+		}
+		start++;
+	}
+}
+#endif
 
 string File::read(size_t len)
 {

@@ -1138,7 +1138,7 @@ void File_Mk::Segment_Attachements_AttachedFile_FileName()
 
     //Parsing
     Ztring Data=UTF8_Get();
-    
+
     Fill(Stream_General, 0, "Attachements", Data);
 }
 
@@ -1497,11 +1497,11 @@ void File_Mk::Segment_Cluster_BlockGroup_Block()
         Get_B2 (TimeCode,                                       "TimeCode");
 
         FILLING_BEGIN();
-            if (l_StreamTrackNumber.Searching_TimeStamp_Start)
+            if (Segment_Cluster_TimeCode_Value+TimeCode<Stream[TrackNumber].TimeCode_Start) //Does not work well: Stream[TrackNumber].Searching_TimeStamp_Start)
             {
                 FILLING_BEGIN();
-                    l_StreamTrackNumber.TimeCode_Start=Segment_Cluster_TimeCode_Value+TimeCode;
-                    l_StreamTrackNumber.Searching_TimeStamp_Start=false;
+                    Stream[TrackNumber].TimeCode_Start=Segment_Cluster_TimeCode_Value+TimeCode;
+                    //Stream[TrackNumber].Searching_TimeStamp_Start=false;
                 FILLING_END();
             }
             if (l_StreamTrackNumber.Searching_TimeStamps)
@@ -3362,9 +3362,8 @@ void File_Mk::CodecID_Manage()
     #if defined(MEDIAINFO_MPEG4V_YES)
     else if (Format==__T("MPEG-4 Visual"))
     {
-        l_StreamTrackNumber.Parser=new File_Mpeg4v;
-        ((File_Mpeg4v*)l_StreamTrackNumber.Parser)->FrameIsAlwaysComplete=true;
-        ((File_Mpeg4v*)l_StreamTrackNumber.Parser)->Frame_Count_Valid=1;
+        Stream[TrackNumber].Parser=new File_Mpeg4v;
+        ((File_Mpeg4v*)Stream[TrackNumber].Parser)->FrameIsAlwaysComplete=true;
     }
     #endif
     #if defined(MEDIAINFO_AVC_YES)
@@ -3431,9 +3430,8 @@ void File_Mk::CodecID_Manage()
     #if defined(MEDIAINFO_MPEGV_YES)
     else if (Format==__T("MPEG Video"))
     {
-        l_StreamTrackNumber.Parser=new File_Mpegv;
-        ((File_Mpegv*)l_StreamTrackNumber.Parser)->FrameIsAlwaysComplete=true;
-        ((File_Mpegv*)l_StreamTrackNumber.Parser)->Frame_Count_Valid=1;
+        Stream[TrackNumber].Parser=new File_Mpegv;
+        ((File_Mpegv*)Stream[TrackNumber].Parser)->FrameIsAlwaysComplete=true;
     }
     #endif
     #if defined(MEDIAINFO_PRORES_YES)

@@ -1961,13 +1961,14 @@ size_t File_MpegTs::Read_Buffer_Seek (size_t Method, int64u Value, int64u ID)
                 Ztring Demux_Save=MI.Option(__T("Demux_Get"), __T(""));
                 MI.Option(__T("ParseSpeed"), __T("0"));
                 MI.Option(__T("Demux"), Ztring());
+                Config->File_Names.Separator_Set(0, ",");
                 Ztring File_Names=Config->File_Names.Read();
                 MI.Option(__T("File_FileNameFormat"), __T("CSV"));
                 size_t MiOpenResult=MI.Open(File_Names);
                 MI.Option(__T("ParseSpeed"), ParseSpeed_Save); //This is a global value, need to reset it. TODO: local value
                 MI.Option(__T("Demux"), Demux_Save); //This is a global value, need to reset it. TODO: local value
                 if (!MiOpenResult)
-                    return 0;
+                    return (size_t)-1;
                 for (ibi::streams::iterator IbiStream_Temp=((File_MpegTs*)MI.Info)->Ibi.Streams.begin(); IbiStream_Temp!=((File_MpegTs*)MI.Info)->Ibi.Streams.end(); ++IbiStream_Temp)
                 {
                     if (Ibi.Streams[IbiStream_Temp->first]==NULL)

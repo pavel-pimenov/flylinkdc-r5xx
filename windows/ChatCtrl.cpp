@@ -150,6 +150,9 @@ void ChatCtrl::AppendText(const Identity& id, const bool bMyMess, const bool bTh
 #endif
                          )
 {
+	dcassert(!ClientManager::isShutdown());
+	if (ClientManager::isShutdown())
+		return;
 #ifdef IRAINMAN_INCLUDE_SMILE
 	bUseEmo &= !TimerManager::g_isStartupShutdownProcess; // Пока конструируемся - смайлы не добавляем чтобы не тормозить
 #endif
@@ -347,6 +350,7 @@ void ChatCtrl::AppendText(const Identity& id, const bool bMyMess, const bool bTh
 
 void ChatCtrl::AppendTextOnly(const tstring& sText, const tstring& sAuthor, const bool bMyMess, const bool bRealUser, const CHARFORMAT2& cf)
 {
+	dcassert(!ClientManager::isShutdown());
 	PARAFORMAT2 pf;
 	memzero(&pf, sizeof(PARAFORMAT2));
 	pf.dwMask = PFM_STARTINDENT;

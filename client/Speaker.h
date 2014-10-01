@@ -256,6 +256,7 @@ void addListener(Listener* aListener)
 	if (boost::range::find(m_listeners, aListener) == m_listeners.end())
 	{
 		m_listeners.push_back(aListener);
+		m_listeners.shrink_to_fit();
 	}
 #ifdef _DEBUG_SPEAKER_LISTENER_LIST_LEVEL_1
 	else
@@ -271,7 +272,7 @@ void addListener(Listener* aListener)
 void removeListener(Listener* aListener)
 {
 	Lock l(m_listenerCS);
-	if (!m_listeners.empty())
+	if (!m_listeners.empty()) // Dead lock https://code.google.com/p/flylinkdc/issues/detail?id=1428 (TODO - сжать m_listeners)
 	{
 		auto it = boost::range::find(m_listeners, aListener);
 		if (it != m_listeners.end())

@@ -143,7 +143,8 @@ inline string fromT(const tstring& str) noexcept
 #endif
 bool isAscii(const string& p_str) noexcept; // [+] IRainman fix
 bool isAscii(const char* str) noexcept;
-bool validateUtf8(const string& str) noexcept;
+bool validateUtf8(const string& p_str, int p_pos = 0) noexcept;
+
 
 inline char asciiToLower(uint8_t p_c)
 {

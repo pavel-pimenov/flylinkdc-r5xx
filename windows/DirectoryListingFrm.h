@@ -666,7 +666,7 @@ class ThreadedDirectoryListing : public BASE_THREAD
 			{
 				mWindow->m_error = Text::toT(ClientManager::getNicks(mWindow->dl->getUser()->getCID(),
 				                                                     mWindow->dl->getHintedUser().hint)[0] + ": " + e.getError());
-				tstring l_email_message = Text::toT(string("\r\nSend the corrupted file '") + mFile + "' to e-mail ppa74@ya.ru for analyze and correct the error!");
+				const tstring l_email_message = Text::toT(string("\r\nSend the corrupted file '") + mFile + "' to e-mail ppa74@ya.ru for analyze and correct the error!");
 				::MessageBox(NULL, (mWindow->m_error + l_email_message).c_str() , _T(APPNAME)  , MB_OK | MB_ICONERROR);
 				mWindow->PostMessage(WM_SPEAKER, DirectoryListingFrame::ABORTED);
 			}

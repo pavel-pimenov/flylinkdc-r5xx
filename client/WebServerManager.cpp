@@ -856,14 +856,8 @@ int WebServerSocket::run()
 								break;
 							case SearchResult::TYPE_FILE:
 								const string name = Util::encodeURI(m["name"], true);
-								const bool& l_LoadToTarget = !dir.empty();
-								const string DownloadName = l_LoadToTarget ? SETTING(DOWNLOAD_DIRECTORY) + name : name;
-								QueueManager::getInstance()->add(name, Util::toInt64(m["size"]), TTHValue(m["tth"]), HintedUser(toAdd.User, toAdd.HubURL));
-								if (l_LoadToTarget)
-								{
-									File::ensureDirectory(dir);
-									QueueManager::getInstance()->move(DownloadName, dir + name);
-								}
+								const string DownloadName = !dir.empty() ? SETTING(DOWNLOAD_DIRECTORY) + name : name;
+								QueueManager::getInstance()->add(DownloadName, Util::toInt64(m["size"]), TTHValue(m["tth"]), HintedUser(toAdd.User, toAdd.HubURL));
 								break;
 						}
 					}
@@ -880,15 +874,17 @@ int WebServerSocket::run()
 							{
 								TTHValue tth = TTHValue(Link["xt"].substr(15));
 								
-								if (!Link["dn"].empty())
+								string DownloadName = Link["dn"];
+								if (!DownloadName.empty())
 								{
-									const string& DownloadName = Link["dn"];
-									QueueManager::getInstance()->add(DownloadName, Util::toInt64(Link["xl"]), tth, HintedUser(UserPtr(), Util::emptyString));
+									DownloadName = Util::encodeURI(DownloadName, true); // fix https://code.google.com/p/flylinkdc/issues/detail?id=1496
 									if (!dir.empty())
 									{
+										File::addTrailingSlash(dir);
 										File::ensureDirectory(dir);
-										QueueManager::getInstance()->move(DownloadName, dir + Link["dn"]);
+										DownloadName = dir + DownloadName;
 									}
+									QueueManager::getInstance()->addFromWebServer(DownloadName, Util::toInt64(Link["xl"]), tth);
 								}
 							}
 						}

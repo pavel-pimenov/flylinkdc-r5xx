@@ -469,6 +469,12 @@
     <ClCompile Include="client\webrtc\talk\base\stringutils.cc">
       <Filter>Source Files\webrtc\talk</Filter>
     </ClCompile>
+    <ClCompile Include="client\syslog\printk.c">
+      <Filter>Source Files\syslog</Filter>
+    </ClCompile>
+    <ClCompile Include="client\syslog\syslog.c">
+      <Filter>Source Files\syslog</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client\AdcCommand.h">
@@ -1422,6 +1428,12 @@
     <ClInclude Include="leveldb\port\win\leveldb_stdint.h">
       <Filter>Header Files\leveldb</Filter>
     </ClInclude>
+    <ClInclude Include="client\syslog\printk.h">
+      <Filter>Source Files\syslog</Filter>
+    </ClInclude>
+    <ClInclude Include="client\syslog\syslog.h">
+      <Filter>Source Files\syslog</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -1471,6 +1483,9 @@
     </Filter>
     <Filter Include="Source Files\webrtc\talk">
       <UniqueIdentifier>{b7f6ee81-2431-4ce9-805e-d9aa59c8a651}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\syslog">
+      <UniqueIdentifier>{dffc505f-b950-4afe-b0c9-fc5b67a232a0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

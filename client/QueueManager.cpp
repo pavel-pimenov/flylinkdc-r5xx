@@ -378,7 +378,11 @@ void QueueManager::UserQueue::addL(const QueueItemPtr& qi, const UserPtr& aUser,
 	
 // ѕри первой загрузки очереди из базы не зовем calcAverageSpeedAndCalcAndGetDownloadedBytesL
 	if (p_is_first_load == false
-	        && (qi->isSet(QueueItem::FLAG_USER_CHECK) ||  qi->calcAverageSpeedAndCalcAndGetDownloadedBytesL() > 0))
+	        && (
+#ifdef IRAINMAN_INCLUDE_USER_CHECK
+	            qi->isSet(QueueItem::FLAG_USER_CHECK) ||
+#endif
+	            qi->calcAverageSpeedAndCalcAndGetDownloadedBytesL() > 0))
 	{
 		uq.push_front(qi);
 	}
@@ -1008,7 +1012,21 @@ string QueueManager::getListPath(const UserPtr& user) const
 	string nick = nicks.empty() ? Util::emptyString : Util::cleanPathChars(nicks[0]) + ".";
 	return checkTarget(Util::getListPath() + nick + user->getCID().toBase32());// [!] IRainman fix. FlylinkDC use Size on 2nd parametr!
 }
-
+void QueueManager::addFromWebServer(const string& aTarget, int64_t aSize, const TTHValue& aRoot)
+{
+	const auto l_old_value = SETTING(ON_DOWNLOAD_SETTING);
+	try
+	{
+		SET_SETTING(ON_DOWNLOAD_SETTING, SettingsManager::ON_DOWNLOAD_RENAME);
+		add(aTarget, aSize, aRoot, HintedUser(UserPtr(), Util::emptyString));
+		SET_SETTING(ON_DOWNLOAD_SETTING, l_old_value);
+	}
+	catch (Exception&)
+	{
+		SET_SETTING(ON_DOWNLOAD_SETTING, l_old_value);
+		throw;
+	}
+}
 void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& aRoot, const UserPtr& aUser,
                        Flags::MaskType aFlags /* = 0 */, bool addBad /* = true */, bool p_first_file /*= true*/) throw(QueueException, FileException)
 {
@@ -2038,7 +2056,6 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 						if (aDownload->getType() == Transfer::TYPE_FULL_LIST)
 						{
 							dir = q->getTempTarget();
-							
 							{
 								WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 								q->addSegmentL(Segment(0, q->getSize()));
@@ -2896,9 +2913,13 @@ void QueueManager::on(ClientManagerListener::UserDisconnected, const UserPtr& aU
 		}
 	}
 #else
-	QueueItemList l_status_update_array;
-	userQueue.userIsDownloadedFiles(aUser, l_status_update_array);
-	fire(QueueManagerListener::StatusUpdatedList(), l_status_update_array); // [!] IRainman opt.
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
+	{
+		QueueItemList l_status_update_array;
+		userQueue.userIsDownloadedFiles(aUser, l_status_update_array);
+		fire(QueueManagerListener::StatusUpdatedList(), l_status_update_array); // [!] IRainman opt.
+	}
 #endif // IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
 }
 

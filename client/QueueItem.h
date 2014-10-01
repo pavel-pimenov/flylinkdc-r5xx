@@ -87,8 +87,10 @@ class QueueItem : public Flags,
 			FLAG_XML_BZLIST         = 0x20, //-V112
 			/** Only download a part of the file list */
 			FLAG_PARTIAL_LIST       = 0x40,
+#ifdef IRAINMAN_INCLUDE_USER_CHECK
 			/** Test user's file list for fake share */
 			FLAG_USER_CHECK         = 0x80,
+#endif
 			/** Autodrop slow source is enabled for this file */
 			FLAG_AUTODROP           = 0x100,
 			/** [+] SSA - check User IP */

@@ -77,7 +77,7 @@ LRESULT RSSPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	
 	CUpDownCtrl spin;
 	spin.Attach(GetDlgItem(IDC_RSS_AUTO_REFRESH_TIME_SPIN));
-	spin.SetRange(1, 10);
+	spin.SetRange(0, 30);
 	spin.Detach();
 	
 	// Do specialized reading here

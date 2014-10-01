@@ -78,6 +78,12 @@
     <Filter Include="ThirdParty\tinyxml2">
       <UniqueIdentifier>{5b70a9dd-eddc-44ba-bce4-35d86e77acdb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ThirdParty\md5">
+      <UniqueIdentifier>{fafb9172-1356-49d7-9551-13c1d24db797}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty\aes">
+      <UniqueIdentifier>{99956db6-193f-4170-9dbb-c58a8896c033}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\MediaInfo\File__Analyze.cpp">
@@ -641,10 +647,10 @@
     <ClCompile Include="Source\MediaInfo\Multiple\File_HdsF4m.cpp">
       <Filter>Source Files\Multiple</Filter>
     </ClCompile>
-    <ClCompile Include="Source\MediaInfo\Multiple\File_DcpCpl.cpp">
+    <ClCompile Include="Source\MediaInfo\Multiple\File_DcpAm.cpp">
       <Filter>Source Files\Multiple</Filter>
     </ClCompile>
-    <ClCompile Include="Source\MediaInfo\Multiple\File_DcpAm.cpp">
+    <ClCompile Include="Source\MediaInfo\Multiple\File_DcpCpl.cpp">
       <Filter>Source Files\Multiple</Filter>
     </ClCompile>
     <ClCompile Include="Source\MediaInfo\Multiple\File_DcpPkl.cpp">
@@ -670,6 +676,36 @@
     </ClCompile>
     <ClCompile Include="Source\MediaInfo\Audio\File_OpenMG.cpp">
       <Filter>Source Files\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\MediaInfo\Tag\File_Xmp.cpp">
+      <Filter>Source Files\Tag</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\MediaInfo\Video\File_Ffv1.cpp">
+      <Filter>Source Files\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\MediaInfo\Video\File_HuffYuv.cpp">
+      <Filter>Source Files\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\MediaInfo\Text\File_Pdf.cpp">
+      <Filter>Source Files\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ThirdParty\md5\md5.c">
+      <Filter>ThirdParty\md5</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ThirdParty\aes-gladman\aes_modes.c">
+      <Filter>ThirdParty\aes</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ThirdParty\aes-gladman\aes_ni.c">
+      <Filter>ThirdParty\aes</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ThirdParty\aes-gladman\aescrypt.c">
+      <Filter>ThirdParty\aes</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ThirdParty\aes-gladman\aeskey.c">
+      <Filter>ThirdParty\aes</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ThirdParty\aes-gladman\aestab.c">
+      <Filter>ThirdParty\aes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1207,11 +1243,11 @@
     <ClInclude Include="Source\MediaInfo\Multiple\File_Pmp.h">
       <Filter>Header Files\Multiple</Filter>
     </ClInclude>
-    <ClInclude Include="Source\MediaInfo\Video\File_Canopus.h">
-      <Filter>Header Files\Video</Filter>
-    </ClInclude>
     <ClInclude Include="Source\MediaInfo\MediaInfo_Const.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MediaInfo\Video\File_Canopus.h">
+      <Filter>Header Files\Video</Filter>
     </ClInclude>
     <ClInclude Include="Source\MediaInfo\Multiple\File_DashMpd.h">
       <Filter>Header Files\Multiple</Filter>
@@ -1219,10 +1255,10 @@
     <ClInclude Include="Source\MediaInfo\Multiple\File_HdsF4m.h">
       <Filter>Header Files\Multiple</Filter>
     </ClInclude>
-    <ClInclude Include="Source\MediaInfo\Multiple\File_DcpCpl.h">
+    <ClInclude Include="Source\MediaInfo\Multiple\File_DcpAm.h">
       <Filter>Header Files\Multiple</Filter>
     </ClInclude>
-    <ClInclude Include="Source\MediaInfo\Multiple\File_DcpAm.h">
+    <ClInclude Include="Source\MediaInfo\Multiple\File_DcpCpl.h">
       <Filter>Header Files\Multiple</Filter>
     </ClInclude>
     <ClInclude Include="Source\MediaInfo\Multiple\File_DcpPkl.h">
@@ -1248,6 +1284,45 @@
     </ClInclude>
     <ClInclude Include="Source\MediaInfo\Audio\File_OpenMG.h">
       <Filter>Header Files\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MediaInfo\Text\File_Pdf.h">
+      <Filter>Header Files\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MediaInfo\Tag\File_Xmp.h">
+      <Filter>Header Files\Tag</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MediaInfo\Video\File_Ffv1.h">
+      <Filter>Header Files\Video</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MediaInfo\Video\File_HuffYuv.h">
+      <Filter>Header Files\Video</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ThirdParty\md5\md5.h">
+      <Filter>ThirdParty\md5</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ThirdParty\aes-gladman\aes.h">
+      <Filter>ThirdParty\aes</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ThirdParty\aes-gladman\aes_ni.h">
+      <Filter>ThirdParty\aes</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ThirdParty\aes-gladman\aes_via_ace.h">
+      <Filter>ThirdParty\aes</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ThirdParty\aes-gladman\aescpp.h">
+      <Filter>ThirdParty\aes</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ThirdParty\aes-gladman\aesopt.h">
+      <Filter>ThirdParty\aes</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ThirdParty\aes-gladman\aestab.h">
+      <Filter>ThirdParty\aes</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ThirdParty\aes-gladman\brg_endian.h">
+      <Filter>ThirdParty\aes</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ThirdParty\aes-gladman\brg_types.h">
+      <Filter>ThirdParty\aes</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

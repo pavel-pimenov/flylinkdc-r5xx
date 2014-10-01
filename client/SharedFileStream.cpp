@@ -19,6 +19,7 @@
 
 #include "stdinc.h"
 #include "SharedFileStream.h"
+#include "LogManager.h"
 #include "../FlyFeatures/flyServer.h"
 
 FastCriticalSection SharedFileStream::g_cs;
@@ -27,6 +28,7 @@ SharedFileStream::SharedFileHandleMap SharedFileStream::g_readpool;
 SharedFileStream::SharedFileHandleMap SharedFileStream::g_writepool;
 #else
 SharedFileStream::SharedFileHandleMap SharedFileStream::g_rwpool;
+std::unordered_set<std::string> SharedFileStream::g_shared_stream_errors;
 #endif
 
 SharedFileStream::SharedFileStream(const string& aFileName, int aAccess, int aMode)
@@ -54,11 +56,20 @@ SharedFileStream::SharedFileStream(const string& aFileName, int aAccess, int aMo
 		catch (FileException& e)
 		{
 			safe_delete(m_sfh);
-			tstring l_email_message = Text::toT(string("\r\nError in SharedFileStream::SharedFileStream. aFileName = [") + aFileName + "]\r\n" +
-			                                    "Error = " + e.getError() + "\r\nSend screenshot (or text - press ctrl+c for copy to clipboard) e-mail ppa74@ya.ru for diagnostic error!");
-			::MessageBox(NULL, l_email_message.c_str() , _T(APPNAME)  , MB_OK | MB_ICONERROR);
-			CFlyServerAdapter::CFlyServerJSON::pushError("[BUG][9] error r5xx SharedFileStream::SharedFileStream aFileName = "
-			                                             + aFileName + " Error = " + e.getError() + " Access = " + Util::toString(aAccess) + " Mode = " + Util::toString(aMode));
+			const auto l_error = "[BUG][9] error r5xx SharedFileStream::SharedFileStream aFileName = "
+			                     + aFileName + " Error = " + e.getError() + " Access = " + Util::toString(aAccess) + " Mode = " + Util::toString(aMode);
+			const auto l_dup_filter = g_shared_stream_errors.insert(l_error);
+			if (l_dup_filter.second == true)
+			{
+				CFlyServerAdapter::CFlyServerJSON::pushError(l_error);
+				const tstring l_email_message = Text::toT(string("\r\nError in SharedFileStream::SharedFileStream. aFileName = [") + aFileName + "]\r\n" +
+				                                          "Error = " + e.getError() + "\r\nSend screenshot (or text - press ctrl+c for copy to clipboard) e-mail ppa74@ya.ru for diagnostic error!");
+				::MessageBox(NULL, l_email_message.c_str() , _T(APPNAME)  , MB_OK | MB_ICONERROR);
+			}
+			else
+			{
+				LogManager::getInstance()->message(l_error);
+			}
 			throw;
 		}
 		pool[aFileName] = unique_ptr<SharedFileHandle>(m_sfh);

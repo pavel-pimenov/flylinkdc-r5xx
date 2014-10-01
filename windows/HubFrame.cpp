@@ -186,6 +186,7 @@ HubFrame::HubFrame(const tstring& aServer,
 	CFlyTimerAdapter(m_hWnd)
 	, client(nullptr) // на всякий случай :)
 	, m_second_count(60)
+	, m_hub_name_update_count(0)
 	, server(aServer)
 	, m_waitingForPW(false)
 	, m_password_do_modal(0)
@@ -2977,17 +2978,20 @@ LRESULT HubFrame::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*b
 	// [+] IRainman opt.
 	if (!m_spoken)
 	{
-		if (m_needsUpdateStats &&
-		        BaseChatFrame::g_isStartupProcess == false && // Пока открываем хабы не обновляем статистику - мерцает
-		        !MainFrame::isAppMinimized() && WinUtil::g_tabCtrl->isActive(m_hWnd) // [+] IRainman opt.
-#ifndef IRAINMAN_NOT_USE_COUNT_UPDATE_INFO_IN_LIST_VIEW_CTRL
-		        && ctrlUsers.getCountUpdateInfo() == 0 //[+]FlylinkDC++
-#endif
-		   )
+		if (BaseChatFrame::g_isStartupProcess == false && !MainFrame::isAppMinimized())
 		{
-			dcassert(!ClientManager::isShutdown());
-			speak(STATS);
-			m_needsUpdateStats = false;
+			onTimerHubUpdated();
+			if (m_needsUpdateStats &&
+			        WinUtil::g_tabCtrl->isActive(m_hWnd) // [+] IRainman opt.
+#ifndef IRAINMAN_NOT_USE_COUNT_UPDATE_INFO_IN_LIST_VIEW_CTRL
+			        && ctrlUsers.getCountUpdateInfo() == 0 //[+]FlylinkDC++
+#endif
+			   )
+			{
+				dcassert(!ClientManager::isShutdown());
+				speak(STATS);
+				m_needsUpdateStats = false;
+			}
 		}
 		if (!m_tasks.empty())
 		{
@@ -3120,55 +3124,54 @@ void HubFrame::setShortHubName(const tstring& p_name)
 	if (m_shortHubName != p_name)
 	{
 		++m_is_window_text_update;
+		m_shortHubName = p_name;
+		if (!p_name.empty())
+		{
+			SetWindowLongPtr(GWLP_USERDATA, (LONG_PTR)&m_shortHubName);
+		}
+		else
+		{
+			SetWindowLongPtr(GWLP_USERDATA, (LONG_PTR)nullptr);
+		}
 	}
-	m_shortHubName = p_name;
-	if (!p_name.empty())
+}
+void HubFrame::onTimerHubUpdated()
+{
+	if (client && m_hub_name_update_count)
 	{
-		SetWindowLongPtr(GWLP_USERDATA, (LONG_PTR)&m_shortHubName);
-	}
-	else
-	{
-		SetWindowLongPtr(GWLP_USERDATA, (LONG_PTR)nullptr);
+		m_hub_name_update_count = 0;
+		string fullHubName;
+		if (client->isTrusted())
+		{
+			fullHubName = "[S] ";
+		}
+		else if (client->isSecure())
+		{
+			fullHubName = "[U] ";
+		}
+		
+		fullHubName += client->getHubName();
+		
+		if (!client->getName().empty())
+		{
+			const auto l_name = Text::toT(client->getName());
+			setShortHubName(l_name);
+		}
+		else
+		{
+			setShortHubName(Text::toT(fullHubName));
+		}
+		if (!client->getHubDescription().empty())
+			fullHubName += " - " + client->getHubDescription();
+		fullHubName += " (" + client->getHubUrl() + ')';
+		
+		setWindowTitle(fullHubName);
+		setDirty();
 	}
 }
 void HubFrame::on(ClientListener::HubUpdated, const Client*) noexcept
 {
-	string fullHubName;
-	if (client->isTrusted())
-	{
-		fullHubName = "[S] ";
-	}
-	else if (client->isSecure())
-	{
-		fullHubName = "[U] ";
-	}
-	
-	fullHubName += client->getHubName();
-	
-	if (!client->getName().empty())
-	{
-		const auto l_name = Text::toT(client->getName());
-		setShortHubName(l_name);
-	}
-	else
-	{
-		setShortHubName(Text::toT(fullHubName));
-	}
-	if (!client->getHubDescription().empty())
-		fullHubName += " - " + client->getHubDescription();
-	fullHubName += " (" + client->getHubUrl() + ')';
-	
-#ifdef _DEBUG
-	const string version = client->getHubIdentity().getStringParam("VE");
-	if (!version.empty())
-	{
-		setShortHubName(m_shortHubName + Text::toT(" - " + version));
-		fullHubName += " - " + version;
-	}
-#endif
-	setWindowTitle(fullHubName); // TODO перенести на таймер? http://code.google.com/p/flylinkdc/issues/detail?id=1428
-	// SetWindowLongPtr(GWLP_USERDATA, (LONG_PTR)&m_shortHubName);
-	// Нельзя тут setDirty();
+	m_hub_name_update_count++;
 }
 
 void HubFrame::on(ClientListener::Message, const Client*,  std::unique_ptr<ChatMessage>& message) noexcept
@@ -3849,7 +3852,22 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 							if ((top - rc.top) < 2)
 								top = rc.top + 1;
 							const POINT ps = { rc.left, top };
-							g_userStateImage.Draw(cd->nmcd.hdc, 3 , ps);
+							POINT p;
+							int l_icon_index = 1;
+							if (GetCursorPos(&p))
+							{
+								if (ScreenToClient(&p))
+								{
+									LVHITTESTINFO lvhti = {0};
+									lvhti.pt = p;
+									int pos = ctrlUsers.SubItemHitTest(&lvhti);
+									if (pos != -1)
+									{
+										l_icon_index = 3;
+									}
+								}
+							}
+							g_userStateImage.Draw(cd->nmcd.hdc, l_icon_index , ps);
 							l_step += 17;
 						}
 						::ExtTextOut(cd->nmcd.hdc, rc.left + 6 + l_step, rc.top + 2, ETO_CLIPPED, rc, l_value.c_str(), l_value.length(), NULL);
@@ -4043,7 +4061,10 @@ void HubFrame::addDupeUsersToSummaryMenu(const int64_t &share, const string& ip)
 				}
 				userSummaryMenu.AppendMenu(MF_SEPARATOR);
 				userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED | flags, IDC_NONE, info.c_str());
-				userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, Text::toT(l_id.getApplication() + ",   IP: " + l_id.getIpAsString()).c_str());
+				if (!l_id.getApplication().empty() && !l_id.getIpAsString().empty())
+				{
+					userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, Text::toT(l_id.getApplication() + ",   IP: " + l_id.getIpAsString()).c_str());
+				}
 			}
 		}
 	}

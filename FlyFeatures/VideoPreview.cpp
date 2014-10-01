@@ -384,9 +384,9 @@ void VideoPreview::SetDownloadSegment(int64_t pos, int64_t size)
 	
 	int64_t posNew = pos;
 	int64_t sizeNew = size;
-	bool iFound = false;
 	if (!_fileRoadMap->GetInsertableSizeAndPos(posNew, sizeNew))
 	{
+	    bool iFound = false;
 		MapVItems::const_iterator i = _ask2Download.cbegin();
 		while (i != _ask2Download.cend()) // Это цикл должен убить все скачанные из заказа не зависимо от найденных
 		{
@@ -742,7 +742,7 @@ void VideoPreview::_AddLogInfo(const std::string& loginfo)
 bool VideoPreview::GetNextLogItem(string& outString)
 {
 	Lock l(csInfo);
-	if (_logInfoData.size())
+	if (!_logInfoData.empty())
 	{
 		outString = _logInfoData.front();
 		_logInfoData.pop();

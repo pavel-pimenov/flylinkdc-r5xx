@@ -3,8 +3,7 @@
 ; customer: ppa@lipetsk.ru
 
 #define PPA_PORTAL_MERGE
-#define YANDEX_VID_PREFIX 5
-#define YANDEX_VID_INDEX 0
+#define YANDEX_VID_PREFIX 501
 
 [Setup]
 OutputBaseFilename=SetupFlylinkDC-x86

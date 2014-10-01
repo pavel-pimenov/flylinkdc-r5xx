@@ -218,7 +218,7 @@ const string SettingsManager::settingTags[] =
 	"PopupAway", "PopupMinimized", "ShowShareCheckedUsers", "MaxAutoMatchSource",
 	"ReservedSlotColor", "IgnoredColor", "FavoriteColor",
 	"NormalColour", "FireballColor", "ServerColor", "PasiveColor", "OpColor",
-	"FileListAndClientCheckedColour", "BadClientColour", "BadFilelistColour", "DontDLAlreadyShared", "RealTimeQueueUpdate",
+	"FileListAndClientCheckedColour", "BadClientColour", "BadFilelistColour", "DontDLAlreadyShared",
 	"ConfirmOpenInetHubs", // [+] InfinitySky.
 	"ConfirmHubRemoval", "ConfirmHubgroupRemoval", "ConfirmUserRemoval", "SuppressMainChat", "ProgressBackColor", "ProgressCompressColor", "ProgressSegmentColor",
 	"OpenNewWindow", "FileSlots",  "UDPPort", "EnableMultiChunk",
@@ -425,7 +425,6 @@ const string SettingsManager::settingTags[] =
 
 // [+] FlyLinkDC
 static const string g_default_lang_file_name = "ru-RU.xml";
-static const string g_english_lang_file_name = "en-US.xml";
 
 SettingsManager::SettingsManager()
 {
@@ -511,7 +510,7 @@ void SettingsManager::setDefaults()
 	//setDefault(IGNORE_BOT_PMS, false);
 	setDefault(BUFFER_SIZE_FOR_DOWNLOADS, 1024);
 #ifdef IRAINMAN_ENABLE_HUB_LIST
-	setDefault(HUBLIST_SERVERS, "http://dchublist.ru/hublist.xml.bz2;http://dchublist.com/hublist.xml.bz2;http://www.hublista.hu/hublist.xml.bz2;http://hublist.16mb.com/hublist.xml.bz2;");
+	setDefault(HUBLIST_SERVERS, "http://dchublist.ru/hublist.xml.bz2;http://www.te-home.net/?do=hublist&get=hublist-ru.xml.bz2;http://dchublist.com/hublist.xml.bz2");
 #endif
 	//setDefault(DOWNLOAD_SLOTS, 0); // [+] PPA
 	//setDefault(MAX_DOWNLOAD_SPEED, 0);
@@ -853,7 +852,7 @@ void SettingsManager::setDefaults()
 	//setDefault(FILELIST_UNAVAILABLE, 0);
 	setDefault(DISPLAY_CHEATS_IN_MAIN_CHAT, TRUE);
 	setDefault(AUTO_SEARCH_TIME, 1); //[.] PPA
-	setDefault(REALTIME_QUEUE_UPDATE, TRUE);
+	//setDefault(REALTIME_QUEUE_UPDATE, TRUE);
 	//setDefault(SUPPRESS_MAIN_CHAT, false);
 	
 	// default sounds
@@ -1414,9 +1413,9 @@ void SettingsManager::load(const string& aFileName)
 			{
 				return "uk-UA.xml";
 			}
-			else // For migration from "ENG.xml" and all others erroneous language file names and to help you migrate from other clients.
+			else
 			{
-				return g_english_lang_file_name;
+				return g_default_lang_file_name;
 			}
 		};
 		// [!] IRainman:
@@ -1506,7 +1505,13 @@ void SettingsManager::load(const string& aFileName)
 	const auto& l_path = SETTING(TLS_TRUSTED_CERTIFICATES_PATH);
 	if (!l_path.empty())
 	{
-		File::ensureDirectory(l_path);
+		try
+		{
+			File::ensureDirectory(l_path);
+		}
+		catch (FileException&)
+		{
+		}
 	}
 }
 void SettingsManager::generateNewTCPPort()

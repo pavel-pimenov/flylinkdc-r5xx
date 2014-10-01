@@ -254,7 +254,7 @@ void DownloadManager::on(AdcCommand::SND, UserConnection* aSource, const AdcComm
 void DownloadManager::startData(UserConnection* aSource, int64_t start, int64_t bytes, bool z)
 {
 	Download* d = aSource->getDownload();
-	dcassert(d != nullptr);
+	dcassert(d);
 	
 	dcdebug("Preparing " I64_FMT ":" I64_FMT ", " I64_FMT ":" I64_FMT "\n", d->getStartPos(), start, d->getSize(), bytes);
 	if (d->getSize() == -1)
@@ -361,7 +361,7 @@ void DownloadManager::startData(UserConnection* aSource, int64_t start, int64_t 
 void DownloadManager::on(UserConnectionListener::Data, UserConnection* aSource, const uint8_t* aData, size_t aLen) noexcept
 {
 	Download* d = aSource->getDownload();
-	dcassert(d != nullptr);
+	dcassert(d);
 	try
 	{
 		d->addPos(d->getDownloadFile()->write(aData, aLen), aLen); // TODO // r502-sp2 2012-04-23_22-28-18_ETFY7EDN5BIPZZSIMVUUBOZFZOGWBZY3F4D2HUA_2C747F0D_crash-stack-r501-build-9812.dmp // 2012-05-03_22-00-59_WNNHCEA5ALKEWJ3V6JCDBFS75243SQ455Y6NG7Q_059D0ACA_crash-stack-r502-beta24-build-9900.dmp
@@ -387,7 +387,7 @@ void DownloadManager::endData(UserConnection* aSource)
 {
 	dcassert(aSource->getState() == UserConnection::STATE_RUNNING);
 	Download* d = aSource->getDownload();
-	dcassert(d != nullptr);
+	dcassert(d);
 	d->tick(aSource->getLastActivity()); // [!] IRainman refactoring transfer mechanism
 	
 	if (d->getType() == Transfer::TYPE_TREE)
@@ -493,6 +493,7 @@ void DownloadManager::failDownload(UserConnection* aSource, const string& reason
 		removeDownload(d);
 		fire(DownloadManagerListener::Failed(), d, reason);
 		
+#ifdef IRAINMAN_INCLUDE_USER_CHECK
 		if (d->isSet(Download::FLAG_USER_CHECK))
 		{
 			if (reason == STRING(DISCONNECTED))
@@ -504,7 +505,7 @@ void DownloadManager::failDownload(UserConnection* aSource, const string& reason
 				ClientManager::getInstance()->setClientStatus(aSource->getUser(), reason, -1, false);
 			}
 		}
-		
+#endif
 		QueueManager::getInstance()->putDownload(d, false);
 	}
 	
@@ -628,16 +629,18 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource)
 	}
 	
 	Download* d = aSource->getDownload();
-	dcassert(d != nullptr);
+	dcassert(d);
 	dcdebug("File Not Available: %s\n", d->getPath().c_str());
 	
 	removeDownload(d);
 	fire(DownloadManagerListener::Failed(), d, STRING(FILE_NOT_AVAILABLE));
 	
+#ifdef IRAINMAN_INCLUDE_USER_CHECK
 	if (d->isSet(Download::FLAG_USER_CHECK))
 	{
 		ClientManager::getInstance()->setClientStatus(aSource->getUser(), "Filelist Not Available", SETTING(FILELIST_UNAVAILABLE), false);
 	}
+#endif
 	
 	QueueManager::getInstance()->removeSource(d->getPath(), aSource->getUser(), (Flags::MaskType)(d->getType() == Transfer::TYPE_TREE ? QueueItem::Source::FLAG_NO_TREE : QueueItem::Source::FLAG_FILE_NOT_AVAILABLE), false);
 	

@@ -1070,7 +1070,6 @@ enum Strings   // @DontAdd
 	QSEARCH_STR, // "Quick Search…"
 	QUEUED, // "Queued:"
 	QUEUE_SAVED, // "Queue saved."
-	QUEUE_UPDATING, // "Enable queue updating in real time (uses more CPU on large queue!)"
 	QUICK_CONNECT, // "Quick Connect"
 	RATING, // "Rating"
 	RATIO, // "Ratio"

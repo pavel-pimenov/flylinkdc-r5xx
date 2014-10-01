@@ -310,8 +310,6 @@ typedef unsigned __int64 uint64_t;
 # define IRAINMAN_USE_REAL_LOCALISATION_IN_SETTINGS // Details: https://code.google.com/p/flylinkdc/source/detail?r=15356
 #endif
 
-#define CRITICAL_SECTION_SPIN_COUNT 2000 // [+] IRainman opt. http://msdn.microsoft.com/en-us/library/windows/desktop/ms683476(v=vs.85).aspx You can improve performance significantly by choosing a small spin count for a critical section of short duration. For example, the heap manager uses a spin count of roughly 4,000 for its per-heap critical sections.
-
 // [+] BRAIN_RIPPER
 #ifdef IRAINMAN_NTFS_STREAM_TTH
 # define RIP_USE_STREAM_SUPPORT_DETECTION

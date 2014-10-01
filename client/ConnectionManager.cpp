@@ -677,7 +677,7 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 		auto l_result = m_ddos_map.insert(std::pair<CFlyDDOSkey, CFlyDDoSTick>(l_key, l_item));
 		auto& l_cur_value = l_result.first->second;
 		++l_cur_value.m_count_connect;
-		string l_debug_key = " Time: " + Util::getShortTimeString() + " Hub info = " + p_HubInfo;
+		string l_debug_key = " Time: " + Util::getShortTimeString() + " Hub info = " + p_HubInfo; // https://drdump.com/Problem.aspx?ClientID=ppa&ProblemID=92733
 		if (!p_userInfo.empty())
 		{
 			l_debug_key + " UserInfo = [" + p_userInfo + "]";

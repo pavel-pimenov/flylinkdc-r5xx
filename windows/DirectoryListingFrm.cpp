@@ -2237,6 +2237,7 @@ LRESULT DirectoryListingFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wPar
 					const Json::Value& l_result_counter = l_cur_item_in["info"];
 					const Json::Value& l_result_base_media = l_cur_item_in["media"];
 					const int l_count_media = Util::toInt(l_result_counter["count_media"].asString());
+					//dcassert(l_count_media == 0 && l_result_counter["count_media"].asString() == "0")
 					if (l_count_media > 0) // Медиаинфа на сервере уже лежит? - не пытаемся ее послать снова
 					{
 						l_is_know_tth |= true;  // TODO сделать проверку на полноту медиаинфы. т.к. на сервере может лежать частичные данные.

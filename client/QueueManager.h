@@ -37,13 +37,14 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 {
 	public:
 		/** Add a file to the queue. */
-		void add(const string& aTarget, int64_t aSize, const TTHValue& root, const UserPtr& aUser,
+		void addFromWebServer(const string& aTarget, int64_t aSize, const TTHValue& aRoot);
+		void add(const string& aTarget, int64_t aSize, const TTHValue& aRoot, const UserPtr& aUser,
 		         Flags::MaskType aFlags = 0, bool addBad = true, bool p_first_file = true) throw(QueueException, FileException);
 		/** Add a user's filelist to the queue. */
 		void addList(const UserPtr& aUser, Flags::MaskType aFlags, const string& aInitialDir = Util::emptyString) throw(QueueException, FileException);
 		
 		//[+] SSA check user IP
-		void addCheckUserIP(const UserPtr& aUser) noexcept
+		void addCheckUserIP(const UserPtr& aUser)
 		{
 			add(Util::emptyString, -1, TTHValue(), aUser, QueueItem::FLAG_USER_GET_IP);
 		}

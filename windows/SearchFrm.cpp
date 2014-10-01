@@ -1128,6 +1128,7 @@ LRESULT SearchFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wParam, LPARAM
 					const Json::Value& l_result_counter = l_cur_item_in["info"];
 					const Json::Value& l_result_base_media = l_cur_item_in["media"];
 					const int l_count_media = Util::toInt(l_result_counter["count_media"].asString());
+					//dcassert(l_count_media == 0 && l_result_counter["count_media"].asString() == "0")
 					if (l_count_media > 0) // Медиаинфа на сервере уже лежит? - не пытаемся ее послать снова
 					{
 						l_is_know_tth |= true;
@@ -3013,11 +3014,9 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 					LONG top = rc.top + (rc.Height() - 15) / 2;
 					if ((top - rc.top) < 2)
 						top = rc.top + 1;
-					int l_step = 0;
 					const POINT ps = { rc.left, top };
 					g_userStateImage.Draw(cd->nmcd.hdc, 3 , ps);
-					l_step += 17;
-					::ExtTextOut(cd->nmcd.hdc, rc.left + 6 + l_step, rc.top + 2, ETO_CLIPPED, rc, l_value.c_str(), l_value.length(), NULL);
+					::ExtTextOut(cd->nmcd.hdc, rc.left + 6 + 17, rc.top + 2, ETO_CLIPPED, rc, l_value.c_str(), l_value.length(), NULL);
 				}
 				return CDRF_SKIPDEFAULT;
 			}

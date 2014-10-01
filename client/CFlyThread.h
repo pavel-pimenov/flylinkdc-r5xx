@@ -19,7 +19,6 @@
 #ifndef DCPLUSPLUS_DCPP_THREAD_H
 #define DCPLUSPLUS_DCPP_THREAD_H
 
-#include "w.h"
 // [+] IRainman fix.
 #define GetSelfThreadID() ::GetCurrentThreadId()
 typedef DWORD ThreadID;
@@ -41,6 +40,8 @@ typedef DWORD ThreadID;
 #else
 #define BASE_THREAD Thread
 #endif
+
+#define CRITICAL_SECTION_SPIN_COUNT 2000 // [+] IRainman opt. http://msdn.microsoft.com/en-us/library/windows/desktop/ms683476(v=vs.85).aspx You can improve performance significantly by choosing a small spin count for a critical section of short duration. For example, the heap manager uses a spin count of roughly 4,000 for its per-heap critical sections.
 
 STANDARD_EXCEPTION(ThreadException);
 
@@ -287,9 +288,9 @@ class Thread : public BaseThread
 		
 		void setThreadPriority(Priority p);
 		
-		static void sleep(uint64_t millis)
+		static void sleep(DWORD p_millis)
 		{
-			::Sleep(static_cast<DWORD>(millis));
+			::Sleep(p_millis);
 		}
 		static void yield()
 		{
@@ -882,7 +883,7 @@ class SharedCriticalSection
 		
 		~SharedCriticalSection()
 		{
-			dcassert(sharedOwners.size() == 0);
+			dcassert(sharedOwners.empty());
 			dcassert(uniqueOwnerIsSet == 0);
 			dcassert(uniqueOwnerRecursivCount == 0);
 			dcassert(uniqueOwnerId == -1);

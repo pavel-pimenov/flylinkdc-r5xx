@@ -32,7 +32,9 @@ const string UserConnection::FEATURE_ADC_BAS0 = "BAS0";
 const string UserConnection::FEATURE_ADC_BASE = "BASE";
 const string UserConnection::FEATURE_ADC_BZIP = "BZIP";
 const string UserConnection::FEATURE_ADC_TIGR = "TIGR";
+#ifdef SMT_ENABLE_FEATURE_BAN_MSG
 const string UserConnection::FEATURE_BANMSG = "BanMsg"; // !SMT!-B
+#endif
 
 const string UserConnection::FILE_NOT_AVAILABLE = "File Not Available";
 #if defined (PPA_INCLUDE_DOS_GUARD) || defined (IRAINMAN_DISALLOWED_BAN_MSG)
@@ -113,7 +115,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 		        param.rfind(/*path/file*/" no more exists") != string::npos)
 		{
 			// [+] SSA
-			if (getDownload()->isSet(Download::FLAG_USER_GET_IP))
+			if (getDownload()->isSet(Download::FLAG_USER_GET_IP)) // Crash https://drdump.com/Problem.aspx?ClientID=ppa&ProblemID=90376
 			{
 				fire(UserConnectionListener::CheckUserIP(), this);
 			}

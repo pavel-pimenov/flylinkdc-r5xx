@@ -385,16 +385,16 @@ void NmdcHub::onLine(const string& aLine)
 			}
 		}
 		// [+] IRainman fix.
-		const string line = toUtf8(aLine);
+		const string l_utf8_line = toUtf8(aLine);
 		
-		if ((line.find("Hub-Security") != string::npos) && (line.find("was kicked by") != string::npos))
+		if ((l_utf8_line.find("Hub-Security") != string::npos) && (l_utf8_line.find("was kicked by") != string::npos))
 		{
-			fire(ClientListener::StatusMessage(), this, unescape(line), ClientListener::FLAG_IS_SPAM);
+			fire(ClientListener::StatusMessage(), this, unescape(l_utf8_line), ClientListener::FLAG_IS_SPAM);
 			return;
 		}
-		else if ((line.find("is kicking") != string::npos) && (line.find("because:") != string::npos))
+		else if ((l_utf8_line.find("is kicking") != string::npos) && (l_utf8_line.find("because:") != string::npos))
 		{
-			fire(ClientListener::StatusMessage(), this, unescape(line), ClientListener::FLAG_IS_SPAM);
+			fire(ClientListener::StatusMessage(), this, unescape(l_utf8_line), ClientListener::FLAG_IS_SPAM);
 			return;
 		}
 		// [~] IRainman fix.
@@ -403,32 +403,32 @@ void NmdcHub::onLine(const string& aLine)
 		bool bThirdPerson = false;
 		
 		
-		if ((line.size() > 1 && line.compare(0, 2, "* ", 2) == 0) || (line.size() > 2 && line.compare(0, 3, "** ", 3) == 0))
+		if ((l_utf8_line.size() > 1 && l_utf8_line.compare(0, 2, "* ", 2) == 0) || (l_utf8_line.size() > 2 && l_utf8_line.compare(0, 3, "** ", 3) == 0))
 		{
-			size_t begin = line[1] == '*' ? 3 : 2;
-			size_t end = line.find(' ', begin);
+			size_t begin = l_utf8_line[1] == '*' ? 3 : 2;
+			size_t end = l_utf8_line.find(' ', begin);
 			if (end != string::npos)
 			{
-				nick = line.substr(begin, end - begin);
-				message = line.substr(end + 1);
+				nick = l_utf8_line.substr(begin, end - begin);
+				message = l_utf8_line.substr(end + 1);
 				bThirdPerson = true;
 			}
 		}
-		else if (line[0] == '<')
+		else if (l_utf8_line[0] == '<')
 		{
-			string::size_type i = line.find('>', 2);
+			string::size_type i = l_utf8_line.find('>', 2);
 			
 			if (i != string::npos)
 			{
-				if (line.size() <= i + 2)
+				if (l_utf8_line.size() <= i + 2)
 				{
 					// there is nothing after last '>'
 					nick.clear();
 				}
 				else
 				{
-					nick = line.substr(1, i - 1);
-					message = line.substr(i + 2);
+					nick = l_utf8_line.substr(1, i - 1);
+					message = l_utf8_line.substr(i + 2);
 				}
 				
 				/*
@@ -459,13 +459,13 @@ void NmdcHub::onLine(const string& aLine)
 		
 		if (nick.empty())
 		{
-			fire(ClientListener::StatusMessage(), this, unescape(line));
+			fire(ClientListener::StatusMessage(), this, unescape(l_utf8_line));
 			return;
 		}
 		
 		if (message.empty())
 		{
-			message = line;
+			message = l_utf8_line;
 		}
 		/* [-] IRainman fix.
 		if ((line.find("Hub-Security") != string::npos) && (line.find("was kicked by") != string::npos))
@@ -526,8 +526,8 @@ void NmdcHub::onLine(const string& aLine)
 		chatMessage->thirdPerson = bThirdPerson;
 		if (!l_user)
 		{
-			chatMessage->m_text = line; // fix http://code.google.com/p/flylinkdc/issues/detail?id=944
-			// если юзер подстаной - не создаем его в списке
+			chatMessage->m_text = l_utf8_line; // fix http://code.google.com/p/flylinkdc/issues/detail?id=944
+			// если юзер подставной - не создаем его в списке
 		}
 		// [~] IRainman fix.
 		
@@ -709,7 +709,7 @@ void NmdcHub::onLine(const string& aLine)
 		{
 			terms = unescape(param.substr(i));
 		}
-		dcassert(!terms.empty());
+		//dcassert(!terms.empty());
 		if (!terms.empty())
 		{
 			if (isPassive)
@@ -734,6 +734,7 @@ void NmdcHub::onLine(const string& aLine)
 			}
 			
 			fire(ClientListener::NmdcSearch(), this, seeker, a, l_size, type, terms, isPassive);
+			// Dead lock 2 https://code.google.com/p/flylinkdc/issues/detail?id=1428
 		}
 		else
 		{
@@ -1830,11 +1831,14 @@ void NmdcHub::myInfoParse(const string& param) noexcept
 
 void NmdcHub::on(BufferedSocketListener::MyInfoArray, const StringList& p_myInfoArray) noexcept
 {
-	const auto l_ip_port = getIpPort();
 	for (auto i = p_myInfoArray.cbegin(); i != p_myInfoArray.end(); ++i)
 	{
-		myInfoParse(toUtf8(*i)); // Разобраться почему тут toUtf8
-		COMMAND_DEBUG(*i, DebugTask::HUB_IN, l_ip_port);
+		const auto l_utf_line = toUtf8MyINFO(*i);  // Разобраться зачем тут toUtf8
+		myInfoParse(l_utf_line);
+		if (DebugManager::isValidInstance())
+		{
+			COMMAND_DEBUG("$MyINFO " + *i, DebugTask::HUB_IN, getIpPort());
+		}
 	}
 }
 

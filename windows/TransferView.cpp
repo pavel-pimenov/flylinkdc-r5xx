@@ -860,14 +860,12 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (ii->download ? SETTIN
 				const tstring& l_value = ii->getText(colIndex);
 				if (!l_value.empty())
 				{
-					int l_step = 0;
 					LONG top = rc.top + (rc.Height() - 15) / 2;
 					if ((top - rc.top) < 2)
 						top = rc.top + 1;
 					const POINT ps = { rc.left, top };
 					g_userStateImage.Draw(cd->nmcd.hdc, 3 , ps);
-					l_step += 17;
-					::ExtTextOut(cd->nmcd.hdc, rc.left + 6 + l_step, rc.top + 2, ETO_CLIPPED, rc, l_value.c_str(), l_value.length(), NULL);
+					::ExtTextOut(cd->nmcd.hdc, rc.left + 6 + 17, rc.top + 2, ETO_CLIPPED, rc, l_value.c_str(), l_value.length(), NULL);
 				}
 				return CDRF_SKIPDEFAULT;
 			}

@@ -64,6 +64,7 @@ class SharedFileStream : public IOStream
 #else
 		static SharedFileHandleMap g_rwpool;
 #endif
+		static std::unordered_set<std::string> g_shared_stream_errors;
 		
 		void setPos(int64_t aPos);
 	private:

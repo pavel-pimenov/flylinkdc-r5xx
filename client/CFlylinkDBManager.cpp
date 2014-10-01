@@ -19,6 +19,7 @@ bool g_DisableSQLJournal    = false;
 bool g_UseWALJournal        = false;
 bool g_EnableSQLtrace       = false; // http://www.sqlite.org/c3ref/profile.html
 bool g_UseSynchronousOff    = false;
+bool g_DisableSQLtrace      = false;
 
 size_t CFlylinkDBManager::g_count_queue_source = 0;
 
@@ -90,11 +91,14 @@ int gf_busy_handler(void *p_params, int p_tryes)
 //========================================================================================================
 static void gf_trace_callback(void* p_udp, const char* p_sql)
 {
-	if (BOOLSETTING(LOG_SQLITE_TRACE) || g_EnableSQLtrace)
+	if (g_DisableSQLtrace == false)
 	{
-		StringMap params;
-		params["sql"] = p_sql;
-		LOG_FORCE_FILE(TRACE_SQLITE, params); // ¬сегда в файл
+		if (BOOLSETTING(LOG_SQLITE_TRACE) || g_EnableSQLtrace)
+		{
+			StringMap params;
+			params["sql"] = p_sql;
+			LOG_FORCE_FILE(TRACE_SQLITE, params); // ¬сегда в файл
+		}
 	}
 }
 //========================================================================================================
@@ -150,6 +154,7 @@ void CFlylinkDBManager::errorDB(const string& p_txt)
 	                                 "FlylinkDC_dht.sqlite",
 	                                 "FlylinkDC_stat.sqlite",
 	                                 "FlylinkDC_locations.sqlite",
+	                                 "FlylinkDC_antivirus.sqlite",
 	                                 "FlylinkDC_user.sqlite"
 	                                };
 	for (int i = 0; i < _countof(l_db_file_names); ++i)
@@ -403,10 +408,7 @@ CFlylinkDBManager::CFlylinkDBManager()
 			safeAlter("ALTER TABLE fly_file add column hit int64 default 0");
 			safeAlter("ALTER TABLE fly_file add column stamp_share int64 default 0");
 			safeAlter("ALTER TABLE fly_file add column bitrate integer");
-			sqlite3_transaction l_trans(m_flySQLiteDB);
-			// рехеш всего музона
 			m_flySQLiteDB.executenonquery("delete from fly_file where name like '%.mp3' and (bitrate=0 or bitrate is null)");
-			l_trans.commit();
 		}
 		if (l_rev < 358)
 		{
@@ -428,15 +430,11 @@ CFlylinkDBManager::CFlylinkDBManager()
 		}
 		if (l_rev < 341)
 		{
-			sqlite3_transaction l_trans(m_flySQLiteDB);
 			m_flySQLiteDB.executenonquery("delete from fly_file where tth_id=0");
-			l_trans.commit();
 		}
 		if (l_rev < 365)
 		{
-			sqlite3_transaction l_trans(m_flySQLiteDB);
 			m_flySQLiteDB.executenonquery("update fly_file set ftype=6 where name like '%.mp4' or name like '%.fly'");
-			l_trans.commit();
 		}
 		if (l_rev <= 377)
 		{
@@ -584,18 +582,14 @@ CFlylinkDBManager::CFlylinkDBManager()
 			if (safeAlter("ALTER TABLE fly_file add column media_audio text"))
 			{
 				// получилось добавить колонку - значит стартанули первый раз - удалим все записи дл€ перехеша с помощью либы
-				sqlite3_transaction l_trans(m_flySQLiteDB);
 				const string l_where = "delete from fly_file where " + g_fly_server_config.DBDelete();
 				m_flySQLiteDB.executenonquery(l_where);
-				l_trans.commit();
 			}
 		}
 		
 		if (l_rev < VERSION_NUM)
 		{
-			sqlite3_transaction l_trans(m_flySQLiteDB);
 			m_flySQLiteDB.executenonquery("insert into fly_revision(rev) values(" A_VERSION_NUM_STR ");");
-			l_trans.commit();
 		}
 		//safeAlter("ALTER TABLE fly_queue add column HubHint text"); // TODO - колонки не используютс€. удалить?
 		//safeAlter("ALTER TABLE fly_queue_source add column HubHint text"); // TODO - колонки не используютс€. удалить?
@@ -748,9 +742,7 @@ void CFlylinkDBManager::convert_fly_hash_block_crate_unicque_tthL(CFlyLogFile& p
 		CFlyServerAdapter::CFlyServerJSON::pushError("[BUG][3] Error CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_hash_block_tth ON fly_hash_block(tth). Error = " + e.getError());
 		// ”дал€ем дубли! но € не знаю откуда они могут вз€тьс€ :(
 		{
-			sqlite3_transaction l_trans(m_flySQLiteDB);
 			p_convert_log.step(m_flySQLiteDB.executenonquery("delete from fly_hash_block where tth is not null and tth_id not in (select max(tth_id) from fly_hash_block where tth is not null group by tth)"));
-			l_trans.commit();
 		}
 		p_convert_log.step(m_flySQLiteDB.executenonquery(l_create_uindex));
 	}
@@ -771,7 +763,6 @@ void CFlylinkDBManager::convert_fly_hash_blockL()
 		clean_fly_hash_blockL();
 		safeAlter("ALTER TABLE fly_hash_block add column tth char(24)");
 		{
-			sqlite3_transaction l_trans(m_flySQLiteDB);
 			try
 			{
 				l_convert_log.step(m_flySQLiteDB.executenonquery("update fly_hash_block set tth=(select tth from fly_hash fh where fh.id=fly_hash_block.tth_id) where tth is null"));
@@ -789,7 +780,6 @@ void CFlylinkDBManager::convert_fly_hash_blockL()
 				}
 			}
 			l_convert_log.step(m_flySQLiteDB.executenonquery("delete from fly_hash_block where tth is null"));
-			l_trans.commit();
 		}
 		convert_fly_hash_block_crate_unicque_tthL(l_convert_log);
 		
@@ -815,14 +805,12 @@ void CFlylinkDBManager::save_fly_server_cache(const TTHValue& p_tth, const CFlyS
 		if (!m_insert_fly_server_cache.get())
 			m_insert_fly_server_cache = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
 			                                                                          "insert or replace into media_db.fly_server_cache (tth,fly_audio,fly_audio_br,fly_video,fly_xy) values(?,?,?,?,?)"));
-		sqlite3_transaction l_trans(m_flySQLiteDB);
 		m_insert_fly_server_cache.get()->bind(1, p_tth.data, 24, SQLITE_STATIC);
 		m_insert_fly_server_cache.get()->bind(2, p_value.m_audio, SQLITE_STATIC);
 		m_insert_fly_server_cache.get()->bind(3, p_value.m_audio_br, SQLITE_STATIC);
 		m_insert_fly_server_cache.get()->bind(4, p_value.m_video, SQLITE_STATIC);
 		m_insert_fly_server_cache.get()->bind(5, p_value.m_xy, SQLITE_STATIC);
 		m_insert_fly_server_cache.get()->executenonquery();
-		l_trans.commit();
 	}
 	catch (const database_error& e)
 	{
@@ -1004,14 +992,12 @@ void CFlylinkDBManager::push_json_statistic(const std::string& p_value)
 	Lock l(m_cs);
 	try
 	{
-		sqlite3_transaction l_trans(m_flySQLiteDB);
 		if (!m_insert_statistic_json.get())
 			m_insert_statistic_json = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
 			                                                                        "insert into stat_db.fly_statistic (stat_value_json,stat_time) values(?,strftime('%s','now','localtime'))"));
 		// TODO stat_time пока не используетс€, но пусть будет :)
 		m_insert_statistic_json.get()->bind(1, p_value, SQLITE_STATIC);
 		m_insert_statistic_json.get()->executenonquery();
-		l_trans.commit();
 		++m_count_json_stat;
 	}
 	catch (const database_error& e)
@@ -1038,14 +1024,15 @@ void CFlylinkDBManager::flush_lost_json_statistic()
 				while (l_q.read())
 				{
 					bool l_is_send = false;
+					bool l_is_error = false;
 					const auto l_id = l_q.getint64(0);
 					const std::string l_post_query = l_q.getstring(1);
 					/*const std::string l_result =*/
-					CFlyServerAdapter::CFlyServerJSON::postQuery(true, true, false, false, false, "fly-stat", l_post_query, l_is_send); // [!] PVS V808 'l_result' object of 'basic_string' type was created but was not utilized. cflylinkdbmanager.cpp 545
+					CFlyServerAdapter::CFlyServerJSON::postQuery(true, true, false, false, false, "fly-stat", l_post_query, l_is_send, l_is_error); // [!] PVS V808 'l_result' object of 'basic_string' type was created but was not utilized. cflylinkdbmanager.cpp 545
+					if (l_is_error)
+						break;
 					if (l_is_send)
-					{
 						l_json_array_id.push_back(l_id);
-					}
 				}
 			}
 			if (l_json_array_id.size() < 30)
@@ -1211,6 +1198,7 @@ void CFlylinkDBManager::save_location(const CFlyLocationIPArray& p_geo_ip)
 	Lock l(m_cs);
 	try
 	{
+		CFlyBusy l_disable_log(g_DisableSQLtrace);
 		sqlite3_transaction l_trans(m_flySQLiteDB);
 		if (!m_delete_location.get())
 			m_delete_location = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
@@ -1380,6 +1368,7 @@ void CFlylinkDBManager::save_geoip(const CFlyLocationIPArray& p_geo_ip)
 	Lock l(m_cs);
 	try
 	{
+		CFlyBusy l_disable_log(g_DisableSQLtrace);
 		sqlite3_transaction l_trans(m_flySQLiteDB);
 		if (!m_delete_geoip.get())
 			m_delete_geoip = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
@@ -1411,12 +1400,10 @@ void CFlylinkDBManager::purge_antivirus_db(uint64_t p_delete_counter)
 	Lock l(m_cs);
 	try
 	{
-		sqlite3_transaction l_trans(m_flySQLiteDB);
 		if (!m_delete_antivirus_db.get())
 			m_delete_antivirus_db = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
 			                                                                      "delete from antivirus_db.fly_suspect_user"));
 		m_delete_antivirus_db.get()->executenonquery();
-		l_trans.commit();
 		set_registry_variable_int64(e_DeleteCounterAntivirusDB, p_delete_counter);
 		set_registry_variable_int64(e_TimeStampAntivirusDB, 0);
 	}
@@ -1572,7 +1559,7 @@ void CFlylinkDBManager::save_registry(const CFlyRegistryMap& p_values, int p_Seg
 	Lock l(m_cs);
 	try
 	{
-		// sqlite3_transaction l_trans(m_flySQLiteDB);
+		sqlite3_transaction l_trans(m_flySQLiteDB);
 		// SQLite - save_registry: cannot start a transaction within a transaction"
 		if (!m_insert_registry.get())
 			m_insert_registry = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
@@ -1596,7 +1583,7 @@ void CFlylinkDBManager::save_registry(const CFlyRegistryMap& p_values, int p_Seg
 			m_delete_registry->bind(2, l_tick);
 			m_delete_registry.get()->executenonquery();
 		}
-		//l_trans.commit();
+		l_trans.commit();
 	}
 	catch (const database_error& e)
 	{
@@ -2380,16 +2367,7 @@ bool CFlylinkDBManager::load_last_ip_and_user_stat(uint32_t p_hub_id, const stri
 				m_virus_user.insert(l_q.getstring(0));
 				m_virus_ip4.insert((unsigned long)l_q.getint64(1));
 				m_virus_share.insert(l_q.getint64(2));
-				//dcassert(l_res.second);
-				//CFlyAntivirusItem l_item;
-				//l_item.m_ip = boost::asio::ip::address_v4((unsigned long)l_q.getint64(1));
-				//l_item.m_share = l_q.getint64(2);
-				//  m_antivirus_cache.insert(std::make_pair(l_q.getstring(0), l_item));
 			}
-			//if(m_antivirus_cache.empty())
-			//{
-			//  m_antivirus_cache["!"] = CFlyAntivirusItem(); // ѕустышка. TODO - поправить немного
-			//}
 		}
 		auto l_find_cache_item = m_last_ip_cache.find(p_hub_id);
 		if (l_find_cache_item == m_last_ip_cache.end()) // ’аб первый раз? (TODO - добавить задержку на кол-во запросов. если больше N - выполнить пакетную загрузку)
@@ -3903,7 +3881,7 @@ CFlylinkDBManager::FileStatus CFlylinkDBManager::get_status_file(const TTHValue&
 {
 #ifdef FLYLINKDC_USE_LEVELDB
 	string l_status;
-	m_flyLevelDB.get_value(p_tth, true, l_status);
+	m_flyLevelDB.get_value(p_tth, l_status);
 	int l_result = Util::toInt(l_status);
 	dcassert(l_result >= 0 && l_result <= 3);
 	return static_cast<FileStatus>(l_result); // 1 - скачивал, 2 - был в шаре, 3 - 1+2 и то и то :)
@@ -4064,7 +4042,7 @@ bool CFlyLevelDB::open_level_db(const string& p_db_name)
 	return l_status.ok();
 }
 //========================================================================================================
-bool CFlyLevelDB::get_value(const void* p_key, size_t p_key_len, bool p_cache, string& p_result)
+bool CFlyLevelDB::get_value(const void* p_key, size_t p_key_len, string& p_result)
 {
 	dcassert(m_db);
 	if (m_db)
@@ -4110,7 +4088,7 @@ bool CFlyLevelDB::set_value(const void* p_key, size_t p_key_len, const void* p_v
 uint32_t CFlyLevelDB::set_bit(const TTHValue& p_tth, uint32_t p_mask)
 {
 	string l_value;
-	if (get_value(p_tth, true, l_value))
+	if (get_value(p_tth, l_value))
 	{
 		uint32_t l_mask = Util::toInt(l_value);
 		l_mask |= p_mask;

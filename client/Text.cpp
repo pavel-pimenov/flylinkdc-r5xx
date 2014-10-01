@@ -99,6 +99,7 @@ bool isAscii(const string& p_str) noexcept // [+] IRainman fix.
 
 int utf8ToWc(const char* str, wchar_t& c)
 {
+	dcassert(c == 0);
 	uint8_t c0 = (uint8_t)str[0];
 	if (c0 & 0x80)                                  // 1xxx xxxx
 	{
@@ -321,17 +322,15 @@ const string& wideToAcp(const wstring& str, string& tmp, const string& toCharset
 	return tmp;
 #endif
 }
-
-bool validateUtf8(const string& str) noexcept
+bool validateUtf8(const string& p_str, int p_pos /* = 0 */) noexcept
 {
-	string::size_type i = 0;
-	while (i < str.length())
+	while (p_pos < p_str.length())
 	{
 		wchar_t dummy = 0;
-		int j = utf8ToWc(&str[i], dummy);
+		const int j = utf8ToWc(&p_str[p_pos], dummy);
 		if (j < 0)
 			return false;
-		i += j;
+		p_pos += j;
 	}
 	return true;
 }
@@ -408,7 +407,7 @@ const string& toLower(const string& str, string& tmp) noexcept
 	for (const char* p = &str[0]; p < end;)
 	{
 		wchar_t c = 0;
-		int n = utf8ToWc(p, c);
+		const int n = utf8ToWc(p, c);
 		if (n < 0)
 		{
 			tmp += '_';

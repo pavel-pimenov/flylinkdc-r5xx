@@ -144,6 +144,11 @@ class NmdcHub : public Client, private Flags
 		void putUser(const string& aNick);
 		
 		// don't convert to UTF-8 if string is already in this encoding
+		string toUtf8IfNeededMyINFO(const string& str) const
+		{
+			/*$ALL */
+			return Text::validateUtf8(str, 4) ? str : Text::toUtf8(str, getEncoding());
+		}
 		string toUtf8IfNeeded(const string& str) const
 		{
 			return Text::validateUtf8(str) ? str : Text::toUtf8(str, getEncoding());
@@ -182,6 +187,10 @@ class NmdcHub : public Client, private Flags
 		string toUtf8(const string& str) const
 		{
 			return toUtf8IfNeeded(str);
+		}
+		string toUtf8MyINFO(const string& str) const
+		{
+			return toUtf8IfNeededMyINFO(str);
 		}
 		string fromUtf8Chat(const string& str) const
 		{

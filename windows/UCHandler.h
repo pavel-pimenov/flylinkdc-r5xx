@@ -83,7 +83,9 @@ class UCHandler
 //#endif
 						menu.AppendMenu(MF_STRING, IDC_GET_USER_RESPONSES, CTSTRING(GET_USER_RESPONSES));
 						menu.AppendMenu(MF_STRING, IDC_REPORT, CTSTRING(REPORT));
+#ifdef IRAINMAN_INCLUDE_USER_CHECK
 						menu.AppendMenu(MF_STRING, IDC_CHECKLIST, CTSTRING(CHECK_FILELIST));
+#endif
 						m_extraItems = 5;
 					}
 				}

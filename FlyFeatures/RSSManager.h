@@ -90,7 +90,7 @@ class RSSFeed
 		};
 
 	private:
-		size_t GetData(const string &url, string &data);
+		size_t GetRSSData(const string &url, string &data);
 		void clearNewsList();
 		void removeCDATA(const string &str, string &tmp);
 		bool UpdateFeedOldParser(const string &data);

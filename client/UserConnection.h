@@ -43,7 +43,9 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		static const string FEATURE_ADC_BASE;
 		static const string FEATURE_ADC_BZIP;
 		static const string FEATURE_ADC_TIGR;
+#ifdef SMT_ENABLE_FEATURE_BAN_MSG
 		static const string FEATURE_BANMSG; // !SMT!-B
+#endif
 		
 		static const string FILE_NOT_AVAILABLE;
 #if defined (PPA_INCLUDE_DOS_GUARD) || defined (IRAINMAN_DISALLOWED_BAN_MSG)
@@ -285,7 +287,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		Download* getDownload()
 		{
 			dcassert(isSet(FLAG_DOWNLOAD));
-			return download;
+			return m_download;
 		}
 		uint16_t getPort() const
 		{
@@ -301,17 +303,17 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		void setDownload(Download* d)
 		{
 			dcassert(isSet(FLAG_DOWNLOAD));
-			download = d;
+			m_download = d;
 		}
 		Upload* getUpload()
 		{
 			dcassert(isSet(FLAG_UPLOAD));
-			return upload;
+			return m_upload;
 		}
 		void setUpload(Upload* u)
 		{
 			dcassert(isSet(FLAG_UPLOAD));
-			upload = u;
+			m_upload = u;
 		}
 		
 		void handle(AdcCommand::SUP t, const AdcCommand& c)
@@ -396,15 +398,15 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		
 		union
 		{
-			Download* download; //-V117
-			Upload* upload; //-V117
+			Download* m_download; //-V117
+			Upload* m_upload; //-V117
 		};
 		
 		// We only want ConnectionManager to create this...
 	UserConnection(bool secure_) noexcept :
 		m_last_encoding(Text::systemCharset),
 		                state(STATE_UNCONNECTED),
-		                lastActivity(0), speed(0), chunkSize(0), socket(nullptr), download(nullptr),
+		                lastActivity(0), speed(0), chunkSize(0), socket(nullptr), m_download(nullptr),
 		                slotType(NOSLOT),
 		                m_hintedUser(UserPtr(), Util::emptyString) // [+] IRainman add HintedUser
 		{
@@ -416,7 +418,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		
 		~UserConnection()
 		{
-			dcassert(!download);
+			dcassert(!m_download);
 			dcassert(socket);
 			if (socket)
 			{
@@ -461,7 +463,9 @@ class UcSupports // [+] IRainman fix.
 						else CHECK_FEAT(ZLIB_GET)
 							else CHECK_FEAT(TTHL)
 								else CHECK_FEAT(TTHF)
+#ifdef SMT_ENABLE_FEATURE_BAN_MSG
 									else CHECK_FEAT(BANMSG) // !SMT!-S
+#endif
 										else
 										{
 											unknownSupports.push_back(*i);
@@ -486,7 +490,9 @@ class UcSupports // [+] IRainman fix.
 			CHECK_FEAT(ZLIB_GET);
 			CHECK_FEAT(TTHL);
 			CHECK_FEAT(TTHF);
+#ifdef SMT_ENABLE_FEATURE_BAN_MSG
 			CHECK_FEAT(BANMSG); // !SMT!-S
+#endif
 			
 #undef CHECK_FEAT
 			

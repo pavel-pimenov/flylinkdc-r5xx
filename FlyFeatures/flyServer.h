@@ -394,7 +394,7 @@ class CFlyServerAdapter
 			static CFlyTTHKeyArray g_download_counter;
 			static void addDownloadCounter (const CFlyTTHKey& p_file);
 			static void sendDownloadCounter();
-			static string connect(const CFlyServerKeyArray& p_fileInfoArray, bool p_is_fly_set_query);
+			static string connect(const CFlyServerKeyArray& p_fileInfoArray, bool p_is_fly_set_query, bool p_is_ext_info_for_single_file = false);
 			static string postQuery(bool p_is_set, 
 				                    bool p_is_stat_server, 
 									bool p_is_test_port_server,
@@ -402,7 +402,13 @@ class CFlyServerAdapter
 									bool p_is_disable_zlib_out,
 									const char* p_query, 
 									const string& p_body, 
-									bool& p_is_send);		
+									bool& p_is_send,
+									bool& p_is_error,
+									DWORD p_time_out = 0);		
+    private:
+        static ::CriticalSection g_cs_error_report;
+        static string g_last_error_string;
+        static int g_count_dup_error_string;
 		};
 
 		std::unique_ptr<CFlyServerQueryThread> m_query_thread;

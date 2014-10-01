@@ -652,8 +652,10 @@ uint64_t QueueItem::calcAverageSpeedAndCalcAndGetDownloadedBytesL() const // [!]
 void QueueItem::addSegmentL(const Segment& segment)
 {
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
-	if (m_delegater != nullptr)
+	if (m_delegater != nullptr && segment.getSize() > 0)
+	{
 		m_delegater->addSegment(segment.getStart(), segment.getSize());
+	}
 #endif
 	dcassert(segment.getOverlapped() == false);
 	m_done_segment.insert(segment);
@@ -669,7 +671,6 @@ void QueueItem::addSegmentL(const Segment& segment)
 	if (m_done_segment.size() == 1)
 		return;
 	setDirty();
-	
 	for (auto i = ++m_done_segment.cbegin() ; i != m_done_segment.cend();)
 	{
 		SegmentSet::iterator prev = i;

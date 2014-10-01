@@ -2,9 +2,8 @@
 <Favorites>
 	<Hubs>
 		<Hub Name="AllAvtovo.ru" Connect="1" Description="AllAvtovo.ru for All World" Server="allavtovo.ru" Encoding="Russian_Russia.1251" UserListState="1"/>
-		<Hub Name="M.E.G.A.L.I.V.E" Connect="1" Description="Школотролли пошли все на***!!!.px." Server="dchub://dc.unionbest.org:4111" Encoding="Russian_Russia.1251" UserListState="1"/>
 		<Hub Name="MSIDE" Connect="1" Description="Хаб доступен в пиринге Home-IX.px." Server="dchub://dc.mside.net:411" Encoding="Russian_Russia.1251" UserListState="1"/>
-		<Hub Name="Ozerki" Connect="1" Description="Main Russian DС++ Hub" Server="dchub://dc.cifracom.ru:411" Encoding="Russian_Russia.1251" UserListState="1"/>
+		<Hub Name="Ozerki" Connect="1" Description="Main Russian DС++ Hub" Server="dchub://ozerki.org" Encoding="Russian_Russia.1251" UserListState="1"/>
 		<Hub Name="Andromeda Galaxy" Connect="1" Description="Wide-Open Space Hub For All The Galaxies.px." Server="dchub://dc.a-galaxy.com:411" Encoding="Russian_Russia.1251" UserListState="1"/>
 		<Hub Name="DC•Filimania•COM" Connect="1" Description="Russian HUB.px." Server="dchub://dc.filimania.com:411" Encoding="Russian_Russia.1251" UserListState="1"/>
 		<Hub Name="DCMagnets.ru (Сумма Телеком)" Connect="1" Description="-=DCmagnets.ru=- http://dcmagnets.ru" Server="dchub://dc.dcmagnets.ru:411" Encoding="Russian_Russia.1251" UserListState="1"/>

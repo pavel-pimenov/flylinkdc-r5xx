@@ -1065,7 +1065,6 @@
 	<string name="QsearchStr">Quick Search…</string>
 	<string name="Queued">Queued:</string>
 	<string name="QueueSaved">Queue saved.</string>
-	<string name="QueueUpdating">Enable queue updating in real time (uses more CPU on large queue!)</string>
 	<string name="QuickConnect">Quick Connect</string>
 	<string name="Rating">Rating</string>
 	<string name="Ratio">Ratio</string>

@@ -4,8 +4,7 @@
 
 #define PPA_PORTAL_MERGE
 ;//#define YANDEX_DEBUG
-#define YANDEX_VID_PREFIX 7
-#define YANDEX_VID_INDEX 0
+#define YANDEX_VID_PREFIX 503
 
 [Setup]
 ArchitecturesInstallIn64BitMode=x64

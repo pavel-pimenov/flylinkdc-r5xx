@@ -151,6 +151,7 @@ class Identity
 			FastUniqueLock l(g_cs);
 			user = rhs.user;
 			m_stringInfo = rhs.m_stringInfo;
+			m_virus_type = rhs.m_virus_type;
 			memcpy(&m_bits_info, &rhs.m_bits_info, sizeof(m_bits_info));
 			return *this;
 		}

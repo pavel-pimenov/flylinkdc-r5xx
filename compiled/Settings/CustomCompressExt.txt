@@ -1,0 +1,196 @@
+/////////////////////////////////////
+// http://flylinkdc.blogspot.com/2010/08/blog-post.html
+/////////////////////////////////////
+.msi	Инсталлятор Windows
+/////////////////////////////////
+// Видео файлы
+.3gp Мультимедийный файл беспроводных сетей
+.avi Контейнер для видео/аудио потока данных
+.divx Movie Encoded with DivX-codec
+.flv Flash видео файл
+.m4v Видео в формате MPEG-4
+.mkv Аудио-видео файл Matroska, контейнер
+.mov Видео файл Apple QuickTime
+.mp4 Файл видео MPEG-4
+.mpg MPEG movie file
+.mpeg MPEG movie file
+.vob DVD-Video Object
+.wmv Видео файл Windows Media
+.bik Видео в формате Bink
+.qt Видео файл Apple QuickTime
+.rm Видео файл RealMedia
+/////////////////////////////////
+// Звуковые файлы
+.dts Digital Theater System
+.aac Advanced Audio Codec
+.ac3 Dolby Digital AC-3
+.ape Monkey's Audio
+.fla Free Lossless Audio
+.flac Free Lossless Audio
+.m4a Apple Lossless Audio Codec
+.mp1 MPEG Layer 1
+.mp2 MPEG Layer 2
+.mp3 MPEG Layer 3
+.ogg Ogg Vorbis Audio
+.wma Windows Media Audio
+.wv WavPack
+.mka Аудио файл Matroska
+.vqf
+.lqt
+/////////////////////////////////
+// Графика
+.tiff Tagged Image File Format
+.tif Tagged Image File Format
+.jpg
+.gif
+/////////////////////////////////
+// Документы
+.djvu
+.djv
+/////////////////////////////////
+// архиваторы
+.part1
+.part2
+.part3
+.part4
+.part5
+.part6
+.part7
+.part8
+.part9
+.part10
+.cab Windows Cabinet Compressed Archive 
+/////////////////////////////////
+.isz	Сжатый образ (zip'ом).
+.cso
+/////////////////////////////////
+// http://open-file.ru/types/archives/
+.0	Том архива Hacha
+.000	Архив DoubleSpace
+.7z	Архив 7-Zip
+.a01	Том архива ALZip #3
+.ace	Архив WinAce
+.ain	Архив AIN
+.alz	Архив ALZip
+.apz	Файл проекта Autoplay Media Studio
+.ar	Статическая библиотека Unix
+.arc	Архив ARC
+.arh	Сжатый файл проекта ProTool
+.ari	Архив ARI
+.arj	Архив ARJ
+.ark	Архив PowerDesk Pro
+.axx	Зашифрованный файл AxCrypt
+.bhx	Сжатый файл BinHex
+.bz	Архив Bzip
+.bz2	Архив Bzip2
+.bzip	Архив Bzip
+.bzip2	Архив Bzip2
+.c00	Том архива WinAce
+.c01	Том архива WinAce #1
+.c02	Том архива WinAce #2
+.car	Архив CAR
+.cb7	Комикс (архив 7-Zip)
+.cbr	RAR-архив комиксов
+.cbz	Архив комиксов ZIP
+.deb	Пакет программного обеспечения Debian
+.dgc	Архив DGCA
+.dist	Скрипт установки программ (Mac OS X)
+.f	Архив Freeze
+.fdp	Зашифрованный файл MySafe
+.gca	Архив GCA
+.gz	Архив Gnu Gzip
+.gzi	Архив Unix Gzip
+.gzip	Архив Gnu Zip
+.ha	Архив HA
+.hbc	Архив HyperBac
+.hbc2	Архив HyperBac
+.hbe	Зашифрованный архив HyperBac
+.hki	Архив WinHKI
+.hki2	Архив WinHKI HKI2
+.hpk	Архив HPack
+.hyp	Архив HYPER
+.ice	Архив ICE
+.ipg	Установочный пакет видеоигр (iPod)
+.ipk	Архив Itsy
+.ish	Архив ISH
+.j	Архив JAR
+.jgz	Сжатый сценарий Javascript
+.jic	Файл иконки Java
+.kgb	Архив KGB
+.lbr	Архив LU
+.lha	Архив LHARC
+.lzh	Архив LZH
+.lzma	Архив LZMA
+.lzo	Архив LZO
+.lzx	Архив Amiga LZX
+.pak	Архив PAK
+.paq6	Архив PAQ6
+.paq7	Архив данных PAQ7
+.paq8	Архив PAQ8
+.par	Индексный файл архива Parchive
+.par2	Индексный файл архива Parchive 2
+.pbi	Установочный пакет PC BSD
+.pea	Архив PEA
+.pf	Личные данные Stuffit Deluxe
+.pim	Архив PIM
+.pit	Архив PackIt
+.piz	Архив PIZ (ZIP)
+.pkg	Установочный пакет Mac OS X
+.puz	Сжатый файл Microsoft Publisher
+.qda	Архив Quadruple D
+.r00	Архив WinRAR
+.r01	Том архива WinRAR #1
+.r02	Том архива WinRAR #2
+.r03	Том архива WinRAR #3
+.r30	Том архива WinRAR #30
+.rar	Архив WinRAR
+.rev	Том для восстановления RAR-архива
+.rk	Архив WinRK
+.rpm	Файл менеджера установки Linux
+.rte	Кодированный файл RTE
+.rzs	Файл безопасности Red Zion
+.s00	Том архива ZipSplitter #1
+.s01	Том архива ZipSplitter #2
+.s02	Том архива ZipSplitter #3
+.sar	Архив программы JBoss
+.sdn	Защищенный архив для передачи условно-бесплатного ПО
+.sea	Самораспаковывающийся архив Mac OS
+.sen	Архив Scifer (двоичные данные)
+.sfs	Архив SquashFS
+.sfx	Самораспаковывающийся архив Windows
+.sh	Самораспаковывающийся архив Unix
+.shar	Архив Unix
+.shr	Самораспаковывающийся архив Unix
+.sit	Архив Stuffit
+.sitx	Архив Stuffit X
+.spt	Архив TM File Packer
+.sqx	Архив SQX
+.sqz	Видео-файл Squeezed
+.tar.xz	Сжатый TAR-архив XZ (Unix)
+.tbz	Сжатый TAR-архив Bzip (Unix)
+.tbz2	Архив Tar BZip 2
+.tg	Сжатый tar-архив Gzip
+.tgz	Сжатый TAR-архив (Unix)
+.tlz	Архив Tar LZMA
+.tlzma	Сжатый TAR-архив LZMA (Unix)
+.txz	Сжатый TAR-архив XZ (Unix)
+.tz	Сжатый TAR-архив (Unix)
+.uha	Архив UHarc
+.wad	Архив данных игры
+.war	Web-архив Java
+.xef	Зашифрованный файл WinAce
+.xez	Пакет шаблонов eManager
+.xmcdz	Сжатый документ Mathcad
+.xpi	Установочный пакет Mozilla
+.xz	Сжатый XZ-архив
+.y	Архив Amiga Yabba
+.z	Архив Unix
+.z02	Том архива WinZip #2
+.z04	Том архива WinZip #4
+.zap	Архив FileWrangler
+.zip	Архив ZIP
+.zipx	Расширенный ZIP-архив
+.zix	Архив WinZix
+.zoo	Архив Zoo
+.zpi	Архив ZIP
+.zz

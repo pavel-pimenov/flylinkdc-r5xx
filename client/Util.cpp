@@ -18,13 +18,8 @@
 
 #include "stdinc.h"
 
-#ifdef _WIN32
-
-#include "w.h"
 #include "shlobj.h"
 #include "CompatibilityManager.h" // [+] IRainman
-
-#endif
 
 #include "CID.h"
 #include "File.h"
@@ -37,14 +32,6 @@
 #include "Socket.h"
 #include <fstream>
 
-#ifndef _WIN32
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <sys/utsname.h>
-#include <ctype.h>
-#endif
 #include <locale.h>
 
 #include <boost/algorithm/string.hpp>
@@ -343,8 +330,6 @@ void Util::loadGeoIp()
 				{
 					CFlyLog l_geo_log_sqlite("[GeoIP-sqlite]");
 					CFlylinkDBManager::getInstance()->save_geoip(l_sqlite_array);
-					// Отказались от справочников - не нужно
-					// CFlylinkDBManager::getInstance()->clear_dic_cache_country();
 				}
 				CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_TimeStampGeoIP, l_timeStampFile);
 			}
@@ -464,8 +449,6 @@ void Util::loadCustomlocations()// [!] IRainman: this function workings fine. Pl
 			{
 				CFlyLog l_logSqlite("[CustomLocation-sqlite]");
 				CFlylinkDBManager::getInstance()->save_location(l_sqliteArray);
-				// Отказались от справочников - не нужно
-				// CFlylinkDBManager::getInstance()->clear_dic_cache_location();
 			}
 			CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_TimeStampCustomLocation, l_timeStampFile);
 		}

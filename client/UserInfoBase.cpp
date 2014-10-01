@@ -41,6 +41,7 @@ void UserInfoBase::getUserResponses()
 	}
 }
 
+#ifdef IRAINMAN_INCLUDE_USER_CHECK
 void UserInfoBase::checkList()
 {
 	if (getUser())
@@ -55,7 +56,7 @@ void UserInfoBase::checkList()
 		}
 	}
 }
-
+#endif
 void UserInfoBase::doReport(const string& hubHint)
 {
 	if (getUser())

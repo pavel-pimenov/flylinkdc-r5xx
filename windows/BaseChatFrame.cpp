@@ -564,6 +564,9 @@ void BaseChatFrame::findText(const tstring& needle) noexcept
 
 void BaseChatFrame::addStatus(const tstring& aLine, const bool bInChat /*= true*/, const bool bHistory /*= true*/, const CHARFORMAT2& cf /*= WinUtil::m_ChatTextSystem*/)
 {
+	dcassert(!ClientManager::isShutdown());
+	if (ClientManager::isShutdown())
+		return;
 	tstring line = _T('[') + Text::toT(Util::getShortTimeString()) + _T("] ") + aLine;
 	if (line.size() > 512)
 	{
