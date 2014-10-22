@@ -197,7 +197,7 @@ class FavoriteHubsFrame : public MDITabChildWindowImpl < FavoriteHubsFrame, RGB(
 #endif // UPDATE_CON_STATUS_ON_FAV_HUBS_IN_REALTIME
 		
 #endif // IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept;
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
 };
 
 #endif // !defined(FAVORITE_HUBS_FRM_H)

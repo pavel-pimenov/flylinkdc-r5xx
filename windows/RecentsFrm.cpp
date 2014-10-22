@@ -97,7 +97,7 @@ LRESULT RecentHubsFrame::onDoubleClickHublist(int /*idCtrl*/, LPNMHDR pnmh, BOOL
 	if (item->iItem != -1)
 	{
 		RecentHubEntry* entry = (RecentHubEntry*)ctrlHubs.GetItemData(item->iItem);
-		HubFrame::openWindow(Text::toT(entry->getServer()));
+		HubFrame::openWindow(entry->getServer());
 	}
 	return 0;
 }
@@ -109,7 +109,7 @@ LRESULT RecentHubsFrame::onEnter(int /*idCtrl*/, LPNMHDR /* pnmh */, BOOL& /*bHa
 	if (item != -1)
 	{
 		RecentHubEntry* entry = (RecentHubEntry*)ctrlHubs.GetItemData(item);
-		HubFrame::openWindow(Text::toT(entry->getServer()));
+		HubFrame::openWindow(entry->getServer());
 	}
 	
 	return 0;
@@ -121,7 +121,7 @@ LRESULT RecentHubsFrame::onClickedConnect(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 	while ((i = ctrlHubs.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
 		RecentHubEntry* entry = (RecentHubEntry*)ctrlHubs.GetItemData(i);
-		HubFrame::openWindow(Text::toT(entry->getServer()));
+		HubFrame::openWindow(entry->getServer());
 	}
 	return 0;
 }
@@ -243,7 +243,7 @@ LRESULT RecentHubsFrame::onEdit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
 	return 0;
 }
 
-void RecentHubsFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
+void RecentHubsFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())

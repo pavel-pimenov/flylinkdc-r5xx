@@ -83,7 +83,7 @@ class Identity
 			CHANGES_UPLOAD = 1 << COLUMN_UPLOAD,
 			CHANGES_DOWNLOAD = 1 << COLUMN_DOWNLOAD,
 			CHANGES_MESSAGES = 1 << COLUMN_MESSAGES,
-			CHANGES__ANTIVIRUS = 1 << COLUMN_ANTIVIRUS,
+			CHANGES_ANTIVIRUS = 1 << COLUMN_ANTIVIRUS,
 #endif
 #ifdef PPA_INCLUDE_DNS
 			CHANGES_DNS = 1 << COLUMN_DNS, // !SMT!-IP
@@ -152,6 +152,7 @@ class Identity
 			user = rhs.user;
 			m_stringInfo = rhs.m_stringInfo;
 			m_virus_type = rhs.m_virus_type;
+			m_virus_path = rhs.m_virus_path;
 			memcpy(&m_bits_info, &rhs.m_bits_info, sizeof(m_bits_info));
 			return *this;
 		}
@@ -270,9 +271,14 @@ class Identity
 		boost::asio::ip::address_v4 m_ip; // "I4" // [!] IRainman fix: needs here, details https://code.google.com/p/flylinkdc/issues/detail?id=1330
 	public:
 		unsigned char m_virus_type;
+		string        m_virus_path; // TODO - унести в мапу?
 		void setVirusType(unsigned char p_virus_type_mask)
 		{
 			m_virus_type |= p_virus_type_mask;
+		}
+		void resetAntivirusInfo()
+		{
+			m_virus_type = 0;
 		}
 		unsigned char getVirusType() const
 		{
@@ -391,7 +397,6 @@ class Identity
 		{
 			return getClientTypeBit(CT_HUB);
 		}
-		
 		void setBot() // "CT"
 		{
 			return setClientTypeBit(CT_BOT, true);
@@ -399,6 +404,11 @@ class Identity
 		bool isBot() const // "CT"
 		{
 			return getClientTypeBit(CT_BOT);
+		}
+		bool isBotOrHub() const // "CT"
+		{
+			dcassert(getClientTypeBit(CT_BOT | CT_HUB) == isBot() || isHub());
+			return getClientTypeBit(CT_BOT | CT_HUB);
 		}
 		
 		void setUseIP6() // "CT"

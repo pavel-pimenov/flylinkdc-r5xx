@@ -43,7 +43,7 @@ BufferedSocket::BufferedSocket(char aSeparator) :
 	m_is_disconnecting(false),
 	m_threadId(-1),
 	m_myInfoCount(0),
-	m_myInfoStop(false)
+	m_is_all_my_info_loaded(false)
 {
 	start(64, "BufferedSocket");
 	Thread::safeInc(g_sockets); // [!] IRainman opt.
@@ -262,6 +262,69 @@ void BufferedSocket::threadAccept()
 	}
 }
 
+void BufferedSocket::all_myinfo_parser(const string::size_type p_pos, const string& p_line, StringList& p_all_myInfo, bool p_is_zon)
+{
+	const bool l_is_MyINFO = m_is_all_my_info_loaded == false ? p_line.compare(0, 7, "$MyINFO", 7) == 0 : false;
+	const string l_line_item = l_is_MyINFO ? p_line.substr(8, p_pos - 8) : p_line.substr(0, p_pos);
+	if (m_is_all_my_info_loaded == false)
+	{
+		if (l_is_MyINFO)
+		{
+			++m_myInfoCount;
+			p_all_myInfo.push_back(l_line_item);
+		}
+		else if (m_myInfoCount)
+		{
+			if (!p_all_myInfo.empty())
+			{
+				fire(BufferedSocketListener::MyInfoArray(), p_all_myInfo); // [+]PPA
+			}
+			m_is_all_my_info_loaded = true; // закончился стартовый поток $MyINFO
+		}
+	}
+	if (p_all_myInfo.empty())
+	{
+		if (l_line_item.compare(0, 4, "$ZOn", 4) == 0)
+		{
+			setMode(MODE_ZPIPE);
+		}
+		else
+		{
+			fire(BufferedSocketListener::Line(), l_line_item); // TODO - отказаться от временной переменной l и скользить по окну inbuf
+		}
+	}
+}
+
+/*
+#ifdef FLYLINKDC_EMULATOR_4000_USERS
+                                    static bool g_is_test = false;
+                                    const int l_count_guest = 4000;
+                                    if (!g_is_test)
+                                    {
+                                        g_is_test = true;
+                                        for (int i = 0; i < l_count_guest; ++i)
+                                        {
+                                            char bbb[200];
+                                            snprintf(bbb, sizeof(bbb), "$ALL Guest%d <<Peers V:(r622),M:P,H:1/0/0,S:15,C:Кемерово>$ $%c$$3171624055$", i, 5);
+                                            l_all_myInfo.push_back(bbb);
+                                        }
+                                    }
+#endif // FLYLINKDC_EMULATOR_4000_USERS
+#ifdef FLYLINKDC_EMULATOR_4000_USERS
+// Генерируем случайные IP-адреса
+                                    for (int i = 0; i < l_count_guest; ++i)
+                                    {
+                                        char bbb[200];
+                                        boost::system::error_code ec;
+                                        const auto l_start = boost::asio::ip::address_v4::from_string("200.23.17.18", ec);
+                                        const auto l_stop = boost::asio::ip::address_v4::from_string("240.200.17.18", ec);
+                                        boost::asio::ip::address_v4 l_rnd_ip(Util::rand(l_start.to_ulong(), l_stop.to_ulong()));
+                                        snprintf(bbb, sizeof(bbb), "$UserIP Guest%d %s$$", i, l_rnd_ip.to_string().c_str());
+                                        fire(BufferedSocketListener::Line(), bbb);
+                                    }
+#endif
+
+*/
 void BufferedSocket::threadRead()
 {
 	if (m_state != RUNNING)
@@ -312,12 +375,31 @@ void BufferedSocket::threadRead()
 					}
 				}
 				// process all lines
+#define USE_FLYLINKDC_MYINFO_ARRAY
+#ifdef USE_FLYLINKDC_MYINFO_ARRAY
+				StringList l_all_myInfo;
+				while ((pos = l.find(m_separator)) != string::npos)
+				{
+					if (pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
+					{
+						all_myinfo_parser(pos, l, l_all_myInfo, true);
+					}
+					l.erase(0, pos + 1 /* separator char */); //[3] https://www.box.net/shared/74efa5b96079301f7194
+				}
+				// store remainder
+				if (!l_all_myInfo.empty())
+				{
+					fire(BufferedSocketListener::MyInfoArray(), l_all_myInfo);
+				}
+#else
+				// process all lines
 				while ((pos = l.find(m_separator)) != string::npos)
 				{
 					if (pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
 						fire(BufferedSocketListener::Line(), l.substr(0, pos));
 					l.erase(0, pos + 1 /* separator char */); // TODO не эффективно
 				}
+#endif
 				// store remainder
 				line = l;
 				
@@ -359,66 +441,7 @@ void BufferedSocket::threadRead()
 #endif
 					if (pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
 					{
-						const bool l_is_MyINFO = m_myInfoStop == false ? l.compare(0, 7, "$MyINFO", 7) == 0 : false;
-						const string l_line_item = l_is_MyINFO ? l.substr(8, pos - 8) : l.substr(0, pos);
-						if (m_myInfoStop == false)
-						{
-							if (l_is_MyINFO)
-							{
-								++m_myInfoCount;
-								l_all_myInfo.push_back(l_line_item);
-							}
-							else if (m_myInfoCount)
-							{
-								if (!l_all_myInfo.empty())
-								{
-#ifdef _DEBUG
-// #define FLYLINKDC_EMULATOR_4000_USERS
-#endif
-
-#ifdef FLYLINKDC_EMULATOR_4000_USERS
-									static bool g_is_test = false;
-									const int l_count_guest = 4000;
-									if (!g_is_test)
-									{
-										g_is_test = true;
-										for (int i = 0; i < l_count_guest; ++i)
-										{
-											char bbb[200];
-											snprintf(bbb, sizeof(bbb), "$ALL Guest%d <<Peers V:(r622),M:P,H:1/0/0,S:15,C:Кемерово>$ $%c$$3171624055$", i, 5);
-											l_all_myInfo.push_back(bbb);
-										}
-									}
-#endif // FLYLINKDC_EMULATOR_4000_USERS
-									if (!ClientManager::isShutdown())
-									{
-										fire(BufferedSocketListener::MyInfoArray(), l_all_myInfo); // [+]PPA
-									}
-									l_all_myInfo.clear();
-#ifdef FLYLINKDC_EMULATOR_4000_USERS
-// Генерируем случайные IP-адреса
-									for (int i = 0; i < l_count_guest; ++i)
-									{
-										char bbb[200];
-										boost::system::error_code ec;
-										const auto l_start = boost::asio::ip::address_v4::from_string("200.23.17.18", ec);
-										const auto l_stop = boost::asio::ip::address_v4::from_string("240.200.17.18", ec);
-										boost::asio::ip::address_v4 l_rnd_ip(Util::rand(l_start.to_ulong(), l_stop.to_ulong()));
-										snprintf(bbb, sizeof(bbb), "$UserIP Guest%d %s$$", i, l_rnd_ip.to_string().c_str());
-										fire(BufferedSocketListener::Line(), bbb);
-									}
-#endif
-								}
-								m_myInfoStop = true; // закончился стартовый поток $MyINFO
-							}
-						}
-						if (l_all_myInfo.empty())
-						{
-							if (!ClientManager::isShutdown())
-							{
-								fire(BufferedSocketListener::Line(), l_line_item); // TODO - отказаться от временной переменной l и скользить по окну inbuf
-							}
-						}
+						all_myinfo_parser(pos, l, l_all_myInfo, false);
 					}
 					
 					l.erase(0, pos + 1 /* separator char */); //[3] https://www.box.net/shared/74efa5b96079301f7194
@@ -441,11 +464,7 @@ void BufferedSocket::threadRead()
 				//
 				if (!l_all_myInfo.empty())
 				{
-					if (!ClientManager::isShutdown())
-					{
-						fire(BufferedSocketListener::MyInfoArray(), l_all_myInfo); // [+]PPA
-					}
-					l_all_myInfo.clear();
+					fire(BufferedSocketListener::MyInfoArray(), l_all_myInfo); // [+]PPA
 				}
 				if (pos == string::npos)
 					left = 0;
@@ -848,7 +867,7 @@ void BufferedSocket::fail(const string& aError)
 	if (m_state == RUNNING)
 	{
 		m_state = FAILED;
-		fire(BufferedSocketListener::Failed(), aError);
+		fire(BufferedSocketListener::Failed(), aError); //deadlock
 	}
 }
 

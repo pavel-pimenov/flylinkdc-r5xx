@@ -562,7 +562,7 @@ void ADLSearchFrame::UpdateSearch(size_t index, BOOL doDelete)
 	ctrlList.SetCheckState(index, search.isActive);
 }
 
-void ADLSearchFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
+void ADLSearchFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())

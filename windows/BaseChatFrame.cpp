@@ -25,19 +25,6 @@ LRESULT BaseChatFrame::OnCreate(HWND p_hWnd, RECT &rcDefault)
 {
 	m_MessagePanelRECT = rcDefault;
 	m_MessagePanelHWnd = p_hWnd;
-	
-	ctrlClient.Create(p_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-	                  WS_VSCROLL | ES_AUTOVSCROLL | ES_MULTILINE | ES_NOHIDESEL | ES_READONLY, WS_EX_STATICEDGE, IDC_CLIENT);
-	                  
-	ctrlClient.LimitText(0);
-	ctrlClient.SetFont(Fonts::g_font);
-	
-	ctrlClient.SetAutoURLDetect(false);
-	ctrlClient.SetEventMask(ctrlClient.GetEventMask() | ENM_LINK);
-	ctrlClient.SetBackgroundColor(Colors::bgColor);
-	
-	readFrameLog();
-	
 	return 1;
 }
 void BaseChatFrame::destroyStatusbar(bool p_is_shutdown)
@@ -62,9 +49,27 @@ void BaseChatFrame::createStatusCtrl(HWND p_hWndStatusBar)
 void BaseChatFrame::destroyStatusCtrl()
 {
 }
-
+void BaseChatFrame::createChatCtrl()
+{
+	if (!ctrlClient.IsWindow())
+	{
+		ctrlClient.Create(m_MessagePanelHWnd, m_MessagePanelRECT, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+		                  WS_VSCROLL | ES_AUTOVSCROLL | ES_MULTILINE | ES_NOHIDESEL | ES_READONLY, WS_EX_STATICEDGE, IDC_CLIENT);
+		                  
+		ctrlClient.LimitText(0);
+		ctrlClient.SetFont(Fonts::g_font);
+		
+		ctrlClient.SetAutoURLDetect(false);
+		ctrlClient.SetEventMask(ctrlClient.GetEventMask() | ENM_LINK);
+		ctrlClient.SetBackgroundColor(Colors::bgColor);
+		
+		readFrameLog();
+	}
+}
 void BaseChatFrame::createMessageCtrl(ATL::CMessageMap *p_map, DWORD p_MsgMapID)
 {
+	dcassert(m_ctrlMessage == nullptr);
+	createChatCtrl();
 	m_ctrlMessage = new CEdit;
 	m_ctrlMessage->Create(m_MessagePanelHWnd, m_MessagePanelRECT, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                      WS_VSCROLL | (BOOLSETTING(MULTILINE_CHAT_INPUT) ? 0 : ES_AUTOHSCROLL) | ES_MULTILINE | ES_AUTOVSCROLL, WS_EX_CLIENTEDGE); // !Decker!
@@ -101,6 +106,7 @@ void BaseChatFrame::createMessagePanel()
 	{
 		m_msgPanel = new MessagePanel(m_ctrlMessage);
 		m_msgPanel->InitPanel(m_MessagePanelHWnd, m_MessagePanelRECT);
+		ctrlClient.restore_chat_cache();
 	}
 }
 void BaseChatFrame::destroyMessagePanel(bool p_is_shutdown)
@@ -115,10 +121,17 @@ void BaseChatFrame::destroyMessagePanel(bool p_is_shutdown)
 void BaseChatFrame::setStatusText(int p_index, const tstring& p_text)
 {
 	dcassert(!ClientManager::isShutdown());
-	m_ctrlStatusCache[p_index] = p_text;
-	if (m_ctrlStatus)
+	dcassert(p_index < m_ctrlStatusCache.size());
+	if (g_isStartupProcess == false)
 	{
-		m_ctrlStatus->SetText(p_index, p_text.c_str());
+		if (p_index < m_ctrlStatusCache.size())
+		{
+			m_ctrlStatusCache[p_index] = p_text; // TODO - странный краш под отладкой
+			if (m_ctrlStatus)
+			{
+				m_ctrlStatus->SetText(p_index, p_text.c_str());
+			}
+		}
 	}
 }
 
@@ -274,9 +287,12 @@ void BaseChatFrame::processingHotKeys(UINT uMsg, WPARAM wParam, LPARAM /*lParam*
 		// Clear find text and give the focus back to the message box
 		if (m_ctrlMessage)
 			m_ctrlMessage->SetFocus();
-		ctrlClient.SetSel(-1, -1);
-		ctrlClient.SendMessage(EM_SCROLL, SB_BOTTOM, 0);
-		ctrlClient.InvalidateRect(NULL);
+		if (ctrlClient.IsWindow())
+		{
+			ctrlClient.SetSel(-1, -1);
+			ctrlClient.SendMessage(EM_SCROLL, SB_BOTTOM, 0);
+			ctrlClient.InvalidateRect(NULL);
+		}
 		m_currentNeedle.clear();
 	}
 	// Processing find.
@@ -321,10 +337,12 @@ void BaseChatFrame::processingHotKeys(UINT uMsg, WPARAM wParam, LPARAM /*lParam*
 					insertLineHistoryToChatInput(wParam, bHandled);
 					break;
 				case VK_PRIOR: // page up
-					ctrlClient.SendMessage(WM_VSCROLL, SB_PAGEUP);
+					if (ctrlClient.IsWindow())
+						ctrlClient.SendMessage(WM_VSCROLL, SB_PAGEUP);
 					break;
 				case VK_NEXT: // page down
-					ctrlClient.SendMessage(WM_VSCROLL, SB_PAGEDOWN);
+					if (ctrlClient.IsWindow())
+						ctrlClient.SendMessage(WM_VSCROLL, SB_PAGEDOWN);
 					break;
 				default:
 					bHandled = FALSE;
@@ -391,13 +409,14 @@ void BaseChatFrame::onEnter()
 			}
 			else if ((stricmp(cmd.c_str(), _T("clear")) == 0) || (stricmp(cmd.c_str(), _T("cls")) == 0) || (stricmp(cmd.c_str(), _T("c")) == 0))
 			{
-				ctrlClient.Clear();
+				if (ctrlClient.IsWindow())
+					ctrlClient.Clear();
 			}
 			
 			else if (stricmp(cmd.c_str(), _T("ts")) == 0)
 			{
-				m_timeStamps = !m_timeStamps;
-				if (m_timeStamps)
+				m_bTimeStamps = !m_bTimeStamps;
+				if (m_bTimeStamps)
 				{
 					addStatus(TSTRING(TIMESTAMPS_ENABLED));
 				}
@@ -523,41 +542,45 @@ tstring BaseChatFrame::findTextPopup()
 
 void BaseChatFrame::findText(const tstring& needle) noexcept
 {
-	int max = ctrlClient.GetWindowTextLength();
-	// a new search? reset cursor to bottom
-	if (needle != m_currentNeedle || m_currentNeedlePos == -1)
+	dcassert(ctrlClient.IsWindow());
+	if (ctrlClient.IsWindow())
 	{
-		m_currentNeedle = needle;
-		m_currentNeedlePos = max;
-	}
-	// set current selection
-	FINDTEXT ft = {0};
-	ft.chrg.cpMin = m_currentNeedlePos;
-	ft.lpstrText = needle.c_str();
-	// empty search? stop
-	if (!needle.empty())
-	{
-		// find upwards
-		m_currentNeedlePos = (int)ctrlClient.SendMessage(EM_FINDTEXT, 0, (LPARAM) & ft);
-		// not found? try again on full range
-		if (m_currentNeedlePos == -1 && ft.chrg.cpMin != max)  // no need to search full range twice
+		int max = ctrlClient.GetWindowTextLength();
+		// a new search? reset cursor to bottom
+		if (needle != m_currentNeedle || m_currentNeedlePos == -1)
 		{
+			m_currentNeedle = needle;
 			m_currentNeedlePos = max;
-			ft.chrg.cpMin = m_currentNeedlePos;
+		}
+		// set current selection
+		FINDTEXT ft = {0};
+		ft.chrg.cpMin = m_currentNeedlePos;
+		ft.lpstrText = needle.c_str();
+		// empty search? stop
+		if (!needle.empty())
+		{
+			// find upwards
 			m_currentNeedlePos = (int)ctrlClient.SendMessage(EM_FINDTEXT, 0, (LPARAM) & ft);
-		}
-		// found? set selection
-		if (m_currentNeedlePos != -1)
-		{
-			ft.chrg.cpMin = m_currentNeedlePos;
-			ft.chrg.cpMax = m_currentNeedlePos + static_cast<LONG>(needle.length());
-			ctrlClient.SetFocus();
-			ctrlClient.SendMessage(EM_EXSETSEL, 0, (LPARAM)&ft);
-		}
-		else
-		{
-			addStatus(TSTRING(STRING_NOT_FOUND) + _T(' ') + needle);
-			m_currentNeedle.clear();
+			// not found? try again on full range
+			if (m_currentNeedlePos == -1 && ft.chrg.cpMin != max)  // no need to search full range twice
+			{
+				m_currentNeedlePos = max;
+				ft.chrg.cpMin = m_currentNeedlePos;
+				m_currentNeedlePos = (int)ctrlClient.SendMessage(EM_FINDTEXT, 0, (LPARAM) & ft);
+			}
+			// found? set selection
+			if (m_currentNeedlePos != -1)
+			{
+				ft.chrg.cpMin = m_currentNeedlePos;
+				ft.chrg.cpMax = m_currentNeedlePos + static_cast<LONG>(needle.length());
+				ctrlClient.SetFocus();
+				ctrlClient.SendMessage(EM_EXSETSEL, 0, (LPARAM)&ft);
+			}
+			else
+			{
+				addStatus(TSTRING(STRING_NOT_FOUND) + _T(' ') + needle);
+				m_currentNeedle.clear();
+			}
 		}
 	}
 }
@@ -612,39 +635,38 @@ tstring BaseChatFrame::getIpCountry(const string& ip, bool ts, bool p_ipInChat, 
 
 void BaseChatFrame::addLine(const tstring& aLine, CHARFORMAT2& cf /*= Colors::g_ChatTextGeneral */)
 {
-	if (m_timeStamps)
+	if (m_bTimeStamps)
 	{
-		ctrlClient.AppendText(ClientManager::getFlylinkDCIdentity(), false, true, _T('[') + Text::toT(Util::getShortTimeString()) + _T("] "), aLine, cf
-#ifdef IRAINMAN_INCLUDE_SMILE
-		                      , false
-#endif
-		                     );
+		const ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, _T('[') + Text::toT(Util::getShortTimeString()) + _T("] "), aLine, cf, false);
+		ctrlClient.AppendText(l_message);
 	}
 	else
 	{
-		ctrlClient.AppendText(ClientManager::getFlylinkDCIdentity(), false, true, Util::emptyStringT, aLine, cf
-#ifdef IRAINMAN_INCLUDE_SMILE
-		                      , false
-#endif
-		                     );
+		const ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, Util::emptyStringT, aLine, cf, false);
+		ctrlClient.AppendText(l_message);
 	}
 }
 void BaseChatFrame::addLine(const Identity& from, const bool bMyMess, const bool bThirdPerson, const tstring& aLine, const CHARFORMAT2& cf, tstring& extra)
 {
-	ctrlClient.AdjustTextSize();
+	if (ctrlClient.IsWindow())
+	{
+		ctrlClient.AdjustTextSize();
+	}
 	const bool ipInChat = BOOLSETTING(IP_IN_CHAT);
 	const bool countryInChat = BOOLSETTING(COUNTRY_IN_CHAT);
 	if (ipInChat || countryInChat)
 	{
-		extra = getIpCountry(from.getIpAsString(), m_timeStamps, ipInChat, countryInChat);
+		extra = getIpCountry(from.getIpAsString(), m_bTimeStamps, ipInChat, countryInChat);
 	}
-	if (m_timeStamps)
+	if (m_bTimeStamps)
 	{
-		ctrlClient.AppendText(from, bMyMess, bThirdPerson, _T('[') + Text::toT(Util::getShortTimeString()) + extra + _T("] "), aLine, cf);
+		const ChatCtrl::CFlyChatCache l_message(from, bMyMess, bThirdPerson, _T('[') + Text::toT(Util::getShortTimeString()) + extra + _T("] "), aLine, cf, true);
+		ctrlClient.AppendText(l_message);
 	}
 	else
 	{
-		ctrlClient.AppendText(from, bMyMess, bThirdPerson, !extra.empty() ? _T('[') + extra + _T("] ") : Util::emptyStringT, aLine, cf);
+		const ChatCtrl::CFlyChatCache l_message(from, bMyMess, bThirdPerson, !extra.empty() ? _T('[') + extra + _T("] ") : Util::emptyStringT, aLine, cf, true);
+		ctrlClient.AppendText(l_message);
 	}
 }
 
@@ -803,12 +825,10 @@ void BaseChatFrame::appendLogToChat(const string& path , const size_t linesCount
 	
 	size_t i = lines.size() > (linesCount + 1) ? lines.size() - linesCount : 0;
 	
+	ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, Util::emptyStringT, Util::emptyStringT, Colors::g_ChatTextLog, true);
 	for (; i < lines.size(); ++i)
 	{
-		ctrlClient.AppendText(ClientManager::getFlylinkDCIdentity(), false, true, Util::emptyStringT, (Text::toT(lines[i])).c_str(), Colors::g_ChatTextLog
-#ifdef IRAINMAN_INCLUDE_SMILE
-		                      , true
-#endif
-		                     );
+		l_message.m_Msg = Text::toT(lines[i]);
+		ctrlClient.AppendText(l_message);
 	}
 }

@@ -209,11 +209,11 @@ class RSSManager :
 		
 		bool canAdd(const RSSItem* p_item);
 		// SettingsManagerListener
-		virtual void on(SettingsManagerListener::Save, SimpleXML& xml) noexcept
+		virtual void on(SettingsManagerListener::Save, SimpleXML& xml) 
 		{
 			save(xml);
 		}
-		virtual void on(SettingsManagerListener::Load, SimpleXML& xml) noexcept
+		virtual void on(SettingsManagerListener::Load, SimpleXML& xml) 
 		{
 			load(xml);
 		}

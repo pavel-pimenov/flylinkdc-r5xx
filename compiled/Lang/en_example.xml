@@ -89,6 +89,7 @@
 	<string name="AutoupdateErrorUpdateFile">Error on updating file:</string>
 	<string name="AutoupdateErrorVerif">Verification error - (Please send email ppa74@ya.ru)</string>
 	<string name="AutoupdateExe">Binary module</string>
+	<string name="AutoupdateAntivirusDb">Anivirus DB</string>
 	<string name="AutoupdateForceRestart">Restart application after update download</string>
 	<string name="AutoupdateGeoip">GeoIP database</string>
 	<string name="AutoupdateHourly">Hourly</string>
@@ -539,13 +540,6 @@
 	<string name="FlyupdateSuccess">FlylinkDC++ automatic update is completed successfully. Press OK button to start FlylinkDC++ application</string>
 	<string name="FlyupdateUpdating">Updating FlylinkDC++…</string>
 	<string name="FlyupdateUsercancel">User canceled FlylinkDC++ automatic update</string>
-	<string name="Flyversion01">I'm a happy FlylinkDC++ user. You could be happy too.</string>
-	<string name="Flyversion02">rm-…what? Nope… never heard of it…</string>
-	<string name="Flyversion03">Evolution of species: Animal --&gt; Man\r\n-- Evolution of science: \"The Earth is Flat\" --&gt; \"The Earth is Round\"\r\n-- Evolution of sharing: DC++ --&gt; StrongDC++ --&gt; ApexDC++ --&gt; ApexDC++ SpeedMode and new StrongDC++ --&gt; FlylinkDC++</string>
-	<string name="Flyversion04">I share, therefore I am.</string>
-	<string name="Flyversion05">I came, I searched, I found…</string>
-	<string name="Flyversion06">I came, I shared, I sent…</string>
-	<string name="Flyversion07">I can add multiple users to the same file and download from them simultaneously :)</string>
 	<string name="Folder">Folder</string>
 	<string name="Foldername">Folder name</string>
 	<string name="FoobarError">Supported version of Foobar2000 is not running or component foo_winamp_spam not installed</string>
@@ -1122,6 +1116,7 @@
 	<string name="ReportBugs">Report bugs</string>
 	<string name="Requesting">Requesting</string>
 	<string name="Resume">Resume</string>
+	<string name="RestoreLostShare">Restored folder that was previously in share:</string>
 	<string name="RetrievingData">Retrieving data</string>
 	<string name="RightColor">Right color</string>
 	<string name="RollbackInconsistency">Rollback inconsistency, existing file does not match the one being downloaded</string>
@@ -1340,6 +1335,8 @@
 	<string name="SettingsLogDdosTrace">Log DDoS detect</string>
 	<string name="SettingsLogDhtTrace">Log DHT</string>
 	<string name="SettingsLogPsrTrace">Log PSR (partial search results)</string>
+	<string name="SettingsLogFloodTrace">Log Flood $Command detect</string>
+	<string name="SettingsLogCmddebugTrace">Log CMD Debug</string>
 	<string name="SettingsLogIfSuppressPms">Log for PM if suppress PMS</string>
 	<string name="SettingsLogMainChat">Log main chat</string>
 	<string name="SettingsLogPrivateChat">Log private chat</string>
@@ -1426,7 +1423,6 @@
 	<string name="SettingsShareSystem">Share system files</string>
 	<string name="SettingsShareVirtual">Share virtual files (links in OS or files in virtual drive (etc. RAM))</string>
 	<string name="SettingsShowFullHubInfoOnTab">Show full hub info on tab</string>
-	<string name="SettingsNotboldFontOnActivityTab">Do not highlight in bold text activity in the tabs</string>
 	<string name="SettingsShowInfoTips">Show InfoTips in lists</string>
 	<string name="SettingsShowJoins">Show joins / parts in chat by default</string>
 	<string name="SettingsShowProgressBars">Show progress bars for transfers (uses some CPU)</string>

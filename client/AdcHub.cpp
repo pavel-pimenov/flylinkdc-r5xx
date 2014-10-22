@@ -84,6 +84,13 @@ void AdcHub::getUserList(OnlineUserList& p_list) const
 		}
 	}
 }
+void AdcHub::resetAntivirusInfo()
+{
+	for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
+	{
+		i->second->getIdentity().resetAntivirusInfo();
+	}
+}
 OnlineUserPtr AdcHub::findUser(const string& aNick) const
 {
 	webrtc::ReadLockScoped l(*m_cs);
@@ -305,7 +312,9 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) noexcept
 			}
 			case TAG('I', '4'):
 			{
-				id.setIp(i->substr(2));
+				const string l_ip4 = i->substr(2);
+				dcassert(!l_ip4.empty());
+				id.setIp(l_ip4);
 				break;
 			}
 			case TAG('U', '4'):
@@ -427,7 +436,7 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) noexcept
 	}
 	else
 	{
-		fire(ClientListener::UserUpdated(), this, ou);
+		fire(ClientListener::UserUpdated(), ou);
 	}
 }
 

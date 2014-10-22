@@ -64,9 +64,9 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		MESSAGE_HANDLER(WM_SPEAKER, onSpeaker)
 		//MESSAGE_HANDLER(WM_SPEAKER_FIRST_USER_JOIN, OnSpeakerFirstUserJoin)
 		MESSAGE_RANGE_HANDLER(WM_SPEAKER_BEGIN, WM_SPEAKER_END, OnSpeakerRange)
-		NOTIFY_HANDLER(IDC_USERS, LVN_GETDISPINFO, ctrlUsers.onGetDispInfo)
-		NOTIFY_HANDLER(IDC_USERS, LVN_COLUMNCLICK, ctrlUsers.onColumnClick)
-		NOTIFY_HANDLER(IDC_USERS, LVN_GETINFOTIP, ctrlUsers.onInfoTip)
+		NOTIFY_HANDLER(IDC_USERS, LVN_GETDISPINFO, m_ctrlUsers->onGetDispInfo)
+		NOTIFY_HANDLER(IDC_USERS, LVN_COLUMNCLICK, m_ctrlUsers->onColumnClick)
+		NOTIFY_HANDLER(IDC_USERS, LVN_GETINFOTIP, m_ctrlUsers->onInfoTip)
 		NOTIFY_HANDLER(IDC_USERS, LVN_KEYDOWN, onKeyDownUsers)
 		NOTIFY_HANDLER(IDC_USERS, NM_DBLCLK, onDoubleClickUsers)
 		NOTIFY_HANDLER(IDC_USERS, NM_RETURN, onEnterUsers)
@@ -183,13 +183,13 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		void handleTab(bool reverse);
 		void runUserCommand(::UserCommand& uc);
 		
-		static HubFrame* openWindow(const tstring& p_server,
-		                            const tstring& p_name     = Util::emptyStringT,
-		                            const tstring& p_rawOne   = Util::emptyStringT,
-		                            const tstring& p_rawTwo   = Util::emptyStringT,
-		                            const tstring& p_rawThree = Util::emptyStringT,
-		                            const tstring& p_rawFour  = Util::emptyStringT,
-		                            const tstring& p_rawFive  = Util::emptyStringT,
+		static HubFrame* openWindow(const string& p_server,
+		                            const string& p_name     = Util::emptyString,
+		                            const string& p_rawOne   = Util::emptyString,
+		                            const string& p_rawTwo   = Util::emptyString,
+		                            const string& p_rawThree = Util::emptyString,
+		                            const string& p_rawFour  = Util::emptyString,
+		                            const string& p_rawFive  = Util::emptyString,
 		                            int  p_windowposx = 0,
 		                            int  p_windowposy = 0,
 		                            int  p_windowsizex = 0,
@@ -234,10 +234,10 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		LRESULT onCloseWindows(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onRefresh(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
-			if (client->isConnected())
+			if (m_client->isConnected())
 			{
 				clearUserList(false);
-				client->refreshUserList(false);
+				m_client->refreshUserList(false);
 			}
 			return 0;
 		}
@@ -259,10 +259,6 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		}
 		
 		typedef TypedListViewCtrl<UserInfo, IDC_USERS> CtrlUsers;
-		CtrlUsers& getUserList()
-		{
-			return ctrlUsers;
-		}
 		
 		
 	private:
@@ -277,13 +273,13 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 			NOT_EQUAL
 		};
 		
-		HubFrame(const tstring& aServer,
-		         const tstring& aName,
-		         const tstring& aRawOne,
-		         const tstring& aRawTwo,
-		         const tstring& aRawThree,
-		         const tstring& aRawFour,
-		         const tstring& aRawFive,
+		HubFrame(const string& aServer,
+		         const string& aName,
+		         const string& aRawOne,
+		         const string& aRawTwo,
+		         const string& aRawThree,
+		         const string& aRawFour,
+		         const string& aRawFive,
 		         int  p_ChatUserSplit,
 		         bool p_UserListState
 		         //bool p_ChatUserSplitState
@@ -291,26 +287,29 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		~HubFrame();
 		
 		virtual void doDestroyFrame();
-		typedef boost::unordered_map<tstring, HubFrame*> FrameMap;
+		typedef boost::unordered_map<string, HubFrame*> FrameMap;
 		static FrameMap g_frames;
 		
 		tstring m_shortHubName;
 		uint8_t m_hub_name_update_count;
+		bool m_is_hub_name_updated;
 		void onTimerHubUpdated();
 		uint8_t m_second_count;
 		void setShortHubName(const tstring& p_name);
-		tstring m_redirect;
+		string m_redirect;
 		tstring m_complete;
 		bool m_waitingForPW;
 		uint8_t m_password_do_modal;
 		HTHEME m_Theme;
 		
-		Client* client;
-		tstring server;
+		Client* m_client;
+		string m_server;
 		
 		CContainedWindow ctrlClientContainer;
 		
-		CtrlUsers ctrlUsers;
+		CtrlUsers* m_ctrlUsers;
+		void createCtrlUsers();
+		
 		tstring m_lastUserName; // SSA_SAVE_LAST_NICK_MACROS
 		
 		bool m_showUsers;
@@ -382,7 +381,7 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 			if (p_nick.empty())
 				return nullptr;
 				
-			const OnlineUserPtr ou = client->findUser(Text::fromT(p_nick));
+			const OnlineUserPtr ou = m_client->findUser(Text::fromT(p_nick));
 			if (ou)
 			{
 				//webrtc::ReadLockScoped l(*m_userMapCS);
@@ -423,12 +422,12 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		void resortForFavsFirst(bool justDoIt = false);
 		
 		// SettingsManagerListener
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept;
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
 		
 		// ClientListener
 		void on(ClientListener::Connecting, const Client*) noexcept;
 		void on(ClientListener::Connected, const Client*) noexcept;
-		void on(ClientListener::UserUpdated, const Client*, const OnlineUserPtr&) noexcept; // !SMT!-fix
+		void on(ClientListener::UserUpdated, const OnlineUserPtr&) noexcept; // !SMT!-fix
 		void on(ClientListener::UsersUpdated, const Client*, const OnlineUserList&) noexcept;
 		void on(ClientListener::UserRemoved, const Client*, const OnlineUserPtr&) noexcept;
 		void on(ClientListener::Redirect, const Client*, const string&) noexcept;
@@ -482,7 +481,7 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		// [+] IRainman: copy-past fix.
 		void sendMessage(const tstring& msg, bool thirdperson = false)
 		{
-			client->hubMessage(Text::fromT(msg), thirdperson);
+			m_client->hubMessage(Text::fromT(msg), thirdperson);
 		}
 		void processFrameCommand(const tstring& fullMessageText, const tstring& cmd, tstring& param, bool& resetInputMessageText);
 		void processFrameMessage(const tstring& fullMessageText, bool& resetInputMessageText);
@@ -513,6 +512,7 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		void setWindowTitle(const string& p_text);
 		void updateWindowText();
 		CContainedWindow* m_ctrlFilterContainer;
+		CContainedWindow* m_ctrlChatContainer;
 		CContainedWindow* m_ctrlFilterSelContainer;
 		bool m_is_fynally_clear_user_list;
 		bool m_showJoins;

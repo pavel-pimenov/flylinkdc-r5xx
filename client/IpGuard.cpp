@@ -63,7 +63,7 @@ void IpGuard::load()
 				l_IPGuard_log.step("parse IPGuard.xml done");
 				try
 				{
-					l_IPGuard_log.step("write new IPGuard.ini.");
+					l_IPGuard_log.step("write new IPGuard.ini");
 					File fout(Util::getConfigPath() + "IPGuard.ini", File::WRITE, File::CREATE | File::TRUNCATE);
 					fout.write(l_sIPGuard);
 					fout.close();

@@ -125,7 +125,7 @@ LRESULT NotepadFrame::onLButton(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam,
 	return 0;
 }
 
-void NotepadFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
+void NotepadFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())

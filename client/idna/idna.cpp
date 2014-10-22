@@ -374,7 +374,7 @@ static char *convert_from_ACE (const char *name)
 	ucs_len = 0;
   }
 
-  for (i = j = 0; i < ucs_len && j < sizeof(out_buf)-4; i++)
+  for (i = j = 0; i < ucs_len && j < _countof(out_buf)-4; i++)
   {
     wchar_t ucs = (wchar_t)ucs_output[i];
     int     len =0; /* [-] please see conv_to_ascii function = 0*/; //[+] idna.cpp(358): error #12144: "len" is possibly uninitialized

@@ -81,7 +81,7 @@ class CDMDebugFrame : private DebugManagerListener, public BASE_THREAD,
 		LRESULT onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 		LRESULT OnFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 		{
-			ctrlPad.SetFocus();
+			ctrlCMDPad.SetFocus();
 			return 0;
 		}
 		LRESULT onSetCheckDetection(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
@@ -138,7 +138,8 @@ class CDMDebugFrame : private DebugManagerListener, public BASE_THREAD,
 			m_sem.signal();
 		}
 		
-		CEdit ctrlPad, ctrlIPFilter;
+		CEdit ctrlCMDPad;
+		CEdit ctrlIPFilter;
 		CStatusBarCtrl ctrlStatus;
 		CButton ctrlClear, ctrlCommands, ctrlHubCommands, ctrlDetection, ctrlFilterIp;
 		CEdit m_ctrlIncludeFilter;

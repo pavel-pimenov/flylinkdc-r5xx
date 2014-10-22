@@ -722,7 +722,7 @@ unsigned char Identity::calcVirusType()
 {
 	if (!(m_virus_type & Identity::VT_CALC))
 	{
-		const auto l_virus_type = CFlylinkDBManager::getInstance()->calc_antivirus_flag(getNick(), getIp(), getBytesShared());
+		const auto l_virus_type = CFlylinkDBManager::getInstance()->calc_antivirus_flag(getNick(), getIp(), getBytesShared(), m_virus_path);
 		setVirusType(l_virus_type | Identity::VT_CALC);
 	}
 	return getVirusType();
@@ -747,6 +747,7 @@ string Identity::getVirusDesc() const
 	}
 	if (!l_result.empty())
 	{
+		l_result += m_virus_path;
 		return l_result.substr(1);
 	}
 	else

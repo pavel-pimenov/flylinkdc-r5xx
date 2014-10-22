@@ -87,11 +87,12 @@ tstring ChatCtrl::g_sSelectedIP;
 tstring ChatCtrl::g_sSelectedUserName;
 tstring ChatCtrl::g_sSelectedURL;
 
-ChatCtrl::ChatCtrl() : m_boAutoScroll(true) //, m_Client(nullptr)
+ChatCtrl::ChatCtrl() : m_boAutoScroll(true), m_is_cache_chat_empty(false), m_is_out_of_memory_for_smile(false) //, m_Client(nullptr)
 #ifdef IRAINMAN_INCLUDE_SMILE
 	, m_pRichEditOle(NULL), /*m_pOleClientSite(NULL),*/ m_pStorage(NULL), m_lpLockBytes(NULL)
 #endif
 {
+	//m_cs_chat_cache = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 	//m_hStandardCursor = LoadCursor(NULL, IDC_IBEAM);
 	//m_hHandCursor = LoadCursor(NULL, IDC_HAND);
 }
@@ -143,50 +144,99 @@ void ChatCtrl::AdjustTextSize()
 	}
 	// [~] IRainman fix.
 }
-
-void ChatCtrl::AppendText(const Identity& id, const bool bMyMess, const bool bThirdPerson, const tstring& sExtra, const tstring& sMsg, const CHARFORMAT2& cf
-#ifdef IRAINMAN_INCLUDE_SMILE
-                          , bool bUseEmo/* = true*/
-#endif
-                         )
+//================================================================================================================================
+void ChatCtrl::restore_chat_cache()
+{
+	CLockRedraw<true> l_lock_draw(m_hWnd);
+	CWaitCursor l_cursor_wait;
+	{
+		//webrtc::ReadLockScoped l(*m_cs_chat_cache);
+		if (m_is_cache_chat_empty == false)
+		{
+			m_is_cache_chat_empty = true;
+			for (auto i = m_chat_cache.cbegin(); i != m_chat_cache.cend(); ++i)
+			{
+				AppendText(*i);
+			}
+		}
+		{
+			//webrtc::WriteLockScoped l(*m_cs_chat_cache);
+			m_chat_cache.clear();
+		}
+	}
+	m_is_out_of_memory_for_smile = false; // Снова пытамся вставлять смайлы
+}
+//================================================================================================================================
+ChatCtrl::CFlyChatCache::CFlyChatCache(const Identity& p_id, const bool bMyMess, const bool bThirdPerson,
+                                       const tstring& sExtra, const tstring& sMsg, const CHARFORMAT2& p_cf, bool bUseEmo):
+	CFlyChatCacheTextOnly(p_id.getNickT(),
+	                      bMyMess,
+	                      p_id.isBotOrHub(),
+	                      sMsg,
+	                      p_cf),
+	m_bThirdPerson(bThirdPerson),
+	m_Extra(sExtra),
+	m_bUseEmo(bUseEmo)
+{
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
+	{
+		m_bUseEmo = bUseEmo || !TimerManager::g_isStartupShutdownProcess; // Пока конструируемся - смайлы не добавляем чтобы не тормозить
+		if (!CAGEmotionSetup::g_pEmotionsSetup || CompatibilityManager::isWine())
+		{
+			m_bUseEmo = false;
+		}
+		m_is_op = p_id.isOp();
+		m_is_ban = false;
+		if (!bThirdPerson)
+		{
+			m_isFavorite = !bMyMess && FavoriteManager::getInstance()->isFavoriteUser(p_id.getUser(), m_is_ban);
+		}
+	}
+}
+//================================================================================================================================
+void ChatCtrl::AppendText(const CFlyChatCache& p_message)
+//    const Identity& p_id, const bool bMyMess, const bool bThirdPerson, const tstring& sExtra, const tstring& sMsg, const CHARFORMAT2& cf
+//, bool bUseEmo/* = true*/
 {
 	dcassert(!ClientManager::isShutdown());
 	if (ClientManager::isShutdown())
 		return;
-#ifdef IRAINMAN_INCLUDE_SMILE
-	bUseEmo &= !TimerManager::g_isStartupShutdownProcess; // Пока конструируемся - смайлы не добавляем чтобы не тормозить
-#endif
+	{
+		//webrtc::WriteLockScoped l(*m_cs_chat_cache);
+		if (m_is_cache_chat_empty == false)
+		{
+			m_chat_cache.push_back(p_message);
+			return;
+		}
+	}
 	CLockRedraw<true> l_lock_draw(m_hWnd);
 	LONG lSelBeginSaved, lSelEndSaved;
 	GetSel(lSelBeginSaved, lSelEndSaved);
 	POINT cr;
 	GetScrollPos(&cr);
 	
-	/* [-] IRainman fix.
-	CHARFORMAT2 enc;
-	enc.bCharSet = RUSSIAN_CHARSET;
-	enc.dwMask = CFM_CHARSET;
-	tstring sLine = sExtra + sMsg;
-	SetSel(0, sLine.length());
-	SetSelectionCharFormat(enc);
-	[-] IRainman fix. */
-	
-	LONG lSelBegin, lSelEnd;
+	LONG lSelBegin = 0;
+	LONG lSelEnd = 0;
 	
 	auto insertAndFormat = [&](const tstring & text, CHARFORMAT2 cf) -> void // [+] IRainman fix, TODO: opt call of this.
 	{
-		lSelBegin = lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
-		SetSel(lSelEnd, lSelEnd);
-		ReplaceSel(text.c_str()); // http://www.flickr.com/photos/96019675@N02/11524414653/ http://code.google.com/p/flylinkdc/issues/detail?id=1428
-		lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
-		SetSel(lSelBegin, lSelEnd);
-		SetSelectionCharFormat(cf);
+		dcassert(!text.empty());
+		if (!text.empty())
+		{
+			lSelBegin = lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
+			SetSel(lSelEnd, lSelEnd);
+			ReplaceSel(text.c_str()); // http://www.flickr.com/photos/96019675@N02/11524414653/ http://code.google.com/p/flylinkdc/issues/detail?id=1428
+			lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
+			SetSel(lSelBegin, lSelEnd);
+			SetSelectionCharFormat(cf);
+		}
 	};
 	
 	// Insert extra info and format with default style
-	if (!sExtra.empty())
+	if (!p_message.m_Extra.empty())
 	{
-		insertAndFormat(sExtra, Colors::g_TextStyleTimestamp);
+		insertAndFormat(p_message.m_Extra, Colors::g_TextStyleTimestamp);
 		
 		PARAFORMAT2 pf;
 		memzero(&pf, sizeof(PARAFORMAT2));
@@ -195,51 +245,44 @@ void ChatCtrl::AppendText(const Identity& id, const bool bMyMess, const bool bTh
 		SetParaFormat(pf);
 	}
 	
-	tstring sText = sMsg;
-	const tstring& sAuthor = id.getNickT();
-	const bool bRealUser = !(id.isBot() || id.isHub());
-	
+	tstring sText = p_message.m_Msg;
+	const tstring& sAuthor = p_message.m_Nick;
+	//dcassert(!sAuthor.empty());
 	if (sAuthor.empty())
 	{
 		// TODO: Needs extra format for program message?
 	}
-	else if (bThirdPerson)
+	else if (p_message.m_bThirdPerson)
 	{
 		const CHARFORMAT2& currentCF =
-		    bMyMess ? Colors::g_ChatTextMyOwn :
+		    p_message.m_bMyMess ? Colors::g_ChatTextMyOwn :
 		    BOOLSETTING(BOLD_AUTHOR_MESS) ? Colors::g_TextStyleBold :
-		    cf;
-		insertAndFormat(_T("* "), cf);
+		    p_message.m_cf;
+		insertAndFormat(_T("* "), p_message.m_cf);
 		insertAndFormat(sAuthor, currentCF);
-		insertAndFormat(_T(" "), cf);
+		insertAndFormat(_T(" "), p_message.m_cf);
 	}
 	else
 	{
-		bool l_is_ban = false;
-		const bool isFavorite = !bMyMess && FavoriteManager::getInstance()->isFavoriteUser(id.getUser(), l_is_ban);    //TODO - унести выше.
 		const CHARFORMAT2& currentCF =
-		    bMyMess ? Colors::g_TextStyleMyNick :
-		    isFavorite ? (l_is_ban ? Colors::g_TextStyleFavUsersBan : Colors::g_TextStyleFavUsers) :
-			    id.isOp() ? Colors::g_TextStyleOPs :
+		    p_message.m_bMyMess ? Colors::g_TextStyleMyNick :
+		    p_message.m_isFavorite ? (p_message.m_is_ban ? Colors::g_TextStyleFavUsersBan : Colors::g_TextStyleFavUsers) :
+			    p_message.m_is_op ? Colors::g_TextStyleOPs :
 			    BOOLSETTING(BOLD_AUTHOR_MESS) ? Colors::g_TextStyleBold :
-			    cf;
-		insertAndFormat(_T("<"), cf);
+			    p_message.m_cf;
+		insertAndFormat(_T("<"), p_message.m_cf);
 		insertAndFormat(sAuthor, currentCF);
-		insertAndFormat(_T("> "), cf);
+		insertAndFormat(_T("> "), p_message.m_cf);
 	}
 	
 	// Ensure that EOLs will be always same
 	Text::normalizeStringEnding(sText); // [!] IRainman fix.
 	sText += '\n';
-	
 #ifdef IRAINMAN_INCLUDE_SMILE
-	if (!CAGEmotionSetup::g_pEmotionsSetup || CompatibilityManager::isWine())
-{
-		bUseEmo = false;
-	}
-	
+	// Если кончилась память на GDI - даже не пытаемся создавать смайлы (TODO - зачистить после полной загрузки кеша);
+	bool bUseEmo = p_message.m_bUseEmo && m_is_out_of_memory_for_smile == false;
 	if (bUseEmo)
-	{
+{
 		for (size_t i = 0; i < _countof(g_AllLinks); i++)
 		{
 			if (sText.find(g_AllLinks[i].tag) != tstring::npos)
@@ -251,10 +294,11 @@ void ChatCtrl::AppendText(const Identity& id, const bool bMyMess, const bool bTh
 	}
 	
 	if (bUseEmo)
+	
 	{
 		const CAGEmotion::Array& Emoticons = CAGEmotionSetup::g_pEmotionsSetup->getEmoticonsArray();
 		uint8_t l_count_smiles = 0;
-		while (true)
+		while (m_is_out_of_memory_for_smile == false)
 		{
 			if (l_count_smiles < MAX_EMOTICONS)
 			{
@@ -286,7 +330,7 @@ void ChatCtrl::AppendText(const Identity& id, const bool bMyMess, const bool bTh
 				if (pFoundEmotion && l_pos != tstring::npos) // /*&& (pFoundEmotion->getEmotionBmp() || pFoundEmotion->getEmotionBmpPath().size())*/
 				{
 					if (l_pos)
-						AppendTextOnly(sText.substr(0, l_pos), sAuthor, bMyMess, bRealUser, cf);
+						AppendTextOnly(sText.substr(0, l_pos), p_message);
 					lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
 					SetSel(lSelEnd, lSelEnd);
 					
@@ -300,22 +344,28 @@ void ChatCtrl::AppendText(const Identity& id, const bool bMyMess, const bool bTh
 					        && pOleClientSite)
 					{
 						IOleObject *pObject = pFoundEmotion->GetImageObject(BOOLSETTING(CHAT_ANIM_SMILES), pOleClientSite, m_pStorage, MainFrame::getMainFrame()->m_hWnd, WM_ANIM_CHANGE_FRAME,
-						                                                    bMyMess ? Colors::g_ChatTextMyOwn.crBackColor : Colors::g_ChatTextGeneral.crBackColor);
+						                                                    p_message.m_bMyMess ? Colors::g_ChatTextMyOwn.crBackColor : Colors::g_ChatTextGeneral.crBackColor);
 						if (pObject)
 						{
-							CImageDataObject::InsertBitmap(m_hWnd, m_pRichEditOle, pOleClientSite, m_pStorage, pObject);
-							l_count_smiles++;
+							CImageDataObject::InsertBitmap(m_hWnd, m_pRichEditOle, pOleClientSite, m_pStorage, pObject, m_is_out_of_memory_for_smile);
+							if (m_is_out_of_memory_for_smile == false)
+							{
+								l_count_smiles++;
+							}
+							else
+							{
+							}
 						}
 						else
 						{
-							AppendTextOnly(sText.substr(l_pos, l_cur_smile.size()), sAuthor, bMyMess, bRealUser, cf);
+							AppendTextOnly(sText.substr(l_pos, l_cur_smile.size()), p_message);
 						}
 						if (!l_cur_smile.empty())
 							sText = sText.substr(l_pos + l_cur_smile.size());
 					}
 					else if (!l_cur_smile.empty())
 					{
-						AppendTextOnly(sText.substr(l_pos, l_cur_smile.size()), sAuthor, bMyMess, bRealUser, cf);
+						AppendTextOnly(sText.substr(l_pos, l_cur_smile.size()), p_message);
 						sText = sText.substr(l_pos + l_cur_smile.size());
 					}
 				}
@@ -323,7 +373,7 @@ void ChatCtrl::AppendText(const Identity& id, const bool bMyMess, const bool bTh
 				{
 					if (!sText.empty())
 					{
-						AppendTextOnly(sText, sAuthor, bMyMess, bRealUser, cf);
+						AppendTextOnly(sText, p_message);
 					}
 					break;
 				}
@@ -332,7 +382,7 @@ void ChatCtrl::AppendText(const Identity& id, const bool bMyMess, const bool bTh
 			{
 				if (!sText.empty())
 				{
-					AppendTextOnly(sText, sAuthor, bMyMess, bRealUser, cf);
+					AppendTextOnly(sText, p_message);
 				}
 				break;
 			}
@@ -341,15 +391,16 @@ void ChatCtrl::AppendText(const Identity& id, const bool bMyMess, const bool bTh
 	else
 #endif // IRAINMAN_INCLUDE_SMILE
 	{
-		AppendTextOnly(sText, sAuthor, bMyMess, bRealUser, cf);
+		AppendTextOnly(sText, p_message);
 	}
 	SetSel(lSelBeginSaved, lSelEndSaved);
 	SetScrollPos(&cr);
 	GoToEnd();
 }
 
-void ChatCtrl::AppendTextOnly(const tstring& sText, const tstring& sAuthor, const bool bMyMess, const bool bRealUser, const CHARFORMAT2& cf)
+void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly& p_message)
 {
+	// const tstring& sAuthor, const bool bMyMess, const bool bRealUser, const CHARFORMAT2& cf
 	dcassert(!ClientManager::isShutdown());
 	PARAFORMAT2 pf;
 	memzero(&pf, sizeof(PARAFORMAT2));
@@ -370,11 +421,11 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const tstring& sAuthor, cons
 	//[!]IRainman optimize
 	lSelEnd = GetTextLengthEx(GTL_NUMCHARS); // Часто встречается GetTextLengthEx(GTL_NUMCHARS) http://code.google.com/p/flylinkdc/issues/detail?id=1428
 	SetSel(lSelBegin, lSelEnd);
-	auto cfTemp = bMyMess ? Colors::g_ChatTextMyOwn : cf;
+	auto cfTemp = p_message.m_bMyMess ? Colors::g_ChatTextMyOwn : p_message.m_cf;
 	SetSelectionCharFormat(cfTemp);
 	//[~]IRainman optimize
 	
-	if ((bRealUser || BOOLSETTING(FORMAT_BOT_MESSAGE)) && !sAuthor.empty())
+	if ((p_message.m_isRealUser || BOOLSETTING(FORMAT_BOT_MESSAGE)) && !p_message.m_Nick.empty())
 	{
 #ifdef IRAINMAN_INCLUDE_TEXT_FORMATTING
 		// This is not 100% working, but most of the time it does the job decently enough
@@ -469,7 +520,7 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const tstring& sAuthor, cons
 						
 						//if (l_needsToFormat) TODO
 						//{
-						CHARFORMAT2 temp = cf;
+						CHARFORMAT2 temp = p_message.m_cf;
 						
 						AutoArray<TCHAR> l_TextToFormat(BBEnd - BBStart + 1);
 						
@@ -777,14 +828,14 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const tstring& sAuthor, cons
 		}
 	}
 	
-	if (sAuthor.empty()) // [+] IRainman fix.
+	if (p_message.m_Nick.empty()) // [+] IRainman fix.
 		return;
 		
 	// Zvyrazneni vsech vyskytu vlastniho nicku
 	lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
 	lSearchFrom = 0;
 	
-	while (!bMyMess && !sMyNickLower.IsEmpty())
+	while (!p_message.m_bMyMess && !sMyNickLower.IsEmpty())
 	{
 		lMyNickStart = sMsgLower.Find(sMyNickLower, lSearchFrom);
 		if (lMyNickStart < 0)
@@ -1139,23 +1190,24 @@ LRESULT ChatCtrl::onMouseWheel(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL
 LRESULT ChatCtrl::onSize(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	if (wParam != SIZE_MINIMIZED && HIWORD(lParam) > 0)
-	{
-		CHARRANGE l_cr;
-		GetSel(l_cr);
-		// [!] IRainman fix: 0 is valid value! Details http://msdn.microsoft.com/ru-ru/library/1z3s90k4(v=vs.90).aspx
-		// [-] if (l_cr.cpMax > 0 && l_cr.cpMin > 0) //[+]PPA
-		// [~]
+		if (IsWindow())
 		{
-			SetSel(GetTextLengthEx(GTL_NUMCHARS), -1);
-			ScrollCaret(); // [1] https://www.box.net/shared/qve5a2y5gcg2sopjbpd5
-			const DWORD l_go = GetOptions();
-			SetOptions(ECOOP_AND, DWORD(~(ECO_AUTOVSCROLL | ECO_AUTOHSCROLL)));
-			SetSel(l_cr);
-			SetOptions(ECOOP_OR, l_go);
-			PostMessage(EM_SCROLL, SB_BOTTOM, 0);
+			CHARRANGE l_cr;
+			GetSel(l_cr);
+			// [!] IRainman fix: 0 is valid value! Details http://msdn.microsoft.com/ru-ru/library/1z3s90k4(v=vs.90).aspx
+			// [-] if (l_cr.cpMax > 0 && l_cr.cpMin > 0) //[+]PPA
+			// [~]
+			{
+				SetSel(GetTextLengthEx(GTL_NUMCHARS), -1);
+				ScrollCaret(); // [1] https://www.box.net/shared/qve5a2y5gcg2sopjbpd5
+				const DWORD l_go = GetOptions();
+				SetOptions(ECOOP_AND, DWORD(~(ECO_AUTOVSCROLL | ECO_AUTOHSCROLL)));
+				SetSel(l_cr);
+				SetOptions(ECOOP_OR, l_go);
+				PostMessage(EM_SCROLL, SB_BOTTOM, 0);
+			}
 		}
-	}
-	
+		
 	bHandled = FALSE;
 	return 1;
 }

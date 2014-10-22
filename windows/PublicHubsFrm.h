@@ -208,7 +208,7 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 		void on(LoadedFromCache, const string& l, const string& d) noexcept;
 		void on(Corrupted, const string& l) noexcept;
 		
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept;
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
 		
 };
 

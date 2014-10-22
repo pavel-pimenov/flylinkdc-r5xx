@@ -440,7 +440,7 @@ void OperaColors::ClearCache()
 	}
 	g_flood_cache.clear();
 }
-void OperaColors::FloodFill(CDC& hDC, int x1, int y1, int x2, int y2, COLORREF c1, COLORREF c2, bool light /*= true */)
+void OperaColors::FloodFill(CDC& hDC, int x1, int y1, int x2, int y2, const COLORREF c1, const COLORREF c2, bool p_light /*= true */)
 {
 	if (x2 <= x1 || y2 <= y1 || x2 > 10000)
 		return;
@@ -448,7 +448,7 @@ void OperaColors::FloodFill(CDC& hDC, int x1, int y1, int x2, int y2, COLORREF c
 	int w = x2 - x1;
 	int h = y2 - y1;
 	
-	FloodCacheItem::FCIMapper fcim = {c1 & (light ? 0x80FF : 0x00FF), c2 & 0x00FF}; // Make it hash-safe
+	FloodCacheItem::FCIMapper fcim = {c1 & (p_light ? 0x80FF : 0x00FF), c2 & 0x00FF, p_light}; // Make it hash-safe
 	const auto& i = g_flood_cache.find(fcim); // TODO - убрать этот лишний find
 	
 	FloodCacheItem* fci = nullptr;
@@ -474,7 +474,7 @@ void OperaColors::FloodFill(CDC& hDC, int x1, int y1, int x2, int y2, COLORREF c
 	fci->hDC = ::CreateCompatibleDC(hDC.m_hDC); // Leak
 	fci->w = w;
 	fci->h = h;
-	fci->mapper = fcim;
+	fci->m_mapper = fcim;
 	
 	BITMAPINFOHEADER bih;
 	ZeroMemory(&bih, sizeof(BITMAPINFOHEADER));
@@ -490,7 +490,7 @@ void OperaColors::FloodFill(CDC& hDC, int x1, int y1, int x2, int y2, COLORREF c
 	// fix http://code.google.com/p/flylinkdc/issues/detail?id=1397
 	::DeleteObject(::SelectObject(fci->hDC, hBitmap));
 	
-	if (!light)
+	if (!p_light)
 	{
 		for (int _x = 0; _x < w; ++_x)
 		{
@@ -549,7 +549,7 @@ void OperaColors::FloodFill(CDC& hDC, int x1, int y1, int x2, int y2, COLORREF c
             fci->hDC = ::CreateCompatibleDC(hDC.m_hDC); // Leak
             fci->w = w;
             fci->h = h;
-            fci->mapper = fcim;
+            fci->m_mapper = fcim;
 
             HBITMAP hBitmap = CreateBitmap(w, h, 1, 32, NULL); // Leak
             HBITMAP hOldBitmap = (HBITMAP)::SelectObject(fci->hDC, hBitmap);

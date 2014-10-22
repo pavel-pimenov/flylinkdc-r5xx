@@ -88,8 +88,12 @@ class CInternetHandle
 class CFlyHTTPDownloader
 {
 	public:
-		string m_get_http_header_item; // TODO - vector
+		std::vector<string> m_get_http_header_item;
 		uint64_t getBinaryDataFromInet(const string& url, std::vector<byte>& p_dataOut, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
+		void clear()
+		{
+			m_get_http_header_item.clear();
+		}
 };
 
 template <class T>

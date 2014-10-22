@@ -269,7 +269,7 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		}
 		void on(UploadManagerListener::QueueUpdate) noexcept;
 		// SettingsManagerListener
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept;
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
 		
 };
 

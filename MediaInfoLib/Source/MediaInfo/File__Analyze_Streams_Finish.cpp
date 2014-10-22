@@ -96,7 +96,7 @@ void File__Analyze::Streams_Finish_Global()
     Streams_Finish_StreamOnly();
 
     if (!IsSub && !Config->File_IsReferenced_Get() && MediaInfoLib::Config.ReadByHuman_Get())
-		Streams_Finish_HumanReadable();
+        Streams_Finish_HumanReadable();
 }
 
 //---------------------------------------------------------------------------
@@ -147,7 +147,7 @@ void File__Analyze::TestContinuousFileNames(size_t CountOfFiles, Ztring FileExte
         size_t Pos_Base = (size_t)Pos;
         size_t Pos_Add_Max = 1;
         #if MEDIAINFO_ADVANCED
-            bool File_IgnoreSequenceFileSize=Config->File_IgnoreSequenceFilesCount_Get();
+            bool File_IgnoreSequenceFileSize=Config->File_IgnoreSequenceFilesCount_Get(); //TODO: double check if it is expected
         #endif //MEDIAINFO_ADVANCED
         for (;;)
         {
@@ -911,7 +911,7 @@ void File__Analyze::Streams_Finish_HumanReadable_PerStream(stream_t StreamKind, 
 {
     Ztring ParameterName=Retrieve(StreamKind, StreamPos, Parameter, Info_Name);
     Ztring Value=Retrieve(StreamKind, StreamPos, Parameter, Info_Text);
-    
+
     //Strings
     const Ztring &List_Measure_Value=MediaInfoLib::Config.Info_Get(StreamKind).Read(Parameter, Info_Measure);
             if (List_Measure_Value==__T(" byte"))

@@ -31,14 +31,15 @@
 #include "../client/UploadManager.h"
 #include "../client/ShareManager.h"
 
-PrivateFrame::FrameMap PrivateFrame::g_frames;
+PrivateFrame::FrameMap PrivateFrame::g_pm_frames;
+std::unordered_map<string, unsigned> PrivateFrame::g_count_pm;
 
-PrivateFrame::PrivateFrame(const HintedUser& replyTo_, const string& myNick) : m_replyTo(replyTo_.user),
-	m_replyToRealName(m_replyTo->getLastNickT()),
+PrivateFrame::PrivateFrame(const HintedUser& replyTo_, const string& myNick) : m_replyTo(replyTo_),
+	m_replyToRealName(m_replyTo.user->getLastNickT()),
 	m_created(false), m_isoffline(false),
-	ctrlClientContainer(WC_EDIT, this, PM_MESSAGE_MAP) // !Decker!
+	m_ctrlChatContainer(WC_EDIT, this, PM_MESSAGE_MAP) // !Decker!
 {
-	m_ctrlStatusCache.resize(1); // В статусе одна строчка
+	m_ctrlStatusCache.resize(1);
 	ctrlClient.setHubParam(replyTo_.hint, myNick); // [+] IRainman fix.
 }
 
@@ -55,9 +56,9 @@ void PrivateFrame::doDestroyFrame()
 StringMap PrivateFrame::getFrameLogParams() const
 {
 	StringMap params;
-	params["hubNI"] = Util::toString(ClientManager::getHubNames(m_replyTo->getCID(), getHubHint()));
-	params["hubURL"] = Util::toString(ClientManager::getHubs(m_replyTo->getCID(), getHubHint()));
-	params["userCID"] = m_replyTo->getCID().toBase32();
+	params["hubNI"] = Util::toString(ClientManager::getHubNames(m_replyTo.user->getCID(), getHubHint()));
+	params["hubURL"] = Util::toString(ClientManager::getHubs(m_replyTo.user->getCID(), getHubHint()));
+	params["userCID"] = m_replyTo.user->getCID().toBase32();
 	params["userNI"] = Text::fromT(m_replyToRealName);
 	params["myCID"] = ClientManager::getMyCID().toBase32();
 	return params;
@@ -74,7 +75,6 @@ void PrivateFrame::addMesageLogParams(StringMap& params, const Identity& from, c
 LRESULT PrivateFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
 	BaseChatFrame::OnCreate(m_hWnd, rcDefault);
-	ctrlClientContainer.SubclassWindow(ctrlClient.m_hWnd);
 	PostMessage(WM_SPEAKER, USER_UPDATED);
 	m_created = true;
 	ClientManager::getInstance()->addListener(this);
@@ -83,26 +83,40 @@ LRESULT PrivateFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	return 1;
 }
 
-void PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Identity& replyTo,
+bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Identity& replyTo,
                               const tstring& aMessage, const string& sHubHint, const bool bMyMess,
                               const bool bThirdPerson, const bool notOpenNewWindow /*= false*/)   // !SMT!-S
 {
 	const auto& id = bMyMess ? to : replyTo;
 	const auto& myId = bMyMess ? replyTo : to; // [+] IRainman fix.
 	
-	const auto i = g_frames.find(id.getUser());
-	if (i == g_frames.end())
+	const auto i = g_pm_frames.find(id.getUser());
+	if (i == g_pm_frames.end())
 	{
-		if (notOpenNewWindow || g_frames.size() > MAX_PM_FRAMES)
-			return; // !SMT!-S
-			
+		if (notOpenNewWindow || g_pm_frames.size() > MAX_PM_FRAMES)
+			return false; // !SMT!-S
+		/*
+		15:50:13 <HackFresse> есть возможность получить количество открытых личек с одного хаба?  а потом просто условие "если с хаба пришла личка, и открытых личек с этого хаба уже 20 --направляем личку
+		                      в чат хаба"
+		15:52:13 <FlylinkDC-dev-linux> 20 это может много?
+		15:52:23 <FlylinkDC-dev-linux> ты же сам писал что никто не общается
+		15:52:55 <HackFresse> нужна статистика, которой у меня нет
+		15:54:04 <HackFresse> если список юзеров этого хаба отсортировать по количеству хабов и промотать на середину -- 14 хабов у юзера
+		15:56:49 <HackFresse> все сразу флудить начнут вряд-ли, а штук 5 по 20 личек -- всего 100 окон, + какие-то открытые без флуда, клиент виснуть не должен (если 200 окон отрабатывает нормально)
+		*/
+		auto& l_count_pm = g_count_pm[id.getUser()->getLastNick() + "~" + sHubHint];
+		if (l_count_pm > 10)
+		{
+			return false;
+		}
+		++l_count_pm;
 		PrivateFrame* p = new PrivateFrame(HintedUser(id.getUser(), sHubHint), myId.getNick());
-		g_frames.insert(make_pair(id.getUser(), p));
+		g_pm_frames.insert(make_pair(id.getUser(), p));
 		p->addLine(from, bMyMess, bThirdPerson, aMessage);
 		// [!] TODO! и видимо в ядро!
 		if (!bMyMess && Util::getAway())
 		{
-			if (/*!(BOOLSETTING(NO_AWAYMSG_TO_BOTS) && */ !(replyTo.isBot() || replyTo.isHub())) // [!] IRainman fix.
+			if (/*!(BOOLSETTING(NO_AWAYMSG_TO_BOTS) && */ !replyTo.isBotOrHub()) // [!] IRainman fix.
 			{
 				// Again, is there better way for this?
 				const FavoriteHubEntry *fhe = FavoriteManager::getInstance()->getFavoriteHubEntry(Util::toString(ClientManager::getHubs(id.getUser()->getCID(), sHubHint)));
@@ -137,6 +151,7 @@ void PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 		}
 		i->second->addLine(from, bMyMess, bThirdPerson, aMessage);
 	}
+	return true;
 }
 
 void PrivateFrame::openWindow(const OnlineUserPtr& ou, const HintedUser& replyTo, string myNick, const tstring& msg)
@@ -161,10 +176,10 @@ void PrivateFrame::openWindow(const OnlineUserPtr& ou, const HintedUser& replyTo
 	// [~] IRainman fix.
 	
 	PrivateFrame* p = nullptr;
-	const auto i = g_frames.find(replyTo);
-	if (i == g_frames.end())
+	const auto i = g_pm_frames.find(replyTo);
+	if (i == g_pm_frames.end())
 	{
-		if (g_frames.size() > MAX_PM_FRAMES)
+		if (g_pm_frames.size() > MAX_PM_FRAMES)
 			return;
 			
 		// [+] IRainman fix.
@@ -174,7 +189,8 @@ void PrivateFrame::openWindow(const OnlineUserPtr& ou, const HintedUser& replyTo
 		}
 		// [~] IRainman fix.
 		p = new PrivateFrame(replyTo, myNick);
-		g_frames.insert(make_pair(replyTo, p));
+		g_pm_frames.insert(make_pair(replyTo, p));
+		g_count_pm[replyTo.user->getLastNick() + "~" + replyTo.hint]++;
 		p->CreateEx(WinUtil::mdiClient);
 	}
 	else
@@ -243,7 +259,7 @@ LRESULT PrivateFrame::onLButton(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam,
 
 void PrivateFrame::processFrameMessage(const tstring& fullMessageText, bool& resetInputMessageText)
 {
-	if (m_replyTo->isOnline())
+	if (m_replyTo.user->isOnline())
 	{
 		sendMessage(fullMessageText);
 	}
@@ -301,8 +317,8 @@ LRESULT PrivateFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	}
 	else
 	{
-		g_frames.erase(m_replyTo);
-		
+		g_count_pm[m_replyTo.user->getLastNick() + "~" + m_replyTo.hint]--;
+		g_pm_frames.erase(m_replyTo);
 		bHandled = FALSE;
 		return 0;
 	}
@@ -340,7 +356,7 @@ void PrivateFrame::addLine(const Identity& from, const bool bMyMess, const bool 
 	
 	if (BOOLSETTING(BOLD_PM))
 	{
-		setDirty();
+		setDirty(1);
 	}
 }
 
@@ -357,7 +373,7 @@ LRESULT PrivateFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 	//#endif
 	reinitUserMenu(m_replyTo, getHubHint()); // [!] IRainman fix.
 	appendAndActivateUserItems(tabMenu); // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=621
-	appendUcMenu(tabMenu, UserCommand::CONTEXT_USER, ClientManager::getHubs(m_replyTo->getCID(), getHubHint()));
+	appendUcMenu(tabMenu, UserCommand::CONTEXT_USER, ClientManager::getHubs(m_replyTo.user->getCID(), getHubHint()));
 	if (!(tabMenu.GetMenuState(tabMenu.GetMenuItemCount() - 1, MF_BYPOSITION) & MF_SEPARATOR))
 	{
 		tabMenu.AppendMenu(MF_SEPARATOR);
@@ -424,7 +440,10 @@ void PrivateFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 	CRect rc = rect;
 	rc.bottom -= h * chat_columns + 15; // !Decker! //[~] Sergey Shushkanov
 	
-	ctrlClient.MoveWindow(rc);
+	if (ctrlClient.IsWindow())
+	{
+		ctrlClient.MoveWindow(rc);
+	}
 	
 	const int iButtonPanelLength = MessagePanel::GetPanelWidth();
 	
@@ -471,7 +490,7 @@ void PrivateFrame::updateTitle()
 	//[+]FlylinkDC++ Team
 	if (m_closed)
 		return;
-	if (!m_replyTo)
+	if (!m_replyTo.user)
 		return;
 	//[~]FlylinkDC++ Team
 	pair<tstring, bool> hubs = WinUtil::getHubNames(m_replyTo, getHubHint());
@@ -498,7 +517,7 @@ void PrivateFrame::updateTitle()
 		// if when you open the window it was already known the real name - use it.
 		if (m_replyToRealName.empty())
 		{
-			m_replyToRealName = m_replyTo->getLastNickT();
+			m_replyToRealName = m_replyTo.user->getLastNickT();
 		}
 		if (m_isoffline)
 		{
@@ -535,6 +554,7 @@ void PrivateFrame::updateTitle()
 
 LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
+
 	bHandled = FALSE;
 	
 	POINT p;
@@ -551,7 +571,7 @@ LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 	if (m_msgPanel && m_msgPanel->OnContextMenu(pt, wParam))
 		return TRUE;
 		
-	if (reinterpret_cast<HWND>(wParam) == ctrlClient)
+	if (reinterpret_cast<HWND>(wParam) == ctrlClient && ctrlClient.IsWindow())
 	{
 		ctrlClient.OnRButtonDown(pt, m_replyTo);
 		const int i = ctrlClient.CharFromPos(p);
@@ -572,7 +592,7 @@ LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 		}
 		if (x.substr(start, (m_replyToRealName.length() + 2)) == (_T('<') + m_replyToRealName + _T('>')))
 		{
-			if (!m_replyTo->isOnline())
+			if (!m_replyTo.user->isOnline())
 			{
 				return S_OK;
 			}
@@ -582,7 +602,7 @@ LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 			
 			reinitUserMenu(m_replyTo, getHubHint()); // [!] IRainman fix.
 			
-			appendUcMenu(menu, UserCommand::CONTEXT_USER, ClientManager::getHubs(m_replyTo->getCID(), getHubHint()));
+			appendUcMenu(menu, UserCommand::CONTEXT_USER, ClientManager::getHubs(m_replyTo.user->getCID(), getHubHint()));
 			if (!(menu.GetMenuState(menu.GetMenuItemCount() - 1, MF_BYPOSITION) & MF_SEPARATOR))
 			{
 				menu.AppendMenu(MF_SEPARATOR);
@@ -613,31 +633,34 @@ LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 
 void PrivateFrame::closeAll()
 {
-	dcdrun(const auto l_size_g_frames = g_frames.size());
-	for (auto i = g_frames.cbegin(); i != g_frames.cend(); ++i)
+	dcdrun(const auto l_size_g_frames = g_pm_frames.size());
+	for (auto i = g_pm_frames.cbegin(); i != g_pm_frames.cend(); ++i)
 	{
 		i->second->PostMessage(WM_CLOSE, 0, 0);
 	}
-	dcassert(l_size_g_frames == g_frames.size());
+	dcassert(l_size_g_frames == g_pm_frames.size());
 }
 
 void PrivateFrame::closeAllOffline()
 {
-	dcdrun(const auto l_size_g_frames = g_frames.size());
-	for (auto i = g_frames.cbegin(); i != g_frames.cend(); ++i)
+	dcdrun(const auto l_size_g_frames = g_pm_frames.size());
+	for (auto i = g_pm_frames.cbegin(); i != g_pm_frames.cend(); ++i)
 	{
 		if (!i->first->isOnline())
 			i->second->PostMessage(WM_CLOSE, 0, 0);
 	}
-	dcassert(l_size_g_frames == g_frames.size());
+	dcassert(l_size_g_frames == g_pm_frames.size());
 }
 
-void PrivateFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
+void PrivateFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
-		ctrlClient.SetBackgroundColor(Colors::bgColor);
+		if (ctrlClient.IsWindow())
+		{
+			ctrlClient.SetBackgroundColor(Colors::bgColor);
+		}
 		UpdateLayout();
 		RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
 	}
@@ -646,8 +669,8 @@ void PrivateFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcep
 // !SMT!-S
 bool PrivateFrame::closeUser(const UserPtr& u)
 {
-	const auto i = g_frames.find(u);
-	if (i == g_frames.end())
+	const auto i = g_pm_frames.find(u);
+	if (i == g_pm_frames.end())
 	{
 		return false;
 	}
@@ -657,12 +680,12 @@ bool PrivateFrame::closeUser(const UserPtr& u)
 
 void PrivateFrame::onBeforeActiveTab(HWND aWnd)
 {
-	dcdrun(const auto l_size_g_frames = g_frames.size());
-	for (auto i = g_frames.cbegin(); i != g_frames.cend(); ++i)
+	dcdrun(const auto l_size_g_frames = g_pm_frames.size());
+	for (auto i = g_pm_frames.cbegin(); i != g_pm_frames.cend(); ++i)
 	{
 		i->second->destroyMessagePanel(false);
 	}
-	dcassert(l_size_g_frames == g_frames.size());
+	dcassert(l_size_g_frames == g_pm_frames.size());
 }
 void PrivateFrame::onAfterActiveTab(HWND aWnd)
 {
@@ -685,12 +708,16 @@ void PrivateFrame::createMessagePanel()
 	if (m_ctrlStatus == nullptr && g_isStartupProcess == false)
 	{
 		BaseChatFrame::createMessageCtrl(this, PM_MESSAGE_MAP);
+		if (!m_ctrlChatContainer.IsWindow())
+			m_ctrlChatContainer.SubclassWindow(ctrlClient.m_hWnd);
 		CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);
 		BaseChatFrame::createStatusCtrl(m_hWndStatusBar);
 		restoreStatusFromCache(); // Восстанавливать статус нужно после UpdateLayout
 		m_ctrlMessage->SetFocus();
 	}
 	BaseChatFrame::createMessagePanel();
+	resetCountMessages();
+	//setDirty(0);
 }
 void PrivateFrame::destroyMessagePanel(bool p_is_destroy)
 {

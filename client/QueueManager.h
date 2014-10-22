@@ -409,7 +409,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 				// [+] IRainman opt.
 				void on(SettingsManagerListener::QueueChanges) noexcept;
 				
-				void on(SettingsManagerListener::Load, SimpleXML& /*xml*/) noexcept
+				void on(SettingsManagerListener::Load, SimpleXML& /*xml*/)
 				{
 					on(SettingsManagerListener::QueueChanges());
 				}

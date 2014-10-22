@@ -138,16 +138,12 @@ LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 {
 	PropPage::translate((HWND)(*this), texts);
 	
-#ifdef PPA_INCLUDE_UPNP
 #ifdef FLYLINKDC_SUPPORT_WIN_2000
 	if (!IsXPPlus())
 	{
 		::EnableWindow(GetDlgItem(IDC_FIREWALL_UPNP), FALSE); //[+]PPA
 	}
 #endif // FLYLINKDC_SUPPORT_WIN_2000
-#else
-	::EnableWindow(GetDlgItem(IDC_FIREWALL_UPNP), FALSE); //[+]PPA
-#endif // PPA_INCLUDE_UPNP
 	
 #ifndef IRAINMAN_IP_AUTOUPDATE
 	//::EnableWindow(GetDlgItem(IDC_GETIP), FALSE);

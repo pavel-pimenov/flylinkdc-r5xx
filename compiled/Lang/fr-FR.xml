@@ -582,13 +582,6 @@ Inclure DHT?</String>
 		<String Name="FlyupdateSuccess">La mise à jour FlylinkDC++ a réussi. Cliquez sur OK pour demarrer l'application.</String>
 		<String Name="FlyupdateUpdating">Mise à jour FlylinkDC++ …</String>
 		<String Name="FlyupdateUsercancel">Mise à jour de FlylinkDC++ est interrompue par l'utilisateur</String>
-		<String Name="Flyversion01">Je suis heureux utilisateur de FlyLinkDC++. Tu pourrais l'être aussi.</String>
-		<String Name="Flyversion02">rm-...quoi? Jamais entendu en parler.</String>
-		<String Name="Flyversion03">Évolution des espèces: Animal --&gt; Homme⏎ -- Évolution de science: "La Terre est Plate" --&gt; "La Terre est Ronde"⏎ -- Évolution de  partage: DC++ --&gt; StrongDC++ --&gt; ApexDC++ --&gt; ApexDC++ SpeedMode and new StrongDC++ --&gt; FlylinkDC++</String>
-		<String Name="Flyversion04">Je partage. Alors, je suis.</String>
-		<String Name="Flyversion05">Venu, cherché, trouvé</String>
-		<String Name="Flyversion06">Venu, partagé, envoyé</String>
-		<String Name="Flyversion07">Vous pouvez ajouter plusieurs utilisateurs au même fichier et le télécharger de tout le monde en même temps :)</String>
 		<String Name="Folder">Dossier</String>
 		<String Name="Foldername">Nom du dossier</String>
 		<String Name="FoobarError">Version supportée de Foobar2000 n'est pas demarrée ou le composant "foo_winamp_spam" n'est pas installé</String>

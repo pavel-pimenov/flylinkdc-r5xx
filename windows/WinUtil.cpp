@@ -107,6 +107,7 @@ HIconWrapper WinUtil::g_hFirewallIcon(IDR_ICON_FIREWALL);
 
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOnIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOffIcon;
+std::unique_ptr<HIconWrapper> WinUtil::g_HubFlylinkDCIcon;
 //static WinUtil::ShareMap WinUtil::UsersShare; // !SMT!-UI
 TStringList LastDir::g_dirs;
 HWND WinUtil::mainWnd = nullptr;
@@ -1397,13 +1398,7 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 	}
 	else if (stricmp(cmd.c_str(), _T("flylinkdc++")) == 0 || stricmp(cmd.c_str(), _T("flylinkdc")) == 0 || stricmp(cmd.c_str(), _T("fv")) == 0)
 	{
-#define LINE2 _T("-- http://www.flylinkdc.ru/  <FlylinkDC++ ") T_VERSIONSTRING _T(" / ") _T(DCVERSIONSTRING) _T(">")
-		const tstring msgs[] =
-		{
-			TSTRING(FLYVERSION_01), TSTRING(FLYVERSION_02), TSTRING(FLYVERSION_03), TSTRING(FLYVERSION_04),
-			TSTRING(FLYVERSION_05), TSTRING(FLYVERSION_06), TSTRING(FLYVERSION_07)
-		};
-		message = tstring(_T("FlylinkDC++ version message (/fv, /flylinkdc++, /flylinkdc): \r\n-- ") + (msgs[GET_TICK() % _countof(msgs)]) + _T("\r\n") + LINE2);
+		message = _T("FlylinkDC++ version message (/fv, /flylinkdc++, /flylinkdc):\r\n -- ") _T(HOMEPAGERU) _T(" <FlylinkDC++ ") T_VERSIONSTRING _T(" / ") _T(DCVERSIONSTRING) _T(">");
 	}
 	// Lee's /uptime support, why can't he always ask this kind of easy things.
 	else if (stricmp(cmd.c_str(), _T("uptime")) == 0 || stricmp(cmd.c_str(), _T("ut")) == 0)
@@ -2263,7 +2258,7 @@ bool WinUtil::parseDchubUrl(const tstring& aUrl)// [!] IRainman fix: stop copy-p
 			r.setServer(l_Url);
 			FavoriteManager::getInstance()->addRecent(r);
 			// [~] IRainman fix.
-			HubFrame::openWindow(Text::toT(l_Url));
+			HubFrame::openWindow(l_Url);
 		}
 		if (!file.empty())
 		{

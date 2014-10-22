@@ -107,6 +107,7 @@ LRESULT PropPageTextStyles::onSelectColor(WORD /*wNotifyCode*/, WORD wID, HWND /
 
 LRESULT PropPageTextStyles::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
+	m_Preview.disable_chat_cache();
 	PropPage::translate((HWND)(*this), texts);
 	PropPage::read((HWND)*this, items);
 	
@@ -292,7 +293,8 @@ LRESULT PropPageTextStyles::onEditTextStyle(WORD /*wNotifyCode*/, WORD /*wID*/, 
 		_tcscpy(TextStyles[ iNdx ].szFaceName, m_Font.lfFaceName);
 		TextStyles[ i ].bCharSet = m_Font.lfCharSet;
 		TextStyles[ i ].yHeight = m_Font.lfHeight;
-		m_Preview.AppendText(ClientManager::getFlylinkDCIdentity(), false, true, _T("12:34 "), Text::toT(TextStyles[i].m_sPreviewText).c_str(), TextStyles[i]);
+		const ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, _T("12:34 "), Text::toT(TextStyles[i].m_sPreviewText), TextStyles[i], true);
+		m_Preview.AppendText(l_message);
 	}
 	
 	RefreshPreview();
@@ -312,11 +314,8 @@ void PropPageTextStyles::RefreshPreview()
 	//[-] PVS-Studio V808 string sText;
 	for (int i = 0; i < TS_LAST; i++)
 	{
-		m_Preview.AppendText(ClientManager::getFlylinkDCIdentity(), false, true, _T("12:34 "), Text::toT(TextStyles[i].m_sPreviewText).c_str(), TextStyles[i]
-#ifdef IRAINMAN_INCLUDE_SMILE
-		                     , false
-#endif
-		                    );
+		const ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, _T("12:34 "), Text::toT(TextStyles[i].m_sPreviewText).c_str(), TextStyles[i], false);
+		m_Preview.AppendText(l_message);
 	}
 	m_Preview.InvalidateRect(NULL);
 	m_Preview.SetTextStyleMyNick(old);

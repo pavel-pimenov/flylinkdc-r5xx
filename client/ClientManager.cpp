@@ -98,6 +98,15 @@ std::map<string, CFlyClientStatistic > ClientManager::getClientStat()
 	}
 	return l_stat;
 }
+
+void ClientManager::resetAntivirusInfo()
+{
+	webrtc::ReadLockScoped l(*g_csClients);
+	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
+	{
+		i->second->resetAntivirusInfo();
+	}
+}
 size_t ClientManager::getTotalUsers()
 {
 	size_t users = 0;
@@ -1031,7 +1040,7 @@ void ClientManager::search(Search::SizeModes aSizeMode, int64_t aSize, Search::T
 	}
 }
 
-uint64_t ClientManager::search(const StringList& who, Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, void* aOwner, bool p_is_force_passive)
+uint64_t ClientManager::search(const StringList& aWho, Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, void* aOwner, bool p_is_force_passive)
 {
 #ifdef STRONG_USE_DHT
 	if (BOOLSETTING(USE_DHT) && aFileType == Search::TYPE_TTH)
@@ -1039,7 +1048,7 @@ uint64_t ClientManager::search(const StringList& who, Search::SizeModes aSizeMod
 #endif
 	//Lock l(cs); [-] IRainman opt.
 	uint64_t estimateSearchSpan = 0;
-	if (who.empty())
+	if (aWho.empty())
 	{
 		webrtc::ReadLockScoped l(*g_csClients); // [+] IRainman opt.
 		for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
@@ -1052,7 +1061,7 @@ uint64_t ClientManager::search(const StringList& who, Search::SizeModes aSizeMod
 	else
 	{
 		webrtc::ReadLockScoped l(*g_csClients); // [+] IRainman opt.
-		for (auto it = who.cbegin(); it != who.cend(); ++it)
+		for (auto it = aWho.cbegin(); it != aWho.cend(); ++it)
 		{
 			const string& client = *it;
 			

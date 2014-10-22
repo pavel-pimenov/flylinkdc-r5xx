@@ -16,8 +16,9 @@
 #include "../client/LogManager.h"
 
 // Static member functions
-void CImageDataObject::InsertBitmap(HWND hWnd, IRichEditOle* pRichEditOle, IOleClientSite *pOleClientSite, IStorage *pStorage, IOleObject *pOleObject)//IRichEditOle* pRichEditOle, HBITMAP hBitmap, LPCTSTR pszPath)
+void CImageDataObject::InsertBitmap(HWND hWnd, IRichEditOle* pRichEditOle, IOleClientSite *pOleClientSite, IStorage *pStorage, IOleObject *pOleObject, bool& p_out_of_memory)//IRichEditOle* pRichEditOle, HBITMAP hBitmap, LPCTSTR pszPath)
 {
+	p_out_of_memory = false;
 	if (!pOleObject)
 		return;
 		
@@ -39,6 +40,7 @@ void CImageDataObject::InsertBitmap(HWND hWnd, IRichEditOle* pRichEditOle, IOleC
 		dcassert(0);
 		safe_release(pOleObject);
 		safe_release(pOleClientSite);
+		p_out_of_memory = sc == E_OUTOFMEMORY;
 		return;
 	}
 	
@@ -59,6 +61,7 @@ void CImageDataObject::InsertBitmap(HWND hWnd, IRichEditOle* pRichEditOle, IOleC
 		dcassert(0);
 		safe_release(pOleObject);
 		safe_release(pOleClientSite);
+		p_out_of_memory = sc == E_OUTOFMEMORY;
 		return;
 	}
 	dcassert(::IsWindow(hWnd));

@@ -1110,6 +1110,7 @@
     <None Include="res\File-List.ico" />
     <None Include="res\Finished-Downloads.ico" />
     <None Include="res\Finished-Uploads.ico" />
+    <None Include="res\firewall.ico" />
     <None Include="res\Flags.png" />
     <None Include="res\FlyLink.bmp" />
     <None Include="res\FlyLink.png" />
@@ -1159,6 +1160,7 @@
     <None Include="res\Splash\Splash_fools_day.png" />
     <None Include="res\Splash\Splash_winter.png" />
     <None Include="res\State.png" />
+    <None Include="res\StateUsers.png" />
     <None Include="res\strike.ico" />
     <None Include="res\strike.png" />
     <None Include="res\SwitchPanels.ico" />

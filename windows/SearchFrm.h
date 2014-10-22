@@ -169,7 +169,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		SearchFrame() :
 #ifdef FLYLINKDC_USE_WINDOWS_TIMER_SEARCH_FRAME
 			CFlyTimerAdapter(m_hWnd),
-			CFlyServerAdapter(m_hWnd),
+			CFlyServerAdapter(m_hWnd, 5000),
 #endif
 			searchBoxContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
 			searchContainer(WC_EDIT, this, SEARCH_MESSAGE_MAP),
@@ -556,9 +556,12 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		bool showFlyServerProperty(const SearchInfo* p_item_info);
 #endif
 		struct HubInfo
+#ifdef _DEBUG
+				: private boost::noncopyable
+#endif
 		{
 			HubInfo(const tstring& aUrl, const tstring& aName, bool aOp) : url(aUrl),
-				name(aName), op(aOp) { }
+				name(aName), m_is_op(aOp) { }
 				
 			const tstring& getText(int col) const
 			{
@@ -577,9 +580,9 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 				return 0;
 			}
 			
-			tstring url;
-			tstring name;
-			bool op;
+			const tstring url;
+			const tstring name;
+			const bool m_is_op;
 		};
 		
 		// WM_SPEAKER
@@ -789,7 +792,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		{
 			speak(HUB_REMOVED, c);
 		}
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept;
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
 		
 		void initHubs();
 		void onHubAdded(HubInfo* info);

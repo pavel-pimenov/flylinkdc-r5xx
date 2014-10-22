@@ -1089,6 +1089,8 @@
     </None>
     <None Include="res\medical_bag.ico" />
     <None Include="res\thermometer2.ico" />
+    <None Include="res\firewall.ico" />
+    <None Include="res\StateUsers.png" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

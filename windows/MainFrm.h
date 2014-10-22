@@ -607,6 +607,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		CReBarCtrl m_rebar;
 		
 		bool getPassword(); // !SMT!-f
+		bool getPasswordInternal(INT_PTR& p_do_modal_result);
 		
 		class DirectoryBrowseInfo
 		{
@@ -814,8 +815,17 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 				unsigned m_MinuteElapsed;
 				int run()
 				{
-					CFlyServerAdapter::CFlyServerJSON::pushStatistic(m_is_sync_run);
-					CFlyServerAdapter::CFlyServerJSON::sendDownloadCounter();
+					if (CFlyServerAdapter::CFlyServerJSON::pushStatistic(m_is_sync_run) == false)
+					{
+						// Если нет ошибок - скинем и счетчки загрузок + обновим антивирусную базу
+						if (m_is_sync_run == false) // Если запущено в фоновом режиме - стартанем обновление AvDB и сброс счетчиков загрузок
+						{
+							if (CFlyServerAdapter::CFlyServerJSON::sendDownloadCounter() == false)
+							{
+								CFlyServerConfig::SyncAntivirusDB();
+							}
+						}
+					}
 					return 0;
 				}
 			public:

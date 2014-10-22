@@ -22,11 +22,9 @@
 #include "ConnectionManager.h"
 #include "ConnectivityManager.h"
 #include "LogManager.h"
-#ifdef PPA_INCLUDE_UPNP
 #include "Mapper_MiniUPnPc.h"
 #include "Mapper_NATPMP.h"
 #include "Mapper_WinUPnP.h"
-#endif
 #include "SearchManager.h"
 #include "ScopedFunctor.h"
 
@@ -34,7 +32,6 @@
 #include "../dht/dht.h"
 #endif
 
-#ifdef PPA_INCLUDE_UPNP
 MappingManager::MappingManager() : renewal(0), m_listeners_count(0)
 {
 	addMapper<Mapper_NATPMP>();
@@ -43,7 +40,6 @@ MappingManager::MappingManager() : renewal(0), m_listeners_count(0)
 	addMapper<Mapper_WinUPnP>();
 #endif
 }
-#endif
 StringList MappingManager::getMappers() const
 {
 	StringList ret;

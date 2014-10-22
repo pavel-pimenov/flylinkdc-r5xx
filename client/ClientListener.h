@@ -43,7 +43,7 @@ class ClientListener
 		
 		virtual void on(Connecting, const Client*) noexcept { }
 		virtual void on(Connected, const Client*) noexcept { }
-		virtual void on(UserUpdated, const Client*, const OnlineUserPtr&) noexcept { }
+		virtual void on(UserUpdated, const OnlineUserPtr&) noexcept { }
 		virtual void on(UsersUpdated, const Client*, const OnlineUserList&) noexcept { }
 		virtual void on(UserRemoved, const Client*, const OnlineUserPtr&) noexcept { }
 		virtual void on(Redirect, const Client*, const string&) noexcept { }

@@ -1366,7 +1366,7 @@ TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const Conn
 		string target;
 		int64_t size;
 		int flags;
-		if (QueueManager::getInstance()->getQueueInfo(aCqi->getUser(), target, size, flags))
+		if (QueueManager::getInstance()->getQueueInfo(aCqi->getUser(), target, size, flags))// deadlock
 		{
 			Transfer::Type type = Transfer::TYPE_FILE;
 			if (flags & QueueItem::FLAG_USER_LIST)
@@ -1862,7 +1862,7 @@ LRESULT TransferView::onSlowDisconnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
 	return 0;
 }
 
-void TransferView::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
+void TransferView::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())

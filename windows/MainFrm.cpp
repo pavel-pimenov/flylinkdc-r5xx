@@ -71,9 +71,7 @@
 #include "../client/ThrottleManager.h"
 #include "../client/MD5Calc.h"
 #include "../FlyFeatures/CustomMenuManager.h" //[+] //SSA
-#ifdef PPA_INCLUDE_UPNP
-# include "../client/MappingManager.h"
-#endif
+#include "../client/MappingManager.h"
 #include "../client/Text.h"
 #ifdef STRONG_USE_DHT
 # include "../dht/dht.h"
@@ -150,6 +148,7 @@ int64_t MainFrame::g_updiff = 0;
 int64_t MainFrame::g_downdiff = 0;
 // [~] IRainman Speedmeter
 
+const char* g_magic_password = "LWPNACQDBZRYXW3VHJVCJ64QBZNGHOHHHZWCLNQ";
 MainFrame::MainFrame() :
 	CSplitterImpl(false),
 	CFlyTimerAdapter(m_hWnd),
@@ -688,23 +687,13 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	winampMenu.AppendMenu(MF_STRING, ID_MEDIA_MENU_WINAMP_START + SettingsManager::JetAudio, CTSTRING(MEDIA_MENU_JA));
 	
 	
-	if (SETTING(PROTECT_START) && SETTING(PASSWORD) != "LWPNACQDBZRYXW3VHJVCJ64QBZNGHOHHHZWCLNQ" && !SETTING(PASSWORD).empty())
+	if (SETTING(PROTECT_START) && SETTING(PASSWORD) != g_magic_password && !SETTING(PASSWORD).empty())
 	{
-		LineDlg dlg;
-		dlg.description = TSTRING(PASSWORD_DESC);
-		dlg.title = TSTRING(PASSWORD_TITLE);
-		dlg.password = true;
-		dlg.disabled = true;
-		if (dlg.DoModal(m_hWnd) == IDOK)
+		INT_PTR l_do_modal_result;
+		if (getPasswordInternal(l_do_modal_result) == false &&
+		        l_do_modal_result == IDOK)
 		{
-			tstring tmp = dlg.line;
-			TigerTree mytth(TigerTree::calcBlockSize(tmp.size(), 1));
-			mytth.update(tmp.c_str(), tmp.size());
-			mytth.finalize();
-			if (mytth.getRoot().toBase32().c_str() != SETTING(PASSWORD))
-			{
-				ExitProcess(1); // Опасная функция ExitProcess - http://blog.not-a-kernel-guy.com/2007/07/15/210
-			}
+			ExitProcess(1); // Опасная функция ExitProcess - http://blog.not-a-kernel-guy.com/2007/07/15/210
 		}
 	}
 	
@@ -814,8 +803,10 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 int MainFrame::tuneTransferSplit()
 {
 	m_nProportionalPos = SETTING(TRANSFER_SPLIT_SIZE);
-	if (m_nProportionalPos < 1000 || m_nProportionalPos > 6000)
-		m_nProportionalPos = 8000; // TODO - пофиксить http://code.google.com/p/flylinkdc/issues/detail?id=1398
+	if (m_nProportionalPos < 3000 || m_nProportionalPos > 9400)
+	{
+		m_nProportionalPos = 9100; // TODO - пофиксить http://code.google.com/p/flylinkdc/issues/detail?id=1398
+	}
 	SET_SETTING(TRANSFER_SPLIT_SIZE, m_nProportionalPos);
 	SetSplitterPanes(m_hWndMDIClient, transferView.m_hWnd);
 	SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
@@ -1942,7 +1933,7 @@ LRESULT MainFrame::OnConnectToSupportHUB(WORD /*wNotifyCode*/, WORD /*wID*/, HWN
 	r.setDescription(STRING(SUPPORTS_SERVER_DESC));
 	r.setServer(FavoriteManager::getSupportHubURL());
 	FavoriteManager::getInstance()->addRecent(r);
-	HubFrame::openWindow(Text::toT(FavoriteManager::getSupportHubURL()));
+	HubFrame::openWindow(FavoriteManager::getSupportHubURL());
 	
 	return 0;
 }
@@ -2316,13 +2307,13 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 					r.setDescription(entry->getDescription());
 					r.setServer(entry->getServer());
 					FavoriteManager::getInstance()->addRecent(r);
-					frm = HubFrame::openWindow(Text::toT(entry->getServer()),
-					                           Text::toT(entry->getName()),
-					                           Text::toT(entry->getRawOne()),
-					                           Text::toT(entry->getRawTwo()),
-					                           Text::toT(entry->getRawThree()),
-					                           Text::toT(entry->getRawFour()),
-					                           Text::toT(entry->getRawFive()),
+					frm = HubFrame::openWindow(entry->getServer(),
+					                           entry->getName(),
+					                           entry->getRawOne(),
+					                           entry->getRawTwo(),
+					                           entry->getRawThree(),
+					                           entry->getRawFour(),
+					                           entry->getRawFive(),
 					                           entry->getWindowPosX(),
 					                           entry->getWindowPosY(),
 					                           entry->getWindowSizeX(),
@@ -2535,33 +2526,22 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 #ifdef _DEBUG
 			dcdebug("MainFrame::OnClose first - User::g_user_counts = %d\n", int(User::g_user_counts)); // [!] IRainman fix: Issue 1037 иногда теряем объект User? https://code.google.com/p/flylinkdc/issues/detail?id=1037
 #endif
-			if (SETTING(PROTECT_CLOSE) && !m_oldshutdown && Text::toT(SETTING(PASSWORD)) != _T("LWPNACQDBZRYXW3VHJVCJ64QBZNGHOHHHZWCLNQ") && !Text::toT(SETTING(PASSWORD)).empty())
+			m_stopexit = false;
+			if (SETTING(PROTECT_CLOSE) && !m_oldshutdown && SETTING(PASSWORD) != g_magic_password && !SETTING(PASSWORD).empty())
 			{
-				LineDlg dlg;
-				dlg.description = TSTRING(PASSWORD_DESC);
-				dlg.title = TSTRING(PASSWORD_TITLE);
-				dlg.password = true;
-				dlg.disabled = true;
-				if (dlg.DoModal(m_hWnd) == IDOK)
+				INT_PTR l_do_modal_result;
+				if (getPasswordInternal(l_do_modal_result) == false)
 				{
-					tstring tmp = dlg.line;
-					TigerTree mytth(TigerTree::calcBlockSize(tmp.size(), 1));
-					mytth.update(tmp.c_str(), tmp.size());
-					mytth.finalize();
-					if (mytth.getRoot().toBase32().c_str() != SETTING(PASSWORD))
-					{
-						m_stopexit = true;
-						m_menuclose = false; // [+] InfinitySky. Отключаем метку закрытия через меню, на случай, если в окне предупреждения о закрытии будет отмена закрытия.
-					}
-					else
-					{
-						m_stopexit = false;
-					}
+					m_stopexit = true;
+					m_menuclose = false;
 				}
-			}
-			else
-			{
-				m_stopexit = false;
+				else
+				{
+					if (l_do_modal_result == IDOK)
+						m_stopexit = false;
+					else
+						m_stopexit = true;
+				}
 			}
 			
 			bool bForceNoWarning = false;
@@ -3000,25 +2980,40 @@ LRESULT MainFrame::onRefreshFileList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 	return 0;
 }
 
-// !SMT!-f
-bool MainFrame::getPassword()
+bool MainFrame::getPasswordInternal(INT_PTR& p_do_modal_result)
 {
-	if (m_maximized || !SETTING(PROTECT_TRAY) || SETTING(PASSWORD) == "LWPNACQDBZRYXW3VHJVCJ64QBZNGHOHHHZWCLNQ" || SETTING(PASSWORD).empty())
-		return true;
-		
 	LineDlg dlg;
 	dlg.description = TSTRING(PASSWORD_DESC);
 	dlg.title = TSTRING(PASSWORD_TITLE);
 	dlg.password = true;
 	dlg.disabled = true;
-	if (dlg.DoModal(m_hWnd) != IDOK)
+	p_do_modal_result = dlg.DoModal(m_hWnd);
+	if (p_do_modal_result == IDOK)
+	{
+		tstring tmp = dlg.line;
+		TigerTree mytth(TigerTree::calcBlockSize(tmp.size(), 1));
+		mytth.update(tmp.c_str(), tmp.size());
+		mytth.finalize();
+		return Text::toT(mytth.getRoot().toBase32().c_str()) == Text::toT(SETTING(PASSWORD));
+	}
+	else
 		return false;
-		
-	tstring tmp = dlg.line;
-	TigerTree mytth(TigerTree::calcBlockSize(tmp.size(), 1));
-	mytth.update(tmp.c_str(), tmp.size());
-	mytth.finalize();
-	return (Text::toT(mytth.getRoot().toBase32().c_str()) == Text::toT(SETTING(PASSWORD)));
+}
+// !SMT!-f
+bool MainFrame::getPassword()
+{
+	if (m_maximized || !SETTING(PROTECT_TRAY) || SETTING(PASSWORD) == g_magic_password || SETTING(PASSWORD).empty())
+		return true;
+	INT_PTR l_do_modal_result;
+	if (!getPasswordInternal(l_do_modal_result))
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+	
 }
 
 LRESULT MainFrame::onTrayIcon(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
@@ -3059,7 +3054,7 @@ LRESULT MainFrame::onTrayIcon(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, B
 	{
 		CPoint pt(GetMessagePos());
 		SetForegroundWindow(m_hWnd);
-		if ((!SETTING(PROTECT_TRAY) || !g_bAppMinimized) || (SETTING(PASSWORD) == "LWPNACQDBZRYXW3VHJVCJ64QBZNGHOHHHZWCLNQ" || SETTING(PASSWORD).empty()))
+		if ((!SETTING(PROTECT_TRAY) || !g_bAppMinimized) || (SETTING(PASSWORD) == g_magic_password || SETTING(PASSWORD).empty()))
 			trayMenu.TrackPopupMenu(TPM_RIGHTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 		PostMessage(WM_NULL, 0, 0);
 	}
@@ -3119,14 +3114,15 @@ LRESULT MainFrame::onAppShow(WORD /*wNotifyCode*/, WORD /*wParam*/, HWND, BOOL& 
 {
 	if (::IsIconic(m_hWnd))
 	{
-		if (!m_maximized && SETTING(PROTECT_TRAY) && SETTING(PASSWORD) != "LWPNACQDBZRYXW3VHJVCJ64QBZNGHOHHHZWCLNQ" && !SETTING(PASSWORD).empty())
+		if (!m_maximized && SETTING(PROTECT_TRAY) && SETTING(PASSWORD) != g_magic_password && !SETTING(PASSWORD).empty())
 		{
-			HWND otherWnd = FindWindow(NULL, _T("Password required - FlylinkDC++"));
+			const auto l_title_name = _T("Password required - FlylinkDC++");
+			const HWND otherWnd = FindWindow(NULL, l_title_name);
 			if (otherWnd == NULL)
 			{
 				LineDlg dlg;
 				dlg.description = TSTRING(PASSWORD_DESC);
-				dlg.title = _T("Password required - FlylinkDC++");
+				dlg.title = l_title_name;
 				dlg.password = true;
 				dlg.disabled = true;
 				if (dlg.DoModal(/*m_hWnd*/) == IDOK)
@@ -3330,7 +3326,7 @@ LRESULT MainFrame::onQuickConnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 			const string l_formattedDcHubUrl = Util::formatDchubUrl(Text::fromT(tmp));
 			r.setServer(l_formattedDcHubUrl);
 			FavoriteManager::getInstance()->addRecent(r);
-			HubFrame::openWindow(Text::toT(l_formattedDcHubUrl));
+			HubFrame::openWindow(l_formattedDcHubUrl);
 		}
 	}
 	return 0;
@@ -3890,9 +3886,9 @@ void MainFrame::on(UserManagerListener::OutgoingPrivateMessage, const UserPtr& t
 	PrivateFrame::openWindow(nullptr, HintedUser(to, hint), Util::emptyString, message);
 }
 
-void MainFrame::on(UserManagerListener::OpenHub, const string& url) noexcept // [+] IRainman
+void MainFrame::on(UserManagerListener::OpenHub, const string& p_url) noexcept // [+] IRainman
 {
-	HubFrame::openWindow(Text::toT(url));
+	HubFrame::openWindow(p_url);
 }
 
 void MainFrame::on(UserManagerListener::CollectSummaryInfo, const UserPtr& user) noexcept // [+] IRainman

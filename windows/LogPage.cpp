@@ -68,8 +68,10 @@ PropPage::ListItem LogPage::listItems[] =
 	{ SettingsManager::LOG_CUSTOM_LOCATION,     ResourceManager::SETTINGS_LOG_CUSTOM_LOCATION }, // [+]IRainman
 	{ SettingsManager::LOG_SQLITE_TRACE,        ResourceManager::SETTINGS_LOG_TRACE_SQLITE },
 	{ SettingsManager::LOG_DDOS_TRACE,          ResourceManager::SETTINGS_LOG_DDOS_TRACE },
+	{ SettingsManager::LOG_CMDDEBUG_TRACE,          ResourceManager::SETTINGS_LOG_CMDDEBUG_TRACE },
 	{ SettingsManager::LOG_DHT_TRACE,           ResourceManager::SETTINGS_LOG_DHT_TRACE },
 	{ SettingsManager::LOG_PSR_TRACE,           ResourceManager::SETTINGS_LOG_PSR_TRACE },
+	{ SettingsManager::LOG_FLOOD_TRACE,           ResourceManager::SETTINGS_LOG_FLOOD_TRACE },
 	{ SettingsManager::LOG_FILELIST_TRANSFERS,  ResourceManager::SETTINGS_LOG_FILELIST_TRANSFERS },
 	{ SettingsManager::LOG_IF_SUPPRESS_PMS,     ResourceManager::SETTINGS_LOG_IF_SUPPRESS_PMS }, // [+]IRainman
 	{ 0,                                        ResourceManager::SETTINGS_AUTO_AWAY }

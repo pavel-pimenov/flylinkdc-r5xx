@@ -128,7 +128,7 @@ void TextFrame::UpdateLayout(BOOL /*bResizeBars*/ /* = TRUE */)
 	ctrlPad.MoveWindow(rc);
 }
 
-void TextFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
+void TextFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())

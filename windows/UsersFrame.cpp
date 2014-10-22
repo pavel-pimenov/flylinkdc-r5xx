@@ -273,7 +273,7 @@ LRESULT UsersFrame::onConnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 		const string& l_url = FavoriteManager::getInstance()->getUserUrl(ui->getUser());
 		if (!l_url.empty())
 		{
-			HubFrame::openWindow(Text::toT(l_url));
+			HubFrame::openWindow(l_url);
 		}
 	}
 	return 0;
@@ -418,7 +418,7 @@ LRESULT UsersFrame::onOpenUserLog(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 	return 0;
 }
 
-void UsersFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
+void UsersFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())

@@ -49,10 +49,14 @@ class LogManager : public Singleton<LogManager>, public Speaker<LogManagerListen
 		               DDOS_TRACE,
 		               DHT_TRACE,
 		               PSR_TRACE,
+		               FLOOD_TRACE,
+		               CMDDEBUG_TRACE,
 		               LAST
 		             };
 		enum {FILE, FORMAT};
 		void ddos_message(const string& params);
+		void flood_message(const string& params);
+		void cmd_debug_message(const string& params);
 		void dht_message(const string& params);
 		void psr_message(const string& params);
 		void log(LogArea area, const StringMap& params, bool p_only_file = false) noexcept;

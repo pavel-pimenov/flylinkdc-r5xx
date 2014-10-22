@@ -187,6 +187,7 @@
 #define IDR_ICON_THERMOMETR_BAG         296
 //#define IDR_ICON_CRUTCH             297
 #define IDR_ICON_FIREWALL               298
+#define IDR_HUB_FLYLINKDC               299
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
 #define IDC_COPY_HUB                    1002

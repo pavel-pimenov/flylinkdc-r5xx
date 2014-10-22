@@ -41,12 +41,11 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		void password(const string& pwd);
 		void info(bool p_force);
 		void refreshUserList(bool);
-		
+		void resetAntivirusInfo();
 		size_t getUserCount() const
 		{
 			return m_users.size();
 		}
-		
 		string escape(const string& str) const
 		{
 			return AdcCommand::escape(str, false);

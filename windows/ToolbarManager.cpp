@@ -136,12 +136,12 @@ void ToolbarManager::applyTo(CReBarCtrl& ReBar, const string& aName) const
 	}
 }
 
-void ToolbarManager::on(SettingsManagerListener::Load, SimpleXML& aXml) noexcept
+void ToolbarManager::on(SettingsManagerListener::Load, SimpleXML& aXml)
 {
 	load(aXml);
 }
 
-void ToolbarManager::on(SettingsManagerListener::Save, SimpleXML& aXml) noexcept
+void ToolbarManager::on(SettingsManagerListener::Save, SimpleXML& aXml)
 {
 	save(aXml);
 }

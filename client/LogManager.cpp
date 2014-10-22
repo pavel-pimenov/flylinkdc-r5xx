@@ -56,6 +56,10 @@ LogManager::LogManager()
 	logOptions[DHT_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_DHT_TRACE;
 	logOptions[PSR_TRACE][FILE]     = SettingsManager::LOG_FILE_PSR_TRACE;
 	logOptions[PSR_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_PSR_TRACE;
+	logOptions[FLOOD_TRACE][FILE]     = SettingsManager::LOG_FILE_FLOOD_TRACE;
+	logOptions[FLOOD_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_FLOOD_TRACE;
+	logOptions[CMDDEBUG_TRACE][FILE]     = SettingsManager::LOG_FILE_CMDDEBUG_TRACE;
+	logOptions[CMDDEBUG_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_CMDDEBUG_TRACE;
 	
 	
 	if (!CompatibilityManager::getStartupInfo().empty())
@@ -192,6 +196,27 @@ void LogManager::ddos_message(const string& p_message)
 		StringMap params;
 		params["message"] = p_message;
 		LOG(DDOS_TRACE, params);
+	}
+}
+
+
+void LogManager::cmd_debug_message(const string& p_message)
+{
+	if (BOOLSETTING(LOG_CMDDEBUG_TRACE))
+	{
+		StringMap params;
+		params["message"] = p_message;
+		LOG(CMDDEBUG_TRACE, params);
+	}
+}
+
+void LogManager::flood_message(const string& p_message)
+{
+	if (BOOLSETTING(LOG_FLOOD_TRACE))
+	{
+		StringMap params;
+		params["message"] = p_message;
+		LOG(FLOOD_TRACE, params);
 	}
 }
 

@@ -11,10 +11,10 @@
 
 LRESULT CDMDebugFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
-	ctrlPad.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-	               WS_VSCROLL | ES_AUTOVSCROLL | ES_MULTILINE | ES_NOHIDESEL | ES_READONLY, WS_EX_CLIENTEDGE);
-	ctrlPad.LimitText(0);
-	ctrlPad.SetFont(Fonts::g_font);
+	ctrlCMDPad.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+	                  WS_VSCROLL | ES_AUTOVSCROLL | ES_MULTILINE | ES_NOHIDESEL | ES_READONLY, WS_EX_CLIENTEDGE);
+	ctrlCMDPad.LimitText(0);
+	ctrlCMDPad.SetFont(Fonts::g_font);
 	
 	CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);
 	ctrlStatus.Attach(m_hWndStatusBar);
@@ -71,7 +71,7 @@ LRESULT CDMDebugFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	m_ctrlExcludeFilter.SetFont(Fonts::g_font);
 	m_eExcludeFilterContainer.SubclassWindow(ctrlStatus.m_hWnd);
 	
-	m_hWndClient    = ctrlPad;
+	m_hWndClient    = ctrlCMDPad;
 	m_hMenu         = WinUtil::mainMenu;
 	
 	start(64);
@@ -195,16 +195,16 @@ void CDMDebugFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 
 void CDMDebugFrame::addLine(DebugTask& task)
 {
-	if (ctrlPad.GetWindowTextLength() > MAX_TEXT_LEN)
+	if (ctrlCMDPad.GetWindowTextLength() > MAX_TEXT_LEN)
 	{
-		CLockRedraw<> l_lock_draw(ctrlPad);
-		ctrlPad.SetSel(0, ctrlPad.LineIndex(ctrlPad.LineFromChar(2000)));
-		ctrlPad.ReplaceSel(_T(""));
+		CLockRedraw<> l_lock_draw(ctrlCMDPad);
+		ctrlCMDPad.SetSel(0, ctrlCMDPad.LineIndex(ctrlCMDPad.LineFromChar(2000)));
+		ctrlCMDPad.ReplaceSel(_T(""));
 	}
 	BOOL noscroll = TRUE;
-	POINT p = ctrlPad.PosFromChar(ctrlPad.GetWindowTextLength() - 1);
+	POINT p = ctrlCMDPad.PosFromChar(ctrlCMDPad.GetWindowTextLength() - 1);
 	CRect r;
-	ctrlPad.GetClientRect(r);
+	ctrlCMDPad.GetClientRect(r);
 	
 	if (r.PtInRect(p) || MDIGetActive() != m_hWnd)
 	{
@@ -212,28 +212,29 @@ void CDMDebugFrame::addLine(DebugTask& task)
 	}
 	else
 	{
-		ctrlPad.SetRedraw(FALSE); // Strange!! This disables the scrolling...????
+		ctrlCMDPad.SetRedraw(FALSE); // Strange!! This disables the scrolling...????
 	}
 	
-	ctrlPad.AppendText(Text::toT(DebugTask::format(task)).c_str()); // [!] IRainman fix.
-	
+	const auto l_message = DebugTask::format(task);
+	LogManager::getInstance()->cmd_debug_message(l_message);
+	ctrlCMDPad.AppendText(Text::toT(l_message).c_str()); // [!] IRainman fix.
 	if (noscroll)
 	{
-		ctrlPad.SetRedraw(TRUE);
+		ctrlCMDPad.SetRedraw(TRUE);
 	}
 }
 
 LRESULT CDMDebugFrame::onClear(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	ctrlPad.SetWindowText(_T(""));
-	ctrlPad.SetFocus();
+	ctrlCMDPad.SetWindowText(_T(""));
+	ctrlCMDPad.SetFocus();
 	return 0;
 }
 LRESULT CDMDebugFrame::onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	HWND hWnd = (HWND)lParam;
 	HDC hDC = (HDC)wParam;
-	if (hWnd == ctrlPad.m_hWnd)
+	if (hWnd == ctrlCMDPad.m_hWnd)
 	{
 		::SetBkColor(hDC, Colors::bgColor);
 		::SetTextColor(hDC, Colors::textColor);

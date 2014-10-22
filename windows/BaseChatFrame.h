@@ -65,16 +65,17 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		{
 			return ctrlClient.getHubHint();
 		}
+	private:
+		void createChatCtrl();
 	protected:
 		void createMessageCtrl(ATL::CMessageMap *p_map, DWORD p_MsgMapID);
 		void destroyMessageCtrl(bool p_is_shutdown);
-	protected:
-	
+		
 		BaseChatFrame() :
 			m_curCommandPosition(0),
 			m_bUseTempMultiChat(false),
 			m_bProcessNextChar(false),
-			m_timeStamps(BOOLSETTING(TIME_STAMPS)),
+			m_bTimeStamps(BOOLSETTING(TIME_STAMPS)),
 			m_currentNeedlePos(-1),
 			m_msgPanel(nullptr),
 			m_MessagePanelHWnd(0),
@@ -186,7 +187,7 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		bool m_bUseTempMultiChat;
 	private:
 		bool m_bProcessNextChar;
-		bool m_timeStamps;
+		bool m_bTimeStamps;
 		tstring m_currentNeedle;      // search in chat window
 		long m_currentNeedlePos;      // search in chat window
 		

@@ -37,11 +37,11 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 #endif
 {
 	public:
-		static void gotMessage(const Identity& from, const Identity& to, const Identity& replyTo, const tstring& aMessage, const string& sHubHint, const bool bMyMess, const bool bThirdPerson, const bool notOpenNewWindow = false); // !SMT!-S
+		static bool gotMessage(const Identity& from, const Identity& to, const Identity& replyTo, const tstring& aMessage, const string& sHubHint, const bool bMyMess, const bool bThirdPerson, const bool notOpenNewWindow = false); // !SMT!-S
 		static void openWindow(const OnlineUserPtr& ou, const HintedUser& replyTo, string myNick = Util::emptyString, const tstring& aMessage = Util::emptyStringT);
 		static bool isOpen(const UserPtr& u)
 		{
-			return g_frames.find(u) != g_frames.end();
+			return g_pm_frames.find(u) != g_pm_frames.end();
 		}
 		static bool closeUser(const UserPtr& u); // !SMT!-S
 		static void closeAll();
@@ -139,7 +139,8 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 		{
 			if (m_ctrlMessage)
 				m_ctrlMessage->SetFocus();
-			ctrlClient.GoToEnd();
+			if (ctrlClient.IsWindow())
+				ctrlClient.GoToEnd();
 			return 0;
 		}
 		
@@ -154,9 +155,13 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 		
 		void sendMessage(const tstring& msg, bool thirdperson = false);
 		
-		const UserPtr& getUser()
+		const UserPtr& getUser() const
 		{
-			return m_replyTo;
+			return m_replyTo.user;
+		}
+		const string& getHub() const
+		{
+			return m_replyTo.hint;
 		}
 	private:
 		PrivateFrame(const HintedUser& replyTo_, const string& myNick);
@@ -165,14 +170,15 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 		
 		bool m_created; // TODO: fix me please.
 		typedef std::unordered_map<UserPtr, PrivateFrame*, User::Hash> FrameMap;
-		static FrameMap g_frames;
+		static FrameMap g_pm_frames;
+		static std::unordered_map<string, unsigned> g_count_pm;
 		
-#define MAX_PM_FRAMES 200
+#define MAX_PM_FRAMES 100
 		
-		const UserPtr m_replyTo; // [+] IRainman fix: this is const ptr.
+		const HintedUser m_replyTo; // [+] IRainman fix: this is const ptr.
 		tstring m_replyToRealName; // [+] IRainman fix.
 		
-		CContainedWindow ctrlClientContainer;
+		CContainedWindow m_ctrlChatContainer;
 		
 		bool m_isoffline;
 		
@@ -189,12 +195,12 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 		}
 		void on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) noexcept
 		{
-			if (aUser == m_replyTo)
+			if (aUser == m_replyTo.user)
 			{
 				PostMessage(WM_SPEAKER, USER_UPDATED);
 			}
 		}
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept;
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
 		// [+] IRainman: copy-past fix.
 		void processFrameCommand(const tstring& fullMessageText, const tstring& cmd, tstring& param, bool& resetInputMessageText);
 		void processFrameMessage(const tstring& fullMessageText, bool& resetInputMessageText);

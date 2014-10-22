@@ -163,7 +163,7 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 		void getLoginPage(string& p_out);
 		
 		// SettingsManagerListener
-		void on(SettingsManagerListener::Save, SimpleXML&) noexcept
+		void on(SettingsManagerListener::Save, SimpleXML&)
 		{
 			dcassert(!ClientManager::isShutdown())
 			if (!ClientManager::isShutdown())

@@ -62,6 +62,7 @@ UpdatePage::ListItem UpdatePage::listItems[] =
 UpdatePage::ListItem UpdatePage::listComponents[] =
 {
 	{ SettingsManager::AUTOUPDATE_EXE, ResourceManager::AUTOUPDATE_EXE}, // [+] SSA
+	{ SettingsManager::AUTOUPDATE_ANTIVIRUS_DB, ResourceManager::AUTOUPDATE_ANTIVIRUS_DB}, // [+] SSA
 	{ SettingsManager::AUTOUPDATE_UTILITIES, ResourceManager::AUTOUPDATE_UTILITIES}, // [+] SSA
 	{ SettingsManager::AUTOUPDATE_LANG, ResourceManager::AUTOUPDATE_LANG}, // [+] SSA
 	{ SettingsManager::AUTOUPDATE_PORTALBROWSER, ResourceManager::AUTOUPDATE_PORTALBROWSER}, // [+] SSA

@@ -113,7 +113,6 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		void addTab(HWND hWnd, COLORREF color = RGB(0, 0, 0), uint16_t icon = 0, uint16_t stateIcon = 0, bool p_mini = false)
 		{
 			TabInfo* i = new TabInfo(hWnd, color, icon, (stateIcon != 0) ? stateIcon : icon, !g_isStartupProcess);
-			dcassert(getTabInfo(hWnd) == NULL);
 			i->m_mini = p_mini;
 			if ((icon == IDR_HUB || icon == IDR_PRIVATE
 #ifdef USE_OFFLINE_ICON_FOR_FILELIST
@@ -242,7 +241,6 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 #endif
 			if (!inTab)
 				setTop(aWnd);
-				
 			if (TabInfo* ti = getTabInfo(aWnd))
 			{
 				active = ti;
@@ -264,20 +262,34 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			nextTab = --viewOrder.end();
 		}
 		
-		void setDirty(HWND aWnd)
+		void resetCountMessages(HWND aWnd)
+		{
+			if (TabInfo* ti = getTabInfo(aWnd))
+			{
+				ti->m_count_messages = 0;
+				ti->m_dirty = false;
+			}
+		}
+		void setDirty(HWND aWnd, int p_count_messages)
 		{
 			if (TabInfo* ti = getTabInfo(aWnd))
 			{
 				bool inval = ti->update();
 				if (active != ti)
 				{
+					if (p_count_messages)
+					{
+						ti->m_count_messages += p_count_messages;
+						m_needsInvalidate = true;
+						inval = true;
+					}
 					if (!ti->m_dirty)
 					{
 						ti->m_dirty = true;
 						inval = true;
 					}
 				}
-				if (inval)
+				if (inval || p_count_messages)
 				{
 #ifdef IRAINMAN_FAST_FLAT_TAB
 					calcRows();
@@ -293,34 +305,34 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		void setIconState(HWND aWnd)
 		{
 			if (TabInfo* ti = getTabInfo(aWnd))
-			{
-				ti->m_bState = true;
-				ti->m_hCustomIcon = nullptr; // !SMT!-UI
+				if (ti->m_hCustomIcon == nullptr)
+				{
+					ti->m_bState = true;
 #ifdef IRAINMAN_FAST_FLAT_TAB
-				m_needsInvalidate = true;
+					m_needsInvalidate = true;
 #else
-				Invalidate();
+					Invalidate();
 #endif
-			}
+				}
 		}
 		void unsetIconState(HWND aWnd)
 		{
 			if (TabInfo* ti = getTabInfo(aWnd))
-			{
-				ti->m_bState = false;
-				ti->m_hCustomIcon = nullptr; // !SMT!-UI
+				if (ti->m_hCustomIcon == nullptr)
+				{
+					ti->m_bState = false;
 #ifdef IRAINMAN_FAST_FLAT_TAB
-				m_needsInvalidate = true;
+					m_needsInvalidate = true;
 #else
-				Invalidate();
+					Invalidate();
 #endif
-			}
+				}
 		}
 		
 		// !SMT!-UI
-		void setCustomIcon(HWND p_aWnd, HICON p_custom)
+		void setCustomIcon(HWND p_hWnd, HICON p_custom)
 		{
-			if (TabInfo* ti = getTabInfo(p_aWnd))
+			if (TabInfo* ti = getTabInfo(p_hWnd))
 			{
 				ti->m_hCustomIcon = p_custom;
 #ifdef IRAINMAN_FAST_FLAT_TAB
@@ -333,8 +345,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		
 		void setColor(HWND aWnd, COLORREF p_color)
 		{
-			TabInfo* ti = getTabInfo(aWnd);
-			if (ti)
+			if (TabInfo* ti = getTabInfo(aWnd))
 			{
 				ti->m_color_pen = p_color;
 #ifdef IRAINMAN_FAST_FLAT_TAB
@@ -347,10 +358,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		
 		void updateText(HWND aWnd, LPCTSTR text)
 		{
-			// bClose.ShowWindow(FALSE); TODO: Why?
-			
-			TabInfo* ti = getTabInfo(aWnd);
-			if (ti)
+			if (TabInfo* ti = getTabInfo(aWnd))
 			{
 #ifdef IRAINMAN_FAST_FLAT_TAB
 				if (ti->updateText(text))
@@ -990,10 +998,9 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				TabInfo(HWND p_Wnd, COLORREF p_color, uint16_t p_icon, uint16_t p_stateIcon, bool p_is_update) :
 					hWnd(p_Wnd), m_len(0), m_xpos(0), m_row(0), m_dirty(false),
 					m_hCustomIcon(nullptr), m_bState(false), m_mini(false),
-					m_color_pen(p_color), m_icon(p_icon), m_stateIcon(p_stateIcon)
+					m_color_pen(p_color), m_icon(p_icon), m_stateIcon(p_stateIcon), m_count_messages(0)
 				{
 					memzero(&m_size, sizeof(m_size));
-					memzero(&m_boldSize, sizeof(m_boldSize));
 					name[0] = 0;
 					if (p_is_update)
 					{
@@ -1011,18 +1018,17 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				size_t m_len;
 				
 				SIZE m_size;
-				SIZE m_boldSize;
 				int  m_xpos;
 				int  m_row;
 				
 				uint16_t m_icon;
 				uint16_t m_stateIcon;
+				uint16_t m_count_messages;
 				
 				HICON m_hCustomIcon; // !SMT!-UI custom icon should be set / freed outside this class
 				bool m_bState;
 				bool m_mini;
 				bool m_dirty;
-				
 				bool update(const bool always = false)
 				{
 					LocalArray<TCHAR, MAX_LENGTH> textNew;
@@ -1119,14 +1125,9 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 									CSelectFont l_font(dc, Fonts::g_systemFont); //-V808
 									dc.GetTextExtent(name.data(), m_len, &m_size); //-V107
 								}
-								{
-									CSelectFont l_font(dc, Fonts::g_boldFont); //-V808
-									dc.GetTextExtent(name.data(), m_len, &m_boldSize); //-V107
-								}
 								if (g_TabsCloseButtonEnabled)
 								{
 									m_size.cx     += 10;
-									m_boldSize.cx += 10;
 								}
 								int l_res = ::ReleaseDC(hWnd, dc);
 								dcassert(l_res);
@@ -1136,7 +1137,6 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 						default:
 						{
 							m_size.cx = 150;
-							m_boldSize.cx = 150;
 						}
 						break;
 					}
@@ -1144,7 +1144,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			public:
 				int getWidth() const
 				{
-					return (!m_mini ? (m_dirty ? (!BOOLSETTING(NOTBOLD_FONT_ON_ACTIVITY_TAB) ? m_boldSize.cx : m_size.cx) : m_size.cx) : 0) + FT_EXTRA_SPACE + 10 /*(m_hIcon != nullptr ? 10 : 0)*/ + 4;  //-V112
+					return (!m_mini ? m_size.cx : 0) + FT_EXTRA_SPACE + 10 /*(m_hIcon != nullptr ? 10 : 0)*/ + 4;  //-V112
 				}
 		};
 		
@@ -1227,6 +1227,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				if ((*i)->hWnd == aWnd)
 					return *i;
 			}
+			dcassert(0);
 			return nullptr;
 		}
 		
@@ -1357,7 +1358,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			dc.EndPath();
 			
 			//HBRUSH hBr = GetSysColorBrush(aActive ? COLOR_WINDOW : COLOR_BTNFACE);
-			HBRUSH hBr = aActive ? CreateSolidBrush(SETTING(TAB_SELECTED_COLOR)) : GetSysColorBrush(COLOR_BTNFACE);
+			HBRUSH hBr = aActive ? CreateSolidBrush(SETTING(TAB_SELECTED_COLOR)) : GetSysColorBrush(OperaColors::brightenColor(COLOR_BTNFACE, 0.5f));
 			HBRUSH oldbrush = dc.SelectBrush(hBr);
 			
 			dc.FillPath();
@@ -1595,16 +1596,14 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			
 			if (!tab->m_mini)
 		{
-				if (tab->m_dirty && !BOOLSETTING(NOTBOLD_FONT_ON_ACTIVITY_TAB)) // && !tab->m_bState  [+][-] SCALOlaz //ToDo: Not bolded font at offline tabs, needle fix in getWidth()
-				{
-					CSelectFont l_font(dc, Fonts::g_boldFont); //-V808
-					dc.TextOut(pos, ypos + height_plus, tab->name.data(), tab->m_len); // [~] Sergey Shuhskanov //-V107
-				}
-				else
-				{
-					//graphics->DrawString(tab->name, tab->len, &textFont, PointF(pos,ypos + height_plus), &textBrush);
-					dc.TextOut(pos, ypos + height_plus, tab->name.data(), tab->m_len); // [~] Sergey Shuhskanov //-V107
-				}
+				dc.TextOut(pos, ypos + height_plus, tab->name.data(), tab->m_len); // [~] Sergey Shuhskanov //-V107
+			}
+			if (tab->m_count_messages)
+			{
+				dc.SetTextColor(RGB(255, 0, 0));
+				CSelectFont l_half_font(dc, Fonts::g_halfFont);
+				const auto l_cnt = Text::toT("+" + Util::toString(tab->m_count_messages));
+				dc.TextOut(pos + tab->m_size.cx - l_cnt.size() * 3 , ypos + 4 , l_cnt.c_str(), l_cnt.length());
 			}
 			
 			if (l_hIcon)
@@ -1691,9 +1690,13 @@ class FlatTabCtrl : public FlatTabCtrlImpl<FlatTabCtrl>
 			BASE_CLASS::endSwitch();
 		}
 		
-		void setDirty(HWND aWnd)
+		void resetCountMessages(HWND aWnd)
 		{
-			BASE_CLASS::setDirty(aWnd);
+			BASE_CLASS::resetCountMessages(aWnd);
+		}
+		void setDirty(HWND aWnd, int p_count_messages)
+		{
+			BASE_CLASS::setDirty(aWnd, p_count_messages);
 		}
 		
 		void setColor(HWND aWnd, COLORREF color)
@@ -1990,11 +1993,15 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 			bHandled = FALSE;
 			return 0;
 		}
-		
-		void setDirty()
+		void resetCountMessages()
 		{
 			dcassert(getTab());
-			getTab()->setDirty(m_hWnd);
+			getTab()->resetCountMessages(m_hWnd);
+		}
+		void setDirty(int p_count_messages)
+		{
+			dcassert(getTab());
+			getTab()->setDirty(m_hWnd, p_count_messages);
 		}
 		void setTabColor(COLORREF color)
 		{

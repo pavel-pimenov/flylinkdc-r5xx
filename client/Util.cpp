@@ -2349,19 +2349,20 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vecto
 			}
 		}
 	}
-	if (!m_get_http_header_item.empty())
+	for (auto i = m_get_http_header_item.begin(); i != m_get_http_header_item.end(); ++i)
 	{
-		vector<char> l_buf(m_get_http_header_item.size() + 1);
-		strcpy(&l_buf[0], m_get_http_header_item.c_str());
+		dcassert(i->size());
+		vector<char> l_buf(i->size() + 1);
+		strcpy(&l_buf[0], i->c_str());
 		DWORD dwBufSize = l_buf.size();
 		auto bResult = HttpQueryInfoA(hURL, HTTP_QUERY_CUSTOM, &l_buf[0], &dwBufSize, NULL);
 		if (!bResult)
 		{
-			m_get_http_header_item.clear();
+			i->clear();
 		}
 		else
 		{
-			m_get_http_header_item = &l_buf[0];
+			*i = &l_buf[0];
 		}
 	}
 	if (isUserCancel)

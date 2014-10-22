@@ -246,7 +246,7 @@ class RecentHubsFrame : public MDITabChildWindowImpl < RecentHubsFrame, RGB(0, 0
 				ctrlHubs.SetItemText(i, COLUMN_DATETIME, Text::toT(entry->getDateTime()).c_str());
 			}
 		}
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept;
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
 };
 
 #endif

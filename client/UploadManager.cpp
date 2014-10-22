@@ -17,11 +17,10 @@
  */
 
 #include "stdinc.h"
-#include "UploadManager.h"
-#include "DownloadManager.h"// !SMT!-S
-
 #include <cmath>
 
+#include "UploadManager.h"
+#include "DownloadManager.h"// !SMT!-S
 #include "ConnectionManager.h"
 #include "ShareManager.h"
 #include "CryptoManager.h"
@@ -310,13 +309,16 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 			if (l_count_dos > l_count_attempts)
 			{
 				dcdebug("l_hash_key = %s ++m_dos_map[l_hash_key] = %d\n", l_hash_key.c_str(), l_count_dos);
-				char l_buf[2000];
-				sprintf_s(l_buf, _countof(l_buf), CSTRING(DOS_ATACK),
-				          l_User.user->getLastNick().c_str(),
-				          l_User.hint.c_str(),
-				          l_count_attempts,
-				          aFile.c_str());
-				LogManager::getInstance()->ddos_message(l_buf);
+				if (BOOLSETTING(LOG_DDOS_TRACE))
+				{
+					char l_buf[2000];
+					sprintf_s(l_buf, _countof(l_buf), CSTRING(DOS_ATACK),
+					          l_User.user->getLastNick().c_str(),
+					          l_User.hint.c_str(),
+					          l_count_attempts,
+					          aFile.c_str());
+					LogManager::getInstance()->ddos_message(l_buf);
+				}
 				if (aSource->isSet(UserConnection::FLAG_SUPPORTS_BANMSG))
 				{
 					aSource->error(UserConnection::PLEASE_UPDATE_YOUR_CLIENT);

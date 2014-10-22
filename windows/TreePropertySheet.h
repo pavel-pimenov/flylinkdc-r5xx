@@ -44,8 +44,10 @@ class TreePropertySheet : public CPropertySheetImpl<TreePropertySheet>,
 		enum { WM_USER_INITDIALOG = WM_APP + 501 };
 		enum { TAB_MESSAGE_MAP = 13 };
 		TreePropertySheet(ATL::_U_STRINGorID title = (LPCTSTR)NULL, UINT uStartPage = 0, HWND hWndParent = NULL) :
-			CPropertySheetImpl<TreePropertySheet>(title, uStartPage, hWndParent), tabContainer(WC_TABCONTROL, this, TAB_MESSAGE_MAP)
+			CPropertySheetImpl<TreePropertySheet>(title, uStartPage, hWndParent)
+			, tabContainer(WC_TABCONTROL, this, TAB_MESSAGE_MAP)
 			, CFlyTimerAdapter(m_hWnd)
+			, m_SliderPos(255)
 		{
 		
 			m_psh.pfnCallback = &PropSheetProc;

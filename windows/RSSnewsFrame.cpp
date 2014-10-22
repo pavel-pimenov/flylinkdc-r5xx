@@ -82,25 +82,6 @@ LRESULT RSSNewsFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	updateList(RSSManager::getInstance()->lockNewsList());
 	RSSManager::getInstance()->unlockNewsList();
 	
-	// SSA: Here sets URL, and TimeUpdate
-	//string tmp;
-	//try {
-	//    tmp = File(Util::getNotepadFile(), File::READ, File::OPEN).read();
-	//} catch(const FileException&) {
-	//    // ...
-	//}
-	//if(tmp.empty()) {
-	//    tmp = SETTING(NOTEPAD_TEXT);
-	//    if(!tmp.empty()) {
-	//        dirty = true;
-	//        SET_SETTING(NOTEPAD_TEXT, Util::emptyString);
-	//    }
-	//}
-	
-	//ctrlPad.SetWindowText(Text::toT(tmp).c_str());
-	//ctrlPad.EmptyUndoBuffer();
-	//ctrlClientContainer.SubclassWindow(ctrlPad.m_hWnd);
-	
 	bHandled = FALSE;
 	return TRUE;
 }
@@ -198,7 +179,7 @@ void RSSNewsFrame::UpdateLayout(BOOL bResizeBars /*= TRUE*/)
 //  return 0;
 //}
 
-void RSSNewsFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
+void RSSNewsFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
@@ -219,7 +200,7 @@ RSSNewsFrame::on(RSSListener::NewRSS, const unsigned int newsCount) noexcept
 	//Bolded activity in SpyFrame
 	if (BOOLSETTING(BOLD_NEWRSS))
 	{
-		setDirty();
+		setDirty(0);
 	}
 }
 

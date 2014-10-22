@@ -2297,6 +2297,7 @@ public:
 #define PANECNT_VERTICAL	0x00000002
 #define PANECNT_FLATBORDER	0x00000004
 #define PANECNT_NOBORDER	0x00000008
+#define PANECNT_DIVIDER         0x00000010
 
 template <class T, class TBase = ATL::CWindow, class TWinTraits = ATL::CControlWinTraits>
 class ATL_NO_VTABLE CPaneContainerImpl : public ATL::CWindowImpl< T, TBase, TWinTraits >, public CCustomDraw< T >
@@ -2576,9 +2577,12 @@ public:
 		return 0;
 	}
 
-	LRESULT OnEraseBackground(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+	LRESULT OnEraseBackground(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 	{
-		return 1;   // no background needed
+		T* pT = static_cast<T*>(this);
+		pT->DrawPaneTitleBackground((HDC)wParam);
+
+		return 1;
 	}
 
 	LRESULT OnPaint(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -2648,18 +2652,8 @@ public:
 		return CDRF_NOTIFYITEMDRAW;   // we need per-item notifications
 	}
 
-	DWORD OnItemPrePaint(int /*idCtrl*/, LPNMCUSTOMDRAW lpNMCustomDraw)
+	DWORD OnItemPrePaint(int /*idCtrl*/, LPNMCUSTOMDRAW /*lpNMCustomDraw*/)
 	{
-		CDCHandle dc = lpNMCustomDraw->hdc;
-#if (_WIN32_IE >= 0x0400)
-		RECT& rc = lpNMCustomDraw->rc;
-#else // !(_WIN32_IE >= 0x0400)
-		RECT rc = { 0 };
-		m_tb.GetItemRect(0, &rc);
-#endif // !(_WIN32_IE >= 0x0400)
-
-		dc.FillRect(&rc, COLOR_3DFACE);
-
 		return CDRF_NOTIFYPOSTPAINT;
 	}
 
@@ -2786,9 +2780,9 @@ public:
 			m_tb.SetButtonSize(m_cxImageTB + m_cxyBtnAddTB, m_cyImageTB + m_cxyBtnAddTB);
 
 			if(IsVertical())
-				m_tb.SetWindowPos(NULL, m_cxyBorder + m_cxyBtnOffset, m_cxyBorder + m_cxyBtnOffset, m_cxImageTB + m_cxyBtnAddTB, m_cyImageTB + m_cxyBtnAddTB, SWP_NOZORDER | SWP_NOACTIVATE);
+				m_tb.SetWindowPos(NULL, m_cxyBorder + m_cxyBtnOffset, m_cxyBorder + m_cxyBtnOffset, m_cxImageTB + m_cxyBtnAddTB, m_cyImageTB + m_cxyBtnAddTB + 1, SWP_NOZORDER | SWP_NOACTIVATE);
 			else
-				m_tb.SetWindowPos(NULL, 0, 0, m_cxImageTB + m_cxyBtnAddTB, m_cyImageTB + m_cxyBtnAddTB, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
+				m_tb.SetWindowPos(NULL, 0, 0, m_cxImageTB + m_cxyBtnAddTB, m_cyImageTB + m_cxyBtnAddTB + 1, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
 		}
 	}
 
@@ -2808,12 +2802,12 @@ public:
 		font.GetLogFont(lf);
 		if(IsVertical())
 		{
-			m_cxyHeader = m_cxImageTB + m_cxyBtnAddTB + m_cxyBorder;
+			m_cxyHeader = m_cxImageTB + m_cxyBtnAddTB + m_cxyBorder + 1;
 		}
 		else
 		{
 			int cyFont = abs(lf.lfHeight) + m_cxyBorder + 2 * m_cxyTextOffset;
-			int cyBtn = m_cyImageTB + m_cxyBtnAddTB + m_cxyBorder + 2 * m_cxyBtnOffset;
+			int cyBtn = m_cyImageTB + m_cxyBtnAddTB + m_cxyBorder + 2 * m_cxyBtnOffset + 1;
 			m_cxyHeader = __max(cyFont, cyBtn);
 		}
 	}
@@ -2853,7 +2847,12 @@ public:
 				uBorder |= BF_FLAT;
 			dc.DrawEdge(&rect, EDGE_ETCHED, uBorder);
 		}
-		dc.FillRect(&rect, COLOR_3DFACE);
+
+		if((m_dwExtendedStyle & PANECNT_DIVIDER) != 0)
+		{
+			uBorder = BF_FLAT | BF_ADJUST | (IsVertical() ? BF_RIGHT : BF_BOTTOM);
+			dc.DrawEdge(&rect, BDR_SUNKENOUTER, uBorder);
+		}
 
 		// draw title text
 		dc.SetTextColor(::GetSysColor(COLOR_WINDOWTEXT));
@@ -2891,6 +2890,18 @@ public:
 		}
 
 		dc.SelectFont(hFontOld);
+	}
+
+	void DrawPaneTitleBackground(CDCHandle dc)
+	{
+		RECT rect = { 0 };
+		GetClientRect(&rect);
+		if(IsVertical())
+			rect.right = m_cxyHeader;
+		else
+			rect.bottom = m_cxyHeader;
+
+		dc.FillRect(&rect, COLOR_3DFACE);
 	}
 
 	// called only if pane is empty

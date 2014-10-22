@@ -145,7 +145,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		void getBloom(ByteVector& v, size_t k, size_t m, size_t h) const;
 		
 		static Search::TypeModes getFType(const string& fileName) noexcept;
-		string validateVirtual(const string& aVirt) const noexcept;
+		static string validateVirtual(const string& aVirt) noexcept;
 		bool hasVirtual(const string& name) const noexcept;
 		
 		static void incHits()
@@ -435,6 +435,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		/** Map real name to virtual name - multiple real names may be mapped to a single virtual one */
 		typedef boost::unordered_map<string, CFlyBaseDirItem> ShareMap;
 		ShareMap m_shares;
+		ShareMap m_lost_shares;
 		
 		
 #ifdef STRONG_USE_DHT
@@ -477,7 +478,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		bool loadCache() noexcept;
 		DirList::const_iterator getByVirtualL(const string& virtualName) const;
 		pair<Directory::Ptr, string> splitVirtualL(const string& virtualPath) const;
-		string findRealRoot(const string& virtualRoot, const string& virtualLeaf) const;
+		string findRealRootL(const string& virtualRoot, const string& virtualLeaf) const;
 		
 		Directory::Ptr getDirectoryL(const string& fname) const;
 		
@@ -520,11 +521,11 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		        int64_t aTimeStamp, const CFlyMediaInfo& p_out_media, int64_t p_size) noexcept;
 		        
 		// SettingsManagerListener
-		void on(SettingsManagerListener::Save, SimpleXML& xml) noexcept
+		void on(SettingsManagerListener::Save, SimpleXML& xml)
 		{
 			save(xml);
 		}
-		void on(SettingsManagerListener::Load, SimpleXML& xml) noexcept
+		void on(SettingsManagerListener::Load, SimpleXML& xml)
 		{
 			on(SettingsManagerListener::ShareChanges());
 			load(xml);

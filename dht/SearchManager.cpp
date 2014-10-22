@@ -37,7 +37,7 @@ namespace dht
 
 Search::~Search()
 {
-	switch (type)
+	switch (m_type)
 	{
 		case TYPE_NODE:
 			IndexManager::getInstance()->setPublish(true);
@@ -60,7 +60,7 @@ void Search::process()
 	if (possibleNodes.empty()/* || respondedNodes.size() >= MAX_SEARCH_RESULTS*/)
 	{
 		stopping = true;
-		lifeTime = GET_TICK() + SEARCH_STOPTIME; // wait before deleting not to lose so much delayed results
+		m_lifeTime = GET_TICK() + SEARCH_STOPTIME; // wait before deleting not to lose so much delayed results
 		return;
 	}
 	
@@ -77,8 +77,8 @@ void Search::process()
 		
 		// send SCH command
 		AdcCommand cmd(AdcCommand::CMD_SCH, AdcCommand::TYPE_UDP);
-		cmd.addParam("TR", term);
-		cmd.addParam("TY", Util::toString(type));
+		cmd.addParam("TR", m_term);
+		cmd.addParam("TY", Util::toString(m_type));
 		cmd.addParam("TO", m_token);
 		
 		//node->setTimeout();
@@ -92,7 +92,7 @@ SearchManager::SearchManager() : m_lastTimeSearchFile(0)
 
 SearchManager::~SearchManager()
 {
-	for (auto i = searches.cbegin(); i != searches.cend(); ++i)
+	for (auto i = m_searches.cbegin(); i != m_searches.cend(); ++i)
 		delete i->second;
 }
 
@@ -104,10 +104,7 @@ void SearchManager::findNode(const CID& cid)
 	if (isAlreadySearchingFor(cid.toBase32()))
 		return;
 		
-	Search* s = new Search();
-	s->type = Search::TYPE_NODE;
-	s->term = cid.toBase32();
-	s->m_token = Util::toString(Util::rand());
+	Search* s = new Search(Search::TYPE_NODE,cid.toBase32(),Util::toString(Util::rand()));
 	
 	search(*s);
 }
@@ -144,10 +141,7 @@ void SearchManager::findFile(const string& tth, const string& p_token)
 	//  return;
 	//}
 	
-	Search* s = new Search();
-	s->type = Search::TYPE_FILE;
-	s->term = tth;
-	s->m_token = p_token;
+	Search* s = new Search(Search::TYPE_FILE,tth,p_token);
 	
 	search(*s);
 	
@@ -165,12 +159,9 @@ void SearchManager::findStore(const string& tth, int64_t size, bool partial)
 		return;
 	}
 	
-	Search* s = new Search();
-	s->type = Search::TYPE_STOREFILE;
-	s->term = tth;
-	s->filesize = size;
-	s->partial = partial;
-	s->m_token = Util::toString(Util::rand());
+	Search* s = new Search(Search::TYPE_STOREFILE,tth,Util::toString(Util::rand()));
+	s->m_filesize = size;
+	s->partial    = partial;
 	
 	search(*s);
 }
@@ -181,22 +172,22 @@ void SearchManager::findStore(const string& tth, int64_t size, bool partial)
 void SearchManager::search(Search& s)
 {
 	// set search lifetime
-	s.lifeTime = GET_TICK();
-	switch (s.type)
+	s.m_lifeTime = GET_TICK();
+	switch (s.m_type)
 	{
 		case Search::TYPE_FILE:
-			s.lifeTime += SEARCHFILE_LIFETIME;
+			s.m_lifeTime += SEARCHFILE_LIFETIME;
 			break;
 		case Search::TYPE_NODE:
-			s.lifeTime += SEARCHNODE_LIFETIME;
+			s.m_lifeTime += SEARCHNODE_LIFETIME;
 			break;
 		case Search::TYPE_STOREFILE:
-			s.lifeTime += SEARCHSTOREFILE_LIFETIME;
+			s.m_lifeTime += SEARCHSTOREFILE_LIFETIME;
 			break;
 	}
 	
 	// get nodes closest to requested ID
-	DHT::getInstance()->getClosestNodes(CID(s.term), s.possibleNodes, 50, 3);
+	DHT::getInstance()->getClosestNodes(CID(s.m_term), s.possibleNodes, 50, 3);
 	
 	if (s.possibleNodes.empty())
 	{
@@ -206,7 +197,7 @@ void SearchManager::search(Search& s)
 	
 	FastLock l(cs);
 	// store search
-	searches[&s.m_token] = &s;
+	m_searches[&s.m_token] = &s;
 	
 	s.process();
 }
@@ -335,8 +326,8 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
 		return; // missing search token?
 		
 	FastLock l(cs);
-	SearchMap::iterator i = searches.find(&l_token);
-	if (i == searches.end())
+	SearchMap::iterator i = m_searches.find(&l_token);
+	if (i == m_searches.end())
 	{
 		// we didn't search for this
 		return;
@@ -350,7 +341,7 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
 	if (t == s->triedNodes.end())
 		return; // we did not contact this node so why response from him???
 		
-	s->respondedNodes.insert(std::make_pair(Utils::getDistance(CID(cmd.getParam(0)), CID(s->term)), t->second));
+	s->respondedNodes.insert(std::make_pair(Utils::getDistance(CID(cmd.getParam(0)), CID(s->m_term)), t->second));
 	
 	try
 	{
@@ -358,7 +349,7 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
 		xml.fromXML(nodes);
 		xml.stepIn();
 		
-		if (s->type == Search::TYPE_FILE) // this is response to TYPE_FILE, check sources first
+		if (s->m_type == Search::TYPE_FILE) // this is response to TYPE_FILE, check sources first
 		{
 			// extract file sources
 			while (xml.findChild("Source"))
@@ -387,14 +378,14 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
 					// ask for partial file
 					AdcCommand l_cmd(AdcCommand::CMD_PSR, AdcCommand::TYPE_UDP);
 					l_cmd.addParam("U4", Util::toString(::SearchManager::getInstance()->getSearchPort()));
-					l_cmd.addParam("TR", s->term);
+					l_cmd.addParam("TR", s->m_term);
 					
 					DHT::getInstance()->send(l_cmd, i4, u4, cid, source->getUdpKey());
 				}
 				else
 				{
 					// create search result: hub name+ip => "DHT", file name => TTH
-					SearchResultPtr sr(new SearchResult(source->getUser(), SearchResult::TYPE_FILE, 0, 0, size, s->term, DHT::getInstance()->getHubName(), DHT::getInstance()->getHubUrl(), i4, TTHValue(s->term), l_token));
+					SearchResultPtr sr(new SearchResult(source->getUser(), SearchResult::TYPE_FILE, 0, 0, size, s->m_term, DHT::getInstance()->getHubName(), DHT::getInstance()->getHubUrl(), i4, TTHValue(s->m_term), l_token));
 					if (!source->isOnline())
 					{
 						// node is not online, try to contact him if we didn't contact him recently
@@ -419,7 +410,7 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
 		while (xml.findChild("Node") && n-- > 0)
 		{
 			const CID cid = CID(xml.getChildAttrib("CID"));
-			const CID distance = Utils::getDistance(cid, CID(s->term));
+			const CID distance = Utils::getDistance(cid, CID(s->m_term));
 			
 			// don't bother with myself and nodes we've already tried or queued
 			if (ClientManager::getMyCID() == cid || // [!] IRainman fix.
@@ -487,8 +478,8 @@ void SearchManager::processSearches()
 {
 	FastLock l(cs);
 	
-	SearchMap::iterator it = searches.begin();
-	while (it != searches.end())
+	SearchMap::iterator it = m_searches.begin();
+	while (it != m_searches.end())
 	{
 		Search* s = it->second;
 		
@@ -496,14 +487,14 @@ void SearchManager::processSearches()
 		s->process();
 		
 		// remove long search
-		if (s->lifeTime < GET_TICK())
+		if (s->m_lifeTime < GET_TICK())
 		{
 			// search timed out, stop it
-			searches.erase(it++);
+			m_searches.erase(it++);
 			
-			if (s->type == Search::TYPE_STOREFILE)
+			if (s->m_type == Search::TYPE_STOREFILE)
 			{
-				publishFile(s->respondedNodes, s->term, s->filesize, s->partial);
+				publishFile(s->respondedNodes, s->m_term, s->m_filesize, s->partial);
 			}
 			
 			delete s;
@@ -554,12 +545,12 @@ bool SearchManager::processSearchResults(const UserPtr& user, size_t slots)
 /*
  * Checks whether we are alreading searching for a term
  */
-bool SearchManager::isAlreadySearchingFor(const string& term)
+bool SearchManager::isAlreadySearchingFor(const string& p_term)
 {
 	FastLock l(cs);
-	for (auto i = searches.cbegin(); i != searches.cend(); ++i)
+	for (auto i = m_searches.cbegin(); i != m_searches.cend(); ++i)
 	{
-		if (i->second->term == term)
+		if (i->second->m_term == p_term)
 			return true;
 	}
 	

@@ -583,7 +583,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		void on(QueueManagerListener::Removed, const QueueItemPtr&) noexcept;
 		void on(QueueManagerListener::Finished, const QueueItemPtr&, const string&, const Download*) noexcept;
 		
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept;
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
 		
 		void onTransferComplete(const Transfer* aTransfer, const bool download, const string& aFileName, const bool isTree); // [!] IRainman fix.
 		void starting(UpdateInfo* ui, const Transfer* t);

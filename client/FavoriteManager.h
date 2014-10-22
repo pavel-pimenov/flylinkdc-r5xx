@@ -517,14 +517,14 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 #endif
 		
 		// SettingsManagerListener
-		void on(SettingsManagerListener::Load, SimpleXML& xml) noexcept
+		void on(SettingsManagerListener::Load, SimpleXML& xml)
 		{
 			// [-] IRainman fix: not load Favorites from main config! load(xml);
 			recentload(xml); // [!] IRainman: This is only for compatibility, FlylinkDC stores recents hubs in the sqlite database.
 			previewload(xml);
 		}
 		
-		void on(SettingsManagerListener::Save, SimpleXML& xml) noexcept
+		void on(SettingsManagerListener::Save, SimpleXML& xml)
 		{
 			previewsave(xml);
 		}

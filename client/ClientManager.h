@@ -48,6 +48,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static void getConnectedHubInfo(HubInfoArray& p_hub_info);
 		static void getConnectedHubUrls(StringList& p_hub_url);
 #endif // IRAINMAN_NON_COPYABLE_CLIENTS_IN_CLIENT_MANAGER
+		static void resetAntivirusInfo();
 		static size_t getTotalUsers(); // [+] IRainman.
 		static std::map<string, CFlyClientStatistic> getClientStat();
 		static StringList getHubs(const CID& cid, const string& hintUrl, bool priv);

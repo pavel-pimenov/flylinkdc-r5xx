@@ -75,7 +75,7 @@ class IPAddress {
     ::memcpy(&u_, &other.u_, sizeof(u_));
   }
 
-  ~IPAddress() {}
+  virtual ~IPAddress() {}
 
   const IPAddress & operator=(const IPAddress &other) {
     family_ = other.family_;

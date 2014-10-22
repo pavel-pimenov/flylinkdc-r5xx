@@ -210,13 +210,13 @@ void FavoriteHubsFrame::openSelected()
 		r.setShared("*");
 		r.setServer(entry->getServer());
 		FavoriteManager::getInstance()->addRecent(r);
-		HubFrame::openWindow(Text::toT(entry->getServer()),
-		                     Text::toT(entry->getName()),
-		                     Text::toT(entry->getRawOne()),
-		                     Text::toT(entry->getRawTwo()),
-		                     Text::toT(entry->getRawThree()),
-		                     Text::toT(entry->getRawFour()),
-		                     Text::toT(entry->getRawFive()),
+		HubFrame::openWindow(entry->getServer(),
+		                     entry->getName(),
+		                     entry->getRawOne(),
+		                     entry->getRawTwo(),
+		                     entry->getRawThree(),
+		                     entry->getRawFour(),
+		                     entry->getRawFive(),
 		                     entry->getWindowPosX(),
 		                     entry->getWindowPosY(),
 		                     entry->getWindowSizeX(),
@@ -690,7 +690,7 @@ LRESULT FavoriteHubsFrame::onManageGroups(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 	return 0;
 }
 
-void FavoriteHubsFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
+void FavoriteHubsFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())

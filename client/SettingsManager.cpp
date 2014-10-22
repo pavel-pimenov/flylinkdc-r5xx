@@ -86,9 +86,10 @@ const string SettingsManager::settingTags[] =
 	"ProfilesURL", "WinampFormat",
 	
 	"WebServerPowerUser", "WebServerPowerPass", "webServerBindAddress", // [+] IRainman
-	"WebServerLogFormat", "LogFormatCustomLocation", "LogFormatTraceSQLite", "LogFormatDdosTrace", "LogFormatDHTTrace", "LogFormatPSRTrace", "WebServerUser", "WebServerPass", "LogFileMainChat",
+	"WebServerLogFormat", "LogFormatCustomLocation", "LogFormatTraceSQLite", "LogFormatDdosTrace", "LogFormatDHTTrace", "LogFormatPSRTrace", "LogFormatFloodTrace", "LogFormatCMDDebugTrace",
+	"WebServerUser", "WebServerPass", "LogFileMainChat",
 	"LogFilePrivateChat", "LogFileStatus", "LogFileUpload", "LogFileDownload", "LogFileSystem", "LogFormatSystem",
-	"LogFormatStatus", "LogFileWebServer", "LogFileCustomLocation", "LogTraceSQLite", "LogFileDdosTrace", "LogFileDHTTrace", "LogFilePSRTrace",
+	"LogFormatStatus", "LogFileWebServer", "LogFileCustomLocation", "LogTraceSQLite", "LogFileDdosTrace", "LogFileDHTTrace", "LogFilePSRTrace", "LogFileFloodTrace", "LogFileCMDDebugTrace",
 	"DirectoryListingFrameOrder", "DirectoryListingFrameWidths",
 	"MainFrameVisible", "SearchFrameVisible", "QueueFrameVisible", "HubFrameVisible", "UploadQueueFrameVisible",
 	"EmoticonsFileFlylinkDC",
@@ -162,7 +163,7 @@ const string SettingsManager::settingTags[] =
 	"SendBloom",
 	"AutoSearchAutoMatch", "DownloadBarColor", "UploadBarColor", "LogSystem",
 	"LogCustomLocation", // [+] IRainman
-	"LogSQLiteTrace", "LogDDOSTrace", "LogDHTTrace", "LogPSRTrace",
+	"LogSQLiteTrace", "LogDDOSTrace", "LogDHTTrace", "LogPSRTrace", "LogFloodTrace", "LogCMDDebugTrace",
 	"LogFilelistTransfers", "ShowStatusbar", "ShowToolbar", "ShowTransferview", "ShowTransferViewToolbar",
 	"SearchPassiveAlways", "SetMinislotSize", "ShutdownInterval",
 	//"CzertHiddenSettingA", "CzertHiddenSettingB",// [-] IRainman SpeedLimiter
@@ -235,7 +236,7 @@ const string SettingsManager::settingTags[] =
 	"HubPosition", // [+] InfinitySky.
 	"SocketInBuffer2", "SocketOutBuffer2",
 	"ColorRunning", "ColorDownloaded", "ColorVerified", "ColorAvoiding", "AutoRefreshTime", "OpenWaitingUsers",
-	"BoldWaitingUsers", "NotboldFontOnActivityTab", "AutoSearchLimit", "AutoKickNoFavs", "PromptPassword", "SpyFrameIgnoreTthSearches",
+	"BoldWaitingUsers", "AutoSearchLimit", "AutoKickNoFavs", "PromptPassword", "SpyFrameIgnoreTthSearches",
 	"TLSPort", "UseTLS", "MaxCommandLength", "AllowUntrustedHubs", "AllowUntrustedClients",
 	"FastHash", "DownConnPerSec",
 	"HighestPrioSize", "HighPrioSize", "NormalPrioSize", "LowPrioSize", "LowestPrio",
@@ -377,6 +378,7 @@ const string SettingsManager::settingTags[] =
 	"AutoUpdateShowReady",
 	"AutoUpdateTime",
 	"AutoUpdateExe",
+	"AutoUpdateAntivirusDB",
 	"AutoUpdateUtilities",
 	"AutoUpdateLang",
 	"AutoUpdatePortalBrowser",
@@ -556,11 +558,18 @@ void SettingsManager::setDefaults()
 	setDefault(LOG_FILE_DDOS_TRACE, "ddos.log");
 	setDefault(LOG_FORMAT_DDOS_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
 	
+	
 	setDefault(LOG_FILE_DHT_TRACE, "dht.log");
 	setDefault(LOG_FORMAT_DHT_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
 	
 	setDefault(LOG_FILE_PSR_TRACE, "psr.log");
 	setDefault(LOG_FORMAT_PSR_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
+	
+	setDefault(LOG_FILE_FLOOD_TRACE, "flood.log");
+	setDefault(LOG_FORMAT_FLOOD_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
+	
+	setDefault(LOG_FILE_CMDDEBUG_TRACE, "cmddebug.log");
+	setDefault(LOG_FORMAT_CMDDEBUG_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
 	
 	setDefault(TIME_STAMPS_FORMAT, "%X"); // [!] IRainman fix: use system format time. "%H:%M:%S"
 //
@@ -666,7 +675,6 @@ void SettingsManager::setDefaults()
 	setDefault(BOLD_SEARCH, TRUE);
 	setDefault(BOLD_NEWRSS, TRUE);
 	setDefault(BOLD_WAITING_USERS, TRUE);
-	setDefault(NOTBOLD_FONT_ON_ACTIVITY_TAB, FALSE);
 #ifdef FLYLINKDC_HE
 	setDefault(AUTO_REFRESH_TIME, 360);
 #else
@@ -1194,6 +1202,7 @@ void SettingsManager::setDefaults()
 	setDefault(ON_DOWNLOAD_SETTING, ON_DOWNLOAD_ASK); //[+] SSA
 	// [+] SSA - AutoUpdate
 	setDefault(AUTOUPDATE_EXE, TRUE); // [+] SSA
+	setDefault(AUTOUPDATE_ANTIVIRUS_DB, TRUE);
 	setDefault(AUTOUPDATE_UTILITIES, TRUE); // [+] SSA
 	setDefault(AUTOUPDATE_LANG, TRUE); // [+] SSA
 	setDefault(AUTOUPDATE_PORTALBROWSER, TRUE); // [+] SSA
@@ -1574,6 +1583,9 @@ bool SettingsManager::set(StrSetting key, const string& value)
 		case LOG_FORMAT_CUSTOM_LOCATION:
 		case LOG_FORMAT_TRACE_SQLITE:
 		case LOG_FORMAT_DDOS_TRACE:
+		case LOG_FORMAT_FLOOD_TRACE:
+		case LOG_FORMAT_CMDDEBUG_TRACE:
+		
 #ifdef RIP_USE_LOG_PROTOCOL
 		case LOG_FORMAT_PROTOCOL:
 #endif
@@ -1589,6 +1601,9 @@ bool SettingsManager::set(StrSetting key, const string& value)
 		case LOG_FILE_DDOS_TRACE:
 		case LOG_FILE_DHT_TRACE:
 		case LOG_FILE_PSR_TRACE:
+		case LOG_FILE_FLOOD_TRACE:
+		case LOG_FILE_CMDDEBUG_TRACE:
+		
 #ifdef RIP_USE_LOG_PROTOCOL
 		case LOG_FILE_PROTOCOL:
 #endif

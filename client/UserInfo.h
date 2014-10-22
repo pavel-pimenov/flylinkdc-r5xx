@@ -68,9 +68,6 @@ struct MessageTask : public Task
 };
 #endif
 class UserInfo : public UserInfoBase
-#ifdef _DEBUG
-	, virtual NonDerivable<UserInfo> // [+] IRainman fix.
-#endif
 {
 	private:
 		const OnlineUserPtr m_ou; // [!] IRainman fix: use online user here!

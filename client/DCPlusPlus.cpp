@@ -193,7 +193,9 @@ TODO:
 	StringPool::newInstance(); // [+] IRainman opt.
 #endif
 	
-	LOAD_STEP("Antivirus DB", CFlyServerConfig::SyncAntivirusDB());
+	// ”нес запуск в поток
+	// ѕервый раз через 2 минуты и потом каждые 120 минут
+	// LOAD_STEP("Antivirus DB", CFlyServerConfig::SyncAntivirusDB());
 	
 #undef LOAD_STEP
 #undef LOAD_STEP_L

@@ -46,11 +46,9 @@ void ConnectivityManager::startSocket()
 	// active check mustn't be there to hub-dependent setting works correctly
 	//if(ClientManager::isActive()) {
 	listen();
-#ifdef PPA_INCLUDE_UPNP
 	// must be done after listen calls; otherwise ports won't be set
 	if (SETTING(INCOMING_CONNECTIONS) == SettingsManager::INCOMING_FIREWALL_UPNP)
 		MappingManager::getInstance()->open();
-#endif
 	//}
 }
 
@@ -63,11 +61,11 @@ void ConnectivityManager::detectConnection()
 	m_status.clear();
 	fire(ConnectivityManagerListener::Started());
 	
+	const string l_old_bind = SETTING(BIND_ADDRESS);
 	// restore connectivity settings to their default value.
 	SettingsManager::getInstance()->unset(SettingsManager::EXTERNAL_IP);
 	SettingsManager::getInstance()->unset(SettingsManager::NO_IP_OVERRIDE);
 	SettingsManager::getInstance()->unset(SettingsManager::BIND_ADDRESS);
-	
 	if (MappingManager::getInstance()->getOpened())
 	{
 		MappingManager::getInstance()->close();
@@ -88,6 +86,8 @@ void ConnectivityManager::detectConnection()
 	{
 		SET_SETTING(INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_PASSIVE);
 		SET_SETTING(ALLOW_NAT_TRAVERSAL, true);
+		SET_SETTING(BIND_ADDRESS, l_old_bind);
+		
 		AutoArray<char> buf(512);
 		snprintf(buf.data(), 512, CSTRING(UNABLE_TO_OPEN_PORT), e.getError().c_str());
 		log(buf.data());
@@ -106,7 +106,6 @@ void ConnectivityManager::detectConnection()
 		running = false;
 		return;
 	}
-#ifdef PPA_INCLUDE_UPNP
 	SET_SETTING(INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_UPNP);
 	log(STRING(LOCAL_NET_NAT_DETECT));
 	
@@ -114,7 +113,6 @@ void ConnectivityManager::detectConnection()
 	{
 		running = false;
 	}
-#endif
 }
 
 void ConnectivityManager::setup(bool settingsChanged)
@@ -130,21 +128,17 @@ void ConnectivityManager::setup(bool settingsChanged)
 		{
 			if (autoDetected || settingsChanged)
 			{
-#ifdef PPA_INCLUDE_UPNP
 				if (settingsChanged || SETTING(INCOMING_CONNECTIONS) != SettingsManager::INCOMING_FIREWALL_UPNP)
 				{
 					MappingManager::getInstance()->close();
 				}
-#endif
 				startSocket();
 			}
-#ifdef PPA_INCLUDE_UPNP
 			else if (SETTING(INCOMING_CONNECTIONS) == SettingsManager::INCOMING_FIREWALL_UPNP && !MappingManager::getInstance()->getOpened())
 			{
 				// previous mappings had failed; try again
 				MappingManager::getInstance()->open();
 			}
-#endif
 		}
 	}
 	catch (const Exception& e)

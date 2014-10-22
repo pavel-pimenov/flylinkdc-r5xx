@@ -20,7 +20,7 @@
 class CImageDataObject : IDataObject
 {
 	public:
-		static void InsertBitmap(HWND hWnd, IRichEditOle* pRichEditOle, IOleClientSite *pOleClientSite, IStorage *pStorage, IOleObject *pOleObject);
+		static void InsertBitmap(HWND hWnd, IRichEditOle* pRichEditOle, IOleClientSite *pOleClientSite, IStorage *pStorage, IOleObject *pOleObject, bool& p_out_of_memory);
 		
 	private:
 		ULONG   m_ulRefCnt;

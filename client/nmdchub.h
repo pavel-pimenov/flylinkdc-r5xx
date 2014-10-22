@@ -117,9 +117,9 @@ class NmdcHub : public Client, private Flags
 		
 		NickMap m_users;
 		
-		string lastmyinfo;
-		int64_t lastbytesshared;
-		uint64_t lastUpdate;
+		string   m_lastmyinfo;
+		int64_t  m_lastbytesshared;
+		uint64_t m_lastUpdate;
 		uint8_t m_supportFlags;
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 		bool m_hubSupportsSlots;//[+] FlylinkDC
@@ -138,6 +138,7 @@ class NmdcHub : public Client, private Flags
 		
 		void clearUsers();
 		void onLine(const string& aLine) noexcept;
+		void resetAntivirusInfo();
 		
 		OnlineUserPtr getUser(const string& aNick, bool p_hub, bool p_first_load); // [!] IRainman fix: return OnlineUserPtr and add hub
 		OnlineUserPtr findUser(const string& aNick) const;
@@ -220,7 +221,7 @@ class NmdcHub : public Client, private Flags
 #endif
 		                );
 		void revConnectToMe(const OnlineUser& aUser);
-		void myInfo(bool alwaysSend);
+		void myInfo(bool p_alwaysSend);
 		void myInfoParse(const string& param);
 		void supports(const StringList& feat);
 		void updateFromTag(Identity& id, const string & tag);
@@ -230,7 +231,7 @@ class NmdcHub : public Client, private Flags
 		void on(TimerManagerListener::Second, uint64_t aTick) noexcept;
 		void on(BufferedSocketListener::Connected) noexcept;
 		void on(BufferedSocketListener::Line, const string& l) noexcept;
-		void on(BufferedSocketListener::MyInfoArray, const StringList&) noexcept; // [+]PPA
+		void on(BufferedSocketListener::MyInfoArray, StringList&) noexcept; // [+]PPA
 		void on(BufferedSocketListener::Failed, const string&) noexcept;
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 	public:

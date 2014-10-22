@@ -707,7 +707,7 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 				if (!iit.m_ii->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP)
 				        && BOOLSETTING(BOLD_QUEUE))
 				{
-					setDirty();
+					setDirty(1);
 				}
 				m_dirty = true;
 			}
@@ -757,7 +757,7 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 				if (!ii->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_USER_GET_IP | QueueItem::FLAG_DCLST_LIST)
 				        && BOOLSETTING(BOLD_QUEUE))
 				{
-					setDirty();
+					setDirty(-1);
 				}
 				m_dirty = true;
 				
@@ -2099,7 +2099,7 @@ void QueueFrame::removeSources()
 		QueueManager::getInstance()->removeSource(j->first, j->second, QueueItem::Source::FLAG_REMOVED);
 	}
 }
-void QueueFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
+void QueueFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())

@@ -115,12 +115,59 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 		tstring LineFromPos(const POINT& p) const;
 		
 		void AdjustTextSize();
-		void AppendText(const Identity& id, const bool bMyMess, const bool bThirdPerson, const tstring& sExtra, const tstring& sMsg, const CHARFORMAT2& cf
-#ifdef IRAINMAN_INCLUDE_SMILE
-		                , bool bUseEmo = true
-#endif
-		               );
-		void AppendTextOnly(const tstring& sText, const tstring& sAuthor, const bool bMyMess, const bool bRealUser, const CHARFORMAT2& cf);
+		
+		struct CFlyChatCacheTextOnly
+		{
+			tstring m_Msg;
+			tstring m_Nick;
+			CHARFORMAT2 m_cf;
+			bool m_bMyMess;
+			bool m_isRealUser;
+			CFlyChatCacheTextOnly(const tstring& p_nick,
+			                      const bool p_is_my_mess,
+			                      const bool p_is_real_user,
+			                      const tstring& p_msg,
+			                      const CHARFORMAT2& p_cf):
+				m_Msg(p_msg),
+				m_Nick(p_nick),
+				m_bMyMess(p_is_my_mess),
+				m_isRealUser(p_is_real_user),
+				m_cf(p_cf)
+			{
+			}
+			CFlyChatCacheTextOnly()
+			{
+			}
+		};
+		struct CFlyChatCache : public CFlyChatCacheTextOnly
+		{
+			tstring m_Extra;
+			bool m_bThirdPerson;
+			bool m_bUseEmo;
+			bool m_isFavorite;
+			bool m_is_ban;
+			bool m_is_op;
+			CFlyChatCache(const Identity& p_id, const bool bMyMess, const bool bThirdPerson,
+			              const tstring& sExtra, const tstring& sMsg, const CHARFORMAT2& cf, bool bUseEmo);
+			CFlyChatCache()
+			{
+			}
+		};
+		
+		void AppendText(const CFlyChatCache& p_chat_info);
+		void AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly& p_message);
+		
+	private:
+		std::list<CFlyChatCache> m_chat_cache; // вектор нельзя - список пополняется (странно что в одной нитке)
+		bool m_is_cache_chat_empty;
+		bool m_is_out_of_memory_for_smile;
+		//std::unique_ptr<webrtc::RWLockWrapper> m_cs_chat_cache;
+	public:
+		void disable_chat_cache()
+		{
+			m_is_cache_chat_empty = true;
+		}
+		void restore_chat_cache();
 		
 		void GoToEnd();
 		bool GetAutoScroll() const

@@ -417,7 +417,7 @@ void ConnectionManager::cleanupIpFlood(const uint64_t p_tick)
 		// “акже убираем запись из таблицы блокировки
 		const bool l_is_ddos_ban_close = j->second.m_count_connect > CFlyServerConfig::g_max_ddos_connect_to_me
 		                                 && l_tick_delta > CFlyServerConfig::g_ban_ddos_connect_to_me * 1000 * 60;
-		if (l_is_ddos_ban_close)
+		if (l_is_ddos_ban_close && BOOLSETTING(LOG_DDOS_TRACE))
 		{
 			string l_type;
 			if (j->first.second.is_unspecified()) // ≈сли нет второго IP то это команада  ConnectToMe
@@ -481,8 +481,8 @@ void ConnectionManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcep
 	}
 }
 
-static const uint64_t FLOOD_TRIGGER = 20000;
-static const uint64_t FLOOD_ADD = 2000;
+static const uint64_t g_FLOOD_TRIGGER = 20000;
+static const uint64_t g_FLOOD_ADD = 2000;
 
 ConnectionManager::Server::Server(bool p_secure
                                   , uint16_t p_port, const string& p_server_ip /* = "0.0.0.0" */) :
@@ -568,11 +568,11 @@ void ConnectionManager::accept(const Socket& sock, bool secure, Server* p_server
 		
 	if (now > m_floodCounter)
 	{
-		m_floodCounter = now + FLOOD_ADD;
+		m_floodCounter = now + g_FLOOD_ADD;
 	}
 	else
 	{
-		if (now + FLOOD_TRIGGER < m_floodCounter)// [!] IRainman fix
+		if (now + g_FLOOD_TRIGGER < m_floodCounter)// [!] IRainman fix
 		{
 			Socket s;
 			try
@@ -591,7 +591,7 @@ void ConnectionManager::accept(const Socket& sock, bool secure, Server* p_server
 		{
 			if (g_ConnToMeCount <= 0)
 			{
-				m_floodCounter += FLOOD_ADD;
+				m_floodCounter += g_FLOOD_ADD;
 			}
 		}
 	}
@@ -677,12 +677,16 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 		auto l_result = m_ddos_map.insert(std::pair<CFlyDDOSkey, CFlyDDoSTick>(l_key, l_item));
 		auto& l_cur_value = l_result.first->second;
 		++l_cur_value.m_count_connect;
-		string l_debug_key = " Time: " + Util::getShortTimeString() + " Hub info = " + p_HubInfo; // https://drdump.com/Problem.aspx?ClientID=ppa&ProblemID=92733
-		if (!p_userInfo.empty())
+		string l_debug_key;
+		if (BOOLSETTING(LOG_DDOS_TRACE))
 		{
-			l_debug_key + " UserInfo = [" + p_userInfo + "]";
+			l_debug_key = " Time: " + Util::getShortTimeString() + " Hub info = " + p_HubInfo; // https://drdump.com/Problem.aspx?ClientID=ppa&ProblemID=92733
+			if (!p_userInfo.empty())
+			{
+				l_debug_key + " UserInfo = [" + p_userInfo + "]";
+			}
+			l_cur_value.m_original_query_for_debug[l_debug_key]++;
 		}
-		l_cur_value.m_original_query_for_debug[l_debug_key]++;
 		if (l_result.second == false)
 		{
 			// Ёлемент уже существует
@@ -690,16 +694,19 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 			l_cur_value.m_ports.insert(aPort);  // —охраним последний порт
 			if (l_cur_value.m_count_connect == CFlyServerConfig::g_max_ddos_connect_to_me) // ѕревысили кол-во коннектов по одному IP
 			{
-				const string l_info   = "[Count limit: " + Util::toString(CFlyServerConfig::g_max_ddos_connect_to_me) + "]\t";
-				const string l_target = "[Target: " + aIPServer + l_cur_value.getPorts() + "]\t";
-				const string l_user_info = !p_userInfo.empty() ? "[UserInfo: " + p_userInfo + "]\t"  : "";
-				l_cur_value.m_type_block = "Type DDoS:" + std::string(p_ip_hub.is_unspecified() ? "[$ConnectToMe]" : "[$Search]");
 				static uint16_t g_block_id = 0;
 				l_cur_value.m_block_id = ++g_block_id;
-				LogManager::getInstance()->ddos_message("BlockID=" + Util::toString(l_cur_value.m_block_id) + ", " + l_cur_value.m_type_block + p_HubInfo + l_info + l_target + l_user_info);
-				for (auto k = l_cur_value.m_original_query_for_debug.cbegin() ; k != l_cur_value.m_original_query_for_debug.cend(); ++k)
+				if (BOOLSETTING(LOG_DDOS_TRACE))
 				{
-					LogManager::getInstance()->ddos_message("  Detail BlockID=" + Util::toString(l_cur_value.m_block_id) + " " + k->first + " Count:" + Util::toString(k->second)); // TODO - сдать дубликаты + показать кол-во
+					const string l_info   = "[Count limit: " + Util::toString(CFlyServerConfig::g_max_ddos_connect_to_me) + "]\t";
+					const string l_target = "[Target: " + aIPServer + l_cur_value.getPorts() + "]\t";
+					const string l_user_info = !p_userInfo.empty() ? "[UserInfo: " + p_userInfo + "]\t"  : "";
+					l_cur_value.m_type_block = "Type DDoS:" + std::string(p_ip_hub.is_unspecified() ? "[$ConnectToMe]" : "[$Search]");
+					LogManager::getInstance()->ddos_message("BlockID=" + Util::toString(l_cur_value.m_block_id) + ", " + l_cur_value.m_type_block + p_HubInfo + l_info + l_target + l_user_info);
+					for (auto k = l_cur_value.m_original_query_for_debug.cbegin() ; k != l_cur_value.m_original_query_for_debug.cend(); ++k)
+					{
+						LogManager::getInstance()->ddos_message("  Detail BlockID=" + Util::toString(l_cur_value.m_block_id) + " " + k->first + " Count:" + Util::toString(k->second)); // TODO - сдать дубликаты + показать кол-во
+					}
 				}
 				l_cur_value.m_original_query_for_debug.clear();
 			}

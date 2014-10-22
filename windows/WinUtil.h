@@ -45,8 +45,10 @@
 #define SHOW_POPUP_EXT(popup_key, msg, popup_ext_key, ext_msg, ext_len, title) { if (POPUP_ENABLED(popup_key)) if (BOOLSETTING(popup_ext_key)) MainFrame::getMainFrame()->ShowBalloonTip((msg + ext_msg.substr(0, ext_len)).c_str(), (title).c_str()); }
 
 #define SET_EXTENDENT_LIST_VIEW_STYLE(ctrlList)            ctrlList.SetExtendedListViewStyle(LVS_EX_LABELTIP | LVS_EX_HEADERDRAGDROP | LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER | LVS_EX_INFOTIP | (BOOLSETTING(VIEW_GRIDCONTROLS) ? LVS_EX_GRIDLINES /*TODO LVS_OWNERDRAWFIXED*/ : 0))
+#define SET_EXTENDENT_LIST_VIEW_STYLE_PTR(ctrlList)            ctrlList->SetExtendedListViewStyle(LVS_EX_LABELTIP | LVS_EX_HEADERDRAGDROP | LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER | LVS_EX_INFOTIP | (BOOLSETTING(VIEW_GRIDCONTROLS) ? LVS_EX_GRIDLINES /*TODO LVS_OWNERDRAWFIXED*/ : 0))
 #define SET_EXTENDENT_LIST_VIEW_STYLE_WITH_CHECK(ctrlList) ctrlList.SetExtendedListViewStyle(LVS_EX_LABELTIP | LVS_EX_HEADERDRAGDROP | LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER | LVS_EX_INFOTIP | (BOOLSETTING(VIEW_GRIDCONTROLS) ? LVS_EX_GRIDLINES /*TODO LVS_OWNERDRAWFIXED*/ : 0))
 #define SET_LIST_COLOR(ctrlList) { ctrlList.SetBkColor(Colors::bgColor);ctrlList.SetTextBkColor(Colors::bgColor);ctrlList.SetTextColor(Colors::textColor); }
+#define SET_LIST_COLOR_PTR(ctrlList) { ctrlList->SetBkColor(Colors::bgColor);ctrlList->SetTextBkColor(Colors::bgColor);ctrlList->SetTextColor(Colors::textColor); }
 #ifdef USE_SET_LIST_COLOR_IN_SETTINGS
 #define SET_LIST_COLOR_IN_SETTING(ctrlList) SET_LIST_COLOR(ctrlList)
 #else
@@ -1517,11 +1519,13 @@ class WinUtil
 		
 		static std::unique_ptr<HIconWrapper> g_HubOnIcon;
 		static std::unique_ptr<HIconWrapper> g_HubOffIcon;
+		static std::unique_ptr<HIconWrapper> g_HubFlylinkDCIcon;
 		
 		static void initThemeIcons()
 		{
 			g_HubOnIcon  = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_HUB));
 			g_HubOffIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_HUB_OFF));
+			g_HubFlylinkDCIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_MAINFRAME));
 		}
 		static HWND mainWnd;
 		static HWND mdiClient;

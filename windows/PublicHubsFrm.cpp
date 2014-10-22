@@ -223,7 +223,7 @@ void PublicHubsFrame::openHub(int ind) // [+] IRainman fix.
 	r.setServer(l_server);
 	FavoriteManager::getInstance()->addRecent(r);
 	
-	HubFrame::openWindow(Text::toT(l_server));
+	HubFrame::openWindow(l_server);
 }
 
 LRESULT PublicHubsFrame::onEnter(int /*idCtrl*/, LPNMHDR /* pnmh */, BOOL& /*bHandled*/)
@@ -836,7 +836,7 @@ void PublicHubsFrame::on(Corrupted, const string& l) noexcept
 	}
 }
 
-void PublicHubsFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
+void PublicHubsFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())

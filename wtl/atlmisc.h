@@ -3731,12 +3731,8 @@ inline bool AtlCompactPath(LPTSTR lpstrOut, LPCTSTR lpstrIn, int cchLen)
 
 	// add ellipsis
 	SecureHelper::strcat_x(lpstrOut, cchLen, szEllipsis);
-	if(!bRet)
-		return false;
 	TCHAR szSlash[2] = { chSlash, 0 };
 	SecureHelper::strcat_x(lpstrOut, cchLen, szSlash);
-	if(!bRet)
-		return false;
 
 	// add filename (and ellipsis, if needed)
 	if(cchLen > (cchMidEllipsis + cchFileName))

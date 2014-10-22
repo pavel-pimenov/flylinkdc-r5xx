@@ -298,7 +298,7 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 				}
 				if (BOOLSETTING(BOLD_SEARCH))
 				{
-					setDirty();
+					setDirty(0);
 				}
 #ifdef FLYLINKDC_USE_SOUND_AND_POPUP_IN_SEARCH_SPY
 				SHOW_POPUP(POPUP_SEARCH_SPY, m_CurrentTime + _T(" : ") + l_SeekersNames + _T("\r\n") + l_search, TSTRING(SEARCH_SPY)); // [+] SCALOlaz: Spy Popup. Thanks to tret2003 (NightOrion) with tstring
@@ -436,7 +436,7 @@ LRESULT SpyFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 	return 0;
 }
 
-void SpyFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
+void SpyFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())

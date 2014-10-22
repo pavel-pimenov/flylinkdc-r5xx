@@ -26,6 +26,8 @@
 #include "Semaphore.h"
 #include "Socket.h"
 
+class UnZFilter;
+
 class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THREAD
 #ifdef _DEBUG
 	, virtual NonDerivable<BufferedSocket> // [+] IRainman fix.
@@ -213,13 +215,14 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		}
 		bool is_all_my_info_loaded() const
 		{
-			return m_myInfoStop;
+			return m_is_all_my_info_loaded;
 		}
 		void set_all_my_info_loaded()
 		{
-			m_myInfoStop = true;
+			m_is_all_my_info_loaded = true;
 		}
 	private:
+		void all_myinfo_parser(const string::size_type pos, const string& p_line, StringList& p_all_myInfo, bool p_is_zon);
 		char m_separator;
 	private:
 		enum Tasks
@@ -279,7 +282,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		volatile ThreadID m_threadId; // [+] IRainman fix.
 		ByteVector inbuf;
 		size_t m_myInfoCount; // Счетчик MyInfo
-		bool   m_myInfoStop;  // Флаг передачи команды отличной от MyInfo (загрузка списка закончилась)
+		bool   m_is_all_my_info_loaded;  // Флаг передачи команды отличной от MyInfo (стартовая загрузка списка закончилась)
 #ifdef FLYLINKDC_HE
 		void resizeInBuf()
 		{

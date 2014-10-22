@@ -149,7 +149,6 @@ typedef unsigned __int64 uint64_t;
 #define PPA_INCLUDE_AUTO_FOLLOW
 #define PPA_INCLUDE_DROP_SLOW
 #define PPA_INCLUDE_STATS_FRAME
-#define PPA_INCLUDE_UPNP
 #define PPA_INCLUDE_SQLITE
 //#define PPA_INCLUDE_NETLIMITER
 //#define PPA_INCLUDE_ASK_SLOT // отключаем автопопрошайку
@@ -435,10 +434,10 @@ typedef unsigned __int64 uint64_t;
 
 
 #define FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE // http://code.google.com/p/flylinkdc/issues/detail?id=1255
-//#ifdef _DEBUG
+#ifdef _DEBUG
 // #define FLYLINKDC_USE_COLLECT_STAT  // Собираем статистику команд коннектов и поиска для блокировки DDoS атак http://dchublist.ru/forum/viewtopic.php?f=6&t=1028&hilit=Ddos
 // #define FLYLINKDC_USE_LOG_FOR_DUPLICATE_TTH_SEARCH
-//#endif
+#endif
 
 // Make sure we're using the templates from algorithm...
 #ifdef min

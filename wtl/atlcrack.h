@@ -49,12 +49,12 @@ public: \
 	BOOL _ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT& lResult, DWORD dwMsgMapID) \
 	{ \
 		BOOL bHandled = TRUE; \
-		hWnd; \
-		uMsg; \
-		wParam; \
-		lParam; \
-		lResult; \
-		bHandled; \
+		(hWnd); \
+		(uMsg); \
+		(wParam); \
+		(lParam); \
+		(lResult); \
+		(bHandled); \
 		switch(dwMsgMapID) \
 		{ \
 		case 0:

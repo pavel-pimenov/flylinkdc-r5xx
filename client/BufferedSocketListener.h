@@ -45,7 +45,7 @@ class BufferedSocketListener
 		virtual void on(Connecting) noexcept { }
 		virtual void on(Connected) noexcept { }
 		virtual void on(Line, const string&) noexcept { }
-		virtual void on(MyInfoArray, const StringList&) noexcept { } // [+]PPA
+		virtual void on(MyInfoArray, StringList&) noexcept { } // [+]PPA
 		virtual void on(Data, uint8_t*, size_t) noexcept { }
 		virtual void on(BytesSent, size_t p_Bytes, size_t p_Actual) noexcept { }
 		virtual void on(ModeChange) noexcept { }

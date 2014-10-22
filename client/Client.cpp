@@ -22,6 +22,7 @@
 #include "LogManager.h"
 #include "CompatibilityManager.h" // [+] IRainman
 #include "Wildcards.h"
+#include "../FlyFeatures/flyServer.h"
 
 boost::atomic<uint16_t> Client::g_counts[COUNT_UNCOUNTED];
 string Client::g_last_search_string;
@@ -581,6 +582,63 @@ void Client::on(Second, uint64_t aTick) noexcept
 			search(s.m_sizeMode, s.m_size, Search::TypeModes(s.m_fileTypes_bitmap), s.m_query, s.m_token, s.m_exts, s.m_is_force_passive);
 		}
 	}
+}
+bool Client::isFloodCommand(const string& p_command, const string& p_line)
+{
+	if (is_all_my_info_loaded() && CFlyServerConfig::g_interval_flood_command)
+	{
+		if (!CFlyServerConfig::isIgnoreFloodCommand(p_command))
+		{
+			CFlyFloodCommand l_item;
+			l_item.m_start_tick = GET_TICK();
+			l_item.m_tick = l_item.m_start_tick;
+			auto l_flood_find = m_flood_detect.insert(std::make_pair(p_command, l_item));
+			if (l_flood_find.second == false)
+			{
+				auto& l_result = l_flood_find.first->second;
+				l_result.m_count++;
+				l_result.m_tick = l_item.m_tick;
+				if (l_result.m_command.size() == 5)
+				{
+					l_result.m_command.push_back("[+more...]");
+				}
+				else
+				{
+					if (l_result.m_command.size() < 5)
+						l_result.m_command.push_back(p_line);
+				}
+				const auto l_delta = l_result.m_tick - l_result.m_start_tick;
+				if (l_delta > CFlyServerConfig::g_interval_flood_command * 1000)
+				{
+					// Прошла секунда и команд пришло больше 20-ти (CFlyServerConfig::g_max_flood_command)
+					// логируем счетчик и баним на 10 секунд данные команды (CFlyServerConfig::g_ban_flood_command)
+					if (l_result.m_count > CFlyServerConfig::g_max_flood_command)  // в секунду больше чем 20
+					{
+						if (l_result.m_is_ban == false) // В лог кидаем первую мессагу
+						{
+							const string l_msg = "[Start flood][" + m_HubURL + "] command = " + l_flood_find.first->first +
+							                     " count = " + Util::toString(l_result.m_count);
+							LogManager::getInstance()->message(l_msg);
+							LogManager::getInstance()->flood_message(l_msg + " last_commands = " + Util::toString(l_result.m_command));
+							l_result.m_is_ban = true;
+						}
+						if (l_delta > CFlyServerConfig::g_ban_flood_command * 1000) // 10 секунд данные команды в бане!
+						{
+							const string l_msg = "[Stop flood][" + m_HubURL + "] command = " + l_flood_find.first->first +
+							                     " count = " + Util::toString(l_result.m_count);
+							l_result.m_count = 0;
+							l_result.m_start_tick = l_result.m_tick;
+							l_result.m_is_ban = false;
+							LogManager::getInstance()->message(l_msg);
+							LogManager::getInstance()->flood_message(l_msg);
+						}
+						return l_result.m_is_ban;
+					}
+				}
+			}
+		}
+	}
+	return false;
 }
 
 // !SMT!-S

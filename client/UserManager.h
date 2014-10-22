@@ -179,7 +179,7 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 		
 		void on(SettingsManagerListener::UsersChanges) noexcept;
 		
-		void on(SettingsManagerListener::Load, SimpleXML& /*xml*/) noexcept
+		void on(SettingsManagerListener::Load, SimpleXML& /*xml*/)
 		{
 			on(SettingsManagerListener::UsersChanges());
 		}

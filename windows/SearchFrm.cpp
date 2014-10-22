@@ -717,18 +717,29 @@ void SearchFrame::onEnter(bool p_is_force_passive)
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	clearFlyServerQueue();
 #endif
-	StringList clients;
+	StringList l_clients;
 	// Change Default Settings If Changed
 	if (m_onlyFree != BOOLSETTING(FREE_SLOTS_DEFAULT))
 		SET_SETTING(FREE_SLOTS_DEFAULT, m_onlyFree);
+	const int n = ctrlHubs.GetItemCount();
 	if (!CompatibilityManager::isWine())
 	{
-		const int n = ctrlHubs.GetItemCount();
+	
 		for (int i = 0; i < n; i++)
+		{
 			if (ctrlHubs.GetCheckState(i))
-				clients.push_back(Text::fromT(ctrlHubs.getItemData(i)->url));
-		if (clients.empty())
+			{
+				const auto l_url = ctrlHubs.getItemData(i)->url;
+				l_clients.push_back(Text::fromT(l_url));
+			}
+		}
+		if (l_clients.empty())
 			return;
+	}
+	if (!l_clients.empty()    && l_clients.size() == ctrlHubs.GetItemCount() - 1 && l_clients[0].empty() ||
+	        l_clients.size() == 1 && l_clients[0].empty())
+	{
+		l_clients.clear(); // »щем по всем хабам сразу.
 	}
 	tstring s;
 	WinUtil::GetWindowText(s, ctrlSearch);
@@ -857,7 +868,7 @@ void SearchFrame::onEnter(bool p_is_force_passive)
 		
 		m_searchStartTime = GET_TICK();
 		// more 10 seconds for transfering results
-		m_searchEndTime = m_searchStartTime + SearchManager::getInstance()->search(clients,
+		m_searchEndTime = m_searchStartTime + SearchManager::getInstance()->search(l_clients,
 		                                                                           Text::fromT(s),
 		                                                                           llsize,
 		                                                                           m_ftype,
@@ -2384,7 +2395,7 @@ void SearchFrame::addSearchResult(SearchInfo * si)
 		
 		if (BOOLSETTING(BOLD_SEARCH))
 		{
-			setDirty();
+			setDirty(0);
 		}
 		//ctrlStatus.SetText(3, (Util::toStringW(resultsCount) + _T(' ') + TSTRING(FILES)).c_str());//[-]IRainman optimize SearchFrame
 		if (ctrlResults.getSortColumn() == COLUMN_HITS && m_resultsCount % 15 == 0)
@@ -2724,7 +2735,7 @@ void SearchFrame::onHubAdded(HubInfo* info)
 				check = false;
 			ctrlHubs.SetCheckState(nItem, check);
 #else
-			ctrlHubs.SetCheckState(nItem, (ctrlHubs.GetCheckState(0) ? info->op : true));
+			ctrlHubs.SetCheckState(nItem, (ctrlHubs.GetCheckState(0) ? info->m_is_op : true));
 #endif
 			ctrlHubs.SetColumnWidth(0, LVSCW_AUTOSIZE);
 		}
@@ -2750,7 +2761,7 @@ void SearchFrame::onHubChanged(HubInfo* info)
 		ctrlHubs.updateItem(nItem);
 		
 		if (ctrlHubs.GetCheckState(0))
-			ctrlHubs.SetCheckState(nItem, info->op);
+			ctrlHubs.SetCheckState(nItem, info->m_is_op);
 #ifdef IRAINMAN_SEARCH_OPTIONS
 		if (ctrlHubs.GetCheckState(1))
 			ctrlHubs.SetCheckState(nItem, false);
@@ -2828,15 +2839,15 @@ LRESULT SearchFrame::onItemChangedHub(int /* idCtrl */, LPNMHDR pnmh, BOOL& /* b
 {
 	if (!CompatibilityManager::isWine())
 	{
-		NMLISTVIEW* lv = (NMLISTVIEW*)pnmh;
+		const NMLISTVIEW* lv = (NMLISTVIEW*)pnmh;
 		if (lv->iItem == 0 && (lv->uNewState ^ lv->uOldState) & LVIS_STATEIMAGEMASK)
 		{
 			if (((lv->uNewState & LVIS_STATEIMAGEMASK) >> 12) - 1)
 			{
 				for (int iItem = 0; (iItem = ctrlHubs.GetNextItem(iItem, LVNI_ALL)) != -1;)
 				{
-					HubInfo* client = ctrlHubs.getItemData(iItem);
-					if (!client->op)
+					const HubInfo* client = ctrlHubs.getItemData(iItem);
+					if (!client->m_is_op)
 						ctrlHubs.SetCheckState(iItem, false);
 				}
 			}
@@ -3344,7 +3355,7 @@ LRESULT SearchFrame::onEditChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 }
 //-BugMaster: new options; small optimization
 
-void SearchFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
+void SearchFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())

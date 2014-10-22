@@ -79,7 +79,12 @@ DWORD CFlyServerConfig::g_winet_send_timeout    = 1000;
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 uint16_t CFlyServerConfig::g_min_interval_dth_connect = 60; // К DHT обращаемся не чаще раз в 60 секунд (найти причину почему это происходит)
 uint16_t CFlyServerConfig::g_max_ddos_connect_to_me = 10; // Не более 10 коннектов на один IP в течении минуты
-uint16_t CFlyServerConfig::g_ban_ddos_connect_to_me = 10; // Блокируем подключения к этом IP в течении 10 минут
+uint16_t CFlyServerConfig::g_ban_ddos_connect_to_me = 10; // Блокируем подключения к этому IP в течении 10 минут
+
+uint16_t CFlyServerConfig::g_interval_flood_command = 1;  // Сколько секунд агрегируем одинаковые команды
+uint16_t CFlyServerConfig::g_max_flood_command = 20;       // Не более 5 одинаковых команд в секунду
+uint16_t CFlyServerConfig::g_ban_flood_command = 10;      // Блокируем на 10 секунд команды если попали в бан
+
 uint16_t CFlyServerConfig::g_max_unique_tth_search  = 10; // Не принимаем в течении 10 секунд одинаковых поисков по TTH для одного и того-же целевого IP:PORT (UDP)
 #ifdef USE_SUPPORT_HUB
 string CFlyServerConfig::g_support_hub = "dchub://dc.fly-server.ru";
@@ -89,6 +94,7 @@ string CFlyServerConfig::g_faq_search_does_not_work = "http://www.flylinkdc.ru/2
 StringSet CFlyServerConfig::g_parasitic_files;
 StringSet CFlyServerConfig::g_mediainfo_ext;
 StringSet CFlyServerConfig::g_virus_ext;
+StringSet CFlyServerConfig::g_ignore_flood_command;
 StringSet CFlyServerConfig::g_block_share_ext;
 StringSet CFlyServerConfig::g_custom_compress_ext;
 StringSet CFlyServerConfig::g_block_share_name;
@@ -176,14 +182,19 @@ const DHTServer& CFlyServerConfig::getRandomDHTServer()
 }
 #endif // STRONG_USE_DHT
 //======================================================================================================
-inline static void checkStrKey(const string& p_str) // TODO: move to Util.
+inline static void checkStrKeyCase(const string& p_str)
 {
 #ifdef _DEBUG
-	dcassert(Text::toLower(p_str) == p_str);
 	string l_str_copy = p_str;
 	boost::algorithm::trim(l_str_copy);
 	dcassert(l_str_copy == p_str);
 #endif
+}
+//======================================================================================================
+inline static void checkStrKey(const string& p_str) // TODO: move to Util.
+{
+	dcassert(Text::toLower(p_str) == p_str);
+	checkStrKeyCase(p_str);
 }
 //======================================================================================================
 void CFlyServerConfig::ConvertInform(string& p_inform) const
@@ -349,6 +360,11 @@ void CFlyServerConfig::loadConfig()
 					initUINT16("max_unique_tth_search",g_max_unique_tth_search,3);
 					initUINT16("max_ddos_connect_to_me",g_max_ddos_connect_to_me,3);
 					initUINT16("ban_ddos_connect_to_me",g_ban_ddos_connect_to_me,3);
+          
+					initUINT16("interval_flood_command",g_interval_flood_command,1);
+					initUINT16("max_flood_command",g_max_flood_command,20);
+					initUINT16("ban_flood_command",g_ban_flood_command,10);
+
 					initUINT16("min_interval_dth_connect",g_min_interval_dth_connect,60); // Пока нет в XML
 					initDWORD("winet_connect_timeout",g_winet_connect_timeout);
 					initDWORD("winet_receive_timeout",g_winet_receive_timeout);
@@ -420,6 +436,11 @@ void CFlyServerConfig::loadConfig()
 						checkStrKey(n);
 						g_virus_ext.insert(n);
 					});
+					l_xml.getChildAttribSplit("ignore_flood_command", g_ignore_flood_command, [this](const string& n)
+					{
+						checkStrKeyCase(n);
+						g_ignore_flood_command.insert(n);
+					});
 					l_xml.getChildAttribSplit("block_share_ext", g_block_share_ext, [this](const string& n)
 					{
 						checkStrKey(n);
@@ -454,35 +475,75 @@ void CFlyServerConfig::loadConfig()
 			dcdebug("CFlyServerConfig::loadConfig parseXML ::Problem: %s\n", e.what());
 			l_fly_server_log.step("parseXML Problem:" + e.getError());
 		}
+    dcassert(!g_ignore_flood_command.empty());
+  	if(g_ignore_flood_command.empty())
+		{
+						g_ignore_flood_command.insert("Search");
+						g_ignore_flood_command.insert("Quit"); 
+						g_ignore_flood_command.insert("MyINFO"); 
+						g_ignore_flood_command.insert("ConnectToMe"); 
+						g_ignore_flood_command.insert("UserIP");
+						g_ignore_flood_command.insert("RevConnectToMe");
+		}
 	}
 }
 //======================================================================================================
-void CFlyServerConfig::SyncAntivirusDB()
+bool CFlyServerConfig::SyncAntivirusDB()
 {
 #ifndef USE_FLYSERVER_LOCAL_FILE
   dcassert(!g_antivirus_db_url.empty());
+  if(BOOLSETTING(AUTOUPDATE_ANTIVIRUS_DB))
+  {
   if(!g_antivirus_db_url.empty())
   {
+  bool l_is_change_version = false;
   uint64_t l_time_stamp = CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_TimeStampAntivirusDB);
   const auto l_start_sync = GET_TIME();
   CFlyLog l_log("[Sync Antivirus DB]");
   string l_buf;
   std::vector<byte> l_binary_data;
   CFlyHTTPDownloader l_http_downloader;
-  for(int i=0;i<3;++i)
+#ifdef _DEBUG
+ //  CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_DeleteCounterAntivirusDB,0);
+#endif
+  __int64 l_cur_merge_counter = 0;
+  for(int i=0;i<2;++i)
   {
-  l_http_downloader.m_get_http_header_item = "Avdb-Delete-Count";
-  const string l_url = g_antivirus_db_url + "/?do=tools&action=avdbload&time=" + Util::toString(l_time_stamp) +"&cotime=0&nosort=1";
-  l_binary_data.clear();
+    l_http_downloader.m_get_http_header_item.clear();
+    l_http_downloader.m_get_http_header_item.push_back("Avdb-Delete-Count");
+    l_http_downloader.m_get_http_header_item.push_back("Avdb-Version-Count");
+    l_cur_merge_counter = CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_MergeCounterAntivirusDB);
+    const string l_url = g_antivirus_db_url + 
+                   "/avdb.php?do=load"
+                   "&time=" + Util::toString(l_time_stamp) + 
+                   "&vers=" + Util::toString(l_cur_merge_counter) +
+                   "&cotime=0"
+                   "&nosort=1"
+                   "&copath=1";
+    l_binary_data.clear();
 	auto l_result_size = l_http_downloader.getBinaryDataFromInet(l_url, l_binary_data, g_winet_connect_timeout/2); 
-    if(!l_http_downloader.m_get_http_header_item.empty())
+	if(l_result_size == 0)
+     { 
+		 l_log.step("Antivirus DB error download. " + l_url);
+		 return false;
+     }
+    if(!l_http_downloader.m_get_http_header_item[0].empty())
     {
-        const int  l_new_delete_counter = Util::toInt(l_http_downloader.m_get_http_header_item);
+        const int  l_new_delete_counter = Util::toInt(l_http_downloader.m_get_http_header_item[0]);
+		dcassert(l_new_delete_counter);
 	    const auto l_cur_delete_counter = CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_DeleteCounterAntivirusDB);
         if(l_cur_delete_counter != l_new_delete_counter)
         {
-            CFlylinkDBManager::getInstance()->purge_antivirus_db(l_new_delete_counter);
+            if(l_time_stamp == 0)
+            {
+              CFlylinkDBManager::getInstance()->purge_antivirus_db(l_new_delete_counter,l_start_sync);
+              break;
+            }
+            else
+            {
             l_time_stamp = 0;
+              CFlylinkDBManager::getInstance()->purge_antivirus_db(l_new_delete_counter,l_time_stamp);
+            }
             l_log.step("Reload antivirus DB Avdb-Delete-Count = " + Util::toString(l_new_delete_counter));
             continue; 
         }
@@ -495,16 +556,39 @@ void CFlyServerConfig::SyncAntivirusDB()
   }
    if (!l_buf.empty())
    {
+    const int l_new_merge_counter = Util::toInt(l_http_downloader.m_get_http_header_item[1]);
+	dcassert(l_new_merge_counter);
+    CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_MergeCounterAntivirusDB,l_new_merge_counter);
+	if(l_new_merge_counter != l_cur_merge_counter)
+	{
+	 l_is_change_version = true;
+     l_cur_merge_counter = l_new_merge_counter;
+	}
     const auto l_count = CFlylinkDBManager::getInstance()->sync_antivirus_db(l_buf,l_start_sync);
-	  if(l_count)
-	  {
+    if(l_count)
+	{
 	    l_log.step("Add new records: " + Util::toString(l_count));
-	  }
+	}
+   }
+   if(l_cur_merge_counter)
+   {
+	 // TODO Добавилось N-записей к базе - перегрузить их в кэш
+     l_log.step("Antivirus DB version: " + Util::toString(l_cur_merge_counter));
+   }
+   if(l_is_change_version)
+   {
+        ClientManager::resetAntivirusInfo(); 
    }
   }
+  }
 #endif
+  return true;
 }
 //======================================================================================================
+bool CFlyServerConfig::isIgnoreFloodCommand(const string& p_command)
+{
+	return isCheckName(g_ignore_flood_command, p_command);
+}
 bool CFlyServerConfig::isVirusExt(const string& p_ext)
 {
 	return isCheckName(g_virus_ext, p_ext);
@@ -630,8 +714,9 @@ void CFlyServerAdapter::prepare_mediainfo_to_fly_serverL()
 	m_tth_media_file_map.clear();
 }
 //======================================================================================================
-void CFlyServerAdapter::CFlyServerJSON::login()
+bool CFlyServerAdapter::CFlyServerJSON::login()
 {
+  bool l_is_error = false;
 	if(g_fly_server_id.empty())
 	{
 		CFlyLog l_log("[fly-login]");
@@ -653,7 +738,6 @@ void CFlyServerAdapter::CFlyServerJSON::login()
 #endif
 		const std::string l_post_query = l_root.toStyledString();
 		bool l_is_send = false;
-		bool l_is_error = false;
 		string l_result_query = postQuery(true,false,false,false,false,"fly-login",l_post_query,l_is_send,l_is_error);
 		Json::Value l_result_root;
 		Json::Reader l_reader(Json::Features::strictMode());
@@ -671,6 +755,7 @@ void CFlyServerAdapter::CFlyServerJSON::login()
 //				g_fly_server_id
 		}
 	}
+  return l_is_error;
 }
 static void getDiskAndMemoryStat(Json::Value& p_info)
 {
@@ -876,16 +961,16 @@ bool CFlyServerAdapter::CFlyServerJSON::pushError(const string& p_error)
 }
 //======================================================================================================
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
-void CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
+bool CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 {
 	Thread::ConditionLockerWithSpin l(g_running);
-	login();
+    bool l_is_flush_error = login();
 	CFlyLog l_log("[fly-stat]");
 	Json::Value  l_info;   
-	if(p_is_sync_run == false ) // При останове не делаем этого
+	if(p_is_sync_run == false && l_is_flush_error == false) // При останове не делаем этого + если была ошибка логина - тоже скипаем
 		{
 		// Сбросим 10 записей отложенной статистики если накопилась
-		 CFlylinkDBManager::getInstance()->flush_lost_json_statistic();
+		 CFlylinkDBManager::getInstance()->flush_lost_json_statistic(l_is_flush_error);
 		}
 		else
 		{
@@ -963,16 +1048,16 @@ void CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 				}
 			}
 			// TODO l_stat_info["MaxUsers"] = 
-			l_stat_info["DBQueueSources"] =  CFlylinkDBManager::getCountQueueSources();        
-			l_stat_info["FavUsers"] = FavoriteManager::getInstance()->getCountFavsUsers();
-			l_stat_info["Threads"]  =  Thread::getThreadsCount();
+			l_stat_info["DBQueueSources"] = CFlylinkDBManager::getCountQueueSources();        
+			l_stat_info["FavUsers"]       = FavoriteManager::getInstance()->getCountFavsUsers();
+			l_stat_info["Threads"]        = Thread::getThreadsCount();
 		}
 		// Статистика по временым меткам
 		{
 			static string g_first_time = Util::formatDigitalClock(time(nullptr));
-			Json::Value& l_time_info = l_info["Time"];
-			l_time_info["Start"]    = g_first_time;
-			l_time_info["Current"]  = Util::formatDigitalClock(time(nullptr));
+			Json::Value& l_time_info   = l_info["Time"];
+			l_time_info["Start"]       = g_first_time;
+			l_time_info["Current"]     = Util::formatDigitalClock(time(nullptr));
 			static bool g_is_first = false;
 #ifndef _DEBUG
 			if(!g_is_first)
@@ -1060,19 +1145,27 @@ void CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 		const std::string l_post_query = l_info.toStyledString();
 		bool l_is_send = false;
 		bool l_is_error = false;
+    if(l_is_flush_error == false) // Если не удалось сбросить первый раз - нет инета.
+    {
 		if(BOOLSETTING(USE_FLY_SERVER_STATICTICS_SEND) && p_is_sync_run == false)
 		{
 		  postQuery(true,true,false,false,false,"fly-stat",l_post_query,l_is_send,l_is_error,500);
 		}
+    }
+    else
+    {
+        l_log.step("Skip stat-POST (internet error...)");
+    }
 		if(!l_is_send || p_is_sync_run)
 			           // Если не удалось отправить или отключено/отложено. 
 			           // собираем стату локально (чтобы в будущем построить аналитику на клиенте)
 		{
-			 if(BOOLSETTING(USE_FLY_SERVER_STATICTICS_SEND))
-			 {
+		if(BOOLSETTING(USE_FLY_SERVER_STATICTICS_SEND))
+		  {
 			CFlylinkDBManager::getInstance()->push_json_statistic(l_post_query);
-		}
-}
+		  }
+        }
+		return l_is_flush_error;
 }
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
 //======================================================================================================
@@ -1087,6 +1180,8 @@ string CFlyServerAdapter::CFlyServerJSON::postQuery(bool p_is_set,
 													bool& p_is_error,
 													DWORD p_time_out /*= 0*/)
 {
+//  Thread::ConditionLockerWithSpin l(g_running);
+    dcassert(g_running == 1);
 	p_is_send = false;
 	p_is_error = false;
 	dcassert(!p_body.empty());
@@ -1299,16 +1394,19 @@ void CFlyServerAdapter::CFlyServerJSON::addDownloadCounter(const CFlyTTHKey& p_f
 	g_download_counter.push_back(p_file);
 }
 //======================================================================================================
-void CFlyServerAdapter::CFlyServerJSON::sendDownloadCounter()
+bool CFlyServerAdapter::CFlyServerJSON::sendDownloadCounter()
 {
+	bool l_is_error = false;
 	if(!g_download_counter.empty())
 	{
 	CFlyTTHKeyArray l_copy_array;
 	{
 		Lock l(g_cs_fly_server);
 		l_copy_array.swap(g_download_counter);
-	}
-	login();
+	}	
+  l_is_error = login();
+  if(l_is_error == false)
+  {
 	Json::Value  l_root;   
 	Json::Value& l_arrays = l_root["array"];
 	int l_count = 0;
@@ -1320,22 +1418,29 @@ void CFlyServerAdapter::CFlyServerJSON::sendDownloadCounter()
 	}
     const std::string l_post_query = l_root.toStyledString();
     bool l_is_send = false;
-	bool l_is_error = false;
     if(l_count)
      {
       postQuery(true, false, false, false, true,"fly-download",l_post_query,l_is_send,l_is_error,500);
      }
 	}
+  if(l_is_error)
+  {
+      dcassert(0); // TODO - сохранить в базе
+  }
+	}
    // TODO - словить исключение и если нужно сохранить l_copy_array в базе.
    // чтобы не потерять счетчики.
-   return;
+   return l_is_error;
 }
 //======================================================================================================
 string CFlyServerAdapter::CFlyServerJSON::connect(const CFlyServerKeyArray& p_fileInfoArray, bool p_is_fly_set_query, bool p_is_ext_info_for_single_file /* = false*/)
 {
 	dcassert(!p_fileInfoArray.empty());
 	Thread::ConditionLockerWithSpin l(g_running);
-	login(); // Запросим свой ИД у сервера
+  bool l_is_error = login(); // Запросим свой ИД у сервера
+  string l_result_query;
+  if(l_is_error == false)
+  {
 	// CFlyLog l_log("[flylinkdc-server]",true);
 	Json::Value  l_root;   
 	Json::Value& l_arrays = l_root["array"];
@@ -1508,15 +1613,16 @@ string CFlyServerAdapter::CFlyServerJSON::connect(const CFlyServerKeyArray& p_fi
 	  }
 	}
 // string l_tmp;
- string l_result_query;
  if (l_count > 0)  // Есть что передавать на сервер?
  {
 #define FLYLINKDC_USE_HTTP_SERVER
 #ifdef FLYLINKDC_USE_HTTP_SERVER
    const std::string l_post_query = l_root.toStyledString();
    bool l_is_send = false;
-   bool l_is_error = false;
+   if(l_is_error == false)
+   {
    l_result_query = postQuery(p_is_fly_set_query, false, false, false, false, p_is_fly_set_query? "fly-set" : p_is_ext_info_for_single_file ? "fly-zget-full" : "fly-zget",l_post_query,l_is_send,l_is_error);
+   }
 #endif
 
 // #define FLYLINKDC_USE_SOCKET
@@ -1560,6 +1666,11 @@ string CFlyServerAdapter::CFlyServerJSON::connect(const CFlyServerKeyArray& p_fi
 	}
 #endif
 	}
+ }
+ else
+ {
+     dcassert(0);
+ }
 	return l_result_query;
 }
 //======================================================================================================

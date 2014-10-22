@@ -613,15 +613,6 @@ If possible, send the file for analysis to ppa74@ya.ru</String>
 		<String Name="FlyupdateSuccess">FlylinkDC++ automatic update is completed successfully. Press OK button to start FlylinkDC++ application</String>
 		<String Name="FlyupdateUpdating">Updating FlylinkDC++…</String>
 		<String Name="FlyupdateUsercancel">User canceled FlylinkDC++ automatic update</String>
-		<String Name="Flyversion01">I'm a happy FlylinkDC++ user. You could be happy too.</String>
-		<String Name="Flyversion02">rm-…what? Nope… never heard of it…</String>
-		<String Name="Flyversion03">Evolution of species: Animal --&gt; Man
--- Evolution of science: "The Earth is Flat" --&gt; "The Earth is Round"
--- Evolution of sharing: DC++ --&gt; StrongDC++ --&gt; ApexDC++ --&gt; ApexDC++ SpeedMode and new StrongDC++ --&gt; FlylinkDC++</String>
-		<String Name="Flyversion04">I share, therefore I am.</String>
-		<String Name="Flyversion05">I came, I searched, I found…</String>
-		<String Name="Flyversion06">I came, I shared, I sent…</String>
-		<String Name="Flyversion07">I can add multiple users to the same file and download from them simultaneously :)</String>
 		<String Name="Folder">Folder</String>
 		<String Name="Foldername">Folder name</String>
 		<String Name="FoobarError">Supported version of Foobar2000 is not running or component foo_winamp_spam not installed</String>

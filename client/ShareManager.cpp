@@ -176,17 +176,17 @@ string ShareManager::Directory::getRealPath(const std::string& path) const
 	}
 	else
 	{
-		return ShareManager::getInstance()->findRealRoot(getName(), path);
+		return ShareManager::getInstance()->findRealRootL(getName(), path);
 	}
 }
 
-string ShareManager::findRealRoot(const string& virtualRoot, const string& virtualPath) const
+string ShareManager::findRealRootL(const string& virtualRoot, const string& virtualPath) const
 {
 	for (auto i = m_shares.cbegin(); i != m_shares.cend(); ++i)
 	{
 		if (stricmp(i->second.m_synonym, virtualRoot) == 0)
 		{
-			std::string name = i->first + virtualPath;
+			const std::string name = i->first + virtualPath;
 			dcdebug("Matching %s\n", name.c_str());
 			if (FileFindIter(name) != FileFindIter::end)
 			{
@@ -438,16 +438,16 @@ ShareManager::Directory::ShareFile::Set::const_iterator ShareManager::findFileL(
 	return it;
 }
 
-string ShareManager::validateVirtual(const string& aVirt) const noexcept
+string ShareManager::validateVirtual(const string& aVirt) noexcept
 {
-    string tmp = aVirt;
-    string::size_type idx = 0;
-
-    while ((idx = tmp.find_first_of("\\/"), idx) != string::npos) // TODO - replace_all ?
-{
-tmp[idx] = '_';
-}
-return tmp;
+	string tmp = aVirt;
+	string::size_type idx = 0;
+	
+	while ((idx = tmp.find_first_of("\\/"), idx) != string::npos) // TODO - replace_all ?
+	{
+		tmp[idx] = '_';
+	}
+	return tmp;
 }
 
 bool ShareManager::hasVirtual(const string& virtualName) const noexcept
@@ -476,11 +476,13 @@ void ShareManager::load(SimpleXML& aXml)
 			// make sure realPath ends with a PATH_SEPARATOR
 			AppendPathSeparator(realPath); //[+]PPA
 			
+			const string virtualName = aXml.getChildAttrib("Virtual");
+			const string vName = validateVirtual(virtualName.empty() ? Util::getLastDir(realPath) : virtualName);
 			if (!File::isExist(realPath))
+			{
+				m_lost_shares.insert(std::make_pair(realPath, CFlyBaseDirItem(vName, 0)));
 				continue;
-				
-			const string& virtualName = aXml.getChildAttrib("Virtual");
-			string vName = validateVirtual(virtualName.empty() ? Util::getLastDir(realPath) : virtualName);
+			}
 			m_shares.insert(std::make_pair(realPath, CFlyBaseDirItem(vName, 0)));
 			if (getByVirtualL(vName) == m_list_directories.end())
 			{
@@ -492,12 +494,45 @@ void ShareManager::load(SimpleXML& aXml)
 		}
 		aXml.stepOut();
 	}
+	aXml.resetCurrentChild();
 	if (aXml.findChild("NoShare"))
 	{
 		aXml.stepIn();
 		while (aXml.findChild("Directory"))
 			m_notShared.push_back(aXml.getChildData());
 			
+		aXml.stepOut();
+	}
+	aXml.resetCurrentChild();
+	if (aXml.findChild("LostShare"))
+	{
+		aXml.stepIn();
+		while (aXml.findChild("Directory"))
+		{
+			string realPath = aXml.getChildData();
+			if (realPath.empty())
+			{
+				continue;
+			}
+			AppendPathSeparator(realPath);
+			if (m_shares.find(realPath) == m_shares.end())
+			{
+				const string virtualName = aXml.getChildAttrib("Virtual");
+				const string vName = validateVirtual(virtualName.empty() ? Util::getLastDir(realPath) : virtualName);
+				m_lost_shares.insert(std::make_pair(realPath, CFlyBaseDirItem(vName, 0)));
+				if (File::isExist(realPath)) // Если каталог появился - добавим его в запрос на возврат в шару...
+				{
+					string l_message_lost_share = " < " + virtualName + " >  " + realPath + "\r\n";
+					tstring l_message = TSTRING(RESTORE_LOST_SHARE);
+					l_message += Text::toT(l_message_lost_share);
+					m_lost_shares.erase(realPath);
+					if (MessageBox(NULL, l_message.c_str() , _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_YESNO | MB_ICONQUESTION | MB_TOPMOST) == IDYES)
+					{
+						m_shares.insert(std::make_pair(realPath, CFlyBaseDirItem(vName, 0)));
+					}
+				}
+			}
+		}
 		aXml.stepOut();
 	}
 #ifdef PPA_INCLUDE_OLD_INNOSETUP_WIZARD
@@ -678,6 +713,17 @@ void ShareManager::save(SimpleXML& aXml)
 		aXml.addChildAttrib("Virtual", i->second.m_synonym);
 	}
 	aXml.stepOut();
+	
+	aXml.addTag("LostShare");
+	aXml.stepIn();
+	for (auto i = m_lost_shares.cbegin(); i != m_lost_shares.cend(); ++i)
+	{
+		aXml.addTag("Directory", i->first);
+		aXml.addChildAttrib("Virtual", i->second.m_synonym);
+	}
+	aXml.stepOut();
+	
+	
 	aXml.addTag("NoShare");
 	aXml.stepIn();
 	for (auto j = m_notShared.cbegin(); j != m_notShared.cend(); ++j)

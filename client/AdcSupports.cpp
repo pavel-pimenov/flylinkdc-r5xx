@@ -134,7 +134,7 @@ void NmdcSupports::setStatus(Identity& id, const char status, const string& conn
 	{
 		auto con = Util::toDouble(connection);
 		double coef;
-		const auto i = connection.find_first_not_of("1234567890 ,.");
+		const auto i = connection.find_first_not_of("1234567890 ,."); // TODO - отложить парсинг соединения позже
 		if (i == string::npos)
 		{
 			coef = 1000 * 1000 / 8; // no postfix - megabits.

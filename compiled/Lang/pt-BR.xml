@@ -599,15 +599,6 @@ Se possível, envie o arquivo para análise para ppa74@ya.ru</String>
 		<String Name="FlyupdateSuccess">FlylinkDC++ update automático é concluído com êxito. Pressione o botão OK para iniciar FlylinkDC++ aplicativo</String>
 		<String Name="FlyupdateUpdating">Atualizando FlylinkDC++…</String>
 		<String Name="FlyupdateUsercancel">Usuário cancelou atualização automática</String>
-		<String Name="Flyversion01">Eu sou um feliz usuário do FlylinkDC++. Você pode ser feliz também</String>
-		<String Name="Flyversion02">rm-… o quê? Não… nunca ouvi falar disso…</String>
-		<String Name="Flyversion03">Evolução das espécies: Animal --&gt; Man
--- Evolução da ciência: "A Terra é quadrada" --&gt; "A Terra é Redonda"
--- Evolução do Compartilhamento: DC++ --&gt; StrongDC++ --&gt; ApexDC++ --&gt; ApexDC++ SpeedMode and new StrongDC++ --&gt; FlylinkDC++</String>
-		<String Name="Flyversion04">Compartilho, logo existo.</String>
-		<String Name="Flyversion05">Eu vim, eu procurei, eu encontrei…</String>
-		<String Name="Flyversion06">Eu vim, eu compartilhei, eu mandei…</String>
-		<String Name="Flyversion07">Eu posso adicionar vários usuários ao mesmo arquivo e baixar a partir deles simultaneamente :)</String>
 		<String Name="Folder">Pasta</String>
 		<String Name="Foldername">Nome da pasta</String>
 		<String Name="FoobarError">Versão suportada do Foobar2000 não está em execução ou foo_winamp_spam componente não está instalado</String>

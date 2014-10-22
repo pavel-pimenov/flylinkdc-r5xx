@@ -1811,13 +1811,12 @@ public:
 #ifndef _WIN32_WCE
 	int GetScrollLimit() const
 	{
-		int nMin = 0, nMax = 0;
-		::GetScrollRange(m_hWnd, SB_CTL, &nMin, &nMax);
-		SCROLLINFO info = { sizeof(SCROLLINFO), SIF_PAGE };
-		if(::GetScrollInfo(m_hWnd, SB_CTL, &info))
-			nMax -= ((info.nPage - 1) > 0) ? (info.nPage - 1) : 0;
+		SCROLLINFO info = { sizeof(SCROLLINFO), SIF_RANGE | SIF_PAGE };
+		::GetScrollInfo(m_hWnd, SB_CTL, &info);
+		if(info.nPage > 1)
+			info.nMax -= info.nPage - 1;
 
-		return nMax;
+		return info.nMax;
 	}
 
 #if (WINVER >= 0x0500)

@@ -614,15 +614,6 @@
 		<String Name="FlyupdateSuccess">Праґрама «FlylinkDC++» абнавілася. Націсьніце «Добра», каб запусьціць яе</String>
 		<String Name="FlyupdateUpdating">Абнаўляецца «FlylinkDC++»…</String>
 		<String Name="FlyupdateUsercancel">Карыстальнік спыніў самарушна абнаўляць «FlylinkDC++»</String>
-		<String Name="Flyversion01">Я — задаволены карыстальнік «FlylinkDC++». Вы таксама можаце задаволіцца.</String>
-		<String Name="Flyversion02">…што? Не-а, ніколі ня чулі пра гэта…</String>
-		<String Name="Flyversion03">Эвалюцыя відаў: жывёла → чалавек
--- Эвалюцыя навукі: «Зямля — пляскатая» → «Зямля — круглая»
--- Эвалюцыя абмену: «DC++» → «StrongDC++» → «ApexDC++» → хуткі «ApexDC++» і новы «StrongDC++» → «FlylinkDC++»</String>
-		<String Name="Flyversion04">Я дзялюся, значыць я існую.</String>
-		<String Name="Flyversion05">Прыйшоў, пашукаў, знайшоў…</String>
-		<String Name="Flyversion06">Прыйшоў, абагуліў, даслаў…</String>
-		<String Name="Flyversion07">Я магу спампоўваць адзін файл зь некалькіх карыстальнікаў адначасова :)</String>
 		<String Name="Folder">Каталёґ</String>
 		<String Name="Foldername">Назва каталёґа</String>
 		<String Name="FoobarError">Не запусьцілі вэрсіі Foobar2000, якая падтрымваецца, або не ўсталявалі складніку «foo_winamp_spam»</String>

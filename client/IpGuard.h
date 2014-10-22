@@ -55,7 +55,7 @@ class IpGuard : public Singleton<IpGuard>, private SettingsManagerListener
 		IPList m_ipGuardList;
 		
 		// SettingsManagerListener
-		void on(SettingsManagerListener::Load, SimpleXML& /*xml*/) noexcept
+		void on(SettingsManagerListener::Load, SimpleXML& /*xml*/)
 		{
 			load();
 		}

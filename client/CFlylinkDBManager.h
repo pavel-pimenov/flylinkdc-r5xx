@@ -162,7 +162,8 @@ enum eTypeSegment
 	e_IncopatibleSoftwareList = 10,
 	// 11, - не занимать
 	e_DeleteCounterAntivirusDB = 12,
-	e_TimeStampAntivirusDB = 13
+	e_TimeStampAntivirusDB = 13,
+	e_MergeCounterAntivirusDB = 14
 };
 struct CFlyRegistryValue
 {
@@ -281,8 +282,8 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		bool checkTTH(const string& fname, __int64 path_id, int64_t aSize, int64_t aTimeStamp, TTHValue& p_out_tth);
 		void load_path_cache();
 		void scan_path(CFlyDirItemArray& p_directories);
-		int sync_antivirus_db(const string& p_antivirus_db, uint64_t p_unixtime);
-		void purge_antivirus_db(uint64_t p_delete_counter);
+		int sync_antivirus_db(const string& p_antivirus_db, const uint64_t p_unixtime);
+		void purge_antivirus_db(const uint64_t p_delete_counter, const uint64_t p_unixtime);
 		size_t get_count_folders()
 		{
 			Lock l(m_cs);
@@ -382,7 +383,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif // FLYLINKDC_USE_COLLECT_STAT
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 		void push_json_statistic(const std::string& p_value);
-		void flush_lost_json_statistic();
+		void flush_lost_json_statistic(bool& p_is_error);
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
 		void clear_tiger_tree_cache(const TTHValue& p_root);
 		__int64 convert_tth_history();
@@ -467,8 +468,14 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		boost::unordered_set<std::string> m_virus_user;
 		boost::unordered_set<int64_t> m_virus_share;
 		boost::unordered_set<unsigned long> m_virus_ip4;
+		void clear_virus_cacheL()
+		{
+			m_virus_user.clear();
+			m_virus_share.clear();
+			m_virus_ip4.clear();
+		}
 	public:
-		int calc_antivirus_flag(const string& p_nick, const boost::asio::ip::address_v4& p_ip4, int64_t p_share);
+		int calc_antivirus_flag(const string& p_nick, const boost::asio::ip::address_v4& p_ip4, int64_t p_share, string& p_virus_path);
 	private:
 	
 		auto_ptr<sqlite3_command> m_insert_ratio;

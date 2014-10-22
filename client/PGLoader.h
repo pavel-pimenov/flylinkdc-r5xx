@@ -32,7 +32,7 @@ class PGLoader : public Singleton<PGLoader>, private SettingsManagerListener
 		IPList  m_ipList;
 		IPList  m_ipListBlock;
 		// SettingsManagerListener
-		void on(SettingsManagerListener::Load, SimpleXML& /*xml*/) noexcept
+		void on(SettingsManagerListener::Load, SimpleXML& /*xml*/)
 		{
 			load();
 		}

@@ -262,11 +262,11 @@ class Thread : public BaseThread
 		}
 		
 		void start(unsigned int p_stack_size, const char* p_name = nullptr);
-		void join()
+		void join(const DWORD dwMilliseconds = INFINITE)
 		{
 			if (m_threadHandle != INVALID_HANDLE_VALUE)
 			{
-				WaitForSingleObject(m_threadHandle, INFINITE);
+				WaitForSingleObject(m_threadHandle, dwMilliseconds);
 				HANDLE l_thread = m_threadHandle;
 				m_threadHandle = INVALID_HANDLE_VALUE;
 				CloseHandle(l_thread);

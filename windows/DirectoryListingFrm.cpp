@@ -145,7 +145,7 @@ void DirectoryListingFrame::openWindow(const HintedUser& aUser, const string& tx
 
 DirectoryListingFrame::DirectoryListingFrame(const HintedUser& aHintedUser, int64_t aSpeed) :
 	CFlyTimerAdapter(m_hWnd),
-	CFlyServerAdapter(m_hWnd),
+	CFlyServerAdapter(m_hWnd, 5000),
 	statusContainer(STATUSCLASSNAME, this, STATUS_MESSAGE_MAP), treeContainer(WC_TREEVIEW, this, CONTROL_MESSAGE_MAP),
 	listContainer(WC_LISTVIEW, this, CONTROL_MESSAGE_MAP), historyIndex(0), m_loading(true),
 	treeRoot(NULL), m_skipHits(0), files(0), speed(aSpeed), m_updating(false),
@@ -1955,7 +1955,7 @@ LRESULT DirectoryListingFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/
 	return TRUE;
 }
 
-void DirectoryListingFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
+void DirectoryListingFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
@@ -1982,7 +1982,7 @@ LRESULT DirectoryListingFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM /*
 			ctrlTree.EnableWindow(TRUE);
 			
 			//notify the user that we've loaded the list
-			setDirty();
+			setDirty(0);
 			break;
 		case ABORTED:
 			m_loading = false;
@@ -2293,8 +2293,8 @@ LRESULT DirectoryListingFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wPar
 void DirectoryListingFrame::update_column_after_merge(std::vector<int> p_update_index)
 {
 #if 0
-	TODO - апдейты по колонкам не пашут иногда
-http://code.google.com/p/flylinkdc/issues/detail?id=1113
+	// TODO - апдейты по колонкам не пашут иногда
+	// http://code.google.com/p/flylinkdc/issues/detail?id=1113
 	const static int l_array[] =
 	{
 		COLUMN_BITRATE , COLUMN_MEDIA_XY, COLUMN_MEDIA_VIDEO , COLUMN_MEDIA_AUDIO, COLUMN_DURATION, COLUMN_FLY_SERVER_RATING

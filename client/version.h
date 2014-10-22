@@ -116,6 +116,7 @@
 
 #define HOMEPAGE "http://flylinkdc.com/"
 #define HELPPAGE "http://flylinkdc.com/dokuwiki/doku.php?id="
+#define HOMEPAGERU "http://flylinkdc.ru/"
 #define HELPPAGE2 "flylinkdc"
 
 #define HOMEPAGE_BLOG "http://flylinkdc.blogspot.com/"

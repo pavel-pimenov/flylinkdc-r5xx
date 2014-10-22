@@ -198,7 +198,7 @@ class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_
 			PostMessage(WM_SPEAKER, (WPARAM)USER_UPDATED, (LPARAM)new UserPtr(aUser)); //-V572
 		}
 		
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept;
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
 		
 		void addUser(const FavoriteUser& aUser);
 		void updateUser(const UserPtr& aUser);

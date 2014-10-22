@@ -602,7 +602,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		typedef pair< HWND , DirectoryListingFrame* > FramePair;
 		static FrameMap g_frames;
 		
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept;
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
 	private:
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		void mergeFlyServerInfo();

@@ -186,6 +186,7 @@ private:
  static StringSet g_parasitic_files;
  static StringSet g_mediainfo_ext;
  static StringSet g_virus_ext;
+ static StringSet g_ignore_flood_command;
  static StringSet g_block_share_ext;
  static StringSet g_custom_compress_ext;
  static StringSet g_block_share_name;
@@ -197,11 +198,12 @@ private:
  }
 public:
   void loadConfig();
-  static void SyncAntivirusDB();
+  static bool SyncAntivirusDB();
 
   static bool isParasitFile(const string& p_file);
   static bool isMediainfoExt(const string& p_ext);
   static bool isVirusExt(const string& p_ext);
+  static bool isIgnoreFloodCommand(const string& p_command);
   static bool isCompressExt(const string& p_ext);
   static bool isBlockShare(const string& p_name);
   string DBDelete();
@@ -213,6 +215,10 @@ public:
   static uint16_t g_max_unique_tth_search;
   static uint16_t g_ban_ddos_connect_to_me;
   static uint16_t g_min_interval_dth_connect;
+  static uint16_t g_interval_flood_command;
+  static uint16_t g_max_flood_command;
+  static uint16_t g_ban_flood_command;
+
 #ifdef USE_SUPPORT_HUB
   static string   g_support_hub;
 #endif // USE_SUPPORT_HUB
@@ -268,7 +274,9 @@ typedef std::vector<CFlyTTHKey> CFlyTTHKeyArray;
 class CFlyServerAdapter
 {
 	public:
-		CFlyServerAdapter(const HWND& p_hWnd): m_hMediaWnd(p_hWnd)
+		CFlyServerAdapter(const HWND& p_hWnd, const DWORD p_dwMilliseconds = INFINITE):
+		     m_hMediaWnd(p_hWnd), 
+		     m_dwMilliseconds(p_dwMilliseconds)
 #ifdef _DEBUG
 			 ,m_debugWaits(false)
 #endif
@@ -287,8 +295,8 @@ class CFlyServerAdapter
 			dcdrun(m_debugWaits = true;)
 			if(m_query_thread)
 				{
-			   m_query_thread->join(); // Дождемся завершения.
-		}
+			      m_query_thread->join(m_dwMilliseconds); // Дождемся завершения но не более 10 сек
+		        }
 			}
 
 		bool is_fly_server_active() const
@@ -325,7 +333,8 @@ class CFlyServerAdapter
 
 	private:
 		dcdrun(bool m_debugWaits;)
-		const HWND& m_hMediaWnd;			
+		const HWND& m_hMediaWnd;	
+		const DWORD m_dwMilliseconds;
 	public:
 		class CFlyServerQueryThread : public Thread
 		{
@@ -378,9 +387,9 @@ class CFlyServerAdapter
 			: boost::noncopyable
 #endif
 		{
-			static void login();
+			static bool login();
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
-			static void pushStatistic(const bool p_is_sync_run);
+			static bool pushStatistic(const bool p_is_sync_run);
 #endif
 			static bool pushError(const string& p_error);
 			static bool pushTestPort(const string& p_magic,		
@@ -393,7 +402,7 @@ class CFlyServerAdapter
 			static string g_fly_server_id;
 			static CFlyTTHKeyArray g_download_counter;
 			static void addDownloadCounter (const CFlyTTHKey& p_file);
-			static void sendDownloadCounter();
+			static bool sendDownloadCounter();
 			static string connect(const CFlyServerKeyArray& p_fileInfoArray, bool p_is_fly_set_query, bool p_is_ext_info_for_single_file = false);
 			static string postQuery(bool p_is_set, 
 				                    bool p_is_stat_server, 

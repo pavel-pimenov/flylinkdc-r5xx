@@ -595,15 +595,6 @@ Activar la opción DHT?</String>
 		<String Name="FlyupdateSuccess">Actualización automática completada. Pulse OK para iniciar la aplicación FlylinkDC++</String>
 		<String Name="FlyupdateUpdating">Actualizando FlylinkDC++…</String>
 		<String Name="FlyupdateUsercancel">El usuario a cancelado la actualización de FlylinkDC++</String>
-		<String Name="Flyversion01">Soy un feliz usuario de FlylinkDC++. Usted puede serlo también</String>
-		<String Name="Flyversion02">rm-... ¿qué? No ... nunca más se supo de ella...</String>
-		<String Name="Flyversion03">La evolución de las especies: Animales --&gt; El hombre
--- Evolución de la ciencia: "La Tierra es plana" --&gt; "La Tierra es redonda"
--- Evolución de la distribución: DC++ --&gt; StrongDC++ --&gt; ApexDC++ --&gt; ApexDC++ SpeedMode y el nuevo StrongDC++ --&gt; FlylinkDC++</String>
-		<String Name="Flyversion04">Yo comparto, luego existo.</String>
-		<String Name="Flyversion05">He venido, he buscado, he encontrado...</String>
-		<String Name="Flyversion06">He venido, he compartido, he enviado...</String>
-		<String Name="Flyversion07">Puedo agregar varios usuarios al mismo archivo y descargar de ellos simuntáneamente :)</String>
 		<String Name="Folder">Carpeta</String>
 		<String Name="Foldername">Nombre de la carpeta</String>
 		<String Name="FoobarError">No se está ejecutando la versión compatible de Foobar2000 o bien algún componente de foo_winamp_spam no está instalado</String>

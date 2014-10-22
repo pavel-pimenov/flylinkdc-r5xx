@@ -138,7 +138,7 @@ class OperaColors
 				       );
 			}
 		}
-		static void FloodFill(CDC& hDC, int x1, int y1, int x2, int y2, COLORREF c1, COLORREF c2, bool light = true);
+		static void FloodFill(CDC& hDC, int x1, int y1, int x2, int y2, const COLORREF c1, const COLORREF c2, bool p_light = true);
 		static void EnlightenFlood(const COLORREF& clr, COLORREF& a, COLORREF& b);
 		static COLORREF TextFromBackground(COLORREF bg);
 		
@@ -165,7 +165,7 @@ class OperaColors
 //				FCIMapper(): c1(0),c2(0),bLight(false)
 //				{
 //				}
-			} mapper;
+			} m_mapper;
 			
 			int w;
 			int h;

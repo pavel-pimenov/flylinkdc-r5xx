@@ -546,7 +546,7 @@ LRESULT WaitingUsersFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 				{
 					if (BOOLSETTING(BOLD_WAITING_USERS))
 					{
-						setDirty();
+						setDirty(0);
 					}
 					updateStatus();
 					m_needsUpdateStatus = false;
@@ -565,7 +565,7 @@ LRESULT WaitingUsersFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 	return 0;
 }
 
-void WaitingUsersFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
+void WaitingUsersFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())

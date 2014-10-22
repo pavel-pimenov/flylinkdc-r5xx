@@ -29,25 +29,33 @@ namespace dht
 
 struct Search {
 
-	Search() : partial(false), stopping(false)
+	enum SearchType { TYPE_FILE = 1, TYPE_NODE = 3, TYPE_STOREFILE = 4 };   // standard types should match ADC protocol
+
+	Search(SearchType p_type,const string& p_term, const string& p_token) : 
+        m_term(p_term),
+        m_token(p_token),
+        m_type(p_type), 
+        partial(false), 
+        stopping(false),
+        m_filesize(0),
+        m_lifeTime(0)
 	{
 	}
 	
 	~Search();
 	
-	enum SearchType { TYPE_FILE = 1, TYPE_NODE = 3, TYPE_STOREFILE = 4 };   // standard types should match ADC protocol
 	
 	Node::Map possibleNodes;    // nodes where send search request soon to
 	Node::Map triedNodes;       // nodes where search request has already been sent to
 	Node::Map respondedNodes;   // nodes who responded to this search request
 	
 	string m_token;           // search identificator
-	string term;            // search term (TTH/CID)
-	uint64_t lifeTime;      // time when this search has been started //[!] Member variable 'Search::lifeTime' is not initialized in the constructor.
-	int64_t filesize;       // file size
-	SearchType type;        // search type
-	bool partial;           // is this partial file search?
-	bool stopping;          // search is being stopped
+	string m_term;            // search term (TTH/CID)
+	uint64_t m_lifeTime;      // time when this search has been started //[!] Member variable 'Search::lifeTime' is not initialized in the constructor.
+	int64_t  m_filesize;      // file size
+	SearchType m_type;        // search type
+	bool partial;             // is this partial file search?
+	bool stopping;            // search is being stopped
 	
 	/** Processes this search request */
 	void process();
@@ -85,7 +93,7 @@ class SearchManager :
 	
 		/** Running search operations */
 		typedef std::unordered_map<string*, Search*, noCaseStringHash, noCaseStringEq> SearchMap;
-		SearchMap searches;
+		SearchMap m_searches;
 		
 		/** Locks access to "searches" */
 		FastCriticalSection cs; // [!] IRainman: use spin lock here.

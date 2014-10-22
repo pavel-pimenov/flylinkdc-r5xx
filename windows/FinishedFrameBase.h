@@ -178,7 +178,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 					FinishedItem* entry = reinterpret_cast<FinishedItem*>(lParam);
 					addEntry(entry); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=110193 + http://www.flickr.com/photos/96019675@N02/11199325634/
 					if (SettingsManager::get(boldFinished))
-						setDirty();
+						setDirty(1);
 					updateStatus();
 				}
 				break;
@@ -540,7 +540,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			ctrlList.EnsureVisible(loc, FALSE);
 		}
 		
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) noexcept
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 		{
 			dcassert(!ClientManager::isShutdown());
 			if (!ClientManager::isShutdown())

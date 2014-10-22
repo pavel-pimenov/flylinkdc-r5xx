@@ -147,6 +147,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		
 		typedef std::unordered_map<string, Client*, noCaseStringHash, noCaseStringEq> List;
 		
+		virtual void resetAntivirusInfo() = 0;
 		virtual void connect();
 		virtual void disconnect(bool graceless);
 		
@@ -249,7 +250,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		
 		void updated(const OnlineUserPtr& aUser)
 		{
-			fire(ClientListener::UserUpdated(), this, aUser);    // !SMT!-fix
+			fire(ClientListener::UserUpdated(), aUser);    // !SMT!-fix
 		}
 		
 		static int getTotalCounts()
@@ -430,7 +431,23 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		*/
 	private:
 		uint32_t m_message_count;
+		
+		struct CFlyFloodCommand
+		{
+			std::vector<string> m_command;
+			int64_t  m_start_tick;
+			int64_t  m_tick;
+			uint32_t m_count;
+			bool m_is_ban;
+			CFlyFloodCommand() : m_start_tick(0), m_tick(0), m_count(0), m_is_ban(false)
+			{
+			}
+		};
+		typedef boost::unordered_map<string, CFlyFloodCommand> CFlyFloodCommandMap;
+		CFlyFloodCommandMap m_flood_detect;
 	protected:
+		bool isFloodCommand(const string& p_command, const string& p_line);
+		
 		OnlineUserPtr m_myOnlineUser;
 		OnlineUserPtr m_hubOnlineUser;
 	public:

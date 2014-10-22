@@ -101,7 +101,7 @@ class TigerHash;
 
 typedef HashValue<TigerHash> TTHValue;
 
-class UnZFilter;
+//class UnZFilter;
 
 class Upload;
 typedef Upload* UploadPtr;
