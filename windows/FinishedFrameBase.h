@@ -178,7 +178,9 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 					FinishedItem* entry = reinterpret_cast<FinishedItem*>(lParam);
 					addEntry(entry); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=110193 + http://www.flickr.com/photos/96019675@N02/11199325634/
 					if (SettingsManager::get(boldFinished))
+					{
 						setDirty(1);
+					}
 					updateStatus();
 				}
 				break;
@@ -199,18 +201,6 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 					updateStatus();
 				}
 				break;
-				/* TODO
-				case SPEAK_REMOVE:
-				{
-				    updateStatus();
-				}
-				break;
-				case SPEAK_REMOVE_ALL:
-				{
-				    ctrlList.DeleteAndCleanAllItems(); // [!] IRainman
-				    updateStatus();
-				}
-				*/
 				break;
 			}
 			return 0;
@@ -519,6 +509,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			ctrlStatus.SetText(1, (Util::toStringW(l_listCount) + _T(' ') + TSTRING(ITEMS)).c_str());
 			ctrlStatus.SetText(2, Util::formatBytesW(totalBytes).c_str());
 			ctrlStatus.SetText(3, (Util::formatBytesW(l_listCount > 0 ? totalSpeed / l_listCount : 0) + _T('/') + WSTRING(S)).c_str());
+			setCountMessages(l_listCount);
 		}
 		
 		void updateList(const FinishedItemList& fl)

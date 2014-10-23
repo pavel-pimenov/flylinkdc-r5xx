@@ -50,7 +50,7 @@ static const Tags g_AllLinks[] =
 
 
 #ifdef IRAINMAN_USE_BB_CODES
-static const Tags l_StartBBTag[] =
+static const Tags g_StartBBTag[] =
 {
 	Tags(_T("[code]")), // TODO отключать форматирование
 	Tags(_T("[b]")),
@@ -61,7 +61,7 @@ static const Tags l_StartBBTag[] =
 	Tags(_T("[color=")),
 };
 
-static const Tags l_EndBBTag[] =
+static const Tags g_EndBBTag[] =
 {
 	Tags(_T("[/code]")), // TODO отключать форматирование
 	Tags(_T("[/b]")), //-V112
@@ -294,7 +294,6 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message)
 	}
 	
 	if (bUseEmo)
-	
 	{
 		const CAGEmotion::Array& Emoticons = CAGEmotionSetup::g_pEmotionsSetup->getEmoticonsArray();
 		uint8_t l_count_smiles = 0;
@@ -484,14 +483,14 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly&
 			lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
 			//Intervals l_NonFormatIntervals; TODO
 			//tstring l_TextInCode;
-			for (size_t i = 0; i < _countof(l_StartBBTag); i++)
+			for (size_t i = 0; i < _countof(g_StartBBTag); i++)
 			{
-				const CAtlString currentTag(WinUtil::toAtlString(l_StartBBTag[i].tag)); // TODO: rewrite with out me!
+				const CAtlString currentTag(WinUtil::toAtlString(g_StartBBTag[i].tag)); // TODO: rewrite with out me!
 				LONG BBStart = sMsgLower.Find(currentTag, 0);
 				while (BBStart != -1)
 				{
 					LONG BBEnd;
-					const CAtlString currentTagEnd(WinUtil::toAtlString(l_EndBBTag[i].tag));
+					const CAtlString currentTagEnd(WinUtil::toAtlString(g_EndBBTag[i].tag));
 					const LONG BBEndTerminate = sMsgLower.Find(currentTagEnd, BBStart + currentTag.GetLength());
 					if (BBEndTerminate > BBStart)
 					{
@@ -507,7 +506,7 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly&
 					{
 						// TODO "code" tags
 						//bool l_needsToFormat = true;
-						//const long rtfEndIncludeTag = rtfEnd + l_EndBBTag[i].size;
+						//const long rtfEndIncludeTag = rtfEnd + g_EndBBTag[i].size;
 						//for(CIterIntervals j = l_NonFormatIntervals.cbegin(); j != l_NonFormatIntervals.cend(); ++j)
 						//{
 						//  if ((rtfStart > j->start && rtfStart < j->end) ||
@@ -528,9 +527,9 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly&
 						
 						//l_TextInCode.resize(BBEnd - BBStart + 1);
 						const LONG l_StartIncludeTag = lSelBegin + BBStart;
-						const LONG l_Start = l_StartIncludeTag + l_StartBBTag[i].tag.size(); //-V104 //-V103
+						const LONG l_Start = l_StartIncludeTag + g_StartBBTag[i].tag.size(); //-V104 //-V103
 						const LONG l_Stop = lSelBegin + BBEnd;
-						const LONG l_StopIncludeTag = l_Stop + l_EndBBTag[i].tag.size(); //-V104 //-V103
+						const LONG l_StopIncludeTag = l_Stop + g_EndBBTag[i].tag.size(); //-V104 //-V103
 						
 						// Selection text include tag
 						SetSel(l_StartIncludeTag, l_StopIncludeTag);
@@ -621,11 +620,11 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly&
 									//temp.dwEffects |= CFE_HIDDEN;
 									
 									// Hide end tags
-									//SetSel(rtfEnd, l_EndBBTag[i].size);
+									//SetSel(rtfEnd, g_EndBBTag[i].size);
 									//SetSelectionCharFormat(temp);
 									
 									// Hide start tags
-									//SetSel(rtfStart, l_StartBBTag[i].size);
+									//SetSel(rtfStart, g_StartBBTag[i].size);
 									//SetSelectionCharFormat(temp);
 								}
 								while (false);  // [!] SSA - need this to exit this block
@@ -636,10 +635,10 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly&
 							ReplaceSel(_T(""));
 							
 						// Clean end tags
-						sMsgLower.Delete(BBEnd, l_EndBBTag[i].tag.size()); //-V107
+						sMsgLower.Delete(BBEnd, g_EndBBTag[i].tag.size()); //-V107
 						
 						// Clean start tags
-						sMsgLower.Delete(BBStart, l_StartBBTag[i].tag.size() + colorDelta); //-V107
+						sMsgLower.Delete(BBStart, g_StartBBTag[i].tag.size() + colorDelta); //-V107
 					}
 					BBStart = sMsgLower.Find(currentTag, BBStart);
 				}

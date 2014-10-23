@@ -61,11 +61,7 @@ class UserConnectionListener
 		virtual void on(Data, UserConnection*, const uint8_t*, size_t) noexcept { }
 		virtual void on(Failed, UserConnection*, const string&) noexcept { }
 		virtual void on(ProtocolError, UserConnection*, const string&) noexcept { }
-		virtual void on(CLock, UserConnection*, const string&
-#ifdef IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
-		                , const string&
-#endif
-		               ) noexcept { }
+		virtual void on(CLock, UserConnection*, const string&) noexcept { }
 		virtual void on(Key, UserConnection*, const string&) noexcept { }
 		virtual void on(Direction, UserConnection*, const string&, const string&) noexcept { }
 		virtual void on(Get, UserConnection*, const string&, int64_t) noexcept { }

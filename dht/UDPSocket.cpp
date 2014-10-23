@@ -55,8 +55,8 @@ UDPSocket::UDPSocket(void) : m_stop(false), port(0), delay(100)
 UDPSocket::~UDPSocket(void)
 {
 	disconnect();
-	
-	for_each(sendQueue.begin(), sendQueue.end(), DeleteFunction());
+	FastLock l(cs);
+	for_each(m_sendQueue.begin(), m_sendQueue.end(), DeleteFunction());
 	
 #ifdef _DEBUG
 	dcdebug("DHT stats, received: %d bytes, sent: %d bytes\n", m_receivedBytes, m_sentBytes);
@@ -201,7 +201,7 @@ void UDPSocket::checkIncoming()
 	}
 }
 
-void UDPSocket::checkOutgoing(uint64_t& timer)
+void UDPSocket::checkOutgoing(uint64_t& p_timer)
 {
 	std::unique_ptr<Packet> packet;
 	const uint64_t now = GET_TICK();
@@ -209,18 +209,18 @@ void UDPSocket::checkOutgoing(uint64_t& timer)
 	{
 		FastLock l(cs);
 		
-		size_t queueSize = sendQueue.size();
-		if (queueSize && (now - timer > delay))
+		size_t queueSize = m_sendQueue.size();
+		if (queueSize && (now - p_timer > delay))
 		{
 			// take the first packet in queue
-			packet.reset(sendQueue.front());
-			sendQueue.pop_front();
+			packet.reset(m_sendQueue.front());
+			m_sendQueue.pop_front();
 			
 			//dcdebug("Sending DHT %s packet: %d bytes, %d ms, queue size: %d\n", packet->cmdChar, packet->length, (uint32_t)(now - timer), queueSize);
 			
 			if (queueSize > 9)
 				delay = 1000 / queueSize;
-			timer = now;
+			p_timer = now;
 		}
 	}
 	
@@ -228,7 +228,13 @@ void UDPSocket::checkOutgoing(uint64_t& timer)
 	{
 		try
 		{
-			unsigned long length = compressBound(packet->data.length()) + 2; //-V614
+#ifdef _DEBUG
+                        // странное падение при сжатии вот такого пакета
+                        // https://drdump.com/DumpGroup.aspx?DumpGroupID=228387&Login=guest
+			//packet->data = "URES DS5RRQOP5FKFTIGF3BHYEQQQSM6FDABAD5TCO5Y TO3417135716 NX<Nodes><Node\\sCID=\"DVZ7TJXSEYWFQULWOZ4G55IZ4HSOHTLDRKQR34I\"\\sI4=\"188.32.126.183\"\\sU4=\"6250\"/><Node\\sCID=\"DVS37KT4QYHB7W6EJ5M4KQXSEO66KY6QGQMPSMQ\"\\sI4=\"37.205.54.151\"\\sU4=\"6250\"/><Node\\sCID=\"DVWMKJVLO5FUIGEIW67WLJZEB43TKERJZ6YMYYQ\"\\sI4=\"79.111.36.195\"\\sU4=\"6250\"/><Node\\sCID=\"DUTVSK227K7HRQ5J2WNI7KFDVHYOB4OOQA2ALPQ\"\\sI4=\"89.176.50.203\"\\sU4=\"6250\"/></Nodes> UKSI7RCGGEDUTT7QC6STDOMZ47AA5OPAOMFSOG5GA";
+#endif
+
+			unsigned long length = compressBound(packet->data.length()) + 20; //-V614
 #if 0
 			{
 				LogManager::getInstance()->dht_message("[UDPSocket::checkOutgoing()] before compress " 
@@ -238,7 +244,7 @@ void UDPSocket::checkOutgoing(uint64_t& timer)
 					" data = " + packet->data );
 			}
 #endif
-			std::unique_ptr<uint8_t[]> data(new uint8_t[length]); // 17662   [!] PVS  V554    Incorrect use of unique_ptr. The memory allocated with 'new []' will be cleaned using 'delete'.
+			std::unique_ptr<uint8_t[]> data(new uint8_t[length]); 
 
 			// compress packet
 			compressPacket(packet->data, data.get(), length);
@@ -274,7 +280,7 @@ int UDPSocket::run()
 #endif
 	
 	// antiflood variables
-	uint64_t timer = GET_TICK();
+	uint64_t l_timer = GET_TICK();
 	
 	while (!m_stop && !ClientManager::isShutdown())
 	{
@@ -283,7 +289,7 @@ int UDPSocket::run()
 			if(ClientManager::isShutdown())
 				break;
 			// check outgoing queue
-			checkOutgoing(timer);
+			checkOutgoing(l_timer);
 			
 			if(ClientManager::isShutdown())
 				break;
@@ -350,7 +356,7 @@ void UDPSocket::send(AdcCommand& cmd, const string& ip, uint16_t p_port, const C
 	
 	{
 	FastLock l(cs);
-	sendQueue.push_back(p);
+	m_sendQueue.push_back(p);
 }
 	string l_udp_key_log;
 	if(!udpKey.isZero())

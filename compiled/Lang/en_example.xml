@@ -294,6 +294,7 @@
 	<string name="CopyEmailAddress">Copy email address</string>
 	<string name="CopyGeoLocation">Copy location</string>
 	<string name="CopyExactShare">Copy Exact share</string>
+	<string name="CopyAntivirusDbInfo">Copy Antivirus DB info</string>
 	<string name="CopyFullMagnetLink">Copy full magnet link</string>
 	<string name="CopyHub">Copy address to clipboard</string>
 	<string name="CopyIp">Copy IP</string>

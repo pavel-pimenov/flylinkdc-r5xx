@@ -37,9 +37,6 @@
     <ClCompile Include="windows\ChatCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="windows\ClientProfileDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="windows\ClientsPage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -47,9 +44,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="windows\DefaultClickPage.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="windows\DetectionEntryDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="windows\DirectoryListingFrm.cpp">
@@ -745,9 +739,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="windows\ddraw.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="windows\DetectionEntryDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="windows\iTunesCOMInterface.h">

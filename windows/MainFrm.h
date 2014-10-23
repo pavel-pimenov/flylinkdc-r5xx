@@ -700,7 +700,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		
 		typedef BOOL (CALLBACK* LPFUNC)(UINT message, DWORD dwFlag); // [+] InfinitySky.
 		
-		CComPtr<ITaskbarList3> taskbarList; // [+] InfinitySky.
+		CComPtr<ITaskbarList3> m_taskbarList; // [+] InfinitySky.
 		
 		/** Was the window maximized when minimizing it? */
 		bool m_maximized;
@@ -741,7 +741,10 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		bool m_stopexit;
 		//int tabPos;// [-] IRainman
 		bool m_menuclose; // [+] InfinitySky.
+#ifdef FLYLINKDC_USE_EXTERNAL_MAIN_ICON
 		bool m_custom_app_icon_exist; // [+] InfinitySky.
+#endif
+		void SetOverlayIcon();
 		bool m_closing;
 		uint8_t m_statusSizes[STATUS_PART_LAST];
 		tstring m_statusText[STATUS_PART_LAST];

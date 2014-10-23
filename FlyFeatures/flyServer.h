@@ -223,7 +223,9 @@ public:
   static string   g_support_hub;
 #endif // USE_SUPPORT_HUB
   static string   g_faq_search_does_not_work;
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
   static string   g_antivirus_db_url;
+#endif
 };
 //=======================================================================
 extern CFlyServerConfig g_fly_server_config; // TODO: cleanup call of this.
@@ -392,6 +394,7 @@ class CFlyServerAdapter
 			static bool pushStatistic(const bool p_is_sync_run);
 #endif
 			static bool pushError(const string& p_error);
+      static void pushSyslogError(const string& p_error);
 			static bool pushTestPort(const string& p_magic,		
 				const std::vector<unsigned short>& p_udp_port,
 				const std::vector<unsigned short>& p_tcp_port,

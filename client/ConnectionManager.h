@@ -371,11 +371,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		void on(Connected, UserConnection*) noexcept;
 		void on(Failed, UserConnection*, const string&) noexcept;
 		void on(ProtocolError, UserConnection*, const string&) noexcept;
-		void on(CLock, UserConnection*, const string&
-#ifdef IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
-		        , const string&
-#endif
-		       ) noexcept;
+		void on(CLock, UserConnection*, const string&) noexcept;
 		void on(Key, UserConnection*, const string&) noexcept;
 		void on(Direction, UserConnection*, const string&, const string&) noexcept;
 		void on(MyNick, UserConnection*, const string&) noexcept;

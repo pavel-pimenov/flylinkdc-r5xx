@@ -192,13 +192,6 @@ tstring UserInfo::getText(int p_col) const
 			return Text::toT(getIdentity().getEmail());
 		}
 #ifdef IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB
-# ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
-		case COLUMN_VERSION:
-		{
-			const auto l_cl = getIdentity().getStringParam("CL")
-			                  return Text::toT(l_cl.empty() ? getIdentity().getStringParam("VE") : l_cl);
-		}
-# endif
 		case COLUMN_MODE:
 		{
 			return (getIdentity().isTcpActive(getClient())) ? _T("A") : _T("P");
@@ -250,6 +243,7 @@ tstring UserInfo::getDownloadSpeed() const
 
 uint8_t UserInfo::getStateImageIndex() const
 {
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 	const auto l_type = getIdentity().m_virus_type;
 	if (l_type & ~Identity::VT_CALC)
 	{
@@ -264,12 +258,15 @@ uint8_t UserInfo::getStateImageIndex() const
 		if (l_type & Identity::VT_NICK)
 			return 2;
 	}
+#endif
 	return 0;
 }
 
 void UserInfo::calcVirusType()
 {
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 	getIdentityRW().calcVirusType();
+#endif
 }
 
 void UserInfo::calcLocation()

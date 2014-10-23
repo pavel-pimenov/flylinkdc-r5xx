@@ -93,6 +93,60 @@ void WINAPI invalidParameterHandler(const wchar_t*, const wchar_t*, const wchar_
 	//do nothing, this exist because vs2k5 crt needs it not to crash on errors.
 }
 #endif
+
+bool Util::locatedInSysPath(Util::SysPaths path, const string& currentPath) // [+] IRainman
+{
+	const string& l_path = g_sysPaths[path];
+	dcassert(!l_path.empty());
+	return !l_path.empty() && strnicmp(currentPath, l_path, l_path.size()) == 0;
+}
+
+void Util::intiProfileConfig()
+{
+	g_paths[PATH_USER_CONFIG] = getSysPath(APPDATA) + "FlylinkDC++" PATH_SEPARATOR_STR;
+# ifndef USE_SETTINGS_PATH_TO_UPDATA_DATA
+	g_paths[PATH_ALL_USER_CONFIG] = getSysPath(COMMON_APPDATA) + "FlylinkDC++" PATH_SEPARATOR_STR;
+# endif
+}
+
+void Util::MoveSettings()
+{
+// TODO - убрать копипаст с бэкапом
+	static const char* FileList[] =
+	{
+		"ADLSearch.xml",
+		"DCPlusPlus.xml",
+		"Favorites.xml",
+		"IPTrust.ini",
+#ifdef SSA_IPGRANT_FEATURE
+		"IPGrant.ini",
+#endif
+#ifdef PPA_INCLUDE_IPGUARD
+		"IPGuard.ini",
+#endif
+	};
+	const string bkpath = g_paths[PATH_USER_CONFIG];
+	const string& sourcepath = g_paths[PATH_EXE] + "Settings" PATH_SEPARATOR_STR;
+	File::ensureDirectory(bkpath);
+	for (size_t i = 0; i < _countof(FileList); ++i)
+	{
+		if (!File::isExist(bkpath + *FileList[i]) && File::isExist(sourcepath + FileList[i]))
+		{
+			try
+			{
+				File::copyFile(sourcepath + FileList[i], bkpath + FileList[i]);
+			}
+			catch (const FileException & e)
+			{
+				const string l_error = "Error [Util::MoveSettings] File::copyFile = sourcepath + FileList[i] = " + sourcepath + FileList[i]
+				                       + " , bkpath + FileList[i] = " + bkpath + FileList[i] + " error = " + e.getError();
+				LogManager::getInstance()->message(l_error);
+				CFlyServerAdapter::CFlyServerJSON::pushSyslogError("[BUG][12]  + " + l_error);
+			}
+		}
+	}
+}
+
 void Util::initialize()
 {
 	Text::initialize();
@@ -111,14 +165,17 @@ void Util::initialize()
 	GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_STHOUSAND, g_Dummy, 16);
 	g_nf.lpThousandSep = g_Dummy;
 	// [~] IRainman opt.
-#ifdef _WIN32
+	
 	LocalArray<TCHAR, MAX_PATH> buf;
 	::GetModuleFileName(NULL, buf.data(), MAX_PATH);
-	const string exePath = Util::getFilePath(Text::fromT(buf.data()));
+	g_paths[PATH_EXE] = Util::getFilePath(Text::fromT(buf.data()));
+	
 	// [+] IRainman: FlylinkDC system path init.
 #define SYS_WIN_PATH_INIT(path) \
 	if(::SHGetFolderPath(NULL, CSIDL_##path, NULL, SHGFP_TYPE_CURRENT, buf.data()) == S_OK) \
-		g_sysPaths[path] = Text::fromT(buf.data()) + PATH_SEPARATOR
+		g_sysPaths[path] = Text::fromT(buf.data()) + PATH_SEPARATOR; \
+	else \
+		dcassert(0);
 	
 	SYS_WIN_PATH_INIT(WINDOWS);
 	SYS_WIN_PATH_INIT(PROGRAM_FILESX86);
@@ -139,29 +196,50 @@ void Util::initialize()
 	// [~] IRainman: FlylinkDC system path init.
 	
 	// Global config path is FlylinkDC++ executable path...
-	g_paths[PATH_EXE] = exePath;
-	g_paths[PATH_GLOBAL_CONFIG] = exePath;
+#ifdef _DEBUG2 // Тестируем запрет доступа
+	g_paths[PATH_EXE] = "C:\\Program Files (x86)\\f\\";
+	g_paths[PATH_GLOBAL_CONFIG] = g_paths[PATH_EXE];
+#else
+	g_paths[PATH_GLOBAL_CONFIG] = g_paths[PATH_EXE];
+#endif
 #ifdef USE_APPDATA //[+] NightOrion
-	if ((File::isExist(exePath + "Settings" PATH_SEPARATOR_STR "DCPlusPlus.xml")) || !(locatedInSysPath(PROGRAM_FILES, exePath) || locatedInSysPath(PROGRAM_FILESX86, exePath)))
+	if (File::isExist(g_paths[PATH_EXE] + "Settings" PATH_SEPARATOR_STR "DCPlusPlus.xml") ||
+	        !(locatedInSysPath(PROGRAM_FILES, g_paths[PATH_EXE]) || locatedInSysPath(PROGRAM_FILESX86, g_paths[PATH_EXE]))
+	   )
 	{
+		// Проверим права записи
 		g_paths[PATH_USER_CONFIG] = g_paths[PATH_GLOBAL_CONFIG] + "Settings" PATH_SEPARATOR_STR;
+		try
+		{
+			File l_f_ro_test(g_paths[PATH_USER_CONFIG] + ".flylinkdc-test-readonly.tmp", File::WRITE, File::CREATE | File::TRUNCATE);
+		}
+		catch (const FileException& e)
+		{
+			const DWORD l_error = GetLastError();
+			if (l_error == 5)
+			{
+				CFlyServerAdapter::CFlyServerJSON::pushSyslogError("[BUG][11] error create/write .flylinkdc-test-readonly.tmp + " + g_paths[PATH_USER_CONFIG]);
+				intiProfileConfig();
+				// Если возможно уносим настройки в профиль (если их тамеще нет)
+				MoveSettings();
+			}
+		}
 # ifndef USE_SETTINGS_PATH_TO_UPDATA_DATA
 		g_paths[PATH_ALL_USER_CONFIG] = g_paths[PATH_GLOBAL_CONFIG] + "Settings" PATH_SEPARATOR_STR;
 # endif
 	}
 	else
 	{
-		g_paths[PATH_USER_CONFIG] = getSysPath(APPDATA) + "FlylinkDC++" PATH_SEPARATOR_STR;
-# ifndef USE_SETTINGS_PATH_TO_UPDATA_DATA
-		g_paths[PATH_ALL_USER_CONFIG] = getSysPath(COMMON_APPDATA) + "FlylinkDC++" PATH_SEPARATOR_STR;
-# endif
+		intiProfileConfig();
 	}
 #else // USE_APPDATA
 	g_paths[PATH_USER_CONFIG] = g_paths[PATH_GLOBAL_CONFIG] + "Settings" PATH_SEPARATOR_STR;
 #endif //USE_APPDATA    
 	g_paths[PATH_LANGUAGES] = g_paths[PATH_GLOBAL_CONFIG] + "Lang" PATH_SEPARATOR_STR;
 	
+#ifdef FLYLINKDC_USE_EXTERNAL_MAIN_ICON
 	g_paths[PATH_EXTERNAL_ICO] = g_paths[PATH_GLOBAL_CONFIG] + "FlylinkDC.ico";//[+] IRainman
+#endif
 	
 	g_paths[PATH_THEMES] = g_paths[PATH_GLOBAL_CONFIG] + "Themes" PATH_SEPARATOR_STR;
 	
@@ -193,35 +271,7 @@ void Util::initialize()
 	
 	g_paths[PATH_DOWNLOADS] = getDownloadPath(CompatibilityManager::getDefaultPath());
 //	g_paths[PATH_RESOURCES] = exePath;
-	g_paths[PATH_WEB_SERVER] = exePath + "WEBserver" PATH_SEPARATOR_STR;
-	
-#else // _WIN32
-	g_paths[PATH_GLOBAL_CONFIG] = "/etc/";
-	const char* home_ = getenv("HOME");
-	string home = home_ ? Text::toUtf8(home_) : "/tmp/";
-	
-	g_paths[PATH_USER_CONFIG] = home + "/.flylinkdc++/";
-	
-	loadBootConfig();
-	
-	if (!File::isAbsolute(g_paths[PATH_USER_CONFIG]))
-	{
-		g_paths[PATH_USER_CONFIG] = g_paths[PATH_GLOBAL_CONFIG] + g_paths[PATH_USER_CONFIG];
-	}
-	
-	g_paths[PATH_USER_CONFIG] = validateFileName(g_paths[PATH_USER_CONFIG]);
-	
-	if (g_localMode)
-	{
-		// @todo implement...
-	}
-	
-	g_paths[PATH_USER_LOCAL] = g_paths[PATH_USER_CONFIG];
-	g_paths[PATH_RESOURCES] = "/usr/share/";
-	g_paths[PATH_LOCALE] = g_paths[PATH_RESOURCES] + "locale/";
-	g_paths[PATH_DOWNLOADS] = home + "/Downloads/";
-	
-#endif // _WIN32
+	g_paths[PATH_WEB_SERVER] = g_paths[PATH_EXE] + "WEBserver" PATH_SEPARATOR_STR;
 	
 	g_paths[PATH_FILE_LISTS] = g_paths[PATH_USER_LOCAL] + "FileLists" PATH_SEPARATOR_STR;
 	g_paths[PATH_HUB_LISTS] = g_paths[PATH_USER_LOCAL] + "HubLists" PATH_SEPARATOR_STR;
@@ -275,6 +325,7 @@ static int getFlagIndexByCode(uint16_t p_countryCode) // [!] IRainman: countryCo
 	return 0;
 }
 //==========================================================================
+#ifdef FLYLINKDC_USE_GEO_IP
 void Util::loadGeoIp()
 {
 	{
@@ -340,6 +391,7 @@ void Util::loadGeoIp()
 		}
 	}
 }
+#endif
 
 void customLocationLog(const string& p_line, const string& p_error) // [+] IRainman
 {
@@ -1750,11 +1802,13 @@ tstring Util::CustomNetworkIndex::getDescription() const
 		const CFlyLocationDesc l_res =  CFlylinkDBManager::getInstance()->get_location_from_cache(m_location_cache_index);
 		return l_res.m_description;
 	}
+#ifdef FLYLINKDC_USE_GEO_IP
 	else if (m_country_cache_index > 0)
 	{
 		const CFlyLocationDesc l_res =  CFlylinkDBManager::getInstance()->get_country_from_cache(m_country_cache_index);
 		return l_res.m_description;
 	}
+#endif
 	else
 	{
 		return Util::emptyStringT;
@@ -1773,6 +1827,7 @@ int16_t Util::CustomNetworkIndex::getFlagIndex() const
 	}
 }
 //======================================================================================================================================
+#ifdef FLYLINKDC_USE_GEO_IP
 int16_t Util::CustomNetworkIndex::getCountryIndex() const
 {
 	if (m_country_cache_index > 0)
@@ -1784,16 +1839,19 @@ int16_t Util::CustomNetworkIndex::getCountryIndex() const
 		return 0;
 	}
 }
+#endif
 //======================================================================================================================================
 Util::CustomNetworkIndex Util::getIpCountry(uint32_t p_ip)
 {
 	if (p_ip)
 	{
 		uint16_t l_country_index = 0;
+#ifdef FLYLINKDC_USE_GEO_IP
 		if (!Util::isPrivateIp(p_ip))
 		{
 			CFlylinkDBManager::getInstance()->get_country(p_ip, l_country_index);
 		}
+#endif 
 		int32_t  l_location_index = -1;
 		CFlylinkDBManager::getInstance()->get_location(p_ip, l_location_index);
 		if (l_location_index > 0)
@@ -2492,10 +2550,7 @@ void Util::BackupSettings()
 		"IPGrant.ini",
 #endif
 #ifdef PPA_INCLUDE_IPGUARD
-		"IPGuard.ini",
-#endif
-#ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
-		"Profiles.xml"
+		"IPGuard.ini"
 #endif
 	};
 	
@@ -2512,6 +2567,8 @@ void Util::BackupSettings()
 			}
 			catch (FileException &)
 			{
+				LogManager::getInstance()->message("Error File::copyFile = sourcepath + FileList[i] = " + sourcepath + FileList[i]
+				                                   + " , bkpath + FileList[i] = " + bkpath + FileList[i]);
 			}
 		}
 	}

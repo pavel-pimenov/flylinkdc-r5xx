@@ -99,6 +99,7 @@ std::map<string, CFlyClientStatistic > ClientManager::getClientStat()
 	return l_stat;
 }
 
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 void ClientManager::resetAntivirusInfo()
 {
 	webrtc::ReadLockScoped l(*g_csClients);
@@ -107,6 +108,8 @@ void ClientManager::resetAntivirusInfo()
 		i->second->resetAntivirusInfo();
 	}
 }
+#endif
+
 size_t ClientManager::getTotalUsers()
 {
 	size_t users = 0;
@@ -287,6 +290,7 @@ StringList ClientManager::getHubNames(const CID& cid, const string& hintUrl, boo
 //[+]FlylinkDC
 StringList ClientManager::getAntivirusNicks(const CID& p_cid)
 {
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 	StringSet ret;
 	webrtc::ReadLockScoped l(*g_csOnlineUsers); // [+] IRainman opt.
 	const OnlinePairC op = g_onlineUsers.equal_range(p_cid);
@@ -298,6 +302,9 @@ StringList ClientManager::getAntivirusNicks(const CID& p_cid)
 		}
 	}
 	return StringList(ret.begin(), ret.end());
+#else
+	return StringList();
+#endif
 }
 StringList ClientManager::getNicks(const CID& p_cid, const string& hintUrl, bool priv)
 {
@@ -1521,13 +1528,8 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl)
 		{
 			id.setFakeCardBit(Identity::CHECKED, true);
 		}
-#ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
-		if (report.empty())
-			report = id.updateClientType(*ou);
-		else
-#endif
-			id.updateClientType(*ou);
-			
+		id.updateClientType(*ou);
+		
 		client = &(ou->getClient());
 	}
 	client->updated(ou);
@@ -1546,11 +1548,7 @@ void ClientManager::setClientStatus(const UserPtr& p, const string& aCheatString
 			return;
 			
 		ou = i->second;
-#ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
-		report = ou->getIdentity().updateClientType(*ou);
-#else
 		ou->getIdentity().updateClientType(*ou);
-#endif
 		if (!aCheatString.empty())
 		{
 			report += ou->getIdentity().setCheat(ou->getClientBase(), aCheatString, aBadClient);
@@ -1563,29 +1561,6 @@ void ClientManager::setClientStatus(const UserPtr& p, const string& aCheatString
 	client->updated(ou);
 	cheatMessage(client, report);
 }
-
-#ifdef IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
-void ClientManager::setPkLock(const UserPtr& p
-                              , const string& aPk, const string& aLock
-                             )
-{
-	Client *client; // !SMT!-fix
-	OnlineUserPtr ou;
-	{
-		webrtc::ReadLockScoped l(*g_csOnlineUsers);
-		OnlineIterC i = g_onlineUsers.find(p->getCID());
-		if (i == g_onlineUsers.end())
-			return;
-		ou = i->second;
-#ifdef IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
-		ou->getIdentity().setStringParam("PK", aPk);
-		ou->getIdentity().setStringParam("LO", aLock);
-#endif
-		client = &(ou->getClient()); // !SMT!-fix
-	}
-	client->updated(ou);
-}
-#endif // IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
 
 void ClientManager::setSupports(const UserPtr& p, StringList & aSupports, const uint8_t knownUcSupports) // [!] IRainamn fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
 {
@@ -1609,15 +1584,6 @@ void ClientManager::setSupports(const UserPtr& p, StringList & aSupports, const 
 		// [~] IRainman fix.
 	}
 }
-#ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
-void ClientManager::setGenerator(const UserPtr& p, const string& aGenerator)
-{
-	webrtc::ReadLockScoped l(*g_csOnlineUsers);
-	OnlineIterC i = g_onlineUsers.find(p->getCID());
-	if (i != g_onlineUsers.end())
-		i->second->getIdentity().setStringParam("GE", aGenerator);
-}
-#endif
 void ClientManager::setUnknownCommand(const UserPtr& p, const string& aUnknownCommand)
 {
 	webrtc::ReadLockScoped l(*g_csOnlineUsers);

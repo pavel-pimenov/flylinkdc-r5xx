@@ -153,29 +153,8 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 	{
 		if (!param.empty())
 		{
-#ifdef IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
-			x = param.find(" Pk=");
-			if (x != string::npos)
-			{
-				fire(UserConnectionListener::CLock(), this, param.substr(0, x), param.substr(x + 4));
-			}
-			else
-			{
-				// Workaround for faulty linux clients...
-				x = param.find(' ');
-				if (x != string::npos)
-				{
-					fire(UserConnectionListener::CLock(), this, param.substr(0, x), Util::emptyString);
-				}
-				else
-				{
-					fire(UserConnectionListener::CLock(), this, param, Util::emptyString);
-				}
-			}
-#else // IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
 			x = param.find(' ');
 			fire(UserConnectionListener::CLock(), this, (x != string::npos) ? param.substr(0, x) : param);
-#endif // IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
 		}
 	}
 	else if (cmd == "Send")

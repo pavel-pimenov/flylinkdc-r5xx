@@ -86,10 +86,15 @@ void AdcHub::getUserList(OnlineUserList& p_list) const
 }
 void AdcHub::resetAntivirusInfo()
 {
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
+	webrtc::ReadLockScoped l(*m_cs);
 	for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 	{
 		i->second->getIdentity().resetAntivirusInfo();
 	}
+#else
+	dcassert(0);
+#endif
 }
 OnlineUserPtr AdcHub::findUser(const string& aNick) const
 {

@@ -299,6 +299,7 @@ enum Strings   // @DontAdd
 	COPY_EMAIL_ADDRESS, // "Copy email address"
 	COPY_GEO_LOCATION, // "Copy location"
 	COPY_EXACT_SHARE, // "Copy Exact share"
+	COPY_ANTIVIRUS_DB_INFO, // "Copy Antivirus DB info"
 	COPY_FULL_MAGNET_LINK, // "Copy full magnet link"
 	COPY_HUB, // "Copy address to clipboard"
 	COPY_IP, // "Copy IP"

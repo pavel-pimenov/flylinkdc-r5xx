@@ -455,6 +455,9 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	ctrlResults.setFlickerFree(Colors::bgBrush);
 	ctrlResults.setColumnOwnerDraw(COLUMN_LOCATION);
 	ctrlResults.setColumnOwnerDraw(COLUMN_ANTIVIRUS);
+#ifndef FLYLINKDC_USE_ANTIVIRUS_DB
+	ctrlResults.SetColumnWidth(COLUMN_ANTIVIRUS, 0);
+#endif
 	
 	ctrlHubs.InsertColumn(0, _T("Dummy"), LVCFMT_LEFT, LVSCW_AUTOSIZE, 0);
 	SET_LIST_COLOR(ctrlHubs);
@@ -2432,6 +2435,7 @@ LRESULT SearchFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL
 			ctrlStatus.SetText(3, (Util::toStringW(l_totalResult) + _T('/') + Util::toStringW(m_resultsCount) + _T(' ') + WSTRING(FILES)).c_str());
 			ctrlStatus.SetText(4, (Util::toStringW(m_droppedResults) + _T(' ') + TSTRING(FILTERED)).c_str());
 			m_needsUpdateStats = false;
+			setCountMessages(m_resultsCount);
 		}
 		break;
 		case QUEUE_STATS:
@@ -3062,12 +3066,14 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 				if (si->m_location.isKnown())
 				{
 					int l_step = 0;
+#ifdef FLYLINKDC_USE_GEO_IP
 					if (BOOLSETTING(ENABLE_COUNTRYFLAG))
 					{
 						const POINT ps = { rc.left, top };
 						g_flagImage.DrawCountry(cd->nmcd.hdc, si->m_location, ps);
 						l_step += 25;
 					}
+#endif
 					const POINT p = { rc.left + l_step, top };
 					if (si->m_location.getFlagIndex() > 0)
 					{

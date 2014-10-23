@@ -414,7 +414,10 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 		COMMAND_ID_HANDLER(IDC_REPORT, onReport)
 		COMMAND_ID_HANDLER(IDC_CONNECT, onConnectFav)
 		COMMAND_ID_HANDLER(IDC_COPY_NICK, onCopyUserInfo)
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		COMMAND_ID_HANDLER(IDC_COPY_EXACT_SHARE, onCopyUserInfo)
+#endif
+		COMMAND_ID_HANDLER(IDC_COPY_ANTIVIRUS_DB_INFO, onCopyUserInfo)
 		COMMAND_ID_HANDLER(IDC_COPY_APPLICATION, onCopyUserInfo)
 		COMMAND_ID_HANDLER(IDC_COPY_TAG, onCopyUserInfo)
 		COMMAND_ID_HANDLER(IDC_COPY_CID, onCopyUserInfo)
@@ -549,10 +552,6 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			            {
 			                sCopy += "\tE-Mail: " + id.getEmail() + "\r\n" +
 			                         "\tClient Type: " + Util::toString(id.getClientType()) + "\r\n" +
-			#ifdef IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
-			                         "\tPk String: " + id.getStringParam("PK") + "\r\n" +
-			                         "\tLock: " + id.getStringParam("LO") + "\r\n" +
-			#endif
 			                         "\tMode: " + (id.isTcpActive(&id.getClient()) ? 'A' : 'P') + "\r\n";
 			            }
 			            sCopy += "\t" + STRING(SLOTS) + ": " + Util::toString(su->getSlots()) + "\r\n";
@@ -800,10 +799,6 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 		{
 			dcassert(_debugIsClean);
 			dcdrun(_debugIsClean = false;)
-			__if_not_exists(T::getUserList) // ??
-			{
-				dcassert(m_selectedUser);
-			}
 			
 			if (m_selectedUser)
 			{
@@ -992,20 +987,6 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 					p_menu.AppendMenu(MF_STRING, IDC_PRIVATE_MESSAGE, CTSTRING(SEND_PRIVATE_MESSAGE));
 					p_menu.AppendMenu(MF_SEPARATOR);
 				}
-				/* TODO: support send PM to multiply users.
-				else
-				{
-				    __if_exists(T::getUserList)
-				    {
-				        const auto count = ((T*)this)->getUserList().GetSelectedCount();
-				        if (count > 1 && count <= 25)
-				        {
-				            p_menu.AppendMenu(MF_STRING, IDC_PRIVATE_MESSAGE, CTSTRING(SEND_PUBLIC_MESSAGE)); // SEND_PRIVATE_MESSAGE
-				            p_menu.AppendMenu(MF_SEPARATOR);
-				        }
-				    }
-				}
-				*/
 			}
 		}
 		
@@ -1327,6 +1308,7 @@ class FlagImage : public BaseImageList
 		}
 		void init();
 		using BaseImageList::Draw;
+#ifdef FLYLINKDC_USE_GEO_IP
 		void DrawCountry(HDC p_DC, const Util::CustomNetworkIndex& p_country, const POINT& p_pt)
 		{
 			if (p_country.getCountryIndex() > 0)
@@ -1334,6 +1316,7 @@ class FlagImage : public BaseImageList
 				Draw(p_DC, p_country.getCountryIndex(), p_pt);
 			}
 		}
+#endif
 		void DrawLocation(HDC p_DC, const Util::CustomNetworkIndex& p_location, const POINT& p_pt)
 		{
 			Draw(p_DC, p_location.getFlagIndex() + m_flagImageCount, p_pt);

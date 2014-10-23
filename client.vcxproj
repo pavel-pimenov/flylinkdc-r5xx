@@ -503,14 +503,12 @@
     <ClCompile Include="client\CID.cpp" />
     <ClCompile Include="client\Client.cpp" />
     <ClCompile Include="client\ClientManager.cpp" />
-    <ClCompile Include="client\ClientProfileManager.cpp" />
     <ClCompile Include="client\CompatibilityManager.cpp" />
     <ClCompile Include="client\ConnectionManager.cpp" />
     <ClCompile Include="client\ConnectivityManager.cpp" />
     <ClCompile Include="client\CryptoManager.cpp" />
     <ClCompile Include="client\DCPlusPlus.cpp" />
     <ClCompile Include="client\DebugManager.cpp" />
-    <ClCompile Include="client\DetectionManager.cpp" />
     <ClCompile Include="client\DirectoryListing.cpp" />
     <ClCompile Include="client\Download.cpp" />
     <ClCompile Include="client\DownloadManager.cpp" />
@@ -1135,7 +1133,6 @@
     <ClInclude Include="client\compiler_flylinkdc.h" />
     <ClInclude Include="client\ConnectivityManager.h" />
     <ClInclude Include="client\cperformance.h" />
-    <ClInclude Include="client\DetectionEntry.h" />
     <ClInclude Include="client\HintedUser.h" />
     <ClInclude Include="client\idna\idna.h" />
     <ClInclude Include="client\idna\punycode.h" />
@@ -1170,14 +1167,12 @@
     <ClInclude Include="client\ClientManager.h" />
     <ClInclude Include="client\ClientManagerListener.h" />
     <ClInclude Include="client\compiler.h" />
-    <ClInclude Include="client\ClientProfileManager.h" />
     <ClInclude Include="client\ConnectionManager.h" />
     <ClInclude Include="client\ConnectionManagerListener.h" />
     <ClInclude Include="client\CryptoManager.h" />
     <ClInclude Include="client\DCPlusPlus.h" />
     <ClInclude Include="client\debug.h" />
     <ClInclude Include="client\DebugManager.h" />
-    <ClInclude Include="client\DetectionManager.h" />
     <ClInclude Include="client\DirectoryListing.h" />
     <ClInclude Include="client\Download.h" />
     <ClInclude Include="client\DownloadManager.h" />

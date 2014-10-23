@@ -451,10 +451,6 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 					user = ClientManager::getUser(l_CID, true);
 					list->setHintedUser(HintedUser(user, Util::emptyString));
 				}
-#ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
-				const string& generator = getAttrib(attribs, sGenerator, 2);
-				ClientManager::getInstance()->setGenerator(user, generator);
-#endif
 			}
 		}
 		const string& l_getIncludeSelf = getAttrib(attribs, sIncludeSelf, 2);

@@ -29,10 +29,6 @@
 #include "MappingManager.h"
 #include "ConnectivityManager.h"
 #include "UserManager.h"
-#ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
-#include "ClientProfileManager.h"
-#endif
-#include "DetectionManager.h"
 #include "WebServerManager.h"
 #include "ThrottleManager.h"
 
@@ -110,7 +106,9 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	// LOAD_STEP("Fly server", g_fly_server_config.loadConfig());
 	
 	LOAD_STEP("SQLite database init... Please wait!!!", CFlylinkDBManager::newInstance());
+#ifdef FLYLINKDC_USE_GEO_IP
 	LOAD_STEP("Geo IP", Util::loadGeoIp());
+#endif
 	
 	LOAD_STEP("Custom Locations", Util::loadCustomlocations());
 	
@@ -157,30 +155,13 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	ConnectivityManager::newInstance();
 	MappingManager::newInstance();
 	//DebugManager::newInstance(); [-] IRainman opt.
-#ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
-	DetectionManager::newInstance();
-#endif
-#ifdef IRAINMAN_INCLUDE_OLD_CLIENT_PROFILE_MANAGER
-	ClientProfileManager::newInstance();
-#endif
 	
 	LOAD_STEP_L(FAVORITE_HUBS, FavoriteManager::getInstance()->load());
 	
 // FLYLINKDC_CRYPTO_DISABLE
 	LOAD_STEP_L(CERTIFICATES, CryptoManager::getInstance()->loadCertificates());
 	
-#ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
-TODO:
-	please use LOAD_STEP_L
-	DetectionManager::getInstance()->load();
-#endif
-#ifdef IRAINMAN_INCLUDE_OLD_CLIENT_PROFILE_MANAGER
-TODO:
-	please use LOAD_STEP_L
-	ClientProfileManager::getInstance()->load();
-#endif
 	LOAD_STEP_L(WAITING_USERS, UploadManager::getInstance()->load()); // !SMT!-S
-//  UploadManager::getInstance()->load(false);//[+]necros
 
 	WebServerManager::newInstance();
 	
@@ -193,9 +174,6 @@ TODO:
 	StringPool::newInstance(); // [+] IRainman opt.
 #endif
 	
-	// ”нес запуск в поток
-	// ѕервый раз через 2 минуты и потом каждые 120 минут
-	// LOAD_STEP("Antivirus DB", CFlyServerConfig::SyncAntivirusDB());
 	
 #undef LOAD_STEP
 #undef LOAD_STEP_L
@@ -307,9 +285,6 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		MappingManager::deleteInstance();
 		ConnectivityManager::deleteInstance();
 		WebServerManager::deleteInstance();
-#ifdef IRAINMAN_INCLUDE_OLD_CLIENT_PROFILE_MANAGER
-		ClientProfileManager::deleteInstance();
-#endif
 #ifdef PPA_INCLUDE_IPGUARD
 		IpGuard::deleteInstance();
 #endif
@@ -346,14 +321,9 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		ClientManager::deleteInstance();
 		HashManager::deleteInstance();
 		CFlylinkDBManager::deleteInstance(); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1355
-		SettingsManager::deleteInstance();
 		TimerManager::deleteInstance();
-		//DebugManager::deleteInstance(); [-] IRainman opt.
-#ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
-		DetectionManager::deleteInstance();
-#endif
-		// ResourceManager::deleteInstance(); [-] IRainman opt.
 		LogManager::deleteInstance();
+		SettingsManager::deleteInstance();
 		
 		closelog();
 		::WSACleanup();

@@ -117,12 +117,16 @@ class Identity
 		Identity()
 		{
 			memzero(&m_bits_info, sizeof(m_bits_info));
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 			m_virus_type = 0;
+#endif
 		}
 		Identity(const UserPtr& ptr, uint32_t aSID) : user(ptr)
 		{
 			memzero(&m_bits_info, sizeof(m_bits_info));
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 			m_virus_type = 0;
+#endif
 			setSID(aSID);
 		}
 		
@@ -151,8 +155,9 @@ class Identity
 			FastUniqueLock l(g_cs);
 			user = rhs.user;
 			m_stringInfo = rhs.m_stringInfo;
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 			m_virus_type = rhs.m_virus_type;
-			m_virus_path = rhs.m_virus_path;
+#endif
 			memcpy(&m_bits_info, &rhs.m_bits_info, sizeof(m_bits_info));
 			return *this;
 		}
@@ -171,6 +176,9 @@ class Identity
 		GSMC(Description, "DE", CHANGES_DESCRIPTION) // ok
 		GSMC(Email, "EM", CHANGES_EMAIL) // ok
 		GSMC(IP6, "I6", CHANGES_IP) // ok
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
+		GSMC(VirusPath, "VP", CHANGES_DESCRIPTION)
+#endif
 		
 		void setNick(const string& p_nick) // "NI"
 		{
@@ -270,8 +278,9 @@ class Identity
 	private:
 		boost::asio::ip::address_v4 m_ip; // "I4" // [!] IRainman fix: needs here, details https://code.google.com/p/flylinkdc/issues/detail?id=1330
 	public:
+	
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		unsigned char m_virus_type;
-		string        m_virus_path; // TODO - унести в мапу?
 		void setVirusType(unsigned char p_virus_type_mask)
 		{
 			m_virus_type |= p_virus_type_mask;
@@ -285,8 +294,16 @@ class Identity
 			return m_virus_type & Identity::VT_CALC;
 		}
 		unsigned char calcVirusType();
+#endif
+		bool isVirusOnlySingleType(VirusType p_type) const
+		{
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
+			return (m_virus_type & ~Identity::VT_CALC) == p_type;
+#else
+			return false;
+#endif
+		}
 		string getVirusDesc() const;
-		
 // Нужна ли тут блокировка?
 // L: с одной стороны надо блокировать такие операции,
 // а с другой эти данные всегда изменяются в одном потоке,
@@ -616,19 +633,11 @@ class Identity
 		
 		string setCheat(const ClientBase& c, const string& aCheatDescription, bool aBadClient);
 		void getReport(string& p_report) const;
-#ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
-		string updateClientType(const OnlineUser& ou);
-		bool matchProfile(const string& aString, const string& aProfile) const;
-		
-		static string getVersion(const string& aExp, string aTag);
-		static string splitVersion(const string& aExp, string aTag, size_t part);
-#else
 		void updateClientType(const OnlineUser& ou)
 		{
 			setStringParam("CS", Util::emptyString);
 			setFakeCardBit(BAD_CLIENT , false);
 		}
-#endif // IRAINMAN_INCLUDE_DETECTION_MANAGER
 		
 		void getParams(StringMap& map, const string& prefix, bool compatibility, bool dht = false) const;
 		UserPtr& getUser()
@@ -685,11 +694,6 @@ class Identity
 #pragma pack(pop)
 		
 		static std::unique_ptr<webrtc::RWLockWrapper> g_rw_cs;
-#ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
-		string getDetectionField(const string& aName) const;
-		void getDetectionParams(StringMap& p);
-		string getPkVersion() const;
-#endif // IRAINMAN_INCLUDE_DETECTION_MANAGER
 };
 class OnlineUser :
 	public intrusive_ptr_base<OnlineUser>, public UserInfoBase

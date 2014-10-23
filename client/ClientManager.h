@@ -48,7 +48,9 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static void getConnectedHubInfo(HubInfoArray& p_hub_info);
 		static void getConnectedHubUrls(StringList& p_hub_url);
 #endif // IRAINMAN_NON_COPYABLE_CLIENTS_IN_CLIENT_MANAGER
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		static void resetAntivirusInfo();
+#endif
 		static size_t getTotalUsers(); // [+] IRainman.
 		static std::map<string, CFlyClientStatistic> getClientStat();
 		static StringList getHubs(const CID& cid, const string& hintUrl, bool priv);
@@ -354,15 +356,9 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		void connectionTimeout(const UserPtr& p);
 		void checkCheating(const UserPtr& p, DirectoryListing* dl);
 		void setClientStatus(const UserPtr& p, const string& aCheatString, const int aRawCommand, bool aBadClient);
-#ifdef IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
-		void setPkLock(const UserPtr& p, const string& aPk, const string& aLock);
-#endif
 		
 // [!] IRainamn fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
 		void setSupports(const UserPtr& p, StringList& aSupports, const uint8_t knownUcSupports);
-#ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
-		void setGenerator(const UserPtr& p, const string& aGenerator);
-#endif
 		void setUnknownCommand(const UserPtr& p, const string& aUnknownCommand);
 		void reportUser(const HintedUser& user);
 		void setFakeList(const UserPtr& p, const string& aCheatString);

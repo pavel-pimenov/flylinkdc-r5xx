@@ -138,6 +138,9 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	
 	ctrlTransfers.setColumnOrderArray(COLUMN_LAST, columnIndexes);
 	ctrlTransfers.setVisible(SETTING(MAINFRAME_VISIBLE));
+#ifndef FLYLINKDC_USE_ANTIVIRUS_DB
+	ctrlTransfers.SetColumnWidth(COLUMN_ANTIVIRUS, 0);
+#endif
 	
 	ctrlTransfers.setSortColumn(SETTING(TRANSFERS_COLUMNS_SORT));
 	ctrlTransfers.setAscending(BOOLSETTING(TRANSFERS_COLUMNS_SORT_ASC));
@@ -916,12 +919,14 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (ii->download ? SETTIN
 				if (ii->m_location.isKnown())
 				{
 					int l_step = 0;
+#ifdef FLYLINKDC_USE_GEO_IP
 					if (BOOLSETTING(ENABLE_COUNTRYFLAG))
 					{
 						const POINT ps = { rc2.left, top };
 						g_flagImage.DrawCountry(cd->nmcd.hdc, ii->m_location, ps);
 						l_step += 25;
 					}
+#endif
 					const POINT p = { rc2.left + l_step, top };
 					if (ii->m_location.getFlagIndex()  > 0)
 					{

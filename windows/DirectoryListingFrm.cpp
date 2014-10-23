@@ -310,7 +310,6 @@ LRESULT DirectoryListingFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	ctrlTree.EnableWindow(FALSE);
 	SettingsManager::getInstance()->addListener(this);
 	m_closed = false;
-	setWindowTitle();
 	bHandled = FALSE;
 	m_count_item_changed = 0;
 	create_timer(1000); // Раз в 1 секунду. TODO - настройку частоты запросов унести в конфиг
@@ -429,6 +428,7 @@ void DirectoryListingFrame::updateStatus()
 			UpdateLayout(TRUE);
 			
 		m_count_item_changed = 0;
+		setWindowTitle();
 	}
 }
 

@@ -259,6 +259,10 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		}
 		
 		typedef TypedListViewCtrl<UserInfo, IDC_USERS> CtrlUsers;
+		CtrlUsers& getUserList()
+		{
+			return *m_ctrlUsers;
+		}
 		
 		
 	private:

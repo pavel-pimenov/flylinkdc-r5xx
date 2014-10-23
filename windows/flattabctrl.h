@@ -262,11 +262,11 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			nextTab = --viewOrder.end();
 		}
 		
-		void resetCountMessages(HWND aWnd)
+		void setCountMessages(HWND aWnd, int p_count_messages)
 		{
 			if (TabInfo* ti = getTabInfo(aWnd))
 			{
-				ti->m_count_messages = 0;
+				ti->m_count_messages = p_count_messages;
 				ti->m_dirty = false;
 			}
 		}
@@ -1690,9 +1690,9 @@ class FlatTabCtrl : public FlatTabCtrlImpl<FlatTabCtrl>
 			BASE_CLASS::endSwitch();
 		}
 		
-		void resetCountMessages(HWND aWnd)
+		void setCountMessages(HWND aWnd, int p_count_messages)
 		{
-			BASE_CLASS::resetCountMessages(aWnd);
+			BASE_CLASS::setCountMessages(aWnd, p_count_messages);
 		}
 		void setDirty(HWND aWnd, int p_count_messages)
 		{
@@ -1993,10 +1993,10 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 			bHandled = FALSE;
 			return 0;
 		}
-		void resetCountMessages()
+		void setCountMessages(int p_count_messages)
 		{
 			dcassert(getTab());
-			getTab()->resetCountMessages(m_hWnd);
+			getTab()->setCountMessages(m_hWnd, p_count_messages);
 		}
 		void setDirty(int p_count_messages)
 		{

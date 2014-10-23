@@ -228,13 +228,13 @@ HubFrame::HubFrame(const string& aServer,
 	m_showUsers = false;
 	m_client = ClientManager::getInstance()->getClient(aServer);
 	m_nProportionalPos = p_ChatUserSplit;
-	m_client->addListener(this);
 	m_client->setName(aName);
 	m_client->setRawOne(aRawOne);
 	m_client->setRawTwo(aRawTwo);
 	m_client->setRawThree(aRawThree);
 	m_client->setRawFour(aRawFour);
 	m_client->setRawFive(aRawFive);
+	m_client->addListener(this);
 }
 
 void HubFrame::doDestroyFrame()
@@ -322,6 +322,9 @@ void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
 		{
 			m_ctrlUsers->SetColumnWidth(j, g_columnSizes[j]);
 		}
+#ifndef FLYLINKDC_USE_ANTIVIRUS_DB
+		m_ctrlUsers->SetColumnWidth(COLUMN_ANTIVIRUS, 0);
+#endif
 		
 		m_ctrlUsers->setColumnOrderArray(COLUMN_LAST, g_columnIndexes);
 		
@@ -467,8 +470,7 @@ void HubFrame::createMessagePanel()
 		l_is_need_update = true;
 	}
 	BaseChatFrame::createMessagePanel();
-	resetCountMessages();
-	//setDirty(0);
+	setCountMessages(0);
 	if (!m_ctrlChatContainer && ctrlClient.m_hWnd)
 	{
 		m_ctrlChatContainer     = new CContainedWindow(WC_EDIT, this, EDIT_MESSAGE_MAP);
@@ -1068,9 +1070,13 @@ LRESULT HubFrame::onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 			case IDC_COPY_NICK:
 				sCopy += id.getNick();
 				break;
+			case IDC_COPY_ANTIVIRUS_DB_INFO:
+				sCopy += id.getVirusDesc();
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 			case IDC_COPY_EXACT_SHARE:
 				sCopy += Identity::formatShareBytes(id.getBytesShared());
 				break;
+#endif
 			case IDC_COPY_DESCRIPTION:
 				sCopy += id.getDescription();
 				break;
@@ -1127,10 +1133,6 @@ LRESULT HubFrame::onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 				}
 				sCopy += "\tE-Mail: " + id.getEmail() + "\r\n" +
 				         "\tClient Type: " + Util::toString(id.getClientType()) + "\r\n" +
-#ifdef IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
-				         "\tPk String: " + id.getStringParam("PK") + "\r\n" +
-				         "\tLock: " + id.getStringParam("LO") + "\r\n" +
-#endif
 				         "\tMode: " + (id.isTcpActive(m_client) ? 'A' : 'P') + "\r\n" +
 				         "\t" + STRING(SLOTS) + ": " + Util::toString(u->getSlots()) + "\r\n" +
 				         "\tIP: " + Identity::formatIpString(id.getIpAsString()) + "\r\n";
@@ -3866,17 +3868,24 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 								top = rc.top + 1;
 							const POINT ps = { rc.left, top };
 							POINT p;
-							int l_icon_index = 1;
-							if (GetCursorPos(&p))
+							int l_icon_index = 0;
+							if (!ui->getIdentity().isVirusOnlySingleType(Identity::VT_NICK))
 							{
-								if (ScreenToClient(&p))
+								if (ui->getIdentity().isVirusOnlySingleType(Identity::VT_SHARE))
+									l_icon_index = 2;
+								else
+									l_icon_index = 1;
+								if (GetCursorPos(&p))
 								{
-									LVHITTESTINFO lvhti = {0};
-									lvhti.pt = p;
-									int pos = m_ctrlUsers->SubItemHitTest(&lvhti);
-									if (pos != -1)
+									if (ScreenToClient(&p))
 									{
-										l_icon_index = 3;
+										LVHITTESTINFO lvhti = {0};
+										lvhti.pt = p;
+										int pos = m_ctrlUsers->SubItemHitTest(&lvhti);
+										if (pos != -1)
+										{
+											l_icon_index = 3;
+										}
 									}
 								}
 							}
@@ -3960,12 +3969,14 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 							top = rc.top + 1;
 						// TODO: move this to FlagImage and cleanup!
 						int l_step = 0;
+#ifdef FLYLINKDC_USE_GEO_IP
 						if (BOOLSETTING(ENABLE_COUNTRYFLAG))
 						{
 							const POINT ps = { rc.left, top };
 							g_flagImage.DrawCountry(cd->nmcd.hdc, l_location, ps);
 							l_step += 25;
 						}
+#endif
 						const POINT p = { rc.left + l_step, top };
 						if (l_location.getFlagIndex() > 0)
 						{

@@ -89,7 +89,9 @@ uint16_t CFlyServerConfig::g_max_unique_tth_search  = 10; // Не принимаем в тече
 #ifdef USE_SUPPORT_HUB
 string CFlyServerConfig::g_support_hub = "dchub://dc.fly-server.ru";
 #endif // USE_SUPPORT_HUB
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 string CFlyServerConfig::g_antivirus_db_url;
+#endif
 string CFlyServerConfig::g_faq_search_does_not_work = "http://www.flylinkdc.ru/2014/01/flylinkdc.html";
 StringSet CFlyServerConfig::g_parasitic_files;
 StringSet CFlyServerConfig::g_mediainfo_ext;
@@ -382,7 +384,9 @@ void CFlyServerConfig::loadConfig()
 						m_zlib_compress_level = Z_BEST_COMPRESSION;
 					}
 					m_send_full_mediainfo = Util::toInt(l_xml.getChildAttrib("send_full_mediainfo")) == 1;
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 					initString("antivirus_db",g_antivirus_db_url);
+#endif
 #ifdef USE_SUPPORT_HUB
 					initString("support_hub",g_support_hub);
 #endif // USE_SUPPORT_HUB
@@ -490,6 +494,7 @@ void CFlyServerConfig::loadConfig()
 //======================================================================================================
 bool CFlyServerConfig::SyncAntivirusDB()
 {
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 #ifndef USE_FLYSERVER_LOCAL_FILE
   dcassert(!g_antivirus_db_url.empty());
   if(BOOLSETTING(AUTOUPDATE_ANTIVIRUS_DB))
@@ -575,12 +580,15 @@ bool CFlyServerConfig::SyncAntivirusDB()
 	 // TODO Добавилось N-записей к базе - перегрузить их в кэш
      l_log.step("Antivirus DB version: " + Util::toString(l_cur_merge_counter));
    }
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
    if(l_is_change_version)
    {
         ClientManager::resetAntivirusInfo(); 
    }
+#endif
   }
   }
+#endif
 #endif
   return true;
 }
@@ -915,17 +923,22 @@ bool CFlyServerAdapter::CFlyServerJSON::pushTestPort(const string& p_magic,
 		return l_is_send;
 }
 //======================================================================================================
-bool CFlyServerAdapter::CFlyServerJSON::pushError(const string& p_error)
+void CFlyServerAdapter::CFlyServerJSON::pushSyslogError(const string& p_error)
 {
-	bool l_is_send = false;
-    bool l_is_error = false;
-    Lock l(g_cs_error_report);
 	string l_cid = "[CID==null]";
 	if(ClientManager::isValidInstance())
 	{
 		l_cid = ClientManager::getMyCID().toBase32();
 	}
     syslog(LOG_USER | LOG_INFO, "%s %s [%s]", l_cid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
+}
+//======================================================================================================
+bool CFlyServerAdapter::CFlyServerJSON::pushError(const string& p_error)
+{
+	bool l_is_send = false;
+  bool l_is_error = false;
+  Lock l(g_cs_error_report);
+  pushSyslogError(p_error);
     CFlyLog l_log("[fly-error]");
     l_log.step(p_error);
     if(p_error != g_last_error_string)
@@ -1181,7 +1194,7 @@ string CFlyServerAdapter::CFlyServerJSON::postQuery(bool p_is_set,
 													DWORD p_time_out /*= 0*/)
 {
 //  Thread::ConditionLockerWithSpin l(g_running);
-    dcassert(g_running == 1);
+    //dcassert(g_running == 1);
 	p_is_send = false;
 	p_is_error = false;
 	dcassert(!p_body.empty());

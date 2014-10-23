@@ -582,11 +582,13 @@ class Util
 		{
 			return getPath(PATH_LANGUAGES);
 		}
+#ifdef FLYLINKDC_USE_EXTERNAL_MAIN_ICON
 		/** Path of icon */
 		static const string& getICOPath() //[+] NightOrion
 		{
 			return getPath(PATH_EXTERNAL_ICO);
 		}
+#endif
 		/** Path of local mode */
 		static const string& getLocalPath() //[+] NightOrion
 		{
@@ -1171,8 +1173,10 @@ class Util
 			PATH_EMOPACKS,
 			/** Languages files location*/
 			PATH_LANGUAGES,
+#ifdef FLYLINKDC_USE_EXTERNAL_MAIN_ICON
 			/** External app icon path*/
 			PATH_EXTERNAL_ICO, //[+] IRainman
+#endif
 			/** Themes and resources */
 			PATH_THEMES, // [+] SSA
 			/** Executable path **/
@@ -1254,15 +1258,12 @@ class Util
 		{
 			return g_sysPaths[path];
 		}
-		
-		static bool locatedInSysPath(SysPaths path, const string& currentPath) // [+] IRainman
-		{
-			const string& l_path = g_sysPaths[path];
-			return !l_path.empty() && strnicmp(currentPath, l_path, l_path.size()) == 0;
-		}
+		static bool locatedInSysPath(SysPaths path, const string& currentPath);
 	private:
+		static void intiProfileConfig();
+		static void MoveSettings();
 #ifdef _WIN32
-	
+		
 		static string getDownloadPath(const string& def);
 		
 #endif

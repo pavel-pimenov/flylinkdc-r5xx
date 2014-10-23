@@ -704,11 +704,13 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 				
 				dcassert(ctrlQueue.findItem(iit.m_ii) == -1);
 				addQueueItem(iit.m_ii, false);
+				/*
 				if (!iit.m_ii->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP)
 				        && BOOLSETTING(BOLD_QUEUE))
 				{
-					setDirty(1);
+				setCountMessages(ctrlQueue.GetItemCount());
 				}
+				*/
 				m_dirty = true;
 			}
 			break;
@@ -754,11 +756,13 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 						curDir.clear();
 				}
 				
+				/*
 				if (!ii->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_USER_GET_IP | QueueItem::FLAG_DCLST_LIST)
 				        && BOOLSETTING(BOLD_QUEUE))
 				{
-					setDirty(-1);
+				    //setCountMessages(ctrlQueue.GetItemCount());
 				}
+				*/
 				m_dirty = true;
 				
 				delete ii;
@@ -809,6 +813,7 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 			case UPDATE_STATUSBAR://[+]IRainman optimize QueueFrame
 			{
 				updateStatus();
+				setCountMessages(ctrlQueue.GetItemCount());
 			}
 			break;
 			default:

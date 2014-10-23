@@ -110,7 +110,11 @@ static void gf_trace_callback(void* p_udp, const char* p_sql)
 //========================================================================================================
 void CFlylinkDBManager::pragma_executor(const char* p_pragma)
 {
-	static const char* l_db_name[] = {"main", "media_db", "dht_db", "stat_db", "location_db", "user_db", "antivirus_db"};
+	static const char* l_db_name[] = {"main", "media_db", "dht_db", "stat_db", "location_db", "user_db"
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
+	                                  , "antivirus_db"
+#endif
+	                                 };
 	for (int i = 0; i < _countof(l_db_name); ++i)
 	{
 		string l_sql = "pragma ";
@@ -240,8 +244,9 @@ CFlylinkDBManager::CFlylinkDBManager()
 				m_flySQLiteDB.executenonquery("attach database 'FlylinkDC_stat.sqlite' as stat_db");
 				m_flySQLiteDB.executenonquery("attach database 'FlylinkDC_locations.sqlite' as location_db");
 				m_flySQLiteDB.executenonquery("attach database 'FlylinkDC_user.sqlite' as user_db");
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 				m_flySQLiteDB.executenonquery("attach database 'FlylinkDC_antivirus.sqlite' as antivirus_db");
-				
+#endif
 				
 #ifdef FLYLINKDC_USE_LEVELDB
 				// Тут обязательно полный путь. иначе при смене рабочего каталога levelDB не сомжет открыть базу.
@@ -590,22 +595,26 @@ CFlylinkDBManager::CFlylinkDBManager()
 		m_flySQLiteDB.executenonquery("DROP INDEX IF EXISTS user_db.iu_user_info;"); //старый индекс был (nick,dic_hub)
 		m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS user_db.iu_user_info_hub_nick ON user_info(dic_hub,nick);");
 		
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS antivirus_db.fly_suspect_user("
 		                              "nick text not null,ip4 int not null,share int64 not null,virus_path text);");
 		safeAlter("ALTER TABLE antivirus_db.fly_suspect_user add column virus_path text");
 		m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS antivirus_db.iu_suspect_user_nick ON fly_suspect_user(nick,ip4);");
+		m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS antivirus_db.i_suspect_user_ip4 ON fly_suspect_user(ip4);");
+		m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS antivirus_db.i_suspect_user_share ON fly_suspect_user(share);");
 		
+#endif
 		
 		/*
 		{
 		    // Конвертим ip в бинарный формат
-		    auto_ptr<sqlite3_command> l_src_sql = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+		    auto_ptr<sqlite3_command> l_src_sql(new sqlite3_command(m_flySQLiteDB,
 		                                                                    "select nick,dic_hub,ip from fly_last_ip_nick_hub"));
 		    try
 		    {
 		        sqlite3_reader l_q = l_src_sql->executereader();
 		        sqlite3_transaction l_trans(m_flySQLiteDB);
-		        auto_ptr<sqlite3_command> l_trg_sql = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+		        auto_ptr<sqlite3_command> l_trg_sql(new sqlite3_command(m_flySQLiteDB,
 		                                                                        "insert or replace into user_db.user_info (nick,dic_hub,last_ip) values(?,?,?)"));
 		        while (l_q.read())
 		        {
@@ -1229,6 +1238,13 @@ uint16_t CFlylinkDBManager::find_cache_locationL(uint32_t p_ip, int32_t& p_index
 	}
 	return 0;
 }
+#ifdef FLYLINKDC_USE_GEO_IP
+//========================================================================================================
+__int64 CFlylinkDBManager::get_dic_country_id(const string& p_country)
+{
+	Lock l(m_cs);
+	return get_dic_idL(p_country, e_DIC_COUNTRY, true);
+}
 //========================================================================================================
 bool CFlylinkDBManager::find_cache_countryL(uint32_t p_ip, uint16_t& p_index)
 {
@@ -1382,6 +1398,83 @@ void CFlylinkDBManager::save_geoip(const CFlyLocationIPArray& p_geo_ip)
 		errorDB("SQLite - save_geoip: " + e.getError());
 	}
 }
+#endif // FLYLINKDC_USE_GEO_IP
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
+//========================================================================================================
+int CFlylinkDBManager::calc_antivirus_flag(const string& p_nick, const boost::asio::ip::address_v4& p_ip4, int64_t p_share, string& p_virus_path)
+{
+	int l_result = 0;
+	Lock l_vir(m_antivirus_cs);
+	if (m_virus_user.find(p_nick) != m_virus_user.end() ||
+	        (p_share && m_virus_share.find(p_share) != m_virus_share.end()) ||
+	        (!p_ip4.is_unspecified() && m_virus_ip4.find(p_ip4.to_ulong()) != m_virus_ip4.end())
+	   )
+	{
+		Lock l(m_cs);
+		if (!m_find_virus_nick_and_share_and_ip4.get() && !p_ip4.is_unspecified())
+		{
+			m_find_virus_nick_and_share_and_ip4 = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+			                                                                "select ip4,share,virus_path from antivirus_db.fly_suspect_user where nick=? or share=? or ip4=?"
+			                                                                                   ));
+		}
+		if (!m_find_virus_nick_and_share.get() && p_ip4.is_unspecified())
+		{
+			m_find_virus_nick_and_share = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+			                                                                            "select ip4,share,virus_path from antivirus_db.fly_suspect_user where nick=? or share=?"
+			                                                                           ));
+		}
+		
+		auto l_sql = p_ip4.is_unspecified() ? m_find_virus_nick_and_share.get() : m_find_virus_nick_and_share_and_ip4.get();
+		l_sql->bind(1, p_nick, SQLITE_STATIC);
+		l_sql->bind(2, p_share);
+		if (!p_ip4.is_unspecified())
+		{
+			l_sql->bind(3, __int64(p_ip4.to_ulong()));
+		}
+		sqlite3_reader l_q = l_sql->executereader();
+		p_virus_path.clear();
+		boost::unordered_set<string> l_dup_filter;
+		while (l_q.read())
+		{
+			if (p_ip4 == boost::asio::ip::address_v4((unsigned long)l_q.getint64(0)))
+			{
+				l_result |= Identity::VT_IP;
+			}
+			if (p_share == l_q.getint64(1))
+			{
+				l_result |= Identity::VT_SHARE;
+			}
+			const auto l_virus_path = l_q.getstring(2);
+			if (!l_virus_path.empty() && l_dup_filter.find(l_virus_path) == l_dup_filter.end())
+			{
+				l_dup_filter.insert(l_virus_path);
+				p_virus_path += " [" + l_virus_path + "]";
+			}
+		}
+	}
+	if ((l_result & Identity::VT_NICK) == 0)
+	{
+		if (m_virus_user.find(p_nick) != m_virus_user.end())
+		{
+			l_result |= Identity::VT_NICK;
+		}
+	}
+	if ((l_result & Identity::VT_SHARE) == 0)
+	{
+		if (m_virus_share.find(p_share) != m_virus_share.end())
+		{
+			l_result |= Identity::VT_SHARE;
+		}
+	}
+	if ((l_result & Identity::VT_IP) == 0)
+	{
+		if (m_virus_ip4.find(p_ip4.to_ulong()) != m_virus_ip4.end())
+		{
+			l_result |= Identity::VT_IP;
+		}
+	}
+	return l_result;
+}
 //========================================================================================================
 void CFlylinkDBManager::purge_antivirus_db(const uint64_t p_delete_counter, const uint64_t p_unixtime)
 {
@@ -1389,10 +1482,9 @@ void CFlylinkDBManager::purge_antivirus_db(const uint64_t p_delete_counter, cons
 	Lock l(m_cs);
 	try
 	{
-		if (!m_delete_antivirus_db.get())
-			m_delete_antivirus_db = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                      "delete from antivirus_db.fly_suspect_user"));
-		m_delete_antivirus_db.get()->executenonquery();
+		auto_ptr<sqlite3_command> l_delete_antivirus_db(new sqlite3_command(m_flySQLiteDB,
+		                                                                    "delete from antivirus_db.fly_suspect_user"));
+		l_delete_antivirus_db.get()->executenonquery();
 		set_registry_variable_int64(e_DeleteCounterAntivirusDB, p_delete_counter);
 		set_registry_variable_int64(e_TimeStampAntivirusDB, p_unixtime);
 		set_registry_variable_int64(e_MergeCounterAntivirusDB, 0);
@@ -1413,14 +1505,13 @@ int CFlylinkDBManager::sync_antivirus_db(const string& p_antivirus_db, const uin
 		try
 		{
 			sqlite3_transaction l_trans(m_flySQLiteDB);
-			if (!m_merge_antivirus_db.get())
-				m_merge_antivirus_db = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-				                                                                     "insert or replace into antivirus_db.fly_suspect_user(nick,share,ip4,virus_path) values(?,?,?,?)"));
+			auto_ptr<sqlite3_command> l_merge_antivirus_db(new sqlite3_command(m_flySQLiteDB,
+			                                                                   "insert or replace into antivirus_db.fly_suspect_user(nick,share,ip4,virus_path) values(?,?,?,?)"));
 			int l_pos = 0;
 			int l_nick_pos = 0;
 			int l_nick_len = 0;
 			string l_ip4;
-			auto l_sql = m_merge_antivirus_db.get();
+			auto l_sql = l_merge_antivirus_db.get();
 			while (true)
 			{
 				l_nick_pos = l_pos;
@@ -1480,6 +1571,7 @@ int CFlylinkDBManager::sync_antivirus_db(const string& p_antivirus_db, const uin
 	dcassert(l_count_new_user);
 	return l_count_new_user;
 }
+#endif // FLYLINKDC_USE_ANTIVIRUS_DB
 //========================================================================================================
 void CFlylinkDBManager::set_registry_variable_string(eTypeSegment p_TypeSegment, const string& p_value)
 {
@@ -2295,8 +2387,7 @@ void CFlylinkDBManager::load_global_ratio()
 	try
 	{
 		Lock l(m_cs);
-		auto_ptr<sqlite3_command> l_select_global_ratio_load =
-		    auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB, "select total(upload),total(download) from fly_ratio"));
+		auto_ptr<sqlite3_command> l_select_global_ratio_load(new sqlite3_command(m_flySQLiteDB, "select total(upload),total(download) from fly_ratio"));
 		// http://www.sqlite.org/lang_aggfunc.html
 		// Sum() will throw an "integer overflow" exception if all inputs are integers or NULL and an integer overflow occurs at any point during the computation.
 		// Total() never throws an integer overflow.
@@ -2316,53 +2407,6 @@ void CFlylinkDBManager::load_global_ratio()
 	}
 }
 //========================================================================================================
-int CFlylinkDBManager::calc_antivirus_flag(const string& p_nick, const boost::asio::ip::address_v4& p_ip4, int64_t p_share, string& p_virus_path)
-{
-	int l_result = 0;
-	Lock l_vir(m_antivirus_cs);
-	if (m_virus_user.find(p_nick) != m_virus_user.end())
-	{
-		l_result |= Identity::VT_NICK;
-		Lock l(m_cs);
-		m_find_virus_nick = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-		                                                                  "select ip4,share,virus_path from antivirus_db.fly_suspect_user where nick=?"));
-		m_find_virus_nick.get()->bind(1, p_nick, SQLITE_STATIC);
-		sqlite3_reader l_q = m_find_virus_nick.get()->executereader();
-		p_virus_path.clear();
-		while (l_q.read())
-		{
-			if (p_ip4 == boost::asio::ip::address_v4((unsigned long)l_q.getint64(0)))
-			{
-				l_result |= Identity::VT_IP;
-			}
-			if (p_share == l_q.getint64(1))
-			{
-				l_result |= Identity::VT_SHARE;
-			}
-			const auto l_virus_path = l_q.getstring(2);
-			if (!l_virus_path.empty())
-			{
-				p_virus_path += " [" + l_virus_path + "]";
-			}
-		}
-	}
-	if ((l_result & Identity::VT_SHARE) == 0)
-	{
-		if (m_virus_share.find(p_share) != m_virus_share.end())
-		{
-			l_result |= Identity::VT_SHARE;
-		}
-	}
-	if ((l_result & Identity::VT_IP) == 0)
-	{
-		if (m_virus_ip4.find(p_ip4.to_ulong()) != m_virus_ip4.end())
-		{
-			l_result |= Identity::VT_IP;
-		}
-	}
-	return l_result;
-}
-//========================================================================================================
 bool CFlylinkDBManager::load_last_ip_and_user_stat(uint32_t p_hub_id, const string& p_nick, uint32_t& p_message_count, boost::asio::ip::address_v4& p_last_ip)
 {
 	try
@@ -2370,11 +2414,12 @@ bool CFlylinkDBManager::load_last_ip_and_user_stat(uint32_t p_hub_id, const stri
 		Lock l_vir(m_antivirus_cs);
 		Lock l(m_cs);
 		p_message_count = 0;
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		if (m_virus_user.empty() && BOOLSETTING(AUTOUPDATE_ANTIVIRUS_DB))
 		{
-			m_select_antivirus_db = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                      "select nick,ip4,share FROM antivirus_db.fly_suspect_user"));
-			sqlite3_reader l_q = m_select_antivirus_db.get()->executereader();
+			auto_ptr<sqlite3_command> l_select_antivirus_db(new sqlite3_command(m_flySQLiteDB,
+			                                                                    "select nick,ip4,share FROM antivirus_db.fly_suspect_user"));
+			sqlite3_reader l_q = l_select_antivirus_db.get()->executereader();
 			while (l_q.read())
 			{
 				m_virus_user.insert(l_q.getstring(0));
@@ -2385,6 +2430,7 @@ bool CFlylinkDBManager::load_last_ip_and_user_stat(uint32_t p_hub_id, const stri
 				m_virus_share.insert(l_q.getint64(2));
 			}
 		}
+#endif
 		auto l_find_cache_item = m_last_ip_cache.find(p_hub_id);
 		if (l_find_cache_item == m_last_ip_cache.end()) // Хаб первый раз? (TODO - добавить задержку на кол-во запросов. если больше N - выполнить пакетную загрузку)
 		{
@@ -2506,12 +2552,6 @@ __int64 CFlylinkDBManager::get_dic_location_id(const string& p_location)
 {
 	Lock l(m_cs);
 	return get_dic_idL(p_location, e_DIC_LOCATION, true);
-}
-//========================================================================================================
-__int64 CFlylinkDBManager::get_dic_country_id(const string& p_country)
-{
-	Lock l(m_cs);
-	return get_dic_idL(p_country, e_DIC_COUNTRY, true);
 }
 #if 0
 //========================================================================================================
@@ -3837,11 +3877,12 @@ CFlylinkDBManager::~CFlylinkDBManager()
 			dcassert(i->second.m_is_item_dirty == false);
 		}
 	}
-	
+#ifdef FLYLINKDC_USE_GEO_IP
 	{
 		FastLock l(m_cache_location_cs);
 		dcdebug("CFlylinkDBManager::m_country_cache size = %d\n", m_country_cache.size());
 	}
+#endif
 	{
 		FastLock l(m_cache_location_cs);
 		dcdebug("CFlylinkDBManager::m_location_cache size = %d\n", m_location_cache.size());
@@ -3962,10 +4003,10 @@ __int64 CFlylinkDBManager::convert_tth_history()
 		Lock l(m_cs);
 		try
 		{
-			auto_ptr<sqlite3_command> l_sql = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                            "select tth, sum(val) from ( "
-			                                                            "select 2 val, tth from fly_hash_block) "
-			                                                            "group by tth"));
+			auto_ptr<sqlite3_command> l_sql(new sqlite3_command(m_flySQLiteDB,
+			                                                    "select tth, sum(val) from ( "
+			                                                    "select 2 val, tth from fly_hash_block) "
+			                                                    "group by tth"));
 			sqlite3_reader l_q = l_sql->executereader();
 			while (l_q.read())
 			{

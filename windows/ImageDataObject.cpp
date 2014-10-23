@@ -22,16 +22,22 @@ void CImageDataObject::InsertBitmap(HWND hWnd, IRichEditOle* pRichEditOle, IOleC
 	if (!pOleObject)
 		return;
 		
+	HRESULT sc = OleSetContainedObject(pOleObject, TRUE);
 	// all items are "contained" -- this makes our reference to this object
 	//  weak -- which is needed for links to embedding silent update.
-	OleSetContainedObject(pOleObject, TRUE);
+	if (sc != S_OK)
+	{
+		LogManager::getInstance()->message("CImageDataObject::InsertBitmap, OLE OleSetContainedObject error = " + Util::toString(sc));
+		p_out_of_memory = sc == E_OUTOFMEMORY;
+		return;
+	}
 	
 	// Now Add the object to the RichEdit
 	REOBJECT reobject = { 0 };
 	reobject.cbStruct = sizeof(REOBJECT);
 	
 	CLSID clsid;
-	HRESULT sc = pOleObject->GetUserClassID(&clsid);
+	sc = pOleObject->GetUserClassID(&clsid);
 	
 	if (sc != S_OK)
 	{

@@ -170,7 +170,9 @@ MainFrame::MainFrame() :
 #endif
 	m_closing(false),
 	m_menuclose(false), // [+] InfinitySky.
+#ifdef FLYLINKDC_USE_EXTERNAL_MAIN_ICON
 	m_custom_app_icon_exist(false), // [+] InfinitySky.
+#endif
 	missedAutoConnect(false),
 #ifdef IRAINMAN_IP_AUTOUPDATE
 	m_elapsedMinutesFromlastIPUpdate(0),
@@ -742,6 +744,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	
 	ConnectivityManager::getInstance()->setup(true);
 	HICON l_trayIcon = NULL;
+#ifdef FLYLINKDC_USE_EXTERNAL_MAIN_ICON
 	if (File::isExist(Util::getICOPath()))
 	{
 		// [+] InfinitySky. From ApexDC++.
@@ -763,6 +766,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	{
 		m_custom_app_icon_exist = false; // [+] InfinitySky. Страховка на случай отсутствия иконки.
 	}
+#endif
 	m_normalicon = l_trayIcon ? std::unique_ptr<HIconWrapper>(new HIconWrapper(l_trayIcon)) : std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_MAINFRAME)) ;
 	m_pmicon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_TRAY_AND_TASKBAR_PM));
 	m_emptyicon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_TRAY_AND_TASKBAR_NO_PM));//[+]IRainman
@@ -1550,25 +1554,25 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 		}
 		
 #ifdef TASKBUTTON_PROGRESS
-		if (taskbarList) // [!] IRainman fix.
+		if (m_taskbarList) // [!] IRainman fix.
 		{
 			if (HashManager::getInstance()->IsHashing())
 			{
-				taskbarList->SetProgressState(m_hWnd, TBPF_INDETERMINATE);
-				taskbarList->SetProgressValue(m_hWnd, HashManager::getInstance()->GetProgressValue(), HashManager::GetMaxProgressValue());
+				m_taskbarList->SetProgressState(m_hWnd, TBPF_INDETERMINATE);
+				m_taskbarList->SetProgressValue(m_hWnd, HashManager::getInstance()->GetProgressValue(), HashManager::GetMaxProgressValue());
 			}
 			else if (HashManager::getInstance()->isHashingPaused())
 			{
-				taskbarList->SetProgressState(m_hWnd, TBPF_PAUSED);
+				m_taskbarList->SetProgressState(m_hWnd, TBPF_PAUSED);
 			}
 			else if (AutoUpdate::getInstance()->isUpdateStarted())
 			{
-				taskbarList->SetProgressState(m_hWnd, TBPF_NORMAL);
-				taskbarList->SetProgressValue(m_hWnd, 100, 100);
+				m_taskbarList->SetProgressState(m_hWnd, TBPF_NORMAL);
+				m_taskbarList->SetProgressValue(m_hWnd, 100, 100);
 			}
 			else
 			{
-				taskbarList->SetProgressState(m_hWnd, TBPF_NOPROGRESS);
+				m_taskbarList->SetProgressState(m_hWnd, TBPF_NOPROGRESS);
 			}
 		}
 #endif
@@ -1797,8 +1801,8 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 		{
 			m_bIsPM = true; // Иконка о получении лички установлена.
 			
-			if (taskbarList) // [+] InfinitySky. Если есть поддержка системой taskbarList.
-				taskbarList->SetOverlayIcon(m_hWnd, *m_pmicon, NULL); // Устанавливается мини-иконка на панели задач о получении сообщения.
+			if (m_taskbarList) // [+] InfinitySky. Если есть поддержка системой taskbarList.
+				m_taskbarList->SetOverlayIcon(m_hWnd, *m_pmicon, NULL); // Устанавливается мини-иконка на панели задач о получении сообщения.
 				
 			if (m_bTrayIcon == true)
 				setIcon(*m_pmicon);
@@ -2374,23 +2378,28 @@ void MainFrame::updateTray(bool add /* = true */)
 		}
 	}
 }
-
+void MainFrame::SetOverlayIcon()
+{
+	if (m_taskbarList) // Если есть поддержка системой taskbarList.
+	{
+#ifdef FLYLINKDC_USE_EXTERNAL_MAIN_ICON
+		if (m_custom_app_icon_exist && BOOLSETTING(SHOW_CUSTOM_MINI_ICON_ON_TASKBAR)) // [+] InfinitySky. Если есть иконка и включена опция.
+		{
+			m_taskbarList->SetOverlayIcon(m_hWnd, *m_normalicon, NULL); // [+] InfinitySky. Мини-иконка.
+		}
+		else
+#endif
+		{
+			m_taskbarList->SetOverlayIcon(m_hWnd, *m_emptyicon, NULL); // [!] IRainman. Прозрачная пустая иконка.
+		}
+	}
+}
 void MainFrame::setTrayAndTaskbarIcons() // [+] IRainman: copy-past fix.
 {
 	if (m_bIsPM/*[-] IRainman && m_normalicon*/) // Если иконка о получении лички была установлена.
 	{
 		m_bIsPM = false; // Иконка о получении лички не установлена.
-		if (taskbarList) // Если есть поддержка системой taskbarList.
-		{
-			if (m_custom_app_icon_exist && BOOLSETTING(SHOW_CUSTOM_MINI_ICON_ON_TASKBAR)) // [+] InfinitySky. Если есть иконка и включена опция.
-			{
-				taskbarList->SetOverlayIcon(m_hWnd, *m_normalicon, NULL); // [+] InfinitySky. Мини-иконка.
-			}
-			else
-			{
-				taskbarList->SetOverlayIcon(m_hWnd, *m_emptyicon, NULL); // [!] IRainman. Прозрачная пустая иконка.
-			}
-		}
+		SetOverlayIcon();
 		if (m_bTrayIcon == true)
 		{
 			setIcon(*m_normalicon);
@@ -3067,16 +3076,12 @@ LRESULT MainFrame::onTaskbarButton(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 		return 0;
 #endif
 		
-	taskbarList.Release();
-	if (taskbarList.CoCreateInstance(CLSID_TaskbarList) == S_OK)
+	m_taskbarList.Release();
+	if (m_taskbarList.CoCreateInstance(CLSID_TaskbarList) == S_OK)
 	{
 		if (m_normalicon)
 		{
-			if (taskbarList) //[+]PPA
-				if (m_custom_app_icon_exist && BOOLSETTING(SHOW_CUSTOM_MINI_ICON_ON_TASKBAR)) // [+] InfinitySky. Если есть иконка и включена опция.
-					taskbarList->SetOverlayIcon(m_hWnd, *m_normalicon, NULL); // [+] InfinitySky. Мини-иконка.
-				else
-					taskbarList->SetOverlayIcon(m_hWnd, *m_emptyicon, NULL); // [!] IRainman. Прозрачная пустая иконка.
+			SetOverlayIcon();
 		}
 		else
 		{
@@ -3102,8 +3107,8 @@ LRESULT MainFrame::onTaskbarButton(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 	buttons[2].hIcon = m_images.GetIcon(23);
 	wcsncpy(buttons[2].szTip, CWSTRING(CMD_SHARE_REFRESH), l_sizeTip);
 	buttons[2].dwFlags = THBF_ENABLED;
-	if (taskbarList)
-		taskbarList->ThumbBarAddButtons(m_hWnd, _countof(buttons), buttons);
+	if (m_taskbarList)
+		m_taskbarList->ThumbBarAddButtons(m_hWnd, _countof(buttons), buttons);
 		
 	for (size_t i = 0; i < _countof(buttons); ++i)
 		DestroyIcon(buttons[i].hIcon);
@@ -3808,10 +3813,10 @@ LRESULT MainFrame::OnUpdateTotalResult(UINT uMsg, WPARAM wParam, LPARAM /*lParam
 	UpdateLayout();
 	bHandled = TRUE;
 	// [!] SSA TaskList
-	if (taskbarList)
+	if (m_taskbarList)
 	{
-		taskbarList->SetProgressState(m_hWnd, TBPF_NORMAL);
-		taskbarList->SetProgressValue(m_hWnd, 0, m_maxnumberOfReadBytes);
+		m_taskbarList->SetProgressState(m_hWnd, TBPF_NORMAL);
+		m_taskbarList->SetProgressValue(m_hWnd, 0, m_maxnumberOfReadBytes);
 	}
 	
 	return 0;
@@ -3823,9 +3828,9 @@ LRESULT MainFrame::OnUpdateResultReceive(UINT uMsg, WPARAM wParam, LPARAM /*lPar
 	UpdateLayout();
 	bHandled = TRUE;
 	// [!] SSA TaskList
-	if (taskbarList)
+	if (m_taskbarList)
 	{
-		taskbarList->SetProgressValue(m_hWnd, m_numberOfReadBytes, m_maxnumberOfReadBytes);
+		m_taskbarList->SetProgressValue(m_hWnd, m_numberOfReadBytes, m_maxnumberOfReadBytes);
 	}
 	return 0;
 }

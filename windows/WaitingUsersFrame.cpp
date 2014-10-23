@@ -463,7 +463,10 @@ void WaitingUsersFrame::updateStatus()
 		}
 		
 		if (u)
+		{
 			UpdateLayout(TRUE);
+		}
+		setCountMessages(m_ctrlList.GetItemCount());
 	}
 }
 void WaitingUsersFrame::removeSelected()

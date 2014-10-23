@@ -188,7 +188,6 @@ typedef unsigned __int64 uint64_t;
 #define IRAINMAN_ENABLE_MORE_CLIENT_COMMAND
 //#define IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB
 #define IRAINMAN_SET_USER_IP_ON_LOGON // http://code.google.com/p/flylinkdc/issues/detail?id=1
-//#define IRAINMAN_INCLUDE_DETECTION_MANAGER // TODO: not fully function support: needs public test.
 #ifndef FLYLINKDC_HE
 # ifdef FLYLINKDC_BETA
 #  define AUTOUPDATE_NOT_DISABLE
@@ -198,10 +197,6 @@ typedef unsigned __int64 uint64_t;
 # endif
 #endif
 //#define IRAINMAN_USE_STRING_POOL // TODO: fix identity destroying to use pool http://code.google.com/p/flylinkdc/issues/detail?id=1244
-#ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
-# define IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
-//# define IRAINMAN_INCLUDE_OLD_CLIENT_PROFILE_MANAGER
-#endif // IRAINMAN_INCLUDE_DETECTION_MANAGER
 #define IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 //#define IRAINMAN_SPEED_LIMITER_5S4_10 // Включает ограничение: скорость отдачи = 5 * количество слотов + 4, скорость загрузки = 10 * скорость отдачи
 //#define IRAINMAN_INCLUDE_USER_CHECK // - Не понял нахрена оно нужно. если юзеров 100 тыщ то что будет?
@@ -438,6 +433,10 @@ typedef unsigned __int64 uint64_t;
 // #define FLYLINKDC_USE_COLLECT_STAT  // Собираем статистику команд коннектов и поиска для блокировки DDoS атак http://dchublist.ru/forum/viewtopic.php?f=6&t=1028&hilit=Ddos
 // #define FLYLINKDC_USE_LOG_FOR_DUPLICATE_TTH_SEARCH
 #endif
+
+#define FLYLINKDC_USE_ANTIVIRUS_DB
+#define FLYLINKDC_USE_GEO_IP
+
 
 // Make sure we're using the templates from algorithm...
 #ifdef min

@@ -92,7 +92,7 @@ class UDPSocket :
 		uint16_t port;
 		
 		/** Queue for sending packets through UDP socket */
-		std::deque<Packet*> sendQueue;
+		std::deque<Packet*> m_sendQueue;
 		
 		/** Antiflooding protection */
 		uint64_t delay;
@@ -113,7 +113,7 @@ class UDPSocket :
 		int run();
 		
 		void checkIncoming();
-		void checkOutgoing(uint64_t& timer);
+		void checkOutgoing(uint64_t& p_timer);
 		
 		void compressPacket(const string& data, uint8_t* destBuf, unsigned long& destSize);
 		int  decompressPacket(std::vector<uint8_t>& destBuf, const std::vector<uint8_t>& buf);

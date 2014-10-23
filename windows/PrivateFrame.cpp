@@ -716,8 +716,7 @@ void PrivateFrame::createMessagePanel()
 		m_ctrlMessage->SetFocus();
 	}
 	BaseChatFrame::createMessagePanel();
-	resetCountMessages();
-	//setDirty(0);
+	setCountMessages(0);
 }
 void PrivateFrame::destroyMessagePanel(bool p_is_destroy)
 {

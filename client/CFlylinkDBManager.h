@@ -282,8 +282,10 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		bool checkTTH(const string& fname, __int64 path_id, int64_t aSize, int64_t aTimeStamp, TTHValue& p_out_tth);
 		void load_path_cache();
 		void scan_path(CFlyDirItemArray& p_directories);
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		int sync_antivirus_db(const string& p_antivirus_db, const uint64_t p_unixtime);
 		void purge_antivirus_db(const uint64_t p_delete_counter, const uint64_t p_unixtime);
+#endif
 		size_t get_count_folders()
 		{
 			Lock l(m_cs);
@@ -326,6 +328,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif //STRONG_USE_DHT
 		
 		void save_geoip(const CFlyLocationIPArray& p_geo_ip);
+#ifdef FLYLINKDC_USE_GEO_IP
 		void get_country(uint32_t p_ip, uint16_t& p_index);
 		uint16_t get_country_index_from_cache(uint16_t p_index)
 		{
@@ -339,6 +342,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 			FastLock l(m_cache_location_cs);
 			return m_country_cache[p_index - 1];
 		}
+#endif
 		uint16_t get_location_index_from_cache(int32_t p_index)
 		{
 			dcassert(p_index > 0);
@@ -352,12 +356,14 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 			return m_location_cache[p_index - 1];
 		}
 	private:
+#ifdef FLYLINKDC_USE_GEO_IP
 		uint8_t  get_country_sqlite(uint32_t p_ip, CFlyLocationDesc& p_location);
 		bool find_cache_countryL(uint32_t p_ip, uint16_t& p_index);
-		uint16_t find_cache_locationL(uint32_t p_ip, int32_t& p_index);
-	public:
 		__int64 get_dic_country_id(const string& p_country);
 		void clear_dic_cache_country();
+#endif
+    uint16_t find_cache_locationL(uint32_t p_ip, int32_t& p_index);
+	public:
 		
 		void save_location(const CFlyLocationIPArray& p_geo_ip);
 		void get_location(uint32_t p_ip, int32_t& p_index);
@@ -460,11 +466,15 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		auto_ptr<sqlite3_command> m_select_ratio_load;
 		//auto_ptr<sqlite3_command> m_select_last_ip_and_message_count;
 		auto_ptr<sqlite3_command> m_select_all_last_ip_and_message_count;
-		auto_ptr<sqlite3_command> m_select_antivirus_db;
-		auto_ptr<sqlite3_command> m_find_virus_nick;
 		
 		boost::unordered_map<uint32_t, boost::unordered_map<std::string, CFlyLastIPCacheItem> > m_last_ip_cache;
+		
 		CriticalSection m_antivirus_cs;
+		
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
+		auto_ptr<sqlite3_command> m_find_virus_nick_and_share;
+		auto_ptr<sqlite3_command> m_find_virus_nick_and_share_and_ip4;
+		
 		boost::unordered_set<std::string> m_virus_user;
 		boost::unordered_set<int64_t> m_virus_share;
 		boost::unordered_set<unsigned long> m_virus_ip4;
@@ -476,6 +486,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		}
 	public:
 		int calc_antivirus_flag(const string& p_nick, const boost::asio::ip::address_v4& p_ip4, int64_t p_share, string& p_virus_path);
+#endif
 	private:
 	
 		auto_ptr<sqlite3_command> m_insert_ratio;
@@ -524,18 +535,17 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		auto_ptr<sqlite3_command> m_insert_registry;
 		auto_ptr<sqlite3_command> m_delete_registry;
 		
-		auto_ptr<sqlite3_command> m_select_geoip;
-		auto_ptr<sqlite3_command> m_insert_geoip;
-		auto_ptr<sqlite3_command> m_delete_geoip;
-		
-		auto_ptr<sqlite3_command> m_merge_antivirus_db;
-		auto_ptr<sqlite3_command> m_delete_antivirus_db;
 		
 		auto_ptr<sqlite3_command> m_select_location;
 		auto_ptr<sqlite3_command> m_select_count_location;
 		
 		FastCriticalSection m_cache_location_cs;
+#ifdef FLYLINKDC_USE_GEO_IP
+		auto_ptr<sqlite3_command> m_select_geoip;
+		auto_ptr<sqlite3_command> m_insert_geoip;
+		auto_ptr<sqlite3_command> m_delete_geoip;
 		vector<CFlyLocationDesc> m_country_cache;
+#endif
 		vector<CFlyLocationDesc> m_location_cache;
 		
 		int m_count_fly_location_ip_record;

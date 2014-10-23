@@ -20,7 +20,6 @@
 #include "AdcHub.h"
 #include "Client.h"
 #include "ClientManager.h"
-#include "DetectionManager.h"
 #include "UserCommand.h"
 #include "CFlylinkDBManager.h"
 #include "Wildcards.h"
@@ -718,11 +717,19 @@ void FavoriteUser::update(const OnlineUser& info) // !SMT!-fix
 	setUrl(info.getClient().getHubUrl());
 }
 
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 unsigned char Identity::calcVirusType()
 {
 	if (!(m_virus_type & Identity::VT_CALC))
 	{
-		const auto l_virus_type = CFlylinkDBManager::getInstance()->calc_antivirus_flag(getNick(), getIp(), getBytesShared(), m_virus_path);
+		unsigned char l_virus_type = 0;
+		string l_virus_path;
+		if (const auto l_bs = getBytesShared())
+		{
+		
+			l_virus_type = CFlylinkDBManager::getInstance()->calc_antivirus_flag(getNick(), getIp(), l_bs, l_virus_path);
+		}
+		setVirusPath(l_virus_path);
 		setVirusType(l_virus_type | Identity::VT_CALC);
 	}
 	return getVirusType();
@@ -747,7 +754,7 @@ string Identity::getVirusDesc() const
 	}
 	if (!l_result.empty())
 	{
-		l_result += m_virus_path;
+		l_result += getVirusPath();
 		return l_result.substr(1);
 	}
 	else
@@ -755,6 +762,13 @@ string Identity::getVirusDesc() const
 		return l_result;
 	}
 }
+#else
+string Identity::getVirusDesc() const
+{
+	return Util::emptyString;
+}
+#endif
+
 string Identity::setCheat(const ClientBase& c, const string& aCheatDescription, bool aBadClient)
 {
 	if (!c.isOp() || isOp())
@@ -939,25 +953,6 @@ void Identity::getReport(string& p_report) const
 			// TODO: translate known tags and format values to something more readable
 			switch (i->first)
 			{
-#ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
-				case TAG('C', 'L'):
-					name = "Client name";
-					break;
-				case TAG('C', 'M'):
-					name = "Comment";
-					break;
-				case TAG('G', 'E'):
-					name = "Filelist generator";
-					break;
-# ifdef IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
-				case TAG('L', 'O'):
-					name = "NMDC Lock";
-					break;
-				case TAG('P', 'K'):
-					name = "NMDC Pk";
-					break;
-# endif
-#endif // IRAINMAN_INCLUDE_DETECTION_MANAGER
 				case TAG('C', 'S'): // ok
 					name = "Cheat description";
 					break;
@@ -994,338 +989,6 @@ string Identity::getSupports() const // [+] IRainman fix.
 	}
 	return tmp;
 }
-
-/*
-string Identity::updateClientType(const OnlineUser& ou)
-{
-    if (getUser()->isSet(User::DCPLUSPLUS))
-    {
-        if (get("LL") == "11" && getBytesShared() > 0)
-        {
-            string report = setCheat(ou.getClient(), "Fake file list - ListLen = 11" , true);
-            set("CL", "DC++ Stealth");
-            set_fake_card_bit(BAD_CLIENT | BAD_LIST, true);
-
-            ClientManager::getInstance()->sendRawCommand(ou, SETTING(LISTLEN_MISMATCH));
-            return report;
-        }
-        else if (strncmp(getTag().c_str(), "<++ V:0.69", 10) == 0 && get("LL") != "42")
-        {
-            string report = setCheat(ou.getClient(), "Listlen mismatched" , true);
-            set("CL", "Faked DC++");
-            set("CM", "Supports corrupted files...");
-            set_fake_card_bit(BAD_CLIENT, true);
-
-            ClientManager::getInstance()->sendRawCommand(ou, SETTING(LISTLEN_MISMATCH));
-            return report;
-        }
-    }
-#ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
-    uint64_t tick = GET_TICK();
-
-    StringMap params;
-    getDetectionParams(params); // get identity fields and escape them, then get the rest and leave as-is
-    const DetectionManager::DetectionItems& profiles = DetectionManager::getInstance()->getProfiles(params);
-
-    for (auto i = profiles.cbegin(); i != profiles.cend(); ++i)
-    {
-        const DetectionEntry& entry = *i;
-        if (!entry.isEnabled)
-            continue;
-        DetectionEntry::INFMap INFList;
-        if (!entry.defaultMap.empty())
-        {
-            // fields to check for both, adc and nmdc
-            INFList = entry.defaultMap;
-        }
-
-        if (getUser()->isSet(User::NMDC) && !entry.nmdcMap.empty())
-        {
-            INFList.insert(INFList.end(), entry.nmdcMap.begin(), entry.nmdcMap.end());
-        }
-        else if (!entry.adcMap.empty())
-        {
-            INFList.insert(INFList.end(), entry.adcMap.begin(), entry.adcMap.end());
-        }
-
-        if (INFList.empty())
-            continue;
-
-        bool _continue = false;
-
-        DETECTION_DEBUG("\tChecking profile: " + entry.name);
-
-        for (auto j = INFList.cbegin(); j != INFList.cend(); ++j)
-        {
-
-            // TestSUR not supported anymore, so ignore it to be compatible with older profiles
-            if (j->first == "TS")
-                continue;
-
-            string aPattern = Util::formatRegExp(j->second, params);
-            string aField = getDetectionField(j->first);
-            DETECTION_DEBUG("Pattern: " + aPattern + " Field: " + aField);
-            if (!Identity::matchProfile(aField, aPattern))
-            {
-                _continue = true;
-                break;
-            }
-        }
-        if (_continue)
-            continue;
-
-        DETECTION_DEBUG("Client found: " + entry.name + " time taken: " + Util::toString(GET_TICK() - tick) + " milliseconds");
-
-        set("CL", entry.name);
-        set("CM", entry.comment);
-
-        set_fake_card_bit(BAD_CLIENT, !entry.cheat.empty());
-
-        if (entry.checkMismatch && getUser()->isSet(User::NMDC) && (params["VE"] != params["PKVE"]))
-        {
-            set("CL", entry.name + " Version mis-match");
-            return setCheat(ou.getClient(), entry.cheat + " Version mis-match", true);
-        }
-
-        string report;
-        if (!entry.cheat.empty())
-        {
-            report = setCheat(ou.getClient(), entry.cheat, true);
-        }
-
-        ClientManager::getInstance()->sendRawCommand(ou, entry.rawToSend);// исправлена ошибка getUser() заменён на ou.getUser()
-        return report;
-    }
-
-#endif // IRAINMAN_INCLUDE_DETECTION_MANAGER
-
-    set("CL", "Unknown");
-    set("CS", Util::emptyString);
-    set_fake_card_bit(BAD_CLIENT, false);
-    return Util::emptyString;
-}
-*/
-#ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
-string Identity::updateClientType(const OnlineUser& ou)
-{
-	StringMap params;
-	getDetectionParams(params); // get identity fields and escape them, then get the rest and leave as-is
-	const DetectionManager::DetectionItems& profiles = DetectionManager::getInstance()->getProfiles(params);
-	
-	const uint64_t tick = GET_TICK();
-	
-	for (auto i = profiles.cbegin(); i != profiles.cend(); ++i)
-	{
-		const DetectionEntry& entry = *i;
-		if (!entry.isEnabled)
-			continue;
-		DetectionEntry::INFMap INFList;
-		if (!entry.defaultMap.empty())
-		{
-			// fields to check for both, adc and nmdc
-			INFList = entry.defaultMap;
-		}
-		
-		if (getUser()->isSet(User::NMDC) && !entry.nmdcMap.empty())
-		{
-			INFList.insert(INFList.end(), entry.nmdcMap.begin(), entry.nmdcMap.end());
-		}
-		else if (!entry.adcMap.empty())
-		{
-			INFList.insert(INFList.end(), entry.adcMap.begin(), entry.adcMap.end());
-		}
-		
-		if (INFList.empty())
-			continue;
-			
-		bool _continue = false;
-		
-		DETECTION_DEBUG("\tChecking profile: " + entry.name);
-		
-		for (auto j = INFList.cbegin(); j != INFList.cend(); ++j)
-		{
-		
-			// TestSUR not supported anymore, so ignore it to be compatible with older profiles
-			if (j->first == "TS")
-				continue;
-				
-			string aPattern = Util::formatRegExp(j->second, params);
-			string aField = getDetectionField(j->first);
-			DETECTION_DEBUG("Pattern: " + aPattern + " Field: " + aField);
-			if (!Identity::matchProfile(aField, aPattern))
-			{
-				_continue = true;
-				break;
-			}
-		}
-		if (_continue)
-			continue;
-			
-		DETECTION_DEBUG("Client found: " + entry.name + " time taken: " + Util::toString(GET_TICK() - tick) + " milliseconds");
-		
-		setStringParam("CL", entry.name);
-		setStringParam("CM", entry.comment);
-		
-		setFakeCardBit(BAD_CLIENT, !entry.cheat.empty());
-		
-		if (entry.checkMismatch && getUser()->isSet(User::NMDC)
-#ifdef IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
-		        && (params["VE"] != params["PKVE"])
-#endif
-		   )
-		{
-			setStringParam("CL", entry.name + " Version mis-match");
-			return setCheat(ou.getClient(), entry.cheat + " Version mis-match", true);
-		}
-		
-		string report;
-		if (!entry.cheat.empty())
-		{
-			report = setCheat(ou.getClient(), entry.cheat, true);
-		}
-		
-		ClientManager::getInstance()->sendRawCommand(ou, entry.rawToSend);
-		return report;
-	}
-	
-	setStringParam("CL", "Unknown");
-	setStringParam("CS", Util::emptyString);
-	setFakeCardBit(BAD_CLIENT, false);
-	return Util::emptyString;
-}
-
-string Identity::getDetectionField(const string& aName) const
-{
-	if (aName.length() == 2)
-	{
-		if (aName == "TA")
-			return getTag();
-		else if (aName == "CO")
-			return getConnection();
-		else
-			return getStringParam(aName.c_str());
-	}
-	else
-	{
-#ifdef IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
-		if (aName == "PKVE")
-		{
-			return getPkVersion();
-		}
-#endif
-		return Util::emptyString;
-	}
-}
-#ifdef IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
-string Identity::getPkVersion() const
-{
-	const string pk = getStringParam("PK");
-	if (pk.length()) //[+]PPA
-	{
-		match_results<string::const_iterator> result;
-		regex reg("[0-9]+\\.[0-9]+", regex_constants::icase);
-		if (regex_search(pk.cbegin(), pk.cend(), result, reg, regex_constants::match_default))
-			return result.str();
-	}
-	return Util::emptyString;
-}
-#endif // IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
-bool Identity::matchProfile(const string& aString, const string& aProfile) const
-{
-	DETECTION_DEBUG("\t\tMatching String: " + aString + " to Profile: " + aProfile);
-	
-	try
-	{
-		regex reg(aProfile);
-		return regex_search(aString.begin(), aString.end(), reg);
-	}
-	catch (...)
-	{
-	}
-	
-	return false;
-}
-
-void Identity::getDetectionParams(StringMap& p)
-{
-	getParams(p, Util::emptyString, false);
-#ifdef IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
-	p["PKVE"] = getPkVersion();
-#endif
-	//p["VEformat"] = getVersion();
-	
-	if (!user->isSet(User::NMDC))
-	{
-		string version = getStringParam("VE");
-		string::size_type i = version.find(' ');
-		if (i != string::npos)
-			p["VEformat"] = version.substr(i + 1);
-		else
-			p["VEformat"] = version;
-	}
-	else
-	{
-		p["VEformat"] = getStringParam("VE");
-	}
-	
-	// convert all special chars to make regex happy
-	for (auto i = p.cbegin(); i != p.cend(); ++i)
-	{
-		// looks really bad... but do the job
-		Util::replace("\\", "\\\\", i->second); // this one must be first
-		Util::replace("[", "\\[", i->second);
-		Util::replace("]", "\\]", i->second);
-		Util::replace("^", "\\^", i->second);
-		Util::replace("$", "\\$", i->second);
-		Util::replace(".", "\\.", i->second);
-		Util::replace("|", "\\|", i->second);
-		Util::replace("?", "\\?", i->second);
-		Util::replace("*", "\\*", i->second);
-		Util::replace("+", "\\+", i->second);
-		Util::replace("(", "\\(", i->second);
-		Util::replace(")", "\\)", i->second);
-		Util::replace("{", "\\{", i->second);
-		Util::replace("}", "\\}", i->second);
-	}
-}
-
-string Identity::getVersion(const string& aExp, string aTag)
-{
-	string::size_type i = aExp.find("%[version]");
-	if (i == string::npos)
-	{
-		i = aExp.find("%[version2]");
-		return splitVersion(aExp.substr(i + 11), splitVersion(aExp.substr(0, i), aTag, 1), 0);
-	}
-	return splitVersion(aExp.substr(i + 10), splitVersion(aExp.substr(0, i), aTag, 1), 0);
-}
-
-string Identity::splitVersion(const string& aExp, string aTag, size_t part)
-{
-	try
-	{
-		regex reg(aExp);
-		
-		StringList out;
-		// old: boost::regex_split(std::back_inserter(out), aTag, reg, boost::regex_constants::match_default, 2);
-		// new:
-		sregex_token_iterator i(aTag.cbegin(), aTag.cend(), reg);
-		sregex_token_iterator end;
-		copy(i, end, out.begin());
-		// ~new
-		if (part >= out.size())
-			return Util::emptyString;
-			
-		return out[part];
-	}
-	catch (...)
-	{
-	}
-	
-	return Util::emptyString;
-}
-
-#endif // IRAINMAN_INCLUDE_DETECTION_MANAGER
 
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 User::DefinedAutoBanFlags User::hasAutoBan(Client *p_Client, const bool p_is_favorite)

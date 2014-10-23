@@ -159,21 +159,7 @@ void UsersFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 	GetClientRect(&rect);
 	// position bars and offset their dimensions
 	UpdateBarsPosition(rect, bResizeBars);
-	/*
-	if (ctrlStatus.IsWindow())  //[-] SCALOlaz
-	{
-	    CRect sr;
-	    int w[3];
-	    ctrlStatus.GetClientRect(sr);
-	    int tmp = (sr.Width()) > 316 ? 216 : ((sr.Width() > 116) ? sr.Width() - 100 : 16);
 	
-	    w[0] = sr.right - tmp;
-	    w[1] = w[0] + (tmp - 16) / 2;
-	    w[2] = w[0] + (tmp - 16);
-	
-	    ctrlStatus.SetParts(3, w);
-	}
-	*/
 	CRect rc = rect;
 	ctrlUsers.MoveWindow(rc);
 }
@@ -323,6 +309,7 @@ void UsersFrame::updateUser(const int i, UserInfo* p_ui, const FavoriteUser& fav
 	ctrlUsers.SetItem(i, 0, LVIF_IMAGE, NULL, imageIndex, 0, 0, NULL);
 	
 	ctrlUsers.updateItem(i);
+	setCountMessages(ctrlUsers.GetItemCount());
 }
 
 void UsersFrame::removeUser(const FavoriteUser& aUser)
@@ -336,6 +323,7 @@ void UsersFrame::removeUser(const FavoriteUser& aUser)
 		{
 			ctrlUsers.DeleteItem(i);
 			delete ui;
+			setCountMessages(ctrlUsers.GetItemCount());
 			return;
 		}
 	}

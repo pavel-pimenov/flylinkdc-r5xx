@@ -1072,11 +1072,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 	aSource->setState(UserConnection::STATE_LOCK);
 }
 
-void ConnectionManager::on(UserConnectionListener::CLock, UserConnection* aSource, const string& aLock
-#ifdef IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
-                           , const string& aPk
-#endif
-                          ) noexcept
+void ConnectionManager::on(UserConnectionListener::CLock, UserConnection* aSource, const string& aLock) noexcept
 {
 	if (aSource->getState() != UserConnection::STATE_LOCK)
 	{
@@ -1097,11 +1093,6 @@ void ConnectionManager::on(UserConnectionListener::CLock, UserConnection* aSourc
 	aSource->setState(UserConnection::STATE_DIRECTION);
 	aSource->direction(aSource->getDirectionString(), aSource->getNumber());
 	aSource->key(CryptoManager::getInstance()->makeKey(aLock));
-	
-#ifdef IRAINMAN_INCLUDE_PK_LOCK_IN_IDENTITY
-	if (aSource->getUser())
-		ClientManager::getInstance()->setPkLock(aSource->getUser(), aPk, aLock);
-#endif
 }
 
 void ConnectionManager::on(UserConnectionListener::Direction, UserConnection* aSource, const string& dir, const string& num) noexcept

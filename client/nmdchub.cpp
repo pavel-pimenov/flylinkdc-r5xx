@@ -69,10 +69,15 @@ void NmdcHub::connect(const OnlineUser& aUser, const string&)
 }
 void NmdcHub::resetAntivirusInfo()
 {
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
+	webrtc::ReadLockScoped l(*m_cs);
 	for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 	{
 		i->second->getIdentity().resetAntivirusInfo();
 	}
+#else
+	dcassert(0);
+#endif
 }
 void NmdcHub::refreshUserList(bool refreshOnly)
 {

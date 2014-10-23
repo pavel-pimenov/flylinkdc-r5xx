@@ -83,7 +83,7 @@ const string SettingsManager::settingTags[] =
 	"ToolbarImage", "ToolbarHot", "UserListImage",
 	"UploadQueueFrameOrder", "UploadQueueFrameWidths",
 	
-	"ProfilesURL", "WinampFormat",
+	"WinampFormat",
 	
 	"WebServerPowerUser", "WebServerPowerPass", "webServerBindAddress", // [+] IRainman
 	"WebServerLogFormat", "LogFormatCustomLocation", "LogFormatTraceSQLite", "LogFormatDdosTrace", "LogFormatDHTTrace", "LogFormatPSRTrace", "LogFormatFloodTrace", "LogFormatCMDDebugTrace",
@@ -698,9 +698,6 @@ void SettingsManager::setDefaults()
 	//setDefault(HUB_SLOTS, 0);
 	setDefault(TEXT_FONT, "Arial,-12,400,0"); // !SMT!-F [~] InfinitySky - бережём зрение.
 	setDefault(DROP_MULTISOURCE_ONLY, TRUE);
-#ifdef IRAINMAN_INCLUDE_DETECTION_MANAGER
-	setDefault(PROFILES_URL, "https://dcaml.svn.sourceforge.net/svnroot/dcaml/"); // TODO - убрать
-#endif
 	setDefault(EXTRA_SLOTS, 10); //[+]PPA
 	setDefault(SHUTDOWN_TIMEOUT, 150);
 	//setDefault(SEARCH_PASSIVE, false); //[+] PPA
@@ -1628,7 +1625,6 @@ bool SettingsManager::set(StrSetting key, const string& value)
 		case WEBSERVER_BIND_ADDRESS:
 			// [+] IRainman fix.
 		case URL_GET_IP:
-		case PROFILES_URL:
 		case PORTAL_BROWSER_UPDATE_URL:
 		case URL_IPTRUST:
 		case AUTOUPDATE_SERVER_URL: //[PVS-Studio] V556 The values of different enum types are compared: key == AUTOUPDATE_USE_CUSTOM_URL. settingsmanager.cpp 1406
