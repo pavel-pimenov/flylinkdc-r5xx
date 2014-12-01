@@ -28,10 +28,9 @@
 class AVIPreview : public CPropertyPage<IDD_AVIPREVIEW_PAGE>, public PropPage
 {
 	public:
-		AVIPreview(SettingsManager *s) : PropPage(s)
+		AVIPreview(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(SETTINGS_AVIPREVIEW))
 		{
-			title = TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(SETTINGS_AVIPREVIEW);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		~AVIPreview()
@@ -84,7 +83,6 @@ class AVIPreview : public CPropertyPage<IDD_AVIPREVIEW_PAGE>, public PropPage
 	protected:
 		ExListViewCtrl ctrlCommands;
 		static TextItem texts[];
-		wstring title;
 		void addEntry(PreviewApplication* pa, int pos);
 };
 

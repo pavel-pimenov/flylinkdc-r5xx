@@ -169,7 +169,9 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		SearchFrame() :
 #ifdef FLYLINKDC_USE_WINDOWS_TIMER_SEARCH_FRAME
 			CFlyTimerAdapter(m_hWnd),
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 			CFlyServerAdapter(m_hWnd, 5000),
+#endif
 #endif
 			searchBoxContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
 			searchContainer(WC_EDIT, this, SEARCH_MESSAGE_MAP),
@@ -701,7 +703,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		uint64_t m_searchStartTime;
 		tstring m_target;
 		tstring m_statusLine; // [+] IRainman fix.
-		string m_token;
+		uint32_t m_token;
 		
 		FastCriticalSection cs; // [!] IRainman opt: use spin lock here.
 		

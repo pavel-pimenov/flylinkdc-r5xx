@@ -341,7 +341,7 @@ LRESULT NetworkPage::onAddWinFirewallException(WORD /* wNotifyCode */, WORD /*wI
 	// "C:\\vc10\\r5xx\\compiled\\FlylinkDC_Debug.exe"
 	if (l_res)
 	{
-		::MessageBox(NULL, Text::toT("FlylinkDC_Debug.exe - OK").c_str(), _T("Windows Firewall"), MB_OK | MB_ICONINFORMATION);
+		::MessageBox(NULL, Text::toT("FlylinkDC.exe - OK").c_str(), _T("Windows Firewall"), MB_OK | MB_ICONINFORMATION);
 	}
 	else
 	{

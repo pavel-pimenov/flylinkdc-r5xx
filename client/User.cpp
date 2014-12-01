@@ -48,6 +48,7 @@ std::unique_ptr<webrtc::RWLockWrapper> User::g_ratio_cs = std::unique_ptr<webrtc
 
 void User::setLastNick(const string& p_nick)
 {
+	dcassert(!p_nick.empty());
 	if (!m_ratio_ptr)
 	{
 		m_nick = p_nick;

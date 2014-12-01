@@ -42,7 +42,6 @@
 #include "../client/ResourceManager.h"
 #endif
 #include "FavHubProperties.h"
-#include "BarShader.h"
 
 
 HubFrame::FrameMap HubFrame::g_frames;
@@ -969,8 +968,6 @@ void HubFrame::createFavHubMenu(const FavoriteHubEntry* p_fhe)
 {
 	OMenu* l_tabMenu = createTabMenu();
 	createTabMenu()->ClearMenu();
-	const string& l_name = m_client->getHubName();
-	l_tabMenu->InsertSeparatorFirst(Text::toT(l_name.size() > 50 ? (l_name.substr(0, 50) + "Е") : l_name));
 	if (BOOLSETTING(LOG_MAIN_CHAT))
 	{
 		l_tabMenu->AppendMenu(MF_STRING, IDC_OPEN_HUB_LOG, CTSTRING(OPEN_HUB_LOG));
@@ -1207,7 +1204,8 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 	if (!ui)
 	{
 #ifdef IRAINMAN_USE_HIDDEN_USERS
-		if (!p_ou->isHidden())
+		if (!p_ou->isHidden()
+		        && !p_ou->isHub()) // https://code.google.com/p/flylinkdc/issues/detail?id=1535
 		{
 #endif
 			PROFILE_THREAD_SCOPED_DESC("HubFrame::updateUser-NEW_USER")
@@ -1616,6 +1614,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 					{
 						const Identity& id = u.m_ou->getIdentity();
 						const UserPtr& user = u.m_ou->getUser();
+						dcassert(!id.getNickT().empty());
 						const bool isFavorite = !FavoriteManager::getInstance()->isNoFavUserOrUserBanUpload(user); // [!] TODO: в €дро!
 						if (isFavorite)
 						{
@@ -1677,7 +1676,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 				MessageTask& l_task = static_cast<MessageTask&>(*i->second);
 				auto_ptr<ChatMessage> msg(l_task.m_message_ptr);
 				l_task.m_message_ptr = nullptr;
-				if (msg->m_from)
+				if (msg->m_from && !ClientManager::isShutdown())
 				{
 					const Identity& from    = msg->m_from->getIdentity();
 					const bool myMess       = ClientManager::isMe(msg->m_from);
@@ -1826,6 +1825,10 @@ void HubFrame::updateWindowText()
 			// TODO - ограничить размер текста
 			SetWindowText(Text::toT(m_window_text).c_str());
 			m_is_window_text_update = 0;
+			if (m_client->is_all_my_info_loaded())
+			{
+				SetMDIFrameMenu(); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1386
+			}
 		}
 	}
 }
@@ -1837,7 +1840,6 @@ void HubFrame::setWindowTitle(const string& p_text)
 	{
 		m_window_text = p_text;
 		++m_is_window_text_update;
-		SetMDIFrameMenu(); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1386
 	}
 	updateWindowText();
 }
@@ -2105,6 +2107,11 @@ void HubFrame::HubModeChange()
 					if (m_tooltip_hubframe)
 					{
 						m_tooltip_hubframe->AddTool(*m_ctrlShowMode, ResourceManager::PASSIVE_NOTICE);
+						if (BOOLSETTING(FORCE_PASSIVE_INCOMING_CONNECTIONS))
+						{
+							// пока не пон€л как добавить к подсказке ещЄ один текст...
+							//  BaseChatFrame::addLine(_T("[!] FlylinkDC++ You have enabled 'Force firewall mode (passive!)' (window transfer, left bottom checkbox with wall)") /*+ TSTRING(PASSIVE_FORCE_NOTICE) + _T(" ") */, Colors::g_ChatTextSystem);
+						}
 					}
 				}
 			}
@@ -2391,7 +2398,7 @@ LRESULT HubFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 	m_tabMenuShown = true;
 	OMenu* l_tabMenu = createTabMenu();
 	const string& l_name = m_client->getHubName();
-	l_tabMenu->InsertSeparatorFirst(Text::toT(!l_name.empty() ? (l_name.size() > 50 ? l_name.substr(0, 50) + ("Е") : l_name) : m_client->getHubUrl()));
+	l_tabMenu->InsertSeparatorFirst(Text::toT(!l_name.empty() ? (l_name.size() > 50 ? l_name.substr(0, 50) + "Е" : l_name) : m_client->getHubUrl()));
 	appendUcMenu(*m_tabMenu, ::UserCommand::CONTEXT_HUB, m_client->getHubUrl());
 	hSysMenu.Attach((wParam == NULL) ? (HMENU)*m_tabMenu : (HMENU)wParam);
 	if (wParam != NULL)
@@ -2425,7 +2432,7 @@ LRESULT HubFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOO
 		return TRUE;
 	}
 	
-	if (m_ctrlUsers && reinterpret_cast<HWND>(wParam) == *m_ctrlUsers && m_showUsers)
+	if (reinterpret_cast<HWND>(wParam) == *m_ctrlUsers && m_showUsers)
 	{
 		OMenu* l_user_menu = createUserMenu();
 		l_user_menu->ClearMenu();
@@ -3028,7 +3035,7 @@ void HubFrame::on(Connecting, const Client*) noexcept
 	addStatus(Text::toT(STRING(CONNECTING_TO) + ' ' + l_url_hub + " ..."));
 	// явно звать addStatus нельз€ - вешаемс€ почему-то
 	// http://code.google.com/p/flylinkdc/issues/detail?id=1428
-	setWindowTitle(l_url_hub);
+	++m_hub_name_update_count;
 }
 void HubFrame::on(ClientListener::Connected, const Client* c) noexcept
 {
@@ -3039,6 +3046,10 @@ void HubFrame::on(ClientListener::Connected, const Client* c) noexcept
 	else if (BOOLSETTING(SEARCH_PASSIVE))
 	{
 		BaseChatFrame::addLine(_T("[!] FlylinkDC++ ") + TSTRING(PASSIVE_SEARCH_NOTICE) + _T(" ") + WinUtil::GetWikiLink() + L"advanced", Colors::g_ChatTextSystem);
+	}
+	if (BOOLSETTING(FORCE_PASSIVE_INCOMING_CONNECTIONS))
+	{
+		BaseChatFrame::addLine(_T("[!] FlylinkDC++ You have enabled 'Force firewall mode (passive!)' (window transfer, left bottom checkbox with wall)") /*+ TSTRING(PASSIVE_FORCE_NOTICE) + _T(" ") */, Colors::g_ChatTextSystem);
 	}
 	//speak(CONNECTED);
 	PostMessage(WM_SPEAKER_CONNECTED);
@@ -3172,6 +3183,7 @@ void HubFrame::onTimerHubUpdated()
 		}
 		fullHubName += " (" + m_client->getHubUrl() + ')';
 		
+		dcassert(!fullHubName.empty());
 		setWindowTitle(fullHubName);
 		if (!m_is_hub_name_updated)
 		{
@@ -3875,7 +3887,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 									l_icon_index = 2;
 								else
 									l_icon_index = 1;
-								if (GetCursorPos(&p))
+								if (l_icon_index != 2 && GetCursorPos(&p))
 								{
 									if (ScreenToClient(&p))
 									{
@@ -3984,7 +3996,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 							l_step += 25;
 						}
 						// ~TODO: move this to FlagImage and cleanup!
-						top = rc.top + (rc.Height() - WinUtil::getTextHeight(cd->nmcd.hdc) - 1) / 2;
+						top = rc.top + (rc.Height() - 15 /*WinUtil::getTextHeight(cd->nmcd.hdc)*/ - 1) / 2;
 						const auto& l_desc = l_location.getDescription();
 						if (!l_desc.empty())
 						{

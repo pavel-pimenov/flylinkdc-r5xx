@@ -47,12 +47,13 @@ class LogManager : public Singleton<LogManager>, public Speaker<LogManagerListen
 		               CUSTOM_LOCATION, // [+] IRainman
 		               TRACE_SQLITE,
 		               DDOS_TRACE,
+		               CMDDEBUG_TRACE,
 		               DHT_TRACE,
 		               PSR_TRACE,
 		               FLOOD_TRACE,
-		               CMDDEBUG_TRACE,
 		               LAST
 		             };
+		             
 		enum {FILE, FORMAT};
 		void ddos_message(const string& params);
 		void flood_message(const string& params);

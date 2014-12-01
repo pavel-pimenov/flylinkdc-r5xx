@@ -26,10 +26,9 @@
 class LogPage : public CPropertyPage<IDD_LOG_PAGE>, public PropPage
 {
 	public:
-		LogPage(SettingsManager *s) : PropPage(s), oldSelection(-1)
+		LogPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_LOGS)), oldSelection(-1)
 		{
-			title = TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_LOGS);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		
@@ -63,7 +62,7 @@ class LogPage : public CPropertyPage<IDD_LOG_PAGE>, public PropPage
 		static Item items[];
 		static TextItem texts[];
 		static ListItem listItems[];
-		wstring title;
+		
 		
 		ExListViewCtrl logOptions;
 		

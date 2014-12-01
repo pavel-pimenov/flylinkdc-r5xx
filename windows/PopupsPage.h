@@ -26,18 +26,17 @@
 class Popups : public CPropertyPage<IDD_POPUPS_PAGE>, public PropPage
 {
 	public:
-		Popups(SettingsManager *s) : PropPage(s)
+		Popups(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(BALLOON_POPUPS))
 		{
-			title = TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(BALLOON_POPUPS);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
-		};
+		}
 		
 		~Popups()
 		{
 			ctrlPopupType.Detach();
 			ctrlPopups.Detach(); // [+] IRainman
-		};
+		}
 		
 		enum { BALLOON, CUSTOM, SPLASH, WINDOW };
 		
@@ -78,7 +77,7 @@ class Popups : public CPropertyPage<IDD_POPUPS_PAGE>, public PropPage
 		static ListItem listItems[];
 		static Item items[];
 		static TextItem texts[];
-		wstring title;
+		
 		
 		ExListViewCtrl ctrlPopups; // [+] IRainman
 		CComboBox ctrlPopupType;

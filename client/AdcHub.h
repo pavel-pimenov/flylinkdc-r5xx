@@ -31,13 +31,13 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		using Client::send;
 		using Client::connect;
 		
-		void connect(const OnlineUser& user, const string& p_token);
-		void connect(const OnlineUser& user, const string& p_token, bool secure);
+		void connect(const OnlineUser& p_user, const string& p_token, bool p_is_force_passive);
+		void connect_secure(const OnlineUser& p_user, const string& p_token, bool secure);
 		
 		void hubMessage(const string& aMessage, bool thirdPerson = false);
 		void privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson = false);
 		void sendUserCmd(const UserCommand& command, const StringMap& params);
-		virtual void search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, bool p_is_force_passive);
+		virtual void search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, uint32_t aToken, const StringList& aExtList, bool p_is_force_passive);
 		void password(const string& pwd);
 		void info(bool p_force);
 		void refreshUserList(bool);
@@ -79,6 +79,7 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		typedef boost::unordered_map<uint32_t, OnlineUser*> SIDMap;
 		
 		void getUserList(OnlineUserList& p_list) const;
+		void resendMyINFO(bool p_is_force_passive);
 		
 		bool m_oldPassword;
 		Socket udp;
@@ -105,27 +106,27 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		
 		void clearUsers();
 		
-		void handle(AdcCommand::SUP, AdcCommand& c) noexcept;
-		void handle(AdcCommand::SID, AdcCommand& c) noexcept;
-		void handle(AdcCommand::MSG, AdcCommand& c) noexcept;
-		void handle(AdcCommand::INF, AdcCommand& c) noexcept;
-		void handle(AdcCommand::GPA, AdcCommand& c) noexcept;
-		void handle(AdcCommand::QUI, AdcCommand& c) noexcept;
-		void handle(AdcCommand::CTM, AdcCommand& c) noexcept;
-		void handle(AdcCommand::RCM, AdcCommand& c) noexcept;
-		void handle(AdcCommand::STA, AdcCommand& c) noexcept;
-		void handle(AdcCommand::SCH, AdcCommand& c) noexcept;
-		void handle(AdcCommand::CMD, AdcCommand& c) noexcept;
-		void handle(AdcCommand::RES, AdcCommand& c) noexcept;
-		void handle(AdcCommand::GET, AdcCommand& c) noexcept;
-		void handle(AdcCommand::NAT, AdcCommand& c) noexcept;
-		void handle(AdcCommand::RNT, AdcCommand& c) noexcept;
-		void handle(AdcCommand::PSR, AdcCommand& c) noexcept;
-		void handle(AdcCommand::ZON, AdcCommand& c) noexcept;
-		void handle(AdcCommand::ZOF, AdcCommand& c) noexcept;
+		void handle(AdcCommand::SUP, const AdcCommand& c) noexcept;
+		void handle(AdcCommand::SID, const AdcCommand& c) noexcept;
+		void handle(AdcCommand::MSG, const AdcCommand& c) noexcept;
+		void handle(AdcCommand::INF, const AdcCommand& c) noexcept;
+		void handle(AdcCommand::GPA, const AdcCommand& c) noexcept;
+		void handle(AdcCommand::QUI, const AdcCommand& c) noexcept;
+		void handle(AdcCommand::CTM, const AdcCommand& c) noexcept;
+		void handle(AdcCommand::RCM, const AdcCommand& c) noexcept;
+		void handle(AdcCommand::STA, const AdcCommand& c) noexcept;
+		void handle(AdcCommand::SCH, const AdcCommand& c) noexcept;
+		void handle(AdcCommand::CMD, const AdcCommand& c) noexcept;
+		void handle(AdcCommand::RES, const AdcCommand& c) noexcept;
+		void handle(AdcCommand::GET, const AdcCommand& c) noexcept;
+		void handle(AdcCommand::NAT, const AdcCommand& c) noexcept;
+		void handle(AdcCommand::RNT, const AdcCommand& c) noexcept;
+		void handle(AdcCommand::PSR, const AdcCommand& c) noexcept;
+		void handle(AdcCommand::ZON, const AdcCommand& c) noexcept;
+		void handle(AdcCommand::ZOF, const AdcCommand& c) noexcept;
 		
 		
-		template<typename T> void handle(T, AdcCommand&) { }
+		template<typename T> void handle(T, const AdcCommand&) { }
 		
 		void sendSearch(AdcCommand& c);
 		void sendUDP(const AdcCommand& cmd) noexcept;
@@ -141,7 +142,6 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		void on(Line, const string& aLine) noexcept;
 		void on(Failed, const string& aLine) noexcept;
 		
-		void on(Second, uint64_t aTick) noexcept;
 		
 };
 

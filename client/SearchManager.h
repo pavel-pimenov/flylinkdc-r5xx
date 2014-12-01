@@ -34,16 +34,16 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 		
 		void search_auto(const string& aName)
 		{
-			search(aName, 0, Search::TYPE_TTH, Search::SIZE_DONTCARE, "auto", nullptr, false);
+			search(aName, 0, Search::TYPE_TTH, Search::SIZE_DONTCARE, 0 /*"auto"*/, nullptr, false);
 		}
-		void search(const string& aName, int64_t aSize, Search::TypeModes aTypeMode, Search::SizeModes aSizeMode, const string& aToken, void* aOwner, bool p_is_force_passive);
+		void search(const string& aName, int64_t aSize, Search::TypeModes aTypeMode, Search::SizeModes aSizeMode, uint32_t aToken, void* aOwner, bool p_is_force_passive);
 		
 		uint64_t search(const StringList& who,
 		                const string& aName,
 		                int64_t aSize,
 		                Search::TypeModes aTypeMode,
 		                Search::SizeModes aSizeMode,
-		                const string& aToken,
+		                uint32_t aToken,
 		                const StringList& aExtList,
 		                void* aOwner,
 		                bool p_is_force_passive);
@@ -66,7 +66,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 		
 		void onRES(const AdcCommand& cmd, const UserPtr& from, const string& remoteIp = Util::emptyString);
 		void onPSR(const AdcCommand& cmd, UserPtr from, const string& remoteIp = Util::emptyString);
-		AdcCommand toPSR(bool wantResponse, const string& myNick, const string& hubIpPort, const string& tth, const vector<uint16_t>& partialInfo) const;
+		void toPSR(AdcCommand& cmd, bool wantResponse, const string& myNick, const string& hubIpPort, const string& tth, const vector<uint16_t>& partialInfo) const;
 		
 	private:
 		class UdpQueue: public BASE_THREAD

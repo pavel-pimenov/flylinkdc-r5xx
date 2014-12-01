@@ -28,10 +28,9 @@ class DefaultClickPage : public CPropertyPage<IDD_DEFAULT_CLICK_PAGE>, public Pr
 #endif
 {
 	public:
-		DefaultClickPage(SettingsManager *s) : PropPage(s)
+		DefaultClickPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_DEFAULT_CLICK))
 		{
-			title = TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_DEFAULT_CLICK);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		~DefaultClickPage()
@@ -62,7 +61,7 @@ class DefaultClickPage : public CPropertyPage<IDD_DEFAULT_CLICK_PAGE>, public Pr
 		, favuserlistaction // !SMT!-UI
 		, magneturllistaction;
 		
-		wstring title;
+		
 };
 
 #endif // DEFAULT_CLICK_H

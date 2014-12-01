@@ -1,7 +1,5 @@
 del .\compiled\FlylinkDC.exe
 del .\compiled\FlylinkDC.pdb
-copy .\crash-server\crshhndl-x86.dll .\compiled
-
 call UpdateRevision.bat %1 %2 %3 %4
 if errorlevel 1 goto :error
 
@@ -10,6 +8,10 @@ if errorlevel 1 goto :error
 
 call "%VS110COMNTOOLS%\..\..\VC\bin\vcvars32.bat"
 "%VS110COMNTOOLS%..\ide\devenv" FlylinkDC_2012.sln /Rebuild "ReleaseFullOpt|Win32"
+
+if not exist .\compiled\FlylinkDC.exe goto :builderror
+
+"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\signtool.exe" sign /a /d "FlylinkDC++ r5xx" /du "http://flylinkdc.blogspot.com" /t http://timestamp.verisign.com/scripts/timstamp.dll ".\compiled\FlylinkDC.exe"
 
 call Tools\MakePortalBrowserFileList.bat
 call src_gen_filename.bat -x86
@@ -26,6 +28,11 @@ goto :end
 
 :error
 echo Can't update/extract version/revision
+pause
+goto :end
+
+:builderror
+echo Compilation error. Building terminated.
 pause
 
 :end

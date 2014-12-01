@@ -64,6 +64,9 @@
 #if defined(MEDIAINFO_JPEG_YES)
     #include "MediaInfo/Image/File_Jpeg.h"
 #endif
+#if defined(MEDIAINFO_TTML_YES)
+    #include "MediaInfo/Text/File_Ttml.h"
+#endif
 #include "MediaInfo/TimeCode.h"
 #include "MediaInfo/File_Unknown.h"
 #include "ZenLib/File.h"
@@ -103,7 +106,7 @@ namespace MediaInfoLib
 // Constants
 //***************************************************************************
 
-#define UUID(NAME, PART1, PART2, PART3, PART4) \
+#define UUID(PART1, PART2, PART3, PART4, LOCAL, NORM, NAME, DESCRIPTION) \
     const int32u NAME##1=0x##PART1; \
     const int32u NAME##2=0x##PART2; \
     const int32u NAME##3=0x##PART3; \
@@ -111,238 +114,288 @@ namespace MediaInfoLib
 
 namespace Elements
 {
-    //Item - Elements - Identifiers and locators - Interpretive - ? - ?
-    UUID(MCAChannelID,                                          060E2B34, 0101010E, 0103040A, 00000000)
+    //                       01 - Identifiers and locators
+    //                         01 - Globally Unique Identifiers
+    //                           15 - Object Identifiers
+    UUID(060E2B34, 0101010C, 01011512, 00000000, 0000, "SMPTE ST 429-5", ResourceID, "Resource ID")
 
-    //Item - Elements - Identifiers and locators - Locally Unique Identifiers - ?
-    UUID(MCALabelDictionaryID,                                  060E2B34, 0101010E, 01030701, 01000000)
-    UUID(MCATagSymbol,                                          060E2B34, 0101010E, 01030701, 02000000)
-    UUID(MCATagName,                                            060E2B34, 0101010E, 01030701, 03000000)
-    UUID(GroupOfSoundfieldGroupsLinkID,                         060E2B34, 0101010E, 01030701, 04000000)
-    UUID(MCALinkID,                                             060E2B34, 0101010E, 01030701, 05000000)
-    UUID(SoundfieldGroupLinkID,                                 060E2B34, 0101010E, 01030701, 06000000)
+    //                         02 - Globally Unique Locators
+    //                           01 - Uniform Resource Locators
+    UUID(060E2B34, 0101010C, 01020105, 01000000, 0000, "SMPTE ST 429-5", NamespaceURI, "Namespace URI")
 
-    //Item - Elements - Identifiers and locators - Locally Unique Locators - ?
-    UUID(MCAPartitionKind,                                      060E2B34, 0101010E, 01040105, 00000000)
-    UUID(MCAPartitionNumber,                                    060E2B34, 0101010E, 01040106, 00000000)
+    //                         03 - Locally Unique Identifiers
+    //                           04 - ?
+    UUID(060E2B34, 0101010E, 0103040A, 00000000, 0000, "SMPTE ST 377-4", MCAChannelID, "MCA Channel ID")
 
-    //Item - Elements - Identifiers and locators - Titles
-    UUID(MCATitle,                                              060E2B34, 0101010E, 01051000, 00000000)
-    UUID(MCATitleVersion,                                       060E2B34, 0101010E, 01051100, 00000000)
-    UUID(MCATitleSubVersion,                                    060E2B34, 0101010E, 01051200, 00000000)
-    UUID(MCAEpisode,                                            060E2B34, 0101010E, 01051300, 00000000)
+    //                           07 - ?
+    //                             01 - ?
+    UUID(060E2B34, 0101010E, 01030701, 01000000, 0000, "SMPTE ST 377-4", MCALabelDictionaryID, "MCA Label Dictionary ID")
+    UUID(060E2B34, 0101010E, 01030701, 02000000, 0000, "SMPTE ST 377-4", MCATagSymbol, "MCA Tag Symbol")
+    UUID(060E2B34, 0101010E, 01030701, 03000000, 0000, "SMPTE ST 377-4", MCATagName, "MCA Tag Name")
+    UUID(060E2B34, 0101010E, 01030701, 04000000, 0000, "SMPTE ST 377-4", GroupOfSoundfieldGroupsLinkID, "Group Of Soundfield Groups Link ID")
+    UUID(060E2B34, 0101010E, 01030701, 05000000, 0000, "SMPTE ST 377-4", MCALinkID, "MCA Link ID")
+    UUID(060E2B34, 0101010E, 01030701, 06000000, 0000, "SMPTE ST 377-4", SoundfieldGroupLinkID, "Soundfield Group Link ID")
 
-    //Item - Elements - Interpretive - Fundamental - Countries and Languages - Spoken Language Codes
-    UUID(PrimarySpokenLanguage,                                 060E2B34, 01010107, 03010102, 03010000)
-    UUID(SecondarySpokenLanguage,                               060E2B34, 01010107, 03010102, 03020000)
-    UUID(OriginalSpokenLanguage,                                060E2B34, 01010107, 03010102, 03030000)
-    UUID(SecondaryOriginalSpokenLanguage,                       060E2B34, 01010107, 03010102, 03040000)
-    UUID(PrimaryExtendedSpokenLanguage,                         060E2B34, 01010107, 03010102, 03110000)
-    UUID(SecondaryExtendedSpokenLanguage,                       060E2B34, 01010107, 03010102, 03120000)
-    UUID(OriginalExtendedSpokenLanguage,                        060E2B34, 01010107, 03010102, 03130000)
-    UUID(SecondaryOriginalExtendedSpokenLanguage,               060E2B34, 01010107, 03010102, 03140000)
-    UUID(RFC5646AudioLanguageCode,                              060E2B34, 0101010D, 03010102, 03150000)
+    //                         04 - Locally Unique Locators
+    //                           01 - ?
+    //                             01 - ?
+    UUID(060E2B34, 0101010E, 01040105, 00000000, 0000, "SMPTE ST 377-4", MCAPartitionKind, "MCA Partition Kind")
+    UUID(060E2B34, 0101010E, 01040106, 00000000, 0000, "SMPTE ST 377-4", MCAPartitionNumber, "MCA Partition Number")
 
-    //Item - Elements - Interpretive - Fundamental - Data Interpretations and Definitions - Name-Value Construct Interpretations
-    UUID(Ansi_01,                                               060E2B34, 01010105, 0301020A, 01000000)
-    UUID(UTF16_01,                                              060E2B34, 01010105, 0301020A, 01010000)
-    UUID(Ansi_02,                                               060E2B34, 01010105, 0301020A, 02000000)
-    UUID(UTF16_02,                                              060E2B34, 01010105, 0301020A, 02010000)
+    //                         05 - Titles
+    UUID(060E2B34, 0101010E, 01051000, 00000000, 0000, "SMPTE ST 377-4", MCATitle, "MCA Title")
+    UUID(060E2B34, 0101010E, 01051100, 00000000, 0000, "SMPTE ST 377-4", MCATitleVersion, "MCA Title Version")
+    UUID(060E2B34, 0101010E, 01051200, 00000000, 0000, "SMPTE ST 377-4", MCATitleSubVersion, "MCA Title Sub-version")
+    UUID(060E2B34, 0101010E, 01051300, 00000000, 0000, "SMPTE ST 377-4", MCAEpisode, "MCA Episode")
 
-    //Item - Elements - Interpretive - Fundamental - Data Interpretations and Definitions - KLV Interpretations
-    UUID(Filler01,                                              060E2B34, 01010101, 03010210, 01000000)
-    UUID(Filler02,                                              060E2B34, 01010102, 03010210, 01000000)
-    UUID(TerminatingFiller,                                     060E2B34, 01010102, 03010210, 05000000)
+    //                       03 - Interpretive
+    //                         01 - Fundamental
+    //                           01 - Countries and Languages
+    //                             01 - Country and Region Codes
 
-    //Item - Elements - Interpretive - Fundamental - Data Interpretations and Definitions - XML Constructs and Interpretations
-    UUID(XmlDocumentText,                                       060E2B34, 01010105, 03010220, 01000000)
+    //                             02 - Spoken Language Codes
+    UUID(060E2B34, 01010107, 03010102, 03010000, 0000, "", PrimarySpokenLanguage, "")
+    UUID(060E2B34, 01010107, 03010102, 03020000, 0000, "", SecondarySpokenLanguage, "")
+    UUID(060E2B34, 01010107, 03010102, 03030000, 0000, "", OriginalSpokenLanguage, "")
+    UUID(060E2B34, 01010107, 03010102, 03040000, 0000, "", SecondaryOriginalSpokenLanguage, "")
+    UUID(060E2B34, 01010107, 03010102, 03110000, 0000, "SMPTE ST 380", PrimaryExtendedSpokenLanguage, "Primary Extended Spoken Language")
+    UUID(060E2B34, 01010107, 03010102, 03120000, 0000, "SMPTE ST 380", SecondaryExtendedSpokenLanguage, "Secondary Extended Spoken Language")
+    UUID(060E2B34, 01010107, 03010102, 03130000, 0000, "SMPTE ST 380", OriginalExtendedSpokenLanguage, "Original Extended Spoken Language")
+    UUID(060E2B34, 01010107, 03010102, 03140000, 0000, "SMPTE ST 380", SecondaryOriginalExtendedSpokenLanguage, "Secondary Original Extended Spoken Language")
+    UUID(060E2B34, 0101010D, 03010102, 03150000, 0000, "SMPTE ST 377-4", RFC5646AudioLanguageCode, "RFC 5646 Spoken Language")
 
-    //Item - Elements - Interpretive - Human Assigned Descriptors
-    UUID(MCAAudioContentKind,                                   060E2B34, 0101010E, 03020102, 20000000)
-    UUID(MCAAudioElementKind,                                   060E2B34, 0101010E, 03020102, 21000000)
+    //                           02 - Data Interpretations and Definitions
+    //                             0A - Name-Value Construct Interpretations
+    UUID(060E2B34, 01010105, 0301020A, 01000000, 0000, "", Ansi_01, "")
+    UUID(060E2B34, 01010105, 0301020A, 01010000, 0000, "", UTF16_01, "")
+    UUID(060E2B34, 01010105, 0301020A, 02000000, 0000, "", Ansi_02, "")
+    UUID(060E2B34, 01010105, 0301020A, 02010000, 0000, "", UTF16_02, "")
 
-    //Item - Elements - Parametric - Video and Image Essence Characteristics - Digital Video and Image Compression Parameters - MPEG Coding Parameters - MPEG-2 Coding Parameters
-    UUID(MPEG2VideoDescriptor_SingleSequence,                   060E2B34, 01010105, 04010602, 01020000)
-    UUID(MPEG2VideoDescriptor_ConstantBFrames,                  060E2B34, 01010105, 04010602, 01030000)
-    UUID(MPEG2VideoDescriptor_CodedContentType,                 060E2B34, 01010105, 04010602, 01040000)
-    UUID(MPEG2VideoDescriptor_LowDelay,                         060E2B34, 01010105, 04010602, 01050000)
-    UUID(MPEG2VideoDescriptor_ClosedGOP,                        060E2B34, 01010105, 04010602, 01060000)
-    UUID(MPEG2VideoDescriptor_IdenticalGOP,                     060E2B34, 01010105, 04010602, 01070000)
-    UUID(MPEG2VideoDescriptor_MaxGOP,                           060E2B34, 01010105, 04010602, 01080000)
-    UUID(MPEG2VideoDescriptor_BPictureCount,                    060E2B34, 01010105, 04010602, 01090000)
-    UUID(MPEG2VideoDescriptor_ProfileAndLevel,                  060E2B34, 01010105, 04010602, 010A0000)
-    UUID(MPEG2VideoDescriptor_BitRate,                          060E2B34, 01010105, 04010602, 010B0000)
+    //                             10 - KLV Interpretations
+    UUID(060E2B34, 01010101, 03010210, 01000000, 0000, "", Filler01, "")
+    UUID(060E2B34, 01010102, 03010210, 01000000, 0000, "", Filler02, "")
+    UUID(060E2B34, 01010102, 03010210, 05000000, 0000, "", TerminatingFiller, "")
 
-    //Item - Elements - Parametric - Video and Image Essence Characteristics - Digital Video and Image Compression Parameters - JPEG 2000 Coding Parameters
-    UUID(JPEG2000PictureSubDescriptor_Rsiz,                     060E2B34, 0101010A, 04010603, 01000000)
-    UUID(JPEG2000PictureSubDescriptor_Xsiz,                     060E2B34, 0101010A, 04010603, 02000000)
-    UUID(JPEG2000PictureSubDescriptor_Ysiz,                     060E2B34, 0101010A, 04010603, 03000000)
-    UUID(JPEG2000PictureSubDescriptor_XOsiz,                    060E2B34, 0101010A, 04010603, 04000000)
-    UUID(JPEG2000PictureSubDescriptor_YOsiz,                    060E2B34, 0101010A, 04010603, 05000000)
-    UUID(JPEG2000PictureSubDescriptor_XTsiz,                    060E2B34, 0101010A, 04010603, 06000000)
-    UUID(JPEG2000PictureSubDescriptor_YTsiz,                    060E2B34, 0101010A, 04010603, 07000000)
-    UUID(JPEG2000PictureSubDescriptor_XTOsiz,                   060E2B34, 0101010A, 04010603, 08000000)
-    UUID(JPEG2000PictureSubDescriptor_YTOsiz,                   060E2B34, 0101010A, 04010603, 09000000)
-    UUID(JPEG2000PictureSubDescriptor_Csiz,                     060E2B34, 0101010A, 04010603, 0A000000)
-    UUID(JPEG2000PictureSubDescriptor_PictureComponentSizing,   060E2B34, 0101010A, 04010603, 0B000000)
-    UUID(JPEG2000PictureSubDescriptor_CodingStyleDefault,       060E2B34, 0101010A, 04010603, 0C000000)
-    UUID(JPEG2000PictureSubDescriptor_QuantizationDefault,      060E2B34, 0101010A, 04010603, 0D000000)
+    //                             10 - XML Constructs and Interpretations
+    UUID(060E2B34, 01010105, 03010220, 01000000, 0000, "", XmlDocumentText, "")
 
-    //Item - Elements - Relational - Essence and Metadata Relationships - Essence to Essence Relationships
-    UUID(SubDescriptors,                                        060E2B34, 01010109, 06010104, 06100000)
+    //                         02 - Human Assigned Descriptors
+    //                           01 - Categorization
+    //                             01 - Content Classification
 
-    //Item - Elements - User organization registred for public use - AAF Association - AS-11 core metadata framework
-    UUID(AS11_Core_SerieTitle,                                  060E2B34, 01010101, 0D010701, 0B010101)
-    UUID(AS11_Core_ProgrammeTitle,                              060E2B34, 01010101, 0D010701, 0B010102)
-    UUID(AS11_Core_EpisodeTitleNumber,                          060E2B34, 01010101, 0D010701, 0B010103)
-    UUID(AS11_Core_ShimName,                                    060E2B34, 01010101, 0D010701, 0B010104)
-    UUID(AS11_Core_AudioTrackLayout,                            060E2B34, 01010101, 0D010701, 0B010105)
-    UUID(AS11_Core_PrimaryAudioLanguage,                        060E2B34, 01010101, 0D010701, 0B010106)
-    UUID(AS11_Core_ClosedCaptionsPresent,                       060E2B34, 01010101, 0D010701, 0B010107)
-    UUID(AS11_Core_ClosedCaptionsType,                          060E2B34, 01010101, 0D010701, 0B010108)
-    UUID(AS11_Core_ClosedCaptionsLanguage,                      060E2B34, 01010101, 0D010701, 0B010109)
-    UUID(AS11_Core_ShimVersion,                                 060E2B34, 01010101, 0D010701, 0B01010A)
+    //                             02 - Cataloging and Indexing
+    UUID(060E2B34, 0101010E, 03020102, 20000000, 0000, "", MCAAudioContentKind, "")
+    UUID(060E2B34, 0101010E, 03020102, 21000000, 0000, "", MCAAudioElementKind, "")
 
-    //Item - Elements - User organization registred for public use - AAF Association - AS-11 segmentation metadata framework
-    UUID(AS11_Segment_PartNumber,                               060E2B34, 01010101, 0D010701, 0B020101)
-    UUID(AS11_Segment_PartTotal,                                060E2B34, 01010101, 0D010701, 0B020102)
+    //                       04 - Parametric
+    //                         01 - Video and Image Essence Characteristics
+    //                           06 - Digital Video and Image Compression Parameters
+    //                             02 - MPEG Coding Parameters
+    //                                 01 - MPEG-2 Coding Parameters
+    UUID(060E2B34, 01010105, 04010602, 01020000, 0000, "", MPEG2VideoDescriptor_SingleSequence, "")
+    UUID(060E2B34, 01010105, 04010602, 01030000, 0000, "", MPEG2VideoDescriptor_ConstantBFrames, "")
+    UUID(060E2B34, 01010105, 04010602, 01040000, 0000, "", MPEG2VideoDescriptor_CodedContentType, "")
+    UUID(060E2B34, 01010105, 04010602, 01050000, 0000, "", MPEG2VideoDescriptor_LowDelay, "")
+    UUID(060E2B34, 01010105, 04010602, 01060000, 0000, "", MPEG2VideoDescriptor_ClosedGOP, "")
+    UUID(060E2B34, 01010105, 04010602, 01070000, 0000, "", MPEG2VideoDescriptor_IdenticalGOP, "")
+    UUID(060E2B34, 01010105, 04010602, 01080000, 0000, "", MPEG2VideoDescriptor_MaxGOP, "")
+    UUID(060E2B34, 01010105, 04010602, 01090000, 0000, "", MPEG2VideoDescriptor_BPictureCount, "")
+    UUID(060E2B34, 01010105, 04010602, 010A0000, 0000, "", MPEG2VideoDescriptor_ProfileAndLevel, "")
+    UUID(060E2B34, 01010105, 04010602, 010B0000, 0000, "", MPEG2VideoDescriptor_BitRate, "")
 
-    //Item - Elements - User organization registred for public use - DPP - AS-11 UK DPP metadata framework
-    UUID(AS11_UKDPP_ProductionNumber,                            060E2B34, 01010101, 0D0C0101, 01010100)
-    UUID(AS11_UKDPP_Synopsis,                                    060E2B34, 01010101, 0D0C0101, 01010200)
-    UUID(AS11_UKDPP_Originator,                                  060E2B34, 01010101, 0D0C0101, 01010300)
-    UUID(AS11_UKDPP_CopyrightYear,                               060E2B34, 01010101, 0D0C0101, 01010400)
-    UUID(AS11_UKDPP_OtherIdentifier,                             060E2B34, 01010101, 0D0C0101, 01010500)
-    UUID(AS11_UKDPP_OtherIdentifierType,                         060E2B34, 01010101, 0D0C0101, 01010600)
-    UUID(AS11_UKDPP_Genre,                                       060E2B34, 01010101, 0D0C0101, 01010700)
-    UUID(AS11_UKDPP_Distributor,                                 060E2B34, 01010101, 0D0C0101, 01010800)
-    UUID(AS11_UKDPP_PictureRatio,                                060E2B34, 01010101, 0D0C0101, 01010900)
-    UUID(AS11_UKDPP_3D,                                          060E2B34, 01010101, 0D0C0101, 01010A00)
-    UUID(AS11_UKDPP_3DType,                                      060E2B34, 01010101, 0D0C0101, 01010B00)
-    UUID(AS11_UKDPP_ProductPlacement,                            060E2B34, 01010101, 0D0C0101, 01010C00)
-    UUID(AS11_UKDPP_FpaPass,                                     060E2B34, 01010101, 0D0C0101, 01010D00)
-    UUID(AS11_UKDPP_FpaManufacturer,                             060E2B34, 01010101, 0D0C0101, 01010E00)
-    UUID(AS11_UKDPP_FpaVersion,                                  060E2B34, 01010101, 0D0C0101, 01010F00)
-    UUID(AS11_UKDPP_VideoComments,                               060E2B34, 01010101, 0D0C0101, 01011000)
-    UUID(AS11_UKDPP_SecondaryAudioLanguage,                      060E2B34, 01010101, 0D0C0101, 01011100)
-    UUID(AS11_UKDPP_TertiaryAudioLanguage,                       060E2B34, 01010101, 0D0C0101, 01011200)
-    UUID(AS11_UKDPP_AudioLoudnessStandard,                       060E2B34, 01010101, 0D0C0101, 01011300)
-    UUID(AS11_UKDPP_AudioComments,                               060E2B34, 01010101, 0D0C0101, 01011400)
-    UUID(AS11_UKDPP_LineUpStart,                                 060E2B34, 01010101, 0D0C0101, 01011500)
-    UUID(AS11_UKDPP_IdentClockStart,                             060E2B34, 01010101, 0D0C0101, 01011600)
-    UUID(AS11_UKDPP_TotalNumberOfParts,                          060E2B34, 01010101, 0D0C0101, 01011700)
-    UUID(AS11_UKDPP_TotalProgrammeDuration,                      060E2B34, 01010101, 0D0C0101, 01011800)
-    UUID(AS11_UKDPP_AudioDescriptionPresent,                     060E2B34, 01010101, 0D0C0101, 01011900)
-    UUID(AS11_UKDPP_AudioDescriptionType,                        060E2B34, 01010101, 0D0C0101, 01011A00)
-    UUID(AS11_UKDPP_OpenCaptionsPresent,                         060E2B34, 01010101, 0D0C0101, 01011B00)
-    UUID(AS11_UKDPP_OpenCaptionsType,                            060E2B34, 01010101, 0D0C0101, 01011C00)
-    UUID(AS11_UKDPP_OpenCaptionsLanguage,                        060E2B34, 01010101, 0D0C0101, 01011D00)
-    UUID(AS11_UKDPP_SigningPresent,                              060E2B34, 01010101, 0D0C0101, 01011E00)
-    UUID(AS11_UKDPP_SignLanguage,                                060E2B34, 01010101, 0D0C0101, 01011F00)
-    UUID(AS11_UKDPP_CompletionDate,                              060E2B34, 01010101, 0D0C0101, 01012000)
-    UUID(AS11_UKDPP_TextlessElementsExist,                       060E2B34, 01010101, 0D0C0101, 01012100)
-    UUID(AS11_UKDPP_ProgrammeHasText,                            060E2B34, 01010101, 0D0C0101, 01012200)
-    UUID(AS11_UKDPP_ProgrammeTextLanguage,                       060E2B34, 01010101, 0D0C0101, 01012300)
-    UUID(AS11_UKDPP_ContactEmail,                                060E2B34, 01010101, 0D0C0101, 01012400)
-    UUID(AS11_UKDPP_ContactTelephoneNumber,                      060E2B34, 01010101, 0D0C0101, 01012500)
+    //                             02 - JPEG 2000 Coding Parameters
+    UUID(060E2B34, 0101010A, 04010603, 01000000, 0000, "", JPEG2000PictureSubDescriptor_Rsiz, "")
+    UUID(060E2B34, 0101010A, 04010603, 02000000, 0000, "", JPEG2000PictureSubDescriptor_Xsiz, "")
+    UUID(060E2B34, 0101010A, 04010603, 03000000, 0000, "", JPEG2000PictureSubDescriptor_Ysiz, "")
+    UUID(060E2B34, 0101010A, 04010603, 04000000, 0000, "", JPEG2000PictureSubDescriptor_XOsiz, "")
+    UUID(060E2B34, 0101010A, 04010603, 05000000, 0000, "", JPEG2000PictureSubDescriptor_YOsiz, "")
+    UUID(060E2B34, 0101010A, 04010603, 06000000, 0000, "", JPEG2000PictureSubDescriptor_XTsiz, "")
+    UUID(060E2B34, 0101010A, 04010603, 07000000, 0000, "", JPEG2000PictureSubDescriptor_YTsiz, "")
+    UUID(060E2B34, 0101010A, 04010603, 08000000, 0000, "", JPEG2000PictureSubDescriptor_XTOsiz, "")
+    UUID(060E2B34, 0101010A, 04010603, 09000000, 0000, "", JPEG2000PictureSubDescriptor_YTOsiz, "")
+    UUID(060E2B34, 0101010A, 04010603, 0A000000, 0000, "", JPEG2000PictureSubDescriptor_Csiz, "")
+    UUID(060E2B34, 0101010A, 04010603, 0B000000, 0000, "", JPEG2000PictureSubDescriptor_PictureComponentSizing, "")
+    UUID(060E2B34, 0101010A, 04010603, 0C000000, 0000, "", JPEG2000PictureSubDescriptor_CodingStyleDefault, "")
+    UUID(060E2B34, 0101010A, 04010603, 0D000000, 0000, "", JPEG2000PictureSubDescriptor_QuantizationDefault, "")
 
-    //Item - Elements - User organization registred for public use - AAF Association - Generic Container - Version 1
-    UUID(GenericContainer_Aaf,                                  060E2B34, 01020101, 0D010301, 00000000)
+    //                         09 - Format Characteristics
+    UUID(060E2B34, 0101010C, 04090500, 00000000, 0000, "SMPTE ST 429-5", UCSEncoding, "UCS Encoding")
 
-    //Groups - Elements - User organization registred for public use - AAF Association - AAF Attributes - AAF Information Attributes - Version 1 - Enumerated Attributes
-    UUID(DMSegment_Filler,                                      060E2B34, 02530101, 0D010101, 01010900)
-    UUID(Sequence,                                              060E2B34, 02530101, 0D010101, 01010F00)
-    UUID(SourceClip,                                            060E2B34, 02530101, 0D010101, 01011100)
-    UUID(TimecodeComponent,                                     060E2B34, 02530101, 0D010101, 01011400)
-    UUID(ContentStorage,                                        060E2B34, 02530101, 0D010101, 01011800)
-    UUID(EssenceContainerData,                                  060E2B34, 02530101, 0D010101, 01012300)
-    UUID(GenericPictureEssenceDescriptor,                       060E2B34, 02530101, 0D010101, 01012700)
-    UUID(CDCIEssenceDescriptor,                                 060E2B34, 02530101, 0D010101, 01012800)
-    UUID(RGBAEssenceDescriptor,                                 060E2B34, 02530101, 0D010101, 01012900)
-    UUID(Preface,                                               060E2B34, 02530101, 0D010101, 01012F00)
-    UUID(Identification,                                        060E2B34, 02530101, 0D010101, 01013000)
-    UUID(NetworkLocator,                                        060E2B34, 02530101, 0D010101, 01013200)
-    UUID(TextLocator,                                           060E2B34, 02530101, 0D010101, 01013300)
-    UUID(StereoscopicPictureSubDescriptor,                      060E2B34, 0253010C, 0D010101, 01016300) // SMPTE ST 0429-10
-    UUID(MaterialPackage,                                       060E2B34, 02530101, 0D010101, 01013600)
-    UUID(SourcePackage,                                         060E2B34, 02530101, 0D010101, 01013700)
-    UUID(EventTrack,                                            060E2B34, 02530101, 0D010101, 01013900)
-    UUID(StaticTrack,                                           060E2B34, 02530101, 0D010101, 01013A00)
-    UUID(Track,                                                 060E2B34, 02530101, 0D010101, 01013B00)
-    UUID(DMSegment,                                             060E2B34, 02530101, 0D010101, 01014100)
-    UUID(GenericSoundEssenceDescriptor,                         060E2B34, 02530101, 0D010101, 01014200)
-    UUID(GenericDataEssenceDescriptor,                          060E2B34, 02530101, 0D010101, 01014300)
-    UUID(MultipleDescriptor,                                    060E2B34, 02530101, 0D010101, 01014400)
-    UUID(DMSourceClip,                                          060E2B34, 02530101, 0D010101, 01014500)
-    UUID(AES3PCMDescriptor,                                     060E2B34, 02530101, 0D010101, 01014700)
-    UUID(WaveAudioDescriptor,                                   060E2B34, 02530101, 0D010101, 01014800)
-    UUID(MPEG2VideoDescriptor,                                  060E2B34, 02530101, 0D010101, 01015100)
-    UUID(JPEG2000PictureSubDescriptor,                          060E2B34, 02530101, 0D010101, 01015A00)
-    UUID(VbiPacketsDescriptor,                                  060E2B34, 02530101, 0D010101, 01015B00)
-    UUID(AncPacketsDescriptor,                                  060E2B34, 02530101, 0D010101, 01015C00)
-    UUID(PackageMarkerObject,                                   060E2B34, 02530101, 0D010101, 01016000)
-    UUID(ApplicationPlugInObject,                               060E2B34, 02530101, 0D010101, 01016100)
-    UUID(ApplicationReferencedObject,                           060E2B34, 02530101, 0D010101, 01016200)
-    UUID(MCALabelSubDescriptor,                                 060E2B34, 02530101, 0D010101, 01016A00) // SMPTE ST 0377-4-2012
-    UUID(AudioChannelLabelSubDescriptor,                        060E2B34, 02530101, 0D010101, 01016B00) // SMPTE ST 0377-4-2012
-    UUID(SoundfieldGroupLabelSubDescriptor,                     060E2B34, 02530101, 0D010101, 01016C00) // SMPTE ST 0377-4-2012
-    UUID(GroupOfSoundfieldGroupsLabelSubDescriptor,             060E2B34, 02530101, 0D010101, 01016D00) // SMPTE ST 0377-4-2012
+    //                       06 - Relational
+    //                         01 - Essence and Metadata Relationships
+    //                           04 - Essence to Essence Relationships
+    UUID(060E2B34, 01010109, 06010104, 06100000, 0000, "", SubDescriptors, "")
 
-    //Groups - Elements - User organization registred for public use - AAF Association - ? - Version 1 - ?
-    UUID(OpenIncompleteHeaderPartition,                         060E2B34, 02050101, 0D010201, 01020100)
-    UUID(ClosedIncompleteHeaderPartition,                       060E2B34, 02050101, 0D010201, 01020200)
-    UUID(OpenCompleteHeaderPartition,                           060E2B34, 02050101, 0D010201, 01020300)
-    UUID(ClosedCompleteHeaderPartition,                         060E2B34, 02050101, 0D010201, 01020400)
-    UUID(OpenIncompleteBodyPartition,                           060E2B34, 02050101, 0D010201, 01030100)
-    UUID(ClosedIncompleteBodyPartition,                         060E2B34, 02050101, 0D010201, 01030200)
-    UUID(OpenCompleteBodyPartition,                             060E2B34, 02050101, 0D010201, 01030300)
-    UUID(ClosedCompleteBodyPartition,                           060E2B34, 02050101, 0D010201, 01030400)
-    UUID(OpenIncompleteFooterPartition,                         060E2B34, 02050101, 0D010201, 01040100)
-    UUID(ClosedIncompleteFooterPartition,                       060E2B34, 02050101, 0D010201, 01040200)
-    UUID(OpenCompleteFooterPartition,                           060E2B34, 02050101, 0D010201, 01040300)
-    UUID(ClosedCompleteFooterPartition,                         060E2B34, 02050101, 0D010201, 01040400)
+    //                       0D - User organization registred for public use
+    //                         01 - AAF Association
+    //                           01 - MXF Structural Metadata Sets
+    //                             01 - Version 1
+    //                                 01 - MXF compatible sets and packs
+    UUID(060E2B34, 02530101, 0D010101, 01010100, 0000, "SMPTE ST 377-1", InterchangeObject, "Interchange Object")
+    UUID(060E2B34, 02530101, 0D010101, 01010200, 0000, "SMPTE ST 377-1", StructuralComponent, "Structural Component")
+    UUID(060E2B34, 02530101, 0D010101, 01010300, 0000, "SMPTE ST 377-1", Segment, "Segment")
+    UUID(060E2B34, 02530101, 0D010101, 01010600, 0000, "SMPTE ST 377-1", Event, "Event")
+    UUID(060E2B34, 02530101, 0D010101, 01010800, 0000, "SMPTE ST 377-1", CommentMarker, "Comment Marker")
+    UUID(060E2B34, 02530101, 0D010101, 01010900, 0000, "SMPTE ST 377-1", Filler53, "")
+    UUID(060E2B34, 02530101, 0D010101, 01010F00, 0000, "SMPTE ST 377-1", Sequence, "")
+    UUID(060E2B34, 02530101, 0D010101, 01011100, 0000, "SMPTE ST 377-1", SourceClip, "")
+    UUID(060E2B34, 02530101, 0D010101, 01011400, 0000, "SMPTE ST 377-1", TimecodeComponent, "")
+    UUID(060E2B34, 02530101, 0D010101, 01011800, 0000, "SMPTE ST 377-1", ContentStorage, "")
+    UUID(060E2B34, 02530101, 0D010101, 01012300, 0000, "SMPTE ST 377-1", EssenceContainerData, "")
+    UUID(060E2B34, 02530101, 0D010101, 01012400, 0000, "SMPTE ST 377-1", GenericDescriptor, "Generic Descriptor")
+    UUID(060E2B34, 02530101, 0D010101, 01012500, 0000, "SMPTE ST 377-1", FileDescriptor, "")
+    UUID(060E2B34, 02530101, 0D010101, 01012700, 0000, "SMPTE ST 377-1", GenericPictureEssenceDescriptor, "")
+    UUID(060E2B34, 02530101, 0D010101, 01012800, 0000, "SMPTE ST 377-1", CDCIEssenceDescriptor, "")
+    UUID(060E2B34, 02530101, 0D010101, 01012900, 0000, "SMPTE ST 377-1", RGBAEssenceDescriptor, "")
+    UUID(060E2B34, 02530101, 0D010101, 01012F00, 0000, "SMPTE ST 377-1", Preface, "")
+    UUID(060E2B34, 02530101, 0D010101, 01013000, 0000, "SMPTE ST 377-1", Identification, "")
+    UUID(060E2B34, 02530101, 0D010101, 01013200, 0000, "SMPTE ST 377-1", NetworkLocator, "")
+    UUID(060E2B34, 02530101, 0D010101, 01013300, 0000, "SMPTE ST 377-1", TextLocator, "")
+    UUID(060E2B34, 02530101, 0D010101, 01013400, 0000, "SMPTE ST 377-1", GenericPackage, "Generic Package")
+    UUID(060E2B34, 02530101, 0D010101, 01013600, 0000, "SMPTE ST 377-1", MaterialPackage, "")
+    UUID(060E2B34, 02530101, 0D010101, 01013700, 0000, "SMPTE ST 377-1", SourcePackage, "")
+    UUID(060E2B34, 02530101, 0D010101, 01013800, 0000, "SMPTE ST 377-1", GenericTrack , "Generic Track")
+    UUID(060E2B34, 02530101, 0D010101, 01013900, 0000, "SMPTE ST 377-1", EventTrack, "")
+    UUID(060E2B34, 02530101, 0D010101, 01013A00, 0000, "SMPTE ST 377-1", StaticTrack, "")
+    UUID(060E2B34, 02530101, 0D010101, 01013B00, 0000, "SMPTE ST 377-1", TimelineTrack, "")
+    UUID(060E2B34, 02530101, 0D010101, 01014100, 0000, "SMPTE ST 377-1", DMSegment, "")
+    UUID(060E2B34, 02530101, 0D010101, 01014200, 0000, "SMPTE ST 377-1", GenericSoundEssenceDescriptor, "")
+    UUID(060E2B34, 02530101, 0D010101, 01014300, 0000, "SMPTE ST 377-1", GenericDataEssenceDescriptor, "")
+    UUID(060E2B34, 02530101, 0D010101, 01014400, 0000, "SMPTE ST 377-1", MultipleDescriptor, "")
+    UUID(060E2B34, 02530101, 0D010101, 01014500, 0000, "SMPTE ST 377-1", DMSourceClip, "")
+    UUID(060E2B34, 02530101, 0D010101, 01014700, 0000, "", AES3PCMDescriptor, "")
+    UUID(060E2B34, 02530101, 0D010101, 01014800, 0000, "", WaveAudioDescriptor, "")
+    UUID(060E2B34, 02530101, 0D010101, 01015100, 0000, "", MPEG2VideoDescriptor, "")
+    UUID(060E2B34, 02530101, 0D010101, 01015A00, 0000, "", JPEG2000PictureSubDescriptor, "")
+    UUID(060E2B34, 02530101, 0D010101, 01015B00, 0000, "", VbiPacketsDescriptor, "")
+    UUID(060E2B34, 02530101, 0D010101, 01015C00, 0000, "", AncPacketsDescriptor, "")
+    UUID(060E2B34, 02530101, 0D010101, 01015900, 0000, "SMPTE ST 377-1", SubDescriptor, "Sub Descriptor")
+    UUID(060E2B34, 02530101, 0D010101, 01016000, 0000, "SMPTE ST 377-1", PackageMarkerObject, "")
+    UUID(060E2B34, 02530101, 0D010101, 01016100, 0000, "SMPTE ST 377-1", ApplicationPlugInObject, "")
+    UUID(060E2B34, 02530101, 0D010101, 01016200, 0000, "SMPTE ST 377-1", ApplicationReferencedObject, "")
+    UUID(060E2B34, 0253010C, 0D010101, 01016300, 0000, "SMPTE ST 429-10", StereoscopicPictureSubDescriptor, "")
+    UUID(060E2B34, 02530101, 0D010101, 01016400, 0000, "SMPTE ST 429-5", TimedTextDescriptor, "")
+    UUID(060E2B34, 02530101, 0D010101, 01016500, 0000, "SMPTE ST 429-5", TimedTextResourceSubDescriptor, "")
+    UUID(060E2B34, 02530101, 0D010101, 01016600, 0000, "SMPTE ST 377-1", ApplicationObject, "Application Object")
+    UUID(060E2B34, 02530101, 0D010101, 01016A00, 0000, "SMPTE ST 377-4", MCALabelSubDescriptor, "")
+    UUID(060E2B34, 02530101, 0D010101, 01016B00, 0000, "SMPTE ST 377-4", AudioChannelLabelSubDescriptor, "")
+    UUID(060E2B34, 02530101, 0D010101, 01016C00, 0000, "SMPTE ST 377-4", SoundfieldGroupLabelSubDescriptor, "")
+    UUID(060E2B34, 02530101, 0D010101, 01016D00, 0000, "SMPTE ST 377-4", GroupOfSoundfieldGroupsLabelSubDescriptor, "")
 
-    //Groups - Elements - User organization registred for public use - AAF Association - ?  - Version 1 - ?
-    UUID(Primer,                                                060E2B34, 02050101, 0D010201, 01050100)
+    //                           02 - MXF File Structure
+    //                             01 - Version 1
+    //                                 01 - MXF File Structure sets & packs
+    UUID(060E2B34, 02050101, 0D010201, 01020100, 0000, "SMPTE ST 377-1", OpenIncompleteHeaderPartition, "")
+    UUID(060E2B34, 02050101, 0D010201, 01020200, 0000, "SMPTE ST 377-1", ClosedIncompleteHeaderPartition, "")
+    UUID(060E2B34, 02050101, 0D010201, 01020300, 0000, "SMPTE ST 377-1", OpenCompleteHeaderPartition, "")
+    UUID(060E2B34, 02050101, 0D010201, 01020400, 0000, "SMPTE ST 377-1", ClosedCompleteHeaderPartition, "")
+    UUID(060E2B34, 02050101, 0D010201, 01030100, 0000, "SMPTE ST 377-1", OpenIncompleteBodyPartition, "")
+    UUID(060E2B34, 02050101, 0D010201, 01030200, 0000, "SMPTE ST 377-1", ClosedIncompleteBodyPartition, "")
+    UUID(060E2B34, 02050101, 0D010201, 01030300, 0000, "SMPTE ST 377-1", OpenCompleteBodyPartition, "")
+    UUID(060E2B34, 02050101, 0D010201, 01030400, 0000, "SMPTE ST 377-1", ClosedCompleteBodyPartition, "")
+    UUID(060E2B34, 02050101, 0D010201, 01040100, 0000, "SMPTE ST 377-1", OpenIncompleteFooterPartition, "")
+    UUID(060E2B34, 02050101, 0D010201, 01040200, 0000, "SMPTE ST 377-1", ClosedIncompleteFooterPartition, "")
+    UUID(060E2B34, 02050101, 0D010201, 01040300, 0000, "SMPTE ST 377-1", OpenCompleteFooterPartition, "")
+    UUID(060E2B34, 02050101, 0D010201, 01040400, 0000, "SMPTE ST 377-1", ClosedCompleteFooterPartition, "")
+    UUID(060E2B34, 02050101, 0D010201, 01050100, 0000, "SMPTE ST 377-1", Primer, "")
+    UUID(060E2B34, 02530101, 0D010201, 01100100, 0000, "SMPTE ST 377-1", IndexTableSegment, "")
+    UUID(060E2B34, 02050101, 0D010201, 01110100, 0000, "SMPTE ST 377-1", RandomIndexMetadata, "")
 
-    //Groups - Elements - User organization registred for public use - AAF Association - ? - Version 1 - ?
-    UUID(IndexTableSegment,                                     060E2B34, 02530101, 0D010201, 01100100)
+    //                           03 - ?
+    //                             01 - ?
+    //                                 00 - Generic
+    UUID(060E2B34, 01020101, 0D010301, 00000000, 0000, "", GenericContainer_Aaf, "")
 
-    //Groups - Elements - User organization registred for public use - AAF Association - ? - Version 1 - ?
-    UUID(RandomIndexMetadata,                                   060E2B34, 02050101, 0D010201, 01110100)
+    //                                 04 - SDTI
+    UUID(060E2B34, 02050101, 0D010301, 04010100, 0000, "", SDTI_SystemMetadataPack, "")
+    UUID(060E2B34, 02430101, 0D010301, 04010200, 0000, "", SDTI_PackageMetadataSet, "")
+    UUID(060E2B34, 02430101, 0D010301, 04010300, 0000, "", SDTI_PictureMetadataSet, "")
+    UUID(060E2B34, 02430101, 0D010301, 04010400, 0000, "", SDTI_SoundMetadataSet, "")
+    UUID(060E2B34, 02430101, 0D010301, 04010500, 0000, "", SDTI_DataMetadataSet, "")
+    UUID(060E2B34, 02630101, 0D010301, 04010600, 0000, "", SDTI_ControlMetadataSet, "")
 
-    //Groups - Elements - User organization registred for public use - AAF Association - ? - Version 1 - ? (SDTI-CP (SMPTE 385M))
-    UUID(SDTI_SystemMetadataPack,                               060E2B34, 02050101, 0D010301, 04010100)
-    UUID(SDTI_PackageMetadataSet,                               060E2B34, 02430101, 0D010301, 04010200)
-    UUID(SDTI_PictureMetadataSet,                               060E2B34, 02430101, 0D010301, 04010300)
-    UUID(SDTI_SoundMetadataSet,                                 060E2B34, 02430101, 0D010301, 04010400)
-    UUID(SDTI_DataMetadataSet,                                  060E2B34, 02430101, 0D010301, 04010500)
-    UUID(SDTI_ControlMetadataSet,                               060E2B34, 02630101, 0D010301, 04010600)
+    //                                 14 - System Scheme 1
+    UUID(060E2B34, 02530101, 0D010301, 14020000, 0000, "", SystemScheme1, "")
 
-    //Groups - Elements - User organization registred for public use - AAF Association - ? - Version 1 - ? (SystemScheme (SMPTE 405M))
-    UUID(SystemScheme1,                                         060E2B34, 02530101, 0D010301, 14020000)
+    //                           04 - ?
+    //                             01 - ?
+    UUID(060E2B34, 02530101, 0D010401, 01010100, 0000, "", DMScheme1, "")
 
-    //Groups - Elements - User organization registred for public use - AAF Association - Descriptive Metadata Scheme - Version 1 (SystemScheme (SMPTE 380M))
-    UUID(DMScheme1,                                             060E2B34, 02530101, 0D010401, 01010100)
+    //                           07 - AMWA AS-11
+    //                             01 - ?
+    //                                 0B - ?
+    //                                   01 - AS-11 core metadata framework
+    UUID(060E2B34, 02530101, 0D010701, 0B010100, 0000, "AMWA AS-11", AS11_AAF_Core, "")
+    UUID(060E2B34, 01010101, 0D010701, 0B010101, 0000, "AMWA AS-11", AS11_Core_SerieTitle, "")
+    UUID(060E2B34, 01010101, 0D010701, 0B010102, 0000, "AMWA AS-11", AS11_Core_ProgrammeTitle, "")
+    UUID(060E2B34, 01010101, 0D010701, 0B010103, 0000, "AMWA AS-11", AS11_Core_EpisodeTitleNumber, "")
+    UUID(060E2B34, 01010101, 0D010701, 0B010104, 0000, "AMWA AS-11", AS11_Core_ShimName, "")
+    UUID(060E2B34, 01010101, 0D010701, 0B010105, 0000, "AMWA AS-11", AS11_Core_AudioTrackLayout, "")
+    UUID(060E2B34, 01010101, 0D010701, 0B010106, 0000, "AMWA AS-11", AS11_Core_PrimaryAudioLanguage, "")
+    UUID(060E2B34, 01010101, 0D010701, 0B010107, 0000, "AMWA AS-11", AS11_Core_ClosedCaptionsPresent, "")
+    UUID(060E2B34, 01010101, 0D010701, 0B010108, 0000, "AMWA AS-11", AS11_Core_ClosedCaptionsType, "")
+    UUID(060E2B34, 01010101, 0D010701, 0B010109, 0000, "AMWA AS-11", AS11_Core_ClosedCaptionsLanguage, "")
+    UUID(060E2B34, 01010101, 0D010701, 0B01010A, 0000, "AMWA AS-11", AS11_Core_ShimVersion, "")
 
-    //Groups - Elements - User organization registred for public use - AAF Association - AS-11 core metadata framework
-    UUID(AS11_AAF_Core,                                         060E2B34, 02530101, 0D010701, 0B010100)
+    //                                   02 - AS-11 segmentation metadata framework
+    UUID(060E2B34, 02530101, 0D010701, 0B020100, 0000, "AMWA AS-11", AS11_AAF_Segmentation, "")
+    UUID(060E2B34, 01010101, 0D010701, 0B020101, 0000, "AMWA AS-11", AS11_Segment_PartNumber, "")
+    UUID(060E2B34, 01010101, 0D010701, 0B020102, 0000, "AMWA AS-11", AS11_Segment_PartTotal, "")
 
-    //Groups - Elements - User organization registred for public use - AAF Association - AS-11 segmentation metadata framework
-    UUID(AS11_AAF_Segmentation,                                 060E2B34, 02530101, 0D010701, 0B020100)
+    //                         0C - BBC
+    //                           01 - ?
+    //                             01 - ?
+    //                                 01 - ?
+    //                                   01 - AS-11 UK DPP metadata framework
+    UUID(060E2B34, 02530101, 0D0C0101, 01010000, 0000, "AMWA AS-11", AS11_AAF_UKDPP, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01010100, 0000, "AMWA AS-11", AS11_UKDPP_ProductionNumber, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01010200, 0000, "AMWA AS-11", AS11_UKDPP_Synopsis, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01010300, 0000, "AMWA AS-11", AS11_UKDPP_Originator, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01010400, 0000, "AMWA AS-11", AS11_UKDPP_CopyrightYear, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01010500, 0000, "AMWA AS-11", AS11_UKDPP_OtherIdentifier, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01010600, 0000, "AMWA AS-11", AS11_UKDPP_OtherIdentifierType, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01010700, 0000, "AMWA AS-11", AS11_UKDPP_Genre, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01010800, 0000, "AMWA AS-11", AS11_UKDPP_Distributor, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01010900, 0000, "AMWA AS-11", AS11_UKDPP_PictureRatio, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01010A00, 0000, "AMWA AS-11", AS11_UKDPP_3D, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01010B00, 0000, "AMWA AS-11", AS11_UKDPP_3DType, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01010C00, 0000, "AMWA AS-11", AS11_UKDPP_ProductPlacement, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01010D00, 0000, "AMWA AS-11", AS11_UKDPP_FpaPass, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01010E00, 0000, "AMWA AS-11", AS11_UKDPP_FpaManufacturer, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01010F00, 0000, "AMWA AS-11", AS11_UKDPP_FpaVersion, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01011000, 0000, "AMWA AS-11", AS11_UKDPP_VideoComments, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01011100, 0000, "AMWA AS-11", AS11_UKDPP_SecondaryAudioLanguage, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01011200, 0000, "AMWA AS-11", AS11_UKDPP_TertiaryAudioLanguage, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01011300, 0000, "AMWA AS-11", AS11_UKDPP_AudioLoudnessStandard, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01011400, 0000, "AMWA AS-11", AS11_UKDPP_AudioComments, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01011500, 0000, "AMWA AS-11", AS11_UKDPP_LineUpStart, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01011600, 0000, "AMWA AS-11", AS11_UKDPP_IdentClockStart, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01011700, 0000, "AMWA AS-11", AS11_UKDPP_TotalNumberOfParts, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01011800, 0000, "AMWA AS-11", AS11_UKDPP_TotalProgrammeDuration, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01011900, 0000, "AMWA AS-11", AS11_UKDPP_AudioDescriptionPresent, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01011A00, 0000, "AMWA AS-11", AS11_UKDPP_AudioDescriptionType, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01011B00, 0000, "AMWA AS-11", AS11_UKDPP_OpenCaptionsPresent, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01011C00, 0000, "AMWA AS-11", AS11_UKDPP_OpenCaptionsType, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01011D00, 0000, "AMWA AS-11", AS11_UKDPP_OpenCaptionsLanguage, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01011E00, 0000, "AMWA AS-11", AS11_UKDPP_SigningPresent, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01011F00, 0000, "AMWA AS-11", AS11_UKDPP_SignLanguage, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01012000, 0000, "AMWA AS-11", AS11_UKDPP_CompletionDate, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01012100, 0000, "AMWA AS-11", AS11_UKDPP_TextlessElementsExist, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01012200, 0000, "AMWA AS-11", AS11_UKDPP_ProgrammeHasText, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01012300, 0000, "AMWA AS-11", AS11_UKDPP_ProgrammeTextLanguage, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01012400, 0000, "AMWA AS-11", AS11_UKDPP_ContactEmail, "")
+    UUID(060E2B34, 01010101, 0D0C0101, 01012500, 0000, "AMWA AS-11", AS11_UKDPP_ContactTelephoneNumber, "")
 
-    //Groups - Elements - User organization registred for public use - DPP - AS-11 UK DPP metadata framework
-    UUID(AS11_AAF_UKDPP,                                        060E2B34, 02530101, 0D0C0101, 01010000)
+    //                       0E - User organization registred for private use
+    //                         04 - Avid
+    UUID(060E2B34, 01020101, 0E040301, 00000000, 0000, "", GenericContainer_Avid, "")
 
-    //Item - Elements - User organization registred for private use - Avid - Generic Container - Version 1
-    UUID(GenericContainer_Avid,                                 060E2B34, 01020101, 0E040301, 00000000)
+    //                         06 - Sony
+    UUID(060E2B34, 01020101, 0E067F03, 00000000, 0000, "", GenericContainer_Sony, "")
 
-    //Item - Elements - User organization registred for private use - Sony - Generic Container - Version 6
-    UUID(GenericContainer_Sony,                                 060E2B34, 01020101, 0E067F03, 00000000)
-
-    //Groups - Elements - User organization registred for private use - Omneon Video Networks
-    UUID(Omneon_010201010100,                                   060E2B34, 02530105, 0E0B0102, 01010100)
-    UUID(Omneon_010201020100,                                   060E2B34, 02530105, 0E0B0102, 01020100)
+    //                         0B - Omneon Video Networks
+    UUID(060E2B34, 02530105, 0E0B0102, 01010100, 0000, "", Omneon_010201010100, "")
+    UUID(060E2B34, 02530105, 0E0B0102, 01020100, 0000, "", Omneon_010201020100, "")
 }
 
 //---------------------------------------------------------------------------
@@ -530,6 +583,7 @@ const char* Mxf_EssenceElement(const int128u EssenceElement)
                     {
                         case 0x01 : return "VBI"; //Frame-Wrapped VBI Data Element
                         case 0x02 : return "ANC"; //Frame-Wrapped ANC Data Element
+                        case 0x0B : return "Timed Text"; //Clip-Wrapped Timed Text Data Element, SMPTE ST 429-5
                         default   : return "Unknown stream";
                     }
         case 0x18 : //GC Compound
@@ -583,6 +637,7 @@ const char* Mxf_EssenceContainer(const int128u EssenceContainer)
                                                                                         case 0x0C : return "JPEG 2000";
                                                                                         case 0x10 : return "AVC";
                                                                                         case 0x11 : return "VC-3";
+                                                                                        case 0x13 : return "Timed Text";
                                                                                         default   : return "";
                                                                                     }
                                                                         default   : return "";
@@ -724,6 +779,8 @@ const char* Mxf_EssenceContainer_Mapping(int8u Code6, int8u Code7, int8u Code8)
                         case 0x02 : return "Clip";
                         default   : return "";
                     }
+        case 0x13 : //Timed Text
+                    return "Clip";
         default   : return "";
     }
 }
@@ -1371,24 +1428,24 @@ string MXF_MCALabelDictionaryID_ChannelPositions(const std::vector<int128u> &MCA
                 LfeS+="LFE";
         }
         if (!FrontS.empty())
-            ToReturn+=FrontS.c_str();
+            ToReturn+=FrontS;
         if (!SideS.empty())
         {
             if (!ToReturn.empty())
                 ToReturn+=", ";
-            ToReturn+=SideS.c_str();
+            ToReturn+=SideS;
         }
         if (!BackS.empty())
         {
             if (!ToReturn.empty())
                 ToReturn+=", ";
-            ToReturn+=BackS.c_str();
+            ToReturn+=BackS;
         }
         if (!LfeS.empty())
         {
             if (!ToReturn.empty())
                 ToReturn+=", ";
-            ToReturn+=LfeS.c_str();
+            ToReturn+=LfeS;
         }
     }
 
@@ -4008,7 +4065,7 @@ size_t File_Mxf::Read_Buffer_Seek (size_t Method, int64u Value, int64u ID)
     {
         //Searching single descriptor if it is the only valid descriptor
         descriptors::iterator SingleDescriptor=Descriptors.end();
-        for (descriptors::iterator SingleDescriptor_Temp=Descriptors.begin(); SingleDescriptor_Temp!=Descriptors.end(); SingleDescriptor_Temp++)
+        for (descriptors::iterator SingleDescriptor_Temp=Descriptors.begin(); SingleDescriptor_Temp!=Descriptors.end(); ++SingleDescriptor_Temp)
             if (SingleDescriptor_Temp->second.StreamKind!=Stream_Max)
             {
                 if (SingleDescriptor!=Descriptors.end())
@@ -4031,22 +4088,20 @@ size_t File_Mxf::Read_Buffer_Seek (size_t Method, int64u Value, int64u ID)
                 else if (Descriptors.begin()->second.QuantizationBits!=(int8u)-1)
                     Descriptors.begin()->second.ByteRate=SamplingRate*Descriptors.begin()->second.QuantizationBits/8;
             }
+        }
 
+        for (descriptors::iterator Descriptor=Descriptors.begin(); Descriptor!=Descriptors.end(); ++Descriptor)
+        {
             //Configuring EditRate if needed (e.g. audio at 48000 Hz)
-            if (Demux_Rate) //From elsewhere
-            {
-                Descriptors.begin()->second.SampleRate=Demux_Rate;
-            }
-            else if (Descriptors.begin()->second.SampleRate>1000)
+            if (Descriptor->second.SampleRate>1000)
             {
                 float64 EditRate_FromTrack=DBL_MAX;
                 for (tracks::iterator Track=Tracks.begin(); Track!=Tracks.end(); ++Track)
                     if (EditRate_FromTrack>Track->second.EditRate)
                         EditRate_FromTrack=Track->second.EditRate;
                 if (EditRate_FromTrack>1000)
-                    Descriptors.begin()->second.SampleRate=24; //Default value
-                else
-                    Descriptors.begin()->second.SampleRate=EditRate_FromTrack;
+                    EditRate_FromTrack=Demux_Rate; //Default value;
+                Descriptor->second.SampleRate=EditRate_FromTrack;
                 for (tracks::iterator Track=Tracks.begin(); Track!=Tracks.end(); ++Track)
                     if (Track->second.EditRate>EditRate_FromTrack)
                     {
@@ -4466,7 +4521,7 @@ bool File_Mxf::Header_Begin()
         #if MEDIAINFO_DEMUX
             //Searching single descriptor if it is the only valid descriptor
             descriptors::iterator SingleDescriptor=Descriptors.end();
-            for (descriptors::iterator SingleDescriptor_Temp=Descriptors.begin(); SingleDescriptor_Temp!=Descriptors.end(); SingleDescriptor_Temp++)
+            for (descriptors::iterator SingleDescriptor_Temp=Descriptors.begin(); SingleDescriptor_Temp!=Descriptors.end(); ++SingleDescriptor_Temp)
                 if (SingleDescriptor_Temp->second.StreamKind!=Stream_Max)
                 {
                     if (SingleDescriptor!=Descriptors.end())
@@ -4627,7 +4682,7 @@ bool File_Mxf::Header_Begin()
         Element_Offset=0;
         Element_End0();
 
-        if (Buffer_End && File_Offset+Buffer_Offset+Element_Size>=Buffer_End)
+        if (Buffer_End && (File_Offset+Buffer_Offset+Element_Size>=Buffer_End || File_GoTo!=(int64u)-1) )
         {
             Buffer_Begin=(int64u)-1;
             Buffer_End=0;
@@ -4923,7 +4978,7 @@ void File_Mxf::Data_Parse()
     ELEMENT(TerminatingFiller,                                  "Terminating Filler")
     ELEMENT(XmlDocumentText,                                    "XML Document Text")
     ELEMENT(SubDescriptors,                                     "Sub Descriptors")
-    ELEMENT(DMSegment_Filler,                                   "Descriptive Metadata Segment, Filler")
+    ELEMENT(Filler53,                                           "Filler")
     ELEMENT(Sequence,                                           "Sequence")
     ELEMENT(SourceClip,                                         "Source Clip")
     ELEMENT(TimecodeComponent,                                  "Timecode Component")
@@ -4941,7 +4996,7 @@ void File_Mxf::Data_Parse()
     ELEMENT(SourcePackage,                                      "Source Package")
     ELEMENT(EventTrack,                                         "Event track")
     ELEMENT(StaticTrack,                                        "Static Track")
-    ELEMENT(Track,                                              "Track")
+    ELEMENT(TimelineTrack,                                      "Timeline Track")
     ELEMENT(DMSegment,                                          "Descriptive Metadata Segment")
     ELEMENT(GenericSoundEssenceDescriptor,                      "Generic Sound Essence Descriptor")
     ELEMENT(GenericDataEssenceDescriptor,                       "Generic Data Essence Descriptor")
@@ -4957,6 +5012,8 @@ void File_Mxf::Data_Parse()
     ELEMENT(ApplicationPlugInObject,                            "Application Plug-In Object")
     ELEMENT(ApplicationReferencedObject,                        "Application Referenced Object")
     ELEMENT(MCALabelSubDescriptor,                              "MCA Label Sub-Descriptor")
+    ELEMENT(TimedTextDescriptor,                                "Timed Text Descriptor")
+    ELEMENT(TimedTextResourceSubDescriptor,                     "Timed Text Resource Sub-Descriptor")
     ELEMENT(AudioChannelLabelSubDescriptor,                     "Audio Channel Label Sub-Descriptor")
     ELEMENT(SoundfieldGroupLabelSubDescriptor,                  "Soundfield Group Label Sub-Descriptor")
     ELEMENT(GroupOfSoundfieldGroupsLabelSubDescriptor,          "Group Of Soundfield Groups Label Sub-Descriptor")
@@ -5014,14 +5071,14 @@ void File_Mxf::Data_Parse()
         Element_Name(Mxf_EssenceElement(Code));
 
         //Config
-        #if MEDIAINFO_DEMUX || MEDIAINFO_SEEK
         if (!Essences_FirstEssence_Parsed)
         {
             Streams_Finish_Preface_ForTimeCode(Preface_Current); //Configuring DTS_Delay
 
+            #if MEDIAINFO_DEMUX || MEDIAINFO_SEEK
             //Searching single descriptor if it is the only valid descriptor
             descriptors::iterator SingleDescriptor=Descriptors.end();
-            for (descriptors::iterator SingleDescriptor_Temp=Descriptors.begin(); SingleDescriptor_Temp!=Descriptors.end(); SingleDescriptor_Temp++)
+            for (descriptors::iterator SingleDescriptor_Temp=Descriptors.begin(); SingleDescriptor_Temp!=Descriptors.end(); ++SingleDescriptor_Temp)
                 if (SingleDescriptor_Temp->second.StreamKind!=Stream_Max)
                 {
                     if (SingleDescriptor!=Descriptors.end())
@@ -5044,22 +5101,20 @@ void File_Mxf::Data_Parse()
                     else if (SingleDescriptor->second.QuantizationBits!=(int8u)-1)
                         SingleDescriptor->second.ByteRate=SamplingRate*SingleDescriptor->second.QuantizationBits/8;
                 }
+            }
 
+            for (descriptors::iterator Descriptor=Descriptors.begin(); Descriptor!=Descriptors.end(); ++Descriptor)
+            {
                 //Configuring EditRate if needed (e.g. audio at 48000 Hz)
-                if (Demux_Rate) //From elsewhere
-                {
-                    SingleDescriptor->second.SampleRate=Demux_Rate;
-                }
-                else if (SingleDescriptor->second.SampleRate>1000)
+                if (Descriptor->second.SampleRate>1000)
                 {
                     float64 EditRate_FromTrack=DBL_MAX;
                     for (tracks::iterator Track=Tracks.begin(); Track!=Tracks.end(); ++Track)
                         if (EditRate_FromTrack>Track->second.EditRate)
                             EditRate_FromTrack=Track->second.EditRate;
                     if (EditRate_FromTrack>1000)
-                        SingleDescriptor->second.SampleRate=24; //Default value
-                    else
-                        SingleDescriptor->second.SampleRate=EditRate_FromTrack;
+                        EditRate_FromTrack=Demux_Rate; //Default value;
+                    Descriptor->second.SampleRate=EditRate_FromTrack;
                     for (tracks::iterator Track=Tracks.begin(); Track!=Tracks.end(); ++Track)
                         if (Track->second.EditRate>EditRate_FromTrack)
                         {
@@ -5068,10 +5123,10 @@ void File_Mxf::Data_Parse()
                         }
                 }
             }
+            #endif //MEDIAINFO_DEMUX || MEDIAINFO_SEEK
 
             Essences_FirstEssence_Parsed=true;
         }
-        #endif //MEDIAINFO_DEMUX || MEDIAINFO_SEEK
 
         if (IsParsingEnd)
         {
@@ -5110,7 +5165,7 @@ void File_Mxf::Data_Parse()
         {
             //Searching single descriptor if it is the only valid descriptor
             descriptors::iterator SingleDescriptor=Descriptors.end();
-            for (descriptors::iterator SingleDescriptor_Temp=Descriptors.begin(); SingleDescriptor_Temp!=Descriptors.end(); SingleDescriptor_Temp++)
+            for (descriptors::iterator SingleDescriptor_Temp=Descriptors.begin(); SingleDescriptor_Temp!=Descriptors.end(); ++SingleDescriptor_Temp)
                 if (SingleDescriptor_Temp->second.StreamKind!=Stream_Max)
                 {
                     if (SingleDescriptor!=Descriptors.end())
@@ -5140,6 +5195,41 @@ void File_Mxf::Data_Parse()
                                 Essence->second.TrackID=Track->second.TrackID;
                     }
                 #endif //MEDIAINFO_DEMUX || MEDIAINFO_SEEK
+
+                // Fallback in case TrackID is not detected, forcing TrackID and TrackNumber
+                if (Essence->second.TrackID==(int32u)-1 && SingleDescriptor!=Descriptors.end())
+                {
+                    Essence->second.TrackID=SingleDescriptor->second.LinkedTrackID;
+
+                    prefaces::iterator Preface=Prefaces.find(Preface_Current);
+                    if (Preface!=Prefaces.end())
+                    {
+                        contentstorages::iterator ContentStorage=ContentStorages.find(Preface->second.ContentStorage);
+                        if (ContentStorage!=ContentStorages.end())
+                        {
+                            for (size_t Pos=0; Pos<ContentStorage->second.Packages.size(); Pos++)
+                            {
+                                packages::iterator Package=Packages.find(ContentStorage->second.Packages[Pos]);
+                                if (Package!=Packages.end() && Package->second.IsSourcePackage)
+                                {
+                                    for (size_t Pos=0; Pos<Package->second.Tracks.size(); Pos++)
+                                    {
+                                        tracks::iterator Track=Tracks.find(Package->second.Tracks[Pos]);
+                                        if (Track!=Tracks.end())
+                                        {
+                                            if (Track->second.TrackNumber==0 && Track->second.TrackID==Essence->second.TrackID)
+                                            {
+                                                Track->second.TrackNumber=Essence->first;
+                                                Essence->second.Track_Number_IsMappedToTrack=true;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 Essence->second.TrackID_WasLookedFor=true;
             }
 
@@ -5246,7 +5336,7 @@ void File_Mxf::Data_Parse()
             {
                 //Searching single descriptor if it is the only valid descriptor
                 descriptors::iterator SingleDescriptor=Descriptors.end();
-                for (descriptors::iterator SingleDescriptor_Temp=Descriptors.begin(); SingleDescriptor_Temp!=Descriptors.end(); SingleDescriptor_Temp++)
+                for (descriptors::iterator SingleDescriptor_Temp=Descriptors.begin(); SingleDescriptor_Temp!=Descriptors.end(); ++SingleDescriptor_Temp)
                     if (SingleDescriptor_Temp->second.StreamKind!=Stream_Max)
                     {
                         if (SingleDescriptor!=Descriptors.end())
@@ -5418,7 +5508,6 @@ void File_Mxf::Data_Parse()
 
             if (Essence->second.Parsers.size()==1 && Essence->second.Parsers[0]->Status[IsAccepted] && Essence->second.Frame_Count_NotParsedIncluded==(int64u)-1)
             {
-                Essence->second.Frame_Count_NotParsedIncluded=Essence->second.Parsers[0]->Frame_Count_NotParsedIncluded;
                 Essence->second.FrameInfo.DTS=Essence->second.Parsers[0]->FrameInfo.DTS;
                 Essence->second.FrameInfo.PTS=Essence->second.Parsers[0]->FrameInfo.PTS;
                 Essence->second.FrameInfo.DUR=Essence->second.Parsers[0]->FrameInfo.DUR;
@@ -5479,7 +5568,7 @@ void File_Mxf::Data_Parse()
     else
         Skip_XX(Element_Size,                                   "Unknown");
 
-    if (Buffer_End && File_Offset+Buffer_Offset+Element_Size>=Buffer_End)
+    if (Buffer_End && (File_Offset+Buffer_Offset+Element_Size>=Buffer_End || File_GoTo!=(int64u)-1) )
     {
         Buffer_Begin=(int64u)-1;
         Buffer_End=0;
@@ -6272,7 +6361,7 @@ void File_Mxf::RandomIndexMetadata()
 }
 
 //---------------------------------------------------------------------------
-void File_Mxf::DMSegment_Filler()
+void File_Mxf::Filler53()
 {
     switch(Code2)
     {
@@ -6754,6 +6843,79 @@ void File_Mxf::MCALabelSubDescriptor()
     //    default:
                 GenerationInterchangeObject();
     //}
+}
+
+//---------------------------------------------------------------------------
+void File_Mxf::TimedTextDescriptor()
+{
+    if (Code2>=0x8000)
+    {
+        // Not a short code
+        std::map<int16u, int128u>::iterator Primer_Value=Primer_Values.find(Code2);
+        if (Primer_Value!=Primer_Values.end())
+        {
+            int32u Code_Compare1=Primer_Value->second.hi>>32;
+            int32u Code_Compare2=(int32u)Primer_Value->second.hi;
+            int32u Code_Compare3=Primer_Value->second.lo>>32;
+            int32u Code_Compare4=(int32u)Primer_Value->second.lo;
+            if(0);
+            ELEMENT_UUID(ResourceID,                            "Resource ID")
+            ELEMENT_UUID(NamespaceURI,                          "Namespace URI")
+            ELEMENT_UUID(UCSEncoding,                           "UCS Encoding")
+            else
+            {
+                Element_Info1(Ztring().From_UUID(Primer_Value->second));
+                Skip_XX(Length2,                                "Data");
+            }
+
+            return;
+        }
+    }
+
+    //switch(Code2)
+    //{
+    //    default:
+                GenericDataEssenceDescriptor();
+    //}
+
+    if (Descriptors[InstanceUID].StreamKind==Stream_Max)
+    {
+        Descriptors[InstanceUID].StreamKind=Stream_Text;
+        if (Streams_Count==(size_t)-1)
+            Streams_Count=0;
+        Streams_Count++;
+    }
+}
+
+//---------------------------------------------------------------------------
+void File_Mxf::TimedTextResourceSubDescriptor()
+{
+    //switch(Code2)
+    //{
+    //    default:
+                GenerationInterchangeObject();
+    //}
+}
+
+//---------------------------------------------------------------------------
+void File_Mxf::ResourceID()
+{
+    //Parsing
+    Info_UUID(Data,                                             "UUID"); Element_Info1(Ztring().From_UUID(Data));
+}
+
+//---------------------------------------------------------------------------
+void File_Mxf::NamespaceURI()
+{
+    //Parsing
+    Info_UTF16B (Length2, Value,                                "Value"); Element_Info1(Value);
+}
+
+//---------------------------------------------------------------------------
+void File_Mxf::UCSEncoding()
+{
+    //Parsing
+    Info_UTF16B (Length2, Value,                                "Value"); Element_Info1(Value);
 }
 
 //---------------------------------------------------------------------------
@@ -7343,7 +7505,7 @@ void File_Mxf::Omneon_010201020100()
 }
 
 //---------------------------------------------------------------------------
-void File_Mxf::Track()
+void File_Mxf::TimelineTrack()
 {
     //Parsing
     switch(Code2)
@@ -8409,7 +8571,8 @@ void File_Mxf::GenericTrack_TrackNumber()
     Get_B4 (Data,                                                "Data"); Element_Info1(Ztring::ToZtring(Data, 16));
 
     FILLING_BEGIN();
-        Tracks[InstanceUID].TrackNumber=Data;
+        if (Tracks[InstanceUID].TrackNumber==(int32u)-1 || Data) // In some cases, TrackNumber is 0 for all track and we have replaced with the right value during the parsing
+            Tracks[InstanceUID].TrackNumber=Data;
         Track_Number_IsAvailable=true;
     FILLING_END();
 }
@@ -12943,6 +13106,13 @@ void File_Mxf::Info_UL_040101_Values()
                                                     Skip_B1(            "Reserved");
                                                     }
                                                     break;
+                                                case 0x13 :
+                                                    {
+                                                    Param_Info1("Timed Text");
+                                                    Skip_B1(            "Reserved");
+                                                    Skip_B1(            "Reserved");
+                                                    }
+                                                    break;
                                                 case 0x16 :
                                                     {
                                                     Param_Info1("AVC Picture Element");
@@ -13520,6 +13690,9 @@ void File_Mxf::ChooseParser(const essences::iterator &Essence, const descriptors
                                     switch (Code4)
                                     {
                                         case 0x01 : //Uncompressed Sound Coding
+                                                    ChooseParser__FromEssenceContainer (Essence, Descriptor); //e.g. for D-10 Audio
+                                                    if (!Essence->second.Parsers.empty())
+                                                        return;
                                                     switch (Code5)
                                                     {
                                                         case 0x01 :
@@ -13641,6 +13814,7 @@ void File_Mxf::ChooseParser__FromEssenceContainer(const essences::iterator &Esse
                                                                                         case 0x0C : return ChooseParser_Jpeg2000(Essence, Descriptor);
                                                                                         case 0x10 : return ChooseParser_Avc(Essence, Descriptor);
                                                                                         case 0x11 : return ChooseParser_Vc3(Essence, Descriptor);
+                                                                                        case 0x13 : return ChooseParser_TimedText(Essence, Descriptor);
                                                                                         default   : return;
                                                                                     }
                                                                         default   : return;
@@ -13929,6 +14103,9 @@ void File_Mxf::ChooseParser__Aaf_GC_Data(const essences::iterator &Essence, cons
         case 0x09 : //Line Wrapped VANC Data Element, SMPTE 384M
         case 0x0A : //Line Wrapped HANC Data Element, SMPTE 384M
                     break;
+        case 0x0B : //Timed Text
+                    ChooseParser_TimedText(Essence, Descriptor);
+                    break;
         default   : //Unknown
                     ;
     }
@@ -14120,6 +14297,24 @@ void File_Mxf::ChooseParser_Vc3(const essences::iterator &Essence, const descrip
         Open_Buffer_Init(Parser);
         Parser->Stream_Prepare(Stream_Video);
         Parser->Fill(Stream_Video, 0, Video_Format, "VC-3");
+    #endif
+    Essence->second.Parsers.push_back(Parser);
+}
+
+//---------------------------------------------------------------------------
+void File_Mxf::ChooseParser_TimedText(const essences::iterator &Essence, const descriptors::iterator &Descriptor)
+{
+    Essence->second.StreamKind=Stream_Text;
+
+    //Filling
+    #if defined(MEDIAINFO_TTML_YES)
+        File_Ttml* Parser=new File_Ttml;
+    #else
+        //Filling
+        File__Analyze* Parser=new File_Unknown();
+        Open_Buffer_Init(Parser);
+        Parser->Stream_Prepare(Stream_Text);
+        Parser->Fill(Stream_Text, 0, Text_Format, "Timed Text");
     #endif
     Essence->second.Parsers.push_back(Parser);
 }

@@ -24,6 +24,7 @@
 #include "Wildcards.h"
 
 UserManager::IgnoreMap UserManager::g_ignoreList;
+bool UserManager::g_isEmptyIgnoreList = true;
 dcdrun(bool UserManager::g_ignoreListLoaded = false);
 
 UserManager::CheckedUserSet UserManager::checkedPasswordUsers;
@@ -41,6 +42,7 @@ void UserManager::saveIgnoreList()
 	webrtc::ReadLockScoped l(*g_csIgnoreList);
 	dcassert(g_ignoreListLoaded); // [!] IRainman fix: You can not save the ignore list if it was not pre-loaded - it will erase the data!
 	CFlylinkDBManager::getInstance()->save_ignore(g_ignoreList);
+	g_isEmptyIgnoreList = g_ignoreList.empty();
 }
 
 UserManager::UserManager()
@@ -119,4 +121,34 @@ void UserManager::on(SettingsManagerListener::UsersChanges) noexcept
 	
 	webrtc::WriteLockScoped l(*g_csProtectedUsers);
 	swap(g_protectedUsersLower, protUsers);
+}
+bool UserManager::expectPasswordFromUser(const UserPtr& user)
+{
+	FastLock l(g_csPsw);
+	auto i = waitingPasswordUsers.find(user);
+	if (i == waitingPasswordUsers.end())
+	{
+		return false;
+	}
+	else if (i->second)
+	{
+		i->second = false;
+		return true;
+	}
+	else
+	{
+		waitingPasswordUsers.erase(user);
+		checkedPasswordUsers.insert(user);
+		return false;
+	}
+}
+tstring UserManager::getIgnoreListAsString()
+{
+	tstring l_result;
+	webrtc::ReadLockScoped l(*g_csIgnoreList);
+	for (auto i = g_ignoreList.cbegin(); i != g_ignoreList.cend(); ++i)
+	{
+		l_result += _T(' ') + Text::toT((*i));
+	}
+	return l_result;
 }

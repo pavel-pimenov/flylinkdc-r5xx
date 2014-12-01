@@ -17,14 +17,14 @@ class ShareMiscPage : public CPropertyPage<IDD_SHARE_MISC_PAGE>, public PropPage
 #endif
 {
 	public:
-		ShareMiscPage(SettingsManager *s) : PropPage(s)
+		ShareMiscPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_UPLOADS) + _T('\\') + TSTRING(SETTINGS_ADVANCED))
 		{
-			title = TSTRING(SETTINGS_UPLOADS) + _T('\\') + TSTRING(SETTINGS_ADVANCED);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
-		};
+		}
 		~ShareMiscPage()
-		{ };
+		{
+		}
 		
 		BEGIN_MSG_MAP(ShareMiscPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
@@ -44,7 +44,7 @@ class ShareMiscPage : public CPropertyPage<IDD_SHARE_MISC_PAGE>, public PropPage
 	private:
 		void fixControls(); // [+]NightOrion
 	protected:
-		wstring title;
+	
 		static Item items[];
 		static TextItem texts[];
 		static ListItem listItems[];

@@ -676,7 +676,7 @@ LRESULT WaitingUsersFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHan
 					{
 						g_flagImage.DrawLocation(cd->nmcd.hdc, ii->m_location, p);
 					}
-					top = rc2.top + (rc2.Height() - WinUtil::getTextHeight(cd->nmcd.hdc) - 1) / 2;
+					top = rc2.top + (rc2.Height() - 15 /*WinUtil::getTextHeight(cd->nmcd.hdc)*/ - 1) / 2;
 					if (!l_text.empty())
 					{
 						::ExtTextOut(cd->nmcd.hdc, rc2.left + 30, top + 1, ETO_CLIPPED, rc2, l_text.c_str(), l_text.length(), NULL);

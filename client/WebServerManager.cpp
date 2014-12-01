@@ -36,7 +36,7 @@ static const string NotFoundHeader = "HTTP/1.0 404 Not Found\r\n";
 
 WebServerManager* Singleton<WebServerManager>::instance = nullptr;
 
-WebServerManager::WebServerManager(void) : started(false), page404(nullptr), sended_search(false)/*, search_started(false) TODO */
+WebServerManager::WebServerManager(void) : started(false), page404(nullptr), sended_search(false), m_token(0)
 {
 	SettingsManager::getInstance()->addListener(this);
 }
@@ -982,7 +982,7 @@ void WebServerManager::search(string search_str, Search::TypeModes search_type)
 			search_str = g_tth + search_str; // [!] IRainman opt.
 		}
 		
-		m_token = Util::toString(Util::rand());
+		m_token = Util::rand();
 		
 		SearchManager::getInstance()->addListener(this);
 		// TODO: Get ADC searchtype extensions if any is selected
@@ -1002,7 +1002,7 @@ void WebServerManager::on(SearchManagerListener::SR, const SearchResultPtr& aRes
 {
 	{
 		FastLock l(cs);
-		if (!aResult->getToken().empty() && m_token != aResult->getToken())
+		if (!aResult->getToken() && m_token != aResult->getToken())
 			return;
 			
 		if (row < static_cast<size_t>SETTING(WEBSERVER_SEARCHSIZE))

@@ -220,8 +220,9 @@ void DownloadManager::checkDownloads(UserConnection* aConn)
 	fire(DownloadManagerListener::Requesting(), d);
 	
 	dcdebug("Requesting " I64_FMT "/" I64_FMT "\n", d->getStartPos(), d->getSize());
-	
-	aConn->send(d->getCommand(aConn->isSet(UserConnection::FLAG_SUPPORTS_ZLIB_GET)));
+	AdcCommand cmd(AdcCommand::CMD_GET);
+	d->getCommand(cmd, aConn->isSet(UserConnection::FLAG_SUPPORTS_ZLIB_GET));
+	aConn->send(cmd);
 }
 
 void DownloadManager::on(AdcCommand::SND, UserConnection* aSource, const AdcCommand& cmd) noexcept
@@ -563,13 +564,6 @@ void DownloadManager::on(UserConnectionListener::ListLength, UserConnection* aSo
 
 void DownloadManager::on(UserConnectionListener::FileNotAvailable, UserConnection* aSource) noexcept
 {
-	/* [-] IRainman fix.
-	   [-]if (!aSource->getDownload())
-	   [-]{
-	   [-]  aSource->disconnect(true);
-	   [-]  return;
-	   [-]}
-	   [~]*/
 	fileNotAvailable(aSource);
 }
 

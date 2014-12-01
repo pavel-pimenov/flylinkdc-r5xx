@@ -9,16 +9,15 @@ class RemoteControlPage : public CPropertyPage<IDD_REMOTE_CONTROL_PAGE>, public 
 #endif
 {
 	public:
-		RemoteControlPage(SettingsManager *s) : PropPage(s)
+		RemoteControlPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_RC))
 		{
-			title = TSTRING(SETTINGS_RC);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
-		};
+		}
 		
 		~RemoteControlPage()
 		{
-		};
+		}
 		
 		BEGIN_MSG_MAP(RemoteControlPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
@@ -38,7 +37,7 @@ class RemoteControlPage : public CPropertyPage<IDD_REMOTE_CONTROL_PAGE>, public 
 		static Item items[];
 		static TextItem texts[];
 		
-		wstring title;
+		
 };
 
 #endif //RemoteControlPage_H

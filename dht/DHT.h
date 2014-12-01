@@ -82,13 +82,13 @@ class DHT :
 		void checkExpiration(uint64_t aTick);
 		
 		/** Finds the file in the network */
-		void findFile(const string& p_tth, const string& p_token = Util::toString(Util::rand()));
+		void findFile(const string& p_tth, uint32_t p_token = Util::rand());
 		
 		/** Sends our info to specified ip:port */
 		void info(const string& ip, uint16_t port, uint32_t type, const CID& targetCID, const UDPKey& udpKey);
 		
 		/** Sends Connect To Me request to online node */
-		void connect(const OnlineUser& ou, const string& p_token);
+		void connect(const OnlineUser& p_user, const string& p_token, bool p_is_force_passive);
 		
 		/** Sends private message to online node */
 		void privateMessage(const OnlineUserPtr& ou, const string& aMessage, bool thirdPerson  = false);
@@ -139,20 +139,20 @@ class DHT :
 		friend class Singleton<DHT>;
 		friend class SearchManager;
 		
-		void handle(AdcCommand::INF, const string& ip, uint16_t port, const UDPKey& udpKey, bool isUdpKeyValid, AdcCommand& c) noexcept;    // user's info
-		void handle(AdcCommand::SCH, const string& ip, uint16_t port, const UDPKey& udpKey, AdcCommand& c) noexcept;    // incoming search request
-		void handle(AdcCommand::RES, const string& ip, uint16_t port, const UDPKey& udpKey, AdcCommand& c) noexcept;    // incoming search result
-		void handle(AdcCommand::PUB, const string& ip, uint16_t port, const UDPKey& udpKey, AdcCommand& c) noexcept;    // incoming publish request
-		void handle(AdcCommand::CTM, const string& ip, uint16_t port, const UDPKey& udpKey, AdcCommand& c) noexcept;    // connection request
-		void handle(AdcCommand::RCM, const string& ip, uint16_t port, const UDPKey& udpKey, AdcCommand& c) noexcept;    // reverse connection request
-		void handle(AdcCommand::STA, const string& ip, uint16_t port, const UDPKey& udpKey, AdcCommand& c) noexcept;    // status message
-		void handle(AdcCommand::PSR, const string& ip, uint16_t port, const UDPKey& udpKey, AdcCommand& c) noexcept;    // partial file request
-		void handle(AdcCommand::MSG, const string& ip, uint16_t port, const UDPKey& udpKey, AdcCommand& c) noexcept; // private message
-		void handle(AdcCommand::GET, const string& ip, uint16_t port, const UDPKey& udpKey, AdcCommand& c) noexcept;
-		void handle(AdcCommand::SND, const string& ip, uint16_t port, const UDPKey& udpKey, bool isUdpKeyValid, AdcCommand& c) noexcept;
+		void handle(AdcCommand::INF, const string& ip, uint16_t port, const UDPKey& udpKey, bool isUdpKeyValid, const AdcCommand& c) noexcept;    // user's info
+		void handle(AdcCommand::SCH, const string& ip, uint16_t port, const UDPKey& udpKey, const AdcCommand& c) noexcept;    // incoming search request
+		void handle(AdcCommand::RES, const string& ip, uint16_t port, const UDPKey& udpKey, const AdcCommand& c) noexcept;    // incoming search result
+		void handle(AdcCommand::PUB, const string& ip, uint16_t port, const UDPKey& udpKey, const AdcCommand& c) noexcept;    // incoming publish request
+		void handle(AdcCommand::CTM, const string& ip, uint16_t port, const UDPKey& udpKey, const AdcCommand& c) noexcept;    // connection request
+		void handle(AdcCommand::RCM, const string& ip, uint16_t port, const UDPKey& udpKey, const AdcCommand& c) noexcept;    // reverse connection request
+		void handle(AdcCommand::STA, const string& ip, uint16_t port, const UDPKey& udpKey, const AdcCommand& c) noexcept;    // status message
+		void handle(AdcCommand::PSR, const string& ip, uint16_t port, const UDPKey& udpKey, const AdcCommand& c) noexcept;    // partial file request
+		void handle(AdcCommand::MSG, const string& ip, uint16_t port, const UDPKey& udpKey, const AdcCommand& c) noexcept; // private message
+		void handle(AdcCommand::GET, const string& ip, uint16_t port, const UDPKey& udpKey, const AdcCommand& c) noexcept;
+		void handle(AdcCommand::SND, const string& ip, uint16_t port, const UDPKey& udpKey, bool isUdpKeyValid, const AdcCommand& c) noexcept;
 		
 		/** Unsupported command */
-		template<typename T> void handle(T, const Node::Ptr&user, AdcCommand&) { }
+		template<typename T> void handle(T, const Node::Ptr&user, const AdcCommand&) { }
 		
 		/** UDP socket */
 		UDPSocket   m_dht_socket;
@@ -181,6 +181,11 @@ class DHT :
 		
 		/** Loads network information from XML file */
 		void loadData();
+
+		void resendMyINFO(bool p_is_force_passive)
+		{
+			dcassert(0);
+		}
 };
 
 }

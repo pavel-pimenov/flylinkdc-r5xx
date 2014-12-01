@@ -74,12 +74,12 @@ string SearchManager::normalizeWhitespace(const string& aString)
 	return normalized;
 }
 
-void SearchManager::search(const string& aName, int64_t aSize, Search::TypeModes aTypeMode, Search::SizeModes aSizeMode, const string& aToken, void* aOwner, bool p_is_force_passive)
+void SearchManager::search(const string& aName, int64_t aSize, Search::TypeModes aTypeMode, Search::SizeModes aSizeMode, uint32_t aToken, void* aOwner, bool p_is_force_passive)
 {
 	ClientManager::getInstance()->search(aSizeMode, aSize, aTypeMode, normalizeWhitespace(aName), aToken, aOwner, p_is_force_passive);
 }
 
-uint64_t SearchManager::search(const StringList& who, const string& aName, int64_t aSize, Search::TypeModes aTypeMode, Search::SizeModes aSizeMode, const string& aToken, const StringList& aExtList, void* aOwner, bool p_is_force_passive)
+uint64_t SearchManager::search(const StringList& who, const string& aName, int64_t aSize, Search::TypeModes aTypeMode, Search::SizeModes aSizeMode, uint32_t aToken, const StringList& aExtList, void* aOwner, bool p_is_force_passive)
 {
 	return ClientManager::getInstance()->search(who, aSizeMode, aSize, aTypeMode, normalizeWhitespace(aName), aToken, aExtList, aOwner, p_is_force_passive);
 }
@@ -361,7 +361,7 @@ int SearchManager::UdpQueue::run()
 			
 			const TTHValue l_tth_value(tth);
 			const SearchResultPtr sr(new SearchResult(user, type, slots, freeSlots, size,
-			                                          file, Util::emptyString, url, remoteIp, l_tth_value, Util::emptyString));
+			                                          file, Util::emptyString, url, remoteIp, l_tth_value, -1 /*0 == auto*/));
 			                                          
 			SearchManager::getInstance()->fire(SearchManagerListener::SR(), sr);
 #ifdef FLYLINKDC_USE_COLLECT_STAT
@@ -454,7 +454,7 @@ void SearchManager::onRES(const AdcCommand& cmd, const UserPtr& from, const stri
 	int64_t size = -1;
 	string file;
 	string tth;
-	string l_token;
+	uint32_t l_token = -1; // 0 == auto
 	
 	for (auto i = cmd.getParameters().cbegin(); i != cmd.getParameters().cend(); ++i)
 	{
@@ -477,7 +477,8 @@ void SearchManager::onRES(const AdcCommand& cmd, const UserPtr& from, const stri
 		}
 		else if (str.compare(0, 2, "TO", 2) == 0)
 		{
-			l_token = str.substr(2);
+			l_token = Util::toUInt32(str.substr(2));
+			// dcassert(l_token);
 		}
 	}
 	
@@ -592,8 +593,9 @@ void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const string& rem
 	{
 		try
 		{
-			AdcCommand l_cmd = SearchManager::getInstance()->toPSR(false, ps.getMyNick(), hubIpPort, tth, outPartialInfo);
-			ClientManager::getInstance()->send(l_cmd, from->getCID());
+			AdcCommand cmd(AdcCommand::CMD_PSR, AdcCommand::TYPE_UDP);
+			toPSR(cmd, false, ps.getMyNick(), hubIpPort, tth, outPartialInfo);
+			ClientManager::getInstance()->send(cmd, from->getCID());
 			LogManager::getInstance()->psr_message(
 			    "[SearchManager::respond] hubIpPort = " + hubIpPort +
 			    " ps.getMyNick() = " + ps.getMyNick() +
@@ -640,7 +642,8 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 		PartsInfo partialInfo;
 		if (QueueManager::getInstance()->handlePartialSearch(TTHValue(tth), partialInfo))
 		{
-			AdcCommand cmd = toPSR(true, Util::emptyString, hubIpPort, tth, partialInfo);
+			AdcCommand cmd(AdcCommand::CMD_PSR, AdcCommand::TYPE_UDP);
+			toPSR(cmd, true, Util::emptyString, hubIpPort, tth, partialInfo);
 			ClientManager::getInstance()->send(cmd, from);
 			l_sr = ClientManagerListener::SEARCH_PARTIAL_HIT; // [+] IRainman-S
 			LogManager::getInstance()->psr_message(
@@ -654,7 +657,8 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 	{
 		for (auto i = results.cbegin(); i != results.cend(); ++i)
 		{
-			AdcCommand cmd = (*i)->toRES(AdcCommand::TYPE_UDP);
+			AdcCommand cmd(AdcCommand::CMD_RES, AdcCommand::TYPE_UDP);
+			(*i)->toRES(cmd, AdcCommand::TYPE_UDP);
 			if (!token.empty())
 				cmd.addParam("TO", token);
 			ClientManager::getInstance()->send(cmd, from);
@@ -695,10 +699,9 @@ string SearchManager::getPartsString(const PartsInfo& partsInfo) const
 }
 
 
-AdcCommand SearchManager::toPSR(bool wantResponse, const string& myNick, const string& hubIpPort, const string& tth, const vector<uint16_t>& partialInfo) const
+void SearchManager::toPSR(AdcCommand& cmd, bool wantResponse, const string& myNick, const string& hubIpPort, const string& tth, const vector<uint16_t>& partialInfo) const
 {
-	AdcCommand cmd(AdcCommand::CMD_PSR, AdcCommand::TYPE_UDP);
-	
+	cmd.getParameters().reserve(6);
 	if (!myNick.empty())
 		cmd.addParam("NI", Text::utf8ToAcp(myNick));
 		
@@ -707,8 +710,6 @@ AdcCommand SearchManager::toPSR(bool wantResponse, const string& myNick, const s
 	cmd.addParam("TR", tth);
 	cmd.addParam("PC", Util::toString(partialInfo.size() / 2));
 	cmd.addParam("PI", getPartsString(partialInfo));
-	
-	return cmd;
 }
 
 /**

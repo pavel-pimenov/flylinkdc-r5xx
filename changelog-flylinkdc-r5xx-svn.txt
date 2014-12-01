@@ -1,4 +1,446 @@
 ------------------------------------------------------------------------
+r17932 | pavel.pimenov@gmail.com | 2014-11-30 21:38:58 +0300 (Вс, 30 ноя 2014) | 49 lines
+
+Merged revision(s) 17906-17927 from trunk:
+# remove svn:externals
+........
+# remove svn:externals
+........
+# remove svn:externals XMLParser
+........
+# remove svn:externals wtl
+........
+# remove svn:externals zlib
+........
+# remove svn:externals bzip2
+........
+# remove svn:externals sqlite
+........
+# remove svn:externals mediainfolib
+........
+# remove svn:externals zenlib
+........
+# remove svn:externals - почти все прибил - достали они тупить при обновлениях
+........
+# Убрал лишний спам DHT - SearchManager::processSearchRequest Error term.size() != 39.  и [Start flood]
+........
+# Убрал мерцание закладок (если их много)
+........
+# Log [public-build]
+........
+# remove svn:externals
+........
+# remove svn:externals openssl
+........
+# remove svn:externals
+........
+# remove svn:externals boost
+........
+# Убрал бестолковое сообщение "Values of the changed settings are automatically adjusted"
+  не понятно что поменялось - пользователи задают вопросы.
+
+........
+* miniUPnP 1.9.20141128
+........
+# Рефакторинг в подкраске игноренных юзеров
+  Если их нет - ускоряем отрисовку списка юзеров
+........
+# Рефактиринг - убрал копи-паст с wstring title;
+........
+* (Fixed issue 1543) https://code.google.com/p/flylinkdc/issues/detail?id=1543
+........
+
+------------------------------------------------------------------------
+r17931 | pavel.pimenov@gmail.com | 2014-11-30 21:31:52 +0300 (Вс, 30 ноя 2014) | 1 line
+
+# remove externals - 3
+------------------------------------------------------------------------
+r17930 | pavel.pimenov@gmail.com | 2014-11-30 21:25:01 +0300 (Вс, 30 ноя 2014) | 1 line
+
+# remove externals - 2
+------------------------------------------------------------------------
+r17929 | pavel.pimenov@gmail.com | 2014-11-30 21:23:19 +0300 (Вс, 30 ноя 2014) | 1 line
+
+# remove externals
+------------------------------------------------------------------------
+r17928 | pavel.pimenov@gmail.com | 2014-11-30 20:59:35 +0300 (Вс, 30 ноя 2014) | 263 lines
+
+Merged revision(s) 17804-17905 from trunk:
+# Log [public-build]
+# Косметика.
+# r4xx - если upnp не прошел - включаем пассивый режим а не прямое
+........
+# Убрал задвоение контекстного меню (Scalolaz)
+# Маркер лишнего юзера на adc - https://code.google.com/p/flylinkdc/issues/detail?id=1535 
+........
+* (Fixed issue 1535) На ADC хабах после закрытия соединения в списке пользователей остается бот с именем хаба
+  https://code.google.com/p/flylinkdc/issues/detail?id=1535
+........
+* miniupnpc-1.9.20141027
+........
+# Убрал операцию копирования тяжелого объекта AdcCommand через стек.
+# Adc - ускорил парсинг AdcCommand для получения CID
+........
+# Перенес код от флая в другой модуль - чтобы не мусорить в оригинальном менеджере.
+........
+* Обновил версию crash-server
+  Теперь он зовется Doctor dump (https://drdump.com)
+........
+* Обновил версию crash-server (часть 2)
+........
+* Обновил версию crash-server (часть 3)
+........
+# [PVS-Studio] 
+ V811 Decreased performance. Excessive type casting: string -> char * -> string. Consider inspecting the 'BackS.c_str()' expression. file_mxf.cpp 1385
+ V815 Decreased performance. Consider replacing the expression 'commentsBefore_ = ""' with 'commentsBefore_.clear()'. json_reader.cpp 190
+ V813 Decreased performance. The 'Character' argument should probably be rendered as a constant reference. file_aribstdb24b37.cpp 805
+........
+# Удалил лищние файлы из ресурсов
+........
+# Рефакторинг CFlyServerJSON::pushError - отключаем логирование понятных ошибок
+........
+# Иконки для хаб листа - пока кривые
+........
+# Добавлено дерево провайдерских хабов (пока не работает)
+  пока лежит статически в ресурсе isp-hub-list.txt
+  TODO - сделать загрузку из сети + добавить поиск по нему.
+........
+# Поправил генерацию версии для доктора-дампа
+........
+# Добавлена возможность добавлять магнетки пачками
+через меню - Ctrl+M (разделяя переводом строки)
+........
+# r504-beta114
+........
+# Log
+........
+# Log
+........
+# [vip]
+ - Добавлен диалог закачки нескольких магнет-ссылок
+ - Ручное слияние из trunk явных багов.
+........
+# [mediainfo][merge] 
+ + MXF: support of TTML (SMPTE ST 2052) detection
+ + PBCore 2.0 technical metadata output option, thanks to Dave Rice
+........
+# Ругаемся под отладкой. при отсылки двух || 
+........
+# Убрал буфер из мемберов класса - он используется только в BufferedSocket::threadSendData()
+........
+# Добавлена подписка на минутные тики - так логичнее слать маркеры жизни на хабы
+  не делаем каждую секунду лишних вычислений вида getLastActivity() + 120 * 1000 :)
+........
+* (Fixed issue 1537) При входе на ADC хабы не появляется собственный ник в списке пользователей
+   https://code.google.com/p/flylinkdc/issues/detail?id=1537
+........
+# Пересмотрел передачу пингера для хабов разного типа - убрал копи-паст
+# r503-beta115
+........
+* minupnp - git
+  https://github.com/miniupnp/miniupnp
+........
+# Косметика
+........
+* Добавлена функция автоматического ухода в пассивный режим - если не получается скачать в активном
+  в статусе загрузке отображается - кирпичная стенка. https://yadi.sk/i/J4dHa7E7cYEWo
+* Исправлены перепутанные файлы логов. ddos.log и т.д. (KCAHDEP)
+# r503-beta116
+........
+# Log
+........
+# Косметика к http://www.flylinkdc.ru/2014/11/blog-post.html
+# fly-server - опциональная блокировка передачи ошибок в syslog
+# ZenLib - fix http://www.viva64.com/en/V690
+........
+# Возмодно убрал флуд по MyINFO
+........
+# r503-beta117
+........
+# Исправлена работа чекбокса "Force Firewall..." (попросту кирпичная стенка) в окне трансфера, при старте клиента не отображалось состояние этой опции.
+# Добавлено предупреждение в чат о включенной опции "Форсажа"
+# ТОДО: не осилил добавление предупреждения в подсказку к иконке Пассивного режима (под списком юзеров которая), возможно Павел доделает?
+
+О чекбоксе внятненько:
+Клиент, на котором однажды включили эту опцию, затем закрыли программу,- в дальнейшем всегда работал в пассиве, и пользователь об этом не догадывался.
+........
+# Добавлен фильтр в дереве провайдеров пока работает некрасиво :) (часть 1)
+........
+# Изменил загрузку хаб-листов - отказался от HttpConnection
+........
+* Убрал лишний перенос строк при включенном логировании CMD Debug
+* Если в пользовательском приложении предпросмотра не указали расширения файла - программа не появлялась в меню.
+* Убрал спам в логе "Duplicate send MyINFO = " (Strannik)
+........
+# doctor-dump - фиксируем CID юзеров у которых упало приложение.
+
+........
+* Публичные хаб-листы 
+  - Грузятся с локальным кешированием (INTERNET_FLAG_RESYNCHRONIZE) (RoLex)
+  - Поддерживаются только сжатые bz2 хаб-листы.
+........
+# Рефакторинг поиска - токен перевел на uin32_t
+........
+* Рефакторинг
+  - Метод void NmdcHub::onLine(const string& aLine) раскидал по функциям - для большей читаемости (HackFresse)
+  - Наиболее частые команды поиска вида 
+    $Search 93.79.54.8:1415 F?T?0?9?TTH:YSPRJZ72GD2P67WQLCHYG5KNEOW2YDQLMD2ZB4I
+    $Search 178.67.25.48:10719 F?T?0?9?TTH:W4JIXEWYRQ73TSMZGXVKDX4RO24MGWWBVUHF4GI
+    $Search 217.17.118.171:11197 F?T?0?9?TTH:MRLDFN47WGQ3I4OOI4QR6C26ZXVZMBO5BZEVQSA
+    $Search 79.111.37.1:62853 F?T?0?9?TTH:KOG7G3I3T7P7STKBIDOAC5TGZ7QNTMR5AXNMCVA
+    $Search 5.44.168.190:5556 F?T?0?9?TTH:ARFPBKSHNK55PXLMB7KURYRAWOM4U7ZUBFZA5JY
+    $Search 178.165.83.246:4965 F?T?0?9?TTH:26KNIWF5SEGIH3BSN42QLYQOFZPHW2LSVPG5WCQ
+    перенес в отдельный метод searchParseTTHActive - где более оптимально парсится данный запрос.
+........
+# r503-beta120
+........
+# Глюки копипасты - затерся searchParseTTHActive и забыл return;
+........
+# Отрезал клеймо птохи .px. - не красиво смотрится
+........
+* Исправил ответ на пассивный поиск (сломал вчера)
+# Если не открыто окно-шпион - не зовем fire вообще.
+........
+# [log][public-build]
+........
+# Исправил сборку в Visual Studio Community 2013 (Часть 1)
+........
+# Добавил батники для сборки в Visual Studio Community 2013
+ - TODO поправить x64 в части  Command line warning D9002: ignoring unknown option '/arch:SSE2'
+   http://stackoverflow.com/questions/1067630/sse2-option-in-visual-c-x64
+........
+# Исправил поиск (спаисбо Strannik и SCALOlаz)
+........
+# vc13 - ignore
+........
+# Удалил конфигурации  ReleaseFullOpt и ReleaseHE
+........
+# <PlatformToolset>v120_xp</PlatformToolset>
+........
+# Добавлен облегченный класс SearchResultBaseTTH (Часть 1)(пока не доделано)
+  TODO реализовать пакетную обработку поисковых запросов по TTH (А и П отдельно)
+# wtl - вернул include - не собирается в vc++2010
+........
+# VC++ 2013 - перевел Debug win32 на платформу v120 - иначе не работает статический анализ.
+........
+# Маркер падени в Node::Ptr DHT::addNode
+  https://drdump.com/DumpGroup.aspx?DumpGroupID=239463&Login=guest
+# [public-build]
+........
+# Удалил мертвый HttpConnection
+# Убрал лишний фаер virtual void on(NmdcSearch
+........
+* Статистику скачивания ведем по разынм каналам
+  - StatsItem m_tcp;
+  - StatsItem m_udp;
+  - StatsItem m_dht;
+  - StatsItem m_ssl;
+
+........
+# Игнор vc12-vc13
+........
+# Исключил из проекта VS2012/2013 удаленные файлы
+........
+# Выставил упущенный экран DHT
+........
+* В окне поиска если ввести тип TTH но ввести - буковки не подходящие под него - ничего не искало
+  сейчас автоматом скидывается тип на "любой"
+# Починил void NmdcHub::onLine - не всегда выполнялось преобразование param = toUtf8(aLine.substr(x + 1)); 
+# Вывожу статистику отдельно по протоколам (в окне о программе - что-то кривовато но пока сойдет )
+ -=[ TCP: Downloaded: 34,77 кБ. Uploaded: 251 Б ]=-
+ -=[ UDP: Downloaded: 0 Б. Uploaded: 0 Б ]=-
+ -=[ DHT: Downloaded: 0 Б. Uploaded: 0 Б ]=-
+ -=[ SSL: Downloaded: 0 Б. Uploaded: 0 Б ]=-
+# Искючил лишние входы в секции при работу CMD отладки (флаг DebugManager::g_isCMDDebugFrame)
+
+........
+#
+........
+* Оптимизация повторных заведомо холостых поисков - помогаем bloom-фильтру
+  должно быть полезно пользователям с большими шарами (по кол-ву файлов)
+........
+# рефакторинг - вынес поиск частичных источников в отдельный метод
+........
+* Updating the database ISPs
+   http://www.assembla.com/spaces/customlocations-greylink
+   Build on the base 1304, created 2014-11-21 03:54:35 +0700
+   Total in database:
+    - ISP - 1407
+    - ISPs logo - 1416
+    - Address range - 5998
+   Archive CustomLocations.7z created by NightOrion
+
+
+........
+* Добавлены пакетные обработчики поиска SearchArrayTTH и SearchArrayFile
+  - уменьшено кол-во блокировок при вызове fire() из BufferedSocket
+# Убрал копипасту - метод NmdcHub::calcExternalIP()
+# Поиск по массиву TTH проходит под отной блокировкой webrtc::ReadLockScoped l(*g_csShare);
+  в void ShareManager::searchTTHArray
+  TODO - убрать копи-паст в вызовах all_search_parser
+........
+# Добавлен смайл :music:- голова в наушниках (Мультик ТМ)
+........
+# fix to r17890
+........
+#fix to r17890, part 2
+........
+# Исправил путь к music.gif
+........
+# Гребанный смайл!
+........
+# Косметика - добавил некоторые команды в COMMAND_DEBUG
+# Поправил обработку поиска TTH пачками
+# Отложил выхов SetMDIFrameMenu на более позднее время (когда хаб весь загружен)
+........
+* Исправлены падения 
+  https://drdump.com/Problem.aspx?ProblemID=101883
+  https://drdump.com/Problem.aspx?ProblemID=101881
+........
+# Убрал мелкую утечку
+........
+# vc2013 - _debug всеравно не линкуется - пока не нашел причину. с релизной все ок.
+6>ADLSearchFrame.obj : error LNK2001: unresolved external symbol "class boost::system::error_category const & __cdecl boost::system::generic_category(void)" (?generic_category@system@boost@@YAABVerror_category@12@XZ)
+6>ADLSProperties.obj : error LNK2001: unresolved external symbol "class boost::system::error_category const & __cdecl boost::system::generic_category(void)" (?generic_category@system@boost@@YAABVerror_category@12@XZ)
+6>AdvancedPage.obj : error LNK2001: unresolved external symbol "class boost::system::error_category const & __cdecl boost::system::generic_category(void)" (?generic_category@system@boost@@YAABVerror_category@12@XZ)
+6>client.lib(ThrottleManager.obj) : error LNK2019: unresolved external symbol "bool __cdecl boost::this_thread::interruptible_wait(void *,struct boost::detail::timeout)" (?interruptible_wait@this_thread@boost@@YA_NPAXUtimeout@detail@2@@Z) referenced in function "public: bool __thiscall boost::detail::basic_cv_list_entry::wait(struct boost::detail::timeout)" (?wait@basic_cv_list_entry@detail@boost@@QAE_NUtimeout@23@@Z)
+6>C:\vc13\r5xx\compiled\FlylinkDC_Debug.exe : fatal error LNK1120: 3 unresolved externals
+========== Build: 4 succeeded, 2 failed, 8 up-to-date, 0 skipped ==========
+
+........
+# Log [public-build]
+........
+# Косметика
+ - Прокинул команды поиска в CMD DEBUG
+ - В окне публичных хабов - кнопка конфигурации криво бегала по окну
+........
+# Добавил забытый экран FLYLINKDC_USE_MEDIAINFO_SERVER
+........
+# Исправил ошибочные экраны #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
+........
+# vc++2013 исправил сборку Debug|Win32
+........
+# Исправил сборку с экраном FLYLINKDC_USE_MEDIAINFO_SERVER
+  но нужно проверять что все пашет в рантайме
+# слегка перетасовал смайлы: 
+вверху - символика и оружие
+середина - смайлы эмоций, действий
+низ - руки, жесты руками
+........
+
+------------------------------------------------------------------------
+r17825 | pavel.pimenov@gmail.com | 2014-10-31 21:23:05 +0300 (Пт, 31 окт 2014) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r17800 | pavel.pimenov@gmail.com | 2014-10-27 18:36:04 +0300 (Пн, 27 окт 2014) | 15 lines
+
+Merged revision(s) 17794-17798 from trunk:
+# [miniupnp] github-sync
+........
+# Маркер падения https://drdump.com/Problem.aspx?ProblemID=96544
+........
+# Не пишем в лог если записей меньше 50 (экономим лог-операции)
+........
+* (Fixed issue 1531) Некорректный цвет фона в окошке результатата "тест UDP порта"
+ https://code.google.com/p/flylinkdc/issues/detail?id=1531
+........
+* (Fixed issue 1516) Визуальные-артефакты на всех градиентах
+  https://code.google.com/p/flylinkdc/issues/detail?id=1516
+* r4xx - оптимизирована запись на диск очереди если качаем много мелких файлов
+........
+
+------------------------------------------------------------------------
+r17795 | pavel.pimenov@gmail.com | 2014-10-26 14:21:00 +0300 (Вс, 26 окт 2014) | 1 line
+
+# Маркер падения https://drdump.com/Problem.aspx?ProblemID=96544
+------------------------------------------------------------------------
+r17793 | pavel.pimenov@gmail.com | 2014-10-26 13:33:29 +0300 (Вс, 26 окт 2014) | 5 lines
+
+Merged revision(s) 17790-17792 from trunk:
+# Логируем ошибки записи XML файлов конфигурации
+  Не пойму почему падает https://drdump.com/DumpGroup.aspx?DumpGroupID=231004
+* Оптимизация записи большой очереди закачек (Спасибо Strannik)
+
+------------------------------------------------------------------------
+r17790 | pavel.pimenov@gmail.com | 2014-10-26 10:50:30 +0300 (Вс, 26 окт 2014) | 1 line
+
+# Log [public-build]
+------------------------------------------------------------------------
+r17789 | pavel.pimenov@gmail.com | 2014-10-26 04:32:52 +0300 (Вс, 26 окт 2014) | 14 lines
+
+Merged revision(s) 17781-17787 from trunk:
+# зализанный чемодан by Rolex
+........
+* Убрал создание лишнего фантомного-юзера равному названию хаба по команде "HubName" (RoLex)
+  зачем Ежик его сделал не понятно.
+........
+# Пока убрал критическую секцию m_antivirus_cs - вешаемся иногда (спасибо за дамп Strannik)
+........
+# Не затираем черепок номер 2 (RoLex)
+........
+* Исправлено падение при закрытии окон поиска если идет обмен с fly-server-ом 
+  https://drdump.com/Problem.aspx?ProblemID=96648
+........
+
+------------------------------------------------------------------------
+r17788 | pavel.pimenov@gmail.com | 2014-10-26 04:29:26 +0300 (Вс, 26 окт 2014) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r17780 | pavel.pimenov@gmail.com | 2014-10-23 21:59:50 +0400 (Чт, 23 окт 2014) | 3 lines
+
+Merged revision(s) 17778-17779 from trunk:
+# Добавил экран FLYLINKDC_USE_GEO_IP - иногда не хотят видеть флаги стран - если хаб локальный.
+
+------------------------------------------------------------------------
+r17773 | pavel.pimenov@gmail.com | 2014-10-23 19:24:51 +0400 (Чт, 23 окт 2014) | 26 lines
+
+Merged revision(s) 17766-17772 from trunk:
+# прозрачность чемодана
+........
+# Добавил экран для отключени антивирусной DB (для работы в локальных сборках)
+  TODO - убрать колонки из визуальной части
+........
+# чемодан заменён оригиналом из набора medical_bag.ico 16*16
+........
+# Удалил мертвый код IRAINMAN_INCLUDE_DETECTION_MANAGER
+  TODO - удалить файлы в VC++2012 и VC++2013
+........
+* Исправлена визуализация черепков в колонке Antivirus
+  теперь идет детект по всем трем параметрам
+  IP, шара и ник
+  Отображаются разные варианты черепков или аптечка. 
+  (TODO - может добавить другие иконки на все комбинации)
+* Добавил возможность копировать инфу из колонки Antivirus через контекстное меню.
+
+........
+* Исправлен подсчет показаний счтеиков в закладка - очередь отдачи и других.
+* При отрисовке смайлов фиксируем ошибку пот вызове OleSetContainedObject (защита от смайл-спам-атаки)
+# Разрушение SettingsManager::deleteInstance(); перенес в самый конец
+........
+# Разрушение SettingsManager::deleteInstance(); перенес в самый конец (часть 2)
+........
+
+------------------------------------------------------------------------
+r17763 | pavel.pimenov@gmail.com | 2014-10-22 19:43:53 +0400 (Ср, 22 окт 2014) | 11 lines
+
+Merged revision(s) 17760-17761 from trunk:
+# Маркер падения https://drdump.com/DumpGroup.aspx?DumpGroupID=228387&Login=guest (не понятно)
+........
+* Если в антивирусе засвечен только ник - то вместо черепушки рисуем аптечку.
+* Если юзер с нулевой шарой - то вирусную картинку не рисуем вообще
+* Если конфиг находится в каталоге под защитой UAC (C:\\Program Files)
+  то он автоматически копируется в профиль пользователя.
+  проверка на доступность каталога конфига на запись выполняется через создание файла .flylinkdc-test-readonly.tmp
+* Исправлена конмада "получить IP" если выделено несколько юзеров.
+........
+
+------------------------------------------------------------------------
+r17762 | pavel.pimenov@gmail.com | 2014-10-22 19:39:35 +0400 (Ср, 22 окт 2014) | 1 line
+
+# log
+------------------------------------------------------------------------
 r17757 | pavel.pimenov@gmail.com | 2014-10-21 21:28:03 +0400 (Вт, 21 окт 2014) | 2 lines
 
 Merged revision(s) 17756 from trunk:

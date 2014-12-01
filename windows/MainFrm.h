@@ -178,9 +178,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		COMMAND_ID_HANDLER(ID_WINDOW_TILE_VERT, OnWindowTileVert)
 		COMMAND_ID_HANDLER(ID_WINDOW_ARRANGE, OnWindowArrangeIcons)
 		COMMAND_ID_HANDLER(IDC_RECENTS, onOpenWindows)
-#ifdef IRAINMAN_ENABLE_HUB_LIST
 		COMMAND_ID_HANDLER(ID_FILE_CONNECT, onOpenWindows)
-#endif
 		COMMAND_ID_HANDLER(ID_FILE_SEARCH, onOpenWindows)
 		COMMAND_ID_HANDLER(IDC_FAVORITES, onOpenWindows)
 		COMMAND_ID_HANDLER(IDC_FAVUSERS, onOpenWindows)
@@ -758,9 +756,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		void toggleLockToolbars() const;
 		int  m_numberOfReadBytes;
 		int  m_maxnumberOfReadBytes;
-#ifdef IRAINMAN_ENABLE_HUB_LIST
-		bool isOpenHubFrame;
-#endif
+		bool m_isOpenHubFrame;
 #ifdef SSA_WIZARD_FEATURE
 		bool m_wizard;
 #endif
@@ -793,17 +789,16 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 #endif
 		
 		// UserManagerListener
-		void on(UserManagerListener::OutgoingPrivateMessage, const UserPtr& to, const string& hint, const tstring& message) noexcept; // [+] IRainman
+		void on(UserManagerListener::OutgoingPrivateMessage, const UserPtr& to, const string& hubHint, const tstring& message) noexcept; // [+] IRainman
 		void on(UserManagerListener::OpenHub, const string& url) noexcept; // [+] IRainman
-		void on(UserManagerListener::CollectSummaryInfo, const UserPtr& user) noexcept; // [+] IRainman
+		void on(UserManagerListener::CollectSummaryInfo, const UserPtr& user, const string& hubHint) noexcept; // [+] IRainman
 #ifdef FLYLINKDC_USE_SQL_EXPLORER
-		void on(UserManagerListener::BrowseSqlExplorer, const UserPtr& user, const string& hubHint) noexcept // [+] IRainman
+		void on(UserManagerListener::BrowseSqlExplorer, const UserPtr& user, const string& hubHint) noexcept; // [+] IRainman
 #endif
 		
 		// // [+]Drakon. Enlighting functions.
-		void createTrayMenu(void);
-		// // [+]Drakon. Enlighting functions.
-		void createMainMenu(void);
+		void createTrayMenu();
+		void createMainMenu();
 #ifdef SSA_WIZARD_FEATURE
 		UINT ShowSetupWizard();
 #endif

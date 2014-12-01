@@ -48,19 +48,19 @@ LogManager::LogManager()
 #endif
 	logOptions[CUSTOM_LOCATION][FILE]     = SettingsManager::LOG_FILE_CUSTOM_LOCATION;
 	logOptions[CUSTOM_LOCATION][FORMAT]   = SettingsManager::LOG_FORMAT_CUSTOM_LOCATION;
+	
 	logOptions[TRACE_SQLITE][FILE]     = SettingsManager::LOG_FILE_TRACE_SQLITE;
 	logOptions[TRACE_SQLITE][FORMAT]   = SettingsManager::LOG_FORMAT_TRACE_SQLITE;
 	logOptions[DDOS_TRACE][FILE]     = SettingsManager::LOG_FILE_DDOS_TRACE;
 	logOptions[DDOS_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_DDOS_TRACE;
+	logOptions[CMDDEBUG_TRACE][FILE]     = SettingsManager::LOG_FILE_CMDDEBUG_TRACE;
+	logOptions[CMDDEBUG_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_CMDDEBUG_TRACE;
 	logOptions[DHT_TRACE][FILE]     = SettingsManager::LOG_FILE_DHT_TRACE;
 	logOptions[DHT_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_DHT_TRACE;
 	logOptions[PSR_TRACE][FILE]     = SettingsManager::LOG_FILE_PSR_TRACE;
 	logOptions[PSR_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_PSR_TRACE;
 	logOptions[FLOOD_TRACE][FILE]     = SettingsManager::LOG_FILE_FLOOD_TRACE;
 	logOptions[FLOOD_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_FLOOD_TRACE;
-	logOptions[CMDDEBUG_TRACE][FILE]     = SettingsManager::LOG_FILE_CMDDEBUG_TRACE;
-	logOptions[CMDDEBUG_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_CMDDEBUG_TRACE;
-	
 	
 	if (!CompatibilityManager::getStartupInfo().empty())
 		message(CompatibilityManager::getStartupInfo());

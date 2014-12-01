@@ -696,7 +696,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 		{
 			if (m_selectedUser)
 			{
-				(UserInfoSimple(m_selectedUser).pm)(m_selectedHint);
+				(UserInfoSimple(m_selectedUser, m_selectedHint).pm)(m_selectedHint);
 			}
 			else
 			{
@@ -802,19 +802,16 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			
 			if (m_selectedUser)
 			{
-				appendAndActivateUserItemsForSingleUser(p_menu);
+				appendAndActivateUserItemsForSingleUser(p_menu, m_selectedHint);
 			}
 			else
 			{
 				__if_exists(T::getUserList) // ??
 				{
-					doAction(&UserInfoBase::createSummaryInfo);
+					doAction(&UserInfoBase::createSummaryInfo, m_selectedHint);
 					FavUserTraits traits; // empty
 					
-					
-					
 					appendSendAutoMessageItems(p_menu);
-					
 					appendFileListItems(p_menu);
 					
 					appendContactListMenu(p_menu, traits);
@@ -834,14 +831,14 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 		
 	private:
 	
-		void appendAndActivateUserItemsForSingleUser(CMenu& p_menu) // [+] IRainman fix.
+		void appendAndActivateUserItemsForSingleUser(CMenu& p_menu, const string& p_selectedHint) // [+] IRainman fix.
 		{
 			dcassert(m_selectedUser);
 			
-			UserInfoSimple ui(m_selectedUser);
+			UserInfoSimple ui(m_selectedUser, p_selectedHint);
 			FavUserTraits traits;
 			traits.init(ui);
-			ui.createSummaryInfo();
+			ui.createSummaryInfo(p_selectedHint);
 			activateFavPrivateMenuForSingleUser(p_menu, traits);
 			activateSpeedLimitMenuForSingleUser(p_menu, traits);
 			if (ENABLE(options, NICK_TO_CHAT))
@@ -1021,7 +1018,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 		{
 			if (m_selectedUser)
 			{
-				(UserInfoSimple(m_selectedUser).*func)(data);
+				(UserInfoSimple(m_selectedUser, m_selectedHint).*func)(data);
 			}
 			else
 			{
@@ -1036,7 +1033,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 		{
 			if (m_selectedUser)
 			{
-				(UserInfoSimple(m_selectedUser).*func)(hubHint, data);
+				(UserInfoSimple(m_selectedUser, m_selectedHint).*func)(hubHint, data);
 			}
 			else
 			{
@@ -1050,7 +1047,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 		{
 			if (m_selectedUser)
 			{
-				(UserInfoSimple(m_selectedUser).*func)(hubHint, data);
+				(UserInfoSimple(m_selectedUser, m_selectedHint).*func)(hubHint, data);
 			}
 			else
 			{
@@ -1066,7 +1063,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 		{
 			if (m_selectedUser)
 			{
-				(UserInfoSimple(m_selectedUser).*func)(hubHint);
+				(UserInfoSimple(m_selectedUser, m_selectedHint).*func)(hubHint);
 			}
 			else
 			{
@@ -1082,7 +1079,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 		{
 			if (m_selectedUser)
 			{
-				(UserInfoSimple(m_selectedUser).*func)();
+				(UserInfoSimple(m_selectedUser, m_selectedHint).*func)();
 			}
 			else
 			{
@@ -1298,6 +1295,17 @@ class UserStateImage : public BaseImageList
 
 extern UserImage g_userImage;
 extern UserStateImage g_userStateImage;
+
+class ISPImage : public BaseImageList
+{
+	public:
+		uint8_t m_flagImageCount;
+		ISPImage() : m_flagImageCount(0)
+		{
+		}
+		void init();
+};
+extern ISPImage g_ISPImage;
 
 class FlagImage : public BaseImageList
 {

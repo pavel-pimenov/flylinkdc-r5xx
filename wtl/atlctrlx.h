@@ -2298,6 +2298,9 @@ public:
 #define PANECNT_FLATBORDER	0x00000004
 #define PANECNT_NOBORDER	0x00000008
 #define PANECNT_DIVIDER         0x00000010
+#define PANECNT_GRADIENT        0x00000020
+
+// Note: PANECNT_GRADIENT doesn't work with _ATL_NO_MSIMG
 
 template <class T, class TBase = ATL::CWindow, class TWinTraits = ATL::CControlWinTraits>
 class ATL_NO_VTABLE CPaneContainerImpl : public ATL::CWindowImpl< T, TBase, TWinTraits >, public CCustomDraw< T >
@@ -2384,6 +2387,13 @@ public:
 			{
 				bUpdate = true;
 			}
+
+#if (!defined(_WIN32_WCE) && !defined(_ATL_NO_MSIMG)) || (_WIN32_WCE >= 420)
+			if((dwPrevStyle & PANECNT_GRADIENT) != (m_dwExtendedStyle & PANECNT_GRADIENT))   // change background
+			{
+				bUpdate = true;
+			}
+#endif // (!defined(_WIN32_WCE) && !defined(_ATL_NO_MSIMG)) || (_WIN32_WCE >= 420)
 
 			if(bUpdate)
 				pT->UpdateLayout();
@@ -2901,6 +2911,11 @@ public:
 		else
 			rect.bottom = m_cxyHeader;
 
+#if (!defined(_WIN32_WCE) && !defined(_ATL_NO_MSIMG)) || (_WIN32_WCE >= 420)
+		if((m_dwExtendedStyle & PANECNT_GRADIENT) != 0)
+			dc.GradientFillRect(rect, ::GetSysColor(COLOR_WINDOW), ::GetSysColor(COLOR_3DFACE), IsVertical());
+		else
+#endif // (!defined(_WIN32_WCE) && !defined(_ATL_NO_MSIMG)) || (_WIN32_WCE >= 420)
 		dc.FillRect(&rect, COLOR_3DFACE);
 	}
 

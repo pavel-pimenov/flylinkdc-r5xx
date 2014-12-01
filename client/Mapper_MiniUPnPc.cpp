@@ -30,8 +30,6 @@ extern "C" {
 #include "../miniupnpc/upnperrors.h"
 }
 
-#pragma comment(lib, "iphlpapi.lib")
-
 const string Mapper_MiniUPnPc::g_name = "MiniUPnP";
 
 bool Mapper_MiniUPnPc::init()

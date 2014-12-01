@@ -87,12 +87,20 @@ class CInternetHandle
 
 class CFlyHTTPDownloader
 {
+		DWORD m_flag;
 	public:
+		CFlyHTTPDownloader() : m_flag(0)
+		{
+		}
 		std::vector<string> m_get_http_header_item;
 		uint64_t getBinaryDataFromInet(const string& url, std::vector<byte>& p_dataOut, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
 		void clear()
 		{
 			m_get_http_header_item.clear();
+		}
+		void setInetFlag(DWORD p_flag)
+		{
+			m_flag = p_flag;
 		}
 };
 
@@ -360,6 +368,7 @@ class MD5Calc;
 class Util
 {
 	public:
+		static int getFlagIndexByCode(uint16_t p_countryCode);
 		static const tstring emptyStringT;
 		static const string emptyString;
 		static const wstring emptyStringW;
@@ -974,12 +983,14 @@ class Util
 			return buf;
 		}
 		
-		static string toString(const string& p_sep, const StringList& p_lst);
+		static string toString(const char* p_sep, const StringList& p_lst);
+		static string toString(char p_sep, const StringList& p_lst);
+		static string toString(char p_sep, const StringSet& p_set);
 		static string toString(const StringList& p_lst);
 		
 		static string toSupportsCommand(const StringList& p_feat)
 		{
-			const string l_result = "$Supports " + toString(" ", p_feat) + '|';
+			const string l_result = "$Supports " + toString(' ', p_feat) + '|';
 			return  l_result;
 		}
 		

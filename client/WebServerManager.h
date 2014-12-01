@@ -122,17 +122,17 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 		
 		size_t row;
 		
-		string m_token;
+		uint32_t m_token;
 		
 	public:
-		typedef struct
+		struct searchresult
 		{
 			UserPtr User;
 			string HubURL;
-		} searchresult;
+		};
 	private:
 	
-		std::map<size_t, searchresult> SearchResultList;
+		std::map<size_t, searchresult> m_SearchResultList;
 		
 	public:
 		ServerSocket& getServerSocket()
@@ -240,23 +240,21 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 			return UserStatus();
 		}
 		
-		//SearchResultList
 		void AddSearchResult(size_t number, const UserPtr& User, const string& HubURL)
 		{
 			searchresult toAdd;
 			toAdd.User = User;
 			toAdd.HubURL = HubURL;
-			SearchResultList[number] = toAdd;
+			m_SearchResultList[number] = toAdd;
 		}
 		
 		searchresult GetSearchResult(size_t number)
 		{
-			searchresult tmp;
-			if (SearchResultList.find(number) != SearchResultList.cend())
-			{
-				tmp = SearchResultList[number];
-			}
-			return tmp;
+			const auto i = m_SearchResultList.find(number);
+			if (i != m_SearchResultList.cend())
+				return i->second;
+			else
+				return searchresult();
 		}
 		//SearchPages
 		void AddSearchPage(const string& rez, size_t num)

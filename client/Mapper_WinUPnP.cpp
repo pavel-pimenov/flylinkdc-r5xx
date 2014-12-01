@@ -41,11 +41,17 @@ bool Mapper_WinUPnP::init()
 		
 	// Lacking the __uuidof in mingw...
 	CLSID upnp;
-	OLECHAR upnps[] = L"{AE1E00AA-3FD5-403C-8A27-2BBDC30CD0E1}";
-	CLSIDFromString(upnps, &upnp);
+	const OLECHAR upnps[] = L"{AE1E00AA-3FD5-403C-8A27-2BBDC30CD0E1}";
+	if (CLSIDFromString(upnps, &upnp) != NOERROR)
+	{
+		LogManager::getInstance()->message("CLSIDFromString(upnps Error = " + Util::translateError());
+	}
 	IID iupnp;
-	OLECHAR iupnps[] = L"{B171C812-CC76-485A-94D8-B6B3A2794E99}";
-	CLSIDFromString(iupnps, &iupnp);
+	const OLECHAR iupnps[] = L"{B171C812-CC76-485A-94D8-B6B3A2794E99}";
+	if (CLSIDFromString(iupnps, &iupnp) != NOERROR)
+	{
+		LogManager::getInstance()->message("CLSIDFromString(iupnps Error = " + Util::translateError());
+	}
 	pUN = 0;
 	HRESULT hr = CoCreateInstance(upnp, 0, CLSCTX_INPROC_SERVER, iupnp, reinterpret_cast<LPVOID*>(&pUN));
 	if (FAILED(hr))

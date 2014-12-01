@@ -21,13 +21,13 @@
 #include <boost/container/detail/iterators.hpp>
 #include <boost/container/detail/mpl.hpp>
 #include <boost/container/throw_exception.hpp>
-#include <boost/move/utility.hpp>
+#include <boost/move/utility_core.hpp>
 #include <boost/move/iterator.hpp>
 #include <boost/move/detail/move_helpers.hpp>
+#include <boost/move/traits.hpp>
 #include <boost/intrusive/pointer_traits.hpp>
 #include <boost/container/detail/utilities.hpp>
 #include <boost/container/detail/algorithms.hpp>
-#include <boost/type_traits/has_trivial_destructor.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/assert.hpp>
 #include <boost/container/detail/node_alloc_holder.hpp>
@@ -36,6 +36,10 @@
 #else
 //Preprocessor library to emulate perfect forwarding
 #include <boost/container/detail/preprocessor.hpp>
+#endif
+
+#if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
+#include <initializer_list>
 #endif
 
 #include <iterator>
@@ -75,6 +79,11 @@ struct list_node
 
    const T &get_data() const
    {  return this->m_data;   }
+};
+
+template <class T, class VoidPointer>
+struct iiterator_node_value_type< list_node<T,VoidPointer> > {
+  typedef T type;
 };
 
 template<class Allocator>
@@ -190,8 +199,8 @@ class list
    typedef BOOST_CONTAINER_IMPDEF(NodeAlloc)                                           stored_allocator_type;
    typedef BOOST_CONTAINER_IMPDEF(iterator_impl)                                       iterator;
    typedef BOOST_CONTAINER_IMPDEF(const_iterator_impl)                                 const_iterator;
-   typedef BOOST_CONTAINER_IMPDEF(std::reverse_iterator<iterator>)                     reverse_iterator;
-   typedef BOOST_CONTAINER_IMPDEF(std::reverse_iterator<const_iterator>)               const_reverse_iterator;
+   typedef BOOST_CONTAINER_IMPDEF(container_detail::reverse_iterator<iterator>)                          reverse_iterator;
+   typedef BOOST_CONTAINER_IMPDEF(container_detail::reverse_iterator<const_iterator>)                    const_reverse_iterator;
 
    //////////////////////////////////////////////
    //
@@ -299,6 +308,21 @@ class list
       : AllocHolder(a)
    {  this->insert(this->cbegin(), first, last);  }
 
+
+#if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
+   //! <b>Effects</b>: Constructs a list that will use a copy of allocator a
+   //!   and inserts a copy of the range [il.begin(), il.end()) in the list.
+   //!
+   //! <b>Throws</b>: If allocator_type's default constructor
+   //!   throws or T's constructor taking a dereferenced
+   //!   std::initializer_list iterator throws.
+   //!
+   //! <b>Complexity</b>: Linear to the range [il.begin(), il.end()).
+   list(std::initializer_list<value_type> il, const Allocator &a = Allocator())
+      : AllocHolder(a)
+   {  this->insert(this->cbegin(), il.begin(), il.end()); }
+#endif
+
    //! <b>Effects</b>: Destroys the list. All stored values are destroyed
    //!   and used memory is deallocated.
    //!
@@ -370,6 +394,22 @@ class list
       return *this;
    }
 
+#if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
+   //! <b>Effects</b>: Makes *this contain the same elements as il.
+   //!
+   //! <b>Postcondition</b>: this->size() == il.size(). *this contains a copy
+   //! of each of x's elements.
+   //!
+   //! <b>Throws</b>: If memory allocation throws or T's copy constructor throws.
+   //!
+   //! <b>Complexity</b>: Linear to the number of elements in x.
+   list& operator=(std::initializer_list<value_type> il)
+   {
+      assign(il.begin(), il.end());
+      return *this;
+   }
+#endif
+
    //! <b>Effects</b>: Assigns the n copies of val to *this.
    //!
    //! <b>Throws</b>: If memory allocation throws or T's copy constructor throws.
@@ -406,6 +446,17 @@ class list
          this->insert(last1, first, last);
       }
    }
+
+#if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
+   //! <b>Effects</b>: Assigns the the range [il.begin(), il.end()) to *this.
+   //!
+   //! <b>Throws</b>: If memory allocation throws or
+   //!   T's constructor from dereferencing std::initializer_list iterator throws.
+   //!
+   //! <b>Complexity</b>: Linear to n.
+   void assign(std::initializer_list<value_type> il)
+   { assign(il.begin(), il.end()); }
+#endif
 
    //! <b>Effects</b>: Returns a copy of the internal allocator.
    //!
@@ -766,27 +817,27 @@ class list
    #endif
 
    #if defined(BOOST_CONTAINER_DOXYGEN_INVOKED)
-   //! <b>Requires</b>: position must be a valid iterator of *this.
+   //! <b>Requires</b>: p must be a valid iterator of *this.
    //!
-   //! <b>Effects</b>: Insert a copy of x before position.
+   //! <b>Effects</b>: Insert a copy of x before p.
    //!
    //! <b>Returns</b>: an iterator to the inserted element.
    //!
    //! <b>Throws</b>: If memory allocation throws or x's copy constructor throws.
    //!
    //! <b>Complexity</b>: Amortized constant time.
-   iterator insert(const_iterator position, const T &x);
+   iterator insert(const_iterator p, const T &x);
 
-   //! <b>Requires</b>: position must be a valid iterator of *this.
+   //! <b>Requires</b>: p must be a valid iterator of *this.
    //!
-   //! <b>Effects</b>: Insert a new element before position with mx's resources.
+   //! <b>Effects</b>: Insert a new element before p with mx's resources.
    //!
    //! <b>Returns</b>: an iterator to the inserted element.
    //!
    //! <b>Throws</b>: If memory allocation throws.
    //!
    //! <b>Complexity</b>: Amortized constant time.
-   iterator insert(const_iterator position, T &&x);
+   iterator insert(const_iterator p, T &&x);
    #else
    BOOST_MOVE_CONVERSION_AWARE_CATCH_1ARG(insert, T, iterator, priv_insert, const_iterator, const_iterator)
    #endif
@@ -859,6 +910,21 @@ class list
       return ++before_p;
    }
    #endif
+
+#if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
+   //! <b>Requires</b>: p must be a valid iterator of *this.
+   //!
+   //! <b>Effects</b>: Insert a copy of the [il.begin(), il.end()) range before p.
+   //!
+   //! <b>Returns</b>: an iterator to the first inserted element or p if if.begin() == il.end().
+   //!
+   //! <b>Throws</b>: If memory allocation throws, T's constructor from a
+   //!   dereferenced std::initializer_list iterator throws.
+   //!
+   //! <b>Complexity</b>: Linear to std::distance [il.begin(), il.end()).
+   iterator insert(const_iterator p, std::initializer_list<value_type> il)
+   { return insert(p, il.begin(), il.end()); }
+#endif
 
    //! <b>Effects</b>: Removes the first element from the list.
    //!

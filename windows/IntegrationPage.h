@@ -31,13 +31,12 @@ class IntegrationPage : public CPropertyPage<IDD_INTEGRATION_PAGE>, public PropP
 #endif
 {
 	public:
-		IntegrationPage(SettingsManager *s) : PropPage(s)
+		IntegrationPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_INTEGRATION_PROP))
 			, _isShellIntegration(false)
 			, _isStartupIntegration(false)
 			, _canShellIntegration(false)
 		{
-			title = TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_INTEGRATION_PROP);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		
@@ -79,7 +78,7 @@ class IntegrationPage : public CPropertyPage<IDD_INTEGRATION_PAGE>, public PropP
 		bool _canShellIntegration;
 		bool _isShellIntegration;
 		bool _isStartupIntegration;
-		wstring title;
+		
 		
 		static Item items[];
 		static TextItem texts[];

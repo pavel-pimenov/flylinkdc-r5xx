@@ -37,10 +37,9 @@ class RSSPage : public CPropertyPage<IDD_RSS_PAGE>, public PropPage
 #endif
 {
 	public:
-		RSSPage(SettingsManager *s) : PropPage(s)
+		RSSPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_RSS_PROP))
 		{
-			title = TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_RSS_PROP);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		
@@ -84,7 +83,7 @@ class RSSPage : public CPropertyPage<IDD_RSS_PAGE>, public PropPage
 		
 		static Item items[];
 		static TextItem texts[];
-		wstring title;
+		
 		
 		void addEntry(const RSSFeed* rf, int pos);
 		

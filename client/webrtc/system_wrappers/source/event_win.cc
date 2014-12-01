@@ -31,11 +31,11 @@ EventWindows::~EventWindows() {
 
 bool EventWindows::Set() {
   // Note: setting an event that is already set has no effect.
-  return SetEvent(event_) == 1;
+  return SetEvent(event_) != FALSE;
 }
 
 bool EventWindows::Reset() {
-  return ResetEvent(event_) == 1;
+  return ResetEvent(event_) != FALSE;
 }
 
 EventTypeWrapper EventWindows::Wait(unsigned long max_time) {

@@ -20,6 +20,7 @@
 
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/trim_all.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include "flyServer.h"
 #include "../client/Socket.h"
@@ -33,18 +34,25 @@
 #ifdef PPA_INCLUDE_IPGUARD
 #include "../client/IpGuard.h"
 #endif
+#include "../windows/ChatBot.h"
+
 #include "../jsoncpp/include/json/value.h"
 #include "../jsoncpp/include/json/reader.h"
 #include "../jsoncpp/include/json/writer.h"
 #include "../MediaInfoLib/Source/MediaInfo/MediaInfo_Const.h"
+#include "../MediaInfoLib/Source/MediaInfo/MediaInfo.h"
+#include "../MediaInfoLib/Source/MediaInfo/MediaInfo_Config.h"
+
 #include "../windows/resource.h"
 #include "../client/FavoriteManager.h"
-#include "../windows/ChatBot.h"
 #include "../client/syslog/syslog.h"
 
 #ifdef IRAINMAN_INCLUDE_GDI_OLE
 #include "../GdiOle/GDIImage.h"
 #endif
+
+#include "ZenLib/ZtringListList.h"
+
 
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 #ifdef FLYLINKDC_SUPPORT_WIN_VISTA
@@ -61,21 +69,31 @@ CFlyServerStatistics g_fly_server_stat;
 CServerItem CFlyServerConfig::g_stat_server;
 #define FLY_SHUTDOWN_FILE_MARKER_NAME "FlylinkDCShutdownMarker.txt"
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
-#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-CServerItem CFlyServerConfig::g_test_port_server;
-#endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 #ifdef STRONG_USE_DHT
 std::vector<DHTServer>	  CFlyServerConfig::g_dht_servers;
 #endif // STRONG_USE_DHT
+DWORD CFlyServerConfig::g_winet_connect_timeout = 2000;
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 static volatile long g_running;
+CServerItem CFlyServerConfig::g_test_port_server;
+StringSet CFlyServerConfig::g_include_tag; 
+StringSet CFlyServerConfig::g_exclude_tag; 
+boost::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_log;
+boost::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_syslog;
 std::vector<CServerItem> CFlyServerConfig::g_mirror_read_only_servers;
 CServerItem CFlyServerConfig::g_main_server;
 uint16_t CFlyServerAdapter::CFlyServerQueryThread::g_minimal_interval_in_ms  = 2000; 
-DWORD CFlyServerConfig::g_winet_connect_timeout = 2000;
+
 uint16_t CFlyServerConfig::g_winet_min_response_time_for_log = 200;
 DWORD CFlyServerConfig::g_winet_receive_timeout = 1000; 
 DWORD CFlyServerConfig::g_winet_send_timeout    = 1000; 
+
+std::unordered_map<TTHValue, std::pair<CFlyServerInfo*, CFlyServerCache> > CFlyServerAdapter::g_fly_server_cache;
+::CriticalSection CFlyServerAdapter::g_cs_fly_server;
+::CriticalSection CFlyServerAdapter::CFlyServerJSON::g_cs_error_report;
+string CFlyServerAdapter::CFlyServerJSON::g_last_error_string;
+int CFlyServerAdapter::CFlyServerJSON::g_count_dup_error_string = 0;
+
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 uint16_t CFlyServerConfig::g_min_interval_dth_connect = 60; // К DHT обращаемся не чаще раз в 60 секунд (найти причину почему это происходит)
 uint16_t CFlyServerConfig::g_max_ddos_connect_to_me = 10; // Не более 10 коннектов на один IP в течении минуты
@@ -101,29 +119,32 @@ StringSet CFlyServerConfig::g_block_share_ext;
 StringSet CFlyServerConfig::g_custom_compress_ext;
 StringSet CFlyServerConfig::g_block_share_name;
 StringList CFlyServerConfig::g_block_share_mask;
-
-std::unordered_map<TTHValue, std::pair<CFlyServerInfo*, CFlyServerCache> > CFlyServerAdapter::g_fly_server_cache;
-CriticalSection CFlyServerAdapter::g_cs_fly_server;
-CriticalSection CFlyServerAdapter::CFlyServerJSON::g_cs_error_report;
-string CFlyServerAdapter::CFlyServerJSON::g_last_error_string;
-int CFlyServerAdapter::CFlyServerJSON::g_count_dup_error_string = 0;
-
-extern tstring g_full_user_agent;
+extern ::tstring g_full_user_agent;
 //======================================================================================================
-bool CFlyServerConfig::isSupportTag(const string& p_tag) const
+bool CFlyServerConfig::isErrorSysLog(unsigned p_error_code)
+{
+    return g_exclude_error_syslog.find(p_error_code) == g_exclude_error_syslog.end();
+}
+//======================================================================================================
+bool CFlyServerConfig::isErrorLog (unsigned p_error_code)
+{
+    return g_exclude_error_log.find(p_error_code) == g_exclude_error_log.end();
+}
+//======================================================================================================
+bool CFlyServerConfig::isSupportTag(const string& p_tag)
 {
 	const auto l_string_pos = p_tag.find("/String");
 	if(l_string_pos != string::npos)
 	{
 		return false;
 	}
-	if(m_include_tag.empty())
+	if(g_include_tag.empty())
 	{
-		return m_exclude_tag.find(p_tag) == m_exclude_tag.end();
+		return g_exclude_tag.find(p_tag) == g_exclude_tag.end();
 	}
 	else
 	{
-		return m_include_tag.find(p_tag) != m_include_tag.end();
+		return g_include_tag.find(p_tag) != g_include_tag.end();
 	}
 }
 //======================================================================================================
@@ -267,8 +288,14 @@ void CFlyServerConfig::loadConfig()
 		{
 			l_fly_server_log.step("Error download! Config will be loaded from internal resources");
 #endif //FLYLINKDC_USE_MEDIAINFO_SERVER
-			if (Util::GetTextResource(IDR_FLY_SERVER_CONFIG, l_res_data)) //
-				l_data = l_res_data;
+			if (const auto l_size_res = Util::GetTextResource(IDR_FLY_SERVER_CONFIG, l_res_data))
+      {
+				l_data = string(l_res_data,l_size_res);
+      }
+      else
+      {
+          l_fly_server_log.step("Error load resource Util::GetTextResource(IDR_FLY_SERVER_CONFIG");
+      }
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		}
 #endif //FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -402,14 +429,21 @@ void CFlyServerConfig::loadConfig()
 						m_scan.insert(n);
 			        });
 
-					l_xml.getChildAttribSplit("exclude_tag", m_exclude_tag, [this](const string& n)
+					l_xml.getChildAttribSplit("exclude_tag", g_exclude_tag, [this](const string& n)
 					{
-						m_exclude_tag.insert(n);
+						g_exclude_tag.insert(n);
 					});
-
-					l_xml.getChildAttribSplit("include_tag", m_include_tag, [this](const string& n)
+					l_xml.getChildAttribSplit("include_tag", g_include_tag, [this](const string& n)
 					{
-						m_include_tag.insert(n);
+						g_include_tag.insert(n);
+					});
+					l_xml.getChildAttribSplit("exclude_error_log", g_exclude_error_log, [this](const string& n)
+					{
+              g_exclude_error_log.insert(Util::toInt(n));
+					});
+					l_xml.getChildAttribSplit("exclude_error_syslog", g_exclude_error_syslog, [this](const string& n)
+					{
+              g_exclude_error_syslog.insert(Util::toInt(n));
 					});
 
 					// Достанем RO-зеркала
@@ -657,7 +691,10 @@ void CFlyServerAdapter::post_message_for_update_mediainfo()
 		if (!m_GetFlyServerArray.empty())
 		{
 			const string l_json_result = CFlyServerJSON::connect(m_GetFlyServerArray, false); 
-			m_GetFlyServerArray.clear();
+			{
+				Lock l(g_cs_fly_server);
+				m_GetFlyServerArray.clear();
+			}
 			if(!l_json_result.empty())
 			{
 			Json::Value* l_root = new Json::Value;
@@ -731,6 +768,7 @@ bool CFlyServerAdapter::CFlyServerJSON::login()
 		Json::Value  l_root;   
 		Json::Value& l_info = l_root["login"];
 		l_info["CID"] = ClientManager::getMyCID().toBase32();
+		l_info["PID"] = ClientManager::getMyPID().toBase32();
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION
 		std::vector<std::string> l_lost_ip_array;
 		CFlylinkDBManager::getInstance()->get_lost_location(l_lost_ip_array);
@@ -770,20 +808,21 @@ static void getDiskAndMemoryStat(Json::Value& p_info)
 		if(ClientManager::isValidInstance())
 		{
 			  p_info["CID"] = ClientManager::getMyCID().toBase32(); 
+			  p_info["PID"] = ClientManager::getMyPID().toBase32();
 		}
 		p_info["Client"] = Text::fromT(g_full_user_agent);
 		p_info["OS"] = CompatibilityManager::getFormatedOsVersion();
 		p_info["CPUCount"] = CompatibilityManager::getProcessorsCount();
 		{
 		Json::Value& l_disk_info = p_info["Disk"];
-				auto getFileSize = [](const tstring& p_file_name) -> int64_t
+				auto getFileSize = [](const ::tstring& p_file_name) -> int64_t
 				{
 					int64_t l_size = 0;
 					int64_t l_outFileTime = 0;
 					File::isExist(p_file_name, l_size, l_outFileTime);
 					return l_size;
 				};
-				const tstring l_path = Text::toT(Util::getConfigPath());
+				const auto l_path = Text::toT(Util::getConfigPath());
 				l_disk_info["DBMain"] = getFileSize(l_path + _T("\\FlylinkDC.sqlite"));
 				l_disk_info["DBDHT"] = getFileSize(l_path + _T("\\FlylinkDC_dht.sqlite"));
 				l_disk_info["DBMediainfo"] = getFileSize(l_path + _T("\\FlylinkDC_mediainfo.sqlite"));
@@ -925,20 +964,32 @@ bool CFlyServerAdapter::CFlyServerJSON::pushTestPort(const string& p_magic,
 //======================================================================================================
 void CFlyServerAdapter::CFlyServerJSON::pushSyslogError(const string& p_error)
 {
-	string l_cid = "[CID==null]";
+    string l_cid;
+	string l_pid;	
 	if(ClientManager::isValidInstance())
 	{
 		l_cid = ClientManager::getMyCID().toBase32();
+		l_pid = ClientManager::getMyPID().toBase32();
 	}
-    syslog(LOG_USER | LOG_INFO, "%s %s [%s]", l_cid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
+   else
+   {
+     l_cid = "[CID==null]";
+   }
+	syslog(LOG_USER | LOG_INFO, "%s %s %s [%s]", l_cid.c_str(), l_pid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
 }
 //======================================================================================================
-bool CFlyServerAdapter::CFlyServerJSON::pushError(const string& p_error)
+bool CFlyServerAdapter::CFlyServerJSON::pushError(unsigned p_error_code, string p_error)
 {
 	bool l_is_send = false;
   bool l_is_error = false;
-  Lock l(g_cs_error_report);
+    p_error = "[BUG][" + Util::toString(p_error_code) + "] " + p_error;
+    if(CFlyServerConfig::isErrorSysLog(p_error_code))
+    {
   pushSyslogError(p_error);
+    }
+    Lock l(g_cs_error_report);
+    if(CFlyServerConfig::isErrorLog(p_error_code))
+    {
     CFlyLog l_log("[fly-error]");
     l_log.step(p_error);
     if(p_error != g_last_error_string)
@@ -968,6 +1019,11 @@ bool CFlyServerAdapter::CFlyServerJSON::pushError(const string& p_error)
     else
     {
         g_count_dup_error_string++;
+        l_is_send = true;
+    }
+    }
+    else
+    {
         l_is_send = true;
     }
 		return l_is_send;
@@ -1030,6 +1086,13 @@ bool CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 		{
 			l_info["ISP_URL"] = l_ISP_URL;
 		}
+    if(!SETTING(FLY_LOCATOR_COUNTRY).empty())
+    {
+        Json::Value& l_locator =l_info["Locator"];
+        l_locator["Country"] = SETTING(FLY_LOCATOR_COUNTRY);
+        l_locator["City"] = SETTING(FLY_LOCATOR_CITY);
+        l_locator["ISP"] = SETTING(FLY_LOCATOR_ISP);
+    }
 		// Агрегационные параметры
 		{
 		    Json::Value& l_stat_info = l_info["Stat"];
@@ -1570,7 +1633,7 @@ string CFlyServerAdapter::CFlyServerJSON::connect(const CFlyServerKeyArray& p_fi
 				boost::unordered_map<int,Json::Value*> l_cache_channel;
 				for(auto j = i->m_media.m_ext_array.cbegin(); j!= i->m_media.m_ext_array.cend(); ++j)
 				{
-					if(g_fly_server_config.isSupportTag(j->m_param))
+					if(CFlyServerConfig::isSupportTag(j->m_param))
 					{
 					switch(j->m_stream_type)
 					{
@@ -1748,5 +1811,307 @@ string CFlyServerInfo::getMediaInfoAsText(const TTHValue& p_tth,int64_t p_file_s
 	}
 	return l_Infrom;
 }
+//=========================================================================================
+string g_cur_mediainfo_file;
+string g_cur_mediainfo_file_tth;
+//=========================================================================================
+void getExtMediaInfo(const string& p_file_ext_wo_dot,
+                            int64_t p_size,
+                            MediaInfoLib::MediaInfo& p_media_info_dll,
+                            MediaInfoLib::stream_t p_stream_type,
+                            CFlyMediaInfo& p_media,
+                            bool p_compress_channel_attr)
+{
+	const ZtringListList l_info = MediaInfoLib::Config.Info_Get(p_stream_type);
+	if (const size_t l_count = p_media_info_dll.Count_Get(p_stream_type))
+	{
+		int l_count_audio_channel = p_stream_type == MediaInfoLib::Stream_Audio ? l_count : 0; // Число каналов считаем только для Audio
+		for (auto i = l_info.cbegin() ; i != l_info.cend(); ++i)
+		{
+			const auto l_param_name = i->Read(0);
+			for (size_t j = 0; j < l_count; ++j)
+			{
+				const auto l_value = p_media_info_dll.Get(p_stream_type, j, l_param_name);
+				if (!l_value.empty())
+				{
+					const string l_str_param_name = Text::fromT(l_param_name);
+					if (CFlyServerConfig::isSupportTag(l_str_param_name)) // TODO Fix fromT
+					{
+						CFlyMediaInfo::ExtItem l_ext_item;
+						l_ext_item.m_stream_type = p_stream_type;
+						l_ext_item.m_channel = j;
+						l_ext_item.m_param = l_str_param_name;
+						l_ext_item.m_value = Text::fromT(l_value);
+						// Inform - Сводный параметр - распарсим его для удаления лишних записей и пробелов.
+						if (l_str_param_name.compare(0, 6, "Inform", 6) == 0)
+						{
+							g_fly_server_config.ConvertInform(l_ext_item.m_value);
+						}
+						p_media.m_ext_array.push_back(l_ext_item);
+					}
+				}
+			}
+		}
+		if (p_compress_channel_attr && l_count_audio_channel) // Если аудио-каналов несколько. дополнительно обработаем массив
+		{
+			// Упакуем массив каналов если их несколько и значения признаков одинаковое для всех.
+			// Пока алгоритм обработки двух-проходный
+			// избыточные атрибуты для каналов пометим флажком чтобы не писать в базу.
+			// TODO - протестировать и физическое удаление лишних записей из вектора
+			std::map <std::string, std::pair< std::string, int> > l_channel_dup_filter;
+			// Параметр MI - пара - { значение параметра + счетчик различных вариантов для значений }
+			for (auto j = p_media.m_ext_array.cbegin(); j != p_media.m_ext_array.cend(); ++j)
+				// TODO [!] этот проход можно поместить внуть основного алгоритма заполнения.
+				// ведь нам известно заранее что на Audio - несколько каналов будет
+			{
+				dcassert(j->m_stream_type == MediaInfoLib::Stream_Audio);
+				if (j->m_stream_type == MediaInfoLib::Stream_Audio)
+				{
+					auto& l_value = l_channel_dup_filter[j->m_param];
+					if (l_value.first != j->m_value)
+					{
+						if (l_value.first.empty()) // Первый параметр?
+						{
+							l_value.first  = j->m_value;
+						}
+						l_value.second++;
+					}
+				}
+			}
+			// Расчитали статистику по атрибутам.
+			// Отметим дубликатные записи флажком для последующего игнора при записи в базу данных.
+			for (auto k = p_media.m_ext_array.begin(); k != p_media.m_ext_array.end(); ++k)
+			{
+				dcassert(k->m_stream_type == MediaInfoLib::Stream_Audio);
+				if (k->m_stream_type == MediaInfoLib::Stream_Audio)
+				{
+					auto l_channel_filter = l_channel_dup_filter.find(k->m_param);
+					dcassert(l_channel_filter != l_channel_dup_filter.end());
+					if (l_channel_filter->second.second == 1) // Для всех каналов значения параметра одинаковое?
+					{
+						k->m_channel  = CFlyMediaInfo::ExtItem::channel_all; // Канал для первого вхождения делаем 255 (channel-All)
+						l_channel_filter->second.second = -1; // Скидываем счетчик в -1 чтобы на следуещем проходе удалить запись
+						continue;
+					}
+					if (l_channel_filter->second.second == -1) // Значение параметра уже перенесено в общий канал с кодом 255 на предыдущей итеррации
+						// а текущая запись избыточная и ее писать в базу не нужно.
+						// TODO - удаление из vector-а пока не делаем. позже эта запись всеравно не загрузится
+					{
+						k->m_is_delete = true;
+					}
+				}
+			}
+		}
+	}
+}
 //======================================================================================================
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
+//=========================================================================================
+bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, const TTHValue& p_tth, bool p_force /* = false*/)
+{
+	try
+	{
+		static MediaInfoLib::MediaInfo g_media_info_dll;
+		if (p_size < SETTING(MIN_MEDIAINFO_SIZE) * 1024 * 1024) // TODO: p_size?
+			return false;
+		const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(p_name));
+		if (!CFlyServerConfig::isMediainfoExt(l_file_ext))
+			return false;
+		char l_size[22];
+		l_size[0] = 0;
+		_snprintf(l_size, _countof(l_size), "%I64d", p_size);
+		g_cur_mediainfo_file_tth = p_tth.toBase32();
+		g_cur_mediainfo_file = p_name + "\r\n TTH = " + g_cur_mediainfo_file_tth + "\r\n File size = " + string(l_size);
+		if (g_media_info_dll.Open(Text::toT(File::formatPath(p_name))))
+		{
+			// const bool l_is_media_info_fly_server = g_fly_server_config.isSupportFile(l_file_ext, p_size);
+			// if (l_is_media_info_fly_server)
+			// Локально собираем медиаинфу всегда - чтобы проще расширять поддерживаемые расширения на флай сервере в будущем.
+			{
+				// TODO - желательно звать со сжатием каналов первым (будет быстрее из-за подсказки p_compress_channel_attr)
+				getExtMediaInfo(l_file_ext, p_size, g_media_info_dll, MediaInfoLib::Stream_Audio, p_media, true); // Сожмем дубликаты в каналах
+				getExtMediaInfo(l_file_ext, p_size, g_media_info_dll, MediaInfoLib::Stream_General, p_media, false);
+				getExtMediaInfo(l_file_ext, p_size, g_media_info_dll, MediaInfoLib::Stream_Video, p_media, false);
+// Это пока лишнее
+//          getExtMediaInfo(l_file_ext, p_size, g_media_info_dll,MediaInfoLib::Stream_Text,p_media);
+//			getExtMediaInfo(l_file_ext, p_size, g_media_info_dll,MediaInfoLib::Stream_Chapters,p_media);
+//			getExtMediaInfo(l_file_ext, p_size, g_media_info_dll,MediaInfoLib::Stream_Image,p_media);
+//			getExtMediaInfo(l_file_ext, p_size, g_media_info_dll,MediaInfoLib::Stream_Menu,p_media);
+			}
+			const size_t audioCount = g_media_info_dll.Count_Get(MediaInfoLib::Stream_Audio);
+			p_media.m_bitrate  = 0;
+			boost::unordered_map<string, uint16_t> l_audio_dup_filter;
+			// AC-3, 5.1, 448 Kbps | AC-3, 5.1, 640 Kbps | TrueHD / AC-3, 5.1, 640 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps"
+			// Превращаем в
+			// AC-3, 5.1, 640 Kbps | TrueHD / AC-3, 5.1, 640 Kbps | AC-3, 5.1, 448 Kbps (x7)
+			// dcassert(audioCount);
+			for (size_t i = 0; i < audioCount; i++)
+			{
+				const wstring l_sinfo = g_media_info_dll.Get(MediaInfoLib::Stream_Audio, i, _T("BitRate"));
+				uint16_t bitRate = (Util::toFloat(Text::fromT(l_sinfo)) / 1000.0 + 0.5);
+				if (bitRate > p_media.m_bitrate)
+					p_media.m_bitrate = bitRate;
+				wstring sFormat = g_media_info_dll.Get(MediaInfoLib::Stream_Audio, i, _T("Format"));
+#if defined (SSA_REMOVE_NEEDLESS_WORDS_FROM_VIDEO_AUDIO_INFO)
+				boost::replace_all(sFormat, _T(" Audio"), Util::emptyStringT);
+#endif
+				const wstring sBitRate = g_media_info_dll.Get(MediaInfoLib::Stream_Audio, i, _T("BitRate/String"));
+				const wstring sChannelPos = g_media_info_dll.Get(MediaInfoLib::Stream_Audio, i, _T("ChannelPositions"));
+				const uint16_t iChannels = Util::toInt(g_media_info_dll.Get(MediaInfoLib::Stream_Audio, i, _T("Channel(s)")));
+				const auto l_pos = sChannelPos.find(_T("LFE"), 0);
+				std::string sChannels;
+				if (l_pos != string::npos)
+				{
+					sChannels = Util::toString(iChannels - 1) + ".1";
+				}
+				else
+				{
+					sChannels = Util::toString(iChannels) + ".0";
+				}
+				
+				const wstring sLanguage = g_media_info_dll.Get(MediaInfoLib::Stream_Audio, i, _T("Language/String1"));
+				std::string audioFormatString;
+				if (!sFormat.empty() || !sBitRate.empty() || !sChannels.empty() || !sLanguage.empty())
+				{
+					if (!sFormat.empty())
+					{
+						audioFormatString += ' ';
+						audioFormatString += Text::fromT(sFormat);
+						audioFormatString += ',';
+					}
+					if (!sChannels.empty())
+					{
+						audioFormatString += ' ';
+						audioFormatString += sChannels;
+						audioFormatString += ',';
+					}
+					if (!sBitRate.empty())
+					{
+						audioFormatString += ' ';
+						audioFormatString += Text::fromT(sBitRate);
+						audioFormatString += ',';
+					}
+					if (!sLanguage.empty())
+					{
+						audioFormatString += ' ';
+						audioFormatString += Text::fromT(sLanguage);
+						audioFormatString += ',';
+					}
+					if (!audioFormatString.empty() && audioFormatString[audioFormatString.length() - 1] == ',')
+					{
+						audioFormatString = audioFormatString.substr(0, audioFormatString.length() - 1); // Remove last ,
+					}
+					l_audio_dup_filter[audioFormatString]++;
+				}
+			}
+			std::string l_audio_all;
+			std::string l_sep;
+			for (auto k = l_audio_dup_filter.cbegin(); k != l_audio_dup_filter.cend(); ++k)
+			{
+				l_audio_all += l_sep;
+				if (k->second == 1)
+					l_audio_all += k->first;
+				else
+					l_audio_all += k->first + " (x" + Util::toString(k->second) + ")";
+				l_sep = " |";
+			}
+			wstring l_width;
+			wstring l_height;
+#ifdef USE_MEDIAINFO_IMAGES
+			l_width = g_media_info_dll.Get(MediaInfoLib::Stream_Image, 0, _T("Width"));
+			l_height = g_media_info_dll.Get(MediaInfoLib::Stream_Image, 0, _T("Height"));
+			if (l_width.empty() && l_height.empty())
+#endif
+			{
+				l_width = g_media_info_dll.Get(MediaInfoLib::Stream_Video, 0, _T("Width"));
+				if (!l_width.empty())
+					l_height = g_media_info_dll.Get(MediaInfoLib::Stream_Video, 0, _T("Height"));
+			}
+			p_media.m_mediaX = Util::toInt(l_width);
+			if (p_media.m_mediaX)
+				p_media.m_mediaY = Util::toInt(l_height);
+			else
+				p_media.m_mediaY = 0;
+				
+			const wstring sDuration = g_media_info_dll.Get(MediaInfoLib::Stream_General, 0, _T("Duration/String"));
+			if (!sDuration.empty() || !l_audio_all.empty())
+			{
+				string audioGeneral;
+				if (!sDuration.empty())
+				{
+					audioGeneral += Text::fromT(sDuration) + " |";
+				}
+				p_media.m_audio = audioGeneral;
+				// No Duration => No sound
+				if (!l_audio_all.empty())
+				{
+					p_media.m_audio += l_audio_all;
+				}
+			}
+			
+			const size_t videoCount =  g_media_info_dll.Count_Get(MediaInfoLib::Stream_Video);
+			if (videoCount > 0)
+			{
+				string videoString;
+				for (size_t i = 0; i < videoCount; i++)
+				{
+					wstring sVFormat = g_media_info_dll.Get(MediaInfoLib::Stream_Video, i, _T("Format"));
+#if defined (SSA_REMOVE_NEEDLESS_WORDS_FROM_VIDEO_AUDIO_INFO)
+					boost::replace_all(sVFormat, _T(" Video"), Util::emptyStringT);
+					boost::replace_all(sVFormat, _T(" Visual"), Util::emptyStringT);
+#endif
+					wstring sVBitrate = g_media_info_dll.Get(MediaInfoLib::Stream_Video, i, _T("BitRate/String"));
+					wstring sVFrameRate = g_media_info_dll.Get(MediaInfoLib::Stream_Video, i, _T("FrameRate/String"));
+					if (!sVFormat.empty() || !sVBitrate.empty() || !sVFrameRate.empty())
+					{
+					
+						if (!sVFormat.empty())
+						{
+							videoString += Text::fromT(sVFormat);
+							videoString += ", ";
+						}
+						if (!sVBitrate.empty())
+						{
+							videoString += Text::fromT(sVBitrate);
+							videoString += ", ";
+						}
+						if (!sVFrameRate.empty())
+						{
+							videoString += Text::fromT(sVFrameRate);
+							videoString += ", ";
+						}
+						videoString = videoString.substr(0, videoString.length() - 2); // Remove last ,
+						videoString += " | ";
+					}
+				}
+				
+				if (videoString.length() > 3) // This is false only in theorical way.
+					p_media.m_video = videoString.substr(0, videoString.length() - 3); // Remove last |
+			}
+			g_media_info_dll.Close();
+		}
+		g_cur_mediainfo_file_tth.clear();
+		g_cur_mediainfo_file.clear();
+		return true;
+	}
+	catch (std::exception& e)
+	{
+		const string l_error = g_cur_mediainfo_file + " TTH:" + p_tth.toBase32() + " error: " + string(e.what());
+		CFlyServerAdapter::CFlyServerJSON::pushError(15, "error getmediainfo:" + l_error);
+		Util::setRegistryValueString(FLYLINKDC_REGISTRY_MEDIAINFO_CRASH_KEY, Text::toT(l_error));
+		LogManager::getInstance()->message("getMediaInfo: " + p_name + "TTH:" + p_tth.toBase32() + ' ' + STRING(ERROR_STRING) + ": " + string(e.what()));
+		char l_buf[4000];
+		l_buf[0] = 0;
+		sprintf_s(l_buf, _countof(l_buf), CSTRING(ERROR_MEDIAINFO_SCAN), p_name.c_str(), e.what());
+		::MessageBox(0, Text::toT(l_buf).c_str(), _T("Error mediainfo!"), MB_ICONERROR);
+		return false;
+	}
+	catch (...)
+	{
+		// TODO сюда не попадаем если SEH - найти способ и поправить
+		Util::setRegistryValueString(FLYLINKDC_REGISTRY_MEDIAINFO_CRASH_KEY, Text::toT(g_cur_mediainfo_file + " catch(...) "));
+		CFlyServerAdapter::CFlyServerJSON::pushError(15, "error getmediainfo[2] " + g_cur_mediainfo_file + " TTH:" + p_tth.toBase32() + " catch(...)");
+		throw;
+	}
+}
+//=========================================================================================

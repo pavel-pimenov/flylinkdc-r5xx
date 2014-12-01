@@ -32,8 +32,10 @@
 #include "../client/SettingsManager.h"
 #include "../zlib/zlib.h"
 
+bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, const TTHValue& p_tth, bool p_force = false);
 //=======================================================================
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
+//=======================================================================
 struct CServerItem
 {
 	CServerItem(const string& p_ip = Util::emptyString, const uint16_t p_port = 0) : m_ip(p_ip), m_port(p_port),m_time_response(0)
@@ -117,11 +119,15 @@ class CFlyServerConfig
   }
 public:
  bool isSupportFile(const string& p_file_ext, uint64_t p_size) const;
- bool isSupportTag (const string& p_tag) const;
+ static bool isSupportTag (const string& p_tag);
+ static bool isErrorLog (unsigned p_error_code);
+ static bool isErrorSysLog (unsigned p_error_code);
  void ConvertInform(string& p_inform) const;
 private:
- StringSet m_include_tag; 
- StringSet m_exclude_tag; 
+ static StringSet g_include_tag; 
+ static StringSet g_exclude_tag; 
+ static boost::unordered_set<unsigned> g_exclude_error_log;
+ static boost::unordered_set<unsigned> g_exclude_error_syslog;
  std::vector<std::string> m_exclude_tag_inform;
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
  bool     m_send_full_mediainfo; // Если = true на сервер шлем данные если есть полная информация о медиа-файле
@@ -199,7 +205,10 @@ private:
 public:
   void loadConfig();
   static bool SyncAntivirusDB();
-
+  static string getAllMediainfoExt()
+  {
+      return Util::toString(',', g_mediainfo_ext);
+  }
   static bool isParasitFile(const string& p_file);
   static bool isMediainfoExt(const string& p_ext);
   static bool isVirusExt(const string& p_ext);
@@ -393,8 +402,8 @@ class CFlyServerAdapter
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 			static bool pushStatistic(const bool p_is_sync_run);
 #endif
-			static bool pushError(const string& p_error);
-      static void pushSyslogError(const string& p_error);
+			static bool pushError(unsigned p_error_code, string p_error);
+		    static void pushSyslogError(const string& p_error);
 			static bool pushTestPort(const string& p_magic,		
 				const std::vector<unsigned short>& p_udp_port,
 				const std::vector<unsigned short>& p_tcp_port,
@@ -426,7 +435,21 @@ class CFlyServerAdapter
 		std::unique_ptr<CFlyServerQueryThread> m_query_thread;
 };
 //=======================================================================
-
+#else
+// Кривизна - поправить
+class CFlyServerAdapter
+{
+	 class  CFlyServerJSON
+	 {
+			static bool pushError(unsigned p_error_code, string p_error)
+			{
+				return false;
+			}
+		    static void pushSyslogError(const string& p_error)
+			{
+			}
+	 };
+};
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 
 #endif // _FLY_SERVER_H

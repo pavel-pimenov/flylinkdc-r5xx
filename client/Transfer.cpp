@@ -115,3 +115,18 @@ void Transfer::getParams(const UserConnection* aSource, StringMap& params) const
 	params["time"] = getStart() == 0 ? "-" : Util::formatSeconds((getLastTick() - getStart()) / 1000); // [!] IRainman refactoring transfer mechanism
 	params["fileTR"] = getTTH().toBase32();
 }
+void Transfer::setStart(uint64_t tick)
+{
+	m_start = tick;
+	FastLock l(m_cs);
+	setLastTick(tick);
+	m_samples.push_back(Sample(m_start, 0));
+}
+const uint64_t Transfer::getLastActivity()
+{
+	return getUserConnection()->getLastActivity();
+}
+const string& Transfer::getUserConnectionToken() const
+{
+	return getUserConnection()->getUserConnectionToken();
+}

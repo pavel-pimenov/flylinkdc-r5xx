@@ -158,9 +158,12 @@ void PropPage::write(HWND page, Item const* items, ListItem* listItems /* = NULL
 		
 		ctrl.Detach();
 	}
-	// [+] IRainman show user warning.
+#ifdef _DEBUG
 	if (l_showUserWarning)
-		MessageBox(page, CTSTRING(WARNING_VALUE_AUTO_ADJUSTED), CTSTRING(WARNING), MB_OK);
+	{
+		MessageBox(page, _T("Values of the changed settings are automatically adjusted"), CTSTRING(WARNING), MB_OK);
+	}
+#endif
 }
 
 void PropPage::cancel(HWND page)

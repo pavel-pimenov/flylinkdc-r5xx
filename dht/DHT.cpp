@@ -253,6 +253,7 @@ Node::Ptr DHT::addNode(const CID& cid, const string& ip, uint16_t port, const UD
 {
 	dcassert(!ClientManager::isShutdown());
 	// create user as offline (only TCP connected users will be online)
+        // https://drdump.com/DumpGroup.aspx?DumpGroupID=239463&Login=guest	
 	UserPtr u = ClientManager::getUser(cid, true); // TODO - утекает. если долго работать тут по€вл€етс€ много юзеров.
 												   // а когда их удал€ем?
 		FastLock l(cs);
@@ -280,7 +281,7 @@ void DHT::checkExpiration(uint64_t aTick)
 /*
  * Finds the file in the network
  */
-void DHT::findFile(const string& tth, const string& p_token)
+void DHT::findFile(const string& tth, uint32_t p_token)
 {
 	if (isConnected())
 		SearchManager::getInstance()->findFile(tth, p_token);
@@ -345,10 +346,10 @@ void DHT::info(const string& ip, uint16_t port, uint32_t type, const CID& target
 /*
  * Sends Connect To Me request to online node
  */
-void DHT::connect(const OnlineUser& ou, const string& p_token)
+void DHT::connect(const OnlineUser& ou, const string& p_token, bool p_is_force_passive)
 {
 	// this is DHT's node, so we can cast ou to Node
-	ConnectionManager::getInstance()->connect((Node*)&ou, p_token);
+	ConnectionManager::getInstance()->connect((Node*)&ou, p_token, false);
 }
 
 /*
@@ -425,7 +426,7 @@ void DHT::saveData()
  */
 
 // user's info
-void DHT::handle(AdcCommand::INF, const string& ip, uint16_t port, const UDPKey& udpKey, bool isUdpKeyValid, AdcCommand& c) noexcept
+void DHT::handle(AdcCommand::INF, const string& ip, uint16_t port, const UDPKey& udpKey, bool isUdpKeyValid, const AdcCommand& c) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
 	const CID cid = CID(c.getParam(0));	
@@ -520,26 +521,26 @@ void DHT::handle(AdcCommand::INF, const string& ip, uint16_t port, const UDPKey&
 }
 
 // incoming search request
-void DHT::handle(AdcCommand::SCH, const string& ip, uint16_t port, const UDPKey& udpKey, AdcCommand& c) noexcept
+void DHT::handle(AdcCommand::SCH, const string& ip, uint16_t port, const UDPKey& udpKey, const AdcCommand& c) noexcept
 {
 	SearchManager::getInstance()->processSearchRequest(ip, port, udpKey, c);
 }
 
 // incoming search result
-void DHT::handle(AdcCommand::RES, const string& /*ip*/, uint16_t /*port*/, const UDPKey& /*udpKey*/, AdcCommand& c) noexcept
+void DHT::handle(AdcCommand::RES, const string& /*ip*/, uint16_t /*port*/, const UDPKey& /*udpKey*/, const AdcCommand& c) noexcept
 {
 	SearchManager::getInstance()->processSearchResult(c);
 }
 
 // incoming publish request
-void DHT::handle(AdcCommand::PUB, const string& ip, uint16_t port, const UDPKey& udpKey, AdcCommand& c) noexcept
+void DHT::handle(AdcCommand::PUB, const string& ip, uint16_t port, const UDPKey& udpKey, const AdcCommand& c) noexcept
 {
 	if (!isFirewalled()) // we should index this entry only if our UDP port is opened
 		IndexManager::getInstance()->processPublishSourceRequest(ip, port, udpKey, c);
 }
 
 // connection request
-void DHT::handle(AdcCommand::CTM, const string& ip, uint16_t port, const UDPKey& udpKey, AdcCommand& c) noexcept
+void DHT::handle(AdcCommand::CTM, const string& ip, uint16_t port, const UDPKey& udpKey, const AdcCommand& c) noexcept
 {
 	CID cid = CID(c.getParam(0));
 	
@@ -556,7 +557,7 @@ void DHT::handle(AdcCommand::CTM, const string& ip, uint16_t port, const UDPKey&
 }
 
 // reverse connection request
-void DHT::handle(AdcCommand::RCM, const string& ip, uint16_t port, const UDPKey& udpKey, AdcCommand& c) noexcept
+void DHT::handle(AdcCommand::RCM, const string& ip, uint16_t port, const UDPKey& udpKey, const AdcCommand& c) noexcept
 {
 	CID cid = CID(c.getParam(0));
 	
@@ -573,7 +574,7 @@ void DHT::handle(AdcCommand::RCM, const string& ip, uint16_t port, const UDPKey&
 }
 
 // status message
-void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t /*port*/, const UDPKey& /*udpKey*/, AdcCommand& c) noexcept
+void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t /*port*/, const UDPKey& /*udpKey*/, const AdcCommand& c) noexcept
 {
 	if (c.getParameters().size() < 3)
 		return;
@@ -694,15 +695,20 @@ void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t /*port*/, const
 }
 
 // partial file request
-void DHT::handle(AdcCommand::PSR, const string& ip, uint16_t port, const UDPKey& udpKey, AdcCommand& c) noexcept
+void DHT::handle(AdcCommand::PSR, const string& ip, uint16_t port, const UDPKey& udpKey, const AdcCommand& c) noexcept
 {
-	CID cid = CID(c.getParam(0));
-	c.getParameters().erase(c.getParameters().begin());  // remove CID from UDP command
+	const CID cid = CID(c.getParam(0));
+  dcassert(c.getParam(0).size() == 39);
+  // !!!!!!!!!!!!!!!!!!!!!// !!!!!!!!!!!!!!!!!!!!!
+	// !!!!!!!!!!!!!!!!!!!!! c.getParameters().erase(c.getParameters().begin());  // remove CID from UDP command
+  // Ќе нужно удал€ть?
 	
 	// connection allowed with online nodes only, so try to get them directly from ClientManager
 	OnlineUserPtr node = ClientManager::findDHTNode(cid);
 	if (node != NULL)
+	{
 		::SearchManager::getInstance()->onPSR(c, node->getUser(), ip);
+  }
 	else
 	{
 		// node is not online
@@ -712,7 +718,7 @@ void DHT::handle(AdcCommand::PSR, const string& ip, uint16_t port, const UDPKey&
 }
 
 // private message
-void DHT::handle(AdcCommand::MSG, const string& /*ip*/, uint16_t /*port*/, const UDPKey& /*udpKey*/, AdcCommand& /*c*/) noexcept
+void DHT::handle(AdcCommand::MSG, const string& /*ip*/, uint16_t /*port*/, const UDPKey& /*udpKey*/, const AdcCommand& /*c*/) noexcept
 {
 	// not implemented yet
 	//fire(ClientListener::PrivateMessage(), this, *node, to, node, c.getParam(0), c.hasFlag("ME", 1));
@@ -720,7 +726,7 @@ void DHT::handle(AdcCommand::MSG, const string& /*ip*/, uint16_t /*port*/, const
 	//privateMessage(*node, "Sorry, private messages aren't supported yet!", false);
 }
 
-void DHT::handle(AdcCommand::GET, const string& ip, uint16_t port, const UDPKey& udpKey, AdcCommand& c) noexcept
+void DHT::handle(AdcCommand::GET, const string& ip, uint16_t port, const UDPKey& udpKey, const AdcCommand& c) noexcept
 {
 	if (c.getParam(1) == "nodes" && c.getParam(2) == "dht.xml")
 	{
@@ -758,7 +764,7 @@ void DHT::handle(AdcCommand::GET, const string& ip, uint16_t port, const UDPKey&
 	}
 }
 
-void DHT::handle(AdcCommand::SND, const string& ip, uint16_t port, const UDPKey& udpKey, bool isUdpKeyValid, AdcCommand& c) noexcept
+void DHT::handle(AdcCommand::SND, const string& ip, uint16_t port, const UDPKey& udpKey, bool isUdpKeyValid, const AdcCommand& c) noexcept
 {
 	if (c.getParam(1) == "nodes" && c.getParam(2) == "dht.xml")
 	{

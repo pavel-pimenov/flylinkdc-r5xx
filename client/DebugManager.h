@@ -52,17 +52,12 @@ class DebugManager : public Singleton<DebugManager>, public Speaker<DebugManager
 		DebugManager() { }
 		~DebugManager() { }
 	public:
-		void SendCommandMessage(const string& command, DebugTask::Type type, const string& adress) noexcept
-		{
-			fire(DebugManagerListener::DebugEvent(), DebugTask(command, type, adress)); // [!] IRainman: use real time.
-		}
-		void SendDetectionMessage(const string& mess) noexcept
-		{
-			fire(DebugManagerListener::DebugEvent(), DebugTask(mess, DebugTask::DETECTION)); // [!] IRainman: use real time.
-		}
+		void SendCommandMessage(const string& command, DebugTask::Type type, const string& ip) noexcept;
+		void SendDetectionMessage(const string& mess) noexcept;
+		static bool g_isCMDDebug;
 };
-#define COMMAND_DEBUG(command, direction, ip) if (DebugManager::isValidInstance()) { DebugManager::getInstance()->SendCommandMessage(command, direction, ip); }
-#define DETECTION_DEBUG(message) if (DebugManager::isValidInstance()) { DebugManager::getInstance()->SendDetectionMessage(message); }
+#define COMMAND_DEBUG(command, direction, ip) if (DebugManager::g_isCMDDebug) { DebugManager::getInstance()->SendCommandMessage(command, direction, ip); }
+#define DETECTION_DEBUG(message) if (DebugManager::g_isCMDDebug) { DebugManager::getInstance()->SendDetectionMessage(message); }
 #else
 #define COMMAND_DEBUG(message, direction, ip)
 #define DETECTION_DEBUG(message)

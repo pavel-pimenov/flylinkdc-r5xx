@@ -21,9 +21,7 @@
 
 #include "DownloadPage.h"
 #include "WinUtil.h"
-#ifdef IRAINMAN_ENABLE_HUB_LIST
 #include "PublicHubsListDlg.h"
-#endif
 
 PropPage::TextItem DownloadPage::texts[] =
 {
@@ -125,10 +123,8 @@ LRESULT DownloadPage::onClickedBrowseBT(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 
 LRESULT DownloadPage::onClickedListConfigure(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-#ifdef IRAINMAN_ENABLE_HUB_LIST
 	PublicHubListDlg dlg;
 	dlg.DoModal(m_hWnd);
-#endif // IRAINMAN_ENABLE_HUB_LIST
 	return 0;
 }
 

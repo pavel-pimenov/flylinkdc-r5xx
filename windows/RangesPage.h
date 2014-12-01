@@ -15,17 +15,15 @@
 class RangesPage : public CPropertyPage<IDD_RANGES_PAGE>, public PropPage
 {
 	public:
-		RangesPage(SettingsManager *s) : PropPage(s), m_isEnabledIPGuard(false)
+		RangesPage(SettingsManager *s) : PropPage(s, TSTRING(IPGUARD)), m_isEnabledIPGuard(false)
 		{
-//      title = _tcsdup((TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_CERTIFICATES) + _T('\\') + TSTRING(IPGUARD)).c_str());
-			title = TSTRING(IPGUARD);
-			SetTitle(title.c_str());
-		};
+			SetTitle(m_title.c_str());
+		}
 		
 		~RangesPage()
 		{
 			ctrlPolicy.Detach();
-		};
+		}
 		
 		BEGIN_MSG_MAP_EX(RangesPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
@@ -72,7 +70,7 @@ class RangesPage : public CPropertyPage<IDD_RANGES_PAGE>, public PropPage
 		
 		static Item items[];
 		static TextItem texts[];
-		wstring title;
+		
 		void fixControls();
 	private:
 		string m_IPGuard;

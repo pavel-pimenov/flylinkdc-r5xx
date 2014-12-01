@@ -24,9 +24,9 @@
 bool SearchQueue::add(const Search& s)
 {
 	dcassert(s.m_owners.size() == 1);
-	dcassert(interval >= 10000); // min interval is 10 seconds.
+	dcassert(m_interval >= 10000); // min interval is 10 seconds.
 	
-	Lock l(cs);
+	FastLock l(m_cs);
 	
 	for (auto i = searchQueue.begin(); i != searchQueue.end(); ++i)
 	{
@@ -37,7 +37,7 @@ bool SearchQueue::add(const Search& s)
 			i->m_owners.insert(aOwner);
 			
 			// if previous search was autosearch and current one isn't, it should be readded before autosearches
-			if (s.m_token != "auto" && i->m_token == "auto")
+			if (!s.isAutoToken() && i->isAutoToken())
 			{
 				// FlylinkDC Team TODO не стирать,  делать swap или что то ещё, теряем овнеров :( пока не осознал чем это грозит (L.)
 				searchQueue.erase(i);
@@ -48,7 +48,7 @@ bool SearchQueue::add(const Search& s)
 		}
 	}
 	
-	if (s.m_token == "auto")
+	if (s.isAutoToken())
 	{
 		// Insert last (automatic search)
 		searchQueue.push_back(s);
@@ -66,7 +66,7 @@ bool SearchQueue::add(const Search& s)
 			// Insert before the automatic searches (manual search)
 			for (auto i = searchQueue.cbegin(); i != searchQueue.cend(); ++i)
 			{
-				if (i->m_token == "auto")
+				if (i->isAutoToken())
 				{
 					searchQueue.insert(i, s);
 					added = true;
@@ -82,21 +82,26 @@ bool SearchQueue::add(const Search& s)
 	return true;
 }
 
-bool SearchQueue::pop(Search& s, uint64_t now)
+bool SearchQueue::pop(Search& s, uint64_t p_now)
 {
-	dcassert(interval);
-	
-	//uint64_t now = GET_TICK(); // [-] IRainman opt
-	if (now <= lastSearchTime + interval)
+	dcassert(m_interval);
+#ifdef _DEBUG
+	const auto l_new_now = GET_TICK();
+	if (l_new_now != p_now)
+	{
+		LogManager::getInstance()->message("l_new_now != now,  l_new_now = " + Util::toString(l_new_now) + " now = " + Util::toString(p_now));
+	}
+#endif
+	if (p_now <= m_lastSearchTime + m_interval)
 		return false;
 		
 	{
-		Lock l(cs);
+		FastLock l(m_cs);
 		if (!searchQueue.empty())
 		{
 			s = searchQueue.front();
 			searchQueue.pop_front();
-			lastSearchTime = now;
+			m_lastSearchTime = p_now;
 			return true;
 		}
 	}
@@ -104,18 +109,26 @@ bool SearchQueue::pop(Search& s, uint64_t now)
 	return false;
 }
 
-uint64_t SearchQueue::getSearchTime(void* aOwner, uint64_t now)
+uint64_t SearchQueue::getSearchTime(void* aOwner, uint64_t p_now)
 {
 	if (aOwner == 0)
 		return 0xFFFFFFFF; // for auto searches.
 		
-	Lock l(cs);
+	FastLock l(m_cs);
 	
-	uint64_t x = max(lastSearchTime, uint64_t(/*GET_TICK()*/now - interval)); // [!] IRainman opt
+#ifdef _DEBUG
+	const auto l_new_now = GET_TICK();
+	if (l_new_now != p_now)
+	{
+		LogManager::getInstance()->message("[2] l_new_now != now,  l_new_now = " + Util::toString(l_new_now) + " now = " + Util::toString(p_now));
+	}
+#endif
+	
+	uint64_t x = max(m_lastSearchTime, uint64_t(p_now - m_interval)); // [!] IRainman opt
 	
 	for (auto i = searchQueue.cbegin(); i != searchQueue.cend(); ++i)
 	{
-		x += interval;
+		x += m_interval;
 		
 		if (i->m_owners.find(aOwner) != i->m_owners.end()) // [!] IRainman opt.
 			return x;
@@ -128,7 +141,7 @@ uint64_t SearchQueue::getSearchTime(void* aOwner, uint64_t now)
 
 bool SearchQueue::cancelSearch(void* aOwner)
 {
-	Lock l(cs);
+	FastLock l(m_cs);
 	for (auto i = searchQueue.begin(); i != searchQueue.end(); ++i)
 	{
 		// [!] IRainman opt.
@@ -139,7 +152,9 @@ bool SearchQueue::cancelSearch(void* aOwner)
 			l_owners.erase(j);
 			// [~] IRainman opt.
 			if (l_owners.empty())
+			{
 				searchQueue.erase(i);
+			}
 			return true;
 		}
 	}

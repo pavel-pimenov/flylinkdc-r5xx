@@ -324,9 +324,15 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 					// protocol error, don't reconnect except after a forced attempt
 					continue;
 				}
-				
+#ifdef _DEBUG
+				const unsigned l_count_sec = 10;
+				const unsigned l_count_sec_connecting = 5;
+#else
+				const unsigned l_count_sec = 60;
+				const unsigned l_count_sec_connecting = 50;
+#endif
 				if (cqi->getLastAttempt() == 0 || ((SETTING(DOWNCONN_PER_SEC) == 0 || attempts < SETTING(DOWNCONN_PER_SEC)) &&
-				                                   cqi->getLastAttempt() + 60 * 1000 * max(1, cqi->getErrors()) < aTick))
+				                                   cqi->getLastAttempt() + l_count_sec * 1000 * max(1, cqi->getErrors()) < aTick))
 				{
 					cqi->setLastAttempt(aTick);
 					
@@ -346,28 +352,50 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 						{
 							const string hubHint = cqi->getHubUrl(); // TODO - прокинуть туда хинт на хаб
 							cqi->setState(ConnectionQueueItem::CONNECTING);
-							ClientManager::getInstance()->connect(HintedUser(cqi->getUser(), hubHint), cqi->getConnectionQueueToken());
+							cqi->m_count_waiting++;
+//#ifdef _DEBUG
+//							cqi->m_is_force_passive = cqi->m_count_waiting > 1; // ƒелаем вторую попытку всегда в пассиве - дл€ теста!
+//#else
+							cqi->m_is_force_passive = cqi->m_is_active_client ? (cqi->m_count_waiting > 1) : false; // ƒелаем вторую попытку подключени€ в пассивке ?
+//#endif
+							ClientManager::getInstance()->connect(HintedUser(cqi->getUser(), hubHint),
+							                                      cqi->getConnectionQueueToken(),
+							                                      cqi->m_is_force_passive,
+							                                      cqi->m_is_active_client // <- Out param!
+							                                     );
 							fire(ConnectionManagerListener::StatusChanged(), cqi);
 							attempts++;
 						}
 						else
 						{
+							cqi->m_count_waiting = 0;
 							cqi->setState(ConnectionQueueItem::NO_DOWNLOAD_SLOTS);
 							fire(ConnectionManagerListener::Failed(), cqi, STRING(ALL_DOWNLOAD_SLOTS_TAKEN));
 						}
 					}
 					else if (cqi->getState() == ConnectionQueueItem::NO_DOWNLOAD_SLOTS && startDown)
 					{
+						cqi->m_count_waiting = 0;
 						cqi->setState(ConnectionQueueItem::WAITING);
 					}
 				}
-				else if (cqi->getState() == ConnectionQueueItem::CONNECTING && cqi->getLastAttempt() + 50 * 1000 < aTick)
+				else if (cqi->getState() == ConnectionQueueItem::CONNECTING && cqi->getLastAttempt() + l_count_sec_connecting * 1000 < aTick)
 				{
 					ClientManager::getInstance()->connectionTimeout(cqi->getUser());
 					
 					cqi->setErrors(cqi->getErrors() + 1);
-					fire(ConnectionManagerListener::Failed(), cqi, STRING(CONNECTION_TIMEOUT));
-					cqi->setState(ConnectionQueueItem::WAITING);
+					if (cqi->m_count_waiting > 2)
+					{
+						fire(ConnectionManagerListener::Failed(), cqi, STRING(CONNECTION_TIMEOUT)); // CONNECTION_DID_NOT_WORK
+						cqi->setState(ConnectionQueueItem::WAITING);
+						// TODO - удаление пока не делаем - нужно потестировать лучше
+						// l_removed.push_back(cqi);
+					}
+					else
+					{
+						fire(ConnectionManagerListener::Failed(), cqi, STRING(CONNECTION_TIMEOUT));
+						cqi->setState(ConnectionQueueItem::WAITING);
+					}
 				}
 			}
 		}
@@ -622,14 +650,14 @@ void ConnectionManager::accept(const Socket& sock, bool secure, Server* p_server
 		deleteConnection(uc);
 	}
 }
-bool ConnectionManager::checkTTHDuplicateSearch(const string& p_search_command)
+bool ConnectionManager::checkTTHDuplicateSearch(const string& p_search_command, const TTHValue& p_tth)
 {
 	webrtc::WriteLockScoped l_lock(*g_csTTHFilter);
 	const auto l_tick = GET_TICK();
 	CFlyTTHTick l_item;
 	l_item.m_first_tick = l_tick;
 	l_item.m_last_tick  = l_tick;
-	auto l_result = m_tth_duplicate_search.insert(std::pair<string, CFlyTTHTick>(p_search_command, l_item));
+	auto l_result = m_tth_duplicate_search.insert(std::pair<string, CFlyTTHTick>(p_search_command + ' ' + p_tth.toBase32() , l_item));
 	auto& l_cur_value = l_result.first->second;
 	++l_cur_value.m_count_connect;
 	if (l_result.second == false) // Ёлемент уже существует - проверим его счетчик и старость.
@@ -652,6 +680,7 @@ bool ConnectionManager::checkTTHDuplicateSearch(const string& p_search_command)
 #ifdef FLYLINKDC_USE_LOG_FOR_DUPLICATE_TTH_SEARCH
 				LogManager::getInstance()->ddos_message(string(l_cur_value.m_count_connect, '*') + " BlockID = " + Util::toString(l_cur_value.m_block_id) +
 				                                        ", Lock TTH search = " + p_search_command +
+				                                        ", TTH = " + p_tth.toBase32() +
 				                                        ", Count = " + Util::toString(l_cur_value.m_count_connect) +
 				                                        ", Hash map size: " + Util::toString(m_tth_duplicate_search.size()));
 #endif
@@ -1206,7 +1235,7 @@ void ConnectionManager::addUploadConnection(UserConnection* p_conn)
 #ifdef IRAINMAN_DISALLOWED_BAN_MSG
 	if (uc->isSet(UserConnection::FLAG_SUPPORTS_BANMSG))
 	{
-		uc->error(UserConnection::PLEASE_UPDATE_YOUR_CLIENT);
+		uc->error(UserConnection::g_PLEASE_UPDATE_YOUR_CLIENT);
 		return;
 	}
 #endif
@@ -1270,8 +1299,7 @@ void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCo
 		return;
 	}
 	
-	string cid;
-	if (!cmd.getParam("ID", 0, cid))
+	if (!cmd.isCIDexists())
 	{
 		aSource->send(AdcCommand(AdcCommand::SEV_FATAL, AdcCommand::ERROR_INF_MISSING, "ID missing").addParam("FL", "ID"));
 		dcdebug("CM::onINF missing ID\n");
@@ -1279,7 +1307,7 @@ void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCo
 		return;
 	}
 	
-	aSource->setUser(ClientManager::findUser(CID(cid)));
+	aSource->setUser(ClientManager::findUser(cmd.getParamCID()));
 	
 	if (!aSource->getUser())
 	{
@@ -1440,7 +1468,7 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 			dcassert(i != g_downloads.end());
 			if (i == g_downloads.end())
 			{
-				CFlyServerAdapter::CFlyServerJSON::pushError("[BUG][5] ConnectionManager::failed (i == g_downloads.end()) aError = " + aError);
+				CFlyServerAdapter::CFlyServerJSON::pushError(5, "ConnectionManager::failed (i == g_downloads.end()) aError = " + aError);
 			}
 			else
 			{
@@ -1464,7 +1492,7 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 			dcassert(i != g_uploads.end());
 			if (i == g_uploads.end())
 			{
-				CFlyServerAdapter::CFlyServerJSON::pushError("[BUG][6] ConnectionManager::failed (i == g_uploads.end()) aError = " + aError);
+				CFlyServerAdapter::CFlyServerJSON::pushError(6, "ConnectionManager::failed (i == g_uploads.end()) aError = " + aError);
 			}
 			else
 			{

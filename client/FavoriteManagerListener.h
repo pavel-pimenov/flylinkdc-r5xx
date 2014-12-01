@@ -31,9 +31,6 @@ class FavoriteManagerListener
 			enum { TYPE = I };
 		};
 		
-		typedef X<0> DownloadStarting;
-		typedef X<1> DownloadFailed;
-		typedef X<2> DownloadFinished;
 		typedef X<3> FavoriteAdded;
 		typedef X<4> FavoriteRemoved;
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
@@ -44,21 +41,14 @@ class FavoriteManagerListener
 		typedef X<6> UserAdded;
 		typedef X<7> UserRemoved;
 		typedef X<8> StatusChanged;
-		typedef X<9> LoadedFromCache;
-		typedef X<10> Corrupted;
+		
 		typedef X<11> RecentAdded;
 		typedef X<12> RecentRemoved;
 		typedef X<13> RecentUpdated;
 		
-		virtual void on(DownloadStarting, const string&) noexcept { }
-		virtual void on(DownloadFailed, const string&) noexcept { }
-		virtual void on(DownloadFinished, const string&
-#ifdef RIP_USE_CORAL
-		                , bool
-#endif
-		               ) noexcept { }
 		virtual void on(FavoriteAdded, const FavoriteHubEntry*) noexcept { }
 		virtual void on(FavoriteRemoved, const FavoriteHubEntry*) noexcept { }
+		
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 #ifdef UPDATE_CON_STATUS_ON_FAV_HUBS_IN_REALTIME
 		virtual void on(FavoriteStatusChanged, const FavoriteHubEntry*) noexcept { }
@@ -67,8 +57,6 @@ class FavoriteManagerListener
 		virtual void on(UserAdded, const FavoriteUser&) noexcept { }
 		virtual void on(UserRemoved, const FavoriteUser&) noexcept { }
 		virtual void on(StatusChanged, const UserPtr&) noexcept { }
-		virtual void on(LoadedFromCache, const string&, const string&) noexcept { }
-		virtual void on(Corrupted, const string&) noexcept { }
 		virtual void on(RecentAdded, const RecentHubEntry*) noexcept { }
 		virtual void on(RecentRemoved, const RecentHubEntry*) noexcept { }
 		virtual void on(RecentUpdated, const RecentHubEntry*) noexcept { }

@@ -154,12 +154,13 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	                           rcDefault,
 	                           NULL,
 	                           //WS_CHILD| WS_VISIBLE | BS_ICON | BS_AUTOCHECKBOX| BS_PUSHLIKE | BS_FLAT
-	                           WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_ICON | BS_AUTOCHECKBOX | BS_FLAT
+	                           WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_ICON | /*BS_AUTOCHECKBOX | */BS_FLAT
 	                           , 0,
 	                           IDC_FORCE_PASSIVE_MODE);
 	m_PassiveModeButton.SetIcon(WinUtil::g_hFirewallIcon);
+	m_PassiveModeButton.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
 	//purgeContainer.SubclassWindow(ctrlPurge.m_hWnd);
-	//m_PassiveModeButton.SetCheck(BST_CHECKED);
+	//m_PassiveModeButton.SetCheck(BOOLSETTING(FORCE_PASSIVE_INCOMING_CONNECTIONS) ? BST_CHECKED : BST_UNCHECKED);
 	setButtonState();
 	
 	// [-] brain-ripper
@@ -236,6 +237,7 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 
 void TransferView::setButtonState()
 {
+	m_PassiveModeButton.SetCheck(BOOLSETTING(FORCE_PASSIVE_INCOMING_CONNECTIONS) ? BST_CHECKED : BST_UNCHECKED);
 	m_tooltip.AddTool(m_PassiveModeButton, ResourceManager::SETTINGS_FIREWALL_PASSIVE_FORCE);
 	UpdateLayout();
 }
@@ -532,326 +534,352 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 			Colors::alternationBkColor(cd);
 #endif
-			if ((ii->m_status == ItemInfo::STATUS_RUNNING) && (colIndex == COLUMN_STATUS))
+			if (colIndex == COLUMN_STATUS)
 			{
-				if (!BOOLSETTING(SHOW_PROGRESS_BARS))
+				CRect rc3;
+				auto l_stat = ii->getText(COLUMN_STATUS);
+				int l_shift = 0;
+				if (ii->m_status == ItemInfo::STATUS_RUNNING)
 				{
-					bHandled = FALSE;
-					return 0;
-				}
-				
-				// Get the color of this bar
-				COLORREF clr = SETTING(PROGRESS_OVERRIDE_COLORS) ?
-				               (ii->download ? (!ii->parent ? SETTING(DOWNLOAD_BAR_COLOR) : SETTING(PROGRESS_SEGMENT_COLOR)) : SETTING(UPLOAD_BAR_COLOR)) :
-					               GetSysColor(COLOR_HIGHLIGHT);
-				if (!ii->download && BOOLSETTING(UP_TRANSFER_COLORS)) //[+]PPA
-			{
-					const auto l_NumSlot = ii->getUser()->getSlots();
-					if (l_NumSlot != 0)
+					if (!BOOLSETTING(SHOW_PROGRESS_BARS))
 					{
-						if (l_NumSlot < 5)
-							clr = 0;
-						else if (l_NumSlot < 10) //[+]PPA
-							clr = 0x00AEAEAE;
+						bHandled = FALSE;
+						return 0;
 					}
-					else
-						clr = 0x00FFD7FF;
-				}
-				//this is just severely broken, msdn says GetSubItemRect requires a one based index
-				//but it wont work and index 0 gives the rect of the whole item
-				if (cd->iSubItem == 0)
-				{
-					//use LVIR_LABEL to exclude the icon area since we will be painting over that
-					//later
-					ctrlTransfers.GetItemRect((int)cd->nmcd.dwItemSpec, &rc, LVIR_LABEL);
-				}
-				else
-				{
-					ctrlTransfers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, &rc);
-				}
-				
-				/* Thanks & credits for Stealthy style go to phaedrus */
-				const bool useStealthyStyle = BOOLSETTING(STEALTHY_STYLE);
-				const bool useODCstyle = BOOLSETTING(PROGRESSBAR_ODC_STYLE);
-				//bool isMain = (!ii->parent || !ii->download);
-				//bool isSmaller = (!ii->parent && ii->collapsed == false);
-				
-				/* fixes issues with double border
-				if (useStealthyStyle)
-				{
-				    //rc.top -= 1;
-				    //if(isSmaller)
-				    //rc.bottom -= 1;
-				}*/ //[-] Sergey Shuhskanov
-				
-				// Real rc, the original one.
-				CRect real_rc = rc;
-				// We need to offset the current rc to (0, 0) to paint on the New dc
-				rc.MoveToXY(0, 0);
-				
-				CRect rc4;
-				CRect rc2;
-				rc2 = rc;
-				
-				// Text rect
-				if (BOOLSETTING(STEALTHY_STYLE_ICO))
-				{
-					rc2.left += 22; // indented for icon and text
-					rc2.right -= 2; // and without messing with the border of the cell
-					//rc2.top -= 2; // and fix text vertical alignment
-					// Background rect
-					rc4 = rc;
-				}
-				else
-				{
-					rc2 = rc;
-					rc2.left += 6; // indented with 6 pixels
-					rc2.right -= 2; // and without messing with the border of the cell
-					// Background rect
-					rc4 = rc;
-					//rc2.left += 9;
-				}
-				
-				CDC cdc;
-				cdc.CreateCompatibleDC(cd->nmcd.hdc);
-				HBITMAP hBmp = CreateCompatibleBitmap(cd->nmcd.hdc,  real_rc.Width(),  real_rc.Height());
-				
-				HBITMAP pOldBmp = cdc.SelectBitmap(hBmp);
-				HDC& dc = cdc.m_hDC;
-				
-				const COLORREF barPal[3] = { HLS_TRANSFORM(clr, -40, 50), clr, HLS_TRANSFORM(clr, 20, -30) };
-				const COLORREF barPal2[3] = { HLS_TRANSFORM(clr, -15, 0), clr, HLS_TRANSFORM(clr, 15, 0) };
-				COLORREF oldcol;
-				// The value throws off, usually with about 8-11 (usually negatively f.ex. in src use 190, the change might actually happen already at aprox 180)
-				const  HLSCOLOR hls = RGB2HLS(clr);
-				LONG top = rc2.top + (rc2.Height() - WinUtil::getTextHeight(cd->nmcd.hdc) - 1) / 2 + 1;
-				
-				const HFONT oldFont = (HFONT)SelectObject(dc, Fonts::g_systemFont); //font -> systemfont [~]Sergey Shushkanov
-				SetBkMode(dc, TRANSPARENT);
-				
-				// Get the color of this text bar - this way it ends up looking nice imo.
-				if (!useStealthyStyle)
-				{
-					oldcol = ::SetTextColor(dc, SETTING(PROGRESS_OVERRIDE_COLORS2) ?
-					                        (ii->download ? SETTING(PROGRESS_TEXT_COLOR_DOWN) : SETTING(PROGRESS_TEXT_COLOR_UP)) :
-						                        OperaColors::TextFromBackground(clr));
-				}
-				else
-			{
-					if (clr == RGB(255, 255, 255)) // see if user is using white as clr, rare but you may never know
-						oldcol = ::SetTextColor(dc, RGB(0, 0, 0));
-					else
-						oldcol = ::SetTextColor(dc, barPal2[1]);
-				}
-				
-				// Draw the background and border of the bar
-				if (ii->m_size == 0) ii->m_size = 1;
-				
-				if (useODCstyle || useStealthyStyle)
-				{
-					// New style progressbar tweaks the current colors
-					const HLSTRIPLE hls_bk = OperaColors::RGB2HLS(cd->clrTextBk);
 					
-					// Create pen (ie outline border of the cell)
-					HPEN penBorder = ::CreatePen(PS_SOLID, 1, OperaColors::blendColors(cd->clrTextBk, clr, (hls_bk.hlstLightness > 0.75) ? 0.6 : 0.4));
-					HGDIOBJ pOldPen = ::SelectObject(dc, penBorder);
-					
-					// Draw the outline (but NOT the background) using pen
-					HBRUSH hBrOldBg = CreateSolidBrush(cd->clrTextBk);
-					hBrOldBg = (HBRUSH)::SelectObject(dc, hBrOldBg);
-					
-					if (useStealthyStyle)
-						::Rectangle(dc, rc4.left, rc4.top, rc4.right, rc4.bottom);
-					else
-						::Rectangle(dc, rc.left, rc.top, rc.right, rc.bottom);
-						
-					DeleteObject(::SelectObject(dc, hBrOldBg));
-					
-					// Set the background color, by slightly changing it
-					HBRUSH hBrDefBg = CreateSolidBrush(OperaColors::blendColors(cd->clrTextBk, clr, (hls_bk.hlstLightness > 0.75) ? 0.85 : 0.70));
-					HGDIOBJ oldBg = ::SelectObject(dc, hBrDefBg);
-					
-					// Draw the outline AND the background using pen+brush
-					if (useStealthyStyle)
-						::Rectangle(dc, rc4.left, rc4.top, rc4.left + (LONG)(rc4.Width() * ii->getProgressPosition() + 0.5), rc4.bottom);
-					else
-						::Rectangle(dc, rc.left, rc.top, rc.left + (LONG)(rc.Width() * ii->getProgressPosition() + 0.5), rc.bottom);
-						
-					if (useStealthyStyle)
-					{
-						const auto& l_stat = ii->getText(COLUMN_STATUS);
-						// Draw the text over entire item
-						if (!l_stat.empty())
+					// Get the color of this bar
+					COLORREF clr = SETTING(PROGRESS_OVERRIDE_COLORS) ?
+					               (ii->download ? (!ii->parent ? SETTING(DOWNLOAD_BAR_COLOR) : SETTING(PROGRESS_SEGMENT_COLOR)) : SETTING(UPLOAD_BAR_COLOR)) :
+						               GetSysColor(COLOR_HIGHLIGHT);
+					if (!ii->download && BOOLSETTING(UP_TRANSFER_COLORS)) //[+]PPA
+				{
+						const auto l_NumSlot = ii->getUser()->getSlots();
+						if (l_NumSlot != 0)
 						{
-							::ExtTextOut(dc, rc2.left, top, ETO_CLIPPED, rc2, l_stat.c_str(), l_stat.length(), NULL);
+							if (l_NumSlot < 5)
+								clr = 0;
+							else if (l_NumSlot < 10) //[+]PPA
+								clr = 0x00AEAEAE;
 						}
-						
-						rc.right = rc.left + (int)(((int64_t)rc.Width()) * ii->m_actual / ii->m_size);
-						
-						if (ii->m_pos != 0)
-							rc.bottom -= 1;
-							
-						rc.top += 1;
-						
-						//create bar pen
-						if (HLS_S(hls) <= 30) // good values would be 20-30
-							penBorder = ::CreatePen(PS_SOLID, 1, barPal2[0]);
 						else
-							penBorder = ::CreatePen(PS_SOLID, 1, barPal[0]);
-							
-						DeleteObject(::SelectObject(dc, penBorder));
-						
-						//create bar brush
-						hBrDefBg = CreateSolidBrush(barPal[1]);
-						
-						DeleteObject(::SelectObject(dc, hBrDefBg));
-						
-						//draw bar
-						::Rectangle(dc, rc.left, rc.top, rc.right, rc.bottom);
-						
-						//draw bar highlight
-						if (rc.Width() > 4)
-						{
-							DeleteObject(SelectObject(cdc, CreatePen(PS_SOLID, 1, barPal[2])));
-							rc.top += 2;
-							::MoveToEx(cdc, rc.left + 2, rc.top, (LPPOINT)NULL);
-							::LineTo(cdc, rc.right - 2, rc.top);
-						}
+							clr = 0x00FFD7FF;
 					}
-					// Reset pen
-					DeleteObject(::SelectObject(dc, pOldPen));
-					// Reset bg (brush)
-					DeleteObject(::SelectObject(dc, oldBg));
-				}
-				
-				// Draw the background and border of the bar
-				if (!useODCstyle && !useStealthyStyle)
-				{
-					CBarShader statusBar(rc.bottom - rc.top, rc.right - rc.left, SETTING(PROGRESS_BACK_COLOR), ii->m_size);
-					
-					rc.right = rc.left + (int)(rc.Width() * ii->m_pos / ii->m_size);
-					if (!ii->download)
+					//this is just severely broken, msdn says GetSubItemRect requires a one based index
+					//but it wont work and index 0 gives the rect of the whole item
+					if (cd->iSubItem == 0)
 					{
-						statusBar.FillRange(0, ii->m_actual, HLS_TRANSFORM(clr, -20, 30));
-						statusBar.FillRange(ii->m_actual, ii->m_actual,  clr);
+						//use LVIR_LABEL to exclude the icon area since we will be painting over that
+						//later
+						ctrlTransfers.GetItemRect((int)cd->nmcd.dwItemSpec, &rc, LVIR_LABEL);
 					}
 					else
 					{
-						statusBar.FillRange(0, ii->m_actual, clr);
-						if (ii->parent)
-							statusBar.FillRange(ii->m_actual, ii->m_actual, SETTING(PROGRESS_SEGMENT_COLOR));
+						ctrlTransfers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, &rc);
 					}
-					if (ii->m_pos > ii->m_actual)
-						statusBar.FillRange(ii->m_actual, ii->m_pos, SETTING(PROGRESS_COMPRESS_COLOR));
-						
-					statusBar.Draw(cdc, rc.top, rc.left, SETTING(PROGRESS_3DDEPTH));
-				}
-				else
-				{
+					
+					/* Thanks & credits for Stealthy style go to phaedrus */
+					const bool useStealthyStyle = BOOLSETTING(STEALTHY_STYLE);
+					const bool useODCstyle = BOOLSETTING(PROGRESSBAR_ODC_STYLE);
+					// Real rc, the original one.
+					CRect real_rc = rc;
+					// We need to offset the current rc to (0, 0) to paint on the New dc
+					rc.MoveToXY(0, 0);
+					
+					CRect rc4;
+					CRect rc2 = rc;
+					
+					// Text rect
+					if (BOOLSETTING(STEALTHY_STYLE_ICO) || ii->m_is_force_passive)
+					{
+						rc2.left += 22; // indented for icon and text
+						rc2.right -= 2; // and without messing with the border of the cell
+						rc4 = rc;
+					}
+					else
+					{
+						rc2 = rc;
+						rc2.left += 6; // indented with 6 pixels
+						rc2.right -= 2; // and without messing with the border of the cell
+						// Background rect
+						rc4 = rc;
+						//rc2.left += 9;
+					}
+					rc3 = rc2;
+					
+					CDC cdc;
+					cdc.CreateCompatibleDC(cd->nmcd.hdc);
+					HBITMAP hBmp = CreateCompatibleBitmap(cd->nmcd.hdc,  real_rc.Width(),  real_rc.Height());
+					
+					HBITMAP pOldBmp = cdc.SelectBitmap(hBmp);
+					HDC& dc = cdc.m_hDC;
+					
+					const COLORREF barPal[3] = { HLS_TRANSFORM(clr, -40, 50), clr, HLS_TRANSFORM(clr, 20, -30) };
+					const COLORREF barPal2[3] = { HLS_TRANSFORM(clr, -15, 0), clr, HLS_TRANSFORM(clr, 15, 0) };
+					COLORREF oldcol;
+					// The value throws off, usually with about 8-11 (usually negatively f.ex. in src use 190, the change might actually happen already at aprox 180)
+					const  HLSCOLOR hls = RGB2HLS(clr);
+					LONG top = rc2.top + (rc2.Height() - 15 /*WinUtil::getTextHeight(cd->nmcd.hdc)*/ - 1) / 2 + 1;
+					
+					const HFONT oldFont = (HFONT)SelectObject(dc, Fonts::g_systemFont); //font -> systemfont [~]Sergey Shushkanov
+					SetBkMode(dc, TRANSPARENT);
+					
+					// Get the color of this text bar - this way it ends up looking nice imo.
 					if (!useStealthyStyle)
 					{
-						int right = rc.left + (int)((int64_t)rc.Width() * ii->m_actual / ii->m_size);
-						COLORREF a, b;
-						OperaColors::EnlightenFlood(clr, a, b);
-						OperaColors::FloodFill(cdc, rc.left + 1, rc.top + 1, right, rc.bottom - 1, a, b, BOOLSETTING(PROGRESSBAR_ODC_BUMPED));
+						oldcol = ::SetTextColor(dc, SETTING(PROGRESS_OVERRIDE_COLORS2) ?
+						                        (ii->download ? SETTING(PROGRESS_TEXT_COLOR_DOWN) : SETTING(PROGRESS_TEXT_COLOR_UP)) :
+							                        OperaColors::TextFromBackground(clr));
 					}
-				}
-				
-				if (BOOLSETTING(STEALTHY_STYLE_ICO))
+					else
 				{
-					// Draw icon - Nasty way to do the filelist icon, but couldn't get other ways to work well,
-					// TODO: do separating filelists from other transfers the proper way...
-					if (ii->isFileList())
-					{
-						DrawIconEx(dc, rc2.left - 20, rc2.top, g_user_icon, 16, 16, NULL, NULL, DI_NORMAL | DI_COMPAT);
+						if (clr == RGB(255, 255, 255)) // see if user is using white as clr, rare but you may never know
+							oldcol = ::SetTextColor(dc, RGB(0, 0, 0));
+						else
+							oldcol = ::SetTextColor(dc, barPal2[1]);
 					}
-					else if (ii->m_status == ItemInfo::STATUS_RUNNING)
+					
+					// Draw the background and border of the bar
+					if (ii->m_size == 0) ii->m_size = 1;
+					
+					if (useODCstyle || useStealthyStyle)
 					{
-						RECT rc9 = rc2;
-						rc9.left -= 19; //[~] Sergey Shushkanov
-						rc9.top += 1; //[~] Sergey Shushkanov
-						rc9.right = rc9.left + 16;
-						rc9.bottom = rc9.top + 16; //[~] Sergey Shushkanov
+						// New style progressbar tweaks the current colors
+						const HLSTRIPLE hls_bk = OperaColors::RGB2HLS(cd->clrTextBk);
 						
-						int64_t speedmark;
-						if (!BOOLSETTING(THROTTLE_ENABLE))
+						// Create pen (ie outline border of the cell)
+						HPEN penBorder = ::CreatePen(PS_SOLID, 1, OperaColors::blendColors(cd->clrTextBk, clr, (hls_bk.hlstLightness > 0.75) ? 0.6 : 0.4));
+						HGDIOBJ pOldPen = ::SelectObject(dc, penBorder);
+						
+						// Draw the outline (but NOT the background) using pen
+						HBRUSH hBrOldBg = CreateSolidBrush(cd->clrTextBk);
+						hBrOldBg = (HBRUSH)::SelectObject(dc, hBrOldBg);
+						
+						if (useStealthyStyle)
+							::Rectangle(dc, rc4.left, rc4.top, rc4.right, rc4.bottom);
+						else
+							::Rectangle(dc, rc.left, rc.top, rc.right, rc.bottom);
+							
+						DeleteObject(::SelectObject(dc, hBrOldBg));
+						
+						// Set the background color, by slightly changing it
+						HBRUSH hBrDefBg = CreateSolidBrush(OperaColors::blendColors(cd->clrTextBk, clr, (hls_bk.hlstLightness > 0.75) ? 0.85 : 0.70));
+						HGDIOBJ oldBg = ::SelectObject(dc, hBrDefBg);
+						
+						// Draw the outline AND the background using pen+brush
+						if (useStealthyStyle)
+							::Rectangle(dc, rc4.left, rc4.top, rc4.left + (LONG)(rc4.Width() * ii->getProgressPosition() + 0.5), rc4.bottom);
+						else
+							::Rectangle(dc, rc.left, rc.top, rc.left + (LONG)(rc.Width() * ii->getProgressPosition() + 0.5), rc.bottom);
+							
+						if (useStealthyStyle)
 						{
-							const int64_t speedignore = Util::toInt64(SETTING(UPLOAD_SPEED));
-speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (ii->download ? SETTING(TOP_SPEED) : SETTING(TOP_UP_SPEED)) / 5 : speedignore * 20;
+							//const auto& l_stat = ii->getText(COLUMN_STATUS);
+							// Draw the text over entire item
+							//if (!l_stat.empty())
+							//{
+							// ::ExtTextOut(dc, rc3.left + ii->m_is_force_passive ? 16:0, top, ETO_CLIPPED, rc3, l_stat.c_str(), l_stat.length(), NULL);
+							//}
+							
+							rc.right = rc.left + (int)(((int64_t)rc.Width()) * ii->m_actual / ii->m_size);
+							
+							if (ii->m_pos != 0)
+								rc.bottom -= 1;
+								
+							rc.top += 1;
+							
+							//create bar pen
+							if (HLS_S(hls) <= 30) // good values would be 20-30
+								penBorder = ::CreatePen(PS_SOLID, 1, barPal2[0]);
+							else
+								penBorder = ::CreatePen(PS_SOLID, 1, barPal[0]);
+								
+							DeleteObject(::SelectObject(dc, penBorder));
+							
+							//create bar brush
+							hBrDefBg = CreateSolidBrush(barPal[1]);
+							
+							DeleteObject(::SelectObject(dc, hBrDefBg));
+							
+							//draw bar
+							::Rectangle(dc, rc.left, rc.top, rc.right, rc.bottom);
+							
+							//draw bar highlight
+							if (rc.Width() > 4)
+							{
+								DeleteObject(SelectObject(cdc, CreatePen(PS_SOLID, 1, barPal[2])));
+								rc.top += 2;
+								::MoveToEx(cdc, rc.left + 2, rc.top, (LPPOINT)NULL);
+								::LineTo(cdc, rc.right - 2, rc.top);
+							}
+						}
+						// Reset pen
+						DeleteObject(::SelectObject(dc, pOldPen));
+						// Reset bg (brush)
+						DeleteObject(::SelectObject(dc, oldBg));
+					}
+					
+					// Draw the background and border of the bar
+					if (!useODCstyle && !useStealthyStyle)
+					{
+						CBarShader statusBar(rc.bottom - rc.top, rc.right - rc.left, SETTING(PROGRESS_BACK_COLOR), ii->m_size);
+						
+						rc.right = rc.left + (int)(rc.Width() * ii->m_pos / ii->m_size);
+						if (!ii->download)
+						{
+							statusBar.FillRange(0, ii->m_actual, HLS_TRANSFORM(clr, -20, 30));
+							statusBar.FillRange(ii->m_actual, ii->m_actual,  clr);
 						}
 						else
 						{
-							if (!ii->download)
+							statusBar.FillRange(0, ii->m_actual, clr);
+							if (ii->parent)
+								statusBar.FillRange(ii->m_actual, ii->m_actual, SETTING(PROGRESS_SEGMENT_COLOR));
+						}
+						if (ii->m_pos > ii->m_actual)
+							statusBar.FillRange(ii->m_actual, ii->m_pos, SETTING(PROGRESS_COMPRESS_COLOR));
+							
+						statusBar.Draw(cdc, rc.top, rc.left, SETTING(PROGRESS_3DDEPTH));
+					}
+					else
+					{
+						if (!useStealthyStyle)
+						{
+							int right = rc.left + (int)((int64_t)rc.Width() * ii->m_actual / ii->m_size);
+							COLORREF a, b;
+							OperaColors::EnlightenFlood(clr, a, b);
+							OperaColors::FloodFill(cdc, rc.left + 1, rc.top + 1, right, rc.bottom - 1, a, b, BOOLSETTING(PROGRESSBAR_ODC_BUMPED));
+						}
+					}
+					
+					if (BOOLSETTING(STEALTHY_STYLE_ICO) || ii->m_is_force_passive)
+					{
+						// Draw icon - Nasty way to do the filelist icon, but couldn't get other ways to work well,
+						// TODO: do separating filelists from other transfers the proper way...
+						if (ii->m_is_force_passive)
+						{
+							l_shift += 16;
+							DrawIconEx(dc, rc2.left - 20, rc2.top + 2, WinUtil::g_hFirewallIcon, 16, 16, NULL, NULL, DI_NORMAL | DI_COMPAT);
+						}
+						if (ii->isFileList())
+						{
+							DrawIconEx(dc, rc2.left - 20 + l_shift, rc2.top, g_user_icon, 16, 16, NULL, NULL, DI_NORMAL | DI_COMPAT);
+						}
+						else if (ii->m_status == ItemInfo::STATUS_RUNNING)
+						{
+							RECT rc9 = rc2;
+							rc9.left -= 19 - l_shift; //[~] Sergey Shushkanov
+							rc9.top += 3; //[~] Sergey Shushkanov
+							rc9.right = rc9.left + 16;
+							rc9.bottom = rc9.top + 16; //[~] Sergey Shushkanov
+							
+							int64_t speedmark;
+							if (!BOOLSETTING(THROTTLE_ENABLE))
 							{
-								speedmark = ThrottleManager::getInstance()->getUploadLimitInKBytes() / 5;
+								const int64_t speedignore = Util::toInt64(SETTING(UPLOAD_SPEED));
+speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (ii->download ? SETTING(TOP_SPEED) : SETTING(TOP_UP_SPEED)) / 5 : speedignore * 20;
 							}
 							else
 							{
-								speedmark = ThrottleManager::getInstance()->getDownloadLimitInKBytes() / 5;
+								if (!ii->download)
+								{
+									speedmark = ThrottleManager::getInstance()->getUploadLimitInKBytes() / 5;
+								}
+								else
+								{
+									speedmark = ThrottleManager::getInstance()->getDownloadLimitInKBytes() / 5;
+								}
 							}
+							CImageList & l_images = HLS_S(hls > 30) || HLS_L(hls) < 70 ? m_speedImages : m_speedImagesBW;
+							
+							const int64_t speedkb = ii->m_speed / 1000;
+							if (speedkb >= speedmark * 4)
+								l_images.DrawEx(4, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+							else if (speedkb >= speedmark * 3)
+								l_images.DrawEx(3, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+							else if (speedkb >= speedmark * 2)
+								l_images.DrawEx(2, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+							else if (speedkb >= speedmark * 1.5)
+								l_images.DrawEx(1, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+							else
+								l_images.DrawEx(0, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
 						}
-						CImageList & l_images = HLS_S(hls > 30) || HLS_L(hls) < 70 ? m_speedImages : m_speedImagesBW;
-						
-						const int64_t speedkb = ii->m_speed / 1000;
-						if (speedkb >= speedmark * 4)
-							l_images.DrawEx(4, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
-						else if (speedkb >= speedmark * 3)
-							l_images.DrawEx(3, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
-						else if (speedkb >= speedmark * 2)
-							l_images.DrawEx(2, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
-						else if (speedkb >= speedmark * 1.5)
-							l_images.DrawEx(1, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
-						else
-							l_images.DrawEx(0, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
 					}
-				}
-				if (useStealthyStyle)
-				{
-					// use white to as many colors as possible (values might need some tweaking), I didn't like TextFromBackground...
-					if (((HLS_L(hls) > 190) && (HLS_S(hls) <= 30)) || (HLS_L(hls) > 211))
-						oldcol = ::SetTextColor(dc, HLS_TRANSFORM(clr, -40, 0));
-					else
-						oldcol = ::SetTextColor(dc, RGB(255, 255, 255));
-					rc2.right = rc.right;
-				}
-				
-				// Draw the text, the other stuff here was moved upwards due to stealthy style being added
-				const auto& l_stat = ii->getText(COLUMN_STATUS);
-				if (!l_stat.empty())
-				{
-					::ExtTextOut(dc, rc2.left, top, ETO_CLIPPED, rc2, l_stat.c_str(), l_stat.length(), NULL);
-				}
-				
-				SelectObject(dc, oldFont);
-				::SetTextColor(dc, oldcol);
-				
-				// New way:
-				BitBlt(cd->nmcd.hdc, real_rc.left, real_rc.top, real_rc.Width(), real_rc.Height(), dc, 0, 0, SRCCOPY);
-				DeleteObject(cdc.SelectBitmap(pOldBmp));
-				
-				//bah crap, if we return CDRF_SKIPDEFAULT windows won't paint the icons
-				//so we have to do it
-				if (cd->iSubItem == 0)
-				{
-					LVITEM lvItem = {0};
-					lvItem.iItem = cd->nmcd.dwItemSpec;
-					lvItem.iSubItem = 0;
-					lvItem.mask = LVIF_IMAGE | LVIF_STATE;
-					lvItem.stateMask = LVIS_SELECTED;
-					ctrlTransfers.GetItem(&lvItem);
-					
-					HIMAGELIST imageList = (HIMAGELIST)::SendMessage(ctrlTransfers.m_hWnd, LVM_GETIMAGELIST, LVSIL_SMALL, 0);
-					if (imageList)
+					if (useStealthyStyle)
 					{
-						//let's find out where to paint it
-						//and draw the background to avoid having
-						//the selection color as background
-						CRect iconRect;
-						ctrlTransfers.GetSubItemRect((int)cd->nmcd.dwItemSpec, 0, LVIR_ICON, iconRect);
-						ImageList_Draw(imageList, lvItem.iImage, cd->nmcd.hdc, iconRect.left, iconRect.top, ILD_TRANSPARENT);
+						// use white to as many colors as possible (values might need some tweaking), I didn't like TextFromBackground...
+						if (((HLS_L(hls) > 190) && (HLS_S(hls) <= 30)) || (HLS_L(hls) > 211))
+							oldcol = ::SetTextColor(dc, HLS_TRANSFORM(clr, -40, 0));
+						else
+							oldcol = ::SetTextColor(dc, RGB(255, 255, 255));
+						rc2.right = rc.right;
 					}
+					
+					// Draw the text, the other stuff here was moved upwards due to stealthy style being added
+					//const auto& l_stat = ii->getText(COLUMN_STATUS);
+					if (!l_stat.empty())
+					{
+						::ExtTextOut(dc, rc3.left + l_shift, top, ETO_CLIPPED, rc3, l_stat.c_str(), l_stat.length(), NULL);
+					}
+					
+					SelectObject(dc, oldFont);
+					::SetTextColor(dc, oldcol);
+					
+					
+					// New way:
+					BitBlt(cd->nmcd.hdc, real_rc.left, real_rc.top, real_rc.Width(), real_rc.Height(), dc, 0, 0, SRCCOPY);
+					DeleteObject(cdc.SelectBitmap(pOldBmp));
+					
+					//bah crap, if we return CDRF_SKIPDEFAULT windows won't paint the icons
+					//so we have to do it
+					if (cd->iSubItem == 0)
+					{
+						LVITEM lvItem = {0};
+						lvItem.iItem = cd->nmcd.dwItemSpec;
+						lvItem.iSubItem = 0;
+						lvItem.mask = LVIF_IMAGE | LVIF_STATE;
+						lvItem.stateMask = LVIS_SELECTED;
+						ctrlTransfers.GetItem(&lvItem);
+						
+						HIMAGELIST imageList = (HIMAGELIST)::SendMessage(ctrlTransfers.m_hWnd, LVM_GETIMAGELIST, LVSIL_SMALL, 0);
+						if (imageList)
+						{
+							//let's find out where to paint it
+							//and draw the background to avoid having
+							//the selection color as background
+							CRect iconRect;
+							ctrlTransfers.GetSubItemRect((int)cd->nmcd.dwItemSpec, 0, LVIR_ICON, iconRect);
+							ImageList_Draw(imageList, lvItem.iImage, cd->nmcd.hdc, iconRect.left, iconRect.top, ILD_TRANSPARENT);
+						}
+					}
+					return CDRF_SKIPDEFAULT;
 				}
-				return CDRF_SKIPDEFAULT;
+				else
+				{
+					// ќтрисуем статусы отличные от RUNNING!
+					if (ii->m_is_force_passive)
+					{
+						l_stat +=  WSTRING(FORCE_PASSIVE_MODE);
+						l_shift += 16;
+						// TODO - drawIcons
+					}
+					if (!l_stat.empty())
+					{
+						ctrlTransfers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc3);
+						ctrlTransfers.SetItemFilled(cd, rc3, cd->clrText, cd->clrText);
+						
+						LONG top = rc3.top + (rc3.Height() - 15 /*WinUtil::getTextHeight(cd->nmcd.hdc)*/) / 2;
+						if (l_shift)
+						{
+							if ((top - rc3.top) < 2)
+								top = rc3.top + 1;
+							//const POINT ps = { rc3.left, top };
+							DrawIconEx(cd->nmcd.hdc, rc3.left, top + 2, WinUtil::g_hFirewallIcon, 16, 16, NULL, NULL, DI_NORMAL | DI_COMPAT);
+							//g_userStateImage.Draw(cd->nmcd.hdc, 4 , ps);
+						}
+						::ExtTextOut(cd->nmcd.hdc, rc3.left + l_shift, top, ETO_CLIPPED, rc3, l_stat.c_str(), l_stat.length(), NULL);
+					}
+					return CDRF_SKIPDEFAULT;
+				}
 			}
 			else if (colIndex == COLUMN_ANTIVIRUS)
 			{
@@ -933,7 +961,7 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (ii->download ? SETTIN
 						g_flagImage.DrawLocation(cd->nmcd.hdc, ii->m_location, p);
 						l_step += 25;
 					}
-					top = rc2.top + (rc2.Height() - WinUtil::getTextHeight(cd->nmcd.hdc) - 1) / 2;
+					top = rc2.top + (rc2.Height() - 15 /*WinUtil::getTextHeight(cd->nmcd.hdc)*/ - 1) / 2;
 					const auto& l_desc = ii->m_location.getDescription();
 					if (!l_desc.empty())
 					{
@@ -993,7 +1021,8 @@ LRESULT TransferView::onDoubleClickTransfers(int /*idCtrl*/, LPNMHDR pnmh, BOOL&
 				case 5: // !SMT!-UI
 					i->m_statusString = TSTRING(CONNECTING_FORCED);
 					ctrlTransfers.updateItem(i);
-					ClientManager::getInstance()->connect(i->m_hintedUser, Util::toString(Util::rand())); // [!] IRainman fix.
+					bool l_is_active_client;
+					ClientManager::getInstance()->connect(i->m_hintedUser, Util::toString(Util::rand()), false, l_is_active_client); // [!] IRainman fix.
 					break;
 				case 6:
 					i->browseList(); // [!] IRainman fix.
@@ -1242,6 +1271,10 @@ void TransferView::ItemInfo::update(const UpdateInfo& ui)
 	if (ui.type != Transfer::TYPE_LAST)
 		m_type = ui.type;
 		
+	if (ui.updateMask & UpdateInfo::MASK_FORCE_PASSIVE)
+	{
+		m_is_force_passive = ui.m_is_force_passive;
+	}
 	if (ui.updateMask & UpdateInfo::MASK_STATUS)
 	{
 		m_status = ui.status;
@@ -1316,8 +1349,11 @@ void TransferView::ItemInfo::update(const UpdateInfo& ui)
 
 void TransferView::updateItem(int ii, uint32_t updateMask)
 {
-	if (updateMask & UpdateInfo::MASK_STATUS || updateMask & UpdateInfo::MASK_STATUS_STRING ||
-	        updateMask & UpdateInfo::MASK_POS || updateMask & UpdateInfo::MASK_ACTUAL)
+	if (updateMask & UpdateInfo::MASK_STATUS ||
+	        updateMask & UpdateInfo::MASK_STATUS_STRING ||
+	        updateMask & UpdateInfo::MASK_POS ||
+	        updateMask & UpdateInfo::MASK_ACTUAL ||
+	        updateMask & UpdateInfo::MASK_FORCE_PASSIVE)
 	{
 		ctrlTransfers.updateItem(ii, COLUMN_STATUS);
 	}
@@ -1366,6 +1402,7 @@ void TransferView::updateItem(int ii, uint32_t updateMask)
 TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const ConnectionQueueItem* aCqi) // [+] IRainman fix.
 {
 	UpdateInfo* ui = new UpdateInfo(aCqi->getUser(), aCqi->isDownload());
+	ui->setForcePassive(aCqi->m_is_force_passive);
 	if (ui->download)
 	{
 		string target;
@@ -1388,8 +1425,12 @@ TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const Conn
 	}
 	
 	ui->setStatus(ItemInfo::STATUS_WAITING);
-	ui->setStatusString(TSTRING(CONNECTING));
-	
+	string l_status = STRING(CONNECTING);
+	if (aCqi->m_count_waiting > 1)
+	{
+		l_status += " (Step: " + Util::toString(aCqi->m_count_waiting) + ")"; // TODO - исправить копипаст
+	}
+	ui->setStatusString(Text::toT(l_status));
 	return ui;
 }
 
@@ -1419,7 +1460,12 @@ void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueIt
 	else
 #endif
 	{
-		ui->setStatusString(Text::toT(aReason));
+		string l_reason_and_count = aReason;
+		if (aCqi->m_count_waiting > 1)
+		{
+			l_reason_and_count += " (Step: " + Util::toString(aCqi->m_count_waiting) + ")";
+		}
+		ui->setStatusString(Text::toT(l_reason_and_count));
 	}
 	
 	ui->setStatus(ItemInfo::STATUS_WAITING);

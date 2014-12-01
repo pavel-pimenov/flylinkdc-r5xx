@@ -75,7 +75,10 @@ LRESULT AVIPreview::onAddMenu(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 	PreviewDlg dlg;
 	if (dlg.DoModal() == IDOK)
 	{
-		addEntry(FavoriteManager::getInstance()->addPreviewApp(Text::fromT(dlg.name), Text::fromT(dlg.application), Text::fromT(dlg.argument), Text::fromT(dlg.extensions)), ctrlCommands.GetItemCount());
+		addEntry(FavoriteManager::getInstance()->addPreviewApp(Text::fromT(dlg.m_name),
+		                                                       Text::fromT(dlg.m_application),
+		                                                       Text::fromT(dlg.m_argument),
+		                                                       Text::fromT(dlg.m_extensions)), ctrlCommands.GetItemCount());
 	}
 	return 0;
 }
@@ -114,22 +117,22 @@ LRESULT AVIPreview::onChangeMenu(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 		if (pa)
 		{
 			PreviewDlg dlg;
-			dlg.name = Text::toT(pa->getName());
-			dlg.application = Text::toT(pa->getApplication());
-			dlg.argument = Text::toT(pa->getArguments());
-			dlg.extensions = Text::toT(pa->getExtension());
+			dlg.m_name = Text::toT(pa->getName());
+			dlg.m_application = Text::toT(pa->getApplication());
+			dlg.m_argument = Text::toT(pa->getArguments());
+			dlg.m_extensions = Text::toT(pa->getExtension());
 			
 			if (dlg.DoModal() == IDOK)
 			{
-				pa->setName(Text::fromT(dlg.name));
-				pa->setApplication(Text::fromT(dlg.application));
-				pa->setArguments(Text::fromT(dlg.argument));
-				pa->setExtension(Text::fromT(dlg.extensions));
+				pa->setName(Text::fromT(dlg.m_name));
+				pa->setApplication(Text::fromT(dlg.m_application));
+				pa->setArguments(Text::fromT(dlg.m_argument));
+				pa->setExtension(Text::fromT(dlg.m_extensions));
 				
-				ctrlCommands.SetItemText(sel, 0, dlg.name.c_str());
-				ctrlCommands.SetItemText(sel, 1, dlg.application.c_str());
-				ctrlCommands.SetItemText(sel, 2, dlg.argument.c_str());
-				ctrlCommands.SetItemText(sel, 3, dlg.extensions.c_str());
+				ctrlCommands.SetItemText(sel, 0, dlg.m_name.c_str());
+				ctrlCommands.SetItemText(sel, 1, dlg.m_application.c_str());
+				ctrlCommands.SetItemText(sel, 2, dlg.m_argument.c_str());
+				ctrlCommands.SetItemText(sel, 3, dlg.m_extensions.c_str());
 			}
 		}
 	}

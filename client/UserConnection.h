@@ -47,9 +47,9 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		static const string FEATURE_BANMSG; // !SMT!-B
 #endif
 		
-		static const string FILE_NOT_AVAILABLE;
+		static const string g_FILE_NOT_AVAILABLE;
 #if defined (PPA_INCLUDE_DOS_GUARD) || defined (IRAINMAN_DISALLOWED_BAN_MSG)
-		static const string PLEASE_UPDATE_YOUR_CLIENT;
+		static const string g_PLEASE_UPDATE_YOUR_CLIENT;
 #endif
 		
 		enum KnownSupports // [!] IRainman fix
@@ -154,25 +154,8 @@ class UserConnection : public Speaker<UserConnectionListener>,
 			send("$ListLen " + aLength + '|');
 		}
 		
-		void maxedOut(size_t queue_position)
-		{
-			if (isSet(FLAG_NMDC))
-			{
-				send("$MaxedOut " + Util::toString(queue_position) + '|');
-			}
-			else
-			{
-				AdcCommand cmd(AdcCommand::SEV_RECOVERABLE, AdcCommand::ERROR_SLOTS_FULL, "Slots full");
-				cmd.addParam("QP", Util::toString(queue_position));
-				send(cmd);
-			}
-		}
-		
-		
-		void fileNotAvail(const std::string& msg = FILE_NOT_AVAILABLE)
-		{
-			isSet(FLAG_NMDC) ? send("$Error " + msg + '|') : send(AdcCommand(AdcCommand::SEV_RECOVERABLE, AdcCommand::ERROR_FILE_NOT_AVAILABLE, msg));
-		}
+		void maxedOut(size_t queue_position);
+		void fileNotAvail(const std::string& msg = g_FILE_NOT_AVAILABLE);
 		void supports(const StringList& feat);
 		
 		// ADC Stuff

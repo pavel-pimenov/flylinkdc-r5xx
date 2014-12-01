@@ -45,7 +45,6 @@ TStringList SearchFrame::g_lastSearches;
 HIconWrapper SearchFrame::g_purge_icon(IDR_PURGE);
 HIconWrapper SearchFrame::g_pause_icon(IDR_PAUSE);
 HIconWrapper SearchFrame::g_search_icon(IDR_SEARCH);
-
 HIconWrapper SearchFrame::g_UDPOkIcon(IDR_ICON_SUCCESS_ICON);
 //HIconWrapper SearchFrame::g_UDPFailIcon(IDR_ICON_FAIL_ICON);
 HIconWrapper SearchFrame::g_UDPWaitIcon(IDR_ICON_WARN_ICON);
@@ -773,6 +772,7 @@ void SearchFrame::onEnter(bool p_is_force_passive)
 	ctrlPauseSearch.SetWindowText(CTSTRING(PAUSE_SEARCH));
 	
 	m_search = StringTokenizer<string>(Text::fromT(s), ' ').getTokens(); // [~]IRainman optimize SearchFrame
+	m_ftype  = Search::TypeModes(ctrlFiletype.GetCurSel());
 	s.clear();
 	{
 		FastLock l(cs);
@@ -784,11 +784,20 @@ void SearchFrame::onEnter(bool p_is_force_passive)
 				si = m_search.erase(si);
 				continue;
 			}
+			if (m_ftype == Search::TYPE_TTH)
+			{
+				if (!Util::isTTH(Text::toT(*si)))
+				{
+					LogManager::getInstance()->message("[Search] Error TTH format = " + *si);
+					m_ftype = Search::TYPE_ANY;
+					ctrlFiletype.SetCurSel(0);
+				}
+			}
 			if ((*si)[0] != '-')
 				s += Text::toT(*si) + _T(' ');
 			++si;
 		}
-		m_token = Util::toString(Util::rand());
+		m_token = Util::rand();
 	}
 	s = s.substr(0, max(s.size(), static_cast<tstring::size_type>(1)) - 1);
 	
@@ -805,7 +814,6 @@ void SearchFrame::onEnter(bool p_is_force_passive)
 	ctrlStatus.SetText(3, _T(""));
 	ctrlStatus.SetText(4, _T(""));
 	
-	m_ftype = Search::TypeModes(ctrlFiletype.GetCurSel());
 	m_isExactSize = (m_sizeMode == Search::SIZE_EXACT);
 	m_exactSize2 = llsize;
 	
@@ -855,7 +863,7 @@ void SearchFrame::onEnter(bool p_is_force_passive)
 			// Custom searchtype
 			// disabled with current GUI extList = SettingsManager::getInstance()->getExtensions(Text::fromT(fileType->getText()));
 		}
-		else if (m_ftype > Search::TYPE_ANY && m_ftype < Search::TYPE_DIRECTORY)
+		else if ((m_ftype > Search::TYPE_ANY && m_ftype < Search::TYPE_DIRECTORY) /* TODO - || m_ftype == Search::TYPE_CD_IMAGE */)
 		{
 			// Predefined searchtype
 			l_extList = SettingsManager::getExtensions(string(1, '0' + m_ftype));
@@ -961,7 +969,7 @@ void SearchFrame::on(SearchManagerListener::SR, const SearchResultPtr &aResult) 
 			
 		m_needsUpdateStats = true; // [+] IRainman opt.
 		// [+] merge
-		if (!aResult->getToken().empty() && m_token != aResult->getToken())
+		if (!aResult->getToken() && m_token != aResult->getToken())
 		{
 			m_droppedResults++;
 			//PostMessage(WM_SPEAKER, FILTER_RESULT);//[-]IRainman optimize SearchFrame
@@ -2198,7 +2206,8 @@ LRESULT SearchFrame::onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOO
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	        hWnd == m_ctrlFlyServer.m_hWnd ||
 #endif
-	        hWnd == m_SearchHelp.m_hWnd || hWnd == ctrlCollapsed.m_hWnd || hWnd == srLabel.m_hWnd)
+	        hWnd == m_SearchHelp.m_hWnd || hWnd == ctrlCollapsed.m_hWnd || hWnd == srLabel.m_hWnd
+	        || hWnd == m_ctrlUDPTestResult.m_hWnd || hWnd == m_ctrlUDPMode.m_hWnd)
 	{
 		::SetBkColor(hDC, ::GetSysColor(COLOR_3DFACE));
 		::SetTextColor(hDC, ::GetSysColor(COLOR_BTNTEXT));
@@ -3080,7 +3089,7 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 						g_flagImage.DrawLocation(cd->nmcd.hdc, si->m_location, p);
 						l_step += 25;
 					}
-					top = rc.top + (rc.Height() - WinUtil::getTextHeight(cd->nmcd.hdc) - 1) / 2;
+					top = rc.top + (rc.Height() - 15 /*WinUtil::getTextHeight(cd->nmcd.hdc)*/ - 1) / 2;
 					const auto& l_desc = si->m_location.getDescription();
 					if (!l_desc.empty())
 					{

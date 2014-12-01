@@ -57,11 +57,15 @@ LRESULT AddMagnet::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, 
 	if (wID == IDOK)
 	{
 		WinUtil::GetWindowText(MagnetLink, ctrlMagnet);
-		WinUtil::parseMagnetUri(MagnetLink, WinUtil::MA_DEFAULT
+		const StringTokenizer<tstring, TStringList> l_magnets(MagnetLink, _T('\n'));
+		for (auto j = l_magnets.getTokens().cbegin(); j != l_magnets.getTokens().cend() ; ++j)
+		{
+			WinUtil::parseMagnetUri(*j, WinUtil::MA_DEFAULT
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
-		                        , IsDlgButtonChecked(IDC_MAGNET_START_VIEW) == TRUE
+			                        , IsDlgButtonChecked(IDC_MAGNET_START_VIEW) == TRUE
 #endif
-		                       );
+			                       );
+		}
 	}
 	EndDialog(wID);
 	return 0;

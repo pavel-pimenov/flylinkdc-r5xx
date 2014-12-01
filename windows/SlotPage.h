@@ -12,13 +12,12 @@ class SlotPage : public CPropertyPage<IDD_SLOT_PAGE>, public PropPage
 #endif
 {
 	public:
-		SlotPage(SettingsManager *s) : PropPage(s)
+		SlotPage(SettingsManager *s) : PropPage(s, TSTRING(SLOTS))
 #ifdef SSA_IPGRANT_FEATURE
 			, m_isEnabledIPGrant(false)
 #endif
 		{
-			title = /*TSTRING(SETTINGS_UPLOADS) + _T('\\') + */TSTRING(SLOTS);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		~SlotPage()
@@ -55,7 +54,7 @@ class SlotPage : public CPropertyPage<IDD_SLOT_PAGE>, public PropPage
 #endif
 		static Item items[];
 		static TextItem texts[];
-		wstring title;
+		
 #ifdef SSA_IPGRANT_FEATURE
 	private:
 		string m_IPGrant;

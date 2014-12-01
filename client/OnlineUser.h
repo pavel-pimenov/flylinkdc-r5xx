@@ -182,12 +182,14 @@ class Identity
 		
 		void setNick(const string& p_nick) // "NI"
 		{
+			dcassert(!p_nick.empty());
 			m_nick = p_nick;
 			getUser()->setLastNick(p_nick);
 			change(CHANGES_NICK);
 		}
 		void setNickFast(const string& p_nick) // Используется при первой инициализации
 		{
+			dcassert(!p_nick.empty());
 			m_nick = p_nick;
 		}
 		GETM(string, m_nick, Nick); // "NI"
@@ -815,6 +817,10 @@ class OnlineUser :
 			return l_old;
 		}
 		static int compareItems(const OnlineUser* a, const OnlineUser* b, uint8_t col);
+		bool isHub() const
+		{
+			return m_identity.isHub();
+		}
 #ifdef IRAINMAN_USE_HIDDEN_USERS
 		bool isHidden() const
 		{

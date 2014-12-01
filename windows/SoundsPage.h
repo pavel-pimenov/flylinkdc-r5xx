@@ -26,17 +26,16 @@
 class Sounds : public CPropertyPage<IDD_SOUNDS_PAGE>, public PropPage
 {
 	public:
-		Sounds(SettingsManager *s) : PropPage(s)
+		Sounds(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_SOUNDS))
 		{
-			title = TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_SOUNDS);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
-		};
+		}
 		
 		~Sounds()
 		{
 			ctrlSounds.Detach();
-		};
+		}
 		
 		BEGIN_MSG_MAP(Sounds)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
@@ -76,7 +75,7 @@ class Sounds : public CPropertyPage<IDD_SOUNDS_PAGE>, public PropPage
 	protected:
 		static Item items[];
 		static TextItem texts[];
-		wstring title;
+		
 		
 		struct snds
 		{

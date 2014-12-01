@@ -33,10 +33,9 @@ class WindowsPage : public CPropertyPage<IDD_WINDOWS_PAGE>, public PropPage
 #endif
 {
 	public:
-		WindowsPage(SettingsManager *s) : PropPage(s)
+		WindowsPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_WINDOWS))
 		{
-			title = TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_WINDOWS);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		
@@ -72,7 +71,7 @@ class WindowsPage : public CPropertyPage<IDD_WINDOWS_PAGE>, public PropPage
 		static ListItem optionItems[];
 		static ListItem confirmItems[]; // [+] InfinitySky.
 		
-		wstring title;
+		
 		
 		ExListViewCtrl ctrlStartup, ctrlOptions, ctrlConfirms; // [+] IRainman
 };

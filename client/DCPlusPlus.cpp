@@ -74,10 +74,6 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	syslog_loghost("syslog.fly-server.ru");
 	openlog("flylinkdc", 0 , LOG_USER | LOG_INFO);
 	
-	//syslog(LOG_USER | LOG_DEBUG, "%s %s", ClientManager::getMyCID().toBase32().c_str(),"тест-debug");
-	//syslog(LOG_USER | LOG_INFO, "%s %s", ClientManager::getMyCID().toBase32().c_str(),"тест-info");
-	//syslog(LOG_USER | LOG_ERR, "%s %s", ClientManager::getMyCID().toBase32().c_str(),"тест-error");
-	
 	CFlyLog l_StartUpLog("[StartUp]");
 	
 	// [+] IRainman fix.
@@ -162,7 +158,7 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	LOAD_STEP_L(CERTIFICATES, CryptoManager::getInstance()->loadCertificates());
 	
 	LOAD_STEP_L(WAITING_USERS, UploadManager::getInstance()->load()); // !SMT!-S
-
+	
 	WebServerManager::newInstance();
 	
 	LOAD_STEP_L(HASH_DATABASE, HashManager::getInstance()->startup());

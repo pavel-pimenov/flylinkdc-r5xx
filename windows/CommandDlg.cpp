@@ -144,8 +144,8 @@ LRESULT CommandDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
 	updateContext();
 	if (wID == IDOK)
 	{
-		if ((type != 0) &&
-		        ((ctrlName.GetWindowTextLength() == 0) || (ctrlCommand.GetWindowTextLength() == 0)))
+		if (type != 0 &&
+		        (ctrlName.GetWindowTextLength() == 0 || ctrlCommand.GetWindowTextLength() == 0))
 		{
 			MessageBox(CTSTRING(NAME_COMMAND_EMPTY));
 			return 0;

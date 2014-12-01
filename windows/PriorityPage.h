@@ -32,10 +32,9 @@
 class PriorityPage : public CPropertyPage<IDD_PRIORITY_PAGE>, public PropPage
 {
 	public:
-		PriorityPage(SettingsManager *s) : PropPage(s)
+		PriorityPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(PRIORITY))
 		{
-			title = TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(PRIORITY);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		~PriorityPage()
@@ -61,7 +60,7 @@ class PriorityPage : public CPropertyPage<IDD_PRIORITY_PAGE>, public PropPage
 	protected:
 		static Item items[];
 		static TextItem texts[];
-		wstring title;
+		
 		void fixControls(); // [+] InfinitySky.
 };
 

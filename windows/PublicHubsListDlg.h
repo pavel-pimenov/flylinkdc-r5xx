@@ -22,10 +22,6 @@
 #pragma once
 
 #include "../client/DCPlusPlus.h"
-
-#ifdef IRAINMAN_ENABLE_HUB_LIST
-
-
 #include "../client/SettingsManager.h"
 #include "../client/Text.h"
 #include "../client/FavoriteManager.h"
@@ -87,7 +83,7 @@ class PublicHubListDlg : public CDialogImpl<PublicHubListDlg>
 			SET_LIST_COLOR(ctrlList);
 			ctrlList.GetClientRect(rc);
 			ctrlList.InsertColumn(0, CTSTRING(SETTINGS_NAME), LVCFMT_LEFT, rc.Width() - 4, 0);
-			const StringList& lists = FavoriteManager::getInstance()->getHubLists();
+			const StringList lists = SPLIT_SETTING_AND_LOWER(HUBLIST_SERVERS);;
 			auto cnt = ctrlList.GetItemCount();
 			for (auto idx = lists.cbegin(); idx != lists.cend(); ++idx)
 			{
@@ -211,7 +207,6 @@ class PublicHubListDlg : public CDialogImpl<PublicHubListDlg>
 		ExListViewCtrl ctrlList;
 };
 
-#endif // IRAINMAN_ENABLE_HUB_LIST
 
 #endif // !defined(PUBLIC_HUBS_LIST_DLG_H)
 

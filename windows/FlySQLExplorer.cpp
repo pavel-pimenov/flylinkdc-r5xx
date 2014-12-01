@@ -81,10 +81,7 @@ LRESULT FlySQLExplorer::OnCreate(UINT, WPARAM, LPARAM, BOOL& bHandled)
 	m_ctrlTree.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TVS_HASBUTTONS | TVS_LINESATROOT | TVS_HASLINES | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP, WS_EX_CLIENTEDGE, IDC_DIRECTORIES);
 	m_ctrlTree.SetBkColor(Colors::bgColor);
 	m_ctrlTree.SetTextColor(Colors::textColor);
-	if (BOOLSETTING(USE_EXPLORER_THEME)
-#ifdef FLYLINKDC_SUPPORT_WIN_2000
-	        && CompatibilityManager::IsXPPlus())
-#endif
+	if (BOOLSETTING(USE_EXPLORER_THEME))
 	{
 		SetWindowTheme(m_ctrlTree.m_hWnd, L"explorer", NULL);
 	}

@@ -145,7 +145,9 @@ void DirectoryListingFrame::openWindow(const HintedUser& aUser, const string& tx
 
 DirectoryListingFrame::DirectoryListingFrame(const HintedUser& aHintedUser, int64_t aSpeed) :
 	CFlyTimerAdapter(m_hWnd),
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	CFlyServerAdapter(m_hWnd, 5000),
+#endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 	statusContainer(STATUSCLASSNAME, this, STATUS_MESSAGE_MAP), treeContainer(WC_TREEVIEW, this, CONTROL_MESSAGE_MAP),
 	listContainer(WC_LISTVIEW, this, CONTROL_MESSAGE_MAP), historyIndex(0), m_loading(true),
 	treeRoot(NULL), m_skipHits(0), files(0), speed(aSpeed), m_updating(false),

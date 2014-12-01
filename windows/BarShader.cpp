@@ -5,13 +5,6 @@
 #include "MainFrm.h"
 #include "BarShader.h"
 
-const static int MAX_SHADE = 44;
-const static int SHADE_LEVEL = 90;
-const static int blend_vector[MAX_SHADE] = {0, 8, 16, 20, 10, 4, 0, -2, -4, -6, -10, -12, -14, -16, -14, -12, -10, -8, -6, -4, -2, 0, //-V112
-                                            1, 2, 3, 8, 10, 12, 14, 16, 14, 12, 10, 6, 4, 2, 0, -4, -10, -20, -16, -8, 0 //-V112
-                                           };
-
-
 CBarShader::CBarShader(uint32_t dwHeight, uint32_t dwWidth, COLORREF crColor /*= 0*/, uint64_t qwFileSize /*= 1*/)
 {
 	m_iWidth = dwWidth;
@@ -502,12 +495,22 @@ void OperaColors::FloodFill(CDC& hDC, int x1, int y1, int x2, int y2, const COLO
 	}
 	else
 	{
+		const int MAX_SHADE = 44;
+		const int SHADE_LEVEL = 90;
+		const static int g_blend_vector[MAX_SHADE] = {0, 8, 16, 20, 10, 4, 0, -2, -4, -6, -10, -12, -14, -16, -14, -12, -10, -8, -6, -4, -2, 0, //-V112
+		                                              1, 2, 3, 8, 10, 12, 14, 16, 14, 12, 10, 6, 4, 2, 0, -4, -10, -20, -16, -8, 0 //-V112
+		                                             };
 		for (int _x = 0; _x <= w; ++_x)
 		{
 			const COLORREF cr = blendColors(c2, c1, double(_x) / double(w));
 			for (int _y = 0; _y < h; ++_y)
 			{
-				SetPixelV(fci->hDC, _x, _y, brightenColor(cr, (double)blend_vector[(size_t)floor((double(_y) / h) * MAX_SHADE - 1)] / (double)SHADE_LEVEL));
+				const int l_index = (size_t)floor((double(_y) / h) * (MAX_SHADE - 1));
+				dcassert(l_index < MAX_SHADE && l_index >= 0);
+				//if (l_index < MAX_SHADE && l_index >= 0)
+				{
+					SetPixelV(fci->hDC, _x, _y, brightenColor(cr, (double)g_blend_vector[l_index] / (double)SHADE_LEVEL));
+				}
 			}
 		}
 	}

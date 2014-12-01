@@ -21,12 +21,16 @@
 
 #include "SettingsManager.h"
 #include "Exception.h"
+#include "CID.h"
 
 STANDARD_EXCEPTION(ParseException);
 
-class CID;
+
 
 class AdcCommand
+#ifdef _DEBUG
+	: private boost::noncopyable
+#endif
 {
 	public:
 		template<uint32_t T>
@@ -190,6 +194,7 @@ class AdcCommand
 		}
 		const string& getParam(size_t n) const
 		{
+			dcassert(getParameters().size() > n);
 			return getParameters().size() > n ? getParameters()[n] : Util::emptyString;
 		}
 		/** Return a named parameter where the name is a two-letter code */
@@ -232,10 +237,20 @@ class AdcCommand
 		{
 			return string(reinterpret_cast<const char*>(&aSID), sizeof(aSID));
 		}
+		bool isCIDexists() const
+		{
+			return !m_CID.isZero();
+		}
+		const CID& getParamCID() const
+		{
+			return m_CID;
+		}
+		
+		string getParamString(bool nmdc) const;
+		
 	private:
 		string getHeaderString(const CID& cid) const;
 		string getHeaderString(uint32_t sid, bool nmdc) const;
-		string getParamString(bool nmdc) const;
 		StringList parameters;
 		string features;
 		union
@@ -247,6 +262,7 @@ class AdcCommand
 		uint32_t from;
 		uint32_t to;
 		char type;
+		CID m_CID;
 		
 };
 
@@ -259,10 +275,10 @@ class CommandHandler
 		{
 			try
 			{
-				AdcCommand c(aLine, nmdc);
+				AdcCommand cmd(aLine, nmdc);
 				
-#define C(n) case AdcCommand::CMD_##n: ((T*)this)->handle(AdcCommand::n(), c); break;
-				switch (c.getCommand())
+#define C(n) case AdcCommand::CMD_##n: ((T*)this)->handle(AdcCommand::n(), cmd); break;
+				switch (cmd.getCommand())
 				{
 						C(SUP);
 						C(STA);

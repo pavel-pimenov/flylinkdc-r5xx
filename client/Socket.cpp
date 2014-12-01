@@ -54,7 +54,7 @@ Exception(errorToString(aError))
 
 #endif
 
-Socket::Stats Socket::stats;
+Socket::Stats Socket::g_stats;
 
 static const uint64_t SOCKS_TIMEOUT = 30000;
 
@@ -442,7 +442,10 @@ int Socket::read(void* aBuffer, int aBufLen)
 	
 	if (len > 0)
 	{
-		stats.totalDown += len;
+		if (m_type == TYPE_UDP)
+			g_stats.m_udp.totalDown += len;
+		else
+			g_stats.m_tcp.totalDown += len;
 	}
 	
 	return len;
@@ -476,7 +479,10 @@ int Socket::read(void* aBuffer, int aBufLen, sockaddr_in &remote)
 	check(len, true);
 	if (len > 0)
 	{
-		stats.totalDown += len;
+		if (m_type == TYPE_UDP)
+			g_stats.m_udp.totalDown += len;
+		else
+			g_stats.m_tcp.totalDown += len;
 	}
 	remote = remote_addr;
 	
@@ -531,7 +537,7 @@ int Socket::writeAll(const void* aBuffer, int aLen, uint64_t timeout)
 			dcassert(i >= 0); // [+] IRainman fix.
 			pos += i;
 			// [-] IRainman fix: please see Socket::write
-			// [-] stats.totalUp += i;
+			// [-] g_stats.totalUp += i;
 		}
 	}
 	return pos;
@@ -565,7 +571,10 @@ int Socket::write(const void* aBuffer, int aLen)
 	check(sent, true);
 	if (sent > 0)
 	{
-		stats.totalUp += sent;
+		if (m_type == TYPE_UDP)
+			g_stats.m_udp.totalUp += sent;
+		else
+			g_stats.m_tcp.totalUp += sent;
 	}
 	return sent;
 }
@@ -576,10 +585,10 @@ int Socket::write(const void* aBuffer, int aLen)
 * @param aLen Data length
 * @throw SocketExcpetion Send failed.
 */
-void Socket::writeTo(const string& aAddr, uint16_t aPort, const void* aBuffer, int aLen, bool proxy)
+int Socket::writeTo(const string& aAddr, uint16_t aPort, const void* aBuffer, int aLen, bool proxy)
 {
 	if (aLen <= 0)
-		return;
+		return 0;
 		
 	uint8_t* buf = (uint8_t*)aBuffer;
 	if (m_sock == INVALID_SOCKET)
@@ -656,7 +665,11 @@ void Socket::writeTo(const string& aAddr, uint16_t aPort, const void* aBuffer, i
 	}
 	
 	check(sent);
-	stats.totalUp += sent;
+	if (m_type == TYPE_UDP)
+		g_stats.m_udp.totalUp += sent;
+	else
+		g_stats.m_tcp.totalUp += sent;
+	return sent;
 }
 
 /**

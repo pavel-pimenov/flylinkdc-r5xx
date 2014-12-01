@@ -932,7 +932,7 @@ Value::isConvertibleTo( ValueType other ) const
    case nullValue:
       return ( isNumeric() && asDouble() == 0.0 )
              || ( type_ == booleanValue && value_.bool_ == false )
-             || ( type_ == stringValue && asString() == "" )
+             || ( type_ == stringValue && asString().empty() )
              || ( type_ == arrayValue && value_.map_->empty() )
              || ( type_ == objectValue && value_.map_->empty() )
              || type_ == nullValue;

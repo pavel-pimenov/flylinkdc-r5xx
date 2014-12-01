@@ -28,10 +28,9 @@
 class UpdatePage : public CPropertyPage<IDD_UPDATE_PAGE>, public PropPage
 {
 	public:
-		UpdatePage(SettingsManager *s) : PropPage(s)
+		UpdatePage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_AUTOUPDATE_PROP))
 		{
-			title = TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_AUTOUPDATE_PROP);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		
@@ -76,7 +75,7 @@ class UpdatePage : public CPropertyPage<IDD_UPDATE_PAGE>, public PropPage
 		static ListItem listItems[];
 		static ListItem listComponents[];
 		
-		wstring title;
+		
 		CComboBox ctrlTime;
 		
 		ExListViewCtrl ctrlComponents, ctrlAutoupdates; // [+] IRainman

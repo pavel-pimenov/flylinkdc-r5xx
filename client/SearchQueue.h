@@ -44,7 +44,7 @@ struct Search
 		TYPE_CD_IMAGE, //[+] от flylinkdc++
 		TYPE_LAST
 	};
-	Search() : m_is_force_passive(false), m_sizeMode(SIZE_DONTCARE), m_size(0), m_fileTypes_bitmap(0)
+	Search() : m_is_force_passive(false), m_sizeMode(SIZE_DONTCARE), m_size(0), m_fileTypes_bitmap(0), m_token(0)
 	{
 	}
 	bool      m_is_force_passive;
@@ -52,10 +52,13 @@ struct Search
 	int64_t   m_size;
 	uint16_t  m_fileTypes_bitmap;
 	string    m_query;
-	string    m_token;
+	uint32_t  m_token;
 	StringList  m_exts;
 	std::unordered_set<void*> m_owners;
-	
+	bool isAutoToken() const
+	{
+		return m_token == 0; /*"auto"*/
+	}
 	bool operator==(const Search& rhs) const
 	{
 		BOOST_STATIC_ASSERT(TYPE_LAST < 16); // Иначе не влезет в m_fileTypes_bitmap
@@ -71,7 +74,7 @@ class SearchQueue
 	public:
 	
 		SearchQueue(uint32_t aInterval = 0)
-			: lastSearchTime(0), interval(aInterval)
+			: m_lastSearchTime(0), m_interval(aInterval)
 		{
 		}
 		
@@ -80,7 +83,7 @@ class SearchQueue
 		
 		void clear()
 		{
-			Lock l(cs);
+			FastLock l(m_cs);
 			searchQueue.clear();
 		}
 		
@@ -93,10 +96,10 @@ class SearchQueue
 		    by milli-seconds
 		    0 means no interval, no auto search and manual search is sent immediately
 		*/
-		uint32_t interval;
+		uint32_t m_interval;
 		
 	private:
 		deque<Search> searchQueue;
-		uint64_t lastSearchTime;
-		CriticalSection cs;
+		uint64_t m_lastSearchTime;
+		FastCriticalSection m_cs;
 };

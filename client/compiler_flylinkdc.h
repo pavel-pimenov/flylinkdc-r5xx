@@ -180,7 +180,6 @@ typedef unsigned __int64 uint64_t;
 #define IRAINMAN_NTFS_STREAM_TTH
 #define IRAINMAN_IP_AUTOUPDATE
 //#define IRAINMAN_SEARCH_OPTIONS // TODO
-#define IRAINMAN_ENABLE_HUB_LIST
 #ifdef FLYLINKDC_HE
 # define IRAINMAN_LOAD_LOG_FOR_HUBS // TODO, please fix encoding  https://code.google.com/p/flylinkdc/issues/detail?id=1116
 #endif
@@ -408,6 +407,7 @@ typedef unsigned __int64 uint64_t;
 # define USE_SET_LIST_COLOR_IN_SETTINGS
 #endif
 */
+
 // #define FLYLINKDC_USE_SETTINGS_AUTO_UPDATE
 //#define USE_REBUILD_MEDIAINFO
 #define FLYLINKDC_USE_MEDIAINFO_SERVER

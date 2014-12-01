@@ -2065,7 +2065,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="WrongIp">Неправильный IP-адрес.</String>
 		<String Name="WrongMask">Неправильно маска.</String>
 		<String Name="WrongEndIp">Неверный конечный IP-адрес в диапазоне.</String>
-		<String Name="WrongStartIp">Неверный начало IP-адрес в диапазоне.</String>
+		<String Name="WrongStartIp">Неверное начало IP-адрес в диапазоне.</String>
 		<String Name="Yb">ЙБ</String>
 		<String Name="Yellow">Жёлтый</String>
 		<String Name="Yes">Да</String>

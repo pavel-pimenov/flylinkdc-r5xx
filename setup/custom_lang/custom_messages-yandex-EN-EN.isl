@@ -15,9 +15,7 @@ Yandex_STR_9_2=Yandex Desktop Software
 
 Yandex_STR_9_3=Details
 
-Yandex_STR_10=Y
-Yandex_STR_10_1=andex.Browser - 
-Yandex_STR_10_2=is a simple and easy-to-use internet browser.
+Yandex_STR_10=Yandex.Browser - is a simple and easy-to-use internet browser
 Yandex_STR_11=It loads pages quickly, just shows you what you need and gives
 Yandex_STR_12=you plenty of space for viewing webpages.
 

@@ -17,9 +17,9 @@ class MessagesPage : public CPropertyPage<IDD_MESSAGES_PAGE>, public PropPage
 #endif
 {
 	public:
-		MessagesPage(SettingsManager *s) : PropPage(s)
+		MessagesPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_MESSAGES))
 		{
-			SetTitle(CTSTRING(SETTINGS_MESSAGES));
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		};
 		~MessagesPage()

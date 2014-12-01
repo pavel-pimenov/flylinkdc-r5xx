@@ -1,4 +1,4 @@
-/* $Id: miniwget.c,v 1.63 2014/09/06 08:08:05 nanard Exp $ */
+/* $Id: miniwget.c,v 1.66 2014/11/19 15:18:47 nanard Exp $ */
 /* Project : miniupnp
  * Website : http://miniupnp.free.fr/
  * Author : Thomas Bernard
@@ -38,6 +38,7 @@
 #include <net/if.h>
 #include <netdb.h>
 #define closesocket close
+#include <strings.h>
 #endif /* #else _WIN32 */
 #ifdef __GNU__
 #define MAXHOSTNAMELEN 64
@@ -368,7 +369,7 @@ miniwget3(const char * host,
                  "GET %s HTTP/%s\r\n"
 			     "Host: %s:%d\r\n"
 				 "Connection: Close\r\n"
-				 "User-Agent: " OS_STRING ", UPnP/1.0, MiniUPnPc/" MINIUPNPC_VERSION_STRING "\r\n"
+				 "User-Agent: " OS_STRING ", " UPNP_VERSION_STRING ", MiniUPnPc/" MINIUPNPC_VERSION_STRING "\r\n"
 
 				 "\r\n",
 			   path, httpversion, host, port);

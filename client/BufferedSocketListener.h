@@ -21,6 +21,7 @@
 
 #include "noexcept.h"
 #include "typedefs.h"
+#include "SearchResult.h"
 
 class BufferedSocketListener
 {
@@ -41,11 +42,15 @@ class BufferedSocketListener
 		typedef X<7> Failed;
 		typedef X<8> Updated;
 		typedef X<9> MyInfoArray; // [+]PPA
+		typedef X<10> SearchArrayTTH; //[+]PPA
+		typedef X<11> SearchArrayFile; //[+]PPA
 		
 		virtual void on(Connecting) noexcept { }
 		virtual void on(Connected) noexcept { }
 		virtual void on(Line, const string&) noexcept { }
 		virtual void on(MyInfoArray, StringList&) noexcept { } // [+]PPA
+		virtual void on(SearchArrayTTH, CFlySearchArray&) noexcept { } // [+]PPA
+		virtual void on(SearchArrayFile, StringList&) noexcept { } // [+]PPA
 		virtual void on(Data, uint8_t*, size_t) noexcept { }
 		virtual void on(BytesSent, size_t p_Bytes, size_t p_Actual) noexcept { }
 		virtual void on(ModeChange) noexcept { }

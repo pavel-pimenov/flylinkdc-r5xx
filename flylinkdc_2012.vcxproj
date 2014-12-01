@@ -798,13 +798,11 @@
     <ClCompile Include="windows\ChatBot.cpp" />
     <ClCompile Include="windows\ChatCtrl.cpp" />
     <ClCompile Include="windows\CheckTargetDlg.cpp" />
-    <ClCompile Include="windows\ClientProfileDlg.cpp" />
     <ClCompile Include="windows\ClientsPage.cpp" />
     <ClCompile Include="windows\CommandDlg.cpp" />
     <ClCompile Include="windows\dclstGenDlg.cpp" />
     <ClCompile Include="windows\DCLSTPage.cpp" />
     <ClCompile Include="windows\DefaultClickPage.cpp" />
-    <ClCompile Include="windows\DetectionEntryDlg.cpp" />
     <ClCompile Include="windows\DirectoryListingFrm.cpp" />
     <ClCompile Include="windows\DownloadPage.cpp" />
     <ClCompile Include="windows\EmoticonsDlg.cpp" />
@@ -945,7 +943,6 @@
     <ClInclude Include="windows\ChatBot.h" />
     <ClInclude Include="windows\ChatCtrl.h" />
     <ClInclude Include="windows\CheckTargetDlg.h" />
-    <ClInclude Include="windows\ClientProfileDlg.h" />
     <ClInclude Include="windows\ClientsPage.h" />
     <ClInclude Include="windows\CommandDlg.h" />
     <ClInclude Include="windows\CZDCPage.h" />
@@ -953,7 +950,6 @@
     <ClInclude Include="windows\DCLSTPage.h" />
     <ClInclude Include="windows\ddraw.h" />
     <ClInclude Include="windows\DefaultClickPage.h" />
-    <ClInclude Include="windows\DetectionEntryDlg.h" />
     <ClInclude Include="windows\DimEdit.h" />
     <ClInclude Include="windows\DirectoryListingFrm.h" />
     <ClInclude Include="windows\DownloadPage.h" />
@@ -1109,7 +1105,6 @@
     <Image Include="res\Finished-Downloads.ico" />
     <Image Include="res\Finished-Uploads.ico" />
     <Image Include="res\Flags.png" />
-    <Image Include="res\FlyLink.bmp" />
     <Image Include="res\FlyLink.png" />
     <Image Include="res\FlylinkDC.ico" />
     <Image Include="res\FlylinkDC_Update.ico" />

@@ -949,7 +949,8 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 		
 		try
 		{
-			const AdcCommand cmd = SearchManager::getInstance()->toPSR(true, param->myNick, param->hubIpPort, param->tth, param->parts);
+			AdcCommand cmd(AdcCommand::CMD_PSR, AdcCommand::TYPE_UDP);
+			SearchManager::getInstance()->toPSR(cmd, true, param->myNick, param->hubIpPort, param->tth, param->parts);
 			Socket s;
 			s.writeTo(param->ip, param->udpPort, cmd.toString(ClientManager::getMyCID()));
 			LogManager::getInstance()->psr_message(
@@ -984,7 +985,7 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 		SearchManager::getInstance()->search_auto(searchString);
 	}
 }
-
+// TODO HintedUser
 void QueueManager::addList(const UserPtr& aUser, Flags::MaskType aFlags, const string& aInitialDir /* = Util::emptyString */) throw(QueueException, FileException)
 {
 	add(aInitialDir, -1, TTHValue(), aUser, (Flags::MaskType)(QueueItem::FLAG_USER_LIST | aFlags));
@@ -2125,8 +2126,10 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 									const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(aDownload->getPath()));
 									if (CFlyServerConfig::isMediainfoExt(l_file_ext))
 									{
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 										CFlyTTHKey l_file(q->getTTH(), q->getSize());
 										CFlyServerAdapter::CFlyServerJSON::addDownloadCounter(l_file);
+#endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 #ifdef _DEBUG
 										//CFlyServerAdapter::CFlyServerJSON::sendDownloadCounter();
 #endif
@@ -2577,12 +2580,11 @@ void QueueManager::saveQueue(bool force) noexcept
 	if (!dirty && !force)
 		return;
 		
-	//CFlyLog l_log("[Save queue to DB]");
-	//l_log.step("save data to DB");
-	// [-] Lock l(cs); [-] IRainman fix.
 	{
 		RLock l(*QueueItem::g_cs); // TODO после исправления дедлока - убрать данную блокировку. https://code.google.com/p/flylinkdc/issues/detail?id=1028
 		RLock l_lock_fq(*FileQueue::g_csFQ);
+		std::vector<QueueItemPtr> l_items;
+		l_items.reserve(fileQueue.getQueueL().size());
 		for (auto i = fileQueue.getQueueL().begin(); i != fileQueue.getQueueL().end(); ++i)
 		{
 			auto& qi  = i->second;
@@ -2594,11 +2596,21 @@ void QueueManager::saveQueue(bool force) noexcept
 					const auto& l_first = i->first;
 					LogManager::getInstance()->message("merge_queue_itemL(qi) getFlyQueueID = " + Util::toString(qi->getFlyQueueID()) + " *l_first = " + *l_first);
 #endif
-					if (CFlylinkDBManager::getInstance()->merge_queue_itemL(qi))
-					{
-						qi->setDirty(false);
-					}
+					l_items.push_back(qi);
 				}
+			}
+		}
+		if (!l_items.empty())
+		{
+			if (l_items.size() > 50)
+			{
+				CFlyLog l_log("[Save queue to SQLite]");
+				l_log.log("Store: " + Util::toString(l_items.size()) + " items...");
+				CFlylinkDBManager::getInstance()->merge_queue_all_items(l_items);
+			}
+			else
+			{
+				CFlylinkDBManager::getInstance()->merge_queue_all_items(l_items);
 			}
 		}
 	}

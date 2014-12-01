@@ -82,7 +82,7 @@ int vsyslog (int pri, const char *fmt, va_list ap)
 
   if (logTag)
   {
-    p += _snprintf (p, left, logTag);
+    p += _snprintf (p, left, "%s", logTag);
     left -= p - tbuffer;
   }
 
@@ -112,11 +112,14 @@ int vsyslog (int pri, const char *fmt, va_list ap)
 
   if (logSock != INVALID_SOCKET)
   {
-    struct sockaddr_in addr;
+	  struct sockaddr_in addr = { 0 };
     char   tx_buf[SYSLOG_BUF_SIZE];
     WCHAR utf16_message[SYSLOG_BUF_SIZE];
     char utf8_message[SYSLOG_BUF_SIZE];
     int    len;
+	utf8_message[0] = 0;
+	utf16_message[0] = 0;
+	tx_buf[0] = 0;
 
     p   = strchr (tbuffer, '>') + strlen ("YYYY-MM-DD HH:MM:SS") + 2;
     len = sprintf (tx_buf, "<%d>%s", pri, p); 

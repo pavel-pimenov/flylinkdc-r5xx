@@ -32,10 +32,9 @@
 class QueuePage : public CPropertyPage<IDD_QUEUE_PAGE>, public PropPage
 {
 	public:
-		QueuePage(SettingsManager *s) : PropPage(s)
+		QueuePage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(SETTINGS_QUEUE))
 		{
-			title = TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(SETTINGS_QUEUE);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		~QueuePage()
@@ -69,7 +68,7 @@ class QueuePage : public CPropertyPage<IDD_QUEUE_PAGE>, public PropPage
 		static Item items[];
 		static TextItem texts[];
 		static ListItem optionItems[];
-		wstring title;
+		
 		
 		ExListViewCtrl ctrlList; // [+] IRainman
 		

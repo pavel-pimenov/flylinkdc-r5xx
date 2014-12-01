@@ -305,7 +305,7 @@ void ConnectivityManager::log(const string& message)
 {
 	if (BOOLSETTING(AUTO_DETECT_CONNECTION))
 	{
-		m_status = move(message);
+		m_status = message;
 		LogManager::getInstance()->message(STRING(CONNECTIVITY) + ' ' + m_status);
 		fire(ConnectivityManagerListener::Message(), m_status);
 	}

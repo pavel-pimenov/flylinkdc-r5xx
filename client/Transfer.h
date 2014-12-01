@@ -146,23 +146,9 @@ class Transfer
 		{
 			return m_start;
 		}
-		void setStart(uint64_t tick)
-		{
-			m_start = tick;
-			FastLock l(m_cs);
-			setLastTick(tick);
-			m_samples.push_back(Sample(m_start, 0));
-		}
-		// [-] GETSET(uint64_t, start, Start);
-		const uint64_t getLastActivity()
-		{
-			return getUserConnection()->getLastActivity();
-		}
-		// [~] IRainman refactoring transfer mechanism
-		const string& getUserConnectionToken() const
-		{
-			return getUserConnection()->getUserConnectionToken();
-		}
+		void setStart(uint64_t tick);
+		const uint64_t getLastActivity();
+		const string& getUserConnectionToken() const;
 		GETSET(uint64_t, m_lastTick, LastTick);
 		const bool m_isSecure;
 		const bool m_isTrusted;

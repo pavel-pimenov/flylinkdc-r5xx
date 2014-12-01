@@ -115,10 +115,8 @@ Download::~Download()
 	qi->dec(); // [+] IRainman fix.
 }
 
-AdcCommand Download::getCommand(bool zlib) const
+void Download::getCommand(AdcCommand& cmd, bool zlib) const
 {
-	AdcCommand cmd(AdcCommand::CMD_GET);
-	
 	cmd.addParam(Transfer::g_type_names[getType()]);
 	
 	if (getType() == TYPE_PARTIAL_LIST)
@@ -148,8 +146,6 @@ AdcCommand Download::getCommand(bool zlib) const
 	{
 		cmd.addParam("ZL1");
 	}
-	
-	return cmd;
 }
 
 void Download::getParams(const UserConnection* aSource, StringMap& params)

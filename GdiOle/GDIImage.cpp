@@ -127,7 +127,7 @@ bool CGDIImage::SelectActiveFrame(DWORD dwFrame)
 {
 	dcassert(!isShutdown());
 	static const GUID g_Guid = Gdiplus::FrameDimensionTime;
-	if (m_pImage)
+	if (m_pImage) // crash https://drdump.com/DumpGroup.aspx?DumpGroupID=230505&Login=guest
 		m_pImage->SelectActiveFrame(&g_Guid, dwFrame); // [1] https://www.box.net/shared/x4tgntvw818gzd274nek
 	return true;
 	/* [!]TODO

@@ -23,13 +23,17 @@
 #include <functional>
 #include <memory>
 
-#include <boost/move/utility.hpp>
+#include <boost/move/utility_core.hpp>
 #include <boost/move/detail/move_helpers.hpp>
+#include <boost/move/traits.hpp>
 #include <boost/container/detail/mpl.hpp>
 #include <boost/container/detail/tree.hpp>
-#include <boost/move/utility.hpp>
+#include <boost/move/utility_core.hpp>
 #ifndef BOOST_CONTAINER_PERFECT_FORWARDING
 #include <boost/container/detail/preprocessor.hpp>
+#endif
+#if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
+#include <initializer_list>
 #endif
 
 namespace boost {
@@ -146,6 +150,31 @@ class set
       : base_t(ordered_range, first, last, comp, a)
    {}
 
+#if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
+   //! <b>Effects</b>: Constructs an empty set using the specified comparison object and
+   //! allocator, and inserts elements from the range [il.begin(), il.end()).
+   //!
+   //! <b>Complexity</b>: Linear in N if the range [il.begin(), il.end()) is already sorted using
+   //! comp and otherwise N logN, where N is il.begin() - il.end().
+   set(std::initializer_list<value_type> il, const Compare& comp = Compare(), const allocator_type& a = allocator_type())
+      : base_t(true, il.begin(), il.end(), comp, a)
+   {}
+
+   //! <b>Effects</b>: Constructs an empty set using the specified comparison object and
+   //! allocator, and inserts elements from the ordered unique range [il.begin(), il.end()). This function
+   //! is more efficient than the normal range creation for ordered ranges.
+   //!
+   //! <b>Requires</b>: [il.begin(), il.end()) must be ordered according to the predicate and must be
+   //! unique values.
+   //!
+   //! <b>Complexity</b>: Linear in N.
+   //!
+   //! <b>Note</b>: Non-standard extension.
+   set(ordered_unique_range_t, std::initializer_list<value_type> il, const Compare& comp = Compare(), const allocator_type& a = allocator_type())
+      : base_t(ordered_range, il.begin(), il.end(), comp, a)
+   {}
+#endif
+
    //! <b>Effects</b>: Copy constructs a set.
    //!
    //! <b>Complexity</b>: Linear in x.size().
@@ -194,6 +223,15 @@ class set
    set& operator=(BOOST_RV_REF(set) x)
       BOOST_CONTAINER_NOEXCEPT_IF(allocator_traits_type::propagate_on_container_move_assignment::value)
    {  return static_cast<set&>(this->base_t::operator=(boost::move(static_cast<base_t&>(x))));  }
+
+#if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
+   set& operator=(std::initializer_list<value_type> il)
+   {
+      this->clear();
+      insert(il.begin(), il.end());
+      return *this;
+   }
+#endif
 
    #if defined(BOOST_CONTAINER_DOXYGEN_INVOKED)
 
@@ -363,8 +401,8 @@ class set
    //!
    //! <b>Complexity</b>: Logarithmic.
    template <class... Args>
-   iterator emplace_hint(const_iterator hint, Args&&... args)
-   {  return this->base_t::emplace_hint_unique(hint, boost::forward<Args>(args)...); }
+   iterator emplace_hint(const_iterator p, Args&&... args)
+   {  return this->base_t::emplace_hint_unique(p, boost::forward<Args>(args)...); }
 
    #else //#ifdef BOOST_CONTAINER_PERFECT_FORWARDING
 
@@ -374,9 +412,9 @@ class set
    {  return this->base_t::emplace_unique(BOOST_PP_ENUM(n, BOOST_CONTAINER_PP_PARAM_FORWARD, _)); }\
                                                                                                    \
    BOOST_PP_EXPR_IF(n, template<) BOOST_PP_ENUM_PARAMS(n, class P) BOOST_PP_EXPR_IF(n, >)          \
-   iterator emplace_hint(const_iterator hint                                                       \
+   iterator emplace_hint(const_iterator p                                                          \
                          BOOST_PP_ENUM_TRAILING(n, BOOST_CONTAINER_PP_PARAM_LIST, _))              \
-   {  return this->base_t::emplace_hint_unique(hint                                                \
+   {  return this->base_t::emplace_hint_unique(p                                                   \
                                BOOST_PP_ENUM_TRAILING(n, BOOST_CONTAINER_PP_PARAM_FORWARD, _));}   \
    //!
    #define BOOST_PP_LOCAL_LIMITS (0, BOOST_CONTAINER_MAX_CONSTRUCTOR_PARAMETERS)
@@ -429,7 +467,7 @@ class set
    //! <b>Returns</b>: An iterator pointing to the element with key equivalent to the key of x.
    //!
    //! <b>Complexity</b>: Logarithmic.
-   iterator insert(const_iterator position, value_type &&x);
+   iterator insert(const_iterator p, value_type &&x);
    #else
    BOOST_MOVE_CONVERSION_AWARE_CATCH_1ARG(insert, value_type, iterator, this->priv_insert, const_iterator, const_iterator)
    #endif
@@ -443,6 +481,15 @@ class set
    template <class InputIterator>
    void insert(InputIterator first, InputIterator last)
    {  this->base_t::insert_unique(first, last);  }
+
+#if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
+   //! <b>Effects</b>: inserts each element from the range [il.begin(),il.end()) if and only
+   //!   if there is no element with key equivalent to the key of that element.
+   //!
+   //! <b>Complexity</b>: At most N log(size()+N) (N is the distance from il.begin() to il.end())
+   void insert(std::initializer_list<value_type> il)
+   {  this->base_t::insert_unique(il.begin(), il.end()); }
+#endif
 
    #if defined(BOOST_CONTAINER_DOXYGEN_INVOKED)
 
@@ -745,6 +792,19 @@ class multiset
       : base_t(ordered_range, first, last, comp, a)
    {}
 
+#if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
+   //! @copydoc ::boost::container::set::set(std::initializer_list<value_type>, const Compare& comp, const allocator_type&)
+   multiset(std::initializer_list<value_type> il, const Compare& comp = Compare(), const allocator_type& a = allocator_type())
+      : base_t(false, il.begin(), il.end(), comp, a)
+   {}
+
+   //! @copydoc ::boost::container::set::set(ordered_unique_range_t, std::initializer_list<value_type>, const Compare& comp, const allocator_type&)
+   multiset(ordered_unique_range_t, std::initializer_list<value_type> il, const Compare& comp = Compare(), const allocator_type& a = allocator_type())
+      : base_t(ordered_range, il.begin(), il.end(), comp, a)
+   {}
+#endif
+
+
    //! @copydoc ::boost::container::set::set(const set &)
    multiset(const multiset& x)
       : base_t(static_cast<const base_t&>(x))
@@ -773,6 +833,15 @@ class multiset
    multiset& operator=(BOOST_RV_REF(multiset) x)
    {  return static_cast<multiset&>(this->base_t::operator=(boost::move(static_cast<base_t&>(x))));  }
 
+#if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
+   //! @copydoc ::boost::container::set::operator=(std::initializer_list<value_type>)
+   multiset& operator=(std::initializer_list<value_type> il)
+   {
+       this->clear();
+       insert(il.begin(), il.end());
+       return *this;
+   }
+#endif
    #if defined(BOOST_CONTAINER_DOXYGEN_INVOKED)
 
    //! @copydoc ::boost::container::set::get_allocator()
@@ -851,8 +920,8 @@ class multiset
    //! <b>Complexity</b>: Logarithmic in general, but amortized constant if t
    //!   is inserted right before p.
    template <class... Args>
-   iterator emplace_hint(const_iterator hint, Args&&... args)
-   {  return this->base_t::emplace_hint_equal(hint, boost::forward<Args>(args)...); }
+   iterator emplace_hint(const_iterator p, Args&&... args)
+   {  return this->base_t::emplace_hint_equal(p, boost::forward<Args>(args)...); }
 
    #else //#ifdef BOOST_CONTAINER_PERFECT_FORWARDING
 
@@ -862,9 +931,9 @@ class multiset
    {  return this->base_t::emplace_equal(BOOST_PP_ENUM(n, BOOST_CONTAINER_PP_PARAM_FORWARD, _)); } \
                                                                                                    \
    BOOST_PP_EXPR_IF(n, template<) BOOST_PP_ENUM_PARAMS(n, class P) BOOST_PP_EXPR_IF(n, >)          \
-   iterator emplace_hint(const_iterator hint                                                       \
+   iterator emplace_hint(const_iterator p                                                          \
                          BOOST_PP_ENUM_TRAILING(n, BOOST_CONTAINER_PP_PARAM_LIST, _))              \
-   {  return this->base_t::emplace_hint_equal(hint                                                 \
+   {  return this->base_t::emplace_hint_equal(p                                                    \
                                BOOST_PP_ENUM_TRAILING(n, BOOST_CONTAINER_PP_PARAM_FORWARD, _));}   \
    //!
    #define BOOST_PP_LOCAL_LIMITS (0, BOOST_CONTAINER_MAX_CONSTRUCTOR_PARAMETERS)
@@ -910,7 +979,7 @@ class multiset
    //!
    //! <b>Complexity</b>: Logarithmic in general, but amortized constant if t
    //!   is inserted right before p.
-   iterator insert(const_iterator position, value_type &&x);
+   iterator insert(const_iterator p, value_type &&x);
    #else
    BOOST_MOVE_CONVERSION_AWARE_CATCH_1ARG(insert, value_type, iterator, this->priv_insert, const_iterator, const_iterator)
    #endif
@@ -923,6 +992,12 @@ class multiset
    template <class InputIterator>
    void insert(InputIterator first, InputIterator last)
    {  this->base_t::insert_equal(first, last);  }
+
+#if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
+   //! @copydoc ::boost::container::set::insert(std::initializer_list<value_type>)
+   void insert(std::initializer_list<value_type> il)
+   {  this->base_t::insert_unique(il.begin(), il.end()); }
+#endif
 
    #if defined(BOOST_CONTAINER_DOXYGEN_INVOKED)
 

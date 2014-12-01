@@ -1478,7 +1478,7 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(const SSL_METHOD *ssl_method,
 			rule_p++;
 		}
 
-	if (ok && (strlen(rule_p) > 0))
+	if (ok && rule_p[0] != 0)
 		ok = ssl_cipher_process_rulestr(rule_p, &head, &tail, ca_list);
 
 	OPENSSL_free((void *)ca_list);	/* Not needed anymore */

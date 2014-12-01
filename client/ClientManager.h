@@ -30,6 +30,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 	private ClientListener, public Singleton<ClientManager>,
 	private TimerManagerListener
 {
+		friend class SpyFrame;
 	public:
 		Client* getClient(const string& aHubURL);
 		void putClient(Client* p_client);
@@ -87,13 +88,13 @@ class ClientManager : public Speaker<ClientManagerListener>,
 			return g_onlineUsers.find(aUser->getCID()) != g_onlineUsers.end();
 		}
 //[~] FlylinkDC
-		void search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, void* aOwner, bool p_is_force_passive);
+		void search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, uint32_t aToken, void* aOwner, bool p_is_force_passive);
 		uint64_t search(const StringList& who,
 		                Search::SizeModes aSizeMode,
 		                int64_t aSize,
 		                Search::TypeModes aFileType,
 		                const string& aString,
-		                const string& aToken,
+		                uint32_t aToken,
 		                const StringList& aExtList,
 		                void* aOwner,
 		                bool p_is_force_passive);
@@ -304,7 +305,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		
 		void send(AdcCommand& c, const CID& to);
 		
-		void connect(const HintedUser& user, const string& p_token);
+		void connect(const HintedUser& user, const string& p_token, bool p_is_force_passive, bool& p_is_active_client);
 		void privateMessage(const HintedUser& user, const string& msg, bool thirdPerson);
 		void userCommand(const HintedUser& user, const UserCommand& uc, StringMap& params, bool compatibility);
 		
@@ -331,19 +332,8 @@ class ClientManager : public Speaker<ClientManagerListener>,
 			return g_clients;
 		}
 #endif
-		// [!] IRainman fix.
-		static const CID& getMyCID() // [!] IRainman fix: add const link.
-		{
-			dcassert(g_me);
-			return g_me->getCID();
-		}
-		static const CID& getMyPID()
-		{
-			dcassert(!g_pid.isZero());
-			return g_pid;
-		}
-		// [~] IRainman fix.
-		// fake detection methods
+		static const CID& getMyCID(); // [!] IRainman fix: add const link.
+		static const CID& getMyPID();
 		///////////////////////
 		/**
 		 * This file is a part of client manager.
@@ -435,6 +425,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static CID g_pid; // [!] IRainman fix this is static object.
 		
 		friend class Singleton<ClientManager>;
+		friend class NmdcHub;
 		
 		ClientManager()
 		{
@@ -463,6 +454,11 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		*/
 		static OnlineUser* findOnlineUserHintL(const CID& cid, const string& hintUrl, OnlinePairC& p);
 		
+		void NmdcSearch(Client* aClient, const string& aSeeker, Search::SizeModes aSizeMode, int64_t aSize,
+		                Search::TypeModes aFileType, const string& aString, bool isPassive);
+		bool NmdcPartialSearch(Client* aClient, const string& aSeeker,
+		                       Search::TypeModes aFileType, const string& aString);
+		void fireIncomingSearch(const string&, const string&, ClientManagerListener::SearchReply);
 		// ClientListener
 		void on(Connected, const Client* c) noexcept;
 		void on(UserUpdated, const Client*, const OnlineUserPtr& user) noexcept;
@@ -470,14 +466,14 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		void on(Failed, const Client*, const string&) noexcept;
 		void on(HubUpdated, const Client* c) noexcept;
 		void on(HubUserCommand, const Client*, int, int, const string&, const string&) noexcept;
-		void on(NmdcSearch, Client* aClient, const string& aSeeker, Search::SizeModes aSizeMode, int64_t aSize,
-		        Search::TypeModes aFileType, const string& aString, bool isPassive) noexcept;
+		// TODO void on(TTHSearch, Client* aClient, const string& aSeeker, const TTHValue& aTTH, bool isPassive) noexcept;
 		void on(AdcSearch, const Client* c, const AdcCommand& adc, const CID& from) noexcept;
 		// TimerManagerListener
 		void on(TimerManagerListener::Minute, uint64_t aTick) noexcept;
 		
 		/** Indication that the application is being closed */
 		static bool g_isShutdown;
+		static bool g_isSpyFrame;
 };
 
 #endif // !defined(CLIENT_MANAGER_H)

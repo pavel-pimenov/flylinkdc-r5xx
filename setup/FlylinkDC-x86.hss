@@ -1,6 +1,8 @@
 [Files]
 Source: "..\compiled\FlylinkDC.exe"; DestDir: "{app}"; Flags: overwritereadonly ignoreversion
-Source: "..\compiled\crshhndl-x86.dll"; DestDir: "{app}"; Flags: overwritereadonly ignoreversion
+Source: "..\compiled\crashrpt-x86.dll"; DestDir: "{app}"; Flags: overwritereadonly ignoreversion
+Source: "..\compiled\dbghelp-x86.dll"; DestDir: "{app}"; Flags: overwritereadonly ignoreversion
+Source: "..\compiled\sendrpt-x86.exe"; DestDir: "{app}"; Flags: overwritereadonly ignoreversion
 Source: "..\compiled\PortalBrowser\PortalBrowser.dll"; DestDir: "{app}\PortalBrowser"; Flags: overwritereadonly ignoreversion
 Source: "..\compiled\Themes\resourceGO.dll"; DestDir: "{app}\Themes"; Flags: overwritereadonly ignoreversion
 Source: "..\compiled\Themes\TanGO!.dll"; DestDir: "{app}\Themes"; Flags: overwritereadonly ignoreversion

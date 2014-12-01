@@ -302,6 +302,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		size_t load_queue();
 		void addSource(const QueueItemPtr& p_QueueItem, const CID& p_cid, const string& p_nick/*, const string& p_hub_hint*/);
 		bool merge_queue_itemL(QueueItemPtr& p_QueueItem);
+		void merge_queue_all_items(std::vector<QueueItemPtr>& p_QueueItemArray);
 		void remove_queue_item(const __int64 p_id);
 		void load_ignore(StringSet& p_ignores);
 		void save_ignore(const StringSet& p_ignores);
@@ -362,9 +363,9 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		__int64 get_dic_country_id(const string& p_country);
 		void clear_dic_cache_country();
 #endif
-    uint16_t find_cache_locationL(uint32_t p_ip, int32_t& p_index);
+		uint16_t find_cache_locationL(uint32_t p_ip, int32_t& p_index);
 	public:
-		
+	
 		void save_location(const CFlyLocationIPArray& p_geo_ip);
 		void get_location(uint32_t p_ip, int32_t& p_index);
 		void get_location_sql(uint32_t p_ip, int32_t& p_index);
@@ -398,7 +399,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 			return g_count_queue_source;
 		}
 	private:
-		void delete_queue_sources(const __int64 p_id);
+		void delete_queue_sourcesL(const __int64 p_id);
 		void convert_fly_hash_block_crate_unicque_tthL(CFlyLogFile& p_convert_log);
 		void convert_fly_hash_blockL();
 		void convert_fly_hash_block_internalL();
@@ -468,8 +469,6 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		auto_ptr<sqlite3_command> m_select_all_last_ip_and_message_count;
 		
 		boost::unordered_map<uint32_t, boost::unordered_map<std::string, CFlyLastIPCacheItem> > m_last_ip_cache;
-		
-		CriticalSection m_antivirus_cs;
 		
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		auto_ptr<sqlite3_command> m_find_virus_nick_and_share;

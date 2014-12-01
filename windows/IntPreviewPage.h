@@ -30,10 +30,9 @@
 class IntPreviewPage: public CPropertyPage<IDD_INT_PREVIEW_PAGE>, public PropPage
 {
 	public:
-		IntPreviewPage(SettingsManager *s) : PropPage(s)
+		IntPreviewPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(SETTINGS_AVIPREVIEW) + _T('\\') + TSTRING(SETTINGS_INT_PREVIEW_PAGE))
 		{
-			title = TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(SETTINGS_AVIPREVIEW) + _T('\\') + TSTRING(SETTINGS_INT_PREVIEW_PAGE);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		
@@ -67,7 +66,7 @@ class IntPreviewPage: public CPropertyPage<IDD_INT_PREVIEW_PAGE>, public PropPag
 		static TextItem texts[];
 		static ListItem listItems[]; // IDC_INT_PREVIEW_LIST
 		
-		wstring title;
+		
 };
 #else
 class IntPreviewPage : public EmptyPage

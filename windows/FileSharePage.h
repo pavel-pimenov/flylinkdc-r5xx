@@ -31,10 +31,9 @@
 class FileSharePage : public CPropertyPage<IDD_FILE_SHARE_PAGE>, public PropPage
 {
 	public:
-		FileSharePage(SettingsManager *s) : PropPage(s)
+		FileSharePage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_UPLOADS) + _T('\\') + TSTRING(FILESHARE_TITLE))
 		{
-			title = TSTRING(SETTINGS_UPLOADS) + _T('\\') + TSTRING(FILESHARE_TITLE);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		
@@ -66,7 +65,7 @@ class FileSharePage : public CPropertyPage<IDD_FILE_SHARE_PAGE>, public PropPage
 		static TextItem texts[];
 		static ListItem listItems[];
 		
-		wstring title;
+		
 		
 		ExListViewCtrl ctrlList; // [+] IRainman
 		

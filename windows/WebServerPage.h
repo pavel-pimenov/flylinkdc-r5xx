@@ -9,16 +9,15 @@ class WebServerPage : public CPropertyPage<IDD_WEBSERVER_PAGE>, public PropPage
 #endif
 {
 	public:
-		WebServerPage(SettingsManager *s) : PropPage(s)
+		WebServerPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_RC) + _T('\\') + TSTRING(WEBSERVER))
 		{
-			title = TSTRING(SETTINGS_RC) + _T('\\') + TSTRING(WEBSERVER);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
-		};
+		}
 		
 		~WebServerPage()
 		{
-		};
+		}
 		
 		BEGIN_MSG_MAP(WebServerPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
@@ -41,7 +40,7 @@ class WebServerPage : public CPropertyPage<IDD_WEBSERVER_PAGE>, public PropPage
 		static Item items[];
 		static TextItem texts[];
 		
-		wstring title;
+		
 };
 
 #endif //WebServerPage_H

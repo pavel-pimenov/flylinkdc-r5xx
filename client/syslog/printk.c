@@ -542,7 +542,7 @@ static const char *str_error (DWORD err, BOOL sys_err)
     return rip (buf);
   }
 
-  if (!FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM, NULL, err, lang,
+  if (!FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, err, lang,
                       buf, sizeof(buf)-1, NULL))
      sprintf (buf, "Unknown error 0x%08lX", err);
   return rip (buf);

@@ -886,9 +886,6 @@
     <None Include="res\Flags.png">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\FlyLink.bmp">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="res\Folders.png">
       <Filter>Resource Files</Filter>
     </None>
@@ -1082,6 +1079,10 @@
     <None Include="res\thermometer2.ico" />
     <None Include="res\firewall.ico" />
     <None Include="res\StateUsers.png" />
+    <None Include="res\ISPImages.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="compiled\Settings\common\isp-hub-list.txt" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

@@ -68,8 +68,11 @@ class ConnectionQueueItem
 		
 		ConnectionQueueItem(const HintedUser& aUser, bool aDownload, const string& aToken) :
 			m_connection_queue_token(aToken),
-			lastAttempt(0), errors(0), state(WAITING), m_is_download(aDownload), m_user(aUser), hubUrl(aUser.hint) { }
-			
+			lastAttempt(0),
+			errors(0), state(WAITING), m_is_download(aDownload), m_user(aUser), hubUrl(aUser.hint),
+			m_count_waiting(0), m_is_active_client(false), m_is_force_passive(false)
+		{
+		}
 		const string& getConnectionQueueToken() const
 		{
 			return m_connection_queue_token;
@@ -78,6 +81,9 @@ class ConnectionQueueItem
 		GETSET(int, errors, Errors); // Number of connection errors, or -1 after a protocol error
 		GETSET(State, state, State);
 		GETSET(string, hubUrl, HubUrl); // TODO - пока не доконца работает и не везде прокидывается
+		unsigned short m_count_waiting;
+		bool m_is_active_client;
+		bool m_is_force_passive;
 		bool isDownload() const
 		{
 			return m_is_download;
@@ -273,6 +279,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		
 		/** All active connections */
 		static boost::unordered_set<UserConnection*> g_userConnections;
+		
 		typedef std::pair<std::string, boost::asio::ip::address_v4> CFlyDDOSkey; // uint32_t boost::asio::ip::address_v4 в  ключе тупит
 		class CFlyTickDetect
 		{
@@ -361,7 +368,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		//static bool getCipherNameAndIP(UserConnection* p_conn, string& p_chiper_name, string& p_ip);
 		
 		bool checkIpFlood(const string& aIPServer, uint16_t aPort, const boost::asio::ip::address_v4& p_ip_hub, const string& userInfo, const string& p_HubInfo);
-		bool checkTTHDuplicateSearch(const string& p_search_command);
+		bool checkTTHDuplicateSearch(const string& p_search_command, const TTHValue& p_tth);
 	private:
 	
 		void cleanupTTHDuplicateSearch(const uint64_t p_tick);

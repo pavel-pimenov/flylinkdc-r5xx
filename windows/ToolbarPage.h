@@ -29,12 +29,11 @@ class ToolbarPage : public CPropertyPage<IDD_TOOLBAR_PAGE>, public PropPage
 #endif
 {
 	public:
-		ToolbarPage(SettingsManager *s) : PropPage(s)
+		ToolbarPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_TOOLBAR))
 		{
-			title = TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_TOOLBAR);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
-		};
+		}
 		~ToolbarPage()
 		{
 			m_ctrlCommands.Detach();
@@ -74,7 +73,7 @@ class ToolbarPage : public CPropertyPage<IDD_TOOLBAR_PAGE>, public PropPage
 		tstring name;
 		static Item items[];
 		static TextItem texts[];
-		wstring title;
+		
 };
 
 #endif //TOOLBARPAGE_H

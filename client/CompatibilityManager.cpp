@@ -219,7 +219,7 @@ void CompatibilityManager::detectUncompatibleSoftware()
 			g_incopatibleSoftwareList += "\r\n";
 			const auto l_dll = Text::fromT(currentDllInfo->dllName);
 			g_incopatibleSoftwareList += l_dll;
-			CFlyServerAdapter::CFlyServerJSON::pushError("[BUG][4] CompatibilityManager::detectUncompatibleSoftware = " + l_dll);
+			CFlyServerAdapter::CFlyServerJSON::pushError(4, "CompatibilityManager::detectUncompatibleSoftware = " + l_dll);
 			if (currentDllInfo->info)
 			{
 				g_incopatibleSoftwareList += " - ";
@@ -470,7 +470,7 @@ string CompatibilityManager::getWindowsVersionName()
 		}
 	}
 	// Include service pack (if any) and build number.
-	if (wcslen(g_osvi.szCSDVersion) > 0)
+	if (g_osvi.szCSDVersion[0] != 0)
 	{
 		l_OS += ' ' + Text::fromT(g_osvi.szCSDVersion);
 	}
@@ -621,6 +621,22 @@ string CompatibilityManager::generateFullSystemStatusMessage()
 	    getIncompatibleSoftwareMessage();
 }
 
+string CompatibilityManager::generateNetworkStats()
+{
+	std::vector<char> l_buf(1024);
+	sprintf_s(l_buf.data(), l_buf.size(),
+	          "-=[ TCP: Downloaded: %s. Uploaded: %s ]=-\r\n"
+	          "-=[ UDP: Downloaded: %s. Uploaded: %s ]=-\r\n"
+	          "-=[ DHT: Downloaded: %s. Uploaded: %s ]=-\r\n"
+	          "-=[ SSL: Downloaded: %s. Uploaded: %s ]=-",
+	          Util::formatBytes(Socket::g_stats.m_tcp.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_tcp.totalUp).c_str(),
+	          Util::formatBytes(Socket::g_stats.m_udp.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_udp.totalUp).c_str(),
+	          Util::formatBytes(Socket::g_stats.m_dht.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_dht.totalUp).c_str(),
+	          Util::formatBytes(Socket::g_stats.m_ssl.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_ssl.totalUp).c_str()
+	         );
+	return l_buf.data();
+}
+
 string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 {
 	std::vector<char> l_buf(2048);
@@ -677,7 +693,7 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				          "-=[ GDI units (peak): %d (%d). Handle (peak): %d (%d) ]=-\r\n"
 				          "-=[ Public share: %s. Files in share: %u ]=-\r\n"
 				          "-=[ Total users: %u on hubs: %u ]=-\r\n"
-				          "-=[ Downloaded: %s. Uploaded: %s ]=-"
+				          "%s\r\n"
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 				          "\r\n-=[ Total download: %s. Total upload: %s ]=-"
 #endif
@@ -694,12 +710,19 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				              GetTickCount64()
 #endif
 				              / 1000).c_str(),
-				          Util::formatBytes(pmc.WorkingSetSize).c_str(), Util::formatBytes(pmc.PeakWorkingSetSize).c_str(),
-				          Util::formatBytes(pmc.PagefileUsage).c_str(), Util::formatBytes(pmc.PeakPagefileUsage).c_str(),
-				          GetGuiResources(GetCurrentProcess(), GR_GDIOBJECTS), GetGuiResources(GetCurrentProcess(), 2/* GR_GDIOBJECTS_PEAK */),
-				          GetGuiResources(GetCurrentProcess(), GR_USEROBJECTS), GetGuiResources(GetCurrentProcess(), 4 /*GR_USEROBJECTS_PEAK*/),
-				          Util::formatBytes(ShareManager::getInstance()->getSharedSize()).c_str(), ShareManager::getInstance()->getSharedFiles(), ClientManager::getTotalUsers(), Client::getTotalCounts(),
-				          Util::formatBytes(Socket::getTotalDown()).c_str(), Util::formatBytes(Socket::getTotalUp()).c_str()
+				          Util::formatBytes(pmc.WorkingSetSize).c_str(),
+				          Util::formatBytes(pmc.PeakWorkingSetSize).c_str(),
+				          Util::formatBytes(pmc.PagefileUsage).c_str(),
+				          Util::formatBytes(pmc.PeakPagefileUsage).c_str(),
+				          GetGuiResources(GetCurrentProcess(), GR_GDIOBJECTS),
+				          GetGuiResources(GetCurrentProcess(), 2/* GR_GDIOBJECTS_PEAK */),
+				          GetGuiResources(GetCurrentProcess(), GR_USEROBJECTS),
+				          GetGuiResources(GetCurrentProcess(), 4 /*GR_USEROBJECTS_PEAK*/),
+				          Util::formatBytes(ShareManager::getInstance()->getSharedSize()).c_str(),
+				          ShareManager::getInstance()->getSharedFiles(),
+				          ClientManager::getTotalUsers(),
+				          Client::getTotalCounts(),
+				          generateNetworkStats().c_str()
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 				          , Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.m_download).c_str(), Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.m_upload).c_str()
 #endif

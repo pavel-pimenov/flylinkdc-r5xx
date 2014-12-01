@@ -76,12 +76,6 @@ LRESULT ToolbarPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 // follow block commented,
 // it can brake custom toolbar creation.
 // don't do this!
-		/*
-		#ifndef IRAINMAN_ENABLE_HUB_LIST
-		        if (!i)
-		            continue;
-		#endif
-		*/
 		makeItem(&lvi, i);
 		lvi.iItem = i + 1;
 		m_ctrlCommands.InsertItem(&lvi);

@@ -26,7 +26,7 @@ miniupnpc
 natpmp
 flyupdate
 jsoncpp
-crash-server
+doctor-dump
 test
 leveldb
 snappy
@@ -55,6 +55,7 @@ compiled\Settings\flylinkdc-config-r5xx.xml
 compiled\Settings\common\IPGrant.ini
 compiled\Settings\common\IPGuard.ini
 compiled\Settings\common\IPTrust.ini
+compiled\Settings\common\isp-hub-list.txt
 compiled\EmoPacks\*
 compiled\Lang\*
 compiled\Skin\*

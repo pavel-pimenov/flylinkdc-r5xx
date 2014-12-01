@@ -44,7 +44,6 @@
 #define IDR_ERROR                       139
 #define IDR_SHUTDOWN                    140
 #define IDR_TUSER                       141
-#define IDB_FLYLINK                     142
 #define IDR_PURGE                       143
 #define IDR_PAUSE                       144
 #define IDD_ADLS_PROPERTIES             145
@@ -108,8 +107,8 @@
 #define IDR_UNDERLINE                   205
 #define IDR_ITALIC                      206
 #define IDR_TRANSCODE                   207
-#define IDR_STATE_USERS                 209
 #define IDD_CHECKTARGETDLG              208
+#define IDR_STATE_USERS                 209
 #define IDR_SENDMESSAGES_ICON           210
 #define IDR_SMILE_ICON                  211
 #define IDR_MULTI_CHAT_ICON             212
@@ -134,6 +133,7 @@
 #define IDD_WIZARD_NET_ACTIVE           232
 #define IDD_UPNPCHECK                   237
 #define IDD_WIZARD_NETA_TESTSETUP       238
+#define IDR_ISP_HUBLIST                 239
 #define IDD_SPEEDLIMIT_DLG              240
 #define IDD_INTEGRATION_PAGE            241
 #define IDR_SPLASH_WINTER               242
@@ -185,7 +185,7 @@
 #define IDD_LOCATION_DIALOG             294
 #define IDR_ICON_MEDICAL_BAG            295
 #define IDR_ICON_THERMOMETR_BAG         296
-//#define IDR_ICON_CRUTCH             297
+#define IDR_ISP_HUB_LIST_EXAMPLE        297
 #define IDR_ICON_FIREWALL               298
 #define IDR_HUB_FLYLINKDC               299
 #define IDC_FILETYPES                   1000
@@ -309,7 +309,7 @@
 #define IDC_DOWNLOADS                   1121
 #define IDC_THIRD_PARTY_SOFTWARE        1122
 #define IDC_SLOTSSPIN                   1123
-#define IDC_DONATION_TEXT               1124
+#define IDC_UDP_DHT_SSL_STAT            1124
 #define IDC_MAXSPEED                    1125
 #define IDC_SPEEDSPIN                   1126
 #define IDC_FAVUSERS                    1127
@@ -1527,6 +1527,7 @@
 #define IDC_LOCATION_COUNTRY_DESCRIPTION 2366
 #define IDC_LOCATION_COUNTRY            2367
 #define IDC_COPY_GEO_LOCATION           2368
+#define IDC_ISP_TREE                 2369
 #define IDC_DOWNLOAD_TARGET             2500
 #define IDC_FLYLINKDC_LOCATION          2501
 #define IDC_DOWNLOAD_TARGET_DIR         3000
@@ -1581,7 +1582,6 @@
 #define ID_MEDIA_MENU_WINAMP_START      32787
 #define ID_DISCONNECT                   32788
 #define ID_VIEW_TRANSFER_VIEW_TOOLBAR   32789
-
 #define ID_MEDIA_MENU_WINAMP_END        32807
 #define IDC_PROGRESS                    32809
 #define IDC_TIME                        32810

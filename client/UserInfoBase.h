@@ -49,7 +49,7 @@ class UserInfoBase
 		void pm_msg(const string& hubHint, const tstring& p_message); // !SMT!-S
 		
 		// [!] IRainman moved to windows/UserInfoSimple void addSummary(); // !SMT!-UI
-		void createSummaryInfo();// [+] IRainman
+		void createSummaryInfo(const string& p_selectedHint);// [+] IRainman
 		
 		// [!] IRainman moved to windows/UserInfoSimple static const tstring getBroadcastPrivateMessage(); // !SMT!-S
 		// [!] IRainman moved to windows/UserInfoSimple static uint64_t inputSlotTime(); // !SMT!-UI
@@ -117,7 +117,7 @@ struct FavUserTraits // [!] IRainman moved from WinUtil and review.
 				isFreePm = false;
 			}
 			
-			isIgnoredByName = UserManager::isInIgnoreList(ui.getUser()->getLastNick());
+			isIgnoredByName = UserManager::g_isEmptyIgnoreList == false && UserManager::isInIgnoreList(ui.getUser()->getLastNick());
 			
 			isEmpty = false;
 		}

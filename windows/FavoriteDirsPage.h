@@ -35,10 +35,9 @@ class FavoriteDirsPage : public CPropertyPage<IDD_FAVORITE_DIRS_PAGE>, public Pr
 #endif
 {
 	public:
-		FavoriteDirsPage(SettingsManager *s) : PropPage(s)
+		FavoriteDirsPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(SETTINGS_FAVORITE_DIRS_PAGE))
 		{
-			title = TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(SETTINGS_FAVORITE_DIRS_PAGE);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		~FavoriteDirsPage()
@@ -80,7 +79,7 @@ class FavoriteDirsPage : public CPropertyPage<IDD_FAVORITE_DIRS_PAGE>, public Pr
 	protected:
 		static TextItem texts[];
 		ExListViewCtrl ctrlDirectories;
-		wstring title;
+		
 		
 		void addDirectory(const tstring& aPath = Util::emptyStringT);
 };

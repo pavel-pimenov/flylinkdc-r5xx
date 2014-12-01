@@ -141,7 +141,9 @@ void Util::MoveSettings()
 				const string l_error = "Error [Util::MoveSettings] File::copyFile = sourcepath + FileList[i] = " + sourcepath + FileList[i]
 				                       + " , bkpath + FileList[i] = " + bkpath + FileList[i] + " error = " + e.getError();
 				LogManager::getInstance()->message(l_error);
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 				CFlyServerAdapter::CFlyServerJSON::pushSyslogError("[BUG][12]  + " + l_error);
+#endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 			}
 		}
 	}
@@ -218,7 +220,9 @@ void Util::initialize()
 			const DWORD l_error = GetLastError();
 			if (l_error == 5)
 			{
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 				CFlyServerAdapter::CFlyServerJSON::pushSyslogError("[BUG][11] error create/write .flylinkdc-test-readonly.tmp + " + g_paths[PATH_USER_CONFIG]);
+#endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 				intiProfileConfig();
 				// Если возможно уносим настройки в профиль (если их тамеще нет)
 				MoveSettings();
@@ -304,7 +308,7 @@ static const char* g_countryCodes[] = // TODO: needs update this table! http://e
 	"UM", "US", "UY", "UZ", "VA", "VC", "VE", "VG", "VI", "VN", "VU", "WF", "WS", "YE", "YT", "YU", "ZA", "ZM", "ZW"
 };
 //==========================================================================
-static int getFlagIndexByCode(uint16_t p_countryCode) // [!] IRainman: countryCode is uint16_t.
+int Util::getFlagIndexByCode(uint16_t p_countryCode) // [!] IRainman: countryCode is uint16_t.
 {
 	// country codes are sorted, use binary search for better performance
 	int begin = 0;
@@ -1095,7 +1099,7 @@ string Util::getLocalOrBindIp(const bool p_check_bind_address)
 {
 	string tmp;
 	char buf[256];
-	if (!gethostname(buf, 255))
+	if (!gethostname(buf, 255)) // двойной вызов
 	{
 		const hostent* he = gethostbyname(buf);
 		if (he == nullptr || he->h_addr_list[0] == 0)
@@ -1188,7 +1192,18 @@ static wchar_t utf8ToLC(ccp& str)
 	
 	return Text::toLower(c);
 }
-string Util::toString(const string& p_sep, const StringList& p_lst)
+string Util::toString(const char* p_sep, const StringList& p_lst)
+{
+	string ret;
+	for (auto i = p_lst.cbegin(), iend = p_lst.cend(); i != iend; ++i)
+	{
+		ret += *i;
+		if (i + 1 != iend)
+			ret += string(p_sep);
+	}
+	return ret;
+}
+string Util::toString(char p_sep, const StringList& p_lst)
 {
 	string ret;
 	for (auto i = p_lst.cbegin(), iend = p_lst.cend(); i != iend; ++i)
@@ -1196,6 +1211,18 @@ string Util::toString(const string& p_sep, const StringList& p_lst)
 		ret += *i;
 		if (i + 1 != iend)
 			ret += p_sep;
+	}
+	return ret;
+}
+string Util::toString(char p_sep, const StringSet& p_set)
+{
+	string ret;
+	char l_start_sep = ' ';
+	for (auto i = p_set.cbegin(), iend = p_set.cend(); i != iend; ++i)
+	{
+		ret += l_start_sep;
+		ret += *i;
+		l_start_sep = p_sep;
 	}
 	return ret;
 }
@@ -1851,7 +1878,7 @@ Util::CustomNetworkIndex Util::getIpCountry(uint32_t p_ip)
 		{
 			CFlylinkDBManager::getInstance()->get_country(p_ip, l_country_index);
 		}
-#endif 
+#endif
 		int32_t  l_location_index = -1;
 		CFlylinkDBManager::getInstance()->get_location(p_ip, l_location_index);
 		if (l_location_index > 0)
@@ -2369,7 +2396,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vecto
 			l_cache_flag = INTERNET_FLAG_RESYNCHRONIZE;
 		}
 	}
-	CInternetHandle hURL(InternetOpenUrlA(hInternet, url.c_str(), NULL, 0, l_cache_flag , 0));
+	CInternetHandle hURL(InternetOpenUrlA(hInternet, url.c_str(), NULL, 0, m_flag ? m_flag : l_cache_flag , 0));
 	if (!hURL)
 	{
 		dcassert(0);

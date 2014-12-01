@@ -115,6 +115,7 @@ class CompatibilityManager
 		static string generateGlobalMemoryStatusMessage();
 		static string generateFullSystemStatusMessage();
 		static string generateProgramStats();
+		static string generateNetworkStats();
 		static string getDefaultPath()
 		{
 			const char* homePath = isWine() ? getenv("HOME") : getenv("SystemDrive");

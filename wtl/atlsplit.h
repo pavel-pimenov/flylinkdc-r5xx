@@ -54,7 +54,7 @@ namespace WTL
 
 // Note: SPLIT_PROPORTIONAL and SPLIT_RIGHTALIGNED/SPLIT_BOTTOMALIGNED are 
 // mutually exclusive. If both are set, splitter defaults to SPLIT_PROPORTIONAL.
-// SPLIT_GRADIENTBAR doesn't wotk with _ATL_NO_MSIMG
+// SPLIT_GRADIENTBAR doesn't work with _ATL_NO_MSIMG
 
 
 template <class T>

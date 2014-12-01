@@ -28,17 +28,16 @@ class SDCPage : public CPropertyPage<IDD_SDC_PAGE>, public PropPage
 #endif
 {
 	public:
-		SDCPage(SettingsManager *s) : PropPage(s)
+		SDCPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_ADVANCED3))
 		{
-			title = TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_ADVANCED3);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
-		};
+		}
 		
 		~SDCPage()
 		{
 			ctrlShutdownAction.Detach();
-		};
+		}
 		
 		BEGIN_MSG_MAP(SDCPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
@@ -64,7 +63,7 @@ class SDCPage : public CPropertyPage<IDD_SDC_PAGE>, public PropPage
 		
 		CComboBox ctrlShutdownAction;
 		
-		wstring title;
+		
 };
 
 #endif //SDCPage_H

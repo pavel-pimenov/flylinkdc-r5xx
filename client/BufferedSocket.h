@@ -187,13 +187,17 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 			FastLock l(cs);
 			addTask(UPDATED, nullptr);
 		}
-		
+		void initMyINFOLoader()
+		{
+			m_is_all_my_info_loaded = false;
+			m_myInfoCount = 0;
+		}
 		void disconnect(bool graceless = false) noexcept
 		{
 			FastLock l(cs);
 			if (graceless)
 				m_is_disconnecting = true;
-				
+			initMyINFOLoader();
 			addTask(DISCONNECT, nullptr);
 		}
 		
@@ -222,7 +226,9 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 			m_is_all_my_info_loaded = true;
 		}
 	private:
-		void all_myinfo_parser(const string::size_type pos, const string& p_line, StringList& p_all_myInfo, bool p_is_zon);
+		void all_myinfo_parser(const string::size_type p_pos_next_separator, const string& p_line, StringList& p_all_myInfo, bool p_is_zon);
+		static bool all_search_parser(const string::size_type p_pos_next_separator, const string& p_line,
+		                              CFlySearchArray& p_tth_search, StringList& p_file_search);
 		char m_separator;
 	private:
 		enum Tasks
@@ -280,7 +286,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		Semaphore taskSem;
 		deque<pair<Tasks, std::unique_ptr<TaskData>> > m_tasks;
 		volatile ThreadID m_threadId; // [+] IRainman fix.
-		ByteVector inbuf;
+		ByteVector m_inbuf;
 		size_t m_myInfoCount; // Счетчик MyInfo
 		bool   m_is_all_my_info_loaded;  // Флаг передачи команды отличной от MyInfo (стартовая загрузка списка закончилась)
 #ifdef FLYLINKDC_HE
@@ -306,7 +312,6 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 #endif
 		
 		ByteVector m_writeBuf;
-		ByteVector m_sendBuf;
 		
 		string line;
 		int64_t m_dataBytes;

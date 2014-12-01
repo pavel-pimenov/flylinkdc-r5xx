@@ -27,7 +27,6 @@ extern "C" {
 #endif
 #include "../natpmp/getgateway.h"
 #include "../natpmp/natpmp.h"
-#pragma comment(lib, "iphlpapi.lib")
 }
 
 const string Mapper_NATPMP::g_name = "NAT-PMP";

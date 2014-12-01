@@ -28,13 +28,13 @@
 #include "ThrottleManager.h"
 #include "StringTokenizer.h"
 
-NmdcHub::NmdcHub(const string& aHubURL, bool secure) : Client(aHubURL, '|', false), m_supportFlags(0),
+NmdcHub::NmdcHub(const string& aHubURL, bool secure) : Client(aHubURL, '|', false), m_supportFlags(0), m_modeChar(0),
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	m_bAutodetectionPending(true),
 	m_iRequestCount(0),
 #endif
 	m_bLastMyInfoCommand(DIDNT_GET_YET_FIRST_MYINFO),
-	m_lastbytesshared(0),
+	m_lastBytesShared(0),
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 	m_hubSupportsSlots(false),
 #endif // IRAINMAN_ENABLE_AUTO_BAN
@@ -54,17 +54,17 @@ NmdcHub::~NmdcHub()
 
 #define checkstate() if(state != STATE_NORMAL) return
 
-void NmdcHub::connect(const OnlineUser& aUser, const string&)
+void NmdcHub::connect(const OnlineUser& p_user, const string& p_token, bool p_is_force_passive)
 {
 	checkstate();
-	dcdebug("NmdcHub::connect %s\n", aUser.getIdentity().getNick().c_str());
-	if (isActive())
+	dcdebug("NmdcHub::connect %s\n", p_user.getIdentity().getNick().c_str());
+	if (p_is_force_passive == false && isActive())
 	{
-		connectToMe(aUser);
+		connectToMe(p_user);
 	}
 	else
 	{
-		revConnectToMe(aUser);
+		revConnectToMe(p_user);
 	}
 }
 void NmdcHub::resetAntivirusInfo()
@@ -169,7 +169,6 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 		ou = findUser(aNick); // !SMT!-S
 		if (ou)
 		{
-		
 			return ou; // !SMT!-S
 		}
 	}
@@ -243,8 +242,8 @@ void NmdcHub::putUser(const string& aNick)
 			return;
 		ou = i->second;
 		m_users.erase(i);
+		decBytesSharedL(ou->getIdentity());
 	}
-	decBytesShared(ou->getIdentity());
 	
 	if (!ou->getUser()->getCID().isZero()) // [+] IRainman fix.
 		ClientManager::getInstance()->putOffline(ou); // [2] https://www.box.net/shared/7b796492a460fe528961
@@ -263,14 +262,15 @@ void NmdcHub::clearUsers()
 			i->second->dec();
 		}
 		m_users.clear();
+		clearAvailableBytesL();
 	}
 	else
 	{
-		clearAvailableBytes();
 		NickMap u2;
 		{
 			webrtc::WriteLockScoped l(*m_cs);
 			u2.swap(m_users);
+			clearAvailableBytesL();
 		}
 		for (auto i = u2.cbegin(); i != u2.cend(); ++i)
 		{
@@ -284,7 +284,7 @@ void NmdcHub::clearUsers()
 		}
 	}
 }
-
+//==========================================================================================
 void NmdcHub::updateFromTag(Identity& id, const string & tag) // [!] IRainman opt.
 {
 	const StringTokenizer<string> tok(tag, ','); // TODO - убрать разбор токенов. сделать простое сканирование в цикле в поиске запятых
@@ -382,7 +382,1087 @@ void NmdcHub::updateFromTag(Identity& id, const string & tag) // [!] IRainman op
 	/// @todo Think about this
 	// [-] id.setStringParam("TA", '<' + tag + '>'); [-] IRainman opt.
 }
+//=================================================================================================================
+bool NmdcHub::NmdcPartialSearch(const string& aSeeker,
+                                Search::TypeModes aFileType, const string& aString)
+{
+	bool l_is_partial = false;
+	if (aFileType == Search::TYPE_TTH && isTTHBase64(aString)) //[+]FlylinkDC++ opt.
+	{
+		// TODO - унести код в отдельный метод
+		PartsInfo partialInfo;
+		TTHValue aTTH(aString.c_str() + 4);  //[+]FlylinkDC++ opt. //-V112
+#ifdef _DEBUG
+//		LogManager::getInstance()->message("[Try] handlePartialSearch TTH = " + aString);
+#endif
+		if (QueueManager::getInstance()->handlePartialSearch(aTTH, partialInfo)) // TODO - часто ищется по ТТХ
+		{
+#ifdef _DEBUG
+			LogManager::getInstance()->message("[OK] handlePartialSearch TTH = " + aString);
+#endif
+			l_is_partial = true;
+			string ip, file, proto, query, fragment;
+			uint16_t port = 0;
+			Util::decodeUrl(aSeeker, proto, ip, port, file, query, fragment); // TODO - зачем тут такая штука - по протоколу ведь aSeeker = IP:Port ?
+			dcassert(aSeeker == ip + ':' + Util::toString(port));
+			
+			try
+			{
+				AdcCommand cmd(AdcCommand::CMD_PSR, AdcCommand::TYPE_UDP);
+				SearchManager::getInstance()->toPSR(cmd, true, getMyNick(), getIpPort(), aTTH.toBase32(), partialInfo);
+				Socket udp;
+				udp.writeTo(Socket::resolve(ip), port, cmd.toString(ClientManager::getMyCID())); // TODO - зачем тут resolve кроме IP может быть что-то другое?
+				LogManager::getInstance()->psr_message(
+				    "[ClientManager::NmdcSearch Send UDP IP = " + ip +
+				    " param->udpPort = " + Util::toString(port) +
+				    " cmd = " + cmd.toString(ClientManager::getMyCID())
+				);
+			}
+			catch (Exception& e)
+			{
+				LogManager::getInstance()->psr_message(
+				    "[Partial search caught error] Error = " + e.getError() +
+				    " IP = " + ip +
+				    " param->udpPort = " + Util::toString(port)
+				);
+				
+#ifdef _DEBUG
+				LogManager::getInstance()->message("ClientManager::on(NmdcSearch, Partial search caught error = " + e.getError() + " TTH = " + aString);
+				dcdebug("Partial search caught error\n");
+#endif
+			}
+		}
+	}
+	return l_is_partial;
+}
+//=================================================================================================================
+void NmdcHub::NmdcSearch(const string& aSeeker, Search::SizeModes aSizeMode, int64_t aSize,
+                         Search::TypeModes aFileType, const string& aString, bool isPassive) noexcept
+{
+	ClientManagerListener::SearchReply l_re = ClientManagerListener::SEARCH_MISS; // !SMT!-S
+	SearchResultList l;
+#ifdef PPA_USE_HIGH_LOAD_FOR_SEARCH_ENGINE_IN_DEBUG
+	ShareManager::getInstance()->search(l, aString, aSizeMode, aSize, aFileType, this, isPassive ? 100 : 200);
+#else
+	ShareManager::getInstance()->search(l, aString, aSizeMode, aSize, aFileType, this, isPassive ? 5 : 10);
+#endif
+	if (!l.empty())
+	{
+		l_re = ClientManagerListener::SEARCH_HIT;
+		if (isPassive)
+		{
+			string name = aSeeker.substr(4); //-V112
+			// Good, we have a passive seeker, those are easier...
+			string str;
+			for (auto i = l.cbegin(); i != l.cend(); ++i)
+			{
+				const SearchResultPtr& sr = *i;
+				str += sr->toSR(*this);
+				str[str.length() - 1] = 5;
+//#ifdef IRAINMAN_USE_UNICODE_IN_NMDC
+//				str += name;
+//#else
+				str += Text::fromUtf8(name, getEncoding());
+//#endif
+				str += '|';
+			}
+			
+			if (!str.empty())
+			{
+				send(str);
+			}
+		}
+		else
+		{
+			try
+			{
+				// Часто делаем - унести в отдельный менеджер?
+				Socket udp;
+				string l_ip, file, proto, query, fragment;
+				uint16_t l_port = 0;
+				Util::decodeUrl(aSeeker, proto, l_ip, l_port, file, query, fragment);
+				l_ip = Socket::resolve(l_ip);
+				//
+				if (l_port == 0)
+					l_port = 412;
+				dcassert(0);
+				for (auto i = l.cbegin(); i != l.cend(); ++i)
+				{
+					const SearchResultPtr& sr = *i;
+					const string l_command = sr->toSR(*this);
+					udp.writeTo(l_ip, l_port, l_command);
+					
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+					const string l_sr = sr->toSR(*aClient);
+					string l_tth;
+					const auto l_tth_pos = l_sr.find("TTH:");
+					if (l_tth_pos != string::npos)
+						l_tth = l_sr.substr(l_tth_pos + 4, 39);
+					CFlylinkDBManager::getInstance()->push_event_statistic("$SR", "UDP-write-dc", l_sr, ip, Util::toString(port), aClient->getHubUrl(), l_tth);
+#endif
+					COMMAND_DEBUG("[NMDC UDP OLD!][" + l_ip + ':' + Util::toString(l_port) + "] " + l_command, DebugTask::HUB_OUT, getIpPort());
+				}
+			}
+			catch (Exception& e)
+			{
+#ifdef _DEBUG
+				LogManager::getInstance()->message("ClientManager::on(NmdcSearch, Search caught error= " + e.getError());
+#endif
+				dcdebug("Search caught error = %s\n", + e.getError().c_str());
+			}
+		}
+	}
+	else
+	{
+		if (!isPassive)
+		{
+			if (NmdcPartialSearch(aSeeker, aFileType, aString))
+			{
+				l_re = ClientManagerListener::SEARCH_PARTIAL_HIT;
+			}
+		}
+	}
+	ClientManager::getInstance()->fireIncomingSearch(aSeeker, aString, l_re);
+}
 
+//=================================================================================================
+void NmdcHub::sendUDPSR(const CFlySearchItem& p_result, const Client* p_client)
+{
+	try
+	{
+		// Часто делаем - унести в отдельный менеджер?
+		Socket udp;
+		const auto l_port_offset = p_result.m_search.find(':');
+		uint16_t l_port;
+		if (l_port_offset != string::npos)
+			l_port = atoi(p_result.m_search.c_str() + l_port_offset + 1);
+		else
+		{
+			dcassert(0);
+			l_port = 412;
+		}
+		
+		const string l_ip = p_result.m_search.substr(0, p_result.m_search.find(':'));
+		//Util::decodeUrl(p_result.m_search, proto, ip, port, file, query, fragment);
+		//ip = Socket::resolve(ip); // TODO - убрать
+		udp.writeTo(l_ip, l_port, *p_result.m_toSRCommand);
+		
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+		const string l_sr = *p_result.m_toSRCommand;
+		string l_tth;
+		const auto l_tth_pos = l_sr.find("TTH:");
+		if (l_tth_pos != string::npos)
+			l_tth = l_sr.substr(l_tth_pos + 4, 39);
+		CFlylinkDBManager::getInstance()->push_event_statistic("$SR", "UDP-write-dc", l_sr, ip, Util::toString(port), p_client->getHubUrl(), l_tth);
+#endif
+		COMMAND_DEBUG("[NMDC-UDP][" + l_ip + ':' + Util::toString(l_port) + "] " + *p_result.m_toSRCommand, DebugTask::HUB_OUT, p_client->getIpPort());
+	}
+	catch (Exception& e)
+	{
+#ifdef _DEBUG
+		LogManager::getInstance()->message("ClientManager::on(NmdcSearch, Search caught error= " + e.getError());
+#endif
+		dcdebug("Search caught error = %s\n", + e.getError().c_str());
+	}
+}
+//==========================================================================================
+string NmdcHub::calcExternalIP() const
+{
+	return (getFavIp().empty() ? getLocalIp() : getFavIp()) + ':' + Util::toString(SearchManager::getInstance()->getSearchPort());
+}
+//==========================================================================================
+#if 0
+void NmdcHub::searchParseTTHActive(const string& param, const int p_offset_tth)
+{
+	dcassert(param.find("?9?TTH:") != string::npos);
+	if (state != STATE_NORMAL
+#ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
+	        || getHideShare()
+#endif
+	   )
+	{
+		return;
+	}
+	string::size_type i = 0;
+	//string::size_type j = p_offset_tth;
+	const auto seeker = param.substr(i, p_offset_tth); //
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+	string l_tth;
+	const auto l_tth_pos = param.find("?9?TTH:", i);
+	if (l_tth_pos != string::npos)
+		l_tth = param.c_str() + l_tth_pos + 7;
+	if (!l_tth.empty())
+		CFlylinkDBManager::getInstance()->push_event_statistic("search-a-TTH", "TTH", param, getIpAsString(), "", getHubUrlAndIP(), l_tth);
+	else
+		CFlylinkDBManager::getInstance()->push_event_statistic("search-a-TTH", "Others", param, getIpAsString(), "", getHubUrlAndIP());
+#endif
+	if (isActive())
+	{
+		if (seeker == calcExternalIP())
+		{
+			dcassert(0);
+			return;
+		}
+	}
+	Search::SizeModes a = Search::SIZE_DONTCARE;
+	const Search::TypeModes type = Search::TYPE_TTH;
+	const string terms = param.substr(p_offset_tth + 9);
+	if (!terms.empty())
+	{
+		int64_t l_size = 0;
+		ClientManager::getInstance()->NmdcSearch(this, seeker, a, l_size, type, terms, false);
+		// TODO - сделать для TTH - отдельный фаер!
+	}
+}
+#endif
+//==========================================================================================
+void NmdcHub::searchParse(const string& param, bool p_is_passive)
+{
+	if (state != STATE_NORMAL
+#ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
+	        || getHideShare()
+#endif
+	   )
+	{
+		return;
+	}
+	string::size_type i = 0;
+	string::size_type j = param.find(' ', i);
+	if (j == string::npos || i == j)
+	{
+#ifdef FLYLINKDC_BETA
+		LogManager::getInstance()->message("Error [part 1] $Search command = " + param + " Hub: " + getHubUrl());
+#endif
+		return;
+	}
+	
+	const auto seeker = param.substr(i, j - i);
+	
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+	string l_tth;
+	const auto l_tth_pos = param.find("?9?TTH:", i);
+	if (l_tth_pos != string::npos)
+		l_tth = param.c_str() + l_tth_pos + 7;
+	if (!l_tth.empty())
+		CFlylinkDBManager::getInstance()->push_event_statistic(p_is_passive ? "search-p" : "search-a", "TTH", param, getIpAsString(), "", getHubUrlAndIP(), l_tth);
+	else
+		CFlylinkDBManager::getInstance()->push_event_statistic(p_is_passive ? "search-p" : "search-a", "Others", param, getIpAsString(), "", getHubUrlAndIP());
+#endif
+		
+	if (!p_is_passive)
+	{
+		const auto i = seeker.rfind(':');
+		if (i != string::npos)
+		{
+			const auto k = param.find("?9?TTH:", i); // Если идет запрос по TTH - пропускаем без проверки
+			if (k == string::npos)
+			{
+				if (ConnectionManager::getInstance()->checkIpFlood(seeker.substr(0, i), Util::toInt(seeker.substr(i + 1)), getIp(), param, getHubUrlAndIP()))
+				{
+					return; // http://dchublist.ru/forum/viewtopic.php?f=6&t=1028&start=150
+				}
+			}
+		}
+	}
+	// Filter own searches
+	if (p_is_passive)
+	{
+		// [!] PPA fix
+		// seeker в начале может не содержать "Hub:" - падаем
+		// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=64297
+		// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=63507
+		const auto& myNick = getMyNick();
+		dcassert(seeker.size() > 4);
+		if (seeker.compare(4, myNick.size(), myNick) == 0) // [!] IRainman fix: strongly check
+		{
+			return;
+		}
+	}
+	else if (isActive())
+	{
+		if (seeker == calcExternalIP())
+		{
+			return;
+		}
+	}
+	i = j + 1;
+	Search::SizeModes a;
+	if (param[i] == 'F')
+	{
+		a = Search::SIZE_DONTCARE;
+	}
+	else if (param[i + 2] == 'F')
+	{
+		a = Search::SIZE_ATLEAST;
+	}
+	else
+	{
+		a = Search::SIZE_ATMOST;
+	}
+	i += 4;
+	j = param.find('?', i);
+	if (j == string::npos || i == j)
+	{
+#ifdef FLYLINKDC_BETA
+		LogManager::getInstance()->message("Error [part 4] $Search command = " + param + " Hub: " + getHubUrl());
+#endif
+		return;
+	}
+	int64_t l_size;
+	if ((j - i) == 1 && param[i] == '0')
+	{
+		l_size = 0;
+	}
+	else
+	{
+		l_size = _atoi64(param.c_str() + i);
+	}
+	i = j + 1;
+	j = param.find('?', i);
+	if (j == string::npos || i == j)
+	{
+#ifdef FLYLINKDC_BETA
+		// LogManager::getInstance()->message("Error [part 5] $Search command = " + param + " Hub: " + getHubUrl());
+#endif
+		return;
+	}
+	const int l_type_search = atoi(param.c_str() + i);
+	const Search::TypeModes type = Search::TypeModes(l_type_search - 1);
+	i = j + 1;
+	string terms;
+	if (type == Search::TYPE_TTH && (param.size() - i) == 39 + 4) // 39+4 = strlen("TTH:VGUKIR6NLP6LQB7P5NDCZGUSR3MFHRMRO3VJLWY")
+	{
+		terms = param.substr(i);
+	}
+	else
+	{
+		terms = unescape(param.substr(i));
+	}
+	//dcassert(!terms.empty());
+	if (!terms.empty())
+	{
+		if (p_is_passive)
+		{
+			OnlineUserPtr u = findUser(seeker.substr(4));
+			
+			if (!u)
+				return;
+				
+			// [!] IRainman fix
+			if (!u->getUser()->isSet(User::NMDC_SEARCH_PASSIVE))
+			{
+				u->getUser()->setFlag(User::NMDC_SEARCH_PASSIVE);
+				updated(u);
+			}
+			// [~] IRainman fix.
+			
+			// ignore if we or remote client don't support NAT traversal in passive mode although many NMDC hubs won't send us passive if we're in passive too, so just in case...
+			if (!isActive() && (!u->getUser()->isSet(User::NAT0) || !BOOLSETTING(ALLOW_NAT_TRAVERSAL)))
+			{
+#ifdef FLYLINKDC_BETA
+				LogManager::getInstance()->message("Error [part 7] $Search command = " + param + " Hub: " + getHubUrl() +
+				                                   "ignore if we or remote client don't support NAT traversal in passive mode although many NMDC hubs won't send us passive if we're in passive too, so just in case..."
+				                                  );
+#endif
+				return;
+			}
+		}
+		
+		ClientManager::getInstance()->NmdcSearch(this, seeker, a, l_size, type, terms, p_is_passive);
+		// Dead lock 2 https://code.google.com/p/flylinkdc/issues/detail?id=1428
+	}
+	else
+	{
+#ifdef FLYLINKDC_BETA
+		// LogManager::getInstance()->message("Error [part 6] $Search command = " + param + " Hub: " + getHubUrl());
+#endif
+	}
+}
+//==========================================================================================
+void NmdcHub::revConnectToMeParse(const string& param)
+{
+	if (state != STATE_NORMAL)
+	{
+		return;
+	}
+	
+	string::size_type j = param.find(' ');
+	if (j == string::npos)
+	{
+		return;
+	}
+	
+	OnlineUserPtr u = findUser(param.substr(0, j));
+	if (!u)
+		return;
+		
+	if (isActive())
+	{
+		connectToMe(*u);
+	}
+	else if (BOOLSETTING(ALLOW_NAT_TRAVERSAL) && u->getUser()->isSet(User::NAT0))
+	{
+		bool secure = CryptoManager::getInstance()->TLSOk() && u->getUser()->isSet(User::TLS)
+#ifdef IRAINMAN_ENABLE_STEALTH_MODE
+		              && !getStealth()
+#endif
+		              ;
+		// NMDC v2.205 supports "$ConnectToMe sender_nick remote_nick ip:port", but many NMDC hubsofts block it
+		// sender_nick at the end should work at least in most used hubsofts
+		send("$ConnectToMe " + fromUtf8(u->getIdentity().getNick()) + ' ' + getLocalIp() + ":" + Util::toString(m_client_sock->getLocalPort()) + (secure ? "NS " : "N ") + fromUtf8(getMyNick()) + '|');
+	}
+	else
+	{
+		// [!] IRainman fix.
+		if (!u->getUser()->isSet(User::NMDC_FILES_PASSIVE))
+		{
+			// [!] IRainman fix: You can not reset the user to flag as if we are passive, not him!
+			// [-] u->getUser()->setFlag(User::NMDC_FILES_PASSIVE);
+			// [-] Notify the user that we're passive too...
+			// [-] updated(u); [-]
+			revConnectToMe(*u);
+			
+			return;
+		}
+		// [~] IRainman fix.
+	}
+	
+}
+//==========================================================================================
+void NmdcHub::connectToMeParse(const string& param)
+{
+	string senderNick;
+	string port;
+	string server;
+	while (true)
+	{
+		if (state != STATE_NORMAL)
+		{
+			break;
+		}
+		string::size_type i = param.find(' ');
+		string::size_type j;
+		if (i == string::npos || (i + 1) >= param.size())
+		{
+			break;
+		}
+		i++;
+		j = param.find(':', i);
+		if (j == string::npos)
+		{
+			break;
+		}
+		server = param.substr(i, j - i);
+		if (j + 1 >= param.size())
+		{
+			break;
+		}
+		
+		i = param.find(' ', j + 1);
+		if (i == string::npos)
+		{
+			port = param.substr(j + 1);
+		}
+		else
+		{
+			senderNick = param.substr(i + 1);
+			port = param.substr(j + 1, i - j - 1);
+		}
+		
+		bool secure = false;
+		if (port[port.size() - 1] == 'S')
+		{
+			port.erase(port.size() - 1);
+			if (CryptoManager::getInstance()->TLSOk())
+			{
+				secure = true;
+			}
+		}
+		
+		if (BOOLSETTING(ALLOW_NAT_TRAVERSAL))
+		{
+			if (port[port.size() - 1] == 'N')
+			{
+				if (senderNick.empty())
+					break;
+					
+				port.erase(port.size() - 1);
+				
+				// Trigger connection attempt sequence locally ...
+				ConnectionManager::getInstance()->nmdcConnect(server, static_cast<uint16_t>(Util::toInt(port)), m_client_sock->getLocalPort(),
+				                                              BufferedSocket::NAT_CLIENT, getMyNick(), getHubUrl(),
+				                                              getEncoding(),
+#ifdef IRAINMAN_ENABLE_STEALTH_MODE
+				                                              getStealth(),
+#endif
+				                                              secure
+#ifdef IRAINMAN_ENABLE_STEALTH_MODE
+				                                              && !getStealth()
+#endif
+				                                             );
+				                                             
+				// ... and signal other client to do likewise.
+				send("$ConnectToMe " + senderNick + ' ' + getLocalIp() + ":" + Util::toString(m_client_sock->getLocalPort()) + (secure ? "RS" : "R") + '|');
+				break;
+			}
+			else if (port[port.size() - 1] == 'R')
+			{
+				port.erase(port.size() - 1);
+				
+				// Trigger connection attempt sequence locally
+				ConnectionManager::getInstance()->nmdcConnect(server, static_cast<uint16_t>(Util::toInt(port)), m_client_sock->getLocalPort(),
+				                                              BufferedSocket::NAT_SERVER, getMyNick(), getHubUrl(),
+				                                              getEncoding(),
+#ifdef IRAINMAN_ENABLE_STEALTH_MODE
+				                                              getStealth(),
+#endif
+				                                              secure);
+				break;
+			}
+		}
+		
+		if (port.empty())
+			break;
+			
+		// For simplicity, we make the assumption that users on a hub have the same character encoding
+		ConnectionManager::getInstance()->nmdcConnect(server, static_cast<uint16_t>(Util::toInt(port)), getMyNick(), getHubUrl(),
+		                                              getEncoding(),
+#ifdef IRAINMAN_ENABLE_STEALTH_MODE
+		                                              getStealth(),
+#endif
+		                                              secure);
+		break; // Все ОК тут брек хороший
+	}
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+	const string l_hub = getHubUrl();
+	CFlylinkDBManager::getInstance()->push_dc_command_statistic(l_hub.empty() ? "-" : l_hub, param, server, port, senderNick);
+#endif
+}
+//==========================================================================================
+void NmdcHub::chatMessageParse(const string& aLine)
+{
+	// Check if we're being banned...
+	if (state != STATE_NORMAL)
+	{
+		if (Util::findSubString(aLine, "banned") != string::npos)
+		{
+			setAutoReconnect(false);
+		}
+	}
+	// [+] IRainman fix.
+	const string l_utf8_line = toUtf8(aLine);
+	
+	if ((l_utf8_line.find("Hub-Security") != string::npos) && (l_utf8_line.find("was kicked by") != string::npos))
+	{
+		fire(ClientListener::StatusMessage(), this, unescape(l_utf8_line), ClientListener::FLAG_IS_SPAM);
+		return;
+	}
+	else if ((l_utf8_line.find("is kicking") != string::npos) && (l_utf8_line.find("because:") != string::npos))
+	{
+		fire(ClientListener::StatusMessage(), this, unescape(l_utf8_line), ClientListener::FLAG_IS_SPAM);
+		return;
+	}
+	// [~] IRainman fix.
+	string nick;
+	string message;
+	bool bThirdPerson = false;
+	
+	
+	if ((l_utf8_line.size() > 1 && l_utf8_line.compare(0, 2, "* ", 2) == 0) || (l_utf8_line.size() > 2 && l_utf8_line.compare(0, 3, "** ", 3) == 0))
+	{
+		size_t begin = l_utf8_line[1] == '*' ? 3 : 2;
+		size_t end = l_utf8_line.find(' ', begin);
+		if (end != string::npos)
+		{
+			nick = l_utf8_line.substr(begin, end - begin);
+			message = l_utf8_line.substr(end + 1);
+			bThirdPerson = true;
+		}
+	}
+	else if (l_utf8_line[0] == '<')
+	{
+		string::size_type i = l_utf8_line.find('>', 2);
+		
+		if (i != string::npos)
+		{
+			if (l_utf8_line.size() <= i + 2)
+			{
+				// there is nothing after last '>'
+				nick.clear();
+			}
+			else
+			{
+				nick = l_utf8_line.substr(1, i - 1);
+				message = l_utf8_line.substr(i + 2);
+				if (isFloodCommand("<Nick>", aLine) == true)
+				{
+					return;
+				}
+			}
+		}
+	}
+	if (nick.empty())
+	{
+		fire(ClientListener::StatusMessage(), this, unescape(l_utf8_line));
+		return;
+	}
+	
+	if (message.empty())
+	{
+		message = l_utf8_line;
+	}
+	const auto l_user = findUser(nick);
+	std::unique_ptr<ChatMessage> chatMessage(new ChatMessage(unescape(message), l_user));
+	chatMessage->thirdPerson = bThirdPerson;
+	if (!l_user)
+	{
+		chatMessage->m_text = l_utf8_line; // fix http://code.google.com/p/flylinkdc/issues/detail?id=944
+		// если юзер подставной - не создаем его в списке
+	}
+	// [~] IRainman fix.
+	
+	if (!chatMessage->m_from)
+	{
+		if (l_user)
+		{
+			chatMessage->m_from = l_user; ////getUser(nick, false, false); // Тут внутри снова идет поиск findUser(nick)
+			chatMessage->m_from->getIdentity().setHub();
+			fire(ClientListener::UserUpdated(), chatMessage->m_from);
+		}
+	}
+	chatMessage->translate_me();
+	if (!allowChatMessagefromUser(*chatMessage, nick)) // [+] IRainman fix.
+		return;
+		
+	fire(ClientListener::Message(), this, chatMessage);
+	return;
+	
+}
+//==========================================================================================
+void NmdcHub::hubNameParse(const string& p_param)
+{
+	// Workaround replace newlines in topic with spaces, to avoid funny window titles
+	// If " - " found, the first part goes to hub name, rest to description
+	// If no " - " found, first word goes to hub name, rest to description
+	string l_param = p_param;
+	string::size_type i;
+	boost::replace_all(l_param, "\r\n", " ");
+	std::replace(l_param.begin(), l_param.end(), '\n', ' ');
+	
+	i = l_param.find(" - ");
+	if (i == string::npos)
+	{
+		i = l_param.find(' ');
+		if (i == string::npos)
+		{
+			getHubIdentity().setNick(unescape(l_param));
+			getHubIdentity().setDescription(Util::emptyString);
+		}
+		else
+		{
+			getHubIdentity().setNick(unescape(l_param.substr(0, i)));
+			getHubIdentity().setDescription(unescape(l_param.substr(i + 1)));
+		}
+	}
+	else
+	{
+		getHubIdentity().setNick(unescape(l_param.substr(0, i)));
+		getHubIdentity().setDescription(unescape(l_param.substr(i + 3)));
+	}
+	fire(ClientListener::HubUpdated(), this);
+}
+//==========================================================================================
+void NmdcHub::supportsParse(const string& param)
+{
+	const StringTokenizer<string> st(param, ' '); // TODO убрать текены. сделать поиском. http://code.google.com/p/flylinkdc/issues/detail?id=1112
+	const StringList& sl = st.getTokens();
+	for (auto i = sl.cbegin(); i != sl.cend(); ++i)
+	{
+		if (*i == "UserCommand")
+		{
+			m_supportFlags |= SUPPORTS_USERCOMMAND;
+		}
+		else if (*i == "NoGetINFO")
+		{
+			m_supportFlags |= SUPPORTS_NOGETINFO;
+		}
+		else if (*i == "UserIP2")
+		{
+			m_supportFlags |= SUPPORTS_USERIP2;
+		}
+	}
+}
+//==========================================================================================
+void NmdcHub::userCommandParse(const string& param)
+{
+	string::size_type i = 0;
+	string::size_type j = param.find(' ');
+	if (j == string::npos)
+		return;
+		
+	int type = Util::toInt(param.substr(0, j));
+	i = j + 1;
+	if (type == UserCommand::TYPE_SEPARATOR || type == UserCommand::TYPE_CLEAR)
+	{
+		int ctx = Util::toInt(param.substr(i));
+		fire(ClientListener::HubUserCommand(), this, type, ctx, Util::emptyString, Util::emptyString);
+	}
+	else if (type == UserCommand::TYPE_RAW || type == UserCommand::TYPE_RAW_ONCE)
+	{
+		j = param.find(' ', i);
+		if (j == string::npos)
+			return;
+		int ctx = Util::toInt(param.substr(i));
+		i = j + 1;
+		j = param.find('$');
+		if (j == string::npos)
+			return;
+		string name = unescape(param.substr(i, j - i));
+		// NMDC uses '\' as a separator but both ADC and our internal representation use '/'
+		Util::replace("/", "//", name);
+		Util::replace("\\", "/", name);
+		i = j + 1;
+		string command = unescape(param.substr(i, param.length() - i));
+		fire(ClientListener::HubUserCommand(), this, type, ctx, name, command);
+	}
+}
+//==========================================================================================
+void NmdcHub::lockParse(const string& aLine)
+{
+	if (state != STATE_PROTOCOL || aLine.size() < 6)
+	{
+		return;
+	}
+	state = STATE_IDENTIFY;
+	
+	// Param must not be toUtf8'd...
+	const string param = aLine.substr(6);
+	
+	if (!param.empty())
+	{
+		/* [-] IRainman fix: old proto code: http://mydc.ru/topic915.html?p=6719#entry6719
+		   [-]string::size_type j = param.find(" Pk=");
+		   [-]string lock, pk;
+		   [-]if (j != string::npos)
+		   [-]{
+		   [-]  lock = param.substr(0, j);
+		   [-]  pk = param.substr(j + 4);
+		   [-]}
+		   [-]else
+		   [-] */
+		// [-]{
+		const auto j = param.find(' '); // [!]
+		const auto lock = (j != string::npos) ? param.substr(0, j) : param; // [!]
+		// [-]}
+		// [~] IRainman fix.
+		
+		if (CryptoManager::isExtended(lock))
+		{
+			StringList feat;
+			feat.reserve(8);
+			feat.push_back("UserCommand");
+			feat.push_back("NoGetINFO");
+			feat.push_back("NoHello");
+			feat.push_back("UserIP2");
+			feat.push_back("TTHSearch");
+			feat.push_back("ZPipe0");
+			
+			if (CryptoManager::getInstance()->TLSOk()
+#ifdef IRAINMAN_ENABLE_STEALTH_MODE
+			        && !getStealth()
+#endif
+			   )
+			{
+				feat.push_back("TLS");
+			}
+#ifdef STRONG_USE_DHT
+			if (BOOLSETTING(USE_DHT))
+			{
+				feat.push_back("DHT0");
+			}
+#endif
+			supports(feat);
+		}
+		
+		key(CryptoManager::getInstance()->makeKey(lock));
+		OnlineUserPtr ou = getUser(getMyNick(), false, false); // [!] IRainman fix: use OnlineUserPtr
+		validateNick(ou->getIdentity().getNick());
+	}
+}
+//==========================================================================================
+void NmdcHub::helloParse(const string& param)
+{
+	if (!param.empty())
+	{
+		OnlineUserPtr ou = getUser(param, false, false); // [!] IRainman fix: use OnlineUserPtr
+		
+		if (isMe(ou))
+		{
+			// [!] IRainman fix.
+			if (isActive())
+			{
+				ou->getUser()->unsetFlag(User::NMDC_FILES_PASSIVE);
+				ou->getUser()->unsetFlag(User::NMDC_SEARCH_PASSIVE);
+			}
+			else
+			{
+				ou->getUser()->setFlag(User::NMDC_FILES_PASSIVE);
+				ou->getUser()->setFlag(User::NMDC_SEARCH_PASSIVE);
+			}
+			// [~] IRainman fix.
+			
+			if (state == STATE_IDENTIFY)
+			{
+				state = STATE_NORMAL;
+				updateCounts(false);
+				
+				version();
+				getNickList();
+				myInfo(true);
+				// [-] IRainman.
+				//SetEvent(m_hEventClientInitialized);
+			}
+		}
+		fire(ClientListener::UserUpdated(), ou); // !SMT!-fix
+	}
+}
+//==========================================================================================
+void NmdcHub::userIPParse(const string& param)
+{
+	if (!param.empty())
+	{
+		OnlineUserList v;
+		const StringTokenizer<string> t(param, "$$");
+		const StringList& sl = t.getTokens();
+		{
+			// [-] brain-ripper
+			// I can't see any work with ClientListener
+			// in this block, so I commented LockInstance,
+			// because it caused deadlock in some situations.
+			
+			//ClientManager::LockInstance lc; // !SMT!-fix
+			
+			// Perhaps we should use Lock(cs) here, because
+			// some elements of this class can be (theoretically)
+			// changed in other thread
+			
+			// Lock _l(cs); [-] IRainman fix.
+			for (auto it = sl.cbegin(); it != sl.cend(); ++it)
+			{
+				string::size_type j = 0;
+				if ((j = it->find(' ')) == string::npos)
+					continue;
+				if ((j + 1) == it->length())
+					continue;
+					
+				OnlineUserPtr ou = findUser(it->substr(0, j));
+				
+				if (!ou)
+					continue;
+					
+				const string l_ip = it->substr(j + 1);
+				if (l_ip.size() > 15)
+				{
+					ou->getIdentity().setIP6(l_ip);
+					ou->getIdentity().setUseIP6();
+				}
+				else
+				{
+					dcassert(!l_ip.empty());
+					ou->getIdentity().setIp(l_ip);
+				}
+				v.push_back(ou);
+			}
+		}
+		fire_user_updated(v);
+	}
+}
+//==========================================================================================
+void NmdcHub::botListParse(const string& param)
+{
+	OnlineUserList v;
+	const StringTokenizer<string> t(param, "$$");
+	const StringList& sl = t.getTokens();
+	{
+		for (auto it = sl.cbegin(); it != sl.cend(); ++it)
+		{
+			if (it->empty())
+				continue;
+			OnlineUserPtr ou = getUser(*it, false, false);
+			if (ou)
+			{
+				ou->getIdentity().setBot();
+				v.push_back(ou);
+			}
+		}
+	}
+	fire_user_updated(v);
+}
+//==========================================================================================
+void NmdcHub::nickListParse(const string& param)
+{
+	if (!param.empty())
+	{
+		OnlineUserList v;
+		const StringTokenizer<string> t(param, "$$");
+		const StringList& sl = t.getTokens();
+		{
+			// [-] brain-ripper
+			// I can't see any work with ClientListener
+			// in this block, so I commented LockInstance,
+			// because it caused deadlock in some situations.
+			
+			//ClientManager::LockInstance l; // !SMT!-fix
+			
+			// Perhaps we should use Lock(cs) here, because
+			// some elements of this class can be (theoretically)
+			// changed in other thread
+			
+			// Lock _l(cs); [-] IRainman fix: no needs lock here!
+			
+			for (auto it = sl.cbegin(); it != sl.cend(); ++it)
+			{
+				if (it->empty())
+					continue;
+				OnlineUserPtr ou = getUser(*it, false, false);
+				v.push_back(ou);// [!] IRainman fix: use OnlineUserPtr
+			}
+			
+			if (!(m_supportFlags & SUPPORTS_NOGETINFO))
+			{
+				string tmp;
+				// Let's assume 10 characters per nick...
+				tmp.reserve(v.size() * (11 + 10 + getMyNick().length()));
+				string n = ' ' +  fromUtf8(getMyNick()) + '|';
+				for (auto i = v.cbegin(); i != v.cend(); ++i)
+				{
+					tmp += "$GetINFO ";
+					tmp += fromUtf8((*i)->getIdentity().getNick());
+					tmp += n;
+				}
+				if (!tmp.empty())
+				{
+					send(tmp);
+				}
+			}
+		}
+		fire_user_updated(v);
+	}
+}
+//==========================================================================================
+void NmdcHub::opListParse(const string& param)
+{
+	if (!param.empty())
+	{
+		OnlineUserList v;
+		const StringTokenizer<string> t(param, "$$");
+		const StringList& sl = t.getTokens();
+		{
+			// [-] brain-ripper
+			// I can't see any work with ClientListener
+			// in this block, so I commented LockInstance,
+			// because it caused deadlock in some situations.
+			
+			//ClientManager::LockInstance l; // !SMT!-fix
+			
+			// Perhaps we should use Lock(cs) here, because
+			// some elements of this class can be (theoretically)
+			// changed in other thread
+			
+			// Lock _l(cs); [-] IRainman fix: no needs any lock here!
+			
+			for (auto it = sl.cbegin(); it != sl.cend(); ++it) // fix copy-paste
+			{
+				if (it->empty())
+					continue;
+					
+				OnlineUserPtr ou = getUser(*it, false, false);
+				if (ou)
+				{
+					ou->getIdentity().setOp(true);
+					v.push_back(ou);
+				}
+			}
+		}
+		fire_user_updated(v);
+		updateCounts(false);
+		
+		// Special...to avoid op's complaining that their count is not correctly
+		// updated when they log in (they'll be counted as registered first...)
+		myInfo(false);
+	}
+}
+//==========================================================================================
+void NmdcHub::toParse(const string& param)
+{
+	string::size_type i = param.find("From: "); // [!] IRainman fix: with space after!
+	if (i == string::npos)
+		return;
+		
+	i += 6;
+	string::size_type j = param.find('$', i);
+	if (j == string::npos)
+		return;
+		
+	const string rtNick = param.substr(i, j - 1 - i);
+	if (rtNick.empty())
+		return;
+	const auto l_user_for_message = findUser(rtNick);
+	if (l_user_for_message == nullptr)
+	{
+		LogManager::getInstance()->flood_message("NmdcHub::onLine $To: invalid user - RoLex flood?: rtNick = " + rtNick + " param = " + param);
+		return;
+	}
+	i = j + 1;
+	
+	if (param.size() < i + 3 || param[i] != '<')
+		return;
+		
+	j = param.find('>', i);
+	if (j == string::npos)
+		return;
+		
+	const string fromNick = param.substr(i + 1, j - i - 1);
+	if (fromNick.empty() || param.size() < j + 2)
+		return;
+	unique_ptr<ChatMessage> message(new ChatMessage(unescape(param.substr(j + 2)), findUser(fromNick), nullptr, l_user_for_message));
+	//if (message.replyTo == nullptr || message.from == nullptr) [-] IRainman fix.
+	{
+		if (message->m_replyTo == nullptr)
+		{
+			// Assume it's from the hub
+			message->m_replyTo = getUser(rtNick, false, false); // [!] IRainman fix: use OnlineUserPtr
+			message->m_replyTo->getIdentity().setHub();
+			fire(ClientListener::UserUpdated(), message->m_replyTo); // !SMT!-fix
+		}
+		if (message->m_from == nullptr)
+		{
+			// Assume it's from the hub
+			message->m_from = getUser(fromNick, false, false); // [!] IRainman fix: use OnlineUserPtr
+			message->m_from->getIdentity().setHub();
+			fire(ClientListener::UserUpdated(), message->m_from); // !SMT!-fix
+		}
+		
+		// Update pointers just in case they've been invalidated
+		// message.replyTo = findUser(rtNick); [-] IRainman fix. Imposibru!!!
+		// message.from = findUser(fromNick); [-] IRainman fix. Imposibru!!!
+	}
+	
+	message->m_to = getMyOnlineUser(); // !SMT!-S [!] IRainman fix.
+	
+	// [+]IRainman fix: message from you to you is not allowed! Block magical spam.
+	if (message->m_to->getUser() == message->m_from->getUser() && message->m_from->getUser() == message->m_replyTo->getUser())
+	{
+		fire(ClientListener::StatusMessage(), this, message->m_text, ClientListener::FLAG_IS_SPAM);
+		LogManager::getInstance()->message("Magic spam message (from you to you) filtered on hub: " + getHubUrl() + ".");
+		return;
+	}
+	if (!allowPrivateMessagefromUser(*message)) // [+] IRainman fix.
+		return;
+		
+	fire(ClientListener::Message(), this, message); // [+]
+}
+//==========================================================================================
 void NmdcHub::onLine(const string& aLine)
 {
 	if (aLine.empty())
@@ -397,108 +1477,22 @@ void NmdcHub::onLine(const string& aLine)
 
 	if (aLine[0] != '$')
 	{
-		// Check if we're being banned...
-		if (state != STATE_NORMAL)
-		{
-			if (Util::findSubString(aLine, "banned") != string::npos)
-			{
-				setAutoReconnect(false);
-			}
-		}
-		// [+] IRainman fix.
-		const string l_utf8_line = toUtf8(aLine);
-		
-		if ((l_utf8_line.find("Hub-Security") != string::npos) && (l_utf8_line.find("was kicked by") != string::npos))
-		{
-			fire(ClientListener::StatusMessage(), this, unescape(l_utf8_line), ClientListener::FLAG_IS_SPAM);
-			return;
-		}
-		else if ((l_utf8_line.find("is kicking") != string::npos) && (l_utf8_line.find("because:") != string::npos))
-		{
-			fire(ClientListener::StatusMessage(), this, unescape(l_utf8_line), ClientListener::FLAG_IS_SPAM);
-			return;
-		}
-		// [~] IRainman fix.
-		string nick;
-		string message;
-		bool bThirdPerson = false;
-		
-		
-		if ((l_utf8_line.size() > 1 && l_utf8_line.compare(0, 2, "* ", 2) == 0) || (l_utf8_line.size() > 2 && l_utf8_line.compare(0, 3, "** ", 3) == 0))
-		{
-			size_t begin = l_utf8_line[1] == '*' ? 3 : 2;
-			size_t end = l_utf8_line.find(' ', begin);
-			if (end != string::npos)
-			{
-				nick = l_utf8_line.substr(begin, end - begin);
-				message = l_utf8_line.substr(end + 1);
-				bThirdPerson = true;
-			}
-		}
-		else if (l_utf8_line[0] == '<')
-		{
-			string::size_type i = l_utf8_line.find('>', 2);
-			
-			if (i != string::npos)
-			{
-				if (l_utf8_line.size() <= i + 2)
-				{
-					// there is nothing after last '>'
-					nick.clear();
-				}
-				else
-				{
-					nick = l_utf8_line.substr(1, i - 1);
-					message = l_utf8_line.substr(i + 2);
-					if (isFloodCommand("<Nick>", aLine) == true)
-					{
-						return;
-					}
-				}
-			}
-		}
-		if (nick.empty())
-		{
-			fire(ClientListener::StatusMessage(), this, unescape(l_utf8_line));
-			return;
-		}
-		
-		if (message.empty())
-		{
-			message = l_utf8_line;
-		}
-		const auto l_user = findUser(nick);
-		std::unique_ptr<ChatMessage> chatMessage(new ChatMessage(unescape(message), l_user));
-		chatMessage->thirdPerson = bThirdPerson;
-		if (!l_user)
-		{
-			chatMessage->m_text = l_utf8_line; // fix http://code.google.com/p/flylinkdc/issues/detail?id=944
-			// если юзер подставной - не создаем его в списке
-		}
-		// [~] IRainman fix.
-		
-		if (!chatMessage->m_from)
-		{
-			if (l_user)
-			{
-				chatMessage->m_from = l_user; ////getUser(nick, false, false); // Тут внутри снова идет поиск findUser(nick)
-				chatMessage->m_from->getIdentity().setHub();
-				fire(ClientListener::UserUpdated(), chatMessage->m_from);
-			}
-		}
-		chatMessage->translate_me();
-		if (!allowChatMessagefromUser(*chatMessage, nick)) // [+] IRainman fix.
-			return;
-			
-		fire(ClientListener::Message(), this, chatMessage);
+		chatMessageParse(aLine);
 		return;
 	}
 	
 	string cmd;
 	string param;
-	string::size_type x;
-	
-	if ((x = aLine.find(' ')) == string::npos)
+	string::size_type x = aLine.find(' ');
+	bool l_is_search  = false;
+	bool l_is_passive = false;
+#ifdef _DEBUG
+//			if(aLine.find("Marvels.Agents.of.S.H.I.E.L.D") != string::npos)
+//			{
+//				l_is_passive = false;
+//			}
+#endif
+	if (x == string::npos)
 	{
 		cmd = aLine.substr(1);
 	}
@@ -506,8 +1500,32 @@ void NmdcHub::onLine(const string& aLine)
 	{
 		cmd = aLine.substr(1, x - 1);
 		param = toUtf8(aLine.substr(x + 1));
+		l_is_search = cmd == "Search"; // TODO - этого больше не будет - похерить
+		if (l_is_search)
+		{
+			dcassert(0);
+			l_is_passive = aLine.compare(8, 4, "Hub:", 4) == 0;
+#ifdef _DEBUG
+			if (l_is_passive)
+			{
+				// TODO - searchParseTTHPassive(param, i);
+			}
+			else
+			{
+				// Отработка наиболее частого запроса вида
+				// "$Search x.x.x.x:yyyy F?T?0?9?TTH:A3VSWSWKCVC4N6EP2GX47OEMGT5ZL52BOS2LAHA"
+				const auto i = param.find("?9?TTH:");
+				if (i != string::npos)
+				{
+					dcassert(0);
+					// Отрабатывается в другом методе
+					// searchParseTTHActive(param, i);
+				}
+			}
+#endif
+		}
 	}
-	if (isFloodCommand(cmd, param) == true)
+	if (l_is_search == false && isFloodCommand(cmd, param) == true)
 	{
 		return;
 	}
@@ -522,173 +1540,10 @@ void NmdcHub::onLine(const string& aLine)
 #endif
 	
 	bool bMyInfoCommand = false;
-	if (cmd == "Search")
+	if (l_is_search)
 	{
-		if (state != STATE_NORMAL
-#ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
-		        || getHideShare()
-#endif
-		   )
-		{
-			return;
-		}
-		string::size_type i = 0;
-		string::size_type j = param.find(' ', i);
-		if (j == string::npos || i == j)
-		{
-#ifdef FLYLINKDC_BETA
-			LogManager::getInstance()->message("Error [part 1] $Search command = " + param + " Hub: " + getHubUrl());
-#endif
-			return;
-		}
-		
-		const auto seeker = param.substr(i, j - i);
-		const auto isPassive = seeker.compare(0, 4, "Hub:", 4) == 0;
-		
-#ifdef FLYLINKDC_USE_COLLECT_STAT
-		string l_tth;
-		const auto l_tth_pos = param.find("?9?TTH:", i);
-		if (l_tth_pos != string::npos)
-			l_tth = param.c_str() + l_tth_pos + 7;
-		if (!l_tth.empty())
-			CFlylinkDBManager::getInstance()->push_event_statistic(isPassive ? "search-p" : "search-a", "TTH", param, getIpAsString(), "", getHubUrlAndIP(), l_tth);
-		else
-			CFlylinkDBManager::getInstance()->push_event_statistic(isPassive ? "search-p" : "search-a", "Others", param, getIpAsString(), "", getHubUrlAndIP());
-#endif
-		if (!isPassive)
-		{
-			const auto i = seeker.rfind(':');
-			if (i != string::npos)
-			{
-				const auto k = param.find("?9?TTH:", i); // Если идет запрос по TTH - пропускаем без проверки
-				if (k == string::npos)
-				{
-					if (ConnectionManager::getInstance()->checkIpFlood(seeker.substr(0, i), Util::toInt(seeker.substr(i + 1)), getIp(), param, getHubUrlAndIP()))
-					{
-						return; // http://dchublist.ru/forum/viewtopic.php?f=6&t=1028&start=150
-					}
-				}
-				else
-				{
-					// Запросы по TTH - покидываем через коротко-живущий фильтр, чтобы исключить лишний дубликатный
-					// поиск и паразитный UDP трафик в обратную сторону
-					if (ConnectionManager::getInstance()->checkTTHDuplicateSearch(param))
-					{
-#ifdef FLYLINKDC_USE_COLLECT_STAT
-						CFlylinkDBManager::getInstance()->push_event_statistic("search-a-skip-dup-tth-search", "TTH", param, getIpAsString(), "", getHubUrlAndIP(), l_tth);
-#endif
-						return;
-					}
-				}
-			}
-		}
-		// Filter own searches
-		if (isPassive)
-		{
-			// [!] PPA fix
-			// seeker в начале может не содержать "Hub:" - падаем
-			// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=64297
-			// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=63507
-			const auto& myNick = getMyNick();
-			dcassert(seeker.size() > 4);
-			if (seeker.compare(4, myNick.size(), myNick) == 0) // [!] IRainman fix: strongly check
-			{
-				return;
-			}
-		}
-		else if (isActive())
-		{
-			if (seeker == ((getFavIp().empty() ? getLocalIp() : getFavIp()) + ":" + Util::toString(SearchManager::getInstance()->getSearchPort())))
-			{
-				return;
-			}
-		}
-		i = j + 1;
-		Search::SizeModes a;
-		if (param[i] == 'F')
-		{
-			a = Search::SIZE_DONTCARE;
-		}
-		else if (param[i + 2] == 'F')
-		{
-			a = Search::SIZE_ATLEAST;
-		}
-		else
-		{
-			a = Search::SIZE_ATMOST;
-		}
-		i += 4;
-		j = param.find('?', i);
-		if (j == string::npos || i == j)
-		{
-#ifdef FLYLINKDC_BETA
-			LogManager::getInstance()->message("Error [part 4] $Search command = " + param + " Hub: " + getHubUrl());
-#endif
-			return;
-		}
-		int64_t l_size;
-		if ((j - i) == 1 && param[i] == '0')
-		{
-			l_size = 0;
-		}
-		else
-		{
-			l_size = _atoi64(param.c_str() + i);
-		}
-		i = j + 1;
-		j = param.find('?', i);
-		if (j == string::npos || i == j)
-		{
-#ifdef FLYLINKDC_BETA
-			// LogManager::getInstance()->message("Error [part 5] $Search command = " + param + " Hub: " + getHubUrl());
-#endif
-			return;
-		}
-		const int l_type_search = atoi(param.c_str() + i);
-		const Search::TypeModes type = Search::TypeModes(l_type_search - 1);
-		i = j + 1;
-		string terms;
-		if (type == Search::TYPE_TTH && (param.size() - i) == 39 + 4) // 39+4 = strlen("TTH:VGUKIR6NLP6LQB7P5NDCZGUSR3MFHRMRO3VJLWY")
-		{
-			terms = param.substr(i);
-		}
-		else
-		{
-			terms = unescape(param.substr(i));
-		}
-		//dcassert(!terms.empty());
-		if (!terms.empty())
-		{
-			if (isPassive)
-			{
-				OnlineUserPtr u = findUser(seeker.substr(4));
-				
-				if (!u)
-					return;
-					
-				// [!] IRainman fix
-				if (!u->getUser()->isSet(User::NMDC_SEARCH_PASSIVE))
-				{
-					u->getUser()->setFlag(User::NMDC_SEARCH_PASSIVE);
-					updated(u);
-				}
-				// [~] IRainman fix.
-				
-				// ignore if we or remote client don't support NAT traversal in passive mode
-				// although many NMDC hubs won't send us passive if we're in passive too, so just in case...
-				if (!isActive() && (!u->getUser()->isSet(User::NAT0) || !BOOLSETTING(ALLOW_NAT_TRAVERSAL)))
-					return;
-			}
-			
-			fire(ClientListener::NmdcSearch(), this, seeker, a, l_size, type, terms, isPassive);
-			// Dead lock 2 https://code.google.com/p/flylinkdc/issues/detail?id=1428
-		}
-		else
-		{
-#ifdef FLYLINKDC_BETA
-			// LogManager::getInstance()->message("Error [part 6] $Search command = " + param + " Hub: " + getHubUrl());
-#endif
-		}
+		dcassert(0);  // Используем void NmdcHub::on(BufferedSocketListener::SearchArrayFile
+		searchParse(param, l_is_passive);
 	}
 	else if (cmd == "MyINFO")
 	{
@@ -704,161 +1559,12 @@ void NmdcHub::onLine(const string& aLine)
 	}
 	else if (cmd == "ConnectToMe")
 	{
-		string senderNick;
-		string port;
-		string server;
-		while (true)
-		{
-			if (state != STATE_NORMAL)
-			{
-				break;
-			}
-			string::size_type i = param.find(' ');
-			string::size_type j;
-			if (i == string::npos || (i + 1) >= param.size())
-			{
-				break;
-			}
-			i++;
-			j = param.find(':', i);
-			if (j == string::npos)
-			{
-				break;
-			}
-			server = param.substr(i, j - i);
-			if (j + 1 >= param.size())
-			{
-				break;
-			}
-			
-			i = param.find(' ', j + 1);
-			if (i == string::npos)
-			{
-				port = param.substr(j + 1);
-			}
-			else
-			{
-				senderNick = param.substr(i + 1);
-				port = param.substr(j + 1, i - j - 1);
-			}
-			
-			bool secure = false;
-			if (port[port.size() - 1] == 'S')
-			{
-				port.erase(port.size() - 1);
-				if (CryptoManager::getInstance()->TLSOk())
-				{
-					secure = true;
-				}
-			}
-			
-			if (BOOLSETTING(ALLOW_NAT_TRAVERSAL))
-			{
-				if (port[port.size() - 1] == 'N')
-				{
-					if (senderNick.empty())
-						break;
-						
-					port.erase(port.size() - 1);
-					
-					// Trigger connection attempt sequence locally ...
-					ConnectionManager::getInstance()->nmdcConnect(server, static_cast<uint16_t>(Util::toInt(port)), m_client_sock->getLocalPort(),
-					                                              BufferedSocket::NAT_CLIENT, getMyNick(), getHubUrl(),
-					                                              getEncoding(),
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-					                                              getStealth(),
-#endif
-					                                              secure
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-					                                              && !getStealth()
-#endif
-					                                             );
-					                                             
-					// ... and signal other client to do likewise.
-					send("$ConnectToMe " + senderNick + ' ' + getLocalIp() + ":" + Util::toString(m_client_sock->getLocalPort()) + (secure ? "RS" : "R") + '|');
-					break;
-				}
-				else if (port[port.size() - 1] == 'R')
-				{
-					port.erase(port.size() - 1);
-					
-					// Trigger connection attempt sequence locally
-					ConnectionManager::getInstance()->nmdcConnect(server, static_cast<uint16_t>(Util::toInt(port)), m_client_sock->getLocalPort(),
-					                                              BufferedSocket::NAT_SERVER, getMyNick(), getHubUrl(),
-					                                              getEncoding(),
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-					                                              getStealth(),
-#endif
-					                                              secure);
-					break;
-				}
-			}
-			
-			if (port.empty())
-				break;
-				
-			// For simplicity, we make the assumption that users on a hub have the same character encoding
-			ConnectionManager::getInstance()->nmdcConnect(server, static_cast<uint16_t>(Util::toInt(port)), getMyNick(), getHubUrl(),
-			                                              getEncoding(),
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-			                                              getStealth(),
-#endif
-			                                              secure);
-			break; // Все ОК тут брек хороший
-		}
-#ifdef FLYLINKDC_USE_COLLECT_STAT
-		const string l_hub = getHubUrl();
-		CFlylinkDBManager::getInstance()->push_dc_command_statistic(l_hub.empty() ? "-" : l_hub, param, server, port, senderNick);
-#endif
+		connectToMeParse(param);
 		return;
 	}
 	else if (cmd == "RevConnectToMe")
 	{
-		if (state != STATE_NORMAL)
-		{
-			return;
-		}
-		
-		string::size_type j = param.find(' ');
-		if (j == string::npos)
-		{
-			return;
-		}
-		
-		OnlineUserPtr u = findUser(param.substr(0, j));
-		if (!u)
-			return;
-			
-		if (isActive())
-		{
-			connectToMe(*u);
-		}
-		else if (BOOLSETTING(ALLOW_NAT_TRAVERSAL) && u->getUser()->isSet(User::NAT0))
-		{
-			bool secure = CryptoManager::getInstance()->TLSOk() && u->getUser()->isSet(User::TLS)
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-			              && !getStealth()
-#endif
-			              ;
-			// NMDC v2.205 supports "$ConnectToMe sender_nick remote_nick ip:port", but many NMDC hubsofts block it
-			// sender_nick at the end should work at least in most used hubsofts
-			send("$ConnectToMe " + fromUtf8(u->getIdentity().getNick()) + ' ' + getLocalIp() + ":" + Util::toString(m_client_sock->getLocalPort()) + (secure ? "NS " : "N ") + fromUtf8(getMyNick()) + '|');
-		}
-		else
-		{
-			// [!] IRainman fix.
-			if (!u->getUser()->isSet(User::NMDC_FILES_PASSIVE))
-			{
-				// [!] IRainman fix: You can not reset the user to flag as if we are passive, not him!
-				// [-] u->getUser()->setFlag(User::NMDC_FILES_PASSIVE);
-				// [-] Notify the user that we're passive too...
-				// [-] updated(u); [-]
-				revConnectToMe(*u);
-				
-				return;
-			}
-			// [~] IRainman fix.
-		}
+		revConnectToMeParse(param);
 	}
 	else if (cmd == "SR")
 	{
@@ -866,194 +1572,23 @@ void NmdcHub::onLine(const string& aLine)
 	}
 	else if (cmd == "HubName")
 	{
-		// Workaround replace newlines in topic with spaces, to avoid funny window titles
-		// If " - " found, the first part goes to hub name, rest to description
-		// If no " - " found, first word goes to hub name, rest to description
-		
-		string::size_type i;
-		boost::replace_all(param, "\r\n", " ");
-		std::replace(param.begin(), param.end(), '\n', ' ');
-		
-		OnlineUserPtr ou;// [+] IRainman fix.
-		string hubnick;
-		
-		i = param.find(" - ");
-		if (i == string::npos)
-		{
-			i = param.find(' ');
-			if (i == string::npos)
-			{
-				hubnick = unescape(param);
-				ou = getUser(hubnick, true, false);
-			}
-			else
-			{
-				hubnick = unescape(param.substr(0, i));
-				ou = getUser(hubnick, true, false);
-				if (!SETTING(STRIP_TOPIC))
-					ou->getIdentity().setDescription(unescape(param.substr(i + 1)));
-			}
-		}
-		else
-		{
-			hubnick = unescape(param.substr(0, i));
-			ou = getUser(hubnick, true, false); // https://www.box.net/shared/0w28tcl49iv1wnckpwi8
-			if (!SETTING(STRIP_TOPIC))
-				ou->getIdentity().setDescription(unescape(param.substr(i + 3)));
-		}
-		ou->getIdentity().setNick(hubnick); // [+] IRainman fix.
-		fire(ClientListener::HubUpdated(), this);
+		hubNameParse(param);
 	}
 	else if (cmd == "Supports")
 	{
-		const StringTokenizer<string> st(param, ' '); // TODO убрать текены. сделать поиском. http://code.google.com/p/flylinkdc/issues/detail?id=1112
-		const StringList& sl = st.getTokens();
-		for (auto i = sl.cbegin(); i != sl.cend(); ++i)
-		{
-			if (*i == "UserCommand")
-			{
-				m_supportFlags |= SUPPORTS_USERCOMMAND;
-			}
-			else if (*i == "NoGetINFO")
-			{
-				m_supportFlags |= SUPPORTS_NOGETINFO;
-			}
-			else if (*i == "UserIP2")
-			{
-				m_supportFlags |= SUPPORTS_USERIP2;
-			}
-		}
+		supportsParse(param);
 	}
 	else if (cmd == "UserCommand")
 	{
-		string::size_type i = 0;
-		string::size_type j = param.find(' ');
-		if (j == string::npos)
-			return;
-			
-		int type = Util::toInt(param.substr(0, j));
-		i = j + 1;
-		if (type == UserCommand::TYPE_SEPARATOR || type == UserCommand::TYPE_CLEAR)
-		{
-			int ctx = Util::toInt(param.substr(i));
-			fire(ClientListener::HubUserCommand(), this, type, ctx, Util::emptyString, Util::emptyString);
-		}
-		else if (type == UserCommand::TYPE_RAW || type == UserCommand::TYPE_RAW_ONCE)
-		{
-			j = param.find(' ', i);
-			if (j == string::npos)
-				return;
-			int ctx = Util::toInt(param.substr(i));
-			i = j + 1;
-			j = param.find('$');
-			if (j == string::npos)
-				return;
-			string name = unescape(param.substr(i, j - i));
-			// NMDC uses '\' as a separator but both ADC and our internal representation use '/'
-			Util::replace("/", "//", name);
-			Util::replace("\\", "/", name);
-			i = j + 1;
-			string command = unescape(param.substr(i, param.length() - i));
-			fire(ClientListener::HubUserCommand(), this, type, ctx, name, command);
-		}
+		userCommandParse(param);
 	}
 	else if (cmd == "Lock")
 	{
-		if (state != STATE_PROTOCOL || aLine.size() < 6)
-		{
-			return;
-		}
-		state = STATE_IDENTIFY;
-		
-		// Param must not be toUtf8'd...
-		param = aLine.substr(6);
-		
-		if (!param.empty())
-		{
-			/* [-] IRainman fix: old proto code: http://mydc.ru/topic915.html?p=6719#entry6719
-			   [-]string::size_type j = param.find(" Pk=");
-			   [-]string lock, pk;
-			   [-]if (j != string::npos)
-			   [-]{
-			   [-]  lock = param.substr(0, j);
-			   [-]  pk = param.substr(j + 4);
-			   [-]}
-			   [-]else
-			   [-] */
-			// [-]{
-			const auto j = param.find(' '); // [!]
-			const auto lock = (j != string::npos) ? param.substr(0, j) : param; // [!]
-			// [-]}
-			// [~] IRainman fix.
-			
-			if (CryptoManager::isExtended(lock))
-			{
-				StringList feat;
-				feat.reserve(8);
-				feat.push_back("UserCommand");
-				feat.push_back("NoGetINFO");
-				feat.push_back("NoHello");
-				feat.push_back("UserIP2");
-				feat.push_back("TTHSearch");
-				feat.push_back("ZPipe0");
-				
-				if (CryptoManager::getInstance()->TLSOk()
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-				        && !getStealth()
-#endif
-				   )
-				{
-					feat.push_back("TLS");
-				}
-#ifdef STRONG_USE_DHT
-				if (BOOLSETTING(USE_DHT))
-				{
-					feat.push_back("DHT0");
-				}
-#endif
-				supports(feat);
-			}
-			
-			key(CryptoManager::getInstance()->makeKey(lock));
-			OnlineUserPtr ou = getUser(getMyNick(), false, false); // [!] IRainman fix: use OnlineUserPtr
-			validateNick(ou->getIdentity().getNick());
-		}
+		lockParse(aLine); // aLine!
 	}
 	else if (cmd == "Hello")
 	{
-		if (!param.empty())
-		{
-			OnlineUserPtr ou = getUser(param, false, false); // [!] IRainman fix: use OnlineUserPtr
-			
-			if (isMe(ou))
-			{
-				// [!] IRainman fix.
-				if (isActive())
-				{
-					ou->getUser()->unsetFlag(User::NMDC_FILES_PASSIVE);
-					ou->getUser()->unsetFlag(User::NMDC_SEARCH_PASSIVE);
-				}
-				else
-				{
-					ou->getUser()->setFlag(User::NMDC_FILES_PASSIVE);
-					ou->getUser()->setFlag(User::NMDC_SEARCH_PASSIVE);
-				}
-				// [~] IRainman fix.
-				
-				if (state == STATE_IDENTIFY)
-				{
-					state = STATE_NORMAL;
-					updateCounts(false);
-					
-					version();
-					getNickList();
-					myInfo(true);
-					// [-] IRainman.
-					//SetEvent(m_hEventClientInitialized);
-				}
-			}
-			fire(ClientListener::UserUpdated(), ou); // !SMT!-fix
-		}
+		helloParse(param);
 	}
 	else if (cmd == "ForceMove")
 	{
@@ -1075,239 +1610,23 @@ void NmdcHub::onLine(const string& aLine)
 	}
 	else if (cmd == "UserIP")
 	{
-		if (!param.empty())
-		{
-			OnlineUserList v;
-			const StringTokenizer<string> t(param, "$$");
-			const StringList& sl = t.getTokens();
-			{
-				// [-] brain-ripper
-				// I can't see any work with ClientListener
-				// in this block, so I commented LockInstance,
-				// because it caused deadlock in some situations.
-				
-				//ClientManager::LockInstance lc; // !SMT!-fix
-				
-				// Perhaps we should use Lock(cs) here, because
-				// some elements of this class can be (theoretically)
-				// changed in other thread
-				
-				// Lock _l(cs); [-] IRainman fix.
-				for (auto it = sl.cbegin(); it != sl.cend(); ++it)
-				{
-					string::size_type j = 0;
-					if ((j = it->find(' ')) == string::npos)
-						continue;
-					if ((j + 1) == it->length())
-						continue;
-						
-					OnlineUserPtr ou = findUser(it->substr(0, j));
-					
-					if (!ou)
-						continue;
-						
-					const string l_ip = it->substr(j + 1);
-					if (l_ip.size() > 15)
-					{
-						ou->getIdentity().setIP6(l_ip);
-						ou->getIdentity().setUseIP6();
-					}
-					else
-					{
-						dcassert(!l_ip.empty());
-						ou->getIdentity().setIp(l_ip);
-					}
-					v.push_back(ou);
-				}
-			}
-			fire_user_updated(v);
-		}
+		userIPParse(param);
 	}
 	else if (cmd == "BotList")
 	{
-		OnlineUserList v;
-		const StringTokenizer<string> t(param, "$$");
-		const StringList& sl = t.getTokens();
-		{
-			for (auto it = sl.cbegin(); it != sl.cend(); ++it)
-			{
-				if (it->empty())
-					continue;
-				OnlineUserPtr ou = getUser(*it, false, false);
-				if (ou)
-				{
-					ou->getIdentity().setBot();
-					v.push_back(ou);
-				}
-			}
-		}
-		fire_user_updated(v);
+		botListParse(param);
 	}
 	else if (cmd == "NickList") // TODO - убить
 	{
-		if (!param.empty())
-		{
-			OnlineUserList v;
-			const StringTokenizer<string> t(param, "$$");
-			const StringList& sl = t.getTokens();
-			{
-				// [-] brain-ripper
-				// I can't see any work with ClientListener
-				// in this block, so I commented LockInstance,
-				// because it caused deadlock in some situations.
-				
-				//ClientManager::LockInstance l; // !SMT!-fix
-				
-				// Perhaps we should use Lock(cs) here, because
-				// some elements of this class can be (theoretically)
-				// changed in other thread
-				
-				// Lock _l(cs); [-] IRainman fix: no needs lock here!
-				
-				for (auto it = sl.cbegin(); it != sl.cend(); ++it)
-				{
-					if (it->empty())
-						continue;
-					OnlineUserPtr ou = getUser(*it, false, false);
-					v.push_back(ou);// [!] IRainman fix: use OnlineUserPtr
-				}
-				
-				if (!(m_supportFlags & SUPPORTS_NOGETINFO))
-				{
-					string tmp;
-					// Let's assume 10 characters per nick...
-					tmp.reserve(v.size() * (11 + 10 + getMyNick().length()));
-					string n = ' ' +  fromUtf8(getMyNick()) + '|';
-					for (auto i = v.cbegin(); i != v.cend(); ++i)
-					{
-						tmp += "$GetINFO ";
-						tmp += fromUtf8((*i)->getIdentity().getNick());
-						tmp += n;
-					}
-					if (!tmp.empty())
-					{
-						send(tmp);
-					}
-				}
-			}
-			fire_user_updated(v);
-		}
+		nickListParse(param);
 	}
 	else if (cmd == "OpList")
 	{
-		if (!param.empty())
-		{
-			OnlineUserList v;
-			const StringTokenizer<string> t(param, "$$");
-			const StringList& sl = t.getTokens();
-			{
-				// [-] brain-ripper
-				// I can't see any work with ClientListener
-				// in this block, so I commented LockInstance,
-				// because it caused deadlock in some situations.
-				
-				//ClientManager::LockInstance l; // !SMT!-fix
-				
-				// Perhaps we should use Lock(cs) here, because
-				// some elements of this class can be (theoretically)
-				// changed in other thread
-				
-				// Lock _l(cs); [-] IRainman fix: no needs any lock here!
-				
-				for (auto it = sl.cbegin(); it != sl.cend(); ++it) // fix copy-paste
-				{
-					if (it->empty())
-						continue;
-						
-					OnlineUserPtr ou = getUser(*it, false, false);
-					if (ou)
-					{
-						ou->getIdentity().setOp(true);
-						v.push_back(ou);
-					}
-				}
-			}
-			fire_user_updated(v);
-			updateCounts(false);
-			
-			// Special...to avoid op's complaining that their count is not correctly
-			// updated when they log in (they'll be counted as registered first...)
-			myInfo(false);
-		}
+		opListParse(param);
 	}
 	else if (cmd == "To:")
 	{
-		if (isFloodCommand(cmd, aLine) == true)
-		{
-			return;
-		}
-		string::size_type i = param.find("From: "); // [!] IRainman fix: with space after!
-		if (i == string::npos)
-			return;
-			
-		i += 6;
-		string::size_type j = param.find('$', i);
-		if (j == string::npos)
-			return;
-			
-		const string rtNick = param.substr(i, j - 1 - i);
-		if (rtNick.empty())
-			return;
-		const auto l_user_for_message = findUser(rtNick);
-		if (l_user_for_message == nullptr)
-		{
-			LogManager::getInstance()->flood_message("NmdcHub::onLine $To: invalid user - RoLex flood?: rtNick = " + rtNick + " aLine = " + aLine);
-			return;
-		}
-		i = j + 1;
-		
-		if (param.size() < i + 3 || param[i] != '<')
-			return;
-			
-		j = param.find('>', i);
-		if (j == string::npos)
-			return;
-			
-		const string fromNick = param.substr(i + 1, j - i - 1);
-		if (fromNick.empty() || param.size() < j + 2)
-			return;
-		unique_ptr<ChatMessage> message(new ChatMessage(unescape(param.substr(j + 2)), findUser(fromNick), nullptr, l_user_for_message));
-		//if (message.replyTo == nullptr || message.from == nullptr) [-] IRainman fix.
-		{
-			if (message->m_replyTo == nullptr)
-			{
-				// Assume it's from the hub
-				message->m_replyTo = getUser(rtNick, false, false); // [!] IRainman fix: use OnlineUserPtr
-				message->m_replyTo->getIdentity().setHub();
-				fire(ClientListener::UserUpdated(), message->m_replyTo); // !SMT!-fix
-			}
-			if (message->m_from == nullptr)
-			{
-				// Assume it's from the hub
-				message->m_from = getUser(fromNick, false, false); // [!] IRainman fix: use OnlineUserPtr
-				message->m_from->getIdentity().setHub();
-				fire(ClientListener::UserUpdated(), message->m_from); // !SMT!-fix
-			}
-			
-			// Update pointers just in case they've been invalidated
-			// message.replyTo = findUser(rtNick); [-] IRainman fix. Imposibru!!!
-			// message.from = findUser(fromNick); [-] IRainman fix. Imposibru!!!
-		}
-		
-		message->m_to = getMyOnlineUser(); // !SMT!-S [!] IRainman fix.
-		
-		// [+]IRainman fix: message from you to you is not allowed! Block magical spam.
-		if (message->m_to->getUser() == message->m_from->getUser() && message->m_from->getUser() == message->m_replyTo->getUser())
-		{
-			fire(ClientListener::StatusMessage(), this, message->m_text, ClientListener::FLAG_IS_SPAM);
-			LogManager::getInstance()->message("Magic spam message (from you to you) filtered on hub: " + getHubUrl() + ".");
-			return;
-		}
-		if (!allowPrivateMessagefromUser(*message)) // [+] IRainman fix.
-			return;
-			
-		fire(ClientListener::Message(), this, message); // [+]
-		// [~]  IRainman fix.
+		toParse(param);
 	}
 	else if (cmd == "GetPass")
 	{
@@ -1417,29 +1736,40 @@ void NmdcHub::hubMessage(const string& aMessage, bool thirdPerson)
 	send(fromUtf8Chat('<' + getMyNick() + "> " + escape(thirdPerson ? "/me " + aMessage : aMessage) + '|')); // IRAINMAN_USE_UNICODE_IN_NMDC
 }
 
-void NmdcHub::myInfo(bool p_alwaysSend)
+void NmdcHub::resendMyINFO(bool p_is_force_passive)
+{
+	if (p_is_force_passive)
+	{
+		if (m_modeChar == 'P' || !isActive())
+			return; // Уходим из обновления MyINFO - мы и так находимся в пассивном режиме
+	}
+	myInfo(false, p_is_force_passive);
+}
+
+void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 {
 	const uint64_t l_limit = 2 * 60 * 1000; // http://code.google.com/p/flylinkdc/issues/detail?id=1370
 	const uint64_t currentTick = GET_TICK(); // [!] IRainman opt.
-	if (!p_alwaysSend && m_lastUpdate + l_limit > currentTick)
+	if (p_is_force_passive == false && p_always_send == false && m_lastUpdate + l_limit > currentTick)
 	{
 		return; // antispam
 	}
-	
 	checkstate();
-	
 	const FavoriteHubEntry *fhe = reloadSettings(false);
-	
-	//[-]PPA    dcdebug("MyInfo %s...\n", getMyNick().c_str());
-	
-	char modeChar;
-	if (SETTING(OUTGOING_CONNECTIONS) == SettingsManager::OUTGOING_SOCKS5)
-		modeChar = '5';
-	else if (isActive())
-		modeChar = 'A';
+	char l_modeChar;
+	if (p_is_force_passive)
+	{
+		l_modeChar = 'P';
+	}
 	else
-		modeChar = 'P';
-		
+	{
+		if (SETTING(OUTGOING_CONNECTIONS) == SettingsManager::OUTGOING_SOCKS5)
+			l_modeChar = '5';
+		else if (isActive())
+			l_modeChar = 'A';
+		else
+			l_modeChar = 'P';
+	}
 	const int64_t upLimit = BOOLSETTING(THROTTLE_ENABLE) ? ThrottleManager::getInstance()->getUploadLimitInKBytes() : 0;// [!] IRainman SpeedLimiter
 	const string uploadSpeed = (upLimit > 0) ? Util::toString(upLimit) + " KiB/s" : SETTING(UPLOAD_SPEED); // [!] IRainman SpeedLimiter
 	
@@ -1493,44 +1823,45 @@ void NmdcHub::myInfo(bool p_alwaysSend)
 //[~]FlylinkDC
 
 	// IRAINMAN_USE_UNICODE_IN_NMDC
-	string currentMyInfo;
-	currentMyInfo.resize(256);
-	currentMyInfo.resize(snprintf(&currentMyInfo[0], currentMyInfo.size(), "$MyINFO $ALL %s %s<%s,M:%c,H:%s,S:%d"
-	                              ">$ $%s%c$%s$",
-	                              fromUtf8(getMyNick()).c_str(),
-	                              fromUtf8Chat(escape(getCurrentDescription())).c_str(),
-	                              (getClientName() + " V:" + getClientVersion()).c_str(), // [!] IRainman mimicry function.
-	                              modeChar,
-	                              currentCounts.c_str(),
-	                              UploadManager::getInstance()->getSlots(),
-	                              uploadSpeed.c_str(), status,
-	                              fromUtf8Chat(escape(getCurrentEmail())).c_str()));
-	                              
-	const int64_t currentBytesShared =
+	string l_currentMyInfo;
+	l_currentMyInfo.resize(256);
+	l_currentMyInfo.resize(snprintf(&l_currentMyInfo[0], l_currentMyInfo.size() - 1, "$MyINFO $ALL %s %s<%s,M:%c,H:%s,S:%d"
+	                                ">$ $%s%c$%s$",
+	                                fromUtf8(getMyNick()).c_str(),
+	                                fromUtf8Chat(escape(getCurrentDescription())).c_str(),
+	                                (getClientName() + " V:" + getClientVersion()).c_str(), // [!] IRainman mimicry function.
+	                                l_modeChar,
+	                                currentCounts.c_str(),
+	                                UploadManager::getInstance()->getSlots(),
+	                                uploadSpeed.c_str(), status,
+	                                fromUtf8Chat(escape(getCurrentEmail())).c_str()));
+	                                
+	const int64_t l_currentBytesShared =
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 	    getHideShare() ? 0 :
 #endif
 	    ShareManager::getInstance()->getShareSize();
 	    
 #ifdef FLYLINKDC_BETA
-	if (p_alwaysSend && !m_lastmyinfo.empty() && currentMyInfo == m_lastmyinfo)
+	if (p_is_force_passive == true && l_currentBytesShared == m_lastBytesShared && !m_lastMyInfo.empty() && l_currentMyInfo == m_lastMyInfo)
 	{
 		dcassert(0);
-		LogManager::getInstance()->message("Duplicate send MyINFO = " + currentMyInfo + " hub: " + getHubUrl());
+		LogManager::getInstance()->message("Duplicate send MyINFO = " + l_currentMyInfo + " hub: " + getHubUrl());
 	}
 #endif
-	if (p_alwaysSend ||
-	        (currentBytesShared != m_lastbytesshared && m_lastUpdate + l_limit < currentTick) ||
-	        currentMyInfo != m_lastmyinfo)  // [!] IRainman opt.
+	if (p_always_send ||
+	        (l_currentBytesShared != m_lastBytesShared && m_lastUpdate + l_limit < currentTick) ||
+	        l_currentMyInfo != m_lastMyInfo)  // [!] IRainman opt.
 	{
-		m_lastmyinfo = currentMyInfo;
-		m_lastbytesshared = currentBytesShared;
-		send(m_lastmyinfo + Util::toString(currentBytesShared) + "$|");
+		m_lastMyInfo = l_currentMyInfo;
+		m_lastBytesShared = l_currentBytesShared;
+		send(m_lastMyInfo + Util::toString(l_currentBytesShared) + "$|");
+		m_modeChar = l_modeChar;
 		m_lastUpdate = currentTick;
 	}
 }
 
-void NmdcHub::search(Search::SizeModes aSizeType, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string&, const StringList&, bool p_is_force_passive)
+void NmdcHub::search(Search::SizeModes aSizeType, int64_t aSize, Search::TypeModes aFileType, const string& aString, uint32_t aToken, const StringList& aExtList, bool p_is_force_passive)
 {
 	checkstate();
 	const char c1 = (aSizeType == Search::SIZE_DONTCARE || aSizeType == Search::SIZE_EXACT) ? 'F' : 'T';
@@ -1545,7 +1876,7 @@ void NmdcHub::search(Search::SizeModes aSizeType, int64_t aSize, Search::TypeMod
 	const bool l_is_passive = p_is_force_passive || BOOLSETTING(SEARCH_PASSIVE);
 	if (isActive() && !l_is_passive)
 	{
-		tmp2 = (getFavIp().empty() ? getLocalIp() : getFavIp()) + ':' + Util::toString(SearchManager::getInstance()->getSearchPort());
+		tmp2 = calcExternalIP();
 	}
 	else
 	{
@@ -1677,10 +2008,10 @@ void NmdcHub::on(BufferedSocketListener::Connected) noexcept
 	{
 		return;
 	}
-	
+	m_modeChar = 0;
 	m_supportFlags = 0;
-	m_lastmyinfo.clear();
-	m_lastbytesshared = 0;
+	m_lastMyInfo.clear();
+	m_lastBytesShared = 0;
 	m_lastUpdate = 0;
 }
 // TODO - сделать массовый разбор стартовой MyInfo и сброс напрямую в окно без листенеров?
@@ -1773,7 +2104,7 @@ void NmdcHub::myInfoParse(const string& param) noexcept
 	}
 	if (l_share_size)
 	{
-		changeBytesShared(ou->getIdentity(), l_share_size);
+		changeBytesSharedL(ou->getIdentity(), l_share_size);
 	}
 	
 	/* [-] IRainman fix.
@@ -1788,6 +2119,79 @@ void NmdcHub::myInfoParse(const string& param) noexcept
 	}
 }
 
+void NmdcHub::on(BufferedSocketListener::SearchArrayTTH, CFlySearchArray& p_search_array) noexcept
+{
+	if (!ClientManager::isShutdown())
+	{
+		string l_ip;
+		if (isActive())
+		{
+			l_ip = calcExternalIP();
+		}
+		ShareManager::getInstance()->searchTTHArray(p_search_array, this);
+		static int g_id_search_array = 0;
+		g_id_search_array++;
+		for (auto i = p_search_array.begin(); i != p_search_array.end(); ++i)
+		{
+			if (i->m_toSRCommand)
+			{
+				string str = *i->m_toSRCommand;
+				// TODO
+				// ClientManager::getInstance()->fireIncomingSearch(aSeeker, aString, ClientManagerListener::SEARCH_HIT);
+				if (i->m_search.size() > 4 && i->m_search.compare(0, 4, "Hub:", 4) == 0)
+				{
+					// Сформируем ответ на пассивный запрос
+					string l_nick = i->m_search.substr(4); //-V112
+					// Good, we have a passive seeker, those are easier...
+					str[str.length() - 1] = 5;
+					str += Text::fromUtf8(l_nick, getEncoding());
+					str += '|';
+					send(str);
+				}
+				else
+				{
+					// Запросы по TTH - покидываем через коротко-живущий фильтр, чтобы исключить лишний дубликатный
+					// поиск и паразитный UDP трафик в обратную сторону
+					if (i->m_search == l_ip || ConnectionManager::getInstance()->checkTTHDuplicateSearch(i->m_search, i->m_tth))
+					{
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+						CFlylinkDBManager::getInstance()->push_event_statistic("search-a-skip-dup-tth-search", "TTH", param, getIpAsString(), "", getHubUrlAndIP(), l_tth);
+#endif
+						safe_delete(i->m_toSRCommand);
+						continue;
+					}
+					sendUDPSR(*i, this);
+				}
+				safe_delete(i->m_toSRCommand);
+				COMMAND_DEBUG("[+][" + Util::toString(g_id_search_array) + "]$Search " + i->m_search + " F?T?0?9?TTH:" + i->m_tth.toBase32(), DebugTask::HUB_IN, getIpPort());
+			}
+			else
+			{
+				COMMAND_DEBUG("[-][" + Util::toString(g_id_search_array) + "]$Search" + i->m_search + " F?T?0?9?TTH:" + i->m_tth.toBase32(), DebugTask::HUB_IN, getIpPort());
+			}
+		}
+	}
+	p_search_array.clear();
+}
+
+void NmdcHub::on(BufferedSocketListener::SearchArrayFile, StringList& p_search_array) noexcept
+{
+	if (!ClientManager::isShutdown())
+	{
+		for (auto i = p_search_array.cbegin(); i != p_search_array.end(); ++i)
+		{
+			// dcassert(i->find(" F?T?0?9?TTH:") == string::npos);
+			// dcassert(i->find("?9?TTH:") == string::npos);
+			// TODO - научится обрабатывать - поиск по TTH с ограничениями по размеру
+			// "x.x.x.x:yyy T?F?57671680?9?TTH:A3VSWSWKCVC4N6EP2GX47OEMGT5ZL52BOS2LAHA"
+			const bool l_is_passive = i->compare(0, 4, "Hub:", 4) == 0;
+			searchParse(toUtf8(*i), l_is_passive);
+			COMMAND_DEBUG("$Search " + *i, DebugTask::HUB_IN, getIpPort());
+		}
+	}
+	p_search_array.clear();
+}
+
 void NmdcHub::on(BufferedSocketListener::MyInfoArray, StringList& p_myInfoArray) noexcept
 {
 	if (!ClientManager::isShutdown())
@@ -1796,13 +2200,10 @@ void NmdcHub::on(BufferedSocketListener::MyInfoArray, StringList& p_myInfoArray)
 		{
 			const auto l_utf_line = toUtf8MyINFO(*i);
 			myInfoParse(l_utf_line);
-			if (DebugManager::isValidInstance())
-			{
-				COMMAND_DEBUG("$MyINFO " + *i, DebugTask::HUB_IN, getIpPort());
-			}
+			COMMAND_DEBUG("$MyINFO " + *i, DebugTask::HUB_IN, getIpPort());
 		}
+		p_myInfoArray.clear();
 	}
-	p_myInfoArray.clear();
 }
 
 void NmdcHub::on(BufferedSocketListener::Line, const string& aLine) noexcept
@@ -1825,16 +2226,6 @@ void NmdcHub::on(BufferedSocketListener::Failed, const string& aLine) noexcept
 	clearUsers();
 	Client::on(Failed(), aLine);
 	updateCounts(true);
-}
-
-void NmdcHub::on(Second, uint64_t aTick) noexcept
-{
-	Client::on(Second(), aTick);
-	
-	if (state == STATE_NORMAL && (aTick > (getLastActivity() + 120 * 1000)))
-	{
-		send("|", 1);
-	}
 }
 
 #ifdef RIP_USE_CONNECTION_AUTODETECT

@@ -28,12 +28,12 @@ class PreviewDlg : public CDialogImpl<PreviewDlg>
 		CEdit ctrlExtensions;
 		
 	public:
-		PreviewDlg() : argument(_T("%[file]")) {}
+		PreviewDlg() : m_argument(_T("%[file]")) {}
 		
-		tstring name;
-		tstring application;
-		tstring argument;
-		tstring extensions;
+		tstring m_name;
+		tstring m_application;
+		tstring m_argument;
+		tstring m_extensions;
 		
 		enum { IDD = IDD_PREVIEW };
 		
@@ -54,22 +54,5 @@ class PreviewDlg : public CDialogImpl<PreviewDlg>
 		LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		LRESULT OnBrowse(UINT /*uMsg*/, WPARAM /*wParam*/, HWND /*lParam*/, BOOL& /*bHandled*/);
 		
-		LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-		{
-			if (wID == IDOK)
-			{
-				if ((ctrlName.GetWindowTextLength() == 0) || (ctrlApplication.GetWindowTextLength() == 0))
-				{
-					MessageBox(CWSTRING(NAME_COMMAND_EMPTY));
-					return 0;
-				}
-				
-				GET_TEXT(IDC_PREVIEW_NAME, name);
-				GET_TEXT(IDC_PREVIEW_APPLICATION, application);
-				GET_TEXT(IDC_PREVIEW_ARGUMENTS, argument);
-				GET_TEXT(IDC_PREVIEW_EXTENSION, extensions);
-			}
-			EndDialog(wID);
-			return 0;
-		}
+		LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 };

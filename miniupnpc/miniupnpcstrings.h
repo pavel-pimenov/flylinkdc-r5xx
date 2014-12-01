@@ -10,7 +10,16 @@
 
 #ifdef _WIN32
 #define OS_STRING "MSWindows/6.1.7601"
-#define MINIUPNPC_VERSION_STRING "1.8"
+#define MINIUPNPC_VERSION_STRING "1.9"
+
+#if 0
+/* according to "UPnP Device Architecture 1.0" */
+#define UPNP_VERSION_STRING "UPnP/1.0"
+#else
+/* according to "UPnP Device Architecture 1.1" */
+#define UPNP_VERSION_STRING "UPnP/1.1"
+#endif
+
 #else
 #error TODO gen from the makefile
 #endif

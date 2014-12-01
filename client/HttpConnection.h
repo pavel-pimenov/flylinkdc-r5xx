@@ -19,6 +19,7 @@
 #ifndef DCPLUSPLUS_DCPP_HTTP_CONNECTION_H
 #define DCPLUSPLUS_DCPP_HTTP_CONNECTION_H
 
+#if 0
 #include "BufferedSocket.h"
 
 // FlylinkDC++ Team TODO: http://code.google.com/p/flylinkdc/issues/detail?id=632 https://code.google.com/p/flylinkdc/issues/detail?id=900
@@ -116,6 +117,7 @@ class HttpConnection : BufferedSocketListener, public Speaker<HttpConnectionList
 		void onLine(const string& aLine);
 		
 };
+#endif
 
 #endif // !defined(HTTP_CONNECTION_H)
 

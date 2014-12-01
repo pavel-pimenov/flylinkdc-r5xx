@@ -28,12 +28,11 @@ class ClientListener
 		typedef X<13> HubUserCommand;
 		typedef X<14> HubFull;
 		typedef X<15> NickTaken;
-		typedef X<17> NmdcSearch;
 		typedef X<18> AdcSearch;
 		typedef X<19> CheatMessage;
 		typedef X<20> HubTopic;
 		typedef X<21> UserReport;
-		// typedef X<22> PrivateMessage;// !SMT!-S [-] IRainman fix.
+		// typedef X<22> TTHSearch; // [+]FlylinkDC++
 		
 		enum StatusFlags
 		{
@@ -55,14 +54,14 @@ class ClientListener
 		virtual void on(HubUserCommand, const Client*, int, int, const string&, const string&) noexcept { }
 		virtual void on(HubFull, const Client*) noexcept { }
 		virtual void on(NickTaken, const Client*) noexcept { }
-		virtual void on(NmdcSearch, Client* aClient, const string& aSeeker, Search::SizeModes aSizeMode, int64_t aSize,
-		                Search::TypeModes aFileType, const string& aString, bool isPassive) noexcept { }
 		virtual void on(AdcSearch, const Client*, const AdcCommand&, const CID&) noexcept { }
 		virtual void on(CheatMessage, const string&) noexcept { }
 		virtual void on(HubTopic, const Client*, const string&) noexcept { }
-		//virtual void on(UserReport, const Client*, const Identity&) noexcept { }
 		virtual void on(UserReport, const Client*, const string&) noexcept { } // [!] IRainman fix
 		//virtual void on(PrivateMessage, const Client*, const string &strFromUserName, const OnlineUserPtr&, const OnlineUserPtr&, const OnlineUserPtr&, const string&, bool = true) noexcept { } // !SMT!-S  [-] IRainman fix.
+		// TODO
+		// virtual void on(TTHSearch, Client* aClient, const string& aSeeker, const TTHValue& aTTH, bool isPassive) noexcept { }
+		
 };
 
 #endif /*CLIENTLISTENER_H_*/

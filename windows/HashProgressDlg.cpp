@@ -144,8 +144,10 @@ void HashProgressDlg::updateStats()
 			SetDlgItemText(IDC_TIME_LEFT, (Util::formatSecondsW((int64_t)(fs + ss) / 2) + _T(' ') + TSTRING(LEFT)).c_str());
 		}
 	}
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	extern string g_cur_mediainfo_file_tth;
 	extern string g_cur_mediainfo_file;
+#endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 	if (files == 0)
 	{
 		SetDlgItemText(IDC_CURRENT_FILE, CTSTRING(DONE));
@@ -154,6 +156,7 @@ void HashProgressDlg::updateStats()
 	{
 		SetDlgItemText(IDC_CURRENT_FILE, Text::toT(Text::toLabel(file)).c_str());
 	}
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	if (g_cur_mediainfo_file_tth.empty())
 	{
 		SetDlgItemText(IDC_CURRENT_TTH, _T(""));
@@ -172,7 +175,7 @@ void HashProgressDlg::updateStats()
 			Util::setRegistryValueString(FLYLINKDC_REGISTRY_MEDIAINFO_FREEZE_KEY, Text::toT(g_cur_mediainfo_file));
 		}
 	}
-	
+#endif // FLYLINKDC_USE_MEDIAINFO_SERVER    
 	progress.SetPos(HashManager::getInstance()->GetProgressValue());
 	SetDlgItemText(IDC_PAUSE, paused ? CTSTRING(RESUME) : CTSTRING(PAUSED)); // KUL - hash progress dialog patch
 }

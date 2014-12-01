@@ -35,11 +35,12 @@ class PropPage
 #endif
 {
 	public:
-		PropPage(SettingsManager *src) : settings(src)
+		PropPage(SettingsManager *src, const wstring& p_title) : settings(src), m_title(p_title)
 #ifdef SCALOLAZ_PROPPAGE_COLOR
 			, m_hDialogBrush(0)
 #endif
-		{ }
+		{
+		}
 		virtual ~PropPage()
 		{
 #ifdef SCALOLAZ_PROPPAGE_COLOR
@@ -128,6 +129,7 @@ class PropPage
 	protected:
 	
 		SettingsManager *settings;
+		wstring m_title;
 		void read(HWND page, Item const* items, ListItem* listItems = NULL, HWND list = NULL);
 		void write(HWND page, Item const* items, ListItem* listItems = NULL, HWND list = NULL);
 		void cancel(HWND page);
@@ -137,9 +139,9 @@ class PropPage
 class EmptyPage : public CPropertyPage<IDD_EMPTY_PAGE>, public PropPage // [+] IRainman HE
 {
 	public:
-		EmptyPage(SettingsManager *s, const tstring& p_title) : PropPage(s), title(p_title)
+		EmptyPage(SettingsManager *s, const tstring& p_title) : PropPage(s, p_title)
 		{
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		
@@ -167,7 +169,6 @@ class EmptyPage : public CPropertyPage<IDD_EMPTY_PAGE>, public PropPage // [+] I
 		void cancel() {}
 	protected:
 		static TextItem texts[];
-		wstring title;
 };
 
 #endif // !defined(PROP_PAGE_H)

@@ -56,7 +56,7 @@
 
 #include "HTMLColors.h"
 //[!]IRainman moved from Network Page
-#include <IPHlpApi.h>
+#include <iphlpapi.h>
 #pragma comment(lib, "iphlpapi.lib")
 //[~]IRainman moved from Network Page
 
@@ -70,6 +70,7 @@ FileImage g_fileImage;
 UserImage g_userImage;
 UserStateImage g_userStateImage;
 FlagImage g_flagImage;
+ISPImage  g_ISPImage;
 #ifdef SCALOLAZ_MEDIAVIDEO_ICO
 VideoImage g_videoImage;
 #endif
@@ -376,7 +377,7 @@ void Colors::getUserColor(const UserPtr& user, COLORREF &fg, COLORREF &bg, const
 	{
 		fg = SETTING(RESERVED_SLOT_COLOR);
 	}
-	else if (UserManager::isInIgnoreList(onlineUser ? onlineUser->getIdentity().getNick() : user->getLastNick()))
+	else if (UserManager::g_isEmptyIgnoreList == false && UserManager::isInIgnoreList(onlineUser ? onlineUser->getIdentity().getNick() : user->getLastNick()))
 	{
 		fg = SETTING(IGNORED_COLOR);
 	}
@@ -485,6 +486,24 @@ void VideoImage::init()
 	ResourceLoader::LoadImageList(IDR_MEDIAFILES, m_images, 16, 16);
 }
 
+void ISPImage::init()
+{
+	if (m_flagImageCount == 0)
+	{
+		m_flagImageCount = ResourceLoader::LoadImageList(IDR_FLAGS, m_images, 25, 16);
+		dcassert(m_flagImageCount);
+		CImageList m_add_images;
+		if (ResourceLoader::LoadImageList(IDR_ISP_HUBLIST, m_add_images, 25, 16))
+		{
+			for (int i = 0; i < m_add_images.GetImageCount(); ++i)
+			{
+				const auto l_res_merge =  m_images.AddIcon(m_add_images.GetIcon(i));
+				dcassert(l_res_merge);
+			}
+		}
+	}
+	// Добавляем флажки
+}
 void FlagImage::init()
 {
 	//const int l_count_before = m_images.GetImageCount();
@@ -556,10 +575,7 @@ void WinUtil::init(HWND hWnd)
 	
 	CMenuHandle view;
 	view.CreatePopupMenu();
-#ifdef IRAINMAN_ENABLE_HUB_LIST
 	view.AppendMenu(MF_STRING, ID_FILE_CONNECT, CTSTRING(MENU_PUBLIC_HUBS));
-	//view.AppendMenu(MF_SEPARATOR); [-] Segey Shushkanov
-#endif
 	view.AppendMenu(MF_STRING, IDC_RECENTS, CTSTRING(MENU_FILE_RECENT_HUBS));
 	//view.AppendMenu(MF_SEPARATOR); [-] Sergey Shushkanov
 	view.AppendMenu(MF_STRING, IDC_FAVORITES, CTSTRING(MENU_FAVORITE_HUBS));
@@ -956,6 +972,7 @@ void WinUtil::uninit()
 	g_fileImage.uninit();
 	g_userImage.uninit();
 	g_userStateImage.uninit();
+	g_ISPImage.uninit(); // TODO - позже
 	g_flagImage.uninit();
 #ifdef SCALOLAZ_MEDIAVIDEO_ICO
 	g_videoImage.uninit();
@@ -2689,7 +2706,7 @@ int FileImage::getIconIndex(const string& aFileName)
 				return j->second;
 			}
 		}
-		x = "x." + x;
+		x = string("x.") + x;
 		SHFILEINFO fi = { 0 };
 		if (SHGetFileInfo(Text::toT(x).c_str(), FILE_ATTRIBUTE_NORMAL, &fi, sizeof(fi), SHGFI_ICON | SHGFI_SMALLICON | SHGFI_USEFILEATTRIBUTES))
 		{
@@ -2897,15 +2914,21 @@ void Preview::setupPreviewMenu(const string& target)
 	for (auto i = lst.cbegin(); i != lst.cend(); ++i)
 	{
 		const auto tok = Util::splitSettingAndLower((*i)->getExtension());
-		for (auto si = tok.cbegin(); si != tok.cend(); ++si)
+		if (tok.empty())
 		{
-			if (Util::isSameFileExt(targetLower, *si))
-			{
-				g_previewMenu.AppendMenu(MF_STRING, IDC_PREVIEW_APP + g_previewAppsSize, Text::toT(((*i)->getName())).c_str());
-				g_previewAppsSize++;
-				break;
-			}
+			g_previewMenu.AppendMenu(MF_STRING, IDC_PREVIEW_APP + g_previewAppsSize, Text::toT((*i)->getName()).c_str());
+			g_previewAppsSize++;
 		}
+		else
+			for (auto si = tok.cbegin(); si != tok.cend(); ++si)
+			{
+				if (Util::isSameFileExt(targetLower, *si))
+				{
+					g_previewMenu.AppendMenu(MF_STRING, IDC_PREVIEW_APP + g_previewAppsSize, Text::toT((*i)->getName()).c_str());
+					g_previewAppsSize++;
+					break;
+				}
+			}
 	}
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 	if (Util::isStreamingVideoFile(targetLower))

@@ -375,6 +375,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		MESSAGE_HANDLER(WM_SIZE, onSize)
 		MESSAGE_HANDLER(WM_CREATE, onCreate)
 		MESSAGE_HANDLER(WM_PAINT, onPaint)
+		MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBackground)
 		MESSAGE_HANDLER(WM_LBUTTONDOWN, onLButtonDown)
 		MESSAGE_HANDLER(WM_LBUTTONUP, onLButtonUp)
 		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
@@ -385,6 +386,11 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		COMMAND_ID_HANDLER(IDC_CHEVRON, onChevron)
 		COMMAND_RANGE_HANDLER(IDC_SELECT_WINDOW, IDC_SELECT_WINDOW + tabs.size(), onSelectWindow)
 		END_MSG_MAP()
+		
+		LRESULT OnEraseBackground(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+		{
+			return 1;   // no background painting needed
+		}
 		
 		LRESULT onLButtonDown(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 		{
@@ -771,15 +777,20 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			m_allowInvalidate = false;
 #endif
 			bClose.ShowWindow(FALSE);
-			RECT rc;
+			CRect rc;
 			
 			if (GetUpdateRect(&rc, FALSE))
 			{
-				CPaintDC dc(m_hWnd);
-				CSelectFont l_font(dc, Fonts::g_systemFont); //-V808
+				CPaintDC l_dc(m_hWnd);
+				CMemoryDC dcMem(l_dc, rc);
+				
+				HBRUSH hBr = GetSysColorBrush(COLOR_BTNFACE);
+				dcMem.SelectBrush(hBr);
+				dcMem.BitBlt(rc.left, rc.top, rc.Width(), rc.Height(), NULL, 0, 0, PATCOPY);
+				CSelectFont l_font(dcMem, Fonts::g_systemFont); //-V808
 				//ATLTRACE("%d, %d\n", rc.left, rc.right);
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
-				std::unique_ptr<Gdiplus::Graphics> graphics(new Gdiplus::Graphics(dc));
+				std::unique_ptr<Gdiplus::Graphics> graphics(new Gdiplus::Graphics(dcMem));
 				//Режим сглаживания линий (не менять, другие не работают)
 				graphics->SetSmoothingMode(Gdiplus::SmoothingModeNone /*SmoothingModeHighQuality*/);
 #endif
@@ -790,7 +801,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 					if (t && t->m_row != -1 && t->m_xpos < rc.right && t->m_xpos + t->getWidth() >= rc.left)
 					{
 						//dcdebug("FlatTabCtrl::drawTab::t = %d\n", t);
-						drawTab(dc,
+						drawTab(dcMem,
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
 						        graphics,
 #endif

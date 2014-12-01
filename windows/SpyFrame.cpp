@@ -86,12 +86,14 @@ LRESULT SpyFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 #endif
 	//[~]IRainman refactoring SpyFrame
 	create_timer(1000);
+	ClientManager::g_isSpyFrame = true;
 	bHandled = FALSE;
 	return 1;
 }
 
 LRESULT SpyFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
+	ClientManager::g_isSpyFrame = false;
 	if (!m_closed)
 	{
 		m_closed = true;

@@ -287,9 +287,9 @@ void File__ReferenceFilesHelper::ParseReferences()
         //Filling Filenames from the more complete version and Edit rates
         float64 EditRate=DBL_MAX;
         size_t  EditRate_Count=0;
-        for (Reference=References.begin(); Reference!=References.end(); Reference++)
+        for (Reference=References.begin(); Reference!=References.end(); ++Reference)
             if (Reference->FileNames.empty())
-                for (size_t Pos=0; Pos<Reference->CompleteDuration.size(); Pos++)
+                for (size_t Pos=0; Pos<Reference->CompleteDuration.size(); ++Pos)
                 {
                     Reference->FileNames.push_back(Reference->CompleteDuration[Pos].FileName);
                     if (Reference->CompleteDuration[Pos].IgnoreFramesRate && EditRate!=Reference->CompleteDuration[Pos].IgnoreFramesRate)
@@ -301,8 +301,8 @@ void File__ReferenceFilesHelper::ParseReferences()
                 }
         if (EditRate_Count>1)
             //Multiple rates, using only one rate
-            for (Reference=References.begin(); Reference!=References.end(); Reference++)
-                for (size_t Pos=0; Pos<Reference->CompleteDuration.size(); Pos++)
+            for (Reference=References.begin(); Reference!=References.end(); ++Reference)
+                for (size_t Pos=0; Pos<Reference->CompleteDuration.size(); ++Pos)
                     if (Reference->CompleteDuration[Pos].IgnoreFramesRate && EditRate!=Reference->CompleteDuration[Pos].IgnoreFramesRate)
                     {
                         if (Reference->CompleteDuration[Pos].IgnoreFramesBefore)
@@ -683,9 +683,20 @@ void File__ReferenceFilesHelper::ParseReferences()
                     {
                         int64u DTS_Temp;
                         if (!ReferenceTemp->CompleteDuration.empty() && ReferenceTemp->CompleteDuration_Pos)
-                            DTS_Temp=ReferenceTemp->CompleteDuration[ReferenceTemp->CompleteDuration_Pos].Demux_Offset_DTS+ReferenceTemp->CompleteDuration[ReferenceTemp->CompleteDuration_Pos].MI->Info->FrameInfo.DTS;
+                        {
+                            if (ReferenceTemp->CompleteDuration[ReferenceTemp->CompleteDuration_Pos].MI->Info->FrameInfo.DTS!=(int64u)-1)
+                                DTS_Temp=ReferenceTemp->CompleteDuration[ReferenceTemp->CompleteDuration_Pos].MI->Info->FrameInfo.DTS-ReferenceTemp->CompleteDuration[ReferenceTemp->CompleteDuration_Pos].MI->Info->Config->Demux_Offset_DTS_FromStream;
+                            else
+                                DTS_Temp=0;
+                        }
                         else
-                            DTS_Temp=ReferenceTemp->MI->Info->FrameInfo.DTS;
+                        {
+                            if (ReferenceTemp->MI->Info->FrameInfo.DTS!=(int64u)-1)
+                                DTS_Temp=ReferenceTemp->MI->Info->FrameInfo.DTS-ReferenceTemp->MI->Info->Config->Demux_Offset_DTS_FromStream;
+                            else
+                                DTS_Temp=0;
+                        }
+                        DTS_Temp+=ReferenceTemp->CompleteDuration[ReferenceTemp->CompleteDuration_Pos].Demux_Offset_DTS;
                         if (DTS_Minimal>DTS_Temp)
                             DTS_Minimal=DTS_Temp;
                     }
@@ -906,9 +917,20 @@ void File__ReferenceFilesHelper::ParseReference()
             {
                 int64u DTS_Temp;
                 if (!Reference->CompleteDuration.empty() && Reference->CompleteDuration_Pos)
-                    DTS_Temp=Reference->CompleteDuration[Reference->CompleteDuration_Pos].MI->Info->FrameInfo.DTS;
+                {
+                    if (Reference->CompleteDuration[Reference->CompleteDuration_Pos].MI->Info->FrameInfo.DTS!=(int64u)-1)
+                        DTS_Temp=Reference->CompleteDuration[Reference->CompleteDuration_Pos].MI->Info->FrameInfo.DTS-Reference->CompleteDuration[Reference->CompleteDuration_Pos].MI->Info->Config->Demux_Offset_DTS_FromStream;
+                    else
+                        DTS_Temp=0;
+                }
                 else
-                    DTS_Temp=Reference->MI->Info->FrameInfo.DTS;
+                {
+                    if (Reference->MI->Info->FrameInfo.DTS!=(int64u)-1)
+                        DTS_Temp=Reference->MI->Info->FrameInfo.DTS-Reference->MI->Info->Config->Demux_Offset_DTS_FromStream;
+                    else
+                        DTS_Temp=0;
+                }
+                DTS_Temp+=Reference->CompleteDuration[Reference->CompleteDuration_Pos].Demux_Offset_DTS;
                 if (!Reference->CompleteDuration.empty() && Reference->CompleteDuration_Pos<Reference->CompleteDuration.size() && Reference->CompleteDuration[Reference->CompleteDuration_Pos].IgnoreFramesRate && Reference->CompleteDuration[Reference->CompleteDuration_Pos].IgnoreFramesBefore)
                 {
                     int64u TimeOffset=float64_int64s(((float64)Reference->CompleteDuration[Reference->CompleteDuration_Pos].IgnoreFramesBefore)/Reference->CompleteDuration[Reference->CompleteDuration_Pos].IgnoreFramesRate*1000000000);
@@ -1246,7 +1268,19 @@ void File__ReferenceFilesHelper::ParseReference_Finalize_PerStream ()
         MI->Fill(StreamKind_Last, StreamPos_To, General_ID_String, ID_String, true);
         MI->Fill(StreamKind_Last, StreamPos_To, "MenuID", MenuID, true);
         MI->Fill(StreamKind_Last, StreamPos_To, "MenuID/String", MenuID_String, true);
-        MI->Fill(StreamKind_Last, StreamPos_To, "Source", Reference->Source, true);
+        if (!MI->Retrieve(StreamKind_Last, StreamPos_To, "Source").empty())
+        {
+            if (MI->Retrieve(StreamKind_Last, StreamPos_To, "Source_Original").empty() && Reference->Source!=MI->Retrieve(StreamKind_Last, StreamPos_To, "Source")) // TODO: better handling
+            {
+                MI->Fill(StreamKind_Last, StreamPos_To, "Source_Original", MI->Retrieve(StreamKind_Last, StreamPos_To, "Source"));
+                MI->Fill(StreamKind_Last, StreamPos_To, "Source_Original_Kind", MI->Retrieve(StreamKind_Last, StreamPos_To, "Source_Kind"));
+                MI->Fill(StreamKind_Last, StreamPos_To, "Source_Original_Info", MI->Retrieve(StreamKind_Last, StreamPos_To, "Source_Info"));
+            }
+            MI->Clear(StreamKind_Last, StreamPos_To, "Source");
+            MI->Clear(StreamKind_Last, StreamPos_To, "Source_Kind");
+            MI->Clear(StreamKind_Last, StreamPos_To, "Source_Info");
+        }
+        MI->Fill(StreamKind_Last, StreamPos_To, "Source", Reference->Source);
     }
     for (std::map<string, Ztring>::iterator Info=Reference->Infos.begin(); Info!=Reference->Infos.end(); ++Info)
         if (MI->Retrieve(StreamKind_Last, StreamPos_To, Info->first.c_str()).empty())

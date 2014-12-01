@@ -447,17 +447,9 @@ void BaseChatFrame::onEnter()
 			else if (stricmp(cmd.c_str(), _T("ignorelist")) == 0)
 			{
 				tstring l_ignorelist = TSTRING(IGNORED_USERS) + _T(':');
-				for (auto i = UserManager::getIgnoreList().cbegin(); i != UserManager::getIgnoreList().cend(); ++i) // TODO склейку игнорируемых унести в класс и защитить секцией.
-					l_ignorelist += _T(' ') + Text::toT((*i));
-					
+				l_ignorelist += UserManager::getIgnoreListAsString();
 				addLine(l_ignorelist, Colors::g_ChatTextSystem);
 			}
-			/* TODO
-			else if (stricmp(cmd.c_str(), _T("close")) == 0)
-			{
-			    PostMessage(WM_CLOSE);
-			}
-			*/
 			else if (stricmp(cmd.c_str(), _T("me")) == 0)
 			{
 				sendMessage(param, true);

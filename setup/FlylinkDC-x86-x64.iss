@@ -13,11 +13,20 @@ OutputBaseFilename=SetupFlylinkDC-full
 [Files]
 
 
+
+
+
 Source: "..\compiled\FlylinkDC.exe"; DestDir: "{app}"; Flags: overwritereadonly ignoreversion; Check: not Is64BitInstallMode;
 Source: "..\compiled\FlylinkDC_x64.exe"; DestDir: "{app}"; Flags: overwritereadonly ignoreversion; Check: Is64BitInstallMode;
 
-Source: "..\compiled\crshhndl-x86.dll"; DestDir: "{app}"; Flags: overwritereadonly ignoreversion; Check: not Is64BitInstallMode
-Source: "..\compiled\crshhndl-x64.dll"; DestDir: "{app}"; Flags: overwritereadonly ignoreversion; Check: Is64BitInstallMode
+Source: "..\compiled\crashrpt-x86.dll"; DestDir: "{app}"; Flags: overwritereadonly ignoreversion; Check: not Is64BitInstallMode
+Source: "..\compiled\crashrpt-x64.dll"; DestDir: "{app}"; Flags: overwritereadonly ignoreversion; Check: Is64BitInstallMode
+
+Source: "..\compiled\dbghelp-x86.dll"; DestDir: "{app}"; Flags: overwritereadonly ignoreversion; Check: not Is64BitInstallMode
+Source: "..\compiled\dbghelp-x64.dll"; DestDir: "{app}"; Flags: overwritereadonly ignoreversion; Check: Is64BitInstallMode
+
+Source: "..\compiled\sendrpt-x86.exe"; DestDir: "{app}"; Flags: overwritereadonly ignoreversion; Check: not Is64BitInstallMode
+Source: "..\compiled\sendrpt-x64.exe"; DestDir: "{app}"; Flags: overwritereadonly ignoreversion; Check: Is64BitInstallMode
 
 Source: "..\compiled\PortalBrowser\PortalBrowser.dll"; DestDir: "{app}\PortalBrowser";  Components: PortalBrowser; Flags: ignoreversion; Check: not Is64BitInstallMode
 Source: "..\compiled\PortalBrowser\PortalBrowser_x64.dll"; DestDir: "{app}\PortalBrowser"; Components: PortalBrowser; Flags: ignoreversion; Check: Is64BitInstallMode

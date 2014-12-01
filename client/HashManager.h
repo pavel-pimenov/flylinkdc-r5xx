@@ -121,7 +121,6 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 			hasher.shutdown();
 			hasher.join();
 		}
-		bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, const TTHValue& p_tth, bool p_force = false);
 		
 		struct HashPauser
 		{

@@ -4,4 +4,6 @@ compiled/lang/*.xml
 compiled/EmoPacks/*.* 
 compiled/Sounds/*.* 
 compiled/WEBserver/*.*
-compiled/crshhndl-x64.dll
+compiled/crashrpt-x64.dll
+compiled/dbghelp-x64.dll
+compiled/sendrpt-x64.exe

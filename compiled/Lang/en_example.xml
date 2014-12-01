@@ -547,6 +547,7 @@
 	<string name="Forbidden">Forbidden</string>
 	<string name="ForbiddenFiles">Forbidden files</string>
 	<string name="ForceAttempt">Force attempt</string>
+	<string name="ForcePassiveMode"> (Force passive mode!) </string>
 	<string name="ForgetSearchRequest">Forget search queries</string>
 	<string name="FormatBbCodes">Format BB codes</string>
 	<string name="FormatBbCodesColors">Accept colors BB codes</string>
@@ -781,7 +782,7 @@
 	<string name="MediaXY">Resolution</string>
 	<string name="Menubar">Menu bar</string>
 	<string name="MenuAbout">About</string>
-	<string name="MenuAddMagnet">&amp;Add a magnet link…\tCtrl+M</string>
+	<string name="MenuAddMagnet">&amp;Add a magnet links…\tCtrl+M</string>
 	<string name="MenuAdlSearch">ADL Search\tCtrl+Shift+S</string>
 	<string name="MenuArrange">Arrange icons</string>
 	<string name="MenuCascade">Cascade</string>
@@ -1761,7 +1762,6 @@
 	<string name="WaitingUserOnline">Waiting (User online)</string>
 	<string name="Warning">Warning!</string>
 	<string name="WarningParse">Warning parse</string>
-	<string name="WarningValueAutoAdjusted">Values of the changed settings are automatically adjusted</string>
 	<string name="Webserver">Web Server</string>
 	<string name="WebserverAddMagnetLink">Add magnet link</string>
 	<string name="WebserverAllowChangeDownloadDir">Allow changing download directory.\r\nWarning: this option is potentially unsafe!</string>

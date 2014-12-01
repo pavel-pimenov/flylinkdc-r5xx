@@ -26,29 +26,98 @@
 #include "CFlylinkDBManager.h"
 #include "ShareManager.h"
 
+SearchResultBaseTTH::SearchResultBaseTTH(Types aType, int64_t aSize, const string& aFile, const TTHValue& aTTH, uint8_t aSlots /* = 0 */, uint8_t aFreeSlots /* = 0 */):
+	file(aFile),
+	size(aSize),
+	tth(aTTH),
+	slots(aSlots),
+	freeSlots(aFreeSlots),
+	m_type(aType)
+{
+
+}
+
+void SearchResultBaseTTH::initSlot()
+{
+	slots     = UploadManager::getInstance()->getSlots();
+	freeSlots = UploadManager::getInstance()->getFreeSlots();
+}
+
+string SearchResultBaseTTH::toSR(const Client& c) const
+{
+	// File:        "$SR %s %s%c%s %d/%d%c%s (%s)|"
+	// Directory:   "$SR %s %s %d/%d%c%s (%s)|"
+	string tmp;
+	tmp.reserve(128 + file.size());
+	tmp.append("$SR ", 4);
+//#ifdef IRAINMAN_USE_UNICODE_IN_NMDC
+//	tmp.append(c.getMyNick());
+//#else
+	tmp.append(Text::fromUtf8(c.getMyNick(), c.getEncoding()));
+//#endif
+	tmp.append(1, ' ');
+//#ifdef IRAINMAN_USE_UNICODE_IN_NMDC
+//	const string& acpFile = file;
+//#else
+	const string acpFile = Text::fromUtf8(file, c.getEncoding());
+//#endif
+	if (m_type == TYPE_FILE)
+	{
+		tmp.append(acpFile);
+		tmp.append(1, '\x05');
+		tmp.append(Util::toString(size));
+	}
+	else
+	{
+		tmp.append(acpFile, 0, acpFile.length() - 1);
+	}
+	dcassert(freeSlots != 0 && slots != 0);
+	tmp.append(1, ' ');
+	tmp.append(Util::toString(freeSlots));
+	tmp.append(1, '/');
+	tmp.append(Util::toString(slots));
+	tmp.append(1, '\x05');
+	tmp.append(g_tth + getTTH().toBase32()); // [!] IRainman opt.
+	tmp.append(" (", 2);
+	tmp.append(c.getIpPort());
+	tmp.append(")|", 2);
+	return tmp;
+}
+void SearchResultBaseTTH::toRES(AdcCommand& cmd, char p_type) const
+{
+	cmd.addParam("SI", Util::toString(size));
+	cmd.addParam("SL", Util::toString(freeSlots));
+	cmd.addParam("FN", Util::toAdcFile(file));
+	cmd.addParam("TR", getTTH().toBase32());
+}
+
 SearchResult::SearchResult(const UserPtr& aUser, Types aType, uint8_t aSlots, uint8_t aFreeSlots,
                            int64_t aSize, const string& aFile, const string& aHubName,
-                           const string& aHubURL, const string& ip, const TTHValue& aTTH, const string& aToken) :
-	file(aFile),
+                           const string& aHubURL, const string& ip, const TTHValue& aTTH, uint32_t aToken) :
+	SearchResultBaseTTH(aType, aSize, aFile, aTTH),
 	m_hubName(aHubName),
-	hubURL(aHubURL), user(aUser),
-	size(aSize), m_type(aType), slots(aSlots), freeSlots(aFreeSlots), IP(ip),
-	tth(aTTH), m_token(aToken),
+	hubURL(aHubURL),
+	user(aUser),
+	IP(ip),
+	m_token(aToken),
 	m_is_tth_share(false),
 	m_is_tth_remembrance(false),
 	m_is_tth_download(false),
 	m_is_tth_check(false)
 {
+	freeSlots = aFreeSlots;
+	slots     = aSlots;
 }
 
 SearchResult::SearchResult(Types aType, int64_t aSize, const string& aFile, const TTHValue& aTTH) :
-	file(aFile), user(ClientManager::getMe_UseOnlyForNonHubSpecifiedTasks()), size(aSize), m_type(aType), slots(UploadManager::getInstance()->getSlots()),
-	freeSlots(UploadManager::getInstance()->getFreeSlots()),
-	tth(aTTH),
+	SearchResultBaseTTH(aType, aSize, aFile, aTTH),
+	user(ClientManager::getMe_UseOnlyForNonHubSpecifiedTasks()),
 	m_is_tth_remembrance(false),
 	m_is_tth_download(false),
-	m_is_tth_check(false)
+	m_is_tth_check(false),
+	m_token(-1)
 {
+	initSlot();
 	m_is_tth_share = aType == TYPE_FILE; // Constructor for ShareManager
 }
 void SearchResult::calcHubName()
@@ -80,55 +149,7 @@ void SearchResult::checkTTH()
 		m_is_tth_check = true;
 	}
 }
-string SearchResult::toSR(const Client& c) const
-{
-	// File:        "$SR %s %s%c%s %d/%d%c%s (%s)|"
-	// Directory:   "$SR %s %s %d/%d%c%s (%s)|"
-	string tmp;
-	tmp.reserve(128 + file.size());
-	tmp.append("$SR ", 4);
-//#ifdef IRAINMAN_USE_UNICODE_IN_NMDC
-//	tmp.append(c.getMyNick());
-//#else
-	tmp.append(Text::fromUtf8(c.getMyNick(), c.getEncoding()));
-//#endif
-	tmp.append(1, ' ');
-//#ifdef IRAINMAN_USE_UNICODE_IN_NMDC
-//	const string& acpFile = file;
-//#else
-	const string acpFile = Text::fromUtf8(file, c.getEncoding());
-//#endif
-	if (m_type == TYPE_FILE)
-	{
-		tmp.append(acpFile);
-		tmp.append(1, '\x05');
-		tmp.append(Util::toString(size));
-	}
-	else
-	{
-		tmp.append(acpFile, 0, acpFile.length() - 1);
-	}
-	tmp.append(1, ' ');
-	tmp.append(Util::toString(freeSlots));
-	tmp.append(1, '/');
-	tmp.append(Util::toString(slots));
-	tmp.append(1, '\x05');
-	tmp.append(g_tth + getTTH().toBase32()); // [!] IRainman opt.
-	tmp.append(" (", 2);
-	tmp.append(c.getIpPort());
-	tmp.append(")|", 2);
-	return tmp;
-}
 
-AdcCommand SearchResult::toRES(char p_type) const
-{
-	AdcCommand cmd(AdcCommand::CMD_RES, p_type);
-	cmd.addParam("SI", Util::toString(size));
-	cmd.addParam("SL", Util::toString(freeSlots));
-	cmd.addParam("FN", Util::toAdcFile(file));
-	cmd.addParam("TR", getTTH().toBase32());
-	return cmd;
-}
 
 string SearchResult::getFileName() const
 {

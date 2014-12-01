@@ -23,9 +23,6 @@
 #include <boost/unordered/unordered_map.hpp>
 #include "SettingsManager.h"
 
-#ifdef IRAINMAN_ENABLE_HUB_LIST
-#include "HttpConnection.h"
-#endif
 #include "UserCommand.h"
 #include "FavoriteUser.h"
 #include "ClientManagerListener.h"
@@ -61,45 +58,10 @@ class SimpleXML;
  * Public hub list, favorites (hub&user). Assumed to be called only by UI thread.
  */
 class FavoriteManager : public Speaker<FavoriteManagerListener>,
-#ifdef IRAINMAN_ENABLE_HUB_LIST
-	private HttpConnectionListener,
-#endif
 	public Singleton<FavoriteManager>,
 	private SettingsManagerListener, private ClientManagerListener
 {
 	public:
-#ifdef IRAINMAN_ENABLE_HUB_LIST
-// Public Hubs
-		enum HubTypes
-		{
-			TYPE_NORMAL,
-			TYPE_BZIP2
-		};
-		static StringList getHubLists()
-		{
-			return SPLIT_SETTING_AND_LOWER(HUBLIST_SERVERS);
-		}
-		void setHubList(int aHubList);
-		int getSelectedHubList() const
-		{
-			return m_lastServer;
-		}
-		void refresh(bool forceDownload = false);
-		HubTypes getHubListType() const
-		{
-			return m_listType;
-		}
-		void getPublicHubs(HubEntryList& p_hl)
-		{
-			webrtc::ReadLockScoped l(*g_csPublicHubs);
-			p_hl = publicListMatrix[publicListServer];
-		}
-		bool isDownloading() const
-		{
-			return (m_useHttp && m_running);
-		}
-#endif
-		
 		// [+] IRainman mimicry function
 		struct mimicrytag
 		{
@@ -463,22 +425,8 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csUsers; // https://code.google.com/p/flylinkdc/issues/detail?id=1316
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csHubs; //
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csDirs; //
-		static std::unique_ptr<webrtc::RWLockWrapper> g_csPublicHubs;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csUserCommand;
 		
-		// [~] IRainman opt.
-#ifdef IRAINMAN_ENABLE_HUB_LIST
-		// Public Hubs
-		typedef boost::unordered_map<string, HubEntryList> PubListMap;
-		PubListMap publicListMatrix;
-		string publicListServer;
-		bool m_useHttp;
-		bool m_running;
-		HttpConnection* c;
-		int m_lastServer;
-		HubTypes m_listType;
-		string m_downloadBuf;
-#endif
 		uint16_t m_dontSave;
 	public:
 		void prepareClose();
@@ -497,24 +445,6 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		void on(UserUpdated, const OnlineUserPtr& user) noexcept;
 		void on(UserConnected, const UserPtr& user) noexcept;
 		void on(UserDisconnected, const UserPtr& user) noexcept;
-		
-#ifdef IRAINMAN_ENABLE_HUB_LIST
-		// HttpConnectionListener
-		void on(Data, HttpConnection*, const uint8_t*, size_t) noexcept;
-		void on(Failed, HttpConnection*, const string&) noexcept;
-		void on(Complete, HttpConnection*, const string&
-#ifdef RIP_USE_CORAL
-		        , bool
-#endif
-		       ) noexcept;
-		void on(Redirected, HttpConnection*, const string&) noexcept;
-		void on(TypeNormal, HttpConnection*) noexcept;
-		void on(TypeBZ2, HttpConnection*) noexcept;
-#ifdef RIP_USE_CORAL
-		void on(Retried, HttpConnection*, const bool) noexcept;
-#endif
-		bool onHttpFinished(bool fromHttp) noexcept;
-#endif
 		
 		// SettingsManagerListener
 		void on(SettingsManagerListener::Load, SimpleXML& xml)

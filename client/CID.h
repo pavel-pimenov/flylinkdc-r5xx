@@ -19,16 +19,20 @@
 #ifndef DCPLUSPLUS_DCPP_CID_H
 #define DCPLUSPLUS_DCPP_CID_H
 
-#include "Util.h"
+#include "Encoder.h"
+#include "debug.h"
 
 class CID
+#ifdef _DEBUG
+	// TODO : private boost::noncopyable
+#endif
 {
 	public:
 		enum { SIZE = 192 / 8 };
 		
 		CID()
 		{
-			memzero(cid, sizeof(cid));
+			init();
 		}
 		explicit CID(const uint8_t* data)
 		{
@@ -38,6 +42,10 @@ class CID
 		{
 			dcassert(base32.length() == 39);
 			Encoder::fromBase32(base32.c_str(), cid, sizeof(cid));
+		}
+		void init()
+		{
+			memzero(cid, sizeof(cid));
 		}
 		
 		bool operator==(const CID& rhs) const

@@ -198,6 +198,7 @@ int MappingManager::run()
 					mapper.close();
 					l_is_ok = false;
 				}
+#ifdef STRONG_USE_DHT
 				else
 				{
 					if (protocol == Mapper::PROTOCOL_UDP && port == SETTING(DHT_PORT) /* && description == dht::NetworkName */)
@@ -207,6 +208,7 @@ int MappingManager::run()
 					l_info = "Successfully Port Forwarding ";
 					l_is_ok = true;
 				}
+#endif // STRONG_USE_DHT
 				this->log(l_info + l_info_port + " with the " + mapper.getName() + " interface");
 			}
 			return l_is_ok;

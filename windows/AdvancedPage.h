@@ -28,9 +28,9 @@ class AdvancedPage : public CPropertyPage<IDD_ADVANCED_PAGE>, public PropPage
 {
 	public:
 	
-		AdvancedPage(SettingsManager *s) : PropPage(s), CurSel(0) /*, bInited(false)*/
+		AdvancedPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED)), CurSel(0) /*, bInited(false)*/
 		{
-			SetTitle(CTSTRING(SETTINGS_ADVANCED));
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		

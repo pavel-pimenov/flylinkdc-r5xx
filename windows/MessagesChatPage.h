@@ -18,10 +18,9 @@ class MessagesChatPage : public CPropertyPage<IDD_MESSAGES_CHAT_PAGE>, public Pr
 #endif
 {
 	public:
-		MessagesChatPage(SettingsManager *s) : PropPage(s)
+		MessagesChatPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_MESSAGES) + _T('\\') + TSTRING(SETTINGS_ADVANCED))
 		{
-			title = TSTRING(SETTINGS_MESSAGES) + _T('\\') + TSTRING(SETTINGS_ADVANCED);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		};
 		~MessagesChatPage()
@@ -30,7 +29,7 @@ class MessagesChatPage : public CPropertyPage<IDD_MESSAGES_CHAT_PAGE>, public Pr
 			ctrlSee.Detach();
 			ctrlProtect.Detach();
 			ctrlRnd.Detach();
-		};
+		}
 		
 		BEGIN_MSG_MAP(MessagesChatPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog_chat)
@@ -59,7 +58,7 @@ class MessagesChatPage : public CPropertyPage<IDD_MESSAGES_CHAT_PAGE>, public Pr
 		CButton ctrlRnd;
 		
 	protected:
-		wstring title;
+	
 		static Item g_items_chat[];
 		static TextItem g_texts_chat[];
 		static ListItem g_listItems_chat[];

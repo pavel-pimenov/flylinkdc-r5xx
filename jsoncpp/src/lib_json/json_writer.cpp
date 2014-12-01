@@ -17,7 +17,7 @@
 #include <iomanip>
 
 #if defined(_MSC_VER)  &&  _MSC_VER >= 1400 // VC++ 8.0
-#pragma warning( disable : 4996 )   // disable warning about strdup being deprecated.
+#pragma warning(disable : 4996)   // disable warning about strdup being deprecated.
 #endif
 
 namespace Json {
@@ -196,7 +196,7 @@ FastWriter::dropNullPlaceholders()
 std::string 
 FastWriter::write( const Value &root )
 {
-   document_ = "";
+   document_.clear();
    writeValue( root );
    document_ += "\n";
    return document_;
@@ -276,9 +276,9 @@ StyledWriter::StyledWriter()
 std::string 
 StyledWriter::write( const Value &root )
 {
-   document_ = "";
+   document_.clear();
    addChildValues_ = false;
-   indentString_ = "";
+   indentString_.clear();
    writeCommentBeforeValue( root );
    writeValue( root );
    writeCommentAfterValueOnSameLine( root );
@@ -555,7 +555,7 @@ StyledStreamWriter::write( std::ostream &out, const Value &root )
 {
    document_ = &out;
    addChildValues_ = false;
-   indentString_ = "";
+   indentString_.clear();
    writeCommentBeforeValue( root );
    writeValue( root );
    writeCommentAfterValueOnSameLine( root );

@@ -37,7 +37,7 @@ AdcCommand::AdcCommand(const string& aLine, bool nmdc /* = false */) : cmdInt(0)
 void AdcCommand::parse(const string& aLine, bool nmdc /* = false */)
 {
 	string::size_type i = 5;
-	
+	m_CID.init();
 	if (nmdc)
 	{
 		// "$ADCxxx ..."
@@ -131,6 +131,10 @@ void AdcCommand::parse(const string& aLine, bool nmdc /* = false */)
 				else
 				{
 					parameters.push_back(cur);
+					if (cur.size() == 41 && cur[0] == 'I' && cur[1] == 'D')
+					{
+						m_CID = CID(cur.substr(2));
+					}
 				}
 				cur.clear();
 			}

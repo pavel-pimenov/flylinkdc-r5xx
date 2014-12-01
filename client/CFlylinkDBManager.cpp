@@ -185,17 +185,13 @@ void CFlylinkDBManager::errorDB(const string& p_txt)
 			MessageBox(NULL, Text::toT(l_message).c_str(), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_OK | MB_ICONERROR | MB_TOPMOST);
 		}
 	}
-#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-	bool l_is_send = CFlyServerAdapter::CFlyServerJSON::pushError(l_error);
+	bool l_is_send = CFlyServerAdapter::CFlyServerJSON::pushError(16, l_error);
 	if (!l_is_send)
 	{
-#endif //FLYLINKDC_USE_MEDIAINFO_SERVER     
 		// TODO - скинуть ошибку в файл и не грузить crash-server логическими ошибками
 		// https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=51924
 		throw database_error(l_error.c_str());
-#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	}
-#endif //FLYLINKDC_USE_MEDIAINFO_SERVER 
 }
 //========================================================================================================
 CFlylinkDBManager::CFlylinkDBManager()
@@ -536,14 +532,14 @@ CFlylinkDBManager::CFlylinkDBManager()
 		if (!safeAlter("CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_last_ip ON fly_last_ip(dic_nick,dic_hub);"))
 		{
 			safeAlter("delete from fly_last_ip where rowid not in (select max(rowid) from fly_last_ip group by dic_nick,dic_hub)");
-			CFlyServerAdapter::CFlyServerJSON::pushError("[BUG][7] error CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_last_ip ON fly_last_ip(dic_nick,dic_hub)");
+			CFlyServerAdapter::CFlyServerJSON::pushError(7, "error CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_last_ip ON fly_last_ip(dic_nick,dic_hub)");
 		}
 		m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS fly_last_ip_nick_hub("
 		                              "nick text not null, dic_hub integer not null,ip text);");
 		if (!safeAlter("CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_last_ip_nick_hub ON fly_last_ip_nick_hub(nick,dic_hub);"))
 		{
 			safeAlter("delete from fly_last_ip_nick_hub where rowid not in (select max(rowid) from fly_last_ip_nick_hub group by nick,dic_hub)");
-			CFlyServerAdapter::CFlyServerJSON::pushError("[BUG][8] error CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_last_ip_nick_hub ON fly_last_ip_nick_hub(nick,dic_hub)");
+			CFlyServerAdapter::CFlyServerJSON::pushError(8, "error CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_last_ip_nick_hub ON fly_last_ip_nick_hub(nick,dic_hub)");
 		}
 		// Она не используются в версиях r502 но для отката назад нужны
 		
@@ -669,6 +665,105 @@ void CFlylinkDBManager::load_all_hub_into_cacheL()
 }
 //========================================================================================================
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
+void CFlylinkDBManager::merge_mediainfo_ext(const __int64 l_tth_id, const CFlyMediaInfo& p_media, bool p_delete_old_info)
+{
+	if (p_delete_old_info)
+	{
+		if (!m_delete_mediainfo.get())
+			m_delete_mediainfo = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+			                                                                   "delete from media_db.fly_media where tth_id=?\n"));
+		m_delete_mediainfo.get()->bind(1, l_tth_id);
+		m_delete_mediainfo.get()->executenonquery();
+	}
+	if (p_media.isMediaAttrExists())
+	{
+		if (!m_insert_mediainfo.get())
+			m_insert_mediainfo = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+			                                                                   "insert or replace into media_db.fly_media\n"
+			                                                                   "(tth_id,stream_type,channel,param,value) values (?,?,?,?,?);"));
+		sqlite3_command* l_sql = m_insert_mediainfo.get();
+		for (auto i = p_media.m_ext_array.cbegin(); i != p_media.m_ext_array.cend(); ++i)
+		{
+			if (i->m_is_delete == false) // Это параметр временный и его писать в базу не нужно
+				// TODO - пересмотреть алгоритм и при генерации массива удалять лишнии записи.
+				// убрав лишний флаг-мембер в ExtItem
+			{
+				l_sql->bind(1, l_tth_id);
+				l_sql->bind(2, i->m_stream_type);
+				l_sql->bind(3, i->m_channel);
+				l_sql->bind(4, i->m_param, SQLITE_STATIC);
+				l_sql->bind(5, i->m_value, SQLITE_STATIC);
+				l_sql->executenonquery();
+			}
+		}
+	}
+}
+bool CFlylinkDBManager::load_media_info(const TTHValue& p_tth, CFlyMediaInfo& p_media_info, bool p_only_inform)
+{
+	Lock l(m_cs);
+	try
+	{
+		const __int64 l_tth_id = get_tth_idL(p_tth);
+		if (l_tth_id)
+		{
+			// Читаем базовую инфу (TODO - если есть в памяти попробовать забрать из нее)
+			if (!m_load_mediainfo_base.get())
+				m_load_mediainfo_base = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+				                                                                      "select bitrate,media_x,media_y,media_video,media_audio from fly_file where tth_id=? limit 1"));
+			m_load_mediainfo_base.get()->bind(1, l_tth_id);
+			sqlite3_reader l_q_base = m_load_mediainfo_base.get()->executereader();
+			if (l_q_base.read()) // забираем всегда одну запись. (limit = 1) в шаре может быть несколько одинаковых файлов в разных каталогах.
+			{
+				p_media_info.m_bitrate = l_q_base.getint(0);
+				p_media_info.m_mediaX = l_q_base.getint(1);
+				p_media_info.m_mediaY = l_q_base.getint(2);
+				p_media_info.m_video = l_q_base.getstring(3);
+				p_media_info.m_audio = l_q_base.getstring(4);
+				// p_media_info.calcEscape(); // Тут это не нужно
+			}
+			if (p_media_info.isMedia()) // Если есть базовая информация - попытаемся забрать дополнительную.
+			{
+				if (!p_only_inform)
+				{
+					if (!m_load_mediainfo_ext.get())
+						m_load_mediainfo_ext = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+						                                                                     "select stream_type,channel,param,value from media_db.fly_media\n"
+						                                                                     "where tth_id = ? order by stream_type,channel"));
+					m_load_mediainfo_ext.get()->bind(1, l_tth_id);
+				}
+				else
+				{
+					if (!m_load_mediainfo_ext_only_inform.get())
+						m_load_mediainfo_ext_only_inform = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+						                                                             "select stream_type,channel,param,value from media_db.fly_media\n"
+						                                                             "where tth_id = ? and param = 'Infrom' order by stream_type,channel"));
+					m_load_mediainfo_ext_only_inform.get()->bind(1, l_tth_id);
+				}
+				sqlite3_reader l_q;
+				if (p_only_inform)
+					l_q = m_load_mediainfo_ext_only_inform.get()->executereader();
+				else
+					l_q = m_load_mediainfo_ext.get()->executereader();
+				while (l_q.read())
+				{
+					CFlyMediaInfo::ExtItem l_item;
+					l_item.m_stream_type = l_q.getint(0);
+					l_item.m_channel = l_q.getint(1);
+					l_item.m_param = l_q.getstring(2);
+					l_item.m_value = l_q.getstring(3);
+					p_media_info.m_ext_array.push_back(l_item);
+				}
+			}
+		}
+		return l_tth_id != 0;
+	}
+	catch (const database_error& e)
+	{
+		errorDB("SQLite - load_media_info: " + e.getError()); // TODO translate
+	}
+	return false;
+}
+
 bool CFlylinkDBManager::find_fly_server_cache(const TTHValue& p_tth, CFlyServerCache& p_value)
 {
 	Lock l(m_cs);
@@ -694,6 +789,29 @@ bool CFlylinkDBManager::find_fly_server_cache(const TTHValue& p_tth, CFlyServerC
 	}
 	return false;
 }
+//========================================================================================================
+void CFlylinkDBManager::save_fly_server_cache(const TTHValue& p_tth, const CFlyServerCache& p_value)
+{
+	Lock l(m_cs);
+	try
+	{
+		if (!m_insert_fly_server_cache.get())
+			m_insert_fly_server_cache = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+			                                                                          "insert or replace into media_db.fly_server_cache (tth,fly_audio,fly_audio_br,fly_video,fly_xy) values(?,?,?,?,?)"));
+		auto l_sql = m_insert_fly_server_cache.get();
+		l_sql->bind(1, p_tth.data, 24, SQLITE_STATIC);
+		l_sql->bind(2, p_value.m_audio, SQLITE_STATIC);
+		l_sql->bind(3, p_value.m_audio_br, SQLITE_STATIC);
+		l_sql->bind(4, p_value.m_video, SQLITE_STATIC);
+		l_sql->bind(5, p_value.m_xy, SQLITE_STATIC);
+		l_sql->executenonquery();
+	}
+	catch (const database_error& e)
+	{
+		errorDB("SQLite - save_fly_server_cache: " + e.getError());
+	}
+}
+#endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 //========================================================================================================
 void CFlylinkDBManager::convert_fly_hash_block_internalL()
 {
@@ -728,7 +846,7 @@ void CFlylinkDBManager::convert_fly_hash_block_internalL()
 	}
 	if (l_count_convert_error)
 	{
-		CFlyServerAdapter::CFlyServerJSON::pushError("[BUG][2] Error convert fly_hash_block! count error = " + Util::toString(l_count_convert_error) + ", last Error = " + l_last_error);
+		CFlyServerAdapter::CFlyServerJSON::pushError(2, "Error convert fly_hash_block! count error = " + Util::toString(l_count_convert_error) + ", last Error = " + l_last_error);
 	}
 }
 //========================================================================================================
@@ -741,7 +859,7 @@ void CFlylinkDBManager::convert_fly_hash_block_crate_unicque_tthL(CFlyLogFile& p
 	}
 	catch (const database_error& e)
 	{
-		CFlyServerAdapter::CFlyServerJSON::pushError("[BUG][3] Error CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_hash_block_tth ON fly_hash_block(tth). Error = " + e.getError());
+		CFlyServerAdapter::CFlyServerJSON::pushError(3, "Error CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_hash_block_tth ON fly_hash_block(tth). Error = " + e.getError());
 		// Удаляем дубли! но я не знаю откуда они могут взяться :(
 		{
 			p_convert_log.step(m_flySQLiteDB.executenonquery("delete from fly_hash_block where tth is not null and tth_id not in (select max(tth_id) from fly_hash_block where tth is not null group by tth)"));
@@ -772,7 +890,7 @@ void CFlylinkDBManager::convert_fly_hash_blockL()
 			{
 				if (e.getError().find("UNIQUE ") != string::npos) // Вероятность этого очень маленькая..
 				{
-					CFlyServerAdapter::CFlyServerJSON::pushError(e.getError() + "[BUG][1]"); // TODO __FILE__, __LINE__
+					CFlyServerAdapter::CFlyServerJSON::pushError(1, e.getError()); // TODO __FILE__, __LINE__
 					convert_fly_hash_block_internalL(); // Обработаем апдейт по одной записи TODO - если не возникнет ошибок - убрать
 				}
 				else
@@ -797,28 +915,7 @@ void CFlylinkDBManager::convert_fly_hash_blockL()
 		convert_fly_hash_block_crate_unicque_tthL(l_convert_log);
 	}
 }
-//========================================================================================================
-void CFlylinkDBManager::save_fly_server_cache(const TTHValue& p_tth, const CFlyServerCache& p_value)
-{
-	Lock l(m_cs);
-	try
-	{
-		if (!m_insert_fly_server_cache.get())
-			m_insert_fly_server_cache = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                          "insert or replace into media_db.fly_server_cache (tth,fly_audio,fly_audio_br,fly_video,fly_xy) values(?,?,?,?,?)"));
-		m_insert_fly_server_cache.get()->bind(1, p_tth.data, 24, SQLITE_STATIC);
-		m_insert_fly_server_cache.get()->bind(2, p_value.m_audio, SQLITE_STATIC);
-		m_insert_fly_server_cache.get()->bind(3, p_value.m_audio_br, SQLITE_STATIC);
-		m_insert_fly_server_cache.get()->bind(4, p_value.m_video, SQLITE_STATIC);
-		m_insert_fly_server_cache.get()->bind(5, p_value.m_xy, SQLITE_STATIC);
-		m_insert_fly_server_cache.get()->executenonquery();
-	}
-	catch (const database_error& e)
-	{
-		errorDB("SQLite - save_fly_server_cache: " + e.getError());
-	}
-}
-#endif // FLYLINKDC_USE_MEDIAINFO_SERVER
+
 #ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
 //========================================================================================================
 void CFlylinkDBManager::identity_initL(const string& p_hub, const string& p_key, const string& p_value)
@@ -1404,13 +1501,12 @@ void CFlylinkDBManager::save_geoip(const CFlyLocationIPArray& p_geo_ip)
 int CFlylinkDBManager::calc_antivirus_flag(const string& p_nick, const boost::asio::ip::address_v4& p_ip4, int64_t p_share, string& p_virus_path)
 {
 	int l_result = 0;
-	Lock l_vir(m_antivirus_cs);
+	Lock l(m_cs);
 	if (m_virus_user.find(p_nick) != m_virus_user.end() ||
 	        (p_share && m_virus_share.find(p_share) != m_virus_share.end()) ||
 	        (!p_ip4.is_unspecified() && m_virus_ip4.find(p_ip4.to_ulong()) != m_virus_ip4.end())
 	   )
 	{
-		Lock l(m_cs);
 		if (!m_find_virus_nick_and_share_and_ip4.get() && !p_ip4.is_unspecified())
 		{
 			m_find_virus_nick_and_share_and_ip4 = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
@@ -1478,7 +1574,6 @@ int CFlylinkDBManager::calc_antivirus_flag(const string& p_nick, const boost::as
 //========================================================================================================
 void CFlylinkDBManager::purge_antivirus_db(const uint64_t p_delete_counter, const uint64_t p_unixtime)
 {
-	Lock l_vir(m_antivirus_cs);
 	Lock l(m_cs);
 	try
 	{
@@ -2142,7 +2237,7 @@ void CFlylinkDBManager::addSource(const QueueItemPtr& p_QueueItem, const CID& p_
 	}
 }
 //========================================================================================================
-void CFlylinkDBManager::delete_queue_sources(const __int64 p_id)
+void CFlylinkDBManager::delete_queue_sourcesL(const __int64 p_id)
 {
 	dcassert(p_id);
 	if (!m_del_fly_queue_source.get())
@@ -2162,7 +2257,7 @@ void CFlylinkDBManager::remove_queue_item(const __int64 p_id)
 		try
 		{
 			sqlite3_transaction l_trans(m_flySQLiteDB);
-			delete_queue_sources(p_id);
+			delete_queue_sourcesL(p_id);
 			if (!m_del_fly_queue.get())
 				m_del_fly_queue = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
 				                                                                "delete from fly_queue where id=?"));
@@ -2177,12 +2272,32 @@ void CFlylinkDBManager::remove_queue_item(const __int64 p_id)
 	}
 }
 //========================================================================================================
+void CFlylinkDBManager::merge_queue_all_items(std::vector<QueueItemPtr>& p_QueueItemArray)
+{
+	dcassert(!p_QueueItemArray.empty());
+	try
+	{
+		Lock l(m_cs);
+		sqlite3_transaction l_trans(m_flySQLiteDB);
+		for (auto i = p_QueueItemArray.begin(); i != p_QueueItemArray.end(); ++i)
+		{
+			if (merge_queue_itemL(*i))
+			{
+				(*i)->setDirty(false);
+			}
+		}
+		l_trans.commit();
+	}
+	catch (const database_error& e)
+	{
+		errorDB("SQLite - merge_queue_all_items: " + e.getError());
+	}
+}
+//========================================================================================================
 bool CFlylinkDBManager::merge_queue_itemL(QueueItemPtr& p_QueueItem)
 {
 	try
 	{
-		Lock l(m_cs); // TODO dead lock https://code.google.com/p/flylinkdc/issues/detail?id=1028
-		sqlite3_transaction l_trans(m_flySQLiteDB);
 		__int64 l_id = p_QueueItem->getFlyQueueID();
 		if (!l_id)
 			l_id = ++m_queue_id;
@@ -2191,9 +2306,9 @@ bool CFlylinkDBManager::merge_queue_itemL(QueueItemPtr& p_QueueItem)
 			if (p_QueueItem->getFlyCountSourceInSQL()) // Источники писали в базу - есть что удалять? https://code.google.com/p/flylinkdc/issues/detail?id=933
 			{
 #ifdef _DEBUG
-//				LogManager::getInstance()->message("delete_queue_sources(l_id) l_id = " + Util::toString(l_id),true);
+//				LogManager::getInstance()->message("delete_queue_sourcesL(l_id) l_id = " + Util::toString(l_id),true);
 #endif
-				delete_queue_sources(l_id);
+				delete_queue_sourcesL(l_id);
 			}
 		}
 		if (!m_insert_fly_queue.get())
@@ -2371,7 +2486,6 @@ bool CFlylinkDBManager::merge_queue_itemL(QueueItemPtr& p_QueueItem)
 			p_QueueItem->setFlyCountSourceInSQL(l_cont_insert_sub_source); // Сохраним в памяти сколько записей добавили к дочерней таблице.
 			p_QueueItem->setFlyQueueID(l_id);
 		}
-		l_trans.commit();
 		return true;
 	}
 	catch (const database_error& e)
@@ -2411,7 +2525,6 @@ bool CFlylinkDBManager::load_last_ip_and_user_stat(uint32_t p_hub_id, const stri
 {
 	try
 	{
-		Lock l_vir(m_antivirus_cs);
 		Lock l(m_cs);
 		p_message_count = 0;
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
@@ -3150,74 +3263,6 @@ void CFlylinkDBManager::SweepFiles(__int64 p_path_id, const CFlyDirMap& p_sweep_
 }
 #endif
 //========================================================================================================
-#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-bool CFlylinkDBManager::load_media_info(const TTHValue& p_tth, CFlyMediaInfo& p_media_info, bool p_only_inform)
-{
-	Lock l(m_cs);
-	try
-	{
-		const __int64 l_tth_id = get_tth_idL(p_tth);
-		if (l_tth_id)
-		{
-			// Читаем базовую инфу (TODO - если есть в памяти попробовать забрать из нее)
-			if (!m_load_mediainfo_base.get())
-				m_load_mediainfo_base = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-				                                                                      "select bitrate,media_x,media_y,media_video,media_audio from fly_file where tth_id=? limit 1"));
-			m_load_mediainfo_base.get()->bind(1, l_tth_id);
-			sqlite3_reader l_q_base = m_load_mediainfo_base.get()->executereader();
-			if (l_q_base.read()) // забираем всегда одну запись. (limit = 1) в шаре может быть несколько одинаковых файлов в разных каталогах.
-			{
-				p_media_info.m_bitrate = l_q_base.getint(0);
-				p_media_info.m_mediaX = l_q_base.getint(1);
-				p_media_info.m_mediaY = l_q_base.getint(2);
-				p_media_info.m_video = l_q_base.getstring(3);
-				p_media_info.m_audio = l_q_base.getstring(4);
-				// p_media_info.calcEscape(); // Тут это не нужно
-			}
-			if (p_media_info.isMedia()) // Если есть базовая информация - попытаемся забрать дополнительную.
-			{
-				if (!p_only_inform)
-				{
-					if (!m_load_mediainfo_ext.get())
-						m_load_mediainfo_ext = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-						                                                                     "select stream_type,channel,param,value from media_db.fly_media\n"
-						                                                                     "where tth_id = ? order by stream_type,channel"));
-					m_load_mediainfo_ext.get()->bind(1, l_tth_id);
-				}
-				else
-				{
-					if (!m_load_mediainfo_ext_only_inform.get())
-						m_load_mediainfo_ext_only_inform = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-						                                                             "select stream_type,channel,param,value from media_db.fly_media\n"
-						                                                             "where tth_id = ? and param = 'Infrom' order by stream_type,channel"));
-					m_load_mediainfo_ext_only_inform.get()->bind(1, l_tth_id);
-				}
-				sqlite3_reader l_q;
-				if (p_only_inform)
-					l_q = m_load_mediainfo_ext_only_inform.get()->executereader();
-				else
-					l_q = m_load_mediainfo_ext.get()->executereader();
-				while (l_q.read())
-				{
-					CFlyMediaInfo::ExtItem l_item;
-					l_item.m_stream_type = l_q.getint(0);
-					l_item.m_channel = l_q.getint(1);
-					l_item.m_param = l_q.getstring(2);
-					l_item.m_value = l_q.getstring(3);
-					p_media_info.m_ext_array.push_back(l_item);
-				}
-			}
-		}
-		return l_tth_id != 0;
-	}
-	catch (const database_error& e)
-	{
-		errorDB("SQLite - load_media_info: " + e.getError()); // TODO translate
-	}
-	return false;
-}
-#endif // FLYLINKDC_USE_MEDIAINFO_SERVER
-//========================================================================================================
 void CFlylinkDBManager::LoadDir(__int64 p_path_id, CFlyDirMap& p_dir_map, bool p_is_no_mediainfo)
 {
 	Lock l(m_cs);
@@ -3537,42 +3582,6 @@ void CFlylinkDBManager::incHit(const string& p_Path, const string& p_FileName)
 		errorDB("SQLite - Hit: " + e.getError()); // TODO translate
 	}
 }
-//========================================================================================================
-#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-void CFlylinkDBManager::merge_mediainfo_ext(const __int64 l_tth_id, const CFlyMediaInfo& p_media, bool p_delete_old_info)
-{
-	if (p_delete_old_info)
-	{
-		if (!m_delete_mediainfo.get())
-			m_delete_mediainfo = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                   "delete from media_db.fly_media where tth_id=?\n"));
-		m_delete_mediainfo.get()->bind(1, l_tth_id);
-		m_delete_mediainfo.get()->executenonquery();
-	}
-	if (p_media.isMediaAttrExists())
-	{
-		if (!m_insert_mediainfo.get())
-			m_insert_mediainfo = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                   "insert or replace into media_db.fly_media\n"
-			                                                                   "(tth_id,stream_type,channel,param,value) values (?,?,?,?,?);"));
-		sqlite3_command* l_sql = m_insert_mediainfo.get();
-		for (auto i = p_media.m_ext_array.cbegin(); i != p_media.m_ext_array.cend(); ++i)
-		{
-			if (i->m_is_delete == false) // Это параметр временный и его писать в базу не нужно
-				// TODO - пересмотреть алгоритм и при генерации массива удалять лишнии записи.
-				// убрав лишний флаг-мембер в ExtItem
-			{
-				l_sql->bind(1, l_tth_id);
-				l_sql->bind(2, i->m_stream_type);
-				l_sql->bind(3, i->m_channel);
-				l_sql->bind(4, i->m_param, SQLITE_STATIC);
-				l_sql->bind(5, i->m_value, SQLITE_STATIC);
-				l_sql->executenonquery();
-			}
-		}
-	}
-}
-#endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 //========================================================================================================
 #ifdef USE_REBUILD_MEDIAINFO
 bool CFlylinkDBManager::rebuild_mediainfo(const __int64 p_path_id, const string& p_file_name, const CFlyMediaInfo& p_media, const TTHValue& p_tth)

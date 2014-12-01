@@ -27,7 +27,7 @@
 #include <boost/container/detail/math_functions.hpp>
 #include <boost/container/detail/mpl.hpp>
 #include <boost/container/detail/pool_common.hpp>
-#include <boost/detail/no_exceptions_support.hpp>
+#include <boost/core/no_exceptions_support.hpp>
 #include <boost/assert.hpp>
 #include <cstddef>
 
@@ -251,8 +251,8 @@ class private_node_pool_impl
 
    struct is_between
    {
-	   typedef typename free_nodes_t::value_type argument_type;
-	   typedef bool                              result_type;
+      typedef typename free_nodes_t::value_type argument_type;
+      typedef bool                              result_type;
 
       is_between(const void *addr, std::size_t size)
          :  beg_(static_cast<const char *>(addr)), end_(beg_+size)

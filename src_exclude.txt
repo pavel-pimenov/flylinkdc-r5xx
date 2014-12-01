@@ -80,6 +80,8 @@ test-console.exe
 *.7z
 vc10
 vc11
+vc12
+vc13
 developer.key
 setup
 BackUp

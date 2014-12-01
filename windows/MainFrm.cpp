@@ -165,9 +165,7 @@ MainFrame::MainFrame() :
 	m_oldshutdown(false),
 	m_stopperThread(nullptr),
 	m_bHashProgressVisible(false),
-#ifdef IRAINMAN_ENABLE_HUB_LIST
-	isOpenHubFrame(false),
-#endif
+	m_isOpenHubFrame(false),
 	m_closing(false),
 	m_menuclose(false), // [+] InfinitySky.
 #ifdef FLYLINKDC_USE_EXTERNAL_MAIN_ICON
@@ -403,7 +401,7 @@ void MainFrame::createMainMenu(void) // [+]Drakon. Enlighting functions.
 	SetMenu(NULL);  // remove old menu
 }
 
-void MainFrame::createTrayMenu(void) // [+]Drakon. Enlighting functions.
+void MainFrame::createTrayMenu() // [+]Drakon. Enlighting functions.
 {
 	trayMenu.CreatePopupMenu();
 	trayMenu.AppendMenu(MF_STRING, IDC_TRAY_SHOW, CTSTRING(MENU_SHOW));
@@ -542,7 +540,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	
 	TimerManager::getInstance()->start(0, "TimerManager");
 	SetWindowText(T_APPNAME_WITH_VERSION);
-	MainFrame::createMainMenu();
+	createMainMenu();
 	
 	// [!] TODO убрать флажки нафиг! Достаточно валидность указателя проверять, я уже молчу про то, что этот флажёк не гарнтирует вообще ничего.
 	tbarcreated = false;
@@ -669,7 +667,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	pLoop->AddMessageFilter(this);
 	pLoop->AddIdleHandler(this);
 	
-	MainFrame::createTrayMenu();
+	createTrayMenu();
 	
 	tbMenu.CreatePopupMenu();
 	tbMenu.AppendMenu(MF_STRING, ID_VIEW_TOOLBAR, CTSTRING(MENU_TOOLBAR));
@@ -829,8 +827,8 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	}
 // [+]IRainman Speedmeter
 	m_diff = (/*(lastUpdate == 0) ? aTick - 1000 :*/ aTick - g_lastUpdate); // [!] IRainman fix.
-	const uint64_t l_CurrentUp = Socket::getTotalUp();
-	const uint64_t l_CurrentDown = Socket::getTotalDown();
+	const uint64_t l_CurrentUp   = Socket::g_stats.m_tcp.totalUp;
+	const uint64_t l_CurrentDown = Socket::g_stats.m_tcp.totalDown;
 	if (m_Stats.size() > SPEED_APPROXIMATION_INTERVAL_S) // Averaging interval in seconds
 		m_Stats.pop_front();
 		
@@ -1048,16 +1046,6 @@ HWND MainFrame::createToolbar()    //[~]Drakon. Enlighting toolbars.
 				}
 				else
 				{
-					/* TODO
-					#ifndef IRAINMAN_INCLUDE_RSS
-					if (ToolbarButtons[i].id == IDC_RSS)
-					    continue;
-					#endif
-					#ifndef IRAINMAN_ENABLE_HUB_LIST
-					if (ToolbarButtons[i].id == ID_FILE_CONNECT)
-					    continue;
-					#endif
-					*/
 					nTB.iBitmap = g_ToolbarButtons[i].image;
 					nTB.idCommand = g_ToolbarButtons[i].id;
 					nTB.fsStyle = g_ToolbarButtons[i].check ? TBSTYLE_CHECK : TBSTYLE_BUTTON;
@@ -1967,9 +1955,8 @@ LRESULT MainFrame::onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 				case ID_FILE_SEARCH:
 					SearchFrame::openWindow();
 					break;
-#ifdef IRAINMAN_ENABLE_HUB_LIST
 				case ID_FILE_CONNECT:
-					if (!isOpenHubFrame)
+					if (!m_isOpenHubFrame)
 					{
 						UINT checkState = BOOLSETTING(CONFIRM_OPEN_INET_HUBS) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
 						if (checkState == BST_CHECKED
@@ -1981,7 +1968,7 @@ LRESULT MainFrame::onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 						   )
 						{
 							PublicHubsFrame::openWindow();
-							isOpenHubFrame = true;
+							m_isOpenHubFrame = true;
 						}
 						else
 						{
@@ -1994,7 +1981,6 @@ LRESULT MainFrame::onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 						PublicHubsFrame::openWindow();
 						
 					break;
-#endif
 				case IDC_FAVORITES:
 					FavoriteHubsFrame::openWindow();
 					break;
@@ -3896,9 +3882,9 @@ void MainFrame::on(UserManagerListener::OpenHub, const string& p_url) noexcept /
 	HubFrame::openWindow(p_url);
 }
 
-void MainFrame::on(UserManagerListener::CollectSummaryInfo, const UserPtr& user) noexcept // [+] IRainman
+void MainFrame::on(UserManagerListener::CollectSummaryInfo, const UserPtr& user, const string& hubHint) noexcept // [+] IRainman
 {
-	UserInfoSimple(user).addSummaryMenu();
+	UserInfoSimple(user, hubHint).addSummaryMenu();
 }
 #ifdef FLYLINKDC_USE_SQL_EXPLORER
 void MainFrame::on(UserManagerListener::BrowseSqlExplorer, const UserPtr& user, const string& hubHint) noexcept // [+] IRainman

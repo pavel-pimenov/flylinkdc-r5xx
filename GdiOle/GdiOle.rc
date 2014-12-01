@@ -36,7 +36,6 @@ IDR_GDIIMAGE            REGISTRY                "GDIImage.rgs"
 // Bitmap
 //
 
-IDB_GDIIMAGE            BITMAP                  "GDIImage.bmp"
 #endif    // Russian resources
 /////////////////////////////////////////////////////////////////////////////
 

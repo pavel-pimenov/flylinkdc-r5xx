@@ -264,6 +264,39 @@ void SimpleXML::fromXML(const string& aXML)
 	current = &root;
 	resetCurrentChild();
 }
+void SimpleXML::stepIn()
+{
+	checkChildSelected();
+	current = *currentChild;
+	currentChild = current->children.begin();
+	found = false;
+}
+
+void SimpleXML::stepOut()
+{
+	if (current == &root)
+		throw SimpleXMLException("Already at lowest level");
+		
+	dcassert(current && current->parent);
+	if (!current)
+		return;
+	if (!current->parent)
+		return;
+	currentChild = find(current->parent->children.begin(), current->parent->children.end(), current);
+	
+	current = current->parent;
+	found = true;
+}
+
+void SimpleXML::resetCurrentChild()
+{
+	found = false;
+	dcassert(current != NULL);
+	if (!current)
+		return;
+		
+	currentChild = current->children.begin();
+}
 
 /**
  * @file

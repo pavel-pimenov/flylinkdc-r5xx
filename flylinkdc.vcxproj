@@ -1085,6 +1085,7 @@
     <None Include="compiled\Settings\common\IPGrant.ini" />
     <None Include="compiled\Settings\common\IPGuard.ini" />
     <None Include="compiled\Settings\common\IPTrust.ini" />
+    <None Include="compiled\Settings\common\isp-hub-list.txt" />
     <None Include="compiled\Settings\flylinkdc-config-r5xx.xml">
       <SubType>Designer</SubType>
     </None>
@@ -1109,7 +1110,6 @@
     <None Include="res\Finished-Uploads.ico" />
     <None Include="res\firewall.ico" />
     <None Include="res\Flags.png" />
-    <None Include="res\FlyLink.bmp" />
     <None Include="res\FlyLink.png" />
     <None Include="res\FlylinkDC.ico" />
     <None Include="res\FlylinkDC_Update.ico" />
@@ -1122,6 +1122,7 @@
     <None Include="res\Hub.ico" />
     <None Include="res\HubOff.ico" />
     <None Include="res\Internet-Hubs.ico" />
+    <None Include="res\ISPImages.png" />
     <None Include="res\italic.ico" />
     <None Include="res\italic.png" />
     <None Include="res\Magnet.ico" />

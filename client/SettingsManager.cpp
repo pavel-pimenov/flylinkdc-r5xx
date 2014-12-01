@@ -33,6 +33,7 @@
 #include "ShareManager.h" // [+] NightOrion
 #include <boost/algorithm/string.hpp>
 #include "../FlyFeatures/AutoUpdate.h"
+#include "../FlyFeatures/flyServer.h"
 #include "ConnectivityManager.h"
 
 StringList SettingsManager::g_connectionSpeeds;
@@ -86,10 +87,26 @@ const string SettingsManager::settingTags[] =
 	"WinampFormat",
 	
 	"WebServerPowerUser", "WebServerPowerPass", "webServerBindAddress", // [+] IRainman
-	"WebServerLogFormat", "LogFormatCustomLocation", "LogFormatTraceSQLite", "LogFormatDdosTrace", "LogFormatDHTTrace", "LogFormatPSRTrace", "LogFormatFloodTrace", "LogFormatCMDDebugTrace",
+	"WebServerLogFormat", "LogFormatCustomLocation",
+	
+	"LogFormatTraceSQLite",
+	"LogFormatDdosTrace",
+	"LogFormatCMDDebugTrace",
+	"LogFormatDHTTrace",
+	"LogFormatPSRTrace",
+	"LogFormatFloodTrace",
+	
 	"WebServerUser", "WebServerPass", "LogFileMainChat",
 	"LogFilePrivateChat", "LogFileStatus", "LogFileUpload", "LogFileDownload", "LogFileSystem", "LogFormatSystem",
-	"LogFormatStatus", "LogFileWebServer", "LogFileCustomLocation", "LogTraceSQLite", "LogFileDdosTrace", "LogFileDHTTrace", "LogFilePSRTrace", "LogFileFloodTrace", "LogFileCMDDebugTrace",
+	"LogFormatStatus", "LogFileWebServer", "LogFileCustomLocation",
+	
+	"LogTraceSQLite",
+	"LogFileDdosTrace",
+	"LogFileCMDDebugTrace",
+	"LogFileDHTTrace",
+	"LogFilePSRTrace",
+	"LogFileFloodTrace",
+	
 	"DirectoryListingFrameOrder", "DirectoryListingFrameWidths",
 	"MainFrameVisible", "SearchFrameVisible", "QueueFrameVisible", "HubFrameVisible", "UploadQueueFrameVisible",
 	"EmoticonsFileFlylinkDC",
@@ -251,6 +268,7 @@ const string SettingsManager::settingTags[] =
 	"SettingsWindowSizeX", "SettingsWindowSizeYY", "SettingsWindowTransp", "SettingsWindowColorize", "SettingsWindowWikihelp", "ChatBufferSize", "EnableHubmodePic",
 	"EnableCountryflag", "PgLastUp",
 	"DiredtorListingFrameSplit",
+	"FlyServerHubListSplit",
 #ifdef IRAINMAN_INCLUDE_TEXT_FORMATTING
 	"FormatBIU",
 #endif
@@ -511,9 +529,7 @@ void SettingsManager::setDefaults()
 	//setDefault(IGNORE_HUB_PMS, false);
 	//setDefault(IGNORE_BOT_PMS, false);
 	setDefault(BUFFER_SIZE_FOR_DOWNLOADS, 1024);
-#ifdef IRAINMAN_ENABLE_HUB_LIST
 	setDefault(HUBLIST_SERVERS, "http://dchublist.ru/hublist.xml.bz2;http://www.te-home.net/?do=hublist&get=hublist-ru.xml.bz2;http://dchublist.com/hublist.xml.bz2");
-#endif
 	//setDefault(DOWNLOAD_SLOTS, 0); // [+] PPA
 	//setDefault(MAX_DOWNLOAD_SPEED, 0);
 	setDefault(LOG_DIRECTORY, Util::getLocalPath() + "Logs" PATH_SEPARATOR_STR);
@@ -558,6 +574,8 @@ void SettingsManager::setDefaults()
 	setDefault(LOG_FILE_DDOS_TRACE, "ddos.log");
 	setDefault(LOG_FORMAT_DDOS_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
 	
+	setDefault(LOG_FILE_CMDDEBUG_TRACE, "cmddebug.log");
+	setDefault(LOG_FORMAT_CMDDEBUG_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
 	
 	setDefault(LOG_FILE_DHT_TRACE, "dht.log");
 	setDefault(LOG_FORMAT_DHT_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
@@ -568,8 +586,6 @@ void SettingsManager::setDefaults()
 	setDefault(LOG_FILE_FLOOD_TRACE, "flood.log");
 	setDefault(LOG_FORMAT_FLOOD_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
 	
-	setDefault(LOG_FILE_CMDDEBUG_TRACE, "cmddebug.log");
-	setDefault(LOG_FORMAT_CMDDEBUG_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
 	
 	setDefault(TIME_STAMPS_FORMAT, "%X"); // [!] IRainman fix: use system format time. "%H:%M:%S"
 //
@@ -921,6 +937,7 @@ void SettingsManager::setDefaults()
 	setDefault(HUBFRAME_VISIBLE, "1,1,0,1,1,1,1,1,1,1,1,1,1,1"); // [~] InfinitySky. Можно ещё донастроить: более значимые колонки помещаем вперёд, менее важные - назад. Также можно отрегулировать ширину колонок.
 	setDefault(DIRECTORYLISTINGFRAME_VISIBLE, "1,1,1,1,1"); // [~] InfinitySky.
 	setDefault(DIRECTORYLISTINGFRAME_SPLIT, 2500);
+	setDefault(FLYSERVER_HUBLIST_SPLIT, 2500);
 	setDefault(FINISHED_VISIBLE, "1,1,1,1,1,1,1,1");
 	setDefault(FINISHED_UL_VISIBLE, "1,1,1,1,1,1,1");
 	setDefault(ACCEPTED_DISCONNECTS, 5);
@@ -2060,9 +2077,9 @@ void SettingsManager::save(const string& aFileName)
 		File::deleteFile(aFileName);
 		File::renameFile(aFileName + ".tmp", aFileName);
 	}
-	catch (const FileException&)
+	catch (const FileException& e)
 	{
-		// ...
+		CFlyServerAdapter::CFlyServerJSON::pushError(13, "error create/write .xml file:" + aFileName + " error = " + e.getError());
 	}
 }
 

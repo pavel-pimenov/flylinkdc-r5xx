@@ -18,16 +18,15 @@ class SearchPage : public CPropertyPage<IDD_SEARCH_PAGE>, public PropPage
 #endif
 {
 	public:
-		SearchPage(SettingsManager *s) : PropPage(s)
+		SearchPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_ADVANCED3) + _T('\\') + TSTRING(SEARCH))
 		{
-			title = TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_ADVANCED3) + _T('\\') + TSTRING(SEARCH);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
-		};
+		}
 		~SearchPage()
 		{
 			ctrlList.Detach(); // [+] IRainman
-		};
+		}
 		
 		BEGIN_MSG_MAP(SearchPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
@@ -48,7 +47,7 @@ class SearchPage : public CPropertyPage<IDD_SEARCH_PAGE>, public PropPage
 	private:
 		void fixControls(); // [+]NightOrion
 	protected:
-		wstring title;
+	
 		static Item items[];
 		static TextItem texts[];
 		static ListItem listItems[];

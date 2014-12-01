@@ -23,18 +23,18 @@
 #include "../client/UploadManager.h"
 
 class UserInfoSimple: public UserInfoBase
-#ifdef _DEBUG
-	, virtual NonDerivable<UserInfoSimple> // [+] IRainman fix.
-#endif
 {
 		// [->] IRainman moved from client/UserInfoBase.
 	public:
-		explicit UserInfoSimple(const UserPtr& p_user) : m_user(p_user)
+		explicit UserInfoSimple(const HintedUser& p_hinted_user) : m_hintedUser(p_hinted_user)
 		{
 		}
-		explicit UserInfoSimple(const OnlineUserPtr& p_user) : m_user(p_user->getUser()) // [+] IRainman fix.
+		explicit UserInfoSimple(const UserPtr& p_user, const string& p_hub_hint) : m_hintedUser(HintedUser(p_user, p_hub_hint))
 		{
-			m_user->setLastNick(p_user->getIdentity().getNick());
+		}
+		explicit UserInfoSimple(const OnlineUserPtr& p_user, const string& p_hub_hint) : m_hintedUser(HintedUser(p_user->getUser(), p_hub_hint)) // [+] IRainman fix.
+		{
+			m_hintedUser.user->setLastNick(p_user->getIdentity().getNick());
 		}
 		
 		void addSummaryMenu(); // !SMT!-UI
@@ -43,10 +43,10 @@ class UserInfoSimple: public UserInfoBase
 		
 		const UserPtr& getUser() const
 		{
-			return m_user;
+			return m_hintedUser.user;
 		}
 		
-		const UserPtr&  m_user;
+		const HintedUser m_hintedUser;
 };
 
 #if 0 // http://code.google.com/p/flylinkdc/issues/detail?id=1413

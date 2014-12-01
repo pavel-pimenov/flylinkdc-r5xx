@@ -22,9 +22,6 @@
     <ClCompile Include="client\ClientManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="client\ClientProfileManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="client\ConnectionManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -32,9 +29,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="client\DCPlusPlus.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="client\DetectionManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="client\DirectoryListing.cpp">
@@ -522,9 +516,6 @@
     <ClInclude Include="client\ClientManagerListener.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="client\ClientProfileManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="client\ConnectionManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -538,9 +529,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="client\DebugManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="client\DetectionManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="client\DirectoryListing.h">
@@ -883,9 +871,6 @@
       <Filter>Header Files\jsoncpp</Filter>
     </ClInclude>
     <ClInclude Include="client\cperformance.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="client\DetectionEntry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="client\HintedUser.h">

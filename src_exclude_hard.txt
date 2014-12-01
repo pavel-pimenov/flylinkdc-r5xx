@@ -9,6 +9,8 @@ FlyUpdate.pdb
 UpdateMaker.pdb
 vc100.pdb
 vc10
+vc12
+vc13
 FlylinkDCShellExt*.pdb
 FlylinkDC_Debug*.pdb
 compiled/Settings/common/*.*

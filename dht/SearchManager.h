@@ -31,7 +31,7 @@ struct Search {
 
 	enum SearchType { TYPE_FILE = 1, TYPE_NODE = 3, TYPE_STOREFILE = 4 };   // standard types should match ADC protocol
 
-	Search(SearchType p_type,const string& p_term, const string& p_token) : 
+	Search(SearchType p_type,const string& p_term, uint32_t p_token) : 
         m_term(p_term),
         m_token(p_token),
         m_type(p_type), 
@@ -49,7 +49,7 @@ struct Search {
 	Node::Map triedNodes;       // nodes where search request has already been sent to
 	Node::Map respondedNodes;   // nodes who responded to this search request
 	
-	string m_token;           // search identificator
+	uint32_t m_token;         // search identificator
 	string m_term;            // search term (TTH/CID)
 	uint64_t m_lifeTime;      // time when this search has been started //[!] Member variable 'Search::lifeTime' is not initialized in the constructor.
 	int64_t  m_filesize;      // file size
@@ -72,7 +72,7 @@ class SearchManager :
 		void findNode(const CID& cid);
 		
 		/** Performs value lookup in the network */
-		void findFile(const string& p_tth, const string& p_token);
+		void findFile(const string& p_tth, uint32_t p_token);
 		
 		/** Performs node lookup to store key/value pair in the network */
 		void findStore(const string& tth, int64_t size, bool partial);
@@ -92,7 +92,7 @@ class SearchManager :
 	private:
 	
 		/** Running search operations */
-		typedef std::unordered_map<string*, Search*, noCaseStringHash, noCaseStringEq> SearchMap;
+		typedef std::unordered_map<uint32_t, Search*> SearchMap;
 		SearchMap m_searches;
 		
 		/** Locks access to "searches" */

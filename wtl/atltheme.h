@@ -34,9 +34,11 @@
   #include <vssym32.h>
 #else
   #ifndef TMSCHEMA_H
-  #include <tmschema.h>
+    #if (_MSC_VER < 1800)   
+       #include <tmschema.h>
+     #endif
+   #endif  
   #endif
-#endif
 
 #include <uxtheme.h>
 #pragma comment(lib, "uxtheme.lib")
@@ -525,6 +527,9 @@ inline bool AtlDrawThemeClientEdge(HTHEME hTheme, HWND hWnd, HRGN hRgnUpdate = N
 	// Get border size
 	int cxBorder = ::GetSystemMetrics(SM_CXBORDER);
 	int cyBorder = ::GetSystemMetrics(SM_CYBORDER);
+#ifndef TMT_SIZINGBORDERWIDTH
+   #define TMT_SIZINGBORDERWIDTH	1201
+#endif
 	if(SUCCEEDED(::GetThemeInt(hTheme, nPartID, nStateID, TMT_SIZINGBORDERWIDTH, &cxBorder)))
 		cyBorder = cxBorder;
 

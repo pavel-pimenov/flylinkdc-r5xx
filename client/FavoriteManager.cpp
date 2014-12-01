@@ -19,7 +19,6 @@
 #include "stdinc.h"
 #include "FavoriteManager.h"
 #include "ClientManager.h"
-#include "HttpConnection.h"
 #include "StringTokenizer.h"
 #include "SimpleXML.h"
 #include "UserCommand.h"
@@ -34,7 +33,6 @@ bool FavoriteManager::g_SupportsHubExist = false;
 std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csUsers = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csHubs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csDirs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
-std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csPublicHubs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csUserCommand = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 
 // [+] IRainman mimicry function
@@ -54,9 +52,6 @@ const FavoriteManager::mimicrytag FavoriteManager::g_MimicryTags[] =
 };
 
 FavoriteManager::FavoriteManager() : m_isNotEmpty(false), m_lastId(0),
-#ifdef IRAINMAN_ENABLE_HUB_LIST
-	m_useHttp(false), m_running(false), c(nullptr), m_lastServer(0), m_listType(TYPE_NORMAL),
-#endif
 	m_dontSave(0), m_recent_dirty(false)
 {
 	SettingsManager::getInstance()->addListener(this);
@@ -222,13 +217,6 @@ void FavoriteManager::removeUserCommand(int cid)
 void FavoriteManager::shutdown()
 {
 	recentsave();
-#ifdef IRAINMAN_ENABLE_HUB_LIST
-	if (c)
-	{
-		c->removeListener(this); // https://code.google.com/p/flylinkdc/issues/detail?id=1103
-		safe_delete(c);
-	}
-#endif
 }
 void FavoriteManager::prepareClose()
 {
@@ -703,85 +691,6 @@ void FavoriteManager::updateRecent(const RecentHubEntry* entry)
 	fire(FavoriteManagerListener::RecentUpdated(), entry);
 }
 
-#ifdef IRAINMAN_ENABLE_HUB_LIST
-class XmlListLoader : public SimpleXMLReader::CallBack
-{
-	public:
-		XmlListLoader(HubEntryList& lst) : publicHubs(lst) { }
-		~XmlListLoader() { }
-		void startTag(const string& p_name, StringPairList& p_attribs, bool)
-		{
-			if (p_name == "Hub")
-			{
-				const string& l_name = getAttrib(p_attribs, "Name", 0); // Local declaration of 'name' hides declaration of the same name in outer scope.
-				const string& server = getAttrib(p_attribs, "Address", 1);
-				const string& description = getAttrib(p_attribs, "Description", 2);
-				const string& users = getAttrib(p_attribs, "Users", 3);
-				const string& country = getAttrib(p_attribs, "Country", 4); //-V112
-				const string& shared = getAttrib(p_attribs, "Shared", 5);
-				const string& minShare = getAttrib(p_attribs, "Minshare", 5);
-				const string& minSlots = getAttrib(p_attribs, "Minslots", 5);
-				const string& maxHubs = getAttrib(p_attribs, "Maxhubs", 5);
-				const string& maxUsers = getAttrib(p_attribs, "Maxusers", 5);
-				const string& reliability = getAttrib(p_attribs, "Reliability", 5);
-				const string& rating = getAttrib(p_attribs, "Rating", 5);
-				publicHubs.push_back(HubEntry(l_name, server, description, users, country, shared, minShare, minSlots, maxHubs, maxUsers, reliability, rating));
-			}
-		}
-		void endTag(const string&, const string&)
-		{
-		
-		}
-	private:
-		HubEntryList& publicHubs;
-};
-
-bool FavoriteManager::onHttpFinished(bool fromHttp) noexcept
-{
-	MemoryInputStream mis(m_downloadBuf);
-	bool success = true;
-	
-	webrtc::WriteLockScoped l(*g_csPublicHubs);
-	HubEntryList& list = publicListMatrix[publicListServer];
-	list.clear();
-	
-	try
-	{
-		XmlListLoader loader(list);
-		
-		if ((m_listType == TYPE_BZIP2) && (!m_downloadBuf.empty()))
-		{
-			FilteredInputStream<UnBZFilter, false> f(&mis);
-			SimpleXMLReader(&loader).parse(f);
-		}
-		else
-		{
-			SimpleXMLReader(&loader).parse(mis);
-		}
-	}
-	catch (const Exception&)
-	{
-		success = false;
-		fire(FavoriteManagerListener::Corrupted(), fromHttp ? publicListServer : Util::emptyString);
-	}
-	
-	if (fromHttp)
-	{
-		try
-		{
-			File f(Util::getHubListsPath() + Util::validateFileName(publicListServer), File::WRITE, File::CREATE | File::TRUNCATE);
-			f.write(m_downloadBuf);
-			f.close();
-		}
-		catch (const FileException&) { } //-V565
-	}
-	
-	m_downloadBuf.clear();
-	
-	return success;
-}
-#endif // IRAINMAN_ENABLE_HUB_LIST
-
 void FavoriteManager::save()
 {
 	if (m_dontSave)
@@ -956,6 +865,7 @@ void FavoriteManager::save()
 		catch (SimpleXMLException& e)
 		{
 			LogManager::getInstance()->message("FavoriteManager::save error parse tmp file: " + l_tmp_file + " error = " + e.getError());
+			CFlyServerAdapter::CFlyServerJSON::pushError(14, "error check favorites.xml file:" + l_tmp_file + " error = " + e.getError());
 			File::deleteFile(l_tmp_file);
 		}
 	}
@@ -964,6 +874,7 @@ void FavoriteManager::save()
 		dcassert(0);
 		dcdebug("FavoriteManager::save: %s\n", e.getError().c_str());
 		LogManager::getInstance()->message("FavoriteManager::save error = " + e.getError());
+		CFlyServerAdapter::CFlyServerJSON::pushError(14, "error create favorites.xml file:" + getConfigFile() + " error = " + e.getError());
 	}
 }
 
@@ -1600,85 +1511,6 @@ RecentHubEntry::Iter FavoriteManager::getRecentHub(const string& aServer) const
 	return m_recentHubs.end();
 }
 
-#ifdef IRAINMAN_ENABLE_HUB_LIST
-void FavoriteManager::setHubList(int aHubList)
-{
-	m_lastServer = aHubList;
-	refresh();
-}
-
-void FavoriteManager::refresh(bool forceDownload /* = false */)
-{
-	const StringList& sl = getHubLists();
-	if (sl.empty())
-		return;
-		
-	publicListServer = sl[static_cast<size_t>(m_lastServer) % sl.size()];
-	if (!Util::isHttpLink(publicListServer))
-	{
-		m_lastServer++;
-		return;
-	}
-	
-	if (!forceDownload)
-	{
-		string path = Util::getHubListsPath() + Util::validateFileName(publicListServer);
-		if (File::isExist(path))
-		{
-			m_useHttp = false;
-			string fileDate;
-			{
-				webrtc::WriteLockScoped l(*g_csPublicHubs);
-				publicListMatrix[publicListServer].clear();
-			}
-			m_listType = (stricmp(path.substr(path.size() - 4), ".bz2") == 0) ? TYPE_BZIP2 : TYPE_NORMAL; //-V112
-			try
-			{
-				File cached(path, File::READ, File::OPEN);
-				m_downloadBuf = cached.read();
-				// [!] IRainman fix.
-				fileDate = Util::formatDigitalClock(cached.getLastWriteTime());
-				/* [-] IRainman fix.
-				LocalArray<char, 20> l_buf;
-				time_t fd = cached.getLastWriteTime();
-				if (strftime(l_buf, l_buf.size(), "%x", localtime(&fd)))
-				{
-				    fileDate = string(l_buf);
-				}
-				[~] IRainman fix.*/
-			}
-			catch (const FileException&)
-			{
-				m_downloadBuf.clear();
-			}
-			if (!m_downloadBuf.empty())
-			{
-				if (onHttpFinished(false))
-				{
-					fire(FavoriteManagerListener::LoadedFromCache(), publicListServer, fileDate);
-				}
-				return;
-			}
-		}
-	}
-	
-	if (!m_running)
-	{
-		m_running = true; // [+] IRainman fix.
-		m_useHttp = true;
-		{
-			webrtc::WriteLockScoped l(*g_csPublicHubs);
-			publicListMatrix[publicListServer].clear();
-		}
-		fire(FavoriteManagerListener::DownloadStarting(), publicListServer);
-		if (c == NULL)
-			c = new HttpConnection();
-		c->addListener(this);
-		c->downloadFile(publicListServer);
-		//running = true; [-] IRainman fix.
-	}
-}
-#endif // IRAINMAN_ENABLE_HUB_LIST
 UserCommand::List FavoriteManager::getUserCommands(int ctx, const StringList& hubs/*[-] IRainman fix, bool& op*/) const
 {
 	vector<bool> isOp(hubs.size());
@@ -1729,73 +1561,6 @@ UserCommand::List FavoriteManager::getUserCommands(int ctx, const StringList& hu
 	}
 	return lst;
 }
-
-#ifdef IRAINMAN_ENABLE_HUB_LIST
-// HttpConnectionListener
-void FavoriteManager::on(Data, HttpConnection*, const uint8_t* buf, size_t len) noexcept
-{
-	if (m_useHttp)
-		m_downloadBuf.append((const char*)buf, len);
-}
-
-void FavoriteManager::on(Failed, HttpConnection*, const string& aLine) noexcept
-{
-	c->removeListener(this);
-	m_lastServer++;
-	m_running = false;
-	if (m_useHttp)
-	{
-		m_downloadBuf.clear();
-		fire(FavoriteManagerListener::DownloadFailed(), aLine);
-	}
-}
-
-void FavoriteManager::on(Complete, HttpConnection*, const string& aLine
-#ifdef RIP_USE_CORAL
-                         , bool fromCoral
-#endif
-                        ) noexcept
-{
-	bool parseSuccess = false;
-	c->removeListener(this);
-	if (m_useHttp)
-	{
-		parseSuccess = onHttpFinished(true);
-	}
-	m_running = false;
-	if (parseSuccess)
-	{
-		fire(FavoriteManagerListener::DownloadFinished(), aLine
-#ifdef RIP_USE_CORAL
-		, fromCoral
-#endif
-		    );
-	}
-}
-void FavoriteManager::on(Redirected, HttpConnection*, const string& aLine) noexcept
-{
-	if (m_useHttp)
-		fire(FavoriteManagerListener::DownloadStarting(), aLine);
-}
-void FavoriteManager::on(TypeNormal, HttpConnection*) noexcept
-{
-	if (m_useHttp)
-		m_listType = TYPE_NORMAL;
-}
-void FavoriteManager::on(TypeBZ2, HttpConnection*) noexcept
-{
-	if (m_useHttp)
-		m_listType = TYPE_BZIP2;
-}
-#ifdef RIP_USE_CORAL
-void FavoriteManager::on(Retried, HttpConnection*, const bool Connected) noexcept
-{
-	if (Connected)
-		downloadBuf.clear();
-}
-#endif
-
-#endif // IRAINMAN_ENABLE_HUB_LIST
 
 void FavoriteManager::on(UserUpdated, const OnlineUserPtr& user) noexcept
 {

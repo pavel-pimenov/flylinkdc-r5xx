@@ -28,10 +28,9 @@ class ProxyPage : public CPropertyPage<IDD_PROXY_PAGE>, public PropPage
 #endif
 {
 	public:
-		ProxyPage(SettingsManager *s) : PropPage(s)
+		ProxyPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_NETWORK) + _T('\\') + TSTRING(SETTINGS_PROXY))
 		{
-			title = TSTRING(SETTINGS_NETWORK) + _T('\\') + TSTRING(SETTINGS_PROXY);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		~ProxyPage()
@@ -63,7 +62,7 @@ class ProxyPage : public CPropertyPage<IDD_PROXY_PAGE>, public PropPage
 		static Item items[];
 		static TextItem texts[];
 		
-		wstring title;
+		
 };
 
 #endif // PROXY_PAGE_H

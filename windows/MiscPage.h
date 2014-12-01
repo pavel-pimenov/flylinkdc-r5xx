@@ -37,16 +37,15 @@
 class MiscPage : public CPropertyPage<IDD_MISC_PAGE>, public PropPage
 {
 	public:
-		MiscPage(SettingsManager *s) : PropPage(s), m_ignoreListCnange(false)
+		MiscPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_MISC)), m_ignoreListCnange(false)
 		{
-			title = TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_MISC);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
-		};
+		}
 		~MiscPage()
 		{
 			ignoreListCtrl.Detach();
-		};
+		}
 		
 		BEGIN_MSG_MAP_EX(MiscPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
@@ -73,7 +72,6 @@ class MiscPage : public CPropertyPage<IDD_MISC_PAGE>, public PropPage
 		static Item items[];
 		static TextItem texts[];
 		
-		wstring title;
 		StringSet m_ignoreList;
 		bool m_ignoreListCnange;
 		ExListViewCtrl ignoreListCtrl;

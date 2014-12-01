@@ -28,10 +28,9 @@
 class CertificatesPage : public CPropertyPage<IDD_CERTIFICATES_PAGE>, public PropPage
 {
 	public:
-		CertificatesPage(SettingsManager *s) : PropPage(s)
+		CertificatesPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_CERTIFICATES))
 		{
-			title = TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_CERTIFICATES);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		
@@ -69,7 +68,6 @@ class CertificatesPage : public CPropertyPage<IDD_CERTIFICATES_PAGE>, public Pro
 		static TextItem texts[];
 		static ListItem listItems[];
 		static ListItem securityItems[];
-		wstring title;
 		
 		ExListViewCtrl ctrlList; // [+] IRainman
 };

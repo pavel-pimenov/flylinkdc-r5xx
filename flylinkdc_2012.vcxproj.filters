@@ -37,9 +37,6 @@
     <ClCompile Include="windows\ChatCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="windows\ClientProfileDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="windows\ClientsPage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -47,9 +44,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="windows\DefaultClickPage.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="windows\DetectionEntryDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="windows\DirectoryListingFrm.cpp">
@@ -382,9 +376,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="windows\ChatCtrl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="windows\ClientProfileDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="windows\CommandDlg.h">
@@ -747,9 +738,6 @@
     <ClInclude Include="windows\ddraw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="windows\DetectionEntryDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="windows\iTunesCOMInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1064,9 +1052,6 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\UserOff.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\FlyLink.bmp">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\Favorites.ico">

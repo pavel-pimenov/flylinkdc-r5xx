@@ -23,12 +23,25 @@
 #include "AdcCommand.h"
 #include "Pointer.h"
 
-class SearchManager;
+class CFlySearchItem
+{
+	public:
+		TTHValue m_tth;
+		std::string m_search;
+		std::string * m_toSRCommand;
+		CFlySearchItem(const TTHValue& p_tth, const std::string& p_search):
+			m_tth(p_tth),
+			m_search(p_search),
+			m_toSRCommand(nullptr)
+		{
+			dcassert(m_search.size() > 4);
+		}
+		
+};
+typedef std::vector<CFlySearchItem> CFlySearchArray;
 
-class SearchResult : public intrusive_ptr_base<SearchResult>
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
+class SearchManager;
+class SearchResultBaseTTH
 {
 	public:
 		enum Types
@@ -37,45 +50,18 @@ class SearchResult : public intrusive_ptr_base<SearchResult>
 			TYPE_DIRECTORY
 		};
 		
-		SearchResult(Types aType, int64_t aSize, const string& name, const TTHValue& aTTH);
-		
-		SearchResult(const UserPtr& aUser, Types aType, uint8_t aSlots, uint8_t aFreeSlots,
-		             int64_t aSize, const string& aFile, const string& aHubName,
-		             const string& aHubURL, const string& ip, const TTHValue& aTTH, const string& aToken);
-		             
-		string getFileName() const;
-		string toSR(const Client& client) const;
-		AdcCommand toRES(char type) const;
-		
-		const UserPtr& getUser() const
-		{
-			return user;
-		}
-		string getSlotString() const
-		{
-			return Util::toString(getFreeSlots()) + '/' + Util::toString(getSlots());
-		}
+		SearchResultBaseTTH(Types aType, int64_t aSize, const string& aName, const TTHValue& aTTH, uint8_t aSlots = 0, uint8_t aFreeSlots = 0);
+		virtual ~SearchResultBaseTTH() {}
+		void initSlot();
+		string toSR(const Client& c) const;
+		void toRES(AdcCommand& cmd, char type) const;
 		const string& getFile() const
 		{
 			return file;
 		}
-		const string& getHubURL() const
-		{
-			return hubURL;
-		}
-		const string& getHubName() const
-		{
-			return m_hubName;
-		}
-		void calcHubName();
-		
 		int64_t getSize() const
 		{
-			return size; // 2012-06-09_18-15-11_AED5TO72V7NDNHNH4GNUHSODFQV7M6IMKGVUK6I_413105D2_crash-stack-r501-build-10294.dmp
-		}
-		Types getType() const
-		{
-			return m_type;
+			return size;
 		}
 		size_t getSlots() const
 		{
@@ -89,16 +75,62 @@ class SearchResult : public intrusive_ptr_base<SearchResult>
 		{
 			return tth;
 		}
+		Types getType() const
+		{
+			return m_type;
+		}
 		// for DHT use only
 		void setSlots(size_t p_slots)
 		{
 			slots = p_slots;
 		}
+	protected:
+		TTHValue tth;
+		string file;
+		int64_t size;
+		size_t slots;
+		size_t freeSlots;
+		Types m_type;
+};
+
+class SearchResult : public SearchResultBaseTTH, public intrusive_ptr_base<SearchResult>
+#ifdef _DEBUG
+	, boost::noncopyable
+#endif
+{
+	public:
+	
+		SearchResult(Types aType, int64_t aSize, const string& name, const TTHValue& aTTH);
+		
+		SearchResult(const UserPtr& aUser, Types aType, uint8_t aSlots, uint8_t aFreeSlots,
+		             int64_t aSize, const string& aFile, const string& aHubName,
+		             const string& aHubURL, const string& ip, const TTHValue& aTTH, uint32_t aToken);
+		             
+		string getFileName() const;
+		
+		const UserPtr& getUser() const
+		{
+			return user;
+		}
+		string getSlotString() const
+		{
+			return Util::toString(getFreeSlots()) + '/' + Util::toString(getSlots());
+		}
+		const string& getHubURL() const
+		{
+			return hubURL;
+		}
+		const string& getHubName() const
+		{
+			return m_hubName;
+		}
+		void calcHubName();
+		
 		const string& getIP() const
 		{
 			return IP;
 		}
-		const string& getToken() const
+		const uint32_t getToken() const
 		{
 			return m_token;
 		}
@@ -112,21 +144,11 @@ class SearchResult : public intrusive_ptr_base<SearchResult>
 	private:
 		friend class SearchManager;
 		
-		TTHValue tth;
-		
-		string file;
 		string m_hubName;
 		string hubURL;
 		string IP;
-		string m_token;
-		
-		int64_t size;
-		
-		size_t slots;
-		size_t freeSlots;
-		
+		uint32_t m_token;
 		UserPtr user;
-		Types m_type;
 		bool m_is_tth_check;
 };
 

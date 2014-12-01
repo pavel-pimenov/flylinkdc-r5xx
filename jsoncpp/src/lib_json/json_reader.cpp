@@ -18,7 +18,7 @@
 #include <stdexcept>
 
 #if defined(_MSC_VER)  &&  _MSC_VER >= 1400 // VC++ 8.0
-#pragma warning( disable : 4996 )   // disable warning about strdup being deprecated.
+#pragma warning(disable : 4996)   // disable warning about strdup being deprecated.
 #endif
 
 namespace Json {
@@ -149,7 +149,7 @@ Reader::parse( const char *beginDoc, const char *endDoc,
    current_ = begin_;
    lastValueEnd_ = 0;
    lastValue_ = 0;
-   commentsBefore_ = "";
+   commentsBefore_.clear();
    errors_.clear();
    while ( !nodes_.empty() )
       nodes_.pop();
@@ -187,7 +187,7 @@ Reader::readValue()
    if ( collectComments_  &&  !commentsBefore_.empty() )
    {
       currentValue().setComment( commentsBefore_, commentBefore );
-      commentsBefore_ = "";
+      commentsBefore_.clear();
    }
 
 
@@ -480,7 +480,7 @@ Reader::readObject( Token &/*tokenStart*/ )
       if ( tokenName.type_ != tokenString )
          break;
       
-      name = "";
+      name.clear();
       if ( !decodeString( tokenName, name ) )
          return recoverFromError( tokenObjectEnd );
 

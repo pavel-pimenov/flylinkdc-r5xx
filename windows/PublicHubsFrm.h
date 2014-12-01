@@ -29,16 +29,33 @@
 #include "../client/StringSearch.h"
 
 #define FILTER_MESSAGE_MAP 8
-class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0, 0), IDR_INTERNET_HUBS > , public StaticFrame<PublicHubsFrame, ResourceManager::PUBLIC_HUBS, ID_FILE_CONNECT>,
-	private FavoriteManagerListener, private SettingsManagerListener
+#define HUB_TREE_MESSAGE_MAP 9
+#define HUB_LIST_MESSAGE_MAP 10
+class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0, 0), IDR_INTERNET_HUBS > ,
+	public StaticFrame<PublicHubsFrame, ResourceManager::PUBLIC_HUBS, ID_FILE_CONNECT>,
+	public CSplitterImpl<PublicHubsFrame>,
+	private SettingsManagerListener
 {
 	public:
-		PublicHubsFrame() : users(0), hubs(0),
-			filterContainer(WC_EDIT, this, FILTER_MESSAGE_MAP), visibleHubs(0)
+		PublicHubsFrame() : users(0), m_hubs(0), visibleHubs(0), m_ISPRootItem(0), m_PublicListRootItem(0)
+			, m_filterContainer(WC_EDIT, this, FILTER_MESSAGE_MAP)
+			, m_treeContainer(WC_TREEVIEW, this, HUB_TREE_MESSAGE_MAP)
+			, m_listContainer(WC_LISTVIEW, this, HUB_LIST_MESSAGE_MAP)
 		{
 		}
 		
 		~PublicHubsFrame() { }
+		enum CFlyISPType
+		{
+			e_ISPCountry = 1,
+			e_ISPCity = 2,
+			e_ISPProvider = 3,
+			e_ISPNetwork = 4,
+			e_ISPHub = 5,
+			e_ISPRoot = 6,
+			e_HubListRoot = 7,
+			e_HubListItem = 8
+		};
 		
 		DECLARE_FRAME_WND_CLASS_EX(_T("PublicHubsFrame"), IDR_INTERNET_HUBS, 0, COLOR_3DFACE);
 		
@@ -55,7 +72,6 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 		COMMAND_ID_HANDLER(IDC_FILTER_FOCUS, onFilterFocus)
 		COMMAND_ID_HANDLER(IDC_ADD, onAdd)
 		COMMAND_ID_HANDLER(IDC_REM_AS_FAVORITE, onRemoveFav)
-		COMMAND_ID_HANDLER(IDC_REFRESH_HUB_LIST, onClickedRefresh)
 		COMMAND_ID_HANDLER(IDC_PUB_LIST_CONFIG, onClickedConfigure)
 		COMMAND_ID_HANDLER(IDC_CONNECT, onClickedConnect)
 		COMMAND_ID_HANDLER(IDC_COPY_HUB, onCopyHub);
@@ -63,12 +79,17 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 		NOTIFY_HANDLER(IDC_HUBLIST, LVN_COLUMNCLICK, onColumnClickHublist)
 		NOTIFY_HANDLER(IDC_HUBLIST, NM_RETURN, onEnter)
 		NOTIFY_HANDLER(IDC_HUBLIST, NM_DBLCLK, onDoubleClickHublist)
-		//NOTIFY_HANDLER(IDC_HUBLIST, NM_CUSTOMDRAW, ctrlHubs.onCustomDraw) // [+] IRainman
-		COMMAND_HANDLER(IDC_PUB_LIST_DROPDOWN, CBN_SELCHANGE, onListSelChanged)
+		
+		NOTIFY_HANDLER(IDC_ISP_TREE, TVN_SELCHANGED, onSelChangedISPTree);
+		
+		//NOTIFY_HANDLER(IDC_HUBLIST, NM_CUSTOMDRAW, m_ctrlHubs.onCustomDraw) // [+] IRainman
 		NOTIFY_HANDLER(IDC_HUBLIST, NM_CUSTOMDRAW, onCustomDraw)
 		CHAIN_MSG_MAP(baseClass)
+		CHAIN_MSG_MAP(CSplitterImpl<PublicHubsFrame>)
+		ALT_MSG_MAP(HUB_TREE_MESSAGE_MAP)
+		ALT_MSG_MAP(HUB_LIST_MESSAGE_MAP)
 		ALT_MSG_MAP(FILTER_MESSAGE_MAP)
-		MESSAGE_HANDLER(WM_CHAR, onFilterChar)
+		MESSAGE_HANDLER(WM_KEYUP, onFilterChar)
 		END_MSG_MAP()
 		
 		LRESULT onFilterChar(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
@@ -78,7 +99,6 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 		LRESULT onFilterFocus(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onAdd(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 		LRESULT onRemoveFav(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
-		LRESULT onClickedRefresh(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 		LRESULT onClickedConfigure(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 		LRESULT onClickedConnect(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 		LRESULT onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
@@ -86,6 +106,8 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 		LRESULT onCopyHub(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		LRESULT onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled);
+		LRESULT onSelChangedISPTree(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+		
 		
 		// [+] InfinitySky.
 		LRESULT onCloseWindow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -94,33 +116,54 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 			return 0;
 		}
 		
-		LRESULT onListSelChanged(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onColumnClickHublist(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
 		
 		void UpdateLayout(BOOL bResizeBars = TRUE);
 		bool checkNick();
 		
-		LRESULT onCtlColor(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-		{
-			HWND hWnd = (HWND)lParam;
-			HDC hDC = (HDC)wParam;
-			if (uMsg == WM_CTLCOLORLISTBOX || hWnd == ctrlPubLists.m_hWnd || hWnd == ctrlFilter.m_hWnd || hWnd == ctrlFilterSel.m_hWnd)
-			{
-				::SetBkColor(hDC, Colors::bgColor);
-				::SetTextColor(hDC, Colors::textColor);
-				return (LRESULT)Colors::bgBrush;
-			}
-			bHandled = FALSE;
-			return FALSE;
-		}
+		void loadISPHubs();
+		void loadPublicListHubs();
+		void parseISPHubsLine(const string& p_line, CFlyLog& p_log);
+		static int calcISPCountryIconIndex(tstring& p_country);
+		LRESULT onCtlColor(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 		
 		LRESULT onSetFocus(UINT /* uMsg */, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 		{
-			ctrlHubs.SetFocus();
+			m_ctrlHubs.SetFocus();
 			return 0;
 		}
 		
 	private:
+		// TODO - возможно эта хитрая цепочка мапок не нужна.
+		struct CFlyTreeItemBase
+		{
+			HTREEITEM m_tree_item;
+			CFlyTreeItemBase(): m_tree_item(0)
+			{
+			}
+		};
+		struct CFlyISPHubItem : public CFlyTreeItemBase
+		{
+			boost::unordered_map<string, CFlyTreeItemBase> m_hubs;
+		};
+		struct CFlyISPNetworkItem : public CFlyTreeItemBase
+		{
+			boost::unordered_map<string, CFlyISPHubItem> m_network;
+		};
+		struct CFlyISPProviderItem : public CFlyTreeItemBase
+		{
+			boost::unordered_map<string, CFlyISPNetworkItem> m_isp;
+		};
+		struct CFlyISPCityItem : public CFlyTreeItemBase
+		{
+			boost::unordered_map<string, CFlyISPProviderItem> m_city;
+		};
+		struct CFlyISPCountryItem
+		{
+			boost::unordered_map<string, CFlyISPCityItem> m_country;
+		};
+		CFlyISPCountryItem m_country_map;
+		string m_isp_raw_data;
 		enum
 		{
 			COLUMN_FIRST,
@@ -141,7 +184,6 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 		
 		enum
 		{
-			FINISHED,
 			SET_TEXT
 		};
 		
@@ -160,24 +202,34 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 		int users;
 		CStatusBarCtrl ctrlStatus;
 		CButton ctrlConfigure;
-		CButton ctrlRefresh;
-		CButton ctrlLists;
 		CButton ctrlFilterDesc;
 		CEdit ctrlFilter;
 		CMenu hubsMenu;
 		
-		CContainedWindow filterContainer;
-		CComboBox ctrlPubLists;
+		CContainedWindow m_filterContainer;
 		CComboBox ctrlFilterSel;
-		ExListViewCtrl ctrlHubs;
+		ExListViewCtrl m_ctrlHubs;
 		
-		HubEntry::List hubs;
-		string filter;
+		typedef boost::unordered_map<string, HubEntryList> PubListMap;
+		PubListMap m_publicListMatrix;
+		
+		
+		CContainedWindow        m_treeContainer;
+		CTreeViewCtrl           m_ctrlTree;
+		HTREEITEM               m_ISPRootItem;
+		HTREEITEM               m_PublicListRootItem;
+		
+		typedef boost::unordered_set<tstring> TStringSet;
+		
+		HTREEITEM LoadTreeItems(TStringSet& l_hubs, HTREEITEM hRoot);
+		CContainedWindow        m_listContainer;
+		
+		HubEntry::List m_hubs;
+		string m_filter;
 		
 		
 		static int columnIndexes[];
 		static int columnSizes[];
-		
 		
 		
 		void speak(int x, const tstring& l)
@@ -187,26 +239,16 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 		
 		void updateStatus();
 		void updateList();
-		void updateDropDown();
+		void updateTree();
 		
 		const string getPubServer(int pos) const
 		{
-			return ctrlHubs.ExGetItemText(pos, COLUMN_SERVER);
+			return m_ctrlHubs.ExGetItemText(pos, COLUMN_SERVER);
 		}
 		void openHub(int ind); // [+] IRainman fix.
 		
 		bool parseFilter(FilterModes& mode, double& size);
 		bool matchFilter(const HubEntry& entry, const int& sel, bool doSizeCompare, const FilterModes& mode, const double& size);
-		
-		void on(DownloadStarting, const string& l) noexcept;
-		void on(DownloadFailed, const string& l) noexcept;
-		void on(DownloadFinished, const string& l
-#ifdef RIP_USE_CORAL
-		        , bool fromCoral
-#endif
-		       ) noexcept;
-		void on(LoadedFromCache, const string& l, const string& d) noexcept;
-		void on(Corrupted, const string& l) noexcept;
 		
 		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
 		

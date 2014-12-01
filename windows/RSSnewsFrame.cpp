@@ -196,8 +196,6 @@ RSSNewsFrame::on(RSSListener::NewRSS, const unsigned int newsCount) noexcept
 	SHOW_POPUP(POPUP_NEW_RSSNEWS, Text::toT(m_Message), TSTRING(NEW_RSS_NEWS));
 	m_Message.clear();
 	
-	// PLAY_SOUND(SOUND_NEW_RSSNEWS);
-	//Bolded activity in SpyFrame
 	if (BOOLSETTING(BOLD_NEWRSS))
 	{
 		setDirty(0);

@@ -106,7 +106,7 @@ void BufferedSocket::resizeInBuf()
 		{
 			dcassert(l_size);
 			l_is_bad_alloc = false;
-			inbuf.resize(l_size);
+			m_inbuf.resize(l_size);
 		}
 		catch (std::bad_alloc&)
 		{
@@ -143,13 +143,13 @@ void BufferedSocket::connect(const string& aAddress, uint16_t aPort, uint16_t lo
 {
 	dcdebug("BufferedSocket::connect() %p\n", (void*)this);
 	std::unique_ptr<Socket> s(secure ? (natRole == NAT_SERVER ? CryptoManager::getInstance()->getServerSocket(allowUntrusted) : CryptoManager::getInstance()->getClientSocket(allowUntrusted)) : new Socket);
-	
 	s->create();
 	
 	setSocket(s);
 	sock->bind(localPort, SETTING(BIND_ADDRESS));
 	
 	FastLock l(cs);
+	initMyINFOLoader();
 	addTask(CONNECT, new ConnectInfo(aAddress, aPort, localPort, natRole, proxy && (SETTING(OUTGOING_CONNECTIONS) == SettingsManager::OUTGOING_SOCKS5)));
 }
 
@@ -262,10 +262,34 @@ void BufferedSocket::threadAccept()
 	}
 }
 
-void BufferedSocket::all_myinfo_parser(const string::size_type p_pos, const string& p_line, StringList& p_all_myInfo, bool p_is_zon)
+bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separator, const string& p_line,
+                                       CFlySearchArray& p_tth_search, StringList& p_file_search)
 {
-	const bool l_is_MyINFO = m_is_all_my_info_loaded == false ? p_line.compare(0, 7, "$MyINFO", 7) == 0 : false;
-	const string l_line_item = l_is_MyINFO ? p_line.substr(8, p_pos - 8) : p_line.substr(0, p_pos);
+	if (p_line.compare(0, 8, "$Search ", 8) == 0)
+	{
+		const string l_line_item = p_line.substr(0, p_pos_next_separator);
+		auto l_marker_tth = l_line_item.find("?0?9?TTH:");
+		// TODO научиться обрабатывать лимит по размеру вида
+		// "x.x.x.x:yyy T?F?57671680?9?TTH:A3VSWSWKCVC4N6EP2GX47OEMGT5ZL52BOS2LAHA"
+		if (l_marker_tth != string::npos && l_marker_tth > 5 && l_line_item[l_marker_tth - 4] == ' ') // Поправка на полную команду  F?T?0?9?TTH: или F?F?0?9?TTH: или T?T?0?9?TTH:
+		{
+			l_marker_tth -= 4;
+			const CFlySearchItem l_item(TTHValue(l_line_item.substr(l_marker_tth + 13, 39)), l_line_item.substr(8, l_marker_tth - 8));
+			dcassert(l_item.m_search.find('|') == string::npos && l_item.m_search.find('$') == string::npos);
+			p_tth_search.push_back(l_item);
+		}
+		else
+		{
+			p_file_search.push_back(l_line_item.substr(8));
+		}
+		return true;
+	}
+	return false;
+}
+void BufferedSocket::all_myinfo_parser(const string::size_type p_pos_next_separator, const string& p_line, StringList& p_all_myInfo, bool p_is_zon)
+{
+	const bool l_is_MyINFO = m_is_all_my_info_loaded == false ? p_line.compare(0, 8, "$MyINFO ", 8) == 0 : false;
+	const string l_line_item = l_is_MyINFO ? p_line.substr(8, p_pos_next_separator - 8) : p_line.substr(0, p_pos_next_separator);
 	if (m_is_all_my_info_loaded == false)
 	{
 		if (l_is_MyINFO)
@@ -330,7 +354,7 @@ void BufferedSocket::threadRead()
 	if (m_state != RUNNING)
 		return;
 		
-	int left = (m_mode == MODE_DATA) ? ThrottleManager::getInstance()->read(sock.get(), &inbuf[0], (int)inbuf.size()) : sock->read(&inbuf[0], (int)inbuf.size());
+	int left = (m_mode == MODE_DATA) ? ThrottleManager::getInstance()->read(sock.get(), &m_inbuf[0], (int)m_inbuf.size()) : sock->read(&m_inbuf[0], (int)m_inbuf.size());
 	if (left == -1)
 	{
 		// EWOULDBLOCK, no data received...
@@ -346,6 +370,12 @@ void BufferedSocket::threadRead()
 	// always uncompressed data
 	string l;
 	int bufpos = 0, total = left;
+#ifdef _DEBUG
+	if (m_mode == MODE_LINE)
+	{
+		// LogManager::getInstance()->message("BufferedSocket::threadRead[MODE_LINE] = " + string((char*) & inbuf[0], left));
+	}
+#endif
 	
 	while (left > 0)
 	{
@@ -363,7 +393,7 @@ void BufferedSocket::threadRead()
 				{
 					size_t in = BUF_SIZE;
 					size_t used = left;
-					bool ret = (*m_ZfilterIn)(&inbuf[0] + total - left, used, &buffer[0], in);
+					bool ret = (*m_ZfilterIn)(&m_inbuf[0] + total - left, used, &buffer[0], in);
 					left -= used;
 					l.append(&buffer[0], in);
 					// if the stream ends before the data runs out, keep remainder of data in inbuf
@@ -377,12 +407,22 @@ void BufferedSocket::threadRead()
 				// process all lines
 #define USE_FLYLINKDC_MYINFO_ARRAY
 #ifdef USE_FLYLINKDC_MYINFO_ARRAY
+#ifdef _DEBUG
+				// LogManager::getInstance()->message("BufferedSocket::threadRead[MODE_ZPIPE] = " + l);
+#endif
+//
+
 				StringList l_all_myInfo;
+				CFlySearchArray l_tth_search;
+				StringList l_file_search;
 				while ((pos = l.find(m_separator)) != string::npos)
 				{
 					if (pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
 					{
-						all_myinfo_parser(pos, l, l_all_myInfo, true);
+						if (all_search_parser(pos, l, l_tth_search, l_file_search) == false)
+						{
+							all_myinfo_parser(pos, l, l_all_myInfo, true);
+						}
 					}
 					l.erase(0, pos + 1 /* separator char */); //[3] https://www.box.net/shared/74efa5b96079301f7194
 				}
@@ -390,6 +430,14 @@ void BufferedSocket::threadRead()
 				if (!l_all_myInfo.empty())
 				{
 					fire(BufferedSocketListener::MyInfoArray(), l_all_myInfo);
+				}
+				if (!l_tth_search.empty())
+				{
+					fire(BufferedSocketListener::SearchArrayTTH(), l_tth_search);
+				}
+				if (!l_file_search.empty())
+				{
+					fire(BufferedSocketListener::SearchArrayFile(), l_file_search);
 				}
 #else
 				// process all lines
@@ -410,7 +458,7 @@ void BufferedSocket::threadRead()
 				// Special to autodetect nmdc connections...
 				if (m_separator == 0)
 				{
-					if (inbuf[0] == '$')
+					if (m_inbuf[0] == '$')
 					{
 						m_separator = '|';
 					}
@@ -419,7 +467,14 @@ void BufferedSocket::threadRead()
 						m_separator = '\n';
 					}
 				}
-				l = line + string((char*) & inbuf[bufpos], left);
+				//======================================================================
+				// TODO - вставить быструю обработку поиска по TTH без вызова листенеров
+				// Если пасив - отвечаем в буфер сразу
+				// Если актив - кидаем отсылку UDP (тоже через очередь?)
+				
+				
+				//======================================================================
+				l = line + string((char*) & m_inbuf[bufpos], left);
 #if 0
 				int l_count_separator = 0;
 #endif
@@ -428,7 +483,8 @@ void BufferedSocket::threadRead()
 				//LogManager::getInstance()->message("MODE_LINE = " + l);
 #endif
 				StringList l_all_myInfo;
-				//string::size_type l_start_pos = 0;
+				CFlySearchArray l_tth_search;
+				StringList l_file_search;
 				while ((pos = l.find(m_separator)) != string::npos)
 				{
 #if 0
@@ -441,10 +497,13 @@ void BufferedSocket::threadRead()
 #endif
 					if (pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
 					{
-						all_myinfo_parser(pos, l, l_all_myInfo, false);
+						if (all_search_parser(pos, l, l_tth_search, l_file_search) == false)
+						{
+							all_myinfo_parser(pos, l, l_all_myInfo, false);
+						}
 					}
 					
-					l.erase(0, pos + 1 /* separator char */); //[3] https://www.box.net/shared/74efa5b96079301f7194
+					l.erase(0, pos + 1 /* separator char */);
 					// TODO - erase не эффективно.
 					if (l.length() < (size_t)left)
 					{
@@ -466,6 +525,15 @@ void BufferedSocket::threadRead()
 				{
 					fire(BufferedSocketListener::MyInfoArray(), l_all_myInfo); // [+]PPA
 				}
+				if (!l_tth_search.empty())
+				{
+					fire(BufferedSocketListener::SearchArrayTTH(), l_tth_search);
+				}
+				if (!l_file_search.empty())
+				{
+					fire(BufferedSocketListener::SearchArrayFile(), l_file_search);
+				}
+				
 				if (pos == string::npos)
 					left = 0;
 				line = l;
@@ -476,7 +544,7 @@ void BufferedSocket::threadRead()
 				{
 					if (m_dataBytes == -1)
 					{
-						fire(BufferedSocketListener::Data(), &inbuf[bufpos], left);
+						fire(BufferedSocketListener::Data(), &m_inbuf[bufpos], left);
 						bufpos += (left - m_rollback);
 						left = m_rollback;
 						m_rollback = 0;
@@ -487,7 +555,7 @@ void BufferedSocket::threadRead()
 						dcassert(high != 0);
 						if (high != 0) // [+] IRainman fix.
 						{
-							fire(BufferedSocketListener::Data(), &inbuf[bufpos], high);
+							fire(BufferedSocketListener::Data(), &m_inbuf[bufpos], high);
 							bufpos += high;
 							left -= high;
 							
@@ -659,7 +727,12 @@ void BufferedSocket::write(const char* aBuf, size_t aLen)
 	FastLock l(cs);
 	if (m_writeBuf.empty())
 		addTask(SEND_DATA, nullptr);
-		
+#ifdef _DEBUG
+	if (aLen > 1)
+	{
+		dcassert(!(aBuf[aLen - 1] == '|' && aBuf[aLen - 2] == '|'));
+	}
+#endif
 	m_writeBuf.insert(m_writeBuf.end(), aBuf, aBuf + aLen); // [1] std::bad_alloc nomem https://www.box.net/shared/nmobw6wofukhcdr7lx4h
 }
 
@@ -667,16 +740,19 @@ void BufferedSocket::threadSendData()
 {
 	if (m_state != RUNNING)
 		return;
-		
+	ByteVector l_sendBuf;
 	{
 		FastLock l(cs);
 		if (m_writeBuf.empty())
+		{
+			dcassert(!m_writeBuf.empty());
 			return;
-			
-		m_writeBuf.swap(m_sendBuf);
+		}
+		
+		m_writeBuf.swap(l_sendBuf);
 	}
 	
-	size_t left = m_sendBuf.size();
+	size_t left = l_sendBuf.size();
 	size_t done = 0;
 	while (left > 0)
 	{
@@ -694,7 +770,8 @@ void BufferedSocket::threadSendData()
 		
 		if (w & Socket::WAIT_WRITE)
 		{
-			int n = sock->write(&m_sendBuf[done], left); // adguard - https://www.box.net/shared/9201edaa1fa1b83a8d3c
+			// TODO - find ("||")
+			const int n = sock->write(&l_sendBuf[done], left); // adguard - https://www.box.net/shared/9201edaa1fa1b83a8d3c
 			if (n > 0)
 			{
 				left -= n;
@@ -702,7 +779,6 @@ void BufferedSocket::threadSendData()
 			}
 		}
 	}
-	m_sendBuf.clear();
 }
 
 bool BufferedSocket::checkEvents()

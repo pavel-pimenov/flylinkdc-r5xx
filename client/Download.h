@@ -78,7 +78,7 @@ class Download : public Transfer, public Flags
 		}*/
 		// [+] IRainman fix.
 		/** @internal */
-		AdcCommand getCommand(bool zlib) const;
+		void getCommand(AdcCommand& p_cmd, bool zlib) const;
 		
 		// [!] IRainman fix.
 		const string& getTempTarget() const // [+]

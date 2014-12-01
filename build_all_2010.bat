@@ -19,7 +19,6 @@ cd compiled
 call SymRegisterBinaries.bat
 goto:end
 
-
 :builderror
 echo Compilation error. Building terminated.
 pause

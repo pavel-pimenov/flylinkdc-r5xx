@@ -17,6 +17,8 @@
  */
 
 #include "stdinc.h"
+
+#if 0
 #include "HttpConnection.h"
 #include "LogManager.h"
 #include "SettingsManager.h"
@@ -277,6 +279,7 @@ void HttpConnection::on(BufferedSocketListener::Data, uint8_t * aBuf, size_t aLe
 {
 	fire(HttpConnectionListener::Data(), this, aBuf, aLen);
 }
+#endif
 
 /**
  * @file

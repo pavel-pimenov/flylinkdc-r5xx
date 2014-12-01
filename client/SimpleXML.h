@@ -88,37 +88,10 @@ class SimpleXML
 			return current->data;
 		}
 		
-		void stepIn()
-		{
-			checkChildSelected();
-			current = *currentChild;
-			currentChild = current->children.begin();
-			found = false;
-		}
+		void stepIn();
 		
-		void stepOut()
-		{
-			if (current == &root)
-				throw SimpleXMLException("Already at lowest level");
-				
-			dcassert(current->parent != NULL);
-			if (!current->parent)
-				return;
-			currentChild = find(current->parent->children.begin(), current->parent->children.end(), current);
-			
-			current = current->parent;
-			found = true;
-		}
-		
-		void resetCurrentChild() noexcept
-		{
-			found = false;
-			dcassert(current != NULL);
-			if (!current)
-				return;
-				
-			currentChild = current->children.begin();
-		}
+		void stepOut();
+		void resetCurrentChild();
 		
 		bool findChild(const string& aName) noexcept;
 		

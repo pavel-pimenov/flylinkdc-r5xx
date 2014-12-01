@@ -37,9 +37,9 @@ class GeneralPage : public CPropertyPage<IDD_GENERAL_PAGE>, public PropPage
 #endif
 {
 	public:
-		GeneralPage(SettingsManager *s) : PropPage(s)
+		GeneralPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_GENERAL))
 		{
-			SetTitle(CTSTRING(SETTINGS_GENERAL));
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		~GeneralPage()

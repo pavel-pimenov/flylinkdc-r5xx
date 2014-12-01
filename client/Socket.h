@@ -137,10 +137,11 @@ class Socket
 		{
 			return write(aData.data(), (int)aData.length());
 		}
-		virtual void writeTo(const string& aIp, uint16_t aPort, const void* aBuffer, int aLen, bool proxy = true);
-		void writeTo(const string& aIp, uint16_t aPort, const string& aData)
+		virtual int writeTo(const string& aIp, uint16_t aPort, const void* aBuffer, int aLen, bool proxy = true);
+		int writeTo(const string& aIp, uint16_t aPort, const string& aData)
 		{
-			writeTo(aIp, aPort, aData.data(), (int)aData.length());
+			dcassert(aData.length());
+			return writeTo(aIp, aPort, aData.data(), (int)aData.length());
 		}
 		virtual void shutdown() noexcept;
 		virtual void close() noexcept;
@@ -192,14 +193,6 @@ class Socket
 		{
 			uint32_t l_tmpIp = htonl(p_ip);
 			return inet_ntoa(*(in_addr*)&l_tmpIp);
-		}
-		static uint64_t getTotalDown()
-		{
-			return stats.totalDown;
-		}
-		static uint64_t getTotalUp()
-		{
-			return stats.totalUp;
 		}
 		
 #ifdef _WIN32
@@ -292,20 +285,26 @@ class Socket
 		SocketType m_type;
 		bool connected;
 		
-		
-		struct Stats
+		struct StatsItem
 		{
 			uint64_t totalDown;
 			uint64_t totalUp;
-			Stats() : totalDown(0), totalUp(0)
+			StatsItem() : totalDown(0), totalUp(0)
 			{
 			}
 		};
-		static Stats stats;
+		struct Stats
+		{
+			StatsItem m_tcp;
+			StatsItem m_udp;
+			StatsItem m_dht;
+			StatsItem m_ssl;
+		};
 		
 		static string udpServer;
 		static uint16_t udpPort;
-		
+	public:
+		static Stats g_stats;
 	private:
 		void socksAuth(uint64_t timeout);
 		

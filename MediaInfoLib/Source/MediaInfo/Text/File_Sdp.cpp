@@ -68,7 +68,7 @@ void File_Sdp::Streams_Fill()
 //---------------------------------------------------------------------------
 void File_Sdp::Streams_Finish()
 {
-    for (streams::iterator Stream=Streams.begin(); Stream!=Streams.end(); Stream++)
+    for (streams::iterator Stream=Streams.begin(); Stream!=Streams.end(); ++Stream)
     {
         if (Stream->second.Parser && Stream->first<0x80) //For the moment, we filter and use only field 1)
         {
@@ -128,7 +128,7 @@ bool File_Sdp::Synchronize()
             Reject();
             return false;
         }
-        
+
         Accept();
     }
     return true;
@@ -160,7 +160,7 @@ bool File_Sdp::Synched_Test()
 //---------------------------------------------------------------------------
 void File_Sdp::Read_Buffer_Unsynched()
 {
-    for (streams::iterator Stream=Streams.begin(); Stream!=Streams.end(); Stream++)
+    for (streams::iterator Stream=Streams.begin(); Stream!=Streams.end(); ++Stream)
     {
         if (Stream->second.Parser)
         {
@@ -213,7 +213,7 @@ void File_Sdp::Header_Parse()
 void File_Sdp::Data_Parse()
 {
     Element_Name("Packet");
-    
+
     for (int8u Pos=0; Pos<5; Pos++)
     {
         if (FieldLines[Pos])

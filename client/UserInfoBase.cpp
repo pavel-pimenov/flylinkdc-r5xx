@@ -176,11 +176,11 @@ void UserInfoBase::pm_msg(const string& hubHint, const tstring& p_message)
 	}
 }
 
-void UserInfoBase::createSummaryInfo() // [+] IRainman
+void UserInfoBase::createSummaryInfo(const string& hubHint) // [+] IRainman
 {
 	if (getUser())
 	{
-		UserManager::getInstance()->collectSummaryInfo(getUser());
+		UserManager::getInstance()->collectSummaryInfo(getUser(), hubHint);
 	}
 }
 

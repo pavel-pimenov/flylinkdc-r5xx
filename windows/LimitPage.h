@@ -12,10 +12,9 @@
 class LimitPage : public CPropertyPage<IDD_LIMIT_PAGE>, public PropPage
 {
 	public:
-		LimitPage(SettingsManager *s) : PropPage(s)
+		LimitPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_LIMIT))
 		{
-			title = TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_LIMIT);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		};
 		~LimitPage()
@@ -44,7 +43,7 @@ class LimitPage : public CPropertyPage<IDD_LIMIT_PAGE>, public PropPage
 		static Item items[];
 		static TextItem texts[];
 		CComboBox timeCtrlBegin, timeCtrlEnd; // [+] InfinitySky. ¬ыбор времени из выпадающего списка.
-		wstring title;
+		
 		void fixControls();
 };
 

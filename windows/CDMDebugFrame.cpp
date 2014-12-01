@@ -83,11 +83,13 @@ LRESULT CDMDebugFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	m_ctrlExcludeFilter.SetWindowText(l_store_values["m_sFilterExclude"].toT().c_str());
 	
 	bHandled = FALSE;
+	DebugManager::g_isCMDDebug = true;
 	return 1;
 }
 
 LRESULT CDMDebugFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
+	DebugManager::g_isCMDDebug = false;
 	if (!m_closed)
 	{
 		m_closed = true;
@@ -215,8 +217,9 @@ void CDMDebugFrame::addLine(DebugTask& task)
 		ctrlCMDPad.SetRedraw(FALSE); // Strange!! This disables the scrolling...????
 	}
 	
-	const auto l_message = DebugTask::format(task);
+	auto l_message = DebugTask::format(task);
 	LogManager::getInstance()->cmd_debug_message(l_message);
+	l_message += "\r\n";
 	ctrlCMDPad.AppendText(Text::toT(l_message).c_str()); // [!] IRainman fix.
 	if (noscroll)
 	{

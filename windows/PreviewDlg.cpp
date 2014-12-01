@@ -22,6 +22,7 @@
 #include "wtl_flylinkdc.h"
 #include "PreviewDlg.h"
 #include "WinUtil.h"
+#include "../FlyFeatures/flyServer.h"
 
 LRESULT PreviewDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
@@ -29,7 +30,10 @@ LRESULT PreviewDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	SetDlgItemText(IDC_PREV_NAME2, CTSTRING(SETTINGS_NAME2));
 	SetDlgItemText(IDC_PREV_APPLICATION, CTSTRING(SETTINGS_PREVIEW_DLG_APPLICATION));
 	SetDlgItemText(IDC_PREV_ARG, CTSTRING(SETTINGS_PREVIEW_DLG_ARGUMENTS));
-	SetDlgItemText(IDC_PREV_EXT, CTSTRING(SETTINGS_PREVIEW_DLG_EXT));
+	tstring l_def_text = CTSTRING(SETTINGS_PREVIEW_DLG_EXT);
+	l_def_text += _T("\r\nDefault: ") + Text::toT(CFlyServerConfig::getAllMediainfoExt());
+	SetDlgItemText(IDC_PREV_EXT, l_def_text.c_str());
+	
 	//SetDlgItemText(IDC_PREVIEW_BROWSE, CTSTRING(BROWSE)); // [~] JhaoDa, not necessary any more
 	SetDlgItemText(IDCANCEL, CTSTRING(CANCEL));
 	SetDlgItemText(IDOK, CTSTRING(OK));
@@ -39,10 +43,10 @@ LRESULT PreviewDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	ATTACH(IDC_PREVIEW_ARGUMENTS, ctrlArguments);
 	ATTACH(IDC_PREVIEW_EXTENSION, ctrlExtensions);
 	
-	ctrlName.SetWindowText(name.c_str());
-	ctrlApplication.SetWindowText(application.c_str());
-	ctrlArguments.SetWindowText(argument.c_str());
-	ctrlExtensions.SetWindowText(extensions.c_str());
+	ctrlName.SetWindowText(m_name.c_str());
+	ctrlApplication.SetWindowText(m_application.c_str());
+	ctrlArguments.SetWindowText(m_argument.c_str());
+	ctrlExtensions.SetWindowText(m_extensions.c_str());
 	
 	CenterWindow(GetParent());
 	return 0;
@@ -59,5 +63,28 @@ LRESULT PreviewDlg::OnBrowse(UINT /*uMsg*/, WPARAM /*wParam*/, HWND /*lParam*/, 
 		SetDlgItemText(IDC_PREVIEW_APPLICATION, x.c_str());
 	}
 	
+	return 0;
+}
+LRESULT PreviewDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	if (wID == IDOK)
+	{
+		if (ctrlName.GetWindowTextLength() == 0 ||
+		        ctrlApplication.GetWindowTextLength() == 0
+		   )
+		{
+			MessageBox(CWSTRING(NAME_COMMAND_EMPTY));
+			return 0;
+		}
+		
+		GET_TEXT(IDC_PREVIEW_NAME, m_name);
+		GET_TEXT(IDC_PREVIEW_APPLICATION, m_application);
+		GET_TEXT(IDC_PREVIEW_ARGUMENTS, m_argument);
+		GET_TEXT(IDC_PREVIEW_EXTENSION, m_extensions);
+	}
+	if (!m_extensions.empty())
+	{
+		EndDialog(wID);
+	}
 	return 0;
 }

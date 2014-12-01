@@ -14,14 +14,13 @@ class PropPageTextStyles: public CPropertyPage<IDD_TEXT_STYLES_PAGE>, public Pro
 #endif
 {
 	public:
-		PropPageTextStyles(SettingsManager *s) : PropPage(s)
+		PropPageTextStyles(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_TEXT_STYLES))
 		{
 			fg = 0;
 			bg = 0;
 			m_BackColor = 0;
 			m_ForeColor = 0;
-			title = TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_TEXT_STYLES);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		~PropPageTextStyles()
@@ -142,7 +141,7 @@ class PropPageTextStyles: public CPropertyPage<IDD_TEXT_STYLES_PAGE>, public Pro
 		
 		static clrs colours[];
 		
-		wstring title;
+		
 		TextStyleSettings TextStyles[ TS_LAST ];
 		CListBox m_lsbList;
 		ChatCtrl m_Preview;

@@ -63,10 +63,7 @@ LRESULT MiscPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	PropPage::read((HWND)*this, items);
 	
 	CRect rc;
-	// [!] IRainman fix.
-	// [-] HubFrame::loadIgnoreList();
-	m_ignoreList = UserManager::getIgnoreList();
-	// [~] IRainman fix.
+	UserManager::getIgnoreList(m_ignoreList);
 	ignoreListCtrl.Attach(GetDlgItem(IDC_IGNORELIST));
 	ignoreListCtrl.GetClientRect(rc);
 	ignoreListCtrl.InsertColumn(0, _T("Dummy"), LVCFMT_LEFT, (rc.Width() - 17), 0);

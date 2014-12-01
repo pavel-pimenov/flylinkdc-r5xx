@@ -8,9 +8,16 @@ bug reports and feature request are here:
 https://sourceforge.net/p/mediainfo/_list/tickets
 
 
-Version 0.7.71, 2014-
+Version 0.7.72,
+--------------
+x Previous version was built with SSE2 instructions, switching back to SSE instructions
+x AVC: infinite loop fix
+x AVC: trying to avoid the wrong detection of AVC in the case of invalid (e.g. encrypted) streams
+
+Version 0.7.71, 2014-11-09
 --------------
 + AS-11 (Core, Segmentation, UK DPP items) display
++ MXF: support of TTML (SMPTE ST 2052) detection
 + MXF: option --File_Mxf_TimeCodeFromMaterialPackage for using the time code track from Material package instead of Source package (CLI/DLL only)
 + Duration in HH:MM:SS:FF format (hidden by default)
 + AVC: detection of Intra profiles
@@ -21,7 +28,14 @@ Version 0.7.71, 2014-
 + OP-47/SDP/Teletext: detection of magazine numbers
 + MOV/MPEG-4: basic support of iTunMOVI tag
 + MOV/MPEG-4: support of track title and few other track related tags
++ MOV/MPEG-4: detection of Dolby E in a stereo track
 + AVC: using the first pic_struct as fallback for scan order if other methods fail, thanks to Smit for the idea
++ IMF: better compatibility with packages from different vendors
++ PBCore 2.0 technical metadata output option, thanks to Dave Rice
++ WMV: Time code track and value of first frame display, sponsored by AVCOM
++ MPEG Video: Open/Closed GOP status
++ HEVC: Support of Pixel Aspect Ratio in VUI, thanks to Kurtnoise
+x SMPTE ST 331: wrong channel positions
 x B872, MOV: StreamOrder field was wrong in case of chapter references
 x More coherency between the File interface and the By buffer interface
 x Matroska: wrong dection of video/audio delay in case of B-frames before the first I-frame
@@ -29,7 +43,8 @@ x Time code striped/not striped information is moved from "Format_Settings" to "
 x SMPTE ST 337: infinite loop during scanning of some non ST 337 streams
 x MP4/MOV: Using less data during detection of Dolby E hidden in a PCM track
 x Matroska: some crashs after file name of attachments update
-
+x MXF: MXF time code track was not displayed with some compilation options (e.g. the default Windows build)
+x WMV: reviewing the frame rate detection, with e.g. report of difference of real 23.976 fps and thoritical 24.000 fps
 
 Version 0.7.70, 2014-09-03
 --------------

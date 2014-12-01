@@ -29,12 +29,18 @@
 #ifdef STRONG_USE_DHT
 #include "../dht/dht.h"
 #endif
+#ifndef _DEBUG
+#include "DbgHelp.h"
+#include "../doctor-dump/CrashRpt.h"
+#endif
+
 
 UserPtr ClientManager::g_uflylinkdc; // [+] IRainman fix: User for message from client.
 Identity ClientManager::g_iflylinkdc; // [+] IRainman fix: Identity for User for message from client.
 UserPtr ClientManager::g_me; // [+] IRainman fix: this is static object.
 CID ClientManager::g_pid; // [+] IRainman fix: this is static object.
 bool ClientManager::g_isShutdown = false;
+bool ClientManager::g_isSpyFrame = false;
 Client::List ClientManager::g_clients;
 
 std::unique_ptr<webrtc::RWLockWrapper> ClientManager::g_csClients = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
@@ -612,7 +618,7 @@ UserPtr ClientManager::getUser(const CID& cid, bool p_create)
 	if (p_create)
 	{
 		UserPtr p(new User(cid));
-		g_users.insert(make_pair(p->getCID(), p));
+		g_users.insert(make_pair(p->getCID(), p)); // https://drdump.com/DumpGroup.aspx?DumpGroupID=239463&Login=guest
 		return p;
 	}
 	return UserPtr();
@@ -756,19 +762,30 @@ OnlineUser* ClientManager::findOnlineUserHintL(const CID& cid, const string& hin
 	return nullptr;
 }
 
-void ClientManager::connect(const HintedUser& user, const string& token)
+void ClientManager::connect(const HintedUser& p_user, const string& p_token, bool p_is_force_passive, bool& p_is_active_client)
 {
+	p_is_active_client = false;
 	dcassert(!isShutdown());
 	if (!isShutdown())
 	{
-		const bool priv = FavoriteManager::getInstance()->isPrivate(user.hint);
+		const bool priv = FavoriteManager::getInstance()->isPrivate(p_user.hint);
 		
 		webrtc::ReadLockScoped l(*g_csOnlineUsers);
-		OnlineUser* u = findOnlineUserL(user, priv);
+		OnlineUser* u = findOnlineUserL(p_user, priv);
 		
 		if (u)
 		{
-			u->getClientBase().connect(*u, token);
+			if (p_is_force_passive)
+			{
+				(&u->getClientBase())->resendMyINFO(p_is_force_passive);
+			}
+			u->getClientBase().connect(*u, p_token, p_is_force_passive);
+			p_is_active_client = u->getClientBase().isActive();
+			if (p_is_active_client && p_is_force_passive)
+			{
+				// (&u->getClientBase())->resendMyINFO(false); // Вернем активный режим
+				// Не делаем это - флуд получается
+			}
 		}
 	}
 }
@@ -882,11 +899,70 @@ void ClientManager::infoUpdated()
 		}
 	}
 }
-
-void ClientManager::on(NmdcSearch, Client* aClient, const string& aSeeker, Search::SizeModes aSizeMode, int64_t aSize,
-                       Search::TypeModes aFileType, const string& aString, bool isPassive) noexcept
+// TODO
+/*
+void ClientManager::on(TTHSearch, Client* aClient, const string& aSeeker, const TTHValue& aTTH, bool isPassive) noexcept
 {
-
+    dcassert(0);
+}
+*/
+//=================================================================================================================
+bool ClientManager::NmdcPartialSearch(Client* aClient, const string& aSeeker,
+                                      Search::TypeModes aFileType, const string& aString)
+{
+	bool l_is_partial = false;
+	if (aFileType == Search::TYPE_TTH && isTTHBase64(aString)) //[+]FlylinkDC++ opt.
+	{
+		// TODO - унести код в отдельный метод
+		PartsInfo partialInfo;
+		TTHValue aTTH(aString.c_str() + 4);  //[+]FlylinkDC++ opt. //-V112
+#ifdef _DEBUG
+//		LogManager::getInstance()->message("[Try] handlePartialSearch TTH = " + aString);
+#endif
+		if (QueueManager::getInstance()->handlePartialSearch(aTTH, partialInfo)) // TODO - часто ищется по ТТХ
+		{
+#ifdef _DEBUG
+			LogManager::getInstance()->message("[OK] handlePartialSearch TTH = " + aString);
+#endif
+			l_is_partial = true;
+			string ip, file, proto, query, fragment;
+			uint16_t port = 0;
+			Util::decodeUrl(aSeeker, proto, ip, port, file, query, fragment); // TODO - зачем тут такая штука - по протоколу ведь aSeeker = IP:Port ?
+			dcassert(aSeeker == ip + ':' + Util::toString(port));
+			
+			try
+			{
+				AdcCommand cmd(AdcCommand::CMD_PSR, AdcCommand::TYPE_UDP);
+				SearchManager::getInstance()->toPSR(cmd, true, aClient->getMyNick(), aClient->getIpPort(), aTTH.toBase32(), partialInfo);
+				Socket udp;
+				udp.writeTo(Socket::resolve(ip), port, cmd.toString(getMyCID())); // TODO - зачем тут resolve кроме IP может быть что-то другое?
+				LogManager::getInstance()->psr_message(
+				    "[ClientManager::NmdcSearch Send UDP IP = " + ip +
+				    " param->udpPort = " + Util::toString(port) +
+				    " cmd = " + cmd.toString(getMyCID())
+				);
+			}
+			catch (Exception& e)
+			{
+				LogManager::getInstance()->psr_message(
+				    "[Partial search caught error] Error = " + e.getError() +
+				    " IP = " + ip +
+				    " param->udpPort = " + Util::toString(port)
+				);
+				
+#ifdef _DEBUG
+				LogManager::getInstance()->message("ClientManager::on(NmdcSearch, Partial search caught error = " + e.getError() + " TTH = " + aString);
+				dcdebug("Partial search caught error\n");
+#endif
+			}
+		}
+	}
+	return l_is_partial;
+}
+//=================================================================================================================
+void ClientManager::NmdcSearch(Client* aClient, const string& aSeeker, Search::SizeModes aSizeMode, int64_t aSize,
+                               Search::TypeModes aFileType, const string& aString, bool isPassive) noexcept
+{
 	ClientManagerListener::SearchReply l_re = ClientManagerListener::SEARCH_MISS; // !SMT!-S
 	SearchResultList l;
 #ifdef PPA_USE_HIGH_LOAD_FOR_SEARCH_ENGINE_IN_DEBUG
@@ -924,7 +1000,7 @@ void ClientManager::on(NmdcSearch, Client* aClient, const string& aSeeker, Searc
 		{
 			try
 			{
-				// Часто делаем?
+				// Часто делаем - унести в отдельный менеджер?
 				Socket udp;
 				string ip, file, proto, query, fragment;
 				uint16_t port = 0;
@@ -957,53 +1033,27 @@ void ClientManager::on(NmdcSearch, Client* aClient, const string& aSeeker, Searc
 			}
 		}
 	}
-	else if (!isPassive && (aFileType == Search::TYPE_TTH) && isTTHBase64(aString)) //[+]FlylinkDC++ opt.
+	else
 	{
-		PartsInfo partialInfo;
-		TTHValue aTTH(aString.c_str() + 4);  //[+]FlylinkDC++ opt. //-V112
-#ifdef _DEBUG
-//		LogManager::getInstance()->message("[Try] handlePartialSearch TTH = " + aString);
-#endif
-		if (QueueManager::getInstance()->handlePartialSearch(aTTH, partialInfo)) // TODO - часто ищется по ТТХ
+		if (!isPassive)
 		{
-#ifdef _DEBUG
-			LogManager::getInstance()->message("[OK] handlePartialSearch TTH = " + aString);
-#endif
-			l_re = ClientManagerListener::SEARCH_PARTIAL_HIT; // !SMT!-S
-			string ip, file, proto, query, fragment;
-			uint16_t port = 0;
-			Util::decodeUrl(aSeeker, proto, ip, port, file, query, fragment); // TODO - зачем тут такая штука - по протоколу ведь aSeeker = IP:Port ?
-			dcassert(aSeeker == ip + ':' + Util::toString(port));
-			
-			try
+			if (NmdcPartialSearch(aClient, aSeeker, aFileType, aString))
 			{
-				const AdcCommand cmd = SearchManager::getInstance()->toPSR(true, aClient->getMyNick(), aClient->getIpPort(), aTTH.toBase32(), partialInfo);
-				Socket udp;
-				udp.writeTo(Socket::resolve(ip), port, cmd.toString(getMyCID())); // TODO - зачем тут resolve кроме IP может быть что-то другое?
-				LogManager::getInstance()->psr_message(
-				    "[ClientManager::on(NmdcSearch] Send UDP IP = " + ip +
-				    " param->udpPort = " + Util::toString(port) +
-				    " cmd = " + cmd.toString(getMyCID())
-				);
-			}
-			catch (Exception& e)
-			{
-				LogManager::getInstance()->psr_message(
-				    "[Partial search caught error] Error = " + e.getError() +
-				    " IP = " + ip +
-				    " param->udpPort = " + Util::toString(port)
-				);
-				
-#ifdef _DEBUG
-				LogManager::getInstance()->message("ClientManager::on(NmdcSearch, Partial search caught error = " + e.getError() + " TTH = " + aString);
-				dcdebug("Partial search caught error\n");
-#endif
+				l_re = ClientManagerListener::SEARCH_PARTIAL_HIT;
 			}
 		}
 	}
-	Speaker<ClientManagerListener>::fire(ClientManagerListener::IncomingSearch(), aSeeker, aString, l_re);
+	fireIncomingSearch(aSeeker, aString, l_re);
 }
-
+//=================================================================================================================
+void ClientManager::fireIncomingSearch(const string& aSeeker, const string& aString, ClientManagerListener::SearchReply p_re)
+{
+	if (g_isSpyFrame)
+	{
+		Speaker<ClientManagerListener>::fire(ClientManagerListener::IncomingSearch(), aSeeker, aString, p_re);
+	}
+}
+//=================================================================================================================
 void ClientManager::on(AdcSearch, const Client* c, const AdcCommand& adc, const CID& from) noexcept
 {
 	bool isUdpActive = false;
@@ -1024,13 +1074,15 @@ void ClientManager::on(AdcSearch, const Client* c, const AdcCommand& adc, const 
 	// [!] IRainman-S
 	const string l_Seeker = c->getIpPort();
 	StringSearch::List l_reguest;
-	ClientManagerListener::SearchReply l_re = SearchManager::getInstance()->respond(adc, from, isUdpActive, l_Seeker, l_reguest);
+	const ClientManagerListener::SearchReply l_re = SearchManager::getInstance()->respond(adc, from, isUdpActive, l_Seeker, l_reguest);
 	for (auto i = l_reguest.cbegin(); i != l_reguest.cend(); ++i)
+	{
 		Speaker<ClientManagerListener>::fire(ClientManagerListener::IncomingSearch(), l_Seeker, i->getPattern(), l_re);
+	}
 	// [~] IRainman-S
 }
 
-void ClientManager::search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, void* aOwner, bool p_is_force_passive)
+void ClientManager::search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, uint32_t aToken, void* aOwner, bool p_is_force_passive)
 {
 #ifdef STRONG_USE_DHT
 	if (BOOLSETTING(USE_DHT) && aFileType == Search::TYPE_TTH)
@@ -1047,7 +1099,7 @@ void ClientManager::search(Search::SizeModes aSizeMode, int64_t aSize, Search::T
 	}
 }
 
-uint64_t ClientManager::search(const StringList& aWho, Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, void* aOwner, bool p_is_force_passive)
+uint64_t ClientManager::search(const StringList& aWho, Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, uint32_t aToken, const StringList& aExtList, void* aOwner, bool p_is_force_passive)
 {
 #ifdef STRONG_USE_DHT
 	if (BOOLSETTING(USE_DHT) && aFileType == Search::TYPE_TTH)
@@ -1122,10 +1174,22 @@ void ClientManager::createMe(const string& cid, const string& nick)
 	
 	g_pid = CID(cid);
 	
-	TigerHash tiger;
-	tiger.update(g_pid.data(), CID::SIZE);
-	const CID mycid = CID(tiger.finalize());
-	g_me = new User(mycid);
+	TigerHash l_tiger;
+	l_tiger.update(g_pid.data(), CID::SIZE);
+	const CID l_myCID = CID(l_tiger.finalize());
+	g_me = new User(l_myCID);
+	
+	
+#ifndef _DEBUG
+	static bool g_is_first = false;
+	if (g_is_first == false)
+	{
+		g_is_first = true;
+		extern crash_rpt::CrashRpt g_crashRpt;
+		g_crashRpt.AddUserInfoToReport(L"PID", Text::toT(g_pid.toBase32()).c_str());
+		g_crashRpt.AddUserInfoToReport(L"CID", Text::toT(l_myCID.toBase32()).c_str());
+	}
+#endif
 	
 	g_uflylinkdc = new User(g_pid);
 	
@@ -1137,23 +1201,21 @@ void ClientManager::createMe(const string& cid, const string& nick)
 	g_iflylinkdc.setUser(g_uflylinkdc);
 	// [~] IRainman fix.
 	g_me->setLastNick(nick);
-	g_users.insert(make_pair(g_me->getCID(), g_me));
+	{
+		webrtc::WriteLockScoped l(*g_csUsers);
+		g_users.insert(make_pair(g_me->getCID(), g_me));
+	}
 }
-/* [-]
+const CID& ClientManager::getMyCID()
+{
+	dcassert(g_me);
+	return g_me->getCID();
+}
 const CID& ClientManager::getMyPID()
 {
-    if (pid.isZero())
-        pid = CID(SETTING(PRIVATE_ID));
-    return pid;
+	dcassert(!g_pid.isZero());
+	return g_pid;
 }
-
-CID ClientManager::getMyCID()
-{
-    TigerHash tiger;
-    tiger.update(getMyPID().data(), CID::SIZE);
-    return CID(tiger.finalize());
-}
-[~] IRainman fix */
 
 #ifdef IRAINMAN_USE_NICKS_IN_CM
 void ClientManager::updateNick(const UserPtr& p_user, const string& p_nick) noexcept
@@ -1416,8 +1478,7 @@ void ClientManager::fileListDisconnected(const UserPtr& p)
 	{
 		webrtc::ReadLockScoped l(*g_csOnlineUsers);
 		OnlineIterC i = g_onlineUsers.find(p->getCID());
-		if (i != g_onlineUsers.end()  && !i->second->isDHT()
-		   )
+		if (i != g_onlineUsers.end()  && !i->second->isDHT())
 		{
 			OnlineUser* ou = i->second;
 			auto& id = ou->getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'ou->getIdentity()' expression repeatedly. cheatmanager.h 43
@@ -1446,8 +1507,7 @@ void ClientManager::connectionTimeout(const UserPtr& p)
 	{
 		webrtc::ReadLockScoped l(*g_csOnlineUsers);
 		OnlineIterC i = g_onlineUsers.find(p->getCID());
-		if (i != g_onlineUsers.end()  && !i->second->isDHT()
-		   )
+		if (i != g_onlineUsers.end()  && !i->second->isDHT())
 		{
 			OnlineUser& ou = *i->second;
 			auto& id = ou.getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'ou.getIdentity()' expression repeatedly. cheatmanager.h 80
@@ -1487,8 +1547,7 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl)
 	{
 		webrtc::ReadLockScoped l(*g_csOnlineUsers);
 		OnlineIterC i = g_onlineUsers.find(p->getCID());
-		if (i == g_onlineUsers.end() || i->second->isDHT()
-		   )
+		if (i == g_onlineUsers.end() || i->second->isDHT())
 			return;
 			
 		ou = i->second;

@@ -44,46 +44,107 @@
 #include "../FlyFeatures/AutoUpdate.h" // [+] SSA
 #include "../FlyFeatures/flyfeatures.h" // [+] SSA
 
-#if !defined(_DEBUG)
+
+#ifndef _DEBUG
 #include "DbgHelp.h"
-#include "../crash-server/CrashHandler.h"
-CrashHandler g_crashHandler(
+#include "../doctor-dump/CrashRpt.h"
+
+template<typename T>
+static T getFilePath(const T& path)
+{
+	const auto i = path.rfind('\\');
+	return (i != string_t::npos) ? path.substr(0, i + 1) : path;
+}
+
+crash_rpt::ApplicationInfo* GetApplicationInfo()
+{
+	static crash_rpt::ApplicationInfo appInfo;
+	appInfo.ApplicationInfoSize = sizeof(appInfo);
+	appInfo.ApplicationGUID =
 #ifdef FLYLINKDC_HE
-    "C9149EA6-612E-4038-A557-D62DF22755CD"
+	    "C9149EA6-612E-4038-A557-D62DF22755CD";
 #else
 #ifdef FLYLINKDC_BETA
-    "910F4B4D-C71C-45BC-A88D-F59FE022525B"
+	    "910F4B4D-C71C-45BC-A88D-F59FE022525B";
 #else
-    "D7F972BA-ACF7-451E-88D5-FF0B98BD085D"
+	    "D7F972BA-ACF7-451E-88D5-FF0B98BD085D";
 #endif
 #endif
-    ,                                   // GUID assigned to this application.
-    "flylinkdc-r5xx"
-#ifdef FLYLINKDC_HE
-    "-he"
+	    
+#ifdef _WIN64
+	appInfo.Prefix = "flylinkdc-x64";             // Prefix that will be used with the dump name: YourPrefix_v1.v2.v3.v4_YYYYMMDD_HHMMSS.mini.dmp.
+	appInfo.AppName = L"FlylinkDC++ x64";         // Application name that will be used in message box.
+#else
+	appInfo.Prefix = "flylinkdc-x86";             // Prefix that will be used with the dump name: YourPrefix_v1.v2.v3.v4_YYYYMMDD_HHMMSS.mini.dmp.
+	appInfo.AppName = L"FlylinkDC++";             // Application name that will be used in message box.
 #endif
-    ,                                   // Prefix that will be used with the dump name: YourPrefix_v1.v2.v3.v4_YYYYMMDD_HHMMSS.mini.dmp.
-    L"FlylinkDC++ r5xx"
-#ifdef FLYLINKDC_HE
-    L" HE"
-#endif
-    ,                                   // Application name that will be used in message box.
-    L"FlylinkDC++ Team"                     // Company name that will be used in message box.
-);
-#endif
+	appInfo.Company = L"FlylinkDC++ developers";  // Company name that will be used in message box.
+	appInfo.V[0] = 7;
+	appInfo.V[1] = 7;
+	appInfo.V[2] = VERSION_NUM;
+	appInfo.V[3] = REVISION_NUM;
+	return &appInfo;
+}
 
-//#if defined(_DEBUG)
-//#define OVERRIDE_NEW_DELETE
-//#include "../vmem/MemPro.cpp"
+/*
+TODO - рассмотреть возможность использовать штатную dbghelp.dll
+чтобы не забивать дистр лишней dll-кой
 
-//#define OVERRIDE_NEW_DELETE
-// #define OVERRIDE_MALLOC
-//#define VMEM_STATS
-//#define VMEM_FULL_CHECKING
-//#include "../vmem/VMem.cpp"
-//#endif
+ WCHAR dbghelpPath[MAX_PATH];
+ExpandEnvironmentStringsW(L"%SystemRoot%\\System32\\dbghelp.dll", dbghelpPath, _countof(dbghelpPath));
 
-// #pragma comment(linker, "/ignore:4099") // fix - 6>ssleay32.lib(ssl_err.obj) : warning LNK4099: PDB 'lib.pdb' was not found with 'ssleay32.lib(ssl_err.obj)' or at 'C:\vc10\r5xx-trunk\compiled\lib.pdb'; linking object as if no debug info
+printf("%ls\n", dbghelpPath);
+
+if (NULL == LoadLibraryW(dbghelpPath))
+printf("failed\n");
+else
+printf("succeeded\n");
+
+TODO-2 // Добавить атрибуты по mediainfo + что+то еще
+    g_crashRpt.AddUserInfoToReport(L"Test-key",L"Test-Value");
+*/
+
+crash_rpt::HandlerSettings* GetHandlerSettings()
+{
+	static TCHAR g_path_sender[MAX_PATH] = {0};
+	static TCHAR g_path_dbhelp[MAX_PATH] = {0};
+	::GetModuleFileName(NULL, g_path_sender, MAX_PATH);
+	wcscpy(g_path_dbhelp, g_path_sender);
+	auto l_tslash = wcsrchr(g_path_sender, '\\');
+	if (l_tslash)
+	{
+		l_tslash++;
+#ifdef _WIN64
+		wcscpy(l_tslash, L"sendrpt-x64.exe");
+#else
+		wcscpy(l_tslash, L"sendrpt-x86.exe");
+#endif
+		l_tslash = wcsrchr(g_path_dbhelp, '\\');
+		l_tslash++;
+#ifdef _WIN64
+		wcscpy(l_tslash, L"dbghelp-x64.dll");
+#else
+		wcscpy(l_tslash, L"dbghelp-x86.dll");
+#endif
+	}
+	static crash_rpt::HandlerSettings g_handlerSettings;
+	g_handlerSettings.HandlerSettingsSize = sizeof(g_handlerSettings);
+	g_handlerSettings.OpenProblemInBrowser = TRUE;
+	g_handlerSettings.SendRptPath = g_path_sender;
+	g_handlerSettings.DbgHelpPath = g_path_dbhelp;
+	return &g_handlerSettings;
+}
+
+crash_rpt::CrashRpt g_crashRpt(
+#ifdef _WIN64
+    L"crashrpt-x64.dll",
+#else
+    L"crashrpt-x86.dll",
+#endif
+    GetApplicationInfo(),
+    GetHandlerSettings());
+
+#endif
 
 CAppModule _Module;
 static void sendCmdLine(HWND hOther, LPTSTR lpstrCmdLine)
@@ -432,6 +493,15 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	return nRet;
 }
 
+#ifdef FLYLINKDC_BETA
+static void crash_test_doctor_dump()
+{
+#ifndef _DEBUG
+	*((int*)0) = 0;
+#endif
+}
+#endif
+
 int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpstrCmdLine, int nCmdShow)
 {
 #ifdef _DEBUG
@@ -493,6 +563,12 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		CompatibilityManager::setWine(true);
 	if (_tcsstr(lpstrCmdLine, _T("/magnet")) != NULL)
 		magnet = true;
+#ifdef FLYLINKDC_BETA
+	if (_tcsstr(lpstrCmdLine, _T("/crahs-test-doctor-dump")) != NULL)
+	{
+		crash_test_doctor_dump();
+	}
+#endif
 	if (_tcsstr(lpstrCmdLine, _T("/c")) != NULL)
 	{
 		multipleInstances = true;

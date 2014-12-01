@@ -79,7 +79,7 @@ void Search::process()
 		AdcCommand cmd(AdcCommand::CMD_SCH, AdcCommand::TYPE_UDP);
 		cmd.addParam("TR", m_term);
 		cmd.addParam("TY", Util::toString(m_type));
-		cmd.addParam("TO", m_token);
+		cmd.addParam("TO", Util::toString(m_token));
 		
 		//node->setTimeout();
 		DHT::getInstance()->send(cmd, node->getIdentity().getIpAsString(), node->getIdentity().getUdpPort(), node->getUser()->getCID(), node->getUdpKey());
@@ -104,7 +104,7 @@ void SearchManager::findNode(const CID& cid)
 	if (isAlreadySearchingFor(cid.toBase32()))
 		return;
 		
-	Search* s = new Search(Search::TYPE_NODE,cid.toBase32(),Util::toString(Util::rand()));
+	Search* s = new Search(Search::TYPE_NODE,cid.toBase32(),Util::rand());
 	
 	search(*s);
 }
@@ -112,7 +112,7 @@ void SearchManager::findNode(const CID& cid)
 /*
  * Performs value lookup in the network
  */
-void SearchManager::findFile(const string& tth, const string& p_token)
+void SearchManager::findFile(const string& tth, uint32_t p_token)
 {
 	// temporary fix to prevent UDP flood (search queue would be better here)
 	if (GET_TICK() - m_lastTimeSearchFile < 10000)
@@ -159,7 +159,7 @@ void SearchManager::findStore(const string& tth, int64_t size, bool partial)
 		return;
 	}
 	
-	Search* s = new Search(Search::TYPE_STOREFILE,tth,Util::toString(Util::rand()));
+	Search* s = new Search(Search::TYPE_STOREFILE,tth,Util::rand());
 	s->m_filesize = size;
 	s->partial    = partial;
 	
@@ -197,7 +197,7 @@ void SearchManager::search(Search& s)
 	
 	FastLock l(cs);
 	// store search
-	m_searches[&s.m_token] = &s;
+	m_searches[s.m_token] = &s;
 	
 	s.process();
 }
@@ -276,8 +276,10 @@ void SearchManager::processSearchRequest(const string& ip, uint16_t port, const 
 			Node::Map nodes;
 			if(term.size() != 39)
 			{
-				LogManager::getInstance()->message("DHT - SearchManager::processSearchRequest Error term.size() != 39. term = " + term);
+				LogManager::getInstance()->dht_message("DHT - SearchManager::processSearchRequest Error term.size() != 39. term = " + term);
 			}
+			else
+			{
 			const CID l_CID_term(term);
 			DHT::getInstance()->getClosestNodes(l_CID_term, nodes, count, 2);
 			
@@ -291,7 +293,7 @@ void SearchManager::processSearchRequest(const string& ip, uint16_t port, const 
 				
 				empty = false;
 			}
-			
+			}
 			break;
 		}
 	}
@@ -317,16 +319,18 @@ void SearchManager::processSearchRequest(const string& ip, uint16_t port, const 
  */
 void SearchManager::processSearchResult(const AdcCommand& cmd)
 {
-	string l_token;
-	if (!cmd.getParam("TO", 1, l_token))
+  string l_token_str;
+	if (!cmd.getParam("TO", 1, l_token_str))
 		return; // missing search token?
+  uint32_t l_token = Util::toUInt32(l_token_str);
+  dcassert(l_token);
 		
 	string nodes;
 	if (!cmd.getParam("NX", 1, nodes))
 		return; // missing search token?
 		
 	FastLock l(cs);
-	SearchMap::iterator i = m_searches.find(&l_token);
+	SearchMap::iterator i = m_searches.find(l_token);
 	if (i == m_searches.end())
 	{
 		// we didn't search for this

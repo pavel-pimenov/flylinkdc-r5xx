@@ -114,8 +114,10 @@ void UDPSocket::checkIncoming()
 	if (socket->wait(delay, Socket::WAIT_READ) == Socket::WAIT_READ)
 	{
 		sockaddr_in remoteAddr =  { { 0 } };
-		std::vector<uint8_t> l_buf(BUFSIZE);
+		std::vector<uint8_t> l_buf(BUFSIZE); // TODO - убрать вектор иначе идет инициализация 16к нулями
 		int len = socket->read(&l_buf[0], BUFSIZE, remoteAddr);
+    Socket::g_stats.m_udp.totalDown -= len;
+    Socket::g_stats.m_dht.totalDown += len;
 		dcdrun(m_receivedBytes += len);
 		dcdrun(m_receivedPackets++);
 		
@@ -183,7 +185,7 @@ void UDPSocket::checkIncoming()
 #endif
 				string ip = inet_ntoa(remoteAddr.sin_addr);
 				uint16_t l_port = ntohs(remoteAddr.sin_port);
-				COMMAND_DEBUG(s, DebugTask::HUB_IN,  ip + ':' + Util::toString(l_port));
+				COMMAND_DEBUG(s, DebugTask::HUB_IN,  ip + ':' + Util::toString(l_port) + " [DHT]");
 				DHT::getInstance()->dispatch(s, ip, l_port, isUdpKeyValid);
 
 				{
@@ -253,7 +255,9 @@ void UDPSocket::checkOutgoing(uint64_t& p_timer)
 			encryptPacket(packet->targetCID, packet->udpKey, data.get(), length);
 			dcdrun(m_sentBytes += packet->data.length());
 			dcdrun(m_sentPackets++);
-			socket->writeTo(packet->ip, packet->port, data.get(), length);
+			const int l_len = socket->writeTo(packet->ip, packet->port, data.get(), length);
+      Socket::g_stats.m_udp.totalUp -= l_len; // TODO - прокинуть тип DHT
+      Socket::g_stats.m_dht.totalUp += l_len;
 		}
 		catch (const SocketException& e)
 		{
@@ -350,10 +354,8 @@ void UDPSocket::send(AdcCommand& cmd, const string& ip, uint16_t p_port, const C
 	// pack data
 	cmd.addParam("UK", Utils::getUdpKey(ip).toBase32()); // add our key for the IP address
 	const string command = cmd.toString(ClientManager::getMyCID()); // [!] IRainman fix.
-	COMMAND_DEBUG(command, DebugTask::HUB_OUT, ip + ':' + Util::toString(p_port));
-	
+	COMMAND_DEBUG(command, DebugTask::HUB_OUT, ip + ':' + Util::toString(p_port) + " [DHT]");
 	Packet* p = new Packet(ip, p_port, command, targetCID, udpKey);
-	
 	{
 	FastLock l(cs);
 	m_sendQueue.push_back(p);

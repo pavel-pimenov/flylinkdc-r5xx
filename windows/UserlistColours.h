@@ -11,10 +11,9 @@ class UserListColours : public CPropertyPage<IDD_USERLIST_COLOURS_PAGE>, public 
 {
 	public:
 	
-		UserListColours(SettingsManager *s) : PropPage(s)
+		UserListColours(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_TEXT_STYLES) + _T('\\') + TSTRING(SETTINGS_USER_LIST))
 		{
-			title = TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_TEXT_STYLES) + _T('\\') + TSTRING(SETTINGS_USER_LIST);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		
@@ -64,7 +63,7 @@ class UserListColours : public CPropertyPage<IDD_USERLIST_COLOURS_PAGE>, public 
 	protected:
 		static Item items[];
 		static TextItem texts[];
-		wstring title;
+		
 };
 
 #endif //UserListColours_H

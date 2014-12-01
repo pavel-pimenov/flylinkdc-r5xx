@@ -38,9 +38,9 @@ class NetworkPage : public CPropertyPage<IDD_NETWORK_PAGE>, public PropPage
 		void SetStage(int ID, StagesIcon stage);
 		void TestWinFirewall();
 	public:
-		NetworkPage(SettingsManager *s) : PropPage(s), m_count_test_port_tick(0)
+		NetworkPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_NETWORK)), m_count_test_port_tick(0)
 		{
-			SetTitle(CTSTRING(SETTINGS_NETWORK));
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		~NetworkPage()

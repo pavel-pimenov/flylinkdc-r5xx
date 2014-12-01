@@ -265,7 +265,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				
 				ItemInfo(const HintedUser& u, const bool isDownload) : m_hintedUser(u), download(isDownload), transferFailed(false),
 					m_status(STATUS_WAITING), m_pos(0), m_size(0), m_actual(0), m_speed(0), m_timeLeft(0),
-					collapsed(true), parent(nullptr), hits(-1), running(0), m_type(Transfer::TYPE_FILE)
+					collapsed(true), parent(nullptr), hits(-1), running(0), m_type(Transfer::TYPE_FILE), m_is_force_passive(false)
 				{
 					update_nicks();
 				}
@@ -281,6 +281,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				HintedUser m_hintedUser; // [!] IRainman fix.
 				tstring m_antivirus_text;
 				Status m_status;
+				bool m_is_force_passive;
 				Transfer::Type m_type;
 				
 				int64_t m_pos;
@@ -352,14 +353,14 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				MASK_STATUS_STRING  = 0x100,
 				MASK_SEGMENT        = 0x200,
 				MASK_CIPHER         = 0x400,
-				MASK_USER           = 0x800
+				MASK_USER           = 0x800,
+				MASK_FORCE_PASSIVE  = 0x1000
 			};
 			
 			bool operator==(const ItemInfo& ii) const
 			{
 				return download == ii.download && m_hintedUser.user == ii.m_hintedUser.user; // [!] IRainman fix.
 			}
-			
 #if 0
 			UpdateInfo(const HintedUser& aUser, const bool isDownload, const bool isTransferFailed = false) :
 				updateMask(0), m_hintedUser(aUser), download(isDownload), transferFailed(isTransferFailed), type(Transfer::TYPE_LAST), running(0)
@@ -389,11 +390,19 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				m_hintedUser = aUser;
 				updateMask |= MASK_USER;
 			}
-			
-			
 			const bool download; // [!] is const member.
 			const bool transferFailed; // [!] is const member.
 			// [~]
+			void setForcePassive(bool p_is_force_passive)
+			{
+				if (m_is_force_passive != p_is_force_passive)
+				{
+					m_is_force_passive = p_is_force_passive;
+					updateMask |= MASK_FORCE_PASSIVE;
+				}
+			}
+			bool m_is_force_passive;
+			
 			void setRunning(int16_t aRunning)
 			{
 				if (running != aRunning)
@@ -540,6 +549,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		CImageList m_speedImagesBW;
 		
 		static HIconWrapper g_user_icon;
+		//static HIconWrapper g_fiwrewall_icon;
 		
 		//OMenu transferMenu;
 		OMenu segmentedMenu;

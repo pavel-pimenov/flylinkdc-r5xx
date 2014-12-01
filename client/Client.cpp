@@ -26,8 +26,7 @@
 
 boost::atomic<uint16_t> Client::g_counts[COUNT_UNCOUNTED];
 string Client::g_last_search_string;
-
-Client::Client(const string& p_HubURL, char separator_, bool secure_) :
+Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure) :
 	m_cs(std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock())),
 	m_reconnDelay(120), m_lastActivity(GET_TICK()),
 	//registered(false), [-] IRainman fix.
@@ -37,8 +36,8 @@ Client::Client(const string& p_HubURL, char separator_, bool secure_) :
 	m_client_sock(0),
 	m_HubURL(p_HubURL),
 	m_port(0),
-	m_separator(separator_),
-	m_secure(secure_),
+	m_separator(p_separator),
+	m_secure(p_is_secure),
 	m_countType(COUNT_UNCOUNTED),
 	m_availableBytes(0),
 	m_exclChecks(false), // [+] IRainman fix.
@@ -296,8 +295,7 @@ void Client::connect()
 	// [!]IRainman moved to two function:
 	// void Client::on(Failed, const string& aLine)
 	// void Client::disconnect(bool graceLess)
-	clearAvailableBytes();
-	
+	clearAvailableBytesL();
 	setAutoReconnect(true);
 	setReconnDelay(120 + Util::rand(0, 60));
 	const FavoriteHubEntry* fhe = reloadSettings(true);
@@ -528,15 +526,15 @@ string Client::getLocalIp() const
 	// [~] IRainman fix.
 }
 
-uint64_t Client::search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, void* p_owner, bool p_is_force_passive)
+uint64_t Client::search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, uint32_t aToken, const StringList& aExtList, void* p_owner, bool p_is_force_passive)
 {
 	dcdebug("Queue search %s\n", aString.c_str());
 	
-	if (searchQueue.interval)
+	if (m_searchQueue.m_interval)
 	{
 		Search s;
 		s.m_is_force_passive = p_is_force_passive;
-		s.m_fileTypes_bitmap = aFileType; // TODO - проверить что тут все ок.
+		s.m_fileTypes_bitmap = aFileType; // TODO - проверить что тут все ок?
 		s.m_size     = aSize;
 		s.m_query    = aString;
 		s.m_sizeMode = aSizeMode;
@@ -544,10 +542,10 @@ uint64_t Client::search(Search::SizeModes aSizeMode, int64_t aSize, Search::Type
 		s.m_exts     = aExtList;
 		s.m_owners.insert(p_owner);
 		
-		searchQueue.add(s);
+		m_searchQueue.add(s);
 		
 		const uint64_t now = GET_TICK(); // [+] IRainman opt
-		return searchQueue.getSearchTime(p_owner, now) - now;
+		return m_searchQueue.getSearchTime(p_owner, now) - now;
 	}
 	
 	search(aSizeMode, aSize, aFileType , aString, aToken, aExtList, p_is_force_passive);
@@ -561,6 +559,14 @@ void Client::on(Line, const string& aLine) noexcept
 	COMMAND_DEBUG(aLine, DebugTask::HUB_IN, getIpPort());
 }
 
+void Client::on(Minute, uint64_t aTick) noexcept
+{
+	if (state == STATE_NORMAL && (aTick >= (getLastActivity() + 118 * 1000)))
+	{
+		send(&m_separator, 1);
+	}
+}
+
 void Client::on(Second, uint64_t aTick) noexcept
 {
 	if (state == STATE_DISCONNECTED && getAutoReconnect() && (aTick > (getLastActivity() + getReconnDelay() * 1000)))
@@ -569,13 +575,13 @@ void Client::on(Second, uint64_t aTick) noexcept
 		connect();
 	}
 	
-	if (!searchQueue.interval)
+	if (!m_searchQueue.m_interval)
 		return;
 		
 	if (isConnected())
 	{
 		Search s;
-		if (searchQueue.pop(s, aTick)) // [!] IRainman opt
+		if (m_searchQueue.pop(s, aTick)) // [!] IRainman opt
 		{
 			// TODO - пробежаться по битовой маске?
 			// Если она там есть
@@ -616,21 +622,25 @@ bool Client::isFloodCommand(const string& p_command, const string& p_line)
 					{
 						if (l_result.m_is_ban == false) // В лог кидаем первую мессагу
 						{
-							const string l_msg = "[Start flood][" + m_HubURL + "] command = " + l_flood_find.first->first +
-							                     " count = " + Util::toString(l_result.m_count);
-							LogManager::getInstance()->message(l_msg);
-							LogManager::getInstance()->flood_message(l_msg + " last_commands = " + Util::toString(l_result.m_command));
+							if (BOOLSETTING(LOG_FLOOD_TRACE))
+							{
+								const string l_msg = "[Start flood][" + m_HubURL + "] command = " + l_flood_find.first->first +
+								                     " count = " + Util::toString(l_result.m_count);
+								LogManager::getInstance()->flood_message(l_msg + " last_commands = " + Util::toString(l_result.m_command));
+							}
 							l_result.m_is_ban = true;
 						}
 						if (l_delta > CFlyServerConfig::g_ban_flood_command * 1000) // 10 секунд данные команды в бане!
 						{
-							const string l_msg = "[Stop flood][" + m_HubURL + "] command = " + l_flood_find.first->first +
-							                     " count = " + Util::toString(l_result.m_count);
+							if (BOOLSETTING(LOG_FLOOD_TRACE))
+							{
+								const string l_msg = "[Stop flood][" + m_HubURL + "] command = " + l_flood_find.first->first +
+								                     " count = " + Util::toString(l_result.m_count);
+								LogManager::getInstance()->flood_message(l_msg);
+							}
 							l_result.m_count = 0;
 							l_result.m_start_tick = l_result.m_tick;
 							l_result.m_is_ban = false;
-							LogManager::getInstance()->message(l_msg);
-							LogManager::getInstance()->flood_message(l_msg);
 						}
 						return l_result.m_is_ban;
 					}

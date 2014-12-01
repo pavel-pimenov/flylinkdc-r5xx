@@ -161,7 +161,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\MediaInfoLib\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -178,7 +178,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <IntrinsicFunctions>false</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\MediaInfoLib\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -200,7 +200,7 @@
     <ClCompile>
       <Optimization>Full</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\MediaInfoLib\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -225,7 +225,7 @@
     <ClCompile>
       <Optimization>Full</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\MediaInfoLib\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -252,7 +252,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\MediaInfoLib\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -273,7 +273,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <IntrinsicFunctions>false</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\MediaInfoLib\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -298,7 +298,7 @@
     <ClCompile>
       <Optimization>Full</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\MediaInfoLib\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -326,7 +326,7 @@
     <ClCompile>
       <Optimization>Full</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\MediaInfoLib\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -369,6 +369,7 @@
     <ClInclude Include="FlyFeatures\flyfeatures.h" />
     <ClInclude Include="FlyFeatures\flyServer.h" />
     <ClInclude Include="FlyFeatures\fuSearch.h" />
+    <ClInclude Include="FlyFeatures\GradientLabel.h" />
     <ClInclude Include="FlyFeatures\InetDownloaderReporter.h" />
     <ClInclude Include="FlyFeatures\SettingsAutoUpdate.h" />
     <ClInclude Include="FlyFeatures\stdafx.h" />

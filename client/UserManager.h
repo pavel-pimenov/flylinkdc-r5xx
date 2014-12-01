@@ -42,7 +42,7 @@ class UserManagerListener
 		
 		virtual void on(OutgoingPrivateMessage, const UserPtr&, const string&, const tstring&) noexcept { }
 		virtual void on(OpenHub, const string&) noexcept { }
-		virtual void on(CollectSummaryInfo, const UserPtr&) noexcept { }
+		virtual void on(CollectSummaryInfo, const UserPtr&, const string& hubHint) noexcept { }
 #ifdef FLYLINKDC_USE_SQL_EXPLORER
 		virtual void on(BrowseSqlExplorer, const UserPtr&, const string&) noexcept { }
 #endif
@@ -63,9 +63,9 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 				fire(UserManagerListener::OpenHub(), url);
 			}
 		}
-		void collectSummaryInfo(const UserPtr& user)
+		void collectSummaryInfo(const UserPtr& user, const string& hubHint)
 		{
-			fire(UserManagerListener::CollectSummaryInfo(), user);
+			fire(UserManagerListener::CollectSummaryInfo(), user, hubHint);
 		}
 #ifdef FLYLINKDC_USE_SQL_EXPLORER
 		void browseSqlExplorer(const UserPtr& user, const string& hubHint)
@@ -73,7 +73,6 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 			fire(UserManagerListener::BrowseSqlExplorer(), user, hubHint);
 		}
 #endif
-		
 		enum PasswordStatus
 		{
 			FIRST = -1,
@@ -81,38 +80,19 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 			CHECKED = 1,
 			WAITING = 2,
 		};
-		static bool expectPasswordFromUser(const UserPtr& user)
-		{
-			FastLock l(g_csPsw);
-			auto i = waitingPasswordUsers.find(user);
-			if (i == waitingPasswordUsers.end())
-			{
-				return false;
-			}
-			else if (i->second)
-			{
-				i->second = false;
-				return true;
-			}
-			else
-			{
-				waitingPasswordUsers.erase(user);
-				checkedPasswordUsers.insert(user);
-				return false;
-			}
-		}
-		
+		static bool expectPasswordFromUser(const UserPtr& user);
 		static PasswordStatus checkPrivateMessagePassword(const ChatMessage& pm); // !SMT!-PSW
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
 		static void checkUser(const OnlineUserPtr& user);
 #endif
 		typedef StringSet IgnoreMap;
 		
-		static const IgnoreMap& getIgnoreList() //TODO
+		static tstring getIgnoreListAsString();
+		static void getIgnoreList(StringSet& p_ignoreList)
 		{
-			//webrtc::ReadLockScoped l(*g_csIgnoreList);
+			webrtc::ReadLockScoped l(*g_csIgnoreList);
 			dcassert(g_ignoreListLoaded);
-			return g_ignoreList;
+			p_ignoreList = g_ignoreList;
 		}
 		static void addToIgnoreList(const string& userName)
 		{
@@ -134,16 +114,24 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 		}
 		static bool isInIgnoreList(const string& nick)
 		{
-			dcassert(!nick.empty());
-			webrtc::ReadLockScoped l(*g_csIgnoreList);
-			dcassert(g_ignoreListLoaded);
-			return g_ignoreList.find(nick) != g_ignoreList.cend();
+			if (!g_isEmptyIgnoreList)
+			{
+				dcassert(!nick.empty());
+				webrtc::ReadLockScoped l(*g_csIgnoreList);
+				dcassert(g_ignoreListLoaded);
+				return g_ignoreList.find(nick) != g_ignoreList.cend();
+			}
+			else
+			{
+				return false;
+			}
 		}
 		static void setIgnoreList(const IgnoreMap& newlist)
 		{
 			{
 				webrtc::WriteLockScoped l(*g_csIgnoreList);
 				g_ignoreList = newlist;
+				g_isEmptyIgnoreList = g_ignoreList.empty();
 			}
 			saveIgnoreList();
 		}
@@ -158,6 +146,7 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 			return Wildcard::patternMatchLowerCase(Text::toLower(userName), g_protectedUsersLower, false);
 		}
 		
+		static bool g_isEmptyIgnoreList;
 	private:
 		static void saveIgnoreList();
 		static IgnoreMap g_ignoreList;

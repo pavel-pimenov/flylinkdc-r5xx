@@ -29,10 +29,9 @@ class TabsPage : public CPropertyPage<IDD_TABS_PAGE>, public PropPage
 #endif
 {
 	public:
-		TabsPage(SettingsManager *s) : PropPage(s)
+		TabsPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_TABS))
 		{
-			title = TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_TABS);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		~TabsPage()
@@ -67,7 +66,7 @@ class TabsPage : public CPropertyPage<IDD_TABS_PAGE>, public PropPage
 		ExListViewCtrl ctrlOption; // [+] IRainman
 		ExListViewCtrl ctrlBold; // [+] IRainman
 		
-		wstring title;
+		
 };
 
 #endif // TABS_PAGE_H

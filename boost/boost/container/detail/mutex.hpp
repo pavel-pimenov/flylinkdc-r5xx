@@ -19,6 +19,10 @@
 #ifndef BOOST_CONTAINER_MUTEX_HPP
 #define BOOST_CONTAINER_MUTEX_HPP
 
+#if defined(_MSC_VER)
+#  pragma once
+#endif
+
 //#define BOOST_CONTAINER_NO_MT
 //#define BOOST_CONTAINER_NO_SPINLOCKS
 
@@ -134,8 +138,10 @@
       #define SLEEP_EX_DURATION     50 /* delay for yield/sleep */
       #define SPIN_LOCK_YIELD  SleepEx(SLEEP_EX_DURATION, FALSE)
    #elif defined (__SVR4) && defined (__sun) /* solaris */
+      #include <thread.h>
       #define SPIN_LOCK_YIELD   thr_yield();
    #elif !defined(LACKS_SCHED_H)
+      #include <sched.h>
       #define SPIN_LOCK_YIELD   sched_yield();
    #else
       #define SPIN_LOCK_YIELD

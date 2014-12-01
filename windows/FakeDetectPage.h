@@ -33,17 +33,17 @@
 class FakeDetect : public CPropertyPage<IDD_FAKEDETECT_PAGE>, public PropPage
 {
 	public:
-		FakeDetect(SettingsManager *s) : PropPage(s)
+		FakeDetect(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_FAKEDETECT))
 		{
-			title = TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_FAKEDETECT);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		};
 		
 		~FakeDetect()
 		{
 			ctrlList.Detach(); // [+] IRainman
-		};
+		}
+		
 		BEGIN_MSG_MAP(FakeDetect)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
 		NOTIFY_HANDLER(IDC_FAKE_BOOLEANS, NM_CUSTOMDRAW, ctrlList.onCustomDraw) // [+] IRainman
@@ -63,7 +63,7 @@ class FakeDetect : public CPropertyPage<IDD_FAKEDETECT_PAGE>, public PropPage
 		static Item items[];
 		static TextItem texts[];
 	protected:
-		wstring title;
+	
 		static ListItem listItems[];
 		
 		ExListViewCtrl ctrlList; // [+] IRainman

@@ -18,6 +18,7 @@
 
 #include "stdinc.h"
 #include "CID.h"
+#include "Util.h"
 
 CID CID::generate()
 {

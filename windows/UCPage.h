@@ -31,10 +31,9 @@ class UCPage : public CPropertyPage<IDD_UCPAGE>, public PropPage
 #endif
 {
 	public:
-		UCPage(SettingsManager *s) : PropPage(s)
+		UCPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_USER_COMMANDS))
 		{
-			title = TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_USER_COMMANDS);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
 		
@@ -80,7 +79,7 @@ class UCPage : public CPropertyPage<IDD_UCPAGE>, public PropPage
 		
 		static Item items[];
 		static TextItem texts[];
-		wstring title;
+		
 		
 		void addEntry(const UserCommand& uc, int pos);
 };

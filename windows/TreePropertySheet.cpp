@@ -263,11 +263,7 @@ void TreePropertySheet::addTree()
 	                WS_TABSTOP | // [+] http://code.google.com/p/flylinkdc/issues/detail?id=821
 	                TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP, WS_EX_CLIENTEDGE, IDC_PAGE);
 	                
-	if (BOOLSETTING(USE_EXPLORER_THEME)
-#ifdef FLYLINKDC_SUPPORT_WIN_2000
-	        && CompatibilityManager::IsXPPlus()
-#endif
-	   )
+	if (BOOLSETTING(USE_EXPLORER_THEME))
 		SetWindowTheme(ctrlTree.m_hWnd, L"explorer", NULL);
 		
 	ctrlTree.SetImageList(tree_icons, TVSIL_NORMAL);

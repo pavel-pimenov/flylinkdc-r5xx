@@ -55,7 +55,18 @@ class ClientBase
 		             };
 	protected:
 		P2PType m_type;
+		bool m_isActivMode;// [+] IRainman opt.
 	public:
+		bool isActiveConfig() const
+		{
+			return m_isActivMode;
+		}
+		bool isActive() const
+		{
+			return m_isActivMode
+			       && !SETTING(FORCE_PASSIVE_INCOMING_CONNECTIONS);
+		}
+		virtual void resendMyINFO(bool p_is_force_passive) = 0;
 		P2PType getType() const
 		{
 			return m_type;
@@ -72,7 +83,7 @@ class ClientBase
 		virtual const string& getHubUrl() const = 0;
 		virtual const string& getHubName() const = 0; // [!] IRainman opt.
 		virtual bool isOp() const = 0;
-		virtual void connect(const OnlineUser& user, const string& p_token) = 0;
+		virtual void connect(const OnlineUser& user, const string& p_token, bool p_is_force_passive) = 0;
 		virtual void privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson = false) = 0;
 		
 };
@@ -94,14 +105,14 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 //#define CLIENT_SUMMARY_SHARE_CLEANUP_IDENTITY
 #define CLIENT_SUMMARY_SHARE_NOT_FULL_DIAG
 
-		void clearAvailableBytes()
+		void clearAvailableBytesL()
 		{
 #ifndef CLIENT_SUMMARY_SHARE_NOT_FULL_DIAG
 			dcassert(m_availableBytes >= 0);
 #endif
 			m_availableBytes = 0;
 		}
-		void decBytesShared(Identity& p_id)
+		void decBytesSharedL(Identity& p_id)
 		{
 			dcdrun(const auto oldSum = m_availableBytes);
 			dcassert(oldSum >= 0);
@@ -117,7 +128,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 				m_availableBytes = 0; // «аткнул - не могу пон€ть почему так пока.
 			}
 		}
-		void changeBytesShared(Identity& p_id, const int64_t p_bytes)
+		void changeBytesSharedL(Identity& p_id, const int64_t p_bytes)
 		{
 			// https://code.google.com/p/flylinkdc/issues/detail?id=1231
 			dcassert(p_bytes >= 0);
@@ -151,15 +162,15 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		virtual void connect();
 		virtual void disconnect(bool graceless);
 		
-		virtual void connect(const OnlineUser& user, const string& p_token) = 0;
+		virtual void connect(const OnlineUser& p_user, const string& p_token, bool p_is_force_passive) = 0;
 		virtual void hubMessage(const string& aMessage, bool thirdPerson = false) = 0;
 		virtual void privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson = false) = 0; // !SMT!-S
 		virtual void sendUserCmd(const UserCommand& command, const StringMap& params) = 0;
 		
-		uint64_t search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, void* owner, bool p_is_force_passive);
+		uint64_t search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, uint32_t aToken, const StringList& aExtList, void* owner, bool p_is_force_passive);
 		void cancelSearch(void* aOwner)
 		{
-			searchQueue.cancelSearch(aOwner);
+			m_searchQueue.cancelSearch(aOwner);
 		}
 		
 		virtual void password(const string& pwd) = 0;
@@ -347,12 +358,12 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		void setSearchInterval(uint32_t aInterval)
 		{
 			// min interval is 2 seconds in FlylinkDC
-			searchQueue.interval = max(aInterval, (uint32_t)(2000)); // [!] FlylinkDC
+			m_searchQueue.m_interval = max(aInterval, (uint32_t)(2000)); // [!] FlylinkDC
 		}
 		
 		uint32_t getSearchInterval() const
 		{
-			return searchQueue.interval;
+			return m_searchQueue.m_interval;
 		}
 		
 		void cheatMessage(const string& msg)
@@ -372,13 +383,6 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		// [~] IRainman fix
 		void reconnect();
 		void shutdown();
-		bool isActive() const
-		{
-			// return ClientManager::isActive(hubUrl); [-] IRainman opt.
-			return m_isActivMode
-			       && !SETTING(FORCE_PASSIVE_INCOMING_CONNECTIONS);
-			// [!]IRainman Fixed auto-adjust the connection type
-		}
 		bool getExcludeCheck() const // [+] IRainman fix.
 		{
 			return m_exclChecks;
@@ -470,6 +474,10 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		const OnlineUserPtr& getHubOnlineUser() const
 		{
 			return m_hubOnlineUser;
+		}
+		Identity& getHubIdentity()
+		{
+			return getHubOnlineUser()->getIdentity();
 		}
 		const Identity& getHubIdentity() const
 		{
@@ -567,7 +575,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 //[~]FlylinkDC
 	protected:
 		friend class ClientManager;
-		Client(const string& hubURL, char separator, bool secure_);
+		Client(const string& p_HubURL, char p_separator_, bool p_is_secure);
 		virtual ~Client();
 		
 		enum CountType
@@ -590,7 +598,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			STATE_DISCONNECTED  ///< Nothing in particular
 		} state;
 		
-		SearchQueue searchQueue;
+		SearchQueue m_searchQueue;
 		BufferedSocket* m_client_sock;
 		void reset_socket(); //[+]FlylinkDC++ Team
 		
@@ -619,10 +627,11 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		const FavoriteHubEntry* reloadSettings(bool updateNick);
 		
 		virtual void checkNick(string& p_nick) = 0;
-		virtual void search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, bool p_is_force_passive) = 0;
+		virtual void search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, uint32_t aToken, const StringList& aExtList, bool p_is_force_passive) = 0;
 		
 		// TimerManagerListener
-		virtual void on(Second, uint64_t aTick) noexcept;
+		virtual void on(TimerManagerListener::Second, uint64_t aTick) noexcept;
+		virtual void on(TimerManagerListener::Minute, uint64_t aTick) noexcept;
 		// BufferedSocketListener
 		virtual void on(Connecting) noexcept
 		{
@@ -657,9 +666,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		bool m_exclChecks;
 		// [~] IRainman fix.
 		
-		bool m_isActivMode;// [+] IRainman opt.
-		
-		char m_separator;
+		const char m_separator;
 		bool m_secure;
 		CountType m_countType;
 	public:

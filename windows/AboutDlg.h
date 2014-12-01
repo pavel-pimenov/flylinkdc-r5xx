@@ -126,6 +126,11 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			ctrlPartySoftware.AppendText(l_Party_Software, FALSE);
 			ctrlPartySoftware.Detach();
 			
+			CEdit ctrlUDPStat(GetDlgItem(IDC_UDP_DHT_SSL_STAT));
+			ctrlUDPStat.SetFont(Fonts::g_halfFont);
+			ctrlUDPStat.AppendText(Text::toT(CompatibilityManager::generateNetworkStats()).c_str(), FALSE);
+			ctrlUDPStat.Detach();
+			
 			::SetWindowText(GetDlgItem(IDC_UPDATE_VERSION_CURRENT_LBL), (TSTRING(CURRENT_VERSION) + _T(":")).c_str()); //[+] (Sergey Shushkanov)
 			
 //[-]PPA    SetDlgItemText(IDC_TTH, WinUtil::tth.c_str());

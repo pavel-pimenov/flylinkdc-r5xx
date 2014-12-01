@@ -35,12 +35,12 @@ class NmdcHub : public Client, private Flags
 		using Client::send;
 		using Client::connect;
 		
-		void connect(const OnlineUser& aUser, const string&);
+		void connect(const OnlineUser& p_user, const string& p_token, bool p_is_force_passive);
 		
 		void hubMessage(const string& aMessage, bool thirdPerson = false);
 		void privateMessage(const OnlineUserPtr& aUser, const string& aMessage, bool thirdPerson = false); // !SMT!-S
 		void sendUserCmd(const UserCommand& command, const StringMap& params);
-		virtual void search(Search::SizeModes aSizeType, int64_t aSize, Search::TypeModes aFileType, const string& aString, const string& aToken, const StringList& aExtList, bool p_is_force_passive);
+		virtual void search(Search::SizeModes aSizeType, int64_t aSize, Search::TypeModes aFileType, const string& aString, uint32_t aToken, const StringList& aExtList, bool p_is_force_passive);
 		void password(const string& aPass)
 		{
 			send("$MyPass " + fromUtf8(aPass) + '|');
@@ -117,10 +117,11 @@ class NmdcHub : public Client, private Flags
 		
 		NickMap m_users;
 		
-		string   m_lastmyinfo;
-		int64_t  m_lastbytesshared;
+		string   m_lastMyInfo;
+		int64_t  m_lastBytesShared;
 		uint64_t m_lastUpdate;
 		uint8_t m_supportFlags;
+		char m_modeChar; // last Mode MyINFO
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 		bool m_hubSupportsSlots;//[+] FlylinkDC
 #endif
@@ -220,18 +221,42 @@ class NmdcHub : public Client, private Flags
 		                 , ExpectedMap::DefinedExpectedReason reason = ExpectedMap::REASON_DEFAULT
 #endif
 		                );
+		                
+		static void sendUDPSR(const CFlySearchItem& p_result, const Client* p_client);
+		void NmdcSearch(const string& aSeeker, Search::SizeModes aSizeMode, int64_t aSize,
+		                Search::TypeModes aFileType, const string& aString, bool isPassive);
+		bool NmdcPartialSearch(const string& aSeeker,
+		                       Search::TypeModes aFileType, const string& aString);
+		string calcExternalIP() const;
 		void revConnectToMe(const OnlineUser& aUser);
-		void myInfo(bool p_alwaysSend);
+		void resendMyINFO(bool p_is_force_passive);
+		void myInfo(bool p_alwaysSend, bool p_is_force_passive = false);
 		void myInfoParse(const string& param);
+		void searchParse(const string& param, bool p_is_passive);
+		void connectToMeParse(const string& param);
+		void revConnectToMeParse(const string& param);
+		void hubNameParse(const string& param);
+		void supportsParse(const string& param);
+		void userCommandParse(const string& param);
+		void lockParse(const string& aLine);
+		void helloParse(const string& param);
+		void userIPParse(const string& param);
+		void botListParse(const string& param);
+		void nickListParse(const string& param);
+		void opListParse(const string& param);
+		void toParse(const string& param);
+		void chatMessageParse(const string& aLine);
 		void supports(const StringList& feat);
 		void updateFromTag(Identity& id, const string & tag);
 		
 		virtual void checkNick(string& p_nick);
 		
-		void on(TimerManagerListener::Second, uint64_t aTick) noexcept;
 		void on(BufferedSocketListener::Connected) noexcept;
 		void on(BufferedSocketListener::Line, const string& l) noexcept;
 		void on(BufferedSocketListener::MyInfoArray, StringList&) noexcept; // [+]PPA
+		void on(BufferedSocketListener::SearchArrayTTH, CFlySearchArray&) noexcept; // [+]PPA
+		void on(BufferedSocketListener::SearchArrayFile, StringList&) noexcept; // [+]PPA
+		
 		void on(BufferedSocketListener::Failed, const string&) noexcept;
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 	public:

@@ -29,10 +29,9 @@ class OperaColorsPage : public CPropertyPage<IDD_OPERACOLORS_PAGE>, public PropP
 #endif
 {
 	public:
-		OperaColorsPage(SettingsManager *s) : PropPage(s), bDoProgress(false)
+		OperaColorsPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_TEXT_STYLES) + _T('\\') + TSTRING(SETTINGS_OPERACOLORS)), bDoProgress(false)
 		{
-			title = TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_TEXT_STYLES) + _T('\\') + TSTRING(SETTINGS_OPERACOLORS);
-			SetTitle(title.c_str());
+			SetTitle(m_title.c_str());
 			hloubka = SETTING(PROGRESS_3DDEPTH);
 			m_psp.dwFlags |= PSP_RTLREADING;
 		};
@@ -40,7 +39,7 @@ class OperaColorsPage : public CPropertyPage<IDD_OPERACOLORS_PAGE>, public PropP
 		~OperaColorsPage()
 		{
 			ctrlList.Detach(); // [+] IRainman
-		};
+		}
 		
 		BEGIN_MSG_MAP(OperaColorsPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
@@ -192,7 +191,7 @@ class OperaColorsPage : public CPropertyPage<IDD_OPERACOLORS_PAGE>, public PropP
 		CStatic ctrlMenubarDrawer;
 		
 		int hloubka;
-		wstring title;
+		
 };
 
 #endif //OperaColorsPage_H

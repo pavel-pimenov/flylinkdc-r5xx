@@ -28,6 +28,7 @@ IDR_FLY_SERVER_CONFIG   RCDATA                  "compiled\\Settings\\flylinkdc-c
 IDR_IPGRANT_EXAMPLE     RCDATA                  "compiled\\Settings\\common\\IPGrant.ini"
 IDR_IPGUARD_EXAMPLE     RCDATA                  "compiled\\Settings\\common\\IPGuard.ini"
 IDR_IPTRUST_EXAMPLE     RCDATA                  "compiled\\Settings\\common\\IPTrust.ini"
+IDR_ISP_HUB_LIST_EXAMPLE RCDATA                  "compiled\\Settings\\common\\isp-hub-list.txt"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -160,22 +161,22 @@ BEGIN
     PUSHBUTTON      "Right color",IDC_SETTINGS_ODC_MENUBAR_RIGHT,255,254,60,14
 END
 
-IDD_PREVIEW DIALOGEX 0, 0, 208, 132
+IDD_PREVIEW DIALOGEX 0, 0, 261, 190
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Dialog"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     LTEXT           "Name:",IDC_PREV_NAME2,4,4,193,8
-    EDITTEXT        IDC_PREVIEW_NAME,4,14,200,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_PREVIEW_NAME,4,14,253,14,ES_AUTOHSCROLL
     LTEXT           "Application:",IDC_PREV_APPLICATION,4,31,191,9
-    EDITTEXT        IDC_PREVIEW_APPLICATION,4,41,177,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "...",IDC_PREVIEW_BROWSE,184,41,20,14
+    EDITTEXT        IDC_PREVIEW_APPLICATION,4,41,230,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_PREVIEW_BROWSE,237,41,20,14
     LTEXT           "Arguments: (%[file] %[dir] available)",IDC_PREV_ARG,6,59,191,8
-    EDITTEXT        IDC_PREVIEW_ARGUMENTS,4,69,200,14,ES_AUTOHSCROLL
-    LTEXT           "Apply to Extensions: avi;mov;divx",IDC_PREV_EXT,6,87,139,8
-    EDITTEXT        IDC_PREVIEW_EXTENSION,4,96,200,14,ES_AUTOHSCROLL
-    DEFPUSHBUTTON   "OK",IDOK,100,114,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,154,114,50,14
+    EDITTEXT        IDC_PREVIEW_ARGUMENTS,4,69,253,14,ES_AUTOHSCROLL
+    LTEXT           "Apply to Extensions: avi;mov;divx",IDC_PREV_EXT,6,87,248,61
+    EDITTEXT        IDC_PREVIEW_EXTENSION,4,153,253,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,100,172,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,207,172,50,14
 END
 
 IDD_TOOLBAR_PAGE DIALOGEX 0, 0, 325, 300
@@ -706,18 +707,19 @@ BEGIN
     RTEXT           "Current version:",IDC_UPDATE_VERSION_CURRENT_LBL,6,5,140,9
     EDITTEXT        IDC_VERSION,149,5,140,12,ES_READONLY | NOT WS_BORDER | NOT WS_TABSTOP
     CTEXT           "Quality C++ code protects PVS-Studio",IDC_PVS_STUDIO,43,17,216,8
-    GROUPBOX        "Участники проекта:",IDC_THANKS_STATIC,1,29,185,145,BS_CENTER
-    EDITTEXT        IDC_THANKS,5,40,179,131,ES_CENTER | ES_MULTILINE | ES_READONLY | NOT WS_BORDER | WS_VSCROLL | NOT WS_TABSTOP
-    GROUPBOX        "Статистика:",IDC_STATISTICS_STATIC,190,29,106,44,BS_CENTER
-    LTEXT           "Upload: xx.xx MB",IDC_TOTAL_UPLOAD,196,39,93,8,0,WS_EX_TRANSPARENT
-    LTEXT           "Download: xx.xx MB",IDC_TOTAL_DOWNLOAD,196,50,93,8
-    LTEXT           "Ratio (Up/Down): x.xx",IDC_RATIO,196,61,93,8
+    GROUPBOX        "Участники проекта:",IDC_THANKS_STATIC,1,74,185,101,BS_CENTER
+    EDITTEXT        IDC_THANKS,5,84,179,85,ES_CENTER | ES_MULTILINE | ES_READONLY | NOT WS_BORDER | WS_VSCROLL | NOT WS_TABSTOP
+    GROUPBOX        "Статистика:",IDC_STATISTICS_STATIC,4,29,292,44,BS_CENTER
+    LTEXT           "Upload: xx.xx MB",IDC_TOTAL_UPLOAD,9,39,93,8,0,WS_EX_TRANSPARENT
+    LTEXT           "Download: xx.xx MB",IDC_TOTAL_DOWNLOAD,9,50,93,8
+    LTEXT           "Ratio (Up/Down): x.xx",IDC_RATIO,9,61,93,8
     GROUPBOX        "Ссылки:",IDC_LINKS_STATIC,190,74,106,41,BS_CENTER
     CTEXT           "Домашняя страница",IDC_LINK,193,83,100,8
     CTEXT           "Обсуждение новых версий",IDC_LINK_BLOG,193,93,100,8
     CTEXT           "pavel.pimenov@gmail.com",IDC_SUPPORT_MAIL,193,103,100,8
     GROUPBOX        "Сторонние проекты:",IDC_SIDEPRO_STATIC,190,116,106,58,BS_CENTER
-    EDITTEXT        IDC_THIRD_PARTY_SOFTWARE,194,124,100,48,ES_MULTILINE | ES_READONLY | NOT WS_BORDER | WS_VSCROLL | NOT WS_TABSTOP
+    EDITTEXT        IDC_THIRD_PARTY_SOFTWARE,194,124,99,45,ES_MULTILINE | ES_READONLY | NOT WS_BORDER | WS_VSCROLL | NOT WS_TABSTOP
+    EDITTEXT        IDC_UDP_DHT_SSL_STAT,141,37,150,33,ES_MULTILINE | ES_READONLY | WS_VSCROLL | NOT WS_TABSTOP
 END
 
 IDD_CLIENTS_PAGE DIALOGEX 0, 0, 325, 300
@@ -1273,16 +1275,16 @@ BEGIN
     EDITTEXT        IDC_GRANTIP_INI,16,162,292,58,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL
 END
 
-IDD_ADD_MAGNET DIALOGEX 0, 0, 303, 71
+IDD_ADD_MAGNET DIALOGEX 0, 0, 492, 223
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Title"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    GROUPBOX        "Magnet",IDC_MAGNET,4,4,295,31
-    EDITTEXT        IDC_MAGNET_LINK,9,15,285,14,ES_AUTOHSCROLL
-    CONTROL         "Start Video Preview",IDC_MAGNET_START_VIEW,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,4,40,294,10
-    DEFPUSHBUTTON   "OK",IDOK,194,53,50,14
-    PUSHBUTTON      "&Cancel",IDCANCEL,249,53,50,14
+    GROUPBOX        "Magnets",IDC_MAGNET,4,4,484,184
+    EDITTEXT        IDC_MAGNET_LINK,8,15,475,168,ES_MULTILINE | ES_AUTOHSCROLL
+    CONTROL         "Start Video Preview",IDC_MAGNET_START_VIEW,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,4,190,294,10
+    DEFPUSHBUTTON   "OK",IDOK,386,205,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,438,205,50,14
 END
 
 IDD_DEFAULT_CLICK_PAGE DIALOGEX 0, 0, 325, 300
@@ -1914,9 +1916,9 @@ BEGIN
     IDD_PREVIEW, DIALOG
     BEGIN
         LEFTMARGIN, 4
-        RIGHTMARGIN, 204
+        RIGHTMARGIN, 257
         TOPMARGIN, 4
-        BOTTOMMARGIN, 128
+        BOTTOMMARGIN, 186
     END
 
     IDD_TOOLBAR_PAGE, DIALOG
@@ -2492,9 +2494,9 @@ BEGIN
     IDD_ADD_MAGNET, DIALOG
     BEGIN
         LEFTMARGIN, 4
-        RIGHTMARGIN, 299
+        RIGHTMARGIN, 488
         TOPMARGIN, 4
-        BOTTOMMARGIN, 67
+        BOTTOMMARGIN, 219
     END
 
     IDD_DEFAULT_CLICK_PAGE, DIALOG
@@ -2917,13 +2919,6 @@ IDR_ICON_FIREWALL       ICON                    "res\\firewall.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Bitmap
-//
-
-IDB_FLYLINK             BITMAP                  "res\\FlyLink.bmp"
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // PNG
 //
 
@@ -2963,6 +2958,7 @@ IDR_DCLST               PNG                     "res\\dclst.png"
 IDR_FLYLINK_PNG         PNG                     "res\\FlyLink.png"
 IDR_MAGNET_PNG          PNG                     "res\\Magnet.png"
 IDR_SPLASH_FOOLS_DAY    PNG                     "res\\Splash\\Splash_fools_day.png"
+IDR_ISP_HUBLIST         PNG                     "res\\ISPImages.png"
 #endif    // Russian (Russia) resources
 /////////////////////////////////////////////////////////////////////////////
 

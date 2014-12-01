@@ -46,9 +46,11 @@ class Client;
 class File;
 class OutputStream;
 class MemoryInputStream;
+class SearchResultBaseTTH;
 
 struct ShareLoader;
 
+typedef boost::unordered_map<std::string, unsigned> QueryNotExistsMap;
 
 class ShareManager : public Singleton<ShareManager>, private SettingsManagerListener, private BASE_THREAD, private TimerManagerListener,
 	private HashManagerListener, private QueueManagerListener
@@ -93,8 +95,9 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		int64_t removeExcludeFolder(const string &path, bool returnSize = true);
 		int64_t addExcludeFolder(const string &path);
 		
-		void search(SearchResultList& l, const string& aString, Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, Client* aClient, StringList::size_type maxResults) noexcept;
-		void search(SearchResultList& l, const StringList& params, StringList::size_type maxResults, StringSearch::List& reguest) noexcept; // [!] IRainman-S add StringSearch::List& reguest
+		void   searchTTHArray(CFlySearchArray& p_tth_aray, const Client* p_client);
+		void   search(SearchResultList& aResults, const string& aString, Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, Client* aClient, StringList::size_type maxResults) noexcept;
+		void   search(SearchResultList& aResults, const StringList& params, StringList::size_type maxResults, StringSearch::List& reguest) noexcept; // [!] IRainman-S add StringSearch::List& reguest
 		
 		bool findByRealPathName(const string& realPathname, TTHValue* outTTHPtr, string* outfilenamePtr = NULL, int64_t* outSizePtr = NULL); // [+] SSA
 		
@@ -108,18 +111,19 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		                                      
 		MemoryInputStream* getTree(const string& virtualFile) const;
 		
-		AdcCommand getFileInfo(const string& aFile);
+		void getFileInfo(AdcCommand& p_cmd, const string& aFile);
 		// [!] IRainman opt.
 		int64_t getShareSize() const
 		{
-			dcassert(m_CurrentShareSize != -1); // TODO - баг. попытка получить размер шары до вызова internal_calcShareSize
+			dcassert(m_CurrentShareSize != -1); // TODO - баг. попытка получить размер шары до вызова internalCalcShareSize
 			if (m_CurrentShareSize == -1)
 				return 0;
 			else
 				return m_CurrentShareSize;
 		}
 	private:
-		void internal_calcShareSize();
+		void internalCalcShareSize();
+		static void internalClearShareNotExists(bool p_is_force);
 	public:
 		// [~] IRainman opt.
 		int64_t getShareSize(const string& realPath) const;
@@ -127,7 +131,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		size_t getSharedFiles() const
 		{
 			webrtc::ReadLockScoped l(*g_csShare);
-			return tthIndex.size();
+			return m_tthIndex.size();
 		}
 		string getShareSizeString() const
 		{
@@ -172,7 +176,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 			if (!isShutdown())
 			{
 				webrtc::ReadLockScoped l(*g_csShare);
-				return tthIndex.find(tth) != tthIndex.end();
+				return m_tthIndex.find(tth) != m_tthIndex.end();
 			}
 			return false;
 		}
@@ -393,15 +397,14 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 			StringSearch::List* include;
 			StringSearch::List includeX;
 			StringSearch::List exclude;
-			StringList ext;
-			StringList noExt;
+			StringList m_exts;
+			StringList m_noExts;
 			
 			int64_t gt;
 			int64_t lt;
 			
 			TTHValue root;
 			bool hasRoot;
-			
 			bool isDirectory;
 		};
 		
@@ -427,6 +430,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		uint64_t m_lastFullUpdate;
 		
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShare;
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csShareNotExists;
 		
 		// List of root directory items
 		typedef std::list<Directory::Ptr> DirList;
@@ -444,7 +448,9 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		
 		typedef std::unordered_map<TTHValue, Directory::ShareFile::Set::const_iterator> HashFileMap; // TODO - boost
 		
-		HashFileMap tthIndex;
+		HashFileMap m_tthIndex;
+		static QueryNotExistsMap g_file_not_exists_map;
+		
 		//[+]IRainman opt.
 		bool m_isNeedsUpdateShareSize;
 		int64_t m_CurrentShareSize;

@@ -312,6 +312,7 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 				if (BOOLSETTING(LOG_DDOS_TRACE))
 				{
 					char l_buf[2000];
+					l_buf[0] = 0;
 					sprintf_s(l_buf, _countof(l_buf), CSTRING(DOS_ATACK),
 					          l_User.user->getLastNick().c_str(),
 					          l_User.hint.c_str(),
@@ -319,10 +320,12 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 					          aFile.c_str());
 					LogManager::getInstance()->ddos_message(l_buf);
 				}
+#ifdef IRAINMAN_DISALLOWED_BAN_MSG
 				if (aSource->isSet(UserConnection::FLAG_SUPPORTS_BANMSG))
 				{
-					aSource->error(UserConnection::PLEASE_UPDATE_YOUR_CLIENT);
+					aSource->error(UserConnection::g_PLEASE_UPDATE_YOUR_CLIENT);
 				}
+#endif
 				
 				return false;
 			}
@@ -769,7 +772,8 @@ void UploadManager::reserveSlot(const HintedUser& hintedUser, uint64_t aTime)
 		});
 		if (it != m_slotQueue.cend())
 		{
-			ClientManager::getInstance()->connect(hintedUser, it->getToken());
+			bool l_is_active_client;
+			ClientManager::getInstance()->connect(hintedUser, it->getToken(), false, l_is_active_client);
 		}/* else {
             token = Util::toString(Util::rand());
         }*/
@@ -1097,7 +1101,8 @@ void UploadManager::notifyQueuedUsers(int64_t p_tick)
 	}
 	for (auto it = l_notifyList.cbegin(); it != l_notifyList.cend(); ++it)
 	{
-		ClientManager::getInstance()->connect(it->m_hintedUser, it->getToken());
+		bool l_is_active_client;
+		ClientManager::getInstance()->connect(it->m_hintedUser, it->getToken(), false, l_is_active_client);
 	}
 	
 }
@@ -1194,7 +1199,9 @@ void UploadManager::on(AdcCommand::GFI, UserConnection* aSource, const AdcComman
 	{
 		try
 		{
-			aSource->send(ShareManager::getInstance()->getFileInfo(ident));
+			AdcCommand cmd(AdcCommand::CMD_RES);
+			ShareManager::getInstance()->getFileInfo(cmd, ident);
+			aSource->send(cmd);
 		}
 		catch (const ShareException&)
 		{
@@ -1279,7 +1286,7 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 		if (!isFireball && !isFileServer)
 		{
 			if ((Util::getUpTime() > 10 * 24 * 60 * 60) && // > 10 days uptime
-			        (Socket::getTotalUp() > 100ULL * 1024 * 1024 * 1024) && // > 100 GiB uploaded
+			        (Socket::g_stats.m_tcp.totalUp > 100ULL * 1024 * 1024 * 1024) && // > 100 GiB uploaded
 			        (ShareManager::getInstance()->getSharedSize() > 1.5 * 1024 * 1024 * 1024 * 1024)) // > 1.5 TiB shared
 			{
 				isFileServer = true;

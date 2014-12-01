@@ -36,9 +36,9 @@ const string UserConnection::FEATURE_ADC_TIGR = "TIGR";
 const string UserConnection::FEATURE_BANMSG = "BanMsg"; // !SMT!-B
 #endif
 
-const string UserConnection::FILE_NOT_AVAILABLE = "File Not Available";
+const string UserConnection::g_FILE_NOT_AVAILABLE = "File Not Available";
 #if defined (PPA_INCLUDE_DOS_GUARD) || defined (IRAINMAN_DISALLOWED_BAN_MSG)
-const string UserConnection::PLEASE_UPDATE_YOUR_CLIENT = "Please update your DC++ http://flylinkdc.com";
+const string UserConnection::g_PLEASE_UPDATE_YOUR_CLIENT = "Please update your DC++ http://flylinkdc.com";
 #endif
 
 void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexcept
@@ -69,7 +69,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 		if (getUser() && aLine.length() < 255)
 			ClientManager::getInstance()->setUnknownCommand(getUser(), aLine);
 			
-		fire(UserConnectionListener::ProtocolError(), this, "Invalid data");  // TODO: translate
+		fire(UserConnectionListener::ProtocolError(), this, "Invalid data");
 		return;
 	}
 	
@@ -99,7 +99,9 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 	else if (cmd == "MyNick")
 	{
 		if (!param.empty())
+		{
 			fire(UserConnectionListener::MyNick(), this, param);
+		}
 	}
 	else if (cmd == "Direction")
 	{
@@ -111,17 +113,20 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 	}
 	else if (cmd == "Error")
 	{
-		if (param.compare(0, FILE_NOT_AVAILABLE.size(), FILE_NOT_AVAILABLE) == 0 ||
+		if (param.compare(0, g_FILE_NOT_AVAILABLE.size(), g_FILE_NOT_AVAILABLE) == 0 ||
 		        param.rfind(/*path/file*/" no more exists") != string::npos)
 		{
 			// [+] SSA
-			if (getDownload()->isSet(Download::FLAG_USER_GET_IP)) // Crash https://drdump.com/Problem.aspx?ClientID=ppa&ProblemID=90376
+			if (getDownload()) // Не понятно почему падаю тут - https://drdump.com/Problem.aspx?ProblemID=96544
 			{
-				fire(UserConnectionListener::CheckUserIP(), this);
-			}
-			else
-			{
-				fire(UserConnectionListener::FileNotAvailable(), this);
+				if (getDownload()->isSet(Download::FLAG_USER_GET_IP)) // Crash https://drdump.com/Problem.aspx?ClientID=ppa&ProblemID=90376
+				{
+					fire(UserConnectionListener::CheckUserIP(), this);
+				}
+				else
+				{
+					fire(UserConnectionListener::FileNotAvailable(), this);
+				}
 			}
 		}
 		/*#ifdef IRAINMAN_ENABLE_AUTO_BAN
@@ -226,7 +231,9 @@ void UserConnection::sup(const StringList& features)
 {
 	AdcCommand c(AdcCommand::CMD_SUP);
 	for (auto i = features.cbegin(); i != features.cend(); ++i)
+	{
 		c.addParam(*i);
+	}
 	send(c);
 }
 
@@ -399,6 +406,26 @@ void UserConnection::setUploadLimit(int lim)
 		default:
 			socket->setMaxSpeed(lim * 1024);
 	}
+}
+
+void UserConnection::maxedOut(size_t queue_position)
+{
+	if (isSet(FLAG_NMDC))
+	{
+		send("$MaxedOut " + Util::toString(queue_position) + '|');
+	}
+	else
+	{
+		AdcCommand cmd(AdcCommand::SEV_RECOVERABLE, AdcCommand::ERROR_SLOTS_FULL, "Slots full");
+		cmd.addParam("QP", Util::toString(queue_position));
+		send(cmd);
+	}
+}
+
+
+void UserConnection::fileNotAvail(const std::string& msg /*= g_FILE_NOT_AVAILABLE*/)
+{
+	isSet(FLAG_NMDC) ? send("$Error " + msg + '|') : send(AdcCommand(AdcCommand::SEV_RECOVERABLE, AdcCommand::ERROR_FILE_NOT_AVAILABLE, msg));
 }
 
 /**

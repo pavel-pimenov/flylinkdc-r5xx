@@ -4,7 +4,6 @@
 //
 #define IDS_PROJNAME                    100
 #define IDR_GdiOle                    101
-#define IDB_GDIIMAGE                    102
 #define IDR_GDIIMAGE                    103
 
 // Next default values for new objects
