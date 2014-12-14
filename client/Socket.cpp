@@ -23,6 +23,7 @@
 #include "LogManager.h"
 #include "ResourceManager.h"
 #include "CompatibilityManager.h"
+#include <iphlpapi.h>
 
 /// @todo remove when MinGW has this
 #ifdef __MINGW32__
@@ -834,7 +835,56 @@ return inet_ntoa(sock_addr.sin_addr);
 }
 return Util::emptyString;
 }
-
+//============================================================================
+string Socket::getDefaultGateWay(bool& p_is_wifi_router)
+{
+	p_is_wifi_router = false;
+	in_addr l_addr = {0};
+	MIB_IPFORWARDROW ip_forward = {0};
+	memset(&ip_forward, 0, sizeof(ip_forward));
+	if (GetBestRoute(inet_addr("0.0.0.0"), 0, &ip_forward) == NO_ERROR)
+	{
+		l_addr = *(in_addr*)&ip_forward.dwForwardNextHop;
+		const string l_ip_gateway = inet_ntoa(l_addr);
+		if (l_ip_gateway == "192.168.1.1" || l_ip_gateway == "192.168.0.1")
+		{
+			p_is_wifi_router = true;
+		}
+		return l_ip_gateway;
+	}
+	return "";
+	
+#if 0
+	// Get local host name
+	char szHostName[128] = {0};
+	
+	if (gethostname(szHostName, sizeof(szHostName)))
+	{
+		// Error handling -> call 'WSAGetLastError()'
+	}
+	
+	SOCKADDR_IN socketAddress;
+	hostent *pHost        = 0;
+	
+	// Try to get the host ent
+	pHost = gethostbyname(szHostName);
+	if (!pHost)
+	{
+		// Error handling -> call 'WSAGetLastError()'
+	}
+	
+	char ppszIPAddresses[10][16]; // maximum of ten IP addresses
+	for (int iCnt = 0; (pHost->h_addr_list[iCnt]) && (iCnt < 10); ++iCnt)
+	{
+		memcpy(&socketAddress.sin_addr, pHost->h_addr_list[iCnt], pHost->h_length);
+		strcpy(ppszIPAddresses[iCnt], inet_ntoa(socketAddress.sin_addr));
+		
+		//printf("Found interface address: %s\n", ppszIPAddresses[iCnt]);
+	}
+	return "";
+#endif
+}
+//============================================================================
 uint16_t Socket::getLocalPort() noexcept
 {
 	if (m_sock == INVALID_SOCKET)

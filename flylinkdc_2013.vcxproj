@@ -668,6 +668,12 @@
     <ClInclude Include="windows\Wnd.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="res\firewall.ico" />
+    <Image Include="res\ISPImages.png" />
+    <Image Include="res\medical_bag.ico" />
+    <Image Include="res\StateUsers.png" />
+    <Image Include="res\thermometer2.ico" />
+    <Image Include="res\wifi-router.ico" />
     <Text Include="compiled\Settings\common\IPGrant.ini">
       <FileType>Document</FileType>
     </Text>
@@ -763,6 +769,7 @@
     <Image Include="res\UserBanOff.ico" />
     <Image Include="res\UserOff.ico" />
     <Image Include="res\Users.png" />
+    <Text Include="compiled\Settings\common\isp-hub-list.txt" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="FlylinkDC.rc" />
@@ -803,6 +810,9 @@
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="compiled\Settings\flylinkdc-config-r5xx.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

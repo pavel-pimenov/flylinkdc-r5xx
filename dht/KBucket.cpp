@@ -280,8 +280,9 @@ void RoutingTable::getClosestNodes(const CID& cid, Node::Map& closest, unsigned 
 		for (auto it = m_bucket->begin(); it != m_bucket->end(); ++it)
 		{
 			Node::Ptr node = *it;
+			// TODO dcassert(!node->getUser()->isSet(User::NMDC_FILES_PASSIVE));
 			if (node->getType() <= maxType && node->isIpVerified() &&
-				node->getUser()->isSet(User::TCP4) // [!] IRainamn fix.
+				!node->getUser()->isSet(User::NMDC_FILES_PASSIVE) 
 				)
 			{
 				const CID distance = Utils::getDistance(cid, node->getUser()->getCID());

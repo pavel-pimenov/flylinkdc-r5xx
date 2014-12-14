@@ -1083,6 +1083,7 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="compiled\Settings\common\isp-hub-list.txt" />
+    <None Include="res\wifi-router.ico" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

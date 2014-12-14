@@ -678,7 +678,10 @@ bool ShareManager::loadCache() noexcept
 					updateIndicesL(**i);
 				}
 			}
-			internalClearShareNotExists(true);
+			l_cache_loader_log.step("update indices done");
+			//internalClearShareNotExists(true);
+			//l_cache_loader_log.step("internalClearShareNotExists");
+                        // https://code.google.com/p/flylinkdc/issues/detail?id=1545
 			if (getSharedSize() > 0)
 			{
 				// Получили размер шары из кэша - не выполняем повторный обход в internalCalcShareSize();
@@ -688,6 +691,7 @@ bool ShareManager::loadCache() noexcept
 			else
 			{
 				internalCalcShareSize();
+				l_cache_loader_log.step("Recalc share size");
 			}
 		}
 		l_cache_loader_log.step("update index done");

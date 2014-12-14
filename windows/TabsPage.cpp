@@ -45,7 +45,6 @@ PropPage::ListItem TabsPage::optionItems[] =
 {
 	{ SettingsManager::NON_HUBS_FRONT, ResourceManager::NON_HUBS_FRONT },
 	{ SettingsManager::TABS_CLOSEBUTTONS, ResourceManager::TABS_CLOSEBUTTONS },
-	{ SettingsManager::TABS_CLOSEBUTTONS_ALT, ResourceManager::TABS_CLOSEBUTTONS_ALT },
 	{ SettingsManager::STRIP_TOPIC, ResourceManager::SETTINGS_STRIP_TOPIC },    //AdvancedPage
 	{ SettingsManager::SHOW_FULL_HUB_INFO_ON_TAB, ResourceManager::SETTINGS_SHOW_FULL_HUB_INFO_ON_TAB }, // [+] NightOrion.
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }

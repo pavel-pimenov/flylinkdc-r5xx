@@ -53,17 +53,23 @@ void BaseChatFrame::createChatCtrl()
 {
 	if (!ctrlClient.IsWindow())
 	{
-		ctrlClient.Create(m_MessagePanelHWnd, m_MessagePanelRECT, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-		                  WS_VSCROLL | ES_AUTOVSCROLL | ES_MULTILINE | ES_NOHIDESEL | ES_READONLY, WS_EX_STATICEDGE, IDC_CLIENT);
-		                  
-		ctrlClient.LimitText(0);
-		ctrlClient.SetFont(Fonts::g_font);
-		
-		ctrlClient.SetAutoURLDetect(false);
-		ctrlClient.SetEventMask(ctrlClient.GetEventMask() | ENM_LINK);
-		ctrlClient.SetBackgroundColor(Colors::bgColor);
-		
-		readFrameLog();
+		const auto l_res = ctrlClient.Create(m_MessagePanelHWnd, m_MessagePanelRECT, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+		                                     WS_VSCROLL | ES_AUTOVSCROLL | ES_MULTILINE | ES_NOHIDESEL | ES_READONLY, WS_EX_STATICEDGE, IDC_CLIENT);
+		if (!l_res)
+		{
+			dcdebug("Error create BaseChatFrame::createChatCtrl %s", Util::translateError().c_str());
+			dcassert(0);
+		}
+		else
+		{
+			ctrlClient.LimitText(0);
+			ctrlClient.SetFont(Fonts::g_font);
+			
+			ctrlClient.SetAutoURLDetect(false);
+			ctrlClient.SetEventMask(ctrlClient.GetEventMask() | ENM_LINK);
+			ctrlClient.SetBackgroundColor(Colors::bgColor);
+			readFrameLog();
+		}
 	}
 }
 void BaseChatFrame::createMessageCtrl(ATL::CMessageMap *p_map, DWORD p_MsgMapID)

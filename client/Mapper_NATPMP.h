@@ -40,7 +40,10 @@ class Mapper_NATPMP : public Mapper
 			return lifetime / 2;
 		}
 		
-		string getDeviceName() const;
+		string getDeviceName() const
+		{
+			return m_gateway; // in lack of the router's name, give its IP.
+		}
 		string getExternalIP();
 		string getModelDescription() const
 		{
@@ -52,7 +55,7 @@ class Mapper_NATPMP : public Mapper
 			return g_name;
 		}
 		
-		string gateway;
+		string m_gateway;
 		uint32_t lifetime;  // in minutes
 };
 

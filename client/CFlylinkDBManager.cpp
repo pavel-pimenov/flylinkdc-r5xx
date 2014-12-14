@@ -2,6 +2,7 @@
 //(c) 2007-2014 pavel.pimenov@gmail.com
 //-----------------------------------------------------------------------------
 #include "stdinc.h"
+#include <Shellapi.h>
 
 #include "SettingsManager.h"
 #include "LogManager.h"
@@ -10,6 +11,7 @@
 #include "ConnectionManager.h"
 #include "CompatibilityManager.h"
 #include "../FlyFeatures/flyServer.h"
+#include <boost/algorithm/string.hpp>
 
 using sqlite3x::database_error;
 using sqlite3x::sqlite3_transaction;
@@ -168,12 +170,66 @@ void CFlylinkDBManager::errorDB(const string& p_txt)
 		l_message += l_db_file_names[i];
 		l_message += l_rnrn;
 	}
-	if (p_txt.find("database disk image is malformed") != string::npos ||
-	        p_txt.find("unable to open database:")         != string::npos)   // TODO - пополнять эти ошибки из автоапдейта?
+	bool l_is_force_exit = false;
+	tstring l_russian_error;
+	bool l_is_db_malformed = p_txt.find(": database disk image is malformed") != string::npos;
+	l_is_db_malformed |= p_txt.find(": disk I/O error") != string::npos;
+	
+	bool l_is_db_error_open  = p_txt.find(": unable to open database:") != string::npos;
+	bool l_is_db_ro  = p_txt.find(": attempt to write a readonly database") != string::npos;
+	
+	const tstring l_footer = _T("Если это не поможет пишите подробности на pavel.pimenov@gmail.com\r\n")
+	                         _T("помогу разбираться с ошибкой и исправить код флайлинка так,\r\n")
+	                         _T("чтобы аналогичной проблемы не возникало у других пользователей.\r\n")
+	                         _T("скопировать сообщение с этого окна можно нажатием клавишь Ctrl+C\r\n")
+	                         _T("Спасибо за понимание.\r\n\r\n");
+	                         
+	if (l_is_db_ro)
+	{
+		l_message += l_rnrn;
+		l_message += l_rnrn;
+		l_russian_error +=
+		    _T("База данных находится в каталоге защищенном от записи, или под защитой UAC\r\n")
+		    _T("Варианты исправления ситуации:\r\n")
+		    _T(" 1. Установите программу в каталог отличный от C:\\Programm Files*\r\n")
+		    _T("    например D:\\FlylinkDC\r\n")
+		    _T(" 2. Удалите каталог C:\\Programm Files\\FlylinkDC++\\Settings\r\n")
+		    _T("    после перезапуска программа создаст настройки в своем профиле\r\n")
+		    _T("    где UAC не будет мешать работе\r\n");
+		l_russian_error += l_footer;
+		l_is_force_exit = true;
+	}
+	if (l_is_db_malformed || l_is_db_error_open)   // TODO - пополнять эти ошибки из автоапдейта?
 	{
 		l_message += l_rnrn;
 		l_message += l_rnrn;
 		l_message += "Try backup and delete all database files!";
+		l_message += l_rnrn;
+		l_message += l_rnrn;
+		l_russian_error +=
+		    _T("База данных разрушена!\r\n")
+		    _T("возможно компьютер выключили не корректно\r\n")
+		    _T("или он завис с синим экраном\r\n\r\n")
+		    _T("Не волнуйтесь... Для исправления ситуации выполните следующее:\r\n")
+		    _T(" 1. Закройте FlylinkDC++\r\n")
+		    _T(" 2. Удалите указанные выше файлы (*.sqlite)\r\n")
+		    _T("    (если желаете провести детальный анализ причин разрушения\r\n")
+		    _T("    предварительно сохраните файлы в другом месте\r\n")
+		    _T("    упакуйте их архиватором и вышлите на почту ppa74@ya.ru\r\n")
+		    _T(" 4. Запустите FlylnkDC++ повторно\r\n")
+		    _T(" 5. Программа автоматически создаст новые версии файлов,\r\n")
+		    _T("    и в фоновом режиме выполнит повторное хеширование шары.\r\n");
+		l_russian_error += l_footer;
+		l_is_force_exit = true;
+	}
+	if (p_txt.find(" database or disk is full") != string::npos)
+	{
+		l_message += l_rnrn;
+		l_message += l_rnrn;
+		l_russian_error = _T("У вас переполнился жесткий диск!\r\n")
+		                  _T("удалите лишние данные и освободите место для работы приложения!\r\n");
+		l_russian_error += l_footer;
+		l_is_force_exit = true;
 	}
 	Util::setRegistryValueString(FLYLINKDC_REGISTRY_SQLITE_ERROR , Text::toT(l_error));
 	LogManager::getInstance()->message(p_txt, true); // Всегда логируем в файл (т.к. база может быть битой)
@@ -182,10 +238,20 @@ void CFlylinkDBManager::errorDB(const string& p_txt)
 		CFlyBusy l_busy(g_is_MessageBox);
 		if (g_is_MessageBox)
 		{
-			MessageBox(NULL, Text::toT(l_message).c_str(), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_OK | MB_ICONERROR | MB_TOPMOST);
+			MessageBox(NULL, (l_russian_error + Text::toT(l_message)).c_str(), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_OK | MB_ICONERROR | MB_TOPMOST);
 		}
 	}
 	bool l_is_send = CFlyServerAdapter::CFlyServerJSON::pushError(16, l_error);
+	if (l_is_force_exit)
+	{
+		tstring l_body = l_russian_error + Text::toT(l_message);
+		boost::replace_all(l_body, " ",  "%20");
+		boost::replace_all(l_body, "\r", "%0D");
+		boost::replace_all(l_body, "\n", "%0A");
+		tstring l_shell = _T("mailto:pavel.pimenov@gmail.com?subject=FlylinkDC++ bug-report&body=") + l_body;
+		::ShellExecute(0, _T("Open"), l_shell.c_str(), _T(""), _T(""), SW_NORMAL);
+		exit(1);
+	}
 	if (!l_is_send)
 	{
 		// TODO - скинуть ошибку в файл и не грузить crash-server логическими ошибками
@@ -1962,13 +2028,23 @@ void CFlylinkDBManager::load_ignore(StringSet& p_ignores)
 	{
 		if (!m_get_ignores.get())
 			m_get_ignores = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                              "select nick from fly_ignore"));
+			                                                              "select trim(nick) from fly_ignore"));
 		sqlite3_reader l_q = m_get_ignores.get()->executereader();
+		string l_users;
+		string l_sep;
 		while (l_q.read())
 		{
-			const string l_nick = l_q.getstring(0);
-			p_ignores.insert(l_nick);
-			LogManager::getInstance()->message(STRING(IGNORE_USER_BY_NAME) + ": " + l_nick, true);
+			const string& l_ignore_user = l_q.getstring(0);
+			if (!l_ignore_user.empty())
+			{
+				l_users += l_sep + l_ignore_user;
+				p_ignores.insert(l_ignore_user);
+				l_sep = " , ";
+			}
+		}
+		if (!p_ignores.empty())
+		{
+			LogManager::getInstance()->message(STRING(IGNORE_USER_BY_NAME) + ": " + l_users, true);
 		}
 	}
 	catch (const database_error& e)
@@ -1992,8 +2068,13 @@ void CFlylinkDBManager::save_ignore(const StringSet& p_ignores)
 			                                                                 "insert or replace into fly_ignore (nick) values(?)"));
 		for (auto k = p_ignores.cbegin(); k != p_ignores.cend(); ++k)
 		{
-			m_insert_ignores.get()->bind(1, (*k), SQLITE_TRANSIENT);
-			m_insert_ignores.get()->executenonquery();
+			string l_ignore_user = (*k);
+			boost::algorithm::trim(l_ignore_user);
+			if (!l_ignore_user.empty())
+			{
+				m_insert_ignores.get()->bind(1, l_ignore_user, SQLITE_TRANSIENT);
+				m_insert_ignores.get()->executenonquery();
+			}
 		}
 		l_trans.commit();
 	}

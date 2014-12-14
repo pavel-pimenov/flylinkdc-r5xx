@@ -58,7 +58,7 @@ bool SettingsManager::isSet[SETTINGS_LAST];
 SettingsManager::SearchTypes SettingsManager::g_searchTypes; // name, extlist
 // [!] IRainman opt: use this data as static.
 
-const string SettingsManager::settingTags[] =
+const string SettingsManager::g_settingTags[] =
 {
 	// Strings //
 	
@@ -67,7 +67,7 @@ const string SettingsManager::settingTags[] =
 	"TextFont", "MainFrameOrder", "MainFrameWidths", "HubFrameOrder", "HubFrameWidths",
 	"LanguageFile", "SearchFrameOrder", "SearchFrameWidths", "FavoritesFrameOrder", "FavoritesFrameWidths", "FavoritesFrameVisible",
 	"HublistServers", "QueueFrameOrder", "QueueFrameWidths", "PublicHubsFrameOrder", "PublicHubsFrameWidths", "PublicHubsFrameVisible",
-	"UsersFrameOrder", "UsersFrameWidths", "UsersFrameVisible", "HttpProxy", "LogDir", "NotepadText", "LogFormatPostDownload",
+	"UsersFrameOrder", "UsersFrameWidths", "UsersFrameVisible", "HttpProxy", "LogDir", "LogFormatPostDownload",
 	
 	"LogFormatPostUpload", "LogFormatMainChat", "LogFormatPrivateChat", "FinishedOrder", "FinishedWidths",
 	"TempDownloadDirectory", "BindAddress", "SocksServer", "SocksUser", "SocksPassword", "ConfigVersion",
@@ -293,7 +293,7 @@ const string SettingsManager::settingTags[] =
 	"DeleteChecked", "Topmost", "LockToolbars",
 	//"AutoCompleteSearch",//[-]IRainman always is true!
 	"KeepDLHistory", "KeepULHistory", "ShowQSearch",
-	"SearchDetectHash", "FullFileListNfo", "UseTabsCloseButton", "AltTypeTabsCloseButton",
+	"SearchDetectHash", "FullFileListNfo", "UseTabsCloseButton",
 	"ViewGridcontrols", // [+] ZagZag
 	"DupeEx1Color", "DupeEx2Color", "IgnoreMe",// [+] NSL
 	"EnableLastIP", //[+]PPA
@@ -449,7 +449,7 @@ static const string g_default_lang_file_name = "ru-RU.xml";
 SettingsManager::SettingsManager()
 {
 	//[+]IRainman
-	BOOST_STATIC_ASSERT(_countof(settingTags) == SETTINGS_LAST + 1);// SettingsManager::SETTINGS_LAST and SettingsManager::settingTags[] size do not match ;) Check them out!
+	BOOST_STATIC_ASSERT(_countof(g_settingTags) == SETTINGS_LAST + 1);// SettingsManager::SETTINGS_LAST and SettingsManager::settingTags[] size do not match ;) Check them out!
 	// Thanks Boost developers for this wonderful functional
 	
 	for (size_t i = 0; i < SETTINGS_LAST; i++) //-V104
@@ -1141,7 +1141,6 @@ void SettingsManager::setDefaults()
 	setDefault(SEARCH_DETECT_TTH, TRUE);
 	//setDefault(FULL_FILELIST_NFO, false);
 	setDefault(TABS_CLOSEBUTTONS, TRUE);
-	//setDefault(TABS_CLOSEBUTTONS_ALT, false);
 	//setDefault(VIEW_GRIDCONTROLS, false); // [+] ZagZag
 	//setDefault(NON_HUBS_FRONT, false);
 	setDefault(BLEND_OFFLINE_SEARCH, TRUE);
@@ -1316,7 +1315,7 @@ void SettingsManager::load(const string& aFileName)
 			int i;
 			for (i = STR_FIRST; i < STR_LAST; i++)
 			{
-				const string& attr = settingTags[i];
+				const string& attr = g_settingTags[i];
 				dcassert(attr.find("SENTRY") == string::npos);
 				
 				if (xml.findChild(attr))
@@ -1325,7 +1324,7 @@ void SettingsManager::load(const string& aFileName)
 			}
 			for (i = INT_FIRST; i < INT_LAST; i++)
 			{
-				const string& attr = settingTags[i];
+				const string& attr = g_settingTags[i];
 				dcassert(attr.find("SENTRY") == string::npos);
 				
 				if (xml.findChild(attr))
@@ -2024,12 +2023,12 @@ void SettingsManager::save(const string& aFileName)
 	{
 		if (i == CONFIG_VERSION)
 		{
-			xml.addTag(settingTags[i], REVISION_NUM);
+			xml.addTag(g_settingTags[i], REVISION_NUM);
 			xml.addChildAttrib(type, curType);
 		}
 		else if (isSet[i])
 		{
-			xml.addTag(settingTags[i], get(StrSetting(i), false));
+			xml.addTag(g_settingTags[i], get(StrSetting(i), false));
 			xml.addChildAttrib(type, curType);
 		}
 	}
@@ -2039,7 +2038,7 @@ void SettingsManager::save(const string& aFileName)
 	{
 		if (isSet[i])
 		{
-			xml.addTag(settingTags[i], get(IntSetting(i), false));
+			xml.addTag(g_settingTags[i], get(IntSetting(i), false));
 			xml.addChildAttrib(type, curType);
 		}
 	}
@@ -2049,7 +2048,7 @@ void SettingsManager::save(const string& aFileName)
 	//{
 	//  if(isSet[i])
 	//  {
-	//      xml.addTag(settingTags[i], get(Int64Setting(i), false));
+	//      xml.addTag(g_settingTags[i], get(Int64Setting(i), false));
 	//      xml.addChildAttrib(type, curType);
 	//  }
 	//}

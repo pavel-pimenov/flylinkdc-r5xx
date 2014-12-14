@@ -64,6 +64,8 @@ PropPage::TextItem NetworkPage::texts[] =
 #endif
 	{ IDC_GETIP, ResourceManager::GET_IP },
 	{ IDC_ADD_FLYLINKDC_WINFIREWALL, ResourceManager::ADD_FLYLINKDC_WINFIREWALL },
+	{ IDC_STATIC_GATEWAY, ResourceManager::SETTINGS_GATEWAY },
+	
 	
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
@@ -89,6 +91,21 @@ PropPage::Item NetworkPage::items[] =
 #endif
 	{ 0, 0, PropPage::T_END }
 };
+
+LRESULT NetworkPage::OnCtlColorDlg(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	/*
+	if ( (HWND)lParam == GetDlgItem( IDC_DEFAULT_GATEWAY_IP ) )
+	 {
+	     HDC hdcStatic = (HDC) wParam;
+	     ::SetTextColor( hdcStatic, RGB( 0, 0, 255) );
+	     //::SetBkMode ( hdcStatic, TRANSPARENT );
+	     //::SelectObject( hdcStatic, ::GetStockObject( NULL_BRUSH) );
+	     return (HRESULT)::GetCurrentObject( hdcStatic, OBJ_BRUSH);
+	}
+	*/
+	return 0;
+}
 
 LRESULT NetworkPage::OnEnKillfocusExternalIp(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
@@ -137,13 +154,6 @@ void NetworkPage::write()
 LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	
-#ifdef FLYLINKDC_SUPPORT_WIN_2000
-	if (!IsXPPlus())
-	{
-		::EnableWindow(GetDlgItem(IDC_FIREWALL_UPNP), FALSE); //[+]PPA
-	}
-#endif // FLYLINKDC_SUPPORT_WIN_2000
 	
 #ifndef IRAINMAN_IP_AUTOUPDATE
 	//::EnableWindow(GetDlgItem(IDC_GETIP), FALSE);
@@ -212,6 +222,18 @@ LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	updateTestPortIcon(false);
 	//::SendMessage(m_hWnd, TDM_SET_BUTTON_ELEVATION_REQUIRED_STATE, IDC_ADD_FLYLINKDC_WINFIREWALL, true);
 	//SetButtonElevationRequiredState(IDC_ADD_FLYLINKDC_WINFIREWALL,);
+	
+	bool l_is_wifi_router;
+	const auto l_ip_gateway = Text::toT(Socket::getDefaultGateWay(l_is_wifi_router));
+	::SetWindowText(GetDlgItem(IDC_DEFAULT_GATEWAY_IP), l_ip_gateway.c_str());
+	{
+		if (l_is_wifi_router)
+		{
+			static HIconWrapper g_hWiFiRouterIco(IDC_WIFI_ROUTER_ICO, 48, 48);
+			GetDlgItem(IDC_WIFI_ROUTER_ICO).SendMessage(STM_SETICON, (WPARAM)(HICON)g_hWiFiRouterIco, 0L);
+		}
+	}
+	
 	return TRUE;
 }
 
@@ -225,7 +247,7 @@ void NetworkPage::fixControls()
 #ifdef STRONG_USE_DHT
 	const BOOL dht = IsDlgButtonChecked(IDC_SETTINGS_USE_DHT) == BST_CHECKED;
 #endif
-	//const BOOL passive = IsDlgButtonChecked(IDC_FIREWALL_PASSIVE) == BST_CHECKED;
+	const BOOL passive = IsDlgButtonChecked(IDC_FIREWALL_PASSIVE) == BST_CHECKED;
 	
 	::EnableWindow(GetDlgItem(IDC_DIRECT), !auto_detect);
 	::EnableWindow(GetDlgItem(IDC_FIREWALL_UPNP), !auto_detect);
@@ -457,7 +479,7 @@ void NetworkPage::SetStage(int ID, StagesIcon stage)
 	static HIconWrapper g_hModeQuestionIco(IDR_ICON_QUESTION_ICON);
 	static HIconWrapper g_hModeFailIco(IDR_ICON_FAIL_ICON);
 	static HIconWrapper g_hModePauseIco(IDR_ICON_PAUSE_ICON);
-	static HIconWrapper g_hModeProcessIco(IDR_NETWORK_STATISTICS);
+	static HIconWrapper g_hModeProcessIco(IDR_NETWORK_STATISTICS_ICON);
 	
 	HIconWrapper* l_icon = nullptr;
 	switch (stage)

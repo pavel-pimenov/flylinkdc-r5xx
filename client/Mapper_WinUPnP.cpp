@@ -40,13 +40,13 @@ bool Mapper_WinUPnP::init()
 		return true;
 		
 	// Lacking the __uuidof in mingw...
-	CLSID upnp;
+	CLSID upnp = { 0 };
 	const OLECHAR upnps[] = L"{AE1E00AA-3FD5-403C-8A27-2BBDC30CD0E1}";
 	if (CLSIDFromString(upnps, &upnp) != NOERROR)
 	{
 		LogManager::getInstance()->message("CLSIDFromString(upnps Error = " + Util::translateError());
 	}
-	IID iupnp;
+	IID iupnp = { 0 };
 	const OLECHAR iupnps[] = L"{B171C812-CC76-485A-94D8-B6B3A2794E99}";
 	if (CLSIDFromString(iupnps, &iupnp) != NOERROR)
 	{
@@ -116,12 +116,6 @@ bool Mapper_WinUPnP::remove(const unsigned short port, const Protocol protocol)
 		lastPort = 0;
 	}
 	return ret;
-}
-
-string Mapper_WinUPnP::getDeviceName() const
-{
-	/// @todo use IUPnPDevice::ModelName <http://msdn.microsoft.com/en-us/library/aa381670(VS.85).aspx>?
-	return Util::emptyString;
 }
 
 string Mapper_WinUPnP::getExternalIP()
@@ -215,16 +209,6 @@ bool Mapper_WinUPnP::add(const unsigned short port, const Protocol protocol, con
 bool Mapper_WinUPnP::remove(const unsigned short port, const Protocol protocol)
 {
 	return false;
-}
-
-string Mapper_WinUPnP::getDeviceName() const
-{
-	return Util::emptyString;
-}
-
-string Mapper_WinUPnP::getExternalIP()
-{
-	return Util::emptyString;
 }
 
 IStaticPortMappingCollection* Mapper_WinUPnP::getStaticPortMappingCollection()

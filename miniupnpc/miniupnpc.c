@@ -372,7 +372,7 @@ upnpDiscoverDevices(const char * const deviceTypes[],
 	struct addrinfo hints, *servinfo, *p;
 #endif
 #ifdef _WIN32
-	MIB_IPFORWARDROW ip_forward;
+  MIB_IPFORWARDROW ip_forward = {0};
 #endif
 	int linklocal = 1;
 

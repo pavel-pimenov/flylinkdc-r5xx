@@ -1298,7 +1298,8 @@
 	<string name="SettingsDupeColor">File-list - already shared</string>
 	<string name="SettingsEnd">End</string>
 	<string name="SettingsExtensions">Extensions</string>
-	<string name="SettingsExternalIp">External / WAN IP</string>
+	<string name="SettingsExternalIp">External / WAN IP / Default gateway</string>
+	<string name="SettingsGateway">Gateway:</string>
 	<string name="SettingsFakedetect">Auto ban</string>
 	<string name="SettingsFakeSet">Fake share detector</string>
 	<string name="SettingsFavoriteDirs">Favorite download directories</string>
@@ -1312,7 +1313,7 @@
 	<string name="SettingsFirewallNat">Firewall with manual port forwarding</string>
 	<string name="SettingsFirewallPassive">Firewall (passive, the worst case)</string>
 	<string name="SettingsFirewallPassiveForce">Force firewall mode (passive!)</string>
-	<string name="SettingsFirewallUpnp">UPnP (for modem/router only)</string>
+	<string name="SettingsFirewallUpnp">UPnP (for WiFi router)</string>
 	<string name="SettingsFormat">Format</string>
 	<string name="SettingsGeneral">General</string>
 	<string name="SettingsGetFavoriteDir">Choose directory:</string>
@@ -1584,7 +1585,6 @@
 	<string name="SxmlOnleOneRoot">Only one root tag allowed</string>
 	<string name="TabsBottom">Bottom</string>
 	<string name="TabsClosebuttons">Show close button on tabs</string>
-	<string name="TabsClosebuttonsAlt">Alternate type of Buttons</string>
 	<string name="TabsLeft">Left</string>
 	<string name="TabsPosition">Tabs position</string>
 	<string name="TabsRight">Right</string>

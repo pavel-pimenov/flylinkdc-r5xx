@@ -176,7 +176,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				case SPEAK_ADD_LINE: //  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=77059
 				{
 					FinishedItem* entry = reinterpret_cast<FinishedItem*>(lParam);
-					addEntry(entry); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=110193 + http://www.flickr.com/photos/96019675@N02/11199325634/
+					addFinishedEntry(entry); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=110193 + http://www.flickr.com/photos/96019675@N02/11199325634/
 					if (SettingsManager::get(boldFinished))
 					{
 						setDirty(1);
@@ -517,16 +517,16 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			CLockRedraw<true> l_lock_draw(ctrlList);
 			for (auto i = fl.cbegin(); i != fl.cend(); ++i)
 			{
-				addEntry(*i);
+				addFinishedEntry(*i);
 			}
 			updateStatus();
 		}
 		
-		void addEntry(FinishedItem* entry)
+		void addFinishedEntry(FinishedItem* p_entry)
 		{
-			const ItemInfo *ii = new ItemInfo(entry);
-			totalBytes += entry->getSize();
-			totalSpeed += entry->getAvgSpeed();
+			const ItemInfo *ii = new ItemInfo(p_entry);
+			totalBytes += p_entry->getSize();
+			totalSpeed += p_entry->getAvgSpeed();
 			const int loc = ctrlList.insertItem(ii, ii->getImageIndex()); // fix I_IMAGECALLBACK https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=47103
 			ctrlList.EnsureVisible(loc, FALSE);
 		}

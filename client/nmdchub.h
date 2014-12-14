@@ -36,6 +36,7 @@ class NmdcHub : public Client, private Flags
 		using Client::connect;
 		
 		void connect(const OnlineUser& p_user, const string& p_token, bool p_is_force_passive);
+		virtual void disconnect(bool p_graceless);
 		
 		void hubMessage(const string& aMessage, bool thirdPerson = false);
 		void privateMessage(const OnlineUserPtr& aUser, const string& aMessage, bool thirdPerson = false); // !SMT!-S
@@ -75,10 +76,19 @@ class NmdcHub : public Client, private Flags
 		void getUserList(OnlineUserList& p_list) const
 		{
 			webrtc::ReadLockScoped l(*m_cs);
+			p_list.reserve(m_users.size());
 			for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 			{
 				p_list.push_back(i->second);
 			}
+		}
+		void AutodetectInit()
+		{
+#ifdef RIP_USE_CONNECTION_AUTODETECT
+			m_bAutodetectionPending = true;
+			m_iRequestCount = 0;
+#endif
+			m_bLastMyInfoCommand = DIDNT_GET_YET_FIRST_MYINFO;
 		}
 		
 #ifdef RIP_USE_CONNECTION_AUTODETECT
@@ -91,7 +101,7 @@ class NmdcHub : public Client, private Flags
 			myInfo(false);
 		}
 		
-		bool IsAutodetectPending()
+		bool IsAutodetectPending() const
 		{
 			return m_bAutodetectionPending;
 		}
@@ -127,10 +137,10 @@ class NmdcHub : public Client, private Flags
 #endif
 		
 #ifdef RIP_USE_CONNECTION_AUTODETECT
-#define MAX_CONNECTION_REQUESTS_COUNT 3
 		bool m_bAutodetectionPending;
 		int m_iRequestCount;
 #endif
+		void processAutodetect(bool p_is_myinfo);
 		
 		DefinedMeyInfoState m_bLastMyInfoCommand; // [+] FlylinkDC
 		

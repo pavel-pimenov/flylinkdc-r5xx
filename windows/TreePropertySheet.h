@@ -23,7 +23,6 @@
 #include "../client/SettingsManager.h"
 
 #ifdef SCALOLAZ_PROPPAGE_HELPLINK
-#include <atlctrlx.h>
 #include <atldlgs.h>
 #endif
 

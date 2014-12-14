@@ -70,7 +70,7 @@ class HIconWrapper
 				icon = (HICON)::LoadImage(ThemeManager::getResourceLibInstance(), MAKEINTRESOURCE(id), IMAGE_ICON, cx, cy, m_fuload); // [!] IRainman fix done: Crash wine.
 				if (!icon)
 				{
-					dcdebug("!!!!!!!![Error - 1] (HICON)::LoadImage: ID = %d icon = %i this = %p fuLoad = %x\n", id, icon, this, m_fuload);
+					dcdebug("!!!!!!!![Error - 1] (HICON)::LoadImage: ID = %d icon = %p this = %p fuLoad = %x\n", id, icon, this, m_fuload);
 				}
 			}
 			if (!icon)
@@ -79,7 +79,7 @@ class HIconWrapper
 				if (l_ThemeHandle != g_current)
 				{
 					icon = (HICON)::LoadImage(g_current, MAKEINTRESOURCE(id), IMAGE_ICON, cx, cy, m_fuload);
-					dcdebug("!!!!!!!![step - 2] (HICON)::LoadImage: ID = %d icon = %i this = %p fuLoad = %x\n", id, icon, this, m_fuload);
+					dcdebug("!!!!!!!![step - 2] (HICON)::LoadImage: ID = %d icon = %p this = %p fuLoad = %x\n", id, icon, this, m_fuload);
 				}
 			}
 			dcassert(icon);

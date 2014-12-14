@@ -44,7 +44,11 @@ class Mapper_WinUPnP : public Mapper
 			return 0;
 		}
 		
-		string getDeviceName() const;
+		string getDeviceName() const
+		{
+			/// @todo use IUPnPDevice::ModelName <http://msdn.microsoft.com/en-us/library/aa381670(VS.85).aspx>?
+			return "";
+		}
 		string getExternalIP();
 		string getModelDescription() const
 		{
@@ -55,7 +59,6 @@ class Mapper_WinUPnP : public Mapper
 		{
 			return g_name;
 		}
-		
 		IUPnPNAT* pUN;
 		// this one can become invalid so we can't cache it
 		IStaticPortMappingCollection* getStaticPortMappingCollection();

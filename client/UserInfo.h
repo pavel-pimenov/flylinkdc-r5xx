@@ -149,14 +149,14 @@ class UserInfo : public UserInfoBase
 		static tstring formatSpeedLimit(const uint32_t limit);
 		tstring getLimit() const;
 		tstring getDownloadSpeed() const;
-		typedef std::unordered_map<OnlineUserPtr, UserInfo*, OnlineUser::Hash> OnlineUserMapBase; // [!] IRainman fix: use online user here.
+		typedef std::unordered_map<OnlineUserPtr, UserInfo*, OnlineUser::Hash> OnlineUserMapBase;
 		class OnlineUserMap : public OnlineUserMapBase
 #ifdef _DEBUG
 			, boost::noncopyable // [+] IRainman fix.
 #endif
 		{
 			public:
-				UserInfo* findUser(const OnlineUserPtr& p_user) const // [!] IRainman fix: use online user here.
+				UserInfo* findUser(const OnlineUserPtr& p_user) const
 				{
 					if (p_user->isFirstFind())
 					{

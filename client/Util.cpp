@@ -1796,7 +1796,7 @@ string Util::getRandomNick()
 		"Cool", "Cow",
 		"Dolly",    "DCman",
 		"Eagle",    "Earth",
-		"Fire", "Flylink",
+		"Fire",
 		"Girl",
 		"Hawk", "Head", "Hedgehog", "Hulk",
 		"Indy",
@@ -2065,10 +2065,12 @@ string Util::translateError(DWORD aError)
 				}
 			}
 			tmp += "[error: " + toString(aError) + "]";
+#if 0 // TODO
 			if (aError >= WSAEADDRNOTAVAIL && aError <= WSAEHOSTDOWN)
 			{
 				tmp += "\r\n\t" + STRING(SOCKET_ERROR_NOTE) + " " + Util::getWikiLink() + "socketerror#error_" + toString(aError);  // as  LANG:socketerror#error_10060
 			}
+#endif
 			return tmp;
 #else // _WIN32
 	return Text::toUtf8(strerror(aError));

@@ -3048,11 +3048,7 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 			{
 				CRect rc;
 				ctrlResults.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
-				if (BOOLSETTING(USE_EXPLORER_THEME)
-#ifdef FLYLINKDC_SUPPORT_WIN_2000
-				        && CompatibilityManager::IsXPPlus()
-#endif
-				   )
+				if (WinUtil::isUseExplorerTheme())
 				{
 					SetTextColor(cd->nmcd.hdc, cd->clrText);
 					if (m_Theme)

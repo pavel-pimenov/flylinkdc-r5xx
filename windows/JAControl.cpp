@@ -19,10 +19,10 @@
 
 
 #include "stdafx.h"
+#include <Shellapi.h>
+
 #include "JAControl.h"
-
 #include "../client/Util.h"
-
 
 
 JAControl::JAControl(HWND parent)

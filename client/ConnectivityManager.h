@@ -23,7 +23,7 @@
 #include "Speaker.h"
 #include "Singleton.h"
 
-// TODO никак не используется
+#ifdef PPA_INCLUDE_DEAD_CODE
 class ConnectivityManagerListener
 {
 	public:
@@ -43,8 +43,12 @@ class ConnectivityManagerListener
 		virtual void on(Finished) noexcept { }
 		virtual void on(SettingChanged) noexcept { }
 };
+#endif // PPA_INCLUDE_DEAD_CODE
 
-class ConnectivityManager : public Singleton<ConnectivityManager>, public Speaker<ConnectivityManagerListener>
+class ConnectivityManager : public Singleton<ConnectivityManager>
+#ifdef PPA_INCLUDE_DEAD_CODE
+	, public Speaker<ConnectivityManagerListener>
+#endif
 {
 	public:
 		void detectConnection();

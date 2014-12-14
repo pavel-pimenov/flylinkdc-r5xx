@@ -82,8 +82,9 @@ void AdcSupports::setSupports(Identity& id, StringList & su)
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES
 									else
 									{
+										dcassert(0);
 										FastLock l(g_debugCsUnknownAdcFeatures);
-										g_debugUnknownAdcFeatures.insert(*i);
+										g_debugUnknownAdcFeatures[*i] = Util::toString(su);
 									}
 #endif
 									
@@ -163,9 +164,7 @@ void NmdcSupports::setStatus(Identity& id, const char status, const string& conn
 					g_debugUnknownNmdcConnection.insert(postfix);
 #endif
 				}
-				
 #undef CHECK_SPEED
-				
 		}
 		con *= coef;
 		id.setDownloadSpeed(static_cast<uint32_t>(con));

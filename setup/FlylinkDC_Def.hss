@@ -42,18 +42,33 @@ SignTool=signppafly5
 [Languages]
 
 #ifdef FLYLIKDC_USE_LICENSE
-Name: "en_US"; MessagesFile: "custom_lang\custom_messages-EN-US.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
-Name: "ru_RU"; MessagesFile: "custom_lang\custom_messages-RU-RU.isl"; InfoBeforeFile: "readme_ru-RU.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"; LicenseFile: "license_ru-RU.rtf"
-Name: "be_BY"; MessagesFile: "custom_lang\custom_messages-BE-BY.isl"; InfoBeforeFile: "readme_ru-RU.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"; LicenseFile: "license_ru-RU.rtf"
-Name: "uk_UA"; MessagesFile: "custom_lang\custom_messages-UK-UA.isl"; InfoBeforeFile: "readme_ru-RU.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"; LicenseFile: "license_ru-RU.rtf"
-Name: "fr_FR"; MessagesFile: "custom_lang\custom_messages-FR-FR.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
-Name: "es_ES"; MessagesFile: "custom_lang\custom_messages-ES-ES.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
-Name: "lv_LV"; MessagesFile: "custom_lang\custom_messages-LV-LV.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"; LicenseFile: "license_en-US.rtf"
-Name: "it_IT"; MessagesFile: "custom_lang\custom_messages-IT-IT.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
-Name: "pl_PL"; MessagesFile: "custom_lang\custom_messages-PL-PL.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
-Name: "de_DE"; MessagesFile: "custom_lang\custom_messages-DE-DE.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
-Name: "zh_CN"; MessagesFile: "custom_lang\custom_messages-ZH-CN.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
-Name: "pt_BR"; MessagesFile: "custom_lang\custom_messages-PT-BR.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
+
+Name: "en_US"; MessagesFile: "custom_lang\custom_messages-EN-US.isl"
+Name: "ru_RU"; MessagesFile: "custom_lang\custom_messages-RU-RU.isl"
+Name: "be_BY"; MessagesFile: "custom_lang\custom_messages-BE-BY.isl"
+Name: "uk_UA"; MessagesFile: "custom_lang\custom_messages-UK-UA.isl"
+Name: "fr_FR"; MessagesFile: "custom_lang\custom_messages-FR-FR.isl"
+Name: "es_ES"; MessagesFile: "custom_lang\custom_messages-ES-ES.isl"
+Name: "lv_LV"; MessagesFile: "custom_lang\custom_messages-LV-LV.isl"
+Name: "it_IT"; MessagesFile: "custom_lang\custom_messages-IT-IT.isl"
+Name: "pl_PL"; MessagesFile: "custom_lang\custom_messages-PL-PL.isl"
+Name: "de_DE"; MessagesFile: "custom_lang\custom_messages-DE-DE.isl"
+Name: "zh_CN"; MessagesFile: "custom_lang\custom_messages-ZH-CN.isl"
+Name: "pt_BR"; MessagesFile: "custom_lang\custom_messages-PT-BR.isl"
+
+
+// Name: "en_US"; MessagesFile: "custom_lang\custom_messages-EN-US.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
+// Name: "ru_RU"; MessagesFile: "custom_lang\custom_messages-RU-RU.isl"; InfoBeforeFile: "readme_ru-RU.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"; LicenseFile: "license_ru-RU.rtf"
+// Name: "be_BY"; MessagesFile: "custom_lang\custom_messages-BE-BY.isl"; InfoBeforeFile: "readme_ru-RU.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"; LicenseFile: "license_ru-RU.rtf"
+// Name: "uk_UA"; MessagesFile: "custom_lang\custom_messages-UK-UA.isl"; InfoBeforeFile: "readme_ru-RU.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"; LicenseFile: "license_ru-RU.rtf"
+// Name: "fr_FR"; MessagesFile: "custom_lang\custom_messages-FR-FR.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
+// Name: "es_ES"; MessagesFile: "custom_lang\custom_messages-ES-ES.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
+// Name: "lv_LV"; MessagesFile: "custom_lang\custom_messages-LV-LV.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"; LicenseFile: "license_en-US.rtf"
+// Name: "it_IT"; MessagesFile: "custom_lang\custom_messages-IT-IT.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
+// Name: "pl_PL"; MessagesFile: "custom_lang\custom_messages-PL-PL.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
+// Name: "de_DE"; MessagesFile: "custom_lang\custom_messages-DE-DE.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
+// Name: "zh_CN"; MessagesFile: "custom_lang\custom_messages-ZH-CN.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
+// Name: "pt_BR"; MessagesFile: "custom_lang\custom_messages-PT-BR.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"; LicenseFile: "license_en-US.rtf"
 
 ;Name: "eo_XX"; MessagesFile: "English.isl"
 ;Name: "et_EE"; MessagesFile: "English.isl"
@@ -65,18 +80,31 @@ Name: "pt_BR"; MessagesFile: "custom_lang\custom_messages-PT-BR.isl"; InfoBefore
 
 #else
 
-Name: "en_US"; MessagesFile: "custom_lang\custom_messages-EN-US.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
-Name: "ru_RU"; MessagesFile: "custom_lang\custom_messages-RU-RU.isl"; InfoBeforeFile: "readme_ru-RU.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"
-Name: "be_BY"; MessagesFile: "custom_lang\custom_messages-BE-BY.isl"; InfoBeforeFile: "readme_ru-RU.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"
-Name: "uk_UA"; MessagesFile: "custom_lang\custom_messages-UK-UA.isl"; InfoBeforeFile: "readme_ru-RU.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"
-Name: "fr_FR"; MessagesFile: "custom_lang\custom_messages-FR-FR.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
-Name: "es_ES"; MessagesFile: "custom_lang\custom_messages-ES-ES.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
-Name: "lv_LV"; MessagesFile: "custom_lang\custom_messages-LV-LV.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"
-Name: "it_IT"; MessagesFile: "custom_lang\custom_messages-IT-IT.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
-Name: "pl_PL"; MessagesFile: "custom_lang\custom_messages-PL-PL.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
-Name: "de_DE"; MessagesFile: "custom_lang\custom_messages-DE-DE.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
-Name: "zh_CN"; MessagesFile: "custom_lang\custom_messages-ZH-CN.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
-Name: "pt_BR"; MessagesFile: "custom_lang\custom_messages-PT-BR.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
+// Name: "en_US"; MessagesFile: "custom_lang\custom_messages-EN-US.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
+// Name: "ru_RU"; MessagesFile: "custom_lang\custom_messages-RU-RU.isl"; InfoBeforeFile: "readme_ru-RU.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"
+// Name: "be_BY"; MessagesFile: "custom_lang\custom_messages-BE-BY.isl"; InfoBeforeFile: "readme_ru-RU.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"
+// Name: "uk_UA"; MessagesFile: "custom_lang\custom_messages-UK-UA.isl"; InfoBeforeFile: "readme_ru-RU.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"
+// Name: "fr_FR"; MessagesFile: "custom_lang\custom_messages-FR-FR.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
+// Name: "es_ES"; MessagesFile: "custom_lang\custom_messages-ES-ES.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
+// Name: "lv_LV"; MessagesFile: "custom_lang\custom_messages-LV-LV.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_ru-RU.rtf"
+// Name: "it_IT"; MessagesFile: "custom_lang\custom_messages-IT-IT.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
+// Name: "pl_PL"; MessagesFile: "custom_lang\custom_messages-PL-PL.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
+// Name: "de_DE"; MessagesFile: "custom_lang\custom_messages-DE-DE.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
+// Name: "zh_CN"; MessagesFile: "custom_lang\custom_messages-ZH-CN.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
+// Name: "pt_BR"; MessagesFile: "custom_lang\custom_messages-PT-BR.isl"; InfoBeforeFile: "readme_en-US.rtf"; InfoAfterFile: "infoafter_en-US.rtf"
+
+Name: "en_US"; MessagesFile: "custom_lang\custom_messages-EN-US.isl"
+Name: "ru_RU"; MessagesFile: "custom_lang\custom_messages-RU-RU.isl"
+Name: "be_BY"; MessagesFile: "custom_lang\custom_messages-BE-BY.isl"
+Name: "uk_UA"; MessagesFile: "custom_lang\custom_messages-UK-UA.isl"
+Name: "fr_FR"; MessagesFile: "custom_lang\custom_messages-FR-FR.isl"
+Name: "es_ES"; MessagesFile: "custom_lang\custom_messages-ES-ES.isl"
+Name: "lv_LV"; MessagesFile: "custom_lang\custom_messages-LV-LV.isl"
+Name: "it_IT"; MessagesFile: "custom_lang\custom_messages-IT-IT.isl"
+Name: "pl_PL"; MessagesFile: "custom_lang\custom_messages-PL-PL.isl"
+Name: "de_DE"; MessagesFile: "custom_lang\custom_messages-DE-DE.isl"
+Name: "zh_CN"; MessagesFile: "custom_lang\custom_messages-ZH-CN.isl"
+Name: "pt_BR"; MessagesFile: "custom_lang\custom_messages-PT-BR.isl"
 
 #endif
 
@@ -148,10 +176,10 @@ Filename: "http://flylinkdc.blogspot.com/"; Description: "{cm:TestDrive}"; Flags
 Name: {group}\FlylinkDC++{code:Postfix| }; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; WorkingDir: {app}
 Name: {userstartup}\FlylinkDC++{code:Postfix| }; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; Tasks: startup; WorkingDir: {app}
 Name: {group}\{cm:ProgramOnTheWeb,FlylinkDC++{code:Postfix| }}; Filename: http://www.flylinkdc.ru
-Name: {group}\{cm:AboutProgram}; Filename: {app}\readme_ru-RU.rtf; Languages: ru_RU be_BY uk_UA 
-Name: {group}\{cm:AboutProgram}; Filename: {app}\readme_en-US.rtf; Languages: en_US fr_FR es_ES lv_LV
-Name: {group}\{cm:License}; Filename: {app}\license_ru-RU.rtf; Languages: ru_RU be_BY uk_UA
-Name: {group}\{cm:License}; Filename: {app}\license_en-US.rtf; Languages: en_US fr_FR es_ES lv_LV
+// Name: {group}\{cm:AboutProgram}; Filename: {app}\readme_ru-RU.rtf; Languages: ru_RU be_BY uk_UA 
+// Name: {group}\{cm:AboutProgram}; Filename: {app}\readme_en-US.rtf; Languages: en_US fr_FR es_ES lv_LV
+// Name: {group}\{cm:License}; Filename: {app}\license_ru-RU.rtf; Languages: ru_RU be_BY uk_UA
+// Name: {group}\{cm:License}; Filename: {app}\license_en-US.rtf; Languages: en_US fr_FR es_ES lv_LV
 Name: {group}\{cm:UninstallProgram,FlylinkDC++{code:Postfix| }}; Filename: {uninstallexe}
 Name: {commondesktop}\FlylinkDC++{code:Postfix| }; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; Tasks: desktopicon; WorkingDir: {app}
 Name: {userappdata}\Microsoft\Internet Explorer\Quick Launch\FlylinkDC++{code:Postfix| }; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; Tasks: quicklaunchicon; WorkingDir: {app}

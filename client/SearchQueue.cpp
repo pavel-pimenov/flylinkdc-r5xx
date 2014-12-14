@@ -89,7 +89,7 @@ bool SearchQueue::pop(Search& s, uint64_t p_now)
 	const auto l_new_now = GET_TICK();
 	if (l_new_now != p_now)
 	{
-		LogManager::getInstance()->message("l_new_now != now,  l_new_now = " + Util::toString(l_new_now) + " now = " + Util::toString(p_now));
+		// LogManager::getInstance()->message("l_new_now != now,  l_new_now = " + Util::toString(l_new_now) + " now = " + Util::toString(p_now));
 	}
 #endif
 	if (p_now <= m_lastSearchTime + m_interval)
@@ -120,7 +120,7 @@ uint64_t SearchQueue::getSearchTime(void* aOwner, uint64_t p_now)
 	const auto l_new_now = GET_TICK();
 	if (l_new_now != p_now)
 	{
-		LogManager::getInstance()->message("[2] l_new_now != now,  l_new_now = " + Util::toString(l_new_now) + " now = " + Util::toString(p_now));
+		// LogManager::getInstance()->message("[2] l_new_now != now,  l_new_now = " + Util::toString(l_new_now) + " now = " + Util::toString(p_now));
 	}
 #endif
 	

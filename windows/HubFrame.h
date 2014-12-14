@@ -446,7 +446,7 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		void on(ClientListener::HubTopic, const Client*, const string&) noexcept;
 		void on(ClientListener::StatusMessage, const Client*, const string& line, int statusFlags);
 #ifdef RIP_USE_CONNECTION_AUTODETECT
-		void on(ClientListener::DirectModeDetected, const string&) noexcept;
+		void on(ConnectionManagerListener::DirectModeDetected, const string&) noexcept;
 #endif
 		
 		struct StatusTask : public Task

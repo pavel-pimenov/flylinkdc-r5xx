@@ -93,9 +93,8 @@ LRESULT PublicHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	m_ctrlTree.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TVS_HASBUTTONS | TVS_LINESATROOT | TVS_HASLINES | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP, WS_EX_CLIENTEDGE, IDC_ISP_TREE);
 	m_ctrlTree.SetBkColor(Colors::bgColor);
 	m_ctrlTree.SetTextColor(Colors::textColor);
-	if (BOOLSETTING(USE_EXPLORER_THEME))
-		SetWindowTheme(m_ctrlTree.m_hWnd, L"explorer", NULL);
-		
+	WinUtil::SetWindowThemeExplorer(m_ctrlTree.m_hWnd);
+	
 	m_treeContainer.SubclassWindow(m_ctrlTree);
 	
 	

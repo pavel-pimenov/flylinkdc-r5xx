@@ -54,7 +54,7 @@ class AdcSupports // [+] IRainman fix.
 		
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES
 		static FastCriticalSection g_debugCsUnknownAdcFeatures;
-		static boost::unordered_set<string> g_debugUnknownAdcFeatures;
+		static boost::unordered_map<string, string> g_debugUnknownAdcFeatures;
 #endif
 };
 
@@ -79,10 +79,11 @@ class NmdcSupports // [+] IRainman fix.
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES
 		static FastCriticalSection g_debugCsUnknownNmdcConnection;
 		static boost::unordered_set<string> g_debugUnknownNmdcConnection;
-		
-		static FastCriticalSection g_debugCsUnknownNmdcTagParam;
-		static boost::unordered_set<string> g_debugUnknownNmdcTagParam;
 #endif // FLYLINKDC_COLLECT_UNKNOWN_FEATURES
+#ifdef FLYLINKDC_COLLECT_UNKNOWN_TAG
+		static FastCriticalSection g_debugCsUnknownNmdcTagParam;
+		static boost::unordered_map<string, unsigned> g_debugUnknownNmdcTagParam;
+#endif // FLYLINKDC_COLLECT_UNKNOWN_TAG
 };
 
 #endif // DCPLUSPLUS_DCPP_ADC_SUPPORTS_H

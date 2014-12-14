@@ -68,7 +68,10 @@ class DHT :
 		
 		/** Sends command to ip and port */
 		void send(AdcCommand& cmd, const string& ip, uint16_t port, const CID& targetCID, const UDPKey& udpKey);
-		
+
+		/** Creates new (or update existing) node which is NOT added to our routing table */
+		//Node::Ptr createNode(const CID& cid, const string& ip, uint16_t port, bool update, bool isUdpKeyValid);
+
 		/** Adds node to routing table */
 		Node::Ptr addNode(const CID& cid, const string& ip, uint16_t port, const UDPKey& udpKey, bool update, bool isUdpKeyValid);
 		

@@ -37,7 +37,6 @@
 
 // [+] IRainman opt.
 extern bool g_TabsCloseButtonEnabled;
-extern bool g_TabsCloseButtonAlt;
 extern bool g_isStartupProcess;
 extern CMenu g_mnu;
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
@@ -79,7 +78,15 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 	
 		enum { FT_EXTRA_SPACE = 18 };
 		
-		explicit FlatTabCtrlImpl() : closing(nullptr), rows(1), m_height(0), active(nullptr), moving(nullptr), inTab(false)
+		explicit FlatTabCtrlImpl() :
+			rows(1),
+			m_height(0),
+			active(nullptr),
+			moving(nullptr),
+			m_is_intab(false),
+			m_is_invalidate(false),
+			m_is_cur_close(false),
+			m_closing_hwnd(nullptr)
 #ifdef IRAINMAN_FAST_FLAT_TAB
 			, m_needsInvalidate(false)
 			, m_allowInvalidate(false) // startup optimization: not set true here.
@@ -190,12 +197,12 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		{
 			if (!viewOrder.empty())
 				nextTab = --viewOrder.end();
-			inTab = true;
+			m_is_intab = true;
 		}
 		
 		void endSwitch()
 		{
-			inTab = false;
+			m_is_intab = false;
 			if (active)
 				setTop(active->hWnd);
 		}
@@ -239,7 +246,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 #ifdef IRAINMAN_INCLUDE_GDI_OLE
 			CGDIImageOle::g_ActiveMDIWindow = aWnd;
 #endif
-			if (!inTab)
+			if (!m_is_intab)
 				setTop(aWnd);
 			if (TabInfo* ti = getTabInfo(aWnd))
 			{
@@ -389,7 +396,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		
 		LRESULT OnEraseBackground(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 		{
-			return 1;   // no background painting needed
+			return 0;   // no background painting needed
 		}
 		
 		LRESULT onLButtonDown(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
@@ -458,12 +465,35 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			}
 			return 0;
 		}
+		void activateCloseButton(bool p_is_visible, bool p_is_enable)
+		{
+			if (g_TabsCloseButtonEnabled)
+			{
+				m_bClose.ShowWindow(p_is_visible);
+				m_bClose.EnableWindow(p_is_enable);
+				if (p_is_visible == false && m_is_invalidate == false)
+				{
+					m_needsInvalidate = false;
+					Invalidate();
+					m_is_invalidate = true;
+				}
+				else
+				{
+					m_is_invalidate = false;
+				}
+			}
+			else
+			{
+				m_bClose.EnableWindow(FALSE);
+				m_bClose.ShowWindow(FALSE);
+			}
+		}
 		
 		LRESULT onContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
 		{
 			POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };        // location of mouse click
 			
-			bClose.ShowWindow(FALSE);
+			activateCloseButton(FALSE, TRUE);
 			
 			ScreenToClient(&pt);
 			const int row = getRows() - (pt.y / getTabHeight() + 1);
@@ -478,7 +508,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 					// Bingo, this was clicked, check if the owner wants to handle it...
 					if (!::SendMessage(t->hWnd, FTM_CONTEXTMENU, 0, lParam))
 					{
-						closing = t->hWnd;
+						m_closing_hwnd = t->hWnd;
 						ClientToScreen(&pt);
 						OMenu l_mnu;
 						l_mnu.CreatePopupMenu();
@@ -493,10 +523,9 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		
 		LRESULT onMouseLeave(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
 		{
-			if (!cur_close)
+			if (!m_is_cur_close)
 			{
-				bClose.EnableWindow(FALSE);
-				bClose.ShowWindow(FALSE);
+				activateCloseButton(FALSE, FALSE);
 			}
 			return 1;
 		}
@@ -505,9 +534,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		{
 			const POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };        // location of mouse click
 			const int row = getRows() - (pt.y / getTabHeight() + 1);
-#ifdef SCALOLAZ_CLOSEBUTTON
 			const int yPos = (getRows() - row - 1) * getTabHeight();
-#endif
 			for (auto i = tabs.cbegin(); i != tabs.cend(); ++i)
 			{
 				TabInfo* t = *i;
@@ -515,7 +542,6 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				        pt.x >= t->m_xpos &&
 				        pt.x < t->m_xpos + t->getWidth())
 				{
-#ifdef SCALOLAZ_CLOSEBUTTON
 					if (!CompatibilityManager::isWine())
 					{
 						TRACKMOUSEEVENT csTME;
@@ -529,7 +555,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 						{
 							//Close Button. Visible on mouse over [+] SCALOlaz
 							CRect rcs;
-							closing = t->hWnd;  // [+] NightOrion
+							m_closing_hwnd = t->hWnd;  // [+] NightOrion
 							switch (WinUtil::GetTabsPosition())
 							{
 								case SettingsManager::TABS_LEFT:
@@ -537,15 +563,15 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 									rcs.left = t->m_xpos + 149;
 									break;
 								default:
-									rcs.left = t->m_xpos + t->getWidth() + (g_TabsCloseButtonAlt ? 1 : 0);
+									rcs.left = t->m_xpos + t->getWidth();
 									break;
 							}
-							rcs.left -= (g_TabsCloseButtonAlt ? 17 : 18);
+							rcs.left -= 17;
 							
 							switch (WinUtil::GetTabsPosition())
 							{
 								case SettingsManager::TABS_TOP:
-									rcs.top = yPos + 6;
+									rcs.top = yPos + 4;
 									break;
 								case SettingsManager::TABS_BOTTOM:
 									rcs.top = yPos + 2;
@@ -555,7 +581,8 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 									break;
 							}
 							
-							bClose.MoveWindow(rcs.left, rcs.top, 16, 16);
+							m_bClose.MoveWindow(rcs.left, rcs.top, 16, 16);
+							bool l_is_enabled;
 							if (
 							    pt.x >= rcs.left
 							    &&
@@ -566,29 +593,20 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 							    pt.y < rcs.top + 16
 							)
 							{
-								bClose.EnableWindow(TRUE);
-								m_tab_tip_close.DelTool(m_hWnd);
-								m_tab_tip_close.AddTool(bClose, ResourceManager::CLOSE);
-								if (!BOOLSETTING(POPUPS_DISABLED) && BOOLSETTING(POPUPS_TABS_ENABLED)) // TODO -> updateTabs
-									m_tab_tip_close.Activate(TRUE);
-									
-								cur_close = true;
+								l_is_enabled = true;
+								m_is_cur_close = true;
 							}
 							else
 							{
-								bClose.EnableWindow(FALSE);
-								m_tab_tip_close.Activate(FALSE);
-								cur_close = false;
+								l_is_enabled   = false;
+								m_is_cur_close = false;
 							}
-							bClose.ShowWindow(TRUE);
+							activateCloseButton(TRUE, l_is_enabled);
 						}
 					}
-#endif // SCALOLAZ_CLOSEBUTTON
-					const size_t len = static_cast<size_t>(::GetWindowTextLength(t->hWnd) + 1);
 					tstring buf;
-					buf.resize(len);
-					::GetWindowText(t->hWnd, &buf[0], len); //-V107
-					if (buf != current_tip)
+					WinUtil::GetWindowText(buf, t->hWnd);
+					if (buf != m_current_tip)
 					{
 						m_tab_tip.DelTool(m_hWnd);
 						m_tab_tip.AddTool(m_hWnd, &buf[0]);
@@ -596,26 +614,26 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 						{
 							m_tab_tip.Activate(TRUE);
 						}
-						current_tip = buf;
+						m_current_tip = buf;
 					}
 					return 1;
 				}
 			}
 			m_tab_tip.Activate(FALSE);
-			m_tab_tip_close.Activate(FALSE);
-			current_tip.clear();
-			bClose.EnableWindow(FALSE);
-			bClose.ShowWindow(FALSE);
-			cur_close = false;
+			m_current_tip.clear();
+			activateCloseButton(FALSE, FALSE);
+			m_is_cur_close = false;
 			return 1;
 		}
 		
 		LRESULT onCloseWindow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
-			bClose.ShowWindow(FALSE);
-			dcassert(::IsWindow(closing));
-			if (::IsWindow(closing))
-				::SendMessage(closing, WM_CLOSE, 0, 0);
+			//activateCloseButton(FALSE);
+			dcassert(::IsWindow(m_closing_hwnd));
+			if (::IsWindow(m_closing_hwnd))
+			{
+				::SendMessage(m_closing_hwnd, WM_CLOSE, 0, 0);
+			}
 			return 0;
 		}
 		
@@ -664,8 +682,8 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 						notify |= rows != r;
 						rows = r;
 						r = 0;
-						chevron.EnableWindow(TRUE);
-						chevron.ShowWindow(TRUE);
+						m_chevron.EnableWindow(TRUE);
+						m_chevron.ShowWindow(TRUE);
 					}
 					else
 					{
@@ -686,13 +704,13 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			
 			if (r != 0)
 			{
-				chevron.EnableWindow(FALSE);
-				chevron.ShowWindow(FALSE);
+				m_chevron.EnableWindow(FALSE);
+				m_chevron.ShowWindow(FALSE);
 				notify |= (rows != r);
 				rows = r;
 			}
 			
-			bClose.ShowWindow(FALSE);
+			activateCloseButton(FALSE, FALSE);
 			
 			if (notify)
 			{
@@ -708,22 +726,18 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		
 		LRESULT onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 		{
-			chevron.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-			               BS_PUSHBUTTON , 0, IDC_CHEVRON);
-			chevron.SetWindowText(_T("\u00bb"));
+			m_chevron.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_PUSHBUTTON , 0, IDC_CHEVRON);
+			m_chevron.SetWindowText(_T("\u00bb"));
 			
 			// [+] SCALOlaz : Create a Close Button
-			CImageList CloseImages;
-			ResourceLoader::LoadImageList(IDR_CLOSE_PNG, CloseImages, 16, 16);
-			bClose.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE | BS_FLAT, 0, IDC_CLOSE_WINDOW);
-			bClose.SetImageList(CloseImages);
-			
+			CImageList l_closeImages;
+			ResourceLoader::LoadImageList(IDR_CLOSE_PNG, l_closeImages, 16, 16);
+			m_bClose.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE | BS_FLAT, 0, IDC_CLOSE_WINDOW);
+			m_bClose.SetImageList(l_closeImages);
+			m_bClose.SetImages(0, 1, 2, 3);
 			g_mnu.CreatePopupMenu();
 			
 			m_tab_tip.Create(m_hWnd, rcDefault, NULL, TTS_ALWAYSTIP | TTS_NOPREFIX);
-			m_tab_tip_close.Create(m_hWnd, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP /*| TTS_BALLOON*/, WS_EX_TOPMOST);
-			m_tab_tip_close.SetDelayTime(TTDT_AUTOPOP, 5000);
-			ATLASSERT(m_tab_tip_close.IsWindow());
 			
 			CDCHandle dc(::GetDC(m_hWnd)); // Error ~CDC() call DeleteDC
 			/*
@@ -755,17 +769,17 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		{
 			calcRows();
 			
-			bClose.ShowWindow(FALSE);
+			activateCloseButton(FALSE, FALSE);
 			
 			const SIZE sz = { LOWORD(lParam), HIWORD(lParam) };
 			switch (WinUtil::GetTabsPosition())
 			{
 				case SettingsManager::TABS_TOP:
 				case SettingsManager::TABS_BOTTOM:
-					chevron.MoveWindow(sz.cx - 14, 1, 14, getHeight() - 2);
+					m_chevron.MoveWindow(sz.cx - 14, 1, 14, getHeight() - 2);
 					break;
 				default:
-					chevron.MoveWindow(0, sz.cy - 15, 150, 15);
+					m_chevron.MoveWindow(0, sz.cy - 15, 150, 15);
 					break;
 			}
 			return 0;
@@ -776,7 +790,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 #ifdef IRAINMAN_FAST_FLAT_TAB
 			m_allowInvalidate = false;
 #endif
-			bClose.ShowWindow(FALSE);
+			activateCloseButton(FALSE, FALSE);
 			CRect rc;
 			
 			if (GetUpdateRect(&rc, FALSE))
@@ -875,10 +889,10 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			}
 			
 			POINT pt;
-			chevron.GetClientRect(&rc);
+			m_chevron.GetClientRect(&rc);
 			pt.x = rc.right - rc.left;
 			pt.y = 0;
-			chevron.ClientToScreen(&pt);
+			m_chevron.ClientToScreen(&pt);
 			
 			g_mnu.TrackPopupMenu(TPM_RIGHTALIGN | TPM_BOTTOMALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 			return 0;
@@ -886,7 +900,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		
 		LRESULT onSelectWindow(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
-			bClose.ShowWindow(FALSE);
+			activateCloseButton(FALSE, FALSE);
 			
 			CMenuItemInfo mi;
 			mi.fMask = MIIM_DATA;
@@ -902,7 +916,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		
 		void SwitchTo(bool next = true)
 		{
-			bClose.ShowWindow(FALSE);
+			activateCloseButton(FALSE, FALSE);
 			
 			for (auto i = tabs.cbegin(); i != tabs.cend(); ++i)
 			{
@@ -929,7 +943,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		
 		LRESULT onCloseTab(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
 		{
-			bClose.ShowWindow(FALSE);
+			activateCloseButton(FALSE, FALSE);
 			const POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 			const int row = getRows() - (pt.y / getTabHeight() + 1);
 			
@@ -970,23 +984,10 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			g_magic_width = ((WinUtil::GetTabsPosition() == SettingsManager::TABS_LEFT || WinUtil::GetTabsPosition() == SettingsManager::TABS_RIGHT) ? 29 : 0);
 			
 			g_TabsCloseButtonEnabled = BOOLSETTING(TABS_CLOSEBUTTONS);
-			
-			if (g_TabsCloseButtonEnabled)
+			if (!g_TabsCloseButtonEnabled && m_bClose.IsWindow())
 			{
-				g_TabsCloseButtonAlt = BOOLSETTING(TABS_CLOSEBUTTONS_ALT);
-				
-				if (g_TabsCloseButtonAlt)   // Если дизайнерский вид
-				{
-					bClose.SetImages(4, 5, 6, 7);
-				}
-				else
-				{
-					bClose.SetImages(0, 1, 2, 3);
-				}
+				m_bClose.ShowWindow(FALSE);
 			}
-			else
-				bClose.ShowWindow(FALSE);
-				
 			for (auto i = tabs.cbegin(); i != tabs.cend(); ++i)
 			{
 				TabInfo* t = *i;
@@ -1198,11 +1199,10 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		}
 		
 	private:
-		HWND closing;
-		CButton chevron;
-		WTL::CBitmapButton bClose;
+		HWND m_closing_hwnd;
+		CButton m_chevron;
+		WTL::CBitmapButton m_bClose;
 		CFlyToolTipCtrl m_tab_tip;
-		CFlyToolTipCtrl m_tab_tip_close;
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
 //		CPen black;
 //		CPen white;
@@ -1212,8 +1212,8 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		int m_height;
 		int m_height_font;
 		
-		tstring current_tip;
-		bool cur_close;
+		tstring m_current_tip;
+		bool m_is_cur_close;
 		
 		TabInfo* active;
 		TabInfo* moving;
@@ -1225,7 +1225,8 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		WindowList viewOrder;
 		WindowIter nextTab;
 		
-		bool inTab;
+		bool m_is_intab;
+		bool m_is_invalidate;
 #ifdef IRAINMAN_FAST_FLAT_TAB
 		bool m_needsInvalidate;
 		bool m_allowInvalidate;
@@ -1238,7 +1239,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				if ((*i)->hWnd == aWnd)
 					return *i;
 			}
-			dcassert(0);
+			// dcassert(0);
 			return nullptr;
 		}
 		
@@ -1329,22 +1330,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 					0.60f,
 					1.0f
 				};
-				static const Gdiplus::REAL g_positions2[] =
-				{
-					0.0f,
-					0.15f,
-					0.98f,
-					1.0f
-				};
-				BOOST_STATIC_ASSERT(_countof(l_colors) == _countof(g_positions) && _countof(l_colors) == _countof(g_positions2));
-				if (g_TabsCloseButtonAlt)
-				{
-					l_tabBrush->SetInterpolationColors(l_colors, g_positions2, _countof(l_colors));
-				}
-				else
-				{
-					l_tabBrush->SetInterpolationColors(l_colors, g_positions, _countof(l_colors));
-				}
+				l_tabBrush->SetInterpolationColors(l_colors, g_positions, _countof(l_colors));
 				//Конец градиента заливки
 			}
 			

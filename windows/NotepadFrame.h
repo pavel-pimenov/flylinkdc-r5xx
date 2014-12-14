@@ -36,7 +36,6 @@ class NotepadFrame : public MDITabChildWindowImpl < NotepadFrame, RGB(0, 0, 0), 
 		NotepadFrame() : m_dirty(false),
 			ctrlClientContainer(_T("edit"), this, NOTEPAD_MESSAGE_MAP)
 		{
-			SettingsManager::getInstance()->addListener(this);
 		}
 		~NotepadFrame() { }
 		

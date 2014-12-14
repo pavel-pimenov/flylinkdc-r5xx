@@ -40,6 +40,7 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure) :
 	m_secure(p_is_secure),
 	m_countType(COUNT_UNCOUNTED),
 	m_availableBytes(0),
+	m_isChangeAvailableBytes(false),
 	m_exclChecks(false), // [+] IRainman fix.
 	m_message_count(0)
 {

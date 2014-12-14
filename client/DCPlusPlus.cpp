@@ -200,38 +200,47 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 {
 	// Сохраним маркеры времени завершения
 	{
-	
+#ifdef FLYLINKDC_COLLECT_UNKNOWN_TAG
+		string l_debugTag;
+		{
+			FastLock l(NmdcSupports::g_debugCsUnknownNmdcTagParam);
+			dcassert(NmdcSupports::g_debugUnknownNmdcTagParam.empty());
+			const auto& l_debugUnknownNmdcTagParam = NmdcSupports::g_debugUnknownNmdcTagParam;
+			for (auto i = l_debugUnknownNmdcTagParam.begin(); i != l_debugUnknownNmdcTagParam.end(); ++i)
+			{
+				l_debugTag += i->first + "(" + Util::toString(i->second) + ")" + ',';
+			}
+			NmdcSupports::g_debugUnknownNmdcTagParam.clear();
+		}
+		if (!l_debugTag.empty())
+		{
+			LogManager::getInstance()->message("Founded unknown NMDC tag param: " + l_debugTag);
+		}
+#endif
+		
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES
 		// [!] IRainman fix: supports cleanup.
 		string l_debugFeatures;
 		string l_debugConnections;
-		string l_debugTag;
 		{
 			FastLock l(AdcSupports::g_debugCsUnknownAdcFeatures);
+			dcassert(AdcSupports::g_debugUnknownAdcFeatures.empty());
 			const auto& l_debugUnknownFeatures = AdcSupports::g_debugUnknownAdcFeatures;
 			for (auto i = l_debugUnknownFeatures.begin(); i != l_debugUnknownFeatures.end(); ++i)
 			{
-				l_debugFeatures += *i + ',';
+				l_debugFeatures += i->first + "[" + i->second + "]" + ',';
 			}
 			AdcSupports::g_debugUnknownAdcFeatures.clear();
 		}
 		{
 			FastLock l(NmdcSupports::g_debugCsUnknownNmdcConnection);
+			dcassert(NmdcSupports::g_debugUnknownNmdcConnection.empty());
 			const auto& l_debugUnknownConnections = NmdcSupports::g_debugUnknownNmdcConnection;
 			for (auto i = l_debugUnknownConnections.begin(); i != l_debugUnknownConnections.end(); ++i)
 			{
 				l_debugConnections += *i + ',';
 			}
 			NmdcSupports::g_debugUnknownNmdcConnection.clear();
-		}
-		{
-			FastLock l(NmdcSupports::g_debugCsUnknownNmdcTagParam);
-			const auto& l_debugUnknownNmdcTagParam = NmdcSupports::g_debugUnknownNmdcTagParam;
-			for (auto i = l_debugUnknownNmdcTagParam.begin(); i != l_debugUnknownNmdcTagParam.end(); ++i)
-			{
-				l_debugTag += *i + ',';
-			}
-			NmdcSupports::g_debugUnknownNmdcTagParam.clear();
 		}
 		if (!l_debugFeatures.empty())
 		{
@@ -240,10 +249,6 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		if (!l_debugConnections.empty())
 		{
 			LogManager::getInstance()->message("Founded unknown NMDC connections: " + l_debugConnections);
-		}
-		if (!l_debugTag.empty())
-		{
-			LogManager::getInstance()->message("Founded unknown NMDC tag param: " + l_debugTag);
 		}
 #endif // FLYLINKDC_COLLECT_UNKNOWN_FEATURES
 		

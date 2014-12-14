@@ -1631,6 +1631,10 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 						}
 						m_needsUpdateStats = true; // [+] IRainman fix.
 					}
+					else
+					{
+						m_needsUpdateStats |= m_client->isChangeAvailableBytes();
+					}
 				}
 			}
 			break;
@@ -1802,7 +1806,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 			case DIRECT_MODE_DETECTED:
 			{
 				//BaseChatFrame::addLine(_T("[!]FlylinkDC++ ") + _T("Detected direct connection type, switching to active mode"), WinUtil::m_ChatTextSystem);
-				BaseChatFrame::addLine(Text::toT(static_cast<StatusTask&>(*i->second).str) + _T(": ") + _T("Detected direct connection type, switching to active mode"), Colors::g_ChatTextSystem);
+				BaseChatFrame::addLine(Text::toT(static_cast<StatusTask&>(*i->second).m_str) + _T(": ") + _T("[FlylinkDC++] Detected direct connection type, switching to active mode"), Colors::g_ChatTextSystem);
 			}
 			break;
 #endif
@@ -3023,10 +3027,12 @@ void HubFrame::on(Connecting, const Client*) noexcept
 {
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	bool bWantAutodetect = false;
-	if (!ClientManager::isActive(m_client->getHubUrl(), &bWantAutodetect))
+	if (!ClientManager::isActive(FavoriteManager::getInstance()->getFavoriteHubEntry(m_client->getHubUrl()), &bWantAutodetect))
 	{
 		if (bWantAutodetect)
-			BaseChatFrame::addLine(_T("[!]FlylinkDC++ ") + _T("Detecting connection type: work in passive mode until direct mode is detected"), Colors::g_ChatTextSystem);
+		{
+			BaseChatFrame::addLine(_T("[!]FlylinkDC++ Detecting connection type: work in passive mode until direct mode is detected"), Colors::g_ChatTextSystem);
+		}
 	}
 #endif
 	const auto l_url_hub = m_client->getHubUrl();
@@ -3941,11 +3947,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 				else if (l_column_id == COLUMN_GEO_LOCATION)
 				{
 					m_ctrlUsers->GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
-					if (BOOLSETTING(USE_EXPLORER_THEME)
-#ifdef FLYLINKDC_SUPPORT_WIN_2000
-					        && CompatibilityManager::IsXPPlus()
-#endif
-					   )
+					if (WinUtil::isUseExplorerTheme())
 					{
 					
 						SetTextColor(cd->nmcd.hdc, cd->clrText);

@@ -20,6 +20,8 @@
 
 #ifdef STRONG_USE_DHT
 
+#include "../FlyFeatures/flyServer.h"
+
 #include "UDPSocket.h"
 
 #include "Constants.h"
@@ -102,8 +104,9 @@ void UDPSocket::listen()
 		
 		start(64);
 	}
-	catch (...)
+	catch (const Exception& e)
 	{
+    CFlyServerAdapter::CFlyServerJSON::pushError(17, "DHT Error UDPSocket::listen: " + e.getError());
 		socket.reset();
 		throw;
 	}
@@ -131,7 +134,7 @@ void UDPSocket::checkIncoming()
 					SettingsManager::g_TestUDPDHTLevel = ClientManager::getMyCID().toBase32() == l_magic;
 					if(!SettingsManager::g_TestUDPDHTLevel)
 					{
-					  LogManager::getInstance()->message("DHT Error magic value = " + l_magic);
+            CFlyServerAdapter::CFlyServerJSON::pushError(17, "DHT Error magic value = " + l_magic);
 					}
 					else
 					{
@@ -152,7 +155,7 @@ void UDPSocket::checkIncoming()
 				// it seems to be encrypted packet
 				if (!decryptPacket(&l_buf[0], len, inet_ntoa(remoteAddr.sin_addr), isUdpKeyValid))
 				{
-					LogManager::getInstance()->message("DHT Error decryptPacket");
+          CFlyServerAdapter::CFlyServerJSON::pushError(17, "DHT Error decryptPacket");
 					return;
 			}
 			}
@@ -166,7 +169,7 @@ void UDPSocket::checkIncoming()
 				const auto l_res_uzlib = decompressPacket(l_destBuf, l_buf);
 				if (l_res_uzlib != Z_OK) 
 				{
-					LogManager::getInstance()->message("DHT Error decompress, Error = "+ Util::toString(l_res_uzlib) + " len = " + Util::toString(len));
+          CFlyServerAdapter::CFlyServerJSON::pushError(17, "DHT Error decompress, Error = "+ Util::toString(l_res_uzlib) + " len = " + Util::toString(len));
 					return;
 			}
 			}
@@ -195,7 +198,7 @@ void UDPSocket::checkIncoming()
 			}
 			else
 			{
-				LogManager::getInstance()->message("DHT Error ADC_PACKET_HEADER || ADC_PACKET_FOOTER l_destBuf.size() = " + Util::toString(l_destBuf.size()));
+          CFlyServerAdapter::CFlyServerJSON::pushError(17, "DHT Error ADC_PACKET_HEADER || ADC_PACKET_FOOTER l_destBuf.size() = " + Util::toString(l_destBuf.size()));
 			}
 			
 			sleep(25);
@@ -261,7 +264,8 @@ void UDPSocket::checkOutgoing(uint64_t& p_timer)
 		}
 		catch (const SocketException& e)
 		{
-			dcdebug("DHT::run Write error: %s\n", e.what());
+        dcdebug("DHT::run Write error: %s\n", e.getError());
+        CFlyServerAdapter::CFlyServerJSON::pushError(17, "DHT::run Write error: " + e.getError());
 		}
 	}
 }
@@ -302,6 +306,7 @@ int UDPSocket::run()
 		}
 		catch (const SocketException& p_e)
 		{
+      CFlyServerAdapter::CFlyServerJSON::pushError(17, "DHT::run Error: " + p_e.getError());
 			dcdebug("DHT::run Error: %s\n", p_e.what());
 			
 			bool failed = false;
@@ -324,6 +329,7 @@ int UDPSocket::run()
 				catch (const SocketException& p_e2)
 				{
 					dcdebug("DHT::run Stopped listening: %s\n", p_e2.getError().c_str());
+          CFlyServerAdapter::CFlyServerJSON::pushError(17, "DHT::run Stopped listening: " + p_e2.getError());
 					
 					if (!failed)
 					{

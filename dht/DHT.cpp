@@ -168,7 +168,7 @@ void DHT::dispatch(const string& aLine, const string& ip, uint16_t port, bool is
 			return;
 			
 		m_lastPacket = GET_TICK();
-		
+
 		// all communication to this node will be encrypted with this key
 		UDPKey key;
 		string udpKey;
@@ -177,14 +177,18 @@ void DHT::dispatch(const string& aLine, const string& ip, uint16_t port, bool is
 			key.m_key = CID(udpKey);
 			key.m_ip = DHT::getInstance()->getLastExternalIP();
 		}
-		
+		Node::Ptr node = addNode(CID(cid), ip, port, key, true, isUdpKeyValid);
+
 		// node is requiring FW check
 		string internalUdpPort;
 		if (cmd.getParam("FW", 1, internalUdpPort))
 		{
-			bool l_firewalled = (Util::toInt(internalUdpPort) != port);
-			/* TODO if(firewalled)
-			    node->getUser()->setFlag(User::PASSIVE);*/
+			const bool l_firewalled = (Util::toInt(internalUdpPort) != port);
+			if (l_firewalled)
+			{
+				node->getUser()->setFlag(User::NMDC_FILES_PASSIVE);
+				node->getUser()->setFlag(User::NMDC_SEARCH_PASSIVE_BIT);
+			}
 			
 			// send him his external ip and port
 			AdcCommand l_cmd(AdcCommand::SEV_SUCCESS, AdcCommand::SUCCESS, !l_firewalled ? "UDP port opened" : "UDP port closed", AdcCommand::TYPE_UDP);
@@ -245,6 +249,20 @@ void DHT::send(AdcCommand& cmd, const string& ip, uint16_t port, const CID& targ
 	}
 	m_dht_socket.send(cmd, ip, port, targetCID, udpKey);
 }
+
+	/*
+	 * Creates new (or update existing) node which is NOT added to our routing table 
+	 */
+/*
+Node::Ptr DHT::createNode(const CID& cid, const string& ip, uint16_t port, bool update, bool isUdpKeyValid)
+	{
+		// create user as offline (only TCP connected users will be online)
+		UserPtr u = ClientManager::getInstance()->getUser(cid,true);
+
+		FastLock l(cs);
+		return m_bucket->createNode(u, ip, port, update, isUdpKeyValid);
+	}
+*/
 
 /*
  * Adds node to routing table

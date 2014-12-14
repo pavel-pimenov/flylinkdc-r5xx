@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include <Shellapi.h>
 #include <Richedit.h>
 #include <boost/bind.hpp>
 #include <atlctrls.h>
@@ -1661,14 +1660,8 @@ class WinUtil
 		static void openBitTorrent(const tstring& p_magnetURI);//[+]IRainman
 		static void translateLinkToextProgramm(const tstring& url, const tstring& p_Extension = Util::emptyStringT, const tstring& p_openCmd = Util::emptyStringT);//[+]FlylinkDC
 		static bool openLink(const tstring& url); // [!] IRainman opt: return status.
-		static void openFile(const tstring& file)
-		{
-			openFile(file.c_str());
-		}
-		static void openFile(const TCHAR* file) // [+] IRainman copy-past fix.
-		{
-			::ShellExecute(NULL, _T("open"), file, NULL, NULL, SW_SHOWNORMAL);
-		}
+		static void openFile(const tstring& file);
+		static void openFile(const TCHAR* file);
 		static void openLog(const string& dir, const StringMap& params, const tstring& nologmessage); // [+] IRainman copy-past fix.
 		
 		static void openFolder(const tstring& file);
@@ -1779,6 +1772,8 @@ class WinUtil
 			g_tabPos = p_NewTabsPosition;
 		}
 		// [~] IRainman optimize.
+		static bool isUseExplorerTheme();
+		static void SetWindowThemeExplorer(HWND p_hWnd);
 		
 		static tstring getAddresses(CComboBox& BindCombo); // [<-] IRainman moved from Network Page.
 		

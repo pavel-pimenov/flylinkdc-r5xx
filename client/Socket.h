@@ -217,6 +217,7 @@ class Socket
 #endif
 		
 		string getLocalIp() const noexcept;
+		static string getDefaultGateWay(bool& p_is_wifi_router);
 		uint16_t getLocalPort() noexcept;
 		
 		// Low level interface

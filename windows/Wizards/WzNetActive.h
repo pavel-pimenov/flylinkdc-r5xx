@@ -363,7 +363,7 @@ public:
 	static HIconWrapper g_hModeActiveIco(IDR_ICON_SUCCESS_ICON);
 	static HIconWrapper g_hModePassiveIco(IDR_ICON_WARN_ICON);
 	static HIconWrapper g_hModeFailIco(IDR_ICON_FAIL_ICON);
-	static HIconWrapper g_hModeProcessIco(IDR_NETWORK_STATISTICS);
+	static HIconWrapper g_hModeProcessIco(IDR_NETWORK_STATISTICS_ICON);
 		
 	HIconWrapper* l_icon = nullptr;
 		switch (stage)

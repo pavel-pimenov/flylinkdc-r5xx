@@ -36,86 +36,6 @@ class ListViewArrows
 		MESSAGE_HANDLER(WM_SETTINGCHANGE, onSettingChange)
 		END_MSG_MAP()
 		
-#ifdef FLYLINKDC_SUPPORT_WIN_2000
-		void rebuildArrows()
-		{
-			//these arrows aren't used anyway so no need to create them
-			if (CompatibilityManager::getComCtlVersion() >= MAKELONG(0, 6))
-			{
-				return;
-			}
-			
-			POINT pathArrowLong[9] = {{0L, 7L}, {7L, 7L}, {7L, 6L}, {6L, 6L}, {6L, 4L}, {5L, 4L}, {5L, 2L}, {4L, 2L}, {4L, 0L}};
-			POINT pathArrowShort[7] = {{0L, 6L}, {1L, 6L}, {1L, 4L}, {2L, 4L}, {2L, 2L}, {3L, 2L}, {3L, 0L}};
-			
-			CDC dc;
-			CBrushHandle brush;
-			CPen penLight;
-			CPen penShadow;
-			
-			HPEN oldPen;
-			HBITMAP oldBitmap;
-			
-			const int bitmapWidth = 8;
-			const int bitmapHeight = 8;
-			const RECT rect = {0, 0, bitmapWidth, bitmapHeight};
-			
-			T* pThis = (T*)this;
-			
-			if (!dc.CreateCompatibleDC(pThis->GetDC()))
-				return;
-				
-			if (!brush.CreateSysColorBrush(COLOR_3DFACE))
-				return;
-				
-			if (!penLight.CreatePen(PS_SOLID, 1, ::GetSysColor(COLOR_3DHIGHLIGHT)))
-				return;
-				
-			if (!penShadow.CreatePen(PS_SOLID, 1, ::GetSysColor(COLOR_3DSHADOW)))
-				return;
-				
-			if (upArrow.IsNull())
-				upArrow.CreateCompatibleBitmap(pThis->GetDC(), bitmapWidth, bitmapHeight);
-				
-			if (downArrow.IsNull())
-				downArrow.CreateCompatibleBitmap(pThis->GetDC(), bitmapWidth, bitmapHeight);
-				
-			// create up arrow
-			oldBitmap = dc.SelectBitmap(upArrow);
-			dc.FillRect(&rect, brush);
-			oldPen = dc.SelectPen(penLight);
-			dc.Polyline(pathArrowLong, _countof(pathArrowLong));
-			dc.SelectPen(penShadow);
-			dc.Polyline(pathArrowShort, _countof(pathArrowShort));
-			
-			// create down arrow
-			dc.SelectBitmap(downArrow);
-			dc.FillRect(&rect, brush);
-			for (int i = 0; i < _countof(pathArrowShort); ++i)
-			{
-				POINT& pt = pathArrowShort[i];
-				pt.x = bitmapWidth - pt.x;
-				pt.y = bitmapHeight - pt.y;
-			}
-			dc.SelectPen(penLight);
-			dc.Polyline(pathArrowShort, _countof(pathArrowShort));
-			for (int i = 0; i < _countof(pathArrowLong); ++i)
-			{
-				POINT& pt = pathArrowLong[i];
-				pt.x = bitmapWidth - pt.x;
-				pt.y = bitmapHeight - pt.y;
-			}
-			dc.SelectPen(penShadow);
-			dc.Polyline(pathArrowLong, _countof(pathArrowLong));
-			
-			dc.SelectPen(oldPen);
-			dc.SelectBitmap(oldBitmap);
-			penShadow.DeleteObject();
-			penLight.DeleteObject();
-			brush.DeleteObject();
-		}
-#endif // FLYLINKDC_SUPPORT_WIN_2000
-		
 		void updateArrow()
 		{
 			T* pThis = (T*)this;
@@ -143,50 +63,15 @@ class ListViewArrows
 					headerCtrl.SetItem(i, &item);
 				}
 			}
-#ifdef FLYLINKDC_SUPPORT_WIN_2000
-			else
-			{
-				if (upArrow.IsNull())
-					return;
-					
-				HBITMAP bitmap = (pThis->isAscending() ? upArrow : downArrow);
-				
-				for (int i = 0; i < itemCount; ++i)
-				{
-					HDITEM item = {0};
-					item.mask = HDI_FORMAT | HDI_BITMAP;
-					headerCtrl.GetItem(i, &item);
-					if (i == pThis->getSortColumn())
-					{
-						item.fmt |= HDF_BITMAP | HDF_BITMAP_ON_RIGHT;
-						item.hbm = bitmap;
-					}
-					else
-					{
-						item.fmt &= ~(HDF_BITMAP | HDF_BITMAP_ON_RIGHT);
-						item.hbm = 0;
-					}
-					headerCtrl.SetItem(i, &item);
-				}
-			}
-#endif // FLYLINKDC_SUPPORT_WIN_2000
 		}
 		
 		LRESULT onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 		{
-#ifdef FLYLINKDC_SUPPORT_WIN_2000
-			rebuildArrows();
-#endif
 			T* pThis = (T*)this;
 			_Module.AddSettingChangeNotify(pThis->m_hWnd);
 			
-			if (BOOLSETTING(USE_EXPLORER_THEME)
-#ifdef FLYLINKDC_SUPPORT_WIN_2000
-			        && CompatibilityManager::IsXPPlus()
-#endif
-			   )
-				SetWindowTheme(pThis->m_hWnd, L"explorer", NULL);
-				
+			WinUtil::SetWindowThemeExplorer(pThis->m_hWnd);
+			
 			bHandled = FALSE;
 			return 0;
 		}
@@ -195,29 +80,15 @@ class ListViewArrows
 		{
 			T* pThis = (T*)this;
 			_Module.RemoveSettingChangeNotify(pThis->m_hWnd);
-#ifdef FLYLINKDC_SUPPORT_WIN_2000
-			if (downArrow)
-				downArrow.DeleteObject();
-			if (upArrow)
-				upArrow.DeleteObject();
-#endif
 			bHandled = FALSE;
 			return 0;
 		}
 		
 		LRESULT onSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 		{
-#ifdef FLYLINKDC_SUPPORT_WIN_2000
-			rebuildArrows();
-#endif
 			bHandled = FALSE;
 			return 1;
 		}
-	private:
-#ifdef FLYLINKDC_SUPPORT_WIN_2000
-		CBitmap upArrow;
-		CBitmap downArrow;
-#endif
 };
 
 #endif // !defined(LIST_VIEW_ARROWS_H)

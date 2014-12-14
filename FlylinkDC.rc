@@ -487,17 +487,17 @@ BEGIN
     GROUPBOX        "Bind Address",IDC_SETTINGS_BIND_ADDRESS,4,2,316,27
     RTEXT           "Network interface for all connections",IDC_SETTINGS_BIND_ADDRESS_HELP,7,13,195,8
     COMBOBOX        IDC_BIND_ADDRESS,215,11,99,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Incoming Connection Settings (See help / FAQ if unsure)",IDC_SETTINGS_INCOMING,4,30,316,171,WS_GROUP
+    GROUPBOX        "Incoming Connection Settings (See help / FAQ if unsure)",IDC_SETTINGS_INCOMING,4,30,316,179,WS_GROUP
     CONTROL         "Enable automatic incoming connection type detection",IDC_CONNECTION_DETECTION,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,40,306,10
-    CONTROL         "Direct connection",IDC_DIRECT,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,12,49,149,16
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,40,253,10
+    CONTROL         "Direct connection",IDC_DIRECT,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,8,54,146,9
     CONTROL         "Firewall with manual port forwarding",IDC_FIREWALL_NAT,
-                    "Button",BS_AUTORADIOBUTTON | WS_TABSTOP,12,65,150,24
-    CONTROL         "UPnP (for modem/router only)",IDC_FIREWALL_UPNP,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,166,49,146,16
+                    "Button",BS_AUTORADIOBUTTON | WS_TABSTOP,8,76,149,8
+    CONTROL         "UPnP (for WiFi router)",IDC_FIREWALL_UPNP,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,163,54,98,9
     CONTROL         "Firewall (passive mode, worst case)",IDC_FIREWALL_PASSIVE,
-                    "Button",BS_AUTORADIOBUTTON | BS_MULTILINE | WS_TABSTOP,166,65,146,24
-    GROUPBOX        "External / WAN IP",IDC_SETTINGS_IP,9,90,186,43,BS_CENTER
-    EDITTEXT        IDC_EXTERNAL_IP,12,98,180,14,ES_AUTOHSCROLL
+                    "Button",BS_AUTORADIOBUTTON | BS_MULTILINE | WS_TABSTOP,163,65,143,25
+    GROUPBOX        "External / WAN IP/ Default gateway",IDC_SETTINGS_IP,9,90,186,43,BS_CENTER
+    EDITTEXT        IDC_EXTERNAL_IP,12,98,71,14,ES_AUTOHSCROLL
     PUSHBUTTON      "Test port and get IP address",IDC_GETIP,195,163,112,14
     EDITTEXT        IDC_IP_GET_IP,12,114,180,14,ES_AUTOHSCROLL
     GROUPBOX        "Ports",IDC_SETTINGS_PORTS,198,90,110,71,BS_CENTER
@@ -511,18 +511,18 @@ BEGIN
     EDITTEXT        IDC_PORT_DHT,240,144,44,14,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Don't allow hub/UPnP to override",IDC_OVERRIDE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,167,169,10
     CONTROL         "Work in passive mode if specified active mode not available (autodetect)",IDC_AUTODETECT,
-                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,11,179,295,8
+                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,11,177,295,18
     CONTROL         "Allow NAT Traversal for connections with passive users",IDC_NATT,
-                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,11,190,302,8
-    CONTROL         "Update IP on startup",IDC_IPUPDATE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,204,194,10
-    LTEXT           "Update IP interval\r\n...",IDC_SETTINGS_UPDATE_IP_INTERVAL,9,216,231,16
-    EDITTEXT        IDC_UPDATE_IP_INTERVAL,264,217,44,14,ES_AUTOHSCROLL | ES_NUMBER
-    GROUPBOX        "DHT",IDC_SETTINGS_DHT,4,235,316,51
+                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,11,198,302,8
+    CONTROL         "Update IP on startup",IDC_IPUPDATE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,211,194,10
+    LTEXT           "Update IP interval\r\n...",IDC_SETTINGS_UPDATE_IP_INTERVAL,9,223,231,16
+    EDITTEXT        IDC_UPDATE_IP_INTERVAL,264,224,44,14,ES_AUTOHSCROLL | ES_NUMBER
+    GROUPBOX        "DHT",IDC_SETTINGS_DHT,4,242,316,51
     CONTROL         "Enable DHT. Publish shared files on DHT and use it for searching alternate sources",IDC_SETTINGS_USE_DHT,
-                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,11,243,306,16
-    CONTROL         "Do not ask again",IDC_SETTINGS_USE_DHT_NOTANSWER,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,20,260,142,8
+                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,11,250,306,16
+    CONTROL         "Do not ask again",IDC_SETTINGS_USE_DHT_NOTANSWER,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,20,267,142,8
     CONTROL         "Update IP on DHT firewall check",IDC_UPDATE_IP_DHT,
-                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,11,274,306,8
+                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,11,281,306,8
     ICON            "",IDC_NETWORK_TEST_PORT_TCP_ICO,287,98,20,20
     ICON            "",IDC_NETWORK_TEST_PORT_UDP_ICO,287,113,20,20
     ICON            "",IDC_NETWORK_TEST_PORT_TLS_TCP_ICO,287,129,20,20
@@ -530,6 +530,9 @@ BEGIN
     ICON            "",IDC_NETWORK_WINFIREWALL_ICO,173,135,20,20
     LTEXT           "Windows firewall for FlylinkDC++ status",IDC_NETWORK_WINFIREWALL_STATUS,15,136,156,8,NOT WS_GROUP
     PUSHBUTTON      "Windows Firewall: FlylinkDC++ exception",IDC_ADD_FLYLINKDC_WINFIREWALL,11,149,151,14
+    EDITTEXT        IDC_DEFAULT_GATEWAY_IP,121,98,70,14,ES_AUTOHSCROLL | ES_READONLY | WS_DISABLED
+    LTEXT           "Gateway:",IDC_STATIC_GATEWAY,87,100,30,11,WS_DISABLED
+    ICON            "",IDC_WIFI_ROUTER_ICO,282,35,20,20
 END
 
 IDD_CERTIFICATES_PAGE DIALOGEX 0, 0, 325, 300
@@ -2874,7 +2877,8 @@ IDR_QUEUE               ICON                    "res\\Download-Queue.ico"
 IDR_FINISHED_DL         ICON                    "res\\Finished-Downloads.ico"
 IDR_UPLOAD_QUEUE        ICON                    "res\\Upload-Queue.ico"
 IDR_FINISHED_UL         ICON                    "res\\Finished-Uploads.ico"
-IDR_NETWORK_STATISTICS  ICON                    "res\\Network-Statistics.ico"
+IDR_NETWORK_STATISTICS_ICON ICON                    "res\\Network-Statistics.ico"
+IDC_WIFI_ROUTER_ICO     ICON                    "res\\wifi-router.ico"
 IDR_SEARCH              ICON                    "res\\Search.ico"
 IDR_ADLSEARCH           ICON                    "res\\ADLSearch.ico"
 IDR_SPY                 ICON                    "res\\Search-Spy.ico"

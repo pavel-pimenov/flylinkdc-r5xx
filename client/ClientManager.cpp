@@ -697,7 +697,7 @@ void ClientManager::putOnline(const OnlineUserPtr& ou) noexcept
 	}
 }
 
-void ClientManager::putOffline(const OnlineUserPtr& ou, bool disconnect) noexcept
+void ClientManager::putOffline(const OnlineUserPtr& ou, bool p_is_disconnect) noexcept
 {
 	dcassert(!isShutdown());
 	if (!isShutdown()) // Вернул проверку. падаем http://code.google.com/p/flylinkdc/source/detail?r=15119
@@ -727,9 +727,10 @@ void ClientManager::putOffline(const OnlineUserPtr& ou, bool disconnect) noexcep
 		{
 			UserPtr& u = ou->getUser();
 			u->unsetFlag(User::ONLINE);
-			if (disconnect)
+			if (p_is_disconnect)
+			{
 				ConnectionManager::getInstance()->disconnect(u);
-				
+			}
 			fire(ClientManagerListener::UserDisconnected(), u);
 		}
 		else if (diff > 1)
@@ -1312,7 +1313,7 @@ int ClientManager::getMode(const FavoriteHubEntry* p_hub
 				// If autodetection turned on, use passive mode until
 				// active mode detected
 				if (mode != SettingsManager::INCOMING_FIREWALL_PASSIVE && SETTING(INCOMING_AUTODETECT_FLAG) &&
-				        !Util::isAdcHub(aHubUrl) // [!] IRainman temporary fix http://code.google.com/p/flylinkdc/issues/detail?id=363
+				        !Util::isAdcHub(p_hub->getServer()) // [!] IRainman temporary fix http://code.google.com/p/flylinkdc/issues/detail?id=363
 				   )
 				{
 					mode = SettingsManager::INCOMING_FIREWALL_PASSIVE;

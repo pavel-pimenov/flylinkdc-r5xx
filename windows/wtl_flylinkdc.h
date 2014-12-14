@@ -19,6 +19,7 @@
 #ifndef DCPLUSPLUS_WTL_FLYLINKDC_H
 #define DCPLUSPLUS_WTL_FLYLINKDC_H
 
+#include <Shellapi.h>
 #include <atlctrlx.h>
 #include "../client/w.h"
 #include "../client/SettingsManager.h"

@@ -504,8 +504,7 @@ LIBSPEC int getdefaultgateway(in_addr_t * addr)
 #ifdef USE_WIN32_CODE_2
 int getdefaultgateway(in_addr_t *addr)
 {
-	MIB_IPFORWARDROW ip_forward;
-	memset(&ip_forward, 0, sizeof(ip_forward));
+  MIB_IPFORWARDROW ip_forward = {0};
 	if(GetBestRoute(inet_addr("0.0.0.0"), 0, &ip_forward) != NO_ERROR)
 		return -1;
 	*addr = ip_forward.dwForwardNextHop;

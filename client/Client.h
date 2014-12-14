@@ -101,15 +101,9 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			}
 		}
 		
-		// https://code.google.com/p/flylinkdc/issues/detail?id=1231
-//#define CLIENT_SUMMARY_SHARE_CLEANUP_IDENTITY
-#define CLIENT_SUMMARY_SHARE_NOT_FULL_DIAG
-
 		void clearAvailableBytesL()
 		{
-#ifndef CLIENT_SUMMARY_SHARE_NOT_FULL_DIAG
-			dcassert(m_availableBytes >= 0);
-#endif
+			m_isChangeAvailableBytes = true;
 			m_availableBytes = 0;
 		}
 		void decBytesSharedL(Identity& p_id)
@@ -119,14 +113,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			const auto old = p_id.getBytesShared();
 			dcassert(old >= 0);
 			m_availableBytes -= old;
-# ifndef CLIENT_SUMMARY_SHARE_NOT_FULL_DIAG
-			dcassert(old <= oldSum); // bug here.
-			dcassert(m_availableBytes >= 0);
-# endif
-			if (m_availableBytes < 0)
-			{
-				m_availableBytes = 0; // «аткнул - не могу пон€ть почему так пока.
-			}
+			m_isChangeAvailableBytes = old != 0;
 		}
 		void changeBytesSharedL(Identity& p_id, const int64_t p_bytes)
 		{
@@ -134,25 +121,20 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			dcassert(p_bytes >= 0);
 			dcdrun(const auto oldSum = m_availableBytes);
 			dcassert(oldSum >= 0);
-			const auto old = p_id.getBytesShared();
-			dcassert(old >= 0);
-			m_availableBytes -= old;
+			const auto l_old = p_id.getBytesShared();
+			m_isChangeAvailableBytes = p_bytes != l_old;
+			dcassert(l_old >= 0);
+			m_availableBytes -= l_old;
 			p_id.setBytesShared(p_bytes);
-#ifndef CLIENT_SUMMARY_SHARE_NOT_FULL_DIAG
-			dcassert(old <= oldSum);
-#endif
 			m_availableBytes += p_bytes;
-#ifndef CLIENT_SUMMARY_SHARE_NOT_FULL_DIAG
-			dcassert(m_availableBytes >= 0);
-#endif
 		}
 	public:
+		bool isChangeAvailableBytes() const
+		{
+			return m_isChangeAvailableBytes;
+		}
 		int64_t getAvailableBytes() const
 		{
-			// https://code.google.com/p/flylinkdc/issues/detail?id=1231
-#ifndef CLIENT_SUMMARY_SHARE_NOT_FULL_DIAG
-			dcassert(m_availableBytes >= 0);
-#endif
 			return m_availableBytes;
 		}
 		
@@ -616,6 +598,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 #endif
 		
 		int64_t m_availableBytes;
+		bool    m_isChangeAvailableBytes;
 		
 		void updateCounts(bool aRemove);
 		void updateActivity()

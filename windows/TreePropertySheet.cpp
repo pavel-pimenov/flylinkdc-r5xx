@@ -205,17 +205,12 @@ void TreePropertySheet::addTransparency()
 }
 void TreePropertySheet::setTransp(int p_Layered)
 {
-#ifdef FLYLINKDC_SUPPORT_WIN_2000
-	if (LOBYTE(LOWORD(GetVersion())) >= 5)
-#endif
+	SetWindowLongPtr(GWL_EXSTYLE, GetWindowLongPtr(GWL_EXSTYLE) | WS_EX_LAYERED /*| WS_EX_TRANSPARENT*/);
+	typedef bool (CALLBACK * LPFUNC)(HWND hwnd, COLORREF crKey, BYTE bAlpha, DWORD dwFlags);
+	LPFUNC _d_SetLayeredWindowAttributes = (LPFUNC)GetProcAddress(LoadLibrary(_T("user32")), "SetLayeredWindowAttributes");
+	if (_d_SetLayeredWindowAttributes)
 	{
-		SetWindowLongPtr(GWL_EXSTYLE, GetWindowLongPtr(GWL_EXSTYLE) | WS_EX_LAYERED /*| WS_EX_TRANSPARENT*/);
-		typedef bool (CALLBACK * LPFUNC)(HWND hwnd, COLORREF crKey, BYTE bAlpha, DWORD dwFlags);
-		LPFUNC _d_SetLayeredWindowAttributes = (LPFUNC)GetProcAddress(LoadLibrary(_T("user32")), "SetLayeredWindowAttributes");
-		if (_d_SetLayeredWindowAttributes)
-		{
-			_d_SetLayeredWindowAttributes(m_hWnd, 0, p_Layered, LWA_ALPHA);
-		}
+		_d_SetLayeredWindowAttributes(m_hWnd, 0, p_Layered, LWA_ALPHA);
 	}
 }
 LRESULT TreePropertySheet::onTranspChanged(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -263,9 +258,8 @@ void TreePropertySheet::addTree()
 	                WS_TABSTOP | // [+] http://code.google.com/p/flylinkdc/issues/detail?id=821
 	                TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP, WS_EX_CLIENTEDGE, IDC_PAGE);
 	                
-	if (BOOLSETTING(USE_EXPLORER_THEME))
-		SetWindowTheme(ctrlTree.m_hWnd, L"explorer", NULL);
-		
+	WinUtil::SetWindowThemeExplorer(ctrlTree.m_hWnd);
+	
 	ctrlTree.SetImageList(tree_icons, TVSIL_NORMAL);
 }
 

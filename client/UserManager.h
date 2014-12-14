@@ -114,7 +114,8 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 		}
 		static bool isInIgnoreList(const string& nick)
 		{
-			if (!g_isEmptyIgnoreList)
+			// dcassert(!nick.empty());
+			if (!g_isEmptyIgnoreList && !nick.empty())
 			{
 				dcassert(!nick.empty());
 				webrtc::ReadLockScoped l(*g_csIgnoreList);
@@ -131,7 +132,6 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 			{
 				webrtc::WriteLockScoped l(*g_csIgnoreList);
 				g_ignoreList = newlist;
-				g_isEmptyIgnoreList = g_ignoreList.empty();
 			}
 			saveIgnoreList();
 		}

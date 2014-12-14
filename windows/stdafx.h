@@ -48,7 +48,6 @@ extern CAppModule _Module;
 #include <atlmisc.h>
 #include <atlsplit.h>
 #include <atltheme.h>
-#include <Shellapi.h>
 #endif // _WIN32
 
 #endif // DCPLUSPLUS_WIN32_STDAFX_H

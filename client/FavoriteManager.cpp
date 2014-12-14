@@ -81,7 +81,7 @@ const string& FavoriteManager::getSupportHubURL()
 size_t FavoriteManager::getCountFavsUsers() const
 {
 	webrtc::ReadLockScoped l(*g_csUsers);
-	return m_users.size();
+	return m_fav_users_map.size();
 }
 void FavoriteManager::splitClientId(const string& p_id, string& p_name, string& p_version)
 {
@@ -337,7 +337,7 @@ void FavoriteManager::removeHubUserCommands(int ctx, const string& p_Hub)
 }
 void FavoriteManager::updateEmptyStateL()
 {
-	m_isNotEmpty = !m_users.empty();
+	m_isNotEmpty = !m_fav_users_map.empty();
 	m_fav_users.clear();
 	getFavoriteUsersNamesL(m_fav_users, false);
 	//getFavoriteUsersNamesL(m_ban_users,true);
@@ -348,8 +348,8 @@ bool FavoriteManager::addUserL(const UserPtr& aUser, FavoriteMap::iterator& iUse
 {
 	dcassert(!ClientManager::isShutdown());
 	// [!] always use external lock for this function.
-	iUser = m_users.find(aUser->getCID());
-	if (iUser == m_users.end() && create)
+	iUser = m_fav_users_map.find(aUser->getCID());
+	if (iUser == m_fav_users_map.end() && create)
 	{
 		StringList hubs = ClientManager::getHubs(aUser->getCID(), Util::emptyString);
 		StringList nicks = ClientManager::getNicks(aUser->getCID(), Util::emptyString);
@@ -360,7 +360,7 @@ bool FavoriteManager::addUserL(const UserPtr& aUser, FavoriteMap::iterator& iUse
 		if (nicks.empty())
 			nicks.push_back(Util::emptyString);
 			
-		iUser = m_users.insert(make_pair(aUser->getCID(), FavoriteUser(aUser, nicks[0], hubs[0]))).first;
+		iUser = m_fav_users_map.insert(make_pair(aUser->getCID(), FavoriteUser(aUser, nicks[0], hubs[0]))).first;
 		updateEmptyStateL();
 		return true;
 	}
@@ -373,8 +373,8 @@ bool FavoriteManager::getFavUserParam(const UserPtr& aUser, FavoriteUser::MaskTy
 	if (isNotEmpty()) // [+]PPA
 	{
 		webrtc::ReadLockScoped l(*g_csUsers);
-		const auto l_user = m_users.find(aUser->getCID());
-		if (l_user != m_users.end())
+		const auto l_user = m_fav_users_map.find(aUser->getCID());
+		if (l_user != m_fav_users_map.end())
 		{
 			p_flags = l_user->second.getFlags();
 			p_uploadLimit = l_user->second.getUploadLimit();
@@ -390,8 +390,8 @@ bool FavoriteManager::isNoFavUserOrUserIgnorePrivate(const UserPtr& aUser) const
 	if (isNotEmpty()) // [+]PPA
 	{
 		webrtc::ReadLockScoped l(*g_csUsers);
-		const auto l_user = m_users.find(aUser->getCID());
-		return l_user == m_users.end() || l_user->second.isSet(FavoriteUser::FLAG_IGNORE_PRIVATE);
+		const auto l_user = m_fav_users_map.find(aUser->getCID());
+		return l_user == m_fav_users_map.end() || l_user->second.isSet(FavoriteUser::FLAG_IGNORE_PRIVATE);
 	}
 	return true;
 }
@@ -409,8 +409,8 @@ bool FavoriteManager::getFavoriteUser(const UserPtr& p_user, FavoriteUser& p_fav
 	if (isNotEmpty()) // [+]PPA
 	{
 		webrtc::ReadLockScoped l(*g_csUsers);
-		const auto l_user = m_users.find(p_user->getCID());
-		if (l_user != m_users.end())
+		const auto l_user = m_fav_users_map.find(p_user->getCID());
+		if (l_user != m_fav_users_map.end())
 		{
 			p_favuser = l_user->second;
 			return true;
@@ -425,8 +425,8 @@ bool FavoriteManager::isFavoriteUser(const UserPtr& aUser, bool& p_is_ban) const
 	if (isNotEmpty()) // [+]PPA
 	{
 		webrtc::ReadLockScoped l(*g_csUsers);
-		const auto& l_find = m_users.find(aUser->getCID());
-		if (l_find != m_users.end())
+		const auto& l_find = m_fav_users_map.find(aUser->getCID());
+		if (l_find != m_fav_users_map.end())
 		{
 			p_is_ban = l_find->second.getUploadLimit() == FavoriteUser::UL_BAN;
 		}
@@ -434,13 +434,13 @@ bool FavoriteManager::isFavoriteUser(const UserPtr& aUser, bool& p_is_ban) const
 		{
 			p_is_ban = false;
 		}
-		return m_users.find(aUser->getCID()) != m_users.end();
+		return m_fav_users_map.find(aUser->getCID()) != m_fav_users_map.end();
 	}
 	return false;
 }
 void FavoriteManager::getFavoriteUsersNamesL(StringSet& p_users, bool p_is_ban) const // TODO оптимизировать упаковку в уникальные ники отложенно в момент измения базовой мапы users.
 {
-	for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
+	for (auto i = m_fav_users_map.cbegin(); i != m_fav_users_map.cend(); ++i)
 	{
 		const auto& l_nick = i->second.getNick();
 		dcassert(!l_nick.empty());
@@ -472,12 +472,12 @@ void FavoriteManager::removeFavoriteUser(const UserPtr& aUser)
 {
 	{
 		webrtc::WriteLockScoped l(*g_csUsers);
-		const FavoriteMap::const_iterator i = m_users.find(aUser->getCID());
-		if (i == m_users.end())
+		const auto i = m_fav_users_map.find(aUser->getCID());
+		if (i == m_fav_users_map.end())
 			return;
 			
 		fire(FavoriteManagerListener::UserRemoved(), i->second);
-		m_users.erase(i);
+		m_fav_users_map.erase(i);
 		updateEmptyStateL();
 	}
 	save();
@@ -488,8 +488,8 @@ string FavoriteManager::getUserUrl(const UserPtr& aUser) const
 	if (isNotEmpty()) // [+]PPA
 	{
 		webrtc::ReadLockScoped l(*g_csUsers);
-		const auto& i = m_users.find(aUser->getCID());
-		if (i != m_users.end())
+		const auto& i = m_fav_users_map.find(aUser->getCID());
+		if (i != m_fav_users_map.end())
 		{
 			const FavoriteUser& fu = i->second;
 			return fu.getUrl();
@@ -783,7 +783,7 @@ void FavoriteManager::save()
 		xml.stepIn();
 		{
 			webrtc::ReadLockScoped l(*g_csUsers);
-			for (auto i = m_users.cbegin(), iend = m_users.cend(); i != iend; ++i)
+			for (auto i = m_fav_users_map.cbegin(), iend = m_fav_users_map.cend(); i != iend; ++i)
 			{
 				const auto &u = i->second; // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'i->second' expression repeatedly. favoritemanager.cpp 687
 				xml.addTag("User");
@@ -1281,7 +1281,7 @@ void FavoriteManager::load(SimpleXML& aXml
 					}
 					
 					webrtc::WriteLockScoped l(*g_csUsers);
-					FavoriteMap::iterator i = m_users.insert(make_pair(u->getCID(), FavoriteUser(u, nick, hubUrl))).first;
+					auto i = m_fav_users_map.insert(make_pair(u->getCID(), FavoriteUser(u, nick, hubUrl))).first;
 					
 					if (aXml.getBoolChildAttrib("IgnorePrivate")) // !SMT!-S
 						i->second.setFlag(FavoriteUser::FLAG_IGNORE_PRIVATE);
@@ -1340,8 +1340,8 @@ void FavoriteManager::userUpdated(const OnlineUser& info)
 	{
 		{
 			webrtc::WriteLockScoped l(*g_csUsers);
-			FavoriteMap::iterator i = m_users.find(info.getUser()->getCID());
-			if (i == m_users.end())
+			auto i = m_fav_users_map.find(info.getUser()->getCID());
+			if (i == m_fav_users_map.end())
 				return;
 				
 			i->second.update(info);
@@ -1419,7 +1419,7 @@ void FavoriteManager::setUploadLimit(const UserPtr& aUser, int lim, bool createU
 		FavoriteMap::iterator i;
 		webrtc::WriteLockScoped l(*g_csUsers);
 		const bool added = addUserL(aUser, i, createUser);
-		if (i == m_users.end())
+		if (i == m_fav_users_map.end())
 			return;
 			
 		i->second.setUploadLimit(lim);
@@ -1434,8 +1434,8 @@ bool FavoriteManager::getFlag(const UserPtr& aUser, FavoriteUser::Flags f) const
 	if (isNotEmpty()) // [+]PPA
 	{
 		webrtc::ReadLockScoped l(*g_csUsers);
-		FavoriteMap::const_iterator i = m_users.find(aUser->getCID());
-		if (i != m_users.end())
+		const auto i = m_fav_users_map.find(aUser->getCID());
+		if (i != m_fav_users_map.end())
 		{
 			return i->second.isSet(f);
 		}
@@ -1450,7 +1450,7 @@ void FavoriteManager::setFlag(const UserPtr& aUser, FavoriteUser::Flags f, bool 
 		FavoriteMap::iterator i;
 		webrtc::WriteLockScoped l(*g_csUsers);
 		const bool added = addUserL(aUser, i, createUser);
-		if (i == m_users.end())
+		if (i == m_fav_users_map.end())
 			return;
 			
 		if (value)
@@ -1469,8 +1469,8 @@ void FavoriteManager::setUserDescription(const UserPtr& aUser, const string& des
 	{
 		{
 			webrtc::WriteLockScoped l(*g_csUsers);
-			FavoriteMap::iterator i = m_users.find(aUser->getCID());
-			if (i == m_users.end())
+			auto i = m_fav_users_map.find(aUser->getCID());
+			if (i == m_fav_users_map.end())
 				return;
 				
 			i->second.setDescription(description);
@@ -1573,8 +1573,8 @@ void FavoriteManager::on(UserDisconnected, const UserPtr& user) noexcept
 	{
 		{
 			webrtc::WriteLockScoped l(*g_csUsers);
-			FavoriteMap::iterator i = m_users.find(user->getCID());
-			if (i == m_users.end())
+			auto i = m_fav_users_map.find(user->getCID());
+			if (i == m_fav_users_map.end())
 				return;
 				
 			i->second.setLastSeen(GET_TIME()); // TODO: if ClientManager::isShutdown() this data is not update :( https://code.google.com/p/flylinkdc/issues/detail?id=1317
@@ -1593,8 +1593,8 @@ void FavoriteManager::on(UserConnected, const UserPtr& user) noexcept
 		{
 			{
 				webrtc::ReadLockScoped l(*g_csUsers);
-				FavoriteMap::const_iterator i = m_users.find(user->getCID());
-				if (i == m_users.end())
+				auto i = m_fav_users_map.find(user->getCID());
+				if (i == m_fav_users_map.end())
 					return;
 			}
 			fire(FavoriteManagerListener::StatusChanged(), user);

@@ -80,7 +80,7 @@ struct leveldb_comparator_t : public Comparator {
 
   // No-ops since the C binding does not support key shortening methods.
   virtual void FindShortestSeparator(std::string*, const Slice&) const { }
-  virtual void FindShortSuccessor(std::string* key) const { }
+  virtual void FindShortSuccessor(std::string* /* key */) const { }
 };
 
 struct leveldb_filterpolicy_t : public FilterPolicy {

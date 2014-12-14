@@ -34,34 +34,14 @@
 
 //#define NIGHT_BUILD 1 // Enable to use fail-save, and potential unstable features.
 
-// [!] FlylinkDC++ compilation note:
-// To enable FLYLINKDC_SUPPORT_WIN_2000 please use the compiler that supports C++11 features,
-// and at the same compiles the code for Windows 2000,
-// in addition to this you have to add support for the compiler to a "compiler.h".
-// P.s: please send this patch to FlylinkDC++ team https://code.google.com/p/flylinkdc/
-
 #ifdef FLYLINKDC_HE
-
-# ifndef _WIN64
-#  define FLYLINKDC_SUPPORT_WIN_VISTA 1
-#  ifdef FLYLINKDC_SUPPORT_WIN_VISTA
-#   define FLYLINKDC_SUPPORT_WIN_XP 1
-#   ifdef FLYLINKDC_SUPPORT_WIN_XP
-//#   define FLYLINKDC_SUPPORT_WIN_2000 1
-#   endif // FLYLINKDC_SUPPORT_WIN_XP
-#  endif // FLYLINKDC_SUPPORT_WIN_VISTA
-# endif // _WIN64
 
 #else // FLYLINKDC_HE
 
 # define FLYLINKDC_SUPPORT_WIN_VISTA 1
 # ifdef FLYLINKDC_SUPPORT_WIN_VISTA
 #  define FLYLINKDC_SUPPORT_WIN_XP 1
-#  ifdef FLYLINKDC_SUPPORT_WIN_XP
-//#   define FLYLINKDC_SUPPORT_WIN_2000 1
-#  endif // FLYLINKDC_SUPPORT_WIN_XP
 # endif // FLYLINKDC_SUPPORT_WIN_VISTA
-
 #endif // FLYLINKDC_HE
 
 #define APPNAME "FlylinkDC++"

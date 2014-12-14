@@ -95,9 +95,9 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 				{
 					FavoriteManager::getInstance()->g_csUsers->ReleaseLockShared();
 				}
-				const FavoriteMap& getFavoriteUsers() const
+				const FavoriteMap& getFavoriteUsersL() const
 				{
-					return FavoriteManager::getInstance()->m_users;
+					return FavoriteManager::getInstance()->m_fav_users_map;
 				}
 				const StringSet& getFavoriteNames() const
 				{
@@ -419,7 +419,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		void updateEmptyStateL();
 		// [~] Fasts response if contact list empty.
 		
-		FavoriteMap m_users;
+		FavoriteMap m_fav_users_map;
 		StringSet   m_fav_users;
 		// [!] IRainman opt: replace one recursive mutex to multiply shared spin locks.
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csUsers; // https://code.google.com/p/flylinkdc/issues/detail?id=1316

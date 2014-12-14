@@ -326,7 +326,7 @@ namespace Elements
     //                                 0B - ?
     //                                   01 - AS-11 core metadata framework
     UUID(060E2B34, 02530101, 0D010701, 0B010100, 0000, "AMWA AS-11", AS11_AAF_Core, "")
-    UUID(060E2B34, 01010101, 0D010701, 0B010101, 0000, "AMWA AS-11", AS11_Core_SerieTitle, "")
+    UUID(060E2B34, 01010101, 0D010701, 0B010101, 0000, "AMWA AS-11", AS11_Core_SeriesTitle, "")
     UUID(060E2B34, 01010101, 0D010701, 0B010102, 0000, "AMWA AS-11", AS11_Core_ProgrammeTitle, "")
     UUID(060E2B34, 01010101, 0D010701, 0B010103, 0000, "AMWA AS-11", AS11_Core_EpisodeTitleNumber, "")
     UUID(060E2B34, 01010101, 0D010701, 0B010104, 0000, "AMWA AS-11", AS11_Core_ShimName, "")
@@ -1875,6 +1875,12 @@ File_Mxf::File_Mxf()
         OverallBitrate_IsCbrForSure=0;
         Duration_Detected=false;
     #endif //MEDIAINFO_SEEK
+    #if MEDIAINFO_DEMUX
+        DemuxedSampleCount_Total=(int64u)-1;
+        DemuxedSampleCount_Current=(int64u)-1;
+        DemuxedSampleCount_AddedToFirstFrame=0;
+        DemuxedElementSize_AddedToFirstFrame=0;
+    #endif //MEDIAINFO_DEMUX
 }
 
 //---------------------------------------------------------------------------
@@ -2043,7 +2049,7 @@ void File_Mxf::Streams_Finish()
     //Parsing locators
     Locators_Test();
     #if MEDIAINFO_NEXTPACKET
-        if (Config->NextPacket_Get() && ReferenceFiles && !ReferenceFiles->References.empty())
+        if (Config->NextPacket_Get() && ReferenceFiles)
         {
             ReferenceFiles_IsParsing=true;
             return;
@@ -2071,7 +2077,7 @@ void File_Mxf::Streams_Finish()
             }
 
     //File size in case of partial file analysis
-    if (Config->File_IgnoreFramesBefore || Config->File_IgnoreFramesAfter!=(int64u)-1)
+    if (Config->File_IgnoreEditsBefore || Config->File_IgnoreEditsAfter!=(int64u)-1)
     {
         int64u FrameCount_FromComponent=(int64u)-1;
         for (components::iterator Component=Components.begin(); Component!=Components.end(); ++Component)
@@ -2084,17 +2090,17 @@ void File_Mxf::Streams_Finish()
         if (FrameCount_FromComponent!=(int64u)-1 && FrameCount_FromComponent && EditRate_FromTrack!=DBL_MAX && EditRate_FromTrack)
         {
             int64u FrameCount=FrameCount_FromComponent;
-            int64u File_IgnoreFramesBefore=Config->File_IgnoreFramesBefore;
-            if (File_IgnoreFramesBefore && Config->File_IgnoreFramesRate && (EditRate_FromTrack<Config->File_IgnoreFramesRate*0.9 || EditRate_FromTrack>Config->File_IgnoreFramesRate*1.1)) //In case of problem or EditRate being sampling rate
-                File_IgnoreFramesBefore=float64_int64s(((float64)File_IgnoreFramesBefore)/Config->File_IgnoreFramesRate*EditRate_FromTrack);
-            int64u File_IgnoreFramesAfter=Config->File_IgnoreFramesAfter;
-            if (File_IgnoreFramesAfter!=(int64u)-1 && Config->File_IgnoreFramesRate && (EditRate_FromTrack<Config->File_IgnoreFramesRate*0.9 || EditRate_FromTrack>Config->File_IgnoreFramesRate*1.1)) //In case of problem or EditRate being sampling rate
-                File_IgnoreFramesAfter=float64_int64s(((float64)File_IgnoreFramesAfter)/Config->File_IgnoreFramesRate*EditRate_FromTrack);
-            if (File_IgnoreFramesAfter<FrameCount)
-                FrameCount=File_IgnoreFramesAfter;
-            if (FrameCount<File_IgnoreFramesBefore)
-                FrameCount=File_IgnoreFramesBefore;
-            FrameCount-=File_IgnoreFramesBefore;
+            int64u File_IgnoreEditsBefore=Config->File_IgnoreEditsBefore;
+            if (File_IgnoreEditsBefore && Config->File_EditRate && (EditRate_FromTrack<Config->File_EditRate*0.9 || EditRate_FromTrack>Config->File_EditRate*1.1)) //In case of problem or EditRate being sampling rate
+                File_IgnoreEditsBefore=float64_int64s(((float64)File_IgnoreEditsBefore)/Config->File_EditRate*EditRate_FromTrack);
+            int64u File_IgnoreEditsAfter=Config->File_IgnoreEditsAfter;
+            if (File_IgnoreEditsAfter!=(int64u)-1 && Config->File_EditRate && (EditRate_FromTrack<Config->File_EditRate*0.9 || EditRate_FromTrack>Config->File_EditRate*1.1)) //In case of problem or EditRate being sampling rate
+                File_IgnoreEditsAfter=float64_int64s(((float64)File_IgnoreEditsAfter)/Config->File_EditRate*EditRate_FromTrack);
+            if (File_IgnoreEditsAfter<FrameCount)
+                FrameCount=File_IgnoreEditsAfter;
+            if (FrameCount<File_IgnoreEditsBefore)
+                FrameCount=File_IgnoreEditsBefore;
+            FrameCount-=File_IgnoreEditsBefore;
 
             float64 File_Size_Temp=(float64)File_Size;
             File_Size_Temp/=FrameCount_FromComponent;
@@ -2373,7 +2379,7 @@ void File_Mxf::Streams_Finish_Essence(int32u EssenceUID, int128u TrackUID)
         Fill(StreamKind_Last, StreamPos_Last, Info->first.c_str(), Info->second, true);
     if (TimeCode_RoundedTimecodeBase && TimeCode_StartTimecode!=(int64u)-1)
     {
-        float64 TimeCode_StartTimecode_Temp=((float64)(TimeCode_StartTimecode+Config->File_IgnoreFramesBefore))/TimeCode_RoundedTimecodeBase;
+        float64 TimeCode_StartTimecode_Temp=((float64)(TimeCode_StartTimecode+Config->File_IgnoreEditsBefore))/TimeCode_RoundedTimecodeBase;
         if (TimeCode_DropFrame)
         {
             TimeCode_StartTimecode_Temp*=1001;
@@ -2597,7 +2603,7 @@ void File_Mxf::Streams_Finish_Essence(int32u EssenceUID, int128u TrackUID)
                 (*Parser)->Finish();
                 if (TimeCode_RoundedTimecodeBase && TimeCode_StartTimecode!=(int64u)-1)
                 {
-                    float64 TimeCode_StartTimecode_Temp=((float64)(TimeCode_StartTimecode+Config->File_IgnoreFramesBefore))/TimeCode_RoundedTimecodeBase;
+                    float64 TimeCode_StartTimecode_Temp=((float64)(TimeCode_StartTimecode+Config->File_IgnoreEditsBefore))/TimeCode_RoundedTimecodeBase;
                     if (TimeCode_DropFrame)
                     {
                         TimeCode_StartTimecode_Temp*=1001;
@@ -2637,7 +2643,7 @@ void File_Mxf::Streams_Finish_Essence(int32u EssenceUID, int128u TrackUID)
             (*Parser)->Finish();
             if (TimeCode_RoundedTimecodeBase && TimeCode_StartTimecode!=(int64u)-1)
             {
-                float64 TimeCode_StartTimecode_Temp=((float64)(TimeCode_StartTimecode+Config->File_IgnoreFramesBefore))/TimeCode_RoundedTimecodeBase;
+                float64 TimeCode_StartTimecode_Temp=((float64)(TimeCode_StartTimecode+Config->File_IgnoreEditsBefore))/TimeCode_RoundedTimecodeBase;
                 if (TimeCode_DropFrame)
                 {
                     TimeCode_StartTimecode_Temp*=1001;
@@ -2693,7 +2699,7 @@ void File_Mxf::Streams_Finish_Essence(int32u EssenceUID, int128u TrackUID)
     {
         //TODO: Stream_Size is present only if there is one stream, so it works in most cases. We should find a better way.
         int64u Stream_Size=Essence->second.Stream_Size;
-        if (Config->File_IgnoreFramesBefore || Config->File_IgnoreFramesAfter!=(int64u)-1)
+        if (Config->File_IgnoreEditsBefore || Config->File_IgnoreEditsAfter!=(int64u)-1)
         {
             int64u FrameCount_FromComponent=(int64u)-1;
             for (components::iterator Component=Components.begin(); Component!=Components.end(); ++Component)
@@ -2706,17 +2712,17 @@ void File_Mxf::Streams_Finish_Essence(int32u EssenceUID, int128u TrackUID)
             if (FrameCount_FromComponent!=(int64u)-1 && FrameCount_FromComponent && EditRate_FromTrack!=DBL_MAX && EditRate_FromTrack)
             {
                 int64u FrameCount=FrameCount_FromComponent;
-                int64u File_IgnoreFramesBefore=Config->File_IgnoreFramesBefore;
-                if (File_IgnoreFramesBefore && Config->File_IgnoreFramesRate && (EditRate_FromTrack<Config->File_IgnoreFramesRate*0.9 || EditRate_FromTrack>Config->File_IgnoreFramesRate*1.1)) //In case of problem or EditRate being sampling rate
-                    File_IgnoreFramesBefore=float64_int64s(((float64)File_IgnoreFramesBefore)/Config->File_IgnoreFramesRate*EditRate_FromTrack);
-                int64u File_IgnoreFramesAfter=Config->File_IgnoreFramesAfter;
-                if (File_IgnoreFramesAfter!=(int64u)-1 && Config->File_IgnoreFramesRate && (EditRate_FromTrack<Config->File_IgnoreFramesRate*0.9 || EditRate_FromTrack>Config->File_IgnoreFramesRate*1.1)) //In case of problem or EditRate being sampling rate
-                    File_IgnoreFramesAfter=float64_int64s(((float64)File_IgnoreFramesAfter)/Config->File_IgnoreFramesRate*EditRate_FromTrack);
-                if (File_IgnoreFramesAfter<FrameCount)
-                    FrameCount=File_IgnoreFramesAfter;
-                if (FrameCount<File_IgnoreFramesBefore)
-                    FrameCount=File_IgnoreFramesBefore;
-                FrameCount-=File_IgnoreFramesBefore;
+                int64u File_IgnoreEditsBefore=Config->File_IgnoreEditsBefore;
+                if (File_IgnoreEditsBefore && Config->File_EditRate && (EditRate_FromTrack<Config->File_EditRate*0.9 || EditRate_FromTrack>Config->File_EditRate*1.1)) //In case of problem or EditRate being sampling rate
+                    File_IgnoreEditsBefore=float64_int64s(((float64)File_IgnoreEditsBefore)/Config->File_EditRate*EditRate_FromTrack);
+                int64u File_IgnoreEditsAfter=Config->File_IgnoreEditsAfter;
+                if (File_IgnoreEditsAfter!=(int64u)-1 && Config->File_EditRate && (EditRate_FromTrack<Config->File_EditRate*0.9 || EditRate_FromTrack>Config->File_EditRate*1.1)) //In case of problem or EditRate being sampling rate
+                    File_IgnoreEditsAfter=float64_int64s(((float64)File_IgnoreEditsAfter)/Config->File_EditRate*EditRate_FromTrack);
+                if (File_IgnoreEditsAfter<FrameCount)
+                    FrameCount=File_IgnoreEditsAfter;
+                if (FrameCount<File_IgnoreEditsBefore)
+                    FrameCount=File_IgnoreEditsBefore;
+                FrameCount-=File_IgnoreEditsBefore;
 
                 float64 Stream_Size_Temp=(float64)Stream_Size;
                 Stream_Size_Temp/=FrameCount_FromComponent;
@@ -3270,19 +3276,19 @@ void File_Mxf::Streams_Finish_Component(const int128u ComponentUID, float64 Edit
     if (EditRate && StreamKind_Last!=Stream_Max && Component->second.Duration!=(int64u)-1)
     {
         int64u FrameCount=Component->second.Duration;
-        if (StreamKind_Last==Stream_Video || Config->File_IgnoreFramesRate)
+        if (StreamKind_Last==Stream_Video || Config->File_EditRate)
         {
-            int64u File_IgnoreFramesBefore=Config->File_IgnoreFramesBefore;
-            if (File_IgnoreFramesBefore && Config->File_IgnoreFramesRate && (EditRate<Config->File_IgnoreFramesRate*0.9 || EditRate>Config->File_IgnoreFramesRate*1.1)) //In case of problem or EditRate being sampling rate
-                File_IgnoreFramesBefore=float64_int64s(((float64)File_IgnoreFramesBefore)/Config->File_IgnoreFramesRate*EditRate);
-            int64u File_IgnoreFramesAfter=Config->File_IgnoreFramesAfter;
-            if (File_IgnoreFramesAfter!=(int64u)-1 && Config->File_IgnoreFramesRate && (EditRate<Config->File_IgnoreFramesRate*0.9 || EditRate>Config->File_IgnoreFramesRate*1.1)) //In case of problem or EditRate being sampling rate
-                File_IgnoreFramesAfter=float64_int64s(((float64)File_IgnoreFramesAfter)/Config->File_IgnoreFramesRate*EditRate);
-            if (File_IgnoreFramesAfter<FrameCount)
-                FrameCount=File_IgnoreFramesAfter;
-            if (FrameCount<File_IgnoreFramesBefore)
-                FrameCount=File_IgnoreFramesBefore;
-            FrameCount-=File_IgnoreFramesBefore;
+            int64u File_IgnoreEditsBefore=Config->File_IgnoreEditsBefore;
+            if (File_IgnoreEditsBefore && Config->File_EditRate && (EditRate<Config->File_EditRate*0.9 || EditRate>Config->File_EditRate*1.1)) //In case of problem or EditRate being sampling rate
+                File_IgnoreEditsBefore=float64_int64s(((float64)File_IgnoreEditsBefore)/Config->File_EditRate*EditRate);
+            int64u File_IgnoreEditsAfter=Config->File_IgnoreEditsAfter;
+            if (File_IgnoreEditsAfter!=(int64u)-1 && Config->File_EditRate && (EditRate<Config->File_EditRate*0.9 || EditRate>Config->File_EditRate*1.1)) //In case of problem or EditRate being sampling rate
+                File_IgnoreEditsAfter=float64_int64s(((float64)File_IgnoreEditsAfter)/Config->File_EditRate*EditRate);
+            if (File_IgnoreEditsAfter<FrameCount)
+                FrameCount=File_IgnoreEditsAfter;
+            if (FrameCount<File_IgnoreEditsBefore)
+                FrameCount=File_IgnoreEditsBefore;
+            FrameCount-=File_IgnoreEditsBefore;
         }
         Fill(StreamKind_Last, StreamPos_Last, Fill_Parameter(StreamKind_Last, Generic_Duration), FrameCount*1000/EditRate, 0, true);
         size_t ID_SubStreamInfo_Pos=Retrieve(StreamKind_Last, StreamPos_Last, General_ID).find(__T("-"));
@@ -3332,7 +3338,7 @@ void File_Mxf::Streams_Finish_Component_ForTimeCode(const int128u ComponentUID, 
         if (Component2!=Components.end() && Component2->second.TimeCode_StartTimecode!=(int64u)-1 && !Config->File_IsReferenced_Get())
         {
             //Note: Origin is not part of the StartTimecode for the first frame in the source package. From specs: "For a Timecode Track with a single Timecode Component and with origin N, where N greater than 0, the timecode value at the Zero Point of the Track equals the start timecode of the Timecode Component incremented by N units."
-            TimeCode TC(Component2->second.TimeCode_StartTimecode+Config->File_IgnoreFramesBefore, (int8u)Component2->second.TimeCode_RoundedTimecodeBase, Component2->second.TimeCode_DropFrame);
+            TimeCode TC(Component2->second.TimeCode_StartTimecode+Config->File_IgnoreEditsBefore, (int8u)Component2->second.TimeCode_RoundedTimecodeBase, Component2->second.TimeCode_DropFrame);
             Stream_Prepare(Stream_Other);
             Fill(Stream_Other, StreamPos_Last, Other_ID, Ztring::ToZtring(TrackID)+(IsSourcePackage?__T("-Source"):__T("-Material")));
             Fill(Stream_Other, StreamPos_Last, Other_Type, "Time code");
@@ -3430,7 +3436,7 @@ void File_Mxf::Streams_Finish_Component_ForAS11(const int128u ComponentUID, floa
                 {
                     case as11::Type_Core:
                                                     Fill(Stream_Other, StreamPos_Last, "Format", "AS-11 Core");
-                                                    Fill(Stream_Other, StreamPos_Last, "SerieTitle", AS11->second.SerieTitle);
+                                                    Fill(Stream_Other, StreamPos_Last, "SeriesTitle", AS11->second.SeriesTitle);
                                                     Fill(Stream_Other, StreamPos_Last, "ProgrammeTitle", AS11->second.ProgrammeTitle);
                                                     Fill(Stream_Other, StreamPos_Last, "EpisodeTitleNumber", AS11->second.EpisodeTitleNumber);
                                                     Fill(Stream_Other, StreamPos_Last, "ShimName", AS11->second.ShimName);
@@ -3558,7 +3564,7 @@ void File_Mxf::Streams_Finish_Component_ForAS11(const int128u ComponentUID, floa
         }
     }
     if (Duration_Programme)
-        Fill(Stream_Other, StreamPos_Last, "Total Programme Duration", TimeCode(Duration_Programme, FrameRate_TempI, DropFrame_Temp).ToString());
+        Fill(Stream_Other, StreamPos_Last, "TotalProgrammeDuration", TimeCode(Duration_Programme, FrameRate_TempI, DropFrame_Temp).ToString());
 }
 
 //---------------------------------------------------------------------------
@@ -3835,6 +3841,9 @@ void File_Mxf::Read_Buffer_Unsynched()
             Partitions_Pos++;
         }
 
+        if (Partitions_Pos==2 && Partitions[1].StreamOffset==FutureFileOffset && Descriptors.size()==1 && Descriptors.begin()->second.StreamKind==Stream_Text)
+            Frame_Count_NotParsedIncluded=0;
+
         if (Descriptors.size()==1 && Descriptors.begin()->second.ByteRate!=(int32u)-1 && Descriptors.begin()->second.SampleRate)
         {
             float64 BytePerFrame=Descriptors.begin()->second.ByteRate/Descriptors.begin()->second.SampleRate;
@@ -4051,7 +4060,7 @@ bool File_Mxf::DetectDuration ()
 size_t File_Mxf::Read_Buffer_Seek (size_t Method, int64u Value, int64u ID)
 {
     if (ReferenceFiles)
-        return ReferenceFiles->Read_Buffer_Seek(Method, Value, ID);
+        return ReferenceFiles->Seek(Method, Value, ID);
 
     //Init
     if (!Duration_Detected)
@@ -4118,7 +4127,7 @@ size_t File_Mxf::Read_Buffer_Seek (size_t Method, int64u Value, int64u ID)
     {
         case 0  :
                     {
-                    if (Config->File_IgnoreFramesBefore && Config->File_IgnoreFramesRate)
+                    if (Config->File_IgnoreEditsBefore && Config->File_EditRate)
                     {
                         Read_Buffer_Seek(3, 0, (int64u)-1);
                         if (File_GoTo!=(int64u)-1)
@@ -4192,24 +4201,14 @@ size_t File_Mxf::Read_Buffer_Seek (size_t Method, int64u Value, int64u ID)
                     return Read_Buffer_Seek(0, File_Size*Value/10000, ID);
         case 2  :   //Timestamp
                     {
-                        if (Config->File_IgnoreFramesBefore && Config->File_IgnoreFramesRate)
-                            Value+=float64_int64s(((float64)Config->File_IgnoreFramesBefore)/Config->File_IgnoreFramesRate*1000000000);
-
                         //We transform TimeStamp to a frame number
                         descriptors::iterator Descriptor;
                         for (Descriptor=Descriptors.begin(); Descriptor!=Descriptors.end(); ++Descriptor)
-                            if (Descriptors.begin()->second.SampleRate)
+                            if (Descriptor->second.SampleRate)
                                 break;
                         if (Descriptor==Descriptors.end())
                             return (size_t)-1; //Not supported
 
-                        if (Config->Demux_Offset_DTS!=(int64u)-1)
-                        {
-                            int64u Delay=Config->Demux_Offset_DTS;
-                            if (Value<Delay)
-                                return 2; //Invalid value
-                            Value-=Delay;
-                        }
                         else if (TimeCode_StartTimecode!=(int64u)-1)
                         {
                             int64u Delay=float64_int64s(DTS_Delay*1000000000);
@@ -4221,10 +4220,17 @@ size_t File_Mxf::Read_Buffer_Seek (size_t Method, int64u Value, int64u ID)
                         }
                     //No break;
         case 3  :   //FrameNumber
-                    Value+=Config->File_IgnoreFramesBefore;
+                    Value+=Config->File_IgnoreEditsBefore;
 
                     if (Descriptors.size()==1 && Descriptors.begin()->second.ByteRate!=(int32u)-1 && Descriptors.begin()->second.BlockAlign && Descriptors.begin()->second.BlockAlign!=(int16u)-1  && Descriptors.begin()->second.SampleRate)
                     {
+                        if (Descriptors.begin()->second.SampleRate!=Config->File_EditRate && Config->File_IgnoreEditsBefore)
+                        {
+                            //Edit rate and Demux rate are different, not well supported for the moment
+                            Value-=Config->File_IgnoreEditsBefore;
+                            Value+=float64_int64s(((float64)Config->File_IgnoreEditsBefore)/Config->File_EditRate*Descriptors.begin()->second.SampleRate);
+                        }
+
                         float64 BytesPerFrame=Descriptors.begin()->second.ByteRate/Descriptors.begin()->second.SampleRate;
                         int64u StreamOffset=(int64u)(Value*BytesPerFrame);
                         StreamOffset/=Descriptors.begin()->second.BlockAlign;
@@ -4537,6 +4543,9 @@ bool File_Mxf::Header_Begin()
                 float64 BytesPerFrame=((float64)SingleDescriptor->second.ByteRate)/SingleDescriptor->second.SampleRate;
                 int64u FramesAlreadyParsed=float64_int64s(((float64)(File_Offset+Buffer_Offset-Buffer_Begin))/BytesPerFrame);
                 Element_Size=float64_int64s(SingleDescriptor->second.ByteRate/SingleDescriptor->second.SampleRate*(FramesAlreadyParsed+1));
+                #if MEDIAINFO_DEMUX
+                    Element_Size+=DemuxedElementSize_AddedToFirstFrame;
+                #endif //MEDIAINFO_DEMUX
                 Element_Size/=SingleDescriptor->second.BlockAlign;
                 Element_Size*=SingleDescriptor->second.BlockAlign;
                 Element_Size-=File_Offset+Buffer_Offset-Buffer_Begin;
@@ -4548,6 +4557,37 @@ bool File_Mxf::Header_Begin()
                     Element_Size=Buffer_End-(File_Offset+Buffer_Offset);
                 if (Buffer_Offset+Element_Size>Buffer_Size)
                     return false;
+
+                #if MEDIAINFO_DEMUX
+                    if (!DemuxedSampleCount_Total && Config->Demux_Offset_DTS!=(int64u)-1 && Config->File_EditRate)
+                    {
+                        //Need to sync to a rounded value compared to the whole stream (including previous files)
+                        float64 TimeStamp=((float64)Config->Demux_Offset_DTS)/1000000000;
+                        int64u FramesBeForeThisFileMinusOne=(int64u)(TimeStamp*SingleDescriptor->second.SampleRate);
+                        if ((((float64)FramesBeForeThisFileMinusOne)/SingleDescriptor->second.SampleRate)!=TimeStamp)
+                        {
+                            float64 Delta=(((float64)FramesBeForeThisFileMinusOne+1)/SingleDescriptor->second.SampleRate)-TimeStamp;
+                            DemuxedSampleCount_AddedToFirstFrame=float64_int64s(Delta*Config->File_EditRate);
+                            DemuxedElementSize_AddedToFirstFrame=DemuxedSampleCount_AddedToFirstFrame*SingleDescriptor->second.BlockAlign;
+                            Element_Size+=DemuxedElementSize_AddedToFirstFrame;
+                        }
+                    }
+                    if (DemuxedSampleCount_Total!=(int64u)-1 && Config->File_IgnoreEditsAfter!=(int64u)-1)
+                    {
+                        DemuxedSampleCount_Current=Element_Size/SingleDescriptor->second.BlockAlign;
+                        int64u RealSampleRate=SingleDescriptor->second.Infos["SamplingRate"].To_int64u();
+                        int64u IgnoreSamplesAfter;
+                        if (RealSampleRate==Config->File_EditRate)
+                            IgnoreSamplesAfter=Config->File_IgnoreEditsAfter;
+                        else
+                            IgnoreSamplesAfter=float64_int64s(((float64)Config->File_IgnoreEditsAfter)/Config->File_EditRate*RealSampleRate);
+                        if (DemuxedSampleCount_Total+DemuxedSampleCount_Current>IgnoreSamplesAfter)
+                        {
+                            DemuxedSampleCount_Current=Config->File_IgnoreEditsAfter-DemuxedSampleCount_Total;
+                            Element_Size=DemuxedSampleCount_Current*SingleDescriptor->second.BlockAlign;
+                        }
+                    }
+                #endif //MEDIAINFO_DEMUX
             }
             else if (Demux_UnpacketizeContainer && !IndexTables.empty() && IndexTables[0].EditUnitByteCount)
             {
@@ -4799,8 +4839,8 @@ void File_Mxf::Header_Parse()
             //Testing locators
             Locators_CleanUp();
 
-            if (Config->File_IgnoreFramesBefore && !Config->File_IsDetectingDuration_Get())
-                Open_Buffer_Seek(3, 0, (int64u)-1); //Forcing seek to Config->File_IgnoreFramesBefore
+            if (Config->File_IgnoreEditsBefore && !Config->File_IsDetectingDuration_Get())
+                Open_Buffer_Seek(3, 0, (int64u)-1); //Forcing seek to Config->File_IgnoreEditsBefore
             if (Config->NextPacket_Get() && Config->Event_CallBackFunction_IsSet())
             {
                 if (Locators.empty())
@@ -5115,6 +5155,7 @@ void File_Mxf::Data_Parse()
                     if (EditRate_FromTrack>1000)
                         EditRate_FromTrack=Demux_Rate; //Default value;
                     Descriptor->second.SampleRate=EditRate_FromTrack;
+                    DemuxedSampleCount_Total=Config->File_IgnoreEditsBefore;
                     for (tracks::iterator Track=Tracks.begin(); Track!=Tracks.end(); ++Track)
                         if (Track->second.EditRate>EditRate_FromTrack)
                         {
@@ -5279,10 +5320,10 @@ void File_Mxf::Data_Parse()
                 if (!IsSub) //Updating for MXF only if MXF is not embedded in another container
                 {
                     Essence->second.Frame_Count_NotParsedIncluded=Frame_Count_NotParsedIncluded;
-                    if (Essence->second.Frame_Count_NotParsedIncluded!=(int64u)-1 && Essence->second.Frame_Count_NotParsedIncluded)
+                    if (Essence->second.Frame_Count_NotParsedIncluded!=(int64u)-1 && Essence->second.Frame_Count_NotParsedIncluded && Essence->first!=Essences_UsedForFrameCount)
                         Essence->second.Frame_Count_NotParsedIncluded--; //Info is from the first essence parsed, and 1 frame is already parsed
                     Essence->second.FrameInfo.DTS=FrameInfo.DTS;
-                    if (Essence->second.FrameInfo.DTS!=(int64u)-1 && FrameInfo.DUR!=(int64u)-1 && Frame_Count_NotParsedIncluded)
+                    if (Essence->second.FrameInfo.DTS!=(int64u)-1 && FrameInfo.DUR!=(int64u)-1 && Frame_Count_NotParsedIncluded && Essence->first!=Essences_UsedForFrameCount)
                         Essence->second.FrameInfo.DTS-=FrameInfo.DUR; //Info is from the first essence parsed, and 1 frame is already parsed
                     if (!Tracks.empty() && Tracks.begin()->second.EditRate) //TODO: use the corresponding track instead of the first one
                         Essence->second.FrameInfo.DUR=float64_int64s(1000000000/Tracks.begin()->second.EditRate);
@@ -5457,14 +5498,28 @@ void File_Mxf::Data_Parse()
                 for (size_t Pos=0; Pos<Essence->second.Parsers.size(); Pos++)
                 {
                     //Parsing
-                    if (Essence->second.Frame_Count_NotParsedIncluded!=(int64u)-1)
-                        Essence->second.Parsers[Pos]->Frame_Count_NotParsedIncluded=Essence->second.Frame_Count_NotParsedIncluded;
-                    if (Essence->second.FrameInfo.DTS!=(int64u)-1)
-                        Essence->second.Parsers[Pos]->FrameInfo.DTS=Essence->second.FrameInfo.DTS;
-                    if (Essence->second.FrameInfo.PTS!=(int64u)-1)
-                        Essence->second.Parsers[Pos]->FrameInfo.PTS=Essence->second.FrameInfo.PTS;
-                    if (Essence->second.FrameInfo.DUR!=(int64u)-1)
-                        Essence->second.Parsers[Pos]->FrameInfo.DUR=Essence->second.FrameInfo.DUR;
+                    if (IsSub)
+                    {
+                        if (Frame_Count_NotParsedIncluded!=(int64u)-1)
+                            Essence->second.Parsers[Pos]->Frame_Count_NotParsedIncluded=Frame_Count_NotParsedIncluded;
+                        if (FrameInfo.DTS!=(int64u)-1)
+                            Essence->second.Parsers[Pos]->FrameInfo.DTS=FrameInfo.DTS;
+                        if (FrameInfo.PTS!=(int64u)-1)
+                           Essence->second.Parsers[Pos]->FrameInfo.PTS=FrameInfo.PTS;
+                        if (FrameInfo.DUR!=(int64u)-1)
+                            Essence->second.Parsers[Pos]->FrameInfo.DUR=FrameInfo.DUR;
+                    }
+                    else
+                    {
+                        if (Essence->second.Frame_Count_NotParsedIncluded!=(int64u)-1)
+                            Essence->second.Parsers[Pos]->Frame_Count_NotParsedIncluded=Essence->second.Frame_Count_NotParsedIncluded;
+                        if (Essence->second.FrameInfo.DTS!=(int64u)-1)
+                            Essence->second.Parsers[Pos]->FrameInfo.DTS=Essence->second.FrameInfo.DTS;
+                        if (Essence->second.FrameInfo.PTS!=(int64u)-1)
+                            Essence->second.Parsers[Pos]->FrameInfo.PTS=Essence->second.FrameInfo.PTS;
+                        if (Essence->second.FrameInfo.DUR!=(int64u)-1)
+                            Essence->second.Parsers[Pos]->FrameInfo.DUR=Essence->second.FrameInfo.DUR;
+                    }
                     Open_Buffer_Continue(Essence->second.Parsers[Pos], Buffer+Buffer_Offset, (size_t)Element_Size);
                     #if MEDIAINFO_DEMUX
                         if (Demux_Level==4 && Config->Demux_EventWasSent && Essence->second.StreamKind==Stream_Video && Essence->second.Parsers[Pos]->ParserIDs[StreamIDs_Size]==MediaInfo_Parser_Jpeg) // Only File_Jpeg. TODO: limit to File_Jpeg instead of video streams
@@ -5557,13 +5612,47 @@ void File_Mxf::Data_Parse()
         }
 
         //Ignore tail
-        if (Config->ParseSpeed>=1.0 && Frame_Count_NotParsedIncluded!=(int64u)-1 && Config->File_IgnoreFramesAfter!=(int64u)-1 && Frame_Count_NotParsedIncluded>=Config->File_IgnoreFramesAfter)
+        #if MEDIAINFO_DEMUX
+            if (DemuxedSampleCount_Total!=(int64u)-1 && DemuxedSampleCount_Current!=(int64u)-1)
+            {
+                DemuxedSampleCount_Total+=DemuxedSampleCount_Current;
+                Frame_Count_NotParsedIncluded=DemuxedSampleCount_Total;
+            }
+        #endif //MEDIAINFO_DEMUX
+        if (Config->ParseSpeed>=1.0 && Frame_Count_NotParsedIncluded!=(int64u)-1 && Config->File_IgnoreEditsAfter!=(int64u)-1)
         {
-            if (PartitionMetadata_FooterPartition!=(int64u)-1 && PartitionMetadata_FooterPartition>=File_Offset+Buffer_Offset+Element_Size)
-                GoTo(PartitionMetadata_FooterPartition);
+            descriptors::iterator SingleDescriptor=Descriptors.end();
+            for (descriptors::iterator SingleDescriptor_Temp=Descriptors.begin(); SingleDescriptor_Temp!=Descriptors.end(); ++SingleDescriptor_Temp)
+                if (SingleDescriptor_Temp->second.StreamKind!=Stream_Max)
+                {
+                    if (SingleDescriptor!=Descriptors.end())
+                    {
+                        SingleDescriptor=Descriptors.end();
+                        break; // 2 or more descriptors, can not be used
+                    }
+                    SingleDescriptor=SingleDescriptor_Temp;
+                }
+
+            int64u RealSampleRate=(SingleDescriptor==Descriptors.end() || SingleDescriptor->second.StreamKind!=Stream_Audio)?((int64u)Config->File_EditRate):SingleDescriptor->second.Infos["SamplingRate"].To_int64u();
+            int64u IgnoreSamplesAfter;
+            if (!RealSampleRate || RealSampleRate==Config->File_EditRate)
+                IgnoreSamplesAfter=Config->File_IgnoreEditsAfter;
             else
-                GoToFromEnd(0);
+                IgnoreSamplesAfter=float64_int64s(((float64)Config->File_IgnoreEditsAfter)/Config->File_EditRate*RealSampleRate);
+            if (Frame_Count_NotParsedIncluded>=IgnoreSamplesAfter)
+            {
+                if (PartitionMetadata_FooterPartition!=(int64u)-1 && PartitionMetadata_FooterPartition>=File_Offset+Buffer_Offset+Element_Size)
+                    GoTo(PartitionMetadata_FooterPartition);
+                else
+                    GoToFromEnd(0);
+                }
         }
+        #if MEDIAINFO_DEMUX
+            if (DemuxedSampleCount_Total!=(int64u)-1)
+            {
+                Frame_Count_NotParsedIncluded=(int64u)-1;
+            }
+        #endif //MEDIAINFO_DEMUX
     }
     else
         Skip_XX(Element_Size,                                   "Unknown");
@@ -5698,8 +5787,8 @@ void File_Mxf::OpenIncompleteBodyPartition()
             //Testing locators
             Locators_CleanUp();
 
-            if (Config->File_IgnoreFramesBefore && !Config->File_IsDetectingDuration_Get())
-                Open_Buffer_Seek(3, 0, (int64u)-1); //Forcing seek to Config->File_IgnoreFramesBefore
+            if (Config->File_IgnoreEditsBefore && !Config->File_IsDetectingDuration_Get())
+                Open_Buffer_Seek(3, 0, (int64u)-1); //Forcing seek to Config->File_IgnoreEditsBefore
             if (Config->NextPacket_Get() && Config->Event_CallBackFunction_IsSet())
             {
                 if (Locators.empty())
@@ -5726,8 +5815,8 @@ void File_Mxf::ClosedIncompleteBodyPartition()
             //Testing locators
             Locators_CleanUp();
 
-            if (Config->File_IgnoreFramesBefore && !Config->File_IsDetectingDuration_Get())
-                Open_Buffer_Seek(3, 0, (int64u)-1); //Forcing seek to Config->File_IgnoreFramesBefore
+            if (Config->File_IgnoreEditsBefore && !Config->File_IsDetectingDuration_Get())
+                Open_Buffer_Seek(3, 0, (int64u)-1); //Forcing seek to Config->File_IgnoreEditsBefore
             if (Config->NextPacket_Get() && Config->Event_CallBackFunction_IsSet())
             {
                 if (Locators.empty())
@@ -5754,8 +5843,8 @@ void File_Mxf::OpenCompleteBodyPartition()
             //Testing locators
             Locators_CleanUp();
 
-            if (Config->File_IgnoreFramesBefore && !Config->File_IsDetectingDuration_Get())
-                Open_Buffer_Seek(3, 0, (int64u)-1); //Forcing seek to Config->File_IgnoreFramesBefore
+            if (Config->File_IgnoreEditsBefore && !Config->File_IsDetectingDuration_Get())
+                Open_Buffer_Seek(3, 0, (int64u)-1); //Forcing seek to Config->File_IgnoreEditsBefore
             if (Config->NextPacket_Get() && Config->Event_CallBackFunction_IsSet())
             {
                 if (Locators.empty())
@@ -5782,8 +5871,8 @@ void File_Mxf::ClosedCompleteBodyPartition()
             //Testing locators
             Locators_CleanUp();
 
-            if (Config->File_IgnoreFramesBefore && !Config->File_IsDetectingDuration_Get())
-                Open_Buffer_Seek(3, 0, (int64u)-1); //Forcing seek to Config->File_IgnoreFramesBefore
+            if (Config->File_IgnoreEditsBefore && !Config->File_IsDetectingDuration_Get())
+                Open_Buffer_Seek(3, 0, (int64u)-1); //Forcing seek to Config->File_IgnoreEditsBefore
             if (Config->NextPacket_Get() && Config->Event_CallBackFunction_IsSet())
             {
                 if (Locators.empty())
@@ -6472,7 +6561,7 @@ void File_Mxf::AS11_AAF_Core()
             int32u Code_Compare3=Primer_Value->second.lo>>32;
             int32u Code_Compare4=(int32u)Primer_Value->second.lo;
             if(0);
-            ELEMENT_UUID(AS11_Core_SerieTitle,                  "Serie Title")
+            ELEMENT_UUID(AS11_Core_SeriesTitle,                 "Series Title")
             ELEMENT_UUID(AS11_Core_ProgrammeTitle,              "Programme Title")
             ELEMENT_UUID(AS11_Core_EpisodeTitleNumber,          "Episode Title Number")
             ELEMENT_UUID(AS11_Core_ShimName,                    "Shim Name")
@@ -10035,14 +10124,14 @@ void File_Mxf::WaveAudioDescriptor_ChannelAssignment()
 
 //---------------------------------------------------------------------------
 // AAF
-void File_Mxf::AS11_Core_SerieTitle()
+void File_Mxf::AS11_Core_SeriesTitle()
 {
     //Parsing
     Ztring Value;
     Get_UTF16B(Length2, Value,                                  "Value"); Element_Info1(Value);
 
     FILLING_BEGIN();
-        AS11s[InstanceUID].SerieTitle=Value;
+        AS11s[InstanceUID].SeriesTitle=Value;
     FILLING_END();
 }
 
@@ -14473,6 +14562,8 @@ void File_Mxf::ChooseParser_Pcm(const essences::iterator &Essence, const descrip
         {
             if (Channels)
                 Parser->Channels=Channels;
+            if (Descriptor->second.Infos.find("SamplingRate")!=Descriptor->second.Infos.end())
+                Parser->SamplingRate=Descriptor->second.Infos["SamplingRate"].To_int16u();
             if (Parser->Channels && Descriptor->second.BlockAlign!=(int16u)-1)
                 Parser->BitDepth=(int8u)(Descriptor->second.BlockAlign*8/Parser->Channels);
             else if (Descriptor->second.QuantizationBits<256)
@@ -14597,6 +14688,7 @@ void File_Mxf::ChooseParser_Jpeg2000(const essences::iterator &Essence, const de
                 {
                     Parser->Demux_Level=2; //Container
                     Parser->Demux_UnpacketizeContainer=true;
+					Parser->FrameRate=Descriptor->second.SampleRate;
                 }
             #endif //MEDIAINFO_DEMUX
         }
@@ -14685,15 +14777,15 @@ void File_Mxf::Locators_Test()
         for (locators::iterator Locator=Locators.begin(); Locator!=Locators.end(); ++Locator)
             if (!Locator->second.IsTextLocator && !Locator->second.EssenceLocator.empty())
             {
-                File__ReferenceFilesHelper::reference ReferenceFile;
-                ReferenceFile.FileNames.push_back(Locator->second.EssenceLocator);
-                ReferenceFile.StreamKind=Locator->second.StreamKind;
-                ReferenceFile.StreamPos=Locator->second.StreamPos;
+                sequence* Sequence=new sequence;
+                Sequence->AddFileName(Locator->second.EssenceLocator);
+                Sequence->StreamKind=Locator->second.StreamKind;
+                Sequence->StreamPos=Locator->second.StreamPos;
                 if (Locator->second.LinkedTrackID!=(int32u)-1)
-                    ReferenceFile.StreamID=Locator->second.LinkedTrackID;
+                    Sequence->StreamID=Locator->second.LinkedTrackID;
                 else if (!Retrieve(Locator->second.StreamKind, Locator->second.StreamPos, General_ID).empty())
-                    ReferenceFile.StreamID=Retrieve(Locator->second.StreamKind, Locator->second.StreamPos, General_ID).To_int64u();
-                ReferenceFile.Delay=float64_int64s(DTS_Delay*1000000000);
+                    Sequence->StreamID=Retrieve(Locator->second.StreamKind, Locator->second.StreamPos, General_ID).To_int64u();
+                Sequence->Delay=float64_int64s(DTS_Delay*1000000000);
 
                 //Special cases
                 if (Locator->second.StreamKind==Stream_Video)
@@ -14702,18 +14794,17 @@ void File_Mxf::Locators_Test()
                     for (descriptors::iterator Descriptor=Descriptors.begin(); Descriptor!=Descriptors.end(); ++Descriptor)
                         for (size_t LocatorPos=0; LocatorPos<Descriptor->second.Locators.size(); LocatorPos++)
                             if (Descriptor->second.Locators[LocatorPos]==Locator->first)
-                                ReferenceFile.FrameRate=Descriptor->second.SampleRate;
+                                Sequence->FrameRate_Set(Descriptor->second.SampleRate);
                 }
 
-
-                if (ReferenceFile.StreamID!=(int32u)-1)
+                if (Sequence->StreamID!=(int32u)-1)
                 {
                     //Descriptive Metadata
                     std::vector<int128u> DMScheme1s_List;
 
                     for (dmsegments::iterator DMSegment=DMSegments.begin(); DMSegment!=DMSegments.end(); ++DMSegment)
                         for (size_t Pos=0; Pos<DMSegment->second.TrackIDs.size(); Pos++)
-                            if (DMSegment->second.TrackIDs[Pos]==ReferenceFile.StreamID)
+                            if (DMSegment->second.TrackIDs[Pos]==Sequence->StreamID)
                                 DMScheme1s_List.push_back(DMSegment->second.Framework);
 
                     for (size_t Pos=0; Pos<DMScheme1s_List.size(); Pos++)
@@ -14721,12 +14812,12 @@ void File_Mxf::Locators_Test()
                         dmscheme1s::iterator DMScheme1=DMScheme1s.find(DMScheme1s_List[Pos]);
                         if (DMScheme1!=DMScheme1s.end())
                         {
-                            ReferenceFile.Infos["Language"]=DMScheme1->second.PrimaryExtendedSpokenLanguage;
+                            Sequence->Infos["Language"]=DMScheme1->second.PrimaryExtendedSpokenLanguage;
                         }
                     }
                 }
 
-                ReferenceFiles->References.push_back(ReferenceFile);
+                ReferenceFiles->AddSequence(Sequence);
             }
             else
             {

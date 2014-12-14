@@ -307,7 +307,10 @@ typedef unsigned __int64 uint64_t;
 #ifdef IRAINMAN_NTFS_STREAM_TTH
 # define RIP_USE_STREAM_SUPPORT_DETECTION
 #endif
+//
+// Выключено - https://code.google.com/p/flylinkdc/issues/detail?id=625
 //#define RIP_USE_CONNECTION_AUTODETECT
+
 #define RIP_USE_PORTAL_BROWSER
 //#define RIP_USE_SKIN    // not yet implemented, don't turn on
 #ifdef FLYLINKDC_HE
@@ -373,7 +376,6 @@ typedef unsigned __int64 uint64_t;
 #define SCALOLAZ_HUB_SWITCH_BTN    //[+] SCALOlaz: Switch Panels button, change location Chat - Userlist
 // TODO: SCALOLAZ_HUB_MODE - In some situations, spoils the whole interface and the process hangs. Need verifycation, optimization
 #define SCALOLAZ_HUB_MODE       //[~+] SCALOlaz: Hubs Mode Picture
-#define SCALOLAZ_CLOSEBUTTON
 #define SCALOLAZ_SPEEDLIMIT_DLG // Speed Limit (Up/Dnl) control for StatusBar
 #define SCALOLAZ_MEDIAVIDEO_ICO // HD, SD icons on files in filelist
 #ifdef SCALOLAZ_MEDIAVIDEO_ICO
@@ -416,6 +418,7 @@ typedef unsigned __int64 uint64_t;
 #define FLYLINKDC_USE_GATHER_STATISTICS
 #endif
 #ifdef FLYLINKDC_BETA
+#define FLYLINKDC_COLLECT_UNKNOWN_TAG
 #ifdef _DEBUG
 #define FLYLINKDC_COLLECT_UNKNOWN_FEATURES
 #endif

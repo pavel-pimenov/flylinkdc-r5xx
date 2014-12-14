@@ -352,7 +352,9 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 						{
 							const string hubHint = cqi->getHubUrl(); // TODO - прокинуть туда хинт на хаб
 							cqi->setState(ConnectionQueueItem::CONNECTING);
-							cqi->m_count_waiting++;
+#ifdef FLYLINKDC_BETA
+							cqi->m_count_waiting++; // ¬ бетке уходим в пассиву
+#endif
 //#ifdef _DEBUG
 //							cqi->m_is_force_passive = cqi->m_count_waiting > 1; // ƒелаем вторую попытку всегда в пассиве - дл€ теста!
 //#else
@@ -1004,16 +1006,16 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 			// and mark this user for expecting only for connection auto-detection.
 			// So if we receive connection of this type, simply drop it.
 			
-			FavoriteHubEntry* fhub = FavoriteManager::getInstance()->getFavoriteHubEntry(i.aHubUrl);
+			FavoriteHubEntry* fhub = FavoriteManager::getInstance()->getFavoriteHubEntry(i.m_HubUrl);
 			if (!fhub)
-				dcdebug("REASON_DETECT_CONNECTION: can't find favorite hub %s\n", i.aHubUrl.c_str());
+				dcdebug("REASON_DETECT_CONNECTION: can't find favorite hub %s\n", i.m_HubUrl.c_str());
 			dcassert(fhub);
 			
 			// WARNING: only Nmdc hub requests for REASON_DETECT_CONNECTION.
 			// if another hub added, one must implement autodetection in base Client class
-			NmdcHub* hub = static_cast<NmdcHub*>(ClientManager::getInstance()->findClient(i.aHubUrl));
+			NmdcHub* hub = static_cast<NmdcHub*>(ClientManager::getInstance()->findClient(i.m_HubUrl));
 			if (!hub)
-				dcdebug("REASON_DETECT_CONNECTION: can't find hub %s\n", i.aHubUrl.c_str());
+				dcdebug("REASON_DETECT_CONNECTION: can't find hub %s\n", i.m_HubUrl.c_str());
 			dcassert(hub);
 			
 			if (hub && fhub && hub->IsAutodetectPending())
@@ -1027,7 +1029,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 				// TODO: allow to disable through GUI saving of detected mode to
 				// favorite hub's settings
 				
-				fire(ConnectionManagerListener::DirectModeDetected(), i.aHubUrl);
+				fire(ConnectionManagerListener::DirectModeDetected(), i.m_HubUrl);
 			}
 			
 			putConnection(aSource);

@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #define _USE_MATH_DEFINES // [+]IRainman
-#include "math.h"
+#include <math.h>
 
 #include "MainFrm.h"
 #include "BarShader.h"

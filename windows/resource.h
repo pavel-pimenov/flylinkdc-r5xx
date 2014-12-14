@@ -24,7 +24,7 @@
 #define IDR_FINISHED_DL                 119
 #define IDR_UPLOAD_QUEUE                120
 #define IDR_FINISHED_UL                 121
-#define IDR_NETWORK_STATISTICS          122
+#define IDR_NETWORK_STATISTICS_ICON     122
 #define IDR_SEARCH                      123
 #define IDR_ADLSEARCH                   124
 #define IDR_SPY                         125
@@ -214,6 +214,7 @@
 #define IDC_SERVER                      1023
 #define IDC_EXTERNAL_IP                 1024
 #define IDC_TRAY_LIMITER                1025
+#define IDC_DEFAULT_GATEWAY_IP          1025
 #define IDC_FILES                       1026
 #define IDC_SITES_FLYLINK_TRAC          1027
 #define IDC_RECONNECT_DISCONNECTED      1028
@@ -1517,10 +1518,12 @@
 #define IDC_NETWORK_TEST_PORT_DHT_UDP_ICO 2356
 #define IDC_NETWORK_WINFIREWALL_ICO     2357
 #define IDC_BTN_REFRESH_FILELIST        2358
+#define IDC_WIFI_ROUTER_ICO             2358
 #define IDC_EDIT_MAX_HASH_SPEED_SLIDER  2359
 #define IDC_LOCATION_CITY               2360
 #define IDC_LOCATION_CITY_DESCRIPTION   2361
 #define IDC_LOCATION_PROVIDER_DESCRIPTION 2362
+#define IDC_STATIC_GATEWAY              2362
 #define IDC_LOCATION_PROVIDER           2363
 #define IDC_FORCE_PASSIVE_MODE          2364
 #define IDC_COPY_ANTIVIRUS_DB_INFO      2365
@@ -1595,7 +1598,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        295
 #define _APS_NEXT_COMMAND_VALUE         32789
-#define _APS_NEXT_CONTROL_VALUE         2362
+#define _APS_NEXT_CONTROL_VALUE         2363
 #define _APS_NEXT_SYMED_VALUE           2423
 #endif
 #endif

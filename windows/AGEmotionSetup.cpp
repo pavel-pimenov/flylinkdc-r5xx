@@ -18,11 +18,9 @@
 
 #include "stdafx.h"
 #ifdef IRAINMAN_INCLUDE_SMILE
-#include <math.h>
 #include "../client/SimpleXML.h"
 #include "../client/Pointer.h"
 #include "../client/CompatibilityManager.h" // [+] IRainman
-// #include "../client/ZipFile.h"
 #include "../client/LogManager.h"
 #include "../GdiOle/GDIImageOle.h"
 #include "AGEmotionSetup.h"

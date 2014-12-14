@@ -84,7 +84,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  
 		                  LANGUAGE_FILE, SEARCHFRAME_ORDER, SEARCHFRAME_WIDTHS, FAVORITESFRAME_ORDER, FAVORITESFRAME_WIDTHS, FAVORITESFRAME_VISIBLE,
 		                  HUBLIST_SERVERS, QUEUEFRAME_ORDER, QUEUEFRAME_WIDTHS, PUBLICHUBSFRAME_ORDER, PUBLICHUBSFRAME_WIDTHS, PUBLICHUBSFRAME_VISIBLE,
-		                  USERSFRAME_ORDER, USERSFRAME_WIDTHS, USERSFRAME_VISIBLE, HTTP_PROXY, LOG_DIRECTORY, NOTEPAD_TEXT, LOG_FORMAT_POST_DOWNLOAD,
+		                  USERSFRAME_ORDER, USERSFRAME_WIDTHS, USERSFRAME_VISIBLE, HTTP_PROXY, LOG_DIRECTORY, LOG_FORMAT_POST_DOWNLOAD,
 		                  
 		                  LOG_FORMAT_POST_UPLOAD, LOG_FORMAT_MAIN_CHAT, LOG_FORMAT_PRIVATE_CHAT, FINISHED_ORDER, FINISHED_WIDTHS,
 		                  TEMP_DOWNLOAD_DIRECTORY, BIND_ADDRESS, SOCKS_SERVER, SOCKS_USER, SOCKS_PASSWORD, CONFIG_VERSION,
@@ -305,7 +305,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  DELETE_CHECKED, TOPMOST, LOCK_TOOLBARS,
 		                  //AUTO_COMPLETE_SEARCH,//[-]IRainman
 		                  KEEP_DL_HISTORY, KEEP_UL_HISTORY,
-		                  SHOW_QUICK_SEARCH, SEARCH_DETECT_TTH, FULL_FILELIST_NFO, TABS_CLOSEBUTTONS, TABS_CLOSEBUTTONS_ALT,
+		                  SHOW_QUICK_SEARCH, SEARCH_DETECT_TTH, FULL_FILELIST_NFO, TABS_CLOSEBUTTONS,
 		                  VIEW_GRIDCONTROLS, // [+] ZagZag
 		                  DUPE_EX1_COLOR, DUPE_EX2_COLOR, NSL_IGNORE_ME,// [+]NSL
 		                  ENABLE_LAST_IP,
@@ -626,7 +626,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		~SettingsManager() { }
 		
 		// [!] IRainman opt: use this data as static.
-		static const string settingTags[/*[-]IRainman кто раскоментит, того покусаю! SETTINGS_LAST+1*/];
+		static const string g_settingTags[];
 		
 		static string strSettings[STR_LAST - STR_FIRST];
 		static int    intSettings[INT_LAST - INT_FIRST];

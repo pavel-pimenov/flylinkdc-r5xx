@@ -48,7 +48,9 @@ void ConnectivityManager::startSocket()
 	listen();
 	// must be done after listen calls; otherwise ports won't be set
 	if (SETTING(INCOMING_CONNECTIONS) == SettingsManager::INCOMING_FIREWALL_UPNP)
+	{
 		MappingManager::getInstance()->open();
+	}
 	//}
 }
 
@@ -59,7 +61,7 @@ void ConnectivityManager::detectConnection()
 	running = true;
 	
 	m_status.clear();
-	fire(ConnectivityManagerListener::Started());
+	// PPA_INCLUDE_DEAD_CODE fire(ConnectivityManagerListener::Started());
 	
 	const string l_old_bind = SETTING(BIND_ADDRESS);
 	// restore connectivity settings to their default value.
@@ -91,20 +93,30 @@ void ConnectivityManager::detectConnection()
 		AutoArray<char> buf(512);
 		snprintf(buf.data(), 512, CSTRING(UNABLE_TO_OPEN_PORT), e.getError().c_str());
 		log(buf.data());
-		fire(ConnectivityManagerListener::Finished());
+		// PPA_INCLUDE_DEAD_CODE fire(ConnectivityManagerListener::Finished());
 		running = false;
 		return;
 	}
 	
 	autoDetected = true;
-	
-	if (!Util::isPrivateIp(Util::getLocalOrBindIp(false))) // false - дл€ детекта внешнего IP
+	bool l_is_wifi_router;
+	const auto l_ip_gateway = Socket::getDefaultGateWay(l_is_wifi_router);
+	if (l_is_wifi_router)
 	{
-		SET_SETTING(INCOMING_CONNECTIONS, SettingsManager::INCOMING_DIRECT); // ¬от тут сомнительно
-		log(STRING(PUBLIC_IP_DETECTED));
-		fire(ConnectivityManagerListener::Finished());
-		running = false;
-		return;
+		log("WiFi router detected IP = " + l_ip_gateway);
+		// PPA_INCLUDE_DEAD_CODE fire(ConnectivityManagerListener::Finished());
+	}
+	else
+	{
+		const auto l_ip = Util::getLocalOrBindIp(false);
+		if (!Util::isPrivateIp(l_ip)) // false - дл€ детекта внешнего IP
+		{
+			SET_SETTING(INCOMING_CONNECTIONS, SettingsManager::INCOMING_DIRECT); // ¬от тут сомнительно
+			log(STRING(PUBLIC_IP_DETECTED) + " IP = " + l_ip);
+			// PPA_INCLUDE_DEAD_CODE fire(ConnectivityManagerListener::Finished());
+			running = false;
+			return;
+		}
 	}
 	SET_SETTING(INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_UPNP);
 	log(STRING(LOCAL_NET_NAT_DETECT));
@@ -228,7 +240,7 @@ void ConnectivityManager::mappingFinished(const string& mapper)
 		{
 			SET_SETTING(MAPPER, mapper);
 		}
-		fire(ConnectivityManagerListener::Finished());
+		// PPA_INCLUDE_DEAD_CODE fire(ConnectivityManagerListener::Finished());
 	}
 	log(getInformation());
 	running = false;
@@ -307,7 +319,7 @@ void ConnectivityManager::log(const string& message)
 	{
 		m_status = message;
 		LogManager::getInstance()->message(STRING(CONNECTIVITY) + ' ' + m_status);
-		fire(ConnectivityManagerListener::Message(), m_status);
+		// PPA_INCLUDE_DEAD_CODE fire(ConnectivityManagerListener::Message(), m_status);
 	}
 	else
 	{

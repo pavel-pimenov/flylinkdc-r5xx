@@ -110,7 +110,6 @@
 int HashProgressDlg::g_is_execute = 0;
 
 bool g_TabsCloseButtonEnabled;
-bool g_TabsCloseButtonAlt;
 bool g_isStartupProcess = true;
 CMenu g_mnu;
 
@@ -876,7 +875,7 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 				_snprintf(l_buf, _countof(l_buf), " [RAM: %dM / %dM][GDI: %d]",
 				          int(l_pmc.WorkingSetSize / 1024 / 1024),
 				          int(l_pmc.PeakWorkingSetSize / 1024 / 1024),
-				          l_GDI_count);
+				          int(l_GDI_count));
 			}
 			const tstring* l_temp = new tstring(tstring(T_APPNAME_WITH_VERSION) + Text::toT(l_buf));
 			if (!PostMessage(IDC_UPDATE_WINDOW_TITLE, (LPARAM)l_temp))
@@ -2047,6 +2046,7 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 		const unsigned short lastDHT = static_cast<unsigned short>(SETTING(DHT_PORT));
 		dcassert(lastDHT);
 #endif
+		const auto lastCloseButtons = BOOLSETTING(TABS_CLOSEBUTTONS);
 		
 		const int lastConn = SETTING(INCOMING_CONNECTIONS);
 #ifdef STRONG_USE_DHT
@@ -2134,12 +2134,15 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 #ifndef IRAINMAN_FAST_FLAT_TAB
 			ctrlTab.Invalidate();
 #endif
-// [-] InfinitySky      updateTray(BOOLSETTING(MINIMIZE_TRAY));
 			if (WinUtil::GetTabsPosition() != SETTING(TABS_POS))
 			{
 				WinUtil::SetTabsPosition(SETTING(TABS_POS));
 				m_ctrlTab.updateTabs();
 				UpdateLayout();
+			}
+			if (lastCloseButtons != BOOLSETTING(TABS_CLOSEBUTTONS))
+			{
+				m_ctrlTab.updateTabs();
 			}
 			
 			// [+] InfinitySky. При отключении показа текущей скорости в заголовке.
@@ -2327,7 +2330,7 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 		frm->createMessagePanel();
 	}
 	PopupManager::newInstance();
-//[!]PPA TODO  добавит галку для автостарта портала
+	//[!]PPA TODO  добавит галку для автостарта портала
 //	PortalBrowserFrame::openWindow(IDC_PORTAL_BROWSER);
 }
 
@@ -2799,7 +2802,7 @@ void MainFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 			setw(STATUS_PART_1);
 			setw(STATUS_PART_MESSAGE);
 			
-			m_ctrlStatus.SetParts(STATUS_PART_LAST - 1 + bIsHashing, w);
+			m_ctrlStatus.SetParts(STATUS_PART_LAST - 1 + (bIsHashing ? 1 : 0), w);
 			m_ctrlLastLines.SetMaxTipWidth(max(w[4], 400));
 			
 			if (bIsHashing)
@@ -3143,12 +3146,15 @@ LRESULT MainFrame::onAppShow(WORD /*wNotifyCode*/, WORD /*wParam*/, HWND, BOOL& 
 
 void MainFrame::ShowBalloonTip(LPCTSTR szMsg, LPCTSTR szTitle, DWORD dwInfoFlags)
 {
-	Popup* p = new Popup;
-	p->Title = szTitle;
-	p->Message = szMsg;
-	p->Icon = dwInfoFlags;
-	
-	PostMessage(WM_SPEAKER, SHOW_POPUP, (LPARAM)p);
+	//dcassert(PopupManager::isValidInstance());
+	if (PopupManager::isValidInstance())
+	{
+		Popup* p = new Popup;
+		p->Title = szTitle;
+		p->Message = szMsg;
+		p->Icon = dwInfoFlags;
+		PostMessage(WM_SPEAKER, SHOW_POPUP, (LPARAM)p);
+	}
 }
 
 LRESULT MainFrame::OnViewToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)

@@ -89,7 +89,7 @@ tstring ChatCtrl::g_sSelectedURL;
 
 ChatCtrl::ChatCtrl() : m_boAutoScroll(true), m_is_cache_chat_empty(false), m_is_out_of_memory_for_smile(false) //, m_Client(nullptr)
 #ifdef IRAINMAN_INCLUDE_SMILE
-	, m_pRichEditOle(NULL), /*m_pOleClientSite(NULL),*/ m_pStorage(NULL), m_lpLockBytes(NULL)
+	, m_pRichEditOle(NULL), /*m_pOleClientSite(NULL),*/ m_pStorage(NULL), m_lpLockBytes(NULL), m_Ref(0)
 #endif
 {
 	//m_cs_chat_cache = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());

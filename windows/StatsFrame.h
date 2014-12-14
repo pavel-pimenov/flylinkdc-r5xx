@@ -57,7 +57,7 @@ struct RatioInfo
 };
 #endif
 
-class StatsFrame : public MDITabChildWindowImpl < StatsFrame, RGB(0, 0, 0), IDR_NETWORK_STATISTICS > , public StaticFrame<StatsFrame, ResourceManager::NETWORK_STATISTICS, IDC_NET_STATS>
+class StatsFrame : public MDITabChildWindowImpl < StatsFrame, RGB(0, 0, 0), IDR_NETWORK_STATISTICS_ICON > , public StaticFrame<StatsFrame, ResourceManager::NETWORK_STATISTICS, IDC_NET_STATS>
 	//, private UploadManagerListener
 	, private CFlyTimerAdapter
 	//, private DownloadManagerListener // [+]IRainman
@@ -105,13 +105,13 @@ class StatsFrame : public MDITabChildWindowImpl < StatsFrame, RGB(0, 0, 0), IDR_
 					sizeof(WNDCLASSEX), 0, StartWindowProc,
 					0, 0, NULL, NULL, NULL, NULL, NULL, _T("StatsFrame"), NULL
 				},
-				NULL, NULL, IDC_ARROW, TRUE, 0, _T(""), IDR_NETWORK_STATISTICS
+				NULL, NULL, IDC_ARROW, TRUE, 0, _T(""), IDR_NETWORK_STATISTICS_ICON
 			};
 			
 			return wc;
 		}
 		
-		typedef MDITabChildWindowImpl < StatsFrame, RGB(0, 0, 0), IDR_NETWORK_STATISTICS > baseClass;
+		typedef MDITabChildWindowImpl < StatsFrame, RGB(0, 0, 0), IDR_NETWORK_STATISTICS_ICON > baseClass;
 		BEGIN_MSG_MAP(StatsFrame)
 		MESSAGE_HANDLER(WM_CREATE, onCreate)
 		MESSAGE_HANDLER(WM_CLOSE, onClose)

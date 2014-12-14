@@ -1180,6 +1180,7 @@
     <None Include="res\UserBanOff.ico" />
     <None Include="res\UserOff.ico" />
     <None Include="res\Users.png" />
+    <None Include="res\wifi-router.ico" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="FlylinkDC.rc" />

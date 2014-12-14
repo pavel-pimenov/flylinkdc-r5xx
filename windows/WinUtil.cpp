@@ -18,6 +18,8 @@
 
 #include "stdafx.h"
 
+#include <Shellapi.h>
+
 #include "../client/File.h"
 #include "Resource.h"
 
@@ -2135,6 +2137,15 @@ void WinUtil::openBitTorrent(const tstring& p_magnetURI) // [+] IRainman http://
 		translateLinkToextProgramm(p_magnetURI, Util::emptyStringT, Text::toT(l_BtHandler));
 	}
 }
+void WinUtil::openFile(const tstring& file)
+{
+	openFile(file.c_str());
+}
+
+void WinUtil::openFile(const TCHAR* file)
+{
+	::ShellExecute(NULL, _T("open"), file, NULL, NULL, SW_SHOWNORMAL);
+}
 
 bool WinUtil::openLink(const tstring& uri) // [!] IRainman opt: return status.
 {
@@ -3055,16 +3066,11 @@ bool WinUtil::shutDown(int action)
 		}
 		case 5:
 		{
-#ifdef FLYLINKDC_SUPPORT_WIN_2000
-			if (LOBYTE(LOWORD(GetVersion())) >= 5)
-#endif
+			typedef bool (CALLBACK * LPLockWorkStation)(void);
+			LPLockWorkStation _d_LockWorkStation = (LPLockWorkStation)GetProcAddress(LoadLibrary(_T("user32")), "LockWorkStation");
+			if (_d_LockWorkStation)
 			{
-				typedef bool (CALLBACK * LPLockWorkStation)(void);
-				LPLockWorkStation _d_LockWorkStation = (LPLockWorkStation)GetProcAddress(LoadLibrary(_T("user32")), "LockWorkStation");
-				if (_d_LockWorkStation)
-				{
-					_d_LockWorkStation();
-				}
+				_d_LockWorkStation();
 			}
 			return true;
 		}
@@ -4881,5 +4887,16 @@ bool Colors::getColorFromString(const tstring& colorText, COLORREF& color)
 			}
 		}
 		return false;
+	}
+}
+bool WinUtil::isUseExplorerTheme()
+{
+	return BOOLSETTING(USE_EXPLORER_THEME);
+}
+void WinUtil::SetWindowThemeExplorer(HWND p_hWnd)
+{
+	if (isUseExplorerTheme())
+	{
+		SetWindowTheme(p_hWnd, L"explorer", NULL);
 	}
 }

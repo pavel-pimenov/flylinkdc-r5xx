@@ -17,6 +17,11 @@
  */
 
 #include "stdinc.h"
+
+#  if defined(_MSC_VER) && _MSC_VER >= 1800 && defined(_M_X64)
+#    include <math.h> /* needed for _set_FMA3_enable */
+#  endif
+
 #include <WinError.h>
 #include <winnt.h>
 #include <ImageHlp.h>
@@ -34,6 +39,7 @@
 #include "CFlylinkDBManager.h"
 #include "ShareManager.h"
 #include "../FlyFeatures/flyServer.h"
+#include <iphlpapi.h>
 
 #pragma comment(lib, "Imagehlp.lib")
 
@@ -60,6 +66,15 @@ DWORD CompatibilityManager::g_find_file_flags = 0;
 
 void CompatibilityManager::init()
 {
+#ifdef _WIN64
+	// https://code.google.com/p/chromium/issues/detail?id=425120
+	// FMA3 support in the 2013 CRT is broken on Vista and Windows 7 RTM (fixed in SP1). Just disable it.
+	// fix crash https://drdump.com/Problem.aspx?ProblemID=102616
+	//           https://drdump.com/Problem.aspx?ProblemID=102601
+#if _MSC_VER >= 1800
+	_set_FMA3_enable(0);
+#endif
+#endif
 	setWine(detectWine());
 	
 	if (!isWine() && getFromSystemIsAppRunningIsWow64())
@@ -122,16 +137,8 @@ void CompatibilityManager::detectOsSupports()
 	        CURRENT_VER_SP(5, 1, 3)) // Windows XP SP3
 		set(OS_XP_SP3_PLUS);
 #endif
-#ifdef FLYLINKDC_SUPPORT_WIN_2000
-	if (FUTURE_VER(6) || // Windows Vista and newer
-	        FUTURE_MINOR_VER(5, 1)) // Windows XP & Windows Server 2003 and newer
-		set(OS_XP_PLUS);
-#endif
 		
 	if (
-#ifdef FLYLINKDC_SUPPORT_WIN_2000
-	    !CURRENT_VER_SP(5, 0, 4) && // Windows 2000 SP4 http://en.wikipedia.org/wiki/Windows_2000
-#endif
 #ifdef FLYLINKDC_SUPPORT_WIN_XP
 	    !CURRENT_VER_SP(5, 1, 3) && // Windows XP SP3 http://ru.wikipedia.org/wiki/Windows_XP
 	    !CURRENT_VER_SP(5, 2, 2) && // Windows Server 2003 SP2  http://ru.wikipedia.org/wiki/Windows_Server_2003
@@ -640,9 +647,6 @@ string CompatibilityManager::generateNetworkStats()
 string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 {
 	std::vector<char> l_buf(2048);
-#ifdef FLYLINKDC_SUPPORT_WIN_2000
-	if (LOBYTE(LOWORD(GetVersion())) >= 5)
-#endif
 	{
 		const HINSTANCE hInstPsapi = LoadLibrary(_T("psapi"));
 		if (hInstPsapi)
@@ -731,33 +735,6 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 			FreeLibrary(hInstPsapi);
 		}
 	}
-#ifdef FLYLINKDC_SUPPORT_WIN_2000
-	else
-	{
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-		dcassert(CFlylinkDBManager::isValidInstance());
-		if (CFlylinkDBManager::isValidInstance())
-		{
-			CFlylinkDBManager::getInstance()->load_global_ratio(); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1363
-		}
-#endif
-		snprintf(buf, _countof(buf), "\r\n-=[ FlylinkDC++ %s "
-#ifdef FLYLINKDC_HE
-		         "HE"
-#endif
-		         " Compiled on: %s ]=-\r\n-=[ Uptime: %s]=-\r\n-=[ Downloaded: %s ][ Uploaded: %s ]=-\r\n"
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-		         "-=[ Total download: %s ][ Total upload: %s ]=-"
-#endif
-		         ,
-		         A_VERSIONSTRING, Text::fromT(Util::getCompileDate("%Y-%m-%d")).c_str(), Util::formatTime(Util::getUpTime()).c_str(),
-		         Util::formatBytes(Socket::getTotalDown()).c_str(), Util::formatBytes(Socket::getTotalUp()).c_str()
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-		         , Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.m_download).c_str(), Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.m_upload).c_str()
-#endif
-		        );
-	}
-#endif // FLYLINKDC_SUPPORT_WIN_2000
 	return l_buf.data();
 }
 

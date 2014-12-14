@@ -11,7 +11,7 @@ Yandex_STR_8=Install browser manager
 
 Yandex_STR_9=By installing the software recommended by FlylinkDC++, you agree to the terms and
 Yandex_STR_9_1=conditions of the                               License Agreement
-Yandex_STR_9_2=Yandex Desktop Software
+Yandex_STR_9_2=Yandex Desktop Software.
 
 Yandex_STR_9_3=Details
 

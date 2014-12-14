@@ -47,8 +47,10 @@ void UserManager::saveIgnoreList()
 
 UserManager::UserManager()
 {
+	webrtc::WriteLockScoped l(*g_csIgnoreList);
 	dcassert(!g_ignoreListLoaded);
 	CFlylinkDBManager::getInstance()->load_ignore(g_ignoreList);
+	g_isEmptyIgnoreList = g_ignoreList.empty();
 	dcdrun(g_ignoreListLoaded = true);
 	
 	SettingsManager::getInstance()->addListener(this);

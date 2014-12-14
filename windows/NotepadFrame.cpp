@@ -35,25 +35,15 @@ LRESULT NotepadFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	{
 		tmp = File(Util::getNotepadFile(), File::READ, File::OPEN).read();
 	}
-	catch (const FileException&)
+	catch (const FileException& e)
 	{
-		// ...
-	}
-	
-	if (tmp.empty())
-	{
-		tmp = SETTING(NOTEPAD_TEXT);
-		if (!tmp.empty())
-		{
-			m_dirty = true;
-			SET_SETTING(NOTEPAD_TEXT, Util::emptyString);
-		}
+		LogManager::getInstance()->message("Error read " + Util::getNotepadFile() + " Error = " + e.getError());
 	}
 	
 	ctrlPad.SetWindowText(Text::toT(tmp).c_str());
 	ctrlPad.EmptyUndoBuffer();
 	ctrlClientContainer.SubclassWindow(ctrlPad.m_hWnd);
-	
+	SettingsManager::getInstance()->addListener(this);
 	bHandled = FALSE;
 	return 1;
 }
@@ -74,9 +64,9 @@ LRESULT NotepadFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 				{
 					File(Util::getNotepadFile(), File::WRITE, File::CREATE | File::TRUNCATE).write(Text::fromT(tmp));
 				}
-				catch (const FileException&)
+				catch (const FileException& e)
 				{
-					// Oops...
+					LogManager::getInstance()->message("Error write " + Util::getNotepadFile() + " Error = " + e.getError());
 				}
 			}
 		}

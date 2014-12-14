@@ -32,14 +32,17 @@
 // [+] IRainman fix.
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES
 FastCriticalSection AdcSupports::g_debugCsUnknownAdcFeatures;
-boost::unordered_set<string> AdcSupports::g_debugUnknownAdcFeatures;
+boost::unordered_map<string, string> AdcSupports::g_debugUnknownAdcFeatures;
 
 FastCriticalSection NmdcSupports::g_debugCsUnknownNmdcConnection;
 boost::unordered_set<string> NmdcSupports::g_debugUnknownNmdcConnection;
 
-FastCriticalSection NmdcSupports::g_debugCsUnknownNmdcTagParam;
-boost::unordered_set<string> NmdcSupports::g_debugUnknownNmdcTagParam;
 #endif // FLYLINKDC_COLLECT_UNKNOWN_FEATURES
+#ifdef FLYLINKDC_COLLECT_UNKNOWN_TAG
+FastCriticalSection NmdcSupports::g_debugCsUnknownNmdcTagParam;
+boost::unordered_map<string, unsigned> NmdcSupports::g_debugUnknownNmdcTagParam;
+#endif // FLYLINKDC_COLLECT_UNKNOWN_TAG
+
 // [~] IRainman fix.
 
 const string AdcSupports::CLIENT_PROTOCOL("ADC/1.0");
@@ -74,6 +77,7 @@ AdcHub::~AdcHub()
 void AdcHub::getUserList(OnlineUserList& p_list) const
 {
 	webrtc::ReadLockScoped l(*m_cs);
+	p_list.reserve(m_users.size());
 	for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 	{
 		if (i->first != AdcCommand::HUB_SID)
@@ -186,7 +190,7 @@ OnlineUserPtr AdcHub::findUser(const CID& aCID) const// [!] IRainman fix return 
 	return nullptr;
 }
 
-void AdcHub::putUser(const uint32_t aSID, bool disconnect)
+void AdcHub::putUser(const uint32_t aSID, bool p_is_disconnect)
 {
 	OnlineUserPtr ou = 0;
 	{
@@ -200,8 +204,10 @@ void AdcHub::putUser(const uint32_t aSID, bool disconnect)
 	}
 	
 	if (aSID != AdcCommand::HUB_SID)
-		ClientManager::getInstance()->putOffline(ou, disconnect);
-		
+	{
+		ClientManager::getInstance()->putOffline(ou, p_is_disconnect);
+	}
+	
 	fire(ClientListener::UserRemoved(), this, ou);
 	ou->dec();
 }
@@ -230,8 +236,9 @@ void AdcHub::clearUsers()
 		for (auto i = tmp.cbegin(); i != tmp.cend(); ++i)
 		{
 			if (i->first != AdcCommand::HUB_SID)
+			{
 				ClientManager::getInstance()->putOffline(i->second); //TODO crash
-				
+			}
 			i->second->dec();
 		}
 	}

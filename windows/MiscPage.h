@@ -27,7 +27,6 @@
 
 #include <atlcrack.h>
 #include "PropPage.h"
-#include <atlctrlx.h>
 
 #include "../client/SimpleXML.h"
 #include "ExListViewCtrl.h"

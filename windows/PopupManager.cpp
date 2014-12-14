@@ -112,17 +112,12 @@ void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bo
 	
 	if (SETTING(POPUP_TYPE) != /*CUSTOM*/ BALLOON)
 	{
-#ifdef FLYLINKDC_SUPPORT_WIN_2000
-		if (LOBYTE(LOWORD(GetVersion())) >= 5)
-#endif
+		p->SetWindowLongPtr(GWL_EXSTYLE, p->GetWindowLongPtr(GWL_EXSTYLE) | WS_EX_LAYERED | WS_EX_TRANSPARENT);
+		typedef bool (CALLBACK * LPFUNC)(HWND hwnd, COLORREF crKey, BYTE bAlpha, DWORD dwFlags);
+		LPFUNC _d_SetLayeredWindowAttributes = (LPFUNC)GetProcAddress(LoadLibrary(_T("user32")), "SetLayeredWindowAttributes");
+		if (_d_SetLayeredWindowAttributes)
 		{
-			p->SetWindowLongPtr(GWL_EXSTYLE, p->GetWindowLongPtr(GWL_EXSTYLE) | WS_EX_LAYERED | WS_EX_TRANSPARENT);
-			typedef bool (CALLBACK * LPFUNC)(HWND hwnd, COLORREF crKey, BYTE bAlpha, DWORD dwFlags);
-			LPFUNC _d_SetLayeredWindowAttributes = (LPFUNC)GetProcAddress(LoadLibrary(_T("user32")), "SetLayeredWindowAttributes");
-			if (_d_SetLayeredWindowAttributes)
-			{
-				_d_SetLayeredWindowAttributes(p->m_hWnd, 0, SETTING(POPUP_TRANSP), LWA_ALPHA);
-			}
+			_d_SetLayeredWindowAttributes(p->m_hWnd, 0, SETTING(POPUP_TRANSP), LWA_ALPHA);
 		}
 	}
 	
@@ -143,9 +138,7 @@ void PopupManager::on(TimerManagerListener::Second /*type*/, uint64_t tick)
 {
 	// TODO - подписаться позже. dcassert(!BaseChatFrame::g_isStartupProcess);
 	::PostMessage(WinUtil::mainWnd, WM_SPEAKER, MainFrame::REMOVE_POPUP, (LPARAM)tick); // [!] IRainman opt.
-	
 }
-
 
 void PopupManager::AutoRemove(uint64_t tick) // [!] IRainman opt.
 {
@@ -153,7 +146,6 @@ void PopupManager::AutoRemove(uint64_t tick) // [!] IRainman opt.
 	//check all m_popups and see if we need to remove anyone
 	for (auto i = m_popups.cbegin(); i != m_popups.cend(); ++i)
 	{
-	
 		if ((*i)->visible + popupTime < tick)
 		{
 			//okay remove the first popup

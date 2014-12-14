@@ -89,7 +89,7 @@ LRESULT UsersFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	CLockRedraw<> l_lock_draw(ctrlUsers);
 	{
 		FavoriteManager::LockInstanceUsers lockedInstance;
-		const auto& l_fav_users = lockedInstance.getFavoriteUsers();
+		const auto& l_fav_users = lockedInstance.getFavoriteUsersL();
 		for (auto i = l_fav_users.cbegin(); i != l_fav_users.cend(); ++i)
 		{
 			addUser(i->second);

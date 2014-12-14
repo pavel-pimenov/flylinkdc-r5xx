@@ -266,7 +266,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static CID makeCid(const string& nick, const string& hubUrl);
 		
 		void putOnline(const OnlineUserPtr& ou) noexcept; // [!] IRainman fix.
-		void putOffline(const OnlineUserPtr& ou, bool disconnect = false) noexcept; // [!] IRainman fix.
+		void putOffline(const OnlineUserPtr& ou, bool p_is_disconnect = false) noexcept; // [!] IRainman fix.
 		
 		static bool isMe(const CID& p_cid)
 		{

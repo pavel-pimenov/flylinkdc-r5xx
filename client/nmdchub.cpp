@@ -29,17 +29,13 @@
 #include "StringTokenizer.h"
 
 NmdcHub::NmdcHub(const string& aHubURL, bool secure) : Client(aHubURL, '|', false), m_supportFlags(0), m_modeChar(0),
-#ifdef RIP_USE_CONNECTION_AUTODETECT
-	m_bAutodetectionPending(true),
-	m_iRequestCount(0),
-#endif
-	m_bLastMyInfoCommand(DIDNT_GET_YET_FIRST_MYINFO),
 	m_lastBytesShared(0),
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 	m_hubSupportsSlots(false),
 #endif // IRAINMAN_ENABLE_AUTO_BAN
 	m_lastUpdate(0)
 {
+	AutodetectInit();
 	// [+] IRainman fix.
 	m_myOnlineUser->getUser()->setFlag(User::NMDC);
 	m_hubOnlineUser->getUser()->setFlag(User::NMDC);
@@ -53,6 +49,12 @@ NmdcHub::~NmdcHub()
 
 
 #define checkstate() if(state != STATE_NORMAL) return
+
+void NmdcHub::disconnect(bool p_graceless)
+{
+	Client::disconnect(p_graceless);
+	clearUsers();
+}
 
 void NmdcHub::connect(const OnlineUser& p_user, const string& p_token, bool p_is_force_passive)
 {
@@ -246,8 +248,10 @@ void NmdcHub::putUser(const string& aNick)
 	}
 	
 	if (!ou->getUser()->getCID().isZero()) // [+] IRainman fix.
+	{
 		ClientManager::getInstance()->putOffline(ou); // [2] https://www.box.net/shared/7b796492a460fe528961
-		
+	}
+	
 	fire(ClientListener::UserRemoved(), this, ou); // [+] IRainman fix.
 	ou->dec();// [!] IRainman fix memoryleak
 }
@@ -275,11 +279,14 @@ void NmdcHub::clearUsers()
 		for (auto i = u2.cbegin(); i != u2.cend(); ++i)
 		{
 			if (!i->second->getUser()->getCID().isZero()) // [+] IRainman fix.
+			{
 				ClientManager::getInstance()->putOffline(i->second); // http://code.google.com/p/flylinkdc/issues/detail?id=1064
+			}
 			// Варианты
 			// - скармливать юзеров массивом
+			// - Держать юзеров в нескольких контейнерах для каждого хаба отдельно
 			// - проработать команду на убивание всей мапы сразу без поиска
-			
+			i->second->getIdentity().setBytesShared(0);
 			i->second->dec();// [!] IRainman fix memoryleak
 		}
 	}
@@ -369,14 +376,15 @@ void NmdcHub::updateFromTag(Identity& id, const string & tag) // [!] IRainman op
 		{
 			id.setStringParam("AP", *i);
 		}
-#ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES
+#ifdef FLYLINKDC_COLLECT_UNKNOWN_TAG
 		else
 		{
 			FastLock l(NmdcSupports::g_debugCsUnknownNmdcTagParam);
-			NmdcSupports::g_debugUnknownNmdcTagParam.insert(*i);
+			NmdcSupports::g_debugUnknownNmdcTagParam[tag]++;
+			dcassert(0);
 			// TODO - сброс ошибочных тэгов в качестве статы?
 		}
-#endif // FLYLINKDC_COLLECT_UNKNOWN_FEATURES
+#endif // FLYLINKDC_COLLECT_UNKNOWN_TAG
 		// [~] IRainman fix.
 	}
 	/// @todo Think about this
@@ -1133,6 +1141,7 @@ void NmdcHub::lockParse(const string& aLine)
 	{
 		return;
 	}
+	dcassert(m_users.empty());
 	state = STATE_IDENTIFY;
 	
 	// Param must not be toUtf8'd...
@@ -1669,8 +1678,12 @@ void NmdcHub::onLine(const string& aLine)
 		LogManager::getInstance()->message("NmdcHub::onLine Unknown command! hub = [" + getHubUrl() + "], command = [" + cmd + "], param = [" + param + "]");
 #endif
 	}
-	
-	if (!bMyInfoCommand && m_bLastMyInfoCommand == FIRST_MYINFO)
+	processAutodetect(bMyInfoCommand);
+}
+
+void NmdcHub::processAutodetect(bool p_is_myinfo)
+{
+	if (!p_is_myinfo && m_bLastMyInfoCommand == FIRST_MYINFO)
 	{
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 		// This is first command after $MyInfo.
@@ -1682,9 +1695,10 @@ void NmdcHub::onLine(const string& aLine)
 #endif
 		m_bLastMyInfoCommand = ALREADY_GOT_MYINFO;
 	}
-	
-	if (bMyInfoCommand && m_bLastMyInfoCommand == DIDNT_GET_YET_FIRST_MYINFO)
+	if (p_is_myinfo && m_bLastMyInfoCommand == DIDNT_GET_YET_FIRST_MYINFO)
+	{
 		m_bLastMyInfoCommand = FIRST_MYINFO;
+	}
 }
 
 void NmdcHub::checkNick(string& aNick)
@@ -2102,17 +2116,7 @@ void NmdcHub::myInfoParse(const string& param) noexcept
 		l_share_size = 0;
 		LogManager::getInstance()->message("ShareSize < 0 !, param = " + param);
 	}
-	if (l_share_size)
-	{
-		changeBytesSharedL(ou->getIdentity(), l_share_size);
-	}
-	
-	/* [-] IRainman fix.
-	if (ou->getUser() == getMyIdentity().getUser())
-	{
-	    setMyIdentity(ou.getIdentity);
-	}
-	   [~] IRainman fix.*/
+	changeBytesSharedL(ou->getIdentity(), l_share_size);
 	if (!ClientManager::isShutdown())
 	{
 		fire(ClientListener::UserUpdated(), ou); // !SMT!-fix
@@ -2203,6 +2207,7 @@ void NmdcHub::on(BufferedSocketListener::MyInfoArray, StringList& p_myInfoArray)
 			COMMAND_DEBUG("$MyINFO " + *i, DebugTask::HUB_IN, getIpPort());
 		}
 		p_myInfoArray.clear();
+		processAutodetect(true);
 	}
 }
 
@@ -2231,23 +2236,35 @@ void NmdcHub::on(BufferedSocketListener::Failed, const string& aLine) noexcept
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 void NmdcHub::RequestConnectionForAutodetect()
 {
-	bool bWantAutodetect = false;
-	if (m_bAutodetectionPending &&
-	        m_iRequestCount < MAX_CONNECTION_REQUESTS_COUNT &&
-	        ClientManager::getMode(getHubUrl(), &bWantAutodetect) == SettingsManager::INCOMING_FIREWALL_PASSIVE
-	        && bWantAutodetect)
+	const unsigned c_MAX_CONNECTION_REQUESTS_COUNT = 3;
+	
+	if (m_bAutodetectionPending && m_iRequestCount < c_MAX_CONNECTION_REQUESTS_COUNT)
 	{
-		FastLock l(cs);
-		for (auto i = m_users.cbegin(); i != m_users.cend() && m_iRequestCount < MAX_CONNECTION_REQUESTS_COUNT; ++i)
+		bool bWantAutodetect = false;
+		const auto l_fav = FavoriteManager::getInstance()->getFavoriteHubEntry(getHubUrl());
+		if (ClientManager::getMode(l_fav, &bWantAutodetect) == SettingsManager::INCOMING_FIREWALL_PASSIVE)
 		{
-			if (i->second->getIdentity().isBot() ||
-			        i->second->getUser()->getFlags() & User::PASSIVE ||
-			        i->first == getMyNick())
-				continue;
-			// TODO optimize:
-			// request for connection from users with fastest connection, or operators
-			connectToMe(*i->second, ExpectedMap::REASON_DETECT_CONNECTION);
-			m_iRequestCount++;
+			if (bWantAutodetect)
+			{
+			
+				webrtc::ReadLockScoped l(*m_cs);
+				for (auto i = m_users.cbegin(); i != m_users.cend() && m_iRequestCount < c_MAX_CONNECTION_REQUESTS_COUNT; ++i)
+				{
+					if (i->second->getIdentity().isBot() ||
+					        i->second->getUser()->getFlags() & User::NMDC_FILES_PASSIVE ||
+					        i->second->getUser()->getFlags() & User::NMDC_SEARCH_PASSIVE ||
+					        i->first == getMyNick())
+						continue;
+					// TODO optimize:
+					// request for connection from users with fastest connection, or operators
+					connectToMe(*i->second, ExpectedMap::REASON_DETECT_CONNECTION);
+#ifdef _DEBUG
+					dcdebug("[!!!!!!!!!!!!!!] AutoDetect connectToMe! Nick = %s Hub = %s", i->first.c_str(), + getHubUrl().c_str());
+					LogManager::getInstance()->message("AutoDetect connectToMe - Nick = " + i->first + " Hub = " + getHubUrl());
+#endif
+					++m_iRequestCount;
+				}
+			}
 		}
 	}
 }

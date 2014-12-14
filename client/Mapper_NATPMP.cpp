@@ -36,10 +36,10 @@ static natpmp_t g_nat;
 bool Mapper_NATPMP::init()
 {
 	// the lib normally handles this but we call it manually to store the result (IP of the router).
-	in_addr addr;
+	in_addr addr = {0};
 	if (getdefaultgateway(reinterpret_cast<in_addr_t*>(&addr.s_addr)) < 0)
 		return false;
-	gateway = inet_ntoa(addr);
+	m_gateway = inet_ntoa(addr);
 	const auto l_result = initnatpmp(&g_nat, 1, addr.s_addr);
 	dcassert(l_result == 0);
 	if (l_result)
@@ -137,10 +137,6 @@ bool Mapper_NATPMP::remove(const unsigned short port, const Protocol protocol)
 	return false;
 }
 
-string Mapper_NATPMP::getDeviceName() const
-{
-	return gateway; // in lack of the router's name, give its IP.
-}
 
 string Mapper_NATPMP::getExternalIP()
 {

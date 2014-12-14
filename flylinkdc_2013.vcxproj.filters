@@ -1066,6 +1066,12 @@
     <Image Include="res\f_question_16.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\wifi-router.ico" />
+    <Image Include="res\medical_bag.ico" />
+    <Image Include="res\thermometer2.ico" />
+    <Image Include="res\firewall.ico" />
+    <Image Include="res\StateUsers.png" />
+    <Image Include="res\ISPImages.png" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compiled\Settings\common\IPTrust.ini">
@@ -1077,6 +1083,7 @@
     <Text Include="compiled\Settings\common\IPGrant.ini">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="compiled\Settings\common\isp-hub-list.txt" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="FlylinkDC.rc">
@@ -1085,5 +1092,8 @@
     <ResourceCompile Include="FlylinkDC_version.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="compiled\Settings\flylinkdc-config-r5xx.xml" />
   </ItemGroup>
 </Project>

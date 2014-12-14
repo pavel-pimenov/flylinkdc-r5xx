@@ -172,49 +172,6 @@ BOOL CALLBACK searchOtherInstance(HWND hWnd, LPARAM lParam)
 	}
 	return TRUE;
 }
-#ifdef FLYLINKDC_SUPPORT_WIN_2000
-static void checkCommonControls()
-{
-	// [-] IRainman: http://msdn.microsoft.com/en-us/library/windows/desktop/bb776779(v=vs.85).aspx
-#define PACKVERSION(major,minor) MAKELONG(minor,major)
-	
-	HINSTANCE hinstDll;
-	DWORD dwVersion = 0;
-	
-	hinstDll = LoadLibrary(_T("comctl32.dll"));
-	
-	if (hinstDll)
-	{
-		DLLGETVERSIONPROC pDllGetVersion;
-		
-		pDllGetVersion = (DLLGETVERSIONPROC) GetProcAddress(hinstDll, "DllGetVersion");
-		
-		if (pDllGetVersion)
-		{
-			DLLVERSIONINFO dvi = {0} ;
-			HRESULT hr;
-			
-			dvi.cbSize = sizeof(dvi);
-			
-			hr = (*pDllGetVersion)(&dvi);
-			
-			if (SUCCEEDED(hr))
-			{
-				dwVersion = PACKVERSION(dvi.dwMajorVersion, dvi.dwMinorVersion);
-			}
-		}
-		
-		FreeLibrary(hinstDll);
-	}
-	
-	if (dwVersion < PACKVERSION(5, 80))
-	{
-		MessageBox(NULL,
-		           _T("Your version of windows common controls is too old for FlylinkDC++ to run correctly, and you will most probably experience problems with the user interface. You should download version 5.80 or higher from the DC++ homepage or from Microsoft directly."),
-		           _T("User Interface Warning"), MB_OK);
-	}
-}
-#endif // FLYLINKDC_SUPPORT_WIN_2000
 
 static tstring g_sSplashText;
 static const int g_splash_size_x = 347;
@@ -392,10 +349,6 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	static ULONG_PTR g_gdiplusToken = 0;
 	Gdiplus::GdiplusStartup(&g_gdiplusToken, &g_gdiplusStartupInput, NULL);
 #endif // IRAINMAN_INCLUDE_GDI_INIT
-	
-#ifdef FLYLINKDC_SUPPORT_WIN_2000
-	checkCommonControls();
-#endif
 	
 	CMessageLoop theLoop;
 	_Module.AddMessageLoop(&theLoop);

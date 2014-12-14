@@ -49,6 +49,8 @@ class NetworkPage : public CPropertyPage<IDD_NETWORK_PAGE>, public PropPage
 		
 		BEGIN_MSG_MAP(NetworkPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
+		MESSAGE_HANDLER(WM_CTLCOLORSTATIC, OnCtlColorDlg)
+		
 		COMMAND_HANDLER(IDC_EXTERNAL_IP, EN_KILLFOCUS, OnEnKillfocusExternalIp)
 		COMMAND_ID_HANDLER(IDC_CONNECTION_DETECTION, onClickedActive)
 		COMMAND_ID_HANDLER(IDC_DIRECT, onClickedActive)
@@ -77,6 +79,7 @@ class NetworkPage : public CPropertyPage<IDD_NETWORK_PAGE>, public PropPage
 #ifdef STRONG_USE_DHT
 		LRESULT onCheckDHTStats(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 #endif
+		LRESULT OnCtlColorDlg(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 		
 		// Common PropPage interface
 		PROPSHEETPAGE *getPSP()
