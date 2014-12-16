@@ -23,6 +23,7 @@
 #include "PopupsPage.h"
 #include "WinUtil.h"
 #include "MainFrm.h"
+#include "PopupManager.h"
 
 PropPage::TextItem Popups::texts[] =
 {

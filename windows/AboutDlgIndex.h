@@ -7,8 +7,8 @@
 #include "AboutDlg.h"
 #include "AboutCmdsDlg.h"
 #include "AboutLogDlg.h"
+#include "AboutStatDlg.h"
 //#include other 3,4... pages
-
 #include "HIconWrapper.h"
 #include "wtl_flylinkdc.h"
 
@@ -25,7 +25,8 @@ class AboutDlgIndex : public CDialogImpl<AboutDlgIndex>
 		{
 			ABOUT,
 			CHAT_COMMANDS,
-			VERSION_HISTORY
+			STATISTICS,
+			VERSION_HISTORY,
 		};
 		AboutDlgIndex(): m_pTabDialog(0)
 		{
@@ -67,15 +68,22 @@ class AboutDlgIndex : public CDialogImpl<AboutDlgIndex>
 			m_ctrTab.InsertItem(1, &tcItem);
 			m_Page2->Create(m_ctrTab.m_hWnd, AboutCmdsDlg::IDD);
 			
+			tcItem.pszText = (LPWSTR) CTSTRING(ABOUT_STATISTICS);
+			m_Page3 = std::unique_ptr<AboutStatDlg>(new AboutStatDlg());
+			tcItem.lParam = (LPARAM)&m_Page3;
+			m_ctrTab.InsertItem(2, &tcItem);
+			m_Page3->Create(m_ctrTab.m_hWnd, AboutStatDlg::IDD);
+			
 			if (BOOLSETTING(AUTOUPDATE_ENABLE))
 			{
 				tcItem.pszText = (LPWSTR) _T("Update Log");
-				m_Page3 = std::unique_ptr<AboutLogDlg>(new AboutLogDlg());
-				tcItem.lParam = (LPARAM)&m_Page3;
+				m_Page4 = std::unique_ptr<AboutLogDlg>(new AboutLogDlg());
+				tcItem.lParam = (LPARAM)&m_Page4;
 				if (m_log_page > 0)
-					m_ctrTab.InsertItem(2, &tcItem);
-				m_Page3->Create(m_ctrTab.m_hWnd, AboutLogDlg::IDD);
+					m_ctrTab.InsertItem(3, &tcItem);
+				m_Page4->Create(m_ctrTab.m_hWnd, AboutLogDlg::IDD);
 			}
+			
 			m_ctrTab.SetCurSel(m_pTabDialog);
 			
 			// for Custom Themes
@@ -102,8 +110,9 @@ class AboutDlgIndex : public CDialogImpl<AboutDlgIndex>
 			// Hide All Dialogs
 			m_Page1->ShowWindow(SW_HIDE);
 			m_Page2->ShowWindow(SW_HIDE);
+			m_Page3->ShowWindow(SW_HIDE);
 			if (m_log_page > 0)
-				m_Page3->ShowWindow(SW_HIDE);
+				m_Page4->ShowWindow(SW_HIDE);
 			m_pTabDialog = pos;
 			
 			CRect rc;
@@ -125,12 +134,18 @@ class AboutDlgIndex : public CDialogImpl<AboutDlgIndex>
 					m_Page2->ShowWindow(SW_SHOW);
 					break;
 				}
+				case STATISTICS: // UDP, TCP, TLS etc statistics
+				{
+					m_Page3->MoveWindow(&rc);
+					m_Page3->ShowWindow(SW_SHOW);
+					break;
+				}
 				case VERSION_HISTORY: // Version History, Log
 				{
 					if (m_log_page > 0)
 					{
-						m_Page3->MoveWindow(&rc);
-						m_Page3->ShowWindow(SW_SHOW);
+						m_Page4->MoveWindow(&rc);
+						m_Page4->ShowWindow(SW_SHOW);
 					}
 					break;
 				}
@@ -152,7 +167,8 @@ class AboutDlgIndex : public CDialogImpl<AboutDlgIndex>
 		
 		std::unique_ptr<AboutDlg> m_Page1;
 		std::unique_ptr<AboutCmdsDlg> m_Page2;
-		std::unique_ptr<AboutLogDlg> m_Page3;
+		std::unique_ptr<AboutStatDlg> m_Page3;
+		std::unique_ptr<AboutLogDlg> m_Page4;
 };
 
 #endif // !defined(ABOUT_DLG_INDEX_H)

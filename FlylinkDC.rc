@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Russian (Russia) resources
+// Русский (Россия) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
 LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
@@ -706,23 +706,18 @@ IDD_ABOUTBOX DIALOGEX 0, 0, 297, 200
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    GROUPBOX        "",IDC_STATIC,1,0,295,28
+    GROUPBOX        "",IDC_STATIC,1,0,295,26
     RTEXT           "Current version:",IDC_UPDATE_VERSION_CURRENT_LBL,6,5,140,9
     EDITTEXT        IDC_VERSION,149,5,140,12,ES_READONLY | NOT WS_BORDER | NOT WS_TABSTOP
-    CTEXT           "Quality C++ code protects PVS-Studio",IDC_PVS_STUDIO,43,17,216,8
-    GROUPBOX        "Участники проекта:",IDC_THANKS_STATIC,1,74,185,101,BS_CENTER
-    EDITTEXT        IDC_THANKS,5,84,179,85,ES_CENTER | ES_MULTILINE | ES_READONLY | NOT WS_BORDER | WS_VSCROLL | NOT WS_TABSTOP
-    GROUPBOX        "Статистика:",IDC_STATISTICS_STATIC,4,29,292,44,BS_CENTER
-    LTEXT           "Upload: xx.xx MB",IDC_TOTAL_UPLOAD,9,39,93,8,0,WS_EX_TRANSPARENT
-    LTEXT           "Download: xx.xx MB",IDC_TOTAL_DOWNLOAD,9,50,93,8
-    LTEXT           "Ratio (Up/Down): x.xx",IDC_RATIO,9,61,93,8
-    GROUPBOX        "Ссылки:",IDC_LINKS_STATIC,190,74,106,41,BS_CENTER
-    CTEXT           "Домашняя страница",IDC_LINK,193,83,100,8
-    CTEXT           "Обсуждение новых версий",IDC_LINK_BLOG,193,93,100,8
-    CTEXT           "pavel.pimenov@gmail.com",IDC_SUPPORT_MAIL,193,103,100,8
-    GROUPBOX        "Сторонние проекты:",IDC_SIDEPRO_STATIC,190,116,106,58,BS_CENTER
-    EDITTEXT        IDC_THIRD_PARTY_SOFTWARE,194,124,99,45,ES_MULTILINE | ES_READONLY | NOT WS_BORDER | WS_VSCROLL | NOT WS_TABSTOP
-    EDITTEXT        IDC_UDP_DHT_SSL_STAT,141,37,150,33,ES_MULTILINE | ES_READONLY | WS_VSCROLL | NOT WS_TABSTOP
+    CTEXT           "Quality C++ code protects PVS-Studio",IDC_PVS_STUDIO,43,15,216,8
+    GROUPBOX        "Участники проекта:",IDC_THANKS_STATIC,1,27,185,147,BS_CENTER
+    EDITTEXT        IDC_THANKS,5,36,179,133,ES_CENTER | ES_MULTILINE | ES_READONLY | NOT WS_BORDER | WS_VSCROLL | NOT WS_TABSTOP
+    GROUPBOX        "Ссылки:",IDC_LINKS_STATIC,190,27,106,41,BS_CENTER
+    CTEXT           "Домашняя страница",IDC_LINK,193,36,100,8
+    CTEXT           "Обсуждение новых версий",IDC_LINK_BLOG,193,46,100,8
+    CTEXT           "pavel.pimenov@gmail.com",IDC_SUPPORT_MAIL,193,56,100,8
+    GROUPBOX        "Сторонние проекты:",IDC_SIDEPRO_STATIC,190,70,106,104,BS_CENTER
+    EDITTEXT        IDC_THIRD_PARTY_SOFTWARE,194,80,99,92,ES_MULTILINE | ES_READONLY | NOT WS_BORDER | WS_VSCROLL | NOT WS_TABSTOP
 END
 
 IDD_CLIENTS_PAGE DIALOGEX 0, 0, 325, 300
@@ -1779,7 +1774,7 @@ BEGIN
     CONTROL         "",-1,"Static",SS_BITMAP,0,0,15,13
     LTEXT           "Compiled on: YYYY-MM-DD",IDC_COMPT,6,247,225,8,WS_DISABLED
     DEFPUSHBUTTON   "OK",IDOK,239,244,60,14
-    CONTROL         "",IDC_ABOUTTAB,"SysTabControl32",TCS_HOTTRACK | TCS_BUTTONS | 0x8,1,50,301,192
+    CONTROL         "",IDC_ABOUTTAB,"SysTabControl32",TCS_HOTTRACK | TCS_RAGGEDRIGHT | TCS_FOCUSONBUTTONDOWN | TCS_TOOLTIPS | 0x8,1,50,301,192
 END
 
 IDD_SHARE_MISC_PAGE DIALOGEX 0, 0, 325, 300
@@ -1856,6 +1851,20 @@ BEGIN
     COMBOBOX        IDC_LOCATION_PROVIDER,15,77,220,111,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "Country",IDC_LOCATION_COUNTRY_DESCRIPTION,10,7,230,29
     COMBOBOX        IDC_LOCATION_COUNTRY,15,18,220,111,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_ABOUTSTAT DIALOGEX 0, 0, 297, 200
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    GROUPBOX        "Статистика:",IDC_STATISTICS_STATIC,1,0,295,174,BS_CENTER
+    LTEXT           "Upload: xx.xx MB",IDC_TOTAL_UPLOAD,8,10,127,8,0,WS_EX_TRANSPARENT
+    LTEXT           "Download: xx.xx MB",IDC_TOTAL_DOWNLOAD,152,10,127,8
+    LTEXT           "Ratio (Up/Down): x.xx",IDC_RATIO,8,19,127,8
+    EDITTEXT        IDC_UDP_DHT_SSL_STAT,8,30,284,40,ES_MULTILINE | ES_READONLY | NOT WS_TABSTOP
+    LTEXT           "Total Uptime: Y, M, D, h, m, s",IDC_TOTAL_UPTIME,8,83,284,8,WS_DISABLED,WS_EX_TRANSPARENT
+    LTEXT           "System Uptime: Y, M, D, h, m, s",IDC_SYSUPTIME,8,73,284,8,WS_DISABLED,WS_EX_TRANSPARENT
+    LTEXT           "Total Messages: xx",IDC_TOTAL_MESSAGES,8,93,284,8,WS_DISABLED,WS_EX_TRANSPARENT
 END
 
 
@@ -2215,6 +2224,7 @@ BEGIN
         VERTGUIDE, 239
         VERTGUIDE, 292
         BOTTOMMARGIN, 196
+        HORZGUIDE, 30
         HORZGUIDE, 101
     END
 
@@ -2837,6 +2847,21 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 113
     END
+
+    IDD_ABOUTSTAT, DIALOG
+    BEGIN
+        RIGHTMARGIN, 296
+        VERTGUIDE, 4
+        VERTGUIDE, 8
+        VERTGUIDE, 135
+        VERTGUIDE, 152
+        VERTGUIDE, 193
+        VERTGUIDE, 199
+        VERTGUIDE, 239
+        VERTGUIDE, 292
+        BOTTOMMARGIN, 196
+        HORZGUIDE, 42
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -2963,12 +2988,12 @@ IDR_FLYLINK_PNG         PNG                     "res\\FlyLink.png"
 IDR_MAGNET_PNG          PNG                     "res\\Magnet.png"
 IDR_SPLASH_FOOLS_DAY    PNG                     "res\\Splash\\Splash_fools_day.png"
 IDR_ISP_HUBLIST         PNG                     "res\\ISPImages.png"
-#endif    // Russian (Russia) resources
+#endif    // Русский (Россия) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// English (United States) resources
+// Английский (США) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
@@ -3078,7 +3103,7 @@ BEGIN
     "H",            IDC_HELP_FAQ,           VIRTKEY, ALT, NOINVERT
 END
 
-#endif    // English (United States) resources
+#endif    // Английский (США) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

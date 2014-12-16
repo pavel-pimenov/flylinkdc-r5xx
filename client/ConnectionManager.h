@@ -227,7 +227,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		
 		/** Find a suitable port to listen on, and start doing it */
 		void listen();
-		void disconnect() noexcept;
+		void disconnect();
 		
 		uint16_t getPort() const
 		{

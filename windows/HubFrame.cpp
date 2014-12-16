@@ -1438,28 +1438,6 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 		}
 		break;
 #endif // FLYLINKDC_ADD_CHAT_LINE_USE_WIN_MESSAGES_Q
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
 		case WM_SPEAKER_CONNECTED:
 		{
 			m_is_fynally_clear_user_list = false;

@@ -527,23 +527,10 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		        int64_t aTimeStamp, const CFlyMediaInfo& p_out_media, int64_t p_size) noexcept;
 		        
 		// SettingsManagerListener
-		void on(SettingsManagerListener::Save, SimpleXML& xml)
-		{
-			save(xml);
-		}
-		void on(SettingsManagerListener::Load, SimpleXML& xml)
-		{
-			on(SettingsManagerListener::ShareChanges());
-			load(xml);
-		}
+		void on(SettingsManagerListener::Save, SimpleXML& xml);
+		void on(SettingsManagerListener::Load, SimpleXML& xml);
 		// [+] IRainman opt.
-		void on(SettingsManagerListener::ShareChanges) noexcept
-		{
-			auto skipList = SPLIT_SETTING_AND_LOWER(SKIPLIST_SHARE);
-			
-			FastLock l(m_csSkipList);
-			swap(m_skipList, skipList);
-		}
+		void on(SettingsManagerListener::ShareChanges) noexcept;
 		
 		bool isInSkipList(const string& lowerName) const
 		{

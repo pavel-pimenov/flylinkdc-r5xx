@@ -145,7 +145,7 @@ class Socket
 		}
 		virtual void shutdown() noexcept;
 		virtual void close() noexcept;
-		void disconnect() noexcept;
+		void disconnect();
 		
 		virtual bool waitConnected(uint64_t millis);
 		virtual bool waitAccepted(uint64_t millis);

@@ -1619,17 +1619,21 @@ void FavoriteManager::previewload(SimpleXML& aXml)
 
 void FavoriteManager::previewsave(SimpleXML& aXml)
 {
-	aXml.addTag("PreviewApps");
-	aXml.stepIn();
-	for (auto i = previewApplications.cbegin(); i != previewApplications.cend(); ++i)
+	//dcassert(!ClientManager::isShutdown());
+	//if (!ClientManager::isShutdown())
 	{
-		aXml.addTag("Application");
-		aXml.addChildAttrib("Name", (*i)->getName());
-		aXml.addChildAttrib("Application", (*i)->getApplication());
-		aXml.addChildAttrib("Arguments", (*i)->getArguments());
-		aXml.addChildAttrib("Extension", (*i)->getExtension());
+		aXml.addTag("PreviewApps");
+		aXml.stepIn();
+		for (auto i = previewApplications.cbegin(); i != previewApplications.cend(); ++i)
+		{
+			aXml.addTag("Application");
+			aXml.addChildAttrib("Name", (*i)->getName());
+			aXml.addChildAttrib("Application", (*i)->getApplication());
+			aXml.addChildAttrib("Arguments", (*i)->getArguments());
+			aXml.addChildAttrib("Extension", (*i)->getExtension());
+		}
+		aXml.stepOut();
 	}
-	aXml.stepOut();
 }
 
 /**

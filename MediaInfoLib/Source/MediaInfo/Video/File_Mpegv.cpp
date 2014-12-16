@@ -1944,9 +1944,6 @@ bool File_Mpegv::Demux_UnpacketizeContainer_Test()
 //---------------------------------------------------------------------------
 void File_Mpegv::Read_Buffer_Unsynched()
 {
-	if( Streams.empty()) //[+]FlylinkDC Team (TODO)
-		Streams.resize(0x100); //[+]FlylinkDC Team 
-
     for (int8u Pos=0x00; Pos<0xB9; Pos++)
     {
         Streams[Pos].Searching_Payload=false;
@@ -2187,7 +2184,7 @@ void File_Mpegv::Detect_EOF()
                 Streams[0x00].Searching_Payload=GA94_03_IsPresent || Cdp_IsPresent;
                 Streams[0xB2].Searching_Payload=GA94_03_IsPresent || CC___IsPresent || Scte_IsPresent;
                 Streams[0xB3].Searching_Payload=GA94_03_IsPresent || Cdp_IsPresent;
-            #endif // defined(MEDIAINFO_DTVCCTRANSPORT_YES) || defined(MEDIAINFO_SCTE20_YES) || (defined(MEDIAINFO_GXF_YES) && defined(MEDIAINFO_CDP_YES))
+            #endif //defined(MEDIAINFO_DTVCCTRANSPORT_YES) || defined(MEDIAINFO_SCTE20_YES) || (defined(MEDIAINFO_GXF_YES) && defined(MEDIAINFO_CDP_YES))
             return;
         }
 

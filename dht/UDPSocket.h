@@ -67,7 +67,7 @@ class UDPSocket :
 		~UDPSocket(void);
 		
 		/** Disconnects UDP socket */
-		void disconnect() noexcept;
+		void disconnect();
 		
 		/** Starts listening to UDP socket */
 		void listen();

@@ -974,7 +974,7 @@ void Socket::close() noexcept
 	}
 }
 
-void Socket::disconnect() noexcept
+void Socket::disconnect()
 {
 	shutdown();
 	close();

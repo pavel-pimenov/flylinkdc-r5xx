@@ -49,7 +49,7 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 		typedef ChatCtrl thisClass;
 	protected:
 		// TypedListViewCtrl<UserInfo, IDC_USERS> *m_pUsers;
-		string sHubHint; // !SMT!-S [!] IRainman fix TODO.
+		string m_HubHint; // !SMT!-S [!] IRainman fix TODO.
 		bool isOnline(const Client* client, const tstring& aNick) const; // !SMT!-S [!] IRainman opt: add client!
 		
 		bool m_boAutoScroll;
@@ -127,41 +127,33 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 			                      const bool p_is_my_mess,
 			                      const bool p_is_real_user,
 			                      const tstring& p_msg,
-			                      const CHARFORMAT2& p_cf):
-				m_Msg(p_msg),
-				m_Nick(p_nick),
-				m_bMyMess(p_is_my_mess),
-				m_isRealUser(p_is_real_user),
-				m_cf(p_cf)
-			{
-			}
-			CFlyChatCacheTextOnly()
-			{
-			}
+			                      const CHARFORMAT2& p_cf);
 		};
 		struct CFlyChatCache : public CFlyChatCacheTextOnly
 		{
 			tstring m_Extra;
 			bool m_bThirdPerson;
 			bool m_bUseEmo;
+			bool m_is_url;
 			bool m_isFavorite;
 			bool m_is_ban;
 			bool m_is_op;
+			bool m_is_disable_style;
 			CFlyChatCache(const Identity& p_id, const bool bMyMess, const bool bThirdPerson,
 			              const tstring& sExtra, const tstring& sMsg, const CHARFORMAT2& cf, bool bUseEmo);
-			CFlyChatCache()
-			{
-			}
 		};
 		
-		void AppendText(const CFlyChatCache& p_chat_info);
+		void AppendText(const CFlyChatCache& p_message);
 		void AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly& p_message);
+		void AppendTextParseBB(CAtlString& sMsgLower, const CFlyChatCacheTextOnly& p_message, const LONG& lSelBegin);
+		void AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheTextOnly& p_message, const LONG& lSelBegin);
 		
 	private:
 		std::list<CFlyChatCache> m_chat_cache; // вектор нельзя - список пополняется (странно что в одной нитке)
 		bool m_is_cache_chat_empty;
 		bool m_is_out_of_memory_for_smile;
 		//std::unique_ptr<webrtc::RWLockWrapper> m_cs_chat_cache;
+		void insertAndFormat(const tstring & text, CHARFORMAT2 cf, bool p_is_disable_style, LONG& p_begin, LONG& p_end);
 	public:
 		void disable_chat_cache()
 		{
@@ -179,20 +171,20 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 		
 		void setHubParam(const string& sUrl, const string& sNick)
 		{
-			sMyNickLower = WinUtil::toAtlString(sNick);
-			sMyNickLower.MakeLower();
-			sHubHint = sUrl;    // !SMT!-S
+			m_MyNickLower = WinUtil::toAtlString(sNick);
+			m_MyNickLower.MakeLower();
+			m_HubHint = sUrl;    // !SMT!-S
 		}
 		const string& getHubHint() const// [+] IRainman fix.
 		{
-			return sHubHint;
+			return m_HubHint;
 		}
 	public:
 		// [~] IRainman fix, todo replace to tstring?
 		void Clear() // [+] IRainman fix.
 		{
 			SetWindowText(Util::emptyStringT.c_str());
-			lURLMap.clear();
+			m_URLMap.clear();
 		}
 		void SetTextStyleMyNick(const CHARFORMAT2& ts)
 		{
@@ -206,15 +198,15 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 		static tstring g_sSelectedUserName;
 		static tstring g_sSelectedURL;
 	private:
-		CAtlString sMyNickLower; // [+] IRainman fix, todo replace to tstring?
-		TURLMap lURLMap;
+		CAtlString m_MyNickLower; // [+] IRainman fix, todo replace to tstring?
+		TURLMap m_URLMap;
 		const tstring& get_URL(ENLINK* p_EL) const
 		{
 			return get_URL(p_EL->chrg.cpMin/*, p_EL->chrg.cpMax*/);
 		}
 		const tstring& get_URL(const long lBegin/*, const long lEnd*/) const
 		{
-			for (auto i = lURLMap.cbegin(); i != lURLMap.cend(); ++i)
+			for (auto i = m_URLMap.cbegin(); i != m_URLMap.cend(); ++i)
 				if (i->first == lBegin)
 					return i->second;
 					

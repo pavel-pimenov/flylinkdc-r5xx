@@ -58,28 +58,11 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 			return new BufferedSocket(sep);
 		}
 		
-		static void putBufferedSocket(BufferedSocket*& p_sock, bool p_delete = false)
-		{
-			if (p_sock)
-			{
-				p_sock->shutdown();
-				if (p_delete)
-				{
-					delete p_sock;
-				}
-				p_sock = nullptr;
-			}
-		}
+		static void putBufferedSocket(BufferedSocket*& p_sock, bool p_delete = false);
 		
-		static void waitShutdown()
-		{
-			int l_max_count = 500;
-			while (g_sockets > 0 && --l_max_count)
-			{
-				sleep(10); // TODO - ≈сли слишком долго ждем. спросить диалогом и если ответ€т "да" - закрытьс€
-				// TODO - случай зависани€ передать на флай-сервер.
-			}
-		}
+#ifdef FLYLINKDC_USE_SOCKET_COUNTER
+		static void waitShutdown();
+#endif
 		
 		uint16_t accept(const Socket& srv, bool secure, bool allowUntrusted);
 		void connect(const string& aAddress, uint16_t aPort, bool secure, bool allowUntrusted, bool proxy);
@@ -130,20 +113,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		{
 			return hasSocket() ? sock->getIp() : Util::emptyString;
 		}
-		boost::asio::ip::address_v4 getIp4() const
-		{
-			if (hasSocket())
-			{
-				boost::system::error_code ec;
-				const auto l_ip = boost::asio::ip::address_v4::from_string(sock->getIp(), ec); // TODO - конвертнуть IP и в сокетах
-				dcassert(!ec);
-				return l_ip;
-			}
-			else
-			{
-				return boost::asio::ip::address_v4();
-			}
-		}
+		boost::asio::ip::address_v4 getIp4() const;
 		const uint16_t getPort()
 		{
 			return hasSocket() ? sock->getPort() : 0;
@@ -192,14 +162,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 			m_is_all_my_info_loaded = false;
 			m_myInfoCount = 0;
 		}
-		void disconnect(bool graceless = false) noexcept
-		{
-			FastLock l(cs);
-			if (graceless)
-				m_is_disconnecting = true;
-			initMyINFOLoader();
-			addTask(DISCONNECT, nullptr);
-		}
+		void disconnect(bool graceless = false);
 		
 		string getLocalIp() const
 		{
@@ -334,7 +297,9 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		void threadSendData();
 		
 		void fail(const string& aError);
+#ifdef FLYLINKDC_USE_SOCKET_COUNTER
 		static volatile long g_sockets; // [!] IRainman opt: use simple variable here.
+#endif
 		
 		bool checkEvents();
 		void checkSocket();

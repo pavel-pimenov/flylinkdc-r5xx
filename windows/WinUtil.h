@@ -1407,6 +1407,7 @@ struct Colors
 	
 	static CHARFORMAT2 g_TextStyleTimestamp;
 	static CHARFORMAT2 g_ChatTextGeneral;
+	static CHARFORMAT2 g_ChatTextOldHistory;
 	static CHARFORMAT2 g_TextStyleMyNick;
 	static CHARFORMAT2 g_ChatTextMyOwn;
 	static CHARFORMAT2 g_ChatTextServer;

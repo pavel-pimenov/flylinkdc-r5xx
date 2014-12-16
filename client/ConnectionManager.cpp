@@ -352,14 +352,14 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 						{
 							const string hubHint = cqi->getHubUrl(); // TODO - прокинуть туда хинт на хаб
 							cqi->setState(ConnectionQueueItem::CONNECTING);
-#ifdef FLYLINKDC_BETA
-							cqi->m_count_waiting++; // В бетке уходим в пассиву
-#endif
-//#ifdef _DEBUG
-//							cqi->m_is_force_passive = cqi->m_count_waiting > 1; // Делаем вторую попытку всегда в пассиве - для теста!
-//#else
+							
+#ifdef FLYLINKDC_USE_FORCE_PASSIVE
+							cqi->m_count_waiting++;
 							cqi->m_is_force_passive = cqi->m_is_active_client ? (cqi->m_count_waiting > 1) : false; // Делаем вторую попытку подключения в пассивке ?
-//#endif
+#else
+							cqi->m_is_force_passive = false;
+#endif
+							
 							ClientManager::getInstance()->connect(HintedUser(cqi->getUser(), hubHint),
 							                                      cqi->getConnectionQueueToken(),
 							                                      cqi->m_is_force_passive,
@@ -861,7 +861,7 @@ void ConnectionManager::adcConnect(const OnlineUser& aUser, uint16_t aPort, uint
 	}
 }
 
-void ConnectionManager::disconnect() noexcept
+void ConnectionManager::disconnect()
 {
 	safe_delete(server); // TODO Зовется чаще чем нужно.
 	safe_delete(secureServer);

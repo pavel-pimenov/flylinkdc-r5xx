@@ -19,6 +19,8 @@
 #include "stdafx.h"
 
 #include "WinUtil.h"
+#include "BaseChatFrame.h"
+#include "PopupManager.h"
 #include "MainFrm.h"
 
 

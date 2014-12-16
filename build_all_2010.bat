@@ -1,3 +1,6 @@
+echo Use VC+2013
+goto :builderror
+
 call clean_all_2010.bat
 call UpdateGeoIP.bat
 call build_flylinkdc_2010.bat

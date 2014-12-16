@@ -1426,10 +1426,12 @@ TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const Conn
 	
 	ui->setStatus(ItemInfo::STATUS_WAITING);
 	string l_status = STRING(CONNECTING);
+#ifdef FLYLINKDC_USE_FORCE_PASSIVE
 	if (aCqi->m_count_waiting > 1)
 	{
 		l_status += " (Step: " + Util::toString(aCqi->m_count_waiting) + ")"; // TODO - исправить копипаст
 	}
+#endif
 	ui->setStatusString(Text::toT(l_status));
 	return ui;
 }
@@ -1461,10 +1463,12 @@ void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueIt
 #endif
 	{
 		string l_reason_and_count = aReason;
+#ifdef FLYLINKDC_USE_FORCE_PASSIVE
 		if (aCqi->m_count_waiting > 1)
 		{
 			l_reason_and_count += " (Step: " + Util::toString(aCqi->m_count_waiting) + ")";
 		}
+#endif
 		ui->setStatusString(Text::toT(l_reason_and_count));
 	}
 	

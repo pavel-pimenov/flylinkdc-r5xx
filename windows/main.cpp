@@ -326,16 +326,14 @@ void DestroySplash() // [+] IRainman
 	}
 }
 
-void GuiInit(void* pParam)
+void GuiInit(void*)
 {
-	UNREFERENCED_PARAMETER(pParam);
 	ToolbarManager::newInstance();
 	createFlyFeatures(); // [+] SSA
 }
 
-void GuiUninit(void* pParam)
+void GuiUninit(void*)
 {
-	UNREFERENCED_PARAMETER(pParam);
 	deleteFlyFeatures(); // [+] SSA
 	PopupManager::deleteInstance();
 	ToolbarManager::deleteInstance();

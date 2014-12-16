@@ -131,11 +131,11 @@ void ChatCtrl::AdjustTextSize()
 	if (iOverhead > 1000)
 	{
 		CLockRedraw<> l_lock_draw(m_hWnd);
-		for (auto i = lURLMap.begin(); i != lURLMap.end();)
+		for (auto i = m_URLMap.begin(); i != m_URLMap.end();)
 		{
 			i->first -= iOverhead;
 			if (i->first < 0)
-				lURLMap.erase(i++);
+				m_URLMap.erase(i++);
 			else
 				++i;
 		}
@@ -143,28 +143,6 @@ void ChatCtrl::AdjustTextSize()
 		ReplaceSel(_T(""));
 	}
 	// [~] IRainman fix.
-}
-//================================================================================================================================
-void ChatCtrl::restore_chat_cache()
-{
-	CLockRedraw<true> l_lock_draw(m_hWnd);
-	CWaitCursor l_cursor_wait;
-	{
-		//webrtc::ReadLockScoped l(*m_cs_chat_cache);
-		if (m_is_cache_chat_empty == false)
-		{
-			m_is_cache_chat_empty = true;
-			for (auto i = m_chat_cache.cbegin(); i != m_chat_cache.cend(); ++i)
-			{
-				AppendText(*i);
-			}
-		}
-		{
-			//webrtc::WriteLockScoped l(*m_cs_chat_cache);
-			m_chat_cache.clear();
-		}
-	}
-	m_is_out_of_memory_for_smile = false; // —нова пытамс€ вставл€ть смайлы
 }
 //================================================================================================================================
 ChatCtrl::CFlyChatCache::CFlyChatCache(const Identity& p_id, const bool bMyMess, const bool bThirdPerson,
@@ -176,22 +154,107 @@ ChatCtrl::CFlyChatCache::CFlyChatCache(const Identity& p_id, const bool bMyMess,
 	                      p_cf),
 	m_bThirdPerson(bThirdPerson),
 	m_Extra(sExtra),
-	m_bUseEmo(bUseEmo)
+	m_bUseEmo(bUseEmo),
+	m_is_disable_style(false),
+	m_is_url(false)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
 		m_bUseEmo = bUseEmo || !TimerManager::g_isStartupShutdownProcess; // ѕока конструируемс€ - смайлы не добавл€ем чтобы не тормозить
+		Text::normalizeStringEnding(m_Msg);
+		m_Msg += '\n';
 		if (!CAGEmotionSetup::g_pEmotionsSetup || CompatibilityManager::isWine())
 		{
 			m_bUseEmo = false;
 		}
+		
+		for (size_t i = 0; i < _countof(g_AllLinks); i++)
+		{
+			if (m_Msg.find(g_AllLinks[i].tag) != tstring::npos)
+			{
+				m_is_url = true;
+				m_bUseEmo = false;
+				break;
+			}
+		}
+		
 		m_is_op = p_id.isOp();
 		m_is_ban = false;
 		if (!bThirdPerson)
 		{
 			m_isFavorite = !bMyMess && FavoriteManager::getInstance()->isFavoriteUser(p_id.getUser(), m_is_ban);
 		}
+	}
+}
+//================================================================================================================================
+ChatCtrl::CFlyChatCacheTextOnly::CFlyChatCacheTextOnly(const tstring& p_nick,
+                                                       const bool p_is_my_mess,
+                                                       const bool p_is_real_user,
+                                                       const tstring& p_msg,
+                                                       const CHARFORMAT2& p_cf):
+	m_Msg(p_msg),
+	m_Nick(p_nick),
+	m_bMyMess(p_is_my_mess),
+	m_isRealUser(p_is_real_user),
+	m_cf(p_cf)
+{
+}
+//================================================================================================================================
+void ChatCtrl::restore_chat_cache()
+{
+	CLockRedraw<true> l_lock_draw(m_hWnd);
+	CWaitCursor l_cursor_wait;
+	{
+		//webrtc::ReadLockScoped l(*m_cs_chat_cache);
+#if 0
+		for (int i = 0; i < 100; ++i)
+		{
+			ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(),
+			                                  false,
+			                                  true,
+			                                  _T('[') + Text::toT(Util::getShortTimeString()) + _T("] "),
+			                                  _T("Test!Test!Test!Test!Test!Test! ;-) :-) ;-) :-) ;-) :-) ;-) :-) ;-) :-) ;-) :-) ;-) :-) ;-) :-) ;-) :-) ;-) :-) ;-) :-)"),
+			                                  Colors::g_ChatTextOldHistory,
+			                                  false);
+			l_message.m_Nick = _T("FlylinkDC-Debug-TEST");
+			m_chat_cache.push_back(l_message);
+		}
+#endif
+		if (m_is_cache_chat_empty == false)
+		{
+			m_is_cache_chat_empty = true;
+			int l_count = m_chat_cache.size();
+			for (auto i = m_chat_cache.begin(); i != m_chat_cache.end(); ++i)
+			{
+			
+				if (l_count-- > 100) // ќтрубаем смайлы и стиль на старых запис€х
+				{
+					i->m_bUseEmo = false;
+					i->m_is_disable_style = true;
+				}
+				AppendText(*i);
+			}
+		}
+		{
+			//webrtc::WriteLockScoped l(*m_cs_chat_cache);
+			m_chat_cache.clear();
+		}
+	}
+	m_is_out_of_memory_for_smile = false; // —нова пытамс€ вставл€ть смайлы
+}
+//================================================================================================================================
+void ChatCtrl::insertAndFormat(const tstring & text, CHARFORMAT2 cf, bool p_is_disable_style, LONG& p_begin, LONG& p_end)
+{
+	dcassert(!text.empty());
+	if (!text.empty())
+	{
+		p_begin = p_end = GetTextLengthEx(GTL_NUMCHARS);
+		SetSel(p_end, p_end);
+		ReplaceSel(text.c_str()); // http://www.flickr.com/photos/96019675@N02/11524414653/ http://code.google.com/p/flylinkdc/issues/detail?id=1428
+		p_end = GetTextLengthEx(GTL_NUMCHARS);
+		SetSel(p_begin, p_end);
+		SetSelectionCharFormat(cf);
 	}
 }
 //================================================================================================================================
@@ -219,24 +282,10 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message)
 	LONG lSelBegin = 0;
 	LONG lSelEnd = 0;
 	
-	auto insertAndFormat = [&](const tstring & text, CHARFORMAT2 cf) -> void // [+] IRainman fix, TODO: opt call of this.
-	{
-		dcassert(!text.empty());
-		if (!text.empty())
-		{
-			lSelBegin = lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
-			SetSel(lSelEnd, lSelEnd);
-			ReplaceSel(text.c_str()); // http://www.flickr.com/photos/96019675@N02/11524414653/ http://code.google.com/p/flylinkdc/issues/detail?id=1428
-			lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
-			SetSel(lSelBegin, lSelEnd);
-			SetSelectionCharFormat(cf);
-		}
-	};
-	
 	// Insert extra info and format with default style
 	if (!p_message.m_Extra.empty())
 	{
-		insertAndFormat(p_message.m_Extra, Colors::g_TextStyleTimestamp);
+		insertAndFormat(p_message.m_Extra, Colors::g_TextStyleTimestamp, p_message.m_is_disable_style, lSelBegin, lSelEnd);
 		
 		PARAFORMAT2 pf;
 		memzero(&pf, sizeof(PARAFORMAT2));
@@ -246,55 +295,55 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message)
 	}
 	
 	tstring sText = p_message.m_Msg;
-	const tstring& sAuthor = p_message.m_Nick;
+	//const tstring& sAuthor = p_message.m_Nick;
 	//dcassert(!sAuthor.empty());
-	if (sAuthor.empty())
+	if (p_message.m_Nick.empty())
 	{
 		// TODO: Needs extra format for program message?
 	}
 	else if (p_message.m_bThirdPerson)
 	{
-		const CHARFORMAT2& currentCF =
-		    p_message.m_bMyMess ? Colors::g_ChatTextMyOwn :
-		    BOOLSETTING(BOLD_AUTHOR_MESS) ? Colors::g_TextStyleBold :
-		    p_message.m_cf;
-		insertAndFormat(_T("* "), p_message.m_cf);
-		insertAndFormat(sAuthor, currentCF);
-		insertAndFormat(_T(" "), p_message.m_cf);
+		if (p_message.m_is_disable_style)
+		{
+			insertAndFormat(_T("* ") + p_message.m_Nick + _T(" "), p_message.m_cf, p_message.m_is_disable_style, lSelBegin, lSelEnd);
+		}
+		else
+		{
+			const CHARFORMAT2& currentCF =
+			    p_message.m_bMyMess ? Colors::g_ChatTextMyOwn :
+			    BOOLSETTING(BOLD_AUTHOR_MESS) ? Colors::g_TextStyleBold :
+			    p_message.m_cf;
+			insertAndFormat(_T("* "), p_message.m_cf, p_message.m_is_disable_style, lSelBegin, lSelEnd);
+			insertAndFormat(p_message.m_Nick, currentCF, p_message.m_is_disable_style, lSelBegin, lSelEnd);
+			insertAndFormat(_T(" "), p_message.m_cf, p_message.m_is_disable_style, lSelBegin, lSelEnd);
+		}
 	}
 	else
 	{
-		const CHARFORMAT2& currentCF =
-		    p_message.m_bMyMess ? Colors::g_TextStyleMyNick :
-		    p_message.m_isFavorite ? (p_message.m_is_ban ? Colors::g_TextStyleFavUsersBan : Colors::g_TextStyleFavUsers) :
-			    p_message.m_is_op ? Colors::g_TextStyleOPs :
-			    BOOLSETTING(BOLD_AUTHOR_MESS) ? Colors::g_TextStyleBold :
-			    p_message.m_cf;
-		insertAndFormat(_T("<"), p_message.m_cf);
-		insertAndFormat(sAuthor, currentCF);
-		insertAndFormat(_T("> "), p_message.m_cf);
+		if (p_message.m_is_disable_style)
+		{
+			insertAndFormat(_T("<") + p_message.m_Nick + _T(">"), p_message.m_cf, p_message.m_is_disable_style, lSelBegin, lSelEnd);
+		}
+		else
+		{
+			const CHARFORMAT2& currentCF =
+			    p_message.m_bMyMess ? Colors::g_TextStyleMyNick :
+			    p_message.m_isFavorite ? (p_message.m_is_ban ? Colors::g_TextStyleFavUsersBan : Colors::g_TextStyleFavUsers) :
+				    p_message.m_is_op ? Colors::g_TextStyleOPs :
+				    BOOLSETTING(BOLD_AUTHOR_MESS) ? Colors::g_TextStyleBold :
+				    p_message.m_cf;
+			insertAndFormat(_T("<"), p_message.m_cf, p_message.m_is_disable_style, lSelBegin, lSelEnd);
+			insertAndFormat(p_message.m_Nick, currentCF, p_message.m_is_disable_style, lSelBegin, lSelEnd);
+			insertAndFormat(_T("> "), p_message.m_cf, p_message.m_is_disable_style, lSelBegin, lSelEnd);
+		}
 	}
 	
 	// Ensure that EOLs will be always same
-	Text::normalizeStringEnding(sText); // [!] IRainman fix.
-	sText += '\n';
 #ifdef IRAINMAN_INCLUDE_SMILE
 	// ≈сли кончилась пам€ть на GDI - даже не пытаемс€ создавать смайлы (TODO - зачистить после полной загрузки кеша);
 	bool bUseEmo = p_message.m_bUseEmo && m_is_out_of_memory_for_smile == false;
 	if (bUseEmo)
 {
-		for (size_t i = 0; i < _countof(g_AllLinks); i++)
-		{
-			if (sText.find(g_AllLinks[i].tag) != tstring::npos)
-			{
-				bUseEmo = false;
-				break;
-			}
-		}
-	}
-	
-	if (bUseEmo)
-	{
 		const CAGEmotion::Array& Emoticons = CAGEmotionSetup::g_pEmotionsSetup->getEmoticonsArray();
 		uint8_t l_count_smiles = 0;
 		while (m_is_out_of_memory_for_smile == false)
@@ -329,7 +378,9 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message)
 				if (pFoundEmotion && l_pos != tstring::npos) // /*&& (pFoundEmotion->getEmotionBmp() || pFoundEmotion->getEmotionBmpPath().size())*/
 				{
 					if (l_pos)
+					{
 						AppendTextOnly(sText.substr(0, l_pos), p_message);
+					}
 					lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
 					SetSel(lSelEnd, lSelEnd);
 					
@@ -476,179 +527,84 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly&
 			}
 		}
 #endif // IRAINMAN_INCLUDE_TEXT_FORMATTING
-#ifdef IRAINMAN_USE_BB_CODES
 		// BB codes support http://ru.wikipedia.org/wiki/BbCode
-		if (BOOLSETTING(FORMAT_BB_CODES))
-		{
-			lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
-			//Intervals l_NonFormatIntervals; TODO
-			//tstring l_TextInCode;
-			for (size_t i = 0; i < _countof(g_StartBBTag); i++)
-			{
-				const CAtlString currentTag(WinUtil::toAtlString(g_StartBBTag[i].tag)); // TODO: rewrite with out me!
-				LONG BBStart = sMsgLower.Find(currentTag, 0);
-				while (BBStart != -1)
-				{
-					LONG BBEnd;
-					const CAtlString currentTagEnd(WinUtil::toAtlString(g_EndBBTag[i].tag));
-					const LONG BBEndTerminate = sMsgLower.Find(currentTagEnd, BBStart + currentTag.GetLength());
-					if (BBEndTerminate > BBStart)
-					{
-						BBEnd = BBEndTerminate;
-					}
-					else
-					{
-						BBStart = BBEnd = _tcslen(sMsgLower); //-V103
-					}
-					
-					// No closing, no formatting...
-					if (BBEnd == BBEndTerminate)
-					{
-						// TODO "code" tags
-						//bool l_needsToFormat = true;
-						//const long rtfEndIncludeTag = rtfEnd + g_EndBBTag[i].size;
-						//for(CIterIntervals j = l_NonFormatIntervals.cbegin(); j != l_NonFormatIntervals.cend(); ++j)
-						//{
-						//  if ((rtfStart > j->start && rtfStart < j->end) ||
-						//      (rtfEnd > j->start && rtfEndIncludeTag < j->end))
-						//  {
-						//      l_needsToFormat = false;
-						//      break;
-						//  }
-						//}
-						
-						//if (l_needsToFormat) TODO
-						//{
-						CHARFORMAT2 temp = p_message.m_cf;
-						
-						AutoArray<TCHAR> l_TextToFormat(BBEnd - BBStart + 1);
-						
-						size_t colorDelta = 0;
-						
-						//l_TextInCode.resize(BBEnd - BBStart + 1);
-						const LONG l_StartIncludeTag = lSelBegin + BBStart;
-						const LONG l_Start = l_StartIncludeTag + g_StartBBTag[i].tag.size(); //-V104 //-V103
-						const LONG l_Stop = lSelBegin + BBEnd;
-						const LONG l_StopIncludeTag = l_Stop + g_EndBBTag[i].tag.size(); //-V104 //-V103
-						
-						// Selection text include tag
-						SetSel(l_StartIncludeTag, l_StopIncludeTag);
-						
-						if (l_Start != l_Stop) // No text to format
-						{
-							// GetText
-							GetTextRange(l_Start, l_Stop, l_TextToFormat);
-							tstring l_TextInCode = l_TextToFormat;
-							//TODO optimize GetTextRange(l_Start, l_Stop, &l_TextInCode[0]);
-							
-							// TODO switch (i)
-							{
-								//case 0: TODO "code" tags
-								//{
-								//  l_NonFormatIntervals.push_back(Interval(rtfStart, rtfEnd));
-								//
-								//  // Replace text
-								//  ReplaceSel(l_TextInCode.c_str());
-								//}
-								//break;
-								// TODO default:
-								do
-								{
-									// Set mask
-									temp.dwMask = CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_STRIKEOUT | /*TODO: CFM_HIDDEN |*/ CFM_SPACING;
-									
-									// Get previous formatting
-									GetSelectionCharFormat(temp);
-									
-									temp.dwMask = CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_STRIKEOUT | /*TODO: CFM_HIDDEN |*/ CFM_SPACING;
-									
-									// Set new format bit
-									switch (i)
-									{
-										case 1:// Bold
-											temp.dwEffects |= CFE_BOLD;
-											break;
-										case 2:// Italic
-											temp.dwEffects |= CFE_ITALIC;
-											break;
-										case 3:// Underline
-											temp.dwEffects |= CFE_UNDERLINE;
-											break;
-										case 4:// StrikeOut
-											temp.dwEffects |= CFE_STRIKEOUT;
-											break;
-										case 5:// TODO Image support
-											break;
-										case 6: // Color support
-											// We get #FF0000]Test
-										{
-											// get color item
-											const auto endColorTagPosition = l_TextInCode.find(_T(']'));
-											if (endColorTagPosition == tstring::npos)
-												break;
-												
-											// get addition delta (size of item)
-											colorDelta = endColorTagPosition + 1;
-											// Check if we must use colors in text
-											if (BOOLSETTING(FORMAT_BB_CODES_COLORS))
-											{
-												const tstring colorItem = l_TextInCode.substr(0, endColorTagPosition);
-												if (Colors::getColorFromString(colorItem, temp.crTextColor/*, temp.crBackColor*/))
-												{
-													temp.dwMask |= CFM_COLOR;
-													/*temp.dwMask |= CFM_BACKCOLOR;*/
-												}
-											}
-											// get text
-											l_TextInCode = l_TextInCode.substr(colorDelta);
-										}
-										break;
-									}
-									
-									// Replace text
-									ReplaceSel(l_TextInCode.c_str());
-									
-									// Select text to format
-									SetSel(l_StartIncludeTag, l_StartIncludeTag + l_TextInCode.size()); //-V104
-									
-									// Set formatting to selection
-									SetSelectionCharFormat(temp);
-									
-									// TODO скрывать а не удал€ть текст! это позволит в последствии копировать его без ошибок в буфер обмена
-									// Set hidding bit http://www.cyberguru.ru/programming/visual-cpp/visual-cpp-std-classes-descr-page230.html
-									//temp.dwMask = CFM_HIDDEN;
-									//temp.dwEffects |= CFE_HIDDEN;
-									
-									// Hide end tags
-									//SetSel(rtfEnd, g_EndBBTag[i].size);
-									//SetSelectionCharFormat(temp);
-									
-									// Hide start tags
-									//SetSel(rtfStart, g_StartBBTag[i].size);
-									//SetSelectionCharFormat(temp);
-								}
-								while (false);  // [!] SSA - need this to exit this block
-								// TODO break;
-							}
-						}
-						else // Delete tags
-							ReplaceSel(_T(""));
-							
-						// Clean end tags
-						sMsgLower.Delete(BBEnd, g_EndBBTag[i].tag.size()); //-V107
-						
-						// Clean start tags
-						sMsgLower.Delete(BBStart, g_StartBBTag[i].tag.size() + colorDelta); //-V107
-					}
-					BBStart = sMsgLower.Find(currentTag, BBStart);
-				}
-			}
-		}
-#endif // IRAINMAN_USE_BB_CODES
+		AppendTextParseBB(sMsgLower, p_message, lSelBegin);
 	}
 	
-	// Zvyrazneni vsech URL a nastaveni "klikatelnosti"
+	AppendTextParseURL(sMsgLower, p_message, lSelBegin);
+	
+	if (p_message.m_Nick.empty()) // [+] IRainman fix.
+		return;
+		
+	// Zvyrazneni vsech vyskytu vlastniho nicku
 	lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
+	LONG lSearchFrom = 0;
+	
+	while (!p_message.m_bMyMess && !m_MyNickLower.IsEmpty())
+	{
+		lMyNickStart = sMsgLower.Find(m_MyNickLower, lSearchFrom);
+		if (lMyNickStart < 0)
+			break;
+		// [!] SSA - get Previous symbol.
+		if (lMyNickStart > 0 && !isGoodNickBorderSymbol(sMsgLower.GetAt(lMyNickStart - 1)))
+			break;
+			
+		lMyNickEnd = lMyNickStart + m_MyNickLower.GetLength();
+		
+		// [!] SSA - get Last symbol.
+		if (lMyNickEnd < sMsgLower.GetLength() - 1 && !isGoodNickBorderSymbol(sMsgLower.GetAt(lMyNickEnd)))
+			break;
+			
+		SetSel(lSelBegin + lMyNickStart, lSelBegin + lMyNickEnd);
+		
+		auto tmpCF = Colors::g_TextStyleMyNick;
+		SetSelectionCharFormat(tmpCF);
+		lSearchFrom = lMyNickEnd;
+		
+		PLAY_SOUND(SOUND_CHATNAMEFILE);
+	}
+	
+	// Zvyrazneni vsech vyskytu nicku Favorite useru
+	lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
+	{
+		FavoriteManager::LockInstanceUsers lockedInstance;
+		const auto& l_fav_users = lockedInstance.getFavoriteNames();
+		for (auto i = l_fav_users.cbegin(); i != l_fav_users.cend(); ++i) // TODO - проверить на большом фаворите.
+		{
+			const string& l_nick =  *i;
+			dcassert(!l_nick.empty());
+			
+			lSearchFrom = 0;
+			const CAtlString sNick(WinUtil::toAtlString(l_nick));
+			while (true)
+			{
+				lMyNickStart = sMsgLower.Find(sNick, lSearchFrom);
+				if (lMyNickStart < 0)
+					break; // TODO не пон€тно зачем грузить список ников из фаворитов чтобы при первом ошибочном поиске выйти из цикла!
+				// http://code.google.com/p/flylinkdc/issues/detail?id=1416
+				// [!] SSA - get Previous symbol.
+				if (lMyNickStart > 0 && !isGoodNickBorderSymbol(sMsgLower.GetAt(lMyNickStart - 1)))
+					break;
+					
+				lMyNickEnd = lMyNickStart + sNick.GetLength();
+				
+				// [!] SSA - get Last symbol.
+				if (lMyNickEnd < sMsgLower.GetLength() - 1 && !isGoodNickBorderSymbol(sMsgLower.GetAt(lMyNickEnd)))
+					break;
+					
+				SetSel(lSelBegin + lMyNickStart, lSelBegin + lMyNickEnd);
+				
+				auto tmpCF = Colors::g_TextStyleFavUsers;
+				SetSelectionCharFormat(tmpCF);
+				lSearchFrom = lMyNickEnd;
+			}
+		}
+	}
+}
+void ChatCtrl::AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheTextOnly& p_message, const LONG& lSelBegin)
+{
+	// Zvyrazneni vsech URL a nastaveni "klikatelnosti"
+	// const LONG lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
 	LONG lSearchFrom = 0;
 	tstring ls;
 	for (size_t i = 0; i < _countof(g_AllLinks); i++)
@@ -680,6 +636,7 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly&
 			SetSel(lSelBegin + linkStart, lSelBegin + linkEnd);
 			GetTextRange(lSelBegin + linkStart, lSelBegin + linkEnd, &ls[0]); // TODO проверить результат? http://code.google.com/p/flylinkdc/issues/detail?id=1428
 			tstring originalLink = ls;
+			tstring l_weblink;
 			if (Util::isMagnetLink(ls)) // shorten magnet-links
 			{
 				ls = ls.erase(0, 8); // opt: delete "magnet:?" for fasts search.
@@ -776,6 +733,7 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly&
 						filesize = Util::toInt64(sFileSize);
 						
 					tstring sDispLine = ls;
+					tstring sDispWebLink = ls;
 					int64_t dlsize = -1;
 					if (getParamether(_T("dl="), sDispLine))
 						dlsize = Util::toInt64(sDispLine); // [+] Scalolaz get DCLST size (Display Length) if isset/required //-V106
@@ -797,6 +755,12 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly&
 							ls += _T(", ") + TSTRING(HUB) + _T(": ") + Text::toT(Util::formatDchubUrl(Text::fromT(sDispLine)));
 					}
 					ls += _T(')');
+					
+					if (getParamether(_T("as="), sDispWebLink))
+					{
+						if (!sDispWebLink.empty() && (Util::isHttpLink(sDispWebLink) || Util::isHttpsLink(sDispWebLink)))
+							l_weblink = sDispWebLink;
+					}
 				}
 			}
 			/* TODO
@@ -815,87 +779,203 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly&
 				Text::fromT(ls, sLinkFullName);
 				Text::toT(Util::encodeURI(sLinkFullName, true), ls);
 			}
+			// Prepare string for buffering URL, URI...
+			int l_lenght = 0;
+			if (!l_weblink.empty())
+			{
+				tstring l_ls = _T("  ( ") + TSTRING(DESCRIPTION) + _T(":") + Text::toT(Util::encodeURI(Text::fromT(l_weblink), true)) + _T(" )");
+				l_lenght = l_ls.length();
+				ls = ls + l_ls;
+			}
 			ReplaceSel(ls.c_str());
 			sMsgLower = sMsgLower.Left(linkStart) + WinUtil::toAtlString(ls) + sMsgLower.Mid(linkEnd);
-			linkEnd = linkStart + ls.length(); //-V104 //-V103
+			linkEnd = linkStart + ls.length() - l_lenght; //-V104 //-V103
 			SetSel(lSelBegin + linkStart, lSelBegin + linkEnd);
-			lURLMap.push_back(TURLPair(lSelBegin + linkStart, originalLink));
-			
+			m_URLMap.push_back(TURLPair(lSelBegin + linkStart, originalLink));
+			if (!l_weblink.empty())
+			{
+				linkEnd = linkEnd + l_lenght;
+				//l_weblink.erase();
+			}
 			auto tmpCF = Colors::g_TextStyleURL;
 			SetSelectionCharFormat(tmpCF);
 			linkStart = sMsgLower.Find(currentLink, linkEnd);
 		}
 	}
 	
-	if (p_message.m_Nick.empty()) // [+] IRainman fix.
-		return;
-		
-	// Zvyrazneni vsech vyskytu vlastniho nicku
-	lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
-	lSearchFrom = 0;
-	
-	while (!p_message.m_bMyMess && !sMyNickLower.IsEmpty())
+}
+void ChatCtrl::AppendTextParseBB(CAtlString& sMsgLower, const CFlyChatCacheTextOnly& p_message, const LONG& lSelBegin)
+{
+#ifdef IRAINMAN_USE_BB_CODES
+	// BB codes support http://ru.wikipedia.org/wiki/BbCode
+	if (BOOLSETTING(FORMAT_BB_CODES))
 	{
-		lMyNickStart = sMsgLower.Find(sMyNickLower, lSearchFrom);
-		if (lMyNickStart < 0)
-			break;
-		// [!] SSA - get Previous symbol.
-		if (lMyNickStart > 0 && !isGoodNickBorderSymbol(sMsgLower.GetAt(lMyNickStart - 1)))
-			break;
-			
-		lMyNickEnd = lMyNickStart + sMyNickLower.GetLength();
-		
-		// [!] SSA - get Last symbol.
-		if (lMyNickEnd < sMsgLower.GetLength() - 1 && !isGoodNickBorderSymbol(sMsgLower.GetAt(lMyNickEnd)))
-			break;
-			
-		SetSel(lSelBegin + lMyNickStart, lSelBegin + lMyNickEnd);
-		
-		auto tmpCF = Colors::g_TextStyleMyNick;
-		SetSelectionCharFormat(tmpCF);
-		lSearchFrom = lMyNickEnd;
-		
-		PLAY_SOUND(SOUND_CHATNAMEFILE);
-	}
-	
-	// Zvyrazneni vsech vyskytu nicku Favorite useru
-	lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
-	{
-		FavoriteManager::LockInstanceUsers lockedInstance;
-		const auto& l_fav_users = lockedInstance.getFavoriteNames();
-		for (auto i = l_fav_users.cbegin(); i != l_fav_users.cend(); ++i) // TODO - проверить на большом фаворите.
+		//const LONG lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
+		for (size_t i = 0; i < _countof(g_StartBBTag); i++)
 		{
-			const string& l_nick =  *i;
-			dcassert(!l_nick.empty());
-			
-			lSearchFrom = 0;
-			const CAtlString sNick(WinUtil::toAtlString(l_nick));
-			while (true)
+			const CAtlString currentTag(WinUtil::toAtlString(g_StartBBTag[i].tag)); // TODO: rewrite with out me!
+			LONG BBStart = sMsgLower.Find(currentTag, 0);
+			while (BBStart != -1)
 			{
-				lMyNickStart = sMsgLower.Find(sNick, lSearchFrom);
-				if (lMyNickStart < 0)
-					break; // TODO не пон€тно зачем грузить список ников из фаворитов чтобы при первом ошибочном поиске выйти из цикла!
-				// http://code.google.com/p/flylinkdc/issues/detail?id=1416
-				// [!] SSA - get Previous symbol.
-				if (lMyNickStart > 0 && !isGoodNickBorderSymbol(sMsgLower.GetAt(lMyNickStart - 1)))
-					break;
-					
-				lMyNickEnd = lMyNickStart + sNick.GetLength();
+				LONG BBEnd;
+				const CAtlString currentTagEnd(WinUtil::toAtlString(g_EndBBTag[i].tag));
+				const LONG BBEndTerminate = sMsgLower.Find(currentTagEnd, BBStart + currentTag.GetLength());
+				if (BBEndTerminate > BBStart)
+				{
+					BBEnd = BBEndTerminate;
+				}
+				else
+				{
+					BBStart = BBEnd = _tcslen(sMsgLower); //-V103
+				}
 				
-				// [!] SSA - get Last symbol.
-				if (lMyNickEnd < sMsgLower.GetLength() - 1 && !isGoodNickBorderSymbol(sMsgLower.GetAt(lMyNickEnd)))
-					break;
+				// No closing, no formatting...
+				if (BBEnd == BBEndTerminate)
+				{
+					// TODO "code" tags
+					//bool l_needsToFormat = true;
+					//const long rtfEndIncludeTag = rtfEnd + g_EndBBTag[i].size;
+					//for(CIterIntervals j = l_NonFormatIntervals.cbegin(); j != l_NonFormatIntervals.cend(); ++j)
+					//{
+					//  if ((rtfStart > j->start && rtfStart < j->end) ||
+					//      (rtfEnd > j->start && rtfEndIncludeTag < j->end))
+					//  {
+					//      l_needsToFormat = false;
+					//      break;
+					//  }
+					//}
 					
-				SetSel(lSelBegin + lMyNickStart, lSelBegin + lMyNickEnd);
-				
-				auto tmpCF = Colors::g_TextStyleFavUsers;
-				SetSelectionCharFormat(tmpCF);
-				lSearchFrom = lMyNickEnd;
+					//if (l_needsToFormat) TODO
+					//{
+					CHARFORMAT2 temp = p_message.m_cf;
+					
+					AutoArray<TCHAR> l_TextToFormat(BBEnd - BBStart + 1);
+					l_TextToFormat[0] = 0;
+					
+					size_t colorDelta = 0;
+					
+					//l_TextInCode.resize(BBEnd - BBStart + 1);
+					const LONG l_StartIncludeTag = lSelBegin + BBStart;
+					const LONG l_Start = l_StartIncludeTag + g_StartBBTag[i].tag.size(); //-V104 //-V103
+					const LONG l_Stop = lSelBegin + BBEnd;
+					const LONG l_StopIncludeTag = l_Stop + g_EndBBTag[i].tag.size(); //-V104 //-V103
+					
+					// Selection text include tag
+					SetSel(l_StartIncludeTag, l_StopIncludeTag);
+					
+					if (l_Start != l_Stop) // No text to format
+					{
+						// GetText
+						GetTextRange(l_Start, l_Stop, l_TextToFormat);
+						tstring l_TextInCode = l_TextToFormat;
+						//TODO optimize GetTextRange(l_Start, l_Stop, &l_TextInCode[0]);
+						
+						// TODO switch (i)
+						{
+							//case 0: TODO "code" tags
+							//{
+							//  l_NonFormatIntervals.push_back(Interval(rtfStart, rtfEnd));
+							//
+							//  // Replace text
+							//  ReplaceSel(l_TextInCode.c_str());
+							//}
+							//break;
+							// TODO default:
+							do
+							{
+								// Set mask
+								temp.dwMask = CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_STRIKEOUT | /*TODO: CFM_HIDDEN |*/ CFM_SPACING;
+								
+								// Get previous formatting
+								GetSelectionCharFormat(temp);
+								
+								temp.dwMask = CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_STRIKEOUT | /*TODO: CFM_HIDDEN |*/ CFM_SPACING;
+								
+								// Set new format bit
+								switch (i)
+								{
+									case 1:// Bold
+										temp.dwEffects |= CFE_BOLD;
+										break;
+									case 2:// Italic
+										temp.dwEffects |= CFE_ITALIC;
+										break;
+									case 3:// Underline
+										temp.dwEffects |= CFE_UNDERLINE;
+										break;
+									case 4:// StrikeOut
+										temp.dwEffects |= CFE_STRIKEOUT;
+										break;
+									case 5:// TODO Image support
+										break;
+									case 6: // Color support
+										// We get #FF0000]Test
+									{
+										// get color item
+										const auto endColorTagPosition = l_TextInCode.find(_T(']'));
+										if (endColorTagPosition == tstring::npos)
+											break;
+											
+										// get addition delta (size of item)
+										colorDelta = endColorTagPosition + 1;
+										// Check if we must use colors in text
+										if (BOOLSETTING(FORMAT_BB_CODES_COLORS))
+										{
+											const tstring colorItem = l_TextInCode.substr(0, endColorTagPosition);
+											if (Colors::getColorFromString(colorItem, temp.crTextColor/*, temp.crBackColor*/))
+											{
+												temp.dwMask |= CFM_COLOR;
+												/*temp.dwMask |= CFM_BACKCOLOR;*/
+											}
+										}
+										// get text
+										l_TextInCode = l_TextInCode.substr(colorDelta);
+									}
+									break;
+								}
+								
+								// Replace text
+								ReplaceSel(l_TextInCode.c_str());
+								
+								// Select text to format
+								SetSel(l_StartIncludeTag, l_StartIncludeTag + l_TextInCode.size()); //-V104
+								
+								// Set formatting to selection
+								SetSelectionCharFormat(temp);
+								
+								// TODO скрывать а не удал€ть текст! это позволит в последствии копировать его без ошибок в буфер обмена
+								// Set hidding bit http://www.cyberguru.ru/programming/visual-cpp/visual-cpp-std-classes-descr-page230.html
+								//temp.dwMask = CFM_HIDDEN;
+								//temp.dwEffects |= CFE_HIDDEN;
+								
+								// Hide end tags
+								//SetSel(rtfEnd, g_EndBBTag[i].size);
+								//SetSelectionCharFormat(temp);
+								
+								// Hide start tags
+								//SetSel(rtfStart, g_StartBBTag[i].size);
+								//SetSelectionCharFormat(temp);
+							}
+							while (false);  // [!] SSA - need this to exit this block
+							// TODO break;
+						}
+					}
+					else // Delete tags
+						ReplaceSel(_T(""));
+						
+					// Clean end tags
+					sMsgLower.Delete(BBEnd, g_EndBBTag[i].tag.size()); //-V107
+					
+					// Clean start tags
+					sMsgLower.Delete(BBStart, g_StartBBTag[i].tag.size() + colorDelta); //-V107
+				}
+				BBStart = sMsgLower.Find(currentTag, BBStart);
 			}
 		}
 	}
+#endif // IRAINMAN_USE_BB_CODES
+	
 }
-
 bool ChatCtrl::HitNick(const POINT& p, tstring& sNick, int& iBegin, int& iEnd, const UserPtr& user)
 {
 	LONG iCharPos = CharFromPos(p), line = LineFromChar(iCharPos), len = LineLength(iCharPos) + 1;

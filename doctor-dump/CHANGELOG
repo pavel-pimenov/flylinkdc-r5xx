@@ -1,0 +1,26 @@
+2.0.16 (31-10-2014)
+- Added CrashProcessingCallback callback function that will be called when crash reporting occurs.
+- Added: SendRptPath and DbgHelpPath HandlerSettings members now may accept filenames if these modules exist in same folder as crashrpt.dll
+- Fixed bug: crash_rpt::CrashRpt::SendReport crashed on processing assert exception when crashrpt.dll missed (the assert exception was processed as other exceptions).
+
+2.0.15 (26-09-2014)
+- Added CRASHRPT_ENABLE_RELEASE_ASSERTS macro which enables the assertion reports to be sent on C "assert" macro for Release configuration.
+- Added: all binaries were digitally signed.
+- Changed: no error dialog appears if crashrpt has failed to send crash report.
+- Fixed bug: crashrpt.dll by default was looking for the sendrpt.exe in the folder with main application .exe (but should look in the folder where crashrpt.dll exist).
+- Fixed bug: A file indexing service may interfere with the crash reporting process.
+
+2.0.14 (18-08-2014)
+- Added new option -noprogress to symupload.exe
+- Fixed bug: symupload.exe was unable to upload symbols
+
+2.0.13 (17-08-2014)
+- Breaking changes: To use Doctor Dump SDK you need to redistribute crashrpt.dll, sendrpt.exe, dbghelp.dll instead of crshhndl.dll.
+- Supported rename of Crash Server to Doctor Dump service.
+  Now you should use "SkipDoctorDump_" prefix instead of "CrashServer_" to skip functions from processing.
+- Added option to rename crashrpt.dll to any suitable for you name using new CrashHandler constructors.
+- Added option to rename sendrpt.exe, dbghelp.dll using new SendRptPath and DbgHelpPath fields in HandlerSettings struct.
+- Added experimental (may be deleted in the feature) SetCustomInfo method. The text provided will be available on Doctor Dump dumps page.
+- Added RemoveUserInfoFromReport method.
+- Added support of custom groups for assertion violation reports.
+- Fixed bug when UserInfo was cut on first non-ASCII-7 character.

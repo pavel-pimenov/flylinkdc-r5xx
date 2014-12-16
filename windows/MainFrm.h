@@ -31,7 +31,6 @@
 #include "../FlyFeatures/flyServer.h"
 
 #include "../client/UserManager.h" // [+] IRainman
-#include "PopupManager.h"
 #include "PortalBrowser.h"
 
 #include "SkinableCmdBar.h"

@@ -519,6 +519,7 @@
     <ClInclude Include="windows\AboutDlg.h" />
     <ClInclude Include="windows\AboutDlgIndex.h" />
     <ClInclude Include="windows\AboutLogDlg.h" />
+    <ClInclude Include="windows\AboutStatDlg.h" />
     <ClInclude Include="windows\AddMagnet.h" />
     <ClInclude Include="windows\ADLSearchFrame.h" />
     <ClInclude Include="windows\ADLSProperties.h" />

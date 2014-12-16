@@ -2607,8 +2607,8 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 				
 				// [-] ConnectionManager::getInstance()->disconnect(); [-] IRainman fix: called in global shutdown(): ConnectionManager::getInstance()->shutdown().
 				
-				CReBarCtrl rebar = m_hWndToolBar;
-				ToolbarManager::getInstance()->getFrom(rebar, "MainToolBar");
+				//CReBarCtrl l_rebar = m_hWndToolBar;
+				//ToolbarManager::getInstance()->getFrom(l_rebar, "MainToolBar");
 				
 				updateTray(false);
 				WINDOWPLACEMENT wp = {0};

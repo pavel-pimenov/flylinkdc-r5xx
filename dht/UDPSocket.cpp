@@ -68,7 +68,7 @@ UDPSocket::~UDPSocket(void)
 /*
  * Disconnects UDP socket
  */
-void UDPSocket::disconnect() noexcept
+void UDPSocket::disconnect()
 {
 	if (socket.get())
 	{
@@ -306,7 +306,9 @@ int UDPSocket::run()
 		}
 		catch (const SocketException& p_e)
 		{
-      CFlyServerAdapter::CFlyServerJSON::pushError(17, "DHT::run Error: " + p_e.getError());
+      // Много ошибок
+      // dcassert(0);
+      // CFlyServerAdapter::CFlyServerJSON::pushError(17, "DHT::run Error: " + p_e.getError());
 			dcdebug("DHT::run Error: %s\n", p_e.what());
 			
 			bool failed = false;

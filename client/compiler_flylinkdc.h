@@ -309,7 +309,7 @@ typedef unsigned __int64 uint64_t;
 #endif
 //
 // Выключено - https://code.google.com/p/flylinkdc/issues/detail?id=625
-//#define RIP_USE_CONNECTION_AUTODETECT
+#define RIP_USE_CONNECTION_AUTODETECT
 
 #define RIP_USE_PORTAL_BROWSER
 //#define RIP_USE_SKIN    // not yet implemented, don't turn on

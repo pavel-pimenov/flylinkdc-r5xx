@@ -104,7 +104,6 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			ctrlThanks.AppendText(l_thanks, TRUE);
 			ctrlThanks.Detach();
 			SetDlgItemText(IDC_THANKS_STATIC, (TSTRING(ABOUT_PARTICIPANTS) + L':').c_str());
-			SetDlgItemText(IDC_STATISTICS_STATIC, (TSTRING(ABOUT_STATISTICS) + L':').c_str());
 			SetDlgItemText(IDC_LINKS_STATIC, (TSTRING(ABOUT_LINKS) + L':').c_str());
 			SetDlgItemText(IDC_SIDEPRO_STATIC, (TSTRING(ABOUT_SIDE_PROJECTS) + L':').c_str());
 			static const TCHAR l_Party_Software[] =
@@ -126,25 +125,10 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			ctrlPartySoftware.AppendText(l_Party_Software, FALSE);
 			ctrlPartySoftware.Detach();
 			
-			CEdit ctrlUDPStat(GetDlgItem(IDC_UDP_DHT_SSL_STAT));
-			ctrlUDPStat.SetFont(Fonts::g_halfFont);
-			ctrlUDPStat.AppendText(Text::toT(CompatibilityManager::generateNetworkStats()).c_str(), FALSE);
-			ctrlUDPStat.Detach();
-			
 			::SetWindowText(GetDlgItem(IDC_UPDATE_VERSION_CURRENT_LBL), (TSTRING(CURRENT_VERSION) + _T(":")).c_str()); //[+] (Sergey Shushkanov)
 			
 //[-]PPA    SetDlgItemText(IDC_TTH, WinUtil::tth.c_str());
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-			CFlylinkDBManager::getInstance()->load_global_ratio();
-			SetDlgItemText(IDC_LATEST, CTSTRING(DOWNLOADING));
-			SetDlgItemText(IDC_TOTAL_UPLOAD, (TSTRING(UPLOADED) + _T(": ") +
-			                                  Text::toT(Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.m_upload))).c_str());
-			SetDlgItemText(IDC_TOTAL_DOWNLOAD, (TSTRING(DOWNLOADED) + _T(": ") +
-			                                    Text::toT(Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.m_download))).c_str());
-			                                    
-			SetDlgItemText(IDC_RATIO, (TSTRING(RATING) + _T(": ") + (CFlylinkDBManager::getInstance()->get_ratioW())).c_str());
-#endif
-			
+
 			char l_full_version[64];
 			snprintf(l_full_version, _countof(l_full_version), "%d", _MSC_FULL_VER);
 			

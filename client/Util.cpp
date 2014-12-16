@@ -199,8 +199,8 @@ void Util::initialize()
 	
 	// Global config path is FlylinkDC++ executable path...
 #ifdef _DEBUG2 // Тестируем запрет доступа
-	g_paths[PATH_EXE] = "C:\\Program Files (x86)\\f\\";
-	g_paths[PATH_GLOBAL_CONFIG] = g_paths[PATH_EXE];
+	//g_paths[PATH_EXE] = "C:\\Program Files (x86)\\f\\";
+	//g_paths[PATH_GLOBAL_CONFIG] = g_paths[PATH_EXE];
 #else
 	g_paths[PATH_GLOBAL_CONFIG] = g_paths[PATH_EXE];
 #endif

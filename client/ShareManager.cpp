@@ -681,7 +681,7 @@ bool ShareManager::loadCache() noexcept
 			l_cache_loader_log.step("update indices done");
 			//internalClearShareNotExists(true);
 			//l_cache_loader_log.step("internalClearShareNotExists");
-                        // https://code.google.com/p/flylinkdc/issues/detail?id=1545
+			// https://code.google.com/p/flylinkdc/issues/detail?id=1545
 			if (getSharedSize() > 0)
 			{
 				// Получили размер шары из кэша - не выполняем повторный обход в internalCalcShareSize();
@@ -702,6 +702,24 @@ bool ShareManager::loadCache() noexcept
 		dcdebug("%s\n", e.getError().c_str());
 	}
 	return false;
+}
+
+void ShareManager::on(SettingsManagerListener::Save, SimpleXML& xml)
+{
+	save(xml);
+}
+void ShareManager::on(SettingsManagerListener::Load, SimpleXML& xml)
+{
+	on(SettingsManagerListener::ShareChanges());
+	load(xml);
+}
+// [+] IRainman opt.
+void ShareManager::on(SettingsManagerListener::ShareChanges) noexcept
+{
+	auto skipList = SPLIT_SETTING_AND_LOWER(SKIPLIST_SHARE);
+	
+	FastLock l(m_csSkipList);
+	swap(m_skipList, skipList);
 }
 
 void ShareManager::save(SimpleXML& aXml)
@@ -2161,6 +2179,7 @@ void ShareManager::searchTTHArray(CFlySearchArray& p_all_search_array, const Cli
 
 void ShareManager::search(SearchResultList& aResults, const string& aString, Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, Client* aClient, StringList::size_type maxResults) noexcept
 {
+	dcassert(!ClientManager::isShutdown());
 	if (aFileType == Search::TYPE_TTH)
 	{
 		dcassert(isTTHBase64(aString));
@@ -2344,6 +2363,8 @@ bool ShareManager::AdcSearch::hasExt(const string& name)
 
 void ShareManager::Directory::search(SearchResultList& aResults, AdcSearch& aStrings, StringList::size_type maxResults) const noexcept
 {
+    dcassert(!ClientManager::isShutdown());
+
     StringSearch::List* cur = aStrings.include;
     StringSearch::List* old = aStrings.include;
 
@@ -2425,6 +2446,8 @@ aStrings.include = old;
 
 void ShareManager::search(SearchResultList& results, const StringList& params, StringList::size_type maxResults, StringSearch::List& reguest) noexcept // [!] IRainman-S add StringSearch::List& reguest
 {
+	dcassert(!ClientManager::isShutdown());
+	
 	AdcSearch srch(params);
 	reguest = srch.includeX; // [+] IRainman-S
 	if (srch.hasRoot)
@@ -2535,6 +2558,7 @@ void ShareManager::on(QueueManagerListener::FileMoved, const string& n) noexcept
 void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const TTHValue& root,
                       int64_t aTimeStamp, const CFlyMediaInfo& p_out_media, int64_t p_size) noexcept
 {
+	dcassert(!ClientManager::isShutdown());
 	{
 		webrtc::WriteLockScoped l(*g_csShare);
 		if (Directory::Ptr d = getDirectoryL(fname)) // TODO прокинуть p_path_id и искать по нему?

@@ -44,7 +44,7 @@ class ServerSocket : public Speaker<ServerSocketListener>
 		ServerSocket() noexcept { }
 		
 		void listen(uint16_t port, const string& aIp);
-		void disconnect() noexcept
+		void disconnect()
 		{
 			socket.disconnect();
 		}

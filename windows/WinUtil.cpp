@@ -131,6 +131,7 @@ bool WinUtil::isAppActive = false;
 //DWORD WinUtil::comCtlVersion = 0; [-] IRainman: please use CompatibilityManager::getComCtlVersion()
 CHARFORMAT2 Colors::g_TextStyleTimestamp;
 CHARFORMAT2 Colors::g_ChatTextGeneral;
+CHARFORMAT2 Colors::g_ChatTextOldHistory;
 CHARFORMAT2 Colors::g_TextStyleMyNick;
 CHARFORMAT2 Colors::g_ChatTextMyOwn;
 CHARFORMAT2 Colors::g_ChatTextServer;
@@ -888,6 +889,11 @@ void Colors::init()
 	if (SETTING(TEXT_GENERAL_ITALIC))
 		g_ChatTextGeneral.dwEffects |= CFE_ITALIC;
 		
+	g_ChatTextOldHistory = cf;
+	g_ChatTextOldHistory.crBackColor = SETTING(TEXT_GENERAL_BACK_COLOR);
+	g_ChatTextOldHistory.crTextColor = SETTING(TEXT_GENERAL_FORE_COLOR);
+	g_ChatTextOldHistory.yHeight = 5;
+	
 	g_TextStyleBold = g_ChatTextGeneral;
 	g_TextStyleBold.dwEffects = CFE_BOLD;
 	

@@ -275,10 +275,12 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 #ifdef PPA_INCLUDE_DNS
 		Socket::dnsCache.waitShutdown(); // !SMT!-IP
 #endif
+#ifdef FLYLINKDC_USE_SOCKET_COUNTER
 		if (!p_exp)
 		{
 			BufferedSocket::waitShutdown();
 		}
+#endif
 		
 #ifdef IRAINMAN_USE_STRING_POOL
 		StringPool::deleteInstance(); // [+] IRainman opt.
@@ -290,7 +292,9 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		IpGuard::deleteInstance();
 #endif
 		if (pGuiInitProc)
+		{
 			pGuiInitProc(pGuiParam);
+		}
 		ADLSearchManager::deleteInstance();
 		FinishedManager::deleteInstance();
 		ShareManager::deleteInstance(); // 2012-04-29_06-52-32_7DCSOGEGBL7SCFPXL7QNF2EUVF3XY22Y6PVKEWQ_4F9F3ED2_crash-stack-r502-beta23-build-9860.dmp

@@ -64,6 +64,39 @@ namespace {
 
 } // namespace {
 
+//! Information about exception being processed.
+struct ExceptionInfo
+{
+	DWORD	ExceptionInfoSize;			//!< Size of this structure. Should be set to sizeof(ExceptionInfo).
+	BOOL	FromSendReport;				//!< Indicates is exception processed using CrashRpt::SendReport() call.
+	PEXCEPTION_POINTERS ExceptionPointers; //!< Exception pointers. ExceptionPointers->ExceptionRecord->ExceptionCode contains SEH code or ExceptionAssertionViolated or other Exception* constants for C/C++ special handlers.
+	DWORD	ThreadId;					//!< Thread identifier of the crashed thread.
+};
+
+//! Stages when crash processing callback called.
+enum CrashProcessingCallbackStage
+{
+	BeforeSendReport,					//!< Callback is called before report send.
+	AfterSendReport						//!< Callback is called after the report has been sent.
+};
+
+//! Result code for crash processing callback.
+enum CrashProcessingCallbackResult
+{
+	DoDefaultActions,					//!< Default result. Crash handler continues its default processing.
+	SkipSendReportReturnDefaultResult,	//!< Crash handler doesn't send the report and returns its default result.
+	ContinueExecution,					//!< Explicitly force crash handler to return EXCEPTION_CONTINUE_EXECUTION.
+	ContinueSearch,						//!< Explicitly force crash handler to return EXCEPTION_CONTINUE_SEARCH.
+	ExecuteHandler						//!< Explicitly force crash handler to return EXCEPTION_EXECUTE_HANDLER.
+};
+
+//! Client crash callback function prototype.
+typedef CrashProcessingCallbackResult (CALLBACK *PFNCRASHPROCESSINGCALLBACK)(
+	CrashProcessingCallbackStage stage,	//!< Current crash processing stage.
+	ExceptionInfo* exceptionInfo,		//!< Information about exception being processed.
+	LPVOID	userData					//!< Pointer to user-defined data.
+	);
+
 //! Contains data that identifies your application.
 struct ApplicationInfo
 {
@@ -91,9 +124,11 @@ struct HandlerSettings
 	BOOL    OverrideDefaultFullDumpType;//!< To override default type of data gathered by the library set this member to TRUE and set required type of data in \a FullDumpType.
 	DWORD   FullDumpType;               //!< The type of information to be generated when full dump is requested by Doctor Dump. This parameter can be one or more of the values from the MINIDUMP_TYPE enumeration.
 	LPCWSTR LangFilePath;               //!< To customize localization set this member to the path to the language file (including file name).
-	LPCWSTR SendRptPath;                //!< Set this member to NULL to use default behavior when SendRpt is named sendrpt.exe and exist in same folder with crashrpt.dll. Set full path in other cases.
-	LPCWSTR DbgHelpPath;                //!< Set this member to NULL to use default behavior when DbgHelp is named dbghelp.dll and exist in same folder with crashrpt.dll. Set full path in other cases.
-										//!< \note You should use dbghelp.dll that distributed with crashrpt.dll and not the one in Windows\\System32 folder, because only that dll supports all needed functionality. See <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/ms679294(v=vs.85).aspx">DbgHelp Versions</a> for more information.
+	LPCWSTR SendRptPath;                //!< Set this member to NULL to use default behavior when SendRpt is named sendrpt.exe and exist in same folder with crashrpt.dll. Set to filename if sendrpt.exe has another name but it is in same folder as crashrpt.dll. Set to full path in other cases.
+	LPCWSTR DbgHelpPath;                //!< Set this member to NULL to use default behavior when DbgHelp is named dbghelp.dll and exist in same folder with crashrpt.dll. Set to filename if dbghelp.dll has another name but it is in same folder as crashrpt.dll. Set to full path in other cases.
+										//!< \note You should use dbghelp.dll that distributed with crashrpt.dll and not the %SystemRoot%\System32\dbghelp.dll, because only that dll supports all required functionality. See <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/ms679294(v=vs.85).aspx">DbgHelp Versions</a> for more information.
+	PFNCRASHPROCESSINGCALLBACK CrashProcessingCallback; //!< Callback function that will be called when crash reporting occurs. Set to NULL if no special processing needed.
+	LPVOID CrashProcessingCallbackUserData; //!< User defined parameter for CrashProcessingCallback. Optional.
 };
 
 //! \brief To enable crash processing you should create an instance of this class.
@@ -413,10 +448,12 @@ public:
 		)
 	{
 		if (!m_SendReport)
-			return EXCEPTION_CONTINUE_SEARCH;
-		// There is no crash handler but asserts should continue anyway
+		{
+			// There is no crash handler but asserts should not crash application anyway, so let's continue
 		if (exceptionPointers->ExceptionRecord->ExceptionCode == ExceptionAssertionViolated)
 			return EXCEPTION_CONTINUE_EXECUTION;
+			return EXCEPTION_CONTINUE_SEARCH;
+		}
 		return m_SendReport(exceptionPointers);
 	}
 
@@ -425,10 +462,19 @@ public:
 	//! Execution will continue after report will be sent (EXCEPTION_CONTINUE_EXECUTION would be used).
 	//! You may pass grouping string as first parameter (see \a SkipDoctorDump_SendAssertionViolated).
 	//! \note If you called CrashRpt constructor and crashrpt.dll was missing you still may using this exception.
-	//!		  It will be catched, ignored and execution will continue. \ref SendReport function also works safely
+	//!		  It will be caught, ignored and execution will continue. \ref SendReport function also works safely
 	//!       when crashrpt.dll was missing.
 	//! \sa CRASHRPT_ENABLE_RELEASE_ASSERTS SkipDoctorDump_SendAssertionViolated
 	static const DWORD ExceptionAssertionViolated = ((DWORD)0xCCE17000);
+
+	//! Exception code for Terminate()/SIGABRT call in crash callback.
+	static const DWORD ExceptionCppTerminate = ((DWORD)0xCCE17001);
+
+	//! Exception code for pure virtual call in crash callback.
+	static const DWORD ExceptionPureCall = ((DWORD)0xCCE17002);
+
+	//! Exception code for CRT invalid parameter call in crash callback.
+	static const DWORD ExceptionInvalidParameter = ((DWORD)0xCCE17003);
 
 	//! Sends assertion violation report from this point and continue execution.
 	//! \sa ExceptionAssertionViolated

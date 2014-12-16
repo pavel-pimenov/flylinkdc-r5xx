@@ -547,17 +547,17 @@ RSSFeed::ProcessAtom(void* data, RSSParser parser, bool isUtf8)
 RSSManager::RSSManager(void)
 	: minuteCounter(0)
 {
-	SettingsManager::getInstance()->addListener(this);
-	TimerManager::getInstance()->addListener(this);
 	m_codeingList.push_back(Util::emptyString);
 	m_codeingList.push_back("utf-8");
 	m_codeingList.push_back("windows-1251");
+	SettingsManager::getInstance()->addListener(this);
+	TimerManager::getInstance()->addListener(this);
 }
 
 RSSManager::~RSSManager(void)
 {
-	TimerManager::getInstance()->removeListener(this);
 	SettingsManager::getInstance()->removeListener(this);
+	TimerManager::getInstance()->removeListener(this);
 	waitShutdown();
 	{
 	FastLock l(csNews);

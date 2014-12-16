@@ -124,7 +124,7 @@ void BaseChatFrame::destroyMessagePanel(bool p_is_shutdown)
 	}
 }
 
-void BaseChatFrame::setStatusText(int p_index, const tstring& p_text)
+void BaseChatFrame::setStatusText(unsigned char p_index, const tstring& p_text)
 {
 	dcassert(!ClientManager::isShutdown());
 	dcassert(p_index < m_ctrlStatusCache.size());

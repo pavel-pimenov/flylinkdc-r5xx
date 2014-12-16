@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
-// Used by D:\vc10\r5xx\FlylinkDC.rc
+// Включаемый файл, созданный в Microsoft Visual C++.
+// Используется E:\DropSvn\flylinkdc\FlylinkDC.rc
 //
 #define IDD_ABOUTBOX                    100
 #define IDD_DCLS_PAGE                   101
@@ -188,6 +188,7 @@
 #define IDR_ISP_HUB_LIST_EXAMPLE        297
 #define IDR_ICON_FIREWALL               298
 #define IDR_HUB_FLYLINKDC               299
+#define IDD_ABOUTSTAT                   300
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
 #define IDC_COPY_HUB                    1002
@@ -1510,27 +1511,30 @@
 #define IDC_ABOUTTAB                    2351
 #define IDC_CONVERT_TTH_HISTORY         2352
 #define IDC_COPY_TAG                    2353
-#define IDC_NETWORK_TEST_PORT_TCP_ICO   2353
-#define IDC_COPY_CID                    2354
-#define IDC_NETWORK_TEST_PORT_UDP_ICO   2354
-#define IDC_NETWORK_TEST_PORT_TLS_TCP_ICO 2355
-#define IDC_NETWORK_TEST_PORT_TCP_ICO4  2356
-#define IDC_NETWORK_TEST_PORT_DHT_UDP_ICO 2356
-#define IDC_NETWORK_WINFIREWALL_ICO     2357
-#define IDC_BTN_REFRESH_FILELIST        2358
-#define IDC_WIFI_ROUTER_ICO             2358
-#define IDC_EDIT_MAX_HASH_SPEED_SLIDER  2359
-#define IDC_LOCATION_CITY               2360
-#define IDC_LOCATION_CITY_DESCRIPTION   2361
-#define IDC_LOCATION_PROVIDER_DESCRIPTION 2362
-#define IDC_STATIC_GATEWAY              2362
-#define IDC_LOCATION_PROVIDER           2363
-#define IDC_FORCE_PASSIVE_MODE          2364
-#define IDC_COPY_ANTIVIRUS_DB_INFO      2365
-#define IDC_LOCATION_COUNTRY_DESCRIPTION 2366
-#define IDC_LOCATION_COUNTRY            2367
-#define IDC_COPY_GEO_LOCATION           2368
-#define IDC_ISP_TREE                 2369
+#define IDC_NETWORK_TEST_PORT_TCP_ICO   2354
+#define IDC_COPY_CID                    2355
+#define IDC_NETWORK_TEST_PORT_UDP_ICO   2356
+#define IDC_NETWORK_TEST_PORT_TLS_TCP_ICO 2357
+#define IDC_NETWORK_TEST_PORT_TCP_ICO4  2358
+#define IDC_NETWORK_TEST_PORT_DHT_UDP_ICO 2359
+#define IDC_NETWORK_WINFIREWALL_ICO     2360
+#define IDC_BTN_REFRESH_FILELIST        2361
+#define IDC_WIFI_ROUTER_ICO             2362
+#define IDC_EDIT_MAX_HASH_SPEED_SLIDER  2363
+#define IDC_LOCATION_CITY               2364
+#define IDC_LOCATION_CITY_DESCRIPTION   2365
+#define IDC_LOCATION_PROVIDER_DESCRIPTION 2366
+#define IDC_STATIC_GATEWAY              2367
+#define IDC_LOCATION_PROVIDER           2368
+#define IDC_FORCE_PASSIVE_MODE          2369
+#define IDC_COPY_ANTIVIRUS_DB_INFO      2370
+#define IDC_LOCATION_COUNTRY_DESCRIPTION 2371
+#define IDC_LOCATION_COUNTRY            2372
+#define IDC_COPY_GEO_LOCATION           2373
+#define IDC_ISP_TREE                    2374
+#define IDC_TOTAL_UPTIME                2375
+#define IDC_SYSUPTIME                   2376
+#define IDC_TOTAL_MESSAGES              2377
 #define IDC_DOWNLOAD_TARGET             2500
 #define IDC_FLYLINKDC_LOCATION          2501
 #define IDC_DOWNLOAD_TARGET_DIR         3000
@@ -1596,9 +1600,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        295
+#define _APS_NEXT_RESOURCE_VALUE        301
 #define _APS_NEXT_COMMAND_VALUE         32789
-#define _APS_NEXT_CONTROL_VALUE         2363
+#define _APS_NEXT_CONTROL_VALUE         2378
 #define _APS_NEXT_SYMED_VALUE           2423
 #endif
 #endif

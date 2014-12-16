@@ -33,7 +33,9 @@
 
 // Polling is used for tasks...should be fixed...
 static const uint64_t POLL_TIMEOUT = 250;
+#ifdef FLYLINKDC_USE_SOCKET_COUNTER
 volatile long BufferedSocket::g_sockets = 0;
+#endif
 
 BufferedSocket::BufferedSocket(char aSeparator) :
 	m_separator(aSeparator), m_mode(MODE_LINE), m_dataBytes(0), m_rollback(0), m_state(STARTING),
@@ -46,12 +48,16 @@ BufferedSocket::BufferedSocket(char aSeparator) :
 	m_is_all_my_info_loaded(false)
 {
 	start(64, "BufferedSocket");
+#ifdef FLYLINKDC_USE_SOCKET_COUNTER
 	Thread::safeInc(g_sockets); // [!] IRainman opt.
+#endif
 }
 
 BufferedSocket::~BufferedSocket()
 {
+#ifdef FLYLINKDC_USE_SOCKET_COUNTER
 	Thread::safeDec(g_sockets); // [!] IRainman opt.
+#endif
 }
 
 void BufferedSocket::setMode(Modes aMode, size_t aRollback)
@@ -577,6 +583,55 @@ void BufferedSocket::threadRead()
 		throw SocketException(STRING(COMMAND_TOO_LONG));
 	}
 }
+
+void BufferedSocket::disconnect(bool graceless /*= false */)
+{
+	FastLock l(cs);
+	if (graceless)
+		m_is_disconnecting = true;
+	initMyINFOLoader();
+	addTask(DISCONNECT, nullptr);
+}
+
+boost::asio::ip::address_v4 BufferedSocket::getIp4() const
+{
+	if (hasSocket())
+	{
+		boost::system::error_code ec;
+		const auto l_ip = boost::asio::ip::address_v4::from_string(sock->getIp(), ec); // TODO - конвертнуть IP и в сокетах
+		dcassert(!ec);
+		return l_ip;
+	}
+	else
+	{
+		return boost::asio::ip::address_v4();
+	}
+}
+
+void BufferedSocket::putBufferedSocket(BufferedSocket*& p_sock, bool p_delete /*= false*/)
+{
+	if (p_sock)
+	{
+		p_sock->shutdown();
+		if (p_delete)
+		{
+			delete p_sock;
+		}
+		p_sock = nullptr;
+	}
+}
+
+#ifdef FLYLINKDC_USE_SOCKET_COUNTER
+void BufferedSocket::waitShutdown()
+{
+	int l_max_count = 500;
+	while (g_sockets > 0 && --l_max_count)
+	{
+		sleep(10); // TODO - ≈сли слишком долго ждем. спросить диалогом и если ответ€т "да" - закрытьс€
+		// TODO - случай зависани€ передать на флай-сервер.
+	}
+}
+#endif
 
 void BufferedSocket::threadSendFile(InputStream* file)
 {

@@ -56,7 +56,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 		}
 		
 		void listen();
-		void disconnect() noexcept;
+		void disconnect();
 		void onSearchResult(const string& aLine)
 		{
 			onData((const uint8_t*)aLine.data(), aLine.length(), Util::emptyString);

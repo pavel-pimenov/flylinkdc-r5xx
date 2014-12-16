@@ -45,7 +45,7 @@ class FlySQLExplorer : boost::noncopyable
 		typedef std::pair < HWND , FlySQLExplorer* > FramePair;
 		
 	public:
-		// Таблица откликов MFC
+		// Таблица откликов
 		BEGIN_MSG_MAP(FlySQLExplorer)
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
 		MESSAGE_HANDLER(WM_CLOSE, onClose)
@@ -58,20 +58,18 @@ class FlySQLExplorer : boost::noncopyable
 		END_MSG_MAP()
 		
 	public:
-		// Обработчики таблицы откликов MFC
+		// Обработчики таблицы откликов
 		LRESULT OnCreate(UINT, WPARAM, LPARAM, BOOL& bHandled);
 		LRESULT onClose(UINT, WPARAM, LPARAM, BOOL& bHandled);
 		LRESULT onSpeaker(UINT, WPARAM wParam, LPARAM, BOOL& bHandled);
 		static FlySQLExplorer *Instance();
 		
-	public:
 		void UpdateLayout(BOOL bResizeBars = TRUE);
 		void runUserCommand(UserCommand& uc);
 		
 	private:
 		void setWindowTitle();
 		
-	private:
 		CContainedWindow        m_statusContainer;
 		CContainedWindow        m_treeContainer;
 		CContainedWindow        m_listContainer;
