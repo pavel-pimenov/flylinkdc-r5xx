@@ -146,7 +146,8 @@ void ChatCtrl::AdjustTextSize()
 }
 //================================================================================================================================
 ChatCtrl::CFlyChatCache::CFlyChatCache(const Identity& p_id, const bool bMyMess, const bool bThirdPerson,
-                                       const tstring& sExtra, const tstring& sMsg, const CHARFORMAT2& p_cf, bool bUseEmo):
+                                       const tstring& sExtra, const tstring& sMsg, const CHARFORMAT2& p_cf, bool bUseEmo,
+                                       bool p_is_remove_rn /*= true*/) :
 	CFlyChatCacheTextOnly(p_id.getNickT(),
 	                      bMyMess,
 	                      p_id.isBotOrHub(),
@@ -162,7 +163,8 @@ ChatCtrl::CFlyChatCache::CFlyChatCache(const Identity& p_id, const bool bMyMess,
 	if (!ClientManager::isShutdown())
 	{
 		m_bUseEmo = bUseEmo || !TimerManager::g_isStartupShutdownProcess; // Пока конструируемся - смайлы не добавляем чтобы не тормозить
-		Text::normalizeStringEnding(m_Msg);
+		if (p_is_remove_rn)
+			Text::normalizeStringEnding(m_Msg);
 		m_Msg += '\n';
 		if (!CAGEmotionSetup::g_pEmotionsSetup || CompatibilityManager::isWine())
 		{
@@ -637,6 +639,7 @@ void ChatCtrl::AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheText
 			GetTextRange(lSelBegin + linkStart, lSelBegin + linkEnd, &ls[0]); // TODO проверить результат? http://code.google.com/p/flylinkdc/issues/detail?id=1428
 			tstring originalLink = ls;
 			tstring l_weblink;
+			tstring l_webdesc;
 			if (Util::isMagnetLink(ls)) // shorten magnet-links
 			{
 				ls = ls.erase(0, 8); // opt: delete "magnet:?" for fasts search.
@@ -658,6 +661,7 @@ void ChatCtrl::AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheText
 						_T("tr="), // (address TRacker) - Tracker URL for BitTorrent downloads
 						_T("x.video="), // (Run video on preview) [!] SSA
 						_T("video="), // (Run video on preview) [!] SSA
+						_T("x.do"), // (Description Online URL) - Web link to the Description online
 					};
 					tstring temp = originalLink;
 					tstring::size_type i = 0;
@@ -723,6 +727,19 @@ void ChatCtrl::AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheText
 				else
 					sFileName = TSTRING(UNNAMED_MAGNET_LINK);
 					
+				tstring sDispWebLink = ls;
+				tstring sDispWebDesc = ls;
+				if (getParamether(_T("as="), sDispWebLink))
+				{
+					if (!sDispWebLink.empty() && (Util::isHttpLink(sDispWebLink) || Util::isHttpsLink(sDispWebLink)/* || Util::isFtpLink(sDispWebLink)*/))
+						l_weblink = sDispWebLink;
+				}
+				if (getParamether(_T("x.do="), sDispWebDesc))
+				{
+					if (!sDispWebDesc.empty() && (Util::isHttpLink(sDispWebDesc) || Util::isHttpsLink(sDispWebDesc)))
+						l_webdesc = sDispWebDesc;
+				}
+				
 				if (l_isTorrentLink)
 					ls = sFileName + _T(" (") + TSTRING(BT_LINK) + _T(')');//[+]IRainman http://code.google.com/p/flylinkdc/issues/detail?id=223
 				else
@@ -733,7 +750,6 @@ void ChatCtrl::AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheText
 						filesize = Util::toInt64(sFileSize);
 						
 					tstring sDispLine = ls;
-					tstring sDispWebLink = ls;
 					int64_t dlsize = -1;
 					if (getParamether(_T("dl="), sDispLine))
 						dlsize = Util::toInt64(sDispLine); // [+] Scalolaz get DCLST size (Display Length) if isset/required //-V106
@@ -755,12 +771,6 @@ void ChatCtrl::AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheText
 							ls += _T(", ") + TSTRING(HUB) + _T(": ") + Text::toT(Util::formatDchubUrl(Text::fromT(sDispLine)));
 					}
 					ls += _T(')');
-					
-					if (getParamether(_T("as="), sDispWebLink))
-					{
-						if (!sDispWebLink.empty() && (Util::isHttpLink(sDispWebLink) || Util::isHttpsLink(sDispWebLink)))
-							l_weblink = sDispWebLink;
-					}
 				}
 			}
 			/* TODO
@@ -783,9 +793,15 @@ void ChatCtrl::AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheText
 			int l_lenght = 0;
 			if (!l_weblink.empty())
 			{
-				tstring l_ls = _T("  ( ") + TSTRING(DESCRIPTION) + _T(":") + Text::toT(Util::encodeURI(Text::fromT(l_weblink), true)) + _T(" )");
-				l_lenght = l_ls.length();
-				ls = ls + l_ls;
+				tstring l_ls = _T("  ( ") + TSTRING(WEB_URL) + _T(":") + Text::toT(Util::encodeURI(Text::fromT(l_weblink), true)) + _T(" )");
+				l_lenght += l_ls.length();
+				ls += l_ls;
+			}
+			if (!l_webdesc.empty())
+			{
+				tstring l_lsd = _T("  ( ") + TSTRING(DESCRIPTION) + _T(":") + Text::toT(Util::encodeURI(Text::fromT(l_webdesc), true)) + _T(" )");
+				l_lenght += l_lsd.length();
+				ls += l_lsd;
 			}
 			ReplaceSel(ls.c_str());
 			sMsgLower = sMsgLower.Left(linkStart) + WinUtil::toAtlString(ls) + sMsgLower.Mid(linkEnd);

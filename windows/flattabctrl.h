@@ -82,7 +82,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			rows(1),
 			m_height(0),
 			active(nullptr),
-			moving(nullptr),
+			m_moving(nullptr),
 			m_is_intab(false),
 			m_is_invalidate(false),
 			m_is_cur_close(false),
@@ -173,8 +173,8 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 					
 					if (active == ti)
 						active = nullptr;
-					if (moving == ti)
-						moving = nullptr;
+					if (m_moving == ti)
+						m_moving = nullptr;
 						
 					viewOrder.erase(std::find(begin(viewOrder), end(viewOrder), aWnd));
 					nextTab = viewOrder.end();
@@ -382,13 +382,13 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		MESSAGE_HANDLER(WM_SIZE, onSize)
 		MESSAGE_HANDLER(WM_CREATE, onCreate)
 		MESSAGE_HANDLER(WM_PAINT, onPaint)
-		MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBackground)
 		MESSAGE_HANDLER(WM_LBUTTONDOWN, onLButtonDown)
 		MESSAGE_HANDLER(WM_LBUTTONUP, onLButtonUp)
 		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
 		MESSAGE_HANDLER(WM_MOUSEMOVE, onMouseMove)
 		MESSAGE_HANDLER(WM_MOUSELEAVE, onMouseLeave)
 		MESSAGE_HANDLER(WM_MBUTTONUP, onCloseTab)
+		MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBackground)
 		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow)
 		COMMAND_ID_HANDLER(IDC_CHEVRON, onChevron)
 		COMMAND_RANGE_HANDLER(IDC_SELECT_WINDOW, IDC_SELECT_WINDOW + tabs.size(), onSelectWindow)
@@ -418,7 +418,9 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 						if (wParam & MK_SHIFT)
 							::SendMessage(t->hWnd, WM_CLOSE, 0, 0);
 						else
-							moving = t;
+						{
+							m_moving = t;
+						}
 					}
 					break;
 				}
@@ -428,7 +430,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		
 		LRESULT onLButtonUp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
 		{
-			if (moving)
+			if (m_moving)
 			{
 				const POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 				const int row = getRows() - (pt.y / getTabHeight() + 1);
@@ -446,8 +448,10 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 						HWND hWnd = GetParent();
 						if (hWnd)
 						{
-							if (t == moving)
+							if (t == m_moving)
+							{
 								::SendMessage(hWnd, FTM_SELECTED, (WPARAM)t->hWnd, 0);
+							}
 							else
 							{
 								//check if the pointer is on the left or right half of the tab
@@ -461,7 +465,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				}
 				if (moveLast)
 					moveTabs(tabs.back(), true);
-				moving = NULL;
+				m_moving = nullptr;
 			}
 			return 0;
 		}
@@ -1162,14 +1166,14 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		
 		void moveTabs(TabInfo* aTab, bool after)
 		{
-			if (!moving)
+			if (!m_moving)
 				return;
 				
 			TabInfo::List::const_iterator i;
-			//remove the tab we're moving
+			//remove the tab we're m_moving
 			for (auto j = tabs.begin(); j != tabs.end(); ++j)
 			{
-				if ((*j) == moving)
+				if ((*j) == m_moving)
 				{
 					tabs.erase(j);
 					break;
@@ -1187,8 +1191,8 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				}
 			}
 			
-			tabs.insert(i, moving);
-			moving = nullptr;
+			tabs.insert(i, m_moving);
+			m_moving = nullptr;
 #ifdef IRAINMAN_FAST_FLAT_TAB
 			calcRows();
 			SmartInvalidate();
@@ -1216,7 +1220,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		bool m_is_cur_close;
 		
 		TabInfo* active;
-		TabInfo* moving;
+		TabInfo* m_moving;
 		typename TabInfo::List tabs;
 		
 		typedef deque<HWND> WindowList; // [!] IRainman opt: change list to deque.
@@ -1421,15 +1425,25 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			if (l_tabBrush && l_tabsPath)
 			{
 				graphics->FillPath(l_tabBrush.get(), l_tabsPath.get());
+				//Отрисовка контура поверх заливки
+				//Создание "ручек" для контура - падаем под XP
+				if (aActive)
+				{
+					Gdiplus::Pen l_pen(Gdiplus::Color(0xFF, 0, 0), 1);
+					l_pen.SetDashStyle(Gdiplus::DashStyleSolid);
+					graphics->DrawPath(&l_pen, l_tabsPath.get());
+				}
+				else
+				{
+					Gdiplus::Pen l_pen(Gdiplus::Color(90, 60, 90) , 1);
+					l_pen.SetDashStyle(Gdiplus::DashStyleDot); //
+					graphics->DrawPath(&l_pen, l_tabsPath.get());
+				}
 			}
 			
-			//Отрисовка контура поверх заливки
-			//Создание "ручек" для контура - падаем под XP
-			//Gdiplus::Pen pen(aActive ? Gdiplus::Color(0, 0, 0) : Gdiplus::Color(90, 60, 90) , 1);
-			//pen.SetDashStyle(aActive ? Gdiplus::DashStyleDot : Gdiplus::DashStyleSolid);
-			//graphics->DrawPath(&pen, &tabsPath);
 			
 //////////////////
+#if 0
 			{
 				POINT p[4];
 				p[0].x = pos + tab->getWidth();
@@ -1460,6 +1474,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				}
 				dc.SelectPen(oldpen);
 			}
+#endif
 #if 0
 			RECT l_rec;
 			l_rec.left = pos + 2;

@@ -2945,6 +2945,7 @@ IDR_ICON_PAUSE_ICON     ICON                    "res\\f_grey_16.ico"
 IDR_ICON_MEDICAL_BAG    ICON                    "res\\medical_bag.ico"
 IDR_ICON_THERMOMETR_BAG ICON                    "res\\thermometer2.ico"
 IDR_ICON_FIREWALL       ICON                    "res\\firewall.ico"
+IDR_ICON_CLOCK          ICON                    "res\\clock.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

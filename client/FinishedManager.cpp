@@ -103,27 +103,30 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItemPtr& qi,
 	
 	if (isFile || (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_DCLST_LIST) && BOOLSETTING(LOG_FILELIST_TRANSFERS)))
 	{
-		CFlylinkDBManager::getInstance()->clear_tiger_tree_cache(qi->getTTH());
-		FinishedItem* item = new FinishedItem(qi->getTarget(), p_download->getHintedUser(), qi->getSize(), p_download->getRunningAverage(), GET_TIME(), qi->getTTH().toBase32(), p_download->getUser()->getIPAsString());
+		FinishedItem* item = new FinishedItem(qi->getTarget(), p_download->getHintedUser(), qi->getSize(), p_download->getRunningAverage(), GET_TIME(), qi->getTTH(), p_download->getUser()->getIPAsString());
+		CFlylinkDBManager::getInstance()->save_transfer_history(e_TransferDownload, item);
 		rotation_items(item, e_Download);
-		fire(FinishedManagerListener::AddedDl(), item);
+		fire(FinishedManagerListener::AddedDl(), item, false);
 		log(p_download->getUser()->getCID(), qi->getTarget(), STRING(FINISHED_DOWNLOAD));
 	}
 }
-
+void FinishedManager::pushHistoryFinishedItem(FinishedItem* p_item, int p_type)
+{
+	if (p_type)
+		fire(FinishedManagerListener::AddedUl(), p_item, true);
+	else
+		fire(FinishedManagerListener::AddedDl(), p_item, true);
+}
 void FinishedManager::on(UploadManagerListener::Complete, const Upload* u) noexcept
 {
 	if (u->getType() == Transfer::TYPE_FILE || (u->getType() == Transfer::TYPE_FULL_LIST && BOOLSETTING(LOG_FILELIST_TRANSFERS)))
 	{
 		PLAY_SOUND(SOUND_UPLOADFILE);
 		
-		FinishedItem* item = new FinishedItem(u->getPath(), u->getHintedUser(), u->getFileSize(), u->getRunningAverage(), GET_TIME(), Util::emptyString, u->getUser()->getIPAsString());
+		FinishedItem* item = new FinishedItem(u->getPath(), u->getHintedUser(), u->getFileSize(), u->getRunningAverage(), GET_TIME(), u->getTTH(), u->getUser()->getIPAsString());
+		CFlylinkDBManager::getInstance()->save_transfer_history(e_TransferUpload, item);
 		rotation_items(item, e_Upload);
-		fire(FinishedManagerListener::AddedUl(), item);
-		const auto l_file_name = log(u->getUser()->getCID(), u->getPath(), STRING(FINISHED_UPLOAD));
-		const string l_name = Text::toLower(l_file_name);
-		const string l_path = Text::toLower(Util::getFilePath(u->getPath()));
-		CFlylinkDBManager::getInstance()->incHit(l_path, l_name);
+		fire(FinishedManagerListener::AddedUl(), item, false);
 	}
 }
 

@@ -80,6 +80,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		COMMAND_ID_HANDLER(IDC_EXPAND_ALL, onExpandAll)
 		COMMAND_ID_HANDLER(IDC_MENU_SLOWDISCONNECT, onSlowDisconnect)
 		COMMAND_ID_HANDLER(IDC_FORCE_PASSIVE_MODE, onForcePassiveMode)
+		COMMAND_ID_HANDLER(IDC_AUTO_PASSIVE_MODE, onForceAutoPassiveMode)
+		
 		
 		MESSAGE_HANDLER_HWND(WM_INITMENUPOPUP, OMenu::onInitMenuPopup)
 		MESSAGE_HANDLER_HWND(WM_MEASUREITEM, OMenu::onMeasureItem)
@@ -107,6 +109,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		LRESULT onDisconnectAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onSlowDisconnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onForcePassiveMode(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+		LRESULT onForceAutoPassiveMode(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+		
 		LRESULT onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 		{
@@ -535,12 +539,15 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		
 		ItemInfoList ctrlTransfers;
 		CButton m_PassiveModeButton;
+		CButton m_AutoPassiveModeButton;
 	public:
 		void UpdateLayout();
 		void setButtonState();
 	private:
 	
-		CFlyToolTipCtrl m_tooltip;
+		CFlyToolTipCtrl m_force_passive_tooltip;
+		CFlyToolTipCtrl m_active_passive_tooltip;
+		
 		static int columnIndexes[];
 		static int columnSizes[];
 		

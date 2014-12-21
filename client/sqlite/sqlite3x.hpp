@@ -124,8 +124,8 @@ namespace sqlite3x {
 
 		sqlite3_connection &m_con;
 		struct sqlite3_stmt *stmt;
-		unsigned int refs;
-		int argc;
+		unsigned int m_refs;
+		int  m_argc;
 		bool m_no_data_found; //[+]PPA
         void check_no_data_found();
 	public:
@@ -144,6 +144,10 @@ namespace sqlite3x {
 		{
 			return m_no_data_found;
 		}
+    int get_column_count() const
+    {
+        return m_argc;
+    }
 #ifndef SQLITE_OMIT_FLOATING_POINT
 		void bind(int index, double data);
 #endif

@@ -95,7 +95,6 @@ WindowsPage::ListItem WindowsPage::confirmItems[] =
 	{ SettingsManager::CONFIRM_HUB_REMOVAL, ResourceManager::SETTINGS_CONFIRM_HUB_REMOVAL },
 	{ SettingsManager::CONFIRM_HUBGROUP_REMOVAL, ResourceManager::SETTINGS_CONFIRM_HUBGROUP_REMOVAL }, // [+] NightOrion
 	{ SettingsManager::CONFIRM_DELETE, ResourceManager::SETTINGS_CONFIRM_ITEM_REMOVAL },
-	{ SettingsManager::CONFIRM_OPEN_INET_HUBS, ResourceManager::SETTINGS_CONFIRM_OPEN_INET_HUBS }, // [+] InfinitySky.
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 

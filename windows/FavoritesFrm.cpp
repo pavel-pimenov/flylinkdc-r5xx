@@ -584,6 +584,8 @@ LRESULT FavoriteHubsFrame::onItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*b
 		::EnableWindow(GetDlgItem(IDC_CONNECT), l_enabled);
 		::EnableWindow(GetDlgItem(IDC_REMOVE), l_enabled);
 		::EnableWindow(GetDlgItem(IDC_EDIT), l_enabled);
+		::EnableWindow(GetDlgItem(IDC_MOVE_UP), l_enabled);
+		::EnableWindow(GetDlgItem(IDC_MOVE_DOWN), l_enabled);
 		if (!m_nosave && ((l->uNewState & LVIS_STATEIMAGEMASK) != (l->uOldState & LVIS_STATEIMAGEMASK)))
 		{
 			FavoriteHubEntry* f = (FavoriteHubEntry*)ctrlHubs.GetItemData(l->iItem);
@@ -705,8 +707,8 @@ void FavoriteHubsFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 LRESULT FavoriteHubsFrame::onColumnClickHublist(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
 	// On sort, disable move functionality.
-	::EnableWindow(GetDlgItem(IDC_MOVE_UP), FALSE);
-	::EnableWindow(GetDlgItem(IDC_MOVE_DOWN), FALSE);
+	//::EnableWindow(GetDlgItem(IDC_MOVE_UP), FALSE);
+	//::EnableWindow(GetDlgItem(IDC_MOVE_DOWN), FALSE);
 	NMLISTVIEW* l = (NMLISTVIEW*)pnmh;
 	if (l->iSubItem == ctrlHubs.getSortColumn())
 	{

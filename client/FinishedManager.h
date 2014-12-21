@@ -35,6 +35,7 @@ class FinishedItem
 			COLUMN_FILE = COLUMN_FIRST,
 			COLUMN_DONE,
 			COLUMN_PATH,
+			COLUMN_TTH,
 			COLUMN_NICK,
 			COLUMN_HUB,
 			COLUMN_SIZE,
@@ -43,15 +44,32 @@ class FinishedItem
 			COLUMN_LAST
 		};
 		
-		FinishedItem(const string& aTarget, const HintedUser& aUser, int64_t aSize, int64_t aSpeed,
-		             const time_t aTime, const string& aTTH = Util::emptyString, const string& aIP = Util::emptyString) :
+		FinishedItem(const string& aTarget, const string& aNick, const string& aHubUrl, int64_t aSize, int64_t aSpeed,
+		             const time_t aTime, const TTHValue& aTTH, const string& aIP) :
 			target(aTarget),
-			//m_path(Text::toT(Util::getFilePath(aTarget))),
-			//m_file_name(Util::getFileName(aTarget)),
+			// cid(aCID),
+			hub(aHubUrl),
+			hubs(aHubUrl),
+			size(aSize),
+			avgSpeed(aSpeed),
+			time(aTime),
+			tth(aTTH),
+			ip(aIP),
+			nick(aNick)
+		{
+		}
+		FinishedItem(const string& aTarget, const HintedUser& aUser, int64_t aSize, int64_t aSpeed,
+		             const time_t aTime, const TTHValue& aTTH, const string& aIP = Util::emptyString) :
+			target(aTarget),
 			cid(aUser.user->getCID()),
 			hub(aUser.hint),
 			hubs(Util::toString(ClientManager::getHubNames(aUser.user->getCID(), Util::emptyString))),
-			size(aSize), avgSpeed(aSpeed), time(aTime), tth(aTTH), ip(aIP), nick(aUser.user->getLastNick())
+			size(aSize),
+			avgSpeed(aSpeed),
+			time(aTime),
+			tth(aTTH),
+			ip(aIP),
+			nick(aUser.user->getLastNick())
 		{
 		}
 		
@@ -76,6 +94,8 @@ class FinishedItem
 					return Util::formatBytesW(getAvgSpeed()) + _T('/') + WSTRING(S);
 				case COLUMN_IP:
 					return Text::toT(getIP()); //[+]PPA
+				case COLUMN_TTH:
+					return Text::toT(getTTH().toBase32()); //[+]PPA
 				default:
 					return Util::emptyStringT;
 			}
@@ -95,7 +115,7 @@ class FinishedItem
 		}
 		int getImageIndex() const;
 		GETC(string, target, Target);
-		GETC(string, tth, TTH);
+		GETC(TTHValue, tth, TTH);
 		GETC(string, ip, IP); // [+] PPA
 		GETC(string, nick, Nick);
 		GETC(string, hubs, Hubs); // [+] http://code.google.com/p/flylinkdc/issues/detail?id=981
@@ -129,6 +149,8 @@ class FinishedManager : public Singleton<FinishedManager>,
 		
 		void removeItem(FinishedItem* item, eType p_type);
 		void removeAll(eType p_type);
+		void pushHistoryFinishedItem(FinishedItem* p_item, int p_type);
+		
 		
 	private:
 		friend class Singleton<FinishedManager>;
@@ -138,6 +160,7 @@ class FinishedManager : public Singleton<FinishedManager>,
 		
 		void on(QueueManagerListener::Finished, const QueueItemPtr&, const string&, const Download*) noexcept;
 		void on(UploadManagerListener::Complete, const Upload*) noexcept;
+		
 		string log(const CID& p_CID, const string& p_path, const string& p_message);
 		void rotation_items(FinishedItem* p_item, eType p_type);
 		

@@ -30,18 +30,44 @@
 #include "TextFrame.h"
 #include "../client/ClientManager.h"
 #include "../client/FinishedManager.h"
+#include "../client/CFlylinkDBManager.h"
+
+#define FINISHED_TREE_MESSAGE_MAP 11
+#define FINISHED_LIST_MESSAGE_MAP 12
 
 template<class T, int title, int id, int icon>
-class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon > , public StaticFrame<T, title, id>,
-	protected FinishedManagerListener, private SettingsManagerListener
+class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon > ,
+	public StaticFrame<T, title, id>,
+	protected FinishedManagerListener,
+	private SettingsManagerListener,
+	public CSplitterImpl<FinishedFrameBase<T, title, id, icon> >
 #ifdef _DEBUG
 	, boost::noncopyable
 #endif
 {
+		enum CFlyTreeNodeType
+		{
+			e_Root = -1,
+			e_Current = -2,
+			e_History = -3
+		};
+		
+		eTypeTransfer m_transfer_type;
+	protected:
+		bool m_is_crrent_tree_node;
 	public:
 		typedef MDITabChildWindowImpl < T, RGB(0, 0, 0), icon > baseClass;
 		
-		FinishedFrameBase() : totalBytes(0), totalSpeed(0), m_type(FinishedManager::e_Download) { }
+		FinishedFrameBase(eTypeTransfer p_transfer_type) :
+			m_transfer_type(p_transfer_type),
+			m_is_crrent_tree_node(false),
+			totalBytes(0),
+			totalSpeed(0),
+			m_type(FinishedManager::e_Download) ,
+			m_treeContainer(WC_TREEVIEW, this, FINISHED_TREE_MESSAGE_MAP),
+			m_listContainer(WC_LISTVIEW, this, FINISHED_LIST_MESSAGE_MAP)
+		{
+		}
 		virtual ~FinishedFrameBase() { }
 		
 		BEGIN_MSG_MAP(T)
@@ -60,6 +86,14 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		COMMAND_ID_HANDLER(IDC_GETLIST, onGetList)
 		COMMAND_ID_HANDLER(IDC_GRANTSLOT, onGrant)
 		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow) // [+] InfinitySky.
+		COMMAND_ID_HANDLER(IDC_COPY_NICK     , onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_FILENAME , onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_PATH     , onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_SIZE     , onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_TTH      , onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_HUB_URL      , onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_SPEED      , onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_IP      , onCopy)
 		NOTIFY_HANDLER(id, LVN_GETDISPINFO, ctrlList.onGetDispInfo) // https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=47103 + http://www.flickr.com/photos/96019675@N02/11198858144/
 		NOTIFY_HANDLER(id, LVN_COLUMNCLICK, ctrlList.onColumnClick)
 		NOTIFY_HANDLER(id, LVN_KEYDOWN, onKeyDown)
@@ -67,8 +101,67 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 		NOTIFY_HANDLER(id, NM_CUSTOMDRAW, ctrlList.onCustomDraw) // [+] IRainman
 #endif
+		NOTIFY_HANDLER(IDC_TRANSFER_TREE, TVN_SELCHANGED, onSelChangedTree);
 		CHAIN_MSG_MAP(baseClass)
+		CHAIN_MSG_MAP(CSplitterImpl<FinishedFrameBase>)
+		ALT_MSG_MAP(FINISHED_TREE_MESSAGE_MAP)
+		ALT_MSG_MAP(FINISHED_LIST_MESSAGE_MAP)
+		
 		END_MSG_MAP()
+		
+		LRESULT onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+		{
+			string data;
+			int i = -1;
+			while ((i = ctrlList.GetNextItem(i, LVNI_SELECTED)) != -1)
+			{
+				const FinishedItemInfo * l_item = ctrlList.getItemData(i);
+				tstring sCopy;
+				switch (wID)
+				{
+					case IDC_COPY_NICK:
+						sCopy = l_item->getText(FinishedItem::COLUMN_NICK);
+						break;
+					case IDC_COPY_FILENAME:
+						sCopy = l_item->getText(FinishedItem::COLUMN_FILE);
+						break;
+					case IDC_COPY_PATH:
+						sCopy = l_item->getText(FinishedItem::COLUMN_PATH);
+						break;
+					case IDC_COPY_SIZE:
+						sCopy = l_item->getText(FinishedItem::COLUMN_SIZE);
+						break;
+					case IDC_COPY_HUB_URL:
+						sCopy = l_item->getText(FinishedItem::COLUMN_HUB);
+						break;
+					case IDC_COPY_TTH:
+						sCopy = l_item->getText(FinishedItem::COLUMN_TTH);
+						break;
+					case IDC_COPY_SPEED:
+						sCopy = l_item->getText(FinishedItem::COLUMN_SPEED);
+						break;
+					case IDC_COPY_IP:
+						sCopy = l_item->getText(FinishedItem::COLUMN_IP);
+						break;
+					default:
+						dcassert(0);
+						dcdebug("Error copy\n");
+						return 0;
+				}
+				if (!sCopy.empty())
+				{
+					if (data.empty())
+						data = Text::fromT(sCopy);
+					else
+						data = data + "\r\n" + Text::fromT(sCopy);
+				}
+			}
+			if (!data.empty())
+			{
+				WinUtil::setClipboard(data);
+			}
+			return 0;
+		}
 		
 		LRESULT onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 		{
@@ -85,7 +178,17 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			// Create listview columns
 			WinUtil::splitTokens(columnIndexes, SettingsManager::get(columnOrder), FinishedItem::COLUMN_LAST);
 			WinUtil::splitTokensWidth(columnSizes, SettingsManager::get(columnWidth), FinishedItem::COLUMN_LAST);
-			
+			static ResourceManager::Strings columnNames[] = { ResourceManager::FILENAME,
+			                                                  ResourceManager::TIME,
+			                                                  ResourceManager::PATH,
+			                                                  ResourceManager::TTH,
+			                                                  ResourceManager::NICK,
+			                                                  ResourceManager::HUB,
+			                                                  ResourceManager::SIZE,
+			                                                  ResourceManager::SPEED,
+			                                                  ResourceManager::IP_BARE
+			                                                };
+			                                                
 			BOOST_STATIC_ASSERT(_countof(columnSizes) == FinishedItem::COLUMN_LAST);
 			BOOST_STATIC_ASSERT(_countof(columnNames) == FinishedItem::COLUMN_LAST);
 			
@@ -104,12 +207,21 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			
 			UpdateLayout();
 			
-			SettingsManager::getInstance()->addListener(this);
-			FinishedManager::getInstance()->addListener(this);
-			updateList(FinishedManager::getInstance()->lockList(m_type));
-			FinishedManager::getInstance()->unlockList(m_type);
-			
 			ctxMenu.CreatePopupMenu();
+			
+			copyMenu.CreatePopupMenu();
+			copyMenu.AppendMenu(MF_STRING, IDC_COPY_NICK, CTSTRING(COPY_NICK));
+			copyMenu.AppendMenu(MF_STRING, IDC_COPY_FILENAME, CTSTRING(FILENAME));
+			copyMenu.AppendMenu(MF_STRING, IDC_COPY_PATH, CTSTRING(PATH));
+			copyMenu.AppendMenu(MF_STRING, IDC_COPY_SIZE, CTSTRING(SIZE));
+			copyMenu.AppendMenu(MF_STRING, IDC_COPY_HUB_URL, CTSTRING(HUB_ADDRESS));
+			copyMenu.AppendMenu(MF_STRING, IDC_COPY_TTH, CTSTRING(TTH_ROOT));
+			copyMenu.AppendMenu(MF_STRING, IDC_COPY_SPEED,      CTSTRING(SPEED));
+			copyMenu.AppendMenu(MF_STRING, IDC_COPY_IP,      CTSTRING(IP));
+			
+			
+			ctxMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)copyMenu, CTSTRING(COPY));
+			ctxMenu.AppendMenu(MF_SEPARATOR);
 //			ctxMenu.AppendMenu(MF_STRING, IDC_VIEW_AS_TEXT, CTSTRING(VIEW_AS_TEXT));
 			ctxMenu.AppendMenu(MF_STRING, IDC_OPEN_FILE, CTSTRING(OPEN));
 			ctxMenu.AppendMenu(MF_STRING, IDC_OPEN_FOLDER, CTSTRING(OPEN_FOLDER));
@@ -120,8 +232,102 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			ctxMenu.AppendMenu(MF_STRING, IDC_TOTAL, CTSTRING(REMOVE_ALL));
 			ctxMenu.SetMenuDefaultItem(IDC_OPEN_FILE);
 			
+			m_ctrlTree.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TVS_HASBUTTONS | TVS_LINESATROOT | TVS_HASLINES | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP, WS_EX_CLIENTEDGE, IDC_TRANSFER_TREE);
+			m_ctrlTree.SetBkColor(Colors::bgColor);
+			m_ctrlTree.SetTextColor(Colors::textColor);
+			WinUtil::SetWindowThemeExplorer(m_ctrlTree.m_hWnd);
+			m_treeContainer.SubclassWindow(m_ctrlTree);
+			SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
+			SetSplitterPanes(m_ctrlTree.m_hWnd, ctrlList.m_hWnd);
+			m_nProportionalPos = 2000; //SETTING(FLYSERVER_HUBLIST_SPLIT);
+			
+			HTREEITEM               m_RootItem;
+			HTREEITEM               m_CurrentItem;
+			HTREEITEM               m_HistoryItem;
+			
+			m_RootItem = m_ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
+			                                   m_transfer_type == e_TransferDownload ? _T("Download") : _T("Upload"),
+			                                   0, // g_ISPImage.m_flagImageCount + 14, // nImage
+			                                   0, // g_ISPImage.m_flagImageCount + 14, // nSelectedImage
+			                                   0, // nState
+			                                   0, // nStateMask
+			                                   e_Root, // lParam
+			                                   0, // aParent,
+			                                   0  // hInsertAfter
+			                                  );
+			m_CurrentItem = m_ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
+			                                      _T("Current session (RAM)"),
+			                                      0, // g_ISPImage.m_flagImageCount + 14, // nImage
+			                                      0, // g_ISPImage.m_flagImageCount + 14, // nSelectedImage
+			                                      0, // nState
+			                                      0, // nStateMask
+			                                      e_Current, // lParam
+			                                      m_RootItem, // aParent,
+			                                      0  // hInsertAfter
+			                                     );
+			m_HistoryItem = m_ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
+			                                      _T("History (SQLite)"),
+			                                      0, // g_ISPImage.m_flagImageCount + 14, // nImage
+			                                      0, // g_ISPImage.m_flagImageCount + 14, // nSelectedImage
+			                                      0, // nState
+			                                      0, // nStateMask
+			                                      e_History, // lParam
+			                                      m_RootItem, // aParent,
+			                                      0  // hInsertAfter
+			                                     );
+			m_transfer_histogram.clear();
+			CFlylinkDBManager::getInstance()->load_transfer_historgam(m_transfer_type, m_transfer_histogram);
+			int l_index = 0;
+			for (auto i = m_transfer_histogram.cbegin(); i != m_transfer_histogram.cend(); ++i, ++l_index)
+			{
+				m_ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
+				                      Text::toT(i->m_date + " (" + Util::toString(i->m_count) + ")").c_str(),
+				                      0, // g_ISPImage.m_flagImageCount + 14, // nImage
+				                      0, // g_ISPImage.m_flagImageCount + 14, // nSelectedImage
+				                      0, // nState
+				                      0, // nStateMask
+				                      l_index, // lParam
+				                      m_HistoryItem, // aParent,
+				                      0  // hInsertAfter
+				                     );
+			}
+			// TODO - развернуть историю по датам
+			m_ctrlTree.Expand(m_RootItem);
+			m_ctrlTree.Expand(m_HistoryItem);
+			
+			SettingsManager::getInstance()->addListener(this);
+			FinishedManager::getInstance()->addListener(this);
+			
 			bHandled = FALSE;
 			return TRUE;
+		}
+		
+		LRESULT onSelChangedTree(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
+		{
+			NMTREEVIEW* p = (NMTREEVIEW*) pnmh;
+			m_is_crrent_tree_node = false;
+			if (p->itemNew.state & TVIS_SELECTED)
+			{
+				CWaitCursor l_cursor_wait;
+				ctrlList.DeleteAllItems();
+				if (p->itemNew.lParam == e_Current)
+				{
+					m_is_crrent_tree_node = true;
+					updateList(FinishedManager::getInstance()->lockList(m_type));
+					FinishedManager::getInstance()->unlockList(m_type);
+				}
+				else
+				{
+					if (size_t(p->itemNew.lParam) < m_transfer_histogram.size())
+					{
+						CFlylinkDBManager::getInstance()->load_transfer_history(m_transfer_type, m_transfer_histogram[p->itemNew.lParam].m_date_as_int);
+					}
+				}
+				ctrlList.resort();
+				updateStatus();
+			}
+			return 0;
+			
 		}
 		
 		LRESULT onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
@@ -163,7 +369,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			
 			if (item->iItem != -1)
 			{
-				ItemInfo *ii = ctrlList.getItemData(item->iItem);
+				FinishedItemInfo *ii = ctrlList.getItemData(item->iItem);
 				WinUtil::openFile(Text::toT(ii->entry->getTarget()));
 			}
 			return 0;
@@ -176,7 +382,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				case SPEAK_ADD_LINE: //  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=77059
 				{
 					FinishedItem* entry = reinterpret_cast<FinishedItem*>(lParam);
-					addFinishedEntry(entry); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=110193 + http://www.flickr.com/photos/96019675@N02/11199325634/
+					addFinishedEntry(entry, m_is_crrent_tree_node); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=110193 + http://www.flickr.com/photos/96019675@N02/11199325634/
 					if (SettingsManager::get(boldFinished))
 					{
 						setDirty(1);
@@ -186,21 +392,23 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				break;
 				case SPEAK_REMOVE_LINE: // [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
 				{
-					FinishedItem* entry = reinterpret_cast<FinishedItem*>(lParam);
-					const int l_cnt = ctrlList.GetItemCount();
-					for (int i = 0; i < l_cnt; ++i)
+					//if(m_is_crrent_tree_node)
 					{
-						auto l_item = ctrlList.getItemData(i);
-						if (l_item && l_item->entry == entry)
+						FinishedItem* entry = reinterpret_cast<FinishedItem*>(lParam);
+						const int l_cnt = ctrlList.GetItemCount();
+						for (int i = 0; i < l_cnt; ++i)
 						{
-							ctrlList.DeleteItem(i);
-							delete l_item;
-							break;
+							auto l_item = ctrlList.getItemData(i);
+							if (l_item && l_item->entry == entry)
+							{
+								ctrlList.DeleteItem(i);
+								delete l_item;
+								break;
+							}
 						}
+						updateStatus();
 					}
-					updateStatus();
 				}
-				break;
 				break;
 			}
 			return 0;
@@ -208,33 +416,37 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		
 		LRESULT onRemove(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
-			switch (wID)
+			if (m_is_crrent_tree_node)
 			{
-				case IDC_REMOVE:
+				switch (wID)
 				{
-					int i = -1, p = -1;
-					while ((i = ctrlList.GetNextItem(-1, LVNI_SELECTED)) != -1)
+					case IDC_REMOVE:
 					{
-						ItemInfo *ii = ctrlList.getItemData(i);
-						totalBytes -= ii->entry->getSize();
-						totalSpeed -= ii->entry->getAvgSpeed();
-						FinishedManager::getInstance()->removeItem(ii->entry, m_type);
-						safe_delete(ii->entry);
-						ctrlList.DeleteItem(i);
-						delete ii;
-						p = i;
+						int i = -1, p = -1;
+						while ((i = ctrlList.GetNextItem(-1, LVNI_SELECTED)) != -1)
+						{
+							FinishedItemInfo *ii = ctrlList.getItemData(i);
+							totalBytes -= ii->entry->getSize();
+							totalSpeed -= ii->entry->getAvgSpeed();
+							FinishedManager::getInstance()->removeItem(ii->entry, m_type);
+							safe_delete(ii->entry);
+							ctrlList.DeleteItem(i);
+							delete ii;
+							p = i;
+						}
+						ctrlList.SelectItem((p < ctrlList.GetItemCount() - 1) ? p : ctrlList.GetItemCount() - 1);
+						updateStatus();
+						break;
 					}
-					ctrlList.SelectItem((p < ctrlList.GetItemCount() - 1) ? p : ctrlList.GetItemCount() - 1);
-					updateStatus();
-					break;
+					case IDC_TOTAL:
+					
+						ctrlList.DeleteAndCleanAllItems(); // [!] IRainman
+						FinishedManager::getInstance()->removeAll(m_type);
+						totalBytes = 0;
+						totalSpeed = 0;
+						updateStatus();
+						break;
 				}
-				case IDC_TOTAL:
-					ctrlList.DeleteAndCleanAllItems(); // [!] IRainman
-					FinishedManager::getInstance()->removeAll(m_type);
-					totalBytes = 0;
-					totalSpeed = 0;
-					updateStatus();
-					break;
 			}
 			return 0;
 		}
@@ -244,7 +456,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			int i;
 			if ((i = ctrlList.GetNextItem(-1, LVNI_SELECTED)) != -1)
 			{
-				ItemInfo *ii = ctrlList.getItemData(i);
+				FinishedItemInfo *ii = ctrlList.getItemData(i);
 				if (ii != NULL)
 					TextFrame::openWindow(Text::toT(ii->entry->getTarget()));
 			}
@@ -256,7 +468,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			int i;
 			if ((i = ctrlList.GetNextItem(-1, LVNI_SELECTED)) != -1)
 			{
-				ItemInfo *ii = ctrlList.getItemData(i);
+				FinishedItemInfo *ii = ctrlList.getItemData(i);
 				if (ii != NULL)
 					WinUtil::openFile(Text::toT(ii->entry->getTarget()));
 			}
@@ -268,7 +480,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			int i;
 			if ((i = ctrlList.GetNextItem(-1, LVNI_SELECTED)) != -1)
 			{
-				ItemInfo *ii = ctrlList.getItemData(i);
+				FinishedItemInfo *ii = ctrlList.getItemData(i);
 				if (ii)
 				{
 					WinUtil::openFolder(Text::toT(ii->entry->getTarget()));
@@ -339,7 +551,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			int i;
 			if ((i = ctrlList.GetNextItem(-1, LVNI_SELECTED)) != -1)
 			{
-				if (const ItemInfo *ii = ctrlList.getItemData(i))
+				if (const FinishedItemInfo *ii = ctrlList.getItemData(i))
 				{
 					const UserPtr u = ClientManager::findUser(ii->entry->getCID());
 					if (u && u->isOnline())
@@ -371,7 +583,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			int i;
 			if ((i = ctrlList.GetNextItem(-1, LVNI_SELECTED)) != -1)
 			{
-				if (const ItemInfo *ii = ctrlList.getItemData(i))
+				if (const FinishedItemInfo *ii = ctrlList.getItemData(i))
 				{
 					const UserPtr u = ClientManager::findUser(ii->entry->getCID());
 					if (u && u->isOnline())
@@ -414,6 +626,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			
 			CRect rc(rect);
 			ctrlList.MoveWindow(rc);
+			SetSplitterRect(&rect);
 		}
 		
 		LRESULT onSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /* bHandled */)
@@ -433,10 +646,10 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			*/
 		};
 		
-		class ItemInfo
+		class FinishedItemInfo
 		{
 			public:
-				ItemInfo(FinishedItem* fi) : entry(fi)
+				FinishedItemInfo(FinishedItem* fi) : entry(fi)
 				{
 					for (size_t i = FinishedItem::COLUMN_FIRST; i < FinishedItem::COLUMN_LAST; ++i) //-V104
 						columns[i] = fi->getText(i); //-V107
@@ -446,24 +659,16 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				const tstring& getText(int col) const
 				{
 					dcassert(col >= 0 && col < COLUMN_LAST);
-					// [-] IRainman fix: It's not even funny. This is sad. :(
-					// [-] if (col >= COLUMN_LAST || col < 0)
-					// [-]  return Util::emptyStringT; // TODO Log
-					// [-] else
 					return columns[col];
 				}
 				
 				const tstring& copy(int col)
 				{
 					dcassert(col >= 0 && col < COLUMN_LAST);
-					// [-] IRainman fix: It's not even funny. This is sad. :(
-					// [-] if (col >= 0 && col < COLUMN_LAST)
 					return getText(col);
-					// [-] else
-					// [-] return Util::emptyStringT;
 				}
 				
-				static int compareItems(const ItemInfo* a, const ItemInfo* b, int col)
+				static int compareItems(const FinishedItemInfo* a, const FinishedItemInfo* b, int col)
 				{
 					return FinishedItem::compareItems(a->entry, b->entry, col);
 				}
@@ -480,10 +685,20 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				FinishedItem* entry;
 		};
 		
+		
 		CStatusBarCtrl ctrlStatus;
 		CMenu ctxMenu;
+		CMenu copyMenu;
 		
-		TypedListViewCtrl<ItemInfo, id> ctrlList;
+		TypedListViewCtrl<FinishedItemInfo, id> ctrlList;
+		CContainedWindow        m_listContainer;
+		
+		CFlyTransferHistogramArray m_transfer_histogram;
+		CTreeViewCtrl           m_ctrlTree;
+		CContainedWindow        m_treeContainer;
+		HTREEITEM               m_RootItem;
+		HTREEITEM               m_CurrentItem;
+		HTREEITEM               m_HistoryItem;
 		
 		int64_t totalBytes;
 		int64_t totalSpeed;
@@ -517,18 +732,21 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			CLockRedraw<true> l_lock_draw(ctrlList);
 			for (auto i = fl.cbegin(); i != fl.cend(); ++i)
 			{
-				addFinishedEntry(*i);
+				addFinishedEntry(*i, false);
 			}
 			updateStatus();
 		}
 		
-		void addFinishedEntry(FinishedItem* p_entry)
+		void addFinishedEntry(FinishedItem* p_entry, bool p_ensure_visible)
 		{
-			const ItemInfo *ii = new ItemInfo(p_entry);
+			const auto *ii = new FinishedItemInfo(p_entry);
 			totalBytes += p_entry->getSize();
 			totalSpeed += p_entry->getAvgSpeed();
 			const int loc = ctrlList.insertItem(ii, ii->getImageIndex()); // fix I_IMAGECALLBACK https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=47103
-			ctrlList.EnsureVisible(loc, FALSE);
+			if (p_ensure_visible)
+			{
+				ctrlList.EnsureVisible(loc, FALSE);
+			}
 		}
 		
 		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
@@ -546,19 +764,20 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 };
 
 template <class T, int title, int id, int icon>
-int FinishedFrameBase<T, title, id, icon>::columnIndexes[] = { FinishedItem::COLUMN_DONE, FinishedItem::COLUMN_FILE,
-                                                               FinishedItem::COLUMN_PATH, FinishedItem::COLUMN_NICK, FinishedItem::COLUMN_HUB, FinishedItem::COLUMN_SIZE, FinishedItem::COLUMN_SPEED,
+int FinishedFrameBase<T, title, id, icon>::columnIndexes[] = { FinishedItem::COLUMN_DONE,
+                                                               FinishedItem::COLUMN_FILE,
+                                                               FinishedItem::COLUMN_PATH,
+                                                               FinishedItem::COLUMN_TTH,
+                                                               FinishedItem::COLUMN_NICK,
+                                                               FinishedItem::COLUMN_HUB,
+                                                               FinishedItem::COLUMN_SIZE,
+                                                               FinishedItem::COLUMN_SPEED,
                                                                FinishedItem::COLUMN_IP
                                                              };
 
 template <class T, int title, int id, int icon>
-int FinishedFrameBase<T, title, id, icon>::columnSizes[] = { 100, 110, 290, 125, 80, 80, 80
-                                                             , 80
-                                                           };
-static ResourceManager::Strings columnNames[] = { ResourceManager::FILENAME, ResourceManager::TIME, ResourceManager::PATH,
-                                                  ResourceManager::NICK, ResourceManager::HUB, ResourceManager::SIZE, ResourceManager::SPEED,
-                                                  ResourceManager::IP_BARE
-                                                };
+int FinishedFrameBase<T, title, id, icon>::columnSizes[] = { 100, 110, 290, 125, 80, 80, 80, 80};
+
 
 #endif // !defined(FINISHED_FRAME_BASE_H)
 

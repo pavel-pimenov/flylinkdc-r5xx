@@ -1364,18 +1364,18 @@ struct noCaseStringHash
 		return x;
 	}
 	
-	bool operator()(const string* a, const string* b) const
-	{
-		return stricmp(*a, *b) < 0;
-	}
+	//bool operator()(const string* a, const string* b) const
+	//{
+	//  return stricmp(*a, *b) < 0;
+	//}
 	bool operator()(const string& a, const string& b) const
 	{
 		return stricmp(a, b) < 0;
 	}
-	bool operator()(const wstring* a, const wstring* b) const
-	{
-		return stricmp(*a, *b) < 0;
-	}
+	//bool operator()(const wstring* a, const wstring* b) const
+	//{
+	//  return stricmp(*a, *b) < 0;
+	//}
 	bool operator()(const wstring& a, const wstring& b) const
 	{
 		return stricmp(a, b) < 0;
@@ -1411,18 +1411,18 @@ inline bool __fastcall EqualD(double A, double B)
 /** Case insensitive string ordering */
 struct noCaseStringLess
 {
-	bool operator()(const string* a, const string* b) const
-	{
-		return stricmp(*a, *b) < 0;
-	}
+	//bool operator()(const string* a, const string* b) const
+	//{
+	//  return stricmp(*a, *b) < 0;
+	//}
 	bool operator()(const string& a, const string& b) const
 	{
 		return stricmp(a, b) < 0;
 	}
-	bool operator()(const wstring* a, const wstring* b) const
-	{
-		return stricmp(*a, *b) < 0;
-	}
+	//bool operator()(const wstring* a, const wstring* b) const
+	//{
+	//  return stricmp(*a, *b) < 0;
+	//}
 	bool operator()(const wstring& a, const wstring& b) const
 	{
 		return stricmp(a, b) < 0;

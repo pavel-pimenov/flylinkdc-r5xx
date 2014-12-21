@@ -140,7 +140,7 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 			bool m_is_op;
 			bool m_is_disable_style;
 			CFlyChatCache(const Identity& p_id, const bool bMyMess, const bool bThirdPerson,
-			              const tstring& sExtra, const tstring& sMsg, const CHARFORMAT2& cf, bool bUseEmo);
+			              const tstring& sExtra, const tstring& sMsg, const CHARFORMAT2& cf, bool bUseEmo, bool p_is_remove_rn = true);
 		};
 		
 		void AppendText(const CFlyChatCache& p_message);

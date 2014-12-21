@@ -561,9 +561,17 @@ size_t Reader_File::Format_Test_PerParser_Continue (MediaInfo_Internal* MI)
                         MI->Config.Event_SubFile_Start(MI->Config.File_Names[MI->Config.File_Names_Pos]);
                     #endif //MEDIAINFO_EVENTS
                     F.Open(MI->Config.File_Names[MI->Config.File_Names_Pos]);
+                    while (!F.Opened_Get())
+                    {
+                        if (MI->Config.File_Names_Pos+1<MI->Config.File_Names.size())
+                        {
+                            MI->Config.File_Names_Pos++;
+                            F.Open(MI->Config.File_Names[MI->Config.File_Names_Pos]);
+                        }
+                    }
                     if (MI->Config.File_Names_Pos>=MI->Config.File_Sizes.size())
                     {
-                        MI->Config.File_Sizes.resize(MI->Config.File_Names_Pos, (int64u)-1);
+                        MI->Config.File_Sizes.resize(MI->Config.File_Names_Pos, 0);
                         MI->Config.File_Sizes.push_back(F.Size_Get());
                     }
                     MI->Config.File_Names_Pos++;

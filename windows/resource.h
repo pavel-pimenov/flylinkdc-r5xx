@@ -189,6 +189,7 @@
 #define IDR_ICON_FIREWALL               298
 #define IDR_HUB_FLYLINKDC               299
 #define IDD_ABOUTSTAT                   300
+#define IDR_ICON_CLOCK                  301
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
 #define IDC_COPY_HUB                    1002
@@ -1535,8 +1536,12 @@
 #define IDC_TOTAL_UPTIME                2375
 #define IDC_SYSUPTIME                   2376
 #define IDC_TOTAL_MESSAGES              2377
+#define IDC_TRANSFER_TREE               2378
 #define IDC_DOWNLOAD_TARGET             2500
 #define IDC_FLYLINKDC_LOCATION          2501
+#define IDC_FLYLINKDC_FOUND_NEW_VERSION  2502
+#define IDC_COPY_SPEED                  2503
+#define IDC_AUTO_PASSIVE_MODE           2505
 #define IDC_DOWNLOAD_TARGET_DIR         3000
 #define IDC_SELECT_WINDOW               3500
 #define IDC_USER_COMMAND                4000

@@ -113,9 +113,14 @@ TransferView::~TransferView()
 
 LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-	m_tooltip.Create(m_hWnd, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP /*| TTS_BALLOON*/, WS_EX_TOPMOST);
-	m_tooltip.SetDelayTime(TTDT_AUTOPOP, 15000);
-	dcassert(m_tooltip.IsWindow());
+	m_force_passive_tooltip.Create(m_hWnd, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP /*| TTS_BALLOON*/, WS_EX_TOPMOST);
+	m_force_passive_tooltip.SetDelayTime(TTDT_AUTOPOP, 15000);
+	dcassert(m_force_passive_tooltip.IsWindow());
+	
+	
+	m_active_passive_tooltip.Create(m_hWnd, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP /*| TTS_BALLOON*/, WS_EX_TOPMOST);
+	m_active_passive_tooltip.SetDelayTime(TTDT_AUTOPOP, 15000);
+	dcassert(m_active_passive_tooltip.IsWindow());
 	
 	ResourceLoader::LoadImageList(IDR_ARROWS, m_arrows, 16, 16);
 	ResourceLoader::LoadImageList(IDR_TSPEEDS, m_speedImages, 16, 16);
@@ -159,8 +164,18 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	                           IDC_FORCE_PASSIVE_MODE);
 	m_PassiveModeButton.SetIcon(WinUtil::g_hFirewallIcon);
 	m_PassiveModeButton.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
+	
+	m_AutoPassiveModeButton.Create(m_hWnd,
+	                               rcDefault,
+	                               NULL,
+	                               //WS_CHILD| WS_VISIBLE | BS_ICON | BS_AUTOCHECKBOX| BS_PUSHLIKE | BS_FLAT
+	                               WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_ICON | /*BS_AUTOCHECKBOX | */BS_FLAT
+	                               , 0,
+	                               IDC_AUTO_PASSIVE_MODE);
+	m_AutoPassiveModeButton.SetIcon(WinUtil::g_hClockIcon);
+	m_AutoPassiveModeButton.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
+	
 	//purgeContainer.SubclassWindow(ctrlPurge.m_hWnd);
-	//m_PassiveModeButton.SetCheck(BOOLSETTING(FORCE_PASSIVE_INCOMING_CONNECTIONS) ? BST_CHECKED : BST_UNCHECKED);
 	setButtonState();
 	
 	// [-] brain-ripper
@@ -238,7 +253,10 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 void TransferView::setButtonState()
 {
 	m_PassiveModeButton.SetCheck(BOOLSETTING(FORCE_PASSIVE_INCOMING_CONNECTIONS) ? BST_CHECKED : BST_UNCHECKED);
-	m_tooltip.AddTool(m_PassiveModeButton, ResourceManager::SETTINGS_FIREWALL_PASSIVE_FORCE);
+	m_force_passive_tooltip.AddTool(m_PassiveModeButton, ResourceManager::SETTINGS_FIREWALL_PASSIVE_FORCE);
+	
+	m_AutoPassiveModeButton.SetCheck(BOOLSETTING(AUTO_PASSIVE_INCOMING_CONNECTIONS) ? BST_CHECKED : BST_UNCHECKED);
+	m_active_passive_tooltip.AddTool(m_AutoPassiveModeButton, ResourceManager::SETTINGS_FIREWALL_AUTO_PASSIVE);
 	UpdateLayout();
 }
 void TransferView::prepareClose()
@@ -258,6 +276,21 @@ void TransferView::prepareClose()
 	
 	//WinUtil::UnlinkStaticMenus(transferMenu); // !SMT!-UI
 }
+
+LRESULT TransferView::onForceAutoPassiveMode(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	if (m_AutoPassiveModeButton.GetCheck() == BST_CHECKED)
+	{
+		SettingsManager::getInstance()->set(SettingsManager::AUTO_PASSIVE_INCOMING_CONNECTIONS, 1);
+	}
+	else
+	{
+		SettingsManager::getInstance()->set(SettingsManager::AUTO_PASSIVE_INCOMING_CONNECTIONS, 0);
+	}
+	setButtonState();
+	return 0;
+}
+
 LRESULT TransferView::onForcePassiveMode(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	if (m_PassiveModeButton.GetCheck() == BST_CHECKED)
@@ -279,6 +312,7 @@ void TransferView::UpdateLayout()
 	if (BOOLSETTING(SHOW_TRANSFERVIEW_TOOLBAR))
 	{
 		m_PassiveModeButton.MoveWindow(2, 2, 45, 24);
+		m_AutoPassiveModeButton.MoveWindow(2, 26, 45, 24);
 		rc.left += 45;
 	}
 	ctrlTransfers.MoveWindow(&rc);
@@ -375,13 +409,13 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 				transferMenu.EnableMenuItem(IDC_PRIORITY_PAUSED, MFS_ENABLED); //[+] Drakon
 				if (!ii->m_target.empty())
 				{
-					string target = Text::fromT(ii->m_target);
+					const string l_target = Text::fromT(ii->m_target);
 #ifdef PPA_INCLUDE_DROP_SLOW
 					bool slowDisconnect;
 					{
 						QueueManager::LockFileQueueShared l_fileQueue;
 						const auto& queue = l_fileQueue.getQueueL();
-						const auto qi = queue.find(&target);
+						const auto qi = queue.find(l_target);
 						if (qi != queue.cend())
 							slowDisconnect = qi->second->isAutoDrop(); // [!]
 						else
@@ -393,7 +427,7 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 						transferMenu.CheckMenuItem(IDC_MENU_SLOWDISCONNECT, MF_BYCOMMAND | MF_CHECKED);
 					}
 #endif
-					setupPreviewMenu(target);
+					setupPreviewMenu(l_target);
 				}
 			}
 			else
@@ -1426,12 +1460,7 @@ TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const Conn
 	
 	ui->setStatus(ItemInfo::STATUS_WAITING);
 	string l_status = STRING(CONNECTING);
-#ifdef FLYLINKDC_USE_FORCE_PASSIVE
-	if (aCqi->m_count_waiting > 1)
-	{
-		l_status += " (Step: " + Util::toString(aCqi->m_count_waiting) + ")"; // TODO - исправить копипаст
-	}
-#endif
+	aCqi->addAutoPassiveStatus(l_status);
 	ui->setStatusString(Text::toT(l_status));
 	return ui;
 }
@@ -1462,14 +1491,9 @@ void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueIt
 	else
 #endif
 	{
-		string l_reason_and_count = aReason;
-#ifdef FLYLINKDC_USE_FORCE_PASSIVE
-		if (aCqi->m_count_waiting > 1)
-		{
-			l_reason_and_count += " (Step: " + Util::toString(aCqi->m_count_waiting) + ")";
-		}
-#endif
-		ui->setStatusString(Text::toT(l_reason_and_count));
+		string l_status = aReason;
+		aCqi->addAutoPassiveStatus(l_status);
+		ui->setStatusString(Text::toT(l_status));
 	}
 	
 	ui->setStatus(ItemInfo::STATUS_WAITING);
@@ -1903,11 +1927,11 @@ LRESULT TransferView::onSlowDisconnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
 		// [!] IRainman fix.
 		if (ii->download) // [+]
 		{
-			string tmp = Text::fromT(ii->m_target);
+			const string l_tmp = Text::fromT(ii->m_target);
 			
 			QueueManager::LockFileQueueShared l_fileQueue;
 			const auto& queue = l_fileQueue.getQueueL();
-			const auto qi = queue.find(&tmp);
+			const auto qi = queue.find(l_tmp);
 			if (qi != queue.cend())
 				qi->second->changeAutoDrop(); // [!]
 		}

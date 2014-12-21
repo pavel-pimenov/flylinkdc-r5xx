@@ -66,6 +66,11 @@ class CFlyLevelDB
 };
 #endif // FLYLINKDC_USE_LEVELDB
 
+enum eTypeTransfer
+{
+	e_TransferDownload = 0,
+	e_TransferUpload = 1
+};
 
 enum eTypeDIC
 {
@@ -96,6 +101,14 @@ struct CFlyLocationDesc : public CFlyLocationIP
 	tstring m_description;
 };
 typedef std::vector<CFlyLocationIP> CFlyLocationIPArray;
+
+struct CFlyTransferHistogram
+{
+	std::string m_date;
+	unsigned m_count;
+	unsigned m_date_as_int;
+};
+typedef std::vector<CFlyTransferHistogram> CFlyTransferHistogramArray;
 
 struct CFlyAntivirusItem
 {
@@ -260,17 +273,19 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		unsigned __int64 getBlockSizeSQL(const TTHValue& p_root, __int64 p_size);
 		__int64 get_path_id(string p_path, bool p_create, bool p_case_convet, bool& p_is_no_mediainfo, bool p_sweep_path);
 		void add_tree(const TigerTree& p_tt);
-		__int64 merge_file(const string& p_path, const string& p_file_name, const int64_t p_time_stamp,
-		                   const TigerTree& p_tt, bool p_case_convet,
-		                   __int64& p_path_id);
 	private:
 		void prepare_scan_folderL(const tstring& p_path);
 		bool merge_mediainfoL(const __int64 p_tth_id, const __int64 p_path_id, const string& p_file_name, const CFlyMediaInfo& p_media);
 		__int64 merge_fileL(const string& p_path, const string& p_file_name, const int64_t p_time_stamp,
 		                    const TigerTree& p_tt, bool p_case_convet,
 		                    __int64& p_path_id);
+		void inc_hitL(const string& p_Path, const string& p_FileName);
 	public:
 		void flush_hash();
+		
+		void load_transfer_history(eTypeTransfer p_type, int p_day);
+		void load_transfer_historgam(eTypeTransfer p_type, CFlyTransferHistogramArray& p_array);
+		void save_transfer_history(eTypeTransfer p_type, const FinishedItem* p_item);
 		
 		bool merge_mediainfo(const __int64 p_tth_id, const __int64 p_path_id, const string& p_file_name, const CFlyMediaInfo& p_media);
 #ifdef USE_REBUILD_MEDIAINFO
@@ -278,7 +293,6 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif
 		static void errorDB(const string& p_txt);
 		
-		void incHit(const string& p_Path, const string& p_FileName);
 		bool checkTTH(const string& fname, __int64 path_id, int64_t aSize, int64_t aTimeStamp, TTHValue& p_out_tth);
 		void load_path_cache();
 		void scan_path(CFlyDirItemArray& p_directories);
@@ -392,7 +406,6 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void push_json_statistic(const std::string& p_value);
 		void flush_lost_json_statistic(bool& p_is_error);
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
-		void clear_tiger_tree_cache(const TTHValue& p_root);
 		__int64 convert_tth_history();
 		static size_t getCountQueueSources()
 		{
@@ -584,6 +597,11 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		}
 		typedef boost::unordered_map<string, __int64> CFlyCacheDIC;
 		std::vector<CFlyCacheDIC> m_DIC;
+		
+		auto_ptr<sqlite3_command> m_select_transfer;
+		auto_ptr<sqlite3_command> m_select_transfer_histrogram;
+		auto_ptr<sqlite3_command> m_insert_transfer;
+		auto_ptr<sqlite3_command> m_delete_transfer;
 		
 		__int64 find_dic_idL(const string& p_name, const eTypeDIC p_DIC, bool p_cache_result);
 		__int64 get_dic_idL(const string& p_name, const eTypeDIC p_DIC, bool p_create);

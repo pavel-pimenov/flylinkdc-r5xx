@@ -515,7 +515,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	if (_tcsstr(lpstrCmdLine, _T("/magnet")) != NULL)
 		magnet = true;
 #ifdef FLYLINKDC_BETA
-	if (_tcsstr(lpstrCmdLine, _T("/crahs-test-doctor-dump")) != NULL)
+	if (_tcsstr(lpstrCmdLine, _T("/crash-test-doctor-dump")) != NULL)
 	{
 		crash_test_doctor_dump();
 	}

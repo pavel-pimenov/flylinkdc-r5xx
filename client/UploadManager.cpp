@@ -361,11 +361,17 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 #endif
 		
 	string sourceFile;
+	const bool l_is_type_file = aType == Transfer::g_type_names[Transfer::TYPE_FILE];
+	const bool l_is_tth  = l_is_type_file && aFile.size() == 43 && aFile.compare(0, 4, "TTH/", 4) == 0;
 	Transfer::Type type;
-	
+	TTHValue l_tth;
+	if (l_is_tth)
+	{
+		l_tth = TTHValue(aFile.c_str() + 4);
+	}
 	try
 	{
-		if (aType == Transfer::g_type_names[Transfer::TYPE_FILE])
+		if (l_is_type_file)
 		{
 			sourceFile = ShareManager::getInstance()->toReal(aFile
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
@@ -465,12 +471,9 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 	catch (const ShareException& e)
 	{
 		// Partial file sharing upload
-		if (aType == Transfer::g_type_names[Transfer::TYPE_FILE] && aFile.compare(0, 4, "TTH/", 4) == 0)
+		if (l_is_tth)
 		{
-		
-			TTHValue fileHash(aFile.c_str() + 4); //[+]FlylinkDC++
-			
-			if (QueueManager::getInstance()->isChunkDownloaded(fileHash, aStartPos, aBytes, sourceFile))
+			if (QueueManager::getInstance()->isChunkDownloaded(l_tth, aStartPos, aBytes, sourceFile))
 			{
 				dcassert(!sourceFile.empty());
 				try
@@ -676,7 +679,7 @@ ok: //[!] TODO убрать goto
 		}
 	}
 	
-	Upload* u = new Upload(aSource, sourceFile, l_ip, l_chiper_name); // [!] IRainman fix.
+	Upload* u = new Upload(aSource, l_tth, sourceFile, l_ip, l_chiper_name); // [!] IRainman fix.
 	u->setStream(is);
 	u->setSegment(Segment(start, size));
 	

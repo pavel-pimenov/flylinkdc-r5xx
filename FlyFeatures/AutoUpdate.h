@@ -62,7 +62,6 @@ class AutoUpdateFile
 
 typedef std::vector<AutoUpdateFile> AutoUpdateFiles;
 
-
 class AutoUpdateModule
 {
 	public:
@@ -93,14 +92,15 @@ class AutoUpdateGUIMethod
 {
 	public:
 		virtual ~AutoUpdateGUIMethod() { }
-		virtual UINT ShowDialogUpdate(const std::string& message, const std::string& rtfMessage, const AutoUpdateFiles& fileList)
-		{
-			return 0;
-		}
+		virtual UINT ShowDialogUpdate(const std::string& message, const std::string& rtfMessage, const AutoUpdateFiles& fileList) = 0;
+    virtual void NewVerisonEvent(const std::string& p_new_version) = 0;
 };
 
 class AutoUpdate :
-	public Singleton<AutoUpdate>, public BackgroundTaskExecuter<AutoUpdateTasks, Thread::IDLE, 10000>, private SettingsManagerListener, private TimerManagerListener
+	public Singleton<AutoUpdate>, 
+  public BackgroundTaskExecuter<AutoUpdateTasks, Thread::IDLE, 10000>, 
+   //private SettingsManagerListener, 
+  private TimerManagerListener
 {
 	friend class AutoUpdateObject;
 	public:
@@ -115,13 +115,8 @@ class AutoUpdate :
 		{
 			return m_isUpdateStarted != 0;
 		}
-		void shutdownAndUpdate()
-		{
-			forceStop();
-			SettingsManager::getInstance()->removeListener(this);
-			TimerManager::getInstance()->removeListener(this);
-			runFlyUpdate(); // TODO странно. почему тут run когда мы в методе shutdown
-		}
+		void shutdownAndUpdate();
+
 		bool getExitOnUpdate() const
 		{
 			return m_exitOnUpdate;

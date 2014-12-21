@@ -56,12 +56,17 @@ void AutoUpdate::initialize(HWND p_mainFrameHWND, AutoUpdateGUIMethod* p_guiDele
 {
 	m_mainFrameHWND = p_mainFrameHWND;
 	m_guiDelegate = p_guiDelegate;
-	SettingsManager::getInstance()->addListener(this);
 	TimerManager::getInstance()->addListener(this);
 #ifndef AUTOUPDATE_NOT_DISABLE
 	if (BOOLSETTING(AUTOUPDATE_ENABLE) && BOOLSETTING(AUTOUPDATE_RUNONSTARTUP))
 #endif
 		addTask(START_UPDATE);
+}
+void AutoUpdate::shutdownAndUpdate()
+{
+			forceStop();
+			TimerManager::getInstance()->removeListener(this);
+			runFlyUpdate(); // TODO странно. почему тут run когда мы в методе shutdown
 }
 
 void AutoUpdate::on(TimerManagerListener::Hour, uint64_t tick) noexcept
@@ -347,7 +352,10 @@ void AutoUpdate::startUpdateThisThread()
 				message(l_message);
 
 				const bool l_userAsk = BOOLSETTING(AUTOUPDATE_SHOWUPDATEREADY) || m_manualUpdate;
-
+        if (m_guiDelegate)
+        {
+			m_guiDelegate->NewVerisonEvent(Text::fromT(TSTRING(MENU_FLYLINK_NEW_VERSION)) + autoUpdateObject->m_sVersion);
+        }
 				if (l_userAsk)
 				{
 					// [!]TODO Ask to setup
@@ -355,7 +363,7 @@ void AutoUpdate::startUpdateThisThread()
 					l_message += STRING(AUTOUPDATE_DOWNLOAD_START3);
 					//
 					UpdateResult idResult;
-					if (m_guiDelegate != NULL)
+					if (m_guiDelegate)
 					{
 						// Download RTF file from Server
 						string programRtfData;

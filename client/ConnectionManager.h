@@ -100,6 +100,14 @@ class ConnectionQueueItem
 		{
 			return HintedUser(m_user, hubUrl);
 		}
+		void addAutoPassiveStatus(string& p_status) const
+		{
+			if (m_count_waiting > 1)
+			{
+				p_status += " (count: " + Util::toString(m_count_waiting) + ")";
+			}
+		}
+		
 	private:
 		const string m_connection_queue_token;
 		UserPtr m_user;

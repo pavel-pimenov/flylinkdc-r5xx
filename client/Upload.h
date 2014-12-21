@@ -19,7 +19,7 @@ class Upload : public Transfer, public Flags
 			FLAG_PARTIAL = 0x10
 		};
 		
-		explicit Upload(UserConnection* p_conn, const string& p_path, const string& p_ip, const string& p_chiper_name); // [!] IRainman fix.
+		explicit Upload(UserConnection* p_conn, const TTHValue& p_tth, const string& p_path, const string& p_ip, const string& p_chiper_name); // [!] IRainman fix.
 		~Upload();
 		
 		void getParams(const UserConnection* p_source, StringMap& p_params) const;

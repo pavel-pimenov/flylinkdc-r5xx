@@ -445,7 +445,6 @@ void CFlyServerConfig::loadConfig()
 					{
               g_exclude_error_syslog.insert(Util::toInt(n));
 					});
-
 					// Достанем RO-зеркала
 					l_xml.getChildAttribSplit("mirror_read_only_server", g_mirror_read_only_servers, [this](const string& n)
 					{
@@ -517,6 +516,7 @@ void CFlyServerConfig::loadConfig()
   	if(g_ignore_flood_command.empty())
 		{
 						g_ignore_flood_command.insert("Search");
+						g_ignore_flood_command.insert("UserCommand");
 						g_ignore_flood_command.insert("Quit"); 
 						g_ignore_flood_command.insert("MyINFO"); 
 						g_ignore_flood_command.insert("ConnectToMe"); 
@@ -720,7 +720,7 @@ void CFlyServerAdapter::post_message_for_update_mediainfo()
 				m_tth_media_file_map.clear(); // Если возникла ошибка передачи запроса на чтение, запись не шлем.
 			}
 		}
-		push_mediainfo_to_fly_server(); // Сбросим на флай-сервер медиаинфу, что нашли у себя а там ее еще нет
+		push_mediainfo_to_fly_server(); // Сбросим на флай-сервер медиаинфу, что нашли у себя (там ее еще нет)
 }
 //===================================================================================================================================
 void CFlyServerAdapter::push_mediainfo_to_fly_server()
@@ -830,6 +830,7 @@ static void getDiskAndMemoryStat(Json::Value& p_info)
 				l_disk_info["DBStat"] = getFileSize(l_path + _T("\\FlylinkDC_stat.sqlite"));
 				l_disk_info["DBUser"] = getFileSize(l_path + _T("\\FlylinkDC_user.sqlite")); 
 				l_disk_info["DBAntivirus"] = getFileSize(l_path + _T("\\FlylinkDC_antivirus.sqlite")); 
+                l_disk_info["DBTransfer"] = getFileSize(l_path + _T("\\FlylinkDC_transfers.sqlite")); 
 				// TODO - сделать обоход общего массива				
 
 				DWORD l_cluster, l_sector_size, l_freeclustor;

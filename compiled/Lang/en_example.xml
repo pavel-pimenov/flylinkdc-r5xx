@@ -621,7 +621,6 @@
 	<string name="HubListDownloaded">Hub-list downloaded…</string>
 	<string name="HubListEdit">Edit the Hub-list</string>
 	<string name="HubListLoadedFromCache">Hub-list loaded from cache…</string>
-	<string name="HubListWarning">Opening the window \"Internet Hubs\" you should be aware that their visit will lead to an external (Internet) traffic. If you fare with a limited amount of incoming traffic, visits to these hubs can lead to down speed to external resources because of threshold excess or to a substantial increase in bills for the Internet.\r\n\r\nShow the list of hubs?</string>
 	<string name="HubName">Name</string>
 	<string name="HubSegments">Hub / Segments</string>
 	<string name="HubTopic">Hub Topic:</string>
@@ -815,7 +814,8 @@
 	<string name="MenuHomepage">Homepage</string>
 	<string name="MenuHorizontalTile">Horizontal Tile</string>
 	<string name="MenuJoinTeam">FlylinkDC++ source code…</string>
-	<string name="MenuChangeFlylinkLocation">Change FlylinkDC++ location…</string>
+	<string name="MenuChangeFlylinkdcLocation">Change FlylinkDC++ location…</string>
+	<string name="MenuFlylinkNewVersion">[!] New version:</string>
 	<string name="MenuMinimizeAll">Minimize &amp;all</string>
 	<string name="MenuNetworkStatistics">Network statistics</string>
 	<string name="MenuNotepad">&amp;Notepad\tCtrl+N</string>
@@ -872,6 +872,7 @@
 	<string name="MpcNotRun">Supported version of Media Player Classic is not running</string>
 	<string name="MultilineChatInput">Multiline input field in chat window</string>
 	<string name="MultilineChatInputByCtrlEnter">Next line by Enter and Send message by Ctrl-Enter in multiline chat</string>
+	<string name="MuteUser">Mute User</string>
 	<string name="MynickInChat">My nick in main chat</string>
 	<string name="N">N</string>
 	<string name="Name">Name</string>
@@ -1277,7 +1278,6 @@
 	<string name="SettingsConfirmHubgroupRemoval">Confirm hub group removal</string>
 	<string name="SettingsConfirmHubRemoval">Confirm favorite hub removal</string>
 	<string name="SettingsConfirmItemRemoval">Confirm item removal in download queue</string>
-	<string name="SettingsConfirmOpenInetHubs">Confirm open Internet Hubs</string>
 	<string name="SettingsConnectionAutodetect">Work in passive mode if specified active mode not available (auto detect)</string>
 	<string name="SettingsCzdcExtraDownloads">Highest Priority Extra Download Slots</string>
 	<string name="SettingsDclsPage">DCLST support</string>
@@ -1313,6 +1313,7 @@
 	<string name="SettingsFirewallNat">Firewall with manual port forwarding</string>
 	<string name="SettingsFirewallPassive">Firewall (passive, the worst case)</string>
 	<string name="SettingsFirewallPassiveForce">Force firewall mode (passive!)</string>
+	<string name="SettingsFirewallAutoPassive">Automatic passive connection (timeout at 2 minutes)</string>
 	<string name="SettingsFirewallUpnp">UPnP (for WiFi router)</string>
 	<string name="SettingsFormat">Format</string>
 	<string name="SettingsGeneral">General</string>
@@ -1609,6 +1610,7 @@
 	<string name="TextStatRequest">To improve the program FlylinkDC++ collects anonymous\r\nusage statistics and transmits it to the developers.\r\nAccording to the law of many countries FlylinkDC++ needs\r\nyour permission to do so.\r\nAllow the program to collect and send anonymous usage statistics to developers?</string>
 	<string name="TextStatInfo">To improve the program FlylinkDC++ collects anonymous\r\nusage statistics and transmits it to the developers.\r\nAccording to the law of many countries FlylinkDC++ are\r\nobliged to inform about this fact.</string>
 	<string name="TextStr">Text</string>
+	<string name="Tth">TTH</string>
 	<string name="FavEnemyUser">Enemy user/Speed Ban</string>
 	<string name="FavUser">Favorite user</string>
 	<string name="GeneralText">General text</string>
@@ -1778,6 +1780,7 @@
 	<string name="WebserverSearchsize">Search result size</string>
 	<string name="WebserverSearchPageName">Add and Search</string>
 	<string name="WebserverUser">Limited user.</string>
+	<string name="WebUrl">WebURL</string>
 	<string name="Week">week</string>
 	<string name="Weeks">weeks</string>
 	<string name="Welcome">Welcome</string>

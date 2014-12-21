@@ -1170,7 +1170,7 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 						l_dir_item_second.m_media_ptr = nullptr;
 					}
 				}
-				catch (const HashException&)
+				catch (const HashException& e)
 				{
 				}
 			}

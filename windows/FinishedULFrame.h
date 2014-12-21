@@ -26,7 +26,7 @@
 class FinishedULFrame : public FinishedFrameBase<FinishedULFrame, ResourceManager::FINISHED_UPLOADS, IDC_FINISHED_UL, IDR_FINISHED_UL>
 {
 	public:
-		FinishedULFrame()
+		FinishedULFrame(): FinishedFrameBase(e_TransferUpload)
 		{
 			m_type = FinishedManager::e_Upload;
 			boldFinished = SettingsManager::BOLD_FINISHED_UPLOADS;
@@ -41,7 +41,7 @@ class FinishedULFrame : public FinishedFrameBase<FinishedULFrame, ResourceManage
 		
 	private:
 	
-		void on(AddedUl, const FinishedItem* p_entry) noexcept
+		void on(AddedUl, const FinishedItem* p_entry, bool p_is_sqlite) noexcept
 		{
 			PostMessage(WM_SPEAKER, SPEAK_ADD_LINE, (WPARAM)p_entry);
 		}

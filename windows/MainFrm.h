@@ -212,6 +212,8 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		COMMAND_ID_HANDLER(IDC_SHUTDOWN, onShutDown)
 		COMMAND_ID_HANDLER(IDC_UPDATE_FLYLINKDC, onUpdate)
 		COMMAND_ID_HANDLER(IDC_FLYLINKDC_LOCATION, onChangeLocation)
+		COMMAND_ID_HANDLER(IDC_FLYLINKDC_FOUND_NEW_VERSION, onFoundNewVersion)
+		
 		COMMAND_ID_HANDLER(IDC_DISABLE_SOUNDS, onDisableSounds)
 		COMMAND_ID_HANDLER(IDC_DISABLE_POPUPS, onDisablePopups) // [+] InfinitySky.
 		COMMAND_ID_HANDLER(IDC_CLOSE_DISCONNECTED, onCloseWindows)
@@ -330,6 +332,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		LRESULT onLimiter(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onUpdate(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onChangeLocation(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+		LRESULT onFoundNewVersion(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onDisableSounds(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onDisablePopups(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/); // [+] InfinitySky.
 		LRESULT onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
@@ -585,7 +588,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		
 		// SSA AutoUpdateGUIMethod delegate
 		UINT ShowDialogUpdate(const std::string& message, const std::string& rtfMessage, const AutoUpdateFiles& fileList);
-		
+		void NewVerisonEvent(const std::string& p_new_version);
 		
 #ifdef SSA_WIZARD_FEATURE
 		void SetWizardMode()
@@ -602,6 +605,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		std::unique_ptr<HIconWrapper> m_emptyicon;//[+]IRainman
 		
 		CReBarCtrl m_rebar;
+		unsigned m_index_new_version_menu_item;
 		
 		bool getPassword(); // !SMT!-f
 		bool getPasswordInternal(INT_PTR& p_do_modal_result);

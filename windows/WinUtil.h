@@ -810,6 +810,10 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 					doAction(&UserInfoBase::createSummaryInfo, m_selectedHint);
 					FavUserTraits traits; // empty
 					
+					if (ENABLE(options, NICK_TO_CHAT))
+					{
+						p_menu.AppendMenu(MF_STRING, IDC_ADD_NICK_TO_CHAT, CTSTRING(ADD_NICK_TO_CHAT));
+					}
 					appendSendAutoMessageItems(p_menu);
 					appendFileListItems(p_menu);
 					
@@ -967,7 +971,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 		{
 			dcassert(m_selectedUser);
 			
-			if (DISABLE(options, NO_COPY))
+			//[?] if (DISABLE(options, NO_COPY)) // Try fix https://code.google.com/p/flylinkdc/issues/detail?id=1548
 			{
 				p_menu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)copyUserMenu, CTSTRING(COPY));
 				appendSeparator(p_menu);
@@ -1499,7 +1503,7 @@ class WinUtil
 		};
 		
 		static CMenu mainMenu;
-		static OMenu copyHubMenu; // [+] IRainman fix.
+		static OMenu g_copyHubMenu; // [+] IRainman fix.
 		
 		static HIconWrapper g_banIconOnline; // !SMT!-UI
 		static HIconWrapper g_banIconOffline; // !SMT!-UI
@@ -1507,6 +1511,7 @@ class WinUtil
 		static HIconWrapper g_hThermometerIcon;
 		//static HIconWrapper g_hCrutchIcon;
 		static HIconWrapper g_hFirewallIcon;
+		static HIconWrapper g_hClockIcon;
 		
 		static std::unique_ptr<HIconWrapper> g_HubOnIcon;
 		static std::unique_ptr<HIconWrapper> g_HubOffIcon;

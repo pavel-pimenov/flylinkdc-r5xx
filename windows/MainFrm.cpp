@@ -174,6 +174,7 @@ MainFrame::MainFrame() :
 #ifdef IRAINMAN_IP_AUTOUPDATE
 	m_elapsedMinutesFromlastIPUpdate(0),
 #endif
+	m_index_new_version_menu_item(0),
 	m_bTrayIcon(false),
 	m_TuneSplitCount(0),
 	m_bIsPM(false),
@@ -1955,31 +1956,41 @@ LRESULT MainFrame::onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 					SearchFrame::openWindow();
 					break;
 				case ID_FILE_CONNECT:
-					if (!m_isOpenHubFrame)
-					{
-						UINT checkState = BOOLSETTING(CONFIRM_OPEN_INET_HUBS) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
-						if (checkState == BST_CHECKED
-#ifndef _DEBUG
-						        || ::MessageBox(m_hWnd, CTSTRING(HUB_LIST_WARNING), CTSTRING(WARNING), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES
-#else
-						        || true
-#endif
-						   )
-						{
-							PublicHubsFrame::openWindow();
-							m_isOpenHubFrame = true;
-						}
-						else
-						{
-							WinUtil::setButtonPressed(ID_FILE_CONNECT, false);
-						}
-						// Let's update the setting unchecked box means we bug user again...
-						SET_SETTING(CONFIRM_OPEN_INET_HUBS, checkState != BST_CHECKED); // [+] InfinitySky.
-					}
-					else
-						PublicHubsFrame::openWindow();
-						
+					PublicHubsFrame::openWindow();
 					break;
+					/*
+					                    if (!m_isOpenHubFrame)
+					                    {
+					                        PublicHubsFrame::openWindow();
+					                        m_isOpenHubFrame = true;
+					#if 0
+					                        UINT checkState = BOOLSETTING(CONFIRM_OPEN_INET_HUBS) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
+					                        if (checkState == BST_CHECKED
+					#ifndef _DEBUG
+					//  HUB_LIST_WARNING, // "Opening the window \"Internet Hubs\" you should be aware that their visit will lead to an external (Internet) traffic. If you fare with a limited amount of incoming traffic, visits to these hubs can lead to down speed to external resources because of threshold excess or to a substantial increase in bills for the Internet.\r\n\r\nShow the list of hubs?"
+					
+					                                || ::MessageBox(m_hWnd, CTSTRING(HUB_LIST_WARNING), CTSTRING(WARNING), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES
+					#else
+					                                || true
+					#endif
+					                           )
+					                        {
+					                            PublicHubsFrame::openWindow();
+					                            m_isOpenHubFrame = true;
+					                        }
+					                        else
+					                        {
+					                            WinUtil::setButtonPressed(ID_FILE_CONNECT, false);
+					                        }
+					#endif
+					                    }
+					                    else
+					                    {
+					                        PublicHubsFrame::openWindow();
+					          }
+					
+					                    break;
+					*/
 				case IDC_FAVORITES:
 					FavoriteHubsFrame::openWindow();
 					break;
@@ -3408,6 +3419,11 @@ LRESULT MainFrame::onAway(WORD , WORD , HWND, BOOL&)
 	return 0;
 }
 
+LRESULT MainFrame::onFoundNewVersion(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	return 0;
+}
+
 LRESULT MainFrame::onChangeLocation(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	CFlyLocationDlg l_dlg;
@@ -3683,6 +3699,21 @@ void MainFrame::on(QueueManagerListener::TryAdding, const string& fileName, int6
 		l_option = SettingsManager::ON_DOWNLOAD_SKIP;
 		
 	QueueManager::getInstance()->setOnDownloadSetting(l_option);
+}
+
+void MainFrame::NewVerisonEvent(const std::string& p_new_version)
+{
+	if (m_index_new_version_menu_item == 0)
+	{
+		CMenuHandle l_menu_flylinkdc_new_version;
+		l_menu_flylinkdc_new_version.CreatePopupMenu();
+		l_menu_flylinkdc_new_version.AppendMenu(MF_STRING, IDC_UPDATE_FLYLINKDC, CTSTRING(UPDATE_CHECK));
+		//mainMenu.ModifyMenuW(SetMenuItemInfoW(.SetMenuItemBitmaps
+		const string l_text_flylinkdc_new_version = p_new_version;
+		WinUtil::mainMenu.AppendMenu(MF_STRING, l_menu_flylinkdc_new_version, Text::toT(l_text_flylinkdc_new_version).c_str());
+		SetMDIFrameMenu();
+		m_index_new_version_menu_item = WinUtil::mainMenu.GetMenuItemCount();
+	}
 }
 
 UINT MainFrame::ShowDialogUpdate(const std::string& message, const std::string& rtfMessage, const AutoUpdateFiles& fileList)

@@ -35,11 +35,11 @@ namespace sqlite3x {
 sqlite3_reader::sqlite3_reader() : cmd(NULL) {}
 
 sqlite3_reader::sqlite3_reader(const sqlite3_reader &copy) : cmd(copy.cmd) {
-	if(this->cmd) ++this->cmd->refs;
+	if(this->cmd) ++this->cmd->m_refs;
 }
 
 sqlite3_reader::sqlite3_reader(sqlite3_command *cmd) : cmd(cmd) {
-	++cmd->refs;
+	++cmd->m_refs;
 }
 
 sqlite3_reader::~sqlite3_reader() {
@@ -50,7 +50,7 @@ sqlite3_reader& sqlite3_reader::operator=(const sqlite3_reader &copy) {
 	this->close();
 
 	this->cmd=copy.cmd;
-	if(this->cmd) ++this->cmd->refs;
+	if(this->cmd) ++this->cmd->m_refs;
 
 	return *this;
 }
@@ -77,7 +77,7 @@ void sqlite3_reader::reset() {
 
 void sqlite3_reader::close() {
 	if(this->cmd) {
-		if(--this->cmd->refs==0) sqlite3_reset(this->cmd->stmt);
+		if(--this->cmd->m_refs==0) sqlite3_reset(this->cmd->stmt);
 		this->cmd=NULL;
 	}
 }
@@ -85,7 +85,7 @@ void sqlite3_reader::check_reader(int p_index)
 {
 	if(!cmd) 
 		 throw database_error("reader is closed");
-	if(p_index > cmd->argc-1) 
+	if(p_index > cmd->m_argc-1) 
 		 throw std::out_of_range("index out of range");
 }
 
@@ -117,13 +117,16 @@ std::string sqlite3_reader::getstring(int index) {
 bool sqlite3_reader::getblob(int index, void* p_result, int p_size)
 {
 	check_reader(index);
+  const int l_size = sqlite3_column_bytes(this->cmd->stmt, index);
+  if(l_size == p_size)
+  {
 	const void* l_blob = sqlite3_column_blob(this->cmd->stmt, index);
 	if(l_blob)
 	{
 		memcpy(p_result,l_blob,p_size);
 	    return true;
 	}
-	else
+  }
 		return false;
 }
 void sqlite3_reader::getblob(int index, std::vector<uint8_t>& p_result)

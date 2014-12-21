@@ -768,9 +768,9 @@ void NmdcHub::searchParse(const string& param, bool p_is_passive)
 			if (!isActive() && (!u->getUser()->isSet(User::NAT0) || !BOOLSETTING(ALLOW_NAT_TRAVERSAL)))
 			{
 #ifdef FLYLINKDC_BETA
-				LogManager::getInstance()->message("Error [part 7] $Search command = " + param + " Hub: " + getHubUrl() +
-				                                   "ignore if we or remote client don't support NAT traversal in passive mode although many NMDC hubs won't send us passive if we're in passive too, so just in case..."
-				                                  );
+				//LogManager::getInstance()->message("Error [part 7] $Search command = " + param + " Hub: " + getHubUrl() +
+				//                                   "ignore if we or remote client don't support NAT traversal in passive mode although many NMDC hubs won't send us passive if we're in passive too, so just in case..."
+				//                                  );
 #endif
 				return;
 			}

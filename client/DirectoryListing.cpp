@@ -256,17 +256,28 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 			// это тэг от грея. его тоже можно обработать и записать в TS. хотя там 64 битное время
 			const string& l_name = getAttrib(attribs, g_SName, 0);
 			if (l_name.empty())
+			{
+				dcassert(0);
 				return;
-				
+			}
+			
 			const string& l_s = getAttrib(attribs, g_SSize, 1);
 			if (l_s.empty())
+			{
+				dcassert(0);
 				return;
+			}
 			const auto l_size = Util::toInt64(l_s);
 			
 			const string& l_h = getAttrib(attribs, g_STTH, 2);
-			if (l_h.empty())
+			
+			if (l_h.empty() || (m_own_list == false && l_h.compare(0, 39, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", 39) == 0))
+			{
+				dcassert(0);
 				return;
+			}
 			const TTHValue l_tth(l_h); /// @todo verify validity?
+			dcassert(l_tth != TTHValue());
 			
 			if (m_is_updating)
 			{

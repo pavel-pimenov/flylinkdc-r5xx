@@ -168,11 +168,7 @@ class Transfer
 		const string m_path;
 #endif
 		/** TTH of the file being transferred */
-#ifdef IRAINMAN_USE_NG_TRANSFERS
-		const TTHValue& m_tth;
-#else
 		const TTHValue m_tth;
-#endif
 		/** Bytes transferred over socket */
 		int64_t m_actual;
 		/** Bytes transferred to/from file */

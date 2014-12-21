@@ -353,12 +353,16 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 							const string hubHint = cqi->getHubUrl(); // TODO - прокинуть туда хинт на хаб
 							cqi->setState(ConnectionQueueItem::CONNECTING);
 							
-#ifdef FLYLINKDC_USE_FORCE_PASSIVE
-							cqi->m_count_waiting++;
-							cqi->m_is_force_passive = cqi->m_is_active_client ? (cqi->m_count_waiting > 1) : false; // Делаем вторую попытку подключения в пассивке ?
-#else
-							cqi->m_is_force_passive = false;
-#endif
+							if (BOOLSETTING(AUTO_PASSIVE_INCOMING_CONNECTIONS))
+							{
+								cqi->m_count_waiting++;
+								cqi->m_is_force_passive = cqi->m_is_active_client ? (cqi->m_count_waiting > 1) : false; // Делаем вторую попытку подключения в пассивке ?
+							}
+							else
+							{
+								cqi->m_is_force_passive = false;
+							}
+							
 							
 							ClientManager::getInstance()->connect(HintedUser(cqi->getUser(), hubHint),
 							                                      cqi->getConnectionQueueToken(),

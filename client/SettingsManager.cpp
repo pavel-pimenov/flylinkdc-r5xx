@@ -158,7 +158,9 @@ const string SettingsManager::g_settingTags[] =
 	
 	// Ints //
 	
-	"IncomingConnections", "ForcePassiveIncomingConnections", "InPort", "Slots", "AutoFollow", "ClearSearch",
+	"IncomingConnections",
+	"AutoPassiveIncomingConnections",
+	"ForcePassiveIncomingConnections", "InPort", "Slots", "AutoFollow", "ClearSearch",
 	"BackgroundColor", "TextColor", "ShareHidden",
 	"ShareVirtual", "ShareSystem", //[+] IRainman
 	"FilterMessages", "MinimizeToTray",
@@ -237,7 +239,6 @@ const string SettingsManager::g_settingTags[] =
 	"ReservedSlotColor", "IgnoredColor", "FavoriteColor",
 	"NormalColour", "FireballColor", "ServerColor", "PasiveColor", "OpColor",
 	"FileListAndClientCheckedColour", "BadClientColour", "BadFilelistColour", "DontDLAlreadyShared",
-	"ConfirmOpenInetHubs", // [+] InfinitySky.
 	"ConfirmHubRemoval", "ConfirmHubgroupRemoval", "ConfirmUserRemoval", "SuppressMainChat", "ProgressBackColor", "ProgressCompressColor", "ProgressSegmentColor",
 	"OpenNewWindow", "FileSlots",  "UDPPort", "EnableMultiChunk",
 	"UserListDoubleClick", "TransferListDoubleClick", "ChatDoubleClick", "AdcDebug", "NmdcDebug",
@@ -634,7 +635,6 @@ void SettingsManager::setDefaults()
 	setDefault(MAGNET_ASK, TRUE);
 	setDefault(MAGNET_ACTION, MAGNET_AUTO_SEARCH);
 	//setDefault(DONT_DL_ALREADY_SHARED, false);
-	setDefault(CONFIRM_OPEN_INET_HUBS, TRUE); // [+] InfinitySky.
 	setDefault(CONFIRM_HUB_REMOVAL, TRUE);
 	setDefault(CONFIRM_HUBGROUP_REMOVAL, TRUE); // [+] NightOrion
 	setDefault(USE_CTRL_FOR_LINE_HISTORY, TRUE);

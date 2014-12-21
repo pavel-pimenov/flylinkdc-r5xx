@@ -89,7 +89,7 @@ HFONT Fonts::g_halfFont = nullptr;
 
 CMenu WinUtil::mainMenu;
 
-OMenu WinUtil::copyHubMenu; // [+] IRainman fix.
+OMenu WinUtil::g_copyHubMenu; // [+] IRainman fix.
 OMenu UserInfoGuiTraits::copyUserMenu; // [+] IRainman fix.
 OMenu UserInfoGuiTraits::grantMenu;
 OMenu UserInfoGuiTraits::speedMenu; // !SMT!-S
@@ -107,6 +107,7 @@ HIconWrapper WinUtil::g_hMedicalIcon(IDR_ICON_MEDICAL_BAG);
 HIconWrapper WinUtil::g_hThermometerIcon(IDR_ICON_THERMOMETR_BAG);
 //HIconWrapper WinUtil::g_hCrutchIcon(IDR_ICON_CRUTCH);
 HIconWrapper WinUtil::g_hFirewallIcon(IDR_ICON_FIREWALL);
+HIconWrapper WinUtil::g_hClockIcon(IDR_ICON_CLOCK);
 
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOnIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOffIcon;
@@ -423,7 +424,7 @@ void WinUtil::unlinkStaticMenus(CMenu &menu)
 	{
 		menu.GetMenuItemInfo(i - 1, true, &mif);
 		if (UserInfoGuiTraits::isUserInfoMenus(mif.hSubMenu) ||
-		        mif.hSubMenu == copyHubMenu.m_hMenu || // [+] IRainman fix.
+		        mif.hSubMenu == g_copyHubMenu.m_hMenu || // [+] IRainman fix.
 		        Preview::isPreviewMenu(mif.hSubMenu) // [+] IRainman fix.
 		   )
 		{
@@ -694,11 +695,9 @@ void WinUtil::init(HWND hWnd)
 	
 #ifdef _DEBUG
 	CMenuHandle l_menu_flylinkdc_location;
-	// IDC_FLYLINKDC_LOCATION l_menu_flylinkdc_location.se
 	l_menu_flylinkdc_location.CreatePopupMenu();
-	l_menu_flylinkdc_location.AppendMenu(MF_STRING, IDC_FLYLINKDC_LOCATION, CTSTRING(MENU_CHANGE_FLYLINK_LOCATION)); //  _T("Change FlylinkDC++ location!")
-	string l_text_flylinkdc_location = "|||||||||| Lipetsk-beeline ||||||||||";
-	//mainMenu.AppendMenu(MF_POPUP, l_menu_flylinkdc_location, Text::toT(l_text_flylinkdc_location).c_str());
+	l_menu_flylinkdc_location.AppendMenu(MF_STRING, IDC_FLYLINKDC_LOCATION, CTSTRING(MENU_CHANGE_FLYLINKDC_LOCATION)); //  _T("Change FlylinkDC++ location!")
+	const string l_text_flylinkdc_location = "|||||||||| Lipetsk-beeline ||||||||||";
 	mainMenu.AppendMenu(MF_STRING, l_menu_flylinkdc_location, Text::toT(l_text_flylinkdc_location).c_str());
 #endif
 	g_fileImage.init();
@@ -753,10 +752,10 @@ void WinUtil::init(HWND hWnd)
 	
 	g_hook = SetWindowsHookEx(WH_KEYBOARD, &KeyboardProc, NULL, GetCurrentThreadId());
 	
-	copyHubMenu.CreatePopupMenu();
-	copyHubMenu.AppendMenu(MF_STRING, IDC_COPY_HUBNAME, CTSTRING(HUB_NAME));
-	copyHubMenu.AppendMenu(MF_STRING, IDC_COPY_HUBADDRESS, CTSTRING(HUB_ADDRESS));
-	copyHubMenu.InsertSeparatorFirst(TSTRING(COPY));
+	g_copyHubMenu.CreatePopupMenu();
+	g_copyHubMenu.AppendMenu(MF_STRING, IDC_COPY_HUBNAME, CTSTRING(HUB_NAME));
+	g_copyHubMenu.AppendMenu(MF_STRING, IDC_COPY_HUBADDRESS, CTSTRING(HUB_ADDRESS));
+	g_copyHubMenu.InsertSeparatorFirst(TSTRING(COPY));
 	// [~] IRainman fix.
 	
 	// !SMT!-UI
@@ -989,7 +988,7 @@ void WinUtil::uninit()
 	Colors::uninit();
 	
 	mainMenu.DestroyMenu();
-	copyHubMenu.DestroyMenu();// [+] IRainman fix.
+	g_copyHubMenu.DestroyMenu();// [+] IRainman fix.
 	
 	// !SMT!-UI
 	UserInfoGuiTraits::uninit();

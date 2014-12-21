@@ -23,10 +23,12 @@
 
 #include "FinishedFrameBase.h"
 
-class FinishedFrame : public FinishedFrameBase<FinishedFrame, ResourceManager::FINISHED_DOWNLOADS, IDC_FINISHED, IDR_FINISHED_DL>
+
+class FinishedFrame :
+	public FinishedFrameBase<FinishedFrame, ResourceManager::FINISHED_DOWNLOADS, IDC_FINISHED, IDR_FINISHED_DL>
 {
 	public:
-		FinishedFrame()
+		FinishedFrame(): FinishedFrameBase(e_TransferDownload)
 		{
 			m_type = FinishedManager::e_Download;
 			boldFinished = SettingsManager::BOLD_FINISHED_DOWNLOADS;
@@ -39,12 +41,12 @@ class FinishedFrame : public FinishedFrameBase<FinishedFrame, ResourceManager::F
 		DECLARE_FRAME_WND_CLASS_EX(_T("FinishedFrame"), IDR_FINISHED_DL, 0, COLOR_3DFACE);
 		
 	private:
-		void on(AddedDl, const FinishedItem* p_entry) noexcept
+		void on(AddedDl, const FinishedItem* p_entry, bool p_is_sqlite) noexcept
 		{
 			PostMessage(WM_SPEAKER, SPEAK_ADD_LINE, (WPARAM)p_entry);
 		}
 		
-		void on(RemovedDl, const FinishedItem* p_entry) noexcept // [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
+		void on(RemovedDl, const FinishedItem* p_entry, bool p_is_sqlite) noexcept // [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
 		{
 			PostMessage(WM_SPEAKER, SPEAK_REMOVE_LINE, (WPARAM)p_entry);
 		}

@@ -991,7 +991,7 @@ void HubFrame::createFavHubMenu(const FavoriteHubEntry* p_fhe)
 		l_tabMenu->AppendMenu(MF_STRING, IDC_ADD_AS_FAVORITE, CTSTRING(ADD_TO_FAVORITES_HUBS));
 	}
 	l_tabMenu->AppendMenu(MF_STRING, ID_FILE_RECONNECT, CTSTRING(MENU_RECONNECT));
-	l_tabMenu->AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)WinUtil::copyHubMenu, CTSTRING(COPY));
+	l_tabMenu->AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)WinUtil::g_copyHubMenu, CTSTRING(COPY));
 	l_tabMenu->AppendMenu(MF_STRING, ID_DISCONNECT, CTSTRING(DISCONNECT));
 	l_tabMenu->AppendMenu(MF_SEPARATOR);
 	l_tabMenu->AppendMenu(MF_STRING, IDC_RECONNECT_DISCONNECTED, CTSTRING(MENU_RECONNECT_DISCONNECTED));

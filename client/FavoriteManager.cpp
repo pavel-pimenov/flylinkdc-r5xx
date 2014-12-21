@@ -948,8 +948,8 @@ void FavoriteManager::load()
 {
 
 	// Add NMDC standard op commands
-	static const char g_kickstr[] =
-	    "$To: %[userNI] From: %[myNI] $<%[myNI]> You are being kicked because: %[kickline:Reason]|<%[myNI]> is kicking %[userNI] because: %[kickline:Reason]|$Kick %[userNI]|";
+	static const char g_kickstr[] = "$Kick %[userNI]|";
+	// "$To: %[userNI] From: %[myNI] $<%[myNI]> You are being kicked because: %[kickline:Reason]|<%[myNI]> is kicking %[userNI] because: %[kickline:Reason]|$Kick %[userNI]|";
 	addUserCommand(UserCommand::TYPE_RAW_ONCE, UserCommand::CONTEXT_USER | UserCommand::CONTEXT_SEARCH, UserCommand::FLAG_NOSAVE,
 	               STRING(KICK_USER), g_kickstr, "", "op");
 	static const char g_kickfilestr[] =
@@ -961,6 +961,10 @@ void FavoriteManager::load()
 	addUserCommand(UserCommand::TYPE_RAW_ONCE, UserCommand::CONTEXT_USER | UserCommand::CONTEXT_SEARCH, UserCommand::FLAG_NOSAVE,
 	               STRING(REDIRECT_USER), g_redirstr, "", "op");
 	               
+	addUserCommand(UserCommand::TYPE_RAW_ONCE, UserCommand::CONTEXT_USER, UserCommand::FLAG_NOSAVE, STRING(MUTE_USER), "<%[myNI]> !gag %[userNI]|", "", "op");
+	// Reserved. Work only with Ptokax
+	//addUserCommand(UserCommand::TYPE_RAW_ONCE, UserCommand::CONTEXT_USER, UserCommand::FLAG_NOSAVE, "Drop and Ban User", "<%[myNI]> !drop %[userNI]|", "", "op");
+	
 	try
 	{
 		SimpleXML xml;

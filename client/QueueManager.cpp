@@ -173,7 +173,7 @@ QueueItemPtr QueueManager::FileQueue::add(const string& aTarget, int64_t aSize,
 void QueueManager::FileQueue::add(const QueueItemPtr& qi) // [!] IRainman fix.
 {
 	WLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
-	m_queue.insert(make_pair(const_cast<string*>(&qi->getTarget()), qi));
+	m_queue.insert(make_pair(qi->getTarget(), qi));
 	auto l_count_tth = m_queue_tth_map.insert(make_pair(qi->getTTH(), 1));
 	if (l_count_tth.second == false)
 	{
@@ -183,7 +183,7 @@ void QueueManager::FileQueue::add(const QueueItemPtr& qi) // [!] IRainman fix.
 void QueueManager::FileQueue::remove_internal(const QueueItemPtr& qi)
 {
 	WLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
-	m_queue.erase(const_cast<string*>(&qi->getTarget()));
+	m_queue.erase(qi->getTarget());
 	auto l_count_tth = m_queue_tth_map.find(qi->getTTH());
 	dcassert(l_count_tth != m_queue_tth_map.end());
 	if (l_count_tth != m_queue_tth_map.end())
@@ -395,7 +395,7 @@ void QueueManager::UserQueue::addL(const QueueItemPtr& qi, const UserPtr& aUser,
 bool QueueManager::FileQueue::getTTH(const string& p_name, TTHValue& p_tth) const
 {
 	RLock l_lock_fq(*g_csFQ);
-	auto i = m_queue.find(const_cast<string*>(&p_name));
+	auto i = m_queue.find(p_name);
 	if (i != m_queue.cend())
 	{
 		p_tth = i->second->getTTH();
@@ -406,7 +406,7 @@ bool QueueManager::FileQueue::getTTH(const string& p_name, TTHValue& p_tth) cons
 QueueItemPtr QueueManager::FileQueue::find(const string& p_target) const // [!] IRainman fix.
 {
 	RLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
-	auto i = m_queue.find(const_cast<string*>(&p_target)); // TODO - fix http://code.google.com/p/flylinkdc/issues/detail?id=1246
+	auto i = m_queue.find(p_target); // TODO - fix http://code.google.com/p/flylinkdc/issues/detail?id=1246
 	if (i != m_queue.cend())
 		return i->second;
 	return nullptr;
@@ -2594,7 +2594,7 @@ void QueueManager::saveQueue(bool force) noexcept
 				{
 #ifdef _DEBUG
 					const auto& l_first = i->first;
-					LogManager::getInstance()->message("merge_queue_itemL(qi) getFlyQueueID = " + Util::toString(qi->getFlyQueueID()) + " *l_first = " + *l_first);
+					LogManager::getInstance()->message("merge_queue_itemL(qi) getFlyQueueID = " + Util::toString(qi->getFlyQueueID()) + " *l_first = " + l_first);
 #endif
 					l_items.push_back(qi);
 				}

@@ -40,7 +40,7 @@ void BaseChatFrame::createStatusCtrl(HWND p_hWndStatusBar)
 	m_ctrlStatus = new CStatusBarCtrl;
 	m_ctrlStatus->Attach(p_hWndStatusBar);
 	m_ctrlLastLinesToolTip = new CFlyToolTipCtrl;
-	m_ctrlLastLinesToolTip->Create(m_ctrlStatus->m_hWnd, m_MessagePanelRECT , _T("Fly_BaseChatFrame_ToolTops"), WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP | TTS_BALLOON, WS_EX_TOPMOST);
+	m_ctrlLastLinesToolTip->Create(m_ctrlStatus->m_hWnd, m_MessagePanelRECT , _T("Fly_BaseChatFrame_ToolTips"), WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP | TTS_BALLOON, WS_EX_TOPMOST);
 	m_ctrlLastLinesToolTip->SetWindowPos(HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 	m_ctrlLastLinesToolTip->AddTool(m_ctrlStatus->m_hWnd);
 	m_ctrlLastLinesToolTip->SetDelayTime(TTDT_AUTOPOP, 15000);
@@ -780,7 +780,8 @@ void BaseChatFrame::appendNickToChat(const tstring& nick)
 		}
 		else
 		{
-			sUser += ' ';
+			sUser += _T(',');
+			sUser += _T(' ');
 			m_ctrlMessage->ReplaceSel(sUser);
 			m_ctrlMessage->SetFocus();
 		}
@@ -794,39 +795,24 @@ void BaseChatFrame::appendLogToChat(const string& path , const size_t linesCount
 	try
 	{
 		File f(path, File::READ, File::OPEN);
-		
 		const int64_t size = f.getSize();
-		
 		if (size > LOG_SIZE_TO_READ)
 		{
 			f.setPos(size - LOG_SIZE_TO_READ);
 		}
-		
 		buf = f.read(LOG_SIZE_TO_READ);
-		
-		f.close();
 	}
-	catch (const FileException&)
+	catch (const FileException& e)
 	{
-		//-V565
+		LogManager::getInstance()->message("BaseChatFrame::appendLogToChat, Error load = " + path + " Error = " + e.getError());
 	}
-	
-	StringList lines;
-	if (buf.compare(0, 3, "\xef\xbb\xbf", 3) == 0)
+	const bool l_is_utf = buf.compare(0, 3, "\xef\xbb\xbf", 3) == 0;
+	StringTokenizer<string> l_lines(l_is_utf ? buf.substr(3) : buf, "\r\n");
+	size_t i = l_lines.getTokens().size() > (linesCount + 1) ? l_lines.getTokens().size() - linesCount : 0;
+	ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, Util::emptyStringT, Util::emptyStringT, Colors::g_ChatTextLog, true, false);
+	for (; i < l_lines.getTokens().size(); ++i)
 	{
-		swap(lines, StringTokenizer<string>(buf.substr(3), "\r\n").getTokensForWrite());
-	}
-	else
-	{
-		swap(lines, StringTokenizer<string>(buf, "\r\n").getTokensForWrite());
-	}
-	
-	size_t i = lines.size() > (linesCount + 1) ? lines.size() - linesCount : 0;
-	
-	ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, Util::emptyStringT, Util::emptyStringT, Colors::g_ChatTextLog, true);
-	for (; i < lines.size(); ++i)
-	{
-		l_message.m_Msg = Text::toT(lines[i]);
+		l_message.m_Msg = Text::toT(l_lines.getTokens()[i] + '\n');
 		ctrlClient.AppendText(l_message);
 	}
 }
