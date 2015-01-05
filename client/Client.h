@@ -57,10 +57,6 @@ class ClientBase
 		P2PType m_type;
 		bool m_isActivMode;// [+] IRainman opt.
 	public:
-		bool isActiveConfig() const
-		{
-			return m_isActivMode;
-		}
 		bool isActive() const
 		{
 			return m_isActivMode

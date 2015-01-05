@@ -46,17 +46,30 @@ sqlite3_transaction::~sqlite3_transaction() {
 }
 
 void sqlite3_transaction::begin() {
+  if(con.sqlite3_get_autocommit())
+  {
 	con.executenonquery("begin;");
 	intrans=true;
 }
+  else
+  	intrans=false;
+
+  dcassert(con.sqlite3_get_autocommit() == 0)
+}
 
 void sqlite3_transaction::commit() {
+  if(intrans)
+  {
 	con.executenonquery("commit;");
+  }
 	intrans=false;
 }
 
 void sqlite3_transaction::rollback() {
+  if(intrans)
+  {
 	con.executenonquery("rollback;");
+  }
 	intrans=false;
 }
 

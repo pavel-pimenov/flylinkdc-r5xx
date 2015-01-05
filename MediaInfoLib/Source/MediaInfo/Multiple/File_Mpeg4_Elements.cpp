@@ -1315,7 +1315,8 @@ void File_Mpeg4::cdat()
 
     #if MEDIAINFO_DEMUX
         Demux(Buffer+Buffer_Offset, (size_t)Element_Size, ContentType_MainStream);
-        Streams[(int32u)Element_Code].Parsers[0]->FrameInfo=FrameInfo;
+        Streams[(int32u)Element_Code].Parsers[0]->FrameInfo.DTS=FrameInfo.DTS;
+        Streams[(int32u)Element_Code].Parsers[0]->FrameInfo.DUR=FrameInfo.DUR/(Element_Size/2);
     #endif //MEDIAINFO_DEMUX
     while (Element_Offset+2<=Element_Size)
     {
@@ -2521,7 +2522,7 @@ void File_Mpeg4::moov_meta_ilst_xxxx_data()
                             Open_Buffer_Finalize(&MI);
                             Merge(MI, Stream_General, 0, 0);
                         }
-                        else   
+                        else
                             Metadata_Get(Parameter, moov_meta_ilst_xxxx_name_Name);
                     }
                     else

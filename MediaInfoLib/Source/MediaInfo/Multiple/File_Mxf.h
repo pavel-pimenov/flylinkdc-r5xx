@@ -130,6 +130,9 @@ protected :
     void TerminatingFiller();
     void XmlDocumentText();
     void SubDescriptors();
+    void LensUnitMetadata();
+    void CameraUnitMetadata();
+    void UserDefinedAcquisitionMetadata();
     void Filler53();
     void Sequence();
     void SourceClip();
@@ -159,12 +162,15 @@ protected :
     void JPEG2000PictureSubDescriptor();
     void VbiPacketsDescriptor();
     void AncPacketsDescriptor();
+    void MpegAudioDescriptor();
     void PackageMarkerObject();
     void ApplicationPlugInObject();
     void ApplicationReferencedObject();
     void MCALabelSubDescriptor();
     void TimedTextDescriptor();
     void TimedTextResourceSubDescriptor();
+    void Unknown67SubDescriptor();
+    void Mpeg4VisualSubDescriptor();
     void AudioChannelLabelSubDescriptor();
     void SoundfieldGroupLabelSubDescriptor();
     void GroupOfSoundfieldGroupsLabelSubDescriptor();
@@ -321,6 +327,7 @@ protected :
     void JPEG2000PictureSubDescriptor_PictureComponentSizing(); //800B
     void JPEG2000PictureSubDescriptor_CodingStyleDefault();     //
     void JPEG2000PictureSubDescriptor_QuantizationDefault();    //
+    void MpegAudioDescriptor_BitRate();                         //
     void MultipleDescriptor_SubDescriptorUIDs();                //3F01
     void PrimaryExtendedSpokenLanguage();                       //
     void SecondaryExtendedSpokenLanguage();                     //
@@ -337,6 +344,16 @@ protected :
     void MPEG2VideoDescriptor_BPictureCount();                  //
     void MPEG2VideoDescriptor_ProfileAndLevel();                //
     void MPEG2VideoDescriptor_BitRate();                        //
+    void Mpeg4VisualDescriptor_SingleSequence() {MPEG2VideoDescriptor_SingleSequence();}
+    void Mpeg4VisualDescriptor_ConstantBFrames() {MPEG2VideoDescriptor_ConstantBFrames();}
+    void Mpeg4VisualDescriptor_CodedContentType() {MPEG2VideoDescriptor_CodedContentType();}
+    void Mpeg4VisualDescriptor_LowDelay() {MPEG2VideoDescriptor_LowDelay();}
+    void Mpeg4VisualDescriptor_ClosedGOP() {MPEG2VideoDescriptor_ClosedGOP();}
+    void Mpeg4VisualDescriptor_IdenticalGOP() {MPEG2VideoDescriptor_IdenticalGOP();}
+    void Mpeg4VisualDescriptor_MaxGOP() {MPEG2VideoDescriptor_MaxGOP();}
+    void Mpeg4VisualDescriptor_BPictureCount() {MPEG2VideoDescriptor_BPictureCount();}
+    void Mpeg4VisualDescriptor_ProfileAndLevel();               //
+    void Mpeg4VisualDescriptor_BitRate() {MPEG2VideoDescriptor_BitRate();}
     void NetworkLocator_URLString();                            //4001
     void Preface_LastModifiedDate();                            //3B02
     void Preface_ContentStorage();                              //3B03
@@ -391,6 +408,28 @@ protected :
     void WaveAudioDescriptor_PeakEnvelopeTimestamp();           //3D30
     void WaveAudioDescriptor_PeakEnvelopeData();                //3D31
     void WaveAudioDescriptor_ChannelAssignment();               //3D31
+    void CameraUnitMetadata_CaptureGammaEquation();             //3210
+    void CameraUnitMetadata_NeutralDensityFilterWheelSetting(); //8103
+    void CameraUnitMetadata_CaptureFrameRate();                 //8106
+    void CameraUnitMetadata_ImageSensorReadoutMode();           //8107
+    void CameraUnitMetadata_ShutterSpeed_Angle();               //8108
+    void CameraUnitMetadata_ISOSensitivity();                   //810B
+    void CameraUnitMetadata_WhiteBalance();                     //800E
+    void CameraUnitMetadata_CameraAttributes();                 //8114
+    void CameraUnitMetadata_ExposureIndexofPhotoMeter();        //8115
+    void CameraUnitMetadata_GammaforCDL();                      //8116
+    void CameraUnitMetadata_ASCCDLV1_2();                       //8117
+    void UserDefinedAcquisitionMetadata_UdamSetIdentifier();    //E000
+    void UserDefinedAcquisitionMetadata_Sony_8007();
+    void UserDefinedAcquisitionMetadata_Sony_E101();
+    void UserDefinedAcquisitionMetadata_Sony_E102();
+    void UserDefinedAcquisitionMetadata_Sony_E103();
+    void UserDefinedAcquisitionMetadata_Sony_E104();
+    void UserDefinedAcquisitionMetadata_Sony_E109();
+    void UserDefinedAcquisitionMetadata_Sony_E10B();
+    void UserDefinedAcquisitionMetadata_Sony_E201();
+    void UserDefinedAcquisitionMetadata_Sony_E202();
+    void UserDefinedAcquisitionMetadata_Sony_E203();
     void AS11_Core_SeriesTitle();
     void AS11_Core_ProgrammeTitle();
     void AS11_Core_EpisodeTitleNumber();
@@ -1008,8 +1047,13 @@ protected :
 
     //Helpers
     void Subsampling_Compute(descriptors::iterator Descriptor);
-    void Locators_CleanUp();
-    void Locators_Test();
+    #if MEDIAINFO_REFERENCES
+        void Locators_CleanUp();
+        void Locators_Test();
+    #else MEDIAINFO_REFERENCES
+        inline void Locators_CleanUp() {}
+        inline void Locators_Test() {}
+    #endif //MEDIAINFO_REFERENCES
     void TryToFinish();
 
     //Temp
@@ -1031,6 +1075,7 @@ protected :
     int64u SystemScheme1_FrameRateFromDescriptor;
     bool   Essences_FirstEssence_Parsed;
     bool   StereoscopicPictureSubDescriptor_IsPresent;
+    bool   UserDefinedAcquisitionMetadata_UdamSetIdentifier_IsSony;
     int32u Essences_UsedForFrameCount;
     int32u IndexTable_NSL;
     int32u IndexTable_NPE;

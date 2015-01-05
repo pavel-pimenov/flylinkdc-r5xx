@@ -19,6 +19,7 @@
 #include "stdinc.h"
 #include "Mapper_MiniUPnPc.h"
 #include "SettingsManager.h"
+#include "CompatibilityManager.h"
 #include "LogManager.h"
 
 extern "C" {
@@ -63,6 +64,11 @@ bool Mapper_MiniUPnPc::init()
 		m_service = data.first.servicetype;
 		m_device = data.CIF.friendlyName;
 		m_modelDescription = data.CIF.modelDescription;
+		CompatibilityManager::g_upnp_router_model = m_device;
+		if (m_device != m_modelDescription)
+		{
+			CompatibilityManager::g_upnp_router_model += " " + m_modelDescription;
+		}
 		l_log.step("urls.controlURL = " + m_url);
 		l_log.step("data.first.servicetype = " + m_service);
 		l_log.step("data.CIF.friendlyName = " + m_device);

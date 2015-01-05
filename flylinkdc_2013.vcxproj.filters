@@ -1069,12 +1069,27 @@
     <Image Include="res\f_question_16.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="res\wifi-router.ico" />
-    <Image Include="res\medical_bag.ico" />
-    <Image Include="res\thermometer2.ico" />
-    <Image Include="res\firewall.ico" />
-    <Image Include="res\StateUsers.png" />
-    <Image Include="res\ISPImages.png" />
+    <Image Include="res\clock.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\firewall.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\medical_bag.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\StateUsers.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\thermometer2.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\wifi-router.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\ISPImages.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Text Include="compiled\Settings\common\IPTrust.ini">

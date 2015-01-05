@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Включаемый файл, созданный в Microsoft Visual C++.
-// Используется E:\DropSvn\flylinkdc\FlylinkDC.rc
+// Microsoft Visual C++ generated include file.
+// Used by D:\vc10\r5xx\FlylinkDC.rc
 //
 #define IDD_ABOUTBOX                    100
 #define IDD_DCLS_PAGE                   101
@@ -218,6 +218,7 @@
 #define IDC_TRAY_LIMITER                1025
 #define IDC_DEFAULT_GATEWAY_IP          1025
 #define IDC_FILES                       1026
+#define IDC_UPNP_EXTERNAL_IP            1026
 #define IDC_SITES_FLYLINK_TRAC          1027
 #define IDC_RECONNECT_DISCONNECTED      1028
 #define IDC_WINAMP_BACK                 1029
@@ -1539,9 +1540,13 @@
 #define IDC_TRANSFER_TREE               2378
 #define IDC_DOWNLOAD_TARGET             2500
 #define IDC_FLYLINKDC_LOCATION          2501
-#define IDC_FLYLINKDC_FOUND_NEW_VERSION  2502
+#define IDC_FLYLINKDC_FOUND_NEW_VERSION 2502
 #define IDC_COPY_SPEED                  2503
 #define IDC_AUTO_PASSIVE_MODE           2505
+#define IDC_OPEN_LOGS                   2506
+#define IDC_OPEN_CONFIGS                2507
+#define IDC_USERS_LINK                  2508
+#define IDC_STATIC_USERLIST             2509
 #define IDC_DOWNLOAD_TARGET_DIR         3000
 #define IDC_SELECT_WINDOW               3500
 #define IDC_USER_COMMAND                4000
@@ -1607,7 +1612,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        301
 #define _APS_NEXT_COMMAND_VALUE         32789
-#define _APS_NEXT_CONTROL_VALUE         2378
+#define _APS_NEXT_CONTROL_VALUE         2510
 #define _APS_NEXT_SYMED_VALUE           2423
 #endif
 #endif

@@ -51,7 +51,7 @@ SYSTEM_INFO CompatibilityManager::g_sysInfo = {0};
 bool CompatibilityManager::g_supports[LAST_SUPPORTS];
 LONG CompatibilityManager::g_comCtlVersion = 0;
 DWORD CompatibilityManager::g_oldPriorityClass = 0;
-
+string CompatibilityManager::g_upnp_router_model;
 FINDEX_INFO_LEVELS CompatibilityManager::g_find_file_level = FindExInfoStandard;
 // http://msdn.microsoft.com/ru-ru/library/windows/desktop/aa364415%28v=vs.85%29.aspx
 // FindExInfoBasic
@@ -226,7 +226,6 @@ void CompatibilityManager::detectUncompatibleSoftware()
 			g_incopatibleSoftwareList += "\r\n";
 			const auto l_dll = Text::fromT(currentDllInfo->dllName);
 			g_incopatibleSoftwareList += l_dll;
-			CFlyServerAdapter::CFlyServerJSON::pushError(4, "CompatibilityManager::detectUncompatibleSoftware = " + l_dll);
 			if (currentDllInfo->info)
 			{
 				g_incopatibleSoftwareList += " - ";
@@ -528,7 +527,11 @@ void CompatibilityManager::generateSystemInfoForApp()
 	if (runningAnOldOS())
 		g_startupInfo += " - incompatible OS!";
 #endif
-		
+	g_startupInfo += CFlylinkDBManager::getDBSizeInfo();
+	if (!CompatibilityManager::g_upnp_router_model.empty())
+	{
+		g_startupInfo += "Router model: " + CompatibilityManager::g_upnp_router_model;
+	}
 	g_startupInfo += ").\r\n\r\n";
 	
 	g_startupInfo.shrink_to_fit();
@@ -625,7 +628,8 @@ string CompatibilityManager::generateFullSystemStatusMessage()
 	    getStartupInfo() +
 	    STRING(CURRENT_SYSTEM_STATE) + ":\r\n" + generateGlobalMemoryStatusMessage() +
 	    '\t' + STRING(CPU_SPEED) + ": " + Util::toString(ProcSpeedCalc()) + " MHz" +
-	    getIncompatibleSoftwareMessage();
+	    getIncompatibleSoftwareMessage() + "\r\n" +
+	    CFlylinkDBManager::getDBSizeInfo();
 }
 
 string CompatibilityManager::generateNetworkStats()
@@ -635,11 +639,13 @@ string CompatibilityManager::generateNetworkStats()
 	          "-=[ TCP: Downloaded: %s. Uploaded: %s ]=-\r\n"
 	          "-=[ UDP: Downloaded: %s. Uploaded: %s ]=-\r\n"
 	          "-=[ DHT: Downloaded: %s. Uploaded: %s ]=-\r\n"
-	          "-=[ SSL: Downloaded: %s. Uploaded: %s ]=-",
+	          "-=[ SSL: Downloaded: %s. Uploaded: %s ]=-\r\n"
+	          "-=[ Router: %s ]=-",
 	          Util::formatBytes(Socket::g_stats.m_tcp.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_tcp.totalUp).c_str(),
 	          Util::formatBytes(Socket::g_stats.m_udp.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_udp.totalUp).c_str(),
 	          Util::formatBytes(Socket::g_stats.m_dht.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_dht.totalUp).c_str(),
-	          Util::formatBytes(Socket::g_stats.m_ssl.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_ssl.totalUp).c_str()
+	          Util::formatBytes(Socket::g_stats.m_ssl.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_ssl.totalUp).c_str(),
+	          g_upnp_router_model.c_str()
 	         );
 	return l_buf.data();
 }

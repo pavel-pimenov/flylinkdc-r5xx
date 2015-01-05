@@ -438,6 +438,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		if (CFlylinkDBManager::getInstance()->get_registry_variable_string(e_IncopatibleSoftwareList) != CompatibilityManager::getIncompatibleSoftwareList())
 		{
 			CFlylinkDBManager::getInstance()->set_registry_variable_string(e_IncopatibleSoftwareList, CompatibilityManager::getIncompatibleSoftwareList());
+			CFlyServerAdapter::CFlyServerJSON::pushError(4, "CompatibilityManager::detectUncompatibleSoftware = " + CompatibilityManager::getIncompatibleSoftwareList());
 			if (MessageBox(Text::toT(CompatibilityManager::getIncompatibleSoftwareMessage()).c_str(), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON1 | MB_TOPMOST) == IDYES)
 			{
 				WinUtil::openLink(WinUtil::GetWikiLink() + _T("incompatiblesoftware"));

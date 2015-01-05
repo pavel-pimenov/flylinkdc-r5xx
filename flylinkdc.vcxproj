@@ -1096,6 +1096,7 @@
     <None Include="res\Bold.ico" />
     <None Include="res\bold.png" />
     <None Include="res\CDM.ico" />
+    <None Include="res\clock.ico" />
     <None Include="res\CloseIcon.png" />
     <None Include="res\color.ico" />
     <None Include="res\dclst.png" />

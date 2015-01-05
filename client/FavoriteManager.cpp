@@ -948,8 +948,8 @@ void FavoriteManager::load()
 {
 
 	// Add NMDC standard op commands
-	static const char g_kickstr[] = "$Kick %[userNI]|";
-	// "$To: %[userNI] From: %[myNI] $<%[myNI]> You are being kicked because: %[kickline:Reason]|<%[myNI]> is kicking %[userNI] because: %[kickline:Reason]|$Kick %[userNI]|";
+	static const char g_kickstr[] = /*"$Kick %[userNI]|";*/
+	    "$To: %[userNI] From: %[myNI] $<%[myNI]> You are being kicked because: %[kickline:Reason]|<%[myNI]> is kicking %[userNI] because: %[kickline:Reason]|$Kick %[userNI]|";
 	addUserCommand(UserCommand::TYPE_RAW_ONCE, UserCommand::CONTEXT_USER | UserCommand::CONTEXT_SEARCH, UserCommand::FLAG_NOSAVE,
 	               STRING(KICK_USER), g_kickstr, "", "op");
 	static const char g_kickfilestr[] =

@@ -1084,6 +1084,7 @@
     </None>
     <None Include="compiled\Settings\common\isp-hub-list.txt" />
     <None Include="res\wifi-router.ico" />
+    <None Include="res\clock.ico" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Русский (Россия) resources
+// Russian (Russia) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
 LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
@@ -411,15 +411,17 @@ EXSTYLE WS_EX_STATICEDGE
 CAPTION "Dialog"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    GROUPBOX        "User list",IDC_STATIC_ULC,4,2,316,185
+    GROUPBOX        "User list",IDC_STATIC_ULC,4,2,316,208
     LISTBOX         IDC_USERLIST_COLORS,9,13,150,103,LBS_NOINTEGRALHEIGHT | NOT WS_BORDER | WS_VSCROLL | WS_TABSTOP,WS_EX_STATICEDGE
-    CONTROL         "",IDC_PREVIEW,"RichEdit20W",WS_TABSTOP | 0x884,163,13,151,103,WS_EX_STATICEDGE
+    CONTROL         "",IDC_PREVIEW,"RichEdit20W",ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY | WS_TABSTOP,163,13,151,103,WS_EX_STATICEDGE
     PUSHBUTTON      "Change",IDC_CHANGE_COLOR,9,120,80,14
     RTEXT           "The location of the user list",IDC_HUB_POSITION_TEXT,9,143,220,8
     COMBOBOX        IDC_HUB_POSITION_COMBO,234,140,80,13,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Userlist Icons:",IDC_USERLIST,10,157,126,8
     EDITTEXT        IDC_USERLIST_IMAGE,9,168,283,14,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_IMAGEBROWSE,295,168,20,14
+    CONTROL         "",IDC_STATIC_USERLIST,"Static",SS_BITMAP,9,184,15,13,WS_EX_TRANSPARENT
+    CTEXT           "wikilink",IDC_USERS_LINK,10,197,303,8
 END
 
 IDD_HUB_LIST DIALOGEX 0, 0, 303, 185
@@ -490,12 +492,12 @@ BEGIN
     GROUPBOX        "Incoming Connection Settings (See help / FAQ if unsure)",IDC_SETTINGS_INCOMING,4,30,316,179,WS_GROUP
     CONTROL         "Enable automatic incoming connection type detection",IDC_CONNECTION_DETECTION,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,40,253,10
-    CONTROL         "Direct connection",IDC_DIRECT,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,8,54,146,9
+    CONTROL         "Direct connection",IDC_DIRECT,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,8,54,87,9
     CONTROL         "Firewall with manual port forwarding",IDC_FIREWALL_NAT,
                     "Button",BS_AUTORADIOBUTTON | WS_TABSTOP,8,76,149,8
-    CONTROL         "UPnP (for WiFi router)",IDC_FIREWALL_UPNP,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,163,54,98,9
+    CONTROL         "UPnP (for WiFi router)",IDC_FIREWALL_UPNP,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,100,54,88,9
     CONTROL         "Firewall (passive mode, worst case)",IDC_FIREWALL_PASSIVE,
-                    "Button",BS_AUTORADIOBUTTON | BS_MULTILINE | WS_TABSTOP,163,65,143,25
+                    "Button",BS_AUTORADIOBUTTON | BS_MULTILINE | WS_TABSTOP,164,65,143,26
     GROUPBOX        "External / WAN IP/ Default gateway",IDC_SETTINGS_IP,9,90,186,43,BS_CENTER
     EDITTEXT        IDC_EXTERNAL_IP,12,98,71,14,ES_AUTOHSCROLL
     PUSHBUTTON      "Test port and get IP address",IDC_GETIP,195,163,112,14
@@ -532,7 +534,8 @@ BEGIN
     PUSHBUTTON      "Windows Firewall: FlylinkDC++ exception",IDC_ADD_FLYLINKDC_WINFIREWALL,11,149,151,14
     EDITTEXT        IDC_DEFAULT_GATEWAY_IP,121,98,70,14,ES_AUTOHSCROLL | ES_READONLY | WS_DISABLED
     LTEXT           "Gateway:",IDC_STATIC_GATEWAY,87,100,30,11,WS_DISABLED
-    ICON            "",IDC_WIFI_ROUTER_ICO,282,35,20,20
+    ICON            "",IDC_WIFI_ROUTER_ICO,281,38,20,20
+    EDITTEXT        IDC_UPNP_EXTERNAL_IP,190,50,89,14,ES_AUTOHSCROLL | ES_READONLY | WS_DISABLED
 END
 
 IDD_CERTIFICATES_PAGE DIALOGEX 0, 0, 325, 300
@@ -1861,10 +1864,7 @@ BEGIN
     LTEXT           "Upload: xx.xx MB",IDC_TOTAL_UPLOAD,8,10,127,8,0,WS_EX_TRANSPARENT
     LTEXT           "Download: xx.xx MB",IDC_TOTAL_DOWNLOAD,152,10,127,8
     LTEXT           "Ratio (Up/Down): x.xx",IDC_RATIO,8,19,127,8
-    EDITTEXT        IDC_UDP_DHT_SSL_STAT,8,30,284,40,ES_MULTILINE | ES_READONLY | NOT WS_TABSTOP
-    LTEXT           "Total Uptime: Y, M, D, h, m, s",IDC_TOTAL_UPTIME,8,83,284,8,WS_DISABLED,WS_EX_TRANSPARENT
-    LTEXT           "System Uptime: Y, M, D, h, m, s",IDC_SYSUPTIME,8,73,284,8,WS_DISABLED,WS_EX_TRANSPARENT
-    LTEXT           "Total Messages: xx",IDC_TOTAL_MESSAGES,8,93,284,8,WS_DISABLED,WS_EX_TRANSPARENT
+    EDITTEXT        IDC_UDP_DHT_SSL_STAT,8,30,284,139,ES_MULTILINE | ES_READONLY | NOT WS_TABSTOP
 END
 
 
@@ -2989,12 +2989,12 @@ IDR_FLYLINK_PNG         PNG                     "res\\FlyLink.png"
 IDR_MAGNET_PNG          PNG                     "res\\Magnet.png"
 IDR_SPLASH_FOOLS_DAY    PNG                     "res\\Splash\\Splash_fools_day.png"
 IDR_ISP_HUBLIST         PNG                     "res\\ISPImages.png"
-#endif    // Русский (Россия) resources
+#endif    // Russian (Russia) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// Английский (США) resources
+// English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
@@ -3104,7 +3104,7 @@ BEGIN
     "H",            IDC_HELP_FAQ,           VIRTKEY, ALT, NOINVERT
 END
 
-#endif    // Английский (США) resources
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

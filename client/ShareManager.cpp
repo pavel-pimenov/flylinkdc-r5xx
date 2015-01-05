@@ -1056,16 +1056,8 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 	CFlyDirMap l_dir_map;
 	if (p_path_id)
 		CFlylinkDBManager::getInstance()->LoadDir(p_path_id, l_dir_map, p_is_no_mediainfo);
-#ifdef _WIN32
 	for (FileFindIter i(aName + '*'); !isShutdown() && i != FileFindIter::end; ++i)// [!]IRainman add m_close [10] https://www.box.net/shared/067924cecdb252c9d26c
 	{
-#else
-	//the fileiter just searches directorys for now, not sure if more
-	//will be needed later
-	//for(FileFindIter i(aName + '*'); i != end; ++i) {
-	for (FileFindIter i(aName); !isShutdown() && i != FileFindIter::end; ++i)// [!]IRainman add m_close
-	{
-#endif
 		if (i->isTemporary())// [+]IRainman
 			continue;
 		const string& l_file_name = i->getFileName();
@@ -1073,14 +1065,10 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 			continue;
 		if (i->isHidden() && !BOOLSETTING(SHARE_HIDDEN))
 			continue;
-		// [+]IRainman
 		if (i->isSystem() && !BOOLSETTING(SHARE_SYSTEM))
 			continue;
-			
 		if (i->isVirtual() && !BOOLSETTING(SHARE_VIRTUAL))
 			continue;
-		// [~]IRainman
-		// [+] Flylink
 		const string l_lower_name = Text::toLower(l_file_name);
 		if (!skipListEmpty())
 		{
@@ -1092,7 +1080,6 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 				continue;
 			}
 		}
-		// [~] Flylink
 		if (i->isDirectory())
 		{
 			const string newName = aName + l_file_name + PATH_SEPARATOR;
@@ -1131,8 +1118,8 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 			// Not a directory, assume it's a file...make sure we're not sharing the settings file...
 			if (!g_fly_server_config.isBlockShare(l_lower_name))
 			{
-				const string l_fileName = aName + l_file_name;
-				if (stricmp(l_fileName, SETTING(TLS_PRIVATE_KEY_FILE)) == 0)
+				const string l_PathAndFileName = aName + l_file_name;
+				if (stricmp(l_PathAndFileName, SETTING(TLS_PRIVATE_KEY_FILE)) == 0) // TODO - унести проверку в другое место.
 					continue;
 				const int64_t size = i->getSize();
 				const int64_t l_ts = i->getLastWriteTime();
@@ -1150,7 +1137,7 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 				{
 					if (l_is_new_file)
 					{
-						HashManager::getInstance()->hashFile(p_path_id, l_fileName, size);
+						HashManager::getInstance()->hashFile(p_path_id, l_PathAndFileName, size);
 					}
 					else
 					{
@@ -2563,7 +2550,8 @@ void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const T
 		webrtc::WriteLockScoped l(*g_csShare);
 		if (Directory::Ptr d = getDirectoryL(fname)) // TODO прокинуть p_path_id и искать по нему?
 		{
-			const auto i = d->findFileL(Util::getFileName(fname));
+			const string l_file_name = Util::getFileName(fname);
+			const auto i = d->findFileL(l_file_name);
 			if (i != d->m_files.end())
 			{
 				if (root != i->getTTH())
@@ -2576,9 +2564,8 @@ void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const T
 			}
 			else
 			{
-				const string name = Util::getFileName(fname);
 				const int64_t size = File::getSize(fname);
-				auto it = d->m_files.insert(Directory::ShareFile(name, size, d, root, 0, uint32_t(aTimeStamp), getFType(name)));
+				auto it = d->m_files.insert(Directory::ShareFile(l_file_name, size, d, root, 0, uint32_t(aTimeStamp), getFType(l_file_name)));
 				dcassert(it.second);
 				if (it.second)
 				{

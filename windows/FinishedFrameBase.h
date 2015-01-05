@@ -281,7 +281,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			for (auto i = m_transfer_histogram.cbegin(); i != m_transfer_histogram.cend(); ++i, ++l_index)
 			{
 				m_ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
-				                      Text::toT(i->m_date + " (" + Util::toString(i->m_count) + ")").c_str(),
+				                      Text::toT(i->m_date + " (" + Util::toString(i->m_count) + ") (" + Util::formatBytes(i->m_size) + ")").c_str(),
 				                      0, // g_ISPImage.m_flagImageCount + 14, // nImage
 				                      0, // g_ISPImage.m_flagImageCount + 14, // nSelectedImage
 				                      0, // nState

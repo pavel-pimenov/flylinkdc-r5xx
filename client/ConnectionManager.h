@@ -326,7 +326,10 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 				}
 		};
 		std::map<CFlyDDOSkey, CFlyDDoSTick> m_ddos_map;
-		
+		boost::unordered_set<string> m_ddos_ctm2hub; // $Error CTM2HUB
+	public:
+		void addCTM2HUB(const string& p_server_port);
+	private:
 		boost::unordered_map<string, CFlyTTHTick> m_tth_duplicate_search;
 		
 #define USING_IDLERS_IN_CONNECTION_MANAGER // [!] IRainman fix: don't disable this.

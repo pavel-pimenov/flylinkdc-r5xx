@@ -113,6 +113,7 @@
       <PreprocessorDefinitions>OS_WIN;LEVELDB_PLATFORM_WINDOWS;OPENSSL_SYSNAME_WIN32;HAVE_NATUPNP_H;_UNICODE;BOOST_ALL_NO_LIB;UNICODE;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <OptimizeForWindowsApplication>false</OptimizeForWindowsApplication>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <ResourceCompile>
       <Culture>0x041d</Culture>

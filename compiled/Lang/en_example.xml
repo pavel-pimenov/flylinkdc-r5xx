@@ -820,6 +820,8 @@
 	<string name="MenuNetworkStatistics">Network statistics</string>
 	<string name="MenuNotepad">&amp;Notepad\tCtrl+N</string>
 	<string name="MenuOpenDownloadsDir">Open downloads directory</string>
+	<string name="MenuOpenLogsDir">Open logs directory</string>
+	<string name="MenuOpenConfigDir">Open config directory (!)</string>
 	<string name="MenuOpenFileList">Open file list…\tCtrl+L</string>
 	<string name="MenuOpenMatchAll">Match downloaded lists</string>
 	<string name="MenuOpenOwnList">Open own file list\tF8</string>
@@ -1711,6 +1713,7 @@
 	<string name="Userinfo">Info User</string>
 	<string name="Userlistdblclickaction">on user list</string>
 	<string name="UserlistIcons">User list icons</string>
+	<string name="UserlistIconsLink">See the description of Userlist Icons</string>
 	<string name="Users">Users</string>
 	<string name="UsersOnline">Running… (%d of %d users online)</string>
 	<string name="UserCmdChat">Chat</string>

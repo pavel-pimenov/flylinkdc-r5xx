@@ -262,8 +262,6 @@ void File__Analyze::Open_Buffer_Init (int64u File_Size_)
 {
     //Preparing
     File_Size=File_Size_;
-	if(Element.empty())  // [+]FlylinkDC++ temp fix https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=31977
-		return; 
     Element[0].Next=File_Size;
 
     //Buffer - Global
@@ -286,9 +284,8 @@ void File__Analyze::Open_Buffer_Init (int64u File_Size_)
     //Configuring
     if (MediaInfoLib::Config.FormatDetection_MaximumOffset_Get())
         Buffer_TotalBytes_FirstSynched_Max=MediaInfoLib::Config.FormatDetection_MaximumOffset_Get();
-    if (Config) // [+] FlylinkDC
-        Config->ParseSpeed=MediaInfoLib::Config.ParseSpeed_Get();
-    if (Config && Config->File_IsSub_Get()) // [1] https://www.box.net/shared/3c9b47467af02d55f083
+    Config->ParseSpeed=MediaInfoLib::Config.ParseSpeed_Get();
+    if (Config->File_IsSub_Get())
         IsSub=true;
     #if MEDIAINFO_DEMUX
         if (Demux_Level==1 && !IsSub && Config->Demux_Unpacketize_Get()) //If Demux_Level is Frame
@@ -336,7 +333,11 @@ void File__Analyze::Open_Buffer_Init (File__Analyze* Sub)
 void File__Analyze::Open_Buffer_Init (File__Analyze* Sub, int64u File_Size_)
 {
     //Integrity
-    if (Sub==NULL)
+    if (Sub==NULL
+ 	    #if MEDIAINFO_EVENTS
+ 	            || StreamIDs_Size==0
+ 	    #endif
+                )
         return;
 
     //Parsing
@@ -1510,7 +1511,7 @@ bool File__Analyze::FileHeader_Begin_0x000001()
 }
 
 //---------------------------------------------------------------------------
-bool File__Analyze::FileHeader_Begin_XML(tinyxml2::XMLDocument &Document)
+bool File__Analyze::FileHeader_Begin_XML(XMLDocument &Document)
 {
     //Element_Size
     if (!IsSub && (File_Size<32 || File_Size>16*1024*1024))
@@ -1986,7 +1987,7 @@ bool File__Analyze::Data_Manage()
     {
         Element_Code=Element[Element_Level].Code;
         //size_t Element_Level_Save=Element_Level;
-        Data_Parse(); // https://www.box.net/shared/39080d69c84064038752
+        Data_Parse();
         BS->Attach(NULL, 0); //Clear it
         //Element_Level=Element_Level_Save;
 
@@ -2242,8 +2243,6 @@ Ztring Log_Offset (int64u OffsetToShow, MediaInfo_Config::trace_Format Config_Tr
 //---------------------------------------------------------------------------
 void File__Analyze::Element_Begin()
 {
-    if ( Element_Level+1 >= Element.size() ) // FlylinkDC++ Team bug fix
-	return;
     //Level
     Element_Level++;
 
@@ -2273,8 +2272,6 @@ void File__Analyze::Element_Begin()
 #if MEDIAINFO_TRACE
 void File__Analyze::Element_Begin(const Ztring &Name)
 {
-    if ( Element_Level+1 >= Element.size() ) // FlylinkDC++ Team bug fix
-	return;
     //Level
     Element_Level++;
 
@@ -3148,9 +3145,7 @@ void File__Analyze::GoToFromEnd (int64u GoToFromEnd)
                 File_GoTo=Config->File_Names.size()-1;
                 File_Offset=(int64u)-1;
                 Config->File_Current_Offset=(int64u)-1;
-#if MEDIAINFO_SEEK
                 Config->File_GoTo_IsFrameOffset=true;
-#endif // MEDIAINFO_SEEK
             }
             else
         #endif //MEDIAINFO_SEEK

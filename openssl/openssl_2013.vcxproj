@@ -93,6 +93,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)openssl;$(SolutionDir)openssl\include</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

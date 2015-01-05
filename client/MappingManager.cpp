@@ -32,6 +32,8 @@
 #include "../dht/dht.h"
 #endif
 
+string MappingManager::g_externalIP;
+
 MappingManager::MappingManager() : renewal(0), m_listeners_count(0)
 {
 	addMapper<Mapper_NATPMP>();
@@ -227,12 +229,12 @@ int MappingManager::run()
 		
 		working = move(pMapper); // [IntelC++ 2012 beta2] warning #734: "std::unique_ptr<_Ty, _Dx>::unique_ptr(const std::unique_ptr<_Ty, _Dx>::_Myt &) [with _Ty=Mapper, _Dx=std::default_delete<Mapper>]" (declared at line 2347 of "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\memory"), required for copy that was eliminated, is inaccessible
 		
+		g_externalIP = mapper.getExternalIP();
 		if (!BOOLSETTING(NO_IP_OVERRIDE))
 		{
-			const string externalIP = mapper.getExternalIP();
-			if (!externalIP.empty())
+			if (!g_externalIP.empty())
 			{
-				SET_SETTING(EXTERNAL_IP, externalIP);
+				SET_SETTING(EXTERNAL_IP, g_externalIP);
 			}
 			else
 			{

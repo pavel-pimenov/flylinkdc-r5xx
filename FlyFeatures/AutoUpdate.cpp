@@ -23,6 +23,7 @@
 #include "../client/ResourceManager.h"
 #include "../client/LogManager.h"
 #include "../client/CompatibilityManager.h"
+#include "../client/ClientManager.h"
 #include "../client/file.h"
 #include "fuSearch.h"
 #include "ZUtils.h"
@@ -64,9 +65,10 @@ void AutoUpdate::initialize(HWND p_mainFrameHWND, AutoUpdateGUIMethod* p_guiDele
 }
 void AutoUpdate::shutdownAndUpdate()
 {
+	        m_guiDelegate = nullptr; // https://drdump.com/Problem.aspx?ProblemID=106436
 			forceStop();
 			TimerManager::getInstance()->removeListener(this);
-			runFlyUpdate(); // TODO странно. почему тут run когда мы в методе shutdown
+			runFlyUpdate(); 
 }
 
 void AutoUpdate::on(TimerManagerListener::Hour, uint64_t tick) noexcept
@@ -111,6 +113,9 @@ void AutoUpdate::startUpdateManually()
 
 void AutoUpdate::execute(const AutoUpdateTasks& p_task)
 {
+#ifdef _DEBUG
+//	return; 
+#endif
 	dcassert (p_task == START_UPDATE);
 	startUpdateThisThread();
 }
@@ -352,7 +357,7 @@ void AutoUpdate::startUpdateThisThread()
 				message(l_message);
 
 				const bool l_userAsk = BOOLSETTING(AUTOUPDATE_SHOWUPDATEREADY) || m_manualUpdate;
-        if (m_guiDelegate)
+	    if (m_guiDelegate && !ClientManager::isShutdown())
         {
 			m_guiDelegate->NewVerisonEvent(Text::fromT(TSTRING(MENU_FLYLINK_NEW_VERSION)) + autoUpdateObject->m_sVersion);
         }
@@ -362,8 +367,8 @@ void AutoUpdate::startUpdateThisThread()
 					// "FlylinkDC++ found new update %s ( %s ) and ready to download - %s. Continue this update?"
 					l_message += STRING(AUTOUPDATE_DOWNLOAD_START3);
 					//
-					UpdateResult idResult;
-					if (m_guiDelegate)
+					UpdateResult idResult = UPDATE_CANCEL;
+					if (m_guiDelegate && !ClientManager::isShutdown())
 					{
 						// Download RTF file from Server
 						string programRtfData;
@@ -376,11 +381,14 @@ void AutoUpdate::startUpdateThisThread()
 						//dataRTFSize = Util::getDataFromInet(basesUpdateDescription, basesRtfData);
 						//basesRtfData.resize(dataRTFSize);
 #endif
-						idResult = (UpdateResult)m_guiDelegate->ShowDialogUpdate(l_message, programRtfData, l_files4Description
+						if (!ClientManager::isShutdown())
+						{
+							idResult = (UpdateResult)m_guiDelegate->ShowDialogUpdate(l_message, programRtfData, l_files4Description
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
-							//+ basesRtfData
+								//+ basesRtfData
 #endif
-							); // TODO Crash beta14
+								); // TODO Crash beta14
+						}
 					}
 					else
 					{

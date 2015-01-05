@@ -330,7 +330,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		
 		int64_t getChunkSize() const
 		{
-			return chunkSize;
+			return m_chunkSize;
 		}
 		void updateChunkSize(int64_t leafSize, int64_t lastChunk, uint64_t ticks);
 		
@@ -356,26 +356,17 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		{
 			setLastActivity(GET_TICK());
 		}
-	private:
-		string m_last_encoding;
 	public:
-		const string& getEncoding() const
-		{
-			return m_last_encoding;
-		}
-		void setEncoding(const string& p_encoding)
-		{
-			m_last_encoding = p_encoding;
-		}
+		GETSET(string, m_last_encoding, Encoding);
 		GETSET(States, state, State);
 		GETSET(SlotTypes, slotType, SlotType);
-		
+		GETSET(string, m_server_port, ServerPort);
 		BufferedSocket const* getSocket() const
 		{
 			return socket;
 		}
 	private:
-		int64_t chunkSize;
+		int64_t m_chunkSize;
 		BufferedSocket* socket;
 		HintedUser m_hintedUser; //UserPtr user; [!] IRainman add HintedUser
 		
@@ -389,7 +380,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 	UserConnection(bool secure_) noexcept :
 		m_last_encoding(Text::systemCharset),
 		                state(STATE_UNCONNECTED),
-		                lastActivity(0), speed(0), chunkSize(0), socket(nullptr), m_download(nullptr),
+		                lastActivity(0), speed(0), m_chunkSize(0), socket(nullptr), m_download(nullptr),
 		                slotType(NOSLOT),
 		                m_hintedUser(UserPtr(), Util::emptyString) // [+] IRainman add HintedUser
 		{

@@ -161,11 +161,13 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 		}
 		void restore_chat_cache();
 		
-		void GoToEnd();
+		void GoToEnd(bool p_force);
+		void GoToEnd(POINT& p_scroll_pos, bool p_force);
 		bool GetAutoScroll() const
 		{
 			return m_boAutoScroll;
 		}
+		void invertAutoScroll();
 		void SetAutoScroll(bool boAutoScroll);
 		//void SetUsers(TypedListViewCtrl<UserInfo, IDC_USERS> *pUsers); // [!] IRainman fix: NO! :)
 		

@@ -25,6 +25,8 @@
 #include "WinUtil.h"
 #include "../FlyFeatures/flyServer.h"
 #include "../client/CryptoManager.h"
+#include "../client/MappingManager.h"
+
 
 //#define FLYLINKDC_USE_SSA_WINFIREWALL
 
@@ -226,6 +228,8 @@ LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	bool l_is_wifi_router;
 	const auto l_ip_gateway = Text::toT(Socket::getDefaultGateWay(l_is_wifi_router));
 	::SetWindowText(GetDlgItem(IDC_DEFAULT_GATEWAY_IP), l_ip_gateway.c_str());
+	const auto l_ip_upnp = Text::toT(MappingManager::getExternaIP());
+	::SetWindowText(GetDlgItem(IDC_UPNP_EXTERNAL_IP), l_ip_upnp.c_str());
 	{
 		if (l_is_wifi_router)
 		{

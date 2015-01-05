@@ -439,6 +439,7 @@ typedef unsigned __int64 uint64_t;
 
 #define FLYLINKDC_USE_ANTIVIRUS_DB
 #define FLYLINKDC_USE_GEO_IP
+#define FLYLINKDC_USE_DDOS_DETECT
 
 
 // Make sure we're using the templates from algorithm...

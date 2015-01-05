@@ -140,7 +140,7 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 			if (m_ctrlMessage)
 				m_ctrlMessage->SetFocus();
 			if (ctrlClient.IsWindow())
-				ctrlClient.GoToEnd();
+				ctrlClient.GoToEnd(false);
 			return 0;
 		}
 		

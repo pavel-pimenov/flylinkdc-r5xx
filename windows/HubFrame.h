@@ -297,6 +297,7 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		tstring m_shortHubName;
 		uint8_t m_hub_name_update_count;
 		bool m_is_hub_name_updated;
+		bool m_is_first_goto_end;
 		void onTimerHubUpdated();
 		uint8_t m_second_count;
 		void setShortHubName(const tstring& p_name);

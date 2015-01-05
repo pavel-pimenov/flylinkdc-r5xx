@@ -57,7 +57,10 @@ class MappingManager :
 			else
 				return Util::emptyString;
 		}
-		
+		static string getExternaIP()
+		{
+			return g_externalIP;
+		}
 	private:
 		friend class Singleton<MappingManager>;
 		
@@ -67,6 +70,7 @@ class MappingManager :
 		unique_ptr<Mapper> working; /// currently working implementation.
 		uint64_t renewal; /// when the next renewal should happen, if requested by the mapper.
 		int m_listeners_count;
+		static string g_externalIP;
 		
 		MappingManager();
 		/*virtual*/

@@ -1901,9 +1901,20 @@ void NmdcHub::search(Search::SizeModes aSizeType, int64_t aSize, Search::TypeMod
 	const string l_debug_string =  "[Search:" + l_search_command + "][" + (isActive() ? string("Active") : string("Passive")) + " search][Client:" + getHubUrl() + "]";
 	dcdebug("[NmdcHub::search] %s \r\n", l_debug_string.c_str());
 #endif
+	g_last_search_string.clear();
 	if (isActive())
 	{
 		g_last_search_string = "UDP port: " + tmp2;
+	}
+	{
+		if (p_is_force_passive)
+			g_last_search_string += " [AutoPasive]";
+		if (BOOLSETTING(SEARCH_PASSIVE))
+			g_last_search_string += " [GlobalPassive]";
+		if (SETTING(FORCE_PASSIVE_INCOMING_CONNECTIONS))
+			g_last_search_string += " [ForcePassive]";
+		if (m_isActivMode)
+			g_last_search_string += " [Client:Active]";
 	}
 	//LogManager::getInstance()->message(l_debug_string);
 	send(l_search_command);

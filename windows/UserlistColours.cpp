@@ -71,7 +71,18 @@ LRESULT UserListColours::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 	HubPosition.SetCurSel(SETTING(HUB_POSITION));
 	HubPosition.Detach();
 	
+	// for Custom Themes
+	m_png_users.LoadFromResource(IDR_USERS, _T("PNG"));
+	GetDlgItem(IDC_STATIC_USERLIST).SendMessage(STM_SETIMAGE, IMAGE_BITMAP, LPARAM((HBITMAP)m_png_users));
+	SetDlgItemText(IDC_USERS_LINK, CTSTRING(USERLIST_ICONS_LINK));
+	m_hlink_users.init(GetDlgItem(IDC_USERS_LINK), CTSTRING(USERLIST_ICONS_LINK));
+	
 	return TRUE;
+}
+LRESULT UserListColours::onLinkClick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	WinUtil::openLink(WinUtil::GetWikiLink() + _T("usersbar"));
+	return 0;
 }
 LRESULT UserListColours::onChangeColour(WORD /*wNotifyCode*/, WORD /*wID*/, HWND hWndCtl, BOOL& /*bHandled*/)
 {

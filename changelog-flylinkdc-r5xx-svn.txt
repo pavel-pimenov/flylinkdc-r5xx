@@ -1,4 +1,146 @@
 ------------------------------------------------------------------------
+r18101 | pavel.pimenov@gmail.com | 2015-01-05 17:12:26 +0300 (Пн, 05 янв 2015) | 49 lines
+
+Merged revision(s) 18078-18100 from trunk:
+# [lang] an auto commit from localization system...
+........
+# [lang] an auto commit from localization system...
+........
+# Log + странное падение https://drdump.com/DumpGroup.aspx?DumpGroupID=253390&Login=guest
+........
+# sse
+........
+# Fix build UpdateMaker
+........
+* [GUI, Настройка] Отображаем текущий набор иконок юзерлиста + ссылку на описание иконок
+........
+# [mediainfo][merge]
++ EBUCore: EBUCore 1.6 draft output, sponsored by EBU
++ EBUCore: AS-11 to EBUCore mapping, sponsored by EBU
++ EBUCore: more technicalAttributes, sponsored by EBU
+x EBUCore: time code tracks moved to their own "format" block
+x EBUCore: audioTrackConfiguration removed (not the expected behavior)
+x EBUCore: OverallBitRate information changed from technicalAttributeString to technicalAttributeInteger
+
+........
+# Log
+........
+# Fix build MEDIAINFO_EVENTS
+........
++ MEDIAINFO_TEXT_YES
+........
++ MEDIAINFO_TEXT_YES
+........
+# частично откатил r18004:
+(
+  # Для профилей 'op':
+  - убираем лишние занудства в команде !kick
+)
+........
+# [medianfo][merge]
+ + MXF Acquisition Metadata (RDD-18, EBU Tech 3349) basic support
+ x CEA-608 in MPEG-4: demux PTS was wrong in case of multiple blocks in one frame
+........
+# Log [public-build]
+........
+* Исправлено падение при обновлениях 
+  https://drdump.com/Problem.aspx?ProblemID=106436
+# Пытался починил пропадание скроллера при первом старте чата - не получилось пока.
+........
+# Log [public-build]
+........
+
+------------------------------------------------------------------------
+r18077 | pavel.pimenov@gmail.com | 2014-12-27 10:53:44 +0300 (Сб, 27 дек 2014) | 8 lines
+
+Merged revision(s) 18071-18073 from trunk:
+# Убрал IRAINMAN_SAVE_BAD_SOURCE
+........
+# Поправил фильтр VS2013
+........
+# r4xx merge
+........
+
+------------------------------------------------------------------------
+r18075 | pavel.pimenov@gmail.com | 2014-12-27 10:49:06 +0300 (Сб, 27 дек 2014) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r18071 | pavel.pimenov@gmail.com | 2014-12-25 20:31:53 +0300 (Чт, 25 дек 2014) | 1 line
+
+# Убрал IRAINMAN_SAVE_BAD_SOURCE
+------------------------------------------------------------------------
+r18070 | pavel.pimenov@gmail.com | 2014-12-25 19:29:12 +0300 (Чт, 25 дек 2014) | 42 lines
+
+Merged revision(s) 18063-18069 from trunk:
+# Добавлена поддержка команды CTM2HUB (RoLex) (Часть 1)
+
+HUB1		= атакующий хаб который не проверяет запрос CTM
+HUB2		= атакуемый хаб
+HUB2.ADDR	= адрес атакуемого хаба
+
+DC1		= атакующий бот который отсылает левые CTM на HUB1
+DC2		= обычный юзер на HUB1
+
+DC1	->	HUB1	$ConnectToMe DC2 HUB2.ADDR|
+HUB1	->	DC2	$ConnectToMe DC2 HUB2.ADDR|
+
+DC2 не находит HUB2.ADDR в черном списке и продолжает работу с запросом CTM
+
+DC2	->	HUB2	socket_connect(HUB2.ADDR) + $MyNick DC2|$Lock ABC|
+HUB2	->	DC2	$Error CTM2HU 
+
+DC2 добавляет HUB2.ADDR в черный список и закрывает соединение
+
+DC1	->	HUB1	$ConnectToMe DC2 HUB2.ADDR|
+HUB1	->	DC2	$ConnectToMe DC2 HUB2.ADDR|
+
+DC2 находит HUB2.ADDR в черном списке и игнорит запрос CTM
+
+........
+# r503-beta142
+........
+# Добавлена поддержка команды CTM2HUB (RoLex) (Часть 2)
+  Поддерживаем не только IP но и dns имена
+........
+# Lang
+........
+* Доработка команды CTM2HUB и ddos детектора (RoLex) (Часть 3)
+* В окно настроек соединения добавил визуализацию IP адреса полученного через upnp (IP внутри локальной сети)
+* В меню "Файл" добавлены два пункта - открыть каталог с логами и открыть каталог с настройками.
+  (их часто пользователи не могут найти в профиле)
+
+........
+# Забыл IP от роутера записать в окошко :)
+........
+
+------------------------------------------------------------------------
+r18060 | pavel.pimenov@gmail.com | 2014-12-23 21:47:40 +0300 (Вт, 23 дек 2014) | 17 lines
+
+Merged revision(s) 18053-18059 from trunk:
+........
+* В системном логе и по команде /sysinfo выводим размеры файлов базы данных.
+* В окнах отдачи-закачек показываем суммарный объем за сутки
+........
+# К статистике добавил вывод модели роутера
+........
+#  CompatibilityManager::detectUncompatibleSoftware шлем только один раз
+*  Исправлена ошибка во вложенных транзакциях 
+  * SQLite - merge_queue_all_items: cannot commit - no transaction is active
+  * SQLite - flush_hash: cannot commit - no transaction is active
+........
+* Исправлены ошибки вида
+   SQLite - add_treeL: table fly_hash_block has no column named block_size
+   SQLite - getTree: no such column: block_size
+........
+
+------------------------------------------------------------------------
+r18053 | pavel.pimenov@gmail.com | 2014-12-21 16:12:20 +0300 (Вс, 21 дек 2014) | 3 lines
+
+# Log
+# TTKPulse - поддержка мс-фаервола при инсталляции
+
+------------------------------------------------------------------------
 r18039 | pavel.pimenov@gmail.com | 2014-12-21 07:11:09 +0300 (Вс, 21 дек 2014) | 58 lines
 
 Merged revision(s) 18021-18038 from trunk:

@@ -62,6 +62,10 @@ namespace sqlite3x {
 		{
 			return ::sqlite3_changes(db);
 		}
+    int sqlite3_get_autocommit()
+    {
+        return ::sqlite3_get_autocommit(db);
+    }
 		long long insertid();
 		void setbusytimeout(int ms);
 

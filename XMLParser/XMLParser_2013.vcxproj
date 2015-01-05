@@ -102,6 +102,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OptimizeForWindowsApplication>false</OptimizeForWindowsApplication>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Lib>
       <TargetMachine>MachineX86</TargetMachine>

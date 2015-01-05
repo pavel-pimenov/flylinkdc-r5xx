@@ -188,6 +188,7 @@ HubFrame::HubFrame(const string& aServer,
 	, m_second_count(60)
 	, m_hub_name_update_count(0)
 	, m_is_hub_name_updated(false)
+	, m_is_first_goto_end(false)
 	, m_server(aServer)
 	, m_waitingForPW(false)
 	, m_password_do_modal(0)
@@ -700,6 +701,7 @@ void HubFrame::readFrameLog()
 		appendLogToChat(path, linesCount);
 	}
 #endif
+	ctrlClient.GoToEnd(true);
 }
 
 void HubFrame::processFrameCommand(const tstring& fullMessageText, const tstring& cmd, tstring& param, bool& resetInputMessageText)
@@ -2985,6 +2987,13 @@ LRESULT HubFrame::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*b
 				dcassert(!ClientManager::isShutdown());
 				speak(STATS);
 				m_needsUpdateStats = false;
+#if 0
+				if (!m_is_first_goto_end)
+				{
+					m_is_first_goto_end = true;
+					ctrlClient.GoToEnd(true); // Пока не пашет и не появляется скроллер
+				}
+#endif
 			}
 		}
 		if (!m_tasks.empty())
@@ -3701,7 +3710,7 @@ LRESULT HubFrame::onAddNickToChat(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 
 LRESULT HubFrame::onAutoScrollChat(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	ctrlClient.SetAutoScroll(!ctrlClient.GetAutoScroll());
+	ctrlClient.invertAutoScroll();
 	return 0;
 }
 
@@ -3800,7 +3809,11 @@ LRESULT HubFrame::onSizeMove(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	bHandled = FALSE;
 	if (ctrlClient.IsWindow())
 	{
-		ctrlClient.GoToEnd();
+		ctrlClient.GoToEnd(false);
+	}
+	else
+	{
+		//  dcassert(0);
 	}
 	return 0;
 }

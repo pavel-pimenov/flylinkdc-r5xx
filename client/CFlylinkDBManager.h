@@ -107,6 +107,7 @@ struct CFlyTransferHistogram
 	std::string m_date;
 	unsigned m_count;
 	unsigned m_date_as_int;
+	uint64_t m_size;
 };
 typedef std::vector<CFlyTransferHistogram> CFlyTransferHistogramArray;
 
@@ -228,6 +229,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void shutdown();
 		void push_download_tth(const TTHValue& p_tth);
 		void push_add_share_tth(const TTHValue& p_tth);
+		static string getDBSizeInfo();
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		void store_all_ratio_and_last_ip(uint32_t p_hub_id,
 		                                 const string& p_nick,

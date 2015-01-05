@@ -696,16 +696,42 @@ bool ConnectionManager::checkTTHDuplicateSearch(const string& p_search_command, 
 	}
 	return false;
 }
+void ConnectionManager::addCTM2HUB(const string& p_server_port)
+{
+	webrtc::WriteLockScoped l_ddos(*g_csDdosCheck);
+	const string l_cmt2hub = "CTM2HUB = " + p_server_port;
+	const auto l_res = m_ddos_ctm2hub.insert(Text::toLower(p_server_port));
+	CFlyServerAdapter::CFlyServerJSON::pushError(18, l_cmt2hub);
+	dcassert(l_res.second == true);
+	if (l_res.second == false)
+	{
+		const string l_message = "Duplicate message " + l_cmt2hub;
+#ifdef FLYLINKDC_BETA
+		LogManager::getInstance()->message(l_message);
+#endif
+		CFlyServerAdapter::CFlyServerJSON::pushError(18, l_message);
+	}
+}
 bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, const boost::asio::ip::address_v4& p_ip_hub, const string& p_userInfo, const string& p_HubInfo)
 {
 	{
 		const auto l_tick = GET_TICK();
+		const string l_server_lower = Text::toLower(aIPServer);
+		dcassert(l_server_lower == aIPServer);
 		// boost::system::error_code ec;
 		// const auto l_ip = boost::asio::ip::address_v4::from_string(aIPServer, ec);
-		const CFlyDDOSkey l_key(aIPServer, p_ip_hub);
+		const CFlyDDOSkey l_key(l_server_lower, p_ip_hub);
 		// dcassert(!ec); // TODO - тут бывает и Host
-		
 		webrtc::WriteLockScoped l_ddos(*g_csDdosCheck);
+		if (!m_ddos_ctm2hub.empty() && m_ddos_ctm2hub.find(l_server_lower + ':' + Util::toString(aPort)) != m_ddos_ctm2hub.end())
+		{
+			const string l_cmt2hub = "Block CTM2HUB = " + aIPServer + ':' + Util::toString(aPort) + " HubInfo: " + p_HubInfo + " UserInfo: " + p_userInfo;
+#ifdef FLYLINKDC_BETA
+			LogManager::getInstance()->message(l_cmt2hub);
+#endif
+			LogManager::getInstance()->ddos_message(l_cmt2hub);
+			return true;
+		}
 		CFlyDDoSTick l_item;
 		l_item.m_first_tick = l_tick;
 		l_item.m_last_tick = l_tick;
@@ -767,7 +793,7 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 		if (uc.socket == nullptr || !uc.socket->hasSocket())
 			continue;
 			
-		if (uc.getPort() == aPort && uc.getRemoteIp() == aIPServer)
+		if (uc.getPort() == aPort && uc.getRemoteIp() == aIPServer) // TODO - не поддерживается DNS
 		{
 			if (++count >= 5)
 			{
@@ -810,6 +836,7 @@ void ConnectionManager::nmdcConnect(const string& aIPServer, uint16_t aPort, uin
 		return;
 		
 	UserConnection* uc = getConnection(true, secure); // [!] IRainman fix SSL connection on NMDC(S) hubs.
+	uc->setServerPort(aIPServer + ':' + Util::toString(aPort));
 	uc->setUserConnectionToken(aNick); // Токен = ник?
 	uc->setHubUrl(hubUrl);
 	uc->setEncoding(encoding);

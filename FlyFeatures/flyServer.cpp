@@ -1816,7 +1816,7 @@ string CFlyServerInfo::getMediaInfoAsText(const TTHValue& p_tth,int64_t p_file_s
 string g_cur_mediainfo_file;
 string g_cur_mediainfo_file_tth;
 //=========================================================================================
-void getExtMediaInfo(const string& p_file_ext_wo_dot,
+static void getExtMediaInfo(const string& p_file_ext_wo_dot,
                             int64_t p_size,
                             MediaInfoLib::MediaInfo& p_media_info_dll,
                             MediaInfoLib::stream_t p_stream_type,

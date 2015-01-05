@@ -286,6 +286,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 							tth(aRoot), size(aSize), parent(aParent.get()), m_hit(aHit), ts(aTs), ftype(aftype), m_media_ptr(nullptr)
 						{
 							setName(aName);
+							dcassert(aName.find('\\') == string::npos);
 						}
 					public:
 						~ShareFile()

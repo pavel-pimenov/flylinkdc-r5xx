@@ -278,8 +278,8 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message)
 	CLockRedraw<true> l_lock_draw(m_hWnd);
 	LONG lSelBeginSaved, lSelEndSaved;
 	GetSel(lSelBeginSaved, lSelEndSaved);
-	POINT cr;
-	GetScrollPos(&cr);
+	POINT l_cr;
+	GetScrollPos(&l_cr);
 	
 	LONG lSelBegin = 0;
 	LONG lSelEnd = 0;
@@ -446,8 +446,7 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message)
 		AppendTextOnly(sText, p_message);
 	}
 	SetSel(lSelBeginSaved, lSelEndSaved);
-	SetScrollPos(&cr);
-	GoToEnd();
+	GoToEnd(l_cr, false);
 }
 
 void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly& p_message)
@@ -1175,31 +1174,45 @@ tstring ChatCtrl::LineFromPos(const POINT& p) const
 	
 	return tmp;
 }
-
-void ChatCtrl::GoToEnd()
+void ChatCtrl::GoToEnd(POINT& p_scroll_pos, bool p_force)
 {
 	SCROLLINFO si = { 0 };
-	POINT pt = { 0 };
-	
 	si.cbSize = sizeof(si);
 	si.fMask = SIF_PAGE | SIF_RANGE | SIF_POS;
 	GetScrollInfo(SB_VERT, &si);
-	GetScrollPos(&pt);
-	
-	if (m_boAutoScroll)
+	if (m_boAutoScroll || p_force)
 	{
 		// this must be called twice to work properly :(
 		PostMessage(EM_SCROLL, SB_BOTTOM, 0);
 		PostMessage(EM_SCROLL, SB_BOTTOM, 0);
 	}
-	SetScrollPos(&pt);
+	SetScrollPos(&p_scroll_pos);
+}
+void ChatCtrl::GoToEnd(bool p_force)
+{
+	POINT pt = { 0 };
+	GetScrollPos(&pt);
+	GoToEnd(pt, p_force);
+	if (m_boAutoScroll || p_force)
+	{
+		// this must be called twice to work properly :(
+		PostMessage(EM_SCROLL, SB_BOTTOM, 0);
+		PostMessage(EM_SCROLL, SB_BOTTOM, 0);
+	}
+}
+
+void ChatCtrl::invertAutoScroll()
+{
+	SetAutoScroll(!m_boAutoScroll);
 }
 
 void ChatCtrl::SetAutoScroll(bool boAutoScroll)
 {
 	m_boAutoScroll = boAutoScroll;
-	if (boAutoScroll)
-		GoToEnd();
+	if (m_boAutoScroll)
+	{
+		GoToEnd(false);
+	}
 }
 
 LRESULT ChatCtrl::OnRButtonDown(POINT pt, const UserPtr& user /*= nullptr*/)

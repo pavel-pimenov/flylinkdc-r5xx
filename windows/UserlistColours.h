@@ -25,6 +25,7 @@ class UserListColours : public CPropertyPage<IDD_USERLIST_COLOURS_PAGE>, public 
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
 		COMMAND_HANDLER(IDC_CHANGE_COLOR, BN_CLICKED, onChangeColour)
 		COMMAND_HANDLER(IDC_IMAGEBROWSE, BN_CLICKED, onImageBrowse)
+		COMMAND_ID_HANDLER(IDC_USERS_LINK, onLinkClick)
 		CHAIN_MSG_MAP(PropPage)
 		REFLECT_NOTIFICATIONS()
 		END_MSG_MAP()
@@ -32,6 +33,7 @@ class UserListColours : public CPropertyPage<IDD_USERLIST_COLOURS_PAGE>, public 
 		LRESULT onInitDialog(UINT, WPARAM, LPARAM, BOOL&);
 		LRESULT onChangeColour(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 		LRESULT onImageBrowse(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+		LRESULT onLinkClick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
 		// Common PropPage interface
 		PROPSHEETPAGE *getPSP()
@@ -60,6 +62,8 @@ class UserListColours : public CPropertyPage<IDD_USERLIST_COLOURS_PAGE>, public 
 		int badClientColour;
 		int badFilelistColour;
 		
+		ExCImage m_png_users;
+		CFlyHyperLink m_hlink_users;
 	protected:
 		static Item items[];
 		static TextItem texts[];

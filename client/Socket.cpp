@@ -25,6 +25,8 @@
 #include "CompatibilityManager.h"
 #include <iphlpapi.h>
 
+#pragma comment(lib, "iphlpapi.lib")
+
 /// @todo remove when MinGW has this
 #ifdef __MINGW32__
 #ifndef EADDRNOTAVAIL
@@ -778,6 +780,14 @@ bool Socket::waitAccepted(uint64_t /*millis*/)
 
 string Socket::resolve(const string& aDns)
 {
+#ifdef _DEBUG
+	static string g_last_resolve;
+	if (!g_last_resolve.empty())
+	{
+		dcassert(g_last_resolve != aDns);
+	}
+	g_last_resolve = aDns;
+#endif
 #ifdef _WIN32
 	sockaddr_in sock_addr  = { { 0 } };
 	

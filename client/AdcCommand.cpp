@@ -284,6 +284,7 @@ string AdcCommand::getHeaderString(const CID& cid) const
 string AdcCommand::getParamString(bool nmdc) const
 {
 	string tmp;
+	tmp.reserve(65);
 	for (auto i = getParameters().cbegin(); i != getParameters().cend(); ++i)
 	{
 		tmp += ' ';

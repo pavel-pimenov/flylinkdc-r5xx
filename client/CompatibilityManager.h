@@ -145,6 +145,7 @@ class CompatibilityManager
 		
 		static FINDEX_INFO_LEVELS g_find_file_level;
 		static DWORD g_find_file_flags;
+		static string g_upnp_router_model;
 	private:
 		static DWORD g_oldPriorityClass;
 		static string g_incopatibleSoftwareList;

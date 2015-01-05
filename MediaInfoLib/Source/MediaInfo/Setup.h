@@ -21,6 +21,7 @@
  #pragma warning(disable: 869)  //  [IntelC++ 2012 beta2] warning #869: parameter "cc_data_3" was never referenced
 #endif
 
+#define MEDIAINFO_TEXT_YES //[+]FlylinkDC
 #define MEDIAINFO_ARCHIVE_NO  //[+]FlylinkDC
 #define MEDIAINFO_MD5_NO //[+]FlylinkDC
 //#define MEDIAINFO_TEXT_NO
@@ -154,6 +155,9 @@
     #endif
     #if !defined (MEDIAINFO_AES_NO) && !defined (MEDIAINFO_AES_YES)
         #define MEDIAINFO_AES_NO
+    #endif
+    #if !defined (MEDIAINFO_EXPORT_NO) && !defined (MEDIAINFO_EXPORT_YES)
+        #define MEDIAINFO_EXPORT_NO
     #endif
 #endif
 
@@ -325,6 +329,36 @@
     #ifndef WINDOWS
         #define MEDIAINFO_LIBMMS_YES
     #endif //WINDOWS
+#endif
+
+//---------------------------------------------------------------------------
+// Export
+#if !defined(MEDIAINFO_EXPORT_NO) && !defined(MEDIAINFO_TEXT_NO) && !defined(MEDIAINFO_TEXT_YES)
+    #define MEDIAINFO_TEXT_YES
+#endif
+#if !defined(MEDIAINFO_EXPORT_NO) && !defined(MEDIAINFO_HTML_NO) && !defined(MEDIAINFO_HTML_YES)
+    #define MEDIAINFO_HTML_YES
+#endif
+#if !defined(MEDIAINFO_EXPORT_NO) && !defined(MEDIAINFO_XML_NO) && !defined(MEDIAINFO_XML_YES)
+    #define MEDIAINFO_XML_YES
+#endif
+#if !defined(MEDIAINFO_EXPORT_NO) && !defined(MEDIAINFO_CSV_NO) && !defined(MEDIAINFO_CSV_YES)
+    #define MEDIAINFO_CSV_YES
+#endif
+#if !defined(MEDIAINFO_EXPORT_NO) && !defined(MEDIAINFO_CUSTOM_NO) && !defined(MEDIAINFO_CUSTOM_YES)
+    #define MEDIAINFO_CUSTOM_YES
+#endif
+#if !defined(MEDIAINFO_EXPORT_NO) && !defined(MEDIAINFO_EBUCORE_NO) && !defined(MEDIAINFO_EBUCORE_YES)
+    #define MEDIAINFO_EBUCORE_YES
+#endif
+#if !defined(MEDIAINFO_EXPORT_NO) && !defined(MEDIAINFO_MPEG7_NO) && !defined(MEDIAINFO_MPEG7_YES)
+    #define MEDIAINFO_MPEG7_YES
+#endif
+#if !defined(MEDIAINFO_EXPORT_NO) && !defined(MEDIAINFO_PBCORE_NO) && !defined(MEDIAINFO_PBCORE_YES)
+    #define MEDIAINFO_PBCORE_YES
+#endif
+#if !defined(MEDIAINFO_EXPORT_NO) && !defined(MEDIAINFO_REVTMD_NO) && !defined(MEDIAINFO_REVTMD_YES)
+    #define MEDIAINFO_REVTMD_YES
 #endif
 
 //---------------------------------------------------------------------------

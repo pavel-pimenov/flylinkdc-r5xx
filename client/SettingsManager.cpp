@@ -680,9 +680,10 @@ void SettingsManager::setDefaults()
 	  // only change these on pre-vista machines.
 	*/
 #endif // FLYLINKDC_SUPPORT_WIN_XP
-	setDefault(TLS_TRUSTED_CERTIFICATES_PATH, Util::getConfigPath() + "Certificates" PATH_SEPARATOR_STR);
-	setDefault(TLS_PRIVATE_KEY_FILE, Util::getConfigPath() + "Certificates" PATH_SEPARATOR_STR "client.key");
-	setDefault(TLS_CERTIFICATE_FILE, Util::getConfigPath() + "Certificates" PATH_SEPARATOR_STR "client.crt");
+	const string l_tls_path = Util::getConfigPath() + "Certificates" PATH_SEPARATOR_STR;
+	setDefault(TLS_TRUSTED_CERTIFICATES_PATH, l_tls_path);
+	setDefault(TLS_PRIVATE_KEY_FILE, l_tls_path + "client.key");
+	setDefault(TLS_CERTIFICATE_FILE, l_tls_path + "client.crt");
 	setDefault(BOLD_FINISHED_DOWNLOADS, TRUE);
 	setDefault(BOLD_FINISHED_UPLOADS, TRUE);
 	setDefault(BOLD_QUEUE, TRUE);
@@ -716,7 +717,7 @@ void SettingsManager::setDefaults()
 	setDefault(DROP_MULTISOURCE_ONLY, TRUE);
 	setDefault(EXTRA_SLOTS, 10); //[+]PPA
 	setDefault(SHUTDOWN_TIMEOUT, 150);
-	//setDefault(SEARCH_PASSIVE, false); //[+] PPA
+	setDefault(SEARCH_PASSIVE, false); //[+] PPA
 	//setDefault(MAX_UPLOAD_SPEED_LIMIT_NORMAL, 0);
 	//setDefault(MAX_DOWNLOAD_SPEED_LIMIT_NORMAL, 0);
 	//setDefault(MAX_UPLOAD_SPEED_LIMIT, 0);    // [~] brain-ripper, merge

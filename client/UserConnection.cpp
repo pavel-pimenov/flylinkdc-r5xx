@@ -21,6 +21,7 @@
 #include "StringTokenizer.h"
 #include "Download.h"
 #include "LogManager.h"
+#include "ConnectionManager.h"
 
 const string UserConnection::FEATURE_MINISLOTS = "MiniSlots";
 const string UserConnection::FEATURE_XML_BZLIST = "XmlBZList";
@@ -135,6 +136,12 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 		            fire(UserConnectionListener::BanMessage(), this, param); // !SMT!-B
 		        }
 		#endif*/
+		else if (param.compare(0, 7, "CTM2HUB", 7) == 0)
+		{
+			// https://github.com/Verlihub/verlihub-1.0.0/blob/4f5ad13b5aa6d5a3c2ec94262f7b7bf1b90fc567/src/cdcproto.cpp#L2358
+			ConnectionManager::getInstance()->addCTM2HUB(getServerPort());
+			fire(UserConnectionListener::ProtocolError(), this, param);
+		}
 		else
 		{
 			dcdebug("Unknown $Error %s\n", param.c_str());
@@ -194,6 +201,9 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 			ClientManager::getInstance()->setUnknownCommand(getUser(), aLine);
 			
 		dcdebug("Unknown NMDC command: %.50s\n", aLine.c_str());
+#ifdef FLYLINKDC_BETA
+		LogManager::getInstance()->message("Unknown NMDC command: = " + aLine);
+#endif
 		unsetFlag(FLAG_NMDC);
 	}
 }
@@ -317,22 +327,22 @@ static const int64_t MIN_CHUNK_SIZE = 64 * 1024;
 void UserConnection::updateChunkSize(int64_t leafSize, int64_t lastChunk, uint64_t ticks)
 {
 
-	if (chunkSize == 0)
+	if (m_chunkSize == 0)
 	{
-		chunkSize = std::max((int64_t)64 * 1024, std::min(lastChunk, (int64_t)1024 * 1024));
+		m_chunkSize = std::max((int64_t)64 * 1024, std::min(lastChunk, (int64_t)1024 * 1024));
 		return;
 	}
 	
 	if (ticks <= 10)
 	{
 		// Can't rely on such fast transfers - double
-		chunkSize *= 2;
+		m_chunkSize *= 2;
 		return;
 	}
 	
 	double lastSpeed = (1000. * lastChunk) / ticks;
 	
-	int64_t targetSize = chunkSize;
+	int64_t targetSize = m_chunkSize;
 	
 	// How long current chunk size would take with the last speed...
 	double msecs = 1000 * targetSize / lastSpeed;
@@ -351,14 +361,14 @@ void UserConnection::updateChunkSize(int64_t leafSize, int64_t lastChunk, uint64
 	}
 	else if (msecs < SEGMENT_TIME * 4)
 	{
-		targetSize = std::max(MIN_CHUNK_SIZE, targetSize - chunkSize);
+		targetSize = std::max(MIN_CHUNK_SIZE, targetSize - m_chunkSize);
 	}
 	else
 	{
 		targetSize = std::max(MIN_CHUNK_SIZE, targetSize / 2);
 	}
 	
-	chunkSize = targetSize;
+	m_chunkSize = targetSize;
 }
 
 void UserConnection::send(const string& aString)

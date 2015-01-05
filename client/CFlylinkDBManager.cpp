@@ -25,6 +25,16 @@ bool g_UseSynchronousOff    = false;
 bool g_DisableSQLtrace      = false;
 
 size_t CFlylinkDBManager::g_count_queue_source = 0;
+const char* g_db_file_names[] = {"FlylinkDC.sqlite",
+                                 "FlylinkDC_log.sqlite",
+                                 "FlylinkDC_mediainfo.sqlite",
+                                 "FlylinkDC_dht.sqlite",
+                                 "FlylinkDC_stat.sqlite",
+                                 "FlylinkDC_locations.sqlite",
+                                 "FlylinkDC_antivirus.sqlite",
+                                 "FlylinkDC_transfers.sqlite",
+                                 "FlylinkDC_user.sqlite"
+                                };
 
 /*
 bool CAccountManager::IntegrityCheck ()
@@ -147,6 +157,30 @@ bool CFlylinkDBManager::safeAlter(const char* p_sql)
 	return false;
 }
 //========================================================================================================
+string CFlylinkDBManager::getDBSizeInfo()
+{
+	auto getFileSize = [](const ::tstring & p_file_name) -> int64_t
+	{
+		int64_t l_size = 0;
+		int64_t l_outFileTime = 0;
+		File::isExist(p_file_name, l_size, l_outFileTime);
+		return l_size;
+	};
+	const char* l_rnrn = "\r\n";
+	string l_message = "Database locations:\r\n";
+	for (int i = 0; i < _countof(g_db_file_names); ++i)
+	{
+		const auto l_path = Util::getConfigPath();
+		l_message += "  * ";
+		l_message += l_path;
+		l_message += g_db_file_names[i];
+		const auto l_size = getFileSize(Text::toT(l_path) + _T("\\") + Text::toT(g_db_file_names[i]));
+		l_message += " (" + Util::formatBytes(l_size) + ")";
+		l_message += l_rnrn;
+	}
+	return l_message;
+}
+//========================================================================================================
 void CFlylinkDBManager::errorDB(const string& p_txt)
 {
 	string l_message = p_txt + "\r\n" + STRING(DATA_BASE_ERROR_STRING);
@@ -154,24 +188,7 @@ void CFlylinkDBManager::errorDB(const string& p_txt)
 	const char* l_rnrn = "\r\n";
 	l_message += l_rnrn;
 	l_message += l_rnrn;
-	l_message += "Database locations:\r\n";
-	const char* l_db_file_names[] = {"FlylinkDC.sqlite",
-	                                 "FlylinkDC_log.sqlite",
-	                                 "FlylinkDC_mediainfo.sqlite",
-	                                 "FlylinkDC_dht.sqlite",
-	                                 "FlylinkDC_stat.sqlite",
-	                                 "FlylinkDC_locations.sqlite",
-	                                 "FlylinkDC_antivirus.sqlite",
-	                                 "FlylinkDC_transfers.sqlite",
-	                                 "FlylinkDC_user.sqlite"
-	                                };
-	for (int i = 0; i < _countof(l_db_file_names); ++i)
-	{
-		l_message += "  * ";
-		l_message += Util::getConfigPath();
-		l_message += l_db_file_names[i];
-		l_message += l_rnrn;
-	}
+	l_message += getDBSizeInfo();
 	bool l_is_force_exit = false;
 	tstring l_russian_error;
 	bool l_is_db_malformed = p_txt.find(": database disk image is malformed") != string::npos;
@@ -634,8 +651,7 @@ CFlylinkDBManager::CFlylinkDBManager()
 			safeAlter("ALTER TABLE fly_queue drop column Downloaded");
 			*/
 		}
-		if (l_rev <= 502)
-			safeAlter("ALTER TABLE fly_hash_block add column block_size int64");
+		safeAlter("ALTER TABLE fly_hash_block add column block_size int64");
 		if (l_rev < 403 || l_rev == 500)
 		{
 			safeAlter("ALTER TABLE fly_file add column media_x integer");
@@ -1863,7 +1879,7 @@ void CFlylinkDBManager::load_transfer_historgam(eTypeTransfer p_type, CFlyTransf
 	{
 		if (!m_select_transfer_histrogram.get())
 			m_select_transfer_histrogram = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                             "select day,strftime('%d.%m.%Y',day*60*60*24,'unixepoch'), count(*) "
+			                                                                             "select day,strftime('%d.%m.%Y',day*60*60*24,'unixepoch'),count(*),sum(size) "
 			                                                                             "from transfer_db.fly_transfer_file where type=? group by day"));
 		m_select_transfer_histrogram->bind(1, p_type);
 		sqlite3_reader l_q = m_select_transfer_histrogram.get()->executereader();
@@ -1873,6 +1889,7 @@ void CFlylinkDBManager::load_transfer_historgam(eTypeTransfer p_type, CFlyTransf
 			l_item.m_date = l_q.getstring(1);
 			l_item.m_count = l_q.getint(2);
 			l_item.m_date_as_int = l_q.getint(0);
+			l_item.m_size = l_q.getint64(3);
 			p_array.push_back(l_item);
 		}
 	}
@@ -3831,8 +3848,8 @@ void CFlylinkDBManager::flush_hash()
 					merge_mediainfoL(l_tth_id, i->second.m_path_id, l_name, i->second.m_out_media); // Если медиаинфу расчитали - скинем ее в базу
 				}
 			}
-			m_cache_hash_files.clear();
 			l_trans.commit();
+			m_cache_hash_files.clear();
 		}
 	}
 	catch (const database_error& e)

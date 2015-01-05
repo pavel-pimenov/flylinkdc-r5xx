@@ -226,6 +226,8 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		COMMAND_ID_HANDLER(IDC_CLOSE_HUBS_BELOW, onCloseWindows)
 		COMMAND_ID_HANDLER(IDC_CLOSE_HUBS_NO_USR, onCloseWindows)
 		COMMAND_ID_HANDLER(IDC_OPEN_DOWNLOADS, onOpenDownloads)
+		COMMAND_ID_HANDLER(IDC_OPEN_LOGS, onOpenLogs)
+		COMMAND_ID_HANDLER(IDC_OPEN_CONFIGS, onOpenConfigs)
 		COMMAND_ID_HANDLER(IDC_REFRESH_FILE_LIST, onRefreshFileList)
 //		COMMAND_ID_HANDLER(IDC_FLYLINK_DISCOVER, onFlylinkDiscover)
 		COMMAND_ID_HANDLER(IDC_REFRESH_FILE_LIST_PURGE, onRefreshFileListPurge)
@@ -442,16 +444,26 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 			PostMessage(WM_CLOSE);
 			return 0;
 		}
-		
-		LRESULT onOpenDownloads(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+		void openDirs(const string& p_dir)
 		{
-			const string& strDowloadDir = SETTING(DOWNLOAD_DIRECTORY);
-			
 			// [+] brain-ripper
 			// ensure that directory exist. if not - Explorer won't open this dir of course.
-			File::ensureDirectory(strDowloadDir);
-			
-			WinUtil::openFile(Text::toT(strDowloadDir));
+			File::ensureDirectory(p_dir);
+			WinUtil::openFile(Text::toT(p_dir));
+		}
+		LRESULT onOpenConfigs(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+		{
+			openDirs(Util::getConfigPath());
+			return 0;
+		}
+		LRESULT onOpenLogs(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+		{
+			openDirs(SETTING(LOG_DIRECTORY));
+			return 0;
+		}
+		LRESULT onOpenDownloads(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+		{
+			openDirs(SETTING(DOWNLOAD_DIRECTORY));
 			return 0;
 		}
 		

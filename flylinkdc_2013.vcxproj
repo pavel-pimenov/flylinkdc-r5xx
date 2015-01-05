@@ -140,6 +140,7 @@
       <PreprocessorDefinitions>HAVE_NATUPNP_H;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <OptimizeForWindowsApplication>false</OptimizeForWindowsApplication>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <ResourceCompile>
       <Culture>0x0409</Culture>
@@ -669,6 +670,7 @@
     <ClInclude Include="windows\Wnd.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="res\clock.ico" />
     <Image Include="res\firewall.ico" />
     <Image Include="res\ISPImages.png" />
     <Image Include="res\medical_bag.ico" />
