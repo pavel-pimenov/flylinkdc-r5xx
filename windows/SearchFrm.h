@@ -210,7 +210,8 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			m_searchStartTime(0),
 			m_waitingResults(false),
 			m_needsUpdateStats(false), // [+] IRainman opt.
-			m_Theme(nullptr)
+			m_Theme(nullptr),
+			m_search_token(0)
 		{
 		}
 		
@@ -703,7 +704,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		uint64_t m_searchStartTime;
 		tstring m_target;
 		tstring m_statusLine; // [+] IRainman fix.
-		uint32_t m_token;
+		uint32_t m_search_token;
 		
 		FastCriticalSection cs; // [!] IRainman opt: use spin lock here.
 		

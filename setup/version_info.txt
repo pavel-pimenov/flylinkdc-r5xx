@@ -1,2 +1,2 @@
-VersionInfoVersion=7.7.502.18101 
-AppVersion= 7.7.502.18101 
+VersionInfoVersion=7.7.502.18118 
+AppVersion= 7.7.502.18118 

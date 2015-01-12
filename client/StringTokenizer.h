@@ -48,6 +48,10 @@ class StringTokenizer
 			}
 		}
 	public:
+		StringTokenizer()
+		{
+		}
+		
 		explicit StringTokenizer(const T& str, const typename T::value_type tok) // [!] IRainman fix: no needs link to T::value_type.
 		{
 			slice(str, tok, 1);
@@ -66,6 +70,24 @@ class StringTokenizer
 		T2& getTokensForWrite()
 		{
 			return m_tokens;
+		}
+		bool is_contains(const T& p_str) const
+		{
+			for (auto i = m_tokens.cbegin(); i != m_tokens.cend(); ++i)
+			{
+				if (p_str == *i)
+					return true;
+			}
+			return false;
+		}
+		bool is_find2(const T& p_str_1, const T& p_str_2) const
+		{
+			for (auto i = m_tokens.cbegin(); i != m_tokens.cend(); ++i)
+			{
+				if (p_str_1.find(*i) != T::npos || p_str_2.find(*i) != T::npos)
+					return true;
+			}
+			return false;
 		}
 };
 

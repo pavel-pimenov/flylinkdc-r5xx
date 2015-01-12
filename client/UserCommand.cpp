@@ -30,6 +30,7 @@ StringList UserCommand::getDisplayName() const
 	}
 	Util::replace("//", "\t", name_);
 	const StringTokenizer<string> t(name_, '/');
+	l_displayName.reserve(t.getTokens().size());
 	for (auto i = t.getTokens().cbegin(), iend = t.getTokens().cend(); i != iend; ++i)
 	{
 		l_displayName.push_back(*i);

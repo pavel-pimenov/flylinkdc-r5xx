@@ -797,7 +797,7 @@ void SearchFrame::onEnter(bool p_is_force_passive)
 				s += Text::toT(*si) + _T(' ');
 			++si;
 		}
-		m_token = Util::rand();
+		m_search_token = Util::rand();
 	}
 	s = s.substr(0, max(s.size(), static_cast<tstring::size_type>(1)) - 1);
 	
@@ -884,7 +884,7 @@ void SearchFrame::onEnter(bool p_is_force_passive)
 		                                                                           llsize,
 		                                                                           m_ftype,
 		                                                                           m_sizeMode,
-		                                                                           m_token,
+		                                                                           m_search_token,
 		                                                                           l_extList,
 		                                                                           (void*)this,
 		                                                                           p_is_force_passive)
@@ -969,7 +969,7 @@ void SearchFrame::on(SearchManagerListener::SR, const SearchResultPtr &aResult) 
 			
 		m_needsUpdateStats = true; // [+] IRainman opt.
 		// [+] merge
-		if (!aResult->getToken() && m_token != aResult->getToken())
+		if (!aResult->getToken() && m_search_token != aResult->getToken())
 		{
 			m_droppedResults++;
 			//PostMessage(WM_SPEAKER, FILTER_RESULT);//[-]IRainman optimize SearchFrame
@@ -1011,8 +1011,8 @@ void SearchFrame::on(SearchManagerListener::SR, const SearchResultPtr &aResult) 
 				   )
 				{
 					m_droppedResults++;
-					// LogManager::getInstance()->message("droppedResults: " + aResult->getFile());
-					//PostMessage(WM_SPEAKER, FILTER_RESULT);//[-]IRainman optimize SearchFrame
+					// LogManager::getInstance()->message("Search: droppedResults: " + aResult->getFile());
+					// PostMessage(WM_SPEAKER, FILTER_RESULT);//[-]IRainman optimize SearchFrame
 					return;
 				}
 			}

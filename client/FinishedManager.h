@@ -45,7 +45,7 @@ class FinishedItem
 		};
 		
 		FinishedItem(const string& aTarget, const string& aNick, const string& aHubUrl, int64_t aSize, int64_t aSpeed,
-		             const time_t aTime, const TTHValue& aTTH, const string& aIP) :
+		             const time_t aTime, const TTHValue& aTTH, const string& aIP, int64_t aID) :
 			target(aTarget),
 			// cid(aCID),
 			hub(aHubUrl),
@@ -55,7 +55,8 @@ class FinishedItem
 			time(aTime),
 			tth(aTTH),
 			ip(aIP),
-			nick(aNick)
+			nick(aNick),
+			id(aID)
 		{
 		}
 		FinishedItem(const string& aTarget, const HintedUser& aUser, int64_t aSize, int64_t aSpeed,
@@ -69,7 +70,8 @@ class FinishedItem
 			time(aTime),
 			tth(aTTH),
 			ip(aIP),
-			nick(aUser.user->getLastNick())
+			nick(aUser.user->getLastNick()),
+			id(0)
 		{
 		}
 		
@@ -81,7 +83,7 @@ class FinishedItem
 				case COLUMN_FILE:
 					return Text::toT(Util::getFileName(getTarget()));
 				case COLUMN_DONE:
-					return Text::toT(Util::formatDigitalClock(getTime()));
+					return Text::toT(id ? Util::formatDigitalClockGMT(getTime()) : Util::formatDigitalClock(getTime()));
 				case COLUMN_PATH:
 					return Text::toT(Util::getFilePath(getTarget()));
 				case COLUMN_NICK:
@@ -124,6 +126,7 @@ class FinishedItem
 		GETC(int64_t, size, Size);
 		GETC(int64_t, avgSpeed, AvgSpeed);
 		GETC(time_t, time, Time);
+		GETC(int64_t, id, ID);
 	private:
 		friend class FinishedManager;
 };
@@ -150,6 +153,10 @@ class FinishedManager : public Singleton<FinishedManager>,
 		void removeItem(FinishedItem* item, eType p_type);
 		void removeAll(eType p_type);
 		void pushHistoryFinishedItem(FinishedItem* p_item, int p_type);
+		void updateStatus()
+		{
+			fire(FinishedManagerListener::UpdateStatus());
+		}
 		
 		
 	private:

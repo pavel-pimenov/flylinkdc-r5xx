@@ -254,14 +254,17 @@ LRESULT CDMDebugFrame::onChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/
 		case IDC_DEBUG_IP_FILTER_TEXT:
 			WinUtil::GetWindowText(tmp, ctrlIPFilter);
 			m_sFilterIp = Text::fromT(tmp);
+			m_IPTokens = StringTokenizer<string>(m_sFilterIp, ',');
 			break;
 		case IDC_DEBUG_INCLUDE_FILTER_TEXT:
 			WinUtil::GetWindowText(tmp, m_ctrlIncludeFilter);
 			m_sFilterInclude = Text::fromT(tmp);
+			m_IncludeTokens = StringTokenizer<string>(m_sFilterInclude, ',');
 			break;
 		case IDC_DEBUG_EXCLUDE_FILTER_TEXT:
 			WinUtil::GetWindowText(tmp, m_ctrlExcludeFilter);
 			m_sFilterExclude = Text::fromT(tmp);
+			m_ExcludeTokens = StringTokenizer<string>(m_sFilterExclude, ',');
 			break;
 		default:
 			dcassert(0);
@@ -304,14 +307,14 @@ void CDMDebugFrame::on(DebugManagerListener::DebugEvent, const DebugTask& task) 
 		case DebugTask::HUB_OUT:
 			if (!m_showHubCommands)
 				return;
-			if (m_bFilterIp && !m_sFilterIp.empty() && task.m_ip_and_port != m_sFilterIp)
+			if (m_bFilterIp && !m_sFilterIp.empty() && !m_IPTokens.is_contains(task.m_ip_and_port))
 				return;
 			break;
 		case DebugTask::CLIENT_IN:
 		case DebugTask::CLIENT_OUT:
 			if (!m_showCommands)
 				return;
-			if (m_bFilterIp && !m_sFilterIp.empty() && task.m_ip_and_port != m_sFilterIp)
+			if (m_bFilterIp && !m_sFilterIp.empty() && !m_IPTokens.is_contains(task.m_ip_and_port))
 				return;
 			break;
 		case DebugTask::DETECTION:
@@ -325,11 +328,16 @@ void CDMDebugFrame::on(DebugManagerListener::DebugEvent, const DebugTask& task) 
 #endif
 	}
 	// http://code.google.com/p/flylinkdc/issues/detail?id=419
-	const string l_message_and_ip = task.m_ip_and_port + task.m_message; // »щем и в тексте и в IP+Port
-	if (m_bFilterIp && !m_sFilterInclude.empty() && l_message_and_ip.find(m_sFilterInclude) == string::npos)
-		return;
-	if (m_bFilterIp && !m_sFilterExclude.empty() && l_message_and_ip.find(m_sFilterExclude) != string::npos)
-		return;
+	if (m_bFilterIp && !m_sFilterInclude.empty())
+	{
+		if (m_IncludeTokens.is_find2(task.m_ip_and_port, task.m_message) == false)
+			return;
+	}
+	if (m_bFilterIp && !m_sFilterExclude.empty())
+	{
+		if (m_ExcludeTokens.is_find2(task.m_ip_and_port, task.m_message) == true)
+			return;
+	}
 	addCmd(task);
 }
 

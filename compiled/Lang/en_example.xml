@@ -761,6 +761,8 @@
 	<string name="MatchQueue">Match queue</string>
 	<string name="MaxFinishedDownloads">Max finished downloads</string>
 	<string name="MaxFinishedUploads">Max finished uploads</string>
+	<string name="DbLogFinishedDownloads">Keep downloads (days)</string>
+	<string name="DbLogFinishedUploads">Keep uploads (days)</string>
 	<string name="MaxHubs">Max Hubs</string>
 	<string name="MaxMsgLength">Max length</string>
 	<string name="MaxResizeLines">Max resize lines</string>

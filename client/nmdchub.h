@@ -239,7 +239,7 @@ class NmdcHub : public Client, private Flags
 		                       Search::TypeModes aFileType, const string& aString);
 		string calcExternalIP() const;
 		void revConnectToMe(const OnlineUser& aUser);
-		void resendMyINFO(bool p_is_force_passive);
+		bool resendMyINFO(bool p_is_force_passive);
 		void myInfo(bool p_alwaysSend, bool p_is_force_passive = false);
 		void myInfoParse(const string& param);
 		void searchParse(const string& param, bool p_is_passive);

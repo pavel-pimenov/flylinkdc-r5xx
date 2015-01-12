@@ -1503,8 +1503,9 @@ static void addParam(StringMap& p_lastInfoMap, AdcCommand& c, const string& var,
 	}
 }
 
-void AdcHub::resendMyINFO(bool p_is_force_passive)
+bool AdcHub::resendMyINFO(bool p_is_force_passive)
 {
+	return false;
 }
 
 void AdcHub::info(bool p_force)

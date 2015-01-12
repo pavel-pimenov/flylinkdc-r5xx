@@ -45,7 +45,8 @@ BufferedSocket::BufferedSocket(char aSeparator) :
 	m_is_disconnecting(false),
 	m_threadId(-1),
 	m_myInfoCount(0),
-	m_is_all_my_info_loaded(false)
+	m_is_all_my_info_loaded(false),
+	m_is_hide_share(false)
 {
 	start(64, "BufferedSocket");
 #ifdef FLYLINKDC_USE_SOCKET_COUNTER
@@ -273,20 +274,23 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 {
 	if (p_line.compare(0, 8, "$Search ", 8) == 0)
 	{
-		const string l_line_item = p_line.substr(0, p_pos_next_separator);
-		auto l_marker_tth = l_line_item.find("?0?9?TTH:");
-		// TODO научиться обрабатывать лимит по размеру вида
-		// "x.x.x.x:yyy T?F?57671680?9?TTH:A3VSWSWKCVC4N6EP2GX47OEMGT5ZL52BOS2LAHA"
-		if (l_marker_tth != string::npos && l_marker_tth > 5 && l_line_item[l_marker_tth - 4] == ' ') // Поправка на полную команду  F?T?0?9?TTH: или F?F?0?9?TTH: или T?T?0?9?TTH:
+		if (m_is_hide_share == false)
 		{
-			l_marker_tth -= 4;
-			const CFlySearchItem l_item(TTHValue(l_line_item.substr(l_marker_tth + 13, 39)), l_line_item.substr(8, l_marker_tth - 8));
-			dcassert(l_item.m_search.find('|') == string::npos && l_item.m_search.find('$') == string::npos);
-			p_tth_search.push_back(l_item);
-		}
-		else
-		{
-			p_file_search.push_back(l_line_item.substr(8));
+			const string l_line_item = p_line.substr(0, p_pos_next_separator);
+			auto l_marker_tth = l_line_item.find("?0?9?TTH:");
+			// TODO научиться обрабатывать лимит по размеру вида
+			// "x.x.x.x:yyy T?F?57671680?9?TTH:A3VSWSWKCVC4N6EP2GX47OEMGT5ZL52BOS2LAHA"
+			if (l_marker_tth != string::npos && l_marker_tth > 5 && l_line_item[l_marker_tth - 4] == ' ') // Поправка на полную команду  F?T?0?9?TTH: или F?F?0?9?TTH: или T?T?0?9?TTH:
+			{
+				l_marker_tth -= 4;
+				const CFlySearchItem l_item(TTHValue(l_line_item.substr(l_marker_tth + 13, 39)), l_line_item.substr(8, l_marker_tth - 8));
+				dcassert(l_item.m_search.find('|') == string::npos && l_item.m_search.find('$') == string::npos);
+				p_tth_search.push_back(l_item);
+			}
+			else
+			{
+				p_file_search.push_back(l_line_item.substr(8));
+			}
 		}
 		return true;
 	}

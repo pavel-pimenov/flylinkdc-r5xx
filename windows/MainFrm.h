@@ -42,7 +42,7 @@
 #include "JAControl.h"
 
 #define QUICK_SEARCH_MAP 20
-
+#define STATUS_MESSAGE_MAP 9
 
 #define WM_ANIM_CHANGE_FRAME WM_USER + 1
 
@@ -280,6 +280,8 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		MESSAGE_HANDLER(WM_DEVICECHANGE, onDeviceChange)
 #endif
 		COMMAND_CODE_HANDLER(EN_CHANGE, onQuickSearchEditChange)
+		ALT_MSG_MAP(STATUS_MESSAGE_MAP)
+		MESSAGE_HANDLER(WM_LBUTTONUP, onContextMenuL)
 		END_MSG_MAP()
 		
 		BEGIN_UPDATE_UI_MAP(MainFrame)
@@ -344,6 +346,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		LRESULT onWinampButton(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 		LRESULT OnViewTopmost(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled);
+		LRESULT onContextMenuL(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 		LRESULT OnMenuSelect(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/);
 #ifdef SCALOLAZ_SPEEDLIMIT_DLG
 		void QuerySpeedLimit(const SettingsManager::IntSetting l_limit_normal, int l_min_lim, int l_max_lim);
@@ -378,7 +381,8 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		LRESULT onOpenSQLExplorer(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 #endif
 		void ViewTransferView(BOOL bVisible);
-		
+		void onAwayPush();
+		void onDHTPush();
 		static unsigned int WINAPI stopper(void* p);
 		void UpdateLayout(BOOL bResizeBars = TRUE);
 		void onLimiter(const bool l_currentLimiter = BOOLSETTING(THROTTLE_ENABLE)) // [+] IRainman fix
@@ -657,6 +661,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		tstring m_lastLines;
 		CFlyToolTipCtrl m_ctrlLastLines;
 		CStatusBarCtrl m_ctrlStatus;
+		CContainedWindow statusContainer;
 		CProgressBarCtrl ctrlHashProgress;
 		CProgressBarCtrl ctrlUpdateProgress;
 		bool m_bHashProgressVisible;

@@ -62,7 +62,7 @@ class ClientBase
 			return m_isActivMode
 			       && !SETTING(FORCE_PASSIVE_INCOMING_CONNECTIONS);
 		}
-		virtual void resendMyINFO(bool p_is_force_passive) = 0;
+		virtual bool resendMyINFO(bool p_is_force_passive) = 0;
 		P2PType getType() const
 		{
 			return m_type;
@@ -337,6 +337,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			// min interval is 2 seconds in FlylinkDC
 			m_searchQueue.m_interval = max(aInterval, (uint32_t)(2000)); // [!] FlylinkDC
+			m_searchQueue.m_interval = min(m_searchQueue.m_interval, (uint32_t)(120000));
 		}
 		
 		uint32_t getSearchInterval() const
@@ -545,8 +546,25 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		}
 		// [~] IRainman fix.
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
-		GETSET(bool, hideShare, HideShare);
+	public:
+		bool getHideShare() const
+		{
+			return m_is_hide_share;
+		}
+		void setHideShare(bool p_is_hide_share)
+		{
+			m_is_hide_share = p_is_hide_share;
+			if (m_client_sock)
+			{
+				m_client_sock->set_is_hide_share(p_is_hide_share);
+			}
+		}
+	private:
+		bool m_is_hide_share;
+		
 #endif
+		
+	public:
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 		virtual bool hubIsNotSupportSlot() const = 0;// [+]IRainman
 #endif // IRAINMAN_ENABLE_AUTO_BAN

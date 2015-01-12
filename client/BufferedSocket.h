@@ -88,7 +88,6 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		{
 			return m_mode;
 		}
-		
 		// [+] brain-ripper:
 		// added check against sock pointer: isConnected was called from Client::on(Second, ...)
 		// before Client::connect called (like thread race case).
@@ -188,10 +187,14 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		{
 			m_is_all_my_info_loaded = true;
 		}
+		void set_is_hide_share(bool p_is_hide_share)
+		{
+			m_is_hide_share = p_is_hide_share;
+		}
 	private:
 		void all_myinfo_parser(const string::size_type p_pos_next_separator, const string& p_line, StringList& p_all_myInfo, bool p_is_zon);
-		static bool all_search_parser(const string::size_type p_pos_next_separator, const string& p_line,
-		                              CFlySearchArray& p_tth_search, StringList& p_file_search);
+		bool all_search_parser(const string::size_type p_pos_next_separator, const string& p_line,
+		                       CFlySearchArray& p_tth_search, StringList& p_file_search);
 		char m_separator;
 	private:
 		enum Tasks
@@ -252,6 +255,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		ByteVector m_inbuf;
 		size_t m_myInfoCount; // Счетчик MyInfo
 		bool   m_is_all_my_info_loaded;  // Флаг передачи команды отличной от MyInfo (стартовая загрузка списка закончилась)
+		bool   m_is_hide_share;
 #ifdef FLYLINKDC_HE
 		void resizeInBuf()
 		{

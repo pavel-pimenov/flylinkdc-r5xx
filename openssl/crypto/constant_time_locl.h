@@ -76,8 +76,7 @@ extern "C" {
  * However, this is not ensured by the C standard so you may need to
  * replace this with something else on odd CPUs.
  */
-
-#define open_ssl_inline // fix build VisualC++2010
+#define open_ssl_inline // fix build VisualC++2010 // [+]FlylinkDC++
 
 static open_ssl_inline unsigned int constant_time_msb(unsigned int a);
 
@@ -132,17 +131,12 @@ static open_ssl_inline int constant_time_select_int(unsigned int mask, int a, in
 
 static open_ssl_inline unsigned int constant_time_msb(unsigned int a)
 	{
-	return (unsigned int)((int)(a) >> (sizeof(int) * 8 - 1));
+	return 0-(a >> (sizeof(a) * 8 - 1));
 	}
 
 static open_ssl_inline unsigned int constant_time_lt(unsigned int a, unsigned int b)
 	{
-	unsigned int lt;
-	/* Case 1: msb(a) == msb(b). a < b iff the MSB of a - b is set.*/
-	lt = ~(a ^ b) & (a - b);
-	/* Case 2: msb(a) != msb(b). a < b iff the MSB of b is set. */
-	lt |= ~a & b;
-	return constant_time_msb(lt);
+	return constant_time_msb(a^((a^b)|((a-b)^b)));
 	}
 
 static open_ssl_inline unsigned char constant_time_lt_8(unsigned int a, unsigned int b)
@@ -152,12 +146,7 @@ static open_ssl_inline unsigned char constant_time_lt_8(unsigned int a, unsigned
 
 static open_ssl_inline unsigned int constant_time_ge(unsigned int a, unsigned int b)
 	{
-	unsigned int ge;
-	/* Case 1: msb(a) == msb(b). a >= b iff the MSB of a - b is not set.*/
-	ge = ~((a ^ b) | (a - b));
-	/* Case 2: msb(a) != msb(b). a >= b iff the MSB of a is set. */
-	ge |= a & ~b;
-	return constant_time_msb(ge);
+	return ~constant_time_lt(a, b);
 	}
 
 static open_ssl_inline unsigned char constant_time_ge_8(unsigned int a, unsigned int b)
@@ -207,7 +196,7 @@ static open_ssl_inline unsigned char constant_time_select_8(unsigned char mask,
 	return (unsigned char)(constant_time_select(mask, a, b));
 	}
 
-open_ssl_inline int constant_time_select_int(unsigned int mask, int a, int b)
+static open_ssl_inline int constant_time_select_int(unsigned int mask, int a, int b)
 	{
 	return (int)(constant_time_select(mask, (unsigned)(a), (unsigned)(b)));
 	}

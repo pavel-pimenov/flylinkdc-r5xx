@@ -432,6 +432,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  SECURITY_ASK_ON_SHARE_FROM_SHELL, // [+] SSA
 		                  POPUP_NEW_FOLDERSHARE, // [+] SSA
 		                  MAX_FINISHED_UPLOADS, MAX_FINISHED_DOWNLOADS, // [+] IRainman
+		                  DB_LOG_FINISHED_UPLOADS, DB_LOG_FINISHED_DOWNLOADS,
 		                  INT_PREVIEW_SERVER_PORT, INT_PREVIEW_SERVER_SPEED, // [+] SSA
 		                  INT_PREVIEW_USE_VIDEO_SCROLL, INT_PREVIEW_START_CLIENT,  // [+] SSA
 		                  PROVIDER_USE_RESOURCES, // [+] SSA

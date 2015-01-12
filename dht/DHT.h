@@ -185,9 +185,10 @@ class DHT :
 		/** Loads network information from XML file */
 		void loadData();
 
-		void resendMyINFO(bool p_is_force_passive)
+		bool resendMyINFO(bool p_is_force_passive)
 		{
 			dcassert(0);
+			return false;
 		}
 };
 

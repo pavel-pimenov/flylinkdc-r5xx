@@ -122,7 +122,7 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 		
 		size_t row;
 		
-		uint32_t m_token;
+		uint32_t m_search_token;
 		
 	public:
 		struct searchresult

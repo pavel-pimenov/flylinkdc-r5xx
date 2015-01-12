@@ -100,7 +100,7 @@ class SearchResult : public SearchResultBaseTTH, public intrusive_ptr_base<Searc
 {
 	public:
 	
-		SearchResult(Types aType, int64_t aSize, const string& name, const TTHValue& aTTH);
+		SearchResult(Types aType, int64_t aSize, const string& name, const TTHValue& aTTH, uint32_t aToken);
 		
 		SearchResult(const UserPtr& aUser, Types aType, uint8_t aSlots, uint8_t aFreeSlots,
 		             int64_t aSize, const string& aFile, const string& aHubName,

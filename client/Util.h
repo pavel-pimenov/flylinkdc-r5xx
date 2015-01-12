@@ -800,11 +800,15 @@ class Util
 		static string formatParams(const string& msg, const StringMap& params, bool filter, const time_t p_t = time(NULL));
 		static string formatTime(const string& msg, const time_t p_t);
 		static string formatTime(uint64_t rest, const bool withSecond = true);
-		static string formatDigitalClock(const time_t p_t)//[+]FlylinkDC++ Team
+		static string formatDigitalClockGMT(const time_t& p_t)
 		{
-			return formatDigitalClock("%Y-%m-%d %H:%M:%S", p_t);
+			return formatDigitalClock("%Y-%m-%d %H:%M:%S", p_t, true);
 		}
-		static string formatDigitalClock(const string &p_msg, const time_t p_t); //[+]FlylinkDC++ Team
+		static string formatDigitalClock(const time_t& p_t)
+		{
+			return formatDigitalClock("%Y-%m-%d %H:%M:%S", p_t, false);
+		}
+		static string formatDigitalClock(const string &p_msg, const time_t& p_t, bool p_is_gmt); //[+]FlylinkDC++ Team
 		static string formatRegExp(const string& msg, const StringMap& params);
 		
 		static inline int64_t roundDown(int64_t size, int64_t blockSize)

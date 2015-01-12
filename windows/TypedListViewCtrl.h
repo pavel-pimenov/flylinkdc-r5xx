@@ -554,7 +554,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		void DeleteAndCleanAllItemsNoLock()
 		{
 			const int l_cnt = GetItemCount();
-			for (int i = 0; i < l_cnt; i++)
+			for (int i = 0; i < l_cnt; ++i)
 			{
 				T* si = getItemData(i);
 				delete si;

@@ -42,7 +42,8 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure) :
 	m_availableBytes(0),
 	m_isChangeAvailableBytes(false),
 	m_exclChecks(false), // [+] IRainman fix.
-	m_message_count(0)
+	m_message_count(0),
+	m_is_hide_share(0)
 {
 	dcassert(p_HubURL == Text::toLower(p_HubURL));
 	const auto l_my_user = new User(ClientManager::getMyCID());

@@ -43,12 +43,18 @@ class FinishedFrame :
 	private:
 		void on(AddedDl, const FinishedItem* p_entry, bool p_is_sqlite) noexcept
 		{
-			PostMessage(WM_SPEAKER, SPEAK_ADD_LINE, (WPARAM)p_entry);
+			if (p_is_sqlite)
+				SendMessage(WM_SPEAKER, SPEAK_ADD_LINE, (WPARAM)p_entry);
+			else
+				PostMessage(WM_SPEAKER, SPEAK_ADD_LINE, (WPARAM)p_entry);
 		}
 		
 		void on(RemovedDl, const FinishedItem* p_entry, bool p_is_sqlite) noexcept // [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
 		{
-			PostMessage(WM_SPEAKER, SPEAK_REMOVE_LINE, (WPARAM)p_entry);
+			if (p_is_sqlite)
+				SendMessage(WM_SPEAKER, SPEAK_REMOVE_LINE, (WPARAM)p_entry);
+			else
+				PostMessage(WM_SPEAKER, SPEAK_REMOVE_LINE, (WPARAM)p_entry);
 		}
 };
 

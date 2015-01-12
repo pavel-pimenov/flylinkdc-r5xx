@@ -288,6 +288,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void load_transfer_history(eTypeTransfer p_type, int p_day);
 		void load_transfer_historgam(eTypeTransfer p_type, CFlyTransferHistogramArray& p_array);
 		void save_transfer_history(eTypeTransfer p_type, const FinishedItem* p_item);
+		void delete_transfer_history(const vector<__int64>& p_id_array);
 		
 		bool merge_mediainfo(const __int64 p_tth_id, const __int64 p_path_id, const string& p_file_name, const CFlyMediaInfo& p_media);
 #ifdef USE_REBUILD_MEDIAINFO

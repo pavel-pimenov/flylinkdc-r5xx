@@ -1567,7 +1567,7 @@ string Util::getFilenameForRenaming(const string& p_filename)
 	return outFilename;
 }
 //[+]FlylinkDC++ Team
-string Util::formatDigitalClock(const string &p_msg, const time_t p_t)
+string Util::formatDigitalClock(const string &p_msg, const time_t& p_t, bool p_is_gmt)
 {
 	/*
 	#ifdef _DEBUG
@@ -1576,7 +1576,7 @@ string Util::formatDigitalClock(const string &p_msg, const time_t p_t)
 	        dcdebug("\n\n\nUtil::formatDigitalClock called with curent time. Count = %d\n\n\n", ++l_count);
 	#endif
 	*/
-	tm* l_loc = localtime(&p_t);
+	tm* l_loc = p_is_gmt ? gmtime(&p_t) : localtime(&p_t);
 	if (!l_loc)
 	{
 		return Util::emptyString;

@@ -152,6 +152,9 @@ class CDMDebugFrame : private DebugManagerListener, public BASE_THREAD,
 		string m_sFilterIp;
 		string m_sFilterInclude;
 		string m_sFilterExclude;
+		StringTokenizer<string> m_IncludeTokens;
+		StringTokenizer<string> m_ExcludeTokens;
+		StringTokenizer<string> m_IPTokens;
 		
 		void on(DebugManagerListener::DebugEvent, const DebugTask& task) noexcept;
 };

@@ -304,7 +304,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		// [~] IRainman fix.
 		
 		void send(AdcCommand& c, const CID& to);
-		
+		static void upnp_error_force_passive();
 		void connect(const HintedUser& user, const string& p_token, bool p_is_force_passive, bool& p_is_active_client);
 		void privateMessage(const HintedUser& user, const string& msg, bool thirdPerson);
 		void userCommand(const HintedUser& user, const UserCommand& uc, StringMap& params, bool compatibility);

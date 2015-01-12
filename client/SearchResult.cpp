@@ -109,13 +109,13 @@ SearchResult::SearchResult(const UserPtr& aUser, Types aType, uint8_t aSlots, ui
 	slots     = aSlots;
 }
 
-SearchResult::SearchResult(Types aType, int64_t aSize, const string& aFile, const TTHValue& aTTH) :
+SearchResult::SearchResult(Types aType, int64_t aSize, const string& aFile, const TTHValue& aTTH, uint32_t aToken) :
 	SearchResultBaseTTH(aType, aSize, aFile, aTTH),
 	user(ClientManager::getMe_UseOnlyForNonHubSpecifiedTasks()),
 	m_is_tth_remembrance(false),
 	m_is_tth_download(false),
 	m_is_tth_check(false),
-	m_token(-1)
+	m_token(aToken)
 {
 	initSlot();
 	m_is_tth_share = aType == TYPE_FILE; // Constructor for ShareManager

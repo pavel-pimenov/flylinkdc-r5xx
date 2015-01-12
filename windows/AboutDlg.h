@@ -115,7 +115,7 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			    _T("jsoncpp 0.5.0\r\n")
 			    _T("miniupnpc ") _T(MINIUPNPC_VERSION) _T("\r\n")
 			    _T("ZenLib 0.4.30\r\n")
-			    _T("OpenSSL 1.0.1h\r\n") //SSLeay_version(SSLEAY_VERSION)
+			    _T("OpenSSL 1.0.1j\r\n") //SSLeay_version(SSLEAY_VERSION)
 			    _T("MediaInfoLib 0.7.72\r\n")//MediaInfoLib::MediaInfo_Version _T("\r\n")
 			    _T("WTL 9.0\r\n")
 			    _T("XMLParser 2.43\r\n") //XMLParser::XMLNode::getVersion()

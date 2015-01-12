@@ -202,7 +202,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 			
 		dcdebug("Unknown NMDC command: %.50s\n", aLine.c_str());
 #ifdef FLYLINKDC_BETA
-		LogManager::getInstance()->message("Unknown NMDC command: = " + aLine);
+		LogManager::getInstance()->message("Unknown NMDC command: = " + aLine + " hub = " + getHubUrl());
 #endif
 		unsetFlag(FLAG_NMDC);
 	}

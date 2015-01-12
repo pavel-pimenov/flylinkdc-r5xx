@@ -707,7 +707,7 @@ void ConnectionManager::addCTM2HUB(const string& p_server_port)
 	{
 		const string l_message = "Duplicate message " + l_cmt2hub;
 #ifdef FLYLINKDC_BETA
-		LogManager::getInstance()->message(l_message);
+		// LogManager::getInstance()->message(l_message);
 #endif
 		CFlyServerAdapter::CFlyServerJSON::pushError(18, l_message);
 	}
@@ -727,7 +727,7 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 		{
 			const string l_cmt2hub = "Block CTM2HUB = " + aIPServer + ':' + Util::toString(aPort) + " HubInfo: " + p_HubInfo + " UserInfo: " + p_userInfo;
 #ifdef FLYLINKDC_BETA
-			LogManager::getInstance()->message(l_cmt2hub);
+			// LogManager::getInstance()->message(l_cmt2hub);
 #endif
 			LogManager::getInstance()->ddos_message(l_cmt2hub);
 			return true;

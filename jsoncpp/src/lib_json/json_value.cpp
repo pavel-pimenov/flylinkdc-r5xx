@@ -13,7 +13,6 @@
 #  include "json_batchallocator.h"
 # endif // #ifndef JSON_USE_SIMPLE_INTERNAL_ALLOCATOR
 #endif // if !defined(JSON_IS_AMALGAMATION)
-#include <math.h>
 #include <sstream>
 #include <utility>
 #include <stdexcept>

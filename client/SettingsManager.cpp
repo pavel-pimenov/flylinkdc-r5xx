@@ -425,6 +425,7 @@ const string SettingsManager::g_settingTags[] =
 	"SecurityAskOnShareFromShell", // [+] SSA
 	"PopupNewFolderShare", // [+] SSA
 	"MaxFinishedUploads", "MaxFinishedDownloads", // [+] IRainman
+	"DbLogFinishedUploads", "DbLogFinishedDownloads",
 	"PreviewServerPort", "PreviewServerSpeed", // [+] SSA
 	"PreviewUseVideoScroll", "PreviewClientAutoStart", // [+] SSA
 	"ProviderUseResources", // [+] SSA
@@ -1267,6 +1268,8 @@ void SettingsManager::setDefaults()
 	setDefault(POPUP_NEW_FOLDERSHARE, TRUE); // [+] SSA
 	setDefault(MAX_FINISHED_UPLOADS, 1000); // [+] IRainman
 	setDefault(MAX_FINISHED_DOWNLOADS, 1000); // [+] IRainman
+	setDefault(DB_LOG_FINISHED_UPLOADS, 365);
+	setDefault(DB_LOG_FINISHED_DOWNLOADS, 365);
 	// Preview
 	setDefault(INT_PREVIEW_SERVER_PORT, 550); // [+] SSA
 	setDefault(INT_PREVIEW_SERVER_SPEED, 500); // [+] SSA
@@ -1837,8 +1840,11 @@ bool SettingsManager::set(IntSetting key, int value)
 		case MINIMUM_SEARCH_INTERVAL:
 		{
 			VER_MIN(2);
+			VER_MAX(120);
 			break;
 		}
+		case DB_LOG_FINISHED_UPLOADS:
+		case DB_LOG_FINISHED_DOWNLOADS:
 		case MAX_FINISHED_UPLOADS:
 		case MAX_FINISHED_DOWNLOADS:
 		{

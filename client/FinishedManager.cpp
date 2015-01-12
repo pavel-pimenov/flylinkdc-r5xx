@@ -104,7 +104,10 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItemPtr& qi,
 	if (isFile || (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_DCLST_LIST) && BOOLSETTING(LOG_FILELIST_TRANSFERS)))
 	{
 		FinishedItem* item = new FinishedItem(qi->getTarget(), p_download->getHintedUser(), qi->getSize(), p_download->getRunningAverage(), GET_TIME(), qi->getTTH(), p_download->getUser()->getIPAsString());
-		CFlylinkDBManager::getInstance()->save_transfer_history(e_TransferDownload, item);
+		if (SETTING(DB_LOG_FINISHED_DOWNLOADS))
+		{
+			CFlylinkDBManager::getInstance()->save_transfer_history(e_TransferDownload, item);
+		}
 		rotation_items(item, e_Download);
 		fire(FinishedManagerListener::AddedDl(), item, false);
 		log(p_download->getUser()->getCID(), qi->getTarget(), STRING(FINISHED_DOWNLOAD));
@@ -124,7 +127,10 @@ void FinishedManager::on(UploadManagerListener::Complete, const Upload* u) noexc
 		PLAY_SOUND(SOUND_UPLOADFILE);
 		
 		FinishedItem* item = new FinishedItem(u->getPath(), u->getHintedUser(), u->getFileSize(), u->getRunningAverage(), GET_TIME(), u->getTTH(), u->getUser()->getIPAsString());
-		CFlylinkDBManager::getInstance()->save_transfer_history(e_TransferUpload, item);
+		if (SETTING(DB_LOG_FINISHED_UPLOADS))
+		{
+			CFlylinkDBManager::getInstance()->save_transfer_history(e_TransferUpload, item);
+		}
 		rotation_items(item, e_Upload);
 		fire(FinishedManagerListener::AddedUl(), item, false);
 	}

@@ -1908,9 +1908,9 @@ void CFlylinkDBManager::load_transfer_history(eTypeTransfer p_type, int p_day)
 		if (!m_select_transfer.get())
 			m_select_transfer = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
 			                                                                  "select path,"
-			                                                                  "strftime('%d.%m.%Y %H:%M:%S',stamp,'unixepoch'),"
-			                                                                  "strftime('%d.%m.%Y',day*60*60*24,'unixepoch'),"
-			                                                                  "nick,hub,size,speed,stamp,ip,tth "
+			                                                                  // "strftime('%d.%m.%Y %H:%M:%S',stamp,'unixepoch'),"
+			                                                                  // "strftime('%d.%m.%Y',day*60*60*24,'unixepoch'),"
+			                                                                  "nick,hub,size,speed,stamp,ip,tth,id "
 			                                                                  "from transfer_db.fly_transfer_file where type=? and day=?"));
 		m_select_transfer->bind(1, p_type);
 		m_select_transfer->bind(2, p_day);
@@ -1918,20 +1918,49 @@ void CFlylinkDBManager::load_transfer_history(eTypeTransfer p_type, int p_day)
 		while (l_q.read())
 		{
 			FinishedItem* item = new FinishedItem(l_q.getstring(0),
-			                                      l_q.getstring(3),
-			                                      l_q.getstring(4),
+			                                      l_q.getstring(1),
+			                                      l_q.getstring(2),
+			                                      l_q.getint64(3),
+			                                      l_q.getint64(4),
 			                                      l_q.getint64(5),
-			                                      l_q.getint64(6),
-			                                      l_q.getint64(7),
-			                                      TTHValue(l_q.getstring(9)),
-			                                      l_q.getstring(8)
+			                                      TTHValue(l_q.getstring(7)),
+			                                      l_q.getstring(6),
+			                                      l_q.getint64(8)
 			                                     );
 			FinishedManager::getInstance()->pushHistoryFinishedItem(item, p_type);
 		}
+		FinishedManager::getInstance()->updateStatus();
 	}
 	catch (const database_error& e)
 	{
 		errorDB("SQLite - load_transfer_history: " + e.getError());
+	}
+}
+//========================================================================================================
+void CFlylinkDBManager::delete_transfer_history(const vector<__int64>& p_id_array)
+{
+	dcassert(!p_id_array.empty());
+	if (!p_id_array.empty())
+	{
+		try
+		{
+			sqlite3_transaction l_trans(m_flySQLiteDB);
+			Lock l(m_cs);
+			if (!m_delete_transfer.get())
+				m_delete_transfer = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
+				                                                                  "delete from transfer_db.fly_transfer_file where id=?"));
+			for (auto i = p_id_array.cbegin(); i != p_id_array.cend(); ++i)
+			{
+				dcassert(*i);
+				m_delete_transfer->bind(1, *i);
+				m_delete_transfer.get()->executenonquery();
+			}
+			l_trans.commit();
+		}
+		catch (const database_error& e)
+		{
+			errorDB("SQLite - delete_transfer_history: " + e.getError());
+		}
 	}
 }
 //========================================================================================================

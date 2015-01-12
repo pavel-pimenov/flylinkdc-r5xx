@@ -36,7 +36,7 @@ static const string NotFoundHeader = "HTTP/1.0 404 Not Found\r\n";
 
 WebServerManager* Singleton<WebServerManager>::instance = nullptr;
 
-WebServerManager::WebServerManager(void) : started(false), page404(nullptr), sended_search(false), m_token(0)
+WebServerManager::WebServerManager(void) : started(false), page404(nullptr), sended_search(false), m_search_token(0)
 {
 	SettingsManager::getInstance()->addListener(this);
 }
@@ -982,12 +982,12 @@ void WebServerManager::search(string search_str, Search::TypeModes search_type)
 			search_str = g_tth + search_str; // [!] IRainman opt.
 		}
 		
-		m_token = Util::rand();
+		m_search_token = Util::rand();
 		
 		SearchManager::getInstance()->addListener(this);
 		// TODO: Get ADC searchtype extensions if any is selected
 		const StringList emptyList;
-		const uint64_t l_searchInterval = SearchManager::getInstance()->search(emptyList, search_str, 0, search_type, Search::SIZE_DONTCARE, m_token, emptyList, (void*)this, false);
+		const uint64_t l_searchInterval = SearchManager::getInstance()->search(emptyList, search_str, 0, search_type, Search::SIZE_DONTCARE, m_search_token, emptyList, (void*)this, false);
 		search_delay = Util::toString(l_searchInterval / 1000 + 15);
 		//Lock l(cs);
 		results.clear();
@@ -1002,7 +1002,7 @@ void WebServerManager::on(SearchManagerListener::SR, const SearchResultPtr& aRes
 {
 	{
 		FastLock l(cs);
-		if (!aResult->getToken() && m_token != aResult->getToken())
+		if (!aResult->getToken() && m_search_token != aResult->getToken())
 			return;
 			
 		if (row < static_cast<size_t>SETTING(WEBSERVER_SEARCHSIZE))

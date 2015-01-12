@@ -784,7 +784,7 @@ string Socket::resolve(const string& aDns)
 	static string g_last_resolve;
 	if (!g_last_resolve.empty())
 	{
-		dcassert(g_last_resolve != aDns);
+		// TODO dcassert(g_last_resolve != aDns);
 	}
 	g_last_resolve = aDns;
 #endif

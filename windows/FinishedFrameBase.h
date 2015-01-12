@@ -61,8 +61,9 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		FinishedFrameBase(eTypeTransfer p_transfer_type) :
 			m_transfer_type(p_transfer_type),
 			m_is_crrent_tree_node(false),
-			totalBytes(0),
-			totalSpeed(0),
+			m_totalBytes(0),
+			m_totalSpeed(0),
+			m_totalCount(0),
 			m_type(FinishedManager::e_Download) ,
 			m_treeContainer(WC_TREEVIEW, this, FINISHED_TREE_MESSAGE_MAP),
 			m_listContainer(WC_LISTVIEW, this, FINISHED_LIST_MESSAGE_MAP)
@@ -166,7 +167,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		LRESULT onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 		{
 			CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);
-			ctrlStatus.Attach(m_hWndStatusBar);
+			m_ctrlStatus.Attach(m_hWndStatusBar);
 			
 			ctrlList.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 			                WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS | LVS_SINGLESEL, WS_EX_CLIENTEDGE, id);
@@ -306,6 +307,9 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		{
 			NMTREEVIEW* p = (NMTREEVIEW*) pnmh;
 			m_is_crrent_tree_node = false;
+			m_totalBytes = 0;
+			m_totalSpeed = 0;
+			m_totalCount = 0;
 			if (p->itemNew.state & TVIS_SELECTED)
 			{
 				CWaitCursor l_cursor_wait;
@@ -382,17 +386,20 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				case SPEAK_ADD_LINE: //  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=77059
 				{
 					FinishedItem* entry = reinterpret_cast<FinishedItem*>(lParam);
-					addFinishedEntry(entry, m_is_crrent_tree_node); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=110193 + http://www.flickr.com/photos/96019675@N02/11199325634/
-					if (SettingsManager::get(boldFinished))
+					addFinishedEntry(entry, m_is_crrent_tree_node); // https://drdump.com/UploadedReport.aspx?DumpID=3064705 https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=110193 + http://www.flickr.com/photos/96019675@N02/11199325634/
+					if (entry->getID() == 0)
 					{
-						setDirty(1);
+						if (SettingsManager::get(boldFinished))
+						{
+							setDirty(1);
+						}
+						updateStatus();
 					}
-					updateStatus();
 				}
 				break;
 				case SPEAK_REMOVE_LINE: // [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
 				{
-					//if(m_is_crrent_tree_node)
+					if (m_is_crrent_tree_node)
 					{
 						FinishedItem* entry = reinterpret_cast<FinishedItem*>(lParam);
 						const int l_cnt = ctrlList.GetItemCount();
@@ -410,42 +417,71 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 					}
 				}
 				break;
+				case SPEAK_UPDATE_STATUS:
+				{
+					updateStatus();
+					break;
+				}
 			}
 			return 0;
 		}
 		
 		LRESULT onRemove(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
-			if (m_is_crrent_tree_node)
+			switch (wID)
 			{
-				switch (wID)
+				case IDC_REMOVE:
 				{
-					case IDC_REMOVE:
+					int i = -1, p = -1;
+					while ((i = ctrlList.GetNextItem(-1, LVNI_SELECTED)) != -1)
 					{
-						int i = -1, p = -1;
-						while ((i = ctrlList.GetNextItem(-1, LVNI_SELECTED)) != -1)
+						FinishedItemInfo *ii = ctrlList.getItemData(i);
+						if (!m_is_crrent_tree_node)
+						{
+							vector<__int64> l_id;
+							l_id.push_back(ii->entry->getID());
+							CFlylinkDBManager::getInstance()->delete_transfer_history(l_id);
+						}
+						else
+						{
+							m_totalSpeed -= ii->entry->getAvgSpeed();
+							FinishedManager::getInstance()->removeItem(ii->entry, m_type);
+						}
+						m_totalBytes -= ii->entry->getSize();
+						m_totalCount--;
+						safe_delete(ii->entry);
+						ctrlList.DeleteItem(i);
+						delete ii;
+						p = i;
+					}
+					ctrlList.SelectItem((p < ctrlList.GetItemCount() - 1) ? p : ctrlList.GetItemCount() - 1);
+					updateStatus();
+					break;
+				}
+				case IDC_TOTAL:
+				{
+					CWaitCursor l_cursor_wait;
+					if (!m_is_crrent_tree_node)
+					{
+						const int l_cnt = ctrlList.GetItemCount();
+						vector<__int64> l_id;
+						for (int i = 0; i < l_cnt; ++i)
 						{
 							FinishedItemInfo *ii = ctrlList.getItemData(i);
-							totalBytes -= ii->entry->getSize();
-							totalSpeed -= ii->entry->getAvgSpeed();
-							FinishedManager::getInstance()->removeItem(ii->entry, m_type);
-							safe_delete(ii->entry);
-							ctrlList.DeleteItem(i);
-							delete ii;
-							p = i;
+							l_id.push_back(ii->entry->getID());
 						}
-						ctrlList.SelectItem((p < ctrlList.GetItemCount() - 1) ? p : ctrlList.GetItemCount() - 1);
-						updateStatus();
-						break;
+						CFlylinkDBManager::getInstance()->delete_transfer_history(l_id);
 					}
-					case IDC_TOTAL:
-					
-						ctrlList.DeleteAndCleanAllItems(); // [!] IRainman
+					else
+					{
 						FinishedManager::getInstance()->removeAll(m_type);
-						totalBytes = 0;
-						totalSpeed = 0;
-						updateStatus();
-						break;
+					}
+					ctrlList.DeleteAndCleanAllItems(); // [!] IRainman
+					m_totalBytes = 0;
+					m_totalSpeed = 0;
+					m_totalCount = 0;
+					updateStatus();
+					break;
 				}
 			}
 			return 0;
@@ -611,17 +647,17 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			// position bars and offset their dimensions
 			UpdateBarsPosition(rect, bResizeBars);
 			
-			if (ctrlStatus.IsWindow())
+			if (m_ctrlStatus.IsWindow())
 			{
 				CRect sr;
 				int w[4];
-				ctrlStatus.GetClientRect(sr);
+				m_ctrlStatus.GetClientRect(sr);
 				w[3] = sr.right - 16;
 				w[2] = max(w[3] - 100, 0);
 				w[1] = max(w[2] - 100, 0);
 				w[0] = max(w[1] - 100, 0);
 				
-				ctrlStatus.SetParts(4, w);
+				m_ctrlStatus.SetParts(4, w);
 			}
 			
 			CRect rc(rect);
@@ -640,6 +676,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		{
 			SPEAK_ADD_LINE,
 			SPEAK_REMOVE_LINE, // [+] IRainman
+			SPEAK_UPDATE_STATUS
 			/* TODO
 			SPEAK_REMOVE,
 			SPEAK_REMOVE_ALL,
@@ -686,7 +723,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		};
 		
 		
-		CStatusBarCtrl ctrlStatus;
+		CStatusBarCtrl m_ctrlStatus;
 		CMenu ctxMenu;
 		CMenu copyMenu;
 		
@@ -700,8 +737,9 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		HTREEITEM               m_CurrentItem;
 		HTREEITEM               m_HistoryItem;
 		
-		int64_t totalBytes;
-		int64_t totalSpeed;
+		int64_t m_totalBytes;
+		int64_t m_totalSpeed;
+		int64_t m_totalCount;
 		
 		FinishedManager::eType m_type;
 		SettingsManager::IntSetting boldFinished;
@@ -715,16 +753,15 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		
 		void addStatusLine(const tstring& aLine)
 		{
-			ctrlStatus.SetText(0, (Text::toT(Util::getShortTimeString()) + _T(' ') + aLine).c_str());
+			m_ctrlStatus.SetText(0, (Text::toT(Util::getShortTimeString()) + _T(' ') + aLine).c_str());
 		}
 		
 		void updateStatus()
 		{
-			const int l_listCount = ctrlList.GetItemCount();
-			ctrlStatus.SetText(1, (Util::toStringW(l_listCount) + _T(' ') + TSTRING(ITEMS)).c_str());
-			ctrlStatus.SetText(2, Util::formatBytesW(totalBytes).c_str());
-			ctrlStatus.SetText(3, (Util::formatBytesW(l_listCount > 0 ? totalSpeed / l_listCount : 0) + _T('/') + WSTRING(S)).c_str());
-			setCountMessages(l_listCount);
+			m_ctrlStatus.SetText(1, (Util::toStringW(m_totalCount) + _T(' ') + TSTRING(ITEMS)).c_str());
+			m_ctrlStatus.SetText(2, Util::formatBytesW(m_totalBytes).c_str());
+			m_ctrlStatus.SetText(3, (Util::formatBytesW(m_totalCount > 0 ? m_totalSpeed / m_totalCount : 0) + _T('/') + WSTRING(S)).c_str());
+			setCountMessages(m_totalCount);
 		}
 		
 		void updateList(const FinishedItemList& fl)
@@ -740,15 +777,19 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		void addFinishedEntry(FinishedItem* p_entry, bool p_ensure_visible)
 		{
 			const auto *ii = new FinishedItemInfo(p_entry);
-			totalBytes += p_entry->getSize();
-			totalSpeed += p_entry->getAvgSpeed();
+			m_totalBytes += p_entry->getSize();
+			m_totalSpeed += p_entry->getAvgSpeed();
+			m_totalCount++;
 			const int loc = ctrlList.insertItem(ii, ii->getImageIndex()); // fix I_IMAGECALLBACK https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=47103
 			if (p_ensure_visible)
 			{
 				ctrlList.EnsureVisible(loc, FALSE);
 			}
 		}
-		
+		void on(UpdateStatus) noexcept
+		{
+			SendMessage(WM_SPEAKER, SPEAK_UPDATE_STATUS, (WPARAM)nullptr);
+		}
 		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 		{
 			dcassert(!ClientManager::isShutdown());

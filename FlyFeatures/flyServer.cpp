@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2013 FlylinkDC++ Team http://flylinkdc.com/
+ * Copyright (C) 2011-2015 FlylinkDC++ Team http://flylinkdc.com/
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,9 +26,7 @@
 #include "../client/Socket.h"
 #include "../client/ClientManager.h"
 #include "../client/ShareManager.h"
-#include "../client/LogManager.h"
 #include "../client/SimpleXML.h"
-//#include "../client/StringTokenizer.h"
 #include "../client/CompatibilityManager.h"
 #include "../client/Wildcards.h"
 #ifdef PPA_INCLUDE_IPGUARD
@@ -81,6 +79,7 @@ StringSet CFlyServerConfig::g_exclude_tag;
 boost::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_log;
 boost::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_syslog;
 std::vector<CServerItem> CFlyServerConfig::g_mirror_read_only_servers;
+std::vector<CServerItem> CFlyServerConfig::g_mirror_test_port_servers;
 CServerItem CFlyServerConfig::g_main_server;
 uint16_t CFlyServerAdapter::CFlyServerQueryThread::g_minimal_interval_in_ms  = 2000; 
 
@@ -120,6 +119,39 @@ StringSet CFlyServerConfig::g_custom_compress_ext;
 StringSet CFlyServerConfig::g_block_share_name;
 StringList CFlyServerConfig::g_block_share_mask;
 extern ::tstring g_full_user_agent;
+//======================================================================================================
+const CServerItem& CFlyServerConfig::getStatServer()
+{
+	return g_stat_server;
+}
+//======================================================================================================
+const CServerItem& CFlyServerConfig::getTestPortServer()
+{
+	return g_test_port_server;
+}
+//======================================================================================================
+const std::vector<CServerItem>& CFlyServerConfig::getMirrorTestPortServerArray()
+{
+	dcassert(!g_mirror_test_port_servers.empty());
+	if (g_mirror_test_port_servers.empty())
+	{
+		g_mirror_test_port_servers.push_back(g_test_port_server);
+	}
+    return g_mirror_test_port_servers;
+}
+//======================================================================================================
+const CServerItem& CFlyServerConfig::getRandomMirrorServer(bool p_is_set)
+{
+	if(p_is_set == false && !g_mirror_read_only_servers.empty())
+	{
+	 const int l_id = Util::rand(g_mirror_read_only_servers.size());
+	 return g_mirror_read_only_servers[l_id];
+	}
+	else // Вернем пишущий сервер
+	{
+		return g_main_server;
+	}
+}
 //======================================================================================================
 bool CFlyServerConfig::isErrorSysLog(unsigned p_error_code)
 {
@@ -165,19 +197,6 @@ bool CFlyServerConfig::isSupportFile(const string& p_file_ext, uint64_t p_size) 
 {
 	dcassert(!m_scan.empty()); // TODO: fix CFlyServerConfig::loadConfig() in debug.
 	return p_size > m_min_file_size && m_scan.find(p_file_ext) != m_scan.end(); // [!] IRainman opt.
-}
-//======================================================================================================
-CServerItem& CFlyServerConfig::getRandomMirrorServer(bool p_is_set)
-{
-	if(p_is_set == false && !g_mirror_read_only_servers.empty())
-	{
-	 const int l_id = Util::rand(g_mirror_read_only_servers.size());
-	 return g_mirror_read_only_servers[l_id];
-	}
-	else // Вернем пишущий сервер
-	{
-		return g_main_server;
-	}
 }
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 //======================================================================================================
@@ -452,6 +471,15 @@ void CFlyServerConfig::loadConfig()
 						if(l_port_pos != string::npos)
 							g_mirror_read_only_servers.push_back(CServerItem(n.substr(0, l_port_pos), atoi(n.c_str() + l_port_pos + 1)));
 					});
+					// Достанем зеркала серверов для тестов
+					l_xml.getChildAttribSplit("mirror_test_port_server", g_mirror_test_port_servers, [this](const string& n)
+					{
+						const auto l_port_pos = n.find(':');
+						if(l_port_pos != string::npos)
+							g_mirror_test_port_servers.push_back(CServerItem(n.substr(0, l_port_pos), atoi(n.c_str() + l_port_pos + 1)));
+					});
+          
+
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 					l_xml.getChildAttribSplit("exclude_tag_inform", m_exclude_tag_inform, [this](const string& n)
 					{
@@ -901,6 +929,23 @@ static void getDiskAndMemoryStat(Json::Value& p_info)
 	}
 }
 //======================================================================================================
+string CFlyServerAdapter::CFlyServerJSON::postQueryTestPort(CFlyLog& p_log,const string& p_body, bool& p_is_send, bool& p_is_error)
+{
+    string l_result;
+    const auto& l_server_array = CFlyServerConfig::getMirrorTestPortServerArray();
+    for(auto i=l_server_array.cbegin(); i!=l_server_array.cend() ;++i)
+    {
+      const auto& l_test_server = *i;
+      l_result = postQuery(false,false,true,true,true,"fly-test-port",p_body,p_is_send,p_is_error,1000, &l_test_server);
+      if(p_is_error == false && !l_result.empty())
+      {
+          break;
+      }
+	  p_log.step("Use next server: " + l_test_server.getServerAndPort());
+    }
+    return l_result;
+}
+//======================================================================================================
 bool CFlyServerAdapter::CFlyServerJSON::pushTestPort(const string& p_magic,
 		const std::vector<unsigned short>& p_udp_port,
 		const std::vector<unsigned short>& p_tcp_port,
@@ -935,7 +980,7 @@ bool CFlyServerAdapter::CFlyServerJSON::pushTestPort(const string& p_magic,
 		bool l_is_send = false;
 		bool l_is_error = false;
 		p_external_ip.clear();
-	    const auto l_result = postQuery(false,false,true,true,true,"fly-test-port",l_post_query,l_is_send,l_is_error,1000); // Без компрессии
+	  const auto l_result = postQueryTestPort(l_log, l_post_query,l_is_send,l_is_error);
     dcassert(!l_result.empty());
 		// TODO - приделать счетчик таймаута и передавать его в статистику или в след пакет?
 		if(!l_is_send)
@@ -1255,14 +1300,15 @@ string CFlyServerAdapter::CFlyServerJSON::postQuery(bool p_is_set,
 													const string& p_body,
 													bool& p_is_send,
 													bool& p_is_error,
-													DWORD p_time_out /*= 0*/)
+													DWORD p_time_out /*= 0*/,
+                          const CServerItem* p_server /*= nullptr */)
 {
 //  Thread::ConditionLockerWithSpin l(g_running);
     //dcassert(g_running == 1);
 	p_is_send = false;
 	p_is_error = false;
 	dcassert(!p_body.empty());
-	CServerItem& l_Server =	p_is_test_port_server ? CFlyServerConfig::getTestPortServer() :
+	CServerItem l_Server =	p_server ? *p_server : p_is_test_port_server ? CFlyServerConfig::getTestPortServer() :
 		                       p_is_stat_server ? CFlyServerConfig::getStatServer() : 
 	                        CFlyServerConfig::getRandomMirrorServer(p_is_set);
   dcassert(!l_Server.getIp().empty());
@@ -1270,7 +1316,7 @@ string CFlyServerAdapter::CFlyServerJSON::postQuery(bool p_is_set,
 	{
 		l_Server.setIp(g_debug_fly_server_url); // Перекрываем адрес флай-сервера для всех сервисов на отладочный
 	}
-	const string l_log_marker = "[" + l_Server.getIp() + ":" + Util::toString(l_Server.getPort()) + "]";
+	const string l_log_marker = "[" + l_Server.getServerAndPort() + "]";
 	CFlyLog l_fly_server_log(l_log_marker);
 #ifdef PPA_INCLUDE_IPGUARD
 	if (BOOLSETTING(ENABLE_IPGUARD) && IpGuard::isValidInstance()) 

@@ -262,6 +262,7 @@ int MappingManager::run()
 	{
 		log(STRING(UPNP_FAILED_TO_CREATE_MAPPINGS));
 		ConnectivityManager::getInstance()->mappingFinished(Util::emptyString);
+		ClientManager::upnp_error_force_passive();
 	}
 	
 	return 0;

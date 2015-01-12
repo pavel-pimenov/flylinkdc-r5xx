@@ -381,7 +381,7 @@ void NmdcHub::updateFromTag(Identity& id, const string & tag) // [!] IRainman op
 		{
 			FastLock l(NmdcSupports::g_debugCsUnknownNmdcTagParam);
 			NmdcSupports::g_debugUnknownNmdcTagParam[tag]++;
-			dcassert(0);
+			// dcassert(0);
 			// TODO - сброс ошибочных тэгов в качестве статы?
 		}
 #endif // FLYLINKDC_COLLECT_UNKNOWN_TAG
@@ -1512,6 +1512,8 @@ void NmdcHub::onLine(const string& aLine)
 		l_is_search = cmd == "Search"; // TODO - этого больше не будет - похерить
 		if (l_is_search)
 		{
+			if (getHideShare())
+				return;
 			dcassert(0);
 			l_is_passive = aLine.compare(8, 4, "Hub:", 4) == 0;
 #ifdef _DEBUG
@@ -1750,14 +1752,15 @@ void NmdcHub::hubMessage(const string& aMessage, bool thirdPerson)
 	send(fromUtf8Chat('<' + getMyNick() + "> " + escape(thirdPerson ? "/me " + aMessage : aMessage) + '|')); // IRAINMAN_USE_UNICODE_IN_NMDC
 }
 
-void NmdcHub::resendMyINFO(bool p_is_force_passive)
+bool NmdcHub::resendMyINFO(bool p_is_force_passive)
 {
 	if (p_is_force_passive)
 	{
-		if (m_modeChar == 'P' || !isActive())
-			return; // ”ходим из обновлени€ MyINFO - мы и так находимс€ в пассивном режиме
+		if (m_modeChar == 'P')
+			return false; // ”ходим из обновлени€ MyINFO - уже находимс€ в пассивном режиме
 	}
 	myInfo(false, p_is_force_passive);
+	return true;
 }
 
 void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)

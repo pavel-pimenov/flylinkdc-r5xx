@@ -185,6 +185,7 @@ MainFrame::MainFrame() :
 #endif
 	m_numberOfReadBytes(0),
 	m_maxnumberOfReadBytes(0),
+	statusContainer(STATUSCLASSNAME, this, STATUS_MESSAGE_MAP),
 	m_diff(GET_TICK()) // [!] IRainman fix.
 {
 	g_anyMF = this;
@@ -584,6 +585,8 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	int w[STATUS_PART_LAST - 1] = {0};
 	m_ctrlStatus.SetParts(STATUS_PART_LAST - 1, w);
 	m_statusSizes[0] = WinUtil::getTextWidth(TSTRING(AWAY_STATUS), m_ctrlStatus.m_hWnd);
+	
+	statusContainer.SubclassWindow(m_ctrlStatus.m_hWnd);
 	
 	RECT rect = {0};
 	ctrlHashProgress.Create(m_ctrlStatus, &rect, L"Hashing", WS_CHILD | PBS_SMOOTH, 0, IDC_STATUS_HASH_PROGRESS);
@@ -1707,7 +1710,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 		string* msg = (string*)lParam; // [!] IRainman opt
 		if (!m_closing && m_ctrlStatus.IsWindow())
 		{
-			const tstring line = Text::toT(Util::formatDigitalClock("[%H:%M:%S] ", GET_TIME()) + *msg);
+			const tstring line = Text::toT(Util::formatDigitalClock("[%H:%M:%S] ", GET_TIME(), false) + *msg);
 			m_ctrlStatus.SetText(STATUS_PART_MESSAGE, line.c_str());
 			
 			const tstring::size_type rpos = line.find(_T('\r'));
@@ -3407,6 +3410,12 @@ LRESULT MainFrame::onAppCommand(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam,
 
 LRESULT MainFrame::onAway(WORD , WORD , HWND, BOOL&)
 {
+	onAwayPush();
+	return 0;
+}
+
+void MainFrame::onAwayPush()
+{
 	if (Util::getAway())
 	{
 		setAwayButton(false);
@@ -3417,7 +3426,6 @@ LRESULT MainFrame::onAway(WORD , WORD , HWND, BOOL&)
 		setAwayButton(true);
 		Util::setAway(true);
 	}
-	return 0;
 }
 
 LRESULT MainFrame::onFoundNewVersion(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -3523,14 +3531,12 @@ LRESULT MainFrame::onLockToolbars(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 
 LRESULT MainFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };        // location of mouse click
-	
+	const POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };        // location of mouse click
 	if (reinterpret_cast<HWND>(wParam) == m_hWndToolBar)
 	{
 		tbMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 		return TRUE;
 	}
-	
 	if (reinterpret_cast<HWND>(wParam) == m_hWndStatusBar)      // SCALOlaz : use menus on status
 	{
 		// Get m_hWnd Mode (maximized, normal)
@@ -3584,6 +3590,26 @@ LRESULT MainFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BO
 	bHandled = FALSE;
 	return FALSE;
 }
+// [+] SCALOlaz
+LRESULT MainFrame::onContextMenuL(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	const POINT ptClient = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+#ifdef STRONG_USE_DHT
+	if (ptClient.x >= m_tabDHTRect.left && ptClient.x <= m_tabDHTRect.right)
+	{
+		onDHTPush();
+	}
+#endif
+	// AWAY area
+	if (ptClient.x >= m_tabAWAYRect.left && ptClient.x <= m_tabAWAYRect.right)
+	{
+		onAwayPush();
+	}
+	bHandled = FALSE;
+	return 0;
+}
+// end [+] SCALOlaz
+
 #ifdef SCALOLAZ_SPEEDLIMIT_DLG
 // Draw slider SpeedLimit for Upload & Download
 void MainFrame::QuerySpeedLimit(const SettingsManager::IntSetting l_limit_normal, int l_min_lim, int l_max_lim)
@@ -3765,12 +3791,17 @@ LRESULT MainFrame::OnFileSettingsWizard(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 #ifdef STRONG_USE_DHT
 LRESULT MainFrame::onCheckDHTStats(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */)
 {
+	onDHTPush();
+	return TRUE;
+}
+void MainFrame::onDHTPush()
+{
 	const bool l_currentDhtStateIsEnable = BOOLSETTING(USE_DHT);
 	if (!l_currentDhtStateIsEnable && !BOOLSETTING(USE_DHT_NOTANSWER))
 	{
 		if (MessageBox(CTSTRING(DHT_WARNING), CTSTRING(WARNING), MB_ICONWARNING | MB_YESNO | MB_DEFBUTTON1) != IDYES)
 		{
-			return TRUE;
+			return/* TRUE*/;
 		}
 	}
 	SET_SETTING(USE_DHT, !l_currentDhtStateIsEnable); // TODO - не поддерживается смена номера порта
@@ -3788,7 +3819,6 @@ LRESULT MainFrame::onCheckDHTStats(WORD /* wNotifyCode */, WORD /*wID*/, HWND /*
 	ConnectivityManager::getInstance()->setup(true);
 #endif
 	// ~ TODO: please fix me http://code.google.com/p/flylinkdc/issues/detail?id=1003
-	return TRUE;
 }
 #endif
 // [+] SSA

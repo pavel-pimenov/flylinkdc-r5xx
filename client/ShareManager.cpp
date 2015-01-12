@@ -2082,7 +2082,7 @@ if ((cur->empty()) &&
         (((aFileType == Search::TYPE_ANY) && sizeOk) || (aFileType == Search::TYPE_DIRECTORY)))
 {
 // We satisfied all the search words! Add the directory...(NMDC searches don't support directory size)
-SearchResultPtr sr(new SearchResult(SearchResult::TYPE_DIRECTORY, 0, getFullName(), TTHValue()));
+SearchResultPtr sr(new SearchResult(SearchResult::TYPE_DIRECTORY, 0, getFullName(), TTHValue(), -1 /*token*/));
 	aResults.push_back(sr);
 	ShareManager::incHits();
 }
@@ -2121,7 +2121,7 @@ for (auto i = m_files.cbegin(); i != m_files.cend(); ++i)
 		// Check file type...
 		if (checkType(i->getName(), aFileType))
 		{
-			SearchResultPtr sr(new SearchResult(SearchResult::TYPE_FILE, i->getSize(), getFullName() + i->getName(), i->getTTH()));
+			SearchResultPtr sr(new SearchResult(SearchResult::TYPE_FILE, i->getSize(), getFullName() + i->getName(), i->getTTH(), -1  /*token*/));
 			aResults.push_back(sr);
 			ShareManager::incHits();
 			if (aResults.size() >= maxResults)
@@ -2186,7 +2186,7 @@ void ShareManager::search(SearchResultList& aResults, const string& aString, Sea
 				const auto &l_fileMap = i->second; // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'i->second' expression repeatedly. sharemanager.cpp 2012
 				// TODO - для TTH сильно толстый объект  SearchResult
 				sr = new SearchResult(SearchResult::TYPE_FILE, l_fileMap->getSize(),
-				l_fileMap->getParent()->getFullName() + l_fileMap->getName(), l_fileMap->getTTH());
+				l_fileMap->getParent()->getFullName() + l_fileMap->getName(), l_fileMap->getTTH(), -1  /*token*/);
 				incHits();
 			}
 #ifdef FLYLINKDC_USE_COLLECT_STAT
@@ -2379,7 +2379,7 @@ bool sizeOk = (aStrings.gt == 0);
 if (cur->empty() && aStrings.m_exts.empty() && sizeOk)
 {
 // We satisfied all the search words! Add the directory...
-SearchResultPtr sr(new SearchResult(SearchResult::TYPE_DIRECTORY, getSizeL(), getFullName(), TTHValue()));
+SearchResultPtr sr(new SearchResult(SearchResult::TYPE_DIRECTORY, getSizeL(), getFullName(), TTHValue(), -1  /*token*/));
 	aResults.push_back(sr);
 	ShareManager::incHits();
 }
@@ -2413,7 +2413,7 @@ for (auto i = m_files.cbegin(); i != m_files.cend(); ++i)
 		{
 		
 			SearchResultPtr sr(new SearchResult(SearchResult::TYPE_FILE,
-			                                    i->getSize(), getFullName() + i->getName(), i->getTTH()));
+			                                    i->getSize(), getFullName() + i->getName(), i->getTTH(), -1  /*token*/));
 			aResults.push_back(sr);
 			ShareManager::incHits();
 			if (aResults.size() >= maxResults)
@@ -2448,7 +2448,7 @@ void ShareManager::search(SearchResultList& results, const StringList& params, S
 			const auto &l_fileMap = i->second; // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'i->second' expression repeatedly. sharemanager.cpp 2240
 			sr = new SearchResult(SearchResult::TYPE_FILE,
 			l_fileMap->getSize(), l_fileMap->getParent()->getFullName() + l_fileMap->getName(),
-			l_fileMap->getTTH());
+			l_fileMap->getTTH(), -1  /*token*/);
 			
 			incHits();
 		}

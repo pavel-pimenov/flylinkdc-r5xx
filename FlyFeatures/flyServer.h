@@ -30,6 +30,7 @@
 #include "../client/MerkleTree.h"
 #include "../client/Util.h"
 #include "../client/SettingsManager.h"
+#include "../client/LogManager.h"
 #include "../zlib/zlib.h"
 
 bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, const TTHValue& p_tth, bool p_force = false);
@@ -40,6 +41,10 @@ struct CServerItem
 {
 	CServerItem(const string& p_ip = Util::emptyString, const uint16_t p_port = 0) : m_ip(p_ip), m_port(p_port),m_time_response(0)
 	{
+	}
+	string getServerAndPort() const
+	{
+		return getIp() + ':' + Util::toString(getPort());
 	}
 	GETSET(string, m_ip, Ip);
 	GETSET(uint16_t, m_port, Port);
@@ -141,21 +146,18 @@ private:
  StringSet m_scan;  
 //
  static std::vector<CServerItem> g_mirror_read_only_servers;
+ static std::vector<CServerItem> g_mirror_test_port_servers;
  static CServerItem g_main_server;
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
  static CServerItem g_stat_server;
 #endif
  static CServerItem g_test_port_server;
 public:
-static CServerItem& getStatServer()
-{
-	return g_stat_server;
-}
-static CServerItem& getTestPortServer()
-{
-	return g_test_port_server;
-}
-static CServerItem& getRandomMirrorServer(bool p_is_set);
+static const CServerItem& getStatServer();
+static const CServerItem& getTestPortServer();
+static const std::vector<CServerItem>& getMirrorTestPortServerArray();
+
+static const CServerItem& getRandomMirrorServer(bool p_is_set);
 //
 bool isInit() const
 {
@@ -416,6 +418,7 @@ class CFlyServerAdapter
 			static void addDownloadCounter (const CFlyTTHKey& p_file);
 			static bool sendDownloadCounter();
 			static string connect(const CFlyServerKeyArray& p_fileInfoArray, bool p_is_fly_set_query, bool p_is_ext_info_for_single_file = false);
+			static string postQueryTestPort(CFlyLog& p_log, const string& p_body, bool& p_is_send, bool& p_is_error);		
 			static string postQuery(bool p_is_set, 
 				                    bool p_is_stat_server, 
 									bool p_is_test_port_server,
@@ -425,7 +428,8 @@ class CFlyServerAdapter
 									const string& p_body, 
 									bool& p_is_send,
 									bool& p_is_error,
-									DWORD p_time_out = 0);		
+									DWORD p_time_out = 0,
+                  const CServerItem* p_server = nullptr);		
     private:
         static ::CriticalSection g_cs_error_report;
         static string g_last_error_string;

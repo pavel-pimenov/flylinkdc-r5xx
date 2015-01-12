@@ -766,6 +766,8 @@ enum Strings   // @DontAdd
 	MATCH_QUEUE, // "Match queue"
 	MAX_FINISHED_DOWNLOADS, // "Max finished downloads"
 	MAX_FINISHED_UPLOADS, // "Max finished uploads"
+	DB_LOG_FINISHED_DOWNLOADS, // "Keep downloads (days)"
+	DB_LOG_FINISHED_UPLOADS, // "Keep uploads (days)"
 	MAX_HUBS, // "Max Hubs"
 	MAX_MSG_LENGTH, // "Max length"
 	MAX_RESIZE_LINES, // "Max resize lines"

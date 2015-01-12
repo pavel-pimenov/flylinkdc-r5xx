@@ -762,7 +762,26 @@ OnlineUser* ClientManager::findOnlineUserHintL(const CID& cid, const string& hin
 	
 	return nullptr;
 }
-
+void ClientManager::upnp_error_force_passive()
+{
+	CFlyLog l_log("[UPNP error]");
+	l_log.log("Foreach clients...");
+	webrtc::ReadLockScoped l(*g_csClients);
+	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
+	{
+		if (i->second->isConnected())
+		{
+			if (i->second->resendMyINFO(true))
+			{
+				l_log.log("Force passive mode for :" + i->second->getHubUrlAndIP());
+			}
+			else
+			{
+				l_log.log("Skip force passive mode for :" + i->second->getHubUrlAndIP());
+			}
+		}
+	}
+}
 void ClientManager::connect(const HintedUser& p_user, const string& p_token, bool p_is_force_passive, bool& p_is_active_client)
 {
 	p_is_active_client = false;
