@@ -54,6 +54,7 @@
 #include <boost/algorithm/string.hpp>
 
 bool ShareManager::g_isShutdown = false;
+bool ShareManager::g_ignoreFileSizeHFS = false; // http://www.flylinkdc.ru/2015/01/hfs-mac-windows.html
 size_t ShareManager::g_hits = 0;
 std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csShare = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csShareNotExists = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
@@ -1121,23 +1122,38 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 				const string l_PathAndFileName = aName + l_file_name;
 				if (stricmp(l_PathAndFileName, SETTING(TLS_PRIVATE_KEY_FILE)) == 0) // TODO - унести проверку в другое место.
 					continue;
-				const int64_t size = i->getSize();
+				const int64_t l_size = i->getSize();
 				const int64_t l_ts = i->getLastWriteTime();
 				CFlyDirMap::iterator l_dir_item = l_dir_map.find(l_lower_name);
 				bool l_is_new_file = l_dir_item == l_dir_map.end();
 				if (!l_is_new_file)
-					l_is_new_file = l_dir_item->second.m_size != size ||
-					                l_dir_item->second.m_TimeStamp != l_ts;
+				{
+					l_is_new_file = l_dir_item->second.m_TimeStamp != l_ts || (l_dir_item->second.m_size != l_size && g_ignoreFileSizeHFS == false);
+#if 0
+					if (l_is_new_file)
+					{
+						LogManager::getInstance()->message("[!!!!!!!!][1] bool l_is_new_file = l_dir_item == l_dir_map.end(); l_lower_name = " + l_lower_name + " name = " + l_file_name);
+						LogManager::getInstance()->message("[!!!!!!!!][1] l_dir_item->second.m_size = " + Util::toString(l_dir_item->second.m_size)
+						                                   + " size = " + Util::toString(l_size)
+						                                   + " l_dir_item->second.m_TimeStamp = " + Util::toString(l_dir_item->second.m_TimeStamp)
+						                                   + " l_ts = " + Util::toString(l_ts)
+						                                  );
+					}
+#endif
+				}
+				else
+				{
+					// LogManager::getInstance()->message("[!!!!!!!!][2] bool l_is_new_file = l_dir_item == l_dir_map.end(); l_lower_name = " + l_lower_name + " name = " + l_file_name);
+				}
 #ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
 				if (l_dir_item != l_dir_map.end())
 					l_dir_item_second.m_is_found = true;
 #endif
-					
 				try
 				{
 					if (l_is_new_file)
 					{
-						HashManager::getInstance()->hashFile(p_path_id, l_PathAndFileName, size);
+						HashManager::getInstance()->hashFile(p_path_id, l_PathAndFileName, l_size);
 					}
 					else
 					{

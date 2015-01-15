@@ -139,7 +139,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 		else if (param.compare(0, 7, "CTM2HUB", 7) == 0)
 		{
 			// https://github.com/Verlihub/verlihub-1.0.0/blob/4f5ad13b5aa6d5a3c2ec94262f7b7bf1b90fc567/src/cdcproto.cpp#L2358
-			ConnectionManager::getInstance()->addCTM2HUB(getServerPort());
+			ConnectionManager::getInstance()->addCTM2HUB(getServerPort(), getHintedUser());
 			fire(UserConnectionListener::ProtocolError(), this, param);
 		}
 		else

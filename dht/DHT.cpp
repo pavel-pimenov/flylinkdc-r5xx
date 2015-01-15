@@ -105,7 +105,7 @@ void DHT::test_dht_port()
 	string l_external_ip;
 	std::vector<unsigned short> l_udp_port, l_tcp_port;
 	l_udp_port.push_back(SETTING(DHT_PORT));
-	bool l_is_udp_port_send = CFlyServerAdapter::CFlyServerJSON::pushTestPort(ClientManager::getMyCID().toBase32(), l_udp_port, l_tcp_port, l_external_ip, 0);
+	bool l_is_udp_port_send = CFlyServerAdapter::CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0);
 	dcassert(l_is_udp_port_send);
 }
 void DHT::stop(bool exiting)

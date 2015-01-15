@@ -33,6 +33,7 @@
 #endif
 
 string MappingManager::g_externalIP;
+string MappingManager::g_defaultGatewayIP;
 
 MappingManager::MappingManager() : renewal(0), m_listeners_count(0)
 {
@@ -230,6 +231,8 @@ int MappingManager::run()
 		working = move(pMapper); // [IntelC++ 2012 beta2] warning #734: "std::unique_ptr<_Ty, _Dx>::unique_ptr(const std::unique_ptr<_Ty, _Dx>::_Myt &) [with _Ty=Mapper, _Dx=std::default_delete<Mapper>]" (declared at line 2347 of "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\memory"), required for copy that was eliminated, is inaccessible
 		
 		g_externalIP = mapper.getExternalIP();
+		bool l_is_wifi_router;
+		g_defaultGatewayIP = Socket::getDefaultGateWay(l_is_wifi_router);
 		if (!BOOLSETTING(NO_IP_OVERRIDE))
 		{
 			if (!g_externalIP.empty())

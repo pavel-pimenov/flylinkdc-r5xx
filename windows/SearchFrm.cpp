@@ -1252,7 +1252,7 @@ void SearchFrame::mergeFlyServerInfo()
 			string p_external_ip;
 			std::vector<unsigned short> l_udp_port, l_tcp_port;
 			l_udp_port.push_back(SETTING(UDP_PORT));
-			bool l_is_udp_port_send = CFlyServerAdapter::CFlyServerJSON::pushTestPort(ClientManager::getMyCID().toBase32(), l_udp_port, l_tcp_port, p_external_ip, 0);
+			bool l_is_udp_port_send = CFlyServerAdapter::CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, p_external_ip, 0);
 			if (l_is_udp_port_send)
 			{
 				SettingsManager::g_TestUDPSearchLevel = true;

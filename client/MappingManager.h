@@ -61,6 +61,14 @@ class MappingManager :
 		{
 			return g_externalIP;
 		}
+		static string getDefaultGatewayIP()
+		{
+			return g_defaultGatewayIP;
+		}
+		static string setDefaultGatewayIP(const string& p_ip)
+		{
+			return g_defaultGatewayIP = p_ip;
+		}
 	private:
 		friend class Singleton<MappingManager>;
 		
@@ -71,6 +79,7 @@ class MappingManager :
 		uint64_t renewal; /// when the next renewal should happen, if requested by the mapper.
 		int m_listeners_count;
 		static string g_externalIP;
+		static string g_defaultGatewayIP;
 		
 		MappingManager();
 		/*virtual*/

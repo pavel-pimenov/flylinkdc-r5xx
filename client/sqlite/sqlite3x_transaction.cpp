@@ -54,7 +54,7 @@ void sqlite3_transaction::begin() {
   else
   	intrans=false;
 
-  dcassert(con.sqlite3_get_autocommit() == 0)
+  dcassert(con.sqlite3_get_autocommit() == 0);
 }
 
 void sqlite3_transaction::commit() {

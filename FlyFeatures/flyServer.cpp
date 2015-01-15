@@ -29,6 +29,7 @@
 #include "../client/SimpleXML.h"
 #include "../client/CompatibilityManager.h"
 #include "../client/Wildcards.h"
+#include "../client/MappingManager.h"
 #ifdef PPA_INCLUDE_IPGUARD
 #include "../client/IpGuard.h"
 #endif
@@ -73,7 +74,6 @@ std::vector<DHTServer>	  CFlyServerConfig::g_dht_servers;
 DWORD CFlyServerConfig::g_winet_connect_timeout = 2000;
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 static volatile long g_running;
-CServerItem CFlyServerConfig::g_test_port_server;
 StringSet CFlyServerConfig::g_include_tag; 
 StringSet CFlyServerConfig::g_exclude_tag; 
 boost::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_log;
@@ -125,17 +125,12 @@ const CServerItem& CFlyServerConfig::getStatServer()
 	return g_stat_server;
 }
 //======================================================================================================
-const CServerItem& CFlyServerConfig::getTestPortServer()
-{
-	return g_test_port_server;
-}
-//======================================================================================================
 const std::vector<CServerItem>& CFlyServerConfig::getMirrorTestPortServerArray()
 {
 	dcassert(!g_mirror_test_port_servers.empty());
 	if (g_mirror_test_port_servers.empty())
 	{
-		g_mirror_test_port_servers.push_back(g_test_port_server);
+		g_mirror_test_port_servers.push_back(g_main_server);
 	}
     return g_mirror_test_port_servers;
 }
@@ -364,21 +359,6 @@ void CFlyServerConfig::loadConfig()
 						g_stat_server = g_main_server;
 					}
 #endif
-					// Предусматриваем альтернативный сервер тестирования портов
-					g_test_port_server.setIp(l_xml.getChildAttrib("test_server_ip")); 
-					if(!g_test_port_server.getIp().empty())
-					{
-						g_test_port_server.setPort(Util::toInt(l_xml.getChildAttrib("test_server_port")));
-						dcassert(g_test_port_server.getPort());
-						if(g_test_port_server.getPort() == 0)
-						{
-							g_test_port_server.setPort(g_main_server.getPort());
-						}
-					}
-					else
-					{
-						g_test_port_server = g_main_server;
-					}	
 					auto initUINT16 = [&](const string& p_name, uint16_t& p_value, uint16_t p_min) -> void
 					{
 						const string l_value = l_xml.getChildAttrib(p_name);
@@ -787,6 +767,17 @@ void CFlyServerAdapter::prepare_mediainfo_to_fly_serverL()
 	m_tth_media_file_map.clear();
 }
 //======================================================================================================
+static void initCIDPID(Json::Value& p_info)
+{
+		if(ClientManager::isValidInstance())
+		{
+			  p_info["CID"] = ClientManager::getMyCID().toBase32(); 
+			  p_info["PID"] = ClientManager::getMyPID().toBase32();
+		}
+		p_info["Client"] = Text::fromT(g_full_user_agent);
+
+}
+//======================================================================================================
 bool CFlyServerAdapter::CFlyServerJSON::login()
 {
   bool l_is_error = false;
@@ -795,8 +786,7 @@ bool CFlyServerAdapter::CFlyServerJSON::login()
 		CFlyLog l_log("[fly-login]");
 		Json::Value  l_root;   
 		Json::Value& l_info = l_root["login"];
-		l_info["CID"] = ClientManager::getMyCID().toBase32();
-		l_info["PID"] = ClientManager::getMyPID().toBase32();
+    initCIDPID(l_info);
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION
 		std::vector<std::string> l_lost_ip_array;
 		CFlylinkDBManager::getInstance()->get_lost_location(l_lost_ip_array);
@@ -812,7 +802,7 @@ bool CFlyServerAdapter::CFlyServerJSON::login()
 #endif
 		const std::string l_post_query = l_root.toStyledString();
 		bool l_is_send = false;
-		string l_result_query = postQuery(true,false,false,false,false,"fly-login",l_post_query,l_is_send,l_is_error);
+		string l_result_query = postQuery(true,false,false,false,"fly-login",l_post_query,l_is_send,l_is_error);
 		Json::Value l_result_root;
 		Json::Reader l_reader(Json::Features::strictMode());
 		const bool l_parsingSuccessful = l_reader.parse(l_result_query, l_result_root);
@@ -833,12 +823,7 @@ bool CFlyServerAdapter::CFlyServerJSON::login()
 }
 static void getDiskAndMemoryStat(Json::Value& p_info)
 {
-		if(ClientManager::isValidInstance())
-		{
-			  p_info["CID"] = ClientManager::getMyCID().toBase32(); 
-			  p_info["PID"] = ClientManager::getMyPID().toBase32();
-		}
-		p_info["Client"] = Text::fromT(g_full_user_agent);
+    initCIDPID(p_info);
 		p_info["OS"] = CompatibilityManager::getFormatedOsVersion();
 		p_info["CPUCount"] = CompatibilityManager::getProcessorsCount();
 		{
@@ -936,7 +921,7 @@ string CFlyServerAdapter::CFlyServerJSON::postQueryTestPort(CFlyLog& p_log,const
     for(auto i=l_server_array.cbegin(); i!=l_server_array.cend() ;++i)
     {
       const auto& l_test_server = *i;
-      l_result = postQuery(false,false,true,true,true,"fly-test-port",p_body,p_is_send,p_is_error,1000, &l_test_server);
+      l_result = postQuery(false,false,true,true,"fly-test-port",p_body,p_is_send,p_is_error,1000, &l_test_server);
       if(p_is_error == false && !l_result.empty())
       {
           break;
@@ -946,7 +931,7 @@ string CFlyServerAdapter::CFlyServerJSON::postQueryTestPort(CFlyLog& p_log,const
     return l_result;
 }
 //======================================================================================================
-bool CFlyServerAdapter::CFlyServerJSON::pushTestPort(const string& p_magic,
+bool CFlyServerAdapter::CFlyServerJSON::pushTestPort(
 		const std::vector<unsigned short>& p_udp_port,
 		const std::vector<unsigned short>& p_tcp_port,
 		string& p_external_ip,
@@ -954,7 +939,7 @@ bool CFlyServerAdapter::CFlyServerJSON::pushTestPort(const string& p_magic,
 {
 		CFlyLog l_log("[fly-test-port]");
 		Json::Value  l_info;   
-		l_info["CID"] = p_magic;
+    initCIDPID(l_info);
 		if(p_timer_value)
 		{
 			l_info["Interval"] = p_timer_value;
@@ -965,9 +950,9 @@ bool CFlyServerAdapter::CFlyServerJSON::pushTestPort(const string& p_magic,
 			{
 				auto& l_ports = l_info[p_key];
 				for(int i = 0;i < int(p_port.size()); ++i)
-		{
+		    {
 					l_ports[i]["port"] = p_port[i];
-			}
+			  }
 		}
 		};
 		initPort(p_udp_port,"udp");
@@ -976,6 +961,25 @@ bool CFlyServerAdapter::CFlyServerJSON::pushTestPort(const string& p_magic,
 		{
 		  l_info["ip"] = SETTING(BIND_ADDRESS);
 		}
+    dcassert(!MappingManager::getDefaultGatewayIP().empty());
+    if(!MappingManager::getDefaultGatewayIP().empty())
+    {
+        l_info["gateway_ip"] = MappingManager::getDefaultGatewayIP();
+    }
+    dcassert(!MappingManager::getExternaIP().empty());
+    if(!MappingManager::getExternaIP().empty())
+    {
+        l_info["router_ip"] = MappingManager::getExternaIP();
+    }
+    if(!g_fly_server_stat.m_upnp_router_name.empty())
+    {
+      l_info["router"] = g_fly_server_stat.m_upnp_router_name;
+    }
+    static unsigned g_count_test = 0;
+    if(g_count_test++)
+    {
+        l_info["count"] = g_count_test;
+    }
 		const std::string l_post_query = l_info.toStyledString();
 		bool l_is_send = false;
 		bool l_is_error = false;
@@ -1054,7 +1058,7 @@ bool CFlyServerAdapter::CFlyServerJSON::pushError(unsigned p_error_code, string 
 		l_info["Current"]  = Util::formatDigitalClock(time(nullptr));
 		getDiskAndMemoryStat(l_info);
 		const std::string l_post_query = l_info.toStyledString();
-	    postQuery(true,true,false,false,false,"fly-error-sql",l_post_query,l_is_send,l_is_error,2000);
+	    postQuery(true,true,false,false,"fly-error-sql",l_post_query,l_is_send,l_is_error,2000);
 		if(!l_is_send)
 		{
 			 // TODO Передача не удалась - скинем данные в файлы
@@ -1271,7 +1275,7 @@ bool CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
     {
 		if(BOOLSETTING(USE_FLY_SERVER_STATICTICS_SEND) && p_is_sync_run == false)
 		{
-		  postQuery(true,true,false,false,false,"fly-stat",l_post_query,l_is_send,l_is_error,500);
+		  postQuery(true,true,false,false,"fly-stat",l_post_query,l_is_send,l_is_error,500);
 		}
     }
     else
@@ -1293,7 +1297,6 @@ bool CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 //======================================================================================================
 string CFlyServerAdapter::CFlyServerJSON::postQuery(bool p_is_set, 
 													bool p_is_stat_server,
-													bool p_is_test_port_server,
 													bool p_is_disable_zlib_in,
 													bool p_is_disable_zlib_out,
 													const char* p_query, 
@@ -1308,9 +1311,7 @@ string CFlyServerAdapter::CFlyServerJSON::postQuery(bool p_is_set,
 	p_is_send = false;
 	p_is_error = false;
 	dcassert(!p_body.empty());
-	CServerItem l_Server =	p_server ? *p_server : p_is_test_port_server ? CFlyServerConfig::getTestPortServer() :
-		                       p_is_stat_server ? CFlyServerConfig::getStatServer() : 
-	                        CFlyServerConfig::getRandomMirrorServer(p_is_set);
+	CServerItem l_Server =	p_server ? *p_server : p_is_stat_server ? CFlyServerConfig::getStatServer() : CFlyServerConfig::getRandomMirrorServer(p_is_set);
   dcassert(!l_Server.getIp().empty());
 	if(!g_debug_fly_server_url.empty())
 	{
@@ -1472,7 +1473,7 @@ std::string l_hex_dump;
 						}
 						else
 						{
-							l_fly_server_log.step(" InternetReadFile - uncompress error! error = " + Util::toString(l_un_compress_result));
+							l_fly_server_log.step("InternetReadFile - uncompress error! error = " + Util::toString(l_un_compress_result));
 							dcassert(l_un_compress_result == Z_OK);
 						}
 						break;
@@ -1481,7 +1482,7 @@ std::string l_hex_dump;
 				    }
 					p_is_send = true;
 #ifdef _DEBUG
-					l_fly_server_log.step(" InternetReadFile Ok! size = " + Util::toString(l_result_query.size()));
+					l_fly_server_log.step("InternetReadFile Ok! size = " + Util::toString(l_result_query.size()));
 #endif
 				}
 				else
@@ -1543,7 +1544,7 @@ bool CFlyServerAdapter::CFlyServerJSON::sendDownloadCounter()
     bool l_is_send = false;
     if(l_count)
      {
-      postQuery(true, false, false, false, true,"fly-download",l_post_query,l_is_send,l_is_error,500);
+      postQuery(true, false, false, true,"fly-download",l_post_query,l_is_send,l_is_error,500);
      }
 	}
   if(l_is_error)
@@ -1744,7 +1745,7 @@ string CFlyServerAdapter::CFlyServerJSON::connect(const CFlyServerKeyArray& p_fi
    bool l_is_send = false;
    if(l_is_error == false)
    {
-   l_result_query = postQuery(p_is_fly_set_query, false, false, false, false, p_is_fly_set_query? "fly-set" : p_is_ext_info_for_single_file ? "fly-zget-full" : "fly-zget",l_post_query,l_is_send,l_is_error);
+   l_result_query = postQuery(p_is_fly_set_query, false, false, false, p_is_fly_set_query? "fly-set" : p_is_ext_info_for_single_file ? "fly-zget-full" : "fly-zget",l_post_query,l_is_send,l_is_error);
    }
 #endif
 

@@ -136,7 +136,7 @@ void CFlylinkDBManager::pragma_executor(const char* p_pragma)
 		l_sql += p_pragma;
 		l_sql += ';';
 		m_flySQLiteDB.executenonquery(l_sql);
-		LogManager::getInstance()->message("  [SQLite]" + l_sql, true);
+		LogManager::getInstance()->message("[SQLite] " + l_sql, true);
 	}
 }
 //========================================================================================================
@@ -166,17 +166,22 @@ string CFlylinkDBManager::getDBSizeInfo()
 		File::isExist(p_file_name, l_size, l_outFileTime);
 		return l_size;
 	};
-	const char* l_rnrn = "\r\n";
-	string l_message = "Database locations:\r\n";
-	for (int i = 0; i < _countof(g_db_file_names); ++i)
+	string l_message;
+	const auto l_path = Util::getConfigPath();
+	dcassert(!l_path.empty());
+	if (!l_path.empty())
 	{
-		const auto l_path = Util::getConfigPath();
-		l_message += "  * ";
-		l_message += l_path;
-		l_message += g_db_file_names[i];
-		const auto l_size = getFileSize(Text::toT(l_path) + _T("\\") + Text::toT(g_db_file_names[i]));
-		l_message += " (" + Util::formatBytes(l_size) + ")";
-		l_message += l_rnrn;
+		const char* l_rnrn = "\r\n";
+		l_message = "Database locations:\r\n";
+		for (int i = 0; i < _countof(g_db_file_names); ++i)
+		{
+			l_message += "  * ";
+			l_message += l_path;
+			l_message += g_db_file_names[i];
+			const auto l_size = getFileSize(Text::toT(l_path) + _T("\\") + Text::toT(g_db_file_names[i]));
+			l_message += " (" + Util::formatBytes(l_size) + ")";
+			l_message += l_rnrn;
+		}
 	}
 	return l_message;
 }
@@ -343,6 +348,8 @@ CFlylinkDBManager::CFlylinkDBManager()
 				        + " Error: " +  Util::translateError());
 			}
 		}
+		
+		LogManager::getInstance()->message(getDBSizeInfo(), true);
 		
 #ifdef IRAINMAN_SQLITE_USE_EXCLUSIVE_LOCK_MODE
 		if (BOOLSETTING(SQLITE_USE_EXCLUSIVE_LOCK_MODE))
@@ -1211,7 +1218,7 @@ void CFlylinkDBManager::flush_lost_json_statistic(bool& p_is_error)
 					const auto l_id = l_q.getint64(0);
 					const std::string l_post_query = l_q.getstring(1);
 					/*const std::string l_result =*/
-					CFlyServerAdapter::CFlyServerJSON::postQuery(true, true, false, false, false, "fly-stat", l_post_query, l_is_send, p_is_error); // [!] PVS V808 'l_result' object of 'basic_string' type was created but was not utilized. cflylinkdbmanager.cpp 545
+					CFlyServerAdapter::CFlyServerJSON::postQuery(true, true, false, false, "fly-stat", l_post_query, l_is_send, p_is_error); // [!] PVS V808 'l_result' object of 'basic_string' type was created but was not utilized. cflylinkdbmanager.cpp 545
 					if (p_is_error)
 						break;
 					if (l_is_send)

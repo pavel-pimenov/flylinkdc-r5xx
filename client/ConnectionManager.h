@@ -328,7 +328,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		std::map<CFlyDDOSkey, CFlyDDoSTick> m_ddos_map;
 		boost::unordered_set<string> m_ddos_ctm2hub; // $Error CTM2HUB
 	public:
-		void addCTM2HUB(const string& p_server_port);
+		void addCTM2HUB(const string& p_server_port, const HintedUser& p_hinted_user);
 	private:
 		boost::unordered_map<string, CFlyTTHTick> m_tth_duplicate_search;
 		

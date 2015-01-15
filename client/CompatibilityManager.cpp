@@ -527,7 +527,6 @@ void CompatibilityManager::generateSystemInfoForApp()
 	if (runningAnOldOS())
 		g_startupInfo += " - incompatible OS!";
 #endif
-	g_startupInfo += CFlylinkDBManager::getDBSizeInfo();
 	if (!CompatibilityManager::g_upnp_router_model.empty())
 	{
 		g_startupInfo += "Router model: " + CompatibilityManager::g_upnp_router_model;

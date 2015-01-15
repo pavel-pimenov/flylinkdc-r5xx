@@ -456,6 +456,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		bool m_isNeedsUpdateShareSize;
 		int64_t m_CurrentShareSize;
 		static bool g_isShutdown;
+		static bool g_ignoreFileSizeHFS;
 		//[~]IRainman
 		
 		BloomFilter<5> m_bloom;
@@ -513,7 +514,10 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		{
 			return g_isShutdown;
 		}
-		
+		static void setIgnoreFileSizeHFS()
+		{
+			g_ignoreFileSizeHFS = true;
+		}
 		bool isFileInSharedDirectoryL(const string& p_fname) const
 		{
 			return getDirectoryL(p_fname) != NULL;

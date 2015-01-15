@@ -2179,8 +2179,7 @@ void MainFrame::getIPupdate()
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	std::vector<unsigned short> l_udp_port, l_tcp_port;
 	// l_udp_port.push_back(SETTING(UDP_PORT));
-	bool l_is_udp_port_send = CFlyServerAdapter::CFlyServerJSON::pushTestPort(ClientManager::getMyCID().toBase32(), l_udp_port, l_tcp_port, l_external_ip,
-	                                                                          SETTING(IPUPDATE_INTERVAL));
+	bool l_is_udp_port_send = CFlyServerAdapter::CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, SETTING(IPUPDATE_INTERVAL));
 	if (l_is_udp_port_send && !l_external_ip.empty())
 	{
 		SET_SETTING(EXTERNAL_IP, l_external_ip);

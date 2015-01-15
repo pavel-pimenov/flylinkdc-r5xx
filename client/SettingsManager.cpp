@@ -1928,6 +1928,11 @@ bool SettingsManager::set(IntSetting key, int value)
 		case IPUPDATE_INTERVAL:
 		{
 			VERIFI(0, 86400);
+			if (value > 0 && value < 10)
+			{
+				value = 10;
+				l_auto = true;
+			}
 			break;
 		}
 		case WEBSERVER_SEARCHSIZE:

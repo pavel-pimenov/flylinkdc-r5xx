@@ -343,17 +343,13 @@ void NmdcHub::updateFromTag(Identity& id, const string & tag) // [!] IRainman op
 				// [~] IRainman fix.
 			}
 		}
-		// [+] IRainman fix: https://code.google.com/p/flylinkdc/issues/detail?id=1234
-#ifdef _DEBUG
-		else if (i->compare(0, 2, "O:", 2) == 0)
+		else if ((j = i->find("V:")) != string::npos ||
+		         (j = i->find("v:")) != string::npos // [+] IRainman fix: https://code.google.com/p/flylinkdc/issues/detail?id=1234
+		        )
 		{
-			// [?] TODO http://nmdc.sourceforge.net/NMDC.html#_tag
-		}
-#endif
-		// [~] IRainman fix.
-		else if ((j = i->find("V:")) != string::npos)
-		{
-			id.setStringParam("AP", i->substr(0, j - 1)); // [+] IRainman fix.
+			dcassert(j > 1);
+			if (j > 1)
+				id.setStringParam("AP", i->substr(0, j - 1));
 			id.setStringParam("VE", i->substr(j + 2));
 		}
 		else if ((j = i->find("L:")) != string::npos)
@@ -361,21 +357,23 @@ void NmdcHub::updateFromTag(Identity& id, const string & tag) // [!] IRainman op
 			const uint32_t l_limit = Util::toInt(i->c_str() + j + 2);
 			id.setLimit(l_limit * 1024);
 		}
-		// [+] IRainman fix: https://code.google.com/p/flylinkdc/issues/detail?id=1234
-		else if ((j = i->find("v:")) != string::npos)
-		{
-			id.setStringParam("AP", i->substr(0, j - 1));
-			id.setStringParam("VE", i->substr(j + 2));
-		}
 		else if ((j = i->find(' ')) != string::npos)
 		{
-			id.setStringParam("AP", i->substr(0, j - 1));
+			dcassert(j > 1);
+			if (j > 1)
+				id.setStringParam("AP", i->substr(0, j - 1));
 			id.setStringParam("VE", i->substr(j + 1));
 		}
 		else if ((j = i->find("++")) != string::npos)
 		{
 			id.setStringParam("AP", *i);
 		}
+		// [+] IRainman fix: https://code.google.com/p/flylinkdc/issues/detail?id=1234
+		else if (i->compare(0, 2, "O:", 2) == 0)
+		{
+			// [?] TODO http://nmdc.sourceforge.net/NMDC.html#_tag
+		}
+		// [~] IRainman fix.
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_TAG
 		else
 		{
@@ -1846,7 +1844,11 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 	                                ">$ $%s%c$%s$",
 	                                fromUtf8(getMyNick()).c_str(),
 	                                fromUtf8Chat(escape(getCurrentDescription())).c_str(),
-	                                (getClientName() + " V:" + getClientVersion()).c_str(), // [!] IRainman mimicry function.
+	                                (getClientName() + " V:" + getClientVersion()
+#ifndef FLYLINKDC_BETA
+	                                 + '-' + A_REVISION_NUM_STR
+#endif
+	                                ).c_str(), // [!] IRainman mimicry function.
 	                                l_modeChar,
 	                                currentCounts.c_str(),
 	                                UploadManager::getInstance()->getSlots(),

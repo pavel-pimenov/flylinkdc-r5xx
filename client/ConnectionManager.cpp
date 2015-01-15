@@ -696,16 +696,18 @@ bool ConnectionManager::checkTTHDuplicateSearch(const string& p_search_command, 
 	}
 	return false;
 }
-void ConnectionManager::addCTM2HUB(const string& p_server_port)
+void ConnectionManager::addCTM2HUB(const string& p_server_port, const HintedUser& p_hinted_user)
 {
 	webrtc::WriteLockScoped l_ddos(*g_csDdosCheck);
-	const string l_cmt2hub = "CTM2HUB = " + p_server_port;
+	dcassert(p_hinted_user.user);
+	
+	const string l_cmt2hub = "CTM2HUB = " + p_server_port + " <<= DDOS block from: " + p_hinted_user.hint + " User:" + (p_hinted_user.user ? p_hinted_user.user->getLastNick() : "null");
 	const auto l_res = m_ddos_ctm2hub.insert(Text::toLower(p_server_port));
 	CFlyServerAdapter::CFlyServerJSON::pushError(18, l_cmt2hub);
 	dcassert(l_res.second == true);
 	if (l_res.second == false)
 	{
-		const string l_message = "Duplicate message " + l_cmt2hub;
+		const string l_message = "Duplicate message: " + l_cmt2hub;
 #ifdef FLYLINKDC_BETA
 		// LogManager::getInstance()->message(l_message);
 #endif

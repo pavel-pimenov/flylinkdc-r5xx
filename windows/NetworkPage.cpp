@@ -158,7 +158,6 @@ LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	PropPage::translate((HWND)(*this), texts);
 	
 #ifndef IRAINMAN_IP_AUTOUPDATE
-	//::EnableWindow(GetDlgItem(IDC_GETIP), FALSE);
 	::EnableWindow(GetDlgItem(IDC_IPUPDATE), FALSE);
 #endif
 	
@@ -193,7 +192,6 @@ LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	m_IPHint.Create(m_hWnd, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP | TTS_BALLOON, WS_EX_TOPMOST);
 	m_IPHint.SetDelayTime(TTDT_AUTOPOP, 15000);
 	dcassert(m_IPHint.IsWindow());
-	
 	m_desc.Attach(GetDlgItem(IDC_PORT_TCP));
 	m_desc.LimitText(5);
 	m_desc.Detach();
@@ -224,20 +222,21 @@ LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	updateTestPortIcon(false);
 	//::SendMessage(m_hWnd, TDM_SET_BUTTON_ELEVATION_REQUIRED_STATE, IDC_ADD_FLYLINKDC_WINFIREWALL, true);
 	//SetButtonElevationRequiredState(IDC_ADD_FLYLINKDC_WINFIREWALL,);
+	WinUtil::GetWindowText(m_original_test_port_caption, GetDlgItem(IDC_GETIP));
 	
 	bool l_is_wifi_router;
-	const auto l_ip_gateway = Text::toT(Socket::getDefaultGateWay(l_is_wifi_router));
-	::SetWindowText(GetDlgItem(IDC_DEFAULT_GATEWAY_IP), l_ip_gateway.c_str());
+	const string l_gateway_ip = Socket::getDefaultGateWay(l_is_wifi_router);
+	MappingManager::setDefaultGatewayIP(l_gateway_ip);
+	const auto l_ip_gatewayT = Text::toT(l_gateway_ip);
+	::SetWindowText(GetDlgItem(IDC_DEFAULT_GATEWAY_IP), l_ip_gatewayT.c_str());
 	const auto l_ip_upnp = Text::toT(MappingManager::getExternaIP());
 	::SetWindowText(GetDlgItem(IDC_UPNP_EXTERNAL_IP), l_ip_upnp.c_str());
+	if (l_is_wifi_router)
 	{
-		if (l_is_wifi_router)
-		{
-			static HIconWrapper g_hWiFiRouterIco(IDC_WIFI_ROUTER_ICO, 48, 48);
-			GetDlgItem(IDC_WIFI_ROUTER_ICO).SendMessage(STM_SETICON, (WPARAM)(HICON)g_hWiFiRouterIco, 0L);
-		}
+		static HIconWrapper g_hWiFiRouterIco(IDC_WIFI_ROUTER_ICO, 48, 48);
+		GetDlgItem(IDC_WIFI_ROUTER_ICO).SendMessage(STM_SETICON, (WPARAM)(HICON)g_hWiFiRouterIco, 0L);
 	}
-	
+	runTestPort();
 	return TRUE;
 }
 
@@ -270,7 +269,6 @@ void NetworkPage::fixControls()
 	::EnableWindow(GetDlgItem(IDC_IP_GET_IP), !auto_detect && (upnp || nat)); //[+]PPA
 	::EnableWindow(GetDlgItem(IDC_OVERRIDE), !auto_detect && (direct || upnp || nat || nat_traversal));
 #ifdef IRAINMAN_IP_AUTOUPDATE
-	//::EnableWindow(GetDlgItem(IDC_GETIP), (upnp || nat));
 	::EnableWindow(GetDlgItem(IDC_IPUPDATE), (upnp || nat));
 #endif
 	const BOOL ipupdate = (upnp || nat) && (IsDlgButtonChecked(IDC_IPUPDATE) == BST_CHECKED);
@@ -300,6 +298,20 @@ void NetworkPage::updateTestPortIcon(bool p_is_wait)
 		if (!p_is_wait)
 		{
 			++m_count_test_port_tick;
+			if (m_test_port_flood)
+				--m_test_port_flood;
+			if (m_test_port_flood == 0)
+			{
+				::EnableWindow(GetDlgItem(IDC_GETIP), TRUE);
+				dcassert(!m_original_test_port_caption.empty());
+				if (!m_original_test_port_caption.empty())
+					::SetWindowText(GetDlgItem(IDC_GETIP), m_original_test_port_caption.c_str());
+			}
+			else if (!m_original_test_port_caption.empty())
+			{
+				const tstring l_caption = m_original_test_port_caption + _T(" (") + Text::toT(Util::toString(m_test_port_flood)) + _T(")");
+				::SetWindowText(GetDlgItem(IDC_GETIP), l_caption.c_str());
+			}
 		}
 		auto calcIconsIndex = [&](const int p_icon, const boost::logic::tribool & p_status)
 		{
@@ -420,12 +432,11 @@ void NetworkPage::TestWinFirewall()
 		SetStage(IDC_NETWORK_WINFIREWALL_ICO, StageQuestion);
 	}
 }
-LRESULT NetworkPage::onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */)
+bool NetworkPage::runTestPort()
 {
-	TestWinFirewall();
-	SettingsManager::testPortLevelInit();
-	updateTestPortIcon(true);
-	write();
+	m_test_port_flood = 10;
+	::EnableWindow(GetDlgItem(IDC_GETIP), FALSE);
+	WinUtil::GetWindowText(m_original_test_port_caption, GetDlgItem(IDC_GETIP));
 	string l_external_ip;
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	std::vector<unsigned short> l_udp_port, l_tcp_port;
@@ -438,21 +449,31 @@ LRESULT NetworkPage::onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndC
 	{
 		l_tcp_port.push_back(SETTING(TLS_PORT));
 	}
-	bool l_is_udp_port_send = CFlyServerAdapter::CFlyServerJSON::pushTestPort(ClientManager::getMyCID().toBase32(), l_udp_port, l_tcp_port, l_external_ip, 0);
+	const bool l_is_udp_port_send = CFlyServerAdapter::CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0);
 	if (l_is_udp_port_send)
 	{
 		SetDlgItemText(IDC_EXTERNAL_IP, Text::toT(l_external_ip).c_str());
 	}
-	else
-#endif // FLYLINKDC_USE_MEDIAINFO_SERVER
+	return l_is_udp_port_send;
+#else
+	return false;
+#endif
+}
+
+LRESULT NetworkPage::onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */)
+{
+	TestWinFirewall();
+	SettingsManager::testPortLevelInit();
+	updateTestPortIcon(true);
+	write();
+	if (!runTestPort())
 	{
-		const string& l_url = SETTING(URL_GET_IP);
+		const string l_url = SETTING(URL_GET_IP);
 		if (Util::isHttpLink(l_url))
 		{
 			CWaitCursor l_cursor_wait; //-V808
 			try
 			{
-				::EnableWindow(GetDlgItem(IDC_GETIP), FALSE);
 				fixControls();
 				auto l_ip = Util::getWANIP(l_url, 500);
 				if (!l_ip.empty())
@@ -465,7 +486,6 @@ LRESULT NetworkPage::onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndC
 				// TODO - сюда никогда не попадаем?
 				::MessageBox(NULL, Text::toT(e.getError()).c_str(), _T("SetIP Error!"), MB_OK | MB_ICONERROR);
 			}
-			::EnableWindow(GetDlgItem(IDC_GETIP), TRUE);
 		}
 		else
 		{

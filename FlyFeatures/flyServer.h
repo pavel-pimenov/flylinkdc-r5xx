@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2012 FlylinkDC++ Team http://flylinkdc.com/
+ * Copyright (C) 2011-2015 FlylinkDC++ Team http://flylinkdc.com/
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -139,9 +139,9 @@ private:
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION
  bool     m_collect_lost_location;
 #endif
- int8_t      m_zlib_compress_level;
- type_server   m_type;
- uint64_t m_min_file_size;
+ int8_t         m_zlib_compress_level;
+ type_server    m_type;
+ uint64_t       m_min_file_size;
  // TODO boost::flat_set
  StringSet m_scan;  
 //
@@ -151,7 +151,6 @@ private:
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
  static CServerItem g_stat_server;
 #endif
- static CServerItem g_test_port_server;
 public:
 static const CServerItem& getStatServer();
 static const CServerItem& getTestPortServer();
@@ -406,11 +405,10 @@ class CFlyServerAdapter
 #endif
 			static bool pushError(unsigned p_error_code, string p_error);
 		    static void pushSyslogError(const string& p_error);
-			static bool pushTestPort(const string& p_magic,		
-				const std::vector<unsigned short>& p_udp_port,
-				const std::vector<unsigned short>& p_tcp_port,
-				string& p_external_ip,
-				int p_timer_value);
+			static bool pushTestPort(const std::vector<unsigned short>& p_udp_port,
+                               const std::vector<unsigned short>& p_tcp_port,
+                               string& p_external_ip,
+                               int p_timer_value);
 			
 			// TODO static void logout();
 			static string g_fly_server_id;
@@ -420,8 +418,7 @@ class CFlyServerAdapter
 			static string connect(const CFlyServerKeyArray& p_fileInfoArray, bool p_is_fly_set_query, bool p_is_ext_info_for_single_file = false);
 			static string postQueryTestPort(CFlyLog& p_log, const string& p_body, bool& p_is_send, bool& p_is_error);		
 			static string postQuery(bool p_is_set, 
-				                    bool p_is_stat_server, 
-									bool p_is_test_port_server,
+				                      bool p_is_stat_server, 
 									bool p_is_disable_zlib_in, 
 									bool p_is_disable_zlib_out,
 									const char* p_query, 

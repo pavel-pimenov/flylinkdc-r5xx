@@ -38,7 +38,7 @@ class NetworkPage : public CPropertyPage<IDD_NETWORK_PAGE>, public PropPage
 		void SetStage(int ID, StagesIcon stage);
 		void TestWinFirewall();
 	public:
-		NetworkPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_NETWORK)), m_count_test_port_tick(0)
+		NetworkPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_NETWORK)), m_count_test_port_tick(0), m_test_port_flood(10)
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
@@ -91,13 +91,15 @@ class NetworkPage : public CPropertyPage<IDD_NETWORK_PAGE>, public PropPage
 		void updateTestPortIcon(bool p_is_wait);
 	private:
 		int m_count_test_port_tick;
+		int m_test_port_flood;
 		static Item items[];
 		static TextItem texts[];
 		CEdit m_desc;
 		CFlyToolTipCtrl m_IPHint;
 		CComboBox m_BindCombo;
 		void fixControls();
-		
+		bool runTestPort();
+		tstring m_original_test_port_caption;
 };
 
 #endif // !defined(NETWORK_PAGE_H)

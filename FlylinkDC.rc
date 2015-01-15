@@ -500,7 +500,7 @@ BEGIN
                     "Button",BS_AUTORADIOBUTTON | BS_MULTILINE | WS_TABSTOP,164,65,143,26
     GROUPBOX        "External / WAN IP/ Default gateway",IDC_SETTINGS_IP,9,90,186,43,BS_CENTER
     EDITTEXT        IDC_EXTERNAL_IP,12,99,71,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "Test port and get IP address",IDC_GETIP,195,163,112,14
+    PUSHBUTTON      "Test port and get IP address",IDC_GETIP,170,163,137,14
     EDITTEXT        IDC_IP_GET_IP,12,114,180,14,ES_AUTOHSCROLL
     GROUPBOX        "Ports",IDC_SETTINGS_PORTS,198,90,110,71,BS_CENTER
     LTEXT           "TCP",IDC_SETTINGS_PORT_TCP,220,100,15,8,NOT WS_GROUP
@@ -511,7 +511,7 @@ BEGIN
     EDITTEXT        IDC_PORT_TLS,240,129,44,14,ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "DHT/UDP",IDC_SETTINGS_PORT_DHT,204,145,31,8,0,WS_EX_RIGHT
     EDITTEXT        IDC_PORT_DHT,240,144,44,14,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Don't allow hub/UPnP to override",IDC_OVERRIDE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,167,169,10
+    CONTROL         "Don't allow hub/UPnP to override",IDC_OVERRIDE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,167,151,10
     CONTROL         "Work in passive mode if specified active mode not available (autodetect)",IDC_AUTODETECT,
                     "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,11,177,295,18
     CONTROL         "Allow NAT Traversal for connections with passive users",IDC_NATT,

@@ -495,6 +495,8 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		g_UseWALJournal = true;
 	if (_tcsstr(lpstrCmdLine, _T("/sqlite_synchronous_off")) != NULL)
 		g_UseSynchronousOff = true;
+	if (_tcsstr(lpstrCmdLine, _T("/hfs_ignore_file_size")) != NULL)
+		ShareManager::setIgnoreFileSizeHFS();
 		
 	const auto l_debug_fly_server_url = _tcsstr(lpstrCmdLine, _T("/debug_fly_server_url="));
 	if (l_debug_fly_server_url != NULL)
