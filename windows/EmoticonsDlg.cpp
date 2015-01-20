@@ -67,7 +67,7 @@ LRESULT EmoticonsDlg::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 	if (!g_MFCWndProc)
 		g_MFCWndProc = temp;
 	g_pDialog = this;
-	::EnableWindow(WinUtil::mainWnd, true);
+	::EnableWindow(WinUtil::g_mainWnd, true);
 	
 	bool bUseAnimation = BOOLSETTING(SMILE_SELECT_WND_ANIM_SMILES);
 	

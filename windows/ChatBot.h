@@ -10,7 +10,7 @@
 #pragma once
 
 #include "../client/User.h"
-#include "../chatbot/ChatBotAPI.h"
+#include "ChatBotAPI.h"
 
 // !SMT!-CB
 class ChatBot : public Singleton<ChatBot>

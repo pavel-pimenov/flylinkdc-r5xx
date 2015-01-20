@@ -715,7 +715,7 @@ void CFlyServerAdapter::post_message_for_update_mediainfo()
 					m_tth_media_file_map.clear();  // Если возникла ошибка передачи запроса на чтение, запись не шлем.
 				}
 				delete l_root;
-				LogManager::getInstance()->message("Failed to parse json configuration: l_json_result = " + l_json_result);
+				LogManager::message("Failed to parse json configuration: l_json_result = " + l_json_result);
 			}
 			else
 			{
@@ -975,6 +975,7 @@ bool CFlyServerAdapter::CFlyServerJSON::pushTestPort(
     {
       l_info["router"] = g_fly_server_stat.m_upnp_router_name;
     }
+    l_info["type"] = SETTING(INCOMING_CONNECTIONS);
     static unsigned g_count_test = 0;
     if(g_count_test++)
     {
@@ -1175,7 +1176,7 @@ bool CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 			}
 			// TODO l_stat_info["MaxUsers"] = 
 			l_stat_info["DBQueueSources"] = CFlylinkDBManager::getCountQueueSources();        
-			l_stat_info["FavUsers"]       = FavoriteManager::getInstance()->getCountFavsUsers();
+			l_stat_info["FavUsers"]       = FavoriteManager::getCountFavsUsers();
 			l_stat_info["Threads"]        = Thread::getThreadsCount();
 		}
 		// Статистика по временым меткам
@@ -1620,7 +1621,7 @@ string CFlyServerAdapter::CFlyServerJSON::connect(const CFlyServerKeyArray& p_fi
 	dcassert(i->m_file_size && !l_tth_base32.empty());
 	if(!i->m_file_size || l_tth_base32.empty())
 	{
-		LogManager::getInstance()->message("Error !i->m_file_size || l_tth_base32.empty(). i->m_file_size = " +
+		LogManager::message("Error !i->m_file_size || l_tth_base32.empty(). i->m_file_size = " +
 			        Util::toString(i->m_file_size) 
 					+ " l_tth_base32 = " + l_tth_base32 /*+ " i->m_file_name = " + i->m_file_name */);
 		continue;
@@ -1812,7 +1813,7 @@ string CFlyServerInfo::getMediaInfoAsText(const TTHValue& p_tth,int64_t p_file_s
 	if (!l_parsingSuccessful && !l_json_result.empty())
 	{
 		l_Infrom = l_json_result;
-		LogManager::getInstance()->message("Failed to parse json configuration: l_json_result = " + l_json_result);
+		LogManager::message("Failed to parse json configuration: l_json_result = " + l_json_result);
 	}
 	else
 	{
@@ -2147,7 +2148,7 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 		const string l_error = g_cur_mediainfo_file + " TTH:" + p_tth.toBase32() + " error: " + string(e.what());
 		CFlyServerAdapter::CFlyServerJSON::pushError(15, "error getmediainfo:" + l_error);
 		Util::setRegistryValueString(FLYLINKDC_REGISTRY_MEDIAINFO_CRASH_KEY, Text::toT(l_error));
-		LogManager::getInstance()->message("getMediaInfo: " + p_name + "TTH:" + p_tth.toBase32() + ' ' + STRING(ERROR_STRING) + ": " + string(e.what()));
+		LogManager::message("getMediaInfo: " + p_name + "TTH:" + p_tth.toBase32() + ' ' + STRING(ERROR_STRING) + ": " + string(e.what()));
 		char l_buf[4000];
 		l_buf[0] = 0;
 		sprintf_s(l_buf, _countof(l_buf), CSTRING(ERROR_MEDIAINFO_SCAN), p_name.c_str(), e.what());

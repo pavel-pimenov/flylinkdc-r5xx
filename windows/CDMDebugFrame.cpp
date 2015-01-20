@@ -218,7 +218,7 @@ void CDMDebugFrame::addLine(DebugTask& task)
 	}
 	
 	auto l_message = DebugTask::format(task);
-	LogManager::getInstance()->cmd_debug_message(l_message);
+	LogManager::cmd_debug_message(l_message);
 	l_message += "\r\n";
 	ctrlCMDPad.AppendText(Text::toT(l_message).c_str()); // [!] IRainman fix.
 	if (noscroll)

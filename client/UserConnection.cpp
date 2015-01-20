@@ -94,7 +94,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 		SettingsManager::g_TestTCPLevel = ClientManager::getMyCID().toBase32() == l_magic;
 		if (!SettingsManager::g_TestTCPLevel)
 		{
-			LogManager::getInstance()->message("Error magic value = " + l_magic);
+			LogManager::message("Error magic value = " + l_magic);
 		}
 	}
 	else if (cmd == "MyNick")
@@ -130,20 +130,13 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 				}
 			}
 		}
-		/*#ifdef IRAINMAN_ENABLE_AUTO_BAN
-		        else if (param.compare(0, 4, "BAN ", 4) == 0)   // !SMT!-B
-		        {
-		            fire(UserConnectionListener::BanMessage(), this, param); // !SMT!-B
-		        }
-		#endif*/
-		else if (param.compare(0, 7, "CTM2HUB", 7) == 0)
-		{
-			// https://github.com/Verlihub/verlihub-1.0.0/blob/4f5ad13b5aa6d5a3c2ec94262f7b7bf1b90fc567/src/cdcproto.cpp#L2358
-			ConnectionManager::getInstance()->addCTM2HUB(getServerPort(), getHintedUser());
-			fire(UserConnectionListener::ProtocolError(), this, param);
-		}
 		else
 		{
+			if (param.compare(0, 7, "CTM2HUB", 7) == 0)
+			{
+				// https://github.com/Verlihub/verlihub-1.0.0/blob/4f5ad13b5aa6d5a3c2ec94262f7b7bf1b90fc567/src/cdcproto.cpp#L2358
+				ConnectionManager::getInstance()->addCTM2HUB(getServerPort(), getHintedUser());
+			}
 			dcdebug("Unknown $Error %s\n", param.c_str());
 			fire(UserConnectionListener::ProtocolError(), this, param);
 		}
@@ -202,7 +195,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 			
 		dcdebug("Unknown NMDC command: %.50s\n", aLine.c_str());
 #ifdef FLYLINKDC_BETA
-		LogManager::getInstance()->message("Unknown NMDC command: = " + aLine + " hub = " + getHubUrl());
+		LogManager::message("Unknown NMDC command: = " + aLine + " hub = " + getHubUrl());
 #endif
 		unsetFlag(FLAG_NMDC);
 	}
@@ -393,7 +386,7 @@ void UserConnection::setUser(const UserPtr& aUser)
 	{
 		int limit;
 		FavoriteUser::MaskType l_flags;
-		if (FavoriteManager::getInstance()->getFavUserParam(aUser, l_flags, limit))
+		if (FavoriteManager::getFavUserParam(aUser, l_flags, limit))
 		{
 			setUploadLimit(limit);
 		}

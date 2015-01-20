@@ -52,7 +52,6 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 	public Thread, // TODO убрать наследование сократив размер класса и перевести на агрегацию (используется редко только для расчета ID_GET_TTH)
 	private CFlyTimerAdapter,
 	private QueueManagerListener,
-	private LogManagerListener,
 	private WebServerListener,
 	private UserManagerListener, // [+] IRainman
 	public AutoUpdateGUIMethod
@@ -546,6 +545,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		{
 			return g_anyMF;
 		}
+		static bool isAppMinimized(HWND p_hWnd);
 		static bool isAppMinimized()
 		{
 			return g_bAppMinimized;
@@ -688,7 +688,6 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		bool qtbarcreated; // [+]Drakon
 		
 		bool m_bTrayIcon;
-		uint8_t m_TuneSplitCount;
 		int tuneTransferSplit();
 		bool m_bIsPM;
 		static bool g_bAppMinimized;
@@ -786,15 +785,8 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		void autoConnect(const FavoriteHubEntry::List& fl);
 		
 		void setIcon(HICON newIcon); // !SMT!-UI
+		void storeWindowsPos();
 		
-		// LogManagerListener
-		void on(LogManagerListener::Message, const string& m) noexcept
-		{
-			if (TimerManager::g_isStartupShutdownProcess == false)
-			{
-				PostMessage(WM_SPEAKER, STATUS_MESSAGE, (LPARAM)new string(m)); // [!] IRainman opt //-V572
-			}
-		}
 		
 		// WebServerListener
 		void on(WebServerListener::Setup) noexcept;
@@ -870,7 +862,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 						}
 						catch (const ThreadException& e)
 						{
-							LogManager::getInstance()->message(e.getError());
+							LogManager::message(e.getError());
 							// TODO - сохранить такие вещи и скинуть как ошибку
 						}
 					}

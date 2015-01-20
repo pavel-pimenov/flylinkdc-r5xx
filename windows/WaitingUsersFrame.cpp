@@ -583,7 +583,7 @@ void WaitingUsersFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 
 void WaitingUsersFrame::on(UploadManagerListener::QueueUpdate) noexcept
 {
-	if (!MainFrame::isAppMinimized() && WinUtil::g_tabCtrl->isActive(m_hWnd)) // [+] IRainman opt.
+	if (!MainFrame::isAppMinimized(m_hWnd) && !isClosedOrShutdown()) // [+] IRainman opt.
 	{
 		m_tasks.add(UPDATE_ITEMS, nullptr);
 	}

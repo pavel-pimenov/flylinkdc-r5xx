@@ -138,7 +138,7 @@ void DownloadManager::addConnection(UserConnection* p_conn)
 	{
 		p_conn->error(STRING(YOUR_IP_IS_BLOCKED));
 		p_conn->getUser()->setFlag(User::PG_BLOCK);
-		LogManager::getInstance()->message("IPFilter: " + STRING(IPFILTER_BLOCK_OUT_CONNECTION) + ' ' + p_conn->getRemoteIp());
+		LogManager::message("IPFilter: " + STRING(IPFILTER_BLOCK_OUT_CONNECTION) + ' ' + p_conn->getRemoteIp());
 		QueueManager::getInstance()->removeSource(p_conn->getUser(), QueueItem::Source::FLAG_REMOVED);
 		removeConnection(p_conn);
 		return;
@@ -309,7 +309,7 @@ void DownloadManager::startData(UserConnection* aSource, int64_t start, int64_t 
 	}
 	catch (...)
 	{
-		LogManager::getInstance()->message("catch (...) Error new BufferedOutputStream<true> l_buf_size (Mb) = " + Util::toString(l_buf_size / 1024 / 1024) + " email: ppa74@ya.ru");
+		LogManager::message("catch (...) Error new BufferedOutputStream<true> l_buf_size (Mb) = " + Util::toString(l_buf_size / 1024 / 1024) + " email: ppa74@ya.ru");
 		delete d->getDownloadFile();
 		d->setDownloadFile(nullptr);
 		return;

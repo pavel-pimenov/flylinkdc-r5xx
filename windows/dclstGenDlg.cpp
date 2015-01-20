@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2013 FlylinkDC++ Team http://flylinkdc.com/
+ * Copyright (C) 2011-2015 FlylinkDC++ Team http://flylinkdc.com/
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -310,7 +310,7 @@ size_t DCLSTGenDlg::PackAndSave()
 	}
 	catch (const FileException& ex)
 	{
-		LogManager::getInstance()->message("DCLSTGenerator::File error = " + ex.getError() + " File = " + _mNameDCLST); // [!] IRainman fix.
+		LogManager::message("DCLSTGenerator::File error = " + ex.getError() + " File = " + _mNameDCLST); // [!] IRainman fix.
 		MessageBox(CTSTRING(DCLSTGEN_METAFILECANNOTBECREATED), CTSTRING(DCLSTGEN_TITLE), MB_OK | MB_ICONERROR);
 	}
 	

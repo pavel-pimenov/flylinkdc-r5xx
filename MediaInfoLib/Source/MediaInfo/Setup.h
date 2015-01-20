@@ -299,6 +299,20 @@
         #define MEDIAINFO_IBI 1
     #endif
 #endif
+#if !defined(MEDIAINFO_IBIUSAGE)
+    #if defined(MEDIAINFO_IBIUSAGE_NO) && defined(MEDIAINFO_IBIUSAGE_YES)
+        #undef MEDIAINFO_IBIUSAGE_NO //MEDIAINFO_IBIUSAGE_YES has priority
+    #endif
+    #if defined(MEDIAINFO_IBIUSAGE_NO)
+        #define MEDIAINFO_IBIUSAGE 0
+    #else
+        #if MEDIAINFO_ADVANCED2
+            #define MEDIAINFO_IBIUSAGE 1
+        #else //MEDIAINFO_ADVANCED2
+            #define MEDIAINFO_IBIUSAGE 0
+        #endif //MEDIAINFO_ADVANCED2
+    #endif
+#endif
 #if !defined(MEDIAINFO_READTHREAD)
     #if defined(MEDIAINFO_READTHREAD_NO) && defined(MEDIAINFO_READTHREAD_YES)
         #undef MEDIAINFO_READTHREAD_NO //MEDIAINFO_READTHREAD_YES has priority
@@ -770,6 +784,9 @@
 #endif
 #if !defined(MEDIAINFO_IMAGE_NO) && !defined(MEDIAINFO_BMP_NO) && !defined(MEDIAINFO_BMP_YES)
     #define MEDIAINFO_BMP_YES
+#endif
+#if !defined(MEDIAINFO_IMAGE_NO) && !defined(MEDIAINFO_BPG_NO) && !defined(MEDIAINFO_BPG_YES)
+    #define MEDIAINFO_BPG_YES
 #endif
 #if !defined(MEDIAINFO_IMAGE_NO) && !defined(MEDIAINFO_DDS_NO) && !defined(MEDIAINFO_DDS_YES)
     #define MEDIAINFO_DDS_YES

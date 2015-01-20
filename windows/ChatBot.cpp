@@ -113,7 +113,7 @@ bool ChatBot::botSendMessage2(int msgid, const WCHAR* objid, const void *param, 
 				}
 				else
 				{
-					UploadManager::getInstance()->unreserveSlot(HintedUser(user, Util::emptyString));
+					UploadManager::unreserveSlot(HintedUser(user, Util::emptyString));
 				}
 				return true;
 		}
@@ -199,7 +199,7 @@ WCHAR* ChatBot::onQueryUserByCid(const WCHAR* cid)
 	
 	FavoriteUser::MaskType l_flags;
 	int l_ul;
-	const bool isFav = FavoriteManager::getInstance()->getFavUserParam(user, l_flags, l_ul);
+	const bool isFav = FavoriteManager::getFavUserParam(user, l_flags, l_ul);
 	ps.addVariable(L"ISFAV", isFav ? L"1" : L"0");
 	if (isFav)
 	{
@@ -439,7 +439,7 @@ void ChatBot::onMessageV1(const Identity& myId, const Identity& msgFrom, const t
 	*/
 	FavoriteUser::MaskType l_flags;
 	int l_ul;
-	const bool isFav = FavoriteManager::getInstance()->getFavUserParam(msgFrom.getUser(), l_flags, l_ul);
+	const bool isFav = FavoriteManager::getFavUserParam(msgFrom.getUser(), l_flags, l_ul);
 	ps.addVariable(L"ISFAV", isFav ? L"1" : L"0");
 	if (isFav)
 	{

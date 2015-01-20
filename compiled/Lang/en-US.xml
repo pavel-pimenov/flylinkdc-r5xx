@@ -85,7 +85,7 @@ Are you sure to run another copy of program?</String>
 		<String Name="AlternatesSend">Searching TTH alternates for:</String>
 		<String Name="AlwaysAsk">Always perform this check</String>
 		<String Name="Any">Any</String>
-		<String Name="Antivirus">Antivirus</String>
+		<String Name="Antivirus">AVDB</String>
 		<String Name="AscrollChat">Autoscroll chat</String>
 		<String Name="Ask">Ask</String>
 		<String Name="AskSlot">Ask for slot</String>

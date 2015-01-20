@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2012 FlylinkDC++ Team http://flylinkdc.com/
+ * Copyright (C) 2011-2015 FlylinkDC++ Team http://flylinkdc.com/
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,14 +24,14 @@
 
 void FileRoadMap::AddSegment(int64_t pos, int64_t size)
 {
-// LogManager::getInstance()->message("[FileRoadMap::AddSegment] pos = " + Util::toString(pos) + " size = " + Util::toString(size));
+// LogManager::message("[FileRoadMap::AddSegment] pos = " + Util::toString(pos) + " size = " + Util::toString(size));
 	if (size == 0)
 		return;
 	// SSA calculate new pos and size
 	int64_t newPos = pos;
 	int64_t newSize = size;
 	const auto l_is_insertable = GetInsertableSizeAndPos(newPos, newSize);
-//	LogManager::getInstance()->message("[FileRoadMap::AddSegment] pos = " + Util::toString(pos) + " size = " + Util::toString(size) +
+//	LogManager::message("[FileRoadMap::AddSegment] pos = " + Util::toString(pos) + " size = " + Util::toString(size) +
 //										" newPos = " + Util::toString(newPos) + " newSize = " + Util::toString(newSize));
 	if(l_is_insertable)
 	{
@@ -41,7 +41,7 @@ void FileRoadMap::AddSegment(int64_t pos, int64_t size)
 	FastLock l(cs);
 	const auto l_res = m_map.insert(item);
 	dcassert(l_res.second == true);
-	//LogManager::getInstance()->message("[FileRoadMap::AddSegment] newPos = " + Util::toString(newPos) + " newSize = "  + 
+	//LogManager::message("[FileRoadMap::AddSegment] newPos = " + Util::toString(newPos) + " newSize = "  + 
 	//	                                Util::toString(newSize) + " l_res.second = " + Util::toString(l_res.second));
 }
 
@@ -52,7 +52,7 @@ bool FileRoadMap::IsAvaiable(int64_t pos, int64_t size)
 	int64_t newPos = pos;
 	int64_t newSize = size;
 	const auto l_res =  GetInsertableSizeAndPos(newPos, newSize);
-//	LogManager::getInstance()->message("[FileRoadMap::IsAvaiable] pos = " + Util::toString(pos) + " size = " + Util::toString(size) +
+//	LogManager::message("[FileRoadMap::IsAvaiable] pos = " + Util::toString(pos) + " size = " + Util::toString(size) +
 //										" newPos = " + Util::toString(newPos) + " newSize = " + Util::toString(newSize));
 	return l_res;
 }
@@ -60,7 +60,7 @@ bool FileRoadMap::IsAvaiable(int64_t pos, int64_t size)
 bool FileRoadMap::GetInsertableSizeAndPos(int64_t& pos, int64_t& size)
 {
 
-	//LogManager::getInstance()->message("[FileRoadMap::GetInsertableSizeAndPos] pos = " + Util::toString(pos) + " size = " + Util::toString(size));
+	//LogManager::message("[FileRoadMap::GetInsertableSizeAndPos] pos = " + Util::toString(pos) + " size = " + Util::toString(size));
 
 	if (pos + size > m_totalSize)
 		size = m_totalSize - pos;
@@ -73,19 +73,19 @@ bool FileRoadMap::GetInsertableSizeAndPos(int64_t& pos, int64_t& size)
 		{
 			size -= itemR.getLastPosition() - pos;
 			pos   = itemR.getLastPosition();
-			//LogManager::getInstance()->message("[FileRoadMap::GetInsertableSizeAndPos][1] pos = " + Util::toString(pos) + " size = " + Util::toString(size));
+			//LogManager::message("[FileRoadMap::GetInsertableSizeAndPos][1] pos = " + Util::toString(pos) + " size = " + Util::toString(size));
 			if (size <= 0)
 				break;
 		}
 		else if (itemR.getPosition() > pos && itemR.getLastPosition() <= pos + size)
 		{
 			size = itemR.getLastPosition() - pos;
-			//LogManager::getInstance()->message("[FileRoadMap::GetInsertableSizeAndPos][2] pos = " + Util::toString(pos) + " size = " + Util::toString(size));
+			//LogManager::message("[FileRoadMap::GetInsertableSizeAndPos][2] pos = " + Util::toString(pos) + " size = " + Util::toString(size));
 			if (size <= 0)
 				break;
 		}
 	}
-	//LogManager::getInstance()->message("[FileRoadMap::GetInsertableSizeAndPos][exit] pos = " + Util::toString(pos) + " size = " + Util::toString(size));
+	//LogManager::message("[FileRoadMap::GetInsertableSizeAndPos][exit] pos = " + Util::toString(pos) + " size = " + Util::toString(size));
 	return size <= 0;
 }
 

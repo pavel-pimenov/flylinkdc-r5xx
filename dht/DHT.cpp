@@ -408,7 +408,7 @@ void DHT::loadData()
 		 }
 		 catch (const FileException& e)
 		 {
- 		  LogManager::getInstance()->message("[dht][DHT::loadData] FileException [" + string(e.what()) + "]");
+ 		  LogManager::message("[dht][DHT::loadData] FileException [" + string(e.what()) + "]");
 		 }
 		 m_bucket->loadNodes(xml);
 	     l_log.step("loadNodes(dht.xml)");
@@ -425,7 +425,7 @@ void DHT::loadData()
 	}
 	catch (const Exception& e)
 	{
-		LogManager::getInstance()->message("[dht][DHT::loadData][Error] Exception [" + string(e.what()) + "]");
+		LogManager::message("[dht][DHT::loadData][Error] Exception [" + string(e.what()) + "]");
 		dcdebug("%s\n", e.what());
 	}
 }
@@ -616,12 +616,12 @@ void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t /*port*/, const
 			            try
 			            {
 			                string fileName = Util::getFileName(ShareManager::getInstance()->toVirtual(TTHValue(tth)));
-			                LogManager::getInstance()->message("DHT (" + fromIP + "): File published: " + fileName);//TODO translate
+			                LogManager::message("DHT (" + fromIP + "): File published: " + fileName);//TODO translate
 			            }
 			            catch (const ShareException&)
 			            {
 			                // published non-shared file??? Maybe partial file
-			                LogManager::getInstance()->message("DHT (" + fromIP + "): Partial file published: " + tth);//TODO translate
+			                LogManager::message("DHT (" + fromIP + "): Partial file published: " + tth);//TODO translate
 			
 			            }
 			#endif*/
@@ -679,13 +679,13 @@ void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t /*port*/, const
 				{
 					// we are probably firewalled, so our internal UDP port is unaccessible
 					if (externalIP != lastExternalIP || !m_firewalled)
-						LogManager::getInstance()->message("DHT: " + STRING(DHT_FIREWALLED_UDP) + " (IP: " + externalIP + ") port:" + externalUdpPort);
+						LogManager::message("DHT: " + STRING(DHT_FIREWALLED_UDP) + " (IP: " + externalIP + ") port:" + externalUdpPort);
 					m_firewalled = true;
 				}
 				else
 				{
 					if (externalIP != lastExternalIP || m_firewalled)
-						LogManager::getInstance()->message("DHT: " + STRING(DHT_OUR_UPD_PORT_OPEND) + " (IP: " + externalIP + ") port:" + externalUdpPort);
+						LogManager::message("DHT: " + STRING(DHT_OUR_UPD_PORT_OPEND) + " (IP: " + externalIP + ") port:" + externalUdpPort);
 						
 					m_firewalled = false;
 				}
@@ -709,7 +709,7 @@ void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t /*port*/, const
 	// display message in all other cases
 	//string msg = c.getParam(2);
 	//if(!msg.empty())
-	//  LogManager::getInstance()->message("DHT (" + fromIP + "): " + msg);
+	//  LogManager::message("DHT (" + fromIP + "): " + msg);
 }
 
 // partial file request
@@ -827,14 +827,14 @@ void DHT::handle(AdcCommand::SND, const string& ip, uint16_t port, const UDPKey&
 			}
 			if(l_tail_count_node)
 			{
-				LogManager::getInstance()->message("DHT::handle(AdcCommand::SND l_tail_count_node = " + Util::toString(l_tail_count_node));
+				LogManager::message("DHT::handle(AdcCommand::SND l_tail_count_node = " + Util::toString(l_tail_count_node));
 			}
 #endif
 			xml.stepOut();
 		}
 		catch (const SimpleXMLException& e)
 		{
-			LogManager::getInstance()->message("DHT::handle(AdcCommand::SND malformed node list = " + e.getError());
+			LogManager::message("DHT::handle(AdcCommand::SND malformed node list = " + e.getError());
 		}
 	}
 }

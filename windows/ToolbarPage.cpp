@@ -128,7 +128,9 @@ void ToolbarPage::write()
 	if (toolbar != settings->get(SettingsManager::TOOLBAR))
 	{
 		settings->set(SettingsManager::TOOLBAR, toolbar);
-		::SendMessage(WinUtil::mainWnd, IDC_REBUILD_TOOLBAR, 0, 0);
+		dcassert(WinUtil::g_mainWnd);
+		if (WinUtil::g_mainWnd)
+			::SendMessage(WinUtil::g_mainWnd, IDC_REBUILD_TOOLBAR, 0, 0);
 	}
 }
 

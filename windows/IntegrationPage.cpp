@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2013 FlylinkDC++ Team http://flylinkdc.com/
+ * Copyright (C) 2011-2015 FlylinkDC++ Team http://flylinkdc.com/
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -116,7 +116,7 @@ LRESULT IntegrationPage::OnClickedShellIntegrate(WORD /*wNotifyCode*/, WORD /*wI
 	CheckShellIntegration();
 	if (oldState == _isShellIntegration)
 	{
-		LogManager::getInstance()->message(STRING(INTEGRATION_SHELL_CANT_INTEGRATE));
+		LogManager::message(STRING(INTEGRATION_SHELL_CANT_INTEGRATE));
 	}
 	
 	

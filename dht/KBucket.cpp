@@ -168,7 +168,7 @@ Node::Ptr RoutingTable::addOrUpdate(const UserPtr& u, const string& ip, uint16_t
 			// try to get node from ClientManager (user can be online but not in our routing table)
 			// [-]PPA Отключил опасное преобразование типа OnlineUser нельзя расширить до наследника Node*
             // node = (Node*)ClientManager::findDHTNode(u->getCID()).get();
-			// LogManager::getInstance()->message("RoutingTable::addOrUpdate error node == nullptr && u->isOnline() - send email ppa74@ya.ru");
+			// LogManager::message("RoutingTable::addOrUpdate error node == nullptr && u->isOnline() - send email ppa74@ya.ru");
 			// dcassert(0);
 		}
 #endif		

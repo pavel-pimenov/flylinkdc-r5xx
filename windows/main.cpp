@@ -380,7 +380,7 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 			rc.right = rc.left + SETTING(MAIN_WINDOW_SIZE_X);
 			rc.bottom = rc.top + SETTING(MAIN_WINDOW_SIZE_Y);
 			// Now, let's ensure we have sane values here...
-			if ((rc.left < 0) || (rc.top < 0) || (rc.right - rc.left < 10) || ((rc.bottom - rc.top) < 10))
+			if ((rc.left < 0) || (rc.top < 0) || (rc.right - rc.left < 100) || ((rc.bottom - rc.top) < 100))
 			{
 				rc = wndMain.rcDefault;
 			}
@@ -575,7 +575,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	const bool l_is_create_wide = SettingsManager::getInstance()->LoadLanguage();
 	ResourceManager::startup(l_is_create_wide);
 	SettingsManager::getInstance()->setDefaults(); // !SMT!-S: allow localized defaults in string settings
-	LogManager::newInstance();
 	CreateSplash(); //[+]PPA
 	
 	g_fly_server_config.loadConfig();

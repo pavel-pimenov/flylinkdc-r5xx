@@ -544,11 +544,11 @@ void DirectoryListing::download(Directory* aDir, const string& aTarget, bool hig
 			}
 			catch (const QueueException& e)
 			{
-				LogManager::getInstance()->message("DirectoryListing::download - QueueException:" + e.getError());
+				LogManager::message("DirectoryListing::download - QueueException:" + e.getError());
 			}
 			catch (const FileException& e)
 			{
-				LogManager::getInstance()->message("DirectoryListing::download - FileException:" + e.getError());
+				LogManager::message("DirectoryListing::download - FileException:" + e.getError());
 			}
 		}
 	}
@@ -558,7 +558,7 @@ void DirectoryListing::download(const string& aDir, const string& aTarget, bool 
 {
 	if (aDir.size() <= 2)
 	{
-		LogManager::getInstance()->message("[error] DirectoryListing::download aDir.size() <= 2 aDir=" + aDir + " aTarget = " + aTarget);
+		LogManager::message("[error] DirectoryListing::download aDir.size() <= 2 aDir=" + aDir + " aTarget = " + aTarget);
 		return;
 	}
 	dcassert(aDir.size() > 2);
@@ -605,7 +605,7 @@ void DirectoryListing::logMatchedFiles(const UserPtr& p_user, int p_count) //[+]
 	// Util::toString(ClientManager::getNicks(p_user->getCID(), Util::emptyString)) падает https://www.crash-server.com/Problem.aspx?ClientID=ppa&Login=Guest&ProblemID=58736
 	// падаем со слов пользователей при клике на магнит в чате и выборе "Добавить в очередь для скачивания"
 	const string l_last_nick = p_user->getLastNick();
-	LogManager::getInstance()->message(l_last_nick + string(": ") + l_tmp.c_str());
+	LogManager::message(l_last_nick + string(": ") + l_tmp.c_str());
 }
 
 struct HashContained

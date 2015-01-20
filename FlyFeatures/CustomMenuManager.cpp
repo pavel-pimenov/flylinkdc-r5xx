@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2012 FlylinkDC++ Team http://flylinkdc.com/
+ * Copyright (C) 2011-2015 FlylinkDC++ Team http://flylinkdc.com/
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,7 +92,7 @@ void CustomMenuManager::load(/* SimpleXML&*/ /*aXml*/)
 		}
 		catch (const Exception& e)
 		{
-			LogManager::getInstance()->message(e.getError());
+			LogManager::message(e.getError());
 			clearList();
 		}
 	}

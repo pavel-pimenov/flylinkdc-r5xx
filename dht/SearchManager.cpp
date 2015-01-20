@@ -276,7 +276,7 @@ void SearchManager::processSearchRequest(const string& ip, uint16_t port, const 
 			Node::Map nodes;
 			if(term.size() != 39)
 			{
-				LogManager::getInstance()->dht_message("DHT - SearchManager::processSearchRequest Error term.size() != 39. term = " + term);
+				LogManager::dht_message("DHT - SearchManager::processSearchRequest Error term.size() != 39. term = " + term);
 			}
 			else
 			{

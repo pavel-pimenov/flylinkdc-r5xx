@@ -1433,7 +1433,6 @@
 #define IDC_PM_IGNORED                  2258
 #define IDC_PM_FREE                     2259
 #define IDC_ASK_SLOT                    2260
-#define IDC_BITZI_LOOKUP                2261
 #define IDC_DOWNLOAD                    2262
 #define IDC_DOWNLOADTO                  2263
 #define IDC_RECENTS                     2264

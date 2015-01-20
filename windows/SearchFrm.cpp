@@ -137,7 +137,7 @@ void SearchFrame::openWindow(const tstring& str /* = Util::emptyString */, LONGL
 {
 	SearchFrame* pChild = new SearchFrame();
 	pChild->setInitial(str, size, mode, type);
-	pChild->CreateEx(WinUtil::mdiClient);
+	pChild->CreateEx(WinUtil::g_mdiClient);
 	g_frames.insert(FramePair(pChild->m_hWnd, pChild));
 }
 
@@ -488,9 +488,6 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	copyMenu.AppendMenu(MF_STRING, IDC_COPY_LINK, CTSTRING(COPY_MAGNET_LINK));
 	copyMenu.AppendMenu(MF_STRING, IDC_COPY_FULL_MAGNET_LINK, CTSTRING(COPY_FULL_MAGNET_LINK));
 	copyMenu.AppendMenu(MF_STRING, IDC_COPY_WMLINK, CTSTRING(COPY_MLINK_TEMPL)); // !SMT!-UI
-#ifdef PPA_INCLUDE_BITZI_LOOKUP
-	copyMenu.AppendMenu(MF_STRING, IDC_BITZI_LOOKUP, CTSTRING(BITZI_LOOKUP));
-#endif
 	priorityMenu.AppendMenu(MF_STRING, IDC_PRIORITY_PAUSED, CTSTRING(PAUSED));
 	priorityMenu.AppendMenu(MF_STRING, IDC_PRIORITY_LOWEST, CTSTRING(LOWEST));
 	priorityMenu.AppendMenu(MF_STRING, IDC_PRIORITY_LOW, CTSTRING(LOW));
@@ -510,9 +507,6 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	resultsMenu.AppendMenu(MF_SEPARATOR);
 	resultsMenu.AppendMenu(MF_STRING, IDC_SEARCH_ALTERNATES, CTSTRING(SEARCH_FOR_ALTERNATES));
 	
-	#ifdef PPA_INCLUDE_BITZI_LOOKUP
-	resultsMenu.AppendMenu(MF_STRING, IDC_BITZI_LOOKUP, CTSTRING(BITZI_LOOKUP));
-	#endif
 	resultsMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)copyMenu, CTSTRING(COPY));
 	resultsMenu.AppendMenu(MF_SEPARATOR);
 	appendUserItems(resultsMenu, Util::emptyString); // TODO: hubhint
@@ -788,7 +782,7 @@ void SearchFrame::onEnter(bool p_is_force_passive)
 			{
 				if (!Util::isTTH(Text::toT(*si)))
 				{
-					LogManager::getInstance()->message("[Search] Error TTH format = " + *si);
+					LogManager::message("[Search] Error TTH format = " + *si);
 					m_ftype = Search::TYPE_ANY;
 					ctrlFiletype.SetCurSel(0);
 				}
@@ -993,7 +987,7 @@ void SearchFrame::on(SearchManagerListener::SR, const SearchResultPtr &aResult) 
 				const bool l_is_executable = ShareManager::checkType(l_ext, Search::TYPE_EXECUTABLE);
 				if (l_is_executable)
 				{
-					LogManager::getInstance()->message("Search: ignore virus result: " + aResult->getFileName() +
+					LogManager::message("Search: ignore virus result: " + aResult->getFileName() +
 					" Hub: " + aResult->getHubURL() + " Nick: " + aResult->getUser()->getLastNick());
 					// http://dchublist.ru/forum/viewtopic.php?p=22426#p22426
 					m_droppedResults++;
@@ -1011,7 +1005,7 @@ void SearchFrame::on(SearchManagerListener::SR, const SearchResultPtr &aResult) 
 				   )
 				{
 					m_droppedResults++;
-					// LogManager::getInstance()->message("Search: droppedResults: " + aResult->getFile());
+					// LogManager::message("Search: droppedResults: " + aResult->getFile());
 					// PostMessage(WM_SPEAKER, FILTER_RESULT);//[-]IRainman optimize SearchFrame
 					return;
 				}
@@ -1024,7 +1018,7 @@ void SearchFrame::on(SearchManagerListener::SR, const SearchResultPtr &aResult) 
 	char l_buf[1000] = {0};
 	sprintf(l_buf, "Name = %s, size = %lld Mb limit = %lld Mb m_sizeMode = %d\r\n",
 	        aResult->getFileName().c_str(), l_size, m_exactSize2, m_sizeMode);
-	LogManager::getInstance()->message(l_buf);
+	LogManager::message(l_buf);
 	dcdebug("Name = %s, size = %lld Mb limit = %lld Mb, m_sizeMode = %d\r\n",
 	        aResult->getFileName().c_str(), l_size / 1024 / 1024, m_exactSize2 / 1024 / 1024, m_sizeMode);
 #endif
@@ -1278,7 +1272,7 @@ void SearchFrame::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	if (!isClosedOrShutdown())
 	{
 		const auto l_tick = GET_TICK();
-		if (!MainFrame::isAppMinimized() && WinUtil::g_tabCtrl->isActive(m_hWnd)) // [+] IRainman opt.
+		if (!MainFrame::isAppMinimized(m_hWnd)) // [+] IRainman opt.
 		{
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 			const bool l_is_force_for_udp_test = boost::logic::indeterminate(SettingsManager::g_TestUDPSearchLevel);
@@ -1493,7 +1487,7 @@ void SearchFrame::SearchInfo::view()
 	}
 	catch (const Exception& e)
 	{
-		LogManager::getInstance()->message("Error SearchFrame::SearchInfo::view = " + e.getError());
+		LogManager::message("Error SearchFrame::SearchInfo::view = " + e.getError());
 	}
 }
 
@@ -2318,23 +2312,6 @@ LRESULT SearchFrame::onSearchByTTH(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 	return 0;
 }
 
-#ifdef PPA_INCLUDE_BITZI_LOOKUP
-
-LRESULT SearchFrame::onBitziLookup(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-{
-	if (ctrlResults.GetSelectedCount() == 1)
-	{
-		int i = ctrlResults.GetNextItem(-1, LVNI_SELECTED);
-		const SearchResultPtr& sr = ctrlResults.getItemData(i)->sr;
-		if (sr->getType() == SearchResult::TYPE_FILE)
-		{
-			WinUtil::bitziLink(sr->getTTH());
-		}
-	}
-	return 0;
-}
-#endif
-
 void SearchFrame::addSearchResult(SearchInfo * si)
 {
 	const SearchResultPtr sr = si->sr;
@@ -2505,9 +2482,6 @@ LRESULT SearchFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 			resultsMenu.AppendMenu(MF_SEPARATOR);
 			resultsMenu.AppendMenu(MF_STRING, IDC_SEARCH_ALTERNATES, CTSTRING(SEARCH_FOR_ALTERNATES));
 			
-#ifdef PPA_INCLUDE_BITZI_LOOKUP
-			resultsMenu.AppendMenu(MF_STRING, IDC_BITZI_LOOKUP, CTSTRING(BITZI_LOOKUP));
-#endif
 			resultsMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)copyMenu, CTSTRING(COPY));
 			resultsMenu.AppendMenu(MF_SEPARATOR);
 			appendAndActivateUserItems(resultsMenu);

@@ -145,7 +145,7 @@ string FinishedManager::log(const CID& p_CID, const string& p_path, const string
 		snprintf(&buf[0], BUF_SIZE, p_message.c_str(), l_file_name.c_str(),
 		         Util::toString(ClientManager::getNicks(p_CID, Util::emptyString)).c_str());
 		         
-		LogManager::getInstance()->message(&buf[0]);
+		LogManager::message(&buf[0]);
 	}
 	return l_file_name;
 }

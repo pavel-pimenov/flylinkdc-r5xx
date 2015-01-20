@@ -1126,7 +1126,7 @@ void File__ReferenceFilesHelper::ParseReference_Finalize ()
             ParseReference_Finalize_PerStream();
         }
 
-    if (!StreamFound && Sequences[Sequences_Current]->StreamKind!=Stream_Max && Sequences[Sequences_Current]->StreamPos!=(size_t)-1)
+    if (!StreamFound && Sequences[Sequences_Current]->StreamKind!=Stream_Max && Sequences[Sequences_Current]->StreamPos!=(size_t)-1 && Sequences[Sequences_Current]->MI->Info)
     {
         Ztring MuxingMode=MI->Retrieve(Sequences[Sequences_Current]->StreamKind, Sequences[Sequences_Current]->StreamPos, "MuxingMode");
         if (!MuxingMode.empty())
@@ -1559,7 +1559,7 @@ MediaInfo_Internal* File__ReferenceFilesHelper::MI_Create()
             default: ;
         }
     #endif //MEDIAINFO_DEMUX
-    #if MEDIAINFO_IBI
+    #if MEDIAINFO_IBIUSAGE
         if (!Sequences[Sequences_Current]->IbiStream.Infos.empty())
         {
             ibi Ibi;
@@ -1571,7 +1571,7 @@ MediaInfo_Internal* File__ReferenceFilesHelper::MI_Create()
             if (!IbiText.empty())
                 MI_Temp->Option(__T("File_Ibi"), IbiText);
         }
-    #endif //MEDIAINFO_IBI
+    #endif //MEDIAINFO_IBIUSAGE
 
     return MI_Temp;
 }

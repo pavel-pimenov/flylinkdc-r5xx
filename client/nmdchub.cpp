@@ -399,12 +399,12 @@ bool NmdcHub::NmdcPartialSearch(const string& aSeeker,
 		PartsInfo partialInfo;
 		TTHValue aTTH(aString.c_str() + 4);  //[+]FlylinkDC++ opt. //-V112
 #ifdef _DEBUG
-//		LogManager::getInstance()->message("[Try] handlePartialSearch TTH = " + aString);
+//		LogManager::message("[Try] handlePartialSearch TTH = " + aString);
 #endif
 		if (QueueManager::getInstance()->handlePartialSearch(aTTH, partialInfo)) // TODO - часто ищется по ТТХ
 		{
 #ifdef _DEBUG
-			LogManager::getInstance()->message("[OK] handlePartialSearch TTH = " + aString);
+			LogManager::message("[OK] handlePartialSearch TTH = " + aString);
 #endif
 			l_is_partial = true;
 			string ip, file, proto, query, fragment;
@@ -418,7 +418,7 @@ bool NmdcHub::NmdcPartialSearch(const string& aSeeker,
 				SearchManager::getInstance()->toPSR(cmd, true, getMyNick(), getIpPort(), aTTH.toBase32(), partialInfo);
 				Socket udp;
 				udp.writeTo(Socket::resolve(ip), port, cmd.toString(ClientManager::getMyCID())); // TODO - зачем тут resolve кроме IP может быть что-то другое?
-				LogManager::getInstance()->psr_message(
+				LogManager::psr_message(
 				    "[ClientManager::NmdcSearch Send UDP IP = " + ip +
 				    " param->udpPort = " + Util::toString(port) +
 				    " cmd = " + cmd.toString(ClientManager::getMyCID())
@@ -426,14 +426,14 @@ bool NmdcHub::NmdcPartialSearch(const string& aSeeker,
 			}
 			catch (Exception& e)
 			{
-				LogManager::getInstance()->psr_message(
+				LogManager::psr_message(
 				    "[Partial search caught error] Error = " + e.getError() +
 				    " IP = " + ip +
 				    " param->udpPort = " + Util::toString(port)
 				);
 				
 #ifdef _DEBUG
-				LogManager::getInstance()->message("ClientManager::on(NmdcSearch, Partial search caught error = " + e.getError() + " TTH = " + aString);
+				LogManager::message("ClientManager::on(NmdcSearch, Partial search caught error = " + e.getError() + " TTH = " + aString);
 				dcdebug("Partial search caught error\n");
 #endif
 			}
@@ -512,7 +512,7 @@ void NmdcHub::NmdcSearch(const string& aSeeker, Search::SizeModes aSizeMode, int
 			catch (Exception& e)
 			{
 #ifdef _DEBUG
-				LogManager::getInstance()->message("ClientManager::on(NmdcSearch, Search caught error= " + e.getError());
+				LogManager::message("ClientManager::on(NmdcSearch, Search caught error= " + e.getError());
 #endif
 				dcdebug("Search caught error = %s\n", + e.getError().c_str());
 			}
@@ -566,7 +566,7 @@ void NmdcHub::sendUDPSR(const CFlySearchItem& p_result, const Client* p_client)
 	catch (Exception& e)
 	{
 #ifdef _DEBUG
-		LogManager::getInstance()->message("ClientManager::on(NmdcSearch, Search caught error= " + e.getError());
+		LogManager::message("ClientManager::on(NmdcSearch, Search caught error= " + e.getError());
 #endif
 		dcdebug("Search caught error = %s\n", + e.getError().c_str());
 	}
@@ -637,7 +637,7 @@ void NmdcHub::searchParse(const string& param, bool p_is_passive)
 	if (j == string::npos || i == j)
 	{
 #ifdef FLYLINKDC_BETA
-		LogManager::getInstance()->message("Error [part 1] $Search command = " + param + " Hub: " + getHubUrl());
+		LogManager::message("Error [part 1] $Search command = " + param + " Hub: " + getHubUrl());
 #endif
 		return;
 	}
@@ -710,7 +710,7 @@ void NmdcHub::searchParse(const string& param, bool p_is_passive)
 	if (j == string::npos || i == j)
 	{
 #ifdef FLYLINKDC_BETA
-		LogManager::getInstance()->message("Error [part 4] $Search command = " + param + " Hub: " + getHubUrl());
+		LogManager::message("Error [part 4] $Search command = " + param + " Hub: " + getHubUrl());
 #endif
 		return;
 	}
@@ -728,7 +728,7 @@ void NmdcHub::searchParse(const string& param, bool p_is_passive)
 	if (j == string::npos || i == j)
 	{
 #ifdef FLYLINKDC_BETA
-		// LogManager::getInstance()->message("Error [part 5] $Search command = " + param + " Hub: " + getHubUrl());
+		// LogManager::message("Error [part 5] $Search command = " + param + " Hub: " + getHubUrl());
 #endif
 		return;
 	}
@@ -766,7 +766,7 @@ void NmdcHub::searchParse(const string& param, bool p_is_passive)
 			if (!isActive() && (!u->getUser()->isSet(User::NAT0) || !BOOLSETTING(ALLOW_NAT_TRAVERSAL)))
 			{
 #ifdef FLYLINKDC_BETA
-				//LogManager::getInstance()->message("Error [part 7] $Search command = " + param + " Hub: " + getHubUrl() +
+				//LogManager::message("Error [part 7] $Search command = " + param + " Hub: " + getHubUrl() +
 				//                                   "ignore if we or remote client don't support NAT traversal in passive mode although many NMDC hubs won't send us passive if we're in passive too, so just in case..."
 				//                                  );
 #endif
@@ -780,7 +780,7 @@ void NmdcHub::searchParse(const string& param, bool p_is_passive)
 	else
 	{
 #ifdef FLYLINKDC_BETA
-		// LogManager::getInstance()->message("Error [part 6] $Search command = " + param + " Hub: " + getHubUrl());
+		// LogManager::message("Error [part 6] $Search command = " + param + " Hub: " + getHubUrl());
 #endif
 	}
 }
@@ -1417,7 +1417,7 @@ void NmdcHub::toParse(const string& param)
 	const auto l_user_for_message = findUser(rtNick);
 	if (l_user_for_message == nullptr)
 	{
-		LogManager::getInstance()->flood_message("NmdcHub::onLine $To: invalid user - RoLex flood?: rtNick = " + rtNick + " param = " + param);
+		LogManager::flood_message("NmdcHub::onLine $To: invalid user - RoLex flood?: rtNick = " + rtNick + " param = " + param);
 		return;
 	}
 	i = j + 1;
@@ -1461,7 +1461,7 @@ void NmdcHub::toParse(const string& param)
 	if (message->m_to->getUser() == message->m_from->getUser() && message->m_from->getUser() == message->m_replyTo->getUser())
 	{
 		fire(ClientListener::StatusMessage(), this, message->m_text, ClientListener::FLAG_IS_SPAM);
-		LogManager::getInstance()->message("Magic spam message (from you to you) filtered on hub: " + getHubUrl() + ".");
+		LogManager::message("Magic spam message (from you to you) filtered on hub: " + getHubUrl() + ".");
 		return;
 	}
 	if (!allowPrivateMessagefromUser(*message)) // [+] IRainman fix.
@@ -1478,7 +1478,7 @@ void NmdcHub::onLine(const string& aLine)
 #ifdef _DEBUG
 //	if (aLine.find("$Search") == string::npos)
 //	{
-//		LogManager::getInstance()->message("[NmdcHub::onLine][" + getHubUrl() + "] aLine = " + aLine);
+//		LogManager::message("[NmdcHub::onLine][" + getHubUrl() + "] aLine = " + aLine);
 //	}
 #endif
 
@@ -1675,7 +1675,7 @@ void NmdcHub::onLine(const string& aLine)
 		//dcassert(0);
 		dcdebug("NmdcHub::onLine Unknown command %s\n", aLine.c_str());
 #ifdef FLYLINKDC_BETA
-		LogManager::getInstance()->message("NmdcHub::onLine Unknown command! hub = [" + getHubUrl() + "], command = [" + cmd + "], param = [" + param + "]");
+		LogManager::message("NmdcHub::onLine Unknown command! hub = [" + getHubUrl() + "], command = [" + cmd + "], param = [" + param + "]");
 #endif
 	}
 	processAutodetect(bMyInfoCommand);
@@ -1844,11 +1844,7 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 	                                ">$ $%s%c$%s$",
 	                                fromUtf8(getMyNick()).c_str(),
 	                                fromUtf8Chat(escape(getCurrentDescription())).c_str(),
-	                                (getClientName() + " V:" + getClientVersion()
-#ifndef FLYLINKDC_BETA
-	                                 + '-' + A_REVISION_NUM_STR
-#endif
-	                                ).c_str(), // [!] IRainman mimicry function.
+	                                (getClientName() + " V:" + getClientVersion()  + '-' + A_REVISION_NUM_STR).c_str(), // [!] IRainman mimicry function.
 	                                l_modeChar,
 	                                currentCounts.c_str(),
 	                                UploadManager::getInstance()->getSlots(),
@@ -1865,7 +1861,7 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 	if (p_is_force_passive == true && l_currentBytesShared == m_lastBytesShared && !m_lastMyInfo.empty() && l_currentMyInfo == m_lastMyInfo)
 	{
 		dcassert(0);
-		LogManager::getInstance()->message("Duplicate send MyINFO = " + l_currentMyInfo + " hub: " + getHubUrl());
+		LogManager::message("Duplicate send MyINFO = " + l_currentMyInfo + " hub: " + getHubUrl());
 	}
 #endif
 	if (p_always_send ||
@@ -1921,7 +1917,7 @@ void NmdcHub::search(Search::SizeModes aSizeType, int64_t aSize, Search::TypeMod
 		if (m_isActivMode)
 			g_last_search_string += " [Client:Active]";
 	}
-	//LogManager::getInstance()->message(l_debug_string);
+	//LogManager::message(l_debug_string);
 	send(l_search_command);
 }
 
@@ -2130,7 +2126,7 @@ void NmdcHub::myInfoParse(const string& param) noexcept
 	{
 		dcassert(l_share_size >= 0);
 		l_share_size = 0;
-		LogManager::getInstance()->message("ShareSize < 0 !, param = " + param);
+		LogManager::message("ShareSize < 0 !, param = " + param);
 	}
 	changeBytesSharedL(ou->getIdentity(), l_share_size);
 	if (!ClientManager::isShutdown())
@@ -2257,7 +2253,7 @@ void NmdcHub::RequestConnectionForAutodetect()
 	if (m_bAutodetectionPending && m_iRequestCount < c_MAX_CONNECTION_REQUESTS_COUNT)
 	{
 		bool bWantAutodetect = false;
-		const auto l_fav = FavoriteManager::getInstance()->getFavoriteHubEntry(getHubUrl());
+		const auto l_fav = FavoriteManager::getFavoriteHubEntry(getHubUrl());
 		if (ClientManager::getMode(l_fav, &bWantAutodetect) == SettingsManager::INCOMING_FIREWALL_PASSIVE)
 		{
 			if (bWantAutodetect)
@@ -2276,7 +2272,7 @@ void NmdcHub::RequestConnectionForAutodetect()
 					connectToMe(*i->second, ExpectedMap::REASON_DETECT_CONNECTION);
 #ifdef _DEBUG
 					dcdebug("[!!!!!!!!!!!!!!] AutoDetect connectToMe! Nick = %s Hub = %s", i->first.c_str(), + getHubUrl().c_str());
-					LogManager::getInstance()->message("AutoDetect connectToMe - Nick = " + i->first + " Hub = " + getHubUrl());
+					LogManager::message("AutoDetect connectToMe - Nick = " + i->first + " Hub = " + getHubUrl());
 #endif
 					++m_iRequestCount;
 				}

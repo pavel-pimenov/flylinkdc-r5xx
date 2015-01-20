@@ -10,7 +10,6 @@ bzip2
 dht
 res
 zlib
-chatbot
 PortalBrowser
 XMLParser
 XMLMerge

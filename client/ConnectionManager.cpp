@@ -133,7 +133,7 @@ void ConnectionManager::listen()
 	
 	if (!CryptoManager::getInstance()->TLSOk())
 	{
-		LogManager::getInstance()->message("Skipping secure port: " + Util::toString(SETTING(USE_TLS)));
+		LogManager::message("Skipping secure port: " + Util::toString(SETTING(USE_TLS)));
 		dcdebug("Skipping secure port: %d\n", SETTING(USE_TLS));
 		return;
 	}
@@ -442,7 +442,7 @@ void ConnectionManager::cleanupIpFlood(const uint64_t p_tick)
 		if (l_is_min_ban_close)
 		{
 #ifdef _DEBUG
-			LogManager::getInstance()->ddos_message("BlockID = " + Util::toString(j->second.m_block_id) + ", Removed mini-ban for: " +
+			LogManager::ddos_message("BlockID = " + Util::toString(j->second.m_block_id) + ", Removed mini-ban for: " +
 			                                        j->first.first + j->second.getPorts() + ", Hub IP = " + j->first.second.to_string() +
 			                                        " m_ddos_map.size() = " + Util::toString(m_ddos_map.size()));
 #endif
@@ -462,7 +462,7 @@ void ConnectionManager::cleanupIpFlood(const uint64_t p_tick)
 			{
 				l_type = " IP-1:" + j->first.first + j->second.getPorts() + " IP-2: " + j->first.second.to_string();
 			}
-			LogManager::getInstance()->ddos_message("BlockID = " + Util::toString(j->second.m_block_id) + ", Removed DDoS lock " + j->second.m_type_block +
+			LogManager::ddos_message("BlockID = " + Util::toString(j->second.m_block_id) + ", Removed DDoS lock " + j->second.m_type_block +
 			                                        ", Count connect = " + Util::toString(j->second.m_count_connect) + l_type +
 			                                        ", m_ddos_map.size() = " + Util::toString(m_ddos_map.size()));
 		}
@@ -483,7 +483,7 @@ void ConnectionManager::cleanupTTHDuplicateSearch(const uint64_t p_tick)
 #ifdef FLYLINKDC_USE_LOG_FOR_DUPLICATE_TTH_SEARCH
 			if (j->second.m_count_connect > 1) // —обытие возникало больше одного раза - логируем?
 			{
-				LogManager::getInstance()->ddos_message(string(j->second.m_count_connect, '*') + " BlockID = " + Util::toString(j->second.m_block_id) +
+				LogManager::ddos_message(string(j->second.m_count_connect, '*') + " BlockID = " + Util::toString(j->second.m_block_id) +
 				                                        ", Unlock duplicate TTH search: " + j->first +
 				                                        ", Count connect = " + Util::toString(j->second.m_count_connect) +
 				                                        ", Hash map size: " + Util::toString(m_tth_duplicate_search.size()));
@@ -550,7 +550,7 @@ int ConnectionManager::Server::run() noexcept
 		}
 		catch (const Exception& e)
 		{
-			LogManager::getInstance()->message(STRING(LISTENER_FAILED) + ' ' + e.getError());
+			LogManager::message(STRING(LISTENER_FAILED) + ' ' + e.getError());
 		}
 		bool failed = false;
 		while (!m_die)
@@ -563,7 +563,7 @@ int ConnectionManager::Server::run() noexcept
 				m_sock.listen();
 				if (failed)
 				{
-					LogManager::getInstance()->message(STRING(CONNECTIVITY_RESTORED));
+					LogManager::message(STRING(CONNECTIVITY_RESTORED));
 					failed = false;
 				}
 				break;
@@ -574,7 +574,7 @@ int ConnectionManager::Server::run() noexcept
 				
 				if (!failed)
 				{
-					LogManager::getInstance()->message(STRING(CONNECTIVITY_ERROR) + ' ' + e.getError());
+					LogManager::message(STRING(CONNECTIVITY_ERROR) + ' ' + e.getError());
 					failed = true;
 				}
 				
@@ -617,7 +617,7 @@ void ConnectionManager::accept(const Socket& sock, bool secure, Server* p_server
 			{
 				// ...
 			}
-			LogManager::getInstance()->message("Connection flood detected, port = " + Util::toString(sock.getPort()) + " IP = " + sock.getIp());
+			LogManager::message("Connection flood detected, port = " + Util::toString(sock.getPort()) + " IP = " + sock.getIp());
 			dcdebug("Connection flood detected!\n");
 			return;
 		}
@@ -640,7 +640,7 @@ void ConnectionManager::accept(const Socket& sock, bool secure, Server* p_server
 	catch (const Exception& e)
 	{
 #ifdef _DEBUG
-		LogManager::getInstance()->message("uc->accept(sock) Error = " + e.getError());
+		LogManager::message("uc->accept(sock) Error = " + e.getError());
 #endif
 		dcdebug("uc->accept(sock); error\n");
 		// ќбработка теста порта TLS
@@ -684,7 +684,7 @@ bool ConnectionManager::checkTTHDuplicateSearch(const string& p_search_command, 
 			if (l_cur_value.m_count_connect >= 2)
 			{
 #ifdef FLYLINKDC_USE_LOG_FOR_DUPLICATE_TTH_SEARCH
-				LogManager::getInstance()->ddos_message(string(l_cur_value.m_count_connect, '*') + " BlockID = " + Util::toString(l_cur_value.m_block_id) +
+				LogManager::ddos_message(string(l_cur_value.m_count_connect, '*') + " BlockID = " + Util::toString(l_cur_value.m_block_id) +
 				                                        ", Lock TTH search = " + p_search_command +
 				                                        ", TTH = " + p_tth.toBase32() +
 				                                        ", Count = " + Util::toString(l_cur_value.m_count_connect) +
@@ -701,7 +701,7 @@ void ConnectionManager::addCTM2HUB(const string& p_server_port, const HintedUser
 	webrtc::WriteLockScoped l_ddos(*g_csDdosCheck);
 	dcassert(p_hinted_user.user);
 	
-	const string l_cmt2hub = "CTM2HUB = " + p_server_port + " <<= DDOS block from: " + p_hinted_user.hint + " User:" + (p_hinted_user.user ? p_hinted_user.user->getLastNick() : "null");
+	const string l_cmt2hub = "CTM2HUB = " + p_server_port + " <<= DDoS block from: " + p_hinted_user.hint + " User:" + (p_hinted_user.user ? p_hinted_user.user->getLastNick() : "null");
 	const auto l_res = m_ddos_ctm2hub.insert(Text::toLower(p_server_port));
 	CFlyServerAdapter::CFlyServerJSON::pushError(18, l_cmt2hub);
 	dcassert(l_res.second == true);
@@ -709,7 +709,7 @@ void ConnectionManager::addCTM2HUB(const string& p_server_port, const HintedUser
 	{
 		const string l_message = "Duplicate message: " + l_cmt2hub;
 #ifdef FLYLINKDC_BETA
-		// LogManager::getInstance()->message(l_message);
+		// LogManager::message(l_message);
 #endif
 		CFlyServerAdapter::CFlyServerJSON::pushError(18, l_message);
 	}
@@ -729,9 +729,9 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 		{
 			const string l_cmt2hub = "Block CTM2HUB = " + aIPServer + ':' + Util::toString(aPort) + " HubInfo: " + p_HubInfo + " UserInfo: " + p_userInfo;
 #ifdef FLYLINKDC_BETA
-			// LogManager::getInstance()->message(l_cmt2hub);
+			// LogManager::message(l_cmt2hub);
 #endif
-			LogManager::getInstance()->ddos_message(l_cmt2hub);
+			LogManager::ddos_message(l_cmt2hub);
 			return true;
 		}
 		CFlyDDoSTick l_item;
@@ -765,10 +765,10 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 					const string l_target = "[Target: " + aIPServer + l_cur_value.getPorts() + "]\t";
 					const string l_user_info = !p_userInfo.empty() ? "[UserInfo: " + p_userInfo + "]\t"  : "";
 					l_cur_value.m_type_block = "Type DDoS:" + std::string(p_ip_hub.is_unspecified() ? "[$ConnectToMe]" : "[$Search]");
-					LogManager::getInstance()->ddos_message("BlockID=" + Util::toString(l_cur_value.m_block_id) + ", " + l_cur_value.m_type_block + p_HubInfo + l_info + l_target + l_user_info);
+					LogManager::ddos_message("BlockID=" + Util::toString(l_cur_value.m_block_id) + ", " + l_cur_value.m_type_block + p_HubInfo + l_info + l_target + l_user_info);
 					for (auto k = l_cur_value.m_original_query_for_debug.cbegin() ; k != l_cur_value.m_original_query_for_debug.cend(); ++k)
 					{
-						LogManager::getInstance()->ddos_message("  Detail BlockID=" + Util::toString(l_cur_value.m_block_id) + " " + k->first + " Count:" + Util::toString(k->second)); // TODO - сдать дубликаты + показать кол-во
+						LogManager::ddos_message("  Detail BlockID=" + Util::toString(l_cur_value.m_block_id) + " " + k->first + " Count:" + Util::toString(k->second)); // TODO - сдать дубликаты + показать кол-во
 					}
 				}
 				l_cur_value.m_original_query_for_debug.clear();
@@ -800,7 +800,7 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 			if (++count >= 5)
 			{
 				// More than 5 outbound connections to the same addr/port? Can't trust that..
-				// LogManager::getInstance()->message("ConnectionManager::connect Tried to connect more than 5 times to " + aIPServer + ":" + Util::toString(aPort));
+				// LogManager::message("ConnectionManager::connect Tried to connect more than 5 times to " + aIPServer + ":" + Util::toString(aPort));
 				dcdebug("ConnectionManager::connect Tried to connect more than 5 times to %s:%hu, connect dropped\n", aIPServer.c_str(), aPort);
 				return true;
 			}
@@ -838,7 +838,7 @@ void ConnectionManager::nmdcConnect(const string& aIPServer, uint16_t aPort, uin
 		return;
 		
 	UserConnection* uc = getConnection(true, secure); // [!] IRainman fix SSL connection on NMDC(S) hubs.
-	uc->setServerPort(aIPServer + ':' + Util::toString(aPort));
+	uc->setServerPort(aIPServer + ':' + Util::toString(aPort)); // CTM2HUB
 	uc->setUserConnectionToken(aNick); // “окен = ник?
 	uc->setHubUrl(hubUrl);
 	uc->setEncoding(encoding);
@@ -982,7 +982,7 @@ void ConnectionManager::on(UserConnectionListener::Connected, UserConnection* aS
 	if (aSource->isSecure() && !aSource->isTrusted() && !BOOLSETTING(ALLOW_UNTRUSTED_CLIENTS))
 	{
 		putConnection(aSource);
-		LogManager::getInstance()->message(STRING(CERTIFICATE_NOT_TRUSTED));
+		LogManager::message(STRING(CERTIFICATE_NOT_TRUSTED));
 		return;
 	}
 	dcassert(aSource->getState() == UserConnection::STATE_CONNECT);
@@ -1039,7 +1039,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 			// and mark this user for expecting only for connection auto-detection.
 			// So if we receive connection of this type, simply drop it.
 			
-			FavoriteHubEntry* fhub = FavoriteManager::getInstance()->getFavoriteHubEntry(i.m_HubUrl);
+			FavoriteHubEntry* fhub = FavoriteManager::getFavoriteHubEntry(i.m_HubUrl);
 			if (!fhub)
 				dcdebug("REASON_DETECT_CONNECTION: can't find favorite hub %s\n", i.m_HubUrl.c_str());
 			dcassert(fhub);
@@ -1652,7 +1652,7 @@ void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* p_c
 	}
 	else
 	{
-		LogManager::getInstance()->message("Error UserConnectionListener::Supports conn->getUser() == nullptr, url = " + p_conn->getHintedUser().hint);
+		LogManager::message("Error UserConnectionListener::Supports conn->getUser() == nullptr, url = " + p_conn->getHintedUser().hint);
 	}
 }
 

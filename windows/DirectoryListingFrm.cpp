@@ -100,7 +100,7 @@ void DirectoryListingFrame::openWindow(const tstring& aFile, const tstring& aDir
 		}
 		else
 		{
-			aHWND = frame->CreateEx(WinUtil::mdiClient);
+			aHWND = frame->CreateEx(WinUtil::g_mdiClient);
 		}
 		if (aHWND != 0)
 		{
@@ -136,7 +136,7 @@ void DirectoryListingFrame::openWindow(const HintedUser& aUser, const string& tx
 		}
 		else
 		{
-			frame->CreateEx(WinUtil::mdiClient);
+			frame->CreateEx(WinUtil::g_mdiClient);
 		}
 		frame->loadXML(txt);
 		g_frames.insert(FramePair(frame->m_hWnd, frame));
@@ -1132,7 +1132,7 @@ void DirectoryListingFrame::selectItem(const tstring& name)
 void DirectoryListingFrame::updateTitle()
 {
 	pair<tstring, bool> hubs = WinUtil::getHubNames(dl->getHintedUser());
-	bool banIcon = FavoriteManager::getInstance()->isNoFavUserOrUserBanUpload(dl->getUser()); // !SMT!-UI
+	bool banIcon = FavoriteManager::isNoFavUserOrUserBanUpload(dl->getUser()); // !SMT!-UI
 	if (hubs.second)
 	{
 		if (banIcon) // !SMT!-UI
@@ -2393,7 +2393,7 @@ void DirectoryListingFrame::mergeFlyServerInfo()
 //===================================================================================================================================
 LRESULT DirectoryListingFrame::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 {
-	if (!MainFrame::isAppMinimized() && WinUtil::g_tabCtrl->isActive(m_hWnd) && !isClosedOrShutdown()) // [+] IRainman opt.
+	if (!MainFrame::isAppMinimized(m_hWnd) && !isClosedOrShutdown()) // [+] IRainman opt.
 	{
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		if (scan_list_view_from_merge())

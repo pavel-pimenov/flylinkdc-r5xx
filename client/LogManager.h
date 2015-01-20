@@ -19,24 +19,10 @@
 #ifndef DCPLUSPLUS_DCPP_LOG_MANAGER_H
 #define DCPLUSPLUS_DCPP_LOG_MANAGER_H
 
-#include "Singleton.h"
-#include "Speaker.h"
+//#include "Singleton.h"
 #include "Util.h"
 
-class LogManagerListener
-{
-	public:
-		virtual ~LogManagerListener() { }
-		template<int I> struct X
-		{
-			enum { TYPE = I };
-		};
-		
-		typedef X<0> Message;
-		virtual void on(Message, const string&) noexcept { }
-};
-
-class LogManager : public Singleton<LogManager>, public Speaker<LogManagerListener>
+class LogManager 
 {
 	public:
 		enum LogArea { CHAT, PM, DOWNLOAD, UPLOAD, SYSTEM, STATUS,
@@ -55,35 +41,37 @@ class LogManager : public Singleton<LogManager>, public Speaker<LogManagerListen
 		             };
 		             
 		enum {FILE, FORMAT};
-		void ddos_message(const string& params);
-		void flood_message(const string& params);
-		void cmd_debug_message(const string& params);
-		void dht_message(const string& params);
-		void psr_message(const string& params);
-		void log(LogArea area, const StringMap& params, bool p_only_file = false) noexcept;
-		void message(const string& msg, bool p_only_file = false);
+		static void ddos_message(const string& params);
+		static void flood_message(const string& params);
+		static void cmd_debug_message(const string& params);
+		static void dht_message(const string& params);
+		static void psr_message(const string& params);
+		static void log(LogArea area, const StringMap& params, bool p_only_file = false) noexcept;
+		static void message(const string& msg, bool p_only_file = false);
 		
-		const string& getSetting(int area, int sel) const;
-		void saveSetting(int area, int sel, const string& setting);
+		static const string& getSetting(int area, int sel);
+		static void saveSetting(int area, int sel, const string& setting);
 		
+		static HWND g_mainWnd;
+		static int  g_LogMessageID;
 	private:
-		void log(const string& p_area, const string& p_msg) noexcept;
+		static void log(const string& p_area, const string& p_msg) noexcept;
 		
-		friend class Singleton<LogManager>;
-		
-		int logOptions[LAST][2];
+		static int g_logOptions[LAST][2];
 #ifdef _DEBUG
-		boost::unordered_map<string, pair<string, size_t> > m_patchCache;
-		size_t _debugTotal, _debugMissed;
+		static boost::unordered_map<string, pair<string, size_t> > g_patchCache;
+		static size_t g_debugTotal;
+		static size_t g_debugMissed;
+		static int g_debugConcurrencyEventCount;
+		static int g_debugParallelWritesFiles;
 #else
-		boost::unordered_map<string, string> m_patchCache;
+		static boost::unordered_map<string, string> g_patchCache;
 #endif
-		FastCriticalSection m_csPatchCache; // [!] IRainman opt: use spin lock here.
+		static FastCriticalSection g_csPatchCache; // [!] IRainman opt: use spin lock here.
 		
 #ifdef IRAINMAN_USE_NG_LOG_MANAGER
-		std::unordered_set<string> m_currentlyOpenedFiles;
-		FastCriticalSection m_csCurrentlyOpenedFiles;
-		dcdrun(int _debugConcurrencyEventCount; int _debugParallelWritesFiles;)
+		static std::unordered_set<string> g_currentlyOpenedFiles;
+		static FastCriticalSection g_csCurrentlyOpenedFiles;
 #endif
 		
 		LogManager();
@@ -94,9 +82,9 @@ class LogManager : public Singleton<LogManager>, public Speaker<LogManagerListen
 #ifdef IRAINMAN_USE_NG_LOG_MANAGER
 			        "LogManager: parallel writes files = %i, concurrency event count = %i\n"
 #endif
-			        , _debugTotal, _debugMissed, m_patchCache.size()
+			        , g_debugTotal, g_debugMissed, g_patchCache.size()
 #ifdef IRAINMAN_USE_NG_LOG_MANAGER
-			        , _debugParallelWritesFiles, _debugConcurrencyEventCount
+			        , g_debugParallelWritesFiles, g_debugConcurrencyEventCount
 #endif
 			       ); //-V111
 #endif
@@ -104,8 +92,8 @@ class LogManager : public Singleton<LogManager>, public Speaker<LogManagerListen
 		
 };
 
-#define LOG(area, msg)  LogManager::getInstance()->log(LogManager::area, msg)
-#define LOG_FORCE_FILE(area, msg)  LogManager::getInstance()->log(LogManager::area, msg, true)
+#define LOG(area, msg)  LogManager::log(LogManager::area, msg)
+#define LOG_FORCE_FILE(area, msg)  LogManager::log(LogManager::area, msg, true)
 
 class CFlyLog
 {
@@ -117,7 +105,7 @@ class CFlyLog
 		bool m_only_file;
 		void log(const string& p_msg)
 		{
-			LogManager::getInstance()->message(p_msg, m_only_file);
+			LogManager::message(p_msg, m_only_file);
 		}
 	public:
 		CFlyLog(const string& p_message

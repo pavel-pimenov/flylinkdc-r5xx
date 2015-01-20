@@ -97,14 +97,14 @@ bool HashManager::StreamStore::loadTree(const string& p_filePath, TigerTree& p_T
 	catch (const Exception& /*e*/)
 	{
 		// Отключил спам http://code.google.com/p/flylinkdc/issues/detail?id=1415
-		// LogManager::getInstance()->message(STRING(ERROR_GET_TTH_STREAM) + ' ' + p_filePath + " Error = " + e.getError());// [+]IRainman
+		// LogManager::message(STRING(ERROR_GET_TTH_STREAM) + ' ' + p_filePath + " Error = " + e.getError());// [+]IRainman
 		return false;
 	}
 	/*
 	if (speed > 0) {
-	        LogManager::getInstance()->message(STRING(HASHING_FINISHED) + ' ' + fn + " (" + Util::formatBytes(speed) + "/s)");
+	        LogManager::message(STRING(HASHING_FINISHED) + ' ' + fn + " (" + Util::formatBytes(speed) + "/s)");
 	    } else {
-	        LogManager::getInstance()->message(STRING(HASHING_FINISHED) + ' ' + fn);
+	        LogManager::message(STRING(HASHING_FINISHED) + ' ' + fn);
 	    }
 	*/
 	return true;
@@ -143,7 +143,7 @@ bool HashManager::StreamStore::saveTree(const string& p_filePath, const TigerTre
 #ifndef RIP_USE_STREAM_SUPPORT_DETECTION
 		addBan(p_filePath);
 #endif
-		LogManager::getInstance()->message(STRING(ERROR_ADD_TTH_STREAM) + ' ' + p_filePath + " : " + e.getError());// [+]IRainman
+		LogManager::message(STRING(ERROR_ADD_TTH_STREAM) + ' ' + p_filePath + " : " + e.getError());// [+]IRainman
 		return false;
 	}
 	return true;
@@ -158,7 +158,7 @@ void HashManager::StreamStore::deleteStream(const string& p_filePath)
 	}
 	catch (const FileException& e)
 	{
-		LogManager::getInstance()->message(STRING(ERROR_DELETE_TTH_STREAM) + ' ' + p_filePath + " : " + e.getError());
+		LogManager::message(STRING(ERROR_DELETE_TTH_STREAM) + ' ' + p_filePath + " : " + e.getError());
 	}
 }
 
@@ -224,7 +224,7 @@ void HashManager::hashDone(__int64 p_path_id, const string& aFileName, int64_t a
 	dcassert(!aFileName.empty());
 	if (aFileName.empty())
 	{
-		LogManager::getInstance()->message("HashManager::hashDone - aFileName.empty()");
+		LogManager::message("HashManager::hashDone - aFileName.empty()");
 		return;
 	}
 	CFlyMediaInfo l_out_media;
@@ -247,7 +247,7 @@ void HashManager::hashDone(__int64 p_path_id, const string& aFileName, int64_t a
 	}
 	catch (const Exception& e)
 	{
-		LogManager::getInstance()->message(STRING(HASHING_FAILED) + ' ' + aFileName + e.getError());
+		LogManager::message(STRING(HASHING_FAILED) + ' ' + aFileName + e.getError());
 		return;
 	}
 	fire(HashManagerListener::TTHDone(), aFileName, tth.getRoot(), aTimeStamp, l_out_media, p_size);
@@ -263,11 +263,11 @@ void HashManager::hashDone(__int64 p_path_id, const string& aFileName, int64_t a
 	}
 	if (speed > 0)
 	{
-		LogManager::getInstance()->message(STRING(HASHING_FINISHED) + ' ' + fn + " (" + Util::formatBytes(speed) + '/' + STRING(S) + ")");
+		LogManager::message(STRING(HASHING_FINISHED) + ' ' + fn + " (" + Util::formatBytes(speed) + '/' + STRING(S) + ")");
 	}
 	else
 	{
-		LogManager::getInstance()->message(STRING(HASHING_FINISHED) + ' ' + fn);
+		LogManager::message(STRING(HASHING_FINISHED) + ' ' + fn);
 	}
 }
 
@@ -593,7 +593,7 @@ int HashManager::Hasher::run()
 		{
 			HashManager::getInstance()->doRebuild();
 			m_rebuild = false;
-			LogManager::getInstance()->message(STRING(HASH_REBUILT));
+			LogManager::message(STRING(HASH_REBUILT));
 			continue;
 		}
 		{
@@ -656,7 +656,7 @@ int HashManager::Hasher::run()
 				if (l_size > 0 && HashManager::getInstance()->m_streamstore.loadTree(m_fname, fastTTH, l_size)) //[+]IRainman
 				{
 					l_is_ntfs = true; //[+]PPA
-					LogManager::getInstance()->message(STRING(LOAD_TTH_FROM_NTFS) + ' ' + m_fname); //[!]NightOrion(translate)
+					LogManager::message(STRING(LOAD_TTH_FROM_NTFS) + ' ' + m_fname); //[!]NightOrion(translate)
 				}
 #endif
 #ifdef _WIN32
@@ -742,7 +742,7 @@ int HashManager::Hasher::run()
 			}
 			catch (const FileException& e)
 			{
-				LogManager::getInstance()->message(STRING(ERROR_HASHING) + ' ' + m_fname + ": " + e.getError());
+				LogManager::message(STRING(ERROR_HASHING) + ' ' + m_fname + ": " + e.getError());
 			}
 		}
 		{

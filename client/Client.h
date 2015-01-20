@@ -645,10 +645,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			return m_opChat;
 		}
 	private:
-		bool isInOperatorList(const string& userName) const // [+] IRainman fix.
-		{
-			return Wildcard::patternMatch(userName, m_opChat, ';', false);
-		}
+		bool isInOperatorList(const string& userName) const;
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		uint32_t m_HubID;
 #endif

@@ -454,7 +454,7 @@ void HubFrame::createMessagePanel()
 		m_ctrlShowMode->Create(m_ctrlStatus->m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | SS_ICON | BS_CENTER | BS_PUSHBUTTON , 0);
 #endif
 		dcassert(m_client->getHubUrl() == m_server);
-		const FavoriteHubEntry *fhe = FavoriteManager::getInstance()->getFavoriteHubEntry(m_server);
+		const FavoriteHubEntry *fhe = FavoriteManager::getFavoriteHubEntry(m_server);
 		createFavHubMenu(fhe);
 		updateColumnsInfo(fhe); // Настроим колонки списка юзеров
 		m_ctrlMessage->SetFocus();
@@ -643,10 +643,10 @@ HubFrame* HubFrame::openWindow(const string& p_server,
 		if (rc.left < 0 || rc.top < 0 || (rc.right - rc.left < 10) || (rc.bottom - rc.top) < 10)
 		{
 			CRect l_rcmdiClient;
-			::GetWindowRect(WinUtil::mdiClient, &l_rcmdiClient);
+			::GetWindowRect(WinUtil::g_mdiClient, &l_rcmdiClient);
 			rc = l_rcmdiClient; // frm->rcDefault;
 		}
-		frm->CreateEx(WinUtil::mdiClient, rc);
+		frm->CreateEx(WinUtil::g_mdiClient, rc);
 		if (p_windowtype)
 		{
 			frm->ShowWindow((nCmdShow == SW_SHOWDEFAULT || nCmdShow == SW_SHOWNORMAL) ? p_windowtype : nCmdShow);
@@ -953,7 +953,7 @@ FavoriteHubEntry* HubFrame::addAsFavorite(const FavoriteManager::AutoStartType p
 
 void HubFrame::removeFavoriteHub()
 {
-	const FavoriteHubEntry* removeHub = FavoriteManager::getInstance()->getFavoriteHubEntry(m_client->getHubUrl());
+	const FavoriteHubEntry* removeHub = FavoriteManager::getFavoriteHubEntry(m_client->getHubUrl());
 	if (removeHub)
 	{
 		FavoriteManager::getInstance()->removeFavorite(removeHub);
@@ -1003,7 +1003,7 @@ void HubFrame::createFavHubMenu(const FavoriteHubEntry* p_fhe)
 
 void HubFrame::autoConnectStart()
 {
-	const FavoriteHubEntry* existingHub = FavoriteManager::getInstance()->getFavoriteHubEntry(m_client->getHubUrl());
+	const FavoriteHubEntry* existingHub = FavoriteManager::getFavoriteHubEntry(m_client->getHubUrl());
 	if (existingHub)
 	{
 		if (existingHub->getConnect())
@@ -1022,7 +1022,7 @@ void HubFrame::autoConnectStart()
 
 LRESULT HubFrame::onEditHubProp(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	FavoriteHubEntry* editedHub = FavoriteManager::getInstance()->getFavoriteHubEntry(m_client->getHubUrl());
+	FavoriteHubEntry* editedHub = FavoriteManager::getFavoriteHubEntry(m_client->getHubUrl());
 	if (editedHub)
 	{
 		FavHubProperties dlg(editedHub);
@@ -1132,7 +1132,7 @@ LRESULT HubFrame::onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 				}
 				sCopy += "\tE-Mail: " + id.getEmail() + "\r\n" +
 				         "\tClient Type: " + Util::toString(id.getClientType()) + "\r\n" +
-				         "\tMode: " + (id.isTcpActive(m_client) ? 'A' : 'P') + "\r\n" +
+				         "\tMode: " + (id.isTcpActive() ? 'A' : 'P') + "\r\n" +
 				         "\t" + STRING(SLOTS) + ": " + Util::toString(u->getSlots()) + "\r\n" +
 				         "\tIP: " + Identity::formatIpString(id.getIpAsString()) + "\r\n";
 				const auto su = id.getSupports();
@@ -1272,7 +1272,7 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 #if 0
 							const int l_item_count = m_ctrlUsers->GetItemCount();
 							
-							LogManager::getInstance()->message("[!!!!!!!!!!!] bool HubFrame::updateUser! ui->getUser()->getLastNick() = " + ui->getUser()->getLastNick()
+							LogManager::message("[!!!!!!!!!!!] bool HubFrame::updateUser! ui->getUser()->getLastNick() = " + ui->getUser()->getLastNick()
 							                                   + " top/count_per_page/all_count = " +
 							                                   Util::toString(l_top_index) + "/" +
 							                                   Util::toString(m_ctrlUsers->GetCountPerPage()) + "/" +
@@ -1292,7 +1292,7 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 						else
 						{
 						
-							LogManager::getInstance()->message("[///////] bool HubFrame::updateUser! ui->getUser()->getLastNick() = " + ui->getUser()->getLastNick()
+							LogManager::message("[///////] bool HubFrame::updateUser! ui->getUser()->getLastNick() = " + ui->getUser()->getLastNick()
 							                                   + " ! pos >= l_top_index && pos <= l_top_index + l_count_per_page pos = " + Util::toString(pos));
 						}
 #endif
@@ -1364,7 +1364,7 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 				{
 					const Identity& id    = (*l_ou)->getIdentity();
 					const UserPtr& user   = (*l_ou)->getUser();
-					const bool isFavorite = !FavoriteManager::getInstance()->isNoFavUserOrUserBanUpload(user); // [!] TODO: в ядро!
+					const bool isFavorite = !FavoriteManager::isNoFavUserOrUserBanUpload(user); // [!] TODO: в ядро!
 					if (isFavorite)
 					{
 						PLAY_SOUND(SOUND_FAVUSER);
@@ -1397,7 +1397,7 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 				if (!id.isBotOrHub()) // [+] IRainman fix: no show has come/gone for bots, and a hub.
 				{
 					// !SMT!-S !SMT!-UI
-					const bool isFavorite = !FavoriteManager::getInstance()->isNoFavUserOrUserBanUpload(user); // [!] TODO: в ядро!
+					const bool isFavorite = !FavoriteManager::isNoFavUserOrUserBanUpload(user); // [!] TODO: в ядро!
 					
 					const tstring& l_userNick = id.getNickT();
 					if (isFavorite)
@@ -1572,7 +1572,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 	if (t.empty())
 		return 0;
 #ifdef _DEBUG
-	//LogManager::getInstance()->message("LRESULT HubFrame::onSpeaker: m_tasks.size() = " + Util::toString(t.size()));
+	//LogManager::message("LRESULT HubFrame::onSpeaker: m_tasks.size() = " + Util::toString(t.size()));
 #endif
 	CFlyBusy l_busy(m_spoken);
 	//unique_ptr<CLockRedraw < > > l_lock_redraw;
@@ -1595,7 +1595,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 						const Identity& id = u.m_ou->getIdentity();
 						const UserPtr& user = u.m_ou->getUser();
 						dcassert(!id.getNickT().empty());
-						const bool isFavorite = !FavoriteManager::getInstance()->isNoFavUserOrUserBanUpload(user); // [!] TODO: в ядро!
+						const bool isFavorite = !FavoriteManager::isNoFavUserOrUserBanUpload(user); // [!] TODO: в ядро!
 						if (isFavorite)
 						{
 							PLAY_SOUND(SOUND_FAVUSER);
@@ -1633,7 +1633,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 					if (!id.isBotOrHub()) // [+] IRainman fix: no show has come/gone for bots, and a hub.
 					{
 						// !SMT!-S !SMT!-UI
-						const bool isFavorite = !FavoriteManager::getInstance()->isNoFavUserOrUserBanUpload(user); // [!] TODO: в ядро!
+						const bool isFavorite = !FavoriteManager::isNoFavUserOrUserBanUpload(user); // [!] TODO: в ядро!
 						
 						const tstring& l_userNick = id.getNickT();
 						if (isFavorite)
@@ -2122,7 +2122,7 @@ void HubFrame::storeColumsInfo()
 	{
 		m_ctrlUsers->saveHeaderOrder(l_order, l_width, l_visible);
 	}
-	FavoriteHubEntry *fhe = FavoriteManager::getInstance()->getFavoriteHubEntry(m_server);
+	FavoriteHubEntry *fhe = FavoriteManager::getFavoriteHubEntry(m_server);
 	if (fhe)
 	{
 		if (m_isUpdateColumnsInfoProcessed)
@@ -2133,7 +2133,7 @@ void HubFrame::storeColumsInfo()
 			CRect rc;
 			GetWindowRect(rc);
 			CRect rcmdiClient;
-			::GetWindowRect(WinUtil::mdiClient, &rcmdiClient);
+			::GetWindowRect(WinUtil::g_mdiClient, &rcmdiClient);
 			if (wp.showCmd == SW_SHOW || wp.showCmd == SW_SHOWNORMAL)
 			{
 				fhe->setWindowPosX(rc.left - (rcmdiClient.left + 2));
@@ -2185,7 +2185,7 @@ LRESULT HubFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 		m_closed = true;
 		safe_destroy_timer();
 		storeColumsInfo();
-		RecentHubEntry* r = FavoriteManager::getInstance()->getRecentHubEntry(l_server);
+		RecentHubEntry* r = FavoriteManager::getRecentHubEntry(l_server);
 		if (r) // hub has been removed by the user from a list of recent hubs at a time when it was opened. https://crash-server.com/Bug.aspx?ClientID=ppa&ProblemID=9897
 		{
 			LocalArray<TCHAR, 256> buf;
@@ -2678,7 +2678,7 @@ LRESULT HubFrame::onCloseWindows(WORD , WORD wID, HWND , BOOL&)
 
 LRESULT HubFrame::onFileReconnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	const FavoriteHubEntry *fhe = FavoriteManager::getInstance()->getFavoriteHubEntry(m_server);
+	const FavoriteHubEntry *fhe = FavoriteManager::getFavoriteHubEntry(m_server);
 	m_showJoins = fhe ? fhe->getShowJoins() : BOOLSETTING(SHOW_JOINS);
 	m_favShowJoins = BOOLSETTING(FAV_SHOW_JOINS);
 	
@@ -2974,11 +2974,10 @@ LRESULT HubFrame::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*b
 	// [+] IRainman opt.
 	if (!m_spoken)
 	{
-		if (BaseChatFrame::g_isStartupProcess == false && !MainFrame::isAppMinimized())
+		if (BaseChatFrame::g_isStartupProcess == false && !MainFrame::isAppMinimized(m_hWnd) && !isClosedOrShutdown())
 		{
 			onTimerHubUpdated();
-			if (m_needsUpdateStats &&
-			        WinUtil::g_tabCtrl->isActive(m_hWnd) // [+] IRainman opt.
+			if (m_needsUpdateStats
 #ifndef IRAINMAN_NOT_USE_COUNT_UPDATE_INFO_IN_LIST_VIEW_CTRL
 			        && m_ctrlUsers->getCountUpdateInfo() == 0 //[+]FlylinkDC++
 #endif
@@ -3014,7 +3013,7 @@ void HubFrame::on(Connecting, const Client*) noexcept
 {
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	bool bWantAutodetect = false;
-	if (!ClientManager::isActive(FavoriteManager::getInstance()->getFavoriteHubEntry(m_client->getHubUrl()), &bWantAutodetect))
+	if (!ClientManager::isActive(FavoriteManager::getFavoriteHubEntry(m_client->getHubUrl()), &bWantAutodetect))
 	{
 		if (bWantAutodetect)
 		{
@@ -3061,7 +3060,7 @@ void HubFrame::on(ClientListener::UserUpdated, const OnlineUserPtr& user) noexce
 		speak(UPDATE_USER_JOIN, user);
 #endif
 #ifdef _DEBUG
-//		LogManager::getInstance()->message("[single OnlineUserPtr] void HubFrame::on(ClientListener::UserUpdated nick = " + user->getUser()->getLastNick());
+//		LogManager::message("[single OnlineUserPtr] void HubFrame::on(ClientListener::UserUpdated nick = " + user->getUser()->getLastNick());
 #endif
 		ChatBot::getInstance()->onUserAction(BotInit::RECV_UPDATE, user->getUser());
 	}
@@ -3080,7 +3079,7 @@ void HubFrame::on(ClientListener::UsersUpdated, const Client*, const OnlineUserL
 		PostMessage(WM_SPEAKER_UPDATE_USER, WPARAM(l_ou_ptr));
 //		speak(UPDATE_USER, *i); // !SMT!-fix
 #ifdef _DEBUG
-//		LogManager::getInstance()->message("[array OnlineUserPtr] void HubFrame::on(UsersUpdated nick = " + (*i)->getUser()->getLastNick());
+//		LogManager::message("[array OnlineUserPtr] void HubFrame::on(UsersUpdated nick = " + (*i)->getUser()->getLastNick());
 #endif
 		ChatBot::getInstance()->onUserAction(BotInit::RECV_UPDATE, (*i)->getUser());
 	}
@@ -4009,25 +4008,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 //				PROFILE_THREAD_SCOPED_DESC("CDDS_ITEMPREPAINT");
 				ui->calcLocation(); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=120907
 				ui->calcVirusType();
-				Colors::getUserColor(ui->getUser(), cd->clrText, cd->clrTextBk, ui->getOnlineUser()); // !SMT!-UI
-				dcassert(m_client);
-				if (m_client->isOp()) // Возможно фикс https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=38000
-				{
-//					PROFILE_THREAD_SCOPED_DESC("CDDS_ITEMPREPAINT-isOP");
-					const auto fc = ui->getIdentity().getFakeCard();
-					if (fc & Identity::BAD_CLIENT)
-					{
-						cd->clrText = SETTING(BAD_CLIENT_COLOUR);
-					}
-					else if (fc & Identity::BAD_LIST)
-					{
-						cd->clrText = SETTING(BAD_FILELIST_COLOUR);
-					}
-					else if (fc & Identity::CHECKED && BOOLSETTING(SHOW_SHARE_CHECKED_USERS))
-					{
-						cd->clrText = SETTING(FULL_CHECKED_COLOUR);
-					}
-				}
+				Colors::getUserColor(m_client->isOp(), ui->getUser(), cd->clrText, cd->clrTextBk, ui->m_flag_mask, ui->getOnlineUser()); // !SMT!-UI
 			}
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 			Colors::alternationBkColor(cd); // [+] IRainman
@@ -4064,7 +4045,7 @@ void HubFrame::addDupeUsersToSummaryMenu(const int64_t &share, const string& ip)
 				tstring info = Text::toT(frame->m_client->getHubName()) + _T(" - ") + i->second->getText(COLUMN_NICK);
 				const UINT flags = (!ip.empty() && ip == l_id.getIpAsString()) ? MF_CHECKED : 0;
 				FavoriteUser favUser;
-				if (FavoriteManager::getInstance()->getFavoriteUser(i->second->getUser(), favUser))
+				if (FavoriteManager::getFavoriteUser(i->second->getUser(), favUser))
 				{
 					string favInfo;
 					if (favUser.isSet(FavoriteUser::FLAG_GRANT_SLOT))
@@ -4112,6 +4093,26 @@ void HubFrame::addPasswordCommand()
 	else
 	{
 		m_LastMessage = l_pass;
+	}
+}
+
+UserInfo* HubFrame::findUser(const tstring& p_nick)   // !SMT!-S
+{
+	dcassert(!m_is_fynally_clear_user_list);
+	dcassert(!p_nick.empty());
+	if (p_nick.empty())
+		return nullptr;
+		
+	const OnlineUserPtr ou = m_client->findUser(Text::fromT(p_nick));
+	if (ou)
+	{
+		//webrtc::ReadLockScoped l(*m_userMapCS);
+		//Lock l(m_userMapCS);
+		return m_userMap.findUser(ou);
+	}
+	else
+	{
+		return nullptr;
 	}
 }
 

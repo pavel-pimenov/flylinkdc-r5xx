@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2012 FlylinkDC++ Team http://flylinkdc.com/
+ * Copyright (C) 2011-2015 FlylinkDC++ Team http://flylinkdc.com/
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ void SettingsAutoUpdate::execute(const pair<SettingsAutoUpdateTasks, SettingsAut
 void SettingsAutoUpdate::fail(const string& p_error)
 {
 	dcdebug("SettingsAutoUpdate: New command when already failed: %s\n", p_error.c_str());
-	//LogManager::getInstance()->message("SettingsAutoUpdate: " + p_error);
+	//LogManager::message("SettingsAutoUpdate: " + p_error);
 	fire(SettingsAutoUpdateListener::Failed(), p_error);
 }
 

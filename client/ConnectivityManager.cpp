@@ -156,7 +156,7 @@ void ConnectivityManager::setup(bool settingsChanged)
 	catch (const Exception& e)
 	{
 		dcassert(0);
-		LogManager::getInstance()->message("ConnectivityManager::setup error = " + e.getError());
+		LogManager::message("ConnectivityManager::setup error = " + e.getError());
 	}
 }
 
@@ -265,7 +265,7 @@ void ConnectivityManager::listen() // TODO - fix copy-paste
 					continue;
 				}
 				SettingsManager::generateNewTCPPort();
-				LogManager::getInstance()->message("Try bind random TCP Port = " + Util::toString(SETTING(TCP_PORT)));
+				LogManager::message("Try bind random TCP Port = " + Util::toString(SETTING(TCP_PORT)));
 				continue;
 			}
 			else
@@ -318,11 +318,11 @@ void ConnectivityManager::log(const string& message)
 	if (BOOLSETTING(AUTO_DETECT_CONNECTION))
 	{
 		m_status = message;
-		LogManager::getInstance()->message(STRING(CONNECTIVITY) + ' ' + m_status);
+		LogManager::message(STRING(CONNECTIVITY) + ' ' + m_status);
 		// PPA_INCLUDE_DEAD_CODE fire(ConnectivityManagerListener::Message(), m_status);
 	}
 	else
 	{
-		LogManager::getInstance()->message(message);
+		LogManager::message(message);
 	}
 }

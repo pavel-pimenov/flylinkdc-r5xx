@@ -28,8 +28,15 @@ class FavoriteUser : public Flags
 {
 	public:
 // !SMT!-S
-		// FavoriteUser(const UserPtr& user_, const string& nick_, const string& hubUrl_) : user(user_), nick(nick_), url(hubUrl_), lastSeen(0) { }
-		explicit FavoriteUser(const UserPtr& user_, const string& nick_, const string& hubUrl_, int limit_ = UL_NONE) : user(user_), nick(nick_), url(hubUrl_), uploadLimit(limit_), lastSeen(0) { }
+		enum UPLOAD_LIMIT
+		{
+			UL_SU  = -2,
+			UL_BAN = -1,
+			UL_NONE = 0
+		};
+		
+// !SMT!-S
+		explicit FavoriteUser(const UserPtr& user_, const string& nick_, const string& hubUrl_, UPLOAD_LIMIT limit_ = UL_NONE) : user(user_), nick(nick_), url(hubUrl_), uploadLimit(limit_), lastSeen(0) { }
 		
 		explicit FavoriteUser() : uploadLimit(UL_NONE), lastSeen(0) { } // [+] IRainman opt.
 		
@@ -40,14 +47,6 @@ class FavoriteUser : public Flags
 			// [-] FLAG_SUPER_USER = 1 << x, // [+] FlylinkDC++ compatibility mode. [!] IRainman fix: deprecated, please use UPLOAD_LIMIT::UL_SU.
 			FLAG_IGNORE_PRIVATE      = 1 << 1,  // !SMT!-S
 			FLAG_FREE_PM_ACCESS     = 1 << 2  // !SMT!-S
-		};
-		
-		// !SMT!-S
-		enum UPLOAD_LIMIT
-		{
-			UL_SU  = -2,
-			UL_BAN = -1,
-			UL_NONE = 0
 		};
 		
 		// !SMT!-S
@@ -75,7 +74,7 @@ class FavoriteUser : public Flags
 		GETSET(string, url, Url);
 		GETSET(time_t, lastSeen, LastSeen);
 		GETSET(string, description, Description);
-		GETSET(int, uploadLimit, UploadLimit); // !SMT!-S
+		GETSET(UPLOAD_LIMIT, uploadLimit, UploadLimit); // !SMT!-S
 };
 
 #endif // !defined(FAVORITE_USER_H)

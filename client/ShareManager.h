@@ -537,11 +537,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		// [+] IRainman opt.
 		void on(SettingsManagerListener::ShareChanges) noexcept;
 		
-		bool isInSkipList(const string& lowerName) const
-		{
-			FastLock l(m_csSkipList);
-			return Wildcard::patternMatchLowerCase(lowerName, m_skipList);
-		}
+		bool isInSkipList(const string& lowerName) const;
 		bool skipListEmpty() const
 		{
 			return m_skipList.empty();

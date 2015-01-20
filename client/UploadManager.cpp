@@ -36,6 +36,7 @@
 boost::atomic_int UploadQueueItem::g_upload_queue_item_count;
 #endif
 uint32_t UploadManager::g_count_WaitingUsersFrame = 0;
+UploadManager::SlotMap UploadManager::g_reservedSlots;
 
 std::unique_ptr<webrtc::RWLockWrapper> UploadManager::g_csReservedSlots = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> UploadManager::g_csBans = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
@@ -86,12 +87,12 @@ bool UploadManager::handleBan(UserConnection* aSource/*, bool forceBan, bool noC
 		return true;
 	}
 	bool l_is_ban = false;
-	const bool l_is_favorite = FavoriteManager::getInstance()->isFavoriteUser(user, l_is_ban);
+	const bool l_is_favorite = FavoriteManager::isFavoriteUser(user, l_is_ban);
 	const auto banType = user->hasAutoBan(nullptr, l_is_favorite);
 	bool banByRules = banType != User::BAN_NONE;
 	if (banByRules)
 	{
-		FavoriteHubEntry* hub = FavoriteManager::getInstance()->getFavoriteHubEntry(aSource->getHubUrl());
+		FavoriteHubEntry* hub = FavoriteManager::getFavoriteHubEntry(aSource->getHubUrl());
 		if (hub && hub->getExclChecks())
 			banByRules = false;
 	}
@@ -160,7 +161,7 @@ bool UploadManager::handleBan(UserConnection* aSource/*, bool forceBan, bool noC
 			
 		logline += " Msg: " + SETTING(BAN_MESSAGE);
 		
-		LogManager::getInstance()->message("User:" + user->getLastNick() + ' ' + logline); //[+]PPA
+		LogManager::message("User:" + user->getLastNick() + ' ' + logline); //[+]PPA
 	}
 #endif
 	// old const bool sendStatus = aSource->isSet(UserConnection::FLAG_SUPPORTS_BANMSG);
@@ -259,7 +260,7 @@ bool UploadManager::hasUpload(const UserConnection* p_newLeacher, const string& 
 				snprintf(bufUploadUserShare, sizeof(bufUploadUserShare), "%I64d", uploadUserShare);
 				snprintf(bufShareDelta, sizeof(bufShareDelta), "%I64d", int64_t(std::abs(long(newLeacherShare - uploadUserShare))));
 #if 0
-				LogManager::getInstance()->ddos_message("[Drop duplicated connection] From IP =" + newLeacherIp
+				LogManager::ddos_message("[Drop duplicated connection] From IP =" + newLeacherIp
 				                                        + ", share con = " + bufNewLeacherShare
 				                                        + ", share exist = " + string(bufUploadUserShare)
 				                                        + " delta = " + string(bufShareDelta)
@@ -318,7 +319,7 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 					          l_User.hint.c_str(),
 					          l_count_attempts,
 					          aFile.c_str());
-					LogManager::getInstance()->ddos_message(l_buf);
+					LogManager::ddos_message(l_buf);
 				}
 #ifdef IRAINMAN_DISALLOWED_BAN_MSG
 				if (aSource->isSet(UserConnection::FLAG_SUPPORTS_BANMSG))
@@ -332,7 +333,7 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 			/*
 			if(l_count_dos > 50)
 			     {
-			         LogManager::getInstance()->message("[DoS] disconnect " + aSource->getUser()->getLastNick());
+			         LogManager::message("[DoS] disconnect " + aSource->getUser()->getLastNick());
 			         aSource->disconnect();
 			         return false;
 			     }
@@ -353,7 +354,7 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 	bool ishidingShare;
 	if (aSource->getUser())
 	{
-		const FavoriteHubEntry* fhe = FavoriteManager::getInstance()->getFavoriteHubEntry(aSource->getHintedUser().hint);
+		const FavoriteHubEntry* fhe = FavoriteManager::getFavoriteHubEntry(aSource->getHintedUser().hint);
 		ishidingShare = fhe && fhe->getHideShare();
 	}
 	else
@@ -530,7 +531,7 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 	}
 	catch (const Exception& e)
 	{
-		LogManager::getInstance()->message(STRING(UNABLE_TO_SEND_FILE) + ' ' + sourceFile + ": " + e.getError());
+		LogManager::message(STRING(UNABLE_TO_SEND_FILE) + ' ' + sourceFile + ": " + e.getError());
 		aSource->fileNotAvail();
 		return false;
 	}
@@ -545,7 +546,7 @@ ok: //[!] TODO убрать goto
 	bool hasReserved;
 	{
 		webrtc::ReadLockScoped l(*g_csReservedSlots); // [+] IRainman opt.
-		hasReserved = m_reservedSlots.find(aSource->getUser()) != m_reservedSlots.end();
+		hasReserved = g_reservedSlots.find(aSource->getUser()) != g_reservedSlots.end();
 	}
 	if (!hasReserved)
 	{
@@ -634,7 +635,7 @@ ok: //[!] TODO убрать goto
 		{
 #ifdef SSA_IPGRANT_FEATURE
 			if (hasSlotByIP)
-				LogManager::getInstance()->message("IpGrant: " + STRING(GRANTED_SLOT_BY_IP) + ' ' + aSource->getRemoteIp());
+				LogManager::message("IpGrant: " + STRING(GRANTED_SLOT_BY_IP) + ' ' + aSource->getRemoteIp());
 #endif
 			slotType = UserConnection::STDSLOT;
 		}
@@ -762,7 +763,7 @@ void UploadManager::reserveSlot(const HintedUser& hintedUser, uint64_t aTime)
 {
 	{
 		webrtc::WriteLockScoped l(*g_csReservedSlots); // [!] IRainman opt.
-		m_reservedSlots[hintedUser.user] = GET_TICK() + aTime * 1000;
+		g_reservedSlots[hintedUser.user] = GET_TICK() + aTime * 1000;
 	}
 	save(); // !SMT!-S
 	if (hintedUser.user->isOnline())
@@ -792,7 +793,7 @@ void UploadManager::unreserveSlot(const HintedUser& hintedUser)
 {
 	{
 		webrtc::WriteLockScoped l(*g_csReservedSlots); // [!] IRainman opt.
-		m_reservedSlots.erase(hintedUser.user);
+		g_reservedSlots.erase(hintedUser.user);
 	}
 	save(); // !SMT!-S
 	if (BOOLSETTING(SEND_SLOTGRANT_MSG)) // !SMT!-S
@@ -852,7 +853,7 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 	int64_t aStartPos = Util::toInt64(c.getParam(2));
 	int64_t aBytes = Util::toInt64(c.getParam(3));
 #ifdef _DEBUG
-//	LogManager::getInstance()->message("on(AdcCommand::GET aStartPos = " + Util::toString(aStartPos) + " aBytes = " + Util::toString(aBytes));
+//	LogManager::message("on(AdcCommand::GET aStartPos = " + Util::toString(aStartPos) + " aBytes = " + Util::toString(aBytes));
 #endif
 
 	if (prepareFile(aSource, type, fname, aStartPos, aBytes, c.hasFlag("RE", 4)))
@@ -1022,7 +1023,7 @@ void UploadManager::addConnection(UserConnection* p_conn)
 	{
 		p_conn->error(STRING(YOUR_IP_IS_BLOCKED));
 		p_conn->getUser()->setFlag(User::PG_BLOCK);
-		LogManager::getInstance()->message("IPFilter: " + STRING(BLOCKED_INCOMING_CONN) + ' ' + p_conn->getRemoteIp());
+		LogManager::message("IPFilter: " + STRING(BLOCKED_INCOMING_CONN) + ' ' + p_conn->getRemoteIp());
 		QueueManager::getInstance()->removeSource(p_conn->getUser(), QueueItem::Source::FLAG_REMOVED);
 		removeConnection(p_conn);
 		return;
@@ -1035,11 +1036,11 @@ void UploadManager::addConnection(UserConnection* p_conn)
 void UploadManager::testSlotTimeout(uint64_t aTick /*= GET_TICK()*/)
 {
 	webrtc::WriteLockScoped l(*g_csReservedSlots); // [+] IRainman opt.
-	for (auto j = m_reservedSlots.cbegin(); j != m_reservedSlots.cend();)
+	for (auto j = g_reservedSlots.cbegin(); j != g_reservedSlots.cend();)
 	{
 		if (j->second < aTick)  // !SMT!-S
 		{
-			m_reservedSlots.erase(j++);
+			g_reservedSlots.erase(j++);
 		}
 		else
 		{
@@ -1158,7 +1159,7 @@ void UploadManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 						continue;
 					}
 					bool l_is_ban = false;
-					if (BOOLSETTING(AUTO_KICK_NO_FAVS) && FavoriteManager::getInstance()->isFavoriteUser(u->getUser(), l_is_ban))
+					if (BOOLSETTING(AUTO_KICK_NO_FAVS) && FavoriteManager::isFavoriteUser(u->getUser(), l_is_ban))
 					{
 						continue;
 					}
@@ -1170,7 +1171,7 @@ void UploadManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 	
 	for (auto i = disconnects.cbegin(); i != disconnects.cend(); ++i)
 	{
-		LogManager::getInstance()->message(STRING(DISCONNECTED_USER) + ' ' + Util::toString(ClientManager::getNicks((*i)->getCID(), Util::emptyString)));
+		LogManager::message(STRING(DISCONNECTED_USER) + ' ' + Util::toString(ClientManager::getNicks((*i)->getCID(), Util::emptyString)));
 		ConnectionManager::getInstance()->disconnect(*i, false);
 	}
 	
@@ -1374,20 +1375,20 @@ void UploadManager::abortUpload(const string& aFile, bool waiting)
 }
 
 // !SMT!-S
-time_t UploadManager::getReservedSlotTime(const UserPtr& aUser) const
+time_t UploadManager::getReservedSlotTime(const UserPtr& aUser)
 {
 	webrtc::ReadLockScoped l(*g_csReservedSlots); // [!] IRainman opt.
-	SlotMap::const_iterator j = m_reservedSlots.find(aUser);
-	return j != m_reservedSlots.end() ? j->second : 0;
+	const auto j = g_reservedSlots.find(aUser);
+	return j != g_reservedSlots.end() ? j->second : 0;
 }
 
 // !SMT!-S
-void UploadManager::save() const
+void UploadManager::save()
 {
 	CFlyRegistryMap values;
 	{
 		webrtc::ReadLockScoped l(*g_csReservedSlots); // [!] IRainman opt.
-		for (auto i = m_reservedSlots.cbegin(); i != m_reservedSlots.cend(); ++i)
+		for (auto i = g_reservedSlots.cbegin(); i != g_reservedSlots.cend(); ++i)
 		{
 			values[i->first->getCID().toBase32()] = i->second;
 		}
@@ -1405,7 +1406,7 @@ void UploadManager::load()
 	{
 		auto user = ClientManager::getUser(CID(k->first), true);
 		webrtc::WriteLockScoped l(*g_csReservedSlots); // [+] IRainman opt.
-		m_reservedSlots[user] = uint32_t(k->second.m_val_int64);
+		g_reservedSlots[user] = uint32_t(k->second.m_val_int64);
 	}
 	testSlotTimeout();
 }

@@ -369,8 +369,8 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		bool m_needsUpdateStats;
 		bool m_needsResort;
 		
-		static int g_columnIndexes[/* [!] IRainman: don't uncomment this! ÏÎÊÓÑÀŞ! COLUMN_LAST*/];
-		static int g_columnSizes[/* [!] IRainman: don't uncomment this! ÏÎÊÓÑÀŞ! COLUMN_LAST*/];
+		static int g_columnIndexes[COLUMN_LAST];
+		static int g_columnSizes[COLUMN_LAST];
 		
 		bool updateUser(const OnlineUserPtr& p_ou, const int p_index_column);
 		void removeUser(const OnlineUserPtr& p_ou);
@@ -379,31 +379,13 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		void updateUserList(); // [!] IRainman opt.
 		bool parseFilter(FilterModes& mode, int64_t& size);
 		bool matchFilter(UserInfo& ui, int sel, bool doSizeCompare = false, FilterModes mode = NONE, int64_t size = 0);
-		UserInfo* findUser(const tstring& p_nick)   // !SMT!-S
-		{
-			dcassert(!m_is_fynally_clear_user_list);
-			dcassert(!p_nick.empty());
-			if (p_nick.empty())
-				return nullptr;
-				
-			const OnlineUserPtr ou = m_client->findUser(Text::fromT(p_nick));
-			if (ou)
-			{
-				//webrtc::ReadLockScoped l(*m_userMapCS);
-				//Lock l(m_userMapCS);
-				return m_userMap.findUser(ou);
-			}
-			else
-			{
-				return nullptr;
-			}
-		}
+		UserInfo* findUser(const tstring& p_nick);   // !SMT!-S
 		UserInfo* findUser(const OnlineUserPtr& p_user)
 		{
 			dcassert(!m_is_fynally_clear_user_list);
 			//if(m_is_fynally_clear_user_list)
 			//{
-			//  LogManager::getInstance()->message("findUser after m_is_fynally_clear_user_list = " + p_user->getUser()->getLastNick());
+			//  LogManager::message("findUser after m_is_fynally_clear_user_list = " + p_user->getUser()->getLastNick());
 			//}
 			return m_userMap.findUser(p_user);
 		}

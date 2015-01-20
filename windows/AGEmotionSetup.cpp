@@ -74,12 +74,12 @@ string CAGEmotion::UnzipEmotions(const string& p_file_name)
                 }
                 while (zip.GoToNextFile());
                 //dcassert(0);
-                LogManager::getInstance()->message("UnzipEmotions, Error = "+ p_file_name);
+                LogManager::message("UnzipEmotions, Error = "+ p_file_name);
             }
         }
         catch (dcpp::ZipFileException& e)
         {
-            LogManager::getInstance()->message("UnzipEmotions, Error = " + e.getError());
+            LogManager::message("UnzipEmotions, Error = " + e.getError());
         }
     return Util::emptyString;
 }
@@ -122,7 +122,7 @@ void CAGEmotion::initEmotionBmp()
 			else
 			{
 				m_EmotionBmpLoadedError = true;
-				LogManager::getInstance()->message("CAGEmotion::initEmotionBmp, Error load = " + l_path);
+				LogManager::message("CAGEmotion::initEmotionBmp, Error load = " + l_path);
 			}
 		}
 	}
@@ -196,7 +196,7 @@ CGDIImage *CAGEmotion::getAnimatedImage(HWND hCallbackWnd, DWORD dwCallbackMsg)
 			m_pGifImage = CGDIImage::CreateInstance(Text::toT(l_path).c_str(), hCallbackWnd, dwCallbackMsg);
 			if (!m_pGifImage->IsInited())
 			{
-				LogManager::getInstance()->message("CAGEmotion::getAnimatedImage, Error init Gif = " + l_path);
+				LogManager::message("CAGEmotion::getAnimatedImage, Error init Gif = " + l_path);
 				safe_release(m_pGifImage);
 				m_bMaySupportAnimation = false;
 			}
@@ -374,7 +374,7 @@ bool CAGEmotionSetup::LoadEmotion(const string& p_file_name)
 					{
 						// Такой текст уже найден - но файла может и не быть?
 						// Добавить альтернативный путь к смайлу на случай если не получится грузануть по первому пути?
-//						LogManager::getInstance()->message("CAGEmotionSetup::Create: dup emotion:" + strEmotionText);
+//						LogManager::message("CAGEmotionSetup::Create: dup emotion:" + strEmotionText);
 //						dcassert(0);
 						continue;
 					}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2013 FlylinkDC++ Team http://flylinkdc.com/
+ * Copyright (C) 2011-2015 FlylinkDC++ Team http://flylinkdc.com/
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -546,12 +546,12 @@ void AutoUpdate::startUpdateThisThread()
 void AutoUpdate::fail(const string& p_error)
 {
 	dcdebug("AutoUpdate: New command when already failed: %s\n", p_error.c_str());
-	LogManager::getInstance()->message(STRING(AUTOUPDATE) + ' ' + p_error);
+	LogManager::message(STRING(AUTOUPDATE) + ' ' + p_error);
 }
 
 void AutoUpdate::message(const string& p_message)
 {
-	LogManager::getInstance()->message(STRING(AUTOUPDATE) + ' ' + p_message);
+	LogManager::message(STRING(AUTOUPDATE) + ' ' + p_message);
 }
 
 SettingsManager::IntSetting AutoUpdate::getSettingByTitle(const string& wTitle)

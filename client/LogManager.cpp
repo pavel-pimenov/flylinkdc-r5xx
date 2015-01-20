@@ -23,44 +23,59 @@
 #include "CompatibilityManager.h"
 #include "TimerManager.h"
 
-LogManager::LogManager()
 #ifdef _DEBUG
-	: _debugTotal(0), _debugMissed(0), _debugConcurrencyEventCount(0), _debugParallelWritesFiles(0)
+boost::unordered_map<string, pair<string, size_t> > LogManager::g_patchCache;
+size_t LogManager::g_debugTotal;
+size_t LogManager::g_debugMissed;
+int LogManager::g_debugConcurrencyEventCount;
+int LogManager::g_debugParallelWritesFiles;
+#else
+boost::unordered_map<string, string> LogManager::g_patchCache;
 #endif
+int LogManager::g_logOptions[LAST][2];
+FastCriticalSection LogManager::g_csPatchCache;
+#ifdef IRAINMAN_USE_NG_LOG_MANAGER
+std::unordered_set<string> LogManager::g_currentlyOpenedFiles;
+FastCriticalSection LogManager::g_csCurrentlyOpenedFiles;
+#endif
+HWND LogManager::g_mainWnd = nullptr;
+int  LogManager::g_LogMessageID = 0;
+
+LogManager::LogManager()
 {
-	logOptions[UPLOAD][FILE]        = SettingsManager::LOG_FILE_UPLOAD;
-	logOptions[UPLOAD][FORMAT]      = SettingsManager::LOG_FORMAT_POST_UPLOAD;
-	logOptions[DOWNLOAD][FILE]      = SettingsManager::LOG_FILE_DOWNLOAD;
-	logOptions[DOWNLOAD][FORMAT]    = SettingsManager::LOG_FORMAT_POST_DOWNLOAD;
-	logOptions[CHAT][FILE]          = SettingsManager::LOG_FILE_MAIN_CHAT;
-	logOptions[CHAT][FORMAT]        = SettingsManager::LOG_FORMAT_MAIN_CHAT;
-	logOptions[PM][FILE]            = SettingsManager::LOG_FILE_PRIVATE_CHAT;
-	logOptions[PM][FORMAT]          = SettingsManager::LOG_FORMAT_PRIVATE_CHAT;
-	logOptions[SYSTEM][FILE]        = SettingsManager::LOG_FILE_SYSTEM;
-	logOptions[SYSTEM][FORMAT]      = SettingsManager::LOG_FORMAT_SYSTEM;
-	logOptions[STATUS][FILE]        = SettingsManager::LOG_FILE_STATUS;
-	logOptions[STATUS][FORMAT]      = SettingsManager::LOG_FORMAT_STATUS;
-	logOptions[WEBSERVER][FILE]     = SettingsManager::LOG_FILE_WEBSERVER;
-	logOptions[WEBSERVER][FORMAT]   = SettingsManager::LOG_FORMAT_WEBSERVER;
+	g_logOptions[UPLOAD][FILE]        = SettingsManager::LOG_FILE_UPLOAD;
+	g_logOptions[UPLOAD][FORMAT]      = SettingsManager::LOG_FORMAT_POST_UPLOAD;
+	g_logOptions[DOWNLOAD][FILE]      = SettingsManager::LOG_FILE_DOWNLOAD;
+	g_logOptions[DOWNLOAD][FORMAT]    = SettingsManager::LOG_FORMAT_POST_DOWNLOAD;
+	g_logOptions[CHAT][FILE]          = SettingsManager::LOG_FILE_MAIN_CHAT;
+	g_logOptions[CHAT][FORMAT]        = SettingsManager::LOG_FORMAT_MAIN_CHAT;
+	g_logOptions[PM][FILE]            = SettingsManager::LOG_FILE_PRIVATE_CHAT;
+	g_logOptions[PM][FORMAT]          = SettingsManager::LOG_FORMAT_PRIVATE_CHAT;
+	g_logOptions[SYSTEM][FILE]        = SettingsManager::LOG_FILE_SYSTEM;
+	g_logOptions[SYSTEM][FORMAT]      = SettingsManager::LOG_FORMAT_SYSTEM;
+	g_logOptions[STATUS][FILE]        = SettingsManager::LOG_FILE_STATUS;
+	g_logOptions[STATUS][FORMAT]      = SettingsManager::LOG_FORMAT_STATUS;
+	g_logOptions[WEBSERVER][FILE]     = SettingsManager::LOG_FILE_WEBSERVER;
+	g_logOptions[WEBSERVER][FORMAT]   = SettingsManager::LOG_FORMAT_WEBSERVER;
 #ifdef RIP_USE_LOG_PROTOCOL
-	logOptions[PROTOCOL][FILE]      = SettingsManager::LOG_FILE_PROTOCOL;
-	logOptions[PROTOCOL][FORMAT]    = SettingsManager::LOG_FORMAT_PROTOCOL;
+	g_logOptions[PROTOCOL][FILE]      = SettingsManager::LOG_FILE_PROTOCOL;
+	g_logOptions[PROTOCOL][FORMAT]    = SettingsManager::LOG_FORMAT_PROTOCOL;
 #endif
-	logOptions[CUSTOM_LOCATION][FILE]     = SettingsManager::LOG_FILE_CUSTOM_LOCATION;
-	logOptions[CUSTOM_LOCATION][FORMAT]   = SettingsManager::LOG_FORMAT_CUSTOM_LOCATION;
+	g_logOptions[CUSTOM_LOCATION][FILE]     = SettingsManager::LOG_FILE_CUSTOM_LOCATION;
+	g_logOptions[CUSTOM_LOCATION][FORMAT]   = SettingsManager::LOG_FORMAT_CUSTOM_LOCATION;
 	
-	logOptions[TRACE_SQLITE][FILE]     = SettingsManager::LOG_FILE_TRACE_SQLITE;
-	logOptions[TRACE_SQLITE][FORMAT]   = SettingsManager::LOG_FORMAT_TRACE_SQLITE;
-	logOptions[DDOS_TRACE][FILE]     = SettingsManager::LOG_FILE_DDOS_TRACE;
-	logOptions[DDOS_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_DDOS_TRACE;
-	logOptions[CMDDEBUG_TRACE][FILE]     = SettingsManager::LOG_FILE_CMDDEBUG_TRACE;
-	logOptions[CMDDEBUG_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_CMDDEBUG_TRACE;
-	logOptions[DHT_TRACE][FILE]     = SettingsManager::LOG_FILE_DHT_TRACE;
-	logOptions[DHT_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_DHT_TRACE;
-	logOptions[PSR_TRACE][FILE]     = SettingsManager::LOG_FILE_PSR_TRACE;
-	logOptions[PSR_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_PSR_TRACE;
-	logOptions[FLOOD_TRACE][FILE]     = SettingsManager::LOG_FILE_FLOOD_TRACE;
-	logOptions[FLOOD_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_FLOOD_TRACE;
+	g_logOptions[TRACE_SQLITE][FILE]     = SettingsManager::LOG_FILE_TRACE_SQLITE;
+	g_logOptions[TRACE_SQLITE][FORMAT]   = SettingsManager::LOG_FORMAT_TRACE_SQLITE;
+	g_logOptions[DDOS_TRACE][FILE]     = SettingsManager::LOG_FILE_DDOS_TRACE;
+	g_logOptions[DDOS_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_DDOS_TRACE;
+	g_logOptions[CMDDEBUG_TRACE][FILE]     = SettingsManager::LOG_FILE_CMDDEBUG_TRACE;
+	g_logOptions[CMDDEBUG_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_CMDDEBUG_TRACE;
+	g_logOptions[DHT_TRACE][FILE]     = SettingsManager::LOG_FILE_DHT_TRACE;
+	g_logOptions[DHT_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_DHT_TRACE;
+	g_logOptions[PSR_TRACE][FILE]     = SettingsManager::LOG_FILE_PSR_TRACE;
+	g_logOptions[PSR_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_PSR_TRACE;
+	g_logOptions[FLOOD_TRACE][FILE]     = SettingsManager::LOG_FILE_FLOOD_TRACE;
+	g_logOptions[FLOOD_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_FLOOD_TRACE;
 	
 	if (!CompatibilityManager::getStartupInfo().empty())
 		message(CompatibilityManager::getStartupInfo());
@@ -78,30 +93,30 @@ void LogManager::log(const string& p_area, const string& p_msg) noexcept
 	bool newPatch;
 	{
 #ifdef IRAINMAN_USE_NG_LOG_MANAGER
-		FastLock l(m_csPatchCache);
+		FastLock l(g_csPatchCache);
 #endif
-		const auto l_fine_it = m_patchCache.find(p_area);
-		newPatch = l_fine_it == m_patchCache.end();
+		const auto l_fine_it = g_patchCache.find(p_area);
+		newPatch = l_fine_it == g_patchCache.end();
 		if (newPatch)
 		{
-			if (m_patchCache.size() > 250)
-				m_patchCache.clear();
+			if (g_patchCache.size() > 250)
+				g_patchCache.clear();
 				
 			l_area = Util::validateFileName(p_area);
 #ifdef _DEBUG
-			_debugMissed++;
+			g_debugMissed++;
 			const std::pair<string, size_t> l_pair(l_area, 0);
-			m_patchCache[p_area] = l_pair;
+			g_patchCache[p_area] = l_pair;
 #else
-			m_patchCache[p_area] = l_area;
+			g_patchCache[p_area] = l_area;
 #endif
 		}
 		else
 		{
 #ifdef _DEBUG
-			_debugTotal++;
+			g_debugTotal++;
 			if (++l_fine_it->second.second % 100 == 0)
-				dcdebug("log path cache: size=%i [%s] %i\n", m_patchCache.size(), p_area.c_str(), l_fine_it->second.second);
+				dcdebug("log path cache: size=%i [%s] %i\n", g_patchCache.size(), p_area.c_str(), l_fine_it->second.second);
 				
 			l_area = l_fine_it->second.first;
 #else
@@ -113,21 +128,21 @@ void LogManager::log(const string& p_area, const string& p_msg) noexcept
 	while (true)
 	{
 		{
-			FastLock l(m_csCurrentlyOpenedFiles);
+			FastLock l(g_csCurrentlyOpenedFiles);
 #ifdef _DEBUG
-			if (!m_currentlyOpenedFiles.empty())
+			if (!g_currentlyOpenedFiles.empty())
 			{
-				_debugParallelWritesFiles++;
+				g_debugParallelWritesFiles++;
 			}
 #endif
-			if (m_currentlyOpenedFiles.insert(l_area).second == true)
+			if (g_currentlyOpenedFiles.insert(l_area).second == true)
 			{
 				break;
 			}
 #ifdef _DEBUG
 			else
 			{
-				++_debugConcurrencyEventCount;
+				++g_debugConcurrencyEventCount;
 			}
 #endif
 		}
@@ -156,19 +171,19 @@ void LogManager::log(const string& p_area, const string& p_msg) noexcept
 	}
 #ifdef IRAINMAN_USE_NG_LOG_MANAGER
 	{
-		FastLock l(m_csCurrentlyOpenedFiles);
-		m_currentlyOpenedFiles.erase(l_area);
+		FastLock l(g_csCurrentlyOpenedFiles);
+		g_currentlyOpenedFiles.erase(l_area);
 	}
 #endif
 }
-const string& LogManager::getSetting(int area, int sel) const
+const string& LogManager::getSetting(int area, int sel)
 {
-	return SettingsManager::get(static_cast<SettingsManager::StrSetting>(logOptions[area][sel]), true);
+	return SettingsManager::get(static_cast<SettingsManager::StrSetting>(g_logOptions[area][sel]), true);
 }
 
 void LogManager::saveSetting(int area, int sel, const string& setting)
 {
-	SettingsManager::set(static_cast<SettingsManager::StrSetting>(logOptions[area][sel]), setting);
+	SettingsManager::set(static_cast<SettingsManager::StrSetting>(g_logOptions[area][sel]), setting);
 }
 
 void LogManager::log(LogArea area, const StringMap& params, bool p_only_file /* = false */) noexcept
@@ -252,7 +267,15 @@ void LogManager::message(const string& msg, bool p_only_file /*= false */)
 	}
 	if (TimerManager::g_isStartupShutdownProcess == false)
 	{
-		fire(LogManagerListener::Message(), msg);
+		if (LogManager::g_mainWnd)
+		{
+			auto l_str_messages = new string(msg);
+			if (!PostMessage(LogManager::g_mainWnd, WM_SPEAKER, g_LogMessageID, (LPARAM)l_str_messages))
+			{
+				dcassert(0);
+				delete l_str_messages;
+			}
+		}
 	}
 }
 CFlyLog::CFlyLog(const string& p_message
@@ -276,7 +299,7 @@ CFlyLog::~CFlyLog()
 	//if(!m_skip_start_stop)
 	{
 		const uint64_t l_current = GET_TICK();
-		log("[Stop ] " + m_message + " [" + Util::toString(l_current - m_tc) + " ms, Total: " + Util::toString(l_current - m_start) + " ms]");
+		log("[Stop] " + m_message + " [" + Util::toString(l_current - m_tc) + " ms, Total: " + Util::toString(l_current - m_start) + " ms]");
 	}
 }
 uint64_t CFlyLog::calcSumTime() const

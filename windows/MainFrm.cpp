@@ -176,7 +176,6 @@ MainFrame::MainFrame() :
 #endif
 	m_index_new_version_menu_item(0),
 	m_bTrayIcon(false),
-	m_TuneSplitCount(0),
 	m_bIsPM(false),
 	QuickSearchBoxContainer(WC_COMBOBOX, this, QUICK_SEARCH_MAP),
 	QuickSearchEditContainer(WC_EDIT , this, QUICK_SEARCH_MAP),
@@ -191,9 +190,14 @@ MainFrame::MainFrame() :
 	g_anyMF = this;
 	memzero(m_statusSizes, sizeof(m_statusSizes));
 }
-
+bool MainFrame::isAppMinimized(HWND p_hWnd)
+{
+	return g_bAppMinimized && WinUtil::g_tabCtrl && WinUtil::g_tabCtrl->isActive(p_hWnd);
+	
+}
 MainFrame::~MainFrame()
 {
+	LogManager::g_mainWnd = nullptr;
 	m_CmdBar.m_hImageList = NULL;
 	m_images.Destroy();
 	largeImages.Destroy();
@@ -201,10 +205,11 @@ MainFrame::~MainFrame()
 	winampImages.Destroy();
 	winampImagesHot.Destroy();
 	m_ShutdownIcon.reset();
-	WinUtil::uninit();
+	
 #ifdef IRAINMAN_INCLUDE_SMILE
 	CAGEmotionSetup::destroyEmotionSetup();
 #endif
+	WinUtil::uninit();
 }
 
 unsigned int WINAPI MainFrame::stopper(void* p)
@@ -215,10 +220,18 @@ unsigned int WINAPI MainFrame::stopper(void* p)
 	while ((wnd =::GetWindow(mf->m_hWndMDIClient, GW_CHILD)) != NULL)
 	{
 		if (wnd == wnd2)
-			Sleep(100);
+		{
+#ifdef _DEBUG
+			LogManager::message("MainFrame::stopper Sleep(10) wnd = " + Util::toString(int(wnd)));
+#endif
+			Sleep(10);
+		}
 		else
 		{
 			::PostMessage(wnd, WM_CLOSE, 0, 0);
+#ifdef _DEBUG
+			LogManager::message("MainFrame::stopper ::PostMessage(wnd, WM_CLOSE, 0, 0) wnd = " + Util::toString(int(wnd)));
+#endif
 			wnd2 = wnd;
 		}
 	}
@@ -471,7 +484,6 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		return -1;
 		
 	QueueManager::getInstance()->addListener(this);
-	LogManager::getInstance()->addListener(this);
 	WebServerManager::getInstance()->addListener(this);
 	UserManager::getInstance()->addListener(this); // [+] IRainman
 	
@@ -509,7 +521,10 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		}
 	}
 	
+	LogManager::g_mainWnd = m_hWnd;
+	LogManager::g_LogMessageID = STATUS_MESSAGE;
 	WinUtil::init(m_hWnd);
+	
 	m_trayMessage = RegisterWindowMessage(_T("TaskbarCreated"));
 	dcassert(m_trayMessage);
 	
@@ -613,7 +628,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	
 	CreateMDIClient();
 	m_CmdBar.SetMDIClient(m_hWndMDIClient);
-	WinUtil::mdiClient = m_hWndMDIClient;
+	WinUtil::g_mdiClient = m_hWndMDIClient;
 	
 	/*
 	#ifdef RIP_USE_SKIN
@@ -627,7 +642,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	if (!m_SkinManager.HaveTabbar())
 	{
 		ctrlTab.Create(m_hWnd, rcDefault);
-		WinUtil::g_tabCtrl = &ctrlTab;
+		WinUtil::g_tabCtrl = &m_ctrlTab;
 	}
 	else
 	{
@@ -808,7 +823,10 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 
 int MainFrame::tuneTransferSplit()
 {
-	m_nProportionalPos = SETTING(TRANSFER_SPLIT_SIZE);
+	int l_split_size =  Util::getRegistryValueInt(_T("TransferSplitSize"));
+	if (l_split_size == 0)
+		l_split_size = SETTING(TRANSFER_SPLIT_SIZE);
+	m_nProportionalPos = l_split_size;
 	if (m_nProportionalPos < 3000 || m_nProportionalPos > 9400)
 	{
 		m_nProportionalPos = 9100; // TODO - пофиксить http://code.google.com/p/flylinkdc/issues/detail?id=1398
@@ -940,7 +958,7 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			if (!PostMessage(WM_SPEAKER, STATS, (LPARAM)Stats))
 			{
 				dcassert(0);
-				LogManager::getInstance()->message("Error PostMessage(WM_SPEAKER, STATS, (LPARAM)Stats) - mailto ppa74@ya.ru");
+				LogManager::message("Error PostMessage(WM_SPEAKER, STATS, (LPARAM)Stats) - mailto ppa74@ya.ru");
 				g_CountSTATS--;
 				delete Stats;
 			}
@@ -2183,7 +2201,7 @@ void MainFrame::getIPupdate()
 	if (l_is_udp_port_send && !l_external_ip.empty())
 	{
 		SET_SETTING(EXTERNAL_IP, l_external_ip);
-		LogManager::getInstance()->message(STRING(IP_AUTO_UPDATE) + ' ' + l_external_ip + " ");
+		LogManager::message(STRING(IP_AUTO_UPDATE) + ' ' + l_external_ip + " ");
 	}
 	else
 #endif
@@ -2195,14 +2213,14 @@ void MainFrame::getIPupdate()
 			if (!l_external_ip.empty())
 			{
 				SET_SETTING(EXTERNAL_IP, l_external_ip);
-				LogManager::getInstance()->message(STRING(IP_AUTO_UPDATE) + ' ' + l_external_ip);
+				LogManager::message(STRING(IP_AUTO_UPDATE) + ' ' + l_external_ip);
 			}
 			else
-				LogManager::getInstance()->message("Error IP AutoUpdate from URL: " + l_url);
+				LogManager::message("Error IP AutoUpdate from URL: " + l_url);
 		}
 		else
 		{
-			LogManager::getInstance()->message("Error IP AutoUpdate. URL: " + l_url); // TODO translate
+			LogManager::message("Error IP AutoUpdate. URL: " + l_url); // TODO translate
 		}
 	}
 }
@@ -2295,7 +2313,7 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 //    PROFILE_THREAD_SCOPED()
 	const bool l_settingsNickExist = !SETTING(NICK).empty();
 	missedAutoConnect = false;
-	CFlyLockWindowUpdate l(WinUtil::mdiClient); // [+]PPA
+	CFlyLockWindowUpdate l(WinUtil::g_mdiClient); // [+]PPA
 	HubFrame* frm = nullptr;
 	{
 		// TODO - убрать много флажков
@@ -2497,8 +2515,7 @@ LRESULT MainFrame::onSize(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL&
 //	  return TRUE;
 //	}
 //}
-
-LRESULT MainFrame::onEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+void MainFrame::storeWindowsPos()
 {
 	WINDOWPLACEMENT wp = {0};
 	wp.length = sizeof(wp);
@@ -2516,7 +2533,11 @@ LRESULT MainFrame::onEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	}
 	if (wp.showCmd == SW_SHOWNORMAL || wp.showCmd == SW_SHOW || wp.showCmd == SW_SHOWMAXIMIZED || wp.showCmd == SW_MAXIMIZE)
 		SET_SETTING(MAIN_WINDOW_STATE, (int)wp.showCmd);
-		
+}
+
+LRESULT MainFrame::onEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+	storeWindowsPos();
 	QueueManager::getInstance()->saveQueue();
 	SettingsManager::getInstance()->save();
 	
@@ -2598,6 +2619,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			
 			if ((m_oldshutdown || SETTING(PROTECT_CLOSE) || (checkState == BST_UNCHECKED) || (bForceNoWarning || ::MessageBox(m_hWnd, CTSTRING(REALLY_EXIT), T_APPNAME_WITH_VERSION, CTSTRING(ALWAYS_ASK), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES)) && !m_stopexit) // [~] InfinitySky.
 			{
+				LogManager::g_mainWnd = nullptr;
 				m_closing = true;
 				safe_destroy_timer();
 #ifdef IRAINMAN_INCLUDE_SMILE
@@ -2616,7 +2638,6 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 				
 				WebServerManager::getInstance()->removeListener(this);
 				UserManager::getInstance()->removeListener(this); // [+] IRainman
-				LogManager::getInstance()->removeListener(this);
 				QueueManager::getInstance()->removeListener(this);
 				
 				// [-] ConnectionManager::getInstance()->disconnect(); [-] IRainman fix: called in global shutdown(): ConnectionManager::getInstance()->shutdown().
@@ -2625,27 +2646,14 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 				//ToolbarManager::getInstance()->getFrom(l_rebar, "MainToolBar");
 				
 				updateTray(false);
-				WINDOWPLACEMENT wp = {0};
-				wp.length = sizeof(wp);
-				GetWindowPlacement(&wp);
-				
-				CRect rc;
-				GetWindowRect(rc);
 				if (m_nProportionalPos > 300) // http://code.google.com/p/flylinkdc/issues/detail?id=1398
 				{
 					SET_SETTING(TRANSFER_SPLIT_SIZE, m_nProportionalPos);
+					Util::setRegistryValueInt(_T("TransferSplitSize"), m_nProportionalPos);
 				}
-				if (wp.showCmd == SW_SHOW || wp.showCmd == SW_SHOWNORMAL)
-				{
-					SET_SETTING(MAIN_WINDOW_POS_X, rc.left);
-					SET_SETTING(MAIN_WINDOW_POS_Y, rc.top);
-					SET_SETTING(MAIN_WINDOW_SIZE_X, rc.Width());
-					SET_SETTING(MAIN_WINDOW_SIZE_Y, rc.Height());
-				}
-				if (wp.showCmd == SW_SHOWNORMAL || wp.showCmd == SW_SHOW || wp.showCmd == SW_SHOWMAXIMIZED || wp.showCmd == SW_MAXIMIZE)
-					SET_SETTING(MAIN_WINDOW_STATE, (int)wp.showCmd);
-					
+				storeWindowsPos();
 				ShowWindow(SW_HIDE);
+				//WinUtil::uninit();
 				m_stopperThread = reinterpret_cast<HANDLE>(_beginthreadex(NULL, 0, &stopper, this, 0, nullptr));
 			}
 			else
@@ -2981,7 +2989,7 @@ LRESULT MainFrame::onRefreshFileListPurge(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 	ShareManager::getInstance()->setDirty();
 	ShareManager::getInstance()->setPurgeTTH();
 	ShareManager::getInstance()->refresh(true);
-	LogManager::getInstance()->message(STRING(PURGE_TTH_DATABASE));
+	LogManager::message(STRING(PURGE_TTH_DATABASE));
 	return 0;
 }
 
@@ -3380,11 +3388,6 @@ LRESULT MainFrame::onActivateApp(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/
 	{
 		setTrayAndTaskbarIcons(); // [!] IRainman fix.
 	}
-	if (m_TuneSplitCount++ < 3) // http://code.google.com/p/flylinkdc/issues/detail?id=1398
-	{
-		if (!tuneTransferSplit())
-			--m_TuneSplitCount;
-	}
 	return 0;
 }
 
@@ -3683,7 +3686,7 @@ LRESULT MainFrame::OnAnimChangeFrame(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lP
 			}
 			else
 			{
-				LogManager::getInstance()->message("Error in OnAnimChangeFrame CGDIImage::isGDIImageLive!");
+				LogManager::message("Error in OnAnimChangeFrame CGDIImage::isGDIImageLive!");
 			}
 #else
 			pImage->DrawFrame();
@@ -3929,11 +3932,11 @@ void MainFrame::AddFolderShareFromShell(const tstring& infolder)
 				mmessage += lastName;
 				mmessage += L')';
 				SHOW_POPUP(POPUP_NEW_FOLDERSHARE, mmessage, TSTRING(SHARE_NEW_FOLDER_MESSAGE));
-				LogManager::getInstance()->message(STRING(SHARE_NEW_FOLDER_MESSAGE) + ' ' + Text::fromT(mmessage));
+				LogManager::message(STRING(SHARE_NEW_FOLDER_MESSAGE) + ' ' + Text::fromT(mmessage));
 			}
 			catch (const Exception& ex)
 			{
-				LogManager::getInstance()->message(STRING(SHARE_NEW_FOLDER_ERROR) + " (" + Text::fromT(folder) + ") " + ex.getError());
+				LogManager::message(STRING(SHARE_NEW_FOLDER_ERROR) + " (" + Text::fromT(folder) + ") " + ex.getError());
 			}
 		}
 	}

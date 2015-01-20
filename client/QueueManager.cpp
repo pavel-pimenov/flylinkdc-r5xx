@@ -165,7 +165,7 @@ QueueItemPtr QueueManager::FileQueue::add(const string& aTarget, int64_t aSize,
 	else
 	{
 		safe_delete(qi);
-		LogManager::getInstance()->message("Skip duplicate target QueueManager::FileQueue::add file = " + aTarget);
+		LogManager::message("Skip duplicate target QueueManager::FileQueue::add file = " + aTarget);
 	}
 	return qi;
 }
@@ -372,8 +372,7 @@ void QueueManager::UserQueue::addL(const QueueItemPtr& qi) // [!] IRainman fix.
 }
 void QueueManager::UserQueue::addL(const QueueItemPtr& qi, const UserPtr& aUser, bool p_is_first_load) // [!] IRainman fix.
 {
-	const auto l_index = qi->getPriority();
-	dcassert(l_index < QueueItem::LAST);
+	dcassert(qi->getPriority() < QueueItem::LAST);
 	auto& uq = m_userQueue[qi->getPriority()][aUser];
 	
 // ѕри первой загрузки очереди из базы не зовем calcAverageSpeedAndCalcAndGetDownloadedBytesL
@@ -609,7 +608,7 @@ void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr&
 		l_isSource = qi->isSourceL(aUser); // crash https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=78346
 		if (!l_isSource)
 		{
-			LogManager::getInstance()->message("Error QueueManager::UserQueue::removeUserL [dcassert(isSource)] aUser = [" +
+			LogManager::message("Error QueueManager::UserQueue::removeUserL [dcassert(isSource)] aUser = [" +
 			                                   aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
 			dcassert(l_isSource);
 			return;
@@ -620,7 +619,7 @@ void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr&
 	const auto& j = ulm.find(aUser);
 	if (j == ulm.cend())
 	{
-		LogManager::getInstance()->message("Error QueueManager::UserQueue::removeUserL [dcassert(j != ulm.cend())] aUser = [" +
+		LogManager::message("Error QueueManager::UserQueue::removeUserL [dcassert(j != ulm.cend())] aUser = [" +
 		                                   aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
 		dcassert(j != ulm.cend());
 		return;
@@ -631,7 +630,7 @@ void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr&
 	// TODO - перевести на set const auto& i = uq.find(qi);
 	if (i == uq.cend())
 	{
-		LogManager::getInstance()->message("Error QueueManager::UserQueue::removeUserL [dcassert(i != uq.cend());] aUser = [" +
+		LogManager::message("Error QueueManager::UserQueue::removeUserL [dcassert(i != uq.cend());] aUser = [" +
 		                                   aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
 		dcassert(i != uq.cend());
 		return;
@@ -639,7 +638,7 @@ void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr&
 #ifdef _DEBUG
 	if (uq.size() > 5)
 	{
-		LogManager::getInstance()->message("void QueueManager::UserQueue::removeUserL User = " + aUser->getLastNick() +
+		LogManager::message("void QueueManager::UserQueue::removeUserL User = " + aUser->getLastNick() +
 		                                   " uq.size = " + Util::toString(uq.size()));
 	}
 #endif
@@ -697,7 +696,7 @@ void QueueManager::Rechecker::execute(const string& p_file) // [!] IRainman core
 			}
 			catch (FileException& p_e)
 			{
-				LogManager::getInstance()->message("[Error] setSize - " + q->getTempTarget() + " Error=" + p_e.getError());
+				LogManager::message("[Error] setSize - " + q->getTempTarget() + " Error=" + p_e.getError());
 			}
 		}
 		
@@ -936,7 +935,7 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 			recent.push_back(qi->getTarget());
 			nextSearch = aTick + (SETTING(AUTO_SEARCH_TIME) * 60000);
 			if (BOOLSETTING(REPORT_ALTERNATES))
-				LogManager::getInstance()->message(STRING(ALTERNATES_SEND) + ' ' + Util::getFileName(qi->getTargetFileName()));
+				LogManager::message(STRING(ALTERNATES_SEND) + ' ' + Util::getFileName(qi->getTargetFileName()));
 		}
 	}
 	// [~] IRainman fix.
@@ -953,7 +952,7 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 			SearchManager::getInstance()->toPSR(cmd, true, param->myNick, param->hubIpPort, param->tth, param->parts);
 			Socket s;
 			s.writeTo(param->ip, param->udpPort, cmd.toString(ClientManager::getMyCID()));
-			LogManager::getInstance()->psr_message(
+			LogManager::psr_message(
 			    "[PartsInfoReq] Send UDP IP = " + param->ip +
 			    " param->udpPort = " + Util::toString(param->udpPort) +
 			    " cmd = " + cmd.toString(ClientManager::getMyCID())
@@ -962,7 +961,7 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 		catch (Exception& e)
 		{
 			dcdebug("Partial search caught error\n");
-			LogManager::getInstance()->psr_message(
+			LogManager::psr_message(
 			    "[Partial search caught error] Error = " + e.getError() +
 			    " IP = " + param->ip +
 			    " param->udpPort = " + Util::toString(param->udpPort)
@@ -1482,7 +1481,7 @@ void QueueManager::FileListQueue::execute(const DirectoryListInfoPtr& list) // [
 		}
 		catch (const Exception& e)
 		{
-			LogManager::getInstance()->message(e.getError());
+			LogManager::message(e.getError());
 		}
 	}
 	delete list;
@@ -1887,11 +1886,11 @@ void QueueManager::internalMoveFile(const string& source, const string& p_target
 		try
 		{
 			File::renameFile(source, newTarget);
-			LogManager::getInstance()->message(source + ' ' + STRING(RENAMED_TO) + ' ' + newTarget);
+			LogManager::message(source + ' ' + STRING(RENAMED_TO) + ' ' + newTarget);
 		}
 		catch (const FileException& e2)
 		{
-			LogManager::getInstance()->message(STRING(UNABLE_TO_RENAME) + ' ' + source + " -> NewTarget: " + newTarget + " Error = " + e2.getError());
+			LogManager::message(STRING(UNABLE_TO_RENAME) + ' ' + source + " -> NewTarget: " + newTarget + " Error = " + e2.getError());
 		}
 	}
 }
@@ -2291,14 +2290,14 @@ void QueueManager::processList(const string& name, const HintedUser& hintedUser,
 	}
 	catch (const Exception&)
 	{
-		LogManager::getInstance()->message(STRING(UNABLE_TO_OPEN_FILELIST) + ' ' + name);
+		LogManager::message(STRING(UNABLE_TO_OPEN_FILELIST) + ' ' + name);
 		return;
 	}
 	// [+] IRainman fix.
 	dcassert(dirList.getTotalFileCount());
 	if (!dirList.getTotalFileCount())
 	{
-		LogManager::getInstance()->message(STRING(UNABLE_TO_OPEN_FILELIST) + " (dirList.getTotalFileCount() == 0) " + name);
+		LogManager::message(STRING(UNABLE_TO_OPEN_FILELIST) + " (dirList.getTotalFileCount() == 0) " + name);
 		return;
 	}
 	// [~] IRainman fix.
@@ -2527,7 +2526,7 @@ void QueueManager::setPriority(const string& aTarget, QueueItem::Priority p) noe
 				}
 				userQueue.setQIPriority(q, p); // !!!!!!!!!!!!!!!!!! ”дал€ет и вставл€ет в массив каждую секунду
 #ifdef _DEBUG
-				LogManager::getInstance()->message("QueueManager userQueue.setQIPriority q->getTarget = " + q->getTarget());
+				LogManager::message("QueueManager userQueue.setQIPriority q->getTarget = " + q->getTarget());
 #endif
 				setDirty();
 				fire(QueueManagerListener::StatusUpdated(), q);
@@ -2594,7 +2593,7 @@ void QueueManager::saveQueue(bool force) noexcept
 				{
 #ifdef _DEBUG
 					const auto& l_first = i->first;
-					LogManager::getInstance()->message("merge_queue_itemL(qi) getFlyQueueID = " + Util::toString(qi->getFlyQueueID()) + " *l_first = " + l_first);
+					LogManager::message("merge_queue_itemL(qi) getFlyQueueID = " + Util::toString(qi->getFlyQueueID()) + " *l_first = " + l_first);
 #endif
 					l_items.push_back(qi);
 				}
@@ -2940,7 +2939,7 @@ void QueueManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	if (dirty && ((lastSave + 30000) < aTick))
 	{
 #ifdef _DEBUG
-		LogManager::getInstance()->message("[!-> [Start] saveQueue lastSave = " + Util::toString(lastSave) + " aTick = " + Util::toString(aTick));
+		LogManager::message("[!-> [Start] saveQueue lastSave = " + Util::toString(lastSave) + " aTick = " + Util::toString(aTick));
 #endif
 		saveQueue();
 	}
@@ -3040,7 +3039,7 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 		QueueItemPtr qi = fileQueue.findQueueItem(tth);
 		if (!qi)
 			return false;
-		LogManager::getInstance()->psr_message("[QueueManager::handlePartialResult] findQueueItem - OK TTH = " + tth.toBase32());
+		LogManager::psr_message("[QueueManager::handlePartialResult] findQueueItem - OK TTH = " + tth.toBase32());
 		
 		WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 		
@@ -3053,7 +3052,7 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 		if (qi->getSize() < PARTIAL_SHARE_MIN_SIZE)
 		{
 			dcassert(0);
-			LogManager::getInstance()->psr_message(
+			LogManager::psr_message(
 			    "[QueueManager::handlePartialResult] qi->getSize() < PARTIAL_SHARE_MIN_SIZE. qi->getSize() = " + Util::toString(qi->getSize()));
 			return false;
 		}
@@ -3093,7 +3092,7 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 				userQueue.addL(qi, aUser, false);
 				dcassert(si != qi->getSourcesL().end());
 				fire(QueueManagerListener::SourcesUpdated(), qi);
-				LogManager::getInstance()->psr_message(
+				LogManager::psr_message(
 				    "[QueueManager::handlePartialResult] new QueueItem::PartialSource = nick = " + partialSource.getMyNick() +
 				    " HubIpPort = " + partialSource.getHubIpPort() +
 				    " IP = " + partialSource.getIp() +

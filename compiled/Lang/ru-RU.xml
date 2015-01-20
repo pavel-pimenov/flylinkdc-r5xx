@@ -75,7 +75,7 @@
 		<String Name="AlternatesSend">Ищутся альтернативные источники по ТТН для:</String>
 		<String Name="AlwaysAsk">Всегда спрашивать</String>
 		<String Name="Any">Любой</String>
-		<String Name="Antivirus">Антивирус</String>
+		<String Name="Antivirus">AVDB</String>
 		<String Name="AscrollChat">Автопрокрутка чата</String>
 		<String Name="Ask">Попросить</String>
 		<String Name="AskSlot">Попросить слоты</String>

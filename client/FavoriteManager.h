@@ -97,24 +97,24 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 				}
 				const FavoriteMap& getFavoriteUsersL() const
 				{
-					return FavoriteManager::getInstance()->m_fav_users_map;
+					return FavoriteManager::g_fav_users_map;
 				}
 				const StringSet& getFavoriteNames() const
 				{
-					return FavoriteManager::getInstance()->m_fav_users;
+					return FavoriteManager::g_fav_users;
 				}
 		};
-		const PreviewApplication::List& getPreviewApps() const
+		static const PreviewApplication::List& getPreviewApps()
 		{
-			return previewApplications;
+			return g_previewApplications;
 		}
 		
 		void addFavoriteUser(const UserPtr& aUser);
-		bool isFavoriteUser(const UserPtr& aUser, bool& p_is_ban) const;
-		bool getFavoriteUser(const UserPtr& p_user, FavoriteUser& p_favuser) const; // [+] IRainman opt.
-		bool isNoFavUserOrUserBanUpload(const UserPtr& aUser) const; // [+] IRainman opt.
-		bool isNoFavUserOrUserIgnorePrivate(const UserPtr& aUser) const; // [+] IRainman opt.
-		bool getFavUserParam(const UserPtr& aUser, FavoriteUser::MaskType& p_flags, int& p_uploadLimit) const; // [+] IRainman opt.
+		static bool isFavoriteUser(const UserPtr& aUser, bool& p_is_ban);
+		static bool getFavoriteUser(const UserPtr& p_user, FavoriteUser& p_favuser); // [+] IRainman opt.
+		static bool isNoFavUserOrUserBanUpload(const UserPtr& aUser); // [+] IRainman opt.
+		static bool isNoFavUserOrUserIgnorePrivate(const UserPtr& aUser); // [+] IRainman opt.
+		static bool getFavUserParam(const UserPtr& aUser, FavoriteUser::MaskType& p_flags, int& p_uploadLimit); // [+] IRainman opt.
 		
 		static bool hasAutoGrantSlot(FavoriteUser::MaskType p_flags) // [+] IRainman opt.
 		{
@@ -124,10 +124,6 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		static bool hasUploadBan(int limit) // [+] IRainman opt.
 		{
 			return limit == FavoriteUser::UL_BAN;
-		}
-		static bool hasUploadSuperUser(int limit) // [+] IRainman opt.
-		{
-			return limit == FavoriteUser::UL_SU;
 		}
 		
 		static bool hasIgnorePM(FavoriteUser::MaskType p_flags) // [+] IRainman opt.
@@ -150,8 +146,8 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		{
 			setFlag(aUser, FavoriteUser::FLAG_GRANT_SLOT, grant);
 		}
-		void userUpdated(const OnlineUser& info);
-		string getUserUrl(const UserPtr& aUser) const;
+		static void userUpdated(const OnlineUser& info);
+		static string getUserUrl(const UserPtr& aUser);
 		
 		// !SMT!-S
 		void setUploadLimit(const UserPtr& aUser, int lim, bool createUser = true);
@@ -165,20 +161,12 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		{
 			setUploadLimit(aUser, ban ? FavoriteUser::UL_BAN : FavoriteUser::UL_NONE);
 		}
-#if 0
-		bool hasUploadSuperUser(const UserPtr& aUser) const // [+] IRainman fix.
-		{
-			int limit;
-			FavoriteUser::MaskType l_flags;
-			return getFavUserParam(aUser, l_flags, limit) ? limit == FavoriteUser::UL_SU : false;
-		}
-#endif
 		void setUploadSuperUser(const UserPtr& aUser, bool superUser) // [+] IRainman fix.
 		{
 			setUploadLimit(aUser, superUser ? FavoriteUser::UL_SU : FavoriteUser::UL_NONE);
 		}
 		
-		bool getFlag(const UserPtr& aUser, FavoriteUser::Flags) const;
+		static bool getFlag(const UserPtr& aUser, FavoriteUser::Flags);
 		void setFlag(const UserPtr& aUser, FavoriteUser::Flags, bool flag, bool createUser = true);
 		
 		bool hasIgnorePM(const UserPtr& aUser) const
@@ -214,20 +202,10 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		FavoriteHubEntry* addFavorite(const FavoriteHubEntry& aEntry, const AutoStartType p_autostart = NOT_CHANGE); // [!] IRainman fav options
 		void removeFavorite(const FavoriteHubEntry* entry);
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
-		void changeConnectionStatus(const string& hubUrl, ConnectionStatus::Status status)
-		{
-			FavoriteHubEntry* hub = getFavoriteHubEntry(hubUrl);
-			if (hub)
-			{
-				hub->setConnectionStatus(status);
-#ifdef UPDATE_CON_STATUS_ON_FAV_HUBS_IN_REALTIME
-				fire(FavoriteManagerListener::FavoriteStatusChanged(), hub);
-#endif
-			}
-		}
+		static void changeConnectionStatus(const string& hubUrl, ConnectionStatus::Status status);
 #endif
 		
-		FavoriteHubEntry* getFavoriteHubEntry(const string& aServer) const;
+		static FavoriteHubEntry* getFavoriteHubEntry(const string& aServer);
 		
 		bool isPrivate(const string& p_url) const;
 // Favorite hub groups
@@ -239,34 +217,34 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 				LockInstanceHubs(const bool unique = false) : m_unique(unique)
 				{
 					if (m_unique)
-						FavoriteManager::getInstance()->g_csHubs->AcquireLockExclusive();
+						FavoriteManager::g_csHubs->AcquireLockExclusive();
 					else
-						FavoriteManager::getInstance()->g_csHubs->AcquireLockShared();
+						FavoriteManager::g_csHubs->AcquireLockShared();
 				}
 				~LockInstanceHubs()
 				{
 					if (m_unique)
-						FavoriteManager::getInstance()->g_csHubs->ReleaseLockExclusive();
+						FavoriteManager::g_csHubs->ReleaseLockExclusive();
 					else
-						FavoriteManager::getInstance()->g_csHubs->ReleaseLockShared();
+						FavoriteManager::g_csHubs->ReleaseLockShared();
 				}
-				const FavHubGroups& getFavHubGroups() const
+				static const FavHubGroups& getFavHubGroups()
 				{
-					return FavoriteManager::getInstance()->favHubGroups;
+					return FavoriteManager::g_favHubGroups;
 				}
-				FavoriteHubEntryList& getFavoriteHubs()
+				static FavoriteHubEntryList& getFavoriteHubs()
 				{
-					return FavoriteManager::getInstance()->favoriteHubs;
+					return FavoriteManager::g_favoriteHubs;
 				}
 		};
-		void setFavHubGroups(FavHubGroups& p_favHubGroups)
+		static void setFavHubGroups(FavHubGroups& p_favHubGroups)
 		{
 			webrtc::WriteLockScoped l(*g_csHubs);
-			swap(favHubGroups, p_favHubGroups);
+			swap(g_favHubGroups, p_favHubGroups);
 		}
 		// [!] IRainman fix.
 		
-		FavoriteHubEntryList getFavoriteHubs(const string& group) const;
+		static FavoriteHubEntryList getFavoriteHubs(const string& group);
 		
 // Favorite Directories
 		struct FavoriteDirectory
@@ -278,7 +256,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		typedef vector<FavoriteDirectory> FavDirList;
 		
 		bool addFavoriteDir(string aDirectory, const string& aName, const string& aExt);
-		bool removeFavoriteDir(const string& aName);
+		static bool removeFavoriteDir(const string& aName);
 		bool renameFavoriteDir(const string& aName, const string& anotherName);
 		bool updateFavoriteDir(const string& aName, const string& dir, const string& ext); // [!] IRainman opt.
 		bool moveFavoriteDir(int cid, int pos); // [+] InfinitySky.
@@ -286,95 +264,56 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		size_t getFavoriteDirsCount() const
 		{
 			//FastSharedLock l(csDirs); no needs. TODO
-			return favoriteDirs.size();
+			return g_favoriteDirs.size();
 		}
 		class LockInstanceDirs
 		{
 			public:
 				LockInstanceDirs()
 				{
-					FavoriteManager::getInstance()->g_csDirs->AcquireLockShared();
+					FavoriteManager::g_csDirs->AcquireLockShared();
 				}
 				~LockInstanceDirs()
 				{
-					FavoriteManager::getInstance()->g_csDirs->ReleaseLockShared();
+					FavoriteManager::g_csDirs->ReleaseLockShared();
 				}
-				const FavDirList& getFavoriteDirsL() const
+				static const FavDirList& getFavoriteDirsL()
 				{
-					return FavoriteManager::getInstance()->favoriteDirs;
+					return FavoriteManager::g_favoriteDirs;
 				}
 		};
 		
 // Recent Hubs
-		const RecentHubEntry::List& getRecentHubs() const
+		static const RecentHubEntry::List& getRecentHubs()
 		{
-			return m_recentHubs;
+			return g_recentHubs;
 		}
 		
 		void addRecent(const RecentHubEntry& aEntry);
 		void removeRecent(const RecentHubEntry* entry);
 		void updateRecent(const RecentHubEntry* entry);
 		
-		RecentHubEntry* getRecentHubEntry(const string& aServer) const
-		{
-			for (auto i = m_recentHubs.cbegin(); i != m_recentHubs.cend(); ++i)
-			{
-				RecentHubEntry* r = *i;
-				if (stricmp(r->getServer(), aServer) == 0)
-				{
-					return r;
-				}
-			}
-			return nullptr;
-		}
-		// [!] IRainman fix.
-		PreviewApplication* addPreviewApp(const string& name, const string& application, const string& arguments, const string& extension) // [!] PVS V813 Decreased performance. The 'name', 'application', 'arguments', 'extension' arguments should probably be rendered as constant references. favoritemanager.h 366
-		{
-			PreviewApplication* pa = new PreviewApplication(name, application, arguments, extension);
-			previewApplications.push_back(pa);
-			return pa;
-		}
-		
-		void removePreviewApp(const size_t index)
-		{
-			if (previewApplications.size() > index)
-			{
-				auto i = previewApplications.begin() + index;
-				delete *i; // [+] IRainman fix memory leak.
-				previewApplications.erase(i);
-			}
-		}
-		
-		PreviewApplication* getPreviewApp(const size_t index) const
-		{
-			if (previewApplications.size() > index)
-			{
-				return previewApplications[index];
-			}
-			return nullptr;
-		}
-		// [~] IRainman fix.
-		void removeallRecent()
-		{
-			m_recentHubs.clear();
-			m_recent_dirty = true;
-		}
+		static RecentHubEntry* getRecentHubEntry(const string& aServer);
+		static PreviewApplication* addPreviewApp(const string& name, const string& application, const string& arguments, const string& extension);
+		static void removePreviewApp(const size_t index);
+		static PreviewApplication* getPreviewApp(const size_t index);
+		static void removeallRecent();
 		
 // User Commands
 		UserCommand addUserCommand(int type, int ctx, Flags::MaskType flags, const string& name, const string& command, const string& to, const string& p_Hub);
-		bool getUserCommand(int cid, UserCommand& uc) const;
-		int findUserCommand(const string& aName, const string& p_Hub) const;
-		bool moveUserCommand(int cid, int pos);
-		void updateUserCommand(const UserCommand& uc);
-		void removeUserCommand(int cid);
-		void removeUserCommand(const string& p_Hub);
-		size_t countUserCommand(const string& p_Hub) const;
+		static bool getUserCommand(int cid, UserCommand& uc);
+		static int findUserCommand(const string& aName, const string& p_Hub);
+		static bool moveUserCommand(int cid, int pos);
+		static void updateUserCommand(const UserCommand& uc);
+		static void removeUserCommand(int cid);
+		static void removeUserCommand(const string& p_Hub);
+		static size_t countUserCommand(const string& p_Hub);
 		void removeHubUserCommands(int ctx, const string& hub);
 		
-		UserCommand::List getUserCommands() const // TODO - копия?
+		static UserCommand::List getUserCommands()
 		{
 			webrtc::ReadLockScoped l(*g_csUserCommand);
-			return userCommands;
+			return g_userCommands;
 		}
 		UserCommand::List getUserCommands(int ctx, const StringList& hub/* [-] IRainman fix, bool& op*/) const;
 		
@@ -382,52 +321,60 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 		bool load_from_url();
 #endif
-		void save();
+		static void save();
 		void recentsave();
 #ifdef USE_SUPPORT_HUB
 		static const string& getSupportHubURL();
 #endif //USE_SUPPORT_HUB
-		size_t getCountFavsUsers() const;
+		static size_t getCountFavsUsers();
 	private:
-		void getFavoriteUsersNamesL(StringSet& p_users, bool p_is_ban) const;
-		FavoriteHubEntryList favoriteHubs;
+		static void getFavoriteUsersNamesL(StringSet& p_users, bool p_is_ban);
+		static bool isUserExistL(const UserPtr& aUser)
+		{
+			auto i = g_fav_users_map.find(aUser->getCID());
+			if (i == g_fav_users_map.end())
+				return false;
+			else
+				return true;
+		}
+		static FavoriteHubEntryList g_favoriteHubs;
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 		StringSet m_sync_hub_local;
 		StringSet m_sync_hub_external;
 #endif
-		FavDirList favoriteDirs; // [~] InfinitySky. Code from Apex.
-		FavHubGroups favHubGroups;
-		RecentHubEntry::List m_recentHubs;
-		bool m_recent_dirty;
-		PreviewApplication::List previewApplications;
-		UserCommand::List userCommands;
+		static FavDirList g_favoriteDirs; // [~] InfinitySky. Code from Apex.
+		static FavHubGroups g_favHubGroups;
+		static RecentHubEntry::List g_recentHubs;
+		static bool g_recent_dirty;
+		static PreviewApplication::List g_previewApplications;
+		static UserCommand::List g_userCommands;
 #ifdef PPA_USER_COMMANDS_HUBS_SET
-		boost::unordered_set<string> m_userCommandsHubUrl;
-		bool isHubExistsL(const string& p_Hub) const
+		static boost::unordered_set<string> g_userCommandsHubUrl;
+		static bool isHubExistsL(const string& p_Hub)
 		{
-			return m_userCommandsHubUrl.find(p_Hub) != m_userCommandsHubUrl.end();
+			return g_userCommandsHubUrl.find(p_Hub) != g_userCommandsHubUrl.end();
 		}
 #endif
 		int m_lastId;
 		
 		// [!] Fasts response if contact list empty.
-		bool m_isNotEmpty;
-		bool isNotEmpty() const
+		static bool g_isNotEmpty;
+		static bool isNotEmpty()
 		{
-			return m_isNotEmpty;
+			return g_isNotEmpty;
 		}
-		void updateEmptyStateL();
+		static void updateEmptyStateL();
 		// [~] Fasts response if contact list empty.
 		
-		FavoriteMap m_fav_users_map;
-		StringSet   m_fav_users;
+		static FavoriteMap g_fav_users_map;
+		static StringSet   g_fav_users;
 		// [!] IRainman opt: replace one recursive mutex to multiply shared spin locks.
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csUsers; // https://code.google.com/p/flylinkdc/issues/detail?id=1316
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csHubs; //
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csDirs; //
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csUserCommand;
 		
-		uint16_t m_dontSave;
+		static uint16_t g_dontSave;
 	public:
 		void prepareClose();
 		void shutdown();
@@ -439,7 +386,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		FavoriteManager();
 		~FavoriteManager();
 		
-		RecentHubEntry::Iter getRecentHub(const string& aServer) const;
+		static RecentHubEntry::Iter getRecentHub(const string& aServer);
 		
 		// ClientManagerListener
 		void on(UserUpdated, const OnlineUserPtr& user) noexcept;
@@ -447,17 +394,8 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		void on(UserDisconnected, const UserPtr& user) noexcept;
 		
 		// SettingsManagerListener
-		void on(SettingsManagerListener::Load, SimpleXML& xml)
-		{
-			// [-] IRainman fix: not load Favorites from main config! load(xml);
-			recentload(xml); // [!] IRainman: This is only for compatibility, FlylinkDC stores recents hubs in the sqlite database.
-			previewload(xml);
-		}
-		
-		void on(SettingsManagerListener::Save, SimpleXML& xml)
-		{
-			previewsave(xml);
-		}
+		void on(SettingsManagerListener::Load, SimpleXML& xml);
+		void on(SettingsManagerListener::Save, SimpleXML& xml);
 		
 		void load(SimpleXML& aXml
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
@@ -476,17 +414,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		// [+] SSA addUser
 		bool addUserL(const UserPtr& aUser, FavoriteMap::iterator& iUser, bool create = true);
 		
-		void speakUserUpdate(const bool added, FavoriteMap::iterator& i) // [+] IRainman
-		{
-			if (added)
-			{
-				fire(FavoriteManagerListener::UserAdded(), i->second);
-			}
-			else
-			{
-				fire(FavoriteManagerListener::StatusChanged(), i->second.getUser());
-			}
-		}
+		void speakUserUpdate(const bool added, FavoriteMap::iterator& i); // [+] IRainman
 		
 		static bool g_SupportsHubExist;
 		

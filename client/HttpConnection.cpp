@@ -40,7 +40,7 @@ void HttpConnection::downloadFile(const string& aUrl, const string& aUserAgent)
 	dcassert(!m_http_socket);
 	if (m_http_socket) // [+] PPA fix
 	{
-		LogManager::getInstance()->message("HttpConnection::downloadFile \"" + aUrl + "\"- recursive call! Downloads cancelling...");
+		LogManager::message("HttpConnection::downloadFile \"" + aUrl + "\"- recursive call! Downloads cancelling...");
 		dcassert(0);
 		return;
 	}

@@ -19,8 +19,8 @@
 #ifndef DCPLUSPLUS_DCPP_USER_MANAGER_H
 #define DCPLUSPLUS_DCPP_USER_MANAGER_H
 
-#include "FavoriteManager.h"
-#include "Wildcards.h"
+#include "SettingsManager.h"
+#include "User.h"
 
 class ChatMessage;
 
@@ -55,14 +55,7 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 		{
 			fire(UserManagerListener::OutgoingPrivateMessage(), user, hubHint, message);
 		}
-		void openUserUrl(const UserPtr& user)
-		{
-			const string& url = FavoriteManager::getInstance()->getUserUrl(user);
-			if (!url.empty())
-			{
-				fire(UserManagerListener::OpenHub(), url);
-			}
-		}
+		void openUserUrl(const UserPtr& user);
 		void collectSummaryInfo(const UserPtr& user, const string& hubHint)
 		{
 			fire(UserManagerListener::CollectSummaryInfo(), user, hubHint);
@@ -140,11 +133,7 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 		{
 			return g_protectedUsersLower.empty();
 		}
-		static bool isInProtectedUserList(const string& userName)
-		{
-			webrtc::ReadLockScoped l(*g_csProtectedUsers);
-			return Wildcard::patternMatchLowerCase(Text::toLower(userName), g_protectedUsersLower, false);
-		}
+		static bool isInProtectedUserList(const string& userName);
 		
 		static bool g_isEmptyIgnoreList;
 	private:

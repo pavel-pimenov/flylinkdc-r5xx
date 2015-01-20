@@ -156,7 +156,7 @@ LRESULT FavoriteDirsPage::onClickedRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 			item.iItem = i;
 			item.iSubItem = 1;
 			ctrlDirectories.GetItem(&item);
-			if (FavoriteManager::getInstance()->removeFavoriteDir(Text::fromT(buf.data())))
+			if (FavoriteManager::removeFavoriteDir(Text::fromT(buf.data())))
 				ctrlDirectories.DeleteItem(i);
 		}
 	}

@@ -119,7 +119,7 @@ bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 			if (/*!(BOOLSETTING(NO_AWAYMSG_TO_BOTS) && */ !replyTo.isBotOrHub()) // [!] IRainman fix.
 			{
 				// Again, is there better way for this?
-				const FavoriteHubEntry *fhe = FavoriteManager::getInstance()->getFavoriteHubEntry(Util::toString(ClientManager::getHubs(id.getUser()->getCID(), sHubHint)));
+				const FavoriteHubEntry *fhe = FavoriteManager::getFavoriteHubEntry(Util::toString(ClientManager::getHubs(id.getUser()->getCID(), sHubHint)));
 				StringMap params;
 				from.getParams(params, "user", false);
 				
@@ -191,7 +191,7 @@ void PrivateFrame::openWindow(const OnlineUserPtr& ou, const HintedUser& replyTo
 		p = new PrivateFrame(replyTo, myNick);
 		g_pm_frames.insert(make_pair(replyTo, p));
 		g_count_pm[replyTo.user->getLastNick() + "~" + replyTo.hint]++;
-		p->CreateEx(WinUtil::mdiClient);
+		p->CreateEx(WinUtil::g_mdiClient);
 	}
 	else
 	{
@@ -339,7 +339,7 @@ void PrivateFrame::addLine(const Identity& from, const bool bMyMess, const bool 
 		if (BOOLSETTING(POPUNDER_PM))
 			WinUtil::hiddenCreateEx(this);
 		else
-			CreateEx(WinUtil::mdiClient);
+			CreateEx(WinUtil::g_mdiClient);
 	}
 	
 	tstring extra;
@@ -498,7 +498,7 @@ void PrivateFrame::updateTitle()
 	bool banIcon = false;
 	Flags::MaskType l_flags;
 	int l_ul;
-	if (FavoriteManager::getInstance()->getFavUserParam(m_replyTo, l_flags, l_ul))
+	if (FavoriteManager::getFavUserParam(m_replyTo, l_flags, l_ul))
 	{
 		banIcon = FavoriteManager::hasUploadBan(l_ul) || FavoriteManager::hasIgnorePM(l_flags); // TODO - переписать на получения иконки
 	}

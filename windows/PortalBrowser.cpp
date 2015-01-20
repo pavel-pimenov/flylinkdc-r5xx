@@ -96,7 +96,7 @@ void PortalBrowserFrame::openWindow(WORD wID)
 				str.resize(pPortal->strHubUrl.size());
 				
 				WideCharToMultiByte(CP_ACP, 0, pPortal->strHubUrl.c_str(), pPortal->strHubUrl.size(), &str.at(0), str.size(), NULL, NULL);
-				FavoriteHubEntry* fhub = FavoriteManager::getInstance()->getFavoriteHubEntry(str.c_str());
+				FavoriteHubEntry* fhub = FavoriteManager::getFavoriteHubEntry(str.c_str());
 				
 				if (fhub)
 				{
@@ -130,7 +130,7 @@ void PortalBrowserFrame::openWindow(WORD wID)
 		PortalBrowserFrame *pFrame = new PortalBrowserFrame(pPortal->strName.c_str(), wID);
 		m_Frames[pPortal->strName.c_str()] = pFrame;
 		
-		pFrame->CreateEx(WinUtil::mdiClient, pFrame->rcDefault, pPortal->strName.c_str(), 0, 0, (LPVOID)&is);
+		pFrame->CreateEx(WinUtil::g_mdiClient, pFrame->rcDefault, pPortal->strName.c_str(), 0, 0, (LPVOID)&is);
 		WinUtil::setButtonPressed(wID, true);
 	}
 	else
@@ -217,18 +217,18 @@ static void LoadExternalPortalBrowserXML()
 	int l_size = Util::getDataFromInet(l_url, l_data, 0);
 	if (l_size == 0)
 	{
-		LogManager::getInstance()->message(l_log_message + " [" + STRING(ERROR_STRING) + ']');
+		LogManager::message(l_log_message + " [" + STRING(ERROR_STRING) + ']');
 	}
 	else
 	{
-		LogManager::getInstance()->message(l_log_message + " [Ok]");
+		LogManager::message(l_log_message + " [Ok]");
 		std::ofstream l_file_out(l_filename.c_str());
 		if (!l_file_out.is_open())
 		{
-			LogManager::getInstance()->message("Error create PortalBrowser.xml file: " + Text::fromT(l_filename));
+			LogManager::message("Error create PortalBrowser.xml file: " + Text::fromT(l_filename));
 		}
 		l_file_out.write(l_data.c_str(), l_data.size());
-		LogManager::getInstance()->message(Text::fromT(l_filename) + " [" + STRING(SAVE) + ']');
+		LogManager::message(Text::fromT(l_filename) + " [" + STRING(SAVE) + ']');
 	}
 }
 LRESULT PortalBrowserFrame::onCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)

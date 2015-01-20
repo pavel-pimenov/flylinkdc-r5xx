@@ -88,7 +88,7 @@ LRESULT UCPage::onChangeMenu(WORD , WORD , HWND , BOOL&)
 	{
 		int sel = ctrlCommands.GetSelectedIndex();
 		UserCommand uc;
-		FavoriteManager::getInstance()->getUserCommand(ctrlCommands.GetItemData(sel), uc);
+		FavoriteManager::getUserCommand(ctrlCommands.GetItemData(sel), uc);
 		
 		CommandDlg dlg;
 		dlg.type = uc.getType();
@@ -110,7 +110,7 @@ LRESULT UCPage::onChangeMenu(WORD , WORD , HWND , BOOL&)
 			uc.setHub(Text::fromT(dlg.hub));
 			uc.setType(dlg.type);
 			uc.setCtx(dlg.ctx);
-			FavoriteManager::getInstance()->updateUserCommand(uc);
+			FavoriteManager::updateUserCommand(uc);
 		}
 	}
 	return 0;
@@ -121,7 +121,7 @@ LRESULT UCPage::onRemoveMenu(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*
 	if (ctrlCommands.GetSelectedCount() == 1)
 	{
 		int i = ctrlCommands.GetNextItem(-1, LVNI_SELECTED);
-		FavoriteManager::getInstance()->removeUserCommand(ctrlCommands.GetItemData(i));
+		FavoriteManager::removeUserCommand(ctrlCommands.GetItemData(i));
 		ctrlCommands.DeleteItem(i);
 	}
 	return 0;
@@ -133,11 +133,11 @@ LRESULT UCPage::onMoveUp(WORD , WORD , HWND , BOOL&)
 	if (i != -1 && i != 0)
 	{
 		int n = ctrlCommands.GetItemData(i);
-		FavoriteManager::getInstance()->moveUserCommand(n, -1);
+		FavoriteManager::moveUserCommand(n, -1);
 		CLockRedraw<> l_lock_draw(ctrlCommands);
 		ctrlCommands.DeleteItem(i);
 		UserCommand uc;
-		FavoriteManager::getInstance()->getUserCommand(n, uc);
+		FavoriteManager::getUserCommand(n, uc);
 		addEntry(uc, i - 1);
 		ctrlCommands.SelectItem(i - 1);
 		ctrlCommands.EnsureVisible(i - 1, FALSE);
@@ -151,11 +151,11 @@ LRESULT UCPage::onMoveDown(WORD , WORD , HWND , BOOL&)
 	if (i != -1 && i != (ctrlCommands.GetItemCount() - 1))
 	{
 		int n = ctrlCommands.GetItemData(i);
-		FavoriteManager::getInstance()->moveUserCommand(n, 1);
+		FavoriteManager::moveUserCommand(n, 1);
 		CLockRedraw<> l_lock_draw(ctrlCommands);
 		ctrlCommands.DeleteItem(i);
 		UserCommand uc;
-		FavoriteManager::getInstance()->getUserCommand(n, uc);
+		FavoriteManager::getUserCommand(n, uc);
 		addEntry(uc, i + 1);
 		ctrlCommands.SelectItem(i + 1);
 		ctrlCommands.EnsureVisible(i + 1, FALSE);

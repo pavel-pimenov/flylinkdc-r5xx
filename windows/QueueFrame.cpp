@@ -672,7 +672,7 @@ void QueueFrame::on(QueueManagerListener::Moved, const QueueItemPtr& aQI, const 
 
 void QueueFrame::on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept // [+] IRainman opt.
 {
-	if (!MainFrame::isAppMinimized() && WinUtil::g_tabCtrl->isActive(m_hWnd))
+	if (!MainFrame::isAppMinimized(m_hWnd) && !isClosedOrShutdown())
 	{
 		on(QueueManagerListener::StatusUpdatedList(), p_list);
 		m_tasks.add(UPDATE_STATUSBAR, nullptr); // [!]IRainman optimize QueueFrame

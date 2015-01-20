@@ -185,7 +185,7 @@ ChatCtrl::CFlyChatCache::CFlyChatCache(const Identity& p_id, const bool bMyMess,
 		m_is_ban = false;
 		if (!bThirdPerson)
 		{
-			m_isFavorite = !bMyMess && FavoriteManager::getInstance()->isFavoriteUser(p_id.getUser(), m_is_ban);
+			m_isFavorite = !bMyMess && FavoriteManager::isFavoriteUser(p_id.getUser(), m_is_ban);
 		}
 	}
 }

@@ -1112,7 +1112,7 @@ class StaticFrame
 			if (frame == nullptr)
 			{
 				frame = new T();
-				frame->CreateEx(WinUtil::mdiClient, frame->rcDefault, CTSTRING_I(ResourceManager::Strings(title)));
+				frame->CreateEx(WinUtil::g_mdiClient, frame->rcDefault, CTSTRING_I(ResourceManager::Strings(title)));
 				WinUtil::setButtonPressed(ID, true);
 			}
 			else
@@ -1354,7 +1354,20 @@ struct Colors
 	{
 		::DeleteObject(bgBrush);
 	}
-	static void getUserColor(const UserPtr& user, COLORREF &fg, COLORREF &bg, const OnlineUserPtr& onlineUser = nullptr); // !SMT!-UI
+	enum Mask
+	{
+		IS_AUTOBAN  = 0x0003,
+		IS_AUTOBAN_ON = 0x0001,
+		IS_FAVORITE = 0x0003 << 2,
+		IS_FAVORITE_ON = 0x0001 << 2,
+		IS_BAN      = 0x0003 << 4,
+		IS_BAN_ON      = 0x0001 << 4,
+		IS_RESERVED_SLOT  = 0x0003 << 6,
+		IS_RESERVED_SLOT_ON  = 0x0001 << 6,
+		IS_IGNORED_USER  = 0x0003 << 8,
+		IS_IGNORED_USER_ON  = 0x0001 << 8
+	};
+	static void getUserColor(bool p_is_op, const UserPtr& user, COLORREF &fg, COLORREF &bg, unsigned short& m_flag_mask, const OnlineUserPtr& onlineUser); // !SMT!-UI
 	
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 	// [+] IRainman The alternation of the background color in lists.
@@ -1523,8 +1536,8 @@ class WinUtil
 			g_HubOffIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_HUB_OFF));
 			g_HubFlylinkDCIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_MAINFRAME));
 		}
-		static HWND mainWnd;
-		static HWND mdiClient;
+		static HWND g_mainWnd;
+		static HWND g_mdiClient;
 #ifdef RIP_USE_SKIN
 		static ITabCtrl* g_tabCtrl;
 #else
@@ -1564,7 +1577,7 @@ class WinUtil
 			{
 				const HDC dc = ::GetDC(hWnd);
 				sz = getTextWidth(str, dc);
-				const int l_res = ::ReleaseDC(mainWnd, dc);
+				const int l_res = ::ReleaseDC(g_mainWnd, dc);
 				dcassert(l_res);
 			}
 			return sz;
@@ -1627,9 +1640,6 @@ class WinUtil
 		static bool browseDirectory(tstring& target, HWND owner = NULL);
 		
 		// Hash related
-#ifdef PPA_INCLUDE_BITZI_LOOKUP
-		static void bitziLink(const TTHValue& /*aHash*/);
-#endif
 		static void copyMagnet(const TTHValue& /*aHash*/, const string& /*aFile*/, int64_t);
 		
 		static void searchHash(const TTHValue& /*aHash*/);
@@ -1721,11 +1731,13 @@ class WinUtil
 		}
 		template<class T> static HWND hiddenCreateEx(T& p) noexcept
 		{
-			HWND active = (HWND)::SendMessage(mdiClient, WM_MDIGETACTIVE, 0, 0);
-			CFlyLockWindowUpdate l(mdiClient);
-			HWND ret = p.CreateEx(mdiClient);
+			const HWND active = (HWND)::SendMessage(g_mdiClient, WM_MDIGETACTIVE, 0, 0);
+			CFlyLockWindowUpdate l(g_mdiClient);
+			HWND ret = p.CreateEx(g_mdiClient);
 			if (active && ::IsWindow(active))
-				::SendMessage(mdiClient, WM_MDIACTIVATE, (WPARAM)active, 0);
+			{
+				::SendMessage(g_mdiClient, WM_MDIACTIVATE, (WPARAM)active, 0);
+			}
 			return ret;
 		}
 		template<class T> static HWND hiddenCreateEx(T* p) noexcept

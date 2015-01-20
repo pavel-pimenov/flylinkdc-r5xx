@@ -91,8 +91,8 @@ void FavHubGroupsDlg::save()
 		group.priv = getText(1, i) == TSTRING(YES);
 		groups.insert(make_pair(name, group));
 	}
-	FavoriteManager::getInstance()->setFavHubGroups(groups);
-	FavoriteManager::getInstance()->save();
+	FavoriteManager::setFavHubGroups(groups);
+	FavoriteManager::save();
 }
 
 int FavHubGroupsDlg::findGroup(LPCTSTR name)
@@ -210,7 +210,7 @@ LRESULT FavHubGroupsDlg::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 	if (pos >= 0 && (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), _T(APPNAME) _T(" ") T_VERSIONSTRING, CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES)) // [~] NightOrion.
 	{
 		tstring name = getText(0, pos);
-		FavoriteHubEntryList l = FavoriteManager::getInstance()->getFavoriteHubs(Text::fromT(name));
+		FavoriteHubEntryList l = FavoriteManager::getFavoriteHubs(Text::fromT(name));
 		if (!l.empty())
 		{
 			tstring msg;
@@ -253,7 +253,7 @@ LRESULT FavHubGroupsDlg::onUpdate(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 		{
 			if (oldName != name)
 			{
-				FavoriteHubEntryList l = FavoriteManager::getInstance()->getFavoriteHubs(Text::fromT(oldName));
+				FavoriteHubEntryList l = FavoriteManager::getFavoriteHubs(Text::fromT(oldName));
 				const string l_newName = Text::fromT(name);
 				for (auto i = l.cbegin(); i != l.cend(); ++i)
 				{

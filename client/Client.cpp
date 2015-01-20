@@ -66,13 +66,13 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure) :
 	{
 		m_keyprint = Util::decodeQuery(query)["kp"];
 #ifdef _DEBUG
-		LogManager::getInstance()->message("m_keyprint = " + m_keyprint);
+		LogManager::message("m_keyprint = " + m_keyprint);
 #endif
 	}
 #ifdef _DEBUG
 	else
 	{
-		LogManager::getInstance()->message("hubURL = " + getHubUrl() + " query.empty()");
+		LogManager::message("hubURL = " + getHubUrl() + " query.empty()");
 	}
 #endif
 	TimerManager::getInstance()->addListener(this);
@@ -83,10 +83,10 @@ Client::~Client()
 	dcassert(!m_client_sock);
 	if (m_client_sock)
 	{
-		LogManager::getInstance()->message("[Error] Client::~Client() sock == nullptr");
+		LogManager::message("[Error] Client::~Client() sock == nullptr");
 	}
-	FavoriteManager::getInstance()->removeUserCommand(getHubUrl());
-	dcassert(FavoriteManager::getInstance()->countUserCommand(getHubUrl()) == 0);
+	FavoriteManager::removeUserCommand(getHubUrl());
+	dcassert(FavoriteManager::countUserCommand(getHubUrl()) == 0);
 	// In case we were deleted before we Failed
 	// [-] TimerManager::getInstance()->removeListener(this); [-] IRainman fix: please see shutdown().
 	updateCounts(true);
@@ -149,7 +149,7 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 	string speedDescription;
 #endif
 // [!] FlylinkDC mimicry function
-	const FavoriteHubEntry* hub = FavoriteManager::getInstance()->getFavoriteHubEntry(getHubUrl());
+	const FavoriteHubEntry* hub = FavoriteManager::getFavoriteHubEntry(getHubUrl());
 	if (hub && hub->getOverrideId()) // mimicry tag
 	{
 		m_clientName = hub->getClientName();
@@ -382,7 +382,7 @@ void Client::on(Connected) noexcept
 		}
 	}
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
-	FavoriteManager::getInstance()->changeConnectionStatus(getHubUrl(), ConnectionStatus::SUCCES);
+	FavoriteManager::changeConnectionStatus(getHubUrl(), ConnectionStatus::SUCCES);
 #endif
 	fire(ClientListener::Connected(), this);
 	state = STATE_PROTOCOL;
@@ -392,8 +392,7 @@ void Client::on(Failed, const string& aLine) noexcept
 {
 	// although failed consider initialized
 	state = STATE_DISCONNECTED;//[!] IRainman fix
-	FavoriteManager* l_fm = FavoriteManager::getInstance();
-	l_fm->removeUserCommand(getHubUrl());
+	FavoriteManager::removeUserCommand(getHubUrl());
 	
 	{
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
@@ -406,7 +405,7 @@ void Client::on(Failed, const string& aLine) noexcept
 	//SetEvent(m_hEventClientInitialized);
 	updateActivity();
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
-	l_fm->changeConnectionStatus(getHubUrl(), ConnectionStatus::CONNECTION_FAILURE);
+	FavoriteManager::changeConnectionStatus(getHubUrl(), ConnectionStatus::CONNECTION_FAILURE);
 #endif
 	fire(ClientListener::Failed(), this, aLine);
 }
@@ -414,7 +413,7 @@ void Client::on(Failed, const string& aLine) noexcept
 void Client::disconnect(bool graceLess)
 {
 	state = STATE_DISCONNECTED;//[!] IRainman fix
-	FavoriteManager::getInstance()->removeUserCommand(getHubUrl());
+	FavoriteManager::removeUserCommand(getHubUrl());
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
 	FastLock lock(csSock); // [+] brain-ripper
 #endif
@@ -628,7 +627,7 @@ bool Client::isFloodCommand(const string& p_command, const string& p_line)
 							{
 								const string l_msg = "[Start flood][" + m_HubURL + "] command = " + l_flood_find.first->first +
 								                     " count = " + Util::toString(l_result.m_count);
-								LogManager::getInstance()->flood_message(l_msg + " last_commands = " + Util::toString(l_result.m_command));
+								LogManager::flood_message(l_msg + " last_commands = " + Util::toString(l_result.m_command));
 							}
 							l_result.m_is_ban = true;
 						}
@@ -638,7 +637,7 @@ bool Client::isFloodCommand(const string& p_command, const string& p_line)
 							{
 								const string l_msg = "[Stop flood][" + m_HubURL + "] command = " + l_flood_find.first->first +
 								                     " count = " + Util::toString(l_result.m_count);
-								LogManager::getInstance()->flood_message(l_msg);
+								LogManager::flood_message(l_msg);
 							}
 							l_result.m_count = 0;
 							l_result.m_start_tick = l_result.m_tick;
@@ -695,13 +694,13 @@ bool Client::allowPrivateMessagefromUser(const ChatMessage& message)
 		}
 		else
 #endif
-			if (FavoriteManager::getInstance()->isNoFavUserOrUserIgnorePrivate(message.m_replyTo->getUser()))
+			if (FavoriteManager::isNoFavUserOrUserIgnorePrivate(message.m_replyTo->getUser()))
 			{
 				if (BOOLSETTING(LOG_IF_SUPPRESS_PMS))
 				{
 					LocalArray<char, 200> l_buf;
 					snprintf(l_buf.data(), l_buf.size(), CSTRING(LOG_IF_SUPPRESS_PMS), message.m_replyTo->getIdentity().getNick().c_str(), getHubName().c_str(), getHubUrl().c_str());
-					LogManager::getInstance()->message(l_buf.data());
+					LogManager::message(l_buf.data());
 				}
 				return false;
 			}
@@ -838,8 +837,13 @@ void Client::messageYouHaweRightOperatorOnThisHub()
 {
 	AutoArray<char> buf(512);
 	snprintf(buf.data(), 512, CSTRING(AT_HUB_YOU_HAVE_RIGHT_OPERATOR), getHubUrl().c_str());
-	LogManager::getInstance()->message(buf.data());
+	LogManager::message(buf.data());
 }
+bool  Client::isInOperatorList(const string& userName) const
+{
+	return Wildcard::patternMatch(userName, m_opChat, ';', false);
+}
+
 // [~] IRainman fix.
 
 /**

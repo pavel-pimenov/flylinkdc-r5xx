@@ -27,7 +27,7 @@ void CImageDataObject::InsertBitmap(HWND hWnd, IRichEditOle* pRichEditOle, IOleC
 	//  weak -- which is needed for links to embedding silent update.
 	if (sc != S_OK)
 	{
-		LogManager::getInstance()->message("CImageDataObject::InsertBitmap, OLE OleSetContainedObject error = " + Util::toString(sc));
+		LogManager::message("CImageDataObject::InsertBitmap, OLE OleSetContainedObject error = " + Util::toString(sc));
 		p_out_of_memory = sc == E_OUTOFMEMORY;
 		return;
 	}
@@ -42,7 +42,7 @@ void CImageDataObject::InsertBitmap(HWND hWnd, IRichEditOle* pRichEditOle, IOleC
 	if (sc != S_OK)
 	{
 		dcdebug("Thrown OLE Exception: %d\n", sc);
-		LogManager::getInstance()->message("CImageDataObject::InsertBitmap, OLE GetUserClassID error = " + Util::toString(sc));
+		LogManager::message("CImageDataObject::InsertBitmap, OLE GetUserClassID error = " + Util::toString(sc));
 		dcassert(0);
 		safe_release(pOleObject);
 		safe_release(pOleClientSite);
@@ -63,7 +63,7 @@ void CImageDataObject::InsertBitmap(HWND hWnd, IRichEditOle* pRichEditOle, IOleC
 	if (sc != S_OK)
 	{
 		dcdebug("Thrown OLE InsertObject: %d\n", sc);
-		LogManager::getInstance()->message("CImageDataObject::InsertBitmap, OLE InsertObject error = " + Util::toString(sc));
+		LogManager::message("CImageDataObject::InsertBitmap, OLE InsertObject error = " + Util::toString(sc));
 		dcassert(0);
 		safe_release(pOleObject);
 		safe_release(pOleClientSite);
@@ -119,7 +119,7 @@ IOleObject *CImageDataObject::GetOleObject(IOleClientSite *pOleClientSite, IStor
 	{
 		dcdebug("Thrown OLE Exception: %d\n", sc);
 		dcassert(0);
-		LogManager::getInstance()->message("CImageDataObject::GetOleObject, OleCreateStaticFromData error = " + Util::toString(sc));
+		LogManager::message("CImageDataObject::GetOleObject, OleCreateStaticFromData error = " + Util::toString(sc));
 		return nullptr;
 	}
 	return pOleObject;

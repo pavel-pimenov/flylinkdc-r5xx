@@ -51,7 +51,7 @@
 	<string name="AlternatesSend">Searching TTH alternates for:</string>
 	<string name="AlwaysAsk">Always perform this check</string>
 	<string name="Any">Any</string>
-	<string name="Antivirus">Antivirus</string>
+	<string name="Antivirus">AVDB</string>
 	<string name="AscrollChat">Autoscroll chat</string>
 	<string name="Ask">Ask</string>
 	<string name="AskSlot">Ask for slot</string>
@@ -150,7 +150,6 @@
 	<string name="BbcodePanelUnderline">Underline font</string>
 	<string name="BbcodePanelColor">Color</string>
 	<string name="Bitrate">Bitrate</string>
-	<string name="BitziLookup">Bitzi Lookup</string>
 	<string name="BlendOfflineSearch">Blend offline search results</string>
 	<string name="BlockedIncomingConn">Blocked incoming connection to</string>
 	<string name="BothUsersOffline">Both users offline</string>

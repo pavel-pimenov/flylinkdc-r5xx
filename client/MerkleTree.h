@@ -68,7 +68,7 @@ class MerkleTree
 			if (p_DataSize != l_n * Hasher::BYTES) // [!] IRainman fix: strongly check!
 			{
 				dcassert(0); // TODO: please refactoring MerkleTree to calculate three for this data. https://code.google.com/p/flylinkdc/issues/detail?id=1047
-				LogManager::getInstance()->message("MerkleTree create error with p_FileSize=" + Util::toString(p_FileSize) + ", p_BlockSize=" + Util::toString(p_BlockSize) + ", p_DataSize=" + Util::toString(p_DataSize));
+				LogManager::message("MerkleTree create error with p_FileSize=" + Util::toString(p_FileSize) + ", p_BlockSize=" + Util::toString(p_BlockSize) + ", p_DataSize=" + Util::toString(p_DataSize));
 				return; // http://www.flylinkdc.ru/2012/05/strongdc-sqlite-r9957.html
 			}
 			leaves.reserve(l_n);

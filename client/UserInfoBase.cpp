@@ -21,7 +21,7 @@ void UserInfoBase::matchQueue()
 		}
 		catch (const Exception& e)
 		{
-			LogManager::getInstance()->message(e.getError());
+			LogManager::message(e.getError());
 		}
 	}
 }
@@ -36,7 +36,7 @@ void UserInfoBase::getUserResponses()
 		}
 		catch (const Exception& e)
 		{
-			LogManager::getInstance()->message(e.getError());
+			LogManager::message(e.getError());
 		}
 	}
 }
@@ -52,7 +52,7 @@ void UserInfoBase::checkList()
 		}
 		catch (const Exception& e)
 		{
-			LogManager::getInstance()->message(e.getError());
+			LogManager::message(e.getError());
 		}
 	}
 }
@@ -75,7 +75,7 @@ void UserInfoBase::getList()
 		}
 		catch (const Exception& e)
 		{
-			LogManager::getInstance()->message(e.getError());
+			LogManager::message(e.getError());
 		}
 	}
 }
@@ -90,7 +90,7 @@ void UserInfoBase::browseList()
 		}
 		catch (const Exception& e)
 		{
-			LogManager::getInstance()->message(e.getError());
+			LogManager::message(e.getError());
 		}
 	}
 }
@@ -211,7 +211,7 @@ void UserInfoBase::ungrantSlot(const string& hubHint) // [!] IRainman fix: add h
 {
 	if (getUser())
 	{
-		UploadManager::getInstance()->unreserveSlot(HintedUser(getUser(), hubHint));
+		UploadManager::unreserveSlot(HintedUser(getUser(), hubHint));
 	}
 }
 
@@ -273,7 +273,7 @@ uint8_t UserInfoBase::getImage(const OnlineUser& ou)
 	    image += 10;
 	}*/
 	
-	if (!id.isTcpActive(&ou.getClient()))
+	if (!id.isTcpActive())
 	{
 		// Users we can't connect to...
 		image += 10;// 20
@@ -289,3 +289,37 @@ void UserInfoBase::browseSqlExplorer(const string& hubHint)
 	}
 }
 #endif
+
+void FavUserTraits::init(const UserInfoBase& ui)
+{
+	dcassert(ui.getUser());
+	if (ui.getUser())
+	{
+#ifndef IRAINMAN_ALLOW_ALL_CLIENT_FEATURES_ON_NMDC
+		if (ui->getUser()->isSet(User::NMDC))
+			adcOnly = false;
+#endif
+			
+		Flags::MaskType l_flags;
+		isFav = FavoriteManager::getFavUserParam(ui.getUser(), l_flags, uploadLimit);
+		
+		if (isFav)
+		{
+			isAutoGrantSlot = FavoriteManager::hasAutoGrantSlot(l_flags);
+			
+			isIgnoredPm = FavoriteManager::hasIgnorePM(l_flags);
+			isFreePm = FavoriteManager::hasFreePM(l_flags);
+		}
+		else
+		{
+			isAutoGrantSlot = false;
+			
+			isIgnoredPm = false;
+			isFreePm = false;
+		}
+		
+		isIgnoredByName = UserManager::g_isEmptyIgnoreList == false && UserManager::isInIgnoreList(ui.getUser()->getLastNick());
+		
+		isEmpty = false;
+	}
+}

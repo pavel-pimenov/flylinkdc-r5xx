@@ -1,4 +1,102 @@
 ------------------------------------------------------------------------
+r18170 | pavel.pimenov@gmail.com | 2015-01-20 19:39:51 +0300 (Вт, 20 янв 2015) | 14 lines
+
+Merged revision(s) 18166-18168 from trunk:
+# Оптимизированы частые вызовы Colors::getUserColor (часть 2)
+# Упростил код LogManager выкинул Speaker<LogManagerListener> 
+  TODO - подготовка отказа от Singleton<LogManager>
+# Убрал дублирование кода в некоторых местах.
+# Колонка Антивирус - переименована в AVDB
+........
+# Отказался от Singleton<LogManager>
+# Исправлено предупреждение при сборки релиза x64 про SSE2
+........
+# [mediainfo]
+ Fix crash https://drdump.com/Bug.aspx?ProblemID=112124
+ ........
+
+------------------------------------------------------------------------
+r18165 | pavel.pimenov@gmail.com | 2015-01-20 06:54:10 +0300 (Вт, 20 янв 2015) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r18161 | pavel.pimenov@gmail.com | 2015-01-19 22:36:59 +0300 (Пн, 19 янв 2015) | 4 lines
+
+Merged revision(s) 18159 from trunk:
+# Оптимизировал Colors::getUserColor и FavoriteManager::isFavoriteUser
+........
+
+------------------------------------------------------------------------
+r18160 | pavel.pimenov@gmail.com | 2015-01-19 22:35:07 +0300 (Пн, 19 янв 2015) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r18155 | pavel.pimenov@gmail.com | 2015-01-19 20:09:52 +0300 (Пн, 19 янв 2015) | 15 lines
+
+Merged revision(s) 18150-18154 from trunk:
+# setup - Добавил dchub://novosibirsk-forever.ru
+# ctm2hub - мелкий рефакторинг
+........
+# [mediainfo][merge]
+Version 0.7.72, 2015-01-
++ BPG: basic support, thanks to Kurtnoise
++ JPEG-2000: Display of profile (Rsiz)
++ JPEG-2000: detection of XYZ colorspace (based on D-Cinema profile)
+........
+# Рефакторинг FavoriteManager
+# Операторы красятся сразу после друзей - не теряется цвет
+  закешировал вызов user->hasAutoBan
+........
+
+------------------------------------------------------------------------
+r18149 | pavel.pimenov@gmail.com | 2015-01-17 07:27:42 +0300 (Сб, 17 янв 2015) | 41 lines
+
+Merged revision(s) 18143-18148 from trunk:
+........
+# [merge][DC++] Удалил окончательно поддержку bitziLink
+# Упразднил номера беток: формат тэга теперь будет содержать уникальный номер билда FlylinkDC++ r503-beta-x64-18132
+........
+SQLite Release 3.8.8 On 2015-01-16 (3.8.8)
+
+    New Features:
+    Added the PRAGMA data_version command that can be used to determine if a database file has been modified by another process.
+    Added the SQLITE_CHECKPOINT_TRUNCATE option to the sqlite3_wal_checkpoint_v2() interface, with corresponding enhancements to PRAGMA wal_checkpoint.
+    Added the sqlite3_stmt_scanstatus() interface, available only when compiled with SQLITE_ENABLE_STMT_SCANSTATUS.
+    The sqlite3_table_column_metadata() is enhanced to work correctly on WITHOUT ROWID tables and to check for the existence of a a table if the column name parameter is NULL. The interface is now also included in the build by default, without requiring the SQLITE_ENABLE_COLUMN_METADATA compile-time option.
+    Added the SQLITE_ENABLE_API_ARMOR compile-time option.
+    Added the SQLITE_REVERSE_UNORDERED_SELECTS compile-time option.
+    Added the SQLITE_SORTER_PMASZ compile-time option and SQLITE_CONFIG_PMASZ start-time option.
+    Added the SQLITE_CONFIG_PCACHE_HDRSZ option to sqlite3_config() which makes it easier for applications to determine the appropriate amount of memory for use with SQLITE_CONFIG_PAGECACHE.
+    The number of rows in a VALUES clause is no longer limited by SQLITE_LIMIT_COMPOUND_SELECT.
+    Added the eval.c loadable extension that implements an eval() SQL function that will recursively evaluate SQL.
+
+    Performance Enhancements:
+    Reduce the number of memcpy() operations involved in balancing a b-tree, for 3.2% overall performance boost.
+    Improvements to cost estimates for the skip-scan optimization.
+    The automatic indexing optimization is now capable of generating a partial index if that is appropriate.
+
+    Bug fixes:
+    Ensure durability following a power loss with "PRAGMA journal_mode=TRUNCATE" by calling fsync() right after truncating the journal file.
+    The query planner now recognizes that any column in the right-hand table of a LEFT JOIN can be NULL, even if that column has a NOT NULL constraint. Avoid trying to optimize out NULL tests in those cases. Fix for ticket 6f2222d550f5b0ee7ed.
+    Make sure ORDER BY puts rows in ascending order even if the DISTINCT operator is implemented using a descending index. Fix for ticket c5ea805691bfc4204b1cb9e.
+    Fix data races that might occur under stress when running with many threads in shared cache mode where some of the threads are opening and closing connections.
+    Fix obscure crash bugs found by american fuzzy lop. Ticket a59ae93ee990a55.
+    Work around a GCC optimizer bug (for gcc 4.2.1 on MacOS 10.7) that caused the R-Tree extension to compute incorrect results when compiled with -O3.
+
+    Other changes:
+    Disable the use of the strchrnul() C-library routine unless it is specifically enabled using the -DHAVE_STRCHRNULL compile-time option.
+    Improvements to the effectiveness and accuracy of the likelihood(), likely(), and unlikely() SQL hint functions.
+    SQLITE_SOURCE_ID: "2015-01-16 12:08:06 7d68a42face3ab14ed88407d4331872f5b243fdf"
+    SHA1 for sqlite3.c: 91aea4cc722371d58aae3d22e94d2a4165276905 
+
+A complete list of SQLite releases in a single page is also available. A detailed history of every check-in is available at http://www.sqlite.org/src/timeline.
+........
+
+------------------------------------------------------------------------
+r18141 | pavel.pimenov@gmail.com | 2015-01-15 06:41:53 +0300 (Чт, 15 янв 2015) | 1 line
+
+# Log [public-build]
+------------------------------------------------------------------------
 r18136 | pavel.pimenov@gmail.com | 2015-01-14 20:04:14 +0300 (Ср, 14 янв 2015) | 5 lines
 
 Merged revision(s) 18135 from trunk:

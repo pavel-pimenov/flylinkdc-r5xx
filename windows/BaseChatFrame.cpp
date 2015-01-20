@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2013 FlylinkDC++ Team http://flylinkdc.com/
+ * Copyright (C) 2012-2015 FlylinkDC++ Team http://flylinkdc.com/
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -804,7 +804,7 @@ void BaseChatFrame::appendLogToChat(const string& path , const size_t linesCount
 	}
 	catch (const FileException& e)
 	{
-		LogManager::getInstance()->message("BaseChatFrame::appendLogToChat, Error load = " + path + " Error = " + e.getError());
+		LogManager::message("BaseChatFrame::appendLogToChat, Error load = " + path + " Error = " + e.getError());
 	}
 	const bool l_is_utf = buf.compare(0, 3, "\xef\xbb\xbf", 3) == 0;
 	StringTokenizer<string> l_lines(l_is_utf ? buf.substr(3) : buf, "\r\n");

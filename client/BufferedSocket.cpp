@@ -93,7 +93,7 @@ void BufferedSocket::setSocket(std::unique_ptr<Socket>& s) // [!] IRainman fix: 
 {
 	if (sock.get())
 	{
-		LogManager::getInstance()->message("BufferedSocket::setSocket - dcassert(!sock.get())");
+		LogManager::message("BufferedSocket::setSocket - dcassert(!sock.get())");
 	}
 	dcassert(!sock.get());
 	sock = move(s);
@@ -383,7 +383,7 @@ void BufferedSocket::threadRead()
 #ifdef _DEBUG
 	if (m_mode == MODE_LINE)
 	{
-		// LogManager::getInstance()->message("BufferedSocket::threadRead[MODE_LINE] = " + string((char*) & inbuf[0], left));
+		// LogManager::message("BufferedSocket::threadRead[MODE_LINE] = " + string((char*) & inbuf[0], left));
 	}
 #endif
 	
@@ -418,7 +418,7 @@ void BufferedSocket::threadRead()
 #define USE_FLYLINKDC_MYINFO_ARRAY
 #ifdef USE_FLYLINKDC_MYINFO_ARRAY
 #ifdef _DEBUG
-				// LogManager::getInstance()->message("BufferedSocket::threadRead[MODE_ZPIPE] = " + l);
+				// LogManager::message("BufferedSocket::threadRead[MODE_ZPIPE] = " + l);
 #endif
 //
 
@@ -489,8 +489,8 @@ void BufferedSocket::threadRead()
 				int l_count_separator = 0;
 #endif
 #ifdef _DEBUG
-				//LogManager::getInstance()->message("MODE_LINE . line = " + line);
-				//LogManager::getInstance()->message("MODE_LINE = " + l);
+				//LogManager::message("MODE_LINE . line = " + line);
+				//LogManager::message("MODE_LINE = " + l);
 #endif
 				StringList l_all_myInfo;
 				CFlySearchArray l_tth_search;
@@ -502,7 +502,7 @@ void BufferedSocket::threadRead()
 					{
 						StringMap params;
 						const string l_log = "MODE_LINE l_count_separator = " + Util::toString(l_count_separator) + " left = " + Util::toString(left) + " l.length()=" + Util::toString(l.length()) + " l = " + l;
-						LogManager::getInstance()->message(l_log);
+						LogManager::message(l_log);
 					}
 #endif
 					if (pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
@@ -977,7 +977,7 @@ int BufferedSocket::run()
 		}
 		catch (const Exception& e)
 		{
-			//LogManager::getInstance()->message("BufferedSocket::run(), error = " + e.getError());
+			//LogManager::message("BufferedSocket::run(), error = " + e.getError());
 			fail(e.getError());
 		}
 	}

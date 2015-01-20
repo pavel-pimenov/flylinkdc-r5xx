@@ -1900,17 +1900,19 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 		LRESULT onDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 		{
 			bHandled = FALSE;
-			dcassert(getTab());
-			getTab()->removeTab(m_hWnd);
+			if (getTab())
+			{
+				getTab()->removeTab(m_hWnd);
+			}
 			if (m_hMenu == WinUtil::mainMenu)
+			{
 				m_hMenu = NULL;
-				
+			}
 			BOOL bMaximized = FALSE;
 			if (::SendMessage(m_hWndMDIClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMaximized) != NULL)
 			{
 				SET_SETTING(MDI_MAXIMIZED, (bMaximized > 0));
 			}
-			
 			return 0;
 		}
 		

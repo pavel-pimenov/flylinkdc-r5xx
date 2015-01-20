@@ -28,12 +28,12 @@
 #include "Flags.h"
 #include "forward.h"
 #include "CFlyProfiler.h"
+#include "CFlyUserRatioInfo.h"
 
 class ClientBase;
 
 #define TAG(x,y) (x + (y << 8)) // TODO static_assert
 
-#include "CFlyUserRatioInfo.h"
 
 /** A user connected to one or more hubs. */
 class User : public intrusive_ptr_base<User>, public Flags

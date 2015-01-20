@@ -96,7 +96,7 @@ void Mapper_MiniUPnPc::log_error(const int p_error_code, const string& p_name)
 {
 	string l_error = strupnperror(p_error_code);
 	l_error += " Code = " + Util::toString(p_error_code);
-	LogManager::getInstance()->message("[miniupnpc] " + p_name + " error = " + l_error);
+	LogManager::message("[miniupnpc] " + p_name + " error = " + l_error);
 }
 
 bool Mapper_MiniUPnPc::add(const unsigned short port, const Protocol protocol, const string& description)
@@ -108,7 +108,7 @@ bool Mapper_MiniUPnPc::add(const unsigned short port, const Protocol protocol, c
 	                                            description.c_str(), protocols[protocol], 0, 0);
 	if (l_upnp_res == UPNPCOMMAND_SUCCESS)
 	{
-		LogManager::getInstance()->message("[MiniUPnPc::add] OK bind_addres = " + l_bind_addres);
+		LogManager::message("[MiniUPnPc::add] OK bind_addres = " + l_bind_addres);
 		return true;
 	}
 	else
@@ -125,7 +125,7 @@ bool Mapper_MiniUPnPc::remove(const unsigned short port, const Protocol protocol
 	                                               protocols[protocol], 0);
 	if (l_upnp_res == UPNPCOMMAND_SUCCESS)
 	{
-		LogManager::getInstance()->message("[MiniUPnPc::remove] OK port = " + l_port);
+		LogManager::message("[MiniUPnPc::remove] OK port = " + l_port);
 		return true;
 	}
 	else
@@ -142,7 +142,7 @@ string Mapper_MiniUPnPc::getExternalIP()
 	const auto l_upnp_res = UPNP_GetExternalIPAddress(m_url.c_str(), m_service.c_str(), buf);
 	if (l_upnp_res == UPNPCOMMAND_SUCCESS)
 	{
-		LogManager::getInstance()->message("[MiniUPnPc::getExternalIP] IP= " + string(buf));
+		LogManager::message("[MiniUPnPc::getExternalIP] IP= " + string(buf));
 		return buf;
 	}
 	else

@@ -44,7 +44,7 @@ bool Mapper_NATPMP::init()
 	dcassert(l_result == 0);
 	if (l_result)
 	{
-		LogManager::getInstance()->message("Mapper_NATPMP::init error = "
+		LogManager::message("Mapper_NATPMP::init error = "
 		                                   + Util::toString(l_result) + " WSAGetLastError() = " + Util::toString(WSAGetLastError()));
 	}
 	
@@ -57,7 +57,7 @@ void Mapper_NATPMP::uninit()
 	dcassert(l_result == 0);
 	if (l_result)
 	{
-		LogManager::getInstance()->message("Mapper_NATPMP::uninit error = " + Util::toString(l_result));
+		LogManager::message("Mapper_NATPMP::uninit error = " + Util::toString(l_result));
 	}
 }
 

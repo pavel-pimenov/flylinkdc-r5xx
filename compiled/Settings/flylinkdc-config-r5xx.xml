@@ -9,6 +9,7 @@
 		test_server_ip = "test.fly-server.ru" 
                 test_server_port = "37015" 
 		mirror_read_only_server = ""
+		mirror_test_port_server = "test.fly-server.ru:37015,media.fly-server.ru:37015"
 		support_hub = "dchub://dc.fly-server.ru"
 		antivirus_db = ""
 		min_file_size ="30000" 

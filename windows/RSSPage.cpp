@@ -1,9 +1,5 @@
-/**
-* Страница в настройках "Свойства лент новостей" / Page "RSS Properties".
-*/
-
 /*
- * Copyright (C) 2010-2013 FlylinkDC++ Team http://flylinkdc.com
+ * Copyright (C) 2010-2015 FlylinkDC++ Team http://flylinkdc.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

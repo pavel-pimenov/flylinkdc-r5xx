@@ -47,7 +47,7 @@ void UserInfoSimple::addSummaryMenu()
 		
 		UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, userInfo.c_str());
 		
-		time_t slot = UploadManager::getInstance()->getReservedSlotTime(getUser());
+		const time_t slot = UploadManager::getReservedSlotTime(getUser());
 		if (slot)
 		{
 			const tstring note = TSTRING(EXTRA_SLOT_TIMEOUT) + _T(": ") + Util::formatSecondsW((slot - GET_TICK()) / 1000);

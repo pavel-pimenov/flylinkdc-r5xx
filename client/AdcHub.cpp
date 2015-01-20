@@ -151,7 +151,7 @@ OnlineUserPtr AdcHub::getUser(const uint32_t aSID, const CID& aCID)
 OnlineUserPtr AdcHub::findUser(const string& aNick) const
 {
 #ifdef _DEBUG
-	LogManager::getInstance()->message("AdcHub::findUser [slow] aNick = " + aNick);
+	LogManager::message("AdcHub::findUser [slow] aNick = " + aNick);
 #endif
 	webrtc::ReadLockScoped l(*m_cs);
 	for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
@@ -167,7 +167,7 @@ OnlineUserPtr AdcHub::findUser(const string& aNick) const
 OnlineUserPtr AdcHub::findUser(const uint32_t aSID) const// [!] IRainman fix return OnlineUserPtr
 {
 #ifdef _DEBUG
-	LogManager::getInstance()->message("AdcHub::findUser aSID = " + Util::toString(aSID));
+	LogManager::message("AdcHub::findUser aSID = " + Util::toString(aSID));
 #endif
 	webrtc::ReadLockScoped l(*m_cs);
 	const auto& i = m_users.find(aSID);
@@ -177,7 +177,7 @@ OnlineUserPtr AdcHub::findUser(const uint32_t aSID) const// [!] IRainman fix ret
 OnlineUserPtr AdcHub::findUser(const CID& aCID) const// [!] IRainman fix return OnlineUserPtr
 {
 #ifdef _DEBUG
-	LogManager::getInstance()->message("AdcHub::findUser [slow] aCID = " + aCID.toBase32());
+	LogManager::message("AdcHub::findUser [slow] aCID = " + aCID.toBase32());
 #endif
 	webrtc::ReadLockScoped l(*m_cs);
 	for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
@@ -256,7 +256,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 	if (c.isCIDexists())
 	{
 #ifdef _DEBUG
-		LogManager::getInstance()->message("CID [+1] " + c.getParamCID().toBase32() + " Params = " +  c.getParamString(false));
+		LogManager::message("CID [+1] " + c.getParamCID().toBase32() + " Params = " +  c.getParamString(false));
 #endif
 		ou = findUser(c.getParamCID());
 		if (ou)
@@ -274,7 +274,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 				                         ") has same CID {" + c.getParamCID().toBase32() + "} as " + nick + " (" + AdcCommand::fromSID(c.getFrom()) + "), ignoring.";
 				fire(ClientListener::StatusMessage(), this, l_message, ClientListener::FLAG_IS_SPAM);
 				
-				//LogManager::getInstance()->ddos_message("Magic spam message filtered on hub: " + getHubUrl() + " detail:" + l_message);
+				//LogManager::ddos_message("Magic spam message filtered on hub: " + getHubUrl() + " detail:" + l_message);
 				return;
 			}
 		}
@@ -286,7 +286,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 	else if (c.getFrom() == AdcCommand::HUB_SID)
 	{
 #ifdef _DEBUG
-		LogManager::getInstance()->message("CID [-1] Params = " + c.getParamString(false));
+		LogManager::message("CID [-1] Params = " + c.getParamString(false));
 #endif
 		ou = getUser(c.getFrom(), CID());
 #ifdef IRAINMAN_USE_HIDDEN_USERS
@@ -896,7 +896,7 @@ void AdcHub::handle(AdcCommand::PSR, const AdcCommand& c) noexcept
 	if (!ou)
 	{
 		dcdebug("Invalid user in AdcHub::onPSR\n");
-		LogManager::getInstance()->psr_message("Invalid user in AdcHub::onPSR = " + c.toString(c.getFrom()));
+		LogManager::psr_message("Invalid user in AdcHub::onPSR = " + c.toString(c.getFrom()));
 		return;
 	}
 	SearchManager::getInstance()->onPSR(c, ou->getUser());
@@ -1097,7 +1097,7 @@ void AdcHub::connect_secure(const OnlineUser& user, const string& token, bool se
 		if (port == 0)
 		{
 			// Oops?
-			LogManager::getInstance()->message(STRING(NOT_LISTENING));
+			LogManager::message(STRING(NOT_LISTENING));
 			return;
 		}
 		send(AdcCommand(AdcCommand::CMD_CTM, user.getIdentity().getSID(), AdcCommand::TYPE_DIRECT).addParam(*proto).addParam(Util::toString(port)).addParam(token));
@@ -1545,7 +1545,7 @@ void AdcHub::info(bool p_force)
 	
 	addParam(m_lastInfoMap, c, "EM", SETTING(EMAIL));
 	// [!] Flylink++ Exclusive hub mode
-	const FavoriteHubEntry *fhe = FavoriteManager::getInstance()->getFavoriteHubEntry(getHubUrl());
+	const FavoriteHubEntry *fhe = FavoriteManager::getFavoriteHubEntry(getHubUrl());
 	if (fhe && fhe->getExclusiveHub())
 	{
 		uint8_t l_normal, l_registered, l_op;

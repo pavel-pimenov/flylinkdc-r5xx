@@ -926,7 +926,7 @@ int WebServerSocket::run()
 						ShareManager::getInstance()->setDirty();
 						ShareManager::getInstance()->setPurgeTTH();
 						ShareManager::getInstance()->refresh(true);
-						LogManager::getInstance()->message(STRING(PURGE_TTH_DATABASE)); //[!]NightOrion(translate)
+						LogManager::message(STRING(PURGE_TTH_DATABASE)); //[!]NightOrion(translate)
 					}
 					if (!m["webss"].empty() && !m["websps"].empty() &&
 					        !m["upspeed"].empty() && !m["downspeed"].empty() &&

@@ -20,6 +20,7 @@
 #define USERINFOBASE_H
 
 #include "UserManager.h"
+#include "FavoriteManager.h"
 
 class UserInfoBase
 #ifdef _DEBUG
@@ -89,39 +90,7 @@ struct FavUserTraits // [!] IRainman moved from WinUtil and review.
 		isIgnoredByName(false)
 	{
 	}
-	void init(const UserInfoBase& ui)
-	{
-		dcassert(ui.getUser());
-		if (ui.getUser())
-		{
-#ifndef IRAINMAN_ALLOW_ALL_CLIENT_FEATURES_ON_NMDC
-			if (ui->getUser()->isSet(User::NMDC))
-				adcOnly = false;
-#endif
-				
-			Flags::MaskType l_flags;
-			isFav = FavoriteManager::getInstance()->getFavUserParam(ui.getUser(), l_flags, uploadLimit);
-			
-			if (isFav)
-			{
-				isAutoGrantSlot = FavoriteManager::hasAutoGrantSlot(l_flags);
-				
-				isIgnoredPm = FavoriteManager::hasIgnorePM(l_flags);
-				isFreePm = FavoriteManager::hasFreePM(l_flags);
-			}
-			else
-			{
-				isAutoGrantSlot = false;
-				
-				isIgnoredPm = false;
-				isFreePm = false;
-			}
-			
-			isIgnoredByName = UserManager::g_isEmptyIgnoreList == false && UserManager::isInIgnoreList(ui.getUser()->getLastNick());
-			
-			isEmpty = false;
-		}
-	}
+	void init(const UserInfoBase& ui);
 	
 	int uploadLimit;
 	

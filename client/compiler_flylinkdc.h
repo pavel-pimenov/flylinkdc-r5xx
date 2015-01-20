@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2013 FlylinkDC++ Team
+ * Copyright (C) 2011-2015 FlylinkDC++ Team
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -141,10 +141,6 @@ typedef unsigned __int64 uint64_t;
 
 //[+]PPA
 // #define PPA_INCLUDE_DEAD_CODE
-// #define PPA_INCLUDE_BITZI_LOOKUP
-#ifdef PPA_INCLUDE_BITZI_LOOKUP
-# define PPA_BITZI_LOOKUP_BLOCKING_REGUEST_AND_ALERT_THE_USER
-#endif
 // #define PPA_INCLUDE_DNS
 #define PPA_INCLUDE_AUTO_FOLLOW
 #define PPA_INCLUDE_DROP_SLOW

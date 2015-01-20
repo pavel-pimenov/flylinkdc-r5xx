@@ -35,7 +35,7 @@ for /F "tokens=1,2,3 delims= " %%a in ('type "%CUR_DIR%..\revision.h"') do (
 if "%%a"=="//#define" if "%%b"=="FLYLINKDC_BETA" goto :SkipBeta
 )
 for /F "tokens=1,2,3 delims= " %%a in ('type "%CUR_DIR%..\revision.h"') do (
-if "%%a"=="#define" if "%%b"=="BETA_NUM" set BETA_STATE=-rc%%~c
+if "%%a"=="#define" if "%%b"=="BETA_NUM" set BETA_STATE=-rc
 if "%%a"=="#define" if "%%b"=="BETA_NUM" set BETA_STATE_UI=rc %%~c
 )
 :SkipBeta

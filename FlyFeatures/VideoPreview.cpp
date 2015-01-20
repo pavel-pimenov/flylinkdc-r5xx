@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2012 FlylinkDC++ Team http://flylinkdc.com/
+ * Copyright (C) 2011-2015 FlylinkDC++ Team http://flylinkdc.com/
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -202,7 +202,7 @@ void VideoPreview::AddExistingFileToPreview(const string& previewFile, const int
 	m_tempFilename = previewFile;
 	_fileRoadMap = unique_ptr<FileRoadMap>(new FileRoadMap(_previewFileSize));
 	setFileAlreadyDownloaded();
-	LogManager::getInstance()->message("Existing file preview - " + previewFile);
+	LogManager::message("Existing file preview - " + previewFile);
 	StartServer();
 	_viewStarted = true;
 	if (::IsWindow(serverReadyReport))
@@ -254,7 +254,7 @@ void VideoPreview::_StartServer()
 		_serverPreview = new PreviewServer(SETTING(INT_PREVIEW_SERVER_PORT), SETTING(BIND_ADDRESS));
 		_serverStarted = true;
 		_isServerDie = false;
-		LogManager::getInstance()->message("Started PreviewServer");
+		LogManager::message("Started PreviewServer");
 		VideoPreview::getInstance()->AddLogInfo("Started PreviewServer");
 	}
 }
@@ -265,7 +265,7 @@ void VideoPreview::_StopServer()
 	{
 		safe_delete(_serverPreview);
 		_serverStarted = false;
-		LogManager::getInstance()->message("Stopped PreviewServer"); // 2012-04-27_18-47-20_DPP42GQ5GG7Y5Q45X5O6LX6QUQMJRZ7XQPGYBZA_609C4718_crash-stack-r502-beta22-x64-build-9854.dmp
+		LogManager::message("Stopped PreviewServer"); // 2012-04-27_18-47-20_DPP42GQ5GG7Y5Q45X5O6LX6QUQMJRZ7XQPGYBZA_609C4718_crash-stack-r502-beta22-x64-build-9854.dmp
 #ifdef _DEBUG
 		VideoPreview::getInstance()->AddLogInfo("Stopped PreviewServer"); // [20] https://www.box.net/shared/qzotdk8odzsct74kxzgg
 #endif
@@ -305,7 +305,7 @@ int VideoPreview::PreviewServer::run() noexcept
 		}
 		catch (const Exception& e)
 		{
-			LogManager::getInstance()->message(STRING(LISTENER_FAILED) + ' ' + e.getError());
+			LogManager::message(STRING(LISTENER_FAILED) + ' ' + e.getError());
 		}
 		bool failed = false;
 		while (!die)
@@ -318,7 +318,7 @@ int VideoPreview::PreviewServer::run() noexcept
 				sock.listen();
 				if (failed)
 				{
-					LogManager::getInstance()->message(STRING(CONNECTIVITY_RESTORED));
+					LogManager::message(STRING(CONNECTIVITY_RESTORED));
 					failed = false;
 				}
 				break;
@@ -329,7 +329,7 @@ int VideoPreview::PreviewServer::run() noexcept
 				
 				if (!failed)
 				{
-					LogManager::getInstance()->message(STRING(CONNECTIVITY_ERROR) + ' ' + e.getError());
+					LogManager::message(STRING(CONNECTIVITY_ERROR) + ' ' + e.getError());
 					failed = true;
 				}
 				// Spin for 60 seconds
@@ -655,7 +655,7 @@ int VideoPreviewSocketProcessor::run()
 					}
 					catch (Exception& e)					
 					{
-						LogManager::getInstance()->message("[VideoPreviewSocketProcessor] Error open SharedFileStream for file = [" + VideoPreview::getInstance()->GetFilePreviewTempName() + "] Error =" +e.getError());
+						LogManager::message("[VideoPreviewSocketProcessor] Error open SharedFileStream for file = [" + VideoPreview::getInstance()->GetFilePreviewTempName() + "] Error =" +e.getError());
 					}
 					}
 					else

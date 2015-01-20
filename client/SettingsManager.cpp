@@ -2305,11 +2305,11 @@ void SettingsManager::importDctheme(const tstring& file, const bool asDefault /*
 	}
 	catch (const FileException& e)
 	{
-		LogManager::getInstance()->message(STRING(COULD_NOT_OPEN_TARGET_FILE) + e.getError());
+		LogManager::message(STRING(COULD_NOT_OPEN_TARGET_FILE) + e.getError());
 	}
 	catch (const SimpleXMLException& e)
 	{
-		LogManager::getInstance()->message(STRING(COULD_NOT_PARSE_XML_DATA) + e.getError());
+		LogManager::message(STRING(COULD_NOT_PARSE_XML_DATA) + e.getError());
 	}
 	
 #undef importData
@@ -2453,7 +2453,7 @@ void SettingsManager::exportDctheme(const tstring& file)
 	}
 	catch (const FileException& e)
 	{
-		LogManager::getInstance()->message(STRING(COULD_NOT_OPEN_TARGET_FILE) + e.getError());
+		LogManager::message(STRING(COULD_NOT_OPEN_TARGET_FILE) + e.getError());
 	}
 	
 #undef exportData

@@ -90,8 +90,8 @@ LRESULT LogPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	for (int i = 0; i < LogManager::LAST; ++i)
 	{
 		TStringPair pair;
-		pair.first = Text::toT(LogManager::getInstance()->getSetting(i, LogManager::FILE));
-		pair.second = Text::toT(LogManager::getInstance()->getSetting(i, LogManager::FORMAT));
+		pair.first = Text::toT(LogManager::getSetting(i, LogManager::FILE));
+		pair.second = Text::toT(LogManager::getSetting(i, LogManager::FORMAT));
 		options.push_back(pair);
 	}
 	
@@ -192,8 +192,8 @@ void LogPage::write()
 		if (stricmp(Util::getFileExt(tmp), ".log") != 0)
 			tmp += ".log";
 			
-		LogManager::getInstance()->saveSetting(i, LogManager::FILE, tmp);
-		LogManager::getInstance()->saveSetting(i, LogManager::FORMAT, Text::fromT(options[i].second));
+		LogManager::saveSetting(i, LogManager::FILE, tmp);
+		LogManager::saveSetting(i, LogManager::FORMAT, Text::fromT(options[i].second));
 	}
 }
 

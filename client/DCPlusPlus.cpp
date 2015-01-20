@@ -177,11 +177,11 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 
 void preparingCoreToShutdown() // [+] IRainamn fix.
 {
-	CFlyLog l_log("[Core shutdown]");
 	static bool g_is_first = false;
 	if (!g_is_first)
 	{
 		g_is_first = true;
+		CFlyLog l_log("[Core shutdown]");
 		TimerManager::getInstance()->shutdown();
 		WebServerManager::getInstance()->shutdown();
 		HashManager::getInstance()->shutdown();
@@ -214,7 +214,7 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		}
 		if (!l_debugTag.empty())
 		{
-			LogManager::getInstance()->message("Founded unknown NMDC tag param: " + l_debugTag);
+			LogManager::message("Founded unknown NMDC tag param: " + l_debugTag);
 		}
 #endif
 		
@@ -244,11 +244,11 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		}
 		if (!l_debugFeatures.empty())
 		{
-			LogManager::getInstance()->message("Founded unknown ADC supports: " + l_debugFeatures);
+			LogManager::message("Founded unknown ADC supports: " + l_debugFeatures);
 		}
 		if (!l_debugConnections.empty())
 		{
-			LogManager::getInstance()->message("Founded unknown NMDC connections: " + l_debugConnections);
+			LogManager::message("Founded unknown NMDC connections: " + l_debugConnections);
 		}
 #endif // FLYLINKDC_COLLECT_UNKNOWN_FEATURES
 		
@@ -327,7 +327,6 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		HashManager::deleteInstance();
 		CFlylinkDBManager::deleteInstance(); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1355
 		TimerManager::deleteInstance();
-		LogManager::deleteInstance();
 		SettingsManager::deleteInstance();
 		
 		closelog();

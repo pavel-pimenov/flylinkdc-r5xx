@@ -679,7 +679,7 @@ LRESULT PublicHubsFrame::onRemoveFav(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 	int i = -1;
 	while ((i = m_ctrlHubs.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
-		const auto fhe = FavoriteManager::getInstance()->getFavoriteHubEntry(getPubServer((int)i));
+		const auto fhe = FavoriteManager::getFavoriteHubEntry(getPubServer((int)i));
 		if (fhe)
 		{
 			FavoriteManager::getInstance()->removeFavorite(fhe);
@@ -893,7 +893,7 @@ LRESULT PublicHubsFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lPar
 			int i = -1;
 			while ((i = m_ctrlHubs.GetNextItem(i, LVNI_SELECTED)) != -1)
 			{
-				const auto fhe = FavoriteManager::getInstance()->getFavoriteHubEntry(getPubServer((int)i));
+				const auto fhe = FavoriteManager::getFavoriteHubEntry(getPubServer((int)i));
 				if (fhe)
 				{
 					hubsMenu.EnableMenuItem(IDC_ADD, MFS_DISABLED);
@@ -1151,7 +1151,7 @@ LRESULT PublicHubsFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHan
 		case CDDS_ITEMPREPAINT:
 		{
 			cd->clrText = Colors::textColor;
-			const auto fhe = FavoriteManager::getInstance()->getFavoriteHubEntry(getPubServer((int)cd->nmcd.dwItemSpec));
+			const auto fhe = FavoriteManager::getFavoriteHubEntry(getPubServer((int)cd->nmcd.dwItemSpec));
 			if (fhe)
 			{
 				if (fhe->getConnect())

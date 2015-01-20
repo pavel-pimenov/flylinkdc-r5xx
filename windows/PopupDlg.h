@@ -62,7 +62,7 @@ class PopupWnd : public CWindowImpl<PopupWnd, CWindow>
 		
 		LRESULT onLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 		{
-			::PostMessage(WinUtil::mainWnd, WM_SPEAKER, WM_CLOSE, (LPARAM)id);
+			::PostMessage(WinUtil::g_mainWnd, WM_SPEAKER, WM_CLOSE, (LPARAM)id);
 			bHandled = TRUE;
 			return 0;
 		}

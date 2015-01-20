@@ -89,7 +89,7 @@ ShareManager::ShareManager() : xmlListLen(0), bzXmlListLen(0),
 		}
 		catch (const Exception& e) // fix https://crash-server.com/Problem.aspx?ProblemID=51912
 		{
-			LogManager::getInstance()->message("Error create: " + emptyXmlName + " error = " + e.getError());
+			LogManager::message("Error create: " + emptyXmlName + " error = " + e.getError());
 		}
 	}
 #endif // IRAINMAN_INCLUDE_HIDE_SHARE_MOD
@@ -1075,7 +1075,7 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 		{
 			if (isInSkipList(l_lower_name))
 			{
-				LogManager::getInstance()->message(STRING(USER_DENIED_SHARE_THIS_FILE) + ' ' + l_file_name
+				LogManager::message(STRING(USER_DENIED_SHARE_THIS_FILE) + ' ' + l_file_name
 				                                   + " (" + STRING(SIZE) + ": " + Util::toString(i->getSize()) + ' '
 				                                   + STRING(B) + ") (" + STRING(DIRECTORY) + ": \"" + aName + "\")");
 				continue;
@@ -1132,8 +1132,8 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 #if 0
 					if (l_is_new_file)
 					{
-						LogManager::getInstance()->message("[!!!!!!!!][1] bool l_is_new_file = l_dir_item == l_dir_map.end(); l_lower_name = " + l_lower_name + " name = " + l_file_name);
-						LogManager::getInstance()->message("[!!!!!!!!][1] l_dir_item->second.m_size = " + Util::toString(l_dir_item->second.m_size)
+						LogManager::message("[!!!!!!!!][1] bool l_is_new_file = l_dir_item == l_dir_map.end(); l_lower_name = " + l_lower_name + " name = " + l_file_name);
+						LogManager::message("[!!!!!!!!][1] l_dir_item->second.m_size = " + Util::toString(l_dir_item->second.m_size)
 						                                   + " size = " + Util::toString(l_size)
 						                                   + " l_dir_item->second.m_TimeStamp = " + Util::toString(l_dir_item->second.m_TimeStamp)
 						                                   + " l_ts = " + Util::toString(l_ts)
@@ -1143,7 +1143,7 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 				}
 				else
 				{
-					// LogManager::getInstance()->message("[!!!!!!!!][2] bool l_is_new_file = l_dir_item == l_dir_map.end(); l_lower_name = " + l_lower_name + " name = " + l_file_name);
+					// LogManager::message("[!!!!!!!!][2] bool l_is_new_file = l_dir_item == l_dir_map.end(); l_lower_name = " + l_lower_name + " name = " + l_file_name);
 				}
 #ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
 				if (l_dir_item != l_dir_map.end())
@@ -1385,7 +1385,7 @@ void ShareManager::refresh(bool dirs /* = false */, bool aUpdate /* = true */, b
 {
 	if (m_is_refreshing.test_and_set())
 	{
-		LogManager::getInstance()->message(STRING(FILE_LIST_REFRESH_IN_PROGRESS));
+		LogManager::message(STRING(FILE_LIST_REFRESH_IN_PROGRESS));
 		return;
 	}
 	
@@ -1416,7 +1416,7 @@ void ShareManager::refresh(bool dirs /* = false */, bool aUpdate /* = true */, b
 	}
 	catch (const ThreadException& e)
 	{
-		LogManager::getInstance()->message(STRING(FILE_LIST_REFRESH_FAILED) + ' ' + e.getError());
+		LogManager::message(STRING(FILE_LIST_REFRESH_FAILED) + ' ' + e.getError());
 	}
 }
 
@@ -1446,7 +1446,7 @@ int ShareManager::run()
 	{
 		HashManager::HashPauser pauser;
 		
-		LogManager::getInstance()->message(STRING(FILE_LIST_REFRESH_INITIATED));
+		LogManager::message(STRING(FILE_LIST_REFRESH_INITIATED));
 		m_sharedSize = 0;
 		m_lastFullUpdate = GET_TICK();
 		CFlylinkDBManager::getInstance()->scan_path(directories);
@@ -1485,7 +1485,7 @@ int ShareManager::run()
 		}
 		internalCalcShareSize();
 		refreshDirs = false;
-		LogManager::getInstance()->message(STRING(FILE_LIST_REFRESH_FINISHED));
+		LogManager::message(STRING(FILE_LIST_REFRESH_FINISHED));
 	}
 	
 	if (update)
@@ -2091,7 +2091,7 @@ cur = newStr.get();
 #ifdef _DEBUG
 //	char l_buf[1000] = {0};
 //	sprintf(l_buf, "Name = %s, limit = %lld m_sizeMode = %d\r\n", getFullName().c_str(), aSize,  aSizeMode);
-//	LogManager::getInstance()->message(l_buf);
+//	LogManager::message(l_buf);
 #endif
 const bool sizeOk = (aSizeMode != Search::SIZE_ATLEAST) || (aSize == 0);
 if ((cur->empty()) &&
@@ -2111,19 +2111,19 @@ for (auto i = m_files.cbegin(); i != m_files.cend(); ++i)
 #ifdef _DEBUG
 //		char l_buf[1000] = {0};
 //		sprintf(l_buf, "Name = %s, i->getSize() = %lld aSize =  %lld m_sizeMode = %d\r\n", getFullName().c_str(), i->getSize(), aSize,  aSizeMode);
-//		LogManager::getInstance()->message(l_buf);
+//		LogManager::message(l_buf);
 #endif
 		if (aSizeMode == Search::SIZE_ATLEAST && aSize > i->getSize())
 		{
 #ifdef _DEBUG
-//			LogManager::getInstance()->message("[минимум] aSizeMode == Search::SIZE_ATLEAST && aSize > i->getSize()");
+//			LogManager::message("[минимум] aSizeMode == Search::SIZE_ATLEAST && aSize > i->getSize()");
 #endif
 			continue;
 		}
 		else if (aSizeMode == Search::SIZE_ATMOST && aSize < i->getSize())
 		{
 #ifdef _DEBUG
-//			LogManager::getInstance()->message("[максимум] aSizeMode == Search::SIZE_ATMOST && aSize < i->getSize()");
+//			LogManager::message("[максимум] aSizeMode == Search::SIZE_ATMOST && aSize < i->getSize()");
 #endif
 			continue;
 		}
@@ -2629,7 +2629,7 @@ void ShareManager::internalClearShareNotExists(bool p_is_force)
 	{
 		if (i->second > 1)
 		{
-			LogManager::getInstance()->message("[ShareManager] Fix dup-search: " + i->first + ", Count = " + Util::toString(i->second) + ")");
+			LogManager::message("[ShareManager] Fix dup-search: " + i->first + ", Count = " + Util::toString(i->second) + ")");
 		}
 	}
 #endif
@@ -2787,6 +2787,12 @@ bool ShareManager::findByRealPathName(const string& realPathname, TTHValue* outT
 		return true;
 	}
 	return false;
+}
+
+bool ShareManager::isInSkipList(const string& lowerName) const
+{
+	FastLock l(m_csSkipList);
+	return Wildcard::patternMatchLowerCase(lowerName, m_skipList);
 }
 
 /**

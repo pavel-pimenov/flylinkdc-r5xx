@@ -408,7 +408,7 @@ void SpyFrame::on(ClientManagerListener::IncomingSearch, const string& user, con
 LRESULT SpyFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
 	m_needsUpdateTime = true;//[+]IRainman refactoring SpyFrame
-	if (!MainFrame::isAppMinimized() && WinUtil::g_tabCtrl->isActive(m_hWnd))// [+] IRainman opt
+	if (!MainFrame::isAppMinimized(m_hWnd) && !isClosedOrShutdown())// [+] IRainman opt
 	{
 		auto s = new Stats;
 		s->perM = 0;

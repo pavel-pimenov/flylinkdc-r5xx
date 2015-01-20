@@ -288,7 +288,7 @@ void MappingManager::close(Mapper& mapper)
 
 void MappingManager::log(const string& message)
 {
-	LogManager::getInstance()->message("Port mapping: " + message);
+	LogManager::message("Port mapping: " + message);
 }
 
 string MappingManager::deviceString(const Mapper& p_mapper) const

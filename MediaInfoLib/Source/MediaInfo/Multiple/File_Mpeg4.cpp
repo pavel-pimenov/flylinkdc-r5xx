@@ -949,7 +949,7 @@ void File_Mpeg4::Streams_Finish()
                 {
                     Sequence->FrameRate_Set(Retrieve(Stream_Video, Stream->second.StreamPos, Video_FrameRate).To_float64());
 
-                    #ifdef MEDIAINFO_IBI_YES
+                    #if MEDIAINFO_IBIUSAGE
                         for (size_t stss_Pos=0; stss_Pos<Stream->second.stss.size(); stss_Pos++)
                         {
                             int64u Value=Stream->second.stss[stss_Pos];
@@ -979,7 +979,7 @@ void File_Mpeg4::Streams_Finish()
                                 }
                             }
                         }
-                    #endif //MEDIAINFO_IBI_YES
+                    #endif //MEDIAINFO_IBIUSAGE
 
                 }
                 ReferenceFiles->AddSequence(Sequence);
@@ -1322,6 +1322,15 @@ size_t File_Mpeg4::Read_Buffer_Seek (size_t Method, int64u Value, int64u ID)
                                                     break;
                                 default           : ;
                             }
+
+                        if (!StreamOffset_Jump.empty())
+                        {
+                            std::map<int64u, int64u>::iterator StreamOffset_Current=StreamOffset_Jump.end();
+                            do
+                                StreamOffset_Current--;
+                            while (StreamOffset_Current->second>JumpTo && StreamOffset_Current!=StreamOffset_Jump.begin());
+                            JumpTo=StreamOffset_Current->second;
+                        }
 
                         GoTo(JumpTo);
                         Open_Buffer_Unsynch();

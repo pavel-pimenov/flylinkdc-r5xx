@@ -103,7 +103,8 @@ void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bo
 		return;
 		
 	//get the handle of the window that has focus
-	HWND gotFocus = ::SetFocus(WinUtil::mainWnd);
+	dcassert(WinUtil::g_mainWnd);
+	HWND gotFocus = ::SetFocus(WinUtil::g_mainWnd);
 	
 	//compute the window position
 	CRect rc(screenWidth - width , screenHeight - height - offset, screenWidth, screenHeight - offset);
@@ -139,7 +140,11 @@ void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bo
 void PopupManager::on(TimerManagerListener::Second /*type*/, uint64_t tick)
 {
 	// TODO - подписаться позже. dcassert(!BaseChatFrame::g_isStartupProcess);
-	::PostMessage(WinUtil::mainWnd, WM_SPEAKER, MainFrame::REMOVE_POPUP, (LPARAM)tick); // [!] IRainman opt.
+	dcassert(WinUtil::g_mainWnd);
+	if (WinUtil::g_mainWnd)
+	{
+		::PostMessage(WinUtil::g_mainWnd, WM_SPEAKER, MainFrame::REMOVE_POPUP, (LPARAM)tick); // [!] IRainman opt.
+	}
 }
 
 void PopupManager::AutoRemove(uint64_t tick) // [!] IRainman opt.

@@ -1589,7 +1589,7 @@ void TransferView::starting(UpdateInfo* ui, const Transfer* t)
 void TransferView::on(DownloadManagerListener::Requesting, const Download* aDownload) noexcept
 {
 #ifdef _DEBUG
-	LogManager::getInstance()->message("Requesting " + aDownload->getUserConnectionToken());
+	LogManager::message("Requesting " + aDownload->getUserConnectionToken());
 #endif
 	UpdateInfo* ui = new UpdateInfo(aDownload->getHintedUser(), true); // [!] IRainman fix.
 	// TODO - AirDC++
@@ -1809,7 +1809,7 @@ void TransferView::on(UploadManagerListener::Tick, const UploadList& ul, uint64_
 void TransferView::onTransferComplete(const Transfer* aTransfer, const bool download, const string& aFileName, const bool isTree)
 {
 #ifdef _DEBUG
-	LogManager::getInstance()->message("Transfer complete " + aTransfer->getUserConnectionToken());
+	LogManager::message("Transfer complete " + aTransfer->getUserConnectionToken());
 #endif
 	UpdateInfo* ui = new UpdateInfo(aTransfer->getHintedUser(), download); // [!] IRainman fix.
 	

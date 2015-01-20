@@ -68,7 +68,7 @@ SharedFileStream::SharedFileStream(const string& aFileName, int aAccess, int aMo
 			}
 			else
 			{
-				LogManager::getInstance()->message(l_error);
+				LogManager::message(l_error);
 			}
 			throw;
 		}

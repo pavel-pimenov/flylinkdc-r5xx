@@ -103,7 +103,7 @@ bool IndexManager::findResult(const TTHValue& p_tth, SourceList& p_sources) cons
 	FastLock l(cs_tth_dup);
 	if(g_tth_dup[p_tth.toBase32()]++ > 1)
 	{
-		LogManager::getInstance()->message("[dht] IndexManager::findResult dup = " + p_tth.toBase32() + 
+		LogManager::message("[dht] IndexManager::findResult dup = " + p_tth.toBase32() + 
 			" count = " + Util::toString(g_tth_dup[p_tth.toBase32()]) + " size_map = " + Util::toString(g_tth_dup.size()));
 	}
 #endif

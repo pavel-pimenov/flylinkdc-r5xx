@@ -192,7 +192,7 @@ void UDPSocket::checkIncoming()
 				DHT::getInstance()->dispatch(s, ip, l_port, isUdpKeyValid);
 
 				{
-				LogManager::getInstance()->dht_message("[UDPSocket::checkIncoming()] cmd [" + s +
+				LogManager::dht_message("[UDPSocket::checkIncoming()] cmd [" + s +
 					"] ip:port = [" + ip + ":" + Util::toString(l_port) + "] isUdpKeyValid = " + Util::toString(isUdpKeyValid));
 				}
 			}
@@ -242,7 +242,7 @@ void UDPSocket::checkOutgoing(uint64_t& p_timer)
 			unsigned long length = compressBound(packet->data.length()) + 20; //-V614
 #if 0
 			{
-				LogManager::getInstance()->dht_message("[UDPSocket::checkOutgoing()] before compress " 
+				LogManager::dht_message("[UDPSocket::checkOutgoing()] before compress " 
 					" ip:port = [" + packet->ip + ":" + Util::toString(packet->port) + "] " 
 					" udpKey = [ " + packet->udpKey.m_key.toBase32() +  " ip = " + packet->udpKey.m_ip + "]"
 					" TargetCID = [" + packet->targetCID.toBase32() + " ] "
@@ -323,7 +323,7 @@ int UDPSocket::run()
 					socket->bind(port, SETTING(BIND_ADDRESS));
 					if (failed)
 					{
-						LogManager::getInstance()->message(STRING(DHT_ENABLED));
+						LogManager::message(STRING(DHT_ENABLED));
 						failed = false;
 					}
 					break;
@@ -335,7 +335,7 @@ int UDPSocket::run()
 					
 					if (!failed)
 					{
-						LogManager::getInstance()->message(STRING(DHT_DISABLED) + ": " + p_e2.getError());
+						LogManager::message(STRING(DHT_DISABLED) + ": " + p_e2.getError());
 						failed = true;
 					}
 					
@@ -373,7 +373,7 @@ void UDPSocket::send(AdcCommand& cmd, const string& ip, uint16_t p_port, const C
 	{
 		 l_udp_key_log = " udpKey = [ " + udpKey.m_key.toBase32() + + " ip = " + udpKey.m_ip + "]";
 	}
-	LogManager::getInstance()->dht_message("[UDPSocket::send] cmd [" + cmd.toString(ClientManager::getMyCID(),true) +
+	LogManager::dht_message("[UDPSocket::send] cmd [" + cmd.toString(ClientManager::getMyCID(),true) +
 		      "] ip:port = [" + ip + ":" + Util::toString(p_port) + "] TargetCID=" + targetCID.toBase32() + l_udp_key_log);
 }
 

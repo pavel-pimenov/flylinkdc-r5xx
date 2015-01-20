@@ -142,7 +142,7 @@ void ClientManager::setIPUser(const UserPtr& p_user, const string& p_ip, const u
 		const auto l_old_ip = i->second->getIdentity().getIpAsString();
 		if (l_old_ip != p_ip)
 		{
-			LogManager::getInstance()->message("ClientManager::setIPUser, p_user = " + p_user->getLastNick() + " old ip = " + l_old_ip + " ip = " + p_ip);
+			LogManager::message("ClientManager::setIPUser, p_user = " + p_user->getLastNick() + " old ip = " + l_old_ip + " ip = " + p_ip);
 		}
 #endif
 		i->second->getIdentity().setIp(p_ip);
@@ -272,7 +272,7 @@ StringList ClientManager::getHubNames(const CID& cid, const string& hintUrl, boo
 {
 	//Lock l(cs); [-] IRainman opt.
 #ifdef _DEBUG
-	//LogManager::getInstance()->message("[!!!!!!!] ClientManager::getHubNames cid = " + cid.toBase32() + " hintUrl = " + hintUrl + " priv = " + Util::toString(priv));
+	//LogManager::message("[!!!!!!!] ClientManager::getHubNames cid = " + cid.toBase32() + " hintUrl = " + hintUrl + " priv = " + Util::toString(priv));
 #endif
 	StringList lst;
 	if (!priv)
@@ -907,7 +907,7 @@ void ClientManager::infoUpdated()
 #ifdef _DEBUG
 	static int g_count = 0;
 	dcdebug("ClientManager::infoUpdated() count = %d\n", ++g_count);
-	LogManager::getInstance()->message("ClientManager::infoUpdated() count = " + Util::toString(g_count));
+	LogManager::message("ClientManager::infoUpdated() count = " + Util::toString(g_count));
 #endif
 	webrtc::ReadLockScoped l(*g_csClients);
 	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
@@ -937,12 +937,12 @@ bool ClientManager::NmdcPartialSearch(Client* aClient, const string& aSeeker,
 		PartsInfo partialInfo;
 		TTHValue aTTH(aString.c_str() + 4);  //[+]FlylinkDC++ opt. //-V112
 #ifdef _DEBUG
-//		LogManager::getInstance()->message("[Try] handlePartialSearch TTH = " + aString);
+//		LogManager::message("[Try] handlePartialSearch TTH = " + aString);
 #endif
 		if (QueueManager::getInstance()->handlePartialSearch(aTTH, partialInfo)) // TODO - часто ищется по ТТХ
 		{
 #ifdef _DEBUG
-			LogManager::getInstance()->message("[OK] handlePartialSearch TTH = " + aString);
+			LogManager::message("[OK] handlePartialSearch TTH = " + aString);
 #endif
 			l_is_partial = true;
 			string ip, file, proto, query, fragment;
@@ -956,7 +956,7 @@ bool ClientManager::NmdcPartialSearch(Client* aClient, const string& aSeeker,
 				SearchManager::getInstance()->toPSR(cmd, true, aClient->getMyNick(), aClient->getIpPort(), aTTH.toBase32(), partialInfo);
 				Socket udp;
 				udp.writeTo(Socket::resolve(ip), port, cmd.toString(getMyCID())); // TODO - зачем тут resolve кроме IP может быть что-то другое?
-				LogManager::getInstance()->psr_message(
+				LogManager::psr_message(
 				    "[ClientManager::NmdcSearch Send UDP IP = " + ip +
 				    " param->udpPort = " + Util::toString(port) +
 				    " cmd = " + cmd.toString(getMyCID())
@@ -964,14 +964,14 @@ bool ClientManager::NmdcPartialSearch(Client* aClient, const string& aSeeker,
 			}
 			catch (Exception& e)
 			{
-				LogManager::getInstance()->psr_message(
+				LogManager::psr_message(
 				    "[Partial search caught error] Error = " + e.getError() +
 				    " IP = " + ip +
 				    " param->udpPort = " + Util::toString(port)
 				);
 				
 #ifdef _DEBUG
-				LogManager::getInstance()->message("ClientManager::on(NmdcSearch, Partial search caught error = " + e.getError() + " TTH = " + aString);
+				LogManager::message("ClientManager::on(NmdcSearch, Partial search caught error = " + e.getError() + " TTH = " + aString);
 				dcdebug("Partial search caught error\n");
 #endif
 			}
@@ -1047,7 +1047,7 @@ void ClientManager::NmdcSearch(Client* aClient, const string& aSeeker, Search::S
 			catch (Exception& e)
 			{
 #ifdef _DEBUG
-				LogManager::getInstance()->message("ClientManager::on(NmdcSearch, Search caught error= " + e.getError());
+				LogManager::message("ClientManager::on(NmdcSearch, Search caught error= " + e.getError());
 #endif
 				dcdebug("Search caught error = %s\n", + e.getError().c_str());
 			}
@@ -1400,7 +1400,7 @@ void ClientManager::on(UsersUpdated, const Client* client, const OnlineUserList&
 	{
 		updateNick(*i); // TODO проверить что меняется именно ник - иначе не звать. или разбить UsersUpdated на UsersUpdated + UsersUpdatedNick
 #ifdef _DEBUG
-//		LogManager::getInstance()->message("ClientManager::on(UsersUpdated nick = " + (*i)->getUser()->getLastNick());
+//		LogManager::message("ClientManager::on(UsersUpdated nick = " + (*i)->getUser()->getLastNick());
 #endif
 		// [-] fire(ClientManagerListener::UserUpdated(), *i); [-] IRainman fix: No needs to update user twice.
 	}
@@ -1418,7 +1418,7 @@ void ClientManager::updateNick(const OnlineUserPtr& p_online_user)
 	{
 #ifdef _DEBUG
 		//dcassert(0);
-//			LogManager::getInstance()->message("[DUP] updateNick(const OnlineUserPtr& p_online_user) ! nick==nick == "
+//			LogManager::message("[DUP] updateNick(const OnlineUserPtr& p_online_user) ! nick==nick == "
 //				+ l_nick_from_identity + " p_online_user->getUser()->getLastNick() = " + p_online_user->getUser()->getLastNick());
 #endif
 	}
@@ -1441,10 +1441,10 @@ void ClientManager::on(HubUserCommand, const Client* client, int aType, int ctx,
 	{
 		if (aType == UserCommand::TYPE_REMOVE)
 		{
-			int cmd = FavoriteManager::getInstance()->findUserCommand(name, client->getHubUrl());
+			const int cmd = FavoriteManager::findUserCommand(name, client->getHubUrl());
 			if (cmd != -1)
 			{
-				FavoriteManager::getInstance()->removeUserCommand(cmd);
+				FavoriteManager::removeUserCommand(cmd);
 			}
 		}
 		else if (aType == UserCommand::TYPE_CLEAR)

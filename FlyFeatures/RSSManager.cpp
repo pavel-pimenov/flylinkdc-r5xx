@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2012 FlylinkDC++ Team http://flylinkdc.com/
+ * Copyright (C) 2011-2015 FlylinkDC++ Team http://flylinkdc.com/
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -112,7 +112,7 @@ RSSFeed::UpdateFeedNewXML()
 	}
 	catch (const Exception& e)
 	{
-		LogManager::getInstance()->message(e.getError());
+		LogManager::message(e.getError());
 		return false;
 	}
 }
@@ -189,7 +189,7 @@ time_t RSSFeed::convertPubDate(const string& p_str_date) // move Util::
 
 		if( !InternetTimeToSystemTimeA(p_str_date.c_str(), &pTime, 0) && !InternetTimeToSystemTimeA(("Mon, " + p_str_date).c_str(), &pTime, 0) ) // http://code.google.com/p/flylinkdc/issues/detail?id=1061
 		{
-			LogManager::getInstance()->message("Error InternetTimeToSystemTime p_str_date = " + p_str_date + " error = " + Util::translateError());
+			LogManager::message("Error InternetTimeToSystemTime p_str_date = " + p_str_date + " error = " + Util::translateError());
 		}
 		else
 		{
@@ -638,7 +638,7 @@ void
 RSSManager::fail(const string& p_error)
 {
 	dcdebug("RSSManager: New command when already failed: %s\n", p_error.c_str());
-	//LogManager::getInstance()->message("RSSManager: " + p_error);
+	//LogManager::message("RSSManager: " + p_error);
 	fire(RSSListener::Failed(), p_error);
 }
 

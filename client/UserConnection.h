@@ -360,7 +360,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		GETSET(string, m_last_encoding, Encoding);
 		GETSET(States, state, State);
 		GETSET(SlotTypes, slotType, SlotType);
-		GETSET(string, m_server_port, ServerPort);
+		GETSET(string, m_server_port, ServerPort); // CTM2HUB
 		BufferedSocket const* getSocket() const
 		{
 			return socket;

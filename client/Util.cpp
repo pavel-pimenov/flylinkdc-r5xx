@@ -140,7 +140,7 @@ void Util::MoveSettings()
 			{
 				const string l_error = "Error [Util::MoveSettings] File::copyFile = sourcepath + FileList[i] = " + sourcepath + FileList[i]
 				                       + " , bkpath + FileList[i] = " + bkpath + FileList[i] + " error = " + e.getError();
-				LogManager::getInstance()->message(l_error);
+				LogManager::message(l_error);
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 				CFlyServerAdapter::CFlyServerJSON::pushSyslogError("[BUG][12]  + " + l_error);
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -391,7 +391,7 @@ void Util::loadGeoIp()
 		}
 		catch (const FileException&)
 		{
-			LogManager::getInstance()->message("Error open " + fileName);
+			LogManager::message("Error open " + fileName);
 		}
 	}
 }
@@ -510,7 +510,7 @@ void Util::loadCustomlocations()// [!] IRainman: this function workings fine. Pl
 		}
 		else
 		{
-			LogManager::getInstance()->message("Error open " + Text::fromT(l_fileName));
+			LogManager::message("Error open " + Text::fromT(l_fileName));
 		}
 	}
 }
@@ -618,7 +618,7 @@ void Util::fixFileNameMaxPathLimit(string& p_File)
 		p_File       = p_File.erase(l_limit);
 		p_File  += l_ext;
 		dcassert(p_File == Util::validateFileName(p_File));
-		LogManager::getInstance()->message("Fix MAX_PATH limit [" + l_orig_file + "] convert -> [" + p_File + "] http://code.google.com/p/flylinkdc/issues/detail?id=1447");
+		LogManager::message("Fix MAX_PATH limit [" + l_orig_file + "] convert -> [" + p_File + "] http://code.google.com/p/flylinkdc/issues/detail?id=1447");
 	}
 }
 /**
@@ -2227,7 +2227,7 @@ std::string Util::getRegistryCommaSubkey(const tstring& p_key)
 	return l_result;
 }
 
-string Util::getRegistryValueString(const tstring& p_key, bool p_is_path)
+string Util::getRegistryValueString(const TCHAR* p_key, bool p_is_path)
 {
 	HKEY hk = nullptr;
 	TCHAR l_buf[512];
@@ -2235,7 +2235,7 @@ string Util::getRegistryValueString(const tstring& p_key, bool p_is_path)
 	if (::RegOpenKeyEx(HKEY_CURRENT_USER, FLYLINKDC_REGISTRY_PATH, 0, KEY_READ, &hk) == ERROR_SUCCESS)
 	{
 		DWORD l_bufLen = sizeof(l_buf);
-		::RegQueryValueEx(hk, p_key.c_str(), NULL, NULL, (LPBYTE)l_buf, &l_bufLen);
+		::RegQueryValueEx(hk, p_key, NULL, NULL, (LPBYTE)l_buf, &l_bufLen);
 		::RegCloseKey(hk);
 		if (l_bufLen)
 		{
@@ -2248,31 +2248,64 @@ string Util::getRegistryValueString(const tstring& p_key, bool p_is_path)
 	return emptyString;
 }
 
-bool Util::deleteRegistryValue(const tstring& p_value)
+bool Util::deleteRegistryValue(const TCHAR* p_key)
 {
 	HKEY hk = nullptr;
 	if (::RegCreateKeyEx(HKEY_CURRENT_USER, FLYLINKDC_REGISTRY_PATH, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL) != ERROR_SUCCESS)
 	{
 		return false;
 	}
-	const LSTATUS status = ::RegDeleteValue(hk, p_value.c_str());
+	const LSTATUS status = ::RegDeleteValue(hk, p_key);
 	::RegCloseKey(hk);
 	dcassert(status == ERROR_SUCCESS);
 	return status == ERROR_SUCCESS;
 }
 // [+] SSA
-bool Util::setRegistryValueString(const tstring& p_key, const tstring& p_value)
+bool Util::setRegistryValueInt(const TCHAR* p_key, DWORD p_value)
 {
 	HKEY hk = nullptr;
 	if (::RegCreateKeyEx(HKEY_CURRENT_USER, FLYLINKDC_REGISTRY_PATH, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL) != ERROR_SUCCESS)
 	{
 		return false;
 	}
-	const LSTATUS status = ::RegSetValueEx(hk, p_key.c_str(), NULL, REG_SZ, (LPBYTE)p_value.c_str(), sizeof(TCHAR) * (p_value.length() + 1));
+	const LSTATUS status = ::RegSetValueEx(hk, p_key, NULL, REG_DWORD, reinterpret_cast<const BYTE*>(&p_value), sizeof(DWORD));
+	const auto status_close = ::RegCloseKey(hk);
+	dcassert(status_close == ERROR_SUCCESS);
+	dcassert(status == ERROR_SUCCESS);
+	return status == ERROR_SUCCESS;
+}
+DWORD Util::getRegistryValueInt(const TCHAR* p_key)
+{
+	DWORD l_value = 0;
+	HKEY hk = nullptr;
+	if (::RegOpenKeyEx(HKEY_CURRENT_USER, FLYLINKDC_REGISTRY_PATH, 0, KEY_READ, &hk) == ERROR_SUCCESS)
+	{
+		DWORD dwType = 0;
+		ULONG nBytes = sizeof(DWORD);
+		LONG lRes = ::RegQueryValueEx(hk, p_key, NULL, &dwType, reinterpret_cast<LPBYTE>(&l_value), &nBytes);
+		const auto status_close = ::RegCloseKey(hk);
+		dcassert(status_close == ERROR_SUCCESS);
+		if (dwType != REG_DWORD)
+			return 0;
+		if (lRes == ERROR_SUCCESS)
+			return l_value;
+	}
+	return 0;
+}
+
+bool Util::setRegistryValueString(const TCHAR* p_key, const tstring& p_value)
+{
+	HKEY hk = nullptr;
+	if (::RegCreateKeyEx(HKEY_CURRENT_USER, FLYLINKDC_REGISTRY_PATH, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL) != ERROR_SUCCESS)
+	{
+		return false;
+	}
+	const LSTATUS status = ::RegSetValueEx(hk, p_key, NULL, REG_SZ, (LPBYTE)p_value.c_str(), sizeof(TCHAR) * (p_value.length() + 1));
 	::RegCloseKey(hk);
 	dcassert(status == ERROR_SUCCESS);
 	return status == ERROR_SUCCESS;
 }
+
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 bool Util::isStreamingVideoFile(const string& p_file) // [+] SSA
 {
@@ -2373,7 +2406,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vecto
 	CInternetHandle hInternet(InternetOpen(g_full_user_agent.c_str(), INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0));
 	if (!hInternet)
 	{
-		LogManager::getInstance()->message("InternetOpen [" + url + "] error = " + Util::translateError());
+		LogManager::message("InternetOpen [" + url + "] error = " + Util::translateError());
 		dcassert(0);
 		return 0;
 	}
@@ -2402,7 +2435,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vecto
 	if (!hURL)
 	{
 		dcassert(0);
-		LogManager::getInstance()->message("InternetOpenUrl [" + url + "] error = " + Util::translateError());
+		LogManager::message("InternetOpenUrl [" + url + "] error = " + Util::translateError());
 		// TODO - залогировать коды ошибок для статы
 		return 0;
 	}
@@ -2415,7 +2448,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vecto
 		if (!InternetReadFile(hURL, &p_dataOut[totalBytesRead], frameBufferSize, &l_BytesRead))
 		{
 			dcassert(0);
-			LogManager::getInstance()->message("InternetReadFile [" + url + "] error = " + Util::translateError());
+			LogManager::message("InternetReadFile [" + url + "] error = " + Util::translateError());
 			//// TODO - залогировать коды ошибок для статы
 			return 0;
 		}
@@ -2596,7 +2629,7 @@ void Util::BackupSettings()
 			}
 			catch (FileException &)
 			{
-				LogManager::getInstance()->message("Error File::copyFile = sourcepath + FileList[i] = " + sourcepath + FileList[i]
+				LogManager::message("Error File::copyFile = sourcepath + FileList[i] = " + sourcepath + FileList[i]
 				                                   + " , bkpath + FileList[i] = " + bkpath + FileList[i]);
 			}
 		}
@@ -2774,7 +2807,7 @@ tstring Util::eraseHtmlTags(tstring && p_desc)
 void Util::playSound(const string& p_sound, const bool p_beep /* = false */)
 {
 //#ifdef _DEBUG
-//	LogManager::getInstance()->message(p_sound + (p_beep ? string(" p_beep = true") : string(" p_beep = false")));
+//	LogManager::message(p_sound + (p_beep ? string(" p_beep = true") : string(" p_beep = false")));
 //#endif
 	if (!p_sound.empty())
 	{

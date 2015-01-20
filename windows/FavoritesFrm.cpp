@@ -398,7 +398,7 @@ LRESULT FavoriteHubsFrame::onNew(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 	{
 		if (dlg.DoModal((HWND)*this) == IDOK)
 		{
-			if (FavoriteManager::getInstance()->getFavoriteHubEntry(e.getServer()))
+			if (FavoriteManager::getFavoriteHubEntry(e.getServer()))
 			{
 				MessageBox(
 				    CTSTRING(FAVORITE_HUB_ALREADY_EXISTS), _T(" "), MB_ICONWARNING | MB_OK);

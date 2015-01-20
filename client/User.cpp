@@ -316,21 +316,6 @@ tstring User::getUDratio()
 }
 #endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
 
-bool Identity::isTcpActive(const Client* client) const // [+] IRainman fix.
-{
-	return isTcpActive();
-	/*
-	if (ClientManager::isMe(user)) // Часто зовется
-	    {
-	        return client->isActive(); // userlist should display our real mode
-	    }
-	    else
-	    {
-	        return isTcpActive();
-	    }
-	*/
-}
-
 bool Identity::isTcpActive() const
 {
 	// [!] IRainman fix.
@@ -533,7 +518,7 @@ string Identity::getStringParam(const char* name) const // [!] IRainman fix.
 		j++;
 		//if (j % 100 == 0)
 		{
-			LogManager::getInstance()->message("Identity::getStringParam = " + string(name) + " count = " + Util::toString(j));
+			LogManager::message("Identity::getStringParam = " + string(name) + " count = " + Util::toString(j));
 			//dcdebug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! get[%s] = %d \n", name, j);
 		}
 	}
@@ -634,7 +619,7 @@ void Identity::setStringParam(const char* name, const string& val) // [!] IRainm
 		if (l_key != "AP" && l_key != "EM" &&  l_key != "DE" &&  l_key != "VE")
 		{
 			//dcdebug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! set[%s] '%s' count = %d sizeof(*this) = %d\n", name, val.c_str(), j, sizeof(*this));
-			LogManager::getInstance()->message("Identity::setStringParam = " + string(name) + " val = " + val);
+			LogManager::message("Identity::setStringParam = " + string(name) + " val = " + val);
 		}
 	}
 #endif

@@ -114,8 +114,8 @@ std::unique_ptr<HIconWrapper> WinUtil::g_HubOffIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubFlylinkDCIcon;
 //static WinUtil::ShareMap WinUtil::UsersShare; // !SMT!-UI
 TStringList LastDir::g_dirs;
-HWND WinUtil::mainWnd = nullptr;
-HWND WinUtil::mdiClient = nullptr;
+HWND WinUtil::g_mainWnd = nullptr;
+HWND WinUtil::g_mdiClient = nullptr;
 #ifdef RIP_USE_SKIN
 ITabCtrl* WinUtil::g_tabCtrl = nullptr;
 #else
@@ -358,30 +358,95 @@ COLORREF HLS_TRANSFORM(COLORREF rgb, int percent_L, int percent_S)
 }
 
 // !SMT!-UI
-void Colors::getUserColor(const UserPtr& user, COLORREF &fg, COLORREF &bg, const OnlineUserPtr& onlineUser /*= nullptr*/)
+void Colors::getUserColor(bool p_is_op, const UserPtr& user, COLORREF &fg, COLORREF &bg, unsigned short& m_flag_mask, const OnlineUserPtr& onlineUser)
 {
+#ifdef IRAINMAN_ENABLE_AUTO_BAN
+	bool l_is_favorites = false;
+	if (SETTING(ENABLE_AUTO_BAN))
+	{
+		if ((m_flag_mask & IS_AUTOBAN) == IS_AUTOBAN)
+		{
+			if (onlineUser && user->hasAutoBan(&onlineUser->getClient(), l_is_favorites) != User::BAN_NONE)
+				m_flag_mask = (m_flag_mask & ~IS_AUTOBAN) | IS_AUTOBAN_ON;
+			else
+				m_flag_mask = (m_flag_mask & ~IS_AUTOBAN);
+			if (l_is_favorites)
+				m_flag_mask = (m_flag_mask & ~IS_FAVORITE) | IS_FAVORITE_ON;
+			else
+				m_flag_mask = (m_flag_mask & ~IS_FAVORITE);
+		}
+		if (m_flag_mask & IS_AUTOBAN)
+			bg = SETTING(BAN_COLOR);
+	}
+#endif // IRAINMAN_ENABLE_AUTO_BAN
+	if (p_is_op && onlineUser) // Возможно фикс https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=38000
+	{
+		const auto fc = onlineUser->getIdentity().getFakeCard();
+		if (fc & Identity::BAD_CLIENT)
+		{
+			fg = SETTING(BAD_CLIENT_COLOUR);
+			return;
+		}
+		else if (fc & Identity::BAD_LIST)
+		{
+			fg = SETTING(BAD_FILELIST_COLOUR);
+			return;
+		}
+		else if (fc & Identity::CHECKED && BOOLSETTING(SHOW_SHARE_CHECKED_USERS))
+		{
+			fg = SETTING(FULL_CHECKED_COLOUR);
+			return;
+		}
+	}
+#ifdef _DEBUG
+	//LogManager::message("Colors::getUserColor, user = " + user->getLastNick() + " color = " + Util::toString(fg));
+#endif
 	dcassert(user);
 	// [!] IRainman fix todo: https://crash-server.com/SearchResult.aspx?ClientID=ppa&Stack=Colors::getUserColor , https://crash-server.com/SearchResult.aspx?ClientID=ppa&Stack=WinUtil::getUserColor
 	// [!] PPA fix: https://code.google.com/p/flylinkdc/issues/detail?id=961
-	bool l_is_ban = false;
-	const bool l_is_favorite = FavoriteManager::getInstance()->isFavoriteUser(user, l_is_ban);
-	if (l_is_favorite)
+	if ((m_flag_mask & IS_IGNORED_USER) == IS_IGNORED_USER)
 	{
-		if (l_is_ban)
-		{
-			fg = SETTING(TEXT_ENEMY_FORE_COLOR); // http://code.google.com/p/flylinkdc/issues/detail?id=876
-			//OperaColors::brightenColor(fg, 1);
-		}
+		if (UserManager::g_isEmptyIgnoreList == false && UserManager::isInIgnoreList(onlineUser ? onlineUser->getIdentity().getNick() : user->getLastNick()))
+			m_flag_mask = (m_flag_mask & ~IS_IGNORED_USER) | IS_IGNORED_USER_ON;
 		else
-		{
-			fg = SETTING(FAVORITE_COLOR);
-		}
+			m_flag_mask = (m_flag_mask & ~IS_IGNORED_USER);
 	}
-	else if (UploadManager::getInstance()->getReservedSlotTime(user))
+	if ((m_flag_mask & IS_RESERVED_SLOT) == IS_RESERVED_SLOT)
+	{
+		if (UploadManager::getReservedSlotTime(user))
+			m_flag_mask = (m_flag_mask & ~IS_RESERVED_SLOT) | IS_RESERVED_SLOT_ON;
+		else
+			m_flag_mask = (m_flag_mask & ~IS_RESERVED_SLOT);
+	}
+	if ((m_flag_mask & IS_FAVORITE) == IS_FAVORITE)
+	{
+		bool l_is_ban = false;
+		l_is_favorites = FavoriteManager::isFavoriteUser(user, l_is_ban);
+		if (l_is_favorites)
+			m_flag_mask = (m_flag_mask & ~IS_FAVORITE) | IS_FAVORITE_ON;
+		else
+			m_flag_mask = (m_flag_mask & ~IS_FAVORITE);
+		if (l_is_ban)
+			m_flag_mask = (m_flag_mask & ~IS_BAN) | IS_BAN_ON;
+		else
+			m_flag_mask = (m_flag_mask & ~IS_BAN);
+	}
+	if (m_flag_mask & IS_FAVORITE)
+	{
+		if (m_flag_mask & IS_BAN)
+			fg = SETTING(TEXT_ENEMY_FORE_COLOR); // http://code.google.com/p/flylinkdc/issues/detail?id=876
+		else
+			fg = SETTING(FAVORITE_COLOR);
+	}
+	else if (p_is_op)
+	{
+		fg = SETTING(OP_COLOR);
+	}
+	else if (m_flag_mask & IS_RESERVED_SLOT)
 	{
 		fg = SETTING(RESERVED_SLOT_COLOR);
 	}
-	else if (UserManager::g_isEmptyIgnoreList == false && UserManager::isInIgnoreList(onlineUser ? onlineUser->getIdentity().getNick() : user->getLastNick()))
+	else if (m_flag_mask & IS_IGNORED_USER)
 	{
 		fg = SETTING(IGNORED_COLOR);
 	}
@@ -393,11 +458,7 @@ void Colors::getUserColor(const UserPtr& user, COLORREF &fg, COLORREF &bg, const
 	{
 		fg = SETTING(SERVER_COLOR);
 	}
-	else if (onlineUser && onlineUser->getIdentity().isOp()) // [!] IRainman opt.
-	{
-		fg = SETTING(OP_COLOR);
-	}
-	else if (onlineUser && !onlineUser->getIdentity().isTcpActive(&onlineUser->getClient())) // [!] IRainman opt.
+	else if (onlineUser && !onlineUser->getIdentity().isTcpActive()) // [!] IRainman opt.
 	{
 		fg = SETTING(PASIVE_COLOR);
 	}
@@ -405,12 +466,6 @@ void Colors::getUserColor(const UserPtr& user, COLORREF &fg, COLORREF &bg, const
 	{
 		fg = SETTING(NORMAL_COLOUR);
 	}
-#ifdef IRAINMAN_ENABLE_AUTO_BAN
-	if (SETTING(ENABLE_AUTO_BAN) && user->hasAutoBan(&onlineUser->getClient(), l_is_favorite)) //[+]IRainman
-	{
-		bg = SETTING(BAN_COLOR);
-	}
-#endif // IRAINMAN_ENABLE_AUTO_BAN
 }
 
 // !SMT!-UI
@@ -530,7 +585,7 @@ void FlagImage::init()
 
 void WinUtil::init(HWND hWnd)
 {
-	mainWnd = hWnd;
+	g_mainWnd = hWnd;
 	
 	SetTabsPosition(SETTING(TABS_POS));
 	
@@ -855,7 +910,7 @@ void Fonts::init()
 	//lf[1].lfItalic = lf[0].lfItalic;
 	
 	g_font = ::CreateFontIndirect(&lf[0]);
-	g_fontHeight = WinUtil::getTextHeight(WinUtil::mainWnd, g_font);
+	g_fontHeight = WinUtil::getTextHeight(WinUtil::g_mainWnd, g_font);
 	g_systemFont = (HFONT)::GetStockObject(DEFAULT_GUI_FONT);
 }
 
@@ -979,6 +1034,11 @@ void Colors::init()
 
 void WinUtil::uninit()
 {
+	UnhookWindowsHookEx(g_hook);
+	g_hook = nullptr;
+	
+	g_tabCtrl = nullptr;
+	g_mainWnd = nullptr;
 	g_fileImage.uninit();
 	g_userImage.uninit();
 	g_userStateImage.uninit();
@@ -995,8 +1055,6 @@ void WinUtil::uninit()
 	
 	// !SMT!-UI
 	UserInfoGuiTraits::uninit();
-	UnhookWindowsHookEx(g_hook);
-	g_hook = nullptr;
 }
 
 void Fonts::decodeFont(const tstring& setting, LOGFONT &dest)
@@ -1103,7 +1161,7 @@ tstring WinUtil::encodeFont(const LOGFONT& font)
 
 void WinUtil::setClipboard(const tstring& str)
 {
-	if (!::OpenClipboard(mainWnd))
+	if (!::OpenClipboard(g_mainWnd))
 	{
 		return;
 	}
@@ -1783,20 +1841,6 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 	return true;
 }
 
-#ifdef PPA_INCLUDE_BITZI_LOOKUP
-void WinUtil::bitziLink(const TTHValue& aHash)
-{
-	// to use this free service by bitzi, we must not hammer or request information from bitzi
-	// except when the user requests it (a mass lookup isn't acceptable), and (if we ever fetch
-	// this data within DC++, we must identify the client/mod in the user agent, so abuse can be
-	// tracked down and the code can be fixed
-#ifdef PPA_BITZI_LOOKUP_BLOCKING_REGUEST_AND_ALERT_THE_USER
-	::MessageBox(0, _T("bitziLink (внешний трафик) в FlylinkDC++ отключен!"), 0, MB_OK);
-#endif
-	openLink(_T("http://bitzi.com/lookup/tree:tiger:") + Text::toT(aHash.toBase32()));
-}
-#endif
-
 void WinUtil::copyMagnet(const TTHValue& aHash, const string& aFile, int64_t aSize)
 {
 	if (!aFile.empty())
@@ -1833,7 +1877,7 @@ void WinUtil::registerDchubHandler()
 	{
 		if (::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\dchub"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))
 		{
-			LogManager::getInstance()->message(STRING(ERROR_CREATING_REGISTRY_KEY_DCHUB));
+			LogManager::message(STRING(ERROR_CREATING_REGISTRY_KEY_DCHUB));
 			return;
 		}
 		
@@ -1877,7 +1921,7 @@ void WinUtil::registerNMDCSHandler()
 	{
 		if (::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\nmdcs"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))
 		{
-			LogManager::getInstance()->message(STRING(ERROR_CREATING_REGISTRY_KEY_DCHUB));
+			LogManager::message(STRING(ERROR_CREATING_REGISTRY_KEY_DCHUB));
 			return;
 		}
 		
@@ -1919,7 +1963,7 @@ void WinUtil::registerADChubHandler()
 	{
 		if (::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\adc"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))
 		{
-			LogManager::getInstance()->message(STRING(ERROR_CREATING_REGISTRY_KEY_ADC));
+			LogManager::message(STRING(ERROR_CREATING_REGISTRY_KEY_ADC));
 			return;
 		}
 		
@@ -1961,7 +2005,7 @@ void WinUtil::registerADCShubHandler()
 	{
 		if (::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\adcs"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))
 		{
-			LogManager::getInstance()->message(STRING(ERROR_CREATING_REGISTRY_KEY_ADC));
+			LogManager::message(STRING(ERROR_CREATING_REGISTRY_KEY_ADC));
 			return;
 		}
 		
@@ -2010,7 +2054,7 @@ void WinUtil::registerMagnetHandler()
 		SHDeleteKey(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\magnet"));
 		if (::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\magnet"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))
 		{
-			LogManager::getInstance()->message(STRING(ERROR_CREATING_REGISTRY_KEY_MAGNET));
+			LogManager::message(STRING(ERROR_CREATING_REGISTRY_KEY_MAGNET));
 			return;
 		}
 		::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)CTSTRING(MAGNET_SHELL_DESC), sizeof(TCHAR) * (TSTRING(MAGNET_SHELL_DESC).length() + 1));
@@ -2077,14 +2121,14 @@ void WinUtil::registerDclstHandler()
 		static const tstring dclstMetafile = _T("DCLST metafile");
 		if (::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\.dcls"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))
 		{
-			LogManager::getInstance()->message(STRING(ERROR_CREATING_REGISTRY_KEY_DCLST));
+			LogManager::message(STRING(ERROR_CREATING_REGISTRY_KEY_DCLST));
 			return;
 		}
 		::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)dclstMetafile.c_str(), sizeof(TCHAR) * (dclstMetafile.length() + 1));
 		::RegCloseKey(hk);
 		if (::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\.dclst"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))
 		{
-			LogManager::getInstance()->message(STRING(ERROR_CREATING_REGISTRY_KEY_DCLST));
+			LogManager::message(STRING(ERROR_CREATING_REGISTRY_KEY_DCLST));
 			return;
 		}
 		::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)dclstMetafile.c_str(), sizeof(TCHAR) * (dclstMetafile.length() + 1));
@@ -2095,7 +2139,7 @@ void WinUtil::registerDclstHandler()
 		
 		if (::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\DCLST metafile"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))
 		{
-			LogManager::getInstance()->message(STRING(ERROR_CREATING_REGISTRY_KEY_DCLST));
+			LogManager::message(STRING(ERROR_CREATING_REGISTRY_KEY_DCLST));
 			return;
 		}
 		::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)CTSTRING(DCLST_SHELL_DESC), sizeof(TCHAR) * (TSTRING(MAGNET_SHELL_DESC).length() + 1));
@@ -2377,7 +2421,7 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 			// [~] IRainman
 		{
 			const string url = Text::fromT(aUrl);
-			LogManager::getInstance()->message(STRING(MAGNET_DLG_TITLE) + ": " + url);
+			LogManager::message(STRING(MAGNET_DLG_TITLE) + ": " + url);
 			string fname, fhash, type, param;
 			
 			const StringTokenizer<string> mag(url.substr(8), '&');
@@ -2563,7 +2607,7 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 						}
 						catch (const Exception& e)
 						{
-							LogManager::getInstance()->message(e.getError());
+							LogManager::message(e.getError());
 						}
 						break;
 						
@@ -2579,7 +2623,7 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 						}
 						catch (const Exception& e)
 						{
-							LogManager::getInstance()->message(e.getError());
+							LogManager::message(e.getError());
 						}
 					}
 					break;
@@ -2590,7 +2634,7 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 						              , isViewMedia
 #endif
 						             );
-						dlg.DoModal(mainWnd);
+						dlg.DoModal(g_mainWnd);
 					}
 					break;
 				};
@@ -2601,7 +2645,7 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 			}
 			else
 			{
-				MessageBox(mainWnd, CTSTRING(MAGNET_DLG_TEXT_BAD), CTSTRING(MAGNET_DLG_TITLE), MB_OK | MB_ICONEXCLAMATION);
+				MessageBox(g_mainWnd, CTSTRING(MAGNET_DLG_TEXT_BAD), CTSTRING(MAGNET_DLG_TITLE), MB_OK | MB_ICONEXCLAMATION);
 			}
 		}
 		return true; // [+] IRainman opt: return status.
@@ -2929,7 +2973,7 @@ void Preview::setupPreviewMenu(const string& target)
 	
 	const auto targetLower = Text::toLower(target);
 	
-	const auto& lst = FavoriteManager::getInstance()->getPreviewApps();
+	const auto& lst = FavoriteManager::getPreviewApps();
 	for (auto i = lst.cbegin(); i != lst.cend(); ++i)
 	{
 		const auto tok = Util::splitSettingAndLower((*i)->getExtension());
@@ -2961,7 +3005,7 @@ void Preview::setupPreviewMenu(const string& target)
 void Preview::runPreviewCommand(WORD wID, string file)
 {
 	wID -= IDC_PREVIEW_APP;
-	const auto& lst = FavoriteManager::getInstance()->getPreviewApps();
+	const auto& lst = FavoriteManager::getPreviewApps();
 	if (wID <= lst.size())
 	{
 		const auto& application = lst[wID]->getApplication();
@@ -3559,7 +3603,7 @@ string WinUtil::getWMPSpam(HWND playerWnd /*= NULL*/)
 		// Create hidden window to host the control (if there just was other way to do this... as CoCreateInstance has no access to the current running instance)
 		AtlAxWinInit();
 		DummyWnd = new CAxWindow();
-		DummyWnd->Create(mainWnd, NULL, NULL, WS_CHILD | WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SIZEBOX | WS_SYSMENU);
+		DummyWnd->Create(g_mainWnd, NULL, NULL, WS_CHILD | WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SIZEBOX | WS_SYSMENU);
 		HRESULT hresult = ::IsWindow(DummyWnd->m_hWnd) ? S_OK : E_FAIL;
 		
 		// Set WMPlayerRemoteApi
@@ -4314,8 +4358,8 @@ void WinUtil::SetBBCodeForCEdit(CEdit& ctrlMessage, WORD wID) // [+] SSA
 #ifdef SCALOLAZ_BB_COLOR_BUTTON
 		case IDC_COLOR:
 		{
-			CColorDialog dlg(SETTING(TEXT_GENERAL_FORE_COLOR), 0, ctrlMessage.m_hWnd /*mainWnd*/);
-			if (dlg.DoModal(mainWnd) == IDOK)
+			CColorDialog dlg(SETTING(TEXT_GENERAL_FORE_COLOR), 0, ctrlMessage.m_hWnd /*g_mainWnd*/);
+			if (dlg.DoModal(g_mainWnd) == IDOK)
 			{
 				const string hexString = RGB2HTMLHEX(dlg.GetColor());
 				tstring tcolor = _T("[color=#") + (Text::toT(hexString)) + _T("]");

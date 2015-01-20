@@ -21,7 +21,9 @@
 #include "CFlylinkDBManager.h"
 #include "QueueManager.h"
 #include "Client.h"
+#include "FavoriteManager.h"
 #include "Wildcards.h"
+
 
 UserManager::IgnoreMap UserManager::g_ignoreList;
 bool UserManager::g_isEmptyIgnoreList = true;
@@ -97,7 +99,7 @@ void UserManager::checkUser(const OnlineUserPtr& user)
 			if (!client.getExcludeCheck() && client.isOp() &&
 			        (client.isActive() || user->getIdentity().isTcpActive()))
 			{
-				if (!BOOLSETTING(PROT_FAVS) || !FavoriteManager::getInstance()->isNoFavUserOrUserBanUpload(user->getUser()))   // !SMT!-opt
+				if (!BOOLSETTING(PROT_FAVS) || !FavoriteManager::isNoFavUserOrUserBanUpload(user->getUser()))   // !SMT!-opt
 				{
 					if (!isInProtectedUserList(user->getIdentity().getNick()))
 					{
@@ -107,7 +109,7 @@ void UserManager::checkUser(const OnlineUserPtr& user)
 						}
 						catch (const Exception& e)
 						{
-							LogManager::getInstance()->message(e.getError());
+							LogManager::message(e.getError());
 						}
 					}
 				}
@@ -153,4 +155,18 @@ tstring UserManager::getIgnoreListAsString()
 		l_result += _T(' ') + Text::toT((*i));
 	}
 	return l_result;
+}
+
+void UserManager::openUserUrl(const UserPtr& aUser)
+{
+	const string& url = FavoriteManager::getUserUrl(aUser);
+	if (!url.empty())
+	{
+		fire(UserManagerListener::OpenHub(), url);
+	}
+}
+bool UserManager::isInProtectedUserList(const string& userName)
+{
+	webrtc::ReadLockScoped l(*g_csProtectedUsers);
+	return Wildcard::patternMatchLowerCase(Text::toLower(userName), g_protectedUsersLower, false);
 }

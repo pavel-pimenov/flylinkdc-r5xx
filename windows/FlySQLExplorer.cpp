@@ -52,7 +52,7 @@ FlySQLExplorer *FlySQLExplorer::Instance()
 	if (m_flySQLExplorer == NULL)
 	{
 		m_flySQLExplorer = new FlySQLExplorer();
-		HWND aHWND = m_flySQLExplorer->CreateEx(WinUtil::mdiClient);
+		HWND aHWND = m_flySQLExplorer->CreateEx(WinUtil::g_mdiClient);
 		if (aHWND == 0)
 		{
 			delete m_flySQLExplorer;

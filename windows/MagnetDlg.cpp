@@ -150,7 +150,7 @@ LRESULT MagnetDlg::onCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, 
 			}
 			catch (const Exception& e)
 			{
-				LogManager::getInstance()->message(e.getError());
+				LogManager::message(e.getError());
 			}
 		}
 		else if (IsDlgButtonChecked(IDC_MAGNET_OPEN))
@@ -162,7 +162,7 @@ LRESULT MagnetDlg::onCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, 
 			}
 			catch (const Exception& e)
 			{
-				LogManager::getInstance()->message(e.getError());
+				LogManager::message(e.getError());
 			}
 		}
 		// [~] TODO: PLEASE STOP COPY-PAST!

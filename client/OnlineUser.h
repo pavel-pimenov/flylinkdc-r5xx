@@ -614,7 +614,7 @@ class Identity
 		static string formatSpeedLimit(const uint32_t limit);
 		// [~] IRainman
 		
-		bool isTcpActive(const Client* client) const;
+		//bool isTcpActive(const Client* client) const;
 		bool isTcpActive() const;
 		//bool isUdpActive(const Client* client) const;
 		bool isUdpActive() const;

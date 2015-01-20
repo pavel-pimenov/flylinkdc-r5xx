@@ -155,7 +155,7 @@ uint16_t Socket::bind(uint16_t aPort, const string& aIp /* = 0.0.0.0 */)
 		sock_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 		//TODO - обработать ошибку с 10048 - занят порт
 		// - отключил спам
-		// LogManager::getInstance()->message("uint16_t Socket::bind Error! IP = " + aIp + " aPort=" + Util::toString(aPort) + " Error = " + l_error);
+		// LogManager::message("uint16_t Socket::bind Error! IP = " + aIp + " aPort=" + Util::toString(aPort) + " Error = " + l_error);
 		check(::bind(m_sock, (sockaddr *)&sock_addr, sizeof(sock_addr)));
 	}
 	socklen_t size = sizeof(sock_addr);
@@ -416,7 +416,7 @@ int Socket::read(void* aBuffer, int aBufLen)
 			{
 				StringMap params;
 				params["message"] = Util::toString(len) + " byte <- " + std::string((char*)aBuffer, len);
-				LogManager::getInstance()->log(LogManager::PROTOCOL, params, true);
+				LogManager::log(LogManager::PROTOCOL, params, true);
 			}
 #endif
 		}
@@ -435,7 +435,7 @@ int Socket::read(void* aBuffer, int aBufLen)
 			{
 				StringMap params;
 				params["message"] = Util::toString(len) + " UDP recvfrom byte <- " + std::string((char*)aBuffer, len);
-				LogManager::getInstance()->log(LogManager::PROTOCOL, params, true);
+				LogManager::log(LogManager::PROTOCOL, params, true);
 			}
 #endif
 		}
@@ -473,7 +473,7 @@ int Socket::read(void* aBuffer, int aBufLen, sockaddr_in &remote)
 		{
 			StringMap params;
 			params["message"] = Util::toString(len) + " UDP recvfrom byte <- " + std::string((char*)aBuffer, len);
-			LogManager::getInstance()->log(LogManager::PROTOCOL, params, true);
+			LogManager::log(LogManager::PROTOCOL, params, true);
 		}
 #endif
 	}
@@ -559,7 +559,7 @@ int Socket::write(const void* aBuffer, int aLen)
 		{
 			StringMap params;
 			params["message"] = Util::toString(aLen) + " byte -> " + std::string((const char*)aBuffer, aLen);
-			LogManager::getInstance()->log(LogManager::PROTOCOL, params, true);
+			LogManager::log(LogManager::PROTOCOL, params, true);
 		}
 #endif
 		sent = ::send(m_sock, (const char*)aBuffer, aLen, 0);

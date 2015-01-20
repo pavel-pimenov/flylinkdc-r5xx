@@ -183,7 +183,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		
 		/** @param aUser Reserve an upload slot for this user and connect. */
 		void reserveSlot(const HintedUser& hintedUser, uint64_t aTime);
-		void unreserveSlot(const HintedUser& hintedUser);
+		static void unreserveSlot(const HintedUser& hintedUser);
 		void clearUserFilesL(const UserPtr&);
 		void clearWaitingFilesL(const WaitingUser& p_wu);
 		
@@ -229,12 +229,12 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		GETSET(uint64_t, lastGrant, LastGrant);
 		
 		void load(); // !SMT!-S
-		void save() const; // !SMT!-S
+		static void save(); // !SMT!-S
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 		bool isBanReply(const UserPtr& user) const; // !SMT!-S
 #endif // IRAINMAN_ENABLE_AUTO_BAN
 		
-		time_t getReservedSlotTime(const UserPtr& aUser) const;
+		static time_t getReservedSlotTime(const UserPtr& aUser);
 	private:
 		bool isFireball;
 		bool isFileServer;
@@ -287,7 +287,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		
 		typedef std::unordered_map<UserPtr, uint64_t, User::Hash> SlotMap;
 		
-		SlotMap m_reservedSlots;
+		static SlotMap g_reservedSlots;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csReservedSlots;
 		
 		SlotMap m_notifiedUsers;
@@ -306,7 +306,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		void removeUpload(Upload* aUpload, bool delay = false);
 		void logUpload(const Upload* u);
 		
-		void testSlotTimeout(uint64_t aTick = GET_TICK()); // !SMT!-S
+		static void testSlotTimeout(uint64_t aTick = GET_TICK()); // !SMT!-S
 		
 		// ClientManagerListener
 		void on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) noexcept;

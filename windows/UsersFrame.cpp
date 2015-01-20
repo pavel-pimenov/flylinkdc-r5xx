@@ -256,7 +256,7 @@ LRESULT UsersFrame::onConnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 	{
 		dcassert(l_cnt == ctrlUsers.GetItemCount());
 		UserInfo *ui = ctrlUsers.getItemData(i);
-		const string& l_url = FavoriteManager::getInstance()->getUserUrl(ui->getUser());
+		const string& l_url = FavoriteManager::getUserUrl(ui->getUser());
 		if (!l_url.empty())
 		{
 			HubFrame::openWindow(l_url);
@@ -284,7 +284,7 @@ void UsersFrame::updateUser(const UserPtr& user)
 		if (ui->getUser() == user)
 		{
 			FavoriteUser currentFavUser;
-			if (FavoriteManager::getInstance()->getFavoriteUser(user, currentFavUser))
+			if (FavoriteManager::getFavoriteUser(user, currentFavUser))
 			{
 				updateUser(i, ui, currentFavUser);
 			}

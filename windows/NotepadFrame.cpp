@@ -37,7 +37,7 @@ LRESULT NotepadFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	}
 	catch (const FileException& e)
 	{
-		LogManager::getInstance()->message("Error read " + Util::getNotepadFile() + " Error = " + e.getError());
+		LogManager::message("Error read " + Util::getNotepadFile() + " Error = " + e.getError());
 	}
 	
 	ctrlPad.SetWindowText(Text::toT(tmp).c_str());
@@ -66,7 +66,7 @@ LRESULT NotepadFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 				}
 				catch (const FileException& e)
 				{
-					LogManager::getInstance()->message("Error write " + Util::getNotepadFile() + " Error = " + e.getError());
+					LogManager::message("Error write " + Util::getNotepadFile() + " Error = " + e.getError());
 				}
 			}
 		}

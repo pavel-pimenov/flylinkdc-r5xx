@@ -31,7 +31,7 @@ const FileFindIter FileFindIter::end; // [+] IRainman opt.
 
 void File::init(const tstring& aFileName, int access, int mode, bool isAbsolutePath) // [!] IRainman fix.
 {
-	dcassert(access == WRITE || access == READ || access == (READ | WRITE));
+	dcassert(access == static_cast<int>(WRITE) || access == static_cast<int>(READ) || access == static_cast<int>((READ | WRITE)));
 	
 	int m;
 	if (mode & OPEN)
@@ -66,7 +66,7 @@ void File::init(const tstring& aFileName, int access, int mode, bool isAbsoluteP
 	if (h == INVALID_HANDLE_VALUE)
 	{
 //[!] Не включать - падаем на рекурсии
-//        LogManager::getInstance()->message("File::File error = " + Util::toString(GetLastError()) + " File = " + aFileName);
+//        LogManager::message("File::File error = " + Util::toString(GetLastError()) + " File = " + aFileName);
 		throw FileException(Util::translateError());
 	}
 }
@@ -371,7 +371,7 @@ void File::ensureDirectory(tstring aFile)
 				if (LogManager::isValidInstance())
 				{
 					CFlyServerAdapter::CFlyServerJSON::pushError(10, l_error);
-					LogManager::getInstance()->message(l_error);
+					LogManager::message(l_error);
 				}
 				// TODO - исключить выброс исключения - пусть дальше ковыляет
 				// throw FileException(l_error);

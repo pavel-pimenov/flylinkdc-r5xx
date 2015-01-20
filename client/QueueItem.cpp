@@ -47,7 +47,7 @@ QueueItem::QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, F
 #endif
 {
 #ifdef _DEBUG
-	LogManager::getInstance()->message("QueueItem::QueueItem aTarget = " + aTarget + " this = " + Util::toString(__int64(this)));
+	LogManager::message("QueueItem::QueueItem aTarget = " + aTarget + " this = " + Util::toString(__int64(this)));
 #endif
 	inc();
 	setFlags(aFlag);
@@ -61,7 +61,7 @@ QueueItem::QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, F
 QueueItem::~QueueItem()
 {
 #ifdef _DEBUG
-	LogManager::getInstance()->message("[~~~~] QueueItem::~QueueItem aTarget = " + target + " this = " + Util::toString(__int64(this)));
+	LogManager::message("[~~~~] QueueItem::~QueueItem aTarget = " + target + " this = " + Util::toString(__int64(this)));
 #endif
 }
 //==========================================================================================
@@ -277,7 +277,7 @@ void QueueItem::removeSourceL(const UserPtr& aUser, Flags::MaskType reason)
 //	}
 //	else
 //	{
-//		LogManager::getInstance()->message("Error QueueItem::removeSourceL [i != m_sources.end()] aUser = [" +
+//		LogManager::message("Error QueueItem::removeSourceL [i != m_sources.end()] aUser = [" +
 //		                                   aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
 //	}
 }
@@ -660,7 +660,7 @@ void QueueItem::addSegmentL(const Segment& segment)
 	dcassert(segment.getOverlapped() == false);
 	m_done_segment.insert(segment);
 #ifdef _DEBUG
-	LogManager::getInstance()->message("QueueItem::addSegmentL, setDirty = true! id = " +
+	LogManager::message("QueueItem::addSegmentL, setDirty = true! id = " +
 	                                   Util::toString(this->getFlyQueueID()) + " target = " + this->getTarget()
 	                                   + " TempTarget = " + this->getTempTarget()
 	                                   + " segment.getSize() = " + Util::toString(segment.getSize())

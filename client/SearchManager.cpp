@@ -173,7 +173,7 @@ int SearchManager::run()
 				socket->bind(m_search_port, SETTING(BIND_ADDRESS));
 				if (failed)
 				{
-					LogManager::getInstance()->message(STRING(SEARCH_ENABLED));
+					LogManager::message(STRING(SEARCH_ENABLED));
 					failed = false;
 				}
 				break;
@@ -184,7 +184,7 @@ int SearchManager::run()
 				
 				if (!failed)
 				{
-					LogManager::getInstance()->message(STRING(SEARCH_DISALED) + ": " + e.getError());
+					LogManager::message(STRING(SEARCH_DISALED) + ": " + e.getError());
 					failed = true;
 				}
 				
@@ -326,7 +326,7 @@ int SearchManager::UdpQueue::run()
 			// TODO - если хаб только один - пытаться подставлять его?
 			if (!user)
 			{
-				// LogManager::getInstance()->message("Error ClientManager::findUser nick = " + nick + " url = " + url);
+				// LogManager::message("Error ClientManager::findUser nick = " + nick + " url = " + url);
 				// Could happen if hub has multiple URLs / IPs
 				user = ClientManager::findLegacyUser(nick
 #ifndef IRAINMAN_USE_NICKS_IN_CM
@@ -335,7 +335,7 @@ int SearchManager::UdpQueue::run()
 				                                    );
 				if (!user)
 				{
-					//LogManager::getInstance()->message("Error ClientManager::findLegacyUser nick = " + nick + " url = " + url);
+					//LogManager::message("Error ClientManager::findLegacyUser nick = " + nick + " url = " + url);
 					continue;
 				}
 			}
@@ -426,7 +426,7 @@ int SearchManager::UdpQueue::run()
 			else
 			{
 				SettingsManager::g_TestUDPSearchLevel = false;
-				LogManager::getInstance()->message("Error magic value = " + l_magic);
+				LogManager::message("Error magic value = " + l_magic);
 			}
 		}
 		/*else if(x.compare(1, 4, "SCH ",4) == 0 && x[x.length() - 1] == 0x0a) {
@@ -566,7 +566,7 @@ void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const string& rem
 			if (!from)
 			{
 				dcdebug("Search result from unknown user");
-				LogManager::getInstance()->message("Error SearchManager::onPSR & ClientManager::findLegacyUser nick = " + nick + " url = " + url);
+				LogManager::message("Error SearchManager::onPSR & ClientManager::findLegacyUser nick = " + nick + " url = " + url);
 				return;
 			}
 		}
@@ -596,7 +596,7 @@ void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const string& rem
 			AdcCommand cmd(AdcCommand::CMD_PSR, AdcCommand::TYPE_UDP);
 			toPSR(cmd, false, ps.getMyNick(), hubIpPort, tth, outPartialInfo);
 			ClientManager::getInstance()->send(cmd, from->getCID());
-			LogManager::getInstance()->psr_message(
+			LogManager::psr_message(
 			    "[SearchManager::respond] hubIpPort = " + hubIpPort +
 			    " ps.getMyNick() = " + ps.getMyNick() +
 			    " tth = " + tth +
@@ -607,7 +607,7 @@ void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const string& rem
 		catch (const Exception& e)
 		{
 			dcdebug("Partial search caught error\n");
-			LogManager::getInstance()->psr_message("Partial search caught error = " + e.getError());
+			LogManager::psr_message("Partial search caught error = " + e.getError());
 		}
 	}
 	
@@ -646,7 +646,7 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 			toPSR(cmd, true, Util::emptyString, hubIpPort, tth, partialInfo);
 			ClientManager::getInstance()->send(cmd, from);
 			l_sr = ClientManagerListener::SEARCH_PARTIAL_HIT; // [+] IRainman-S
-			LogManager::getInstance()->psr_message(
+			LogManager::psr_message(
 			    "[SearchManager::respond] hubIpPort = " + hubIpPort +
 			    " tth = " + tth +
 			    " partialInfo.size() = " + Util::toString(partialInfo.size())

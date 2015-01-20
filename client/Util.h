@@ -1121,9 +1121,12 @@ class Util
 		static string getRandomNick();//[+]FlylinkDC++ Team
 		
 		static string getRegistryCommaSubkey(const tstring& p_key);
-		static string getRegistryValueString(const tstring& p_key, bool p_is_path = false);
-		static bool setRegistryValueString(const tstring& p_key, const tstring& p_value);
-		static bool deleteRegistryValue(const tstring& p_value);
+		static string getRegistryValueString(const TCHAR* p_key, bool p_is_path = false);
+		static bool setRegistryValueString(const TCHAR* p_key, const tstring& p_value);
+		static bool deleteRegistryValue(const TCHAR* p_key);
+		
+		static bool setRegistryValueInt(const TCHAR* p_key, DWORD p_value);
+		static DWORD getRegistryValueInt(const TCHAR* p_key);
 		
 		static string getWANIP(const string& p_url, LONG p_timeOut = 500);
 		
@@ -1517,7 +1520,7 @@ class BackgroundTaskExecuter : public BASE_THREAD
 					FastLock l(m_csTasks);
 					m_active = false;
 				}
-				LogManager::getInstance()->message("BackgroundTaskExecuter::startThread failed: " + e.getError());
+				LogManager::message("BackgroundTaskExecuter::startThread failed: " + e.getError());
 			}
 		}
 		

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 FlylinkDC++ Team
+ * Copyright (C) 2015 FlylinkDC++ Team
  */
 
 #if !defined(ABOUT_LOG_DLG_H)

@@ -73,8 +73,12 @@ class UserInfo : public UserInfoBase
 		const OnlineUserPtr m_ou; // [!] IRainman fix: use online user here!
 		Util::CustomNetworkIndex m_location; // [+] IRainman opt.
 	public:
-	
-		explicit UserInfo(const OnlineUserPtr& p_ou) : m_ou(p_ou)
+		unsigned short m_flag_mask;
+		// char m_is_autoban;
+		// char m_is_favorites;
+		// char m_is_ban; // TODO - сжать в один байт.
+		
+		explicit UserInfo(const OnlineUserPtr& p_ou) : m_ou(p_ou), m_flag_mask(0xFFFF) //,m_is_autoban(-1), m_is_favorites(-1), m_is_ban(-1)
 		{
 		}
 		static int compareItems(const UserInfo* a, const UserInfo* b, int col);
@@ -160,14 +164,14 @@ class UserInfo : public UserInfoBase
 				{
 					if (p_user->isFirstFind())
 					{
-						//    LogManager::getInstance()->message("[++++++++++++++++++ UserInfo* findUser] Hub = " + p_user->getClient().getHubUrl() + " First user = " + p_user->getUser()->getLastNick() );
+						//    LogManager::message("[++++++++++++++++++ UserInfo* findUser] Hub = " + p_user->getClient().getHubUrl() + " First user = " + p_user->getUser()->getLastNick() );
 						dcassert(find(p_user) == end());
 						return nullptr;
 					}
 					else
 					{
 						const auto i = find(p_user);
-						// LogManager::getInstance()->message("[================== UserInfo* findUser] Hub = " + p_user->getClient().getHubUrl() + " First user = " + p_user->getUser()->getLastNick() );
+						// LogManager::message("[================== UserInfo* findUser] Hub = " + p_user->getClient().getHubUrl() + " First user = " + p_user->getUser()->getLastNick() );
 						return i == end() ? nullptr : i->second;
 					}
 				}

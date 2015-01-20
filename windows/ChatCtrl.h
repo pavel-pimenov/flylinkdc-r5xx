@@ -48,7 +48,6 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 {
 		typedef ChatCtrl thisClass;
 	protected:
-		// TypedListViewCtrl<UserInfo, IDC_USERS> *m_pUsers;
 		string m_HubHint; // !SMT!-S [!] IRainman fix TODO.
 		bool isOnline(const Client* client, const tstring& aNick) const; // !SMT!-S [!] IRainman opt: add client!
 		
@@ -169,7 +168,6 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 		}
 		void invertAutoScroll();
 		void SetAutoScroll(bool boAutoScroll);
-		//void SetUsers(TypedListViewCtrl<UserInfo, IDC_USERS> *pUsers); // [!] IRainman fix: NO! :)
 		
 		void setHubParam(const string& sUrl, const string& sNick)
 		{

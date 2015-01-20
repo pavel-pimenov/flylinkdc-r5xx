@@ -71,7 +71,7 @@ bool Utils::isGoodIPPort(const string& ip, uint16_t port)
 		string reason;
 		if (IpGuard::getInstance()->check(ip, reason))
 		{
-			LogManager::getInstance()->message("DHT (" + ip + "): IPGuard: " + reason);
+			LogManager::message("DHT (" + ip + "): IPGuard: " + reason);
 			return false;
 		}
 	}
@@ -190,7 +190,7 @@ void Utils::trackOutgoingPacket(const string& ip, const AdcCommand& cmd) // TODO
 		const uint64_t diff = now - g_sentPackets.front().time;
 		if (diff >= TIME_FOR_RESPONSE)
 		{		   
-			LogManager::getInstance()->dht_message("[Utils::trackOutgoingPacket] Clean up old items: cmd [" + 
+			LogManager::dht_message("[Utils::trackOutgoingPacket] Clean up old items: cmd [" + 
 				Util::toString(g_sentPackets.front().cmd) + "] ip = [" + g_sentPackets.front().ip + "] diffTime = " + Util::toString(diff));
 			g_sentPackets.pop_front();
 		}
