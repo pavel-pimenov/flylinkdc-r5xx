@@ -32,6 +32,7 @@ int LogManager::g_debugParallelWritesFiles;
 #else
 boost::unordered_map<string, string> LogManager::g_patchCache;
 #endif
+bool LogManager::g_isInit = false;
 int LogManager::g_logOptions[LAST][2];
 FastCriticalSection LogManager::g_csPatchCache;
 #ifdef IRAINMAN_USE_NG_LOG_MANAGER
@@ -41,7 +42,7 @@ FastCriticalSection LogManager::g_csCurrentlyOpenedFiles;
 HWND LogManager::g_mainWnd = nullptr;
 int  LogManager::g_LogMessageID = 0;
 
-LogManager::LogManager()
+void LogManager::init()
 {
 	g_logOptions[UPLOAD][FILE]        = SettingsManager::LOG_FILE_UPLOAD;
 	g_logOptions[UPLOAD][FORMAT]      = SettingsManager::LOG_FORMAT_POST_UPLOAD;
@@ -77,6 +78,8 @@ LogManager::LogManager()
 	g_logOptions[FLOOD_TRACE][FILE]     = SettingsManager::LOG_FILE_FLOOD_TRACE;
 	g_logOptions[FLOOD_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_FLOOD_TRACE;
 	
+	g_isInit = true;
+	
 	if (!CompatibilityManager::getStartupInfo().empty())
 		message(CompatibilityManager::getStartupInfo());
 		
@@ -84,8 +87,13 @@ LogManager::LogManager()
 		message(CompatibilityManager::getIncompatibleSoftwareMessage());
 }
 
+LogManager::LogManager()
+{
+}
+
 void LogManager::log(const string& p_area, const string& p_msg) noexcept
 {
+	dcassert(g_isInit);
 #ifndef IRAINMAN_USE_NG_LOG_MANAGER
 	FastLock l(m_csPatchCache);
 #endif

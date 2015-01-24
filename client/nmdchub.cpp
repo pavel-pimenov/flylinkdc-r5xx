@@ -347,7 +347,7 @@ void NmdcHub::updateFromTag(Identity& id, const string & tag) // [!] IRainman op
 		         (j = i->find("v:")) != string::npos // [+] IRainman fix: https://code.google.com/p/flylinkdc/issues/detail?id=1234
 		        )
 		{
-			dcassert(j > 1);
+			//dcassert(j > 1);
 			if (j > 1)
 				id.setStringParam("AP", i->substr(0, j - 1));
 			id.setStringParam("VE", i->substr(j + 2));
@@ -547,7 +547,6 @@ void NmdcHub::sendUDPSR(const CFlySearchItem& p_result, const Client* p_client)
 			dcassert(0);
 			l_port = 412;
 		}
-		
 		const string l_ip = p_result.m_search.substr(0, p_result.m_search.find(':'));
 		//Util::decodeUrl(p_result.m_search, proto, ip, port, file, query, fragment);
 		//ip = Socket::resolve(ip); // TODO - убрать
@@ -574,7 +573,16 @@ void NmdcHub::sendUDPSR(const CFlySearchItem& p_result, const Client* p_client)
 //==========================================================================================
 string NmdcHub::calcExternalIP() const
 {
-	return (getFavIp().empty() ? getLocalIp() : getFavIp()) + ':' + Util::toString(SearchManager::getInstance()->getSearchPort());
+    string l_result;
+    if(getFavIp().empty())
+        l_result = getLocalIp();
+    else
+        l_result = getFavIp();
+    l_result += SearchManager::getSearchPort();
+#ifdef _DEBUG
+		LogManager::message("NmdcHub::calcExternalIP() = " + l_result);
+#endif
+    return l_result;
 }
 //==========================================================================================
 #if 0

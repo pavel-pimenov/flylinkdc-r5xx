@@ -1606,8 +1606,6 @@
 #define ID_MEDIA_MENU_WINAMP_END        32807
 #define IDC_PROGRESS                    32809
 #define IDC_TIME                        32810
-#define IDC_SEARCH_PASSIVE              32811
-#define IDC_SEARCH_UDP_PORT_TEST        32812
 
 // Next default values for new objects
 //

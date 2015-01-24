@@ -57,7 +57,7 @@
  */
 
 #include "ecs_locl.h"
-#include "crypto/cryptlib.h" //[+] FlylinkDC++
+#include <string.h>
 #ifndef OPENSSL_NO_ENGINE
 #include <openssl/engine.h>
 #endif

@@ -22,7 +22,7 @@
 //#include "Singleton.h"
 #include "Util.h"
 
-class LogManager 
+class LogManager
 {
 	public:
 		enum LogArea { CHAT, PM, DOWNLOAD, UPLOAD, SYSTEM, STATUS,
@@ -41,6 +41,7 @@ class LogManager
 		             };
 		             
 		enum {FILE, FORMAT};
+		static void init();
 		static void ddos_message(const string& params);
 		static void flood_message(const string& params);
 		static void cmd_debug_message(const string& params);
@@ -68,6 +69,7 @@ class LogManager
 		static boost::unordered_map<string, string> g_patchCache;
 #endif
 		static FastCriticalSection g_csPatchCache; // [!] IRainman opt: use spin lock here.
+		static bool g_isInit;
 		
 #ifdef IRAINMAN_USE_NG_LOG_MANAGER
 		static std::unordered_set<string> g_currentlyOpenedFiles;

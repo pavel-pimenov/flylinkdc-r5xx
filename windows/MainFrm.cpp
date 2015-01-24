@@ -187,6 +187,7 @@ MainFrame::MainFrame() :
 	statusContainer(STATUSCLASSNAME, this, STATUS_MESSAGE_MAP),
 	m_diff(GET_TICK()) // [!] IRainman fix.
 {
+	m_bUpdateProportionalPos = false; // Исправил залипание сплиттера в верхней части
 	g_anyMF = this;
 	memzero(m_statusSizes, sizeof(m_statusSizes));
 }
@@ -833,7 +834,7 @@ int MainFrame::tuneTransferSplit()
 	}
 	SET_SETTING(TRANSFER_SPLIT_SIZE, m_nProportionalPos);
 	SetSplitterPanes(m_hWndMDIClient, transferView.m_hWnd);
-	SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
+	//SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
 	return m_nProportionalPos;
 }
 
@@ -2696,7 +2697,7 @@ LRESULT MainFrame::onLink(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL
 			break;
 //[-]PPA    case IDC_HELP_GEOIPFILE: site = _T(GEOIPFILE); break;
 		case IDC_HELP_HELP:
-			site = WinUtil::GetWikiLink() + _T(HELPPAGE2);
+			site = WinUtil::GetWikiLink() + _T("flylinkdc");
 			break;
 			// TODO
 			//case IDC_HELP_DONATE:

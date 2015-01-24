@@ -1612,7 +1612,7 @@ void AdcHub::info(bool p_force)
 	
 	if (isActive())
 	{
-		addParam(m_lastInfoMap, c, "U4", Util::toString(SearchManager::getInstance()->getSearchPort()));
+		addParam(m_lastInfoMap, c, "U4", SearchManager::getSearchPort());
 		su += "," + AdcSupports::TCP4_FEATURE;
 		su += "," + AdcSupports::UDP4_FEATURE;
 	}

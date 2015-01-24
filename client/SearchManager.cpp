@@ -26,6 +26,8 @@
 #include "../FlyFeatures/flyServer.h"
 
 
+uint16_t SearchManager::g_search_port = 0;
+
 const char* SearchManager::getTypeStr(int type)
 {
 	static const char* g_types[Search::TYPE_LAST] =
@@ -44,7 +46,6 @@ const char* SearchManager::getTypeStr(int type)
 }
 
 SearchManager::SearchManager() :
-	m_search_port(0),
 	m_stop(false)
 {
 
@@ -96,15 +97,15 @@ void SearchManager::listen()
 		socket->setInBufSize();
 		if (BOOLSETTING(AUTO_DETECT_CONNECTION))
 		{
-			m_search_port = socket->bind(0, Util::emptyString);
+			g_search_port = socket->bind(0, Util::emptyString);
 		}
 		else
 		{
 			const auto l_ip = SETTING(BIND_ADDRESS);
 			const auto l_port = SETTING(UDP_PORT);
-			m_search_port = socket->bind(static_cast<uint16_t>(l_port), l_ip);
+			g_search_port = socket->bind(static_cast<uint16_t>(l_port), l_ip);
 		}
-		SET_SETTING(UDP_PORT, m_search_port);
+		SET_SETTING(UDP_PORT, g_search_port);
 		
 		start(64, "SearchManager");
 	}
@@ -122,7 +123,7 @@ void SearchManager::disconnect()
 		m_stop = true;
 		m_queue_thread.shutdown();
 		socket->disconnect();
-		m_search_port = 0;
+		g_search_port = 0;
 		
 		join();
 		
@@ -170,7 +171,8 @@ int SearchManager::run()
 				socket->create(Socket::TYPE_UDP);
 				socket->setBlocking(true);
 				socket->setInBufSize();
-				socket->bind(m_search_port, SETTING(BIND_ADDRESS));
+        dcassert(g_search_port);
+				socket->bind(g_search_port, SETTING(BIND_ADDRESS));
 				if (failed)
 				{
 					LogManager::message(STRING(SEARCH_ENABLED));
@@ -356,6 +358,7 @@ int SearchManager::UdpQueue::run()
 			
 			if (tth.empty() && type == SearchResult::TYPE_FILE)
 			{
+        dcassert(tth.empty() && type == SearchResult::TYPE_FILE);
 				continue;
 			}
 			
@@ -706,7 +709,7 @@ void SearchManager::toPSR(AdcCommand& cmd, bool wantResponse, const string& myNi
 		cmd.addParam("NI", Text::utf8ToAcp(myNick));
 		
 	cmd.addParam("HI", hubIpPort);
-	cmd.addParam("U4", Util::toString(wantResponse ? getSearchPort() : 0)); // —юда по ошибке подавс€ не урл к хабу. && ClientManager::isActive(hubIpPort)
+	cmd.addParam("U4", Util::toString(wantResponse ? getSearchPortUint() : 0)); // —юда по ошибке подавс€ не урл к хабу. && ClientManager::isActive(hubIpPort)
 	cmd.addParam("TR", tth);
 	cmd.addParam("PC", Util::toString(partialInfo.size() / 2));
 	cmd.addParam("PI", getPartsString(partialInfo));

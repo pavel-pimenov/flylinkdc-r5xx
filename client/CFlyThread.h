@@ -362,9 +362,11 @@ class CriticalSection
 		}
 		explicit CriticalSection()
 		{
-			//const auto l_result =
-			InitializeCriticalSectionAndSpinCount(&cs, CRITICAL_SECTION_SPIN_COUNT); // [!] IRainman: InitializeCriticalSectionAndSpinCount
-			//dcassert(l_result);
+			const auto l_result = InitializeCriticalSectionAndSpinCount(&cs, CRITICAL_SECTION_SPIN_COUNT); // [!] IRainman: InitializeCriticalSectionAndSpinCount
+			if (l_result == 0)
+			{
+				dcassert(l_result);
+			}
 		}
 		~CriticalSection()
 		{

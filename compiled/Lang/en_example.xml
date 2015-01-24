@@ -1149,8 +1149,6 @@
 	<string name="SaveSearchSettingsText">Save Search settings</string>
 	<string name="SaveSearchSettingsTooltip">This option involves maintaining search parameters: size, type, method, and so on.</string>
 	<string name="Search">Search</string>
-	<string name="SearchPassive">Search (passive)</string>
-	<string name="SearchUdpPortTest">Test UDP port</string>
 	<string name="SearchDetectTth">Automatically switch search type to TTH when one is found in search string</string>
 	<string name="SearchDisaled">Search disabled</string>
 	<string name="SearchEnabled">Search enabled again</string>

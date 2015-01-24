@@ -3,7 +3,6 @@ MakeDefs
 client
 wtl
 windows
-server
 boost
 wtl
 bzip2

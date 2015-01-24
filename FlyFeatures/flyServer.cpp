@@ -52,6 +52,10 @@
 
 #include "ZenLib/ZtringListList.h"
 
+#ifndef _DEBUG
+#include "../doctor-dump/CrashRpt.h"
+#endif
+
 
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 #ifdef FLYLINKDC_SUPPORT_WIN_VISTA
@@ -1953,14 +1957,35 @@ static void getExtMediaInfo(const string& p_file_ext_wo_dot,
 		}
 	}
 }
-//======================================================================================================
+//=========================================================================================
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
+#if 0
+extern crash_rpt::CrashRpt g_crashRpt;
+class CFlyCrashReportInformer
+{
+    const LPCWSTR m_key;
+public:
+    CFlyCrashReportInformer(const LPCWSTR p_key, const LPCWSTR p_value) : m_key(p_key)
+    {
+      g_crashRpt.AddUserInfoToReport(p_key, p_value);
+    }
+    ~CFlyCrashReportInformer()
+    {
+      g_crashRpt.RemoveUserInfoFromReport(m_key);
+    }
+};
+#endif
 //=========================================================================================
 bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, const TTHValue& p_tth, bool p_force /* = false*/)
 {
+#ifndef _DEBUG
+  extern crash_rpt::CrashRpt g_crashRpt;
+  //CFlyCrashReportInformer l_crash_info(L"MediainfoTTH",Text::toT(p_tth.toBase32()).c_str());
+  const auto l_doctor_dump_key = L"Mediainfo";
+#endif
 	try
 	{
-		static MediaInfoLib::MediaInfo g_media_info_dll;
+		static MediaInfoLib::MediaInfo g_media_info_lib;
 		if (p_size < SETTING(MIN_MEDIAINFO_SIZE) * 1024 * 1024) // TODO: p_size?
 			return false;
 		const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(p_name));
@@ -1971,23 +1996,26 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 		_snprintf(l_size, _countof(l_size), "%I64d", p_size);
 		g_cur_mediainfo_file_tth = p_tth.toBase32();
 		g_cur_mediainfo_file = p_name + "\r\n TTH = " + g_cur_mediainfo_file_tth + "\r\n File size = " + string(l_size);
-		if (g_media_info_dll.Open(Text::toT(File::formatPath(p_name))))
+#ifndef _DEBUG
+    g_crashRpt.AddUserInfoToReport(l_doctor_dump_key, Text::toT(g_cur_mediainfo_file).c_str());
+#endif
+		if (g_media_info_lib.Open(Text::toT(File::formatPath(p_name))))
 		{
 			// const bool l_is_media_info_fly_server = g_fly_server_config.isSupportFile(l_file_ext, p_size);
 			// if (l_is_media_info_fly_server)
 			// Локально собираем медиаинфу всегда - чтобы проще расширять поддерживаемые расширения на флай сервере в будущем.
 			{
 				// TODO - желательно звать со сжатием каналов первым (будет быстрее из-за подсказки p_compress_channel_attr)
-				getExtMediaInfo(l_file_ext, p_size, g_media_info_dll, MediaInfoLib::Stream_Audio, p_media, true); // Сожмем дубликаты в каналах
-				getExtMediaInfo(l_file_ext, p_size, g_media_info_dll, MediaInfoLib::Stream_General, p_media, false);
-				getExtMediaInfo(l_file_ext, p_size, g_media_info_dll, MediaInfoLib::Stream_Video, p_media, false);
+				getExtMediaInfo(l_file_ext, p_size, g_media_info_lib, MediaInfoLib::Stream_Audio, p_media, true); // Сожмем дубликаты в каналах
+				getExtMediaInfo(l_file_ext, p_size, g_media_info_lib, MediaInfoLib::Stream_General, p_media, false);
+				getExtMediaInfo(l_file_ext, p_size, g_media_info_lib, MediaInfoLib::Stream_Video, p_media, false);
 // Это пока лишнее
-//          getExtMediaInfo(l_file_ext, p_size, g_media_info_dll,MediaInfoLib::Stream_Text,p_media);
-//			getExtMediaInfo(l_file_ext, p_size, g_media_info_dll,MediaInfoLib::Stream_Chapters,p_media);
-//			getExtMediaInfo(l_file_ext, p_size, g_media_info_dll,MediaInfoLib::Stream_Image,p_media);
-//			getExtMediaInfo(l_file_ext, p_size, g_media_info_dll,MediaInfoLib::Stream_Menu,p_media);
+//          getExtMediaInfo(l_file_ext, p_size, g_media_info_lib,MediaInfoLib::Stream_Text,p_media);
+//			getExtMediaInfo(l_file_ext, p_size, g_media_info_lib,MediaInfoLib::Stream_Chapters,p_media);
+//			getExtMediaInfo(l_file_ext, p_size, g_media_info_lib,MediaInfoLib::Stream_Image,p_media);
+//			getExtMediaInfo(l_file_ext, p_size, g_media_info_lib,MediaInfoLib::Stream_Menu,p_media);
 			}
-			const size_t audioCount = g_media_info_dll.Count_Get(MediaInfoLib::Stream_Audio);
+			const size_t audioCount = g_media_info_lib.Count_Get(MediaInfoLib::Stream_Audio);
 			p_media.m_bitrate  = 0;
 			boost::unordered_map<string, uint16_t> l_audio_dup_filter;
 			// AC-3, 5.1, 448 Kbps | AC-3, 5.1, 640 Kbps | TrueHD / AC-3, 5.1, 640 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps"
@@ -1996,17 +2024,17 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 			// dcassert(audioCount);
 			for (size_t i = 0; i < audioCount; i++)
 			{
-				const wstring l_sinfo = g_media_info_dll.Get(MediaInfoLib::Stream_Audio, i, _T("BitRate"));
+				const wstring l_sinfo = g_media_info_lib.Get(MediaInfoLib::Stream_Audio, i, _T("BitRate"));
 				uint16_t bitRate = (Util::toFloat(Text::fromT(l_sinfo)) / 1000.0 + 0.5);
 				if (bitRate > p_media.m_bitrate)
 					p_media.m_bitrate = bitRate;
-				wstring sFormat = g_media_info_dll.Get(MediaInfoLib::Stream_Audio, i, _T("Format"));
+				wstring sFormat = g_media_info_lib.Get(MediaInfoLib::Stream_Audio, i, _T("Format"));
 #if defined (SSA_REMOVE_NEEDLESS_WORDS_FROM_VIDEO_AUDIO_INFO)
 				boost::replace_all(sFormat, _T(" Audio"), Util::emptyStringT);
 #endif
-				const wstring sBitRate = g_media_info_dll.Get(MediaInfoLib::Stream_Audio, i, _T("BitRate/String"));
-				const wstring sChannelPos = g_media_info_dll.Get(MediaInfoLib::Stream_Audio, i, _T("ChannelPositions"));
-				const uint16_t iChannels = Util::toInt(g_media_info_dll.Get(MediaInfoLib::Stream_Audio, i, _T("Channel(s)")));
+				const wstring sBitRate = g_media_info_lib.Get(MediaInfoLib::Stream_Audio, i, _T("BitRate/String"));
+				const wstring sChannelPos = g_media_info_lib.Get(MediaInfoLib::Stream_Audio, i, _T("ChannelPositions"));
+				const uint16_t iChannels = Util::toInt(g_media_info_lib.Get(MediaInfoLib::Stream_Audio, i, _T("Channel(s)")));
 				const auto l_pos = sChannelPos.find(_T("LFE"), 0);
 				std::string sChannels;
 				if (l_pos != string::npos)
@@ -2018,7 +2046,7 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 					sChannels = Util::toString(iChannels) + ".0";
 				}
 				
-				const wstring sLanguage = g_media_info_dll.Get(MediaInfoLib::Stream_Audio, i, _T("Language/String1"));
+				const wstring sLanguage = g_media_info_lib.Get(MediaInfoLib::Stream_Audio, i, _T("Language/String1"));
 				std::string audioFormatString;
 				if (!sFormat.empty() || !sBitRate.empty() || !sChannels.empty() || !sLanguage.empty())
 				{
@@ -2067,14 +2095,14 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 			wstring l_width;
 			wstring l_height;
 #ifdef USE_MEDIAINFO_IMAGES
-			l_width = g_media_info_dll.Get(MediaInfoLib::Stream_Image, 0, _T("Width"));
-			l_height = g_media_info_dll.Get(MediaInfoLib::Stream_Image, 0, _T("Height"));
+			l_width = g_media_info_lib.Get(MediaInfoLib::Stream_Image, 0, _T("Width"));
+			l_height = g_media_info_lib.Get(MediaInfoLib::Stream_Image, 0, _T("Height"));
 			if (l_width.empty() && l_height.empty())
 #endif
 			{
-				l_width = g_media_info_dll.Get(MediaInfoLib::Stream_Video, 0, _T("Width"));
+				l_width = g_media_info_lib.Get(MediaInfoLib::Stream_Video, 0, _T("Width"));
 				if (!l_width.empty())
-					l_height = g_media_info_dll.Get(MediaInfoLib::Stream_Video, 0, _T("Height"));
+					l_height = g_media_info_lib.Get(MediaInfoLib::Stream_Video, 0, _T("Height"));
 			}
 			p_media.m_mediaX = Util::toInt(l_width);
 			if (p_media.m_mediaX)
@@ -2082,7 +2110,7 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 			else
 				p_media.m_mediaY = 0;
 				
-			const wstring sDuration = g_media_info_dll.Get(MediaInfoLib::Stream_General, 0, _T("Duration/String"));
+			const wstring sDuration = g_media_info_lib.Get(MediaInfoLib::Stream_General, 0, _T("Duration/String"));
 			if (!sDuration.empty() || !l_audio_all.empty())
 			{
 				string audioGeneral;
@@ -2097,20 +2125,19 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 					p_media.m_audio += l_audio_all;
 				}
 			}
-			
-			const size_t videoCount =  g_media_info_dll.Count_Get(MediaInfoLib::Stream_Video);
+			const size_t videoCount =  g_media_info_lib.Count_Get(MediaInfoLib::Stream_Video);
 			if (videoCount > 0)
 			{
 				string videoString;
 				for (size_t i = 0; i < videoCount; i++)
 				{
-					wstring sVFormat = g_media_info_dll.Get(MediaInfoLib::Stream_Video, i, _T("Format"));
+					wstring sVFormat = g_media_info_lib.Get(MediaInfoLib::Stream_Video, i, _T("Format"));
 #if defined (SSA_REMOVE_NEEDLESS_WORDS_FROM_VIDEO_AUDIO_INFO)
 					boost::replace_all(sVFormat, _T(" Video"), Util::emptyStringT);
 					boost::replace_all(sVFormat, _T(" Visual"), Util::emptyStringT);
 #endif
-					wstring sVBitrate = g_media_info_dll.Get(MediaInfoLib::Stream_Video, i, _T("BitRate/String"));
-					wstring sVFrameRate = g_media_info_dll.Get(MediaInfoLib::Stream_Video, i, _T("FrameRate/String"));
+					wstring sVBitrate = g_media_info_lib.Get(MediaInfoLib::Stream_Video, i, _T("BitRate/String"));
+					wstring sVFrameRate = g_media_info_lib.Get(MediaInfoLib::Stream_Video, i, _T("FrameRate/String"));
 					if (!sVFormat.empty() || !sVBitrate.empty() || !sVFrameRate.empty())
 					{
 					
@@ -2137,10 +2164,13 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 				if (videoString.length() > 3) // This is false only in theorical way.
 					p_media.m_video = videoString.substr(0, videoString.length() - 3); // Remove last |
 			}
-			g_media_info_dll.Close();
+			g_media_info_lib.Close();
 		}
 		g_cur_mediainfo_file_tth.clear();
 		g_cur_mediainfo_file.clear();
+#ifndef _DEBUG
+    g_crashRpt.RemoveUserInfoFromReport(l_doctor_dump_key);
+#endif
 		return true;
 	}
 	catch (std::exception& e)
@@ -2162,5 +2192,8 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 		CFlyServerAdapter::CFlyServerJSON::pushError(15, "error getmediainfo[2] " + g_cur_mediainfo_file + " TTH:" + p_tth.toBase32() + " catch(...)");
 		throw;
 	}
+#ifndef _DEBUG
+  g_crashRpt.RemoveUserInfoFromReport(l_doctor_dump_key);
+#endif
 }
 //=========================================================================================

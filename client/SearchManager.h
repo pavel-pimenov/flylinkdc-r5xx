@@ -50,9 +50,14 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 		                
 		ClientManagerListener::SearchReply respond(const AdcCommand& cmd, const CID& cid, bool isUdpActive, const string& hubIpPort, StringSearch::List& reguest); // [!] IRainman-S add  StringSearch::List& reguest and return type
 		
-		uint16_t getSearchPort() const
+		static uint16_t getSearchPortUint()
 		{
-			return m_search_port;
+      dcassert(g_search_port);
+			return g_search_port;
+		}
+		static string getSearchPort()
+		{
+			return Util::toString(getSearchPortUint());
 		}
 		
 		void listen();
@@ -104,7 +109,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 		
 		// [-] CriticalSection cs; [-] FlylinkDC++
 		unique_ptr<Socket> socket;
-		uint16_t m_search_port;
+		static uint16_t g_search_port;
 		volatile bool m_stop; // [!] IRainman fix: this variable is volatile.
 		friend class Singleton<SearchManager>;
 		

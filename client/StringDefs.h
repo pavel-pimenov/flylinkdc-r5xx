@@ -1154,8 +1154,6 @@ enum Strings   // @DontAdd
 	SAVE_SEARCH_SETTINGS_TEXT, // "Save Search settings"
 	SAVE_SEARCH_SETTINGS_TOOLTIP, // "This option involves maintaining search parameters: size, type, method, and so on."
 	SEARCH, // "Search"
-	SEARCH_PASSIVE, // "Search (passive)"
-	SEARCH_UDP_PORT_TEST, // "Test UDP port"
 	SEARCH_DETECT_TTH, // "Automatically switch search type to TTH when one is found in search string"
 	SEARCH_DISALED, // "Search disabled"
 	SEARCH_ENABLED, // "Search enabled again"

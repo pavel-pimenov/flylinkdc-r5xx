@@ -297,8 +297,6 @@ class InternetSearchBaseHandler // [+] IRainman fix.
 				case IDC_SEARCH_FILE_IN_YANDEX:
 					url += _T("http://yandex.ru/yandsearch?text=");
 					break;
-					//  case IDC_SEARCH_FILE_IN_YAHOO:
-					//      url += +T("http://") + GetLang() +_T(".yahoo.com/search?p=")
 				default:
 					dcassert(0);
 					return;

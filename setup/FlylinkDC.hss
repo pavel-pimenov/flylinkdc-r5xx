@@ -346,8 +346,6 @@ Name: "DCPlusPlus\Latvia\Riga_tele2"; Description: "Riga (tele2)"; Flags: exclus
 Name: "DCPlusPlus\Spain"; Description: "{cm:Spain}"; Languages: es_ES; Flags: exclusive
 Name: "DCPlusPlus\Spain\Campuseros_net"; Description: "Campuseros.net"; Flags: exclusive; Languages: es_ES
 
-Name: "Scripts"; Description: "{cm:Scripts}";
-
 [Files]
 
 ;Source: "dcppboot.xml"; DestDir: "{code:fUser}"; Components: settings_vista; MinVersion: 0,6.0; Flags: onlyifdoesntexist ignoreversion
@@ -769,9 +767,6 @@ Source: "mini-vip\Riga_Lattelecom\Favorites.xml"; DestDir: "{code:fUser}"; Compo
 
 Source: "ES\Campuseros.net\DCPlusPlus.xml"; DestDir: "{code:fUser}"; Components: DCPlusPlus\Spain\Campuseros_net; Flags: onlyifdoesntexist ignoreversion
 Source: "ES\Campuseros.net\Favorites.xml"; DestDir: "{code:fUser}"; Components: DCPlusPlus\Spain\Campuseros_net; Flags: onlyifdoesntexist ignoreversion
-
-;Source: "..\server\test.php"; DestDir: "{app}\Scripts"; Components: Scripts; Flags: ignoreversion
-;Source: "..\server\getip.php"; DestDir: "{app}\Scripts"; Components: Scripts; Flags: ignoreversion
 
 Source: "..\compiled\Settings\common\IPTrust.ini"; DestDir: "{code:fUser}"; Flags: onlyifdoesntexist ignoreversion
 Source: "..\compiled\Settings\common\DCPlusPlus.xml"; DestDir: "{code:fUser}"; Flags: onlyifdoesntexist ignoreversion

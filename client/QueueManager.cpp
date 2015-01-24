@@ -609,7 +609,7 @@ void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr&
 		if (!l_isSource)
 		{
 			LogManager::message("Error QueueManager::UserQueue::removeUserL [dcassert(isSource)] aUser = [" +
-			                                   aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
+			                    aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
 			dcassert(l_isSource);
 			return;
 		}
@@ -620,7 +620,7 @@ void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr&
 	if (j == ulm.cend())
 	{
 		LogManager::message("Error QueueManager::UserQueue::removeUserL [dcassert(j != ulm.cend())] aUser = [" +
-		                                   aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
+		                    aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
 		dcassert(j != ulm.cend());
 		return;
 	}
@@ -631,7 +631,7 @@ void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr&
 	if (i == uq.cend())
 	{
 		LogManager::message("Error QueueManager::UserQueue::removeUserL [dcassert(i != uq.cend());] aUser = [" +
-		                                   aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
+		                    aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
 		dcassert(i != uq.cend());
 		return;
 	}
@@ -639,7 +639,7 @@ void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr&
 	if (uq.size() > 5)
 	{
 		LogManager::message("void QueueManager::UserQueue::removeUserL User = " + aUser->getLastNick() +
-		                                   " uq.size = " + Util::toString(uq.size()));
+		                    " uq.size = " + Util::toString(uq.size()));
 	}
 #endif
 	
@@ -950,8 +950,8 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 		{
 			AdcCommand cmd(AdcCommand::CMD_PSR, AdcCommand::TYPE_UDP);
 			SearchManager::getInstance()->toPSR(cmd, true, param->myNick, param->hubIpPort, param->tth, param->parts);
-			Socket s;
-			s.writeTo(param->ip, param->udpPort, cmd.toString(ClientManager::getMyCID()));
+			Socket udp;
+			udp.writeTo(param->ip, param->udpPort, cmd.toString(ClientManager::getMyCID()));
 			LogManager::psr_message(
 			    "[PartsInfoReq] Send UDP IP = " + param->ip +
 			    " param->udpPort = " + Util::toString(param->udpPort) +

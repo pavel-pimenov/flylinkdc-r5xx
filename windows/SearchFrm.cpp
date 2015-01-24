@@ -49,7 +49,7 @@ HIconWrapper SearchFrame::g_UDPOkIcon(IDR_ICON_SUCCESS_ICON);
 //HIconWrapper SearchFrame::g_UDPFailIcon(IDR_ICON_FAIL_ICON);
 HIconWrapper SearchFrame::g_UDPWaitIcon(IDR_ICON_WARN_ICON);
 tstring SearchFrame::g_UDPTestText;
-bool SearchFrame::g_isUDPTestOK;
+bool SearchFrame::g_isUDPTestOK = false;
 
 int SearchFrame::columnIndexes[] =
 {
@@ -378,12 +378,6 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	ctrlDoSearch.SetIcon(g_search_icon); // [+] InfinitySky. »конка на кнопке поиска.
 	//doSearchContainer.SubclassWindow(ctrlDoSearch.m_hWnd);
 	
-	ctrlDoSearchPassive.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-	                           BS_PUSHBUTTON , 0, IDC_SEARCH_PASSIVE);
-	ctrlDoSearchPassive.SetWindowText(CTSTRING(SEARCH_PASSIVE));
-	ctrlDoSearchPassive.SetFont(Fonts::g_systemFont);
-	ctrlDoSearchPassive.EnableWindow(!g_isUDPTestOK);
-	//doSearchPassiveContainer.SubclassWindow(ctrlDoSearchPassive.m_hWnd);
 	
 	ctrlSearchBox.SetFont(Fonts::g_systemFont, FALSE);
 	ctrlSize.SetFont(Fonts::g_systemFont, FALSE);
@@ -524,12 +518,6 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 		m_ctrlUDPMode.SetIcon(g_UDPWaitIcon);
 	}
 	
-	
-	ctrlDoUDPTestPort.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-	                         BS_PUSHBUTTON , 0, IDC_SEARCH_UDP_PORT_TEST);
-	ctrlDoUDPTestPort.SetWindowText(CTSTRING(SEARCH_UDP_PORT_TEST));
-	ctrlDoUDPTestPort.SetFont(Fonts::g_systemFont);
-	
 	m_ctrlUDPTestResult.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 	m_ctrlUDPTestResult.SetFont(Fonts::g_systemFont, FALSE);
 	if (g_UDPTestText.empty())
@@ -555,7 +543,6 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	{
 		m_tooltip.Activate(TRUE);
 	}
-	
 	onSizeMode();   //Get Mode, and turn ON or OFF controlls Size
 	SearchManager::getInstance()->addListener(this);
 	initHubs();
@@ -568,7 +555,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 		ctrlSize.SetWindowText(Util::toStringW(m_initialSize).c_str());
 		ctrlFiletype.SetCurSel(m_initialType);
 		
-		onEnter(false);
+		onEnter();
 	}
 	else
 	{
@@ -577,6 +564,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 		m_running = false;
 	}
 	SettingsManager::getInstance()->addListener(this);
+	runTestPort();
 	
 #ifdef FLYLINKDC_USE_WINDOWS_TIMER_SEARCH_FRAME
 	create_timer(1000);
@@ -705,7 +693,7 @@ BOOL SearchFrame::ListDraw(HWND /*hwnd*/, UINT /*uCtrlId*/, DRAWITEMSTRUCT *dis)
 }
 
 
-void SearchFrame::onEnter(bool p_is_force_passive)
+void SearchFrame::onEnter()
 {
 	BOOL tmp_Handled;
 	onEditChange(0, 0, NULL, tmp_Handled); // if in searchbox TTH - select filetypeTTH
@@ -881,7 +869,7 @@ void SearchFrame::onEnter(bool p_is_force_passive)
 		                                                                           m_search_token,
 		                                                                           l_extList,
 		                                                                           (void*)this,
-		                                                                           p_is_force_passive)
+		                                                                           !g_isUDPTestOK)
 #ifdef FLYLINKDC_HE
 		                  + 30000
 #else
@@ -904,10 +892,9 @@ void SearchFrame::onEnter(bool p_is_force_passive)
 	//searches++;
 }
 
+#if 0
 LRESULT SearchFrame::onUDPPortTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	ctrlDoSearchPassive.EnableWindow(TRUE);
-	ctrlDoUDPTestPort.EnableWindow(FALSE);
 	SettingsManager::g_TestUDPSearchLevel = boost::logic::indeterminate;
 	g_UDPTestText = CTSTRING(FLY_SERVER_UDP_TEST_PORT_WAIT);
 	g_isUDPTestOK = false;
@@ -940,6 +927,7 @@ LRESULT SearchFrame::onUDPPortTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 	
 	return 0;
 }
+#endif //
 
 void SearchFrame::on(SearchManagerListener::UDPTest, const string& p_ip) noexcept
 {
@@ -948,8 +936,8 @@ void SearchFrame::on(SearchManagerListener::UDPTest, const string& p_ip) noexcep
 	g_isUDPTestOK = true;
 	m_ctrlUDPMode.SetIcon(g_UDPOkIcon);
 	m_ctrlUDPTestResult.SetWindowText(g_UDPTestText.c_str());
-	ctrlDoSearchPassive.EnableWindow(FALSE);
 }
+
 void SearchFrame::on(SearchManagerListener::SR, const SearchResultPtr &aResult) noexcept
 {
 	if (isClosedOrShutdown())
@@ -1117,7 +1105,6 @@ bool SearchFrame::scan_list_view_from_merge()
 //===================================================================================================================================
 LRESULT SearchFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 {
-	ctrlDoUDPTestPort.EnableWindow(TRUE);
 	std::vector<int> l_update_index;
 	{
 		std::unique_ptr<Json::Value> l_root(reinterpret_cast<Json::Value*>(wParam));
@@ -1232,28 +1219,44 @@ void SearchFrame::update_column_after_merge(std::vector<int> p_update_index)
 #endif
 }
 //===================================================================================================================================
+LRESULT SearchFrame::onCollapsed(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	m_expandSR = ctrlCollapsed.GetCheck() == 1;
+#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+	m_storeIP = m_ctrlStoreIP.GetCheck() == 1;
+#endif
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
+	SET_SETTING(ENABLE_FLY_SERVER, m_ctrlFlyServer.GetCheck() == 1);
+	m_FlyServerGradientLabel.SetActive(BOOLSETTING(ENABLE_FLY_SERVER));
+#endif
+	m_storeSettings = m_ctrlStoreSettings.GetCheck() == 1;
+	SET_SETTING(SAVE_SEARCH_SETTINGS, m_storeSettings);
+	return 0;
+}
+//===================================================================================================================================
+void SearchFrame::runTestPort()
+{
+	if (boost::logic::indeterminate(SettingsManager::g_TestUDPSearchLevel))
+	{
+		g_isUDPTestOK = false;
+		string p_external_ip;
+		std::vector<unsigned short> l_udp_port, l_tcp_port;
+		l_udp_port.push_back(SETTING(UDP_PORT));
+		bool l_is_udp_port_send = CFlyServerAdapter::CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, p_external_ip, 0);
+		if (l_is_udp_port_send)
+		{
+			SettingsManager::g_TestUDPSearchLevel = true;
+			SettingsManager::g_UDPTestExternalIP  = p_external_ip;
+		}
+	}
+}
+//===================================================================================================================================
 void SearchFrame::mergeFlyServerInfo()
 {
 	if (isClosedOrShutdown())
 		return;
 	CColorSwitch l_color_lock(m_FlyServerGradientLabel, RGB(255, 0, 0));
 	CWaitCursor l_cursor_wait; //-V808
-	if (m_TestPortGuard == false)
-	{
-		m_TestPortGuard = true;
-		if (boost::logic::indeterminate(SettingsManager::g_TestUDPSearchLevel))
-		{
-			string p_external_ip;
-			std::vector<unsigned short> l_udp_port, l_tcp_port;
-			l_udp_port.push_back(SETTING(UDP_PORT));
-			bool l_is_udp_port_send = CFlyServerAdapter::CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, p_external_ip, 0);
-			if (l_is_udp_port_send)
-			{
-				SettingsManager::g_TestUDPSearchLevel = true;
-				SettingsManager::g_UDPTestExternalIP = p_external_ip;
-			}
-		}
-	}
 	dcassert(!isClosedOrShutdown());
 	if (!isClosedOrShutdown())
 	{
@@ -1979,12 +1982,11 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 		ctrlDoSearch.MoveWindow(rc); // [<-] InfinitySky.
 		
 		// Search firewall
-		rc.left   -= 50;
-		rc.top    += 24;
-		rc.bottom += 17;
-		
-		ctrlDoSearchPassive.MoveWindow(rc);
-		
+//		rc.left   -= 50;
+//		rc.top    += 24;
+//		rc.bottom += 17;
+
+
 		rc = l_tmp_rc;
 		
 		// "Size".
@@ -2109,10 +2111,10 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 	
 	CRect l_rc_icon = rc;
 	
-	l_rc_icon.left  = l_rc_icon.right + 3;
-	l_rc_icon.right = l_rc_icon.left + 90;
-	ctrlDoUDPTestPort.MoveWindow(l_rc_icon);
-	
+//	l_rc_icon.left  = l_rc_icon.right + 3;
+//	l_rc_icon.right = l_rc_icon.left + 90;
+//	ctrlDoUDPTestPort.MoveWindow(l_rc_icon);
+
 	l_rc_icon.left = l_rc_icon.right + 5;
 	l_rc_icon.top  += 3;
 	l_rc_icon.bottom -= 3;
@@ -2234,14 +2236,7 @@ LRESULT SearchFrame::onChar(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL & 
 			{
 				if (uMsg == WM_KEYDOWN)
 				{
-					if (!g_isUDPTestOK)
-					{
-						onEnter(true);
-					}
-					else
-					{
-						onEnter(false);
-					}
+					onEnter();
 				}
 			}
 			break;

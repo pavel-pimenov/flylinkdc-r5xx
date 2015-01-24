@@ -769,7 +769,7 @@ void HubFrame::processFrameCommand(const tstring& fullMessageText, const tstring
 		const tstring l_con = TSTRING(IP) + Text::toT(m_client->getLocalIp()) + _T(", ") +
 		                      TSTRING(PORT) + _T(' ') +
 		                      _T("TCP: ") + Util::toStringW(ConnectionManager::getInstance()->getPort()) + _T('/') +
-		                      _T("UDP: ") + Util::toStringW(SearchManager::getInstance()->getSearchPort()) + _T('/') +
+		                      _T("UDP: ") + Text::toT(SearchManager::getSearchPort()) + _T('/') +
 		                      _T("TLS: ") + Util::toStringW(ConnectionManager::getInstance()->getSecurePort()) + _T('/')
 #ifdef STRONG_USE_DHT
 		                      + _T("DHT: ") + Util::toStringW(dht::DHT::getInstance()->getPort())
@@ -1273,11 +1273,11 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 							const int l_item_count = m_ctrlUsers->GetItemCount();
 							
 							LogManager::message("[!!!!!!!!!!!] bool HubFrame::updateUser! ui->getUser()->getLastNick() = " + ui->getUser()->getLastNick()
-							                                   + " top/count_per_page/all_count = " +
-							                                   Util::toString(l_top_index) + "/" +
-							                                   Util::toString(m_ctrlUsers->GetCountPerPage()) + "/" +
-							                                   Util::toString(l_item_count) + "  pos =" + Util::toString(pos)
-							                                  );
+							                    + " top/count_per_page/all_count = " +
+							                    Util::toString(l_top_index) + "/" +
+							                    Util::toString(m_ctrlUsers->GetCountPerPage()) + "/" +
+							                    Util::toString(l_item_count) + "  pos =" + Util::toString(pos)
+							                   );
 #endif
 							if (p_index_column <= 0)
 							{
@@ -1293,7 +1293,7 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 						{
 						
 							LogManager::message("[///////] bool HubFrame::updateUser! ui->getUser()->getLastNick() = " + ui->getUser()->getLastNick()
-							                                   + " ! pos >= l_top_index && pos <= l_top_index + l_count_per_page pos = " + Util::toString(pos));
+							                    + " ! pos >= l_top_index && pos <= l_top_index + l_count_per_page pos = " + Util::toString(pos));
 						}
 #endif
 					}

@@ -2630,7 +2630,7 @@ void Util::BackupSettings()
 			catch (FileException &)
 			{
 				LogManager::message("Error File::copyFile = sourcepath + FileList[i] = " + sourcepath + FileList[i]
-				                                   + " , bkpath + FileList[i] = " + bkpath + FileList[i]);
+				                    + " , bkpath + FileList[i] = " + bkpath + FileList[i]);
 			}
 		}
 	}
@@ -2851,7 +2851,7 @@ string Util::getWikiLink()
 	return HELPPAGE + getLang() + ':';
 }
 
-#ifdef _WIN32
+
 DWORD Util::GetTextResource(const int p_res, LPCSTR& p_data)
 {
 	HRSRC hResInfo = FindResource(nullptr, MAKEINTRESOURCE(p_res), RT_RCDATA);
@@ -2882,7 +2882,6 @@ void Util::WriteTextResourceToFile(const int p_res, const tstring& p_file)
 	}
 	dcassert(0);
 }
-#endif // _WIN32
 
 /**
  * @file

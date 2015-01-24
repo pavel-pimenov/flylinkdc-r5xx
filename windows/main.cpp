@@ -575,6 +575,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	const bool l_is_create_wide = SettingsManager::getInstance()->LoadLanguage();
 	ResourceManager::startup(l_is_create_wide);
 	SettingsManager::getInstance()->setDefaults(); // !SMT!-S: allow localized defaults in string settings
+	LogManager::init();
 	CreateSplash(); //[+]PPA
 	
 	g_fly_server_config.loadConfig();

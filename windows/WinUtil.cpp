@@ -358,24 +358,24 @@ COLORREF HLS_TRANSFORM(COLORREF rgb, int percent_L, int percent_S)
 }
 
 // !SMT!-UI
-void Colors::getUserColor(bool p_is_op, const UserPtr& user, COLORREF &fg, COLORREF &bg, unsigned short& m_flag_mask, const OnlineUserPtr& onlineUser)
+void Colors::getUserColor(bool p_is_op, const UserPtr& user, COLORREF &fg, COLORREF &bg, unsigned short& p_flag_mask, const OnlineUserPtr& onlineUser)
 {
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 	bool l_is_favorites = false;
 	if (SETTING(ENABLE_AUTO_BAN))
 	{
-		if ((m_flag_mask & IS_AUTOBAN) == IS_AUTOBAN)
+		if ((p_flag_mask & IS_AUTOBAN) == IS_AUTOBAN)
 		{
 			if (onlineUser && user->hasAutoBan(&onlineUser->getClient(), l_is_favorites) != User::BAN_NONE)
-				m_flag_mask = (m_flag_mask & ~IS_AUTOBAN) | IS_AUTOBAN_ON;
+				p_flag_mask = (p_flag_mask & ~IS_AUTOBAN) | IS_AUTOBAN_ON;
 			else
-				m_flag_mask = (m_flag_mask & ~IS_AUTOBAN);
+				p_flag_mask = (p_flag_mask & ~IS_AUTOBAN);
 			if (l_is_favorites)
-				m_flag_mask = (m_flag_mask & ~IS_FAVORITE) | IS_FAVORITE_ON;
+				p_flag_mask = (p_flag_mask & ~IS_FAVORITE) | IS_FAVORITE_ON;
 			else
-				m_flag_mask = (m_flag_mask & ~IS_FAVORITE);
+				p_flag_mask = (p_flag_mask & ~IS_FAVORITE);
 		}
-		if (m_flag_mask & IS_AUTOBAN)
+		if (p_flag_mask & IS_AUTOBAN)
 			bg = SETTING(BAN_COLOR);
 	}
 #endif // IRAINMAN_ENABLE_AUTO_BAN
@@ -404,49 +404,49 @@ void Colors::getUserColor(bool p_is_op, const UserPtr& user, COLORREF &fg, COLOR
 	dcassert(user);
 	// [!] IRainman fix todo: https://crash-server.com/SearchResult.aspx?ClientID=ppa&Stack=Colors::getUserColor , https://crash-server.com/SearchResult.aspx?ClientID=ppa&Stack=WinUtil::getUserColor
 	// [!] PPA fix: https://code.google.com/p/flylinkdc/issues/detail?id=961
-	if ((m_flag_mask & IS_IGNORED_USER) == IS_IGNORED_USER)
+	if ((p_flag_mask & IS_IGNORED_USER) == IS_IGNORED_USER)
 	{
 		if (UserManager::g_isEmptyIgnoreList == false && UserManager::isInIgnoreList(onlineUser ? onlineUser->getIdentity().getNick() : user->getLastNick()))
-			m_flag_mask = (m_flag_mask & ~IS_IGNORED_USER) | IS_IGNORED_USER_ON;
+			p_flag_mask = (p_flag_mask & ~IS_IGNORED_USER) | IS_IGNORED_USER_ON;
 		else
-			m_flag_mask = (m_flag_mask & ~IS_IGNORED_USER);
+			p_flag_mask = (p_flag_mask & ~IS_IGNORED_USER);
 	}
-	if ((m_flag_mask & IS_RESERVED_SLOT) == IS_RESERVED_SLOT)
+	if ((p_flag_mask & IS_RESERVED_SLOT) == IS_RESERVED_SLOT)
 	{
 		if (UploadManager::getReservedSlotTime(user))
-			m_flag_mask = (m_flag_mask & ~IS_RESERVED_SLOT) | IS_RESERVED_SLOT_ON;
+			p_flag_mask = (p_flag_mask & ~IS_RESERVED_SLOT) | IS_RESERVED_SLOT_ON;
 		else
-			m_flag_mask = (m_flag_mask & ~IS_RESERVED_SLOT);
+			p_flag_mask = (p_flag_mask & ~IS_RESERVED_SLOT);
 	}
-	if ((m_flag_mask & IS_FAVORITE) == IS_FAVORITE)
+	if ((p_flag_mask & IS_FAVORITE) == IS_FAVORITE)
 	{
 		bool l_is_ban = false;
 		l_is_favorites = FavoriteManager::isFavoriteUser(user, l_is_ban);
 		if (l_is_favorites)
-			m_flag_mask = (m_flag_mask & ~IS_FAVORITE) | IS_FAVORITE_ON;
+			p_flag_mask = (p_flag_mask & ~IS_FAVORITE) | IS_FAVORITE_ON;
 		else
-			m_flag_mask = (m_flag_mask & ~IS_FAVORITE);
+			p_flag_mask = (p_flag_mask & ~IS_FAVORITE);
 		if (l_is_ban)
-			m_flag_mask = (m_flag_mask & ~IS_BAN) | IS_BAN_ON;
+			p_flag_mask = (p_flag_mask & ~IS_BAN) | IS_BAN_ON;
 		else
-			m_flag_mask = (m_flag_mask & ~IS_BAN);
+			p_flag_mask = (p_flag_mask & ~IS_BAN);
 	}
-	if (m_flag_mask & IS_FAVORITE)
+	if (p_flag_mask & IS_FAVORITE)
 	{
-		if (m_flag_mask & IS_BAN)
+		if (p_flag_mask & IS_BAN)
 			fg = SETTING(TEXT_ENEMY_FORE_COLOR); // http://code.google.com/p/flylinkdc/issues/detail?id=876
 		else
 			fg = SETTING(FAVORITE_COLOR);
 	}
-	else if (p_is_op)
+	else if (onlineUser && onlineUser->getIdentity().isOp())
 	{
 		fg = SETTING(OP_COLOR);
 	}
-	else if (m_flag_mask & IS_RESERVED_SLOT)
+	else if (p_flag_mask & IS_RESERVED_SLOT)
 	{
 		fg = SETTING(RESERVED_SLOT_COLOR);
 	}
-	else if (m_flag_mask & IS_IGNORED_USER)
+	else if (p_flag_mask & IS_IGNORED_USER)
 	{
 		fg = SETTING(IGNORED_COLOR);
 	}

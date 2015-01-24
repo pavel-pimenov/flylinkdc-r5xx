@@ -214,7 +214,7 @@ string ConnectivityManager::getInformation() const
 	           field(SETTING(BIND_ADDRESS)) %
 	           field(Util::toString(ConnectionManager::getInstance()->getPort())) %
 	           field(Util::toString(ConnectionManager::getInstance()->getSecurePort())) %
-	           field(Util::toString(SearchManager::getInstance()->getSearchPort())) %
+	           field(SearchManager::getSearchPort()) %
 #ifdef STRONG_USE_DHT
 	           field(Util::toString(dht::DHT::getInstance()->getPort())) %
 #else

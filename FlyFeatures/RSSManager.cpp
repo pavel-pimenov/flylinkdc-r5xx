@@ -316,13 +316,12 @@ RSSFeed::ProcessRSS(void* data, RSSParser parser, bool isUtf8)
 				}
 			}
 		}
-	}else if (parser == XML_SIMPLE)
+	}
+  else if (parser == XML_SIMPLE)
 	{
 		SimpleXML* xml = reinterpret_cast<SimpleXML*>(data);
 		if (xml != nullptr)
 		{
-
-			time_t maxLastDate = 0;
 			xml->resetCurrentChild();
 
 			if (xml->findChild("rss"))
@@ -581,7 +580,7 @@ RSSManager::updateAllFeeds()
 	unsigned int iNewNews = 0;
 	NewsList l_fire_added_array;
 	{
-		Lock l(csFeed); // [+] IRainman fix.
+		Lock l_feed(csFeed); // [+] IRainman fix.
 		for (auto i = m_feeds.cbegin(); i != m_feeds.cend(); ++i)
 		{
 			if ((*i)->UpdateFeedNewXML())
@@ -590,7 +589,7 @@ RSSManager::updateAllFeeds()
 				for (auto j = list.cbegin(); j != list.cend(); ++j)
 				{
 					const RSSItem *l_item = new RSSItem(*j);
-					FastLock l(csNews);
+					FastLock l_news(csNews);
 					if (canAdd(l_item))
 					{
 						m_newsList.push_back(l_item);

@@ -381,7 +381,7 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
 					
 					// ask for partial file
 					AdcCommand l_cmd(AdcCommand::CMD_PSR, AdcCommand::TYPE_UDP);
-					l_cmd.addParam("U4", Util::toString(::SearchManager::getInstance()->getSearchPort()));
+					l_cmd.addParam("U4", ::SearchManager::getSearchPort());
 					l_cmd.addParam("TR", s->m_term);
 					
 					DHT::getInstance()->send(l_cmd, i4, u4, cid, source->getUdpKey());

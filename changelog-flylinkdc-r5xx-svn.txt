@@ -1,4 +1,110 @@
 ------------------------------------------------------------------------
+r18198 | pavel.pimenov@gmail.com | 2015-01-24 10:02:32 +0300 (Сб, 24 янв 2015) | 10 lines
+
+Merged revision(s) 18195-18197 from trunk:
+# Косметика
+# [mediainfo][merge]
+ x MOV: avoid wrong parsing in case of "colr" atom with "prof" color parameter type
+........
+* OpenSSL 1.0.1l
+........
+# Исправил залипание сплиттера при старте
+........
+
+------------------------------------------------------------------------
+r18191 | pavel.pimenov@gmail.com | 2015-01-22 06:22:25 +0300 (Чт, 22 янв 2015) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r18190 | pavel.pimenov@gmail.com | 2015-01-21 21:59:24 +0300 (Ср, 21 янв 2015) | 7 lines
+
+Merged revision(s) 18188-18189 from trunk:
+# Заменил путь <IncludePath>$(WindowsSdkDir)\Include\shared;$(WindowsSdkDir)\Include\um;$(IncludePath)</IncludePath>
+  на <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);</IncludePath>
+  (не собиралось на чистых компах в vc++2013)
+# Удалил старые скрипты на php
+# Убрал кнопки пассивного поиска и теста порта UDP в окне поиска - теперь поиск выбирается автоматически по результатам тестирования UDP
+
+------------------------------------------------------------------------
+r18189 | pavel.pimenov@gmail.com | 2015-01-21 21:53:14 +0300 (Ср, 21 янв 2015) | 1 line
+
+# Log [public-build]
+------------------------------------------------------------------------
+r18187 | pavel.pimenov@gmail.com | 2015-01-21 18:46:45 +0300 (Ср, 21 янв 2015) | 10 lines
+
+Merged revision(s) 18186 from trunk:
+# [medianfo][merge]
+x MXF: AFD value was wrong (displaying the complete byte, but AFD is only 4 bits of this byte)
+x DTS: some streams in Little endian were not detected
+x MPEG-4: some files were having an incorrect frame count
+x AVC: Some SCTE 128 caption streams were displayed twice
+x BMP; accepting files with file size information set to -1
+x RF64: samplesCount was not always right
+........
+
+------------------------------------------------------------------------
+r18185 | pavel.pimenov@gmail.com | 2015-01-21 18:40:29 +0300 (Ср, 21 янв 2015) | 9 lines
+
+Merged revision(s) 18179-18182 from trunk:
+* sqlite 3.8.8.1
+........
+* Починил логи сломанные вчера
+  создавался всего один файл с именем = нику и левым содержимым (Спасибо JhaoDa)
+........
+# Проброс TTH битого файла при котором произошло падение на краш-сервер.
+........
+
+------------------------------------------------------------------------
+r18183 | pavel.pimenov@gmail.com | 2015-01-21 18:34:24 +0300 (Ср, 21 янв 2015) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r18179 | pavel.pimenov@gmail.com | 2015-01-21 03:51:03 +0300 (Ср, 21 янв 2015) | 1 line
+
+* sqlite 3.8.8.1
+------------------------------------------------------------------------
+r18175 | pavel.pimenov@gmail.com | 2015-01-20 21:11:10 +0300 (Вт, 20 янв 2015) | 4 lines
+
+Merged revision(s) 18173 from trunk:
+# Починил подкраску юзеров если ты на хабе оператор.
+........
+
+------------------------------------------------------------------------
+r18174 | pavel.pimenov@gmail.com | 2015-01-20 21:02:14 +0300 (Вт, 20 янв 2015) | 32 lines
+
+Merged revision(s) 18165-18170 from branches-release/flylinkdc-r502:
+# Log
+........
+# Оптимизированы частые вызовы Colors::getUserColor (часть 2)
+# Упростил код LogManager выкинул Speaker<LogManagerListener> 
+  TODO - подготовка отказа от Singleton<LogManager>
+# Убрал дублирование кода в некоторых местах.
+# Колонка Антивирус - переименована в AVDB
+........
+# Отказался от Singleton<LogManager>
+# Исправлено предупреждение при сборки релиза x64 про SSE2
+........
+# [mediainfo]
+ Fix crash https://drdump.com/Bug.aspx?ProblemID=112124
+ 
+........
+Merged revision(s) 18166-18168 from trunk:
+# Оптимизированы частые вызовы Colors::getUserColor (часть 2)
+# Упростил код LogManager выкинул Speaker<LogManagerListener> 
+  TODO - подготовка отказа от Singleton<LogManager>
+# Убрал дублирование кода в некоторых местах.
+# Колонка Антивирус - переименована в AVDB
+........
+# Отказался от Singleton<LogManager>
+# Исправлено предупреждение при сборки релиза x64 про SSE2
+........
+# [mediainfo]
+ Fix crash https://drdump.com/Bug.aspx?ProblemID=112124
+ ........
+
+........
+
+------------------------------------------------------------------------
 r18170 | pavel.pimenov@gmail.com | 2015-01-20 19:39:51 +0300 (Вт, 20 янв 2015) | 14 lines
 
 Merged revision(s) 18166-18168 from trunk:

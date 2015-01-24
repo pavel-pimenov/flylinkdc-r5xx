@@ -105,8 +105,6 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 #endif
 		COMMAND_ID_HANDLER(IDC_REMOVE, onRemove)
 		COMMAND_ID_HANDLER(IDC_SEARCH, onSearch)
-		COMMAND_ID_HANDLER(IDC_SEARCH_PASSIVE, onSearchPassive)
-		COMMAND_ID_HANDLER(IDC_SEARCH_UDP_PORT_TEST, onUDPPortTest)
 		COMMAND_ID_HANDLER(IDC_SEARCH_PAUSE, onPause)
 		COMMAND_ID_HANDLER(IDC_COPY_NICK, onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_FILENAME, onCopy)
@@ -201,7 +199,6 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			m_storeSettings(false), m_isExactSize(false), m_exactSize2(0), m_sizeMode(Search::SIZE_DONTCARE), /*searches(0),*/
 			m_ftype(Search::TYPE_ANY),
 			m_lastFindTTH(false),
-			m_TestPortGuard(false),
 			m_running(false),
 			m_searchEndTime(0),
 			m_searchStartTime(0),
@@ -301,29 +298,11 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			return 0;
 		}
 		
-		LRESULT onCollapsed(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-		{
-			m_expandSR = ctrlCollapsed.GetCheck() == 1;
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-			m_storeIP = m_ctrlStoreIP.GetCheck() == 1;
-#endif
-#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-			SET_SETTING(ENABLE_FLY_SERVER, m_ctrlFlyServer.GetCheck() == 1);
-			m_FlyServerGradientLabel.SetActive(BOOLSETTING(ENABLE_FLY_SERVER));
-#endif
-			m_storeSettings = m_ctrlStoreSettings.GetCheck() == 1;
-			SET_SETTING(SAVE_SEARCH_SETTINGS, m_storeSettings);
-			return 0;
-		}
+		LRESULT onCollapsed(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
 		LRESULT onSearch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
-			onEnter(false);
-			return 0;
-		}
-		LRESULT onSearchPassive(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-		{
-			onEnter(true);
+			onEnter();
 			return 0;
 		}
 		LRESULT onUDPPortTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
@@ -611,9 +590,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		CButton ctrlPurge;
 		CButton ctrlPauseSearch;
 		CButton ctrlDoSearch;
-		CButton ctrlDoSearchPassive;
 		
-		CButton ctrlDoUDPTestPort;
 		CHyperLink m_SearchHelp;
 		
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -657,7 +634,6 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		CButton m_ctrlStoreSettings;
 		bool m_showUI;
 		bool m_lastFindTTH;
-		bool m_TestPortGuard;
 		
 		CImageList images;
 		SearchInfoList ctrlResults;
@@ -760,6 +736,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		TargetsMap dlTargets; // !SMT!-S
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		void mergeFlyServerInfo();
+		void runTestPort();
 		bool scan_list_view_from_merge();
 		typedef std::unordered_map<TTHValue, std::pair<SearchInfo*, CFlyServerCache> > CFlyMergeItem;
 		CFlyMergeItem m_merge_item_map; // TODO - организовать кэш для медиаинфы, чтобы лишний раз не ходить на флай-сервер c get-запросами
@@ -768,7 +745,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 		void downloadSelected(const tstring& aDir, bool view = false);
 		void downloadWholeSelected(const tstring& aDir);
-		void onEnter(bool p_is_force_passive);
+		void onEnter();
 		void onTab(bool shift);
 		void download(SearchResult* aSR, const tstring& aDir, bool view);
 		

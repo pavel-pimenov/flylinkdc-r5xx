@@ -109,11 +109,11 @@ int MappingManager::run()
 	ScopedFunctor([this] { m_busy.clear(); });
 	
 	// cache these
-	const unsigned short conn_port = ConnectionManager::getInstance()->getPort();
-	const unsigned short secure_port = ConnectionManager::getInstance()->getSecurePort();
-	const unsigned short search_port = SearchManager::getInstance()->getSearchPort();
+	const uint16_t conn_port = ConnectionManager::getInstance()->getPort();
+	const uint16_t secure_port = ConnectionManager::getInstance()->getSecurePort();
+	const uint16_t search_port = SearchManager::getSearchPortUint();
 #ifdef STRONG_USE_DHT
-	const unsigned short dht_port = dht::DHT::getInstance()->getPort();
+	const uint16_t dht_port = dht::DHT::getInstance()->getPort();
 #endif
 	if (renewal
 	        && getOpened()) //[+]FlylinkDC++ Team
