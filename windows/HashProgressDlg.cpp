@@ -2,6 +2,8 @@
 #include "Resource.h"
 #include "WinUtil.h"
 #include "HashProgressDlg.h"
+#include "../client/ShareManager.h"
+
 // #include "../client/version.h"
 // TODO не могу пон€ть почему дефан из хедера не подт€гиватс€!
 #define FLYLINKDC_REGISTRY_MEDIAINFO_FREEZE_KEY _T("MediaFreezeInfo")
@@ -183,6 +185,41 @@ void HashProgressDlg::updateStats()
 LRESULT HashProgressDlg::onSlideChangeMaxHashSpeed(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	SetDlgItemInt(IDC_EDIT_MAX_HASH_SPEED, m_Slider.GetPos(), FALSE);
+	HashManager::getInstance()->EnableForceMinHashSpeed(GetDlgItemInt(IDC_EDIT_MAX_HASH_SPEED, NULL, FALSE));
+	return 0;
+}
+LRESULT HashProgressDlg::onRefresh(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	ShareManager::getInstance()->setDirty();
+	ShareManager::getInstance()->refresh(true);
+	return 0;
+}
+
+LRESULT HashProgressDlg::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+	updateStats();
+	return 0;
+}
+
+LRESULT HashProgressDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	EndDialog(wID);
+	return 0;
+}
+
+LRESULT HashProgressDlg::OnBnClickedBtnAbort(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	HashManager::getInstance()->stopHashing(Util::emptyString);
+	
+	return 0;
+}
+
+LRESULT HashProgressDlg::OnEnChangeEditMaxHashSpeed(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	if (::IsWindow(m_Slider)) // TODO - без этого падаем в _DEBUG
+	{
+		m_Slider.SetPos(GetDlgItemInt(IDC_EDIT_MAX_HASH_SPEED, NULL, FALSE));
+	}
 	HashManager::getInstance()->EnableForceMinHashSpeed(GetDlgItemInt(IDC_EDIT_MAX_HASH_SPEED, NULL, FALSE));
 	return 0;
 }

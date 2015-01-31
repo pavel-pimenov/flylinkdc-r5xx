@@ -338,7 +338,7 @@ DCLSTGenDlg::onShareThis(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, B
 		if (ShareManager::getInstance()->isFileInSharedDirectoryL(strPath))
 		{
 			HashManager::getInstance()->addTree(strPath, File::getTimeStamp(strPath), *(_tth.get()), -1);
-			if (ShareManager::getInstance()->isTTHShared(_tth.get()->getRoot()))
+			if (ShareManager::isTTHShared(_tth.get()->getRoot()))
 			{
 				MessageBox(CTSTRING(DCLSTGEN_METAFILEREADY), CTSTRING(DCLSTGEN_TITLE), MB_OK | MB_ICONINFORMATION);
 			}

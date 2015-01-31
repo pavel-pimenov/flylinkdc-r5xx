@@ -236,7 +236,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		
 		bool getQueueInfo(const UserPtr& aUser, string& aTarget, int64_t& aSize, int& aFlags) noexcept;
 		Download* getDownload(UserConnection* aSource, string& aMessage) noexcept;
-		void putDownload(Download* aDownload, bool finished, bool reportFinish = true) noexcept;
+		void putDownload(const string& p_path, Download* aDownload, bool finished, bool reportFinish = true) noexcept;
 		void setFile(Download* download);
 		
 		/** @return The highest priority download the user has, PAUSED may also mean no downloads */

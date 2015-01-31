@@ -360,7 +360,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 				}
 				else
 				{
-					if (ShareManager::getInstance()->isTTHShared(f->getTTH()))
+					if (ShareManager::isTTHShared(f->getTTH()))
 					{
 						f->setFlag(DirectoryListing::FLAG_SHARED);
 					}

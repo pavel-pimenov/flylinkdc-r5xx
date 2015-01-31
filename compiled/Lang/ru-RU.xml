@@ -895,7 +895,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="MenuCloseAllHubs">Закрыть все хабы</String>
 		<String Name="MenuCloseAllOfflinePm">Закрыть отключенные личные сообщения Alt + P</String>
 		<String Name="MenuCloseAllPm">Закрыть все личные сообщения</String>
-		<String Name="MenuCloseAllSearchframe">Закрыть все окна поиска</String>
+		<String Name="MenuCloseAllSearchframe">Закрыть все окна поиска	Alt + G</String>
 		<String Name="MenuCloseDisconnected">Закрыть отключенные	Alt + D</String>
 		<String Name="MenuCloseHubsBelow">Закрыть хабы с низким кол-вом пользователей</String>
 		<String Name="MenuCloseHubsEmpty">Закрыть пустые хабы</String>
@@ -1736,6 +1736,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="TabOfflineColor">Цвет офлайн-вкладки</String>
 		<String Name="TabOfflineTextColor">Цвет текста офлайн-вкладки</String>
 		<String Name="TabSelectedColor">Цвет выбранной вкладки</String>
+		<String Name="TabSelectedBorderColor">Цвет бордюра автивной вкладки</String>
 		<String Name="TabSelectedTextColor">Цвет текста выбранной вкладки</String>
 		<String Name="HubInFavBkColor">Хабы – Хаб есть в Избранных</String>
 		<String Name="HubInFavConnectBkColor">Хабы – Автоподключение хаба при старте</String>

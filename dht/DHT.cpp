@@ -147,6 +147,7 @@ void DHT::dispatch(const string& aLine, const string& ip, uint16_t port, bool is
 	// check node's IP address
 	if (!Utils::isGoodIPPort(ip, port))
 	{
+      LogManager::dht_message("DHT::dispatch] isGoodIPPort - error ip = " + ip + ":" + Util::toString(port));
 		//socket.send(AdcCommand(AdcCommand::SEV_FATAL, AdcCommand::ERROR_BAD_IP, "Your client supplied invalid IP: " + ip, AdcCommand::TYPE_UDP), ip, port);
 		return; // invalid ip/port supplied
 	}
@@ -154,18 +155,29 @@ void DHT::dispatch(const string& aLine, const string& ip, uint16_t port, bool is
 	try
 	{
 		AdcCommand cmd(aLine);
-		
+		const string cid = cmd.getParam(0);
+		const CID l_CID(cid);
+		if (cid.size() != 39)
+		{
+			LogManager::dht_message("DHT::dispatch] cid.size() != 39 - error ip = " + ip + ":" + Util::toString(port) + " cid = " + cmd.toString(l_CID));
+			return;
+		}
+
 		// flood protection
 		if (!Utils::checkFlood(ip, cmd))
+    {
+		LogManager::dht_message("DHT::dispatch] checkFlood - error ip = " + ip + ":" + Util::toString(port) + " cmd = " + cmd.toString(l_CID));
 			return;
+    }
 			
-		string cid = cmd.getParam(0);
-		if (cid.size() != 39)
-			return;
 			
 		// ignore message from myself
-		if (CID(cid) == ClientManager::getMyCID() || ip == lastExternalIP) // [!] IRainman fix.
+		if (l_CID == ClientManager::getMyCID() || ip == lastExternalIP) // [!] IRainman fix.
+		{
+        LogManager::dht_message("DHT::dispatch] CID(cid) == ClientManager::getMyCID() || ip == lastExternalIP. error ip = " + ip + 
+			":" + Util::toString(port) + " cid = " + cmd.toString(l_CID) + " lastExternalIP = " + lastExternalIP);
 			return;
+    }
 			
 		m_lastPacket = GET_TICK();
 
@@ -329,7 +341,7 @@ void DHT::info(const string& ip, uint16_t port, uint32_t type, const CID& target
 
 	cmd.addParam("VE", A_VERSIONSTRING);
 	cmd.addParam("NI", SETTING(NICK));
-	cmd.addParam("SL", Util::toString(UploadManager::getInstance()->getSlots()));
+	cmd.addParam("SL", Util::toString(UploadManager::getSlots()));
 	
 	if (BOOLSETTING(THROTTLE_ENABLE) && ThrottleManager::getInstance()->getUploadLimitInBytes() != 0)
 	{
@@ -592,10 +604,13 @@ void DHT::handle(AdcCommand::RCM, const string& ip, uint16_t port, const UDPKey&
 }
 
 // status message
-void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t /*port*/, const UDPKey& /*udpKey*/, const AdcCommand& c) noexcept
+void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t port, const UDPKey& /*udpKey*/, const AdcCommand& c) noexcept
 {
 	if (c.getParameters().size() < 3)
+  {
+      LogManager::dht_message("DHT::handle c.getParameters().size() < 3 - fromIP = " + fromIP + ":" + Util::toString(port) + " c = " + c.toString(CID()));
 		return;
+  }
 		
 	int code = Util::toInt(c.getParam(1).substr(1));
 	
@@ -603,10 +618,14 @@ void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t /*port*/, const
 	{
 		string resTo;
 		if (!c.getParam("FC", 2, resTo))
+		{
+			LogManager::dht_message("DHT::handle !c.getParam(FC, 2, resTo) - fromIP = " + fromIP + ":" + Util::toString(port) + " c = " + c.toString(CID()) + " FC = " + resTo);
 			return;
+    }
 			
 		if (resTo == "PUB")
 		{
+        LogManager::dht_message("DHT::handle resTo == PUB - empty code!  fromIP = " + fromIP + ":" + Util::toString(port));
 			/*#ifdef _DEBUG
 			            // don't do anything
 			            string tth;
@@ -632,17 +651,26 @@ void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t /*port*/, const
 			// [!] IRainman opt.
 			const auto i = firewalledWanted.find(fromIP); // [1] https://www.box.net/shared/4b2e554c75f77c3f9054
 			if (i == firewalledWanted.end())
+			{
+            LogManager::dht_message("DHT::handle i == firewalledWanted.end() - fromIP = " + fromIP + ":" + Util::toString(port));
 				return; // we didn't requested firewall check from this node
+      }
 				
 			firewalledWanted.erase(i);
 			if (firewalledChecks.find(fromIP) != firewalledChecks.end())
+			{
+           LogManager::dht_message("DHT::handle i == firewalledChecks.find(fromIP) != firewalledChecks.end() - fromIP = " + fromIP + ":" + Util::toString(port));
 				return; // already received firewall check from this node
+      }
 			// [~] IRainman opt.
 				
 			string externalIP;
 			string externalUdpPort;
 			if (!c.getParam("I4", 1, externalIP) || !c.getParam("U4", 1, externalUdpPort))
+				{
+            LogManager::dht_message("DHT::handle !c.getParam('I4', 1, externalIP) || !c.getParam('U4', 1, externalUdpPort) - fromIP = " + fromIP + ":" + Util::toString(port));
 				return; // no IP and port in response
+      }
 			const auto l_udp_port = static_cast<uint16_t>(Util::toInt(externalUdpPort));
 			firewalledChecks.insert(std::make_pair(fromIP, std::make_pair(externalIP,l_udp_port)));
 			if (firewalledChecks.size() >= FW_RESPONSES)
@@ -679,13 +707,17 @@ void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t /*port*/, const
 				{
 					// we are probably firewalled, so our internal UDP port is unaccessible
 					if (externalIP != lastExternalIP || !m_firewalled)
+					{
 						LogManager::message("DHT: " + STRING(DHT_FIREWALLED_UDP) + " (IP: " + externalIP + ") port:" + externalUdpPort);
+          }
 					m_firewalled = true;
 				}
 				else
 				{
 					if (externalIP != lastExternalIP || m_firewalled)
+					{
 						LogManager::message("DHT: " + STRING(DHT_OUR_UPD_PORT_OPEND) + " (IP: " + externalIP + ") port:" + externalUdpPort);
+          }
 						
 					m_firewalled = false;
 				}
@@ -803,18 +835,27 @@ void DHT::handle(AdcCommand::SND, const string& ip, uint16_t port, const UDPKey&
 				const CID cid(xml.getChildAttrib("CID"));
 				
 				if (cid.isZero())
+				{
+              LogManager::dht_message("DHT::handle(AdcCommand::SND cid.isZero()! IP = " + ip + ":" + Util::toString(port));
 					continue;
+        }
 					
 				// don't bother with myself
 				if (ClientManager::getMyCID() == cid) // [!] IRainman fix.
+				{
+            LogManager::dht_message("DHT::handle(AdcCommand::SND ClientManager::getMyCID() == cid - IP = " + ip + ":" + Util::toString(port) + " CID = " + cid.toBase32());
 					continue;
+        }
 					
 				const string& i4    = xml.getChildAttrib("I4");
 				const uint16_t u4         = static_cast<uint16_t>(xml.getIntChildAttrib("U4"));
 				
 				// don't bother with private IPs
 				if (!Utils::isGoodIPPort(i4, u4))
+					{
+              LogManager::dht_message("DHT::handle(AdcCommand::SND !Utils::isGoodIPPort(i4, u4) - IP = " + ip + ":" + Util::toString(port));
 					continue;
+        }
 					
 				// create verified node, it's not big risk here and allows faster bootstrapping
 				// if this node already exists in our routing table, don't update its ip/port for security reasons

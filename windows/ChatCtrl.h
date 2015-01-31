@@ -140,6 +140,10 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 			bool m_is_disable_style;
 			CFlyChatCache(const Identity& p_id, const bool bMyMess, const bool bThirdPerson,
 			              const tstring& sExtra, const tstring& sMsg, const CHARFORMAT2& cf, bool bUseEmo, bool p_is_remove_rn = true);
+			size_t length() const
+			{
+				return m_Extra.size() + m_Msg.size() + m_Nick.size() + 30;
+			}
 		};
 		
 		void AppendText(const CFlyChatCache& p_message);
@@ -149,6 +153,7 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 		
 	private:
 		std::list<CFlyChatCache> m_chat_cache; // вектор нельзя - список пополняется (странно что в одной нитке)
+		size_t m_chat_cache_length;
 		bool m_is_cache_chat_empty;
 		bool m_is_out_of_memory_for_smile;
 		//std::unique_ptr<webrtc::RWLockWrapper> m_cs_chat_cache;

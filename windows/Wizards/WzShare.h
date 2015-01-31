@@ -77,7 +77,7 @@ public:
 		ctrlDirectories.InsertColumn(1, CTSTRING(DIRECTORY), LVCFMT_LEFT, rc.Width() * 3 / 4, 1);
 
 		CFlyDirItemArray directories;
-		ShareManager::getInstance()->getDirectories(directories);
+		ShareManager::getDirectories(directories);
 		auto cnt = ctrlDirectories.GetItemCount();
 		for (auto j = directories.cbegin(); j != directories.cend(); ++j)
 		{
@@ -323,7 +323,7 @@ public:
 		{
 		// Save 
 		CFlyDirItemArray directories;
-		ShareManager::getInstance()->getDirectories(directories);
+		ShareManager::getDirectories(directories);
 
 		CFlyDirItemArray newList;
 		CFlyDirItemArray renameList;
@@ -396,7 +396,7 @@ public:
 		ctrlDirectories.Detach();
 #ifdef VIP
 		static const int64_t l_minlim = 2I64 * 1024I64 * 1024I64 * 1024I64;
-		if( ShareManager::getInstance()->getShareSize() < l_minlim )
+		if( ShareManager::getShareSize() < l_minlim )
 		{
 			string l_messages = STRING(WIZARD_SHARE_TO_SMALL);
 			l_messages += " ";

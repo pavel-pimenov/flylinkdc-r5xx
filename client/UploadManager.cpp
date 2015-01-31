@@ -37,14 +37,15 @@ boost::atomic_int UploadQueueItem::g_upload_queue_item_count;
 #endif
 uint32_t UploadManager::g_count_WaitingUsersFrame = 0;
 UploadManager::SlotMap UploadManager::g_reservedSlots;
+int UploadManager::g_running = 0;
 
 std::unique_ptr<webrtc::RWLockWrapper> UploadManager::g_csReservedSlots = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> UploadManager::g_csBans = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 
 UploadManager::UploadManager() noexcept :
-m_running(0), extra(0), lastGrant(0), m_lastFreeSlots(-1),
-          fireballStartTick(0), isFireball(false), isFileServer(false), extraPartial(0),
-          m_runningAverage(0)//[+] IRainman refactoring transfer mechanism
+extra(0), lastGrant(0), m_lastFreeSlots(-1),
+      fireballStartTick(0), isFireball(false), isFileServer(false), extraPartial(0),
+      m_runningAverage(0)//[+] IRainman refactoring transfer mechanism
 {
 	ClientManager::getInstance()->addListener(this);
 	TimerManager::getInstance()->addListener(this);
@@ -54,6 +55,7 @@ UploadManager::~UploadManager()
 {
 	TimerManager::getInstance()->removeListener(this);
 	ClientManager::getInstance()->removeListener(this);
+	SharedFileStream::check_before_destoy();
 	{
 		Lock l(m_csQueue); // [!] IRainman opt.
 		for (auto ii = m_slotQueue.cbegin(); ii != m_slotQueue.cend(); ++ii)
@@ -73,7 +75,7 @@ UploadManager::~UploadManager()
 			if (m_uploads.empty())
 				break;
 		}
-		Thread::sleep(100);
+		Thread::sleep(10);
 	}
 }
 // !SMT!-S
@@ -261,13 +263,13 @@ bool UploadManager::hasUpload(const UserConnection* p_newLeacher, const string& 
 				snprintf(bufShareDelta, sizeof(bufShareDelta), "%I64d", int64_t(std::abs(long(newLeacherShare - uploadUserShare))));
 #if 0
 				LogManager::ddos_message("[Drop duplicated connection] From IP =" + newLeacherIp
-				                                        + ", share con = " + bufNewLeacherShare
-				                                        + ", share exist = " + string(bufUploadUserShare)
-				                                        + " delta = " + string(bufShareDelta)
-				                                        + " nick con = " + p_newLeacher->getUser()->getLastNick()
-				                                        + " nick exist = " + u->getUser()->getLastNick()
-				                                        + " source file = " + p_source_file
-				                                       );
+				                         + ", share con = " + bufNewLeacherShare
+				                         + ", share exist = " + string(bufUploadUserShare)
+				                         + " delta = " + string(bufShareDelta)
+				                         + " nick con = " + p_newLeacher->getUser()->getLastNick()
+				                         + " nick exist = " + u->getUser()->getLastNick()
+				                         + " source file = " + p_source_file
+				                        );
 #endif
 #endif
 				return true;
@@ -479,20 +481,20 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 				dcassert(!sourceFile.empty());
 				try
 				{
-					auto ss = new SharedFileStream(sourceFile, File::READ, File::OPEN | File::SHARED | File::NO_CACHE_HINT);
+					auto f = new SharedFileStream(sourceFile, File::READ, File::OPEN | File::SHARED | File::NO_CACHE_HINT);
 					
 					start = aStartPos;
-					fileSize = ss->getSize();
+					fileSize = f->getSize();
 					size = (aBytes == -1) ? fileSize - start : aBytes;
 					
 					if ((start + size) > fileSize)
 					{
 						aSource->fileNotAvail();
-						delete ss;
+						delete f;
 						return false;
 					}
 					
-					ss->setPos(start);
+					f->setPos(start);
 					// [!] IRainman fix.
 					// [-] is = ss;
 					
@@ -501,18 +503,17 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 						// [+]
 						try
 						{
-							is = new LimitedInputStream<true>(ss, size); // [!]
+							is = new LimitedInputStream<true>(f, size); // [!]
 						}
 						catch (...)
 						{
-							delete ss;
+							delete f;
 							throw;
 						}
-						// [+]
 					}
 					else
 					{
-						is = ss; // [+]
+						is = f;
 					}
 					// [~] IRainman fix.
 					
@@ -733,7 +734,7 @@ bool UploadManager::getAutoSlot()
 	if (SETTING(MIN_UPLOAD_SPEED) == 0)
 		return false;
 	/** Max slots */
-	if (getSlots() + SETTING(AUTO_SLOTS) < m_running)
+	if (getSlots() + SETTING(AUTO_SLOTS) < g_running)
 		return false;
 	/** Only grant one slot per 30 sec */
 	if (GET_TICK() < getLastGrant() + 30 * 1000)
@@ -914,6 +915,7 @@ void UploadManager::on(UserConnectionListener::Failed, UserConnection* aSource, 
 	}
 	
 	removeConnection(aSource);
+	SharedFileStream::cleanup();
 }
 
 void UploadManager::on(UserConnectionListener::TransmitDone, UserConnection* aSource) noexcept
@@ -933,6 +935,7 @@ void UploadManager::on(UserConnectionListener::TransmitDone, UserConnection* aSo
 	{
 		removeUpload(u, true);
 	}
+	SharedFileStream::cleanup();
 }
 
 void UploadManager::logUpload(const Upload* u)
@@ -943,8 +946,8 @@ void UploadManager::logUpload(const Upload* u)
 		u->getParams(u->getUserConnection(), params);
 		LOG(UPLOAD, params);
 	}
-	
 	fire(UploadManagerListener::Complete(), u);
+	SharedFileStream::cleanup();
 }
 
 size_t UploadManager::addFailedUpload(const UserConnection* aSource, const string& file, int64_t pos, int64_t size)
@@ -1053,7 +1056,7 @@ void UploadManager::process_slot(UserConnection::SlotTypes p_slot_type, int p_de
 	switch (p_slot_type)
 	{
 		case UserConnection::STDSLOT:
-			m_running += p_delta;
+			g_running += p_delta;
 			break;
 		case UserConnection::EXTRASLOT:
 			extra += p_delta;
@@ -1291,7 +1294,7 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 		{
 			if ((Util::getUpTime() > 10 * 24 * 60 * 60) && // > 10 days uptime
 			        (Socket::g_stats.m_tcp.totalUp > 100ULL * 1024 * 1024 * 1024) && // > 100 GiB uploaded
-			        (ShareManager::getInstance()->getSharedSize() > 1.5 * 1024 * 1024 * 1024 * 1024)) // > 1.5 TiB shared
+			        (ShareManager::getSharedSize() > 1.5 * 1024 * 1024 * 1024 * 1024)) // > 1.5 TiB shared
 			{
 				isFileServer = true;
 				ClientManager::infoUpdated();

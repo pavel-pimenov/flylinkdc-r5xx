@@ -52,7 +52,6 @@ PropPage::ListItem IntPreviewPage::listItems[] =
 {
 	{ SettingsManager::INT_PREVIEW_USE_VIDEO_SCROLL, ResourceManager::INT_PREVIEW_USE_VIDEO_SCROLL },
 	{ SettingsManager::INT_PREVIEW_START_CLIENT, ResourceManager::INT_PREVIEW_START_CLIENT },
-	
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -63,7 +62,6 @@ LRESULT IntPreviewPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 	PropPage::translate((HWND)(*this), texts);
 	PropPage::read((HWND)*this, items, listItems, GetDlgItem(IDC_INT_PREVIEW_LIST));
 	ctrlPrevlist.Attach(GetDlgItem(IDC_INT_PREVIEW_LIST)); // [+] IRainman
-	
 	return TRUE;
 }
 

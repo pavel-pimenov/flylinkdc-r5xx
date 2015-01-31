@@ -46,7 +46,7 @@ class SharedFileStream : public IOStream
 	public:
 		typedef std::unordered_map<std::string, std::unique_ptr<SharedFileHandle>, noCaseStringHash, noCaseStringEq> SharedFileHandleMap;
 		
-		SharedFileStream(const string& aFileName, int access, int mode);
+		SharedFileStream(const string& aFileName, int aAccess, int aMode);
 		~SharedFileStream();
 		
 		size_t write(const void* buf, size_t len);
@@ -65,7 +65,8 @@ class SharedFileStream : public IOStream
 		static SharedFileHandleMap g_rwpool;
 #endif
 		static std::unordered_set<std::string> g_shared_stream_errors;
-		
+		static void cleanup();
+		static void check_before_destoy();
 		void setPos(int64_t aPos);
 	private:
 		SharedFileHandle* m_sfh;

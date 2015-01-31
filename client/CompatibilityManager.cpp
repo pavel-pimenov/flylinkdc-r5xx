@@ -727,8 +727,8 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				          GetGuiResources(GetCurrentProcess(), 2/* GR_GDIOBJECTS_PEAK */),
 				          GetGuiResources(GetCurrentProcess(), GR_USEROBJECTS),
 				          GetGuiResources(GetCurrentProcess(), 4 /*GR_USEROBJECTS_PEAK*/),
-				          Util::formatBytes(ShareManager::getInstance()->getSharedSize()).c_str(),
-				          ShareManager::getInstance()->getSharedFiles(),
+				          Util::formatBytes(ShareManager::getSharedSize()).c_str(),
+				          ShareManager::getSharedFiles(),
 				          ClientManager::getTotalUsers(),
 				          Client::getTotalCounts(),
 				          generateNetworkStats().c_str()

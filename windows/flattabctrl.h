@@ -79,9 +79,9 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		enum { FT_EXTRA_SPACE = 18 };
 		
 		explicit FlatTabCtrlImpl() :
-			rows(1),
+			m_rows(1),
 			m_height(0),
-			active(nullptr),
+			m_active(nullptr),
 			m_moving(nullptr),
 			m_is_intab(false),
 			m_is_invalidate(false),
@@ -127,27 +127,27 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 #endif
 			    ) || !BOOLSETTING(NON_HUBS_FRONT))
 			{
-				tabs.push_back(i);
+				m_tabs.push_back(i);
 				switch (WinUtil::GetTabsPosition())
 				{
 					case SettingsManager::TABS_TOP:
 					case SettingsManager::TABS_BOTTOM:
-						viewOrder.push_back(hWnd);
+						m_viewOrder.push_back(hWnd);
 						break;
 					default:
-						viewOrder.push_front(hWnd);
+						m_viewOrder.push_front(hWnd);
 						break;
 				}
 				
-				nextTab = --viewOrder.end();
+				m_nextTab = --m_viewOrder.end();
 			}
 			else
 			{
-				tabs.insert(tabs.begin(), i);
-				viewOrder.insert(viewOrder.begin(), hWnd);
-				nextTab = ++viewOrder.begin();
+				m_tabs.insert(m_tabs.begin(), i);
+				m_viewOrder.insert(m_viewOrder.begin(), hWnd);
+				m_nextTab = ++m_viewOrder.begin();
 			}
-			active = i;
+			m_active = i;
 #ifdef IRAINMAN_FAST_FLAT_TAB
 			// do nothing, all updates in setActiv()
 #else
@@ -158,28 +158,28 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		
 		void removeTab(HWND aWnd)
 		{
-			if (!tabs.empty()) // бывает что табов нет http://www.flickr.com/photos/96019675@N02/9732602134/
+			if (!m_tabs.empty()) // бывает что табов нет http://www.flickr.com/photos/96019675@N02/9732602134/
 			{
 				TabInfo::List::const_iterator i;
-				for (i = tabs.begin(); i != tabs.end(); ++i)
+				for (i = m_tabs.begin(); i != m_tabs.end(); ++i)
 				{
 					if ((*i)->hWnd == aWnd)
 						break;
 				}
-				if (i != tabs.end()) //[+]PPA fix
+				if (i != m_tabs.end()) //[+]PPA fix
 				{
 					TabInfo* ti = *i;
-					tabs.erase(i);
+					m_tabs.erase(i);
 					
-					if (active == ti)
-						active = nullptr;
+					if (m_active == ti)
+						m_active = nullptr;
 					if (m_moving == ti)
 						m_moving = nullptr;
 						
-					viewOrder.erase(std::find(begin(viewOrder), end(viewOrder), aWnd));
-					nextTab = viewOrder.end();
-					if (!viewOrder.empty())
-						--nextTab;
+					m_viewOrder.erase(std::find(begin(m_viewOrder), end(m_viewOrder), aWnd));
+					m_nextTab = m_viewOrder.end();
+					if (!m_viewOrder.empty())
+						--m_nextTab;
 						
 #ifdef IRAINMAN_FAST_FLAT_TAB
 					calcRows();
@@ -195,50 +195,50 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		
 		void startSwitch()
 		{
-			if (!viewOrder.empty())
-				nextTab = --viewOrder.end();
+			if (!m_viewOrder.empty())
+				m_nextTab = --m_viewOrder.end();
 			m_is_intab = true;
 		}
 		
 		void endSwitch()
 		{
 			m_is_intab = false;
-			if (active)
-				setTop(active->hWnd);
+			if (m_active)
+				setTop(m_active->hWnd);
 		}
 		
 		HWND getNext()
 		{
-			if (viewOrder.empty())
+			if (m_viewOrder.empty())
 				return nullptr;
 				
-			if (nextTab == viewOrder.begin())
+			if (m_nextTab == m_viewOrder.begin())
 			{
-				nextTab = --viewOrder.end();
+				m_nextTab = --m_viewOrder.end();
 			}
 			else
 			{
-				--nextTab;
+				--m_nextTab;
 			}
-			return *nextTab;
+			return *m_nextTab;
 		}
 		HWND getPrev()
 		{
-			if (viewOrder.empty())
+			if (m_viewOrder.empty())
 				return nullptr;
 				
-			++nextTab;
-			if (nextTab == viewOrder.end())
+			++m_nextTab;
+			if (m_nextTab == m_viewOrder.end())
 			{
-				nextTab = viewOrder.begin();
+				m_nextTab = m_viewOrder.begin();
 			}
-			return *nextTab;
+			return *m_nextTab;
 		}
 		
 		bool isActive(HWND aWnd) // [+] IRainman opt.
 		{
-			return active && // fix https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&Login=Guest&DumpGroupID=86322
-			       active->hWnd == aWnd;
+			return m_active && // fix https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&Login=Guest&DumpGroupID=86322
+			       m_active->hWnd == aWnd;
 		}
 		
 		void setActive(HWND aWnd)
@@ -250,7 +250,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				setTop(aWnd);
 			if (TabInfo* ti = getTabInfo(aWnd))
 			{
-				active = ti;
+				m_active = ti;
 				ti->m_dirty = false;
 #ifdef IRAINMAN_FAST_FLAT_TAB
 				calcRows();
@@ -264,9 +264,9 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		
 		void setTop(HWND aWnd)
 		{
-			viewOrder.erase(std::find(begin(viewOrder), end(viewOrder), aWnd));
-			viewOrder.push_back(aWnd);
-			nextTab = --viewOrder.end();
+			m_viewOrder.erase(std::find(begin(m_viewOrder), end(m_viewOrder), aWnd));
+			m_viewOrder.push_back(aWnd);
+			m_nextTab = --m_viewOrder.end();
 		}
 		
 		void setCountMessages(HWND aWnd, int p_count_messages)
@@ -282,7 +282,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			if (TabInfo* ti = getTabInfo(aWnd))
 			{
 				bool inval = ti->update();
-				if (active != ti)
+				if (m_active != ti)
 				{
 					if (p_count_messages)
 					{
@@ -391,7 +391,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBackground)
 		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow)
 		COMMAND_ID_HANDLER(IDC_CHEVRON, onChevron)
-		COMMAND_RANGE_HANDLER(IDC_SELECT_WINDOW, IDC_SELECT_WINDOW + tabs.size(), onSelectWindow)
+		COMMAND_RANGE_HANDLER(IDC_SELECT_WINDOW, IDC_SELECT_WINDOW + m_tabs.size(), onSelectWindow)
 		END_MSG_MAP()
 		
 		LRESULT OnEraseBackground(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -404,7 +404,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			const POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 			const int row = getRows() - (pt.y / getTabHeight() + 1);
 			
-			for (auto i = tabs.cbegin(); i != tabs.cend(); ++i)
+			for (auto i = m_tabs.cbegin(); i != m_tabs.cend(); ++i)
 			{
 				TabInfo* t = *i;
 				if (row == t->m_row &&
@@ -437,7 +437,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				
 				bool moveLast = true;
 				
-				for (auto i = tabs.cbegin(); i != tabs.cend(); ++i)
+				for (auto i = m_tabs.cbegin(); i != m_tabs.cend(); ++i)
 				{
 					TabInfo* t = *i;
 					if (row == t->m_row &&
@@ -464,7 +464,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 					}
 				}
 				if (moveLast)
-					moveTabs(tabs.back(), true);
+					moveTabs(m_tabs.back(), true);
 				m_moving = nullptr;
 			}
 			return 0;
@@ -502,7 +502,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			ScreenToClient(&pt);
 			const int row = getRows() - (pt.y / getTabHeight() + 1);
 			
-			for (auto i = tabs.cbegin(); i != tabs.cend(); ++i)
+			for (auto i = m_tabs.cbegin(); i != m_tabs.cend(); ++i)
 			{
 				TabInfo* t = *i;
 				if (row == t->m_row &&
@@ -539,7 +539,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			const POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };        // location of mouse click
 			const int row = getRows() - (pt.y / getTabHeight() + 1);
 			const int yPos = (getRows() - row - 1) * getTabHeight();
-			for (auto i = tabs.cbegin(); i != tabs.cend(); ++i)
+			for (auto i = m_tabs.cbegin(); i != m_tabs.cend(); ++i)
 			{
 				TabInfo* t = *i;
 				if (row == t->m_row &&
@@ -563,8 +563,10 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 							switch (WinUtil::GetTabsPosition())
 							{
 								case SettingsManager::TABS_LEFT:
+									rcs.left = t->m_xpos + 147;
+									break;
 								case SettingsManager::TABS_RIGHT:
-									rcs.left = t->m_xpos + 149;
+									rcs.left = t->m_xpos + 145;
 									break;
 								default:
 									rcs.left = t->m_xpos + t->getWidth();
@@ -575,7 +577,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 							switch (WinUtil::GetTabsPosition())
 							{
 								case SettingsManager::TABS_TOP:
-									rcs.top = yPos + 4;
+									rcs.top = yPos + 6;
 									break;
 								case SettingsManager::TABS_BOTTOM:
 									rcs.top = yPos + 2;
@@ -613,9 +615,9 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 					if (buf != m_current_tip)
 					{
 						m_tab_tip.DelTool(m_hWnd);
-						m_tab_tip.AddTool(m_hWnd, &buf[0]);
-						if (!BOOLSETTING(POPUPS_DISABLED) && BOOLSETTING(POPUPS_TABS_ENABLED)) // TODO -> updateTabs
+						if (!BOOLSETTING(POPUPS_DISABLED) && BOOLSETTING(POPUPS_TABS_ENABLED) && !buf.empty()) // TODO -> updateTabs
 						{
+							m_tab_tip.AddTool(m_hWnd, &buf[0]);
 							m_tab_tip.Activate(TRUE);
 						}
 						m_current_tip = buf;
@@ -656,7 +658,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		
 		int getRows() const
 		{
-			return rows;
+			return m_rows;
 		}
 		
 #ifdef IRAINMAN_FAST_FLAT_TAB
@@ -676,15 +678,15 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			
 			const int& l_TabPos = WinUtil::GetTabsPosition();
 			const int l_MaxTabRows = (l_TabPos == SettingsManager::TABS_TOP || l_TabPos == SettingsManager::TABS_BOTTOM) ? SETTING(MAX_TAB_ROWS) : (rc.Height() / getTabHeight());
-			for (auto i = tabs.cbegin(); i != tabs.cend(); ++i)
+			for (auto i = m_tabs.cbegin(); i != m_tabs.cend(); ++i)
 			{
 				TabInfo* ti = *i;
 				if (r != 0 && w + ti->getWidth() > rc.Width())
 				{
 					if (r == l_MaxTabRows)
 					{
-						notify |= rows != r;
-						rows = r;
+						notify |= m_rows != r;
+						m_rows = r;
 						r = 0;
 						m_chevron.EnableWindow(TRUE);
 						m_chevron.ShowWindow(TRUE);
@@ -710,8 +712,8 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			{
 				m_chevron.EnableWindow(FALSE);
 				m_chevron.ShowWindow(FALSE);
-				notify |= (rows != r);
-				rows = r;
+				notify |= (m_rows != r);
+				m_rows = r;
 			}
 			
 			activateCloseButton(FALSE, FALSE);
@@ -761,7 +763,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				//Если шрифт маленький, то высота вклаки 24
 				if (m_height_font < 18)
 				{
-					m_height = 22;
+					m_height = 23;
 				}
 			}
 			int l_res = ::ReleaseDC(m_hWnd, dc);
@@ -812,8 +814,8 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				//Режим сглаживания линий (не менять, другие не работают)
 				graphics->SetSmoothingMode(Gdiplus::SmoothingModeNone /*SmoothingModeHighQuality*/);
 #endif
-				//dcdebug("FlatTabCtrl::active = %d\n", active);
-				for (auto i = tabs.cbegin(); i != tabs.cend(); ++i)
+				//dcdebug("FlatTabCtrl::m_active = %d\n", m_active);
+				for (auto i = m_tabs.cbegin(); i != m_tabs.cend(); ++i)
 				{
 					TabInfo* t = *i;
 					if (t && t->m_row != -1 && t->m_xpos < rc.right && t->m_xpos + t->getWidth() >= rc.left)
@@ -823,7 +825,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
 						        graphics,
 #endif
-						        t, t->m_xpos, t->m_row, t == active);
+						        t, t->m_xpos, t->m_row, t == m_active);
 					}
 				}
 				
@@ -848,12 +850,12 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				/* TODO move to drawTab
 				                if(drawActive)
 				                {
-				                    dcassert(active);
-				                    drawTab(dc, active, active->xpos, active->row, true);
-				                    dc.SelectPen(active->pen);
-				                    int y = (rows - active->row - 1) * getTabHeight();
-				                    dc.MoveTo(active->xpos, y);
-				                    dc.LineTo(active->xpos + active->getWidth(), y);
+				                    dcassert(m_active);
+				                    drawTab(dc, m_active, m_active->xpos, m_active->row, true);
+				                    dc.SelectPen(m_active->pen);
+				                    int y = (m_rows - m_active->row - 1) * getTabHeight();
+				                    dc.MoveTo(m_active->xpos, y);
+				                    dc.LineTo(m_active->xpos + m_active->getWidth(), y);
 				                }
 				
 				                dc.SelectPen(oldpen);
@@ -879,7 +881,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			mi.fMask = MIIM_ID | MIIM_TYPE | MIIM_DATA | MIIM_STATE;
 			mi.fType = MFT_STRING | MFT_RADIOCHECK;
 			
-			for (auto i = tabs.cbegin(); i != tabs.cend(); ++i)
+			for (auto i = m_tabs.cbegin(); i != m_tabs.cend(); ++i)
 			{
 				TabInfo* ti = *i;
 				if (ti->m_row == -1)
@@ -922,20 +924,20 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		{
 			activateCloseButton(FALSE, FALSE);
 			
-			for (auto i = tabs.cbegin(); i != tabs.cend(); ++i)
+			for (auto i = m_tabs.cbegin(); i != m_tabs.cend(); ++i)
 			{
-				if ((*i)->hWnd == active->hWnd)
+				if ((*i)->hWnd == m_active->hWnd)
 				{
 					if (next)
 					{
 						++i;
-						if (i == tabs.end())
-							i = tabs.begin();
+						if (i == m_tabs.end())
+							i = m_tabs.begin();
 					}
 					else
 					{
-						if (i == tabs.begin())
-							i = tabs.end();
+						if (i == m_tabs.begin())
+							i = m_tabs.end();
 						--i;
 					}
 					setActive((*i)->hWnd);
@@ -951,7 +953,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			const POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 			const int row = getRows() - (pt.y / getTabHeight() + 1);
 			
-			for (auto i = tabs.cbegin(); i != tabs.cend(); ++i)
+			for (auto i = m_tabs.cbegin(); i != m_tabs.cend(); ++i)
 			{
 				TabInfo* t = *i;
 				if (row == t->m_row &&
@@ -974,7 +976,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		{
 			g_color_shadow = GetSysColor(COLOR_BTNSHADOW);
 			g_color_light = GetSysColor(COLOR_BTNHIGHLIGHT);
-			g_color_face = GetSysColor(COLOR_BTNFACE);
+			g_color_face =  GetSysColor(COLOR_WINDOW); //SETTING(TAB_SELECTED_BORDER_COLOR);
 			g_color_filllight = GetSysColor(COLOR_HIGHLIGHT);
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
 			g_color_shadow_gdi = Gdiplus::Color(GetRValue(g_color_shadow), GetGValue(g_color_shadow), GetBValue(g_color_shadow));
@@ -992,7 +994,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			{
 				m_bClose.ShowWindow(FALSE);
 			}
-			for (auto i = tabs.cbegin(); i != tabs.cend(); ++i)
+			for (auto i = m_tabs.cbegin(); i != m_tabs.cend(); ++i)
 			{
 				TabInfo* t = *i;
 				t->update(true);
@@ -1171,17 +1173,17 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				
 			TabInfo::List::const_iterator i;
 			//remove the tab we're m_moving
-			for (auto j = tabs.begin(); j != tabs.end(); ++j)
+			for (auto j = m_tabs.begin(); j != m_tabs.end(); ++j)
 			{
 				if ((*j) == m_moving)
 				{
-					tabs.erase(j);
+					m_tabs.erase(j);
 					break;
 				}
 			}
 			
 			//find the tab we're going to insert before or after
-			for (i = tabs.begin(); i != tabs.end(); ++i)
+			for (i = m_tabs.begin(); i != m_tabs.end(); ++i)
 			{
 				if ((*i) == aTab)
 				{
@@ -1191,7 +1193,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				}
 			}
 			
-			tabs.insert(i, m_moving);
+			m_tabs.insert(i, m_moving);
 			m_moving = nullptr;
 #ifdef IRAINMAN_FAST_FLAT_TAB
 			calcRows();
@@ -1212,22 +1214,22 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 //		CPen white;
 #endif
 
-		int rows;
+		int m_rows;
 		int m_height;
 		int m_height_font;
 		
 		tstring m_current_tip;
 		bool m_is_cur_close;
 		
-		TabInfo* active;
+		TabInfo* m_active;
 		TabInfo* m_moving;
-		typename TabInfo::List tabs;
+		typename TabInfo::List m_tabs;
 		
 		typedef deque<HWND> WindowList; // [!] IRainman opt: change list to deque.
 		typedef WindowList::const_iterator WindowIter;
 		
-		WindowList viewOrder;
-		WindowIter nextTab;
+		WindowList m_viewOrder;
+		WindowIter m_nextTab;
 		
 		bool m_is_intab;
 		bool m_is_invalidate;
@@ -1238,7 +1240,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 	public:
 		TabInfo* getTabInfo(HWND aWnd) const
 		{
-			for (auto i = tabs.cbegin(); i != tabs.cend(); ++i)
+			for (auto i = m_tabs.cbegin(); i != m_tabs.cend(); ++i)
 			{
 				if ((*i)->hWnd == aWnd)
 					return *i;
@@ -1264,8 +1266,8 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			const int ypos = (getRows() - row - 1) * getTabHeight();
 			int magic_width = tab->getWidth() - g_magic_width;
 			
-			// const int tabAnim = aActive ? 0 : 2;
-			const int tabAnim = 0;
+			const int tabAnim = aActive ? 0 : 1;
+			//const int tabAnim = 0;
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
 			//Контур вкладки
 			unique_ptr<Gdiplus::GraphicsPath> l_tabsPath;
@@ -1279,7 +1281,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				                 new Gdiplus::LinearGradientBrush(Gdiplus::RectF(pos, ((WinUtil::GetTabsPosition() == SettingsManager::TABS_TOP) ? (ypos + tabAnim + 3) : ypos), magic_width, ((SETTING(TABS_POS) == 0 || SETTING(TABS_POS) == 1) ? (m_height - tabAnim - 2) : m_height)),
 				                                                  g_color_light,
 				                                                  g_color_face,
-				                                                  Gdiplus::LinearGradientModeVertical)
+				                                                  (SETTING(TABS_POS) == 0 || SETTING(TABS_POS) == 1) ? Gdiplus::LinearGradientModeVertical : Gdiplus::LinearGradientModeHorizontal)
 				             );
 				l_tabsPath = unique_ptr<Gdiplus::GraphicsPath>(new Gdiplus::GraphicsPath);
 			}
@@ -1323,15 +1325,16 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				const Gdiplus::Color l_colors[] =
 				{
 					l_isBottom ? g_color_face_gdi : g_color_light_gdi,
-					Gdiplus::Color(60, GetRValue(l_color_tab), GetGValue(l_color_tab), GetBValue(l_color_tab)),
-					Gdiplus::Color(135, GetRValue(l_color_tab), GetGValue(l_color_tab), GetBValue(l_color_tab)),
-					l_isBottom ? g_color_light_gdi : g_color_face_gdi
+					Gdiplus::Color(90, GetRValue(l_color_tab), GetGValue(l_color_tab), GetBValue(l_color_tab)),
+					Gdiplus::Color(115, GetRValue(l_color_tab), GetGValue(l_color_tab), GetBValue(l_color_tab)),
+					/*l_isBottom ? g_color_light_gdi : g_color_face_gdi*/
+					Gdiplus::Color(155, GetRValue(l_color_tab), GetGValue(l_color_tab), GetBValue(l_color_tab))
 				};
 				static const Gdiplus::REAL g_positions[] =
 				{
 					0.0f,
-					0.40f,
-					0.60f,
+					0.5f,
+					0.90f,
 					1.0f
 				};
 				l_tabBrush->SetInterpolationColors(l_colors, g_positions, _countof(l_colors));
@@ -1368,8 +1371,13 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			
 			int height_plus = 0;
 			int height_plus_ico = 0;
+			int l_tabs_x_space = 0;		// Пикселов между кнопками в ряду
 			switch (WinUtil::GetTabsPosition())
 			{
+				// pos + 1 : делает смещение левого края вкладки, чтобы визуально отделить следующую отрисованную вкладку от предыдущей - 2 отдельные линии
+				// m_height : высота вкладки. Рассчитана где-то выше, от размера шрифта
+				// tabAnim : от 0 до x  колво пикселов, на которое изменять высоту вкладок для выбранных
+				// для вкладок TOP 
 				case SettingsManager::TABS_TOP:
 				{
 					//Расчёт положения иконки и текста в зависимости от высоты вкладки
@@ -1378,9 +1386,11 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
 					if (l_tabsPath)
 					{
-						l_tabsPath->AddLine(pos, ypos + m_height, pos, ypos + 6 + tabAnim);
-						l_tabsPath->AddLine(pos + 4, ypos + 2 + tabAnim, pos + magic_width - 5, ypos + 2 + tabAnim); //-V112
-						l_tabsPath->AddLine(pos + magic_width, ypos + 6 + tabAnim, pos + magic_width, ypos + m_height);
+						l_tabsPath->AddLine(pos/* + 1*/, ypos + m_height + 1, pos/* + 1*/, ypos + 3 + tabAnim);
+						l_tabsPath->AddLine(pos/* + 1*/, ypos + 3 + tabAnim, pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space==0 ? 1 : 0), ypos + 3 + tabAnim); //-V112
+						l_tabsPath->AddLine(pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space==0 ? 1 : 0), ypos + 3 + tabAnim, pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space==0 ? 1 : 0), ypos + m_height + 1);
+						if (!aActive)   // Отделяем вкладку как неактивную
+							l_tabsPath->AddLine(pos/* + 1*/, ypos + m_height + 1, pos + magic_width - l_tabs_x_space, ypos + m_height + 1);
 					}
 #endif // IRAINMAN_USE_GDI_PLUS_TAB
 				}
@@ -1393,31 +1403,54 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
 					if (l_tabsPath)
 					{
-						l_tabsPath->AddLine(pos, ypos, pos, ypos + m_height - 6 - tabAnim);
-						l_tabsPath->AddLine(pos + 4, ypos + m_height - 2 - tabAnim, pos + magic_width - 5, ypos + m_height - 2 - tabAnim); //-V112
-						l_tabsPath->AddLine(pos + magic_width, ypos + m_height - 6 - tabAnim, pos + magic_width, ypos);
+						l_tabsPath->AddLine(pos/* + 1*/, ypos, pos/* + 1*/, ypos + m_height - 2 - tabAnim);
+						l_tabsPath->AddLine(pos/* + 1*/, ypos + m_height - 2 - tabAnim, pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space==0 ? 1 : 0), ypos + m_height - 2 - tabAnim); //-V112
+						l_tabsPath->AddLine(pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space==0 ? 1 : 0), ypos + m_height - 2 - tabAnim, pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space==0 ? 1 : 0), ypos);
+						if (!aActive)   // Отделяем вкладку как неактивную
+							l_tabsPath->AddLine(pos + magic_width - l_tabs_x_space, ypos, pos/* + 1*/, ypos);
 					}
 #endif // IRAINMAN_USE_GDI_PLUS_TAB
 				}
 				break;
-				//case SettingsManager::TABS_LEFT:
-				//case SettingsManager::TABS_RIGHT:
-				default:
+				case SettingsManager::TABS_LEFT:
 				{
 					//Расчёт положения иконки и текста в зависимости от высоты вкладки
-					height_plus = (m_height + 1 - m_height_font) / 2;
-					height_plus_ico = (m_height + 2 - 16) / 2;
-					magic_width -= 1;
+					int l_tab_height = m_height - (l_tabs_x_space / 2);
+					height_plus = (l_tab_height + 1 - m_height_font) / 2;
+					height_plus_ico = (l_tab_height + 2 - 16) / 2;
+					magic_width -= 5;
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
 					if (l_tabsPath)
 					{
-						l_tabsPath->AddLine(pos + 1, ypos + 5, pos + 1, ypos + m_height - 5);
-						l_tabsPath->AddLine(pos + 5, ypos + m_height - 1, pos + magic_width - 9, ypos + m_height - 1);
-						l_tabsPath->AddLine(pos + magic_width - 4, ypos + m_height - 5, pos + magic_width - 4, ypos + 5); //-V112
-						l_tabsPath->AddLine(pos + magic_width - 9, ypos + 1, pos + 5, ypos + 1);
+						l_tabsPath->AddLine(pos + 1 + magic_width + 1, ypos + 1, pos + 1 + (tabAnim * 2), ypos + 1);
+						l_tabsPath->AddLine(pos + 1 + (tabAnim * 2), ypos + 1, pos + 1 + (tabAnim * 2), ypos + l_tab_height);
+						l_tabsPath->AddLine(pos + 1 + (tabAnim * 2), ypos + l_tab_height, pos + 1 + magic_width + 1, ypos + l_tab_height);
+						if (!aActive)   // Отделяем вкладку как неактивную
+							l_tabsPath->AddLine(pos + 1 + magic_width + 1, ypos + l_tab_height, pos + 1 + magic_width + 1, ypos + 1); //-V112
 					}
 #endif // IRAINMAN_USE_GDI_PLUS_TAB
 				}
+				break;
+				case SettingsManager::TABS_RIGHT:
+				{
+					//Расчёт положения иконки и текста в зависимости от высоты вкладки
+					int l_tab_height = m_height - (l_tabs_x_space / 2);
+					height_plus = (l_tab_height + 1 - m_height_font) / 2;
+					height_plus_ico = (l_tab_height + 2 - 16) / 2;
+					magic_width -= 5;
+#ifdef IRAINMAN_USE_GDI_PLUS_TAB
+					if (l_tabsPath)
+					{
+						l_tabsPath->AddLine(pos, ypos + l_tab_height, pos + magic_width - (tabAnim * 2), ypos + l_tab_height);
+						l_tabsPath->AddLine(pos + magic_width - (tabAnim * 2), ypos + l_tab_height, pos + magic_width - (tabAnim * 2), ypos + 1); //-V112
+						l_tabsPath->AddLine(pos + magic_width - (tabAnim * 2), ypos + 1, pos, ypos + 1);
+						if (!aActive)   // Отделяем вкладку как неактивную
+							l_tabsPath->AddLine(pos, ypos + 1, pos, ypos + l_tab_height);
+					}
+#endif // IRAINMAN_USE_GDI_PLUS_TAB
+				}
+				break;
+				default:
 				break;
 			}
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
@@ -1429,14 +1462,15 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				//Создание "ручек" для контура - падаем под XP
 				if (aActive)
 				{
-					Gdiplus::Pen l_pen(Gdiplus::Color(0xFF, 0, 0), 1);
+					const auto l_rgb_active =  SETTING(TAB_SELECTED_BORDER_COLOR);
+					Gdiplus::Pen l_pen(Gdiplus::Color(GetRValue(l_rgb_active), GetGValue(l_rgb_active), GetBValue(l_rgb_active)), 1); // Толщина
 					l_pen.SetDashStyle(Gdiplus::DashStyleSolid);
 					graphics->DrawPath(&l_pen, l_tabsPath.get());
 				}
 				else
 				{
-					Gdiplus::Pen l_pen(Gdiplus::Color(90, 60, 90) , 1);
-					l_pen.SetDashStyle(Gdiplus::DashStyleDot); //
+					Gdiplus::Pen l_pen(Gdiplus::Color(160, 160, 160) , 1);
+					l_pen.SetDashStyle(Gdiplus::DashStyleSolid); //DashDot, Dot
 					graphics->DrawPath(&l_pen, l_tabsPath.get());
 				}
 			}
@@ -1457,7 +1491,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				CPen l_pen;
 				l_pen.CreatePen(PS_SOLID, 1, tab->m_color_pen);
 				HPEN oldpen = dc.SelectPen(l_pen);
-				if (tab->m_row != (rows - 1))
+				if (tab->m_row != (m_rows - 1))
 				{
 					dc.MoveTo(p[3]);
 					dc.LineTo(p[0]);
@@ -1502,7 +1536,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			}
 ////////////
 #else
-			if (tab->m_row != (rows - 1))
+			if (tab->m_row != (m_rows - 1))
 			{
 				dc.MoveTo(p[3]);
 				dc.LineTo(p[0]);
@@ -1610,12 +1644,23 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		{
 				dc.TextOut(pos, ypos + height_plus, tab->name.data(), tab->m_len); // [~] Sergey Shuhskanov //-V107
 			}
+			
+			int width_plus_ico = 0; // - X position for COUNTER on LEFT\RIGHT tabs
+			// Я нихера не понял откуда в координатах взялись эти ~35 пикс, но только УБАВИВ их мы увидим счётчики на вкладках
+			if (WinUtil::GetTabsPosition() == SettingsManager::TABS_LEFT)
+			{
+				width_plus_ico = 32;
+			}
+			else if (WinUtil::GetTabsPosition() == SettingsManager::TABS_RIGHT)
+			{
+				width_plus_ico = 35;
+			}
 			if (tab->m_count_messages)
 			{
 				dc.SetTextColor(RGB(255, 0, 0));
 				CSelectFont l_half_font(dc, Fonts::g_halfFont);
 				const auto l_cnt = Text::toT("+" + Util::toString(tab->m_count_messages));
-				dc.TextOut(pos + tab->m_size.cx - l_cnt.size() * 3 , ypos + 4 , l_cnt.c_str(), l_cnt.length());
+				dc.TextOut(pos + tab->m_size.cx - width_plus_ico - (l_cnt.size() * 3), ypos + height_plus_ico , l_cnt.c_str(), l_cnt.length());
 			}
 			
 			if (l_hIcon)
@@ -1798,7 +1843,7 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 			if (rect.m_lpRect == NULL)
 				rect.m_lpRect = &TBase::rcDefault;
 				
-			// If the currently active MDI child is maximized, we want to create this one maximized too
+			// If the currently m_active MDI child is maximized, we want to create this one maximized too
 			ATL::CWindow wndParent = hWndParent;
 			BOOL bMaximized = FALSE;
 			
@@ -1941,7 +1986,7 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 		LRESULT onGetMinMaxInfo(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 		{
 #ifdef FLYLINKDC_SUPPORT_WIN_XP
-			if (CompatibilityManager::isOsVistaPlus())
+//			if (CompatibilityManager::isOsVistaPlus())
 #endif
 			{
 				PMINMAXINFO pmmi = (PMINMAXINFO)lParam;

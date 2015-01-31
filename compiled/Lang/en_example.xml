@@ -314,6 +314,7 @@
 	<string name="Count">Count</string>
 	<string name="Country">Country</string>
 	<string name="CountryInChat">Attempt to show User's country in chat</string>
+	<string name="IspInChat">Attempt to show User's ISP in chat</string>
 	<string name="CpuSpeed">CPU clock</string>
 	<string name="CrcChecked">TTH is Checked</string>
 	<string name="CreatingHash">Hashing</string>
@@ -791,7 +792,7 @@
 	<string name="MenuCloseAllHubs">Close all Hubs</string>
 	<string name="MenuCloseAllOfflinePm">Close all offline PM windows\tAlt+P</string>
 	<string name="MenuCloseAllPm">Close all PM windows</string>
-	<string name="MenuCloseAllSearchframe">Close all search windows</string>
+	<string name="MenuCloseAllSearchframe">Close all search windows\tAlt+G</string>
 	<string name="MenuCloseDisconnected">Close disconnected\tAlt+D</string>
 	<string name="MenuCloseHubsBelow">Close Hubs below threshold users</string>
 	<string name="MenuCloseHubsEmpty">Close Hubs with no users</string>
@@ -1596,6 +1597,7 @@
 	<string name="TabOfflineColor">Offline tab color</string>
 	<string name="TabOfflineTextColor">Offline tab text color</string>
 	<string name="TabSelectedColor">Selected tab color</string>
+	<string name="TabSelectedBorderColor">Selected tab border color</string>
 	<string name="TabSelectedTextColor">Selected tab text color</string>
 	<string name="HubInFavBkColor">Hubs - Hub in Favorites</string>
 	<string name="HubInFavConnectBkColor">Hubs - Auto connect on start</string>

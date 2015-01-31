@@ -49,6 +49,7 @@ PropPageTextStyles::clrs PropPageTextStyles::colours[] =
 	//[-] PPA   {ResourceManager::SETTINGS_COLOR_ALTERNATE, SettingsManager::SEARCH_ALTERNATE_COLOUR, 0},
 	{ResourceManager::SETCZDC_ERROR_COLOR,  SettingsManager::ERROR_COLOR, 0},
 	{ResourceManager::TAB_SELECTED_COLOR,   SettingsManager::TAB_SELECTED_COLOR, 0},
+	{ResourceManager::TAB_SELECTED_BORDER_COLOR,   SettingsManager::TAB_SELECTED_BORDER_COLOR, 0},
 	{ResourceManager::TAB_OFFLINE_COLOR,   SettingsManager::TAB_OFFLINE_COLOR, 0},
 	{ResourceManager::TAB_ACTIVITY_COLOR,   SettingsManager::TAB_ACTIVITY_COLOR, 0},
 	{ResourceManager::TAB_SELECTED_TEXT_COLOR,   SettingsManager::TAB_SELECTED_TEXT_COLOR, 0},

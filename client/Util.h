@@ -368,6 +368,7 @@ class MD5Calc;
 class Util
 {
 	public:
+		static const char* getCountryShortName(uint16_t p_flag_index);
 		static int getFlagIndexByCode(uint16_t p_countryCode);
 		static const tstring emptyStringT;
 		static const string emptyString;
@@ -1252,10 +1253,11 @@ class Util
 					return m_location_cache_index >= 0 || m_country_cache_index >= 0 ;
 				}
 				tstring getDescription() const;
+				tstring getCountry() const;
 				int16_t getFlagIndex() const;
-				int16_t  getCountryIndex() const;
+				int16_t getCountryIndex() const;
 			private:
-				int16_t  m_country_cache_index;
+				int16_t m_country_cache_index;
 				int32_t m_location_cache_index;
 		};
 		

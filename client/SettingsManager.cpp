@@ -265,7 +265,7 @@ const string SettingsManager::g_settingTags[] =
 	"StripTopic", "TbImageSize", "TbImageSizeHot", "OpenCdmDebug", "ShowWinampControl", "HubThreshold", "PGOn", "GuardUp", "GuardDown", "GuardSearch", "PGLog",
 	"PreviewPm", "FilterEnter", "PopupTime", "PopupW", "PopupH", "PopupTransp", "AwayThrottle", "AwayStart", "AwayEnd", "OdcStyleBumped", "TopSpeed", "StealthyStyle",
 	"StealthyStyleIco", "StealthyStyleIcoSpeedIgnore", "PSRDelay",
-	"IpInChat", "CountryInChat", "TopUpSpeed", "Broadcast", "RememberSettingsPage", "Page", "RememberSettingsWindowPos", "SettingsWindowPosX", "SettingsWindowPosY",
+	"IpInChat", "CountryInChat", "ISPInChat", "TopUpSpeed", "Broadcast", "RememberSettingsPage", "Page", "RememberSettingsWindowPos", "SettingsWindowPosX", "SettingsWindowPosY",
 	"SettingsWindowSizeX", "SettingsWindowSizeYY", "SettingsWindowTransp", "SettingsWindowColorize", "SettingsWindowWikihelp", "ChatBufferSize", "EnableHubmodePic",
 	"EnableCountryflag", "PgLastUp",
 	"DiredtorListingFrameSplit",
@@ -312,6 +312,7 @@ const string SettingsManager::g_settingTags[] =
 #endif
 	"LogProtocol",
 	"TabSelectedColor",
+	"TabSelectedBorderColor",
 	"TabOfflineColor",
 	"TabActivityColor",
 	"TabSelectedTextColor",
@@ -1164,6 +1165,8 @@ void SettingsManager::setDefaults()
 	setDefault(COLOR_DOWNLOADED, RGB(255, 255, 100));
 	setDefault(COLOR_VERIFIED, RGB(0, 255, 0));
 	setDefault(TAB_SELECTED_COLOR, RGB(106, 181, 255));
+	setDefault(TAB_SELECTED_BORDER_COLOR, RGB(255, 128, 128));
+	
 	setDefault(TAB_OFFLINE_COLOR, RGB(255, 148, 106));
 	setDefault(TAB_ACTIVITY_COLOR, RGB(147, 202, 0));
 	setDefault(TAB_SELECTED_TEXT_COLOR, RGB(0, 100, 121));  //[+] SCALOlaz [~] Sergey Shuhskanov
@@ -1768,7 +1771,7 @@ bool SettingsManager::set(IntSetting key, int value)
 			int maxBanShare = 20;
 			if (ShareManager::isValidInstance())
 			{
-				maxBanShare = min(maxBanShare, static_cast<int>(ShareManager::getInstance()->getSharedSize() / static_cast<int64_t>(1024 * 1024 * 1024)));
+				maxBanShare = min(maxBanShare, static_cast<int>(ShareManager::getSharedSize() / static_cast<int64_t>(1024 * 1024 * 1024)));
 			}
 			VERIFI(0, maxBanShare);
 			break;
@@ -1902,7 +1905,7 @@ bool SettingsManager::set(IntSetting key, int value)
 		case THROTTLE_ENABLE:
 		{
 #ifdef IRAINMAN_SPEED_LIMITER_5S4_10
-#define MIN_UPLOAD_SPEED_LIMIT  5 * UploadManager::getInstance()->getSlots() + 4
+#define MIN_UPLOAD_SPEED_LIMIT  5 * UploadManager::getSlots() + 4
 #define MAX_LIMIT_RATIO         10
 			if ((key == MAX_UPLOAD_SPEED_LIMIT_NORMAL || key == MAX_UPLOAD_SPEED_LIMIT_TIME) && value > 0 && value < MIN_UPLOAD_SPEED_LIMIT)
 			{
@@ -2273,6 +2276,7 @@ void SettingsManager::importDctheme(const tstring& file, const bool asDefault /*
 			importData("UseCustomListBackground", USE_CUSTOM_LIST_BACKGROUND);
 			// Tab Colors
 			importData("TabSelectedColor", TAB_SELECTED_COLOR);
+			importData("TabSelectedBorderColor", TAB_SELECTED_BORDER_COLOR);
 			importData("TabOfflineColor", TAB_OFFLINE_COLOR);
 			importData("TabActivityColor", TAB_ACTIVITY_COLOR);
 			importData("TabSelectedTextColor", TAB_SELECTED_TEXT_COLOR);
@@ -2415,6 +2419,7 @@ void SettingsManager::exportDctheme(const tstring& file)
 	exportData("UseCustomListBackground", USE_CUSTOM_LIST_BACKGROUND);
 	// Tab Colors
 	exportData("TabSelectedColor", TAB_SELECTED_COLOR);
+	exportData("TabSelectedBorderColor", TAB_SELECTED_BORDER_COLOR);
 	exportData("TabOfflineColor", TAB_OFFLINE_COLOR);
 	exportData("TabActivityColor", TAB_ACTIVITY_COLOR);
 	exportData("TabSelectedTextColor", TAB_SELECTED_TEXT_COLOR);

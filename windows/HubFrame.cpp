@@ -1115,7 +1115,8 @@ LRESULT HubFrame::onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 				         "\tLocation: " + Text::fromT(Util::getIpCountry(id.getIp().to_ulong()).getDescription()) + "\r\n" +
 				         "\tNicks: " + Util::toString(ClientManager::getNicks(u->getCID(), Util::emptyString)) + "\r\n" +
 				         "\t" + STRING(HUBS) + ": " + Util::toString(ClientManager::getHubs(u->getCID(), Util::emptyString)) + "\r\n" +
-				         "\t" + STRING(SHARED) + ": " + Identity::formatShareBytes(u->getBytesShared()) + (u->isNMDC() ? Util::emptyString : "(" + STRING(SHARED_FILES) + ": " + Util::toString(id.getSharedFiles()) + ")") + "\r\n" +
+				         "\t" + STRING(SHARED) + ": " + Identity::formatShareBytes(u->getBytesShared()) + (u->isNMDC() ? Util::emptyString : "(" + STRING(SHARED_FILES) +
+				                 ": " + Util::toString(id.getSharedFiles()) + ")") + "\r\n" +
 				         "\t" + STRING(DESCRIPTION) + ": " + id.getDescription() + "\r\n" +
 				         "\t" + STRING(APPLICATION) + ": " + id.getApplication() + "\r\n";
 				const auto con = Identity::formatSpeedLimit(id.getDownloadSpeed());

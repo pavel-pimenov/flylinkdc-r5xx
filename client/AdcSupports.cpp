@@ -82,7 +82,7 @@ void AdcSupports::setSupports(Identity& id, StringList & su)
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES
 									else
 									{
-										dcassert(0);
+										//dcassert(0);
 										FastLock l(g_debugCsUnknownAdcFeatures);
 										g_debugUnknownAdcFeatures[*i] = Util::toString(su);
 									}

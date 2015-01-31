@@ -87,7 +87,7 @@ tstring ChatCtrl::g_sSelectedIP;
 tstring ChatCtrl::g_sSelectedUserName;
 tstring ChatCtrl::g_sSelectedURL;
 
-ChatCtrl::ChatCtrl() : m_boAutoScroll(true), m_is_cache_chat_empty(false), m_is_out_of_memory_for_smile(false) //, m_Client(nullptr)
+ChatCtrl::ChatCtrl() : m_boAutoScroll(true), m_is_cache_chat_empty(false), m_is_out_of_memory_for_smile(false), m_chat_cache_length(0) //, m_Client(nullptr)
 #ifdef IRAINMAN_INCLUDE_SMILE
 	, m_pRichEditOle(NULL), /*m_pOleClientSite(NULL),*/ m_pStorage(NULL), m_lpLockBytes(NULL), m_Ref(0)
 #endif
@@ -127,20 +127,25 @@ void ChatCtrl::Initialize()
 void ChatCtrl::AdjustTextSize()
 {
 	// [!] IRainman fix.
-	const int iOverhead = GetWindowTextLength() - SETTING(CHATBUFFERSIZE);
-	if (iOverhead > 1000)
+	const auto l_cur_size = GetWindowTextLength();
+	const auto l_overhead = l_cur_size - SETTING(CHATBUFFERSIZE);
+	if (l_overhead > 1000)
 	{
 		CLockRedraw<> l_lock_draw(m_hWnd);
 		for (auto i = m_URLMap.begin(); i != m_URLMap.end();)
 		{
-			i->first -= iOverhead;
+			i->first -= l_overhead;
 			if (i->first < 0)
 				m_URLMap.erase(i++);
 			else
 				++i;
 		}
-		SetSel(0, iOverhead);
+		SetSel(0, l_overhead);
 		ReplaceSel(_T(""));
+#ifdef _DEBUG
+		const auto l_new_size = GetWindowTextLength();
+		LogManager::message("ChatCtrl::AdjustTextSize() l_cur_size = " + Util::toString(l_cur_size) + " delta = " + Util::toString(l_cur_size - l_new_size));
+#endif
 	}
 	// [~] IRainman fix.
 }
@@ -210,13 +215,13 @@ void ChatCtrl::restore_chat_cache()
 	{
 		//webrtc::ReadLockScoped l(*m_cs_chat_cache);
 #if 0
-		for (int i = 0; i < 100; ++i)
+		for (int i = 0; i < 3000; ++i)
 		{
 			ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(),
 			                                  false,
 			                                  true,
 			                                  _T('[') + Text::toT(Util::getShortTimeString()) + _T("] "),
-			                                  _T("Test!Test!Test!Test!Test!Test! ;-) :-) ;-) :-) ;-) :-) ;-) :-) ;-) :-) ;-) :-) ;-) :-) ;-) :-) ;-) :-) ;-) :-) ;-) :-)"),
+			                                  _T("Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!"),
 			                                  Colors::g_ChatTextOldHistory,
 			                                  false);
 			l_message.m_Nick = _T("FlylinkDC-Debug-TEST");
@@ -241,6 +246,7 @@ void ChatCtrl::restore_chat_cache()
 		{
 			//webrtc::WriteLockScoped l(*m_cs_chat_cache);
 			m_chat_cache.clear();
+			m_chat_cache_length = 0;
 		}
 	}
 	m_is_out_of_memory_for_smile = false; // Снова пытамся вставлять смайлы
@@ -272,6 +278,12 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message)
 		if (m_is_cache_chat_empty == false)
 		{
 			m_chat_cache.push_back(p_message);
+			m_chat_cache_length += p_message.length();
+			if (m_chat_cache_length + 1000 > SETTING(CHATBUFFERSIZE))
+			{
+				m_chat_cache_length -= m_chat_cache.front().length();
+				m_chat_cache.pop_front();
+			}
 			return;
 		}
 	}

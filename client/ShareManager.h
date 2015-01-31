@@ -64,13 +64,15 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		void removeDirectory(const string& realPath);
 		void renameDirectory(const string& realPath, const string& virtualName);
 		
-		string toRealPath(const TTHValue& tth) const; // !PPA!
+		static string toRealPath(const TTHValue& tth);
 		static bool checkType(const string& aString, Search::TypeModes aType);
 		
-		bool destinationShared(const string& file_or_dir_name) const; // [+] IRainman opt.
-		bool getRealPathAndSize(const TTHValue& tth, string& path, int64_t& size) const;
+		static bool destinationShared(const string& file_or_dir_name);
+#if 0
+		static bool getRealPathAndSize(const TTHValue& tth, string& path, int64_t& size);
+#endif
 #ifdef _DEBUG
-		string toVirtual(const TTHValue& tth) const;
+		string toVirtual(const TTHValue& tth);
 #endif
 		string toReal(const string& virtualFile
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
@@ -83,25 +85,23 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		void setDirty()
 		{
 			xmlDirty = true;
-			m_isNeedsUpdateShareSize = true;
+			g_isNeedsUpdateShareSize = true;
 		}
 		void setPurgeTTH()
 		{
 			m_sweep_path = true;
 		}
+		static bool isShareFolder(const string& path, bool thoroughCheck = false);
+		static int64_t removeExcludeFolder(const string &path, bool returnSize = true);
+		static int64_t addExcludeFolder(const string &path);
 		
-		
-		bool isShareFolder(const string& path, bool thoroughCheck = false) const;
-		int64_t removeExcludeFolder(const string &path, bool returnSize = true);
-		int64_t addExcludeFolder(const string &path);
-		
-		void   searchTTHArray(CFlySearchArray& p_tth_aray, const Client* p_client);
+		static void   searchTTHArray(CFlySearchArray& p_tth_aray, const Client* p_client);
 		void   search(SearchResultList& aResults, const string& aString, Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, Client* aClient, StringList::size_type maxResults) noexcept;
 		void   search(SearchResultList& aResults, const StringList& params, StringList::size_type maxResults, StringSearch::List& reguest) noexcept; // [!] IRainman-S add StringSearch::List& reguest
 		
 		bool findByRealPathName(const string& realPathname, TTHValue* outTTHPtr, string* outfilenamePtr = NULL, int64_t* outSizePtr = NULL); // [+] SSA
 		
-		void getDirectories(CFlyDirItemArray& p_dirs) const noexcept;
+		static void getDirectories(CFlyDirItemArray& p_dirs);
 		
 		MemoryInputStream* generatePartialList(const string& dir, bool recurse
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
@@ -113,35 +113,31 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		
 		void getFileInfo(AdcCommand& p_cmd, const string& aFile);
 		// [!] IRainman opt.
-		int64_t getShareSize() const
+		static int64_t getShareSize()
 		{
-			dcassert(m_CurrentShareSize != -1); // TODO - баг. попытка получить размер шары до вызова internalCalcShareSize
-			if (m_CurrentShareSize == -1)
+			dcassert(g_CurrentShareSize != -1); // TODO - баг. попытка получить размер шары до вызова internalCalcShareSize
+			if (g_CurrentShareSize == -1)
 				return 0;
 			else
-				return m_CurrentShareSize;
+				return g_CurrentShareSize;
 		}
 	private:
 		void internalCalcShareSize();
 		static void internalClearShareNotExists(bool p_is_force);
 	public:
 		// [~] IRainman opt.
-		int64_t getShareSize(const string& realPath) const;
+		int64_t getShareSize(const string& realPath);
 		
-		size_t getSharedFiles() const
-		{
-			webrtc::ReadLockScoped l(*g_csShare);
-			return m_tthIndex.size();
-		}
-		string getShareSizeString() const
+		static size_t getSharedFiles();
+		static string getShareSizeString()
 		{
 			return Util::toString(getShareSize());
 		}
-		tstring getShareSizeformatBytesW() const
+		static tstring getShareSizeformatBytesW()
 		{
 			return Util::formatBytesW(getShareSize());
 		}
-		string getShareSizeString(const string& aDir) const
+		string getShareSizeString(const string& aDir)
 		{
 			return Util::toString(getShareSize(aDir));
 		}
@@ -171,20 +167,17 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 			return bzXmlFile;
 		}
 		
-		bool isTTHShared(const TTHValue& tth) const
-		{
-			if (!isShutdown())
-			{
-				webrtc::ReadLockScoped l(*g_csShare);
-				return m_tthIndex.find(tth) != m_tthIndex.end();
-			}
-			return false;
-		}
+		static bool isTTHShared(const TTHValue& tth);
 		
 		GETSET(string, bzXmlFile, BZXmlFile);
-		GETSET(int64_t, m_sharedSize, SharedSize);
+		
+		static int64_t getSharedSize()
+		{
+			return g_sharedSize;
+		}
 		
 	private:
+		static int64_t g_sharedSize;
 		static size_t g_hits;
 		
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
@@ -439,9 +432,8 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		
 		/** Map real name to virtual name - multiple real names may be mapped to a single virtual one */
 		typedef boost::unordered_map<string, CFlyBaseDirItem> ShareMap;
-		ShareMap m_shares;
+		static ShareMap g_shares;
 		ShareMap m_lost_shares;
-		
 		
 #ifdef STRONG_USE_DHT
 		friend class ::dht::IndexManager;
@@ -449,12 +441,12 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		
 		typedef std::unordered_map<TTHValue, Directory::ShareFile::Set::const_iterator> HashFileMap; // TODO - boost
 		
-		HashFileMap m_tthIndex;
+		static HashFileMap g_tthIndex;
 		static QueryNotExistsMap g_file_not_exists_map;
 		
 		//[+]IRainman opt.
-		bool m_isNeedsUpdateShareSize;
-		int64_t m_CurrentShareSize;
+		static bool g_isNeedsUpdateShareSize;
+		static int64_t g_CurrentShareSize;
 		static bool g_isShutdown;
 		static bool g_ignoreFileSizeHFS;
 		//[~]IRainman
@@ -482,11 +474,11 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		Directory::Ptr mergeL(const Directory::Ptr& directory);
 		
 		void generateXmlList();
-		StringList m_notShared;
+		static StringList g_notShared;
 		bool loadCache() noexcept;
 		DirList::const_iterator getByVirtualL(const string& virtualName) const;
 		pair<Directory::Ptr, string> splitVirtualL(const string& virtualPath) const;
-		string findRealRootL(const string& virtualRoot, const string& virtualLeaf) const;
+		static string findRealRootL(const string& virtualRoot, const string& virtualLeaf);
 		
 		Directory::Ptr getDirectoryL(const string& fname) const;
 		

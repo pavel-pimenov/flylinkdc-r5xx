@@ -398,7 +398,9 @@ void DownloadManager::endData(UserConnection* aSource)
 		int64_t bl = 1024;
 		auto &l_getTigerTree = d->getTigerTree(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'd->getTigerTree()' expression repeatedly. downloadmanager.cpp 404
 		while (bl * (int64_t)l_getTigerTree.getLeaves().size() < l_getTigerTree.getFileSize())
+		{
 			bl *= 2;
+		}
 		l_getTigerTree.setBlockSize(bl);
 		l_getTigerTree.calcRoot();
 		
@@ -410,7 +412,7 @@ void DownloadManager::endData(UserConnection* aSource)
 			
 			QueueManager::getInstance()->removeSource(d->getPath(), aSource->getUser(), QueueItem::Source::FLAG_BAD_TREE, false);
 			
-			QueueManager::getInstance()->putDownload(d, false);
+			QueueManager::getInstance()->putDownload(d->getPath(), d, false);
 			
 			checkDownloads(aSource);
 			return;
@@ -444,7 +446,7 @@ void DownloadManager::endData(UserConnection* aSource)
 		fire(DownloadManagerListener::Complete(), d, d->getType() == Transfer::TYPE_TREE);
 	}
 	
-	QueueManager::getInstance()->putDownload(d, true, false);
+	QueueManager::getInstance()->putDownload(d->getPath(), d, true, false);
 	checkDownloads(aSource);
 }
 
@@ -491,6 +493,7 @@ void DownloadManager::failDownload(UserConnection* aSource, const string& reason
 	
 	if (d)
 	{
+		const string l_path = d->getPath();
 		removeDownload(d);
 		fire(DownloadManagerListener::Failed(), d, reason);
 		
@@ -507,7 +510,7 @@ void DownloadManager::failDownload(UserConnection* aSource, const string& reason
 			}
 		}
 #endif
-		QueueManager::getInstance()->putDownload(d, false);
+		QueueManager::getInstance()->putDownload(l_path, d, false);
 	}
 	
 	removeConnection(aSource);
@@ -638,7 +641,7 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource)
 	
 	QueueManager::getInstance()->removeSource(d->getPath(), aSource->getUser(), (Flags::MaskType)(d->getType() == Transfer::TYPE_TREE ? QueueItem::Source::FLAG_NO_TREE : QueueItem::Source::FLAG_FILE_NOT_AVAILABLE), false);
 	
-	QueueManager::getInstance()->putDownload(d, false);
+	QueueManager::getInstance()->putDownload(d->getPath(), d, false);
 	checkDownloads(aSource);
 }
 
@@ -677,7 +680,7 @@ void DownloadManager::on(UserConnectionListener::CheckUserIP, UserConnection* aS
 	
 	dcassert(d);
 	removeDownload(d);
-	QueueManager::getInstance()->putDownload(d, true);
+	QueueManager::getInstance()->putDownload(d->getPath(), d, true);
 	
 	removeConnection(aSource);
 }

@@ -65,8 +65,14 @@ void File::init(const tstring& aFileName, int access, int mode, bool isAbsoluteP
 	
 	if (h == INVALID_HANDLE_VALUE)
 	{
-//[!] Не включать - падаем на рекурсии
-//        LogManager::message("File::File error = " + Util::toString(GetLastError()) + " File = " + aFileName);
+#if 0
+		std::ofstream l_fs;
+		l_fs.open(_T("flylinkdc-file-error.log"), std::ifstream::out | std::ifstream::app);
+		if (l_fs.good())
+		{
+			l_fs << Util::toString(GetLastError()) << " File = " << Text::fromT(outPath) << std::endl;
+		}
+#endif
 		throw FileException(Util::translateError());
 	}
 }
@@ -323,6 +329,41 @@ bool File::isExist(const tstring& filename, int64_t& outFileSize, int64_t& outFi
 	return false;
 }
 
+string File::formatPath(const string& path)
+{
+	if (path.size() < (MAX_PATH / 2) - 2)
+		return path;
+		
+	if (path[1] == '\\' && path[0] == '\\')
+		return "\\\\?\\UNC\\" + path.substr(2);
+	else
+		return "\\\\?\\" + path;
+}
+
+tstring File::formatPath(const tstring& path)
+{
+	dcassert(std::count(path.cbegin(), path.cend(), L'/') == 0);
+	if (path.size() < (MAX_PATH / 2) - 2)
+		return path;
+		
+	if (path[1] == _T('\\') && path[0] == _T('\\'))
+		return _T("\\\\?\\UNC\\") + path.substr(2);
+	else
+		return _T("\\\\?\\") + path;
+}
+
+void File::addTrailingSlash(string& p_path)
+{
+	dcassert(!p_path.empty());
+	if (!p_path.empty())
+	{
+		if (p_path[p_path.size() - 1] != '\\' && p_path[p_path.size() - 1] != '/')
+		{
+			p_path += '\\';
+		}
+	}
+}
+
 void File::ensureDirectory(const tstring& aFile) noexcept
 {
 	dcassert(!aFile.empty());
@@ -333,8 +374,30 @@ void File::ensureDirectory(const tstring& aFile) noexcept
 	start++;
 	while ((start = aFile.find_first_of(_T("\\/"), start)) != tstring::npos)
 	{
-		::CreateDirectory(formatPath(aFile.substr(0, start + 1)).c_str(), NULL);
-		start++;
+		const auto l_dir = formatPath(aFile.substr(0, start + 1));
+		const BOOL result = ::CreateDirectory(l_dir.c_str(), NULL);
+#if 0
+		const auto l_last_error_code = GetLastError();
+		string l_error;
+		if (result == FALSE)
+		{
+			l_error = "[!!!!] Error File::ensureDirectory: " + Text::fromT(l_dir) + " error = " + Util::translateError(l_last_error_code);
+		}
+		else
+		{
+			l_error = "[!!!!] OK File::ensureDirectory: " + Text::fromT(l_dir) + " error = " + Util::translateError(l_last_error_code);
+		}
+		{
+			std::ofstream l_fs;
+			l_fs.open(_T("flylinkdc-file-error.log"), std::ifstream::out | std::ifstream::app);
+			if (l_fs.good())
+			{
+				l_fs << l_error << std::endl;
+			}
+			
+		}
+#endif
+		++start;
 	}
 }
 

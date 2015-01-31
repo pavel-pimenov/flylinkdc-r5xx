@@ -32,7 +32,6 @@
 #include "../client/MerkleTree.h"
 #include "../client/HintedUser.h"
 #include "../client/CompatibilityManager.h"
-#include "../client/ShareManager.h"
 #include "UserInfoSimple.h"
 #include "OMenu.h"
 #include "HIconWrapper.h"
@@ -149,70 +148,25 @@ class Preview // [+] IRainman fix.
 		static void runInternalPreview(const string& previewFile, const int64_t& previewFileSize);
 #endif
 	protected:
-		static void startMediaPreview(WORD wID, const QueueItemPtr& qi)
-		{
-#ifdef SSA_VIDEO_PREVIEW_FEATURE
-			if (wID == IDC_PREVIEW_APP_INT)
-			{
-				runInternalPreview(qi);
-			}
-			else
-#endif
-			{
-				const auto& fileName = !qi->getTempTarget().empty() ? qi->getTempTarget() : qi->getTargetFileName();
-				runPreviewCommand(wID, fileName);
-			}
-		}
+		static void startMediaPreview(WORD wID, const QueueItemPtr& qi);
 		
 		static void startMediaPreview(WORD wID, const TTHValue& tth
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 		                              , const int64_t& size
 #endif
-		                             )
-		{
-			startMediaPreview(wID, ShareManager::getInstance()->toRealPath(tth)
-#ifdef SSA_VIDEO_PREVIEW_FEATURE
-			                  , size
-#endif
-			                 );
-		}
-		
+		                             );
+		                             
 		static void startMediaPreview(WORD wID, const string& target
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 		                              , const int64_t& size
 #endif
-		                             )
-		{
-			if (!target.empty())
-			{
-#ifdef SSA_VIDEO_PREVIEW_FEATURE
-				if (wID == IDC_PREVIEW_APP_INT)
-				{
-					runInternalPreview(target, size);
-				}
-				else
-#endif
-				{
-					runPreviewCommand(wID, target);
-				}
-			}
-		}
+		                             );
+		                             
+		static void clearPreviewMenu();
 		
-		static void clearPreviewMenu()
-		{
-			g_previewMenu.ClearMenu();
-			dcdrun(_debugIsClean = true; _debugIsActivated = false; g_previewAppsSize = 0;)
-		}
-		
-		static UINT getPreviewMenuIndex()
-		{
-			return (UINT)(HMENU)g_previewMenu;
-		}
-		
+		static UINT getPreviewMenuIndex();
 		static void setupPreviewMenu(const string& target);
-		
 		static void runPreviewCommand(WORD wID, string target);
-		
 		
 		static int g_previewAppsSize;
 		static OMenu g_previewMenu;

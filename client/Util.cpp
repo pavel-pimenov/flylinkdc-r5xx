@@ -308,6 +308,14 @@ static const char* g_countryCodes[] = // TODO: needs update this table! http://e
 	"UM", "US", "UY", "UZ", "VA", "VC", "VE", "VG", "VI", "VN", "VU", "WF", "WS", "YE", "YT", "YU", "ZA", "ZM", "ZW"
 };
 //==========================================================================
+const char* Util::getCountryShortName(uint16_t p_flag_index)
+{
+	if (p_flag_index < _countof(g_countryCodes))
+		return g_countryCodes[p_flag_index];
+	else
+		return "";
+}
+//==========================================================================
 int Util::getFlagIndexByCode(uint16_t p_countryCode) // [!] IRainman: countryCode is uint16_t.
 {
 	// country codes are sorted, use binary search for better performance
@@ -1820,6 +1828,22 @@ string Util::getRandomNick()
 		name.resize(iNickLength);
 		
 	return name;
+}
+//======================================================================================================================================
+tstring Util::CustomNetworkIndex::getCountry() const
+{
+#ifdef FLYLINKDC_USE_GEO_IP
+	if (m_country_cache_index > 0)
+	{
+		const CFlyLocationDesc l_res = CFlylinkDBManager::getInstance()->get_country_from_cache(m_country_cache_index);
+		return Text::toT(Util::getCountryShortName(l_res.m_flag_index - 1));
+		//return l_res.m_description;
+	}
+#endif
+	else
+	{
+		return Util::emptyStringT;
+	}
 }
 //======================================================================================================================================
 tstring Util::CustomNetworkIndex::getDescription() const

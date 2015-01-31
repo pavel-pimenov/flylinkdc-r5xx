@@ -607,28 +607,31 @@ void BaseChatFrame::addStatus(const tstring& aLine, const bool bInChat /*= true*
 		addLine(_T("*** ") + aLine, Colors::g_ChatTextServer);
 	}
 }
-tstring BaseChatFrame::getIpCountry(const string& ip, bool ts, bool p_ipInChat, bool p_countryInChat)
+tstring BaseChatFrame::getIpCountry(const string& ip, bool ts, bool p_ipInChat, bool p_countryInChat, bool p_ISPInChat)
 {
-	if (!ip.empty())// [!] IRainman not derive the empty field in the chat if the IP is empty
+	tstring l_result;
+	if (!ip.empty())
 	{
-		if (p_countryInChat && p_ipInChat)
+		l_result = ts ? _T(" | ") : _T(" ");
+		if (p_ipInChat)
 		{
-			const tstring ipW = Text::toT(ip);
-			const Util::CustomNetworkIndex& location = Util::getIpCountry(ip); // TODO: opt me please!
-			return ts ? _T(" | ") + ipW + _T(" | ") + location.getDescription() : _T(' ') + ipW + _T(" | ") + location.getDescription();
+			l_result += Text::toT(ip);
 		}
-		else if (p_countryInChat)
+		if (p_countryInChat || p_ISPInChat)
 		{
-			const Util::CustomNetworkIndex& location = Util::getIpCountry(ip); // TODO: opt me please!
-			return ts ? _T(" | ") + location.getDescription() : location.getDescription();
-		}
-		else if (p_ipInChat)
-		{
-			const tstring ipW = Text::toT(ip);
-			return ts ? _T(" | ") + ipW + _T(' ') : _T(' ') + ipW + _T(' ');
+			const Util::CustomNetworkIndex& l_location = Util::getIpCountry(ip);
+			if (p_countryInChat)
+			{
+				l_result += (p_ipInChat ? _T(" | ") : _T("")) + l_location.getCountry();
+			}
+			if (p_ISPInChat)
+			{
+				l_result += ((p_countryInChat || p_ipInChat) ? _T(" | ") : _T("")) + l_location.getDescription();
+				// getISP()  [-] SCALOlaz: ѕри отсутствии записи о провайдере, должно вернуть Russian Federation или Italian. ¬озвращает пустоту.
+			}
 		}
 	}
-	return Util::emptyStringT;
+	return l_result;
 }
 
 void BaseChatFrame::addLine(const tstring& aLine, CHARFORMAT2& cf /*= Colors::g_ChatTextGeneral */)
@@ -644,6 +647,7 @@ void BaseChatFrame::addLine(const tstring& aLine, CHARFORMAT2& cf /*= Colors::g_
 		ctrlClient.AppendText(l_message);
 	}
 }
+
 void BaseChatFrame::addLine(const Identity& from, const bool bMyMess, const bool bThirdPerson, const tstring& aLine, const CHARFORMAT2& cf, tstring& extra)
 {
 	if (ctrlClient.IsWindow())
@@ -652,9 +656,10 @@ void BaseChatFrame::addLine(const Identity& from, const bool bMyMess, const bool
 	}
 	const bool ipInChat = BOOLSETTING(IP_IN_CHAT);
 	const bool countryInChat = BOOLSETTING(COUNTRY_IN_CHAT);
-	if (ipInChat || countryInChat)
+	const bool ISPInChat = BOOLSETTING(ISP_IN_CHAT);
+	if (ipInChat || countryInChat || ISPInChat)
 	{
-		extra = getIpCountry(from.getIpAsString(), m_bTimeStamps, ipInChat, countryInChat);
+		extra = getIpCountry(from.getIpAsString(), m_bTimeStamps, ipInChat, countryInChat, ISPInChat);
 	}
 	if (m_bTimeStamps)
 	{

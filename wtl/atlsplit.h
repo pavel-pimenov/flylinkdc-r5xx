@@ -167,7 +167,7 @@ public:
 		bool bRet = (m_xySplitterPos != xyPos);
 		m_xySplitterPos = xyPos;
 		//Set the splitterPosNew to be the same as splitter pos, its left -1 initially.
-		// m_xySplitterPosNew = xyPos;
+		m_xySplitterPosNew = xyPos;
                 // [merge] https://github.com/airdcpp/airgit/commit/070d243f8f3dfaeaa704936a75d737bcf4fc9439
 
 		if(m_bUpdateProportionalPos)
@@ -260,7 +260,8 @@ public:
 	void SetSplitterDefaultPos(int xyPos = -1)
 	{
 		m_xySplitterDefPos = xyPos;
-		m_bProportionalDefPos = false;
+		m_bProportionalDefPos = true; //shouldn't this be true as in setting by percentage?
+                // [merge] https://github.com/airdcpp/airgit/commit/070d243f8f3dfaeaa704936a75d737bcf4fc9439
 	}
 
 	void SetSplitterDefaultPosPct(int nPct)

@@ -139,28 +139,7 @@ class File : public IOStream
 			ensureDirectory(Text::toT(aFile));
 		}
 		
-		static void addTrailingSlash(tstring& p_path)
-		{
-			dcassert(!p_path.empty());
-			if (!p_path.empty())
-			{
-				if (p_path[p_path.size() - 1] != _T('\\') && p_path[p_path.size() - 1] != _T('/'))
-				{
-					p_path += _T('\\');
-				}
-			}
-		}
-		static void addTrailingSlash(string& p_path)
-		{
-			dcassert(!p_path.empty());
-			if (!p_path.empty())
-			{
-				if (p_path[p_path.size() - 1] != '\\' && p_path[p_path.size() - 1] != '/')
-				{
-					p_path += '\\';
-				}
-			}
-		}
+		static void addTrailingSlash(string& p_path);
 		
 		static bool isAbsolute(const string& path) noexcept
 		{
@@ -171,28 +150,8 @@ class File : public IOStream
 		// http://msdn.microsoft.com/en-us/library/aa365247(VS.85).aspx#maxpath
 		// TODO сделать через шаблон
 		// fixed http://code.google.com/p/flylinkdc/issues/detail?id=1019
-		static string formatPath(const string& path)
-		{
-			if (path.size() < MAX_PATH - 1)
-				return path;
-				
-			if (path[1] == '\\' && path[0] == '\\')
-				return "\\\\?\\UNC\\" + path.substr(2);
-			else
-				return "\\\\?\\" + path;
-		}
-		
-		static tstring formatPath(const tstring& path)
-		{
-			dcassert(std::count(path.cbegin(), path.cend(), L'/') == 0);
-			if (path.size() < MAX_PATH - 1)
-				return path;
-				
-			if (path[1] == _T('\\') && path[0] == _T('\\'))
-				return _T("\\\\?\\UNC\\") + path.substr(2);
-			else
-				return _T("\\\\?\\") + path;
-		}
+		static string formatPath(const string& path);
+		static tstring formatPath(const tstring& path);
 		
 		virtual ~File() noexcept
 		{

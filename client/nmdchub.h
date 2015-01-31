@@ -115,7 +115,10 @@ class NmdcHub : public Client, private Flags
 		{
 			SUPPORTS_USERCOMMAND = 0x01,
 			SUPPORTS_NOGETINFO = 0x02,
-			SUPPORTS_USERIP2 = 0x04
+			SUPPORTS_USERIP2 = 0x04,
+#ifdef USE_FLYLINKDC_HUB
+			SUPPORTS_FLYHUB = 0x08
+#endif
 		};
 		
 		// MyInfo states.

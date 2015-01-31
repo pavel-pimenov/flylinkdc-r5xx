@@ -834,7 +834,7 @@ int MainFrame::tuneTransferSplit()
 	}
 	SET_SETTING(TRANSFER_SPLIT_SIZE, m_nProportionalPos);
 	SetSplitterPanes(m_hWndMDIClient, transferView.m_hWnd);
-	//SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
+	SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
 	return m_nProportionalPos;
 }
 
@@ -943,9 +943,9 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			const wstring l_dlstr = Util::formatBytesW(g_downdiff);
 			const wstring l_ulstr = Util::formatBytesW(g_updiff);
 #endif
-			Stats->push_back(TSTRING(SHARED) + _T(": ") + Util::formatBytesW(ShareManager::getInstance()->getSharedSize()));
+			Stats->push_back(TSTRING(SHARED) + _T(": ") + Util::formatBytesW(ShareManager::getSharedSize()));
 			Stats->push_back(TSTRING(H) + _T(' ') + Text::toT(Client::getCounts()));
-			Stats->push_back(TSTRING(SLOTS) + _T(": ") + Util::toStringW(UploadManager::getInstance()->getFreeSlots()) + _T('/') + Util::toStringW(UploadManager::getInstance()->getSlots())
+			Stats->push_back(TSTRING(SLOTS) + _T(": ") + Util::toStringW(UploadManager::getFreeSlots()) + _T('/') + Util::toStringW(UploadManager::getSlots())
 			                 + _T(" (") + Util::toStringW(UploadManager::getInstance()->getFreeExtraSlots()) + _T('/') + Util::toStringW(SETTING(EXTRA_SLOTS)) + _T(")"));
 			Stats->push_back(TSTRING(D) + _T(' ') + Util::formatBytesW(l_CurrentDown));
 			Stats->push_back(TSTRING(U) + _T(' ') + Util::formatBytesW(l_CurrentUp));
@@ -3898,7 +3898,7 @@ void MainFrame::AddFolderShareFromShell(const tstring& infolder)
 	AppendPathSeparator(folder);
 	const string l_folder = Text::fromT(folder);
 	CFlyDirItemArray directories;
-	ShareManager::getInstance()->getDirectories(directories);
+	ShareManager::getDirectories(directories);
 	bool bFound = false;
 	for (auto j = directories.cbegin(); j != directories.cend(); ++j)
 	{

@@ -368,7 +368,7 @@ int PublicHubsFrame::calcISPCountryIconIndex(tstring& p_country)
 		_T("Узбекистан"), _T("UZ"),
 		_T("Азербайджан"), _T("AZ"),
 		_T("Молдова"), _T("MD"),
-		_T("Эстония"), _T("ES"),
+		_T("Эстония"), _T("EE"),
 		_T("Bulgaria"), _T("BG"),
 		_T("Australia"), _T("AS"),
 		_T("Poland"), _T("PL"),

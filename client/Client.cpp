@@ -168,7 +168,7 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 		if (BOOLSETTING(ADD_TO_DESCRIPTION))
 		{
 			if (BOOLSETTING(ADD_DESCRIPTION_SLOTS))
-				speedDescription += '[' + Util::toString(UploadManager::getInstance()->getFreeSlots()) + ']';
+				speedDescription += '[' + Util::toString(UploadManager::getFreeSlots()) + ']';
 			if (BOOLSETTING(ADD_DESCRIPTION_LIMIT) && BOOLSETTING(THROTTLE_ENABLE) && ThrottleManager::getInstance()->getUploadLimitInKBytes() != 0)
 				speedDescription += "[L:" + Util::toString(ThrottleManager::getInstance()->getUploadLimitInKBytes()) + "KB]";
 		}

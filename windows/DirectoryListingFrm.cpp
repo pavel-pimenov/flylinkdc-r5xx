@@ -628,7 +628,7 @@ LRESULT DirectoryListingFrame::onOpenFile(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 	{
 		ItemInfo* ii = (ItemInfo*)ctrlList.GetItemData(i);
 		// !necros!
-		string rp = ShareManager::getInstance()->toRealPath(ii->file->getTTH());
+		const string rp = ShareManager::toRealPath(ii->file->getTTH());
 		if (!rp.empty())
 		{
 			openFileFromList(Text::toT(rp));
@@ -645,7 +645,7 @@ LRESULT DirectoryListingFrame::onOpenFolder(WORD /*wNotifyCode*/, WORD /*wID*/, 
 		//[-] PVS-Studio V808 tstring l_param;
 		if (const ItemInfo *ii = ctrlList.getItemData(i))
 		{
-			WinUtil::openFolder(Text::toT(ShareManager::getInstance()->toRealPath(ii->file->getTTH())));
+			WinUtil::openFolder(Text::toT(ShareManager::toRealPath(ii->file->getTTH())));
 		}
 	}
 	return 0;
@@ -686,7 +686,7 @@ LRESULT DirectoryListingFrame::onDoubleClickFiles(int /*idCtrl*/, LPNMHDR pnmh, 
 		if (ii->type == ItemInfo::FILE)
 		{
 			// !necros!
-			const string rp = ShareManager::getInstance()->toRealPath(ii->file->getTTH());
+			const string rp = ShareManager::toRealPath(ii->file->getTTH());
 			if (!rp.empty())
 			{
 				openFileFromList(Text::toT(rp));
@@ -1261,7 +1261,7 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 			LastDir::appendItem(targetMenu, n);
 			
 			// !SMT!-UI
-			const auto existingFile = !ShareManager::getInstance()->toRealPath(ii->file->getTTH()).empty();
+			const auto existingFile = !ShareManager::toRealPath(ii->file->getTTH()).empty();
 			activatePreviewItems(fileMenu, existingFile);
 			if (existingFile)
 			{
@@ -2086,9 +2086,9 @@ DirectoryListingFrame::ItemInfo::ItemInfo(DirectoryListing::File* f) : type(FILE
 	columns[COLUMN_SIZE] =  Util::formatBytesW(f->getSize());
 	columns[COLUMN_TTH] = Text::toT(f->getTTH().toBase32());
 	if (f->isSet(DirectoryListing::FLAG_SHARED_OWN)) // TODO убить FLAG_SHARED_OWN
-		columns[COLUMN_PATH] = Text::toT(Util::getFilePath(ShareManager::getInstance()->toRealPath(f->getTTH())));
+		columns[COLUMN_PATH] = Text::toT(Util::getFilePath(ShareManager::toRealPath(f->getTTH())));
 	else if (f->isSet(DirectoryListing::FLAG_SHARED) && f->getSize()) // [+] FlylinkDC++
-		columns[COLUMN_PATH] = Text::toT(ShareManager::getInstance()->toRealPath(f->getTTH())); // !PPA!
+		columns[COLUMN_PATH] = Text::toT(ShareManager::toRealPath(f->getTTH())); // !PPA!
 		
 	UpdatePathColumn(f);
 	

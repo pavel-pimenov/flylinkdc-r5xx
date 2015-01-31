@@ -484,7 +484,7 @@ HTREEITEM FolderTree::InsertFileItem(HTREEITEM hParent, FolderTreeItemInfo *pIte
 	AppendPathSeparator(path); //[+]PPA
 	if (!path.empty())
 	{
-		const bool bChecked = ShareManager::getInstance()->isShareFolder(path, true);
+		const bool bChecked = ShareManager::isShareFolder(path, true);
 		SetChecked(hItem, bChecked);
 		if (!bChecked)
 			SetHasSharedChildren(hItem);
@@ -1488,14 +1488,14 @@ LRESULT FolderTree::OnUnChecked(HTREEITEM hItem, BOOL& /*bHandled*/)
 		string path = Text::fromT(pItem->m_sFQPath);
 		AppendPathSeparator(path); //[+]PPA
 		
-		int64_t temp = ShareManager::getInstance()->removeExcludeFolder(path);
+		int64_t temp = ShareManager::removeExcludeFolder(path);
 		/* fun with math
 		futureShareSize = currentShareSize + currentOffsetSize - (sizeOfDirToBeRemoved - sizeOfSubDirsWhichWhereAlreadyExcluded) */
-		const int64_t futureShareSize = ShareManager::getInstance()->getShareSize() + m_nShareSizeDiff - (Util::getDirSize(Text::fromT(pItem->m_sFQPath)) - temp);
+		const int64_t futureShareSize = ShareManager::getShareSize() + m_nShareSizeDiff - (Util::getDirSize(Text::fromT(pItem->m_sFQPath)) - temp);
 		ShareManager::getInstance()->removeDirectory(path); // TODO hotpoint, mb add queue for this call and run it after OK is pressed?
 		/* more fun with math
 		theNewOffset = whatWeKnowTheCorrectNewSizeShouldBe - whatTheShareManagerThinksIsTheNewShareSize */
-		m_nShareSizeDiff = futureShareSize - ShareManager::getInstance()->getShareSize();
+		m_nShareSizeDiff = futureShareSize - ShareManager::getShareSize();
 		UpdateParentItems(hItem);
 	}
 	else if (GetChecked(GetParentItem(hItem)))
@@ -1504,7 +1504,7 @@ LRESULT FolderTree::OnUnChecked(HTREEITEM hItem, BOOL& /*bHandled*/)
 		//[+]PPA TODO fix copy-paste
 		string path = Text::fromT(pItem->m_sFQPath);
 		AppendPathSeparator(path); //[+]PPA
-		m_nShareSizeDiff -= ShareManager::getInstance()->addExcludeFolder(path);
+		m_nShareSizeDiff -= ShareManager::addExcludeFolder(path);
 	}
 	
 	UpdateStaticCtrl();
@@ -1539,7 +1539,7 @@ bool FolderTree::GetHasSharedChildren(HTREEITEM hItem)
 		return false;
 		
 	CFlyDirItemArray Dirs;
-	ShareManager::getInstance()->getDirectories(Dirs);
+	ShareManager::getDirectories(Dirs);
 	
 	for (auto i = Dirs.cbegin(); i != Dirs.cend(); ++i)
 	{
@@ -1628,7 +1628,7 @@ void FolderTree::ShareParentButNotSiblings(HTREEITEM hItem)
 		//[+]PPA TODO fix copy-paste
 		string path = Text::fromT(pItem->m_sFQPath);
 		AppendPathSeparator(path); //[+]PPA
-		m_nShareSizeDiff += ShareManager::getInstance()->removeExcludeFolder(path);
+		m_nShareSizeDiff += ShareManager::removeExcludeFolder(path);
 		
 		ShareParentButNotSiblings(hParent);
 		
@@ -1644,7 +1644,7 @@ void FolderTree::ShareParentButNotSiblings(HTREEITEM hItem)
 					//[+]PPA TODO fix copy-paste
 					string l_path = Text::fromT(pItem->m_sFQPath);
 					AppendPathSeparator(path); //[+]PPA
-					m_nShareSizeDiff -= ShareManager::getInstance()->addExcludeFolder(l_path);
+					m_nShareSizeDiff -= ShareManager::addExcludeFolder(l_path);
 				}
 			}
 			hChild = hNextItem;
@@ -1656,7 +1656,7 @@ void FolderTree::ShareParentButNotSiblings(HTREEITEM hItem)
 		//[+]PPA TODO fix copy-paste
 		string path = Text::fromT(pItem->m_sFQPath);
 		AppendPathSeparator(path); //[+]PPA
-		m_nShareSizeDiff += ShareManager::getInstance()->removeExcludeFolder(path);
+		m_nShareSizeDiff += ShareManager::removeExcludeFolder(path);
 	}
 }
 
@@ -1671,7 +1671,7 @@ void FolderTree::UpdateStaticCtrl()
 	if (m_pStaticCtrl != NULL)
 	{
 		/* display theActualSizeOfTheShareAfterRefresh = WhatTheShareManagerThinksIsTheCorrectSize - theOffsetCreatedByPlayingAroundWithExcludeFolders */
-		int64_t shareSize = ShareManager::getInstance()->getShareSize() + m_nShareSizeDiff;
+		int64_t shareSize = ShareManager::getShareSize() + m_nShareSizeDiff;
 		if (shareSize < 0)
 			shareSize = 0;
 		m_pStaticCtrl->SetWindowText((Util::formatBytesW(shareSize) + _T('*')).c_str());

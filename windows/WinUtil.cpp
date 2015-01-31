@@ -4952,3 +4952,65 @@ void WinUtil::SetWindowThemeExplorer(HWND p_hWnd)
 		SetWindowTheme(p_hWnd, L"explorer", NULL);
 	}
 }
+
+
+void Preview::startMediaPreview(WORD wID, const QueueItemPtr& qi)
+{
+#ifdef SSA_VIDEO_PREVIEW_FEATURE
+	if (wID == IDC_PREVIEW_APP_INT)
+	{
+		runInternalPreview(qi);
+	}
+	else
+#endif
+	{
+		const auto& fileName = !qi->getTempTarget().empty() ? qi->getTempTarget() : qi->getTargetFileName();
+		runPreviewCommand(wID, fileName);
+	}
+}
+
+void Preview::startMediaPreview(WORD wID, const TTHValue& tth
+#ifdef SSA_VIDEO_PREVIEW_FEATURE
+                                , const int64_t& size
+#endif
+                               )
+{
+	startMediaPreview(wID, ShareManager::toRealPath(tth)
+#ifdef SSA_VIDEO_PREVIEW_FEATURE
+	                  , size
+#endif
+	                 );
+}
+
+void Preview::startMediaPreview(WORD wID, const string& target
+#ifdef SSA_VIDEO_PREVIEW_FEATURE
+                                , const int64_t& size
+#endif
+                               )
+{
+	if (!target.empty())
+	{
+#ifdef SSA_VIDEO_PREVIEW_FEATURE
+		if (wID == IDC_PREVIEW_APP_INT)
+		{
+			runInternalPreview(target, size);
+		}
+		else
+#endif
+		{
+			runPreviewCommand(wID, target);
+		}
+	}
+}
+
+void Preview::clearPreviewMenu()
+{
+	g_previewMenu.ClearMenu();
+	dcdrun(_debugIsClean = true; _debugIsActivated = false; g_previewAppsSize = 0;)
+}
+
+UINT Preview::getPreviewMenuIndex()
+{
+	return (UINT)(HMENU)g_previewMenu;
+}
+

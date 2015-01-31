@@ -41,6 +41,8 @@ MessagesPage::ListItem MessagesPage::listItems[] =
 	
 	{ SettingsManager::IP_IN_CHAT, ResourceManager::IP_IN_CHAT },
 	{ SettingsManager::COUNTRY_IN_CHAT, ResourceManager::COUNTRY_IN_CHAT },
+	{ SettingsManager::ISP_IN_CHAT, ResourceManager::ISP_IN_CHAT },
+	
 	
 	{ SettingsManager::DISPLAY_CHEATS_IN_MAIN_CHAT, ResourceManager::SETTINGS_DISPLAY_CHEATS_IN_MAIN_CHAT },
 	{ SettingsManager::SHOW_SHARE_CHECKED_USERS, ResourceManager::SETTINGS_ADVANCED_SHOW_SHARE_CHECKED_USERS },

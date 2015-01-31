@@ -170,9 +170,9 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		}
 		
 		/** @return Number of free slots. */
-		int getFreeSlots() const
+		static int getFreeSlots()
 		{
-			return max((getSlots() - m_running), 0);
+			return max((getSlots() - g_running), 0);
 		}
 		
 		/** @internal */
@@ -238,7 +238,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 	private:
 		bool isFireball;
 		bool isFileServer;
-		int  m_running;
+		static int  g_running;
 		int64_t m_runningAverage;//[+] IRainman refactoring transfer mechanism
 		uint64_t fireballStartTick;
 		

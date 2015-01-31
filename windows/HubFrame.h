@@ -42,7 +42,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 	private CFlyTimerAdapter,
 //  TODO    private ClientManagerListener,
 public UCHandler<HubFrame>,
-public UserInfoBaseHandler < HubFrame, UserInfoGuiTraits::NO_CONNECT_FAV_HUB | UserInfoGuiTraits::NICK_TO_CHAT | UserInfoGuiTraits::USER_LOG, OnlineUserPtr > ,
+public UserInfoBaseHandler < HubFrame, UserInfoGuiTraits::NO_CONNECT_FAV_HUB | UserInfoGuiTraits::NICK_TO_CHAT | UserInfoGuiTraits::USER_LOG | UserInfoGuiTraits::INLINE_CONTACT_LIST, OnlineUserPtr > ,
 private SettingsManagerListener,
 public BaseChatFrame // [+] IRainman copy-past fix.
 #ifdef RIP_USE_CONNECTION_AUTODETECT
@@ -58,7 +58,7 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		typedef CSplitterImpl<HubFrame> splitBase;
 		typedef MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HUB, IDR_HUB_OFF > baseClass;
 		typedef UCHandler<HubFrame> ucBase;
-		typedef UserInfoBaseHandler < HubFrame, UserInfoGuiTraits::NO_CONNECT_FAV_HUB | UserInfoGuiTraits::NICK_TO_CHAT | UserInfoGuiTraits::USER_LOG, OnlineUserPtr > uibBase;
+		typedef UserInfoBaseHandler < HubFrame, UserInfoGuiTraits::NO_CONNECT_FAV_HUB | UserInfoGuiTraits::NICK_TO_CHAT | UserInfoGuiTraits::USER_LOG | UserInfoGuiTraits::INLINE_CONTACT_LIST, OnlineUserPtr > uibBase;
 		
 		BEGIN_MSG_MAP(HubFrame)
 		MESSAGE_HANDLER(WM_SPEAKER, onSpeaker)

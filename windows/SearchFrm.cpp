@@ -1435,7 +1435,7 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 			tstring l_result;
 			if (sr->getType() == SearchResult::TYPE_FILE)
 			{
-				l_result = Text::toT(ShareManager::getInstance()->toRealPath(sr->getTTH()));
+				l_result = Text::toT(ShareManager::toRealPath(sr->getTTH()));
 				if (l_result.empty())
 				{
 					const auto l_status_file = CFlylinkDBManager::getInstance()->get_status_file(sr->getTTH());

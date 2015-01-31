@@ -838,6 +838,7 @@ QueueManager::~QueueManager() noexcept
 	SearchManager::getInstance()->removeListener(this);
 	TimerManager::getInstance()->removeListener(this);
 	ClientManager::getInstance()->removeListener(this);
+	SharedFileStream::check_before_destoy();
 	// [+] IRainman core.
 	m_listMatcher.waitShutdown();
 	m_listQueue.waitShutdown();
@@ -1041,7 +1042,7 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& aRo
 //[-]PPA
 	/*
 	    if (BOOLSETTING(DONT_DL_ALREADY_SHARED)){
-	        if (ShareManager::getInstance()->isTTHShared(root)){
+	        if (ShareManager::isTTHShared(root)){
 	            throw QueueException(STRING(TTH_ALREADY_SHARED));
 	        }
 	    }
@@ -1121,7 +1122,7 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& aRo
 				хорошо бы запилить к r502.
 				string l_shareExistingPath;
 				int64_t l_shareExistingSize;
-				ShareManager::getInstance()->getRealPathAndSize(root, l_shareExistingPath, l_shareExistingSize);
+				ShareManager::getRealPathAndSize(root, l_shareExistingPath, l_shareExistingSize);
 				getTargetByRoot(...); - тоже можно использовать.
 				*/
 				int64_t l_existingFileSize;
@@ -1934,7 +1935,7 @@ void QueueManager::rechecked(const QueueItemPtr& qi)
 	setDirty();
 }
 
-void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFinish) noexcept
+void QueueManager::putDownload(const string& p_path, Download* aDownload, bool p_is_finished, bool p_is_report_finish) noexcept
 {
 	UserList getConn;
 	string fileName;
@@ -1955,10 +1956,9 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 			delete l_file;
 			aDownload->setDownloadFile(nullptr);
 		}
-		
 		if (aDownload->getType() == Transfer::TYPE_PARTIAL_LIST)
 		{
-			QueueItemPtr q = fileQueue.find(aDownload->getPath());
+			QueueItemPtr q = fileQueue.find(p_path);
 			if (q)
 			{
 				if (!aDownload->getPFS().empty())
@@ -1977,8 +1977,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 					if (fulldir)
 						// [~] IRainman fix.
 					{
-						dcassert(finished);
-						
+						dcassert(p_is_finished);
 						fileName = aDownload->getPFS();
 						flags = (q->isSet(QueueItem::FLAG_DIRECTORY_DOWNLOAD) ? (QueueItem::FLAG_DIRECTORY_DOWNLOAD) : 0)
 						        | (q->isSet(QueueItem::FLAG_MATCH_QUEUE) ? QueueItem::FLAG_MATCH_QUEUE : 0)
@@ -1992,7 +1991,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 				else
 				{
 					// partial filelist probably failed, redownload full list
-					dcassert(!finished);
+					dcassert(!p_is_finished);
 					
 					downloadList = true;
 					flags = q->getFlags() & ~QueueItem::FLAG_PARTIAL_LIST;
@@ -2010,9 +2009,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 		}
 		else
 		{
-			QueueItemPtr q = fileQueue.find(aDownload->getPath());
-			// 2012-04-29_13-38-26_IJU6HPQFFXSXSTA5V57FOJBYESKF4PIK4QY2FGA_E73C122F_crash-stack-r501-build-9869.dmp
-			
+			QueueItemPtr q = fileQueue.find(p_path);
 			if (q)
 			{
 				if (aDownload->getType() == Transfer::TYPE_FULL_LIST)
@@ -2027,7 +2024,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 					}
 				}
 				
-				if (finished)
+				if (p_is_finished)
 				{
 					if (aDownload->getType() == Transfer::TYPE_TREE)
 					{
@@ -2101,15 +2098,15 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 							}
 							
 							// Check if we need to move the file
-							if (aDownload->getType() == Transfer::TYPE_FILE && !aDownload->getTempTarget().empty() && (stricmp(aDownload->getPath().c_str(), aDownload->getTempTarget().c_str()) != 0))
+							if (aDownload->getType() == Transfer::TYPE_FILE && !aDownload->getTempTarget().empty() && (stricmp(p_path.c_str(), aDownload->getTempTarget().c_str()) != 0))
 							{
 								if (!q->isSet(Download::FLAG_USER_GET_IP)) // fix  https://code.google.com/p/flylinkdc/issues/detail?id=1480
 									// TODO !q->isSet(Download::FLAG_USER_CHECK)
 								{
-									moveFile(aDownload->getTempTarget(), aDownload->getPath());
+									moveFile(aDownload->getTempTarget(), p_path);
 								}
 							}
-							
+							SharedFileStream::cleanup();
 							if (BOOLSETTING(LOG_DOWNLOADS) && (BOOLSETTING(LOG_FILELIST_TRANSFERS) || aDownload->getType() == Transfer::TYPE_FILE))
 							{
 								StringMap params;
@@ -2122,7 +2119,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 								CFlylinkDBManager::getInstance()->push_download_tth(q->getTTH());
 								if (BOOLSETTING(ENABLE_FLY_SERVER))
 								{
-									const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(aDownload->getPath()));
+									const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(p_path));
 									if (CFlyServerConfig::isMediainfoExt(l_file_ext))
 									{
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -2172,7 +2169,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 								userQueue.removeDownloadL(q, aDownload->getUser()); // [!] IRainman fix.
 							}
 							
-							if (aDownload->getType() != Transfer::TYPE_FILE || (reportFinish && q->isWaitingL()))
+							if (aDownload->getType() != Transfer::TYPE_FILE || (p_is_report_finish && q->isWaitingL()))
 							{
 								fire(QueueManagerListener::StatusUpdated(), q);
 							}
@@ -2241,7 +2238,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 			}
 			else if (aDownload->getType() != Transfer::TYPE_TREE)
 			{
-				if (!aDownload->getTempTarget().empty() && (aDownload->getType() == Transfer::TYPE_FULL_LIST || aDownload->getTempTarget() != aDownload->getPath()))
+				if (!aDownload->getTempTarget().empty() && (aDownload->getType() == Transfer::TYPE_FULL_LIST || aDownload->getTempTarget() != p_path))
 				{
 					File::deleteFile(aDownload->getTempTarget());
 				}

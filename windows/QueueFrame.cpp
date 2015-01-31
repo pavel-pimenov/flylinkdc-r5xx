@@ -260,7 +260,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 			tstring l_result;
 			if (!m_qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_USER_GET_IP))
 			{
-				l_result = Text::toT(ShareManager::getInstance()->toRealPath(getTTH()));
+				l_result = Text::toT(ShareManager::toRealPath(getTTH()));
 				if (l_result.empty())
 				{
 					const auto l_status_file = CFlylinkDBManager::getInstance()->get_status_file(getTTH());

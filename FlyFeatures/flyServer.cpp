@@ -1151,7 +1151,7 @@ bool CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 		// Агрегационные параметры
 		{
 		    Json::Value& l_stat_info = l_info["Stat"];
-			l_stat_info["Files"] = Util::toString(ShareManager::getInstance()->getSharedFiles());
+			l_stat_info["Files"] = Util::toString(ShareManager::getSharedFiles());
 			l_stat_info["Folders"] = Util::toString(CFlylinkDBManager::getInstance()->get_count_folders());
 			l_stat_info["Size"]  = ShareManager::getInstance()->getShareSizeString();
 			// TODO - эти параметры можно посчитать из массива Clients

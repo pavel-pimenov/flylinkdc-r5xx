@@ -949,7 +949,7 @@ void AdcHub::handle(AdcCommand::GET, const AdcCommand& c) noexcept
 			return;
 		}
 		
-		const size_t n = ShareManager::getInstance()->getSharedFiles();
+		const size_t n = ShareManager::getSharedFiles();
 		
 		// When h >= 32, m can't go above 2^h anyway since it's stored in a size_t.
 		if (m > (static_cast<size_t>(5 * Util::roundUp((int64_t)(n * k / log(2.)), (int64_t)64))) || (h < 32 && m > static_cast<size_t>(1U << h)))
@@ -1527,8 +1527,8 @@ void AdcHub::info(bool p_force)
 	addParam(m_lastInfoMap, c, "PD", ClientManager::getMyPID().toBase32()); // [!] IRainman fix.
 	addParam(m_lastInfoMap, c, "NI", getMyNick());
 	addParam(m_lastInfoMap, c, "DE", getCurrentDescription());
-	addParam(m_lastInfoMap, c, "SL", Util::toString(UploadManager::getInstance()->getSlots()));
-	addParam(m_lastInfoMap, c, "FS", Util::toString(UploadManager::getInstance()->getFreeSlots()));
+	addParam(m_lastInfoMap, c, "SL", Util::toString(UploadManager::getSlots()));
+	addParam(m_lastInfoMap, c, "FS", Util::toString(UploadManager::getFreeSlots()));
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 	if (getHideShare())
 	{
@@ -1539,7 +1539,7 @@ void AdcHub::info(bool p_force)
 #endif
 	{
 		addParam(m_lastInfoMap, c, "SS", ShareManager::getInstance()->getShareSizeString()); // [!] Flylink++ HideShare mode
-		addParam(m_lastInfoMap, c, "SF", Util::toString(ShareManager::getInstance()->getSharedFiles())); // [!] Flylink++ HideShare mode
+		addParam(m_lastInfoMap, c, "SF", Util::toString(ShareManager::getSharedFiles())); // [!] Flylink++ HideShare mode
 	}
 	
 	

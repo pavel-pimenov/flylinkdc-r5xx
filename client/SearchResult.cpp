@@ -39,8 +39,8 @@ SearchResultBaseTTH::SearchResultBaseTTH(Types aType, int64_t aSize, const strin
 
 void SearchResultBaseTTH::initSlot()
 {
-	slots     = UploadManager::getInstance()->getSlots();
-	freeSlots = UploadManager::getInstance()->getFreeSlots();
+	slots     = UploadManager::getSlots();
+	freeSlots = UploadManager::getFreeSlots();
 }
 
 string SearchResultBaseTTH::toSR(const Client& c) const
@@ -134,7 +134,7 @@ void SearchResult::checkTTH()
 	{
 		if (m_type == TYPE_FILE)
 		{
-			m_is_tth_share = ShareManager::getInstance()->isTTHShared(tth);
+			m_is_tth_share = ShareManager::isTTHShared(tth);
 			if (m_is_tth_share == false)
 			{
 				const auto l_status_file = CFlylinkDBManager::getInstance()->get_status_file(tth);

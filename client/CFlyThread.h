@@ -35,6 +35,11 @@ typedef DWORD ThreadID;
 
 #include "Exception.h"
 
+#ifdef FLYLINKDC_BETA
+#include <fstream>
+#include <ctime>
+#endif
+
 #ifdef RIP_USE_THREAD_POOL
 #define BASE_THREAD ThreadPool
 #else
@@ -338,16 +343,67 @@ class CriticalSection
 	: boost::noncopyable
 #endif
 {
+#ifdef FLYLINKDC_BETA
+		string formatDigitalClock(const string &p_msg, const time_t& p_t)
+		{
+			tm* l_loc = localtime(&p_t);
+			if (!l_loc)
+			{
+				return "";
+			}
+			const size_t l_bufsize = p_msg.size() + 15;
+			string l_buf;
+			l_buf.resize(l_bufsize + 1);
+			const size_t l_len = strftime(&l_buf[0], l_bufsize, p_msg.c_str(), l_loc);
+			if (!l_len)
+				return p_msg;
+			else
+			{
+				l_buf.resize(l_len);
+				return l_buf;
+			}
+		}
+#endif
+
+		void log(const char* p_add_info)
+		{
+#ifdef FLYLINKDC_BETA
+			extern bool g_UseCSRecursionLog;
+			if (g_UseCSRecursionLog)
+			{
+				if (cs.RecursionCount > 1)
+				{
+					g_UseCSRecursionLog = true;
+				}
+				std::ofstream l_fs;
+				l_fs.open(_T("flylinkdc-critical-section.log"), std::ifstream::out | std::ifstream::app);
+				if (l_fs.good())
+				{
+					l_fs << "[this = " << this << "][" << formatDigitalClock("time =", time(nullptr)) << "] cs.RecursionCount = "
+					     << cs.RecursionCount << " p_add_info: " << p_add_info
+					     << std::endl;
+				}
+			}
+#endif
+		}
 	public:
 		void lock()
 		{
 			//dcassert(cs.RecursionCount == 0 || (cs.RecursionCount > 0 && tryLock() == true));
 			EnterCriticalSection(&cs);
+			log("lock");
 		}
 		void unlock()
 		{
 			LeaveCriticalSection(&cs);
 			//dcassert(cs.RecursionCount == 0 || (cs.RecursionCount > 0 && tryLock() == true));
+			log("unlock");
+#ifdef FLYLINKDC_BETA
+			extern bool g_UseCSRecursionLog;
+			if (g_UseCSRecursionLog)
+			{
+			}
+#endif
 		}
 		bool tryLock()
 		{
@@ -367,10 +423,12 @@ class CriticalSection
 			{
 				dcassert(l_result);
 			}
+			log("construct");
 		}
 		~CriticalSection()
 		{
 			DeleteCriticalSection(&cs);
+			log("destruct");
 		}
 	private:
 		CRITICAL_SECTION cs;

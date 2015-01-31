@@ -294,7 +294,7 @@ void NmdcHub::clearUsers()
 //==========================================================================================
 void NmdcHub::updateFromTag(Identity& id, const string & tag) // [!] IRainman opt.
 {
-	const StringTokenizer<string> tok(tag, ','); // TODO - убрать разбор токенов. сделать простое сканирование в цикле в поиске запятых
+	const StringTokenizer<string> tok(tag, ',', 4); // TODO - убрать разбор токенов. сделать простое сканирование в цикле в поиске запятых
 	string::size_type j;
 	id.setLimit(0);
 	for (auto i = tok.getTokens().cbegin(); i != tok.getTokens().cend(); ++i)
@@ -573,16 +573,16 @@ void NmdcHub::sendUDPSR(const CFlySearchItem& p_result, const Client* p_client)
 //==========================================================================================
 string NmdcHub::calcExternalIP() const
 {
-    string l_result;
-    if(getFavIp().empty())
-        l_result = getLocalIp();
-    else
-        l_result = getFavIp();
-    l_result += ':' + SearchManager::getSearchPort();
+	string l_result;
+	if (getFavIp().empty())
+		l_result = getLocalIp();
+	else
+		l_result = getFavIp();
+	l_result += ':' + SearchManager::getSearchPort();
 #ifdef _DEBUG
-		LogManager::message("NmdcHub::calcExternalIP() = " + l_result);
+	LogManager::message("NmdcHub::calcExternalIP() = " + l_result);
 #endif
-    return l_result;
+	return l_result;
 }
 //==========================================================================================
 #if 0
@@ -1104,6 +1104,12 @@ void NmdcHub::supportsParse(const string& param)
 		{
 			m_supportFlags |= SUPPORTS_USERIP2;
 		}
+#ifdef USE_FLYLINKDC_HUB
+		else if (*i == "FlyHUB")
+		{
+			m_supportFlags |= SUPPORTS_FLYHUB;
+		}
+#endif
 	}
 }
 //==========================================================================================
@@ -1174,13 +1180,20 @@ void NmdcHub::lockParse(const string& aLine)
 		if (CryptoManager::isExtended(lock))
 		{
 			StringList feat;
+#ifdef USE_FLYLINKDC_HUB
+			feat.reserve(9);
+#else
 			feat.reserve(8);
+#endif
 			feat.push_back("UserCommand");
 			feat.push_back("NoGetINFO");
 			feat.push_back("NoHello");
 			feat.push_back("UserIP2");
 			feat.push_back("TTHSearch");
 			feat.push_back("ZPipe0");
+#ifdef USE_FLYLINKDC_HUB
+			feat.push_back("FlyHUB");
+#endif
 			
 			if (CryptoManager::getInstance()->TLSOk()
 #ifdef IRAINMAN_ENABLE_STEALTH_MODE
@@ -1855,7 +1868,7 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 	                                (getClientName() + " V:" + getClientVersion()  + '-' + A_REVISION_NUM_STR).c_str(), // [!] IRainman mimicry function.
 	                                l_modeChar,
 	                                currentCounts.c_str(),
-	                                UploadManager::getInstance()->getSlots(),
+	                                UploadManager::getSlots(),
 	                                uploadSpeed.c_str(), status,
 	                                fromUtf8Chat(escape(getCurrentEmail())).c_str()));
 	                                
@@ -1863,7 +1876,7 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 	    getHideShare() ? 0 :
 #endif
-	    ShareManager::getInstance()->getShareSize();
+	    ShareManager::getShareSize();
 	    
 #ifdef FLYLINKDC_BETA
 	if (p_is_force_passive == true && l_currentBytesShared == m_lastBytesShared && !m_lastMyInfo.empty() && l_currentMyInfo == m_lastMyInfo)
@@ -1879,6 +1892,12 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 		m_lastMyInfo = l_currentMyInfo;
 		m_lastBytesShared = l_currentBytesShared;
 		send(m_lastMyInfo + Util::toString(l_currentBytesShared) + "$|");
+#ifdef USE_FLYLINKDC_HUB
+#ifdef _DEBUG
+		string m_lastFlyInfo = "$FlyINFO $ALL Russia$Lipetsk$Beeline";
+		send(m_lastFlyInfo + "$|");
+#endif
+#endif
 		m_modeChar = l_modeChar;
 		m_lastUpdate = currentTick;
 	}
@@ -2152,7 +2171,7 @@ void NmdcHub::on(BufferedSocketListener::SearchArrayTTH, CFlySearchArray& p_sear
 		{
 			l_ip = calcExternalIP();
 		}
-		ShareManager::getInstance()->searchTTHArray(p_search_array, this);
+		ShareManager::searchTTHArray(p_search_array, this); // https://drdump.com/DumpGroup.aspx?DumpGroupID=264417
 		static int g_id_search_array = 0;
 		g_id_search_array++;
 		for (auto i = p_search_array.begin(); i != p_search_array.end(); ++i)
