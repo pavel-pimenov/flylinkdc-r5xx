@@ -33,6 +33,7 @@ class ClientListener
 		typedef X<20> HubTopic;
 		typedef X<21> UserReport;
 		// typedef X<22> TTHSearch; // [+]FlylinkDC++
+		typedef X<22> DDoSSearchDetect;
 		
 		enum StatusFlags
 		{
@@ -58,6 +59,8 @@ class ClientListener
 		virtual void on(CheatMessage, const string&) noexcept { }
 		virtual void on(HubTopic, const Client*, const string&) noexcept { }
 		virtual void on(UserReport, const Client*, const string&) noexcept { } // [!] IRainman fix
+		virtual void on(DDoSSearchDetect, const string&) noexcept { }
+		
 		//virtual void on(PrivateMessage, const Client*, const string &strFromUserName, const OnlineUserPtr&, const OnlineUserPtr&, const OnlineUserPtr&, const string&, bool = true) noexcept { } // !SMT!-S  [-] IRainman fix.
 		// TODO
 		// virtual void on(TTHSearch, Client* aClient, const string& aSeeker, const TTHValue& aTTH, bool isPassive) noexcept { }

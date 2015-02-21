@@ -217,6 +217,12 @@ tstring UserInfo::getText(int p_col) const
 		{
 			return Text::toT(getIdentity().getTag());
 		}
+#ifdef FLYLINKDC_USE_FLYHUB
+		case COLUMN_FLY_HUB_COUNTRY:
+		case COLUMN_FLY_HUB_CITY:
+		case COLUMN_FLY_HUB_ISP:
+			return Util::emptyStringT;
+#endif
 		default:
 		{
 			dcassert(0);

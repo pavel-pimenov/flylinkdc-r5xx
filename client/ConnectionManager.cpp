@@ -443,8 +443,8 @@ void ConnectionManager::cleanupIpFlood(const uint64_t p_tick)
 		{
 #ifdef _DEBUG
 			LogManager::ddos_message("BlockID = " + Util::toString(j->second.m_block_id) + ", Removed mini-ban for: " +
-			                                        j->first.first + j->second.getPorts() + ", Hub IP = " + j->first.second.to_string() +
-			                                        " m_ddos_map.size() = " + Util::toString(m_ddos_map.size()));
+			                         j->first.first + j->second.getPorts() + ", Hub IP = " + j->first.second.to_string() +
+			                         " m_ddos_map.size() = " + Util::toString(m_ddos_map.size()));
 #endif
 		}
 		// ≈сли коннектов совершено много и IP находитс€ в бане, но уже прошло врем€ больше чем 10 ћинут(по умолчанию)
@@ -463,8 +463,8 @@ void ConnectionManager::cleanupIpFlood(const uint64_t p_tick)
 				l_type = " IP-1:" + j->first.first + j->second.getPorts() + " IP-2: " + j->first.second.to_string();
 			}
 			LogManager::ddos_message("BlockID = " + Util::toString(j->second.m_block_id) + ", Removed DDoS lock " + j->second.m_type_block +
-			                                        ", Count connect = " + Util::toString(j->second.m_count_connect) + l_type +
-			                                        ", m_ddos_map.size() = " + Util::toString(m_ddos_map.size()));
+			                         ", Count connect = " + Util::toString(j->second.m_count_connect) + l_type +
+			                         ", m_ddos_map.size() = " + Util::toString(m_ddos_map.size()));
 		}
 		if (l_is_ddos_ban_close || l_is_min_ban_close)
 			m_ddos_map.erase(j++);
@@ -484,9 +484,9 @@ void ConnectionManager::cleanupTTHDuplicateSearch(const uint64_t p_tick)
 			if (j->second.m_count_connect > 1) // —обытие возникало больше одного раза - логируем?
 			{
 				LogManager::ddos_message(string(j->second.m_count_connect, '*') + " BlockID = " + Util::toString(j->second.m_block_id) +
-				                                        ", Unlock duplicate TTH search: " + j->first +
-				                                        ", Count connect = " + Util::toString(j->second.m_count_connect) +
-				                                        ", Hash map size: " + Util::toString(m_tth_duplicate_search.size()));
+				                         ", Unlock duplicate TTH search: " + j->first +
+				                         ", Count connect = " + Util::toString(j->second.m_count_connect) +
+				                         ", Hash map size: " + Util::toString(m_tth_duplicate_search.size()));
 			}
 #endif
 			m_tth_duplicate_search.erase(j++);
@@ -685,10 +685,10 @@ bool ConnectionManager::checkTTHDuplicateSearch(const string& p_search_command, 
 			{
 #ifdef FLYLINKDC_USE_LOG_FOR_DUPLICATE_TTH_SEARCH
 				LogManager::ddos_message(string(l_cur_value.m_count_connect, '*') + " BlockID = " + Util::toString(l_cur_value.m_block_id) +
-				                                        ", Lock TTH search = " + p_search_command +
-				                                        ", TTH = " + p_tth.toBase32() +
-				                                        ", Count = " + Util::toString(l_cur_value.m_count_connect) +
-				                                        ", Hash map size: " + Util::toString(m_tth_duplicate_search.size()));
+				                         ", Lock TTH search = " + p_search_command +
+				                         ", TTH = " + p_tth.toBase32() +
+				                         ", Count = " + Util::toString(l_cur_value.m_count_connect) +
+				                         ", Hash map size: " + Util::toString(m_tth_duplicate_search.size()));
 #endif
 			}
 			return true;
@@ -701,7 +701,7 @@ void ConnectionManager::addCTM2HUB(const string& p_server_port, const HintedUser
 	webrtc::WriteLockScoped l_ddos(*g_csDdosCheck);
 	dcassert(p_hinted_user.user);
 	
-	const string l_cmt2hub = "CTM2HUB = " + p_server_port + " <<= DDoS block from: " + p_hinted_user.hint + " User:" + (p_hinted_user.user ? p_hinted_user.user->getLastNick() : "null");
+	const string l_cmt2hub = "CTM2HUB = " + p_server_port + " <<= DDoS block from: " + p_hinted_user.hint; //  + " User:" + (p_hinted_user.user ? p_hinted_user.user->getLastNick() : "null")
 	const auto l_res = m_ddos_ctm2hub.insert(Text::toLower(p_server_port));
 	CFlyServerAdapter::CFlyServerJSON::pushError(18, l_cmt2hub);
 	dcassert(l_res.second == true);
@@ -1334,7 +1334,8 @@ void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCo
 		return;
 	}
 	
-	if (!cmd.isCIDexists())
+	string cid;
+	if (!cmd.getParam("ID", 0, cid))
 	{
 		aSource->send(AdcCommand(AdcCommand::SEV_FATAL, AdcCommand::ERROR_INF_MISSING, "ID missing").addParam("FL", "ID"));
 		dcdebug("CM::onINF missing ID\n");
@@ -1342,7 +1343,7 @@ void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCo
 		return;
 	}
 	
-	aSource->setUser(ClientManager::findUser(cmd.getParamCID()));
+	aSource->setUser(ClientManager::findUser(CID(cid)));
 	
 	if (!aSource->getUser())
 	{

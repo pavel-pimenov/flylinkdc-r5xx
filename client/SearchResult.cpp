@@ -26,6 +26,7 @@
 #include "CFlylinkDBManager.h"
 #include "ShareManager.h"
 
+
 SearchResultBaseTTH::SearchResultBaseTTH(Types aType, int64_t aSize, const string& aFile, const TTHValue& aTTH, uint8_t aSlots /* = 0 */, uint8_t aFreeSlots /* = 0 */):
 	file(aFile),
 	size(aSize),
@@ -34,7 +35,6 @@ SearchResultBaseTTH::SearchResultBaseTTH(Types aType, int64_t aSize, const strin
 	freeSlots(aFreeSlots),
 	m_type(aType)
 {
-
 }
 
 void SearchResultBaseTTH::initSlot()

@@ -1838,6 +1838,7 @@ bool SettingsManager::set(IntSetting key, int value)
 		case AUTO_SEARCH_TIME:
 		{
 			VER_MIN(1);
+			VER_MAX(60);
 			break;
 		}
 		case MINIMUM_SEARCH_INTERVAL:

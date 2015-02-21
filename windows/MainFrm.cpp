@@ -817,7 +817,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 	g_fly_server_stat.stopTick(CFlyServerStatistics::TIME_START_GUI);
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
-	create_timer(1000);
+	create_timer(1000, 3);
 	transferView.UpdateLayout();
 	return 0;
 }

@@ -63,27 +63,6 @@ SearchManager::~SearchManager()
 	}
 }
 
-string SearchManager::normalizeWhitespace(const string& aString)
-{
-	string::size_type found = 0;
-	string normalized = aString;
-	while ((found = normalized.find_first_of("\t\n\r", found)) != string::npos)
-	{
-		normalized[found] = ' ';
-		found++;
-	}
-	return normalized;
-}
-
-void SearchManager::search(const string& aName, int64_t aSize, Search::TypeModes aTypeMode, Search::SizeModes aSizeMode, uint32_t aToken, void* aOwner, bool p_is_force_passive)
-{
-	ClientManager::getInstance()->search(aSizeMode, aSize, aTypeMode, normalizeWhitespace(aName), aToken, aOwner, p_is_force_passive);
-}
-
-uint64_t SearchManager::search(const StringList& who, const string& aName, int64_t aSize, Search::TypeModes aTypeMode, Search::SizeModes aSizeMode, uint32_t aToken, const StringList& aExtList, void* aOwner, bool p_is_force_passive)
-{
-	return ClientManager::getInstance()->search(who, aSizeMode, aSize, aTypeMode, normalizeWhitespace(aName), aToken, aExtList, aOwner, p_is_force_passive);
-}
 
 void SearchManager::listen()
 {
@@ -171,7 +150,7 @@ int SearchManager::run()
 				socket->create(Socket::TYPE_UDP);
 				socket->setBlocking(true);
 				socket->setInBufSize();
-        dcassert(g_search_port);
+				dcassert(g_search_port);
 				socket->bind(g_search_port, SETTING(BIND_ADDRESS));
 				if (failed)
 				{
@@ -358,7 +337,7 @@ int SearchManager::UdpQueue::run()
 			
 			if (tth.empty() && type == SearchResult::TYPE_FILE)
 			{
-        dcassert(tth.empty() && type == SearchResult::TYPE_FILE);
+				dcassert(tth.empty() && type == SearchResult::TYPE_FILE);
 				continue;
 			}
 			

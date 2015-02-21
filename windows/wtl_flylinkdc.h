@@ -46,10 +46,11 @@ class CFlyTimerAdapter
 {
 		UINT_PTR m_timer_id;
 		const HWND& m_hTimerWnd;
+		UINT_PTR m_timer_id_event;
 	protected:
 		bool m_spoken;
 	public:
-		CFlyTimerAdapter(const HWND& p_hWnd) : m_hTimerWnd(p_hWnd), m_timer_id(0), m_spoken(false)
+		CFlyTimerAdapter(const HWND& p_hWnd) : m_hTimerWnd(p_hWnd), m_timer_id(0), m_spoken(false), m_timer_id_event(NULL)
 		{
 		}
 		virtual ~CFlyTimerAdapter()
@@ -57,13 +58,15 @@ class CFlyTimerAdapter
 			dcassert(!m_timer_id);
 		}
 	protected:
-		UINT_PTR create_timer(UINT p_Elapse, UINT_PTR p_IDEvent = NULL)
+		UINT_PTR create_timer(UINT p_Elapse, UINT_PTR p_IDEvent = 1)
 		{
+			m_timer_id_event = p_IDEvent;
 			ATLASSERT(::IsWindow(m_hTimerWnd));
 			ATLASSERT(m_timer_id == NULL);
 			if (m_timer_id == NULL) // В стеке странный рекурсивный вызов SetTimer http://code.google.com/p/flylinkdc/issues/detail?id=1328
 			{
 				m_timer_id = SetTimer(m_hTimerWnd, p_IDEvent, p_Elapse, NULL);
+				ATLASSERT(m_timer_id != NULL);
 			}
 			return m_timer_id;
 		}
@@ -73,7 +76,20 @@ class CFlyTimerAdapter
 			if (m_timer_id)
 			{
 				ATLASSERT(::IsWindow(m_hTimerWnd));
-				KillTimer(m_hTimerWnd, m_timer_id);
+				BOOL l_res;
+				if (m_timer_id_event)
+					l_res = KillTimer(m_hTimerWnd, m_timer_id_event);
+				else
+					l_res = KillTimer(m_hTimerWnd, m_timer_id);
+				if (l_res == NULL)
+				{
+					const auto l_error_code = GetLastError();
+					if (l_error_code)
+					{
+						ATLASSERT(l_res != NULL);
+						dcdebug("KillTimer = error_code = %d", l_error_code);
+					}
+				}
 				m_timer_id = 0;
 			}
 		}

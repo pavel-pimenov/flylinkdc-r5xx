@@ -282,7 +282,7 @@
 		<String Name="CmdUserlist">Показать/скрыть список пользователей</String>
 		<String Name="CmdWinamp">Вывести инфо о Winamp (AIMP, KMPlayer, WMP, iTunes, MPC, JetAudio) в чат</String>
 		<String Name="CollapseAll">Свернуть всё</String>
-		<String Name="ColorFast">«Горячий» пользователь</String>
+		<String Name="ColorFast">'Горячий' пользователь</String>
 		<String Name="ColorOp">Пользователь – Оператор</String>
 		<String Name="ColorPasive">Пассивный пользователь</String>
 		<String Name="ColorServer">Пользователь с сервером</String>

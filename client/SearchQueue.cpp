@@ -20,6 +20,7 @@
 #include "SearchQueue.h"
 #include "QueueManager.h"
 #include "SearchManager.h"
+#include "NmdcHub.h"
 
 bool SearchQueue::add(const Search& s)
 {
@@ -28,7 +29,7 @@ bool SearchQueue::add(const Search& s)
 	
 	FastLock l(m_cs);
 	
-	for (auto i = searchQueue.begin(); i != searchQueue.end(); ++i)
+	for (auto i = m_searchQueue.begin(); i != m_searchQueue.end(); ++i)
 	{
 		// check dupe
 		if (*i == s)
@@ -40,7 +41,7 @@ bool SearchQueue::add(const Search& s)
 			if (!s.isAutoToken() && i->isAutoToken())
 			{
 				// FlylinkDC Team TODO не стирать,  делать swap или что то ещё, теряем овнеров :( пока не осознал чем это грозит (L.)
-				searchQueue.erase(i);
+				m_searchQueue.erase(i);
 				break;
 			}
 			
@@ -51,24 +52,24 @@ bool SearchQueue::add(const Search& s)
 	if (s.isAutoToken())
 	{
 		// Insert last (automatic search)
-		searchQueue.push_back(s);
+		m_searchQueue.push_back(s);
 	}
 	else
 	{
 		bool added = false;
-		if (searchQueue.empty())
+		if (m_searchQueue.empty())
 		{
-			searchQueue.push_front(s);
+			m_searchQueue.push_front(s);
 			added = true;
 		}
 		else
 		{
 			// Insert before the automatic searches (manual search)
-			for (auto i = searchQueue.cbegin(); i != searchQueue.cend(); ++i)
+			for (auto i = m_searchQueue.cbegin(); i != m_searchQueue.cend(); ++i)
 			{
 				if (i->isAutoToken())
 				{
-					searchQueue.insert(i, s);
+					m_searchQueue.insert(i, s);
 					added = true;
 					break;
 				}
@@ -76,7 +77,7 @@ bool SearchQueue::add(const Search& s)
 		}
 		if (!added)
 		{
-			searchQueue.push_back(s);
+			m_searchQueue.push_back(s);
 		}
 	}
 	return true;
@@ -97,10 +98,10 @@ bool SearchQueue::pop(Search& s, uint64_t p_now)
 		
 	{
 		FastLock l(m_cs);
-		if (!searchQueue.empty())
+		if (!m_searchQueue.empty())
 		{
-			s = searchQueue.front();
-			searchQueue.pop_front();
+			s = m_searchQueue.front();
+			m_searchQueue.pop_front();
 			m_lastSearchTime = p_now;
 			return true;
 		}
@@ -126,7 +127,7 @@ uint64_t SearchQueue::getSearchTime(void* aOwner, uint64_t p_now)
 	
 	uint64_t x = max(m_lastSearchTime, uint64_t(p_now - m_interval)); // [!] IRainman opt
 	
-	for (auto i = searchQueue.cbegin(); i != searchQueue.cend(); ++i)
+	for (auto i = m_searchQueue.cbegin(); i != m_searchQueue.cend(); ++i)
 	{
 		x += m_interval;
 		
@@ -142,7 +143,7 @@ uint64_t SearchQueue::getSearchTime(void* aOwner, uint64_t p_now)
 bool SearchQueue::cancelSearch(void* aOwner)
 {
 	FastLock l(m_cs);
-	for (auto i = searchQueue.begin(); i != searchQueue.end(); ++i)
+	for (auto i = m_searchQueue.begin(); i != m_searchQueue.end(); ++i)
 	{
 		// [!] IRainman opt.
 		auto &l_owners = i->m_owners; // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'i->owners' expression repeatedly. searchqueue.cpp 135
@@ -153,10 +154,101 @@ bool SearchQueue::cancelSearch(void* aOwner)
 			// [~] IRainman opt.
 			if (l_owners.empty())
 			{
-				searchQueue.erase(i);
+				m_searchQueue.erase(i);
 			}
 			return true;
 		}
 	}
 	return false;
+}
+
+bool SearchParam::is_parse_nmdc_search(const string& p_raw_search)
+{
+	m_raw_search = p_raw_search;
+	dcassert(m_raw_search.size() > 4);
+	if (m_raw_search.size() < 4)
+	{
+		m_error_level = 1;
+		return false;
+	}
+	m_is_passive = m_raw_search.compare(0, 4, "Hub:", 4) == 0;
+	const string param = Text::toUtf8(m_raw_search);
+	m_raw_search = param;
+	string::size_type i = 0;
+	string::size_type j = param.find(' ', i);
+	m_query_pos = j;
+	if (j == string::npos || i == j)
+	{
+		m_error_level = 1;
+		return false;
+	}
+	m_seeker = param.substr(i, j - i);
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+	string l_tth;
+	const auto l_tth_pos = param.find("?9?TTH:", i);
+	if (l_tth_pos != string::npos)
+		l_tth = param.c_str() + l_tth_pos + 7;
+	if (!l_tth.empty())
+		CFlylinkDBManager::getInstance()->push_event_statistic(p_is_passive ? "search-p" : "search-a", "TTH", param, getIpAsString(), "", getHubUrlAndIP(), l_tth);
+	else
+		CFlylinkDBManager::getInstance()->push_event_statistic(p_is_passive ? "search-p" : "search-a", "Others", param, getIpAsString(), "", getHubUrlAndIP());
+#endif
+	i = j + 1;
+	if (param.size() < (i + 4))
+	{
+		m_error_level = 1;
+		return false;
+	}
+	if (param[i] == 'F')
+	{
+		m_size_mode = Search::SIZE_DONTCARE;
+	}
+	else if (param[i + 2] == 'F')
+	{
+		m_size_mode = Search::SIZE_ATLEAST;
+	}
+	else
+	{
+		m_size_mode = Search::SIZE_ATMOST;
+	}
+	i += 4;
+	j = param.find('?', i);
+	if (j == string::npos || i == j)
+	{
+		m_error_level = 4;
+		return false;
+	}
+	if ((j - i) == 1 && param[i] == '0')
+	{
+		m_size = 0;
+	}
+	else
+	{
+		m_size = _atoi64(param.c_str() + i);
+	}
+	i = j + 1;
+	j = param.find('?', i);
+	if (j == string::npos || i == j)
+	{
+		m_error_level = 5;
+		return false;
+	}
+	const int l_type_search = atoi(param.c_str() + i);
+	m_file_type = Search::TypeModes(l_type_search - 1);
+	i = j + 1;
+	
+	if (m_file_type == Search::TYPE_TTH && (param.size() - i) == 39 + 4) // 39+4 = strlen("TTH:VGUKIR6NLP6LQB7P5NDCZGUSR3MFHRMRO3VJLWY")
+	{
+		m_filter = param.substr(i);
+	}
+	else
+	{
+		m_filter = NmdcHub::unescape(param.substr(i));
+	}
+	if (m_filter.empty())
+	{
+		m_error_level = 6;
+		return false;
+	}
+	return true;
 }

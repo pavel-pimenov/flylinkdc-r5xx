@@ -1,4 +1,161 @@
 ------------------------------------------------------------------------
+r18271 | pavel.pimenov@gmail.com | 2015-02-13 23:09:27 +0300 (Пт, 13 фев 2015) | 1 line
+
+# Не добавляем к тэгу номер билда если клиент косит под другого. (Часть 2)
+------------------------------------------------------------------------
+r18270 | pavel.pimenov@gmail.com | 2015-02-13 22:48:29 +0300 (Пт, 13 фев 2015) | 1 line
+
+# Не добавляем к тэгу номер билда если клиент косит под другого.
+------------------------------------------------------------------------
+r18268 | pavel.pimenov@gmail.com | 2015-02-13 22:20:37 +0300 (Пт, 13 фев 2015) | 2 lines
+
+* Исправлена ошибка ID missing проявлялась на adc при скачке файл-листов 
+  сломал в r17809 (спасибо SCALOlаz и fdf)
+------------------------------------------------------------------------
+r18265 | pavel.pimenov@gmail.com | 2015-02-13 18:36:38 +0300 (Пт, 13 фев 2015) | 7 lines
+
+Merged revision(s) 18264 from trunk:
+# [mediainfo][merge]
+x DCP/IMF: ID has now the AM/PKL CPL order in order in all cases (not only when there is more than one CPL)
+x #B893, MXF: Crash with Panasonic P2 3.0 files
+
+........
+
+------------------------------------------------------------------------
+r18261 | pavel.pimenov@gmail.com | 2015-02-13 18:10:29 +0300 (Пт, 13 фев 2015) | 89 lines
+
+Merged revision(s) 18232-18259 from trunk:
+#[mediainfo]
+ + MOV/MPEG-4: handling of clcn (little endian nclc) Color parameter type
+........
+* Оптимизацация LogManager::log убрал лищний вызов WinAPI ::SetFilePointerEx(h, x, &x, FILE_CURRENT)  (File::getPos())
+  
+........
+* В CMD отладчик добавлен вывод новых диагностик (Заказывал - pewpew)
+  - COMMAND_DEBUG("[Partial-Search] - поиск частичных источников
+  - COMMAND_DEBUG("[Active-Search] - ответы на активный поиск
+........
+# PreviewDLG: пробуем включить кнопку Отмена в диалоге выбора и настройки плееров
+........
+# Рефакторинг кода поиска - убрал "полотенце" параметров для поиска
+  и сокращаем расход стека при рекурсивном обходе каталогов
+  Добавлены классы 
+  - class SearchParamBase
+  - class SearchParamToken : public SearchParamBase
+  - class SearchParam : public SearchParamBase
+  TODO - засунуть туда парсинг и другие методы + еще чуток причесать код. 
+  TODO - оптимизировать через вызов ShareManager::isUnknownFile исключив fire
+........
+# Спрятал SearchManager::normalizeWhitespace в класс SearchParamToken
+........
+# Выкинул проброс еще одного параметра const StringList& aExtList через стек
+........
+# [mediainfo][merge]
++ MOV/MPEG-4: handling of clcn (little endian nclc) Color parameter type
+........
+* AviPreview:
+- Непонятно деактивировались кнопки "Удалить", "Изменить"
+- Дополнение к редактированию плеера
+........
+# дополнение к r18240
+Теперь редактирование плееров должно устроить всех: и ваших и наших :Р
+........
+* Исправлено:
+  <pewpew> вот вызвал контекстное меню на юзере, нажал "Отчёт", на экране он нарисовался, но в логах пусто в общем, реквестую писать эту инфу в лог
+
+........
+# Вернул галку настройки - REPORT_ALTERNATES, // "Report auto search for alternates in status bar"
+  поможет найти проблемы с поиском альтернативных источников и их частотой
+........
+# Если в интервале поиска альтернатив стоит минута то паузу делаем на 61 секунду (чтобы не попадать на границу антифлуда)
+# Максимальный размер интервала поиска альтернатив = 60 минут
+........
+* При поиске альтернатив выводим и TTH 
+  LogManager::message(STRING(ALTERNATES_SEND) + ' ' + Util::getFileName(qi->getTargetFileName()) + " TTH = " + qi->getTTH().toBase32());
+* Логирование поиска альтернатив можно отключить галкой в настройках.
+# Подготовока клиента с работой с новой версией флай-хаба
+........
+# Вероятно починил флуд по поиску.
+........
+# Вероятно починил флуд по поиску.(часть 2)
+........
+# Удален dc.a-galaxy.com
+
+........
+* В новой бетке флая хабы юзающие ддос нового типа будут менять иконку на медицинский знак ("больной хабик")
+ + в CMD логе фиксируется меркер ddos https://yadi.sk/i/FttN5w67eatVa
+ + Все такие команды игнорируются клиентом
+* На всякий случай смержил фикс от AirDC++ хотя код флая не пропускает в ту функцию атаку
+  https://github.com/airdcpp/airgit/commit/a8c063aabe5a1c6daf0ae04c1a2e7fdf1d28264c#diff-809a2a07d8486558b177aa95dc49d3a4R592
+........
+# Упросил код isValidSearch - поддерживаем детект атаки по доменному имени
+........
+# Опечатка - забыл убрать else
+........
+# WindowsSdk_71A_IncludePath -> WindowsSDK_IncludePath
+........
+# Добавил лог в UDPSocket::encryptPacket
+# Исключил дубликатные поиски заведомо отсутствующих файлов в шаре 
+  роботы очень часто ищут файлы с разных хабов которых, у вас нет в шаре
+  https://yadi.sk/i/dmUFhOX4ecK9m
+  в этом случае новая бетка обходит шару только один раз и потом сохраняет маску поиска
+  и все последующие запросы автоматически игнорирует. фильтр сбрасывается после перезапуска или после изменения шары.
+
+........
+# Добавил логирование по DHT (HackFresse)
+........
+* Исправлен алгоритм поиска - ищу причину флуда.
+........
+* (Fixed issue 1559) Исправил поисковый флуд!
+  cпасибо всем тестерам с хаба dchub://dc.fly-server.ru
+  https://code.google.com/p/flylinkdc/issues/detail?id=1559
+........
+# Log
+........
+
+------------------------------------------------------------------------
+r18232 | pavel.pimenov@gmail.com | 2015-02-04 06:31:17 +0300 (Ср, 04 фев 2015) | 2 lines
+
+#[mediainfo]
+ + MOV/MPEG-4: handling of clcn (little endian nclc) Color parameter type
+------------------------------------------------------------------------
+r18231 | pavel.pimenov@gmail.com | 2015-02-03 22:13:32 +0300 (Вт, 03 фев 2015) | 27 lines
+
+Merged revision(s) 18225-18230 from trunk:
+* sqlite 3.8.8.2
+    The 3.8.8.2 patch release fixes a single minor problem: It ensures that the sqlite3_wal_checkpoint(TRUNCATE) operation will always truncate the write-ahead log even if log had already been reset and contained no new content. It is unclear if this is a bug fix or a new feature.
+    Something like this would normally go into the next regularly scheduled release, but a prominent SQLite user needed the change in a hurry so we were happy to rush it out via this patch.
+    There is no reason to upgrade unless you actually need the enhanced behavior of sqlite3_wal_checkpoint(TRUNCATE). 
+........
+# Из-за стрёмных кавычек в настройках цветов не менялся вид Preview строки "Горячий пользователь"
+........
+# [mediainfo][merge]
++ AVC: Raw dump of SPS/PPS (deactivated)
++ JPEG-2000: Display of profile (Rsiz), update with names of profiles, corrected
+x Removed test code
+........
+* Исправлены утечки GDI ресурсов в отрисовке градиентного прогресс-бара 
+* Исправлены ошибки разрушения оконных таймеров
+  Спасибо обновленной версии Deleaker http://www.deleaker.com/
+........
+* Исключаем лишние вызовы fire из кода BufferedSocket (TODO проверить нагрузку CPU на слабых нетбуках)    
+  Добавлена ранняя проверка отсутствия TTH в шаре с посоедующим игнорированием вызова fire с вложенными CriticalSection
+  в CMD отладчике для таких случае выводятся строка с маркером FastSkip: 
+19:47:32 Hub:	[Incoming][37.59.107.43:411]	 	[TTH][FastSkip]$Search TTH OPMSWEDBVAGLPIWJ5MRNYGL3RGMTHZOH7WWCAYQ
+19:47:32 Hub:	[Incoming][37.59.107.43:411]	 	[TTH][FastSkip]$Search TTH NEYDVE5EHGNM4YWLUCPACJYDZEZPATF5LKZATLA
+19:47:32 Hub:	[Incoming][37.59.107.43:411]	 	[TTH][FastSkip]$Search TTH GIVEEPYBAAAAB4HHEUCAAAAAAAMAAAAAAAAAAAA
+
+  
+........
+
+------------------------------------------------------------------------
+r18225 | pavel.pimenov@gmail.com | 2015-01-31 15:46:20 +0300 (Сб, 31 янв 2015) | 4 lines
+
+* sqlite 3.8.8.2
+    The 3.8.8.2 patch release fixes a single minor problem: It ensures that the sqlite3_wal_checkpoint(TRUNCATE) operation will always truncate the write-ahead log even if log had already been reset and contained no new content. It is unclear if this is a bug fix or a new feature.
+    Something like this would normally go into the next regularly scheduled release, but a prominent SQLite user needed the change in a hurry so we were happy to rush it out via this patch.
+    There is no reason to upgrade unless you actually need the enhanced behavior of sqlite3_wal_checkpoint(TRUNCATE). 
+------------------------------------------------------------------------
 r18224 | pavel.pimenov@gmail.com | 2015-01-30 23:17:17 +0300 (Пт, 30 янв 2015) | 56 lines
 
 Merged revision(s) 18208-18222 from trunk:

@@ -21,6 +21,8 @@
 #include "ThrottleManager.h"// [+] IRainman SpeedLimiter
 #include "LogManager.h"
 #include "CompatibilityManager.h" // [+] IRainman
+#include "QueueManager.h"
+#include "SearchManager.h"
 #include "Wildcards.h"
 #include "../FlyFeatures/flyServer.h"
 
@@ -43,7 +45,8 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure) :
 	m_isChangeAvailableBytes(false),
 	m_exclChecks(false), // [+] IRainman fix.
 	m_message_count(0),
-	m_is_hide_share(0)
+	m_is_hide_share(0),
+	m_is_override_name(false)
 {
 	dcassert(p_HubURL == Text::toLower(p_HubURL));
 	const auto l_my_user = new User(ClientManager::getMyCID());
@@ -150,7 +153,8 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 #endif
 // [!] FlylinkDC mimicry function
 	const FavoriteHubEntry* hub = FavoriteManager::getFavoriteHubEntry(getHubUrl());
-	if (hub && hub->getOverrideId()) // mimicry tag
+	m_is_override_name = hub && hub->getOverrideId();
+	if (m_is_override_name) // mimicry tag
 	{
 		m_clientName = hub->getClientName();
 		m_clientVersion = hub->getClientVersion();
@@ -237,7 +241,9 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 		
 		if (hub->getSearchInterval() < 2) // [!]FlylinkDC changed 10 to 2
 		{
-			setSearchInterval(SETTING(MINIMUM_SEARCH_INTERVAL) * 1000);
+			dcassert(SETTING(MINIMUM_SEARCH_INTERVAL) > 2);
+			const auto l_new_interval = std::max(SETTING(MINIMUM_SEARCH_INTERVAL), 2);
+			setSearchInterval(l_new_interval * 1000);
 		}
 		else
 		{
@@ -527,29 +533,39 @@ string Client::getLocalIp() const
 	// [~] IRainman fix.
 }
 
-uint64_t Client::search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, uint32_t aToken, const StringList& aExtList, void* p_owner, bool p_is_force_passive)
+uint64_t Client::search_internal(const SearchParamToken& p_search_param)
 {
-	dcdebug("Queue search %s\n", aString.c_str());
+	dcdebug("Queue search %s\n", p_search_param.m_filter.c_str());
 	
 	if (m_searchQueue.m_interval)
 	{
 		Search s;
-		s.m_is_force_passive = p_is_force_passive;
-		s.m_fileTypes_bitmap = aFileType; // TODO - проверить что тут все ок?
-		s.m_size     = aSize;
-		s.m_query    = aString;
-		s.m_sizeMode = aSizeMode;
-		s.m_token    = aToken;
-		s.m_exts     = aExtList;
-		s.m_owners.insert(p_owner);
+		s.m_is_force_passive = p_search_param.m_is_force_passive;
+		s.m_fileTypes_bitmap = p_search_param.m_file_type; // TODO - проверить что тут все ок?
+		s.m_size     = p_search_param.m_size;
+		s.m_query    = p_search_param.m_filter;
+		s.m_sizeMode = p_search_param.m_size_mode;
+		s.m_token    = p_search_param.m_token;
+		s.m_ext_list     = p_search_param.m_ext_list;
+		s.m_owners.insert(p_search_param.m_owner);
 		
 		m_searchQueue.add(s);
 		
 		const uint64_t now = GET_TICK(); // [+] IRainman opt
-		return m_searchQueue.getSearchTime(p_owner, now) - now;
+		return m_searchQueue.getSearchTime(p_search_param.m_owner, now) - now;
 	}
-	
-	search(aSizeMode, aSize, aFileType , aString, aToken, aExtList, p_is_force_passive);
+	// TODO - разобратьс€ с этим местом.
+	// мертвый код
+	SearchParamToken l_search_param_token;
+	l_search_param_token.m_token = p_search_param.m_token;
+	l_search_param_token.m_size_mode = p_search_param.m_size_mode;
+	l_search_param_token.m_file_type = p_search_param.m_file_type;
+	l_search_param_token.m_size = p_search_param.m_size;
+	l_search_param_token.m_filter = p_search_param.m_filter;
+	l_search_param_token.m_is_force_passive = p_search_param.m_is_force_passive;
+	l_search_param_token.m_ext_list = p_search_param.m_ext_list;
+	l_search_param_token.m_owner = p_search_param.m_owner; // –аньше тут его не было.
+	search_token(l_search_param_token);
 	return 0;
 	
 }
@@ -576,9 +592,12 @@ void Client::on(Second, uint64_t aTick) noexcept
 		connect();
 	}
 	
-	if (!m_searchQueue.m_interval)
+	if (m_searchQueue.m_interval == 0)
+	{
+		dcassert(m_searchQueue.m_interval != 0);
 		return;
-		
+	}
+	
 	if (isConnected())
 	{
 		Search s;
@@ -586,7 +605,16 @@ void Client::on(Second, uint64_t aTick) noexcept
 		{
 			// TODO - пробежатьс€ по битовой маске?
 			// ≈сли она там есть
-			search(s.m_sizeMode, s.m_size, Search::TypeModes(s.m_fileTypes_bitmap), s.m_query, s.m_token, s.m_exts, s.m_is_force_passive);
+			SearchParamToken l_search_param_token;
+			l_search_param_token.m_token = s.m_token;
+			l_search_param_token.m_size_mode = s.m_sizeMode;
+			l_search_param_token.m_file_type = Search::TypeModes(s.m_fileTypes_bitmap);
+			l_search_param_token.m_size = s.m_size;
+			l_search_param_token.m_filter = s.m_query;
+			l_search_param_token.m_is_force_passive = s.m_is_force_passive;
+			l_search_param_token.m_ext_list = s.m_ext_list;
+			l_search_param_token.m_owner = nullptr;
+			search_token(l_search_param_token);
 		}
 	}
 }
@@ -845,6 +873,156 @@ bool  Client::isInOperatorList(const string& userName) const
 }
 
 // [~] IRainman fix.
+
+bool Client::NmdcPartialSearch(const SearchParam& p_search_param)
+{
+	bool l_is_partial = false;
+	if (p_search_param.m_file_type == Search::TYPE_TTH && isTTHBase64(p_search_param.m_filter)) //[+]FlylinkDC++ opt.
+	{
+		// TODO - унести код в отдельный метод
+		PartsInfo partialInfo;
+		TTHValue aTTH(p_search_param.m_filter.c_str() + 4);  //[+]FlylinkDC++ opt. //-V112
+#ifdef _DEBUG
+//		LogManager::message("[Try] handlePartialSearch TTH = " + aString);
+#endif
+		if (QueueManager::getInstance()->handlePartialSearch(aTTH, partialInfo)) // TODO - часто ищетс€ по ““’
+		{
+#ifdef _DEBUG
+			LogManager::message("[OK] handlePartialSearch TTH = " + p_search_param.m_filter);
+#endif
+			l_is_partial = true;
+			string l_ip;
+			uint16_t l_port = 0;
+			Util::parseIpPort(p_search_param.m_seeker, l_ip, l_port);
+			dcassert(p_search_param.m_seeker == l_ip + ':' + Util::toString(l_port));
+			if (l_port == 0)
+			{
+				dcassert(0);
+				return false;
+			}
+			try
+			{
+				AdcCommand cmd(AdcCommand::CMD_PSR, AdcCommand::TYPE_UDP);
+				SearchManager::getInstance()->toPSR(cmd, true, getMyNick(), getIpPort(), aTTH.toBase32(), partialInfo);
+				Socket udp;
+				udp.writeTo(Socket::resolve(l_ip), l_port, cmd.toString(ClientManager::getMyCID())); // TODO - зачем тут resolve кроме IP может быть что-то другое?
+				
+				COMMAND_DEBUG("[NmdcPartialSearch]" + cmd.toString(ClientManager::getMyCID()), DebugTask::CLIENT_OUT,  l_ip + ':' + Util::toString(l_port));
+				
+				LogManager::psr_message(
+				    "[ClientManager::NmdcSearch Send UDP IP = " + l_ip +
+				    " param->udpPort = " + Util::toString(l_port) +
+				    " cmd = " + cmd.toString(ClientManager::getMyCID())
+				);
+			}
+			catch (Exception& e)
+			{
+				LogManager::psr_message(
+				    "[Partial search caught error] Error = " + e.getError() +
+				    " IP = " + l_ip +
+				    " param->udpPort = " + Util::toString(l_port)
+				);
+				
+#ifdef _DEBUG
+				LogManager::message("ClientManager::on(NmdcSearch, Partial search caught error = " + e.getError() + " TTH = " + p_search_param.m_filter);
+				dcdebug("Partial search caught error\n");
+#endif
+			}
+		}
+	}
+	return l_is_partial;
+}
+
+string Client::getCounts()
+{
+	char buf[128];
+	return string(buf, snprintf(buf, _countof(buf), "%u/%u/%u", g_counts[COUNT_NORMAL].load(), g_counts[COUNT_REGISTERED].load(), g_counts[COUNT_OP].load()));
+}
+
+const string& Client::getCountsIndivid() const
+{
+	// [!] IRainman Exclusive hub, send H:1/0/0 or similar
+	if (isOp())
+	{
+		static const string g_001 = "0/0/1";
+		return g_001;
+	}
+	else if (isRegistered())
+	{
+		static const string g_010 = "0/1/0";
+		return g_010;
+	}
+	else
+	{
+		static const string g_100 = "1/0/0";
+		return g_100;
+	}
+}
+void Client::getCountsIndivid(uint8_t& p_normal, uint8_t& p_registered, uint8_t& p_op) const
+{
+	// [!] IRainman Exclusive hub, send H:1/0/0 or similar
+	p_normal = p_registered = p_op = 0;
+	if (isOp())
+	{
+		p_op = 1;
+	}
+	else if (isRegistered())
+	{
+		p_registered = 1;
+	}
+	else
+	{
+		p_normal = 1;
+	}
+}
+const string& Client::getRawCommand(const int aRawCommand) const
+{
+	switch (aRawCommand)
+	{
+		case 1:
+			return rawOne;
+		case 2:
+			return rawTwo;
+		case 3:
+			return rawThree;
+		case 4:
+			return rawFour;
+		case 5:
+			return rawFive;
+	}
+	return Util::emptyString;
+}
+
+void Client::processingPassword()
+{
+	if (!getPassword().empty())
+	{
+		password(getPassword());
+		fire(ClientListener::StatusMessage(), this, STRING(STORED_PASSWORD_SENT));
+	}
+	else
+	{
+		fire(ClientListener::GetPassword(), this);
+	}
+}
+
+StringMap& Client::escapeParams(StringMap& sm)
+{
+	for (auto i = sm.begin(); i != sm.end(); ++i)
+	{
+		i->second = escape(i->second);
+	}
+	return sm;
+}
+
+void Client::setSearchInterval(uint32_t aInterval)
+{
+	// min interval is 2 seconds in FlylinkDC
+	m_searchQueue.m_interval = max(aInterval, (uint32_t)(2000)); // [!] FlylinkDC
+	m_searchQueue.m_interval = min(m_searchQueue.m_interval, (uint32_t)(120000));
+	dcassert(m_searchQueue.m_interval != 0);
+}
+
 
 /**
  * @file

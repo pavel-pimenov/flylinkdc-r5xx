@@ -202,13 +202,14 @@ void File::setPos(int64_t pos) throw(FileException)
 	if (!::SetFilePointerEx(h, x, &x, FILE_BEGIN))
 		throw(FileException(Util::translateError())); //[+]PPA
 }
-void File::setEndPos(int64_t pos) throw(FileException)
+int64_t File::setEndPos(int64_t pos) throw(FileException)
 {
 	// [!] IRainman use SetFilePointerEx function!
 	LARGE_INTEGER x = {0};
 	x.QuadPart = pos;
 	if (!::SetFilePointerEx(h, x, &x, FILE_END))
 		throw(FileException(Util::translateError())); //[+]PPA
+	return x.QuadPart;
 }
 
 void File::movePos(int64_t pos) throw(FileException)

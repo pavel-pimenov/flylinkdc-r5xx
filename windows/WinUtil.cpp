@@ -112,6 +112,7 @@ HIconWrapper WinUtil::g_hClockIcon(IDR_ICON_CLOCK);
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOnIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOffIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubFlylinkDCIcon;
+std::unique_ptr<HIconWrapper> WinUtil::g_HubDDoSIcon;
 //static WinUtil::ShareMap WinUtil::UsersShare; // !SMT!-UI
 TStringList LastDir::g_dirs;
 HWND WinUtil::g_mainWnd = nullptr;

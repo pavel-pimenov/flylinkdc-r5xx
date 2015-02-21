@@ -196,16 +196,14 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			m_initialSize(0), m_initialMode(Search::SIZE_ATLEAST), m_initialType(Search::TYPE_ANY),
 			m_showUI(true), m_onlyFree(false), m_isHash(false), m_droppedResults(0), m_resultsCount(0),
 			m_expandSR(false),
-			m_storeSettings(false), m_isExactSize(false), m_exactSize2(0), m_sizeMode(Search::SIZE_DONTCARE), /*searches(0),*/
-			m_ftype(Search::TYPE_ANY),
+			m_storeSettings(false), m_isExactSize(false), m_exactSize2(0), /*searches(0),*/
 			m_lastFindTTH(false),
 			m_running(false),
 			m_searchEndTime(0),
 			m_searchStartTime(0),
 			m_waitingResults(false),
 			m_needsUpdateStats(false), // [+] IRainman opt.
-			m_Theme(nullptr),
-			m_search_token(0)
+			m_Theme(nullptr)
 		{
 		}
 		
@@ -666,15 +664,15 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		bool m_isExactSize;
 		bool m_waitingResults;
 		bool m_needsUpdateStats; // [+] IRainman opt.
-		Search::TypeModes m_ftype;
+		
+		SearchParamTokenMultiClient m_search_param;
+		
 		int64_t m_exactSize2;
-		Search::SizeModes m_sizeMode;
 		size_t m_resultsCount;
 		uint64_t m_searchEndTime;
 		uint64_t m_searchStartTime;
 		tstring m_target;
 		tstring m_statusLine; // [+] IRainman fix.
-		uint32_t m_search_token;
 		
 		FastCriticalSection cs; // [!] IRainman opt: use spin lock here.
 		

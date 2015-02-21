@@ -474,12 +474,8 @@ class Identity
 		
 //////////////////// uint16 ///////////////////
 	private:
-	
 		enum eTypeUint16Attr
 		{
-#ifdef IRAINMAN_USE_NG_FAST_USER_INFO
-			e_Changes,
-#endif
 			e_UdpPort,
 			e_DicVE, // "VE"
 			e_DicAP, // "AP"
@@ -487,34 +483,6 @@ class Identity
 		};
 		GSUINTBITS(16);
 	public:
-		bool is_ip_change_and_clear()
-		{
-			if (get_uint16(e_Changes) & CHANGES_IP)
-			{
-				get_uint16(e_Changes) &= ~CHANGES_IP;
-				return true;
-			}
-			return false;
-		}
-	private:
-		void change(const uint16_t p_change)
-		{
-#ifdef IRAINMAN_USE_NG_FAST_USER_INFO
-			BOOST_STATIC_ASSERT(COLUMN_LAST - 1 <= 16); // [!] If you require more than 16 columns in the hub, please increase the size of m_changed_status and correct types in the code harness around her.
-			//FastUniqueLock l(g_cs);
-			get_uint16(e_Changes) |= p_change;
-#endif
-		}
-	public:
-#ifdef IRAINMAN_USE_NG_FAST_USER_INFO
-		uint16_t getChanges()
-		{
-			uint16_t ret = 0;
-			std::swap(ret, get_uint16(e_Changes));
-			return ret;
-		}
-#endif
-		
 		GSUINT(16, UdpPort); // "U4"
 		GSUINT(16, DicVE); // "VE"
 		GSUINT(16, DicAP); // "AP"
@@ -524,6 +492,9 @@ class Identity
 	
 		enum eTypeUint32Attr
 		{
+#ifdef IRAINMAN_USE_NG_FAST_USER_INFO
+			e_Changes,
+#endif
 			e_SID,
 			e_HubNormalRegOper, // 30 bit.
 			e_InfoBitMap,
@@ -532,6 +503,33 @@ class Identity
 			e_TypeUInt32AttrLast
 		};
 		GSUINTBITS(32);
+	private:
+		void change(const uint32_t p_change)
+		{
+#ifdef IRAINMAN_USE_NG_FAST_USER_INFO
+			BOOST_STATIC_ASSERT(COLUMN_LAST - 1 <= 32); // [!] If you require more than 16 columns in the hub, please increase the size of m_changed_status and correct types in the code harness around her.
+			//FastUniqueLock l(g_cs);
+			get_uint32(e_Changes) |= p_change;
+#endif
+		}
+	public:
+		bool is_ip_change_and_clear()
+		{
+			if (get_uint32(e_Changes) & CHANGES_IP)
+			{
+				get_uint32(e_Changes) &= ~CHANGES_IP;
+				return true;
+			}
+			return false;
+		}
+#ifdef IRAINMAN_USE_NG_FAST_USER_INFO
+		uint32_t getChanges()
+		{
+			uint32_t ret = 0;
+			std::swap(ret, get_uint32(e_Changes));
+			return ret;
+		}
+#endif
 		
 	public:
 	

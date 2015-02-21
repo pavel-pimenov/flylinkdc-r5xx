@@ -89,6 +89,11 @@ int HubFrame::g_columnSizes[] = { 100,    // COLUMN_NICK
 #endif
                                   300,     // COLUMN_CID
                                   200      // COLUMN_TAG
+#ifdef FLYLINKDC_USE_FLYHUB
+                                  , 50   // COLUMN_FLY_HUB_COUNTRY
+                                  , 50   // COLUMN_FLY_HUB_CITY
+                                  , 50   // COLUMN_FLY_HUB_ISP
+#endif
                                 }; // !SMT!-IP
 
 int HubFrame::g_columnIndexes[] = { COLUMN_NICK,
@@ -123,6 +128,11 @@ int HubFrame::g_columnIndexes[] = { COLUMN_NICK,
 //[-]PPA        COLUMN_PK
                                     COLUMN_CID,
                                     COLUMN_TAG
+#ifdef FLYLINKDC_USE_FLYHUB
+                                    , COLUMN_FLY_HUB_COUNTRY
+                                    , COLUMN_FLY_HUB_CITY
+                                    , COLUMN_FLY_HUB_ISP
+#endif
                                   };
 
 static ResourceManager::Strings g_columnNames[] = { ResourceManager::NICK,            // COLUMN_NICK
@@ -157,6 +167,11 @@ static ResourceManager::Strings g_columnNames[] = { ResourceManager::NICK,      
 //[-]PPA  ResourceManager::PK
                                                     ResourceManager::CID,             // COLUMN_CID
                                                     ResourceManager::TAG,             // COLUMN_TAG
+#ifdef FLYLINKDC_USE_FLYHUB
+                                                    ResourceManager::FLY_HUB_COUNTRY, // COLUMN_FLY_HUB_COUNTRY
+                                                    ResourceManager::FLY_HUB_CITY, // ,COLUMN_FLY_HUB_CITY
+                                                    ResourceManager::FLY_HUB_ISP //,COLUMN_FLY_HUB_ISP
+#endif
                                                   };
 
 // [+] IRainman: copy-past fix.
@@ -285,7 +300,7 @@ LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	ConnectionManager::getInstance()->addListener(this);
 #endif
-	create_timer(1000);
+	create_timer(1000, 2);
 	return 1;
 }
 void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
@@ -307,6 +322,11 @@ void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
 		m_ctrlUsers->setColumnOwnerDraw(COLUMN_DOWNLOAD);
 		m_ctrlUsers->setColumnOwnerDraw(COLUMN_MESSAGES);
 		m_ctrlUsers->setColumnOwnerDraw(COLUMN_ANTIVIRUS);
+#ifdef FLYLINKDC_USE_FLYHUB
+		m_ctrlUsers->setColumnOwnerDraw(COLUMN_FLY_HUB_COUNTRY);
+		m_ctrlUsers->setColumnOwnerDraw(COLUMN_FLY_HUB_CITY);
+		m_ctrlUsers->setColumnOwnerDraw(COLUMN_FLY_HUB_ISP);
+#endif
 		// m_ctrlUsers->SetCallbackMask(m_ctrlUsers->GetCallbackMask() | LVIS_STATEIMAGEMASK);
 		if (p_fhe)
 		{
@@ -1552,6 +1572,13 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 		{
 			unique_ptr<string> l_ptr_msg(reinterpret_cast<string*>(wParam));
 			BaseChatFrame::addLine(Text::toT(*l_ptr_msg), Colors::g_ChatTextSystem);
+			if (BOOLSETTING(LOG_MAIN_CHAT))
+			{
+				StringMap params;
+				params["message"] = *l_ptr_msg;
+				params["hubURL"]  = m_client->getHubUrl();
+				LOG(CHAT, params);
+			}
 		}
 		break;
 		
@@ -3047,6 +3074,15 @@ void HubFrame::on(ClientListener::Connected, const Client* c) noexcept
 	//speak(CONNECTED);
 	PostMessage(WM_SPEAKER_CONNECTED);
 	ChatBot::getInstance()->onHubAction(BotInit::RECV_CONNECT, c->getHubUrl());
+}
+
+void HubFrame::on(ClientListener::DDoSSearchDetect, const string&) noexcept
+{
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
+	{
+		setCustomIcon(*WinUtil::g_HubDDoSIcon.get());
+	}
 }
 
 void HubFrame::on(ClientListener::UserUpdated, const OnlineUserPtr& user) noexcept   // !SMT!-fix

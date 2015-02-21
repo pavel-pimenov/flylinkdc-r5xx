@@ -37,7 +37,7 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		void hubMessage(const string& aMessage, bool thirdPerson = false);
 		void privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson = false);
 		void sendUserCmd(const UserCommand& command, const StringMap& params);
-		virtual void search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, uint32_t aToken, const StringList& aExtList, bool p_is_force_passive);
+		virtual void search_token(const SearchParamToken& p_search_param);
 		void password(const string& pwd);
 		void info(bool p_force);
 		void refreshUserList(bool);
@@ -82,7 +82,7 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		bool resendMyINFO(bool p_is_force_passive);
 		
 		bool m_oldPassword;
-		Socket udp;
+		Socket m_udp;
 		SIDMap m_users;
 		StringMap m_lastInfoMap;
 		

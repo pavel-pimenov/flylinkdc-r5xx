@@ -80,6 +80,7 @@ class AVIPreview : public CPropertyPage<IDD_AVIPREVIEW_PAGE>, public PropPage
 		}
 		void write() {}
 		void cancel() {}
+		void checkMenu();
 	protected:
 		ExListViewCtrl ctrlCommands;
 		static TextItem texts[];

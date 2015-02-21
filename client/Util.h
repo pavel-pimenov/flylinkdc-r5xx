@@ -737,6 +737,8 @@ class Util
 			bool isSecure;
 			decodeUrl(aUrl, protocol, host, port, path, isSecure, query, fragment);
 		}
+		static void parseIpPort(const string& aIpPort, string& ip, uint16_t& port);
+		static bool isValidSearch(const string& p_search);
 		static void decodeUrl(const string& aUrl, string& protocol, string& host, uint16_t& port, string& path, bool& isSecure, string& query, string& fragment);
 		static std::map<string, string> decodeQuery(const string& query);
 		

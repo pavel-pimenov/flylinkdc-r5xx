@@ -76,15 +76,16 @@ LRESULT PreviewDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
 			MessageBox(CWSTRING(NAME_COMMAND_EMPTY));
 			return 0;
 		}
-		
+		if (ctrlExtensions.GetWindowTextLength() == 0)
+		{
+			MessageBox(_T("Please, enter extensions"));
+			return 0;
+		}
 		GET_TEXT(IDC_PREVIEW_NAME, m_name);
 		GET_TEXT(IDC_PREVIEW_APPLICATION, m_application);
 		GET_TEXT(IDC_PREVIEW_ARGUMENTS, m_argument);
 		GET_TEXT(IDC_PREVIEW_EXTENSION, m_extensions);
 	}
-	if (!m_extensions.empty())
-	{
-		EndDialog(wID);
-	}
+	EndDialog(wID);
 	return 0;
 }

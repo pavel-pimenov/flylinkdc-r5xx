@@ -934,9 +934,12 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 		{
 			searchString = qi->getTTH().toBase32();
 			recent.push_back(qi->getTarget());
-			nextSearch = aTick + (SETTING(AUTO_SEARCH_TIME) * 60000);
+			const int l_as_time = SETTING(AUTO_SEARCH_TIME);
+			nextSearch = aTick + (l_as_time * (l_as_time == 1 ? 61000 : 60000));
 			if (BOOLSETTING(REPORT_ALTERNATES))
-				LogManager::message(STRING(ALTERNATES_SEND) + ' ' + Util::getFileName(qi->getTargetFileName()));
+			{
+				LogManager::message(STRING(ALTERNATES_SEND) + ' ' + Util::getFileName(qi->getTargetFileName()) + " TTH = " + qi->getTTH().toBase32());
+			}
 		}
 	}
 	// [~] IRainman fix.
@@ -953,6 +956,7 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 			SearchManager::getInstance()->toPSR(cmd, true, param->myNick, param->hubIpPort, param->tth, param->parts);
 			Socket udp;
 			udp.writeTo(param->ip, param->udpPort, cmd.toString(ClientManager::getMyCID()));
+			COMMAND_DEBUG("[Partial-Search]" + cmd.toString(ClientManager::getMyCID()), DebugTask::CLIENT_OUT, param->ip + ':' + Util::toString(param->udpPort));
 			LogManager::psr_message(
 			    "[PartsInfoReq] Send UDP IP = " + param->ip +
 			    " param->udpPort = " + Util::toString(param->udpPort) +

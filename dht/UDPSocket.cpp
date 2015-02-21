@@ -190,11 +190,12 @@ void UDPSocket::checkIncoming()
 				uint16_t l_port = ntohs(remoteAddr.sin_port);
 				COMMAND_DEBUG(s, DebugTask::HUB_IN,  ip + ':' + Util::toString(l_port) + " [DHT]");
 				DHT::getInstance()->dispatch(s, ip, l_port, isUdpKeyValid);
-
+#ifdef FLYLINKDC_BETA
 				{
 				LogManager::dht_message("[UDPSocket::checkIncoming()] cmd [" + s +
 					"] ip:port = [" + ip + ":" + Util::toString(l_port) + "] isUdpKeyValid = " + Util::toString(isUdpKeyValid));
 				}
+#endif
 			}
 			else
 			{
@@ -240,7 +241,7 @@ void UDPSocket::checkOutgoing(uint64_t& p_timer)
 #endif
 
 			unsigned long length = compressBound(packet->data.length()) + 20; //-V614
-#if 0
+#ifdef FLYLINKDC_BETA
 			{
 				LogManager::dht_message("[UDPSocket::checkOutgoing()] before compress " 
 					" ip:port = [" + packet->ip + ":" + Util::toString(packet->port) + "] " 
@@ -367,7 +368,8 @@ void UDPSocket::send(AdcCommand& cmd, const string& ip, uint16_t p_port, const C
 	{
 	FastLock l(cs);
 	m_sendQueue.push_back(p);
-}
+    }
+#ifdef FLYLINKDC_BETA
 	string l_udp_key_log;
 	if(!udpKey.isZero())
 	{
@@ -375,6 +377,7 @@ void UDPSocket::send(AdcCommand& cmd, const string& ip, uint16_t p_port, const C
 	}
 	LogManager::dht_message("[UDPSocket::send] cmd [" + cmd.toString(ClientManager::getMyCID(),true) +
 		      "] ip:port = [" + ip + ":" + Util::toString(p_port) + "] TargetCID=" + targetCID.toBase32() + l_udp_key_log);
+#endif
 }
 
 void UDPSocket::compressPacket(const string& data, uint8_t* destBuf, unsigned long& destSize)
@@ -404,10 +407,16 @@ void UDPSocket::encryptPacket(const CID& targetCID, const UDPKey& udpKey, uint8_
 	{
 		th.update(udpKey.m_key.data(), sizeof(udpKey.m_key));
 		th.update(targetCID.data(), sizeof(targetCID));
-		
+
 		RC4_KEY sentKey;
 		RC4_set_key(&sentKey, TigerTree::BYTES, th.finalize());
 		
+#ifdef FLYLINKDC_BETA
+		LogManager::dht_message("[UDPSocket::encryptPacket] udpKey.m_key = " + udpKey.m_key.toBase32() +
+			                    " targetCID = " + targetCID.toBase32() + 
+								" th.finalize() = " + CID(th.getResult()).toBase32() );
+#endif
+
 		// encrypt data
 		memmove(destBuf + 2, destBuf, destSize);
 		
@@ -467,12 +476,19 @@ bool UDPSocket::decryptPacket(uint8_t* buf, int& len, const string& remoteIp, bo
 		// generate key
 		TigerHash th;
 		if (tries == 1)
+		{
 			th.update(Utils::getUdpKey(remoteIp).data(), sizeof(CID));
+		}
 		th.update(ClientManager::getMyCID().data(), sizeof(CID)); // [!] IRainman fix.
-		
+
 		RC4_KEY recvKey;
 		RC4_set_key(&recvKey, TigerTree::BYTES, th.finalize());
-		
+#ifdef FLYLINKDC_BETA
+		LogManager::dht_message("[UDPSocket::decryptPacket] ClientManager::getMyCID() = " + ClientManager::getMyCID().toBase32() +
+			" remoteIp = " + remoteIp +
+			" Utils::getUdpKey(remoteIp) = " + Utils::getUdpKey(remoteIp).toBase32() +
+			" th.finalize() = " + CID(th.getResult()).toBase32());
+#endif
 		// decrypt data
 		RC4(&recvKey, len, buf + 1, &destBuf[0]);
 	}

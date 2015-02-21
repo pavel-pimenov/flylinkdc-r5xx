@@ -53,7 +53,7 @@ struct Search
 	uint16_t  m_fileTypes_bitmap;
 	string    m_query;
 	uint32_t  m_token;
-	StringList  m_exts;
+	StringList  m_ext_list;
 	std::unordered_set<void*> m_owners;
 	bool isAutoToken() const
 	{
@@ -69,12 +69,90 @@ struct Search
 	}
 };
 
+class SearchParamBase
+{
+	public:
+		Search::SizeModes m_size_mode;
+		int64_t m_size;
+		Search::TypeModes m_file_type;
+		string m_filter;
+		SearchParamBase(): m_size(0), m_size_mode(Search::SIZE_DONTCARE), m_file_type(Search::TYPE_ANY)
+		{
+		}
+		void normalize_whitespace()
+		{
+			string::size_type found = 0;
+			while ((found = m_filter.find_first_of("\t\n\r", found)) != string::npos)
+			{
+				m_filter[found] = ' ';
+				found++;
+			}
+		}
+		
+};
+class SearchParam : public SearchParamBase
+{
+	public:
+		string m_raw_search;
+		string m_seeker;
+		string::size_type m_query_pos;
+		char m_error_level;
+		bool m_is_passive;
+		SearchParam(): m_query_pos(string::npos), m_error_level(0), m_is_passive(false)
+		{
+		}
+		bool is_parse_nmdc_search(const string& p_raw_search);
+		string getRAWQuery() const
+		{
+			dcassert(m_query_pos != string::npos);
+			if (m_query_pos != string::npos)
+				return m_raw_search.substr(m_query_pos);
+			else
+				return "";
+		}
+};
+
+class SearchParamTokenClass
+{
+	public:
+		uint32_t    m_token;
+		bool        m_is_force_passive;
+		void*       m_owner;
+		StringList  m_ext_list;
+		SearchParamTokenClass() : m_token(0), m_is_force_passive(false), m_owner(nullptr)
+		{
+		}
+};
+
+class SearchParamToken : public SearchParamBase, public SearchParamTokenClass // TODO - убрать множественное наследование.
+{
+};
+class SearchParamOwner : public SearchParamBase, public SearchParamTokenClass
+{
+	public:
+		SearchParamOwner()
+		{
+		}
+};
+class SearchParamTokenMultiClient : public SearchParamToken
+{
+	public:
+		StringList  m_clients;
+		void check_clients(unsigned p_count_item)
+		{
+			if (!m_clients.empty() && m_clients.size() == p_count_item && m_clients[0].empty() || m_clients.size() == 1 && m_clients[0].empty())
+			{
+				m_clients.clear();
+			}
+		}
+};
+
 class SearchQueue
 {
 	public:
 	
-		SearchQueue(uint32_t aInterval = 0)
-			: m_lastSearchTime(0), m_interval(aInterval)
+		SearchQueue()
+			: m_lastSearchTime(0), m_interval(2000)
 		{
 		}
 		
@@ -84,7 +162,7 @@ class SearchQueue
 		void clear()
 		{
 			FastLock l(m_cs);
-			searchQueue.clear();
+			m_searchQueue.clear();
 		}
 		
 		bool cancelSearch(void* aOwner);
@@ -99,7 +177,7 @@ class SearchQueue
 		uint32_t m_interval;
 		
 	private:
-		deque<Search> searchQueue;
+		deque<Search> m_searchQueue;
 		uint64_t m_lastSearchTime;
 		FastCriticalSection m_cs;
 };

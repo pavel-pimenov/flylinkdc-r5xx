@@ -145,7 +145,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		virtual void privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson = false) = 0; // !SMT!-S
 		virtual void sendUserCmd(const UserCommand& command, const StringMap& params) = 0;
 		
-		uint64_t search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, uint32_t aToken, const StringList& aExtList, void* owner, bool p_is_force_passive);
+		uint64_t search_internal(const SearchParamToken& p_search_param);
 		void cancelSearch(void* aOwner)
 		{
 			m_searchQueue.cancelSearch(aOwner);
@@ -247,98 +247,16 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			return g_counts[COUNT_NORMAL] + g_counts[COUNT_REGISTERED] + g_counts[COUNT_OP];
 		}
 		
-		static string getCounts()
-		{
-			char buf[128];
-			return string(buf, snprintf(buf, _countof(buf), "%u/%u/%u", g_counts[COUNT_NORMAL].load(), g_counts[COUNT_REGISTERED].load(), g_counts[COUNT_OP].load()));
-		}
-//[+]FlylinkDC
-		const string& getCountsIndivid() const
-		{
-			// [!] IRainman Exclusive hub, send H:1/0/0 or similar
-			if (isOp())
-			{
-				static const string g_001 = "0/0/1";
-				return g_001;
-			}
-			else if (isRegistered())
-			{
-				static const string g_010 = "0/1/0";
-				return g_010;
-			}
-			else
-			{
-				static const string g_100 = "1/0/0";
-				return g_100;
-			}
-		}
-		void getCountsIndivid(uint8_t& p_normal, uint8_t& p_registered, uint8_t& p_op) const
-		{
-			// [!] IRainman Exclusive hub, send H:1/0/0 or similar
-			p_normal = p_registered = p_op = 0;
-			if (isOp())
-			{
-				p_op = 1;
-			}
-			else if (isRegistered())
-			{
-				p_registered = 1;
-			}
-			else
-			{
-				p_normal = 1;
-			}
-		}
-//[~]FlylinkDC
-		const string& getRawCommand(const int aRawCommand) const
-		{
-			switch (aRawCommand)
-			{
-				case 1:
-					return rawOne;
-				case 2:
-					return rawTwo;
-				case 3:
-					return rawThree;
-				case 4:
-					return rawFour;
-				case 5:
-					return rawFive;
-			}
-			return Util::emptyString;
-		}
-		// [+] IRainman fix.
+		static string getCounts();
+		const string& getCountsIndivid() const;
+		void getCountsIndivid(uint8_t& p_normal, uint8_t& p_registered, uint8_t& p_op) const;
+		const string& getRawCommand(const int aRawCommand) const;
 		bool allowPrivateMessagefromUser(const ChatMessage& message);
 		bool allowChatMessagefromUser(const ChatMessage& message, const string& p_nick);
 		
-		void processingPassword()
-		{
-			if (!getPassword().empty())
-			{
-				password(getPassword());
-				fire(ClientListener::StatusMessage(), this, STRING(STORED_PASSWORD_SENT));
-			}
-			else
-			{
-				fire(ClientListener::GetPassword(), this);
-			}
-		}
-		// [~] IRainman fix.
-		StringMap& escapeParams(StringMap& sm)
-		{
-			for (auto i = sm.begin(); i != sm.end(); ++i)
-			{
-				i->second = escape(i->second);
-			}
-			return sm;
-		}
-		
-		void setSearchInterval(uint32_t aInterval)
-		{
-			// min interval is 2 seconds in FlylinkDC
-			m_searchQueue.m_interval = max(aInterval, (uint32_t)(2000)); // [!] FlylinkDC
-			m_searchQueue.m_interval = min(m_searchQueue.m_interval, (uint32_t)(120000));
-		}
+		void processingPassword();
+		StringMap& escapeParams(StringMap& sm);
+		void setSearchInterval(uint32_t aInterval);
 		
 		uint32_t getSearchInterval() const
 		{
@@ -390,6 +308,9 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			return m_HubURL;
 		}
+		
+		bool NmdcPartialSearch(const SearchParam& p_search_param);
+		
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		uint32_t getHubID() const
 		{
@@ -493,6 +414,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		// [-] GETSET(string, clientId, ClientId); // !SMT!-S
 		GETSET(string, m_clientName, ClientName);
 		GETSET(string, m_clientVersion, ClientVersion);
+		bool m_is_override_name;
 		// [~] IRainman mimicry function
 		
 		GETM(uint64_t, m_lastActivity, LastActivity);
@@ -624,7 +546,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		const FavoriteHubEntry* reloadSettings(bool updateNick);
 		
 		virtual void checkNick(string& p_nick) = 0;
-		virtual void search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, uint32_t aToken, const StringList& aExtList, bool p_is_force_passive) = 0;
+		virtual void search_token(const SearchParamToken& p_search_param) = 0;
 		
 		// TimerManagerListener
 		virtual void on(TimerManagerListener::Second, uint64_t aTick) noexcept;

@@ -32,27 +32,29 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 	public:
 		static const char* getTypeStr(int type);
 		
-		void search_auto(const string& aName)
+		void search_auto(const string& p_tth)
 		{
-			search(aName, 0, Search::TYPE_TTH, Search::SIZE_DONTCARE, 0 /*"auto"*/, nullptr, false);
+			SearchParamOwner l_search_param;
+			l_search_param.m_token = 0; /*"auto"*/
+			l_search_param.m_size_mode = Search::SIZE_DONTCARE;
+			l_search_param.m_file_type = Search::TYPE_TTH;
+			l_search_param.m_size = 0;
+			l_search_param.m_filter = p_tth;
+			// Для TTH не нужно этого. l_search_param.normalize_whitespace();
+			l_search_param.m_owner = nullptr;
+			l_search_param.m_is_force_passive = false;
+			
+			dcassert(p_tth.size() == 39);
+			
+			//search(l_search_param);
+			ClientManager::getInstance()->search(l_search_param);
 		}
-		void search(const string& aName, int64_t aSize, Search::TypeModes aTypeMode, Search::SizeModes aSizeMode, uint32_t aToken, void* aOwner, bool p_is_force_passive);
 		
-		uint64_t search(const StringList& who,
-		                const string& aName,
-		                int64_t aSize,
-		                Search::TypeModes aTypeMode,
-		                Search::SizeModes aSizeMode,
-		                uint32_t aToken,
-		                const StringList& aExtList,
-		                void* aOwner,
-		                bool p_is_force_passive);
-		                
 		ClientManagerListener::SearchReply respond(const AdcCommand& cmd, const CID& cid, bool isUdpActive, const string& hubIpPort, StringSearch::List& reguest); // [!] IRainman-S add  StringSearch::List& reguest and return type
 		
 		static uint16_t getSearchPortUint()
 		{
-      dcassert(g_search_port);
+			dcassert(g_search_port);
 			return g_search_port;
 		}
 		static string getSearchPort()
@@ -115,7 +117,6 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 		
 		SearchManager();
 		
-		static std::string normalizeWhitespace(const std::string& aString);
 		int run();
 		
 		~SearchManager();

@@ -968,28 +968,35 @@ int WebServerSocket::run()
 	return 0;
 }
 
-void WebServerManager::search(string search_str, Search::TypeModes search_type)
+void WebServerManager::search(string p_search_str, Search::TypeModes p_search_type)
 {
 	if (sended_search == false)
 	{
 		string::size_type i = 0;
-		while ((i = search_str.find('+', i)) != string::npos)
+		while ((i = p_search_str.find('+', i)) != string::npos)
 		{
-			search_str.replace(i++, 1, " ");
+			p_search_str.replace(i++, 1, " ");
 		}
-		if (search_type == Search::TYPE_TTH)
+		if (p_search_type == Search::TYPE_TTH)
 		{
-			search_str = g_tth + search_str; // [!] IRainman opt.
+			p_search_str = g_tth + p_search_str; // [!] IRainman opt.
 		}
 		
 		m_search_token = Util::rand();
 		
 		SearchManager::getInstance()->addListener(this);
 		// TODO: Get ADC searchtype extensions if any is selected
-		const StringList emptyList;
-		const uint64_t l_searchInterval = SearchManager::getInstance()->search(emptyList, search_str, 0, search_type, Search::SIZE_DONTCARE, m_search_token, emptyList, (void*)this, false);
+		SearchParamTokenMultiClient l_search_param;
+		l_search_param.m_filter = p_search_str;
+		l_search_param.m_size_mode = Search::SIZE_DONTCARE;
+		l_search_param.m_token = m_search_token;
+		l_search_param.m_file_type = p_search_type;
+		l_search_param.m_size = 0;
+		l_search_param.m_owner = this;
+		l_search_param.m_is_force_passive = false;
+		
+		const uint64_t l_searchInterval = ClientManager::getInstance()->multi_search(l_search_param);
 		search_delay = Util::toString(l_searchInterval / 1000 + 15);
-		//Lock l(cs);
 		results.clear();
 		SearchPages.clear();
 		PageIndex = 0;

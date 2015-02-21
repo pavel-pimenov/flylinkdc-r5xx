@@ -30,6 +30,9 @@
 #include "IpGuard.h"
 #include "ClientManager.h"
 #include "Util.h"
+#include "ShareManager.h"
+#include "DebugManager.h"
+#include "../FlyFeatures/flyServer.h"
 
 // Polling is used for tasks...should be fixed...
 static const uint64_t POLL_TIMEOUT = 250;
@@ -38,7 +41,12 @@ volatile long BufferedSocket::g_sockets = 0;
 #endif
 
 BufferedSocket::BufferedSocket(char aSeparator) :
-	m_separator(aSeparator), m_mode(MODE_LINE), m_dataBytes(0), m_rollback(0), m_state(STARTING),
+	m_separator(aSeparator),
+	m_mode(MODE_LINE),
+	m_dataBytes(0),
+	m_rollback(0),
+	m_state(STARTING),
+	m_count_search_ddos(0),
 // [-] brain-ripper
 // should be rewritten using ThrottleManager
 //sleep(0), // !SMT!-S
@@ -164,6 +172,7 @@ static const uint16_t LONG_TIMEOUT = 30000;
 static const uint16_t SHORT_TIMEOUT = 1000;
 void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t localPort, NatRoles natRole, bool proxy)
 {
+	m_count_search_ddos = 0;
 	dcassert(m_state == STARTING);
 	
 	dcdebug("threadConnect %s:%d/%d\n", aAddr.c_str(), (int)localPort, (int)aPort);
@@ -270,7 +279,8 @@ void BufferedSocket::threadAccept()
 }
 
 bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separator, const string& p_line,
-                                       CFlySearchArray& p_tth_search, StringList& p_file_search)
+                                       CFlySearchArrayTTH& p_tth_search,
+                                       CFlySearchArrayFile& p_file_search)
 {
 	if (p_line.compare(0, 8, "$Search ", 8) == 0)
 	{
@@ -283,13 +293,74 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 			if (l_marker_tth != string::npos && l_marker_tth > 5 && l_line_item[l_marker_tth - 4] == ' ') // Поправка на полную команду  F?T?0?9?TTH: или F?F?0?9?TTH: или T?T?0?9?TTH:
 			{
 				l_marker_tth -= 4;
-				const CFlySearchItem l_item(TTHValue(l_line_item.substr(l_marker_tth + 13, 39)), l_line_item.substr(8, l_marker_tth - 8));
-				dcassert(l_item.m_search.find('|') == string::npos && l_item.m_search.find('$') == string::npos);
-				p_tth_search.push_back(l_item);
+				const string l_tth_str = l_line_item.substr(l_marker_tth + 13, 39);
+				const TTHValue l_tth(l_tth_str);
+				if (!ShareManager::isUnknownTTH(l_tth))
+				{
+					const CFlySearchItemTTH l_item(TTHValue(l_line_item.substr(l_marker_tth + 13, 39)), l_line_item.substr(8, l_marker_tth - 8));
+					dcassert(l_item.m_search.find('|') == string::npos && l_item.m_search.find('$') == string::npos);
+					p_tth_search.push_back(l_item);
+				}
+				else
+				{
+					COMMAND_DEBUG("[TTH][FastSkip]$Search TTH " + l_tth_str, DebugTask::HUB_IN, getIp() + ':' + Util::toString(getPort()));
+#ifdef _DEBUG
+					//  LogManager::message("BufferedSocket::all_search_parser Skip unknown TTH = " + l_tth.toBase32());
+#endif
+				}
 			}
 			else
 			{
-				p_file_search.push_back(l_line_item.substr(8));
+				if (Util::isValidSearch(l_line_item) == false)
+				{
+					if (!m_count_search_ddos)
+					{
+						const string l_error = "BufferedSocket::all_search_parser DDoS $Search command: " + l_line_item + " Hub IP = " + getIp();
+						CFlyServerAdapter::CFlyServerJSON::pushError(20, l_error);
+						LogManager::message(l_error);
+						if (!m_count_search_ddos)
+						{
+							fire(BufferedSocketListener::DDoSSearchDetect(), l_error);
+						}
+						m_count_search_ddos++;
+					}
+					COMMAND_DEBUG("[DDoS] " + l_line_item, DebugTask::HUB_IN, getIp() + ':' + Util::toString(getPort()));
+					return true;
+				}
+#if 0
+				auto l_marker_file = l_line_item.find(' ', 8);
+				if (l_marker_file == string::npos || l_line_item.size() <= 12)
+				{
+					const string l_error = "BufferedSocket::all_search_parser error format $Search command: " + l_line_item + " Hub IP = " + getIp();
+					CFlyServerAdapter::CFlyServerJSON::pushError(19, l_error);
+					LogManager::message(l_error);
+					return true;
+				}
+#endif
+#ifdef _DEBUG
+//            LogManager::message("BufferedSocket::all_search_parser Skip unknown file = " + aString);
+#endif
+				CFlySearchItemFile l_item;
+				if (l_item.is_parse_nmdc_search(l_line_item.substr(8)) == true)
+				{
+					if (ShareManager::isUnknownFile(l_item.getRAWQuery()))
+					{
+						COMMAND_DEBUG("[File][FastSkip]$Search unknown file: " + l_item.getRAWQuery(), DebugTask::HUB_IN, getIp() + ':' + Util::toString(getPort()));
+#ifdef _DEBUG
+						LogManager::message("BufferedSocket::all_search_parser Skip unknown File = " + l_item.m_raw_search);
+#endif
+					}
+					else
+					{
+						p_file_search.push_back(l_item);
+					}
+				}
+				else
+				{
+#ifdef _DEBUG
+					LogManager::message("BufferedSocket::all_search_parser error is_parse_nmdc_search = " + l_item.m_raw_search + " m_error_level = " + Util::toString(l_item.m_error_level));
+#endif
+				}
 			}
 		}
 		return true;
@@ -423,8 +494,8 @@ void BufferedSocket::threadRead()
 //
 
 				StringList l_all_myInfo;
-				CFlySearchArray l_tth_search;
-				StringList l_file_search;
+				CFlySearchArrayTTH l_tth_search;
+				CFlySearchArrayFile l_file_search;
 				while ((pos = l.find(m_separator)) != string::npos)
 				{
 					if (pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
@@ -493,8 +564,8 @@ void BufferedSocket::threadRead()
 				//LogManager::message("MODE_LINE = " + l);
 #endif
 				StringList l_all_myInfo;
-				CFlySearchArray l_tth_search;
-				StringList l_file_search;
+				CFlySearchArrayTTH l_tth_search;
+				CFlySearchArrayFile l_file_search;
 				while ((pos = l.find(m_separator)) != string::npos)
 				{
 #if 0
@@ -592,7 +663,9 @@ void BufferedSocket::disconnect(bool graceless /*= false */)
 {
 	FastLock l(cs);
 	if (graceless)
+	{
 		m_is_disconnecting = true;
+	}
 	initMyINFOLoader();
 	addTask(DISCONNECT, nullptr);
 }
@@ -997,8 +1070,10 @@ int BufferedSocket::run()
 void BufferedSocket::fail(const string& aError)
 {
 	if (hasSocket())
+	{
 		sock->disconnect();
-		
+	}
+	
 	if (m_state == RUNNING)
 	{
 		m_state = FAILED;

@@ -194,8 +194,10 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 	private:
 		void all_myinfo_parser(const string::size_type p_pos_next_separator, const string& p_line, StringList& p_all_myInfo, bool p_is_zon);
 		bool all_search_parser(const string::size_type p_pos_next_separator, const string& p_line,
-		                       CFlySearchArray& p_tth_search, StringList& p_file_search);
+		                       CFlySearchArrayTTH& p_tth_search,
+		                       CFlySearchArrayFile& p_file_search);
 		char m_separator;
+		unsigned m_count_search_ddos;
 	private:
 		enum Tasks
 		{

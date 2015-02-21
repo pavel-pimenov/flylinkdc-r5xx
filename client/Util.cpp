@@ -97,7 +97,7 @@ void WINAPI invalidParameterHandler(const wchar_t*, const wchar_t*, const wchar_
 bool Util::locatedInSysPath(Util::SysPaths path, const string& currentPath) // [+] IRainman
 {
 	const string& l_path = g_sysPaths[path];
-	dcassert(!l_path.empty());
+	// dcassert(!l_path.empty());
 	return !l_path.empty() && strnicmp(currentPath, l_path, l_path.size()) == 0;
 }
 
@@ -912,6 +912,46 @@ void Util::decodeUrl(const string& url, string& protocol, string& host, uint16_t
 				host = buff.data();
 			}
 		}
+	}
+}
+bool Util::isValidSearch(const string& p_search)
+{
+	auto l_marker_file = p_search.find(' ', 8);
+	if (l_marker_file != string::npos && p_search.size() > 12)
+	{
+		const bool l_is_passive = p_search.compare(8, 4, "Hub:", 4) == 0;
+		if (!l_is_passive)
+		{
+			const auto l_is_ddos = p_search.substr(8, l_marker_file);
+			unsigned short l_count_slash = 0;
+			unsigned short l_count_colon = 0;
+			for (auto i = 0; i < l_is_ddos.size(); ++i)
+			{
+				if (l_is_ddos[i] == '/')
+					l_count_slash++;
+				else if (l_is_ddos[i] == ':')
+					l_count_colon++;
+				if (l_count_colon == 2 && l_count_slash == 2)
+				{
+					return false;
+				}
+			}
+		}
+	}
+	return true;
+}
+
+void Util::parseIpPort(const string& aIpPort, string& ip, uint16_t& port)
+{
+	string::size_type i = aIpPort.rfind(':');
+	if (i == string::npos)
+	{
+		ip   = aIpPort;
+	}
+	else
+	{
+		ip   = aIpPort.substr(0, i);
+		port = Util::toInt(aIpPort.substr(i + 1));
 	}
 }
 

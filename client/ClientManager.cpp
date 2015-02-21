@@ -440,19 +440,8 @@ string ClientManager::findHub(const string& ipPort)
 	// [-] Lock l(cs); IRainman opt.
 	
 	string ip_or_host;
-	uint16_t port;
-	const auto i = ipPort.find(':');
-	if (i == string::npos)
-	{
-		ip_or_host = ipPort;
-		port = 411;
-	}
-	else
-	{
-		ip_or_host = ipPort.substr(0, i);
-		port = static_cast<uint16_t>(Util::toInt(ipPort.substr(i + 1)));
-	}
-	
+	uint16_t port = 411;
+	Util::parseIpPort(ipPort, ip_or_host, port);
 	string url;
 	boost::system::error_code ec;
 	const auto l_ip = boost::asio::ip::address_v4::from_string(ip_or_host, ec);
@@ -927,75 +916,23 @@ void ClientManager::on(TTHSearch, Client* aClient, const string& aSeeker, const 
 }
 */
 //=================================================================================================================
-bool ClientManager::NmdcPartialSearch(Client* aClient, const string& aSeeker,
-                                      Search::TypeModes aFileType, const string& aString)
-{
-	bool l_is_partial = false;
-	if (aFileType == Search::TYPE_TTH && isTTHBase64(aString)) //[+]FlylinkDC++ opt.
-	{
-		// TODO - унести код в отдельный метод
-		PartsInfo partialInfo;
-		TTHValue aTTH(aString.c_str() + 4);  //[+]FlylinkDC++ opt. //-V112
-#ifdef _DEBUG
-//		LogManager::message("[Try] handlePartialSearch TTH = " + aString);
-#endif
-		if (QueueManager::getInstance()->handlePartialSearch(aTTH, partialInfo)) // TODO - часто ищется по ТТХ
-		{
-#ifdef _DEBUG
-			LogManager::message("[OK] handlePartialSearch TTH = " + aString);
-#endif
-			l_is_partial = true;
-			string ip, file, proto, query, fragment;
-			uint16_t port = 0;
-			Util::decodeUrl(aSeeker, proto, ip, port, file, query, fragment); // TODO - зачем тут такая штука - по протоколу ведь aSeeker = IP:Port ?
-			dcassert(aSeeker == ip + ':' + Util::toString(port));
-			
-			try
-			{
-				AdcCommand cmd(AdcCommand::CMD_PSR, AdcCommand::TYPE_UDP);
-				SearchManager::getInstance()->toPSR(cmd, true, aClient->getMyNick(), aClient->getIpPort(), aTTH.toBase32(), partialInfo);
-				Socket udp;
-				udp.writeTo(Socket::resolve(ip), port, cmd.toString(getMyCID())); // TODO - зачем тут resolve кроме IP может быть что-то другое?
-				LogManager::psr_message(
-				    "[ClientManager::NmdcSearch Send UDP IP = " + ip +
-				    " param->udpPort = " + Util::toString(port) +
-				    " cmd = " + cmd.toString(getMyCID())
-				);
-			}
-			catch (Exception& e)
-			{
-				LogManager::psr_message(
-				    "[Partial search caught error] Error = " + e.getError() +
-				    " IP = " + ip +
-				    " param->udpPort = " + Util::toString(port)
-				);
-				
-#ifdef _DEBUG
-				LogManager::message("ClientManager::on(NmdcSearch, Partial search caught error = " + e.getError() + " TTH = " + aString);
-				dcdebug("Partial search caught error\n");
-#endif
-			}
-		}
-	}
-	return l_is_partial;
-}
-//=================================================================================================================
-void ClientManager::NmdcSearch(Client* aClient, const string& aSeeker, Search::SizeModes aSizeMode, int64_t aSize,
-                               Search::TypeModes aFileType, const string& aString, bool isPassive) noexcept
+void ClientManager::NmdcSearch(Client* aClient,
+                               const SearchParam& p_search_param,
+                               bool isPassive) noexcept
 {
 	ClientManagerListener::SearchReply l_re = ClientManagerListener::SEARCH_MISS; // !SMT!-S
 	SearchResultList l;
 #ifdef PPA_USE_HIGH_LOAD_FOR_SEARCH_ENGINE_IN_DEBUG
 	ShareManager::getInstance()->search(l, aString, aSizeMode, aSize, aFileType, aClient, isPassive ? 100 : 200);
 #else
-	ShareManager::getInstance()->search(l, aString, aSizeMode, aSize, aFileType, aClient, isPassive ? 5 : 10);
+	ShareManager::getInstance()->search(l, p_search_param, aClient, isPassive ? 5 : 10);
 #endif
 	if (!l.empty())
 	{
 		l_re = ClientManagerListener::SEARCH_HIT;
 		if (isPassive)
 		{
-			string name = aSeeker.substr(4); //-V112
+			string name = p_search_param.m_seeker.substr(4); //-V112
 			// Good, we have a passive seeker, those are easier...
 			string str;
 			for (auto i = l.cbegin(); i != l.cend(); ++i)
@@ -1022,20 +959,12 @@ void ClientManager::NmdcSearch(Client* aClient, const string& aSeeker, Search::S
 			{
 				// Часто делаем - унести в отдельный менеджер?
 				Socket udp;
-				string ip, file, proto, query, fragment;
-				uint16_t port = 0;
-				Util::decodeUrl(aSeeker, proto, ip, port, file, query, fragment);
-				ip = Socket::resolve(ip);
-				//
-				if (port == 0)
-					port = 412;
 				for (auto i = l.cbegin(); i != l.cend(); ++i)
 				{
 					const SearchResultPtr& sr = *i;
-					udp.writeTo(ip, port, sr->toSR(*aClient));
-					
-#ifdef FLYLINKDC_USE_COLLECT_STAT
 					const string l_sr = sr->toSR(*aClient);
+					NmdcHub::sendUDPSR(udp, p_search_param.m_seeker, l_sr, aClient);
+#ifdef FLYLINKDC_USE_COLLECT_STAT
 					string l_tth;
 					const auto l_tth_pos = l_sr.find("TTH:");
 					if (l_tth_pos != string::npos)
@@ -1057,13 +986,13 @@ void ClientManager::NmdcSearch(Client* aClient, const string& aSeeker, Search::S
 	{
 		if (!isPassive)
 		{
-			if (NmdcPartialSearch(aClient, aSeeker, aFileType, aString))
+			if (aClient->NmdcPartialSearch(p_search_param))
 			{
 				l_re = ClientManagerListener::SEARCH_PARTIAL_HIT;
 			}
 		}
 	}
-	fireIncomingSearch(aSeeker, aString, l_re);
+	fireIncomingSearch(p_search_param.m_seeker, p_search_param.m_filter, l_re);
 }
 //=================================================================================================================
 void ClientManager::fireIncomingSearch(const string& aSeeker, const string& aString, ClientManagerListener::SearchReply p_re)
@@ -1102,11 +1031,11 @@ void ClientManager::on(AdcSearch, const Client* c, const AdcCommand& adc, const 
 	// [~] IRainman-S
 }
 
-void ClientManager::search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, uint32_t aToken, void* aOwner, bool p_is_force_passive)
+void ClientManager::search(const SearchParamOwner& p_search_param)
 {
 #ifdef STRONG_USE_DHT
-	if (BOOLSETTING(USE_DHT) && aFileType == Search::TYPE_TTH)
-		dht::DHT::getInstance()->findFile(aString);
+	if (BOOLSETTING(USE_DHT) && p_search_param.m_file_type == Search::TYPE_TTH)
+		dht::DHT::getInstance()->findFile(p_search_param.m_filter);
 #endif
 	webrtc::ReadLockScoped l(*g_csClients);
 	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
@@ -1114,40 +1043,51 @@ void ClientManager::search(Search::SizeModes aSizeMode, int64_t aSize, Search::T
 		Client* c = i->second;
 		if (c->isConnected())
 		{
-			c->search(aSizeMode, aSize, aFileType, aString, aToken, StringList() /*ExtList*/, aOwner, p_is_force_passive);
+			SearchParamToken l_search_param_token;
+			l_search_param_token.m_token = p_search_param.m_token;
+			l_search_param_token.m_is_force_passive = p_search_param.m_is_force_passive;
+			l_search_param_token.m_size_mode = p_search_param.m_size_mode;
+			l_search_param_token.m_size = p_search_param.m_size;
+			l_search_param_token.m_file_type = p_search_param.m_file_type;
+			l_search_param_token.m_filter = p_search_param.m_filter;
+			l_search_param_token.m_owner  = p_search_param.m_owner;
+			l_search_param_token.m_ext_list.clear();
+			c->search_internal(l_search_param_token);
 		}
 	}
 }
 
-uint64_t ClientManager::search(const StringList& aWho, Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, uint32_t aToken, const StringList& aExtList, void* aOwner, bool p_is_force_passive)
+uint64_t ClientManager::multi_search(const SearchParamTokenMultiClient& p_search_param)
 {
 #ifdef STRONG_USE_DHT
-	if (BOOLSETTING(USE_DHT) && aFileType == Search::TYPE_TTH)
-		dht::DHT::getInstance()->findFile(aString, aToken);
+	if (BOOLSETTING(USE_DHT) && p_search_param.m_file_type == Search::TYPE_TTH)
+	{
+		dht::DHT::getInstance()->findFile(p_search_param.m_filter, p_search_param.m_token);
+	}
 #endif
 	//Lock l(cs); [-] IRainman opt.
 	uint64_t estimateSearchSpan = 0;
-	if (aWho.empty())
+	if (p_search_param.m_clients.empty())
 	{
 		webrtc::ReadLockScoped l(*g_csClients); // [+] IRainman opt.
 		for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 			if (i->second->isConnected())
 			{
-				const uint64_t ret = i->second->search(aSizeMode, aSize, aFileType, aString, aToken, aExtList, aOwner, p_is_force_passive);
+				const uint64_t ret = i->second->search_internal(p_search_param);
 				estimateSearchSpan = max(estimateSearchSpan, ret);
 			}
 	}
 	else
 	{
 		webrtc::ReadLockScoped l(*g_csClients); // [+] IRainman opt.
-		for (auto it = aWho.cbegin(); it != aWho.cend(); ++it)
+		for (auto it = p_search_param.m_clients.cbegin(); it != p_search_param.m_clients.cend(); ++it)
 		{
 			const string& client = *it;
 			
 			const auto& i = g_clients.find(client);
 			if (i != g_clients.end() && i->second->isConnected())
 			{
-				const uint64_t ret = i->second->search(aSizeMode, aSize, aFileType, aString, aToken, aExtList, aOwner, p_is_force_passive);
+				const uint64_t ret = i->second->search_internal(p_search_param);
 				estimateSearchSpan = max(estimateSearchSpan, ret);
 			}
 		}

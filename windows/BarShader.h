@@ -146,16 +146,43 @@ class OperaColors
 		
 	private:
 		struct FloodCacheItem
+#ifdef _DEBUG
+				: boost::noncopyable
+#endif
 		{
-			FloodCacheItem() : w(0), h(0), hDC(nullptr)
+			FloodCacheItem() : w(0), h(0), hDC(nullptr), m_bitmap(nullptr)
 			{
 			}
-			~FloodCacheItem()
+			void cleanup()
 			{
 				if (hDC)
 				{
-					::DeleteDC(hDC);
+					if (!::DeleteObject(m_bitmap))
+					{
+						const auto l_error_code = GetLastError();
+						if (l_error_code)
+						{
+							dcassert(l_error_code == 0);
+							dcdebug("DeleteObject(hBr) = error_code = %d", l_error_code);
+						}
+					}
+					m_bitmap = nullptr;
+					
+					if (!::DeleteDC(hDC))
+					{
+						const auto l_error_code = GetLastError();
+						if (l_error_code)
+						{
+							dcassert(l_error_code == 0);
+							dcdebug("!DeleteDC(hDC) = error_code = %d", l_error_code);
+						}
+					}
+					hDC = nullptr;
 				}
+			}
+			~FloodCacheItem()
+			{
+				cleanup();
 			}
 			struct FCIMapper
 			{
@@ -170,6 +197,7 @@ class OperaColors
 			int w;
 			int h;
 			HDC hDC;
+			HBITMAP m_bitmap;
 		};
 		
 		struct fci_hash

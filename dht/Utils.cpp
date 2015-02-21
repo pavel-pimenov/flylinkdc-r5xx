@@ -202,14 +202,18 @@ void Utils::trackOutgoingPacket(const string& ip, const AdcCommand& cmd) // TODO
 /*
  * Generates UDP key for specified IP address
  */
-CID Utils::getUdpKey(const string& targetIp) // TODO - часто зовется.
+CID Utils::getUdpKey(const string& targetIp)
 {
 	CID myUdpKey = CID(SETTING(DHT_KEY));
 	
 	TigerTree th;
 	th.update(myUdpKey.data(), sizeof(CID));
 	th.update(targetIp.c_str(), targetIp.size());
-	return CID(th.finalize());
+	const CID l_udp_key(th.finalize());
+#ifdef FLYLINKDC_BETA
+	LogManager::dht_message("[Utils::getUdpKey] myUdpKey = " + myUdpKey.toBase32() + " targetIp = " + targetIp + " th.finalize() = " + l_udp_key.toBase32());
+#endif
+	return l_udp_key;
 }
 
 static inline bool IsInvalid(char ch)

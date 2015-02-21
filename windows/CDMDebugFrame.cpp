@@ -197,33 +197,37 @@ void CDMDebugFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 
 void CDMDebugFrame::addLine(DebugTask& task)
 {
-	if (ctrlCMDPad.GetWindowTextLength() > MAX_TEXT_LEN)
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
 	{
-		CLockRedraw<> l_lock_draw(ctrlCMDPad);
-		ctrlCMDPad.SetSel(0, ctrlCMDPad.LineIndex(ctrlCMDPad.LineFromChar(2000)));
-		ctrlCMDPad.ReplaceSel(_T(""));
-	}
-	BOOL noscroll = TRUE;
-	POINT p = ctrlCMDPad.PosFromChar(ctrlCMDPad.GetWindowTextLength() - 1);
-	CRect r;
-	ctrlCMDPad.GetClientRect(r);
-	
-	if (r.PtInRect(p) || MDIGetActive() != m_hWnd)
-	{
-		noscroll = FALSE;
-	}
-	else
-	{
-		ctrlCMDPad.SetRedraw(FALSE); // Strange!! This disables the scrolling...????
-	}
-	
-	auto l_message = DebugTask::format(task);
-	LogManager::cmd_debug_message(l_message);
-	l_message += "\r\n";
-	ctrlCMDPad.AppendText(Text::toT(l_message).c_str()); // [!] IRainman fix.
-	if (noscroll)
-	{
-		ctrlCMDPad.SetRedraw(TRUE);
+		if (ctrlCMDPad.GetWindowTextLength() > MAX_TEXT_LEN)
+		{
+			CLockRedraw<> l_lock_draw(ctrlCMDPad);
+			ctrlCMDPad.SetSel(0, ctrlCMDPad.LineIndex(ctrlCMDPad.LineFromChar(2000)));
+			ctrlCMDPad.ReplaceSel(_T(""));
+		}
+		BOOL noscroll = TRUE;
+		POINT p = ctrlCMDPad.PosFromChar(ctrlCMDPad.GetWindowTextLength() - 1);
+		CRect r;
+		ctrlCMDPad.GetClientRect(r);
+		
+		if (r.PtInRect(p) || MDIGetActive() != m_hWnd)
+		{
+			noscroll = FALSE;
+		}
+		else
+		{
+			ctrlCMDPad.SetRedraw(FALSE); // Strange!! This disables the scrolling...????
+		}
+		
+		auto l_message = DebugTask::format(task);
+		LogManager::cmd_debug_message(l_message);
+		l_message += "\r\n";
+		ctrlCMDPad.AppendText(Text::toT(l_message).c_str()); // [!] IRainman fix.
+		if (noscroll)
+		{
+			ctrlCMDPad.SetRedraw(TRUE);
+		}
 	}
 }
 
@@ -281,11 +285,10 @@ int CDMDebugFrame::run()
 	while (true)
 	{
 		m_sem.wait();
-		if (m_stop)
+		if (m_stop || ClientManager::isShutdown())
 		{
 			break;
 		}
-		
 		{
 			FastLock l(cs);
 			dcassert(!m_cmdList.empty()); // [~]

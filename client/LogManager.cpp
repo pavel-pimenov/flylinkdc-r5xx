@@ -165,8 +165,7 @@ void LogManager::log(const string& p_area, const string& p_msg) noexcept
 		}
 		dcassert(!l_area.empty());
 		File f(l_area, File::WRITE, File::OPEN | File::CREATE);
-		f.setEndPos(0);
-		if (f.getPos() == 0)
+		if (f.setEndPos(0) == 0)
 		{
 			f.write("\xef\xbb\xbf");
 		}

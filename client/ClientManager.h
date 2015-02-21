@@ -88,17 +88,9 @@ class ClientManager : public Speaker<ClientManagerListener>,
 			return g_onlineUsers.find(aUser->getCID()) != g_onlineUsers.end();
 		}
 //[~] FlylinkDC
-		void search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, uint32_t aToken, void* aOwner, bool p_is_force_passive);
-		uint64_t search(const StringList& who,
-		                Search::SizeModes aSizeMode,
-		                int64_t aSize,
-		                Search::TypeModes aFileType,
-		                const string& aString,
-		                uint32_t aToken,
-		                const StringList& aExtList,
-		                void* aOwner,
-		                bool p_is_force_passive);
-		                
+		void search(const SearchParamOwner& p_search_param);
+		uint64_t multi_search(const SearchParamTokenMultiClient& p_search_param);
+		
 		static void cancelSearch(void* aOwner);
 		
 		static void infoUpdated();
@@ -454,10 +446,9 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		*/
 		static OnlineUser* findOnlineUserHintL(const CID& cid, const string& hintUrl, OnlinePairC& p);
 		
-		void NmdcSearch(Client* aClient, const string& aSeeker, Search::SizeModes aSizeMode, int64_t aSize,
-		                Search::TypeModes aFileType, const string& aString, bool isPassive);
-		bool NmdcPartialSearch(Client* aClient, const string& aSeeker,
-		                       Search::TypeModes aFileType, const string& aString);
+		void NmdcSearch(Client* aClient,
+		                const SearchParam& p_search_param,
+		                bool isPassive);
 		void fireIncomingSearch(const string&, const string&, ClientManagerListener::SearchReply);
 		// ClientListener
 		void on(Connected, const Client* c) noexcept;

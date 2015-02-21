@@ -455,8 +455,7 @@ void OperaColors::FloodFill(CDC& hDC, int x1, int y1, int x2, int y2, const COLO
 			StretchBlt(hDC.m_hDC, x1, y1, w, h, fci->hDC, 0, 0, fci->w, fci->h, SRCCOPY);
 			return;
 		}
-		DeleteDC(fci->hDC);
-		fci->hDC = nullptr;
+		fci->cleanup();
 	}
 	else
 	{
@@ -478,10 +477,19 @@ void OperaColors::FloodFill(CDC& hDC, int x1, int y1, int x2, int y2, const COLO
 	bih.biBitCount = 32;
 	bih.biCompression = BI_RGB;
 	bih.biClrUsed = 32;
-	HBITMAP hBitmap = ::CreateDIBitmap(hDC.m_hDC, &bih, 0, NULL, NULL, DIB_RGB_COLORS);
+	fci->m_bitmap = ::CreateDIBitmap(hDC.m_hDC, &bih, 0, NULL, NULL, DIB_RGB_COLORS);
 	// [merge from AirDC++]
 	// fix http://code.google.com/p/flylinkdc/issues/detail?id=1397
-	::DeleteObject(::SelectObject(fci->hDC, hBitmap));
+	const auto l_old_bitmap = ::SelectObject(fci->hDC, fci->m_bitmap);
+	if (!::DeleteObject(l_old_bitmap))
+	{
+		const auto l_error_code = GetLastError();
+		if (l_error_code)
+		{
+			dcassert(l_error_code == 0);
+			dcdebug("DeleteObject(l_old_bitmap) = error_code = %d", l_error_code);
+		}
+	}
 	
 	if (!p_light)
 	{
@@ -490,7 +498,15 @@ void OperaColors::FloodFill(CDC& hDC, int x1, int y1, int x2, int y2, const COLO
 			HBRUSH hBr = CreateSolidBrush(blendColors(c2, c1, double(_x - x1) / (double)(w)));
 			const RECT rc = { _x, 0, _x + 1, h };
 			::FillRect(fci->hDC, &rc, hBr);
-			DeleteObject(hBr);
+			if (!DeleteObject(hBr))
+			{
+				const auto l_error_code = GetLastError();
+				if (l_error_code)
+				{
+					dcassert(l_error_code == 0);
+					dcdebug("DeleteObject(hBr) = error_code = %d", l_error_code);
+				}
+			}
 		}
 	}
 	else

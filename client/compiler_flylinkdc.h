@@ -437,6 +437,9 @@ typedef unsigned __int64 uint64_t;
 #define FLYLINKDC_USE_GEO_IP
 #define FLYLINKDC_USE_DDOS_DETECT
 
+#ifdef _DEBUG
+// #define FLYLINKDC_USE_FLYHUB
+#endif
 
 // Make sure we're using the templates from algorithm...
 #ifdef min

@@ -701,51 +701,47 @@ void SearchFrame::onEnter()
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	clearFlyServerQueue();
 #endif
-	StringList l_clients;
+	m_search_param.m_clients.clear();
 	// Change Default Settings If Changed
 	if (m_onlyFree != BOOLSETTING(FREE_SLOTS_DEFAULT))
 		SET_SETTING(FREE_SLOTS_DEFAULT, m_onlyFree);
 	const int n = ctrlHubs.GetItemCount();
 	if (!CompatibilityManager::isWine())
 	{
-	
 		for (int i = 0; i < n; i++)
 		{
 			if (ctrlHubs.GetCheckState(i))
 			{
 				const auto l_url = ctrlHubs.getItemData(i)->url;
-				l_clients.push_back(Text::fromT(l_url));
+				m_search_param.m_clients.push_back(Text::fromT(l_url));
 			}
 		}
-		if (l_clients.empty())
+		if (m_search_param.m_clients.empty())
 			return;
 	}
-	if (!l_clients.empty()    && l_clients.size() == ctrlHubs.GetItemCount() - 1 && l_clients[0].empty() ||
-	        l_clients.size() == 1 && l_clients[0].empty())
-	{
-		l_clients.clear(); // »щем по всем хабам сразу.
-	}
+	m_search_param.check_clients(ctrlHubs.GetItemCount() - 1);
+	
 	tstring s;
 	WinUtil::GetWindowText(s, ctrlSearch);
 	
 	tstring size;
 	WinUtil::GetWindowText(size, ctrlSize);
 	
-	double lsize = Util::toDouble(Text::fromT(size));
+	double l_size = Util::toDouble(Text::fromT(size));
 	switch (ctrlSizeMode.GetCurSel())
 	{
 		case 1:
-			lsize *= 1024.0;
+			l_size *= 1024.0;
 			break;
 		case 2:
-			lsize *= 1024.0 * 1024.0;
+			l_size *= 1024.0 * 1024.0;
 			break;
 		case 3:
-			lsize *= 1024.0 * 1024.0 * 1024.0;
+			l_size *= 1024.0 * 1024.0 * 1024.0;
 			break;
 	}
 	
-	const int64_t llsize = lsize;
+	m_search_param.m_size = l_size;
 	
 	ctrlResults.DeleteAndClearAllItems(); // [!] IRainman
 	clearPausedResults();
@@ -754,7 +750,8 @@ void SearchFrame::onEnter()
 	ctrlPauseSearch.SetWindowText(CTSTRING(PAUSE_SEARCH));
 	
 	m_search = StringTokenizer<string>(Text::fromT(s), ' ').getTokens(); // [~]IRainman optimize SearchFrame
-	m_ftype  = Search::TypeModes(ctrlFiletype.GetCurSel());
+	m_search_param.m_file_type  = Search::TypeModes(ctrlFiletype.GetCurSel());
+	
 	s.clear();
 	{
 		FastLock l(cs);
@@ -766,12 +763,12 @@ void SearchFrame::onEnter()
 				si = m_search.erase(si);
 				continue;
 			}
-			if (m_ftype == Search::TYPE_TTH)
+			if (m_search_param.m_file_type == Search::TYPE_TTH)
 			{
 				if (!Util::isTTH(Text::toT(*si)))
 				{
 					LogManager::message("[Search] Error TTH format = " + *si);
-					m_ftype = Search::TYPE_ANY;
+					m_search_param.m_file_type = Search::TYPE_ANY;
 					ctrlFiletype.SetCurSel(0);
 				}
 			}
@@ -779,7 +776,7 @@ void SearchFrame::onEnter()
 				s += Text::toT(*si) + _T(' ');
 			++si;
 		}
-		m_search_token = Util::rand();
+		m_search_param.m_token = Util::rand();
 	}
 	s = s.substr(0, max(s.size(), static_cast<tstring::size_type>(1)) - 1);
 	
@@ -788,16 +785,16 @@ void SearchFrame::onEnter()
 		
 	m_target = s;
 	
-	if (llsize == 0)
-		m_sizeMode = Search::SIZE_DONTCARE;
+	if (m_search_param.m_size == 0)
+		m_search_param.m_size_mode = Search::SIZE_DONTCARE;
 	else
-		m_sizeMode = Search::SizeModes(ctrlMode.GetCurSel());
+		m_search_param.m_size_mode = Search::SizeModes(ctrlMode.GetCurSel());
 		
 	ctrlStatus.SetText(3, _T(""));
 	ctrlStatus.SetText(4, _T(""));
 	
-	m_isExactSize = (m_sizeMode == Search::SIZE_EXACT);
-	m_exactSize2 = llsize;
+	m_isExactSize = (m_search_param.m_size_mode == Search::SIZE_EXACT);
+	m_exactSize2 = m_search_param.m_size;
 	
 	if (BOOLSETTING(CLEAR_SEARCH))
 	{
@@ -807,7 +804,7 @@ void SearchFrame::onEnter()
 	m_droppedResults = 0;
 	m_resultsCount = 0;
 	m_running = true;
-	m_isHash = (m_ftype == Search::TYPE_TTH);
+	m_isHash = (m_search_param.m_file_type == Search::TYPE_TTH);
 	
 	// Add new searches to the last-search dropdown list
 	if (!BOOLSETTING(FORGET_SEARCH_REQUEST) && find(g_lastSearches.begin(), g_lastSearches.end(), s) == g_lastSearches.end())
@@ -835,25 +832,24 @@ void SearchFrame::onEnter()
 	// [+] merge
 	// stop old search
 	ClientManager::cancelSearch((void*)this);
-	
+	m_search_param.m_ext_list.clear();
 	// Get ADC searchtype extensions if any is selected
-	StringList l_extList;
 	try
 	{
-		if (m_ftype == Search::TYPE_ANY)
+		if (m_search_param.m_file_type == Search::TYPE_ANY)
 		{
 			// Custom searchtype
 			// disabled with current GUI extList = SettingsManager::getInstance()->getExtensions(Text::fromT(fileType->getText()));
 		}
-		else if ((m_ftype > Search::TYPE_ANY && m_ftype < Search::TYPE_DIRECTORY) /* TODO - || m_ftype == Search::TYPE_CD_IMAGE */)
+		else if ((m_search_param.m_file_type > Search::TYPE_ANY && m_search_param.m_file_type < Search::TYPE_DIRECTORY) /* TODO - || m_ftype == Search::TYPE_CD_IMAGE */)
 		{
 			// Predefined searchtype
-			l_extList = SettingsManager::getExtensions(string(1, '0' + m_ftype));
+			m_search_param.m_ext_list = SettingsManager::getExtensions(string(1, '0' + m_search_param.m_file_type));
 		}
 	}
 	catch (const SearchTypeException&)
 	{
-		m_ftype = Search::TYPE_ANY;
+		m_search_param.m_file_type = Search::TYPE_ANY;
 	}
 	
 	{
@@ -861,15 +857,12 @@ void SearchFrame::onEnter()
 		
 		m_searchStartTime = GET_TICK();
 		// more 10 seconds for transfering results
-		m_searchEndTime = m_searchStartTime + SearchManager::getInstance()->search(l_clients,
-		                                                                           Text::fromT(s),
-		                                                                           llsize,
-		                                                                           m_ftype,
-		                                                                           m_sizeMode,
-		                                                                           m_search_token,
-		                                                                           l_extList,
-		                                                                           (void*)this,
-		                                                                           !g_isUDPTestOK)
+		m_search_param.m_filter = Text::fromT(s);
+		m_search_param.normalize_whitespace();
+		m_search_param.m_owner = this;
+		m_search_param.m_is_force_passive = !g_isUDPTestOK;
+		
+		m_searchEndTime = m_searchStartTime + ClientManager::getInstance()->multi_search(m_search_param)
 #ifdef FLYLINKDC_HE
 		                  + 30000
 #else
@@ -951,7 +944,7 @@ void SearchFrame::on(SearchManagerListener::SR, const SearchResultPtr &aResult) 
 			
 		m_needsUpdateStats = true; // [+] IRainman opt.
 		// [+] merge
-		if (!aResult->getToken() && m_search_token != aResult->getToken())
+		if (!aResult->getToken() && m_search_param.m_token != aResult->getToken())
 		{
 			m_droppedResults++;
 			//PostMessage(WM_SPEAKER, FILTER_RESULT);//[-]IRainman optimize SearchFrame
@@ -969,7 +962,7 @@ void SearchFrame::on(SearchManagerListener::SR, const SearchResultPtr &aResult) 
 		}
 		else
 		{
-			if (m_ftype != Search::TYPE_EXECUTABLE && m_ftype != Search::TYPE_ANY && m_ftype != Search::TYPE_DIRECTORY)
+			if (m_search_param.m_file_type != Search::TYPE_EXECUTABLE && m_search_param.m_file_type != Search::TYPE_ANY && m_search_param.m_file_type != Search::TYPE_DIRECTORY)
 			{
 				const string l_ext = "x" + Util::getFileExt(aResult->getFileName());
 				const bool l_is_executable = ShareManager::checkType(l_ext, Search::TYPE_EXECUTABLE);
@@ -1293,7 +1286,8 @@ void SearchFrame::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 		if (m_waitingResults)
 		{
 			// [!] IRainman fix.
-			const uint64_t percent = (l_tick - m_searchStartTime) * 100 / (m_searchEndTime - m_searchStartTime);
+			const auto l_delta = m_searchEndTime - m_searchStartTime;
+			const uint64_t percent = l_delta ? (l_tick - m_searchStartTime) * 100 / l_delta : 0;
 			const bool l_searchDone = percent >= 100;
 			if (l_searchDone)
 			{

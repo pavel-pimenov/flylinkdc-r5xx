@@ -532,6 +532,9 @@
 	<string name="FlyServerRating">Search/Download</string>
 	<string name="FlyServerInform">Media Inform</string>
 	<string name="FlyServerInformView">View Media Inform</string>
+	<string name="FlyHubCountry">Country</string>
+	<string name="FlyHubCity">City</string>
+	<string name="FlyHubIsp">ISP</string>
 	<string name="Flyupdate">FlylinkDC++ Updater</string>
 	<string name="FlyupdateCannotupdate">FlylinkDC++ automatic update failed. Please download latest install of FlylinkDC++ and run it manually</string>
 	<string name="FlyupdateCheckupdatebase">Checking FlylinkDC++ update…</string>
@@ -724,7 +727,6 @@
 	<string name="LockToolbars">Lock Toolbars</string>
 	<string name="LoggingNotEnabledSystem">System logging not enabled.</string>
 	<string name="LoggingNotEnabledWebserver">WebServer logging not enabled.</string>
-	<string name="LogChat">Log chat</string>
 	<string name="LogIfSuppressPms">PM is suppress! PM from %s on hub %s (%s) dropped…</string>
 	<string name="LogIn">Log In</string>
 	<string name="LogOff">Log off</string>

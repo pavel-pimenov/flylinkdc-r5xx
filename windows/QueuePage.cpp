@@ -77,6 +77,8 @@ PropPage::ListItem QueuePage::optionItems[] =
 	//{ SettingsManager::ONLY_DL_TTH_FILES, ResourceManager::SETTINGS_ONLY_DL_TTH_FILES },
 	{ SettingsManager::OVERLAP_CHUNKS, ResourceManager::OVERLAP_CHUNKS },
 	{ SettingsManager::KEEP_FINISHED_FILES_OPTION, ResourceManager::KEEP_FINISHED_FILES_OPTION },
+	{ SettingsManager::REPORT_ALTERNATES, ResourceManager::REPORT_ALTERNATES },
+	
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 

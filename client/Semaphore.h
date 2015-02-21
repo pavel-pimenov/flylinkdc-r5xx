@@ -19,95 +19,68 @@
 #ifndef DCPLUSPLUS_DCPP_SEMAPHORE_H
 #define DCPLUSPLUS_DCPP_SEMAPHORE_H
 
-#ifndef _WIN32
-#include <sys/time.h>
-#endif
-
 #include "Util.h"
 
 class Semaphore
 #ifdef _DEBUG
-	: virtual NonDerivable<Semaphore>, boost::noncopyable // [+] IRainman fix.
+	: boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:
-#ifdef _WIN32
 		Semaphore() noexcept
 		{
 			h = CreateSemaphore(NULL, 0, MAXLONG, NULL);
+			dcassert(h != INVALID_HANDLE_VALUE);
+			if (h == INVALID_HANDLE_VALUE)
+			{
+				const auto l_error_code = GetLastError();
+				if (l_error_code)
+				{
+					dcassert(l_error_code == 0);
+					dcdebug("[Semaphore] CreateSemaphore = error_code = %d", l_error_code);
+				}
+			}
 		}
 		
 		void signal() noexcept
 		{
-			ReleaseSemaphore(h, 1, NULL);
+			if (!ReleaseSemaphore(h, 1, NULL))
+			{
+				const auto l_error_code = GetLastError();
+				if (l_error_code)
+				{
+					dcassert(l_error_code == 0);
+					dcdebug("[Semaphore] ReleaseSemaphore = error_code = %d", l_error_code);
+				}
+			}
 		}
 		
 		bool wait() noexcept
 		{
+			dcassert(h != INVALID_HANDLE_VALUE);
 			return WaitForSingleObject(h, INFINITE) == WAIT_OBJECT_0;
 		}
 		bool wait(uint32_t millis) noexcept
 		{
+			dcassert(h != INVALID_HANDLE_VALUE);
 			return WaitForSingleObject(h, millis) == WAIT_OBJECT_0;
 		}
 		
 		~Semaphore() noexcept
 		{
-			CloseHandle(h);
+			if (!CloseHandle(h))
+			{
+				h = INVALID_HANDLE_VALUE;
+				const auto l_error_code = GetLastError();
+				if (l_error_code)
+				{
+					dcassert(l_error_code == 0);
+					dcdebug("[Semaphore] CloseHandle = error_code = %d", l_error_code);
+				}
+			}
 		}
 	private:
 		HANDLE h;
-#else
-		Semaphore() noexcept
-		{
-			sem_init(&semaphore, 0, 0);
-		}
-		
-		~Semaphore()
-		{
-			sem_destroy(&semaphore);
-		}
-		
-		void signal() noexcept
-		{
-			sem_post(&semaphore);
-		}
-		
-		bool wait() noexcept
-		{
-			int retval = 0;
-			do
-			{
-				retval = sem_wait(&semaphore);
-			}
-			while (retval != 0);
-			return true;
-		}
-		
-		bool wait(uint32_t millis) noexcept
-		{
-			timeval timev;
-			timespec t;
-			gettimeofday(&timev, NULL);
-			millis += timev.tv_usec / 1000;
-			t.tv_sec = timev.tv_sec + (millis / 1000);
-			t.tv_nsec = (millis % 1000) * 1000 * 1000;
-			int ret;
-			do
-			{
-				ret =  sem_timedwait(&semaphore, &t);
-			}
-			while (ret != 0 && errno == EINTR);
-			if (ret != 0)
-			{
-				return false;
-			}
-		}
-		
-	private:
-		sem_t semaphore;
-#endif
-		
 };
 
 #endif // DCPLUSPLUS_DCPP_SEMAPHORE_H

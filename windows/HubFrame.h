@@ -431,6 +431,7 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 		void on(ConnectionManagerListener::DirectModeDetected, const string&) noexcept;
 #endif
+		void on(ClientListener::DDoSSearchDetect, const string&) noexcept;
 		
 		struct StatusTask : public Task
 		{

@@ -56,6 +56,7 @@ LRESULT AVIPreview::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 		PreviewApplication::Ptr pa = *i;
 		addEntry(pa, cnt++);
 	}
+	checkMenu();
 	return 0;
 }
 
@@ -69,6 +70,15 @@ void AVIPreview::addEntry(PreviewApplication::Ptr pa, int pos)
 	ctrlCommands.insert(pos, lst, 0, 0);
 }
 
+void AVIPreview::checkMenu()
+{
+	bool l_yopta = false;
+	if (ctrlCommands.GetItemCount() > 0 && ctrlCommands.GetSelectedCount() == 1)
+		l_yopta = true;
+		
+	::EnableWindow(GetDlgItem(IDC_CHANGE_MENU), l_yopta);
+	::EnableWindow(GetDlgItem(IDC_REMOVE_MENU), l_yopta);
+}
 
 LRESULT AVIPreview::onAddMenu(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
@@ -80,14 +90,16 @@ LRESULT AVIPreview::onAddMenu(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 		                                        Text::fromT(dlg.m_argument),
 		                                        Text::fromT(dlg.m_extensions)), ctrlCommands.GetItemCount());
 	}
+	checkMenu();
 	return 0;
 }
 
 LRESULT AVIPreview::onItemchangedDirectories(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
-	NM_LISTVIEW* lv = (NM_LISTVIEW*) pnmh;
-	::EnableWindow(GetDlgItem(IDC_CHANGE_MENU), (lv->uNewState & LVIS_FOCUSED));
-	::EnableWindow(GetDlgItem(IDC_REMOVE_MENU), (lv->uNewState & LVIS_FOCUSED));
+	//NM_LISTVIEW* lv = (NM_LISTVIEW*) pnmh;
+	checkMenu();
+	//::EnableWindow(GetDlgItem(IDC_CHANGE_MENU), (lv->uNewState & LVIS_FOCUSED));
+	//::EnableWindow(GetDlgItem(IDC_REMOVE_MENU), (lv->uNewState & LVIS_FOCUSED));
 	return 0;
 }
 
@@ -148,5 +160,6 @@ LRESULT AVIPreview::onRemoveMenu(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 		FavoriteManager::removePreviewApp(sel);
 		ctrlCommands.DeleteItem(sel);
 	}
+	checkMenu();
 	return 0;
 }

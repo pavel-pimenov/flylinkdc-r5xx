@@ -791,22 +791,22 @@ void AdcHub::sendUDP(const AdcCommand& cmd) noexcept
 	}
 	try
 	{
-		udp.writeTo(l_ip, l_port, command);
-#ifdef FLYLINKDC_USE_COLLECT_STAT
+		m_udp.writeTo(l_ip, l_port, command);
 		const string l_sr = command;
+#ifdef FLYLINKDC_USE_COLLECT_STAT
 		string l_tth;
 		const auto l_tth_pos = l_sr.find("TTH:");
 		if (l_tth_pos != string::npos)
 			l_tth = l_sr.substr(l_tth_pos + 4, 39); // getHubUrl()
 		CFlylinkDBManager::getInstance()->push_event_statistic("$SR", "UDP-write-adc", l_sr, ip, Util::toString(port), "", l_tth);
 #endif
-		COMMAND_DEBUG("[ADC UDP][" + l_ip + ':' + Util::toString(l_port) + "] " + command, DebugTask::HUB_OUT, getIpPort());
+		COMMAND_DEBUG("[ADC UDP][" + l_ip + ':' + Util::toString(l_port) + "] " + command, DebugTask::CLIENT_OUT, getIpPort());
 		
 	}
 	catch (const SocketException& e)
 	{
 		dcdebug("AdcHub::sendUDP: write failed: %s\n", e.getError().c_str());
-		udp.close();
+		m_udp.close();
 	}
 }
 
@@ -1304,7 +1304,7 @@ StringList AdcHub::parseSearchExts(int flag)
 	}
 	return ret;
 }
-void AdcHub::search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, const string& aString, uint32_t aToken, const StringList& aExtList, bool p_is_force_passive)
+void AdcHub::search_token(const SearchParamToken& p_search_param)
 {
 	if (state != STATE_NORMAL
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
@@ -1316,37 +1316,37 @@ void AdcHub::search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeMode
 	AdcCommand cmd(AdcCommand::CMD_SCH, AdcCommand::TYPE_BROADCAST);
 	
 	//dcassert(aToken);
-	cmd.addParam("TO", Util::toString(aToken));
+	cmd.addParam("TO", Util::toString(p_search_param.m_token));
 	
-	if (aFileType == Search::TYPE_TTH)
+	if (p_search_param.m_file_type == Search::TYPE_TTH)
 	{
-		cmd.addParam("TR", aString);
+		cmd.addParam("TR", p_search_param.m_filter);
 	}
 	else
 	{
-		if (aSizeMode == Search::SIZE_ATLEAST)
+		if (p_search_param.m_size_mode == Search::SIZE_ATLEAST)
 		{
-			cmd.addParam("GE", Util::toString(aSize));
+			cmd.addParam("GE", Util::toString(p_search_param.m_size));
 		}
-		else if (aSizeMode == Search::SIZE_ATMOST)
+		else if (p_search_param.m_size_mode == Search::SIZE_ATMOST)
 		{
-			cmd.addParam("LE", Util::toString(aSize));
+			cmd.addParam("LE", Util::toString(p_search_param.m_size));
 		}
 		
-		const StringTokenizer<string> st(aString, ' ');
+		const StringTokenizer<string> st(p_search_param.m_filter, ' ');
 		for (auto i = st.getTokens().cbegin(); i != st.getTokens().cend(); ++i)
 		{
 			cmd.addParam("AN", *i);
 		}
 		
-		if (aFileType == Search::TYPE_DIRECTORY)
+		if (p_search_param.m_file_type == Search::TYPE_DIRECTORY)
 		{
 			cmd.addParam("TY", "2");
 		}
 		
-		if (aExtList.size() > 2)
+		if (p_search_param.m_ext_list.size() > 2)
 		{
-			StringList exts = aExtList;
+			StringList exts = p_search_param.m_ext_list;
 			sort(exts.begin(), exts.end());
 			
 			uint8_t gr = 0;
@@ -1421,8 +1421,10 @@ void AdcHub::search(Search::SizeModes aSizeMode, int64_t aSize, Search::TypeMode
 			}
 		}
 		
-		for (auto i = aExtList.cbegin(), iend = aExtList.cend(); i != iend; ++i)
+		for (auto i = p_search_param.m_ext_list.cbegin(), iend = p_search_param.m_ext_list.cend(); i != iend; ++i)
+		{
 			cmd.addParam("EX", *i);
+		}
 	}
 	// TODO - залогировать обратный IP в Adc
 	// const string l_debug_string =  "[" + (isActive() ? string("Active"): string("Passive")) + " search][Client:" + getHubUrl() + "][Command:" + l_search_command + " ]";

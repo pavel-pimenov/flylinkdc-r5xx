@@ -22,23 +22,28 @@
 #include "forward.h"
 #include "AdcCommand.h"
 #include "Pointer.h"
+#include "SearchQueue.h"
 
-class CFlySearchItem
+class CFlySearchItemTTH
 {
 	public:
 		TTHValue m_tth;
 		std::string m_search;
 		std::string * m_toSRCommand;
-		CFlySearchItem(const TTHValue& p_tth, const std::string& p_search):
+		CFlySearchItemTTH(const TTHValue& p_tth, const std::string& p_search):
 			m_tth(p_tth),
 			m_search(p_search),
 			m_toSRCommand(nullptr)
 		{
 			dcassert(m_search.size() > 4);
 		}
-		
 };
-typedef std::vector<CFlySearchItem> CFlySearchArray;
+typedef std::vector<CFlySearchItemTTH> CFlySearchArrayTTH;
+class CFlySearchItemFile : public SearchParam
+{
+};
+
+typedef std::vector<CFlySearchItemFile> CFlySearchArrayFile;
 
 class SearchManager;
 class SearchResultBaseTTH

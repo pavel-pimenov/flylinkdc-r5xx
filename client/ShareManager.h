@@ -50,7 +50,7 @@ class SearchResultBaseTTH;
 
 struct ShareLoader;
 
-typedef boost::unordered_map<std::string, unsigned> QueryNotExistsMap;
+typedef boost::unordered_set<std::string> QueryNotExistsSet;
 
 class ShareManager : public Singleton<ShareManager>, private SettingsManagerListener, private BASE_THREAD, private TimerManagerListener,
 	private HashManagerListener, private QueueManagerListener
@@ -95,8 +95,14 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		static int64_t removeExcludeFolder(const string &path, bool returnSize = true);
 		static int64_t addExcludeFolder(const string &path);
 		
-		static void   searchTTHArray(CFlySearchArray& p_tth_aray, const Client* p_client);
-		void   search(SearchResultList& aResults, const string& aString, Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, Client* aClient, StringList::size_type maxResults) noexcept;
+		static void   searchTTHArray(CFlySearchArrayTTH& p_tth_aray, const Client* p_client);
+		static bool   isUnknownTTH(const TTHValue& p_tth);
+		static bool   isUnknownFile(const string& p_search);
+		static void   addUnknownFile(const string& p_search);
+	public:
+		void   search(SearchResultList& aResults,
+		              const SearchParam& p_search_param,
+		              Client* aClient, StringList::size_type maxResults) noexcept;
 		void   search(SearchResultList& aResults, const StringList& params, StringList::size_type maxResults, StringSearch::List& reguest) noexcept; // [!] IRainman-S add StringSearch::List& reguest
 		
 		bool findByRealPathName(const string& realPathname, TTHValue* outTTHPtr, string* outfilenamePtr = NULL, int64_t* outSizePtr = NULL); // [+] SSA
@@ -335,9 +341,9 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 					return Ptr(new Directory(aName, aParent));
 				}
 				
-				bool hasType(Search::TypeModes type) const noexcept
+				bool hasType(Search::TypeModes p_type) const noexcept
 				{
-				    return (type == Search::TYPE_ANY) || (m_fileTypes_bitmap & (1 << type));
+				    return (p_type == Search::TYPE_ANY) || (m_fileTypes_bitmap & (1 << p_type));
 				}
 				void addType(Search::TypeModes type) noexcept;
 				
@@ -347,7 +353,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 				
 				int64_t getSizeL() const noexcept;
 				
-				void search(SearchResultList& aResults, StringSearch::List& aStrings, Search::SizeModes aSizeMode, int64_t aSize, Search::TypeModes aFileType, Client* aClient, StringList::size_type maxResults) const noexcept;
+				void search(SearchResultList& aResults, StringSearch::List& aStrings, const SearchParamBase& p_search_param, Client* aClient, StringList::size_type maxResults) const noexcept;
 				void search(SearchResultList& aResults, AdcSearch& aStrings, StringList::size_type maxResults) const noexcept;
 				
 				void toXml(OutputStream& xmlFile, string& indent, string& tmp2, bool fullList) const;
@@ -388,18 +394,18 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 			bool isExcluded(const string& str);
 			bool hasExt(const string& name);
 			
-			StringSearch::List* include;
-			StringSearch::List includeX;
-			StringSearch::List exclude;
+			StringSearch::List* m_includePtr;
+			StringSearch::List m_includeX;
+			StringSearch::List m_exclude;
 			StringList m_exts;
 			StringList m_noExts;
 			
-			int64_t gt;
-			int64_t lt;
+			int64_t m_gt;
+			int64_t m_lt;
 			
-			TTHValue root;
-			bool hasRoot;
-			bool isDirectory;
+			TTHValue m_root;
+			bool m_hasRoot;
+			bool m_isDirectory;
 		};
 		
 		boost::atomic_flag updateXmlListInProcess; // [+] IRainman opt.
@@ -442,7 +448,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		typedef std::unordered_map<TTHValue, Directory::ShareFile::Set::const_iterator> HashFileMap; // TODO - boost
 		
 		static HashFileMap g_tthIndex;
-		static QueryNotExistsMap g_file_not_exists_map;
+		static QueryNotExistsSet g_file_not_exists_set;
 		
 		//[+]IRainman opt.
 		static bool g_isNeedsUpdateShareSize;

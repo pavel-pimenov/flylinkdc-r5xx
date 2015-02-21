@@ -1232,10 +1232,10 @@ void CFlylinkDBManager::flush_lost_json_statistic(bool& p_is_error)
 			if (!l_json_array_id.empty())
 			{
 				// Отметим факт пересылки статистики на сервер
-				sqlite3_transaction l_trans(m_flySQLiteDB);
 				if (!m_delete_statistic_json.get())
 					m_delete_statistic_json = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
 					                                                                        "delete from stat_db.fly_statistic where id=?")); // Пока не сохраняем историю в локальной базе.
+				sqlite3_transaction l_trans(m_flySQLiteDB);
 				// "update stat_db.fly_statistic set flush_time = strftime('%s','now','localtime') where id=?"));
 				for (auto i = l_json_array_id.cbegin(); i != l_json_array_id.cend(); ++i)
 				{
@@ -1847,11 +1847,11 @@ void CFlylinkDBManager::save_registry(const CFlyRegistryMap& p_values, int p_Seg
 	Lock l(m_cs);
 	try
 	{
-		sqlite3_transaction l_trans(m_flySQLiteDB);
 		// SQLite - save_registry: cannot start a transaction within a transaction"
 		if (!m_insert_registry.get())
 			m_insert_registry = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
 			                                                                  "insert or replace into fly_registry (segment,key,val_str,val_number,tick_count) values(?,?,?,?,?)"));
+		sqlite3_transaction l_trans(m_flySQLiteDB);
 		for (auto k = p_values.cbegin(); k != p_values.cend(); ++k)
 		{
 			const auto &l_insert_registry_get = m_insert_registry.get(); // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'm_insert_registry.get()' expression repeatedly. cflylinkdbmanager.cpp 702

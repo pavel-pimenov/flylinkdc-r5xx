@@ -246,7 +246,7 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	UploadManager::getInstance()->addListener(this);
 	QueueManager::getInstance()->addListener(this);
 	SettingsManager::getInstance()->addListener(this);
-	create_timer(1000);
+	create_timer(1000, 4);
 	return 0;
 }
 

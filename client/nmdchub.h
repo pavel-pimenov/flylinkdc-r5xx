@@ -41,7 +41,7 @@ class NmdcHub : public Client, private Flags
 		void hubMessage(const string& aMessage, bool thirdPerson = false);
 		void privateMessage(const OnlineUserPtr& aUser, const string& aMessage, bool thirdPerson = false); // !SMT!-S
 		void sendUserCmd(const UserCommand& command, const StringMap& params);
-		virtual void search(Search::SizeModes aSizeType, int64_t aSize, Search::TypeModes aFileType, const string& aString, uint32_t aToken, const StringList& aExtList, bool p_is_force_passive);
+		virtual void search_token(const SearchParamToken& p_search_param);
 		void password(const string& aPass)
 		{
 			send("$MyPass " + fromUtf8(aPass) + '|');
@@ -116,7 +116,7 @@ class NmdcHub : public Client, private Flags
 			SUPPORTS_USERCOMMAND = 0x01,
 			SUPPORTS_NOGETINFO = 0x02,
 			SUPPORTS_USERIP2 = 0x04,
-#ifdef USE_FLYLINKDC_HUB
+#ifdef FLYLINKDC_USE_FLYHUB
 			SUPPORTS_FLYHUB = 0x08
 #endif
 		};
@@ -235,11 +235,9 @@ class NmdcHub : public Client, private Flags
 #endif
 		                );
 		                
-		static void sendUDPSR(const CFlySearchItem& p_result, const Client* p_client);
-		void NmdcSearch(const string& aSeeker, Search::SizeModes aSizeMode, int64_t aSize,
-		                Search::TypeModes aFileType, const string& aString, bool isPassive);
-		bool NmdcPartialSearch(const string& aSeeker,
-		                       Search::TypeModes aFileType, const string& aString);
+		static void sendUDPSR(Socket& p_udp, const string& p_seeker, const string& p_sr, const Client* p_client);
+		void NmdcSearch(const SearchParam& p_search_param,
+		                bool isPassive);
 		string calcExternalIP() const;
 		void revConnectToMe(const OnlineUser& aUser);
 		bool resendMyINFO(bool p_is_force_passive);
@@ -267,8 +265,9 @@ class NmdcHub : public Client, private Flags
 		void on(BufferedSocketListener::Connected) noexcept;
 		void on(BufferedSocketListener::Line, const string& l) noexcept;
 		void on(BufferedSocketListener::MyInfoArray, StringList&) noexcept; // [+]PPA
-		void on(BufferedSocketListener::SearchArrayTTH, CFlySearchArray&) noexcept; // [+]PPA
-		void on(BufferedSocketListener::SearchArrayFile, StringList&) noexcept; // [+]PPA
+		void on(BufferedSocketListener::DDoSSearchDetect, const string&) noexcept; // [+]PPA
+		void on(BufferedSocketListener::SearchArrayTTH, CFlySearchArrayTTH&) noexcept; // [+]PPA
+		void on(BufferedSocketListener::SearchArrayFile, CFlySearchArrayFile&) noexcept; // [+]PPA
 		
 		void on(BufferedSocketListener::Failed, const string&) noexcept;
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
