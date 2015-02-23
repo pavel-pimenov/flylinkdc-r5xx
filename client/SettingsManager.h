@@ -161,6 +161,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  FLY_LOCATOR_COUNTRY,
 		                  FLY_LOCATOR_CITY,
 		                  FLY_LOCATOR_ISP,
+		                  GPU_DEV_NAME_FOR_TTH_COMP,
 		                  STR_LAST
 		                };
 		                
@@ -451,6 +452,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 #endif
 		                  USE_FLY_SERVER_STATICTICS_SEND,
 		                  REPORT_TO_USER_IF_OUTDATED_OS_DETECTED, // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=1032
+		                  USE_GPU_IN_TTH_COMPUTING,
 		                  INT_LAST,
 		                  SETTINGS_LAST = INT_LAST
 		                };

@@ -449,7 +449,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			getMyIdentity().setOp(false);
 		}
-	public:
+		
 		// [~] IRainman fix.
 		GETSET(bool, autoReconnect, AutoReconnect);
 #ifdef IRAINMAN_ENABLE_STEALTH_MODE
@@ -468,7 +468,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		}
 		// [~] IRainman fix.
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
-	public:
+		
 		bool getHideShare() const
 		{
 			return m_is_hide_share;
@@ -485,14 +485,18 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		bool m_is_hide_share;
 		
 #endif
+	private:
+		bool m_is_override_name;
+	protected:
+		string getTagVersion() const;
 		
-	public:
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 		virtual bool hubIsNotSupportSlot() const = 0;// [+]IRainman
 #endif // IRAINMAN_ENABLE_AUTO_BAN
 //[~]FlylinkDC
 	protected:
 		friend class ClientManager;
+		friend class User;
 		Client(const string& p_HubURL, char p_separator_, bool p_is_secure);
 		virtual ~Client();
 		

@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<Favorites>
-	<Hubs>
-		<Hub Name="hub.giga-net.local" Connect="1" Description="hub.giga-net.local" Server="hub.giga-net.local" UserDescription="" Encoding="Russian_Russia.1251" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="7500" StealthMode="0" UserListState="1" HeaderOrder="0,1,2,3,4,5,6,7,8,9,10,11" HeaderWidths="112,75,75,75,100,75,100,96,50,40,40,40" HeaderVisible="1,1,1,1,1,1,1,1,1,1,1,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP=""/>
-	</Hubs>
-	<Users/>
-	<UserCommands/>
-</Favorites>

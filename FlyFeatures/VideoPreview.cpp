@@ -277,11 +277,11 @@ VideoPreview::PreviewServer::PreviewServer(uint16_t aPort, const string& ip /* =
 	port(0),
 	die(false)
 {
-	sock.create();
-	sock.setSocketOpt(SO_REUSEADDR, 1);
+	m_sock.create();
+	m_sock.setSocketOpt(SO_REUSEADDR, 1);
 	dcassert(aPort);
-	port = sock.bind(aPort, ip);
-	sock.listen();
+	port = m_sock.bind(aPort, ip);
+	m_sock.listen();
 	start(64);
 }
 
@@ -296,10 +296,10 @@ int VideoPreview::PreviewServer::run() noexcept
 		{
 			while (!die)
 			{
-				auto ret = sock.wait(POLL_TIMEOUT, Socket::WAIT_READ);
+				auto ret = m_sock.wait(POLL_TIMEOUT, Socket::WAIT_READ);
 				if (ret == Socket::WAIT_READ)
 				{
-					VideoPreview::getInstance()->accept(sock);
+					VideoPreview::getInstance()->accept(m_sock);
 				}
 			}
 		}
@@ -312,10 +312,10 @@ int VideoPreview::PreviewServer::run() noexcept
 		{
 			try
 			{
-				sock.disconnect();
-				sock.create();
-				sock.bind(port, ip);
-				sock.listen();
+				m_sock.disconnect();
+				m_sock.create();
+				m_sock.bind(port, ip);
+				m_sock.listen();
 				if (failed)
 				{
 					LogManager::message(STRING(CONNECTIVITY_RESTORED));
@@ -333,9 +333,9 @@ int VideoPreview::PreviewServer::run() noexcept
 					failed = true;
 				}
 				// Spin for 60 seconds
-				for (int i = 0; i < 60 && !die; ++i)
+				for (int i = 0; i < 600 && !die; ++i)
 				{
-					Thread::sleep(1000);
+					Thread::sleep(100);
 				}
 			}
 		}

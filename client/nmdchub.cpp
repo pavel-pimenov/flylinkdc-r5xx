@@ -1753,17 +1753,12 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 	// IRAINMAN_USE_UNICODE_IN_NMDC
 	string l_currentMyInfo;
 	l_currentMyInfo.resize(256);
-	string l_version = getClientName() + " V:" + getClientVersion();
-	if (!m_is_override_name)
-	{
-		l_version += '-';
-		l_version += A_REVISION_NUM_STR;
-	}
+	const string l_version = getClientName() + " V:" + getTagVersion();
 	l_currentMyInfo.resize(snprintf(&l_currentMyInfo[0], l_currentMyInfo.size() - 1, "$MyINFO $ALL %s %s<%s,M:%c,H:%s,S:%d"
 	                                ">$ $%s%c$%s$",
 	                                fromUtf8(getMyNick()).c_str(),
 	                                fromUtf8Chat(escape(getCurrentDescription())).c_str(),
-									l_version.c_str(), // [!] IRainman mimicry function.
+	                                l_version.c_str(), // [!] IRainman mimicry function.
 	                                l_modeChar,
 	                                currentCounts.c_str(),
 	                                UploadManager::getSlots(),

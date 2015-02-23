@@ -623,7 +623,6 @@ int Socket::writeTo(const string& aAddr, uint16_t aPort, const void* aBuffer, in
 		serv_addr.sin_family = AF_INET;
 		serv_addr.sin_addr.s_addr = inet_addr(udpServer.c_str());
 		
-		//[-] PVS-Studio V808 string s = BOOLSETTING(SOCKS_RESOLVE) ? resolve(ip) : ip;
 		
 		vector<uint8_t> connStr;
 		

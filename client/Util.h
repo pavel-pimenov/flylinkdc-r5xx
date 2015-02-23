@@ -632,6 +632,11 @@ class Util
 			return getPath(PATH_SOUNDS);
 		}
 		
+		static const string& getGPGPUPath()
+		{
+			return getPath(PATH_GPGPU);
+		}
+		
 		static string getIETFLang();
 		
 		static string translateError(DWORD aError);
@@ -1204,6 +1209,8 @@ class Util
 			PATH_EXE,    // [+] SSA
 			/** Sounds path **/
 			PATH_SOUNDS,    // [+] NightOrion
+			/** Files for GPGPU **/
+			PATH_GPGPU,
 			PATH_LAST
 		};
 	public:

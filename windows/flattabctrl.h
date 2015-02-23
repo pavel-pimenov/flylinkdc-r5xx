@@ -604,6 +604,8 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 							}
 							else
 							{
+								if (m_is_cur_close == true)
+									activateCloseButton(FALSE, FALSE);
 								l_is_enabled   = false;
 								m_is_cur_close = false;
 							}
@@ -1371,13 +1373,13 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			
 			int height_plus = 0;
 			int height_plus_ico = 0;
-			int l_tabs_x_space = 0;		// Пикселов между кнопками в ряду
+			int l_tabs_x_space = 0;     // Пикселов между кнопками в ряду
 			switch (WinUtil::GetTabsPosition())
 			{
-				// pos + 1 : делает смещение левого края вкладки, чтобы визуально отделить следующую отрисованную вкладку от предыдущей - 2 отдельные линии
-				// m_height : высота вкладки. Рассчитана где-то выше, от размера шрифта
-				// tabAnim : от 0 до x  колво пикселов, на которое изменять высоту вкладок для выбранных
-				// для вкладок TOP 
+					// pos + 1 : делает смещение левого края вкладки, чтобы визуально отделить следующую отрисованную вкладку от предыдущей - 2 отдельные линии
+					// m_height : высота вкладки. Рассчитана где-то выше, от размера шрифта
+					// tabAnim : от 0 до x  колво пикселов, на которое изменять высоту вкладок для выбранных
+					// для вкладок TOP
 				case SettingsManager::TABS_TOP:
 				{
 					//Расчёт положения иконки и текста в зависимости от высоты вкладки
@@ -1387,8 +1389,8 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 					if (l_tabsPath)
 					{
 						l_tabsPath->AddLine(pos/* + 1*/, ypos + m_height + 1, pos/* + 1*/, ypos + 3 + tabAnim);
-						l_tabsPath->AddLine(pos/* + 1*/, ypos + 3 + tabAnim, pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space==0 ? 1 : 0), ypos + 3 + tabAnim); //-V112
-						l_tabsPath->AddLine(pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space==0 ? 1 : 0), ypos + 3 + tabAnim, pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space==0 ? 1 : 0), ypos + m_height + 1);
+						l_tabsPath->AddLine(pos/* + 1*/, ypos + 3 + tabAnim, pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space == 0 ? 1 : 0), ypos + 3 + tabAnim); //-V112
+						l_tabsPath->AddLine(pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space == 0 ? 1 : 0), ypos + 3 + tabAnim, pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space == 0 ? 1 : 0), ypos + m_height + 1);
 						if (!aActive)   // Отделяем вкладку как неактивную
 							l_tabsPath->AddLine(pos/* + 1*/, ypos + m_height + 1, pos + magic_width - l_tabs_x_space, ypos + m_height + 1);
 					}
@@ -1404,8 +1406,8 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 					if (l_tabsPath)
 					{
 						l_tabsPath->AddLine(pos/* + 1*/, ypos, pos/* + 1*/, ypos + m_height - 2 - tabAnim);
-						l_tabsPath->AddLine(pos/* + 1*/, ypos + m_height - 2 - tabAnim, pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space==0 ? 1 : 0), ypos + m_height - 2 - tabAnim); //-V112
-						l_tabsPath->AddLine(pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space==0 ? 1 : 0), ypos + m_height - 2 - tabAnim, pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space==0 ? 1 : 0), ypos);
+						l_tabsPath->AddLine(pos/* + 1*/, ypos + m_height - 2 - tabAnim, pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space == 0 ? 1 : 0), ypos + m_height - 2 - tabAnim); //-V112
+						l_tabsPath->AddLine(pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space == 0 ? 1 : 0), ypos + m_height - 2 - tabAnim, pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space == 0 ? 1 : 0), ypos);
 						if (!aActive)   // Отделяем вкладку как неактивную
 							l_tabsPath->AddLine(pos + magic_width - l_tabs_x_space, ypos, pos/* + 1*/, ypos);
 					}
@@ -1451,7 +1453,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				}
 				break;
 				default:
-				break;
+					break;
 			}
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
 			//Заливка вкладки
@@ -1658,7 +1660,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			if (tab->m_count_messages)
 			{
 				dc.SetTextColor(RGB(255, 0, 0));
-				CSelectFont l_half_font(dc, Fonts::g_halfFont);
+				CSelectFont l_half_font(dc, Fonts::g_halfFont); //-V808
 				const auto l_cnt = Text::toT("+" + Util::toString(tab->m_count_messages));
 				dc.TextOut(pos + tab->m_size.cx - width_plus_ico - (l_cnt.size() * 3), ypos + height_plus_ico , l_cnt.c_str(), l_cnt.length());
 			}

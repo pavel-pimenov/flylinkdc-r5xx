@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<Favorites>
-	<Hubs>
-		<Hub Name="dchub.zone.itnet" Connect="1" Description="DCHub.Zone.ITNet" Server="dchub.zone.itnet" UserDescription="" AwayMsg="" Email="" WindowPosX="16" WindowPosY="23" WindowSizeX="1038" WindowSizeY="364" WindowType="3" ChatUserSplit="6054" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,10,2,11,12,3,4,5,6,7,8,9" HeaderWidths="206,64,152,282,272,75,91,40,100,30,30,50,80" HeaderVisible="1,1,0,1,0,0,1,1,1,1,1,1,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat="" CliendId="" OverrideId="0"/>
-	</Hubs>
-	<Users/>
-	<UserCommands/>
-	<FavoriteDirs/>
-</Favorites>

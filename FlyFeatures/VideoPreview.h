@@ -243,7 +243,7 @@ class VideoPreview :
 			private:
 				int run() noexcept;
 				
-				Socket sock;
+				Socket m_sock;
 				uint16_t port;
 				string ip;
 				volatile bool die; // [!] IRainman fix: this variable is volatile.

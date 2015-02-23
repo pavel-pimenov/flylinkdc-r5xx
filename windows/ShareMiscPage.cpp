@@ -7,6 +7,7 @@
 #include "ShareMiscPage.h"
 #include "../client/SettingsManager.h"
 #include "WinUtil.h"
+#include "../client/GPGPUManager.h"
 
 PropPage::TextItem ShareMiscPage::texts[] =
 {
@@ -33,6 +34,9 @@ PropPage::Item ShareMiscPage::items[] =
 	
 	{ IDC_SET_MIN_LENGHT_FOR_MEDIAINFO, SettingsManager::MIN_MEDIAINFO_SIZE, PropPage::T_INT}, // [+] PPA
 	
+	{ IDC_TTH_USE_GPU, SettingsManager::USE_GPU_IN_TTH_COMPUTING, PropPage::T_BOOL },
+	{ IDC_TTH_GPU_DEVICES, SettingsManager::GPU_DEV_NAME_FOR_TTH_COMP, PropPage::T_STR },
+	
 	{ 0, 0, PropPage::T_END }
 };
 
@@ -53,6 +57,30 @@ LRESULT ShareMiscPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 	SET_MIN_MAX(IDC_HASH_SPIN, 0, 999);
 	SET_MIN_MAX(IDC_SET_MIN_LENGHT_FILE_FOR_MEDIAINFO_SPIN, 0, 1000);
 	
+#ifdef FLYLINKDC_USE_GPU_TTH
+	int sel_i = -1;
+	ctrlTTHGPUDevices.Attach(GetDlgItem(IDC_TTH_GPU_DEVICES));
+	const auto l_count_gpu = GPGPUTTHManager::getInstance()->get()->get_dev_cnt();
+	for (int i = 0; i < l_count_gpu; ++i)
+	{
+		const string s_dnm = GPGPUTTHManager::getInstance()->get()->get_dev_name(i);
+		const string &r_sdnm = SETTING(GPU_DEV_NAME_FOR_TTH_COMP);
+		const CString cs_dnm(s_dnm.c_str());
+		
+		ctrlTTHGPUDevices.AddString((LPCTSTR)cs_dnm);
+		
+		if (s_dnm == r_sdnm)
+		{
+			sel_i = i;
+		}
+	}
+	if (sel_i >= 0)
+	{
+		ctrlTTHGPUDevices.SetCurSel(sel_i);
+	}
+	ctrlTTHGPUDevices.Detach();
+	fixGPUTTHControls();
+#endif
 	fixControls();
 	// Do specialized reading here
 	return TRUE;
@@ -69,10 +97,24 @@ LRESULT ShareMiscPage::onFixControls(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 	fixControls();
 	return 0;
 }
+
+LRESULT ShareMiscPage::onTTHUseGPUToggle(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) // [+]NightOrion
+{
+	fixGPUTTHControls();
+	return 0;
+}
+
 void ShareMiscPage::fixControls()
 {
-	BOOL state = (IsDlgButtonChecked(IDC_TTH_IN_STREAM) != 0);
+	const BOOL state = (IsDlgButtonChecked(IDC_TTH_IN_STREAM) != 0);
 	::EnableWindow(GetDlgItem(IDC_SET_MIN_LENGHT_TTH_STREAM), state);
 	::EnableWindow(GetDlgItem(IDC_LENGHT_FILE_TTH_IN_STREAM), state);
 	::EnableWindow(GetDlgItem(IDC_SETTINGS_MB), state);
+}
+
+void ShareMiscPage::fixGPUTTHControls()
+{
+	const BOOL state = (IsDlgButtonChecked(IDC_TTH_USE_GPU) != 0);
+	::EnableWindow(GetDlgItem(IDC_TTH_GPU_DEVICES), state);
+	::EnableWindow(GetDlgItem(IDC_SETTINGS_TTH_GPU_DEVICE), state);
 }

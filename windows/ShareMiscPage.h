@@ -29,11 +29,13 @@ class ShareMiscPage : public CPropertyPage<IDD_SHARE_MISC_PAGE>, public PropPage
 		BEGIN_MSG_MAP(ShareMiscPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
 		COMMAND_ID_HANDLER(IDC_TTH_IN_STREAM, onFixControls)
+		COMMAND_ID_HANDLER(IDC_TTH_USE_GPU, onTTHUseGPUToggle)
 		CHAIN_MSG_MAP(PropPage)
 		END_MSG_MAP()
 		
 		LRESULT onInitDialog(UINT, WPARAM, LPARAM, BOOL&);
 		LRESULT onFixControls(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/); // [+]NightOrion
+		LRESULT onTTHUseGPUToggle(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		// Common PropPage interface
 		PROPSHEETPAGE *getPSP()
 		{
@@ -43,11 +45,14 @@ class ShareMiscPage : public CPropertyPage<IDD_SHARE_MISC_PAGE>, public PropPage
 		void cancel() {}
 	private:
 		void fixControls(); // [+]NightOrion
+		void fixGPUTTHControls();
 	protected:
 	
 		static Item items[];
 		static TextItem texts[];
 		static ListItem listItems[];
+		
+		CComboBox ctrlTTHGPUDevices;
 };
 
 #endif //SHARE_MISC_PAGE_H

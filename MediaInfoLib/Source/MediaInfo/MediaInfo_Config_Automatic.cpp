@@ -2364,6 +2364,7 @@ void MediaInfo_Config_CodecID_Audio_Mpeg4 (InfoMap &Info)
     Info.Write(Ztring().From_UTF8(
     ".mp3;MPEG Audio;;;\n"
     "A104;AMR;;;http://www.apple.com/quicktime/download/standalone.html;Wide band\n"
+    "aac ;AAC;;;\n"
     "ac-3;AC-3;;;\n"
     "alac;ALAC;;Apple Lossless Audio Codec;http://www.apple.com/quicktime/download/standalone.html\n"
     "alaw;ADPCM;;;http://www.apple.com/quicktime/download/standalone.html\n"
@@ -2692,8 +2693,9 @@ void MediaInfo_Config_CodecID_Text_Matroska (InfoMap &Info)
     "S_TEXT/UTF8;UTF-8;;UTF-8 Plain Text\n"
     "S_USF;USF;;Universal Subtitle Format\n"
     "S_UTF8;UTF-8;;UTF-8 Plain Text\n"
-    "S_VOBSUB;VobSub;;The same subtitle format used on DVDs\n"
-    "S_HDMV/PGS;PGS;;The same subtitle format used on BDs/HD-DVDs\n"
+    "S_VOBSUB;VobSub;;Picture based subtitle format used on DVDs\n"
+    "S_HDMV/PGS;PGS;;Picture based subtitle format used on BDs/HD-DVDs\n"
+    "S_HDMV/TEXTST;TEXTST;;Text based subtitle format used on BDs\n"
     ));
     Info.Separator_Set(0, ZenLib::EOL);
 }
@@ -3820,7 +3822,9 @@ void MediaInfo_Config_Codec (InfoMap &Info)
     "S_TEXT/ASS;ASS;Mk;T;;;Advanced Sub Station Alpha\n"
     "S_TEXT/USF;USF;Mk;T;;;Universal Subtitle Format\n"
     "S_IMAGE/BMP;Bitmap;Mk;T;;;Basic image based subtitle format\n"
-    "S_VOBSUB;VobSub;Mk;T;;;The same subtitle format used on DVDs\n"
+    "S_VOBSUB;VobSub;Mk;T;;;Picture based subtitle format used on DVDs\n"
+    "S_HDMV/PGS;PGS;Mk;T;;;Picture based subtitle format used on BDs/HD-DVDs\n"
+    "S_HDMV/TEXTST;TEXTST;Mk;T;;;Text based subtitle format used on BDs\n"
     ));
     Info.Separator_Set(0, ZenLib::EOL);
 }

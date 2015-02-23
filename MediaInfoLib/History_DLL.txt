@@ -11,9 +11,12 @@ https://sourceforge.net/p/mediainfo/_list/tickets
 Version 0.7.73, 2015-01-
 --------------
 + BPG: basic support, thanks to Kurtnoise
++ CAF: basic support of Apple Core Audio Format, sponsored by FlavorSys
 + JPEG-2000: Display of profile (Rsiz)
 + JPEG-2000: detection of XYZ colorspace (based on D-Cinema profile)
 + MOV/MPEG-4: handling of clcn (little endian nclc) Color parameter type
++ #P84, Matroska: Add TEXTST support to the MKV Parser, thanks to Kurtnoise
++ #P85, MPEG-TS: Add TEXTST support to the MPEG-PSI Parser, thanks to Kurtnoise
 x MXF: AFD value was wrong (displaying the complete byte, but AFD is only 4 bits of this byte)
 x DTS: some streams in Little endian were not detected
 x MPEG-4: some files were having an incorrect frame count
@@ -23,6 +26,7 @@ x RF64: samplesCount was not always right
 x MOV: avoid wrong parsing in case of "colr" atom with "prof" color parameter type
 x DCP/IMF: ID has now the AM/PKL CPL order in order in all cases (not only when there is more than one CPL)
 x #B893, MXF: Crash with Panasonic P2 3.0 files
+x DPX: time information was with native ":" character
 
 Version 0.7.72, 2015-01-07
 --------------

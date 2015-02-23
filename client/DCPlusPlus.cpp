@@ -31,6 +31,7 @@
 #include "UserManager.h"
 #include "WebServerManager.h"
 #include "ThrottleManager.h"
+#include "GPGPUManager.h"
 
 #include "CFlylinkDBManager.h"
 #include "../FlyFeatures/flyServer.h"
@@ -108,6 +109,9 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	
 	LOAD_STEP("Custom Locations", Util::loadCustomlocations());
 	
+#ifdef FLYLINKDC_USE_GPU_TTH
+	GPGPUTTHManager::newInstance();
+#endif
 	HashManager::newInstance();
 #ifdef USE_FLYLINKDC_VLD
 	VLDDisable(); // TODO VLD показывает там лики - не понял пока как победить OpenSSL
@@ -325,6 +329,10 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		FavoriteManager::deleteInstance();
 		ClientManager::deleteInstance();
 		HashManager::deleteInstance();
+#ifdef FLYLINKDC_USE_GPU_TTH
+		GPGPUTTHManager::deleteInstance();
+#endif // FLYLINKDC_USE_GPU_TTH
+		
 		CFlylinkDBManager::deleteInstance(); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1355
 		TimerManager::deleteInstance();
 		SettingsManager::deleteInstance();

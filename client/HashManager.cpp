@@ -623,11 +623,16 @@ int HashManager::Hasher::run()
 			}
 		}
 		// [-] dcassert(!m_fname.empty()); [-] IRainman fix: normal behavior when you close the program while hashing, and the forced interruption of the process.
-		if (!m_fname.empty())
+		string l_fname;
+		{
+			FastLock l(cs);
+			l_fname = m_fname;
+		}
+		if (!l_fname.empty())
 		{
 			int64_t l_size = 0;
 			int64_t l_outFiletime = 0;
-			File::isExist(m_fname, l_size, l_outFiletime);
+			File::isExist(l_fname, l_size, l_outFiletime);
 			int64_t l_sizeLeft = l_size;
 #ifdef _WIN32
 			if (buf == NULL)
@@ -653,10 +658,10 @@ int HashManager::Hasher::run()
 				TigerTree* tth = &fastTTH;
 				bool l_is_ntfs = false;
 #ifdef IRAINMAN_NTFS_STREAM_TTH
-				if (l_size > 0 && HashManager::getInstance()->m_streamstore.loadTree(m_fname, fastTTH, l_size)) //[+]IRainman
+				if (l_size > 0 && HashManager::getInstance()->m_streamstore.loadTree(l_fname, fastTTH, l_size)) //[+]IRainman
 				{
 					l_is_ntfs = true; //[+]PPA
-					LogManager::message(STRING(LOAD_TTH_FROM_NTFS) + ' ' + m_fname); //[!]NightOrion(translate)
+					LogManager::message(STRING(LOAD_TTH_FROM_NTFS) + ' ' + l_fname); //[!]NightOrion(translate)
 				}
 #endif
 #ifdef _WIN32
@@ -664,7 +669,7 @@ int HashManager::Hasher::run()
 				if (!l_is_ntfs)
 				{
 #endif
-					if (!virtualBuf || !BOOLSETTING(FAST_HASH) || !fastHash(m_fname, buf, fastTTH, l_size))
+					if (!virtualBuf || !BOOLSETTING(FAST_HASH) || !fastHash(l_fname, buf, fastTTH, l_size))
 					{
 #else
 				if (!BOOLSETTING(FAST_HASH) || !fastHash(fname, 0, fastTTH, l_size))
@@ -675,7 +680,7 @@ int HashManager::Hasher::run()
 						{
 							tth = &slowTTH;
 							uint64_t lastRead = GET_TICK();
-							File l_slow_file_reader(m_fname, File::READ, File::OPEN);
+							File l_slow_file_reader(l_fname, File::READ, File::OPEN);
 							do
 							{
 								size_t bufSize = BUF_SIZE;
@@ -729,20 +734,20 @@ int HashManager::Hasher::run()
 #ifdef IRAINMAN_NTFS_STREAM_TTH
 					if (l_is_ntfs)
 					{
-						HashManager::getInstance()->hashDone(m_path_id, m_fname, timestamp, *tth, speed, l_is_ntfs, l_size);
+						HashManager::getInstance()->hashDone(m_path_id, l_fname, timestamp, *tth, speed, l_is_ntfs, l_size);
 					}
 					else
 #endif
 						if (tth)
 						{
 							tth->finalize();
-							HashManager::getInstance()->hashDone(m_path_id, m_fname, timestamp, *tth, speed, l_is_ntfs, l_size);
+							HashManager::getInstance()->hashDone(m_path_id, l_fname, timestamp, *tth, speed, l_is_ntfs, l_size);
 						}
 				}
 			}
 			catch (const FileException& e)
 			{
-				LogManager::message(STRING(ERROR_HASHING) + ' ' + m_fname + ": " + e.getError());
+				LogManager::message(STRING(ERROR_HASHING) + ' ' + l_fname + ": " + e.getError());
 			}
 		}
 		{

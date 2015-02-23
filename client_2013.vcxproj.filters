@@ -469,6 +469,12 @@
     <ClCompile Include="client\syslog\syslog.c">
       <Filter>Source Files\syslog</Filter>
     </ClCompile>
+    <ClCompile Include="client\GPGPUManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\MerkleTree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client\AdcCommand.h">
@@ -1418,6 +1424,9 @@
     </ClInclude>
     <ClInclude Include="client\syslog\syslog.h">
       <Filter>Source Files\syslog</Filter>
+    </ClInclude>
+    <ClInclude Include="client\GPGPUManager.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -436,6 +436,7 @@ typedef unsigned __int64 uint64_t;
 #define FLYLINKDC_USE_ANTIVIRUS_DB
 #define FLYLINKDC_USE_GEO_IP
 #define FLYLINKDC_USE_DDOS_DETECT
+// TODO #define FLYLINKDC_USE_GPU_TTH
 
 #ifdef _DEBUG
 // #define FLYLINKDC_USE_FLYHUB

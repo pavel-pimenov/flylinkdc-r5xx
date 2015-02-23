@@ -73,6 +73,9 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			    _T("\r\nFlylinkDC++ HE, DC++ core NG:\r\n")
 			    _T("IRainman\r\n")
 			    
+			    _T("\r\nGPU + OpenCL:\r\n")
+			    _T("ecl1pse\r\n")
+			    
 			    _T("\r\nPatches:\r\n")
 			    _T("SMT\r\nBugMaster (ApexDC++ mod 2)\r\nKlirik\r\nnecros\r\nDecker\r\nDrakon\r\nmt2006 wine(Linux)\r\n")
 			    _T("WhiteD\r\nZagZag\r\nNSLQQQ\r\n")
@@ -116,7 +119,7 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			    _T("jsoncpp 0.5.0\r\n")
 			    _T("miniupnpc ") _T(MINIUPNPC_VERSION) _T("\r\n")
 			    _T("ZenLib 0.4.30\r\n")
-				_T(OPENSSL_VERSION_TEXT) _T("\r\n") //_T("OpenSSL 1.0.1k\r\n") //SSLeay_version(SSLEAY_VERSION)
+			    _T(OPENSSL_VERSION_TEXT) _T("\r\n") //_T("OpenSSL 1.0.1k\r\n") //SSLeay_version(SSLEAY_VERSION)
 			    _T("MediaInfoLib 0.7.72\r\n")//MediaInfoLib::MediaInfo_Version _T("\r\n")
 			    _T("WTL 9.0\r\n")
 			    _T("XMLParser 2.43\r\n") //XMLParser::XMLNode::getVersion()

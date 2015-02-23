@@ -22,7 +22,7 @@
 #include "typedefs.h"
 #include "TigerHash.h"
 #include "HashValue.h"
-
+#include "GPGPUManager.h"
 
 /**
  * A class that represents a Merkle Tree hash. Storing
@@ -33,6 +33,7 @@
  * other hash to verify the integrity of a whole file, while
  * the leaves provide checking of smaller parts of the file.
  */
+
 const uint64_t MIN_BLOCK_SIZE = 65536;
 
 template < class Hasher, const size_t baseBlockSize = 1024 >
@@ -117,12 +118,17 @@ class MerkleTree
 			return l_result;
 		}
 		
+		uint64_t calcFullLeafCnt(uint64_t ttrBlockSize)
+		{
+			return ttrBlockSize / BASE_BLOCK_SIZE;
+		}
+		
 		/**
 		 * Update the merkle tree.
 		 * @param len Length of data, must be a multiple of BASE_BLOCK_SIZE, unless it's
 		 *            the last block.
 		 */
-		void update(const void* data, size_t len)
+		virtual void update(const void* data, size_t len)
 		{
 			uint8_t* buf = (uint8_t*)data;
 			uint8_t zero = 0;
@@ -268,7 +274,7 @@ class MerkleTree
 			return ByteVector();
 		}
 		
-	private:
+	protected:
 		typedef pair<MerkleValue, int64_t> MerkleBlock;
 		typedef vector<MerkleBlock> MBList;
 		
@@ -276,11 +282,13 @@ class MerkleTree
 		
 		MerkleList leaves;
 		
-		MerkleValue root;
 		/** Total size of hashed data */
 		int64_t fileSize;
 		/** Final block size */
 		int64_t blockSize;
+		
+	private:
+		MerkleValue root;
 		
 		MerkleValue getHash(int64_t start, int64_t length)
 		{
@@ -320,6 +328,7 @@ class MerkleTree
 			return MerkleValue(h.finalize());
 		}
 		
+	protected:
 		void reduceBlocks()
 		{
 			// [!] IRainman opt.
@@ -394,8 +403,70 @@ class MerkleTree
 			// [~] IRainman opt.
 		}
 };
+#ifdef FLYLINKDC_USE_GPU_TTH
 
+template < class Hasher, const size_t baseBlockSize = 1024 >
+class MerkleTreeGPU : public MerkleTree<Hasher, baseBlockSize> { };
+
+/*
+ * Realized only for Hasher == TigerHash.
+ * If you need more, please realize ;)
+ */
+template <class Hasher>
+class MerkleTreeGPU<Hasher> : public MerkleTree<Hasher>
+{
+	public:
+		MerkleTreeGPU() : MerkleTree() {}
+		MerkleTreeGPU(int64_t aBlockSize) : MerkleTree(aBlockSize) { }
+		MerkleTreeGPU(int64_t p_FileSize, int64_t p_BlockSize, uint8_t* p_Data, size_t p_DataSize)
+			: MerkleTree(p_FileSize, p_BlockSize, p_Data, p_DataSize) { }
+		MerkleTreeGPU(int64_t aFileSize, int64_t aBlockSize, const MerkleValue& aRoot)
+			: MerkleTree(aFileSize, aBlockSize, aRoot) { }
+			
+		void update(const void* data, size_t len);
+		
+	private:
+		bool hash_blocks(uint8_t *buf, uint64_t bc, uint64_t lvbsz, uint64_t last_bs)
+		{
+			uint64_t lvlfc;
+			uint8_t res[Hasher::BYTES];
+			
+			bool b_res = true;
+			
+			if (!bc) return b_res;
+			
+			lvlfc = calcFullLeafCnt(lvbsz);
+			
+			if (bc < lvlfc)
+			{
+				return hash_blocks(buf, bc, lvbsz >> 1, last_bs);
+			}
+			
+			b_res = GPGPUTTHManager::getInstance()->get()->krn_ttr(buf, lvlfc, (bc == lvlfc ? last_bs : BASE_BLOCK_SIZE), (uint64_t *)res);
+			b_res = b_res && GPGPUTTHManager::getInstance()->get()->finish();
+			
+			// Data doesn't been processed on GPU
+			if (!b_res) return b_res;
+			
+			if (lvbsz < (uint64_t)blockSize)
+			{
+				blocks.push_back(MerkleBlock(MerkleValue(res), lvbsz));
+				reduceBlocks();
+			}
+			else
+			{
+				leaves.push_back(MerkleValue(res));
+			}
+			
+			return hash_blocks(buf + lvlfc * BASE_BLOCK_SIZE, bc - lvlfc, lvbsz, last_bs);
+		}
+};
+
+typedef MerkleTreeGPU<TigerHash> TigerTree;
+#else
 typedef MerkleTree<TigerHash> TigerTree;
+#endif // FLYLINKDC_USE_GPU_TTH
+
 typedef TigerTree::MerkleValue TTHValue;
 
 struct TTFilter

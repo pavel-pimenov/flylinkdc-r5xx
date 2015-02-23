@@ -1,9 +1,0 @@
-Страна: Украина
-Город: Лугаск
-Провайдер: Kiberline
-Интернет адрес: www.kiberline.net
-e-mail для обновлений сборки: lord.ua@gmail.com
-Формат файла инсталляции^
-xxx-kiberline
-yyy-номер ревизии
-zzz-не надо

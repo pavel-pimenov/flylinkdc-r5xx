@@ -153,6 +153,7 @@ const string SettingsManager::g_settingTags[] =
 	"FlyLocatorCountry",
 	"FlyLocatorCity",
 	"FlyLocatorISP",
+	"GPUDevNameForTTHComp",
 //	"MainDomain",
 	"SENTRY",
 	
@@ -443,6 +444,7 @@ const string SettingsManager::g_settingTags[] =
 #endif
 	"UseStatiscitcsSend",
 	"ReportToUserIfOutdatedOsDetected20130523", // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=1032
+	"UseGPUInTTHComputing",
 	"SENTRY",
 };
 

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<Favorites>
-	<Hubs>
-		<Hub Name="dc.omzona.ru" Connect="1" Description="dc.omzona.ru" Server="dc.omzona.ru" UserDescription="" AwayMsg="" Email="" WindowPosX="70" WindowPosY="90" WindowSizeX="837" WindowSizeY="315" WindowType="3" ChatUserSplit="7864" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="1" UserListState="1" HeaderOrder="0,1,5,2,6,4,3,7,8,9,10,11,12" HeaderWidths="165,70,95,76,208,51,45,80,191,104,79,50,80" HeaderVisible="1,1,1,1,1,1,1,1,1,1,1,1,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0"/>
-	</Hubs>
-	<Users/>
-	<UserCommands/>
-	<FavoriteDirs/>
-</Favorites>

@@ -1565,7 +1565,8 @@ void AdcHub::info(bool p_force)
 	// [~] Flylink++ Exclusive hub mode
 	// [!] IRainman mimicry function
 	addParam(m_lastInfoMap, c, "AP", getClientName());
-	addParam(m_lastInfoMap, c, "VE", getClientVersion());
+	
+	addParam(m_lastInfoMap, c, "VE", getTagVersion());
 	// [~] IRainman mimicry function
 	addParam(m_lastInfoMap, c, "AW", Util::getAway() ? "1" : Util::emptyString);
 	

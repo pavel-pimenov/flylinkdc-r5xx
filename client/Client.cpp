@@ -1023,7 +1023,16 @@ void Client::setSearchInterval(uint32_t aInterval)
 	dcassert(m_searchQueue.m_interval != 0);
 }
 
-
+string Client::getTagVersion() const
+{
+	string l_version = getClientVersion();
+	if (!m_is_override_name)
+	{
+		l_version += '-';
+		l_version += A_REVISION_NUM_STR;
+	}
+	return l_version;
+}
 /**
  * @file
  * $Id: Client.cpp 568 2011-07-24 18:28:43Z bigmuscle $

@@ -1584,6 +1584,9 @@
 #define IDC_PREVIEW_APP                 7500
 #define IDC_BROWSESQLLIST               7600
 #define IDC_FLY_SERVER_EXPLORER         7601
+#define IDC_TTH_USE_GPU                 7602
+#define IDC_TTH_GPU_DEVICES             7603
+#define IDC_SETTINGS_TTH_GPU_DEVICE     7604
 #define ID_TOGGLE_TOOLBAR               32771
 #define ID_TOGGLE_QSEARCH               32772
 #define ID_VIEW_TRANSFER_VIEW           32773

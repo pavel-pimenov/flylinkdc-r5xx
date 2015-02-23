@@ -247,6 +247,8 @@ void Util::initialize()
 	
 	g_paths[PATH_THEMES] = g_paths[PATH_GLOBAL_CONFIG] + "Themes" PATH_SEPARATOR_STR;
 	
+	g_paths[PATH_GPGPU] = g_paths[PATH_GLOBAL_CONFIG] + "GPUProgramms" PATH_SEPARATOR_STR;
+	
 	g_paths[PATH_SOUNDS] = g_paths[PATH_GLOBAL_CONFIG] + "Sounds" PATH_SEPARATOR_STR;
 	// [~] TODO This is crossplatform paths ;)
 	
