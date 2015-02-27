@@ -1,4 +1,626 @@
 ------------------------------------------------------------------------
+r18306 | pavel.pimenov@gmail.com | 2015-02-26 08:13:14 +0300 (Чт, 26 фев 2015) | 1 line
+
+# Не собиралось.
+------------------------------------------------------------------------
+r18304 | pavel.pimenov@gmail.com | 2015-02-26 02:21:20 +0300 (Чт, 26 фев 2015) | 571 lines
+
+Merged revision(s) 18285-18303 from trunk:
+# Добавил логирование кода ошибки вставки GDI + " GetLastError() = " + Util::toString(GetLastError())
+........
+Merged revision(s) 18267-18284 from trunk:
+* Исправлена ошибка ID missing проявлялась на adc при скачке файл-листов 
+  сломал в r17809 (спасибо SCALOlаz и DeWahre)
+........
+# Не добавляем к тэгу номер билда если клиент косит под другого.
+........
+# Не добавляем к тэгу номер билда если клиент косит под другого. (Часть 2)
+........
+# Добавляем билд в тег ADC
+........
+# Кнопки-закрывашки. Очищаем кнопку после наведения, - теперь можно делать кнопки в стиле Firefox, Chrome и прочих
+........
+# PNG: новые кнопки-закрывашки для дефолтной темы а-ля Firefox. (JhaoDa)
+........
+* Обобщил код получения версии клиента с учетом настроек подмены
+* Убрал возможную попытку помещения в базу данных имени файла = "" (возникает при закрытии клиента и перерывании хеширования)
+........
+* Поддержка расчета TTH на GPU (код пока заэкранирован)
+........
+# setup - выкинул мертвые хабы
+........
+# Косметика
+........
+# [mediainfo][merge]
+ + CAF: basic support of Apple Core Audio Format, sponsored by FlavorSys
+ + #P84, Matroska: Add TEXTST support to the MKV Parser, thanks to Kurtnoise
+ + #P85, MPEG-TS: Add TEXTST support to the MPEG-PSI Parser, thanks to Kurtnoise
+ x DPX: time information was with native ":" character
+........
+# Log
+# Исправил сборку медиаинфы
+........
+# fix setEndPos
+# Astyle
+........
+
+........
+Merged revision(s) 18198-18286 from branches-release/flylinkdc-r502:
+Merged revision(s) 18195-18197 from trunk:
+# Косметика
+# [mediainfo][merge]
+ x MOV: avoid wrong parsing in case of "colr" atom with "prof" color parameter type
+........
+* OpenSSL 1.0.1l
+........
+# Исправил залипание сплиттера при старте
+........
+
+........
+* Починил поиск string NmdcHub::calcExternalIP() const (спасибо Magic_David)
+# Логирование критических секций - пока не работает - временный кусок
+........
+# Не собирался релиз
+........
+* [merge] Починил поиск string NmdcHub::calcExternalIP() const (спасибо Magic_David)
+# Log [public-build]
+
+........
+# Отктил WTL - залипает скачет сплиттер + вернул SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
+# Не могй поймать причину падения https://drdump.com/Problem.aspx?ProblemID=112136 - немного изменил код - сохраняю путь к файду раньше.
+........
+* Исправил ошибку вида - возникала когда путь очень длинный и содержит русский буквы.
+Error in SharedFileStream::SharedFileStream. aFileName = [D:\Programs\FlylinkDC++\Downloads\[TeachPro] Java для начинающих и профессионалов. Видеокурсы [2006, RUS]\videokurs-Java\videokurs-Java-dlya-professionalov\Видеокурс Java для профессионалов\4.Интерфейс пользователя\04.Элементы программирования серверов\02.Вызов удаленных объектов\opr00OBO.swf.L5J62QCFT7YH4AOBERPKYTZLR6KBFNMPSOZCLMY.dctmp]
+Error = Системе не удается найти указанный путь.[error: 3]
+* Меню "добавить в друзья" вынесено из подменю в главное - сложно искать.
+........
+Merged revision(s) 18199-18203 from trunk:
+* Починил поиск string NmdcHub::calcExternalIP() const (спасибо Magic_David)
+# Логирование критических секций - пока не работает - временный кусок
+........
+# Не собирался релиз
+........
+* [merge] Починил поиск string NmdcHub::calcExternalIP() const (спасибо Magic_David)
+# Log [public-build]
+
+........
+# Отктил WTL - залипает скачет сплиттер + вернул SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
+# Не могй поймать причину падения https://drdump.com/Problem.aspx?ProblemID=112136 - немного изменил код - сохраняю путь к файду раньше.
+........
+* Исправил ошибку вида - возникала когда путь очень длинный и содержит русский буквы.
+Error in SharedFileStream::SharedFileStream. aFileName = [D:\Programs\FlylinkDC++\Downloads\[TeachPro] Java для начинающих и профессионалов. Видеокурсы [2006, RUS]\videokurs-Java\videokurs-Java-dlya-professionalov\Видеокурс Java для профессионалов\4.Интерфейс пользователя\04.Элементы программирования серверов\02.Вызов удаленных объектов\opr00OBO.swf.L5J62QCFT7YH4AOBERPKYTZLR6KBFNMPSOZCLMY.dctmp]
+Error = Системе не удается найти указанный путь.[error: 3]
+* Меню "добавить в друзья" вынесено из подменю в главное - сложно искать.
+........
+
+........
+* Добавлена галка к настройкам - выводить отдельно в чат IP, Страну, провайдера. (RoLex)
+# Убрал лишние открытия-закрытия файлов в SharedFileStream
+  - добавил логирование  - проверить под нагрузкой отдачу и загрузку.
+
+........
+# Маркер падения https://drdump.com/DumpGroup.aspx?DumpGroupID=264417
+........
+* Добавлено детальное логирование DHT части (HackFresse)
+* Добавил выбор цвета бордюра активной вкладки - раньше всегда была константа - красный.
+# Убрал лишние обращения к синглетону ShareManager::getInstance()->
+........
+# дополнение к r18208 в части галок: IP, Country, ISP
+........
+# Если не хотим показывать флаг или провайдера не зовем функцию - Util::getIpCountry (она лезет в базу и тяжеловатая)
+........
+# Оптимизация в BaseChatFrame::getIpCountry
+# Эксперимент с USE_FLYLINKDC_HUB - пока не работает и закрыт экраном
+........
+# Периодически в сообщениях юзеров пропадала ISP или Страна, хотя в колонках и подсказке на этом юзере они присутствуют
+# Вкладки: турбонаддув 1
+  - квадратиш вкладки, наиболее близкий к ZION вид
+  - неактивные онлайн вкладки имеют цвет как у окон Windows
+  - расширена градация заливки, тем самым убран эффект выпуклости вкладки
+  - вкладки "Слева" и "Справа" снова имеют отдельные прорисовки
+  - для таких вкладок возвращён счётчик
+  - выбранная вкладка имеет двойно бордюр
+# [public-build]
+........
+# вернул обводке толщину в 1 точку
+# вернул getDescription
+........
+# Поправил флаг Эстонии
+  https://code.google.com/p/flylinkdc/issues/detail?id=1554
+* Изменены цвета вкладок (SCALOlаz)
+........
+* Убрал тормоза на вкладках которые долго не открывают после старта.
+  сахраняем в памяти только последние N записей помещающиеся в размер буфера чата указанынй в настройках
+  по умолчанию = 25000 символов
+........
+# [public-build]
+........
+# Вкладки: тихий коммит (ни кому не говорить):
+- обводка строго 1 пиксел, сплошной линией (общим собранием тестеров решено)
+- активную вкладку не выделяем по высоте
+- заливаем вкладки ближнего к чату ряда полностью, без белой полосы
+https://yadi.sk/i/zSJUvAUaeLGPe (на скриншоте цвет обводки кастомно выбран серым)
+........
+# Вкладки: фен-шуй номер два
+В этой версии между вкладками в ряду нет промежутков. Задаётся параметром.
+
+попутно попробуем убрать проверку для windows XP
+........
+* Добавлен хоткей "Close all search windows\tAlt+G"
+........
+# log
+........
+Merged revision(s) 18208-18222 from trunk:
+* Добавлена галка к настройкам - выводить отдельно в чат IP, Страну, провайдера. (RoLex)
+# Убрал лишние открытия-закрытия файлов в SharedFileStream
+  - добавил логирование  - проверить под нагрузкой отдачу и загрузку.
+
+........
+# Маркер падения https://drdump.com/DumpGroup.aspx?DumpGroupID=264417
+........
+* Добавлено детальное логирование DHT части (HackFresse)
+* Добавил выбор цвета бордюра активной вкладки - раньше всегда была константа - красный.
+# Убрал лишние обращения к синглетону ShareManager::getInstance()->
+........
+# дополнение к r18208 в части галок: IP, Country, ISP
+........
+# Если не хотим показывать флаг или провайдера не зовем функцию - Util::getIpCountry (она лезет в базу и тяжеловатая)
+........
+# Оптимизация в BaseChatFrame::getIpCountry
+# Эксперимент с USE_FLYLINKDC_HUB - пока не работает и закрыт экраном
+........
+# Периодически в сообщениях юзеров пропадала ISP или Страна, хотя в колонках и подсказке на этом юзере они присутствуют
+# Вкладки: турбонаддув 1
+  - квадратиш вкладки, наиболее близкий к ZION вид
+  - неактивные онлайн вкладки имеют цвет как у окон Windows
+  - расширена градация заливки, тем самым убран эффект выпуклости вкладки
+  - вкладки "Слева" и "Справа" снова имеют отдельные прорисовки
+  - для таких вкладок возвращён счётчик
+  - выбранная вкладка имеет двойно бордюр
+# [public-build]
+........
+# вернул обводке толщину в 1 точку
+# вернул getDescription
+........
+# Поправил флаг Эстонии
+  https://code.google.com/p/flylinkdc/issues/detail?id=1554
+* Изменены цвета вкладок (SCALOlаz)
+........
+* Убрал тормоза на вкладках которые долго не открывают после старта.
+  сахраняем в памяти только последние N записей помещающиеся в размер буфера чата указанынй в настройках
+  по умолчанию = 25000 символов
+........
+# [public-build]
+........
+# Вкладки: тихий коммит (ни кому не говорить):
+- обводка строго 1 пиксел, сплошной линией (общим собранием тестеров решено)
+- активную вкладку не выделяем по высоте
+- заливаем вкладки ближнего к чату ряда полностью, без белой полосы
+https://yadi.sk/i/zSJUvAUaeLGPe (на скриншоте цвет обводки кастомно выбран серым)
+........
+# Вкладки: фен-шуй номер два
+В этой версии между вкладками в ряду нет промежутков. Задаётся параметром.
+
+попутно попробуем убрать проверку для windows XP
+........
+* Добавлен хоткей "Close all search windows\tAlt+G"
+........
+
+........
+* sqlite 3.8.8.2
+    The 3.8.8.2 patch release fixes a single minor problem: It ensures that the sqlite3_wal_checkpoint(TRUNCATE) operation will always truncate the write-ahead log even if log had already been reset and contained no new content. It is unclear if this is a bug fix or a new feature.
+    Something like this would normally go into the next regularly scheduled release, but a prominent SQLite user needed the change in a hurry so we were happy to rush it out via this patch.
+    There is no reason to upgrade unless you actually need the enhanced behavior of sqlite3_wal_checkpoint(TRUNCATE). 
+........
+# Из-за стрёмных кавычек в настройках цветов не менялся вид Preview строки "Горячий пользователь"
+........
+# [mediainfo][merge]
++ AVC: Raw dump of SPS/PPS (deactivated)
++ JPEG-2000: Display of profile (Rsiz), update with names of profiles, corrected
+x Removed test code
+
+........
+* Исправлены утечки GDI ресурсов в отрисовке градиентного прогресс-бара 
+* Исправлены ошибки разрушения оконных таймеров
+  Спасибо обновленной версии Deleaker http://www.deleaker.com/
+........
+* Исключаем лишние вызовы fire из кода BufferedSocket (TODO проверить нагрузку CPU на слабых нетбуках)    
+  Добавлена ранняя проверка отсутствия TTH в шаре с посоедующим игнорированием вызова fire с вложенными CriticalSection
+  в CMD отладчике для таких случае выводятся строка с маркером FastSkip: 
+19:47:32 Hub:	[Incoming][37.59.107.43:411]	 	[TTH][FastSkip]$Search TTH OPMSWEDBVAGLPIWJ5MRNYGL3RGMTHZOH7WWCAYQ
+19:47:32 Hub:	[Incoming][37.59.107.43:411]	 	[TTH][FastSkip]$Search TTH NEYDVE5EHGNM4YWLUCPACJYDZEZPATF5LKZATLA
+19:47:32 Hub:	[Incoming][37.59.107.43:411]	 	[TTH][FastSkip]$Search TTH GIVEEPYBAAAAB4HHEUCAAAAAAAMAAAAAAAAAAAA
+
+  
+........
+Merged revision(s) 18225-18230 from trunk:
+* sqlite 3.8.8.2
+    The 3.8.8.2 patch release fixes a single minor problem: It ensures that the sqlite3_wal_checkpoint(TRUNCATE) operation will always truncate the write-ahead log even if log had already been reset and contained no new content. It is unclear if this is a bug fix or a new feature.
+    Something like this would normally go into the next regularly scheduled release, but a prominent SQLite user needed the change in a hurry so we were happy to rush it out via this patch.
+    There is no reason to upgrade unless you actually need the enhanced behavior of sqlite3_wal_checkpoint(TRUNCATE). 
+........
+# Из-за стрёмных кавычек в настройках цветов не менялся вид Preview строки "Горячий пользователь"
+........
+# [mediainfo][merge]
++ AVC: Raw dump of SPS/PPS (deactivated)
++ JPEG-2000: Display of profile (Rsiz), update with names of profiles, corrected
+x Removed test code
+........
+* Исправлены утечки GDI ресурсов в отрисовке градиентного прогресс-бара 
+* Исправлены ошибки разрушения оконных таймеров
+  Спасибо обновленной версии Deleaker http://www.deleaker.com/
+........
+* Исключаем лишние вызовы fire из кода BufferedSocket (TODO проверить нагрузку CPU на слабых нетбуках)    
+  Добавлена ранняя проверка отсутствия TTH в шаре с посоедующим игнорированием вызова fire с вложенными CriticalSection
+  в CMD отладчике для таких случае выводятся строка с маркером FastSkip: 
+19:47:32 Hub:	[Incoming][37.59.107.43:411]	 	[TTH][FastSkip]$Search TTH OPMSWEDBVAGLPIWJ5MRNYGL3RGMTHZOH7WWCAYQ
+19:47:32 Hub:	[Incoming][37.59.107.43:411]	 	[TTH][FastSkip]$Search TTH NEYDVE5EHGNM4YWLUCPACJYDZEZPATF5LKZATLA
+19:47:32 Hub:	[Incoming][37.59.107.43:411]	 	[TTH][FastSkip]$Search TTH GIVEEPYBAAAAB4HHEUCAAAAAAAMAAAAAAAAAAAA
+
+  
+........
+
+........
+#[mediainfo]
+ + MOV/MPEG-4: handling of clcn (little endian nclc) Color parameter type
+........
+* Оптимизацация LogManager::log убрал лищний вызов WinAPI ::SetFilePointerEx(h, x, &x, FILE_CURRENT)  (File::getPos())
+  
+........
+* В CMD отладчик добавлен вывод новых диагностик (Заказывал - pewpew)
+  - COMMAND_DEBUG("[Partial-Search] - поиск частичных источников
+  - COMMAND_DEBUG("[Active-Search] - ответы на активный поиск
+........
+# PreviewDLG: пробуем включить кнопку Отмена в диалоге выбора и настройки плееров
+........
+# Рефакторинг кода поиска - убрал "полотенце" параметров для поиска
+  и сокращаем расход стека при рекурсивном обходе каталогов
+  Добавлены классы 
+  - class SearchParamBase
+  - class SearchParamToken : public SearchParamBase
+  - class SearchParam : public SearchParamBase
+  TODO - засунуть туда парсинг и другие методы + еще чуток причесать код. 
+  TODO - оптимизировать через вызов ShareManager::isUnknownFile исключив fire
+........
+# Спрятал SearchManager::normalizeWhitespace в класс SearchParamToken
+........
+# Выкинул проброс еще одного параметра const StringList& aExtList через стек
+........
+# [mediainfo][merge]
++ MOV/MPEG-4: handling of clcn (little endian nclc) Color parameter type
+........
+* AviPreview:
+- Непонятно деактивировались кнопки "Удалить", "Изменить"
+- Дополнение к редактированию плеера
+........
+# дополнение к r18240
+Теперь редактирование плееров должно устроить всех: и ваших и наших :Р
+........
+* Исправлено:
+  <pewpew> вот вызвал контекстное меню на юзере, нажал "Отчёт", на экране он нарисовался, но в логах пусто в общем, реквестую писать эту инфу в лог
+
+........
+# Вернул галку настройки - REPORT_ALTERNATES, // "Report auto search for alternates in status bar"
+  поможет найти проблемы с поиском альтернативных источников и их частотой
+........
+# Если в интервале поиска альтернатив стоит минута то паузу делаем на 61 секунду (чтобы не попадать на границу антифлуда)
+# Максимальный размер интервала поиска альтернатив = 60 минут
+........
+* При поиске альтернатив выводим и TTH 
+  LogManager::message(STRING(ALTERNATES_SEND) + ' ' + Util::getFileName(qi->getTargetFileName()) + " TTH = " + qi->getTTH().toBase32());
+* Логирование поиска альтернатив можно отключить галкой в настройках.
+# Подготовока клиента с работой с новой версией флай-хаба
+........
+# Вероятно починил флуд по поиску.
+........
+# Вероятно починил флуд по поиску.(часть 2)
+........
+# Удален dc.a-galaxy.com
+
+........
+* В новой бетке флая хабы юзающие ддос нового типа будут менять иконку на медицинский знак ("больной хабик")
+ + в CMD логе фиксируется меркер ddos https://yadi.sk/i/FttN5w67eatVa
+ + Все такие команды игнорируются клиентом
+* На всякий случай смержил фикс от AirDC++ хотя код флая не пропускает в ту функцию атаку
+  https://github.com/airdcpp/airgit/commit/a8c063aabe5a1c6daf0ae04c1a2e7fdf1d28264c#diff-809a2a07d8486558b177aa95dc49d3a4R592
+........
+# Упросил код isValidSearch - поддерживаем детект атаки по доменному имени
+........
+# Опечатка - забыл убрать else
+........
+# WindowsSdk_71A_IncludePath -> WindowsSDK_IncludePath
+........
+# Добавил лог в UDPSocket::encryptPacket
+# Исключил дубликатные поиски заведомо отсутствующих файлов в шаре 
+  роботы очень часто ищут файлы с разных хабов которых, у вас нет в шаре
+  https://yadi.sk/i/dmUFhOX4ecK9m
+  в этом случае новая бетка обходит шару только один раз и потом сохраняет маску поиска
+  и все последующие запросы автоматически игнорирует. фильтр сбрасывается после перезапуска или после изменения шары.
+
+........
+# Добавил логирование по DHT (HackFresse)
+........
+* Исправлен алгоритм поиска - ищу причину флуда.
+........
+* (Fixed issue 1559) Исправил поисковый флуд!
+  cпасибо всем тестерам с хаба dchub://dc.fly-server.ru
+  https://code.google.com/p/flylinkdc/issues/detail?id=1559
+........
+# Log
+........
+Merged revision(s) 18232-18259 from trunk:
+#[mediainfo]
+ + MOV/MPEG-4: handling of clcn (little endian nclc) Color parameter type
+........
+* Оптимизацация LogManager::log убрал лищний вызов WinAPI ::SetFilePointerEx(h, x, &x, FILE_CURRENT)  (File::getPos())
+  
+........
+* В CMD отладчик добавлен вывод новых диагностик (Заказывал - pewpew)
+  - COMMAND_DEBUG("[Partial-Search] - поиск частичных источников
+  - COMMAND_DEBUG("[Active-Search] - ответы на активный поиск
+........
+# PreviewDLG: пробуем включить кнопку Отмена в диалоге выбора и настройки плееров
+........
+# Рефакторинг кода поиска - убрал "полотенце" параметров для поиска
+  и сокращаем расход стека при рекурсивном обходе каталогов
+  Добавлены классы 
+  - class SearchParamBase
+  - class SearchParamToken : public SearchParamBase
+  - class SearchParam : public SearchParamBase
+  TODO - засунуть туда парсинг и другие методы + еще чуток причесать код. 
+  TODO - оптимизировать через вызов ShareManager::isUnknownFile исключив fire
+........
+# Спрятал SearchManager::normalizeWhitespace в класс SearchParamToken
+........
+# Выкинул проброс еще одного параметра const StringList& aExtList через стек
+........
+# [mediainfo][merge]
++ MOV/MPEG-4: handling of clcn (little endian nclc) Color parameter type
+........
+* AviPreview:
+- Непонятно деактивировались кнопки "Удалить", "Изменить"
+- Дополнение к редактированию плеера
+........
+# дополнение к r18240
+Теперь редактирование плееров должно устроить всех: и ваших и наших :Р
+........
+* Исправлено:
+  <pewpew> вот вызвал контекстное меню на юзере, нажал "Отчёт", на экране он нарисовался, но в логах пусто в общем, реквестую писать эту инфу в лог
+
+........
+# Вернул галку настройки - REPORT_ALTERNATES, // "Report auto search for alternates in status bar"
+  поможет найти проблемы с поиском альтернативных источников и их частотой
+........
+# Если в интервале поиска альтернатив стоит минута то паузу делаем на 61 секунду (чтобы не попадать на границу антифлуда)
+# Максимальный размер интервала поиска альтернатив = 60 минут
+........
+* При поиске альтернатив выводим и TTH 
+  LogManager::message(STRING(ALTERNATES_SEND) + ' ' + Util::getFileName(qi->getTargetFileName()) + " TTH = " + qi->getTTH().toBase32());
+* Логирование поиска альтернатив можно отключить галкой в настройках.
+# Подготовока клиента с работой с новой версией флай-хаба
+........
+# Вероятно починил флуд по поиску.
+........
+# Вероятно починил флуд по поиску.(часть 2)
+........
+# Удален dc.a-galaxy.com
+
+........
+* В новой бетке флая хабы юзающие ддос нового типа будут менять иконку на медицинский знак ("больной хабик")
+ + в CMD логе фиксируется меркер ddos https://yadi.sk/i/FttN5w67eatVa
+ + Все такие команды игнорируются клиентом
+* На всякий случай смержил фикс от AirDC++ хотя код флая не пропускает в ту функцию атаку
+  https://github.com/airdcpp/airgit/commit/a8c063aabe5a1c6daf0ae04c1a2e7fdf1d28264c#diff-809a2a07d8486558b177aa95dc49d3a4R592
+........
+# Упросил код isValidSearch - поддерживаем детект атаки по доменному имени
+........
+# Опечатка - забыл убрать else
+........
+# WindowsSdk_71A_IncludePath -> WindowsSDK_IncludePath
+........
+# Добавил лог в UDPSocket::encryptPacket
+# Исключил дубликатные поиски заведомо отсутствующих файлов в шаре 
+  роботы очень часто ищут файлы с разных хабов которых, у вас нет в шаре
+  https://yadi.sk/i/dmUFhOX4ecK9m
+  в этом случае новая бетка обходит шару только один раз и потом сохраняет маску поиска
+  и все последующие запросы автоматически игнорирует. фильтр сбрасывается после перезапуска или после изменения шары.
+
+........
+# Добавил логирование по DHT (HackFresse)
+........
+* Исправлен алгоритм поиска - ищу причину флуда.
+........
+* (Fixed issue 1559) Исправил поисковый флуд!
+  cпасибо всем тестерам с хаба dchub://dc.fly-server.ru
+  https://code.google.com/p/flylinkdc/issues/detail?id=1559
+........
+# Log
+........
+
+........
+# [r4xx] Исправлена уязвимость http://te-home.net/?id=54&title=Second+largest+exploit+in+NMDC+history
+
+........
+# [mediainfo][merge]
+x DCP/IMF: ID has now the AM/PKL CPL order in order in all cases (not only when there is more than one CPL)
+x #B893, MXF: Crash with Panasonic P2 3.0 files
+
+........
+Merged revision(s) 18264 from trunk:
+# [mediainfo][merge]
+x DCP/IMF: ID has now the AM/PKL CPL order in order in all cases (not only when there is more than one CPL)
+x #B893, MXF: Crash with Panasonic P2 3.0 files
+
+........
+
+........
+* Исправлена ошибка ID missing проявлялась на adc при скачке файл-листов 
+  сломал в r17809 (спасибо SCALOlаz и DeWahre)
+........
+* Исправлена ошибка ID missing проявлялась на adc при скачке файл-листов 
+  сломал в r17809 (спасибо SCALOlаz и fdf)
+........
+# Не добавляем к тэгу номер билда если клиент косит под другого.
+........
+# Не добавляем к тэгу номер билда если клиент косит под другого.
+........
+# Не добавляем к тэгу номер билда если клиент косит под другого. (Часть 2)
+........
+# Добавляем билд в тег ADC
+........
+# Кнопки-закрывашки. Очищаем кнопку после наведения, - теперь можно делать кнопки в стиле Firefox, Chrome и прочих
+........
+# PNG: новые кнопки-закрывашки для дефолтной темы а-ля Firefox. (JhaoDa)
+........
+* Обобщил код получения версии клиента с учетом настроек подмены
+* Убрал возможную попытку помещения в базу данных имени файла = "" (возникает при закрытии клиента и перерывании хеширования)
+........
+* Поддержка расчета TTH на GPU (код пока заэкранирован)
+........
+# setup - выкинул мертвые хабы
+........
+# Косметика
+........
+# [mediainfo][merge]
+ + CAF: basic support of Apple Core Audio Format, sponsored by FlavorSys
+ + #P84, Matroska: Add TEXTST support to the MKV Parser, thanks to Kurtnoise
+ + #P85, MPEG-TS: Add TEXTST support to the MPEG-PSI Parser, thanks to Kurtnoise
+ x DPX: time information was with native ":" character
+........
+# Log
+# Исправил сборку медиаинфы
+........
+# fix setEndPos
+# Astyle
+........
+Merged revision(s) 18267-18284 from trunk:
+* Исправлена ошибка ID missing проявлялась на adc при скачке файл-листов 
+  сломал в r17809 (спасибо SCALOlаz и DeWahre)
+........
+# Не добавляем к тэгу номер билда если клиент косит под другого.
+........
+# Не добавляем к тэгу номер билда если клиент косит под другого. (Часть 2)
+........
+# Добавляем билд в тег ADC
+........
+# Кнопки-закрывашки. Очищаем кнопку после наведения, - теперь можно делать кнопки в стиле Firefox, Chrome и прочих
+........
+# PNG: новые кнопки-закрывашки для дефолтной темы а-ля Firefox. (JhaoDa)
+........
+* Обобщил код получения версии клиента с учетом настроек подмены
+* Убрал возможную попытку помещения в базу данных имени файла = "" (возникает при закрытии клиента и перерывании хеширования)
+........
+* Поддержка расчета TTH на GPU (код пока заэкранирован)
+........
+# setup - выкинул мертвые хабы
+........
+# Косметика
+........
+# [mediainfo][merge]
+ + CAF: basic support of Apple Core Audio Format, sponsored by FlavorSys
+ + #P84, Matroska: Add TEXTST support to the MKV Parser, thanks to Kurtnoise
+ + #P85, MPEG-TS: Add TEXTST support to the MPEG-PSI Parser, thanks to Kurtnoise
+ x DPX: time information was with native ":" character
+........
+# Log
+# Исправил сборку медиаинфы
+........
+# fix setEndPos
+# Astyle
+........
+
+........
+
+........
+# [lang] an auto commit from localization system...
+........
+# [lang] влетело лишнее
+........
+# Обновлен код расчета TTH в GPU
+........
+# Исправил сборку в vc++2010
+........
+* Исправлено: в чате, если отключено отображение Страны и Провайдера, но включен вывод IP, не работало ПКМ на IP-адресе.
+........
+# дополнение к r18292: не собиралось
+........
+# UI: Меню в чате на IP: Whois46.0.80.xx  без пробела.
+Замечено, что строковое значение в переводах отличается от en-оригинала именно отсутствием пробела на конце.
+Вот рабочая en локаль:
+	WHO_IS, // "Whois "
+<string name="WhoIs">Whois </string>
+
+Вот русская локаль:
+<String Name="WhoIs">Whois</String>
+
+Дабы избежать таких огрехов в любых переводах, просто добавим пробел. Лишним он не будет.
+Попутно переместим разделитель под эту строку, для простых юзеров запрос Whois будет отделён от пунктов "Копирование".
+........
+# дополнение к r18292: при выключенном дефайне GPU, выключаем в Настройках шары пункты выбора устройств. Чтобы было меньше вопросов со стороны бета-тестеров, и ни дай бог обычных пользователей, которые вообще не в теме.
+........
+* Обновлены теги мимикрии нескольких клиентов.
+........
+# пропущеный пробел в "[!] Новая версия:ХХХ"
+
+Предлагаю убрать номер версии, текст заменить на "[!] Доступно обновление".
+
+Ведь в большинстве случаев число XXX путает пользователя, когда в следующем окне со списком файлов обновления они не видят файла EXE указанной версии XXX, а видят другие файлы: кастомлок, переводы и прочее.
+........
+* sqlite 3.8.8.3
+The 3.8.8.3 patch release fixes an obscure problem in the SQLite code generator that can cause incorrect results when the qualifying expression of a partial index is used inside the ON clause of a LEFT JOIN. This problem has been in the code since support for partial indexes was first added in version 3.8.0. However, it is difficult to imagine a valid reason to every put the qualifying constraint inside the ON clause of a LEFT JOIN, and so this issue has never come up before.
+Any applications that is vulnerable to this bug would have encountered problems already. Hence, upgrading from the previous release is optional. 
+........
+# [mediainfo] 
+ x AVC: Crash in case of no VUI
+........
+# Не собиралось.
+........
+
+------------------------------------------------------------------------
+r18286 | pavel.pimenov@gmail.com | 2015-02-23 12:58:15 +0300 (Пн, 23 фев 2015) | 36 lines
+
+Merged revision(s) 18267-18284 from trunk:
+* Исправлена ошибка ID missing проявлялась на adc при скачке файл-листов 
+  сломал в r17809 (спасибо SCALOlаz и DeWahre)
+........
+# Не добавляем к тэгу номер билда если клиент косит под другого.
+........
+# Не добавляем к тэгу номер билда если клиент косит под другого. (Часть 2)
+........
+# Добавляем билд в тег ADC
+........
+# Кнопки-закрывашки. Очищаем кнопку после наведения, - теперь можно делать кнопки в стиле Firefox, Chrome и прочих
+........
+# PNG: новые кнопки-закрывашки для дефолтной темы а-ля Firefox. (JhaoDa)
+........
+* Обобщил код получения версии клиента с учетом настроек подмены
+* Убрал возможную попытку помещения в базу данных имени файла = "" (возникает при закрытии клиента и перерывании хеширования)
+........
+* Поддержка расчета TTH на GPU (код пока заэкранирован)
+........
+# setup - выкинул мертвые хабы
+........
+# Косметика
+........
+# [mediainfo][merge]
+ + CAF: basic support of Apple Core Audio Format, sponsored by FlavorSys
+ + #P84, Matroska: Add TEXTST support to the MKV Parser, thanks to Kurtnoise
+ + #P85, MPEG-TS: Add TEXTST support to the MPEG-PSI Parser, thanks to Kurtnoise
+ x DPX: time information was with native ":" character
+........
+# Log
+# Исправил сборку медиаинфы
+........
+# fix setEndPos
+# Astyle
+........
+
+------------------------------------------------------------------------
+r18284 | pavel.pimenov@gmail.com | 2015-02-22 16:45:04 +0300 (Вс, 22 фев 2015) | 2 lines
+
+# fix setEndPos
+# Astyle
+------------------------------------------------------------------------
 r18271 | pavel.pimenov@gmail.com | 2015-02-13 23:09:27 +0300 (Пт, 13 фев 2015) | 1 line
 
 # Не добавляем к тэгу номер билда если клиент косит под другого. (Часть 2)

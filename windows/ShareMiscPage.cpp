@@ -58,29 +58,49 @@ LRESULT ShareMiscPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 	SET_MIN_MAX(IDC_SET_MIN_LENGHT_FILE_FOR_MEDIAINFO_SPIN, 0, 1000);
 	
 #ifdef FLYLINKDC_USE_GPU_TTH
-	int sel_i = -1;
-	ctrlTTHGPUDevices.Attach(GetDlgItem(IDC_TTH_GPU_DEVICES));
 	const auto l_count_gpu = GPGPUTTHManager::getInstance()->get()->get_dev_cnt();
+	const auto l_set_dnum = SETTING(TTH_GPU_DEV_NUM);
+	const auto s_set_dname = SETTING(GPU_DEV_NAME_FOR_TTH_COMP);
+	const CString cs_set_dname(s_set_dname.c_str());
+
+	ctrlTTHGPUDevices.Attach(GetDlgItem(IDC_TTH_GPU_DEVICES));
+
 	for (int i = 0; i < l_count_gpu; ++i)
 	{
-		const string s_dnm = GPGPUTTHManager::getInstance()->get()->get_dev_name(i);
-		const string &r_sdnm = SETTING(GPU_DEV_NAME_FOR_TTH_COMP);
-		const CString cs_dnm(s_dnm.c_str());
+		const string& s_dname = GPGPUTTHManager::getInstance()->get()->get_dev_name(i);
+		const CString cs_dname(s_dname.c_str());
 		
-		ctrlTTHGPUDevices.AddString((LPCTSTR)cs_dnm);
+		ctrlTTHGPUDevices.AddString((LPCTSTR)cs_dname);
+	}
 		
-		if (s_dnm == r_sdnm)
+	if (l_set_dnum >= 0 && l_set_dnum < l_count_gpu)
+	{
+		const auto s_dname = GPGPUTTHManager::getInstance()->get()->get_dev_name(l_set_dnum);
+
+		if (s_dname == s_set_dname)
 		{
-			sel_i = i;
+			ctrlTTHGPUDevices.SetCurSel(l_set_dnum);
+		}
+		else
+		{
+			ctrlTTHGPUDevices.SetWindowTextW((LPCTSTR)cs_set_dname);
 		}
 	}
-	if (sel_i >= 0)
+	else
 	{
-		ctrlTTHGPUDevices.SetCurSel(sel_i);
+		if (l_set_dnum == -1)
+		{
+			ctrlTTHGPUDevices.SetWindowTextW(TEXT(""));
+		}
+		else
+		{
+			ctrlTTHGPUDevices.SetWindowTextW((LPCTSTR)cs_set_dname);
+		}
 	}
+
 	ctrlTTHGPUDevices.Detach();
-	fixGPUTTHControls();
 #endif
+	fixGPUTTHControls();
 	fixControls();
 	// Do specialized reading here
 	return TRUE;
@@ -89,7 +109,21 @@ LRESULT ShareMiscPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 void ShareMiscPage::write()
 {
 	PropPage::write((HWND)*this, items);
-	// Do specialized writing here
+#ifdef FLYLINKDC_USE_GPU_TTH
+	ctrlTTHGPUDevices.Attach(GetDlgItem(IDC_TTH_GPU_DEVICES));
+
+	int sel_dev_num = ctrlTTHGPUDevices.GetCurSel();
+
+	if ( sel_dev_num != CB_ERR && sel_dev_num != SETTING(TTH_GPU_DEV_NUM) )
+	{
+		GPGPUTTHManager::getInstance()->get()->select_device(sel_dev_num);
+
+		SettingsManager::getInstance()->set(SettingsManager::TTH_GPU_DEV_NUM, sel_dev_num);
+		SettingsManager::getInstance()->save();
+	}
+
+	ctrlTTHGPUDevices.Detach();
+#endif	//FLYLINKDC_USE_GPU_TTH
 }
 
 LRESULT ShareMiscPage::onFixControls(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) // [+]NightOrion
@@ -114,7 +148,11 @@ void ShareMiscPage::fixControls()
 
 void ShareMiscPage::fixGPUTTHControls()
 {
-	const BOOL state = (IsDlgButtonChecked(IDC_TTH_USE_GPU) != 0);
+	BOOL state = (IsDlgButtonChecked(IDC_TTH_USE_GPU) != 0);
+#ifndef FLYLINKDC_USE_GPU_TTH
+	state = false;
+	::EnableWindow(GetDlgItem(IDC_TTH_USE_GPU), state);
+#endif
 	::EnableWindow(GetDlgItem(IDC_TTH_GPU_DEVICES), state);
 	::EnableWindow(GetDlgItem(IDC_SETTINGS_TTH_GPU_DEVICE), state);
 }

@@ -359,7 +359,7 @@ void AutoUpdate::startUpdateThisThread()
 				const bool l_userAsk = BOOLSETTING(AUTOUPDATE_SHOWUPDATEREADY) || m_manualUpdate;
 	    if (m_guiDelegate && !ClientManager::isShutdown())
         {
-			m_guiDelegate->NewVerisonEvent(Text::fromT(TSTRING(MENU_FLYLINK_NEW_VERSION)) + autoUpdateObject->m_sVersion);
+			m_guiDelegate->NewVerisonEvent(Text::fromT(TSTRING(MENU_FLYLINK_NEW_VERSION)) + " " + autoUpdateObject->m_sVersion);
         }
 				if (l_userAsk)
 				{

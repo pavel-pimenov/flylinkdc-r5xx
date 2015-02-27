@@ -616,6 +616,7 @@ tstring BaseChatFrame::getIpCountry(const string& ip, bool ts, bool p_ipInChat, 
 		if (p_ipInChat)
 		{
 			l_result += Text::toT(ip);
+			if (!p_countryInChat && !p_ISPInChat) l_result += _T(" ");	// Fix Right Click Menu on IP without space after IP
 		}
 		if (p_countryInChat || p_ISPInChat)
 		{
@@ -627,7 +628,6 @@ tstring BaseChatFrame::getIpCountry(const string& ip, bool ts, bool p_ipInChat, 
 			if (p_ISPInChat)
 			{
 				l_result += ((p_countryInChat || p_ipInChat) ? _T(" | ") : _T("")) + l_location.getDescription();
-				// getISP()  [-] SCALOlaz: ѕри отсутствии записи о провайдере, должно вернуть Russian Federation или Italian. ¬озвращает пустоту.
 			}
 		}
 	}
@@ -705,14 +705,14 @@ void BaseChatFrame::appendChatCtrlItems(OMenu& p_menu, const Client* client)
 	{
 		p_menu.InsertSeparatorFirst(ChatCtrl::g_sSelectedIP);
 #ifdef IRAINMAN_ENABLE_WHOIS
-		p_menu.AppendMenu(MF_STRING, IDC_WHOIS_IP, (TSTRING(WHO_IS) + ChatCtrl::g_sSelectedIP).c_str());
+		p_menu.AppendMenu(MF_STRING, IDC_WHOIS_IP, (TSTRING(WHO_IS) + _T(" ") + ChatCtrl::g_sSelectedIP).c_str());
+		p_menu.AppendMenu(MF_SEPARATOR);
 #endif
 		if (client) // add menus, necessary only for windows hub here.
 		{
 			if (client->isOp())
 			{
-				p_menu.AppendMenu(MF_SEPARATOR);
-				
+				//p_menu.AppendMenu(MF_SEPARATOR);
 				p_menu.AppendMenu(MF_STRING, IDC_BAN_IP, (_T("!banip ") + ChatCtrl::g_sSelectedIP).c_str());
 				p_menu.SetMenuDefaultItem(IDC_BAN_IP);
 				p_menu.AppendMenu(MF_STRING, IDC_UNBAN_IP, (_T("!unban ") + ChatCtrl::g_sSelectedIP).c_str());

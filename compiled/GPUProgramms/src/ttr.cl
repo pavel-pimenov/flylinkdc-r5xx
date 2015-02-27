@@ -1,10 +1,24 @@
 /*
  * Copyright (C) 2015 ecl1pse
  *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+/*
  * This is a little modification of reference implementation of Tiger hash
  * (which you could found here http://www.cs.technion.ac.il/~biham/Reports/Tiger/)
- *
- * **This code is free and open source ;)**
  */
 typedef ulong word64;
 typedef uchar byte;
@@ -752,18 +766,21 @@ void blkcpy_lp_gg(__global word64 *dst, __global word64 *src, word64 blk_sz)
 #ifdef LITTLE_ENDIAN
   dst[0] = (src[0] & 0x00ffffffffffffff)<<8 | dst[0]&0x00000000000000ff;
 #else
+  dst[0] = (src[0] & 0xffffffffffffff00)>>8 | dst[0]&0xff00000000000000;
 #endif
 
   for (i = 1; i < blk_sz/sizeof(word64); ++i) {
 #ifdef LITTLE_ENDIAN
-    dst[i] = (src[i]&0x00ffffffffffffff) << 8 | (src[i-1]&0xff00000000000000) >> 56;
+    dst[i] = (src[i]&0x00ffffffffffffff)<<8 | (src[i-1]&0xff00000000000000)>>56;
 #else
+    dst[i] = (src[i]&0xffffffffffffff00)>>8 | (src[i-1]&0x00000000000000ff)<<56;
 #endif
   }
 
 #ifdef LITTLE_ENDIAN
   dst[i] = (src[i-1] & 0xff00000000000000)>>56 | dst[i]&0xffffffffffffff00;
 #else
+  dst[i] = (src[i-1] & 0x00000000000000ff)<<56 | dst[i]&0x00ffffffffffffff;
 #endif
 }
 
@@ -774,18 +791,21 @@ void blkcpy_lp_pg(word64 *dst, __global word64 *src, word64 blk_sz)
 #ifdef LITTLE_ENDIAN
   dst[0] = (src[0] & 0x00ffffffffffffff)<<8 | dst[0]&0x00000000000000ff;
 #else
+  dst[0] = (src[0] & 0xffffffffffffff00)>>8 | dst[0]&0xff00000000000000;
 #endif
 
   for (i = 1; i < blk_sz/sizeof(word64); ++i) {
 #ifdef LITTLE_ENDIAN
-    dst[i] = (src[i]&0x00ffffffffffffff) << 8 | (src[i-1]&0xff00000000000000) >> 56;
+    dst[i] = (src[i]&0x00ffffffffffffff)<<8 | (src[i-1]&0xff00000000000000)>>56;
 #else
+    dst[i] = (src[i]&0xffffffffffffff00)>>8 | (src[i-1]&0x00000000000000ff)<<56;
 #endif
   }
 
 #ifdef LITTLE_ENDIAN
   dst[i] = (src[i-1] & 0xff00000000000000)>>56 | dst[i]&0xffffffffffffff00;
 #else
+  dst[i] = (src[i-1] & 0x00000000000000ff)<<56 | dst[i]&0x00ffffffffffffff;
 #endif
 }
 
@@ -796,27 +816,31 @@ void blkcpy_lp_gp(__global word64 *dst, word64 *src, word64 blk_sz)
 #ifdef LITTLE_ENDIAN
   dst[0] = (src[0] & 0x00ffffffffffffff)<<8 | dst[0]&0x00000000000000ff;
 #else
+  dst[0] = (src[0] & 0xffffffffffffff00)>>8 | dst[0]&0xff00000000000000;
 #endif
 
   for (i = 1; i < blk_sz/sizeof(word64); ++i) {
 #ifdef LITTLE_ENDIAN
-    dst[i] = (src[i]&0x00ffffffffffffff) << 8 | (src[i-1]&0xff00000000000000) >> 56;
+    dst[i] = (src[i]&0x00ffffffffffffff)<<8 | (src[i-1]&0xff00000000000000)>>56;
 #else
+    dst[i] = (src[i]&0xffffffffffffff00)>>8 | (src[i-1]&0x00000000000000ff)<<56;
 #endif
   }
 
 #ifdef LITTLE_ENDIAN
   dst[i] = (src[i-1] & 0xff00000000000000)>>56 | dst[i]&0xffffffffffffff00;
 #else
+  dst[i] = (src[i-1] & 0x00000000000000ff)<<56 | dst[i]&0x00ffffffffffffff;
 #endif
 }
 
 /*
  * Computes Tiger Tree Root hash.
- * __in_out data - input data buffer (assume: 1. data buffer size
- * is multiple of TTBLOCK_SIZE, even last_blk_sz < TTBLOCK_SIZE;
+ * __in_out data - input data buffer
+ * Assumptions:
+ * 1. data buffer size is multiple of TTBLOCK_SIZE
+ * even last_blk_sz < TTBLOCK_SIZE;
  * 2. TTBLOCK_SIZE >= 2*TH_BYTES + 1);
- * output root hash
  * __in blk_cnt - blocks count;
  * __in last_blk_sz - size of the last input block (in bytes)
  * Resulting root hash is placed in memory pointed by res.

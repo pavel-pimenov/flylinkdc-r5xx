@@ -414,7 +414,6 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		// [-] GETSET(string, clientId, ClientId); // !SMT!-S
 		GETSET(string, m_clientName, ClientName);
 		GETSET(string, m_clientVersion, ClientVersion);
-		bool m_is_override_name;
 		// [~] IRainman mimicry function
 		
 		GETM(uint64_t, m_lastActivity, LastActivity);

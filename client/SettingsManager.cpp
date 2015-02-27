@@ -445,6 +445,7 @@ const string SettingsManager::g_settingTags[] =
 	"UseStatiscitcsSend",
 	"ReportToUserIfOutdatedOsDetected20130523", // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=1032
 	"UseGPUInTTHComputing",
+	"TTHGPUDevNum",
 	"SENTRY",
 };
 
@@ -1299,6 +1300,7 @@ void SettingsManager::setDefaults()
 	setDefault(THEME_MANAGER_THEME_DLL_NAME, "resourceGO.dll");
 # endif
 #endif // FLYLINKDC_HE
+	setDefault(TTH_GPU_DEV_NUM, -1);
 	
 	setSearchTypeDefaults();
 	// TODO - грузить это из сети и отложенно когда понадобится.

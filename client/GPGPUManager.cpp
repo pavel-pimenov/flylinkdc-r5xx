@@ -21,16 +21,14 @@
 #ifdef FLYLINKDC_USE_GPU_TTH
 
 #include "GPGPUManager.h"
-#include "Util.h"
-
-#define S_BOX_SIZE 256
-#define S_BOX_CNT 4
+#include "SettingsManager.h"
 
 GPGPUOpenCL::GPGPUOpenCL()
 	: pfm_name("OpenCL"),
+	  cur_dev_num(-1),
 	  cur_ttr_krn(0), cur_prog(0),
 	  cur_cmd_q(0), cur_cntxt(0),
-	  sts(GPGPU_OK)
+	  sts(GPGPU_S_DEVICE_NOT_SELECTED)
 {
 	cl_uint npfms;
 	cl_platform_id *pfm_ids;
@@ -78,7 +76,7 @@ GPGPUOpenCL::GPGPUOpenCL()
 				
 				if (i_ret != CL_SUCCESS) continue;
 				
-				devs.push_back(OCLGPGPUDevice(pfm_ids[i], dev_ids[j], string(pfm_name) + string(" - ") + string(dev_name)));
+				devs.push_back( OCLGPGPUDevice(pfm_ids[i], dev_ids[j], string(pfm_name)+string(" - ")+string(dev_name)) );
 				
 				delete[] dev_name;
 			}
@@ -105,30 +103,30 @@ GPGPUOpenCL::~GPGPUOpenCL()
 
 void GPGPUOpenCL::select_device(int num)
 {
-	using std::get;
-	
 	cl_context_properties ctx_props[3];
-	
+
 	FILE *f = 0;
 	long sz;
 	char *src;
 	string ph_to_krn(Util::getGPGPUPath() + "src" PATH_SEPARATOR_STR "ttr.cl");
-	
+
 	cl_int i_res;
-	
+
+	dcassert( num >= 0 && num < (int)devs.size() );
+
 	clReleaseKernel(cur_ttr_krn);
 	clReleaseProgram(cur_prog);
 	clReleaseCommandQueue(cur_cmd_q);
 	clReleaseContext(cur_cntxt);
-	
+
 	ctx_props[0] = CL_CONTEXT_PLATFORM;
-	ctx_props[1] = (cl_context_properties) get<0>(devs[num]);
+	ctx_props[1] = (cl_context_properties) devs[num].m_pfm_id;
 	ctx_props[2] = 0;
-	cur_cntxt = clCreateContext(ctx_props, 1, &get<1>(devs[num]), 0, 0, 0);
+	cur_cntxt = clCreateContext(ctx_props, 1, &devs[num].m_dev_id, 0, 0, 0);
 	
 	if (!cur_cntxt) goto dev_init_error;
 	
-	cur_cmd_q = clCreateCommandQueue(cur_cntxt, get<1>(devs[num]), 0, 0);
+	cur_cmd_q = clCreateCommandQueue(cur_cntxt, devs[num].m_dev_id, 0, 0);
 	
 	if (!cur_cmd_q) goto dev_init_error;
 	
@@ -147,8 +145,8 @@ void GPGPUOpenCL::select_device(int num)
 	fread(src, 1, sz, f);
 	
 	cur_prog = clCreateProgramWithSource(cur_cntxt, 1,
-	                                     (const char **)&src, (const size_t *)&sz, 0);
-	                                     
+		(const char **)&src, (const size_t *)&sz, 0);
+
 	if (!cur_prog) goto dev_init_error;
 	
 	clBuildProgram(cur_prog, 0, 0, "", 0, 0);
@@ -161,13 +159,14 @@ void GPGPUOpenCL::select_device(int num)
 	if (!cur_ttr_krn) goto dev_init_error;
 	
 	cur_dev_num = num;
+	sts = GPGPU_OK;
 	
 	wis1d1wg = get_1d_max_wg_wi(cur_dev_num);
 	
 	return;
 	
 dev_init_error:
-	sts |= GPGPU_E_DEVICE_INIT;
+	sts |= GPGPU_E_DEVICE_INIT | GPGPU_S_DEVICE_NOT_SELECTED;
 	
 	if (f) fclose(f);
 	
@@ -196,25 +195,25 @@ bool GPGPUOpenCL::krn_ttr(uint8_t *data, uint64_t bc, uint64_t last_bs, uint64_t
 	dcassert(bc);
 	
 	mem_data = clCreateBuffer(cur_cntxt,
-	                          CL_MEM_READ_WRITE,
-	                          bc * TTBLOCK_SIZE, 0, 0);
-	                          
+		CL_MEM_READ_WRITE,
+		bc * TTBLOCK_SIZE, 0, 0);
+
 	mem_res = clCreateBuffer(cur_cntxt,
-	                         CL_MEM_WRITE_ONLY,
-	                         TH_BYTES, 0, 0);
-	                         
+		CL_MEM_WRITE_ONLY,
+		TH_BYTES, 0, 0);
+
 	if (!mem_data || !mem_res)
 	{
 		sts |= GPGPU_E_MEMORY;
 		b_ret = false;
 		goto exit;
 	}
-	
+
 	i_res = clEnqueueWriteBuffer(cur_cmd_q, mem_data,
-	                             CL_FALSE, 0,
-	                             (bc - 1) * TTBLOCK_SIZE + last_bs, data,
-	                             0, 0, 0);
-	                             
+		CL_FALSE, 0,
+		(bc - 1)*TTBLOCK_SIZE + last_bs, data,
+		0, 0, 0);
+
 	if (i_res != CL_SUCCESS)
 	{
 		sts |= GPGPU_E_MEMORY;
@@ -226,7 +225,7 @@ bool GPGPUOpenCL::krn_ttr(uint8_t *data, uint64_t bc, uint64_t last_bs, uint64_t
 	i_res |= clSetKernelArg(cur_ttr_krn, 1, sizeof(cl_ulong), &bc);
 	i_res |= clSetKernelArg(cur_ttr_krn, 2, sizeof(cl_ulong), &last_bs);
 	i_res |= clSetKernelArg(cur_ttr_krn, 3, sizeof(cl_mem), &mem_res);
-	
+
 	//clEnqueueTask(cur_cmd_q, cur_ttr_krn, 0, 0, 0);
 	i_res |= clEnqueueNDRangeKernel(cur_cmd_q, cur_ttr_krn, 1, 0, &wis1d1wg, &wis1d1wg, 0, 0, 0);
 	
@@ -238,18 +237,16 @@ bool GPGPUOpenCL::krn_ttr(uint8_t *data, uint64_t bc, uint64_t last_bs, uint64_t
 	}
 	
 	i_res = clEnqueueReadBuffer(cur_cmd_q, mem_res,
-	                            CL_FALSE, 0,
-	                            TH_BYTES, res,
-	                            0, 0, 0);
-	                            
+		CL_FALSE, 0,
+		TH_BYTES, res,
+		0, 0, 0);
+
 	if (i_res != CL_SUCCESS)
 	{
 		sts |= GPGPU_E_MEMORY;
 		b_ret = false;
 		goto exit;
 	}
-	
-	clFinish(cur_cmd_q);
 	
 exit:
 	clReleaseMemObject(mem_res);
@@ -282,9 +279,9 @@ size_t GPGPUOpenCL::get_1d_max_wg_wi(int dev_num)
 	
 	size_t res = 0;
 	
-	dcassert(dev_num < devs.size());
+    dcassert( dev_num >= 0 && dev_num < (int)devs.size() );
 	
-	dev_id = std::get<1>(devs[dev_num]);
+	dev_id = devs[dev_num].m_dev_id;
 	
 	i_ret = clGetDeviceInfo(dev_id, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_wg_sz, 0);
 	i_ret |= clGetDeviceInfo(dev_id, CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, sizeof(cl_uint), &max_wi_dims, 0);
@@ -327,17 +324,34 @@ size_t GPGPUOpenCL::get_1d_max_wg_wi(int dev_num)
 }
 
 GPGPUManager::GPGPUManager()
-	: i_cur_pfm(0)
+	: i_cur_pfm(-1)
 {
-	platforms.push_back(new GPGPUOpenCL);
-	platforms[i_cur_pfm]->select_device(0);
+	platforms.push_back( new GPGPUOpenCL );
+	i_cur_pfm = 0;
 }
 
 GPGPUManager::~GPGPUManager()
 {
-for (auto & pfm : platforms)
+	for ( auto i = platforms.begin(); i != platforms.end(); ++i )
 	{
-		delete pfm;
+		delete *i;
+	}
+}
+
+GPGPUTTHManager::GPGPUTTHManager()
+{
+	const int dcnt = get()->get_dev_cnt();
+	const int set_dnum = SETTING(TTH_GPU_DEV_NUM);
+	const string& s_set_dname = SETTING(GPU_DEV_NAME_FOR_TTH_COMP);
+
+	if (set_dnum >= 0 && set_dnum < dcnt)
+	{
+		const string& s_dname = get()->get_dev_name(set_dnum);
+
+		if (s_dname == s_set_dname)
+		{
+			get()->select_device(set_dnum);
+		}
 	}
 }
 

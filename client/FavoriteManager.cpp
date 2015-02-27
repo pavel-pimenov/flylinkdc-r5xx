@@ -54,10 +54,10 @@ const FavoriteManager::mimicrytag FavoriteManager::g_MimicryTags[] =
 {
 	// Up from http://ru.wikipedia.org/wiki/DC%2B%2B
 	FavoriteManager::mimicrytag("++", DCVERSIONSTRING),     // Version from core.
-	FavoriteManager::mimicrytag("EiskaltDC++", "2.2.8"),    // 25 jun 2013 http://code.google.com/p/eiskaltdc/
-	FavoriteManager::mimicrytag("AirDC++", "2.50"),         // 1 jun 2013 http://www.airdcpp.net/
+	FavoriteManager::mimicrytag("EiskaltDC++", "2.2.9"),    // 24 feb 2015 http://code.google.com/p/eiskaltdc/
+	FavoriteManager::mimicrytag("AirDC++", "2.91"),         // 21 feb 2015 http://www.airdcpp.net/
 	FavoriteManager::mimicrytag("RSX++", "1.21"),           // 14 apr 2011 http://rsxplusplus.sourceforge.net/
-	FavoriteManager::mimicrytag("ApexDC++", "1.5.6"),       // 7 apr 2013 http://www.apexdc.net/changes/
+	FavoriteManager::mimicrytag("ApexDC++", "1.6.0"),       // 20 aug 2014 http://www.apexdc.net/changes/ (http://forums.apexdc.net/topic/4670-apexdc-160-available-for-download/)
 	FavoriteManager::mimicrytag("PWDC++", "0.41"),          // 29th Dec 2005: Project discontinued
 	FavoriteManager::mimicrytag("IceDC++", "1.01a"),        // 17 jul 2009 http://sourceforge.net/projects/icedc/
 	FavoriteManager::mimicrytag("StrgDC++", "2.43"),        // latest public beta (project possible dead) http://strongdc.sourceforge.net/download.php?lang=eng
@@ -275,8 +275,8 @@ void FavoriteManager::removeUserCommand(const string& p_Hub)
 		else
 		{
 			LogManager::message("FavoriteManager::removeUserCommand DUP srv = " + p_Hub +
-			                                   " userCommands.size() = " + Util::toString(g_userCommands.size()) +
-			                                   " g_count = " + Util::toString(++g_count));
+			                    " userCommands.size() = " + Util::toString(g_userCommands.size()) +
+			                    " g_count = " + Util::toString(++g_count));
 		}
 #endif
 #ifdef PPA_USER_COMMANDS_HUBS_SET

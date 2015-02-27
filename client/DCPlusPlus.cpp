@@ -110,7 +110,7 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	LOAD_STEP("Custom Locations", Util::loadCustomlocations());
 	
 #ifdef FLYLINKDC_USE_GPU_TTH
-	GPGPUTTHManager::newInstance();
+	LOAD_STEP("TTH on GPU", GPGPUTTHManager::newInstance());
 #endif
 	HashManager::newInstance();
 #ifdef USE_FLYLINKDC_VLD
