@@ -34,8 +34,8 @@
 #endif
 #endif
 
-string Socket::udpServer;
-uint16_t Socket::udpPort;
+string Socket::g_udpServer;
+uint16_t Socket::g_udpPort;
 
 #ifdef _DEBUG
 
@@ -614,19 +614,27 @@ int Socket::writeTo(const string& aAddr, uint16_t aPort, const void* aBuffer, in
 	int sent;
 	if (SETTING(OUTGOING_CONNECTIONS) == SettingsManager::OUTGOING_SOCKS5 && proxy)
 	{
-		if (udpServer.empty() || udpPort == 0)
+		if (g_udpServer.empty() || g_udpPort == 0)
+		{
+			static bool g_is_first = false;
+			if (!g_is_first)
+			{
+				Socket::socksUpdated();
+			}
+		}
+		if (g_udpServer.empty() || g_udpPort == 0)
 		{
 			throw SocketException(STRING(SOCKS_SETUP_ERROR));
 		}
 		
-		serv_addr.sin_port = htons(udpPort);
+		serv_addr.sin_port = htons(g_udpPort);
 		serv_addr.sin_family = AF_INET;
-		serv_addr.sin_addr.s_addr = inet_addr(udpServer.c_str());
+		serv_addr.sin_addr.s_addr = inet_addr(g_udpServer.c_str());
 		
 		
 		vector<uint8_t> connStr;
-		
-		connStr.reserve(20 + static_cast<size_t>(aLen)); // [!] PVS V106 Implicit type conversion first argument '20 + aLen' of function 'reserve' to memsize type. socket.cpp 570
+		unsigned long addr;
+		connStr.reserve(24 + static_cast<size_t>(aLen)); // [!] PVS V106 Implicit type conversion first argument '20 + aLen' of function 'reserve' to memsize type. socket.cpp 570
 		
 		connStr.push_back(0);       // Reserved
 		connStr.push_back(0);       // Reserved
@@ -641,7 +649,7 @@ int Socket::writeTo(const string& aAddr, uint16_t aPort, const void* aBuffer, in
 		else
 		{
 			connStr.push_back(1);       // Address type: IPv4;
-			const unsigned long addr = inet_addr(resolve(aAddr).c_str());
+			addr = inet_addr(resolve(aAddr).c_str());
 			uint8_t* paddr = (uint8_t*) & addr;
 			connStr.insert(connStr.end(), paddr, paddr + 4); //-V112
 		}
@@ -783,7 +791,7 @@ string Socket::resolve(const string& aDns)
 	static string g_last_resolve;
 	if (!g_last_resolve.empty())
 	{
-		// TODO dcassert(g_last_resolve != aDns);
+		//dcassert(g_last_resolve != aDns);
 	}
 	g_last_resolve = aDns;
 #endif
@@ -910,8 +918,8 @@ uint16_t Socket::getLocalPort() noexcept
 
 void Socket::socksUpdated()
 {
-	udpServer.clear();
-	udpPort = 0;
+	g_udpServer.clear();
+	g_udpPort = 0;
 	
 	if (SETTING(OUTGOING_CONNECTIONS) == SettingsManager::OUTGOING_SOCKS5)
 	{
@@ -944,13 +952,13 @@ void Socket::socksUpdated()
 				return;
 			}
 			
-			udpPort = static_cast<uint16_t>(ntohs(*((uint16_t*)(&connStr[8]))));
+			g_udpPort = static_cast<uint16_t>(ntohs(*((uint16_t*)(&connStr[8]))));
 			
 			in_addr serv_addr;
 			
 			memzero(&serv_addr, sizeof(serv_addr));
 			serv_addr.s_addr = *((unsigned long*)(&connStr[4])); // [!] IRainman fix. this value unsigned! (PVS TODO)
-			udpServer = inet_ntoa(serv_addr);
+			g_udpServer = inet_ntoa(serv_addr);
 		}
 		catch (const SocketException&)
 		{

@@ -23,7 +23,6 @@
 string ChatMessage::format(/*const bool fullFormat [!] TODO */) const
 {
 	dcassert(m_from); // [!] IRainman fix: You can not generate this event anonymously! Initialize 'from' user - initiated sending a message!
-	dcassert(!m_text.empty()); // [!] IRainman fix: Please do not send an empty message.
 	string tmp;
 	
 	if (m_timestamp)

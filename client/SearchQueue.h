@@ -152,13 +152,17 @@ class SearchQueue
 	public:
 	
 		SearchQueue()
-			: m_lastSearchTime(0), m_interval(2000)
+			: m_lastSearchTime(0), m_interval(0)
 		{
 		}
 		
 		bool add(const Search& s);
 		bool pop(Search& s, uint64_t now); // [!] IRainman opt
-		
+		bool empty()
+		{
+			FastLock l(m_cs);
+			return m_searchQueue.empty();
+		}
 		void clear()
 		{
 			FastLock l(m_cs);

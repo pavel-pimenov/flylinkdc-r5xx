@@ -1077,7 +1077,11 @@ void BufferedSocket::fail(const string& aError)
 	if (m_state == RUNNING)
 	{
 		m_state = FAILED;
-		fire(BufferedSocketListener::Failed(), aError); //deadlock
+		//dcassert(!ClientManager::isShutdown());
+		// fix https://drdump.com/Problem.aspx?ProblemID=112938
+		// fix https://drdump.com/Problem.aspx?ProblemID=112262
+		// fix https://drdump.com/Problem.aspx?ProblemID=112195
+		fire(BufferedSocketListener::Failed(), aError);
 	}
 }
 

@@ -575,7 +575,7 @@ void SettingsManager::setDefaults()
 	setDefault(LOG_FILE_PROTOCOL, "Protocol.log");
 #endif
 	setDefault(LOG_FILE_TRACE_SQLITE, "sqltrace.log");
-	setDefault(LOG_FORMAT_TRACE_SQLITE, "[%Y-%m-%d %H:%M:%S] %[sql]");
+	setDefault(LOG_FORMAT_TRACE_SQLITE, "[%Y-%m-%d %H:%M:%S] (%[thread_id]) %[sql]");
 	
 	setDefault(LOG_FILE_DDOS_TRACE, "ddos.log");
 	setDefault(LOG_FORMAT_DDOS_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");

@@ -23,7 +23,6 @@
 #include "TigerHash.h"
 #include "HashValue.h"
 #include "GPGPUManager.h"
-//#include "SettingsManager.h"
 
 /**
  * A class that represents a Merkle Tree hash. Storing
@@ -444,7 +443,6 @@ class MerkleTreeGPU<Hasher> : public MerkleTree<Hasher>
 			}
 			
 			b_res = GPGPUTTHManager::getInstance()->get()->krn_ttr(buf, lvlfc, (bc == lvlfc ? last_bs : BASE_BLOCK_SIZE), (uint64_t *)res);
-			b_res = GPGPUTTHManager::getInstance()->get()->finish() && b_res;
 			
 			// Data doesn't been processed on GPU
 			if (!b_res) return b_res;

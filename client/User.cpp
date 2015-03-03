@@ -75,7 +75,7 @@ void User::setLastNick(const string& p_nick)
 				m_nick = p_nick;
 			}
 			if (m_ratio_ptr)
-				m_ratio_ptr->setDirty(true);
+				m_ratio_ptr->set_dirty(true);
 		}
 		else
 		{
@@ -163,7 +163,7 @@ uint64_t User::getBytesUpload()
 	webrtc::ReadLockScoped l(*g_ratio_cs);
 	if (m_ratio_ptr)
 	{
-		return m_ratio_ptr->m_upload;
+		return m_ratio_ptr->get_upload();
 	}
 	else
 	{
@@ -189,7 +189,7 @@ uint64_t User::getBytesDownload()
 	webrtc::ReadLockScoped l(*g_ratio_cs);
 	if (m_ratio_ptr)
 	{
-		return m_ratio_ptr->m_download;
+		return m_ratio_ptr->get_download();
 	}
 	else
 	{
@@ -249,7 +249,6 @@ void User::initRatioL(const boost::asio::ip::address_v4& p_ip)
 	{
 		m_ratio_ptr = new CFlyUserRatioInfo(this);
 		m_ratio_ptr->try_load_ratio(p_ip);
-		m_ratio_ptr->setDirty(true);
 	}
 }
 void User::initRatio(bool p_force /* = false */)
@@ -269,7 +268,9 @@ void User::initRatio(bool p_force /* = false */)
 				l_try_ratio = new CFlyUserRatioInfo(this);
 				l_try_ratio->m_message_count = l_message_count;
 				if (!l_last_ip_from_sql.is_unspecified())
+				{
 					l_try_ratio->try_load_ratio(l_last_ip_from_sql);
+				}
 				{
 					webrtc::WriteLockScoped l(*g_ratio_cs);
 					if (m_ratio_ptr)
@@ -308,9 +309,9 @@ tstring User::getUpload()
 tstring User::getUDratio()
 {
 	webrtc::ReadLockScoped l(*g_ratio_cs);
-	if (m_ratio_ptr && (m_ratio_ptr->m_download || m_ratio_ptr->m_upload))
-		return Util::toStringW(m_ratio_ptr->m_download ? ((double)m_ratio_ptr->m_upload / (double)m_ratio_ptr->m_download) : 0) +
-		       L" (" + Util::formatBytesW(m_ratio_ptr->m_upload) + _T('/') + Util::formatBytesW(m_ratio_ptr->m_download) + L")";
+	if (m_ratio_ptr && (m_ratio_ptr->get_download() || m_ratio_ptr->get_upload()))
+		return Util::toStringW(m_ratio_ptr->get_download() ? ((double)m_ratio_ptr->get_upload() / (double)m_ratio_ptr->get_download()) : 0) +
+		       L" (" + Util::formatBytesW(m_ratio_ptr->get_upload()) + _T('/') + Util::formatBytesW(m_ratio_ptr->get_download()) + L")";
 	else
 		return Util::emptyStringT;
 }

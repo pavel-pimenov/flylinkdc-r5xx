@@ -1515,8 +1515,8 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 		StringMap params;
 		CFlylinkDBManager::getInstance()->load_global_ratio();
 		params["ratio"] = Text::fromT(CFlylinkDBManager::getInstance()->get_ratioW());
-		params["up"] = Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.m_upload);
-		params["down"] = Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.m_download);
+		params["up"] = Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.get_upload());
+		params["down"] = Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.get_download());
 		message = Text::toT(Util::formatParams(SETTING(RATIO_TEMPLATE), params, false));
 // End of addition.
 		// limiter toggle

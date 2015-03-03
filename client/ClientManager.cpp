@@ -153,7 +153,7 @@ void ClientManager::setIPUser(const UserPtr& p_user, const string& p_ip, const u
 	}
 }
 
-bool ClientManager::getUserParams(const UserPtr& user, uint64_t& p_bytesShared, int& p_slots, int& p_limit, std::string& p_ip)
+bool ClientManager::getUserParams(const UserPtr& user, UserParams& p_params)
 {
 	webrtc::ReadLockScoped l(*g_csOnlineUsers);
 	const OnlineUser* u = getOnlineUserL(user);
@@ -161,10 +161,11 @@ bool ClientManager::getUserParams(const UserPtr& user, uint64_t& p_bytesShared, 
 	{
 		// [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'u->getIdentity()' expression repeatedly. clientmanager.h 160
 		const auto& i = u->getIdentity();
-		p_bytesShared = i.getBytesShared();
-		p_slots = i.getSlots();
-		p_limit = i.getLimit();
-		p_ip = i.getIpAsString();
+		p_params.bytesShared = i.getBytesShared();
+		p_params.slots = i.getSlots();
+		p_params.limit = i.getLimit();
+		p_params.ip = i.getIpAsString();
+		p_params.tag = i.getTag();
 		
 		return true;
 	}
@@ -961,16 +962,8 @@ void ClientManager::NmdcSearch(Client* aClient,
 				Socket udp;
 				for (auto i = l.cbegin(); i != l.cend(); ++i)
 				{
-					const SearchResultPtr& sr = *i;
-					const string l_sr = sr->toSR(*aClient);
+					const string l_sr = (*i)->toSR(*aClient);
 					NmdcHub::sendUDPSR(udp, p_search_param.m_seeker, l_sr, aClient);
-#ifdef FLYLINKDC_USE_COLLECT_STAT
-					string l_tth;
-					const auto l_tth_pos = l_sr.find("TTH:");
-					if (l_tth_pos != string::npos)
-						l_tth = l_sr.substr(l_tth_pos + 4, 39);
-					CFlylinkDBManager::getInstance()->push_event_statistic("$SR", "UDP-write-dc", l_sr, ip, Util::toString(port), aClient->getHubUrl(), l_tth);
-#endif
 				}
 			}
 			catch (Exception& e)

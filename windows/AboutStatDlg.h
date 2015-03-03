@@ -30,9 +30,9 @@ class AboutStatDlg : public CDialogImpl<AboutStatDlg>
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 			CFlylinkDBManager::getInstance()->load_global_ratio();
 			SetDlgItemText(IDC_TOTAL_UPLOAD, (TSTRING(UPLOADED) + _T(": ") +
-			                                  Text::toT(Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.m_upload))).c_str());
+			                                  Text::toT(Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.get_upload()))).c_str());
 			SetDlgItemText(IDC_TOTAL_DOWNLOAD, (TSTRING(DOWNLOADED) + _T(": ") +
-			                                    Text::toT(Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.m_download))).c_str());
+			                                    Text::toT(Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.get_download()))).c_str());
 			SetDlgItemText(IDC_RATIO, (TSTRING(RATING) + _T(": ") + (CFlylinkDBManager::getInstance()->get_ratioW())).c_str());
 #else
 			SetDlgItemText(IDC_TOTAL_UPLOAD, (TSTRING(UPLOADED) + _T(": ") + TSTRING(NONE));

@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-//(c) 2007-2014 pavel.pimenov@gmail.com
+//(c) 2007-2015 pavel.pimenov@gmail.com
 //-----------------------------------------------------------------------------
 #ifndef CFlylinkDBManager_H
 #define CFlylinkDBManager_H
@@ -34,6 +34,31 @@ using sqlite3x::sqlite3_reader;
 using sqlite3x::sqlite3_transaction;
 using sqlite3x::database_error;
 
+class CFlySQLCommand
+{
+	public:
+		CFlySQLCommand() {}
+		sqlite3_command* get_sql()
+		{
+			return m_sql.get();
+		}
+		sqlite3_command* operator->()
+		{
+			return m_sql.get();
+		}
+		sqlite3_command* init(sqlite3_connection& p_db, const char* p_sql)
+		{
+			FastLock l(m_cs);
+			if (!m_sql.get())
+			{
+				m_sql = unique_ptr<sqlite3_command>(new sqlite3_command(p_db, p_sql));
+			}
+			return m_sql.get();
+		}
+	private:
+		unique_ptr<sqlite3_command> m_sql;
+		FastCriticalSection m_cs;
+};
 #ifdef FLYLINKDC_USE_LEVELDB
 class CFlyLevelDB
 {
@@ -46,6 +71,7 @@ class CFlyLevelDB
 	public:
 		CFlyLevelDB();
 		~CFlyLevelDB();
+		static void shutdown();
 		
 		bool open_level_db(const string& p_db_name);
 		bool get_value(const void* p_key, size_t p_key_len, string& p_result);
@@ -226,14 +252,16 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 	public:
 		CFlylinkDBManager();
 		~CFlylinkDBManager();
-		void shutdown();
+		static void shutdown_engine();
+		void flush();
+		
 		void push_download_tth(const TTHValue& p_tth);
 		void push_add_share_tth(const TTHValue& p_tth);
 		static string getDBSizeInfo();
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		void store_all_ratio_and_last_ip(uint32_t p_hub_id,
 		                                 const string& p_nick,
-		                                 const CFlyUploadDownloadMap* p_upload_download_stats,
+		                                 CFlyUploadDownloadMap* p_upload_download_stats,
 		                                 const uint32_t p_message_count,
 		                                 const boost::asio::ip::address_v4& p_last_ip);
 		uint32_t get_dic_hub_id(const string& p_hub);
@@ -251,8 +279,8 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void add_tree_internal_bind_and_executeL(sqlite3_command* p_sql, const TigerTree& p_tt);
 		__int64 add_treeL(const TigerTree& p_tt);
 		__int64 get_path_idL(string p_path, bool p_create, bool p_case_convet, bool& p_is_no_mediainfo, bool p_sweep_path);
-		__int64 find_path_idL(const string& p_path);
-		__int64 create_path_idL(const string& p_path, bool p_is_skip_dup_val_index);
+		__int64 find_path_id(const string& p_path);
+		__int64 create_path_id(const string& p_path, bool p_is_skip_dup_val_index);
 	public:
 		CFlyGlobalRatioItem  m_global_ratio;
 		double get_ratio() const;
@@ -296,7 +324,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif
 		static void errorDB(const string& p_txt);
 		
-		bool checkTTH(const string& fname, __int64 path_id, int64_t aSize, int64_t aTimeStamp, TTHValue& p_out_tth);
+		bool check_tth(const string& fname, __int64 path_id, int64_t aSize, int64_t aTimeStamp, TTHValue& p_out_tth);
 		void load_path_cache();
 		void scan_path(CFlyDirItemArray& p_directories);
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
@@ -305,11 +333,11 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif
 		size_t get_count_folders()
 		{
-			Lock l(m_cs);
+			FastLock l(m_path_cache_cs);
 			return m_path_cache.size();
 		}
 		void sweep_db();
-		void LoadDir(__int64 p_path_id, CFlyDirMap& p_dir_map, bool p_is_no_mediainfo);
+		void load_dir(__int64 p_path_id, CFlyDirMap& p_dir_map, bool p_is_no_mediainfo);
 #ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
 		void SweepFiles(__int64 p_path_id, const CFlyDirMap& p_sweep_files);
 #endif
@@ -317,8 +345,11 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void log(const int p_area, const StringMap& p_params);
 #endif // FLYLINKDC_LOG_IN_SQLITE_BASE
 		size_t load_queue();
-		void addSource(const QueueItemPtr& p_QueueItem, const CID& p_cid, const string& p_nick/*, const string& p_hub_hint*/);
+		void add_sourceL(const QueueItemPtr& p_QueueItem, const CID& p_cid, const string& p_nick/*, const string& p_hub_hint*/);
 		bool merge_queue_itemL(QueueItemPtr& p_QueueItem);
+	private:
+		int merge_queue_sub_itemsL(QueueItemPtr& p_QueueItem, __int64 p_id);
+	public:
 		void merge_queue_all_items(std::vector<QueueItemPtr>& p_QueueItemArray);
 		void remove_queue_item(const __int64 p_id);
 		void load_ignore(StringSet& p_ignores);
@@ -380,7 +411,6 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		__int64 get_dic_country_id(const string& p_country);
 		void clear_dic_cache_country();
 #endif
-		uint16_t find_cache_locationL(uint32_t p_ip, int32_t& p_index);
 	public:
 	
 		void save_location(const CFlyLocationIPArray& p_geo_ip);
@@ -441,7 +471,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #else
 		auto_ptr<sqlite3_command> m_get_status_file;
 #endif // FLYLINKDC_USE_LEVELDB
-		
+		FastCriticalSection m_path_cache_cs;
 		CFlyPathCache m_path_cache;
 #ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
 	private:
@@ -469,32 +499,35 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		auto_ptr<sqlite3_command> m_update_base_mediainfo;
 		
 #ifdef STRONG_USE_DHT
-		auto_ptr<sqlite3_command> m_load_dht_nodes;
-		auto_ptr<sqlite3_command> m_save_dht_nodes;
-		auto_ptr<sqlite3_command> m_find_dht_files;
-		auto_ptr<sqlite3_command> m_save_dht_files;
-		auto_ptr<sqlite3_command> m_check_expiration_dht_files;
-		auto_ptr<sqlite3_command> m_delete_dht_nodes;
+		CFlySQLCommand m_load_dht_nodes;
+		CFlySQLCommand m_save_dht_nodes;
+		CFlySQLCommand m_find_dht_files;
+		CFlySQLCommand m_save_dht_files;
+		CFlySQLCommand m_check_expiration_dht_files;
+		CFlySQLCommand m_delete_dht_nodes;
 #endif // STRONG_USE_DHT
 		auto_ptr<sqlite3_command> m_fly_hash_block_convert_loop;
 		auto_ptr<sqlite3_command> m_fly_hash_block_convert_update;
 		auto_ptr<sqlite3_command> m_fly_hash_block_convert_drop_dup;
 		auto_ptr<sqlite3_command> m_add_tree_find;
-		auto_ptr<sqlite3_command> m_select_ratio_load;
-		//auto_ptr<sqlite3_command> m_select_last_ip_and_message_count;
-		auto_ptr<sqlite3_command> m_select_all_last_ip_and_message_count;
+		
+		CFlySQLCommand m_select_ratio_load;
+		CFlySQLCommand m_select_all_last_ip_and_message_count;
 		
 		boost::unordered_map<uint32_t, boost::unordered_map<std::string, CFlyLastIPCacheItem> > m_last_ip_cache;
+		FastCriticalSection m_last_ip_cs;
 		
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
-		auto_ptr<sqlite3_command> m_find_virus_nick_and_share;
-		auto_ptr<sqlite3_command> m_find_virus_nick_and_share_and_ip4;
+		CFlySQLCommand m_find_virus_nick_and_share;
+		CFlySQLCommand m_find_virus_nick_and_share_and_ip4;
 		
+		FastCriticalSection m_virus_cs;
 		boost::unordered_set<std::string> m_virus_user;
 		boost::unordered_set<int64_t> m_virus_share;
 		boost::unordered_set<unsigned long> m_virus_ip4;
 		void clear_virus_cacheL()
 		{
+			FastLock l(m_virus_cs);
 			m_virus_user.clear();
 			m_virus_share.clear();
 			m_virus_ip4.clear();
@@ -504,16 +537,13 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif
 	private:
 	
-		auto_ptr<sqlite3_command> m_insert_ratio;
+		CFlySQLCommand m_insert_ratio;
 		
 #ifdef _DEBUG
 		auto_ptr<sqlite3_command> m_check_message_count;
 		auto_ptr<sqlite3_command> m_select_store_ip;
 #endif
-		//auto_ptr<sqlite3_command> m_insert_store_ip;
-		//auto_ptr<sqlite3_command> m_insert_store_message_count;
-		//auto_ptr<sqlite3_command> m_insert_store_ip_and_message_count;
-		auto_ptr<sqlite3_command> m_insert_store_all_ip_and_message_count;
+		CFlySQLCommand m_insert_store_all_ip_and_message_count;
 		
 		auto_ptr<sqlite3_command> m_insert_fly_hash_block;
 		auto_ptr<sqlite3_command> m_update_fly_hash_block;
@@ -523,22 +553,23 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		auto_ptr<sqlite3_command> m_load_dir_sql;
 		auto_ptr<sqlite3_command> m_load_dir_sql_without_mediainfo;
 		auto_ptr<sqlite3_command> m_set_ftype;
-		auto_ptr<sqlite3_command> m_load_path_cache;
+		CFlySQLCommand m_load_path_cache;
 		auto_ptr<sqlite3_command> m_sweep_dir_sql;
-		auto_ptr<sqlite3_command> m_sweep_path_file;
-		auto_ptr<sqlite3_command> m_get_path_id;
+		CFlySQLCommand m_sweep_path_file;
+		CFlySQLCommand m_get_path_id;
 		auto_ptr<sqlite3_command> m_get_tth_id;
 		auto_ptr<sqlite3_command> m_upload_file;
 		auto_ptr<sqlite3_command> m_get_tree;
 		auto_ptr<sqlite3_command> m_get_blocksize;  // [+] brain-ripper
 		auto_ptr<sqlite3_command> m_insert_fly_hash;
-		auto_ptr<sqlite3_command> m_insert_fly_path;
-		auto_ptr<sqlite3_command> m_insert_fly_queue;
-		auto_ptr<sqlite3_command> m_insert_fly_queue_source;
-		auto_ptr<sqlite3_command> m_del_fly_queue;
-		auto_ptr<sqlite3_command> m_del_fly_queue_source;
-		auto_ptr<sqlite3_command> m_get_fly_queue;
-		auto_ptr<sqlite3_command> m_get_fly_queue_source;
+		CFlySQLCommand m_insert_fly_path;
+		CFlySQLCommand m_insert_and_full_update_fly_queue;
+		CFlySQLCommand m_update_segments_fly_queue;
+		CFlySQLCommand m_insert_fly_queue_source;
+		CFlySQLCommand m_del_fly_queue;
+		CFlySQLCommand m_del_fly_queue_source;
+		CFlySQLCommand m_get_fly_queue;
+		CFlySQLCommand m_get_fly_queue_source;
 		
 		auto_ptr<sqlite3_command> m_get_ignores;
 		auto_ptr<sqlite3_command> m_insert_ignores;
@@ -546,35 +577,38 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		
 		auto_ptr<sqlite3_command> m_select_fly_dic;
 		auto_ptr<sqlite3_command> m_insert_fly_dic;
-		auto_ptr<sqlite3_command> m_get_registry;
-		auto_ptr<sqlite3_command> m_insert_registry;
-		auto_ptr<sqlite3_command> m_delete_registry;
+		CFlySQLCommand m_get_registry;
+		CFlySQLCommand m_insert_registry;
+		CFlySQLCommand m_delete_registry;
 		
 		
-		auto_ptr<sqlite3_command> m_select_location;
-		auto_ptr<sqlite3_command> m_select_count_location;
-		
+		CFlySQLCommand m_select_location;
 		FastCriticalSection m_cache_location_cs;
-#ifdef FLYLINKDC_USE_GEO_IP
-		auto_ptr<sqlite3_command> m_select_geoip;
-		auto_ptr<sqlite3_command> m_insert_geoip;
-		auto_ptr<sqlite3_command> m_delete_geoip;
-		vector<CFlyLocationDesc> m_country_cache;
-#endif
 		vector<CFlyLocationDesc> m_location_cache;
+		boost::unordered_set<uint32_t> m_location_unknown_ip;
 		
 		int m_count_fly_location_ip_record;
 		bool is_fly_location_ip_valid() const
 		{
 			return m_count_fly_location_ip_record > 5000;
 		}
-		auto_ptr<sqlite3_command> m_insert_location;
-		auto_ptr<sqlite3_command> m_delete_location;
+		CFlySQLCommand m_insert_location;
+		CFlySQLCommand m_delete_location;
 		
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION
+		CFlySQLCommand m_select_count_location;
 		auto_ptr<sqlite3_command> m_select_location_lost;
 		auto_ptr<sqlite3_command> m_update_location_lost;
 		auto_ptr<sqlite3_command> m_insert_location_lost;
 		boost::unordered_set<string> m_lost_location_cache;
+#endif
+#ifdef FLYLINKDC_USE_GEO_IP
+		CFlySQLCommand m_select_geoip;
+		CFlySQLCommand m_insert_geoip;
+		CFlySQLCommand m_delete_geoip;
+		vector<CFlyLocationDesc> m_country_cache;
+#endif
+		
 		
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 		auto_ptr<sqlite3_command> m_select_statistic_json;
@@ -610,11 +644,10 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		__int64 get_dic_idL(const string& p_name, const eTypeDIC p_DIC, bool p_create);
 		//void clear_dic_cache(const eTypeDIC p_DIC);
 		
-		
 		bool safeAlter(const char* p_sql);
 		void pragma_executor(const char* p_pragma);
-		void updateFileInfo(const string& p_fname, __int64 p_path_id,
-		                    int64_t p_Size, int64_t p_TimeStamp, __int64 p_tth_id);
+		void update_file_infoL(const string& p_fname, __int64 p_path_id,
+		                       int64_t p_Size, int64_t p_TimeStamp, __int64 p_tth_id);
 		__int64 get_tth_idL(const TTHValue& p_tth);
 		
 		__int64 m_queue_id;

@@ -687,7 +687,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		static HIconWrapper g_UDPOkIcon;
 		static HIconWrapper g_UDPWaitIcon;
 		static tstring      g_UDPTestText;
-		static bool         g_isUDPTestOK;
+		static boost::logic::tribool g_isUDPTestOK;
 		
 		CStatic m_ctrlUDPMode;
 		CStatic m_ctrlUDPTestResult;

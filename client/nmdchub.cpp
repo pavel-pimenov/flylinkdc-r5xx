@@ -433,8 +433,7 @@ void NmdcHub::NmdcSearch(const SearchParam& p_search_param,
 				Socket udp;
 				for (auto i = l.cbegin(); i != l.cend(); ++i)
 				{
-					const SearchResultPtr& sr = *i;
-					const string l_sr = sr->toSR(*this);
+					const string l_sr = (*i)->toSR(*this);
 					NmdcHub::sendUDPSR(udp, p_search_param.m_seeker, l_sr, this);
 				}
 			}
@@ -467,7 +466,7 @@ void NmdcHub::sendUDPSR(Socket& p_udp, const string& p_seeker, const string& p_s
 		string l_ip;
 		uint16_t l_port = 412;
 		Util::parseIpPort(p_seeker, l_ip, l_port);
-		l_ip = Socket::resolve(l_ip);
+		//dcassert(l_ip == Socket::resolve(l_ip));
 		p_udp.writeTo(l_ip, l_port, p_sr);
 		COMMAND_DEBUG("[Active-Search]" + p_sr, DebugTask::CLIENT_OUT, l_ip + ':' + Util::toString(l_port));
 #ifdef FLYLINKDC_USE_COLLECT_STAT

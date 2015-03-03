@@ -83,6 +83,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		COMMAND_ID_HANDLER(IDC_VIEW_AS_TEXT, onViewAsText)
 #endif
 		COMMAND_ID_HANDLER(IDC_OPEN_FILE, onOpenFile)
+		COMMAND_ID_HANDLER(IDC_REDOWNLOAD_FILE, onReDownload)
 		COMMAND_ID_HANDLER(IDC_OPEN_FOLDER, onOpenFolder)
 		COMMAND_ID_HANDLER(IDC_GETLIST, onGetList)
 		COMMAND_ID_HANDLER(IDC_GRANTSLOT, onGrant)
@@ -170,7 +171,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			m_ctrlStatus.Attach(m_hWndStatusBar);
 			
 			ctrlList.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-			                WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS | LVS_SINGLESEL, WS_EX_CLIENTEDGE, id);
+			                WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS, WS_EX_CLIENTEDGE, id);
 			SET_EXTENDENT_LIST_VIEW_STYLE(ctrlList);
 			
 			ctrlList.SetImageList(g_fileImage.getIconList(), LVSIL_SMALL);
@@ -224,7 +225,13 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			ctxMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)copyMenu, CTSTRING(COPY));
 			ctxMenu.AppendMenu(MF_SEPARATOR);
 //			ctxMenu.AppendMenu(MF_STRING, IDC_VIEW_AS_TEXT, CTSTRING(VIEW_AS_TEXT));
+
+			if (m_transfer_type == e_TransferDownload)
+			{
+				ctxMenu.AppendMenu(MF_STRING, IDC_REDOWNLOAD_FILE, CTSTRING(DOWNLOAD));
+			}
 			ctxMenu.AppendMenu(MF_STRING, IDC_OPEN_FILE, CTSTRING(OPEN));
+			
 			ctxMenu.AppendMenu(MF_STRING, IDC_OPEN_FOLDER, CTSTRING(OPEN_FOLDER));
 			ctxMenu.AppendMenu(MF_STRING, IDC_GRANTSLOT, CTSTRING(GRANT_EXTRA_SLOT));
 			ctxMenu.AppendMenu(MF_STRING, IDC_GETLIST, CTSTRING(GET_FILE_LIST));
@@ -295,6 +302,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			// TODO - развернуть историю по датам
 			m_ctrlTree.Expand(m_RootItem);
 			m_ctrlTree.Expand(m_HistoryItem);
+			m_ctrlTree.SelectItem(m_CurrentItem);
 			
 			SettingsManager::getInstance()->addListener(this);
 			FinishedManager::getInstance()->addListener(this);
@@ -312,7 +320,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			m_totalCount = 0;
 			if (p->itemNew.state & TVIS_SELECTED)
 			{
-				CWaitCursor l_cursor_wait;
+				CWaitCursor l_cursor_wait; //-V808
 				ctrlList.DeleteAllItems();
 				if (p->itemNew.lParam == e_Current)
 				{
@@ -460,7 +468,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				}
 				case IDC_TOTAL:
 				{
-					CWaitCursor l_cursor_wait;
+					CWaitCursor l_cursor_wait; //-V808
 					if (!m_is_crrent_tree_node)
 					{
 						const int l_cnt = ctrlList.GetItemCount();
@@ -505,12 +513,30 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			if ((i = ctrlList.GetNextItem(-1, LVNI_SELECTED)) != -1)
 			{
 				FinishedItemInfo *ii = ctrlList.getItemData(i);
-				if (ii != NULL)
+				if (ii)
+				{
 					WinUtil::openFile(Text::toT(ii->entry->getTarget()));
+				}
 			}
 			return 0;
 		}
-//[+]  ZagZag  http://iceberg.leschat.net/forum/index.php?showtopic=265&view=findpost&p=66879
+		LRESULT onReDownload(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+		{
+			int i = -1;
+			while ((i = ctrlList.GetNextItem(i, LVNI_SELECTED)) != -1)
+			{
+				FinishedItemInfo *ii = ctrlList.getItemData(i);
+				if (ii)
+				{
+					if (ii->entry->getTTH() != TTHValue() && !File::isExist(ii->entry->getTarget()))
+					{
+						const UserPtr l_user = ClientManager::findLegacyUser(ii->entry->getNick(), ii->entry->getHub());
+						QueueManager::getInstance()->add(ii->entry->getTarget(), ii->entry->getSize(), ii->entry->getTTH(), l_user, 0, false, true);
+					}
+				}
+			}
+			return 0;
+		}
 		LRESULT onOpenFolder(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			int i;

@@ -196,7 +196,7 @@ void preparingCoreToShutdown() // [+] IRainamn fix.
 		QueueManager::getInstance()->shutdown();
 		SearchManager::getInstance()->disconnect();
 		ClientManager::getInstance()->clear();
-		CFlylinkDBManager::getInstance()->shutdown();
+		CFlylinkDBManager::getInstance()->flush();
 	}
 }
 
@@ -334,6 +334,7 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 #endif // FLYLINKDC_USE_GPU_TTH
 		
 		CFlylinkDBManager::deleteInstance(); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1355
+		CFlylinkDBManager::shutdown_engine();
 		TimerManager::deleteInstance();
 		SettingsManager::deleteInstance();
 		

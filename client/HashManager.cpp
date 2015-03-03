@@ -180,7 +180,7 @@ void HashManager::addFileFromStream(int64_t p_path_id, const string& p_name, con
 bool HashManager::checkTTH(const string& fname, const string& fpath, int64_t p_path_id, int64_t aSize, int64_t aTimeStamp, TTHValue& p_out_tth)
 {
 	// Lock l(cs); [-] IRainman fix: no data to lock.
-	const bool l_db = CFlylinkDBManager::getInstance()->checkTTH(fname, p_path_id, aSize, aTimeStamp, p_out_tth);
+	const bool l_db = CFlylinkDBManager::getInstance()->check_tth(fname, p_path_id, aSize, aTimeStamp, p_out_tth);
 #ifdef IRAINMAN_NTFS_STREAM_TTH
 	const string name = fpath + fname;
 #endif // IRAINMAN_NTFS_STREAM_TTH
@@ -427,7 +427,14 @@ bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, TigerTree&
 	BOOL l_sector_result;
 	// TODO - размер сектора определять один раз для одной буквы через массив от A до Z и не звать GetDiskFreeSpaceA
 	// на каждый файл
+	//
 	// TODO - узнать зачем его вообще определять?
+	// DONE: FILE_FLAG_NO_BUFFERING - отключает кэширование чтения\записи с диска\на диск
+	// для увеличения производительности дискового ввода\вывода.
+	// При этом читать\писать нужно (must) секторами.
+	// Ещё там есть зависящее от диска (should) ограничение на выравнивание буфера в памяти.
+	// https://msdn.microsoft.com/en-us/library/windows/desktop/cc644950(v=vs.85).aspx
+	
 	if (fname.size() >= 3 && fname[1] == ':')
 	{
 		char l_drive[4];

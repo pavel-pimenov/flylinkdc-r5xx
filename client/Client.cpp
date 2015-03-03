@@ -598,7 +598,7 @@ void Client::on(Second, uint64_t aTick) noexcept
 		return;
 	}
 	
-	if (isConnected())
+	if (isConnected() && !m_searchQueue.empty())
 	{
 		Search s;
 		if (m_searchQueue.pop(s, aTick)) // [!] IRainman opt

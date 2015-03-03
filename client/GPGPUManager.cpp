@@ -76,7 +76,7 @@ GPGPUOpenCL::GPGPUOpenCL()
 				
 				if (i_ret != CL_SUCCESS) continue;
 				
-				devs.push_back( OCLGPGPUDevice(pfm_ids[i], dev_ids[j], string(pfm_name)+string(" - ")+string(dev_name)) );
+				devs.push_back(OCLGPGPUDevice(pfm_ids[i], dev_ids[j], string(pfm_name) + string(" - ") + string(dev_name)));
 				
 				delete[] dev_name;
 			}
@@ -95,30 +95,53 @@ GPGPUOpenCL::GPGPUOpenCL()
 
 GPGPUOpenCL::~GPGPUOpenCL()
 {
-	clReleaseKernel(cur_ttr_krn);
-	clReleaseProgram(cur_prog);
-	clReleaseCommandQueue(cur_cmd_q);
-	clReleaseContext(cur_cntxt);
+	release_cl();
+}
+
+void GPGPUOpenCL::release_cl()
+{
+	if (cur_ttr_krn)
+	{
+		clReleaseKernel(cur_ttr_krn);
+		cur_ttr_krn = 0;
+	}
+	
+	if (cur_prog)
+	{
+		clReleaseProgram(cur_prog);
+		cur_prog = 0;
+	}
+	
+	if (cur_cmd_q)
+	{
+		clReleaseCommandQueue(cur_cmd_q);
+		cur_cmd_q = 0;
+	}
+	
+	if (cur_cntxt)
+	{
+		clReleaseContext(cur_cntxt);
+		cur_cntxt = 0;
+	}
 }
 
 void GPGPUOpenCL::select_device(int num)
 {
+	Lock l(cs);
+	
 	cl_context_properties ctx_props[3];
-
+	
 	FILE *f = 0;
 	long sz;
 	char *src;
 	string ph_to_krn(Util::getGPGPUPath() + "src" PATH_SEPARATOR_STR "ttr.cl");
-
+	
 	cl_int i_res;
-
-	dcassert( num >= 0 && num < (int)devs.size() );
-
-	clReleaseKernel(cur_ttr_krn);
-	clReleaseProgram(cur_prog);
-	clReleaseCommandQueue(cur_cmd_q);
-	clReleaseContext(cur_cntxt);
-
+	
+	dcassert(num >= 0 && num < (int)devs.size());
+	
+	release_cl();
+	
 	ctx_props[0] = CL_CONTEXT_PLATFORM;
 	ctx_props[1] = (cl_context_properties) devs[num].m_pfm_id;
 	ctx_props[2] = 0;
@@ -145,8 +168,8 @@ void GPGPUOpenCL::select_device(int num)
 	fread(src, 1, sz, f);
 	
 	cur_prog = clCreateProgramWithSource(cur_cntxt, 1,
-		(const char **)&src, (const size_t *)&sz, 0);
-
+	                                     (const char **)&src, (const size_t *)&sz, 0);
+	                                     
 	if (!cur_prog) goto dev_init_error;
 	
 	clBuildProgram(cur_prog, 0, 0, "", 0, 0);
@@ -166,23 +189,18 @@ void GPGPUOpenCL::select_device(int num)
 	return;
 	
 dev_init_error:
+	cur_dev_num = -1;
 	sts |= GPGPU_E_DEVICE_INIT | GPGPU_S_DEVICE_NOT_SELECTED;
 	
 	if (f) fclose(f);
 	
-	clReleaseKernel(cur_ttr_krn);
-	clReleaseProgram(cur_prog);
-	clReleaseCommandQueue(cur_cmd_q);
-	clReleaseContext(cur_cntxt);
-	
-	cur_ttr_krn = 0;
-	cur_prog = 0;
-	cur_cmd_q = 0;
-	cur_cntxt = 0;
+	release_cl();
 }
 
 bool GPGPUOpenCL::krn_ttr(uint8_t *data, uint64_t bc, uint64_t last_bs, uint64_t res[3])
 {
+	Lock l(cs);
+	
 	const uint64_t TTBLOCK_SIZE = 1024ULL;
 	const uint64_t TH_BYTES = 24ULL;
 	
@@ -195,25 +213,25 @@ bool GPGPUOpenCL::krn_ttr(uint8_t *data, uint64_t bc, uint64_t last_bs, uint64_t
 	dcassert(bc);
 	
 	mem_data = clCreateBuffer(cur_cntxt,
-		CL_MEM_READ_WRITE,
-		bc * TTBLOCK_SIZE, 0, 0);
-
+	                          CL_MEM_READ_WRITE,
+	                          bc * TTBLOCK_SIZE, 0, 0);
+	                          
 	mem_res = clCreateBuffer(cur_cntxt,
-		CL_MEM_WRITE_ONLY,
-		TH_BYTES, 0, 0);
-
+	                         CL_MEM_WRITE_ONLY,
+	                         TH_BYTES, 0, 0);
+	                         
 	if (!mem_data || !mem_res)
 	{
 		sts |= GPGPU_E_MEMORY;
 		b_ret = false;
 		goto exit;
 	}
-
+	
 	i_res = clEnqueueWriteBuffer(cur_cmd_q, mem_data,
-		CL_FALSE, 0,
-		(bc - 1)*TTBLOCK_SIZE + last_bs, data,
-		0, 0, 0);
-
+	                             CL_TRUE, 0,
+	                             (bc - 1) * TTBLOCK_SIZE + last_bs, data,
+	                             0, 0, 0);
+	                             
 	if (i_res != CL_SUCCESS)
 	{
 		sts |= GPGPU_E_MEMORY;
@@ -225,7 +243,7 @@ bool GPGPUOpenCL::krn_ttr(uint8_t *data, uint64_t bc, uint64_t last_bs, uint64_t
 	i_res |= clSetKernelArg(cur_ttr_krn, 1, sizeof(cl_ulong), &bc);
 	i_res |= clSetKernelArg(cur_ttr_krn, 2, sizeof(cl_ulong), &last_bs);
 	i_res |= clSetKernelArg(cur_ttr_krn, 3, sizeof(cl_mem), &mem_res);
-
+	
 	//clEnqueueTask(cur_cmd_q, cur_ttr_krn, 0, 0, 0);
 	i_res |= clEnqueueNDRangeKernel(cur_cmd_q, cur_ttr_krn, 1, 0, &wis1d1wg, &wis1d1wg, 0, 0, 0);
 	
@@ -237,10 +255,10 @@ bool GPGPUOpenCL::krn_ttr(uint8_t *data, uint64_t bc, uint64_t last_bs, uint64_t
 	}
 	
 	i_res = clEnqueueReadBuffer(cur_cmd_q, mem_res,
-		CL_FALSE, 0,
-		TH_BYTES, res,
-		0, 0, 0);
-
+	                            CL_TRUE, 0,
+	                            TH_BYTES, res,
+	                            0, 0, 0);
+	                            
 	if (i_res != CL_SUCCESS)
 	{
 		sts |= GPGPU_E_MEMORY;
@@ -248,21 +266,17 @@ bool GPGPUOpenCL::krn_ttr(uint8_t *data, uint64_t bc, uint64_t last_bs, uint64_t
 		goto exit;
 	}
 	
+	if (clFinish(cur_cmd_q) != CL_SUCCESS)
+	{
+		sts |= GPGPU_E_KRN_EXCECUTE;
+		b_ret = false;
+	}
+	
 exit:
 	clReleaseMemObject(mem_res);
 	clReleaseMemObject(mem_data);
 	
 	return b_ret;
-}
-
-bool GPGPUOpenCL::finish()
-{
-	if (clFinish(cur_cmd_q) != CL_SUCCESS)
-	{
-		return false;
-	}
-	
-	return true;
 }
 
 size_t GPGPUOpenCL::get_1d_max_wg_wi(int dev_num)
@@ -279,7 +293,7 @@ size_t GPGPUOpenCL::get_1d_max_wg_wi(int dev_num)
 	
 	size_t res = 0;
 	
-    dcassert( dev_num >= 0 && dev_num < (int)devs.size() );
+	dcassert(dev_num >= 0 && dev_num < (int)devs.size());
 	
 	dev_id = devs[dev_num].m_dev_id;
 	
@@ -326,13 +340,13 @@ size_t GPGPUOpenCL::get_1d_max_wg_wi(int dev_num)
 GPGPUManager::GPGPUManager()
 	: i_cur_pfm(-1)
 {
-	platforms.push_back( new GPGPUOpenCL );
+	platforms.push_back(new GPGPUOpenCL);
 	i_cur_pfm = 0;
 }
 
 GPGPUManager::~GPGPUManager()
 {
-	for ( auto i = platforms.begin(); i != platforms.end(); ++i )
+	for (auto i = platforms.begin(); i != platforms.end(); ++i)
 	{
 		delete *i;
 	}
@@ -342,15 +356,19 @@ GPGPUTTHManager::GPGPUTTHManager()
 {
 	const int dcnt = get()->get_dev_cnt();
 	const int set_dnum = SETTING(TTH_GPU_DEV_NUM);
-	const string& s_set_dname = SETTING(GPU_DEV_NAME_FOR_TTH_COMP);
-
-	if (set_dnum >= 0 && set_dnum < dcnt)
+	const string& set_dname = SETTING(GPU_DEV_NAME_FOR_TTH_COMP);
+	const bool use_gpu = BOOLSETTING(USE_GPU_IN_TTH_COMPUTING);
+	
+	if (use_gpu)
 	{
-		const string& s_dname = get()->get_dev_name(set_dnum);
-
-		if (s_dname == s_set_dname)
+		if (set_dnum >= 0 && set_dnum < dcnt)
 		{
-			get()->select_device(set_dnum);
+			const string& dname = get()->get_dev_name(set_dnum);
+			
+			if (dname == set_dname)
+			{
+				get()->select_device(set_dnum);
+			}
 		}
 	}
 }

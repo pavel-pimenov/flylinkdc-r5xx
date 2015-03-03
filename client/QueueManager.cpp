@@ -301,7 +301,7 @@ static QueueItemPtr findCandidateL(const QueueItem::QIStringMap::const_iterator&
 	return cand;
 }
 
-QueueItemPtr QueueManager::FileQueue::findAutoSearch(deque<string>& recent) const // [!] IRainman fix.
+QueueItemPtr QueueManager::FileQueue::findAutoSearch(deque<string>& p_recent) const // [!] IRainman fix.
 {
 	WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 	RLock l_lock_fq(*g_csFQ);
@@ -315,14 +315,14 @@ QueueItemPtr QueueManager::FileQueue::findAutoSearch(deque<string>& recent) cons
 		auto i = m_queue.cbegin();
 		advance(i, start);
 		
-		QueueItemPtr cand = findCandidateL(i, m_queue.end(), recent);
+		QueueItemPtr cand = findCandidateL(i, m_queue.end(), p_recent);
 		if (cand == nullptr)
 		{
-			cand = findCandidateL(m_queue.begin(), i, recent);
+			cand = findCandidateL(m_queue.begin(), i, p_recent);
 		}
 		else if (cand->getNextSegmentL(0, 0, 0, nullptr).getSize() == 0)
 		{
-			QueueItemPtr cand2 = findCandidateL(m_queue.begin(), i, recent);
+			QueueItemPtr cand2 = findCandidateL(m_queue.begin(), i, p_recent);
 			if (cand2 != nullptr && cand2->getNextSegmentL(0, 0, 0, nullptr).getSize() != 0)
 			{
 				cand = cand2;
@@ -821,7 +821,7 @@ void QueueManager::Rechecker::execute(const string& p_file) // [!] IRainman core
 QueueManager::QueueManager() :
 	lastSave(0),
 	rechecker(this),
-	dirty(true),
+	m_dirty(true),
 	nextSearch(0),
 	exists_queueFile(true)
 {
@@ -861,6 +861,15 @@ QueueManager::~QueueManager() noexcept
 			File::deleteFile);
 		}
 	}
+}
+void QueueManager::shutdown() // [+] IRainman opt.
+{
+	m_listMatcher.forceStop();
+	m_listQueue.forceStop();
+	waiter.forceStop();
+	dclstLoader.forceStop();
+	m_mover.forceStop();
+	rechecker.forceStop();
 }
 
 struct PartsInfoReqParam
@@ -920,20 +929,20 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 	if (fileQueue.getSize() > 0 && aTick >= nextSearch && BOOLSETTING(AUTO_SEARCH))
 	{
 		// We keep 30 recent searches to avoid duplicate searches
-		while (recent.size() >= fileQueue.getSize() || recent.size() > 30)
+		while (m_recent.size() >= fileQueue.getSize() || m_recent.size() > 30)
 		{
-			recent.pop_front();
+			m_recent.pop_front();
 		}
 		
 		QueueItemPtr qi = nullptr;
-		while ((qi = fileQueue.findAutoSearch(recent)) == nullptr && !recent.empty()) // Местами не переставлять findAutoSearch меняет recent
+		while ((qi = fileQueue.findAutoSearch(m_recent)) == nullptr && !m_recent.empty()) // Местами не переставлять findAutoSearch меняет recent
 		{
-			recent.pop_front();
+			m_recent.pop_front();
 		}
 		if (qi)
 		{
 			searchString = qi->getTTH().toBase32();
-			recent.push_back(qi->getTarget());
+			m_recent.push_back(qi->getTarget());
 			const int l_as_time = SETTING(AUTO_SEARCH_TIME);
 			nextSearch = aTick + (l_as_time * (l_as_time == 1 ? 61000 : 60000));
 			if (BOOLSETTING(REPORT_ALTERNATES))
@@ -1251,9 +1260,9 @@ void QueueManager::readd(const string& p_target, const UserPtr& aUser)
 
 void QueueManager::setDirty()
 {
-	if (!dirty)
+	if (!m_dirty)
 	{
-		dirty = true;
+		m_dirty = true;
 		lastSave = GET_TICK();
 	}
 }
@@ -1941,6 +1950,15 @@ void QueueManager::rechecked(const QueueItemPtr& qi)
 
 void QueueManager::putDownload(const string& p_path, Download* aDownload, bool p_is_finished, bool p_is_report_finish) noexcept
 {
+#if 0
+	dcassert(!ClientManager::isShutdown());
+	// fix https://drdump.com/Problem.aspx?ProblemID=112136
+	if (!ClientManager::isShutdown())
+	{
+		// TODO - check and delete aDownload?
+		// return;
+	}
+#endif
 	UserList getConn;
 	string fileName;
 	const HintedUser l_hintedUser = aDownload->getHintedUser(); // crash https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=155631
@@ -2577,7 +2595,7 @@ void QueueManager::setAutoPriority(const string& aTarget, bool ap) noexcept
 
 void QueueManager::saveQueue(bool force) noexcept
 {
-	if (!dirty && !force)
+	if (!m_dirty && !force)
 		return;
 		
 	{
@@ -2588,7 +2606,7 @@ void QueueManager::saveQueue(bool force) noexcept
 		for (auto i = fileQueue.getQueueL().begin(); i != fileQueue.getQueueL().end(); ++i)
 		{
 			auto& qi  = i->second;
-			if (qi->isDirty())
+			if (qi->isDirtyAll())
 			{
 				if (!qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
 				{
@@ -2624,7 +2642,7 @@ void QueueManager::saveQueue(bool force) noexcept
 	}
 	// Put this here to avoid very many saves tries when disk is full...
 	lastSave = GET_TICK();
-	dirty = false; // [+] IRainman fix.
+	m_dirty = false; // [+] IRainman fix.
 }
 
 class QueueLoader : public SimpleXMLReader::CallBack
@@ -2654,7 +2672,7 @@ void QueueManager::loadQueue() noexcept
 		exists_queueFile = false;
 	}
 	CFlylinkDBManager::getInstance()->load_queue();
-	dirty = false;
+	m_dirty = false;
 }
 
 static const string sDownload = "Download";
@@ -2934,10 +2952,30 @@ void QueueManager::on(ClientManagerListener::UserDisconnected, const UserPtr& aU
 	}
 #endif // IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
 }
-
+bool QueueManager::getTargetByRoot(const TTHValue& tth, string& p_target, string& p_tempTarget)
+{
+	// [-] Lock l(cs); [-] IRainman fix.
+	QueueItemPtr qi = fileQueue.findQueueItem(tth);
+	if (!qi)
+		return false;
+	p_target = qi->getTarget();
+	p_tempTarget = qi->getTempTarget();
+	return true;
+}
+bool QueueManager::isChunkDownloaded(const TTHValue& tth, int64_t startPos, int64_t& bytes, string& p_target)
+{
+	// [-] Lock l(cs); [-] IRainman fix.
+	QueueItemPtr qi = fileQueue.findQueueItem(tth);
+	if (!qi)
+		return false;
+	RLock l(*QueueItem::g_cs); // TODO - унести это ниже!
+	p_target = qi->isFinishedL() ? qi->getTarget() : qi->getTempTarget();
+	
+	return qi->isChunkDownloadedL(startPos, bytes);
+}
 void QueueManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 {
-	if (dirty && ((lastSave + 30000) < aTick))
+	if (m_dirty && ((lastSave + 30000) < aTick))
 	{
 #ifdef _DEBUG
 		LogManager::message("[!-> [Start] saveQueue lastSave = " + Util::toString(lastSave) + " aTick = " + Util::toString(aTick));

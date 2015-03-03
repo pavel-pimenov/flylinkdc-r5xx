@@ -151,7 +151,7 @@ OnlineUserPtr AdcHub::getUser(const uint32_t aSID, const CID& aCID)
 OnlineUserPtr AdcHub::findUser(const string& aNick) const
 {
 #ifdef _DEBUG
-	LogManager::message("AdcHub::findUser [slow] aNick = " + aNick);
+	//LogManager::message("AdcHub::findUser [slow] aNick = " + aNick);
 #endif
 	webrtc::ReadLockScoped l(*m_cs);
 	for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
@@ -167,7 +167,7 @@ OnlineUserPtr AdcHub::findUser(const string& aNick) const
 OnlineUserPtr AdcHub::findUser(const uint32_t aSID) const// [!] IRainman fix return OnlineUserPtr
 {
 #ifdef _DEBUG
-	LogManager::message("AdcHub::findUser aSID = " + Util::toString(aSID));
+	// LogManager::message("AdcHub::findUser aSID = " + Util::toString(aSID));
 #endif
 	webrtc::ReadLockScoped l(*m_cs);
 	const auto& i = m_users.find(aSID);
@@ -177,7 +177,7 @@ OnlineUserPtr AdcHub::findUser(const uint32_t aSID) const// [!] IRainman fix ret
 OnlineUserPtr AdcHub::findUser(const CID& aCID) const// [!] IRainman fix return OnlineUserPtr
 {
 #ifdef _DEBUG
-	LogManager::message("AdcHub::findUser [slow] aCID = " + aCID.toBase32());
+	// LogManager::message("AdcHub::findUser [slow] aCID = " + aCID.toBase32());
 #endif
 	webrtc::ReadLockScoped l(*m_cs);
 	for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
@@ -256,7 +256,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 	if (c.isCIDexists())
 	{
 #ifdef _DEBUG
-		LogManager::message("CID [+1] " + c.getParamCID().toBase32() + " Params = " +  c.getParamString(false));
+		// LogManager::message("CID [+1] " + c.getParamCID().toBase32() + " Params = " +  c.getParamString(false));
 #endif
 		ou = findUser(c.getParamCID());
 		if (ou)
@@ -1435,7 +1435,7 @@ void AdcHub::search_token(const SearchParamToken& p_search_param)
 
 void AdcHub::sendSearch(AdcCommand& c)
 {
-	if (isActive())
+	if (isActive()) // && (SETTING(OUTGOING_CONNECTIONS) != SettingsManager::OUTGOING_SOCKS5))
 	{
 		send(c);
 	}

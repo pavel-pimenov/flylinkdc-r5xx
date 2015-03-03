@@ -72,35 +72,35 @@ class QueueItem : public Flags,
 		enum FileFlags
 		{
 			/** Normal download, no flags set */
-			FLAG_NORMAL             = 0x00,
+			FLAG_NORMAL = 0x00,
 			/** This is a user file listing download */
-			FLAG_USER_LIST          = 0x01,
+			FLAG_USER_LIST = 0x01,
 			/** The file list is downloaded to use for directory download (used with USER_LIST) */
 			FLAG_DIRECTORY_DOWNLOAD = 0x02,
 			/** The file is downloaded to be viewed in the gui */
-			FLAG_CLIENT_VIEW        = 0x04, //-V112
+			FLAG_CLIENT_VIEW = 0x04, //-V112
 			/** Flag to indicate that file should be viewed as a text file */
-			FLAG_TEXT               = 0x08,
+			FLAG_TEXT = 0x08,
 			/** Match the queue against this list */
-			FLAG_MATCH_QUEUE        = 0x10,
+			FLAG_MATCH_QUEUE = 0x10,
 			/** The file list downloaded was actually an .xml.bz2 list */
-			FLAG_XML_BZLIST         = 0x20, //-V112
+			FLAG_XML_BZLIST = 0x20, //-V112
 			/** Only download a part of the file list */
-			FLAG_PARTIAL_LIST       = 0x40,
+			FLAG_PARTIAL_LIST = 0x40,
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
 			/** Test user's file list for fake share */
 			FLAG_USER_CHECK         = 0x80,
 #endif
 			/** Autodrop slow source is enabled for this file */
-			FLAG_AUTODROP           = 0x100,
+			FLAG_AUTODROP = 0x100,
 			/** [+] SSA - check User IP */
-			FLAG_USER_GET_IP        = 0x200,
+			FLAG_USER_GET_IP = 0x200,
 			/** [+] SSA - dclst support */
-			FLAG_DCLST_LIST         = 0x400,
+			FLAG_DCLST_LIST = 0x400,
 			/** [+] SSA - media preview */
-			FLAG_MEDIA_VIEW         = 0x800,
+			FLAG_MEDIA_VIEW = 0x800,
 			/** [+] IRainman - open file */
-			FLAG_OPEN_FILE          = 0x1000,
+			FLAG_OPEN_FILE = 0x1000,
 		};
 		
 		bool isUserList() const
@@ -111,7 +111,7 @@ class QueueItem : public Flags,
 		 * Source parts info
 		 * Meaningful only when Source::FLAG_PARTIAL is set
 		 */
-		class PartialSource : public intrusive_ptr_base<PartialSource>
+		class PartialSource : public intrusive_ptr_base < PartialSource >
 		{
 			public:
 				PartialSource(const string& aMyNick, const string& aHubIpPort, const string& aIp, uint16_t udp) :
@@ -139,19 +139,19 @@ class QueueItem : public Flags,
 			public:
 				enum
 				{
-					FLAG_NONE               = 0x00,
+					FLAG_NONE = 0x00,
 					FLAG_FILE_NOT_AVAILABLE = 0x01,
-					FLAG_PASSIVE            = 0x02,
-					FLAG_REMOVED            = 0x04, //-V112
-					FLAG_NO_TTHF            = 0x08,
-					FLAG_BAD_TREE           = 0x10,
-					FLAG_SLOW_SOURCE        = 0x20, //-V112
-					FLAG_NO_TREE            = 0x40,
-					FLAG_NO_NEED_PARTS      = 0x80,
-					FLAG_PARTIAL            = 0x100,
-					FLAG_TTH_INCONSISTENCY  = 0x200,
-					FLAG_UNTRUSTED          = 0x400,
-					FLAG_MASK               = FLAG_FILE_NOT_AVAILABLE
+					FLAG_PASSIVE = 0x02,
+					FLAG_REMOVED = 0x04, //-V112
+					FLAG_NO_TTHF = 0x08,
+					FLAG_BAD_TREE = 0x10,
+					FLAG_SLOW_SOURCE = 0x20, //-V112
+					FLAG_NO_TREE = 0x40,
+					FLAG_NO_NEED_PARTS = 0x80,
+					FLAG_PARTIAL = 0x100,
+					FLAG_TTH_INCONSISTENCY = 0x200,
+					FLAG_UNTRUSTED = 0x400,
+					FLAG_MASK = FLAG_FILE_NOT_AVAILABLE
 					| FLAG_PASSIVE | FLAG_REMOVED | FLAG_BAD_TREE | FLAG_SLOW_SOURCE
 					| FLAG_NO_TREE | FLAG_TTH_INCONSISTENCY | FLAG_UNTRUSTED
 				};
@@ -198,11 +198,11 @@ class QueueItem : public Flags,
 #endif
 		// [~]
 		
-		SourceMap& getSourcesL() // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
+		const SourceMap& getSourcesL() // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
 		{
 			return m_sources;
 		}
-		SourceMap& getBadSourcesL() // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
+		const SourceMap& getBadSourcesL() // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
 		{
 			return m_badSources;
 		}
@@ -246,7 +246,7 @@ class QueueItem : public Flags,
 		/**
 		 * Is specified parts needed by this download?
 		 */
-		bool isNeededPartL(const PartsInfo& partsInfo, int64_t p_blockSize);
+		bool isNeededPartL(const PartsInfo& partsInfo, int64_t p_blockSize) const;
 		
 		/**
 		 * Get shared parts info, max 255 parts range pairs
@@ -263,15 +263,19 @@ class QueueItem : public Flags,
 		/* [-] IRainman no needs! Please lock fully consciously!
 		uint64_t calcAverageSpeedAndDownloadedBytes() const
 		{
-		    RLock l(*QueueItem::g_cs);
-		    return calcAverageSpeedAndDownloadedBytesL();
+		RLock l(*QueueItem::g_cs);
+		return calcAverageSpeedAndDownloadedBytesL();
 		}
 		[-] */
-		bool isDirty() const
+		bool isDirtyBase() const
 		{
 			return m_dirty;
 		}
-		void setDirty(bool p_dirty = true)
+		bool isDirtyAll() const
+		{
+			return m_dirty || m_dirty_segment || m_dirty_source;
+		}
+		void setDirty(bool p_dirty)
 		{
 #ifdef _DEBUG
 			if (p_dirty)
@@ -281,8 +285,30 @@ class QueueItem : public Flags,
 #endif
 			m_dirty = p_dirty;
 		}
+		void setDirtyAll(bool p_dirty)
+		{
+			setDirty(p_dirty);
+			setDirtySource(p_dirty);
+			setDirtySegment(p_dirty);
+		}
 		
-		DownloadMap& getDownloadsL() // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
+		bool isDirtySource() const
+		{
+			return m_dirty_source;
+		}
+		bool isDirtySegment() const
+		{
+			return m_dirty_segment;
+		}
+		void setDirtySource(bool p_dirty)
+		{
+			m_dirty_source = p_dirty;
+		}
+		void setDirtySegment(bool p_dirty)
+		{
+			m_dirty_segment = p_dirty;
+		}
+		const DownloadMap& getDownloadsL() // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
 		{
 			return m_downloads;
 		}
@@ -300,8 +326,11 @@ class QueueItem : public Flags,
 		void addSegmentL(const Segment& segment);
 		void resetDownloaded()
 		{
-			WLock l(*g_cs);
-			m_done_segment.clear();
+			{
+				WLock l(*g_cs);
+				m_done_segment.clear();
+			}
+			setDirtySegment(true);
 		}
 		
 		bool isFinishedL() const
@@ -338,6 +367,8 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 	private:
 		const TTHValue m_tthRoot;
 		bool m_dirty;
+		bool m_dirty_source;
+		bool m_dirty_segment;
 		uint64_t m_block_size;
 		void calcBlockSize();
 	public:
@@ -359,21 +390,37 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 		
 		SegmentSet m_done_segment;
 		string getSectionStringL();
+#ifdef SSA_VIDEO_PREVIEW_FEATURE
 		const SegmentSet& getDoneL() const
 		{
 			return m_done_segment;
 		}
-		
+#endif
 		GETSET_DIRTY(string, target, Target);
 		GETSET_DIRTY(uint64_t, fileBegin, FileBegin);
 		GETSET_DIRTY(uint64_t, nextPublishingTime, NextPublishingTime);
 		GETSET_DIRTY(int64_t, size, Size);
 		GETSET_DIRTY(time_t, added, Added);
-		GETSET_DIRTY(Priority, priority, Priority);
 		GETSET_DIRTY(uint8_t, maxSegments, MaxSegments);
 		GETSET_DIRTY(bool, autoPriority, AutoPriority);
 		GETSET_DIRTY(int64_t, flyQueueID, FlyQueueID);
 		GETSET_DIRTY(int, flyCountSourceInSQL, FlyCountSourceInSQL);
+		
+	private:
+		Priority m_priority;
+	public:
+		Priority getPriority() const
+		{
+			return m_priority;
+		}
+		void setPriority(Priority p_priority)
+		{
+			if (m_priority != p_priority)
+			{
+				setDirtySegment(true);
+				m_priority = p_priority;
+			}
+		}
 		
 		int16_t calcTransferFlagL(bool& partial, bool& trusted, bool& untrusted, bool& tthcheck, bool& zdownload, bool& chunked, double& ratio) const;
 		QueueItem::Priority calculateAutoPriority() const;

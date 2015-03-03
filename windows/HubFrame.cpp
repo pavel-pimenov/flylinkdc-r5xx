@@ -4079,7 +4079,7 @@ void HubFrame::addDupeUsersToSummaryMenu(const int64_t &share, const string& ip)
 			const auto& l_id = i->second->getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'i->second->getIdentity()' expression repeatedly. hubframe.cpp 3673
 			if (share && l_id.getBytesShared() == share)
 			{
-				tstring info = Text::toT(frame->m_client->getHubName()) + _T(" - ") + i->second->getText(COLUMN_NICK);
+				tstring info = Text::toT(frame->m_client->getHubName() + " ( " + frame->m_client->getHubUrl() + " ) ") + _T(" - ") + i->second->getText(COLUMN_NICK);
 				const UINT flags = (!ip.empty() && ip == l_id.getIpAsString()) ? MF_CHECKED : 0;
 				FavoriteUser favUser;
 				if (FavoriteManager::getFavoriteUser(i->second->getUser(), favUser))
@@ -4110,7 +4110,7 @@ void HubFrame::addDupeUsersToSummaryMenu(const int64_t &share, const string& ip)
 				userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED | flags, IDC_NONE, info.c_str());
 				if (!l_id.getApplication().empty() && !l_id.getIpAsString().empty())
 				{
-					userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, Text::toT(l_id.getApplication() + ",   IP: " + l_id.getIpAsString()).c_str());
+					userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, Text::toT(l_id.getTag() + ",   IP: " + l_id.getIpAsString()).c_str());
 				}
 			}
 		}

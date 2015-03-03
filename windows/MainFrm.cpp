@@ -111,6 +111,7 @@ int HashProgressDlg::g_is_execute = 0;
 
 bool g_TabsCloseButtonEnabled;
 bool g_isStartupProcess = true;
+DWORD g_GDI_count = 0;
 CMenu g_mnu;
 
 int g_magic_width;
@@ -895,11 +896,11 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			l_buf[0] = 0;
 			if (l_mem)
 			{
-				const DWORD l_GDI_count  = GetGuiResources(GetCurrentProcess(), GR_GDIOBJECTS);
+				g_GDI_count  = GetGuiResources(GetCurrentProcess(), GR_GDIOBJECTS);
 				_snprintf(l_buf, _countof(l_buf), " [RAM: %dM / %dM][GDI: %d]",
 				          int(l_pmc.WorkingSetSize / 1024 / 1024),
 				          int(l_pmc.PeakWorkingSetSize / 1024 / 1024),
-				          int(l_GDI_count));
+				          int(g_GDI_count));
 			}
 			const tstring* l_temp = new tstring(tstring(T_APPNAME_WITH_VERSION) + Text::toT(l_buf));
 			if (!PostMessage(IDC_UPDATE_WINDOW_TITLE, (LPARAM)l_temp))
@@ -3925,7 +3926,7 @@ void MainFrame::AddFolderShareFromShell(const tstring& infolder)
 		{
 			try
 			{
-				CWaitCursor l_cursor_wait;
+				CWaitCursor l_cursor_wait; //-V808
 				tstring lastName = Util::getLastDir(folder);
 				ShareManager::getInstance()->addDirectory(l_folder, Text::fromT(lastName), true);
 				tstring mmessage = folder;

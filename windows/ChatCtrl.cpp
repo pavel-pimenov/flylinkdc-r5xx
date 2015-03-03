@@ -211,7 +211,7 @@ ChatCtrl::CFlyChatCacheTextOnly::CFlyChatCacheTextOnly(const tstring& p_nick,
 void ChatCtrl::restore_chat_cache()
 {
 	CLockRedraw<true> l_lock_draw(m_hWnd);
-	CWaitCursor l_cursor_wait;
+	CWaitCursor l_cursor_wait; //-V808
 	{
 		//webrtc::ReadLockScoped l(*m_cs_chat_cache);
 #if 0
@@ -355,9 +355,14 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message)
 	// Ensure that EOLs will be always same
 #ifdef IRAINMAN_INCLUDE_SMILE
 	// ≈сли кончилась пам€ть на GDI - даже не пытаемс€ создавать смайлы (TODO - зачистить после полной загрузки кеша);
-	bool bUseEmo = p_message.m_bUseEmo && m_is_out_of_memory_for_smile == false;
-	if (bUseEmo)
+	extern DWORD g_GDI_count;
+	bool bUseEmo = p_message.m_bUseEmo && m_is_out_of_memory_for_smile == false && g_GDI_count < 8000;
+	if (g_GDI_count >= 8000)
 {
+		LogManager::message("[!] GDI count >= 8000 - disable smiles!");
+	}
+	if (bUseEmo)
+	{
 		const CAGEmotion::Array& Emoticons = CAGEmotionSetup::g_pEmotionsSetup->getEmoticonsArray();
 		uint8_t l_count_smiles = 0;
 		while (m_is_out_of_memory_for_smile == false)

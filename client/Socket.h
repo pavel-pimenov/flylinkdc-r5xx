@@ -302,8 +302,8 @@ class Socket
 			StatsItem m_ssl;
 		};
 		
-		static string udpServer;
-		static uint16_t udpPort;
+		static string g_udpServer;
+		static uint16_t g_udpPort;
 	public:
 		static Stats g_stats;
 	private:

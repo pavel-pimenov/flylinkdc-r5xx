@@ -62,9 +62,9 @@ LRESULT ShareMiscPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 	const auto l_set_dnum = SETTING(TTH_GPU_DEV_NUM);
 	const auto s_set_dname = SETTING(GPU_DEV_NAME_FOR_TTH_COMP);
 	const CString cs_set_dname(s_set_dname.c_str());
-
+	
 	ctrlTTHGPUDevices.Attach(GetDlgItem(IDC_TTH_GPU_DEVICES));
-
+	
 	for (int i = 0; i < l_count_gpu; ++i)
 	{
 		const string& s_dname = GPGPUTTHManager::getInstance()->get()->get_dev_name(i);
@@ -72,11 +72,11 @@ LRESULT ShareMiscPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 		
 		ctrlTTHGPUDevices.AddString((LPCTSTR)cs_dname);
 	}
-		
+	
 	if (l_set_dnum >= 0 && l_set_dnum < l_count_gpu)
 	{
 		const auto s_dname = GPGPUTTHManager::getInstance()->get()->get_dev_name(l_set_dnum);
-
+		
 		if (s_dname == s_set_dname)
 		{
 			ctrlTTHGPUDevices.SetCurSel(l_set_dnum);
@@ -97,7 +97,7 @@ LRESULT ShareMiscPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 			ctrlTTHGPUDevices.SetWindowTextW((LPCTSTR)cs_set_dname);
 		}
 	}
-
+	
 	ctrlTTHGPUDevices.Detach();
 #endif
 	fixGPUTTHControls();
@@ -110,20 +110,35 @@ void ShareMiscPage::write()
 {
 	PropPage::write((HWND)*this, items);
 #ifdef FLYLINKDC_USE_GPU_TTH
+	bool use_gpu = BOOLSETTING(USE_GPU_IN_TTH_COMPUTING);
+	
 	ctrlTTHGPUDevices.Attach(GetDlgItem(IDC_TTH_GPU_DEVICES));
-
+	
 	int sel_dev_num = ctrlTTHGPUDevices.GetCurSel();
-
-	if ( sel_dev_num != CB_ERR && sel_dev_num != SETTING(TTH_GPU_DEV_NUM) )
+	
+	if (sel_dev_num != CB_ERR && sel_dev_num != SETTING(TTH_GPU_DEV_NUM))
 	{
-		GPGPUTTHManager::getInstance()->get()->select_device(sel_dev_num);
-
+		if (use_gpu)
+		{
+			GPGPUTTHManager::getInstance()->get()->select_device(sel_dev_num);
+		}
+		
 		SettingsManager::getInstance()->set(SettingsManager::TTH_GPU_DEV_NUM, sel_dev_num);
 		SettingsManager::getInstance()->save();
 	}
-
+	else if (sel_dev_num != CB_ERR && sel_dev_num == SETTING(TTH_GPU_DEV_NUM)
+	         && use_gpu)
+	{
+		int cur_dev_num = GPGPUTTHManager::getInstance()->get()->get_cur_dev();
+		
+		if (sel_dev_num != cur_dev_num)
+		{
+			GPGPUTTHManager::getInstance()->get()->select_device(sel_dev_num);
+		}
+	}
+	
 	ctrlTTHGPUDevices.Detach();
-#endif	//FLYLINKDC_USE_GPU_TTH
+#endif  //FLYLINKDC_USE_GPU_TTH
 }
 
 LRESULT ShareMiscPage::onFixControls(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) // [+]NightOrion

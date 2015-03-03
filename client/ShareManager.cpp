@@ -1082,7 +1082,7 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 	
 	CFlyDirMap l_dir_map;
 	if (p_path_id)
-		CFlylinkDBManager::getInstance()->LoadDir(p_path_id, l_dir_map, p_is_no_mediainfo);
+		CFlylinkDBManager::getInstance()->load_dir(p_path_id, l_dir_map, p_is_no_mediainfo);
 	for (FileFindIter i(aName + '*'); !isShutdown() && i != FileFindIter::end; ++i)// [!]IRainman add m_close [10] https://www.box.net/shared/067924cecdb252c9d26c
 	{
 		if (i->isTemporary())// [+]IRainman

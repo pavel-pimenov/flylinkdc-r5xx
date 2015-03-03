@@ -190,7 +190,7 @@ LRESULT PublicHubsFrame::onSelChangedISPTree(int /*idCtrl*/, LPNMHDR pnmh, BOOL&
 	NMTREEVIEW* p = (NMTREEVIEW*) pnmh;
 	if (p->itemNew.state & TVIS_SELECTED)
 	{
-		CWaitCursor l_cursor_wait;
+		CWaitCursor l_cursor_wait; //-V808
 		m_ctrlHubs.DeleteAllItems();
 		if (p->itemNew.lParam == e_HubListItem)
 		{
@@ -271,19 +271,23 @@ void PublicHubsFrame::loadPublicListHubs()
 	                                             0  // hInsertAfter
 	                                            );
 	const StringList lists = SPLIT_SETTING_AND_LOWER(HUBLIST_SERVERS);;
+	HTREEITEM p_first_item = nullptr;
 	for (auto i = lists.cbegin(); i != lists.cend(); ++i)
 	{
-		m_ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
-		                      Text::toT(*i).c_str(),
-		                      g_ISPImage.m_flagImageCount + 15, // nImage
-		                      g_ISPImage.m_flagImageCount + 15, // nSelectedImage
-		                      0, // nState
-		                      0, // nStateMask
-		                      e_HubListItem, // lParam
-		                      m_PublicListRootItem, // aParent,
-		                      0  // hInsertAfter
-		                     );
+		const auto l_item = m_ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
+		                                          Text::toT(*i).c_str(),
+		                                          g_ISPImage.m_flagImageCount + 15, // nImage
+		                                          g_ISPImage.m_flagImageCount + 15, // nSelectedImage
+		                                          0, // nState
+		                                          0, // nStateMask
+		                                          e_HubListItem, // lParam
+		                                          m_PublicListRootItem, // aParent,
+		                                          0  // hInsertAfter
+		                                         );
+		if (!p_first_item)
+			p_first_item = l_item;
 	}
+	m_ctrlTree.SelectItem(p_first_item);
 }
 
 void PublicHubsFrame::loadISPHubs()
@@ -370,13 +374,14 @@ int PublicHubsFrame::calcISPCountryIconIndex(tstring& p_country)
 		_T("Молдова"), _T("MD"),
 		_T("Эстония"), _T("EE"),
 		_T("Bulgaria"), _T("BG"),
+		_T("Brazil"), _T("BR"),
 		_T("Australia"), _T("AS"),
 		_T("Poland"), _T("PL"),
 		_T("Korea"), _T("KP"),
 		_T("Romania"), _T("RO"),
 		_T("Spain"), _T("ES"),
 		_T("Niue"), _T("NU"),
-		_T("Italy"), _T("IT"),
+		_T("Italy"), _T("IT")
 	};
 	for (auto i = 0; i < _countof(g_country_map) / 2; ++i)
 	{

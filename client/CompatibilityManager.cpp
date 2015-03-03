@@ -733,7 +733,7 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				          Client::getTotalCounts(),
 				          generateNetworkStats().c_str()
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-				          , Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.m_download).c_str(), Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.m_upload).c_str()
+				          , Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.get_download()).c_str(), Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.get_upload()).c_str()
 #endif
 				         );
 			}

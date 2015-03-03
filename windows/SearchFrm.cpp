@@ -49,7 +49,7 @@ HIconWrapper SearchFrame::g_UDPOkIcon(IDR_ICON_SUCCESS_ICON);
 //HIconWrapper SearchFrame::g_UDPFailIcon(IDR_ICON_FAIL_ICON);
 HIconWrapper SearchFrame::g_UDPWaitIcon(IDR_ICON_WARN_ICON);
 tstring SearchFrame::g_UDPTestText;
-bool SearchFrame::g_isUDPTestOK = false;
+boost::logic::tribool SearchFrame::g_isUDPTestOK = boost::logic::indeterminate;
 
 int SearchFrame::columnIndexes[] =
 {
@@ -860,7 +860,14 @@ void SearchFrame::onEnter()
 		m_search_param.m_filter = Text::fromT(s);
 		m_search_param.normalize_whitespace();
 		m_search_param.m_owner = this;
-		m_search_param.m_is_force_passive = !g_isUDPTestOK;
+		if (!boost::logic::indeterminate(g_isUDPTestOK))
+		{
+			m_search_param.m_is_force_passive = (g_isUDPTestOK == false); // || (SETTING(OUTGOING_CONNECTIONS) == SettingsManager::OUTGOING_SOCKS5);
+		}
+		else
+		{
+			m_search_param.m_is_force_passive = false;
+		}
 		
 		m_searchEndTime = m_searchStartTime + ClientManager::getInstance()->multi_search(m_search_param)
 #ifdef FLYLINKDC_HE

@@ -172,15 +172,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 			m_curOnDownloadSettings = p_option;
 		}
 		
-		void shutdown() // [+] IRainman opt.
-		{
-			m_listMatcher.forceStop();
-			m_listQueue.forceStop();
-			waiter.forceStop();
-			dclstLoader.forceStop();
-			m_mover.forceStop();
-			rechecker.forceStop();
-		}
+		void shutdown(); // [+] IRainman opt.
 		//[~] FlylinkDC
 		
 		/** Readd a source that was removed */
@@ -263,27 +255,8 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 			return fileQueue.getRunningFileCount(p_stop_key);
 		}
 	public:
-		bool getTargetByRoot(const TTHValue& tth, string& p_target, string& p_tempTarget)
-		{
-			// [-] Lock l(cs); [-] IRainman fix.
-			QueueItemPtr qi = fileQueue.findQueueItem(tth);
-			if (!qi)
-				return false;
-			p_target     = qi->getTarget();
-			p_tempTarget = qi->getTempTarget();
-			return true;
-		}
-		bool isChunkDownloaded(const TTHValue& tth, int64_t startPos, int64_t& bytes, string& p_target)
-		{
-			// [-] Lock l(cs); [-] IRainman fix.
-			QueueItemPtr qi = fileQueue.findQueueItem(tth);
-			if (!qi)
-				return false;
-			RLock l(*QueueItem::g_cs); // TODO - унести это ниже!
-			p_target = qi->isFinishedL() ? qi->getTarget() : qi->getTempTarget();
-			
-			return qi->isChunkDownloadedL(startPos, bytes);
-		}
+		bool getTargetByRoot(const TTHValue& tth, string& p_target, string& p_tempTarget);
+		bool isChunkDownloaded(const TTHValue& tth, int64_t startPos, int64_t& bytes, string& p_target);
 		/** Sanity check for the target filename */
 		static string checkTarget(const string& aTarget, const int64_t aSize = -1) throw(QueueException, FileException);
 		/** Add a source to an existing queue item */
@@ -378,7 +351,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 				// return a PFS tth to DHT publish
 				TTHValue* findPFSPubTTH();
 #endif
-				QueueItemPtr findAutoSearch(deque<string>& recent) const; // [!] IRainman fix.
+				QueueItemPtr findAutoSearch(deque<string>& p_recent) const; // [!] IRainman fix.
 				size_t getSize() const
 				{
 					return m_queue.size();
@@ -479,9 +452,9 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		/** Directories queued for downloading */
 		std::unordered_multimap<UserPtr, DirectoryItemPtr, User::Hash> directories;
 		/** Recent searches list, to avoid searching for the same thing too often */
-		deque<string> recent;
+		deque<string> m_recent;
 		/** The queue needs to be saved */
-		bool dirty;
+		bool m_dirty;
 		/** Next search */
 		uint64_t nextSearch;
 		/** File lists not to delete */

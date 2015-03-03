@@ -35,9 +35,11 @@ const string g_dc_temp_extension = "dctmp";
 QueueItem::QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, Flags::MaskType aFlag,
                      time_t aAdded, const TTHValue& p_tth) :
 	target(aTarget), maxSegments(1), fileBegin(0),
-	size(aSize), priority(aPriority), added(aAdded),
+	size(aSize), m_priority(aPriority), added(aAdded),
 	autoPriority(false), nextPublishingTime(0), flyQueueID(0), flyCountSourceInSQL(0),
 	m_dirty(true),
+	m_dirty_source(false),
+	m_dirty_segment(false),
 	m_block_size(0),
 	m_tthRoot(p_tth),
 	m_downloadedBytes(0),
@@ -140,7 +142,7 @@ QueueItem::Priority QueueItem::calculateAutoPriority() const
 		}
 		return p;
 	}
-	return priority;
+	return getPriority();
 }
 //==========================================================================================
 static string getDCTempName(const string& aFileName, const TTHValue& aRoot)
@@ -224,6 +226,7 @@ void QueueItem::addSourceL(const UserPtr& aUser)
 	{
 		m_sources.insert(std::make_pair(aUser, Source()));  // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=139307
 	}
+	setDirtySource(true);
 }
 // [+] fix ? http://code.google.com/p/flylinkdc/issues/detail?id=1236 .
 void QueueItem::getPFSSourcesL(const QueueItemPtr& p_qi, SourceListBuffer& p_sourceList, uint64_t p_now)
@@ -274,6 +277,7 @@ void QueueItem::removeSourceL(const UserPtr& aUser, Flags::MaskType reason)
 	i->second.setFlag(reason);
 	m_badSources.insert(*i);
 	m_sources.erase(i);
+	setDirtySource(true);
 //	}
 //	else
 //	{
@@ -605,19 +609,17 @@ void QueueItem::setOverlappedL(const Segment& p_segment, const bool p_isOverlapp
 string QueueItem::getSectionStringL()
 {
 	string l_strSections;
+	l_strSections.reserve(m_done_segment.size() * 10);
 	for (auto i = m_done_segment.cbegin(); i != m_done_segment.cend(); ++i)
 	{
-		// TODO - sprintf ?
-		l_strSections += Util::toString(i->getStart());
-		l_strSections += ' ';
-		l_strSections += Util::toString(i->getSize());
-		l_strSections += ' ';
+		char buf[48];
+		snprintf(buf, _countof(buf), "%I64d %I64d ", i->getStart(), i->getSize());
+		l_strSections += buf;
 	}
-	if (!l_strSections.empty()) // TODO ?
+	if (!l_strSections.empty())
 	{
 		l_strSections.resize(l_strSections.size() - 1);
 	}
-	
 	return l_strSections;
 }
 uint64_t QueueItem::calcAverageSpeedAndCalcAndGetDownloadedBytesL() const // [!] IRainman opt.
@@ -661,17 +663,17 @@ void QueueItem::addSegmentL(const Segment& segment)
 	m_done_segment.insert(segment);
 #ifdef _DEBUG
 	LogManager::message("QueueItem::addSegmentL, setDirty = true! id = " +
-	                                   Util::toString(this->getFlyQueueID()) + " target = " + this->getTarget()
-	                                   + " TempTarget = " + this->getTempTarget()
-	                                   + " segment.getSize() = " + Util::toString(segment.getSize())
-	                                   + " segment.getEnd() = " + Util::toString(segment.getEnd())
-	                                  );
+	                    Util::toString(this->getFlyQueueID()) + " target = " + this->getTarget()
+	                    + " TempTarget = " + this->getTempTarget()
+	                    + " segment.getSize() = " + Util::toString(segment.getSize())
+	                    + " segment.getEnd() = " + Util::toString(segment.getEnd())
+	                   );
 #endif
 	// Consolidate segments
 	if (m_done_segment.size() == 1)
 		return;
-	setDirty();
-	for (auto i = ++m_done_segment.cbegin() ; i != m_done_segment.cend();)
+	setDirtySegment(true);
+	for (auto i = ++m_done_segment.cbegin(); i != m_done_segment.cend();)
 	{
 		SegmentSet::iterator prev = i;
 		--prev;
@@ -681,6 +683,7 @@ void QueueItem::addSegmentL(const Segment& segment)
 			m_done_segment.erase(prev);
 			m_done_segment.erase(i++);
 			m_done_segment.insert(big);
+			setDirtySegment(true);
 		}
 		else
 		{
@@ -689,11 +692,11 @@ void QueueItem::addSegmentL(const Segment& segment)
 	}
 }
 
-bool QueueItem::isNeededPartL(const PartsInfo& partsInfo, int64_t p_blockSize)
+bool QueueItem::isNeededPartL(const PartsInfo& partsInfo, int64_t p_blockSize) const
 {
 	dcassert(partsInfo.size() % 2 == 0);
 	
-	auto i  = m_done_segment.begin();
+	auto i = m_done_segment.begin();
 	for (auto j = partsInfo.cbegin(); j != partsInfo.cend(); j += 2)
 	{
 		while (i != m_done_segment.end() && (*i).getEnd() <= (*j) * p_blockSize)

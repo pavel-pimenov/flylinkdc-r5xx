@@ -1551,6 +1551,7 @@
 #define IDC_OPEN_CONFIGS                2507
 #define IDC_USERS_LINK                  2508
 #define IDC_STATIC_USERLIST             2509
+#define IDC_REDOWNLOAD_FILE             2510
 #define IDC_DOWNLOAD_TARGET_DIR         3000
 #define IDC_SELECT_WINDOW               3500
 #define IDC_USER_COMMAND                4000

@@ -38,11 +38,11 @@ void UserInfoSimple::addSummaryMenu()
 	ClientManager::UserParams params;
 	if (ClientManager::getUserParams(getUser(), params))
 	{
-		tstring userInfo = TSTRING(SLOTS) + _T('=') + Util::toStringW(params.slots) + _T(' ') + TSTRING(SHARED) + _T('=') + Util::formatBytesW(params.bytesShared);
+		tstring userInfo = TSTRING(SLOTS) + _T(": ") + Util::toStringW(params.slots) + _T(", ") + TSTRING(SHARED) + _T(": ") + Util::formatBytesW(params.bytesShared);
 		
 		if (params.limit)
 		{
-			userInfo += _T(' ') + TSTRING(SPEED_LIMIT) + _T('=') + Util::formatBytesW(params.limit) + _T('/') + WSTRING(SEC);
+			userInfo += _T(", ") + TSTRING(SPEED_LIMIT) + _T(": ") + Util::formatBytesW(params.limit) + _T('/') + WSTRING(SEC);
 		}
 		
 		UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, userInfo.c_str());
@@ -56,16 +56,17 @@ void UserInfoSimple::addSummaryMenu()
 		
 		if (!params.ip.empty())
 		{
-			string dns;
-#ifdef PPA_INCLUDE_DNS
-			dns = Socket::nslookup(params.ip);
-			if (params.ip == dns)
-				dns = "no DNS"; // TODO translate
-			if (!dns.empty())
-				dns = " / " + dns;
-#endif
-			UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, (Text::toT("IP: " + params.ip + dns)).c_str());
+			UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, params.getTagIP().c_str());
+			
+			const Util::CustomNetworkIndex& l_location = Util::getIpCountry(params.ip);
+			const tstring loc = TSTRING(COUNTRY) + _T(": ") + l_location.getCountry() + _T(", ") + l_location.getDescription();
+			UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, loc.c_str());
+			
 			HubFrame::addDupeUsersToSummaryMenu(params.bytesShared, params.ip);
+		}
+		else
+		{
+			UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, params.getTagIP().c_str());
 		}
 	}
 	

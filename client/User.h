@@ -301,7 +301,7 @@ class User : public intrusive_ptr_base<User>, public Flags
 		{
 			webrtc::ReadLockScoped l(*g_ratio_cs);
 			if (m_ratio_ptr)
-				return m_ratio_ptr->m_upload;
+				return m_ratio_ptr->get_upload();
 			else
 				return 0;
 		}
@@ -309,7 +309,7 @@ class User : public intrusive_ptr_base<User>, public Flags
 		{
 			webrtc::ReadLockScoped l(*g_ratio_cs);
 			if (m_ratio_ptr)
-				return m_ratio_ptr->m_download;
+				return m_ratio_ptr->get_download();
 			else
 				return 0;
 		}

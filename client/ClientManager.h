@@ -155,7 +155,6 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		const string& getMyNick(const string& hubUrl) const; // [!] IRainman opt.
 		
 		// [+] brain-ripper
-		static bool getUserParams(const UserPtr& user, uint64_t& p_bytesShared, int& p_slots, int& p_limit, std::string& p_ip);
 		// [+] IRainman fix.
 		struct UserParams
 		{
@@ -163,12 +162,30 @@ class ClientManager : public Speaker<ClientManagerListener>,
 			int slots;
 			int limit;
 			std::string ip;
+			std::string tag;
+			
+			tstring getTagIP()
+			{
+				if (!ip.empty())
+				{
+					string dns;
+#ifdef PPA_INCLUDE_DNS
+					dns = Socket::nslookup(ip);
+					if (ip == dns)
+						dns = "no DNS"; // TODO translate
+					if (!dns.empty())
+						dns = " / " + dns;
+#endif
+					return Text::toT(tag + " IP: " + ip + dns);
+				}
+				else
+				{
+					return Text::toT(tag);
+				}
+			}
 		};
 		
-		static bool getUserParams(const UserPtr& user, UserParams& p_params)
-		{
-			return getUserParams(user, p_params.bytesShared, p_params.slots, p_params.limit, p_params.ip);
-		}
+		static bool getUserParams(const UserPtr& user, UserParams& p_params);
 		// [~] IRainman fix.
 		
 		// !PPA!
