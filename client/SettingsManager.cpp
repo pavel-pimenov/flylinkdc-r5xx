@@ -1636,11 +1636,15 @@ bool SettingsManager::set(StrSetting key, const string& value)
 			string l_new_value = value;
 			if (key == LOG_FORMAT_MAIN_CHAT || key == LOG_FORMAT_PRIVATE_CHAT)
 			{
-				const char* l_extra_temlate = " [extra]";
-				if (value.find(l_extra_temlate) != string::npos)
+				if (value.find(" [extra]") != string::npos ||
+					value.find("S[extra]") != string::npos ||
+					value.find("%H:%M%:%S") != string::npos
+					
+					)
 				{
 					l_auto = false;
-					boost::replace_all(l_new_value, l_extra_temlate, " %[extra]");
+					boost::replace_all(l_new_value, " [extra]", " %[extra]");
+					boost::replace_all(l_new_value, "S[extra]", "S %[extra]");
 					boost::replace_all(l_new_value, "%H:%M%:%S", "%H:%M:%S");
 				}
 			}

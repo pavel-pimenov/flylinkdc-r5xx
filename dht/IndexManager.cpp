@@ -172,8 +172,10 @@ void IndexManager::loadIndexes(SimpleXML& xml)
 		}
 		xml.stepOut();
 	 }
-	if (l_tthList.size())
- 	 CFlylinkDBManager::getInstance()->save_dht_files(l_tthList);
+	if (!l_tthList.empty())
+	{
+		CFlylinkDBManager::getInstance()->save_dht_files(l_tthList);
+	}
 }
 
 /*

@@ -108,8 +108,8 @@ void File_Bpg::Read_Buffer_Continue()
     //Parsing
     Ztring Version;
     int64u Width, Height;
-    int8u  BackgroundColorIndex, PixelAspectRatio, Resolution, GCT_Size, pixelformat, BitsDepth, ColorSpace;
-    bool GCT_Flag, Sort, Alpha1_flag, Alpha2_flag, ReservedZeros, limited_range_flag, ExtensionPresentFlag;
+    int8u  pixelformat, BitsDepth, ColorSpace;
+    bool   Alpha1_flag, Alpha2_flag, ReservedZeros, limited_range_flag, ExtensionPresentFlag;
     Element_Begin1("File header");
     Skip_C4(                                                    "Magic"); // File Magic
     BS_Begin();

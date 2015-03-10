@@ -348,9 +348,10 @@ TTHValue ShareManager::getTTH(const string& virtualFile) const
 MemoryInputStream* ShareManager::getTree(const string& virtualFile) const
 {
 	TigerTree tree;
+	__int64 l_block_size;
 	if (virtualFile.compare(0, 4, "TTH/", 4) == 0)
 	{
-		if (!CFlylinkDBManager::getInstance()->getTree(TTHValue(virtualFile.substr(4)), tree))
+		if (!CFlylinkDBManager::getInstance()->get_tree(TTHValue(virtualFile.substr(4)), tree, l_block_size))
 			return 0;
 	}
 	else
@@ -358,7 +359,7 @@ MemoryInputStream* ShareManager::getTree(const string& virtualFile) const
 		try
 		{
 			const TTHValue tth = getTTH(virtualFile);
-			CFlylinkDBManager::getInstance()->getTree(tth, tree);
+			CFlylinkDBManager::getInstance()->get_tree(tth, tree, l_block_size);
 		}
 		catch (const Exception&)
 		{

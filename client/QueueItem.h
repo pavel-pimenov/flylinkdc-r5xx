@@ -46,7 +46,6 @@ class QueueItemDelegate
 		virtual void setDownloadItem(int64_t pos, int64_t size) = 0;
 };
 #endif
-
 class QueueItem : public Flags,
 	public intrusive_ptr_base<QueueItem>
 #ifdef _DEBUG
@@ -376,6 +375,10 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 		{
 			return m_tthRoot;
 		}
+		void setBlockSize(uint64_t p_block_size)
+		{
+			m_block_size = p_block_size;
+		}
 		uint64_t getBlockSizeSQL()
 		{
 			if (m_block_size == 0)
@@ -441,11 +444,11 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 				setFlag(QueueItem::FLAG_AUTODROP);
 			}
 		}
-		
 		uint64_t getAverageSpeed() const
 		{
 			return m_averageSpeed; // [+] IRainman opt.
 		}
+		void setSectionString(const string& p_section);
 	private:
 		mutable uint64_t m_averageSpeed; // [+] IRainman opt.
 		mutable uint64_t m_downloadedBytes; // [+] IRainman opt.
@@ -467,6 +470,25 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 		QueueItemDelegate* m_delegater;
 #endif
 };
+
+class CFlySegment
+{
+	public:
+		int m_id;
+		int m_priority;
+		string m_segment;
+		CFlySegment()
+		{
+		}
+		CFlySegment(const QueueItemPtr& p_QueueItem)
+		{
+			m_priority = int(p_QueueItem->getPriority());
+			m_segment = p_QueueItem->getSectionStringL();
+			m_id = p_QueueItem->getFlyQueueID();
+			dcassert(m_id);
+		}
+};
+typedef vector<CFlySegment> CFlySegmentArray;
 
 #endif // !defined(QUEUE_ITEM_H)
 

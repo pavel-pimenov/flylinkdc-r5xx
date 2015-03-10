@@ -28,6 +28,8 @@
 #include "ThrottleManager.h"
 #include "StringTokenizer.h"
 
+#include "../FlyFeatures/flyServer.h"
+
 NmdcHub::NmdcHub(const string& aHubURL, bool secure) : Client(aHubURL, '|', false), m_supportFlags(0), m_modeChar(0),
 	m_lastBytesShared(0),
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
@@ -703,7 +705,15 @@ void NmdcHub::revConnectToMeParse(const string& param)
 		              ;
 		// NMDC v2.205 supports "$ConnectToMe sender_nick remote_nick ip:port", but many NMDC hubsofts block it
 		// sender_nick at the end should work at least in most used hubsofts
-		send("$ConnectToMe " + fromUtf8(u->getIdentity().getNick()) + ' ' + getLocalIp() + ":" + Util::toString(m_client_sock->getLocalPort()) + (secure ? "NS " : "N ") + fromUtf8(getMyNick()) + '|');
+		if (m_client_sock->getLocalPort() == 0)
+		{
+			LogManager::message("Error [3] $ConnectToMe port = 0 : ");
+			CFlyServerAdapter::CFlyServerJSON::pushError(22, "Error [3] $ConnectToMe port = 0 :");
+		}
+		else
+		{
+			send("$ConnectToMe " + fromUtf8(u->getIdentity().getNick()) + ' ' + getLocalIp() + ":" + Util::toString(m_client_sock->getLocalPort()) + (secure ? "NS " : "N ") + fromUtf8(getMyNick()) + '|');
+		}
 	}
 	else
 	{
@@ -796,7 +806,15 @@ void NmdcHub::connectToMeParse(const string& param)
 				                                             );
 				                                             
 				// ... and signal other client to do likewise.
-				send("$ConnectToMe " + senderNick + ' ' + getLocalIp() + ":" + Util::toString(m_client_sock->getLocalPort()) + (secure ? "RS" : "R") + '|');
+				if (m_client_sock->getLocalPort() == 0)
+				{
+					LogManager::message("Error [2] $ConnectToMe port = 0 : ");
+					CFlyServerAdapter::CFlyServerJSON::pushError(22, "Error [2] $ConnectToMe port = 0 :");
+				}
+				else
+				{
+					send("$ConnectToMe " + senderNick + ' ' + getLocalIp() + ":" + Util::toString(m_client_sock->getLocalPort()) + (secure ? "RS" : "R") + '|');
+				}
 				break;
 			}
 			else if (port[port.size() - 1] == 'R')
@@ -1646,7 +1664,16 @@ void NmdcHub::connectToMe(const OnlineUser& aUser
 #endif
 	                    ;
 	const uint16_t port = secure ? ConnectionManager::getInstance()->getSecurePort() : ConnectionManager::getInstance()->getPort();
-	send("$ConnectToMe " + nick + ' ' + getLocalIp() + ":" + Util::toString(port) + (secure ? "S" : "") + '|');
+
+	if (port == 0)
+	{
+		LogManager::message("Error [2] $ConnectToMe port = 0 : ");
+		CFlyServerAdapter::CFlyServerJSON::pushError(22, "Error [2] $ConnectToMe port = 0 :");
+	}
+	else
+	{
+		send("$ConnectToMe " + nick + ' ' + getLocalIp() + ":" + Util::toString(port) + (secure ? "S" : "") + '|');
+	}
 }
 
 void NmdcHub::revConnectToMe(const OnlineUser& aUser)
@@ -1807,7 +1834,13 @@ void NmdcHub::search_token(const SearchParamToken& p_search_param)
 		tmp[i] = '$';
 	}
 	string tmp2;
-	const bool l_is_passive = p_search_param.m_is_force_passive || BOOLSETTING(SEARCH_PASSIVE);
+	bool l_is_passive = p_search_param.m_is_force_passive || BOOLSETTING(SEARCH_PASSIVE);
+	if (SearchManager::getSearchPortUint() == 0)
+	{
+		l_is_passive = true;
+		LogManager::message("Error search port = 0 : ");
+		CFlyServerAdapter::CFlyServerJSON::pushError(21, "Error search port = 0 :");
+	}
 	if (isActive() && !l_is_passive)
 	{
 		tmp2 = calcExternalIP();
@@ -1827,6 +1860,8 @@ void NmdcHub::search_token(const SearchParamToken& p_search_param)
 		g_last_search_string = "UDP port: " + tmp2;
 	}
 	{
+		if (SearchManager::getSearchPortUint() == 0)
+			g_last_search_string += " [InvalidPort=0]";
 		if (p_search_param.m_is_force_passive)
 			g_last_search_string += " [AutoPasive]";
 		if (BOOLSETTING(SEARCH_PASSIVE))

@@ -213,6 +213,33 @@ void QueueItem::getOnlineUsers(UserList& list) const
 	}
 }
 
+void QueueItem::setSectionString(const string& p_section)
+{
+	if (p_section.empty())
+		return;
+		
+	const StringTokenizer<string> SectionTokens(p_section, ' ');
+	const StringList &Sections = SectionTokens.getTokens();
+	
+	if (!Sections.empty())
+	{
+		// must be multiply of 2
+		dcassert((Sections.size() & 1) == 0);
+		
+		if ((Sections.size() & 1) == 0)
+		{
+			WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+			for (auto i = Sections.cbegin(); i < Sections.cend(); i += 2)
+			{
+				int64_t start = Util::toInt64(i->c_str());
+				int64_t size = Util::toInt64((i + 1)->c_str());
+				
+				addSegmentL(Segment(start, size));
+			}
+		}
+	}
+}
+
 void QueueItem::addSourceL(const UserPtr& aUser)
 {
 	dcassert(!isSourceL(aUser));

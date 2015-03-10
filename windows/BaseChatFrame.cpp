@@ -616,7 +616,7 @@ tstring BaseChatFrame::getIpCountry(const string& ip, bool ts, bool p_ipInChat, 
 		if (p_ipInChat)
 		{
 			l_result += Text::toT(ip);
-			if (!p_countryInChat && !p_ISPInChat) l_result += _T(" ");	// Fix Right Click Menu on IP without space after IP
+			if (!p_countryInChat && !p_ISPInChat) l_result += _T(" ");  // Fix Right Click Menu on IP without space after IP
 		}
 		if (p_countryInChat || p_ISPInChat)
 		{
@@ -809,7 +809,7 @@ void BaseChatFrame::appendLogToChat(const string& path , const size_t linesCount
 	}
 	catch (const FileException& e)
 	{
-		LogManager::message("BaseChatFrame::appendLogToChat, Error load = " + path + " Error = " + e.getError());
+		// LogManager::message("BaseChatFrame::appendLogToChat, Error load = " + path + " Error = " + e.getError());
 	}
 	const bool l_is_utf = buf.compare(0, 3, "\xef\xbb\xbf", 3) == 0;
 	StringTokenizer<string> l_lines(l_is_utf ? buf.substr(3) : buf, "\r\n");

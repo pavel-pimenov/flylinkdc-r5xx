@@ -299,7 +299,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		
 		FileStatus get_status_file(const TTHValue& p_tth);
 		
-		bool getTree(const TTHValue& p_root, TigerTree& p_tt);
+		bool get_tree(const TTHValue& p_root, TigerTree& p_tt, __int64& p_block_size);
 		unsigned __int64 getBlockSizeSQL(const TTHValue& p_root, __int64 p_size);
 		__int64 get_path_id(string p_path, bool p_create, bool p_case_convet, bool& p_is_no_mediainfo, bool p_sweep_path);
 		void add_tree(const TigerTree& p_tt);
@@ -347,10 +347,12 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		size_t load_queue();
 		void add_sourceL(const QueueItemPtr& p_QueueItem, const CID& p_cid, const string& p_nick/*, const string& p_hub_hint*/);
 		bool merge_queue_itemL(QueueItemPtr& p_QueueItem);
+		void merge_queue_segmentL(const CFlySegment& p_QueueSegment);
 	private:
 		int merge_queue_sub_itemsL(QueueItemPtr& p_QueueItem, __int64 p_id);
 	public:
 		void merge_queue_all_items(std::vector<QueueItemPtr>& p_QueueItemArray);
+		void merge_queue_all_segments(const CFlySegmentArray& p_QueueSegmentArray);
 		void remove_queue_item(const __int64 p_id);
 		void load_ignore(StringSet& p_ignores);
 		void save_ignore(const StringSet& p_ignores);
@@ -550,18 +552,17 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		auto_ptr<sqlite3_command> m_insert_file;
 		auto_ptr<sqlite3_command> m_update_file;
 		auto_ptr<sqlite3_command> m_check_tth_sql;
-		auto_ptr<sqlite3_command> m_load_dir_sql;
-		auto_ptr<sqlite3_command> m_load_dir_sql_without_mediainfo;
-		auto_ptr<sqlite3_command> m_set_ftype;
+		CFlySQLCommand m_load_dir_sql;
+		CFlySQLCommand m_load_dir_sql_without_mediainfo;
+		CFlySQLCommand m_set_ftype;
 		CFlySQLCommand m_load_path_cache;
-		auto_ptr<sqlite3_command> m_sweep_dir_sql;
+		CFlySQLCommand m_sweep_dir_sql;
 		CFlySQLCommand m_sweep_path_file;
 		CFlySQLCommand m_get_path_id;
-		auto_ptr<sqlite3_command> m_get_tth_id;
-		auto_ptr<sqlite3_command> m_upload_file;
-		auto_ptr<sqlite3_command> m_get_tree;
-		auto_ptr<sqlite3_command> m_get_blocksize;  // [+] brain-ripper
-		auto_ptr<sqlite3_command> m_insert_fly_hash;
+		CFlySQLCommand m_get_tth_id;
+		CFlySQLCommand m_upload_file;
+		CFlySQLCommand m_get_tree;
+		CFlySQLCommand m_get_blocksize;  // [+] brain-ripper
 		CFlySQLCommand m_insert_fly_path;
 		CFlySQLCommand m_insert_and_full_update_fly_queue;
 		CFlySQLCommand m_update_segments_fly_queue;
@@ -569,7 +570,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlySQLCommand m_del_fly_queue;
 		CFlySQLCommand m_del_fly_queue_source;
 		CFlySQLCommand m_get_fly_queue;
-		CFlySQLCommand m_get_fly_queue_source;
+		CFlySQLCommand m_get_fly_queue_all_source;
 		
 		auto_ptr<sqlite3_command> m_get_ignores;
 		auto_ptr<sqlite3_command> m_insert_ignores;
@@ -611,9 +612,9 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		
 		
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
-		auto_ptr<sqlite3_command> m_select_statistic_json;
-		auto_ptr<sqlite3_command> m_delete_statistic_json;
-		auto_ptr<sqlite3_command> m_insert_statistic_json;
+		CFlySQLCommand m_select_statistic_json;
+		CFlySQLCommand m_delete_statistic_json;
+		CFlySQLCommand m_insert_statistic_json;
 #endif  // FLYLINKDC_USE_GATHER_STATISTICS
 		
 #ifdef FLYLINKDC_USE_COLLECT_STAT
@@ -623,7 +624,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		auto_ptr<sqlite3_command> m_insert_event_stat;
 #endif
 		
-		auto_ptr<sqlite3_command> m_insert_fly_message;
+		CFlySQLCommand m_insert_fly_message;
 		static inline const string& getString(const StringMap& p_params, const char* p_type)
 		{
 			const auto& i = p_params.find(p_type);

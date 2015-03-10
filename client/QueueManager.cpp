@@ -719,8 +719,8 @@ void QueueManager::Rechecker::execute(const string& p_file) // [!] IRainman core
 		q = qm->fileQueue.find(p_file);
 		if (!q)
 			return;
-			
-		if (!CFlylinkDBManager::getInstance()->getTree(tth, tt))
+		__int64 l_block_size;
+		if (!CFlylinkDBManager::getInstance()->get_tree(tth, tt, l_block_size))
 		{
 			qm->fire(QueueManagerListener::RecheckNoTree(), q->getTarget());
 			return;
@@ -2598,6 +2598,7 @@ void QueueManager::saveQueue(bool force) noexcept
 	if (!m_dirty && !force)
 		return;
 		
+	CFlySegmentArray l_segment_array;
 	{
 		RLock l(*QueueItem::g_cs); // TODO после исправлени€ дедлока - убрать данную блокировку. https://code.google.com/p/flylinkdc/issues/detail?id=1028
 		RLock l_lock_fq(*FileQueue::g_csFQ);
@@ -2606,9 +2607,19 @@ void QueueManager::saveQueue(bool force) noexcept
 		for (auto i = fileQueue.getQueueL().begin(); i != fileQueue.getQueueL().end(); ++i)
 		{
 			auto& qi  = i->second;
-			if (qi->isDirtyAll())
+			if (!qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
 			{
-				if (!qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
+				if (qi->getFlyQueueID() &&
+				qi->isDirtySegment() == true &&
+				qi->isDirtyBase() == false &&
+				qi->isDirtySource() == false)
+				{
+				
+					const CFlySegment l_QueueSegment(qi);
+					l_segment_array.push_back(l_QueueSegment);
+					qi->setDirtySegment(false); // —читаем что обновление сегментов пройдет без ошибок.
+				}
+				else if (qi->isDirtyAll())
 				{
 #ifdef _DEBUG
 					const auto& l_first = i->first;
@@ -2632,7 +2643,20 @@ void QueueManager::saveQueue(bool force) noexcept
 			}
 		}
 	}
-	// [-] dirty = false; [-] IRainman fix.
+	// ≈сли изменились только сегменты + приоритеты - можно обновить базу без блокировки менеджера очередей
+	if (!l_segment_array.empty())
+	{
+		if (l_segment_array.size() > 10)
+		{
+			CFlyLog l_log("[Update queue segments]");
+			l_log.log("Store: " + Util::toString(l_segment_array.size()) + " items...");
+			CFlylinkDBManager::getInstance()->merge_queue_all_segments(l_segment_array);
+		}
+		else
+		{
+			CFlylinkDBManager::getInstance()->merge_queue_all_segments(l_segment_array);
+		}
+	}
 	if (exists_queueFile)
 	{
 		const auto l_queueFile = getQueueFile();

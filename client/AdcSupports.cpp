@@ -160,8 +160,8 @@ void NmdcSupports::setStatus(Identity& id, const char status, const string& conn
 				{
 					coef = 0;
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES
-					FastLock l(g_debugCsUnknownNmdcConnection);
-					g_debugUnknownNmdcConnection.insert(postfix);
+					// FastLock l(g_debugCsUnknownNmdcConnection);
+					// g_debugUnknownNmdcConnection.insert(postfix);
 #endif
 				}
 #undef CHECK_SPEED

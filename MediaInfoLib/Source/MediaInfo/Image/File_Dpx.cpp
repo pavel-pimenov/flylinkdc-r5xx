@@ -302,7 +302,6 @@ void File_Dpx::Streams_Accept()
 
     //Configuration
     Buffer_MaximumSize=64*1024*1024; //Some big frames are possible (e.g YUV 4:2:2 10 bits 1080p)
-    Frame_Count_NotParsedIncluded=0;
 }
 
 //***************************************************************************
@@ -653,17 +652,6 @@ void File_Dpx::GenericSectionHeader_v2()
         //Filling meta
         if (Frame_Count==0)
         {
-            if (CreationDate[ 4]==':'
-             && CreationDate[ 7]==':'
-             && CreationDate[10]==':'
-             && CreationDate[13]==':'
-             && CreationDate[16]==':'
-             && CreationDate[19]=='\0')
-            {
-                CreationDate[ 4] = '-';
-                CreationDate[ 7] = '-';
-                CreationDate[10] = ' ';
-            }
             Fill(Stream_General, 0, General_Encoded_Date, CreationDate); //ToDo: transform it in UTC
             Fill(StreamKind_Last, StreamPos_Last, "Encoded_Date", CreationDate); //ToDo: transform it in UTC
             Fill(Stream_General, 0, General_Encoded_Library, Creator);

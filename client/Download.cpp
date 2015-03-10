@@ -64,7 +64,12 @@ lastNormalSpeed(0),
 	bool l_check_tth_sql = false;
 	if (getTTH() != TTHValue()) // не зовем проверку на TTH = 0000000000000000000000000000000000 (файл-лист)
 	{
-		l_check_tth_sql = CFlylinkDBManager::getInstance()->getTree(getTTH(), m_tiger_tree);
+		__int64 l_block_size = 0;
+		l_check_tth_sql = CFlylinkDBManager::getInstance()->get_tree(getTTH(), m_tiger_tree, l_block_size);
+		if (l_check_tth_sql && l_block_size)
+		{
+			item->setBlockSize(l_block_size);
+		}
 	}
 	const bool l_is_check_tth = l_is_type_file && l_check_tth_sql;
 	// ~TODO

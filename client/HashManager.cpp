@@ -208,7 +208,8 @@ bool HashManager::checkTTH(const string& fname, const string& fpath, int64_t p_p
 		if (File::isExist(name))
 		{
 			TigerTree l_TT;
-			if (CFlylinkDBManager::getInstance()->getTree(p_out_tth, l_TT)) // [!] IRainman fix: no needs to lock.
+			__int64 l_block_size;
+			if (CFlylinkDBManager::getInstance()->get_tree(p_out_tth, l_TT, l_block_size)) // [!] IRainman fix: no needs to lock.
 			{
 				m_streamstore.saveTree(name, l_TT); // [!] IRainman fix: no needs to lock.
 			}
