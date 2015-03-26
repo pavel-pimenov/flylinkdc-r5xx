@@ -142,7 +142,7 @@ void Util::MoveSettings()
 				                       + " , bkpath + FileList[i] = " + bkpath + FileList[i] + " error = " + e.getError();
 				LogManager::message(l_error);
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-				CFlyServerAdapter::CFlyServerJSON::pushSyslogError("[BUG][12]  + " + l_error);
+				CFlyServerJSON::pushSyslogError("[BUG][12]  + " + l_error);
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 			}
 		}
@@ -221,7 +221,7 @@ void Util::initialize()
 			if (l_error == 5)
 			{
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-				CFlyServerAdapter::CFlyServerJSON::pushSyslogError("[BUG][11] error create/write .flylinkdc-test-readonly.tmp + " + g_paths[PATH_USER_CONFIG]);
+				CFlyServerJSON::pushSyslogError("[BUG][11] error create/write .flylinkdc-test-readonly.tmp + " + g_paths[PATH_USER_CONFIG]);
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 				intiProfileConfig();
 				// Если возможно уносим настройки в профиль (если их тамеще нет)
@@ -999,7 +999,9 @@ void Util::setAway(bool aAway, bool notUpdateInfo /*= false*/)
 		g_awayTime = time(NULL);
 		
 	if (!notUpdateInfo)
+	{
 		ClientManager::infoUpdated(); // Не звать если не меняется aAway
+	}
 }
 // [~] InfinitySky. Работа с автоответчиком.
 string Util::getAwayMessage(StringMap& params)
@@ -1881,8 +1883,8 @@ tstring Util::CustomNetworkIndex::getCountry() const
 		return Text::toT(Util::getCountryShortName(l_res.m_flag_index - 1));
 		//return l_res.m_description;
 	}
-#endif
 	else
+#endif
 	{
 		return Util::emptyStringT;
 	}
@@ -1901,8 +1903,8 @@ tstring Util::CustomNetworkIndex::getDescription() const
 		const CFlyLocationDesc l_res =  CFlylinkDBManager::getInstance()->get_country_from_cache(m_country_cache_index);
 		return l_res.m_description;
 	}
-#endif
 	else
+#endif
 	{
 		return Util::emptyStringT;
 	}
@@ -2265,7 +2267,7 @@ string Util::formatMessage(const string& message)
 void Util::setLimiter(bool aLimiter)
 {
 	SET_SETTING(THROTTLE_ENABLE, aLimiter);
-	ClientManager::infoUpdated(); // TODO - не звать если не меняется лимитер
+	ClientManager::infoUpdated(); 
 }
 
 std::string Util::getRegistryCommaSubkey(const tstring& p_key)

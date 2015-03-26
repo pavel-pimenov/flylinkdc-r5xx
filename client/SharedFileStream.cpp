@@ -69,7 +69,7 @@ SharedFileStream::SharedFileStream(const string& aFileName, int aAccess, int aMo
 			const auto l_dup_filter = g_shared_stream_errors.insert(l_error);
 			if (l_dup_filter.second == true)
 			{
-				CFlyServerAdapter::CFlyServerJSON::pushError(9, l_error);
+				CFlyServerJSON::pushError(9, l_error);
 				const tstring l_email_message = Text::toT(string("\r\nError in SharedFileStream::SharedFileStream. aFileName = [") + aFileName + "]\r\n" +
 				                                          "Error = " + e.getError() + "\r\nSend screenshot (or text - press ctrl+c for copy to clipboard) e-mail ppa74@ya.ru for diagnostic error!");
 				::MessageBox(NULL, l_email_message.c_str() , _T(APPNAME)  , MB_OK | MB_ICONERROR);

@@ -670,6 +670,8 @@
     <ClInclude Include="windows\Wnd.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="res\Cam.ico" />
+    <Image Include="res\Cam.png" />
     <Image Include="res\clock.ico" />
     <Image Include="res\firewall.ico" />
     <Image Include="res\ISPImages.png" />

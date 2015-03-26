@@ -42,7 +42,7 @@
 #include "../client/ResourceManager.h"
 #endif
 #include "FavHubProperties.h"
-
+#include "../client/MappingManager.h"
 
 HubFrame::FrameMap HubFrame::g_frames;
 
@@ -680,7 +680,7 @@ HubFrame* HubFrame::openWindow(const string& p_server,
 		frm->MDIActivate(frm->m_hWnd);
 	}
 	
-	if (Text::toLower(p_server).find("dc.fly-server.ru") != string::npos)
+	if (frm->isFlySupportHub())
 	{
 		frm->setCustomIcon(*WinUtil::g_HubFlylinkDCIcon.get());
 	}
@@ -786,15 +786,9 @@ void HubFrame::processFrameCommand(const tstring& fullMessageText, const tstring
 	}
 	else if (stricmp(cmd.c_str(), _T("connection")) == 0 || stricmp(cmd.c_str(), _T("con")) == 0)
 	{
-		const tstring l_con = TSTRING(IP) + Text::toT(m_client->getLocalIp()) + _T(", ") +
-		                      TSTRING(PORT) + _T(' ') +
-		                      _T("TCP: ") + Util::toStringW(ConnectionManager::getInstance()->getPort()) + _T('/') +
-		                      _T("UDP: ") + Text::toT(SearchManager::getSearchPort()) + _T('/') +
-		                      _T("TLS: ") + Util::toStringW(ConnectionManager::getInstance()->getSecurePort()) + _T('/')
-#ifdef STRONG_USE_DHT
-		                      + _T("DHT: ") + Util::toStringW(dht::DHT::getInstance()->getPort())
-#endif
-		                      ;
+		string l_desc = MappingManager::getPortmapInfo(true, true);
+		tstring l_con = _T("\r\n-=[ ") + TSTRING(IP) + _T(' ') + Text::toT(m_client->getLocalIp()) + _T(" ]=-\r\n-=[ ") + Text::toT(l_desc) + _T(" ]=-");
+		
 		if (param == _T("pub"))
 			sendMessage(l_con);
 		else
@@ -1089,13 +1083,14 @@ LRESULT HubFrame::onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 			case IDC_COPY_NICK:
 				sCopy += id.getNick();
 				break;
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 			case IDC_COPY_ANTIVIRUS_DB_INFO:
 				sCopy += id.getVirusDesc();
-#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
+				break;
+#endif
 			case IDC_COPY_EXACT_SHARE:
 				sCopy += Identity::formatShareBytes(id.getBytesShared());
 				break;
-#endif
 			case IDC_COPY_DESCRIPTION:
 				sCopy += id.getDescription();
 				break;
@@ -4058,7 +4053,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 	}
 }
 // !SMT!-UI
-void HubFrame::addDupeUsersToSummaryMenu(const int64_t &share, const string& ip)
+void HubFrame::addDupeUsersToSummaryMenu(ClientManager::UserParams& p_param)
 {
 	// Данная функция ломает меню - http://youtu.be/GaWw-S4ZYJA
 	// Причину пока не знаю - есть краши https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=27075
@@ -4077,10 +4072,16 @@ void HubFrame::addDupeUsersToSummaryMenu(const int64_t &share, const string& ip)
 		for (auto i = frame->m_userMap.cbegin(); i != frame->m_userMap.cend(); ++i) // TODO https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=28097
 		{
 			const auto& l_id = i->second->getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'i->second->getIdentity()' expression repeatedly. hubframe.cpp 3673
-			if (share && l_id.getBytesShared() == share)
+//			if (l_id.getNick() == "Strannik")
+//			{
+//				string l_iii = "dddd";
+//			}
+			if ((p_param.m_bytesShared && l_id.getBytesShared() == p_param.m_bytesShared) ||
+			        (p_param.m_nick == l_id.getNick()) ||
+			        (!p_param.m_ip.empty() && p_param.m_ip == l_id.getIpAsString()))
 			{
 				tstring info = Text::toT(frame->m_client->getHubName() + " ( " + frame->m_client->getHubUrl() + " ) ") + _T(" - ") + i->second->getText(COLUMN_NICK);
-				const UINT flags = (!ip.empty() && ip == l_id.getIpAsString()) ? MF_CHECKED : 0;
+				const UINT flags = (!p_param.m_ip.empty() && p_param.m_ip == l_id.getIpAsString()) ? MF_CHECKED : 0;
 				FavoriteUser favUser;
 				if (FavoriteManager::getFavoriteUser(i->second->getUser(), favUser))
 				{

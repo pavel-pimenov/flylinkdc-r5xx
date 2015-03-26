@@ -1130,7 +1130,7 @@ enum Strings   // @DontAdd
 	REPORT_BUGS, // "Report bugs"
 	REQUESTING, // "Requesting"
 	RESUME, // "Resume"
-	RESTORE_LOST_SHARE, // "Restored folder that was previously in share:"
+	RESTORE_LOST_SHARE, // "Restore folder that was previously in share?"
 	RETRIEVING_DATA, // "Retrieving data"
 	RIGHT_COLOR, // "Right color"
 	ROLLBACK_INCONSISTENCY, // "Rollback inconsistency, existing file does not match the one being downloaded"

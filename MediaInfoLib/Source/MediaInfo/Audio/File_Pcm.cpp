@@ -262,13 +262,13 @@ void File_Pcm::Read_Buffer_Continue()
     }
 
     #if MEDIAINFO_DEMUX
-    if (Demux_UnpacketizeContainer && !Status[IsAccepted])
-    {
-        Frame_Count_Valid_Demux++;
-        if (Frame_Count_Valid_Demux<Frame_Count_Valid)
-            Element_WaitForMoreData();
-    }
-#endif //MEDIAINFO_DEMUX
+        if (Demux_UnpacketizeContainer && !Status[IsAccepted])
+        {
+            Frame_Count_Valid_Demux++;
+            if (Frame_Count_Valid_Demux<Frame_Count_Valid)
+                Element_WaitForMoreData();
+        }
+    #endif //MEDIAINFO_DEMUX
 }
 
 //***************************************************************************
@@ -410,7 +410,7 @@ void File_Pcm::Data_Parse()
         if (BitDepth && Channels && SamplingRate)
             FrameInfo.DTS+=Element_Size*1000000000*8/BitDepth/Channels/SamplingRate;
         else
-        FrameInfo.DTS+=FrameInfo.DUR;
+            FrameInfo.DTS+=FrameInfo.DUR;
         FrameInfo.PTS=FrameInfo.DTS;
     }
     if ((!Status[IsAccepted] && Frame_Count>=Frame_Count_Valid) || File_Offset+Buffer_Size>=File_Size)

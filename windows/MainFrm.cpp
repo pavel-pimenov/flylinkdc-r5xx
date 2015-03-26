@@ -454,7 +454,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		if (CFlylinkDBManager::getInstance()->get_registry_variable_string(e_IncopatibleSoftwareList) != CompatibilityManager::getIncompatibleSoftwareList())
 		{
 			CFlylinkDBManager::getInstance()->set_registry_variable_string(e_IncopatibleSoftwareList, CompatibilityManager::getIncompatibleSoftwareList());
-			CFlyServerAdapter::CFlyServerJSON::pushError(4, "CompatibilityManager::detectUncompatibleSoftware = " + CompatibilityManager::getIncompatibleSoftwareList());
+			CFlyServerJSON::pushError(4, "CompatibilityManager::detectUncompatibleSoftware = " + CompatibilityManager::getIncompatibleSoftwareList());
 			if (MessageBox(Text::toT(CompatibilityManager::getIncompatibleSoftwareMessage()).c_str(), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON1 | MB_TOPMOST) == IDYES)
 			{
 				WinUtil::openLink(WinUtil::GetWikiLink() + _T("incompatiblesoftware"));
@@ -2091,10 +2091,9 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 		const string lastBind   = SETTING(BIND_ADDRESS);
 		
 		const bool lastSortFavUsersFirst = BOOLSETTING(SORT_FAVUSERS_FIRST);
-		
+
 		if (dlg.DoModal(m_hWnd) == IDOK)
 		{
-			SettingsManager::testPortLevelInit();
 			SettingsManager::getInstance()->save();
 			transferView.setButtonState();
 			if (missedAutoConnect && !SETTING(NICK).empty())
@@ -2187,7 +2186,7 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 			}
 			
 			// TODO move this call to kernel.
-			ClientManager::infoUpdated();
+			ClientManager::infoUpdated(true); // Для fly-server шлем принудительно
 		}
 	}
 	return 0;
@@ -2199,7 +2198,7 @@ void MainFrame::getIPupdate()
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	std::vector<unsigned short> l_udp_port, l_tcp_port;
 	// l_udp_port.push_back(SETTING(UDP_PORT));
-	bool l_is_udp_port_send = CFlyServerAdapter::CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, SETTING(IPUPDATE_INTERVAL));
+	bool l_is_udp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, SETTING(IPUPDATE_INTERVAL));
 	if (l_is_udp_port_send && !l_external_ip.empty())
 	{
 		SET_SETTING(EXTERNAL_IP, l_external_ip);

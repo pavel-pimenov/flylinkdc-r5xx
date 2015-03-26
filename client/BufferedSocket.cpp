@@ -303,7 +303,7 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 				}
 				else
 				{
-					COMMAND_DEBUG("[TTH][FastSkip]$Search TTH " + l_tth_str, DebugTask::HUB_IN, getIp() + ':' + Util::toString(getPort()));
+					COMMAND_DEBUG("[TTH][FastSkip] " + l_line_item, DebugTask::HUB_IN, getIp() + ':' + Util::toString(getPort()));
 #ifdef _DEBUG
 					//  LogManager::message("BufferedSocket::all_search_parser Skip unknown TTH = " + l_tth.toBase32());
 #endif
@@ -316,7 +316,7 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 					if (!m_count_search_ddos)
 					{
 						const string l_error = "BufferedSocket::all_search_parser DDoS $Search command: " + l_line_item + " Hub IP = " + getIp();
-						CFlyServerAdapter::CFlyServerJSON::pushError(20, l_error);
+						CFlyServerJSON::pushError(20, l_error);
 						LogManager::message(l_error);
 						if (!m_count_search_ddos)
 						{
@@ -332,7 +332,7 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 				if (l_marker_file == string::npos || l_line_item.size() <= 12)
 				{
 					const string l_error = "BufferedSocket::all_search_parser error format $Search command: " + l_line_item + " Hub IP = " + getIp();
-					CFlyServerAdapter::CFlyServerJSON::pushError(19, l_error);
+					CFlyServerJSON::pushError(19, l_error);
 					LogManager::message(l_error);
 					return true;
 				}
@@ -345,7 +345,7 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 				{
 					if (ShareManager::isUnknownFile(l_item.getRAWQuery()))
 					{
-						COMMAND_DEBUG("[File][FastSkip]$Search unknown file: " + l_item.getRAWQuery(), DebugTask::HUB_IN, getIp() + ':' + Util::toString(getPort()));
+						COMMAND_DEBUG("[File][FastSkip][Unknown files] " + l_line_item, DebugTask::HUB_IN, getIp() + ':' + Util::toString(getPort()));
 #ifdef _DEBUG
 						LogManager::message("BufferedSocket::all_search_parser Skip unknown File = " + l_item.m_raw_search);
 #endif

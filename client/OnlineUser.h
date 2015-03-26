@@ -261,6 +261,10 @@ class Identity
 			else
 				return getUser()->getIP();
 		}
+		bool isIPValid() const
+		{
+			return !m_ip.is_unspecified();
+		}
 		string getIpAsString() const
 		{
 			if (!m_ip.is_unspecified())

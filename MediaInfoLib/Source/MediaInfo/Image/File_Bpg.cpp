@@ -113,7 +113,7 @@ void File_Bpg::Read_Buffer_Continue()
     Element_Begin1("File header");
     Skip_C4(                                                    "Magic"); // File Magic
     BS_Begin();
-        Get_S1 (3, pixelformat,                                 "pixel_format");  Param_Info1(Bpg_Pixel_format(pixelformat));
+        Get_S1 (3, pixelformat,                                 "pixel_format"); Param_Info1(Bpg_Pixel_format(pixelformat));
         Get_SB (Alpha1_flag,                                    "Alpha1 Present Flag");
         Get_S1 (4, BitsDepth,                                   "bit_depth_minus_8");
 
@@ -135,7 +135,7 @@ void File_Bpg::Read_Buffer_Continue()
 
         Stream_Prepare(Stream_Image);
         Fill(Stream_Image, 0, Image_Width, Width);
-        Fill(Stream_Image, 0, Image_Height, Height); 
+        Fill(Stream_Image, 0, Image_Height, Height);
         Fill(Stream_Image, 0, Image_Format, __T("BPG"));
         Fill(Stream_Image, 0, Image_ChromaSubsampling, Bpg_Pixel_format(pixelformat));
         Fill(Stream_Image, 0, Image_ColorSpace, Bpg_ColorSpace(ColorSpace));

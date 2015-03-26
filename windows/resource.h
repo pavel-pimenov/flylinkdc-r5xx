@@ -190,6 +190,8 @@
 #define IDR_HUB_FLYLINKDC               299
 #define IDD_ABOUTSTAT                   300
 #define IDR_ICON_CLOCK                  301
+#define IDR_ICON_CAMSHOOT_ICO           302
+#define IDR_ICON_CAMSHOOT_PNG           303
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
 #define IDC_COPY_HUB                    1002
@@ -672,7 +674,7 @@
 #define IDC_LISTLEN                     1475
 #define IDC_PUB_LIST_CONFIG             1477
 #define IDC_ODC_STYLE                   1478
-#define IDC_OVERRIDE                    1479
+#define IDC_NO_IP_OVERRIDE              1479
 #define IDC_WINDOWS_STARTUP             1480
 #define IDC_SETTINGS_PORTS              1481
 #define IDC_SETTINGS_AUTO_OPEN          1482
@@ -1049,7 +1051,6 @@
 #define IDC_PREVIEW_APPLICATION         1865
 #define IDC_TOOLBAR_HOT_IMAGE           1866
 #define IDC_LIMITER                     1867
-#define IDC_STEALTH                     1868
 #define IDC_HELP_GEOIPFILE              1869
 #define IDC_CHATCOLORS                  1870
 #define IDC_MODCOLORS                   1871
@@ -1479,6 +1480,7 @@
 #define IDC_LINKS_STATIC                2305
 #define IDC_STATISTICS_STATIC           2306
 #define IDC_SIDEPRO_STATIC              2307
+#define IDC_PROPPAGE_CAMSHOOT           2308
 #define IDC_MAGNET_PIC                  2315
 #define IDC_PM_PASSWORD_HELP            2316
 #define IDC_PM_PASSWORD_GENERATE        2317
@@ -1616,7 +1618,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        301
+#define _APS_NEXT_RESOURCE_VALUE        303
 #define _APS_NEXT_COMMAND_VALUE         32789
 #define _APS_NEXT_CONTROL_VALUE         2510
 #define _APS_NEXT_SYMED_VALUE           2423

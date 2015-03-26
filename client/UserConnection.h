@@ -75,10 +75,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 			FLAG_DOWNLOAD               = FLAG_INTERNAL_FIRST << 4,
 			FLAG_INCOMING               = FLAG_INTERNAL_FIRST << 5,
 			FLAG_ASSOCIATED             = FLAG_INTERNAL_FIRST << 6, //-V112
-			FLAG_SECURE                 = FLAG_INTERNAL_FIRST << 7,
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-			FLAG_STEALTH                = FLAG_INTERNAL_FIRST << X, // [-] IRainman: deprecated
-#endif
+			FLAG_SECURE                 = FLAG_INTERNAL_FIRST << 7
 		};
 		
 		enum States

@@ -2146,10 +2146,10 @@ void QueueManager::putDownload(const string& p_path, Download* aDownload, bool p
 									{
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 										CFlyTTHKey l_file(q->getTTH(), q->getSize());
-										CFlyServerAdapter::CFlyServerJSON::addDownloadCounter(l_file);
+										CFlyServerJSON::addDownloadCounter(l_file);
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 #ifdef _DEBUG
-										//CFlyServerAdapter::CFlyServerJSON::sendDownloadCounter();
+										//CFlyServerJSON::sendDownloadCounter();
 #endif
 									}
 								}

@@ -266,7 +266,7 @@ void CFlylinkDBManager::errorDB(const string& p_txt)
 			MessageBox(NULL, (l_russian_error + Text::toT(l_message)).c_str(), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_OK | MB_ICONERROR | MB_TOPMOST);
 		}
 	}
-	bool l_is_send = CFlyServerAdapter::CFlyServerJSON::pushError(16, l_error);
+	bool l_is_send = CFlyServerJSON::pushError(16, l_error);
 	if (l_is_force_exit)
 	{
 		tstring l_body = l_russian_error + Text::toT(l_message);
@@ -640,14 +640,14 @@ CFlylinkDBManager::CFlylinkDBManager()
 		if (!safeAlter("CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_last_ip ON fly_last_ip(dic_nick,dic_hub);"))
 		{
 			safeAlter("delete from fly_last_ip where rowid not in (select max(rowid) from fly_last_ip group by dic_nick,dic_hub)");
-			CFlyServerAdapter::CFlyServerJSON::pushError(7, "error CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_last_ip ON fly_last_ip(dic_nick,dic_hub)");
+			CFlyServerJSON::pushError(7, "error CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_last_ip ON fly_last_ip(dic_nick,dic_hub)");
 		}
 		m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS fly_last_ip_nick_hub("
 		                              "nick text not null, dic_hub integer not null,ip text);");
 		if (!safeAlter("CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_last_ip_nick_hub ON fly_last_ip_nick_hub(nick,dic_hub);"))
 		{
 			safeAlter("delete from fly_last_ip_nick_hub where rowid not in (select max(rowid) from fly_last_ip_nick_hub group by nick,dic_hub)");
-			CFlyServerAdapter::CFlyServerJSON::pushError(8, "error CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_last_ip_nick_hub ON fly_last_ip_nick_hub(nick,dic_hub)");
+			CFlyServerJSON::pushError(8, "error CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_last_ip_nick_hub ON fly_last_ip_nick_hub(nick,dic_hub)");
 		}
 		// ќна не используютс€ в верси€х r502 но дл€ отката назад нужны
 		
@@ -956,7 +956,7 @@ void CFlylinkDBManager::convert_fly_hash_block_internalL()
 	}
 	if (l_count_convert_error)
 	{
-		CFlyServerAdapter::CFlyServerJSON::pushError(2, "Error convert fly_hash_block! count error = " + Util::toString(l_count_convert_error) + ", last Error = " + l_last_error);
+		CFlyServerJSON::pushError(2, "Error convert fly_hash_block! count error = " + Util::toString(l_count_convert_error) + ", last Error = " + l_last_error);
 	}
 }
 //========================================================================================================
@@ -969,7 +969,7 @@ void CFlylinkDBManager::convert_fly_hash_block_crate_unicque_tthL(CFlyLogFile& p
 	}
 	catch (const database_error& e)
 	{
-		CFlyServerAdapter::CFlyServerJSON::pushError(3, "Error CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_hash_block_tth ON fly_hash_block(tth). Error = " + e.getError());
+		CFlyServerJSON::pushError(3, "Error CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_hash_block_tth ON fly_hash_block(tth). Error = " + e.getError());
 		// ”дал€ем дубли! но € не знаю откуда они могут вз€тьс€ :(
 		{
 			p_convert_log.step(m_flySQLiteDB.executenonquery("delete from fly_hash_block where tth is not null and tth_id not in (select max(tth_id) from fly_hash_block where tth is not null group by tth)"));
@@ -1000,7 +1000,7 @@ void CFlylinkDBManager::convert_fly_hash_blockL()
 			{
 				if (e.getError().find("UNIQUE ") != string::npos) // ¬еро€тность этого очень маленька€..
 				{
-					CFlyServerAdapter::CFlyServerJSON::pushError(1, e.getError()); // TODO __FILE__, __LINE__
+					CFlyServerJSON::pushError(1, e.getError()); // TODO __FILE__, __LINE__
 					convert_fly_hash_block_internalL(); // ќбработаем апдейт по одной записи TODO - если не возникнет ошибок - убрать
 				}
 				else
@@ -1228,7 +1228,7 @@ void CFlylinkDBManager::flush_lost_json_statistic(bool& p_is_error)
 					const auto l_id = l_q.getint64(0);
 					const std::string l_post_query = l_q.getstring(1);
 					/*const std::string l_result =*/
-					CFlyServerAdapter::CFlyServerJSON::postQuery(true, true, false, false, "fly-stat", l_post_query, l_is_send, p_is_error); // [!] PVS V808 'l_result' object of 'basic_string' type was created but was not utilized. cflylinkdbmanager.cpp 545
+					CFlyServerJSON::postQuery(true, true, false, false, "fly-stat", l_post_query, l_is_send, p_is_error); // [!] PVS V808 'l_result' object of 'basic_string' type was created but was not utilized. cflylinkdbmanager.cpp 545
 					if (p_is_error)
 						break;
 					if (l_is_send)

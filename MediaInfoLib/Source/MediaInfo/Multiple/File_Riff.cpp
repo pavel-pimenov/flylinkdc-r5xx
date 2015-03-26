@@ -727,7 +727,7 @@ bool File_Riff::Header_Begin()
         Element_Begin0();
         Element_Begin0();
         if (Buffer_DataToParse_End)
-        Header_Fill_Size(Buffer_DataToParse_End-(File_Offset+Buffer_Offset));
+            Header_Fill_Size(Buffer_DataToParse_End-(File_Offset+Buffer_Offset));
         else
             Header_Fill_Size(Element_Size);
         Element_End();

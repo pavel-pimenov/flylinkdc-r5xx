@@ -161,7 +161,7 @@ class FavoriteHubEntry
 		
 	FavoriteHubEntry() noexcept :
 		connect(false), encoding(Text::systemCharset), windowposx(0), windowposy(0), windowsizex(0),
-		        windowsizey(0), windowtype(0), chatusersplit(0), stealth(false),
+		        windowsizey(0), windowtype(0), chatusersplit(0),
 #ifdef FLYLINKDC_HE
 		        userliststate(false),
 #else
@@ -172,16 +172,16 @@ class FavoriteHubEntry
 #endif
 		        hideShare(false),
 		        exclusiveHub(false), showJoins(false), exclChecks(false), mode(0), ip(Util::emptyString),
-		        searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)), overrideId(0) /*clientId(DEF_FAKE_ID),*/
-		        , headerSort(-1), headerSortAsc(true)
+		        searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)), overrideId(0), 
+		        headerSort(-1), headerSortAsc(true)
 		{
 		} // !SMT!-S
 #ifdef PPA_INCLUDE_DEAD_CODE
 	FavoriteHubEntry(const HubEntry& rhs) noexcept :
 		name(rhs.getName()), server(rhs.getServer()), encoding(Text::systemCharset), searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)),
 		description(rhs.getDescription()), connect(false), windowposx(0), windowposy(0), windowsizex(0),
-		windowsizey(0), windowtype(0), chatusersplit(0), stealth(false), userliststate(true), chatusersplitstate(true), hideShare(false),
-		exclusiveHub(false), showJoins(false), exclChecks(false), mode(0), ip(Util::emptyString), overrideId(0), clientId(DEF_FAKE_ID)
+		windowsizey(0), windowtype(0), chatusersplit(0), userliststate(true), chatusersplitstate(true), hideShare(false),
+		exclusiveHub(false), showJoins(false), exclChecks(false), mode(0), ip(Util::emptyString), overrideId(0)
 		, headerSort(-1), headerSortAsc(true)
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 		, connectionStatus(rhs.connectionStatus)
@@ -192,10 +192,10 @@ class FavoriteHubEntry
 		userdescription(rhs.userdescription), email(rhs.email), awaymsg(rhs.awaymsg),
 		name(rhs.getName()), server(rhs.getServer()), description(rhs.getDescription()), password(rhs.getPassword()), connect(rhs.getConnect()),
 		nick(rhs.nick), windowposx(rhs.windowposx), windowposy(rhs.windowposy), windowsizex(rhs.windowsizex), searchInterval(rhs.searchInterval),
-		windowsizey(rhs.windowsizey), windowtype(rhs.windowtype), chatusersplit(rhs.chatusersplit), stealth(rhs.stealth),
+		windowsizey(rhs.windowsizey), windowtype(rhs.windowtype), chatusersplit(rhs.chatusersplit),
 		userliststate(rhs.userliststate), chatusersplitstate(rhs.chatusersplitstate), hideShare(rhs.hideShare),
 		exclusiveHub(false), showJoins(rhs.showJoins), exclChecks(rhs.exclChecks), mode(rhs.mode), ip(rhs.ip), encoding(rhs.getEncoding()),
-		opChat(rhs.opChat), rawOne(rhs.rawOne), rawTwo(rhs.rawTwo), rawThree(rhs.rawThree), rawFour(rhs.rawFour), rawFive(rhs.rawFive), overrideId(rhs.overrideId), clientId(rhs.clientId), headerVisible(rhs.headerVisible)
+		opChat(rhs.opChat), rawOne(rhs.rawOne), rawTwo(rhs.rawTwo), rawThree(rhs.rawThree), rawFour(rhs.rawFour), rawFive(rhs.rawFive), overrideId(rhs.overrideId), headerVisible(rhs.headerVisible)
 		, headerSort(rhs.headerSort), headerSortAsc(rhs.headerSortAsc)
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 		, connectionStatus(rhs.connectionStatus)
@@ -234,7 +234,6 @@ class FavoriteHubEntry
 		GETSET(int, windowsizey, WindowSizeY);
 		GETSET(int, windowtype, WindowType);
 		GETSET(int, chatusersplit, ChatUserSplit);
-		GETSET(bool, stealth, Stealth);
 		GETSET(bool, userliststate, UserListState);
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
 		GETSET(bool, chatusersplitstate, ChatUserSplitState);
@@ -252,7 +251,6 @@ class FavoriteHubEntry
 		GETSET(string, ip, IP);
 		GETSET(string, opChat, OpChat);
 		// [!] IRainman mimicry function
-		// [-] GETSET(string, clientId, ClientId); // !SMT!-S
 		GETSET(string, clientName, ClientName);
 		GETSET(string, clientVersion, ClientVersion);
 		GETSET(bool, overrideId, OverrideId); // !SMT!-S

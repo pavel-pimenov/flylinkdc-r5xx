@@ -253,6 +253,7 @@ class InternetSearchBaseHandler // [+] IRainman fix.
 					break;
 				default:
 					dcassert(0);
+					LogManager::message("Not implemented [searchFileInInternet] ( ppa74@ya.ru)");
 					return;
 			}
 			url += file;
@@ -383,32 +384,34 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 		virtual LRESULT onOpenUserLog(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			dcassert(0);
+			LogManager::message("Not implemented [virtual LRESULT onOpenUserLog] ( ppa74@ya.ru)");
 			return 0;
 		}
 		
 		virtual LRESULT onAddNickToChat(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			dcassert(0);
+			LogManager::message("Not implemented [virtual LRESULT onAddNickToChat] ( ppa74@ya.ru)");
 			return 0;
 		}
 		
 		virtual LRESULT onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			dcassert(0);
-			/* TODO https://code.google.com/p/flylinkdc/issues/detail?id=659
+			LogManager::message("Not implemented [virtual LRESULT onCopyUserInfo] ( ppa74@ya.ru)");
+			/* 
+                        // TODO https://code.google.com/p/flylinkdc/issues/detail?id=659
 			// !SMT!-S
 			const auto& su = getSelectedUser();
 			if (su)
 			{
 			    __if_exists(T2::getIdentity)
 			    {
-			        FFFFF
 			        const auto& id = su->getIdentity();
 			        const auto& su = su->getUser();
 			    }
 			    __if_exists(T2::getLastNick)
 			    {
-			        FFFFF
 			        const auto& u = su;
 			    }
 			
@@ -918,7 +921,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 				p_menu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)favMenu, CTSTRING(CONTACT_LIST_MENU));
 			}
 		}
-		
+public:		
 		void appendCopyMenuForSingleUser(CMenu& p_menu)
 		{
 			dcassert(m_selectedUser);
@@ -929,7 +932,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 				appendSeparator(p_menu);
 			}
 		}
-		
+private:		
 		void appendSendAutoMessageItems(CMenu& p_menu/*, const int count*/)
 		{
 			if (DISABLE(options, NO_SEND_PM))

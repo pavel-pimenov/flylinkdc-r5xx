@@ -1085,6 +1085,12 @@
     <None Include="compiled\Settings\common\isp-hub-list.txt" />
     <None Include="res\wifi-router.ico" />
     <None Include="res\clock.ico" />
+    <None Include="res\Cam.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Cam.png">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

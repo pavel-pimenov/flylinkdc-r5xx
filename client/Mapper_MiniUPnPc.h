@@ -51,7 +51,7 @@ class Mapper_MiniUPnPc : public Mapper
 		}
 		string getExternalIP();
 		
-		const string& getName() const
+		const string& getMapperName() const
 		{
 			return g_name;
 		}

@@ -434,7 +434,7 @@ void File::ensureDirectory(tstring aFile)
 				// Error File::ensureDirectory: \\FLYLINKDC-SERV\video\Metallica_-_Sad_But_True.mpg.KMTY5VOGVN7YESAWLKR7FKJPXQT5J5B2PYEFDGY.dctmp error = Синтаксическая ошибка в имени файла, имени папки или метке тома.[error: 123]
 				if (LogManager::isValidInstance())
 				{
-					CFlyServerAdapter::CFlyServerJSON::pushError(10, l_error);
+					CFlyServerJSON::pushError(10, l_error);
 					LogManager::message(l_error);
 				}
 				// TODO - исключить выброс исключения - пусть дальше ковыляет

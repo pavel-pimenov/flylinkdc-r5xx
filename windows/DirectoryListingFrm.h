@@ -47,7 +47,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 	, public CFlyServerAdapter
 #endif
 	, private CFlyTimerAdapter
-	, public UserInfoBaseHandler < DirectoryListingFrame, UserInfoGuiTraits::NO_FILE_LIST | UserInfoGuiTraits::NO_COPY > // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=777
+	// BUG-MENU , public UserInfoBaseHandler < DirectoryListingFrame, UserInfoGuiTraits::NO_FILE_LIST | UserInfoGuiTraits::NO_COPY > // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=777
 	, public InternetSearchBaseHandler<DirectoryListingFrame> // [+] IRainman fix.
 	, public PreviewBaseHandler<DirectoryListingFrame> // [+] IRainman fix.
 #ifdef _DEBUG
@@ -66,7 +66,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		> baseClass;
 		typedef UCHandler<DirectoryListingFrame> ucBase;
 		typedef InternetSearchBaseHandler<DirectoryListingFrame> isBase; // [+] IRainman fix.
-		typedef UserInfoBaseHandler < DirectoryListingFrame, UserInfoGuiTraits::NO_FILE_LIST | UserInfoGuiTraits::NO_COPY > uiBase; // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=777
+		// BUG-MENU  typedef UserInfoBaseHandler < DirectoryListingFrame, UserInfoGuiTraits::NO_FILE_LIST | UserInfoGuiTraits::NO_COPY > uiBase; // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=777
 		typedef PreviewBaseHandler<DirectoryListingFrame> prevBase; // [+] IRainamn fix.
 		
 		enum
@@ -183,7 +183,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		COMMAND_RANGE_HANDLER(IDC_DOWNLOAD_WHOLE_FAVORITE_DIRS, IDC_DOWNLOAD_WHOLE_FAVORITE_DIRS + FavoriteManager::getInstance()->getFavoriteDirsCount(), onDownloadWholeFavoriteDirs)
 		CHAIN_COMMANDS(isBase) // [+] IRainamn fix.
 		CHAIN_COMMANDS(prevBase) // [+] IRainamn fix.
-		CHAIN_COMMANDS(uiBase) // [+] IRainamn fix.
+		// BUG-MENU CHAIN_COMMANDS(uiBase) // [+] IRainamn fix.
 		CHAIN_COMMANDS(ucBase)
 		CHAIN_MSG_MAP(baseClass)
 		CHAIN_MSG_MAP(CSplitterImpl<DirectoryListingFrame>)

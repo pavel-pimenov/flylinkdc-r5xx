@@ -41,6 +41,7 @@ class CID
 		explicit CID(const string& base32)
 		{
 			dcassert(base32.length() == 39);
+			dcassert(base32.find(' ') == string::npos);
 			Encoder::fromBase32(base32.c_str(), cid, sizeof(cid));
 		}
 		void init()

@@ -1647,6 +1647,8 @@ void File_MpegPs::Header_Parse_PES_packet_MPEG1(int8u stream_id)
         FrameInfo.DTS=(((int64u)DTS_32)<<30)
                     | (((int64u)DTS_29)<<15)
                     | (((int64u)DTS_14));
+        if (Frame_Count<16 &&FrameInfo.DTS>=0x100000000LL) //Hack in case DTS is negative (currently not supported by MI). TODO: negative DTS.
+            FrameInfo.DTS=0;
         if (Streams[stream_id].Searching_TimeStamp_End)
         {
             if (Streams[stream_id].TimeStamp_End.DTS.TimeStamp==(int64u)-1)
@@ -1732,7 +1734,7 @@ void File_MpegPs::Header_Parse_PES_packet_MPEG2(int8u stream_id)
             return;
         }
         Buffer_Pos_Flags++;
-        PTS_DTS_flags               =Buffer[Buffer_Pos_Flags]>>6;
+        PTS_DTS_flags               = Buffer[Buffer_Pos_Flags] >> 6;
         ESCR_flag                   = (Buffer[Buffer_Pos_Flags] & 0x20) ? true: false;
         ES_rate_flag                = (Buffer[Buffer_Pos_Flags] & 0x10) ? true: false;
         DSM_trick_mode_flag         = (Buffer[Buffer_Pos_Flags] & 0x08) ? true: false;
@@ -1740,7 +1742,7 @@ void File_MpegPs::Header_Parse_PES_packet_MPEG2(int8u stream_id)
         PES_CRC_flag                = (Buffer[Buffer_Pos_Flags] & 0x02) ? true: false;
         PES_extension_flag          = (Buffer[Buffer_Pos_Flags] & 0x01) ? true: false;
         Buffer_Pos_Flags++;
-        PES_header_data_length      =Buffer[Buffer_Pos_Flags];
+        PES_header_data_length      = Buffer[Buffer_Pos_Flags];
         Element_Offset+=3;
     #if MEDIAINFO_TRACE
     }
@@ -1937,6 +1939,8 @@ void File_MpegPs::Header_Parse_PES_packet_MPEG2(int8u stream_id)
             FrameInfo.DTS=(((int64u)DTS_32)<<30)
                         | (((int64u)DTS_29)<<15)
                         | (((int64u)DTS_14));
+            if (Frame_Count<16 &&FrameInfo.DTS>=0x100000000LL) //Hack in case DTS is negative (currently not supported by MI). TODO: negative DTS.
+                FrameInfo.DTS=0;
             Element_Info_From_Milliseconds(float64_int64s(((float64)FrameInfo.DTS)/90));
             Element_End0();
             Element_End0();
@@ -1961,6 +1965,8 @@ void File_MpegPs::Header_Parse_PES_packet_MPEG2(int8u stream_id)
               | ( ((int64u)Buffer[Buffer_Pos+1]      )<<22)|((((int64u)Buffer[Buffer_Pos+2]&0xFE))<<14)
               | ( ((int64u)Buffer[Buffer_Pos+3]      )<< 7)|((((int64u)Buffer[Buffer_Pos+4]&0xFE))>> 1);
             Element_Offset+=5;
+            if (Frame_Count<16 &&FrameInfo.DTS>=0x100000000LL) //Hack in case DTS is negative (currently not supported by MI). TODO: negative DTS.
+                FrameInfo.DTS=0;
         #if MEDIAINFO_TRACE
         }
         #endif //MEDIAINFO_TRACE

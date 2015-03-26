@@ -60,7 +60,7 @@ const FavoriteManager::mimicrytag FavoriteManager::g_MimicryTags[] =
 	FavoriteManager::mimicrytag("ApexDC++", "1.6.0"),       // 20 aug 2014 http://www.apexdc.net/changes/ (http://forums.apexdc.net/topic/4670-apexdc-160-available-for-download/)
 	FavoriteManager::mimicrytag("PWDC++", "0.41"),          // 29th Dec 2005: Project discontinued
 	FavoriteManager::mimicrytag("IceDC++", "1.01a"),        // 17 jul 2009 http://sourceforge.net/projects/icedc/
-	FavoriteManager::mimicrytag("StrgDC++", "2.43"),        // latest public beta (project possible dead) http://strongdc.sourceforge.net/download.php?lang=eng
+	FavoriteManager::mimicrytag("StrgDC++", "2.42"),        // latest public beta (project possible dead) http://strongdc.sourceforge.net/download.php?lang=eng
 	FavoriteManager::mimicrytag("OlympP2P", "4.0 RC3"),     // Project discontinued
 	FavoriteManager::mimicrytag(nullptr, nullptr),          // terminating, don't delete this
 };
@@ -758,9 +758,6 @@ void FavoriteManager::save()
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
 				xml.addChildAttrib("ChatUserSplitState", (*i)->getChatUserSplitState());
 #endif
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-				xml.addChildAttrib("StealthMode", (*i)->getStealth());
-#endif
 				xml.addChildAttrib("HideShare", (*i)->getHideShare()); // Save paramethers always IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 				xml.addChildAttrib("ShowJoins", (*i)->getShowJoins()); // Show joins
 				xml.addChildAttrib("ExclChecks", (*i)->getExclChecks()); // Excl. from client checking
@@ -881,7 +878,7 @@ void FavoriteManager::save()
 		catch (SimpleXMLException& e)
 		{
 			LogManager::message("FavoriteManager::save error parse tmp file: " + l_tmp_file + " error = " + e.getError());
-			CFlyServerAdapter::CFlyServerJSON::pushError(14, "error check favorites.xml file:" + l_tmp_file + " error = " + e.getError());
+			CFlyServerJSON::pushError(14, "error check favorites.xml file:" + l_tmp_file + " error = " + e.getError());
 			File::deleteFile(l_tmp_file);
 		}
 	}
@@ -890,7 +887,7 @@ void FavoriteManager::save()
 		dcassert(0);
 		dcdebug("FavoriteManager::save: %s\n", e.getError().c_str());
 		LogManager::message("FavoriteManager::save error = " + e.getError());
-		CFlyServerAdapter::CFlyServerJSON::pushError(14, "error create favorites.xml file:" + getConfigFile() + " error = " + e.getError());
+		CFlyServerJSON::pushError(14, "error create favorites.xml file:" + getConfigFile() + " error = " + e.getError());
 	}
 }
 
@@ -1152,9 +1149,6 @@ void FavoriteManager::load(SimpleXML& aXml
 					e->setChatUserSplit(aXml.getIntChildAttrib("ChatUserSplitSize"));
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
 					e->setChatUserSplitState(aXml.getBoolChildAttrib("ChatUserSplitState"));
-#endif
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-					e->setStealth(aXml.getBoolChildAttrib("StealthMode"));
 #endif
 					e->setHideShare(aXml.getBoolChildAttrib("HideShare")); // Hide Share Mod
 					e->setShowJoins(aXml.getBoolChildAttrib("ShowJoins")); // Show joins

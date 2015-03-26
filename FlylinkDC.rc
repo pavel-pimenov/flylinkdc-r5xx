@@ -511,7 +511,7 @@ BEGIN
     EDITTEXT        IDC_PORT_TLS,240,129,44,14,ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "DHT/UDP",IDC_SETTINGS_PORT_DHT,204,145,31,8,0,WS_EX_RIGHT
     EDITTEXT        IDC_PORT_DHT,240,144,44,14,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Don't allow hub/UPnP to override",IDC_OVERRIDE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,167,151,10
+	CONTROL         "Don't allow hub/UPnP to override", IDC_NO_IP_OVERRIDE, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 11, 167, 151, 10
     CONTROL         "Work in passive mode if specified active mode not available (autodetect)",IDC_AUTODETECT,
                     "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,11,177,295,18
     CONTROL         "Allow NAT Traversal for connections with passive users",IDC_NATT,
@@ -1038,7 +1038,6 @@ BEGIN
     EDITTEXT        IDC_HUBEMAIL,56,131,138,14,ES_AUTOHSCROLL
     RTEXT           "Away Msg.",IDC_FH_AWAY,13,148,40,8
     EDITTEXT        IDC_HUBAWAY,56,146,138,14,ES_AUTOHSCROLL
-    CONTROL         "Emulate DC++",IDC_STEALTH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,8,165,126,8
     CONTROL         "Show joins",IDC_SHOW_JOINS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,138,165,59,8
     CONTROL         "Hide share in this hub",IDC_HIDE_SHARE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,8,177,186,8
     CONTROL         "Exclude hub from automatic client/fake checking",IDC_EXCL_CHECKS,
@@ -1810,10 +1809,10 @@ BEGIN
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,284,129,11,14
     LTEXT           "MB",IDC_SETTINGS_MB3,299,131,15,8
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,10,124,305,1
-	CONTROL         "", IDC_STATIC, "Static", SS_ETCHEDHORZ, 10, 152, 304, 1
-	CONTROL         "Use GPU in TTH computation", IDC_TTH_USE_GPU, "Button", BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP, 11, 162, 123, 19
-	COMBOBOX        IDC_TTH_GPU_DEVICES, 64, 186, 250, 13, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "GPU Device",IDC_SETTINGS_TTH_GPU_DEVICE,11,188,52,8,0,WS_EX_LEFT
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,10,152,304,1
+    CONTROL         "Use GPU in TTH computation",IDC_TTH_USE_GPU,"Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,11,162,123,19
+    COMBOBOX        IDC_TTH_GPU_DEVICES,64,186,250,13,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "GPU Device",IDC_SETTINGS_TTH_GPU_DEVICE,11,188,52,8
 END
 
 IDD_SEARCH_PAGE DIALOGEX 0, 0, 325, 300
@@ -2954,6 +2953,7 @@ IDR_ICON_MEDICAL_BAG    ICON                    "res\\medical_bag.ico"
 IDR_ICON_THERMOMETR_BAG ICON                    "res\\thermometer2.ico"
 IDR_ICON_FIREWALL       ICON                    "res\\firewall.ico"
 IDR_ICON_CLOCK          ICON                    "res\\clock.ico"
+IDR_ICON_CAMSHOOT_ICO   ICON                    "res\\Cam.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2997,6 +2997,7 @@ IDR_FLYLINK_PNG         PNG                     "res\\FlyLink.png"
 IDR_MAGNET_PNG          PNG                     "res\\Magnet.png"
 IDR_SPLASH_FOOLS_DAY    PNG                     "res\\Splash\\Splash_fools_day.png"
 IDR_ISP_HUBLIST         PNG                     "res\\ISPImages.png"
+IDR_ICON_CAMSHOOT_PNG   PNG                     "res\\Cam.png"
 #endif    // Russian (Russia) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -3084,7 +3085,7 @@ BEGIN
     "I",            IDC_ITALIC,             VIRTKEY, ALT, NOINVERT
     "U",            IDC_UNDERLINE,          VIRTKEY, ALT, NOINVERT
     "S",            IDC_STRIKE,             VIRTKEY, ALT, NOINVERT
-	"G",			IDC_CLOSE_ALL_SEARCH_FRAME, VIRTKEY, ALT, NOINVERT
+    "G",            IDC_CLOSE_ALL_SEARCH_FRAME, VIRTKEY, ALT, NOINVERT
     "W",            ID_FILE_SETTINGS_WIZARD, VIRTKEY, SHIFT, CONTROL, NOINVERT
 END
 

@@ -205,18 +205,9 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 	private:
 		CAtlString m_MyNickLower; // [+] IRainman fix, todo replace to tstring?
 		TURLMap m_URLMap;
-		const tstring& get_URL(ENLINK* p_EL) const
-		{
-			return get_URL(p_EL->chrg.cpMin/*, p_EL->chrg.cpMax*/);
-		}
-		const tstring& get_URL(const long lBegin/*, const long lEnd*/) const
-		{
-			for (auto i = m_URLMap.cbegin(); i != m_URLMap.cend(); ++i)
-				if (i->first == lBegin)
-					return i->second;
-					
-			return Util::emptyStringT;
-		}
+		const tstring& get_URL(ENLINK* p_EL) const;
+		const tstring& get_URL(const long lBegin/*, const long lEnd*/) const;
+		tstring get_URL_RichEdit(ENLINK* p_EL) const;
 	public:
 		static bool isGoodNickBorderSymbol(TCHAR ch); // [+] SSA
 	protected:

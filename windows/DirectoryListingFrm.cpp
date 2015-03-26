@@ -146,7 +146,7 @@ void DirectoryListingFrame::openWindow(const HintedUser& aUser, const string& tx
 DirectoryListingFrame::DirectoryListingFrame(const HintedUser& aHintedUser, int64_t aSpeed) :
 	CFlyTimerAdapter(m_hWnd),
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-	CFlyServerAdapter(m_hWnd, 5000),
+	CFlyServerAdapter(7000),
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 	statusContainer(STATUSCLASSNAME, this, STATUS_MESSAGE_MAP), treeContainer(WC_TREEVIEW, this, CONTROL_MESSAGE_MAP),
 	listContainer(WC_LISTVIEW, this, CONTROL_MESSAGE_MAP), historyIndex(0), m_loading(true),
@@ -183,7 +183,7 @@ void DirectoryListingFrame::loadXML(const string& txt)
 
 LRESULT DirectoryListingFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
-
+	init_fly_server_window(m_hWnd);
 	CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);
 	ctrlStatus.Attach(m_hWndStatusBar);
 	ctrlStatus.SetFont(Fonts::g_boldFont); // [~] Sergey Shuhskanov
@@ -1933,13 +1933,14 @@ LRESULT DirectoryListingFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/
 	{
 		OMenu tabMenu;
 		tabMenu.CreatePopupMenu();
-		clearUserMenu();
+		// BUG-MENU clearUserMenu();
 		
 //#ifdef OLD_MENU_HEADER //[~]JhaoDa
 		tabMenu.InsertSeparatorFirst(user->getLastNickT());
 //#endif
-		reinitUserMenu(user, Util::emptyString); // [!] TODO: add hub hint.
-		appendAndActivateUserItems(tabMenu); // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=777
+		// BUG-MENU reinitUserMenu(user, Util::emptyString); // [!] TODO: add hub hint.
+		// BUG-MENU appendAndActivateUserItems(tabMenu); // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=777
+		// BUG-MENU appendCopyMenuForSingleUser(tabMenu);
 		tabMenu.AppendMenu(MF_SEPARATOR);
 		
 		tabMenu.AppendMenu(MF_STRING, IDC_CLOSE_ALL_DIR_LIST, CTSTRING(MENU_CLOSE_ALL_DIR_LIST)); // [+] InfinitySky.

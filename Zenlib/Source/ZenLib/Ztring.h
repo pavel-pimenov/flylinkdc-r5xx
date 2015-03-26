@@ -33,11 +33,11 @@ typedef std::basic_string<Char, std::char_traits<Char>, std::allocator<Char> > t
 enum ztring_t
 {
     Ztring_Nothing,
-    Ztring_Rounded              = 1,            ///< if >.5, upper, else lower
-    Ztring_CaseSensitive        = 2,            ///< Case sensitive ("A" and "a" are different)
-    Ztring_AddLastItem          = 4,            ///< if Begin is found and End is not found, return between Begin and end of string
-    Ztring_Recursive            = 8,            ///< Do all strings
-    Ztring_NoZero               =16             ///> Doesn't keep Zero in the float number
+    Ztring_Rounded              =  1,           ///< if >.5, upper, else lower
+    Ztring_CaseSensitive        =  2,           ///< Case sensitive ("A" and "a" are different)
+    Ztring_AddLastItem          =  4,           ///< if Begin is found and End is not found, return between Begin and end of string
+    Ztring_Recursive            =  8,           ///< Do all strings
+    Ztring_NoZero               = 16            ///> Doesn't keep Zero in the float number
 };
 
 //---------------------------------------------------------------------------

@@ -708,13 +708,13 @@ void File_Aac::Data_Parse()
         }
 
         #if MEDIAINFO_ADVANCED
-        switch(Mode)
-        {
-            case Mode_LATM    :
-                                aac_frame_length_Total+=Element_Size;
-                                break;
-            default           : ;
-        }
+            switch(Mode)
+            {
+                case Mode_LATM    :
+                                    aac_frame_length_Total+=Element_Size;
+                                    break;
+                default           : ;
+            }
         #endif //MEDIAINFO_ADVANCED
 
         if (!Status[IsAccepted])

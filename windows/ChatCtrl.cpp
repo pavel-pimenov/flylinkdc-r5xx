@@ -1336,22 +1336,63 @@ LRESULT ChatCtrl::onSize(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHan
 	bHandled = FALSE;
 	return 1;
 }
-
+const tstring& ChatCtrl::get_URL(ENLINK* p_EL) const
+{
+	return get_URL(p_EL->chrg.cpMin/*, p_EL->chrg.cpMax*/);
+}
+const tstring& ChatCtrl::get_URL(const long lBegin/*, const long lEnd*/) const
+{
+	for (auto i = m_URLMap.cbegin(); i != m_URLMap.cend(); ++i)
+	{
+		if (i->first == lBegin)
+			return i->second;
+	}
+	dcassert(0);
+	return Util::emptyStringT;
+}
+tstring ChatCtrl::get_URL_RichEdit(ENLINK* p_EL) const
+{
+	LONG utlBeg = p_EL->chrg.cpMin;
+	LONG utlEnd = p_EL->chrg.cpMax;
+	tstring l_url;
+	if (utlEnd - utlBeg > 0)
+	{
+		const HWND hRichEdit = p_EL->nmhdr.hwndFrom;
+		l_url.resize(utlEnd - utlBeg + 1);
+		SendMessageW(hRichEdit, EM_EXSETSEL, 0, reinterpret_cast<LPARAM>(&p_EL->chrg));
+		SendMessageW(hRichEdit, EM_GETSELTEXT, 0, reinterpret_cast<LPARAM>(l_url.data()));
+		SendMessageW(hRichEdit, EM_SETSEL, utlEnd, utlEnd);
+	}
+	return l_url;
+}
 LRESULT ChatCtrl::onEnLink(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
 	ENLINK* pEL = (ENLINK*)pnmh;
-	
-	if (pEL->msg == WM_LBUTTONUP)
+	if (pEL->msg == WM_LBUTTONUP || pEL->msg == WM_RBUTTONUP)
 	{
-		g_sSelectedURL = get_URL(pEL);
-		WinUtil::openLink(g_sSelectedURL);
-	}
-	else if (pEL->msg == WM_RBUTTONUP)
-	{
-		g_sSelectedURL = get_URL(pEL);
-		SetSel(pEL->chrg.cpMin, pEL->chrg.cpMax);
-		InvalidateRect(NULL);
-		return 0;
+		if (pEL->msg == WM_LBUTTONUP)
+		{
+			g_sSelectedURL = get_URL(pEL);
+			dcassert(!g_sSelectedURL.empty());
+			if (g_sSelectedURL.empty())
+			{
+				g_sSelectedURL = get_URL_RichEdit(pEL);
+				LogManager::message("Error get URL from position = " + Util::toString(pEL->chrg.cpMin) + " Use RichEditURL = " + Text::fromT(g_sSelectedURL));
+			}
+			WinUtil::openLink(g_sSelectedURL);
+		}
+		else if (pEL->msg == WM_RBUTTONUP)
+		{
+			g_sSelectedURL = get_URL(pEL);
+			if (g_sSelectedURL.empty())
+			{
+				g_sSelectedURL = get_URL_RichEdit(pEL);
+				LogManager::message("Error get URL from position = " + Util::toString(pEL->chrg.cpMin) + " Use RichEditURL = " + Text::fromT(g_sSelectedURL));
+			}
+			SetSel(pEL->chrg.cpMin, pEL->chrg.cpMax);
+			InvalidateRect(NULL);
+			return 0;
+		}
 	}
 	return 0;
 }

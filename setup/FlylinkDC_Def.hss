@@ -109,14 +109,14 @@ Name: "pt_BR"; MessagesFile: "custom_lang\custom_messages-PT-BR.isl"
 #endif
 
 [Files]
-Source: "..\compiled\Settings\custom_menu.xml"; DestDir: "{app}\Settings"; Flags: onlyifdoesntexist ignoreversion
+Source: "..\compiled\Settings\custom_menu.xml"; DestDir: "{app}\Settings"; Flags: onlyifdoesntexist
 Source: "..\compiled\AVIPreview.exe"; DestDir: "{app}"; Flags: overwritereadonly ignoreversion
-Source: "..\compiled\WEBserver\*.*"; Excludes: "\.svn\"; DestDir: "{app}\WEBserver"; Flags: recursesubdirs overwritereadonly ignoreversion
-Source: "..\compiled\Lang\??-??.xml"; DestDir: "{app}\Lang"; Flags: overwritereadonly ignoreversion
-Source: "..\compiled\Themes\*.dctheme"; DestDir: "{app}\Themes"; Flags: overwritereadonly ignoreversion
-Source: "..\compiled\Sounds\*.wav"; DestDir: "{app}\Sounds"; Flags: overwritereadonly ignoreversion
-Source: "..\compiled\Sounds\Animals\*.wav"; DestDir: "{app}\Sounds\Animals"; Flags: overwritereadonly ignoreversion
-Source: "..\compiled\EmoPacks\*.*"; Excludes: "\.svn\"; DestDir: "{app}\EmoPacks"; Flags: createallsubdirs overwritereadonly recursesubdirs ignoreversion
+Source: "..\compiled\WEBserver\*.*"; Excludes: "\.svn\"; DestDir: "{app}\WEBserver"; Flags: recursesubdirs overwritereadonly
+Source: "..\compiled\Lang\??-??.xml"; DestDir: "{app}\Lang"; Flags: overwritereadonly
+Source: "..\compiled\Themes\*.dctheme"; DestDir: "{app}\Themes"; Flags: overwritereadonly
+Source: "..\compiled\Sounds\*.wav"; DestDir: "{app}\Sounds"; Flags: overwritereadonly
+Source: "..\compiled\Sounds\Animals\*.wav"; DestDir: "{app}\Sounds\Animals"; Flags: overwritereadonly
+Source: "..\compiled\EmoPacks\*.*"; Excludes: "\.svn\"; DestDir: "{app}\EmoPacks"; Flags: createallsubdirs overwritereadonly recursesubdirs
 Source: "..\Tools\XMLMerge.exe"; DestDir: "{app}\PortalBrowser\XMLUpdate"; Flags: overwritereadonly ignoreversion
 Source: "readme_*-*.rtf"; DestDir: "{app}"; Flags: overwritereadonly
 Source: "license_*-*.rtf"; DestDir: "{app}"; Flags: overwritereadonly

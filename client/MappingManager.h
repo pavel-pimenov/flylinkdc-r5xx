@@ -26,21 +26,19 @@
 #include "Mapper.h"
 #include "TimerManager.h"
 #include "Util.h"
+#include "..\boost\boost\logic\tribool.hpp"
 
 class MappingManager :
 	public Singleton<MappingManager>,
 	private Thread,
 	private TimerManagerListener
-#ifdef _DEBUG
-	, virtual NonDerivable<MappingManager> // [+] IRainman fix.
-#endif
 {
 	public:
 		/** add an implementation derived from the base Mapper class, passed as template parameter.
 		the first added mapper will be tried first, unless the "MAPPER" setting is not empty. */
 		template<typename T> void addMapper()
 		{
-			mappers.push_back(make_pair(T::g_name, [] { return new T(); }));
+			m_mappers.push_back(make_pair(T::g_name, [] { return new T(); }));
 		}
 		StringList getMappers() const;
 		
@@ -50,13 +48,14 @@ class MappingManager :
 		string getStatus() const;
 		string getDeviceString() const
 		{
-			if (working.get())
+			if (m_working.get())
 			{
-				return deviceString(*working);
+				return deviceString(*m_working);
 			}
 			else
 				return Util::emptyString;
 		}
+		static string getPortmapInfo(bool p_add_router_name, bool p_show_public_ip);
 		static string getExternaIP()
 		{
 			return g_externalIP;
@@ -69,21 +68,26 @@ class MappingManager :
 		{
 			return g_defaultGatewayIP = p_ip;
 		}
+		static bool isRouter()
+		{
+			return g_is_wifi_router == true;
+		}
 	private:
 		friend class Singleton<MappingManager>;
 		
-		vector<pair<string, std::function<Mapper * ()>>> mappers;
+		vector<pair<string, std::function<Mapper * ()>>> m_mappers;
 		
 		boost::atomic_flag m_busy;
-		unique_ptr<Mapper> working; /// currently working implementation.
-		uint64_t renewal; /// when the next renewal should happen, if requested by the mapper.
+		unique_ptr<Mapper> m_working; /// currently working implementation.
+		uint64_t m_renewal; /// when the next renewal should happen, if requested by the mapper.
 		int m_listeners_count;
 		static string g_externalIP;
 		static string g_defaultGatewayIP;
-		
+		static string g_mapperName;
+		static boost::logic::tribool g_is_wifi_router;
 		MappingManager();
 		/*virtual*/
-		~MappingManager() // [!] IRainman fix: NonDerivable
+		~MappingManager() 
 		{
 			join();
 		}

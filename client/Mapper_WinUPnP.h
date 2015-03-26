@@ -55,7 +55,7 @@ class Mapper_WinUPnP : public Mapper
 			return "WinUPnP";
 		}
 		
-		const string& getName() const
+		const string& getMapperName() const
 		{
 			return g_name;
 		}

@@ -1090,6 +1090,8 @@
     <Image Include="res\ISPImages.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\Cam.ico" />
+    <Image Include="res\Cam.png" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compiled\Settings\common\IPTrust.ini">

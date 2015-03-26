@@ -28,6 +28,13 @@
 
 #include "wtl_flylinkdc.h"
 
+//#define SCALOLAZ_PROPPAGE_CAMSHOOT
+
+#ifdef SCALOLAZ_PROPPAGE_CAMSHOOT
+#include "ResourceLoader.h"
+#include "HIconWrapper.h"
+#endif
+
 class TreePropertySheet : public CPropertySheetImpl<TreePropertySheet>,
 	protected CFlyTimerAdapter
 	
@@ -90,7 +97,7 @@ class TreePropertySheet : public CPropertySheetImpl<TreePropertySheet>,
 		}
 		
 		static int CALLBACK PropSheetProc(HWND hwndDlg, UINT uMsg, LPARAM lParam);
-		
+		int  m_offset;
 #ifdef SCALOLAZ_PROPPAGE_TRANSPARENCY
 		void addTransparency();
 		void setTransp(int p_Layered);
@@ -98,9 +105,22 @@ class TreePropertySheet : public CPropertySheetImpl<TreePropertySheet>,
 		CFlyToolTipCtrl m_tooltip;  // [+] SCALOlaz: add tooltips
 		uint8_t m_SliderPos;
 #endif
+#ifdef SCALOLAZ_PROPPAGE_CAMSHOOT
+		void addCam();
+		void doCamShoot();
+		LRESULT onCamShoot(WORD /*wNotifyCode*/, WORD wID, HWND hWndCtl, BOOL& /*bHandled*/)
+		{
+			doCamShoot();
+			return 0;
+		}
+		CButton* m_Cam;
+		ExCImage g_CamPNG;
+		CFlyToolTipCtrl* m_Camtooltip;
+#endif
 #ifdef SCALOLAZ_PROPPAGE_HELPLINK
 		void addHelp();
 		void genHelpLink(int p_page);
+		tstring genPropPageName(int p_page);
 		CHyperLink m_Help;
 #endif
 	private:

@@ -1374,6 +1374,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			int height_plus = 0;
 			int height_plus_ico = 0;
 			int l_tabs_x_space = 0;     // Пикселов между кнопками в ряду
+			const int l_delta_x_space = aActive && l_tabs_x_space == 0 ? 1 : 0;
 			switch (WinUtil::GetTabsPosition())
 			{
 					// pos + 1 : делает смещение левого края вкладки, чтобы визуально отделить следующую отрисованную вкладку от предыдущей - 2 отдельные линии
@@ -1389,8 +1390,8 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 					if (l_tabsPath)
 					{
 						l_tabsPath->AddLine(pos/* + 1*/, ypos + m_height + 1, pos/* + 1*/, ypos + 3 + tabAnim);
-						l_tabsPath->AddLine(pos/* + 1*/, ypos + 3 + tabAnim, pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space == 0 ? 1 : 0), ypos + 3 + tabAnim); //-V112
-						l_tabsPath->AddLine(pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space == 0 ? 1 : 0), ypos + 3 + tabAnim, pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space == 0 ? 1 : 0), ypos + m_height + 1);
+						l_tabsPath->AddLine(pos/* + 1*/, ypos + 3 + tabAnim, pos + magic_width - l_tabs_x_space - l_delta_x_space, ypos + 3 + tabAnim); //-V112
+						l_tabsPath->AddLine(pos + magic_width - l_tabs_x_space - l_delta_x_space, ypos + 3 + tabAnim, pos + magic_width - l_tabs_x_space - l_delta_x_space, ypos + m_height + 1);
 						if (!aActive)   // Отделяем вкладку как неактивную
 							l_tabsPath->AddLine(pos/* + 1*/, ypos + m_height + 1, pos + magic_width - l_tabs_x_space, ypos + m_height + 1);
 					}
@@ -1406,8 +1407,8 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 					if (l_tabsPath)
 					{
 						l_tabsPath->AddLine(pos/* + 1*/, ypos, pos/* + 1*/, ypos + m_height - 2 - tabAnim);
-						l_tabsPath->AddLine(pos/* + 1*/, ypos + m_height - 2 - tabAnim, pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space == 0 ? 1 : 0), ypos + m_height - 2 - tabAnim); //-V112
-						l_tabsPath->AddLine(pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space == 0 ? 1 : 0), ypos + m_height - 2 - tabAnim, pos + magic_width - l_tabs_x_space - (aActive && l_tabs_x_space == 0 ? 1 : 0), ypos);
+						l_tabsPath->AddLine(pos/* + 1*/, ypos + m_height - 2 - tabAnim, pos + magic_width - l_tabs_x_space - l_delta_x_space, ypos + m_height - 2 - tabAnim); //-V112
+						l_tabsPath->AddLine(pos + magic_width - l_tabs_x_space - l_delta_x_space, ypos + m_height - 2 - tabAnim, pos + magic_width - l_tabs_x_space - l_delta_x_space, ypos);
 						if (!aActive)   // Отделяем вкладку как неактивную
 							l_tabsPath->AddLine(pos + magic_width - l_tabs_x_space, ypos, pos/* + 1*/, ypos);
 					}

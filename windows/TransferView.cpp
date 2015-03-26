@@ -384,7 +384,7 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 				usercmdsMenu.InsertSeparatorFirst(TSTRING(SETTINGS_USER_COMMANDS));
 #endif
 				
-				// !SMT!-S
+// !SMT!-S
 				reinitUserMenu(itemI->m_hintedUser.user, itemI->m_hintedUser.hint);
 				
 				if (getSelectedUser())
@@ -393,7 +393,7 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 				}
 				// end !SMT!-S
 			}
-			
+
 			appendAndActivateUserItems(transferMenu);
 			
 #ifdef PPA_INCLUDE_DROP_SLOW
@@ -2109,22 +2109,30 @@ LRESULT TransferView::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, B
 	{
 		const ItemInfo* l_ii = ctrlTransfers.getItemData(i);
 		TTHValue l_tth;
-		if (l_ii && getTTH(l_ii, l_tth))
+		if (l_ii)
 		{
-			tstring l_sdata;
-			if (wID == IDC_COPY_TTH)
-				l_sdata = Text::toT(l_tth.toBase32());
-			else if (wID == IDC_COPY_LINK)
-				l_sdata = Text::toT(Util::getMagnet(l_tth, Text::fromT(Util::getFileName(l_ii->m_target)), l_ii->m_size));
-			else if (wID == IDC_COPY_WMLINK)
-				l_sdata = Text::toT(Util::getWebMagnet(l_tth, Text::fromT(Util::getFileName(l_ii->m_target)), l_ii->m_size));
-			else
-				l_sdata = l_ii->getText(columnId);
-				
-			if (l_data.empty())
-				l_data = l_sdata;
-			else
-				l_data += L"\r\n" + l_sdata;
+			if (getTTH(l_ii, l_tth))
+			{
+				tstring l_sdata;
+				if (wID == IDC_COPY_TTH)
+					l_sdata = Text::toT(l_tth.toBase32());
+				else if (wID == IDC_COPY_LINK)
+					l_sdata = Text::toT(Util::getMagnet(l_tth, Text::fromT(Util::getFileName(l_ii->m_target)), l_ii->m_size));
+				else if (wID == IDC_COPY_WMLINK)
+					l_sdata = Text::toT(Util::getWebMagnet(l_tth, Text::fromT(Util::getFileName(l_ii->m_target)), l_ii->m_size));
+				else
+					l_sdata = l_ii->getText(columnId);
+
+				if (l_data.empty())
+					l_data = l_sdata;
+				else
+					l_data += L"\r\n" + l_sdata;
+			}
+			//===============================================================================
+			if (columnId >= COLUMN_FIRST && columnId < COLUMN_LAST)
+			{
+				l_data += l_ii->getText(columnId);
+			}
 		}
 	}
 	WinUtil::setClipboard(l_data);

@@ -36,8 +36,8 @@ void MerkleTreeGPU<Hasher>::update(const void* data, size_t len)
 	bool b_res = true;
 	
 	bool b_use_cpu = !BOOLSETTING(USE_GPU_IN_TTH_COMPUTING) ||
-		GPGPUTTHManager::getInstance()->get()->get_status() != GPGPUPlatform::GPGPU_OK;
-	
+	                 GPGPUTTHManager::getInstance()->get()->get_status() != GPGPUPlatform::GPGPU_OK;
+	                 
 	if (b_use_cpu)
 	{
 		MerkleTree::update(data, len);

@@ -93,9 +93,10 @@ DWORD CFlyServerConfig::g_winet_send_timeout    = 1000;
 
 std::unordered_map<TTHValue, std::pair<CFlyServerInfo*, CFlyServerCache> > CFlyServerAdapter::g_fly_server_cache;
 ::CriticalSection CFlyServerAdapter::g_cs_fly_server;
-::CriticalSection CFlyServerAdapter::CFlyServerJSON::g_cs_error_report;
-string CFlyServerAdapter::CFlyServerJSON::g_last_error_string;
-int CFlyServerAdapter::CFlyServerJSON::g_count_dup_error_string = 0;
+::CriticalSection CFlyServerJSON::g_cs_error_report;
+::CriticalSection CFlyServerJSON::g_cs_download_counter;
+string CFlyServerJSON::g_last_error_string;
+int CFlyServerJSON::g_count_dup_error_string = 0;
 
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 uint16_t CFlyServerConfig::g_min_interval_dth_connect = 60; // К DHT обращаемся не чаще раз в 60 секунд (найти причину почему это происходит)
@@ -542,7 +543,7 @@ bool CFlyServerConfig::SyncAntivirusDB()
 {
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 #ifndef USE_FLYSERVER_LOCAL_FILE
-  dcassert(!g_antivirus_db_url.empty());
+  //dcassert(!g_antivirus_db_url.empty());
   if(BOOLSETTING(AUTOUPDATE_ANTIVIRUS_DB))
   {
   if(!g_antivirus_db_url.empty())
@@ -695,19 +696,24 @@ string CFlyServerConfig::DBDelete()
 //	return sendTTH(l_array,p_send_mediainfo);
 //}
 //======================================================================================================
-string CFlyServerAdapter::CFlyServerJSON::g_fly_server_id;
-CFlyTTHKeyArray CFlyServerAdapter::CFlyServerJSON:: g_download_counter;
+string CFlyServerJSON::g_fly_server_id;
+CFlyTTHKeyArray CFlyServerJSON:: g_download_counter;
 //===================================================================================================================================
 void CFlyServerAdapter::post_message_for_update_mediainfo()
 {
-		if (!m_GetFlyServerArray.empty())
+#ifdef _DEBUG
+	// TODO - эмулируем тормозной инет ::Sleep(10000);
+#endif
+	dcassert(::IsWindow(m_hMediaWnd));
+	if (::IsWindow(m_hMediaWnd) && !m_GetFlyServerArray.empty())
 		{
 			const string l_json_result = CFlyServerJSON::connect(m_GetFlyServerArray, false); 
 			{
 				Lock l(g_cs_fly_server);
 				m_GetFlyServerArray.clear();
 			}
-			if(!l_json_result.empty())
+			dcassert(::IsWindow(m_hMediaWnd));
+			if (!l_json_result.empty() && ::IsWindow(m_hMediaWnd))
 			{
 			Json::Value* l_root = new Json::Value;
 			Json::Reader l_reader(Json::Features::strictMode());
@@ -723,13 +729,26 @@ void CFlyServerAdapter::post_message_for_update_mediainfo()
 			}
 			else
 			{
-				PostMessage(m_hMediaWnd, WM_SPEAKER_MERGE_FLY_SERVER, WPARAM(l_root),LPARAM(NULL));
+				dcassert(::IsWindow(m_hMediaWnd));
+				if (::IsWindow(m_hMediaWnd))
+				{
+					PostMessage(m_hMediaWnd, WM_SPEAKER_MERGE_FLY_SERVER, WPARAM(l_root), LPARAM(NULL));
+				}
+				else
+				{
+					delete l_root;
+				}
 			}
 			}
 			else
 			{
-				Lock l(g_cs_fly_server);
-				m_tth_media_file_map.clear(); // Если возникла ошибка передачи запроса на чтение, запись не шлем.
+				dcassert(::IsWindow(m_hMediaWnd));
+				if (::IsWindow(m_hMediaWnd))
+				{
+					Lock l(g_cs_fly_server);
+					m_tth_media_file_map.clear(); // Если возникла ошибка передачи запроса на чтение, запись не шлем.
+					// crash https://drdump.com/Problem.aspx?ProblemID=121494
+				}
 			}
 		}
 		push_mediainfo_to_fly_server(); // Сбросим на флай-сервер медиаинфу, что нашли у себя (там ее еще нет)
@@ -737,14 +756,18 @@ void CFlyServerAdapter::post_message_for_update_mediainfo()
 //===================================================================================================================================
 void CFlyServerAdapter::push_mediainfo_to_fly_server()
 {
-	CFlyServerKeyArray l_copy_map;
+	dcassert(::IsWindow(m_hMediaWnd));
+	if (::IsWindow(m_hMediaWnd))
 	{
-		Lock l(g_cs_fly_server);
-		l_copy_map.swap(m_SetFlyServerArray);
-	}
-	if (!l_copy_map.empty())
-	{
-		CFlyServerJSON::connect(l_copy_map, true);
+		CFlyServerKeyArray l_copy_map;
+		{
+			Lock l(g_cs_fly_server);
+			l_copy_map.swap(m_SetFlyServerArray);
+		}
+		if (!l_copy_map.empty())
+		{
+			CFlyServerJSON::connect(l_copy_map, true);
+		}
 	}
 }
 //======================================================================================================
@@ -782,7 +805,7 @@ static void initCIDPID(Json::Value& p_info)
 
 }
 //======================================================================================================
-bool CFlyServerAdapter::CFlyServerJSON::login()
+bool CFlyServerJSON::login()
 {
   bool l_is_error = false;
 	if(g_fly_server_id.empty())
@@ -918,7 +941,7 @@ static void getDiskAndMemoryStat(Json::Value& p_info)
 	}
 }
 //======================================================================================================
-string CFlyServerAdapter::CFlyServerJSON::postQueryTestPort(CFlyLog& p_log,const string& p_body, bool& p_is_send, bool& p_is_error)
+string CFlyServerJSON::postQueryTestPort(CFlyLog& p_log,const string& p_body, bool& p_is_send, bool& p_is_error)
 {
     string l_result;
     const auto& l_server_array = CFlyServerConfig::getMirrorTestPortServerArray();
@@ -935,7 +958,7 @@ string CFlyServerAdapter::CFlyServerJSON::postQueryTestPort(CFlyLog& p_log,const
     return l_result;
 }
 //======================================================================================================
-bool CFlyServerAdapter::CFlyServerJSON::pushTestPort(
+bool CFlyServerJSON::pushTestPort(
 		const std::vector<unsigned short>& p_udp_port,
 		const std::vector<unsigned short>& p_tcp_port,
 		string& p_external_ip,
@@ -970,7 +993,7 @@ bool CFlyServerAdapter::CFlyServerJSON::pushTestPort(
     {
         l_info["gateway_ip"] = MappingManager::getDefaultGatewayIP();
     }
-    dcassert(!MappingManager::getExternaIP().empty());
+    // dcassert(!MappingManager::getExternaIP().empty());
     if(!MappingManager::getExternaIP().empty())
     {
         l_info["router_ip"] = MappingManager::getExternaIP();
@@ -1017,7 +1040,7 @@ bool CFlyServerAdapter::CFlyServerJSON::pushTestPort(
 		return l_is_send;
 }
 //======================================================================================================
-void CFlyServerAdapter::CFlyServerJSON::pushSyslogError(const string& p_error)
+void CFlyServerJSON::pushSyslogError(const string& p_error)
 {
     string l_cid;
 	string l_pid;	
@@ -1033,7 +1056,7 @@ void CFlyServerAdapter::CFlyServerJSON::pushSyslogError(const string& p_error)
 	syslog(LOG_USER | LOG_INFO, "%s %s %s [%s]", l_cid.c_str(), l_pid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
 }
 //======================================================================================================
-bool CFlyServerAdapter::CFlyServerJSON::pushError(unsigned p_error_code, string p_error)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error)
 {
 	bool l_is_send = false;
   bool l_is_error = false;
@@ -1085,7 +1108,7 @@ bool CFlyServerAdapter::CFlyServerJSON::pushError(unsigned p_error_code, string 
 }
 //======================================================================================================
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
-bool CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
+bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 {
 	Thread::ConditionLockerWithSpin l(g_running);
     bool l_is_flush_error = login();
@@ -1300,7 +1323,7 @@ bool CFlyServerAdapter::CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 }
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
 //======================================================================================================
-string CFlyServerAdapter::CFlyServerJSON::postQuery(bool p_is_set, 
+string CFlyServerJSON::postQuery(bool p_is_set, 
 													bool p_is_stat_server,
 													bool p_is_disable_zlib_in,
 													bool p_is_disable_zlib_out,
@@ -1517,20 +1540,20 @@ std::string l_hex_dump;
 	return l_result_query;
 }
 //======================================================================================================
-void CFlyServerAdapter::CFlyServerJSON::addDownloadCounter(const CFlyTTHKey& p_file)
+void CFlyServerJSON::addDownloadCounter(const CFlyTTHKey& p_file)
 {
-	Lock l(g_cs_fly_server);
+	Lock l(g_cs_download_counter);
 	g_download_counter.push_back(p_file);
 }
 //======================================================================================================
-bool CFlyServerAdapter::CFlyServerJSON::sendDownloadCounter()
+bool CFlyServerJSON::sendDownloadCounter()
 {
 	bool l_is_error = false;
 	if(!g_download_counter.empty())
 	{
 	CFlyTTHKeyArray l_copy_array;
 	{
-		Lock l(g_cs_fly_server);
+		Lock l(g_cs_download_counter);
 		l_copy_array.swap(g_download_counter);
 	}	
   l_is_error = login();
@@ -1562,7 +1585,7 @@ bool CFlyServerAdapter::CFlyServerJSON::sendDownloadCounter()
    return l_is_error;
 }
 //======================================================================================================
-string CFlyServerAdapter::CFlyServerJSON::connect(const CFlyServerKeyArray& p_fileInfoArray, bool p_is_fly_set_query, bool p_is_ext_info_for_single_file /* = false*/)
+string CFlyServerJSON::connect(const CFlyServerKeyArray& p_fileInfoArray, bool p_is_fly_set_query, bool p_is_ext_info_for_single_file /* = false*/)
 {
 	dcassert(!p_fileInfoArray.empty());
 	Thread::ConditionLockerWithSpin l(g_running);
@@ -1809,7 +1832,7 @@ string CFlyServerInfo::getMediaInfoAsText(const TTHValue& p_tth,int64_t p_file_s
 	CFlyServerKey l_info(p_tth, p_file_size);
 	l_info.m_only_ext_info = true; // Запросим с сервера только расширенную.
 	l_get_array.push_back(l_info);
-	const string l_json_result = CFlyServerAdapter::CFlyServerJSON::connect(l_get_array, false, true);
+	const string l_json_result = CFlyServerJSON::connect(l_get_array, false, true);
 	string l_Infrom;
 	Json::Value l_root;
 	Json::Reader l_reader(Json::Features::strictMode());
@@ -2176,7 +2199,7 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 	catch (std::exception& e)
 	{
 		const string l_error = g_cur_mediainfo_file + " TTH:" + p_tth.toBase32() + " error: " + string(e.what());
-		CFlyServerAdapter::CFlyServerJSON::pushError(15, "error getmediainfo:" + l_error);
+		CFlyServerJSON::pushError(15, "error getmediainfo:" + l_error);
 		Util::setRegistryValueString(FLYLINKDC_REGISTRY_MEDIAINFO_CRASH_KEY, Text::toT(l_error));
 		LogManager::message("getMediaInfo: " + p_name + "TTH:" + p_tth.toBase32() + ' ' + STRING(ERROR_STRING) + ": " + string(e.what()));
 		char l_buf[4000];
@@ -2189,7 +2212,7 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 	{
 		// TODO сюда не попадаем если SEH - найти способ и поправить
 		Util::setRegistryValueString(FLYLINKDC_REGISTRY_MEDIAINFO_CRASH_KEY, Text::toT(g_cur_mediainfo_file + " catch(...) "));
-		CFlyServerAdapter::CFlyServerJSON::pushError(15, "error getmediainfo[2] " + g_cur_mediainfo_file + " TTH:" + p_tth.toBase32() + " catch(...)");
+		CFlyServerJSON::pushError(15, "error getmediainfo[2] " + g_cur_mediainfo_file + " TTH:" + p_tth.toBase32() + " catch(...)");
 		throw;
 	}
 #ifndef _DEBUG

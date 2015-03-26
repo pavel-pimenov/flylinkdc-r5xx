@@ -601,7 +601,7 @@ void File_Avc::Streams_Fill(std::vector<seq_parameter_set_struct*>::iterator seq
     if ((*seq_parameter_set_Item)->vui_parameters && (*seq_parameter_set_Item)->vui_parameters->matrix_coefficients == 0)
         Fill(Stream_Video, 0, Video_ColorSpace, "RGB");
     else
-    Fill(Stream_Video, 0, Video_ColorSpace, "YUV");
+        Fill(Stream_Video, 0, Video_ColorSpace, "YUV");
     Fill(Stream_Video, 0, Video_Colorimetry, Avc_Colorimetry_format_idc[(*seq_parameter_set_Item)->chroma_format_idc]);
     if ((*seq_parameter_set_Item)->bit_depth_luma_minus8==(*seq_parameter_set_Item)->bit_depth_chroma_minus8)
         Fill(Stream_Video, 0, Video_BitDepth, (*seq_parameter_set_Item)->bit_depth_luma_minus8+8);
@@ -631,7 +631,7 @@ void File_Avc::Streams_Finish()
         if (GA94_03_Parser && GA94_03_Parser->Status[IsAccepted])
         {
             Clear(Stream_Text);
-            
+
             Finish(GA94_03_Parser);
             Merge(*GA94_03_Parser);
 
@@ -2953,7 +2953,7 @@ void File_Avc::seq_parameter_set()
 
         //Add
         seq_parameter_set_data_Add(seq_parameter_sets, seq_parameter_set_id, Data_Item_New);
-        
+
         //Autorisation of other streams
         Streams[0x08].Searching_Payload=true; //pic_parameter_set
         if (Streams[0x07].ShouldDuplicate)

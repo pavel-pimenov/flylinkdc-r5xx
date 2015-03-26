@@ -147,12 +147,9 @@ crash_rpt::CrashRpt g_crashRpt(
 #endif
 
 #ifdef FLYLINKDC_BETA
-#ifdef _DEBUG
-bool g_UseCSRecursionLog = false;
-#else
 bool g_UseCSRecursionLog = false;
 #endif
-#endif
+bool g_UseStrongDCTag = false;
 
 CAppModule _Module;
 static void sendCmdLine(HWND hOther, LPTSTR lpstrCmdLine)
@@ -496,6 +493,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	extern bool g_EnableSQLtrace;
 	extern bool g_UseSynchronousOff;
 	extern bool g_UseCSRecursionLog;
+	extern bool g_UseStrongDCTag;
 	if (_tcsstr(lpstrCmdLine, _T("/nowal")) != NULL)
 		g_DisableSQLJournal = true;
 	if (_tcsstr(lpstrCmdLine, _T("/sqlite_use_memory")) != NULL)
@@ -526,6 +524,8 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	if (_tcsstr(lpstrCmdLine, _T("/magnet")) != NULL)
 		magnet = true;
 #ifdef FLYLINKDC_BETA
+	if (_tcsstr(lpstrCmdLine, _T("/strongdc")) != NULL)
+		g_UseStrongDCTag = true;
 	//if (_tcsstr(lpstrCmdLine, _T("/critical_section_log")) != NULL)
 	//  g_UseCSRecursionLog = true;
 	if (_tcsstr(lpstrCmdLine, _T("/crash-test-doctor-dump")) != NULL)

@@ -66,8 +66,8 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		struct mimicrytag
 		{
 			mimicrytag(char* p_tag, char* p_ver) : tag(p_tag), version(p_ver) { }
-			char* tag;
-			char* version;
+			const char* tag;
+			const char* version;
 		};
 		
 		static const mimicrytag g_MimicryTags[];

@@ -40,7 +40,7 @@ StringList SettingsManager::g_connectionSpeeds;
 boost::logic::tribool SettingsManager::g_TestUDPSearchLevel = boost::logic::indeterminate;
 boost::logic::tribool SettingsManager::g_TestUDPDHTLevel = boost::logic::indeterminate;
 boost::logic::tribool SettingsManager::g_TestTCPLevel = boost::logic::indeterminate;
-boost::logic::tribool SettingsManager::g_TestTSLLevel = boost::logic::indeterminate;
+boost::logic::tribool SettingsManager::g_TestTLSLevel = boost::logic::indeterminate;
 
 string SettingsManager::g_UDPTestExternalIP;
 
@@ -667,8 +667,6 @@ void SettingsManager::setDefaults()
 	//setDefault(OPEN_NETWORK_STATISTICS, false);
 	//setDefault(OPEN_NOTEPAD, false);
 	//setDefault(OPEN_WAITING_USERS, false);
-	//setDefault(NO_IP_OVERRIDE, false);//[+] PPA [!]IRainman default disable ip override option
-	// http://forum.wafl.ru/index.php?s=&showtopic=4300&view=findpost&p=82510
 #ifdef FLYLINKDC_SUPPORT_WIN_XP
 	setDefault(SOCKET_IN_BUFFER, MAX_SOCKET_BUFFER_SIZE);
 	setDefault(SOCKET_OUT_BUFFER, MAX_SOCKET_BUFFER_SIZE);
@@ -1637,10 +1635,10 @@ bool SettingsManager::set(StrSetting key, const string& value)
 			if (key == LOG_FORMAT_MAIN_CHAT || key == LOG_FORMAT_PRIVATE_CHAT)
 			{
 				if (value.find(" [extra]") != string::npos ||
-					value.find("S[extra]") != string::npos ||
-					value.find("%H:%M%:%S") != string::npos
-					
-					)
+				        value.find("S[extra]") != string::npos ||
+				        value.find("%H:%M%:%S") != string::npos
+				        
+				   )
 				{
 					l_auto = false;
 					boost::replace_all(l_new_value, " [extra]", " %[extra]");
@@ -1851,6 +1849,10 @@ bool SettingsManager::set(IntSetting key, int value)
 		}
 		case MINIMUM_SEARCH_INTERVAL:
 		{
+			if (value == 72)
+			{
+				value = 10;
+			}
 			VER_MIN(2);
 			VER_MAX(120);
 			break;
@@ -2102,7 +2104,7 @@ void SettingsManager::save(const string& aFileName)
 	}
 	catch (const FileException& e)
 	{
-		CFlyServerAdapter::CFlyServerJSON::pushError(13, "error create/write .xml file:" + aFileName + " error = " + e.getError());
+		CFlyServerJSON::pushError(13, "error create/write .xml file:" + aFileName + " error = " + e.getError());
 	}
 }
 

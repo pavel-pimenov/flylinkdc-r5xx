@@ -1263,7 +1263,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="ReportBugs">Сообщайте об ошибках</String>
 		<String Name="Requesting">Запрос</String>
 		<String Name="Resume">Возобновить</String>
-		<String Name="RestoreLostShare">Восстановлена папка, которая ранее была в шаре:</String>
+		<String Name="RestoreLostShare">Восстановить папку, которая ранее была в шаре:</String>
 		<String Name="RetrievingData">Получение данных</String>
 		<String Name="RightColor">Цвет справа</String>
 		<String Name="RollbackInconsistency">Откат, существующий файл не совпадает с тем, что был скачан</String>

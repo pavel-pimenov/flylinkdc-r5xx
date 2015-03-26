@@ -45,7 +45,7 @@ bool Mapper_NATPMP::init()
 	if (l_result)
 	{
 		LogManager::message("Mapper_NATPMP::init error = "
-		                                   + Util::toString(l_result) + " WSAGetLastError() = " + Util::toString(WSAGetLastError()));
+		                    + Util::toString(l_result) + " WSAGetLastError() = " + Util::toString(WSAGetLastError()));
 	}
 	
 	return initnatpmp(&g_nat, 1, addr.s_addr) >= 0;

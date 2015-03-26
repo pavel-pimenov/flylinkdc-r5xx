@@ -58,11 +58,11 @@ class CGDIImage
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
 		static FastCriticalSection g_GDIcs;
 		static std::unordered_set<CGDIImage*> g_GDIImageSet;
-		friend class CFlyServerAdapter;
+		friend class CFlyServerJSON;
+		friend class CGDIImageOle;
 		static unsigned g_AnimationDeathDetectCount;
 		static unsigned g_AnimationCount;
 		static unsigned g_AnimationCountMax;
-		friend class CGDIImageOle;
 		static bool g_isShutdown;
 		void calcStatisticsL() const
 		{

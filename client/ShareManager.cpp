@@ -548,7 +548,7 @@ void ShareManager::load(SimpleXML& aXml)
 				m_lost_shares.insert(std::make_pair(realPath, CFlyBaseDirItem(vName, 0)));
 				if (File::isExist(realPath)) // Если каталог появился - добавим его в запрос на возврат в шару...
 				{
-					string l_message_lost_share = " < " + virtualName + " >  " + realPath + "\r\n";
+					string l_message_lost_share = "\r\n< " + virtualName + " >  " + realPath + "\r\n";
 					tstring l_message = TSTRING(RESTORE_LOST_SHARE);
 					l_message += Text::toT(l_message_lost_share);
 					m_lost_shares.erase(realPath);

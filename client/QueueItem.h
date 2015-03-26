@@ -53,7 +53,7 @@ class QueueItem : public Flags,
 #endif
 {
 	public:
-		typedef std::unordered_map<string, QueueItemPtr, noCaseStringHash, noCaseStringEq> QIStringMap;
+		typedef boost::unordered_map<string, QueueItemPtr> QIStringMap;
 		
 		enum Priority
 		{

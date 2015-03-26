@@ -35,14 +35,14 @@ void UserInfoSimple::addSummaryMenu()
 	
 	UserInfoGuiTraits::userSummaryMenu.InsertSeparatorLast(getUser()->getLastNickT());
 	
-	ClientManager::UserParams params;
-	if (ClientManager::getUserParams(getUser(), params))
+	ClientManager::UserParams l_params;
+	if (ClientManager::getUserParams(getUser(), l_params))
 	{
-		tstring userInfo = TSTRING(SLOTS) + _T(": ") + Util::toStringW(params.slots) + _T(", ") + TSTRING(SHARED) + _T(": ") + Util::formatBytesW(params.bytesShared);
+		tstring userInfo = TSTRING(SLOTS) + _T(": ") + Util::toStringW(l_params.m_slots) + _T(", ") + TSTRING(SHARED) + _T(": ") + Util::formatBytesW(l_params.m_bytesShared);
 		
-		if (params.limit)
+		if (l_params.m_limit)
 		{
-			userInfo += _T(", ") + TSTRING(SPEED_LIMIT) + _T(": ") + Util::formatBytesW(params.limit) + _T('/') + WSTRING(SEC);
+			userInfo += _T(", ") + TSTRING(SPEED_LIMIT) + _T(": ") + Util::formatBytesW(l_params.m_limit) + _T('/') + WSTRING(SEC);
 		}
 		
 		UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, userInfo.c_str());
@@ -54,19 +54,20 @@ void UserInfoSimple::addSummaryMenu()
 			UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, note.c_str());
 		}
 		
-		if (!params.ip.empty())
+		if (!l_params.m_ip.empty())
 		{
-			UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, params.getTagIP().c_str());
+			UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, l_params.getTagIP().c_str());
 			
-			const Util::CustomNetworkIndex& l_location = Util::getIpCountry(params.ip);
+			const Util::CustomNetworkIndex& l_location = Util::getIpCountry(l_params.m_ip);
 			const tstring loc = TSTRING(COUNTRY) + _T(": ") + l_location.getCountry() + _T(", ") + l_location.getDescription();
 			UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, loc.c_str());
 			
-			HubFrame::addDupeUsersToSummaryMenu(params.bytesShared, params.ip);
+			HubFrame::addDupeUsersToSummaryMenu(l_params);
 		}
 		else
 		{
-			UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, params.getTagIP().c_str());
+			UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, l_params.getTagIP().c_str());
+			HubFrame::addDupeUsersToSummaryMenu(l_params);
 		}
 	}
 	

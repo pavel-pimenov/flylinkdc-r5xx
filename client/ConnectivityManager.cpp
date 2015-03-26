@@ -66,7 +66,6 @@ void ConnectivityManager::detectConnection()
 	const string l_old_bind = SETTING(BIND_ADDRESS);
 	// restore connectivity settings to their default value.
 	SettingsManager::getInstance()->unset(SettingsManager::EXTERNAL_IP);
-	SettingsManager::getInstance()->unset(SettingsManager::NO_IP_OVERRIDE);
 	SettingsManager::getInstance()->unset(SettingsManager::BIND_ADDRESS);
 	if (MappingManager::getInstance()->getOpened())
 	{
@@ -99,7 +98,7 @@ void ConnectivityManager::detectConnection()
 	}
 	
 	autoDetected = true;
-	bool l_is_wifi_router;
+	boost::logic::tribool l_is_wifi_router;
 	const auto l_ip_gateway = Socket::getDefaultGateWay(l_is_wifi_router);
 	if (l_is_wifi_router)
 	{
@@ -224,11 +223,11 @@ string ConnectivityManager::getInformation() const
 	          );
 }
 
-void ConnectivityManager::mappingFinished(const string& mapper)
+void ConnectivityManager::mappingFinished(const string& p_mapper)
 {
 	if (BOOLSETTING(AUTO_DETECT_CONNECTION))
 	{
-		if (mapper.empty())
+		if (p_mapper.empty())
 		{
 			//StrongDC++: don't disconnect when mapping fails else DHT and active mode in favorite hubs won't work
 			//disconnect();
@@ -236,13 +235,10 @@ void ConnectivityManager::mappingFinished(const string& mapper)
 			SET_SETTING(ALLOW_NAT_TRAVERSAL, true);
 			log(STRING(AUTOMATIC_SETUP_ACTIV_MODE_FAILED));
 		}
-		else
-		{
-			SET_SETTING(MAPPER, mapper);
-		}
 		// PPA_INCLUDE_DEAD_CODE fire(ConnectivityManagerListener::Finished());
 	}
 	log(getInformation());
+	SET_SETTING(MAPPER, p_mapper);
 	running = false;
 }
 

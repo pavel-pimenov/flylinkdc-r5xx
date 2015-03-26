@@ -50,7 +50,7 @@ class Mapper_NATPMP : public Mapper
 			return "NATPMP";
 		}
 		
-		const string& getName() const
+		const string& getMapperName() const
 		{
 			return g_name;
 		}

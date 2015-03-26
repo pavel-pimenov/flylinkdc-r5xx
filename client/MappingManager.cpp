@@ -21,6 +21,8 @@
 #include "format.h"
 #include "ConnectionManager.h"
 #include "ConnectivityManager.h"
+#include "CompatibilityManager.h"
+#include "CryptoManager.h"
 #include "LogManager.h"
 #include "Mapper_MiniUPnPc.h"
 #include "Mapper_NATPMP.h"
@@ -34,9 +36,12 @@
 
 string MappingManager::g_externalIP;
 string MappingManager::g_defaultGatewayIP;
+string MappingManager::g_mapperName;
+boost::logic::tribool MappingManager::g_is_wifi_router = boost::logic::indeterminate;
 
-MappingManager::MappingManager() : renewal(0), m_listeners_count(0)
+MappingManager::MappingManager() : m_renewal(0), m_listeners_count(0)
 {
+	g_defaultGatewayIP = Socket::getDefaultGateWay(g_is_wifi_router);
 	addMapper<Mapper_NATPMP>();
 	addMapper<Mapper_MiniUPnPc>();
 #ifdef HAVE_NATUPNP_H
@@ -46,8 +51,10 @@ MappingManager::MappingManager() : renewal(0), m_listeners_count(0)
 StringList MappingManager::getMappers() const
 {
 	StringList ret;
-	for (auto i = mappers.cbegin(), iend = mappers.cend(); i != iend; ++i)
+	for (auto i = m_mappers.cbegin(), iend = m_mappers.cend(); i != iend; ++i)
+	{
 		ret.push_back(i->first);
+	}
 	return ret;
 }
 
@@ -56,7 +63,7 @@ bool MappingManager::open()
 	if (getOpened())
 		return false;
 		
-	if (mappers.empty())
+	if (m_mappers.empty())
 	{
 		log(STRING(UPNP_NO_IMPLEMENTATION));
 		return false;
@@ -81,31 +88,32 @@ void MappingManager::close()
 		--m_listeners_count;
 	}
 	
-	if (working.get())
+	if (m_working.get())
 	{
-		close(*working);
-		working.reset();
+		close(*m_working);
+		m_working.reset();
 	}
 }
 
 bool MappingManager::getOpened() const
 {
-	return working.get() != NULL;
+	return m_working.get() != NULL;
 }
 
 string MappingManager::getStatus() const
 {
-	if (working.get())
+	if (m_working.get())
 	{
-		const auto& mapper = *working;
+		const auto& mapper = *m_working;
 		return str(F_("Successfully created port mappings on the %1% device with the %2% interface") %
-		           deviceString(mapper) % mapper.getName());
+		           deviceString(mapper) % mapper.getMapperName());
 	}
 	return "Failed to create port mappings";
 }
 
 int MappingManager::run()
 {
+	g_mapperName.clear();
 	ScopedFunctor([this] { m_busy.clear(); });
 	
 	// cache these
@@ -115,16 +123,16 @@ int MappingManager::run()
 #ifdef STRONG_USE_DHT
 	const uint16_t dht_port = dht::DHT::getInstance()->getPort();
 #endif
-	if (renewal
+	if (m_renewal
 	        && getOpened()) //[+]FlylinkDC++ Team
 	{
-		Mapper& mapper = *working;
+		Mapper& mapper = *m_working;
 		
 		ScopedFunctor([&mapper] { mapper.uninit(); });
 		if (!mapper.init())
 		{
 			// can't renew; try again later.
-			renewal = GET_TICK() + std::max(mapper.renewal(), 10u) * 60 * 1000;
+			m_renewal = GET_TICK() + std::max(mapper.renewal(), 10u) * 60 * 1000;
 			return 0;
 		}
 		
@@ -136,7 +144,7 @@ int MappingManager::run()
 				mapper.open(port, protocol, APPNAME + description + " port (" + Util::toString(port) + ' ' + Mapper::protocols[protocol] + ")");
 			}
 		};
-		
+		g_mapperName = mapper.getMapperName();
 		addRule(conn_port, Mapper::PROTOCOL_TCP, ("Transfer"));
 		addRule(secure_port, Mapper::PROTOCOL_TCP, ("Encrypted transfer"));
 		addRule(search_port, Mapper::PROTOCOL_UDP, ("Search"));
@@ -147,7 +155,7 @@ int MappingManager::run()
 		auto minutes = mapper.renewal();
 		if (minutes)
 		{
-			renewal = GET_TICK() + std::max(minutes, 10u) * 60 * 1000;
+			m_renewal = GET_TICK() + std::max(minutes, 10u) * 60 * 1000;
 		}
 		else
 		{
@@ -163,21 +171,21 @@ int MappingManager::run()
 	
 	// move the preferred mapper to the top of the stack.
 	const auto& setting = SETTING(MAPPER);
-	for (auto i = mappers.cbegin(); i != mappers.cend(); ++i)
+	for (auto i = m_mappers.cbegin(); i != m_mappers.cend(); ++i)
 	{
 		if (i->first == setting)
 		{
-			if (i != mappers.cbegin())
+			if (i != m_mappers.cbegin())
 			{
-				auto mapper = *i;
-				mappers.erase(i);
-				mappers.insert(mappers.begin(), mapper);
+				const auto mapper = *i;
+				m_mappers.erase(i);
+				m_mappers.insert(m_mappers.begin(), mapper);
 			}
 			break;
 		}
 	}
 	
-	for (auto i = mappers.cbegin(); i != mappers.cend(); ++i)
+	for (auto i = m_mappers.cbegin(); i != m_mappers.cend(); ++i)
 	{
 		unique_ptr<Mapper> pMapper(i->second());
 		Mapper& mapper = *pMapper;
@@ -185,7 +193,7 @@ int MappingManager::run()
 		ScopedFunctor([&mapper] { mapper.uninit(); });
 		if (!mapper.init())
 		{
-			log("Failed to initalize the " + mapper.getName() + " interface");
+			log("Failed to initalize the " + mapper.getMapperName() + " interface");
 			continue;
 		}
 		auto addRule = [this, &mapper](const unsigned short port, Mapper::Protocol protocol, const string & description) -> bool
@@ -212,46 +220,46 @@ int MappingManager::run()
 					l_is_ok = true;
 				}
 #endif // STRONG_USE_DHT
-				this->log(l_info + l_info_port + " with the " + mapper.getName() + " interface");
+				this->log(l_info + l_info_port + " with the " + mapper.getMapperName() + " interface");
 			}
 			return l_is_ok;
 		};
-		
-		if (!(addRule(conn_port, Mapper::PROTOCOL_TCP, ("Transfer")) &&
-		        addRule(secure_port, Mapper::PROTOCOL_TCP, ("Encrypted transfer")) &&
-		        addRule(search_port, Mapper::PROTOCOL_UDP, ("Search"))
+
+		g_mapperName.clear();
+
+		const bool l_is_map_tcp = addRule(conn_port, Mapper::PROTOCOL_TCP, ("Transfer"));
+		const bool l_is_map_tls = addRule(secure_port, Mapper::PROTOCOL_TCP, ("Encrypted transfer"));
+		const bool l_is_map_udp = addRule(search_port, Mapper::PROTOCOL_UDP, ("Search"));
 #ifdef STRONG_USE_DHT
-		        && addRule(dht_port, Mapper::PROTOCOL_UDP, (dht::NetworkName))
+		const bool l_is_map_dht = addRule(dht_port, Mapper::PROTOCOL_UDP, (dht::NetworkName));
+#endif
+		if (!(l_is_map_tcp &&
+			l_is_map_tls &&
+			l_is_map_udp
+#ifdef STRONG_USE_DHT
+			&& l_is_map_dht
 #endif
 		     ))
 			continue;
 			
+		g_mapperName = mapper.getMapperName();
 		log(STRING(UPNP_SUCCESSFULLY_CREATED_MAPPINGS));
 		
-		working = move(pMapper); // [IntelC++ 2012 beta2] warning #734: "std::unique_ptr<_Ty, _Dx>::unique_ptr(const std::unique_ptr<_Ty, _Dx>::_Myt &) [with _Ty=Mapper, _Dx=std::default_delete<Mapper>]" (declared at line 2347 of "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\memory"), required for copy that was eliminated, is inaccessible
+		m_working = move(pMapper); // [IntelC++ 2012 beta2] warning #734: "std::unique_ptr<_Ty, _Dx>::unique_ptr(const std::unique_ptr<_Ty, _Dx>::_Myt &) [with _Ty=Mapper, _Dx=std::default_delete<Mapper>]" (declared at line 2347 of "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\memory"), required for copy that was eliminated, is inaccessible
 		
 		g_externalIP = mapper.getExternalIP();
-		bool l_is_wifi_router;
-		g_defaultGatewayIP = Socket::getDefaultGateWay(l_is_wifi_router);
-		if (!BOOLSETTING(NO_IP_OVERRIDE))
+		if (g_externalIP.empty())
 		{
-			if (!g_externalIP.empty())
-			{
-				SET_SETTING(EXTERNAL_IP, g_externalIP);
-			}
-			else
-			{
-				// no cleanup because the mappings work and hubs will likely provide the correct IP.
-				log(STRING(UPNP_FAILED_TO_GET_EXTERNAL_IP));
-			}
+			// no cleanup because the mappings work and hubs will likely provide the correct IP.
+			log(STRING(UPNP_FAILED_TO_GET_EXTERNAL_IP));
 		}
 		
-		ConnectivityManager::getInstance()->mappingFinished(mapper.getName());
+		ConnectivityManager::getInstance()->mappingFinished(mapper.getMapperName());
 		
 		auto minutes = mapper.renewal();
 		if (minutes)
 		{
-			renewal = GET_TICK() + std::max(minutes, 10u) * 60 * 1000;
+			m_renewal = GET_TICK() + std::max(minutes, 10u) * 60 * 1000;
 			if (m_listeners_count == 0)
 			{
 				TimerManager::getInstance()->addListener(this);
@@ -316,6 +324,90 @@ string MappingManager::deviceString(const Mapper& p_mapper) const
 
 void MappingManager::on(TimerManagerListener::Minute, uint64_t tick) noexcept
 {
-	if (tick >= renewal && !m_busy.test_and_set())
+	if (tick >= m_renewal && !m_busy.test_and_set())
+	{
 		start(64);
+	}
+}
+string MappingManager::getPortmapInfo(bool p_add_router_name, bool p_show_public_ip)
+{
+	string l_description;
+	l_description = "Mode:";
+	if (BOOLSETTING(AUTO_DETECT_CONNECTION))
+	{
+		l_description = "+Auto";
+	}
+	switch (SETTING(INCOMING_CONNECTIONS))
+	{
+	case SettingsManager::INCOMING_DIRECT:
+		l_description += "+Direct";
+		break;
+	case SettingsManager::INCOMING_FIREWALL_UPNP:
+		l_description += "+UPnP";
+		if (g_mapperName.empty())
+		{
+			l_description += "(error)";
+		}
+		else
+		{
+			l_description += "(" + g_mapperName + ")";
+		}
+		break;
+	case SettingsManager::INCOMING_FIREWALL_PASSIVE:
+		l_description += "+Passive";
+		break;
+	case SettingsManager::INCOMING_FIREWALL_NAT:
+		l_description += "+NAT+Manual";
+		break;
+	default:
+		dcassert(0);
+	}
+	if (MappingManager::isRouter())
+	{
+		l_description += "+Router";
+		if (p_add_router_name)
+		{
+			l_description += ": " + (CompatibilityManager::g_upnp_router_model.empty() ? "undefined" : CompatibilityManager::g_upnp_router_model);
+		}
+	}
+	if (!MappingManager::getExternaIP().empty())
+	{
+		if (Util::isPrivateIp(MappingManager::getExternaIP()))
+		{
+			l_description += "+Private IP";
+		}
+		else
+		{
+			l_description += "+Public IP";
+		}
+		if (p_show_public_ip)
+		{
+			l_description += ": " + MappingManager::getExternaIP();
+		}
+	}
+	auto calcTestPortInfo = [](const string & p_name_port, const boost::logic::tribool & p_status, const uint16_t p_port) ->string
+	{
+		string l_result = "," + p_name_port + ":" + Util::toString(p_port);
+		if (p_status == true)
+			l_result += "(+)";
+		else if (p_status == false)
+			l_result += "(-)";
+		else
+			l_result += "(?)";
+		return l_result;
+	};
+
+	l_description += calcTestPortInfo("UDP", SettingsManager::g_TestUDPSearchLevel, SETTING(UDP_PORT));
+	l_description += calcTestPortInfo("TCP", SettingsManager::g_TestTCPLevel, SETTING(TCP_PORT));
+#ifdef STRONG_USE_DHT
+	if (dht::DHT::isValidInstance() && dht::DHT::getInstance()->getPort())
+	{
+		l_description += calcTestPortInfo("DHT", SettingsManager::g_TestUDPDHTLevel, SETTING(DHT_PORT));
+	}
+#endif
+	if (CryptoManager::getInstance()->TLSOk())
+	{
+	 l_description += calcTestPortInfo("TLS", SettingsManager::g_TestTLSLevel, SETTING(TLS_PORT));
+	}
+	return l_description;
 }

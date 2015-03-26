@@ -28,10 +28,6 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 #ifndef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 	::EnableWindow(GetDlgItem(IDC_HIDE_SHARE), FALSE);
 #endif
-#ifndef IRAINMAN_ENABLE_STEALTH_MODE
-	::EnableWindow(GetDlgItem(IDC_STEALTH), FALSE);
-	GetDlgItem(IDC_STEALTH).ShowWindow(FALSE);
-#endif
 	// Translate dialog
 	SetWindowText(CTSTRING(FAVORITE_HUB_PROPERTIES));
 	SetDlgItemText(IDC_RAW_COMMANDS, CTSTRING(RAW_SET));
@@ -54,10 +50,6 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	SetDlgItemText(IDC_SHOW_JOINS, CTSTRING(SHOW_JOINS));
 	SetDlgItemText(IDC_EXCL_CHECKS, CTSTRING(EXCL_CHECKS));
 	SetDlgItemText(IDC_EXCLUSIVE_HUB, CTSTRING(EXCLUSIVE_HUB));
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-	SetDlgItemText(IDC_STEALTH, CTSTRING(STEALTH_MODE));
-	STEALTH_MODE, // "Emulate DC++ in this hub"
-#endif
 	SetDlgItemText(IDC_RAW1, Text::toT(SETTING(RAW1_TEXT)).c_str());
 	SetDlgItemText(IDC_RAW2, Text::toT(SETTING(RAW2_TEXT)).c_str());
 	SetDlgItemText(IDC_RAW3, Text::toT(SETTING(RAW3_TEXT)).c_str());
@@ -82,9 +74,6 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	SetDlgItemText(IDC_HUBUSERDESCR, Text::toT(entry->getUserDescription()).c_str());
 	SetDlgItemText(IDC_HUBAWAY, Text::toT(entry->getAwayMsg()).c_str());
 	SetDlgItemText(IDC_HUBEMAIL, Text::toT(entry->getEmail()).c_str());
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-	CheckDlgButton(IDC_STEALTH, entry->getStealth() ? BST_CHECKED : BST_UNCHECKED);
-#endif
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 	CheckDlgButton(IDC_HIDE_SHARE, entry->getHideShare() ? BST_CHECKED : BST_UNCHECKED);
 #endif
@@ -232,9 +221,6 @@ LRESULT FavHubProperties::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 		entry->setAwayMsg(Text::fromT(buf));
 		GET_TEXT(IDC_HUBEMAIL, buf);
 		entry->setEmail(Text::fromT(buf));
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-		entry->setStealth(IsDlgButtonChecked(IDC_STEALTH) == 1);
-#endif
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 		entry->setHideShare(IsDlgButtonChecked(IDC_HIDE_SHARE) == 1);
 #endif

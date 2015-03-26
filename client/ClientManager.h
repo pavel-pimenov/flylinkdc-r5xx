@@ -93,7 +93,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		
 		static void cancelSearch(void* aOwner);
 		
-		static void infoUpdated();
+		static void infoUpdated(bool p_is_force = false);
 		static void infoUpdated(Client* p_client);
 		
 		static UserPtr getUser(const string& p_Nick, const string& p_HubURL
@@ -158,29 +158,31 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		// [+] IRainman fix.
 		struct UserParams
 		{
-			uint64_t bytesShared;
-			int slots;
-			int limit;
-			std::string ip;
-			std::string tag;
+			uint64_t m_bytesShared;
+			int m_slots;
+			int m_limit;
+			std::string m_ip;
+			std::string m_tag;
+			std::string m_nick;
+			
 			
 			tstring getTagIP()
 			{
-				if (!ip.empty())
+				if (!m_ip.empty())
 				{
 					string dns;
 #ifdef PPA_INCLUDE_DNS
 					dns = Socket::nslookup(ip);
-					if (ip == dns)
+					if (m_ip == dns)
 						dns = "no DNS"; // TODO translate
 					if (!dns.empty())
 						dns = " / " + dns;
 #endif
-					return Text::toT(tag + " IP: " + ip + dns);
+					return Text::toT(m_tag + " IP: " + m_ip + dns);
 				}
 				else
 				{
-					return Text::toT(tag);
+					return Text::toT(m_tag);
 				}
 			}
 		};
@@ -267,10 +269,6 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		}
 		  [-] IRainman fix */
 		static bool isOp(const UserPtr& aUser, const string& aHubUrl);
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-		static bool isStealth(const string& aHubUrl);
-#endif
-		
 		/** Constructs a synthetic, hopefully unique CID */
 		static CID makeCid(const string& nick, const string& hubUrl);
 		
@@ -395,7 +393,8 @@ class ClientManager : public Speaker<ClientManagerListener>,
 	
 		//mutable CriticalSection cs; [-] IRainman opt.
 		// =================================================
-		static Client::List g_clients;
+		typedef std::unordered_map<string, Client*, noCaseStringHash, noCaseStringEq> ClientList;
+		static ClientList g_clients;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csClients; // [+] IRainman opt.
 		// =================================================
 #ifdef IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER

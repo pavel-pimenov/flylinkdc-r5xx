@@ -644,7 +644,7 @@ string CompatibilityManager::generateNetworkStats()
 	          Util::formatBytes(Socket::g_stats.m_udp.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_udp.totalUp).c_str(),
 	          Util::formatBytes(Socket::g_stats.m_dht.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_dht.totalUp).c_str(),
 	          Util::formatBytes(Socket::g_stats.m_ssl.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_ssl.totalUp).c_str(),
-	          g_upnp_router_model.c_str()
+	          (!g_upnp_router_model.empty() ? g_upnp_router_model.c_str() : "undefined")
 	         );
 	return l_buf.data();
 }
@@ -697,28 +697,26 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				          "Compiled on: %s ]=-\r\n"
 				          "-=[ OS: %s ]=-\r\n"
 				          "-=[ CPU Clock: %.1f MHz%s. Memory (free): %s (%s) ]=-\r\n"
-				          "-=[ Uptime: %s. Cpu time: %s. System Uptime: %s ]=-\r\n"
+				          "-=[ System Uptime: %s. Cpu time: %s. Client Uptime: %s ]=-\r\n"
 				          "-=[ Memory usage (peak): %s (%s). Virtual (peak): %s (%s) ]=-\r\n"
 				          "-=[ GDI units (peak): %d (%d). Handle (peak): %d (%d) ]=-\r\n"
-				          "-=[ Public share: %s. Files in share: %u ]=-\r\n"
-				          "-=[ Total users: %u on hubs: %u ]=-\r\n"
-				          "%s\r\n"
+				          "-=[ Public share: %s. Files in share: %u. Total users: %u on hubs: %u ]=-\r\n"
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-				          "\r\n-=[ Total download: %s. Total upload: %s ]=-"
+				          "-=[ Total download: %s. Total upload: %s ]=-\r\n"
 #endif
-				          "\r\n",
+				          "%s"
+				          ,
 				          A_VERSIONSTRING, Text::fromT(Util::getCompileDate()).c_str(),
 				          CompatibilityManager::getWindowsVersionName().c_str(),
 				          //CompatibilityManager::getProcArchString().c_str(),
 				          CompatibilityManager::ProcSpeedCalc(), l_procs.c_str(), Util::formatBytes(g_TotalPhysMemory).c_str(), Util::formatBytes(l_FreePhysMemory).c_str(),
-				          Util::formatTime(Util::getUpTime()).c_str(), Util::formatSeconds((kernelTime + userTime) / (10I64 * 1000I64 * 1000I64)).c_str(),
 				          Util::formatTime(
 #ifdef FLYLINKDC_SUPPORT_WIN_XP
 				              GetTickCount()
 #else
 				              GetTickCount64()
 #endif
-				              / 1000).c_str(),
+				              / 1000).c_str(), Util::formatSeconds((kernelTime + userTime) / (10I64 * 1000I64 * 1000I64)).c_str(), Util::formatTime(Util::getUpTime()).c_str(),
 				          Util::formatBytes(pmc.WorkingSetSize).c_str(),
 				          Util::formatBytes(pmc.PeakWorkingSetSize).c_str(),
 				          Util::formatBytes(pmc.PagefileUsage).c_str(),
@@ -731,10 +729,10 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				          ShareManager::getSharedFiles(),
 				          ClientManager::getTotalUsers(),
 				          Client::getTotalCounts(),
-				          generateNetworkStats().c_str()
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-				          , Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.get_download()).c_str(), Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.get_upload()).c_str()
+				          Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.get_download()).c_str(), Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.get_upload()).c_str(),
 #endif
+				          generateNetworkStats().c_str()
 				         );
 			}
 			FreeLibrary(hInstPsapi);

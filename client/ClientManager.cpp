@@ -41,7 +41,7 @@ UserPtr ClientManager::g_me; // [+] IRainman fix: this is static object.
 CID ClientManager::g_pid; // [+] IRainman fix: this is static object.
 bool ClientManager::g_isShutdown = false;
 bool ClientManager::g_isSpyFrame = false;
-Client::List ClientManager::g_clients;
+ClientManager::ClientList ClientManager::g_clients;
 
 std::unique_ptr<webrtc::RWLockWrapper> ClientManager::g_csClients = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ClientManager::g_csOnlineUsers = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
@@ -161,11 +161,12 @@ bool ClientManager::getUserParams(const UserPtr& user, UserParams& p_params)
 	{
 		// [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'u->getIdentity()' expression repeatedly. clientmanager.h 160
 		const auto& i = u->getIdentity();
-		p_params.bytesShared = i.getBytesShared();
-		p_params.slots = i.getSlots();
-		p_params.limit = i.getLimit();
-		p_params.ip = i.getIpAsString();
-		p_params.tag = i.getTag();
+		p_params.m_bytesShared = i.getBytesShared();
+		p_params.m_slots = i.getSlots();
+		p_params.m_limit = i.getLimit();
+		p_params.m_ip = i.getIpAsString();
+		p_params.m_tag = i.getTag();
+		p_params.m_nick = i.getNick();
 		
 		return true;
 	}
@@ -639,19 +640,6 @@ bool ClientManager::isOp(const UserPtr& user, const string& aHubUrl)
 	return false;
 }
 
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-bool ClientManager::isStealth(const string& aHubUrl)
-{
-	dcassert(!aHubUrl.empty());
-	webrtc::ReadLockScoped l(*g_csClients);
-	const Client::Iter i = g_clients.find(aHubUrl);
-	if (i != g_clients.end())
-		return i->second->getStealth();
-		
-	return false;
-}
-#endif // IRAINMAN_ENABLE_STEALTH_MODE
-
 CID ClientManager::makeCid(const string& aNick, const string& aHubUrl)
 {
 	// [!] IRainman opt: https://code.google.com/p/flylinkdc/source/detail?r=14247
@@ -892,7 +880,7 @@ void ClientManager::infoUpdated(Client* p_client)
 		p_client->info(false);
 	}
 }
-void ClientManager::infoUpdated()
+void ClientManager::infoUpdated(bool p_is_force /* = false*/)
 {
 #ifdef _DEBUG
 	static int g_count = 0;
@@ -905,7 +893,14 @@ void ClientManager::infoUpdated()
 		Client* c = i->second;
 		if (c->isConnected())
 		{
-			c->info(false);
+			if (p_is_force && c->isFlySupportHub())
+			{
+				c->info(true);
+			}
+			else
+			{
+				c->info(false);
+			}
 		}
 	}
 }

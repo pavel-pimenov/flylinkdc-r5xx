@@ -68,13 +68,13 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		static boost::logic::tribool g_TestUDPSearchLevel;
 		static boost::logic::tribool g_TestUDPDHTLevel;
 		static boost::logic::tribool g_TestTCPLevel;
-		static boost::logic::tribool g_TestTSLLevel;
+		static boost::logic::tribool g_TestTLSLevel;
 		static void testPortLevelInit()
 		{
 			g_TestUDPSearchLevel = boost::logic::indeterminate;
 			g_TestUDPDHTLevel = boost::logic::indeterminate;
 			g_TestTCPLevel = boost::logic::indeterminate;
-			g_TestTSLLevel = boost::logic::indeterminate;
+			g_TestTLSLevel = boost::logic::indeterminate;
 		}
 		static string g_UDPTestExternalIP;
 		
@@ -453,7 +453,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  USE_FLY_SERVER_STATICTICS_SEND,
 		                  REPORT_TO_USER_IF_OUTDATED_OS_DETECTED, // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=1032
 		                  USE_GPU_IN_TTH_COMPUTING,
-						  TTH_GPU_DEV_NUM,
+		                  TTH_GPU_DEV_NUM,
 		                  INT_LAST,
 		                  SETTINGS_LAST = INT_LAST
 		                };

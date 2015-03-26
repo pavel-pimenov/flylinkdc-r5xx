@@ -46,7 +46,7 @@ PropPage::TextItem NetworkPage::texts[] =
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	{ IDC_AUTODETECT, ResourceManager::SETTINGS_CONNECTION_AUTODETECT },
 #endif
-	{ IDC_OVERRIDE, ResourceManager::SETTINGS_OVERRIDE },
+	{ IDC_NO_IP_OVERRIDE, ResourceManager::SETTINGS_OVERRIDE },
 	{ IDC_SETTINGS_PORTS, ResourceManager::SETTINGS_PORTS },
 	{ IDC_SETTINGS_IP, ResourceManager::SETTINGS_EXTERNAL_IP },
 	{ IDC_SETTINGS_PORT_TCP, ResourceManager::SETTINGS_TCP_PORT },
@@ -79,7 +79,7 @@ PropPage::Item NetworkPage::items[] =
 	{ IDC_PORT_TCP,         SettingsManager::TCP_PORT,      PropPage::T_INT },
 	{ IDC_PORT_UDP,         SettingsManager::UDP_PORT,      PropPage::T_INT },
 	{ IDC_PORT_TLS,         SettingsManager::TLS_PORT,      PropPage::T_INT },
-	{ IDC_OVERRIDE,         SettingsManager::NO_IP_OVERRIDE, PropPage::T_BOOL },
+	{ IDC_NO_IP_OVERRIDE, SettingsManager::NO_IP_OVERRIDE, PropPage::T_BOOL },
 	{ IDC_IP_GET_IP,        SettingsManager::URL_GET_IP,    PropPage::T_STR }, //[+]PPA
 	{ IDC_IPUPDATE,         SettingsManager::IPUPDATE,      PropPage::T_BOOL },
 	{ IDC_UPDATE_IP_INTERVAL, SettingsManager::IPUPDATE_INTERVAL, PropPage::T_INT },
@@ -224,7 +224,7 @@ LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	//SetButtonElevationRequiredState(IDC_ADD_FLYLINKDC_WINFIREWALL,);
 	WinUtil::GetWindowText(m_original_test_port_caption, GetDlgItem(IDC_GETIP));
 	
-	bool l_is_wifi_router;
+	boost::logic::tribool l_is_wifi_router;
 	const string l_gateway_ip = Socket::getDefaultGateWay(l_is_wifi_router);
 	MappingManager::setDefaultGatewayIP(l_gateway_ip);
 	const auto l_ip_gatewayT = Text::toT(l_gateway_ip);
@@ -243,10 +243,10 @@ LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 void NetworkPage::fixControls()
 {
 	const BOOL auto_detect = IsDlgButtonChecked(IDC_CONNECTION_DETECTION) == BST_CHECKED;
-	const BOOL direct = IsDlgButtonChecked(IDC_DIRECT) == BST_CHECKED;
+	// const BOOL direct = IsDlgButtonChecked(IDC_DIRECT) == BST_CHECKED;
 	const BOOL upnp = IsDlgButtonChecked(IDC_FIREWALL_UPNP) == BST_CHECKED;
 	const BOOL nat = IsDlgButtonChecked(IDC_FIREWALL_NAT) == BST_CHECKED;
-	const BOOL nat_traversal = IsDlgButtonChecked(IDC_NATT) == BST_CHECKED;
+	// const BOOL nat_traversal = IsDlgButtonChecked(IDC_NATT) == BST_CHECKED;
 #ifdef STRONG_USE_DHT
 	const BOOL dht = IsDlgButtonChecked(IDC_SETTINGS_USE_DHT) == BST_CHECKED;
 #endif
@@ -265,9 +265,9 @@ void NetworkPage::fixControls()
 	::EnableWindow(GetDlgItem(IDC_SETTINGS_USE_DHT_NOTANSWER), dht);
 #endif
 	::EnableWindow(GetDlgItem(IDC_SETTINGS_IP), !auto_detect);
-	::EnableWindow(GetDlgItem(IDC_EXTERNAL_IP), !auto_detect && (direct || upnp || nat || nat_traversal));
+	::EnableWindow(GetDlgItem(IDC_EXTERNAL_IP), false); // !auto_detect && (direct || upnp || nat || nat_traversal));
 	::EnableWindow(GetDlgItem(IDC_IP_GET_IP), !auto_detect && (upnp || nat)); //[+]PPA
-	::EnableWindow(GetDlgItem(IDC_OVERRIDE), !auto_detect && (direct || upnp || nat || nat_traversal));
+	::EnableWindow(GetDlgItem(IDC_NO_IP_OVERRIDE), false); // !auto_detect && (direct || upnp || nat || nat_traversal));
 #ifdef IRAINMAN_IP_AUTOUPDATE
 	::EnableWindow(GetDlgItem(IDC_IPUPDATE), (upnp || nat));
 #endif
@@ -336,7 +336,7 @@ void NetworkPage::updateTestPortIcon(bool p_is_wait)
 		calcIconsIndex(IDC_NETWORK_TEST_PORT_UDP_ICO, SettingsManager::g_TestUDPSearchLevel);
 		if (CryptoManager::getInstance()->TLSOk())
 		{
-			calcIconsIndex(IDC_NETWORK_TEST_PORT_TLS_TCP_ICO, SettingsManager::g_TestTSLLevel);
+			calcIconsIndex(IDC_NETWORK_TEST_PORT_TLS_TCP_ICO, SettingsManager::g_TestTLSLevel);
 		}
 		else
 		{
@@ -434,6 +434,7 @@ void NetworkPage::TestWinFirewall()
 }
 bool NetworkPage::runTestPort()
 {
+	SettingsManager::testPortLevelInit();
 	m_test_port_flood = 10;
 	::EnableWindow(GetDlgItem(IDC_GETIP), FALSE);
 	WinUtil::GetWindowText(m_original_test_port_caption, GetDlgItem(IDC_GETIP));
@@ -442,6 +443,7 @@ bool NetworkPage::runTestPort()
 	std::vector<unsigned short> l_udp_port, l_tcp_port;
 	l_udp_port.push_back(SETTING(UDP_PORT));
 #ifdef STRONG_USE_DHT
+//	dcassert(dht::DHT::isValidInstance() && dht::DHT::getInstance()->getPort());
 	l_udp_port.push_back(SETTING(DHT_PORT));
 #endif
 	l_tcp_port.push_back(SETTING(TCP_PORT));
@@ -449,7 +451,7 @@ bool NetworkPage::runTestPort()
 	{
 		l_tcp_port.push_back(SETTING(TLS_PORT));
 	}
-	const bool l_is_udp_port_send = CFlyServerAdapter::CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0);
+	const bool l_is_udp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0);
 	if (l_is_udp_port_send)
 	{
 		SetDlgItemText(IDC_EXTERNAL_IP, Text::toT(l_external_ip).c_str());
@@ -476,7 +478,7 @@ LRESULT NetworkPage::onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndC
 			{
 				fixControls();
 				auto l_ip = Util::getWANIP(l_url, 500);
-				if (!l_ip.empty())
+				//if (!l_ip.empty())
 				{
 					SetDlgItemText(IDC_EXTERNAL_IP, Text::toT(l_ip).c_str());
 				}

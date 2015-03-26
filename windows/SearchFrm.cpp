@@ -189,6 +189,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	fixme:dbghelp:MiniDumpWriteDump NIY MiniDumpWithFullMemory
 	fixme:edit:EDIT_EM_FmtLines soft break enabled, not implemented
 	*/
+	init_fly_server_window(m_hWnd);
 	m_tooltip.Create(m_hWnd, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP /*| TTS_BALLOON*/, WS_EX_TOPMOST);
 	m_tooltip.SetDelayTime(TTDT_AUTOPOP, 15000);
 	dcassert(m_tooltip.IsWindow());
@@ -1189,7 +1190,7 @@ LRESULT SearchFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wParam, LPARAM
 //===================================================================================================================================
 void SearchFrame::update_column_after_merge(std::vector<int> p_update_index)
 {
-#if 1
+#if 0
 //			TODO - апдейты по колонкам не пашут иногда
 // http://code.google.com/p/flylinkdc/issues/detail?id=1113
 	const static int l_array[] =
@@ -1242,7 +1243,7 @@ void SearchFrame::runTestPort()
 		string p_external_ip;
 		std::vector<unsigned short> l_udp_port, l_tcp_port;
 		l_udp_port.push_back(SETTING(UDP_PORT));
-		bool l_is_udp_port_send = CFlyServerAdapter::CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, p_external_ip, 0);
+		bool l_is_udp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, p_external_ip, 0);
 		if (l_is_udp_port_send)
 		{
 			SettingsManager::g_TestUDPSearchLevel = true;

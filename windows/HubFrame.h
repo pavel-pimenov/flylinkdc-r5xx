@@ -464,8 +464,11 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 #endif
 		
 	public:
-		static void addDupeUsersToSummaryMenu(const int64_t &share, const string& ip); // !SMT!-UI
-		
+		static void addDupeUsersToSummaryMenu(ClientManager::UserParams& p_param); // !SMT!-UI
+		bool isFlySupportHub() const
+		{
+			return m_client->isFlySupportHub();
+		}
 		// [+] IRainman: copy-past fix.
 		void sendMessage(const tstring& msg, bool thirdperson = false)
 		{

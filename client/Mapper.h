@@ -58,7 +58,7 @@ class Mapper
 		static const string name; */
 		
 		/** user-friendly name for this implementation. */
-		virtual const string& getName() const = 0;
+		virtual const string& getMapperName() const = 0;
 		
 	private:
 		/** add a port mapping rule. */

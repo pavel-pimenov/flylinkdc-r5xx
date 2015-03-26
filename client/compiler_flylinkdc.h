@@ -182,7 +182,6 @@ typedef unsigned __int64 uint64_t;
 #define IRAINMAN_ENABLE_WHOIS
 #define IRAINMAN_ENABLE_MORE_CLIENT_COMMAND
 //#define IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB
-#define IRAINMAN_SET_USER_IP_ON_LOGON // http://code.google.com/p/flylinkdc/issues/detail?id=1
 #ifndef FLYLINKDC_HE
 # ifdef FLYLINKDC_BETA
 #  define AUTOUPDATE_NOT_DISABLE
@@ -211,7 +210,6 @@ typedef unsigned __int64 uint64_t;
 #endif // FLYLINKDC_HE
 #define IRAINMAN_ENABLE_SLOTS_AND_LIMIT_IN_DESCRIPTION
 #define IRAINMAN_ENABLE_OP_VIP_MODE
-//#define IRAINMAN_ENABLE_STEALTH_MODE // [-] cleanup user function.
 #ifdef IRAINMAN_ENABLE_OP_VIP_MODE
 # define IRAINMAN_ENABLE_OP_VIP_MODE_ON_NMDC
 #endif

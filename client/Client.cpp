@@ -21,6 +21,7 @@
 #include "ThrottleManager.h"// [+] IRainman SpeedLimiter
 #include "LogManager.h"
 #include "CompatibilityManager.h" // [+] IRainman
+#include "MappingManager.h"
 #include "QueueManager.h"
 #include "SearchManager.h"
 #include "Wildcards.h"
@@ -29,9 +30,9 @@
 boost::atomic<uint16_t> Client::g_counts[COUNT_UNCOUNTED];
 string Client::g_last_search_string;
 Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure) :
-	m_cs(std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock())),
+	m_cs(std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock())),
 	m_reconnDelay(120), m_lastActivity(GET_TICK()),
-	//registered(false), [-] IRainman fix.
+//registered(false), [-] IRainman fix.
 	autoReconnect(false),
 	m_encoding(Text::systemCharset),
 	state(STATE_DISCONNECTED),
@@ -46,7 +47,8 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure) :
 	m_exclChecks(false), // [+] IRainman fix.
 	m_message_count(0),
 	m_is_hide_share(0),
-	m_is_override_name(false)
+	m_is_override_name(false),
+	m_is_fly_support_hub(false)
 {
 	dcassert(p_HubURL == Text::toLower(p_HubURL));
 	const auto l_my_user = new User(ClientManager::getMyCID());
@@ -57,6 +59,15 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure) :
 	l_my_user->setHubID(m_HubID); // Для сохранения кол-ва мессаг по самому себе
 	//l_hub_user->setHubID(m_HubID); // Для бота-хаба не сохраняем пока
 #endif
+	if (Text::toLower(m_HubURL).find("dc.fly-server.ru") != string::npos
+#ifdef _DEBUG
+		|| Text::toLower(m_HubURL).find("scalolaz.dyndns-server.com") != string::npos
+		|| Text::toLower(m_HubURL).find("adcs.flylinkdc.com") != string::npos
+#endif
+	)
+	{
+		m_is_fly_support_hub = true;
+	}
 	m_myOnlineUser = new OnlineUser(UserPtr(l_my_user), *this, 0); // [+] IRainman fix.
 	m_hubOnlineUser = new OnlineUser(UserPtr(l_hub_user), *this, AdcCommand::HUB_SID); // [+] IRainman fix.
 	
@@ -153,19 +164,21 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 #endif
 // [!] FlylinkDC mimicry function
 	const FavoriteHubEntry* hub = FavoriteManager::getFavoriteHubEntry(getHubUrl());
-	m_is_override_name = hub && hub->getOverrideId();
+	extern bool g_UseStrongDCTag;
+	m_is_override_name = (hub && hub->getOverrideId() || g_UseStrongDCTag);
 	if (m_is_override_name) // mimicry tag
 	{
-		m_clientName = hub->getClientName();
-		m_clientVersion = hub->getClientVersion();
+		if (g_UseStrongDCTag)
+		{
+			m_clientName    = "StrgDC++";
+			m_clientVersion = "2.42";
+		}
+		else
+		{
+			m_clientName = hub->getClientName();
+			m_clientVersion = hub->getClientVersion();
+		}
 	}
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-	else if (hub && hub->getStealth()) // stealth DC++
-	{
-		m_clientName =  "++";
-		m_clientVersion = DCVERSIONSTRING;
-	}
-#endif
 	else // FlylinkDC native
 	{
 #ifdef IRAINMAN_ENABLE_SLOTS_AND_LIMIT_IN_DESCRIPTION
@@ -225,9 +238,6 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 			setPassword(hub->getPassword());
 		}
 		
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-		setStealth(hub->getStealth());
-#endif
 		//[+]FlylinkDC
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 		setHideShare(hub->getHideShare());
@@ -269,9 +279,6 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 #endif
 		    SETTING(DESCRIPTION));
 		setCurrentEmail(SETTING(EMAIL));
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-		setStealth(false);
-#endif
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 		setHideShare(false);
 #endif
@@ -503,10 +510,13 @@ string Client::getLocalIp() const
 	// [!] IRainman fix:
 	// [!] If possible, always return the hub that IP, which he identified with us when you connect.
 	// [!] This saves the user from a variety of configuration problems.
-	const string& myUserIp = getMyIdentity().getIpAsString(); // [!] opt, and fix done: [4] https://www.box.net/shared/c497f50da28f3dfcc60a
-	if (!myUserIp.empty())
+	if (getMyIdentity().isIPValid())
 	{
+	 const string& myUserIp = getMyIdentity().getIpAsString(); // [!] opt, and fix done: [4] https://www.box.net/shared/c497f50da28f3dfcc60a
+	 if (!myUserIp.empty())
+	 {
 		return myUserIp; // [!] Best case - the server detected it.
+	 }
 	}
 	// Favorite hub Ip
 	if (!getFavIp().empty())
@@ -514,12 +524,14 @@ string Client::getLocalIp() const
 		return Socket::resolve(getFavIp());
 	}
 	const auto settingIp = SETTING(EXTERNAL_IP);
-	if (!BOOLSETTING(NO_IP_OVERRIDE) && !settingIp.empty() &&
-	        SETTING(INCOMING_CONNECTIONS) != SettingsManager::INCOMING_DIRECT)   // !SMT!-F
+	if (!settingIp.empty())  // !SMT!-F
 	{
 		return Socket::resolve(settingIp);
 	}
-	
+	if (!MappingManager::getExternaIP().empty() && SETTING(INCOMING_CONNECTIONS) == SettingsManager::INCOMING_FIREWALL_UPNP)
+	{
+		return MappingManager::getExternaIP();
+	}
 	{
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
 		FastLock lock(csSock); // [+] brain-ripper
@@ -529,7 +541,8 @@ string Client::getLocalIp() const
 			return m_client_sock->getLocalIp();
 		}
 	}
-	return Util::getLocalOrBindIp(false);
+	const string l_local_ip = Util::getLocalOrBindIp(false);
+	return l_local_ip;
 	// [~] IRainman fix.
 }
 

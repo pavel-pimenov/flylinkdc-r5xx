@@ -36,6 +36,7 @@ std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csDdosCheck = std::u
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csTTHFilter = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 
 boost::unordered_set<UserConnection*> ConnectionManager::g_userConnections;
+boost::unordered_set<string> ConnectionManager::g_ddos_ctm2hub;
 ConnectionQueueItem::List ConnectionManager::g_downloads;
 ConnectionQueueItem::List ConnectionManager::g_uploads;
 
@@ -559,7 +560,8 @@ int ConnectionManager::Server::run() noexcept
 			{
 				m_sock.disconnect();
 				m_sock.create();
-				m_sock.bind(m_server_port, m_server_ip);
+				m_server_port = m_sock.bind(m_server_port, m_server_ip);
+				dcassert(m_server_port);
 				m_sock.listen();
 				if (failed)
 				{
@@ -606,7 +608,8 @@ void ConnectionManager::accept(const Socket& sock, bool secure, Server* p_server
 	}
 	else
 	{
-		if (now + g_FLOOD_TRIGGER < m_floodCounter)// [!] IRainman fix
+		if (false  // TODO - узнать почему тут такой затыкон оставлен в оригинальном dc++
+		&& now + g_FLOOD_TRIGGER < m_floodCounter)
 		{
 			Socket s;
 			try
@@ -617,7 +620,7 @@ void ConnectionManager::accept(const Socket& sock, bool secure, Server* p_server
 			{
 				// ...
 			}
-			LogManager::message("Connection flood detected, port = " + Util::toString(sock.getPort()) + " IP = " + sock.getIp());
+			LogManager::flood_message("Connection flood detected, port = " + Util::toString(sock.getPort()) + " IP = " + sock.getIp());
 			dcdebug("Connection flood detected!\n");
 			return;
 		}
@@ -649,7 +652,7 @@ void ConnectionManager::accept(const Socket& sock, bool secure, Server* p_server
 			const auto l_remote_port = p_server->getServerPort();
 			if (l_remote_port == SETTING(TLS_PORT)) // TODO проверить тут IP внешнего сервера - он должен совпадать с test.fly-server.ru
 			{
-				SettingsManager::g_TestTSLLevel = true; // Проверьть магическое число тут не знаю как - считаем если пришел accept на этот порт, то он открыт
+				SettingsManager::g_TestTLSLevel = true; // Проверьть магическое число тут не знаю как - считаем если пришел accept на этот порт, то он открыт
 				// ClientManager::getMyCID().toBase32() == l_magic;
 			}
 		}
@@ -698,20 +701,22 @@ bool ConnectionManager::checkTTHDuplicateSearch(const string& p_search_command, 
 }
 void ConnectionManager::addCTM2HUB(const string& p_server_port, const HintedUser& p_hinted_user)
 {
-	webrtc::WriteLockScoped l_ddos(*g_csDdosCheck);
-	dcassert(p_hinted_user.user);
-	
-	const string l_cmt2hub = "CTM2HUB = " + p_server_port + " <<= DDoS block from: " + p_hinted_user.hint; //  + " User:" + (p_hinted_user.user ? p_hinted_user.user->getLastNick() : "null")
-	const auto l_res = m_ddos_ctm2hub.insert(Text::toLower(p_server_port));
-	CFlyServerAdapter::CFlyServerJSON::pushError(18, l_cmt2hub);
-	dcassert(l_res.second == true);
-	if (l_res.second == false)
+	const string l_cmt2hub = "CTM2HUB = " + p_server_port + " <<= DDoS block from: " + p_hinted_user.hint;;
+	bool l_is_duplicate;
+	{
+		webrtc::WriteLockScoped l_ddos(*g_csDdosCheck);
+		dcassert(p_hinted_user.user);
+		l_is_duplicate = g_ddos_ctm2hub.insert(Text::toLower(p_server_port)).second;
+	}
+	CFlyServerJSON::pushError(18, l_cmt2hub);
+	dcassert(l_is_duplicate == true);
+	if (l_is_duplicate == false)
 	{
 		const string l_message = "Duplicate message: " + l_cmt2hub;
 #ifdef FLYLINKDC_BETA
 		// LogManager::message(l_message);
 #endif
-		CFlyServerAdapter::CFlyServerJSON::pushError(18, l_message);
+		CFlyServerJSON::pushError(18, l_message);
 	}
 }
 bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, const boost::asio::ip::address_v4& p_ip_hub, const string& p_userInfo, const string& p_HubInfo)
@@ -725,7 +730,7 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 		const CFlyDDOSkey l_key(l_server_lower, p_ip_hub);
 		// dcassert(!ec); // TODO - тут бывает и Host
 		webrtc::WriteLockScoped l_ddos(*g_csDdosCheck);
-		if (!m_ddos_ctm2hub.empty() && m_ddos_ctm2hub.find(l_server_lower + ':' + Util::toString(aPort)) != m_ddos_ctm2hub.end())
+		if (!g_ddos_ctm2hub.empty() && g_ddos_ctm2hub.find(l_server_lower + ':' + Util::toString(aPort)) != g_ddos_ctm2hub.end())
 		{
 			const string l_cmt2hub = "Block CTM2HUB = " + aIPServer + ':' + Util::toString(aPort) + " HubInfo: " + p_HubInfo + " UserInfo: " + p_userInfo;
 #ifdef FLYLINKDC_BETA
@@ -811,24 +816,15 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 
 void ConnectionManager::nmdcConnect(const string& aIPServer, uint16_t aPort, const string& aNick, const string& hubUrl,
                                     const string& encoding,
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-                                    bool stealth,
-#endif
                                     bool secure)
 {
 	nmdcConnect(aIPServer, aPort, 0, BufferedSocket::NAT_NONE, aNick, hubUrl,
 	            encoding,
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-	            stealth,
-#endif
 	            secure);
 }
 
 void ConnectionManager::nmdcConnect(const string& aIPServer, uint16_t aPort, uint16_t localPort, BufferedSocket::NatRoles natRole, const string& aNick, const string& hubUrl,
                                     const string& encoding,
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-                                    bool stealth,
-#endif
                                     bool secure)
 {
 	if (isShuttingDown())
@@ -844,12 +840,6 @@ void ConnectionManager::nmdcConnect(const string& aIPServer, uint16_t aPort, uin
 	uc->setEncoding(encoding);
 	uc->setState(UserConnection::STATE_CONNECT);
 	uc->setFlag(UserConnection::FLAG_NMDC);
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-	if (stealth)
-	{
-		uc->setFlag(UserConnection::FLAG_STEALTH);
-	}
-#endif
 	try
 	{
 		uc->connect(aIPServer, aPort, localPort, natRole);
@@ -1051,7 +1041,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 				dcdebug("REASON_DETECT_CONNECTION: can't find hub %s\n", i.m_HubUrl.c_str());
 			dcassert(hub);
 			
-			if (hub && fhub && hub->IsAutodetectPending())
+			if (hub && hub->IsAutodetectPending())
 			{
 				// set connection type to ACTIVE
 				if (fhub)
@@ -1115,11 +1105,6 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 		aSource->setFlag(UserConnection::FLAG_UPLOAD);
 	}
 	
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-	if (ClientManager::getInstance()->isStealth(aSource->getHubUrl()))
-		aSource->setFlag(UserConnection::FLAG_STEALTH);
-#endif
-		
 	ClientManager::setIPUser(aSource->getUser(), aSource->getRemoteIp());
 	
 #ifdef IRAINMAN_ENABLE_OP_VIP_MODE_ON_NMDC
@@ -1504,7 +1489,7 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 			dcassert(i != g_downloads.end());
 			if (i == g_downloads.end())
 			{
-				CFlyServerAdapter::CFlyServerJSON::pushError(5, "ConnectionManager::failed (i == g_downloads.end()) aError = " + aError);
+				CFlyServerJSON::pushError(5, "ConnectionManager::failed (i == g_downloads.end()) aError = " + aError);
 			}
 			else
 			{
@@ -1528,7 +1513,7 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 			dcassert(i != g_uploads.end());
 			if (i == g_uploads.end())
 			{
-				CFlyServerAdapter::CFlyServerJSON::pushError(6, "ConnectionManager::failed (i == g_uploads.end()) aError = " + aError);
+				CFlyServerJSON::pushError(6, "ConnectionManager::failed (i == g_uploads.end()) aError = " + aError);
 			}
 			else
 			{

@@ -27,6 +27,7 @@
 #include "QueueManager.h"
 #include "ThrottleManager.h"
 #include "StringTokenizer.h"
+#include "MappingManager.h"
 
 #include "../FlyFeatures/flyServer.h"
 
@@ -698,21 +699,17 @@ void NmdcHub::revConnectToMeParse(const string& param)
 	}
 	else if (BOOLSETTING(ALLOW_NAT_TRAVERSAL) && u->getUser()->isSet(User::NAT0))
 	{
-		bool secure = CryptoManager::getInstance()->TLSOk() && u->getUser()->isSet(User::TLS)
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-		              && !getStealth()
-#endif
-		              ;
+		bool secure = CryptoManager::getInstance()->TLSOk() && u->getUser()->isSet(User::TLS);
 		// NMDC v2.205 supports "$ConnectToMe sender_nick remote_nick ip:port", but many NMDC hubsofts block it
 		// sender_nick at the end should work at least in most used hubsofts
 		if (m_client_sock->getLocalPort() == 0)
 		{
 			LogManager::message("Error [3] $ConnectToMe port = 0 : ");
-			CFlyServerAdapter::CFlyServerJSON::pushError(22, "Error [3] $ConnectToMe port = 0 :");
+			CFlyServerJSON::pushError(22, "Error [3] $ConnectToMe port = 0 :");
 		}
 		else
 		{
-			send("$ConnectToMe " + fromUtf8(u->getIdentity().getNick()) + ' ' + getLocalIp() + ":" + Util::toString(m_client_sock->getLocalPort()) + (secure ? "NS " : "N ") + fromUtf8(getMyNick()) + '|');
+			send("$ConnectToMe " + fromUtf8(u->getIdentity().getNick()) + ' ' + getLocalIp() + ':' + Util::toString(m_client_sock->getLocalPort()) + (secure ? "NS " : "N ") + fromUtf8(getMyNick()) + '|');
 		}
 	}
 	else
@@ -796,24 +793,16 @@ void NmdcHub::connectToMeParse(const string& param)
 				ConnectionManager::getInstance()->nmdcConnect(server, static_cast<uint16_t>(Util::toInt(port)), m_client_sock->getLocalPort(),
 				                                              BufferedSocket::NAT_CLIENT, getMyNick(), getHubUrl(),
 				                                              getEncoding(),
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-				                                              getStealth(),
-#endif
-				                                              secure
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-				                                              && !getStealth()
-#endif
-				                                             );
-				                                             
+				                                              secure);
 				// ... and signal other client to do likewise.
 				if (m_client_sock->getLocalPort() == 0)
 				{
 					LogManager::message("Error [2] $ConnectToMe port = 0 : ");
-					CFlyServerAdapter::CFlyServerJSON::pushError(22, "Error [2] $ConnectToMe port = 0 :");
+					CFlyServerJSON::pushError(22, "Error [2] $ConnectToMe port = 0 :");
 				}
 				else
 				{
-					send("$ConnectToMe " + senderNick + ' ' + getLocalIp() + ":" + Util::toString(m_client_sock->getLocalPort()) + (secure ? "RS" : "R") + '|');
+					send("$ConnectToMe " + senderNick + ' ' + getLocalIp() + ':' + Util::toString(m_client_sock->getLocalPort()) + (secure ? "RS|" : "R|"));
 				}
 				break;
 			}
@@ -825,9 +814,6 @@ void NmdcHub::connectToMeParse(const string& param)
 				ConnectionManager::getInstance()->nmdcConnect(server, static_cast<uint16_t>(Util::toInt(port)), m_client_sock->getLocalPort(),
 				                                              BufferedSocket::NAT_SERVER, getMyNick(), getHubUrl(),
 				                                              getEncoding(),
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-				                                              getStealth(),
-#endif
 				                                              secure);
 				break;
 			}
@@ -839,9 +825,6 @@ void NmdcHub::connectToMeParse(const string& param)
 		// For simplicity, we make the assumption that users on a hub have the same character encoding
 		ConnectionManager::getInstance()->nmdcConnect(server, static_cast<uint16_t>(Util::toInt(port)), getMyNick(), getHubUrl(),
 		                                              getEncoding(),
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-		                                              getStealth(),
-#endif
 		                                              secure);
 		break; // Все ОК тут брек хороший
 	}
@@ -1093,11 +1076,7 @@ void NmdcHub::lockParse(const string& aLine)
 			feat.push_back("FlyHUB");
 #endif
 			
-			if (CryptoManager::getInstance()->TLSOk()
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-			        && !getStealth()
-#endif
-			   )
+			if (CryptoManager::getInstance()->TLSOk())
 			{
 				feat.push_back("TLS");
 			}
@@ -1181,12 +1160,23 @@ void NmdcHub::userIPParse(const string& param)
 				if ((j + 1) == it->length())
 					continue;
 					
-				OnlineUserPtr ou = findUser(it->substr(0, j));
+				const string l_ip = it->substr(j + 1);
+				const string l_user = it->substr(0, j);
+				if (l_user == getMyNick())
+				{
+					const bool l_is_private_ip = Util::isPrivateIp(l_ip);
+					setTypeHub(l_is_private_ip);
+					if (l_is_private_ip)
+					{
+						LogManager::message("Detect local hub: " + getHubUrl() + " private UserIP = " + l_ip + " User = " + l_user);
+					}
+				}
+				OnlineUserPtr ou = findUser(l_user);
 				
+
 				if (!ou)
 					continue;
 					
-				const string l_ip = it->substr(j + 1);
 				if (l_ip.size() > 15)
 				{
 					ou->getIdentity().setIP6(l_ip);
@@ -1209,9 +1199,8 @@ void NmdcHub::botListParse(const string& param)
 	OnlineUserList v;
 	const StringTokenizer<string> t(param, "$$");
 	const StringList& sl = t.getTokens();
+	for (auto it = sl.cbegin(); it != sl.cend(); ++it)
 	{
-		for (auto it = sl.cbegin(); it != sl.cend(); ++it)
-		{
 			if (it->empty())
 				continue;
 			OnlineUserPtr ou = getUser(*it, false, false);
@@ -1220,7 +1209,6 @@ void NmdcHub::botListParse(const string& param)
 				ou->getIdentity().setBot();
 				v.push_back(ou);
 			}
-		}
 	}
 	fire_user_updated(v);
 }
@@ -1593,12 +1581,6 @@ void NmdcHub::onLine(const string& aLine)
 	{
 		messageYouHaweRightOperatorOnThisHub();
 	}
-#ifdef IRAINMAN_SET_USER_IP_ON_LOGON
-	else if (!param.empty() && cmd == "UserIP2")
-	{
-		getMyIdentity().setIp(param);
-	}
-#endif
 	// [~] IRainman.
 	else
 	{
@@ -1658,21 +1640,18 @@ void NmdcHub::connectToMe(const OnlineUser& aUser
 	                                            );
 	ConnectionManager::g_ConnToMeCount++;
 	
-	const bool secure = CryptoManager::getInstance()->TLSOk() && aUser.getUser()->isSet(User::TLS)
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-	                    && !getStealth()
-#endif
-	                    ;
+	const bool secure = CryptoManager::getInstance()->TLSOk() && aUser.getUser()->isSet(User::TLS);
 	const uint16_t port = secure ? ConnectionManager::getInstance()->getSecurePort() : ConnectionManager::getInstance()->getPort();
-
+	
 	if (port == 0)
 	{
+		dcassert(0);
 		LogManager::message("Error [2] $ConnectToMe port = 0 : ");
-		CFlyServerAdapter::CFlyServerJSON::pushError(22, "Error [2] $ConnectToMe port = 0 :");
+		CFlyServerJSON::pushError(22, "Error [2] $ConnectToMe port = 0 :");
 	}
 	else
 	{
-		send("$ConnectToMe " + nick + ' ' + getLocalIp() + ":" + Util::toString(port) + (secure ? "S" : "") + '|');
+		send("$ConnectToMe " + nick + ' ' + getLocalIp() + ':' + Util::toString(port) + (secure ? "S|" : "|"));
 	}
 }
 
@@ -1729,29 +1708,21 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 	
 	char status = NmdcSupports::NORMAL;
 	
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-	if (getStealth())
+	if (Util::getAway())
 	{
+		status |= NmdcSupports::AWAY;
 	}
-	else
-#endif
+	if (UploadManager::getInstance()->getIsFileServerStatus())
 	{
-		if (Util::getAway())
-		{
-			status |= NmdcSupports::AWAY;
-		}
-		if (UploadManager::getInstance()->getIsFileServerStatus())
-		{
-			status |= NmdcSupports::SERVER;
-		}
-		if (UploadManager::getInstance()->getIsFireballStatus())
-		{
-			status |= NmdcSupports::FIREBALL;
-		}
-		if (BOOLSETTING(ALLOW_NAT_TRAVERSAL) && !isActive())
-		{
-			status |= NmdcSupports::NAT0;
-		}
+		status |= NmdcSupports::SERVER;
+	}
+	if (UploadManager::getInstance()->getIsFireballStatus())
+	{
+		status |= NmdcSupports::FIREBALL;
+	}
+	if (BOOLSETTING(ALLOW_NAT_TRAVERSAL) && !isActive())
+	{
+		status |= NmdcSupports::NAT0;
 	}
 	
 	if (CryptoManager::getInstance()->TLSOk())
@@ -1780,10 +1751,19 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 	string l_currentMyInfo;
 	l_currentMyInfo.resize(256);
 	const string l_version = getClientName() + " V:" + getTagVersion();
+	string l_description;
+	if (isFlySupportHub())
+	{
+		l_description = MappingManager::getPortmapInfo(false, false);
+	}
+	else
+	{
+		l_description = getCurrentDescription();
+	}
 	l_currentMyInfo.resize(snprintf(&l_currentMyInfo[0], l_currentMyInfo.size() - 1, "$MyINFO $ALL %s %s<%s,M:%c,H:%s,S:%d"
 	                                ">$ $%s%c$%s$",
 	                                fromUtf8(getMyNick()).c_str(),
-	                                fromUtf8Chat(escape(getCurrentDescription())).c_str(),
+	                                fromUtf8Chat(escape(l_description)).c_str(),
 	                                l_version.c_str(), // [!] IRainman mimicry function.
 	                                l_modeChar,
 	                                currentCounts.c_str(),
@@ -1839,7 +1819,7 @@ void NmdcHub::search_token(const SearchParamToken& p_search_param)
 	{
 		l_is_passive = true;
 		LogManager::message("Error search port = 0 : ");
-		CFlyServerAdapter::CFlyServerJSON::pushError(21, "Error search port = 0 :");
+		CFlyServerJSON::pushError(21, "Error search port = 0 :");
 	}
 	if (isActive() && !l_is_passive)
 	{

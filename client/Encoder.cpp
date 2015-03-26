@@ -24,7 +24,7 @@
 #include <cstring>
 
 #include "debug.h"
-const int8_t Encoder::base32Table[] =
+const int8_t Encoder::g_base32Table[] =
 {
 	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -44,7 +44,7 @@ const int8_t Encoder::base32Table[] =
 	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 };
 
-const char Encoder::base32Alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+const char Encoder::g_base32Alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
 string& Encoder::toBase32(const uint8_t* src, size_t len, string& dst)
 {
@@ -75,7 +75,7 @@ string& Encoder::toBase32(const uint8_t* src, size_t len, string& dst)
 		}
 		
 		dcassert(word < 32);
-		dst += base32Alphabet[word];
+		dst += g_base32Alphabet[word];
 	}
 	return dst;
 }
@@ -88,7 +88,7 @@ void Encoder::fromBase32(const char* src, uint8_t* dst, size_t len)
 	for (i = 0, index = 0, offset = 0; src[i]; i++)
 	{
 		// Skip what we don't recognise
-		int8_t tmp = base32Table[(unsigned char)src[i]];
+		int8_t tmp = g_base32Table[(unsigned char)src[i]];
 		
 		if (tmp == -1)
 			continue;
@@ -124,7 +124,7 @@ bool Encoder::isBase32(const char* src)
 {
 	for (size_t i = 0; src[i]; i++)
 	{
-		if (base32Table[src[i]] == -1)
+		if (g_base32Table[src[i]] == -1)
 			return false;
 	}
 	

@@ -50,6 +50,23 @@ public :
     static bool Create(const Ztring &Dir_Name);
 };
 
+class GetAllFileNames_Private;
+class GetAllFileNames
+{
+public:
+    //Constructor/Destructor
+    GetAllFileNames();
+    ~GetAllFileNames();
+
+    //
+    void            Start  (const Ztring &Dir_Name, Dir::dirlist_t Options=(Dir::dirlist_t)(Dir::Include_Files|Dir::Parse_SubDirs));
+    bool            Next   (Ztring& Name);
+    void            Close  ();
+
+private:
+    GetAllFileNames_Private* p;
+};
+
 } //NameSpace
 
 #endif

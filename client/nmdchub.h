@@ -125,15 +125,13 @@ class NmdcHub : public Client, private Flags
 		// Used to detect end of connection to hub sequence (after gettinf list of users)
 		enum DefinedMeyInfoState {DIDNT_GET_YET_FIRST_MYINFO, FIRST_MYINFO, ALREADY_GOT_MYINFO};
 		
+		typedef boost::unordered_map<string, OnlineUser*> NickMap;
 		
-		typedef std::unordered_map<string, OnlineUser*, noCaseStringHash, noCaseStringEq> NickMap;
-		
-		NickMap m_users;
-		
+		NickMap  m_users;
 		string   m_lastMyInfo;
 		int64_t  m_lastBytesShared;
 		uint64_t m_lastUpdate;
-		uint8_t m_supportFlags;
+		uint8_t  m_supportFlags;
 		char m_modeChar; // last Mode MyINFO
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 		bool m_hubSupportsSlots;//[+] FlylinkDC

@@ -38,8 +38,8 @@ class Encoder
 		static void fromBase16(const char* src, uint8_t *dst, size_t len);
 #endif
 	private:
-		static const int8_t base32Table[];
-		static const char base32Alphabet[];
+		static const int8_t g_base32Table[];
+		static const char g_base32Alphabet[];
 };
 
 #endif // !defined(ENCODER_H)

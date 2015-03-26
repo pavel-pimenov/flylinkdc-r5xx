@@ -1469,7 +1469,7 @@ void AdcHub::password(const string& pwd)
 		TigerHash th;
 		if (m_oldPassword)
 		{
-			CID cid = getMyIdentity().getUser()->getCID();
+			const CID cid = getMyIdentity().getUser()->getCID();
 			th.update(cid.data(), CID::SIZE);
 		}
 		th.update(pwd.data(), pwd.length());
@@ -1599,11 +1599,16 @@ void AdcHub::info(bool p_force)
 	}
 	if (isActive() || BOOLSETTING(ALLOW_NAT_TRAVERSAL))
 	{
-		if (!getFavIp().empty())
+		if (getMyIdentity().isIPValid())
+		{		
+			const string& myUserIp = getMyIdentity().getIpAsString();
+			addParam(m_lastInfoMap, c, "I4", myUserIp);
+		}
+		else if (!getFavIp().empty())
 		{
 			addParam(m_lastInfoMap, c, "I4", getFavIp());
 		}
-		else if (BOOLSETTING(NO_IP_OVERRIDE) && !SETTING(EXTERNAL_IP).empty())
+		else if (!SETTING(EXTERNAL_IP).empty())
 		{
 			addParam(m_lastInfoMap, c, "I4", Socket::resolve(SETTING(EXTERNAL_IP)));
 		}

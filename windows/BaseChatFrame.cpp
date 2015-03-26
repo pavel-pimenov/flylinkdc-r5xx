@@ -616,20 +616,26 @@ tstring BaseChatFrame::getIpCountry(const string& ip, bool ts, bool p_ipInChat, 
 		if (p_ipInChat)
 		{
 			l_result += Text::toT(ip);
-			if (!p_countryInChat && !p_ISPInChat) l_result += _T(" ");  // Fix Right Click Menu on IP without space after IP
 		}
 		if (p_countryInChat || p_ISPInChat)
 		{
 			const Util::CustomNetworkIndex& l_location = Util::getIpCountry(ip);
-			if (p_countryInChat)
+			if (p_countryInChat && !l_location.getCountry().empty())
 			{
 				l_result += (p_ipInChat ? _T(" | ") : _T("")) + l_location.getCountry();
 			}
-			if (p_ISPInChat)
+			else
+				p_countryInChat = false;
+				
+			if (p_ISPInChat && !l_location.getDescription().empty())
 			{
 				l_result += ((p_countryInChat || p_ipInChat) ? _T(" | ") : _T("")) + l_location.getDescription();
 			}
+			else
+				p_ISPInChat = false;
 		}
+		if (!p_countryInChat && !p_ISPInChat)
+			l_result += _T(" ");  // Fix Right Click Menu on IP without space after IP
 	}
 	return l_result;
 }

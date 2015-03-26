@@ -1125,7 +1125,7 @@
 	<string name="ReportBugs">Report bugs</string>
 	<string name="Requesting">Requesting</string>
 	<string name="Resume">Resume</string>
-	<string name="RestoreLostShare">Restored folder that was previously in share:</string>
+	<string name="RestoreLostShare">Restore folder that was previously in share?</string>
 	<string name="RetrievingData">Retrieving data</string>
 	<string name="RightColor">Right color</string>
 	<string name="RollbackInconsistency">Rollback inconsistency, existing file does not match the one being downloaded</string>

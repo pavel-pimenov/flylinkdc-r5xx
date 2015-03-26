@@ -133,9 +133,24 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			return m_availableBytes;
 		}
-		
-		typedef std::unordered_map<string, Client*, noCaseStringHash, noCaseStringEq> List;
-		
+		bool isFlySupportHub() const
+		{
+			return m_is_fly_support_hub;
+		}
+		bool isLocalHub() const
+		{
+			return m_is_local_hub == true;
+		}
+		bool isGlobalHub() const
+		{
+			return m_is_local_hub == false;
+		}
+protected:
+		void setTypeHub(bool p_hub_type)
+		{
+			m_is_local_hub = p_hub_type;
+		}
+public:
 		virtual void resetAntivirusInfo() = 0;
 		virtual void connect();
 		virtual void disconnect(bool graceless);
@@ -335,6 +350,8 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		*/
 	private:
 		uint32_t m_message_count;
+		bool m_is_fly_support_hub;
+		boost::logic::tribool m_is_local_hub;
 		
 		struct CFlyFloodCommand
 		{
@@ -451,9 +468,6 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		
 		// [~] IRainman fix.
 		GETSET(bool, autoReconnect, AutoReconnect);
-#ifdef IRAINMAN_ENABLE_STEALTH_MODE
-		GETSET(bool, stealth, Stealth); // [-] IRainamn: very old code.
-#endif
 //[+]FlylinkDC
 		// [!] IRainman fix.
 		// [-] GETSET(string, currentEmail, CurrentEmail);

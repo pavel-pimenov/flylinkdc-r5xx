@@ -286,8 +286,8 @@ typedef std::vector<CFlyTTHKey> CFlyTTHKeyArray;
 class CFlyServerAdapter
 {
 	public:
-		CFlyServerAdapter(const HWND& p_hWnd, const DWORD p_dwMilliseconds = INFINITE):
-		     m_hMediaWnd(p_hWnd), 
+		CFlyServerAdapter(const DWORD p_dwMilliseconds = INFINITE):
+		     m_hMediaWnd(nullptr), 
 		     m_dwMilliseconds(p_dwMilliseconds)
 #ifdef _DEBUG
 			 ,m_debugWaits(false)
@@ -309,7 +309,7 @@ class CFlyServerAdapter
 				{
 			      m_query_thread->join(m_dwMilliseconds); // Дождемся завершения но не более 10 сек
 		        }
-			}
+		}
 
 		bool is_fly_server_active() const
 		{
@@ -342,10 +342,13 @@ class CFlyServerAdapter
 		void prepare_mediainfo_to_fly_serverL();
 		void push_mediainfo_to_fly_server();
 		void post_message_for_update_mediainfo();
-
+		void init_fly_server_window(HWND p_hMediaWnd)
+		{
+			m_hMediaWnd = p_hMediaWnd;
+		}
 	private:
 		dcdrun(bool m_debugWaits;)
-		const HWND& m_hMediaWnd;	
+		HWND m_hMediaWnd;	
 		const DWORD m_dwMilliseconds;
 	public:
 		class CFlyServerQueryThread : public Thread
@@ -394,47 +397,51 @@ class CFlyServerAdapter
 				CFlyServerAdapter* m_adapter;
 		};
 		
-		struct CFlyServerJSON
-#ifdef _DEBUG
-			: boost::noncopyable
-#endif
-		{
-			static bool login();
-#ifdef FLYLINKDC_USE_GATHER_STATISTICS
-			static bool pushStatistic(const bool p_is_sync_run);
-#endif
-			static bool pushError(unsigned p_error_code, string p_error);
-		    static void pushSyslogError(const string& p_error);
-			static bool pushTestPort(const std::vector<unsigned short>& p_udp_port,
-                               const std::vector<unsigned short>& p_tcp_port,
-                               string& p_external_ip,
-                               int p_timer_value);
-			
-			// TODO static void logout();
-			static string g_fly_server_id;
-			static CFlyTTHKeyArray g_download_counter;
-			static void addDownloadCounter (const CFlyTTHKey& p_file);
-			static bool sendDownloadCounter();
-			static string connect(const CFlyServerKeyArray& p_fileInfoArray, bool p_is_fly_set_query, bool p_is_ext_info_for_single_file = false);
-			static string postQueryTestPort(CFlyLog& p_log, const string& p_body, bool& p_is_send, bool& p_is_error);		
-			static string postQuery(bool p_is_set, 
-				                      bool p_is_stat_server, 
-									bool p_is_disable_zlib_in, 
-									bool p_is_disable_zlib_out,
-									const char* p_query, 
-									const string& p_body, 
-									bool& p_is_send,
-									bool& p_is_error,
-									DWORD p_time_out = 0,
-                  const CServerItem* p_server = nullptr);		
-    private:
-        static ::CriticalSection g_cs_error_report;
-        static string g_last_error_string;
-        static int g_count_dup_error_string;
-		};
 
 		std::unique_ptr<CFlyServerQueryThread> m_query_thread;
 };
+
+class CFlyServerJSON
+#ifdef _DEBUG
+	: boost::noncopyable
+#endif
+{
+public:
+	static bool login();
+#ifdef FLYLINKDC_USE_GATHER_STATISTICS
+	static bool pushStatistic(const bool p_is_sync_run);
+#endif
+	static bool pushError(unsigned p_error_code, string p_error);
+	static void pushSyslogError(const string& p_error);
+	static bool pushTestPort(const std::vector<unsigned short>& p_udp_port,
+		const std::vector<unsigned short>& p_tcp_port,
+		string& p_external_ip,
+		int p_timer_value);
+
+	// TODO static void logout();
+	static string g_fly_server_id;
+	static CFlyTTHKeyArray g_download_counter;
+	static void addDownloadCounter(const CFlyTTHKey& p_file);
+	static bool sendDownloadCounter();
+	static string connect(const CFlyServerKeyArray& p_fileInfoArray, bool p_is_fly_set_query, bool p_is_ext_info_for_single_file = false);
+	static string postQueryTestPort(CFlyLog& p_log, const string& p_body, bool& p_is_send, bool& p_is_error);
+	static string postQuery(bool p_is_set,
+		bool p_is_stat_server,
+		bool p_is_disable_zlib_in,
+		bool p_is_disable_zlib_out,
+		const char* p_query,
+		const string& p_body,
+		bool& p_is_send,
+		bool& p_is_error,
+		DWORD p_time_out = 0,
+		const CServerItem* p_server = nullptr);
+private:
+	static CriticalSection g_cs_error_report;
+	static CriticalSection g_cs_download_counter;
+	static string g_last_error_string;
+	static int g_count_dup_error_string;
+};
+
 //=======================================================================
 #else
 // Кривизна - поправить

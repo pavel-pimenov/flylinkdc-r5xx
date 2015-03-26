@@ -25,6 +25,8 @@
 #include "CompatibilityManager.h"
 #include <iphlpapi.h>
 
+#include "../FlyFeatures/flyServer.h"
+
 #pragma comment(lib, "iphlpapi.lib")
 
 /// @todo remove when MinGW has this
@@ -150,17 +152,18 @@ uint16_t Socket::bind(uint16_t aPort, const string& aIp /* = 0.0.0.0 */)
 	sock_addr.sin_addr.s_addr = inet_addr(aIp.c_str());
 	if (::bind(m_sock, (sockaddr *)&sock_addr, sizeof(sock_addr)) == SOCKET_ERROR)
 	{
+#ifdef _DEBUG
 		const string l_error = Util::translateError();
 		dcdebug("Bind failed, retrying with INADDR_ANY: %s\n", l_error.c_str()); //-V111
+#endif
 		sock_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 		//TODO - обработать ошибку с 10048 - занят порт
 		// - отключил спам
 		// LogManager::message("uint16_t Socket::bind Error! IP = " + aIp + " aPort=" + Util::toString(aPort) + " Error = " + l_error);
 		check(::bind(m_sock, (sockaddr *)&sock_addr, sizeof(sock_addr)));
 	}
-	socklen_t size = sizeof(sock_addr);
-	getsockname(m_sock, (struct sockaddr*)&sock_addr, (socklen_t*)&size);
-	return ntohs(sock_addr.sin_port);
+	const auto l_port = getLocalPort();
+	return l_port;
 }
 
 void Socket::listen()
@@ -836,24 +839,8 @@ string Socket::resolve(const string& aDns)
 	return address;
 #endif
 }
-
-string Socket::getLocalIp() const noexcept
-{
-    dcassert(m_sock != INVALID_SOCKET);
-    if (m_sock == INVALID_SOCKET)
-{
-return Util::emptyString;
-}
-sockaddr_in sock_addr  = { { 0 } };
-socklen_t len = sizeof(sock_addr);
-if (getsockname(m_sock, (struct sockaddr*)&sock_addr, &len) == 0)
-{
-return inet_ntoa(sock_addr.sin_addr);
-}
-return Util::emptyString;
-}
 //============================================================================
-string Socket::getDefaultGateWay(bool& p_is_wifi_router)
+string Socket::getDefaultGateWay(boost::logic::tribool& p_is_wifi_router)
 {
 	p_is_wifi_router = false;
 	in_addr l_addr = {0};
@@ -902,20 +889,57 @@ string Socket::getDefaultGateWay(bool& p_is_wifi_router)
 #endif
 }
 //============================================================================
-uint16_t Socket::getLocalPort() noexcept
+bool Socket::getLocalIPPort(uint16_t& p_port, string& p_ip, bool p_is_calc_ip) const noexcept
 {
-	if (m_sock == INVALID_SOCKET)
-		return 0;
-		
-	sockaddr_in sock_addr = { { 0 } };
-	socklen_t len = sizeof(sock_addr);
-	if (getsockname(m_sock, (struct sockaddr*)&sock_addr, &len) == 0)
-	{
-		return ntohs(sock_addr.sin_port);
-	}
-	return 0;
+    p_port = 0;
+    p_ip.clear();
+    if (m_sock == INVALID_SOCKET)
+{
+dcassert(m_sock != INVALID_SOCKET);
+	return false;
 }
-
+sockaddr_in sock_addr = { { 0 } };
+socklen_t len = sizeof(sock_addr);
+if (getsockname(m_sock, (struct sockaddr*)&sock_addr, &len) == 0)
+{
+if (p_is_calc_ip)
+	{
+		p_ip = inet_ntoa(sock_addr.sin_addr);
+		dcassert(!p_ip.empty());
+	}
+	else
+	{
+		p_port = ntohs(sock_addr.sin_port);
+		dcassert(p_port);
+	}
+	return true;
+}
+else
+{
+	const string l_error = "Error Socket::getLocalIPPort() ::WSAGetLastError() = " + Util::toString(::WSAGetLastError());
+	LogManager::message(l_error);
+	CFlyServerJSON::pushError(23, l_error);
+}
+dcassert(0);
+return false;
+}
+//============================================================================
+string Socket::getLocalIp() const noexcept
+{
+    uint16_t p_port;
+    string p_ip;
+    getLocalIPPort(p_port, p_ip, true);
+    return p_ip;
+}
+//============================================================================
+uint16_t Socket::getLocalPort() const noexcept
+{
+    uint16_t p_port = 0;
+    string p_ip;
+    getLocalIPPort(p_port, p_ip, false);
+    return p_port;
+}
+//============================================================================
 void Socket::socksUpdated()
 {
 	g_udpServer.clear();

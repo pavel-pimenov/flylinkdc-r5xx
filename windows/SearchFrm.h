@@ -165,7 +165,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 #ifdef FLYLINKDC_USE_WINDOWS_TIMER_SEARCH_FRAME
 			CFlyTimerAdapter(m_hWnd),
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-			CFlyServerAdapter(m_hWnd, 5000),
+			CFlyServerAdapter(7000),
 #endif
 #endif
 			searchBoxContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),

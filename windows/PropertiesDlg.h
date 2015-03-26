@@ -30,6 +30,9 @@ class PropertiesDlg : public TreePropertySheet
 		BEGIN_MSG_MAP(PropertiesDlg)
 		COMMAND_ID_HANDLER(IDOK, onOK)
 		COMMAND_ID_HANDLER(IDCANCEL, onCANCEL)
+#ifdef SCALOLAZ_PROPPAGE_CAMSHOOT
+		COMMAND_ID_HANDLER(IDC_PROPPAGE_CAMSHOOT, TreePropertySheet::onCamShoot)
+#endif
 		CHAIN_MSG_MAP(TreePropertySheet)
 		ALT_MSG_MAP(TreePropertySheet::TAB_MESSAGE_MAP)
 		MESSAGE_HANDLER(TCM_SETCURSEL, TreePropertySheet::onSetCurSel)
