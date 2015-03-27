@@ -1,0 +1,4 @@
+version: r502-{build}
+build:
+  project: FlylinkDC_2013.sln
+  verbosity: minimal
