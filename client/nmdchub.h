@@ -28,6 +28,7 @@
 #include "ZUtils.h"
 
 class ClientManager;
+typedef boost::unordered_map<string, std::pair<string, unsigned>>  CFlyUnknownCommand;
 
 class NmdcHub : public Client, private Flags
 {
@@ -141,6 +142,11 @@ class NmdcHub : public Client, private Flags
 		bool m_bAutodetectionPending;
 		int m_iRequestCount;
 #endif
+		static CFlyUnknownCommand g_unknown_command;
+		static FastCriticalSection g_unknown_cs;
+	public:
+		static void log_all_unknown_command();
+	private:
 		void processAutodetect(bool p_is_myinfo);
 		
 		DefinedMeyInfoState m_bLastMyInfoCommand; // [+] FlylinkDC
@@ -234,8 +240,7 @@ class NmdcHub : public Client, private Flags
 		                );
 		                
 		static void sendUDPSR(Socket& p_udp, const string& p_seeker, const string& p_sr, const Client* p_client);
-		void NmdcSearch(const SearchParam& p_search_param,
-		                bool isPassive);
+		void NmdcSearch(const SearchParam& p_search_param);
 		string calcExternalIP() const;
 		void revConnectToMe(const OnlineUser& aUser);
 		bool resendMyINFO(bool p_is_force_passive);
@@ -265,7 +270,7 @@ class NmdcHub : public Client, private Flags
 		void on(BufferedSocketListener::MyInfoArray, StringList&) noexcept; // [+]PPA
 		void on(BufferedSocketListener::DDoSSearchDetect, const string&) noexcept; // [+]PPA
 		void on(BufferedSocketListener::SearchArrayTTH, CFlySearchArrayTTH&) noexcept; // [+]PPA
-		void on(BufferedSocketListener::SearchArrayFile, CFlySearchArrayFile&) noexcept; // [+]PPA
+		void on(BufferedSocketListener::SearchArrayFile, const CFlySearchArrayFile&) noexcept; // [+]PPA
 		
 		void on(BufferedSocketListener::Failed, const string&) noexcept;
 #ifdef IRAINMAN_ENABLE_AUTO_BAN

@@ -3,8 +3,8 @@
 
 #include "forward.h"
 #include "typedefs.h"
-
 #include "noexcept.h"
+#include "TransferData.h"
 
 class UploadManagerListener
 {
@@ -26,7 +26,7 @@ class UploadManagerListener
 		typedef X<7> QueueUpdate;
 		
 		virtual void on(Starting, const Upload*) noexcept { }
-		virtual void on(Tick, const UploadList&, uint64_t/*[+]IRainman refactoring transfer mechanism*/) noexcept { }
+		virtual void on(Tick, const UploadArray&, uint64_t/*[+]IRainman refactoring transfer mechanism*/) noexcept { }
 		virtual void on(Complete, const Upload*) noexcept { }
 		virtual void on(Failed, const Upload*, const string&) noexcept { }
 		virtual void on(QueueAdd, UploadQueueItem*) noexcept { }

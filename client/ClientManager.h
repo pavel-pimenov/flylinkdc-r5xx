@@ -462,9 +462,6 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		*/
 		static OnlineUser* findOnlineUserHintL(const CID& cid, const string& hintUrl, OnlinePairC& p);
 		
-		void NmdcSearch(Client* aClient,
-		                const SearchParam& p_search_param,
-		                bool isPassive);
 		void fireIncomingSearch(const string&, const string&, ClientManagerListener::SearchReply);
 		// ClientListener
 		void on(Connected, const Client* c) noexcept;

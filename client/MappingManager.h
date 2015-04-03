@@ -87,7 +87,7 @@ class MappingManager :
 		static boost::logic::tribool g_is_wifi_router;
 		MappingManager();
 		/*virtual*/
-		~MappingManager() 
+		~MappingManager()
 		{
 			join();
 		}

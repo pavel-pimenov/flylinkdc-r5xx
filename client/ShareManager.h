@@ -49,8 +49,9 @@ class MemoryInputStream;
 class SearchResultBaseTTH;
 
 struct ShareLoader;
-
+typedef std::vector<SearchResult> SearchResultList;
 typedef boost::unordered_set<std::string> QueryNotExistsSet;
+typedef boost::unordered_map<std::string, SearchResultList> QueryCacheMap;
 
 class ShareManager : public Singleton<ShareManager>, private SettingsManagerListener, private BASE_THREAD, private TimerManagerListener,
 	private HashManagerListener, private QueueManagerListener
@@ -99,10 +100,10 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		static bool   isUnknownTTH(const TTHValue& p_tth);
 		static bool   isUnknownFile(const string& p_search);
 		static void   addUnknownFile(const string& p_search);
+		static bool   isCacheFile(const string& p_search, SearchResultList& p_search_result);
+		static void   addCacheFile(const string& p_search, const SearchResultList& p_search_result);
 	public:
-		void   search(SearchResultList& aResults,
-		              const SearchParam& p_search_param,
-		              Client* aClient, StringList::size_type maxResults) noexcept;
+		void   search(SearchResultList& aResults, const SearchParam& p_search_param) noexcept;
 		void   search(SearchResultList& aResults, const StringList& params, StringList::size_type maxResults, StringSearch::List& reguest) noexcept; // [!] IRainman-S add StringSearch::List& reguest
 		
 		bool findByRealPathName(const string& realPathname, TTHValue* outTTHPtr, string* outfilenamePtr = NULL, int64_t* outSizePtr = NULL); // [+] SSA
@@ -129,7 +130,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		}
 	private:
 		void internalCalcShareSize();
-		static void internalClearShareNotExists(bool p_is_force);
+		static void internalClearCache(bool p_is_force);
 	public:
 		// [~] IRainman opt.
 		int64_t getShareSize(const string& realPath);
@@ -353,7 +354,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 				
 				int64_t getSizeL() const noexcept;
 				
-				void search(SearchResultList& aResults, StringSearch::List& aStrings, const SearchParamBase& p_search_param, Client* aClient, StringList::size_type maxResults) const noexcept;
+				void search(SearchResultList& aResults, StringSearch::List& aStrings, const SearchParamBase& p_search_param) const noexcept;
 				void search(SearchResultList& aResults, AdcSearch& aStrings, StringList::size_type maxResults) const noexcept;
 				
 				void toXml(OutputStream& xmlFile, string& indent, string& tmp2, bool fullList) const;
@@ -431,6 +432,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShare;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShareNotExists;
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csShareCache;
 		
 		// List of root directory items
 		typedef std::list<Directory::Ptr> DirList;
@@ -449,6 +451,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		
 		static HashFileMap g_tthIndex;
 		static QueryNotExistsSet g_file_not_exists_set;
+		static QueryCacheMap g_file_cache_map;
 		
 		//[+]IRainman opt.
 		static bool g_isNeedsUpdateShareSize;
@@ -507,6 +510,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		{
 			dcassert(!isShutdown());
 			g_isShutdown = true;
+			internalClearCache(true);
 		}
 		static bool isShutdown() // TODO унести в интерфейсный класс - друган Singleton-а
 		{

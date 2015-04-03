@@ -887,7 +887,7 @@ void AdcHub::handle(AdcCommand::RES, const AdcCommand& c) noexcept
 		dcdebug("Invalid user in AdcHub::onRES\n");
 		return;
 	}
-	SearchManager::getInstance()->onRES(c, ou->getUser());
+	SearchManager::getInstance()->onRES(c, ou->getUser(), boost::asio::ip::address_v4());
 }
 
 void AdcHub::handle(AdcCommand::PSR, const AdcCommand& c) noexcept
@@ -899,7 +899,7 @@ void AdcHub::handle(AdcCommand::PSR, const AdcCommand& c) noexcept
 		LogManager::psr_message("Invalid user in AdcHub::onPSR = " + c.toString(c.getFrom()));
 		return;
 	}
-	SearchManager::getInstance()->onPSR(c, ou->getUser());
+	SearchManager::getInstance()->onPSR(c, ou->getUser(), boost::asio::ip::address_v4());
 }
 
 void AdcHub::handle(AdcCommand::GET, const AdcCommand& c) noexcept
@@ -1600,7 +1600,7 @@ void AdcHub::info(bool p_force)
 	if (isActive() || BOOLSETTING(ALLOW_NAT_TRAVERSAL))
 	{
 		if (getMyIdentity().isIPValid())
-		{		
+		{
 			const string& myUserIp = getMyIdentity().getIpAsString();
 			addParam(m_lastInfoMap, c, "I4", myUserIp);
 		}

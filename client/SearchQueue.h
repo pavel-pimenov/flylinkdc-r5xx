@@ -74,9 +74,12 @@ class SearchParamBase
 	public:
 		Search::SizeModes m_size_mode;
 		int64_t m_size;
+		uint8_t m_max_results;
+		bool m_is_passive;
 		Search::TypeModes m_file_type;
 		string m_filter;
-		SearchParamBase(): m_size(0), m_size_mode(Search::SIZE_DONTCARE), m_file_type(Search::TYPE_ANY)
+		Client* m_client;
+		SearchParamBase() : m_size(0), m_size_mode(Search::SIZE_DONTCARE), m_file_type(Search::TYPE_ANY), m_max_results(0), m_is_passive(false), m_client(nullptr)
 		{
 		}
 		void normalize_whitespace()
@@ -88,7 +91,12 @@ class SearchParamBase
 				found++;
 			}
 		}
-		
+		void init(Client* p_client, bool p_is_passive)
+		{
+			m_client = p_client;
+			m_is_passive  = p_is_passive;
+			m_max_results = p_is_passive ? 5 : 10;
+		}
 };
 class SearchParam : public SearchParamBase
 {

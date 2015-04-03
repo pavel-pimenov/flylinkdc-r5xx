@@ -38,7 +38,11 @@ boost::atomic_int UploadQueueItem::g_upload_queue_item_count;
 uint32_t UploadManager::g_count_WaitingUsersFrame = 0;
 UploadManager::SlotMap UploadManager::g_reservedSlots;
 int UploadManager::g_running = 0;
-
+UploadList UploadManager::g_uploads;
+UploadList UploadManager::g_delayUploads;
+CurrentConnectionMap UploadManager::g_uploadsPerUser;
+UploadManager::BanMap UploadManager::g_lastBans;
+std::unique_ptr<webrtc::RWLockWrapper> UploadManager::g_csUploadsDelay = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> UploadManager::g_csReservedSlots = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> UploadManager::g_csBans = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 
@@ -67,16 +71,16 @@ UploadManager::~UploadManager()
 		}
 		m_slotQueue.clear();
 	}
-	
 	while (true)
 	{
 		{
-			Lock l(m_csUploads); // [!] IRainman opt.
-			if (m_uploads.empty())
+			webrtc::ReadLockScoped l(*g_csUploadsDelay);
+			if (g_uploads.empty())
 				break;
 		}
 		Thread::sleep(10);
 	}
+	dcassert(g_uploadsPerUser.empty());
 }
 // !SMT!-S
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
@@ -181,10 +185,10 @@ bool UploadManager::handleBan(UserConnection* aSource/*, bool forceBan, bool noC
 			bool sendPm;
 			{
 				webrtc::WriteLockScoped l(*g_csBans); // [+] IRainman opt.
-				auto t = m_lastBans.find(key);
-				if (t == m_lastBans.end()) // new banned user
+				auto t = g_lastBans.find(key);
+				if (t == g_lastBans.end()) // new banned user
 				{
-					m_lastBans[key] = msg;
+					g_lastBans[key] = msg;
 					sendPm = pmMsgPeriod != 0;
 				}
 				else if (!t->second.same(msg)) // new ban message
@@ -215,13 +219,13 @@ bool UploadManager::handleBan(UserConnection* aSource/*, bool forceBan, bool noC
 	return true;
 }
 // !SMT!-S
-bool UploadManager::isBanReply(const UserPtr& user) const
+bool UploadManager::isBanReply(const UserPtr& user)
 {
 	const auto& key = user->getCID().toBase32();
 	{
 		webrtc::ReadLockScoped l(*g_csBans); // [+] IRainman opt.
-		const auto t = m_lastBans.find(key);
-		if (t != m_lastBans.end())
+		const auto t = g_lastBans.find(key);
+		if (t != g_lastBans.end())
 			return (TimerManager::getTick() - t->second.tick) < 2000;
 	}
 	return false;
@@ -236,9 +240,9 @@ bool UploadManager::hasUpload(const UserConnection* p_newLeacher, const string& 
 		const auto& newLeacherShare = p_newLeacher->getUser()->getBytesShared(); // [!] IRainamn fix, old code: ClientManager::getInstance()->getBytesShared(aSource->getUser());
 		const auto& newLeacherNick = p_newLeacher->getUser()->getLastNick();
 		
-		Lock l(m_csUploads); // [+] IRainman opt.
+		webrtc::ReadLockScoped l(*g_csUploadsDelay); // [!] IRainman opt.
 		
-		for (auto i = m_uploads.cbegin(); i != m_uploads.cend(); ++i)
+		for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
 		{
 			const Upload* u = *i;
 			dcassert(u);
@@ -551,7 +555,7 @@ ok: //[!] TODO убрать goto
 	}
 	if (!hasReserved)
 	{
-		hasReserved = BOOLSETTING(EXTRASLOT_TO_DL) && DownloadManager::getInstance()->checkFileDownload(aSource->getUser());// !SMT!-S
+		hasReserved = BOOLSETTING(EXTRASLOT_TO_DL) && DownloadManager::checkFileDownload(aSource->getUser());// !SMT!-S
 	}
 	
 	const bool isFavorite = FavoriteManager::getInstance()->hasAutoGrantSlot(aSource->getUser())
@@ -660,13 +664,13 @@ ok: //[!] TODO убрать goto
 	
 	bool resumed = false;
 	{
-		Lock l(m_csUploads); // [+] IRainman opt.
-		for (auto i = m_delayUploads.cbegin(); i != m_delayUploads.cend(); ++i)
+		webrtc::WriteLockScoped l(*g_csUploadsDelay);
+		for (auto i = g_delayUploads.cbegin(); i != g_delayUploads.cend(); ++i)
 		{
 			Upload* up = *i;
 			if (aSource == up->getUserConnection())
 			{
-				m_delayUploads.erase(i);
+				g_delayUploads.erase(i);
 				if (sourceFile != up->getPath())
 				{
 					logUpload(up);
@@ -680,7 +684,7 @@ ok: //[!] TODO убрать goto
 			}
 		}
 	}
-	
+	SharedFileStream::cleanup();
 	Upload* u = new Upload(aSource, l_tth, sourceFile, l_ip, l_chiper_name); // [!] IRainman fix.
 	u->setStream(is);
 	u->setSegment(Segment(start, size));
@@ -692,14 +696,14 @@ ok: //[!] TODO убрать goto
 		u->setFlag(Upload::FLAG_RESUMED);
 		
 	if (partial)
-		u->setFlag(Upload::FLAG_PARTIAL);
+		u->setFlag(Upload::FLAG_UPLOAD_PARTIAL);
 		
 	u->setFileSize(fileSize);
 	u->setType(type);
 	
 	{
-		Lock l(m_csUploads); // [+] IRainman opt.
-		m_uploads.push_back(u);
+		webrtc::WriteLockScoped l(*g_csUploadsDelay);
+		g_uploads.push_back(u);
 		increaseUserConnectionAmountL(u->getUser());// [+] IRainman SpeedLimiter
 	}
 	
@@ -743,16 +747,45 @@ bool UploadManager::getAutoSlot()
 	return getRunningAverage() < (SETTING(MIN_UPLOAD_SPEED) * 1024);
 }
 
+void UploadManager::increaseUserConnectionAmountL(const UserPtr& p_user)
+{
+	const auto i = g_uploadsPerUser.find(p_user);
+	if (i != g_uploadsPerUser.end())
+		i->second++;
+	else
+		g_uploadsPerUser.insert(CurrentConnectionPair(p_user, 1));
+}
+void UploadManager::decreaseUserConnectionAmountL(const UserPtr& p_user)
+{
+	const auto i = g_uploadsPerUser.find(p_user);
+	dcassert(i != g_uploadsPerUser.end());
+	if (i != g_uploadsPerUser.end())
+	{
+		i->second--;
+		if (i->second == 0)
+			g_uploadsPerUser.erase(p_user);
+	}
+}
+unsigned int UploadManager::getUserConnectionAmountL(const UserPtr& p_user)
+{
+	const auto i = g_uploadsPerUser.find(p_user);
+	if (i != g_uploadsPerUser.end())
+		return i->second;
+		
+	dcassert(0);
+	return 1;
+}
+
 void UploadManager::removeUpload(Upload* aUpload, bool delay)
 {
-	Lock l(m_csUploads); // [!] IRainman opt.
-	dcassert(find(m_uploads.begin(), m_uploads.end(), aUpload) != m_uploads.end());
-	m_uploads.erase(remove(m_uploads.begin(), m_uploads.end(), aUpload), m_uploads.end());
+	webrtc::WriteLockScoped l(*g_csUploadsDelay);
+	dcassert(find(g_uploads.begin(), g_uploads.end(), aUpload) != g_uploads.end());
+	g_uploads.erase(remove(g_uploads.begin(), g_uploads.end(), aUpload), g_uploads.end());
 	decreaseUserConnectionAmountL(aUpload->getUser());// [+] IRainman SpeedLimiter
 	
 	if (delay)
 	{
-		m_delayUploads.push_back(aUpload);
+		g_delayUploads.push_back(aUpload);
 	}
 	else
 	{
@@ -947,7 +980,6 @@ void UploadManager::logUpload(const Upload* u)
 		LOG(UPLOAD, params);
 	}
 	fire(UploadManagerListener::Complete(), u);
-	SharedFileStream::cleanup();
 }
 
 size_t UploadManager::addFailedUpload(const UserConnection* aSource, const string& file, int64_t pos, int64_t size)
@@ -1144,9 +1176,9 @@ void UploadManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 		
 		if (BOOLSETTING(AUTO_KICK))
 		{
-			Lock l(m_csUploads); // [+] IRainman opt.
+			webrtc::ReadLockScoped l(*g_csUploadsDelay);
 			
-			for (auto i = m_uploads.cbegin(); i != m_uploads.cend(); ++i)
+			for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
 			{
 				if (Upload* u = *i)
 				{
@@ -1224,45 +1256,88 @@ void UploadManager::on(AdcCommand::GFI, UserConnection* aSource, const AdcComman
 // TimerManagerListener
 void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 {
+	UploadArray l_tickList;
 	{
 		int64_t l_currentSpeed = 0;//[+]IRainman refactoring transfer mechanism
-		UploadList ticks;
-		
-		Lock l(m_csUploads); // [+] IRainman opt.
-		for (auto i = m_delayUploads.cbegin(); i != m_delayUploads.cend();)
 		{
-			if (Upload* u = *i)
-				if (++u->m_delayTime > 10)
-				{
-					logUpload(u);
-					delete u;
-					
-					m_delayUploads.erase(i);
-					i = m_delayUploads.cbegin();
-				}
-				else
-				{
-					++i;
-				}
+			webrtc::WriteLockScoped l(*g_csUploadsDelay);
+			for (auto i = g_delayUploads.cbegin(); i != g_delayUploads.cend();)
+			{
+				if (Upload* u = *i)
+					if (++u->m_delayTime > 10)
+					{
+						logUpload(u);
+						delete u;
+						
+						g_delayUploads.erase(i);
+						i = g_delayUploads.cbegin();
+					}
+					else
+					{
+						++i;
+					}
+			}
 		}
-		
-		for (auto i = m_uploads.cbegin(); i != m_uploads.cend(); ++i)
+		SharedFileStream::cleanup();
+		l_tickList.reserve(g_uploads.size());
+		webrtc::ReadLockScoped l(*g_csUploadsDelay);
+		for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
 		{
 			Upload* u = *i;
 			if (u->getPos() > 0)
 			{
-				ticks.push_back(u); // https://www.box.net/shared/83e9d01b2bbd06812496
-				u->tick(aTick); // [!]IRainman refactoring transfer mechanism
+				TransferData l_td;
+				l_td.m_hinted_user  = u->getHintedUser();
+				l_td.m_pos          = u->getStartPos() + u->getPos();
+				l_td.m_actual       = u->getStartPos() + u->getActual();
+				l_td.m_second_left  = u->getSecondsLeft(true);
+				l_td.m_running_average = u->getRunningAverage();
+				l_td.m_start = u->getStart();
+				l_td.m_size  = u->getType() == Transfer::TYPE_TREE ? u->getSize() : u->getFileSize();
+				l_td.m_type  = u->getType();
+				l_td.calc_percent();
+				if (u->isSet(Upload::FLAG_UPLOAD_PARTIAL))
+				{
+					l_td.m_status_string += _T("[P]");
+				}
+				if (u->m_isSecure)
+				{
+					if (u->m_isTrusted)
+					{
+						l_td.m_status_string += _T("[S]");
+					}
+					else
+					{
+						l_td.m_status_string += _T("[U]");
+					}
+				}
+				if (u->isSet(Upload::FLAG_ZUPLOAD))
+				{
+					l_td.m_status_string += _T("[Z]");
+				}
+				if (u->isSet(Upload::FLAG_CHUNKED))
+				{
+					l_td.m_status_string += _T("[C]");
+				}
+				if (!l_td.m_status_string.empty())
+				{
+					l_td.m_status_string += _T(' ');
+				}
+				l_td.m_status_string += Text::tformat(TSTRING(UPLOADED_BYTES), Util::formatBytesW(l_td.m_pos).c_str(), l_td.m_percent, l_td.get_elapsed(aTick).c_str());
+				l_td.log_debug();
+				l_tickList.push_back(l_td);
+				u->tick(aTick);
 			}
 			u->getUserConnection()->getSocket()->updateSocketBucket(getUserConnectionAmountL(u->getUser()));// [+] IRainman SpeedLimiter
 			l_currentSpeed += u->getRunningAverage();//[+] IRainman refactoring transfer mechanism
 		}
 		m_runningAverage = l_currentSpeed; // [+] IRainman refactoring transfer mechanism
 		
-		if (!ticks.empty())
-		{
-			fire(UploadManagerListener::Tick(), ticks, aTick);//[!]IRainman refactoring transfer mechanism + uint64_t aTick
-		}
+	}
+	if (!l_tickList.empty())
+	{
+		fire(UploadManagerListener::Tick(), l_tickList, aTick); //[!]IRainman refactoring transfer mechanism + uint64_t aTick
+		// TODO - ¬ыполн€ем под локом
 	}
 	
 	notifyQueuedUsers(aTick);
@@ -1314,13 +1389,13 @@ void UploadManager::on(ClientManagerListener::UserDisconnected, const UserPtr& a
 
 void UploadManager::removeDelayUpload(const UserPtr& aUser)
 {
-	Lock l(m_csUploads); // [!] IRainman opt.
-	for (auto i = m_delayUploads.cbegin(); i != m_delayUploads.cend(); ++i)
+	webrtc::WriteLockScoped l(*g_csUploadsDelay);
+	for (auto i = g_delayUploads.cbegin(); i != g_delayUploads.cend(); ++i)
 	{
 		Upload* up = *i;
 		if (aUser == up->getUser())
 		{
-			m_delayUploads.erase(i);
+			g_delayUploads.erase(i);
 			delete up;
 			break;
 		}
@@ -1333,14 +1408,11 @@ void UploadManager::removeDelayUpload(const UserPtr& aUser)
 void UploadManager::abortUpload(const string& aFile, bool waiting)
 {
 	bool nowait = true;
-	
 	{
-		Lock l(m_csUploads); // [!] IRainman opt.
-		
-		for (auto i = m_uploads.cbegin(); i != m_uploads.cend(); ++i)
+		webrtc::ReadLockScoped l(*g_csUploadsDelay);
+		for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
 		{
 			Upload* u = (*i);
-			
 			if (u->getPath() == aFile)
 			{
 				u->getUserConnection()->disconnect(true);
@@ -1354,16 +1426,13 @@ void UploadManager::abortUpload(const string& aFile, bool waiting)
 	
 	for (int i = 0; i < 20 && nowait == false; i++)
 	{
-		Thread::sleep(250);
+		Thread::sleep(100);
 		{
-			Lock l(m_csUploads); // [!] IRainman opt.
-			
+			webrtc::ReadLockScoped l(*g_csUploadsDelay);
 			nowait = true;
-			for (auto j = m_uploads.cbegin(); j != m_uploads.cend(); ++j)
+			for (auto j = g_uploads.cbegin(); j != g_uploads.cend(); ++j)
 			{
-				Upload* u = *j;
-				
-				if (u->getPath() == aFile)
+				if ((*j)->getPath() == aFile)
 				{
 					dcdebug("upload %s is not removed\n", aFile.c_str());
 					nowait = false;
@@ -1374,7 +1443,9 @@ void UploadManager::abortUpload(const string& aFile, bool waiting)
 	}
 	
 	if (!nowait)
+	{
 		dcdebug("abort upload timeout %s\n", aFile.c_str());
+	}
 }
 
 // !SMT!-S

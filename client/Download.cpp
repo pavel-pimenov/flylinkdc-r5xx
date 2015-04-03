@@ -77,7 +77,7 @@ lastNormalSpeed(0),
 	const auto& l_source_it = qi->findSourceL(getUser()); // [+] IRainman fix.
 	const auto& l_src = l_source_it->second;
 	if (l_src.isSet(QueueItem::Source::FLAG_PARTIAL))
-		setFlag(FLAG_PARTIAL);
+		setFlag(FLAG_DOWNLOAD_PARTIAL);
 		
 	if (l_is_type_file)
 	{

@@ -477,7 +477,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		void on(TimerManagerListener::Minute, uint64_t aTick) noexcept;
 		
 		// SearchManagerListener
-		void on(SearchManagerListener::SR, const SearchResultPtr&) noexcept;
+		void on(SearchManagerListener::SR, const SearchResult&) noexcept;
 		
 		// ClientManagerListener
 		void on(ClientManagerListener::UserConnected, const UserPtr& aUser) noexcept;

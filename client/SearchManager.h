@@ -66,20 +66,20 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 		void disconnect();
 		void onSearchResult(const string& aLine)
 		{
-			onData((const uint8_t*)aLine.data(), aLine.length(), Util::emptyString);
+			onData((const uint8_t*)aLine.data(), aLine.length(), boost::asio::ip::address_v4());
 			// TODO - лишнее преобразование  aLine в массив батиков где в onData - создается дубликат string x()
 			// а третий параметр всегда пустой - это IP-шник
 		}
 		
-		void onRES(const AdcCommand& cmd, const UserPtr& from, const string& remoteIp = Util::emptyString);
-		void onPSR(const AdcCommand& cmd, UserPtr from, const string& remoteIp = Util::emptyString);
+		void onRES(const AdcCommand& cmd, const UserPtr& from, const boost::asio::ip::address_v4& remoteIp);
+		void onPSR(const AdcCommand& cmd, UserPtr from, const boost::asio::ip::address_v4& remoteIp);
 		void toPSR(AdcCommand& cmd, bool wantResponse, const string& myNick, const string& hubIpPort, const string& tth, const vector<uint16_t>& partialInfo) const;
 		
 	private:
 		class UdpQueue: public BASE_THREAD
 		{
 			public:
-				UdpQueue() : stop(false) {}
+				UdpQueue() : m_is_stop(false) {}
 				~UdpQueue()
 				{
 					shutdown();
@@ -88,25 +88,23 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 				int run();
 				void shutdown()
 				{
-					stop = true;
+					m_is_stop = true;
 					m_s.signal();
 				}
-				void addResult(const string& buf, const string& ip)
+				void addResult(const string& buf, const boost::asio::ip::address_v4& p_ip4)
 				{
 					{
-						FastLock l(cs);
-						resultList.push_back(make_pair(buf, ip));
+						FastLock l(m_cs);
+						m_resultList.push_back(make_pair(buf, p_ip4));
 					}
 					m_s.signal();
 				} // Venturi Firewall 2012-04-23_22-28-18_A6JRQEPFW5263A7S7ZOBOAJGFCMET3YJCUYOVCQ_34B61CDE_crash-stack-r501-build-9812.dmp
 				
 			private:
-				FastCriticalSection cs; // [!] IRainman opt: use spin lock here.
+				FastCriticalSection m_cs; // [!] IRainman opt: use spin lock here.
 				Semaphore m_s;
-				
-				deque<pair<string, string>> resultList;
-				
-				volatile bool stop; // [!] IRainman fix: this variable is volatile.
+				deque<pair<string, boost::asio::ip::address_v4>> m_resultList;
+				volatile bool m_is_stop; // [!] IRainman fix: this variable is volatile.
 		} m_queue_thread;
 		
 		// [-] CriticalSection cs; [-] FlylinkDC++
@@ -120,7 +118,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 		int run();
 		
 		~SearchManager();
-		void onData(const uint8_t* buf, size_t aLen, const string& address);
+		void onData(const uint8_t* buf, size_t aLen, const boost::asio::ip::address_v4& address);
 		
 		string getPartsString(const PartsInfo& partsInfo) const;
 };

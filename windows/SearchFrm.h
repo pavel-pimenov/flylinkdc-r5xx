@@ -418,31 +418,26 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 			, public CFlyServerInfo
 #endif
-#ifdef _DEBUG
-			, virtual NonDerivable<SearchInfo> // [+] IRainman fix.
-#endif
 		{
 			public:
 				typedef SearchInfo* Ptr;
 				typedef vector<Ptr> Array;
 				
-				SearchInfo(const SearchResultPtr &aSR) : sr(aSR), collapsed(true), parent(nullptr), hits(0), m_icon_index(-1), m_is_flush_ip_to_sqlite(false)
+				SearchInfo(const SearchResult &aSR) : sr(aSR), collapsed(true), parent(nullptr), m_hits(0), m_icon_index(-1), m_is_flush_ip_to_sqlite(false)
 				{
-					sr->inc();
 				}
 				~SearchInfo()
 				{
-					sr->dec();
 				}
 				
 				const UserPtr& getUser() const
 				{
-					return sr->getUser();
+					return sr.getUser();
 				}
 				
 				bool collapsed;
 				SearchInfo* parent;
-				size_t hits;
+				size_t m_hits;
 				int m_icon_index;
 				
 				void getList();
@@ -519,11 +514,11 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 				
 				Util::CustomNetworkIndex m_location;
 				bool m_is_flush_ip_to_sqlite;
-				const SearchResultPtr sr;
+				SearchResult sr;
 				tstring columns[COLUMN_LAST];
 				const TTHValue& getGroupCond() const
 				{
-					return sr->getTTH();
+					return sr.getTTH();
 				}
 		};
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -747,7 +742,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		void onTab(bool shift);
 		void download(SearchResult* aSR, const tstring& aDir, bool view);
 		
-		void on(SearchManagerListener::SR, const SearchResultPtr &aResult) noexcept;
+		void on(SearchManagerListener::SR, const SearchResult &aResult) noexcept;
 		void on(SearchManagerListener::UDPTest, const string& p_ip) noexcept;
 		//void on(SearchManagerListener::Searching, SearchQueueItem* aSearch) noexcept;
 		
@@ -777,11 +772,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		
 		LRESULT onItemChangedHub(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
 		
-		void speak(Speakers s, const Client* aClient)
-		{
-			HubInfo* hubInfo = new HubInfo(Text::toT(aClient->getHubUrl()), Text::toT(aClient->getHubName()), aClient->getMyIdentity().isOp());
-			PostMessage(WM_SPEAKER, WPARAM(s), LPARAM(hubInfo));
-		}
+		void speak(Speakers s, const Client* aClient);
 };
 
 #endif // !defined(SEARCH_FRM_H)

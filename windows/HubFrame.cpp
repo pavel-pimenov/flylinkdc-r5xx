@@ -1482,15 +1482,19 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 		case WM_SPEAKER_DISCONNECTED:
 		{
 			dcassert(!ClientManager::isShutdown());
+			
 			clearUserList(true);
-			setTabColor(RGB(128, 0, 0));
-			setIconState();
-			PLAY_SOUND(SOUND_HUBDISCON);
-			SHOW_POPUP(POPUP_HUB_DISCONNECTED, Text::toT(m_client->getHubUrl()), TSTRING(DISCONNECTED));
+			if (!ClientManager::isShutdown())
+			{
+				setTabColor(RGB(128, 0, 0));
+				setIconState();
+				PLAY_SOUND(SOUND_HUBDISCON);
+				SHOW_POPUP(POPUP_HUB_DISCONNECTED, Text::toT(m_client->getHubUrl()), TSTRING(DISCONNECTED));
 #ifdef SCALOLAZ_HUB_MODE
-			HubModeChange();
+				HubModeChange();
 #endif
-			m_needsUpdateStats = true;
+				m_needsUpdateStats = true;
+			}
 		}
 		break;
 #ifdef FLYLINKDC_PRIVATE_MESSAGE_USE_WIN_MESSAGES_Q

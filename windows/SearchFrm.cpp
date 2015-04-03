@@ -597,10 +597,10 @@ LRESULT SearchFrame::onDrawItem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& b
 	}
 	else if (dis->CtlID == ATL_IDW_STATUS_BAR && dis->itemID == 1)
 	{
-		if (m_searchStartTime > 0)
+		const auto l_delta = m_searchEndTime - m_searchStartTime;
+		if (m_searchStartTime > 0 && l_delta)
 		{
 			bHandled = TRUE;
-			
 			const RECT rc = dis->rcItem;
 			int borders[3];
 			
@@ -609,9 +609,9 @@ LRESULT SearchFrame::onDrawItem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& b
 			CDC dc(dis->hDC);
 			
 			const uint64_t now = GET_TICK();
-			const uint64_t length = min((uint64_t)(rc.right - rc.left), (rc.right - rc.left) * (now - m_searchStartTime) / (m_searchEndTime - m_searchStartTime));
+			const uint64_t length = min((uint64_t)(rc.right - rc.left), (rc.right - rc.left) * (now - m_searchStartTime) / l_delta);
 			
-			OperaColors::FloodFill(dc, rc.left, rc.top,  rc.left + (LONG)length, rc.bottom, RGB(128, 128, 128), RGB(160, 160, 160));
+			OperaColors::FloodFill(dc, rc.left, rc.top, rc.left + (LONG)length, rc.bottom, RGB(128, 128, 128), RGB(160, 160, 160));
 			
 			dc.SetBkMode(TRANSPARENT);
 			/* [-] IRainman fix.
@@ -937,9 +937,10 @@ void SearchFrame::on(SearchManagerListener::UDPTest, const string& p_ip) noexcep
 	g_isUDPTestOK = true;
 	m_ctrlUDPMode.SetIcon(g_UDPOkIcon);
 	m_ctrlUDPTestResult.SetWindowText(g_UDPTestText.c_str());
+	ClientManager::infoUpdated(true);
 }
 
-void SearchFrame::on(SearchManagerListener::SR, const SearchResultPtr &aResult) noexcept
+void SearchFrame::on(SearchManagerListener::SR, const SearchResult &aResult) noexcept
 {
 	if (isClosedOrShutdown())
 		return;
@@ -952,7 +953,7 @@ void SearchFrame::on(SearchManagerListener::SR, const SearchResultPtr &aResult) 
 			
 		m_needsUpdateStats = true; // [+] IRainman opt.
 		// [+] merge
-		if (!aResult->getToken() && m_search_param.m_token != aResult->getToken())
+		if (!aResult.getToken() && m_search_param.m_token != aResult.getToken())
 		{
 			m_droppedResults++;
 			//PostMessage(WM_SPEAKER, FILTER_RESULT);//[-]IRainman optimize SearchFrame
@@ -961,7 +962,7 @@ void SearchFrame::on(SearchManagerListener::SR, const SearchResultPtr &aResult) 
 		
 		if (m_isHash)
 		{
-			if (aResult->getType() != SearchResult::TYPE_FILE || TTHValue(m_search[0]) != aResult->getTTH())
+			if (aResult.getType() != SearchResult::TYPE_FILE || TTHValue(m_search[0]) != aResult.getTTH())
 			{
 				m_droppedResults++;
 				//PostMessage(WM_SPEAKER, FILTER_RESULT);//[-]IRainman optimize SearchFrame
@@ -972,12 +973,12 @@ void SearchFrame::on(SearchManagerListener::SR, const SearchResultPtr &aResult) 
 		{
 			if (m_search_param.m_file_type != Search::TYPE_EXECUTABLE && m_search_param.m_file_type != Search::TYPE_ANY && m_search_param.m_file_type != Search::TYPE_DIRECTORY)
 			{
-				const string l_ext = "x" + Util::getFileExt(aResult->getFileName());
+				const string l_ext = "x" + Util::getFileExt(aResult.getFileName());
 				const bool l_is_executable = ShareManager::checkType(l_ext, Search::TYPE_EXECUTABLE);
 				if (l_is_executable)
 				{
-					LogManager::message("Search: ignore virus result: " + aResult->getFileName() +
-					" Hub: " + aResult->getHubURL() + " Nick: " + aResult->getUser()->getLastNick());
+					LogManager::message("Search: ignore virus result: " + aResult.getFileName() +
+					" Hub: " + aResult.getHubURL() + " Nick: " + aResult.getUser()->getLastNick());
 					// http://dchublist.ru/forum/viewtopic.php?p=22426#p22426
 					m_droppedResults++;
 					return;
@@ -987,10 +988,10 @@ void SearchFrame::on(SearchManagerListener::SR, const SearchResultPtr &aResult) 
 			for (auto j = m_search.cbegin(); j != m_search.cend(); ++j)
 			{
 				if ((*j->begin() != '-' &&
-				        Util::findSubString(aResult->getFile(), *j) == -1) ||
+				        Util::findSubString(aResult.getFile(), *j) == -1) ||
 				        (*j->begin() == '-' &&
 				         j->size() != 1 &&
-				         Util::findSubString(aResult->getFile(), j->substr(1)) != -1)
+				         Util::findSubString(aResult.getFile(), j->substr(1)) != -1)
 				   )
 				{
 					m_droppedResults++;
@@ -1011,7 +1012,7 @@ void SearchFrame::on(SearchManagerListener::SR, const SearchResultPtr &aResult) 
 	dcdebug("Name = %s, size = %lld Mb limit = %lld Mb, m_sizeMode = %d\r\n",
 	        aResult->getFileName().c_str(), l_size / 1024 / 1024, m_exactSize2 / 1024 / 1024, m_sizeMode);
 #endif
-	if ((m_onlyFree && aResult->getFreeSlots() < 1) || (m_isExactSize && aResult->getSize() != m_exactSize2))
+	if ((m_onlyFree && aResult.getFreeSlots() < 1) || (m_isExactSize && aResult.getSize() != m_exactSize2))
 	{
 		m_droppedResults++;
 		//PostMessage(WM_SPEAKER, FILTER_RESULT);//[-]IRainman optimize SearchFrame
@@ -1054,13 +1055,13 @@ bool SearchFrame::scan_list_view_from_merge()
 				continue;
 			l_item_info->m_already_processed = true;
 			const auto& sr2 = l_item_info->sr;
-			const auto l_file_size = sr2->getSize();
+			const auto l_file_size = sr2.getSize();
 			if (l_file_size)
 			{
-				const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(sr2->getFileName())); // TODO - расширение есть в Columns но в T-формате
+				const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(sr2.getFileName())); // TODO - расширение есть в Columns но в T-формате
 				if (g_fly_server_config.isSupportFile(l_file_ext, l_file_size))
 				{
-					const TTHValue& l_tth = sr2->getTTH();
+					const TTHValue& l_tth = sr2.getTTH();
 					CFlyServerKey l_info(l_tth, l_file_size);
 					Lock l(g_cs_fly_server);
 					const auto l_find_ratio = g_fly_server_cache.find(l_tth);
@@ -1318,24 +1319,23 @@ void SearchFrame::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 }
 int SearchFrame::SearchInfo::compareItems(const SearchInfo* a, const SearchInfo* b, int col)
 {
-	dcassert(a->sr && b->sr);
 	switch (col)
 	{
 		case COLUMN_TYPE:
-			if (a->sr->getType() == b->sr->getType())
+			if (a->sr.getType() == b->sr.getType())
 				return lstrcmpi(a->getText(COLUMN_TYPE).c_str(), b->getText(COLUMN_TYPE).c_str());
 			else
-				return(a->sr->getType() == SearchResult::TYPE_DIRECTORY) ? -1 : 1;
+				return(a->sr.getType() == SearchResult::TYPE_DIRECTORY) ? -1 : 1;
 		case COLUMN_HITS:
-			return compare(a->hits, b->hits);
+			return compare(a->m_hits, b->m_hits);
 		case COLUMN_SLOTS:
-			if (a->sr->getFreeSlots() == b->sr->getFreeSlots())
-				return compare(a->sr->getSlots(), b->sr->getSlots());
+			if (a->sr.getFreeSlots() == b->sr.getFreeSlots())
+				return compare(a->sr.getSlots(), b->sr.getSlots());
 			else
-				return compare(a->sr->getFreeSlots(), b->sr->getFreeSlots());
+				return compare(a->sr.getFreeSlots(), b->sr.getFreeSlots());
 		case COLUMN_SIZE:
 		case COLUMN_EXACT_SIZE:
-			return compare(a->sr->getSize(), b->sr->getSize());
+			return compare(a->sr.getSize(), b->sr.getSize());
 		case COLUMN_FLY_SERVER_RATING: // TODO - распарсить x/y
 		case COLUMN_BITRATE:
 			return compare(Util::toInt64(a->columns[col]), Util::toInt64(b->columns[col]));
@@ -1363,7 +1363,7 @@ void SearchFrame::SearchInfo::calcImageIndex()
 {
 	if (m_icon_index < 0)
 	{
-		m_icon_index = sr->getType() == SearchResult::TYPE_FILE ? g_fileImage.getIconIndex(sr->getFile()) : FileImage::DIR_ICON;
+		m_icon_index = sr.getType() == SearchResult::TYPE_FILE ? g_fileImage.getIconIndex(sr.getFile()) : FileImage::DIR_ICON;
 	}
 }
 
@@ -1375,33 +1375,32 @@ int SearchFrame::SearchInfo::getImageIndex() const
 
 const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 {
-	dcassert(sr);
 	dcassert(col < COLUMN_LAST);
 	switch (col)
 	{
 		case COLUMN_FILENAME:
-			if (sr->getType() == SearchResult::TYPE_FILE)
+			if (sr.getType() == SearchResult::TYPE_FILE)
 			{
-				if (sr->getFile().rfind(_T('\\')) == tstring::npos)
+				if (sr.getFile().rfind(_T('\\')) == tstring::npos)
 				{
-					return Text::toT(sr->getFile());
+					return Text::toT(sr.getFile());
 				}
 				else
 				{
-					return Text::toT(Util::getFileName(sr->getFile()));
+					return Text::toT(Util::getFileName(sr.getFile()));
 				}
 			}
 			else
 			{
-				return Text::toT(sr->getFileName());
+				return Text::toT(sr.getFileName());
 			}
 		case COLUMN_HITS:
-			return hits == 0 ? Util::emptyStringT : Util::toStringW(hits + 1) + _T(' ') + TSTRING(USERS);
+			return m_hits == 0 ? Util::emptyStringT : Util::toStringW(m_hits + 1) + _T(' ') + TSTRING(USERS);
 		case COLUMN_NICK:
-			return Text::toT(Util::toString(ClientManager::getNicks(getUser()->getCID(), sr->getHubURL(), false)));
+			return Text::toT(Util::toString(ClientManager::getNicks(getUser()->getCID(), sr.getHubURL(), false)));
 			// TODO - сохранить ник в columns и показывать его от туда?
 		case COLUMN_TYPE:
-			if (sr->getType() == SearchResult::TYPE_FILE)
+			if (sr.getType() == SearchResult::TYPE_FILE)
 			{
 				tstring type = Text::toT(Util::getFileExtWithoutDot(Text::fromT(getText(COLUMN_FILENAME))));
 				return type;
@@ -1411,22 +1410,22 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 				return TSTRING(DIRECTORY);
 			}
 		case COLUMN_SIZE:
-			if (sr->getType() == SearchResult::TYPE_FILE)
+			if (sr.getType() == SearchResult::TYPE_FILE)
 			{
-				return Util::formatBytesW(sr->getSize());
+				return Util::formatBytesW(sr.getSize());
 			}
 			else
 			{
 				return Util::emptyStringT;
 			}
 		case COLUMN_PATH:
-			if (sr->getType() == SearchResult::TYPE_FILE)
+			if (sr.getType() == SearchResult::TYPE_FILE)
 			{
-				return Text::toT(Util::getFilePath(sr->getFile()));
+				return Text::toT(Util::getFilePath(sr.getFile()));
 			}
 			else
 			{
-				return Text::toT(sr->getFile());
+				return Text::toT(sr.getFile());
 			}
 		case COLUMN_ANTIVIRUS:
 		{
@@ -1435,12 +1434,12 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 		case COLUMN_LOCAL_PATH:
 		{
 			tstring l_result;
-			if (sr->getType() == SearchResult::TYPE_FILE)
+			if (sr.getType() == SearchResult::TYPE_FILE)
 			{
-				l_result = Text::toT(ShareManager::toRealPath(sr->getTTH()));
+				l_result = Text::toT(ShareManager::toRealPath(sr.getTTH()));
 				if (l_result.empty())
 				{
-					const auto l_status_file = CFlylinkDBManager::getInstance()->get_status_file(sr->getTTH());
+					const auto l_status_file = CFlylinkDBManager::getInstance()->get_status_file(sr.getTTH());
 					if (l_status_file & CFlylinkDBManager::PREVIOUSLY_DOWNLOADED)
 						l_result += TSTRING(I_DOWNLOADED_THIS_FILE); //[!]NightOrion(translate)
 					if (l_status_file & CFlylinkDBManager::PREVIOUSLY_BEEN_IN_SHARE)
@@ -1454,17 +1453,17 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 			return l_result;
 		}
 		case COLUMN_SLOTS:
-			return Text::toT(sr->getSlotString());
+			return Text::toT(sr.getSlotString());
 			// [-] PPA
 			//case COLUMN_CONNECTION: return Text::toT(ClientManager::getInstance()->getConnection(getUser()->getCID()));
 		case COLUMN_HUB:
-			return Text::toT(sr->getHubName() + " (" + sr->getHubURL() + ')');
+			return Text::toT(sr.getHubName() + " (" + sr.getHubURL() + ')');
 		case COLUMN_EXACT_SIZE:
-			return sr->getSize() > 0 ? Util::formatExactSize(sr->getSize()) : Util::emptyStringT;
+			return sr.getSize() > 0 ? Util::formatExactSize(sr.getSize()) : Util::emptyStringT;
 		case COLUMN_IP:
-			return Text::toT(sr->getIP());
+			return Text::toT(sr.getIPAsString());
 		case COLUMN_TTH:
-			return sr->getType() == SearchResult::TYPE_FILE ? Text::toT(sr->getTTH().toBase32()) : Util::emptyStringT;
+			return sr.getType() == SearchResult::TYPE_FILE ? Text::toT(sr.getTTH().toBase32()) : Util::emptyStringT;
 		case COLUMN_LOCATION:
 			return Util::emptyStringT; // Вертаем пустышку - отрисуют на ownerDraw
 		default:
@@ -1483,10 +1482,10 @@ void SearchFrame::SearchInfo::view()
 {
 	try
 	{
-		if (sr->getType() == SearchResult::TYPE_FILE)
+		if (sr.getType() == SearchResult::TYPE_FILE)
 		{
-			QueueManager::getInstance()->add(Util::getTempPath() + sr->getFileName(),
-			                                 sr->getSize(), sr->getTTH(), HintedUser(sr->getUser(), sr->getHubURL()),
+			QueueManager::getInstance()->add(Util::getTempPath() + sr.getFileName(),
+			                                 sr.getSize(), sr.getTTH(), HintedUser(sr.getUser(), sr.getHubURL()),
 			                                 QueueItem::FLAG_CLIENT_VIEW | QueueItem::FLAG_TEXT);
 		}
 	}
@@ -1503,21 +1502,20 @@ void SearchFrame::SearchInfo::Download::operator()(const SearchInfo* si)
 		if (prio == QueueItem::DEFAULT && WinUtil::isShift())
 			prio = QueueItem::HIGHEST;
 			
-		if (si->sr->getType() == SearchResult::TYPE_FILE)
+		if (si->sr.getType() == SearchResult::TYPE_FILE)
 		{
 			const string target = Text::fromT(tgt + si->getText(COLUMN_FILENAME));
-			QueueManager::getInstance()->add(target, si->sr->getSize(),
-			                                 si->sr->getTTH(), HintedUser(si->sr->getUser(), si->sr->getHubURL()), mask);
-			                                 
+			QueueManager::getInstance()->add(target, si->sr.getSize(), si->sr.getTTH(), si->sr.getHintedUser(), mask);
+			
 			const vector<SearchInfo*> l_children = sf->getUserList().findChildren(si->getGroupCond()); // Ссылку делать нельзя
 			for (auto i = l_children.cbegin(); i != l_children.cend(); ++i)  // Тут вектор иногда инвалидирует
 			{
 				SearchInfo* j = *i;
 				try
 				{
-					if (j && j->sr) // crash https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=44625
+					if (j)  // crash https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=44625
 					{
-						QueueManager::getInstance()->add(target, j->sr->getSize(), j->sr->getTTH(), HintedUser(j->getUser(), j->sr->getHubURL()), mask);
+						QueueManager::getInstance()->add(target, j->sr.getSize(), j->sr.getTTH(), HintedUser(j->getUser(), j->sr.getHubURL()), mask);
 					}
 				}
 				catch (const Exception&)
@@ -1529,8 +1527,7 @@ void SearchFrame::SearchInfo::Download::operator()(const SearchInfo* si)
 		}
 		else
 		{
-			QueueManager::getInstance()->addDirectory(si->sr->getFile(), HintedUser(si->sr->getUser(), si->sr->getHubURL()), Text::fromT(tgt),
-			                                          prio);
+			QueueManager::getInstance()->addDirectory(si->sr.getFile(), si->sr.getHintedUser(), Text::fromT(tgt), prio);
 		}
 	}
 	catch (const Exception&)
@@ -1543,15 +1540,13 @@ void SearchFrame::SearchInfo::DownloadWhole::operator()(const SearchInfo* si)
 	try
 	{
 		QueueItem::Priority prio = WinUtil::isShift() ? QueueItem::HIGHEST : QueueItem::DEFAULT;
-		if (si->sr->getType() == SearchResult::TYPE_FILE)
+		if (si->sr.getType() == SearchResult::TYPE_FILE)
 		{
-			QueueManager::getInstance()->addDirectory(Text::fromT(si->getText(COLUMN_PATH)),
-			                                          HintedUser(si->sr->getUser(), si->sr->getHubURL()), Text::fromT(tgt), prio);
+			QueueManager::getInstance()->addDirectory(Text::fromT(si->getText(COLUMN_PATH)), si->sr.getHintedUser(), Text::fromT(tgt), prio);
 		}
 		else
 		{
-			QueueManager::getInstance()->addDirectory(si->sr->getFile(), HintedUser(si->sr->getUser(), si->sr->getHubURL()),
-			                                          Text::fromT(tgt), prio);
+			QueueManager::getInstance()->addDirectory(si->sr.getFile(), si->sr.getHintedUser(), Text::fromT(tgt), prio);
 		}
 	}
 	catch (const Exception&)
@@ -1563,18 +1558,17 @@ void SearchFrame::SearchInfo::DownloadTarget::operator()(const SearchInfo* si)
 {
 	try
 	{
-		if (si->sr->getType() == SearchResult::TYPE_FILE)
+		if (si->sr.getType() == SearchResult::TYPE_FILE)
 		{
 			string target = Text::fromT(tgt);
-			QueueManager::getInstance()->add(target, si->sr->getSize(),
-			                                 si->sr->getTTH(), HintedUser(si->sr->getUser(), si->sr->getHubURL()));
-			                                 
+			QueueManager::getInstance()->add(target, si->sr.getSize(), si->sr.getTTH(), si->sr.getHintedUser());
+			
 			if (WinUtil::isShift())
 				QueueManager::getInstance()->setPriority(target, QueueItem::HIGHEST);
 		}
 		else
 		{
-			QueueManager::getInstance()->addDirectory(si->sr->getFile(), HintedUser(si->sr->getUser(), si->sr->getHubURL()), Text::fromT(tgt),
+			QueueManager::getInstance()->addDirectory(si->sr.getFile(), si->sr.getHintedUser(), Text::fromT(tgt),
 			                                          WinUtil::isShift() ? QueueItem::HIGHEST : QueueItem::DEFAULT);
 		}
 	}
@@ -1587,7 +1581,7 @@ void SearchFrame::SearchInfo::getList()
 {
 	try
 	{
-		QueueManager::getInstance()->addList(HintedUser(sr->getUser(), sr->getHubURL()), QueueItem::FLAG_CLIENT_VIEW, Text::fromT(getText(COLUMN_PATH)));
+		QueueManager::getInstance()->addList(HintedUser(sr.getUser(), sr.getHubURL()), QueueItem::FLAG_CLIENT_VIEW, Text::fromT(getText(COLUMN_PATH)));
 	}
 	catch (const Exception&)
 	{
@@ -1599,7 +1593,7 @@ void SearchFrame::SearchInfo::browseList()
 {
 	try
 	{
-		QueueManager::getInstance()->addList(HintedUser(sr->getUser(), sr->getHubURL()), QueueItem::FLAG_CLIENT_VIEW | QueueItem::FLAG_PARTIAL_LIST, Text::fromT(getText(COLUMN_PATH)));
+		QueueManager::getInstance()->addList(HintedUser(sr.getUser(), sr.getHubURL()), QueueItem::FLAG_CLIENT_VIEW | QueueItem::FLAG_PARTIAL_LIST, Text::fromT(getText(COLUMN_PATH)));
 	}
 	catch (const Exception&)
 	{
@@ -1625,16 +1619,16 @@ void SearchFrame::SearchInfo::CheckTTH::operator()(const SearchInfo* si)
 	
 	if (firstHubs && hubs.empty())
 	{
-		hubs = ClientManager::getHubs(si->sr->getUser()->getCID(), si->sr->getHubURL());
+		hubs = ClientManager::getHubs(si->sr.getUser()->getCID(), si->sr.getHubURL());
 		firstHubs = false;
 	}
 	else if (!hubs.empty())
 	{
 		// we will merge hubs of all users to ensure we can use OP commands in all hubs
-		const StringList sl = ClientManager::getHubs(si->sr->getUser()->getCID(), Util::emptyString);
+		const StringList sl = ClientManager::getHubs(si->sr.getUser()->getCID(), Util::emptyString);
 		hubs.insert(hubs.end(), sl.begin(), sl.end());
 #if 0
-		Util::intersect(hubs, ClientManager::getHubs(si->sr->getUser()->getCID()));
+		Util::intersect(hubs, ClientManager::getHubs(si->sr.getUser()->getCID()));
 #endif
 	}
 }
@@ -1707,7 +1701,7 @@ LRESULT SearchFrame::onDownloadWithPrio(WORD /*wNotifyCode*/, WORD wID, HWND /*h
 		while ((i = ctrlResults.GetNextItem(i, LVNI_SELECTED)) != -1)
 		{
 			SearchInfo* si = ctrlResults.getItemData(i);
-			dir = Text::toT(FavoriteManager::getInstance()->getDownloadDirectory(Util::getFileExt(si->sr->getFileName())));
+			dir = Text::toT(FavoriteManager::getInstance()->getDownloadDirectory(Util::getFileExt(si->sr.getFileName())));
 			(SearchInfo::Download(dir, this, p))(si); //-V607
 		}
 	}
@@ -1721,9 +1715,9 @@ LRESULT SearchFrame::onDownloadTo(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 		int i = ctrlResults.GetNextItem(-1, LVNI_SELECTED);
 		dcassert(i != -1);
 		const SearchInfo* si = ctrlResults.getItemData(i);
-		const SearchResultPtr& sr = si->sr;
+		const SearchResult& sr = si->sr;
 		
-		if (sr->getType() == SearchResult::TYPE_FILE)
+		if (sr.getType() == SearchResult::TYPE_FILE)
 		{
 			tstring target = Text::toT(SETTING(DOWNLOAD_DIRECTORY)) + si->getText(COLUMN_FILENAME);
 			if (WinUtil::browseFile(target, m_hWnd, true, Util::emptyStringT, NULL, Util::getFileExtWithoutDot(target).c_str()))
@@ -1766,7 +1760,7 @@ LRESULT SearchFrame::onDownload(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/
 		while ((i = ctrlResults.GetNextItem(i, LVNI_SELECTED)) != -1)
 		{
 			const SearchInfo* si = ctrlResults.getItemData(i);
-			const string t = FavoriteManager::getInstance()->getDownloadDirectory(Util::getFileExt(si->sr->getFileName()));
+			const string t = FavoriteManager::getInstance()->getDownloadDirectory(Util::getFileExt(si->sr.getFileName()));
 			(SearchInfo::Download(Text::toT(t), this, QueueItem::DEFAULT))(si);
 			// 2012-05-11_23-53-01_53K6HGTRVGQAKI74O3BI3ZHIJADWHTCMT6WQDTQ_4502E9D6_crash-stack-r502-beta26-build-9946.dmp
 		}
@@ -1829,7 +1823,7 @@ bool SearchFrame::showFlyServerProperty(const SearchInfo* p_item_info)
 	{
 		l_dlg.m_FileInfo.push_back(make_pair(CTSTRING_I(columnNames[l_fileinfo_array[i]]), p_item_info->getText(l_fileinfo_array[i])));
 	}
-	const string l_inform = CFlyServerInfo::getMediaInfoAsText(p_item_info->sr->getTTH(), p_item_info->sr->getSize());
+	const string l_inform = CFlyServerInfo::getMediaInfoAsText(p_item_info->sr.getTTH(), p_item_info->sr.getSize());
 	l_dlg.m_MIInform.push_back(make_pair(_T("General"), Text::toT(l_inform)));
 	const auto l_result = l_dlg.DoModal(m_hWnd);
 	return l_result == IDOK;
@@ -1854,11 +1848,10 @@ LRESULT SearchFrame::onDoubleClickResults(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*
 		while ((i = ctrlResults.GetNextItem(i, LVNI_SELECTED)) != -1)
 		{
 			if (const SearchInfo* si = ctrlResults.getItemData(i))
-				if (si->sr)
-				{
-					const string t = FavoriteManager::getInstance()->getDownloadDirectory(Util::getFileExt(si->sr->getFileName()));
-					(SearchInfo::Download(Text::toT(t), this, QueueItem::DEFAULT))(si);
-				}
+			{
+				const string t = FavoriteManager::getInstance()->getDownloadDirectory(Util::getFileExt(si->sr.getFileName()));
+				(SearchInfo::Download(Text::toT(t), this, QueueItem::DEFAULT))(si);
+			}
 		}
 		//ctrlResults.forEachSelectedT(SearchInfo::Download(Text::toT(SETTING(DOWNLOAD_DIRECTORY)), this, QueueItem::DEFAULT));
 	}
@@ -2159,24 +2152,24 @@ void SearchFrame::runUserCommand(UserCommand & uc)
 	int sel = -1;
 	while ((sel = ctrlResults.GetNextItem(sel, LVNI_SELECTED)) != -1)
 	{
-		const SearchResultPtr& sr = ctrlResults.getItemData(sel)->sr;
+		const SearchResult& sr = ctrlResults.getItemData(sel)->sr;
 		
-		if (!sr->getUser()->isOnline())
+		if (!sr.getUser()->isOnline())
 			continue;
 			
 		if (uc.getType() == UserCommand::TYPE_RAW_ONCE)
 		{
-			if (users.find(sr->getUser()->getCID()) != users.end())
+			if (users.find(sr.getUser()->getCID()) != users.end())
 				continue;
-			users.insert(sr->getUser()->getCID());
+			users.insert(sr.getUser()->getCID());
 		}
 		
-		ucParams["fileFN"] = sr->getFile();
-		ucParams["fileSI"] = Util::toString(sr->getSize());
-		ucParams["fileSIshort"] = Util::formatBytes(sr->getSize());
-		if (sr->getType() == SearchResult::TYPE_FILE)
+		ucParams["fileFN"] = sr.getFile();
+		ucParams["fileSI"] = Util::toString(sr.getSize());
+		ucParams["fileSIshort"] = Util::formatBytes(sr.getSize());
+		if (sr.getType() == SearchResult::TYPE_FILE)
 		{
-			ucParams["fileTR"] = sr->getTTH().toBase32();
+			ucParams["fileTR"] = sr.getTTH().toBase32();
 		}
 		
 		// compatibility with 0.674 and earlier
@@ -2186,7 +2179,7 @@ void SearchFrame::runUserCommand(UserCommand & uc)
 		ucParams["tth"] = ucParams["fileTR"];
 		
 		StringMap tmp = ucParams;
-		ClientManager::getInstance()->userCommand(HintedUser(sr->getUser(), sr->getHubURL()), uc, tmp, true);
+		ClientManager::getInstance()->userCommand(HintedUser(sr.getUser(), sr.getHubURL()), uc, tmp, true);
 	}
 }
 
@@ -2300,10 +2293,10 @@ LRESULT SearchFrame::onSearchByTTH(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 	int i = -1;
 	while ((i = ctrlResults.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
-		const SearchResultPtr& sr = ctrlResults.getItemData(i)->sr;
-		if (sr->getType() == SearchResult::TYPE_FILE)
+		const SearchResult& sr = ctrlResults.getItemData(i)->sr;
+		if (sr.getType() == SearchResult::TYPE_FILE)
 		{
-			WinUtil::searchHash(sr->getTTH());
+			WinUtil::searchHash(sr.getTTH());
 		}
 	}
 	return 0;
@@ -2311,19 +2304,19 @@ LRESULT SearchFrame::onSearchByTTH(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 
 void SearchFrame::addSearchResult(SearchInfo * si)
 {
-	const SearchResultPtr sr = si->sr;
-	const auto l_user        = sr->getUser();
-	if (!sr->getIP().empty())
+	const SearchResult sr = si->sr;
+	const auto l_user        = sr.getUser();
+	if (!sr.getIPAsString().empty())
 	{
-		l_user->setIP(sr->getIP());
+		l_user->setIP(sr.getIP());
 	}
 	// Check previous search results for dupes
 	if (!si->getText(COLUMN_TTH).empty())
 	{
-		SearchInfoList::ParentPair* pp = ctrlResults.findParentPair(sr->getTTH());
+		SearchInfoList::ParentPair* pp = ctrlResults.findParentPair(sr.getTTH());
 		if (pp)
 		{
-			if (l_user->getCID() == pp->parent->getUser()->getCID() && sr->getFile() == pp->parent->sr->getFile())
+			if (l_user->getCID() == pp->parent->getUser()->getCID() && sr.getFile() == pp->parent->sr.getFile())
 			{
 				delete si;
 				return;
@@ -2333,7 +2326,7 @@ void SearchFrame::addSearchResult(SearchInfo * si)
 				// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62243
 				if (l_user->getCID() == (*k)->getUser()->getCID())
 				{
-					if (sr->getFile() == (*k)->sr->getFile())
+					if (sr.getFile() == (*k)->sr.getFile())
 					{
 						delete si;
 						return;
@@ -2348,9 +2341,9 @@ void SearchFrame::addSearchResult(SearchInfo * si)
 		{
 			const SearchInfo* si2 = (*s).second.parent;
 			const auto& sr2 = si2->sr;
-			if (l_user->getCID() == sr2->getUser()->getCID())
+			if (l_user->getCID() == sr2.getUser()->getCID())
 			{
-				if (sr->getFile() == sr2->getFile())
+				if (sr.getFile() == sr2.getFile())
 				{
 					delete si;
 					return;
@@ -2372,7 +2365,7 @@ void SearchFrame::addSearchResult(SearchInfo * si)
 		{
 			const SearchInfoList::ParentPair pp = { si, SearchInfoList::g_emptyVector };
 			ctrlResults.insertItem(si, I_IMAGECALLBACK); // si->getImageIndex()
-			ctrlResults.getParents().insert(make_pair(const_cast<TTHValue*>(&sr->getTTH()), pp));
+			ctrlResults.getParents().insert(make_pair(const_cast<TTHValue*>(&sr.getTTH()), pp));
 		}
 		if (!filter.empty())
 		{
@@ -2489,7 +2482,7 @@ LRESULT SearchFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 			dlTargets.clear(); // !SMT!-S
 			
 			SearchInfo* si = nullptr;
-			SearchResultPtr sr;// = NULL;
+			SearchResult sr;
 			if (ctrlResults.GetSelectedCount() == 1)
 			{
 				int i = ctrlResults.GetNextItem(-1, LVNI_SELECTED);
@@ -2497,7 +2490,7 @@ LRESULT SearchFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 				si = ctrlResults.getItemData(i);
 				sr = si->sr;
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
-				setupPreviewMenu(si->sr->getFileName());
+				setupPreviewMenu(si->sr.getFileName());
 #endif
 			}
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
@@ -2624,7 +2617,7 @@ LRESULT SearchFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 			// [+] SCALOlaz: prepare for swap Item text https://code.google.com/p/flylinkdc/issues/detail?id=887
 			const int l_ipos = WinUtil::GetMenuItemPosition(copyMenu, IDC_COPY_FILENAME);
 			
-			if (ctrlResults.GetSelectedCount() == 1 && sr->getType() == SearchResult::TYPE_FILE)
+			if (ctrlResults.GetSelectedCount() == 1 && sr.getType() == SearchResult::TYPE_FILE)
 			{
 				// [+] SCALOlaz: swap Item text https://code.google.com/p/flylinkdc/issues/detail?id=887
 				if (l_ipos != -1)
@@ -2635,14 +2628,14 @@ LRESULT SearchFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 				resultsMenu.EnableMenuItem(IDC_VIEW_FLYSERVER_INFORM, MF_BYCOMMAND | MFS_ENABLED);
 #endif
 			}
-			else if (ctrlResults.GetSelectedCount() == 1 && sr->getType() == SearchResult::TYPE_DIRECTORY)
+			else if (ctrlResults.GetSelectedCount() == 1 && sr.getType() == SearchResult::TYPE_DIRECTORY)
 			{
 				// [+] SCALOlaz: swap Item text https://code.google.com/p/flylinkdc/issues/detail?id=887
 				if (l_ipos != -1)
 					copyMenu.ModifyMenu(l_ipos, MF_BYPOSITION | MF_STRING, IDC_COPY_FILENAME, CTSTRING(FOLDERNAME));
 			}
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-			if (ctrlResults.GetSelectedCount() != 1 || sr->getType() != SearchResult::TYPE_FILE)
+			if (ctrlResults.GetSelectedCount() != 1 || sr.getType() != SearchResult::TYPE_FILE)
 			{
 				// [+] SCALOlaz: View Media Info
 				resultsMenu.EnableMenuItem(IDC_VIEW_FLYSERVER_INFORM, MF_BYCOMMAND | MFS_DISABLED);
@@ -2651,7 +2644,7 @@ LRESULT SearchFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 			appendUcMenu(resultsMenu, UserCommand::CONTEXT_SEARCH, SIcheck.hubs);
 			
 			copyMenu.InsertSeparatorFirst(TSTRING(USERINFO));
-			resultsMenu.InsertSeparatorFirst(sr ? Text::CropStrLength(sr->getFileName()) : TSTRING(FILES)); // [~] SCALOlaz: CropStrLength - crop long string
+			resultsMenu.InsertSeparatorFirst(!sr.getFileName().empty() ? Text::CropStrLength(sr.getFileName()) : TSTRING(FILES)); // [~] SCALOlaz: CropStrLength - crop long string
 			resultsMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 			resultsMenu.RemoveFirstItem();
 			copyMenu.RemoveFirstItem();
@@ -2860,47 +2853,47 @@ LRESULT SearchFrame::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BO
 	while ((i = ctrlResults.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
 		const SearchInfo* l_si = ctrlResults.getItemData(i);
-		const SearchResultPtr &sr = l_si->sr;
+		const SearchResult &sr = l_si->sr;
 		string sCopy;
 		switch (wID)
 		{
 			case IDC_COPY_NICK:
-				sCopy = sr->getUser()->getLastNick();
+				sCopy = sr.getUser()->getLastNick();
 				break;
 			case IDC_COPY_FILENAME:
-				if (sr->getType() == SearchResult::TYPE_FILE)
-					sCopy = Util::getFileName(sr->getFile());
+				if (sr.getType() == SearchResult::TYPE_FILE)
+					sCopy = Util::getFileName(sr.getFile());
 				else
-					sCopy = Util::getLastDir(sr->getFile());
+					sCopy = Util::getLastDir(sr.getFile());
 				break;
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 			case IDC_COPY_FLYSERVER_INFORM:
-				sCopy = CFlyServerInfo::getMediaInfoAsText(sr->getTTH(), sr->getSize());
+				sCopy = CFlyServerInfo::getMediaInfoAsText(sr.getTTH(), sr.getSize());
 				break;
 #endif
 			case IDC_COPY_PATH:
-				sCopy = Util::getFilePath(sr->getFile());
+				sCopy = Util::getFilePath(sr.getFile());
 				break;
 			case IDC_COPY_SIZE:
-				sCopy = Util::formatBytes(sr->getSize());
+				sCopy = Util::formatBytes(sr.getSize());
 				break;
 			case IDC_COPY_HUB_URL:
-				sCopy = Util::formatDchubUrl(sr->getHubURL());
+				sCopy = Util::formatDchubUrl(sr.getHubURL());
 				break;
 			case IDC_COPY_LINK:
 			case IDC_COPY_FULL_MAGNET_LINK:
-				if (sr->getType() == SearchResult::TYPE_FILE)
-					sCopy = Util::getMagnet(sr->getTTH(), sr->getFileName(), sr->getSize());
-				if (wID == IDC_COPY_FULL_MAGNET_LINK && !sr->getHubURL().empty())
-					sCopy += "&xs=" + Util::formatDchubUrl(sr->getHubURL());
+				if (sr.getType() == SearchResult::TYPE_FILE)
+					sCopy = Util::getMagnet(sr.getTTH(), sr.getFileName(), sr.getSize());
+				if (wID == IDC_COPY_FULL_MAGNET_LINK && !sr.getHubURL().empty())
+					sCopy += "&xs=" + Util::formatDchubUrl(sr.getHubURL());
 				break;
 			case IDC_COPY_WMLINK: // !SMT!-UI
-				if (sr->getType() == SearchResult::TYPE_FILE)
-					sCopy = Util::getWebMagnet(sr->getTTH(), sr->getFileName(), sr->getSize());
+				if (sr.getType() == SearchResult::TYPE_FILE)
+					sCopy = Util::getWebMagnet(sr.getTTH(), sr.getFileName(), sr.getSize());
 				break;
 			case IDC_COPY_TTH:
-				if (sr->getType() == SearchResult::TYPE_FILE)
-					sCopy = sr->getTTH().toBase32();
+				if (sr.getType() == SearchResult::TYPE_FILE)
+					sCopy = sr.getTTH().toBase32();
 				break;
 			default:
 				dcdebug("SEARCHFRAME DON'T GO HERE\n");
@@ -2951,20 +2944,19 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 		{
 			cd->clrText = Colors::textColor;
 			SearchInfo* si = reinterpret_cast<SearchInfo*>(cd->nmcd.lItemlParam);
-			if (si && //[+] PPA "crash-stack-(r382)-build-1685.dmp"
-			        si->sr != nullptr)
+			if (si)
 			{
 				si->calcImageIndex();
-				si->sr->checkTTH();
-				if (si->sr->m_is_tth_share)
+				si->sr.checkTTH();
+				if (si->sr.m_is_tth_share)
 					cd->clrTextBk = SETTING(DUPE_COLOR);
-				if (si->sr->m_is_tth_download)
+				if (si->sr.m_is_tth_download)
 					cd->clrTextBk = SETTING(DUPE_EX1_COLOR);
-				else if (si->sr->m_is_tth_remembrance)
+				else if (si->sr.m_is_tth_remembrance)
 					cd->clrTextBk = SETTING(DUPE_EX2_COLOR);
 				if (!si->columns[COLUMN_FLY_SERVER_RATING].empty())
 					cd->clrTextBk = OperaColors::brightenColor(cd->clrTextBk, -0.02f);
-				si->sr->calcHubName();
+				si->sr.calcHubName();
 				if (si->m_location.isNew())
 				{
 					auto ip = si->getText(COLUMN_IP);
@@ -3195,22 +3187,22 @@ bool SearchFrame::matchFilter(const SearchInfo* si, int sel, bool doSizeCompare,
 		switch (mode)
 		{
 			case EQUAL:
-				insert = (size == si->sr->getSize());
+				insert = (size == si->sr.getSize());
 				break;
 			case GREATER_EQUAL:
-				insert = (size <=  si->sr->getSize());
+				insert = (size <=  si->sr.getSize());
 				break;
 			case LESS_EQUAL:
-				insert = (size >=  si->sr->getSize());
+				insert = (size >=  si->sr.getSize());
 				break;
 			case GREATER:
-				insert = (size < si->sr->getSize());
+				insert = (size < si->sr.getSize());
 				break;
 			case LESS:
-				insert = (size > si->sr->getSize());
+				insert = (size > si->sr.getSize());
 				break;
 			case NOT_EQUAL:
-				insert = (size != si->sr->getSize());
+				insert = (size != si->sr.getSize());
 				break;
 		}
 		return insert;
@@ -3360,16 +3352,22 @@ LRESULT SearchFrame::onMarkAsDownloaded(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 	while ((i = ctrlResults.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
 		const SearchInfo* si = ctrlResults.getItemData(i);
-		const SearchResultPtr& sr = si->sr;
-		if (sr->getType() == SearchResult::TYPE_FILE)
+		const SearchResult& sr = si->sr;
+		if (sr.getType() == SearchResult::TYPE_FILE)
 		{
-			CFlylinkDBManager::getInstance()->push_download_tth(sr->getTTH());
+			CFlylinkDBManager::getInstance()->push_download_tth(sr.getTTH());
 			ctrlResults.updateItem(si);
 		}
 	}
 	
 	return 0;
 }
+void SearchFrame::speak(Speakers s, const Client* aClient)
+{
+	HubInfo* hubInfo = new HubInfo(Text::toT(aClient->getHubUrl()), Text::toT(aClient->getHubName()), aClient->getMyIdentity().isOp());
+	PostMessage(WM_SPEAKER, WPARAM(s), LPARAM(hubInfo));
+}
+
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 LRESULT SearchFrame::onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
@@ -3380,8 +3378,8 @@ LRESULT SearchFrame::onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
 		if (iSelectedItemID != -1)
 		{
 			const SearchInfo* si = ctrlResults.getItemData(iSelectedItemID);
-			const string t = FavoriteManager::getInstance()->getDownloadDirectory(Util::getFileExt(si->sr->getFileName()));
-			const bool isViewMedia = Util::isStreamingVideoFile(si->sr->getFileName());
+			const string t = FavoriteManager::getInstance()->getDownloadDirectory(Util::getFileExt(si->sr.getFileName()));
+			const bool isViewMedia = Util::isStreamingVideoFile(si->sr.getFileName());
 			(SearchInfo::Download(Text::toT(t), this, QueueItem::DEFAULT, isViewMedia ? QueueItem::FLAG_MEDIA_VIEW : 0))(si);
 		}
 	}

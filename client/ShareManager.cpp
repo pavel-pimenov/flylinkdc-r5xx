@@ -58,7 +58,9 @@ bool ShareManager::g_ignoreFileSizeHFS = false; // http://www.flylinkdc.ru/2015/
 size_t ShareManager::g_hits = 0;
 std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csShare = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csShareNotExists = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csShareCache = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 QueryNotExistsSet ShareManager::g_file_not_exists_set;
+QueryCacheMap ShareManager::g_file_cache_map;
 ShareManager::HashFileMap ShareManager::g_tthIndex;
 ShareManager::ShareMap ShareManager::g_shares;
 int64_t ShareManager::g_sharedSize = 0;
@@ -707,8 +709,8 @@ bool ShareManager::loadCache() noexcept
 				}
 			}
 			l_cache_loader_log.step("update indices done");
-			//internalClearShareNotExists(true);
-			//l_cache_loader_log.step("internalClearShareNotExists");
+			//internalClearCache(true);
+			//l_cache_loader_log.step("internalClearCache");
 			// https://code.google.com/p/flylinkdc/issues/detail?id=1545
 			if (getSharedSize() > 0)
 			{
@@ -2070,7 +2072,7 @@ Search::TypeModes ShareManager::getFType(const string& aFileName) noexcept
  * has been matched in the directory name. This new stringlist should also be used in all descendants,
  * but not the parents...
  */
-void ShareManager::Directory::search(SearchResultList& aResults, StringSearch::List& aStrings, const SearchParamBase& p_search_param, Client* aClient, StringList::size_type maxResults) const noexcept
+void ShareManager::Directory::search(SearchResultList& aResults, StringSearch::List& aStrings, const SearchParamBase& p_search_param) const noexcept
 {
     // Skip everything if there's nothing to find here (doh! =)
     if (!hasType(p_search_param.m_file_type))
@@ -2096,7 +2098,7 @@ void ShareManager::Directory::search(SearchResultList& aResults, StringSearch::L
 			(*k).getPattern(),
 			"",
 			"",
-			aClient->getHubUrlAndIP(),
+			p_search_param.m_client->getHubUrlAndIP(),
 			l_tth);
 		}
 #endif
@@ -2125,7 +2127,7 @@ if ((cur->empty()) &&
         (((p_search_param.m_file_type == Search::TYPE_ANY) && sizeOk) || (p_search_param.m_file_type == Search::TYPE_DIRECTORY)))
 {
 // We satisfied all the search words! Add the directory...(NMDC searches don't support directory size)
-SearchResultPtr sr(new SearchResult(SearchResult::TYPE_DIRECTORY, 0, getFullName(), TTHValue(), -1 /*token*/));
+const SearchResult sr(SearchResult::TYPE_DIRECTORY, 0, getFullName(), TTHValue(), -1 /*token*/);
 	aResults.push_back(sr);
 	ShareManager::incHits();
 }
@@ -2164,48 +2166,47 @@ for (auto i = m_files.cbegin(); i != m_files.cend(); ++i)
 		// Check file type...
 		if (checkType(i->getName(), p_search_param.m_file_type))
 		{
-			SearchResultPtr sr(new SearchResult(SearchResult::TYPE_FILE, i->getSize(), getFullName() + i->getName(), i->getTTH(), -1  /*token*/));
+			const SearchResult sr(SearchResult::TYPE_FILE, i->getSize(), getFullName() + i->getName(), i->getTTH(), -1  /*token*/);
 			aResults.push_back(sr);
 			ShareManager::incHits();
-			if (aResults.size() >= maxResults)
+			if (aResults.size() >= p_search_param.m_max_results)
 			{
 				break;
 			}
 		}
 	}
 }
-
-for (auto l = m_directories.cbegin(); l != m_directories.cend() && aResults.size() < maxResults; ++l)
+for (auto l = m_directories.cbegin(); l != m_directories.cend() && aResults.size() < p_search_param.m_max_results; ++l)
 {
 if (l->second)
-		l->second->search(aResults, *cur, p_search_param, aClient, maxResults); //TODO - Hot point
+	{
+		l->second->search(aResults, *cur, p_search_param); //TODO - Hot point
+	}
 }
 }
 
 void ShareManager::searchTTHArray(CFlySearchArrayTTH& p_all_search_array, const Client* p_client)
 {
+	webrtc::ReadLockScoped l(*g_csShare);
+	for (auto j = p_all_search_array.begin(); j != p_all_search_array.end(); ++j)
 	{
-		webrtc::ReadLockScoped l(*g_csShare);
-		for (auto j = p_all_search_array.begin(); j != p_all_search_array.end(); ++j)
+		const auto& i = g_tthIndex.find(j->m_tth);
+		if (i == g_tthIndex.end())
 		{
-			const auto& i = g_tthIndex.find(j->m_tth);
-			if (i == g_tthIndex.end())
-			{
-				continue;
-			}
-			dcassert(i->second->getParent());
-			const auto &l_fileMap = i->second;
-			SearchResultBaseTTH l_result(SearchResult::TYPE_FILE,
-			                             l_fileMap->getSize(),
-			                             l_fileMap->getParent()->getFullName() + l_fileMap->getName(),
-			                             l_fileMap->getTTH(),
-			                             UploadManager::getSlots(),
-			                             UploadManager::getFreeSlots()
-			                            );
-			incHits();
-			j->m_toSRCommand = new string(l_result.toSR(*p_client));
-			COMMAND_DEBUG("[TTH]$Search " + j->m_search + " TTH = " + j->m_tth.toBase32() , DebugTask::HUB_IN, p_client->getIpPort());
+			continue;
 		}
+		dcassert(i->second->getParent());
+		const auto &l_fileMap = i->second;
+		SearchResultBaseTTH l_result(SearchResult::TYPE_FILE,
+		                             l_fileMap->getSize(),
+		                             l_fileMap->getParent()->getFullName() + l_fileMap->getName(),
+		                             l_fileMap->getTTH(),
+		                             UploadManager::getSlots(),
+		                             UploadManager::getFreeSlots()
+		                            );
+		incHits();
+		j->m_toSRCommand = new string(l_result.toSR(*p_client));
+		COMMAND_DEBUG("[TTH]$Search " + j->m_search + " TTH = " + j->m_tth.toBase32() , DebugTask::HUB_IN, p_client->getIpPort());
 	}
 }
 
@@ -2226,8 +2227,23 @@ void ShareManager::addUnknownFile(const string& p_search)
 	webrtc::WriteLockScoped l(*g_csShareNotExists);
 	g_file_not_exists_set.insert(p_search);
 }
-void ShareManager::search(SearchResultList& aResults, const SearchParam& p_search_param,
-                          Client* aClient, StringList::size_type p_maxResults) noexcept
+bool ShareManager::isCacheFile(const string& p_search, SearchResultList& p_search_result)
+{
+	webrtc::ReadLockScoped l(*g_csShareCache);
+	const auto l_result = g_file_cache_map.find(p_search);
+	if (l_result != g_file_cache_map.end())
+	{
+		p_search_result = l_result->second;
+		return true;
+	}
+	return false;
+}
+void ShareManager::addCacheFile(const string& p_search, const SearchResultList& p_search_result)
+{
+	webrtc::WriteLockScoped l(*g_csShareCache);
+	g_file_cache_map.insert(make_pair(p_search, p_search_result));
+}
+void ShareManager::search(SearchResultList& aResults, const SearchParam& p_search_param) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
 	if (p_search_param.m_file_type == Search::TYPE_TTH)
@@ -2236,11 +2252,10 @@ void ShareManager::search(SearchResultList& aResults, const SearchParam& p_searc
 		// Ветка пока работает!
 		if (isTTHBase64(p_search_param.m_filter)) //[+]FlylinkDC++ opt.
 		{
-			const TTHValue tth(p_search_param.m_filter.c_str() + 4);
-			SearchResultPtr sr;
+			const TTHValue l_tth(p_search_param.m_filter.c_str() + 4);
 			{
 				webrtc::ReadLockScoped l(*g_csShare); // Тут пока лок по записи т.к. не вынесен.
-				const auto& i = g_tthIndex.find(tth);
+				const auto& i = g_tthIndex.find(l_tth);
 				if (i == g_tthIndex.end())
 					return;
 				dcassert(i->second->getParent());
@@ -2248,8 +2263,9 @@ void ShareManager::search(SearchResultList& aResults, const SearchParam& p_searc
 					return;
 				const auto &l_fileMap = i->second;
 				// TODO - для TTH сильно толстый объект  SearchResult
-				sr = new SearchResult(SearchResult::TYPE_FILE, l_fileMap->getSize(), l_fileMap->getParent()->getFullName() + l_fileMap->getName(), l_fileMap->getTTH(), -1/*token*/);
+				const SearchResult sr(SearchResult::TYPE_FILE, l_fileMap->getSize(), l_fileMap->getParent()->getFullName() + l_fileMap->getName(), l_fileMap->getTTH(), -1/*token*/);
 				incHits();
+				aResults.push_back(sr);
 			}
 #ifdef FLYLINKDC_USE_COLLECT_STAT
 			{
@@ -2258,11 +2274,10 @@ void ShareManager::search(SearchResultList& aResults, const SearchParam& p_searc
 				                                                       aString,
 				                                                       "",
 				                                                       "",
-				                                                       aClient->getHubUrlAndIP(),
+				                                                       p_search_param.m_client->getHubUrlAndIP(),
 				                                                       tth.toBase32());
 			}
 #endif
-			aResults.push_back(sr);
 		}
 		return;
 	}
@@ -2270,6 +2285,10 @@ void ShareManager::search(SearchResultList& aResults, const SearchParam& p_searc
 	if (isUnknownFile(l_raw_query))
 	{
 		return; // Уходим сразу - у нас в шаре этого не появилось.
+	}
+	if (isCacheFile(l_raw_query, aResults))
+	{
+		return;
 	}
 	
 	const StringTokenizer<string> t(Text::toLower(p_search_param.m_filter), '$'); // 2012-05-03_22-05-14_YNJS7AEGAWCUMRBY2HTUTLYENU4OS2PKNJXT6ZY_F4B220A1_crash-stack-r502-beta24-x64-build-9900.dmp
@@ -2300,7 +2319,7 @@ void ShareManager::search(SearchResultList& aResults, const SearchParam& p_searc
 				*i,
 				"",
 				"",
-				aClient->getHubUrlAndIP(),
+				p_search_param.m_client->getHubUrlAndIP(),
 				"");
 			}
 #endif
@@ -2310,15 +2329,19 @@ void ShareManager::search(SearchResultList& aResults, const SearchParam& p_searc
 	if (!ssl.empty())
 	{
 		webrtc::ReadLockScoped l(*g_csShare);
-		for (auto j = m_list_directories.cbegin(); j != m_list_directories.cend() && aResults.size() < p_maxResults; ++j)
+		for (auto j = m_list_directories.cbegin(); j != m_list_directories.cend() && aResults.size() < p_search_param.m_max_results; ++j)
 		{
-			(*j)->search(aResults, ssl, p_search_param, aClient, p_maxResults);
+			(*j)->search(aResults, ssl, p_search_param);
 		}
 	}
 	// Ничего не нашли - сохраним условие поиска чтобы не искать второй раз по этому-же запросу.
 	if (aResults.empty())
 	{
 		addUnknownFile(l_raw_query);
+	}
+	else
+	{
+		addCacheFile(l_raw_query, aResults);
 	}
 }
 
@@ -2441,7 +2464,7 @@ const bool sizeOk = (aStrings.m_gt == 0);
 if (cur->empty() && aStrings.m_exts.empty() && sizeOk)
 {
 // We satisfied all the search words! Add the directory...
-SearchResultPtr sr(new SearchResult(SearchResult::TYPE_DIRECTORY, getSizeL(), getFullName(), TTHValue(), -1  /*token*/));
+const SearchResult sr(SearchResult::TYPE_DIRECTORY, getSizeL(), getFullName(), TTHValue(), -1  /*token*/);
 	aResults.push_back(sr);
 	ShareManager::incHits();
 }
@@ -2474,8 +2497,7 @@ for (auto i = m_files.cbegin(); i != m_files.cend(); ++i)
 		if (aStrings.hasExt(i->getName()))
 		{
 		
-			SearchResultPtr sr(new SearchResult(SearchResult::TYPE_FILE,
-			                                    i->getSize(), getFullName() + i->getName(), i->getTTH(), -1  /*token*/));
+			const SearchResult sr(SearchResult::TYPE_FILE, i->getSize(), getFullName() + i->getName(), i->getTTH(), -1  /*token*/);
 			aResults.push_back(sr);
 			ShareManager::incHits();
 			if (aResults.size() >= maxResults)
@@ -2501,19 +2523,13 @@ void ShareManager::search(SearchResultList& results, const StringList& params, S
 	reguest = srch.m_includeX; // [+] IRainman-S
 	if (srch.m_hasRoot)
 	{
-		SearchResultPtr sr;
-		{
-			webrtc::ReadLockScoped l(*g_csShare);
-			const auto& i = g_tthIndex.find(srch.m_root);
-			if (i == g_tthIndex.end())
-				return;
-			const auto &l_fileMap = i->second; // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'i->second' expression repeatedly. sharemanager.cpp 2240
-			sr = new SearchResult(SearchResult::TYPE_FILE,
-			l_fileMap->getSize(), l_fileMap->getParent()->getFullName() + l_fileMap->getName(),
-			l_fileMap->getTTH(), -1  /*token*/);
-			
-			incHits();
-		}
+		webrtc::ReadLockScoped l(*g_csShare);
+		const auto& i = g_tthIndex.find(srch.m_root);
+		if (i == g_tthIndex.end())
+			return;
+		const auto &l_fileMap = i->second; // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'i->second' expression repeatedly. sharemanager.cpp 2240
+		const SearchResult sr(SearchResult::TYPE_FILE, l_fileMap->getSize(), l_fileMap->getParent()->getFullName() + l_fileMap->getName(), l_fileMap->getTTH(), -1  /*token*/);
+		incHits();
 		results.push_back(sr);
 		return;
 	}
@@ -2642,8 +2658,8 @@ void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const T
 			forceXmlRefresh = true;
 		}
 	}
-	// Сбросим кеш отсутствующих файлов
-	internalClearShareNotExists(true);
+	// Сбросим кеш поиска
+	internalClearCache(true);
 }
 
 void ShareManager::on(TimerManagerListener::Second, uint64_t tick) noexcept
@@ -2664,24 +2680,33 @@ void ShareManager::on(TimerManagerListener::Minute, uint64_t tick) noexcept
 		}
 	}
 	internalCalcShareSize(); // [+]IRainman opt.
-	internalClearShareNotExists(false);
+	internalClearCache(false);
 }
 
-void ShareManager::internalClearShareNotExists(bool p_is_force)
+void ShareManager::internalClearCache(bool p_is_force)
 {
-	webrtc::WriteLockScoped l(*g_csShareNotExists);
-#if 0
-	for (auto i = g_file_not_exists_set.begin(); i != g_file_not_exists_set.end(); ++i)
 	{
-		if (i->second > 1)
+		webrtc::WriteLockScoped l(*g_csShareNotExists);
+#if 0
+		for (auto i = g_file_not_exists_set.begin(); i != g_file_not_exists_set.end(); ++i)
 		{
-			LogManager::message("[ShareManager] Fix dup-search: " + i->first + ", Count = " + Util::toString(i->second) + ")");
+			if (i->second > 1)
+			{
+				LogManager::message("[ShareManager] Fix dup-search: " + i->first + ", Count = " + Util::toString(i->second) + ")");
+			}
+		}
+#endif
+		if (p_is_force || g_file_not_exists_set.size() > 1000)
+		{
+			g_file_not_exists_set.clear();
 		}
 	}
-#endif
-	if (p_is_force || g_file_not_exists_set.size() > 1000)
 	{
-		g_file_not_exists_set.clear();
+		webrtc::WriteLockScoped l(*g_csShareCache);
+		if (p_is_force || g_file_cache_map.size() > 1000)
+		{
+			g_file_cache_map.clear();
+		}
 	}
 }
 

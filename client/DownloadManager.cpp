@@ -28,6 +28,8 @@
 
 static const string DOWNLOAD_AREA = "Downloads";
 std::unique_ptr<webrtc::RWLockWrapper> DownloadManager::g_csDownload = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+DownloadMap DownloadManager::g_download_map;
+IdlersMap DownloadManager::g_idlers;
 
 DownloadManager::DownloadManager()
 	: runningAverage(0)//[+] IRainman refactoring transfer mechanism
@@ -42,7 +44,7 @@ DownloadManager::~DownloadManager()
 	{
 		{
 			webrtc::ReadLockScoped l(*g_csDownload);
-			if (m_download_map.empty())
+			if (g_download_map.empty())
 				break;
 		}
 		Thread::sleep(100);
@@ -57,18 +59,61 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	typedef vector<pair<string, UserPtr> > TargetList;
 	TargetList dropTargets;
 	
+	DownloadArray l_tickList;
 	{
-		DownloadMap l_tickList;
 		int64_t l_currentSpeed = 0;// [+] IRainman refactoring transfer mechanism
 		webrtc::ReadLockScoped l(*g_csDownload);
 		// Tick each ongoing download
-		for (auto i = m_download_map.cbegin(); i != m_download_map.cend(); ++i)
+		l_tickList.reserve(g_download_map.size());
+		for (auto i = g_download_map.cbegin(); i != g_download_map.cend(); ++i)
 		{
 			Download* d = i->second;
-			
 			if (d->getPos() > 0)
 			{
-				l_tickList.insert(*i);
+				TransferData l_td;
+				l_td.m_hinted_user = d->getHintedUser();
+				l_td.m_pos = d->getPos();
+				l_td.m_actual = d->getActual();
+				l_td.m_second_left = d->getSecondsLeft();
+				l_td.m_running_average = d->getRunningAverage();
+				l_td.m_start = d->getStart();
+				l_td.m_size = d->getSize();
+				l_td.m_type = d->getType();
+				l_td.calc_percent();
+				if (d->isSet(Download::FLAG_DOWNLOAD_PARTIAL))
+				{
+					l_td.m_status_string += _T("[P]");
+				}
+				if (d->m_isSecure)
+				{
+					if (d->m_isTrusted)
+					{
+						l_td.m_status_string += _T("[S]");
+					}
+					else
+					{
+						l_td.m_status_string += _T("[U]");
+					}
+				}
+				if (d->isSet(Download::FLAG_TTH_CHECK))
+				{
+					l_td.m_status_string += _T("[T]");
+				}
+				if (d->isSet(Download::FLAG_ZDOWNLOAD))
+				{
+					l_td.m_status_string += _T("[Z]");
+				}
+				if (d->isSet(Download::FLAG_CHUNKED))
+				{
+					l_td.m_status_string += _T("[C]");
+				}
+				if (!l_td.m_status_string.empty())
+				{
+					l_td.m_status_string += _T(' ');
+				}
+				l_td.m_status_string += Text::tformat(TSTRING(DOWNLOADED_BYTES), Util::formatBytesW(l_td.m_pos).c_str(), l_td.m_percent, l_td.get_elapsed(aTick).c_str());
+				l_td.log_debug();
+				l_tickList.push_back(l_td);
 				d->tick(aTick); //[!]IRainman refactoring transfer mechanism
 			}
 			const int64_t l_currentSingleSpeed = d->getRunningAverage();//[+]IRainman refactoring transfer mechanism
@@ -101,11 +146,10 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 #endif // PPA_INCLUDE_DROP_SLOW
 		}
 		runningAverage = l_currentSpeed; // [+] IRainman refactoring transfer mechanism
-		
-		if (!l_tickList.empty())
-		{
-			fire(DownloadManagerListener::Tick(), l_tickList, aTick);//[!]IRainman refactoring transfer mechanism + uint64_t aTick
-		}
+	}
+	if (!l_tickList.empty())
+	{
+		fire(DownloadManagerListener::Tick(), l_tickList, aTick);//[!]IRainman refactoring transfer mechanism + uint64_t aTick
 	}
 	
 	for (auto i = dropTargets.cbegin(); i != dropTargets.cend(); ++i)
@@ -114,12 +158,21 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	}
 }
 
+void DownloadManager::remove_idlers(UserConnection* aSource)
+{
+	webrtc::WriteLockScoped l(*g_csDownload);
+	dcassert(aSource->getUser());
+	// Могут быть не найдены.
+	// лишняя проверка dcassert(m_idlers.find(aSource->getUser()) != m_idlers.end());
+	g_idlers.erase(aSource->getUser());
+}
+
 void DownloadManager::checkIdle(const UserPtr& aUser)
 {
 	webrtc::ReadLockScoped l(*g_csDownload);
 	dcassert(aUser);
-	const auto & l_find = m_idlers.find(aUser);
-	if (l_find != m_idlers.end())
+	const auto & l_find = g_idlers.find(aUser);
+	if (l_find != g_idlers.end())
 		l_find->second->updated();
 }
 
@@ -199,8 +252,8 @@ void DownloadManager::checkDownloads(UserConnection* aConn)
 		aConn->setState(UserConnection::STATE_IDLE);
 		webrtc::WriteLockScoped l(*g_csDownload);
 		dcassert(aConn->getUser());
-		dcassert(m_idlers.find(aConn->getUser()) == m_idlers.end());
-		m_idlers[aConn->getUser()] = aConn;
+		dcassert(g_idlers.find(aConn->getUser()) == g_idlers.end());
+		g_idlers[aConn->getUser()] = aConn;
 		return;
 	}
 	
@@ -214,8 +267,8 @@ void DownloadManager::checkDownloads(UserConnection* aConn)
 	{
 		webrtc::WriteLockScoped l(*g_csDownload);
 		dcassert(d->getUser());
-		dcassert(m_download_map.find(d->getUser()) == m_download_map.end());
-		m_download_map[d->getUser()] = d;
+		dcassert(g_download_map.find(d->getUser()) == g_download_map.end());
+		g_download_map[d->getUser()] = d;
 	}
 	fire(DownloadManagerListener::Requesting(), d);
 	
@@ -541,15 +594,15 @@ void DownloadManager::removeDownload(Download* d)
 	
 	{
 		webrtc::WriteLockScoped l(*g_csDownload);
-		dcassert(m_download_map.find(d->getUser()) != m_download_map.end());
-		m_download_map.erase(d->getUser());
+		dcassert(g_download_map.find(d->getUser()) != g_download_map.end());
+		g_download_map.erase(d->getUser());
 	}
 }
 
 void DownloadManager::abortDownload(const string& aTarget)
 {
 	webrtc::ReadLockScoped l(*g_csDownload);
-	for (auto i = m_download_map.cbegin(); i != m_download_map.cend(); ++i)
+	for (auto i = g_download_map.cbegin(); i != g_download_map.cend(); ++i)
 	{
 		Download* d = i->second;
 		if (d->getPath() == aTarget)
@@ -649,8 +702,8 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource)
 bool DownloadManager::checkFileDownload(const UserPtr& aUser)
 {
 	webrtc::ReadLockScoped l(*g_csDownload);
-	const auto& l_find = m_download_map.find(aUser);
-	if (l_find != m_download_map.end())
+	const auto& l_find = g_download_map.find(aUser);
+	if (l_find != g_download_map.end())
 		if (l_find->second->getType() != Download::TYPE_PARTIAL_LIST &&
 		        l_find->second->getType() != Download::TYPE_FULL_LIST &&
 		        l_find->second->getType() != Download::TYPE_TREE)

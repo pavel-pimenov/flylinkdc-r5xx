@@ -23,6 +23,7 @@
 #include "TimerManager.h"
 #include "Segment.h"
 #include "UserConnection.h"
+#include "TransferData.h"
 
 class Transfer
 #ifdef _DEBUG
@@ -69,12 +70,10 @@ class Transfer
 		{
 			return m_runningAverage;
 		}
-		
 		int64_t getActual() const
 		{
 			return m_actual;
 		}
-		
 		int64_t getSize() const
 		{
 			return getSegment().getSize();
@@ -83,7 +82,6 @@ class Transfer
 		{
 			m_segment.setSize(size);
 		}
-		
 		bool getOverlapped() const
 		{
 			return getSegment().getOverlapped();
@@ -173,8 +171,6 @@ class Transfer
 		int64_t m_actual;
 		/** Bytes transferred to/from file */
 		int64_t m_pos;
-		/** Bytes on last avg update */
-		//int64_t last; [-] IRainman refactoring transfer mechanism
 		/** Starting position */
 		int64_t m_startPos;
 		/** Actual speed */

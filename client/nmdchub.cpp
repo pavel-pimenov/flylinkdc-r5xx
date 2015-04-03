@@ -31,6 +31,9 @@
 
 #include "../FlyFeatures/flyServer.h"
 
+CFlyUnknownCommand NmdcHub::g_unknown_command;
+FastCriticalSection NmdcHub::g_unknown_cs;
+
 NmdcHub::NmdcHub(const string& aHubURL, bool secure) : Client(aHubURL, '|', false), m_supportFlags(0), m_modeChar(0),
 	m_lastBytesShared(0),
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
@@ -392,28 +395,29 @@ void NmdcHub::updateFromTag(Identity& id, const string & tag) // [!] IRainman op
 	// [-] id.setStringParam("TA", '<' + tag + '>'); [-] IRainman opt.
 }
 //=================================================================================================================
-void NmdcHub::NmdcSearch(const SearchParam& p_search_param,
-                         bool isPassive) noexcept
+void NmdcHub::NmdcSearch(const SearchParam& p_search_param) noexcept
 {
 	ClientManagerListener::SearchReply l_re = ClientManagerListener::SEARCH_MISS; // !SMT!-S
 	SearchResultList l;
+	dcassert(p_search_param.m_max_results > 0);
+	dcassert(p_search_param.m_client);
 #ifdef PPA_USE_HIGH_LOAD_FOR_SEARCH_ENGINE_IN_DEBUG
-	ShareManager::getInstance()->search(l, p_search_param, this, isPassive ? 100 : 200);
+	ShareManager::getInstance()->search(l, p_search_param);
 #else
-	ShareManager::getInstance()->search(l, p_search_param, this, isPassive ? 5 : 10);
+	ShareManager::getInstance()->search(l, p_search_param);
 #endif
 	if (!l.empty())
 	{
 		l_re = ClientManagerListener::SEARCH_HIT;
-		if (isPassive)
+		if (p_search_param.m_is_passive)
 		{
-			string name = p_search_param.m_seeker.substr(4); //-V112
+			const string name = p_search_param.m_seeker.substr(4); //-V112
 			// Good, we have a passive seeker, those are easier...
 			string str;
 			for (auto i = l.cbegin(); i != l.cend(); ++i)
 			{
-				const SearchResultPtr& sr = *i;
-				str += sr->toSR(*this);
+				const SearchResult& sr = *i;
+				str += sr.toSR(*this);
 				str[str.length() - 1] = 5;
 //#ifdef IRAINMAN_USE_UNICODE_IN_NMDC
 //				str += name;
@@ -430,14 +434,23 @@ void NmdcHub::NmdcSearch(const SearchParam& p_search_param,
 		}
 		else
 		{
-			dcassert(0); // Сюда заходить мы уже не должны - старый код
 			try
 			{
 				Socket udp;
 				for (auto i = l.cbegin(); i != l.cend(); ++i)
 				{
-					const string l_sr = (*i)->toSR(*this);
-					NmdcHub::sendUDPSR(udp, p_search_param.m_seeker, l_sr, this);
+					const string l_sr = i->toSR(*this);
+					if (ConnectionManager::checkDuplicateSearchFile(l_sr))
+					{
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+						CFlylinkDBManager::getInstance()->push_event_statistic("search-a-skip-dup-file-search [NmdcHub::NmdcSearch]", "File", param, getIpAsString(), "", getHubUrlAndIP(), l_tth);
+#endif
+						COMMAND_DEBUG("[~][0]$SR [SkipUDP-File] " + l_sr, DebugTask::HUB_IN, getIpPort());
+					}
+					else
+					{
+						sendUDPSR(udp, p_search_param.m_seeker, l_sr, this);
+					}
 				}
 			}
 			catch (Exception& e)
@@ -451,7 +464,7 @@ void NmdcHub::NmdcSearch(const SearchParam& p_search_param,
 	}
 	else
 	{
-		if (!isPassive)
+		if (!p_search_param.m_is_passive)
 		{
 			if (NmdcPartialSearch(p_search_param))
 			{
@@ -664,8 +677,8 @@ void NmdcHub::searchParse(const string& param, bool p_is_passive)
 				return;
 			}
 		}
-		
-		ClientManager::getInstance()->NmdcSearch(this, l_search_param, p_is_passive);
+		l_search_param.init(this, p_is_passive);
+		NmdcSearch(l_search_param);
 		// Dead lock 2 https://code.google.com/p/flylinkdc/issues/detail?id=1428
 	}
 	else
@@ -1173,7 +1186,7 @@ void NmdcHub::userIPParse(const string& param)
 				}
 				OnlineUserPtr ou = findUser(l_user);
 				
-
+				
 				if (!ou)
 					continue;
 					
@@ -1201,14 +1214,14 @@ void NmdcHub::botListParse(const string& param)
 	const StringList& sl = t.getTokens();
 	for (auto it = sl.cbegin(); it != sl.cend(); ++it)
 	{
-			if (it->empty())
-				continue;
-			OnlineUserPtr ou = getUser(*it, false, false);
-			if (ou)
-			{
-				ou->getIdentity().setBot();
-				v.push_back(ou);
-			}
+		if (it->empty())
+			continue;
+		OnlineUserPtr ou = getUser(*it, false, false);
+		if (ou)
+		{
+			ou->getIdentity().setBot();
+			v.push_back(ou);
+		}
 	}
 	fire_user_updated(v);
 }
@@ -1586,13 +1599,37 @@ void NmdcHub::onLine(const string& aLine)
 	{
 		//dcassert(0);
 		dcdebug("NmdcHub::onLine Unknown command %s\n", aLine.c_str());
-#ifdef FLYLINKDC_BETA
-		LogManager::message("NmdcHub::onLine Unknown command! hub = [" + getHubUrl() + "], command = [" + cmd + "], param = [" + param + "]");
-#endif
+		string l_message;
+		{
+			FastLock l(g_unknown_cs);
+			auto& l_item = g_unknown_command[cmd + "[" + getHubUrl() + "]"];
+			l_item.second++;
+			if (l_item.first.empty())
+			{
+				l_item.first = aLine;
+				l_message = "NmdcHub::onLine first unknown command! hub = [" + getHubUrl() + "], command = [" + cmd + "], param = [" + param + "]";
+			}
+		}
+		if (!l_message.empty())
+		{
+			LogManager::message(l_message + " Raw = " + aLine);
+			CFlyServerJSON::pushError(24, "NmdcHub::onLine first unknown command:" + l_message);
+		}
 	}
 	processAutodetect(bMyInfoCommand);
 }
-
+void NmdcHub::log_all_unknown_command()
+{
+	FastLock l(g_unknown_cs);
+	for (auto i = g_unknown_command.cbegin(); i != g_unknown_command.cend(); ++i)
+	{
+		const string l_message = "NmdcHub::onLine summary unknown command! Count = " +
+		                         Util::toString(i->second.second) + " Key = [" + i->first + "], first value = [" + i->second.first + "]";
+		LogManager::message(l_message);
+		CFlyServerJSON::pushError(24, "NmdcHub::onLine summary unknown command:" + l_message);
+	}
+	g_unknown_command.clear();
+}
 void NmdcHub::processAutodetect(bool p_is_myinfo)
 {
 	if (!p_is_myinfo && m_bLastMyInfoCommand == FIRST_MYINFO)
@@ -2090,7 +2127,7 @@ void NmdcHub::on(BufferedSocketListener::SearchArrayTTH, CFlySearchArrayTTH& p_s
 				string str = *i->m_toSRCommand;
 				// TODO
 				// ClientManager::getInstance()->fireIncomingSearch(aSeeker, aString, ClientManagerListener::SEARCH_HIT);
-				if (i->m_search.size() > 4 && i->m_search.compare(0, 4, "Hub:", 4) == 0)
+				if (i->m_is_passive)
 				{
 					// Сформируем ответ на пассивный запрос
 					string l_nick = i->m_search.substr(4); //-V112
@@ -2104,11 +2141,12 @@ void NmdcHub::on(BufferedSocketListener::SearchArrayTTH, CFlySearchArrayTTH& p_s
 				{
 					// Запросы по TTH - покидываем через коротко-живущий фильтр, чтобы исключить лишний дубликатный
 					// поиск и паразитный UDP трафик в обратную сторону
-					if (i->m_search == l_ip || ConnectionManager::getInstance()->checkTTHDuplicateSearch(i->m_search, i->m_tth))
+					if (i->m_search == l_ip || ConnectionManager::checkDuplicateSearchTTH(i->m_search, i->m_tth))
 					{
 #ifdef FLYLINKDC_USE_COLLECT_STAT
 						CFlylinkDBManager::getInstance()->push_event_statistic("search-a-skip-dup-tth-search", "TTH", param, getIpAsString(), "", getHubUrlAndIP(), l_tth);
 #endif
+						COMMAND_DEBUG("[~][" + Util::toString(g_id_search_array) + "]$SR [SkipUDP-TTH] " + *i->m_toSRCommand, DebugTask::HUB_IN, getIpPort());
 						safe_delete(i->m_toSRCommand);
 						continue;
 					}
@@ -2127,10 +2165,9 @@ void NmdcHub::on(BufferedSocketListener::SearchArrayTTH, CFlySearchArrayTTH& p_s
 			}
 		}
 	}
-	p_search_array.clear();
 }
 
-void NmdcHub::on(BufferedSocketListener::SearchArrayFile, CFlySearchArrayFile& p_search_array) noexcept
+void NmdcHub::on(BufferedSocketListener::SearchArrayFile, const CFlySearchArrayFile& p_search_array) noexcept
 {
 	if (!ClientManager::isShutdown())
 	{
@@ -2144,7 +2181,6 @@ void NmdcHub::on(BufferedSocketListener::SearchArrayFile, CFlySearchArrayFile& p
 			COMMAND_DEBUG("$Search " + i->m_raw_search, DebugTask::HUB_IN, getIpPort());
 		}
 	}
-	p_search_array.clear();
 }
 
 void NmdcHub::on(BufferedSocketListener::DDoSSearchDetect, const string& p_error) noexcept

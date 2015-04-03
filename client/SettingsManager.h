@@ -385,6 +385,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  FLY_GENDER, //[+] PPA
 #endif
 		                  SHOW_SEEKERS_IN_SPY_FRAME,// [+] IRainman
+		                  LOG_SEEKERS_IN_SPY_FRAME,
 		                  FORMAT_BOT_MESSAGE,// [+] IRainman
 #ifdef IRAINMAN_USE_BB_CODES
 		                  FORMAT_BB_CODES, // [+] IRainman

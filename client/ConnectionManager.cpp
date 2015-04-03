@@ -34,8 +34,11 @@ std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csDownloads = std::u
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csUploads = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csDdosCheck = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csTTHFilter = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csFileFilter = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 
 boost::unordered_set<UserConnection*> ConnectionManager::g_userConnections;
+boost::unordered_map<string, ConnectionManager::CFlyTickTTH> ConnectionManager::g_duplicate_search_tth;
+boost::unordered_map<string, ConnectionManager::CFlyTickFile> ConnectionManager::g_duplicate_search_file;
 boost::unordered_set<string> ConnectionManager::g_ddos_ctm2hub;
 ConnectionQueueItem::List ConnectionManager::g_downloads;
 ConnectionQueueItem::List ConnectionManager::g_uploads;
@@ -182,7 +185,7 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 #endif
 	}
 #ifndef USING_IDLERS_IN_CONNECTION_MANAGER
-	DownloadManager::getInstance()->checkIdle(aUser);
+	DownloadManager::checkIdle(aUser);
 #endif
 }
 
@@ -295,7 +298,11 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 {
 	if (((aTick / 1000) % (CFlyServerConfig::g_max_unique_tth_search + 2)) == 0)
 	{
-		cleanupTTHDuplicateSearch(aTick);
+		cleanupDuplicateSearchTTH(aTick);
+	}
+	if (((aTick / 1000) % (CFlyServerConfig::g_max_unique_file_search + 2)) == 0)
+	{
+		cleanupDuplicateSearchFile(aTick);
 	}
 	
 	ConnectionQueueItem::List l_removed;
@@ -351,7 +358,6 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 					{
 						if (startDown)
 						{
-							const string hubHint = cqi->getHubUrl(); // TODO - прокинуть туда хинт на хаб
 							cqi->setState(ConnectionQueueItem::CONNECTING);
 							
 							if (BOOLSETTING(AUTO_PASSIVE_INCOMING_CONNECTIONS))
@@ -365,7 +371,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 							}
 							
 							
-							ClientManager::getInstance()->connect(HintedUser(cqi->getUser(), hubHint),
+							ClientManager::getInstance()->connect(cqi->getHintedUser(),
 							                                      cqi->getConnectionQueueToken(),
 							                                      cqi->m_is_force_passive,
 							                                      cqi->m_is_active_client // <- Out param!
@@ -427,7 +433,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
 	for (auto i = l_idlers.cbegin(); i != l_idlers.cend(); ++i)
 	{
-		DownloadManager::getInstance()->checkIdle(*i);
+		DownloadManager::checkIdle(*i);
 	}
 #endif
 }
@@ -473,11 +479,32 @@ void ConnectionManager::cleanupIpFlood(const uint64_t p_tick)
 			++j;
 	}
 }
-void ConnectionManager::cleanupTTHDuplicateSearch(const uint64_t p_tick)
+void ConnectionManager::cleanupDuplicateSearchFile(const uint64_t p_tick)
+{
+	webrtc::WriteLockScoped l_lock(*g_csFileFilter);
+	for (auto j = g_duplicate_search_file.cbegin(); j != g_duplicate_search_file.cend();)
+	{
+		if ((p_tick - j->second.m_first_tick) > 1000 * CFlyServerConfig::g_max_unique_file_search)
+		{
+#ifdef FLYLINKDC_USE_LOG_FOR_DUPLICATE_FILE_SEARCH
+			if (j->second.m_count_connect > 1) // —обытие возникало больше одного раза - логируем?
+			{
+				LogManager::ddos_message(string(j->second.m_count_connect, '*') + " BlockID = " + Util::toString(j->second.m_block_id) +
+				                         ", Unlock duplicate File search: " + j->first +
+				                         ", Count connect = " + Util::toString(j->second.m_count_connect) +
+				                         ", Hash map size: " + Util::toString(g_duplicate_search_tth.size()));
+			}
+#endif
+			g_duplicate_search_file.erase(j++);
+		}
+		else
+			++j;
+	}
+}
+void ConnectionManager::cleanupDuplicateSearchTTH(const uint64_t p_tick)
 {
 	webrtc::WriteLockScoped l_lock(*g_csTTHFilter);
-	
-	for (auto j = m_tth_duplicate_search.cbegin(); j != m_tth_duplicate_search.cend();)
+	for (auto j = g_duplicate_search_tth.cbegin(); j != g_duplicate_search_tth.cend();)
 	{
 		if ((p_tick - j->second.m_first_tick) > 1000 * CFlyServerConfig::g_max_unique_tth_search)
 		{
@@ -487,10 +514,10 @@ void ConnectionManager::cleanupTTHDuplicateSearch(const uint64_t p_tick)
 				LogManager::ddos_message(string(j->second.m_count_connect, '*') + " BlockID = " + Util::toString(j->second.m_block_id) +
 				                         ", Unlock duplicate TTH search: " + j->first +
 				                         ", Count connect = " + Util::toString(j->second.m_count_connect) +
-				                         ", Hash map size: " + Util::toString(m_tth_duplicate_search.size()));
+				                         ", Hash map size: " + Util::toString(g_duplicate_search_tth.size()));
 			}
 #endif
-			m_tth_duplicate_search.erase(j++);
+			g_duplicate_search_tth.erase(j++);
 		}
 		else
 			++j;
@@ -499,9 +526,7 @@ void ConnectionManager::cleanupTTHDuplicateSearch(const uint64_t p_tick)
 void ConnectionManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 {
 	cleanupIpFlood(aTick);
-	
 	webrtc::ReadLockScoped l(*g_csConnection);
-	
 	for (auto j = g_userConnections.cbegin(); j != g_userConnections.cend(); ++j)
 	{
 		auto& l_connection = *j;
@@ -659,14 +684,59 @@ void ConnectionManager::accept(const Socket& sock, bool secure, Server* p_server
 		deleteConnection(uc);
 	}
 }
-bool ConnectionManager::checkTTHDuplicateSearch(const string& p_search_command, const TTHValue& p_tth)
+bool ConnectionManager::checkDuplicateSearchFile(const string& p_search_command)
+{
+	webrtc::WriteLockScoped l_lock(*g_csFileFilter);
+	const auto l_tick = GET_TICK();
+	CFlyTickFile l_item;
+	l_item.m_first_tick = l_tick;
+	l_item.m_last_tick = l_tick;
+	const auto l_key_pos = p_search_command.rfind(' ');
+	if (l_key_pos != string::npos && l_key_pos)
+	{
+		const string l_key = p_search_command.substr(0, l_key_pos);
+		auto l_result = g_duplicate_search_file.insert(std::pair<string, CFlyTickFile>(l_key, l_item));
+		auto& l_cur_value = l_result.first->second;
+		++l_cur_value.m_count_connect;
+		if (l_result.second == false) // Ёлемент уже существует - проверим его счетчик и старость.
+		{
+			l_cur_value.m_last_tick = l_tick;
+			if (l_tick - l_cur_value.m_first_tick > 1000 * CFlyServerConfig::g_max_unique_file_search)
+			{
+				// “ут можно сразу стереть элемент устаревший
+				return false;
+			}
+			if (l_cur_value.m_count_connect > 1)
+			{
+				static uint16_t g_block_id = 0;
+				if (l_cur_value.m_block_id == 0)
+				{
+					l_cur_value.m_block_id = ++g_block_id;
+				}
+				if (l_cur_value.m_count_connect >= 2)
+				{
+#ifdef FLYLINKDC_USE_LOG_FOR_DUPLICATE_FILE_SEARCH
+					LogManager::ddos_message(string(l_cur_value.m_count_connect, '*') + " BlockID = " + Util::toString(l_cur_value.m_block_id) +
+					                         ", Lock File search = " + p_search_command +
+					                         ", Count = " + Util::toString(l_cur_value.m_count_connect) +
+					                         ", Hash map size: " + Util::toString(g_duplicate_search_file.size()));
+#endif
+				}
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+bool ConnectionManager::checkDuplicateSearchTTH(const string& p_search_command, const TTHValue& p_tth)
 {
 	webrtc::WriteLockScoped l_lock(*g_csTTHFilter);
 	const auto l_tick = GET_TICK();
-	CFlyTTHTick l_item;
+	CFlyTickTTH l_item;
 	l_item.m_first_tick = l_tick;
 	l_item.m_last_tick  = l_tick;
-	auto l_result = m_tth_duplicate_search.insert(std::pair<string, CFlyTTHTick>(p_search_command + ' ' + p_tth.toBase32() , l_item));
+	auto l_result = g_duplicate_search_tth.insert(std::pair<string, CFlyTickTTH>(p_search_command + ' ' + p_tth.toBase32(), l_item));
 	auto& l_cur_value = l_result.first->second;
 	++l_cur_value.m_count_connect;
 	if (l_result.second == false) // Ёлемент уже существует - проверим его счетчик и старость.
@@ -691,7 +761,7 @@ bool ConnectionManager::checkTTHDuplicateSearch(const string& p_search_command, 
 				                         ", Lock TTH search = " + p_search_command +
 				                         ", TTH = " + p_tth.toBase32() +
 				                         ", Count = " + Util::toString(l_cur_value.m_count_connect) +
-				                         ", Hash map size: " + Util::toString(m_tth_duplicate_search.size()));
+				                         ", Hash map size: " + Util::toString(g_duplicate_search_tth.size()));
 #endif
 			}
 			return true;

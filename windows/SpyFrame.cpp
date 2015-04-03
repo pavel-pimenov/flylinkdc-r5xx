@@ -28,6 +28,20 @@ int SpyFrame::columnSizes[] = { 305, 70, 90, 120, 20 };
 int SpyFrame::columnIndexes[] = { COLUMN_STRING, COLUMN_COUNT, COLUMN_USERS, COLUMN_TIME, COLUMN_SHARE_HIT }; // !SMT!-S
 static ResourceManager::Strings columnNames[] = { ResourceManager::SEARCH_STRING, ResourceManager::COUNT, ResourceManager::USERS, ResourceManager::TIME, ResourceManager::SHARED }; // !SMT!-S
 
+SpyFrame::SpyFrame() : CFlyTimerAdapter(m_hWnd), m_total(0), m_current(0),
+	m_ignoreTTH(BOOLSETTING(SPY_FRAME_IGNORE_TTH_SEARCHES)),
+	m_showNick(BOOLSETTING(SHOW_SEEKERS_IN_SPY_FRAME)),
+	m_LogFile(BOOLSETTING(LOG_SEEKERS_IN_SPY_FRAME)),
+	m_ignoreTTHContainer(WC_BUTTON, this, SPYFRAME_IGNORETTH_MESSAGE_MAP),
+	m_ShowNickContainer(WC_BUTTON, this, SPYFRAME_SHOW_NICK),
+	m_SpyLogFileContainer(WC_BUTTON, this, SPYFRAME_LOG_FILE),
+	m_log(nullptr), m_needsUpdateTime(true), m_needsResort(false) //[+]IRainman refactoring SpyFrame
+{
+	memzero(m_perSecond, sizeof(m_perSecond));
+	ClientManager::getInstance()->addListener(this);
+	SettingsManager::getInstance()->addListener(this);
+}
+
 LRESULT SpyFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
 	CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);
@@ -50,6 +64,15 @@ LRESULT SpyFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	m_ctrlShowNick.SetCheck(m_showNick);
 	m_ShowNickContainer.SubclassWindow(m_ctrlShowNick.m_hWnd);
 	
+	const tstring l_log_path = Text::toT(Util::validateFileName(SETTING(LOG_DIRECTORY) + "spylog.log"));
+	const tstring l_check_box_log_caption = TSTRING(SETTINGS_LOG_FILE_IN_SPY_FRAME) + _T(" (") + l_log_path + _T(" )");
+	
+	m_ctrlSpyLogFile.Create(ctrlStatus.m_hWnd, rcDefault, l_check_box_log_caption.c_str(), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+	m_ctrlSpyLogFile.SetButtonStyle(BS_AUTOCHECKBOX, false);
+	m_ctrlSpyLogFile.SetFont(Fonts::g_systemFont);
+	m_ctrlSpyLogFile.SetCheck(m_LogFile);
+	m_SpyLogFileContainer.SubclassWindow(m_ctrlSpyLogFile.m_hWnd);
+	
 	
 	WinUtil::splitTokens(columnIndexes, SETTING(SPYFRAME_ORDER), COLUMN_LAST);
 	WinUtil::splitTokensWidth(columnSizes, SETTING(SPYFRAME_WIDTHS), COLUMN_LAST);
@@ -68,22 +91,21 @@ LRESULT SpyFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	ctrlSearches.setSort(SETTING(SEARCH_SPY_COLUMNS_SORT), ExListViewCtrl::SORT_INT, BOOLSETTING(SEARCH_SPY_COLUMNS_SORT_ASC));
 	ShareManager::setHits(0);
 	
-#ifdef _BIG_BROTHER_MODE
-	//[!]IRainman refactoring SpyFrame
-	if (BOOLSETTING(OPEN_SEARCH_SPY))
+	if (m_LogFile)
 	{
 		try
 		{
-			m_log = new File(Util::getConfigPath() + "SpyLog.txt", File::WRITE, File::OPEN);
+			m_log = new File(l_log_path, File::WRITE, File::OPEN | File::CREATE);
 			m_log->setEndPos(0);
 			if (m_log->getPos() == 0)
 				m_log->write("\xef\xbb\xbf");
 		}
-		catch (const FileException&)
+		catch (const FileException& e)
 		{
+			LogManager::message("Error create file " + Text::fromT(l_log_path) + " error = " + e.getError());
+			safe_delete(m_log);
 		}
 	}
-#endif
 	//[~]IRainman refactoring SpyFrame
 	create_timer(1000);
 	ClientManager::g_isSpyFrame = true;
@@ -98,10 +120,10 @@ LRESULT SpyFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 	{
 		m_closed = true;
 		safe_destroy_timer();
-#ifdef _BIG_BROTHER_MODE
 		if (m_log)
+		{
 			PostMessage(WM_SPEAKER, SAVE_LOG, (LPARAM)NULL);
-#endif
+		}
 		ClientManager::getInstance()->removeListener(this);
 		SettingsManager::getInstance()->removeListener(this);
 		bHandled = TRUE;
@@ -118,10 +140,8 @@ LRESULT SpyFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 		
 		SET_SETTING(SPY_FRAME_IGNORE_TTH_SEARCHES, m_ignoreTTH);
 		SET_SETTING(SHOW_SEEKERS_IN_SPY_FRAME, m_showNick);
-#ifdef _BIG_BROTHER_MODE
-		if (m_log)
-			delete m_log;
-#endif
+		SET_SETTING(LOG_SEEKERS_IN_SPY_FRAME, m_LogFile);
+		safe_delete(m_log);
 		WinUtil::setButtonPressed(IDC_SEARCH_SPY, false);
 		bHandled = FALSE;
 		return 0;
@@ -165,7 +185,7 @@ void SpyFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		int w[6];
 		ctrlStatus.GetClientRect(sr);
 		
-		const int tmp = (sr.Width()) > 616 ? 516 : ((sr.Width() > 116) ? sr.Width() - 100 : 16);
+		const int tmp = sr.Width() > 616 ? 516 : (sr.Width() > 116 ? sr.Width() - 100 : 16);
 		
 		w[0] = 170;
 		w[1] = sr.right - tmp - 150;
@@ -179,8 +199,11 @@ void SpyFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		ctrlStatus.GetRect(0, sr);
 		m_ctrlIgnoreTTH.MoveWindow(sr);
 		sr.MoveToX(170);
-		sr.right += 150;
+		sr.right += 50;
 		m_ctrlShowNick.MoveWindow(sr);
+		sr.MoveToX(sr.right + 10);
+		sr.right += 200;
+		m_ctrlSpyLogFile.MoveWindow(sr);
 	}
 	
 	ctrlSearches.MoveWindow(&rect);
@@ -212,20 +235,7 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 				//[~]IRainman refactoring SpyFrame
 				tstring l_SeekersNames;
 				{
-#ifdef _BIG_BROTHER_MODE
-					if (m_log)
-					{
-						m_txt += Text::fromT(m_CurrentTime) + "\t" +
-						         si->seeker + "\t" +
-						         si->s + "\r\n";
-					}
-#endif
-					const auto& it2 = m_searches.find(si->s);
-					if (it2 == m_searches.end())
-					{
-						m_searches[si->s].i = 1;
-					}
-					
+					auto& l_searh_item =  m_searches[si->s];
 					if (m_showNick)// [+] IRainman
 					{
 						if (::strncmp(si->seeker.c_str(), "Hub:", 4))
@@ -234,28 +244,35 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 							if (l_twopt != string::npos)
 							{
 								const string l_ip = si->seeker.substr(0, l_twopt);
-								const StringList users = ClientManager::getUserByIp(l_ip);
-								if (!users.empty())
+								const StringList l_users = ClientManager::getUserByIp(l_ip);
+								if (!l_users.empty())
 								{
-									si->seeker = "[IP:" + l_ip + "] Users:" + Util::toString(users);
+									si->seeker = "[IP:" + l_ip + "] Users:" + Util::toString(l_users);
 								}
 							}
 						}
-						
+					}
+					if (m_log && m_LogFile)
+					{
+						m_log_txt += Text::fromT(m_CurrentTime) + "\t" +
+						             si->seeker + "\t" +
+						             si->s + "\r\n";
+					}
+					if (m_showNick)// [+] IRainman
+					{
 						size_t k;
 						for (k = 0; k < NUM_SEEKERS; ++k)
-							if (si->seeker == (m_searches[si->s].seekers)[k])
+							if (si->seeker == l_searh_item.m_seekers[k])
 								break;          //that user's searching for file already noted
 								
 						if (k == NUM_SEEKERS)           //loop terminated normally
-							m_searches[si->s].AddSeeker(si->seeker);
+							l_searh_item.AddSeeker(si->seeker);
 							
 						for (k = 0; k < NUM_SEEKERS; ++k)
-							l_SeekersNames += Text::toT((m_searches[si->s].seekers)[k]) + _T("  ");
+							l_SeekersNames += Text::toT(l_searh_item.m_seekers[k]) + _T("  ");
 					}
 					
 					++m_total;
-					
 					++m_perSecond[m_current];
 				}
 				// !SMT!-S
@@ -271,6 +288,7 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 				if (j == -1)
 				{
 					TStringList a;
+					a.reserve(5);
 					a.push_back(l_search);
 					a.push_back(_T("1"));
 					a.push_back(l_SeekersNames);
@@ -325,21 +343,21 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 				}
 			}
 			break;
-#ifdef _BIG_BROTHER_MODE
 			case SAVE_LOG:
-			{
-				try
+				if (m_log)
 				{
-					m_log->setEndPos(0);
-					m_log->write(m_txt);
+					try
+					{
+						m_log->setEndPos(0);
+						m_log->write(m_log_txt);
+					}
+					catch (const FileException& e)
+					{
+						LogManager::message("Error write file spylog.log error = " + e.getError());
+					}
+					m_log_txt.clear();
 				}
-				catch (const FileException&)
-				{
-				}
-				m_txt.clear();
-			}
-			break;
-#endif
+				break;
 		}
 		delete i->second;
 	}
@@ -424,13 +442,10 @@ LRESULT SpyFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 			
 		m_perSecond[m_current] = 0;
 	}
-#ifdef _BIG_BROTHER_MODE
-	if (m_log && ++m_tick > 10)
+	if (m_log)
 	{
 		m_tasks.add(SAVE_LOG, nullptr);
-		m_tick = 0;
 	}
-#endif
 	if (!m_tasks.empty())
 	{
 		speak();

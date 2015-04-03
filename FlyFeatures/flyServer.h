@@ -223,6 +223,7 @@ public:
   static uint16_t g_winet_min_response_time_for_log;
   static uint16_t g_max_ddos_connect_to_me;
   static uint16_t g_max_unique_tth_search;
+  static uint16_t g_max_unique_file_search;
   static uint16_t g_ban_ddos_connect_to_me;
   static uint16_t g_min_interval_dth_connect;
   static uint16_t g_interval_flood_command;
@@ -418,7 +419,6 @@ public:
 		string& p_external_ip,
 		int p_timer_value);
 
-	// TODO static void logout();
 	static string g_fly_server_id;
 	static CFlyTTHKeyArray g_download_counter;
 	static void addDownloadCounter(const CFlyTTHKey& p_file);

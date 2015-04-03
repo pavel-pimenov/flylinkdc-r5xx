@@ -50,7 +50,7 @@ ThrottleManager::~ThrottleManager(void)
  */
 int ThrottleManager::read(Socket* sock, void* buffer, size_t len)
 {
-	const size_t downs = DownloadManager::getInstance()->getDownloadCount();
+	const size_t downs = downLimit ? DownloadManager::getDownloadCount() : 0;
 	if (downLimit == 0 || downs == 0)
 		return sock->read(buffer, len);
 		
@@ -108,7 +108,7 @@ int ThrottleManager::write(Socket* sock, void* buffer, size_t& len)
 	else // general
 	{
 		//[~]IRainman SpeedLimiter
-		const size_t ups = UploadManager::getInstance()->getUploadCount();
+		const size_t ups = UploadManager::getUploadCount();
 		if (upLimit == 0 || ups == 0)
 			return sock->write(buffer, len);
 			

@@ -30,6 +30,7 @@
 
 #define SPYFRAME_IGNORETTH_MESSAGE_MAP 7
 #define SPYFRAME_SHOW_NICK 8
+#define SPYFRAME_LOG_FILE 9
 
 class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY > , public StaticFrame<SpyFrame, ResourceManager::SEARCH_SPY, IDC_SEARCH_SPY>,
 	private ClientManagerListener,
@@ -40,21 +41,7 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 #endif
 {
 	public:
-		SpyFrame() : CFlyTimerAdapter(m_hWnd), m_total(0), m_current(0),
-			m_ignoreTTH(BOOLSETTING(SPY_FRAME_IGNORE_TTH_SEARCHES)),
-			m_showNick(BOOLSETTING(SHOW_SEEKERS_IN_SPY_FRAME)),
-			m_ignoreTTHContainer(WC_BUTTON, this, SPYFRAME_IGNORETTH_MESSAGE_MAP),
-			m_ShowNickContainer(WC_BUTTON, this, SPYFRAME_SHOW_NICK)
-#ifdef _BIG_BROTHER_MODE
-			, m_tick(0), m_log(NULL)
-#endif
-			, m_needsUpdateTime(true), m_needsResort(false) //[+]IRainman refactoring SpyFrame
-		{
-			memzero(m_perSecond, sizeof(m_perSecond));
-			ClientManager::getInstance()->addListener(this);
-			SettingsManager::getInstance()->addListener(this);
-		}
-		
+		SpyFrame();
 		~SpyFrame() { }
 		
 		enum
@@ -89,6 +76,8 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 		MESSAGE_HANDLER(BM_SETCHECK, onIgnoreTth)
 		ALT_MSG_MAP(SPYFRAME_SHOW_NICK)
 		MESSAGE_HANDLER(BM_SETCHECK, onShowNick)
+		ALT_MSG_MAP(SPYFRAME_LOG_FILE)
+		MESSAGE_HANDLER(BM_SETCHECK, onLogFile)
 		END_MSG_MAP()
 		
 		LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
@@ -116,6 +105,13 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 			return 0;
 		}
 		
+		LRESULT onLogFile(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
+		{
+			bHandled = FALSE;
+			m_LogFile = (wParam == BST_CHECKED);
+			return 0;
+		}
+		
 		LRESULT onIgnoreTth(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 		{
 			bHandled = FALSE;
@@ -128,17 +124,17 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 		{
 			SEARCH,
 			TICK_AVG,
-#ifdef _BIG_BROTHER_MODE
 			SAVE_LOG
-#endif
 		};
 		
 		ExListViewCtrl ctrlSearches;
 		CStatusBarCtrl ctrlStatus;
 		CContainedWindow m_ignoreTTHContainer;
 		CContainedWindow m_ShowNickContainer;
+		CContainedWindow m_SpyLogFileContainer;
 		CButton m_ctrlIgnoreTTH;
 		CButton m_ctrlShowNick;
+		CButton m_ctrlSpyLogFile;
 		uint64_t m_total;
 		uint8_t m_current;
 		static const uint8_t AVG_TIME = 60;
@@ -149,11 +145,8 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 		tstring m_searchString;
 		
 		//[+]IRainman refactoring SpyFrame
-#ifdef _BIG_BROTHER_MODE
 		File* m_log;
-		string m_txt;
-		int m_tick;
-#endif
+		string m_log_txt;
 		tstring m_CurrentTime;
 		bool m_needsUpdateTime;
 		
@@ -166,23 +159,24 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 		
 		bool m_ignoreTTH;
 		bool m_showNick;
+		bool m_LogFile;
 		
 		// [-] FastCriticalSection cs; // [-] IRainman fix: all data to needs to be lock usde in one thread.
 		
 		static const size_t NUM_SEEKERS = 8;
 		struct SearchData
 		{
-				SearchData() : curpos(0), i(0) { }
-				size_t i;
-				string seekers[NUM_SEEKERS];
+				SearchData() : m_curpos(0), m_i(1) { }
+				size_t m_i;
+				string m_seekers[NUM_SEEKERS];
 				
 				void AddSeeker(const string& s)
 				{
-					seekers[curpos++] = s;
-					curpos = curpos % NUM_SEEKERS;
+					m_seekers[m_curpos++] = s;
+					m_curpos = m_curpos % NUM_SEEKERS;
 				}
 			private:
-				size_t curpos;
+				size_t m_curpos;
 		};
 		
 		typedef boost::unordered_map<string, SearchData> SpySearchMap;
@@ -192,8 +186,8 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 		// ClientManagerListener
 		struct SMTSearchInfo : public Task
 		{
-			explicit SMTSearchInfo(const string& _user, const string& _s, ClientManagerListener::SearchReply _re) :
-				seeker(_user), s(_s),  re(_re) { } // !SMT!-S
+			explicit SMTSearchInfo(const string& p_user, const string& p_s, ClientManagerListener::SearchReply p_re) :
+				seeker(p_user), s(p_s),  re(p_re) { } // !SMT!-S
 			string seeker;
 			string s;
 			ClientManagerListener::SearchReply re; // !SMT!-S

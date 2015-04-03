@@ -108,6 +108,7 @@ uint16_t CFlyServerConfig::g_max_flood_command = 20;       // Не более 5 одинако
 uint16_t CFlyServerConfig::g_ban_flood_command = 10;      // Блокируем на 10 секунд команды если попали в бан
 
 uint16_t CFlyServerConfig::g_max_unique_tth_search  = 10; // Не принимаем в течении 10 секунд одинаковых поисков по TTH для одного и того-же целевого IP:PORT (UDP)
+uint16_t CFlyServerConfig::g_max_unique_file_search = 10; // Не принимаем в течении 10 секунд одинаковых поисков по File для одного и того-же целевого IP:PORT (UDP)
 #ifdef USE_SUPPORT_HUB
 string CFlyServerConfig::g_support_hub = "dchub://dc.fly-server.ru";
 #endif // USE_SUPPORT_HUB
@@ -391,6 +392,7 @@ void CFlyServerConfig::loadConfig()
 					}					
 					};
 					initUINT16("max_unique_tth_search",g_max_unique_tth_search,3);
+					initUINT16("max_unique_file_search",g_max_unique_file_search, 3);
 					initUINT16("max_ddos_connect_to_me",g_max_ddos_connect_to_me,3);
 					initUINT16("ban_ddos_connect_to_me",g_ban_ddos_connect_to_me,3);
           
@@ -807,9 +809,11 @@ static void initCIDPID(Json::Value& p_info)
 //======================================================================================================
 bool CFlyServerJSON::login()
 {
-  bool l_is_error = false;
+    bool l_is_error = false;
 	if(g_fly_server_id.empty())
 	{
+		g_fly_server_id = Util::toString(time(0));
+#if 0
 		CFlyLog l_log("[fly-login]");
 		Json::Value  l_root;   
 		Json::Value& l_info = l_root["login"];
@@ -845,6 +849,7 @@ bool CFlyServerJSON::login()
 //			else
 //				g_fly_server_id
 		}
+#endif
 	}
   return l_is_error;
 }
@@ -1056,7 +1061,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 	syslog(LOG_USER | LOG_INFO, "%s %s %s [%s]", l_cid.c_str(), l_pid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
 }
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 24
 {
 	bool l_is_send = false;
   bool l_is_error = false;

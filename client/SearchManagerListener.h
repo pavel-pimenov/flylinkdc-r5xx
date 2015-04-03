@@ -19,9 +19,7 @@
 #ifndef DCPLUSPLUS_DCPP_SEARCH_MANAGER_LISTENER_H
 #define DCPLUSPLUS_DCPP_SEARCH_MANAGER_LISTENER_H
 
-#include "forward.h"
-
-class SearchQueueItem;
+#include "SearchResult.h"
 
 class SearchManagerListener
 {
@@ -34,7 +32,7 @@ class SearchManagerListener
 		
 		typedef X<0> SR;
 		typedef X<1> UDPTest;
-		virtual void on(SR, const SearchResultPtr&) noexcept = 0;
+		virtual void on(SR, const SearchResult&) noexcept = 0;
 		virtual void on(UDPTest, const string& p_ip) noexcept
 		{
 		}

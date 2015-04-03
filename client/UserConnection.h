@@ -23,7 +23,7 @@
 #include "ClientManager.h"
 #include "CFlylinkDBManager.h"
 #include "FavoriteUser.h"
-
+class Upload;
 class UserConnection : public Speaker<UserConnectionListener>,
 	private BufferedSocketListener, public Flags, private CommandHandler<UserConnection>
 #ifdef _DEBUG

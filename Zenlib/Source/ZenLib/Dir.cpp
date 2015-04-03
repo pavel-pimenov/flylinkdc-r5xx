@@ -45,8 +45,8 @@
 namespace ZenLib
 {
 
-//***************************************************************************
-// Constructor/Destructor
+//---------------------------------------------------------------------------
+// Debug
 #ifdef ZENLIB_DEBUG
     #include <stdio.h>
     #include <windows.h>
@@ -372,7 +372,7 @@ bool Dir::Create(const Ztring &File_Name)
 }
 
 //***************************************************************************
-//
+// GetAllFileNames
 //***************************************************************************
 
 #ifdef WINDOWS
@@ -394,7 +394,6 @@ public:
     {
     }
 };
-#endif //WINDOWS
 
 //---------------------------------------------------------------------------
 GetAllFileNames::GetAllFileNames()
@@ -525,6 +524,7 @@ void GetAllFileNames::Close ()
     ZENLIB_DEBUG2(   "GetAllFileNames Close",
                         )
 }
+#endif //WINDOWS
 
 //***************************************************************************
 //

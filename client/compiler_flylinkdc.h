@@ -429,6 +429,7 @@ typedef unsigned __int64 uint64_t;
 #ifdef _DEBUG
 // #define FLYLINKDC_USE_COLLECT_STAT  // Собираем статистику команд коннектов и поиска для блокировки DDoS атак http://dchublist.ru/forum/viewtopic.php?f=6&t=1028&hilit=Ddos
 // #define FLYLINKDC_USE_LOG_FOR_DUPLICATE_TTH_SEARCH
+// #define FLYLINKDC_USE_LOG_FOR_DUPLICATE_FILE_SEARCH
 #endif
 
 #define FLYLINKDC_USE_ANTIVIRUS_DB

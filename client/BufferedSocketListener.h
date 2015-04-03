@@ -52,7 +52,7 @@ class BufferedSocketListener
 		virtual void on(MyInfoArray, StringList&) noexcept { } // [+]PPA
 		virtual void on(DDoSSearchDetect, const string&) noexcept { } // [+]PPA
 		virtual void on(SearchArrayTTH, CFlySearchArrayTTH&) noexcept { } // [+]PPA
-		virtual void on(SearchArrayFile, CFlySearchArrayFile&) noexcept { } // [+]PPA
+		virtual void on(SearchArrayFile, const CFlySearchArrayFile&) noexcept { } // [+]PPA
 		virtual void on(Data, uint8_t*, size_t) noexcept { }
 		virtual void on(BytesSent, size_t p_Bytes, size_t p_Actual) noexcept { }
 		virtual void on(ModeChange) noexcept { }

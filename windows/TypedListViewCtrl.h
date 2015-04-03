@@ -1249,7 +1249,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 					parent->parent = nullptr; // ensure that parent of this item is really NULL
 					oldParent->parent = parent;
 					pp->children.push_back(oldParent); // mark old parent item as a child
-					parent->hits++;
+					parent->m_hits++;
 					
 					pos = insertItem(getSortPos(parent), parent, p_use_image_callback ? I_IMAGECALLBACK : parent->getImageIndex());
 				}
@@ -1279,7 +1279,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 			}
 			
 			pp->children.push_back(item);
-			parent->hits++;
+			parent->m_hits++;
 			item->parent = parent;
 			//item->updateMainItem();
 			
@@ -1326,7 +1326,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 				if (n != pp->children.end())
 				{
 					pp->children.erase(n);
-					pp->parent->hits--;
+					pp->parent->m_hits--;
 				}
 				
 				if (uniqueParent)

@@ -393,7 +393,7 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 				}
 				// end !SMT!-S
 			}
-
+			
 			appendAndActivateUserItems(transferMenu);
 			
 #ifdef PPA_INCLUDE_DROP_SLOW
@@ -504,7 +504,7 @@ LRESULT TransferView::onForce(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 		ItemInfo* ii = ctrlTransfers.getItemData(i);
 		ctrlTransfers.SetItemText(i, COLUMN_STATUS, CTSTRING(CONNECTING_FORCED));
 		
-		if (ii->parent == NULL && ii->hits != -1)
+		if (ii->parent == NULL && ii->m_hits != -1)
 		{
 			const vector<ItemInfo*>& children = ctrlTransfers.findChildren(ii->getGroupCond());
 			for (auto j = children.cbegin(); j != children.cend(); ++j)
@@ -531,7 +531,7 @@ LRESULT TransferView::onForce(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 void TransferView::ItemInfo::removeAll()
 {
 	// Не удаляются отдачи через контекстное меню https://code.google.com/p/flylinkdc/issues/detail?id=1335
-	if (hits <= 1)
+	if (m_hits <= 1)
 	{
 		QueueManager::getInstance()->removeSource(m_hintedUser, QueueItem::Source::FLAG_REMOVED);
 	}
@@ -1084,7 +1084,7 @@ int TransferView::ItemInfo::compareItems(const ItemInfo* a, const ItemInfo* b, u
 	switch (col)
 	{
 		case COLUMN_USER:
-			return a->hits == b->hits ? a->getText(COLUMN_USER).compare(b->getText(COLUMN_USER)) : compare(a->hits, b->hits); // [!] IRainman opt.
+			return a->m_hits == b->m_hits ? a->getText(COLUMN_USER).compare(b->getText(COLUMN_USER)) : compare(a->m_hits, b->m_hits); // [!] IRainman opt.
 		case COLUMN_HUB:
 			return a->running == b->running ? a->getText(COLUMN_HUB).compare(b->getText(COLUMN_HUB)) : compare(a->running, b->running); // [!] IRainman opt.
 		case COLUMN_STATUS:
@@ -1201,7 +1201,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 						if (ui.type == Transfer::TYPE_FILE || ui.type == Transfer::TYPE_TREE)
 						{
 							/* parent item must be updated with correct info about whole file */
-							if (ui.status == ItemInfo::STATUS_RUNNING && parent->m_status == ItemInfo::STATUS_RUNNING && parent->hits == -1)
+							if (ui.status == ItemInfo::STATUS_RUNNING && parent->m_status == ItemInfo::STATUS_RUNNING && parent->m_hits == -1)
 							{
 								ui.updateMask &= ~UpdateInfo::MASK_POS;
 								ui.updateMask &= ~UpdateInfo::MASK_ACTUAL;
@@ -1435,7 +1435,7 @@ void TransferView::updateItem(int ii, uint32_t updateMask)
 
 TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const ConnectionQueueItem* aCqi) // [+] IRainman fix.
 {
-	UpdateInfo* ui = new UpdateInfo(aCqi->getUser(), aCqi->isDownload());
+	UpdateInfo* ui = new UpdateInfo(aCqi->getHintedUser(), aCqi->isDownload());
 	ui->setForcePassive(aCqi->m_is_force_passive);
 	if (ui->download)
 	{
@@ -1477,12 +1477,12 @@ void TransferView::on(ConnectionManagerListener::StatusChanged, const Connection
 
 void TransferView::on(ConnectionManagerListener::Removed, const ConnectionQueueItem* aCqi)
 {
-	m_tasks.add(TRANSFER_REMOVE_ITEM, new UpdateInfo(aCqi->getUser(), aCqi->isDownload())); // [!] IRainman fix.
+	m_tasks.add(TRANSFER_REMOVE_ITEM, new UpdateInfo(aCqi->getHintedUser(), aCqi->isDownload())); // [!] IRainman fix.
 }
 
 void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueItem* aCqi, const string& aReason)
 {
-	UpdateInfo* ui = new UpdateInfo(aCqi->getUser(), aCqi->isDownload()); // [!] IRainman fix.
+	UpdateInfo* ui = new UpdateInfo(aCqi->getHintedUser(), aCqi->isDownload()); // [!] IRainman fix.
 #ifdef PPA_INCLUDE_IPFILTER
 	if (ui->m_hintedUser.user->isSet(User::PG_BLOCK))
 	{
@@ -1532,9 +1532,9 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 	switch (col)
 	{
 		case COLUMN_USER:
-			return hits == -1 ? m_nicks : (Util::toStringW(hits) + _T(' ') + TSTRING(USERS));
+			return m_hits == -1 ? m_nicks : (Util::toStringW(m_hits) + _T(' ') + TSTRING(USERS));
 		case COLUMN_HUB:
-			return hits == -1 ? m_hubs : (Util::toStringW(running) + _T(' ') + TSTRING(NUMBER_OF_SEGMENTS));
+			return m_hits == -1 ? m_hubs : (Util::toStringW(running) + _T(' ') + TSTRING(NUMBER_OF_SEGMENTS));
 		case COLUMN_STATUS:
 			return m_statusString;
 		case COLUMN_TIMELEFT:
@@ -1619,64 +1619,22 @@ void TransferView::on(DownloadManagerListener::Starting, const Download* aDownlo
 	
 	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
-
-void TransferView::on(DownloadManagerListener::Tick, const DownloadMap& dl, uint64_t CurrentTick)
+// TODO - убрать тики для массива
+void TransferView::on(DownloadManagerListener::Tick, const DownloadArray& dl, uint64_t CurrentTick)
 {
 	if (!MainFrame::isAppMinimized())// [+]IRainman opt
 	{
 		for (auto j = dl.cbegin(); j != dl.cend(); ++j)
 		{
-			const Download* d = j->second;
-			
-			UpdateInfo* ui = new UpdateInfo(d->getHintedUser(), true); // [!] IRainman fix.
+			UpdateInfo* ui = new UpdateInfo(j->m_hinted_user, true); // [!] IRainman fix.
 			ui->setStatus(ItemInfo::STATUS_RUNNING);
-			ui->setActual(d->getActual());
-			ui->setPos(d->getPos());
-			ui->setSize(d->getSize());
-			ui->setTimeLeft(d->getSecondsLeft());
-			ui->setSpeed(d->getRunningAverage());
-			ui->setType(d->getType());
-			tstring pos = Util::formatBytesW(d->getPos());
-			const double percent = (double)d->getPos() * 100.0 / (double)d->getSize();
-			tstring elapsed;
-			if (d->getStart())
-				elapsed = Util::formatSecondsW((CurrentTick - d->getStart()) / 1000); // [!] IRainman refactoring transfer mechanism
-				
-			tstring l_statusString;
-			
-			if (d->isSet(Download::FLAG_PARTIAL))
-			{
-				l_statusString += _T("[P]");
-			}
-			if (d->m_isSecure)
-			{
-				if (d->m_isTrusted)
-				{
-					l_statusString += _T("[S]");
-				}
-				else
-				{
-					l_statusString += _T("[U]");
-				}
-			}
-			if (d->isSet(Download::FLAG_TTH_CHECK))
-			{
-				l_statusString += _T("[T]");
-			}
-			if (d->isSet(Download::FLAG_ZDOWNLOAD))
-			{
-				l_statusString += _T("[Z]");
-			}
-			if (d->isSet(Download::FLAG_CHUNKED))
-			{
-				l_statusString += _T("[C]");
-			}
-			if (!l_statusString.empty())
-			{
-				l_statusString += _T(' ');
-			}
-			l_statusString += Text::tformat(TSTRING(DOWNLOADED_BYTES), pos.c_str(), percent, elapsed.c_str());
-			ui->setStatusString(l_statusString);
+			ui->setActual(j->m_actual);
+			ui->setPos(j->m_pos);
+			ui->setSize(j->m_size);
+			ui->setTimeLeft(j->m_second_left);
+			ui->setSpeed(j->m_running_average);
+			ui->setType(Transfer::Type(j->m_type)); // TODO
+			ui->setStatusString(j->m_status_string);
 			m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 		}
 	}
@@ -1742,65 +1700,24 @@ void TransferView::on(UploadManagerListener::Starting, const Upload* aUpload)
 	
 	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
-
-void TransferView::on(UploadManagerListener::Tick, const UploadList& ul, uint64_t CurrentTick)
+// TODO - убрать тики для массива
+void TransferView::on(UploadManagerListener::Tick, const UploadArray& ul, uint64_t CurrentTick)
 {
 	if (!MainFrame::isAppMinimized())// [+]IRainman opt
 	{
 		for (auto j = ul.cbegin(); j != ul.cend(); ++j)
 		{
-			Upload* u = *j;
-			
-			if (!u)
+			if (j->m_pos == 0)
+			{
+				dcassert(0);
 				continue;
-				
-			if (u->getPos() == 0)
-				continue;
-				
-			UpdateInfo* ui = new UpdateInfo(u->getHintedUser(), false); // [!] IRainman fix.
-			ui->setActual(u->getStartPos() + u->getActual());
-			ui->setPos(u->getStartPos() + u->getPos());
-			ui->setTimeLeft(u->getSecondsLeft(true)); // we are interested when whole file is finished and not only one chunk
-			ui->setSpeed(u->getRunningAverage());
-			
-			const tstring pos = Util::formatBytesW(ui->pos);
-			const double percent = (double)ui->pos * 100.0 / (double)(u->getType() == Transfer::TYPE_TREE ? u->getSize() : u->getFileSize());
-			tstring elapsed;
-			if (u->getStart())
-				elapsed = Util::formatSecondsW((CurrentTick - u->getStart()) / 1000); // [!] IRainman refactoring transfer mechanism
-				
-			tstring l_statusString;
-			
-			if (u->isSet(Upload::FLAG_PARTIAL))
-			{
-				l_statusString += _T("[P]");
 			}
-			if (u->m_isSecure)
-			{
-				if (u->m_isTrusted)
-				{
-					l_statusString += _T("[S]");
-				}
-				else
-				{
-					l_statusString += _T("[U]");
-				}
-			}
-			if (u->isSet(Upload::FLAG_ZUPLOAD))
-			{
-				l_statusString += _T("[Z]");
-			}
-			if (u->isSet(Upload::FLAG_CHUNKED))
-			{
-				l_statusString += _T("[C]");
-			}
-			if (!l_statusString.empty())
-			{
-				l_statusString += _T(' ');
-			}
-			l_statusString += Text::tformat(TSTRING(UPLOADED_BYTES), pos.c_str(), percent, elapsed.c_str());
-			
-			ui->setStatusString(l_statusString);
+			UpdateInfo* ui = new UpdateInfo(j->m_hinted_user, false); // [!] IRainman fix.
+			ui->setActual(j->m_actual);
+			ui->setPos(j->m_pos);
+			ui->setTimeLeft(j->m_second_left);
+			ui->setSpeed(j->m_running_average);
+			ui->setStatusString(j->m_status_string);
 			m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 		}
 	}
@@ -2122,7 +2039,7 @@ LRESULT TransferView::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, B
 					l_sdata = Text::toT(Util::getWebMagnet(l_tth, Text::fromT(Util::getFileName(l_ii->m_target)), l_ii->m_size));
 				else
 					l_sdata = l_ii->getText(columnId);
-
+					
 				if (l_data.empty())
 					l_data = l_sdata;
 				else

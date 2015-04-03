@@ -377,6 +377,7 @@ const string SettingsManager::g_settingTags[] =
 	"Gender", // [+] PPA
 #endif
 	"ShowSeekersInSpyFrame", // [+] IRainman
+	"LogSeekersInSpyFrame",
 	"FormatBotMessage",// [+] IRainman
 #ifdef IRAINMAN_USE_BB_CODES
 	"FormatBBCode", // [+] IRainman
@@ -1215,6 +1216,7 @@ void SettingsManager::setDefaults()
 	setDefault(MIN_MULTI_CHUNK_SIZE, 2); // [+] IRainman
 	setDefault(MIN_MEDIAINFO_SIZE, 1); // [+] PPA
 	setDefault(SHOW_SEEKERS_IN_SPY_FRAME, TRUE); // [+] IRainman
+	setDefault(LOG_SEEKERS_IN_SPY_FRAME, FALSE);
 #ifdef FLYLINKDC_HE
 	setDefault(REDUCE_PRIORITY_IF_MINIMIZED_TO_TRAY, TRUE); // [+] IRainman
 #endif

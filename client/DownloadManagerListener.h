@@ -21,6 +21,7 @@
 
 #include "typedefs.h"
 #include "User.h"
+#include "TransferData.h"
 
 
 /**
@@ -36,6 +37,7 @@
  * for every Downloads, sending one Download at a time. But maybe updating the
  * GUI is not DownloadManagers problem at all???
  */
+
 class DownloadManagerListener
 {
 	public:
@@ -66,7 +68,7 @@ class DownloadManagerListener
 		/**
 		 * Sent once a second if something has actually been downloaded.
 		 */
-		virtual void on(Tick, const DownloadMap&, uint64_t/*[+]IRainman refactoring transfer mechanism*/) noexcept { }
+		virtual void on(Tick, const DownloadArray&, uint64_t/*[+]IRainman refactoring transfer mechanism*/) noexcept { }
 		
 		/**
 		 * This is the last message sent before a download is deleted.

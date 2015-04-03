@@ -50,6 +50,7 @@ public :
     static bool Create(const Ztring &Dir_Name);
 };
 
+#ifdef WINDOWS
 class GetAllFileNames_Private;
 class GetAllFileNames
 {
@@ -66,6 +67,7 @@ public:
 private:
     GetAllFileNames_Private* p;
 };
+#endif //WINDOWS
 
 } //NameSpace
 

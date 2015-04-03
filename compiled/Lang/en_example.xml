@@ -1435,6 +1435,7 @@
 	<string name="SettingsShowJoins">Show joins / parts in chat by default</string>
 	<string name="SettingsShowProgressBars">Show progress bars for transfers (uses some CPU)</string>
 	<string name="SettingsShowSeekersInSpyFrame">Show seekers</string>
+	<string name="SettingsLogFileInSpyFrame">Log file</string>
 	<string name="SettingsShowShellMenu">Show shell menu in finished transfers</string>
 	<string name="SettingsSkiplistShare">Share skiplist (wildcard: *, separator: ;)</string>
 	<string name="SettingsSkipZeroByte">Skip zero-byte files</string>

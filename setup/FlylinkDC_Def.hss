@@ -20,7 +20,11 @@ AppSupportURL=http://flylinkdc.blogspot.com/
 AppUpdatesURL=http://www.flylinkdc.ru
 DefaultDirName={pf}\FlylinkDC++{code:Postfix|_}
 DefaultGroupName=FlylinkDC++{code:Postfix| }
+
+#ifndef FLYLIKDC_USE_CUSTOM_ICON
 SetupIconFile="..\res\FlylinkDC.ico"
+#endif
+
 #ifdef FLYLIKDC_USE_ZIP
 Compression=zip
 #else
@@ -172,6 +176,8 @@ Type: files; Name: "{app}\PortalBrowser\PortalBrowser.xml"
 Filename: "{app}\FlylinkDC{code:Postfix|_}.exe"; Description: "{cm:LaunchProgram,FlylinkDC++{code:Postfix| }}"; Flags: nowait postinstall skipifsilent
 Filename: "http://flylinkdc.blogspot.com/"; Description: "{cm:TestDrive}"; Flags: nowait postinstall shellexec skipifsilent
 
+#ifndef FLYLIKDC_USE_CUSTOM_ICON
+
 [Icons]
 Name: {group}\FlylinkDC++{code:Postfix| }; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; WorkingDir: {app}
 Name: {userstartup}\FlylinkDC++{code:Postfix| }; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; Tasks: startup; WorkingDir: {app}
@@ -183,6 +189,9 @@ Name: {group}\{cm:ProgramOnTheWeb,FlylinkDC++{code:Postfix| }}; Filename: http:/
 Name: {group}\{cm:UninstallProgram,FlylinkDC++{code:Postfix| }}; Filename: {uninstallexe}
 Name: {commondesktop}\FlylinkDC++{code:Postfix| }; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; Tasks: desktopicon; WorkingDir: {app}
 Name: {userappdata}\Microsoft\Internet Explorer\Quick Launch\FlylinkDC++{code:Postfix| }; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; Tasks: quicklaunchicon; WorkingDir: {app}
+
+#endif
+
 #endif
 
 [code]

@@ -754,10 +754,13 @@ void DHT::handle(AdcCommand::PSR, const string& ip, uint16_t port, const UDPKey&
   // Не нужно удалять?
 	
 	// connection allowed with online nodes only, so try to get them directly from ClientManager
-	OnlineUserPtr node = ClientManager::findDHTNode(cid);
+	const OnlineUserPtr node = ClientManager::findDHTNode(cid);
 	if (node != NULL)
 	{
-		::SearchManager::getInstance()->onPSR(c, node->getUser(), ip);
+		boost::system::error_code l_ec;
+		const auto l_ip4 = boost::asio::ip::address_v4::from_string(ip, l_ec);
+		dcassert(!l_ec);
+		::SearchManager::getInstance()->onPSR(c, node->getUser(), l_ip4);
   }
 	else
 	{

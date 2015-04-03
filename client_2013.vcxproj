@@ -768,6 +768,7 @@
     <ClInclude Include="client\StringPool.h" />
     <ClInclude Include="client\syslog\printk.h" />
     <ClInclude Include="client\syslog\syslog.h" />
+    <ClInclude Include="client\TransferData.h" />
     <ClInclude Include="client\UserInfo.h" />
     <ClInclude Include="client\UserInfoColumns.h" />
     <ClInclude Include="client\UserManager.h" />

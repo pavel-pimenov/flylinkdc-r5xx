@@ -26,8 +26,8 @@ struct HintedUser
 {
 	UserPtr user;
 	string hint;
-	//HintedUser() :user(nullptr) {}
-	explicit HintedUser(const UserPtr& user_, const string& hint_) : user(user_), hint(hint_) { }
+	HintedUser(): user(nullptr) {}
+	explicit HintedUser(const UserPtr& p_user, const string& p_hint) : user(p_user), hint(p_hint) { }
 	
 	bool operator==(const UserPtr& rhs) const
 	{

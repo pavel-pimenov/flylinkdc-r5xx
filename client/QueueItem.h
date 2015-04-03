@@ -110,10 +110,10 @@ class QueueItem : public Flags,
 		 * Source parts info
 		 * Meaningful only when Source::FLAG_PARTIAL is set
 		 */
-		class PartialSource : public intrusive_ptr_base < PartialSource >
+		class PartialSource : public intrusive_ptr_base < PartialSource > // TODO убрать intrusive_ptr_base
 		{
 			public:
-				PartialSource(const string& aMyNick, const string& aHubIpPort, const string& aIp, uint16_t udp) :
+				PartialSource(const string& aMyNick, const string& aHubIpPort, const boost::asio::ip::address_v4& aIp, uint16_t udp) :
 					myNick(aMyNick), hubIpPort(aHubIpPort), ip(aIp), udpPort(udp), nextQueryTime(0), pendingQueryCount(0) { }
 					
 				~PartialSource() { }
@@ -127,7 +127,7 @@ class QueueItem : public Flags,
 				GETSET(PartsInfo, partialInfo, PartialInfo);
 				GETSET(string, myNick, MyNick);         // for NMDC support only
 				GETSET(string, hubIpPort, HubIpPort);
-				GETSET(string, ip, Ip);
+				GETSET(boost::asio::ip::address_v4, ip, Ip);
 				GETSET(uint64_t, nextQueryTime, NextQueryTime);
 				GETSET(uint16_t, udpPort, UdpPort);
 				GETSET(uint8_t, pendingQueryCount, PendingQueryCount);

@@ -61,10 +61,10 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure) :
 #endif
 	if (Text::toLower(m_HubURL).find("dc.fly-server.ru") != string::npos
 #ifdef _DEBUG
-		|| Text::toLower(m_HubURL).find("scalolaz.dyndns-server.com") != string::npos
-		|| Text::toLower(m_HubURL).find("adcs.flylinkdc.com") != string::npos
+	        || Text::toLower(m_HubURL).find("scalolaz.dyndns-server.com") != string::npos
+	        || Text::toLower(m_HubURL).find("adcs.flylinkdc.com") != string::npos
 #endif
-	)
+	   )
 	{
 		m_is_fly_support_hub = true;
 	}
@@ -512,11 +512,11 @@ string Client::getLocalIp() const
 	// [!] This saves the user from a variety of configuration problems.
 	if (getMyIdentity().isIPValid())
 	{
-	 const string& myUserIp = getMyIdentity().getIpAsString(); // [!] opt, and fix done: [4] https://www.box.net/shared/c497f50da28f3dfcc60a
-	 if (!myUserIp.empty())
-	 {
-		return myUserIp; // [!] Best case - the server detected it.
-	 }
+		const string& myUserIp = getMyIdentity().getIpAsString(); // [!] opt, and fix done: [4] https://www.box.net/shared/c497f50da28f3dfcc60a
+		if (!myUserIp.empty())
+		{
+			return myUserIp; // [!] Best case - the server detected it.
+		}
 	}
 	// Favorite hub Ip
 	if (!getFavIp().empty())
@@ -707,7 +707,7 @@ bool Client::allowPrivateMessagefromUser(const ChatMessage& message)
 	{
 		if (UserManager::expectPasswordFromUser(message.m_to->getUser())
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
-		        || UploadManager::getInstance()->isBanReply(message.m_to->getUser()) // !SMT!-S
+		        || UploadManager::isBanReply(message.m_to->getUser()) // !SMT!-S
 #endif
 		   )
 		{
@@ -729,7 +729,7 @@ bool Client::allowPrivateMessagefromUser(const ChatMessage& message)
 	else if (BOOLSETTING(SUPPRESS_PMS))
 	{
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
-		if (UploadManager::getInstance()->isBanReply(message.m_replyTo->getUser())) // !SMT!-S
+		if (UploadManager::isBanReply(message.m_replyTo->getUser())) // !SMT!-S
 		{
 			return false;
 		}
@@ -826,7 +826,7 @@ bool Client::allowPrivateMessagefromUser(const ChatMessage& message)
 	{
 		if (FavoriteManager::getInstance()->hasIgnorePM(message.m_replyTo->getUser())
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
-		        || UploadManager::getInstance()->isBanReply(message.m_replyTo->getUser()) // !SMT!-S
+		        || UploadManager::isBanReply(message.m_replyTo->getUser()) // !SMT!-S
 #endif
 		   )
 		{

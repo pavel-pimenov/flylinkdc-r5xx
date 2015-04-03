@@ -16,7 +16,7 @@ class Upload : public Transfer, public Flags
 			FLAG_PENDING_KICK = 0x02,
 			FLAG_RESUMED = 0x04, //-V112
 			FLAG_CHUNKED = 0x08,
-			FLAG_PARTIAL = 0x10
+			FLAG_UPLOAD_PARTIAL = 0x10
 		};
 		
 		explicit Upload(UserConnection* p_conn, const TTHValue& p_tth, const string& p_path, const string& p_ip, const string& p_chiper_name); // [!] IRainman fix.

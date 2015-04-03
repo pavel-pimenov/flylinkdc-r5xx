@@ -134,7 +134,7 @@ void SearchManager::findFile(const string& tth, uint32_t p_token)
 	//      // contact node that we are online and we want his info
 	//      DHT::getInstance()->info(i->getIp(), i->getUdpPort(), true);
 	//
-	//      SearchResultPtr sr(new SearchResult(u, SearchResult::TYPE_FILE, 0, 0, i->getSize(), tth, "DHT", Util::emptyString, i->getIp(), TTHValue(tth), token));
+	//      const SearchResult sr(u, SearchResult::TYPE_FILE, 0, 0, i->getSize(), tth, "DHT", Util::emptyString, i->getIp(), TTHValue(tth), token);
 	//      dcpp::SearchManager::getInstance()->fire(SearchManagerListener::SR(), sr);
 	//  }
 	//
@@ -359,7 +359,7 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
 			while (xml.findChild("Source"))
 			{
 				const CID cid       = CID(xml.getChildAttrib("CID"));
-				const string& i4    = xml.getChildAttrib("I4");
+				const string i4     = xml.getChildAttrib("I4");
 				uint16_t u4         = static_cast<uint16_t>(xml.getIntChildAttrib("U4"));
 				int64_t size        = xml.getLongLongChildAttrib("SI");
 				bool partial        = xml.getBoolChildAttrib("PF");
@@ -389,18 +389,20 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
 				else
 				{
 					// create search result: hub name+ip => "DHT", file name => TTH
-					SearchResultPtr sr(new SearchResult(source->getUser(), SearchResult::TYPE_FILE, 0, 0, size, s->m_term, DHT::getInstance()->getHubName(), DHT::getInstance()->getHubUrl(), i4, TTHValue(s->m_term), l_token));
+					boost::system::error_code l_ec;
+					const auto l_ip4 = boost::asio::ip::address_v4::from_string(i4, l_ec);
+					dcassert(!l_ec);
+					const SearchResult sr(source->getUser(), SearchResult::TYPE_FILE, !source->isOnline() ? 0 : source->getIdentity().getSlots(), 0, size, s->m_term, DHT::getInstance()->getHubName(), DHT::getInstance()->getHubUrl(), l_ip4, TTHValue(s->m_term), l_token);
 					if (!source->isOnline())
 					{
 						// node is not online, try to contact him if we didn't contact him recently
-						if (searchResults.find(source->getUser()->getCID()) != searchResults.end())
+						if (m_searchResults.find(source->getUser()->getCID()) != m_searchResults.end())
 							DHT::getInstance()->info(i4, u4, DHT::PING | DHT::CONNECTION, cid, source->getUdpKey());
 							
-						searchResults.insert(std::make_pair(source->getUser()->getCID(), std::make_pair(GET_TICK(), sr)));
+						m_searchResults.insert(std::make_pair(source->getUser()->getCID(), std::make_pair(GET_TICK(), sr)));
 					}
 					else
 					{
-						sr->setSlots(source->getIdentity().getSlots());
 						::SearchManager::getInstance()->fire(::SearchManagerListener::SR(), sr);
 					}
 				}
@@ -518,24 +520,24 @@ bool SearchManager::processSearchResults(const UserPtr& user, size_t slots)
 	bool ok = false;
 	uint64_t tick = GET_TICK();
 	
-	ResultsMap::iterator it = searchResults.begin();
-	while (it != searchResults.end())
+	ResultsMap::iterator it = m_searchResults.begin();
+	while (it != m_searchResults.end())
 	{
 		if (it->first == user->getCID())
 		{
 			// user is online, process his result
-			SearchResultPtr sr = it->second.second;
-			sr->setSlots(slots); // slot count should be known now
+			SearchResult sr = it->second.second;
+			sr.setSlots(slots); // slot count should be known now
 			
 			::SearchManager::getInstance()->fire(::SearchManagerListener::SR(), sr);
-			searchResults.erase(it++);
+			m_searchResults.erase(it++);
 			
 			ok = true;
 		}
 		else if (it->second.first + 60 * 1000 <= tick)
 		{
 			// delete result from possibly offline users
-			searchResults.erase(it++);
+			m_searchResults.erase(it++);
 		}
 		else
 		{

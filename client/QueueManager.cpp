@@ -878,7 +878,7 @@ struct PartsInfoReqParam
 	string      tth;
 	string      myNick;
 	string      hubIpPort;
-	string      ip;
+	boost::asio::ip::address_v4      ip;
 	uint16_t    udpPort;
 };
 
@@ -964,10 +964,10 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 			AdcCommand cmd(AdcCommand::CMD_PSR, AdcCommand::TYPE_UDP);
 			SearchManager::getInstance()->toPSR(cmd, true, param->myNick, param->hubIpPort, param->tth, param->parts);
 			Socket udp;
-			udp.writeTo(param->ip, param->udpPort, cmd.toString(ClientManager::getMyCID()));
-			COMMAND_DEBUG("[Partial-Search]" + cmd.toString(ClientManager::getMyCID()), DebugTask::CLIENT_OUT, param->ip + ':' + Util::toString(param->udpPort));
+			udp.writeTo(param->ip.to_string(), param->udpPort, cmd.toString(ClientManager::getMyCID()));
+			COMMAND_DEBUG("[Partial-Search]" + cmd.toString(ClientManager::getMyCID()), DebugTask::CLIENT_OUT, param->ip.to_string() + ':' + Util::toString(param->udpPort));
 			LogManager::psr_message(
-			    "[PartsInfoReq] Send UDP IP = " + param->ip +
+			    "[PartsInfoReq] Send UDP IP = " + param->ip.to_string() +
 			    " param->udpPort = " + Util::toString(param->udpPort) +
 			    " cmd = " + cmd.toString(ClientManager::getMyCID())
 			);
@@ -977,7 +977,7 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 			dcdebug("Partial search caught error\n");
 			LogManager::psr_message(
 			    "[Partial search caught error] Error = " + e.getError() +
-			    " IP = " + param->ip +
+			    " IP = " + param->ip.to_string() +
 			    " param->udpPort = " + Util::toString(param->udpPort)
 			);
 		}
@@ -2136,7 +2136,7 @@ void QueueManager::putDownload(const string& p_path, Download* aDownload, bool p
 								LOG(DOWNLOAD, params);
 							}
 							//[+]PPA
-							if (!q->isSet(Download::FLAG_XML_BZ_LIST) && !q->isSet(Download::FLAG_USER_GET_IP) && !q->isSet(Download::FLAG_PARTIAL))
+							if (!q->isSet(Download::FLAG_XML_BZ_LIST) && !q->isSet(Download::FLAG_USER_GET_IP) && !q->isSet(Download::FLAG_DOWNLOAD_PARTIAL))
 							{
 								CFlylinkDBManager::getInstance()->push_download_tth(q->getTTH());
 								if (BOOLSETTING(ENABLE_FLY_SERVER))
@@ -2556,7 +2556,7 @@ void QueueManager::setPriority(const string& aTarget, QueueItem::Priority p) noe
 	if (p == QueueItem::PAUSED)
 	{
 		if (running)
-			DownloadManager::getInstance()->abortDownload(aTarget);
+			DownloadManager::abortDownload(aTarget);
 	}
 	else
 	{
@@ -2855,7 +2855,7 @@ void QueueManager::noDeleteFileList(const string& path)
 }
 
 // SearchManagerListener
-void QueueManager::on(SearchManagerListener::SR, const SearchResultPtr& sr) noexcept
+void QueueManager::on(SearchManagerListener::SR, const SearchResult& sr) noexcept
 {
 	bool added = false;
 	bool wantConnection = false;
@@ -2865,7 +2865,7 @@ void QueueManager::on(SearchManagerListener::SR, const SearchResultPtr& sr) noex
 		// Lock l(cs); [-] IRainman fix.
 		QueueItemList matches;
 		
-		fileQueue.find(matches, sr->getTTH());
+		fileQueue.find(matches, sr.getTTH());
 		
 		if (!matches.empty()) // [+] IRainman opt.
 		{
@@ -2874,9 +2874,9 @@ void QueueManager::on(SearchManagerListener::SR, const SearchResultPtr& sr) noex
 			{
 				const QueueItemPtr& qi = *i;
 				// Size compare to avoid popular spoof
-				if (qi->getSize() == sr->getSize())
+				if (qi->getSize() == sr.getSize())
 				{
-					if (!qi->isSourceL(sr->getUser())) // [!] IRainman fix: https://code.google.com/p/flylinkdc/issues/detail?id=1227
+					if (!qi->isSourceL(sr.getUser())) // [!] IRainman fix: https://code.google.com/p/flylinkdc/issues/detail?id=1227
 					{
 						if (qi->isFinishedL())
 							break;  // don't add sources to already finished files
@@ -2886,7 +2886,7 @@ void QueueManager::on(SearchManagerListener::SR, const SearchResultPtr& sr) noex
 							needsAutoMatch = !qi->countOnlineUsersGreatOrEqualThanL(SETTING(MAX_AUTO_MATCH_SOURCES));
 							
 							// [-] if (!BOOLSETTING(AUTO_SEARCH_AUTO_MATCH) || (l_count_online_users >= (size_t)SETTING(MAX_AUTO_MATCH_SOURCES))) [-] IRainman fix.
-							wantConnection = addSourceL(qi, HintedUser(sr->getUser(), sr->getHubURL()), 0);
+							wantConnection = addSourceL(qi, HintedUser(sr.getUser(), sr.getHubURL()), 0);
 							
 							added = true;
 						}
@@ -2907,18 +2907,18 @@ void QueueManager::on(SearchManagerListener::SR, const SearchResultPtr& sr) noex
 		{
 			try
 			{
-				const string path = Util::getFilePath(sr->getFile());
+				const string path = Util::getFilePath(sr.getFile());
 				// [!] IRainman fix: please always match listing without hint! old code: sr->getHubURL().
-				addList(sr->getUser(), QueueItem::FLAG_MATCH_QUEUE | (path.empty() ? 0 : QueueItem::FLAG_PARTIAL_LIST), path);
+				addList(sr.getUser(), QueueItem::FLAG_MATCH_QUEUE | (path.empty() ? 0 : QueueItem::FLAG_PARTIAL_LIST), path);
 			}
 			catch (const Exception&)
 			{
 				// ...
 			}
 		}
-		if (wantConnection && sr->getUser()->isOnline())
+		if (wantConnection && sr.getUser()->isOnline())
 		{
-			ConnectionManager::getInstance()->getDownloadConnection(sr->getUser());
+			ConnectionManager::getInstance()->getDownloadConnection(sr.getUser());
 		}
 	}
 }
@@ -3158,7 +3158,7 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 				LogManager::psr_message(
 				    "[QueueManager::handlePartialResult] new QueueItem::PartialSource = nick = " + partialSource.getMyNick() +
 				    " HubIpPort = " + partialSource.getHubIpPort() +
-				    " IP = " + partialSource.getIp() +
+				    " IP = " + partialSource.getIp().to_string() +
 				    " UDP port = " + Util::toString(partialSource.getUdpPort())
 				);
 			}

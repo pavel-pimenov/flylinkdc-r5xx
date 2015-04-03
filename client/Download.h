@@ -24,8 +24,8 @@ class Download : public Transfer, public Flags
 			FLAG_TTH_CHECK          = 0x04, //-V112
 			FLAG_SLOWUSER           = 0x08,
 			FLAG_XML_BZ_LIST        = 0x10,
-			FLAG_PARTIAL            = 0x20, //-V112
-			FLAG_OVERLAP        = 0x40,
+			FLAG_DOWNLOAD_PARTIAL   = 0x20, //-V112
+			FLAG_OVERLAP            = 0x40,
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
 			FLAG_USER_CHECK     = 0x80,
 #endif

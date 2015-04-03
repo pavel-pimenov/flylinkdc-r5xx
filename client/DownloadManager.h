@@ -34,6 +34,8 @@
  * Singleton. Use its listener interface to update the download list
  * in the user interface.
  */
+typedef std::unordered_map<UserPtr, UserConnection*, User::Hash> IdlersMap;
+
 class DownloadManager : public Speaker<DownloadManagerListener>,
 	private UserConnectionListener, private TimerManagerListener,
 	public Singleton<DownloadManager>
@@ -42,10 +44,10 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 	
 		/** @internal */
 		void addConnection(UserConnection* p_conn);
-		void checkIdle(const UserPtr& user);
+		static void checkIdle(const UserPtr& user);
 		
 		/** @internal */
-		void abortDownload(const string& aTarget);
+		static void abortDownload(const string& aTarget);
 		
 		/** @return Running average download speed in Bytes/s */
 		int64_t getRunningAverage() const
@@ -54,32 +56,26 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 		}
 		
 		/** @return Number of downloads. */
-		size_t getDownloadCount() const
+		static size_t getDownloadCount()
 		{
-			webrtc::ReadLockScoped l(*g_csDownload);
-			return m_download_map.size();
+			//webrtc::ReadLockScoped l(*g_csDownload);
+			return g_download_map.size();
 		}
 		
 		bool startDownload(QueueItem::Priority prio);
-		bool checkFileDownload(const UserPtr& aUser); //[+]
+		static bool checkFileDownload(const UserPtr& aUser);
 		
 	private:
 	
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csDownload;
-		DownloadMap m_download_map;
-		std::unordered_map<UserPtr, UserConnection*, User::Hash> m_idlers;
-		void remove_idlers(UserConnection* aSource)
-		{
-			webrtc::WriteLockScoped l(*g_csDownload);
-			dcassert(aSource->getUser());
-			// Могут быть не найдены.
-			// лишняя проверка dcassert(m_idlers.find(aSource->getUser()) != m_idlers.end());
-			m_idlers.erase(aSource->getUser());
-		}
+		static DownloadMap g_download_map;
+		static IdlersMap g_idlers;
+		static void remove_idlers(UserConnection* aSource);
+		
 		int64_t runningAverage;//[+] IRainman refactoring transfer mechanism
 		
 		void removeConnection(UserConnection* p_conn);
-		void removeDownload(Download* aDown);
+		static void removeDownload(Download* aDown);
 		void fileNotAvailable(UserConnection* aSource);
 		void noSlots(UserConnection* aSource, const string& param = Util::emptyString);
 		

@@ -850,7 +850,12 @@ string Socket::getDefaultGateWay(boost::logic::tribool& p_is_wifi_router)
 	{
 		l_addr = *(in_addr*)&ip_forward.dwForwardNextHop;
 		const string l_ip_gateway = inet_ntoa(l_addr);
-		if (l_ip_gateway == "192.168.1.1" || l_ip_gateway == "192.168.0.1")
+		if (l_ip_gateway == "192.168.1.1" ||
+		        l_ip_gateway == "192.168.0.1" ||
+		        l_ip_gateway == "192.168.88.1" || // http://www.lan23.ru/FAQ-Mikrotik-RouterOS-part1.html
+		        l_ip_gateway == "192.168.33.1" || // http://www.speedguide.net/routers/huawei-ws323-300mbps-dual-band-wireless-range-extender-2951&print=friendly
+		        l_ip_gateway == "192.168.0.50"    // http://nastroisam.ru/dap-1360-d1/#more-7437
+		   )
 		{
 			p_is_wifi_router = true;
 		}

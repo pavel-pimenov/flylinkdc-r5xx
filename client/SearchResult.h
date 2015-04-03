@@ -23,17 +23,21 @@
 #include "AdcCommand.h"
 #include "Pointer.h"
 #include "SearchQueue.h"
+#include "HintedUser.h"
+#include <boost/asio/ip/address_v4.hpp>
 
 class CFlySearchItemTTH
 {
 	public:
-		TTHValue m_tth;
-		std::string m_search;
+		const TTHValue m_tth;
+		const std::string m_search;
 		std::string * m_toSRCommand;
+		const bool m_is_passive;
 		CFlySearchItemTTH(const TTHValue& p_tth, const std::string& p_search):
 			m_tth(p_tth),
 			m_search(p_search),
-			m_toSRCommand(nullptr)
+			m_toSRCommand(nullptr),
+			m_is_passive(p_search.size() > 4 && p_search.compare(0, 4, "Hub:", 4) == 0)
 		{
 			dcassert(m_search.size() > 4);
 		}
@@ -54,6 +58,13 @@ class SearchResultBaseTTH
 			TYPE_FILE,
 			TYPE_DIRECTORY
 		};
+		SearchResultBaseTTH():
+			m_size(0),
+			m_slots(0),
+			m_freeSlots(0),
+			m_type(TYPE_FILE)
+		{
+		}
 		
 		SearchResultBaseTTH(Types aType, int64_t aSize, const string& aName, const TTHValue& aTTH, uint8_t aSlots = 0, uint8_t aFreeSlots = 0);
 		virtual ~SearchResultBaseTTH() {}
@@ -62,68 +73,79 @@ class SearchResultBaseTTH
 		void toRES(AdcCommand& cmd, char type) const;
 		const string& getFile() const
 		{
-			return file;
+			return m_file;
 		}
 		int64_t getSize() const
 		{
-			return size;
+			return m_size;
 		}
-		size_t getSlots() const
+		uint8_t getSlots() const
 		{
-			return slots;
+			return m_slots;
 		}
-		size_t getFreeSlots() const
+		uint8_t getFreeSlots() const
 		{
-			return freeSlots;
+			return m_freeSlots;
 		}
 		const TTHValue& getTTH() const
 		{
-			return tth;
+			return m_tth;
 		}
 		Types getType() const
 		{
 			return m_type;
 		}
 		// for DHT use only
-		void setSlots(size_t p_slots)
+		void setSlots(uint8_t p_slots)
 		{
-			slots = p_slots;
-		}
-	protected:
-		TTHValue tth;
-		string file;
-		int64_t size;
-		size_t slots;
-		size_t freeSlots;
-		Types m_type;
-};
-
-class SearchResult : public SearchResultBaseTTH, public intrusive_ptr_base<SearchResult>
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
-{
-	public:
-	
-		SearchResult(Types aType, int64_t aSize, const string& name, const TTHValue& aTTH, uint32_t aToken);
-		
-		SearchResult(const UserPtr& aUser, Types aType, uint8_t aSlots, uint8_t aFreeSlots,
-		             int64_t aSize, const string& aFile, const string& aHubName,
-		             const string& aHubURL, const string& ip, const TTHValue& aTTH, uint32_t aToken);
-		             
-		string getFileName() const;
-		
-		const UserPtr& getUser() const
-		{
-			return user;
+			m_slots = p_slots;
 		}
 		string getSlotString() const
 		{
 			return Util::toString(getFreeSlots()) + '/' + Util::toString(getSlots());
 		}
+	protected:
+		TTHValue m_tth;
+		string m_file;
+		int64_t m_size;
+		uint8_t m_slots;
+		uint8_t m_freeSlots;
+		Types m_type;
+};
+
+class SearchResult : public SearchResultBaseTTH
+#ifdef _DEBUG
+	//, boost::noncopyable
+#endif
+{
+	public:
+		SearchResult() :
+			m_is_tth_share(false),
+			m_is_tth_download(false),
+			m_is_tth_remembrance(false),
+			m_token(uint32_t (-1)),
+			m_is_tth_check(false)
+		{
+		}
+		SearchResult(Types aType, int64_t aSize, const string& aFile, const TTHValue& aTTH, uint32_t aToken);
+		
+		SearchResult(const UserPtr& aUser, Types aType, uint8_t aSlots, uint8_t aFreeSlots,
+		             int64_t aSize, const string& aFile, const string& aHubName,
+		             const string& aHubURL, const boost::asio::ip::address_v4& aIP4, const TTHValue& aTTH, uint32_t aToken);
+		             
+		string getFileName() const;
+		
+		const UserPtr& getUser() const
+		{
+			return m_user;
+		}
+		HintedUser getHintedUser() const
+		{
+			return HintedUser(getUser(), getHubURL());
+		}
 		const string& getHubURL() const
 		{
-			return hubURL;
+			return m_hubURL;
 		}
 		const string& getHubName() const
 		{
@@ -131,9 +153,13 @@ class SearchResult : public SearchResultBaseTTH, public intrusive_ptr_base<Searc
 		}
 		void calcHubName();
 		
-		const string& getIP() const
+		string getIPAsString() const
 		{
-			return IP;
+			return m_ip4.to_string();
+		}
+		const boost::asio::ip::address_v4& getIP() const
+		{
+			return m_ip4;
 		}
 		const uint32_t getToken() const
 		{
@@ -150,10 +176,10 @@ class SearchResult : public SearchResultBaseTTH, public intrusive_ptr_base<Searc
 		friend class SearchManager;
 		
 		string m_hubName;
-		string hubURL;
-		string IP;
+		string m_hubURL;
+		boost::asio::ip::address_v4 m_ip4;
 		uint32_t m_token;
-		UserPtr user;
+		UserPtr m_user;
 		bool m_is_tth_check;
 };
 

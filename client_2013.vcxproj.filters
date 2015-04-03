@@ -1428,6 +1428,9 @@
     <ClInclude Include="client\GPGPUManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="client\TransferData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

@@ -1165,17 +1165,20 @@ string Util::getLocalOrBindIp(const bool p_check_bind_address)
 			return tmp;
 		if (Util::isPrivateIp(tmp) || strncmp(tmp.c_str(), "169", 3) == 0)
 		{
-			while (he->h_addr_list[i])
+			for (; he->h_addr_list[i]; ++i)
 			{
 				memcpy(&dest.sin_addr, he->h_addr_list[i], he->h_length);
 				const string tmp2 = inet_ntoa(dest.sin_addr);
 				if (p_check_bind_address && tmp2 == SETTING(BIND_ADDRESS)) // http://code.google.com/p/flylinkdc/issues/detail?id=1359
 					return tmp2;
+				if (tmp2 == "192.168.56.1") // Virtual Box ?
+				{
+					continue;
+				}
 				else if (!Util::isPrivateIp(tmp2) && strncmp(tmp2.c_str(), "169", 3) != 0)
 				{
 					tmp = tmp2;
 				}
-				i++;
 			}
 		}
 	}
@@ -2267,7 +2270,7 @@ string Util::formatMessage(const string& message)
 void Util::setLimiter(bool aLimiter)
 {
 	SET_SETTING(THROTTLE_ENABLE, aLimiter);
-	ClientManager::infoUpdated(); 
+	ClientManager::infoUpdated();
 }
 
 std::string Util::getRegistryCommaSubkey(const tstring& p_key)

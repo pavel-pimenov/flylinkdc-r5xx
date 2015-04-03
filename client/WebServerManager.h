@@ -179,7 +179,7 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 			}
 		}
 		// SearchManagerListener
-		void on(SearchManagerListener::SR, const SearchResultPtr& aResult) noexcept;
+		void on(SearchManagerListener::SR, const SearchResult& aResult) noexcept;
 		
 		void Start() noexcept;
 		void shutdown()

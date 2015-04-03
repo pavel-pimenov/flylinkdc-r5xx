@@ -224,9 +224,9 @@ int MappingManager::run()
 			}
 			return l_is_ok;
 		};
-
+		
 		g_mapperName.clear();
-
+		
 		const bool l_is_map_tcp = addRule(conn_port, Mapper::PROTOCOL_TCP, ("Transfer"));
 		const bool l_is_map_tls = addRule(secure_port, Mapper::PROTOCOL_TCP, ("Encrypted transfer"));
 		const bool l_is_map_udp = addRule(search_port, Mapper::PROTOCOL_UDP, ("Search"));
@@ -234,10 +234,10 @@ int MappingManager::run()
 		const bool l_is_map_dht = addRule(dht_port, Mapper::PROTOCOL_UDP, (dht::NetworkName));
 #endif
 		if (!(l_is_map_tcp &&
-			l_is_map_tls &&
-			l_is_map_udp
+		        l_is_map_tls &&
+		        l_is_map_udp
 #ifdef STRONG_USE_DHT
-			&& l_is_map_dht
+		        && l_is_map_dht
 #endif
 		     ))
 			continue;
@@ -266,6 +266,7 @@ int MappingManager::run()
 				++m_listeners_count;
 			}
 		}
+		ClientManager::infoUpdated(true);
 		break;
 	}
 	
@@ -339,28 +340,28 @@ string MappingManager::getPortmapInfo(bool p_add_router_name, bool p_show_public
 	}
 	switch (SETTING(INCOMING_CONNECTIONS))
 	{
-	case SettingsManager::INCOMING_DIRECT:
-		l_description += "+Direct";
-		break;
-	case SettingsManager::INCOMING_FIREWALL_UPNP:
-		l_description += "+UPnP";
-		if (g_mapperName.empty())
-		{
-			l_description += "(error)";
-		}
-		else
-		{
-			l_description += "(" + g_mapperName + ")";
-		}
-		break;
-	case SettingsManager::INCOMING_FIREWALL_PASSIVE:
-		l_description += "+Passive";
-		break;
-	case SettingsManager::INCOMING_FIREWALL_NAT:
-		l_description += "+NAT+Manual";
-		break;
-	default:
-		dcassert(0);
+		case SettingsManager::INCOMING_DIRECT:
+			l_description += "+Direct";
+			break;
+		case SettingsManager::INCOMING_FIREWALL_UPNP:
+			l_description += "+UPnP";
+			if (g_mapperName.empty())
+			{
+				//l_description += "(error)";
+			}
+			else
+			{
+				l_description += "(" + g_mapperName + ")";
+			}
+			break;
+		case SettingsManager::INCOMING_FIREWALL_PASSIVE:
+			l_description += "+Passive";
+			break;
+		case SettingsManager::INCOMING_FIREWALL_NAT:
+			l_description += "+NAT+Manual";
+			break;
+		default:
+			dcassert(0);
 	}
 	if (MappingManager::isRouter())
 	{
@@ -396,7 +397,7 @@ string MappingManager::getPortmapInfo(bool p_add_router_name, bool p_show_public
 			l_result += "(?)";
 		return l_result;
 	};
-
+	
 	l_description += calcTestPortInfo("UDP", SettingsManager::g_TestUDPSearchLevel, SETTING(UDP_PORT));
 	l_description += calcTestPortInfo("TCP", SettingsManager::g_TestTCPLevel, SETTING(TCP_PORT));
 #ifdef STRONG_USE_DHT
@@ -407,7 +408,7 @@ string MappingManager::getPortmapInfo(bool p_add_router_name, bool p_show_public
 #endif
 	if (CryptoManager::getInstance()->TLSOk())
 	{
-	 l_description += calcTestPortInfo("TLS", SettingsManager::g_TestTLSLevel, SETTING(TLS_PORT));
+		l_description += calcTestPortInfo("TLS", SettingsManager::g_TestTLSLevel, SETTING(TLS_PORT));
 	}
 	return l_description;
 }

@@ -133,7 +133,13 @@ int SearchManager::run()
 				}
 				if (m_stop || (len = socket->read(&buf[0], BUFSIZE, remoteAddr)) <= 0)
 					break;
-				onData(&buf[0], len, inet_ntoa(remoteAddr.sin_addr));
+				const boost::asio::ip::address_v4 l_ip4(ntohl(remoteAddr.sin_addr.S_un.S_addr));
+#ifdef _DEBUG
+				const string l_ip1 = l_ip4.to_string();
+				const string l_ip2 = inet_ntoa(remoteAddr.sin_addr);
+				dcassert(l_ip1 == l_ip2);
+#endif
+				onData(&buf[0], len, l_ip4);
 			}
 		}
 		catch (const SocketException& e)
@@ -183,22 +189,22 @@ int SearchManager::run()
 int SearchManager::UdpQueue::run()
 {
 	string x;
-	string remoteIp;
-	stop = false;
+	boost::asio::ip::address_v4 remoteIp;
+	m_is_stop = false;
 	
 	while (true)
 	{
 		m_s.wait();
-		if (stop)
+		if (m_is_stop)
 			break;
 			
 		{
-			FastLock l(cs);
-			if (resultList.empty()) continue;
+			FastLock l(m_cs);
+			if (m_resultList.empty()) continue;
 			
-			x = resultList.front().first;
-			remoteIp = resultList.front().second;
-			resultList.pop_front();
+			x = m_resultList.front().first;
+			remoteIp = m_resultList.front().second;
+			m_resultList.pop_front();
 		}
 		
 		if (x.compare(0, 4, "$SR ", 4) == 0)
@@ -320,7 +326,7 @@ int SearchManager::UdpQueue::run()
 					continue;
 				}
 			}
-			if (!remoteIp.empty())
+			if (!remoteIp.is_unspecified())
 			{
 				user->setIP(remoteIp);
 #ifdef _DEBUG
@@ -342,9 +348,7 @@ int SearchManager::UdpQueue::run()
 			}
 			
 			const TTHValue l_tth_value(tth);
-			const SearchResultPtr sr(new SearchResult(user, type, slots, freeSlots, size,
-			                                          file, Util::emptyString, url, remoteIp, l_tth_value, -1 /*0 == auto*/));
-			                                          
+			const SearchResult sr(user, type, slots, freeSlots, size, file, Util::emptyString, url, remoteIp, l_tth_value, -1 /*0 == auto*/);
 			SearchManager::getInstance()->fire(SearchManagerListener::SR(), sr);
 #ifdef FLYLINKDC_USE_COLLECT_STAT
 			CFlylinkDBManager::getInstance()->push_event_statistic("SearchManager::UdpQueue::run()", "$SR", x, remoteIp, "", url, tth);
@@ -424,13 +428,13 @@ int SearchManager::UdpQueue::run()
 	return 0;
 }
 
-void SearchManager::onData(const uint8_t* buf, size_t aLen, const string& remoteIp)
+void SearchManager::onData(const uint8_t* buf, size_t aLen, const boost::asio::ip::address_v4& remoteIp)
 {
 	string x((char*)buf, aLen);
 	m_queue_thread.addResult(x, remoteIp);
 }
 
-void SearchManager::onRES(const AdcCommand& cmd, const UserPtr& from, const string& remoteIp)
+void SearchManager::onRES(const AdcCommand& cmd, const UserPtr& from, const boost::asio::ip::address_v4& p_remoteIp)
 {
 	int freeSlots = -1;
 	int64_t size = -1;
@@ -478,13 +482,12 @@ void SearchManager::onRES(const AdcCommand& cmd, const UserPtr& from, const stri
 			return;
 			
 		const uint8_t slots = ClientManager::getInstance()->getSlots(from->getCID());
-		const SearchResultPtr sr(new SearchResult(from, type, slots, (uint8_t)freeSlots, size,
-		                                          file, hubName, hub, remoteIp, TTHValue(tth), l_token));
+		const SearchResult sr(from, type, slots, (uint8_t)freeSlots, size, file, hubName, hub, p_remoteIp, TTHValue(tth), l_token);
 		fire(SearchManagerListener::SR(), sr);
 	}
 }
 
-void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const string& remoteIp)
+void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const boost::asio::ip::address_v4& remoteIp)
 {
 	uint16_t udpPort = 0;
 	uint32_t partialCount = 0;
@@ -640,7 +643,7 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 		for (auto i = results.cbegin(); i != results.cend(); ++i)
 		{
 			AdcCommand cmd(AdcCommand::CMD_RES, AdcCommand::TYPE_UDP);
-			(*i)->toRES(cmd, AdcCommand::TYPE_UDP);
+			i->toRES(cmd, AdcCommand::TYPE_UDP);
 			if (!token.empty())
 				cmd.addParam("TO", token);
 			ClientManager::getInstance()->send(cmd, from);

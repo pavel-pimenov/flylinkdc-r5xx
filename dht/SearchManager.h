@@ -98,8 +98,8 @@ class SearchManager :
 		/** Locks access to "searches" */
 		FastCriticalSection cs; // [!] IRainman: use spin lock here.
 		
-		typedef std::unordered_multimap<CID, std::pair<uint64_t, SearchResultPtr>> ResultsMap;
-		ResultsMap searchResults;
+		typedef std::unordered_multimap<CID, std::pair<uint64_t, SearchResult>> ResultsMap;
+		ResultsMap m_searchResults;
 		
 		/** Performs general search operation in the network */
 		void search(Search& s);

@@ -183,11 +183,11 @@ void UDPSocket::checkIncoming()
 			{
 				const string s((char*)l_destBuf.data(), l_destBuf.size()-1);
 #ifdef _DEBUG
-				string s_debug((char*)l_destBuf.data(), l_destBuf.size());
+				const string s_debug((char*)l_destBuf.data(), l_destBuf.size());
 				dcassert(s == s_debug.substr(0, s_debug.length() - 1));
 #endif
-				string ip = inet_ntoa(remoteAddr.sin_addr);
-				uint16_t l_port = ntohs(remoteAddr.sin_port);
+				const string ip = inet_ntoa(remoteAddr.sin_addr);
+				const uint16_t l_port = ntohs(remoteAddr.sin_port);
 				COMMAND_DEBUG(s, DebugTask::HUB_IN,  ip + ':' + Util::toString(l_port) + " [DHT]");
 				DHT::getInstance()->dispatch(s, ip, l_port, isUdpKeyValid);
 #ifdef FLYLINKDC_BETA

@@ -145,12 +145,12 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			return m_is_local_hub == false;
 		}
-protected:
+	protected:
 		void setTypeHub(bool p_hub_type)
 		{
 			m_is_local_hub = p_hub_type;
 		}
-public:
+	public:
 		virtual void resetAntivirusInfo() = 0;
 		virtual void connect();
 		virtual void disconnect(bool graceless);

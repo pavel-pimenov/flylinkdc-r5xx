@@ -172,7 +172,7 @@ class FavoriteHubEntry
 #endif
 		        hideShare(false),
 		        exclusiveHub(false), showJoins(false), exclChecks(false), mode(0), ip(Util::emptyString),
-		        searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)), overrideId(0), 
+		        searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)), overrideId(0),
 		        headerSort(-1), headerSortAsc(true)
 		{
 		} // !SMT!-S

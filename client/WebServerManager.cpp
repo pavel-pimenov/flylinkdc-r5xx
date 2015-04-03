@@ -1005,29 +1005,29 @@ void WebServerManager::search(string p_search_str, Search::TypeModes p_search_ty
 	}
 }
 
-void WebServerManager::on(SearchManagerListener::SR, const SearchResultPtr& aResult) noexcept
+void WebServerManager::on(SearchManagerListener::SR, const SearchResult& aResult) noexcept
 {
 	{
 		FastLock l(cs);
-		if (!aResult->getToken() && m_search_token != aResult->getToken())
+		if (!aResult.getToken() && m_search_token != aResult.getToken())
 			return;
 			
 		if (row < static_cast<size_t>SETTING(WEBSERVER_SEARCHSIZE))
 		{
 			const string Row = Util::toString(row);
-			const string User = aResult->getUser()->getLastNick();
+			const string User = aResult.getUser()->getLastNick();
 //          string User = ClientManager::getNick(aResult->getUser()->getCID());
 //          string User = ClientManager::getNicks(HintedUser(aResult->getUser(), aResult->getHubURL()))[0];
-			const string& File = aResult->getFile();
-			const string FileName = aResult->getFileName();
+			const string& File = aResult.getFile();
+			const string FileName = aResult.getFileName();
 			results += "<form method=get name='form" + Row + "' action='search.htm'>\n";
 			results += "<tr class=search onclick='set_download_dir(\"form" + Row + "\")'>\n";
-			switch (aResult->getType())
+			switch (aResult.getType())
 			{
 				case SearchResult::TYPE_FILE:
 				{
-					const string TTH = aResult->getTTH().toBase32();
-					const int64_t Size = aResult->getSize();
+					const string TTH = aResult.getTTH().toBase32();
+					const int64_t Size = aResult.getSize();
 #ifdef _DEBUG_WEB_SERVER_
 					results += "<td>" + Row + "</td>\n";
 #endif
@@ -1044,14 +1044,14 @@ void WebServerManager::on(SearchManagerListener::SR, const SearchResultPtr& aRes
 #endif
 					results += "<td>" + User + "</td>\n<td>" + FileName + "</td>\n<td>" + STRING(DIRECTORY) + "</td>\n<td>" + File + "</td>\n</tr>\n";
 					results += "<input type=hidden name=number value='" + Row + "'/>\n";
-					AddSearchResult(row, aResult->getUser(), aResult->getHubURL());
+					AddSearchResult(row, aResult.getUser(), aResult.getHubURL());
 					break;
 				}
 			}
 			results += "<input type=hidden name=dir/>";
 			results += "<input type=hidden name=file value='" + File + "'/>";
 			results += "<input type=hidden name=name value='" + FileName + "'/>";
-			results += "<input type=hidden name=type value='" + Util::toString(aResult->getType()) + "'/>\n";
+			results += "<input type=hidden name=type value='" + Util::toString(aResult.getType()) + "'/>\n";
 			results += "</form>\n";
 			
 			PageIndex = 1;

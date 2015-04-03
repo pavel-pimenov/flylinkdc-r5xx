@@ -73,6 +73,7 @@
 #include "../FlyFeatures/CustomMenuManager.h" //[+] //SSA
 #include "../client/MappingManager.h"
 #include "../client/Text.h"
+#include "../client/NmdcHub.h"
 #ifdef STRONG_USE_DHT
 # include "../dht/dht.h"
 #endif
@@ -951,11 +952,11 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			Stats->push_back(TSTRING(D) + _T(' ') + Util::formatBytesW(l_CurrentDown));
 			Stats->push_back(TSTRING(U) + _T(' ') + Util::formatBytesW(l_CurrentUp));
 			const bool l_ThrottleEnable = BOOLSETTING(THROTTLE_ENABLE);
-			Stats->push_back(TSTRING(D) + _T(" [") + Util::toStringW(DownloadManager::getInstance()->getDownloadCount()) + _T("][")
+			Stats->push_back(TSTRING(D) + _T(" [") + Util::toStringW(DownloadManager::getDownloadCount()) + _T("][")
 			                 + ((!l_ThrottleEnable || ThrottleManager::getInstance()->getDownloadLimitInKBytes() == 0) ?
 			                    TSTRING(N) : Util::toStringW((int)ThrottleManager::getInstance()->getDownloadLimitInKBytes()) + TSTRING(KILO)) + _T("] ")
 			                 + l_dlstr + _T('/') + TSTRING(S));
-			Stats->push_back(TSTRING(U) + _T(" [") + Util::toStringW(UploadManager::getInstance()->getUploadCount()) + _T("][") + ((!l_ThrottleEnable || ThrottleManager::getInstance()->getUploadLimitInKBytes() == 0) ? TSTRING(N) : Util::toStringW((int)ThrottleManager::getInstance()->getUploadLimitInKBytes()) + TSTRING(KILO)) + _T("] ") + l_ulstr + _T('/') + TSTRING(S));
+			Stats->push_back(TSTRING(U) + _T(" [") + Util::toStringW(UploadManager::getUploadCount()) + _T("][") + ((!l_ThrottleEnable || ThrottleManager::getInstance()->getUploadLimitInKBytes() == 0) ? TSTRING(N) : Util::toStringW((int)ThrottleManager::getInstance()->getUploadLimitInKBytes()) + TSTRING(KILO)) + _T("] ") + l_ulstr + _T('/') + TSTRING(S));
 			g_CountSTATS++;
 			if (!PostMessage(WM_SPEAKER, STATS, (LPARAM)Stats))
 			{
@@ -1673,7 +1674,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 					m_ctrlStatus.SetIcon(STATUS_PART_SHUTDOWN_TIME, *m_ShutdownIcon);
 					isShutdownStatus = true;
 				}
-				if (DownloadManager::getInstance()->getDownloadCount() > 0)
+				if (DownloadManager::getDownloadCount() > 0)
 				{
 					iCurrentShutdownTime = iSec;
 					m_ctrlStatus.SetText(STATUS_PART_SHUTDOWN_TIME, _T(""));
@@ -2091,7 +2092,7 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 		const string lastBind   = SETTING(BIND_ADDRESS);
 		
 		const bool lastSortFavUsersFirst = BOOLSETTING(SORT_FAVUSERS_FIRST);
-
+		
 		if (dlg.DoModal(m_hWnd) == IDOK)
 		{
 			SettingsManager::getInstance()->save();
@@ -2627,6 +2628,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 				CGDIImage::shutdown();
 #endif
 				BaseChatFrame::g_isStartupProcess = true; // [+] IRainman fix: probably fix crash in gui on shutdown.
+				NmdcHub::log_all_unknown_command();
 				// TODO: possible small memory leak on shutdown, details here https://code.google.com/p/flylinkdc/source/detail?r=15141
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 				CFlyTickDelta l_delta(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_SHUTDOWN_GUI]);
@@ -3062,9 +3064,9 @@ LRESULT MainFrame::onTrayIcon(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, B
 		nid.uFlags = NIF_TIP;
 		_tcsncpy(nid.szTip, (
 		             TSTRING(D) + _T(' ') + Util::formatBytesW(g_downdiff) + _T('/') + WSTRING(S) + _T(" (") +
-		             Util::toStringW(DownloadManager::getInstance()->getDownloadCount()) + _T(")\r\n") +
+		             Util::toStringW(DownloadManager::getDownloadCount()) + _T(")\r\n") +
 		             TSTRING(U) + _T(' ') + Util::formatBytesW(g_updiff) + _T('/') + WSTRING(S) + _T(" (") +
-		             Util::toStringW(UploadManager::getInstance()->getUploadCount()) + _T(")") + _T("\r\n") +
+		             Util::toStringW(UploadManager::getUploadCount()) + _T(")") + _T("\r\n") +
 		             TSTRING(UPTIME) + _T(' ') + Util::formatSecondsW(Util::getUpTime())
 		         ).c_str(), 63);
 		         

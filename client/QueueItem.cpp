@@ -78,7 +78,7 @@ int16_t QueueItem::calcTransferFlagL(bool& partial, bool& trusted, bool& untrust
 		{
 			segs++;
 			
-			if (d->isSet(Download::FLAG_PARTIAL))
+			if (d->isSet(Download::FLAG_DOWNLOAD_PARTIAL))
 			{
 				partial = true;
 			}

@@ -60,7 +60,7 @@ class FinishedManager;
 template<class Hasher>
 struct HashValue;
 
-struct HintedUser;
+//struct HintedUser;
 // [-] typedef std::vector<HintedUser> HintedUserList; [-] IRainman: deprecated.
 
 class HubEntry;
@@ -84,10 +84,6 @@ typedef std::list<QueueItemPtr> QueueItemList;
 
 class RecentHubEntry;
 
-class SearchResult;
-typedef boost::intrusive_ptr<SearchResult> SearchResultPtr;
-typedef std::vector<SearchResultPtr> SearchResultList;
-
 class ServerSocket;
 
 class Socket;
@@ -104,8 +100,6 @@ typedef HashValue<TigerHash> TTHValue;
 //class UnZFilter;
 
 class Upload;
-typedef Upload* UploadPtr;
-typedef std::deque<UploadPtr> UploadList; // [!] IRainman opt: change vector to deque
 
 class UploadQueueItem;
 typedef UploadQueueItem* UploadQueueItemPtr;

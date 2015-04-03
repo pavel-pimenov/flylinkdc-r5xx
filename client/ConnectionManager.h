@@ -66,10 +66,10 @@ class ConnectionQueueItem
 			ACTIVE                      // In one up/downmanager
 		};
 		
-		ConnectionQueueItem(const HintedUser& aUser, bool aDownload, const string& aToken) :
+		ConnectionQueueItem(const HintedUser& aHintedUser, bool aDownload, const string& aToken) :
 			m_connection_queue_token(aToken),
 			lastAttempt(0),
-			errors(0), state(WAITING), m_is_download(aDownload), m_user(aUser), hubUrl(aUser.hint),
+			errors(0), state(WAITING), m_is_download(aDownload), m_hinted_user(aHintedUser),
 			m_count_waiting(0), m_is_active_client(false), m_is_force_passive(false)
 		{
 		}
@@ -80,7 +80,7 @@ class ConnectionQueueItem
 		GETSET(uint64_t, lastAttempt, LastAttempt);
 		GETSET(int, errors, Errors); // Number of connection errors, or -1 after a protocol error
 		GETSET(State, state, State);
-		GETSET(string, hubUrl, HubUrl); // TODO - пока не доконца работает и не везде прокидывается
+		//GETSET(string, hubUrl, HubUrl); // TODO - пока не доконца работает и не везде прокидывается
 		unsigned short m_count_waiting;
 		bool m_is_active_client;
 		bool m_is_force_passive;
@@ -88,17 +88,13 @@ class ConnectionQueueItem
 		{
 			return m_is_download;
 		}
-		UserPtr& getUser()
-		{
-			return m_user;
-		}
 		const UserPtr& getUser() const
 		{
-			return m_user;
+			return m_hinted_user.user;
 		}
-		const HintedUser getHintedUser() const
+		const HintedUser& getHintedUser() const
 		{
-			return HintedUser(m_user, hubUrl);
+			return m_hinted_user;
 		}
 		void addAutoPassiveStatus(string& p_status) const
 		{
@@ -110,7 +106,7 @@ class ConnectionQueueItem
 		
 	private:
 		const string m_connection_queue_token;
-		UserPtr m_user;
+		const HintedUser m_hinted_user;
 		const bool m_is_download;
 };
 
@@ -275,6 +271,7 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csUploads;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csDdosCheck;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csTTHFilter;
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csFileFilter;
 		
 		/** All ConnectionQueueItems */
 		static ConnectionQueueItem::List g_downloads;
@@ -295,7 +292,10 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 				{
 				}
 		};
-		class CFlyTTHTick : public CFlyTickDetect
+		class CFlyTickTTH : public CFlyTickDetect
+		{
+		};
+		class CFlyTickFile : public CFlyTickDetect
 		{
 		};
 		class CFlyDDoSTick : public CFlyTickDetect
@@ -325,7 +325,8 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 	public:
 		static void addCTM2HUB(const string& p_server_port, const HintedUser& p_hinted_user);
 	private:
-		boost::unordered_map<string, CFlyTTHTick> m_tth_duplicate_search;
+		static boost::unordered_map<string, CFlyTickTTH> g_duplicate_search_tth;
+		static boost::unordered_map<string, CFlyTickFile> g_duplicate_search_file;
 		
 #define USING_IDLERS_IN_CONNECTION_MANAGER // [!] IRainman fix: don't disable this.
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
@@ -374,10 +375,12 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		//static bool getCipherNameAndIP(UserConnection* p_conn, string& p_chiper_name, string& p_ip);
 		
 		bool checkIpFlood(const string& aIPServer, uint16_t aPort, const boost::asio::ip::address_v4& p_ip_hub, const string& userInfo, const string& p_HubInfo);
-		bool checkTTHDuplicateSearch(const string& p_search_command, const TTHValue& p_tth);
+		static bool checkDuplicateSearchTTH(const string& p_search_command, const TTHValue& p_tth);
+		static bool checkDuplicateSearchFile(const string& p_search_command);
 	private:
 	
-		void cleanupTTHDuplicateSearch(const uint64_t p_tick);
+		static void cleanupDuplicateSearchTTH(const uint64_t p_tick);
+		static void cleanupDuplicateSearchFile(const uint64_t p_tick);
 		void cleanupIpFlood(const uint64_t p_tick);
 		
 		// UserConnectionListener

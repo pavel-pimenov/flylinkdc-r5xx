@@ -25,6 +25,10 @@
 #include "ClientManagerListener.h"
 #include "UserConnection.h"
 
+typedef pair<UserPtr, unsigned int> CurrentConnectionPair;
+typedef std::unordered_map<UserPtr, unsigned int, User::Hash> CurrentConnectionMap;
+typedef std::vector<Upload*> UploadList;
+
 class UploadQueueItem : public intrusive_ptr_base<UploadQueueItem>, // [!] IRainman fix: cleanup.
 	public ColumnBase< 12 >, // [+] PPA. TODO fix me: use COLUMN_LAST.
 	public UserInfoBase //[+] PPA
@@ -147,10 +151,10 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 	public:
 		static uint32_t g_count_WaitingUsersFrame;
 		/** @return Number of uploads. */
-		size_t getUploadCount() const
+		static size_t getUploadCount()
 		{
-			// [-] Lock l(m_csUploads); [-] IRainman opt.
-			return m_uploads.size();
+			// webrtc::ReadLockScoped l(*g_csUploadsDelay);
+			return g_uploads.size();
 		}
 		
 		/**
@@ -231,7 +235,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		void load(); // !SMT!-S
 		static void save(); // !SMT!-S
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
-		bool isBanReply(const UserPtr& user) const; // !SMT!-S
+		static bool isBanReply(const UserPtr& user); // !SMT!-S
 #endif // IRAINMAN_ENABLE_AUTO_BAN
 		
 		static time_t getReservedSlotTime(const UserPtr& aUser);
@@ -242,45 +246,17 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		int64_t m_runningAverage;//[+] IRainman refactoring transfer mechanism
 		uint64_t fireballStartTick;
 		
-		UploadList m_uploads;
-		UploadList m_delayUploads;
-		mutable CriticalSection m_csUploads; // [!] IRainman opt.
+		static UploadList g_uploads;
+		static UploadList g_delayUploads;
+		static CurrentConnectionMap g_uploadsPerUser;
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csUploadsDelay;
 		
 		void process_slot(UserConnection::SlotTypes p_slot_type, int p_delta);
 		
-		// [+] IRainman SpeedLimiter
-		typedef pair<UserPtr, unsigned int> CurrentConnectionPair;
-		typedef std::unordered_map<UserPtr, unsigned int, User::Hash> CurrentConnectionMap;
-		CurrentConnectionMap m_uploadsPerUser;
 		
-		void increaseUserConnectionAmountL(const UserPtr& p_user)
-		{
-			const auto i = m_uploadsPerUser.find(p_user);
-			if (i != m_uploadsPerUser.end())
-				i->second++;
-			else
-				m_uploadsPerUser.insert(CurrentConnectionPair(p_user, 1));
-		}
-		void decreaseUserConnectionAmountL(const UserPtr& p_user)
-		{
-			const auto i = m_uploadsPerUser.find(p_user);
-			dcassert(i != m_uploadsPerUser.end());
-			if (i != m_uploadsPerUser.end())
-			{
-				i->second--;
-				if (i->second == 0)
-					m_uploadsPerUser.erase(p_user);
-			}
-		}
-		unsigned int getUserConnectionAmountL(const UserPtr& p_user) const
-		{
-			const auto i = m_uploadsPerUser.find(p_user);
-			if (i != m_uploadsPerUser.end())
-				return i->second;
-				
-			dcassert(0);
-			return 1;
-		}
+		static void increaseUserConnectionAmountL(const UserPtr& p_user);
+		static void decreaseUserConnectionAmountL(const UserPtr& p_user);
+		static unsigned int getUserConnectionAmountL(const UserPtr& p_user);
 		// [~] IRainman SpeedLimiter
 		
 		int m_lastFreeSlots; /// amount of free slots at the previous minute
@@ -303,7 +279,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		
 		bool getAutoSlot();
 		void removeConnection(UserConnection* aConn);
-		void removeUpload(Upload* aUpload, bool delay = false);
+		static void removeUpload(Upload* aUpload, bool delay = false);
 		void logUpload(const Upload* u);
 		
 		static void testSlotTimeout(uint64_t aTick = GET_TICK()); // !SMT!-S
@@ -344,7 +320,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		typedef boost::unordered_map<string, banmsg_t> BanMap;
 		bool handleBan(UserConnection* aSource/*, bool forceBan, bool noChecks*/);
 		static bool hasAutoBan(const UserPtr& aUser);
-		BanMap m_lastBans;
+		static BanMap g_lastBans;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csBans;
 #endif // IRAINMAN_ENABLE_AUTO_BAN
 };

@@ -2327,7 +2327,7 @@ void WinUtil::translateLinkToextProgramm(const tstring& url, const tstring& p_Ex
 
 bool WinUtil::parseDchubUrl(const tstring& aUrl)// [!] IRainman fix: stop copy-past!
 {
-	if (Util::isDcppHub(aUrl))
+	if (Util::isDcppHub(aUrl) || Util::isNmdcHub(aUrl))
 	{
 		//[-] PVS-Studio V808 string path;
 		uint16_t port;
