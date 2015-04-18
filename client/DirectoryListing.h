@@ -29,9 +29,6 @@ class DirectoryListingFrame;
 STANDARD_EXCEPTION(AbortException);
 
 class DirectoryListing : public UserInfoBase
-#ifdef _DEBUG
-	, virtual NonDerivable<DirectoryListing> // [+] IRainman fix.
-#endif
 {
 	public:
 		class Directory;
@@ -49,7 +46,7 @@ class DirectoryListing : public UserInfoBase
 		class File :
 			public Flags
 #ifdef _DEBUG
-			, virtual NonDerivable<File>, boost::noncopyable // [+] IRainman fix.
+			, boost::noncopyable // [+] IRainman fix.
 #endif
 		{
 			public:

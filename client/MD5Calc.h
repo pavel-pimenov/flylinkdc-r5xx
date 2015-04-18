@@ -7,7 +7,7 @@
 
 class MD5Calc
 #ifdef _DEBUG
-	: virtual NonDerivable<MD5Calc>, boost::noncopyable // [+] IRainman fix.
+	: boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:

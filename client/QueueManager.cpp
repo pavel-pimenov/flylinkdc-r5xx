@@ -1711,9 +1711,6 @@ Download* QueueManager::getDownload(UserConnection* aSource, string& aMessage) n
 namespace
 {
 class TreeOutputStream : public OutputStream
-#ifdef _DEBUG
-	, virtual NonDerivable<TreeOutputStream> // [+] IRainman fix.
-#endif
 {
 	public:
 		explicit TreeOutputStream(TigerTree& aTree) : tree(aTree), bufPos(0)

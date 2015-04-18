@@ -59,7 +59,7 @@ class IDateReceiveReporter
 
 class CInternetHandle
 #ifdef _DEBUG
-	: private virtual NonDerivable<CInternetHandle>, boost::noncopyable // [+] IRainman fix.
+	: boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:

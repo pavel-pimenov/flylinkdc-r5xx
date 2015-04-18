@@ -55,9 +55,6 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		}
 	private:
 		class DclstLoader : public BackgroundTaskExecuter<string>
-#ifdef _DEBUG
-			, virtual NonDerivable<DclstLoader>
-#endif
 		{
 			public:
 				explicit DclstLoader() { }
@@ -149,9 +146,6 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 				QueueItem::Priority m_priority;
 		};
 		class QueueManagerWaiter : public BackgroundTaskExecuter<WaiterFile>
-#ifdef _DEBUG
-			, virtual NonDerivable<QueueManagerWaiter>
-#endif
 		{
 			public:
 				explicit QueueManagerWaiter() { }
@@ -274,9 +268,6 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		
 		enum { MOVER_LIMIT = 10 * 1024 * 1024 };
 		class FileMover : public BackgroundTaskExecuter<pair<string, string>> // [!] IRainman core.
-#ifdef _DEBUG
-			                                                                   , virtual NonDerivable<FileMover>  // [+] IRainman fix.
-#endif
 		{
 			public:
 				explicit FileMover() { }
@@ -296,14 +287,8 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		typedef vector<pair<QueueItem::SourceConstIter, const QueueItemPtr> > PFSSourceList;
 		
 		class Rechecker : public BackgroundTaskExecuter<string> // [!] IRainman core.
-#ifdef _DEBUG
-			, virtual NonDerivable<Rechecker>  // [+] IRainman fix.
-#endif
 		{
 				struct DummyOutputStream : OutputStream
-#ifdef _DEBUG
-						, virtual NonDerivable<DummyOutputStream> // [+] IRainman fix.
-#endif
 				{
 					size_t write(const void*, size_t n)
 					{

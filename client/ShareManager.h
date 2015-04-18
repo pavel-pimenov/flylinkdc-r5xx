@@ -239,7 +239,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		
 		class Directory : public intrusive_ptr_base<Directory>, public CFlyLowerName
 #ifdef _DEBUG
-			, virtual NonDerivable<Directory>, boost::noncopyable // [+] IRainman fix.
+			, boost::noncopyable // [+] IRainman fix.
 #endif
 		{
 			public:
@@ -248,7 +248,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 				
 				struct ShareFile : public CFlyLowerName
 #ifdef _DEBUG
-						, virtual NonDerivable<ShareFile>  //, boost::noncopyable // TODO - сделать чтобы объект был не копируемым - boost::noncopyable
+						//, boost::noncopyable // TODO - сделать чтобы объект был не копируемым - boost::noncopyable
 #endif
 				{
 						/*

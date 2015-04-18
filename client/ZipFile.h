@@ -75,7 +75,7 @@ class ZipFile : private boost::noncopyable
 	public:
 		struct FileInfo
 		{
-			FileInfo() : name(Util::emptyString), time((time_t) - 1), size(-1) { }
+			FileInfo() : time((time_t) - 1), size(-1) { }
 			FileInfo(string zfn, time_t zft, int64_t zfs) : name(zfn), time(zft), size(zfs) { }
 			~FileInfo() { }
 			

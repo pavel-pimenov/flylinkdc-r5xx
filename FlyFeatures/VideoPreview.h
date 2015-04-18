@@ -164,11 +164,9 @@ class VideoPreview :
 		void clear();
 		
 		VideoPreview(): failed(false), _serverStarted(false), _serverPreview(false), _isServerDie(false), _isAcceptConnection(false)
-			, _currentFilePreview(Util::emptyString)
 			, _previewFileSize(0)
 			, _canUseFile(true)
-			, _viewStarted(true)
-			, m_tempFilename(Util::emptyString)
+			, _viewStarted(true)			
 		{
 			_ask2Download.reserve(10);
 			start(64, "VideoPreview");

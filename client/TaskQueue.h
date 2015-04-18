@@ -39,12 +39,11 @@ class StringTask : public Task
 
 class TaskQueue
 #ifdef _DEBUG
-	: boost::noncopyable, virtual NonDerivable<TaskQueue> // [+] IRainman fix.
+	: boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:
-		typedef pair<uint8_t, Task*> Pair;
-		typedef vector<Pair> List;
+		typedef std::vector<std::pair<uint8_t, Task*> > List;
 		
 		TaskQueue()
 		{

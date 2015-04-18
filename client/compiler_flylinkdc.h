@@ -451,6 +451,7 @@ typedef unsigned __int64 uint64_t;
 
 #ifdef _DEBUG
 
+#if 0
 template <class NonDerivableClass>
 class NonDerivable // [+] IRainman fix.
 {
@@ -459,7 +460,7 @@ class NonDerivable // [+] IRainman fix.
 		NonDerivable() { }
 		NonDerivable(const NonDerivable&) { }
 };
-
+#endif
 #endif // _DEBUG
 
 #endif // DCPLUSPLUS_DCPP_COMPILER_FLYLINKDC_H

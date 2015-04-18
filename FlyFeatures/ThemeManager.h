@@ -41,9 +41,6 @@ class ThemeManagerListener
 #endif // IRAINMAN_THEME_MANAGER_LISTENER_ENABLE
 
 class ThemeManager :
-#ifdef _DEBUG
-	virtual NonDerivable<ThemeManager>, // [+] IRainman fix.
-#endif
 #ifdef IRAINMAN_THEME_MANAGER_LISTENER_ENABLE
 	public Speaker<ThemeManagerListener>,
 #endif

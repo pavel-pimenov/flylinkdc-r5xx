@@ -32,7 +32,7 @@
  */
 class StringSearch
 #ifdef _DEBUG
-	: public virtual NonDerivable<StringSearch>
+	: boost::noncopyable
 #endif
 	
 {

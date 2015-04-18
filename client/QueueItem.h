@@ -49,7 +49,7 @@ class QueueItemDelegate
 class QueueItem : public Flags,
 	public intrusive_ptr_base<QueueItem>
 #ifdef _DEBUG
-	, virtual NonDerivable<QueueItem>, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:

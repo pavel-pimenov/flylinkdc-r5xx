@@ -35,9 +35,8 @@ extern bool setAdcUserFlags(const UserPtr& user, const string& feat);
 /** One of possibly many identities of a user, mainly for UI purposes */
 class Identity
 #ifdef _DEBUG // [+] IRainman fix.
-	: virtual NonDerivable<Identity>
 #ifdef IRAINMAN_IDENTITY_IS_NON_COPYABLE
-	, boost::noncopyable
+	: boost::noncopyable
 #endif
 #endif
 {
@@ -207,7 +206,7 @@ class Identity
 		const uint32_t getLimit() const// "US"
 		{
 			return getUser()->getLimit();
-		}		
+		}
 		void setSlots(uint8_t slots) // "SL"
 		{
 			getUser()->setSlots(slots);
@@ -216,7 +215,7 @@ class Identity
 		const uint8_t getSlots() const// "SL"
 		{
 			return getUser()->getSlots();
-		}		
+		}
 		void setBytesShared(const int64_t bytes) // "SS"
 		{
 			webrtc::WriteLockScoped l(*g_rw_cs);

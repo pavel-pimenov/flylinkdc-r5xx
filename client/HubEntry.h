@@ -105,7 +105,7 @@ class ConnectionStatus
 
 class HubEntry
 #ifdef _DEBUG
-	: virtual NonDerivable<HubEntry> // [+] IRainman fix.
+	// TODO : boost::noncopyable
 #endif
 {
 	public:
@@ -125,8 +125,8 @@ class HubEntry
 		}
 #ifdef PPA_INCLUDE_DEAD_CODE
 	HubEntry(const string& aName, const string& aServer, const string& aDescription, const string& aUsers) noexcept :
-		name(aName), server(aServer), description(aDescription), country(Util::emptyString),
-		rating(Util::emptyString), reliability(0.0), shared(0), minShare(0), users(Util::toInt(aUsers)), minSlots(0), maxHubs(0), maxUsers(0) { }
+		name(aName), server(aServer), description(aDescription),
+		reliability(0.0), shared(0), minShare(0), users(Util::toInt(aUsers)), minSlots(0), maxHubs(0), maxUsers(0) { }
 		
 		
 	HubEntry(const HubEntry& rhs) noexcept :
@@ -152,7 +152,7 @@ class HubEntry
 
 class FavoriteHubEntry
 #ifdef _DEBUG
-	: virtual NonDerivable<FavoriteHubEntry> // [+] IRainman fix.
+	// TODO : boost::noncopyable
 #endif
 {
 	public:
@@ -171,7 +171,7 @@ class FavoriteHubEntry
 		        chatusersplitstate(true),
 #endif
 		        hideShare(false),
-		        exclusiveHub(false), showJoins(false), exclChecks(false), mode(0), ip(Util::emptyString),
+		        exclusiveHub(false), showJoins(false), exclChecks(false), mode(0),
 		        searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)), overrideId(0),
 		        headerSort(-1), headerSortAsc(true)
 		{
@@ -181,7 +181,7 @@ class FavoriteHubEntry
 		name(rhs.getName()), server(rhs.getServer()), encoding(Text::systemCharset), searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)),
 		description(rhs.getDescription()), connect(false), windowposx(0), windowposy(0), windowsizex(0),
 		windowsizey(0), windowtype(0), chatusersplit(0), userliststate(true), chatusersplitstate(true), hideShare(false),
-		exclusiveHub(false), showJoins(false), exclChecks(false), mode(0), ip(Util::emptyString), overrideId(0)
+		exclusiveHub(false), showJoins(false), exclChecks(false), mode(0), overrideId(0)
 		, headerSort(-1), headerSortAsc(true)
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 		, connectionStatus(rhs.connectionStatus)
@@ -205,14 +205,14 @@ class FavoriteHubEntry
 #endif
 		virtual ~FavoriteHubEntry() noexcept { }
 		
-		const string& getNick(bool useDefault = true) const
+		const string getNick(bool useDefault = true) const
 		{
-			return (!nick.empty() || !useDefault) ? nick : SETTING(NICK);
+			return (!m_nick.empty() || !useDefault) ? m_nick : SETTING(NICK);
 		}
 		
 		void setNick(const string& aNick)
 		{
-			nick = aNick;
+			m_nick = aNick;
 		}
 		
 		GETSET(string, userdescription, UserDescription);
@@ -276,7 +276,7 @@ class FavoriteHubEntry
 #endif // IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 		
 	private:
-		string nick;
+		string m_nick;
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 		ConnectionStatus connectionStatus;
 #endif

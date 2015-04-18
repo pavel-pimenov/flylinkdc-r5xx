@@ -37,7 +37,7 @@ class ServerSocketListener
 
 class ServerSocket : public Speaker<ServerSocketListener>
 #ifdef _DEBUG
-	, virtual NonDerivable<ServerSocket>, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:

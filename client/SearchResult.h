@@ -155,7 +155,10 @@ class SearchResult : public SearchResultBaseTTH
 		
 		string getIPAsString() const
 		{
-			return m_ip4.to_string();
+			if (!m_ip4.is_unspecified())
+				return m_ip4.to_string();
+			else
+				return Util::emptyString;
 		}
 		const boost::asio::ip::address_v4& getIP() const
 		{

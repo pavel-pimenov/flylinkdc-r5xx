@@ -1523,9 +1523,9 @@ void NmdcHub::onLine(const string& aLine)
 	{
 		supportsParse(param);
 	}
-	else if(cmd == "UserCommand")
+	else if (cmd == "UserCommand")
 	{
-			userCommandParse(param);
+		userCommandParse(param);
 	}
 	else if (cmd == "Lock")
 	{
@@ -1600,8 +1600,10 @@ void NmdcHub::onLine(const string& aLine)
 		messageYouHaweRightOperatorOnThisHub();
 	}
 	// [~] IRainman.
-	else
-	if (cmd == "UserComman")
+	else if (cmd == "myinfo")
+	{
+	}
+	else if (cmd == "UserComman" || cmd == "myinfo")
 	{
 		// Где-то ошибка в плагине - много спама идет на сервер - отрубил нахрен
 		const string l_message = "NmdcHub::onLine first unknown command! hub = [" + getHubUrl() + "], command = [" + cmd + "], param = [" + param + "]";

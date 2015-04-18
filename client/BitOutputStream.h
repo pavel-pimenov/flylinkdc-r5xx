@@ -21,7 +21,7 @@
 
 class BitOutputStream
 #ifdef _DEBUG
-	: boost::noncopyable, virtual NonDerivable<BitOutputStream> // [+] IRainman fix.
+	: boost::noncopyable
 #endif
 {
 	public:

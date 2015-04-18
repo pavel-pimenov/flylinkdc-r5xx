@@ -29,9 +29,6 @@
 class UnZFilter;
 
 class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THREAD
-#ifdef _DEBUG
-	, virtual NonDerivable<BufferedSocket> // [+] IRainman fix.
-#endif
 {
 	public:
 		enum Modes
@@ -225,9 +222,6 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 			virtual ~TaskData() { }
 		};
 		struct ConnectInfo : public TaskData
-#ifdef _DEBUG
-				, virtual NonDerivable<ConnectInfo> // [+] IRainman fix.
-#endif
 		{
 			explicit ConnectInfo(string addr_, uint16_t port_, uint16_t localPort_, NatRoles natRole_, bool proxy_) : addr(addr_), port(port_), localPort(localPort_), natRole(natRole_), proxy(proxy_) { }
 			string addr;
@@ -237,9 +231,6 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 			bool proxy;
 		};
 		struct SendFileInfo : public TaskData
-#ifdef _DEBUG
-				, virtual NonDerivable<SendFileInfo> // [+] IRainman fix.
-#endif
 		{
 			explicit SendFileInfo(InputStream* stream_) : stream(stream_) { }
 			InputStream* stream;

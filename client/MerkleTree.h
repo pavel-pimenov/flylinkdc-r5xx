@@ -39,7 +39,6 @@ const uint64_t MIN_BLOCK_SIZE = 65536;
 template < class Hasher, const size_t baseBlockSize = 1024 >
 class MerkleTree
 #ifdef _DEBUG
-	: virtual NonDerivable<MerkleTree<Hasher, baseBlockSize>>
 //	, private boost::noncopyable TODO
 #endif
 {

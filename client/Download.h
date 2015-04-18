@@ -11,9 +11,6 @@
  * Use it to retrieve information about the ongoing transfer.
  */
 class Download : public Transfer, public Flags
-#ifdef _DEBUG
-	, virtual NonDerivable<Download> // [+] IRainman fix.
-#endif
 {
 	public:
 	

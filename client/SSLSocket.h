@@ -45,9 +45,6 @@ class SSLSocketException : public SocketException
 class CryptoManager;
 
 class SSLSocket : public Socket
-#ifdef _DEBUG
-	, virtual NonDerivable<SSLSocket> // [+] IRainman fix.
-#endif
 {
 	public:
 		~SSLSocket()

@@ -81,9 +81,6 @@ class InputStream
 };
 
 class MemoryInputStream : public InputStream
-#ifdef _DEBUG
-	, virtual NonDerivable<MemoryInputStream> // [+] IRainman fix.
-#endif
 {
 	public:
 		MemoryInputStream(const uint8_t* src, size_t len) : pos(0), size(len), buf(new uint8_t[len])
@@ -272,9 +269,6 @@ class BufferedOutputStream : public OutputStream
 };
 
 class StringOutputStream : public OutputStream
-#ifdef _DEBUG
-	, virtual NonDerivable<StringOutputStream> // [+] IRainman fix.
-#endif
 {
 	public:
 		explicit StringOutputStream(string& p_out) : m_str(p_out) { }

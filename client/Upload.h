@@ -5,9 +5,6 @@
 #include "Flags.h"
 
 class Upload : public Transfer, public Flags
-#ifdef _DEBUG
-	, virtual NonDerivable<Upload> // [+] IRainman fix.
-#endif
 {
 	public:
 		enum Flags
