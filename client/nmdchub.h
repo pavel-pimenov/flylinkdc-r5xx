@@ -28,7 +28,8 @@
 #include "ZUtils.h"
 
 class ClientManager;
-typedef boost::unordered_map<string, std::pair<string, unsigned>>  CFlyUnknownCommand;
+typedef boost::unordered_map<string, std::pair<std::string, unsigned>>  CFlyUnknownCommand;
+typedef boost::unordered_map<string, std::unordered_map<std::string, unsigned> >  CFlyUnknownCommandArray;
 
 class NmdcHub : public Client, private Flags
 {
@@ -143,9 +144,11 @@ class NmdcHub : public Client, private Flags
 		int m_iRequestCount;
 #endif
 		static CFlyUnknownCommand g_unknown_command;
+		static CFlyUnknownCommandArray g_unknown_command_array;
 		static FastCriticalSection g_unknown_cs;
 	public:
 		static void log_all_unknown_command();
+		static string get_all_unknown_command();
 	private:
 		void processAutodetect(bool p_is_myinfo);
 		

@@ -107,7 +107,7 @@ namespace ZenLib
                 st_In=st;
                 strcpy(Duration, "            ");
             }
-            
+
             fprintf(F,"                                       %02hd:%02hd:%02hd.%03hd %s", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, Duration);
         }
 

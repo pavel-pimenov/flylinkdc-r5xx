@@ -40,6 +40,14 @@
 #define SHOWUI_MESSAGE_MAP 7
 #define FILTER_MESSAGE_MAP 8
 
+//#define FLYLINKDC_USE_ADVANCED_GRID_SEARCH
+#ifdef FLYLINKDC_USE_ADVANCED_GRID_SEARCH
+#include "../client/WildcardsReg.h"
+#include "grid/CGrid.h"
+using namespace net::r_eg::ui;
+using namespace net::r_eg::text::wildcards;
+#endif
+
 #define FLYLINKDC_USE_WINDOWS_TIMER_SEARCH_FRAME
 // С виндовым таймером у меня иногда вешается на ноуте.
 class HIconWrapper;
@@ -59,7 +67,10 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 	, private TimerManagerListener
 #endif
 #ifdef _DEBUG
-	, virtual NonDerivable<SearchFrame>, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable // [+] IRainman fix.
+#endif
+#ifdef FLYLINKDC_USE_ADVANCED_GRID_SEARCH
+	, public ICGridEventKeys
 #endif
 {
 	public:
@@ -86,6 +97,10 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		NOTIFY_HANDLER(IDC_RESULTS, LVN_KEYDOWN, onKeyDown)
 		NOTIFY_HANDLER(IDC_HUB, LVN_ITEMCHANGED, onItemChangedHub)
 		NOTIFY_HANDLER(IDC_RESULTS, NM_CUSTOMDRAW, onCustomDraw)
+#ifdef FLYLINKDC_USE_ADVANCED_GRID_SEARCH
+		NOTIFY_CODE_HANDLER(PIN_ITEMCHANGED, onGridItemChanged);
+		NOTIFY_CODE_HANDLER(PIN_CLICK, onGridItemClick);
+#endif
 		MESSAGE_HANDLER(WM_CREATE, onCreate)
 		MESSAGE_HANDLER(WM_SETFOCUS, onFocus)
 		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
@@ -142,6 +157,10 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		COMMAND_RANGE_HANDLER(IDC_DOWNLOAD_WHOLE_FAVORITE_DIRS, IDC_DOWNLOAD_WHOLE_FAVORITE_DIRS + 499, onDownloadWhole)
 		COMMAND_RANGE_HANDLER(IDC_DOWNLOAD_TARGET, IDC_DOWNLOAD_TARGET + 499, onDownloadTarget)
 		COMMAND_RANGE_HANDLER(IDC_PRIORITY_PAUSED, IDC_PRIORITY_HIGHEST, onDownloadWithPrio)
+		
+#ifdef FLYLINKDC_USE_ADVANCED_GRID_SEARCH
+		REFLECT_NOTIFICATIONS()
+#endif
 		
 		CHAIN_COMMANDS(ucBase)
 		CHAIN_COMMANDS(uicBase)
@@ -239,6 +258,11 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		LRESULT onEditChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onPause(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
+#ifdef FLYLINKDC_USE_ADVANCED_GRID_SEARCH
+		LRESULT onKeyHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+		LRESULT onGridItemChanged(int idCtrl, LPNMHDR pnmh, BOOL& /*bHandled*/);
+		LRESULT onGridItemClick(int idCtrl, LPNMHDR pnmh, BOOL& /*bHandled*/);
+#endif
 		
 		LRESULT onDownloadTo(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onDownload(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
@@ -365,6 +389,53 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		}
 		
 	private:
+#ifdef FLYLINKDC_USE_ADVANCED_GRID_SEARCH
+		/** time difference */
+		clock_t _keypressPrevTime;
+		
+		/** permission to perform */
+		bool filterAllowRunning;
+		
+		void updatePrevTimeFilter()
+		{
+			_keypressPrevTime = clock();
+		};
+		
+		/**
+		 * delay after the last key press
+		 * pause - in msec delay
+		 */
+		void waitPerformAllow(clock_t pause = 300)
+		{
+			while ((clock() - _keypressPrevTime) < pause)
+			{
+#ifdef _DEBUG
+				dcdebug("filter: wait...\r\n");
+#endif
+				Sleep(100);
+			}
+		};
+		enum
+		{
+			FILTER_ITEM_FIRST       = COLUMN_LAST,
+			FILTER_ITEM_PATHFILE    = FILTER_ITEM_FIRST,
+			FILTER_ITEM_LAST
+		};
+		
+		enum FilterGridColumns
+		{
+			FGC_INVERT,
+			FGC_TYPE,
+			FGC_FILTER,
+			FGC_ADD,
+			FGC_REMOVE
+		};
+		
+		bool doFilter(WPARAM wParam);
+		void filtering(SearchInfo* si);
+		void insertIntofilter(CGrid& grid);
+		vector<LPCTSTR> getFilterTypes();
+#endif
 		enum
 		{
 			COLUMN_FIRST,
@@ -622,6 +693,11 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		tstring filter;
 		
 		CStatic searchLabel, sizeLabel, optionLabel, typeLabel, hubsLabel, srLabel;
+#ifdef FLYLINKDC_USE_ADVANCED_GRID_SEARCH
+		CStatic srLabelExcl;
+		/** from bitbucket.org/3F/sandbox */
+		CGrid ctrlGridFilters;
+#endif
 		CButton ctrlSlots, ctrlShowUI, ctrlCollapsed;
 		
 		CButton m_ctrlStoreSettings;
@@ -661,7 +737,6 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		bool m_needsUpdateStats; // [+] IRainman opt.
 		
 		SearchParamTokenMultiClient m_search_param;
-		
 		int64_t m_exactSize2;
 		size_t m_resultsCount;
 		uint64_t m_searchEndTime;
@@ -768,6 +843,10 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		bool matchFilter(const SearchInfo* si, int sel, bool doSizeCompare = false, FilterModes mode = NONE, int64_t size = 0);
 		bool parseFilter(FilterModes& mode, int64_t& size);
 		void updateSearchList(SearchInfo* si = NULL);
+#ifdef FLYLINKDC_USE_ADVANCED_GRID_SEARCH
+		void updateSearchListSafe(SearchInfo* si = NULL);
+#endif
+		
 		void addSearchResult(SearchInfo* si);
 		
 		LRESULT onItemChangedHub(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);

@@ -1,4 +1,240 @@
 ------------------------------------------------------------------------
+r18519 | pavel.pimenov@gmail.com | 2015-04-17 06:04:39 +0300 (Пт, 17 апр 2015) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r18517 | pavel.pimenov@gmail.com | 2015-04-11 17:04:07 +0300 (Сб, 11 апр 2015) | 5 lines
+
+Merged revision(s) 18516 from trunk:
+# Отдельно обработкал команду "UserComman" - много ошибочных хабов
+# Починил работу мастера в части добавления щары (спасибо КомЛайн)
+........
+
+------------------------------------------------------------------------
+r18516 | pavel.pimenov@gmail.com | 2015-04-11 16:59:00 +0300 (Сб, 11 апр 2015) | 2 lines
+
+# Отдельно обработкал команду "UserComman" - много ошибочных хабов
+# Починил работу мастера в части добавления щары (спасибо КомЛайн)
+------------------------------------------------------------------------
+r18514 | pavel.pimenov@gmail.com | 2015-04-11 13:46:17 +0300 (Сб, 11 апр 2015) | 14 lines
+
+Merged revision(s) 18503-18510 from trunk:
+# Log
+........
+* (fixed issue 497) https://code.google.com/p/flylinkdc/issues/detail?id=497
+* Реализован алгоритм автоматической коррекции IP адреса на старых хабах
+  Алгоритм можно обсудить тут - http://dchublist.ru/forum/viewtopic.php?p=24027#p24027
+........
+# Обновлени интефрейса с флай-сервером.
+# Исправил замеченные падения при закрытии окон поиска и файл-листов
+........
+# Удалил смайл-пак - флаги
+# Погасил ошибки от клиентов оранжевого города http://dchublist.ru/forum/viewtopic.php?p=24035#p24035
+........
+
+------------------------------------------------------------------------
+r18512 | pavel.pimenov@gmail.com | 2015-04-11 13:37:37 +0300 (Сб, 11 апр 2015) | 1 line
+
+# setup-fix
+------------------------------------------------------------------------
+r18503 | pavel.pimenov@gmail.com | 2015-04-09 21:07:42 +0300 (Чт, 09 апр 2015) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r18502 | pavel.pimenov@gmail.com | 2015-04-09 20:32:31 +0300 (Чт, 09 апр 2015) | 7 lines
+
+Merged revision(s) 18498-18501 from trunk:
+# Log
+........
+# Вернул std::unordered_set<void*> m_owners - от буста почему-то падает
+# http://code.google.com/p/flylinkdc/ заменил на https://github.com/pavel-pimenov/flylinkdc-r5xx/
+........
+
+------------------------------------------------------------------------
+r18499 | pavel.pimenov@gmail.com | 2015-04-09 19:24:20 +0300 (Чт, 09 апр 2015) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r18497 | pavel.pimenov@gmail.com | 2015-04-09 19:05:57 +0300 (Чт, 09 апр 2015) | 22 lines
+
+Merged revision(s) 18491-18495 from trunk:
+# Убрал лишний bool m_is_passive. прикольный баг... спасибо PVS
+........
+# В Wizard-е вернул окно выбора шары
+........
+# int128u передеаем по ссылке - спасибо PVS-Studio
+........
+# Добавлен расширенный поиск - пока закрыт экраном FLYLINKDC_USE_ADVANCED_GRID_SEARCH - т.к. не работает
+........
+* SQLite 3.8.9
+    Add VxWorks-7 as an officially supported and tested platform.
+    Added the sqlite3_status64() interface.
+    Fix memory size tracking so that it works even if SQLite uses more than 2GiB of memory.
+    Added the PRAGMA index_xinfo command.
+    Fix a potential 32-bit integer overflow problem in the sqlite3_blob_read() and sqlite3_blob_write() interfaces.
+    Ensure that prepared statements automatically reset on extended error codes of SQLITE_BUSY and SQLITE_LOCKED even when compiled using SQLITE_OMIT_AUTORESET.
+    Correct miscounts in the sqlite3_analyzer.exe utility related to WITHOUT ROWID tables.
+    Added the ".dbinfo" command to the command-line shell.
+    Improve the performance of fts3/4 queries that use the OR operator and at least one auxiliary fts function.
+    Fix a bug in the fts3 snippet() function causing it to omit leading separator characters from snippets that begin with the first token in a column. 
+........
+
+------------------------------------------------------------------------
+r18496 | pavel.pimenov@gmail.com | 2015-04-09 18:57:13 +0300 (Чт, 09 апр 2015) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r18490 | pavel.pimenov@gmail.com | 2015-04-08 23:11:33 +0300 (Ср, 08 апр 2015) | 11 lines
+
+Merged revision(s) 18477-18488 from trunk:
+* Заблокировал всплывание бесконечного кол-ва окон запроса пароля (Спасибо RoLex)
+* MediaInfoLib 0.7.73
++ HEVC: tier
++ MXF: writing library and writing application fields are cleaned up
++ VC-3/DNxHD: version number (HVN)
+x DPX: Cineon files were detected as DPX Version 1, version number was not corresponding to the real version
++ CAP: detection of CAP files from Cheetah and Lambda
+x #B903, MXG: Incorrect timecode track used for AS-11 DPP MXF files
+x #B904, MXF: Handling repetition of Header Metadata in MXF files
+
+------------------------------------------------------------------------
+r18477 | pavel.pimenov@gmail.com | 2015-04-07 06:02:17 +0300 (Вт, 07 апр 2015) | 1 line
+
+# Log [public-build]
+------------------------------------------------------------------------
+r18475 | pavel.pimenov@gmail.com | 2015-04-05 20:01:57 +0300 (Вс, 05 апр 2015) | 4 lines
+
+Merged revision(s) 18473 from trunk:
+# Не шлем пустые сообщения об ошибках в CFlyServerJSON::pushError
+........
+
+------------------------------------------------------------------------
+r18474 | pavel.pimenov@gmail.com | 2015-04-05 19:59:29 +0300 (Вс, 05 апр 2015) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r18472 | pavel.pimenov@gmail.com | 2015-04-05 13:54:29 +0300 (Вс, 05 апр 2015) | 4 lines
+
+Merged revision(s) 18471 from trunk:
+# Расширил диагностику ошибочных комманд + вывел информацию в окно о программе
+........
+
+------------------------------------------------------------------------
+r18469 | pavel.pimenov@gmail.com | 2015-04-03 21:46:11 +0300 (Пт, 03 апр 2015) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r18468 | pavel.pimenov@gmail.com | 2015-04-03 21:09:35 +0300 (Пт, 03 апр 2015) | 104 lines
+
+Merged revision(s) 18448-18467 from trunk:
+# В ThrottleManager::read убрал лишшний вызов DownloadManager::getInstance()->getDownloadCount()
+# Log [public-build]
+........
+* Оптимизация png файликов (Спасибо Nikoli)
+  https://github.com/eiskaltdcpp/eiskaltdcpp/pull/292/commits
+  https://yadi.sk/i/Rm3KrvqefdXak - экономия от обработки
+
+~/trunk/res/Splash$ exiftool -all= -overwrite_original $(find -iname '*.png')
+    2 image files updated
+    4 image files unchanged
+
+~/trunk/res$ exiftool -all= -overwrite_original $(find -iname '*.png')
+   33 image files updated
+    7 image files unchanged
+
+~/trunk/compiled/WEBserver/FlylinkDC/files$ exiftool -all= -overwrite_original $(find -iname '*.png')
+    7 image files updated
+
++
+ optipng -o7 $(find -iname '*.png')
+........
+# В окно передач зачем-то отдавался DownloadMap - хотя он там не нужен.
+# TODO - Убрать проброс массивов в DownloadManagerListener::Tick и UploadManagerListener::Tick
+  всеравно они выполняются под блокировкой коллекций менеджера!
+# TODO - UpdateInfo прокинуть HintedUser
+........
+# ConnectionQueueItem перевел на HintedUser
+........
+# UploadList вернул на vector
+........
+# Добавил детект роутера Mikrotik (спасибо pewpew)
+  http://www.lan23.ru/FAQ-Mikrotik-RouterOS-part1.html
+........
+# К роутерам добавлена точка доступа http://nastroisam.ru/dap-1360-d1/#more-7437
+# В string Util::getLocalOrBindIp добавлен принудительный пропуск 192.168.56.1 - Virtual Box
+  при автоматическом поиске интерфейса
+........
+# Сократил время блокировки менеджеров закачек и отдач при обработке отрисовки
+  void TransferView::on(DownloadManagerListener::Tick, const DownloadArray&
+  void TransferView::on(UploadManagerListener::Tick, const UploadArray&
+........
+# [mediainfo]
+ x MPEG-4: problem if moov_trak_mdia_minf_stbl_stsd_xxxx content is at 0x10000 (code is ran twice on the atom due to buffer size of 0x100000, it should not)
+# [zenlib]
+ x BigEndian2float16() was buggy
+
+........
+# Забыл TransferData.h (спасибо Scalolaz)
+# [mediainfo]
++ Clean aperture size is move from width/height to its own field
+x FLV: some files were not having the right duration
+# [zenlib]
+
+........
+# [mediainfo]
+x B902: EBU AspectRatio invalid in case of non classic numerator:denominator format
+........
+# открываем nmdcS хабы в соседних вкладках, вместо попытки открытия новой копии клиента.
+
+Один фиг "Соединение закрыто"...
+( тест проводился на nmdcs://downtown.trance-hardstyle.nl:113 )
+........
+* Добавлена галка логирования в файла данных из поиска-шпиона.
+........
+# Добавил Huawei WS323 (спасибо MassForce)
+........
+# Исправлено переполнение лога при ошибочных коммандах со стороны хаба 
+  NmdcHub::onLine first unknown command! hub
+
+[2015-04-03 04:38] NmdcHub::onLine Unknown command! hub = [dchub://hub.o-go.ru], command = [StartSessionTime], param = [ogo81a324b4ea 1428010750]
+[2015-04-03 04:39] NmdcHub::onLine Unknown command! hub = [dchub://hub.o-go.ru], command = [StartSessionTime], param = [ogo42211a6763 1428010767]
+[2015-04-03 04:41] NmdcHub::onLine Unknown command! hub = [dchub://peers.cn.ru], command = [StartSessionTime], param = [i_3umso806yreia628uw 1428010884]
+[2015-04-03 04:41] NmdcHub::onLine Unknown command! hub = [dchub://hub.o-go.ru], command = [StartSessionTime], param = [ogo42211a6763 1428010891]
+[2015-04-03 04:41] NmdcHub::onLine Unknown command! hub = [dchub://peers.cn.ru], command = [StartSessionTime], param = [4n2uptxr6eb3duk 1428010887]
+[2015-04-03 04:42] NmdcHub::onLine Unknown command! hub = [dchub://hub.o-go.ru], command = [StartSessionTime], param = [Guest8604014 1428010949]
+[2015-04-03 04:42] NmdcHub::onLine Unknown command! hub = [dchub://hub.o-go.ru], command = [StartSessionTime], param = [ogob6d0ebbc89 1428010962]
+[2015-04-03 04:42] NmdcHub::onLine Unknown command! hub = [dchub://hub.o-go.ru], command = [StartSessionTime], param = [Soloviev-va 1428010963]
+[2015-04-03 04:42] NmdcHub::onLine Unknown command! hub = [dchub://hub.o-go.ru], command = [StartSessionTime], param = [ogo3c0d434750 1428010973]
+[2015-04-03 04:42] NmdcHub::onLine Unknown command! hub = [dchub://hub.o-go.ru], command = [StartSessionTime], param = [ogob60cce474f 1428010978]
+[2015-04-03 04:42] NmdcHub::onLine Unknown command! hub = [dchub://hub.o-go.ru], command = [StartSessionTime], param = [Guest6239836 1428010979]
+[2015-04-03 04:43] NmdcHub::onLine Unknown command! hub = [dchub://hub.o-go.ru], command = [StartSessionTime], param = [1445520 1428010993]
+[2015-04-03 04:43] NmdcHub::onLine Unknown command! hub = [dchub://hub.o-go.ru], command = [StartSessionTime], param = [ogo42211a6763 1428011007]
+[2015-04-03 04:43] NmdcHub::onLine Unknown command! hub = [dchub://peers.cn.ru], command = [StartSessionTime], param = [Y2WPPRHEZPKNUER2P4ZJ6RGWSHJ7TNY656K 1428011012]
+[2015-04-03 04:43] NmdcHub::onLine Unknown command! hub = [dchub://hub.o-go.ru], command = [StartSessionTime], param = [brankova 1428011022]
+[2015-04-03 04:43] NmdcHub::onLine Unknown command! hub = [dchub://hub.o-go.ru], command = [StartSessionTime], param = [ogoeff059a477 1428011041]
+[2015-04-03 04:43] NmdcHub::onLine Unknown command! hub = [dchub://hub.o-go.ru], command = [StartSessionTime], param = [srhtjpomm_Zond23 1428011042]
+[2015-04-03 04:43] NmdcHub::onLine Unknown command! hub = [dchub://hub.o-go.ru], command = [StartSessionTime], param = [srhtjsykm_Zond13 1428011042]
+[2015-04-03 04:43] NmdcHub::onLine Unknown command! hub = [dchub://hub.o-go.ru], command = [StartSessionTime], param = [srhtjsykm_Zond1 1428011042]
+[2015-04-03 04:43] NmdcHub::onLine Unknown command! hub = [dchub://hub.o-go.ru], command = [StartSessionTime], param = [srhtjsykm_Zond8 1428011042]
+[2015-04-03 04:44] NmdcHub::onLine Unknown command! hub = [dchub://hub.o-go.ru], command = [StartSessionTime], param = [ogo61aef46508 1428011086]
+[2015-04-03 04:44] NmdcHub::onLine Unknown command! hub = [dchub://hub.o-go.ru], command = [StartSessionTime], param = [ogobaec895e41 1428011097]
+[2015-04-03 04:44] NmdcHub::onLine Unknown command! hub = [dchub://peers.cn.ru], command = [StartSessionTime], param = [v3zwo7akekhzlaf 1428011106]
+[2015-04-03 04:45] NmdcHub::onLine Unknown command! hub = [dchub://peers.cn.ru], command = [StartSessionTime], param = [9z0dzgkkcjw0t7y 1428011115]
+[2015-04-03 04:45] NmdcHub::onLine Unknown command! hub = [dchub://hub.o-go.ru], command = [StartSessionTime], param = [ogoe42ed781f1 1428011141]
+[2015-04-03 04:46] NmdcHub::onLine Unknown command! hub = [dchub://hub.o-go.ru], command = [StartSessionTime], param = [Guest826946 1428011190]
+[2015-04-03 04:47] NmdcHub::onLine Unknown command! hub = [dchub://peers.cn.ru], command = [StartSessionTime], param = [n8h28hd46l8yoy2 1428011275]
+[2015-04-03 04:48] NmdcHub::onLine Unknown command! hub = [dchub://hub.o-go.ru], command = [StartSessionTime], param = [ogo1fcb0d6d80 1428011318]
+[2015-04-03 04:48] NmdcHub::onLine Unknown command! hub = [dchub://peers.cn.ru], command = [StartSessionTime], param = [Динара 1428011344]
+
+........
+# Log [public-build]
+........
+
+------------------------------------------------------------------------
+r18467 | pavel.pimenov@gmail.com | 2015-04-03 20:43:31 +0300 (Пт, 03 апр 2015) | 1 line
+
+# Log [public-build]
+------------------------------------------------------------------------
 r18447 | pavel.pimenov@gmail.com | 2015-03-30 19:14:27 +0300 (Пн, 30 мар 2015) | 5 lines
 
 Merged revision(s) 18445 from trunk:

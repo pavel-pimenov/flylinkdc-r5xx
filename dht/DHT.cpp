@@ -745,7 +745,7 @@ void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t port, const UDP
 }
 
 // partial file request
-void DHT::handle(AdcCommand::PSR, const string& ip, uint16_t port, const UDPKey& udpKey, const AdcCommand& c) noexcept
+void DHT::handle(AdcCommand::PSR, const string& p_ip, uint16_t port, const UDPKey& udpKey, const AdcCommand& c) noexcept
 {
 	const CID cid = CID(c.getParam(0));
   dcassert(c.getParam(0).size() == 39);
@@ -758,15 +758,26 @@ void DHT::handle(AdcCommand::PSR, const string& ip, uint16_t port, const UDPKey&
 	if (node != NULL)
 	{
 		boost::system::error_code l_ec;
-		const auto l_ip4 = boost::asio::ip::address_v4::from_string(ip, l_ec);
+		const auto l_ip4 = boost::asio::ip::address_v4::from_string(p_ip, l_ec);
 		dcassert(!l_ec);
+		if (!l_ec)
+		{
 		::SearchManager::getInstance()->onPSR(c, node->getUser(), l_ip4);
+		}
+		else
+		{
+#ifdef FLYLINKDC_BETA
+			const string l_message = "Identity::setIP Error IP = " + p_ip;
+			LogManager::message(l_message);
+			CFlyServerJSON::pushError(27, l_message);
+#endif
+		}
   }
 	else
 	{
 		// node is not online
 		// this can happen if we restarted our client (we are online for him, but he is offline for us)
-		DHT::getInstance()->info(ip, port, DHT::PING | DHT::CONNECTION, cid, udpKey);
+		DHT::getInstance()->info(p_ip, port, DHT::PING | DHT::CONNECTION, cid, udpKey);
 	}
 }
 

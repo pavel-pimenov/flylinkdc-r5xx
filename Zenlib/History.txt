@@ -1,4 +1,4 @@
-Version 0.4.31
+Version 0.4.31, 2015-04-09
 --------------
 x BigEndian2float16() was buggy
 x <new> is possible only with C++

@@ -303,6 +303,7 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		void setShortHubName(const tstring& p_name);
 		string m_redirect;
 		tstring m_complete;
+		tstring m_last_hub_message;
 		bool m_waitingForPW;
 		uint8_t m_password_do_modal;
 		HTHEME m_Theme;

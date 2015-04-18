@@ -32,6 +32,7 @@
 #include "../FlyFeatures/flyServer.h"
 
 CFlyUnknownCommand NmdcHub::g_unknown_command;
+CFlyUnknownCommandArray NmdcHub::g_unknown_command_array;
 FastCriticalSection NmdcHub::g_unknown_cs;
 
 NmdcHub::NmdcHub(const string& aHubURL, bool secure) : Client(aHubURL, '|', false), m_supportFlags(0), m_modeChar(0),
@@ -378,6 +379,10 @@ void NmdcHub::updateFromTag(Identity& id, const string & tag) // [!] IRainman op
 		else if (i->compare(0, 2, "O:", 2) == 0)
 		{
 			// [?] TODO http://nmdc.sourceforge.net/NMDC.html#_tag
+		}
+		else if (i->compare(0, 2, "C:", 2) == 0)
+		{
+			// http://dchublist.ru/forum/viewtopic.php?p=24035#p24035
 		}
 		// [~] IRainman fix.
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_TAG
@@ -1518,9 +1523,9 @@ void NmdcHub::onLine(const string& aLine)
 	{
 		supportsParse(param);
 	}
-	else if (cmd == "UserCommand")
+	else if(cmd == "UserCommand")
 	{
-		userCommandParse(param);
+			userCommandParse(param);
 	}
 	else if (cmd == "Lock")
 	{
@@ -1596,12 +1601,20 @@ void NmdcHub::onLine(const string& aLine)
 	}
 	// [~] IRainman.
 	else
+	if (cmd == "UserComman")
+	{
+		// Где-то ошибка в плагине - много спама идет на сервер - отрубил нахрен
+		const string l_message = "NmdcHub::onLine first unknown command! hub = [" + getHubUrl() + "], command = [" + cmd + "], param = [" + param + "]";
+		LogManager::message(l_message);
+	}
+	else
 	{
 		//dcassert(0);
 		dcdebug("NmdcHub::onLine Unknown command %s\n", aLine.c_str());
 		string l_message;
 		{
 			FastLock l(g_unknown_cs);
+			g_unknown_command_array[getHubUrl()][cmd]++;
 			auto& l_item = g_unknown_command[cmd + "[" + getHubUrl() + "]"];
 			l_item.second++;
 			if (l_item.first.empty())
@@ -1618,17 +1631,36 @@ void NmdcHub::onLine(const string& aLine)
 	}
 	processAutodetect(bMyInfoCommand);
 }
-void NmdcHub::log_all_unknown_command()
+string NmdcHub::get_all_unknown_command()
 {
 	FastLock l(g_unknown_cs);
-	for (auto i = g_unknown_command.cbegin(); i != g_unknown_command.cend(); ++i)
+	string l_message;
+	for (auto i = g_unknown_command_array.cbegin(); i != g_unknown_command_array.cend(); ++i)
 	{
-		const string l_message = "NmdcHub::onLine summary unknown command! Count = " +
-		                         Util::toString(i->second.second) + " Key = [" + i->first + "], first value = [" + i->second.first + "]";
-		LogManager::message(l_message);
-		CFlyServerJSON::pushError(24, "NmdcHub::onLine summary unknown command:" + l_message);
+		l_message += "Hub: " + i->first + " Invalid command: ";
+		string l_separator;
+		for (auto j = i->second.cbegin(); j != i->second.cend(); ++j)
+		{
+			l_message += l_separator + j->first + " ( count: " + Util::toString(j->second) + ") ";
+			l_separator = " ";
+		}
 	}
-	g_unknown_command.clear();
+	return l_message;
+}
+void NmdcHub::log_all_unknown_command()
+{
+	{
+		FastLock l(g_unknown_cs);
+		for (auto i = g_unknown_command.cbegin(); i != g_unknown_command.cend(); ++i)
+		{
+			const string l_message = "NmdcHub::onLine summary unknown command! Count = " +
+			                         Util::toString(i->second.second) + " Key = [" + i->first + "], first value = [" + i->second.first + "]";
+			LogManager::message(l_message);
+			CFlyServerJSON::pushError(24, "NmdcHub::onLine summary unknown command:" + l_message);
+		}
+		g_unknown_command.clear();
+	}
+	CFlyServerJSON::pushError(25, get_all_unknown_command());
 }
 void NmdcHub::processAutodetect(bool p_is_myinfo)
 {
@@ -2042,7 +2074,7 @@ void NmdcHub::myInfoParse(const string& param) noexcept
 		if (x != string::npos)
 		{
 			// Hm, we have something...disassemble it...
-			dcassert(tmpDesc.length() > x + 2)
+			//dcassert(tmpDesc.length() > x + 2)
 			if (tmpDesc.length()  > x + 2)
 			{
 				const string l_tag = tmpDesc.substr(x + 1, tmpDesc.length() - x - 2);

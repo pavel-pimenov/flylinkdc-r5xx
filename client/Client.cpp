@@ -309,7 +309,7 @@ void Client::connect()
 	reset_socket();
 	// [!]IRainman moved to two function:
 	// void Client::on(Failed, const string& aLine)
-	// void Client::disconnect(bool graceLess)
+	// void Client::disconnect(bool p_graceLess)
 	clearAvailableBytesL();
 	setAutoReconnect(true);
 	setReconnDelay(120 + Util::rand(0, 60));
@@ -423,7 +423,7 @@ void Client::on(Failed, const string& aLine) noexcept
 	fire(ClientListener::Failed(), this, aLine);
 }
 
-void Client::disconnect(bool graceLess)
+void Client::disconnect(bool p_graceLess)
 {
 	state = STATE_DISCONNECTED;//[!] IRainman fix
 	FavoriteManager::removeUserCommand(getHubUrl());
@@ -431,7 +431,7 @@ void Client::disconnect(bool graceLess)
 	FastLock lock(csSock); // [+] brain-ripper
 #endif
 	if (m_client_sock)
-		m_client_sock->disconnect(graceLess);
+		m_client_sock->disconnect(p_graceLess);
 }
 
 bool Client::isSecure() const

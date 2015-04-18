@@ -31,7 +31,7 @@
 #include "../client/SearchManager.h"
 #include "../client/SearchResult.h"
 #include "../client/SimpleXML.h"
-
+#include "../FlyFeatures/flyServer.h"
 namespace dht
 {
 
@@ -392,6 +392,8 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
 					boost::system::error_code l_ec;
 					const auto l_ip4 = boost::asio::ip::address_v4::from_string(i4, l_ec);
 					dcassert(!l_ec);
+					if (!l_ec)
+					{
 					const SearchResult sr(source->getUser(), SearchResult::TYPE_FILE, !source->isOnline() ? 0 : source->getIdentity().getSlots(), 0, size, s->m_term, DHT::getInstance()->getHubName(), DHT::getInstance()->getHubUrl(), l_ip4, TTHValue(s->m_term), l_token);
 					if (!source->isOnline())
 					{
@@ -404,6 +406,15 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
 					else
 					{
 						::SearchManager::getInstance()->fire(::SearchManagerListener::SR(), sr);
+					}
+					}
+					else
+					{
+#ifdef FLYLINKDC_BETA
+						const string l_message = "SearchManager::processSearchResult Error IP = " + i4;
+						LogManager::message(l_message);
+						CFlyServerJSON::pushError(27, l_message);
+#endif
 					}
 				}
 			}

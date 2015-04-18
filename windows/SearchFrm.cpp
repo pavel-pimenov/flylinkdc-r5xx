@@ -258,6 +258,21 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	SET_EXTENDENT_LIST_VIEW_STYLE_WITH_CHECK(ctrlHubs);
 	hubsContainer.SubclassWindow(ctrlHubs.m_hWnd);
 	
+#ifdef FLYLINKDC_USE_ADVANCED_GRID_SEARCH
+	ctrlGridFilters.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VSCROLL | LVS_REPORT | LVS_NOCOLUMNHEADER, WS_EX_CLIENTEDGE);
+	ctrlGridFilters.SetExtendedGridStyle(PGS_EX_SINGLECLICKEDIT /*| PGS_EX_NOGRID*/ | PGS_EX_NOSHEETNAVIGATION);
+	
+	ctrlGridFilters.InsertColumn(FGC_INVERT, _T("Invert"), LVCFMT_CENTER, 14, 0);
+	ctrlGridFilters.InsertColumn(FGC_TYPE, _T("Type"), LVCFMT_LEFT, 62, 0);
+	ctrlGridFilters.InsertColumn(FGC_FILTER, _T("Filter"), LVCFMT_LEFT, 114, 0);
+	ctrlGridFilters.InsertColumn(FGC_ADD, _T("Add"), LVCFMT_LEFT, 14, 0);
+	ctrlGridFilters.InsertColumn(FGC_REMOVE, _T("Del"), LVCFMT_LEFT, 14, 0);
+	
+	ctrlGridFilters.SetBkColor(GetSysColor(COLOR_3DFACE));
+	ctrlGridFilters.SetTextColor(GetSysColor(COLOR_BTNTEXT));
+	
+	insertIntofilter(ctrlGridFilters);
+#endif
 	ctrlFilter.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                  ES_AUTOHSCROLL, WS_EX_CLIENTEDGE);
 	                  
@@ -285,6 +300,12 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	srLabel.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 	srLabel.SetFont(Fonts::g_systemFont, FALSE);
 	srLabel.SetWindowText(CTSTRING(SEARCH_IN_RESULTS));
+	
+#ifdef FLYLINKDC_USE_ADVANCED_GRID_SEARCH
+	srLabelExcl.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+	srLabelExcl.SetFont(Fonts::g_systemFont, FALSE);
+	srLabelExcl.SetWindowText(CTSTRING(SEARCH_FILTER_LBL_EXCLUDE));
+#endif
 	
 	optionLabel.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 	optionLabel.SetFont(Fonts::g_systemFont, FALSE);
@@ -575,6 +596,57 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	bHandled = FALSE;
 	return 1;
 }
+#ifdef FLYLINKDC_USE_ADVANCED_GRID_SEARCH
+
+vector<LPCTSTR> SearchFrame::getFilterTypes()
+{
+	vector<LPCTSTR> types;
+	
+	// default types
+	for (int j = 0; j < COLUMN_LAST; j++)
+	{
+		types.push_back(CTSTRING_I(columnNames[j]));
+	}
+	
+	// addition
+	for (int j = FILTER_ITEM_FIRST; j < FILTER_ITEM_LAST; j++)
+	{
+		LPCTSTR caption = _T("");
+		switch (j)
+		{
+			case FILTER_ITEM_PATHFILE:
+			{
+				caption = CTSTRING(SEARCH_FILTER_ITEM_FILEPATH);
+				break;
+			}
+			default:
+			{
+				ATLASSERT(false);
+			}
+		}
+		types.push_back(caption);
+	}
+	return types;
+}
+
+void SearchFrame::insertIntofilter(CGrid& grid)
+{
+	TCGridItemCustom invertCfg;
+	invertCfg.caption     = _T("~");
+	invertCfg.flags       = DT_SINGLELINE | DT_VCENTER | DT_CENTER;
+	invertCfg.offset.top  = 4;
+	
+	int idx = grid.InsertItem(grid.GetSelectedIndex() + 1, CGridItem::ButtonPush(false, invertCfg));
+	
+	TCGridItemCustom typesCfg;
+	typesCfg.offset.right = 70;
+	
+	grid.SetSubItem(idx, 1, CGridItem::ListBox(getFilterTypes(), typesCfg, FILTER_ITEM_PATHFILE));
+	grid.SetSubItem(idx, 2, CGridItem::EditBox(_T(""), this));
+	grid.SetSubItem(idx, 3, CGridItem::Button(_T("+")));
+	grid.SetSubItem(idx, 4, CGridItem::Button(_T("-")));
+}
+#endif
 
 LRESULT SearchFrame::onMeasure(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
@@ -2018,6 +2090,23 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 		// Ќадпись "“ип файла": (лева€, верхн€€, права€, нижн€€ границы).
 		typeLabel.MoveWindow(rc.left + lMargin, rc.top - labelH, width - rMargin, labelH - 1);
 		
+#ifdef FLYLINKDC_USE_ADVANCED_GRID_SEARCH
+		// "Search filter"
+		const LONG gridFilterSMin     = 70;
+		const LONG gridFilterBAnchor  = 530;
+		
+		LONG gridFilterH = rect.bottom - gridFilterBAnchor;
+		
+		rc.top += spacing;
+		srLabel.MoveWindow(lMargin * 2, rc.top - labelH, width - rMargin, labelH - 1);
+		
+		rc.left     = -1;
+		rc.right    = width + 1;
+		rc.bottom   = rc.top + max(gridFilterSMin, gridFilterSMin + gridFilterH);
+		ctrlGridFilters.MoveWindow(rc);
+		
+		rc.top += 10 + max(gridFilterSMin, gridFilterSMin + gridFilterH);
+#endif
 		// "Search options".
 		rc.left = lMargin + 4;
 		rc.right = width - rMargin;
@@ -2198,7 +2287,11 @@ LRESULT SearchFrame::onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOO
 	        hWnd == m_ctrlFlyServer.m_hWnd ||
 #endif
 	        hWnd == m_SearchHelp.m_hWnd || hWnd == ctrlCollapsed.m_hWnd || hWnd == srLabel.m_hWnd
-	        || hWnd == m_ctrlUDPTestResult.m_hWnd || hWnd == m_ctrlUDPMode.m_hWnd)
+	        || hWnd == m_ctrlUDPTestResult.m_hWnd || hWnd == m_ctrlUDPMode.m_hWnd
+#ifdef FLYLINKDC_USE_ADVANCED_GRID_SEARCH
+	        || hWnd == srLabelExcl.m_hWnd
+#endif
+	   )
 	{
 		::SetBkColor(hDC, ::GetSysColor(COLOR_3DFACE));
 		::SetTextColor(hDC, ::GetSysColor(COLOR_BTNTEXT));
@@ -3081,6 +3174,123 @@ LRESULT SearchFrame::onFilterChar(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*
 	bHandled = false;
 	return 0;
 }
+#ifdef FLYLINKDC_USE_ADVANCED_GRID_SEARCH
+
+void SearchFrame::filtering(SearchInfo* si /*= nullptr */)
+{
+	if (!filterAllowRunning)
+	{
+		return;
+	}
+	//Lock l(cs);
+	updatePrevTimeFilter();
+	//TODO boost::thread t(boost::bind(&SearchFrame::updateSearchListSafe, this, si));
+}
+
+bool SearchFrame::doFilter(WPARAM wParam)
+{
+	if (BOOLSETTING(FILTER_ENTER) && wParam != VK_RETURN)
+	{
+		return false;
+	}
+	
+	if (GetKeyState(VK_CONTROL) &  0x8000)
+	{
+		if (wParam != 0x56) // ctrl+v
+		{
+			return false;
+		}
+	}
+	else
+	{
+		switch (wParam)
+		{
+			case VK_LEFT:
+			case VK_RIGHT:
+			case VK_CONTROL/*single*/:
+			case VK_SHIFT:
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+LRESULT SearchFrame::onKeyHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	switch (uMsg)
+	{
+		case WM_KEYDOWN:
+		{
+			bHandled = FALSE;
+			return 0;
+		}
+		case WM_KEYUP:
+		{
+			bHandled = TRUE;
+			if (!doFilter(wParam))
+			{
+				return 0;
+			}
+			// TODO filtering();
+			return 0;
+		}
+		case WM_CHAR:
+		{
+			bHandled = FALSE;
+			return 0;
+		}
+	}
+	bHandled = FALSE;
+	return 0;
+}
+
+LRESULT SearchFrame::onGridItemClick(int idCtrl, LPNMHDR pnmh, BOOL& /*bHandled*/)
+{
+	switch (ctrlGridFilters.GetSelectedColumn())
+	{
+		case FGC_ADD:
+		{
+			insertIntofilter(ctrlGridFilters);
+			return 0;
+		}
+		case FGC_REMOVE:
+		{
+			if (ctrlGridFilters.GetItemCount() < 2)
+			{
+				ctrlGridFilters.GetProperty(0, FGC_FILTER)->SetValue(CComVariant(_T("")));
+				return 0;
+			}
+			ctrlGridFilters.DeleteItem(ctrlGridFilters.GetSelectedIndex());
+			return 1;
+		}
+	}
+	return 0;
+}
+
+LRESULT SearchFrame::onGridItemChanged(int idCtrl, LPNMHDR pnmh, BOOL& /*bHandled*/)
+{
+	updateSearchListSafe();
+	return 0;
+}
+
+void SearchFrame::updateSearchListSafe(SearchInfo* si)
+{
+	//Lock l(cs);
+	try
+	{
+		updateSearchList(si);
+		return;
+	}
+	catch (...)
+	{
+		//TODO:
+		dcdebug("updateSearchList corrupt");
+	}
+}
+
+#endif
 
 bool SearchFrame::parseFilter(FilterModes& mode, int64_t& size)
 {
@@ -3221,7 +3431,6 @@ bool SearchFrame::matchFilter(const SearchInfo* si, int sel, bool doSizeCompare,
 	}
 	return insert;
 }
-
 
 void SearchFrame::updateSearchList(SearchInfo* si)
 {

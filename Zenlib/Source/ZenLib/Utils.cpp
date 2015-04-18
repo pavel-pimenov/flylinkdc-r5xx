@@ -471,7 +471,7 @@ void int64u2LittleEndian    (char* List, int64u Value)
 
 //---------------------------------------------------------------------------
 // Little Endian - 128 bits
-void int128u2LittleEndian(char* List, const int128u &Value)
+void int128u2LittleEndian(char* List, const int128u& Value)
 {
     int64u2LittleEndian(List+8, Value.lo);
     int64u2LittleEndian(List  , Value.hi);
@@ -924,7 +924,7 @@ void int64u2BigEndian    (char* List, int64u Value)
 
 //---------------------------------------------------------------------------
 // Big Endian - 128 bits
-void int128u2BigEndian(char* List, const int128u &Value)
+void int128u2BigEndian(char* List, const int128u& Value)
 {
     int64u2BigEndian(List, Value.hi);
     int64u2BigEndian(List+8, Value.lo);

@@ -5,7 +5,7 @@
 #if !defined(ABOUT_STAT_DLG_H)
 #define ABOUT_STAT_DLG_H
 #include "wtl_flylinkdc.h"
-//#include "ExListViewCtrl.h"
+#include "../client/NmdcHub.h"
 
 class AboutStatDlg : public CDialogImpl<AboutStatDlg>
 #ifdef _DEBUG
@@ -43,6 +43,7 @@ class AboutStatDlg : public CDialogImpl<AboutStatDlg>
 			CEdit ctrlUDPStat(GetDlgItem(IDC_UDP_DHT_SSL_STAT));
 			//ctrlUDPStat.SetFont(Fonts::g_halfFont);
 			ctrlUDPStat.AppendText(Text::toT(CompatibilityManager::generateNetworkStats()).c_str(), FALSE);
+			ctrlUDPStat.AppendText(Text::toT(NmdcHub::get_all_unknown_command()).c_str());
 			ctrlUDPStat.Detach();
 			return TRUE;
 		}

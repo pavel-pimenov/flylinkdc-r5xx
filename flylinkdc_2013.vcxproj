@@ -565,6 +565,12 @@
     <ClInclude Include="windows\FlyUpdateDlg.h" />
     <ClInclude Include="windows\FolderTree.h" />
     <ClInclude Include="windows\GeneralPage.h" />
+    <ClInclude Include="windows\grid\CGrid.h" />
+    <ClInclude Include="windows\grid\CGridItem.h" />
+    <ClInclude Include="windows\grid\PropertyGrid.h" />
+    <ClInclude Include="windows\grid\PropertyItem.h" />
+    <ClInclude Include="windows\grid\PropertyItemEditors.h" />
+    <ClInclude Include="windows\grid\PropertyItemImpl.h" />
     <ClInclude Include="windows\HashProgressDlg.h" />
     <ClInclude Include="windows\HIconWrapper.h" />
     <ClInclude Include="windows\HTMLColors.h" />

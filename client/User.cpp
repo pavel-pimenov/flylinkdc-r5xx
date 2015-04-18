@@ -25,6 +25,7 @@
 #include "Wildcards.h"
 #include "UserConnection.h"
 #include "LogManager.h"
+#include "../FlyFeatures/flyServer.h"
 
 std::unique_ptr<webrtc::RWLockWrapper> Identity::g_rw_cs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 
@@ -102,6 +103,25 @@ void User::storeIP(const string& p_ip)
 	}
 }
 #endif
+void User::setIP(const string& p_ip)
+{
+	boost::system::error_code ec;
+	const auto l_ip = boost::asio::ip::address_v4::from_string(p_ip, ec);
+	dcassert(!ec);
+	if (!ec)
+	{
+		setIP(l_ip);
+	}
+	else
+	{
+#ifdef FLYLINKDC_BETA
+		const string l_message = "User::setIP Error IP = " + p_ip;
+		LogManager::message(l_message);
+		CFlyServerJSON::pushError(27, l_message);
+#endif
+	}
+}
+
 void User::setIP(const boost::asio::ip::address_v4& p_last_ip)
 {
 	if (m_ratio_ptr)
@@ -977,6 +997,55 @@ string Identity::getSupports() const // [+] IRainman fix.
 	return tmp;
 }
 
+string Identity::getIpAsString() const
+{
+	if (!m_ip.is_unspecified())
+		return m_ip.to_string();
+	else
+	{
+		if (isUseIP6())
+		{
+			return getIP6();
+		}
+		else
+		{
+			return getUser()->getIPAsString();
+		}
+	}
+}
+void Identity::setIp(const string& p_ip) // "I4"
+{
+	boost::system::error_code ec;
+	m_ip = boost::asio::ip::address_v4::from_string(p_ip, ec);
+	dcassert(!ec);
+	if (!ec)
+	{
+		getUser()->setIP(m_ip);
+	}
+	else
+	{
+#ifdef FLYLINKDC_BETA
+		const string l_message = "Identity::setIP Error IP = " + p_ip;
+		LogManager::message(l_message);
+		CFlyServerJSON::pushError(27, l_message);
+#endif
+	}
+	change(CHANGES_IP | CHANGES_GEO_LOCATION);
+}
+bool Identity::isFantomIP() const
+{
+	if (m_ip.is_unspecified())
+	{
+		if (isUseIP6())
+			return false;
+		else
+			return true;
+	}
+	return false;
+}
+
+
+
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 User::DefinedAutoBanFlags User::hasAutoBan(Client *p_Client, const bool p_is_favorite)
 {
@@ -1039,6 +1108,7 @@ bool OnlineUser::isDHT() const
 {
 	return m_client.isDHT();
 }
+
 
 //[~]FlylinkDC
 /**

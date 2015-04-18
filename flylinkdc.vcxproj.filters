@@ -795,6 +795,24 @@
     <ClInclude Include="windows\CFlyLocationDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="windows\grid\CGrid.h">
+      <Filter>Source Files\Grid</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\grid\CGridItem.h">
+      <Filter>Source Files\Grid</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\grid\PropertyGrid.h">
+      <Filter>Source Files\Grid</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\grid\PropertyItem.h">
+      <Filter>Source Files\Grid</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\grid\PropertyItemEditors.h">
+      <Filter>Source Files\Grid</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\grid\PropertyItemImpl.h">
+      <Filter>Source Files\Grid</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="FlylinkDC_version.rc">

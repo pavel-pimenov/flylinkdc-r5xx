@@ -90,13 +90,13 @@
 
 #define DCVERSIONSTRING "0.785"
 
-#define HOMEPAGE "http://flylinkdc.com/"
+#define HOMEPAGE "http://flylinkdc.blogspot.com/"
 #define HELPPAGE "http://flylinkdc.com/dokuwiki/doku.php?id="
-#define HOMEPAGERU "http://flylinkdc.ru/"
+#define HOMEPAGERU "http://flylinkdc.blogspot.com/"
 
 #define HOMEPAGE_BLOG "http://flylinkdc.blogspot.com/"
 #define DISCUSS "http://flylinkdc.com/forum/"
-#define SITES_FLYLINK_TRAC "http://code.google.com/p/flylinkdc/"
+#define SITES_FLYLINK_TRAC "https://github.com/pavel-pimenov/flylinkdc-r5xx/"
 
 
 #endif // FLY_VERSION_H

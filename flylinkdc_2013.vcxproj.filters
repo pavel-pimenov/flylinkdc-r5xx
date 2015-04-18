@@ -795,6 +795,24 @@
     <ClInclude Include="windows\AboutStatDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="windows\grid\CGrid.h">
+      <Filter>Source Files\grid</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\grid\CGridItem.h">
+      <Filter>Source Files\grid</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\grid\PropertyGrid.h">
+      <Filter>Source Files\grid</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\grid\PropertyItem.h">
+      <Filter>Source Files\grid</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\grid\PropertyItemEditors.h">
+      <Filter>Source Files\grid</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\grid\PropertyItemImpl.h">
+      <Filter>Source Files\grid</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -808,6 +826,9 @@
     </Filter>
     <Filter Include="Wizard">
       <UniqueIdentifier>{cb5f3249-0049-47ba-845a-a0cef619df71}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\grid">
+      <UniqueIdentifier>{fc5d248d-f1aa-4a14-96f1-2d53a1414d22}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

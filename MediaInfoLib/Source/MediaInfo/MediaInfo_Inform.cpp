@@ -306,19 +306,19 @@ Ztring MediaInfo_Internal::Inform (stream_t StreamKind, size_t StreamPos, bool I
         #if defined(MEDIAINFO_CSV_YES)
         bool CSV=MediaInfoLib::Config.Inform_Get()==__T("CSV")?true:false;
         #endif //defined(MEDIAINFO_CSV_YES)
-        #if defined(MEDIAINFO_HTML_YES) && (!defined(MEDIAINFO_HTML_YES) || !defined(MEDIAINFO_XML_YES) || !defined(MEDIAINFO_CSV_YES))
+        #if defined(MEDIAINFO_TEXT_YES) && (defined(MEDIAINFO_HTML_YES) || defined(MEDIAINFO_XML_YES) || defined(MEDIAINFO_CSV_YES))
         bool Text=true;
         #if defined(MEDIAINFO_HTML_YES)
          if (HTML)
-             Text=false
+             Text=false;
         #endif //defined(MEDIAINFO_HTML_YES)
         #if defined(MEDIAINFO_XML_YES)
          if (XML)
-             Text=false
+             Text=false;
         #endif //defined(MEDIAINFO_XML_YES)
         #if defined(MEDIAINFO_CSV_YES)
          if (CSV)
-             Text=false
+             Text=false;
         #endif //defined(MEDIAINFO_CSV_YES)
         #endif //defined(MEDIAINFO_HTML_YES) && (!defined(MEDIAINFO_HTML_YES) || !defined(MEDIAINFO_XML_YES) || !defined(MEDIAINFO_CSV_YES))
         size_t Size=Count_Get(StreamKind, StreamPos);
@@ -332,7 +332,7 @@ Ztring MediaInfo_Internal::Inform (stream_t StreamKind, size_t StreamPos, bool I
                 Ztring Nom=Get((stream_t)StreamKind, StreamPos, Champ_Pos, Info_Name_Text);
                 if (Nom.empty())
                     Nom=Get((stream_t)StreamKind, StreamPos, Champ_Pos, Info_Name); //Texte n'existe pas
-                #if defined(MEDIAINFO_HTML_YES) && (!defined(MEDIAINFO_HTML_YES) || !defined(MEDIAINFO_XML_YES) || !defined(MEDIAINFO_CSV_YES))
+                #if defined(MEDIAINFO_TEXT_YES) && (defined(MEDIAINFO_HTML_YES) || defined(MEDIAINFO_XML_YES) || defined(MEDIAINFO_CSV_YES))
                 if (Text)
                 #endif //defined(MEDIAINFO_HTML_YES) && (!defined(MEDIAINFO_HTML_YES) || !defined(MEDIAINFO_XML_YES) || !defined(MEDIAINFO_CSV_YES))
                 {
@@ -382,7 +382,7 @@ Ztring MediaInfo_Internal::Inform (stream_t StreamKind, size_t StreamPos, bool I
                     Retour+=Valeur;
                 }
                 #endif //defined(MEDIAINFO_CSV_YES)
-                #if defined(MEDIAINFO_HTML_YES) && (!defined(MEDIAINFO_HTML_YES) || !defined(MEDIAINFO_XML_YES) || !defined(MEDIAINFO_CSV_YES))
+                #if defined(MEDIAINFO_TEXT_YES) && (defined(MEDIAINFO_HTML_YES) || defined(MEDIAINFO_XML_YES) || defined(MEDIAINFO_CSV_YES))
                 if (Text)
                 #endif //defined(MEDIAINFO_HTML_YES) && (!defined(MEDIAINFO_HTML_YES) || !defined(MEDIAINFO_XML_YES) || !defined(MEDIAINFO_CSV_YES))
                     Retour+=Nom + MediaInfoLib::Config.Language_Get(__T("  Config_Text_Separator")) + Valeur;

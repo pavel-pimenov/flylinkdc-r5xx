@@ -69,7 +69,7 @@ void   int56s2LittleEndian    (char* List, int64s Value);
 void   int56u2LittleEndian    (char* List, int64u Value);
 void   int64s2LittleEndian    (char* List, int64s Value);
 void   int64u2LittleEndian    (char* List, int64u Value);
-void   int128u2LittleEndian   (char* List, const int128u &Value);
+void   int128u2LittleEndian   (char* List, const int128u& Value);
 #endif
 void   float162LittleEndian   (char* List, float32 Value);
 void   float322LittleEndian   (char* List, float32 Value);
@@ -118,7 +118,7 @@ inline void   int56s2LittleEndian    (int8u* List, int64s Value) {return int56s2
 inline void   int56u2LittleEndian    (int8u* List, int64u Value) {return int56u2LittleEndian   ((char*)List, Value);}
 inline void   int64s2LittleEndian    (int8u* List, int64s Value) {return int64s2LittleEndian   ((char*)List, Value);}
 inline void   int64u2LittleEndian    (int8u* List, int64u Value) {return int64u2LittleEndian   ((char*)List, Value);}
-inline void   int128u2LittleEndian   (int8u* List, const int128u &Value) {return int128u2LittleEndian ((char*)List, Value);}
+inline void   int128u2LittleEndian   (int8u* List, const int128u& Value) {return int128u2LittleEndian ((char*)List, Value);}
 #endif
 inline void   float162LittleEndian   (int8u* List, float32 Value) {return float162LittleEndian ((char*)List, Value);}
 inline void   float322LittleEndian   (int8u* List, float32 Value) {return float322LittleEndian ((char*)List, Value);}
@@ -169,7 +169,7 @@ void   int56s2BigEndian    (char* List, int64s Value);
 void   int56u2BigEndian    (char* List, int64u Value);
 void   int64s2BigEndian    (char* List, int64s Value);
 void   int64u2BigEndian    (char* List, int64u Value);
-void   int128u2BigEndian   (char* List, const int128u &Value);
+void   int128u2BigEndian   (char* List, const int128u& Value);
 #endif
 void   float162BigEndian   (char* List, float32 Value);
 void   float322BigEndian   (char* List, float32 Value);
@@ -218,7 +218,7 @@ inline void   int56s2BigEndian    (int8u* List, int64s Value) {return int56s2Big
 inline void   int56u2BigEndian    (int8u* List, int64u Value) {return int56u2BigEndian   ((char*)List, Value);}
 inline void   int64s2BigEndian    (int8u* List, int64s Value) {return int64s2BigEndian   ((char*)List, Value);}
 inline void   int64u2BigEndian    (int8u* List, int64u Value) {return int64u2BigEndian   ((char*)List, Value);}
-inline void   int128u2BigEndian   (int8u* List, const int128u &Value) {return int128u2BigEndian ((char*)List, Value);}
+inline void   int128u2BigEndian   (int8u* List, const int128u& Value) {return int128u2BigEndian ((char*)List, Value);}
 #endif
 inline void   float162BigEndian   (int8u* List, float32 Value) {return float162BigEndian ((char*)List, Value);}
 inline void   float322BigEndian   (int8u* List, float32 Value) {return float322BigEndian ((char*)List, Value);}

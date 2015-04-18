@@ -1166,6 +1166,8 @@ enum Strings   // @DontAdd
 	SEARCH_FOR_ALTERNATES, // "Search for alternates"
 	SEARCH_FOR_FILE, // "Search for file"
 	SEARCH_IN_RESULTS, // "Search in results"
+	SEARCH_FILTER_ITEM_FILEPATH, // "File & Path"
+	SEARCH_FILTER_LBL_EXCLUDE, // "And exclude match"
 	SEARCH_OPTIONS, // "Search options"
 	SEARCH_SPAM_FROM, // "Search spam detected from"
 	SEARCH_SPY, // "Search Spy"

@@ -450,7 +450,7 @@
 ;Россия;Комсомольск-на-Амуре;Камтек;;dc.kms.multinex.ru
 ;Россия;Комсомольск-на-Амуре;Комстар-Регионы;;172.20.98.16,dc.kms.multinex.ru,172.20.91.12:412
 ;Россия;Комсомольск-на-Амуре;Лайм-Телеком;;dchub://192.168.1.253
-;Россия;Комсомольск-на-Амуре;МТС;;dc.komsomolsk.mts.ru,dc.kmsnet.ru,172.19.67.14,172.20.91.12:412,dc.kms.multinex.ru,172.19.1.15:411,178.165.8.85:411,172.19.23.2:411,172.20.73.129,172.20.60.8,172.19.239.2:4111,172.18.4.151,10.0.52.12
+;Россия;Комсомольск-на-Амуре;МТС;;dc.komsomolsk.mts.ru,dc.nafokse.ru,dc.kmsnet.ru,172.19.67.14,172.20.91.12:412,dc.kms.multinex.ru,172.19.1.15:411,178.165.8.85:411,172.19.23.2:411,172.20.73.129,172.20.60.8,172.19.239.2:4111,172.18.4.151,10.0.52.12
 ;Россия;Комсомольск-на-Амуре;Первак;;onamur.ru:412
 ;Россия;Комсомольск-на-Амуре;Ростелеком;;dc.dtkms.ru,dc.rtk-dv.ru,dc.rtgames.ru
 ;Россия;Конаково;SatService;;dchub://dcpp.satservise.su:777
@@ -718,7 +718,7 @@
 ;Россия;Новосибирск;Homenet;;p2p.homenet,atlantidap2p.homenet,blyhub.homenet,babylon.nsunet.ru,dcpp.nsunet.ru,p2p.citynsk.ru,p2p.x1planet.ru,dc.playground.ru,int.myvnc.com:411,peers.cn.ru,blyhub.ru,atlantida.hnet.ru,p2p.hnet.ru
 ;Россия;Новосибирск;HomeNet-p2p;;blyhub.hnet.ru,atlantida.hnet.ru,p2p.hnet.ru
 ;Россия;Новосибирск;Hostel-nstu-ru;;p2p.hostel.nstu.ru
-;Россия;Новосибирск;I-Net;;p2p.lan
+;Россия;Новосибирск;I-Net;;p2p.lan,inet-nsk.ru
 ;Россия;Новосибирск;Iandmyself;;lvs.ru
 ;Россия;Новосибирск;Inet-nsk;;inet-nsk.ru
 ;Россия;Новосибирск;LightNet;;10.0.0.2
@@ -918,7 +918,7 @@
 ;Россия;Санкт-Петербург;Лайнер;;dc.int,dc.ozerki.net,dc.arbital.ru,dc.teyla.ru,10.252.0.1:4111,10.178.1.2:4111,kupchino.sknt.ru,dc.tiera.ru,dc.spbfree.net,10.88.88.45:411,dc.home-media.ru:411
 ;Россия;Санкт-Петербург;Металидер;;hub.local
 ;Россия;Санкт-Петербург;Невалинк;;dc.cactus-net.ru,search.telix.ru:4111,hub.aimaster.ru,forum.local,dc.vsevnet.ru:1411,10.144.236.10,10.1.0.9,papahub.dyndns.info:1411,89.223.50.18
-;Россия;Санкт-Петербург;Ростелеком;;dc.avangard-lan.ru
+;Россия;Санкт-Петербург;Ростелеком;;dc.megalive.spb.ru:4441,dc.avangard-lan.ru,xdn.megalive.spb.ru:4111,storm.megalive.spb.ru:4111,fish.megalive.spb.ru:4111
 ;Россия;Санкт-Петербург;СПБГУ;;dchub.punklan.net,dsr.punklan.net,osiris.punklan.net,dchub.snacho.ru
 ;Россия;Санкт-Петербург;Сумма Телеком;;dc.maddrive.ru,ozerki.org,dc.dcmagnets.ru,adminshub.ru
 ;Россия;Санкт-Петербург;ТВ-ИКС;;dc.dcmagnets.ru,dc.smarthome.spb.ru,dc.ozerki.net,dc.filimania.com,dc.maxnet.ua,piknik-dc.ru,dc.tiera.ru,favorite-hub.ru,dcmagnets.ru
@@ -1002,7 +1002,7 @@
 ;Россия;Талнах;Селена;;dchub://10.1.1.12
 ;Россия;Тамбов;Домолинк;;p2p.tmb.ru,tmb-hub.homeip.net:411
 ;Россия;Тамбов;Зеленая Точка;;p2p.delfintelecom.ru:411,p2p.tmb.ru
-;Россия;Тамбов;Ланта;;dfm.selfip,center.lanta-net.ru:10421,dcpp.lanta-net.ru:10421,dfm.selfip.org:411,193.203.60.11:1411,p2p.tmb.ru:411,193.203.60.24:10421
+;Россия;Тамбов;Ланта;;center.lanta-net.ru:10421,dcpp.lanta-net.ru:10421,dfm.selfip.org:411,193.203.60.11:1411,p2p.tmb.ru:411,193.203.60.24:10421
 ;Россия;Тамбов;ТМС;Внутрисетевой хаб;hub.tnms.ru
 ;Россия;Таруса;Таруса Сити Телеком;;dc.tar-online.ru
 ;Россия;Тверь;Chayka-net-ru;;192.168.220.2
@@ -1033,7 +1033,7 @@
 ;Россия;Тула;Билайн;;10.216.0.2,picnic-dc.ru,pos-front.no-ip.biz,dc.tula.net,hub.altair-tv.net,10.14.177.177,sigma13.no-ip.org:10000,miraj.no-ip.biz:1411,10.14.226.153,10.14.129.126,russian.no-ip.org,acckoebugoga.no-ip.org,nashhub71.no-ip.org,10.14.170.91:1209,energy-beeline.no-ip.biz,10.14.114.3:1209,naruto-manga.no-ip.org,10.14.118.88:1209,prizrak-tula.sytes.net,cor.tula71.ru,dc-openline.sytes.net,animetula.sytes.net,mrstalker.tula.su,tula71.no-ip.org:1209,corbeeline.ath.cx
 ;Россия;Тула;Ростелеком;;vipland.sytes.net,evolutkino.sytes.net,212.12.0.1,hub.altair-tv.net,dc.tula.net,hub.tula71.ru,dc.tula71.net,212.12.19.254,clubhub.sytes.net,dc.anton.tula.net,10.216.0.2,212.12.11.14:411,hub.torrent-tula.ru:10000,apocalypsehub.sytes.net,rap-alexin.sytes.net
 ;Россия;Тулун;Тулун-ТелеКом;;10.0.4.2,188.43.52.2
-;Россия;Тында;Регион-28;;dc.region-28.lan
+;Россия;Тында;Регион-28;;godc.ru:411,artcool.org:411,dc.region-28.lan,dc.dcmagnets.ru:411,dc.a-galaxy.com:411,prime-hub.ru:411,dc.tiera.ru:411,dc.filimania.com:411,dc.cifracom.ru:411,allavtovo.ru,kurskhub.ru,dc.unionbest.org:4111,dc.mside.net:411,piknik-dc.ru:411,spb-hub.ru:411,dc.fly-server.ru
 ;Россия;Тында;ТРАНССВЯЗЬТЕЛЕКОМ;;dc.tynda.bam,172.22.6.6
 ;Россия;Тюмень;Dom-ru;;dc.filimania.com,tunnelklub.spb.ru,piknik-dc.ru,prapor.in,dc.dcmagnets.ru,verlihub.org:4111
 ;Россия;Тюмень;GIGA-NET-RU;;hub.giga-net.local
@@ -1062,6 +1062,7 @@
 ;Россия;Усолье-Сибирское;CDS;;192.168.0.1
 ;Россия;Усолье-Сибирское;Городские Телевизионные Сети;;adc://usolye.net:3038
 ;Россия;Усолье-Сибирское;ТелеНэт;;172.16.0.4:4111,dc.usib.tv:4111
+;Россия;Уссурийск;Роснет;;dc.rosnet
 ;Россия;Уссурийск;Уссури-Телесервис;;10.100.10.26:2221
 ;Россия;Усть-Илимск;Cyberdyne SkyNet;;77.243.115.189
 ;Россия;Усть-Илимск;Khab;;dc1.ksilim.ru
@@ -1104,6 +1105,7 @@
 ;Россия;Чебаркуль;UIC_Metronet;;dc.chebarkul74.ru:4111
 ;Россия;Чебаркуль;ТВКом;;10.40.40.11
 ;Россия;Чебоксары;Etherway;;Etherway.ru,ew.hub21.ru:10004,dc-lan.hub21.ru:411,dc.etherway.ru:411,adcs://ew.hub21.ru:6850
+;Россия;Чебоксары;Hetbynet;;dc.serverok21.ru
 ;Россия;Чебоксары;IL-IC-Internet;;akvilon.tk,cheb21.no-ip.org,pinguin.21region.org,dc.hub21.ru,novchic.hub21.ru,dragonstar.ru,85.234.6.188
 ;Россия;Чебоксары;Infolink;;10.101.25.23,dc.link,dc2.link
 ;Россия;Чебоксары;Аквилон;;ak.akvi.net,10.50.198.62,10.0.16.4
@@ -1380,4 +1382,5 @@
 ;Украина;Чугуев;Чугуевские компьютерные сети ЧКС;;hub.chuguev.net
 ;Украина;Шостка;Shost-net-ua;;chat.shost.net.ua
 ;Украина;Ялта;Цитадель;;filexchange.city
+;Эстония;Maardu;Stv;;stv.ee
 ;Эстония;Таллинн;Saturn;;172.18.128.3

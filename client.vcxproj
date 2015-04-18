@@ -520,7 +520,6 @@
     <ClCompile Include="client\FsUtils.cpp" />
     <ClCompile Include="client\HashBloom.cpp" />
     <ClCompile Include="client\HashManager.cpp" />
-    <ClCompile Include="client\HttpConnection.cpp" />
     <ClCompile Include="client\LogManager.cpp" />
     <ClCompile Include="client\Mapper.cpp" />
     <ClCompile Include="client\Mapper_MiniUPnPc.cpp" />
@@ -695,6 +694,7 @@
     <ClCompile Include="client\webrtc\talk\base\win32.cc" />
     <ClCompile Include="client\webrtc\talk\base\winfirewall.cc" />
     <ClCompile Include="client\WebServerManager.cpp" />
+    <ClCompile Include="client\WildcardsReg.cpp" />
     <ClCompile Include="client\ZipFile.cpp" />
     <ClCompile Include="client\ZUtils.cpp" />
     <ClCompile Include="client\CFlylinkDBManager.cpp" />
@@ -1193,7 +1193,6 @@
     <ClInclude Include="client\HashBloom.h" />
     <ClInclude Include="client\HashManager.h" />
     <ClInclude Include="client\HashValue.h" />
-    <ClInclude Include="client\HttpConnection.h" />
     <ClInclude Include="client\HubEntry.h" />
     <ClInclude Include="client\IpGuard.h" />
     <ClInclude Include="client\LogManager.h" />
@@ -1241,6 +1240,7 @@
     <ClInclude Include="client\webrtc\system_wrappers\interface\trace_impl.h" />
     <ClInclude Include="client\webrtc\system_wrappers\interface\trace_win.h" />
     <ClInclude Include="client\webrtc\system_wrappers\interface\typedefs.h" />
+    <ClInclude Include="client\WildcardsReg.h" />
     <ClInclude Include="client\w_flylinkdc.h" />
     <ClInclude Include="client\ZipFile.h" />
     <ClInclude Include="jsoncpp\include\json\autolink.h" />

@@ -54,7 +54,7 @@ struct Search
 	string    m_query;
 	uint32_t  m_token;
 	StringList  m_ext_list;
-	std::unordered_set<void*> m_owners;
+	std::unordered_set<void*> m_owners; // boost - падает.
 	bool isAutoToken() const
 	{
 		return m_token == 0; /*"auto"*/
@@ -105,8 +105,7 @@ class SearchParam : public SearchParamBase
 		string m_seeker;
 		string::size_type m_query_pos;
 		char m_error_level;
-		bool m_is_passive;
-		SearchParam(): m_query_pos(string::npos), m_error_level(0), m_is_passive(false)
+		SearchParam(): m_query_pos(string::npos), m_error_level(0)
 		{
 		}
 		bool is_parse_nmdc_search(const string& p_raw_search);

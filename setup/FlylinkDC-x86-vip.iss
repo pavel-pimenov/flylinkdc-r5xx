@@ -12,10 +12,10 @@
 [Icons]
 Name: {group}\FlylinkDC++{code:Postfix| }; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; WorkingDir: {app}; IconFilename: "{app}\setup.ico"
 Name: {userstartup}\FlylinkDC++{code:Postfix| }; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; Tasks: startup; WorkingDir: {app} ; IconFilename: "{app}\setup.ico"
-Name: {group}\{cm:ProgramOnTheWeb,FlylinkDC++{code:Postfix| }}; Filename: http://www.flylinkdc.ru
+;Name: {group}\{cm:ProgramOnTheWeb,FlylinkDC++{code:Postfix| }}; Filename: http://www.flylinkdc.ru
 Name: {group}\{cm:UninstallProgram,FlylinkDC++{code:Postfix| }}; Filename: {uninstallexe} ; IconFilename: "{app}\setup.ico"
-Name: {commondesktop}\FlylinkDC++{code:Postfix| }; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; Tasks: desktopicon; WorkingDir: {app} ; IconFilename: "{app}\setup.ico"
-Name: {userappdata}\Microsoft\Internet Explorer\Quick Launch\FlylinkDC++{code:Postfix| }; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; Tasks: quicklaunchicon; WorkingDir: {app} ; IconFilename: "{app}\setup.ico"
+Name: {commondesktop}\Реактор; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; Tasks: desktopicon; WorkingDir: {app} ; IconFilename: "{app}\setup.ico"
+Name: {userappdata}\Microsoft\Internet Explorer\Quick Launch\Реактор; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; Tasks: quicklaunchicon; WorkingDir: {app} ; IconFilename: "{app}\setup.ico"
 
 
 [Setup]
@@ -31,7 +31,7 @@ Name: "DCPlusPlus\vip_custom"; Description: "Реактор"; Flags: exclusive
 
 #include "FlylinkDC-x86.hss"
 [Files]
-Source: "vip_custom\setup.ico";                  				      DestDir: "{app}\setup.ico"; Flags: overwritereadonly	
+Source: "vip_custom\setup.ico";           			     DestDir: "{app}"; Flags: overwritereadonly	
 Source: "vip_custom\DCPlusPlus.xml";                          DestDir: "{code:fUser}"; Flags: onlyifdoesntexist
 Source: "vip_custom\Favorites.xml";                           DestDir: "{code:fUser}"; Flags: onlyifdoesntexist
 

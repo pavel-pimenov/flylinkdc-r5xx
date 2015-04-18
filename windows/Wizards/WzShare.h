@@ -81,8 +81,9 @@ public:
 		auto cnt = ctrlDirectories.GetItemCount();
 		for (auto j = directories.cbegin(); j != directories.cend(); ++j)
 		{
-			int i = ctrlDirectories.insert(cnt++, Text::toT(j->m_synonym));
+			const int i = ctrlDirectories.insert(cnt++, Text::toT(j->m_synonym));
 			ctrlDirectories.SetItemText(i, 1, Text::toT(j->m_path).c_str());
+			ctrlDirectories.SetCheckState(i, TRUE);
 			// ctrlDirectories.SetItemText(i, 2, Text::toT(j->second).c_str());
 		}
 		ctrlDirectories.Detach();
@@ -146,8 +147,9 @@ public:
 			//	return 0;
 			//}
 			// Get last folder name
-			int i = ctrlDirectories.insert(ctrlDirectories.GetItemCount(), Util::getLastDir(target));
+			const int i = ctrlDirectories.insert(ctrlDirectories.GetItemCount(), Util::getLastDir(target));
 			ctrlDirectories.SetItemText(i, 1, target.c_str());
+			ctrlDirectories.SetCheckState(i, TRUE);
 			ctrlDirectories.Detach();
 
 		}		
@@ -312,11 +314,11 @@ public:
 
 	int OnSetActive()
 	{
-		SetWizardButtons ( PSWIZB_BACK | PSWIZB_NEXT );
+		SetWizardButtons ( PSWIZB_BACK | PSWIZB_FINISH );
 		return 0;
 	}
 
-	int OnWizardNext()//OnKillActive()
+	int OnWizardFinish()
 	{
 		ctrlDirectories.Attach(GetDlgItem(IDC_WIZARD_SHARE_LIST));
 		try
@@ -389,7 +391,7 @@ public:
 		// 3. Add new
 		for (auto i = newList.cbegin(); i != newList.cend(); ++i)
 		{
-			CWaitCursor l_cursor_wait;
+			CWaitCursor l_cursor_wait; //-V808
 			ShareManager::getInstance()->addDirectory(i->m_path, i->m_synonym, true); 
 		}
 

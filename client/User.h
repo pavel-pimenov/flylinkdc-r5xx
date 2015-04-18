@@ -219,13 +219,7 @@ class User : public intrusive_ptr_base<User>, public Flags
 			}
 		}
 		void setLastNick(const string& p_nick);
-		void setIP(const string& p_ip)
-		{
-			boost::system::error_code ec;
-			const auto l_ip = boost::asio::ip::address_v4::from_string(p_ip, ec);
-			dcassert(!ec);
-			setIP(l_ip);
-		}
+		void setIP(const string& p_ip);
 		void setIP(const boost::asio::ip::address_v4& p_ip);
 		uint32_t getHubID() const
 		{

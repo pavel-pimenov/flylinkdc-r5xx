@@ -447,8 +447,7 @@ string ClientManager::findHub(const string& ipPort)
 	string url;
 	boost::system::error_code ec;
 	const auto l_ip = boost::asio::ip::address_v4::from_string(ip_or_host, ec);
-	//dcassert(!ec);
-	
+	//dcassert(!ec);	
 	webrtc::ReadLockScoped l(*g_csClients); // [+] IRainman opt.
 	for (auto j = g_clients.cbegin(); j != g_clients.cend(); ++j)
 	{

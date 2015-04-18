@@ -80,7 +80,7 @@
                 st_In=st;
                 strcpy(Duration, "            ");
             }
-            
+
             fprintf(F,"                                       %02hd:%02hd:%02hd.%03hd %s", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, Duration);
         }
 
@@ -125,7 +125,7 @@ namespace MediaInfoLib
 {
 
 //---------------------------------------------------------------------------
-const Char*  MediaInfo_Version=__T("MediaInfoLib - v0.7.72");
+const Char*  MediaInfo_Version=__T("MediaInfoLib - v0.7.73");
 const Char*  MediaInfo_Url=__T("http://MediaArea.net/MediaInfo");
       Ztring EmptyZtring;       //Use it when we can't return a reference to a true Ztring
 const Ztring EmptyZtring_Const; //Use it when we can't return a reference to a true Ztring, const version
@@ -2258,7 +2258,7 @@ void MediaInfo_Config::Event_Send (const int8u* Data_Content, size_t Data_Size, 
                             Debug+=", EventID=";Debug+=Ztring::ToZtring(LittleEndian2int32u(Data_Content), 16).To_UTF8();)
 
         Event_CallBackFunction ((unsigned char*)Data_Content, Data_Size, Event_UserHandler);
- 
+
         MEDIAINFO_DEBUG2(   "Event",
                             )
     }

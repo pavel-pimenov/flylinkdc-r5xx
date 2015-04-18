@@ -91,7 +91,7 @@ public:
 
 	int OnSetActive()
 	{
-		SetWizardButtons ( PSWIZB_BACK | PSWIZB_FINISH );
+		SetWizardButtons ( PSWIZB_BACK | PSWIZB_NEXT );
 		return 0;
 	}
 

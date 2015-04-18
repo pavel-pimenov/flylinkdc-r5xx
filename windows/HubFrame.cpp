@@ -17,6 +17,7 @@
  */
 
 #include "stdafx.h"
+#include <regex>
 
 #include "Resource.h"
 #include "HubFrame.h"
@@ -1348,6 +1349,37 @@ void HubFrame::removeUser(const OnlineUserPtr& p_ou)
 void HubFrame::addStatus(const tstring& aLine, const bool bInChat /*= true*/, const bool bHistory /*= true*/, const CHARFORMAT2& cf /*= WinUtil::m_ChatTextSystem*/)
 {
 	BaseChatFrame::addStatus(aLine, bInChat, bHistory, cf);
+	{
+		if (!m_client->isConnected() && !m_last_hub_message.empty() )
+		{
+			const auto l_ipT = Text::toT(m_client->getLocalIp());
+			const auto l_marker_current_ip = m_last_hub_message.find(l_ipT);
+			if (l_marker_current_ip != tstring::npos)
+			{
+				// 1. —охран€ем последнее сообщение которое приходит от бота или хаба
+				// 2. ≈сли после этого получаем дисконнект - переходим к парсингу последней мессаги хаба.
+				// 3. »щем упоминание текущего IP в строке
+				// 4. ≈сли нашли - ищем следующий IP и используем его значение при следующем подключении к этому хабу
+				
+				// RusHub "¬ поисковом запросе вы отсылаете неверный IP адрес: 127.0.0.1, ваш реальный IP: 172.23.17.18."
+				// <[BOT]VerliHub> Active Search: your IP is not 10.255.252.2 but 10.64.0.135. Disconnecting
+				// <VerliHub> Active Search: Your ip is not 192.168.###.### it is 192.168.###.### bye bye.
+				// <VerliHub> Your reported IP: 192.168.###.### does not match your real IP: 192.168.###.###
+				const string l_new_ip_string = Text::fromT(m_last_hub_message.substr(l_marker_current_ip + l_ipT.length()));
+				std::smatch l_match;
+				const std::regex l_reg_exp_ip(CFlyServerConfig::g_regex_find_ip);
+				if (std::regex_search(l_new_ip_string, l_match, l_reg_exp_ip))
+				{
+					const string l_ip = l_match[0].str();
+					m_client->getMyIdentity().setIp(l_ip);
+					const string l_message = "*** FlylinkDC++ automatic change IP " + Text::fromT(l_ipT) + " to " + l_ip + " [Hub " + m_client->getHubUrlAndIP() + "]";
+					BaseChatFrame::addStatus(Text::toT(l_message), bInChat, bHistory, cf);
+					CFlyServerJSON::pushError(26, Text::fromT(m_last_hub_message));
+					LogManager::message(l_message);
+				}
+			}
+		}
+	}
 	if (BOOLSETTING(LOG_STATUS_MESSAGES))
 	{
 		StringMap params;
@@ -1684,23 +1716,26 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 			case ADD_CHAT_LINE:
 			{
 				dcassert(!ClientManager::isShutdown());
-				MessageTask& l_task = static_cast<MessageTask&>(*i->second);
-				auto_ptr<ChatMessage> msg(l_task.m_message_ptr);
-				l_task.m_message_ptr = nullptr;
-				if (msg->m_from && !ClientManager::isShutdown())
+				if (!ClientManager::isShutdown())
 				{
-					const Identity& from    = msg->m_from->getIdentity();
-					const bool myMess       = ClientManager::isMe(msg->m_from);
-					addLine(from, myMess, msg->thirdPerson, Text::toT(msg->format()), Colors::g_ChatTextGeneral);
-					auto& l_user = msg->m_from->getUser();
-					l_user->incMessagesCount();
-					m_client->incMessagesCount();
-					const auto l_ou_ptr = new OnlineUserPtr(msg->m_from);
-					PostMessage(WM_SPEAKER_UPDATE_USER, WPARAM(l_ou_ptr), LPARAM(COLUMN_MESSAGES));
-				}
-				else
-				{
-					BaseChatFrame::addLine(Text::toT(msg->m_text), Colors::g_ChatTextPrivate);
+					MessageTask& l_task = static_cast<MessageTask&>(*i->second);
+					auto_ptr<ChatMessage> msg(l_task.m_message_ptr);
+					l_task.m_message_ptr = nullptr;
+					if (msg->m_from && !ClientManager::isShutdown())
+					{
+						const Identity& from = msg->m_from->getIdentity();
+						const bool myMess = ClientManager::isMe(msg->m_from);
+						addLine(from, myMess, msg->thirdPerson, Text::toT(msg->format()), Colors::g_ChatTextGeneral);
+						auto& l_user = msg->m_from->getUser();
+						l_user->incMessagesCount();
+						m_client->incMessagesCount();
+						const auto l_ou_ptr = new OnlineUserPtr(msg->m_from);
+						PostMessage(WM_SPEAKER_UPDATE_USER, WPARAM(l_ou_ptr), LPARAM(COLUMN_MESSAGES));
+					}
+					else
+					{
+						BaseChatFrame::addLine(Text::toT(msg->m_text), Colors::g_ChatTextPrivate);
+					}
 				}
 			}
 			break;
@@ -1708,9 +1743,12 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 			case ADD_STATUS_LINE:
 			{
 				dcassert(!ClientManager::isShutdown());
-//				PROFILE_THREAD_SCOPED_DESC("ADD_STATUS_LINE")
-				const StatusTask& status = static_cast<StatusTask&>(*i->second);
-				addStatus(Text::toT(status.m_str), status.m_isInChat, true, Colors::g_ChatTextServer);
+				if (!ClientManager::isShutdown())
+				{
+					//              PROFILE_THREAD_SCOPED_DESC("ADD_STATUS_LINE")
+					const StatusTask& status = static_cast<StatusTask&>(*i->second);
+					addStatus(Text::toT(status.m_str), status.m_isInChat, true, Colors::g_ChatTextServer);
+				}
 			}
 			break;
 			case STATS:
@@ -1740,36 +1778,39 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 			case GET_PASSWORD:
 			{
 				dcassert(m_ctrlMessage);
-				if (!BOOLSETTING(PROMPT_PASSWORD))
+				if (m_client->isConnected())
 				{
-					addPasswordCommand();
-					m_waitingForPW = true;
-				}
-				else if (m_password_do_modal == 0)
-				{
-					CFlySafeGuard<uint8_t> l_dlg_(m_password_do_modal); // fix Stack Overflow https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=103355
-					LineDlg linePwd;
-					linePwd.title = Text::toT(m_client->getHubName() + " (" + m_client->getHubUrl() + ')');
-					linePwd.description = TSTRING(ENTER_PASSWORD);
-					linePwd.password = true;
-					if (linePwd.DoModal(m_hWnd) == IDOK)
+					if (!BOOLSETTING(PROMPT_PASSWORD))
 					{
-						const string l_pwd = Text::fromT(linePwd.line);
-						m_client->setPassword(l_pwd);
-						m_client->password(l_pwd);
-						m_waitingForPW = false;
-						if (linePwd.checked)
+						addPasswordCommand();
+						m_waitingForPW = true;
+					}
+					else if (m_password_do_modal == 0)
+					{
+						CFlySafeGuard<uint8_t> l_dlg_(m_password_do_modal); // fix Stack Overflow https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=103355
+						LineDlg linePwd;
+						linePwd.title = Text::toT(m_client->getHubName() + " (" + m_client->getHubUrl() + ')');
+						linePwd.description = TSTRING(ENTER_PASSWORD) + _T(" ") + TSTRING(NICK) + Text::toT(": " + m_client->getMyNick());
+						linePwd.password = true;
+						if (linePwd.DoModal(m_hWnd) == IDOK)
 						{
-							auto fhe = addAsFavorite(); // [+] IRainman fav options
-							if (fhe) // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=39084
+							const string l_pwd = Text::fromT(linePwd.line);
+							m_client->setPassword(l_pwd);
+							m_client->password(l_pwd);
+							m_waitingForPW = false;
+							if (linePwd.checked)
 							{
-								fhe->setPassword(l_pwd);
+								auto fhe = addAsFavorite(); // [+] IRainman fav options
+								if (fhe) // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=39084
+								{
+									fhe->setPassword(l_pwd);
+								}
 							}
 						}
-					}
-					else
-					{
-						m_client->disconnect(true);
+						else
+						{
+							m_client->disconnect(true);
+						}
 					}
 				}
 			}
@@ -2374,6 +2415,10 @@ LRESULT HubFrame::onLButton(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& b
 void HubFrame::addLine(const Identity& p_from, const bool bMyMess, const bool bThirdPerson, const tstring& aLine, const CHARFORMAT2& cf /*= WinUtil::m_ChatTextGeneral*/)
 {
 	tstring extra;
+	if (p_from.isBotOrHub())
+	{
+		m_last_hub_message = aLine;
+	}
 	BaseChatFrame::addLine(p_from, bMyMess, bThirdPerson, aLine, cf, extra);
 	if (g_isStartupProcess == false)
 	{
@@ -4140,7 +4185,7 @@ void HubFrame::addPasswordCommand()
 
 UserInfo* HubFrame::findUser(const tstring& p_nick)   // !SMT!-S
 {
-	dcassert(!m_is_fynally_clear_user_list);
+	//dcassert(!m_is_fynally_clear_user_list);
 	dcassert(!p_nick.empty());
 	if (p_nick.empty())
 		return nullptr;

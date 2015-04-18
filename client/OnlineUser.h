@@ -197,11 +197,8 @@ class Identity
 		{
 			return Text::toT(m_nick);
 		}
-		
 	public:
-	
 		string getSupports() const; // "SU"
-		
 		void setLimit(uint32_t lim) // "US"
 		{
 			getUser()->setLimit(lim);
@@ -210,8 +207,7 @@ class Identity
 		const uint32_t getLimit() const// "US"
 		{
 			return getUser()->getLimit();
-		}
-		
+		}		
 		void setSlots(uint8_t slots) // "SL"
 		{
 			getUser()->setSlots(slots);
@@ -220,8 +216,7 @@ class Identity
 		const uint8_t getSlots() const// "SL"
 		{
 			return getUser()->getSlots();
-		}
-		
+		}		
 		void setBytesShared(const int64_t bytes) // "SS"
 		{
 			webrtc::WriteLockScoped l(*g_rw_cs);
@@ -235,25 +230,8 @@ class Identity
 			return getUser()->getBytesShared();
 		}
 		
-		void setIp(const string& p_ip) // "I4"
-		{
-			boost::system::error_code ec;
-			m_ip = boost::asio::ip::address_v4::from_string(p_ip, ec);
-			dcassert(!ec);
-			getUser()->setIP(m_ip);
-			change(CHANGES_IP | CHANGES_GEO_LOCATION);
-		}
-		bool isFantomIP() const
-		{
-			if (m_ip.is_unspecified())
-			{
-				if (isUseIP6())
-					return false;
-				else
-					return true;
-			}
-			return false;
-		}
+		void setIp(const string& p_ip);
+		bool isFantomIP() const;
 		boost::asio::ip::address_v4 getIp() const
 		{
 			if (!m_ip.is_unspecified())
@@ -265,22 +243,7 @@ class Identity
 		{
 			return !m_ip.is_unspecified();
 		}
-		string getIpAsString() const
-		{
-			if (!m_ip.is_unspecified())
-				return m_ip.to_string();
-			else
-			{
-				if (isUseIP6())
-				{
-					return getIP6();
-				}
-				else
-				{
-					return getUser()->getIPAsString();
-				}
-			}
-		}
+		string getIpAsString() const;
 	private:
 		boost::asio::ip::address_v4 m_ip; // "I4" // [!] IRainman fix: needs here, details https://code.google.com/p/flylinkdc/issues/detail?id=1330
 	public:

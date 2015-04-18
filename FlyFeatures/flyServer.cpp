@@ -109,6 +109,7 @@ uint16_t CFlyServerConfig::g_ban_flood_command = 10;      // Ѕлокируем на 10 сек
 
 uint16_t CFlyServerConfig::g_max_unique_tth_search  = 10; // Ќе принимаем в течении 10 секунд одинаковых поисков по TTH дл€ одного и того-же целевого IP:PORT (UDP)
 uint16_t CFlyServerConfig::g_max_unique_file_search = 10; // Ќе принимаем в течении 10 секунд одинаковых поисков по File дл€ одного и того-же целевого IP:PORT (UDP)
+string CFlyServerConfig::g_regex_find_ip = "\\d\\d?\\d?\\.\\d\\d?\\d?.\\d\\d?\\d?.\\d\\d?\\d?";
 #ifdef USE_SUPPORT_HUB
 string CFlyServerConfig::g_support_hub = "dchub://dc.fly-server.ru";
 #endif // USE_SUPPORT_HUB
@@ -423,6 +424,7 @@ void CFlyServerConfig::loadConfig()
 #ifdef USE_SUPPORT_HUB
 					initString("support_hub",g_support_hub);
 #endif // USE_SUPPORT_HUB
+					initString("regex_find_ip", g_regex_find_ip);
 					initString("faq_search",g_faq_search_does_not_work);
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION
 					m_collect_lost_location = Util::toInt(l_xml.getChildAttrib("collect_lost_location")) == 1;
@@ -1064,52 +1066,55 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 24
 {
 	bool l_is_send = false;
-  bool l_is_error = false;
-    p_error = "[BUG][" + Util::toString(p_error_code) + "] " + p_error;
-    if(CFlyServerConfig::isErrorSysLog(p_error_code))
-    {
-  pushSyslogError(p_error);
-    }
-    Lock l(g_cs_error_report);
-    if(CFlyServerConfig::isErrorLog(p_error_code))
-    {
-    CFlyLog l_log("[fly-error]");
-    l_log.step(p_error);
-    if(p_error != g_last_error_string)
-    {
-		Json::Value  l_info;   
-        if(g_count_dup_error_string == 0)
-        {
-		l_info["error"] = p_error;
-        }
-        else
-        {
-          l_info["error"] = p_error + "[DUP COUNT=" + Util::toString(g_count_dup_error_string) + " [" + g_last_error_string + "]";
-        }
-		l_info["ID"]  = g_fly_server_id;
-		l_info["Threads"]  =  Thread::getThreadsCount();
-		l_info["Current"]  = Util::formatDigitalClock(time(nullptr));
-		getDiskAndMemoryStat(l_info);
-		const std::string l_post_query = l_info.toStyledString();
-	    postQuery(true,true,false,false,"fly-error-sql",l_post_query,l_is_send,l_is_error,2000);
-		if(!l_is_send)
+	bool l_is_error = false;
+	if (!p_error.empty())
+	{
+		p_error = "[BUG][" + Util::toString(p_error_code) + "] " + p_error;
+		if (CFlyServerConfig::isErrorSysLog(p_error_code))
 		{
-			 // TODO ѕередача не удалась - скинем данные в файлы
+			pushSyslogError(p_error);
 		}
-        g_count_dup_error_string = 0;
-        g_last_error_string = p_error;
-    }
-    else
-    {
-        g_count_dup_error_string++;
-        l_is_send = true;
-    }
-    }
-    else
-    {
-        l_is_send = true;
-    }
-		return l_is_send;
+		Lock l(g_cs_error_report);
+		if (CFlyServerConfig::isErrorLog(p_error_code))
+		{
+			CFlyLog l_log("[fly-error]");
+			l_log.step(p_error);
+			if (p_error != g_last_error_string)
+			{
+				Json::Value  l_info;
+				if (g_count_dup_error_string == 0)
+				{
+					l_info["error"] = p_error;
+				}
+				else
+				{
+					l_info["error"] = p_error + "[DUP COUNT=" + Util::toString(g_count_dup_error_string) + " [" + g_last_error_string + "]";
+				}
+				l_info["ID"] = g_fly_server_id;
+				l_info["Threads"] = Thread::getThreadsCount();
+				l_info["Current"] = Util::formatDigitalClock(time(nullptr));
+				getDiskAndMemoryStat(l_info);
+				const std::string l_post_query = l_info.toStyledString();
+				postQuery(true, true, false, false, "fly-error-sql", l_post_query, l_is_send, l_is_error, 2000);
+				if (!l_is_send)
+				{
+					// TODO ѕередача не удалась - скинем данные в файлы
+				}
+				g_count_dup_error_string = 0;
+				g_last_error_string = p_error;
+			}
+			else
+			{
+				g_count_dup_error_string++;
+				l_is_send = true;
+			}
+		}
+		else
+		{
+			l_is_send = true;
+		}
+	}
+	return l_is_send;
 }
 //======================================================================================================
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
