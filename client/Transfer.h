@@ -20,10 +20,10 @@
 #define DCPLUSPLUS_DCPP_TRANSFER_H_
 
 #include "forward.h"
-#include "TimerManager.h"
 #include "Segment.h"
-#include "UserConnection.h"
 #include "TransferData.h"
+
+class UserConnection;
 
 class Transfer
 #ifdef _DEBUG
@@ -98,7 +98,9 @@ class Transfer
 		
 		int64_t getSecondsLeft(const bool wholeFile = false) const;
 		
+	protected:
 		void getParams(const UserConnection* aSource, StringMap& params) const;
+	public:
 		//[+]FlylinkDC
 		UserPtr& getUser()
 		{
@@ -146,7 +148,7 @@ class Transfer
 		}
 		void setStart(uint64_t tick);
 		const uint64_t getLastActivity();
-		const string& getUserConnectionToken() const;
+		string getUserConnectionToken() const;
 		GETSET(uint64_t, m_lastTick, LastTick);
 		const bool m_isSecure;
 		const bool m_isTrusted;
@@ -160,11 +162,7 @@ class Transfer
 		FastCriticalSection m_cs; // [!]IRainman refactoring transfer mechanism
 		
 		/** The file being transferred */
-#ifdef IRAINMAN_USE_NG_TRANSFERS
-		const string& m_path; // TODO: maybe it makes sense to back up the line after the original problem will be eliminated. In the Upload to inheritance so not very nice.
-#else
 		const string m_path;
-#endif
 		/** TTH of the file being transferred */
 		const TTHValue m_tth;
 		/** Bytes transferred over socket */

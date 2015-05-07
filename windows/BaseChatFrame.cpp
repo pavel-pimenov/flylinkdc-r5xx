@@ -67,7 +67,7 @@ void BaseChatFrame::createChatCtrl()
 			
 			ctrlClient.SetAutoURLDetect(false);
 			ctrlClient.SetEventMask(ctrlClient.GetEventMask() | ENM_LINK);
-			ctrlClient.SetBackgroundColor(Colors::bgColor);
+			ctrlClient.SetBackgroundColor(Colors::g_bgColor);
 			readFrameLog();
 		}
 	}
@@ -174,9 +174,7 @@ LRESULT BaseChatFrame::onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 	const HDC hDC = (HDC)wParam;
 	if (hWnd == ctrlClient.m_hWnd || (m_ctrlMessage && hWnd == m_ctrlMessage->m_hWnd)) // TODO: please verify this!
 	{
-		::SetBkColor(hDC, Colors::bgColor);
-		::SetTextColor(hDC, Colors::textColor);
-		return (LRESULT)Colors::bgBrush;
+		return Colors::setColor(hDC);
 	}
 	bHandled = FALSE;
 	return FALSE;

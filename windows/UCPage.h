@@ -26,9 +26,6 @@
 class UserCommand;
 
 class UCPage : public CPropertyPage<IDD_UCPAGE>, public PropPage
-#ifdef _DEBUG
-	, virtual NonDerivable<UCPage> // [+] IRainman fix.
-#endif
 {
 	public:
 		UCPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_USER_COMMANDS))

@@ -186,11 +186,21 @@ class Thread : public BaseThread
 				sleepWithSpin(spin);
 			}
 		}
-		static void waitLockState(volatile long& state)
+		static void waitLockState(volatile long& p_state
+#ifdef _DEBUG
+		                          , bool p_is_log = false
+#endif
+		                         )
 		{
-			while (failStateLock(state))
+			while (failStateLock(p_state))
 			{
 				yield();
+#ifdef _DEBUG
+				if (p_is_log)
+				{
+					dcdebug("waitLockState");  // TODO в дебаге сделать лог для вывода инфы о конкуренции
+				}
+#endif
 			}
 		}
 		static void unlockState(volatile long& state)
@@ -494,24 +504,40 @@ class FastCriticalSection
 	: boost::noncopyable
 #endif
 {
+
 	public:
-		explicit FastCriticalSection() : state(0)
+		explicit FastCriticalSection() : m_state(0)
+#ifdef _DEBUG
+			, m_use_log(false)
+#endif
 		{
 			dcdrun(DEBUG_SPIN_LOCK_INIT());
 		}
-
+#ifdef _DEBUG
+		void use_log()
+		{
+			m_use_log = true;
+		}
+#endif
 		void lock()
 		{
 			dcdrun(DEBUG_SPIN_LOCK_INSERT());
-			Thread::waitLockState(state); // [!] IRainman fix.
+#ifdef _DEBUG
+			Thread::waitLockState(m_state, m_use_log); // [!] IRainman fix.
+#else
+			Thread::waitLockState(m_state);
+#endif
 		}
 		void unlock()
 		{
-			Thread::unlockState(state); // [!] IRainman fix.
+			Thread::unlockState(m_state); // [!] IRainman fix.
 			dcdrun(DEBUG_SPIN_LOCK_ERASE());
 		}
 	private:
-		volatile long state;
+		volatile long m_state;
+#ifdef _DEBUG
+		bool m_use_log;
+#endif
 		dcdrun(DEBUG_SPIN_LOCK_DECL());
 #ifndef IRAINMAN_USE_SHARED_SPIN_LOCK
 	public:

@@ -71,7 +71,7 @@ class PropPage
 		{
 			if (BOOLSETTING(SETTINGS_WINDOW_COLORIZE))
 			{
-				m_hDialogBrush = CreateSolidBrush(Colors::bgColor /*GetSysColor(COLOR_BTNFACE)*/); // [!] IRainman fix.
+				m_hDialogBrush = CreateSolidBrush(Colors::g_bgColor /*GetSysColor(COLOR_BTNFACE)*/); // [!] IRainman fix.
 				return (long) m_hDialogBrush;
 			}
 			else

@@ -55,9 +55,6 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 	private WebServerListener,
 	private UserManagerListener, // [+] IRainman
 	public AutoUpdateGUIMethod
-#ifdef _DEBUG
-	, virtual NonDerivable<MainFrame> // [+] IRainman fix.
-#endif
 {
 	public:
 		MainFrame();
@@ -634,7 +631,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 				const string text;
 		};
 		
-		TransferView transferView;
+		TransferView m_transferView;
 		static MainFrame* g_anyMF;
 		
 		enum { MAX_CLIENT_LINES = 10 }; // TODO copy-paste
@@ -793,7 +790,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		void on(WebServerListener::ShutdownPC, int) noexcept;
 		
 		// QueueManagerListener
-		void on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string& dir, const Download* download) noexcept;
+		void on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string& dir, const DownloadPtr& aDownload) noexcept;
 		void on(QueueManagerListener::PartialList, const HintedUser& aUser, const string& text) noexcept;
 		void on(QueueManagerListener::TryAdding, const string& fileName, int64_t newSize, int64_t existingSize, time_t existingTime, int option) noexcept; // [+] SSA
 #ifdef SSA_VIDEO_PREVIEW_FEATURE

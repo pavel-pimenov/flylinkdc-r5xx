@@ -476,7 +476,7 @@ void FavoriteHubsFrame::handleMove(bool up)
 				const auto& ig = find(groups.begin(), groups.end(), Text::toT(group));
 				if (ig != groups.begin())
 				{
-					FavoriteHubEntryPtr f = *i;
+					auto f = *i;
 					f->setGroup(Text::fromT(*(ig - 1)));
 					i = fh_copy.erase(i);
 					fh_copy.push_back(f);

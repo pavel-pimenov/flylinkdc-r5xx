@@ -7,9 +7,6 @@
 #include "../client/SettingsManager.h"
 
 class SlotPage : public CPropertyPage<IDD_SLOT_PAGE>, public PropPage
-#ifdef _DEBUG
-	, virtual NonDerivable<SlotPage> // [+] IRainman fix.
-#endif
 {
 	public:
 		SlotPage(SettingsManager *s) : PropPage(s, TSTRING(SLOTS))

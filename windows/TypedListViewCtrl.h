@@ -45,7 +45,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 	public ListViewArrows<TypedListViewCtrl<T, ctrlId> >
 {
 	public:
-		TypedListViewCtrl() : sortColumn(-1), sortAscending(true), hBrBg(Colors::bgBrush), leftMargin(0)
+		TypedListViewCtrl() : sortColumn(-1), sortAscending(true), hBrBg(Colors::g_bgBrush), leftMargin(0)
 #ifndef IRAINMAN_NOT_USE_COUNT_UPDATE_INFO_IN_LIST_VIEW_CTRL
 			, m_count_update_info(0)
 #endif
@@ -154,15 +154,15 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		bool isRedraw()
 		{
 			bool refresh = false;
-			if (GetBkColor() != Colors::bgColor)
+			if (GetBkColor() != Colors::g_bgColor)
 			{
-				SetBkColor(Colors::bgColor);
-				SetTextBkColor(Colors::bgColor);
+				SetBkColor(Colors::g_bgColor);
+				SetTextBkColor(Colors::g_bgColor);
 				refresh = true;
 			}
-			if (GetTextColor() != Colors::textColor)
+			if (GetTextColor() != Colors::g_textColor)
 			{
-				SetTextColor(Colors::textColor);
+				SetTextColor(Colors::g_textColor);
 				refresh = true;
 			}
 			return refresh;
@@ -1023,7 +1023,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 			}
 		}
 	public:
-		void SetItemFilled(const LPNMLVCUSTOMDRAW p_cd, const CRect& p_rc2, COLORREF p_textColor = Colors::textColor, COLORREF p_textColorUnfocus = Colors::textColor)
+		void SetItemFilled(const LPNMLVCUSTOMDRAW p_cd, const CRect& p_rc2, COLORREF p_textColor = Colors::g_textColor, COLORREF p_textColorUnfocus = Colors::g_textColor)
 		{
 			COLORREF color;
 			if (GetItemState((int)p_cd->nmcd.dwItemSpec, LVIS_SELECTED) & LVIS_SELECTED)

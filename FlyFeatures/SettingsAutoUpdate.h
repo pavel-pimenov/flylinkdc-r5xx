@@ -76,7 +76,7 @@ class SettingsAutoUpdate :
 		virtual ~SettingsAutoUpdate();
 		
 		void fail(const string& aError);
-		void execute(const pair<SettingsAutoUpdateTasks, SettingsAutoUpdateTaskData*>& p_task);
+		//void execute(const pair<SettingsAutoUpdateTasks, SettingsAutoUpdateTaskData*>& p_task);
 		
 		void _StartFileUpdateThisThread(const string& localPath, const string& urlPath);
 };

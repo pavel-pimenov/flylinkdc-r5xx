@@ -17,6 +17,8 @@
  */
 
 #include "stdinc.h"
+#include <cmath>
+
 #include "DownloadManager.h"
 #include "QueueManager.h"
 #include "Download.h"
@@ -24,15 +26,15 @@
 #include "MerkleCheckOutputStream.h"
 #include "UploadManager.h"
 #include "PGLoader.h"
-#include <cmath>
+#include "../FlyFeatures/flyServer.h"
 
 static const string DOWNLOAD_AREA = "Downloads";
 std::unique_ptr<webrtc::RWLockWrapper> DownloadManager::g_csDownload = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 DownloadMap DownloadManager::g_download_map;
 IdlersMap DownloadManager::g_idlers;
+int64_t DownloadManager::g_runningAverage;
 
 DownloadManager::DownloadManager()
-	: runningAverage(0)//[+] IRainman refactoring transfer mechanism
 {
 	TimerManager::getInstance()->addListener(this);
 }
@@ -67,7 +69,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 		l_tickList.reserve(g_download_map.size());
 		for (auto i = g_download_map.cbegin(); i != g_download_map.cend(); ++i)
 		{
-			Download* d = i->second;
+			auto d = i->second;
 			if (d->getPos() > 0)
 			{
 				TransferData l_td;
@@ -145,7 +147,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 			}
 #endif // PPA_INCLUDE_DROP_SLOW
 		}
-		runningAverage = l_currentSpeed; // [+] IRainman refactoring transfer mechanism
+		g_runningAverage = l_currentSpeed; // [+] IRainman refactoring transfer mechanism
 	}
 	if (!l_tickList.empty())
 	{
@@ -228,11 +230,11 @@ bool DownloadManager::startDownload(QueueItem::Priority prio)
 
 void DownloadManager::checkDownloads(UserConnection* aConn)
 {
-	dcassert(aConn->getDownload() == nullptr);
+	///////////////// dcassert(aConn->getDownload() == nullptr);
 	
 	auto qm = QueueManager::getInstance();
 	
-	QueueItem::Priority prio = qm->hasDownload(aConn->getUser()); // 2012-06-17_22-40-29_TGNMP7OOMS76PE46VDZ5XTHIBKSK6H3VLQXCNHY_C3DEC470_crash-stack-r502-beta36-x64-build-10378.dmp
+	QueueItem::Priority prio = QueueManager::hasDownload(aConn->getUser());
 	if (!startDownload(prio))
 	{
 		removeConnection(aConn);
@@ -240,7 +242,7 @@ void DownloadManager::checkDownloads(UserConnection* aConn)
 	}
 	
 	string errorMessage;
-	Download* d = qm->getDownload(aConn, errorMessage);
+	auto d = qm->getDownload(aConn, errorMessage);
 	
 	if (!d)
 	{
@@ -307,7 +309,7 @@ void DownloadManager::on(AdcCommand::SND, UserConnection* aSource, const AdcComm
 
 void DownloadManager::startData(UserConnection* aSource, int64_t start, int64_t bytes, bool z)
 {
-	Download* d = aSource->getDownload();
+	auto d = aSource->getDownload();
 	dcassert(d);
 	
 	dcdebug("Preparing " I64_FMT ":" I64_FMT ", " I64_FMT ":" I64_FMT "\n", d->getStartPos(), start, d->getSize(), bytes);
@@ -363,8 +365,7 @@ void DownloadManager::startData(UserConnection* aSource, int64_t start, int64_t 
 	catch (...)
 	{
 		LogManager::message("catch (...) Error new BufferedOutputStream<true> l_buf_size (Mb) = " + Util::toString(l_buf_size / 1024 / 1024) + " email: ppa74@ya.ru");
-		delete d->getDownloadFile();
-		d->setDownloadFile(nullptr);
+		d->reset_download_file();
 		return;
 	}
 	
@@ -414,7 +415,7 @@ void DownloadManager::startData(UserConnection* aSource, int64_t start, int64_t 
 
 void DownloadManager::on(UserConnectionListener::Data, UserConnection* aSource, const uint8_t* aData, size_t aLen) noexcept
 {
-	Download* d = aSource->getDownload();
+	auto d = aSource->getDownload();
 	dcassert(d);
 	try
 	{
@@ -440,7 +441,7 @@ void DownloadManager::on(UserConnectionListener::Data, UserConnection* aSource, 
 void DownloadManager::endData(UserConnection* aSource)
 {
 	dcassert(aSource->getState() == UserConnection::STATE_RUNNING);
-	Download* d = aSource->getDownload();
+	auto d = aSource->getDownload();
 	dcassert(d);
 	d->tick(aSource->getLastActivity()); // [!] IRainman refactoring transfer mechanism
 	
@@ -499,7 +500,20 @@ void DownloadManager::endData(UserConnection* aSource)
 		fire(DownloadManagerListener::Complete(), d, d->getType() == Transfer::TYPE_TREE);
 	}
 	
-	QueueManager::getInstance()->putDownload(d->getPath(), d, true, false);
+	try
+	{
+		QueueManager::getInstance()->putDownload(d->getPath(), d, true, false);
+	}
+	catch (const HashException& e)
+	{
+		//aSource->setDownload(nullptr);
+		const string l_error = "[DownloadManager::endData]HashException - for " + d->getPath();
+		LogManager::message(l_error);
+		CFlyServerJSON::pushError(30, l_error);
+		dcassert(0);
+		//failDownload(aSource, e.getError());
+		return;
+	}
 	checkDownloads(aSource);
 }
 
@@ -510,7 +524,7 @@ void DownloadManager::endData(UserConnection* aSource)
 //	int64_t avg = 0;
 //	for (auto i = downloads.cbegin(); i != downloads.cend(); ++i)
 //	{
-//		Download* d = *i;
+//		auto d = *i;
 //		avg += d->getAverageSpeed();
 //	}
 //	return avg;
@@ -542,7 +556,7 @@ void DownloadManager::onFailed(UserConnection* aSource, const string& aError)
 
 void DownloadManager::failDownload(UserConnection* aSource, const string& reason)
 {
-	Download* d = aSource->getDownload();
+	auto d = aSource->getDownload();
 	
 	if (d)
 	{
@@ -571,12 +585,12 @@ void DownloadManager::failDownload(UserConnection* aSource, const string& reason
 
 void DownloadManager::removeConnection(UserConnection* p_conn)
 {
-	dcassert(p_conn->getDownload() == nullptr);
+	///////////// dcassert(p_conn->getDownload() == nullptr);
 	p_conn->removeListener(this);
 	p_conn->disconnect();
 }
 
-void DownloadManager::removeDownload(Download* d)
+void DownloadManager::removeDownload(const DownloadPtr& d)
 {
 	if (d->getDownloadFile())
 	{
@@ -594,7 +608,7 @@ void DownloadManager::removeDownload(Download* d)
 	
 	{
 		webrtc::WriteLockScoped l(*g_csDownload);
-		dcassert(g_download_map.find(d->getUser()) != g_download_map.end());
+		//////////////dcassert(g_download_map.find(d->getUser()) != g_download_map.end());
 		g_download_map.erase(d->getUser());
 	}
 }
@@ -604,7 +618,7 @@ void DownloadManager::abortDownload(const string& aTarget)
 	webrtc::ReadLockScoped l(*g_csDownload);
 	for (auto i = g_download_map.cbegin(); i != g_download_map.cend(); ++i)
 	{
-		Download* d = i->second;
+		auto d = i->second;
 		if (d->getPath() == aTarget)
 		{
 			dcdebug("Trying to close connection for download %p\n", d);
@@ -678,7 +692,7 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource)
 		return;
 	}
 	
-	Download* d = aSource->getDownload();
+	auto d = aSource->getDownload();
 	dcassert(d);
 	dcdebug("File Not Available: %s\n", d->getPath().c_str());
 	
@@ -713,7 +727,7 @@ bool DownloadManager::checkFileDownload(const UserPtr& aUser)
 		
 	/*  for (auto i = m_download_map.cbegin(); i != m_download_map.cend(); ++i)
 	    {
-	        Download* d = i->second;
+	        auto d = i->second;
 	            if (d->getUser() == aUser && d->getType() != Download::TYPE_PARTIAL_LIST && d->getType() != Download::TYPE_FULL_LIST && d->getType() != Download::TYPE_TREE)
 	                return true;
 	    }
@@ -729,7 +743,7 @@ void DownloadManager::on(UserConnectionListener::BanMessage, UserConnection* aSo
 // [+] SSA
 void DownloadManager::on(UserConnectionListener::CheckUserIP, UserConnection* aSource)
 {
-	Download* d = aSource->getDownload();
+	auto d = aSource->getDownload();
 	
 	dcassert(d);
 	removeDownload(d);

@@ -5,6 +5,7 @@
 #include "typedefs.h"
 #include "noexcept.h"
 #include "TransferData.h"
+#include "Upload.h"
 
 class UploadManagerListener
 {
@@ -25,10 +26,10 @@ class UploadManagerListener
 		typedef X<6> QueueItemRemove;
 		typedef X<7> QueueUpdate;
 		
-		virtual void on(Starting, const Upload*) noexcept { }
+		virtual void on(Starting, const UploadPtr& aUpload) noexcept { }
 		virtual void on(Tick, const UploadArray&, uint64_t/*[+]IRainman refactoring transfer mechanism*/) noexcept { }
-		virtual void on(Complete, const Upload*) noexcept { }
-		virtual void on(Failed, const Upload*, const string&) noexcept { }
+		virtual void on(Complete, const UploadPtr& aUpload) noexcept { }
+		virtual void on(Failed, const UploadPtr& aUpload, const string&) noexcept { }
 		virtual void on(QueueAdd, UploadQueueItem*) noexcept { }
 		virtual void on(QueueRemove, const UserPtr&) noexcept { }
 		virtual void on(QueueItemRemove, UploadQueueItem*) noexcept { }

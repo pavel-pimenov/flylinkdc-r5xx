@@ -1,7 +1,3 @@
-/**
-* Страница в настройках "Избранные пути" / Page "Favotite directories".
-*/
-
 /*
  * Copyright (C) 2001-2013 Jacek Sieka, arnetheduck on gmail point com
  *
@@ -30,9 +26,6 @@
 #include "ExListViewCtrl.h"
 
 class FavoriteDirsPage : public CPropertyPage<IDD_FAVORITE_DIRS_PAGE>, public PropPage
-#ifdef _DEBUG
-	, virtual NonDerivable<FavoriteDirsPage> // [+] IRainman fix.
-#endif
 {
 	public:
 		FavoriteDirsPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(SETTINGS_FAVORITE_DIRS_PAGE))

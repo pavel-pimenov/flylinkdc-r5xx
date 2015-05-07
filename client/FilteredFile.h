@@ -220,7 +220,10 @@ class FilteredInputStream : public InputStream
 		FilteredInputStream(InputStream* aFile) : f(aFile), pos(0), valid(0) { }
 		~FilteredInputStream()
 		{
-			if (managed) delete f;
+			if (managed)
+			{
+				delete f;
+			}
 		}
 		
 		/**

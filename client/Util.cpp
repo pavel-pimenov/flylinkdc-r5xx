@@ -1187,7 +1187,8 @@ string Util::getLocalOrBindIp(const bool p_check_bind_address)
 
 bool Util::isPrivateIp(const string& ip)
 {
-	struct in_addr addr;
+	dcassert(!ip.empty());
+	struct in_addr addr = {0};
 	addr.s_addr = inet_addr(ip.c_str());
 	if (addr.s_addr  != INADDR_NONE)
 	{

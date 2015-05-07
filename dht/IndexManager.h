@@ -99,8 +99,7 @@ class IndexManager :
 		/** Contains known hashes in the network and their sources */
 		
 		/** Queue of files prepared for publishing */
-		typedef std::deque<File> FileQueue;
-		FileQueue publishQueue;
+		std::deque<File> publishQueue;
 		
 		/** Is publishing allowed? */
 		bool publish;

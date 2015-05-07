@@ -19,18 +19,16 @@
 #ifndef DCPLUSPLUS_DCPP_SHARE_MANAGER_H
 #define DCPLUSPLUS_DCPP_SHARE_MANAGER_H
 
-#include <boost/atomic.hpp>
+#include <ShlObj.h>
 
+#include <boost/atomic.hpp>
 #include "SearchManager.h"
 #include "LogManager.h"
 #include "HashManager.h"
 #include "QueueManagerListener.h"
 #include "BloomFilter.h"
 #include "Pointer.h"
-
-#ifdef _WIN32
-# include <ShlObj.h> //[+]PPA
-#endif
+#include "CFlylinkDBManager.h"
 
 #ifdef STRONG_USE_DHT
 namespace dht

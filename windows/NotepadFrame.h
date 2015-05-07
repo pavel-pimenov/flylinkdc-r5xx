@@ -27,7 +27,7 @@
 class NotepadFrame : public MDITabChildWindowImpl < NotepadFrame, RGB(0, 0, 0), IDR_NOTEPAD > , public StaticFrame<NotepadFrame, ResourceManager::NOTEPAD, IDC_NOTEPAD>,
 	private SettingsManagerListener
 #ifdef _DEBUG
-	, virtual NonDerivable<NotepadFrame>, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:
@@ -59,13 +59,11 @@ class NotepadFrame : public MDITabChildWindowImpl < NotepadFrame, RGB(0, 0, 0), 
 		
 		LRESULT onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 		{
-			HWND hWnd = (HWND)lParam;
-			HDC hDC = (HDC)wParam;
+			const HWND hWnd = (HWND)lParam;
+			const HDC hDC = (HDC)wParam;
 			if (hWnd == ctrlPad.m_hWnd)
 			{
-				::SetBkColor(hDC, Colors::bgColor);
-				::SetTextColor(hDC, Colors::textColor);
-				return (LRESULT)Colors::bgBrush;
+				return Colors::setColor(hDC);
 			}
 			bHandled = FALSE;
 			return FALSE;

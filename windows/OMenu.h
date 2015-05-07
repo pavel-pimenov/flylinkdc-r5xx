@@ -25,7 +25,7 @@ class OMenu;
 
 struct OMenuItem
 #ifdef _DEBUG
-		: private boost::noncopyable , virtual NonDerivable<OMenuItem>
+		: private boost::noncopyable
 #endif
 {
 	typedef vector<OMenuItem*> List;
@@ -115,9 +115,6 @@ class OMenu : public CMenu
 };
 #ifdef IRAINMAN_INCLUDE_SMILE
 class CEmotionMenu : public OMenu  //[+]PPA
-#ifdef _DEBUG
-	, virtual NonDerivable<CEmotionMenu> // [+] IRainman fix.
-#endif
 {
 	public:
 		CEmotionMenu() : m_menuItems(0)

@@ -58,28 +58,14 @@ struct RatioInfo
 #endif
 
 class StatsFrame : public MDITabChildWindowImpl < StatsFrame, RGB(0, 0, 0), IDR_NETWORK_STATISTICS_ICON > , public StaticFrame<StatsFrame, ResourceManager::NETWORK_STATISTICS, IDC_NET_STATS>
-	//, private UploadManagerListener
-	, private CFlyTimerAdapter
-	//, private DownloadManagerListener // [+]IRainman
+	, virtual private CFlyTimerAdapter
+	, virtual private CFlyTaskAdapter
 {
 #ifdef PPA_INCLUDE_SHOW_UD_RATIO
 		TypedListViewCtrl<RatioInfo, IDC_UD_RATIO> ctrlRatio;
 #endif
 	public:
-		StatsFrame() : CFlyTimerAdapter(m_hWnd), twidth(0), lastTick(MainFrame::getLastUpdateTick()), scrollTick(0),
-#ifdef PPA_INCLUDE_SHOW_UD_RATIO
-			ratioContainer(WC_LISTVIEW, this, 0),
-#endif
-	/*m_lastSocketsUp(Socket::getTotalUp()), m_lastSocketsDown(Socket::getTotalDown()),*/ m_max(1/*[!]IRainman fix max = 1*/)
-		{
-			backgr.CreateSolidBrush(Colors::bgColor);
-			m_UploadsPen.CreatePen(PS_SOLID, 0, SETTING(UPLOAD_BAR_COLOR));
-			m_UploadSocketPen.CreatePen(PS_DOT, 0, SETTING(UPLOAD_BAR_COLOR));
-			m_DownloadsPen.CreatePen(PS_SOLID, 0, SETTING(DOWNLOAD_BAR_COLOR));
-			m_DownloadSocketPen.CreatePen(PS_DOT, 0, SETTING(DOWNLOAD_BAR_COLOR));
-			foregr.CreatePen(PS_SOLID, 0, Colors::textColor);
-		}
-		
+		StatsFrame();
 		~StatsFrame() { }
 #ifdef PPA_INCLUDE_SHOW_UD_RATIO
 		enum
@@ -143,14 +129,14 @@ class StatsFrame : public MDITabChildWindowImpl < StatsFrame, RGB(0, 0, 0), IDR_
 		enum { PIX_PER_SEC = 2 };
 		enum { LINE_HEIGHT = 10 };
 		
-		CBrush backgr;
+		CBrush m_backgr;
 		CPen m_UploadSocketPen;
 		CPen m_DownloadSocketPen;
 		// [+]IRainman
 		CPen m_UploadsPen;
 		CPen m_DownloadsPen;
 		// [~]IRainman
-		CPen foregr;
+		CPen m_foregr;
 		
 		struct Stat
 		{

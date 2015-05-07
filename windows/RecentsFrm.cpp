@@ -276,7 +276,7 @@ LRESULT RecentHubsFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHan
 			
 		case CDDS_ITEMPREPAINT:
 		{
-			cd->clrText = Colors::textColor;
+			cd->clrText = Colors::g_textColor;
 			const auto fhe = FavoriteManager::getFavoriteHubEntry(getRecentServer((int)cd->nmcd.dwItemSpec));
 			if (fhe)
 			{

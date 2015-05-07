@@ -22,7 +22,7 @@
 #include "typedefs.h"
 #include "User.h"
 #include "TransferData.h"
-
+#include "Download.h"
 
 /**
  * Use this listener interface to get progress information for downloads.
@@ -58,12 +58,12 @@ class DownloadManagerListener
 		 * This is the first message sent before a download starts.
 		 * No other messages will be sent before this.
 		 */
-		virtual void on(Requesting, const Download*) noexcept { }
+		virtual void on(Requesting, const DownloadPtr& aDownload) noexcept { }
 		
 		/**
 		 * This is the first message sent before a download starts.
 		 */
-		virtual void on(Starting, const Download*) noexcept { }
+		virtual void on(Starting, const DownloadPtr& aDownload) noexcept { }
 		
 		/**
 		 * Sent once a second if something has actually been downloaded.
@@ -74,7 +74,7 @@ class DownloadManagerListener
 		 * This is the last message sent before a download is deleted.
 		 * No more messages will be sent after it.
 		 */
-		virtual void on(Complete, const Download*, bool) noexcept { }
+		virtual void on(Complete, const DownloadPtr& aDownload, bool) noexcept { }
 		
 		/**
 		 * This indicates some sort of failure with a particular download.
@@ -83,7 +83,8 @@ class DownloadManagerListener
 		 * @remarks Should send an error code instead of a string and let the GUI
 		 * display an error string.
 		 */
-		virtual void on(Failed, const Download*, const string&) noexcept { }
+		virtual void on(Failed, const DownloadPtr& aDownload, const string&) noexcept { }
+		
 		virtual void on(Status, const UserConnection*, const string&) noexcept { }
 };
 

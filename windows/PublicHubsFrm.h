@@ -234,7 +234,7 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 		
 		void speak(int x, const tstring& l)
 		{
-			PostMessage(WM_SPEAKER, x, (LPARAM)new tstring(l)); //-V572
+			safe_post_message(*this, x, new tstring(l));
 		}
 		
 		void updateStatus();

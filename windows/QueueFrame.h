@@ -24,39 +24,26 @@
 #include "FlatTabCtrl.h"
 #include "TypedListViewCtrl.h"
 #include "../client/QueueManager.h"
-#include "../client/TaskQueue.h"
 
 #define SHOWTREE_MESSAGE_MAP 12
 
-class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_QUEUE > , public StaticFrame<QueueFrame, ResourceManager::DOWNLOAD_QUEUE, IDC_QUEUE>,
+class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_QUEUE > ,
+	public StaticFrame<QueueFrame, ResourceManager::DOWNLOAD_QUEUE, IDC_QUEUE>,
 	private QueueManagerListener,
 	public CSplitterImpl<QueueFrame>,
 	public PreviewBaseHandler<QueueFrame, false>, // [+] IRainman fix.
 	private SettingsManagerListener,
-	private CFlyTimerAdapter
+	virtual private CFlyTimerAdapter,
+	virtual private CFlyTaskAdapter
 #ifdef _DEBUG
-	, virtual NonDerivable<QueueFrame>, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:
 		DECLARE_FRAME_WND_CLASS_EX(_T("QueueFrame"), IDR_QUEUE, 0, COLOR_3DFACE);
 		
-		QueueFrame() : CFlyTimerAdapter(m_hWnd), menuItems(0), queueSize(0), queueItems(0), m_dirty(false),
-			usingDirMenu(false),  readdItems(0), m_fileLists(nullptr), showTree(true),
-			showTreeContainer(WC_BUTTON, this, SHOWTREE_MESSAGE_MAP)
-		{
-			memzero(statusSizes, sizeof(statusSizes));
-		}
-		
-		~QueueFrame()
-		{
-			// Clear up dynamicly allocated menu objects
-			browseMenu.ClearMenu();
-			removeMenu.ClearMenu();
-			removeAllMenu.ClearMenu();
-			pmMenu.ClearMenu();
-			readdMenu.ClearMenu();
-		}
+		QueueFrame();
+		~QueueFrame();
 		
 		typedef MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_QUEUE > baseClass;
 		typedef CSplitterImpl<QueueFrame> splitBase;
@@ -73,7 +60,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		NOTIFY_HANDLER(IDC_QUEUE, NM_DBLCLK, onSearchDblClick) // !SMT!-UI
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
 		MESSAGE_HANDLER(WM_CLOSE, onClose)
-		MESSAGE_HANDLER(WM_TIMER, onTimer);
+		MESSAGE_HANDLER(WM_TIMER, onTimerTask);
 		MESSAGE_HANDLER(WM_SPEAKER, onSpeaker)
 		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
 		MESSAGE_HANDLER(WM_SETFOCUS, onSetFocus)
@@ -82,6 +69,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		COMMAND_ID_HANDLER(IDC_COPY_WMLINK, onCopy) // !SMT!-UI
 		COMMAND_ID_HANDLER(IDC_COPY_LINK, onCopyMagnet)
 		COMMAND_ID_HANDLER(IDC_REMOVE, onRemove)
+		COMMAND_ID_HANDLER(IDC_REMOVE_ALL, onRemoveAll)
 		COMMAND_ID_HANDLER(IDC_RECHECK, onRecheck);
 		COMMAND_ID_HANDLER(IDC_REMOVE_OFFLINE, onRemoveOffline)
 		COMMAND_ID_HANDLER(IDC_MOVE, onMove)
@@ -125,14 +113,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		LRESULT onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled);
 		LRESULT onRemoveOffline(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onCopy(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-		LRESULT onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
-		{
-			if (!m_tasks.empty())
-			{
-				speak();
-			}
-			return 0;
-		}
+		
 		// [+] InfinitySky.
 		LRESULT onCloseWindow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
@@ -173,6 +154,11 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 			usingDirMenu ? removeSelectedDir() : removeSelected();
 			return 0;
 		}
+		LRESULT onRemoveAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+		{
+			removeAllDir();
+			return 0;
+		}
 		
 		LRESULT onMove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
@@ -186,46 +172,9 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 			return 0;
 		}
 		
-		LRESULT onKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
-		{
-			NMLVKEYDOWN* kd = (NMLVKEYDOWN*) pnmh;
-			if (kd->wVKey == VK_DELETE)
-			{
-				if (ctrlQueue.getSelectedCount())
-				{
-					removeSelected();
-				}
-			}
-			else if (kd->wVKey == VK_ADD)
-			{
-				// Increase Item priority
-				changePriority(true);
-			}
-			else if (kd->wVKey == VK_SUBTRACT)
-			{
-				// Decrease item priority
-				changePriority(false);
-			}
-			else if (kd->wVKey == VK_TAB)
-			{
-				onTab();
-			}
-			return 0;
-		}
+		LRESULT onKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
 		
-		LRESULT onKeyDownDirs(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
-		{
-			NMTVKEYDOWN* kd = (NMTVKEYDOWN*) pnmh;
-			if (kd->wVKey == VK_DELETE)
-			{
-				removeSelectedDir();
-			}
-			else if (kd->wVKey == VK_TAB)
-			{
-				onTab();
-			}
-			return 0;
-		}
+		LRESULT onKeyDownDirs(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
 		
 		void onTab();
 		
@@ -276,24 +225,21 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		
 		class QueueItemInfo
 #ifdef _DEBUG
-			: virtual NonDerivable<QueueItemInfo>, boost::noncopyable // [+] IRainman fix.
+			: boost::noncopyable // [+] IRainman fix.
 #endif
 			
 		{
 			public:
-			
 				explicit QueueItemInfo(const QueueItemPtr& aQI) : m_qi(aQI)
 				{
-					m_qi->inc();
-					m_size   = m_qi->getSize();
 #ifdef _DEBUG
+					m_size   = m_qi->getSize();
 					m_Target = m_qi->getTarget();
 #endif
 				}
 				
 				~QueueItemInfo()
 				{
-					m_qi->dec();
 				}
 				
 				void remove()
@@ -358,7 +304,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				int64_t getSize() const
 				{
 					dcassert(m_size == m_qi->getSize())
-					return m_size;
+					return m_qi->getSize();
 				}
 				int64_t getDownloadedBytes() const
 				{
@@ -395,23 +341,17 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				const QueueItemPtr m_qi;
 #ifdef _DEBUG
 				string m_Target;
-#endif
 				int64_t m_size;
+#endif
 		};
 		
 		struct QueueItemInfoTask :  public Task
-#ifdef _DEBUG
-				, virtual NonDerivable<QueueItemInfoTask> // [+] IRainman fix.
-#endif
 		{
 			explicit QueueItemInfoTask(QueueItemInfo* p_ii) : m_ii(p_ii) { }
 			QueueItemInfo* m_ii;
 		};
 		
 		struct UpdateTask : public Task
-#ifdef _DEBUG
-				, virtual NonDerivable<UpdateTask> // [+] IRainman fix.
-#endif
 		{
 				explicit UpdateTask(const string& p_target) : m_target(p_target) { }
 				const string& getTarget() const
@@ -421,8 +361,6 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 			private:
 				const string m_target;
 		};
-		
-		TaskQueue m_tasks;
 		
 		OMenu browseMenu;
 		OMenu removeMenu;
@@ -472,18 +410,6 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		void updateQueue();
 		void updateStatus();
 		
-		/**
-		 * This one is different from the others because when a lot of files are removed
-		 * at the same time, the WM_SPEAKER messages seem to get lost in the handling or
-		 * something, they're not correctly processed anyway...thanks windows.
-		 */
-		/*
-		void speak(uint8_t type, UpdateInfo* ui) deprecated
-		{
-		    m_tasks.add(type, ui);
-		    // [-] speak(); // [-] IRainman opt.
-		}
-		*/
 		
 		bool isCurDir(const string& aDir) const
 		{
@@ -512,6 +438,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		
 		void removeSelected();
 		void removeSelectedDir();
+		void removeAllDir();
 		
 		void renameSelected();
 		void renameSelectedDir();
@@ -529,23 +456,12 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		}
 		
 		void on(QueueManagerListener::Added, const QueueItemPtr& aQI) noexcept;
+		void on(QueueManagerListener::AddedArray, const std::vector<QueueItemPtr>& p_qi_array) noexcept;
 		void on(QueueManagerListener::Moved, const QueueItemPtr& aQI, const string& oldTarget) noexcept;
 		void on(QueueManagerListener::Removed, const QueueItemPtr& aQI) noexcept;
-		void on(QueueManagerListener::SourcesUpdated, const QueueItemPtr& aQI) noexcept
-		{
-			m_tasks.add(UPDATE_ITEM, new UpdateTask(aQI->getTarget()));
-		}
-		void on(QueueManagerListener::StatusUpdated, const QueueItemPtr& aQI) noexcept
-		{
-			m_tasks.add(UPDATE_ITEM, new UpdateTask(aQI->getTarget()));
-		}
-		void on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept // [+] IRainman opt.
-		{
-			for (auto i = p_list.cbegin(); i != p_list.cend(); ++i)
-			{
-				on(QueueManagerListener::StatusUpdated(), *i);
-			}
-		}
+		void on(QueueManagerListener::SourcesUpdated, const QueueItemPtr& aQI) noexcept;
+		void on(QueueManagerListener::StatusUpdated, const QueueItemPtr& aQI) noexcept;
+		void on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept; // [+] IRainman opt.
 		void on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept; // [+] IRainman opt.
 		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
 		

@@ -350,10 +350,12 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void merge_queue_segmentL(const CFlySegment& p_QueueSegment);
 	private:
 		int merge_queue_sub_itemsL(QueueItemPtr& p_QueueItem, __int64 p_id);
+		void remove_queue_itemL(const __int64 p_id);
 	public:
 		void merge_queue_all_items(std::vector<QueueItemPtr>& p_QueueItemArray);
 		void merge_queue_all_segments(const CFlySegmentArray& p_QueueSegmentArray);
 		void remove_queue_item(const __int64 p_id);
+		void remove_queue_all_items();
 		void load_ignore(StringSet& p_ignores);
 		void save_ignore(const StringSet& p_ignores);
 		void load_registry(CFlyRegistryMap& p_values, int p_Segment);

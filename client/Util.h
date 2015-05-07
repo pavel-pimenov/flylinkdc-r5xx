@@ -257,8 +257,12 @@ class CompareFirst
 };
 
 /** Evaluates op(pair<T1, T2>.second, compareTo) */
+#if 0
 template < class T1, class T2, class op = equal_to<T2> >
 class CompareSecond
+#ifdef _DEBUG
+	: boost::noncopyable
+#endif
 {
 	public:
 		CompareSecond(const T2& compareTo) : a(compareTo) { }
@@ -267,13 +271,15 @@ class CompareSecond
 			return op()(p.second, a);
 		}
 	private:
-		CompareSecond& operator=(const CompareSecond&);
 		const T2& a;
 };
 
 /** Evaluates op(pair<T1, T2>.second, compareTo) */
 template < class T1, class T2, class T3, class op = equal_to<T2> >
 class CompareSecondFirst
+#ifdef _DEBUG
+	: boost::noncopyable
+#endif
 {
 	public:
 		CompareSecondFirst(const T2& compareTo) : a(compareTo) { }
@@ -282,10 +288,10 @@ class CompareSecondFirst
 			return op()(p.second.first, a);
 		}
 	private:
-		CompareSecondFirst& operator=(const CompareSecondFirst&);
 		const T2& a;
 };
 
+#endif
 /**
  * Compares two values
  * @return -1 if v1 < v2, 0 if v1 == v2 and 1 if v1 > v2
@@ -324,8 +330,6 @@ class AutoArray
 			return p;
 		}
 	private:
-		explicit AutoArray(TPtr t) : p(t) { }
-		
 		TPtr p;
 };
 

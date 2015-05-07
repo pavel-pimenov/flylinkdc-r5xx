@@ -39,7 +39,7 @@ class ADLSearchFrame : public MDITabChildWindowImpl < ADLSearchFrame, RGB(0, 0, 
 	, public StaticFrame<ADLSearchFrame, ResourceManager::ADL_SEARCH, IDC_FILE_ADL_SEARCH>
 	, private SettingsManagerListener
 #ifdef _DEBUG
-	, virtual NonDerivable<ADLSearchFrame>, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:
@@ -97,9 +97,7 @@ class ADLSearchFrame : public MDITabChildWindowImpl < ADLSearchFrame, RGB(0, 0, 
 			HDC hDC   = (HDC)wParam;
 			if (hWnd == ctrlList.m_hWnd)
 			{
-				::SetBkColor(hDC, Colors::bgColor);
-				::SetTextColor(hDC, Colors::textColor);
-				return (LRESULT)Colors::bgBrush;
+				return Colors::setColor(hDC);
 			}
 			bHandled = FALSE;
 			return FALSE;

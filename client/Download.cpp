@@ -24,42 +24,39 @@
 #include "HashManager.h"
 
 // [!] IRainman fix.
-Download::Download(UserConnection* p_conn, QueueItem* item, const string& p_ip, const string& p_chiper_name) noexcept :
+Download::Download(UserConnection* p_conn, const QueueItemPtr& p_item, const string& p_ip, const string& p_chiper_name) noexcept :
+Transfer(p_conn, p_item->getTarget(), p_item->getTTH(), p_ip, p_chiper_name),
+         m_qi(p_item),
+         m_download_file(nullptr),
+         treeValid(false)
 #ifdef PPA_INCLUDE_DROP_SLOW
-lastNormalSpeed(0),
+         , m_lastNormalSpeed(0)
 #endif
-                qi(item),
-                Transfer(p_conn, item->getTarget(), item->getTTH(), p_ip, p_chiper_name),
-                m_download_file(nullptr),
-                treeValid(false)
 {
-	qi->inc(); // [+]
-	// [~] IRainman fix.
-	
-	p_conn->setDownload(this);
+	////////// p_conn->setDownload(this);
 	
 	// [-] QueueItem::SourceConstIter source = qi.getSource(getUser()); [-] IRainman fix.
 	
-	if (qi->isSet(QueueItem::FLAG_PARTIAL_LIST))
+	if (m_qi->isSet(QueueItem::FLAG_PARTIAL_LIST))
 	{
 		setType(TYPE_PARTIAL_LIST);
 		//pfs = qi->getTarget(); // [+] IRainman fix. TODO: пофикшено, но не до конца :(
 	}
-	else if (qi->isSet(QueueItem::FLAG_USER_LIST))
+	else if (m_qi->isSet(QueueItem::FLAG_USER_LIST))
 	{
 		setType(TYPE_FULL_LIST);
 	}
 	
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
-	if (qi->isSet(QueueItem::FLAG_USER_CHECK))
+	if (m_qi->isSet(QueueItem::FLAG_USER_CHECK))
 		setFlag(FLAG_USER_CHECK);
 #endif
 	// [+] SSA
-	if (qi->isSet(QueueItem::FLAG_USER_GET_IP))
+	if (m_qi->isSet(QueueItem::FLAG_USER_GET_IP))
 		setFlag(FLAG_USER_GET_IP);
 		
 	// TODO: убрать флажки после рефакторинга, ибо они всё равно бесполезны https://code.google.com/p/flylinkdc/issues/detail?id=1028
-	const bool l_is_type_file = getType() == TYPE_FILE && qi->getSize() != -1;
+	const bool l_is_type_file = getType() == TYPE_FILE && m_qi->getSize() != -1;
 	// http://code.google.com/p/flylinkdc/issues/detail?id=1418
 	bool l_check_tth_sql = false;
 	if (getTTH() != TTHValue()) // не зовем проверку на TTH = 0000000000000000000000000000000000 (файл-лист)
@@ -68,13 +65,13 @@ lastNormalSpeed(0),
 		l_check_tth_sql = CFlylinkDBManager::getInstance()->get_tree(getTTH(), m_tiger_tree, l_block_size);
 		if (l_check_tth_sql && l_block_size)
 		{
-			item->setBlockSize(l_block_size);
+			m_qi->setBlockSize(l_block_size);
 		}
 	}
 	const bool l_is_check_tth = l_is_type_file && l_check_tth_sql;
 	// ~TODO
 	
-	const auto& l_source_it = qi->findSourceL(getUser()); // [+] IRainman fix.
+	const auto& l_source_it = m_qi->findSourceL(getUser()); // [+] IRainman fix.
 	const auto& l_src = l_source_it->second;
 	if (l_src.isSet(QueueItem::Source::FLAG_PARTIAL))
 		setFlag(FLAG_DOWNLOAD_PARTIAL);
@@ -84,24 +81,24 @@ lastNormalSpeed(0),
 		if (l_is_check_tth)
 		{
 			setTreeValid(true);
-			setSegment(qi->getNextSegmentL(getTigerTree().getBlockSize(), p_conn->getChunkSize(), p_conn->getSpeed(), l_src.getPartialSource()));
+			setSegment(m_qi->getNextSegmentL(getTigerTree().getBlockSize(), p_conn->getChunkSize(), p_conn->getSpeed(), l_src.getPartialSource()));
 		}
-		else if (p_conn->isSet(UserConnection::FLAG_SUPPORTS_TTHL) && !l_src.isSet(QueueItem::Source::FLAG_NO_TREE) && qi->getSize() > MIN_BLOCK_SIZE) // [!] IRainman opt.
+		else if (p_conn->isSet(UserConnection::FLAG_SUPPORTS_TTHL) && !l_src.isSet(QueueItem::Source::FLAG_NO_TREE) && m_qi->getSize() > MIN_BLOCK_SIZE) // [!] IRainman opt.
 		{
 			// Get the tree unless the file is small (for small files, we'd probably only get the root anyway)
 			setType(TYPE_TREE);
-			getTigerTree().setFileSize(qi->getSize());
+			getTigerTree().setFileSize(m_qi->getSize());
 			setSegment(Segment(0, -1));
 		}
 		else
 		{
 			// Use the root as tree to get some sort of validation at least...
-			getTigerTree() = TigerTree(qi->getSize(), qi->getSize(), getTTH());
+			getTigerTree() = TigerTree(m_qi->getSize(), m_qi->getSize(), getTTH());
 			setTreeValid(true);
-			setSegment(qi->getNextSegmentL(getTigerTree().getBlockSize(), 0, 0, l_src.getPartialSource()));
+			setSegment(m_qi->getNextSegmentL(getTigerTree().getBlockSize(), 0, 0, l_src.getPartialSource()));
 		}
 		
-		if ((getStartPos() + getSize()) != qi->getSize())
+		if ((getStartPos() + getSize()) != m_qi->getSize())
 		{
 			setFlag(FLAG_CHUNKED);
 		}
@@ -109,15 +106,14 @@ lastNormalSpeed(0),
 		if (getSegment().getOverlapped())
 		{
 			setFlag(FLAG_OVERLAP);
-			qi->setOverlappedL(getSegment(), true); // [!] IRainman fix.
+			m_qi->setOverlappedL(getSegment(), true); // [!] IRainman fix.
 		}
 	}
 }
 
 Download::~Download()
 {
-	getUserConnection()->setDownload(nullptr);
-	qi->dec(); // [+] IRainman fix.
+	//////////getUserConnection()->setDownload(nullptr);
 }
 
 void Download::getCommand(AdcCommand& cmd, bool zlib) const
@@ -153,8 +149,13 @@ void Download::getCommand(AdcCommand& cmd, bool zlib) const
 	}
 }
 
-void Download::getParams(const UserConnection* aSource, StringMap& params)
+void Download::getParams(StringMap& params) const
 {
-	Transfer::getParams(aSource, params);
+	Transfer::getParams(getUserConnection(), params);
 	params["target"] = getPath();
+}
+
+string Download::getTempTarget() const
+{
+	return m_qi->getTempTarget();
 }

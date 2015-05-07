@@ -32,9 +32,6 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 	public UserInfoBaseHandler < PrivateFrame, UserInfoGuiTraits::NO_SEND_PM | UserInfoGuiTraits::USER_LOG > , // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=621
 	private SettingsManagerListener
 	, private BaseChatFrame // [+] IRainman copy-past fix.
-#ifdef _DEBUG
-	, virtual NonDerivable<PrivateFrame> // [+] IRainman fix.
-#endif
 {
 	public:
 		static bool gotMessage(const Identity& from, const Identity& to, const Identity& replyTo, const tstring& aMessage, const string& sHubHint, const bool bMyMess, const bool bThirdPerson, const bool notOpenNewWindow = false); // !SMT!-S

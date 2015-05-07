@@ -72,7 +72,7 @@ LRESULT CDMDebugFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	m_eExcludeFilterContainer.SubclassWindow(ctrlStatus.m_hWnd);
 	
 	m_hWndClient    = ctrlCMDPad;
-	m_hMenu         = WinUtil::mainMenu;
+	m_hMenu         = WinUtil::g_mainMenu;
 	
 	start(64);
 	DebugManager::newInstance(); // [+] IRainman opt.
@@ -239,13 +239,11 @@ LRESULT CDMDebugFrame::onClear(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
 }
 LRESULT CDMDebugFrame::onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	HWND hWnd = (HWND)lParam;
-	HDC hDC = (HDC)wParam;
+	const HWND hWnd = (HWND)lParam;
+	const HDC hDC = (HDC)wParam;
 	if (hWnd == ctrlCMDPad.m_hWnd)
 	{
-		::SetBkColor(hDC, Colors::bgColor);
-		::SetTextColor(hDC, Colors::textColor);
-		return (LRESULT)Colors::bgBrush;
+		return Colors::setColor(hDC);
 	}
 	bHandled = FALSE;
 	return FALSE;

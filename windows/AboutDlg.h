@@ -42,7 +42,7 @@ static const TCHAR g_donation[] =
 
 class AboutDlg : public CDialogImpl<AboutDlg>
 #ifdef _DEBUG
-	, boost::noncopyable , virtual NonDerivable<AboutDlg> // [+] IRainman fix.
+	, boost::noncopyable
 #endif
 {
 	public:

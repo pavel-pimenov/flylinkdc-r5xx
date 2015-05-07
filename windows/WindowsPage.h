@@ -1,7 +1,3 @@
-/**
-* Страница в настройках "Окна" / Page "Windows".
-*/
-
 /*
  * Copyright (C) 2001-2013 Jacek Sieka, arnetheduck on gmail point com
  *
@@ -28,9 +24,6 @@
 #include "ExListViewCtrl.h" // [+] IRainman
 
 class WindowsPage : public CPropertyPage<IDD_WINDOWS_PAGE>, public PropPage
-#ifdef _DEBUG
-	, virtual NonDerivable<WindowsPage> // [+] IRainman fix.
-#endif
 {
 	public:
 		WindowsPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_WINDOWS))

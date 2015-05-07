@@ -107,7 +107,7 @@ class WildcardsEss
 				found   = tstring::npos;
 				left    = 0;
 			};
-			Words(): left(0) {};
+			Words(): left(0), found(0) {};
 		} words;
 		
 		/**

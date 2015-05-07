@@ -1,4 +1,4 @@
-/* $Id: miniupnpc.c,v 1.123 2014/11/27 12:02:25 nanard Exp $ */
+/* $Id: miniupnpc.c,v 1.125 2015/01/22 09:24:19 nanard Exp $ */
 /* Project : miniupnp
  * Web : http://miniupnp.free.fr/
  * Author : Thomas BERNARD
@@ -834,17 +834,17 @@ build_absolute_url(const char * baseurl, const char * descURL,
 			p = strchr(s, ']');
 			if(p) {
 				/* insert %25<scope> into URL */
-#ifdef IF_NAMESIZE
+#if defined(IF_NAMESIZE) && !defined(_WIN32)
 				memmove(p + 3 + strlen(ifname), p, strlen(p) + 1);
 				memcpy(p, "%25", 3);
 				memcpy(p + 3, ifname, strlen(ifname));
 				n += 3 + strlen(ifname);
-#else
+#else /* defined(IF_NAMESIZE) && !defined(_WIN32) */
 				memmove(p + 3 + strlen(scope_str), p, strlen(p) + 1);
 				memcpy(p, "%25", 3);
 				memcpy(p + 3, scope_str, strlen(scope_str));
 				n += 3 + strlen(scope_str);
-#endif
+#endif /* defined(IF_NAMESIZE) && !defined(_WIN32) */
 			}
 		}
 	}

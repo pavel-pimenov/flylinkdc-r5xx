@@ -31,7 +31,7 @@
 class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_FAVORITE_USERS > , public StaticFrame<UsersFrame, ResourceManager::FAVORITE_USERS, IDC_FAVUSERS>,
 	private FavoriteManagerListener, public UserInfoBaseHandler<UsersFrame, UserInfoGuiTraits::INLINE_CONTACT_LIST>, private SettingsManagerListener
 #ifdef _DEBUG
-	, virtual NonDerivable<UsersFrame>, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:
@@ -195,7 +195,7 @@ class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_
 		}
 		void on(StatusChanged, const UserPtr& aUser) noexcept
 		{
-			PostMessage(WM_SPEAKER, (WPARAM)USER_UPDATED, (LPARAM)new UserPtr(aUser)); //-V572
+			safe_post_message(*this, USER_UPDATED, new UserPtr(aUser));
 		}
 		
 		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);

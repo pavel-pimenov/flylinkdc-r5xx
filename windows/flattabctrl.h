@@ -1018,7 +1018,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				TabInfo(HWND p_Wnd, COLORREF p_color, uint16_t p_icon, uint16_t p_stateIcon, bool p_is_update) :
 					hWnd(p_Wnd), m_len(0), m_xpos(0), m_row(0), m_dirty(false),
 					m_hCustomIcon(nullptr), m_bState(false), m_mini(false),
-					m_color_pen(p_color), m_icon(p_icon), m_stateIcon(p_stateIcon), m_count_messages(0)
+					m_color_pen(p_color), m_icon_index(p_icon), m_state_icon_index(p_stateIcon), m_count_messages(0)
 				{
 					memzero(&m_size, sizeof(m_size));
 					name[0] = 0;
@@ -1041,8 +1041,9 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				int  m_xpos;
 				int  m_row;
 				
-				uint16_t m_icon;
-				uint16_t m_stateIcon;
+				uint16_t m_icon_index;
+				std::unique_ptr<HIconWrapper> m_icon;
+				uint16_t m_state_icon_index;
 				uint16_t m_count_messages;
 				
 				HICON m_hCustomIcon; // !SMT!-UI custom icon should be set / freed outside this class
@@ -1576,42 +1577,47 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			dc.SetBkMode(TRANSPARENT);
 			
 			// [!] SSA http://code.google.com/p/flylinkdc/issues/detail?id=394 - проблема в случае с Лог файлом. Почему нет иконки??
-			std::unique_ptr<HIconWrapper> l_tmp_hIcon;
 			HICON l_hIcon = tab->m_hCustomIcon;
 			if (l_hIcon == nullptr)
 			{
-				if (tab->m_bState && tab->m_stateIcon)
+				if (tab->m_bState && tab->m_state_icon_index)
 				{
-					if (tab->m_stateIcon == IDR_HUB_OFF)
+					if (tab->m_state_icon_index == IDR_HUB_OFF)
 					{
 						l_hIcon = *WinUtil::g_HubOffIcon.get();
 					}
-					else if (tab->m_stateIcon == IDR_HUB)
+					else if (tab->m_state_icon_index == IDR_HUB)
 					{
 						l_hIcon = *WinUtil::g_HubOnIcon.get();
 					}
 					else
 					{
-						l_tmp_hIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(tab->m_stateIcon));
+						if (!tab->m_icon)
+						{
+							tab->m_icon = std::unique_ptr<HIconWrapper>(new HIconWrapper(tab->m_state_icon_index));
+						}
+						l_hIcon = *tab->m_icon;
 					}
 				}
-				else if (tab->m_icon)
+				else if (tab->m_icon_index)
 				{
-					if (tab->m_icon == IDR_HUB_OFF)
+					if (tab->m_icon_index == IDR_HUB_OFF)
 					{
 						l_hIcon = *WinUtil::g_HubOffIcon.get();
 					}
-					else if (tab->m_icon == IDR_HUB)
+					else if (tab->m_icon_index == IDR_HUB)
 					{
 						l_hIcon = *WinUtil::g_HubOnIcon.get();
 					}
 					else
 					{
-						l_tmp_hIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(tab->m_icon));
+						if (!tab->m_icon)
+						{
+							tab->m_icon = std::unique_ptr<HIconWrapper>(new HIconWrapper(tab->m_icon_index));
+						}
+						l_hIcon = *tab->m_icon;
 					}
 				}
-				if (l_hIcon == nullptr && l_tmp_hIcon)
-					l_hIcon = * l_tmp_hIcon.get();
 			}
 			
 			pos = pos + getFill() / 2 + FT_EXTRA_SPACE / 2;
@@ -1833,7 +1839,7 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 #endif //!(_ATL_VER >= 0x0700)
 				
 			if (m_hMenu == NULL)
-				m_hMenu = WinUtil::mainMenu;
+				m_hMenu = WinUtil::g_mainMenu;
 				
 			dwStyle = T::GetWndStyle(dwStyle);
 			dwExStyle = T::GetWndExStyle(dwExStyle);
@@ -1952,7 +1958,7 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 			{
 				getTab()->removeTab(m_hWnd);
 			}
-			if (m_hMenu == WinUtil::mainMenu)
+			if (m_hMenu == WinUtil::g_mainMenu)
 			{
 				m_hMenu = NULL;
 			}

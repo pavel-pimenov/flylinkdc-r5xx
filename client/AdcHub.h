@@ -85,6 +85,8 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		Socket m_udp;
 		SIDMap m_users;
 		StringMap m_lastInfoMap;
+		FastCriticalSection m_info_cs;
+		void addParam(AdcCommand& p_c, const string& p_var, const string& p_value);
 		
 		string m_salt;
 		uint32_t sid;

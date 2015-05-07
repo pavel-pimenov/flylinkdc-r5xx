@@ -435,7 +435,12 @@ void File__Tags_Helper::GoTo (int64u GoTo, const char* ParserName)
     }
 
     //Trying to parse tags
-    while (!TagSizeIsFinal && DetectBeginOfEndTags_Test());
+	int l_max_key = 10000; // FlylinkDC++  https://sourceforge.net/p/mediainfo/bugs/919/
+	while (!TagSizeIsFinal && DetectBeginOfEndTags_Test())
+	{
+		if (!--l_max_key)
+			break;
+	}
 
     //If a jump is requested
     if (!TagSizeIsFinal)

@@ -139,7 +139,7 @@ LRESULT MagnetDlg::onCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, 
 			try
 			{
 				const string target = Text::fromT(mFileName);
-				QueueManager::getInstance()->add(target, mSize, mHash, HintedUser(UserPtr(), Util::emptyString),
+				QueueManager::getInstance()->add(target, mSize, mHash, HintedUser(),
 				                                 isDCLST() ? QueueItem::FLAG_DCLST_LIST : // [!] SSA - add dclst download
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 				                                 (isViewMedia ? QueueItem::FLAG_MEDIA_VIEW : 0)
@@ -158,7 +158,7 @@ LRESULT MagnetDlg::onCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, 
 			try
 			{
 				// [!] SSA
-				QueueManager::getInstance()->add(Text::fromT(mFileName), mSize, mHash, HintedUser(UserPtr(), Util::emptyString), isDCLST() ? (QueueItem::FLAG_CLIENT_VIEW | QueueItem::FLAG_DCLST_LIST) : QueueItem::FLAG_OPEN_FILE);
+				QueueManager::getInstance()->add(Text::fromT(mFileName), mSize, mHash, HintedUser(), isDCLST() ? (QueueItem::FLAG_CLIENT_VIEW | QueueItem::FLAG_DCLST_LIST) : QueueItem::FLAG_OPEN_FILE);
 			}
 			catch (const Exception& e)
 			{

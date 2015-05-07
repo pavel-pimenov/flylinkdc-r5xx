@@ -218,14 +218,15 @@ MainFrame::~MainFrame()
 unsigned int WINAPI MainFrame::stopper(void* p)
 {
 	MainFrame* mf = (MainFrame*)p;
-	HWND wnd, wnd2 = NULL;
+	HWND wnd = NULL;
+	HWND wnd2 = NULL;
 	
 	while ((wnd =::GetWindow(mf->m_hWndMDIClient, GW_CHILD)) != NULL)
 	{
 		if (wnd == wnd2)
 		{
 #ifdef _DEBUG
-			LogManager::message("MainFrame::stopper Sleep(10) wnd = " + Util::toString(int(wnd)));
+			// LogManager::message("MainFrame::stopper Sleep(10) wnd = " + Util::toString(int(wnd)));
 #endif
 			Sleep(10);
 		}
@@ -254,7 +255,7 @@ void MainFrame::createMainMenu(void) // [+]Drakon. Enlighting functions.
 	// Loads images and creates command bar window
 	m_CmdBar.Create(m_hWnd, rcDefault, NULL, ATL_SIMPLE_CMDBAR_PANE_STYLE);
 	m_CmdBar.SetImageSize(16, 16); // [+] IRainman fix picture size.
-	m_hMenu = WinUtil::mainMenu;
+	m_hMenu = WinUtil::g_mainMenu;
 	
 	m_CmdBar.AttachMenu(m_hMenu);
 	
@@ -657,7 +658,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 #endif
 	// [-] IRainman tabPos = SETTING(TABS_POS);
 	
-	transferView.Create(m_hWnd);
+	m_transferView.Create(m_hWnd);
 	tuneTransferSplit();
 	
 	UIAddToolBar(hWndToolBar);
@@ -820,7 +821,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	g_fly_server_stat.stopTick(CFlyServerStatistics::TIME_START_GUI);
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
 	create_timer(1000, 3);
-	transferView.UpdateLayout();
+	m_transferView.UpdateLayout();
 	return 0;
 }
 
@@ -835,7 +836,7 @@ int MainFrame::tuneTransferSplit()
 		m_nProportionalPos = 9100; // TODO - пофиксить http://code.google.com/p/flylinkdc/issues/detail?id=1398
 	}
 	SET_SETTING(TRANSFER_SPLIT_SIZE, m_nProportionalPos);
-	SetSplitterPanes(m_hWndMDIClient, transferView.m_hWnd);
+	SetSplitterPanes(m_hWndMDIClient, m_transferView.m_hWnd);
 	SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
 	return m_nProportionalPos;
 }
@@ -888,6 +889,7 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	
 	if (!g_bAppMinimized || !BOOLSETTING(MINIMIZE_TRAY) /* [-] IRainman opt: not need to update the window title when it is minimized to tray. || BOOLSETTING(SHOW_CURRENT_SPEED_IN_TITLE)*/)
 	{
+		HubFrame::timer_process_all();
 #ifdef FLYLINKDC_CALC_MEMORY_USAGE
 		if ((aTick / 1000) % 3 == 0)
 		{
@@ -1011,7 +1013,7 @@ HWND MainFrame::createToolbar()    //[~]Drakon. Enlighting toolbars.
 		}
 		else
 		{
-			int size = SETTING(TB_IMAGE_SIZE);
+			const int size = SETTING(TB_IMAGE_SIZE);
 			ResourceLoader::LoadImageList(Text::toT(SETTING(TOOLBARIMAGE)).c_str(), largeImages, size, size);
 		}
 		if (SETTING(TOOLBARHOTIMAGE).empty())
@@ -1020,7 +1022,7 @@ HWND MainFrame::createToolbar()    //[~]Drakon. Enlighting toolbars.
 		}
 		else
 		{
-			int size = SETTING(TB_IMAGE_SIZE_HOT);
+			const int size = SETTING(TB_IMAGE_SIZE_HOT);
 			ResourceLoader::LoadImageList(Text::toT(SETTING(TOOLBARHOTIMAGE)).c_str(), largeImagesHot, size, size);
 		}
 #ifdef RIP_USE_SKIN
@@ -1438,10 +1440,8 @@ LRESULT MainFrame::onQuickSearchChar(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/
 
 LRESULT MainFrame::onQuickSearchColor(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-	HDC hDC = (HDC)wParam;
-	::SetBkColor(hDC, Colors::bgColor);
-	::SetTextColor(hDC, Colors::textColor);
-	return (LRESULT)Colors::bgBrush;
+	const HDC hDC = (HDC)wParam;
+	return Colors::setColor(hDC);
 }
 
 #ifdef RIP_USE_STREAM_SUPPORT_DETECTION
@@ -2096,7 +2096,7 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 		if (dlg.DoModal(m_hWnd) == IDOK)
 		{
 			SettingsManager::getInstance()->save();
-			transferView.setButtonState();
+			m_transferView.setButtonState();
 			if (missedAutoConnect && !SETTING(NICK).empty())
 			{
 				PostMessage(WM_SPEAKER, AUTO_CONNECT);
@@ -2637,7 +2637,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 				shutdownFlyFeatures(); // Разрушаем и запускаем автоапдейт раньше
 				preparingCoreToShutdown(); // [!] IRainman fix.
 				
-				transferView.prepareClose();
+				m_transferView.prepareClose();
 				
 				WebServerManager::getInstance()->removeListener(this);
 				UserManager::getInstance()->removeListener(this); // [+] IRainman
@@ -2723,7 +2723,7 @@ int MainFrame::run()
 	tstring file;
 	if (WinUtil::browseFile(file, m_hWnd, false, lastTTHdir) == IDOK)
 	{
-		WinUtil::mainMenu.EnableMenuItem(ID_GET_TTH, MF_GRAYED);
+		WinUtil::g_mainMenu.EnableMenuItem(ID_GET_TTH, MF_GRAYED);
 		setThreadPriority(Thread::LOW);
 		lastTTHdir = Util::getFilePath(file);
 		const size_t c_size_buf = 1024 * 1024; // [!] IRainman fix.
@@ -2778,7 +2778,7 @@ int MainFrame::run()
 		        }
 		*/
 		setThreadPriority(Thread::NORMAL);
-		WinUtil::mainMenu.EnableMenuItem(ID_GET_TTH, MF_ENABLED);
+		WinUtil::g_mainMenu.EnableMenuItem(ID_GET_TTH, MF_ENABLED);
 	}
 	return 0;
 }
@@ -3172,13 +3172,14 @@ LRESULT MainFrame::onAppShow(WORD /*wNotifyCode*/, WORD /*wParam*/, HWND, BOOL& 
 void MainFrame::ShowBalloonTip(LPCTSTR szMsg, LPCTSTR szTitle, DWORD dwInfoFlags)
 {
 	//dcassert(PopupManager::isValidInstance());
-	if (PopupManager::isValidInstance())
+	//dcassert(!CGDIImage::isShutdown());
+	if (!CGDIImage::isShutdown() && PopupManager::isValidInstance())
 	{
 		Popup* p = new Popup;
 		p->Title = szTitle;
 		p->Message = szMsg;
 		p->Icon = dwInfoFlags;
-		PostMessage(WM_SPEAKER, SHOW_POPUP, (LPARAM)p);
+		safe_post_message(*this, SHOW_POPUP, p);
 	}
 }
 
@@ -3267,7 +3268,7 @@ void MainFrame::ViewTransferView(BOOL bVisible)
 
 LRESULT MainFrame::OnViewTransferView(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	const BOOL bVisible = !transferView.IsWindowVisible();
+	const BOOL bVisible = !m_transferView.IsWindowVisible();
 	ViewTransferView(bVisible);
 	SET_SETTING(SHOW_TRANSFERVIEW, bVisible);
 	return 0;
@@ -3278,7 +3279,7 @@ LRESULT MainFrame::OnViewTransferViewToolBar(WORD /*wNotifyCode*/, WORD /*wID*/,
 	SET_SETTING(SHOW_TRANSFERVIEW_TOOLBAR, bVisible);
 	ctrlToolbar.CheckButton(ID_VIEW_TRANSFER_VIEW_TOOLBAR, bVisible);
 	UISetCheck(ID_VIEW_TRANSFER_VIEW_TOOLBAR, bVisible);
-	transferView.UpdateLayout();
+	m_transferView.UpdateLayout();
 	return 0;
 }
 
@@ -3356,31 +3357,34 @@ LRESULT MainFrame::onQuickConnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 
 void MainFrame::on(QueueManagerListener::PartialList, const HintedUser& aUser, const string& text) noexcept
 {
-	PostMessage(WM_SPEAKER, BROWSE_LISTING, (LPARAM)new DirectoryBrowseInfo(aUser, text));
+	safe_post_message(*this, BROWSE_LISTING, new DirectoryBrowseInfo(aUser, text));
 }
 
-void MainFrame::on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string& dir, const Download* p_download) noexcept
+void MainFrame::on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string& dir, const DownloadPtr& p_download) noexcept
 {
-	if (qi->isSet(QueueItem::FLAG_CLIENT_VIEW))
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
 	{
-		if (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_DCLST_LIST))
+		if (qi->isSet(QueueItem::FLAG_CLIENT_VIEW))
 		{
-			// This is a file listing, show it...
-			auto dirInfo = new QueueManager::DirectoryListInfo(p_download->getHintedUser(), qi->getListName(), dir, p_download->getRunningAverage(), qi->isSet(QueueItem::FLAG_DCLST_LIST));
-			
-			PostMessage(WM_SPEAKER, DOWNLOAD_LISTING, (LPARAM)dirInfo);
+			if (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_DCLST_LIST))
+			{
+				// This is a file listing, show it...
+				auto dirInfo = new QueueManager::DirectoryListInfo(p_download->getHintedUser(), qi->getListName(), dir, p_download->getRunningAverage(), qi->isSet(QueueItem::FLAG_DCLST_LIST));
+				safe_post_message(*this, DOWNLOAD_LISTING, dirInfo);
+			}
+			else if (qi->isSet(QueueItem::FLAG_TEXT))
+			{
+				safe_post_message(*this, VIEW_FILE_AND_DELETE, new tstring(Text::toT(qi->getTarget())));
+			}
 		}
-		else if (qi->isSet(QueueItem::FLAG_TEXT))
+		// [+] IRainman support auto open file after download.
+		else if (qi->isSet(QueueItem::FLAG_OPEN_FILE))
 		{
-			PostMessage(WM_SPEAKER, VIEW_FILE_AND_DELETE, (LPARAM) new tstring(Text::toT(qi->getTarget())));
+			WinUtil::openFile(Text::toT(qi->getTarget()));
 		}
+		// [~] IRainman support auto open file after download.
 	}
-	// [+] IRainman support auto open file after download.
-	else if (qi->isSet(QueueItem::FLAG_OPEN_FILE))
-	{
-		WinUtil::openFile(Text::toT(qi->getTarget()));
-	}
-	// [~] IRainman support auto open file after download.
 }
 
 LRESULT MainFrame::onActivateApp(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
@@ -3714,7 +3718,6 @@ void MainFrame::on(QueueManagerListener::Added, const QueueItemPtr& qi) noexcept
 		// Start temp preview
 		Preview::runInternalPreview(qi); // [!] IRainman fix.
 	}
-	
 }
 #endif // SSA_VIDEO_PREVIEW_FEATURE
 void MainFrame::on(QueueManagerListener::TryAdding, const string& fileName, int64_t newSize, int64_t existingSize, time_t existingTime, int option) noexcept // [+] SSA
@@ -3740,11 +3743,11 @@ void MainFrame::NewVerisonEvent(const std::string& p_new_version)
 		CMenuHandle l_menu_flylinkdc_new_version;
 		l_menu_flylinkdc_new_version.CreatePopupMenu();
 		l_menu_flylinkdc_new_version.AppendMenu(MF_STRING, IDC_UPDATE_FLYLINKDC, CTSTRING(UPDATE_CHECK));
-		//mainMenu.ModifyMenuW(SetMenuItemInfoW(.SetMenuItemBitmaps
+		//g_mainMenu.ModifyMenuW(SetMenuItemInfoW(.SetMenuItemBitmaps
 		const string l_text_flylinkdc_new_version = p_new_version;
-		WinUtil::mainMenu.AppendMenu(MF_STRING, l_menu_flylinkdc_new_version, Text::toT(l_text_flylinkdc_new_version).c_str());
+		WinUtil::g_mainMenu.AppendMenu(MF_STRING, l_menu_flylinkdc_new_version, Text::toT(l_text_flylinkdc_new_version).c_str());
 		SetMDIFrameMenu();
-		m_index_new_version_menu_item = WinUtil::mainMenu.GetMenuItemCount();
+		m_index_new_version_menu_item = WinUtil::g_mainMenu.GetMenuItemCount();
 	}
 }
 

@@ -24,9 +24,6 @@
 #include "ExListViewCtrl.h" // [+] IRainman
 
 class TabsPage : public CPropertyPage<IDD_TABS_PAGE>, public PropPage
-#ifdef _DEBUG
-	, virtual NonDerivable<TabsPage> // [+] IRainman fix.
-#endif
 {
 	public:
 		TabsPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_TABS))

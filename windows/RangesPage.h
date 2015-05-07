@@ -1,6 +1,3 @@
-/**
-* Страница в настройках "Фильтр IP (IPGuard)" / Page "IPGuard".
-*/
 
 #ifndef RANGES_PAGE_H
 #define RANGES_PAGE_H

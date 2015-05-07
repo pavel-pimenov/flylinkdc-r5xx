@@ -28,6 +28,7 @@ class MerkleCheckOutputStream : public OutputStream
 	public:
 		MerkleCheckOutputStream(const TreeType& aTree, OutputStream* aStream, int64_t start) : s(aStream), real(aTree), cur(aTree.getBlockSize()), verified(0), bufPos(0)
 		{
+			//dcdebug("[==========================] MerkleCheckOutputStream() start = %d s = %d this = %d\r\n\r\n", start, s, this);
 			// Only start at block boundaries
 			const auto l_blocksize = aTree.getBlockSize();
 			dcassert(start % l_blocksize == 0);
@@ -44,7 +45,11 @@ class MerkleCheckOutputStream : public OutputStream
 		
 		~MerkleCheckOutputStream()
 		{
-			if (managed) delete s;
+			//dcdebug("[==========================] ~MerkleCheckOutputStream() bufPos = %d s = %d this = %d\r\n\r\n", bufPos, s,  this);
+			if (managed)
+			{
+				delete s;
+			}
 		}
 		
 		size_t flush()

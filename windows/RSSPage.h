@@ -28,9 +28,6 @@
 class RSSFeed;
 
 class RSSPage : public CPropertyPage<IDD_RSS_PAGE>, public PropPage
-#ifdef _DEBUG
-	, virtual NonDerivable<RSSPage> // [+] IRainman fix.
-#endif
 {
 	public:
 		RSSPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_RSS_PROP))

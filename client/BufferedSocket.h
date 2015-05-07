@@ -27,6 +27,7 @@
 #include "Socket.h"
 
 class UnZFilter;
+class InputStream;
 
 class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THREAD
 {

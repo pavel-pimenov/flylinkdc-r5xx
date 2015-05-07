@@ -26,7 +26,9 @@
 #include "../FlyFeatures/flyServer.h"
 #include "../client/CryptoManager.h"
 #include "../client/MappingManager.h"
-
+#ifdef STRONG_USE_DHT
+# include "../dht/dht.h"
+#endif
 
 //#define FLYLINKDC_USE_SSA_WINFIREWALL
 
@@ -265,7 +267,8 @@ void NetworkPage::fixControls()
 	::EnableWindow(GetDlgItem(IDC_SETTINGS_USE_DHT_NOTANSWER), dht);
 #endif
 	::EnableWindow(GetDlgItem(IDC_SETTINGS_IP), !auto_detect);
-	::EnableWindow(GetDlgItem(IDC_EXTERNAL_IP), false); // !auto_detect && (direct || upnp || nat || nat_traversal));
+	::EnableWindow(GetDlgItem(IDC_EXTERNAL_IP), true); // !auto_detect && (direct || upnp || nat || nat_traversal));
+	// Вернул редакцию IP http://flylinkdc.com/forum/viewtopic.php?f=23&t=1294&p=5065#p5065
 	::EnableWindow(GetDlgItem(IDC_IP_GET_IP), !auto_detect && (upnp || nat)); //[+]PPA
 	::EnableWindow(GetDlgItem(IDC_NO_IP_OVERRIDE), false); // !auto_detect && (direct || upnp || nat || nat_traversal));
 #ifdef IRAINMAN_IP_AUTOUPDATE
@@ -443,8 +446,10 @@ bool NetworkPage::runTestPort()
 	std::vector<unsigned short> l_udp_port, l_tcp_port;
 	l_udp_port.push_back(SETTING(UDP_PORT));
 #ifdef STRONG_USE_DHT
-//	dcassert(dht::DHT::isValidInstance() && dht::DHT::getInstance()->getPort());
-	l_udp_port.push_back(SETTING(DHT_PORT));
+	if (dht::DHT::isValidInstance() && dht::DHT::getInstance()->getPort())
+	{
+		l_udp_port.push_back(dht::DHT::getInstance()->getPort());
+	}
 #endif
 	l_tcp_port.push_back(SETTING(TCP_PORT));
 	if (CryptoManager::getInstance()->TLSOk())

@@ -17,12 +17,16 @@
  */
 
 #include "stdinc.h"
+#include <boost/atomic.hpp>
+
 #include "QueueItem.h"
 #include "LogManager.h"
 #include "HashManager.h"
 #include "Download.h"
 #include "File.h"
-#include <boost/atomic.hpp>
+#include "CFlylinkDBManager.h"
+#include "ClientManager.h"
+#include "../FlyFeatures/flyServer.h"
 
 #ifdef FLYLINKDC_USE_RWLOCK
 std::unique_ptr<webrtc::RWLockWrapper> QueueItem::g_cs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
@@ -49,9 +53,8 @@ QueueItem::QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, F
 #endif
 {
 #ifdef _DEBUG
-	LogManager::message("QueueItem::QueueItem aTarget = " + aTarget + " this = " + Util::toString(__int64(this)));
+	//LogManager::message("QueueItem::QueueItem aTarget = " + aTarget + " this = " + Util::toString(__int64(this)));
 #endif
-	inc();
 	setFlags(aFlag);
 #ifdef PPA_INCLUDE_DROP_SLOW
 	if (BOOLSETTING(DISCONNECTING_ENABLE))
@@ -63,7 +66,7 @@ QueueItem::QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, F
 QueueItem::~QueueItem()
 {
 #ifdef _DEBUG
-	LogManager::message("[~~~~] QueueItem::~QueueItem aTarget = " + target + " this = " + Util::toString(__int64(this)));
+	//LogManager::message("[~~~~] QueueItem::~QueueItem aTarget = " + target + " this = " + Util::toString(__int64(this)));
 #endif
 }
 //==========================================================================================
@@ -73,7 +76,7 @@ int16_t QueueItem::calcTransferFlagL(bool& partial, bool& trusted, bool& untrust
 	// Пока убрал т.к. вешаемся. RLock l(*QueueItem::g_cs);
 	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 	{
-		const Download *d = i->second;
+		const auto d = i->second;
 		if (d->getStart() > 0) // crash http://code.google.com/p/flylinkdc/issues/detail?id=1361
 		{
 			segs++;
@@ -203,12 +206,16 @@ bool QueueItem::countOnlineUsersGreatOrEqualThanL(const size_t maxValue) const /
 
 void QueueItem::getOnlineUsers(UserList& list) const
 {
-	RLock l(*QueueItem::g_cs); // [+] IRainman fix.
-	for (auto i = m_sources.cbegin(); i != m_sources.cend(); ++i)
+	//dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
 	{
-		if (i->first->isOnline())
+		RLock l(*QueueItem::g_cs); // [+] IRainman fix.
+		for (auto i = m_sources.cbegin(); i != m_sources.cend(); ++i)
 		{
-			list.push_back(i->first);
+			if (i->first->isOnline())
+			{
+				list.push_back(i->first);
+			}
 		}
 	}
 }
@@ -298,19 +305,21 @@ void QueueItem::removeSourceL(const UserPtr& aUser, Flags::MaskType reason)
 {
 	SourceIter i = findSourceL(aUser); // crash - https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=42877 && http://www.flickr.com/photos/96019675@N02/10488126423/
 	dcassert(i != m_sources.end());
-	// [-] IRainman fix: is not possible in normal state! Please don't problem maskerate.
-//	if (i != m_sources.end()) //[+]PPA
-//	{
-	i->second.setFlag(reason);
-	m_badSources.insert(*i);
-	m_sources.erase(i);
-	setDirtySource(true);
-//	}
-//	else
-//	{
-//		LogManager::message("Error QueueItem::removeSourceL [i != m_sources.end()] aUser = [" +
-//		                                   aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
-//	}
+	if (i != m_sources.end()) // https://drdump.com/Problem.aspx?ProblemID=129066
+	{
+		i->second.setFlag(reason);
+		m_badSources.insert(*i);
+		m_sources.erase(i);
+		setDirtySource(true);
+	}
+	else
+	{
+		const string l_error = "Error QueueItem::removeSourceL [i != m_sources.end()] aUser = [" +
+		                       aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru";
+		LogManager::message(l_error);
+		CFlyServerJSON::pushError(31, l_error);
+		
+	}
 }
 string QueueItem::getListName() const
 {
@@ -363,7 +372,7 @@ bool QueueItem::isSourceValid(const QueueItem::Source* p_source_ptr)
 	return false;
 }
 #endif
-void QueueItem::addDownloadL(Download* p_download)
+void QueueItem::addDownloadL(const DownloadPtr& p_download)
 {
 	dcassert(p_download->getUser());
 	dcassert(m_downloads.find(p_download->getUser()) == m_downloads.end());
@@ -588,7 +597,7 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 		const uint64_t l_CurrentTick = GET_TICK();//[+]IRainman refactoring transfer mechanism
 		for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 		{
-			const Download* d = i->second;
+			const auto d = i->second;
 			
 			// current chunk mustn't be already overlapped
 			if (d->getOverlapped())
@@ -624,7 +633,7 @@ void QueueItem::setOverlappedL(const Segment& p_segment, const bool p_isOverlapp
 	// set overlapped flag to original segment
 	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 	{
-		Download* d = i->second;
+		auto d = i->second;
 		if (d->getSegment().contains(p_segment))
 		{
 			d->setOverlapped(p_isOverlapped);
@@ -661,7 +670,7 @@ uint64_t QueueItem::calcAverageSpeedAndCalcAndGetDownloadedBytesL() const // [!]
 	// count running segments
 	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 	{
-		const Download* d = i->second;
+		const auto d = i->second;
 		l_totalDownloaded += d->getPos(); // [!] IRainman fix done: [6] https://www.box.net/shared/bcc1e978be39a1e0cbf6
 		l_totalSpeed += d->getRunningAverage();
 	}
@@ -689,12 +698,12 @@ void QueueItem::addSegmentL(const Segment& segment)
 	dcassert(segment.getOverlapped() == false);
 	m_done_segment.insert(segment);
 #ifdef _DEBUG
-	LogManager::message("QueueItem::addSegmentL, setDirty = true! id = " +
-	                    Util::toString(this->getFlyQueueID()) + " target = " + this->getTarget()
-	                    + " TempTarget = " + this->getTempTarget()
-	                    + " segment.getSize() = " + Util::toString(segment.getSize())
-	                    + " segment.getEnd() = " + Util::toString(segment.getEnd())
-	                   );
+//  LogManager::message("QueueItem::addSegmentL, setDirty = true! id = " +
+//                      Util::toString(this->getFlyQueueID()) + " target = " + this->getTarget()
+//	                    + " TempTarget = " + this->getTempTarget()
+//	                    + " segment.getSize() = " + Util::toString(segment.getSize())
+//	                    + " segment.getEnd() = " + Util::toString(segment.getEnd())
+//	                   );
 #endif
 	// Consolidate segments
 	if (m_done_segment.size() == 1)

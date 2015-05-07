@@ -44,7 +44,7 @@ SharedFileStream::SharedFileStream(const string& aFileName, int aAccess, int aMo
 	if (p != pool.end())
 	{
 #ifdef _DEBUG
-		LogManager::message("Share SharedFileHandle aFileName = " + aFileName);
+		// LogManager::message("Share SharedFileHandle aFileName = " + aFileName);
 #endif
 		m_sfh = p->second.get();
 		m_sfh->m_ref_cnt++;
@@ -54,7 +54,7 @@ SharedFileStream::SharedFileStream(const string& aFileName, int aAccess, int aMo
 	else
 	{
 #ifdef _DEBUG
-		LogManager::message("new SharedFileHandle aFileName = " + aFileName);
+		// LogManager::message("new SharedFileHandle aFileName = " + aFileName);
 #endif
 		m_sfh = new SharedFileHandle(aFileName, aAccess, aMode);
 		try
@@ -111,7 +111,7 @@ void SharedFileStream::cleanup()
 		if (i->second && i->second->m_ref_cnt == 0)
 		{
 #ifdef _DEBUG
-			LogManager::message("[!] SharedFileStream::cleanup() aFileName = " + i->first);
+			//  LogManager::message("[!] SharedFileStream::cleanup() aFileName = " + i->first);
 #endif
 			pool.erase(i);
 			i = pool.begin();
@@ -119,8 +119,7 @@ void SharedFileStream::cleanup()
 		else
 		{
 			++i;
-		}
-		
+		}		
 	}
 }
 SharedFileStream::~SharedFileStream()
@@ -131,16 +130,16 @@ SharedFileStream::~SharedFileStream()
 	if (m_sfh->m_ref_cnt == 0)
 	{
 #ifdef _DEBUG
-		LogManager::message("m_ref_cnt = 0 ~SharedFileHandle aFileName = " + m_sfh->m_path);
+		//  LogManager::message("m_ref_cnt = 0 ~SharedFileHandle aFileName = " + m_sfh->m_path);
 #endif
 	}
 }
 
 size_t SharedFileStream::write(const void* buf, size_t len)
 {
-	Lock l(m_sfh->m_cs);
+	FastLock l(m_sfh->m_cs);
 #ifdef _DEBUG
-	LogManager::message("SharedFileStream::write buf = " + Util::toString(int(buf)) + " len " + Util::toString(len));
+	// LogManager::message("SharedFileStream::write buf = " + Util::toString(int(buf)) + " len " + Util::toString(len));
 #endif
 	m_sfh->m_file.setPos(m_pos);
 	m_sfh->m_file.write(buf, len); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=132490
@@ -151,9 +150,9 @@ size_t SharedFileStream::write(const void* buf, size_t len)
 
 size_t SharedFileStream::read(void* buf, size_t& len)
 {
-	Lock l(m_sfh->m_cs);
+	FastLock l(m_sfh->m_cs);
 #ifdef _DEBUG
-	LogManager::message("SharedFileStream::read buf = " + Util::toString(int(buf)) + " len " + Util::toString(len));
+	// LogManager::message("SharedFileStream::read buf = " + Util::toString(int(buf)) + " len " + Util::toString(len));
 #endif
 	
 	m_sfh->m_file.setPos(m_pos);
@@ -165,36 +164,42 @@ size_t SharedFileStream::read(void* buf, size_t& len)
 
 int64_t SharedFileStream::getSize() const
 {
-	Lock l(m_sfh->m_cs);
+	FastLock l(m_sfh->m_cs);
 #ifdef _DEBUG
-	LogManager::message("SharedFileStream::getSize size = " +  Util::toString(m_sfh->m_file.getSize()));
+	// LogManager::message("SharedFileStream::getSize size = " +  Util::toString(m_sfh->m_file.getSize()));
 #endif
 	return m_sfh->m_file.getSize();
 }
 
 void SharedFileStream::setSize(int64_t newSize)
 {
-	Lock l(m_sfh->m_cs);
+	FastLock l(m_sfh->m_cs);
 #ifdef _DEBUG
-	LogManager::message("SharedFileStream::setSize size = " +  Util::toString(newSize));
+	// LogManager::message("SharedFileStream::setSize size = " +  Util::toString(newSize));
 #endif
 	m_sfh->m_file.setSize(newSize);
 }
 
 size_t SharedFileStream::flush()
 {
-	Lock l(m_sfh->m_cs);
-#ifdef _DEBUG
-	LogManager::message("SharedFileStream::flush");
-#endif
-	return m_sfh->m_file.flush();
+	try
+	{
+		FastLock l(m_sfh->m_cs);
+		return m_sfh->m_file.flush(); // https://drdump.com/Problem.aspx?ProblemID=130529
+	}
+	catch (const Exception& e)
+	{
+		dcassert(0);
+		LogManager::message("SharedFileStream::flush() = " + e.getError());
+	}
+	return 0;
 }
 
 void SharedFileStream::setPos(int64_t aPos)
 {
-	Lock l(m_sfh->m_cs);
+	FastLock l(m_sfh->m_cs);
 #ifdef _DEBUG
-	LogManager::message("SharedFileStream::setPos aPos = " +  Util::toString(aPos));
+	// LogManager::message("SharedFileStream::setPos aPos = " +  Util::toString(aPos));
 #endif
 	m_pos = aPos;
 }

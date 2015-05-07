@@ -14,7 +14,7 @@
 
 class AboutDlgIndex : public CDialogImpl<AboutDlgIndex>
 #ifdef _DEBUG
-	, boost::noncopyable , virtual NonDerivable<AboutDlgIndex> // [+] IRainman fix.
+	, boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:

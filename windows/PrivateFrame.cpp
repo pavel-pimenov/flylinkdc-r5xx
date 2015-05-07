@@ -659,7 +659,7 @@ void PrivateFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 	{
 		if (ctrlClient.IsWindow())
 		{
-			ctrlClient.SetBackgroundColor(Colors::bgColor);
+			ctrlClient.SetBackgroundColor(Colors::g_bgColor);
 		}
 		UpdateLayout();
 		RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);

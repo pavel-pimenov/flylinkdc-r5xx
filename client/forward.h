@@ -45,8 +45,7 @@ class DirectoryItem;
 typedef DirectoryItem* DirectoryItemPtr;
 
 class FavoriteHubEntry;
-typedef FavoriteHubEntry* FavoriteHubEntryPtr;
-typedef std::vector<FavoriteHubEntryPtr> FavoriteHubEntryList;
+typedef std::vector<FavoriteHubEntry*> FavoriteHubEntryList;
 
 class FavoriteUser;
 
@@ -68,19 +67,13 @@ typedef std::deque<HubEntry> HubEntryList; // [!] IRainman opt: change vector to
 
 class Identity;
 
-class InputStream;
-
-class LogManager;
-
 class OnlineUser;
 typedef boost::intrusive_ptr<OnlineUser> OnlineUserPtr;
 typedef std::vector<OnlineUserPtr> OnlineUserList;
 
-class OutputStream;
-
 class QueueItem;
-typedef boost::intrusive_ptr<QueueItem> QueueItemPtr; // [!] IRainman fix.
-typedef std::list<QueueItemPtr> QueueItemList;
+typedef std::shared_ptr<QueueItem> QueueItemPtr;
+typedef std::list<QueueItemPtr> QueueItemList; // На vector - нельзя падаем
 
 class RecentHubEntry;
 
@@ -93,13 +86,7 @@ class StringSearch;
 
 class TigerHash;
 
-//class Transfer;
-
 typedef HashValue<TigerHash> TTHValue;
-
-//class UnZFilter;
-
-class Upload;
 
 class UploadQueueItem;
 typedef UploadQueueItem* UploadQueueItemPtr;

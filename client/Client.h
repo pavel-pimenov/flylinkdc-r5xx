@@ -45,7 +45,7 @@ class ClientBase
 #endif
 {
 	public:
-		ClientBase() : m_type(DIRECT_CONNECT) { }
+		ClientBase() : m_type(DIRECT_CONNECT), m_isActivMode(false) { }
 		virtual ~ClientBase() {} // [cppcheck]
 		
 		enum P2PType { DIRECT_CONNECT // Никак не используется TODO DHT - заменить на bool??
@@ -184,7 +184,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			// [!]IRainman to see other fixes, look:
 			// void Client::connect()
 			// void Client::on(Failed, const string& aLine)
-			// void Client::disconnect(bool graceLess)
+			// void Client::disconnect(bool p_graceLess)
 			// FastLock lock(csSock); // [+] brain-ripper
 			// return sock && sock->isConnected();
 		}

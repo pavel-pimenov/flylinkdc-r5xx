@@ -447,7 +447,7 @@ string ClientManager::findHub(const string& ipPort)
 	string url;
 	boost::system::error_code ec;
 	const auto l_ip = boost::asio::ip::address_v4::from_string(ip_or_host, ec);
-	//dcassert(!ec);	
+	//dcassert(!ec);
 	webrtc::ReadLockScoped l(*g_csClients); // [+] IRainman opt.
 	for (auto j = g_clients.cbegin(); j != g_clients.cend(); ++j)
 	{
@@ -1429,26 +1429,26 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl)
 		ou = i->second;
 		auto& id = ou->getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'ou->getIdentity()' expression repeatedly. cheatmanager.h 127
 		
-		const int64_t statedSize = id.getBytesShared();
-		const int64_t realSize = dl->getTotalSize();
+		const int64_t l_statedSize = id.getBytesShared();
+		const int64_t l_realSize = dl->getTotalSize();
 		
-		const double multiplier = (100 + double(SETTING(PERCENT_FAKE_SHARE_TOLERATED))) / 100;
-		const int64_t sizeTolerated = (int64_t)(realSize * multiplier);
+		const double l_multiplier = (100 + double(SETTING(PERCENT_FAKE_SHARE_TOLERATED))) / 100;
+		const int64_t l_sizeTolerated = (int64_t)(l_realSize * l_multiplier);
 #ifdef FLYLINKDC_USE_REALSHARED_IDENTITY
 		id.setRealBytesShared(realSize);
 #endif
 		
-		if (statedSize > sizeTolerated)
+		if (l_statedSize > l_sizeTolerated)
 		{
 			id.setFakeCardBit(Identity::BAD_LIST | Identity::CHECKED, true);
 			string detectString = STRING(CHECK_MISMATCHED_SHARE_SIZE) + " - ";
-			if (realSize == 0)
+			if (l_realSize == 0)
 			{
 				detectString += STRING(CHECK_0BYTE_SHARE);
 			}
 			else
 			{
-				const double qwe = double(statedSize) / double(realSize);
+				const double qwe = double(l_statedSize) / double(l_realSize);
 				char buf[128];
 				buf[0] = 0;
 				snprintf(buf, _countof(buf), CSTRING(CHECK_INFLATED), Util::toString(qwe).c_str()); //-V111

@@ -77,9 +77,9 @@ ISPImage  g_ISPImage;
 VideoImage g_videoImage;
 #endif
 
-HBRUSH Colors::bgBrush = nullptr;
-COLORREF Colors::textColor = 0;
-COLORREF Colors::bgColor = 0;
+HBRUSH Colors::g_bgBrush = nullptr;
+COLORREF Colors::g_textColor = 0;
+COLORREF Colors::g_bgColor = 0;
 
 HFONT Fonts::g_font = nullptr;
 int Fonts::g_fontHeight = 0;
@@ -87,7 +87,7 @@ HFONT Fonts::g_boldFont = nullptr;
 HFONT Fonts::g_systemFont = nullptr;
 HFONT Fonts::g_halfFont = nullptr;
 
-CMenu WinUtil::mainMenu;
+CMenu WinUtil::g_mainMenu;
 
 OMenu WinUtil::g_copyHubMenu; // [+] IRainman fix.
 OMenu UserInfoGuiTraits::copyUserMenu; // [+] IRainman fix.
@@ -592,7 +592,7 @@ void WinUtil::init(HWND hWnd)
 	
 	Preview::init();
 	
-	mainMenu.CreateMenu();
+	g_mainMenu.CreateMenu();
 	
 	CMenuHandle file;
 	file.CreatePopupMenu();
@@ -634,7 +634,7 @@ void WinUtil::init(HWND hWnd)
 	file.AppendMenu(MF_SEPARATOR);
 	file.AppendMenu(MF_STRING, ID_APP_EXIT, CTSTRING(MENU_EXIT));
 	
-	mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)file, CTSTRING(MENU_FILE));
+	g_mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)file, CTSTRING(MENU_FILE));
 	
 	CMenuHandle view;
 	view.CreatePopupMenu();
@@ -667,7 +667,7 @@ void WinUtil::init(HWND hWnd)
 	view.AppendMenu(MF_STRING, ID_TOGGLE_QSEARCH, CTSTRING(TOGGLE_QSEARCH));
 	view.AppendMenu(MF_STRING, ID_VIEW_TRANSFER_VIEW_TOOLBAR, CTSTRING(MENU_TRANSFER_VIEW_TOOLBAR));
 	
-	mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)view, CTSTRING(MENU_VIEW));
+	g_mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)view, CTSTRING(MENU_VIEW));
 	
 	CMenuHandle transfers;
 	transfers.CreatePopupMenu();
@@ -684,19 +684,19 @@ void WinUtil::init(HWND hWnd)
 	transfers.AppendMenu(MF_STRING, IDC_RSS, CTSTRING(MENU_RSS_NEWS));
 #endif
 	
-	mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)transfers, CTSTRING(MENU_TRANSFERS));
+	g_mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)transfers, CTSTRING(MENU_TRANSFERS));
 	
 #ifdef RIP_USE_PORTAL_BROWSER
 	CMenuHandle PortalBrowserMenu;
 	if (InitPortalBrowserMenuItems(PortalBrowserMenu))
-		mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)PortalBrowserMenu, CTSTRING(PORTAL_BROWSER));
+		g_mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)PortalBrowserMenu, CTSTRING(PORTAL_BROWSER));
 #endif
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 	// [+] SSA: Custom menu support.
 	CMenuHandle customMenuXML;
 	string customMenuNameXML;
 	if (FillCustomMenu(customMenuXML, customMenuNameXML))
-		mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)customMenuXML, Text::toT(customMenuNameXML).c_str());
+		g_mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)customMenuXML, Text::toT(customMenuNameXML).c_str());
 	// [~] SSA: Custom menu support.
 #endif
 	
@@ -719,7 +719,7 @@ void WinUtil::init(HWND hWnd)
 	window.AppendMenu(MF_STRING, IDC_CLOSE_ALL_DIR_LIST, CTSTRING(MENU_CLOSE_ALL_DIR_LIST));
 	window.AppendMenu(MF_STRING, IDC_CLOSE_ALL_SEARCH_FRAME, CTSTRING(MENU_CLOSE_ALL_SEARCHFRAME));
 	
-	mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)window, CTSTRING(MENU_WINDOW));
+	g_mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)window, CTSTRING(MENU_WINDOW));
 	
 #ifdef PPA_INCLUDE_DEAD_CODE
 	CMenuHandle sites;
@@ -750,14 +750,14 @@ void WinUtil::init(HWND hWnd)
 	help.AppendMenu(MF_STRING, IDC_UPDATE_FLYLINKDC, CTSTRING(UPDATE_CHECK)); // [~]Drakon. Moved from "file."
 	help.AppendMenu(MF_STRING, ID_APP_ABOUT, CTSTRING(MENU_ABOUT));
 	
-	mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)help, CTSTRING(MENU_HLP)); // [~] Drakon
+	g_mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)help, CTSTRING(MENU_HLP)); // [~] Drakon
 	
 #ifdef _DEBUG
 	CMenuHandle l_menu_flylinkdc_location;
 	l_menu_flylinkdc_location.CreatePopupMenu();
 	l_menu_flylinkdc_location.AppendMenu(MF_STRING, IDC_FLYLINKDC_LOCATION, CTSTRING(MENU_CHANGE_FLYLINKDC_LOCATION)); //  _T("Change FlylinkDC++ location!")
 	const string l_text_flylinkdc_location = "|||||||||| Lipetsk-beeline ||||||||||";
-	mainMenu.AppendMenu(MF_STRING, l_menu_flylinkdc_location, Text::toT(l_text_flylinkdc_location).c_str());
+	g_mainMenu.AppendMenu(MF_STRING, l_menu_flylinkdc_location, Text::toT(l_text_flylinkdc_location).c_str());
 #endif
 	g_fileImage.init();
 	
@@ -917,10 +917,10 @@ void Fonts::init()
 
 void Colors::init()
 {
-	textColor = SETTING(TEXT_COLOR);
-	bgColor = SETTING(BACKGROUND_COLOR);
+	g_textColor = SETTING(TEXT_COLOR);
+	g_bgColor = SETTING(BACKGROUND_COLOR);
 	
-	bgBrush = CreateSolidBrush(Colors::bgColor); // Leak
+	g_bgBrush = CreateSolidBrush(Colors::g_bgColor); // Leak
 	
 	CHARFORMAT2 cf;
 	memzero(&cf, sizeof(CHARFORMAT2));
@@ -1051,7 +1051,7 @@ void WinUtil::uninit()
 	Fonts::uninit();
 	Colors::uninit();
 	
-	mainMenu.DestroyMenu();
+	g_mainMenu.DestroyMenu();
 	g_copyHubMenu.DestroyMenu();// [+] IRainman fix.
 	
 	// !SMT!-UI
@@ -2597,7 +2597,7 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 						try
 						{
 							// [!] SSA - Download Folder
-							QueueManager::getInstance()->add(fname, fsize, TTHValue(fhash), HintedUser(UserPtr(), Util::emptyString),
+							QueueManager::getInstance()->add(fname, fsize, TTHValue(fhash), HintedUser(),
 							                                 l_isDCLST ? QueueItem::FLAG_DCLST_LIST :
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 							                                 (isViewMedia ? QueueItem::FLAG_MEDIA_VIEW : 0)
@@ -2620,7 +2620,7 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 						try
 						{
 							// [!] SSA to do open here
-							QueueManager::getInstance()->add(fname, fsize, TTHValue(fhash), HintedUser(UserPtr(), Util::emptyString), QueueItem::FLAG_CLIENT_VIEW | (l_isDCLST ? QueueItem::FLAG_DCLST_LIST : 0));
+							QueueManager::getInstance()->add(fname, fsize, TTHValue(fhash), HintedUser(), QueueItem::FLAG_CLIENT_VIEW | (l_isDCLST ? QueueItem::FLAG_DCLST_LIST : 0));
 						}
 						catch (const Exception& e)
 						{
@@ -4965,7 +4965,7 @@ void Preview::startMediaPreview(WORD wID, const QueueItemPtr& qi)
 	else
 #endif
 	{
-		const auto& fileName = !qi->getTempTarget().empty() ? qi->getTempTarget() : qi->getTargetFileName();
+		const auto fileName = !qi->getTempTarget().empty() ? qi->getTempTarget() : qi->getTargetFileName();
 		runPreviewCommand(wID, fileName);
 	}
 }

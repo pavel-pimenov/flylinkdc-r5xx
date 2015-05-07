@@ -19,6 +19,7 @@
 #include "stdinc.h"
 #include "ClientManager.h"
 #include "Upload.h"
+#include "UserConnection.h"
 
 const string Transfer::g_type_names[] =
 {
@@ -126,7 +127,7 @@ const uint64_t Transfer::getLastActivity()
 {
 	return getUserConnection()->getLastActivity();
 }
-const string& Transfer::getUserConnectionToken() const
+string Transfer::getUserConnectionToken() const
 {
 	return getUserConnection()->getUserConnectionToken();
 }

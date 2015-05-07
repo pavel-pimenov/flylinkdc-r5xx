@@ -34,7 +34,7 @@ class OutputStream
 {
 	public:
 		//OutputStream() { } [-] IRainman.
-		virtual ~OutputStream() noexcept { }
+		virtual ~OutputStream() noexcept {}
 		
 		/**
 		 * @return The actual number of bytes written. len bytes will always be
@@ -71,7 +71,7 @@ class InputStream
 {
 	public:
 		//InputStream() { } [-] IRainman.
-		virtual ~InputStream() { }
+		virtual ~InputStream() noexcept{}
 		/**
 		 * Call this function until it returns 0 to get all bytes.
 		 * @return The number of bytes read. len reflects the number of bytes
@@ -87,12 +87,13 @@ class MemoryInputStream : public InputStream
 		{
 			memcpy(buf, src, len);
 		}
-		MemoryInputStream(const string& src) : pos(0), size(src.size()), buf(new uint8_t[src.size()])
+		MemoryInputStream(const string& src) : pos(0), size(src.size()), buf(src.size() ? new uint8_t[src.size()] : nullptr)
 		{
+			dcassert(src.size());
 			memcpy(buf, src.data(), src.size());
 		}
 		
-		~MemoryInputStream()
+		~MemoryInputStream() noexcept
 		{
 			delete[] buf;
 		}
@@ -118,8 +119,6 @@ class MemoryInputStream : public InputStream
 
 class IOStream : public InputStream, public OutputStream
 {
-		//public:
-		//virtual ~IOStream() noexcept {} // [cppcheck] [.\client\Streams.h:122]: (error) Class IOStream which is inherited by class SharedFileStream does not have a virtual destructor
 };
 
 template<const bool managed>
@@ -129,7 +128,7 @@ class LimitedInputStream : public InputStream
 		explicit LimitedInputStream(InputStream* is, int64_t aMaxBytes) : s(is), maxBytes(aMaxBytes)
 		{
 		}
-		~LimitedInputStream()
+		~LimitedInputStream() noexcept
 		{
 			if (managed) delete s;
 		}
@@ -157,7 +156,7 @@ class LimitedOutputStream : public OutputStream
 		explicit LimitedOutputStream(OutputStream* os, uint64_t aMaxBytes) : s(os), maxBytes(aMaxBytes)
 		{
 		}
-		~LimitedOutputStream()
+		~LimitedOutputStream() noexcept
 		{
 			delete s;
 		}
@@ -196,7 +195,7 @@ class BufferedOutputStream : public OutputStream
 		using OutputStream::write;
 		
 		explicit BufferedOutputStream(OutputStream* aStream, size_t aBufSize) : s(aStream), pos(0), buf(aBufSize), m_is_flush(false) { }
-		~BufferedOutputStream()
+		~BufferedOutputStream() noexcept
 		{
 			try
 			{
@@ -272,7 +271,6 @@ class StringOutputStream : public OutputStream
 {
 	public:
 		explicit StringOutputStream(string& p_out) : m_str(p_out) { }
-		~StringOutputStream() { }
 		using OutputStream::write;
 		
 		size_t flush()

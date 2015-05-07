@@ -235,6 +235,19 @@ void ConnectivityManager::mappingFinished(const string& p_mapper)
 			SET_SETTING(ALLOW_NAT_TRAVERSAL, true);
 			log(STRING(AUTOMATIC_SETUP_ACTIV_MODE_FAILED));
 		}
+#ifdef FLYLINKDC_BETA
+		else
+		{
+			if (!MappingManager::getExternaIP().empty() && Util::isPrivateIp(MappingManager::getExternaIP()))
+			{
+				SET_SETTING(INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_PASSIVE);
+				SET_SETTING(ALLOW_NAT_TRAVERSAL, true);
+				const string l_error = "Auto passive mode: Private IP = " + MappingManager::getExternaIP();
+				log(l_error);
+				CFlyServerJSON::pushError(29, l_error);
+			}
+		}
+#endif
 		// PPA_INCLUDE_DEAD_CODE fire(ConnectivityManagerListener::Finished());
 	}
 	log(getInformation());

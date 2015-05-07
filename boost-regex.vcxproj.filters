@@ -19,6 +19,9 @@
     <ClCompile Include="boost\libs\chrono\src\thread_clock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="boost\libs\iostreams\src\mapped_file.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

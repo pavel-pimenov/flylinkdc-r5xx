@@ -46,6 +46,9 @@ class TaskQueue
 		typedef std::vector<std::pair<uint8_t, Task*> > List;
 		
 		TaskQueue()
+#ifdef _DEBUG
+			: m_destroy_guard(0)
+#endif
 		{
 		}
 		
@@ -54,8 +57,9 @@ class TaskQueue
 			deleteTasks(m_tasks);// [!] IRainman fix.
 		}
 		
-		bool empty() const
+		bool empty()
 		{
+			FastLock l(m_csTaskQueue);
 			return m_tasks.empty();
 		}
 #if 0
@@ -78,7 +82,8 @@ class TaskQueue
 		void add(uint8_t type, Task* data)
 		{
 			FastLock l(m_csTaskQueue);
-			m_tasks.push_back(make_pair(type, data)); // [2] https://www.box.net/shared/6hnn9eeg42q1qammnlub
+			dcassert(m_destroy_guard == 0);
+			m_tasks.push_back(std::make_pair(type, data)); // [2] https://www.box.net/shared/6hnn9eeg42q1qammnlub
 		}
 		void get(List& p_list)
 		{
@@ -90,12 +95,14 @@ class TaskQueue
 		{
 			// [!] IRainman fix: FlylinkDC != StrongDC: please be more attentive to the code during the merge.
 			List l_tmp;
-			{
-				FastLock l(m_csTaskQueue);
-				swap(m_tasks, l_tmp);
-			}
+			get(l_tmp);
 			deleteTasks(l_tmp);
 			// [~] IRainman fix
+		}
+		void clear_task()
+		{
+			dcassert(m_destroy_guard++ == 0);
+			clear();
 		}
 	private:
 		void deleteTasks(const List& p_list)// [+] IRainman fix.
@@ -107,6 +114,9 @@ class TaskQueue
 		}
 		FastCriticalSection m_csTaskQueue;
 		List m_tasks;
+#ifdef _DEBUG
+		int m_destroy_guard;
+#endif
 };
 
 #endif

@@ -338,7 +338,7 @@ void SharePage::addDirectory(const tstring& aPath)
 		                          Util::getLastDir(Text::fromT(path))));
 		if (virt.DoModal(m_hWnd) == IDOK)
 		{
-			CWaitCursor l_cursor_wait;
+			CWaitCursor l_cursor_wait; //-V808
 			ShareManager::getInstance()->addDirectory(Text::fromT(path), Text::fromT(virt.line), true);
 			int i = ctrlDirectories.insert(ctrlDirectories.GetItemCount(), virt.line);
 			ctrlDirectories.SetItemText(i, 1, path.c_str());

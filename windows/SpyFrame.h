@@ -34,10 +34,11 @@
 
 class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY > , public StaticFrame<SpyFrame, ResourceManager::SEARCH_SPY, IDC_SEARCH_SPY>,
 	private ClientManagerListener,
-	private CFlyTimerAdapter,
-	private SettingsManagerListener
+	private SettingsManagerListener,
+	virtual private CFlyTimerAdapter,
+	virtual private CFlyTaskAdapter
 #ifdef _DEBUG
-	, virtual NonDerivable<SpyFrame>, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:
@@ -140,7 +141,6 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 		static const uint8_t AVG_TIME = 60;
 		uint16_t m_perSecond[AVG_TIME];
 		bool m_needsResort;
-		TaskQueue m_tasks;
 		
 		tstring m_searchString;
 		
@@ -152,8 +152,11 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 		
 		struct Stats : public Task
 		{
-			uint16_t perS;
-			uint16_t perM;
+			uint16_t m_perS;
+			uint16_t m_perM;
+			Stats(): m_perS(0), m_perM(0)
+			{
+			}
 		};
 		//[~]IRainman
 		

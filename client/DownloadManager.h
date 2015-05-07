@@ -50,9 +50,9 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 		static void abortDownload(const string& aTarget);
 		
 		/** @return Running average download speed in Bytes/s */
-		int64_t getRunningAverage() const
+		static int64_t getRunningAverage()
 		{
-			return runningAverage;//[+] IRainman refactoring transfer mechanism
+			return g_runningAverage;//[+] IRainman refactoring transfer mechanism
 		}
 		
 		/** @return Number of downloads. */
@@ -72,10 +72,10 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 		static IdlersMap g_idlers;
 		static void remove_idlers(UserConnection* aSource);
 		
-		int64_t runningAverage;//[+] IRainman refactoring transfer mechanism
+		static int64_t g_runningAverage;//[+] IRainman refactoring transfer mechanism
 		
 		void removeConnection(UserConnection* p_conn);
-		static void removeDownload(Download* aDown);
+		static void removeDownload(const DownloadPtr& aDownload);
 		void fileNotAvailable(UserConnection* aSource);
 		void noSlots(UserConnection* aSource, const string& param = Util::emptyString);
 		

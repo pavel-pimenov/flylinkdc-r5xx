@@ -1,11 +1,5 @@
-/**
-* Страница в настройках "Фильтр IP (IPGuard)" / Page "IPGuard".
-*/
-
 #include "stdafx.h"
-
 #include "Resource.h"
-
 #include "RangesPage.h"
 #ifdef PPA_INCLUDE_IPGUARD
 

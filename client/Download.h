@@ -4,7 +4,7 @@
 #include "noexcept.h"
 #include "Transfer.h"
 #include "Streams.h"
-#include "QueueItem.h"
+class QueueItem;
 
 /**
  * Comes as an argument in the DownloadManagerListener functions.
@@ -29,9 +29,9 @@ class Download : public Transfer, public Flags
 			FLAG_USER_GET_IP    = 0x200     // [+] SSA
 		};
 		
-		explicit Download(UserConnection* p_conn, QueueItem* item, const string& p_ip, const string& p_chiper_name) noexcept; // [!] IRainman fix.
+		explicit Download(UserConnection* p_conn, const QueueItemPtr& p_item, const string& p_ip, const string& p_chiper_name) noexcept; // [!] IRainman fix.
 		
-		void getParams(const UserConnection* aSource, StringMap& params);
+		void getParams(StringMap& params) const;
 		
 		~Download();
 		
@@ -42,7 +42,7 @@ class Download : public Transfer, public Flags
 		}
 		
 		/** @internal */
-		const string& getDownloadTarget() const
+		const string getDownloadTarget() const
 		{
 			if (getTempTarget().empty())
 				return getPath();
@@ -59,40 +59,37 @@ class Download : public Transfer, public Flags
 		{
 			return m_tiger_tree;
 		}
-		
 		string& getPFS()
 		{
 			return m_pfs;
 		}
-		const string& getPFS() const
-		{
-			return m_pfs;
-		}
-		// [+] IRainman fix.
-		/*const QueueItem* getQueueItem() const
-		{
-		    return qi;
-		}*/
-		// [+] IRainman fix.
 		/** @internal */
 		void getCommand(AdcCommand& p_cmd, bool zlib) const;
 		
-		// [!] IRainman fix.
-		const string& getTempTarget() const // [+]
-		{
-			return qi->getTempTarget();
-		}
-		// [-] GETSET(string, tempTarget, TempTarget);
+		string getTempTarget() const;
 		// [~] IRainman fix.
 #ifdef PPA_INCLUDE_DROP_SLOW
-		GETSET(uint64_t, lastNormalSpeed, LastNormalSpeed);
+		GETSET(uint64_t, m_lastNormalSpeed, LastNormalSpeed);
 #endif
-		GETSET(OutputStream*, m_download_file, DownloadFile);
+		void setDownloadFile(OutputStream* p_file)
+		{
+			m_download_file = p_file;
+		}
+		OutputStream* getDownloadFile()
+		{
+			return m_download_file;
+		}
 		GETSET(bool, treeValid, TreeValid);
+		void reset_download_file()
+		{
+			safe_delete(m_download_file);
+		}
 	private:
-		QueueItem* qi; // [+] IRainman fix.
+		OutputStream* m_download_file;
+		const QueueItemPtr m_qi;
 		TigerTree  m_tiger_tree;
 		string     m_pfs;
 };
 
+typedef std::shared_ptr<Download> DownloadPtr;
 #endif /*DOWNLOAD_H_*/

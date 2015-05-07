@@ -2586,6 +2586,7 @@ ShareManager::Directory::Ptr ShareManager::getDirectoryL(const string& fname) co
 
 void ShareManager::on(QueueManagerListener::FileMoved, const string& n) noexcept
 {
+#if 0 ////////////////////////////////////////////////
 #ifdef PPA_INCLUDE_ADD_FINISHED_INSTANTLY
 	if (BOOLSETTING(ADD_FINISHED_INSTANTLY))
 #endif
@@ -2619,6 +2620,7 @@ void ShareManager::on(QueueManagerListener::FileMoved, const string& n) noexcept
 			return; // [!] IRainman opt: return.
 		}
 	}
+#endif ///////////////////////////////////////////
 }
 void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const TTHValue& root,
                       int64_t aTimeStamp, const CFlyMediaInfo& p_out_media, int64_t p_size) noexcept

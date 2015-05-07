@@ -24,9 +24,6 @@
 #include "ExListViewCtrl.h" // [+] IRainman
 
 class ToolbarPage : public CPropertyPage<IDD_TOOLBAR_PAGE>, public PropPage
-#ifdef _DEBUG
-	, virtual NonDerivable<ToolbarPage> // [+] IRainman fix.
-#endif
 {
 	public:
 		ToolbarPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_TOOLBAR))

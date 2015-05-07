@@ -43,7 +43,7 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 	, public IRichEditOleCallback
 #endif
 #ifdef _DEBUG
-	, virtual NonDerivable<ChatCtrl>, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable // [+] IRainman fix.
 #endif
 {
 		typedef ChatCtrl thisClass;

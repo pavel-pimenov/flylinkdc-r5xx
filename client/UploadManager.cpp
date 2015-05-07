@@ -45,11 +45,11 @@ UploadManager::BanMap UploadManager::g_lastBans;
 std::unique_ptr<webrtc::RWLockWrapper> UploadManager::g_csUploadsDelay = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> UploadManager::g_csReservedSlots = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> UploadManager::g_csBans = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+int64_t UploadManager::g_runningAverage;
 
 UploadManager::UploadManager() noexcept :
 extra(0), lastGrant(0), m_lastFreeSlots(-1),
-      fireballStartTick(0), isFireball(false), isFileServer(false), extraPartial(0),
-      m_runningAverage(0)//[+] IRainman refactoring transfer mechanism
+      m_fireballStartTick(0), isFireball(false), isFileServer(false), extraPartial(0)
 {
 	ClientManager::getInstance()->addListener(this);
 	TimerManager::getInstance()->addListener(this);
@@ -59,7 +59,6 @@ UploadManager::~UploadManager()
 {
 	TimerManager::getInstance()->removeListener(this);
 	ClientManager::getInstance()->removeListener(this);
-	SharedFileStream::check_before_destoy();
 	{
 		Lock l(m_csQueue); // [!] IRainman opt.
 		for (auto ii = m_slotQueue.cbegin(); ii != m_slotQueue.cend(); ++ii)
@@ -80,6 +79,7 @@ UploadManager::~UploadManager()
 		}
 		Thread::sleep(10);
 	}
+	//SharedFileStream::check_before_destoy();
 	dcassert(g_uploadsPerUser.empty());
 }
 // !SMT!-S
@@ -244,7 +244,7 @@ bool UploadManager::hasUpload(const UserConnection* p_newLeacher, const string& 
 		
 		for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
 		{
-			const Upload* u = *i;
+			const auto u = *i;
 			dcassert(u);
 			dcassert(u->getUser());
 			const auto& uploadUserIp = u->getUserConnection()->getSocket()->getIp(); // TODO - boost
@@ -480,7 +480,7 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 		// Partial file sharing upload
 		if (l_is_tth)
 		{
-			if (QueueManager::getInstance()->isChunkDownloaded(l_tth, aStartPos, aBytes, sourceFile))
+			if (QueueManager::isChunkDownloaded(l_tth, aStartPos, aBytes, sourceFile))
 			{
 				dcassert(!sourceFile.empty());
 				try
@@ -667,7 +667,7 @@ ok: //[!] TODO убрать goto
 		webrtc::WriteLockScoped l(*g_csUploadsDelay);
 		for (auto i = g_delayUploads.cbegin(); i != g_delayUploads.cend(); ++i)
 		{
-			Upload* up = *i;
+			auto up = *i;
 			if (aSource == up->getUserConnection())
 			{
 				g_delayUploads.erase(i);
@@ -679,15 +679,16 @@ ok: //[!] TODO убрать goto
 				{
 					resumed = true;
 				}
-				delete up;
+				//////////////// delete up;
 				break;
 			}
 		}
 	}
 	SharedFileStream::cleanup();
-	Upload* u = new Upload(aSource, l_tth, sourceFile, l_ip, l_chiper_name); // [!] IRainman fix.
-	u->setStream(is);
+	UploadPtr u(new Upload(aSource, l_tth, sourceFile, l_ip, l_chiper_name));
+	u->setReadStream(is);
 	u->setSegment(Segment(start, size));
+	aSource->setUpload(u);
 	
 	if (u->getSize() != fileSize)
 		u->setFlag(Upload::FLAG_CHUNKED);
@@ -726,7 +727,7 @@ int64_t UploadManager::getRunningAverage()
     int64_t avg = 0;
     for (auto i = uploads.cbegin(); i != uploads.cend(); ++i)
     {
-        Upload* u = *i;
+        auto u = *i;
         avg += u->getAverageSpeed();
     }
     return avg;
@@ -776,7 +777,7 @@ unsigned int UploadManager::getUserConnectionAmountL(const UserPtr& p_user)
 	return 1;
 }
 
-void UploadManager::removeUpload(Upload* aUpload, bool delay)
+void UploadManager::removeUpload(UploadPtr& aUpload, bool delay)
 {
 	webrtc::WriteLockScoped l(*g_csUploadsDelay);
 	dcassert(find(g_uploads.begin(), g_uploads.end(), aUpload) != g_uploads.end());
@@ -789,7 +790,7 @@ void UploadManager::removeUpload(Upload* aUpload, bool delay)
 	}
 	else
 	{
-		delete aUpload;
+		aUpload.reset();
 	}
 }
 
@@ -860,7 +861,7 @@ void UploadManager::on(UserConnectionListener::Send, UserConnection* aSource) no
 		return;
 	}
 	
-	Upload* u = aSource->getUpload();
+	auto u = aSource->getUpload();
 	dcassert(u != nullptr);
 	// [-] if (!u) return; [-] IRainman fix: please don't problem maskerate.
 	
@@ -870,7 +871,7 @@ void UploadManager::on(UserConnectionListener::Send, UserConnection* aSource) no
 	// [~]
 	
 	aSource->setState(UserConnection::STATE_RUNNING);
-	aSource->transmitFile(u->getStream());
+	aSource->transmitFile(u->getReadStream());
 	fire(UploadManagerListener::Starting(), u);
 }
 
@@ -892,7 +893,7 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 
 	if (prepareFile(aSource, type, fname, aStartPos, aBytes, c.hasFlag("RE", 4)))
 	{
-		Upload* u = aSource->getUpload();
+		auto u = aSource->getUpload();
 		dcassert(u != nullptr);
 		// [-] if (!u) return; [-] IRainman fix: please don't problem maskerate.
 		AdcCommand cmd(AdcCommand::CMD_SND);
@@ -910,7 +911,7 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 		if (!g_fly_server_config.isCompressExt(Text::toLower(l_ext)))
 			if (c.hasFlag("ZL", 4))
 			{
-				u->setStream(new FilteredInputStream<ZFilter, true>(u->getStream()));
+				u->setReadStream(new FilteredInputStream<ZFilter, true>(u->getReadStream()));
 				u->setFlag(Upload::FLAG_ZUPLOAD);
 				cmd.addParam("ZL1");
 			}
@@ -922,7 +923,7 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 		// [-] u->tick(GET_TICK());
 		// [~]
 		aSource->setState(UserConnection::STATE_RUNNING);
-		aSource->transmitFile(u->getStream());
+		aSource->transmitFile(u->getReadStream());
 		fire(UploadManagerListener::Starting(), u);
 	}
 }
@@ -930,14 +931,14 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 void UploadManager::on(UserConnectionListener::BytesSent, UserConnection* aSource, size_t aBytes, size_t aActual) noexcept
 {
 	dcassert(aSource->getState() == UserConnection::STATE_RUNNING);
-	Upload* u = aSource->getUpload();
+	auto u = aSource->getUpload();
 	dcassert(u != nullptr);
 	u->addPos(aBytes, aActual);
 }
 
 void UploadManager::on(UserConnectionListener::Failed, UserConnection* aSource, const string& aError) noexcept
 {
-	Upload* u = aSource->getUpload();
+	auto u = aSource->getUpload();
 	
 	if (u)
 	{
@@ -954,7 +955,7 @@ void UploadManager::on(UserConnectionListener::Failed, UserConnection* aSource, 
 void UploadManager::on(UserConnectionListener::TransmitDone, UserConnection* aSource) noexcept
 {
 	dcassert(aSource->getState() == UserConnection::STATE_RUNNING);
-	Upload* u = aSource->getUpload();
+	auto u = aSource->getUpload();
 	dcassert(u != nullptr);
 	u->tick(aSource->getLastActivity()); // [!] IRainman refactoring transfer mechanism
 	aSource->setState(UserConnection::STATE_GET);
@@ -971,15 +972,15 @@ void UploadManager::on(UserConnectionListener::TransmitDone, UserConnection* aSo
 	SharedFileStream::cleanup();
 }
 
-void UploadManager::logUpload(const Upload* u)
+void UploadManager::logUpload(const UploadPtr& aUpload)
 {
-	if (BOOLSETTING(LOG_UPLOADS) && u->getType() != Transfer::TYPE_TREE && (BOOLSETTING(LOG_FILELIST_TRANSFERS) || u->getType() != Transfer::TYPE_FULL_LIST))
+	if (BOOLSETTING(LOG_UPLOADS) && aUpload->getType() != Transfer::TYPE_TREE && (BOOLSETTING(LOG_FILELIST_TRANSFERS) || aUpload->getType() != Transfer::TYPE_FULL_LIST))
 	{
 		StringMap params;
-		u->getParams(u->getUserConnection(), params);
+		aUpload->getParams(params);
 		LOG(UPLOAD, params);
 	}
-	fire(UploadManagerListener::Complete(), u);
+	fire(UploadManagerListener::Complete(), aUpload);
 }
 
 size_t UploadManager::addFailedUpload(const UserConnection* aSource, const string& file, int64_t pos, int64_t size)
@@ -1180,7 +1181,7 @@ void UploadManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 			
 			for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
 			{
-				if (Upload* u = *i)
+				if (auto u = *i)
 				{
 					if (u->getUser() && u->getUser()->isOnline())
 					{
@@ -1263,11 +1264,11 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 			webrtc::WriteLockScoped l(*g_csUploadsDelay);
 			for (auto i = g_delayUploads.cbegin(); i != g_delayUploads.cend();)
 			{
-				if (Upload* u = *i)
+				if (auto u = *i)
 					if (++u->m_delayTime > 10)
 					{
 						logUpload(u);
-						delete u;
+						///////delete u;
 						
 						g_delayUploads.erase(i);
 						i = g_delayUploads.cbegin();
@@ -1283,7 +1284,7 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 		webrtc::ReadLockScoped l(*g_csUploadsDelay);
 		for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
 		{
-			Upload* u = *i;
+			auto u = *i;
 			if (u->getPos() > 0)
 			{
 				TransferData l_td;
@@ -1331,8 +1332,7 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 			u->getUserConnection()->getSocket()->updateSocketBucket(getUserConnectionAmountL(u->getUser()));// [+] IRainman SpeedLimiter
 			l_currentSpeed += u->getRunningAverage();//[+] IRainman refactoring transfer mechanism
 		}
-		m_runningAverage = l_currentSpeed; // [+] IRainman refactoring transfer mechanism
-		
+		g_runningAverage = l_currentSpeed; // [+] IRainman refactoring transfer mechanism
 	}
 	if (!l_tickList.empty())
 	{
@@ -1351,9 +1351,9 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	{
 		if (getRunningAverage() >= 1024 * 1024)
 		{
-			if (fireballStartTick == 0)
+			if (m_fireballStartTick == 0)
 			{
-				if ((aTick - fireballStartTick) > 60 * 1000)
+				if ((aTick - m_fireballStartTick) > 60 * 1000)
 				{
 					isFireball = true;
 					ClientManager::infoUpdated();
@@ -1362,7 +1362,7 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 			else
 			{
 				// speed dropped below 100 kB/s
-				fireballStartTick = 0;
+				m_fireballStartTick = 0;
 			}
 		}
 		if (!isFireball && !isFileServer)
@@ -1392,11 +1392,11 @@ void UploadManager::removeDelayUpload(const UserPtr& aUser)
 	webrtc::WriteLockScoped l(*g_csUploadsDelay);
 	for (auto i = g_delayUploads.cbegin(); i != g_delayUploads.cend(); ++i)
 	{
-		Upload* up = *i;
+		auto up = *i;
 		if (aUser == up->getUser())
 		{
 			g_delayUploads.erase(i);
-			delete up;
+			/////// delete up;
 			break;
 		}
 	}
@@ -1412,7 +1412,7 @@ void UploadManager::abortUpload(const string& aFile, bool waiting)
 		webrtc::ReadLockScoped l(*g_csUploadsDelay);
 		for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
 		{
-			Upload* u = (*i);
+			auto u = *i;
 			if (u->getPath() == aFile)
 			{
 				u->getUserConnection()->disconnect(true);

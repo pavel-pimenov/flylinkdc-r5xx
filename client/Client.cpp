@@ -59,10 +59,11 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure) :
 	l_my_user->setHubID(m_HubID); // Для сохранения кол-ва мессаг по самому себе
 	//l_hub_user->setHubID(m_HubID); // Для бота-хаба не сохраняем пока
 #endif
-	if (Text::toLower(m_HubURL).find("dc.fly-server.ru") != string::npos
+	const auto l_lower_url = Text::toLower(m_HubURL);
+	if (l_lower_url.find("dc.fly-server.ru") != string::npos || 
+		l_lower_url.find("adcs.flylinkdc.com") != string::npos
 #ifdef _DEBUG
-	        || Text::toLower(m_HubURL).find("scalolaz.dyndns-server.com") != string::npos
-	        || Text::toLower(m_HubURL).find("adcs.flylinkdc.com") != string::npos
+		|| l_lower_url.find("scalolaz.dyndns-server.com") != string::npos
 #endif
 	   )
 	{
@@ -898,7 +899,7 @@ bool Client::NmdcPartialSearch(const SearchParam& p_search_param)
 #ifdef _DEBUG
 //		LogManager::message("[Try] handlePartialSearch TTH = " + aString);
 #endif
-		if (QueueManager::getInstance()->handlePartialSearch(aTTH, partialInfo)) // TODO - часто ищется по ТТХ
+		if (QueueManager::handlePartialSearch(aTTH, partialInfo)) // TODO - часто ищется по ТТХ
 		{
 #ifdef _DEBUG
 			LogManager::message("[OK] handlePartialSearch TTH = " + p_search_param.m_filter);

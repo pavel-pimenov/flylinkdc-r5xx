@@ -1,4 +1,307 @@
 ------------------------------------------------------------------------
+r18595 | pavel.pimenov@gmail.com | 2015-05-07 04:57:59 +0300 (Чт, 07 май 2015) | 10 lines
+
+* Updating the database ISPs
+   http://www.assembla.com/spaces/customlocations-greylink
+   Build on the base 1304, created 2014-11-21 03:54:35 +0700
+   Total in database:
+    - ISP - 1407
+    - ISPs logo - 1416
+    - Address range - 5998
+   Archive CustomLocations.7z created by NightOrion
+
+
+------------------------------------------------------------------------
+r18593 | pavel.pimenov@gmail.com | 2015-05-07 04:54:05 +0300 (Чт, 07 май 2015) | 7 lines
+
+Merged revision(s) 18591 from trunk:
+* Исправлено зависание при разборе некоторых mp3 файлов
+  https://sourceforge.net/p/mediainfo/bugs/919/
+* Хаб dchub://dc.sat-dv.ru заменен на dchub://dc.sat-dv.ru
+# Попытка поправить падения при завершении клиента у AlienKiller-а
+........
+
+------------------------------------------------------------------------
+r18592 | pavel.pimenov@gmail.com | 2015-05-07 04:52:25 +0300 (Чт, 07 май 2015) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r18590 | pavel.pimenov@gmail.com | 2015-05-06 21:05:45 +0300 (Ср, 06 май 2015) | 4 lines
+
+Merged revision(s) 18588-18589 from trunk:
+# Добавил иконку для хаба adcs.flylinkdc.com
+* Убрал тормоза открытия контектного меню на пользователе (первый раз после запуска)
+
+------------------------------------------------------------------------
+r18589 | pavel.pimenov@gmail.com | 2015-05-06 21:03:10 +0300 (Ср, 06 май 2015) | 2 lines
+
+* Убрал тормоза открытия контектного меню на пользователе (первый раз после запуска) (часть 2)
+
+------------------------------------------------------------------------
+r18587 | pavel.pimenov@gmail.com | 2015-05-06 18:49:13 +0300 (Ср, 06 май 2015) | 11 lines
+
+Merged revision(s) 18583-18586 from trunk:
+# Возможно исправил падение при закрытии https://drdump.com/Bug.aspx?ProblemID=129035
+  (дождаться подтвержедния от AlienKiller)
+........
+# SharedFileHandle убрал рекурсивную секцию.
+........
+# Маркер падения https://drdump.com/Problem.aspx?ProblemID=130529
+........
+* Исправлено запоминание отданных файлов в базу данных (сломал в начале мая) Спасибо Phobos)
+........
+
+------------------------------------------------------------------------
+r18586 | pavel.pimenov@gmail.com | 2015-05-06 18:46:14 +0300 (Ср, 06 май 2015) | 1 line
+
+* Исправлено запоминание отданных файлов в базу данных (сломал в начале мая) Спасибо Phobos)
+------------------------------------------------------------------------
+r18582 | pavel.pimenov@gmail.com | 2015-05-05 18:30:18 +0300 (Вт, 05 май 2015) | 26 lines
+
+Merged revision(s) 18576-18581 from trunk:
+* Updating the database ISPs
+   http://www.assembla.com/spaces/customlocations-greylink
+   Build on the base 1304, created 2014-11-21 03:54:35 +0700
+   Total in database:
+    - ISP - 1407
+    - ISPs logo - 1416
+    - Address range - 5998
+   Archive CustomLocations.7z created by NightOrion
+
+
+........
+# GUI: в меню на вкладках хабов отделяем Меню хаба от Меню клиента  https://yadi.sk/i/ywNMjSSwgR57z
+
+(ТоДо: не нашёл места склейки меню Операторов для списка пользователей, там бы тоже разделитель поставить : https://yadi.sk/i/Hnv9BPWegR5GD )
+........
+# другие иконки режимов соединения с хабом. Чтобы не путать более с настроечными галочками.
+Ну и вдруг приспичит в будущем поменять иконкам ширину или размеры.
+........
+# Падение https://drdump.com/DumpGroup.aspx?DumpGroupID=299578
+........
+#GUI: иконка пассивного режима
+........
+# Вернул QueueItemList к std::list
+........
+
+------------------------------------------------------------------------
+r18581 | pavel.pimenov@gmail.com | 2015-05-05 18:19:40 +0300 (Вт, 05 май 2015) | 1 line
+
+# Вернул QueueItemList к std::list
+------------------------------------------------------------------------
+r18575 | pavel.pimenov@gmail.com | 2015-05-01 15:28:03 +0300 (Пт, 01 май 2015) | 10 lines
+
+* Updating the database ISPs
+   http://www.assembla.com/spaces/customlocations-greylink
+   Build on the base 1304, created 2014-11-21 03:54:35 +0700
+   Total in database:
+    - ISP - 1407
+    - ISPs logo - 1416
+    - Address range - 5998
+   Archive CustomLocations.7z created by NightOrion
+
+
+------------------------------------------------------------------------
+r18573 | pavel.pimenov@gmail.com | 2015-05-01 14:16:19 +0300 (Пт, 01 май 2015) | 6 lines
+
+Merged revision(s) 18571-18572 from trunk:
+# miniupnpc-1.9.20150430
+........
+# Возможно исправил падение https://drdump.com/Problem.aspx?ProblemID=129066
+........
+
+------------------------------------------------------------------------
+r18572 | pavel.pimenov@gmail.com | 2015-05-01 14:14:27 +0300 (Пт, 01 май 2015) | 1 line
+
+# Возможно исправил падение https://drdump.com/Problem.aspx?ProblemID=129066
+------------------------------------------------------------------------
+r18570 | pavel.pimenov@gmail.com | 2015-04-30 21:57:18 +0300 (Чт, 30 апр 2015) | 9 lines
+
+Merged revision(s) 18567-18569 from trunk:
+# Исправил сортировка в файл-листах (спасибо AlienKiller)
+  http://flylinkdc.com/forum/viewtopic.php?f=15&t=1299
+........
+# Вернул QueueItemList на vector - падало не из-за него
+........
+# Log
+........
+
+------------------------------------------------------------------------
+r18569 | pavel.pimenov@gmail.com | 2015-04-30 21:55:13 +0300 (Чт, 30 апр 2015) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r18566 | pavel.pimenov@gmail.com | 2015-04-30 06:19:05 +0300 (Чт, 30 апр 2015) | 22 lines
+
+Merged revision(s) 18557-18565 from trunk:
+# Для беток включем автоматом пассивный режим если upnp вернул приватный адрес.
+........
+# Ищем падения при закрытии вида
+  https://drdump.com/UploadedReport.aspx?DumpID=3517890 (спасибо AlienKiller)
+  перевел сырые указатели на shared
+ 
+........
+# вероятно пофиксил досадный косяк https://yadi.sk/d/Lo3pZFuNgK7xd
+Выключатель панели "Стена+часы" в трансфере был забинден на медиапанель, на плеер iTunes
+В результате постоянно были установлены два плеера, и выключение iTunes приводило к выключению панели в трансфере.
+........
+# Ищем падения при закрытии вида
+  https://drdump.com/UploadedReport.aspx?DumpID=3517890 (спасибо AlienKiller)
+  при закрытии не зовем фаеры на обновление гуя - он разрушается.
+ ........
+# Astyle
+........
+# Ищем падения при закрытии вида (часть 2)
+  https://drdump.com/UploadedReport.aspx?DumpID=3517890 (спасибо AlienKiller)
+  при закрытии не зовем фаеры на обновление гуя - он разрушается.
+
+------------------------------------------------------------------------
+r18565 | pavel.pimenov@gmail.com | 2015-04-30 06:14:50 +0300 (Чт, 30 апр 2015) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r18556 | pavel.pimenov@gmail.com | 2015-04-28 22:07:48 +0300 (Вт, 28 апр 2015) | 11 lines
+
+Merged revision(s) 18553-18555 from trunk:
+# Log
+# [mediainfo][merge]
+ x #P86, MPEG-4: moov_trak_edts_elst Atom was ignoring version of the atom
+ x VorbisComment: WAVEFORMATEXTENSIBLE_CHANNEL_MASK "0X" ("x" in uppercase) is accepted now
+........
+# Упростил class Transfer и выкинул возможные висячие ссылки - ищу падения при завершении
+........
+# Нашелся еще один кандидат на висячий указатель QueueItem* qi в классе Download!
+........
+
+------------------------------------------------------------------------
+r18553 | pavel.pimenov@gmail.com | 2015-04-28 18:50:07 +0300 (Вт, 28 апр 2015) | 5 lines
+
+# Log
+# [mediainfo][merge]
+ x #P86, MPEG-4: moov_trak_edts_elst Atom was ignoring version of the atom
+ x VorbisComment: WAVEFORMATEXTENSIBLE_CHANNEL_MASK "0X" ("x" in uppercase) is accepted now
+
+------------------------------------------------------------------------
+r18551 | pavel.pimenov@gmail.com | 2015-04-28 06:35:44 +0300 (Вт, 28 апр 2015) | 12 lines
+
+Merged revision(s) 18546-18549 from trunk:
+# Добавил функцию бустрого удаления всех записей из очереди закачек (через контектное меню над деревом)
+  нужно иногда когда у пользователя по ошибке загружено очень много файлов в очередь и программа тупит
+........
+# Сократил конкуренцию за секцию g_ratio_cs
+........
+* Исправлено падение при открытии файл-листа (спасибо [PNZ]BESTER)
+  https://drdump.com/Problem.aspx?ProblemID=129362
+........
+* Вернул редакцию IP http://flylinkdc.com/forum/viewtopic.php?f=23&t=1294&p=5065#p5065
+........
+
+------------------------------------------------------------------------
+r18550 | pavel.pimenov@gmail.com | 2015-04-28 06:30:40 +0300 (Вт, 28 апр 2015) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r18545 | pavel.pimenov@gmail.com | 2015-04-24 19:52:27 +0300 (Пт, 24 апр 2015) | 58 lines
+
+Merged revision(s) 18529-18544 from trunk:
+# Исправлены утечки памяти в случае если PostMessage не срабатывает (safe_post_message)
+# Ускорил закрытие окна очереди загрузок (clean_task)
+# Исключил утечку ресурса при завершении программы и активности MainFrame::ShowBalloonTip
+........
+# При загрузке очереди закачек отключаем валидацию формата пути к файлу - QueueManager::checkTarget
+  он в базе сохранен валидно.
+........
+# Ускорил загрузку очереди из базы (CFlylinkDBManager::load_queue)
+# Убрал утечку ресурса в TransferView::prepareClose при закрытии приложения с активными закачками
+........
+# clean_task зову после safe_destroy_timer
+........
+# Упростил clean_task
+  TODO - обернуть m_tasks.add в метод
+........
+# Косметика TaskQueue
+........
+# Добавил в QueueManagerListener фаер AddedArray - пакетная загрузка (сокращаем кол-во блокировок)
+# Забытые инициализации мемберов в 3-х классах (cppcheck)
+# Обобщил метод поиска по TTH в QueueManager::FileQueue::findQueueItem
+........
+# Добавил хабов (TODO - сделать подгружаемый список)
+setDefault(HUBLIST_SERVERS, "http://dchublist.ru/hublist.xml.bz2;http://www.te-home.net/?do=hublist&get=hublist-ru.xml.bz2;http://dchublist.com/hublist.xml.bz2;http://hublist.flexhub.org/hublist.xml.bz2;http://hublist.eu/hublist.xml.bz2;http://stealthsettings.com/hublist.xml.bz2");
+
+........
+* Что-то не так делается в очереди закачек
+# Изучаем топовое падение https://drdump.com/Problem.aspx?ProblemID=119455
+   - boost::intrusive_ptr<QueueItem> перевел на std::shared_ptr<QueueItem>
+   - TODO - проверить защиту m_queue секцией во всех местах корректно
+# Отключил приоритеты по расширениям - не понятная функция и сделана мудрено.
+
+........
+# Увеличил время жизни QueueManager::userQueue - пока палаем при закрытии
+........
+# Исправил падение https://drdump.com/Problem.aspx?ProblemID=122336
+  при работе с adc хабами и upnp (m_lastInfoMap менялась из разных потоков)
+........
+# g_
+........
+# Обобщил установку цвета в методе 
+	static LRESULT setColor(const HDC p_hdc)
+	{
+		::SetBkColor(p_hdc, g_bgColor);
+		::SetTextColor(p_hdc, g_textColor);
+		return (LRESULT)g_bgBrush;
+	}
+
+........
+# Возможно исправлено падение https://drdump.com/DumpGroup.aspx?DumpGroupID=296220
+  TODO - завести глобальную мапу разрушеных окон.
+........
+# Еще один плохой дамп https://drdump.com/DumpGroup.aspx?DumpGroupID=296318
+  TODO - сохранить m_GetFlyServerArray в другом месте 
+........
+# Log
+........
+
+------------------------------------------------------------------------
+r18528 | pavel.pimenov@gmail.com | 2015-04-18 12:33:49 +0300 (Сб, 18 апр 2015) | 4 lines
+
+Merged revision(s) 18527 from trunk:
+# Подчистил гарфические ресурсы
+........
+
+------------------------------------------------------------------------
+r18526 | pavel.pimenov@gmail.com | 2015-04-18 11:42:35 +0300 (Сб, 18 апр 2015) | 23 lines
+
+Merged revision(s) 18518-18525 from trunk:
+# Сократил частое создание и разрушение иконок для закладок отличных от хабов.
+# Убрал создание таймеров на каждое окно хаба - оставил один глобальный в главном окне.
+  TODO - возможно там не нужен Lock
+* Команду $myinfo тоже загасил - много ошибок из-за Экзекутора - хер с ней 
+  а автор Экзекутора править ошибку не хочет.
+........
+# Log
+........
+# [mediainfo]
+ x #B906, Matroska: duration was missing if Info block is at the end of the file
+ x #B908, AC-3: bit depth removed
+ 
+........
+# Обобщил код обработки задач TaskQueue m_tasks;
+
+........
+# Выкинул лишний мембер TaskQueue m_tasks; для тех классов где он не используется
+
+........
+# Удалил NonDerivable
+........
+
+------------------------------------------------------------------------
+r18521 | pavel.pimenov@gmail.com | 2015-04-17 06:57:22 +0300 (Пт, 17 апр 2015) | 4 lines
+
+# [mediainfo]
+ x #B906, Matroska: duration was missing if Info block is at the end of the file
+ x #B908, AC-3: bit depth removed
+ 
+------------------------------------------------------------------------
 r18519 | pavel.pimenov@gmail.com | 2015-04-17 06:04:39 +0300 (Пт, 17 апр 2015) | 1 line
 
 # Log

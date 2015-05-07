@@ -3,6 +3,7 @@
 
 #include "Transfer.h"
 #include "Flags.h"
+class InputStream;
 
 class Upload : public Transfer, public Flags
 {
@@ -19,16 +20,16 @@ class Upload : public Transfer, public Flags
 		explicit Upload(UserConnection* p_conn, const TTHValue& p_tth, const string& p_path, const string& p_ip, const string& p_chiper_name); // [!] IRainman fix.
 		~Upload();
 		
-		void getParams(const UserConnection* p_source, StringMap& p_params) const;
+		void getParams(StringMap& p_params) const;
 		
 	private:
-#ifdef IRAINMAN_USE_NG_TRANSFERS
-		const string path; // TODO: maybe it makes sense to back up the line after the original problem will be eliminated. In the Upload to inheritance so not very nice.
-#endif
-		GETSET(int64_t, fileSize, FileSize);
-		GETSET(InputStream*, m_stream, Stream);
+	
+		GETSET(int64_t, m_fileSize, FileSize);
+		GETSET(InputStream*, m_read_stream, ReadStream);
 		
 		uint8_t m_delayTime;
 };
+
+typedef std::shared_ptr<Upload> UploadPtr;
 
 #endif /*UPLOAD_H_*/

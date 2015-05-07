@@ -157,40 +157,8 @@ class User : public intrusive_ptr_base<User>, public Flags
 //		}
 //#define ENABLE_DEBUG_LOG_IN_USER_CLASS
 
-		User(const CID& aCID) : m_cid(aCID),
-#ifdef IRAINMAN_ENABLE_AUTO_BAN
-			m_support_slots(FLY_SUPPORT_SLOTS_FIRST),
-#endif
-			m_slots(0),
-			m_bytesShared(0),
-			m_limit(0)
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-			, m_hub_id(0)
-			, m_ratio_ptr(nullptr)
-			, m_is_first_init_ratio(false)
-#endif
-		{
-#ifdef _DEBUG
-			++g_user_counts;
-# ifdef ENABLE_DEBUG_LOG_IN_USER_CLASS
-			dcdebug(" [!!!!!!]   [!!!!!!]  User::User(const CID& aCID) this = %p, g_user_counts = %d\n", this, g_user_counts);
-# endif
-#endif
-		}
-		
-		virtual ~User()
-		{
-#ifdef _DEBUG
-			--g_user_counts;
-# ifdef ENABLE_DEBUG_LOG_IN_USER_CLASS
-			dcdebug(" [!!!!!!]   [!!!!!!]  User::~User() this = %p, g_user_counts = %d\n", this, g_user_counts);
-# endif
-#endif
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-			// Тут можно и не лочить - иначе падаем FastLock l(g_ratio_cs);
-			safe_delete(m_ratio_ptr);
-#endif
-		}
+		User(const CID& aCID);
+		virtual ~User();
 		
 #ifdef _DEBUG
 		static boost::atomic_int g_user_counts; // [!] IRainman fix: Issue 1037 Иногда теряем объект User? https://code.google.com/p/flylinkdc/issues/detail?id=1037
@@ -293,7 +261,8 @@ class User : public intrusive_ptr_base<User>, public Flags
 		
 		uint64_t getBytesUploadRAW() const
 		{
-			webrtc::ReadLockScoped l(*g_ratio_cs);
+			////////webrtc::ReadLockScoped l(*g_ratio_cs);
+			FastLock l(m_ratio_cs);
 			if (m_ratio_ptr)
 				return m_ratio_ptr->get_upload();
 			else
@@ -301,7 +270,8 @@ class User : public intrusive_ptr_base<User>, public Flags
 		}
 		uint64_t getBytesDownloadRAW() const
 		{
-			webrtc::ReadLockScoped l(*g_ratio_cs);
+			/////////webrtc::ReadLockScoped l(*g_ratio_cs);
+			FastLock l(m_ratio_cs);
 			if (m_ratio_ptr)
 				return m_ratio_ptr->get_download();
 			else
@@ -309,7 +279,8 @@ class User : public intrusive_ptr_base<User>, public Flags
 		}
 		bool isLastIP() // [+] IRainman fix.
 		{
-			webrtc::ReadLockScoped l(*g_ratio_cs);
+			////////webrtc::ReadLockScoped l(*g_ratio_cs);
+			FastLock l(m_ratio_cs);
 			if (m_ratio_ptr)
 			{
 				return !m_last_ip.is_unspecified();
@@ -320,6 +291,10 @@ class User : public intrusive_ptr_base<User>, public Flags
 			}
 		}
 		boost::asio::ip::address_v4 getIP();
+		boost::asio::ip::address_v4 User::getLastIPfromRAM() const
+		{
+			return m_last_ip;
+		}
 		string getIPAsString();
 		uint64_t getBytesUpload();
 		uint64_t getBytesDownload();
@@ -334,12 +309,10 @@ class User : public intrusive_ptr_base<User>, public Flags
 		CFlyUserRatioInfo* m_ratio_ptr;
 		uint32_t  m_hub_id;
 		bool      m_is_first_init_ratio;
-		static std::unique_ptr<webrtc::RWLockWrapper> g_ratio_cs;
+		////static std::unique_ptr<webrtc::RWLockWrapper> g_ratio_cs;
+		mutable FastCriticalSection m_ratio_cs;
 #endif
 };
-
-class Download;
-typedef std::unordered_map<UserPtr, Download*, User::Hash> DownloadMap;
 
 // TODO - для буста это пока не цепляется
 // http://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom-class-type-as-the-key

@@ -36,7 +36,7 @@
 #include "../jsoncpp/include/json/writer.h"
 #endif
 
-DirectoryListingFrame::FrameMap DirectoryListingFrame::g_frames;
+DirectoryListingFrame::FrameMap DirectoryListingFrame::g_dir_list_frames;
 int DirectoryListingFrame::columnIndexes[] = { COLUMN_FILENAME, COLUMN_TYPE, COLUMN_EXACTSIZE, COLUMN_SIZE, COLUMN_TTH,
                                                COLUMN_PATH, COLUMN_HIT, COLUMN_TS,
                                                COLUMN_FLY_SERVER_RATING,
@@ -105,7 +105,7 @@ void DirectoryListingFrame::openWindow(const tstring& aFile, const tstring& aDir
 		if (aHWND != 0)
 		{
 			frame->loadFile(aFile, aDir);
-			g_frames.insert(FramePair(frame->m_hWnd, frame));
+			g_dir_list_frames.insert(FramePair(frame->m_hWnd, frame));
 		}
 		else
 		{
@@ -139,7 +139,7 @@ void DirectoryListingFrame::openWindow(const HintedUser& aUser, const string& tx
 			frame->CreateEx(WinUtil::g_mdiClient);
 		}
 		frame->loadXML(txt);
-		g_frames.insert(FramePair(frame->m_hWnd, frame));
+		g_dir_list_frames.insert(FramePair(frame->m_hWnd, frame));
 	}
 }
 
@@ -199,8 +199,8 @@ LRESULT DirectoryListingFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	SET_EXTENDENT_LIST_VIEW_STYLE(ctrlList);
 	
 	SET_LIST_COLOR(ctrlList);
-	ctrlTree.SetBkColor(Colors::bgColor);
-	ctrlTree.SetTextColor(Colors::textColor);
+	ctrlTree.SetBkColor(Colors::g_bgColor);
+	ctrlTree.SetTextColor(Colors::g_textColor);
 	
 	WinUtil::splitTokens(columnIndexes, SETTING(DIRECTORYLISTINGFRAME_ORDER), COLUMN_LAST);
 	WinUtil::splitTokensWidth(columnSizes, SETTING(DIRECTORYLISTINGFRAME_WIDTHS), COLUMN_LAST);
@@ -246,7 +246,7 @@ LRESULT DirectoryListingFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
 	SetSplitterPanes(ctrlTree.m_hWnd, ctrlList.m_hWnd);
 	m_nProportionalPos = SETTING(DIRECTORYLISTINGFRAME_SPLIT);
-	string nick = isDclst() ? Util::getFileName(getFileName()) : (dl->getUser() ? dl->getUser()->getLastNick() : Util::emptyString); // [!] IRainman dclst support
+	const string nick = isDclst() ? Util::getFileName(getFileName()) : (dl->getUser() ? dl->getUser()->getLastNick() : Util::emptyString); // [!] IRainman dclst support
 	treeRoot = ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
 	                               Text::toT(nick).c_str(), isDclst() ? FileImage::DIR_DSLCT : FileImage::DIR_ICON,
 	                               isDclst() ? FileImage::DIR_DSLCT : FileImage::DIR_ICON, 0, 0,
@@ -267,8 +267,8 @@ LRESULT DirectoryListingFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	priorityMenu.CreatePopupMenu();
 	priorityDirMenu.CreatePopupMenu();
 	copyMenu.CreatePopupMenu();
-	
-	if (!ClientManager::isMe(dl->getUser())) // Don't append COPY_NICK if browse main share
+	// https://drdump.com/Problem.aspx?ProblemID=129362
+	if (dl->getUser() && !ClientManager::isMe(dl->getUser())) // Don't append COPY_NICK if browse main share
 	{
 		copyMenu.AppendMenu(MF_STRING, IDC_COPY_NICK, CTSTRING(COPY_NICK));
 	}
@@ -1248,7 +1248,7 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 			int n = 0;
 			targetMenu.AppendMenu(MF_STRING, IDC_DOWNLOADTO, CTSTRING(BROWSE));
 			targets.clear();
-			QueueManager::getInstance()->getTargets(ii->file->getTTH(), targets);
+			QueueManager::getTargets(ii->file->getTTH(), targets);
 			
 			if (!targets.empty())
 			{
@@ -1825,12 +1825,12 @@ void DirectoryListingFrame::runUserCommand(UserCommand& uc)
 
 void DirectoryListingFrame::closeAll()
 {
-	dcdrun(const auto l_size_g_frames = g_frames.size());
-	for (auto i = g_frames.cbegin(); i != g_frames.cend(); ++i)
+	dcdrun(const auto l_size_g_frames = g_dir_list_frames.size());
+	for (auto i = g_dir_list_frames.cbegin(); i != g_dir_list_frames.cend(); ++i)
 	{
 		i->second->PostMessage(WM_CLOSE, 0, 0);
 	}
-	dcassert(l_size_g_frames == g_frames.size());
+	dcassert(l_size_g_frames == g_dir_list_frames.size());
 }
 
 LRESULT DirectoryListingFrame::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -1906,7 +1906,7 @@ LRESULT DirectoryListingFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 		m_closed = true;
 		safe_destroy_timer();
 		SettingsManager::getInstance()->removeListener(this);
-		g_frames.erase(m_hWnd);
+		g_dir_list_frames.erase(m_hWnd);
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		waitForFlyServerStop();
 #endif
@@ -2186,7 +2186,7 @@ void DirectoryListingFrame::openFileFromList(const tstring& file)
 		return;
 		
 	if (Util::isDclstFile(file))
-		DirectoryListingFrame::openWindow(file, Util::emptyStringT, HintedUser(UserPtr(), Util::emptyString), 0, true); // [!] IRainman fix: open all dclst file with empty user.
+		DirectoryListingFrame::openWindow(file, Util::emptyStringT, HintedUser(), 0, true); // [!] IRainman fix: open all dclst file with empty user.
 	else
 		WinUtil::openFile(file);
 		
@@ -2387,7 +2387,7 @@ void DirectoryListingFrame::mergeFlyServerInfo()
 	dcassert(!isClosedOrShutdown());
 	if (!isClosedOrShutdown())
 	{
-		post_message_for_update_mediainfo();
+		post_message_for_update_mediainfo(); // [crash][1] https://drdump.com/DumpGroup.aspx?DumpGroupID=296220
 	}
 }
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER

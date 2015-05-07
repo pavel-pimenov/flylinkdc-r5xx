@@ -4,9 +4,6 @@
 #include "PropPage.h"
 
 class RemoteControlPage : public CPropertyPage<IDD_REMOTE_CONTROL_PAGE>, public PropPage
-#ifdef _DEBUG
-	, virtual NonDerivable<RemoteControlPage> // [+] IRainman fix.
-#endif
 {
 	public:
 		RemoteControlPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_RC))

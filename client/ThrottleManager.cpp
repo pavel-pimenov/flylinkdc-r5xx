@@ -84,25 +84,25 @@ int ThrottleManager::read(Socket* sock, void* buffer, size_t len)
  * Limits a traffic and writes a packet to the network
  * We must handle this a little bit differently than downloads, because of that stupidity in OpenSSL
  */
-int ThrottleManager::write(Socket* sock, void* buffer, size_t& len)
+int ThrottleManager::write(Socket* p_sock, const void* p_buffer, size_t& p_len)
 {
 	//[+]IRainman SpeedLimiter
-	const auto currentMaxSpeed = sock->getMaxSpeed();
+	const auto currentMaxSpeed = p_sock->getMaxSpeed();
 	if (currentMaxSpeed < 0) // SU
 	{
 		// write to socket
-		const int sent = sock->write(buffer, len);
+		const int sent = p_sock->write(p_buffer, p_len);
 		return sent;
 	}
 	else if (currentMaxSpeed > 0) // individual
 	{
 		// Apply individual restriction to the user if it is
-		const int64_t l_currentBucket = sock->getCurrentBucket();
-		len = min(len, static_cast<size_t>(l_currentBucket));
-		sock->setCurrentBucket(l_currentBucket - len);
+		const int64_t l_currentBucket = p_sock->getCurrentBucket();
+		p_len = min(p_len, static_cast<size_t>(l_currentBucket));
+		p_sock->setCurrentBucket(l_currentBucket - p_len);
 		
 		// write to socket
-		const int sent = sock->write(buffer, len);
+		const int sent = p_sock->write(p_buffer, p_len);
 		return sent;
 	}
 	else // general
@@ -110,24 +110,26 @@ int ThrottleManager::write(Socket* sock, void* buffer, size_t& len)
 		//[~]IRainman SpeedLimiter
 		const size_t ups = UploadManager::getUploadCount();
 		if (upLimit == 0 || ups == 0)
-			return sock->write(buffer, len);
+		{
+			return p_sock->write(p_buffer, p_len);
+		}
 			
 		boost::unique_lock<boost::mutex> lock(upMutex);
 		
 		if (upTokens > 0)
 		{
 			const size_t slice = getUploadLimitInBytes() / ups;//[!]IRainman SpeedLimiter
-			len = min(slice, min(len, upTokens));
+			p_len = min(slice, min(p_len, upTokens));
 			
 			// Pour buckets of the calculated number of bytes,
 			// but as a real restriction on the specified number of bytes
-			upTokens -= len;
+			upTokens -= p_len;
 			
 			// next code can't be in critical section, so we must unlock here
 			lock.unlock();
 			
 			// write to socket
-			const int sent = sock->write(buffer, len); // 2012-04-29_13-38-26_RVVSRO63XAAIV6IAAVEY4WYZDFH244S2ACRT3IQ_0A4D69CE_crash-stack-r501-build-9869.dmp
+			const int sent = p_sock->write(p_buffer, p_len);
 			
 			// give a chance to other transfers to get a token
 			Thread::yield();

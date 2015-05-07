@@ -71,7 +71,7 @@ void CShellContextMenu::SetPath(const tstring& strPath)
 	m_pidlArray = (LPITEMIDLIST *) realloc(m_pidlArray, sizeof(LPITEMIDLIST));
 	int nSize = 0;
 	LPITEMIDLIST pidlTemp = pidlItem;
-	if (pidlTemp) //[+]PPA http://iceberg.leschat.net/forum/index.php?s=&showtopic=265&view=findpost&p=26331
+	if (pidlTemp)
 		while (pidlTemp->mkid.cb)
 		{
 			nSize += pidlTemp->mkid.cb;

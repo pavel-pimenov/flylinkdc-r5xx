@@ -260,7 +260,6 @@ typedef unsigned __int64 uint64_t;
 #   endif // IRAINMAN_USE_SHARED_SPIN_LOCK
 # endif // IRAINMAN_USE_READ_WRITE_POLITICS
 # ifdef FLYLINKDC_HE
-#  define IRAINMAN_USE_NG_TRANSFERS
 #  ifdef IRAINMAN_USE_READ_WRITE_POLITICS
 #   define IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
 // [!] IRainman opt: use policies without copying data.

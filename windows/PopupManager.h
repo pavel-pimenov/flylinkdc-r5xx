@@ -30,9 +30,6 @@
 #define DOWNLOAD_COMPLETE 6
 
 class PopupManager : public Singleton< PopupManager >, private TimerManagerListener
-#ifdef _DEBUG
-	, virtual NonDerivable<PopupManager> // [+] IRainman fix.
-#endif
 {
 	public:
 		PopupManager() : height(90), width(200), offset(0), m_is_activated(true), m_id(0), m_popuptype(0), m_hBitmap(0)

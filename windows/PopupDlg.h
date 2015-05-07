@@ -138,8 +138,8 @@ class PopupWnd : public CWindowImpl<PopupWnd, CWindow>
 		
 		LRESULT onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 		{
-			HWND hWnd = (HWND)lParam;
-			HDC hDC = (HDC)wParam;
+			const HWND hWnd = (HWND)lParam;
+			const HDC hDC = (HDC)wParam;
 			::SetBkColor(hDC, SETTING(POPUP_BACKCOLOR));
 			::SetTextColor(hDC, SETTING(POPUP_TEXTCOLOR));
 			if (hWnd == label1.m_hWnd)

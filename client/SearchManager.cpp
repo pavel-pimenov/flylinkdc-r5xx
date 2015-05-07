@@ -625,7 +625,7 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 			return l_sr; // [!] IRainman-S
 			
 		PartsInfo partialInfo;
-		if (QueueManager::getInstance()->handlePartialSearch(TTHValue(tth), partialInfo))
+		if (QueueManager::handlePartialSearch(TTHValue(tth), partialInfo))
 		{
 			AdcCommand cmd(AdcCommand::CMD_PSR, AdcCommand::TYPE_UDP);
 			toPSR(cmd, true, Util::emptyString, hubIpPort, tth, partialInfo);

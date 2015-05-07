@@ -71,9 +71,9 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 				LockFileQueueShared()
 				{
 #ifdef FLYLINKDC_USE_RWLOCK
-					QueueManager::getInstance()->fileQueue.g_csFQ->AcquireLockShared();
+					QueueManager::g_fileQueue.g_csFQ->AcquireLockShared();
 #else
-					QueueManager::getInstance()->fileQueue.g_csFQ->lock();
+					QueueManager::g_fileQueue.g_csFQ->lock();
 #endif
 				}
 				~LockFileQueueShared()
@@ -81,13 +81,13 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 #ifdef FLYLINKDC_USE_RWLOCK
 					QueueManager::getInstance()->fileQueue.g_csFQ->ReleaseLockShared();
 #else
-					QueueManager::getInstance()->fileQueue.g_csFQ->unlock();
+					QueueManager::g_fileQueue.g_csFQ->unlock();
 #endif
 				}
 				// [~] IRainman fix.
-				const QueueItem::QIStringMap& getQueueL() noexcept
+				const QueueItem::QIStringMap& getQueueL()
 				{
-					return QueueManager::getInstance()->fileQueue.getQueueL(); // “ÛÚ L?
+					return QueueManager::g_fileQueue.getQueueL(); // “ÛÚ L?
 				}
 		};
 		
@@ -182,15 +182,16 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		static void buildMap(const DirectoryListing::Directory* dir, TTHMap& tthMap) noexcept;
 	public:
 	
-		bool getTTH(const string& p_target, TTHValue& p_tth) const
+		static bool getTTH(const string& p_target, TTHValue& p_tth)
 		{
-			return fileQueue.getTTH(p_target, p_tth);
+			return g_fileQueue.getTTH(p_target, p_tth);
 		}
 		
 		/** Move the target location of a queued item. Running items are silently ignored */
 		void move(const string& aSource, const string& aTarget) noexcept;
 		
 		void remove(const string& aTarget) noexcept;
+		void removeAll();
 		void removeSource(const string& aTarget, const UserPtr& aUser, Flags::MaskType reason, bool removeConn = true) noexcept;
 		void removeSource(const UserPtr& aUser, Flags::MaskType reason) noexcept;
 		
@@ -199,7 +200,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		void setPriority(const string& aTarget, QueueItem::Priority p) noexcept;
 		void setAutoPriority(const string& aTarget, bool ap) noexcept;
 		
-		void getTargets(const TTHValue& tth, StringList& sl);
+		static void getTargets(const TTHValue& tth, StringList& sl);
 #ifdef _DEBUG
 		bool isSourceValid(const QueueItemPtr& p_qi, const QueueItem::Source* p_source_ptr) const
 		{
@@ -220,39 +221,39 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 			qi->getChunksVisualisation(p_runnigChunksAndDownloadBytes, p_doneChunks);
 		}
 		
-		bool getQueueInfo(const UserPtr& aUser, string& aTarget, int64_t& aSize, int& aFlags) noexcept;
-		Download* getDownload(UserConnection* aSource, string& aMessage) noexcept;
-		void putDownload(const string& p_path, Download* aDownload, bool finished, bool reportFinish = true) noexcept;
-		void setFile(Download* download);
+		static bool getQueueInfo(const UserPtr& aUser, string& aTarget, int64_t& aSize, int& aFlags);
+		DownloadPtr getDownload(UserConnection* aSource, string& aMessage) noexcept;
+		void putDownload(const string& p_path, DownloadPtr aDownload, bool finished, bool reportFinish = true) noexcept;
+		void setFile(const DownloadPtr& aDownload);
 		
 		/** @return The highest priority download the user has, PAUSED may also mean no downloads */
-		QueueItem::Priority hasDownload(const UserPtr& aUser) noexcept;
+		static QueueItem::Priority hasDownload(const UserPtr& aUser);
 		
 		void loadQueue() noexcept;
 		void saveQueue(bool force = false) noexcept;
 		
 		void noDeleteFileList(const string& path);
 		
-		bool handlePartialSearch(const TTHValue& tth, PartsInfo& _outPartsInfo);
+		static bool handlePartialSearch(const TTHValue& tth, PartsInfo& _outPartsInfo);
 		bool handlePartialResult(const UserPtr& aUser, const TTHValue& tth, const QueueItem::PartialSource& partialSource, PartsInfo& outPartialInfo);
 		
 #ifdef PPA_INCLUDE_DROP_SLOW
-		bool dropSource(Download* d);
+		bool dropSource(const DownloadPtr& d);
 #endif
 	private:
-		void calcPriorityAndGetRunningFilesL(QueueItem::PriorityArray& p_proir_array, QueueItemList& p_running_file)
+		static void calcPriorityAndGetRunningFilesL(QueueItem::PriorityArray& p_proir_array, QueueItemList& p_running_file)
 		{
-			fileQueue.calcPriorityAndGetRunningFilesL(p_proir_array, p_running_file);
+			g_fileQueue.calcPriorityAndGetRunningFilesL(p_proir_array, p_running_file);
 		}
-		size_t getRunningFileCount(const size_t p_stop_key) const //[+]PPA opt.
+		static size_t getRunningFileCount(const size_t p_stop_key)
 		{
-			return fileQueue.getRunningFileCount(p_stop_key);
+			return g_fileQueue.getRunningFileCount(p_stop_key);
 		}
 	public:
-		bool getTargetByRoot(const TTHValue& tth, string& p_target, string& p_tempTarget);
-		bool isChunkDownloaded(const TTHValue& tth, int64_t startPos, int64_t& bytes, string& p_target);
+		static bool getTargetByRoot(const TTHValue& tth, string& p_target, string& p_tempTarget);
+		static bool isChunkDownloaded(const TTHValue& tth, int64_t startPos, int64_t& bytes, string& p_target);
 		/** Sanity check for the target filename */
-		static string checkTarget(const string& aTarget, const int64_t aSize = -1) throw(QueueException, FileException);
+		static string checkTarget(const string& aTarget, const int64_t aSize, bool p_is_validation_path = true);
 		/** Add a source to an existing queue item */
 		bool addSourceL(const QueueItemPtr& qi, const UserPtr& aUser, Flags::MaskType addBad, bool p_is_first_load = false);
 	private:
@@ -314,19 +315,19 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		
 		/** All queue items by target */
 		class FileQueue
-			: private SettingsManagerListener // [+] IRainman opt.
 		{
 			public:
 				FileQueue();
 				~FileQueue();
 				void add(const QueueItemPtr& qi); // [!] IRainman fix.
-				QueueItemPtr add(const string& aTarget, int64_t aSize, Flags::MaskType aFlags, QueueItem::Priority p,
-				                 const string& aTempTarget, time_t aAdded, const TTHValue& root) throw(QueueException, FileException); // [!] IRainman fix.
+				QueueItemPtr add(const string& aTarget, int64_t aSize,
+				                 Flags::MaskType aFlags, QueueItem::Priority p,
+				                 const string& aTempTarget, time_t aAdded, const TTHValue& root);
 				bool getTTH(const string& p_name, TTHValue& p_tth) const;
 				QueueItemPtr find(const string& p_target) const;
 				void find(QueueItemList& sl, int64_t aSize, const string& ext) const;
 				void find(StringList& sl, int64_t aSize, const string& ext) const;
-				void find(QueueItemList& p_ql, const TTHValue& p_tth) const;
+				int find(QueueItemList& p_ql, const TTHValue& p_tth, int p_count_limit = 0) const;
 				QueueItemPtr findQueueItem(const TTHValue& p_tth) const; // [+] IRainman opt.
 				static uint8_t getMaxSegments(const uint64_t filesize);
 				// find some PFS sources to exchange parts info
@@ -353,6 +354,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 				size_t getRunningFileCount(const size_t p_stop_key) const;
 				void moveTarget(const QueueItemPtr& qi, const string& aTarget); // [!] IRainman fix.
 				void remove(const QueueItemPtr& qi); // [!] IRainman fix.
+				void clearAll();
 				
 #ifdef FLYLINKDC_USE_RWLOCK
 				static std::unique_ptr<webrtc::RWLockWrapper> g_csFQ;
@@ -364,24 +366,10 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 				std::unordered_map<TTHValue, int> m_queue_tth_map;
 				void remove_internal(const QueueItemPtr& qi);
 				
-				// [+] IRainman opt.
-				void on(SettingsManagerListener::QueueChanges) noexcept;
-				
-				void on(SettingsManagerListener::Load, SimpleXML& /*xml*/)
-				{
-					on(SettingsManagerListener::QueueChanges());
-				}
-				
-				void getUserSettingsPriority(const string& p_target, QueueItem::Priority& p_prio) const;
-				
-				StringList m_highPrioFiles;
-				StringList m_lowPrioFiles;
-				mutable FastCriticalSection m_csPriorities;
-				// [+] IRainman opt.
 		};
 		
 		/** QueueItems by target */
-		FileQueue fileQueue;
+		static FileQueue g_fileQueue;
 		
 		/** All queue items indexed by user (this is a cache for the FileQueue really...) */
 		class UserQueue
@@ -391,7 +379,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 				void addL(const QueueItemPtr& qi, const UserPtr& aUser, bool p_is_first_load); // [!] IRainman fix.
 				QueueItemPtr getNextL(const UserPtr& aUser, QueueItem::Priority minPrio = QueueItem::LOWEST, int64_t wantedSize = 0, int64_t lastSpeed = 0, bool allowRemove = false); // [!] IRainman fix.
 				QueueItemPtr getRunningL(const UserPtr& aUser); // [!] IRainman fix.
-				void addDownloadL(const QueueItemPtr& qi, Download* d); // [!] IRainman fix: this function needs external lock.
+				void addDownloadL(const QueueItemPtr& qi, const DownloadPtr& d); // [!] IRainman fix: this function needs external lock.
 				bool removeDownloadL(const QueueItemPtr& qi, const UserPtr& d); // [!] IRainman fix: this function needs external lock.
 				void removeQueueItemL(const QueueItemPtr& qi, bool p_is_remove_running = true); // [!] IRainman fix.
 				void removeUserL(const QueueItemPtr& qi, const UserPtr& aUser, bool p_is_remove_running, bool p_is_find_sources = true); // [!] IRainman fix.
@@ -409,10 +397,9 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 				bool userIsDownloadedFiles(const UserPtr& aUser, QueueItemList& p_status_update_array);
 #endif // IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
 				
-				void getLastError(string& out)
+				string getLastError()
 				{
-					out.clear();
-					swap(out, m_lastError);
+					return m_lastError;
 				}
 				
 			private:
@@ -433,9 +420,9 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		mutable FastCriticalSection csDirectories; // [!] IRainman fix.
 		
 		/** QueueItems by user */
-		UserQueue userQueue;
+		static UserQueue g_userQueue;
 		/** Directories queued for downloading */
-		std::unordered_multimap<UserPtr, DirectoryItemPtr, User::Hash> directories;
+		std::unordered_multimap<UserPtr, DirectoryItemPtr, User::Hash> m_directories;
 		/** Recent searches list, to avoid searching for the same thing too often */
 		deque<string> m_recent;
 		/** The queue needs to be saved */
@@ -470,6 +457,12 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		
 		//[+] SSA check if file exist
 		int m_curOnDownloadSettings;
+	private:
+		void fire_status_updated(const QueueItemPtr& qi);
+		void fire_sources_updated(const QueueItemPtr& qi);
+		void fire_removed(const QueueItemPtr& qi);
+	public:
+		static void get_download_connection(const UserPtr& aUser);
 };
 
 #endif // !defined(QUEUE_MANAGER_H)

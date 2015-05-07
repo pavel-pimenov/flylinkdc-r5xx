@@ -375,6 +375,7 @@
     <ClCompile Include="boost\libs\chrono\src\chrono.cpp" />
     <ClCompile Include="boost\libs\chrono\src\process_cpu_clocks.cpp" />
     <ClCompile Include="boost\libs\chrono\src\thread_clock.cpp" />
+    <ClCompile Include="boost\libs\iostreams\src\mapped_file.cpp" />
     <ClCompile Include="boost\libs\system\src\error_code.cpp" />
     <ClCompile Include="boost\libs\thread\src\win32\thread.cpp" />
     <ClCompile Include="boost\libs\thread\src\tss_null.cpp" />

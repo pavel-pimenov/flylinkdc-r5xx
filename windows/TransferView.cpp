@@ -99,7 +99,7 @@ static ResourceManager::Strings columnNames[] = { ResourceManager::USER,
                                                   ResourceManager::SLOTS //[+]PPA
                                                 };
 
-TransferView::TransferView() : CFlyTimerAdapter(m_hWnd)
+TransferView::TransferView() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd)
 {
 }
 
@@ -151,7 +151,7 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	ctrlTransfers.setAscending(BOOLSETTING(TRANSFERS_COLUMNS_SORT_ASC));
 	
 	SET_LIST_COLOR(ctrlTransfers);
-	ctrlTransfers.setFlickerFree(Colors::bgBrush);
+	ctrlTransfers.setFlickerFree(Colors::g_bgBrush);
 	
 	ctrlTransfers.SetImageList(m_arrows, LVSIL_SMALL);
 	
@@ -262,6 +262,7 @@ void TransferView::setButtonState()
 void TransferView::prepareClose()
 {
 	safe_destroy_timer();
+	clean_task();
 	ctrlTransfers.saveHeaderOrder(SettingsManager::MAINFRAME_ORDER, SettingsManager::MAINFRAME_WIDTHS,
 	                              SettingsManager::MAINFRAME_VISIBLE);
 	                              
@@ -563,7 +564,7 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			if (!ii) //[+]PPA падаем под wine
 				return CDRF_DODEFAULT;
 			const int colIndex = ctrlTransfers.findColumn(cd->iSubItem);
-			cd->clrTextBk = Colors::bgColor;
+			cd->clrTextBk = Colors::g_bgColor;
 			
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 			Colors::alternationBkColor(cd);
@@ -959,7 +960,7 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (ii->download ? SETTIN
 				{
 					color = Colors::getAlternativBkColor(cd);
 					SetBkColor(cd->nmcd.hdc, color);
-					SetTextColor(cd->nmcd.hdc, Colors::textColor);
+					SetTextColor(cd->nmcd.hdc, Colors::g_textColor);
 				}
 				CRect rc2 = rc;
 				rc2.left += 2;
@@ -1010,7 +1011,7 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (ii->download ? SETTIN
 			         colIndex != COLUMN_LOCATION &&
 			         ii->m_status != ItemInfo::STATUS_RUNNING)
 			{
-				cd->clrText = OperaColors::blendColors(Colors::bgColor, Colors::textColor, 0.4);
+				cd->clrText = OperaColors::blendColors(Colors::g_bgColor, Colors::g_textColor, 0.4);
 				return CDRF_NEWFONT;
 			}
 			// Fall through
@@ -1442,7 +1443,7 @@ TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const Conn
 		string target;
 		int64_t size;
 		int flags;
-		if (QueueManager::getInstance()->getQueueInfo(aCqi->getUser(), target, size, flags))// deadlock
+		if (QueueManager::getQueueInfo(aCqi->getUser(), target, size, flags))// deadlock
 		{
 			Transfer::Type type = Transfer::TYPE_FILE;
 			if (flags & QueueItem::FLAG_USER_LIST)
@@ -1586,17 +1587,17 @@ void TransferView::starting(UpdateInfo* ui, const Transfer* t)
 	ui->setIP(t->getIP());
 }
 
-void TransferView::on(DownloadManagerListener::Requesting, const Download* aDownload) noexcept
+void TransferView::on(DownloadManagerListener::Requesting, const DownloadPtr& aDownload) noexcept
 {
 #ifdef _DEBUG
-	LogManager::message("Requesting " + aDownload->getUserConnectionToken());
+	//LogManager::message("Requesting " + aDownload->getUserConnectionToken());
 #endif
 	UpdateInfo* ui = new UpdateInfo(aDownload->getHintedUser(), true); // [!] IRainman fix.
 	// TODO - AirDC++
 	// if (hubChanged)
 	//  ui->setUser(d->getHintedUser());
 	
-	starting(ui, aDownload);
+	starting(ui, aDownload.get());
 	
 	ui->setActual(aDownload->getActual());
 	ui->setSize(aDownload->getSize());
@@ -1607,7 +1608,7 @@ void TransferView::on(DownloadManagerListener::Requesting, const Download* aDown
 	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
 
-void TransferView::on(DownloadManagerListener::Starting, const Download* aDownload)
+void TransferView::on(DownloadManagerListener::Starting, const DownloadPtr& aDownload)
 {
 	UpdateInfo* ui = new UpdateInfo(aDownload->getHintedUser(), true); // [!] IRainman fix.
 	
@@ -1640,7 +1641,7 @@ void TransferView::on(DownloadManagerListener::Tick, const DownloadArray& dl, ui
 	}
 }
 
-void TransferView::on(DownloadManagerListener::Failed, const Download* aDownload, const string& aReason)
+void TransferView::on(DownloadManagerListener::Failed, const DownloadPtr& aDownload, const string& aReason)
 {
 	UpdateInfo* ui = new UpdateInfo(aDownload->getHintedUser(), true, true); // [!] IRainman fix. https://code.google.com/p/flylinkdc/issues/detail?id=1291
 	ui->setStatus(ItemInfo::STATUS_WAITING);
@@ -1681,11 +1682,11 @@ void TransferView::on(DownloadManagerListener::Status, const UserConnection* p_c
 	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
 
-void TransferView::on(UploadManagerListener::Starting, const Upload* aUpload)
+void TransferView::on(UploadManagerListener::Starting, const UploadPtr& aUpload)
 {
 	UpdateInfo* ui = new UpdateInfo(aUpload->getHintedUser(), false); // [!] IRainman fix.
 	
-	starting(ui, aUpload);
+	starting(ui, aUpload.get());
 	
 	ui->setStatus(ItemInfo::STATUS_RUNNING);
 	ui->setActual(aUpload->getStartPos() + aUpload->getActual());
@@ -1760,9 +1761,11 @@ LRESULT TransferView::onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hW
 		const string target = Text::fromT(ii->m_target);
 		if (ii->download)
 		{
-			const auto qi = QueueManager::getInstance()->fileQueue.find(target);
+			const auto qi = QueueManager::g_fileQueue.find(target);
 			if (qi)
+			{
 				startMediaPreview(wID, qi); // [!]
+			}
 		}
 		else
 		{
@@ -1865,7 +1868,7 @@ void TransferView::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 	{
 		if (ctrlTransfers.isRedraw())
 		{
-			ctrlTransfers.setFlickerFree(Colors::bgBrush);
+			ctrlTransfers.setFlickerFree(Colors::g_bgBrush);
 			RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
 		}
 	}
@@ -1879,6 +1882,17 @@ void TransferView::on(QueueManagerListener::Tick, const QueueItemList& p_list) n
 	}
 }
 
+void TransferView::on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept // [+] IRainman opt.
+{
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
+	{
+		for (auto i = p_list.cbegin(); i != p_list.cend(); ++i)
+		{
+			on(QueueManagerListener::StatusUpdated(), *i);
+		}
+	}
+}
 void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItemPtr& qi) noexcept
 {
 	if (qi->isUserList())
@@ -1969,51 +1983,58 @@ void TransferView::parseQueueItemUpdateInfoL(UpdateInfo* ui, QueueItemPtr qi) //
 	}
 } // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=152461
 
-void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string&, const Download* p_download) noexcept
+void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string&, const DownloadPtr& p_download) noexcept
 {
-	if (qi->isUserList())
-		return;
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
+	{
+		if (qi->isUserList())
+			return;
+			
+		// update download item
+		UpdateInfo* ui = new UpdateInfo(p_download->getHintedUser(), true); // [!] IRainman fix.
 		
-	// update download item
-	UpdateInfo* ui = new UpdateInfo(p_download->getHintedUser(), true); // [!] IRainman fix.
-	
-	ui->setStatus(ItemInfo::STATUS_WAITING);
-	ui->setPos(0);
-	ui->setStatusString(TSTRING(DOWNLOAD_FINISHED_IDLE));
-	
-	m_tasks.add(TRANSFER_UPDATE_ITEM, ui); // [!] IRainman opt.
-	
-	// update file item
-	ui = new UpdateInfo(p_download->getHintedUser(), true); // [!] IRainman fix.
-	
-	ui->setTarget(qi->getTarget());
-	ui->setPos(0);
-	ui->setActual(0);
-	ui->setTimeLeft(0);
-	ui->setStatusString(TSTRING(DOWNLOAD_FINISHED_IDLE));
-	ui->setStatus(ItemInfo::STATUS_WAITING);
-	ui->setRunning(0);
-	
-	SHOW_POPUP(POPUP_DOWNLOAD_FINISHED, TSTRING(FILE) + _T(": ") + Util::getFileName(ui->m_target), TSTRING(DOWNLOAD_FINISHED_IDLE));
-	
-	m_tasks.add(TRANSFER_UPDATE_PARENT, ui);  // [!] IRainman opt.
+		ui->setStatus(ItemInfo::STATUS_WAITING);
+		ui->setPos(0);
+		ui->setStatusString(TSTRING(DOWNLOAD_FINISHED_IDLE));
+		
+		m_tasks.add(TRANSFER_UPDATE_ITEM, ui); // [!] IRainman opt.
+		
+		// update file item
+		ui = new UpdateInfo(p_download->getHintedUser(), true); // [!] IRainman fix.
+		
+		ui->setTarget(qi->getTarget());
+		ui->setPos(0);
+		ui->setActual(0);
+		ui->setTimeLeft(0);
+		ui->setStatusString(TSTRING(DOWNLOAD_FINISHED_IDLE));
+		ui->setStatus(ItemInfo::STATUS_WAITING);
+		ui->setRunning(0);
+		
+		SHOW_POPUP(POPUP_DOWNLOAD_FINISHED, TSTRING(FILE) + _T(": ") + Util::getFileName(ui->m_target), TSTRING(DOWNLOAD_FINISHED_IDLE));
+		
+		m_tasks.add(TRANSFER_UPDATE_PARENT, ui);  // [!] IRainman opt.
+	}
 }
 
 void TransferView::on(QueueManagerListener::Removed, const QueueItemPtr& qi) noexcept
 {
-	if (qi->isUserList())
-		return;
+	if (!ClientManager::isShutdown())
+	{
+		if (qi->isUserList())
+			return;
+			
+		UpdateInfo* ui = new UpdateInfo(); // [!] IRainman fix.
+		ui->setTarget(qi->getTarget());
+		ui->setPos(0);
+		ui->setActual(0);
+		ui->setTimeLeft(0);
+		ui->setStatusString(TSTRING(DISCONNECTED));
+		ui->setStatus(ItemInfo::STATUS_WAITING);
+		ui->setRunning(0);
 		
-	UpdateInfo* ui = new UpdateInfo(); // [!] IRainman fix.
-	ui->setTarget(qi->getTarget());
-	ui->setPos(0);
-	ui->setActual(0);
-	ui->setTimeLeft(0);
-	ui->setStatusString(TSTRING(DISCONNECTED));
-	ui->setStatus(ItemInfo::STATUS_WAITING);
-	ui->setRunning(0);
-	
-	m_tasks.add(TRANSFER_UPDATE_PARENT, ui);
+		m_tasks.add(TRANSFER_UPDATE_PARENT, ui);
+	}
 }
 
 // [+] Flylink
@@ -2073,7 +2094,7 @@ bool TransferView::getTTH(const ItemInfo* p_ii, TTHValue& p_tth)
 {
 	if (p_ii->download)
 	{
-		return QueueManager::getInstance()->getTTH(Text::fromT(p_ii->m_target), p_tth);
+		return QueueManager::getTTH(Text::fromT(p_ii->m_target), p_tth);
 	}
 	else
 	{

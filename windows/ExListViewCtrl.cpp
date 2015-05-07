@@ -274,15 +274,15 @@ LRESULT ExListViewCtrl::onChar(UINT /*msg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 bool ExListViewCtrl::isRedraw()
 {
 	bool refresh = false;
-	if (GetBkColor() != Colors::bgColor)
+	if (GetBkColor() != Colors::g_bgColor)
 	{
-		SetBkColor(Colors::bgColor);
-		SetTextBkColor(Colors::bgColor);
+		SetBkColor(Colors::g_bgColor);
+		SetTextBkColor(Colors::g_bgColor);
 		refresh = true;
 	}
-	if (GetTextColor() != Colors::textColor)
+	if (GetTextColor() != Colors::g_textColor)
 	{
-		SetTextColor(Colors::textColor);
+		SetTextColor(Colors::g_textColor);
 		refresh = true;
 	}
 	return refresh;

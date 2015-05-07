@@ -24,9 +24,6 @@
 #include "PropPageTextStyles.h"
 
 class OperaColorsPage : public CPropertyPage<IDD_OPERACOLORS_PAGE>, public PropPage
-#ifdef _DEBUG
-	, virtual NonDerivable<OperaColorsPage> // [+] IRainman fix.
-#endif
 {
 	public:
 		OperaColorsPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_TEXT_STYLES) + _T('\\') + TSTRING(SETTINGS_OPERACOLORS)), bDoProgress(false)

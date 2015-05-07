@@ -43,6 +43,19 @@ static ResourceManager::Strings columnNames[] = { ResourceManager::FILE, Resourc
                                                 }; //TODO // !PPA!
 
 #endif
+StatsFrame::StatsFrame() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd), twidth(0), lastTick(MainFrame::getLastUpdateTick()), scrollTick(0),
+#ifdef PPA_INCLUDE_SHOW_UD_RATIO
+	ratioContainer(WC_LISTVIEW, this, 0),
+#endif
+	m_max(1)
+{
+	m_backgr.CreateSolidBrush(Colors::g_bgColor);
+	m_UploadsPen.CreatePen(PS_SOLID, 0, SETTING(UPLOAD_BAR_COLOR));
+	m_UploadSocketPen.CreatePen(PS_DOT, 0, SETTING(UPLOAD_BAR_COLOR));
+	m_DownloadsPen.CreatePen(PS_SOLID, 0, SETTING(DOWNLOAD_BAR_COLOR));
+	m_DownloadSocketPen.CreatePen(PS_DOT, 0, SETTING(DOWNLOAD_BAR_COLOR));
+	m_foregr.CreatePen(PS_SOLID, 0, Colors::g_textColor);
+}
 
 LRESULT StatsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
@@ -80,6 +93,7 @@ LRESULT StatsFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	{
 		m_closed = true;
 		safe_destroy_timer();
+		clean_task();
 		// [+]IRainman
 		//DownloadManager::getInstance()->removeListener(this);
 		//UploadManager::getInstance()->removeListener(this);
@@ -133,17 +147,17 @@ LRESULT StatsFrame::onPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		CRect rc(dc.m_ps.rcPaint);
 //[-]PPA        dcdebug("Update: %d, %d, %d, %d\n", rc.left, rc.top, rc.right, rc.bottom);
 
-		dc.SelectBrush(backgr);
+		dc.SelectBrush(m_backgr);
 		dc.BitBlt(rc.left, rc.top, rc.Width(), rc.Height(), NULL, 0, 0, PATCOPY);
 		
 		CRect clientRC;
 		GetClientRect(clientRC);
 		
-		dc.SetTextColor(Colors::textColor);
-		dc.SetBkColor(Colors::bgColor);
+		dc.SetTextColor(Colors::g_textColor);
+		dc.SetBkColor(Colors::g_bgColor);
 		
 		{
-			CSelectPen l_pen(dc, foregr); //-V808
+			CSelectPen l_pen(dc, m_foregr); //-V808
 			{
 				CSelectFont l_font(dc, Fonts::g_font); //-V808
 				const int lines = g_height / (Fonts::g_fontHeight * LINE_HEIGHT);
@@ -260,9 +274,9 @@ LRESULT StatsFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	const int64_t u = MainFrame::getLastUploadSpeed();
 	//const int64_t udiff = u - m_lastSocketsUp;
 	
-	const int64_t dt = DownloadManager::getInstance()->getRunningAverage();
+	const int64_t dt = DownloadManager::getRunningAverage();
 	
-	const int64_t ut = UploadManager::getInstance()->getRunningAverage();
+	const int64_t ut = UploadManager::getRunningAverage();
 	// [~]IRainman
 	
 	//addTick(ddiff, tdiff, m_DownSockets, m_DownSocketsAvg, (int)scroll);
@@ -290,7 +304,7 @@ LRESULT StatsFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	lastTick = tick;
 	//m_lastSocketsUp = u;
 	//m_lastSocketsDown = d;
-	
+	onTimerTask();
 	return 0;
 }
 

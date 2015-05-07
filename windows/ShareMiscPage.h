@@ -12,9 +12,6 @@
 #include "wtl_flylinkdc.h"
 
 class ShareMiscPage : public CPropertyPage<IDD_SHARE_MISC_PAGE>, public PropPage
-#ifdef _DEBUG
-	, virtual NonDerivable<ShareMiscPage> // [+] IRainman fix.
-#endif
 {
 	public:
 		ShareMiscPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_UPLOADS) + _T('\\') + TSTRING(SETTINGS_ADVANCED))

@@ -31,7 +31,7 @@
 
 class PublicHubListDlg : public CDialogImpl<PublicHubListDlg>
 #ifdef _DEBUG
-	, virtual NonDerivable<PublicHubListDlg>, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:

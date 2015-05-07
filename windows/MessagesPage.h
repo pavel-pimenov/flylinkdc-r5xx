@@ -12,9 +12,6 @@
 #include "ExListViewCtrl.h" // [+] IRainman
 
 class MessagesPage : public CPropertyPage<IDD_MESSAGES_PAGE>, public PropPage
-#ifdef _DEBUG
-	, virtual NonDerivable<MessagesPage> // [+] IRainman fix.
-#endif
 {
 	public:
 		MessagesPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_MESSAGES))

@@ -488,6 +488,7 @@
     <ClInclude Include="ConnectionManager.h" />
     <ClInclude Include="Constants.h" />
     <ClInclude Include="DHT.h" />
+    <ClInclude Include="DHTType.h" />
     <ClInclude Include="IndexManager.h" />
     <ClInclude Include="KBucket.h" />
     <ClInclude Include="SearchManager.h" />

@@ -123,7 +123,7 @@ static ResourceManager::Strings columnNames[] = {ResourceManager::FILE,
                                                  ResourceManager::TTH_ROOT
                                                 };
 
-SearchFrame::FrameMap SearchFrame::g_frames;
+SearchFrame::FrameMap SearchFrame::g_search_frames;
 
 SearchFrame::~SearchFrame()
 {
@@ -138,17 +138,17 @@ void SearchFrame::openWindow(const tstring& str /* = Util::emptyString */, LONGL
 	SearchFrame* pChild = new SearchFrame();
 	pChild->setInitial(str, size, mode, type);
 	pChild->CreateEx(WinUtil::g_mdiClient);
-	g_frames.insert(FramePair(pChild->m_hWnd, pChild));
+	g_search_frames.insert(FramePair(pChild->m_hWnd, pChild));
 }
 
 void SearchFrame::closeAll()
 {
-	dcdrun(const auto l_size_g_frames = g_frames.size());
-	for (auto i = g_frames.cbegin(); i != g_frames.cend(); ++i)
+	dcdrun(const auto l_size_g_frames = g_search_frames.size());
+	for (auto i = g_search_frames.cbegin(); i != g_search_frames.cend(); ++i)
 	{
 		::PostMessage(i->first, WM_CLOSE, 0, 0);
 	}
-	dcassert(l_size_g_frames == g_frames.size());
+	dcassert(l_size_g_frames == g_search_frames.size());
 }
 
 LRESULT SearchFrame::onFiletypeChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -356,6 +356,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	ctrlShowUI.Create(ctrlStatus.m_hWnd, rcDefault, _T("+/-"), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 	ctrlShowUI.SetButtonStyle(BS_AUTOCHECKBOX, false);
 	ctrlShowUI.SetCheck(1);
+	ctrlShowUI.SetFont(Fonts::g_systemFont);
 	//showUIContainer.SubclassWindow(ctrlShowUI.m_hWnd);
 	
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -467,7 +468,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	
 	SET_LIST_COLOR(ctrlResults);
 	ctrlResults.SetFont(Fonts::g_systemFont, FALSE); // use Util::font instead to obey Appearace settings
-	ctrlResults.setFlickerFree(Colors::bgBrush);
+	ctrlResults.setFlickerFree(Colors::g_bgBrush);
 	ctrlResults.setColumnOwnerDraw(COLUMN_LOCATION);
 	ctrlResults.setColumnOwnerDraw(COLUMN_ANTIVIRUS);
 #ifndef FLYLINKDC_USE_ANTIVIRUS_DB
@@ -700,7 +701,7 @@ LRESULT SearchFrame::onDrawItem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& b
 			dc.ExtTextOut(rc.left + borders[2], top, ETO_CLIPPED, &rc2, m_statusLine.c_str(), m_statusLine.size(), NULL);
 			
 			
-			dc.SetTextColor(Colors::textColor);
+			dc.SetTextColor(Colors::g_textColor);
 			rc2 = rc;
 			rc2.left = rc.left + (LONG)length;
 			dc.ExtTextOut(rc.left + borders[2], top, ETO_CLIPPED, &rc2, m_statusLine.c_str(), m_statusLine.size(), NULL);
@@ -745,8 +746,8 @@ BOOL SearchFrame::ListDraw(HWND /*hwnd*/, UINT /*uCtrlId*/, DRAWITEMSTRUCT *dis)
 			}
 			else
 			{
-				SetTextColor(dis->hDC, Colors::textColor);
-				SetBkColor(dis->hDC, Colors::bgColor);
+				SetTextColor(dis->hDC, Colors::g_textColor);
+				SetBkColor(dis->hDC, Colors::g_bgColor);
 			}
 			
 			ExtTextOut(dis->hDC, dis->rcItem.left + 22, dis->rcItem.top + 1, ETO_OPAQUE, &dis->rcItem, szText, wcslen(szText), 0);
@@ -1090,9 +1091,7 @@ void SearchFrame::on(SearchManagerListener::SR, const SearchResult &aResult) noe
 		//PostMessage(WM_SPEAKER, FILTER_RESULT);//[-]IRainman optimize SearchFrame
 		return;
 	}
-	
-	const SearchInfo* i = new SearchInfo(aResult);
-	PostMessage(WM_SPEAKER, ADD_RESULT, (LPARAM)i);
+	safe_post_message(*this, ADD_RESULT, new SearchInfo(aResult));
 }
 //===================================================================================================================================
 /*
@@ -1102,7 +1101,7 @@ void SearchFrame::on(SearchManagerListener::Searching, SearchQueueItem* aSearch)
     {
         searches--;
         dcassert(searches >= 0);
-        PostMessage(WM_SPEAKER, SEARCH_START, (LPARAM)new SearchQueueItem(*aSearch));
+        safe_post_message(*this,SEARCH_START, new SearchQueueItem(*aSearch));
     }
 }
 */
@@ -1380,7 +1379,7 @@ void SearchFrame::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 				                + Util::toStringW(percent) + _T("% ") +
 				                Text::toT(Client::g_last_search_string);
 			}
-			PostMessage(WM_SPEAKER, QUEUE_STATS, reinterpret_cast<LPARAM>(new const tstring(l_searchDone ? TSTRING(DONE) : Util::formatSecondsW((m_searchEndTime - l_tick) / 1000))));
+			safe_post_message(*this, QUEUE_STATS, new const tstring(l_searchDone ? TSTRING(DONE) : Util::formatSecondsW((m_searchEndTime - l_tick) / 1000)));
 			m_waitingResults = l_tick < m_searchEndTime + 5000;
 			// [~] IRainman fix.
 		}
@@ -1947,7 +1946,7 @@ LRESULT SearchFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 			ClientManager::getInstance()->removeListener(this);
 		}
 		SearchManager::getInstance()->removeListener(this);
-		g_frames.erase(m_hWnd);
+		g_search_frames.erase(m_hWnd);
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		waitForFlyServerStop();
 #endif
@@ -1985,7 +1984,7 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 		ctrlStatus.GetClientRect(sr);
 		int tmp = (sr.Width()) > 420 ? 376 : ((sr.Width() > 116) ? sr.Width() - 100 : 16);
 		
-		w[0] = 15;
+		w[0] = 36;
 		w[1] = sr.right - tmp;
 		w[2] = w[1] + (tmp - 16) / 3;
 		w[3] = w[2] + (tmp - 16) / 3;
@@ -2276,7 +2275,6 @@ LRESULT SearchFrame::onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOO
 {
 	const HWND hWnd = (HWND)lParam;
 	const HDC hDC = (HDC)wParam;
-	
 	if (hWnd == searchLabel.m_hWnd || hWnd == sizeLabel.m_hWnd || hWnd == optionLabel.m_hWnd || hWnd == typeLabel.m_hWnd
 	        || hWnd == hubsLabel.m_hWnd || hWnd == ctrlSlots.m_hWnd ||
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
@@ -2299,9 +2297,7 @@ LRESULT SearchFrame::onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOO
 	}
 	else
 	{
-		::SetBkColor(hDC, Colors::bgColor);
-		::SetTextColor(hDC, Colors::textColor);
-		return (LRESULT)Colors::bgBrush;
+		return Colors::setColor(hDC);
 	}
 }
 
@@ -2397,9 +2393,9 @@ LRESULT SearchFrame::onSearchByTTH(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 
 void SearchFrame::addSearchResult(SearchInfo * si)
 {
-	const SearchResult sr = si->sr;
+	const SearchResult& sr = si->sr;
 	const auto l_user        = sr.getUser();
-	if (!sr.getIPAsString().empty())
+	if (!sr.getIP().is_unspecified())
 	{
 		l_user->setIP(sr.getIP());
 	}
@@ -2655,7 +2651,7 @@ LRESULT SearchFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 			if (SIcheck.hasTTH)
 			{
 				targets.clear();
-				QueueManager::getInstance()->getTargets(TTHValue(Text::fromT(SIcheck.tth)), targets);
+				QueueManager::getTargets(TTHValue(Text::fromT(SIcheck.tth)), targets);
 				
 				if (!targets.empty())
 				{
@@ -3035,7 +3031,7 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 			
 		case CDDS_ITEMPREPAINT:
 		{
-			cd->clrText = Colors::textColor;
+			cd->clrText = Colors::g_textColor;
 			SearchInfo* si = reinterpret_cast<SearchInfo*>(cd->nmcd.lItemlParam);
 			if (si)
 			{
@@ -3119,7 +3115,7 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 				}
 				else
 				{
-					ctrlResults.SetItemFilled(cd, rc, /*color_text*/ Colors::textColor/*, color_text_unfocus*/);
+					ctrlResults.SetItemFilled(cd, rc, /*color_text*/ Colors::g_textColor/*, color_text_unfocus*/);
 				}
 				LONG top = rc.top + (rc.Height() - 15) / 2;
 				if ((top - rc.top) < 2)
@@ -3545,10 +3541,10 @@ void SearchFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 	{
 		if (ctrlResults.isRedraw())
 		{
-			ctrlResults.setFlickerFree(Colors::bgBrush);
-			ctrlHubs.SetBkColor(Colors::bgColor);
-			ctrlHubs.SetTextBkColor(Colors::bgColor);
-			ctrlHubs.SetTextColor(Colors::textColor);
+			ctrlResults.setFlickerFree(Colors::g_bgBrush);
+			ctrlHubs.SetBkColor(Colors::g_bgColor);
+			ctrlHubs.SetTextBkColor(Colors::g_bgColor);
+			ctrlHubs.SetTextColor(Colors::g_textColor);
 			RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
 		}
 	}
@@ -3573,8 +3569,8 @@ LRESULT SearchFrame::onMarkAsDownloaded(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 }
 void SearchFrame::speak(Speakers s, const Client* aClient)
 {
-	HubInfo* hubInfo = new HubInfo(Text::toT(aClient->getHubUrl()), Text::toT(aClient->getHubName()), aClient->getMyIdentity().isOp());
-	PostMessage(WM_SPEAKER, WPARAM(s), LPARAM(hubInfo));
+	HubInfo * hubInfo = new HubInfo(Text::toT(aClient->getHubUrl()), Text::toT(aClient->getHubName()), aClient->getMyIdentity().isOp());
+	safe_post_message(*this, s, hubInfo);
 }
 
 #ifdef SSA_VIDEO_PREVIEW_FEATURE

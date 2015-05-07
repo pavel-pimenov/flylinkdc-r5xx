@@ -163,30 +163,32 @@ void ConnectionManager::listen()
 void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 {
 	dcassert(aUser);
-	// [!] IRainman fix: Please do not mask the problem of endless checks on empty! If the user is empty - hence the functional is not working!
-	// [-] if (aUser) //[+] PPA [-] IRainman fix.
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
 	{
-		webrtc::WriteLockScoped l(*g_csDownloads);
-		const ConnectionQueueItem::Iter i = find(g_downloads.begin(), g_downloads.end(), aUser);
-		if (i == g_downloads.end())
 		{
-			getCQI_L(HintedUser(aUser, Util::emptyString), true, Util::emptyString); // http://code.google.com/p/flylinkdc/issues/detail?id=1037
-			// Не сохраняем указатель. а как и когда будем удалять ?
-			return;
-		}
-#ifdef USING_IDLERS_IN_CONNECTION_MANAGER
-		else
-		{
-			if (find(m_checkIdle.begin(), m_checkIdle.end(), aUser) == m_checkIdle.end())
+			webrtc::WriteLockScoped l(*g_csDownloads);
+			const ConnectionQueueItem::Iter i = find(g_downloads.begin(), g_downloads.end(), aUser);
+			if (i == g_downloads.end())
 			{
-				m_checkIdle.push_back(aUser); // TODO - Лок?
+				getCQI_L(HintedUser(aUser, Util::emptyString), true, Util::emptyString); // http://code.google.com/p/flylinkdc/issues/detail?id=1037
+				// Не сохраняем указатель. а как и когда будем удалять ?
+				return;
 			}
+#ifdef USING_IDLERS_IN_CONNECTION_MANAGER
+			else
+			{
+				if (find(m_checkIdle.begin(), m_checkIdle.end(), aUser) == m_checkIdle.end())
+				{
+					m_checkIdle.push_back(aUser); // TODO - Лок?
+				}
+			}
+#endif
 		}
+#ifndef USING_IDLERS_IN_CONNECTION_MANAGER
+		DownloadManager::checkIdle(aUser);
 #endif
 	}
-#ifndef USING_IDLERS_IN_CONNECTION_MANAGER
-	DownloadManager::checkIdle(aUser);
-#endif
 }
 
 ConnectionQueueItem* ConnectionManager::getCQI_L(const HintedUser& aHintedUser, bool download, const string& aToken)
@@ -344,7 +346,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 				{
 					cqi->setLastAttempt(aTick);
 					
-					QueueItem::Priority prio = QueueManager::getInstance()->hasDownload(cqi->getUser()); // [10] https://www.box.net/shared/i6hgw2qzhr9zyy15vhh1
+					QueueItem::Priority prio = QueueManager::hasDownload(cqi->getUser()); // [10] https://www.box.net/shared/i6hgw2qzhr9zyy15vhh1
 					
 					if (prio == QueueItem::PAUSED)
 					{
@@ -1066,6 +1068,7 @@ void ConnectionManager::on(UserConnectionListener::Connected, UserConnection* aS
 
 void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSource, const string& aNick) noexcept
 {
+        dcassert(!ClientManager::isShutdown());
 	if (aSource->getState() != UserConnection::STATE_SUPNICK)
 	{
 		// Already got this once, ignore...
@@ -1140,6 +1143,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 	const CID cid = ClientManager::makeCid(nick, aSource->getHubUrl());
 	
 	// First, we try looking in the pending downloads...hopefully it's one of them...
+	if(!ClientManager::isShutdown())
 	{
 		webrtc::ReadLockScoped l(*g_csDownloads);
 		for (auto i = g_downloads.cbegin(); i != g_downloads.cend(); ++i)

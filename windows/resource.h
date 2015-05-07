@@ -118,7 +118,6 @@
 #define IDD_UPDATE_PAGE                 216
 #define IDR_AUTOUPDATE                  217
 #define IDR_SPLASH_NY1                  218
-#define IDR_SPLASH_NY2                  219
 #define IDR_CLOSE_PNG                   220
 #define IDD_UPDATE_DLG                  221
 #define IDD_DCLS_GENERATOR              222
@@ -170,7 +169,6 @@
 #define IDR_FLY_SERVER_SENSOR           279
 #define IDD_FLY_SERVER_DIALOG           280
 #define IDR_MEDIAFILES                  281
-#define IDR_SPLASH_FOOLS_DAY            282
 #define IDR_IPGRANT_EXAMPLE             283
 #define IDR_IPGUARD_EXAMPLE             284
 #define IDR_IPTRUST_EXAMPLE             285
@@ -192,6 +190,9 @@
 #define IDR_ICON_CLOCK                  301
 #define IDR_ICON_CAMSHOOT_ICO           302
 #define IDR_ICON_CAMSHOOT_PNG           303
+#define IDR_MODE_ACTIVE_ICO             304
+#define IDR_MODE_PASSIVE_ICO            305
+#define IDR_MODE_OFFLINE_ICO            306
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
 #define IDC_COPY_HUB                    1002
@@ -1607,19 +1608,19 @@
 #define ID_WINDOW_RESTORE_ALL           32785
 #define ID_TEXT_TRANSCODE               32786
 #define ID_MEDIA_MENU_WINAMP_START      32787
-#define ID_DISCONNECT                   32788
-#define ID_VIEW_TRANSFER_VIEW_TOOLBAR   32789
 #define ID_MEDIA_MENU_WINAMP_END        32807
-#define IDC_PROGRESS                    32809
-#define IDC_TIME                        32810
+#define ID_DISCONNECT                   32808
+#define ID_VIEW_TRANSFER_VIEW_TOOLBAR   32809
+#define IDC_PROGRESS                    32810
+#define IDC_TIME                        32811
 
 // Next default values for new objects
 //
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        303
-#define _APS_NEXT_COMMAND_VALUE         32789
+#define _APS_NEXT_RESOURCE_VALUE        307
+#define _APS_NEXT_COMMAND_VALUE         32812
 #define _APS_NEXT_CONTROL_VALUE         2510
 #define _APS_NEXT_SYMED_VALUE           2423
 #endif

@@ -23,7 +23,7 @@
 
 class HIconWrapper
 #ifdef _DEBUG
-	: virtual NonDerivable<HIconWrapper> , boost::noncopyable // [+] IRainman fix.
+	: boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:

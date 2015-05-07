@@ -9,7 +9,7 @@
 
 class AboutStatDlg : public CDialogImpl<AboutStatDlg>
 #ifdef _DEBUG
-	, boost::noncopyable , virtual NonDerivable<AboutStatDlg> // [+] IRainman fix.
+	, boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:

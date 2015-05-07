@@ -195,11 +195,9 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 	}
 	else if (aNick == getMyNick())
 	{
-		{
-			webrtc::WriteLockScoped l(*m_cs);
-			ou = m_users.insert(make_pair(aNick, getMyOnlineUser().get())).first->second;
-			ou->inc();
-		}
+		webrtc::WriteLockScoped l(*m_cs);
+		ou = m_users.insert(make_pair(aNick, getMyOnlineUser().get())).first->second;
+		ou->inc();
 	}
 	// [~] IRainman fix.
 	else

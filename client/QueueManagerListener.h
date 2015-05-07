@@ -39,7 +39,6 @@ class QueueManagerListener
 		typedef X<4> SourcesUpdated;
 		typedef X<5> StatusUpdated;
 		typedef X<6> PartialList;
-		
 		typedef X<8> RecheckStarted;
 		typedef X<9> RecheckNoFile;
 		typedef X<10> RecheckFileTooSmall;
@@ -47,6 +46,7 @@ class QueueManagerListener
 		typedef X<12> RecheckNoTree;
 		typedef X<13> RecheckAlreadyFinished;
 		typedef X<14> RecheckDone;
+		typedef X<15> AddedArray;
 		
 		typedef X<15> FileMoved;
 		typedef X<16> TryAdding;
@@ -59,7 +59,8 @@ class QueueManagerListener
 		// [+] IRainman opt.
 		
 		virtual void on(Added, const QueueItemPtr&) noexcept { }
-		virtual void on(Finished, const QueueItemPtr&, const string&, const Download*) noexcept { }
+		virtual void on(AddedArray, const std::vector<QueueItemPtr>& p_qi_array) noexcept { }
+		virtual void on(Finished, const QueueItemPtr&, const string&, const DownloadPtr& p_download) noexcept { }
 		virtual void on(Removed, const QueueItemPtr&) noexcept { }
 		virtual void on(Moved, const QueueItemPtr&, const string&) noexcept { }
 		virtual void on(SourcesUpdated, const QueueItemPtr&) noexcept { }

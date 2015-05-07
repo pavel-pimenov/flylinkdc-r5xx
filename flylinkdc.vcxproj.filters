@@ -1123,5 +1123,8 @@
     <Filter Include="Wizard">
       <UniqueIdentifier>{cb5f3249-0049-47ba-845a-a0cef619df71}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Grid">
+      <UniqueIdentifier>{6f1e7306-70ab-4857-ab79-3d98957100df}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

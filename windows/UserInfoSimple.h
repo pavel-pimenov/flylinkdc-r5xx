@@ -52,9 +52,6 @@ class UserInfoSimple: public UserInfoBase
 #if 0 // http://code.google.com/p/flylinkdc/issues/detail?id=1413
 class UploadQueueItemInfo : public UserInfoBase // [<-] IRainman fix: moved from kernel and cleanup.
 	, public ColumnBase< 12 >
-#ifdef _DEBUG
-	, virtual NonDerivable<UploadQueueItemInfo>
-#endif
 {
 	public:
 		UploadQueueItemInfo(UploadQueueItem* queueItem) : m_queueItem(queueItem)

@@ -92,25 +92,26 @@ void FinishedManager::rotation_items(FinishedItem* p_item, eType p_type)
 	l_item_array.push_back(p_item);
 }
 
-void FinishedManager::on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string&, const Download* p_download) noexcept
+void FinishedManager::on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string&, const DownloadPtr& p_download) noexcept
 {
-	const bool isFile = !qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP);
-	
-	if (isFile)
+	if (!ClientManager::isShutdown())
 	{
-		PLAY_SOUND(SOUND_FINISHFILE);
-	}
-	
-	if (isFile || (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_DCLST_LIST) && BOOLSETTING(LOG_FILELIST_TRANSFERS)))
-	{
-		FinishedItem* item = new FinishedItem(qi->getTarget(), p_download->getHintedUser(), qi->getSize(), p_download->getRunningAverage(), GET_TIME(), qi->getTTH(), p_download->getUser()->getIPAsString());
-		if (SETTING(DB_LOG_FINISHED_DOWNLOADS))
+		const bool isFile = !qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP);
+		if (isFile)
 		{
-			CFlylinkDBManager::getInstance()->save_transfer_history(e_TransferDownload, item);
+			PLAY_SOUND(SOUND_FINISHFILE);
 		}
-		rotation_items(item, e_Download);
-		fire(FinishedManagerListener::AddedDl(), item, false);
-		log(p_download->getUser()->getCID(), qi->getTarget(), STRING(FINISHED_DOWNLOAD));
+		if (isFile || (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_DCLST_LIST) && BOOLSETTING(LOG_FILELIST_TRANSFERS)))
+		{
+			FinishedItem* item = new FinishedItem(qi->getTarget(), p_download->getHintedUser(), qi->getSize(), p_download->getRunningAverage(), GET_TIME(), qi->getTTH(), p_download->getUser()->getIPAsString());
+			if (SETTING(DB_LOG_FINISHED_DOWNLOADS))
+			{
+				CFlylinkDBManager::getInstance()->save_transfer_history(e_TransferDownload, item);
+			}
+			rotation_items(item, e_Download);
+			fire(FinishedManagerListener::AddedDl(), item, false);
+			log(p_download->getUser()->getCID(), qi->getTarget(), STRING(FINISHED_DOWNLOAD));
+		}
 	}
 }
 void FinishedManager::pushHistoryFinishedItem(FinishedItem* p_item, int p_type)
@@ -120,7 +121,8 @@ void FinishedManager::pushHistoryFinishedItem(FinishedItem* p_item, int p_type)
 	else
 		fire(FinishedManagerListener::AddedDl(), p_item, true);
 }
-void FinishedManager::on(UploadManagerListener::Complete, const Upload* u) noexcept
+
+void FinishedManager::on(UploadManagerListener::Complete, const UploadPtr& u) noexcept
 {
 	if (u->getType() == Transfer::TYPE_FILE || (u->getType() == Transfer::TYPE_FULL_LIST && BOOLSETTING(LOG_FILELIST_TRANSFERS)))
 	{

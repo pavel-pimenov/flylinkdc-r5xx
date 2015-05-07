@@ -26,7 +26,7 @@
 class RecentHubsFrame : public MDITabChildWindowImpl < RecentHubsFrame, RGB(0, 0, 0), IDR_RECENT_HUBS > , public StaticFrame<RecentHubsFrame, ResourceManager::RECENT_HUBS, IDC_RECENTS>,
 	private FavoriteManagerListener, private SettingsManagerListener
 #ifdef _DEBUG
-	, virtual NonDerivable<RecentHubsFrame>, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:

@@ -1,11 +1,5 @@
-/**
-* Страница в настройках "Ограничения скорости" / Page "Limits".
-*/
-
 #include "stdafx.h"
-
 #include "Resource.h"
-
 #include "LimitPage.h"
 #include "WinUtil.h"
 

@@ -9,9 +9,6 @@
 
 
 class PropPageTextStyles: public CPropertyPage<IDD_TEXT_STYLES_PAGE>, public PropPage
-#ifdef _DEBUG
-	, virtual NonDerivable<PropPageTextStyles> // [+] IRainman fix.
-#endif
 {
 	public:
 		PropPageTextStyles(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_TEXT_STYLES))

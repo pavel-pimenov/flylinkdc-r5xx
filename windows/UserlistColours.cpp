@@ -1,7 +1,3 @@
-/**
-* Страница в настройках "Список пользователей" / Page "User list".
-*/
-
 #include "stdafx.h"
 
 #include "Resource.h"
@@ -45,7 +41,7 @@ LRESULT UserListColours::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 	
 	n_lsbList.Attach(GetDlgItem(IDC_USERLIST_COLORS));
 	n_Preview.Attach(GetDlgItem(IDC_PREVIEW));
-	n_Preview.SetBackgroundColor(Colors::bgColor);
+	n_Preview.SetBackgroundColor(Colors::g_bgColor);
 	n_lsbList.AddString(CTSTRING(SETTINGS_COLOR_NORMAL));
 	n_lsbList.AddString(CTSTRING(SETTINGS_COLOR_FAVORITE));
 	n_lsbList.AddString(CTSTRING(FAV_ENEMY_USER));

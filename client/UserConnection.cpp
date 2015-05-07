@@ -42,10 +42,38 @@ const string UserConnection::g_FILE_NOT_AVAILABLE = "File Not Available";
 const string UserConnection::g_PLEASE_UPDATE_YOUR_CLIENT = "Please update your DC++ http://flylinkdc.com";
 #endif
 
+// We only want ConnectionManager to create this...
+UserConnection::UserConnection(bool p_secure) :
+	m_last_encoding(Text::systemCharset),
+	state(STATE_UNCONNECTED),
+	lastActivity(0),
+	speed(0),
+	m_chunkSize(0),
+	socket(nullptr),
+	slotType(NOSLOT)
+{
+	if (p_secure)
+	{
+		setFlag(FLAG_SECURE);
+	}
+}
+
+UserConnection::~UserConnection()
+{
+	// dcassert(!m_download);
+	// dcassert(!m_upload);
+	dcassert(socket);
+	if (socket)
+	{
+		socket->removeListeners();
+		BufferedSocket::putBufferedSocket(socket);
+	}
+}
+
 void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexcept
 {
-
-	if (aLine.length() < 2)
+	dcassert(!ClientManager::isShutdown())
+	if (aLine.length() < 2 || ClientManager::isShutdown())
 		return;
 		
 	COMMAND_DEBUG(aLine, DebugTask::CLIENT_IN, getRemoteIpPort());

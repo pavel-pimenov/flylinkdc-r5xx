@@ -23,9 +23,6 @@
 
 
 class SDCPage : public CPropertyPage<IDD_SDC_PAGE>, public PropPage
-#ifdef _DEBUG
-	, virtual NonDerivable<SDCPage> // [+] IRainman fix.
-#endif
 {
 	public:
 		SDCPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_ADVANCED3))

@@ -45,8 +45,8 @@
 #define SET_EXTENDENT_LIST_VIEW_STYLE(ctrlList)            ctrlList.SetExtendedListViewStyle(LVS_EX_LABELTIP | LVS_EX_HEADERDRAGDROP | LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER | LVS_EX_INFOTIP | (BOOLSETTING(VIEW_GRIDCONTROLS) ? LVS_EX_GRIDLINES /*TODO LVS_OWNERDRAWFIXED*/ : 0))
 #define SET_EXTENDENT_LIST_VIEW_STYLE_PTR(ctrlList)            ctrlList->SetExtendedListViewStyle(LVS_EX_LABELTIP | LVS_EX_HEADERDRAGDROP | LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER | LVS_EX_INFOTIP | (BOOLSETTING(VIEW_GRIDCONTROLS) ? LVS_EX_GRIDLINES /*TODO LVS_OWNERDRAWFIXED*/ : 0))
 #define SET_EXTENDENT_LIST_VIEW_STYLE_WITH_CHECK(ctrlList) ctrlList.SetExtendedListViewStyle(LVS_EX_LABELTIP | LVS_EX_HEADERDRAGDROP | LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER | LVS_EX_INFOTIP | (BOOLSETTING(VIEW_GRIDCONTROLS) ? LVS_EX_GRIDLINES /*TODO LVS_OWNERDRAWFIXED*/ : 0))
-#define SET_LIST_COLOR(ctrlList) { ctrlList.SetBkColor(Colors::bgColor);ctrlList.SetTextBkColor(Colors::bgColor);ctrlList.SetTextColor(Colors::textColor); }
-#define SET_LIST_COLOR_PTR(ctrlList) { ctrlList->SetBkColor(Colors::bgColor);ctrlList->SetTextBkColor(Colors::bgColor);ctrlList->SetTextColor(Colors::textColor); }
+#define SET_LIST_COLOR(ctrlList) { ctrlList.SetBkColor(Colors::g_bgColor);ctrlList.SetTextBkColor(Colors::g_bgColor);ctrlList.SetTextColor(Colors::g_textColor); }
+#define SET_LIST_COLOR_PTR(ctrlList) { ctrlList->SetBkColor(Colors::g_bgColor);ctrlList->SetTextBkColor(Colors::g_bgColor);ctrlList->SetTextColor(Colors::g_textColor); }
 #ifdef USE_SET_LIST_COLOR_IN_SETTINGS
 #define SET_LIST_COLOR_IN_SETTING(ctrlList) SET_LIST_COLOR(ctrlList)
 #else
@@ -1307,7 +1307,7 @@ struct Colors
 	static void init();
 	static void uninit()
 	{
-		::DeleteObject(bgBrush);
+		::DeleteObject(g_bgBrush);
 	}
 	enum Mask
 	{
@@ -1363,13 +1363,13 @@ struct Colors
 	static COLORREF getAlternativBkColor(LPNMLVCUSTOMDRAW cd)
 	{
 		return ((BOOLSETTING(USE_CUSTOM_LIST_BACKGROUND) &&
-		         cd->nmcd.dwItemSpec % 2 != 0) ? HLS_TRANSFORM(Colors::bgColor, -9, 0) : Colors::bgColor);
+		         cd->nmcd.dwItemSpec % 2 != 0) ? HLS_TRANSFORM(Colors::g_bgColor, -9, 0) : Colors::g_bgColor);
 	}
 	// [~] IRainman
 #else
 	inline static COLORREF getAlternativBkColor(LPNMLVCUSTOMDRAW cd)
 	{
-		return Colors::bgColor;
+		return Colors::g_bgColor;
 	}
 	
 #endif
@@ -1392,10 +1392,16 @@ struct Colors
 	static CHARFORMAT2 g_ChatTextPrivate;
 	static CHARFORMAT2 g_ChatTextLog;
 	
-	static COLORREF textColor;
-	static COLORREF bgColor;
+	static COLORREF g_textColor;
+	static COLORREF g_bgColor;
 	
-	static HBRUSH bgBrush;
+	static HBRUSH g_bgBrush;
+	static LRESULT setColor(const HDC p_hdc)
+	{
+		::SetBkColor(p_hdc, g_bgColor);
+		::SetTextColor(p_hdc, g_textColor);
+		return (LRESULT)g_bgBrush;
+	}
 };
 
 struct Fonts
@@ -1470,7 +1476,7 @@ class WinUtil
 			ResourceManager::Strings translatedString;
 		};
 		
-		static CMenu mainMenu;
+		static CMenu g_mainMenu;
 		static OMenu g_copyHubMenu; // [+] IRainman fix.
 		
 		static HIconWrapper g_banIconOnline; // !SMT!-UI

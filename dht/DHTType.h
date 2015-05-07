@@ -47,6 +47,9 @@ struct File
 
 struct Source
 {
+  Source():size(0),udpPort(0),partial(false)
+  {
+  }
 	GETSET(CID, cid, CID);
 	GETSET(string, ip, Ip);
 //[-]	GETSET(uint64_t, expires, Expires);

@@ -1679,8 +1679,8 @@ void CFlylinkDBManager::purge_antivirus_db(const uint64_t p_delete_counter, cons
 	Lock l(m_cs); // TODO
 	try
 	{
-		auto_ptr<sqlite3_command> l_delete_antivirus_db(new sqlite3_command(m_flySQLiteDB,
-		                                                                    "delete from antivirus_db.fly_suspect_user"));
+		unique_ptr<sqlite3_command> l_delete_antivirus_db(new sqlite3_command(m_flySQLiteDB,
+		                                                                      "delete from antivirus_db.fly_suspect_user"));
 		l_delete_antivirus_db.get()->executenonquery();
 		set_registry_variable_int64(e_DeleteCounterAntivirusDB, p_delete_counter);
 		set_registry_variable_int64(e_TimeStampAntivirusDB, p_unixtime);
@@ -2226,172 +2226,182 @@ void CFlylinkDBManager::save_ignore(const StringSet& p_ignores)
 //========================================================================================================
 size_t CFlylinkDBManager::load_queue()
 {
-	Lock l(m_cs);
-	g_count_queue_source = 0;
-	try
+	vector<QueueItemPtr> l_qitem;
+	QueueManager* qm = QueueManager::getInstance();
 	{
-		boost::unordered_map<int, std::vector< std::pair<CID, string> > > l_sources_map;
+		Lock l(m_cs);
+		g_count_queue_source = 0;
+		try
 		{
-			m_get_fly_queue_all_source.init(m_flySQLiteDB, "select fly_queue_id,cid,nick from fly_queue_source");
-			sqlite3_reader l_q = m_get_fly_queue_all_source->executereader();
-			while (l_q.read())
+			boost::unordered_map<int, std::vector< std::pair<CID, string> > > l_sources_map;
 			{
-				CID l_cid;
-				if (l_q.getblob(1, l_cid.get_data_for_write(), 24))
+				m_get_fly_queue_all_source.init(m_flySQLiteDB, "select fly_queue_id,cid,nick from fly_queue_source");
+				sqlite3_reader l_q = m_get_fly_queue_all_source->executereader();
+				while (l_q.read())
 				{
-					auto& l_source_items = l_sources_map[l_q.getint(0)];
-					l_source_items.push_back(make_pair(l_cid, l_q.getstring(2)));
-				}
-			}
-		}
-		QueueManager* qm = QueueManager::getInstance();
-		const char* l_sql = "select id,"
-		                    "Target,"
-		                    "Size,"
-		                    "Priority,"
-		                    //"FreeBlocks,"    // [-] merge,  new DB format
-		                    //"VerifiedParts," // [-] merge,  new DB format
-		                    "Sections,"    // [+] merge,  new DB format
-		                    "Added,"
-		                    "TTH,"
-		                    "TempTarget,"
-		                    //"Downloaded,"    //[-] merge, obsolete
-		                    "AutoPriority,"
-		                    "MaxSegments,"
-		                    "CID," //12
-		                    "Nick,"
-		                    "CountSubSource"
-		                    //",HubHint "
-		                    " from fly_queue";
-		m_get_fly_queue.init(m_flySQLiteDB, l_sql);
-		sqlite3_reader l_q = m_get_fly_queue->executereader();
-		vector<__int64> l_bad_targets;
-		while (l_q.read())
-		{
-			const int64_t l_size = l_q.getint64(2);
-			
-			//[-] brain-ripper
-			// int l_flags = QueueItem::FLAG_RESUME;
-			int l_flags = 0;
-			
-			if (l_size == 0)
-				continue;
-			const string l_tgt = l_q.getstring(1);
-			string l_target;
-			try
-			{
-				//[-] brain-ripper
-				//l_target = QueueManager::checkTarget(l_tgt, l_size, l_flags);
-				l_target = QueueManager::checkTarget(l_tgt, l_size);
-				
-				if (l_target.empty())
-					continue;
-			}
-			catch (const Exception& e)
-			{
-				l_bad_targets.push_back(l_q.getint64(0));
-				LogManager::message("SQLite - load_queue[1]: " + l_tgt + e.getError(), true);
-				continue;
-			}
-			//const string l_freeBlocks = l_q.getstring(4);
-			//const string l_verifiedBlocks = l_q.getstring(5);
-			const QueueItem::Priority l_p = QueueItem::Priority(l_q.getint(3));
-			time_t l_added = static_cast<time_t>(l_q.getint64(5));
-			if (l_added == 0)
-				l_added = GET_TIME();
-			TTHValue l_tthRoot;
-			if (!l_q.getblob(6, l_tthRoot.data, 24))
-			{
-				dcassert(0);
-				continue;
-			}
-			//if(tthRoot.empty()) ?
-			//  continue;
-			string l_tempTarget = l_q.getstring(7);
-			if (l_tempTarget.length() >= MAX_PATH)
-			{
-				const auto i = l_tempTarget.rfind(PATH_SEPARATOR);
-				if (l_tempTarget.length() - i >= MAX_PATH || i == string::npos) // »м€ файла больше MAX_PATH - обрежем
-				{
-					string l_file_name = Util::getFileName(l_tempTarget);
-					dcassert(l_file_name.length() >= MAX_PATH);
-					if (l_file_name.length() >= MAX_PATH)
+					CID l_cid;
+					if (l_q.getblob(1, l_cid.get_data_for_write(), 24))
 					{
-						const string l_file_path = Util::getFilePath(l_tempTarget);
-						Util::fixFileNameMaxPathLimit(l_file_name);
-						l_tempTarget = l_file_path + l_file_name;
+						auto& l_source_items = l_sources_map[l_q.getint(0)];
+						l_source_items.push_back(make_pair(l_cid, l_q.getstring(2)));
 					}
 				}
 			}
-			const uint8_t l_maxSegments = uint8_t(l_q.getint(9));
-			const __int64 l_ID = l_q.getint64(0);
-			m_queue_id = std::max(m_queue_id, l_ID);
-			QueueItemPtr qi = qm->fileQueue.find(l_target); //TODO после отказа от конвертации XML варианта очереди можно удалить
-			if (!qi)
+			const char* l_sql = "select id,"
+			                    "Target,"
+			                    "Size,"
+			                    "Priority,"
+			                    //"FreeBlocks,"    // [-] merge,  new DB format
+			                    //"VerifiedParts," // [-] merge,  new DB format
+			                    "Sections,"    // [+] merge,  new DB format
+			                    "Added,"
+			                    "TTH,"
+			                    "TempTarget,"
+			                    //"Downloaded,"    //[-] merge, obsolete
+			                    "AutoPriority,"
+			                    "MaxSegments,"
+			                    "CID," //12
+			                    "Nick,"
+			                    "CountSubSource"
+			                    //",HubHint "
+			                    " from fly_queue";
+			m_get_fly_queue.init(m_flySQLiteDB, l_sql);
+			sqlite3_reader l_q = m_get_fly_queue->executereader();
+			vector<__int64> l_bad_targets;
+			while (l_q.read())
 			{
-				qi = qm->fileQueue.add(l_target, l_size, Flags::MaskType(l_flags), l_p, l_tempTarget,
-				                       l_added, l_tthRoot);
-				                       
-				qi->setAutoPriority(l_q.getint(8) != 0);
-				qi->setMaxSegments(max((uint8_t)1, l_maxSegments));
-				qi->setFlyQueueID(l_ID);
-				qi->setDirty(false); // [+]PPA загрузили из очереди - сделаем ее чистую
-				qm->fire(QueueManagerListener::Added(), qi);
-			}
-			
-			// [+] brain-ripper
-			qi->setSectionString(l_q.getstring(4));
-			
-			// [!] IRainman fix: do not lose sources with nick is empty: https://code.google.com/p/flylinkdc/issues/detail?id=849
-			CID l_cid;
-			if (l_q.getblob(10, l_cid.get_data_for_write(), 24))
-			{
-				const string l_nick = l_q.getstring(11);
-				//const string l_hub_hint = l_q.getstring(13);
-				add_sourceL(qi, l_cid, l_nick/*, l_hub_hint*/);
-			}
-			else
-			{
-				dcassert(0);
-			}
-			// [~] IRainman fix
-			const int l_CountSubSource = l_q.getint(12);
-			qi->setFlyCountSourceInSQL(l_CountSubSource); // https://code.google.com/p/flylinkdc/issues/detail?id=933
-			if (l_CountSubSource > 0 || l_cid.isZero()) // [!] IRainman fix: do not lose sources with nick is empty: https://code.google.com/p/flylinkdc/issues/detail?id=849
-			{
-				const auto& l_source_items = l_sources_map[l_ID];
-				g_count_queue_source += l_source_items.size();
-				// TODO - возможно по€вление дублей https://code.google.com/p/flylinkdc/issues/detail?id=931
-				for (auto i = l_source_items.cbegin(); i != l_source_items.cend(); ++i)
+				const int64_t l_size = l_q.getint64(2);
+				
+				//[-] brain-ripper
+				// int l_flags = QueueItem::FLAG_RESUME;
+				int l_flags = 0;
+				
+				if (l_size == 0)
+					continue;
+				const string l_target = l_q.getstring(1);
+#if 0
+				const string l_tgt = l_q.getstring(1);
+				string l_target;
+				try
 				{
-					add_sourceL(qi, i->first, i->second); //
+					// TODO отложить валидацию на потом
+					l_target = QueueManager::checkTarget(l_tgt, l_size, false); // ¬алидаци€ не проводить - в базе уже хранитьс€ хорошо
+					if (l_target.empty())
+					{
+						dcassert(0);
+						CFlyServerJSON::pushError(28, "Error CFlylinkDBManager::load_queue l_tgt = " + l_tgt);
+						continue;
+					}
 				}
-				dcassert(l_CountSubSource == l_source_items.size());
-				// l_sources_map.erase(l_ID);
+				catch (const Exception& e)
+				{
+					l_bad_targets.push_back(l_q.getint64(0));
+					LogManager::message("SQLite - load_queue[1]: " + l_tgt + e.getError(), true);
+					continue;
+				}
+#endif
+				const QueueItem::Priority l_p = QueueItem::Priority(l_q.getint(3));
+				time_t l_added = static_cast<time_t>(l_q.getint64(5));
+				if (l_added == 0)
+					l_added = GET_TIME();
+				TTHValue l_tthRoot;
+				if (!l_q.getblob(6, l_tthRoot.data, 24))
+				{
+					dcassert(0);
+					continue;
+				}
+				//if(tthRoot.empty()) ?
+				//  continue;
+				string l_tempTarget = l_q.getstring(7);
+				if (l_tempTarget.length() >= MAX_PATH)
+				{
+					const auto i = l_tempTarget.rfind(PATH_SEPARATOR);
+					if (l_tempTarget.length() - i >= MAX_PATH || i == string::npos) // »м€ файла больше MAX_PATH - обрежем
+					{
+						string l_file_name = Util::getFileName(l_tempTarget);
+						dcassert(l_file_name.length() >= MAX_PATH);
+						if (l_file_name.length() >= MAX_PATH)
+						{
+							const string l_file_path = Util::getFilePath(l_tempTarget);
+							Util::fixFileNameMaxPathLimit(l_file_name);
+							l_tempTarget = l_file_path + l_file_name;
+						}
+					}
+				}
+				const uint8_t l_maxSegments = uint8_t(l_q.getint(9));
+				const __int64 l_ID = l_q.getint64(0);
+				m_queue_id = std::max(m_queue_id, l_ID);
+				QueueItemPtr qi = QueueManager::g_fileQueue.find(l_target); //TODO после отказа от конвертации XML варианта очереди можно удалить
+				if (!qi)
+				{
+					qi = QueueManager::g_fileQueue.add(l_target, l_size, Flags::MaskType(l_flags), l_p, l_tempTarget,
+					                                   l_added, l_tthRoot);
+					                                   
+					qi->setAutoPriority(l_q.getint(8) != 0);
+					qi->setMaxSegments(max((uint8_t)1, l_maxSegments));
+					qi->setFlyQueueID(l_ID);
+					qi->setDirty(false); // [+]PPA загрузили из очереди - сделаем ее чистую
+					l_qitem.push_back(qi);
+				}
+				
+				// [+] brain-ripper
+				qi->setSectionString(l_q.getstring(4));
+				
+				// [!] IRainman fix: do not lose sources with nick is empty: https://code.google.com/p/flylinkdc/issues/detail?id=849
+				CID l_cid;
+				if (l_q.getblob(10, l_cid.get_data_for_write(), 24))
+				{
+					const string l_nick = l_q.getstring(11);
+					//const string l_hub_hint = l_q.getstring(13);
+					add_sourceL(qi, l_cid, l_nick/*, l_hub_hint*/);
+				}
+				else
+				{
+					dcassert(0);
+				}
+				// [~] IRainman fix
+				const int l_CountSubSource = l_q.getint(12);
+				qi->setFlyCountSourceInSQL(l_CountSubSource); // https://code.google.com/p/flylinkdc/issues/detail?id=933
+				if (l_CountSubSource > 0 || l_cid.isZero()) // [!] IRainman fix: do not lose sources with nick is empty: https://code.google.com/p/flylinkdc/issues/detail?id=849
+				{
+					const auto& l_source_items = l_sources_map[l_ID];
+					g_count_queue_source += l_source_items.size();
+					// TODO - возможно по€вление дублей https://code.google.com/p/flylinkdc/issues/detail?id=931
+					for (auto i = l_source_items.cbegin(); i != l_source_items.cend(); ++i)
+					{
+						add_sourceL(qi, i->first, i->second); //
+					}
+					dcassert(l_CountSubSource == l_source_items.size());
+					// l_sources_map.erase(l_ID);
+				}
+				else
+				{
+					g_count_queue_source++;
+				}
+				qi->setDirtyAll(false);
 			}
-			else
+			// if (!l_sources_map.empty())
 			{
-				g_count_queue_source++;
+				// dcassert(l_sources_map.empty());
+				// ”даление пока не делаем
+				//for (auto i = l_sources_map.cbegin(); i != l_sources_map.cend(); ++i)
+				//{
+				//  delete_queue_sourcesL(i->first);
+				//}
 			}
-			qi->setDirtyAll(false);
+			for (auto i = l_bad_targets.cbegin(); i != l_bad_targets.cend(); ++i)
+			{
+				remove_queue_itemL(*i);
+			}
 		}
-		// if (!l_sources_map.empty())
+		catch (const database_error& e)
 		{
-			// dcassert(l_sources_map.empty());
-			// ”даление пока не делаем
-			//for (auto i = l_sources_map.cbegin(); i != l_sources_map.cend(); ++i)
-			//{
-			//  delete_queue_sourcesL(i->first);
-			//}
-		}
-		for (auto i = l_bad_targets.cbegin(); i != l_bad_targets.cend(); ++i)
-		{
-			remove_queue_item(*i);
+			errorDB("SQLite - load_queue: " + e.getError());
 		}
 	}
-	catch (const database_error& e)
+	if (!l_qitem.empty())
 	{
-		errorDB("SQLite - load_queue: " + e.getError());
+		qm->fire(QueueManagerListener::AddedArray(), l_qitem);
 	}
 	return g_count_queue_source;
 }
@@ -2424,7 +2434,7 @@ void CFlylinkDBManager::add_sourceL(const QueueItemPtr& p_QueueItem, const CID& 
 		}
 		if (wantConnection)
 		{
-			ConnectionManager::getInstance()->getDownloadConnection(l_user);
+			QueueManager::get_download_connection(l_user);
 		}
 		/* [-]
 		else
@@ -2444,23 +2454,40 @@ void CFlylinkDBManager::delete_queue_sourcesL(const __int64 p_id)
 	m_del_fly_queue_source->executenonquery();
 }
 //========================================================================================================
+void CFlylinkDBManager::remove_queue_all_items()
+{
+	Lock l(m_cs);
+	{
+		unique_ptr<sqlite3_command> l_delete_all_fly_queue_src(new sqlite3_command(m_flySQLiteDB,
+		                                                                           "delete from fly_queue_source"));
+		l_delete_all_fly_queue_src.get()->executenonquery();
+	}
+	{
+		unique_ptr<sqlite3_command> l_delete_all_fly_queue(new sqlite3_command(m_flySQLiteDB,
+		                                                                       "delete from fly_queue"));
+		l_delete_all_fly_queue.get()->executenonquery();
+	}
+}
+//========================================================================================================
 void CFlylinkDBManager::remove_queue_item(const __int64 p_id)
 {
+	Lock l(m_cs);
+	remove_queue_itemL(p_id);
+}
+// if (p_id) [-] IRainman fix: FlyQueueID is not set for filelists. Please don't problem maskerate.
+void CFlylinkDBManager::remove_queue_itemL(const __int64 p_id)
+{
 	dcassert(p_id);
-	// if (p_id) [-] IRainman fix: FlyQueueID is not set for filelists. Please don't problem maskerate.
+	try
 	{
-		Lock l(m_cs);
-		try
-		{
-			delete_queue_sourcesL(p_id);
-			m_del_fly_queue.init(m_flySQLiteDB, "delete from fly_queue where id=?");
-			m_del_fly_queue->bind(1, p_id);
-			m_del_fly_queue->executenonquery();
-		}
-		catch (const database_error& e)
-		{
-			errorDB("SQLite - remove_queue_item: " + e.getError());
-		}
+		delete_queue_sourcesL(p_id);
+		m_del_fly_queue.init(m_flySQLiteDB, "delete from fly_queue where id=?");
+		m_del_fly_queue->bind(1, p_id);
+		m_del_fly_queue->executenonquery();
+	}
+	catch (const database_error& e)
+	{
+		errorDB("SQLite - remove_queue_itemL: " + e.getError());
 	}
 }
 //========================================================================================================
@@ -2948,7 +2975,7 @@ void CFlylinkDBManager::store_all_ratio_and_last_ip(uint32_t p_hub_id,
 void CFlylinkDBManager::update_last_ip(uint32_t p_hub_id, const string& p_nick, const boost::asio::ip::address_v4& p_last_ip)
 {
 	//dcassert(!p_last_ip.is_unspecified());
-	Lock l(m_cs);
+	//Lock l(m_cs);  // TODO - тут нет обращени€ к базе
 	try
 	{
 		const __int64 l_message_count = 0; // счетчик мессаг не занул€ем

@@ -1,7 +1,3 @@
-/**
-* Страница в настройках "Приоритет" / Page "Priority".
-*/
-
 /*
  * Copyright (C) 2001-2013 Jacek Sieka, arnetheduck on gmail point com
  *
@@ -87,6 +83,11 @@ void PriorityPage::fixControls()
 	::EnableWindow(GetDlgItem(IDC_PRIO_NORMAL_SIZE), state);
 	::EnableWindow(GetDlgItem(IDC_PRIO_LOW_SIZE), state);
 	::EnableWindow(GetDlgItem(IDC_PRIO_LOWEST), state);
+	
+	::EnableWindow(GetDlgItem(IDC_PRIO_FILE), FALSE);
+	::EnableWindow(GetDlgItem(IDC_HIGHEST), FALSE);
+	::EnableWindow(GetDlgItem(IDC_LOWEST_STR), FALSE);
+	::EnableWindow(GetDlgItem(IDC_HIGHEST_STR), FALSE);
 }
 
 // [+] InfinitySky. При смене состояния кнопки включения автоприоритета.

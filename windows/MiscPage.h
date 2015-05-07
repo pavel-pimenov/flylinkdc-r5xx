@@ -1,7 +1,3 @@
-/**
-* Страница в настройках "Разное" / Page "Misc".
-*/
-
 /*
  * Copyright (C) 2006-2013 Crise, crise<at>mail.berlios.de
  *

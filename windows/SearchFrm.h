@@ -773,7 +773,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		typedef std::map<HWND, SearchFrame*> FrameMap;
 		typedef pair<HWND, SearchFrame*> FramePair;
 		
-		static FrameMap g_frames;
+		static FrameMap g_search_frames;
 		
 		struct TARGET_STRUCT
 		{

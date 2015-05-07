@@ -4,9 +4,6 @@
 #include "PropPage.h"
 
 class WebServerPage : public CPropertyPage<IDD_WEBSERVER_PAGE>, public PropPage
-#ifdef _DEBUG
-	, virtual NonDerivable<WebServerPage> // [+] IRainman fix.
-#endif
 {
 	public:
 		WebServerPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_RC) + _T('\\') + TSTRING(WEBSERVER))

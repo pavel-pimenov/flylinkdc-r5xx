@@ -24,7 +24,7 @@
 
 class TextFrame : public MDITabChildWindowImpl<TextFrame>, private SettingsManagerListener
 #ifdef _DEBUG
-	, virtual NonDerivable<TextFrame>, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:
@@ -63,13 +63,11 @@ class TextFrame : public MDITabChildWindowImpl<TextFrame>, private SettingsManag
 		
 		LRESULT onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 		{
-			HWND hWnd = (HWND)lParam;
-			HDC hDC = (HDC)wParam;
+			const HWND hWnd = (HWND)lParam;
+			const HDC hDC = (HDC)wParam;
 			if (hWnd == ctrlPad.m_hWnd)
 			{
-				::SetBkColor(hDC, Colors::bgColor);
-				::SetTextColor(hDC, Colors::textColor);
-				return (LRESULT)Colors::bgBrush;
+				return Colors::setColor(hDC);
 			}
 			bHandled = FALSE;
 			return FALSE;

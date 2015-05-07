@@ -25,7 +25,6 @@
 #include "../client/User.h"
 #include "../client/ClientManager.h"
 #include "../client/DirectoryListing.h"
-#include "../client/TaskQueue.h"
 #include "../client/SimpleXML.h"
 #include "../client/ConnectionManager.h"
 
@@ -35,21 +34,24 @@
 #define EDIT_MESSAGE_MAP 10     // This could be any number, really...
 #define FILTER_MESSAGE_MAP 8
 #define HUBSTATUS_MESSAGE_MAP 5 // Status frame
+
+// #define FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
+
 struct CompareItems;
 
 class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HUB, IDR_HUB_OFF > , private ClientListener,
 	public  CSplitterImpl<HubFrame>,
+#ifdef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 	private CFlyTimerAdapter,
-//  TODO    private ClientManagerListener,
-public UCHandler<HubFrame>,
-public UserInfoBaseHandler < HubFrame, UserInfoGuiTraits::NO_CONNECT_FAV_HUB | UserInfoGuiTraits::NICK_TO_CHAT | UserInfoGuiTraits::USER_LOG | UserInfoGuiTraits::INLINE_CONTACT_LIST, OnlineUserPtr > ,
-private SettingsManagerListener,
-public BaseChatFrame // [+] IRainman copy-past fix.
+#else
+	private CFlyTaskAdapter,
+#endif
+	public UCHandler<HubFrame>,
+	public UserInfoBaseHandler < HubFrame, UserInfoGuiTraits::NO_CONNECT_FAV_HUB | UserInfoGuiTraits::NICK_TO_CHAT | UserInfoGuiTraits::USER_LOG | UserInfoGuiTraits::INLINE_CONTACT_LIST, OnlineUserPtr > ,
+	private SettingsManagerListener,
+	public BaseChatFrame // [+] IRainman copy-past fix.
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	, private ConnectionManagerListener // [+] FlylinkDC
-#endif
-#ifdef _DEBUG
-	, virtual NonDerivable<HubFrame> // [+] IRainman fix.
 #endif
 {
 	public:
@@ -72,7 +74,9 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		NOTIFY_HANDLER(IDC_USERS, NM_RETURN, onEnterUsers)
 		//NOTIFY_HANDLER(IDC_USERS, LVN_ITEMCHANGED, onItemChanged) [-] IRainman opt
 		MESSAGE_HANDLER(WM_CLOSE, onClose)
+#ifdef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 		MESSAGE_HANDLER(WM_TIMER, onTimer)
+#endif
 		MESSAGE_HANDLER(WM_SETFOCUS, onSetFocus)
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
 		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu) // 2012-04-29_13-46-19_6YBC2BUJRYPCJLE2L63SZAFLWGMNBOSFJB64BTI_5FE1A0BF_crash-stack-r501-x64-build-9869.dmp
@@ -161,7 +165,10 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		LRESULT onStyleChanged(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
 		LRESULT onSizeMove(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled);
 		LRESULT onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled);
+		
+#ifdef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 		LRESULT onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+#endif
 		
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
 		void OnSwitchedPanels();
@@ -264,6 +271,7 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 			return *m_ctrlUsers;
 		}
 		
+		static void timer_process_all();
 		
 	private:
 		enum FilterModes
@@ -292,7 +300,9 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 		
 		virtual void doDestroyFrame();
 		typedef boost::unordered_map<string, HubFrame*> FrameMap;
+		static CriticalSection g_frames_cs; // TODO - возможно он не нужен
 		static FrameMap g_frames;
+		void timer_process_internal();
 		
 		tstring m_shortHubName;
 		uint8_t m_hub_name_update_count;
@@ -366,7 +376,6 @@ public BaseChatFrame // [+] IRainman copy-past fix.
 #endif
 		
 		UserInfo::OnlineUserMap m_userMap;
-		TaskQueue m_tasks;
 		bool m_needsUpdateStats;
 		bool m_needsResort;
 		

@@ -1678,7 +1678,7 @@ void FolderTree::UpdateStaticCtrl()
 	}
 }
 
-bool FolderTree::IsDirty()
+bool FolderTree::IsDirty() const
 {
 	return m_bDirty;
 }

@@ -34,27 +34,19 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 	public CSplitterImpl<WaitingUsersFrame>,
 	public UserInfoBaseHandler<WaitingUsersFrame>, // [+] IRainman fix: add user menu.
 	private SettingsManagerListener,
-	private CFlyTimerAdapter
+	virtual private CFlyTimerAdapter,
+	virtual private CFlyTaskAdapter
 #ifdef _DEBUG
-	, virtual NonDerivable<WaitingUsersFrame>, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable // [+] IRainman fix.
 #endif
 {
 		typedef UserInfoBaseHandler<WaitingUsersFrame> uiBase;
 	public:
 		DECLARE_FRAME_WND_CLASS_EX(_T("WaitingUsersFrame"), IDR_UPLOAD_QUEUE, 0, COLOR_3DFACE);
 		
-		WaitingUsersFrame() : CFlyTimerAdapter(m_hWnd), m_showTree(true),
-			m_needsUpdateStatus(false), m_needsResort(false),
-			showTreeContainer(_T("BUTTON"), this, SHOWTREE_MESSAGE_MAP)
-		{
-			++UploadManager::g_count_WaitingUsersFrame;
-			memzero(statusSizes, sizeof(statusSizes));
-		}
+		WaitingUsersFrame();
 		
-		~WaitingUsersFrame()
-		{
-			--UploadManager::g_count_WaitingUsersFrame;
-		}
+		~WaitingUsersFrame();
 		
 		enum
 		{
@@ -71,7 +63,7 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		BEGIN_MSG_MAP(WaitingUsersFrame)
 		MESSAGE_HANDLER(WM_CREATE, onCreate)
 		MESSAGE_HANDLER(WM_CLOSE, onClose)
-		MESSAGE_HANDLER(WM_TIMER, onTimer)
+		MESSAGE_HANDLER(WM_TIMER, onTimerTask)
 		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
 		MESSAGE_HANDLER(WM_SPEAKER, onSpeaker)
 		COMMAND_HANDLER(IDC_REMOVE, BN_CLICKED, onRemove)
@@ -99,14 +91,6 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		LRESULT onContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled);
 		LRESULT onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled);
 		LRESULT onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled);
-		LRESULT onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
-		{
-			if (!m_tasks.empty())
-			{
-				speak();
-			}
-			return 0;
-		}
 		
 		// [+] InfinitySky.
 		LRESULT onCloseWindow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -133,14 +117,14 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		
 		struct UserItem
 		{
-			UserPtr user;
-			UserItem(const UserPtr& u) : user(u) { }
+			UserPtr m_user;
+			UserItem(const UserPtr& p_user) : m_user(p_user) { }
 		};
 		
 		UserPtr getCurrentdUser()
 		{
 			HTREEITEM selectedItem = GetParentItem();
-			return selectedItem ? reinterpret_cast<UserItem *>(ctrlQueued.GetItemData(selectedItem))->user : nullptr;
+			return selectedItem ? reinterpret_cast<UserItem *>(ctrlQueued.GetItemData(selectedItem))->m_user : nullptr;
 		}
 		
 		LRESULT onKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
@@ -210,18 +194,13 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		void RemoveFile(UploadQueueItemPtr aUQI);
 		void RemoveUser(const UserPtr& aUser);
 		
-		void addAllFiles(Upload * /*aUser*/);
 		void updateStatus();
 		
 		// [+] IRainman opt
 		bool m_needsUpdateStatus;
 		bool m_needsResort;
-		TaskQueue m_tasks;
 		
 		struct UploadQueueTask : public Task
-#ifdef _DEBUG
-				, virtual NonDerivable<UploadQueueTask>
-#endif
 		{
 			UploadQueueTask(UploadQueueItem* item) : m_item(item)
 			{
@@ -239,9 +218,6 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		};
 		
 		struct UserTask : public Task
-#ifdef _DEBUG
-				, virtual NonDerivable<UserTask>
-#endif
 		{
 			UserTask(const UserPtr& user) : m_user(user)
 			{

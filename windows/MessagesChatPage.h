@@ -13,9 +13,6 @@
 #include "wtl_flylinkdc.h"
 
 class MessagesChatPage : public CPropertyPage<IDD_MESSAGES_CHAT_PAGE>, public PropPage
-#ifdef _DEBUG
-	, virtual NonDerivable<MessagesChatPage> // [+] IRainman fix.
-#endif
 {
 	public:
 		MessagesChatPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_MESSAGES) + _T('\\') + TSTRING(SETTINGS_ADVANCED))

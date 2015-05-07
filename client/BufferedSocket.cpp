@@ -782,7 +782,7 @@ void BufferedSocket::threadSendFile(InputStream* file)
 		l_writeBuf.resize(readPos);
 		readPos = 0;
 		
-		size_t writePos = 0, writeSize = 0;
+		size_t writePos = 0;    
 		int written = 0;
 		
 		while (writePos < l_writeBuf.size())
@@ -793,12 +793,13 @@ void BufferedSocket::threadSendFile(InputStream* file)
 			if (written == -1)
 			{
 				// workaround for OpenSSL (crashes when previous write failed and now retrying with different writeSize)
-				written = sock->write(&l_writeBuf[writePos], writeSize);
+        size_t l_writeSize = 0;
+				written = sock->write(&l_writeBuf[writePos], l_writeSize);
 			}
 			else
 			{
-				writeSize = min(sockSize / 2, l_writeBuf.size() - writePos);
-				written = ThrottleManager::getInstance()->write(sock.get(), &l_writeBuf[writePos], writeSize);
+				size_t l_writeSize = min(sockSize / 2, l_writeBuf.size() - writePos);
+				written = ThrottleManager::getInstance()->write(sock.get(), &l_writeBuf[writePos], l_writeSize);
 			}
 			
 			if (written > 0)

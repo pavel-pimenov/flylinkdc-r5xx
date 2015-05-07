@@ -24,6 +24,18 @@
 #include "../client/w.h"
 #include "../client/SettingsManager.h"
 #include "../client/ResourceManager.h"
+#include "../client/TaskQueue.h"
+
+template <class T> bool safe_post_message(HWND p_wnd, int p_x, T* p_ptr)
+{
+	if (::PostMessage(p_wnd, WM_SPEAKER, WPARAM(p_x), LPARAM(p_ptr)) == FALSE)
+	{
+		delete p_ptr;
+		return false;
+	}
+	return true;
+}
+
 
 #if 0
 template <class T> class CFlyFrameInstallerFlag
@@ -41,16 +53,80 @@ template <class T> class CFlyFrameInstallerFlag
 };
 template <class T> uint32_t CFlyFrameInstallerFlag<T>::g_count_instance;
 #endif
+class CFlyHandlerAdapter
+{
+	protected:
+		const HWND& m_win_handler;
+	public:
+		CFlyHandlerAdapter(const HWND& p_hWnd) : m_win_handler(p_hWnd)
+		{
+		}
+};
+class CFlySpeakerAdapter : public CFlyHandlerAdapter
+{
+	public:
+		bool m_spoken;
+		CFlySpeakerAdapter(const HWND& p_hWnd) : CFlyHandlerAdapter(p_hWnd), m_spoken(false)
+		{
+		}
+		BOOL async_speak()
+		{
+			BOOL l_res = false;
+			ATLASSERT(::IsWindow(m_win_handler));
+			if (!m_spoken)
+			{
+				m_spoken = true;
+				l_res = PostMessage(m_win_handler, WM_SPEAKER, 0, 0);
+				dcassert(l_res);
+			}
+			return l_res;
+		}
+		BOOL force_speak()
+		{
+			ATLASSERT(::IsWindow(m_win_handler));
+			const auto l_res = PostMessage(m_win_handler, WM_SPEAKER, 0, 0);
+			dcassert(l_res);
+			return l_res;
+		}
+};
+class CFlyTaskAdapter : public CFlySpeakerAdapter
+{
+	protected:
+		TaskQueue m_tasks;
+	public:
+		CFlyTaskAdapter(const HWND& p_hWnd) : CFlySpeakerAdapter(p_hWnd)
+		{
+		}
+		~CFlyTaskAdapter()
+		{
+			dcassert(m_tasks.empty());
+		}
+		
+	protected:
+		void onTimerTask()
+		{
+			if (!m_tasks.empty())
+			{
+				async_speak();
+			}
+		}
+		LRESULT onTimerTask(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /* bHandled */)
+		{
+			onTimerTask();
+			return 0;
+		}
+		void clean_task()
+		{
+			m_tasks.clear_task();
+		}
+};
 
-class CFlyTimerAdapter
+class CFlyTimerAdapter : public CFlyHandlerAdapter
 {
 		UINT_PTR m_timer_id;
-		const HWND& m_hTimerWnd;
 		UINT_PTR m_timer_id_event;
-	protected:
-		bool m_spoken;
 	public:
-		CFlyTimerAdapter(const HWND& p_hWnd) : m_hTimerWnd(p_hWnd), m_timer_id(0), m_spoken(false), m_timer_id_event(NULL)
+		CFlyTimerAdapter(const HWND& p_hWnd) : CFlyHandlerAdapter(p_hWnd), m_timer_id(0), m_timer_id_event(NULL)
 		{
 		}
 		virtual ~CFlyTimerAdapter()
@@ -61,11 +137,11 @@ class CFlyTimerAdapter
 		UINT_PTR create_timer(UINT p_Elapse, UINT_PTR p_IDEvent = 1)
 		{
 			m_timer_id_event = p_IDEvent;
-			ATLASSERT(::IsWindow(m_hTimerWnd));
+			ATLASSERT(::IsWindow(m_win_handler));
 			ATLASSERT(m_timer_id == NULL);
 			if (m_timer_id == NULL) // В стеке странный рекурсивный вызов SetTimer http://code.google.com/p/flylinkdc/issues/detail?id=1328
 			{
-				m_timer_id = SetTimer(m_hTimerWnd, p_IDEvent, p_Elapse, NULL);
+				m_timer_id = SetTimer(m_win_handler, p_IDEvent, p_Elapse, NULL);
 				ATLASSERT(m_timer_id != NULL);
 			}
 			return m_timer_id;
@@ -75,12 +151,12 @@ class CFlyTimerAdapter
 			dcassert(m_timer_id);
 			if (m_timer_id)
 			{
-				ATLASSERT(::IsWindow(m_hTimerWnd));
+				ATLASSERT(::IsWindow(m_win_handler));
 				BOOL l_res;
 				if (m_timer_id_event)
-					l_res = KillTimer(m_hTimerWnd, m_timer_id_event);
+					l_res = KillTimer(m_win_handler, m_timer_id_event);
 				else
-					l_res = KillTimer(m_hTimerWnd, m_timer_id);
+					l_res = KillTimer(m_win_handler, m_timer_id);
 				if (l_res == NULL)
 				{
 					const auto l_error_code = GetLastError();
@@ -93,20 +169,6 @@ class CFlyTimerAdapter
 				m_timer_id = 0;
 			}
 		}
-		void speak()
-		{
-			ATLASSERT(::IsWindow(m_hTimerWnd));
-			if (!m_spoken)
-			{
-				m_spoken = true;
-				PostMessage(m_hTimerWnd, WM_SPEAKER, 0, 0);
-			}
-		}
-		void force_speak()
-		{
-			PostMessage(m_hTimerWnd, WM_SPEAKER, 0, 0);
-		}
-		
 #if 0 // TODO: needs review, see details here https://code.google.com/p/flylinkdc/source/detail?r=15539
 		void safe_destroy_timer_if_exists()
 		{

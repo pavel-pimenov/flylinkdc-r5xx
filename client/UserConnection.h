@@ -23,7 +23,9 @@
 #include "ClientManager.h"
 #include "CFlylinkDBManager.h"
 #include "FavoriteUser.h"
-class Upload;
+
+#include "Upload.h"
+
 class UserConnection : public Speaker<UserConnectionListener>,
 	private BufferedSocketListener, public Flags, private CommandHandler<UserConnection>
 #ifdef _DEBUG
@@ -264,7 +266,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 			dcassert(socket); // [+] IRainman fix.
 			return socket ? socket->getIp() : Util::emptyString;
 		}
-		Download* getDownload()
+		DownloadPtr getDownload()
 		{
 			dcassert(isSet(FLAG_DOWNLOAD));
 			return m_download;
@@ -280,20 +282,20 @@ class UserConnection : public Speaker<UserConnectionListener>,
 			if (socket)
 				socket->setPort(p_port);
 		}
-		void setDownload(Download* d)
+		void setDownload(const DownloadPtr& d)
 		{
 			dcassert(isSet(FLAG_DOWNLOAD));
 			m_download = d;
 		}
-		Upload* getUpload()
+		UploadPtr getUpload()
 		{
 			dcassert(isSet(FLAG_UPLOAD));
 			return m_upload;
 		}
-		void setUpload(Upload* u)
+		void setUpload(const UploadPtr& aUpload)
 		{
 			dcassert(isSet(FLAG_UPLOAD));
-			m_upload = u;
+			m_upload = aUpload;
 		}
 		
 		void handle(AdcCommand::SUP t, const AdcCommand& c)
@@ -367,36 +369,12 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		BufferedSocket* socket;
 		HintedUser m_hintedUser; //UserPtr user; [!] IRainman add HintedUser
 		
-		union
-		{
-			Download* m_download; //-V117
-			Upload* m_upload; //-V117
-		};
+		DownloadPtr m_download;
+		UploadPtr m_upload;
 		
 		// We only want ConnectionManager to create this...
-	UserConnection(bool secure_) noexcept :
-		m_last_encoding(Text::systemCharset),
-		                state(STATE_UNCONNECTED),
-		                lastActivity(0), speed(0), m_chunkSize(0), socket(nullptr), m_download(nullptr),
-		                slotType(NOSLOT),
-		                m_hintedUser(UserPtr(), Util::emptyString) // [+] IRainman add HintedUser
-		{
-			if (secure_)
-			{
-				setFlag(FLAG_SECURE);
-			}
-		}
-		
-		~UserConnection()
-		{
-			dcassert(!m_download);
-			dcassert(socket);
-			if (socket)
-			{
-				socket->removeListeners();
-				BufferedSocket::putBufferedSocket(socket);
-			}
-		}
+		UserConnection(bool p_secure);
+		virtual ~UserConnection();
 		
 		friend struct DeleteFunction;
 		

@@ -277,7 +277,8 @@ void LogManager::message(const string& msg, bool p_only_file /*= false */)
 		if (LogManager::g_mainWnd)
 		{
 			auto l_str_messages = new string(msg);
-			if (!PostMessage(LogManager::g_mainWnd, WM_SPEAKER, g_LogMessageID, (LPARAM)l_str_messages))
+			// TODO safe_post_message(LogManager::g_mainWnd, g_LogMessageID, l_str_messages);
+			if (::PostMessage(LogManager::g_mainWnd, WM_SPEAKER, g_LogMessageID, (LPARAM)l_str_messages) == FALSE)
 			{
 				dcassert(0);
 				delete l_str_messages;

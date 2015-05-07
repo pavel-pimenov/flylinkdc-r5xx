@@ -294,7 +294,7 @@ void CFlyServerConfig::loadConfig()
 		LPCSTR l_res_data;
 		std::string l_data;
 #ifdef _DEBUG
-    //#define USE_FLYSERVER_LOCAL_FILE
+  // #define USE_FLYSERVER_LOCAL_FILE
 #endif
 #ifdef USE_FLYSERVER_LOCAL_FILE
 		const string l_url_config_file = "file://C:/vc10/etc/flylinkdc-config-r5xx.xml"; 
@@ -711,12 +711,14 @@ void CFlyServerAdapter::post_message_for_update_mediainfo()
 	dcassert(::IsWindow(m_hMediaWnd));
 	if (::IsWindow(m_hMediaWnd) && !m_GetFlyServerArray.empty())
 		{
-			const string l_json_result = CFlyServerJSON::connect(m_GetFlyServerArray, false); 
+			const string l_json_result = CFlyServerJSON::connect(m_GetFlyServerArray, false); // [crash] https://drdump.com/DumpGroup.aspx?DumpGroupID=296318
+			// TODO - сохранить m_GetFlyServerArray в другом месте? 
+			dcassert(::IsWindow(m_hMediaWnd));
+			if (::IsWindow(m_hMediaWnd))
 			{
 				Lock l(g_cs_fly_server);
-				m_GetFlyServerArray.clear();
+				m_GetFlyServerArray.clear(); // [crash][2] https://drdump.com/DumpGroup.aspx?DumpGroupID=296220
 			}
-			dcassert(::IsWindow(m_hMediaWnd));
 			if (!l_json_result.empty() && ::IsWindow(m_hMediaWnd))
 			{
 			Json::Value* l_root = new Json::Value;
@@ -1063,7 +1065,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 	syslog(LOG_USER | LOG_INFO, "%s %s %s [%s]", l_cid.c_str(), l_pid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
 }
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 24
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 31
 {
 	bool l_is_send = false;
 	bool l_is_error = false;

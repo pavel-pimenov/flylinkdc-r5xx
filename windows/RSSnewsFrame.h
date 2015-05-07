@@ -31,7 +31,7 @@
 class RSSNewsFrame : public MDITabChildWindowImpl < RSSNewsFrame, RGB(0, 0, 0), IDR_RSS > , public StaticFrame<RSSNewsFrame, ResourceManager::RSS_NEWS, IDC_RSS>,
 	private SettingsManagerListener, private RSSListener
 #ifdef _DEBUG
-	, virtual NonDerivable<RSSNewsFrame>, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:
@@ -101,7 +101,7 @@ class RSSNewsFrame : public MDITabChildWindowImpl < RSSNewsFrame, RGB(0, 0, 0), 
 		
 		class RSSItemInfo
 #ifdef _DEBUG
-			: virtual NonDerivable<RSSItemInfo>, boost::noncopyable // [+] IRainman fix.
+			: boost::noncopyable // [+] IRainman fix.
 #endif
 			
 		{

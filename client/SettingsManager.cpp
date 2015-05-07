@@ -536,7 +536,7 @@ void SettingsManager::setDefaults()
 	//setDefault(IGNORE_HUB_PMS, false);
 	//setDefault(IGNORE_BOT_PMS, false);
 	setDefault(BUFFER_SIZE_FOR_DOWNLOADS, 1024);
-	setDefault(HUBLIST_SERVERS, "http://dchublist.ru/hublist.xml.bz2;http://www.te-home.net/?do=hublist&get=hublist-ru.xml.bz2;http://dchublist.com/hublist.xml.bz2");
+	setDefault(HUBLIST_SERVERS, "http://dchublist.ru/hublist.xml.bz2;http://www.te-home.net/?do=hublist&get=hublist-ru.xml.bz2;http://dchublist.com/hublist.xml.bz2;http://hublist.flexhub.org/hublist.xml.bz2;http://hublist.eu/hublist.xml.bz2");
 	//setDefault(DOWNLOAD_SLOTS, 0); // [+] PPA
 	//setDefault(MAX_DOWNLOAD_SPEED, 0);
 	setDefault(LOG_DIRECTORY, Util::getLocalPath() + "Logs" PATH_SEPARATOR_STR);
@@ -1679,7 +1679,6 @@ bool SettingsManager::set(StrSetting key, const string& value)
 		case HIGH_PRIO_FILES:
 		{
 			REPLACE_SPACES();
-			getInstance()->fire(SettingsManagerListener::QueueChanges());
 		}
 		break;
 		case SKIPLIST_SHARE:

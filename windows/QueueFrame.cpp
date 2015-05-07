@@ -43,6 +43,23 @@ static ResourceManager::Strings columnNames[] = { ResourceManager::FILENAME, Res
                                                   ResourceManager::ADDED, ResourceManager::TTH_ROOT
                                                 };
 
+QueueFrame::QueueFrame() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd), menuItems(0), queueSize(0), queueItems(0), m_dirty(false),
+	usingDirMenu(false), readdItems(0), m_fileLists(nullptr), showTree(true)
+	, showTreeContainer(WC_BUTTON, this, SHOWTREE_MESSAGE_MAP)
+{
+	memzero(statusSizes, sizeof(statusSizes));
+}
+
+QueueFrame::~QueueFrame()
+{
+	// Clear up dynamicly allocated menu objects
+	browseMenu.ClearMenu();
+	removeMenu.ClearMenu();
+	removeAllMenu.ClearMenu();
+	pmMenu.ClearMenu();
+	readdMenu.ClearMenu();
+}
+
 LRESULT QueueFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
 	showTree = BOOLSETTING(QUEUEFRAME_SHOW_TREE);
@@ -87,14 +104,15 @@ LRESULT QueueFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	ctrlQueue.setAscending(BOOLSETTING(QUEUE_COLUMNS_SORT_ASC));
 	
 	SET_LIST_COLOR(ctrlQueue);
-	ctrlQueue.setFlickerFree(Colors::bgBrush);
+	ctrlQueue.setFlickerFree(Colors::g_bgBrush);
 	
-	ctrlDirs.SetBkColor(Colors::bgColor);
-	ctrlDirs.SetTextColor(Colors::textColor);
+	ctrlDirs.SetBkColor(Colors::g_bgColor);
+	ctrlDirs.SetTextColor(Colors::g_textColor);
 	
 	ctrlShowTree.Create(ctrlStatus.m_hWnd, rcDefault, _T("+/-"), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 	ctrlShowTree.SetButtonStyle(BS_AUTOCHECKBOX, false);
 	ctrlShowTree.SetCheck(showTree);
+	ctrlShowTree.SetFont(Fonts::g_systemFont);
 	showTreeContainer.SubclassWindow(ctrlShowTree.m_hWnd);
 	
 	browseMenu.CreatePopupMenu();
@@ -340,8 +358,14 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 		}
 	}
 }
-
-void QueueFrame::on(QueueManagerListener::Added, const QueueItemPtr& aQI)
+void QueueFrame::on(QueueManagerListener::AddedArray, const std::vector<QueueItemPtr>& p_qi_array) noexcept
+{
+	for (auto i = p_qi_array.cbegin(); i != p_qi_array.cend(); ++i)
+	{
+		m_tasks.add(ADD_ITEM, new QueueItemInfoTask(new QueueItemInfo(*i)));
+	}
+}
+void QueueFrame::on(QueueManagerListener::Added, const QueueItemPtr& aQI) noexcept
 {
 	m_tasks.add(ADD_ITEM, new QueueItemInfoTask(new QueueItemInfo(aQI)));
 }
@@ -651,7 +675,10 @@ void QueueFrame::removeDirectories(HTREEITEM ht)
 
 void QueueFrame::on(QueueManagerListener::Removed, const QueueItemPtr& aQI)
 {
-	m_tasks.add(REMOVE_ITEM, new StringTask(aQI->getTarget()));
+	if (!ClientManager::isShutdown())
+	{
+		m_tasks.add(REMOVE_ITEM, new StringTask(aQI->getTarget()));
+	}
 	
 	// we need to call speaker now to properly remove item before other actions
 	// [!] SSA - fixed bug with deadlock on opened QueueFrame
@@ -679,9 +706,37 @@ void QueueFrame::on(QueueManagerListener::Tick, const QueueItemList& p_list) noe
 	}
 }
 
+void QueueFrame::on(QueueManagerListener::SourcesUpdated, const QueueItemPtr& aQI) noexcept
+{
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
+	{
+		m_tasks.add(UPDATE_ITEM, new UpdateTask(aQI->getTarget()));
+	}
+}
+void QueueFrame::on(QueueManagerListener::StatusUpdated, const QueueItemPtr& aQI) noexcept
+{
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
+	{
+		m_tasks.add(UPDATE_ITEM, new UpdateTask(aQI->getTarget()));
+	}
+}
+
+void  QueueFrame::on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept // [+] IRainman opt.
+{
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
+	{
+		for (auto i = p_list.cbegin(); i != p_list.cend(); ++i)
+		{
+			on(QueueManagerListener::StatusUpdated(), *i);
+		}
+	}
+}
+
 LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-
 	TaskQueue::List t;
 	m_tasks.get(t);
 	if (t.empty())
@@ -832,7 +887,19 @@ void QueueFrame::removeSelected()
 		SET_SETTING(CONFIRM_DELETE, checkState != BST_CHECKED); // [+] InfinitySky.
 	}
 }
-
+void QueueFrame::removeAllDir()
+{
+	if (ctrlDirs.GetSelectedItem())
+	{
+		UINT checkState = BST_CHECKED;
+		if (::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), T_APPNAME_WITH_VERSION, CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES)
+		{
+			QueueManager::getInstance()->removeAll();
+			ctrlDirs.DeleteAllItems();
+			ctrlQueue.DeleteAllItems();
+		}
+	}
+}
 void QueueFrame::removeSelectedDir()
 {
 	if (ctrlDirs.GetSelectedItem())
@@ -840,11 +907,13 @@ void QueueFrame::removeSelectedDir()
 		UINT checkState = BOOLSETTING(CONFIRM_DELETE) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
 		if (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), T_APPNAME_WITH_VERSION, CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES) // [~] InfinitySky.
 		{
+			m_tmp_target_to_delete.clear();
 			removeDir(ctrlDirs.GetSelectedItem());
 			// [+] NightOrion bugfix deleting folder from queue
 			for (auto i = m_tmp_target_to_delete.cbegin(); i != m_tmp_target_to_delete.cend(); ++i)
+			{
 				QueueManager::getInstance()->remove(*i);
-				
+			}
 			m_tmp_target_to_delete.clear();
 			// [+] NightOrion
 			
@@ -1283,6 +1352,8 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 		dirMenu.AppendMenu(MF_STRING, IDC_RENAME, CTSTRING(RENAME));
 		dirMenu.AppendMenu(MF_SEPARATOR);
 		dirMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(REMOVE));
+		dirMenu.AppendMenu(MF_SEPARATOR);
+		dirMenu.AppendMenu(MF_STRING, IDC_REMOVE_ALL, CTSTRING(REMOVE_ALL));
 		dirMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 		
 		return TRUE;
@@ -1572,7 +1643,9 @@ void QueueFrame::removeDir(HTREEITEM ht)
 	DirectoryPairC dp = m_directories.equal_range(name);
 //	StringList l_tmp_target; // [-] NightOrion bugfix deleting folder from queue
 	for (auto i = dp.first; i != dp.second; ++i)
+	{
 		m_tmp_target_to_delete.push_back(i->second->getTarget());
+	}
 //	for (auto i = l_tmp_target.cbegin(); i != l_tmp_target.cend(); ++i)
 //		QueueManager::getInstance()->remove(*i); //
 }
@@ -1772,7 +1845,7 @@ void QueueFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		setw(2);
 		setw(1);
 		
-		w[0] = 16;
+		w[0] = 36;
 		
 		ctrlStatus.SetParts(6, w);
 		
@@ -1808,6 +1881,7 @@ LRESULT QueueFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	{
 		m_closed = true;
 		safe_destroy_timer();
+		clean_task();
 		SettingsManager::getInstance()->removeListener(this);
 		QueueManager::getInstance()->removeListener(this);
 		
@@ -2106,9 +2180,9 @@ void QueueFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 	{
 		if (ctrlQueue.isRedraw())
 		{
-			ctrlQueue.setFlickerFree(Colors::bgBrush);
-			ctrlDirs.SetBkColor(Colors::bgColor);
-			ctrlDirs.SetTextColor(Colors::textColor);
+			ctrlQueue.setFlickerFree(Colors::g_bgBrush);
+			ctrlDirs.SetBkColor(Colors::g_bgColor);
+			ctrlDirs.SetTextColor(Colors::g_textColor);
 			RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
 		}
 	}
@@ -2116,11 +2190,13 @@ void QueueFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 
 void QueueFrame::onRechecked(const string& target, const string& message)
 {
-	string buf;
-	buf.resize(STRING(INTEGRITY_CHECK).length() + message.length() + target.length() + 16);
-	sprintf(&buf[0], CSTRING(INTEGRITY_CHECK), message.c_str(), target.c_str());
-	
-	m_tasks.add(UPDATE_STATUS, new StringTask(buf));
+	if (!ClientManager::isShutdown())
+	{
+		string buf;
+		buf.resize(STRING(INTEGRITY_CHECK).length() + message.length() + target.length() + 16);
+		sprintf(&buf[0], CSTRING(INTEGRITY_CHECK), message.c_str(), target.c_str());
+		m_tasks.add(UPDATE_STATUS, new StringTask(buf));
+	}
 }
 
 void QueueFrame::on(QueueManagerListener::RecheckStarted, const string& target) noexcept
@@ -2156,6 +2232,47 @@ void QueueFrame::on(QueueManagerListener::RecheckAlreadyFinished, const string& 
 void QueueFrame::on(QueueManagerListener::RecheckDone, const string& target) noexcept
 {
 	onRechecked(target, STRING(DONE));
+}
+
+LRESULT QueueFrame::onKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
+{
+	NMLVKEYDOWN* kd = (NMLVKEYDOWN*)pnmh;
+	if (kd->wVKey == VK_DELETE)
+	{
+		if (ctrlQueue.getSelectedCount())
+		{
+			removeSelected();
+		}
+	}
+	else if (kd->wVKey == VK_ADD)
+	{
+		// Increase Item priority
+		changePriority(true);
+	}
+	else if (kd->wVKey == VK_SUBTRACT)
+	{
+		// Decrease item priority
+		changePriority(false);
+	}
+	else if (kd->wVKey == VK_TAB)
+	{
+		onTab();
+	}
+	return 0;
+}
+
+LRESULT QueueFrame::onKeyDownDirs(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
+{
+	NMTVKEYDOWN* kd = (NMTVKEYDOWN*)pnmh;
+	if (kd->wVKey == VK_DELETE)
+	{
+		removeSelectedDir();
+	}
+	else if (kd->wVKey == VK_TAB)
+	{
+		onTab();
+	}
+	return 0;
 }
 
 /**

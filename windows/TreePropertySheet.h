@@ -37,7 +37,6 @@
 
 class TreePropertySheet : public CPropertySheetImpl<TreePropertySheet>,
 	protected CFlyTimerAdapter
-	
 #ifdef _DEBUG
 	, boost::noncopyable // [+] IRainman fix.
 #endif
@@ -54,6 +53,7 @@ class TreePropertySheet : public CPropertySheetImpl<TreePropertySheet>,
 			, tabContainer(WC_TABCONTROL, this, TAB_MESSAGE_MAP)
 			, CFlyTimerAdapter(m_hWnd)
 			, m_SliderPos(255)
+			, m_offset(0)
 		{
 		
 			m_psh.pfnCallback = &PropSheetProc;

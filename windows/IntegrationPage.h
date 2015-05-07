@@ -26,9 +26,6 @@
 #include "ExListViewCtrl.h"
 
 class IntegrationPage : public CPropertyPage<IDD_INTEGRATION_PAGE>, public PropPage
-#ifdef _DEBUG
-	, virtual NonDerivable<IntegrationPage> // [+] IRainman fix.
-#endif
 {
 	public:
 		IntegrationPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_INTEGRATION_PROP))

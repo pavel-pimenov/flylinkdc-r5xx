@@ -45,7 +45,42 @@ Identity::StringDictionaryIndex Identity::g_infoDicIndex;
 
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 
-std::unique_ptr<webrtc::RWLockWrapper> User::g_ratio_cs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+//////std::unique_ptr<webrtc::RWLockWrapper> User::g_ratio_cs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+User::User(const CID& aCID) : m_cid(aCID),
+#ifdef IRAINMAN_ENABLE_AUTO_BAN
+	m_support_slots(FLY_SUPPORT_SLOTS_FIRST),
+#endif
+	m_slots(0),
+	m_bytesShared(0),
+	m_limit(0)
+#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+	, m_hub_id(0)
+	, m_ratio_ptr(nullptr)
+	, m_is_first_init_ratio(false)
+#endif
+{
+#ifdef _DEBUG
+	m_ratio_cs.use_log();
+	++g_user_counts;
+# ifdef ENABLE_DEBUG_LOG_IN_USER_CLASS
+	dcdebug(" [!!!!!!]   [!!!!!!]  User::User(const CID& aCID) this = %p, g_user_counts = %d\n", this, g_user_counts);
+# endif
+#endif
+}
+
+User::~User()
+{
+#ifdef _DEBUG
+	--g_user_counts;
+# ifdef ENABLE_DEBUG_LOG_IN_USER_CLASS
+	dcdebug(" [!!!!!!]   [!!!!!!]  User::~User() this = %p, g_user_counts = %d\n", this, g_user_counts);
+# endif
+#endif
+#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+	// Тут можно и не лочить - иначе падаем FastLock l(g_ratio_cs);
+	safe_delete(m_ratio_ptr);
+#endif
+}
 
 void User::setLastNick(const string& p_nick)
 {
@@ -64,7 +99,8 @@ void User::setLastNick(const string& p_nick)
 				if (m_ratio_ptr)
 				{
 					{
-						webrtc::WriteLockScoped l(*g_ratio_cs);
+						////webrtc::WriteLockScoped l(*g_ratio_cs);
+						FastLock l(m_ratio_cs);
 						safe_delete(m_ratio_ptr);
 					}
 					m_nick = p_nick;
@@ -141,7 +177,8 @@ void User::setIP(const boost::asio::ip::address_v4& p_last_ip)
 				if (m_ratio_ptr)
 				{
 					const auto l_message_count = m_ratio_ptr->m_message_count;
-					webrtc::WriteLockScoped l(*g_ratio_cs);
+					///webrtc::WriteLockScoped l(*g_ratio_cs);
+					FastLock l(m_ratio_cs);
 					safe_delete(m_ratio_ptr);
 					initRatioL(p_last_ip);
 					if (m_ratio_ptr)
@@ -180,7 +217,8 @@ string User::getIPAsString()
 uint64_t User::getBytesUpload()
 {
 	initRatio();
-	webrtc::ReadLockScoped l(*g_ratio_cs);
+	///webrtc::ReadLockScoped l(*g_ratio_cs);
+	FastLock l(m_ratio_cs);
 	if (m_ratio_ptr)
 	{
 		return m_ratio_ptr->get_upload();
@@ -193,7 +231,8 @@ uint64_t User::getBytesUpload()
 uint64_t User::getMessageCount()
 {
 	initRatio();
-	webrtc::ReadLockScoped l(*g_ratio_cs);
+	/////webrtc::ReadLockScoped l(*g_ratio_cs);
+	FastLock l(m_ratio_cs);
 	if (m_ratio_ptr)
 	{
 		return m_ratio_ptr->m_message_count;
@@ -206,7 +245,8 @@ uint64_t User::getMessageCount()
 uint64_t User::getBytesDownload()
 {
 	initRatio();
-	webrtc::ReadLockScoped l(*g_ratio_cs);
+	/////webrtc::ReadLockScoped l(*g_ratio_cs);
+	FastLock l(m_ratio_cs);
 	if (m_ratio_ptr)
 	{
 		return m_ratio_ptr->get_download();
@@ -235,24 +275,33 @@ void User::incMessagesCount()
 }
 void User::AddRatioUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size)
 {
-	webrtc::WriteLockScoped l(*g_ratio_cs);
+	////webrtc::WriteLockScoped l(*g_ratio_cs);
+	FastLock l(m_ratio_cs);
 	initRatioL(p_ip);
 	if (m_ratio_ptr)
 		m_ratio_ptr->addUpload(p_ip, p_size);
 }
 void User::AddRatioDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size)
 {
-	webrtc::WriteLockScoped l(*g_ratio_cs);
+	////webrtc::WriteLockScoped l(*g_ratio_cs);
+	FastLock l(m_ratio_cs);
 	initRatioL(p_ip);
 	if (m_ratio_ptr)
 		m_ratio_ptr->addDownload(p_ip, p_size);
 }
 void User::flushRatio()
 {
-	webrtc::ReadLockScoped l(*g_ratio_cs);
-	if (m_ratio_ptr)
-		m_ratio_ptr->flushRatioL();
-	else
+	///webrtc::ReadLockScoped l(*g_ratio_cs);
+	bool l_is_ratio_exists = false;
+	{
+		FastLock l(m_ratio_cs);
+		if (m_ratio_ptr)
+		{
+			m_ratio_ptr->flushRatioL();
+			l_is_ratio_exists = true;
+		}
+	}
+	if (l_is_ratio_exists)
 	{
 		if (isSet(CHANGE_IP))
 		{
@@ -292,7 +341,8 @@ void User::initRatio(bool p_force /* = false */)
 					l_try_ratio->try_load_ratio(l_last_ip_from_sql);
 				}
 				{
-					webrtc::WriteLockScoped l(*g_ratio_cs);
+					///webrtc::WriteLockScoped l(*g_ratio_cs);
+					FastLock l(m_ratio_cs);
 					if (m_ratio_ptr)
 					{
 						delete m_ratio_ptr;
@@ -328,7 +378,8 @@ tstring User::getUpload()
 
 tstring User::getUDratio()
 {
-	webrtc::ReadLockScoped l(*g_ratio_cs);
+	///webrtc::ReadLockScoped l(*g_ratio_cs);
+	FastLock l(m_ratio_cs);
 	if (m_ratio_ptr && (m_ratio_ptr->get_download() || m_ratio_ptr->get_upload()))
 		return Util::toStringW(m_ratio_ptr->get_download() ? ((double)m_ratio_ptr->get_upload() / (double)m_ratio_ptr->get_download()) : 0) +
 		       L" (" + Util::formatBytesW(m_ratio_ptr->get_upload()) + _T('/') + Util::formatBytesW(m_ratio_ptr->get_download()) + L")";

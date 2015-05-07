@@ -119,7 +119,7 @@ const DWORD DRIVE_ATTRIBUTE_RAMDISK     = 0x00000020;
 
 class FolderTree : public CWindowImpl<FolderTree, CTreeViewCtrl>
 #ifdef _DEBUG
-	, virtual NonDerivable<FolderTree>, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:
@@ -158,7 +158,7 @@ class FolderTree : public CWindowImpl<FolderTree, CTreeViewCtrl>
 		bool GetChecked(HTREEITEM hItem) const;
 		BOOL SetChecked(HTREEITEM hItem, bool fCheck);
 		void SetStaticCtrl(CStatic *staticCtrl);
-		bool IsDirty();
+		bool IsDirty() const;
 		
 	protected:
 		bool IsExpanded(HTREEITEM hItem);

@@ -27,9 +27,6 @@
 #include "../client/SettingsManager.h"
 
 class SharePage : public CPropertyPage<IDD_SHARE_PAGE>, public PropPage
-#ifdef _DEBUG
-	, virtual NonDerivable<SharePage> // [+] IRainman fix.
-#endif
 {
 	public:
 		SharePage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_UPLOADS))

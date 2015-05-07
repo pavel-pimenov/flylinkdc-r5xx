@@ -42,7 +42,7 @@ class ThrottleManager :
 		 * Limits a traffic and writes a packet to the network
 		 * We must handle this a little bit differently than downloads, because of that stupidity in OpenSSL
 		 */
-		int write(Socket* sock, void* buffer, size_t& len);
+		int write(Socket* sock, const void* buffer, size_t& len);
 		
 		/*
 		 * Returns current download limit.

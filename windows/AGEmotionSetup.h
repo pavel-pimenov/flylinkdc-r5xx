@@ -92,7 +92,7 @@ class CAGEmotion
 
 class CAGEmotionSetup
 #ifdef _DEBUG
-	: virtual NonDerivable<CAGEmotionSetup>, boost::noncopyable // [+] IRainman fix.
+	:  boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:

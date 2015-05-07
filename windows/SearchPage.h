@@ -13,9 +13,6 @@
 #include "wtl_flylinkdc.h"
 
 class SearchPage : public CPropertyPage<IDD_SEARCH_PAGE>, public PropPage
-#ifdef _DEBUG
-	, virtual NonDerivable<SearchPage> // [+] IRainman fix.
-#endif
 {
 	public:
 		SearchPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_ADVANCED3) + _T('\\') + TSTRING(SEARCH))

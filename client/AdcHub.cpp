@@ -1479,17 +1479,18 @@ void AdcHub::password(const string& pwd)
 	}
 }
 
-static void addParam(StringMap& p_lastInfoMap, AdcCommand& c, const string& var, const string& value)
+void AdcHub::addParam(AdcCommand& c, const string& var, const string& value)
 {
-	const auto& i = p_lastInfoMap.find(var);
+	FastLock l(m_info_cs);
+	const auto& i = m_lastInfoMap.find(var);
 	
-	if (i != p_lastInfoMap.end())
+	if (i != m_lastInfoMap.end())
 	{
 		if (i->second != value)
 		{
 			if (value.empty())
 			{
-				p_lastInfoMap.erase(i);
+				m_lastInfoMap.erase(i);
 			}
 			else
 			{
@@ -1500,7 +1501,7 @@ static void addParam(StringMap& p_lastInfoMap, AdcCommand& c, const string& var,
 	}
 	else if (!value.empty())
 	{
-		p_lastInfoMap.insert(make_pair(var, value));
+		m_lastInfoMap.insert(make_pair(var, value));
 		c.addParam(var, value);
 	}
 }
@@ -1525,69 +1526,69 @@ void AdcHub::info(bool p_force)
 		updateCounts(false);
 	}
 	
-	addParam(m_lastInfoMap, c, "ID", ClientManager::getMyCID().toBase32()); // [!] IRainman fix.
-	addParam(m_lastInfoMap, c, "PD", ClientManager::getMyPID().toBase32()); // [!] IRainman fix.
-	addParam(m_lastInfoMap, c, "NI", getMyNick());
-	addParam(m_lastInfoMap, c, "DE", getCurrentDescription());
-	addParam(m_lastInfoMap, c, "SL", Util::toString(UploadManager::getSlots()));
-	addParam(m_lastInfoMap, c, "FS", Util::toString(UploadManager::getFreeSlots()));
+	addParam(c, "ID", ClientManager::getMyCID().toBase32()); // [!] IRainman fix.
+	addParam(c, "PD", ClientManager::getMyPID().toBase32()); // [!] IRainman fix.
+	addParam(c, "NI", getMyNick());
+	addParam(c, "DE", getCurrentDescription());
+	addParam(c, "SL", Util::toString(UploadManager::getSlots()));
+	addParam(c, "FS", Util::toString(UploadManager::getFreeSlots()));
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 	if (getHideShare())
 	{
-		addParam(m_lastInfoMap, c, "SS", "0"); // [!] Flylink++ HideShare mode
-		addParam(m_lastInfoMap, c, "SF", "0"); // [!] Flylink HideShare mode
+		addParam(c, "SS", "0"); // [!] Flylink++ HideShare mode
+		addParam(c, "SF", "0"); // [!] Flylink HideShare mode
 	}
 	else
 #endif
 	{
-		addParam(m_lastInfoMap, c, "SS", ShareManager::getInstance()->getShareSizeString()); // [!] Flylink++ HideShare mode
-		addParam(m_lastInfoMap, c, "SF", Util::toString(ShareManager::getSharedFiles())); // [!] Flylink++ HideShare mode
+		addParam(c, "SS", ShareManager::getInstance()->getShareSizeString()); // [!] Flylink++ HideShare mode
+		addParam(c, "SF", Util::toString(ShareManager::getSharedFiles())); // [!] Flylink++ HideShare mode
 	}
 	
 	
-	addParam(m_lastInfoMap, c, "EM", SETTING(EMAIL));
+	addParam(c, "EM", SETTING(EMAIL));
 	// [!] Flylink++ Exclusive hub mode
 	const FavoriteHubEntry *fhe = FavoriteManager::getFavoriteHubEntry(getHubUrl());
 	if (fhe && fhe->getExclusiveHub())
 	{
 		uint8_t l_normal, l_registered, l_op;
 		getCountsIndivid(l_normal, l_registered, l_op);
-		addParam(m_lastInfoMap, c, "HN", Util::toString(l_normal));
-		addParam(m_lastInfoMap, c, "HR", Util::toString(l_registered));
-		addParam(m_lastInfoMap, c, "HO", Util::toString(l_op));
+		addParam(c, "HN", Util::toString(l_normal));
+		addParam(c, "HR", Util::toString(l_registered));
+		addParam(c, "HO", Util::toString(l_op));
 	}
 	else
 	{
-		addParam(m_lastInfoMap, c, "HN", Util::toString(g_counts[COUNT_NORMAL]));
-		addParam(m_lastInfoMap, c, "HR", Util::toString(g_counts[COUNT_REGISTERED]));
-		addParam(m_lastInfoMap, c, "HO", Util::toString(g_counts[COUNT_OP]));
+		addParam(c, "HN", Util::toString(g_counts[COUNT_NORMAL]));
+		addParam(c, "HR", Util::toString(g_counts[COUNT_REGISTERED]));
+		addParam(c, "HO", Util::toString(g_counts[COUNT_OP]));
 	}
 	// [~] Flylink++ Exclusive hub mode
 	// [!] IRainman mimicry function
-	addParam(m_lastInfoMap, c, "AP", getClientName());
+	addParam(c, "AP", getClientName());
 	
-	addParam(m_lastInfoMap, c, "VE", getTagVersion());
+	addParam(c, "VE", getTagVersion());
 	// [~] IRainman mimicry function
-	addParam(m_lastInfoMap, c, "AW", Util::getAway() ? "1" : Util::emptyString);
+	addParam(c, "AW", Util::getAway() ? "1" : Util::emptyString);
 	
 	size_t limit = BOOLSETTING(THROTTLE_ENABLE) ? ThrottleManager::getInstance()->getDownloadLimitInBytes() : 0;// [!] IRainman SpeedLimiter
 	if (limit > 0)
 	{
-		addParam(m_lastInfoMap, c, "DS", Util::toString(limit));
+		addParam(c, "DS", Util::toString(limit));
 	}
 	
 	limit = BOOLSETTING(THROTTLE_ENABLE) ? ThrottleManager::getInstance()->getUploadLimitInBytes() : 0;// [!] IRainman SpeedLimiter
 	if (limit > 0)
 	{
-		addParam(m_lastInfoMap, c, "US", Util::toString(limit));
+		addParam(c, "US", Util::toString(limit));
 	}
 	else
 	{
 		limit = Util::toInt64(SETTING(UPLOAD_SPEED)) * 1024 * 1024 / 8;
-		addParam(m_lastInfoMap, c, "US", Util::toString(limit));
+		addParam(c, "US", Util::toString(limit));
 	}
 	
-	addParam(m_lastInfoMap, c, "LC", Util::getIETFLang()); // http://adc.sourceforge.net/ADC-EXT.html#_lc_locale_specification
+	addParam(c, "LC", Util::getIETFLang()); // http://adc.sourceforge.net/ADC-EXT.html#_lc_locale_specification
 	
 	string su(AdcSupports::SEGA_FEATURE);
 	
@@ -1595,32 +1596,32 @@ void AdcHub::info(bool p_force)
 	{
 		su += "," + AdcSupports::ADCS_FEATURE;
 		const auto &kp = CryptoManager::getInstance()->getKeyprint();
-		addParam(m_lastInfoMap, c, "KP", "SHA256/" + Encoder::toBase32(&kp[0], kp.size()));
+		addParam(c, "KP", "SHA256/" + Encoder::toBase32(&kp[0], kp.size()));
 	}
 	if (isActive() || BOOLSETTING(ALLOW_NAT_TRAVERSAL))
 	{
 		if (getMyIdentity().isIPValid())
 		{
 			const string& myUserIp = getMyIdentity().getIpAsString();
-			addParam(m_lastInfoMap, c, "I4", myUserIp);
+			addParam(c, "I4", myUserIp);
 		}
 		else if (!getFavIp().empty())
 		{
-			addParam(m_lastInfoMap, c, "I4", getFavIp());
+			addParam(c, "I4", getFavIp());
 		}
 		else if (!SETTING(EXTERNAL_IP).empty())
 		{
-			addParam(m_lastInfoMap, c, "I4", Socket::resolve(SETTING(EXTERNAL_IP)));
+			addParam(c, "I4", Socket::resolve(SETTING(EXTERNAL_IP)));
 		}
 		else
 		{
-			addParam(m_lastInfoMap, c, "I4", "0.0.0.0");
+			addParam(c, "I4", "0.0.0.0");
 		}
 	}
 	
 	if (isActive())
 	{
-		addParam(m_lastInfoMap, c, "U4", SearchManager::getSearchPort());
+		addParam(c, "U4", SearchManager::getSearchPort());
 		su += "," + AdcSupports::TCP4_FEATURE;
 		su += "," + AdcSupports::UDP4_FEATURE;
 	}
@@ -1632,12 +1633,12 @@ void AdcHub::info(bool p_force)
 		}
 		else
 		{
-			addParam(m_lastInfoMap, c, "I4", "");
+			addParam(c, "I4", "");
 		}
-		addParam(m_lastInfoMap, c, "U4", "");
+		addParam(c, "U4", "");
 	}
 	
-	addParam(m_lastInfoMap, c, "SU", su);
+	addParam(c, "SU", su);
 	
 	if (!c.getParameters().empty())
 	{
@@ -1702,7 +1703,10 @@ void AdcHub::on(Connected c) noexcept
 		return;
 	}
 	
-	m_lastInfoMap.clear();
+	{
+		FastLock l(m_info_cs);
+		m_lastInfoMap.clear();
+	}
 	sid = 0;
 	forbiddenCommands.clear();
 	

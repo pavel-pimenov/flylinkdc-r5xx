@@ -91,8 +91,8 @@ LRESULT PublicHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	m_ctrlHubs.SetFocus();
 	
 	m_ctrlTree.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TVS_HASBUTTONS | TVS_LINESATROOT | TVS_HASLINES | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP, WS_EX_CLIENTEDGE, IDC_ISP_TREE);
-	m_ctrlTree.SetBkColor(Colors::bgColor);
-	m_ctrlTree.SetTextColor(Colors::textColor);
+	m_ctrlTree.SetBkColor(Colors::g_bgColor);
+	m_ctrlTree.SetTextColor(Colors::g_textColor);
 	WinUtil::SetWindowThemeExplorer(m_ctrlTree.m_hWnd);
 	
 	m_treeContainer.SubclassWindow(m_ctrlTree);
@@ -539,13 +539,11 @@ HTREEITEM PublicHubsFrame::LoadTreeItems(TStringSet& l_hubs, HTREEITEM hRoot)
 
 LRESULT PublicHubsFrame::onCtlColor(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	HWND hWnd = (HWND)lParam;
-	HDC hDC = (HDC)wParam;
+	const HWND hWnd = (HWND)lParam;
+	const HDC hDC = (HDC)wParam;
 	if (uMsg == WM_CTLCOLORLISTBOX ||  hWnd == ctrlFilter.m_hWnd || hWnd == ctrlFilterSel.m_hWnd)
 	{
-		::SetBkColor(hDC, Colors::bgColor);
-		::SetTextColor(hDC, Colors::textColor);
-		return (LRESULT)Colors::bgBrush;
+		return Colors::setColor(hDC);
 	}
 	bHandled = FALSE;
 	return FALSE;
@@ -1155,7 +1153,7 @@ LRESULT PublicHubsFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHan
 			
 		case CDDS_ITEMPREPAINT:
 		{
-			cd->clrText = Colors::textColor;
+			cd->clrText = Colors::g_textColor;
 			const auto fhe = FavoriteManager::getFavoriteHubEntry(getPubServer((int)cd->nmcd.dwItemSpec));
 			if (fhe)
 			{

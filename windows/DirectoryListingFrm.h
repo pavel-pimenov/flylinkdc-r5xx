@@ -51,7 +51,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 	, public InternetSearchBaseHandler<DirectoryListingFrame> // [+] IRainman fix.
 	, public PreviewBaseHandler<DirectoryListingFrame> // [+] IRainman fix.
 #ifdef _DEBUG
-	, virtual NonDerivable<DirectoryListingFrame>, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:
@@ -478,6 +478,11 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 					{
 						switch (col)
 						{
+							case COLUMN_TYPE:
+							{
+								return compare(a->columns[COLUMN_TYPE] + _T('~') + a->columns[COLUMN_FILENAME],
+								               b->columns[COLUMN_TYPE] + _T('~') + b->columns[COLUMN_FILENAME]);
+							}
 							case COLUMN_EXACTSIZE:
 								return compare(a->file->getSize(), b->file->getSize());
 							case COLUMN_SIZE:
@@ -600,7 +605,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		
 		typedef std::map< HWND , DirectoryListingFrame* > FrameMap;
 		typedef pair< HWND , DirectoryListingFrame* > FramePair;
-		static FrameMap g_frames;
+		static FrameMap g_dir_list_frames;
 		
 		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
 	private:

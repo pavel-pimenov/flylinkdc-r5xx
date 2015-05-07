@@ -32,7 +32,7 @@ struct SharedFileHandle
 	{
 		m_file.init(Text::toT(m_path), m_access, m_mode, true);
 	}
-	CriticalSection m_cs;
+	FastCriticalSection m_cs;
 	File  m_file;
 	string m_path;
 	int m_ref_cnt;

@@ -224,12 +224,8 @@ LRESULT CALLBACK splashCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		         DAYS(1, 10, 31) ||
 		         DAYS(2, 1, 28))
 			LOAD_SPLASH(IDR_SPLASH_WINTER);
-		else if (DAY(12, 31))
+		else if (DAY(12, 31) || DAYS(1, 1, 9))
 			LOAD_SPLASH(IDR_SPLASH_NY1);
-		else if (DAYS(1, 1, 9))
-			LOAD_SPLASH(IDR_SPLASH_NY2);
-		else if (DAY(4, 1))
-			LOAD_SPLASH(IDR_SPLASH_FOOLS_DAY);
 		else
 			LOAD_SPLASH(IDR_SPLASH);  // [+] InfinitySky. PNG Support from Apex 1.3.8.
 			

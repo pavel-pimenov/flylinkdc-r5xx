@@ -90,7 +90,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 		{
 			hashDone(0, aFileName, aTimeStamp, tt, -1, false, p_Size); // __int64 p_path_id,
 		}
-		void addTree(const TigerTree& p_tree);
+		static void addTree(const TigerTree& p_tree);
 		
 		void getStats(string& curFile, int64_t& bytesLeft, size_t& filesLeft)
 		{

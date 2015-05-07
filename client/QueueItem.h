@@ -22,6 +22,9 @@
 #include "Segment.h"
 #include "HintedUser.h"
 #include "webrtc/system_wrappers/interface/rw_lock_wrapper.h"
+#include "Download.h"
+
+typedef std::unordered_map<UserPtr, DownloadPtr, User::Hash> DownloadMap;
 
 
 extern const string g_dc_temp_extension;
@@ -46,8 +49,7 @@ class QueueItemDelegate
 		virtual void setDownloadItem(int64_t pos, int64_t size) = 0;
 };
 #endif
-class QueueItem : public Flags,
-	public intrusive_ptr_base<QueueItem>
+class QueueItem : public Flags
 #ifdef _DEBUG
 	, boost::noncopyable // [+] IRainman fix.
 #endif
@@ -311,7 +313,7 @@ class QueueItem : public Flags,
 		{
 			return m_downloads;
 		}
-		void addDownloadL(Download* p_download);
+		void addDownloadL(const DownloadPtr& p_download);
 		bool removeDownloadL(const UserPtr& p_user);
 		size_t getDownloadsSegmentCount() const
 		{
@@ -344,7 +346,6 @@ class QueueItem : public Flags,
 		bool isWaitingL() const
 		{
 			// TODO https://code.google.com/p/flylinkdc/issues/detail?id=1081
-			//RLock l(*QueueItem::g_cs);
 			return m_downloads.empty();
 		}
 		

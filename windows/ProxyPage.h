@@ -23,9 +23,6 @@
 #include "PropPage.h"
 
 class ProxyPage : public CPropertyPage<IDD_PROXY_PAGE>, public PropPage
-#ifdef _DEBUG
-	, virtual NonDerivable<ProxyPage> // [+] IRainman fix.
-#endif
 {
 	public:
 		ProxyPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_NETWORK) + _T('\\') + TSTRING(SETTINGS_PROXY))

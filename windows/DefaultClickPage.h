@@ -23,9 +23,6 @@
 #include "PropPage.h"
 
 class DefaultClickPage : public CPropertyPage<IDD_DEFAULT_CLICK_PAGE>, public PropPage
-#ifdef _DEBUG
-	, virtual NonDerivable<DefaultClickPage> // [+] IRainman fix.
-#endif
 {
 	public:
 		DefaultClickPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_DEFAULT_CLICK))

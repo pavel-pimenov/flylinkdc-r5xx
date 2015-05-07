@@ -1,5 +1,14 @@
-$Id: Changelog.txt,v 1.202 2014/11/17 19:10:28 nanard Exp $
+$Id: Changelog.txt,v 1.204 2015/04/30 08:35:47 nanard Exp $
 miniUPnP client Changelog.
+
+2015/04/30:
+  upnpc: output version on the terminal
+
+2015/04/27:
+  _BSD_SOURCE is deprecated in favor of _DEFAULT_SOURCE
+  fix CMakeLists.txt COMPILE_DEFINITIONS
+  fix getDevicesFromMiniSSDPD() not setting scope_id
+  improve -r command of upnpc command line tool
 
 2014/11/17:
   search all :

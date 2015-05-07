@@ -9,7 +9,7 @@
 
 class AboutLogDlg : public CDialogImpl<AboutLogDlg>
 #ifdef _DEBUG
-	, boost::noncopyable , virtual NonDerivable<AboutLogDlg> // [+] IRainman fix.
+	, boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:

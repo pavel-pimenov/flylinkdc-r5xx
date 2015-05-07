@@ -1,6 +1,3 @@
-/**
-* Страница в настройках "Ограничения скорости" / Page "Limits".
-*/
 
 #ifndef LimitPAGE_H
 #define LimitPAGE_H

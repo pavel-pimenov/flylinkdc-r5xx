@@ -25,7 +25,6 @@
 #include "../client/UploadManagerListener.h"
 #include "../client/ConnectionManagerListener.h"
 #include "../client/QueueManagerListener.h"
-#include "../client/TaskQueue.h"
 #include "../client/forward.h"
 #include "../client/Util.h"
 #include "../client/Download.h"
@@ -45,7 +44,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 	public PreviewBaseHandler<TransferView>, // [+] IRainman fix.
 	public UCHandler<TransferView>,
 	private SettingsManagerListener,
-	private CFlyTimerAdapter
+	virtual private CFlyTimerAdapter,
+	virtual private CFlyTaskAdapter
 {
 	public:
 		DECLARE_WND_CLASS(_T("TransferView"))
@@ -65,7 +65,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		NOTIFY_HANDLER(IDC_TRANSFERS, NM_CUSTOMDRAW, onCustomDraw)
 		NOTIFY_HANDLER(IDC_TRANSFERS, NM_DBLCLK, onDoubleClickTransfers)
 		MESSAGE_HANDLER(WM_CREATE, onCreate)
-		MESSAGE_HANDLER(WM_TIMER, onTimer);
+		MESSAGE_HANDLER(WM_TIMER, onTimerTask);
 		MESSAGE_HANDLER(WM_DESTROY, onDestroy)
 		MESSAGE_HANDLER(WM_SPEAKER, onSpeaker)
 		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
@@ -112,14 +112,6 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		LRESULT onForceAutoPassiveMode(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
 		LRESULT onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-		LRESULT onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
-		{
-			if (!m_tasks.empty())
-			{
-				speak();
-			}
-			return 0;
-		}
 		
 		void runUserCommand(UserCommand& uc);
 		void prepareClose();
@@ -256,9 +248,6 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		};
 		struct UpdateInfo;
 		class ItemInfo : public UserInfoBase, public CFlyTargetInfo
-#ifdef _DEBUG
-			, virtual NonDerivable<ItemInfo> // [+] IRainman fix.
-#endif
 		{
 			public:
 				enum Status
@@ -377,7 +366,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			{
 			}
 			UpdateInfo() :
-				updateMask(0), download(true), m_hintedUser(HintedUser(nullptr, Util::emptyString)), transferFailed(false), type(Transfer::TYPE_LAST), running(0)
+				updateMask(0), download(true), transferFailed(false), type(Transfer::TYPE_LAST), running(0)
 			{
 			}
 			
@@ -563,8 +552,6 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		OMenu usercmdsMenu;
 		OMenu copyMenu; // !SMT!-UI
 		
-		TaskQueue m_tasks;
-		
 		StringMap ucLineParams;
 		
 		void on(ConnectionManagerListener::Added, const ConnectionQueueItem* aCqi) noexcept;
@@ -572,33 +559,27 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		void on(ConnectionManagerListener::Removed, const ConnectionQueueItem* aCqi) noexcept;
 		void on(ConnectionManagerListener::StatusChanged, const ConnectionQueueItem* aCqi) noexcept;
 		
-		void on(DownloadManagerListener::Requesting, const Download* aDownload) noexcept;
-		void on(DownloadManagerListener::Complete, const Download* aDownload, bool isTree) noexcept
+		void on(DownloadManagerListener::Requesting, const DownloadPtr& aDownload) noexcept;
+		void on(DownloadManagerListener::Complete, const DownloadPtr& aDownload, bool isTree) noexcept
 		{
-			onTransferComplete(aDownload, true, Util::getFileName(aDownload->getPath()), isTree); // [!] IRainman fix.
+			onTransferComplete(aDownload.get(), true, Util::getFileName(aDownload->getPath()), isTree); // [!] IRainman fix.
 		}
-		void on(DownloadManagerListener::Failed, const Download* aDownload, const string& aReason) noexcept;
-		void on(DownloadManagerListener::Starting, const Download* aDownload) noexcept;
+		void on(DownloadManagerListener::Failed, const DownloadPtr& aDownload, const string& aReason) noexcept;
+		void on(DownloadManagerListener::Starting, const DownloadPtr& aDownload) noexcept;
 		void on(DownloadManagerListener::Tick, const DownloadArray& aDownload, uint64_t CurrentTick) noexcept;//[!]IRainman refactoring transfer mechanism + uint64_t CurrentTick
 		void on(DownloadManagerListener::Status, const UserConnection*, const string&) noexcept;
 		
-		void on(UploadManagerListener::Starting, const Upload* aUpload) noexcept;
+		void on(UploadManagerListener::Starting, const UploadPtr& aUpload) noexcept;
 		void on(UploadManagerListener::Tick, const UploadArray& aUpload, uint64_t CurrentTick) noexcept;//[!]IRainman refactoring transfer mechanism + uint64_t CurrentTick
-		void on(UploadManagerListener::Complete, const Upload* aUpload) noexcept
+		void on(UploadManagerListener::Complete, const UploadPtr& aUpload) noexcept
 		{
-			onTransferComplete(aUpload, false, aUpload->getPath(), false); // [!] IRainman fix.
+			onTransferComplete(aUpload.get(), false, aUpload->getPath(), false); // [!] IRainman fix.
 		}
 		void on(QueueManagerListener::StatusUpdated, const QueueItemPtr&) noexcept;
-		void on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept // [+] IRainman opt.
-		{
-			for (auto i = p_list.cbegin(); i != p_list.cend(); ++i)
-			{
-				on(QueueManagerListener::StatusUpdated(), *i);
-			}
-		}
+		void on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept; // [+] IRainman opt.
 		void on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept; // [+] IRainman opt.
 		void on(QueueManagerListener::Removed, const QueueItemPtr&) noexcept;
-		void on(QueueManagerListener::Finished, const QueueItemPtr&, const string&, const Download*) noexcept;
+		void on(QueueManagerListener::Finished, const QueueItemPtr&, const string&, const DownloadPtr& aDownload) noexcept;
 		
 		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
 		

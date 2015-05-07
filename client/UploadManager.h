@@ -27,7 +27,7 @@
 
 typedef pair<UserPtr, unsigned int> CurrentConnectionPair;
 typedef std::unordered_map<UserPtr, unsigned int, User::Hash> CurrentConnectionMap;
-typedef std::vector<Upload*> UploadList;
+typedef std::vector<UploadPtr> UploadList;
 
 class UploadQueueItem : public intrusive_ptr_base<UploadQueueItem>, // [!] IRainman fix: cleanup.
 	public ColumnBase< 12 >, // [+] PPA. TODO fix me: use COLUMN_LAST.
@@ -163,9 +163,9 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		 *
 		 * @return Running average download speed in Bytes/s
 		 */
-		int64_t getRunningAverage() const
+		static int64_t getRunningAverage()
 		{
-			return m_runningAverage;//[+] IRainman refactoring transfer mechanism
+			return g_runningAverage;//[+] IRainman refactoring transfer mechanism
 		}
 		
 		static int getSlots()
@@ -226,7 +226,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		/** @internal */
 		void addConnection(UserConnection* p_conn);
 		void removeDelayUpload(const UserPtr& aUser);
-		void abortUpload(const string& aFile, bool waiting = true);
+		static void abortUpload(const string& aFile, bool waiting = true);
 		
 		GETSET(int, extraPartial, ExtraPartial);
 		GETSET(int, extra, Extra);
@@ -243,8 +243,8 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		bool isFireball;
 		bool isFileServer;
 		static int  g_running;
-		int64_t m_runningAverage;//[+] IRainman refactoring transfer mechanism
-		uint64_t fireballStartTick;
+		static int64_t g_runningAverage;//[+] IRainman refactoring transfer mechanism
+		uint64_t m_fireballStartTick;
 		
 		static UploadList g_uploads;
 		static UploadList g_delayUploads;
@@ -279,8 +279,8 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		
 		bool getAutoSlot();
 		void removeConnection(UserConnection* aConn);
-		static void removeUpload(Upload* aUpload, bool delay = false);
-		void logUpload(const Upload* u);
+		static void removeUpload(UploadPtr& aUpload, bool delay = false);
+		void logUpload(const UploadPtr& u);
 		
 		static void testSlotTimeout(uint64_t aTick = GET_TICK()); // !SMT!-S
 		

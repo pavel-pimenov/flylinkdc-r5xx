@@ -43,6 +43,18 @@ static ResourceManager::Strings columnNames[] = { ResourceManager::FILENAME, Res
                                                   ResourceManager::SLOTS, ResourceManager::SHARED // !SMT!-UI
                                                 };
 
+WaitingUsersFrame::WaitingUsersFrame() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd), m_showTree(true),
+	m_needsUpdateStatus(false), m_needsResort(false),
+	showTreeContainer(_T("BUTTON"), this, SHOWTREE_MESSAGE_MAP)
+{
+	++UploadManager::g_count_WaitingUsersFrame;
+	memzero(statusSizes, sizeof(statusSizes));
+}
+
+WaitingUsersFrame::~WaitingUsersFrame()
+{
+	--UploadManager::g_count_WaitingUsersFrame;
+}
 LRESULT WaitingUsersFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
 	m_showTree = BOOLSETTING(UPLOADQUEUEFRAME_SHOW_TREE);
@@ -89,12 +101,13 @@ LRESULT WaitingUsersFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 	// colors
 	SET_LIST_COLOR(m_ctrlList);
 	
-	ctrlQueued.SetBkColor(Colors::bgColor);
-	ctrlQueued.SetTextColor(Colors::textColor);
+	ctrlQueued.SetBkColor(Colors::g_bgColor);
+	ctrlQueued.SetTextColor(Colors::g_textColor);
 	
 	ctrlShowTree.Create(ctrlStatus.m_hWnd, rcDefault, _T("+/-"), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 	ctrlShowTree.SetButtonStyle(BS_AUTOCHECKBOX, false);
 	ctrlShowTree.SetCheck(m_showTree);
+	ctrlShowTree.SetFont(Fonts::g_systemFont);
 	showTreeContainer.SubclassWindow(ctrlShowTree.m_hWnd);
 	
 	memzero(statusSizes, sizeof(statusSizes));
@@ -117,6 +130,7 @@ LRESULT WaitingUsersFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 	{
 		m_closed = true;
 		safe_destroy_timer();
+		clean_task();
 		UploadManager::getInstance()->removeListener(this);
 		SettingsManager::getInstance()->removeListener(this);
 		WinUtil::setButtonPressed(IDC_UPLOAD_QUEUE, false);
@@ -165,7 +179,7 @@ void WaitingUsersFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		setw(2);
 		setw(1);
 #undef setw
-		w[0] = 16;
+		w[0] = 36;
 		
 		ctrlStatus.SetParts(4, w);
 		
@@ -334,7 +348,7 @@ void WaitingUsersFrame::RemoveUser(const UserPtr& aUser)
 	while (userNode)
 	{
 		UserItem *ui = reinterpret_cast<UserItem *>(ctrlQueued.GetItemData(userNode));
-		if (aUser == ui->user)
+		if (aUser == ui->m_user)
 		{
 			delete ui;
 			ctrlQueued.DeleteItem(userNode);
@@ -361,7 +375,7 @@ LRESULT WaitingUsersFrame::onItemChanged(int /*idCtrl*/, LPNMHDR /* pnmh */, BOO
 			const auto& users = lockedInstance->getUploadQueueL();
 			auto it = std::find_if(users.begin(), users.end(), [&](const UserPtr & u)
 			{
-				return u == ui->user;
+				return u == ui->m_user;
 			});
 			if (it != users.end())
 			{
@@ -452,7 +466,7 @@ void WaitingUsersFrame::updateStatus()
 		
 		for (int i = 1; i < 3; i++)
 		{
-			int w = WinUtil::getTextWidth(tmp[i - 1], ctrlStatus.m_hWnd);
+			const int w = WinUtil::getTextWidth(tmp[i - 1], ctrlStatus.m_hWnd);
 			
 			if (statusSizes[i] < w)
 			{
@@ -575,7 +589,7 @@ void WaitingUsersFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 	{
 		if (m_ctrlList.isRedraw())
 		{
-			ctrlQueued.SetBkColor(Colors::bgColor);
+			ctrlQueued.SetBkColor(Colors::g_bgColor);
 			RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
 		}
 	}

@@ -45,7 +45,6 @@ class SettingsManagerListener
 		typedef X<2> SearchTypesChanged;
 		// [+] IRainman opt.
 		typedef X<3> UsersChanges;
-		typedef X<4> QueueChanges;
 		typedef X<5> ShareChanges;
 		// [~] IRainman opt.
 		
@@ -53,7 +52,6 @@ class SettingsManagerListener
 		virtual void on(Save, SimpleXML&) noexcept { }
 		virtual void on(SearchTypesChanged) noexcept { }
 		virtual void on(UsersChanges) noexcept { }
-		virtual void on(QueueChanges) noexcept { }
 		virtual void on(ShareChanges) noexcept { }
 };
 

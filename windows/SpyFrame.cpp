@@ -28,7 +28,7 @@ int SpyFrame::columnSizes[] = { 305, 70, 90, 120, 20 };
 int SpyFrame::columnIndexes[] = { COLUMN_STRING, COLUMN_COUNT, COLUMN_USERS, COLUMN_TIME, COLUMN_SHARE_HIT }; // !SMT!-S
 static ResourceManager::Strings columnNames[] = { ResourceManager::SEARCH_STRING, ResourceManager::COUNT, ResourceManager::USERS, ResourceManager::TIME, ResourceManager::SHARED }; // !SMT!-S
 
-SpyFrame::SpyFrame() : CFlyTimerAdapter(m_hWnd), m_total(0), m_current(0),
+SpyFrame::SpyFrame() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd), m_total(0), m_current(0),
 	m_ignoreTTH(BOOLSETTING(SPY_FRAME_IGNORE_TTH_SEARCHES)),
 	m_showNick(BOOLSETTING(SHOW_SEEKERS_IN_SPY_FRAME)),
 	m_LogFile(BOOLSETTING(LOG_SEEKERS_IN_SPY_FRAME)),
@@ -120,6 +120,7 @@ LRESULT SpyFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 	{
 		m_closed = true;
 		safe_destroy_timer();
+		clean_task();
 		if (m_log)
 		{
 			PostMessage(WM_SPEAKER, SAVE_LOG, (LPARAM)NULL);
@@ -330,7 +331,7 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 			{
 				auto s = (Stats*)i->second;
 				LocalArray<TCHAR, 50> buf;
-				snwprintf(buf.data(), buf.size(), CTSTRING(SEARCHES_PER), s->perS, s->perM);
+				snwprintf(buf.data(), buf.size(), CTSTRING(SEARCHES_PER), s->m_perS, s->m_perM);
 				ctrlStatus.SetText(2, (TSTRING(TOTAL) + _T(' ') + Util::toStringW(m_total)).c_str());
 				ctrlStatus.SetText(3, buf.data());
 				ctrlStatus.SetText(4, (TSTRING(HITS) + _T(' ') + Util::toStringW((size_t)(ShareManager::getHits()))).c_str());
@@ -429,11 +430,10 @@ LRESULT SpyFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 	if (!MainFrame::isAppMinimized(m_hWnd) && !isClosedOrShutdown())// [+] IRainman opt
 	{
 		auto s = new Stats;
-		s->perM = 0;
 		for (size_t i = 0; i < AVG_TIME; ++i)
-			s->perM += m_perSecond[i];
+			s->m_perM += m_perSecond[i];
 			
-		s->perS = s->perM / AVG_TIME;
+		s->m_perS = s->m_perM / AVG_TIME;
 		m_tasks.add(TICK_AVG, s);
 	}
 	{
@@ -446,10 +446,7 @@ LRESULT SpyFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 	{
 		m_tasks.add(SAVE_LOG, nullptr);
 	}
-	if (!m_tasks.empty())
-	{
-		speak();
-	}
+	onTimerTask();
 	return 0;
 }
 

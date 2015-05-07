@@ -1,3 +1,6 @@
+del .\GdiOle\GdiOle_i.c
+del .\GdiOle\GdiOle_i.h
+del .\GdiOle\GdiOle_p.c
 del .\compiled\*.pdb
 del /S /F /Q vc13
 rmdir /S /Q .\compiled\Settings\BackUp

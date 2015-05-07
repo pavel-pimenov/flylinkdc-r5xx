@@ -41,9 +41,6 @@ class ToolbarEntry
 };
 
 class ToolbarManager: public Singleton<ToolbarManager>, private SettingsManagerListener
-#ifdef _DEBUG
-	, virtual NonDerivable<ToolbarManager> // [+] IRainman fix.
-#endif
 {
 	public:
 		ToolbarManager();

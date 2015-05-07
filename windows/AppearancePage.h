@@ -1,7 +1,3 @@
-/**
-* Страница в настройках "Внешний вид" / Page "Appearance".
-*/
-
 /*
  * Copyright (C) 2001-2013 Jacek Sieka, arnetheduck on gmail point com
  *

@@ -1,7 +1,3 @@
-/**
-* Страница в настройках "Список пользователей" / Page "User list".
-*/
-
 #ifndef UserListColours_H
 #define UserListColours_H
 
