@@ -71,7 +71,7 @@ class InputStream
 {
 	public:
 		//InputStream() { } [-] IRainman.
-		virtual ~InputStream() noexcept{}
+		virtual ~InputStream() noexcept {}
 		/**
 		 * Call this function until it returns 0 to get all bytes.
 		 * @return The number of bytes read. len reflects the number of bytes
@@ -194,18 +194,22 @@ class BufferedOutputStream : public OutputStream
 	public:
 		using OutputStream::write;
 		
-		explicit BufferedOutputStream(OutputStream* aStream, size_t aBufSize) : s(aStream), pos(0), buf(aBufSize), m_is_flush(false) { }
+		explicit BufferedOutputStream(OutputStream* aStream, size_t aBufSize) : s(aStream), pos(0), buf(aBufSize)//, m_is_flush(false)
+		{
+		}
 		~BufferedOutputStream() noexcept
 		{
-			try
-			{
-				// We must do this in order not to lose bytes when a download
-				// is disconnected prematurely
-				flush();
-			}
-			catch (const Exception&)
-			{
-			}
+			/* https://drdump.com/UploadedReport.aspx?DumpID=3549421
+			            try
+			            {
+			                // We must do this in order not to lose bytes when a download
+			                // is disconnected prematurely
+			                flush();
+			            }
+			            catch (const Exception&)
+			            {
+			            }
+			*/
 			if (managed)
 			{
 				delete s;
@@ -217,14 +221,14 @@ class BufferedOutputStream : public OutputStream
 			if (pos > 0)
 			{
 				s->write(&buf[0], pos);
-				m_is_flush = false;
+				//m_is_flush = false;
 			}
 			pos = 0;
 			// Делаем сброс пока всегда.
 			// if (m_is_flush == false)
 			{
 				s->flush();
-				m_is_flush = true;
+				//m_is_flush = true;
 			}
 			return 0;
 		}
@@ -239,7 +243,7 @@ class BufferedOutputStream : public OutputStream
 				if (pos == 0 && len >= bufSize)
 				{
 					s->write(b, len);
-					m_is_flush = false;
+					//m_is_flush = false;
 					break;
 				}
 				else
@@ -253,7 +257,7 @@ class BufferedOutputStream : public OutputStream
 					if (pos == bufSize)
 					{
 						s->write(&buf[0], bufSize);
-						m_is_flush = false; // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=132490
+						//m_is_flush = false; // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=132490
 						pos = 0;
 					}
 				}
@@ -264,7 +268,7 @@ class BufferedOutputStream : public OutputStream
 		OutputStream* s;
 		size_t pos;
 		ByteVector buf;
-		bool m_is_flush;
+		//  bool m_is_flush;
 };
 
 class StringOutputStream : public OutputStream

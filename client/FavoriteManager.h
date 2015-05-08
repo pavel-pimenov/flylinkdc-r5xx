@@ -323,9 +323,6 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 #endif
 		static void save();
 		void recentsave();
-#ifdef USE_SUPPORT_HUB
-		static const string& getSupportHubURL();
-#endif //USE_SUPPORT_HUB
 		static size_t getCountFavsUsers();
 	private:
 		static void getFavoriteUsersNamesL(StringSet& p_users, bool p_is_ban);
@@ -417,7 +414,8 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		void speakUserUpdate(const bool added, FavoriteMap::iterator& i); // [+] IRainman
 		
 		static bool g_SupportsHubExist;
-		
+		static std::unordered_set<std::string> g_AllHubUrls;
+		bool replaceDeadHub();
 };
 
 #endif // !defined(FAVORITE_MANAGER_H)

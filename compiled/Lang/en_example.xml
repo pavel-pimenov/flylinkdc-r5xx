@@ -1100,6 +1100,7 @@
 	<string name="Remove">&amp;Remove</string>
 	<string name="Remove2">Remove</string>
 	<string name="RemoveAll">Remove all</string>
+	<string name="RemoveAllQueue">Remove all files from Queue (!)</string>
 	<string name="RemoveAllMarks">Remove all marks</string>
 	<string name="RemoveExtraSlot">Remove extra slot</string>
 	<string name="RemoveFromAll">Remove user from queue</string>

@@ -256,12 +256,25 @@ void File::setEOF()
 
 size_t File::flush()
 {
-	if (isOpen() && !FlushFileBuffers(h))
-		throw FileException(Util::translateError());
+	if (isOpen())
+	{
+		//static int g_count = 0;
+		//LogManager::message("File::flush() count = " + Util::toString(++g_count));
+		if (!FlushFileBuffers(h)) // TODO - похерить вообще  https://msdn.microsoft.com/ru-ru/library/windows/desktop/aa364439%28v=vs.85%29.aspx
+			// и нужно юзать FILE_FLAG_NO_BUFFERING and FILE_FLAG_WRITE_THROUGH ?
+			
+		{
+			string l_error = Util::translateError();
+			l_error = "File::flush() error = " + l_error;
+			LogManager::message(l_error);
+			CFlyServerJSON::pushError(33, l_error);
+			throw FileException(Util::translateError());
+		}
+	}
 	return 0;
 }
 
-void File::renameFile(const tstring& source, const tstring& target)
+void File::renameFile(const tstring & source, const tstring & target)
 {
 	if (!::MoveFile(formatPath(source).c_str(), formatPath(target).c_str()))
 	{
@@ -271,7 +284,7 @@ void File::renameFile(const tstring& source, const tstring& target)
 	}
 }
 
-void File::copyFile(const tstring& source, const tstring& target)
+void File::copyFile(const tstring & source, const tstring & target)
 {
 	if (!::CopyFile(formatPath(source).c_str(), formatPath(target).c_str(), FALSE))
 	{
@@ -279,7 +292,7 @@ void File::copyFile(const tstring& source, const tstring& target)
 	}
 }
 #ifndef _CONSOLE
-size_t File::bz2CompressFile(const wstring& p_file, const wstring& p_file_bz2)
+size_t File::bz2CompressFile(const wstring & p_file, const wstring & p_file_bz2)
 {
 	size_t l_outSize = 0;
 	int64_t l_size = File::getSize(p_file);
@@ -301,19 +314,19 @@ size_t File::bz2CompressFile(const wstring& p_file, const wstring& p_file_bz2)
 }
 #endif // _CONSOLE
 
-int64_t File::getSize(const tstring& aFileName) noexcept
+int64_t File::getSize(const tstring & aFileName) noexcept
 {
 	auto i = FileFindIter(aFileName);
 	return i != FileFindIter::end ? i->getSize() : -1;
 }
 
-bool File::isExist(const tstring& aFileName) noexcept // [+] IRainman
+bool File::isExist(const tstring & aFileName) noexcept // [+] IRainman
 {
 	const DWORD attr = GetFileAttributes(formatPath(aFileName).c_str());
 	return (attr != INVALID_FILE_ATTRIBUTES);
 }
 
-bool File::isExist(const tstring& filename, int64_t& outFileSize, int64_t& outFiletime) // [+] FlylinkDC++ Team
+bool File::isExist(const tstring & filename, int64_t & outFileSize, int64_t & outFiletime) // [+] FlylinkDC++ Team
 {
 	dcassert(!filename.empty());
 	
@@ -330,7 +343,7 @@ bool File::isExist(const tstring& filename, int64_t& outFileSize, int64_t& outFi
 	return false;
 }
 
-string File::formatPath(const string& path)
+string File::formatPath(const string & path)
 {
 	if (path.size() < (MAX_PATH / 2) - 2)
 		return path;
@@ -341,7 +354,7 @@ string File::formatPath(const string& path)
 		return "\\\\?\\" + path;
 }
 
-tstring File::formatPath(const tstring& path)
+tstring File::formatPath(const tstring & path)
 {
 	dcassert(std::count(path.cbegin(), path.cend(), L'/') == 0);
 	if (path.size() < (MAX_PATH / 2) - 2)
@@ -353,7 +366,7 @@ tstring File::formatPath(const tstring& path)
 		return _T("\\\\?\\") + path;
 }
 
-void File::addTrailingSlash(string& p_path)
+void File::addTrailingSlash(string & p_path)
 {
 	dcassert(!p_path.empty());
 	if (!p_path.empty())
@@ -365,7 +378,7 @@ void File::addTrailingSlash(string& p_path)
 	}
 }
 
-void File::ensureDirectory(const tstring& aFile) noexcept
+void File::ensureDirectory(const tstring & aFile) noexcept
 {
 	dcassert(!aFile.empty());
 	// Skip the first dir...
@@ -500,7 +513,7 @@ StringList File::findFiles(const string& path, const string& pattern, bool p_app
 	return ret;
 }
 
-void FileFindIter::init(const tstring& path)
+void FileFindIter::init(const tstring & path)
 {
 	m_handle = FindFirstFileEx(File::formatPath(path).c_str(),
 	                           CompatibilityManager::g_find_file_level,
@@ -532,7 +545,7 @@ FileFindIter& FileFindIter::operator++()
 	return *this;
 }
 
-bool FileFindIter::operator!=(const FileFindIter& rhs) const
+bool FileFindIter::operator!=(const FileFindIter & rhs) const
 {
 	return m_handle != rhs.m_handle;
 }

@@ -1948,9 +1948,9 @@ LRESULT MainFrame::OnConnectToSupportHUB(WORD /*wNotifyCode*/, WORD /*wID*/, HWN
 	RecentHubEntry r;
 	r.setName(STRING(SUPPORTS_SERVER_DESC));
 	r.setDescription(STRING(SUPPORTS_SERVER_DESC));
-	r.setServer(FavoriteManager::getSupportHubURL());
+	r.setServer(CFlyServerConfig::g_support_hub);
 	FavoriteManager::getInstance()->addRecent(r);
-	HubFrame::openWindow(FavoriteManager::getSupportHubURL());
+	HubFrame::openWindow(CFlyServerConfig::g_support_hub);
 	
 	return 0;
 }

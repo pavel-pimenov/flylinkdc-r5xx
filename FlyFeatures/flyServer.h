@@ -233,6 +233,7 @@ public:
 #ifdef USE_SUPPORT_HUB
   static string   g_support_hub;
 #endif // USE_SUPPORT_HUB
+  static string   g_mapping_dead_hubs;
   static string   g_regex_find_ip;
   static string   g_faq_search_does_not_work;
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB

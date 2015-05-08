@@ -1,4 +1,34 @@
 ------------------------------------------------------------------------
+r18601 | pavel.pimenov@gmail.com | 2015-05-07 23:12:53 +0300 (Чт, 07 май 2015) | 23 lines
+
+Merged revision(s) 18596-18600 from trunk:
+# Log
+........
+# У ~BufferedOutputStream() убрал flush - странно падаем https://drdump.com/UploadedReport.aspx?DumpID=3549421
+# Миграция хабов (тестируемся пока на озерках)
+# Изменил расположение меню "удаления всей очереди"
+  (Огромная просьба. Перенеси куда нибудь в другое место "Удалить все" в очереди закачек. дело в том, что раньше там было просто Удалить 
+  и теперь по привычке, на автомате, я уже третий раз, вместо одной закачки удаляю все.)
+........
+* SQLite Release 3.8.10 On 2015-05-07
+    Added the sqldiff.exe utility program for computing the differences between two SQLite database files.
+    Added the y format string to the matchinfo() function of FTS3.
+    Performance improvements for ORDER BY, VACUUM, CREATE INDEX, PRAGMA integrity_check, and PRAGMA quick_check.
+    Fix many obscure problems discovered while SQL fuzzing.
+    Identify all methods for important objects in the interface documentation. (example)
+    Made the American Fuzzy Lop fuzzer a standard part of SQLite's testing strategy.
+    Add the ".binary" and ".limits" commands to the command-line shell.
+    Make the "dbstat" virtual table part of standard builds when compiled with the SQLITE_ENABLE_DBSTAT_VTAB option. 
+........
+* Обработал ситуацию с двойными озерками.
+# Быстрее закрываю DHT сокет если приложение уже разрушается.
+........
+
+------------------------------------------------------------------------
+r18596 | pavel.pimenov@gmail.com | 2015-05-07 06:06:50 +0300 (Чт, 07 май 2015) | 1 line
+
+# Log
+------------------------------------------------------------------------
 r18595 | pavel.pimenov@gmail.com | 2015-05-07 04:57:59 +0300 (Чт, 07 май 2015) | 10 lines
 
 * Updating the database ISPs

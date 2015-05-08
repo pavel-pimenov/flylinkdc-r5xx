@@ -32,6 +32,7 @@
 bool FavoriteManager::g_SupportsHubExist = false;
 bool FavoriteManager::g_isNotEmpty = false;
 bool FavoriteManager::g_recent_dirty = false;
+std::unordered_set<std::string> FavoriteManager::g_AllHubUrls;
 FavoriteManager::FavoriteMap FavoriteManager::g_fav_users_map;
 StringSet FavoriteManager::g_fav_users;
 UserCommand::List FavoriteManager::g_userCommands;
@@ -83,13 +84,6 @@ FavoriteManager::~FavoriteManager()
 	for_each(g_recentHubs.begin(), g_recentHubs.end(), DeleteFunction());
 	for_each(g_previewApplications.begin(), g_previewApplications.end(), DeleteFunction());
 }
-
-#ifdef USE_SUPPORT_HUB
-const string& FavoriteManager::getSupportHubURL()
-{
-	return CFlyServerConfig::g_support_hub;
-}
-#endif // USE_SUPPORT_HUB
 
 size_t FavoriteManager::getCountFavsUsers()
 {
@@ -864,7 +858,6 @@ void FavoriteManager::save()
 			File f(l_tmp_file, File::WRITE, File::CREATE | File::TRUNCATE);
 			f.write(SimpleXML::utf8Header);
 			f.write(xml.toXML());
-			f.flush();
 			f.close();
 		}
 		// Проверим валидность XML
@@ -1007,7 +1000,7 @@ void FavoriteManager::load()
 			e->setName(STRING(SUPPORTS_SERVER_DESC));
 			e->setConnect(true);
 			e->setDescription(STRING(SUPPORTS_SERVER_DESC));
-			e->setServer(getSupportHubURL());
+			e->setServer(CFlyServerConfig::g_support_hub);
 			{
 				webrtc::WriteLockScoped l(*g_csHubs);
 				g_favoriteHubs.push_back(e);
@@ -1064,6 +1057,34 @@ void FavoriteManager::load()
 #endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 }
 
+bool FavoriteManager::replaceDeadHub()
+{
+	bool l_result = false;
+	std::vector<std::pair<std::string, std::string> > l_dead_hubs;
+	l_dead_hubs.push_back(make_pair("dchub://dc.cifracom.ru", "dchub://ozerki.org"));
+	l_dead_hubs.push_back(make_pair("dchub://178.130.0.214", "dchub://ozerki.org"));
+	for (auto i = l_dead_hubs.cbegin(); i != l_dead_hubs.cend(); ++i)
+	{
+		if (FavoriteHubEntry* l_HubEntry = getFavoriteHubEntry(i->first))
+		{
+			if (g_AllHubUrls.count(i->second) == 0)
+			{
+				l_HubEntry->setServer(i->second);
+				g_AllHubUrls.insert(i->second);
+				l_HubEntry->setConnect(true);
+				CFlyServerJSON::pushError(32, "Dead Hub replace: " + i->first + " -> " + i->second);
+			}
+			else
+			{
+				l_HubEntry->setConnect(false);
+				CFlyServerJSON::pushError(34, "Dead Hub disable auto-connect: " + i->first );
+			}
+			l_result = true;
+		}
+	}
+	return l_result;
+}
+
 void FavoriteManager::load(SimpleXML& aXml
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
                            , bool p_is_url /* = false*/
@@ -1095,9 +1116,10 @@ void FavoriteManager::load(SimpleXML& aXml
 			aXml.resetCurrentChild();
 			while (aXml.findChild("Hub"))
 			{
-				const string& l_CurrentServerUrl = Util::formatDchubUrl(aXml.getChildAttrib("Server"));
+				const string l_CurrentServerUrl = Util::formatDchubUrl(aXml.getChildAttrib("Server"));
+				g_AllHubUrls.insert(l_CurrentServerUrl);
 #ifdef USE_SUPPORT_HUB
-				if (l_CurrentServerUrl == getSupportHubURL())
+				if (l_CurrentServerUrl == CFlyServerConfig::g_support_hub)
 					g_SupportsHubExist = true;
 				else
 #endif USE_SUPPORT_HUB
@@ -1254,6 +1276,9 @@ void FavoriteManager::load(SimpleXML& aXml
 					}
 #endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 			}
+			//
+			needSave |= replaceDeadHub();
+			//
 			aXml.stepOut();
 		}
 		aXml.resetCurrentChild();

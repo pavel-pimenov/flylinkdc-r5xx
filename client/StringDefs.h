@@ -1105,6 +1105,7 @@ enum Strings   // @DontAdd
 	REMOVE, // "&Remove"
 	REMOVE2, // "Remove"
 	REMOVE_ALL, // "Remove all"
+	REMOVE_ALL_QUEUE, // "Remove all files from Queue (!)"
 	REMOVE_ALL_MARKS, // "Remove all marks"
 	REMOVE_EXTRA_SLOT, // "Remove extra slot"
 	REMOVE_FROM_ALL, // "Remove user from queue"

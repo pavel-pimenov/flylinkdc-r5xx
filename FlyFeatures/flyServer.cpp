@@ -110,6 +110,7 @@ uint16_t CFlyServerConfig::g_ban_flood_command = 10;      // Блокируем на 10 сек
 uint16_t CFlyServerConfig::g_max_unique_tth_search  = 10; // Не принимаем в течении 10 секунд одинаковых поисков по TTH для одного и того-же целевого IP:PORT (UDP)
 uint16_t CFlyServerConfig::g_max_unique_file_search = 10; // Не принимаем в течении 10 секунд одинаковых поисков по File для одного и того-же целевого IP:PORT (UDP)
 string CFlyServerConfig::g_regex_find_ip = "\\d\\d?\\d?\\.\\d\\d?\\d?.\\d\\d?\\d?.\\d\\d?\\d?";
+string CFlyServerConfig::g_mapping_dead_hubs;
 #ifdef USE_SUPPORT_HUB
 string CFlyServerConfig::g_support_hub = "dchub://dc.fly-server.ru";
 #endif // USE_SUPPORT_HUB
@@ -421,6 +422,7 @@ void CFlyServerConfig::loadConfig()
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 					initString("antivirus_db",g_antivirus_db_url);
 #endif
+          initString("mapping_dead_hub",g_mapping_dead_hubs);
 #ifdef USE_SUPPORT_HUB
 					initString("support_hub",g_support_hub);
 #endif // USE_SUPPORT_HUB
@@ -1065,7 +1067,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 	syslog(LOG_USER | LOG_INFO, "%s %s %s [%s]", l_cid.c_str(), l_pid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
 }
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 31
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 34
 {
 	bool l_is_send = false;
 	bool l_is_error = false;

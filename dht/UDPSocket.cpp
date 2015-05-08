@@ -123,7 +123,8 @@ void UDPSocket::checkIncoming()
     Socket::g_stats.m_dht.totalDown += len;
 		dcdrun(m_receivedBytes += len);
 		dcdrun(m_receivedPackets++);
-		
+		if (ClientManager::isShutdown())
+			return;
 		if (len > 1)
 		{
 			if(l_buf.size() > 16 &&  memcmp(l_buf.data(), "$FLY-TEST-PORT ",15) == 0)

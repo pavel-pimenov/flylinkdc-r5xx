@@ -1351,9 +1351,12 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 		dirMenu.AppendMenu(MF_STRING, IDC_MOVE, CTSTRING(MOVE));
 		dirMenu.AppendMenu(MF_STRING, IDC_RENAME, CTSTRING(RENAME));
 		dirMenu.AppendMenu(MF_SEPARATOR);
-		dirMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(REMOVE));
+		OMenu l_deleteAllMenu;
+		l_deleteAllMenu.CreatePopupMenu();
+		l_deleteAllMenu.AppendMenu(MF_STRING, IDC_REMOVE_ALL, CTSTRING(REMOVE_ALL_QUEUE));
+		dirMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)l_deleteAllMenu, CTSTRING(REMOVE_ALL));
 		dirMenu.AppendMenu(MF_SEPARATOR);
-		dirMenu.AppendMenu(MF_STRING, IDC_REMOVE_ALL, CTSTRING(REMOVE_ALL));
+		dirMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(REMOVE));
 		dirMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 		
 		return TRUE;
