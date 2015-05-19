@@ -87,7 +87,7 @@ class PopupManager : public Singleton< PopupManager >, private TimerManagerListe
 		string PopupImage;
 		
 		// TimerManagerListener
-		void on(TimerManagerListener::Second, uint64_t tick) noexcept;
+		void on(TimerManagerListener::Second, uint64_t tick) noexcept override;
 		
 };
 

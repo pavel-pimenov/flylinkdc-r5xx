@@ -107,7 +107,7 @@
 ;Беларусь;Сморгонь;Айчына Плюс;;91.149.145.78
 ;Казахстан;Актау;SkySilk;;dc.skycity.kz:4111
 ;Казахстан;Актау;X-COM;;dc.x-com.kz,dayfile.in
-;Казахстан;Алматы;Altel4g;;piknik-dc.ru,artcool.org,dc.tiera.ru,spb-hub.ru,prime-hub.ru,allavtovo.ru,dc.unionbest.org:4111,dc.mside.net,kcahdep.org,kurskhub.ru,godc.ru,dc.cifracom.ru,dc.dcmagnets.ru,dc.filimania.com,dc.fly-server.ru
+;Казахстан;Алматы;Altel4g;;piknik-dc.ru,artcool.org,dc.tiera.ru,spb-hub.ru,prime-hub.ru,allavtovo.ru,dc.unionbest.org:4111,dc.mside.net,kcahdep.org,godc.ru,dc.cifracom.ru,dc.dcmagnets.ru,dc.filimania.com,dc.fly-server.ru
 ;Казахстан;Алматы;Билайн;;10.21.182.88,qazaq.kz,10.10.0.135,10.16.253.34,kaztorka.org,dc.beetor.org:4111,10.21.182.88:666,dc.torrentsclub.org:411
 ;Казахстан;Астана;Билайн;;10.1.26.15,10.86.147.68
 ;Казахстан;Караганда;ALMATV;;81.88.156.147
@@ -212,7 +212,7 @@
 ;Россия;Благовещенск;Televox;;tlvx.ru
 ;Россия;Благовещенск;Городок;;192.168.0.12
 ;Россия;Благовещенск;Интерком;;dc.intercom.lan
-;Россия;Благовещенск;МКС;;10.0.0.3
+;Россия;Благовещенск;МКС;;10.0.0.3,10.10.0.3
 ;Россия;Благовещенск;Ростелеком;;farista.net
 ;Россия;Благовещенск;Телевокс;;172.16.255.1,flylinkdc.dyndns.org,local.tele-vox.ru,hub.tlvx.ru
 ;Россия;Благовещенск;Теледайн;;dchub.therion28.ru
@@ -285,6 +285,7 @@
 ;Россия;Воронеж;Freedom;;dchub://dc.cifracom.ru
 ;Россия;Воронеж;NetByNet;;dc.puzzle.su,video-hub.no-ip.org,dc.multilocal.ru,klan-hub.ru
 ;Россия;Воронеж;Билайн;;p2p.corbina.net
+;Россия;Воронеж;Домолинк;;nodvrn.ddns.net:411,dchub.nod.vrn.ru:411
 ;Россия;Воронеж;Связь телеком;;dc.jst:4111
 ;Россия;Воронеж;ТТК;;adc://dc.ttk-uv.ru:57300
 ;Россия;Вурнары;ГРИН Интернет;;dc.vurnet.ru,dc.vurnary.net
@@ -1020,7 +1021,6 @@
 ;Россия;Тейково;Горизонт;;hub.skatv.ru
 ;Россия;Тикси;Astal;;192.168.1.36
 ;Россия;Тобольск;Comstar;;172.16.255.221
-;Россия;Тольятти;Аист;;31.28.60.24
 ;Россия;Томск;Tomtel;;p2p.tomsk.ru:411
 ;Россия;Тосно;Лентел;;109.197.12.214,dc.teyla.ru,dc.silvernet.ru,dc.kolpinonet.ru:4111,dc.wideix.ru
 ;Россия;Троицк;Спиди-Лайн;;dchub://piknik-dc.ru
@@ -1035,7 +1035,7 @@
 ;Россия;Тула;Билайн;;10.216.0.2,picnic-dc.ru,pos-front.no-ip.biz,dc.tula.net,hub.altair-tv.net,10.14.177.177,sigma13.no-ip.org:10000,miraj.no-ip.biz:1411,10.14.226.153,10.14.129.126,russian.no-ip.org,acckoebugoga.no-ip.org,nashhub71.no-ip.org,10.14.170.91:1209,energy-beeline.no-ip.biz,10.14.114.3:1209,naruto-manga.no-ip.org,10.14.118.88:1209,prizrak-tula.sytes.net,cor.tula71.ru,dc-openline.sytes.net,animetula.sytes.net,mrstalker.tula.su,tula71.no-ip.org:1209,corbeeline.ath.cx
 ;Россия;Тула;Ростелеком;;vipland.sytes.net,evolutkino.sytes.net,212.12.0.1,hub.altair-tv.net,dc.tula.net,hub.tula71.ru,dc.tula71.net,212.12.19.254,clubhub.sytes.net,dc.anton.tula.net,10.216.0.2,212.12.11.14:411,hub.torrent-tula.ru:10000,apocalypsehub.sytes.net,rap-alexin.sytes.net
 ;Россия;Тулун;Тулун-ТелеКом;;10.0.4.2,188.43.52.2
-;Россия;Тында;Регион-28;;godc.ru:411,artcool.org:411,dc.region-28.lan,dc.dcmagnets.ru:411,dc.a-galaxy.com:411,prime-hub.ru:411,dc.tiera.ru:411,dc.filimania.com:411,dc.cifracom.ru:411,allavtovo.ru,kurskhub.ru,dc.unionbest.org:4111,dc.mside.net:411,piknik-dc.ru:411,spb-hub.ru:411,dc.fly-server.ru
+;Россия;Тында;Регион-28;;godc.ru:411,artcool.org:411,dc.region-28.lan,dc.dcmagnets.ru:411,dc.a-galaxy.com:411,prime-hub.ru:411,dc.tiera.ru:411,dc.filimania.com:411,dc.cifracom.ru:411,allavtovo.ru,dc.unionbest.org:4111,dc.mside.net:411,piknik-dc.ru:411,spb-hub.ru:411,dc.fly-server.ru
 ;Россия;Тында;ТРАНССВЯЗЬТЕЛЕКОМ;;dc.tynda.bam,172.22.6.6
 ;Россия;Тюмень;Dom-ru;;dc.filimania.com,tunnelklub.spb.ru,piknik-dc.ru,prapor.in,dc.dcmagnets.ru,verlihub.org:4111
 ;Россия;Тюмень;GIGA-NET-RU;;hub.giga-net.local
@@ -1188,7 +1188,7 @@
 ;Россия;Ярцево;Интернет67;;dc-dor.internet67.ru,dc-yar.internet67.ru
 ;Россия;Ясногорск;TTK;;dc.ttk-chita.ru
 ;Узбекистан;Nukus;Uzonline;;hi.uz
-;Узбекистан;Андижон;Uzonline;;allavtovo.ru,dc.unionbest.org:4111,dc.mside.net,dc.cifracom.ru,dc.filimania.com,dc.dcmagnets.ru,piknik-dc.ru,artcool.org,dc.tiera.ru,spb-hub.ru,prime-hub.ru,godc.ru,kurskhub.ru,dc.fly-server.ru
+;Узбекистан;Андижон;Uzonline;;allavtovo.ru,dc.unionbest.org:4111,dc.mside.net,dc.cifracom.ru,dc.filimania.com,dc.dcmagnets.ru,piknik-dc.ru,artcool.org,dc.tiera.ru,spb-hub.ru,prime-hub.ru,godc.ru,dc.fly-server.ru
 ;Узбекистан;Зарафшан;TuronNET;;172.6.18.6,10.254.1.54,10.254.1.58
 ;Узбекистан;Навои;Hub-hi-uz;;hub.h.uz
 ;Узбекистан;Самарканд;TPS;;jetfree.no-ip.info
@@ -1210,7 +1210,7 @@
 ;Узбекистан;Ташкент;Uznet;;213.230.121.155
 ;Узбекистан;Ташкент;UzOnline;;angelka.no-ip.info,madman242.no-ip.biz:411,steep-hub.myftp.org,hub.hi.uz
 ;Узбекистан;Ташкент;Галс телеком;;10.0.0.3,10.0.9.98,ttimurporivaev.no-ip.org:1209,10.0.13.57
-;Узбекистан;Ташкент;Узонлайн;;hub.hi.uz,allavtovo.ru,dc.unionbest.org:4111,dc.mside.net,dc.cifracom.ru,dc.filimania.com,dc.dcmagnets.ru,piknik-dc.ru,artcool.org,dc.tiera.ru,spb-hub.ru,prime-hub.ru,godc.ru,kurskhub.ru,dc.fly-server.ru,hub.hi.uz
+;Узбекистан;Ташкент;Узонлайн;;hub.hi.uz,allavtovo.ru,dc.unionbest.org:4111,dc.mside.net,dc.cifracom.ru,dc.filimania.com,dc.dcmagnets.ru,piknik-dc.ru,artcool.org,dc.tiera.ru,spb-hub.ru,prime-hub.ru,godc.ru,dc.fly-server.ru,hub.hi.uz
 ;Узбекистан;Чирчик;CHIRKOM;;db.chirkom.uz
 ;Украина;Александрия;КТМ;;games.alexandriya.net
 ;Украина;Алушта;Бытрадиотехника;;brt.net.ua:411

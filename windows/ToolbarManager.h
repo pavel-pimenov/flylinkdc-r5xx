@@ -62,8 +62,8 @@ class ToolbarManager: public Singleton<ToolbarManager>, private SettingsManagerL
 		void save(SimpleXML& aXml);
 		
 		// SettingsManagerListener
-		void on(SettingsManagerListener::Load, SimpleXML& xml);
-		void on(SettingsManagerListener::Save, SimpleXML& xml);
+		void on(SettingsManagerListener::Load, SimpleXML& xml) override;
+		void on(SettingsManagerListener::Save, SimpleXML& xml) override;
 		
 		// Store Toolbar infos here
 		ToolbarEntry::List toolbarEntries;

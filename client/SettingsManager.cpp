@@ -721,7 +721,7 @@ void SettingsManager::setDefaults()
 	setDefault(DROP_MULTISOURCE_ONLY, TRUE);
 	setDefault(EXTRA_SLOTS, 10); //[+]PPA
 	setDefault(SHUTDOWN_TIMEOUT, 150);
-	setDefault(SEARCH_PASSIVE, false); //[+] PPA
+	setDefault(SEARCH_PASSIVE, FALSE); //[+] PPA
 	//setDefault(MAX_UPLOAD_SPEED_LIMIT_NORMAL, 0);
 	//setDefault(MAX_DOWNLOAD_SPEED_LIMIT_NORMAL, 0);
 	//setDefault(MAX_UPLOAD_SPEED_LIMIT, 0);    // [~] brain-ripper, merge

@@ -49,6 +49,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 	public UCHandler<HubFrame>,
 	public UserInfoBaseHandler < HubFrame, UserInfoGuiTraits::NO_CONNECT_FAV_HUB | UserInfoGuiTraits::NICK_TO_CHAT | UserInfoGuiTraits::USER_LOG | UserInfoGuiTraits::INLINE_CONTACT_LIST, OnlineUserPtr > ,
 	private SettingsManagerListener,
+	private FavoriteManagerListener,
 	public BaseChatFrame // [+] IRainman copy-past fix.
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	, private ConnectionManagerListener // [+] FlylinkDC
@@ -414,34 +415,34 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		void appendHubAndUsersItems(OMenu& p_menu, const bool isChat);
 		
 		// FavoriteManagerListener
-		void on(FavoriteManagerListener::UserAdded, const FavoriteUser& /*aUser*/) noexcept;
-		void on(FavoriteManagerListener::UserRemoved, const FavoriteUser& /*aUser*/) noexcept;
+		void on(FavoriteManagerListener::UserAdded, const FavoriteUser& /*aUser*/) noexcept override;
+		void on(FavoriteManagerListener::UserRemoved, const FavoriteUser& /*aUser*/) noexcept override;
 		void resortForFavsFirst(bool justDoIt = false);
 		
 		// SettingsManagerListener
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
 		
 		// ClientListener
-		void on(ClientListener::Connecting, const Client*) noexcept;
-		void on(ClientListener::Connected, const Client*) noexcept;
-		void on(ClientListener::UserUpdated, const OnlineUserPtr&) noexcept; // !SMT!-fix
-		void on(ClientListener::UsersUpdated, const Client*, const OnlineUserList&) noexcept;
-		void on(ClientListener::UserRemoved, const Client*, const OnlineUserPtr&) noexcept;
-		void on(ClientListener::Redirect, const Client*, const string&) noexcept;
-		void on(ClientListener::Failed, const Client*, const string&) noexcept;
-		void on(ClientListener::GetPassword, const Client*) noexcept;
-		void on(ClientListener::HubUpdated, const Client*) noexcept;
-		void on(ClientListener::Message, const Client*, std::unique_ptr<ChatMessage>&) noexcept;
-		//void on(PrivateMessage, const Client*, const string &strFromUserName, const UserPtr&, const UserPtr&, const UserPtr&, const string&, bool = true) noexcept; // !SMT!-S [-] IRainman fix.
-		void on(NickTaken, const Client*) noexcept;
-		void on(ClientListener::CheatMessage, const string&) noexcept;
-		void on(ClientListener::UserReport, const Client*, const string&) noexcept; // [+] IRainman
-		void on(ClientListener::HubTopic, const Client*, const string&) noexcept;
-		void on(ClientListener::StatusMessage, const Client*, const string& line, int statusFlags);
+		void on(ClientListener::Connecting, const Client*) noexcept override;
+		void on(ClientListener::Connected, const Client*) noexcept override;
+		void on(ClientListener::UserUpdated, const OnlineUserPtr&) noexcept override; // !SMT!-fix
+		void on(ClientListener::UsersUpdated, const Client*, const OnlineUserList&) noexcept override;
+		void on(ClientListener::UserRemoved, const Client*, const OnlineUserPtr&) noexcept override;
+		void on(ClientListener::Redirect, const Client*, const string&) noexcept override;
+		void on(ClientListener::Failed, const Client*, const string&) noexcept override;
+		void on(ClientListener::GetPassword, const Client*) noexcept override;
+		void on(ClientListener::HubUpdated, const Client*) noexcept override;
+		void on(ClientListener::Message, const Client*, std::unique_ptr<ChatMessage>&) noexcept override;
+		//void on(PrivateMessage, const Client*, const string &strFromUserName, const UserPtr&, const UserPtr&, const UserPtr&, const string&, bool = true) noexcept override; // !SMT!-S [-] IRainman fix.
+		void on(NickTaken, const Client*) noexcept override;
+		void on(ClientListener::CheatMessage, const string&) noexcept override;
+		void on(ClientListener::UserReport, const Client*, const string&) noexcept override; // [+] IRainman
+		void on(ClientListener::HubTopic, const Client*, const string&) noexcept override;
+		void on(ClientListener::StatusMessage, const Client*, const string& line, int statusFlags) noexcept override;
 #ifdef RIP_USE_CONNECTION_AUTODETECT
-		void on(ConnectionManagerListener::DirectModeDetected, const string&) noexcept;
+		void on(ConnectionManagerListener::DirectModeDetected, const string&) noexcept override;
 #endif
-		void on(ClientListener::DDoSSearchDetect, const string&) noexcept;
+		void on(ClientListener::DDoSSearchDetect, const string&) noexcept override;
 		
 		struct StatusTask : public Task
 		{

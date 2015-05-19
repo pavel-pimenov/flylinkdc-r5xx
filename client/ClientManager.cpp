@@ -1011,6 +1011,17 @@ uint64_t ClientManager::multi_search(const SearchParamTokenMultiClient& p_search
 	return estimateSearchSpan;
 }
 
+void ClientManager::getOnlineClients(StringSet& p_onlineClients)
+{
+	webrtc::ReadLockScoped l(*g_csClients);
+	p_onlineClients.clear();
+	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
+	{
+		if (i->second->isConnected())
+			p_onlineClients.insert(i->second->getHubUrl());
+	}
+}
+
 void ClientManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) noexcept
 {
 	//Lock l(cs); [-] IRainman opt.
@@ -1241,7 +1252,7 @@ void ClientManager::on(Connected, const Client* c) noexcept
 	fire(ClientManagerListener::ClientConnected(), c);
 }
 
-void ClientManager::on(UserUpdated, const Client*, const OnlineUserPtr& user) noexcept
+void ClientManager::on(UserUpdated, const OnlineUserPtr& user) noexcept
 {
 	if (!isShutdown())
 	{

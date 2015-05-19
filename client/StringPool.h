@@ -61,7 +61,7 @@ class StringPool : public Singleton<StringPool>, private TimerManagerListener
 		{
 			Thread::safeDec(ptr->second);
 		}
-		void on(TimerManagerListener::Minute, uint64_t /*aTick*/) noexcept;
+		void on(TimerManagerListener::Minute, uint64_t /*aTick*/) noexcept override;
 };
 
 #endif // IRAINMAN_USE_STRING_POOL

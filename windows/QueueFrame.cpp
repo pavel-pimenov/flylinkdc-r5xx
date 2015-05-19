@@ -1759,7 +1759,7 @@ void QueueFrame::updateStatus()
 					const QueueItemInfo* ii = ctrlQueue.getItemData(i);
 					if (ii)
 					{
-						const int64_t l_size = ii->getSize();
+						const int64_t l_size = ii->getSize(); // https://drdump.com/Problem.aspx?ProblemID=131118
 						if (l_size > 0)
 							total += l_size;
 					}

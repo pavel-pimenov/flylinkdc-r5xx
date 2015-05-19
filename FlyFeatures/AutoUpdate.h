@@ -151,7 +151,7 @@ class AutoUpdate :
 		static void message(const string& p_message);
 		void execute(const AutoUpdateTasks& p_task);
 		
-		virtual void on(TimerManagerListener::Hour, uint64_t aTick) noexcept;
+		virtual void on(TimerManagerListener::Hour, uint64_t aTick) noexcept override;
 		
 		void startUpdateThisThread();
 		

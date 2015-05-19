@@ -58,7 +58,7 @@ class IpGrant : public Singleton<IpGrant>, private SettingsManagerListener
 		IPList m_ipList;
 		
 		// SettingsManagerListener
-		void on(SettingsManagerListener::Load, SimpleXML& /*xml*/)
+		void on(SettingsManagerListener::Load, SimpleXML& /*xml*/) override
 		{
 			load();
 		}

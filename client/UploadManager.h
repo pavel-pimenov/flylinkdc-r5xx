@@ -285,21 +285,21 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		static void testSlotTimeout(uint64_t aTick = GET_TICK()); // !SMT!-S
 		
 		// ClientManagerListener
-		void on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) noexcept;
+		void on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) noexcept override;
 		
 		// TimerManagerListener
-		void on(Second, uint64_t aTick) noexcept;
-		void on(Minute, uint64_t aTick) noexcept;
+		void on(Second, uint64_t aTick) noexcept override;
+		void on(Minute, uint64_t aTick) noexcept override;
 		
 		// UserConnectionListener
-		void on(BytesSent, UserConnection*, size_t p_Bytes, size_t p_Actual) noexcept;
-		void on(Failed, UserConnection*, const string&) noexcept;
-		void on(Get, UserConnection*, const string&, int64_t) noexcept;
-		void on(Send, UserConnection*) noexcept;
-		void on(TransmitDone, UserConnection*) noexcept;
+		void on(BytesSent, UserConnection*, size_t p_Bytes, size_t p_Actual) noexcept override;
+		void on(Failed, UserConnection*, const string&) noexcept override;
+		void on(Get, UserConnection*, const string&, int64_t) noexcept override;
+		void on(Send, UserConnection*) noexcept override;
+		void on(TransmitDone, UserConnection*) noexcept override;
 		
-		void on(AdcCommand::GET, UserConnection*, const AdcCommand&) noexcept;
-		void on(AdcCommand::GFI, UserConnection*, const AdcCommand&) noexcept;
+		void on(AdcCommand::GET, UserConnection*, const AdcCommand&) noexcept override;
+		void on(AdcCommand::GFI, UserConnection*, const AdcCommand&) noexcept override;
 		
 		bool prepareFile(UserConnection* aSource, const string& aType, const string& aFile, int64_t aResume, int64_t& aBytes, bool listRecursive = false);
 		bool hasUpload(const UserConnection* aSource, const string& p_source_file) const; // [+] FlylinkDC++

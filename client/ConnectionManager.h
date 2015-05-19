@@ -184,8 +184,11 @@ inline bool operator==(const ConnectionQueueItem::Ptr ptr, const UserPtr& aUser)
 	return ptr->getUser() == aUser;
 }
 
-class ConnectionManager : public Speaker<ConnectionManagerListener>,
-	public UserConnectionListener, TimerManagerListener,
+class ConnectionManager :
+	public Speaker<ConnectionManagerListener>,
+	private UserConnectionListener,
+	private ClientManagerListener,
+	private TimerManagerListener,
 	public Singleton<ConnectionManager>
 {
 	public:
@@ -384,26 +387,26 @@ class ConnectionManager : public Speaker<ConnectionManagerListener>,
 		void cleanupIpFlood(const uint64_t p_tick);
 		
 		// UserConnectionListener
-		void on(Connected, UserConnection*) noexcept;
-		void on(Failed, UserConnection*, const string&) noexcept;
-		void on(ProtocolError, UserConnection*, const string&) noexcept;
-		void on(CLock, UserConnection*, const string&) noexcept;
-		void on(Key, UserConnection*, const string&) noexcept;
-		void on(Direction, UserConnection*, const string&, const string&) noexcept;
-		void on(MyNick, UserConnection*, const string&) noexcept;
-		void on(Supports, UserConnection*, StringList &) noexcept;
+		void on(Connected, UserConnection*) noexcept override;
+		void on(Failed, UserConnection*, const string&) noexcept override;
+		void on(ProtocolError, UserConnection*, const string&) noexcept override;
+		void on(CLock, UserConnection*, const string&) noexcept override;
+		void on(Key, UserConnection*, const string&) noexcept override;
+		void on(Direction, UserConnection*, const string&, const string&) noexcept override;
+		void on(MyNick, UserConnection*, const string&) noexcept override;
+		void on(Supports, UserConnection*, StringList &) noexcept override;
 		
-		void on(AdcCommand::SUP, UserConnection*, const AdcCommand&) noexcept;
-		void on(AdcCommand::INF, UserConnection*, const AdcCommand&) noexcept;
-		void on(AdcCommand::STA, UserConnection*, const AdcCommand&) noexcept;
+		void on(AdcCommand::SUP, UserConnection*, const AdcCommand&) noexcept override;
+		void on(AdcCommand::INF, UserConnection*, const AdcCommand&) noexcept override;
+		void on(AdcCommand::STA, UserConnection*, const AdcCommand&) noexcept override;
 		
 		// TimerManagerListener
-		void on(TimerManagerListener::Second, uint64_t aTick) noexcept;
-		void on(TimerManagerListener::Minute, uint64_t aTick) noexcept;
-		
+		void on(TimerManagerListener::Second, uint64_t aTick) noexcept override;
+		void on(TimerManagerListener::Minute, uint64_t aTick) noexcept override;
+// DEAD_CODE
 		// ClientManagerListener
-		void on(ClientManagerListener::UserConnected, const OnlineUser& aUser, bool) noexcept { onUserUpdated(aUser.getUser()); }
-		void on(ClientManagerListener::UserDisconnected, const UserPtr& aUser, bool) noexcept { onUserUpdated(aUser); }
+		void on(ClientManagerListener::UserConnected, const UserPtr& aUser) noexcept override { onUserUpdated(aUser); }
+		void on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) noexcept override { onUserUpdated(aUser); }
 		
 		void onUserUpdated(const UserPtr& aUser);
 		

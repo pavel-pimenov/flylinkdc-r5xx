@@ -193,6 +193,8 @@
 #define IDR_MODE_ACTIVE_ICO             304
 #define IDR_MODE_PASSIVE_ICO            305
 #define IDR_MODE_OFFLINE_ICO            306
+#define IDR_ONLINE_ICO                  307
+#define IDR_OFFLINE_ICO                 308
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
 #define IDC_COPY_HUB                    1002

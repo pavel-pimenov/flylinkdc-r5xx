@@ -289,9 +289,6 @@ LRESULT RecentHubsFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHan
 					cd->clrTextBk = SETTING(HUB_IN_FAV_BK_COLOR);
 				}
 			}
-#ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
-			Colors::alternationBkColor(cd); // [+] IRainman
-#endif
 			return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
 		}
 		default:
@@ -299,6 +296,7 @@ LRESULT RecentHubsFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHan
 	}
 #endif
 }
+
 LRESULT RecentHubsFrame::onColumnClickHublist(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
 	NMLISTVIEW* l = (NMLISTVIEW*)pnmh;

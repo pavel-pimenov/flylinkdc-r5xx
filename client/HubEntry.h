@@ -176,33 +176,6 @@ class FavoriteHubEntry
 		        headerSort(-1), headerSortAsc(true)
 		{
 		} // !SMT!-S
-#ifdef PPA_INCLUDE_DEAD_CODE
-	FavoriteHubEntry(const HubEntry& rhs) noexcept :
-		name(rhs.getName()), server(rhs.getServer()), encoding(Text::systemCharset), searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)),
-		description(rhs.getDescription()), connect(false), windowposx(0), windowposy(0), windowsizex(0),
-		windowsizey(0), windowtype(0), chatusersplit(0), userliststate(true), chatusersplitstate(true), hideShare(false),
-		exclusiveHub(false), showJoins(false), exclChecks(false), mode(0), overrideId(0)
-		, headerSort(-1), headerSortAsc(true)
-#ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
-		, connectionStatus(rhs.connectionStatus)
-#endif
-		{
-		} // !SMT!-S
-	FavoriteHubEntry(const FavoriteHubEntry& rhs) noexcept :
-		userdescription(rhs.userdescription), email(rhs.email), awaymsg(rhs.awaymsg),
-		name(rhs.getName()), server(rhs.getServer()), description(rhs.getDescription()), password(rhs.getPassword()), connect(rhs.getConnect()),
-		nick(rhs.nick), windowposx(rhs.windowposx), windowposy(rhs.windowposy), windowsizex(rhs.windowsizex), searchInterval(rhs.searchInterval),
-		windowsizey(rhs.windowsizey), windowtype(rhs.windowtype), chatusersplit(rhs.chatusersplit),
-		userliststate(rhs.userliststate), chatusersplitstate(rhs.chatusersplitstate), hideShare(rhs.hideShare),
-		exclusiveHub(false), showJoins(rhs.showJoins), exclChecks(rhs.exclChecks), mode(rhs.mode), ip(rhs.ip), encoding(rhs.getEncoding()),
-		opChat(rhs.opChat), rawOne(rhs.rawOne), rawTwo(rhs.rawTwo), rawThree(rhs.rawThree), rawFour(rhs.rawFour), rawFive(rhs.rawFive), overrideId(rhs.overrideId), headerVisible(rhs.headerVisible)
-		, headerSort(rhs.headerSort), headerSortAsc(rhs.headerSortAsc)
-#ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
-		, connectionStatus(rhs.connectionStatus)
-#endif
-		{
-		}
-#endif
 		virtual ~FavoriteHubEntry() noexcept { }
 		
 		const string getNick(bool useDefault = true) const

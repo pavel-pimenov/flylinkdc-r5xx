@@ -53,15 +53,18 @@ SystemImageList::SystemImageList()
 	GetTempPath(_MAX_PATH + 1, pszTempDir); // TODO - Util::getTempPath()
 	TCHAR pszDrive[_MAX_DRIVE + 1];
 	_tsplitpath(pszTempDir, pszDrive, NULL, NULL, NULL);
-	int nLen = _tcslen(pszDrive);
-	if (pszDrive[nLen - 1] != _T('\\'))
-		_tcscat(pszDrive, _T("\\"));
-		
-	//Attach to the system image list
-	SHFILEINFO sfi = {0};
-	HIMAGELIST hSystemImageList = (HIMAGELIST) SHGetFileInfo(pszTempDir, 0, &sfi, sizeof(SHFILEINFO),
-	                                                         SHGFI_SYSICONINDEX | SHGFI_SMALLICON);
-	m_ImageList.Attach(hSystemImageList);
+	const int nLen = _tcslen(pszDrive);
+	if (nLen)
+	{
+		if (pszDrive[nLen - 1] != _T('\\'))
+			_tcscat(pszDrive, _T("\\"));
+			
+		//Attach to the system image list
+		SHFILEINFO sfi = { 0 };
+		HIMAGELIST hSystemImageList = (HIMAGELIST)SHGetFileInfo(pszTempDir, 0, &sfi, sizeof(SHFILEINFO),
+		                                                        SHGFI_SYSICONINDEX | SHGFI_SMALLICON);
+		m_ImageList.Attach(hSystemImageList);
+	}
 }
 
 SystemImageList* SystemImageList::getInstance()

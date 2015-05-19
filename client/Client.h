@@ -566,16 +566,16 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		virtual void search_token(const SearchParamToken& p_search_param) = 0;
 		
 		// TimerManagerListener
-		virtual void on(TimerManagerListener::Second, uint64_t aTick) noexcept;
-		virtual void on(TimerManagerListener::Minute, uint64_t aTick) noexcept;
+		virtual void on(TimerManagerListener::Second, uint64_t aTick) noexcept override;
+		virtual void on(TimerManagerListener::Minute, uint64_t aTick) noexcept override;
 		// BufferedSocketListener
-		virtual void on(Connecting) noexcept
+		virtual void on(Connecting) noexcept override
 		{
 			fire(ClientListener::Connecting(), this);
 		}
-		virtual void on(Connected) noexcept;
-		virtual void on(Line, const string& aLine) noexcept;
-		virtual void on(Failed, const string&) noexcept;
+		virtual void on(Connected) noexcept override;
+		virtual void on(Line, const string& aLine) noexcept override;
+		virtual void on(Failed, const string&) noexcept override;
 		
 		void messageYouHaweRightOperatorOnThisHub(); // [+] IRainman.
 		

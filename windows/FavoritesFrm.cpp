@@ -25,6 +25,9 @@
 #include "TextFrame.h"
 #include "ExMessageBox.h" // [+] InfinitySky. From Apex.
 
+HIconWrapper g_hOfflineIco(IDR_OFFLINE_ICO);
+HIconWrapper g_hOnlineIco(IDR_ONLINE_ICO);
+
 int FavoriteHubsFrame::columnIndexes[] = { COLUMN_NAME, COLUMN_DESCRIPTION, COLUMN_NICK, COLUMN_PASSWORD, COLUMN_SERVER, COLUMN_USERDESCRIPTION, COLUMN_EMAIL,
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
                                            COLUMN_HIDESHARE,
@@ -117,8 +120,16 @@ LRESULT FavoriteHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 	ctrlManageGroups.SetWindowText(CTSTRING(MANAGE_GROUPS));
 	ctrlManageGroups.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
 	
+	m_onlineStatusImg.Create(16, 16, ILC_COLOR32 | ILC_MASK,  0, 2);
+	m_onlineStatusImg.AddIcon(g_hOnlineIco);
+	m_onlineStatusImg.AddIcon(g_hOfflineIco);
+	ctrlHubs.SetImageList(m_onlineStatusImg, LVSIL_SMALL);
+	ClientManager::getOnlineClients(m_onlineHubs);
+	
 	FavoriteManager::getInstance()->addListener(this);
 	SettingsManager::getInstance()->addListener(this);
+	ClientManager::getInstance()->addListener(this);
+	
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 	create_timer(1000 * 60);
 	
@@ -261,10 +272,57 @@ void FavoriteHubsFrame::addEntry(const FavoriteHubEntry* entry, int pos, int gro
 	ctrlHubs.SetCheckState(i, b);
 	
 	LVITEM lvItem = { 0 };
-	lvItem.mask = LVIF_GROUPID;
+	lvItem.mask = LVIF_GROUPID | LVIF_IMAGE;
 	lvItem.iItem = i;
+	// lvItem.iImage = isOnline(entry->getServer()) ? 0 : 1;
+	if (isOnline(entry->getServer()))
+		lvItem.iImage = 0;
+#ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS	// The protection, just in case ( SCALOlaz 17/05/2015 )
+	else if (getLastSucces(l_connectionStatus, l_curTime) == TSTRING(JUST_NOW))
+		lvItem.iImage = 1;
+#endif
+	else 
+		lvItem.iImage = -1;
 	lvItem.iGroupId = groupIndex;
 	ctrlHubs.SetItem(&lvItem);
+}
+
+LRESULT FavoriteHubsFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
+{
+	if (wParam == HUB_CONNECTED)
+	{
+		auto_ptr<string> hub(reinterpret_cast<string*>(lParam));
+		m_onlineHubs.insert(*hub);
+		for (int i = 0; i < ctrlHubs.GetItemCount(); ++i)
+		{
+			const FavoriteHubEntry* e = (FavoriteHubEntry*)ctrlHubs.GetItemData(i);
+			if (e && e->getServer() == *hub)
+			{
+				ctrlHubs.SetItem(i, 0, LVIF_IMAGE, NULL, 0, 0, 0, NULL);
+				ctrlHubs.Update(i);
+				return 0;
+			}
+		}
+	}
+
+	else if (wParam == HUB_DISCONNECTED)
+	{
+		auto_ptr<string> hub(reinterpret_cast<string*>(lParam));
+		m_onlineHubs.erase(*hub);
+		
+		for (int i = 0; i < ctrlHubs.GetItemCount(); ++i)
+		{
+			FavoriteHubEntry* e = (FavoriteHubEntry*)ctrlHubs.GetItemData(i);
+			if (e && e->getServer() == *hub)
+			{
+				ctrlHubs.SetItem(i, 0, LVIF_IMAGE, NULL, 1, 0, 0, NULL);
+				ctrlHubs.Update(i);
+				return 0;
+			}
+		}
+	}
+	
+	return 0;
 }
 
 LRESULT FavoriteHubsFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -605,6 +663,7 @@ LRESULT FavoriteHubsFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 		safe_destroy_timer();
 #endif
+		ClientManager::getInstance()->removeListener(this);
 		SettingsManager::getInstance()->removeListener(this);
 		FavoriteManager::getInstance()->removeListener(this);
 		WinUtil::setButtonPressed(IDC_FAVORITES, false);

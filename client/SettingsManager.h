@@ -48,8 +48,8 @@ class SettingsManagerListener
 		typedef X<5> ShareChanges;
 		// [~] IRainman opt.
 		
-		virtual void on(Load, SimpleXML&) noexcept { }
-		virtual void on(Save, SimpleXML&) noexcept { }
+		virtual void on(Load, SimpleXML&) { }
+		virtual void on(Save, SimpleXML&) { }
 		virtual void on(SearchTypesChanged) noexcept { }
 		virtual void on(UsersChanges) noexcept { }
 		virtual void on(ShareChanges) noexcept { }

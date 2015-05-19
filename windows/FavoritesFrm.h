@@ -28,6 +28,7 @@
 
 class FavoriteHubsFrame : public MDITabChildWindowImpl < FavoriteHubsFrame, RGB(0, 0, 0), IDR_FAVORITES > , public StaticFrame<FavoriteHubsFrame, ResourceManager::FAVORITE_HUBS, IDC_FAVORITES>,
 	private FavoriteManagerListener,
+	private ClientManagerListener,
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 	private CFlyTimerAdapter,
 #endif
@@ -49,6 +50,7 @@ class FavoriteHubsFrame : public MDITabChildWindowImpl < FavoriteHubsFrame, RGB(
 #endif
 		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
 		MESSAGE_HANDLER(WM_SETFOCUS, onSetFocus)
+		MESSAGE_HANDLER(WM_SPEAKER, onSpeaker)
 		COMMAND_ID_HANDLER(IDC_CONNECT, onClickedConnect)
 		COMMAND_ID_HANDLER(IDC_REMOVE, onRemove)
 		COMMAND_ID_HANDLER(IDC_EDIT, onEdit)
@@ -80,6 +82,7 @@ class FavoriteHubsFrame : public MDITabChildWindowImpl < FavoriteHubsFrame, RGB(
 		LRESULT onManageGroups(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/);
 		LRESULT onColumnClickHublist(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
+		LRESULT onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/);
 		
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 		LRESULT onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
@@ -135,6 +138,11 @@ class FavoriteHubsFrame : public MDITabChildWindowImpl < FavoriteHubsFrame, RGB(
 			COLUMN_LAST
 		};
 		
+		enum
+		{
+			HUB_CONNECTED,
+			HUB_DISCONNECTED
+		};
 		struct StateKeeper
 		{
 				StateKeeper(ExListViewCtrl& hubs_, bool ensureVisible_ = true);
@@ -157,6 +165,12 @@ class FavoriteHubsFrame : public MDITabChildWindowImpl < FavoriteHubsFrame, RGB(
 		CButton ctrlDown;
 		CButton ctrlManageGroups;
 		OMenu hubsMenu;
+		CImageList m_onlineStatusImg;
+		StringSet m_onlineHubs;
+		bool isOnline(const string& p_hubUrl)
+		{
+			return m_onlineHubs.find(p_hubUrl) != m_onlineHubs.end();
+		}
 		
 		ExListViewCtrl ctrlHubs;
 		
@@ -174,18 +188,18 @@ class FavoriteHubsFrame : public MDITabChildWindowImpl < FavoriteHubsFrame, RGB(
 		void fillList();
 		void openSelected();
 		
-		void on(FavoriteAdded, const FavoriteHubEntry* /*e*/)  noexcept
+		void on(FavoriteAdded, const FavoriteHubEntry* /*e*/)  noexcept override
 		{
 			StateKeeper keeper(ctrlHubs);
 			fillList();
 		}
-		void on(FavoriteRemoved, const FavoriteHubEntry* e) noexcept
+		void on(FavoriteRemoved, const FavoriteHubEntry* e) noexcept override
 		{
 			ctrlHubs.DeleteItem(ctrlHubs.find((LPARAM)e));
 		}
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 #ifdef UPDATE_CON_STATUS_ON_FAV_HUBS_IN_REALTIME
-		void on(FavoriteStatusChanged, const FavoriteHubEntry* e) noexcept
+		void on(FavoriteStatusChanged, const FavoriteHubEntry* e) noexcept override
 		{
 			const int pos = ctrlHubs.find((LPARAM)e);
 			const ConnectionStatus& connectionStatus = e->getConnectionStatus();
@@ -197,7 +211,17 @@ class FavoriteHubsFrame : public MDITabChildWindowImpl < FavoriteHubsFrame, RGB(
 #endif // UPDATE_CON_STATUS_ON_FAV_HUBS_IN_REALTIME
 		
 #endif // IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
+		
+		void on(ClientConnected, const Client* c) noexcept override
+		{
+			PostMessage(WM_SPEAKER, (WPARAM)HUB_CONNECTED, (LPARAM)new string(c->getHubUrl()));
+		}
+		void on(ClientDisconnected, const Client* c) noexcept override
+		{
+			PostMessage(WM_SPEAKER, (WPARAM)HUB_DISCONNECTED, (LPARAM)new string(c->getHubUrl()));
+		}
+		
 };
 
 #endif // !defined(FAVORITE_HUBS_FRM_H)

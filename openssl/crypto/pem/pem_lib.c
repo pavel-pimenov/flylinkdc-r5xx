@@ -442,7 +442,7 @@ int PEM_do_header(EVP_CIPHER_INFO *cipher, unsigned char *data, long *plen,
     char buf[PEM_BUFSIZE];
 
     len = *plen;
-
+	i = 0;
     if (cipher->cipher == NULL)
         return (1);
     if (callback == NULL)

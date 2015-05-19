@@ -1381,9 +1381,13 @@ void File_Flv::audio_AAC()
         case 1 :
                 //Parsing
                 Demux(Buffer+Buffer_Offset+(size_t)Element_Offset, (size_t)(Element_Size-Element_Offset), ContentType_MainStream);
+                if (Stream[Stream_Audio].Parser)
+                {
                 Open_Buffer_Continue(Stream[Stream_Audio].Parser);
-
                 Stream[Stream_Audio].Parser->Open_Buffer_Unsynch();
+                }
+                else
+                    Skip_XX(Element_Size-Element_Offset,        "Decoder config is missing");
                 audio_stream_Count=false; //No need of more
                 break;
         default: Skip_XX(Element_Size-Element_Offset,           "Unknown");

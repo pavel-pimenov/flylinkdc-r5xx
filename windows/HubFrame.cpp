@@ -319,6 +319,7 @@ void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
 	if (!m_isUpdateColumnsInfoProcessed) // јпдейт колон делаем только один раз при первой активации т.к. ListItem не разрушаетс€
 	{
 		m_isUpdateColumnsInfoProcessed = true;
+		FavoriteManager::getInstance()->addListener(this);
 		SettingsManager::getInstance()->addListener(this);
 		BOOST_STATIC_ASSERT(_countof(g_columnSizes) == COLUMN_LAST);
 		BOOST_STATIC_ASSERT(_countof(g_columnNames) == COLUMN_LAST);
@@ -483,7 +484,7 @@ void HubFrame::createMessagePanel()
 #ifdef SCALOLAZ_HUB_MODE
 		m_ctrlShowMode = new CStatic;
 		m_ctrlShowMode->Create(m_ctrlStatus->m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | SS_ICON | BS_CENTER | BS_PUSHBUTTON , 0);
-	//	m_ctrlShowMode->SetIcon(g_hModeActiveIco);
+		//  m_ctrlShowMode->SetIcon(g_hModeActiveIco);
 #endif
 		dcassert(m_client->getHubUrl() == m_server);
 		const FavoriteHubEntry *fhe = FavoriteManager::getFavoriteHubEntry(m_server);
@@ -1512,9 +1513,9 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 			
 			ctrlClient.setHubParam(m_client->getHubUrl(), m_client->getMyNick()); // [+] IRainman fix.
 			
-			if (m_ctrlStatus)
+			setStatusText(1, Text::toT(m_client->getCipherName()));
+ 		  if(m_ctrlStatus)
 			{
-				setStatusText(1, Text::toT(m_client->getCipherName()));
 				UpdateLayout(false);
 			}
 			SHOW_POPUP(POPUP_HUB_CONNECTED, Text::toT(m_client->getHubUrl()), TSTRING(CONNECTED));
@@ -1772,24 +1773,21 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 			case STATS:
 			{
 				dcassert(!ClientManager::isShutdown());
-				if (m_ctrlStatus)
-				{
-					if (m_ctrlUsers && m_client->is_all_my_info_loaded() == true)
+					if (m_client && m_client->is_all_my_info_loaded() == true)
 					{
 //				PROFILE_THREAD_SCOPED_DESC("STATS")
 						const int64_t l_availableBytes = m_client->getAvailableBytes();
 						const size_t l_allUsers = m_client->getUserCount();
-						const size_t l_shownUsers = m_ctrlUsers->GetItemCount();
+						const size_t l_shownUsers = m_ctrlUsers ? m_ctrlUsers->GetItemCount() : l_allUsers;
 						const size_t l_diff = l_allUsers - l_shownUsers;
 						setStatusText(2, (Util::toStringW(l_shownUsers) + (l_diff ? (_T('/') + Util::toStringW(l_allUsers)) : Util::emptyStringT) + _T(' ') + TSTRING(HUB_USERS)));
 						setStatusText(3, Util::formatBytesW(l_availableBytes));
 						setStatusText(4, l_allUsers ? (Util::formatBytesW(l_availableBytes / l_allUsers) + _T('/') + TSTRING(USER)) : Util::emptyStringT);
-						if (m_needsResort)
+						if (m_needsResort && m_ctrlUsers && m_ctrlStatus)
 						{
 							m_needsResort = false;
 							m_ctrlUsers->resort(); // убран ресорт если окно не активное!
 						}
-					}
 				}
 			}
 			break;
@@ -1950,11 +1948,11 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 				szCipherLen = WinUtil::getTextWidth(strCipher, m_ctrlStatus->m_hWnd);
 			}
 			int HubPic = 0;
-			int l_hubIcoSize;	// Ўирина иконки режима
+			int l_hubIcoSize;   // Ўирина иконки режима
 #ifdef SCALOLAZ_HUB_MODE
 			if (BOOLSETTING(ENABLE_HUBMODE_PIC))
 			{
-				l_hubIcoSize = 22;	// Ўирина иконки режима ( 16 px )
+				l_hubIcoSize = 22;  // Ўирина иконки режима ( 16 px )
 				HubPic += l_hubIcoSize;
 			}
 #endif
@@ -2297,6 +2295,7 @@ LRESULT HubFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 		if (m_isUpdateColumnsInfoProcessed)
 		{
 			SettingsManager::getInstance()->removeListener(this);
+			FavoriteManager::getInstance()->removeListener(this);
 		}
 		m_client->removeListener(this); // DeadLock
 		m_client->disconnect(true);
@@ -4186,7 +4185,7 @@ void HubFrame::addDupeUsersToSummaryMenu(ClientManager::UserParams& p_param)
 				const auto l_cur_ip = l_id.getUser()->getLastIPfromRAM().to_string();
 				if ((p_param.m_bytesShared && l_id.getBytesShared() == p_param.m_bytesShared) ||
 				        (p_param.m_nick == l_id.getNick()) ||
-						(!p_param.m_ip.empty() && p_param.m_ip == l_cur_ip)) // .getIpAsString() - нельз€ она забирает адрес из базы и тормозит
+				        (!p_param.m_ip.empty() && p_param.m_ip == l_cur_ip)) // .getIpAsString() - нельз€ она забирает адрес из базы и тормозит
 				{
 					tstring info = Text::toT(frame->m_client->getHubName() + " ( " + frame->m_client->getHubUrl() + " ) ") + _T(" - ") + i->second->getText(COLUMN_NICK);
 					const UINT flags = (!p_param.m_ip.empty() && p_param.m_ip == l_cur_ip) ? MF_CHECKED : 0;

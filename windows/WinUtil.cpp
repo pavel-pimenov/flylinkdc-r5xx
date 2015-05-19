@@ -270,7 +270,9 @@ static const char* countryNames[] = { "ANDORRA", "UNITED ARAB EMIRATES", "AFGHAN
                                     };
 // [~] InfinitySky. "EUROPEAN UNION" changed to "EUROPE" for compatibility with dchublist.com.
 
+// https://drdump.com/DumpGroup.aspx?DumpGroupID=303960
 
+// TODO #pragma optimize("", off)
 HLSCOLOR RGB2HLS(COLORREF rgb)
 {
 	unsigned char minval = min(GetRValue(rgb), min(GetGValue(rgb), GetBValue(rgb)));
@@ -357,6 +359,7 @@ COLORREF HLS_TRANSFORM(COLORREF rgb, int percent_L, int percent_S)
 	}
 	return HLS2RGB(HLS(h, l, s));
 }
+// TODO #pragma optimize("", on)
 
 // !SMT!-UI
 void Colors::getUserColor(bool p_is_op, const UserPtr& user, COLORREF &fg, COLORREF &bg, unsigned short& p_flag_mask, const OnlineUserPtr& onlineUser)

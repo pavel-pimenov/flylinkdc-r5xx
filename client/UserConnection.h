@@ -379,20 +379,18 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		friend struct DeleteFunction;
 		
 		void setUser(const UserPtr& aUser);
-		
-		void onLine(const string& aLine) noexcept;
-		
+		void onLine(const string& aLine);
 		void send(const string& aString);
 		void setUploadLimit(int lim); // !SMT!-S
 		
-		void on(Connected) noexcept;
-		void on(Line, const string&) noexcept;
-		void on(Data, uint8_t* data, size_t p_len) noexcept;
-		void on(BytesSent, size_t p_Bytes, size_t p_Actual) noexcept;
-		void on(ModeChange) noexcept;
-		void on(TransmitDone) noexcept;
-		void on(Failed, const string&) noexcept;
-		void on(Updated) noexcept;
+		void on(Connected) noexcept override;
+		void on(Line, const string&) noexcept override;
+		void on(Data, uint8_t* data, size_t p_len) noexcept override;
+		void on(BytesSent, size_t p_Bytes, size_t p_Actual) noexcept override;
+		void on(ModeChange) noexcept override;
+		void on(TransmitDone) noexcept override;
+		void on(Failed, const string&) noexcept override;
+		void on(Updated) noexcept override;
 };
 
 class UcSupports // [+] IRainman fix.

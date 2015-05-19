@@ -386,13 +386,13 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		static RecentHubEntry::Iter getRecentHub(const string& aServer);
 		
 		// ClientManagerListener
-		void on(UserUpdated, const OnlineUserPtr& user) noexcept;
-		void on(UserConnected, const UserPtr& user) noexcept;
-		void on(UserDisconnected, const UserPtr& user) noexcept;
+		void on(UserUpdated, const OnlineUserPtr& user) noexcept override;
+		void on(UserConnected, const UserPtr& user) noexcept override;
+		void on(UserDisconnected, const UserPtr& user) noexcept override;
 		
 		// SettingsManagerListener
-		void on(SettingsManagerListener::Load, SimpleXML& xml);
-		void on(SettingsManagerListener::Save, SimpleXML& xml);
+		void on(SettingsManagerListener::Load, SimpleXML& xml) override;
+		void on(SettingsManagerListener::Save, SimpleXML& xml) override;
 		
 		void load(SimpleXML& aXml
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU

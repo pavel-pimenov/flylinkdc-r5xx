@@ -455,25 +455,25 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 			return *reinterpret_cast<string*>(ctrlDirs.GetItemData(ht));
 		}
 		
-		void on(QueueManagerListener::Added, const QueueItemPtr& aQI) noexcept;
-		void on(QueueManagerListener::AddedArray, const std::vector<QueueItemPtr>& p_qi_array) noexcept;
-		void on(QueueManagerListener::Moved, const QueueItemPtr& aQI, const string& oldTarget) noexcept;
-		void on(QueueManagerListener::Removed, const QueueItemPtr& aQI) noexcept;
-		void on(QueueManagerListener::SourcesUpdated, const QueueItemPtr& aQI) noexcept;
-		void on(QueueManagerListener::StatusUpdated, const QueueItemPtr& aQI) noexcept;
-		void on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept; // [+] IRainman opt.
-		void on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept; // [+] IRainman opt.
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
+		void on(QueueManagerListener::Added, const QueueItemPtr& aQI) noexcept override;
+		void on(QueueManagerListener::AddedArray, const std::vector<QueueItemPtr>& p_qi_array) noexcept override;
+		void on(QueueManagerListener::Moved, const QueueItemPtr& aQI, const string& oldTarget) noexcept override;
+		void on(QueueManagerListener::Removed, const QueueItemPtr& aQI) noexcept override;
+		void on(QueueManagerListener::SourcesUpdated, const QueueItemPtr& aQI) noexcept override;
+		void on(QueueManagerListener::StatusUpdated, const QueueItemPtr& aQI) noexcept override;
+		void on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept override; // [+] IRainman opt.
+		void on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept override; // [+] IRainman opt.
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
 		
 		void onRechecked(const string& target, const string& message);
 		
-		void on(QueueManagerListener::RecheckStarted, const string& target) noexcept;
-		void on(QueueManagerListener::RecheckNoFile, const string& target) noexcept;
-		void on(QueueManagerListener::RecheckFileTooSmall, const string& target) noexcept;
-		void on(QueueManagerListener::RecheckDownloadsRunning, const string& target) noexcept;
-		void on(QueueManagerListener::RecheckNoTree, const string& target) noexcept;
-		void on(QueueManagerListener::RecheckAlreadyFinished, const string& target) noexcept;
-		void on(QueueManagerListener::RecheckDone, const string& target) noexcept;
+		void on(QueueManagerListener::RecheckStarted, const string& target) noexcept override;
+		void on(QueueManagerListener::RecheckNoFile, const string& target) noexcept override;
+		void on(QueueManagerListener::RecheckFileTooSmall, const string& target) noexcept override;
+		void on(QueueManagerListener::RecheckDownloadsRunning, const string& target) noexcept override;
+		void on(QueueManagerListener::RecheckNoTree, const string& target) noexcept override;
+		void on(QueueManagerListener::RecheckAlreadyFinished, const string& target) noexcept override;
+		void on(QueueManagerListener::RecheckDone, const string& target) noexcept override;
 		
 };
 

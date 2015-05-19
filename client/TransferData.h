@@ -44,7 +44,7 @@ class TransferData
 		}
 		void log_debug() const
 		{
-#ifdef _DEBUG
+#ifdef ____DEBUG
 			LogManager::message("TransferData-dump = "
 			                    " m_actual = " + Util::toString(m_actual) +
 			                    " m_pos = " + Util::toString(m_pos) +

@@ -304,6 +304,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 			dcassert(g_uflylinkdc);
 			return g_iflylinkdc;
 		}
+		static void getOnlineClients(StringSet& p_onlineClients);
 	private:
 		void createMe(const string& cid, const string& nick);
 		static void cheatMessage(Client* p_client, const string& p_report);
@@ -464,16 +465,16 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		
 		void fireIncomingSearch(const string&, const string&, ClientManagerListener::SearchReply);
 		// ClientListener
-		void on(Connected, const Client* c) noexcept;
-		void on(UserUpdated, const Client*, const OnlineUserPtr& user) noexcept;
-		void on(UsersUpdated, const Client* c, const OnlineUserList&) noexcept;
-		void on(Failed, const Client*, const string&) noexcept;
-		void on(HubUpdated, const Client* c) noexcept;
-		void on(HubUserCommand, const Client*, int, int, const string&, const string&) noexcept;
-		// TODO void on(TTHSearch, Client* aClient, const string& aSeeker, const TTHValue& aTTH, bool isPassive) noexcept;
-		void on(AdcSearch, const Client* c, const AdcCommand& adc, const CID& from) noexcept;
+		void on(Connected, const Client* c) noexcept override;
+		void on(UserUpdated, const OnlineUserPtr& user) noexcept override;
+		void on(UsersUpdated, const Client* c, const OnlineUserList&) noexcept override;
+		void on(Failed, const Client*, const string&) noexcept override;
+		void on(HubUpdated, const Client* c) noexcept override;
+		void on(HubUserCommand, const Client*, int, int, const string&, const string&) noexcept override;
+		// TODO void on(TTHSearch, Client* aClient, const string& aSeeker, const TTHValue& aTTH, bool isPassive) noexcept override;
+		void on(AdcSearch, const Client* c, const AdcCommand& adc, const CID& from) noexcept override;
 		// TimerManagerListener
-		void on(TimerManagerListener::Minute, uint64_t aTick) noexcept;
+		void on(TimerManagerListener::Minute, uint64_t aTick) noexcept override;
 		
 		/** Indication that the application is being closed */
 		static bool g_isShutdown;

@@ -136,13 +136,13 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		bool secureAvail(uint32_t target, const string& protocol, const string& p_token);
 		
 		// [-] IRainman see class Client, not rewrite this!
-		//void on(Connecting) noexcept
+		//void on(Connecting) noexcept override
 		//{
 		//  fire(ClientListener::Connecting(), this);
 		//}
-		void on(Connected) noexcept;
-		void on(Line, const string& aLine) noexcept;
-		void on(Failed, const string& aLine) noexcept;
+		void on(Connected) noexcept override;
+		void on(Line, const string& aLine) noexcept override;
+		void on(Failed, const string& aLine) noexcept override;
 		
 		
 };

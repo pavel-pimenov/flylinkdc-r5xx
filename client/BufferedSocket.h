@@ -144,14 +144,12 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		/** Send the file f over this socket. */
 		void transmitFile(InputStream* f)
 		{
-			FastLock l(cs);
 			addTask(SEND_FILE, new SendFileInfo(f));
 		}
 		
 		/** Send an updated signal to all listeners */
 		void updated()
 		{
-			FastLock l(cs);
 			addTask(UPDATED, nullptr);
 		}
 		void initMyINFOLoader()
@@ -310,6 +308,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		}
 		void shutdown();
 		void addTask(Tasks task, TaskData* data);
+		void addTaskL(Tasks task, TaskData* data);
 };
 
 #endif // !defined(BUFFERED_SOCKET_H)

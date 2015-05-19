@@ -445,15 +445,15 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		string getListPath(const UserPtr& user) const;
 		
 		// TimerManagerListener
-		void on(TimerManagerListener::Second, uint64_t aTick) noexcept;
-		void on(TimerManagerListener::Minute, uint64_t aTick) noexcept;
+		void on(TimerManagerListener::Second, uint64_t aTick) noexcept override;
+		void on(TimerManagerListener::Minute, uint64_t aTick) noexcept override;
 		
 		// SearchManagerListener
-		void on(SearchManagerListener::SR, const SearchResult&) noexcept;
+		void on(SearchManagerListener::SR, const SearchResult&) noexcept override;
 		
 		// ClientManagerListener
-		void on(ClientManagerListener::UserConnected, const UserPtr& aUser) noexcept;
-		void on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) noexcept;
+		void on(ClientManagerListener::UserConnected, const UserPtr& aUser) noexcept override;
+		void on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) noexcept override;
 		
 		//[+] SSA check if file exist
 		int m_curOnDownloadSettings;

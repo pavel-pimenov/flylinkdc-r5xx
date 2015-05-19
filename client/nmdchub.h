@@ -158,7 +158,7 @@ class NmdcHub : public Client, private Flags
 		~NmdcHub();
 		
 		void clearUsers();
-		void onLine(const string& aLine) noexcept;
+		void onLine(const string& aLine);
 		void resetAntivirusInfo();
 		
 		OnlineUserPtr getUser(const string& aNick, bool p_hub, bool p_first_load); // [!] IRainman fix: return OnlineUserPtr and add hub
@@ -268,14 +268,13 @@ class NmdcHub : public Client, private Flags
 		
 		virtual void checkNick(string& p_nick);
 		
-		void on(BufferedSocketListener::Connected) noexcept;
-		void on(BufferedSocketListener::Line, const string& l) noexcept;
-		void on(BufferedSocketListener::MyInfoArray, StringList&) noexcept; // [+]PPA
-		void on(BufferedSocketListener::DDoSSearchDetect, const string&) noexcept; // [+]PPA
-		void on(BufferedSocketListener::SearchArrayTTH, CFlySearchArrayTTH&) noexcept; // [+]PPA
-		void on(BufferedSocketListener::SearchArrayFile, const CFlySearchArrayFile&) noexcept; // [+]PPA
-		
-		void on(BufferedSocketListener::Failed, const string&) noexcept;
+		void on(BufferedSocketListener::Connected) noexcept override;
+		void on(BufferedSocketListener::Line, const string& l) noexcept override;
+		void on(BufferedSocketListener::MyInfoArray, StringList&) noexcept override; // [+]PPA
+		void on(BufferedSocketListener::DDoSSearchDetect, const string&) noexcept override; // [+]PPA
+		void on(BufferedSocketListener::SearchArrayTTH, CFlySearchArrayTTH&) noexcept override; // [+]PPA
+		void on(BufferedSocketListener::SearchArrayFile, const CFlySearchArrayFile&) noexcept override; // [+]PPA
+		void on(BufferedSocketListener::Failed, const string&) noexcept override;
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 	public:
 		bool hubIsNotSupportSlot() const //[+]FlylinkDC

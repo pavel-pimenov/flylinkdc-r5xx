@@ -286,7 +286,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 #ifdef FLYLINKDC_USE_WINDOWS_TIMER_SEARCH_FRAME
 		LRESULT onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 #else
-		void on(TimerManagerListener::Second, uint64_t aTick) noexcept;
+		void on(TimerManagerListener::Second, uint64_t aTick) noexcept override;
 #endif
 		
 		void UpdateLayout(BOOL bResizeBars = TRUE);
@@ -817,24 +817,24 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		void onTab(bool shift);
 		void download(SearchResult* aSR, const tstring& aDir, bool view);
 		
-		void on(SearchManagerListener::SR, const SearchResult &aResult) noexcept;
-		void on(SearchManagerListener::UDPTest, const string& p_ip) noexcept;
-		//void on(SearchManagerListener::Searching, SearchQueueItem* aSearch) noexcept;
+		void on(SearchManagerListener::SR, const SearchResult &aResult) noexcept override;
+		void on(SearchManagerListener::UDPTest, const string& p_ip) noexcept override;
+		//void on(SearchManagerListener::Searching, SearchQueueItem* aSearch) noexcept override;
 		
 		// ClientManagerListener
-		void on(ClientConnected, const Client* c) noexcept
+		void on(ClientConnected, const Client* c) noexcept override
 		{
 			speak(HUB_ADDED, c);
 		}
-		void on(ClientUpdated, const Client* c) noexcept
+		void on(ClientUpdated, const Client* c) noexcept override
 		{
 			speak(HUB_CHANGED, c);
 		}
-		void on(ClientDisconnected, const Client* c) noexcept
+		void on(ClientDisconnected, const Client* c) noexcept override
 		{
 			speak(HUB_REMOVED, c);
 		}
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
 		
 		void initHubs();
 		void onHubAdded(HubInfo* info);

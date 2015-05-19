@@ -23,7 +23,10 @@
 
 void ServerSocket::listen(uint16_t aPort, const string& aIp = SETTING(BIND_ADDRESS))
 {
-	socket.disconnect();
+	if (socket.m_sock != INVALID_SOCKET)
+	{
+		socket.disconnect();
+	}
 	socket.create(Socket::TYPE_TCP);
 	// Set reuse address option...
 	socket.setSocketOpt(SO_REUSEADDR, 1);

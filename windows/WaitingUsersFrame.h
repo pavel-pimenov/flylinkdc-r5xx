@@ -231,21 +231,21 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		// [~] IRainman opt
 		
 		// UploadManagerListener
-		void on(UploadManagerListener::QueueAdd, UploadQueueItem* aUQI) noexcept
+		void on(UploadManagerListener::QueueAdd, UploadQueueItem* aUQI) noexcept override
 		{
 			m_tasks.add(ADD_ITEM, new UploadQueueTask(aUQI));
 		}
-		void on(UploadManagerListener::QueueRemove, const UserPtr& aUser) noexcept
+		void on(UploadManagerListener::QueueRemove, const UserPtr& aUser) noexcept override
 		{
 			m_tasks.add(REMOVE, new UserTask(aUser));
 		}
-		void on(UploadManagerListener::QueueItemRemove, UploadQueueItem* aUQI) noexcept
+		void on(UploadManagerListener::QueueItemRemove, UploadQueueItem* aUQI) noexcept override
 		{
 			m_tasks.add(REMOVE_ITEM, new UploadQueueTask(aUQI));
 		}
-		void on(UploadManagerListener::QueueUpdate) noexcept;
+		void on(UploadManagerListener::QueueUpdate) noexcept override;
 		// SettingsManagerListener
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
 		
 };
 

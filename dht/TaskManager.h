@@ -79,8 +79,8 @@ class TaskManager :
 		FastCriticalSection cs; // [!] IRainman opt: use spin lock here.
 		
 		// TimerManagerListener
-		void on(TimerManagerListener::Second, uint64_t aTick) noexcept;
-		void on(TimerManagerListener::Minute, uint64_t aTick) noexcept;
+		void on(TimerManagerListener::Second, uint64_t aTick) noexcept override;
+		void on(TimerManagerListener::Minute, uint64_t aTick) noexcept override;
 };
 
 }

@@ -181,7 +181,7 @@ class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_
 		static int columnIndexes[COLUMN_LAST];
 		
 		// FavoriteManagerListener
-		void on(UserAdded, const FavoriteUser& aUser) noexcept
+		void on(UserAdded, const FavoriteUser& aUser) noexcept override
 		{
 #ifdef IRAINMAN_USE_NON_RECURSIVE_BEHAVIOR
 			PostMessage(WM_CLOSE);
@@ -189,16 +189,16 @@ class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_
 			addUser(aUser);
 #endif
 		}
-		void on(UserRemoved, const FavoriteUser& aUser) noexcept
+		void on(UserRemoved, const FavoriteUser& aUser) noexcept override
 		{
 			removeUser(aUser);
 		}
-		void on(StatusChanged, const UserPtr& aUser) noexcept
+		void on(StatusChanged, const UserPtr& aUser) noexcept override
 		{
 			safe_post_message(*this, USER_UPDATED, new UserPtr(aUser));
 		}
 		
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
 		
 		void addUser(const FavoriteUser& aUser);
 		void updateUser(const UserPtr& aUser);

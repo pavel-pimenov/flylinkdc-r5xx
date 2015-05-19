@@ -1,4 +1,131 @@
 ------------------------------------------------------------------------
+r18654 | pavel.pimenov@gmail.com | 2015-05-19 20:00:23 +0300 (Вт, 19 май 2015) | 18 lines
+
+Merged revision(s) 18639-18653 from trunk:
+# Возможно исправлено падение при анализе медиафайла https://drdump.com/Problem.aspx?ProblemID=131242
+........
+# Подкраска юзеров в инет хабах (часть 1)
+........
+# изменена логика иконок в "Избранном" (для pewpew)
+# изменена иконка offline.ico (для pewpew)
+........
+# Убрал лишний вызов isOnline(entry->getServer())
+........
+# Починил задержку отрисовки статистики в строке состояния при первой активации вкладки хаба.(спасибо AlienKiller)
+........
+# Маркер падения https://drdump.com/DumpGroup.aspx?DumpGroupID=303960
+# Маркеры запуска и разрушения приложения отдаем в краш-сервера в виде признаков
+........
+# [mediainfo][merge]
+ - AES3: generic term AES3 replaced by more precise SMPTE ST numbers (302, 331, 337)
+
+------------------------------------------------------------------------
+r18640 | pavel.pimenov@gmail.com | 2015-05-15 07:00:00 +0300 (Пт, 15 май 2015) | 1 line
+
+# https://drdump.com/Problem.aspx?ProblemID=131118
+------------------------------------------------------------------------
+r18639 | pavel.pimenov@gmail.com | 2015-05-15 06:31:38 +0300 (Пт, 15 май 2015) | 1 line
+
+# Возможно исправлено падение при анализе медиафайла https://drdump.com/Problem.aspx?ProblemID=131242
+------------------------------------------------------------------------
+r18638 | pavel.pimenov@gmail.com | 2015-05-14 21:05:45 +0300 (Чт, 14 май 2015) | 4 lines
+
+Merged revision(s) 18637 from trunk:
+# Опечатка в FavoriteHubsFrame
+........
+
+------------------------------------------------------------------------
+r18636 | pavel.pimenov@gmail.com | 2015-05-14 19:37:15 +0300 (Чт, 14 май 2015) | 24 lines
+
+Merged revision(s) 18625-18635 from trunk:
+* + dchub://milenahub.ru
+........
+# Log
+........
+# r4xx
+........
+# Забыл reserve
+........
+# Log
+........
+# PVS-Studio 5.25 fix
+........
+# r4xx забыл позвать replaceDeadHub 
+........
+# r4xx astyle
+........
+* В окне избранных хабов показываем какие из них активные в виде зеленой галки (спасибо AirdDC++)
+# Поправил падения 
+  https://drdump.com/Problem.aspx?ProblemID=131035
+  https://drdump.com/Problem.aspx?ProblemID=130956
+# Починил потерянные перекрытия через override (C++11 рулит)
+........
+
+------------------------------------------------------------------------
+r18630 | pavel.pimenov@gmail.com | 2015-05-12 20:43:47 +0300 (Вт, 12 май 2015) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r18623 | pavel.pimenov@gmail.com | 2015-05-11 13:28:00 +0300 (Пн, 11 май 2015) | 16 lines
+
+Merged revision(s) 18615-18622 from trunk:
+# Log
+........
+# dchub://dc.ozerki.net -> dchub://ozerki.org
+........
+# TODO yarinfohub.no-ip.org:1209
+........
+# Реанимация хабов
+........
+# xml подправил
+........
+# Реанимация хабов
+........
+# Перенес подмену в конфиг
+........
+
+------------------------------------------------------------------------
+r18615 | pavel.pimenov@gmail.com | 2015-05-10 22:02:08 +0300 (Вс, 10 май 2015) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r18614 | pavel.pimenov@gmail.com | 2015-05-10 21:12:11 +0300 (Вс, 10 май 2015) | 26 lines
+
+Merged revision(s) 18602-18610 from trunk:
+# Dear Dyn Customer,You have services in your Dyn account "SCALOlaz" due to expire tomorrow, 2015-05-08!
+........
+# вдогонку к r18602
+........
+* sqlite 3.8.10.1
+........
+# Log
+........
+# [mediainfo]
++ FIMS: Preliminary version (not for production)
++ D-10 audio: display of real bitrate beside the encoded bitrate
++ VC-3: detection of CDP packets (608/708 captions), created by Nexio, inside the VC-3 private data
+x #B906, Matroska: duration was missing if Info block is at the end of the file
+x #B908, AC-3: bit depth removed
+x #P86, MPEG-4: moov_trak_edts_elst Atom was ignoring version of the atom
+x VorbisComment: WAVEFORMATEXTENSIBLE_CHANNEL_MASK "0X" ("x" in uppercase) is accepted now
+x EBUCore: TotalProgrammeDuration was wrongly filled with IdentClockStart value
+x EBUCore: Source/Material moved from timecodeStart to timecodeTrack
+x MPEG-4: info is missing for some streams in some specific cases
+........
+GoDC Network -> FlyART Studio
+........
+# Исправил ошибку избранных хабов
+........
+
+------------------------------------------------------------------------
+r18612 | pavel.pimenov@gmail.com | 2015-05-10 20:45:53 +0300 (Вс, 10 май 2015) | 1 line
+
+# ISP
+------------------------------------------------------------------------
+r18606 | pavel.pimenov@gmail.com | 2015-05-10 15:50:44 +0300 (Вс, 10 май 2015) | 1 line
+
+# Log
+------------------------------------------------------------------------
 r18601 | pavel.pimenov@gmail.com | 2015-05-07 23:12:53 +0300 (Чт, 07 май 2015) | 23 lines
 
 Merged revision(s) 18596-18600 from trunk:

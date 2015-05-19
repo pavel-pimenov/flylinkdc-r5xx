@@ -14,24 +14,26 @@ Name: {group}\FlylinkDC++{code:Postfix| }; Filename: {app}\FlylinkDC{code:Postfi
 Name: {userstartup}\FlylinkDC++{code:Postfix| }; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; Tasks: startup; WorkingDir: {app} ; IconFilename: "{app}\setup.ico"
 ;Name: {group}\{cm:ProgramOnTheWeb,FlylinkDC++{code:Postfix| }}; Filename: http://www.flylinkdc.ru
 Name: {group}\{cm:UninstallProgram,FlylinkDC++{code:Postfix| }}; Filename: {uninstallexe} ; IconFilename: "{app}\setup.ico"
-Name: {commondesktop}\Реактор; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; Tasks: desktopicon; WorkingDir: {app} ; IconFilename: "{app}\setup.ico"
-Name: {userappdata}\Microsoft\Internet Explorer\Quick Launch\Реактор; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; Tasks: quicklaunchicon; WorkingDir: {app} ; IconFilename: "{app}\setup.ico"
+Name: {commondesktop}\FlylinkDC++; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; Tasks: desktopicon; WorkingDir: {app} ; IconFilename: "{app}\setup.ico"
+Name: {userappdata}\Microsoft\Internet Explorer\Quick Launch\FlylinkDC++; Filename: {app}\FlylinkDC{code:Postfix|_}.exe; Tasks: quicklaunchicon; WorkingDir: {app} ; IconFilename: "{app}\setup.ico"
 
 
 [Setup]
-OutputBaseFilename=SetupFlylinkDC-vip-
+OutputBaseFilename=SetupFlylinkDC-vip-serverok21-test-3
 WizardImageFile=vip_custom\setup-1.bmp
 WizardSmallImageFile=vip_custom\setup-2.bmp
 SetupIconFile=vip_custom\setup.ico
+LicenseFile=vip_custom\license.rtf
 
 [Components]
 Name: "program"; Description: "Program Files"; Types: full compact custom; Flags: fixed
 Name: "DCPlusPlus"; Description: "Авто-настройка на хаб сети:"; Types: full compact custom; Flags: fixed
-Name: "DCPlusPlus\vip_custom"; Description: "Реактор"; Flags: exclusive
+Name: "DCPlusPlus\vip_custom"; Description: "DC Derverok 21"; Flags: exclusive
 
 #include "FlylinkDC-x86.hss"
 [Files]
 Source: "vip_custom\setup.ico";           			     DestDir: "{app}"; Flags: overwritereadonly	
+Source: "vip_custom\license.rtf";                   DestDir: "{app}"; Flags: overwritereadonly	
 Source: "vip_custom\DCPlusPlus.xml";                          DestDir: "{code:fUser}"; Flags: onlyifdoesntexist
 Source: "vip_custom\Favorites.xml";                           DestDir: "{code:fUser}"; Flags: onlyifdoesntexist
 

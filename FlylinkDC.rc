@@ -2957,6 +2957,10 @@ IDR_ICON_CAMSHOOT_ICO   ICON                    "res\\Cam.ico"
 IDR_MODE_ACTIVE_ICO     ICON                    "res\\mode_active.ico"
 IDR_MODE_PASSIVE_ICO    ICON                    "res\\mode_passive.ico"
 IDR_MODE_OFFLINE_ICO    ICON                    "res\\mode_offline.ico"
+IDR_OFFLINE_ICO    ICON                    "res\\offline.ico"
+IDR_ONLINE_ICO     ICON                    "res\\online.ico"
+
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

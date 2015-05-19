@@ -1294,6 +1294,10 @@ size_t File__Analyze::Merge(File__Analyze &ToAdd, stream_t StreamKind, size_t St
                         IsOk=true;
             }
 
+            //Special case with AES3: wrong container information is accepted
+            if (!IsOk && Retrieve(Stream_Audio, StreamPos_To, Audio_MuxingMode).find(__T("SMPTE ST 337"))!=string::npos)
+                IsOk=true;
+
             if (!IsOk)
             {
                 Fill(Stream_Audio, StreamPos_To, Audio_Channel_s__Original, (*Stream)[Stream_Audio][StreamPos_To][Audio_Channel_s_], true);

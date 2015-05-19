@@ -199,9 +199,9 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 		// void onSearchResult(string aSearchString); // !SMT!-S
 		
 		// ClientManagerListener
-		void on(ClientManagerListener::IncomingSearch, const string& user, const string& s, ClientManagerListener::SearchReply re) noexcept; // !SMT!-S
+		void on(ClientManagerListener::IncomingSearch, const string& user, const string& s, ClientManagerListener::SearchReply re) noexcept override; // !SMT!-S
 		
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
 };
 
 #endif // !defined(SPY_FRAME_H)

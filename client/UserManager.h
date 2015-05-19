@@ -155,9 +155,9 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 		UserManager();
 		~UserManager();
 		
-		void on(SettingsManagerListener::UsersChanges) noexcept;
+		void on(SettingsManagerListener::UsersChanges) noexcept override;
 		
-		void on(SettingsManagerListener::Load, SimpleXML& /*xml*/)
+		void on(SettingsManagerListener::Load, SimpleXML& /*xml*/) override
 		{
 			on(SettingsManagerListener::UsersChanges());
 		}

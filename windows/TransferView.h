@@ -514,17 +514,10 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			tstring m_ip; // TODO - зачем тут tstring?
 		};
 		
-		void parseQueueItemUpdateInfoL(UpdateInfo* p_ui, QueueItemPtr p_queueItem);
+		void parseQueueItemUpdateInfoL(UpdateInfo* p_ui, const QueueItemPtr& p_queueItem);
 		// [~] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
 		
 		UpdateInfo* createUpdateInfoForAddedEvent(const ConnectionQueueItem* aCqi); // [+] IRainman fix.
-		/*
-		void speak(uint8_t type, UpdateInfo* ui) deprecated
-		{
-		    m_tasks.add(type, ui);
-		    // [-] speak(); // [-] IRainman opt.
-		}
-		*/
 		
 		ItemInfoList ctrlTransfers;
 		CButton m_PassiveModeButton;
@@ -554,34 +547,35 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		
 		StringMap ucLineParams;
 		
-		void on(ConnectionManagerListener::Added, const ConnectionQueueItem* aCqi) noexcept;
-		void on(ConnectionManagerListener::Failed, const ConnectionQueueItem* aCqi, const string& aReason) noexcept;
-		void on(ConnectionManagerListener::Removed, const ConnectionQueueItem* aCqi) noexcept;
-		void on(ConnectionManagerListener::StatusChanged, const ConnectionQueueItem* aCqi) noexcept;
+		void on(ConnectionManagerListener::Added, const ConnectionQueueItem* aCqi) noexcept override;
+		void on(ConnectionManagerListener::Failed, const ConnectionQueueItem* aCqi, const string& aReason) noexcept override;
+		void on(ConnectionManagerListener::Removed, const ConnectionQueueItem* aCqi) noexcept override;
+		void on(ConnectionManagerListener::UserUpdated, const ConnectionQueueItem* aCqi) noexcept override;
+		void on(ConnectionManagerListener::ConnectionStatusChanged, const ConnectionQueueItem* aCqi) noexcept override;
 		
-		void on(DownloadManagerListener::Requesting, const DownloadPtr& aDownload) noexcept;
-		void on(DownloadManagerListener::Complete, const DownloadPtr& aDownload, bool isTree) noexcept
+		void on(DownloadManagerListener::Requesting, const DownloadPtr& aDownload) noexcept override;
+		void on(DownloadManagerListener::Complete, const DownloadPtr& aDownload, bool isTree) noexcept override
 		{
 			onTransferComplete(aDownload.get(), true, Util::getFileName(aDownload->getPath()), isTree); // [!] IRainman fix.
 		}
-		void on(DownloadManagerListener::Failed, const DownloadPtr& aDownload, const string& aReason) noexcept;
-		void on(DownloadManagerListener::Starting, const DownloadPtr& aDownload) noexcept;
-		void on(DownloadManagerListener::Tick, const DownloadArray& aDownload, uint64_t CurrentTick) noexcept;//[!]IRainman refactoring transfer mechanism + uint64_t CurrentTick
-		void on(DownloadManagerListener::Status, const UserConnection*, const string&) noexcept;
+		void on(DownloadManagerListener::Failed, const DownloadPtr& aDownload, const string& aReason) noexcept override;
+		void on(DownloadManagerListener::Starting, const DownloadPtr& aDownload) noexcept override;
+		void on(DownloadManagerListener::Tick, const DownloadArray& aDownload, uint64_t CurrentTick) noexcept override;//[!]IRainman refactoring transfer mechanism + uint64_t CurrentTick
+		void on(DownloadManagerListener::Status, const UserConnection*, const string&) noexcept override;
 		
-		void on(UploadManagerListener::Starting, const UploadPtr& aUpload) noexcept;
-		void on(UploadManagerListener::Tick, const UploadArray& aUpload, uint64_t CurrentTick) noexcept;//[!]IRainman refactoring transfer mechanism + uint64_t CurrentTick
-		void on(UploadManagerListener::Complete, const UploadPtr& aUpload) noexcept
+		void on(UploadManagerListener::Starting, const UploadPtr& aUpload) noexcept override;
+		void on(UploadManagerListener::Tick, const UploadArray& aUpload, uint64_t CurrentTick) noexcept override;//[!]IRainman refactoring transfer mechanism + uint64_t CurrentTick
+		void on(UploadManagerListener::Complete, const UploadPtr& aUpload) noexcept override
 		{
 			onTransferComplete(aUpload.get(), false, aUpload->getPath(), false); // [!] IRainman fix.
 		}
-		void on(QueueManagerListener::StatusUpdated, const QueueItemPtr&) noexcept;
-		void on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept; // [+] IRainman opt.
-		void on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept; // [+] IRainman opt.
-		void on(QueueManagerListener::Removed, const QueueItemPtr&) noexcept;
-		void on(QueueManagerListener::Finished, const QueueItemPtr&, const string&, const DownloadPtr& aDownload) noexcept;
+		void on(QueueManagerListener::StatusUpdated, const QueueItemPtr&) noexcept override;
+		void on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept override; // [+] IRainman opt.
+		void on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept override; // [+] IRainman opt.
+		void on(QueueManagerListener::Removed, const QueueItemPtr&) noexcept override;
+		void on(QueueManagerListener::Finished, const QueueItemPtr&, const string&, const DownloadPtr& aDownload) noexcept override;
 		
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
 		
 		void onTransferComplete(const Transfer* aTransfer, const bool download, const string& aFileName, const bool isTree); // [!] IRainman fix.
 		void starting(UpdateInfo* ui, const Transfer* t);

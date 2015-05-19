@@ -1061,8 +1061,13 @@ bool FavoriteManager::replaceDeadHub()
 {
 	bool l_result = false;
 	std::vector<std::pair<std::string, std::string> > l_dead_hubs;
-	l_dead_hubs.push_back(make_pair("dchub://dc.cifracom.ru", "dchub://ozerki.org"));
-	l_dead_hubs.push_back(make_pair("dchub://178.130.0.214", "dchub://ozerki.org"));
+	if (CFlyServerConfig::g_mapping_hubs.size())
+	{
+		for (auto j = 0; j < CFlyServerConfig::g_mapping_hubs.size() - 1; j += 2)
+		{
+			l_dead_hubs.push_back(make_pair(CFlyServerConfig::g_mapping_hubs[j], CFlyServerConfig::g_mapping_hubs[j + 1]));
+		}
+	}
 	for (auto i = l_dead_hubs.cbegin(); i != l_dead_hubs.cend(); ++i)
 	{
 		if (FavoriteHubEntry* l_HubEntry = getFavoriteHubEntry(i->first))
@@ -1077,7 +1082,7 @@ bool FavoriteManager::replaceDeadHub()
 			else
 			{
 				l_HubEntry->setConnect(false);
-				CFlyServerJSON::pushError(34, "Dead Hub disable auto-connect: " + i->first );
+				CFlyServerJSON::pushError(34, "Dead Hub disable auto-connect: " + i->first);
 			}
 			l_result = true;
 		}
@@ -1114,18 +1119,22 @@ void FavoriteManager::load(SimpleXML& aXml
 				}
 			}
 			aXml.resetCurrentChild();
+			g_AllHubUrls.clear();
 			while (aXml.findChild("Hub"))
 			{
-				const string l_CurrentServerUrl = Util::formatDchubUrl(aXml.getChildAttrib("Server"));
+				const string l_CurrentServerUrl = Text::toLower(Util::formatDchubUrl(aXml.getChildAttrib("Server")));
+				if (l_CurrentServerUrl.find("kurskhub.ru") != string::npos ||  // http://dchublist.ru/forum/viewtopic.php?p=24102#p24102
+				        CFlyServerConfig::g_block_hubs.count(l_CurrentServerUrl))
+				{
+					CFlyServerJSON::pushError(35, "Block hub: " + l_CurrentServerUrl);
+					continue;
+				}
 				g_AllHubUrls.insert(l_CurrentServerUrl);
 #ifdef USE_SUPPORT_HUB
 				if (l_CurrentServerUrl == CFlyServerConfig::g_support_hub)
 					g_SupportsHubExist = true;
-				else
 #endif USE_SUPPORT_HUB
-					if (l_CurrentServerUrl == "adc://adchub.com:1687") // TODO - black list for spammers hub?
-						continue; // [!] IRainman fix - delete SEO hub.
-						
+					
 				FavoriteHubEntry* e = new FavoriteHubEntry();
 				const string& l_Name = aXml.getChildAttrib("Name");
 				e->setName(l_Name);

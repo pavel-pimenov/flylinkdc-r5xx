@@ -143,7 +143,6 @@ uint16_t BufferedSocket::accept(const Socket& srv, bool secure, bool allowUntrus
 	setSocket(s);
 	setOptions();
 	
-	FastLock l(cs);
 	addTask(ACCEPTED, nullptr);
 	
 	return ret;
@@ -163,7 +162,6 @@ void BufferedSocket::connect(const string& aAddress, uint16_t aPort, uint16_t lo
 	setSocket(s);
 	sock->bind(localPort, SETTING(BIND_ADDRESS));
 	
-	FastLock l(cs);
 	initMyINFOLoader();
 	addTask(CONNECT, new ConnectInfo(aAddress, aPort, localPort, natRole, proxy && (SETTING(OUTGOING_CONNECTIONS) == SettingsManager::OUTGOING_SOCKS5)));
 }
@@ -205,7 +203,7 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 #ifndef FLYLINKDC_HE
 				if (ClientManager::isShutdown())
 				{
-					dcassert(0);
+					//dcassert(0);
 					return;
 				}
 #endif
@@ -659,14 +657,12 @@ void BufferedSocket::threadRead()
 	}
 }
 
-void BufferedSocket::disconnect(bool graceless /*= false */)
+void BufferedSocket::disconnect(bool p_graceless /*= false */)
 {
-	FastLock l(cs);
-	if (graceless)
+	if (p_graceless)
 	{
 		m_is_disconnecting = true;
 	}
-	initMyINFOLoader();
 	addTask(DISCONNECT, nullptr);
 }
 
@@ -726,6 +722,7 @@ void BufferedSocket::threadSendFile(InputStream* file)
 	const size_t bufSize = MAX_SOCKET_BUFFER_SIZE;
 #endif
 	
+	// const size_t maxSegment = (size_t)sock->getSocketOptInt(TCP_MAXSEG);
 	ByteVector l_readBuf(bufSize); // https://www.box.net/shared/07ab0210ed0f83ab842e
 	ByteVector l_writeBuf(bufSize);
 	
@@ -744,11 +741,12 @@ void BufferedSocket::threadSendFile(InputStream* file)
 		{
 			// Fill read buffer
 			size_t bytesRead = l_readBuf.size() - readPos;
-			size_t actual = file->read(&l_readBuf[readPos], bytesRead);
+			size_t actual = file->read(&l_readBuf[readPos], bytesRead); // TODO можно узнать что считали последний кусок в файл
 			
 			if (bytesRead > 0)
 			{
 				fire(BufferedSocketListener::BytesSent(), bytesRead, 0);
+				// Инфу о том что считали с диск не шлем фаером
 			}
 			
 			if (actual == 0)
@@ -782,7 +780,7 @@ void BufferedSocket::threadSendFile(InputStream* file)
 		l_writeBuf.resize(readPos);
 		readPos = 0;
 		
-		size_t writePos = 0;    
+		size_t writePos = 0;
 		int written = 0;
 		
 		while (writePos < l_writeBuf.size())
@@ -793,7 +791,7 @@ void BufferedSocket::threadSendFile(InputStream* file)
 			if (written == -1)
 			{
 				// workaround for OpenSSL (crashes when previous write failed and now retrying with different writeSize)
-        size_t l_writeSize = 0;
+				size_t l_writeSize = 0;
 				written = sock->write(&l_writeBuf[writePos], l_writeSize);
 			}
 			else
@@ -859,7 +857,7 @@ void BufferedSocket::write(const char* aBuf, size_t aLen)
 		return;
 	FastLock l(cs);
 	if (m_writeBuf.empty())
-		addTask(SEND_DATA, nullptr);
+		addTaskL(SEND_DATA, nullptr);
 #ifdef _DEBUG
 	if (aLen > 1)
 	{
@@ -881,7 +879,6 @@ void BufferedSocket::threadSendData()
 			dcassert(!m_writeBuf.empty());
 			return;
 		}
-		
 		m_writeBuf.swap(l_sendBuf);
 	}
 	
@@ -1093,7 +1090,6 @@ void BufferedSocket::shutdown()
 	// the listeners of its events will have been destroyed by the time of processing the shutdown event.
 	{
 		// [!] fix http://code.google.com/p/flylinkdc/issues/detail?id=1280
-		FastLock l(cs);
 		addTask(SHUTDOWN, nullptr);
 	}
 	// [+]
@@ -1113,10 +1109,15 @@ void BufferedSocket::shutdown()
 	// [~] IRainman fix.
 }
 
-void BufferedSocket::addTask(Tasks task, TaskData* data)
+void BufferedSocket::addTask(Tasks p_task, TaskData* p_data)
 {
-	dcassert(task == DISCONNECT || task == SHUTDOWN || task == UPDATED || sock.get());
-	m_tasks.push_back(make_pair(task, unique_ptr<TaskData>(data)));
+	FastLock l(cs);
+	addTaskL(p_task, p_data);
+}
+void BufferedSocket::addTaskL(Tasks p_task, TaskData* p_data)
+{
+	dcassert(p_task == DISCONNECT || p_task == SHUTDOWN || p_task == UPDATED || sock.get());
+	m_tasks.push_back(make_pair(p_task, unique_ptr<TaskData>(p_data)));
 	taskSem.signal();
 }
 

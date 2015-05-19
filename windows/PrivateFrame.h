@@ -182,22 +182,22 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 		void updateTitle();
 		
 		// ClientManagerListener
-		void on(ClientManagerListener::UserUpdated, const OnlineUserPtr& aUser) noexcept   // !SMT!-fix
+		void on(ClientManagerListener::UserUpdated, const OnlineUserPtr& aUser) noexcept override   // !SMT!-fix
 		{
 			on(ClientManagerListener::UserDisconnected(), aUser->getUser()); // !SMT!-fix
 		}
-		void on(ClientManagerListener::UserConnected, const UserPtr& aUser) noexcept
+		void on(ClientManagerListener::UserConnected, const UserPtr& aUser) noexcept override
 		{
 			on(ClientManagerListener::UserDisconnected(), aUser);
 		}
-		void on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) noexcept
+		void on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) noexcept override
 		{
 			if (aUser == m_replyTo.user)
 			{
 				PostMessage(WM_SPEAKER, USER_UPDATED);
 			}
 		}
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
 		// [+] IRainman: copy-past fix.
 		void processFrameCommand(const tstring& fullMessageText, const tstring& cmd, tstring& param, bool& resetInputMessageText);
 		void processFrameMessage(const tstring& fullMessageText, bool& resetInputMessageText);

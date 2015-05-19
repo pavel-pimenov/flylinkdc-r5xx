@@ -135,17 +135,21 @@ class SimpleXML
 		template<class T>
 		void getChildAttribSplit(const string& aName,
 		                         T& aCollection,
-		                         std::function<void(const string&)> inserter
+		                         std::function<void(const string&)> inserter,
+		                         bool p_check_dup = true
 		                        ) const // [+] IRainman
 		{
 			const StringTokenizer<string> tokinizer(getChildAttrib(aName), ',');
 			const auto& tokens = tokinizer.getTokens();
 			aCollection.clear();
 #ifdef _DEBUG
-			std::set<string> l_dup_check;
-			for (auto i = tokens.cbegin(); i != tokens.cend(); ++i)
-				l_dup_check.insert(*i);
-			dcassert(l_dup_check.size() == tokens.size());
+			if (p_check_dup)
+			{
+				std::set<string> l_dup_check;
+				for (auto i = tokens.cbegin(); i != tokens.cend(); ++i)
+					l_dup_check.insert(*i);
+				dcassert(l_dup_check.size() == tokens.size());
+			}
 #endif
 			for_each(tokens.cbegin(), tokens.cend(), inserter);
 			

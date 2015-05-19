@@ -80,8 +80,9 @@ DWORD CFlyServerConfig::g_winet_connect_timeout = 2000;
 static volatile long g_running;
 StringSet CFlyServerConfig::g_include_tag; 
 StringSet CFlyServerConfig::g_exclude_tag; 
-boost::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_log;
-boost::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_syslog;
+std::vector<std::string> CFlyServerConfig::g_exclude_tag_inform;
+std::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_log;
+std::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_syslog;
 std::vector<CServerItem> CFlyServerConfig::g_mirror_read_only_servers;
 std::vector<CServerItem> CFlyServerConfig::g_mirror_test_port_servers;
 CServerItem CFlyServerConfig::g_main_server;
@@ -110,7 +111,8 @@ uint16_t CFlyServerConfig::g_ban_flood_command = 10;      // Блокируем на 10 сек
 uint16_t CFlyServerConfig::g_max_unique_tth_search  = 10; // Не принимаем в течении 10 секунд одинаковых поисков по TTH для одного и того-же целевого IP:PORT (UDP)
 uint16_t CFlyServerConfig::g_max_unique_file_search = 10; // Не принимаем в течении 10 секунд одинаковых поисков по File для одного и того-же целевого IP:PORT (UDP)
 string CFlyServerConfig::g_regex_find_ip = "\\d\\d?\\d?\\.\\d\\d?\\d?.\\d\\d?\\d?.\\d\\d?\\d?";
-string CFlyServerConfig::g_mapping_dead_hubs;
+std::vector<std::string> CFlyServerConfig::g_mapping_hubs;
+std::unordered_set<std::string> CFlyServerConfig::g_block_hubs;
 #ifdef USE_SUPPORT_HUB
 string CFlyServerConfig::g_support_hub = "dchub://dc.fly-server.ru";
 #endif // USE_SUPPORT_HUB
@@ -245,7 +247,7 @@ inline static void checkStrKey(const string& p_str) // TODO: move to Util.
 void CFlyServerConfig::ConvertInform(string& p_inform) const
 {
 	// TODO - убрать лишние строки из результата
-	if(!m_exclude_tag_inform.empty())
+	if(!g_exclude_tag_inform.empty())
 	{
 	string l_result_line;
 	int  l_start_line = 0;
@@ -258,7 +260,7 @@ void CFlyServerConfig::ConvertInform(string& p_inform) const
 		string l_cur_line = p_inform.substr(l_start_line,l_end_line - l_start_line);
 		// Фильтруем строчку через маски
 		bool l_ignore_tag = false;
-		for(auto i = m_exclude_tag_inform.cbegin(); i != m_exclude_tag_inform.cend(); ++i)
+		for(auto i = g_exclude_tag_inform.cbegin(); i != g_exclude_tag_inform.cend(); ++i)
 		{
 			const auto l_tag_begin = l_cur_line.find(*i);
 			const auto l_end_index  = i->size() + 1;
@@ -300,7 +302,7 @@ void CFlyServerConfig::loadConfig()
 #ifdef USE_FLYSERVER_LOCAL_FILE
 		const string l_url_config_file = "file://C:/vc10/etc/flylinkdc-config-r5xx.xml"; 
 		g_debug_fly_server_url = "localhost";
-                // g_debug_fly_server_url = "flylinkdc.no-ip.org";
+    //g_debug_fly_server_url = "37.187.111.84";
 #else
 		const string l_url_config_file = "http://etc.fly-server.ru/etc/flylinkdc-config-r5xx.xml"; // TODO etc.fly-server.ru
 #endif
@@ -422,7 +424,7 @@ void CFlyServerConfig::loadConfig()
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 					initString("antivirus_db",g_antivirus_db_url);
 #endif
-          initString("mapping_dead_hub",g_mapping_dead_hubs);
+
 #ifdef USE_SUPPORT_HUB
 					initString("support_hub",g_support_hub);
 #endif // USE_SUPPORT_HUB
@@ -437,7 +439,21 @@ void CFlyServerConfig::loadConfig()
 					{
 						checkStrKey(n);
 						m_scan.insert(n);
-			        });
+	        });
+
+					l_xml.getChildAttribSplit("mapping_hubs", g_mapping_hubs, [this](const string& n)
+					{
+            checkStrKey(n);
+						g_mapping_hubs.push_back(n);
+					}
+          ,false); // Дубли тут не проверяем
+          dcassert(g_mapping_hubs.size() % 2 == 0);
+
+					l_xml.getChildAttribSplit("block_hubs", g_block_hubs, [this](const string& n)
+					{
+            checkStrKey(n);
+						g_block_hubs.insert(n);
+					});
 
 					l_xml.getChildAttribSplit("exclude_tag", g_exclude_tag, [this](const string& n)
 					{
@@ -472,9 +488,9 @@ void CFlyServerConfig::loadConfig()
           
 
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
-					l_xml.getChildAttribSplit("exclude_tag_inform", m_exclude_tag_inform, [this](const string& n)
+					l_xml.getChildAttribSplit("exclude_tag_inform", g_exclude_tag_inform, [this](const string& n)
 					{
-						m_exclude_tag_inform.push_back(n);
+						g_exclude_tag_inform.push_back(n);
 					});
 
 					l_xml.getChildAttribSplit("parasitic_file", g_parasitic_files, [this](const string& n)
@@ -1067,7 +1083,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 	syslog(LOG_USER | LOG_INFO, "%s %s %s [%s]", l_cid.c_str(), l_pid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
 }
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 34
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 35
 {
 	bool l_is_send = false;
 	bool l_is_error = false;
@@ -1720,7 +1736,7 @@ string CFlyServerJSON::connect(const CFlyServerKeyArray& p_fileInfoArray, bool p
 						}
 					}
 				}
-				boost::unordered_map<int,Json::Value*> l_cache_channel;
+				std::unordered_map<int,Json::Value*> l_cache_channel;
 				for(auto j = i->m_media.m_ext_array.cbegin(); j!= i->m_media.m_ext_array.cend(); ++j)
 				{
 					if(CFlyServerConfig::isSupportTag(j->m_param))
@@ -2035,6 +2051,7 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 		g_cur_mediainfo_file = p_name + "\r\n TTH = " + g_cur_mediainfo_file_tth + "\r\n File size = " + string(l_size);
 #ifndef _DEBUG
     g_crashRpt.AddUserInfoToReport(l_doctor_dump_key, Text::toT(g_cur_mediainfo_file).c_str());
+    g_crashRpt.SetCustomInfo(Text::toT(g_cur_mediainfo_file_tth).c_str());
 #endif
 		if (g_media_info_lib.Open(Text::toT(File::formatPath(p_name))))
 		{
@@ -2054,7 +2071,7 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 			}
 			const size_t audioCount = g_media_info_lib.Count_Get(MediaInfoLib::Stream_Audio);
 			p_media.m_bitrate  = 0;
-			boost::unordered_map<string, uint16_t> l_audio_dup_filter;
+			std::unordered_map<string, uint16_t> l_audio_dup_filter;
 			// AC-3, 5.1, 448 Kbps | AC-3, 5.1, 640 Kbps | TrueHD / AC-3, 5.1, 640 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps"
 			// Превращаем в
 			// AC-3, 5.1, 640 Kbps | TrueHD / AC-3, 5.1, 640 Kbps | AC-3, 5.1, 448 Kbps (x7)
@@ -2207,6 +2224,7 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 		g_cur_mediainfo_file.clear();
 #ifndef _DEBUG
     g_crashRpt.RemoveUserInfoFromReport(l_doctor_dump_key);
+    g_crashRpt.SetCustomInfo(_T(""));
 #endif
 		return true;
 	}

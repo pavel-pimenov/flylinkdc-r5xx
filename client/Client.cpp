@@ -60,10 +60,10 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure) :
 	//l_hub_user->setHubID(m_HubID); // Для бота-хаба не сохраняем пока
 #endif
 	const auto l_lower_url = Text::toLower(m_HubURL);
-	if (l_lower_url.find("dc.fly-server.ru") != string::npos || 
-		l_lower_url.find("adcs.flylinkdc.com") != string::npos
+	if (l_lower_url.find("dc.fly-server.ru") != string::npos ||
+	        l_lower_url.find("adcs.flylinkdc.com") != string::npos
 #ifdef _DEBUG
-		|| l_lower_url.find("scalolaz.dyndns-server.com") != string::npos
+	        || l_lower_url.find("scalolaz.no-ip.org") != string::npos
 #endif
 	   )
 	{

@@ -209,17 +209,17 @@ class RSSManager :
 		
 		bool canAdd(const RSSItem* p_item);
 		// SettingsManagerListener
-		virtual void on(SettingsManagerListener::Save, SimpleXML& xml) 
+		virtual void on(SettingsManagerListener::Save, SimpleXML& xml) override
 		{
 			save(xml);
 		}
-		virtual void on(SettingsManagerListener::Load, SimpleXML& xml) 
+		virtual void on(SettingsManagerListener::Load, SimpleXML& xml) override
 		{
 			load(xml);
 		}
 		
 		// TimerManagerListener
-		virtual void on(TimerManagerListener::Minute, uint64_t aTick) noexcept;
+		virtual void on(TimerManagerListener::Minute, uint64_t aTick) noexcept override;
 		void load(SimpleXML& aXml);
 		void save(SimpleXML& aXml);
 		unsigned int minuteCounter;

@@ -1468,21 +1468,30 @@ TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const Conn
 
 void TransferView::on(ConnectionManagerListener::Added, const ConnectionQueueItem* aCqi)
 {
+	dcassert(!ClientManager::isShutdown());
 	m_tasks.add(TRANSFER_ADD_ITEM, createUpdateInfoForAddedEvent(aCqi)); // [!] IRainman fix.
 }
 
-void TransferView::on(ConnectionManagerListener::StatusChanged, const ConnectionQueueItem* aCqi)
+void TransferView::on(ConnectionManagerListener::ConnectionStatusChanged, const ConnectionQueueItem* aCqi)
 {
+	dcassert(!ClientManager::isShutdown());
 	m_tasks.add(TRANSFER_UPDATE_ITEM, createUpdateInfoForAddedEvent(aCqi)); // [!] IRainman fix.
 }
 
+void TransferView::on(ConnectionManagerListener::UserUpdated, const ConnectionQueueItem* aCqi)
+{
+	dcassert(!ClientManager::isShutdown());
+	m_tasks.add(TRANSFER_UPDATE_ITEM, createUpdateInfoForAddedEvent(aCqi));
+}
 void TransferView::on(ConnectionManagerListener::Removed, const ConnectionQueueItem* aCqi)
 {
+	dcassert(!ClientManager::isShutdown());
 	m_tasks.add(TRANSFER_REMOVE_ITEM, new UpdateInfo(aCqi->getHintedUser(), aCqi->isDownload())); // [!] IRainman fix.
 }
 
 void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueItem* aCqi, const string& aReason)
 {
+	dcassert(!ClientManager::isShutdown());
 	UpdateInfo* ui = new UpdateInfo(aCqi->getHintedUser(), aCqi->isDownload()); // [!] IRainman fix.
 #ifdef PPA_INCLUDE_IPFILTER
 	if (ui->m_hintedUser.user->isSet(User::PG_BLOCK))
@@ -1530,6 +1539,7 @@ void TransferView::ItemInfo::update_nicks()
 }
 const tstring TransferView::ItemInfo::getText(uint8_t col) const
 {
+	dcassert(!ClientManager::isShutdown());
 	switch (col)
 	{
 		case COLUMN_USER:
@@ -1902,7 +1912,7 @@ void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItemPtr& q
 	m_tasks.add(TRANSFER_UPDATE_PARENT_WITH_PARSE, l_ui); // [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
 }
 
-void TransferView::parseQueueItemUpdateInfoL(UpdateInfo* ui, QueueItemPtr qi) // [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
+void TransferView::parseQueueItemUpdateInfoL(UpdateInfo* ui, const QueueItemPtr& qi) // [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
 {
 	ui->setTarget(qi->getTarget());
 	ui->setType(Transfer::TYPE_FILE);

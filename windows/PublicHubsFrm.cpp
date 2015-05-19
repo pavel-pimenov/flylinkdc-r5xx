@@ -68,7 +68,7 @@ LRESULT PublicHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	ctrlStatus.SetParts(3, w);
 	
 	m_ctrlHubs.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-	                  WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | /*LVS_SINGLESEL |*/ LVS_SHAREIMAGELISTS, WS_EX_CLIENTEDGE, IDC_HUBLIST);
+	                  WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS /*|LVS_SHAREIMAGELISTS */, WS_EX_CLIENTEDGE, IDC_HUBLIST);
 	SET_EXTENDENT_LIST_VIEW_STYLE(m_ctrlHubs);
 	
 	// Create listview columns
@@ -88,6 +88,16 @@ LRESULT PublicHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	SET_LIST_COLOR(m_ctrlHubs);
 	
 	m_ctrlHubs.SetImageList(g_flagImage.getIconList(), LVSIL_SMALL);
+	
+	/*  extern HIconWrapper g_hOfflineIco;
+	  extern HIconWrapper g_hOnlineIco;
+	    m_onlineStatusImg.Create(16, 16, ILC_COLOR32 | ILC_MASK,  0, 2);
+	    m_onlineStatusImg.AddIcon(g_hOnlineIco);
+	    m_onlineStatusImg.AddIcon(g_hOfflineIco);
+	  m_ctrlHubs.SetImageList(m_onlineStatusImg, LVSIL_SMALL);
+	*/
+	ClientManager::getOnlineClients(m_onlineHubs);
+	
 	m_ctrlHubs.SetFocus();
 	
 	m_ctrlTree.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TVS_HASBUTTONS | TVS_LINESATROOT | TVS_HASLINES | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP, WS_EX_CLIENTEDGE, IDC_ISP_TREE);
@@ -823,7 +833,15 @@ void PublicHubsFrame::updateList()
 			l[COLUMN_MAXUSERS] = Util::toStringW(i->getMaxUsers());
 			l[COLUMN_RELIABILITY] = Util::toStringW(i->getReliability());
 			l[COLUMN_RATING] = Text::toT(i->getRating());
-			m_ctrlHubs.insert(cnt++, l, WinUtil::getFlagIndexByName(i->getCountry().c_str())); // !SMT!-IP
+			const auto l_index = m_ctrlHubs.insert(cnt++, l, WinUtil::getFlagIndexByName(i->getCountry().c_str())); // !SMT!-IP
+			
+			/*
+			LVITEM lvItem = { 0 };
+			        lvItem.mask = LVIF_IMAGE;
+			        lvItem.iItem = l_index;
+			        lvItem.iImage = isOnline(i->getServer()) ? 0 : 1;
+			        m_ctrlHubs.SetItem(&lvItem);
+			*/
 			visibleHubs++;
 			users += i->getUsers();
 		}
@@ -1142,8 +1160,6 @@ void PublicHubsFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 
 LRESULT PublicHubsFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled */)
 {
-	return CDRF_DODEFAULT;
-#ifdef SCALOLAZ_USE_COLOR_HUB_IN_FAV
 	LPNMLVCUSTOMDRAW cd = reinterpret_cast<LPNMLVCUSTOMDRAW>(pnmh);
 	
 	switch (cd->nmcd.dwDrawStage)
@@ -1153,28 +1169,49 @@ LRESULT PublicHubsFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHan
 			
 		case CDDS_ITEMPREPAINT:
 		{
-			cd->clrText = Colors::g_textColor;
-			const auto fhe = FavoriteManager::getFavoriteHubEntry(getPubServer((int)cd->nmcd.dwItemSpec));
-			if (fhe)
+			if (isOnline(getPubServer((int)cd->nmcd.dwItemSpec)))
 			{
-				if (fhe->getConnect())
-				{
-					cd->clrTextBk = SETTING(HUB_IN_FAV_CONNECT_BK_COLOR);
-				}
-				else
-				{
-					cd->clrTextBk = SETTING(HUB_IN_FAV_BK_COLOR);
-				}
+				cd->clrTextBk = HLS_TRANSFORM(((cd->clrTextBk == CLR_DEFAULT) ? ::GetSysColor(COLOR_WINDOW) : cd->clrTextBk), -9, 0);
 			}
 			return CDRF_NEWFONT;
 		}
-		return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
 	}
+	return CDRF_DODEFAULT;
+}
+/*
+//  return CDRF_DODEFAULT;
+#ifdef SCALOLAZ_USE_COLOR_HUB_IN_FAV
+    LPNMLVCUSTOMDRAW cd = reinterpret_cast<LPNMLVCUSTOMDRAW>(pnmh);
+
+    switch (cd->nmcd.dwDrawStage)
+    {
+        case CDDS_PREPAINT:
+            return CDRF_NOTIFYITEMDRAW;
+
+        case CDDS_ITEMPREPAINT:
+        {
+            cd->clrText = Colors::g_textColor;
+            const auto fhe = FavoriteManager::getFavoriteHubEntry(getPubServer((int)cd->nmcd.dwItemSpec));
+            if (fhe)
+            {
+                if (fhe->getConnect())
+                {
+                    cd->clrTextBk = SETTING(HUB_IN_FAV_CONNECT_BK_COLOR);
+                }
+                else
+                {
+                    cd->clrTextBk = SETTING(HUB_IN_FAV_BK_COLOR);
+                }
+            }
+            return CDRF_NEWFONT;
+        }
+        return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
+    }
 }
 return CDRF_DODEFAULT;
 #endif // SCALOLAZ_USE_COLOR_HUB_IN_FAV
-
 }
+*/
 
 
 /**

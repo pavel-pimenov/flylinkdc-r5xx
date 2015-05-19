@@ -89,7 +89,7 @@ class NotepadFrame : public MDITabChildWindowImpl < NotepadFrame, RGB(0, 0, 0), 
 		CEdit ctrlPad;
 		CContainedWindow ctrlClientContainer;
 		
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
 };
 
 #endif // !defined(NOTEPAD_FRAME_H)

@@ -51,6 +51,7 @@
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 # pragma warning(disable: 4996)
+# pragma warning(disable: 4481) // nonstandard extension used: override specifier 'override'
 # pragma warning(disable: 4711) // function 'xxx' selected for automatic inline expansion
 # pragma warning(disable: 4786) // identifier was truncated to '255' characters in the debug information
 # pragma warning(disable: 4290) // C++ Exception Specification ignored

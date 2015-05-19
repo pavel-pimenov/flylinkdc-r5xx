@@ -105,6 +105,7 @@ ConnectionManager::ConnectionManager() : m_floodCounter(0), server(nullptr),
 	adcFeatures.push_back("AD" + UserConnection::FEATURE_ADC_BZIP);
 	
 	TimerManager::getInstance()->addListener(this); // [+] IRainman fix.
+	ClientManager::getInstance()->addListener(this);
 }
 ConnectionManager::~ConnectionManager()
 {
@@ -268,29 +269,31 @@ void ConnectionManager::putConnection(UserConnection* aConn)
 	dcassert(g_userConnections.find(aConn) != g_userConnections.end());
 	g_userConnections.erase(aConn);
 }
-
 void ConnectionManager::onUserUpdated(const UserPtr& aUser)
 {
-
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
 	{
-		webrtc::ReadLockScoped l(*g_csDownloads);
-		for (auto i = g_downloads.cbegin(); i != g_downloads.cend(); ++i)
 		{
-			ConnectionQueueItem* cqi = *i;
-			if (cqi->getUser() == aUser)
+			webrtc::ReadLockScoped l(*g_csDownloads);
+			for (auto i = g_downloads.cbegin(); i != g_downloads.cend(); ++i)
 			{
-				fire(ConnectionManagerListener::UserUpdated(), cqi);
+				ConnectionQueueItem* cqi = *i;
+				if (cqi->getUser() == aUser)
+				{
+					fire(ConnectionManagerListener::UserUpdated(), cqi);
+				}
 			}
 		}
-	}
-	{
-		webrtc::ReadLockScoped l(*g_csUploads);
-		for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
 		{
-			ConnectionQueueItem* cqi = *i;
-			if (cqi->getUser() == aUser)
+			webrtc::ReadLockScoped l(*g_csUploads);
+			for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
 			{
-				fire(ConnectionManagerListener::UserUpdated(), cqi);
+				ConnectionQueueItem* cqi = *i;
+				if (cqi->getUser() == aUser)
+				{
+					fire(ConnectionManagerListener::UserUpdated(), cqi);
+				}
 			}
 		}
 	}
@@ -378,7 +381,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 							                                      cqi->m_is_force_passive,
 							                                      cqi->m_is_active_client // <- Out param!
 							                                     );
-							fire(ConnectionManagerListener::StatusChanged(), cqi);
+							fire(ConnectionManagerListener::ConnectionStatusChanged(), cqi);
 							attempts++;
 						}
 						else
@@ -1068,7 +1071,7 @@ void ConnectionManager::on(UserConnectionListener::Connected, UserConnection* aS
 
 void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSource, const string& aNick) noexcept
 {
-        dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isShutdown());
 	if (aSource->getState() != UserConnection::STATE_SUPNICK)
 	{
 		// Already got this once, ignore...
@@ -1143,7 +1146,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 	const CID cid = ClientManager::makeCid(nick, aSource->getHubUrl());
 	
 	// First, we try looking in the pending downloads...hopefully it's one of them...
-	if(!ClientManager::isShutdown())
+	if (!ClientManager::isShutdown())
 	{
 		webrtc::ReadLockScoped l(*g_csDownloads);
 		for (auto i = g_downloads.cbegin(); i != g_downloads.cend(); ++i)
@@ -1151,7 +1154,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 			ConnectionQueueItem* cqi = *i;
 			cqi->setErrors(0);
 			if ((cqi->getState() == ConnectionQueueItem::CONNECTING || cqi->getState() == ConnectionQueueItem::WAITING) &&
-			cqi->getUser()->getCID() == cid)
+			        cqi->getUser()->getCID() == cid)
 			{
 				aSource->setUser(cqi->getUser());
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
@@ -1651,6 +1654,7 @@ void ConnectionManager::shutdown()
 	dcassert(shuttingDown == false);
 	shuttingDown = true;
 	TimerManager::getInstance()->removeListener(this);
+	ClientManager::getInstance()->removeListener(this);
 	disconnect();
 	{
 		webrtc::ReadLockScoped l(*g_csConnection);

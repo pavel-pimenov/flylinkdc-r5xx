@@ -525,17 +525,17 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		
 	private:
 		// QueueManagerListener
-		void on(QueueManagerListener::FileMoved, const string& n) noexcept;
+		void on(QueueManagerListener::FileMoved, const string& n) noexcept override;
 		
 		// HashManagerListener
 		void on(HashManagerListener::TTHDone, const string& fname, const TTHValue& root,
-		        int64_t aTimeStamp, const CFlyMediaInfo& p_out_media, int64_t p_size) noexcept;
+		        int64_t aTimeStamp, const CFlyMediaInfo& p_out_media, int64_t p_size) noexcept override;
 		        
 		// SettingsManagerListener
-		void on(SettingsManagerListener::Save, SimpleXML& xml);
-		void on(SettingsManagerListener::Load, SimpleXML& xml);
+		void on(SettingsManagerListener::Save, SimpleXML& xml) override;
+		void on(SettingsManagerListener::Load, SimpleXML& xml) override;
 		// [+] IRainman opt.
-		void on(SettingsManagerListener::ShareChanges) noexcept;
+		void on(SettingsManagerListener::ShareChanges) noexcept override;
 		
 		bool isInSkipList(const string& lowerName) const;
 		bool skipListEmpty() const
@@ -548,8 +548,8 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		// [~] IRainman opt.
 		
 		// TimerManagerListener
-		void on(TimerManagerListener::Minute, uint64_t tick) noexcept;
-		void on(TimerManagerListener::Second, uint64_t tick) noexcept;
+		void on(TimerManagerListener::Minute, uint64_t tick) noexcept override;
+		void on(TimerManagerListener::Second, uint64_t tick) noexcept override;
 		void load(SimpleXML& aXml);
 		void save(SimpleXML& aXml);
 		

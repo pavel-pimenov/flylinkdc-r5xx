@@ -76,7 +76,7 @@ class CustomMenuManager
 		
 		// SettingsManagerListener
 		// Load by hand now.
-		//virtual void on(SettingsManagerListener::Load, SimpleXML& xml)  {
+		//virtual void on(SettingsManagerListener::Load, SimpleXML& xml) override  {
 		//  load(xml);
 		//}
 		//void load(SimpleXML& aXml);

@@ -108,7 +108,7 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 		bool started;
 		FastCriticalSection cs;
 		// ServerSocketListener
-		void on(ServerSocketListener::IncomingConnection) noexcept;
+		void on(ServerSocketListener::IncomingConnection) noexcept override;
 		
 		ServerSocket socket;
 		
@@ -163,7 +163,7 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 		void getLoginPage(string& p_out);
 		
 		// SettingsManagerListener
-		void on(SettingsManagerListener::Save, SimpleXML&)
+		void on(SettingsManagerListener::Save, SimpleXML&) override
 		{
 			dcassert(!ClientManager::isShutdown())
 			if (!ClientManager::isShutdown())
@@ -179,7 +179,7 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 			}
 		}
 		// SearchManagerListener
-		void on(SearchManagerListener::SR, const SearchResult& aResult) noexcept;
+		void on(SearchManagerListener::SR, const SearchResult& aResult) noexcept override;
 		
 		void Start() noexcept;
 		void shutdown()

@@ -627,7 +627,7 @@ void DownloadManager::abortDownload(const string& aTarget)
 	}
 }
 
-void DownloadManager::on(UserConnectionListener::ListLength, UserConnection* aSource, const string& aListLength)
+void DownloadManager::on(UserConnectionListener::ListLength, UserConnection* aSource, const string& aListLength) noexcept
 {
 	ClientManager::getInstance()->setListLength(aSource->getUser(), aListLength);
 }
@@ -741,7 +741,7 @@ void DownloadManager::on(UserConnectionListener::BanMessage, UserConnection* aSo
 }
 #endif*/
 // [+] SSA
-void DownloadManager::on(UserConnectionListener::CheckUserIP, UserConnection* aSource)
+void DownloadManager::on(UserConnectionListener::CheckUserIP, UserConnection* aSource) noexcept
 {
 	auto d = aSource->getDownload();
 	

@@ -107,8 +107,8 @@ class ThrottleManager :
 		~ThrottleManager(void);
 		
 		// TimerManagerListener
-		void on(TimerManagerListener::Minute, uint64_t aTick) noexcept;//[+] IRainman SpeedLimiter
-		void on(TimerManagerListener::Second, uint64_t aTick) noexcept;
+		void on(TimerManagerListener::Minute, uint64_t aTick) noexcept override;//[+] IRainman SpeedLimiter
+		void on(TimerManagerListener::Second, uint64_t aTick) noexcept override;
 };
 
 #endif  // _THROTTLEMANAGER_H

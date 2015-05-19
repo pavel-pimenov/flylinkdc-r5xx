@@ -313,7 +313,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		
 		LRESULT onSelChangedTree(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
 		{
-			NMTREEVIEW* p = (NMTREEVIEW*) pnmh;
+			NMTREEVIEW* p = (NMTREEVIEW*)pnmh;
 			m_is_crrent_tree_node = false;
 			m_totalBytes = 0;
 			m_totalSpeed = 0;
@@ -382,7 +382,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			if (item->iItem != -1)
 			{
 				FinishedItemInfo *ii = ctrlList.getItemData(item->iItem);
-				WinUtil::openFile(Text::toT(ii->entry->getTarget()));
+				WinUtil::openFile(Text::toT(ii->m_entry->getTarget()));
 			}
 			return 0;
 		}
@@ -414,7 +414,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 						for (int i = 0; i < l_cnt; ++i)
 						{
 							auto l_item = ctrlList.getItemData(i);
-							if (l_item && l_item->entry == entry)
+							if (l_item && l_item->m_entry == entry)
 							{
 								ctrlList.DeleteItem(i);
 								delete l_item;
@@ -447,17 +447,17 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 						if (!m_is_crrent_tree_node)
 						{
 							vector<__int64> l_id;
-							l_id.push_back(ii->entry->getID());
+							l_id.push_back(ii->m_entry->getID());
 							CFlylinkDBManager::getInstance()->delete_transfer_history(l_id);
 						}
 						else
 						{
-							m_totalSpeed -= ii->entry->getAvgSpeed();
-							FinishedManager::getInstance()->removeItem(ii->entry, m_type);
+							m_totalSpeed -= ii->m_entry->getAvgSpeed();
+							FinishedManager::getInstance()->removeItem(ii->m_entry, m_type);
 						}
-						m_totalBytes -= ii->entry->getSize();
+						m_totalBytes -= ii->m_entry->getSize();
 						m_totalCount--;
-						safe_delete(ii->entry);
+						safe_delete(ii->m_entry);
 						ctrlList.DeleteItem(i);
 						delete ii;
 						p = i;
@@ -473,10 +473,11 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 					{
 						const int l_cnt = ctrlList.GetItemCount();
 						vector<__int64> l_id;
+						l_id.reserve(l_cnt);
 						for (int i = 0; i < l_cnt; ++i)
 						{
 							FinishedItemInfo *ii = ctrlList.getItemData(i);
-							l_id.push_back(ii->entry->getID());
+							l_id.push_back(ii->m_entry->getID());
 						}
 						CFlylinkDBManager::getInstance()->delete_transfer_history(l_id);
 					}
@@ -502,7 +503,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			{
 				FinishedItemInfo *ii = ctrlList.getItemData(i);
 				if (ii != NULL)
-					TextFrame::openWindow(Text::toT(ii->entry->getTarget()));
+					TextFrame::openWindow(Text::toT(ii->m_entry->getTarget()));
 			}
 			return 0;
 		}
@@ -515,7 +516,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				FinishedItemInfo *ii = ctrlList.getItemData(i);
 				if (ii)
 				{
-					WinUtil::openFile(Text::toT(ii->entry->getTarget()));
+					WinUtil::openFile(Text::toT(ii->m_entry->getTarget()));
 				}
 			}
 			return 0;
@@ -528,10 +529,10 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				FinishedItemInfo *ii = ctrlList.getItemData(i);
 				if (ii)
 				{
-					if (ii->entry->getTTH() != TTHValue() && !File::isExist(ii->entry->getTarget()))
+					if (ii->m_entry->getTTH() != TTHValue() && !File::isExist(ii->m_entry->getTarget()))
 					{
-						const UserPtr l_user = ClientManager::findLegacyUser(ii->entry->getNick(), ii->entry->getHub());
-						QueueManager::getInstance()->add(ii->entry->getTarget(), ii->entry->getSize(), ii->entry->getTTH(), l_user, 0, false, true);
+						const UserPtr l_user = ClientManager::findLegacyUser(ii->m_entry->getNick(), ii->m_entry->getHub());
+						QueueManager::getInstance()->add(ii->m_entry->getTarget(), ii->m_entry->getSize(), ii->m_entry->getTTH(), l_user, 0, false, true);
 					}
 				}
 			}
@@ -545,7 +546,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				FinishedItemInfo *ii = ctrlList.getItemData(i);
 				if (ii)
 				{
-					WinUtil::openFolder(Text::toT(ii->entry->getTarget()));
+					WinUtil::openFolder(Text::toT(ii->m_entry->getTarget()));
 				}
 			}
 			return 0;
@@ -615,12 +616,12 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			{
 				if (const FinishedItemInfo *ii = ctrlList.getItemData(i))
 				{
-					const UserPtr u = ClientManager::findUser(ii->entry->getCID());
+					const UserPtr u = ClientManager::findUser(ii->m_entry->getCID());
 					if (u && u->isOnline())
 					{
 						try // [+] IRainman fix done: [4] https://www.box.net/shared/0ac062dcc56424091537
 						{
-							QueueManager::getInstance()->addList(HintedUser(u, ii->entry->getHub()), QueueItem::FLAG_CLIENT_VIEW);
+							QueueManager::getInstance()->addList(HintedUser(u, ii->m_entry->getHub()), QueueItem::FLAG_CLIENT_VIEW);
 						}
 						catch (const Exception& e)
 						{
@@ -647,10 +648,10 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			{
 				if (const FinishedItemInfo *ii = ctrlList.getItemData(i))
 				{
-					const UserPtr u = ClientManager::findUser(ii->entry->getCID());
+					const UserPtr u = ClientManager::findUser(ii->m_entry->getCID());
 					if (u && u->isOnline())
 					{
-						UploadManager::getInstance()->reserveSlot(HintedUser(u, ii->entry->getHub()), 600);
+						UploadManager::getInstance()->reserveSlot(HintedUser(u, ii->m_entry->getHub()), 600);
 					}
 					else
 					{
@@ -712,40 +713,35 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		class FinishedItemInfo
 		{
 			public:
-				FinishedItemInfo(FinishedItem* fi) : entry(fi)
+				FinishedItemInfo(FinishedItem* fi) : m_entry(fi)
 				{
 					for (size_t i = FinishedItem::COLUMN_FIRST; i < FinishedItem::COLUMN_LAST; ++i) //-V104
+					{
 						columns[i] = fi->getText(i); //-V107
+					}
 				}
-				tstring columns[FinishedItem::COLUMN_LAST];
-				
 				const tstring& getText(int col) const
 				{
 					dcassert(col >= 0 && col < COLUMN_LAST);
 					return columns[col];
 				}
-				
-				const tstring& copy(int col)
-				{
-					dcassert(col >= 0 && col < COLUMN_LAST);
-					return getText(col);
-				}
-				
 				static int compareItems(const FinishedItemInfo* a, const FinishedItemInfo* b, int col)
 				{
-					return FinishedItem::compareItems(a->entry, b->entry, col);
+					return FinishedItem::compareItems(a->m_entry, b->m_entry, col);
 				}
 				
 				int getImageIndex() const
 				{
-					return g_fileImage.getIconIndex(entry->getTarget());
+					return g_fileImage.getIconIndex(m_entry->getTarget());
 				}
 				static uint8_t getStateImageIndex()
 				{
 					return 0;
 				}
-				
-				FinishedItem* entry;
+			public:
+				FinishedItem* m_entry;
+			private:
+				tstring columns[FinishedItem::COLUMN_LAST];
 		};
 		
 		
@@ -802,21 +798,21 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		
 		void addFinishedEntry(FinishedItem* p_entry, bool p_ensure_visible)
 		{
-			const auto *ii = new FinishedItemInfo(p_entry);
+			const auto ii = new FinishedItemInfo(p_entry);
 			m_totalBytes += p_entry->getSize();
 			m_totalSpeed += p_entry->getAvgSpeed();
 			m_totalCount++;
-			const int loc = ctrlList.insertItem(ii, ii->getImageIndex()); // fix I_IMAGECALLBACK https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=47103
+			const int loc = ctrlList.insertItem(ii, I_IMAGECALLBACK); // ii->getImageIndex() // fix I_IMAGECALLBACK https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=47103
 			if (p_ensure_visible)
 			{
 				ctrlList.EnsureVisible(loc, FALSE);
 			}
 		}
-		void on(UpdateStatus) noexcept
+		void on(UpdateStatus) noexcept override
 		{
 			SendMessage(WM_SPEAKER, SPEAK_UPDATE_STATUS, (WPARAM)nullptr);
 		}
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override
 		{
 			dcassert(!ClientManager::isShutdown());
 			if (!ClientManager::isShutdown())

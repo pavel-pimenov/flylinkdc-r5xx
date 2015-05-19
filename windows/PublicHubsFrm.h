@@ -228,6 +228,11 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 		string m_filter;
 		
 		
+		StringSet m_onlineHubs;
+		bool isOnline(const string& p_hubUrl)
+		{
+			return m_onlineHubs.find(p_hubUrl) != m_onlineHubs.end();
+		}
 		static int columnIndexes[];
 		static int columnSizes[];
 		
@@ -250,7 +255,7 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 		bool parseFilter(FilterModes& mode, double& size);
 		bool matchFilter(const HubEntry& entry, const int& sel, bool doSizeCompare, const FilterModes& mode, const double& size);
 		
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
 		
 };
 

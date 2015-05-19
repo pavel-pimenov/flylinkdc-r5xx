@@ -78,14 +78,18 @@ void FinishedManager::rotation_items(FinishedItem* p_item, eType p_type)
 	webrtc::WriteLockScoped l(*g_cs[p_type]);
 	// [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
 	auto& l_item_array = m_finished[p_type];
-	while (!l_item_array.empty() &&
-	        l_item_array.size() > static_cast<size_t>(p_type == e_Download ? SETTING(MAX_FINISHED_DOWNLOADS) : SETTING(MAX_FINISHED_UPLOADS)))
+	while (!l_item_array.empty()
+#ifndef _DEBUG
+	        && l_item_array.size() > static_cast<size_t>(p_type == e_Download ? SETTING(MAX_FINISHED_DOWNLOADS) : SETTING(MAX_FINISHED_UPLOADS)))
+#else
+	        && l_item_array.size() > 1)
+#endif
 	{
 		if (p_type == e_Download)
 			fire(FinishedManagerListener::RemovedDl(), *l_item_array.cbegin());
 		else
 			fire(FinishedManagerListener::RemovedUl(), *l_item_array.cbegin());
-		delete *l_item_array.cbegin();
+		delete *l_item_array.cbegin(); // Мутное место
 		l_item_array.pop_front();
 	}
 	// [~] IRainman

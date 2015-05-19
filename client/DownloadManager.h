@@ -95,29 +95,29 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 		void onFailed(UserConnection* aSource, const string& aError);
 		
 		// UserConnectionListener
-		void on(Data, UserConnection*, const uint8_t*, size_t) noexcept;
-		void on(Failed, UserConnection* aSource, const string& aError) noexcept
+		void on(Data, UserConnection*, const uint8_t*, size_t) noexcept override;
+		void on(Failed, UserConnection* aSource, const string& aError) noexcept override
 		{
 			onFailed(aSource, aError);
 		}
-		void on(ProtocolError, UserConnection* aSource, const string& aError) noexcept
+		void on(ProtocolError, UserConnection* aSource, const string& aError) noexcept override
 		{
 			onFailed(aSource, aError);
 		}
-		void on(MaxedOut, UserConnection*, const string& param) noexcept;
-		void on(FileNotAvailable, UserConnection*) noexcept;
-		void on(ListLength, UserConnection* aSource, const string& aListLength);
-		void on(Updated, UserConnection*) noexcept;
+		void on(MaxedOut, UserConnection*, const string& param) noexcept override;
+		void on(FileNotAvailable, UserConnection*) noexcept override;
+		void on(ListLength, UserConnection* aSource, const string& aListLength) noexcept override;
+		void on(Updated, UserConnection*) noexcept override;
 		
-		void on(AdcCommand::SND, UserConnection*, const AdcCommand&) noexcept;
-		void on(AdcCommand::STA, UserConnection*, const AdcCommand&) noexcept;
+		void on(AdcCommand::SND, UserConnection*, const AdcCommand&) noexcept override;
+		void on(AdcCommand::STA, UserConnection*, const AdcCommand&) noexcept override;
 		
 		// TimerManagerListener
-		void on(TimerManagerListener::Second, uint64_t aTick) noexcept;
+		void on(TimerManagerListener::Second, uint64_t aTick) noexcept override;
 		/*#ifdef IRAINMAN_ENABLE_AUTO_BAN
-		        void on(BanMessage, UserConnection*, const string& aMessage) noexcept; // !SMT!-B
+		        void on(BanMessage, UserConnection*, const string& aMessage) noexcept override; // !SMT!-B
 		#endif*/
-		void on(CheckUserIP, UserConnection*); // [+] SSA
+		void on(CheckUserIP, UserConnection*) noexcept override; // [+] SSA
 };
 
 #endif // !defined(DOWNLOAD_MANAGER_H)

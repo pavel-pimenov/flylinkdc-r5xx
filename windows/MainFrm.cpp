@@ -94,6 +94,10 @@
 #include "../FlyFeatures/flyfeatures.h" // [+] SSA
 #include "CFlyLocationDlg.h"
 
+#ifndef _DEBUG
+#include "../doctor-dump/CrashRpt.h"
+#endif
+
 #include "resource.h"
 
 
@@ -2621,6 +2625,10 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			
 			if ((m_oldshutdown || SETTING(PROTECT_CLOSE) || (checkState == BST_UNCHECKED) || (bForceNoWarning || ::MessageBox(m_hWnd, CTSTRING(REALLY_EXIT), T_APPNAME_WITH_VERSION, CTSTRING(ALWAYS_ASK), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES)) && !m_stopexit) // [~] InfinitySky.
 			{
+#ifndef _DEBUG
+        extern crash_rpt::CrashRpt g_crashRpt;
+        g_crashRpt.SetCustomInfo(_T("StopGUI"));
+#endif
 				LogManager::g_mainWnd = nullptr;
 				m_closing = true;
 				safe_destroy_timer();
@@ -2657,7 +2665,12 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 				storeWindowsPos();
 				ShowWindow(SW_HIDE);
 				//WinUtil::uninit();
+#ifndef _DEBUG
+        extern crash_rpt::CrashRpt g_crashRpt;
+        g_crashRpt.SetCustomInfo(_T(""));
+#endif
 				m_stopperThread = reinterpret_cast<HANDLE>(_beginthreadex(NULL, 0, &stopper, this, 0, nullptr));
+
 			}
 			else
 			{

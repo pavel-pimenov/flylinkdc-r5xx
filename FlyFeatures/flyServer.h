@@ -131,9 +131,9 @@ public:
 private:
  static StringSet g_include_tag; 
  static StringSet g_exclude_tag; 
- static boost::unordered_set<unsigned> g_exclude_error_log;
- static boost::unordered_set<unsigned> g_exclude_error_syslog;
- std::vector<std::string> m_exclude_tag_inform;
+ static std::unordered_set<unsigned> g_exclude_error_log;
+ static std::unordered_set<unsigned> g_exclude_error_syslog;
+ static std::vector<std::string> g_exclude_tag_inform;
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
  bool     m_send_full_mediainfo; // Если = true на сервер шлем данные если есть полная информация о медиа-файле
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION
@@ -233,7 +233,8 @@ public:
 #ifdef USE_SUPPORT_HUB
   static string   g_support_hub;
 #endif // USE_SUPPORT_HUB
-  static string   g_mapping_dead_hubs;
+  static std::vector<std::string> g_mapping_hubs;
+  static std::unordered_set<std::string> g_block_hubs;
   static string   g_regex_find_ip;
   static string   g_faq_search_does_not_work;
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB

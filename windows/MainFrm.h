@@ -786,23 +786,23 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		
 		
 		// WebServerListener
-		void on(WebServerListener::Setup) noexcept;
-		void on(WebServerListener::ShutdownPC, int) noexcept;
+		void on(WebServerListener::Setup) noexcept override;
+		void on(WebServerListener::ShutdownPC, int) noexcept override;
 		
 		// QueueManagerListener
-		void on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string& dir, const DownloadPtr& aDownload) noexcept;
-		void on(QueueManagerListener::PartialList, const HintedUser& aUser, const string& text) noexcept;
-		void on(QueueManagerListener::TryAdding, const string& fileName, int64_t newSize, int64_t existingSize, time_t existingTime, int option) noexcept; // [+] SSA
+		void on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string& dir, const DownloadPtr& aDownload) noexcept override;
+		void on(QueueManagerListener::PartialList, const HintedUser& aUser, const string& text) noexcept override;
+		void on(QueueManagerListener::TryAdding, const string& fileName, int64_t newSize, int64_t existingSize, time_t existingTime, int option) noexcept override; // [+] SSA
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
-		void on(QueueManagerListener::Added, const QueueItemPtr& qi) noexcept; // [+] SSA
+		void on(QueueManagerListener::Added, const QueueItemPtr& qi) noexcept override; // [+] SSA
 #endif
 		
 		// UserManagerListener
-		void on(UserManagerListener::OutgoingPrivateMessage, const UserPtr& to, const string& hubHint, const tstring& message) noexcept; // [+] IRainman
-		void on(UserManagerListener::OpenHub, const string& url) noexcept; // [+] IRainman
-		void on(UserManagerListener::CollectSummaryInfo, const UserPtr& user, const string& hubHint) noexcept; // [+] IRainman
+		void on(UserManagerListener::OutgoingPrivateMessage, const UserPtr& to, const string& hubHint, const tstring& message) noexcept override; // [+] IRainman
+		void on(UserManagerListener::OpenHub, const string& url) noexcept override; // [+] IRainman
+		void on(UserManagerListener::CollectSummaryInfo, const UserPtr& user, const string& hubHint) noexcept override; // [+] IRainman
 #ifdef FLYLINKDC_USE_SQL_EXPLORER
-		void on(UserManagerListener::BrowseSqlExplorer, const UserPtr& user, const string& hubHint) noexcept; // [+] IRainman
+		void on(UserManagerListener::BrowseSqlExplorer, const UserPtr& user, const string& hubHint) noexcept override; // [+] IRainman
 #endif
 		
 		// // [+]Drakon. Enlighting functions.

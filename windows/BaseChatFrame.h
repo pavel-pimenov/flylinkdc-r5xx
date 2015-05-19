@@ -171,7 +171,7 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		CStatusBarCtrl*  m_ctrlStatus; // TODO - создаются выше в наследника - не красиво (не доступен метод CreateSimpleStatusBar)
 		void createStatusCtrl(HWND p_hWndStatusBar);
 		void destroyStatusCtrl();
-		std::vector<tstring> m_ctrlStatusCache; // Пока не создан GUI - текст сохраняем тут
+		std::vector<std::pair<tstring,bool> > m_ctrlStatusCache; // Пока не создан GUI - текст сохраняем тут
 		void setStatusText(unsigned char p_index, const tstring& p_text);
 		void restoreStatusFromCache();
 		void destroyStatusbar(bool p_is_shutdown);

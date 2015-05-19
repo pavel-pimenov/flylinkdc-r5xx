@@ -98,7 +98,7 @@ class MappingManager :
 		void log(const string& message);
 		string deviceString(const Mapper& p_mapper) const;
 		
-		void on(TimerManagerListener::Minute, uint64_t tick) noexcept;
+		void on(TimerManagerListener::Minute, uint64_t tick) noexcept override;
 };
 
 #endif

@@ -126,17 +126,17 @@ class RecentHubsFrame : public MDITabChildWindowImpl < RecentHubsFrame, RGB(0, 0
 			return ctrlHubs.ExGetItemText(pos, COLUMN_SERVER);
 		}
 		
-		void on(RecentAdded, const RecentHubEntry* entry) noexcept
+		void on(RecentAdded, const RecentHubEntry* entry) noexcept override
 		{
 			addEntry(entry, ctrlHubs.GetItemCount());
 		}
-		void on(RecentRemoved, const RecentHubEntry* entry) noexcept
+		void on(RecentRemoved, const RecentHubEntry* entry) noexcept override
 		{
 			ctrlHubs.DeleteItem(ctrlHubs.find((LPARAM)entry));
 		}
-		void on(RecentUpdated, const RecentHubEntry* entry) noexcept;
+		void on(RecentUpdated, const RecentHubEntry* entry) noexcept override;
 		
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
 };
 
 #endif

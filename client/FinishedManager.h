@@ -165,8 +165,8 @@ class FinishedManager : public Singleton<FinishedManager>,
 		FinishedManager();
 		~FinishedManager();
 		
-		void on(QueueManagerListener::Finished, const QueueItemPtr&, const string&, const DownloadPtr& aDownload) noexcept;
-		void on(UploadManagerListener::Complete, const UploadPtr& aUpload) noexcept;
+		void on(QueueManagerListener::Finished, const QueueItemPtr&, const string&, const DownloadPtr& aDownload) noexcept override;
+		void on(UploadManagerListener::Complete, const UploadPtr& aUpload) noexcept override;
 		
 		string log(const CID& p_CID, const string& p_path, const string& p_message);
 		void rotation_items(FinishedItem* p_item, eType p_type);

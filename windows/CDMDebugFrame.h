@@ -156,7 +156,7 @@ class CDMDebugFrame : private DebugManagerListener, public BASE_THREAD,
 		StringTokenizer<string> m_ExcludeTokens;
 		StringTokenizer<string> m_IPTokens;
 		
-		void on(DebugManagerListener::DebugEvent, const DebugTask& task) noexcept;
+		void on(DebugManagerListener::DebugEvent, const DebugTask& task) noexcept override;
 };
 
 #endif // IRAINMAN_INCLUDE_PROTO_DEBUG_FUNCTION
