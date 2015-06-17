@@ -481,7 +481,7 @@ class CFlySegment
 		CFlySegment()
 		{
 		}
-		CFlySegment(const QueueItemPtr& p_QueueItem)
+		explicit CFlySegment(const QueueItemPtr& p_QueueItem)
 		{
 			m_priority = int(p_QueueItem->getPriority());
 			m_segment = p_QueueItem->getSectionStringL();

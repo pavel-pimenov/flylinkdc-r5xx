@@ -510,7 +510,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 	protected:
 		friend class ClientManager;
 		friend class User;
-		Client(const string& p_HubURL, char p_separator_, bool p_is_secure);
+		Client(const string& p_HubURL, char p_separator_, bool p_is_secure, bool p_is_auto_connect);
 		virtual ~Client();
 		
 		enum CountType

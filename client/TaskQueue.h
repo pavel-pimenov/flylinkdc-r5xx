@@ -33,7 +33,7 @@ class Task
 class StringTask : public Task
 {
 	public:
-		StringTask(const string& p_str) : m_str(p_str) { }
+		explicit StringTask(const string& p_str) : m_str(p_str) { }
 		string m_str;
 };
 

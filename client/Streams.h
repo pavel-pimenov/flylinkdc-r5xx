@@ -87,7 +87,7 @@ class MemoryInputStream : public InputStream
 		{
 			memcpy(buf, src, len);
 		}
-		MemoryInputStream(const string& src) : pos(0), size(src.size()), buf(src.size() ? new uint8_t[src.size()] : nullptr)
+		explicit MemoryInputStream(const string& src) : pos(0), size(src.size()), buf(src.size() ? new uint8_t[src.size()] : nullptr)
 		{
 			dcassert(src.size());
 			memcpy(buf, src.data(), src.size());
@@ -199,17 +199,16 @@ class BufferedOutputStream : public OutputStream
 		}
 		~BufferedOutputStream() noexcept
 		{
-			/* https://drdump.com/UploadedReport.aspx?DumpID=3549421
-			            try
-			            {
-			                // We must do this in order not to lose bytes when a download
-			                // is disconnected prematurely
-			                flush();
-			            }
-			            catch (const Exception&)
-			            {
-			            }
-			*/
+      // https://drdump.com/UploadedReport.aspx?DumpID=3549421
+			try
+			{
+				// We must do this in order not to lose bytes when a download
+				// is disconnected prematurely
+				flush();
+			}
+			catch (const Exception&)
+			{
+			}
 			if (managed)
 			{
 				delete s;

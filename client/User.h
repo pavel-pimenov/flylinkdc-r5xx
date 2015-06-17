@@ -157,7 +157,7 @@ class User : public intrusive_ptr_base<User>, public Flags
 //		}
 //#define ENABLE_DEBUG_LOG_IN_USER_CLASS
 
-		User(const CID& aCID);
+		explicit User(const CID& aCID);
 		virtual ~User();
 		
 #ifdef _DEBUG
@@ -291,7 +291,7 @@ class User : public intrusive_ptr_base<User>, public Flags
 			}
 		}
 		boost::asio::ip::address_v4 getIP();
-		boost::asio::ip::address_v4 User::getLastIPfromRAM() const
+		boost::asio::ip::address_v4 getLastIPfromRAM() const
 		{
 			return m_last_ip;
 		}

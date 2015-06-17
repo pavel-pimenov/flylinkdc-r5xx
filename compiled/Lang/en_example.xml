@@ -353,6 +353,7 @@
 	<string name="DecompressionError">Error during decompression</string>
 	<string name="Default">Default</string>
 	<string name="DefaultAwayMessage">Hello, %[userNI]! I'm away. Be lucky!</string>
+	<string name="DefaultNcdcHubEncodingtext">Default hub encoding:</string>
 	<string name="DefPasswordHint">User has disabled receiving PMs. Use password '%[pm_pass]' in case of emergency. Don't abuse: slot-askers will be banned+ignored forever and will not download even in queue order.</string>
 	<string name="DefPasswordOkHint">Password correct. Access granted</string>
 	<string name="DeleteChecked">Delete checked file-lists</string>

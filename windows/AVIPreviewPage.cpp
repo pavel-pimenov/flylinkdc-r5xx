@@ -49,18 +49,17 @@ LRESULT AVIPreview::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	SET_LIST_COLOR_IN_SETTING(ctrlCommands);
 	
 	// Do specialized reading here
-	const PreviewApplication::List lst = FavoriteManager::getPreviewApps();
+	const auto lst = FavoriteManager::getPreviewApps();
 	auto cnt = ctrlCommands.GetItemCount();
 	for (auto i = lst.cbegin(); i != lst.cend(); ++i)
 	{
-		PreviewApplication::Ptr pa = *i;
-		addEntry(pa, cnt++);
+		addEntry(*i, cnt++);
 	}
 	checkMenu();
 	return 0;
 }
 
-void AVIPreview::addEntry(PreviewApplication::Ptr pa, int pos)
+void AVIPreview::addEntry(PreviewApplication* pa, int pos)
 {
 	TStringList lst;
 	lst.push_back(Text::toT(pa->getName()));

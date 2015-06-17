@@ -44,7 +44,7 @@ const string UserConnection::g_PLEASE_UPDATE_YOUR_CLIENT = "Please update your D
 
 // We only want ConnectionManager to create this...
 UserConnection::UserConnection(bool p_secure) :
-	m_last_encoding(Text::systemCharset),
+	m_last_encoding(Text::g_systemCharset),
 	state(STATE_UNCONNECTED),
 	lastActivity(0),
 	speed(0),

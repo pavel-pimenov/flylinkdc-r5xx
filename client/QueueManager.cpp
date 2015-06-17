@@ -380,7 +380,7 @@ void QueueManager::UserQueue::addL(const QueueItemPtr& qi, const UserPtr& aUser,
 #endif
 	            qi->calcAverageSpeedAndCalcAndGetDownloadedBytesL() > 0))
 	{
-		uq.push_front(qi);  
+		uq.push_front(qi);
 	}
 	else
 	{
@@ -909,8 +909,8 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 		{
 			searchString = qi->getTTH().toBase32();
 			m_recent.push_back(qi->getTarget());
-			const int l_as_time = SETTING(AUTO_SEARCH_TIME);
-			nextSearch = aTick + (l_as_time * (l_as_time == 1 ? 61000 : 60000));
+			//dcassert(SETTING(AUTO_SEARCH_TIME) > 1)
+			nextSearch = aTick + SETTING(AUTO_SEARCH_TIME) * 60000;
 			if (BOOLSETTING(REPORT_ALTERNATES))
 			{
 				LogManager::message(STRING(ALTERNATES_SEND) + ' ' + Util::getFileName(qi->getTargetFileName()) + " TTH = " + qi->getTTH().toBase32());
@@ -1114,7 +1114,8 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& aRo
 				*/
 				int64_t l_existingFileSize;
 				time_t l_eistingFileTime;
-				if (File::isExist(l_target, l_existingFileSize, l_eistingFileTime))
+				bool l_is_link;
+				if (File::isExist(l_target, l_existingFileSize, l_eistingFileTime, l_is_link))
 				{
 					m_curOnDownloadSettings = SETTING(ON_DOWNLOAD_SETTING);
 					if (m_curOnDownloadSettings == SettingsManager::ON_DOWNLOAD_REPLACE && BOOLSETTING(KEEP_FINISHED_FILES_OPTION))
@@ -1960,7 +1961,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 	UserList getConn;
 	string fileName;
 	const HintedUser l_hintedUser = aDownload->getHintedUser(); // crash https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=155631
-	UserPtr l_user = aDownload->getUser(); 
+	UserPtr l_user = aDownload->getUser();
 	
 	dcassert(l_user); // [!] IRainman fix: putDownload call with empty by the user can not because you can not even attempt to download with an empty user!
 	

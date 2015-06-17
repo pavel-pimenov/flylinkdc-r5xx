@@ -128,19 +128,19 @@ void BaseChatFrame::setStatusText(unsigned char p_index, const tstring& p_text)
 {
 	dcassert(!ClientManager::isShutdown());
 	dcassert(p_index < m_ctrlStatusCache.size());
-		if (p_index < m_ctrlStatusCache.size())
+	if (p_index < m_ctrlStatusCache.size())
+	{
+		m_ctrlStatusCache[p_index].second = m_ctrlStatusCache[p_index].first != p_text;
+		if (m_ctrlStatusCache[p_index].second)
 		{
-      m_ctrlStatusCache[p_index].second = m_ctrlStatusCache[p_index].first != p_text;
-      if(m_ctrlStatusCache[p_index].second)
-      {
-       m_ctrlStatusCache[p_index].first = p_text;
-			 if (m_ctrlStatus)
-			 {
+			m_ctrlStatusCache[p_index].first = p_text;
+			if (m_ctrlStatus)
+			{
 				m_ctrlStatus->SetText(p_index, p_text.c_str());
-        m_ctrlStatusCache[p_index].second = false;
-			 }
-      }
+				m_ctrlStatusCache[p_index].second = false;
+			}
 		}
+	}
 }
 
 void BaseChatFrame::restoreStatusFromCache()
@@ -148,8 +148,8 @@ void BaseChatFrame::restoreStatusFromCache()
 	CLockRedraw<true> l_lock_draw(m_ctrlStatus->m_hWnd);
 	for (size_t i = 0 ; i < m_ctrlStatusCache.size(); ++i)
 	{
-		 m_ctrlStatus->SetText(i, m_ctrlStatusCache[i].first.c_str());
-     m_ctrlStatusCache[i].second = false;
+		m_ctrlStatus->SetText(i, m_ctrlStatusCache[i].first.c_str());
+		m_ctrlStatusCache[i].second = false;
 	}
 }
 

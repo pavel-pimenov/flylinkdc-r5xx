@@ -285,7 +285,7 @@ typedef struct XMLDLLENTRY XMLNode
 		/// Constructors are protected, so use instead one of: XMLNode::parseString, XMLNode::parseFile, XMLNode::openFileHelper, XMLNode::createXMLTopNode
 		XMLNode(struct XMLNodeDataTag *pParent, XMLSTR lpszName, char isDeclaration);
 		/// Constructors are protected, so use instead one of: XMLNode::parseString, XMLNode::parseFile, XMLNode::openFileHelper, XMLNode::createXMLTopNode
-		XMLNode(struct XMLNodeDataTag *p);
+		explicit XMLNode(struct XMLNodeDataTag *p);
 		
 	public:
 		static XMLCSTR getVersion();///< Return the XMLParser library version number

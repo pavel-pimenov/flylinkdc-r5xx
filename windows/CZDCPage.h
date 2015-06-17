@@ -24,7 +24,7 @@
 class CZDCPage : public CPropertyPage<IDD_CZDCPAGE>, public PropPage
 {
 	public:
-		CZDCPage(SettingsManager *s) : PropPage(s)
+		explicit CZDCPage(SettingsManager *s) : PropPage(s)
 		{
 			SetTitle(_T(APPNAME));
 			m_psp.dwFlags |= PSP_RTLREADING;

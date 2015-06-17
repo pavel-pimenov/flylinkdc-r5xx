@@ -191,7 +191,8 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		void handleTab(bool reverse);
 		void runUserCommand(::UserCommand& uc);
 		
-		static HubFrame* openWindow(const string& p_server,
+		static HubFrame* openWindow(bool p_is_auto_connect,
+		                            const string& p_server,
 		                            const string& p_name     = Util::emptyString,
 		                            const string& p_rawOne   = Util::emptyString,
 		                            const string& p_rawTwo   = Util::emptyString,
@@ -286,7 +287,8 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 			NOT_EQUAL
 		};
 		
-		HubFrame(const string& aServer,
+		HubFrame(bool p_is_auto_connect,
+		         const string& aServer,
 		         const string& aName,
 		         const string& aRawOne,
 		         const string& aRawTwo,

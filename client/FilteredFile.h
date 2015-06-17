@@ -27,7 +27,7 @@ class CountOutputStream : public OutputStream
 {
 	public:
 		using OutputStream::write;
-		CountOutputStream(OutputStream* aStream) : s(aStream), count(0) { }
+		explicit CountOutputStream(OutputStream* aStream) : s(aStream), count(0) { }
 		~CountOutputStream()
 		{
 			if (managed) delete s;
@@ -63,7 +63,7 @@ class CalcOutputStream : public OutputStream
 	public:
 		using OutputStream::write;
 		
-		CalcOutputStream(OutputStream* aStream) : s(aStream) { }
+		explicit CalcOutputStream(OutputStream* aStream) : s(aStream) { }
 		~CalcOutputStream()
 		{
 			if (managed) delete s;
@@ -97,7 +97,7 @@ template<class Filter, bool managed>
 class CalcInputStream : public InputStream
 {
 	public:
-		CalcInputStream(InputStream* aStream) : s(aStream) { }
+		explicit CalcInputStream(InputStream* aStream) : s(aStream) { }
 		~CalcInputStream()
 		{
 			if (managed) delete s;
@@ -140,7 +140,7 @@ class FilteredOutputStream : public OutputStream
 	public:
 		using OutputStream::write;
 		
-		FilteredOutputStream(OutputStream* aFile) : f(aFile), flushed(false) { }
+		explicit FilteredOutputStream(OutputStream* aFile) : f(aFile), flushed(false) { }
 		~FilteredOutputStream()
 		{
 			if (manage) delete f;
@@ -217,7 +217,7 @@ class FilteredInputStream : public InputStream
 	, protected FilteredInOutStream<Filter>
 {
 	public:
-		FilteredInputStream(InputStream* aFile) : f(aFile), pos(0), valid(0) { }
+		explicit FilteredInputStream(InputStream* aFile) : f(aFile), pos(0), valid(0) { }
 		~FilteredInputStream()
 		{
 			if (managed)

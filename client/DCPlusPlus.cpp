@@ -61,10 +61,10 @@
 void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, GUIINITPROC pGuiInitProc, void *pGuiParam)
 {
 #ifndef _DEBUG
-        extern crash_rpt::CrashRpt g_crashRpt;
-        g_crashRpt.SetCustomInfo(_T("StartCore"));
+	extern crash_rpt::CrashRpt g_crashRpt;
+	g_crashRpt.SetCustomInfo(_T("StartCore"));
 #endif
-
+	
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 	CFlyTickDelta l_delta(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_START_CORE]);
 #endif
@@ -185,12 +185,12 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	
 #undef LOAD_STEP
 #undef LOAD_STEP_L
-
+	
 #ifndef _DEBUG
-        extern crash_rpt::CrashRpt g_crashRpt;
-        g_crashRpt.SetCustomInfo(_T(""));
+	extern crash_rpt::CrashRpt g_crashRpt;
+	g_crashRpt.SetCustomInfo(_T(""));
 #endif
-
+	
 }
 
 void preparingCoreToShutdown() // [+] IRainamn fix.
@@ -218,10 +218,10 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 {
 	// Сохраним маркеры времени завершения
 #ifndef _DEBUG
-        extern crash_rpt::CrashRpt g_crashRpt;
-        g_crashRpt.SetCustomInfo(_T("StopCore"));
+	extern crash_rpt::CrashRpt g_crashRpt;
+	g_crashRpt.SetCustomInfo(_T("StopCore"));
 #endif
-
+	
 	{
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_TAG
 		string l_debugTag;
@@ -374,7 +374,6 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 	g_fly_server_stat.saveShutdownMarkers();
 #endif
-	
 }
 
 /**

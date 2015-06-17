@@ -19,21 +19,26 @@ Name: {userappdata}\Microsoft\Internet Explorer\Quick Launch\FlylinkDC++; Filena
 
 
 [Setup]
-OutputBaseFilename=SetupFlylinkDC-vip-serverok21-test-3
-WizardImageFile=vip_custom\setup-1.bmp
-WizardSmallImageFile=vip_custom\setup-2.bmp
-SetupIconFile=vip_custom\setup.ico
-LicenseFile=vip_custom\license.rtf
+OutputBaseFilename=SetupFlylinkDC-vip--test-1
+;WizardImageFile=vip_custom\setup-1.bmp
+;WizardSmallImageFile=vip_custom\setup-2.bmp
+;SetupIconFile=vip_custom\setup.ico
+;LicenseFile=vip_custom\license.rtf
+
+WizardImageFile=setup-1.bmp
+WizardSmallImageFile=setup-2.bmp
+;SetupIconFile=setup.ico
+LicenseFile=license_ru-RU.rtf
 
 [Components]
 Name: "program"; Description: "Program Files"; Types: full compact custom; Flags: fixed
 Name: "DCPlusPlus"; Description: "Авто-настройка на хаб сети:"; Types: full compact custom; Flags: fixed
-Name: "DCPlusPlus\vip_custom"; Description: "DC Derverok 21"; Flags: exclusive
+Name: "DCPlusPlus\vip_custom"; Description: "ШАРА Экстрим Интернет"; Flags: exclusive
 
 #include "FlylinkDC-x86.hss"
 [Files]
-Source: "vip_custom\setup.ico";           			     DestDir: "{app}"; Flags: overwritereadonly	
-Source: "vip_custom\license.rtf";                   DestDir: "{app}"; Flags: overwritereadonly	
+;Source: "vip_custom\setup.ico";           			     DestDir: "{app}"; Flags: overwritereadonly	
+;Source: "vip_custom\license.rtf";                   DestDir: "{app}"; Flags: overwritereadonly	
 Source: "vip_custom\DCPlusPlus.xml";                          DestDir: "{code:fUser}"; Flags: onlyifdoesntexist
 Source: "vip_custom\Favorites.xml";                           DestDir: "{code:fUser}"; Flags: onlyifdoesntexist
 

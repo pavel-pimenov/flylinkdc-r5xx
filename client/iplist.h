@@ -41,7 +41,7 @@ class IPList
 				uint32_t m_ipmask;
 				
 			public:
-				IPArrayList(uint32_t p_mask)
+				explicit IPArrayList(uint32_t p_mask)
 					: m_ipmask(p_mask)
 				{
 				}

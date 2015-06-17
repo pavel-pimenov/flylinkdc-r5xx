@@ -58,7 +58,7 @@ class CFlyHandlerAdapter
 	protected:
 		const HWND& m_win_handler;
 	public:
-		CFlyHandlerAdapter(const HWND& p_hWnd) : m_win_handler(p_hWnd)
+		explicit CFlyHandlerAdapter(const HWND& p_hWnd) : m_win_handler(p_hWnd)
 		{
 		}
 };
@@ -66,7 +66,7 @@ class CFlySpeakerAdapter : public CFlyHandlerAdapter
 {
 	public:
 		bool m_spoken;
-		CFlySpeakerAdapter(const HWND& p_hWnd) : CFlyHandlerAdapter(p_hWnd), m_spoken(false)
+		explicit CFlySpeakerAdapter(const HWND& p_hWnd) : CFlyHandlerAdapter(p_hWnd), m_spoken(false)
 		{
 		}
 		BOOL async_speak()
@@ -94,7 +94,7 @@ class CFlyTaskAdapter : public CFlySpeakerAdapter
 	protected:
 		TaskQueue m_tasks;
 	public:
-		CFlyTaskAdapter(const HWND& p_hWnd) : CFlySpeakerAdapter(p_hWnd)
+		explicit CFlyTaskAdapter(const HWND& p_hWnd) : CFlySpeakerAdapter(p_hWnd)
 		{
 		}
 		~CFlyTaskAdapter()
@@ -126,7 +126,7 @@ class CFlyTimerAdapter : public CFlyHandlerAdapter
 		UINT_PTR m_timer_id;
 		UINT_PTR m_timer_id_event;
 	public:
-		CFlyTimerAdapter(const HWND& p_hWnd) : CFlyHandlerAdapter(p_hWnd), m_timer_id(0), m_timer_id_event(NULL)
+		explicit CFlyTimerAdapter(const HWND& p_hWnd) : CFlyHandlerAdapter(p_hWnd), m_timer_id(0), m_timer_id_event(NULL)
 		{
 		}
 		virtual ~CFlyTimerAdapter()
@@ -226,7 +226,7 @@ class CLockRedraw
 #endif
 {
 	public:
-	CLockRedraw(const HWND p_hWnd) noexcept :
+	explicit CLockRedraw(const HWND p_hWnd) noexcept :
 		m_hWnd(p_hWnd)
 		{
 			ATLASSERT(::IsWindow(m_hWnd));
@@ -285,7 +285,7 @@ class CFlyLockWindowUpdate
 #endif
 {
 	public:
-		CFlyLockWindowUpdate(HWND hWnd)
+		explicit CFlyLockWindowUpdate(HWND hWnd)
 		{
 			// NOTE: A locked window cannot be moved.
 			//       See also Q270624 for problems with layered windows.

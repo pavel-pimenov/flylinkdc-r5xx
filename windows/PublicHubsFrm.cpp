@@ -616,7 +616,7 @@ void PublicHubsFrame::openHub(int ind) // [+] IRainman fix.
 	r.setServer(l_server);
 	FavoriteManager::getInstance()->addRecent(r);
 	
-	HubFrame::openWindow(l_server);
+	HubFrame::openWindow(false, l_server);
 }
 
 LRESULT PublicHubsFrame::onEnter(int /*idCtrl*/, LPNMHDR /* pnmh */, BOOL& /*bHandled*/)

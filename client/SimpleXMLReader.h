@@ -39,7 +39,7 @@ class SimpleXMLReader
 				static const std::string& getAttrib(StringPairList& attribs, const std::string& name, size_t hint);
 		};
 		
-		SimpleXMLReader(CallBack* callback);
+		explicit SimpleXMLReader(CallBack* callback);
 		virtual ~SimpleXMLReader() { }
 		
 		void parse(InputStream& is, size_t maxSize = 0);

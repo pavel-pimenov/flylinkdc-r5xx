@@ -69,14 +69,17 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 		
 		void hashFile(__int64 p_path_id, const string& fileName, int64_t aSize)
 		{
-			dcassert(p_path_id);
+			//dcassert(p_path_id);
 			hasher.hashFile(p_path_id, fileName, aSize);
 		}
 		
 		/**
 		 * Check if the TTH tree associated with the filename is current.
 		 */
+		// TODO
+#if 0
 		bool checkTTH(const string& fname, const string& fpath, int64_t p_path_id, int64_t aSize, int64_t aTimeStamp, TTHValue& p_out_tth);
+#endif
 		void stopHashing(const string& baseDir)
 		{
 			hasher.stopHashing(baseDir);
@@ -257,7 +260,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 				
 				void stopHashing(const string& baseDir);
 				int run();
-				bool fastHash(const string& fname, uint8_t* buf, TigerTree& tth, int64_t size);
+				bool fastHash(const string& fname, uint8_t* buf, TigerTree& tth, int64_t& size, bool p_is_link);
 				// [+] brain-ripper
 				void getStats(string& curFile, int64_t& bytesLeft, size_t& filesLeft)
 				{

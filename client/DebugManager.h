@@ -23,7 +23,9 @@ struct DebugTask // [+] IRainman.
 #ifdef _DEBUG
 		: m_type(LAST)
 #endif
+     
 	{
+		m_time = 0;
 	}
 	DebugTask(const string& message, Type type, const string& p_ip_and_port = Util::emptyString);
 	static string format(const DebugTask& task);

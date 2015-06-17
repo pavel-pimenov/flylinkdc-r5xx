@@ -32,7 +32,7 @@
 class MiscPage : public CPropertyPage<IDD_MISC_PAGE>, public PropPage
 {
 	public:
-		MiscPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_MISC)), m_ignoreListCnange(false)
+		explicit MiscPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_MISC)), m_ignoreListCnange(false)
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

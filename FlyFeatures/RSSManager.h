@@ -39,7 +39,7 @@ class RSSItem
 		{
 		}
 		
-		RSSItem(const RSSItem* src):
+		explicit RSSItem(const RSSItem* src):
 			title(src->getTitle()), url(src->getUrl()), desc(src->getDesc()), publishDate(src->getPublishDate()), author(src->getAuthor()), category(src->getCategory()), source(src->getSource())
 		{
 		

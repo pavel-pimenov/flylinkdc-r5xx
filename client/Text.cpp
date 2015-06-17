@@ -39,24 +39,20 @@ const string g_utf8 = "utf-8"; // optimization
 const string g_code1251 = "Russian_Russia.1251"; //[+]FlylinkDC++ Team optimization
 const string g_code1252 = "English_United Kingdom.1252"; //[+]FlylinkDC++ Team optimization
 
-string systemCharset;
+string g_systemCharset;
 
 void initialize()
 {
 	setlocale(LC_ALL, "");
-#ifdef _WIN32
 	char *ctype = setlocale(LC_CTYPE, NULL);
 	if (ctype)
 	{
-		systemCharset = string(ctype);
+		g_systemCharset = string(ctype);
 	}
 	else
 	{
 		dcdebug("Unable to determine the program's locale");
 	}
-#else
-	systemCharset = string(nl_langinfo(CODESET));
-#endif
 }
 
 #ifdef _WIN32

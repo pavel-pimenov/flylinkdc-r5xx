@@ -76,7 +76,7 @@ class CFlyTickDelta
 	private:
 		DWORD& m_tc;
 	public:
-		CFlyTickDelta(DWORD& p_tc): m_tc(p_tc)
+		explicit CFlyTickDelta(DWORD& p_tc): m_tc(p_tc)
 		{
 			m_tc = GetTickCount();
 		}
@@ -90,7 +90,7 @@ template <class T> class CFlySafeGuard
 {
 		T& m_counter;
 	public:
-		CFlySafeGuard(T& p_counter) : m_counter(p_counter)
+		explicit CFlySafeGuard(T& p_counter) : m_counter(p_counter)
 		{
 			++m_counter;
 		}

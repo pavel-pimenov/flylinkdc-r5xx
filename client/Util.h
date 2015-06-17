@@ -246,7 +246,7 @@ template < class T1, class T2, class op = std::equal_to<T1> >
 class CompareFirst
 {
 	public:
-		CompareFirst(const T1& compareTo) : a(compareTo) { }
+		explicit CompareFirst(const T1& compareTo) : a(compareTo) { }
 		bool operator()(const pair<T1, T2>& p)
 		{
 			return op()(p.first, a);

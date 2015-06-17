@@ -28,7 +28,7 @@
 class JAControl
 {
 	public:
-		JAControl(HWND window);
+		explicit JAControl(HWND window);
 		~JAControl() { }
 		
 	public:

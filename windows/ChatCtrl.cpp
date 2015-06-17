@@ -1442,7 +1442,7 @@ LRESULT ChatCtrl::onEditClearAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 	return 0;
 }
 // !SMT!-S
-bool ChatCtrl::isOnline(const Client* client, const tstring& aNick) const
+bool ChatCtrl::isOnline(const Client* client, const tstring& aNick)
 {
 	return client->findUser(Text::fromT(aNick)) != nullptr;// [!] IRainman opt.
 }
@@ -1460,6 +1460,7 @@ bool ChatCtrl::isGoodNickBorderSymbol(const TCHAR ch)
 }
 
 #ifdef IRAINMAN_INCLUDE_SMILE
+// TODO - никогда не зовется
 LRESULT ChatCtrl::onUpdateSmile(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
 {
 	IOleClientSite *spClientSite = (IOleClientSite *)lParam;

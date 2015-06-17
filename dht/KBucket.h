@@ -37,7 +37,7 @@ struct Node :
 		typedef boost::intrusive_ptr<Node> Ptr;
 		typedef std::map<CID, Node::Ptr> Map; // map менять нельзя - контейнер должен быть сортирован
 		
-		Node(const UserPtr& u);
+		explicit Node(const UserPtr& u);
 		~Node() noexcept { }
 		
 		uint8_t getType() const

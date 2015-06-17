@@ -52,7 +52,7 @@ typedef std::vector<FileRoadMapItem> MapVItems;
 class FileRoadMap
 {
 	public:
-		FileRoadMap(int64_t totalSize) : m_totalSize(totalSize)
+		explicit FileRoadMap(int64_t totalSize) : m_totalSize(totalSize)
 		{
 		}
 		~FileRoadMap()

@@ -177,6 +177,7 @@ void HashManager::addFileFromStream(int64_t p_path_id, const string& p_name, con
 }
 #endif // IRAINMAN_NTFS_STREAM_TTH
 
+#if 0
 bool HashManager::checkTTH(const string& fname, const string& fpath, int64_t p_path_id, int64_t aSize, int64_t aTimeStamp, TTHValue& p_out_tth)
 {
 	// Lock l(cs); [-] IRainman fix: no data to lock.
@@ -218,6 +219,8 @@ bool HashManager::checkTTH(const string& fname, const string& fpath, int64_t p_p
 #endif // IRAINMAN_NTFS_STREAM_TTH
 	return true;
 }
+#endif
+
 void HashManager::hashDone(__int64 p_path_id, const string& aFileName, int64_t aTimeStamp, const TigerTree& tth, int64_t speed,
                            bool p_is_ntfs, int64_t p_size)
 {
@@ -275,7 +278,7 @@ void HashManager::hashDone(__int64 p_path_id, const string& aFileName, int64_t a
 
 void HashManager::addFile(__int64 p_path_id, const string& p_file_name, int64_t p_time_stamp, const TigerTree& p_tth, int64_t p_size, CFlyMediaInfo& p_out_media)
 {
-	dcassert(p_path_id);
+	// dcassert(p_path_id);
 	p_out_media.init(); // TODO - делается двойной инит
 	getMediaInfo(p_file_name, p_out_media, p_size, p_tth.getRoot());
 	CFlylinkDBManager::getInstance()->add_file(p_path_id, p_file_name, p_time_stamp, p_tth, p_size, p_out_media);
@@ -420,8 +423,9 @@ static const size_t BUF_SIZE = g_HashBufferSize;
 
 #endif // FLYLINKDC_HE
 
-bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, TigerTree& tth, int64_t size)
+bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, TigerTree& tth, int64_t& p_size, bool p_is_link)
 {
+	int64_t l_size = p_size;
 	HANDLE h = INVALID_HANDLE_VALUE;
 	DWORD l_sector_size = 0;
 	DWORD l_tmp;
@@ -463,7 +467,25 @@ bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, TigerTree&
 			h = ::CreateFile(File::formatPath(Text::toT(fname)).c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
 			                 FILE_FLAG_NO_BUFFERING | FILE_FLAG_OVERLAPPED, NULL);
 			if (h == INVALID_HANDLE_VALUE)
+			{
+				// dcassert(0);
 				return false;
+			}
+			else
+			{
+				if (p_is_link && p_size == 0) // iSymLink?
+				{
+					LARGE_INTEGER x = {0};
+					BOOL bRet = ::GetFileSizeEx(h, &x);
+					if (bRet == FALSE)
+					{
+						dcassert(0);
+						return false;
+					}
+					p_size = x.QuadPart; // fix https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/14
+					l_size = p_size;
+				}
+			}
 		}
 	}
 	DWORD hn = 0;
@@ -480,15 +502,17 @@ bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, TigerTree&
 	uint64_t lastRead = GET_TICK();
 	if (!::ReadFile(h, hbuf, BUF_SIZE, &hn, &over))
 	{
-		if (GetLastError() == ERROR_HANDLE_EOF)
+		const auto l_error =   GetLastError();
+		if (l_error == ERROR_HANDLE_EOF)
 		{
 			hn = 0;
 		}
-		else if (GetLastError() == ERROR_IO_PENDING)
+		else if (l_error == ERROR_IO_PENDING)
 		{
 			if (!GetOverlappedResult(h, &over, &hn, TRUE))
 			{
-				if (GetLastError() == ERROR_HANDLE_EOF)
+				const auto l_error_overlapped =   GetLastError();
+				if (l_error_overlapped == ERROR_HANDLE_EOF)
 				{
 					hn = 0;
 				}
@@ -505,14 +529,14 @@ bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, TigerTree&
 	}
 	
 	over.Offset = hn;
-	size -= hn;
-	
+	l_size -= hn;
+	dcassert(l_size >= 0);
 	// [+] brain-ripper
 	// exit loop if "running" equals false.
 	// "running" sets to false in stopHashing function
-	while (!m_stop && m_running)
+	while (!m_stop && m_running && l_size >= 0)
 	{
-		if (size > 0)
+		if (l_size > 0)
 		{
 			// Start a new overlapped read
 			ResetEvent(over.hEvent);
@@ -545,7 +569,7 @@ bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, TigerTree&
 			m_currentSize = max(m_currentSize - hn, _LL(0));
 		}
 		
-		if (size == 0)
+		if (l_size == 0)
 		{
 			ok = true;
 			break;
@@ -572,7 +596,7 @@ bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, TigerTree&
 		instantPause();
 		
 		*((uint64_t*)&over.Offset) += rn;
-		size -= rn;
+		l_size -= rn;
 		
 		std::swap(rbuf, hbuf);
 		std::swap(rn, hn);
@@ -622,6 +646,7 @@ int HashManager::Hasher::run()
 			}
 			else
 			{
+				m_currentSize = 0;
 				last = true;
 				m_fname.clear();
 				m_running = false;
@@ -640,7 +665,8 @@ int HashManager::Hasher::run()
 		{
 			int64_t l_size = 0;
 			int64_t l_outFiletime = 0;
-			File::isExist(l_fname, l_size, l_outFiletime);
+			bool l_is_link = false;
+			File::isExist(l_fname, l_size, l_outFiletime, l_is_link); // TODO - вернуть признак isLink
 			int64_t l_sizeLeft = l_size;
 #ifdef _WIN32
 			if (buf == NULL)
@@ -656,6 +682,11 @@ int HashManager::Hasher::run()
 			}
 			try
 			{
+				if (l_size == 0 && l_is_link)
+				{
+					File f(l_fname, File::READ, File::OPEN);
+					l_size = f.getSize(); // fix https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/15
+				}
 				const int64_t bs = TigerTree::getMaxBlockSize(l_size);
 				const uint64_t start = GET_TICK();
 				const int64_t timestamp = l_outFiletime;
@@ -677,7 +708,7 @@ int HashManager::Hasher::run()
 				if (!l_is_ntfs)
 				{
 #endif
-					if (!virtualBuf || !BOOLSETTING(FAST_HASH) || !fastHash(l_fname, buf, fastTTH, l_size))
+					if (!virtualBuf || !BOOLSETTING(FAST_HASH) || !fastHash(l_fname, buf, fastTTH, l_size, l_is_link))
 					{
 #else
 				if (!BOOLSETTING(FAST_HASH) || !fastHash(fname, 0, fastTTH, l_size))

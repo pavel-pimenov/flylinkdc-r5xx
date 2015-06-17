@@ -40,7 +40,7 @@ class CInputBox
 		LPTSTR m_Text;
 		BOOL DoModal(LPCTSTR szCaption, LPCTSTR szPrompt, LPCTSTR szTextMD5, LPCTSTR szTextTTHCalc/*, LPCTSTR szTextTTHfromBase*/, LPCTSTR szTextMagnet);
 		
-		CInputBox(HWND hWndParent);
+		explicit CInputBox(HWND hWndParent);
 		~CInputBox();
 };
 

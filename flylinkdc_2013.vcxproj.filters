@@ -1111,8 +1111,17 @@
     <Image Include="res\ISPImages.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="res\Cam.ico" />
-    <Image Include="res\Cam.png" />
+    <Image Include="res\Cam.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\Cam.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\mode_active.ico" />
+    <Image Include="res\mode_passive.ico" />
+    <Image Include="res\mode_offline.ico" />
+    <Image Include="res\offline.ico" />
+    <Image Include="res\online.ico" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compiled\Settings\common\IPTrust.ini">

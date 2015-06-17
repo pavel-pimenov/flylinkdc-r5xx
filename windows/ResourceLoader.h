@@ -44,7 +44,7 @@ class ExCImage : public CImage, public intrusive_ptr_base<ExCImage>
 		ExCImage(): m_hBuffer(nullptr)
 		{
 		}
-	ExCImage(LPCTSTR pszFileName) noexcept :
+	explicit ExCImage(LPCTSTR pszFileName) noexcept :
 		m_hBuffer(nullptr)
 		{
 			Load(pszFileName);

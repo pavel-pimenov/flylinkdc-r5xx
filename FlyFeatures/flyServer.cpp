@@ -886,7 +886,8 @@ static void getDiskAndMemoryStat(Json::Value& p_info)
 				{
 					int64_t l_size = 0;
 					int64_t l_outFileTime = 0;
-					File::isExist(p_file_name, l_size, l_outFileTime);
+          bool l_is_link = false;
+					File::isExist(p_file_name, l_size, l_outFileTime,l_is_link);
 					return l_size;
 				};
 				const auto l_path = Text::toT(Util::getConfigPath());

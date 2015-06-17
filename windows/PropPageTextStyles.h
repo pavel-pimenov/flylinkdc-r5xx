@@ -11,7 +11,7 @@
 class PropPageTextStyles: public CPropertyPage<IDD_TEXT_STYLES_PAGE>, public PropPage
 {
 	public:
-		PropPageTextStyles(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_TEXT_STYLES))
+		explicit PropPageTextStyles(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_TEXT_STYLES))
 		{
 			fg = 0;
 			bg = 0;
@@ -19,6 +19,7 @@ class PropPageTextStyles: public CPropertyPage<IDD_TEXT_STYLES_PAGE>, public Pro
 			m_ForeColor = 0;
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
+			m_maincolor_changed = false;
 		}
 		~PropPageTextStyles()
 		{

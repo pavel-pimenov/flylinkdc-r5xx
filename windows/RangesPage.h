@@ -12,7 +12,7 @@
 class RangesPage : public CPropertyPage<IDD_RANGES_PAGE>, public PropPage
 {
 	public:
-		RangesPage(SettingsManager *s) : PropPage(s, TSTRING(IPGUARD)), m_isEnabledIPGuard(false)
+		explicit RangesPage(SettingsManager *s) : PropPage(s, TSTRING(IPGUARD)), m_isEnabledIPGuard(false)
 		{
 			SetTitle(m_title.c_str());
 		}

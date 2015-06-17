@@ -127,10 +127,10 @@ class File : public IOStream
 		// [~] IRainman
 		
 		//[+]FlylinkDC++ Team
-		static bool isExist(const tstring& filename, int64_t& outFileSize, int64_t& outFiletime);
-		static bool isExist(const string& filename, int64_t& outFileSize, int64_t& outFiletime)
+		static bool isExist(const tstring& filename, int64_t& outFileSize, int64_t& outFiletime, bool& p_is_link);
+		static bool isExist(const string& filename, int64_t& outFileSize, int64_t& outFiletime, bool& p_is_link)
 		{
-			return isExist(Text::toT(filename), outFileSize, outFiletime);
+			return isExist(Text::toT(filename), outFileSize, outFiletime, p_is_link);
 		}
 		
 		static void ensureDirectory(const tstring& aFile);
@@ -180,11 +180,11 @@ class FileFindIter
 		}
 	public:
 		/** Begin iterator constructor, path in utf-8 */
-		FileFindIter(const tstring& path) /* [-] IRainman: see init(). [-] : handle(INVALID_HANDLE_VALUE)*/
+		explicit FileFindIter(const tstring& path) /* [-] IRainman: see init(). [-] : handle(INVALID_HANDLE_VALUE)*/
 		{
 			init(path);
 		}
-		FileFindIter(const string& path) /* [-] IRainman: see init(). [-] handle(INVALID_HANDLE_VALUE)*/ // [+] IRainman opt
+		explicit FileFindIter(const string& path) /* [-] IRainman: see init(). [-] handle(INVALID_HANDLE_VALUE)*/ // [+] IRainman opt
 		{
 			init(Text::toT(path));
 		}

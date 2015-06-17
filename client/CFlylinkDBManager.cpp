@@ -164,7 +164,8 @@ string CFlylinkDBManager::getDBSizeInfo()
 	{
 		int64_t l_size = 0;
 		int64_t l_outFileTime = 0;
-		File::isExist(p_file_name, l_size, l_outFileTime);
+		bool l_is_link = false;
+		File::isExist(p_file_name, l_size, l_outFileTime, l_is_link);
 		return l_size;
 	};
 	string l_message;
@@ -179,7 +180,7 @@ string CFlylinkDBManager::getDBSizeInfo()
 			l_message += "  * ";
 			l_message += l_path;
 			l_message += g_db_file_names[i];
-			const auto l_size = getFileSize(Text::toT(l_path) + _T("\\") + Text::toT(g_db_file_names[i]));
+			const auto l_size = getFileSize(Text::toT(l_path) + Text::toT(g_db_file_names[i]));
 			l_message += " (" + Util::formatBytes(l_size) + ")";
 			l_message += l_rnrn;
 		}
@@ -1787,7 +1788,7 @@ string CFlylinkDBManager::get_registry_variable_string(eTypeSegment p_TypeSegmen
 void CFlylinkDBManager::set_registry_variable_int64(eTypeSegment p_TypeSegment, __int64 p_value)
 {
 	CFlyRegistryMap l_store_values;
-	l_store_values[Util::toString(p_TypeSegment)] = p_value;
+	l_store_values[Util::toString(p_TypeSegment)] = CFlyRegistryValue(p_value);
 	save_registry(l_store_values, p_TypeSegment, false);
 }
 //========================================================================================================

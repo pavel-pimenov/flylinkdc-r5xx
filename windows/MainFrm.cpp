@@ -511,7 +511,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		ShowWindow(SW_RESTORE);
 	}
 #ifdef IRAINMAN_IP_AUTOUPDATE
-	if (BOOLSETTING(IPUPDATE) && isAllowIPUpdate())
+	if (BOOLSETTING(IPUPDATE))
 	{
 		getIPupdate();
 	}
@@ -989,15 +989,12 @@ void MainFrame::onMinute(uint64_t aTick)
 	const auto interval = SETTING(IPUPDATE_INTERVAL);
 	if (BOOLSETTING(IPUPDATE) && interval != 0)
 	{
-		if (isAllowIPUpdate())
-		{
 			m_elapsedMinutesFromlastIPUpdate++;
 			if (m_elapsedMinutesFromlastIPUpdate >= interval)
 			{
 				m_elapsedMinutesFromlastIPUpdate = 0;
 				getIPupdate();
 			}
-		}
 	}
 #endif
 }
@@ -1582,11 +1579,11 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 			{
 				m_taskbarList->SetProgressState(m_hWnd, TBPF_PAUSED);
 			}
-			else if (AutoUpdate::getInstance()->isUpdateStarted())
-			{
-				m_taskbarList->SetProgressState(m_hWnd, TBPF_NORMAL);
-				m_taskbarList->SetProgressValue(m_hWnd, 100, 100);
-			}
+			//  else if (AutoUpdate::getInstance()->isUpdateStarted())
+			//  {
+			//      m_taskbarList->SetProgressState(m_hWnd, TBPF_NORMAL);
+			//  m_taskbarList->SetProgressValue(m_hWnd, 100, 100);
+			//  }
 			else
 			{
 				m_taskbarList->SetProgressState(m_hWnd, TBPF_NOPROGRESS);
@@ -1954,7 +1951,7 @@ LRESULT MainFrame::OnConnectToSupportHUB(WORD /*wNotifyCode*/, WORD /*wID*/, HWN
 	r.setDescription(STRING(SUPPORTS_SERVER_DESC));
 	r.setServer(CFlyServerConfig::g_support_hub);
 	FavoriteManager::getInstance()->addRecent(r);
-	HubFrame::openWindow(CFlyServerConfig::g_support_hub);
+	HubFrame::openWindow(false, CFlyServerConfig::g_support_hub);
 	
 	return 0;
 }
@@ -2338,7 +2335,8 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 					r.setDescription(entry->getDescription());
 					r.setServer(entry->getServer());
 					FavoriteManager::getInstance()->addRecent(r);
-					frm = HubFrame::openWindow(entry->getServer(),
+					frm = HubFrame::openWindow(true,
+					                           entry->getServer(),
 					                           entry->getName(),
 					                           entry->getRawOne(),
 					                           entry->getRawTwo(),
@@ -2626,8 +2624,8 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			if ((m_oldshutdown || SETTING(PROTECT_CLOSE) || (checkState == BST_UNCHECKED) || (bForceNoWarning || ::MessageBox(m_hWnd, CTSTRING(REALLY_EXIT), T_APPNAME_WITH_VERSION, CTSTRING(ALWAYS_ASK), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES)) && !m_stopexit) // [~] InfinitySky.
 			{
 #ifndef _DEBUG
-        extern crash_rpt::CrashRpt g_crashRpt;
-        g_crashRpt.SetCustomInfo(_T("StopGUI"));
+				extern crash_rpt::CrashRpt g_crashRpt;
+				g_crashRpt.SetCustomInfo(_T("StopGUI"));
 #endif
 				LogManager::g_mainWnd = nullptr;
 				m_closing = true;
@@ -2666,11 +2664,11 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 				ShowWindow(SW_HIDE);
 				//WinUtil::uninit();
 #ifndef _DEBUG
-        extern crash_rpt::CrashRpt g_crashRpt;
-        g_crashRpt.SetCustomInfo(_T(""));
+				extern crash_rpt::CrashRpt g_crashRpt;
+				g_crashRpt.SetCustomInfo(_T(""));
 #endif
 				m_stopperThread = reinterpret_cast<HANDLE>(_beginthreadex(NULL, 0, &stopper, this, 0, nullptr));
-
+				
 			}
 			else
 			{
@@ -3362,7 +3360,7 @@ LRESULT MainFrame::onQuickConnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 			const string l_formattedDcHubUrl = Util::formatDchubUrl(Text::fromT(tmp));
 			r.setServer(l_formattedDcHubUrl);
 			FavoriteManager::getInstance()->addRecent(r);
-			HubFrame::openWindow(l_formattedDcHubUrl);
+			HubFrame::openWindow(false, l_formattedDcHubUrl);
 		}
 	}
 	return 0;
@@ -3894,6 +3892,7 @@ LRESULT MainFrame::OnUpdateTotalResult(UINT uMsg, WPARAM wParam, LPARAM /*lParam
 		m_taskbarList->SetProgressValue(m_hWnd, 0, m_maxnumberOfReadBytes);
 	}
 	
+	
 	return 0;
 }
 LRESULT MainFrame::OnUpdateResultReceive(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
@@ -3968,7 +3967,7 @@ void MainFrame::on(UserManagerListener::OutgoingPrivateMessage, const UserPtr& t
 
 void MainFrame::on(UserManagerListener::OpenHub, const string& p_url) noexcept // [+] IRainman
 {
-	HubFrame::openWindow(p_url);
+	HubFrame::openWindow(false, p_url);
 }
 
 void MainFrame::on(UserManagerListener::CollectSummaryInfo, const UserPtr& user, const string& hubHint) noexcept // [+] IRainman

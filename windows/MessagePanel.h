@@ -36,7 +36,7 @@ class MessagePanel
 		END_MSG_MAP()
 		
 	public:
-		MessagePanel(CEdit*& p_ctrlMessage);
+		explicit MessagePanel(CEdit*& p_ctrlMessage);
 		~MessagePanel();
 		LRESULT  InitPanel(HWND& p_hWnd, RECT &p_rcDefault);
 		void DestroyPanel(bool p_is_shutdown);

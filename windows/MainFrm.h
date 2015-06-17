@@ -583,12 +583,6 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		
 #ifdef IRAINMAN_IP_AUTOUPDATE
 		void getIPupdate();
-		bool isAllowIPUpdate() const
-		{
-			const int l_CurConnectionMode = SETTING(INCOMING_CONNECTIONS);
-			return l_CurConnectionMode == SettingsManager::INCOMING_FIREWALL_UPNP ||
-			       l_CurConnectionMode == SettingsManager::INCOMING_FIREWALL_NAT;
-		}
 		int m_elapsedMinutesFromlastIPUpdate;
 #endif
 		static void updateQuickSearches(bool p_clean = false);

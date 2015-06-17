@@ -37,9 +37,9 @@
 namespace Text
 {
 extern const string g_utf8;
-extern const string g_code1251; //[+]FlylinkDC++ Team optimization
-extern const string g_code1252; //[+]FlylinkDC++ Team optimization
-extern string systemCharset;
+extern const string g_code1251;
+extern const string g_code1252;
+extern string g_systemCharset;
 
 void initialize();
 
@@ -206,14 +206,14 @@ inline string convert(const string& str, const string& fromCharset, const string
 #endif
 
 const string& toUtf8(const string& str, const string& fromCharset, string& tmp) noexcept;
-inline string toUtf8(const string& str, const string& fromCharset = systemCharset)
+inline string toUtf8(const string& str, const string& fromCharset = g_systemCharset)
 {
 	string tmp;
 	return toUtf8(str, fromCharset, tmp);
 }
 
 const string& fromUtf8(const string& str, const string& toCharset, string& tmp) noexcept;
-inline string fromUtf8(const string& str, const string& toCharset = systemCharset) noexcept
+inline string fromUtf8(const string& str, const string& toCharset = g_systemCharset) noexcept
 {
 	string tmp;
 	return fromUtf8(str, toCharset, tmp);

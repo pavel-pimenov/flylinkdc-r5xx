@@ -115,7 +115,7 @@ class CFlyBusy
 {
 		bool& m_flag;
 	public:
-		CFlyBusy(bool& p_flag) : m_flag(p_flag)
+		explicit CFlyBusy(bool& p_flag) : m_flag(p_flag)
 		{
 			//dcassert(p_flag == false);
 			m_flag = true;

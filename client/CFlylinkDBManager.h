@@ -172,9 +172,6 @@ struct CFlyFileInfo
 	CFlyFileInfo()
 	{
 	}
-	~CFlyFileInfo()
-	{
-	}
 };
 typedef boost::unordered_map<string, CFlyFileInfo> CFlyDirMap;
 struct CFlyPathItem
@@ -209,7 +206,7 @@ struct CFlyRegistryValue
 {
 	string m_val_str;
 	__int64  m_val_int64;
-	CFlyRegistryValue(__int64 p_val_int64 = 0)
+	explicit CFlyRegistryValue(__int64 p_val_int64 = 0)
 		: m_val_int64(p_val_int64)
 	{
 	}

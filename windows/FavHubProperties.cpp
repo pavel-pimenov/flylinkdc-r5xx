@@ -61,10 +61,10 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	SetDlgItemText(IDC_S, CTSTRING(S));
 	SetDlgItemText(IDC_CLIENT_ID, CTSTRING(CLIENT_ID)); // !SMT!-S
 	SetDlgItemText(IDC_ENCODING, CTSTRING(FAVORITE_HUB_ENCODING));
+	SetDlgItemText(IDC_ENCODINGTEXT, CTSTRING(FAVORITE_HUB_ENCODINGTEXT));
 	SetDlgItemText(IDCANCEL, CTSTRING(CANCEL));
 	SetDlgItemText(IDOK, CTSTRING(OK));
 	SetDlgItemText(IDC_FAVGROUP, CTSTRING(GROUP));
-	SetDlgItemText(IDC_ENCODINGTEXT, CTSTRING(FAVORITE_HUB_ENCODINGTEXT));
 	// Fill in values
 	SetDlgItemText(IDC_HUBNAME, Text::toT(entry->getName()).c_str());
 	SetDlgItemText(IDC_HUBDESCR, Text::toT(entry->getDescription()).c_str());

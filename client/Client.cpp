@@ -29,12 +29,12 @@
 
 boost::atomic<uint16_t> Client::g_counts[COUNT_UNCOUNTED];
 string Client::g_last_search_string;
-Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure) :
+Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool p_is_auto_connect) :
 	m_cs(std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock())),
 	m_reconnDelay(120), m_lastActivity(GET_TICK()),
 //registered(false), [-] IRainman fix.
 	autoReconnect(false),
-	m_encoding(Text::systemCharset),
+	m_encoding(Text::g_systemCharset),
 	state(STATE_DISCONNECTED),
 	m_client_sock(0),
 	m_HubURL(p_HubURL),
@@ -60,6 +60,18 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure) :
 	//l_hub_user->setHubID(m_HubID); // Для бота-хаба не сохраняем пока
 #endif
 	const auto l_lower_url = Text::toLower(m_HubURL);
+	if (!p_is_auto_connect && !Util::isAdcHub(l_lower_url))
+	{
+		const auto l_pos_ru = l_lower_url.rfind(".ru");
+		if (l_pos_ru != string::npos)
+		{
+			if (l_pos_ru == l_lower_url.size() - 3 ||
+			        l_pos_ru < l_lower_url.size() - 4 && l_lower_url[l_pos_ru + 3] == ':')
+			{
+				m_encoding = Text::g_code1251;
+			}
+		}
+	}
 	if (l_lower_url.find("dc.fly-server.ru") != string::npos ||
 	        l_lower_url.find("adcs.flylinkdc.com") != string::npos
 #ifdef _DEBUG

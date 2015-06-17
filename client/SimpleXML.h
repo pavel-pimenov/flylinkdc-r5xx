@@ -282,7 +282,7 @@ class SimpleXML
 		class TagReader : public SimpleXMLReader::CallBack
 		{
 			public:
-				TagReader(Tag* root) : cur(root) { }
+				explicit TagReader(Tag* root) : cur(root) { }
 				virtual bool getData(string&) const
 				{
 					return false;

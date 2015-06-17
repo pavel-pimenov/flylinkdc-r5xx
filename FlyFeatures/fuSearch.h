@@ -28,7 +28,7 @@ typedef std::vector<wstring> FilesArray;
 class FileUpdateSearch
 {
 	public:
-		FileUpdateSearch(const wstring& folderForUpdate) : _folderForUpdate(folderForUpdate) {}
+		explicit FileUpdateSearch(const wstring& folderForUpdate) : _folderForUpdate(folderForUpdate) {}
 		~FileUpdateSearch()
 		{
 		}

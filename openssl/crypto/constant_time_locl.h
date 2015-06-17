@@ -45,9 +45,9 @@
  */
 
 #ifndef HEADER_CONSTANT_TIME_LOCL_H
-#define HEADER_CONSTANT_TIME_LOCL_H
+# define HEADER_CONSTANT_TIME_LOCL_H
 
-#include "e_os.h"  /* For 'inline' */
+# include "e_os.h"              /* For 'inline' */
 
 #ifdef __cplusplus
 extern "C" {
@@ -76,133 +76,136 @@ extern "C" {
  * However, this is not ensured by the C standard so you may need to
  * replace this with something else on odd CPUs.
  */
-#define open_ssl_inline // fix build VisualC++2010 // [+]FlylinkDC++
-
-static open_ssl_inline unsigned int constant_time_msb(unsigned int a);
+static inline unsigned int constant_time_msb(unsigned int a);
 
 /*
  * Returns 0xff..f if a < b and 0 otherwise.
  */
-static open_ssl_inline unsigned int constant_time_lt(unsigned int a, unsigned int b);
+static inline unsigned int constant_time_lt(unsigned int a, unsigned int b);
 /* Convenience method for getting an 8-bit mask. */
-static open_ssl_inline unsigned char constant_time_lt_8(unsigned int a, unsigned int b);
+static inline unsigned char constant_time_lt_8(unsigned int a,
+                                               unsigned int b);
 
 /*
  * Returns 0xff..f if a >= b and 0 otherwise.
  */
-static open_ssl_inline unsigned int constant_time_ge(unsigned int a, unsigned int b);
+static inline unsigned int constant_time_ge(unsigned int a, unsigned int b);
 /* Convenience method for getting an 8-bit mask. */
-static open_ssl_inline unsigned char constant_time_ge_8(unsigned int a, unsigned int b);
+static inline unsigned char constant_time_ge_8(unsigned int a,
+                                               unsigned int b);
 
 /*
  * Returns 0xff..f if a == 0 and 0 otherwise.
  */
-static open_ssl_inline unsigned int constant_time_is_zero(unsigned int a);
+static inline unsigned int constant_time_is_zero(unsigned int a);
 /* Convenience method for getting an 8-bit mask. */
-static open_ssl_inline unsigned char constant_time_is_zero_8(unsigned int a);
-
+static inline unsigned char constant_time_is_zero_8(unsigned int a);
 
 /*
  * Returns 0xff..f if a == b and 0 otherwise.
  */
-static open_ssl_inline unsigned int constant_time_eq(unsigned int a, unsigned int b);
+static inline unsigned int constant_time_eq(unsigned int a, unsigned int b);
 /* Convenience method for getting an 8-bit mask. */
-static open_ssl_inline unsigned char constant_time_eq_8(unsigned int a, unsigned int b);
+static inline unsigned char constant_time_eq_8(unsigned int a,
+                                               unsigned int b);
 /* Signed integers. */
-static open_ssl_inline unsigned int constant_time_eq_int(int a, int b);
+static inline unsigned int constant_time_eq_int(int a, int b);
 /* Convenience method for getting an 8-bit mask. */
-static open_ssl_inline unsigned char constant_time_eq_int_8(int a, int b);
+static inline unsigned char constant_time_eq_int_8(int a, int b);
 
-
-/*
+/*-
  * Returns (mask & a) | (~mask & b).
  *
  * When |mask| is all 1s or all 0s (as returned by the methods above),
  * the select methods return either |a| (if |mask| is nonzero) or |b|
  * (if |mask| is zero).
  */
-static open_ssl_inline unsigned int constant_time_select(unsigned int mask,
-	unsigned int a, unsigned int b);
+static inline unsigned int constant_time_select(unsigned int mask,
+                                                unsigned int a,
+                                                unsigned int b);
 /* Convenience method for unsigned chars. */
-static open_ssl_inline unsigned char constant_time_select_8(unsigned char mask,
-	unsigned char a, unsigned char b);
+static inline unsigned char constant_time_select_8(unsigned char mask,
+                                                   unsigned char a,
+                                                   unsigned char b);
 /* Convenience method for signed integers. */
-static open_ssl_inline int constant_time_select_int(unsigned int mask, int a, int b);
+static inline int constant_time_select_int(unsigned int mask, int a, int b);
 
-static open_ssl_inline unsigned int constant_time_msb(unsigned int a)
-	{
-	return 0-(a >> (sizeof(a) * 8 - 1));
-	}
+static inline unsigned int constant_time_msb(unsigned int a)
+{
+    return 0 - (a >> (sizeof(a) * 8 - 1));
+}
 
-static open_ssl_inline unsigned int constant_time_lt(unsigned int a, unsigned int b)
-	{
-	return constant_time_msb(a^((a^b)|((a-b)^b)));
-	}
+static inline unsigned int constant_time_lt(unsigned int a, unsigned int b)
+{
+    return constant_time_msb(a ^ ((a ^ b) | ((a - b) ^ b)));
+}
 
-static open_ssl_inline unsigned char constant_time_lt_8(unsigned int a, unsigned int b)
-	{
-	return (unsigned char)(constant_time_lt(a, b));
-	}
+static inline unsigned char constant_time_lt_8(unsigned int a, unsigned int b)
+{
+    return (unsigned char)(constant_time_lt(a, b));
+}
 
-static open_ssl_inline unsigned int constant_time_ge(unsigned int a, unsigned int b)
-	{
-	return ~constant_time_lt(a, b);
-	}
+static inline unsigned int constant_time_ge(unsigned int a, unsigned int b)
+{
+    return ~constant_time_lt(a, b);
+}
 
-static open_ssl_inline unsigned char constant_time_ge_8(unsigned int a, unsigned int b)
-	{
-	return (unsigned char)(constant_time_ge(a, b));
-	}
+static inline unsigned char constant_time_ge_8(unsigned int a, unsigned int b)
+{
+    return (unsigned char)(constant_time_ge(a, b));
+}
 
-static open_ssl_inline unsigned int constant_time_is_zero(unsigned int a)
-	{
-	return constant_time_msb(~a & (a - 1));
-	}
+static inline unsigned int constant_time_is_zero(unsigned int a)
+{
+    return constant_time_msb(~a & (a - 1));
+}
 
-static open_ssl_inline unsigned char constant_time_is_zero_8(unsigned int a)
-	{
-	return (unsigned char)(constant_time_is_zero(a));
-	}
+static inline unsigned char constant_time_is_zero_8(unsigned int a)
+{
+    return (unsigned char)(constant_time_is_zero(a));
+}
 
-static open_ssl_inline unsigned int constant_time_eq(unsigned int a, unsigned int b)
-	{
-	return constant_time_is_zero(a ^ b);
-	}
+static inline unsigned int constant_time_eq(unsigned int a, unsigned int b)
+{
+    return constant_time_is_zero(a ^ b);
+}
 
-static open_ssl_inline unsigned char constant_time_eq_8(unsigned int a, unsigned int b)
-	{
-	return (unsigned char)(constant_time_eq(a, b));
-	}
+static inline unsigned char constant_time_eq_8(unsigned int a, unsigned int b)
+{
+    return (unsigned char)(constant_time_eq(a, b));
+}
 
-static open_ssl_inline unsigned int constant_time_eq_int(int a, int b)
-	{
-	return constant_time_eq((unsigned)(a), (unsigned)(b));
-	}
+static inline unsigned int constant_time_eq_int(int a, int b)
+{
+    return constant_time_eq((unsigned)(a), (unsigned)(b));
+}
 
-static open_ssl_inline unsigned char constant_time_eq_int_8(int a, int b)
-	{
-	return constant_time_eq_8((unsigned)(a), (unsigned)(b));
-	}
+static inline unsigned char constant_time_eq_int_8(int a, int b)
+{
+    return constant_time_eq_8((unsigned)(a), (unsigned)(b));
+}
 
-static open_ssl_inline unsigned int constant_time_select(unsigned int mask,
-	unsigned int a, unsigned int b)
-	{
-	return (mask & a) | (~mask & b);
-	}
+static inline unsigned int constant_time_select(unsigned int mask,
+                                                unsigned int a,
+                                                unsigned int b)
+{
+    return (mask & a) | (~mask & b);
+}
 
-static open_ssl_inline unsigned char constant_time_select_8(unsigned char mask,
-	unsigned char a, unsigned char b)
-	{
-	return (unsigned char)(constant_time_select(mask, a, b));
-	}
+static inline unsigned char constant_time_select_8(unsigned char mask,
+                                                   unsigned char a,
+                                                   unsigned char b)
+{
+    return (unsigned char)(constant_time_select(mask, a, b));
+}
 
-static open_ssl_inline int constant_time_select_int(unsigned int mask, int a, int b)
-	{
-	return (int)(constant_time_select(mask, (unsigned)(a), (unsigned)(b)));
-	}
+static inline int constant_time_select_int(unsigned int mask, int a, int b)
+{
+    return (int)(constant_time_select(mask, (unsigned)(a), (unsigned)(b)));
+}
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  /* HEADER_CONSTANT_TIME_LOCL_H */
+#endif                          /* HEADER_CONSTANT_TIME_LOCL_H */

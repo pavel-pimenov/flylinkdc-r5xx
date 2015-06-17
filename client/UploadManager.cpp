@@ -1464,7 +1464,7 @@ void UploadManager::save()
 		webrtc::ReadLockScoped l(*g_csReservedSlots); // [!] IRainman opt.
 		for (auto i = g_reservedSlots.cbegin(); i != g_reservedSlots.cend(); ++i)
 		{
-			values[i->first->getCID().toBase32()] = i->second;
+			values[i->first->getCID().toBase32()] = CFlyRegistryValue(i->second);
 		}
 	}
 	CFlylinkDBManager::getInstance()->save_registry(values, e_ExtraSlot, true);

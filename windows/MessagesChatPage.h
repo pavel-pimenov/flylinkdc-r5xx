@@ -15,11 +15,11 @@
 class MessagesChatPage : public CPropertyPage<IDD_MESSAGES_CHAT_PAGE>, public PropPage
 {
 	public:
-		MessagesChatPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_MESSAGES) + _T('\\') + TSTRING(SETTINGS_ADVANCED))
+		explicit MessagesChatPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_MESSAGES) + _T('\\') + TSTRING(SETTINGS_ADVANCED))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
-		};
+		}
 		~MessagesChatPage()
 		{
 			ctrlList_chat.Detach(); // [+] IRainman

@@ -156,11 +156,10 @@ class FavoriteHubEntry
 #endif
 {
 	public:
-		typedef FavoriteHubEntry* Ptr;
-		typedef vector<Ptr> List;
+		typedef vector<FavoriteHubEntry*> List;
 		
 	FavoriteHubEntry() noexcept :
-		connect(false), encoding(Text::systemCharset), windowposx(0), windowposy(0), windowsizex(0),
+		connect(false), encoding(Text::g_systemCharset), windowposx(0), windowposy(0), windowsizex(0),
 		        windowsizey(0), windowtype(0), chatusersplit(0),
 #ifdef FLYLINKDC_HE
 		        userliststate(false),

@@ -7,7 +7,7 @@ class Flags
 		typedef uint32_t MaskType;
 		
 		Flags() : flags(0) { }
-		Flags(MaskType f) : flags(f) { }
+		explicit Flags(MaskType f) : flags(f) { }
 		bool isSet(MaskType aFlag) const
 		{
 			return (flags & aFlag) == aFlag;

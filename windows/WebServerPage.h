@@ -6,7 +6,7 @@
 class WebServerPage : public CPropertyPage<IDD_WEBSERVER_PAGE>, public PropPage
 {
 	public:
-		WebServerPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_RC) + _T('\\') + TSTRING(WEBSERVER))
+		explicit WebServerPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_RC) + _T('\\') + TSTRING(WEBSERVER))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

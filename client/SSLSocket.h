@@ -32,13 +32,13 @@ class SSLSocketException : public SocketException
 {
 	public:
 #ifdef _DEBUG
-	SSLSocketException(const string& aError) noexcept :
+	explicit SSLSocketException(const string& aError) noexcept :
 		SocketException("SSLSocketException: " + aError) { }
 #else //_DEBUG
-	SSLSocketException(const string& aError) noexcept :
+	explicit SSLSocketException(const string& aError) noexcept :
 		SocketException(aError) { }
 #endif // _DEBUG
-	SSLSocketException(DWORD aError) noexcept :
+	explicit SSLSocketException(DWORD aError) noexcept :
 		SocketException(aError) { }
 };
 
@@ -74,7 +74,7 @@ class SSLSocket : public Socket
 	private:
 		friend class CryptoManager;
 		
-		SSLSocket(SSL_CTX* context);
+		explicit SSLSocket(SSL_CTX* context);
 		
 		SSL_CTX* ctx;
 		ssl::SSL ssl;

@@ -144,7 +144,7 @@ class DirectoryListing : public UserInfoBase
 				GETSET(string, fullPath, FullPath);
 		};
 		
-		DirectoryListing(const HintedUser& aUser);
+		explicit DirectoryListing(const HintedUser& aUser);
 		~DirectoryListing();
 		
 		void loadFile(const string& name, bool p_own_list = false);

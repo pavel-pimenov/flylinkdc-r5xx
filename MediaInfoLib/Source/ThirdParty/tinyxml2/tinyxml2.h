@@ -829,9 +829,9 @@ public:
     virtual char* ParseDeep( char*, StrPair* );
 
 protected:
-    XMLNode( XMLDocument* );
+    explicit XMLNode( XMLDocument* );
     virtual ~XMLNode();
-    XMLNode( const XMLNode& );	// not supported
+    explicit XMLNode( const XMLNode& );	// not supported
     XMLNode& operator=( const XMLNode& );	// not supported
 
     XMLDocument*	_document;
@@ -890,9 +890,9 @@ public:
     virtual bool ShallowEqual( const XMLNode* compare ) const;
 
 protected:
-    XMLText( XMLDocument* doc )	: XMLNode( doc ), _isCData( false )	{}
+    explicit XMLText( XMLDocument* doc )	: XMLNode( doc ), _isCData( false )	{}
     virtual ~XMLText()												{}
-    XMLText( const XMLText& );	// not supported
+    explicit XMLText( const XMLText& );	// not supported
     XMLText& operator=( const XMLText& );	// not supported
 
 private:
@@ -919,9 +919,9 @@ public:
     virtual bool ShallowEqual( const XMLNode* compare ) const;
 
 protected:
-    XMLComment( XMLDocument* doc );
+    explicit XMLComment( XMLDocument* doc );
     virtual ~XMLComment();
-    XMLComment( const XMLComment& );	// not supported
+    explicit XMLComment( const XMLComment& );	// not supported
     XMLComment& operator=( const XMLComment& );	// not supported
 
 private:
@@ -957,9 +957,9 @@ public:
     virtual bool ShallowEqual( const XMLNode* compare ) const;
 
 protected:
-    XMLDeclaration( XMLDocument* doc );
+    explicit XMLDeclaration( XMLDocument* doc );
     virtual ~XMLDeclaration();
-    XMLDeclaration( const XMLDeclaration& );	// not supported
+    explicit XMLDeclaration( const XMLDeclaration& );	// not supported
     XMLDeclaration& operator=( const XMLDeclaration& );	// not supported
 };
 
@@ -989,9 +989,9 @@ public:
     virtual bool ShallowEqual( const XMLNode* compare ) const;
 
 protected:
-    XMLUnknown( XMLDocument* doc );
+    explicit XMLUnknown( XMLDocument* doc );
     virtual ~XMLUnknown();
-    XMLUnknown( const XMLUnknown& );	// not supported
+    explicit XMLUnknown( const XMLUnknown& );	// not supported
     XMLUnknown& operator=( const XMLUnknown& );	// not supported
 };
 
@@ -1471,9 +1471,9 @@ public:
     virtual bool ShallowEqual( const XMLNode* compare ) const;
 
 private:
-    XMLElement( XMLDocument* doc );
+    explicit XMLElement( XMLDocument* doc );
     virtual ~XMLElement();
-    XMLElement( const XMLElement& );	// not supported
+    explicit XMLElement( const XMLElement& );	// not supported
     void operator=( const XMLElement& );	// not supported
 
     XMLAttribute* FindAttribute( const char* name );

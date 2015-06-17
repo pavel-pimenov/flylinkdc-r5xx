@@ -262,7 +262,7 @@ void reset();
 
 struct Scoped
 {
-	Scoped(const char *name)
+	explicit Scoped(const char *name)
 	{
 		PROFILE_START_RAW(name)
 	}
@@ -286,7 +286,7 @@ struct ScopedPause
 
 struct ScopedThread
 {
-	ScopedThread(const char *name)
+	explicit ScopedThread(const char *name)
 	{
 		PROFILE_THREAD_START_RAW(name);
 	}
@@ -300,7 +300,7 @@ struct ScopedThread
 
 struct ScopedTimer
 {
-		ScopedTimer(Profiler::Timer &t) : mTimer(t)
+		explicit ScopedTimer(Profiler::Timer &t) : mTimer(t)
 		{
 			mTimer.Start();
 		}

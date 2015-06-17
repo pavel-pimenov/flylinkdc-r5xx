@@ -221,7 +221,10 @@ LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 		m_BindCombo.SetCurSel(m_BindCombo.FindString(0, l_bind.c_str()));
 	}
 	m_BindCombo.Detach();
-	updateTestPortIcon(false);
+	if (!m_is_manual)
+	{
+		updateTestPortIcon(false);
+	}
 	//::SendMessage(m_hWnd, TDM_SET_BUTTON_ELEVATION_REQUIRED_STATE, IDC_ADD_FLYLINKDC_WINFIREWALL, true);
 	//SetButtonElevationRequiredState(IDC_ADD_FLYLINKDC_WINFIREWALL,);
 	WinUtil::GetWindowText(m_original_test_port_caption, GetDlgItem(IDC_GETIP));
@@ -238,17 +241,21 @@ LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 		static HIconWrapper g_hWiFiRouterIco(IDC_WIFI_ROUTER_ICO, 48, 48);
 		GetDlgItem(IDC_WIFI_ROUTER_ICO).SendMessage(STM_SETICON, (WPARAM)(HICON)g_hWiFiRouterIco, 0L);
 	}
-	runTestPort();
+	if (!m_is_manual)
+	{
+		runTestPort();
+	}
+	m_is_init = true;
 	return TRUE;
 }
 
 void NetworkPage::fixControls()
 {
 	const BOOL auto_detect = IsDlgButtonChecked(IDC_CONNECTION_DETECTION) == BST_CHECKED;
-	// const BOOL direct = IsDlgButtonChecked(IDC_DIRECT) == BST_CHECKED;
+	//const BOOL direct = IsDlgButtonChecked(IDC_DIRECT) == BST_CHECKED;
 	const BOOL upnp = IsDlgButtonChecked(IDC_FIREWALL_UPNP) == BST_CHECKED;
 	const BOOL nat = IsDlgButtonChecked(IDC_FIREWALL_NAT) == BST_CHECKED;
-	// const BOOL nat_traversal = IsDlgButtonChecked(IDC_NATT) == BST_CHECKED;
+	//const BOOL nat_traversal = IsDlgButtonChecked(IDC_NATT) == BST_CHECKED;
 #ifdef STRONG_USE_DHT
 	const BOOL dht = IsDlgButtonChecked(IDC_SETTINGS_USE_DHT) == BST_CHECKED;
 #endif
@@ -266,8 +273,9 @@ void NetworkPage::fixControls()
 	
 	::EnableWindow(GetDlgItem(IDC_SETTINGS_USE_DHT_NOTANSWER), dht);
 #endif
+	m_is_manual = !auto_detect && nat;
 	::EnableWindow(GetDlgItem(IDC_SETTINGS_IP), !auto_detect);
-	::EnableWindow(GetDlgItem(IDC_EXTERNAL_IP), true); // !auto_detect && (direct || upnp || nat || nat_traversal));
+	::EnableWindow(GetDlgItem(IDC_EXTERNAL_IP), m_is_manual);
 	// Вернул редакцию IP http://flylinkdc.com/forum/viewtopic.php?f=23&t=1294&p=5065#p5065
 	::EnableWindow(GetDlgItem(IDC_IP_GET_IP), !auto_detect && (upnp || nat)); //[+]PPA
 	::EnableWindow(GetDlgItem(IDC_NO_IP_OVERRIDE), false); // !auto_detect && (direct || upnp || nat || nat_traversal));
@@ -298,7 +306,7 @@ void NetworkPage::updateTestPortIcon(bool p_is_wait)
 {
 	//if (::IsWindow(m_BindCombo))
 	{
-		if (!p_is_wait)
+		if (!p_is_wait && (m_is_manual == false || m_is_init == true))
 		{
 			++m_count_test_port_tick;
 			if (m_test_port_flood)
@@ -457,7 +465,7 @@ bool NetworkPage::runTestPort()
 		l_tcp_port.push_back(SETTING(TLS_PORT));
 	}
 	const bool l_is_udp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0);
-	if (l_is_udp_port_send)
+	if (l_is_udp_port_send && m_is_manual == false)
 	{
 		SetDlgItemText(IDC_EXTERNAL_IP, Text::toT(l_external_ip).c_str());
 	}
@@ -475,28 +483,31 @@ LRESULT NetworkPage::onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndC
 	write();
 	if (!runTestPort())
 	{
-		const string l_url = SETTING(URL_GET_IP);
-		if (Util::isHttpLink(l_url))
+		if (!m_is_manual)
 		{
-			CWaitCursor l_cursor_wait; //-V808
-			try
+			const string l_url = SETTING(URL_GET_IP);
+			if (Util::isHttpLink(l_url))
 			{
-				fixControls();
-				auto l_ip = Util::getWANIP(l_url, 500);
-				//if (!l_ip.empty())
+				CWaitCursor l_cursor_wait; //-V808
+				try
 				{
-					SetDlgItemText(IDC_EXTERNAL_IP, Text::toT(l_ip).c_str());
+					fixControls();
+					auto l_ip = Util::getWANIP(l_url, 500);
+					//if (!l_ip.empty())
+					{
+						SetDlgItemText(IDC_EXTERNAL_IP, Text::toT(l_ip).c_str());
+					}
+				}
+				catch (Exception & e)
+				{
+					// TODO - сюда никогда не попадаем?
+					::MessageBox(NULL, Text::toT(e.getError()).c_str(), _T("SetIP Error!"), MB_OK | MB_ICONERROR);
 				}
 			}
-			catch (Exception & e)
+			else
 			{
-				// TODO - сюда никогда не попадаем?
-				::MessageBox(NULL, Text::toT(e.getError()).c_str(), _T("SetIP Error!"), MB_OK | MB_ICONERROR);
+				::MessageBox(NULL, Text::toT(l_url).c_str(), _T("http:// URL Error !"), MB_OK | MB_ICONERROR);
 			}
-		}
-		else
-		{
-			::MessageBox(NULL, Text::toT(l_url).c_str(), _T("http:// URL Error !"), MB_OK | MB_ICONERROR);
 		}
 	}
 	return 0;

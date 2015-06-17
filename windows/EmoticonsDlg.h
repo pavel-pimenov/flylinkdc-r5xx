@@ -31,7 +31,7 @@ class CAnimatedButton: public CWindowImpl<CAnimatedButton, CButton>
 		MESSAGE_HANDLER(WM_CLOSE, onClose)
 		END_MSG_MAP()
 		
-		CAnimatedButton(CGDIImage *pImage);
+		explicit CAnimatedButton(CGDIImage *pImage);
 		~CAnimatedButton();
 		
 		LRESULT onPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);

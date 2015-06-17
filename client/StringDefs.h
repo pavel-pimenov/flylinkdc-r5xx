@@ -358,6 +358,7 @@ enum Strings   // @DontAdd
 	DECOMPRESSION_ERROR, // "Error during decompression"
 	DEFAULT, // "Default"
 	DEFAULT_AWAY_MESSAGE, // "Hello, %[userNI]! I'm away. Be lucky!"
+	DEFAULT_NCDC_HUB_ENCODINGTEXT, // "Default hub encoding:"
 	DEF_PASSWORD_HINT, // "User has disabled receiving PMs. Use password '%[pm_pass]' in case of emergency. Don't abuse: slot-askers will be banned+ignored forever and will not download even in queue order."
 	DEF_PASSWORD_OK_HINT, // "Password correct. Access granted"
 	DELETE_CHECKED, // "Delete checked file-lists"

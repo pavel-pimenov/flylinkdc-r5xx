@@ -49,7 +49,7 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 		typedef ChatCtrl thisClass;
 	protected:
 		string m_HubHint; // !SMT!-S [!] IRainman fix TODO.
-		bool isOnline(const Client* client, const tstring& aNick) const; // !SMT!-S [!] IRainman opt: add client!
+		static bool isOnline(const Client* client, const tstring& aNick); // !SMT!-S [!] IRainman opt: add client!
 		
 		bool m_boAutoScroll;
 #ifdef IRAINMAN_INCLUDE_SMILE

@@ -102,7 +102,7 @@ struct CFlyUserRatioInfo : public CFlyRatioItem
 			return (*m_ip_map_ptr)[p_ip.to_ulong()];
 		}
 		
-		CFlyUserRatioInfo(User* p_user);
+		explicit CFlyUserRatioInfo(User* p_user);
 		~CFlyUserRatioInfo();
 		
 		bool try_load_ratio(const boost::asio::ip::address_v4& p_last_ip_from_sql);

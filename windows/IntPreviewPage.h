@@ -30,7 +30,7 @@
 class IntPreviewPage: public CPropertyPage<IDD_INT_PREVIEW_PAGE>, public PropPage
 {
 	public:
-		IntPreviewPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(SETTINGS_AVIPREVIEW) + _T('\\') + TSTRING(SETTINGS_INT_PREVIEW_PAGE))
+		explicit IntPreviewPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(SETTINGS_AVIPREVIEW) + _T('\\') + TSTRING(SETTINGS_INT_PREVIEW_PAGE))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

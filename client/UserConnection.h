@@ -373,7 +373,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		UploadPtr m_upload;
 		
 		// We only want ConnectionManager to create this...
-		UserConnection(bool p_secure);
+		explicit UserConnection(bool p_secure);
 		virtual ~UserConnection();
 		
 		friend struct DeleteFunction;

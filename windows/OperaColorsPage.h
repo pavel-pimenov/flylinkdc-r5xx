@@ -26,12 +26,19 @@
 class OperaColorsPage : public CPropertyPage<IDD_OPERACOLORS_PAGE>, public PropPage
 {
 	public:
-		OperaColorsPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_TEXT_STYLES) + _T('\\') + TSTRING(SETTINGS_OPERACOLORS)), bDoProgress(false)
+		explicit OperaColorsPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_TEXT_STYLES) + _T('\\') + TSTRING(SETTINGS_OPERACOLORS)), bDoProgress(false)
 		{
 			SetTitle(m_title.c_str());
 			hloubka = SETTING(PROGRESS_3DDEPTH);
 			m_psp.dwFlags |= PSP_RTLREADING;
-		};
+			bDoProgress = false;
+			bDoLeft = false;
+			bDoSegment = false;
+			odcStyle = false;
+			stealthyStyle = false;
+			stealthyStyleIco = false;
+			stealthyStyleIcoSpeedIgnore = false;
+		}
 		
 		~OperaColorsPage()
 		{

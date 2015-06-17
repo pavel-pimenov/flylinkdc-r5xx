@@ -235,7 +235,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 			InputStream* stream;
 		};
 		
-		BufferedSocket(char aSeparator);
+		explicit BufferedSocket(char aSeparator);
 		
 		~BufferedSocket();
 		

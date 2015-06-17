@@ -76,7 +76,7 @@ static const TCHAR FILE_LIST_TYPE_T[] = L"All Lists\0*.xml.bz2;*.dcls;*.dclst\0F
 
 struct Tags// [+] IRainman struct for links and BB codes
 {
-	Tags(const TCHAR* _tag) : tag(_tag) { }
+	explicit Tags(const TCHAR* _tag) : tag(_tag) { }
 	const tstring tag;
 };
 

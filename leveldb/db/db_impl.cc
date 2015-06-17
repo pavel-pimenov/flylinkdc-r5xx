@@ -45,7 +45,7 @@ struct DBImpl::Writer {
   bool done;
   port::CondVar cv;
 
-  explicit Writer(port::Mutex* mu) : cv(mu) { }
+  explicit Writer(port::Mutex* mu) : cv(mu), batch(nullptr), sync(false),done(false) { }
 };
 
 struct DBImpl::CompactionState {

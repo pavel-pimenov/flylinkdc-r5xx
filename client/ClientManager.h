@@ -32,7 +32,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 {
 		friend class SpyFrame;
 	public:
-		Client* getClient(const string& aHubURL);
+		Client* getClient(const string& aHubURL, bool p_is_auto_connect);
 		void putClient(Client* p_client);
 		void prepareClose(); // [+]PPA
 		static StringList getHubs(const CID& cid, const string& hintUrl);

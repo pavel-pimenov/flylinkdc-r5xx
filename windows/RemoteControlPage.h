@@ -6,7 +6,7 @@
 class RemoteControlPage : public CPropertyPage<IDD_REMOTE_CONTROL_PAGE>, public PropPage
 {
 	public:
-		RemoteControlPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_RC))
+		explicit RemoteControlPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_RC))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

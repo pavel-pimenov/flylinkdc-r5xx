@@ -97,7 +97,7 @@ void SharedFileStream::check_before_destoy()
 	}
 	cleanup();
 }
-
+// TODO - убрать
 void SharedFileStream::cleanup()
 {
 	FastLock l(g_cs);
@@ -110,6 +110,7 @@ void SharedFileStream::cleanup()
 	{
 		if (i->second && i->second->m_ref_cnt == 0)
 		{
+			dcassert(0); // Разрушаем в SharedFileStream::~SharedFileStream()
 #ifdef _DEBUG
 			//  LogManager::message("[!] SharedFileStream::cleanup() aFileName = " + i->first);
 #endif
@@ -119,7 +120,7 @@ void SharedFileStream::cleanup()
 		else
 		{
 			++i;
-		}		
+		}
 	}
 }
 SharedFileStream::~SharedFileStream()
@@ -130,8 +131,14 @@ SharedFileStream::~SharedFileStream()
 	if (m_sfh->m_ref_cnt == 0)
 	{
 #ifdef _DEBUG
-		//  LogManager::message("m_ref_cnt = 0 ~SharedFileHandle aFileName = " + m_sfh->m_path);
+		LogManager::message("m_ref_cnt = 0 ~SharedFileHandle aFileName = " + m_sfh->m_path);
 #endif
+#ifdef FLYLINKDC_USE_SHARED_FILE_STREAM_RW_POOL
+		auto& pool = m_sfh->m_mode == File::READ ? g_readpool : g_writepool;
+#else
+		auto& pool = g_rwpool;
+#endif
+		pool.erase(m_sfh->m_path);
 	}
 }
 

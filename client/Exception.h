@@ -34,7 +34,7 @@ class Exception : public std::exception
 		virtual ~Exception() noexcept
 		{
 		}
-		Exception(const string& aError) : error(aError)
+		explicit Exception(const string& aError) : error(aError)
 		{
 			dcdrun(if (!error.empty())) dcdebug("Thrown: %s\n", error.c_str()); //-V111
 		}
@@ -56,7 +56,7 @@ class Exception : public std::exception
 
 #define STANDARD_EXCEPTION(name) class name : public Exception { \
 		public:\
-			name(const string& aError) : Exception(#name ": " + aError) { } \
+			explicit name(const string& aError) : Exception(#name ": " + aError) { } \
 	}
 
 // [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1318
@@ -69,7 +69,7 @@ class Exception : public std::exception
 
 #define STANDARD_EXCEPTION(name) class name : public Exception { \
 		public:\
-			name(const string& aError) : Exception(aError) { } \
+			explicit name(const string& aError) : Exception(aError) { } \
 	}
 
 // [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1318

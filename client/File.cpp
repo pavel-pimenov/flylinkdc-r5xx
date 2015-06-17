@@ -326,7 +326,7 @@ bool File::isExist(const tstring & aFileName) noexcept // [+] IRainman
 	return (attr != INVALID_FILE_ATTRIBUTES);
 }
 
-bool File::isExist(const tstring & filename, int64_t & outFileSize, int64_t & outFiletime) // [+] FlylinkDC++ Team
+bool File::isExist(const tstring & filename, int64_t & outFileSize, int64_t & outFiletime, bool& p_is_link) // [+] FlylinkDC++ Team
 {
 	dcassert(!filename.empty());
 	
@@ -334,8 +334,10 @@ bool File::isExist(const tstring & filename, int64_t & outFileSize, int64_t & ou
 		return false;
 		
 	FileFindIter i(filename); // TODO - formatPath ?
+	p_is_link = false;
 	if (i != FileFindIter::end)
 	{
+		p_is_link = i->isLink();
 		outFileSize = i->getSize();
 		outFiletime = i->getLastWriteTime();
 		return true;
@@ -345,6 +347,7 @@ bool File::isExist(const tstring & filename, int64_t & outFileSize, int64_t & ou
 
 string File::formatPath(const string & path)
 {
+	//dcassert( filename.find(_T("\\\\")) == tstring.npos && filename.find(_T("//")) == tstring.npos));
 	if (path.size() < (MAX_PATH / 2) - 2)
 		return path;
 		
@@ -515,12 +518,27 @@ StringList File::findFiles(const string& path, const string& pattern, bool p_app
 
 void FileFindIter::init(const tstring & path)
 {
+	//WIN32_FIND_DATA l_init = {0};
+	//m_data = l_init;
 	m_handle = FindFirstFileEx(File::formatPath(path).c_str(),
 	                           CompatibilityManager::g_find_file_level,
 	                           &m_data,
 	                           FindExSearchNameMatch,
 	                           NULL,
 	                           CompatibilityManager::g_find_file_flags);
+	if (m_handle == INVALID_HANDLE_VALUE)
+	{
+		// dcassert(0);
+		// LogManager::message("FileFindIter::init path = " + Text::fromT(path) + " GetLastError() = " + Util::toString(GetLastError()));
+	}
+	// else
+	// {
+	//   if(m_data.isLink())
+	//   {
+	//     FindClose(m_handle);
+	//     m_handle = FindFirstFile(File::formatPath(path).c_str(),&m_data);
+	//   }
+	// }
 }
 
 FileFindIter::~FileFindIter()
@@ -550,7 +568,11 @@ bool FileFindIter::operator!=(const FileFindIter & rhs) const
 	return m_handle != rhs.m_handle;
 }
 
-FileFindIter::DirData::DirData() { }
+FileFindIter::DirData::DirData()
+{
+// TODO   WIN32_FIND_DATA l_init = {0};
+// TODO   *this = l_init;
+}
 
 string FileFindIter::DirData::getFileName() const
 {

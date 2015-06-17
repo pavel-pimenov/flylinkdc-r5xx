@@ -290,7 +290,7 @@ typedef std::vector<CFlyTTHKey> CFlyTTHKeyArray;
 class CFlyServerAdapter
 {
 	public:
-		CFlyServerAdapter(const DWORD p_dwMilliseconds = INFINITE):
+		explicit CFlyServerAdapter(const DWORD p_dwMilliseconds = INFINITE):
 		     m_hMediaWnd(nullptr), 
 		     m_dwMilliseconds(p_dwMilliseconds)
 #ifdef _DEBUG
@@ -358,7 +358,7 @@ class CFlyServerAdapter
 		class CFlyServerQueryThread : public Thread
 		{
 			public:
-				CFlyServerQueryThread(CFlyServerAdapter* p_adapter) : m_previous_tick(0), m_adapter(p_adapter)
+				explicit CFlyServerQueryThread(CFlyServerAdapter* p_adapter) : m_previous_tick(0), m_adapter(p_adapter)
 				{
 				}
 				~CFlyServerQueryThread()

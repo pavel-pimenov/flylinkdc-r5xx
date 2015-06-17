@@ -26,7 +26,7 @@
 class Popups : public CPropertyPage<IDD_POPUPS_PAGE>, public PropPage
 {
 	public:
-		Popups(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(BALLOON_POPUPS))
+		explicit Popups(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(BALLOON_POPUPS))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

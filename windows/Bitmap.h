@@ -3,7 +3,7 @@
 class CBmp
 {
 	public:
-		CBmp(HBITMAP hBMP = NULL);
+		explicit CBmp(HBITMAP hBMP = NULL);
 		~CBmp();
 		
 		HBITMAP CreateCompatibleBitmap(HDC hDC, int w, int h);

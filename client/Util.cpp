@@ -2026,7 +2026,6 @@ string Util::getIETFLang()
 {
 	string l_lang = SETTING(LANGUAGE_FILE);
 	boost::replace_last(l_lang, ".xml", "");
-	
 	return l_lang;
 }
 
@@ -2913,7 +2912,7 @@ string Util::toSettingString(const StringList& patternList)
 // [~] IRainman: settings split and parse.
 string Util::getLang()
 {
-	const string& l_lang = SETTING(LANGUAGE_FILE);
+	const string l_lang = SETTING(LANGUAGE_FILE);
 	dcassert(l_lang.length() == 9);
 	return l_lang.substr(0, 2);
 }

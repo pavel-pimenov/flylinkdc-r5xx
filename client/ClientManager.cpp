@@ -53,25 +53,25 @@ ClientManager::UserMap ClientManager::g_users;
 ClientManager::NickMap ClientManager::g_nicks;
 #endif
 
-Client* ClientManager::getClient(const string& p_HubURL)
+Client* ClientManager::getClient(const string& p_HubURL, bool p_is_auto_connect)
 {
 	dcassert(p_HubURL == Text::toLower(p_HubURL));
 	Client* c;
 	if (Util::isAdc(p_HubURL))
 	{
-		c = new AdcHub(p_HubURL, false);
+		c = new AdcHub(p_HubURL, false, p_is_auto_connect);
 	}
 	else if (Util::isAdcS(p_HubURL))
 	{
-		c = new AdcHub(p_HubURL, true);
+		c = new AdcHub(p_HubURL, true, p_is_auto_connect);
 	}
 	else if (Util::isNmdcS(p_HubURL))
 	{
-		c = new NmdcHub(p_HubURL, true);
+		c = new NmdcHub(p_HubURL, true, p_is_auto_connect);
 	}
 	else
 	{
-		c = new NmdcHub(p_HubURL, false);
+		c = new NmdcHub(p_HubURL, false, p_is_auto_connect);
 	}
 	
 	{
@@ -485,7 +485,7 @@ string ClientManager::findHubEncoding(const string& aUrl)
 		if (i != g_clients.end())
 			return i->second->getEncoding();
 	}
-	return Text::systemCharset;
+	return Text::g_systemCharset;
 }
 
 UserPtr ClientManager::findLegacyUser(const string& aNick
@@ -816,7 +816,7 @@ void ClientManager::userCommand(const HintedUser& hintedUser, const UserCommand&
 	if (!ou || ou->isDHT())
 		return;
 		
-	auto& l_ñlient = ou->getClient(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'ou->getClient()' expression repeatedly. clientmanager.cpp 591
+	auto& l_ñlient = ou->getClient(); 
 	const string& opChat = l_ñlient.getOpChat();
 	if (opChat.find('*') == string::npos && opChat.find('?') == string::npos)
 		params["opchat"] = opChat;

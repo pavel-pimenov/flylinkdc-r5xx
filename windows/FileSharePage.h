@@ -31,7 +31,7 @@
 class FileSharePage : public CPropertyPage<IDD_FILE_SHARE_PAGE>, public PropPage
 {
 	public:
-		FileSharePage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_UPLOADS) + _T('\\') + TSTRING(FILESHARE_TITLE))
+		explicit FileSharePage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_UPLOADS) + _T('\\') + TSTRING(FILESHARE_TITLE))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

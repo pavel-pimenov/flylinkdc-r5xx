@@ -71,7 +71,7 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		friend class CommandHandler<AdcHub>;
 		friend class Identity;
 		
-		AdcHub(const string& aHubURL, bool secure);
+		AdcHub(const string& aHubURL, bool secure, bool p_is_auto_connect);
 		
 		~AdcHub();
 		

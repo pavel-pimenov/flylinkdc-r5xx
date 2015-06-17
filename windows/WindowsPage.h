@@ -26,7 +26,7 @@
 class WindowsPage : public CPropertyPage<IDD_WINDOWS_PAGE>, public PropPage
 {
 	public:
-		WindowsPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_WINDOWS))
+		explicit WindowsPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_WINDOWS))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

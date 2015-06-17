@@ -35,7 +35,7 @@ class LOCKABLE RWLockWrapper {
 // provides more compact locking syntax.
 class SCOPED_LOCKABLE ReadLockScoped {
  public:
-  ReadLockScoped(RWLockWrapper& rw_lock) SHARED_LOCK_FUNCTION(rw_lock)
+  explicit ReadLockScoped(RWLockWrapper& rw_lock) SHARED_LOCK_FUNCTION(rw_lock)
       : rw_lock_(rw_lock) {
     rw_lock_.AcquireLockShared();
   }
@@ -50,7 +50,7 @@ class SCOPED_LOCKABLE ReadLockScoped {
 
 class SCOPED_LOCKABLE WriteLockScoped {
  public:
-  WriteLockScoped(RWLockWrapper& rw_lock) EXCLUSIVE_LOCK_FUNCTION(rw_lock)
+  explicit WriteLockScoped(RWLockWrapper& rw_lock) EXCLUSIVE_LOCK_FUNCTION(rw_lock)
       : rw_lock_(rw_lock) {
     rw_lock_.AcquireLockExclusive();
   }

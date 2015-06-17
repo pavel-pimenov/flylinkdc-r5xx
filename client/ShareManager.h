@@ -388,7 +388,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		
 		struct AdcSearch
 		{
-			AdcSearch(const StringList& params);
+			explicit AdcSearch(const StringList& params);
 			
 			bool isExcluded(const string& str);
 			bool hasExt(const string& name);

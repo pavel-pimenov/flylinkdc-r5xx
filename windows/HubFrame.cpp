@@ -188,7 +188,8 @@ void HubFrame::addMesageLogParams(StringMap& params, tstring aLine, bool bThirdP
 }
 // [~] IRainman: copy-past fix.
 
-HubFrame::HubFrame(const string& aServer,
+HubFrame::HubFrame(bool p_is_auto_connect,
+                   const string& aServer,
                    const string& aName,
                    const string& aRawOne,
                    const string& aRawTwo,
@@ -247,7 +248,7 @@ HubFrame::HubFrame(const string& aServer,
 	m_ctrlStatusCache.resize(5);
 	m_showUsersStore = p_UserListState;
 	m_showUsers = false;
-	m_client = ClientManager::getInstance()->getClient(aServer);
+	m_client = ClientManager::getInstance()->getClient(aServer, p_is_auto_connect);
 	m_nProportionalPos = p_ChatUserSplit;
 	m_client->setName(aName);
 	m_client->setRawOne(aRawOne);
@@ -272,6 +273,7 @@ HubFrame::~HubFrame()
 	}
 	safe_delete(m_ctrlChatContainer);
 	ClientManager::getInstance()->putClient(m_client);
+	m_client = nullptr;
 	// На форварде падает
 	// dcassert(g_frames.find(server) != g_frames.end());
 	// dcassert(g_frames[server] == this);
@@ -630,7 +632,8 @@ void HubFrame::onInvalidateAfterActiveTab(HWND aWnd)
 	}
 }
 
-HubFrame* HubFrame::openWindow(const string& p_server,
+HubFrame* HubFrame::openWindow(bool p_is_auto_connect,
+                               const string& p_server,
                                const string& p_name,
                                const string& p_rawOne,
                                const string& p_rawTwo,
@@ -655,7 +658,8 @@ HubFrame* HubFrame::openWindow(const string& p_server,
 	const auto i = g_frames.find(p_server);
 	if (i == g_frames.end())
 	{
-		frm = new HubFrame(p_server,
+		frm = new HubFrame(p_is_auto_connect,
+		                   p_server,
 		                   p_name,
 		                   p_rawOne,
 		                   p_rawTwo,
@@ -744,7 +748,7 @@ void HubFrame::processFrameCommand(const tstring& fullMessageText, const tstring
 			m_redirect = Util::formatDchubUrl(Text::fromT(param)); // [!] IRainman fix http://code.google.com/p/flylinkdc/issues/detail?id=1237
 			if (BOOLSETTING(JOIN_OPEN_NEW_WINDOW))
 			{
-				openWindow(m_redirect); // [!] IRainman fix http://code.google.com/p/flylinkdc/issues/detail?id=1237
+				openWindow(false, m_redirect); // [!] IRainman fix http://code.google.com/p/flylinkdc/issues/detail?id=1237
 			}
 			else
 			{
@@ -1514,7 +1518,7 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 			ctrlClient.setHubParam(m_client->getHubUrl(), m_client->getMyNick()); // [+] IRainman fix.
 			
 			setStatusText(1, Text::toT(m_client->getCipherName()));
- 		  if(m_ctrlStatus)
+			if (m_ctrlStatus)
 			{
 				UpdateLayout(false);
 			}
@@ -1773,21 +1777,21 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 			case STATS:
 			{
 				dcassert(!ClientManager::isShutdown());
-					if (m_client && m_client->is_all_my_info_loaded() == true)
-					{
+				if (m_client && m_client->is_all_my_info_loaded() == true)
+				{
 //				PROFILE_THREAD_SCOPED_DESC("STATS")
-						const int64_t l_availableBytes = m_client->getAvailableBytes();
-						const size_t l_allUsers = m_client->getUserCount();
-						const size_t l_shownUsers = m_ctrlUsers ? m_ctrlUsers->GetItemCount() : l_allUsers;
-						const size_t l_diff = l_allUsers - l_shownUsers;
-						setStatusText(2, (Util::toStringW(l_shownUsers) + (l_diff ? (_T('/') + Util::toStringW(l_allUsers)) : Util::emptyStringT) + _T(' ') + TSTRING(HUB_USERS)));
-						setStatusText(3, Util::formatBytesW(l_availableBytes));
-						setStatusText(4, l_allUsers ? (Util::formatBytesW(l_availableBytes / l_allUsers) + _T('/') + TSTRING(USER)) : Util::emptyStringT);
-						if (m_needsResort && m_ctrlUsers && m_ctrlStatus)
-						{
-							m_needsResort = false;
-							m_ctrlUsers->resort(); // убран ресорт если окно не активное!
-						}
+					const int64_t l_availableBytes = m_client->getAvailableBytes();
+					const size_t l_allUsers = m_client->getUserCount();
+					const size_t l_shownUsers = m_ctrlUsers ? m_ctrlUsers->GetItemCount() : l_allUsers;
+					const size_t l_diff = l_allUsers - l_shownUsers;
+					setStatusText(2, (Util::toStringW(l_shownUsers) + (l_diff ? (_T('/') + Util::toStringW(l_allUsers)) : Util::emptyStringT) + _T(' ') + TSTRING(HUB_USERS)));
+					setStatusText(3, Util::formatBytesW(l_availableBytes));
+					setStatusText(4, l_allUsers ? (Util::formatBytesW(l_availableBytes / l_allUsers) + _T('/') + TSTRING(USER)) : Util::emptyStringT);
+					if (m_needsResort && m_ctrlUsers && m_ctrlStatus)
+					{
+						m_needsResort = false;
+						m_ctrlUsers->resort(); // убран ресорт если окно не активное!
+					}
 				}
 			}
 			break;
@@ -2962,8 +2966,9 @@ LRESULT HubFrame::onFollow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/,
 		m_client->removeListener(this);
 		clearUserList(true);
 		ClientManager::getInstance()->putClient(m_client);
+		m_client = nullptr;
 		clearTaskList();
-		m_client = ClientManager::getInstance()->getClient(m_redirect);
+		m_client = ClientManager::getInstance()->getClient(m_redirect, false);
 		RecentHubEntry r;
 		r.setServer(m_redirect);
 		FavoriteManager::getInstance()->addRecent(r);

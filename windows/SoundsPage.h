@@ -26,7 +26,7 @@
 class Sounds : public CPropertyPage<IDD_SOUNDS_PAGE>, public PropPage
 {
 	public:
-		Sounds(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_SOUNDS))
+		explicit Sounds(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_SOUNDS))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

@@ -25,7 +25,7 @@ template<size_t N>
 class BloomFilter
 {
 	public:
-		BloomFilter(size_t tableSize)
+		explicit BloomFilter(size_t tableSize)
 		{
 			table.resize(tableSize);
 		}

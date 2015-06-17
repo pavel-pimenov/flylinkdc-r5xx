@@ -233,7 +233,7 @@ class Thread : public BaseThread
 #endif
 		{
 			public:
-				ConditionLocker(volatile long& condition) : m_condition(condition)
+				explicit ConditionLocker(volatile long& condition) : m_condition(condition)
 				{
 					waitLockState(m_condition);
 				}
@@ -252,7 +252,7 @@ class Thread : public BaseThread
 #endif
 		{
 			public:
-				ConditionLockerWithSpin(volatile long& condition) : m_condition(condition)
+				explicit ConditionLockerWithSpin(volatile long& condition) : m_condition(condition)
 				{
 					waitLockStateWithSpin(m_condition);
 				}
@@ -798,11 +798,11 @@ class Lock
 {
 		LPCRITICAL_SECTION m_pCS;
 	public:
-		Lock(LPCRITICAL_SECTION pCS) : m_pCS(pCS)
+		explicit Lock(LPCRITICAL_SECTION pCS) : m_pCS(pCS)
 		{
 			_Lock();
 		}
-		Lock(CBaseLock& lock) : m_pCS(&lock.m_CS)
+		explicit Lock(CBaseLock& lock) : m_pCS(&lock.m_CS)
 		{
 			_Lock();
 		}
@@ -1137,7 +1137,7 @@ class SharedLockBase
 	private:
 		T& cs;
 	public:
-		SharedLockBase(T& shared_cs) : cs(shared_cs)
+		explicit SharedLockBase(T& shared_cs) : cs(shared_cs)
 		{
 			cs.lockShared();
 		}
@@ -1165,7 +1165,7 @@ class UniqueLockBase
 	private:
 		T& cs;
 	public:
-		UniqueLockBase(T& shared_cs) : cs(shared_cs)
+		explicit UniqueLockBase(T& shared_cs) : cs(shared_cs)
 		{
 			cs.lockUnique();
 		}
@@ -1194,7 +1194,7 @@ class BaseTryUniqueLock
 		T& cs;
 		const bool succes;
 	public:
-		BaseTryUniqueLock(T& shared_cs) : cs(shared_cs), succes(cs.tryLockUnique())
+		explicit BaseTryUniqueLock(T& shared_cs) : cs(shared_cs), succes(cs.tryLockUnique())
 		{
 		}
 		

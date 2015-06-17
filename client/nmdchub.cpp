@@ -35,7 +35,7 @@ CFlyUnknownCommand NmdcHub::g_unknown_command;
 CFlyUnknownCommandArray NmdcHub::g_unknown_command_array;
 FastCriticalSection NmdcHub::g_unknown_cs;
 
-NmdcHub::NmdcHub(const string& aHubURL, bool secure) : Client(aHubURL, '|', false), m_supportFlags(0), m_modeChar(0),
+NmdcHub::NmdcHub(const string& aHubURL, bool secure, bool p_is_auto_connect) : Client(aHubURL, '|', false, p_is_auto_connect), m_supportFlags(0), m_modeChar(0),
 	m_lastBytesShared(0),
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 	m_hubSupportsSlots(false),

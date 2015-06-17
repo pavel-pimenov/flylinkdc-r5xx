@@ -46,13 +46,13 @@ class SocketException : public Exception
 {
 	public:
 #ifdef _DEBUG
-	SocketException(const string& aError) noexcept :
+	explicit SocketException(const string& aError) noexcept :
 		Exception("SocketException: " + aError), m_error_code(0) { }
 #else //_DEBUG
-	SocketException(const string& aError) noexcept :
+	explicit SocketException(const string& aError) noexcept :
 		Exception(aError), m_error_code(0) { }
 #endif // _DEBUG
-		SocketException(DWORD aError) noexcept;
+		explicit SocketException(DWORD aError) noexcept;
 		DWORD getErrorCode() const
 		{
 			return m_error_code;

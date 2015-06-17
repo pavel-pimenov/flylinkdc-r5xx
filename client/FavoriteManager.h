@@ -37,8 +37,7 @@ class PreviewApplication
 #endif
 {
 	public:
-		typedef PreviewApplication* Ptr;
-		typedef vector<Ptr> List;
+		typedef vector<PreviewApplication*> List;
 		
 		PreviewApplication() noexcept {}
 		PreviewApplication(const string& n, const string& a, const string& r, const string& e) : name(n), application(a), arguments(r), extension(Text::toLower(e)) // [!] IRainman fix: call toLower.
@@ -214,7 +213,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		{
 				const bool m_unique;
 			public:
-				LockInstanceHubs(const bool unique = false) : m_unique(unique)
+				explicit LockInstanceHubs(const bool unique = false) : m_unique(unique)
 				{
 					if (m_unique)
 						FavoriteManager::g_csHubs->AcquireLockExclusive();

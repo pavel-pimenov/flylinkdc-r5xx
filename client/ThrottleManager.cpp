@@ -113,7 +113,7 @@ int ThrottleManager::write(Socket* p_sock, const void* p_buffer, size_t& p_len)
 		{
 			return p_sock->write(p_buffer, p_len);
 		}
-			
+		
 		boost::unique_lock<boost::mutex> lock(upMutex);
 		
 		if (upTokens > 0)

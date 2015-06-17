@@ -46,6 +46,8 @@ PropPage::TextItem GeneralPage::texts[] =
 	{ IDC_CONNECT_TO_SUPPORT_HUB, ResourceManager::CONNECT_TO_SUPPORT_HUB },
 	{ IDC_SETTINGS_LANGUAGE, ResourceManager::SETTINGS_LANGUAGE },
 	{ IDC_USE_FLY_SERVER_STATICTICS_SEND, ResourceManager::SETTINGS_STATISTICS_SEND },
+	{ IDC_ENCODINGTEXT, ResourceManager::SETTINGS_STATISTICS_SEND }, // DEFAULT_NCDC_HUB_ENCODINGTEXT
+	
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -158,6 +160,22 @@ LRESULT GeneralPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	AddGenderItem(_T("Asexual")), l_id++, 3);
 	m_GenderTypeComboBox.SetCurSel(SETTING(FLY_GENDER));
 #endif
+	
+	CComboBox combo;
+	combo.Attach(GetDlgItem(IDC_ENCODING));
+	combo.AddString(Text::toT(Text::g_code1251).c_str());
+	combo.AddString(_T("System default"));
+	if (Text::g_systemCharset == Text::g_code1251)
+{
+	combo.SetCurSel(0);
+	}
+	else
+	{
+		combo.SetCurSel(1);
+	}
+	combo.Detach();
+	::EnableWindow(GetDlgItem(IDC_ENCODING), FALSE);
+	
 	fixControls();
 	return TRUE;
 }

@@ -221,7 +221,8 @@ void FavoriteHubsFrame::openSelected()
 		r.setShared("*");
 		r.setServer(entry->getServer());
 		FavoriteManager::getInstance()->addRecent(r);
-		HubFrame::openWindow(entry->getServer(),
+		HubFrame::openWindow(true,
+		                     entry->getServer(),
 		                     entry->getName(),
 		                     entry->getRawOne(),
 		                     entry->getRawTwo(),
@@ -277,11 +278,11 @@ void FavoriteHubsFrame::addEntry(const FavoriteHubEntry* entry, int pos, int gro
 	// lvItem.iImage = isOnline(entry->getServer()) ? 0 : 1;
 	if (isOnline(entry->getServer()))
 		lvItem.iImage = 0;
-#ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS	// The protection, just in case ( SCALOlaz 17/05/2015 )
+#ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS   // The protection, just in case ( SCALOlaz 17/05/2015 )
 	else if (getLastSucces(l_connectionStatus, l_curTime) == TSTRING(JUST_NOW))
 		lvItem.iImage = 1;
 #endif
-	else 
+	else
 		lvItem.iImage = -1;
 	lvItem.iGroupId = groupIndex;
 	ctrlHubs.SetItem(&lvItem);
@@ -304,7 +305,7 @@ LRESULT FavoriteHubsFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam
 			}
 		}
 	}
-
+	
 	else if (wParam == HUB_DISCONNECTED)
 	{
 		auto_ptr<string> hub(reinterpret_cast<string*>(lParam));

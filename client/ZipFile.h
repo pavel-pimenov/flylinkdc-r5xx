@@ -61,7 +61,7 @@ using std::map;
 class ZipFileException : public Exception
 {
 	public:
-		ZipFileException(const string &func) : Exception(func) { }
+		explicit ZipFileException(const string &func) : Exception(func) { }
 		ZipFileException(const string &func, int msg) : Exception(func + ": " + TranslateError(msg)) { }
 		ZipFileException(const string &func, const string &msg) : Exception(func + ": " + msg) { }
 		virtual ~ZipFileException() noexcept { }
@@ -92,7 +92,7 @@ class ZipFile : private boost::noncopyable
 		typedef std::map<string, pair<FileInfo, FileContentType > > FileMap;
 		
 		ZipFile() : fp(NULL) { }
-		ZipFile(const tstring &file);
+		explicit ZipFile(const tstring &file);
 		~ZipFile();
 		
 		void Open(const tstring &file);

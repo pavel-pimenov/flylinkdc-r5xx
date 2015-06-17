@@ -154,7 +154,7 @@ class NmdcHub : public Client, private Flags
 		
 		DefinedMeyInfoState m_bLastMyInfoCommand; // [+] FlylinkDC
 		
-		NmdcHub(const string& aHubURL, bool secure);
+		NmdcHub(const string& aHubURL, bool secure, bool p_is_auto_connect);
 		~NmdcHub();
 		
 		void clearUsers();

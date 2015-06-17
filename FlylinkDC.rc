@@ -511,7 +511,8 @@ BEGIN
     EDITTEXT        IDC_PORT_TLS,240,129,44,14,ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "DHT/UDP",IDC_SETTINGS_PORT_DHT,204,145,31,8,0,WS_EX_RIGHT
     EDITTEXT        IDC_PORT_DHT,240,144,44,14,ES_AUTOHSCROLL | ES_NUMBER
-	CONTROL         "Don't allow hub/UPnP to override", IDC_NO_IP_OVERRIDE, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 11, 167, 151, 10
+    CONTROL         "Don't allow hub/UPnP to override",IDC_NO_IP_OVERRIDE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,167,151,10
     CONTROL         "Work in passive mode if specified active mode not available (autodetect)",IDC_AUTODETECT,
                     "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,11,177,295,18
     CONTROL         "Allow NAT Traversal for connections with passive users",IDC_NATT,
@@ -810,13 +811,15 @@ BEGIN
     RTEXT           "Bandwidth",IDC_SETTINGS_NOMINALBW,172,81,77,8
     COMBOBOX        IDC_CONNECTION,254,79,60,95,CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Speed limit",IDC_CHECK_ADD_LIMIT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,21,93,139,10
-    GROUPBOX        "Language",IDC_SETTINGS_LANGUAGE,4,109,316,31
+    GROUPBOX        "Language",IDC_SETTINGS_LANGUAGE,4,109,316,59
     COMBOBOX        IDC_LANGUAGE,10,121,142,14,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CTEXT           "Is your language not displayed?",IDC_LANG_LINK,165,123,149,10
     CONTROL         "Connect to support hub on each startup",IDC_CONNECT_TO_SUPPORT_HUB,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,143,303,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,173,303,10
     CONTROL         "Allow the program to collect and send anonymous usage statistics to developers.",IDC_USE_FLY_SERVER_STATICTICS_SEND,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,156,303,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,186,303,10
+    LTEXT           "Default hub encoding:",IDC_ENCODINGTEXT,10,138,52,8
+    COMBOBOX        IDC_ENCODING,10,151,142,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
 
 IDD_ADVANCED_PAGE DIALOGEX 0, 0, 325, 300
@@ -2957,10 +2960,8 @@ IDR_ICON_CAMSHOOT_ICO   ICON                    "res\\Cam.ico"
 IDR_MODE_ACTIVE_ICO     ICON                    "res\\mode_active.ico"
 IDR_MODE_PASSIVE_ICO    ICON                    "res\\mode_passive.ico"
 IDR_MODE_OFFLINE_ICO    ICON                    "res\\mode_offline.ico"
-IDR_OFFLINE_ICO    ICON                    "res\\offline.ico"
-IDR_ONLINE_ICO     ICON                    "res\\online.ico"
-
-
+IDR_OFFLINE_ICO         ICON                    "res\\offline.ico"
+IDR_ONLINE_ICO          ICON                    "res\\online.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -3003,7 +3004,6 @@ IDR_FLYLINK_PNG         PNG                     "res\\FlyLink.png"
 IDR_MAGNET_PNG          PNG                     "res\\Magnet.png"
 IDR_ISP_HUBLIST         PNG                     "res\\ISPImages.png"
 IDR_ICON_CAMSHOOT_PNG   PNG                     "res\\Cam.png"
-
 #endif    // Russian (Russia) resources
 /////////////////////////////////////////////////////////////////////////////
 

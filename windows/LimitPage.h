@@ -9,14 +9,14 @@
 class LimitPage : public CPropertyPage<IDD_LIMIT_PAGE>, public PropPage
 {
 	public:
-		LimitPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_LIMIT))
+		explicit LimitPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_LIMIT))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
-		};
+		}
 		~LimitPage()
 		{
-		};
+		}
 		
 		BEGIN_MSG_MAP_EX(LimitPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)

@@ -65,7 +65,7 @@ const string SettingsManager::g_settingTags[] =
 	"Nick", "UploadSpeed", "Description", "DownloadDirectory", "EMail", "ExternalIp",
 	
 	"TextFont", "MainFrameOrder", "MainFrameWidths", "HubFrameOrder", "HubFrameWidths",
-	"LanguageFile", "SearchFrameOrder", "SearchFrameWidths", "FavoritesFrameOrder", "FavoritesFrameWidths", "FavoritesFrameVisible",
+	"DefaultCodepage", "LanguageFile", "SearchFrameOrder", "SearchFrameWidths", "FavoritesFrameOrder", "FavoritesFrameWidths", "FavoritesFrameVisible",
 	"HublistServers", "QueueFrameOrder", "QueueFrameWidths", "PublicHubsFrameOrder", "PublicHubsFrameWidths", "PublicHubsFrameVisible",
 	"UsersFrameOrder", "UsersFrameWidths", "UsersFrameVisible", "HttpProxy", "LogDir", "LogFormatPostDownload",
 	
@@ -1213,6 +1213,7 @@ void SettingsManager::setDefaults()
 	setDefault(USE_DHT_NOTANSWER, TRUE);
 #endif
 	setDefault(LANGUAGE_FILE, g_default_lang_file_name);
+	//setDefault(DEFAULT_CODEPAGE,"");
 	setDefault(MIN_MULTI_CHUNK_SIZE, 2); // [+] IRainman
 	setDefault(MIN_MEDIAINFO_SIZE, 1); // [+] PPA
 	setDefault(SHOW_SEEKERS_IN_SPY_FRAME, TRUE); // [+] IRainman

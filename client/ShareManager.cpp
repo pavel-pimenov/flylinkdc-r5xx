@@ -1151,7 +1151,12 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 				const string l_PathAndFileName = aName + l_file_name;
 				if (stricmp(l_PathAndFileName, SETTING(TLS_PRIVATE_KEY_FILE)) == 0) // TODO - унести проверку в другое место.
 					continue;
-				const int64_t l_size = i->getSize();
+				int64_t l_size = i->getSize();
+				if (i->isLink() && l_size == 0) // https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/14
+				{
+					File l_get_size(l_PathAndFileName, File::READ, File::OPEN | File::SHARED);
+					l_size = l_get_size.getSize();
+				}
 				const int64_t l_ts = i->getLastWriteTime();
 				CFlyDirMap::iterator l_dir_item = l_dir_map.find(l_lower_name);
 				bool l_is_new_file = l_dir_item == l_dir_map.end();

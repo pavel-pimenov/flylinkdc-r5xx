@@ -33,7 +33,7 @@ namespace FsUtils
 class CFsTypeDetector
 {
 	public:
-		CFsTypeDetector(HWND hWnd = NULL):
+		explicit CFsTypeDetector(HWND hWnd = NULL):
 			m_hWnd(hWnd)
 		{
 		}
@@ -54,7 +54,7 @@ class CFsTypeDetector
 		{
 			bool bSupportStream;
 			HDEVNOTIFY hNotify;
-			VOL_STRUCT(bool p_SupportStream = false): bSupportStream(p_SupportStream), hNotify(nullptr)
+			explicit VOL_STRUCT(bool p_SupportStream = false): bSupportStream(p_SupportStream), hNotify(nullptr)
 			{
 			}
 		};

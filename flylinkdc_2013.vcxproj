@@ -682,6 +682,11 @@
     <Image Include="res\firewall.ico" />
     <Image Include="res\ISPImages.png" />
     <Image Include="res\medical_bag.ico" />
+    <Image Include="res\mode_active.ico" />
+    <Image Include="res\mode_offline.ico" />
+    <Image Include="res\mode_passive.ico" />
+    <Image Include="res\offline.ico" />
+    <Image Include="res\online.ico" />
     <Image Include="res\StateUsers.png" />
     <Image Include="res\thermometer2.ico" />
     <Image Include="res\wifi-router.ico" />

@@ -28,7 +28,7 @@
 class CertificatesPage : public CPropertyPage<IDD_CERTIFICATES_PAGE>, public PropPage
 {
 	public:
-		CertificatesPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_CERTIFICATES))
+		explicit CertificatesPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_CERTIFICATES))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

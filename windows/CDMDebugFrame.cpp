@@ -102,13 +102,13 @@ LRESULT CDMDebugFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 			if (!m_sFilterExclude.empty())
 				l_values["m_sFilterExclude"] = m_sFilterExclude;
 			if (m_showCommands)
-				l_values["m_showCommands"] = m_showCommands;
+				l_values["m_showCommands"] = CFlyRegistryValue(m_showCommands);
 			if (m_showHubCommands)
-				l_values["m_showHubCommands"] = m_showHubCommands;
+				l_values["m_showHubCommands"] = CFlyRegistryValue(m_showHubCommands);
 			if (m_showDetection)
-				l_values["m_showDetection"] = m_showDetection;
+				l_values["m_showDetection"] = CFlyRegistryValue(m_showDetection);
 			if (m_bFilterIp)
-				l_values["m_bFilterIp"] = m_bFilterIp;
+				l_values["m_bFilterIp"] = CFlyRegistryValue(m_bFilterIp);
 			CFlylinkDBManager::getInstance()->save_registry(l_values, e_CMDDebugFilterState, true);
 		}
 		

@@ -58,7 +58,7 @@ public :
     //Class
         /// @brief Constructor
         /// @param Count_Init optimization information: How many files do you plan to handle?
-    MediaInfoList (size_t Count_Init=64);
+    explicit MediaInfoList (size_t Count_Init=64);
     ~MediaInfoList ();
 
     //Files

@@ -30,7 +30,7 @@ class MediaInfoList_Internal : public ZenLib::Thread
 {
 public :
     //Class
-    MediaInfoList_Internal (size_t Count_Init=64);
+    explicit MediaInfoList_Internal (size_t Count_Init=64);
     virtual ~MediaInfoList_Internal ();
 
     //Files

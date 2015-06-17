@@ -47,8 +47,8 @@ namespace sqlite3x {
 		void check_db_open();
 	public:
 		sqlite3_connection();
-		sqlite3_connection(const char *db);
-		sqlite3_connection(const wchar_t *db);
+		explicit sqlite3_connection(const char *db);
+		explicit sqlite3_connection(const wchar_t *db);
 		~sqlite3_connection();
 		sqlite3 * get_db()
 		{
@@ -187,7 +187,7 @@ namespace sqlite3x {
 
 		sqlite3_command *cmd;
 
-		sqlite3_reader(sqlite3_command *cmd);
+		explicit sqlite3_reader(sqlite3_command *cmd);
 		void check_reader(int p_index);
 	public:
 		sqlite3_reader();
@@ -217,7 +217,7 @@ namespace sqlite3x {
 	class database_error : public Exception {
 	public:
 		database_error(const char *msg, const string& p_add_info = ""): Exception(string(msg) + p_add_info) {}
-		database_error(const sqlite3_connection* p_con)
+		explicit database_error(const sqlite3_connection* p_con)
 			:Exception(sqlite3_errmsg(p_con->db)){}
 	};
 }

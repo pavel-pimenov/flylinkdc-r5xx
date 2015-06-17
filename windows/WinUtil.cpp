@@ -2345,7 +2345,7 @@ bool WinUtil::parseDchubUrl(const tstring& aUrl)// [!] IRainman fix: stop copy-p
 			r.setServer(l_Url);
 			FavoriteManager::getInstance()->addRecent(r);
 			// [~] IRainman fix.
-			HubFrame::openWindow(l_Url);
+			HubFrame::openWindow(false, l_Url);
 		}
 		if (!file.empty())
 		{

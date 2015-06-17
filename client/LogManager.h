@@ -122,7 +122,7 @@ class CFlyLog
 class CFlyLogFile : public CFlyLog
 {
 	public:
-		CFlyLogFile(const string& p_message) : CFlyLog(p_message, true, true)
+		explicit CFlyLogFile(const string& p_message) : CFlyLog(p_message, true, true)
 		{
 		}
 };
