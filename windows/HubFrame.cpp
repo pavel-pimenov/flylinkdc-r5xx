@@ -197,7 +197,8 @@ HubFrame::HubFrame(bool p_is_auto_connect,
                    const string& aRawFour,
                    const string& aRawFive,
                    int  p_ChatUserSplit,
-                   bool p_UserListState
+                   bool p_UserListState,
+                   bool p_SuppressChatAndPM
                    //bool p_ChatUserSplitState
                   ) :
 #ifdef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
@@ -256,6 +257,7 @@ HubFrame::HubFrame(bool p_is_auto_connect,
 	m_client->setRawThree(aRawThree);
 	m_client->setRawFour(aRawFour);
 	m_client->setRawFive(aRawFive);
+	m_client->setSuppressChatAndPM(p_SuppressChatAndPM);
 	m_client->addListener(this);
 }
 
@@ -318,7 +320,7 @@ LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 }
 void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
 {
-	if (!m_isUpdateColumnsInfoProcessed) // Апдейт колон делаем только один раз при первой активации т.к. ListItem не разрушается
+	if (!m_isUpdateColumnsInfoProcessed) // Апдейт колонок делаем только один раз при первой активации т.к. ListItem не разрушается
 	{
 		m_isUpdateColumnsInfoProcessed = true;
 		FavoriteManager::getInstance()->addListener(this);
@@ -429,7 +431,7 @@ void HubFrame::createMessagePanel()
 	{
 		++m_ActivateCounter;
 		createCtrlUsers();
-		BaseChatFrame::createMessageCtrl(this, EDIT_MESSAGE_MAP);
+		BaseChatFrame::createMessageCtrl(this, EDIT_MESSAGE_MAP, isSupressChatAndPM());
 		dcassert(!m_ctrlFilterContainer);
 		m_ctrlFilterContainer    = new CContainedWindow(WC_EDIT, this, FILTER_MESSAGE_MAP);
 		m_ctrlFilter = new CEdit;
@@ -511,7 +513,6 @@ void HubFrame::createMessagePanel()
 		m_ctrlChatContainer     = new CContainedWindow(WC_EDIT, this, EDIT_MESSAGE_MAP);
 		m_ctrlChatContainer->SubclassWindow(ctrlClient.m_hWnd);
 	}
-	
 	if (l_is_need_update)
 	{
 #ifdef SCALOLAZ_HUB_MODE
@@ -646,7 +647,8 @@ HubFrame* HubFrame::openWindow(bool p_is_auto_connect,
                                int  p_windowsizey,
                                int  p_windowtype,
                                int  p_ChatUserSplit,
-                               bool p_UserListState
+                               bool p_UserListState,
+                               bool p_SuppressChatAndPM
                                // bool p_ChatUserSplitState,
                                //const string& p_ColumsOrder,
                                //const string& p_ColumsWidth,
@@ -667,7 +669,8 @@ HubFrame* HubFrame::openWindow(bool p_is_auto_connect,
 		                   p_rawFour,
 		                   p_rawFive,
 		                   p_ChatUserSplit,
-		                   p_UserListState
+		                   p_UserListState,
+		                   p_SuppressChatAndPM
 		                   //, p_ChatUserSplitState
 		                  );
 		const int nCmdShow = SW_SHOWDEFAULT; // TODO: find out what it wanted to do
@@ -1363,7 +1366,10 @@ void HubFrame::removeUser(const OnlineUserPtr& p_ou)
 
 void HubFrame::addStatus(const tstring& aLine, const bool bInChat /*= true*/, const bool bHistory /*= true*/, const CHARFORMAT2& cf /*= WinUtil::m_ChatTextSystem*/)
 {
-	BaseChatFrame::addStatus(aLine, bInChat, bHistory, cf);
+	if (!isSupressChatAndPM())
+	{
+		BaseChatFrame::addStatus(aLine, bInChat, bHistory, cf);
+	}
 	{
 		if (!m_client->isConnected() && !m_last_hub_message.empty())
 		{
@@ -2139,6 +2145,11 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 }
 void HubFrame::TuneSplitterPanes()
 {
+	if (isSupressChatAndPM())
+	{
+		m_nProportionalPos = 0;
+		m_isClientUsersSwitch = true;
+	}
 	if (m_ctrlUsers && ctrlClient.IsWindow())
 	{
 #ifdef SCALOLAZ_HUB_SWITCH_BTN

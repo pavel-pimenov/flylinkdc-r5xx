@@ -179,14 +179,15 @@ BOOL CALLBACK searchOtherInstance(HWND hWnd, LPARAM lParam)
 }
 
 static tstring g_sSplashText;
-static const int g_splash_size_x = 347;
-static const int g_splash_size_y = 93;
+static int g_splash_size_x = 347;
+static int g_splash_size_y = 93;
+ExCImage* g_splash_png = nullptr;
 
-// [-] DWORD g_ID_SPLASH = IDR_SPLASH;
 LRESULT CALLBACK splashCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (uMsg == WM_PAINT)
 	{
+	
 		// Get some information
 		HDC dc = GetDC(hwnd);
 		RECT rc;
@@ -194,52 +195,16 @@ LRESULT CALLBACK splashCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		OffsetRect(&rc, -rc.left, -rc.top);
 		RECT rc2 = rc;
 		RECT rc3 = rc;
-		//rc2.top = rc2.bottom - 20;
-		rc2.top = 7; //[+] PPA
+		rc2.top = 7;
 		rc2.right = rc2.right - 5;
 		::SetBkMode(dc, TRANSPARENT);
 		rc3.top = rc3.bottom - 20;
-		ExCImage hi;
-		// TODO. Нужно реализовать прозрачность из WinUtil.cpp.
 		
-		//ResourceLoader::LoadImageList(IDR_SPLASH, hi, 354, 370);
-		static int l_month = 0;
-		static int l_day = 0;
-		if (l_month == 0)
-		{
-			time_t currentTime;
-			time(&currentTime);
-			tm* l_lt = localtime(&currentTime);
-			l_month = l_lt->tm_mon + 1;
-			l_day   = l_lt->tm_mday;
-		}
-		
-#define LOAD_SPLASH(res) hi.LoadFromResource(res, _T("PNG"), _Module.get_m_hInst())
-#define DAY(m, d) (l_month == m && l_day == d)
-#define DAYS(m, d1, d2) (l_month == m && l_day >= d1 && l_day <= d2)
-		
-		if (DAYS(5, 8, 10))
-			LOAD_SPLASH(IDR_SPLASH_9MAY);
-		else if (DAYS(12, 1, 30) ||
-		         DAYS(1, 10, 31) ||
-		         DAYS(2, 1, 28))
-			LOAD_SPLASH(IDR_SPLASH_WINTER);
-		else if (DAY(12, 31) || DAYS(1, 1, 9))
-			LOAD_SPLASH(IDR_SPLASH_NY1);
-		else
-			LOAD_SPLASH(IDR_SPLASH);  // [+] InfinitySky. PNG Support from Apex 1.3.8.
-			
-#undef LOAD_SPLASH
-#undef DAY
-#undef DAYS
-			
 		HDC comp = CreateCompatibleDC(dc); // [+]
-		SelectObject(comp, hi); // [+]
+		SelectObject(comp, *g_splash_png); // [+]
 		
 		BitBlt(dc, 0, 0 , g_splash_size_x, g_splash_size_y, comp, 0, 0, SRCCOPY);
-		hi.Destroy();   // [+]
-		DeleteDC(comp); // [+]
-		DeleteObject(hi);
+		DeleteDC(comp);
 		LOGFONT logFont = {0};
 		GetObject(GetStockObject(DEFAULT_GUI_FONT), sizeof(logFont), &logFont);
 		lstrcpy(logFont.lfFaceName, TEXT("Tahoma"));
@@ -301,6 +266,69 @@ void CreateSplash()
 		#10 CreateSplash                           [c:\vc10\r5xx\windows\main.cpp:274]
 		#11 Run                                    [c:\vc10\r5xx\windows\main.cpp:340]
 		*/
+		
+		if (!g_splash_png)
+		{
+			g_splash_png = new ExCImage;
+			if (File::isExist(_T("splash.png")))
+			{
+				g_splash_png->Load(_T("splash.png"));
+			}
+			else
+			{
+				static int g_month = 0;
+				static int g_day = 0;
+				if (g_month == 0)
+				{
+					time_t currentTime;
+					time(&currentTime);
+					tm* l_lt = localtime(&currentTime);
+					if (l_lt)
+					{
+						g_month = l_lt->tm_mon + 1;
+						g_day   = l_lt->tm_mday;
+					}
+				}
+				auto load_splash = [](int p_res) -> void
+				{
+					g_splash_png->LoadFromResource(p_res, _T("PNG"), _Module.get_m_hInst());
+				};
+				
+				auto isDAY = [](int m, int d) -> bool
+				{
+					return  g_month == m && g_day == d;
+				};
+				auto isDAYS = [](int m, int d1, int d2) -> bool
+				{
+					return g_month == m && g_day >= d1 && g_day <= d2;
+				};
+				
+				if (isDAYS(5, 8, 10))
+					load_splash(IDR_SPLASH_9MAY);
+				else if (isDAYS(12, 1, 30) ||
+				         isDAYS(1, 10, 31) ||
+				         isDAYS(2, 1, 28))
+					load_splash(IDR_SPLASH_WINTER);
+				else if (isDAY(12, 31) || isDAYS(1, 1, 9))
+					load_splash(IDR_SPLASH_NY1);
+				else
+					load_splash(IDR_SPLASH);
+					
+			}
+		}
+		g_splash_size_x = g_splash_png->GetWidth();
+		g_splash_size_y = g_splash_png->GetHeight();
+		
+		// Check sizes there, and set standard splash if need  -> load_splash(IDR_SPLASH);
+		/*
+		if ((g_splash_size_x<200 && g_splash_size_x>500) || (g_splash_size_y<80 && g_splash_size_y>500))
+		{
+		    load_splash(IDR_SPLASH);
+		    g_splash_size_x = g_splash_png->GetWidth();
+		    g_splash_size_y = g_splash_png->GetHeight();
+		}
+		*/
+		
 		g_splash.SetFont((HFONT)GetStockObject(DEFAULT_GUI_FONT));
 		
 		HDC dc = g_splash.GetDC();
@@ -319,6 +347,7 @@ void CreateSplash()
 
 void DestroySplash() // [+] IRainman
 {
+	safe_delete(g_splash_png);
 	if (!g_DisableSplash && g_splash)
 	{
 		DestroyAndDetachWindow(g_splash);

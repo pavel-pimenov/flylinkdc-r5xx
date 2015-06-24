@@ -40,7 +40,10 @@ class SearchPage : public CPropertyPage<IDD_SEARCH_PAGE>, public PropPage
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 	private:
 		void fixControls(); // [+]NightOrion
 	protected:

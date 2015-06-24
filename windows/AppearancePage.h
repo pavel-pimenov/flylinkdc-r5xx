@@ -53,7 +53,10 @@ class AppearancePage : public CPropertyPage<IDD_APPEARANCE_PAGE>, public PropPag
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 	protected:
 		static Item items[];
 		static TextItem texts[];

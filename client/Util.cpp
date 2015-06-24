@@ -1596,13 +1596,6 @@ bool Util::validatePath(const string &sPath)
 	
 	return false;
 }
-/* [!] IRainman fix: see File::isExist for details
-bool Util::fileExists(const tstring &aFile)
-{
-    DWORD attr = GetFileAttributes(aFile.c_str());
-    return (attr != INVALID_FILE_ATTRIBUTES);// [!] IRainman fixs magical number
-}
-*/
 // [+] SSA
 string Util::getFilenameForRenaming(const string& p_filename)
 {

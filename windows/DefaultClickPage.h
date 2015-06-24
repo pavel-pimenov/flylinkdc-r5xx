@@ -49,7 +49,10 @@ class DefaultClickPage : public CPropertyPage<IDD_DEFAULT_CLICK_PAGE>, public Pr
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 	protected:
 		//  static Item items[];
 		static TextItem texts[];

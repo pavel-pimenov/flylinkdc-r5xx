@@ -137,6 +137,14 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			return m_is_fly_support_hub;
 		}
+		bool isSupressChatAndPM() const
+		{
+			return m_is_suppress_chat_and_pm;
+		}
+		void setSuppressChatAndPM(bool p_value)
+		{
+			m_is_suppress_chat_and_pm = p_value;
+		}
 		bool isLocalHub() const
 		{
 			return m_is_local_hub == true;
@@ -351,6 +359,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 	private:
 		uint32_t m_message_count;
 		bool m_is_fly_support_hub;
+		bool m_is_suppress_chat_and_pm;
 		boost::logic::tribool m_is_local_hub;
 		
 		struct CFlyFloodCommand
@@ -427,12 +436,8 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		GETSET(string, rawFour, RawFour);
 		GETSET(string, rawFive, RawFive);
 		GETSET(string, favIp, FavIp);
-		// [!] IRainman mimicry function
-		// [-] GETSET(string, clientId, ClientId); // !SMT!-S
 		GETSET(string, m_clientName, ClientName);
 		GETSET(string, m_clientVersion, ClientVersion);
-		// [~] IRainman mimicry function
-		
 		GETM(uint64_t, m_lastActivity, LastActivity);
 		GETSET(uint32_t, m_reconnDelay, ReconnDelay);
 		uint32_t getMessagesCount() const

@@ -44,7 +44,10 @@ class SlotPage : public CPropertyPage<IDD_SLOT_PAGE>, public PropPage
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 	protected:
 #ifdef SSA_IPGRANT_FEATURE
 		void fixControls();

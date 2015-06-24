@@ -50,6 +50,8 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	SetDlgItemText(IDC_SHOW_JOINS, CTSTRING(SHOW_JOINS));
 	SetDlgItemText(IDC_EXCL_CHECKS, CTSTRING(EXCL_CHECKS));
 	SetDlgItemText(IDC_EXCLUSIVE_HUB, CTSTRING(EXCLUSIVE_HUB));
+	SetDlgItemText(IDC_SUPPRESS_FAV_CHAT_AND_PM, CTSTRING(SUPPRESS_FAV_CHAT_AND_PM));
+	
 	SetDlgItemText(IDC_RAW1, Text::toT(SETTING(RAW1_TEXT)).c_str());
 	SetDlgItemText(IDC_RAW2, Text::toT(SETTING(RAW2_TEXT)).c_str());
 	SetDlgItemText(IDC_RAW3, Text::toT(SETTING(RAW3_TEXT)).c_str());
@@ -80,6 +82,8 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	CheckDlgButton(IDC_SHOW_JOINS, entry->getShowJoins() ? BST_CHECKED : BST_UNCHECKED); // Show joins
 	CheckDlgButton(IDC_EXCL_CHECKS, entry->getExclChecks() ? BST_CHECKED : BST_UNCHECKED); // Excl. from client checking
 	CheckDlgButton(IDC_EXCLUSIVE_HUB, entry->getExclusiveHub() ? BST_CHECKED : BST_UNCHECKED); // Exclusive hub, send H:1/0/0 or similar
+	CheckDlgButton(IDC_SUPPRESS_FAV_CHAT_AND_PM, entry->getSuppressChatAndPM() ? BST_CHECKED : BST_UNCHECKED);
+	
 	SetDlgItemText(IDC_RAW_ONE, Text::toT(entry->getRawOne()).c_str());
 	SetDlgItemText(IDC_RAW_TWO, Text::toT(entry->getRawTwo()).c_str());
 	SetDlgItemText(IDC_RAW_THREE, Text::toT(entry->getRawThree()).c_str());
@@ -227,6 +231,8 @@ LRESULT FavHubProperties::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 		entry->setShowJoins(IsDlgButtonChecked(IDC_SHOW_JOINS) == 1); // Show joins
 		entry->setExclChecks(IsDlgButtonChecked(IDC_EXCL_CHECKS) == 1); // Excl. from client checking
 		entry->setExclusiveHub(IsDlgButtonChecked(IDC_EXCLUSIVE_HUB) == 1); // Exclusive hub, send H:1/0/0 or similar
+		entry->setSuppressChatAndPM(IsDlgButtonChecked(IDC_SUPPRESS_FAV_CHAT_AND_PM) == 1);
+		
 		GET_TEXT(IDC_RAW_ONE, buf);
 		entry->setRawOne(Text::fromT(buf));
 		GET_TEXT(IDC_RAW_TWO, buf);
@@ -316,7 +322,7 @@ LRESULT FavHubProperties::OnTextChanged(WORD /*wNotifyCode*/, WORD wID, HWND hWn
 		wchar_t *b = &buf[0], *f = &buf[0], c;
 		while ((c = *b++) != 0)
 		{
-			if (c != '$' && c != '|' && (wID == IDC_HUBUSERDESCR || c != ' ') && ((wID != IDC_HUBNICK && wID != IDC_HUBUSERDESCR && wID != IDC_HUBEMAIL) || (c != '<' && c != '>')))
+			if (c != '$' && c != '|' && (wID == IDC_HUBUSERDESCR || wID == IDC_HUBPASS || c != ' ') && ((wID != IDC_HUBNICK && wID != IDC_HUBUSERDESCR && wID != IDC_HUBEMAIL) || (c != '<' && c != '>')))
 				*f++ = c;
 		}
 		*f = '\0';

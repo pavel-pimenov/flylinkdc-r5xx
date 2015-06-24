@@ -62,7 +62,10 @@ class MiscPage : public CPropertyPage<IDD_MISC_PAGE>, public PropPage
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 	private:
 		static Item items[];
 		static TextItem texts[];

@@ -52,7 +52,10 @@ class TabsPage : public CPropertyPage<IDD_TABS_PAGE>, public PropPage
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 	protected:
 	
 		static TextItem textItem[];

@@ -40,7 +40,10 @@ class MessagesPage : public CPropertyPage<IDD_MESSAGES_PAGE>, public PropPage
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 	protected:
 		static Item items[];
 		static TextItem texts[];

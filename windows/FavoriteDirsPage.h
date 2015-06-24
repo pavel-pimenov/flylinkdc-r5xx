@@ -68,7 +68,10 @@ class FavoriteDirsPage : public CPropertyPage<IDD_FAVORITE_DIRS_PAGE>, public Pr
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 	protected:
 		static TextItem texts[];
 		ExListViewCtrl ctrlDirectories;

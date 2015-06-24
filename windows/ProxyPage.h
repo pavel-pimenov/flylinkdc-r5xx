@@ -50,7 +50,10 @@ class ProxyPage : public CPropertyPage<IDD_PROXY_PAGE>, public PropPage
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 	private:
 		void fixControls();
 		CEdit desc;

@@ -70,7 +70,10 @@ class UCPage : public CPropertyPage<IDD_UCPAGE>, public PropPage
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 	protected:
 		ExListViewCtrl ctrlCommands;
 		

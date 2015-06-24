@@ -27,6 +27,9 @@
 
 void PropPage::read(HWND page, Item const* items, ListItem* listItems /* = NULL */, HWND list /* = 0 */)
 {
+#ifdef _DEBUG
+	m_check_read_write++;
+#endif
 	dcassert(page != NULL);
 	
 	if (items != NULL) // [+] SSA
@@ -101,6 +104,9 @@ void PropPage::read(HWND page, Item const* items, ListItem* listItems /* = NULL 
 
 void PropPage::write(HWND page, Item const* items, ListItem* listItems /* = NULL */, HWND list /* = NULL */)
 {
+#ifdef _DEBUG
+	m_check_read_write--;
+#endif
 	dcassert(page != NULL);
 	
 	bool l_showUserWarning = false;// [+] IRainman
@@ -169,6 +175,7 @@ void PropPage::write(HWND page, Item const* items, ListItem* listItems /* = NULL
 void PropPage::cancel(HWND page)
 {
 	dcassert(page != NULL);
+	cancel_check();
 }
 
 void PropPage::translate(HWND page, TextItem* textItems)

@@ -39,6 +39,7 @@
 ;Беларусь;Гомель;ОАО Гарант By A-One;;dc.iptv.by
 ;Беларусь;Гомель;ТВ ком;;dc.tvcom.by
 ;Беларусь;Гомель;ТелеСеть - Шпаркi Дамавiк;;dc.teleset.by,dchub-go.telecom.by:4111
+;Беларусь;Гродно;ByFly;;dchub.solo.by,dchub.by,dc.magneto.by
 ;Беларусь;Давид-Городок;DGNet;;192.168.1.98
 ;Беларусь;Дзержинск;ОДО Призма;;10.248.1.26,pon.by
 ;Беларусь;Жодино;Сети Плюс;;dc.seti.by
@@ -234,20 +235,16 @@
 ;Россия;Вилючинск;ТЕРРА;;hub.terra41.ru,files.terra41.ru
 ;Россия;Витим;Vitim-Telecom;;dc.vitim-telecom.ru
 ;Россия;Вихоревка;ProrokHomeNet;;192.168.10.251
-;Россия;Владивосток;Aliance-Telecom Vladivostok-Telecom Podryad;;dc.inetvl.ru
-;Россия;Владивосток;Inetvl-ru2223;;dc.inetvl.ru:2223
-;Россия;Владивосток;Альянс Телеком;;artem-catv.ru:4444,172.17.24.3,172.17.0.28:4111,pozitiv.localsmile.ru,172.16.221.28,local.onstyle.biz,dc.inetvl.ru:2223,172.23.91.15,172.25.131.11,172.17.78.22,dclocal.l4d-mania.ru,172.25.114.11,local.pulsvl.ru,172.17.107.2,172.25.242.33:1209,172.17.180.5:1209,ledokol-stalker.dyndns-ip.com,freeline.dyndns.info,172.16.131.92,172.16.190.43:1209,172.16.95.131,atkload.ru,172.16.104.25,172.16.160.11,172.16.227.43,172.16.172.28,172.16.35.87:1209,172.25.242.26:1209,172.16.126.20:1209,172.16.192.35,dc.magnithub.ru,172.16.16.145,vlad.sytes.net,вл-хаб.рф
-;Россия;Владивосток;Альянс Телеком Владивосток Телеком Подряд;;95.154.112.126,176.100.128.134,adc://109.110.48.210:411
 ;Россия;Владивосток;Билайн;;onbee.net,10.16.7.254,dc.beegohoom.ru,dc2.beegohoom.ru,dc.inetvl.ru:2223,dc.onbee.net,p2p.corbina.net
 ;Россия;Владивосток;Владивосток Телеком;;212.16.198.82
 ;Россия;Владивосток;ВладЛинк;;pulsvl.ru:1209,dc.smilehub.ru,kitsum.dyndns-ip.com:415,212.16.197.23:415,dc.l4d-mania.ru:1209,95.154.96.253,109.110.44.44,95.154.98.196,dc.vladlink.lan:4111,dc.vladlink.ru,peers.cn.ru
-;Россия;Владивосток;Востоктелеком;;dc.vtc.ru,dc.vladivostokcity.ru
 ;Россия;Владивосток;Домолинк-Спасск;;172.16.0.12
 ;Россия;Владивосток;Компания Подряд;;hub.podryad.tv,109.110.36.186,10.21.0.7:411,hud.podryad.nv,adc://adc.podryad.tv:411
 ;Россия;Владивосток;Локальная Сеть;;109.110.36.186,10.23.0.87,dc.beegohoom.ru,dc2.beegohoom.ru
 ;Россия;Владивосток;НТК;;dc.inetvl.ru,dc.vntc.ru
 ;Россия;Владивосток;Ростелеком;;dc.onstyle.biz,77.35.243.104:411
 ;Россия;Владивосток;Рэдком-Redcom;;dc2.homenet.redcom.ru
+;Россия;Владивосток;Экстрим Интернет;;dc.vladivostokcity.ru
 ;Россия;Владикавказ;Smart Network;;home.alania.net
 ;Россия;Владикавказ;Tvingo telecom;;dc.tvingo.ru:12345
 ;Россия;Владикавказ;ТвингоТелеком;;dchub://dc.tvingo.ru:12345,78.111.241.15:12345
@@ -389,7 +386,7 @@
 ;Россия;Калуга;Домолинк;;10.152.195.95,ladder.bz:411,dc.dml.sungate.su:411,decker.no-ip.org:411,kosten-hub.dyndns.org:411
 ;Россия;Калуга;Ростелеком;;dc.p2p-magnets.ru
 ;Россия;Каменск-Шахтинский;KCAHDEP-NET;;dc.kcahdep.ru,shakespeer.ru
-;Россия;Камышин;Абрикос;;10.10.11.2:411
+;Россия;Камышин;Абрикос;;10.10.11.2:411,dc.fly-server.ru
 ;Россия;Кандалакша;D-Link;;Rota.ru
 ;Россия;Кандалакша;Tigernet;;10.32.252.130
 ;Россия;Кандалакша;Корвет-ру;;hub.korvetcity.ru
@@ -1163,6 +1160,7 @@
 ;Россия;Южно-Сахалинск;МТС;;babylon.nsunet.ru,blyhub.homenet,p2p.homenet,atlantidap2p.homenet
 ;Россия;Южно-Сахалинск;Ростелеком;;hub.sakhalin.ru,dc.nesakh.com,lostsakhalin.ru,fx.snc.ru,hub.homelane.ru,fxhub.ru,dc.sakh9.ru,SakhHub.ru,sakh.dsv
 ;Россия;Южно-Сахалинск;Сахалинские Кабельные ТелеСистемы;;dc.scts.tv,hub.homelane.ru,fxhub.ru,hub.sakhalin.ru,fix.scts.tv,scts.sakhhub.ru
+;Россия;Южно-Сахалинск;СолнцеТелеком;;sakhhub.ru
 ;Россия;Южно-Сахалинск;Транстелеком;;hub.sakh.pro,hub.yu-sakh.ru,188.168.204.4,hub.sakhttk.ru
 ;Россия;Южноуральск;Realnet;;91.233.144.101
 ;Россия;Южноуральск;Wi-Fi[DJ TROYAN];;192.168.0.103
@@ -1205,7 +1203,7 @@
 ;Узбекистан;Ташкент;TAS-IX;;hub.tas-ix.net
 ;Узбекистан;Ташкент;TheGame-Uz;;hub.thegame.uz
 ;Узбекистан;Ташкент;TPS;;jetfree.no-ip.info
-;Узбекистан;Ташкент;Uzinfocom;;l2maxi.uz
+;Узбекистан;Ташкент;Uzinfocom;;hub.hi.uz,l2maxi.uz,dc.hi.uz
 ;Узбекистан;Ташкент;Uznet;;213.230.121.155
 ;Узбекистан;Ташкент;UzOnline;;angelka.no-ip.info,madman242.no-ip.biz:411,steep-hub.myftp.org,hub.hi.uz
 ;Узбекистан;Ташкент;Галс телеком;;10.0.0.3,10.0.9.98,ttimurporivaev.no-ip.org:1209,10.0.13.57

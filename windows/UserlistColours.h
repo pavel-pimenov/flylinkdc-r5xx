@@ -37,7 +37,10 @@ class UserListColours : public CPropertyPage<IDD_USERLIST_COLOURS_PAGE>, public 
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 		CRichEditCtrl n_Preview;
 	private:
 		void BrowseForPic(int DLGITEM);

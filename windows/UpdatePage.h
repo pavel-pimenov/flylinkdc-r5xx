@@ -63,7 +63,10 @@ class UpdatePage : public CPropertyPage<IDD_UPDATE_PAGE>, public PropPage
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 		void EnableAutoUpdate(BOOL isEnabled);
 		
 		void CheckUseCustomURL();

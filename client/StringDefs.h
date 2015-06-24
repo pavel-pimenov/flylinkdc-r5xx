@@ -1593,6 +1593,7 @@ enum Strings   // @DontAdd
 	SPEED_SUPER_USER, // "Can bypass limiter"
 	SUPPORTS, // "Supports"
 	SUPPORTS_SERVER_DESC, // "FlylinkDC++ Support/help hub"
+	SUPPRESS_FAV_CHAT_AND_PM, // "Suppress chat and private messages"
 	SUSPEND, // "Suspend"
 	SXML_EMPTY_TAG_NAME, // "Empty tag names not allowed"
 	SXML_INVALID_FILE, // "Invalid XML file, missing or multiple root tags"

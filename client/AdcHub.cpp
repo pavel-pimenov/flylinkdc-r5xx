@@ -530,6 +530,9 @@ void AdcHub::handle(AdcCommand::SID, const AdcCommand& c) noexcept
 
 void AdcHub::handle(AdcCommand::MSG, const AdcCommand& c) noexcept
 {
+	if (isSupressChatAndPM())
+		return;
+		
 	if (c.getParameters().empty())
 		return;
 		

@@ -48,7 +48,8 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 	m_message_count(0),
 	m_is_hide_share(0),
 	m_is_override_name(false),
-	m_is_fly_support_hub(false)
+	m_is_fly_support_hub(false),
+	m_is_suppress_chat_and_pm(false)
 {
 	dcassert(p_HubURL == Text::toLower(p_HubURL));
 	const auto l_my_user = new User(ClientManager::getMyCID());

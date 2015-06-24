@@ -68,7 +68,10 @@ class Sounds : public CPropertyPage<IDD_SOUNDS_PAGE>, public PropPage
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 	private:
 		void fixControls();
 		

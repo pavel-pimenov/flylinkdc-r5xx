@@ -415,6 +415,9 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		static bool g_SupportsHubExist;
 		static std::unordered_set<std::string> g_AllHubUrls;
 		bool replaceDeadHub();
+	public:
+		static std::string g_DefaultHubUrl;
+		
 };
 
 #endif // !defined(FAVORITE_MANAGER_H)

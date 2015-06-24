@@ -79,7 +79,10 @@ class AVIPreview : public CPropertyPage<IDD_AVIPREVIEW_PAGE>, public PropPage
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write() {}
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 		void checkMenu();
 	protected:
 		ExListViewCtrl ctrlCommands;

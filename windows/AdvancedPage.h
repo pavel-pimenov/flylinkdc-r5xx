@@ -61,7 +61,10 @@ class AdvancedPage : public CPropertyPage<IDD_ADVANCED_PAGE>, public PropPage
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 	protected:
 	
 		static Item items[];

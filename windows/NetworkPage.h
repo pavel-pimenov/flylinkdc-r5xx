@@ -88,7 +88,10 @@ class NetworkPage : public CPropertyPage<IDD_NETWORK_PAGE>, public PropPage
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 		void updateTestPortIcon(bool p_is_wait);
 	private:
 		int m_count_test_port_tick;

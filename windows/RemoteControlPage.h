@@ -29,7 +29,10 @@ class RemoteControlPage : public CPropertyPage<IDD_REMOTE_CONTROL_PAGE>, public 
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 	protected:
 		static Item items[];
 		static TextItem texts[];

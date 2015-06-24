@@ -205,11 +205,12 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		                            int  p_windowsizey = 0,
 		                            int  p_windowtype = 0,
 		                            int  p_ChatUserSplit = 0,
-		                            bool p_UserListState = true
-		                                                   // bool p_ChatUserSplitState = true,
-		                                                   // const string& p_ColumsOrder = Util::emptyString,
-		                                                   // const string& p_ColumsWidth = Util::emptyString,
-		                                                   // const string& p_ColumsVisible = Util::emptyString
+		                            bool p_UserListState = true,
+		                            bool p_SuppressChatAndPM = false
+		                                                       // bool p_ChatUserSplitState = true,
+		                                                       // const string& p_ColumsOrder = Util::emptyString,
+		                                                       // const string& p_ColumsWidth = Util::emptyString,
+		                                                       // const string& p_ColumsVisible = Util::emptyString
 		                           );
 		static void resortUsers();
 		static void closeDisconnected();
@@ -296,7 +297,8 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		         const string& aRawFour,
 		         const string& aRawFive,
 		         int  p_ChatUserSplit,
-		         bool p_UserListState
+		         bool p_UserListState,
+		         bool p_SuppressChatAndPM
 		         //bool p_ChatUserSplitState
 		        );
 		~HubFrame();
@@ -333,10 +335,15 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		
 		bool m_showUsers;
 		bool m_showUsersStore;
+		
 		void setShowUsers(bool m_value)
 		{
 			m_showUsers = m_value;
 			m_showUsersStore = m_value;
+		}
+		bool isSupressChatAndPM() const
+		{
+			return m_client && m_client->isSupressChatAndPM();
 		}
 		void firstLoadAllUsers();
 		void usermap2ListrView();

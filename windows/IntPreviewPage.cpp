@@ -68,8 +68,7 @@ LRESULT IntPreviewPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 
 void IntPreviewPage::write()
 {
-	PropPage::write((HWND)*this, items);
-	
+	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_INT_PREVIEW_LIST));
 }
 
 LRESULT IntPreviewPage::OnBrowseClick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)

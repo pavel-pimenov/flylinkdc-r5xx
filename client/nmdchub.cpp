@@ -941,11 +941,13 @@ void NmdcHub::chatMessageParse(const string& aLine)
 			fire(ClientListener::UserUpdated(), chatMessage->m_from);
 		}
 	}
-	chatMessage->translate_me();
-	if (!allowChatMessagefromUser(*chatMessage, nick)) // [+] IRainman fix.
-		return;
-		
-	fire(ClientListener::Message(), this, chatMessage);
+	if (!isSupressChatAndPM())
+	{
+		chatMessage->translate_me();
+		if (!allowChatMessagefromUser(*chatMessage, nick)) // [+] IRainman fix.
+			return;
+		fire(ClientListener::Message(), this, chatMessage);
+	}
 	return;
 	
 }
@@ -1325,6 +1327,8 @@ void NmdcHub::opListParse(const string& param)
 //==========================================================================================
 void NmdcHub::toParse(const string& param)
 {
+	if (isSupressChatAndPM())
+		return;
 	string::size_type i = param.find("From: "); // [!] IRainman fix: with space after!
 	if (i == string::npos)
 		return;
@@ -1337,10 +1341,11 @@ void NmdcHub::toParse(const string& param)
 	const string rtNick = param.substr(i, j - 1 - i);
 	if (rtNick.empty())
 		return;
+		
 	const auto l_user_for_message = findUser(rtNick);
 	if (l_user_for_message == nullptr)
 	{
-		LogManager::flood_message("NmdcHub::onLine $To: invalid user - RoLex flood?: rtNick = " + rtNick + " param = " + param);
+		LogManager::flood_message("NmdcHub::onLine $To: invalid user: rtNick = " + rtNick + " param = " + param);
 		return;
 	}
 	i = j + 1;
@@ -1992,6 +1997,8 @@ void NmdcHub::privateMessage(const string& nick, const string& message, bool thi
 
 void NmdcHub::privateMessage(const OnlineUserPtr& aUser, const string& aMessage, bool thirdPerson)   // !SMT!-S
 {
+	if (isSupressChatAndPM())
+		return;
 	checkstate();
 	
 	privateMessage(aUser->getIdentity().getNick(), aMessage, thirdPerson);

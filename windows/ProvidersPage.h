@@ -56,7 +56,10 @@ class ProvidersPage : public CPropertyPage<IDD_PROVIDERS_PAGE>, public PropPage
 			return 0;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 		// Common PropPage interface
 		PROPSHEETPAGE *getPSP()
 		{

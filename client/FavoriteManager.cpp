@@ -33,6 +33,7 @@ bool FavoriteManager::g_SupportsHubExist = false;
 bool FavoriteManager::g_isNotEmpty = false;
 bool FavoriteManager::g_recent_dirty = false;
 std::unordered_set<std::string> FavoriteManager::g_AllHubUrls;
+std::string FavoriteManager::g_DefaultHubUrl;
 FavoriteManager::FavoriteMap FavoriteManager::g_fav_users_map;
 StringSet FavoriteManager::g_fav_users;
 UserCommand::List FavoriteManager::g_userCommands;
@@ -756,6 +757,7 @@ void FavoriteManager::save()
 				xml.addChildAttrib("ShowJoins", (*i)->getShowJoins()); // Show joins
 				xml.addChildAttrib("ExclChecks", (*i)->getExclChecks()); // Excl. from client checking
 				xml.addChildAttrib("ExclusiveHub", (*i)->getExclusiveHub()); // Exclusive Hub
+				xml.addChildAttrib("SuppressChatAndPM", (*i)->getSuppressChatAndPM());
 				xml.addChildAttrib("UserListState", (*i)->getUserListState());
 				xml.addChildAttrib("HeaderOrder", (*i)->getHeaderOrder());
 				xml.addChildAttrib("HeaderWidths", (*i)->getHeaderWidths());
@@ -1144,13 +1146,25 @@ void FavoriteManager::load(SimpleXML& aXml
 				const bool l_ISPDelete  = aXml.getBoolChildAttrib("ISPDelete");
 				const string& l_ISPMode = aXml.getChildAttrib("ISPMode");
 				if (!l_ISPMode.empty())
+				{
 					e->setMode(Util::toInt(aXml.getChildAttrib(l_ISPMode)));
+				}
+				const bool l_ISPDefault = aXml.getBoolChildAttrib("ISPDefault");
+				if (l_ISPDefault)
+				{
+					g_DefaultHubUrl = l_CurrentServerUrl;
+				}
 #endif
 				const string& l_Description = aXml.getChildAttrib("Description");
 				const string& l_Group = aXml.getChildAttrib("Group");
 				e->setDescription(l_Description);
 				e->setServer(l_CurrentServerUrl);
-				e->setSearchInterval(Util::toUInt32(aXml.getChildAttrib("SearchInterval")));
+				const unsigned l_SearchInterval = Util::toUInt32(aXml.getChildAttrib("SearchInterval"));
+				e->setSearchInterval(l_SearchInterval);
+				const bool l_UserListState = aXml.getBoolChildAttrib("UserListState");
+				e->setUserListState(l_UserListState);
+				const bool l_SuppressChatAndPM = aXml.getBoolChildAttrib("SuppressChatAndPM");
+				e->setSuppressChatAndPM(l_SuppressChatAndPM);
 				// [!] IRainman fix.
 				if (Util::isAdcHub(l_CurrentServerUrl))
 				{
@@ -1185,7 +1199,6 @@ void FavoriteManager::load(SimpleXML& aXml
 					e->setShowJoins(aXml.getBoolChildAttrib("ShowJoins")); // Show joins
 					e->setExclChecks(aXml.getBoolChildAttrib("ExclChecks")); // Excl. from client checking
 					e->setExclusiveHub(aXml.getBoolChildAttrib("ExclusiveHub")); // Exclusive Hub Mod
-					e->setUserListState(aXml.getBoolChildAttrib("UserListState"));
 					e->setHeaderOrder(aXml.getChildAttrib("HeaderOrder", SETTING(HUBFRAME_ORDER)));
 					e->setHeaderWidths(aXml.getChildAttrib("HeaderWidths", SETTING(HUBFRAME_WIDTHS)));
 					e->setHeaderVisible(aXml.getChildAttrib("HeaderVisible", SETTING(HUBFRAME_VISIBLE)));
@@ -1262,6 +1275,9 @@ void FavoriteManager::load(SimpleXML& aXml
 					{
 						l_HubEntry->setName(l_Name);
 						l_HubEntry->setDescription(l_Description);
+						l_HubEntry->setSearchInterval(l_SearchInterval);
+						l_HubEntry->setUserListState(l_UserListState);
+						l_HubEntry->setSuppressChatAndPM(l_SuppressChatAndPM);
 						l_HubEntry->setGroup("ISP");
 					}
 					if (l_ISPDelete)

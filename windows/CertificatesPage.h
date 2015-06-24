@@ -61,7 +61,10 @@ class CertificatesPage : public CPropertyPage<IDD_CERTIFICATES_PAGE>, public Pro
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 	protected:
 	
 		static Item items[];

@@ -60,7 +60,10 @@ class ToolbarPage : public CPropertyPage<IDD_TOOLBAR_PAGE>, public PropPage
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 	protected:
 		ExListViewCtrl m_ctrlCommands;
 		ExListViewCtrl m_ctrlToolbar;

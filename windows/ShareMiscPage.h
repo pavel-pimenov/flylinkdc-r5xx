@@ -39,7 +39,10 @@ class ShareMiscPage : public CPropertyPage<IDD_SHARE_MISC_PAGE>, public PropPage
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 	private:
 		void fixControls(); // [+]NightOrion
 		void fixGPUTTHControls();

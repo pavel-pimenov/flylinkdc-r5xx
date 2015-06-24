@@ -989,12 +989,12 @@ void MainFrame::onMinute(uint64_t aTick)
 	const auto interval = SETTING(IPUPDATE_INTERVAL);
 	if (BOOLSETTING(IPUPDATE) && interval != 0)
 	{
-			m_elapsedMinutesFromlastIPUpdate++;
-			if (m_elapsedMinutesFromlastIPUpdate >= interval)
-			{
-				m_elapsedMinutesFromlastIPUpdate = 0;
-				getIPupdate();
-			}
+		m_elapsedMinutesFromlastIPUpdate++;
+		if (m_elapsedMinutesFromlastIPUpdate >= interval)
+		{
+			m_elapsedMinutesFromlastIPUpdate = 0;
+			getIPupdate();
+		}
 	}
 #endif
 }
@@ -2349,7 +2349,9 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 					                           entry->getWindowSizeY(),
 					                           entry->getWindowType(),
 					                           entry->getChatUserSplit(),
-					                           entry->getUserListState());
+					                           entry->getUserListState(),
+					                           entry->getSuppressChatAndPM()
+					                          );
 				}
 				else
 					missedAutoConnect = true;
@@ -2364,6 +2366,11 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 	if (frm)
 	{
 		frm->createMessagePanel();
+	}
+	if (!FavoriteManager::g_DefaultHubUrl.empty())
+	{
+		HubFrame::openWindow(false, FavoriteManager::g_DefaultHubUrl);
+		LogManager::message("Default hub:" + FavoriteManager::g_DefaultHubUrl);
 	}
 	PopupManager::newInstance();
 	//[!]PPA TODO  добавит галку для автостарта портала

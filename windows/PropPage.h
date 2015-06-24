@@ -36,6 +36,9 @@ class PropPage
 {
 	public:
 		PropPage(SettingsManager *src, const wstring& p_title) : settings(src), m_title(p_title)
+#ifdef _DEBUG
+			, m_check_read_write(0)
+#endif
 #ifdef SCALOLAZ_PROPPAGE_COLOR
 			, m_hDialogBrush(0)
 #endif
@@ -47,6 +50,7 @@ class PropPage
 			if (m_hDialogBrush)
 				DeleteObject(m_hDialogBrush);
 #endif
+			dcassert(m_check_read_write == 0);
 		}
 		
 		virtual PROPSHEETPAGE *getPSP() = 0;
@@ -133,7 +137,18 @@ class PropPage
 		void read(HWND page, Item const* items, ListItem* listItems = NULL, HWND list = NULL);
 		void write(HWND page, Item const* items, ListItem* listItems = NULL, HWND list = NULL);
 		void cancel(HWND page);
+		void cancel_check()
+		{
+#ifdef _DEBUG
+			dcassert(m_check_read_write > 0);
+			m_check_read_write = 0;
+#endif
+		}
 		void translate(HWND page, TextItem* textItems);
+#ifdef _DEBUG
+	protected:
+		int m_check_read_write;
+#endif
 };
 
 class EmptyPage : public CPropertyPage<IDD_EMPTY_PAGE>, public PropPage // [+] IRainman HE
@@ -166,7 +181,10 @@ class EmptyPage : public CPropertyPage<IDD_EMPTY_PAGE>, public PropPage // [+] I
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write() {}
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 	protected:
 		static TextItem texts[];
 };

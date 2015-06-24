@@ -707,7 +707,7 @@ void PrivateFrame::createMessagePanel()
 	dcassert(!ClientManager::isShutdown());
 	if (m_ctrlStatus == nullptr && g_isStartupProcess == false)
 	{
-		BaseChatFrame::createMessageCtrl(this, PM_MESSAGE_MAP);
+		BaseChatFrame::createMessageCtrl(this, PM_MESSAGE_MAP, false); // TODO - проверить hub
 		if (!m_ctrlChatContainer.IsWindow())
 			m_ctrlChatContainer.SubclassWindow(ctrlClient.m_hWnd);
 		CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);

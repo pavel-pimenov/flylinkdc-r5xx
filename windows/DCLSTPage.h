@@ -56,7 +56,10 @@ class DCLSTPage : public CPropertyPage<IDD_DCLS_PAGE>, public PropPage
 		}
 		
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 		void EnableDCLST(BOOL isEnabled);
 		void CheckDCLSTPath(BOOL isEnabled);
 		

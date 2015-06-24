@@ -66,7 +66,10 @@ class RSSPage : public CPropertyPage<IDD_RSS_PAGE>, public PropPage
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 		typedef boost::unordered_map<wstring, string> CodeingMap;
 		typedef pair<wstring, string> CodeingMapPair;
 		

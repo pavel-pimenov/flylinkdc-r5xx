@@ -64,21 +64,29 @@ void BaseChatFrame::createChatCtrl()
 		{
 			ctrlClient.LimitText(0);
 			ctrlClient.SetFont(Fonts::g_font);
-			
 			ctrlClient.SetAutoURLDetect(false);
 			ctrlClient.SetEventMask(ctrlClient.GetEventMask() | ENM_LINK);
 			ctrlClient.SetBackgroundColor(Colors::g_bgColor);
-			readFrameLog();
+			if (m_is_suppress_chat_and_pm)
+			{
+				//   ctrlClient.ShowWindow(SW_HIDE);
+			}
+			else
+			{
+				readFrameLog();
+			}
 		}
 	}
 }
-void BaseChatFrame::createMessageCtrl(ATL::CMessageMap *p_map, DWORD p_MsgMapID)
+void BaseChatFrame::createMessageCtrl(ATL::CMessageMap *p_map, DWORD p_MsgMapID, bool p_is_suppress_chat_and_pm)
 {
+	m_is_suppress_chat_and_pm = p_is_suppress_chat_and_pm;
 	dcassert(m_ctrlMessage == nullptr);
 	createChatCtrl();
 	m_ctrlMessage = new CEdit;
 	m_ctrlMessage->Create(m_MessagePanelHWnd, m_MessagePanelRECT, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-	                      WS_VSCROLL | (BOOLSETTING(MULTILINE_CHAT_INPUT) ? 0 : ES_AUTOHSCROLL) | ES_MULTILINE | ES_AUTOVSCROLL, WS_EX_CLIENTEDGE); // !Decker!
+	                      WS_VSCROLL | (BOOLSETTING(MULTILINE_CHAT_INPUT) ? 0 : ES_AUTOHSCROLL) | ES_MULTILINE | ES_AUTOVSCROLL ,
+	                      WS_EX_CLIENTEDGE); // !Decker!
 	if (!m_LastMessage.empty())
 	{
 		m_ctrlMessage->SetWindowText(m_LastMessage.c_str());
@@ -88,6 +96,12 @@ void BaseChatFrame::createMessageCtrl(ATL::CMessageMap *p_map, DWORD p_MsgMapID)
 	m_ctrlMessage->SetLimitText(9999);
 	m_ctrlMessageContainer = new CContainedWindow(WC_EDIT, p_map, p_MsgMapID);
 	m_ctrlMessageContainer->SubclassWindow(m_ctrlMessage->m_hWnd);
+	
+	if (p_is_suppress_chat_and_pm)
+	{
+		m_ctrlMessage->SetReadOnly();
+		m_ctrlMessage->EnableWindow(FALSE);
+	}
 }
 void BaseChatFrame::destroyMessageCtrl(bool p_is_shutdown)
 {
@@ -175,7 +189,11 @@ LRESULT BaseChatFrame::onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 {
 	const HWND hWnd = (HWND)lParam;
 	const HDC hDC = (HDC)wParam;
-	if (hWnd == ctrlClient.m_hWnd || (m_ctrlMessage && hWnd == m_ctrlMessage->m_hWnd)) // TODO: please verify this!
+	if (hWnd == ctrlClient.m_hWnd)
+	{
+		return Colors::setColor(hDC);
+	}
+	else if (m_is_suppress_chat_and_pm == false && m_ctrlMessage && hWnd == m_ctrlMessage->m_hWnd)
 	{
 		return Colors::setColor(hDC);
 	}

@@ -68,7 +68,7 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 	private:
 		void createChatCtrl();
 	protected:
-		void createMessageCtrl(ATL::CMessageMap *p_map, DWORD p_MsgMapID);
+		void createMessageCtrl(ATL::CMessageMap *p_map, DWORD p_MsgMapID, bool p_is_suppress_chat_and_pm);
 		void destroyMessageCtrl(bool p_is_shutdown);
 		
 		BaseChatFrame() :
@@ -83,7 +83,8 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 			m_ctrlStatus(nullptr),
 			m_ctrlMessage(nullptr),
 			m_ctrlMessageContainer(nullptr),
-			m_LastSelPos(0)
+			m_LastSelPos(0),
+			m_is_suppress_chat_and_pm(false)
 		{
 		}
 		virtual ~BaseChatFrame() {}
@@ -169,6 +170,8 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		HWND          m_MessagePanelHWnd;
 		CFlyToolTipCtrl* m_ctrlLastLinesToolTip; // TODO - создаются выше в наследника - не красиво. (не доступен метод CreateSimpleStatusBar)
 		CStatusBarCtrl*  m_ctrlStatus; // TODO - создаются выше в наследника - не красиво (не доступен метод CreateSimpleStatusBar)
+		bool m_is_suppress_chat_and_pm;
+		
 		void createStatusCtrl(HWND p_hWndStatusBar);
 		void destroyStatusCtrl();
 		std::vector<std::pair<tstring, bool> > m_ctrlStatusCache; // Пока не создан GUI - текст сохраняем тут

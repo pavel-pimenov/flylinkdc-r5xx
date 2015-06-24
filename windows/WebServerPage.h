@@ -29,7 +29,10 @@ class WebServerPage : public CPropertyPage<IDD_WEBSERVER_PAGE>, public PropPage
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 	private:
 		CComboBox BindCombo;
 		

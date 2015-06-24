@@ -1109,9 +1109,6 @@ class Util
 		static uint64_t getDirSize(const string &sFullPath);
 		static bool validatePath(const string &sPath);
 		static string getFilenameForRenaming(const string& p_filename); // [+] SSA
-		/* [-] IRainman: please use File::isExist
-		static bool fileExists(const tstring &aFile);
-		*/
 		
 		template<typename T>
 		static void shrink_to_fit(T* start, const T* stop) // [+] IRainman opt.

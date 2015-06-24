@@ -47,7 +47,10 @@ class MessagesChatPage : public CPropertyPage<IDD_MESSAGES_CHAT_PAGE>, public Pr
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 	private:
 		CFlyToolTipCtrl tooltip_messageschat;  // [+] SCALOlaz: add tooltips
 		CButton ctrlSee;

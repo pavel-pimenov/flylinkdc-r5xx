@@ -992,6 +992,7 @@
 #define IDC_UPDATE                      1803
 #define IDC_EXCLUSIVE_HUB               1804
 #define IDC_STATUS_HASH_PROGRESS        1805
+#define IDC_SUPPRESS_FAV_CHAT_AND_PM    1805
 #define IDC_CHANGE_HASH_SPEED           1806
 #define IDC_CURRENT_HASH_SPEED          1807
 #define IDC_TABS_OPTIONS                1808

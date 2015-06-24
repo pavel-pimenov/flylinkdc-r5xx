@@ -2389,18 +2389,6 @@ bool WinUtil::parseDchubUrl(const tstring& aUrl)// [!] IRainman fix: stop copy-p
 	}
 	return false;
 }
-/* [-] IRainman stop copy-past!
-void WinUtil::parseADChubUrl(const tstring& aUrl, bool secure)
-{
-    string server, file;
-    uint16_t port = 0; //make sure we get a port since adc doesn't have a standard one
-    Util::decodeUrl(Text::fromT(aUrl), server, port, file);
-    if (!server.empty() && port > 0)
-    {
-        HubFrame::openWindow((secure ? _T("adcs://") : _T("adc://")) + Text::toT(server) + _T(":") + Util::toStringW(port));
-    }
-}
-*/
 bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* = MA_DEFAULT */
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
                              , bool viewMediaIfPossible /* = false */

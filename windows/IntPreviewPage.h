@@ -58,7 +58,10 @@ class IntPreviewPage: public CPropertyPage<IDD_INT_PREVIEW_PAGE>, public PropPag
 		}
 		
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 	protected:
 	
 		ExListViewCtrl ctrlPrevlist; // [+] IRainman

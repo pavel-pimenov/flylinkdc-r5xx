@@ -172,7 +172,7 @@ class FavoriteHubEntry
 		        hideShare(false),
 		        exclusiveHub(false), showJoins(false), exclChecks(false), mode(0),
 		        searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)), overrideId(0),
-		        headerSort(-1), headerSortAsc(true)
+		        headerSort(-1), headerSortAsc(true), suppressChatAndPM(false)
 		{
 		} // !SMT!-S
 		virtual ~FavoriteHubEntry() noexcept { }
@@ -214,6 +214,7 @@ class FavoriteHubEntry
 		GETSET(bool, showJoins, ShowJoins); // Show joins
 		GETSET(bool, exclChecks, ExclChecks); // Excl. from client checking
 		GETSET(bool, exclusiveHub, ExclusiveHub); // Exclusive Hub Mod
+		GETSET(bool, suppressChatAndPM, SuppressChatAndPM);
 		GETSET(string, rawOne, RawOne);
 		GETSET(string, rawTwo, RawTwo);
 		GETSET(string, rawThree, RawThree);

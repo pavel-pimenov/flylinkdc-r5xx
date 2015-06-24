@@ -64,7 +64,10 @@ class IntegrationPage : public CPropertyPage<IDD_INTEGRATION_PAGE>, public PropP
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write(); // {}
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 	protected:
 #ifdef SSA_SHELL_INTEGRATION
 		void CheckShellIntegration();

@@ -476,7 +476,7 @@ void File_Ffv1::FrameHeader()
     //Parsing
     states States;
     memset(States, 128, states_size);
-    int32u micro_version=0, coder_type, colorspace_type, bits_per_raw_sample=8, chroma_h_shift, chroma_v_shift, num_h_slices_minus1=0, num_v_slices_minus1=0, ec, intra;
+    int32u micro_version=0, coder_type, colorspace_type, bits_per_raw_sample=8, chroma_h_shift, chroma_v_shift, num_h_slices_minus1=0, num_v_slices_minus1=0, ec=0, intra=0;
     bool chroma_planes, alpha_plane;
     Get_RU (States, version,                                    "version");
     if (( ConfigurationRecordIsPresent && version<=1)

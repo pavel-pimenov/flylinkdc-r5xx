@@ -58,7 +58,10 @@ class QueuePage : public CPropertyPage<IDD_QUEUE_PAGE>, public PropPage
 			return (PROPSHEETPAGE *) * this;
 		}
 		void write();
-		void cancel() {}
+		void cancel()
+		{
+			cancel_check();
+		}
 		
 	private:
 		static Item items[];
