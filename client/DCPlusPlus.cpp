@@ -115,6 +115,7 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 #ifdef FLYLINKDC_USE_GEO_IP
 	LOAD_STEP("Geo IP", Util::loadGeoIp());
 #endif
+	LOAD_STEP("P2P Guard", Util::loadP2PGuard());
 	
 	LOAD_STEP("Custom Locations", Util::loadCustomlocations());
 	

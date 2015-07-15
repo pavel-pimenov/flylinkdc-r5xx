@@ -15,6 +15,7 @@ PropPage::TextItem RangesPage::texts[] =
 	{ IDC_DEFAULT_POLICY_STR, ResourceManager::IPGUARD_DEFAULT_POLICY },
 	{ IDC_DEFAULT_POLICY_EXCEPT_STR, ResourceManager::EXCEPT_SPECIFIED },
 	{ IDC_ENABLE_IPGUARD, ResourceManager::IPGUARD_ENABLE },
+	{ IDC_ENABLE_P2P_GUARD, ResourceManager::P2P_GUARD_ENABLE },
 	{ IDC_INTRO_IPGUARD, ResourceManager::IPGUARD_INTRO },
 	{ IDC_FLYLINK_TRUST_IP_BOX, ResourceManager::SETTINGS_IPBLOCK },
 	{ IDC_FLYLINK_TRUST_IP_URL_STR, ResourceManager::SETTINGS_IPBLOCK_DOWNLOAD_URL_STR }, //[+]PPA
@@ -24,7 +25,8 @@ PropPage::TextItem RangesPage::texts[] =
 PropPage::Item RangesPage::items[] =
 {
 	{ IDC_ENABLE_IPGUARD, SettingsManager::ENABLE_IPGUARD, PropPage::T_BOOL },
-	{ IDC_FLYLINK_TRUST_IP_URL, SettingsManager::URL_IPTRUST, PropPage::T_STR}, //[+]PPA
+	{ IDC_ENABLE_P2P_GUARD, SettingsManager::ENABLE_P2P_GUARD, PropPage::T_BOOL },
+	{ IDC_FLYLINK_TRUST_IP_URL, SettingsManager::URL_IPTRUST, PropPage::T_STR }, //[+]PPA
 	{ 0, 0, PropPage::T_END }
 };
 

@@ -773,5 +773,6 @@ Source: "..\compiled\Settings\common\DCPlusPlus.xml"; DestDir: "{code:fUser}"; F
 Source: "..\compiled\Settings\common\GeoIPCountryWhois.csv";  DestDir: "{code:fUser}"; Flags: overwritereadonly
 Source: "..\compiled\Settings\common\CustomLocations.bmp";    DestDir: "{code:fUser}"; Flags: onlyifdoesntexist
 Source: "..\compiled\Settings\common\CustomLocations.ini";    DestDir: "{code:fUser}"; Flags: onlyifdoesntexist
+Source: "..\compiled\Settings\common\P2PGuard.ini";    DestDir: "{code:fUser}"; Flags: overwritereadonly
 
 #include "inc_finally.hss"

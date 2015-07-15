@@ -3,7 +3,7 @@
 ; customer: help@com-line.su
 
 #define PPA_PORTAL_MERGE
-#define FLYLIKDC_USE_CUSTOM_ICON
+//#define FLYLIKDC_USE_CUSTOM_ICON
 
 #define YANDEX_VID_PREFIX 599
 
@@ -19,7 +19,7 @@ Name: {userappdata}\Microsoft\Internet Explorer\Quick Launch\FlylinkDC++; Filena
 
 
 [Setup]
-OutputBaseFilename=SetupFlylinkDC-vip--test-1
+OutputBaseFilename=SetupFlylinkDC-vip-extreme-build-18714-test-2
 ;WizardImageFile=vip_custom\setup-1.bmp
 ;WizardSmallImageFile=vip_custom\setup-2.bmp
 ;SetupIconFile=vip_custom\setup.ico
@@ -37,7 +37,7 @@ Name: "DCPlusPlus\vip_custom"; Description: "ШАРА Экстрим Интернет"; Flags: excl
 
 #include "FlylinkDC-x86.hss"
 [Files]
-;Source: "vip_custom\setup.ico";           			     DestDir: "{app}"; Flags: overwritereadonly	
+Source: "vip_custom\setup.ico";           			     DestDir: "{app}"; Flags: overwritereadonly	
 ;Source: "vip_custom\license.rtf";                   DestDir: "{app}"; Flags: overwritereadonly	
 Source: "vip_custom\DCPlusPlus.xml";                          DestDir: "{code:fUser}"; Flags: onlyifdoesntexist
 Source: "vip_custom\Favorites.xml";                           DestDir: "{code:fUser}"; Flags: onlyifdoesntexist

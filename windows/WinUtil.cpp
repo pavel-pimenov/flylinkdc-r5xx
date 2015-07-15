@@ -2255,6 +2255,9 @@ void WinUtil::translateLinkToextProgramm(const tstring& url, const tstring& p_Ex
 		x += _T("\\shell\\open\\command");
 	}
 	// [~] IRainman
+#if 0
+	// fix  https://code.google.com/p/flylinkdc/issues/detail?id=928
+	
 	CRegKey key;
 	LocalArray<TCHAR, MAX_PATH> regbuf;
 	ULONG len = MAX_PATH;
@@ -2324,6 +2327,7 @@ void WinUtil::translateLinkToextProgramm(const tstring& url, const tstring& p_Ex
 			}
 		}
 	}
+#endif //
 	
 	::ShellExecute(NULL, NULL, url.c_str(), NULL, NULL, SW_SHOWNORMAL);
 }

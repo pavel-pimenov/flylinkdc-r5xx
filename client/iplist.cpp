@@ -24,11 +24,12 @@
 #include "stdinc.h"
 
 #ifdef PPA_INCLUDE_IPFILTER
-#include <winsock2.h>
+#include "socket.h"
 #include <boost/algorithm/string.hpp>
 #include "iplist.h"
 #include "Util.h"
 #include "ResourceManager.h"
+#include "LogManager.h"
 
 IPList::IPList()
 {
@@ -47,17 +48,10 @@ IPList::~IPList()
 	clear();
 }
 
-uint32_t IPList::parseIP(const std::string& IPNumber) // TODO: use Socket::convertIP4
-{
-	uint32_t res = inet_addr(IPNumber.c_str()); // PVS Studio V519 The 'res' variable is assigned values twice successively.
-	if (res != INADDR_NONE)
-		res = ntohl(res);
-	return res;
-}
 
 uint32_t IPList::add(const std::string& IPNumber)
 {
-	const uint32_t ip = parseIP(IPNumber);
+	const uint32_t ip = Socket::convertIP4(IPNumber);
 	if (ip == INADDR_NONE)
 		return IP_ERROR;
 	add(ip);
@@ -73,8 +67,8 @@ void IPList::add(uint32_t ip)
 
 uint32_t IPList::add(const std::string& IPNumber, const std::string& Mask)
 {
-	const uint32_t ip = parseIP(IPNumber);
-	const uint32_t umask = parseIP(Mask);
+	const uint32_t ip = Socket::convertIP4(IPNumber);
+	const uint32_t umask = Socket::convertIP4(Mask);
 	if (ip == INADDR_NONE)
 		return IP_ERROR;
 	if (umask == INADDR_NONE)
@@ -102,7 +96,7 @@ void IPList::add(uint32_t ip, uint32_t umask)
 
 uint32_t IPList::add(const std::string& IPNumber, uint32_t maskLevel)
 {
-	const uint32_t ip = parseIP(IPNumber);
+	const uint32_t ip = Socket::convertIP4(IPNumber);
 	const uint32_t umask = getMaskByLevel(maskLevel);
 	
 	if (ip == INADDR_NONE)
@@ -130,8 +124,8 @@ uint32_t IPList::getMaskByLevel(uint32_t maskLevel)
 
 uint32_t IPList::addRange(const std::string& fromIP, const std::string& toIP)
 {
-	const uint32_t ufromIP = parseIP(fromIP);
-	const uint32_t utoIP = parseIP(toIP);
+	const uint32_t ufromIP = Socket::convertIP4(fromIP);
+	const uint32_t utoIP = Socket::convertIP4(toIP);
 	
 	if (ufromIP == INADDR_NONE)
 		return START_IP_ERROR;
@@ -303,7 +297,7 @@ void IPList::addData(const std::string& Data, CFlyLog& p_log)
 
 bool IPList::checkIp(const std::string& ipNumber)
 {
-	const UINT32 ip = parseIP(ipNumber); // TODO: use Socket::convertIP4
+	const UINT32 ip = Socket::convertIP4(ipNumber);
 	if (ip != INADDR_NONE)
 		return checkIp(ip);
 		

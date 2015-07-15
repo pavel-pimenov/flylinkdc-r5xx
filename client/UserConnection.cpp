@@ -22,7 +22,9 @@
 #include "Download.h"
 #include "LogManager.h"
 #include "ConnectionManager.h"
-
+#include "QueueManager.h"
+#include "PGLoader.h"
+#include "../FlyFeatures/flyServer.h"
 const string UserConnection::FEATURE_MINISLOTS = "MiniSlots";
 const string UserConnection::FEATURE_XML_BZLIST = "XmlBZList";
 const string UserConnection::FEATURE_ADCGET = "ADCGet";
@@ -69,7 +71,32 @@ UserConnection::~UserConnection()
 		BufferedSocket::putBufferedSocket(socket);
 	}
 }
-
+bool UserConnection::isIPGuard(ResourceManager::Strings p_id_string)
+{
+#ifdef PPA_INCLUDE_IPFILTER
+	auto l_is_ip_guard = PGLoader::getInstance()->check(getRemoteIp());
+	string l_p2p_guard;
+	if (BOOLSETTING(ENABLE_P2P_GUARD))
+	{
+		l_p2p_guard = CFlylinkDBManager::getInstance()->is_p2p_guard(Socket::convertIP4(getRemoteIp()));
+		if (!l_p2p_guard.empty())
+		{
+			l_is_ip_guard = true;
+			l_p2p_guard = " [P2PGuard] " + l_p2p_guard + " (http://emule-security.org)";
+			CFlyServerJSON::pushError(36, "(" + getRemoteIp() + ')' + l_p2p_guard);
+		}
+	}
+	if (l_is_ip_guard)
+	{
+		error(STRING(YOUR_IP_IS_BLOCKED) + l_p2p_guard);
+		getUser()->setFlag(User::PG_BLOCK);
+		LogManager::message("IPFilter: " + ResourceManager::getString(p_id_string) + " (" + getRemoteIp() + ") " + l_p2p_guard);
+		QueueManager::getInstance()->removeSource(getUser(), QueueItem::Source::FLAG_REMOVED);
+		return true;
+	}
+#endif
+	return false;
+}
 void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexcept
 {
 	dcassert(!ClientManager::isShutdown())

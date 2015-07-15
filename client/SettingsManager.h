@@ -313,6 +313,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  NON_HUBS_FRONT, BLEND_OFFLINE_SEARCH,
 		                  MAX_RESIZE_LINES,
 		                  USE_CUSTOM_LIST_BACKGROUND,
+		                  ENABLE_P2P_GUARD,
 		                  ENABLE_IPGUARD, DEFAULT_POLICY,
 #ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
 		                  FLY_TEXT_LOG, FLY_SQLITE_LOG,

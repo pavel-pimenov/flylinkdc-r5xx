@@ -58,8 +58,11 @@ LRESULT TreePropertySheet::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	*/
 	
 #ifdef SCALOLAZ_PROPPAGE_TRANSPARENCY
-	m_SliderPos = 255;
-	setTransp(/*SETTING(PROPPAGE_TRANSP)*/ m_SliderPos);
+	if (BOOLSETTING(SETTINGS_WINDOW_TRANSP))
+	{
+		m_SliderPos = 255;
+		setTransp(/*SETTING(PROPPAGE_TRANSP)*/ m_SliderPos);
+	}
 #endif
 	ResourceLoader::LoadImageList(IDR_SETTINGS_ICONS, tree_icons, 16, 16);
 	hideTab();
@@ -290,11 +293,11 @@ void TreePropertySheet::addTransparency()
 }
 void TreePropertySheet::setTransp(int p_Layered)
 {
-	SetWindowLongPtr(GWL_EXSTYLE, GetWindowLongPtr(GWL_EXSTYLE) | WS_EX_LAYERED /*| WS_EX_TRANSPARENT*/);
 	typedef bool (CALLBACK * LPFUNC)(HWND hwnd, COLORREF crKey, BYTE bAlpha, DWORD dwFlags);
 	LPFUNC _d_SetLayeredWindowAttributes = (LPFUNC)GetProcAddress(LoadLibrary(_T("user32")), "SetLayeredWindowAttributes");
 	if (_d_SetLayeredWindowAttributes)
 	{
+		SetWindowLongPtr(GWL_EXSTYLE, GetWindowLongPtr(GWL_EXSTYLE) | WS_EX_LAYERED /*| WS_EX_TRANSPARENT*/);
 		_d_SetLayeredWindowAttributes(m_hWnd, 0, p_Layered, LWA_ALPHA);
 	}
 }
@@ -303,7 +306,7 @@ LRESULT TreePropertySheet::onTranspChanged(UINT /*uMsg*/, WPARAM wParam, LPARAM 
 	setTransp(m_Slider.GetPos());
 	return 0;
 }
-#endif
+#endif // SCALOLAZ_PROPPAGE_TRANSPARENCY
 void TreePropertySheet::hideTab()
 {
 	CRect rcClient, rcTab, rcPage, rcWindow;

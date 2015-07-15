@@ -20,6 +20,7 @@
 
 #include "PGLoader.h"
 #include "ResourceManager.h"
+#include "LogManager.h"
 #include "File.h"
 #include "../windows/resource.h"
 #include <boost/algorithm/string.hpp>

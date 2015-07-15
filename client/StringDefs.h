@@ -679,6 +679,7 @@ enum Strings   // @DontAdd
 	IPGUARD, // "IPGuard"
 	IPGUARD_DEFAULT_POLICY, // "Default policy"
 	IPGUARD_ENABLE, // "Enable IPGuard"
+	P2P_GUARD_ENABLE, // "Enable P2P PGuard (ipfilter.zip from http://emule-security.org )"
 	IPGUARD_INTRO, // "IPGuard blocks malicious IP ranges only, and it is not by any means a substitute for firewall or other internet security software!\r\n\r\nWarning: IPGuard affects all connections in FlylinkDC++"
 	IP_AUTO_UPDATE, // "IP Update:"
 	IP_BARE, // "IP"

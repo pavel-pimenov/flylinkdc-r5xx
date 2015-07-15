@@ -1074,6 +1074,7 @@
 #define IDC_DEFAULT_POLICY              1887
 #define IDC_INTRO_IPGUARD               1888
 #define IDC_REPLACE_NAME_EXISTS         1889
+#define IDC_ENABLE_P2P_GUARD            1889
 #define IDC_REPLACE_SIZE_EXISTS         1890
 #define IDC_REPLACE_DATE_EXISTS         1891
 #define IDC_REPLACE_DISP_NAME_EXISTS    1892

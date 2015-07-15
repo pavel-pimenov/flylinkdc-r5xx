@@ -1,8 +1,8 @@
-/* $Id: miniupnpc.c,v 1.125 2015/01/22 09:24:19 nanard Exp $ */
+/* $Id: miniupnpc.c,v 1.127 2015/05/22 10:42:46 nanard Exp $ */
 /* Project : miniupnp
  * Web : http://miniupnp.free.fr/
  * Author : Thomas BERNARD
- * copyright (c) 2005-2014 Thomas Bernard
+ * copyright (c) 2005-2015 Thomas Bernard
  * This software is subjet to the conditions detailed in the
  * provided LICENSE file. */
 #define __EXTENSIONS__ 1
@@ -63,9 +63,6 @@
 #include <errno.h>
 #define closesocket close
 #endif /* #else _WIN32 */
-#ifdef MINIUPNPC_SET_SOCKET_TIMEOUT
-#include <sys/time.h>
-#endif
 #if defined(__amigaos__) || defined(__amigaos4__)
 /* Amiga OS specific stuff */
 #define TIMEVAL struct timeval
@@ -76,7 +73,8 @@
 
 
 #if defined(HAS_IP_MREQN) && defined(NEED_STRUCT_IP_MREQN)
-/* Several versions of glibc don't define this structure, define it here and compile with CFLAGS NEED_STRUCT_IP_MREQN */
+/* Several versions of glibc don't define this structure,
+ * define it here and compile with CFLAGS NEED_STRUCT_IP_MREQN */
 struct ip_mreqn
 {
 	struct in_addr	imr_multiaddr;		/* IP multicast address of group */
@@ -346,7 +344,8 @@ upnpDiscoverDevices(const char * const deviceTypes[],
                     int delay, const char * multicastif,
              const char * minissdpdsock, int sameport,
              int ipv6,
-             int * error)
+                    int * error,
+                    int searchalltypes)
 {
 	struct UPNPDev * tmp;
 	struct UPNPDev * devlist = 0;
@@ -382,18 +381,43 @@ upnpDiscoverDevices(const char * const deviceTypes[],
 	/* first try to get infos from minissdpd ! */
 	if(!minissdpdsock)
 		minissdpdsock = "/var/run/minissdpd.sock";
-	for(deviceIndex = 0; !devlist && deviceTypes[deviceIndex]; deviceIndex++) {
-		devlist = getDevicesFromMiniSSDPD(deviceTypes[deviceIndex],
+	for(deviceIndex = 0; deviceTypes[deviceIndex]; deviceIndex++) {
+		struct UPNPDev * minissdpd_devlist;
+		int only_rootdevice = 1;
+		minissdpd_devlist = getDevicesFromMiniSSDPD(deviceTypes[deviceIndex],
 		                                  minissdpdsock);
+		if(minissdpd_devlist) {
+#ifdef DEBUG
+			printf("returned by MiniSSDPD: %s\t%s\n",
+			       minissdpd_devlist->st, minissdpd_devlist->descURL);
+#endif /* DEBUG */
+			if(!strstr(minissdpd_devlist->st, "rootdevice"))
+				only_rootdevice = 0;
+			for(tmp = minissdpd_devlist; tmp->pNext != NULL; tmp = tmp->pNext) {
+#ifdef DEBUG
+				printf("returned by MiniSSDPD: %s\t%s\n",
+				       tmp->pNext->st, tmp->pNext->descURL);
+#endif /* DEBUG */
+				if(!strstr(tmp->st, "rootdevice"))
+					only_rootdevice = 0;
+			}
+			tmp->pNext = devlist;
+			devlist = minissdpd_devlist;
+			if(!searchalltypes && !only_rootdevice)
+				break;
+		}
+	}
+	for(tmp = devlist; tmp != NULL; tmp = tmp->pNext) {
 		/* We return what we have found if it was not only a rootdevice */
-		if(devlist && !strstr(deviceTypes[deviceIndex], "rootdevice")) {
+		if(!strstr(tmp->st, "rootdevice")) {
 			if(error)
 				*error = UPNPDISCOVER_SUCCESS;
 			return devlist;
 		}
 	}
-#endif
-	/* fallback to direct discovery */
+#endif	/* !defined(_WIN32) && !defined(__amigaos__) && !defined(__amigaos4__) */
+
+	/* direct discovery if minissdpd responses are not sufficient */
 #ifdef _WIN32
 	sudp = socket(ipv6 ? PF_INET6 : PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 #else
@@ -479,7 +503,7 @@ upnpDiscoverDevices(const char * const deviceTypes[],
 			pIPAddrTable = NULL;
 		}
 	}
-#endif
+#endif	/* _WIN32 */
 
 #ifdef _WIN32
 	if (setsockopt(sudp, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof (opt)) < 0)
@@ -640,8 +664,10 @@ upnpDiscoverDevices(const char * const deviceTypes[],
 			break;
 		}
 #endif /* #ifdef NO_GETADDRINFO */
-	/* Waiting for SSDP REPLY packet to M-SEARCH */
-		do {
+		/* Waiting for SSDP REPLY packet to M-SEARCH
+		 * if searchalltypes is set, enter the loop only
+		 * when the last deviceType is reached */
+		if(!searchalltypes || !deviceTypes[deviceIndex + 1]) do {
 	n = receivedata(sudp, bufr, sizeof(bufr), delay, &scope_id);
 	if (n < 0) {
 		/* error */
@@ -650,20 +676,14 @@ upnpDiscoverDevices(const char * const deviceTypes[],
 				goto error;
 	} else if (n == 0) {
 		/* no data or Time Out */
-		if (devlist) {
+#ifdef DEBUG
+				printf("NODATA or TIMEOUT\n");
+#endif /* DEBUG */
+				if (devlist && !searchalltypes) {
 					/* found some devices, stop now*/
 			if(error)
 				*error = UPNPDISCOVER_SUCCESS;
 					goto error;
-		}
-		if(ipv6) {
-					/* switch linklocal flag */
-			if(linklocal) {
-				linklocal = 0;
-				--deviceIndex;
-			} else {
-				linklocal = 1;
-			}
 		}
 	} else {
 		const char * descURL=NULL;
@@ -675,7 +695,7 @@ upnpDiscoverDevices(const char * const deviceTypes[],
 #ifdef DEBUG
 			printf("M-SEARCH Reply:\nST: %.*s\nLocation: %.*s\n",
 			       stsize, st, urlsize, descURL);
-#endif
+#endif /* DEBUG */
 			for(tmp=devlist; tmp; tmp = tmp->pNext) {
 				if(memcmp(tmp->descURL, descURL, urlsize) == 0 &&
 				   tmp->descURL[urlsize] == '\0' &&
@@ -706,6 +726,15 @@ upnpDiscoverDevices(const char * const deviceTypes[],
 		}
 	}
 		} while(n > 0);
+		if(ipv6) {
+			/* switch linklocal flag */
+			if(linklocal) {
+				linklocal = 0;
+				--deviceIndex;
+			} else {
+				linklocal = 1;
+			}
+		}
 	}
 error:
 	closesocket(sudp);
@@ -733,7 +762,7 @@ upnpDiscover(int delay, const char * multicastif,
 	};
 	return upnpDiscoverDevices(deviceList,
 	                           delay, multicastif, minissdpdsock, sameport,
-	                           ipv6, error);
+	                           ipv6, error, 0);
 }
 
 /* upnpDiscoverAll() Discover all UPnP devices */
@@ -750,7 +779,7 @@ upnpDiscoverAll(int delay, const char * multicastif,
 	};
 	return upnpDiscoverDevices(deviceList,
 	                           delay, multicastif, minissdpdsock, sameport,
-	                           ipv6, error);
+	                           ipv6, error, 0);
 }
 
 /* upnpDiscoverDevice() Discover a specific device */
@@ -766,7 +795,7 @@ upnpDiscoverDevice(const char * device, int delay, const char * multicastif,
 	};
 	return upnpDiscoverDevices(deviceList,
 	                           delay, multicastif, minissdpdsock, sameport,
-	                           ipv6, error);
+	                           ipv6, error, 0);
 }
 
 /* freeUPNPDevlist() should be used to

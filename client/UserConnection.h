@@ -118,7 +118,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		{
 			return (short)((((size_t)this) >> 2) & 0x7fff);
 		}
-		
+		bool isIPGuard(ResourceManager::Strings p_id_string);
 		// NMDC stuff
 		void myNick(const string& aNick)
 		{

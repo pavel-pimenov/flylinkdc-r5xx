@@ -604,6 +604,10 @@ CFlylinkDBManager::CFlylinkDBManager()
 		}
 		
 		m_flySQLiteDB.executenonquery(
+		    "CREATE TABLE IF NOT EXISTS location_db.fly_p2pguard_ip(start_ip integer not null,stop_ip integer not null,note text);");
+		m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS location_db.i_fly_p2pguard_ip ON fly_p2pguard_ip(start_ip);");
+		
+		m_flySQLiteDB.executenonquery(
 		    "CREATE TABLE IF NOT EXISTS location_db.fly_country_ip(start_ip integer not null,stop_ip integer not null,country text,flag_index integer);");
 		safeAlter("ALTER TABLE location_db.fly_country_ip add column country text");
 		
@@ -1353,7 +1357,7 @@ void CFlylinkDBManager::get_location(uint32_t p_ip, int32_t& p_index)
 		p_index = 0;
 		if (m_location_unknown_ip.find(p_ip) != m_location_unknown_ip.end())
 			return;
-		for (auto i = m_location_cache.begin(); i != m_location_cache.end(); ++i, ++p_index)
+		for (auto i = m_location_cache_array.cbegin(); i != m_location_cache_array.cend(); ++i, ++p_index)
 		{
 			if (p_ip >= i->m_start_ip && p_ip < i->m_stop_ip)
 			{
@@ -1395,8 +1399,8 @@ void CFlylinkDBManager::get_location_sql(uint32_t p_ip, int32_t& p_index)
 				l_first_index = l_location.m_flag_index;
 			{
 				FastLock l(m_cache_location_cs);
-				m_location_cache.push_back(l_location);
-				p_index = m_location_cache.size();
+				m_location_cache_array.push_back(l_location);
+				p_index = m_location_cache_array.size();
 			}
 		}
 		if (p_index == 0)
@@ -1435,7 +1439,7 @@ void CFlylinkDBManager::save_location(const CFlyLocationIPArray& p_geo_ip)
 		l_trans.commit();
 		{
 			FastLock l(m_cache_location_cs);
-			m_location_cache.clear();
+			m_location_cache_array.clear();
 			m_location_unknown_ip.clear();
 		}
 	}
@@ -1570,6 +1574,56 @@ uint8_t CFlylinkDBManager::get_country_sqlite(uint32_t p_ip, CFlyLocationDesc& p
 		errorDB("SQLite - get_country_sqlite: " + e.getError());
 	}
 	return uint8_t(p_location.m_flag_index);
+}
+//========================================================================================================
+string CFlylinkDBManager::is_p2p_guard(const uint32_t& p_ip)
+{
+	try
+	{
+	
+		m_select_p2p_guard.init(m_flySQLiteDB,
+		                        "select note from "
+		                        "(select note,stop_ip from location_db.fly_p2pguard_ip where start_ip <=? order by start_ip desc limit 1) "
+		                        "where stop_ip >=?");
+		m_select_p2p_guard->bind(1, __int64(p_ip));
+		m_select_p2p_guard->bind(2, __int64(p_ip));
+		sqlite3_reader l_q = m_select_p2p_guard->executereader();
+		if (l_q.read())
+		{
+			return l_q.getstring(0);
+		}
+	}
+	catch (const database_error& e)
+	{
+		errorDB("SQLite - is_p2p_guard: " + e.getError());
+	}
+	return "";
+}
+//========================================================================================================
+void CFlylinkDBManager::save_p2p_guard(const CFlyP2PGuardArray& p_p2p_guard_ip)
+{
+	Lock l(m_cs); // TODO
+	try
+	{
+		CFlyBusy l_disable_log(g_DisableSQLtrace);
+		sqlite3_transaction l_trans(m_flySQLiteDB);
+		m_delete_p2p_guard.init(m_flySQLiteDB, "delete from location_db.fly_p2pguard_ip");
+		m_delete_p2p_guard->executenonquery();
+		m_insert_p2p_guard.init(m_flySQLiteDB, "insert into location_db.fly_p2pguard_ip (start_ip,stop_ip,note) values(?,?,?)");
+		for (auto i = p_p2p_guard_ip.begin(); i != p_p2p_guard_ip.end(); ++i)
+		{
+			dcassert(!i->m_note.empty());
+			m_insert_p2p_guard->bind(1, __int64(i->m_start_ip));
+			m_insert_p2p_guard->bind(2, __int64(i->m_stop_ip));
+			m_insert_p2p_guard->bind(3, i->m_note, SQLITE_STATIC);
+			m_insert_p2p_guard->executenonquery();
+		}
+		l_trans.commit();
+	}
+	catch (const database_error& e)
+	{
+		errorDB("SQLite - save_p2p_guard: " + e.getError());
+	}
 }
 //========================================================================================================
 void CFlylinkDBManager::save_geoip(const CFlyLocationIPArray& p_geo_ip)
@@ -3500,7 +3554,7 @@ void CFlylinkDBManager::SweepFiles(__int64 p_path_id, const CFlyDirMap& p_sweep_
 //========================================================================================================
 void CFlylinkDBManager::load_dir(__int64 p_path_id, CFlyDirMap& p_dir_map, bool p_is_no_mediainfo)
 {
-	Lock l(m_cs);
+	// Lock l(m_cs);
 	try
 	{
 		sqlite3_command* l_sql;
@@ -4099,9 +4153,9 @@ CFlylinkDBManager::~CFlylinkDBManager()
 #endif
 	{
 		FastLock l(m_cache_location_cs);
-		dcdebug("CFlylinkDBManager::m_location_cache size = %d\n", m_location_cache.size());
+		dcdebug("CFlylinkDBManager::m_location_cache_array size = %d\n", m_location_cache_array.size());
 	}
-#endif
+#endif // _DEBUG
 }
 //========================================================================================================
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO

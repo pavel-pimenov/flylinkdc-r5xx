@@ -1176,13 +1176,21 @@ namespace GenericWndClass
 
 	inline ATOM Register()
 	{
+#ifndef _WIN32_WCE
 		WNDCLASSEX wc = { sizeof(WNDCLASSEX) };
+#else
+		WNDCLASS wc = { 0 };
+#endif
 		wc.lpfnWndProc = ::DefWindowProc;
 		wc.hInstance = ModuleHelper::GetModuleInstance();
 		wc.hCursor = ::LoadCursor(NULL, IDC_ARROW);
 		wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 		wc.lpszClassName = GetName();
+#ifndef _WIN32_WCE
 		ATOM atom = ::RegisterClassEx(&wc);
+#else
+		ATOM atom = ::RegisterClass(&wc);
+#endif
 		ATLASSERT(atom != 0);
 		return atom;
 	}

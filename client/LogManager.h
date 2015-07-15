@@ -19,7 +19,6 @@
 #ifndef DCPLUSPLUS_DCPP_LOG_MANAGER_H
 #define DCPLUSPLUS_DCPP_LOG_MANAGER_H
 
-//#include "Singleton.h"
 #include "Util.h"
 
 class LogManager

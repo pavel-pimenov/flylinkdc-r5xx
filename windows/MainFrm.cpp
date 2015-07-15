@@ -440,6 +440,8 @@ void MainFrame::createTrayMenu() // [+]Drakon. Enlighting functions.
 	trayMenu.AppendMenu(MF_STRING, ID_FILE_SETTINGS, CTSTRING(MENU_SETTINGS)); // [+]Drakon
 	
 	trayMenu.AppendMenu(MF_SEPARATOR);
+//	trayMenu.AppendMenu(MF_STRING, IDC_CONNECT_TO_FLYSUPPORT_HUB, CTSTRING(MENU_CONNECT_TO_HUB));
+	trayMenu.AppendMenu(MF_STRING, IDC_UPDATE_FLYLINKDC, CTSTRING(UPDATE_CHECK)); // [~]Drakon. Moved from "file."
 	trayMenu.AppendMenu(MF_STRING, IDC_HELP_HOMEPAGE, CTSTRING(MENU_HOMEPAGE));
 	trayMenu.AppendMenu(MF_STRING, ID_APP_ABOUT, CTSTRING(MENU_ABOUT));
 	

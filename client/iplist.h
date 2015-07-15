@@ -27,7 +27,9 @@
 
 #include <vector>
 #include <map>
-#include "LogManager.h"
+#include "CFlyThread.h"
+
+class CFlyLog;
 
 class IPList
 {
@@ -96,7 +98,7 @@ class IPList
 		std::vector< uint32_t > m_usedList;
 		FastCriticalSection m_cs; // [!] IRainman opt: use spin lock here.
 		
-		uint32_t parseIP(const std::string& IPNumber);
+		static uint32_t parseIP(const std::string& IPNumber);
 		uint32_t getMaskByLevel(uint32_t maskLevel);
 		uint32_t add(const std::string& IPNumber);
 		void add(uint32_t ip);

@@ -1084,7 +1084,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 	syslog(LOG_USER | LOG_INFO, "%s %s %s [%s]", l_cid.c_str(), l_pid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
 }
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 35
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 36
 {
 	bool l_is_send = false;
 	bool l_is_error = false;
@@ -1444,7 +1444,7 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 		CInternetHandle hConnect(InternetConnectA(hSession, l_Server.getIp().c_str(),l_Server.getPort(), NULL, NULL, INTERNET_SERVICE_HTTP, dwFlags, NULL));
 		if(hConnect)
 		{
-			CInternetHandle hRequest(HttpOpenRequestA(hConnect, "POST", p_query , NULL, NULL, NULL /*g_accept*/, 0, NULL));
+			CInternetHandle hRequest(HttpOpenRequestA(hConnect, "POST", p_query , NULL, NULL, NULL /*g_accept*/, dwFlags, NULL));
 			if(hRequest)
 			{
 				string l_fly_header;
@@ -2251,5 +2251,6 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 #ifndef _DEBUG
   g_crashRpt.RemoveUserInfoFromReport(l_doctor_dump_key);
 #endif
+  return false;
 }
 //=========================================================================================

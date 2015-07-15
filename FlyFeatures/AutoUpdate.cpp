@@ -497,7 +497,8 @@ void AutoUpdate::startUpdateThisThread()
 									for (size_t i = 0; i < l_files4UpdateInAllUsersSettings.size(); ++i)
 									{
 										const string& l_name = l_files4UpdateInAllUsersSettings[i].m_sName;
-										if (!l_reloadGeoIP && (l_name == "CustomLocations.bmp" || l_name == "CustomLocations.ini" || l_name == "GeoIPCountryWhois.csv"))
+										// TODO - убрать имена зашитые в код!
+										if (!l_reloadGeoIP && (l_name == "CustomLocations.bmp" || l_name == "CustomLocations.ini" || l_name == "GeoIPCountryWhois.csv" || l_name == "P2PGuard.ini.ini"))
 										{
 											l_reloadGeoIP = true;
 										}

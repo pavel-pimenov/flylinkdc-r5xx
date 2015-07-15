@@ -1375,7 +1375,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			int height_plus = 0;
 			int height_plus_ico = 0;
 			int l_tabs_x_space = 0;     // Пикселов между кнопками в ряду
-			const int l_delta_x_space = (aActive && l_tabs_x_space == 0) ? 1 : 0;
+			const int l_delta_x_space = aActive ? 1 : 0;
 			switch (WinUtil::GetTabsPosition())
 			{
 					// pos + 1 : делает смещение левого края вкладки, чтобы визуально отделить следующую отрисованную вкладку от предыдущей - 2 отдельные линии

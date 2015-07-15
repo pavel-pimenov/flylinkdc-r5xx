@@ -339,6 +339,86 @@ int Util::getFlagIndexByCode(uint16_t p_countryCode) // [!] IRainman: countryCod
 	return 0;
 }
 //==========================================================================
+void Util::loadP2PGuard()
+{
+	{
+		CFlyLog l_log("[P2P Guard]");
+		/*
+		What steps will reproduce the problem?
+		Please add support for external IPFilter lists such ipfilter.dat(utorrent format) or guarding.p2p(emule format)
+		For example, it could be found here: http://upd.emule-security.org/ipfilter.zip
+		Homepage: http://emule-security.org
+		*/
+		
+		const string fileName = getConfigPath(
+#ifndef USE_SETTINGS_PATH_TO_UPDATA_DATA
+		                            true
+#endif
+		                        ) + "P2PGuard.ini";
+		                        
+		try
+		{
+			const uint64_t l_timeStampFile  = File::getSafeTimeStamp(fileName);
+			const uint64_t l_timeStampDb = CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_TimeStampP2PGuard);
+			if (l_timeStampFile != l_timeStampDb)
+			{
+				const string l_data = File(fileName, File::READ, File::OPEN).read();
+				l_log.step("read:" + fileName);
+				size_t linestart = 0;
+				size_t lineend = 0;
+				CFlyP2PGuardArray l_sqlite_array;
+				l_sqlite_array.reserve(220000);
+				for (;;)
+				{
+					lineend = l_data.find('\n', linestart);
+					if (lineend == string::npos)
+						break;
+					const string l_currentLine = l_data.substr(linestart, lineend - linestart - 1);
+					uint32_t a = 0, b = 0, c = 0, d = 0, a2 = 0, b2 = 0, c2 = 0, d2 = 0;
+					const int l_Items = sscanf_s(l_currentLine.c_str(), "%u.%u.%u.%u-%u.%u.%u.%u", &a, &b, &c, &d, &a2, &b2, &c2, &d2);
+					if (l_Items == 8)
+					{
+						const uint32_t l_startIP = (a << 24) + (b << 16) + (c << 8) + d;
+						const uint32_t l_endIP = (a2 << 24) + (b2 << 16) + (c2 << 8) + d2;
+						if (l_startIP > l_endIP)
+						{
+							dcassert(0);
+							l_log.step("Error parse : " + STRING(INVALID_RANGE) + " Line: " + l_currentLine);
+						}
+						else
+						{
+							const auto l_pos = l_currentLine.find(' ');
+							if (l_pos != string::npos)
+							{
+								const string l_note =  l_currentLine.substr(l_pos + 1);
+								dcassert(!l_note.empty())
+								l_sqlite_array.push_back(CFlyP2PGuardIP(l_note, l_startIP, l_endIP));
+							}
+						}
+					}
+					else
+					{
+						dcassert(0);
+						l_log.step("Error parse: " + l_currentLine);
+					}
+					linestart = lineend + 1;
+				}
+				linestart = lineend + 1;
+				{
+					CFlyLog l_geo_log_sqlite("[P2P Guard-sqlite]");
+					CFlylinkDBManager::getInstance()->save_p2p_guard(l_sqlite_array);
+				}
+				CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_TimeStampP2PGuard, l_timeStampFile);
+			}
+		}
+		catch (const FileException&)
+		{
+			LogManager::message("Error open " + fileName);
+		}
+	}
+}
+
+//==========================================================================
 #ifdef FLYLINKDC_USE_GEO_IP
 void Util::loadGeoIp()
 {
@@ -927,7 +1007,7 @@ bool Util::isValidSearch(const string& p_search)
 			const auto l_is_ddos = p_search.substr(8, l_marker_file);
 			unsigned short l_count_slash = 0;
 			unsigned short l_count_colon = 0;
-			for (auto i = 0; i < l_is_ddos.size(); ++i)
+			for (unsigned i = 0; i < l_is_ddos.size(); ++i)
 			{
 				if (l_is_ddos[i] == '/')
 					l_count_slash++;

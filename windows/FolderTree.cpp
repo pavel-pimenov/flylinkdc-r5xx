@@ -54,7 +54,7 @@ SystemImageList::SystemImageList()
 	TCHAR pszDrive[_MAX_DRIVE + 1];
 	_tsplitpath(pszTempDir, pszDrive, NULL, NULL, NULL);
 	const int nLen = _tcslen(pszDrive);
-	if (nLen)
+	if (nLen >= 1)
 	{
 		if (pszDrive[nLen - 1] != _T('\\'))
 			_tcscat(pszDrive, _T("\\"));
@@ -1453,7 +1453,7 @@ LRESULT FolderTree::OnChecked(HTREEITEM hItem, BOOL &bHandled)
 			                          
 			if (virt.DoModal() == IDOK)
 			{
-				CWaitCursor l_cursor_wait;
+				CWaitCursor l_cursor_wait; //-V808
 				ShareManager::getInstance()->addDirectory(Text::fromT(path), Text::fromT(virt.line), true); // TODO hotpoint, mb add queue for this call and run it after OK is pressed?
 			}
 			else

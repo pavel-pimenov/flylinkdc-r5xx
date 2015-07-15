@@ -673,7 +673,6 @@ HubFrame* HubFrame::openWindow(bool p_is_auto_connect,
 		                   p_SuppressChatAndPM
 		                   //, p_ChatUserSplitState
 		                  );
-		const int nCmdShow = SW_SHOWDEFAULT; // TODO: find out what it wanted to do
 		CRect rc = frm->rcDefault;
 		rc.left   = p_windowposx;
 		rc.top    = p_windowposy;
@@ -688,7 +687,7 @@ HubFrame* HubFrame::openWindow(bool p_is_auto_connect,
 		frm->CreateEx(WinUtil::g_mdiClient, rc);
 		if (p_windowtype)
 		{
-			frm->ShowWindow((nCmdShow == SW_SHOWDEFAULT || nCmdShow == SW_SHOWNORMAL) ? p_windowtype : nCmdShow);
+			frm->ShowWindow(p_windowtype);
 		}
 		g_frames.insert(make_pair(p_server, frm));
 	}

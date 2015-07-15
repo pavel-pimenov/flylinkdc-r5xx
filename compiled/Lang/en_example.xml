@@ -674,6 +674,7 @@
 	<string name="Ipguard">IPGuard</string>
 	<string name="IpguardDefaultPolicy">Default policy</string>
 	<string name="IpguardEnable">Enable IPGuard</string>
+	<string name="P2pGuardEnable">Enable P2P PGuard (ipfilter.zip from http://emule-security.org )</string>
 	<string name="IpguardIntro">IPGuard blocks malicious IP ranges only, and it is not by any means a substitute for firewall or other internet security software!\r\n\r\nWarning: IPGuard affects all connections in FlylinkDC++</string>
 	<string name="IpAutoUpdate">IP Update:</string>
 	<string name="IpBare">IP</string>

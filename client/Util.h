@@ -390,6 +390,7 @@ class Util
 		static void initialize();
 		static void loadCustomlocations(); //[+]FlylinkDC++
 		static void loadGeoIp(); //[+]FlylinkDC++
+		static void loadP2PGuard(); //[+]FlylinkDC++
 		
 		//[+] IRainman identify URI of DC protocols, magnet, or http links.
 		static bool isNmdc(const tstring& p_HubURL)

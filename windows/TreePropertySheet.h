@@ -52,7 +52,9 @@ class TreePropertySheet : public CPropertySheetImpl<TreePropertySheet>,
 			CPropertySheetImpl<TreePropertySheet>(title, uStartPage, hWndParent)
 			, tabContainer(WC_TABCONTROL, this, TAB_MESSAGE_MAP)
 			, CFlyTimerAdapter(m_hWnd)
+#ifdef SCALOLAZ_PROPPAGE_TRANSPARENCY
 			, m_SliderPos(255)
+#endif
 			, m_offset(0)
 		{
 		

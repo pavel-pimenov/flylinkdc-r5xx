@@ -189,7 +189,9 @@ void Socket::connect(const string& aAddr, uint16_t aPort)
 	serv_addr.sin_addr.s_addr = inet_addr(addr.c_str());
 #ifdef PPA_INCLUDE_IPGUARD
 	if (BOOLSETTING(ENABLE_IPGUARD))
+	{
 		IpGuard::getInstance()->check(serv_addr.sin_addr.s_addr);
+	}
 #endif
 	int result;
 	do
@@ -224,9 +226,11 @@ void Socket::socksConnect(const string& aAddr, uint16_t aPort, uint64_t timeout)
 	}
 #ifdef PPA_INCLUDE_IPGUARD
 	if (BOOLSETTING(ENABLE_IPGUARD))
+	{
 		IpGuard::getInstance()->check(inet_addr(resolve(aAddr).c_str()));
+	}
 #endif
-		
+	
 	uint64_t start = GET_TICK();
 	
 	connect(SETTING(SOCKS_SERVER), static_cast<uint16_t>(SETTING(SOCKS_PORT)));

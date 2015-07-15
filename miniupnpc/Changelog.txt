@@ -1,5 +1,13 @@
-$Id: Changelog.txt,v 1.204 2015/04/30 08:35:47 nanard Exp $
+$Id: Changelog.txt,v 1.206 2015/05/22 10:23:47 nanard Exp $
 miniUPnP client Changelog.
+
+2015/06/16:
+  update getDevicesFromMiniSSDPD() to process longer minissdpd
+    responses
+
+2015/05/22:
+  add searchalltypes param to upnpDiscoverDevices()
+  increments API_VERSION to 13
 
 2015/04/30:
   upnpc: output version on the terminal

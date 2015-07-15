@@ -304,6 +304,7 @@ const string SettingsManager::g_settingTags[] =
 	"EnableRatioUserList", //[+]PPA
 	"NonHubsFront", "BlendOffline", "MaxResizeLines",
 	"UseCustomListBackground",
+	"EnableP2PGuard",
 	"EnableIpGuard", "DefaultPolicy",
 #ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
 	"FlyTextLog", "UseSQLiteLog",

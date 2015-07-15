@@ -188,17 +188,11 @@ void DownloadManager::addConnection(UserConnection* p_conn)
 		p_conn->disconnect();
 		return;
 	}
-#ifdef PPA_INCLUDE_IPFILTER
-	if (PGLoader::getInstance()->check(p_conn->getRemoteIp()))
+	if (p_conn->isIPGuard(ResourceManager::IPFILTER_BLOCK_OUT_CONNECTION))
 	{
-		p_conn->error(STRING(YOUR_IP_IS_BLOCKED));
-		p_conn->getUser()->setFlag(User::PG_BLOCK);
-		LogManager::message("IPFilter: " + STRING(IPFILTER_BLOCK_OUT_CONNECTION) + ' ' + p_conn->getRemoteIp());
-		QueueManager::getInstance()->removeSource(p_conn->getUser(), QueueItem::Source::FLAG_REMOVED);
 		removeConnection(p_conn);
 		return;
 	}
-#endif
 	p_conn->addListener(this);
 	checkDownloads(p_conn);
 }

@@ -294,26 +294,58 @@ void CreateSplash()
 					g_splash_png->LoadFromResource(p_res, _T("PNG"), _Module.get_m_hInst());
 				};
 				
-				auto isDAY = [](int m, int d) -> bool
+				//  auto isDAY = [](int m, int d) -> bool
+				//  {
+				//      return  g_month == m && g_day == d;
+				//  };
+				auto isDAYS = [](int m1, int d1, int m2, int d2) -> bool
 				{
-					return  g_month == m && g_day == d;
-				};
-				auto isDAYS = [](int m, int d1, int d2) -> bool
-				{
-					return g_month == m && g_day >= d1 && g_day <= d2;
+					if (m2 == 0 && d2 == 0)
+						return g_month == m1 && g_day == d1;
+					return g_month >= m1 && g_month <= m2 && g_day >= d1 && g_day <= d2;
 				};
 				
+				typedef struct tagSplashMonths
+				{
+					int m_st;
+					int d_st;
+					int m_en;
+					int d_en;
+					int p_res;
+				} SplashMonths;
+				static const int n_day = 5;
+				SplashMonths g_dates[n_day] =
+				{
+					{12, 1, 12, 30, IDR_SPLASH_WINTER},     // zima
+					{12, 31, 0, 0,  IDR_SPLASH_NY1},        // new year
+					{1, 1, 1, 9,    IDR_SPLASH_NY1},        // new year
+					{1, 10, 2, 29,  IDR_SPLASH_WINTER},     // zima
+					{5, 8, 5, 10,   IDR_SPLASH_9MAY},       // 9 may
+				};
+				bool d_found = false;
+				for (int i = 0; i < n_day; i++)
+				{
+					if (isDAYS(g_dates[i].m_st, g_dates[i].d_st, g_dates[i].m_en, g_dates[i].d_en))
+					{
+						load_splash(g_dates[i].p_res);
+						d_found = true;
+					}
+				}
+				if (!d_found)
+					load_splash(IDR_SPLASH);
+					
+				/*
 				if (isDAYS(5, 8, 10))
-					load_splash(IDR_SPLASH_9MAY);
+				    load_splash(IDR_SPLASH_9MAY);
 				else if (isDAYS(12, 1, 30) ||
 				         isDAYS(1, 10, 31) ||
 				         isDAYS(2, 1, 28))
-					load_splash(IDR_SPLASH_WINTER);
+				    load_splash(IDR_SPLASH_WINTER);
 				else if (isDAY(12, 31) || isDAYS(1, 1, 9))
-					load_splash(IDR_SPLASH_NY1);
+				    load_splash(IDR_SPLASH_NY1);
 				else
-					load_splash(IDR_SPLASH);
-					
+				    load_splash(IDR_SPLASH);
+				*/
 			}
 		}
 		g_splash_size_x = g_splash_png->GetWidth();

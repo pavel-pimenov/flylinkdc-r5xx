@@ -25,6 +25,8 @@
 #include "ResourceManager.h"
 #include "../windows/resource.h"
 #include "../XMLParser/xmlParser.h"
+#include "LogManager.h"
+
 
 #ifdef _DEBUG
 boost::atomic_int g_count(0);
