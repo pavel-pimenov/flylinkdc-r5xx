@@ -109,6 +109,7 @@ class UserInfo : public UserInfoBase
 		}
 		uint8_t getStateImageIndex() const;
 		void calcVirusType();
+		void calcP2PGuard();
 		// [+] IRainman opt.
 		const Util::CustomNetworkIndex& getLocation() const
 		{

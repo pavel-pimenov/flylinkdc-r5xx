@@ -29,8 +29,8 @@ class PGLoader : public Singleton<PGLoader>, private SettingsManagerListener
 		}
 	private:
 		FastCriticalSection m_cs; // [!] IRainman opt: use spin lock here.
-		IPList  m_ipList;
-		IPList  m_ipListBlock;
+		IPList  m_ipTrustListAllow;
+		IPList  m_ipTrustListBlock;
 		// SettingsManagerListener
 		void on(SettingsManagerListener::Load, SimpleXML& /*xml*/) override
 		{

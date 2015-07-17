@@ -515,7 +515,7 @@ string NmdcHub::calcExternalIP() const
 		l_result = getFavIp();
 	l_result += ':' + SearchManager::getSearchPort();
 #ifdef _DEBUG
-	LogManager::message("NmdcHub::calcExternalIP() = " + l_result);
+	// LogManager::message("NmdcHub::calcExternalIP() = " + l_result);
 #endif
 	return l_result;
 }

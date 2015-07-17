@@ -1270,7 +1270,7 @@ bool Util::isPrivateIp(const string& ip)
 	dcassert(!ip.empty());
 	struct in_addr addr = {0};
 	addr.s_addr = inet_addr(ip.c_str());
-	if (addr.s_addr  != INADDR_NONE)
+	if (addr.s_addr != INADDR_NONE)
 	{
 		const uint32_t haddr = ntohl(addr.s_addr);
 		return isPrivateIp(haddr);
@@ -2015,7 +2015,7 @@ int16_t Util::CustomNetworkIndex::getCountryIndex() const
 //======================================================================================================================================
 Util::CustomNetworkIndex Util::getIpCountry(uint32_t p_ip)
 {
-	if (p_ip)
+	if (p_ip && p_ip != INADDR_NONE)
 	{
 		uint16_t l_country_index = 0;
 #ifdef FLYLINKDC_USE_GEO_IP

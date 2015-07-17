@@ -90,7 +90,8 @@ int HubFrame::g_columnSizes[] = { 100,    // COLUMN_NICK
 #endif
 #endif
                                   300,     // COLUMN_CID
-                                  200      // COLUMN_TAG
+                                  200,      // COLUMN_TAG
+                                  40      // COLUMN_P2P_GUARD
 #ifdef FLYLINKDC_USE_FLYHUB
                                   , 50   // COLUMN_FLY_HUB_COUNTRY
                                   , 50   // COLUMN_FLY_HUB_CITY
@@ -129,7 +130,8 @@ int HubFrame::g_columnIndexes[] = { COLUMN_NICK,
 #endif
 //[-]PPA        COLUMN_PK
                                     COLUMN_CID,
-                                    COLUMN_TAG
+                                    COLUMN_TAG,
+                                    COLUMN_P2P_GUARD
 #ifdef FLYLINKDC_USE_FLYHUB
                                     , COLUMN_FLY_HUB_COUNTRY
                                     , COLUMN_FLY_HUB_CITY
@@ -140,7 +142,7 @@ int HubFrame::g_columnIndexes[] = { COLUMN_NICK,
 static ResourceManager::Strings g_columnNames[] = { ResourceManager::NICK,            // COLUMN_NICK
                                                     ResourceManager::SHARED,          // COLUMN_SHARED
                                                     ResourceManager::EXACT_SHARED,    // COLUMN_EXACT_SHARED
-                                                    ResourceManager::ANTIVIRUS,         //COLUMN_ANTIVIRUS
+                                                    ResourceManager::ANTIVIRUS,       // COLUMN_ANTIVIRUS
                                                     ResourceManager::DESCRIPTION,     // COLUMN_DESCRIPTION
                                                     ResourceManager::APPLICATION,     // COLUMN_APPLICATION
 #ifdef IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB
@@ -169,6 +171,7 @@ static ResourceManager::Strings g_columnNames[] = { ResourceManager::NICK,      
 //[-]PPA  ResourceManager::PK
                                                     ResourceManager::CID,             // COLUMN_CID
                                                     ResourceManager::TAG,             // COLUMN_TAG
+                                                    ResourceManager::P2P_GUARD,       // COLUMN_P2P_GUARD
 #ifdef FLYLINKDC_USE_FLYHUB
                                                     ResourceManager::FLY_HUB_COUNTRY, // COLUMN_FLY_HUB_COUNTRY
                                                     ResourceManager::FLY_HUB_CITY, // ,COLUMN_FLY_HUB_CITY
@@ -338,6 +341,7 @@ void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
 		m_ctrlUsers->setColumnOwnerDraw(COLUMN_DOWNLOAD);
 		m_ctrlUsers->setColumnOwnerDraw(COLUMN_MESSAGES);
 		m_ctrlUsers->setColumnOwnerDraw(COLUMN_ANTIVIRUS);
+		m_ctrlUsers->setColumnOwnerDraw(COLUMN_P2P_GUARD);
 #ifdef FLYLINKDC_USE_FLYHUB
 		m_ctrlUsers->setColumnOwnerDraw(COLUMN_FLY_HUB_COUNTRY);
 		m_ctrlUsers->setColumnOwnerDraw(COLUMN_FLY_HUB_CITY);
@@ -3706,6 +3710,10 @@ bool HubFrame::matchFilter(UserInfo& ui, int sel, bool doSizeCompare, FilterMode
 				{
 					ui.calcVirusType();
 				}
+				else if (sel == COLUMN_P2P_GUARD)
+				{
+					ui.calcP2PGuard();
+				}
 				const tstring s = ui.getText(static_cast<uint8_t>(sel));
 				if (regex_search(s.begin(), s.end(), reg))
 					insert = true;
@@ -4013,7 +4021,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			}
 			else
 #endif
-				if (l_column_id == COLUMN_UPLOAD || l_column_id == COLUMN_DOWNLOAD || l_column_id == COLUMN_MESSAGES || l_column_id == COLUMN_ANTIVIRUS)
+				if (l_column_id == COLUMN_UPLOAD || l_column_id == COLUMN_DOWNLOAD || l_column_id == COLUMN_MESSAGES || l_column_id == COLUMN_ANTIVIRUS || l_column_id == COLUMN_P2P_GUARD)
 				{
 					m_ctrlUsers->GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
 					m_ctrlUsers->SetItemFilled(cd, rc, cd->clrText, cd->clrText);
@@ -4160,6 +4168,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 //				PROFILE_THREAD_SCOPED_DESC("CDDS_ITEMPREPAINT");
 				ui->calcLocation(); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=120907
 				ui->calcVirusType();
+				ui->calcP2PGuard();
 				Colors::getUserColor(m_client->isOp(), ui->getUser(), cd->clrText, cd->clrTextBk, ui->m_flag_mask, ui->getOnlineUser()); // !SMT!-UI
 			}
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS

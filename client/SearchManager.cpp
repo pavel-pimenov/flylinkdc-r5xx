@@ -569,7 +569,7 @@ void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const boost::asio
 	}
 	
 	PartsInfo outPartialInfo;
-	QueueItem::PartialSource ps(from->isNMDC() ? ClientManager::getInstance()->getMyNick(url) : Util::emptyString, hubIpPort, remoteIp, udpPort);
+	QueueItem::PartialSource ps(from->isNMDC() ? ClientManager::findMyNick(url) : Util::emptyString, hubIpPort, remoteIp, udpPort);
 	ps.setPartialInfo(partialInfo);
 	
 	QueueManager::getInstance()->handlePartialResult(from, TTHValue(tth), ps, outPartialInfo);

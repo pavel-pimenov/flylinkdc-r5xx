@@ -117,8 +117,8 @@ void PGLoader::load(const string& p_data /*= Util::emptyString*/)
 	
 	FastLock l(m_cs);
 	l_IPTrust_log.step("parse IPTrust.ini");
-	m_ipList.clear();
-	m_ipListBlock.clear();
+	m_ipTrustListAllow.clear();
+	m_ipTrustListBlock.clear();
 	
 	if (!l_data.empty())
 	{
@@ -156,16 +156,17 @@ bool PGLoader::check(const string& aIP)
 	
 	FastLock l(m_cs);
 	
-	if (!m_ipListBlock.empty())
+	if (!m_ipTrustListBlock.empty())
 	{
-		if (m_ipListBlock.checkIp(aIP))
+		if (m_ipTrustListBlock.checkIp(aIP))
 		{
 			return true;
 		}
 	}
-	if (!m_ipList.empty())
+	if (!m_ipTrustListAllow.empty())
 	{
-		return !m_ipList.checkIp(aIP);
+		const auto l_ipguard = m_ipTrustListAllow.checkIp(aIP);
+		return !l_ipguard;
 	}
 	else
 	{
@@ -185,11 +186,11 @@ void PGLoader::addLine(string& p_Line, CFlyLog& p_log)
 	if (p_Line[0] == '-')
 	{
 		p_Line.erase(0, 1);
-		m_ipListBlock.addLine(p_Line, p_log);
+		m_ipTrustListBlock.addLine(p_Line, p_log);
 	}
 	else
 	{
-		m_ipList.addLine(p_Line, p_log);
+		m_ipTrustListAllow.addLine(p_Line, p_log);
 	}
 }
 

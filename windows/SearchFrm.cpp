@@ -58,6 +58,7 @@ int SearchFrame::columnIndexes[] =
 	COLUMN_HITS,
 	COLUMN_NICK,
 	COLUMN_ANTIVIRUS,
+	COLUMN_P2P_GUARD,
 	COLUMN_TYPE,
 	COLUMN_SIZE,
 	COLUMN_PATH,
@@ -93,7 +94,8 @@ int SearchFrame::columnSizes[] =
 #ifdef PPA_INCLUDE_DNS
 	100,
 #endif
-	150
+	150,
+	40
 }; // !SMT!-IP
 
 static ResourceManager::Strings columnNames[] = {ResourceManager::FILE,
@@ -120,7 +122,8 @@ static ResourceManager::Strings columnNames[] = {ResourceManager::FILE,
 #ifdef PPA_INCLUDE_DNS
                                                  ResourceManager::DNS_BARE, // !SMT!-IP
 #endif
-                                                 ResourceManager::TTH_ROOT
+                                                 ResourceManager::TTH_ROOT,
+                                                 ResourceManager::P2P_GUARD       // COLUMN_P2P_GUARD
                                                 };
 
 SearchFrame::FrameMap SearchFrame::g_search_frames;
@@ -471,6 +474,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	ctrlResults.setFlickerFree(Colors::g_bgBrush);
 	ctrlResults.setColumnOwnerDraw(COLUMN_LOCATION);
 	ctrlResults.setColumnOwnerDraw(COLUMN_ANTIVIRUS);
+	ctrlResults.setColumnOwnerDraw(COLUMN_P2P_GUARD);
 #ifndef FLYLINKDC_USE_ANTIVIRUS_DB
 	ctrlResults.SetColumnWidth(COLUMN_ANTIVIRUS, 0);
 #endif
@@ -1533,6 +1537,10 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 			return sr.getSize() > 0 ? Util::formatExactSize(sr.getSize()) : Util::emptyStringT;
 		case COLUMN_IP:
 			return Text::toT(sr.getIPAsString());
+		case COLUMN_P2P_GUARD:
+		{
+			return Text::toT(sr.getP2PGuard());
+		}
 		case COLUMN_TTH:
 			return sr.getType() == SearchResult::TYPE_FILE ? Text::toT(sr.getTTH().toBase32()) : Util::emptyStringT;
 		case COLUMN_LOCATION:
@@ -1880,6 +1888,7 @@ bool SearchFrame::showFlyServerProperty(const SearchInfo* p_item_info)
 		COLUMN_HITS,
 		COLUMN_NICK,
 		COLUMN_ANTIVIRUS,
+		COLUMN_P2P_GUARD,
 		COLUMN_TYPE,
 		COLUMN_SIZE,
 		COLUMN_PATH,
@@ -3075,11 +3084,29 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 		}
 		case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
 		{
-			const SearchInfo* si = reinterpret_cast<SearchInfo*>(cd->nmcd.lItemlParam);
+			SearchInfo* si = reinterpret_cast<SearchInfo*>(cd->nmcd.lItemlParam);
 			if (!si)
 				return CDRF_DODEFAULT;
 			const auto l_column_id = ctrlResults.findColumn(cd->iSubItem);
-			if (l_column_id == COLUMN_ANTIVIRUS)
+			if (l_column_id == COLUMN_P2P_GUARD)
+			{
+				CRect rc;
+				ctrlResults.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
+				ctrlResults.SetItemFilled(cd, rc, cd->clrText, cd->clrText);
+				si->sr.calcP2PGuard();
+				const tstring& l_value = si->getText(l_column_id);
+				if (!l_value.empty())
+				{
+					LONG top = rc.top + (rc.Height() - 15) / 2;
+					if ((top - rc.top) < 2)
+						top = rc.top + 1;
+					const POINT ps = { rc.left, top };
+					g_userStateImage.Draw(cd->nmcd.hdc, 3, ps);
+					::ExtTextOut(cd->nmcd.hdc, rc.left + 6 + 17, rc.top + 2, ETO_CLIPPED, rc, l_value.c_str(), l_value.length(), NULL);
+				}
+				return CDRF_SKIPDEFAULT;
+			}
+			else if (l_column_id == COLUMN_ANTIVIRUS)
 			{
 				CRect rc;
 				ctrlResults.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);

@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by D:\vc10\r5xx\FlylinkDC.rc
+// Used by D:\DropSvn\flylinkdc\FlylinkDC.rc
 //
 #define IDD_ABOUTBOX                    100
 #define IDD_DCLS_PAGE                   101
@@ -1074,7 +1074,6 @@
 #define IDC_DEFAULT_POLICY              1887
 #define IDC_INTRO_IPGUARD               1888
 #define IDC_REPLACE_NAME_EXISTS         1889
-#define IDC_ENABLE_P2P_GUARD            1889
 #define IDC_REPLACE_SIZE_EXISTS         1890
 #define IDC_REPLACE_DATE_EXISTS         1891
 #define IDC_REPLACE_DISP_NAME_EXISTS    1892
@@ -1559,6 +1558,10 @@
 #define IDC_USERS_LINK                  2508
 #define IDC_STATIC_USERLIST             2509
 #define IDC_REDOWNLOAD_FILE             2510
+#define IDC_ENABLE_P2P_GUARD            2511
+#define IDC_ENABLE_P2P_GUARD_STR        2512
+#define IDC_WHOIS_IP2                   2513
+#define IDC_WHOIS_URL                   2514
 #define IDC_DOWNLOAD_TARGET_DIR         3000
 #define IDC_SELECT_WINDOW               3500
 #define IDC_USER_COMMAND                4000
@@ -1625,7 +1628,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        307
 #define _APS_NEXT_COMMAND_VALUE         32812
-#define _APS_NEXT_CONTROL_VALUE         2510
+#define _APS_NEXT_CONTROL_VALUE         2515
 #define _APS_NEXT_SYMED_VALUE           2423
 #endif
 #endif

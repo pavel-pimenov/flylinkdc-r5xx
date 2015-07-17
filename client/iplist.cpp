@@ -52,7 +52,7 @@ IPList::~IPList()
 uint32_t IPList::add(const std::string& IPNumber)
 {
 	const uint32_t ip = Socket::convertIP4(IPNumber);
-	if (ip == INADDR_NONE)
+	if (ip == INADDR_NONE || ip == 0)
 		return IP_ERROR;
 	add(ip);
 	return NO_IP_ERROR;
@@ -60,7 +60,7 @@ uint32_t IPList::add(const std::string& IPNumber)
 
 void IPList::add(uint32_t ip)
 {
-	if (ip == INADDR_NONE)
+	if (ip == INADDR_NONE || ip == 0)
 		return;
 	addRangeListAndSort(ip, 31);
 }
@@ -69,9 +69,9 @@ uint32_t IPList::add(const std::string& IPNumber, const std::string& Mask)
 {
 	const uint32_t ip = Socket::convertIP4(IPNumber);
 	const uint32_t umask = Socket::convertIP4(Mask);
-	if (ip == INADDR_NONE)
+	if (ip == INADDR_NONE || ip == 0)
 		return IP_ERROR;
-	if (umask == INADDR_NONE)
+	if (umask == INADDR_NONE || umask == 0)
 		return MASK_ERROR;
 	add(ip, umask);
 	return NO_IP_ERROR;
@@ -99,9 +99,9 @@ uint32_t IPList::add(const std::string& IPNumber, uint32_t maskLevel)
 	const uint32_t ip = Socket::convertIP4(IPNumber);
 	const uint32_t umask = getMaskByLevel(maskLevel);
 	
-	if (ip == INADDR_NONE)
+	if (ip == INADDR_NONE || ip == 0)
 		return IP_ERROR;
-	if (umask == INADDR_NONE)
+	if (umask == INADDR_NONE || umask == 0)
 		return MASK_ERROR;
 	add(ip, umask);
 	return NO_IP_ERROR;
@@ -127,9 +127,9 @@ uint32_t IPList::addRange(const std::string& fromIP, const std::string& toIP)
 	const uint32_t ufromIP = Socket::convertIP4(fromIP);
 	const uint32_t utoIP = Socket::convertIP4(toIP);
 	
-	if (ufromIP == INADDR_NONE)
+	if (ufromIP == INADDR_NONE || ufromIP == 0)
 		return START_IP_ERROR;
-	if (utoIP == INADDR_NONE)
+	if (utoIP == INADDR_NONE || utoIP == 0)
 		return END_IP_ERROR;
 		
 	return addRange(ufromIP, utoIP);
@@ -298,7 +298,7 @@ void IPList::addData(const std::string& Data, CFlyLog& p_log)
 bool IPList::checkIp(const std::string& ipNumber)
 {
 	const UINT32 ip = Socket::convertIP4(ipNumber);
-	if (ip != INADDR_NONE)
+	if (ip != INADDR_NONE && ip != 0)
 		return checkIp(ip);
 		
 	return false;

@@ -91,6 +91,19 @@ void SearchResultBaseTTH::toRES(AdcCommand& cmd, char p_type) const
 	cmd.addParam("TR", getTTH().toBase32());
 }
 
+SearchResult::SearchResult(Types aType, int64_t aSize, const string& aFile, const TTHValue& aTTH, uint32_t aToken) :
+	SearchResultBaseTTH(aType, aSize, aFile, aTTH),
+	m_user(ClientManager::getMe_UseOnlyForNonHubSpecifiedTasks()),
+	m_is_tth_remembrance(false),
+	m_is_tth_download(false),
+	m_is_tth_check(false),
+	m_token(aToken),
+	m_is_p2p_guard_calc(false)
+{
+	initSlot();
+	m_is_tth_share = aType == TYPE_FILE; // Constructor for ShareManager
+}
+
 SearchResult::SearchResult(const UserPtr& aUser, Types aType, uint8_t aSlots, uint8_t aFreeSlots,
                            int64_t aSize, const string& aFile, const string& aHubName,
                            const string& aHubURL, const boost::asio::ip::address_v4& aIP4, const TTHValue& aTTH, uint32_t aToken) :
@@ -98,26 +111,28 @@ SearchResult::SearchResult(const UserPtr& aUser, Types aType, uint8_t aSlots, ui
 	m_hubName(aHubName),
 	m_hubURL(aHubURL),
 	m_user(aUser),
-	m_ip4(aIP4),
+	m_search_ip4(aIP4),
 	m_token(aToken),
 	m_is_tth_share(false),
 	m_is_tth_remembrance(false),
 	m_is_tth_download(false),
-	m_is_tth_check(false)
+	m_is_tth_check(false),
+	m_is_p2p_guard_calc(false)
 {
 }
 
-SearchResult::SearchResult(Types aType, int64_t aSize, const string& aFile, const TTHValue& aTTH, uint32_t aToken) :
-	SearchResultBaseTTH(aType, aSize, aFile, aTTH),
-	m_user(ClientManager::getMe_UseOnlyForNonHubSpecifiedTasks()),
-	m_is_tth_remembrance(false),
-	m_is_tth_download(false),
-	m_is_tth_check(false),
-	m_token(aToken)
+void SearchResult::calcP2PGuard()
 {
-	initSlot();
-	m_is_tth_share = aType == TYPE_FILE; // Constructor for ShareManager
+	if (m_is_p2p_guard_calc == false)
+	{
+		if (m_search_ip4.to_ulong())
+		{
+			m_p2p_guard = CFlylinkDBManager::getInstance()->is_p2p_guard(m_search_ip4.to_ulong());
+			m_is_p2p_guard_calc = true;
+		}
+	}
 }
+
 void SearchResult::calcHubName()
 {
 	if (m_hubName.empty())

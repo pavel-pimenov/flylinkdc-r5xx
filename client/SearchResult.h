@@ -124,7 +124,8 @@ class SearchResult : public SearchResultBaseTTH
 			m_is_tth_download(false),
 			m_is_tth_remembrance(false),
 			m_token(uint32_t (-1)),
-			m_is_tth_check(false)
+			m_is_tth_check(false),
+			m_is_p2p_guard_calc(false)
 		{
 		}
 		SearchResult(Types aType, int64_t aSize, const string& aFile, const TTHValue& aTTH, uint32_t aToken);
@@ -155,14 +156,14 @@ class SearchResult : public SearchResultBaseTTH
 		
 		string getIPAsString() const
 		{
-			if (!m_ip4.is_unspecified())
-				return m_ip4.to_string();
+			if (!m_search_ip4.is_unspecified())
+				return m_search_ip4.to_string();
 			else
 				return Util::emptyString;
 		}
 		const boost::asio::ip::address_v4& getIP() const
 		{
-			return m_ip4;
+			return m_search_ip4;
 		}
 		const uint32_t getToken() const
 		{
@@ -172,15 +173,20 @@ class SearchResult : public SearchResultBaseTTH
 		bool m_is_tth_share;
 		bool m_is_tth_download;
 		bool m_is_tth_remembrance;
-		
+		const string&  getP2PGuard() const
+		{
+			return m_p2p_guard;
+		}
 		void checkTTH();
-		
+		void calcP2PGuard();
 	private:
 		friend class SearchManager;
 		
 		string m_hubName;
 		string m_hubURL;
-		boost::asio::ip::address_v4 m_ip4;
+		boost::asio::ip::address_v4 m_search_ip4;
+		string m_p2p_guard;
+		bool m_is_p2p_guard_calc;
 		uint32_t m_token;
 		UserPtr m_user;
 		bool m_is_tth_check;

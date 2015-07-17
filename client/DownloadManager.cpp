@@ -188,9 +188,9 @@ void DownloadManager::addConnection(UserConnection* p_conn)
 		p_conn->disconnect();
 		return;
 	}
-	if (p_conn->isIPGuard(ResourceManager::IPFILTER_BLOCK_OUT_CONNECTION))
+	if (p_conn->isIPGuard(ResourceManager::IPFILTER_BLOCK_OUT_CONNECTION, true))
 	{
-		removeConnection(p_conn);
+		removeConnection(p_conn, false);
 		return;
 	}
 	p_conn->addListener(this);
@@ -577,10 +577,13 @@ void DownloadManager::failDownload(UserConnection* aSource, const string& reason
 	removeConnection(aSource);
 }
 
-void DownloadManager::removeConnection(UserConnection* p_conn)
+void DownloadManager::removeConnection(UserConnection* p_conn, bool p_is_remove_listener /* = true */)
 {
 	///////////// dcassert(p_conn->getDownload() == nullptr);
-	p_conn->removeListener(this);
+	if (p_is_remove_listener)
+	{
+		p_conn->removeListener(this);
+	}
 	p_conn->disconnect();
 }
 

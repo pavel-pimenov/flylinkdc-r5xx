@@ -314,7 +314,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  MAX_RESIZE_LINES,
 		                  USE_CUSTOM_LIST_BACKGROUND,
 		                  ENABLE_P2P_GUARD,
-		                  ENABLE_IPGUARD, DEFAULT_POLICY,
+		                  ENABLE_IPGUARD, IP_GUARD_IS_DENY_ALL,
 #ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
 		                  FLY_TEXT_LOG, FLY_SQLITE_LOG,
 #endif // FLYLINKDC_LOG_IN_SQLITE_BASE

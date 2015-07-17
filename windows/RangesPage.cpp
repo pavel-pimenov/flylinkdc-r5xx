@@ -16,6 +16,7 @@ PropPage::TextItem RangesPage::texts[] =
 	{ IDC_DEFAULT_POLICY_EXCEPT_STR, ResourceManager::EXCEPT_SPECIFIED },
 	{ IDC_ENABLE_IPGUARD, ResourceManager::IPGUARD_ENABLE },
 	{ IDC_ENABLE_P2P_GUARD, ResourceManager::P2P_GUARD_ENABLE },
+	{ IDC_ENABLE_P2P_GUARD_STR, ResourceManager::P2P_GUARD_ENABLE_STR },
 	{ IDC_INTRO_IPGUARD, ResourceManager::IPGUARD_INTRO },
 	{ IDC_FLYLINK_TRUST_IP_BOX, ResourceManager::SETTINGS_IPBLOCK },
 	{ IDC_FLYLINK_TRUST_IP_URL_STR, ResourceManager::SETTINGS_IPBLOCK_DOWNLOAD_URL_STR }, //[+]PPA
@@ -37,9 +38,9 @@ LRESULT RangesPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	m_isEnabledIPGuard = BOOLSETTING(ENABLE_IPGUARD);
 	
 	ctrlPolicy.Attach(GetDlgItem(IDC_DEFAULT_POLICY));
-	ctrlPolicy.AddString(CTSTRING(ALLOW_ALL));
 	ctrlPolicy.AddString(CTSTRING(DENY_ALL));
-	ctrlPolicy.SetCurSel(BOOLSETTING(DEFAULT_POLICY) ? 0 : 1);
+	ctrlPolicy.AddString(CTSTRING(ALLOW_ALL));
+	ctrlPolicy.SetCurSel(BOOLSETTING(IP_GUARD_IS_DENY_ALL) ? 0 : 1);
 	
 	// Do specialized reading here
 	try
@@ -100,7 +101,7 @@ LRESULT RangesPage::onKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 void RangesPage::write()
 {
 	PropPage::write((HWND)*this, items);
-	settings->set(SettingsManager::DEFAULT_POLICY, !ctrlPolicy.GetCurSel());
+	settings->set(SettingsManager::IP_GUARD_IS_DENY_ALL, !ctrlPolicy.GetCurSel());
 	
 	if (BOOLSETTING(ENABLE_IPGUARD))
 	{

@@ -187,7 +187,7 @@ class Socket
 			UINT32 l_IP = inet_addr(p_ip.c_str());
 			if (l_IP != INADDR_NONE)
 				return ntohl(l_IP);
-			return 0;
+			return l_IP;
 		}
 		static string convertIP4(uint32_t p_ip)
 		{

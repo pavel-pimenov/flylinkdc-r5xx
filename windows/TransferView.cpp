@@ -43,6 +43,7 @@ int TransferView::columnIndexes[] =
 {
 	COLUMN_USER,
 	COLUMN_ANTIVIRUS,
+	COLUMN_P2P_GUARD,
 	COLUMN_HUB,
 	COLUMN_STATUS,
 	COLUMN_TIMELEFT,
@@ -62,7 +63,7 @@ int TransferView::columnIndexes[] =
 int TransferView::columnSizes[] =
 {
 	150, // COLUMN_USER
-	5,  // ANTIVIRUS
+	5,   // COLUMN_ANTIVIRUS
 	150, // COLUMN_HUB
 	250, // COLUMN_STATUS
 	75,  // COLUMN_TIMELEFT
@@ -78,6 +79,7 @@ int TransferView::columnSizes[] =
 #endif
 	100, // COLUMN_SHARE
 	75,  // COLUMN_SLOTS
+	40  // COLUMN_P2P_GUARD
 };
 
 static ResourceManager::Strings columnNames[] = { ResourceManager::USER,
@@ -96,7 +98,8 @@ static ResourceManager::Strings columnNames[] = { ResourceManager::USER,
                                                   , ResourceManager::RATIO
 #endif
                                                   , ResourceManager::SHARED, //[+]PPA
-                                                  ResourceManager::SLOTS //[+]PPA
+                                                  ResourceManager::SLOTS, //[+]PPA
+                                                  ResourceManager::P2P_GUARD       // COLUMN_P2P_GUARD
                                                 };
 
 TransferView::TransferView() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd)
@@ -916,6 +919,25 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (ii->download ? SETTIN
 					return CDRF_SKIPDEFAULT;
 				}
 			}
+			else if (colIndex == COLUMN_P2P_GUARD) // TODO
+			{
+				ItemInfo* ii = (ItemInfo*)cd->nmcd.lItemlParam;
+				if (!ii) //[+]PPA падаем под wine
+					return CDRF_DODEFAULT;
+				ctrlTransfers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
+				ctrlTransfers.SetItemFilled(cd, rc, cd->clrText, cd->clrText);
+				const tstring& l_value = ii->getText(colIndex);
+				if (!l_value.empty())
+				{
+					LONG top = rc.top + (rc.Height() - 15) / 2;
+					//if ((top - rc.top) < 2)
+					//  top = rc.top + 1;
+					//const POINT ps = { rc.left, top };
+					// TODO g_userStateImage.Draw(cd->nmcd.hdc, 3, ps);
+					::ExtTextOut(cd->nmcd.hdc, rc.left + 6 + 17, rc.top + 2, ETO_CLIPPED, rc, l_value.c_str(), l_value.length(), NULL);
+				}
+				return CDRF_SKIPDEFAULT;
+			}
 			else if (colIndex == COLUMN_ANTIVIRUS)
 			{
 				ItemInfo* ii = (ItemInfo*)cd->nmcd.lItemlParam;
@@ -975,9 +997,9 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (ii->download ? SETTIN
 				if ((top - rc2.top) < 2)
 					top = rc2.top + 1;
 				// TODO fix copy-paste
-				if (ii->m_location.isNew() && !ii->m_ip.empty())
+				if (ii->m_location.isNew() && !ii->m_transfer_ip.empty())
 				{
-					ii->m_location = Util::getIpCountry(Text::fromT(ii->m_ip));
+					ii->m_location = Util::getIpCountry(Text::fromT(ii->m_transfer_ip));
 				}
 				if (ii->m_location.isKnown())
 				{
@@ -1352,9 +1374,13 @@ void TransferView::ItemInfo::update(const UpdateInfo& ui)
 	{
 		dcassert(!ui.m_ip.empty()); // http://code.google.com/p/flylinkdc/issues/detail?id=1298
 		// dcassert(ip.empty()); TODO: fix me please.
-		if (m_ip.empty()) // [+] IRainman fix: if IP is set already, not try to set twice. IP can not change during a single connection.
+		if (m_transfer_ip.empty()) // [+] IRainman fix: if IP is set already, not try to set twice. IP can not change during a single connection.
 		{
-			m_ip = ui.m_ip;
+			m_transfer_ip = ui.m_ip;
+			if (!m_transfer_ip.empty())
+			{
+				m_p2p_guard_text = Text::toT(CFlylinkDBManager::getInstance()->is_p2p_guard(Socket::convertIP4(Text::fromT(m_transfer_ip))));
+			}
 #ifdef PPA_INCLUDE_COLUMN_RATIO
 			m_ratio_as_text = ui.m_hintedUser.user->getUDratio();// [+] brain-ripper
 #endif
@@ -1494,9 +1520,22 @@ void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueIt
 	dcassert(!ClientManager::isShutdown());
 	UpdateInfo* ui = new UpdateInfo(aCqi->getHintedUser(), aCqi->isDownload()); // [!] IRainman fix.
 #ifdef PPA_INCLUDE_IPFILTER
-	if (ui->m_hintedUser.user->isSet(User::PG_BLOCK))
+	if (ui->m_hintedUser.user->isAnySet(User::PG_IPTRUST_BLOCK | User::PG_IPGUARD_BLOCK | User::PG_P2PGUARD_BLOCK))
 	{
-		ui->setStatusString(TSTRING(CONNECTION_BLOCKED) + _T(" [IPTrust.ini]"));
+		string l_status = STRING(CONNECTION_BLOCKED);
+		if (ui->m_hintedUser.user->isSet(User::PG_IPTRUST_BLOCK))
+		{
+			l_status += " [IPTrust.ini]";
+		}
+		if (ui->m_hintedUser.user->isSet(User::PG_IPGUARD_BLOCK))
+		{
+			l_status += " [IPGuard.ini]";
+		}
+		if (ui->m_hintedUser.user->isSet(User::PG_P2PGUARD_BLOCK))
+		{
+			l_status += " [P2PGuard.ini]";
+		}
+		ui->setStatusString(Text::toT(l_status + " [" + aReason + "]"));
 	}
 	else
 #endif
@@ -1559,7 +1598,7 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 		case COLUMN_PATH:
 			return Util::getFilePath(m_target); // TODO: opt me please.
 		case COLUMN_IP:
-			return m_ip;
+			return m_transfer_ip;
 #ifdef PPA_INCLUDE_COLUMN_RATIO
 			// [~] brain-ripper
 			//case COLUMN_RATIO: return (status == STATUS_RUNNING) ? Util::toStringW(ratio()) : Util::emptyStringT;
@@ -1572,6 +1611,8 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 			return m_hintedUser.user ? Util::formatBytesW(m_hintedUser.user->getBytesShared()) : Util::emptyStringT;
 		case COLUMN_SLOTS:
 			return m_hintedUser.user ? Util::toStringW(m_hintedUser.user->getSlots()) : Util::emptyStringT;
+		case COLUMN_P2P_GUARD:
+			return m_p2p_guard_text;
 		case COLUMN_ANTIVIRUS:
 			return m_antivirus_text;
 		case COLUMN_LOCATION:

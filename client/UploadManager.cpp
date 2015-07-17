@@ -1054,9 +1054,9 @@ void UploadManager::clearUserFilesL(const UserPtr& aUser)
 
 void UploadManager::addConnection(UserConnection* p_conn)
 {
-	if (p_conn->isIPGuard(ResourceManager::BLOCKED_INCOMING_CONN))
+	if (p_conn->isIPGuard(ResourceManager::BLOCKED_INCOMING_CONN, false))
 	{
-		removeConnection(p_conn);
+		removeConnection(p_conn, false);
 		return;
 	}
 	p_conn->addListener(this);
@@ -1093,10 +1093,13 @@ void UploadManager::process_slot(UserConnection::SlotTypes p_slot_type, int p_de
 			break;
 	}
 }
-void UploadManager::removeConnection(UserConnection* aSource)
+void UploadManager::removeConnection(UserConnection* aSource, bool p_is_remove_listener /*= true */)
 {
 	dcassert(aSource->getUpload() == nullptr);
-	aSource->removeListener(this);
+	if (p_is_remove_listener)
+	{
+		aSource->removeListener(this);
+	}
 	process_slot(aSource->getSlotType(), -1);
 	aSource->setSlotType(UserConnection::NOSLOT);
 }

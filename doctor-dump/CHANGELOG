@@ -1,3 +1,7 @@
+2.0.17 (24-05-2015)
+- Added custom data collection callback function that will be called before full report upload.
+- Fixed bug: if UseWER is true WER dialog appeass over report upload windows
+
 2.0.16 (31-10-2014)
 - Added CrashProcessingCallback callback function that will be called when crash reporting occurs.
 - Added: SendRptPath and DbgHelpPath HandlerSettings members now may accept filenames if these modules exist in same folder as crashrpt.dll

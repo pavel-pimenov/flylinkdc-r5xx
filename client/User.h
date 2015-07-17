@@ -70,7 +70,9 @@ class User : public intrusive_ptr_base<User>, public Flags
 			DHT_BIT,
 			NAT_BIT,
 #ifdef PPA_INCLUDE_IPFILTER
-			PG_BLOCK_BIT,
+			PG_IPGUARD_BLOCK_BIT,
+			PG_IPTRUST_BLOCK_BIT,
+			PG_P2PGUARD_BLOCK_BIT,
 #endif
 			CHANGE_IP_BIT
 		};
@@ -109,7 +111,9 @@ class User : public intrusive_ptr_base<User>, public Flags
 			NAT0 = 1 << NAT_BIT,
 			
 #ifdef PPA_INCLUDE_IPFILTER
-			PG_BLOCK = 1 << PG_BLOCK_BIT,
+			PG_IPGUARD_BLOCK = 1 << PG_IPGUARD_BLOCK_BIT,
+			PG_IPTRUST_BLOCK = 1 << PG_IPTRUST_BLOCK_BIT,
+			PG_P2PGUARD_BLOCK = 1 << PG_P2PGUARD_BLOCK_BIT,
 #endif
 			CHANGE_IP = 1 << CHANGE_IP_BIT
 		};

@@ -31,7 +31,9 @@
 #ifndef _RICHEDIT_VER
 # define _RICHEDIT_VER 0x0300
 #endif
-
+#ifdef IRAINMAN_ENABLE_WHOIS
+#include "../client/Util.h"
+#endif
 #include <AtlCrack.h>
 
 class UserInfo;
@@ -71,6 +73,8 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 		COMMAND_ID_HANDLER(IDC_COPY_URL, onCopyURL)
 #ifdef IRAINMAN_ENABLE_WHOIS
 		COMMAND_ID_HANDLER(IDC_WHOIS_IP, onWhoisIP)
+		COMMAND_ID_HANDLER(IDC_WHOIS_IP2, onWhoisIP)
+		COMMAND_ID_HANDLER(IDC_WHOIS_URL, onWhoisURL)
 #endif
 		COMMAND_ID_HANDLER(ID_EDIT_COPY, onEditCopy)
 		COMMAND_ID_HANDLER(ID_EDIT_SELECT_ALL, onEditSelectAll)
@@ -86,7 +90,8 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 		LRESULT onMouseMove(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/);
 		LRESULT onEnLink(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
 #ifdef IRAINMAN_ENABLE_WHOIS
-		LRESULT onWhoisIP(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+		LRESULT onWhoisIP(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+		LRESULT onWhoisURL(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 #endif
 		LRESULT onEditCopy(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onEditSelectAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);

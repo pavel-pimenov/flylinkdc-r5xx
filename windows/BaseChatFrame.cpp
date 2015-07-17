@@ -730,7 +730,8 @@ void BaseChatFrame::appendChatCtrlItems(OMenu& p_menu, const Client* client)
 	{
 		p_menu.InsertSeparatorFirst(ChatCtrl::g_sSelectedIP);
 #ifdef IRAINMAN_ENABLE_WHOIS
-		p_menu.AppendMenu(MF_STRING, IDC_WHOIS_IP, (TSTRING(WHO_IS) + _T(" ") + ChatCtrl::g_sSelectedIP).c_str());
+		p_menu.AppendMenu(MF_STRING, IDC_WHOIS_IP, (TSTRING(WHO_IS) + _T(" Ripe.net  ") + ChatCtrl::g_sSelectedIP).c_str());
+		p_menu.AppendMenu(MF_STRING, IDC_WHOIS_IP2, (TSTRING(WHO_IS) + _T(" Bgp.He  ") + ChatCtrl::g_sSelectedIP).c_str());
 		p_menu.AppendMenu(MF_SEPARATOR);
 #endif
 		if (client) // add menus, necessary only for windows hub here.
@@ -758,6 +759,15 @@ void BaseChatFrame::appendChatCtrlItems(OMenu& p_menu, const Client* client)
 	if (!ChatCtrl::g_sSelectedURL.empty())
 	{
 		p_menu.AppendMenu(MF_STRING, IDC_COPY_URL, Util::isMagnetLink(ChatCtrl::g_sSelectedURL) ? CTSTRING(COPY_MAGNET_LINK) : CTSTRING(COPY_URL));
+		
+#ifdef IRAINMAN_ENABLE_WHOIS
+		if (!Util::isMagnetLink(ChatCtrl::g_sSelectedURL))
+		{
+			p_menu.AppendMenu(MF_SEPARATOR);
+			p_menu.AppendMenu(MF_STRING, IDC_WHOIS_URL, (TSTRING(WHO_IS) + _T(" URL: Bgp.He")/* + ChatCtrl::g_sSelectedURL*/).c_str());
+			
+		}
+#endif
 	}
 	
 	

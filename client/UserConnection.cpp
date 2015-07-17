@@ -71,25 +71,43 @@ UserConnection::~UserConnection()
 		BufferedSocket::putBufferedSocket(socket);
 	}
 }
-bool UserConnection::isIPGuard(ResourceManager::Strings p_id_string)
+bool UserConnection::isIPGuard(ResourceManager::Strings p_id_string, bool p_is_download_connection)
 {
 #ifdef PPA_INCLUDE_IPFILTER
 	auto l_is_ip_guard = PGLoader::getInstance()->check(getRemoteIp());
 	string l_p2p_guard;
-	if (BOOLSETTING(ENABLE_P2P_GUARD))
+	if (
+#ifndef FLYLINKDC_BETA  // TODO - возможно оставить и совсем
+	    BOOLSETTING(ENABLE_P2P_GUARD) &&
+#endif
+	    p_is_download_connection == false)
 	{
 		l_p2p_guard = CFlylinkDBManager::getInstance()->is_p2p_guard(Socket::convertIP4(getRemoteIp()));
 		if (!l_p2p_guard.empty())
 		{
-			l_is_ip_guard = true;
-			l_p2p_guard = " [P2PGuard] " + l_p2p_guard + " (http://emule-security.org)";
+			if (BOOLSETTING(ENABLE_P2P_GUARD))
+			{
+				l_is_ip_guard = true;
+			}
+			l_p2p_guard = " [P2PGuard] " + l_p2p_guard + " [http://emule-security.org]";
+			if (getUser())
+			{
+				l_p2p_guard += "[User = " + getUser()->getLastNick() + "] [Hub:" + getHubUrl() + "] [Nick:" + ClientManager::findMyNick(getHubUrl()) + "]";
+			}
 			CFlyServerJSON::pushError(36, "(" + getRemoteIp() + ')' + l_p2p_guard);
 		}
 	}
 	if (l_is_ip_guard)
 	{
 		error(STRING(YOUR_IP_IS_BLOCKED) + l_p2p_guard);
-		getUser()->setFlag(User::PG_BLOCK);
+		if (l_p2p_guard.empty())
+		{
+			getUser()->setFlag(User::PG_IPTRUST_BLOCK);
+		}
+		else
+		{
+			getUser()->setFlag(User::PG_P2PGUARD_BLOCK);
+		}
 		LogManager::message("IPFilter: " + ResourceManager::getString(p_id_string) + " (" + getRemoteIp() + ") " + l_p2p_guard);
 		QueueManager::getInstance()->removeSource(getUser(), QueueItem::Source::FLAG_REMOVED);
 		return true;

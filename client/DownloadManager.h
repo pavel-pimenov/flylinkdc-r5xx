@@ -74,7 +74,7 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 		
 		static int64_t g_runningAverage;//[+] IRainman refactoring transfer mechanism
 		
-		void removeConnection(UserConnection* p_conn);
+		void removeConnection(UserConnection* p_conn, bool p_is_remove_listener = true);
 		static void removeDownload(const DownloadPtr& aDownload);
 		void fileNotAvailable(UserConnection* aSource);
 		void noSlots(UserConnection* aSource, const string& param = Util::emptyString);

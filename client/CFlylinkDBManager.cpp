@@ -1578,26 +1578,29 @@ uint8_t CFlylinkDBManager::get_country_sqlite(uint32_t p_ip, CFlyLocationDesc& p
 //========================================================================================================
 string CFlylinkDBManager::is_p2p_guard(const uint32_t& p_ip)
 {
-	try
+	dcassert(p_ip && p_ip != INADDR_NONE);
+	if (p_ip && p_ip != INADDR_NONE)
 	{
-	
-		m_select_p2p_guard.init(m_flySQLiteDB,
-		                        "select note from "
-		                        "(select note,stop_ip from location_db.fly_p2pguard_ip where start_ip <=? order by start_ip desc limit 1) "
-		                        "where stop_ip >=?");
-		m_select_p2p_guard->bind(1, __int64(p_ip));
-		m_select_p2p_guard->bind(2, __int64(p_ip));
-		sqlite3_reader l_q = m_select_p2p_guard->executereader();
-		if (l_q.read())
+		try
 		{
-			return l_q.getstring(0);
+			m_select_p2p_guard.init(m_flySQLiteDB,
+			                        "select note from "
+			                        "(select note,stop_ip from location_db.fly_p2pguard_ip where start_ip <=? order by start_ip desc limit 1) "
+			                        "where stop_ip >=?");
+			m_select_p2p_guard->bind(1, __int64(p_ip));
+			m_select_p2p_guard->bind(2, __int64(p_ip));
+			sqlite3_reader l_q = m_select_p2p_guard->executereader();
+			if (l_q.read())
+			{
+				return l_q.getstring(0);
+			}
+		}
+		catch (const database_error& e)
+		{
+			errorDB("SQLite - is_p2p_guard: " + e.getError());
 		}
 	}
-	catch (const database_error& e)
-	{
-		errorDB("SQLite - is_p2p_guard: " + e.getError());
-	}
-	return "";
+	return Util::emptyString;
 }
 //========================================================================================================
 void CFlylinkDBManager::save_p2p_guard(const CFlyP2PGuardArray& p_p2p_guard_ip)
@@ -1658,73 +1661,80 @@ void CFlylinkDBManager::save_geoip(const CFlyLocationIPArray& p_geo_ip)
 int CFlylinkDBManager::calc_antivirus_flag(const string& p_nick, const boost::asio::ip::address_v4& p_ip4, int64_t p_share, string& p_virus_path)
 {
 	int l_result = 0;
-	FastLock l(m_virus_cs);
-	if (m_virus_user.find(p_nick) != m_virus_user.end() ||
-	        (p_share && m_virus_share.find(p_share) != m_virus_share.end()) ||
-	        (!p_ip4.is_unspecified() && m_virus_ip4.find(p_ip4.to_ulong()) != m_virus_ip4.end())
-	   )
+	try
 	{
-		if (!p_ip4.is_unspecified())
+		FastLock l(m_virus_cs);
+		if (m_virus_user.find(p_nick) != m_virus_user.end() ||
+		        (p_share && m_virus_share.find(p_share) != m_virus_share.end()) ||
+		        (!p_ip4.is_unspecified() && m_virus_ip4.find(p_ip4.to_ulong()) != m_virus_ip4.end())
+		   )
 		{
-			m_find_virus_nick_and_share_and_ip4.init(m_flySQLiteDB,
-			                                         "select ip4,share,virus_path from antivirus_db.fly_suspect_user where nick=? or share=? or ip4=?"
-			                                        );
-		}
-		if (p_ip4.is_unspecified())
-		{
-			m_find_virus_nick_and_share.init(m_flySQLiteDB,
-			                                 "select ip4,share,virus_path from antivirus_db.fly_suspect_user where nick=? or share=?"
-			                                );
-		}
-		
-		auto l_sql = p_ip4.is_unspecified() ? m_find_virus_nick_and_share.get_sql() : m_find_virus_nick_and_share_and_ip4.get_sql();
-		l_sql->bind(1, p_nick, SQLITE_STATIC);
-		l_sql->bind(2, p_share);
-		if (!p_ip4.is_unspecified())
-		{
-			l_sql->bind(3, __int64(p_ip4.to_ulong()));
-		}
-		sqlite3_reader l_q = l_sql->executereader();
-		p_virus_path.clear();
-		boost::unordered_set<string> l_dup_filter;
-		while (l_q.read())
-		{
-			if (p_ip4 == boost::asio::ip::address_v4((unsigned long)l_q.getint64(0)))
+			if (!p_ip4.is_unspecified())
 			{
-				l_result |= Identity::VT_IP;
+				m_find_virus_nick_and_share_and_ip4.init(m_flySQLiteDB,
+				                                         "select ip4,share,virus_path from antivirus_db.fly_suspect_user where nick=? or share=? or ip4=?"
+				                                        );
 			}
-			if (p_share == l_q.getint64(1))
+			if (p_ip4.is_unspecified())
+			{
+				m_find_virus_nick_and_share.init(m_flySQLiteDB,
+				                                 "select ip4,share,virus_path from antivirus_db.fly_suspect_user where nick=? or share=?"
+				                                );
+			}
+			
+			auto l_sql = p_ip4.is_unspecified() ? m_find_virus_nick_and_share.get_sql() : m_find_virus_nick_and_share_and_ip4.get_sql();
+			l_sql->bind(1, p_nick, SQLITE_STATIC);
+			l_sql->bind(2, p_share);
+			if (!p_ip4.is_unspecified())
+			{
+				l_sql->bind(3, __int64(p_ip4.to_ulong()));
+			}
+			sqlite3_reader l_q = l_sql->executereader();
+			p_virus_path.clear();
+			boost::unordered_set<string> l_dup_filter;
+			while (l_q.read())
+			{
+				if (p_ip4 == boost::asio::ip::address_v4((unsigned long)l_q.getint64(0)))
+				{
+					l_result |= Identity::VT_IP;
+				}
+				if (p_share == l_q.getint64(1))
+				{
+					l_result |= Identity::VT_SHARE;
+				}
+				const auto l_virus_path = l_q.getstring(2);
+				if (!l_virus_path.empty() && l_dup_filter.find(l_virus_path) == l_dup_filter.end())
+				{
+					l_dup_filter.insert(l_virus_path);
+					p_virus_path += " [" + l_virus_path + "]";
+				}
+			}
+		}
+		if ((l_result & Identity::VT_NICK) == 0)
+		{
+			if (m_virus_user.find(p_nick) != m_virus_user.end())
+			{
+				l_result |= Identity::VT_NICK;
+			}
+		}
+		if ((l_result & Identity::VT_SHARE) == 0)
+		{
+			if (m_virus_share.find(p_share) != m_virus_share.end())
 			{
 				l_result |= Identity::VT_SHARE;
 			}
-			const auto l_virus_path = l_q.getstring(2);
-			if (!l_virus_path.empty() && l_dup_filter.find(l_virus_path) == l_dup_filter.end())
+		}
+		if ((l_result & Identity::VT_IP) == 0)
+		{
+			if (m_virus_ip4.find(p_ip4.to_ulong()) != m_virus_ip4.end())
 			{
-				l_dup_filter.insert(l_virus_path);
-				p_virus_path += " [" + l_virus_path + "]";
+				l_result |= Identity::VT_IP;
 			}
 		}
 	}
-	if ((l_result & Identity::VT_NICK) == 0)
+	catch (const database_error& e)
 	{
-		if (m_virus_user.find(p_nick) != m_virus_user.end())
-		{
-			l_result |= Identity::VT_NICK;
-		}
-	}
-	if ((l_result & Identity::VT_SHARE) == 0)
-	{
-		if (m_virus_share.find(p_share) != m_virus_share.end())
-		{
-			l_result |= Identity::VT_SHARE;
-		}
-	}
-	if ((l_result & Identity::VT_IP) == 0)
-	{
-		if (m_virus_ip4.find(p_ip4.to_ulong()) != m_virus_ip4.end())
-		{
-			l_result |= Identity::VT_IP;
-		}
+		errorDB("SQLite - calc_antivirus_flag: " + e.getError());
 	}
 	return l_result;
 }

@@ -84,6 +84,13 @@ int UserInfo::compareItems(const UserInfo* a, const UserInfo* b, int col)
 			return compare(a->getUser()->getMessageCount(), b->getUser()->getMessageCount());
 		}
 #endif
+		case COLUMN_P2P_GUARD:
+		{
+			PROFILE_THREAD_SCOPED_DESC("COLUMN_P2P_GUARD")
+			const_cast<UserInfo*>(a)->calcP2PGuard();
+			const_cast<UserInfo*>(b)->calcP2PGuard();
+			return compare(a->getIdentity().getP2PGuard(), b->getIdentity().getP2PGuard());
+		}
 		case COLUMN_ANTIVIRUS:
 		{
 			PROFILE_THREAD_SCOPED_DESC("COLUMN_ANTIVIRUS")
@@ -152,6 +159,10 @@ tstring UserInfo::getText(int p_col) const
 		case COLUMN_DOWNLOAD:
 		{
 			return getUser()->getDownload();
+		}
+		case COLUMN_P2P_GUARD:
+		{
+			return Text::toT(getIdentity().getP2PGuard());
 		}
 		case COLUMN_ANTIVIRUS:
 		{
@@ -251,7 +262,7 @@ uint8_t UserInfo::getStateImageIndex() const
 {
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 	const auto l_type = getIdentity().m_virus_type;
-	if (l_type & ~Identity::VT_CALC)
+	if (l_type & ~Identity::VT_CALC_AVDB)
 	{
 		if (l_type & Identity::VT_NICK && l_type & Identity::VT_SHARE)
 			return 3;
@@ -266,6 +277,11 @@ uint8_t UserInfo::getStateImageIndex() const
 	}
 #endif
 	return 0;
+}
+
+void UserInfo::calcP2PGuard()
+{
+	getIdentityRW().calcP2PGuard();
 }
 
 void UserInfo::calcVirusType()

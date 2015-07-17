@@ -345,7 +345,7 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 					{
 						COMMAND_DEBUG("[File][FastSkip][Unknown files] " + l_line_item, DebugTask::HUB_IN, getIp() + ':' + Util::toString(getPort()));
 #ifdef _DEBUG
-						LogManager::message("BufferedSocket::all_search_parser Skip unknown File = " + l_item.m_raw_search);
+						// LogManager::message("BufferedSocket::all_search_parser Skip unknown File = " + l_item.m_raw_search);
 #endif
 					}
 					else

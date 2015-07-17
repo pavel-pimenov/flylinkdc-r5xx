@@ -84,7 +84,7 @@ User::~User()
 
 void User::setLastNick(const string& p_nick)
 {
-	dcassert(!p_nick.empty());
+	//dcassert(!p_nick.empty());
 	if (!m_ratio_ptr)
 	{
 		m_nick = p_nick;
@@ -775,27 +775,40 @@ void FavoriteUser::update(const OnlineUser& info) // !SMT!-fix
 	setUrl(info.getClient().getHubUrl());
 }
 
+string Identity::calcP2PGuard()
+{
+	string l_p2p_guard;
+	if (!m_is_p2p_guard_calc)
+	{
+		if (getIp().to_ulong())
+		{
+			l_p2p_guard = CFlylinkDBManager::getInstance()->is_p2p_guard(getIp().to_ulong());
+			setP2PGuard(l_p2p_guard);
+			m_is_p2p_guard_calc = true;
+		}
+	}
+	return l_p2p_guard;
+}
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 unsigned char Identity::calcVirusType()
 {
-	if (!(m_virus_type & Identity::VT_CALC))
+	if (!(m_virus_type & Identity::VT_CALC_AVDB))
 	{
 		unsigned char l_virus_type = 0;
 		string l_virus_path;
 		if (const auto l_bs = getBytesShared())
 		{
-		
 			l_virus_type = CFlylinkDBManager::getInstance()->calc_antivirus_flag(getNick(), getIp(), l_bs, l_virus_path);
 		}
 		setVirusPath(l_virus_path);
-		setVirusType(l_virus_type | Identity::VT_CALC);
+		setVirusType(l_virus_type | Identity::VT_CALC_AVDB);
 	}
 	return getVirusType();
 }
 string Identity::getVirusDesc() const
 {
 	string l_result;
-	if (m_virus_type & ~VT_CALC)
+	if (m_virus_type & ~VT_CALC_AVDB)
 	{
 		if (m_virus_type & VT_NICK)
 		{

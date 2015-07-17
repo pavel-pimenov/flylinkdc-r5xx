@@ -122,10 +122,10 @@ bool IpGuard::check(const string& aIP, string& reason)
 #endif
 	
 	if (m_ipGuardList.checkIp(aIP))
-		return !BOOLSETTING(DEFAULT_POLICY);
+		return !BOOLSETTING(IP_GUARD_IS_DENY_ALL);
 		
 	reason = STRING(IPGUARD_DEFAULT_POLICY);
-	return BOOLSETTING(DEFAULT_POLICY);
+	return BOOLSETTING(IP_GUARD_IS_DENY_ALL);
 }
 
 void IpGuard::check(uint32_t aIP, Socket* socket /*= nullptr*/)
@@ -140,7 +140,7 @@ void IpGuard::check(uint32_t aIP, Socket* socket /*= nullptr*/)
 	
 	if (m_ipGuardList.checkIp(ntohl(aIP)))
 	{
-		if (!BOOLSETTING(DEFAULT_POLICY))
+		if (!BOOLSETTING(IP_GUARD_IS_DENY_ALL))
 		{
 			if (socket != nullptr)
 				socket->disconnect();
@@ -151,7 +151,7 @@ void IpGuard::check(uint32_t aIP, Socket* socket /*= nullptr*/)
 		return;
 	}
 	
-	if (BOOLSETTING(DEFAULT_POLICY))
+	if (BOOLSETTING(IP_GUARD_IS_DENY_ALL))
 	{
 		if (socket != nullptr)
 			socket->disconnect();

@@ -278,7 +278,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		~UploadManager();
 		
 		bool getAutoSlot();
-		void removeConnection(UserConnection* aConn);
+		void removeConnection(UserConnection* aConn, bool p_is_remove_listener = true);
 		static void removeUpload(UploadPtr& aUpload, bool delay = false);
 		void logUpload(const UploadPtr& u);
 		

@@ -109,7 +109,7 @@
 ;Казахстан;Актау;SkySilk;;dc.skycity.kz:4111
 ;Казахстан;Актау;X-COM;;dc.x-com.kz,dayfile.in
 ;Казахстан;Алматы;Altel4g;;piknik-dc.ru,artcool.org,dc.tiera.ru,spb-hub.ru,prime-hub.ru,allavtovo.ru,dc.unionbest.org:4111,dc.mside.net,kcahdep.org,godc.ru,dc.cifracom.ru,dc.dcmagnets.ru,dc.filimania.com,dc.fly-server.ru
-;Казахстан;Алматы;Билайн;;10.21.182.88,qazaq.kz,10.10.0.135,10.16.253.34,kaztorka.org,dc.beetor.org:4111,10.21.182.88:666,dc.torrentsclub.org:411
+;Казахстан;Алматы;Билайн;;10.21.182.88,qazaq.kz,10.10.0.135,10.16.253.34,kaztorka.org,dc.beetor.org:4111,10.21.182.88:666,dc.torrentsclub.org:411,pikabu.ddns.net:411
 ;Казахстан;Астана;Билайн;;10.1.26.15,10.86.147.68
 ;Казахстан;Караганда;ALMATV;;81.88.156.147
 ;Казахстан;Караганда;Билайн;;10.0.172.254,supershare.dyndns.org
@@ -236,7 +236,6 @@
 ;Россия;Витим;Vitim-Telecom;;dc.vitim-telecom.ru
 ;Россия;Вихоревка;ProrokHomeNet;;192.168.10.251
 ;Россия;Владивосток;Билайн;;onbee.net,10.16.7.254,dc.beegohoom.ru,dc2.beegohoom.ru,dc.inetvl.ru:2223,dc.onbee.net,p2p.corbina.net
-;Россия;Владивосток;Владивосток Телеком;;212.16.198.82
 ;Россия;Владивосток;ВладЛинк;;pulsvl.ru:1209,dc.smilehub.ru,kitsum.dyndns-ip.com:415,212.16.197.23:415,dc.l4d-mania.ru:1209,95.154.96.253,109.110.44.44,95.154.98.196,dc.vladlink.lan:4111,dc.vladlink.ru,peers.cn.ru
 ;Россия;Владивосток;Домолинк-Спасск;;172.16.0.12
 ;Россия;Владивосток;Компания Подряд;;hub.podryad.tv,109.110.36.186,10.21.0.7:411,hud.podryad.nv,adc://adc.podryad.tv:411
@@ -437,7 +436,7 @@
 ;Россия;Ковров;Itnet;;dchub.zone.itnet
 ;Россия;Ковров;Tritium;;dc.kovrov.net
 ;Россия;Ковров;Tritiumnet;;dchub://dc.tritiumnet.org,kovrov.net
-;Россия;Ковров;Zone-ITNet;;192.168.250.95,itnet33.ru,dchub.zoneitnet.ru
+;Россия;Ковров;Zone-ITNet;;192.168.250.95,itnet33.ru,dchub.zoneitnet.ru,10.40.2.4
 ;Россия;Ковров;КИСС;;dc.kucc.ru
 ;Россия;Кодинск;ИТ Телеком;;192.168.110.2,172.17.16.16
 ;Россия;Коломна;ИНКО;;62.182.51.210,portal.inkotel.ru
@@ -526,7 +525,7 @@
 ;Россия;Курск;КурскНет;;zlodeev-xa6.no-ip.org
 ;Россия;Курск;КурскОнлайн;;dc.r46.ru,dc-hub.aksinet.net,192.168.100.150
 ;Россия;Курск;МТС;;dc.tvkursk.ru:4111
-;Россия;Курск;Ростелеком;;ozerki.org
+;Россия;Курск;Ростелеком;;ozerki.org,46dc.ru
 ;Россия;Курск;Свое;;torrent.dc.svoyo,game.dc.svoyo,satana.svoyo,176.77.95.68,kraven.dc.svoyo,176.77.83.114,fly8r.svoyo.ru
 ;Россия;Курчатов;Пилот;;Dc.kurchatov.net
 ;Россия;Курчатов;ТВКиК;;radius.kurchatov.net
@@ -1099,7 +1098,7 @@
 ;Россия;Ханты-Мансийск;ЮГУ;;sg.ugrasu.ru,dchub://217.115.185.197
 ;Россия;Химки;Smile-Net;;dc.sovserv.ru:411
 ;Россия;Химки;Telincom;;172.30.37.131
-;Россия;Холмск;ТТК;;192.168.1.100
+;Россия;Холмск;ТТК;;192.168.1.100,SakhHub.ru
 ;Россия;Чебаркуль;UIC_Metronet;;dc.chebarkul74.ru:4111
 ;Россия;Чебаркуль;ТВКом;;10.40.40.11
 ;Россия;Чебоксары;Etherway;;Etherway.ru,ew.hub21.ru:10004,dc-lan.hub21.ru:411,dc.etherway.ru:411,adcs://ew.hub21.ru:6850
@@ -1114,7 +1113,7 @@
 ;Россия;Челябинск;CSU;;10.0.37.254,10.0.36.254
 ;Россия;Челябинск;InterZet;;dc.zet,dreamshub.zet,dc812.zet
 ;Россия;Челябинск;Interzet Chelyabinsk;;dc8202.zet,dc4852.zet,dc.interzet.ru,dc.zet:411,dc8162.zet
-;Россия;Челябинск;Вайлокс;;192.168.3.110,hub.vailoks.ru,192.168.3.78,dc.vailoks.ru
+;Россия;Челябинск;Вайлокс;;dc.vailoks.ru
 ;Россия;Челябинск;Интерсвязь;;core-services.ddns.is74.ru,freesoft.sytes.net,pe4nka.ddns.is74.ru,yandex.ddns.is74.ru,gek.ddns.is74.ru:,skynet.ddns.is74.ru,vs.ddns.is74.ru,win.ddns.is74.ru,anomalia.ddns.is74.ru,mysuperhub74.ru,jurrus.zapto.org:411,intdamien.ddns.net
 ;Россия;Челябинск;ИП Савочкин Денис;;10.174.0.2
 ;Россия;Челябинск;Мультинекс;;dc.miass.multinex.ru:4111
@@ -1199,6 +1198,7 @@
 ;Узбекистан;Ташкент;ParadoxHuB;;10.0.9.98:1220,md-paradox.no-ip.info:1220
 ;Узбекистан;Ташкент;Sarkor;;hub-extreme.myftp.org:1220,vip-hub.tk
 ;Узбекистан;Ташкент;Sharq Telecom;;83.221.188.241,dc.stream.uz,hub.stream.uz,hub.hi.uz,hib.thegame.uz
+;Узбекистан;Ташкент;Sharq telekom;;niitruda.uz
 ;Узбекистан;Ташкент;Sky-Net;;172.7.99.3
 ;Узбекистан;Ташкент;TAS-IX;;hub.tas-ix.net
 ;Узбекистан;Ташкент;TheGame-Uz;;hub.thegame.uz

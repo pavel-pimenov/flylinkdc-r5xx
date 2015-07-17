@@ -218,6 +218,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 #endif
 			COLUMN_SHARE, //[+]PPA
 			COLUMN_SLOTS, //[+]PPA
+			COLUMN_P2P_GUARD,
 			COLUMN_LAST
 		};
 		
@@ -273,6 +274,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				ItemInfo* parent;
 				HintedUser m_hintedUser; // [!] IRainman fix.
 				tstring m_antivirus_text;
+				tstring m_p2p_guard_text;
 				Status m_status;
 				bool m_is_force_passive;
 				Transfer::Type m_type;
@@ -282,7 +284,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				int64_t m_actual;
 				int64_t m_speed;
 				int64_t m_timeLeft;
-				tstring m_ip;
+				tstring m_transfer_ip;
 				tstring m_statusString;
 				tstring m_cipher;
 				tstring m_target;

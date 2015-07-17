@@ -1415,11 +1415,34 @@ LRESULT ChatCtrl::onCopyURL(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/
 	return 0;
 }
 #ifdef IRAINMAN_ENABLE_WHOIS
-LRESULT ChatCtrl::onWhoisIP(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+LRESULT ChatCtrl::onWhoisIP(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	if (!g_sSelectedIP.empty())
 	{
-		WinUtil::openLink(_T("http://www.ripe.net/perl/whois?form_type=simple&full_query_string=&searchtext=") + g_sSelectedIP);// TODO унести в settings.
+		tstring m_link;
+		switch (wID)
+		{
+			case IDC_WHOIS_IP:
+				m_link = _T("http://www.ripe.net/perl/whois?form_type=simple&full_query_string=&searchtext=") + g_sSelectedIP;
+				break;
+			case IDC_WHOIS_IP2:
+				m_link = _T("http://bgp.he.net/ip/") + g_sSelectedIP + _T("#_whois") ;
+				break;
+		}
+		if (!m_link.empty())
+			WinUtil::openLink(m_link);
+	}
+	return 0;
+}
+LRESULT ChatCtrl::onWhoisURL(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	if (!g_sSelectedURL.empty())
+	{
+		uint16_t port;
+		string proto, host, file, query, fragment;
+		Util::decodeUrl(Text::fromT(g_sSelectedURL), proto, host, port, file, query, fragment);
+		if (!host.empty())
+			WinUtil::openLink(_T("http://bgp.he.net/dns/") + Text::toT(host) + _T("#_website"));
 	}
 	return 0;
 }

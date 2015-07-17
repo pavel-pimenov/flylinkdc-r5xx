@@ -152,7 +152,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		void updateNick_internal(const UserPtr& user, const string& nick) noexcept; // [+] IRainman fix.
 	public:
 #endif
-		const string& getMyNick(const string& hubUrl) const; // [!] IRainman opt.
+		static const string& findMyNick(const string& hubUrl); // [!] IRainman opt.
 		
 		// [+] brain-ripper
 		// [+] IRainman fix.

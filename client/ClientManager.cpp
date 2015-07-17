@@ -816,7 +816,7 @@ void ClientManager::userCommand(const HintedUser& hintedUser, const UserCommand&
 	if (!ou || ou->isDHT())
 		return;
 		
-	auto& l_ñlient = ou->getClient(); 
+	auto& l_ñlient = ou->getClient();
 	const string& opChat = l_ñlient.getOpChat();
 	if (opChat.find('*') == string::npos && opChat.find('?') == string::npos)
 		params["opchat"] = opChat;
@@ -1156,7 +1156,7 @@ void ClientManager::updateNick_internal(const UserPtr& p_user, const string& p_n
 }
 #endif // IRAINMAN_USE_NICKS_IN_CM
 
-const string& ClientManager::getMyNick(const string& hubUrl) const // [!] IRainman opt.
+const string& ClientManager::findMyNick(const string& hubUrl)
 {
 #ifdef IRAINMAN_CORRRECT_CALL_FOR_CLIENT_MANAGER_DEBUG
 	dcassert(!hubUrl.empty());

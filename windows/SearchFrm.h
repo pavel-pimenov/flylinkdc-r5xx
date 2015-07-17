@@ -463,6 +463,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			COLUMN_DNS, // !SMT!-IP
 #endif
 			COLUMN_TTH,
+			COLUMN_P2P_GUARD,
 			COLUMN_LAST
 		};
 		
