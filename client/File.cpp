@@ -23,6 +23,7 @@
 #include "FilteredFile.h"
 #include "BZUtils.h"
 #include "../FlyFeatures/flyServer.h"
+#include "ClientManager.h"
 #endif
 
 #include "CompatibilityManager.h" // [+] IRainman
@@ -256,7 +257,7 @@ void File::setEOF()
 
 size_t File::flush()
 {
-	if (isOpen())
+	if (isOpen() && !ClientManager::isShutdown())
 	{
 		//static int g_count = 0;
 		//LogManager::message("File::flush() count = " + Util::toString(++g_count));
@@ -267,8 +268,11 @@ size_t File::flush()
 			string l_error = Util::translateError();
 			l_error = "File::flush() error = " + l_error;
 			LogManager::message(l_error);
-			CFlyServerJSON::pushError(33, l_error);
-			throw FileException(Util::translateError());
+			if (!ClientManager::isShutdown()) // fix https://drdump.com/Bug.aspx?ProblemID=135087
+			{
+				CFlyServerJSON::pushError(33, l_error);
+				throw FileException(Util::translateError());
+			}
 		}
 	}
 	return 0;

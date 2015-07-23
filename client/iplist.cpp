@@ -294,16 +294,6 @@ void IPList::addData(const std::string& Data, CFlyLog& p_log)
 		}
 	}
 }
-
-bool IPList::checkIp(const std::string& ipNumber)
-{
-	const UINT32 ip = Socket::convertIP4(ipNumber);
-	if (ip != INADDR_NONE && ip != 0)
-		return checkIp(ip);
-		
-	return false;
-}
-
 bool IPList::checkIp(UINT32 ip)
 {
 	bool found = false;

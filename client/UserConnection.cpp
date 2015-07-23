@@ -24,6 +24,7 @@
 #include "ConnectionManager.h"
 #include "QueueManager.h"
 #include "PGLoader.h"
+#include "IpGuard.h"
 #include "../FlyFeatures/flyServer.h"
 const string UserConnection::FEATURE_MINISLOTS = "MiniSlots";
 const string UserConnection::FEATURE_XML_BZLIST = "XmlBZList";
@@ -73,8 +74,16 @@ UserConnection::~UserConnection()
 }
 bool UserConnection::isIPGuard(ResourceManager::Strings p_id_string, bool p_is_download_connection)
 {
+	uint32_t l_ip4;
+	if (IpGuard::is_block_ip(getRemoteIp(), l_ip4))
+	{
+		getUser()->setFlag(User::PG_P2PGUARD_BLOCK);
+		QueueManager::getInstance()->removeSource(getUser(), QueueItem::Source::FLAG_REMOVED);
+		return true;
+	}
+	bool l_is_ip_guard = false;
 #ifdef PPA_INCLUDE_IPFILTER
-	auto l_is_ip_guard = PGLoader::getInstance()->check(getRemoteIp());
+	l_is_ip_guard = PGLoader::getInstance()->check(l_ip4);
 	string l_p2p_guard;
 	if (
 #ifndef FLYLINKDC_BETA  // TODO - возможно оставить и совсем
@@ -82,19 +91,19 @@ bool UserConnection::isIPGuard(ResourceManager::Strings p_id_string, bool p_is_d
 #endif
 	    p_is_download_connection == false)
 	{
-		l_p2p_guard = CFlylinkDBManager::getInstance()->is_p2p_guard(Socket::convertIP4(getRemoteIp()));
+		l_p2p_guard = CFlylinkDBManager::getInstance()->is_p2p_guard(l_ip4);
 		if (!l_p2p_guard.empty())
 		{
 			if (BOOLSETTING(ENABLE_P2P_GUARD))
 			{
 				l_is_ip_guard = true;
+				l_p2p_guard = " [P2PGuard] " + l_p2p_guard + " [http://emule-security.org]";
+				if (getUser())
+				{
+					l_p2p_guard += "[User = " + getUser()->getLastNick() + "] [Hub:" + getHubUrl() + "] [Nick:" + ClientManager::findMyNick(getHubUrl()) + "]";
+				}
+				CFlyServerJSON::pushError(38, "(" + getRemoteIp() + ')' + l_p2p_guard);
 			}
-			l_p2p_guard = " [P2PGuard] " + l_p2p_guard + " [http://emule-security.org]";
-			if (getUser())
-			{
-				l_p2p_guard += "[User = " + getUser()->getLastNick() + "] [Hub:" + getHubUrl() + "] [Nick:" + ClientManager::findMyNick(getHubUrl()) + "]";
-			}
-			CFlyServerJSON::pushError(36, "(" + getRemoteIp() + ')' + l_p2p_guard);
 		}
 	}
 	if (l_is_ip_guard)
@@ -225,7 +234,18 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 	else if (cmd == "Key")
 	{
 		if (!param.empty())
-			fire(UserConnectionListener::Key(), this, param);
+		{
+			const string l_ip = getRemoteIp();
+			uint32_t l_ip4;
+			if (!IpGuard::is_block_ip(l_ip, l_ip4))
+			{
+				fire(UserConnectionListener::Key(), this, param);
+			}
+			else
+			{
+				dcdebug("Block IP %s", l_ip.c_str());
+			}
+		}
 	}
 	else if (cmd == "Lock")
 	{

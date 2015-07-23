@@ -626,7 +626,7 @@ LRESULT DirectoryListingFrame::onOpenFile(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 	int i = -1;
 	while ((i = ctrlList.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
-		ItemInfo* ii = (ItemInfo*)ctrlList.GetItemData(i);
+		const ItemInfo* ii = ctrlList.getItemData(i);
 		// !necros!
 		const string rp = ShareManager::toRealPath(ii->file->getTTH());
 		if (!rp.empty())
@@ -682,7 +682,7 @@ LRESULT DirectoryListingFrame::onDoubleClickFiles(int /*idCtrl*/, LPNMHDR pnmh, 
 	const HTREEITEM t = ctrlTree.GetSelectedItem();
 	if (t != NULL && item->iItem != -1)
 	{
-		const ItemInfo* ii = (ItemInfo*) ctrlList.GetItemData(item->iItem);
+		const ItemInfo* ii = ctrlList.getItemData(item->iItem);
 		if (ii->type == ItemInfo::FILE)
 		{
 			// !necros!
@@ -815,7 +815,7 @@ void DirectoryListingFrame::downloadList(const tstring& aTarget, bool view /* = 
 	int i = -1;
 	while ((i = ctrlList.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
-		ItemInfo* ii = (ItemInfo*)ctrlList.GetItemData(i);
+		const ItemInfo* ii = ctrlList.getItemData(i);
 		
 		const tstring& target = aTarget.empty() ? Text::toT(FavoriteManager::getInstance()->getDownloadDirectory(Text::fromT(Util::getFileExt(ii->getText(COLUMN_FILENAME))))) : aTarget;
 		
@@ -885,7 +885,7 @@ LRESULT DirectoryListingFrame::onDownloadTo(WORD /*wNotifyCode*/, WORD /*wID*/, 
 {
 	if (ctrlList.GetSelectedCount() == 1)
 	{
-		ItemInfo* ii = (ItemInfo*)ctrlList.GetItemData(ctrlList.GetNextItem(-1, LVNI_SELECTED));
+		const ItemInfo* ii = ctrlList.getItemData(ctrlList.GetNextItem(-1, LVNI_SELECTED));
 		
 		try
 		{
@@ -939,7 +939,7 @@ LRESULT DirectoryListingFrame::onGetTTHMediainfoServer(WORD /*wNotifyCode*/, WOR
 	CFlyServerKeyArray l_array;
 	while ((i = ctrlList.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
-		ItemInfo* pItemInfo = reinterpret_cast<ItemInfo*>(ctrlList.GetItemData(i));
+		const ItemInfo* pItemInfo = ctrlList.getItemData(i);
 		if (pItemInfo->type == ItemInfo::FILE)
 		{
 			const DirectoryListing::File* pFile = pItemInfo->file;
@@ -960,7 +960,7 @@ LRESULT DirectoryListingFrame::onSetTTHMediainfoServer(WORD /*wNotifyCode*/, WOR
 	CFlyServerKeyArray l_array;
 	while ((i = ctrlList.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
-		ItemInfo* pItemInfo = reinterpret_cast<ItemInfo*>(ctrlList.GetItemData(i));
+		const ItemInfo* pItemInfo = ctrlList.getItemData(i);
 		if (pItemInfo->type == ItemInfo::FILE)
 		{
 			const DirectoryListing::File* pFile = pItemInfo->file;
@@ -1008,7 +1008,7 @@ LRESULT DirectoryListingFrame::onMarkAsDownloaded(WORD /*wNotifyCode*/, WORD /*w
 	
 	while ((i = ctrlList.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
-		ItemInfo* pItemInfo = reinterpret_cast<ItemInfo*>(ctrlList.GetItemData(i));
+		ItemInfo* pItemInfo = ctrlList.getItemData(i);
 		if (pItemInfo->type == ItemInfo::FILE)
 		{
 			DirectoryListing::File* pFile = pItemInfo->file;
@@ -1076,7 +1076,7 @@ LRESULT DirectoryListingFrame::onGoToDirectory(WORD /*wNotifyCode*/, WORD /*wID*
 		return 0;
 		
 	tstring fullPath;
-	ItemInfo* ii = (ItemInfo*)ctrlList.GetItemData(ctrlList.GetNextItem(-1, LVNI_SELECTED));
+	const ItemInfo* ii = ctrlList.getItemData(ctrlList.GetNextItem(-1, LVNI_SELECTED));
 	if (ii->type == ItemInfo::FILE)
 	{
 		if (!ii->file->getAdls())
@@ -1191,7 +1191,7 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 			WinUtil::getContextMenuPos(ctrlList, pt);
 		}
 		
-		ItemInfo* ii = (ItemInfo*)ctrlList.GetItemData(ctrlList.GetNextItem(-1, LVNI_SELECTED));
+		const ItemInfo* ii = ctrlList.getItemData(ctrlList.GetNextItem(-1, LVNI_SELECTED));
 		
 		while (targetMenu.GetMenuItemCount() > 0)
 		{
@@ -1415,7 +1415,7 @@ LRESULT DirectoryListingFrame::onDownloadTarget(WORD /*wNotifyCode*/, WORD wID, 
 	
 	if (ctrlList.GetSelectedCount() == 1)
 	{
-		ItemInfo* ii = (ItemInfo*)ctrlList.GetItemData(ctrlList.GetNextItem(-1, LVNI_SELECTED));
+		const ItemInfo* ii = ctrlList.getItemData(ctrlList.GetNextItem(-1, LVNI_SELECTED));
 		
 		if (ii->type == ItemInfo::FILE)
 		{
@@ -1481,7 +1481,7 @@ LRESULT DirectoryListingFrame::onDownloadFavoriteDirs(WORD /*wNotifyCode*/, WORD
 	const auto& spl = lockedInstance.getFavoriteDirsL();
 	if (ctrlList.GetSelectedCount() == 1)
 	{
-		ItemInfo* ii = (ItemInfo*)ctrlList.GetItemData(ctrlList.GetNextItem(-1, LVNI_SELECTED));
+		const ItemInfo* ii = ctrlList.getItemData(ctrlList.GetNextItem(-1, LVNI_SELECTED));
 		
 		if (ii->type == ItemInfo::FILE)
 		{
@@ -1563,7 +1563,7 @@ LRESULT DirectoryListingFrame::onKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*b
 	{
 		if (ctrlList.GetSelectedCount() == 1)
 		{
-			ItemInfo* ii = (ItemInfo*)ctrlList.GetItemData(ctrlList.GetNextItem(-1, LVNI_SELECTED));
+			const ItemInfo* ii = ctrlList.getItemData(ctrlList.GetNextItem(-1, LVNI_SELECTED));
 			if (ii->type == ItemInfo::DIRECTORY)
 			{
 				HTREEITEM ht = ctrlTree.GetChildItem(ctrlTree.GetSelectedItem());
@@ -1653,7 +1653,7 @@ HTREEITEM DirectoryListingFrame::findFile(const StringSearch& str, HTREEITEM roo
 	// Check file names in list pane
 	for (int i = 0; i < ctrlList.GetItemCount(); i++)
 	{
-		const ItemInfo* ii = (ItemInfo*)ctrlList.GetItemData(i);
+		const ItemInfo* ii = ctrlList.getItemData(i);
 		if (ii->type == ItemInfo::FILE)
 		{
 			if (str.match(ii->file->getName()))
@@ -2143,7 +2143,7 @@ LRESULT DirectoryListingFrame::onGenerateDCLST(WORD /*wNotifyCode*/, WORD wID, H
 		int i = -1;
 		while ((i = ctrlList.GetNextItem(i, LVNI_SELECTED)) != -1)
 		{
-			ItemInfo* ii = (ItemInfo*)ctrlList.GetItemData(i);
+			const ItemInfo* ii = ctrlList.getItemData(i);
 			if (ii->type == ItemInfo::DIRECTORY)
 			{
 				dir = ii->dir;

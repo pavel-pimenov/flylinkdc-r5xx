@@ -64,18 +64,14 @@ bool Utils::isGoodIPPort(const string& ip, uint16_t port)
 	if (Util::isPrivateIp(ip))
 		return false;
 		
-#ifdef PPA_INCLUDE_IPGUARD
 	// [+] SSA - http://code.google.com/p/flylinkdc/issues/detail?id=254 Блокировать входящие соединения через DHT из заблокированного IPGuard-ом диапазона адресов.
-	if (BOOLSETTING(ENABLE_IPGUARD))
-	{
-		string reason;
-		if (IpGuard::getInstance()->check(ip, reason))
+		string l_reason;
+		if (IpGuard::getInstance()->check_ip_str(ip, l_reason))
 		{
-			LogManager::message("DHT (" + ip + "): IPGuard: " + reason);
+			LogManager::message("DHT (" + ip + "): IPGuard: " + l_reason);
 			return false;
 		}
-	}
-#endif
+	
 	return true;
 }
 

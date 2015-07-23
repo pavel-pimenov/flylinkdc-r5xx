@@ -112,10 +112,8 @@ uint16_t Socket::accept(const Socket& listeningSocket)
 	}
 	while (m_sock == SOCKET_ERROR && getLastError() == EINTR);
 	check(m_sock);
-#ifdef PPA_INCLUDE_IPGUARD
-	if (BOOLSETTING(ENABLE_IPGUARD))
-		IpGuard::getInstance()->check(sock_addr.sin_addr.s_addr, this);
-#endif
+	const string l_remote_ip = inet_ntoa(sock_addr.sin_addr);
+	IpGuard::getInstance()->check_ip_str(l_remote_ip, this);
 #ifdef _WIN32
 	// Make sure we disable any inherited windows message things for this socket.
 	::WSAAsyncSelect(m_sock, NULL, 0, 0);
@@ -124,7 +122,7 @@ uint16_t Socket::accept(const Socket& listeningSocket)
 	m_type = TYPE_TCP;
 	
 	// remote IP
-	setIp(inet_ntoa(sock_addr.sin_addr));
+	setIp(l_remote_ip);
 	connected = true;
 	setBlocking(false);
 	
@@ -181,18 +179,17 @@ void Socket::connect(const string& aAddr, uint16_t aPort)
 		create(TYPE_TCP);
 	}
 	
-	string addr = resolve(aAddr);
+	const string l_addr = resolve(aAddr);
 	
 	memzero(&serv_addr, sizeof(serv_addr));
 	serv_addr.sin_port = htons(aPort);
 	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_addr.s_addr = inet_addr(addr.c_str());
-#ifdef PPA_INCLUDE_IPGUARD
-	if (BOOLSETTING(ENABLE_IPGUARD))
+	serv_addr.sin_addr.s_addr = inet_addr(l_addr.c_str());
+	string l_reason;
+	if (IpGuard::getInstance()->check_ip_str(l_addr, l_reason))
 	{
-		IpGuard::getInstance()->check(serv_addr.sin_addr.s_addr);
+		throw SocketException(STRING(IPGUARD_BLOCK_LIST) + ": (" + aAddr + ") :" + l_reason);
 	}
-#endif
 	int result;
 	do
 	{
@@ -202,7 +199,7 @@ void Socket::connect(const string& aAddr, uint16_t aPort)
 	check(result, true);
 	
 	connected = true;
-	setIp(addr);
+	setIp(l_addr);
 	setPort(aPort);
 }
 
@@ -224,12 +221,11 @@ void Socket::socksConnect(const string& aAddr, uint16_t aPort, uint64_t timeout)
 	{
 		throw SocketException(STRING(SOCKS_FAILED));
 	}
-#ifdef PPA_INCLUDE_IPGUARD
-	if (BOOLSETTING(ENABLE_IPGUARD))
+	string l_reason;
+	if (IpGuard::getInstance()->check_ip_str(resolve(aAddr), l_reason))
 	{
-		IpGuard::getInstance()->check(inet_addr(resolve(aAddr).c_str()));
+		throw SocketException(STRING(IPGUARD_BLOCK_LIST) + ": (" + aAddr + ") :" + l_reason);
 	}
-#endif
 	
 	uint64_t start = GET_TICK();
 	

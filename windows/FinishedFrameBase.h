@@ -563,14 +563,19 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				}
 				
 				bool bShellMenuShown = false;
-				if (BOOLSETTING(SHOW_SHELL_MENU) && (ctrlList.GetSelectedCount() == 1))
+				if ( BOOLSETTING(SHOW_SHELL_MENU) && 
+					ctrlList.GetSelectedCount() == 1)
 				{
-					const string path = ((FinishedItem*)ctrlList.GetItemData(ctrlList.GetSelectedIndex()))->getTarget();
+					const auto l_index = ctrlList.GetSelectedIndex();
+					const auto* l_item_data = ctrlList.getItemData(l_index);
+					if (l_item_data && l_item_data->m_entry)
+					{
+					const string path = l_item_data->m_entry->getTarget();
 					if (File::isExist(path))
 					{
 						CShellContextMenu shellMenu;
 						shellMenu.SetPath(Text::toT(path));
-						
+
 						CMenu* pShellMenu = shellMenu.GetMenu();
 #ifdef FLYLINKDC_USE_VIEW_AS_TEXT_OPTION
 						pShellMenu->AppendMenu(MF_STRING, IDC_VIEW_AS_TEXT, CTSTRING(VIEW_AS_TEXT));
@@ -580,13 +585,14 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 						pShellMenu->AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(REMOVE));
 						pShellMenu->AppendMenu(MF_STRING, IDC_TOTAL, CTSTRING(REMOVE_ALL));
 						pShellMenu->AppendMenu(MF_SEPARATOR);
-						
+
 						UINT idCommand = shellMenu.ShowContextMenu(m_hWnd, pt);
 						if (idCommand != 0)
 							PostMessage(WM_COMMAND, idCommand);
-							
+
 						bShellMenuShown = true;
 					}
+				 }
 				}
 				
 				if (!bShellMenuShown)

@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "Resource.h"
 #include "RangesPage.h"
-#ifdef PPA_INCLUDE_IPGUARD
 
 #include "../client/SettingsManager.h"
 #include "../client/IpGuard.h"
@@ -160,4 +159,3 @@ void RangesPage::fixControls()
 	::EnableWindow(GetDlgItem(IDC_FLYLINK_GUARD_IP), state);
 }
 
-#endif // PPA_INCLUDE_IPGUARD

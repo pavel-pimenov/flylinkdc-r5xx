@@ -7,8 +7,6 @@
 #include "PropPage.h"
 #include "ExListViewCtrl.h"
 
-#ifdef PPA_INCLUDE_IPGUARD
-
 class RangesPage : public CPropertyPage<IDD_RANGES_PAGE>, public PropPage
 {
 	public:
@@ -79,17 +77,5 @@ class RangesPage : public CPropertyPage<IDD_RANGES_PAGE>, public PropPage
 		string m_IPFilterPATH;
 		bool m_isEnabledIPGuard;
 };
-
-#else
-
-class RangesPage : public EmptyPage
-{
-	public:
-		RangesPage(SettingsManager *s) : EmptyPage(s,  TSTRING(IPGUARD))
-		{
-		}
-};
-
-#endif
 
 #endif // RANGES_PAGE_H

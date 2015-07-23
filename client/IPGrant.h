@@ -40,7 +40,7 @@ class IpGrant : public Singleton<IpGrant>, private SettingsManagerListener
 			SettingsManager::getInstance()->removeListener(this);
 		}
 		
-		bool check(const std::string& aIP);
+		bool check(uint32_t p_ip4);
 		void load();
 		void clear()
 		{

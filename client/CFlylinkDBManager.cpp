@@ -1578,6 +1578,7 @@ uint8_t CFlylinkDBManager::get_country_sqlite(uint32_t p_ip, CFlyLocationDesc& p
 //========================================================================================================
 string CFlylinkDBManager::is_p2p_guard(const uint32_t& p_ip)
 {
+	Lock l(m_cs); // Пока падает...
 	dcassert(p_ip && p_ip != INADDR_NONE);
 	if (p_ip && p_ip != INADDR_NONE)
 	{
@@ -2597,7 +2598,7 @@ void CFlylinkDBManager::merge_queue_all_items(std::vector<QueueItemPtr>& p_Queue
 	try
 	{
 		Lock l(m_cs);
-		sqlite3_transaction l_trans(m_flySQLiteDB);
+		sqlite3_transaction l_trans(m_flySQLiteDB, !p_QueueItemArray.empty());
 		for (auto i = p_QueueItemArray.begin(); i != p_QueueItemArray.end(); ++i)
 		{
 			if (merge_queue_itemL(*i))

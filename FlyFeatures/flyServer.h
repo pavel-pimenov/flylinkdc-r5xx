@@ -24,6 +24,7 @@
 #include <string>
 
 #include <boost/atomic.hpp>
+#include <boost/asio/ip/address_v4.hpp>
 
 #include "../client/CFlyThread.h"
 #include "../client/CFlyMediaInfo.h"
@@ -234,9 +235,11 @@ public:
   static string   g_support_hub;
 #endif // USE_SUPPORT_HUB
   static std::vector<std::string> g_mapping_hubs;
+  //static std::unordered_set<unsigned long> g_block_ip;
+  static std::unordered_set<std::string> g_block_ip_str;
   static std::unordered_set<std::string> g_block_hubs;
-  static string   g_regex_find_ip;
-  static string   g_faq_search_does_not_work;
+  static string g_regex_find_ip;
+  static string g_faq_search_does_not_work;
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
   static string   g_antivirus_db_url;
 #endif

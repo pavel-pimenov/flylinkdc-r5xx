@@ -121,9 +121,7 @@ void Util::MoveSettings()
 #ifdef SSA_IPGRANT_FEATURE
 		"IPGrant.ini",
 #endif
-#ifdef PPA_INCLUDE_IPGUARD
 		"IPGuard.ini",
-#endif
 	};
 	const string bkpath = g_paths[PATH_USER_CONFIG];
 	const string& sourcepath = g_paths[PATH_EXE] + "Settings" PATH_SEPARATOR_STR;
@@ -2755,9 +2753,7 @@ void Util::BackupSettings()
 #ifdef SSA_IPGRANT_FEATURE
 		"IPGrant.ini",
 #endif
-#ifdef PPA_INCLUDE_IPGUARD
 		"IPGuard.ini"
-#endif
 	};
 	
 	const string bkpath = formatTime(getConfigPath() + "BackUp\\%Y-%m-%d\\", time(NULL));

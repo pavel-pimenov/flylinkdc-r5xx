@@ -49,7 +49,7 @@ int syslog (int pri, const char *fmt, ...)
   va_start (args, fmt);
   rc = vsyslog (pri, fmt, args);
   va_end (args);
-  return (rc);
+  return rc;
 }
 
 int vsyslog (int pri, const char *fmt, va_list ap)
@@ -67,7 +67,7 @@ int vsyslog (int pri, const char *fmt, va_list ap)
    * Note: higher priorities are lower values !!
    */
   if (LOG_PRI(pri) > LOG_PRI(logMask))
-     return (rc);
+     return rc;
 
   /* Set default facility if none specified
    */
@@ -147,7 +147,7 @@ int vsyslog (int pri, const char *fmt, va_list ap)
     }
   }
 
-  return (rc);
+  return rc;
 }
 
 static char *rip (char *s)
@@ -175,7 +175,7 @@ static BOOL sock_init (void)
   struct  servent *se;
 
   if (done)
-     return (rc);
+     return rc;
 
   done = 1;
 
@@ -185,7 +185,7 @@ static BOOL sock_init (void)
     if (!he)
     {
       _snprintf (err_buf, sizeof(err_buf), "Failed to get local IP-address");
-      return (rc);
+      return rc;
     }
     my_ip_addr = *(DWORD*)he->h_addr;
   }
@@ -204,7 +204,7 @@ static BOOL sock_init (void)
     else net_mask = INADDR_NONE;   /* point-to-point */
   }
   rc = TRUE;
-  return (rc);
+  return rc;
 }
 
 /*
@@ -264,7 +264,7 @@ _SendArp SendARP;
   }
   if (!rc)
      _snprintf (err_buf, sizeof(err_buf), "Host not reachable by ARP-request");
-  return (rc);
+  return rc;
 }
 
 static BOOL get_netmask (DWORD *mask)
@@ -288,7 +288,7 @@ static BOOL get_netmask (DWORD *mask)
   }
   if (!rc)
      _snprintf (err_buf, sizeof(err_buf), "Failed to get netmask");
-  return (rc);
+  return rc;
 }
 
 /* 
@@ -369,15 +369,15 @@ int openlog (const char *ident, int options, int logfac)
      logHostName = strdup ("127.0.0.1");
 
   if (!logHostName || !strcmp(logHostName,"0.0.0.0")) /* user didn't want logging to daemon */
-     return (rc);  
+     return rc;  
 
   rc = openloghost (logHostName);
   if (rc >= 0)
   {
-    rc  = syslog (LOG_INFO | LOG_INFO, "Syslog client at %I started. Logging to host %s (%I)", my_ip_addr,logHostName, logHostAddr);
+    // rc  = syslog (LOG_INFO | LOG_INFO, "Syslog client at %I started. Logging to host %s (%I)", my_ip_addr,logHostName, logHostAddr);
     atexit ((void (*)(void))closelog);
   }
-  return (rc);
+  return rc;
 }
 
 int closelog (void)
@@ -385,7 +385,7 @@ int closelog (void)
   if (logSock != INVALID_SOCKET)
      closesocket (logSock);
   if (logHostName)
-     free ((void*)logHostName);
+     free (logHostName);
 
   logSock     = INVALID_SOCKET;
   logHostName = NULL;

@@ -513,7 +513,7 @@ BOOL IDNA_convert_from_ACE (
   rc = TRUE;
 
 quit:
-  return (rc);
+  return rc;
 }
 
 /*

@@ -30,6 +30,14 @@
 
 namespace sqlite3x {
 
+sqlite3_transaction::sqlite3_transaction(sqlite3_connection &con, bool start /*= true*/) : con(con), intrans(false) 
+{
+		if (start)
+		{
+			begin();
+		}
+}
+
 sqlite3_transaction::~sqlite3_transaction() {
 	if(intrans) {
 		try {

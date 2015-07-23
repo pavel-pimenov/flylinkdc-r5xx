@@ -20,6 +20,7 @@
 #include "stdinc.h"
 #include "SharedFileStream.h"
 #include "LogManager.h"
+#include "ClientManager.h"
 #include "../FlyFeatures/flyServer.h"
 
 FastCriticalSection SharedFileStream::g_cs;
@@ -189,15 +190,19 @@ void SharedFileStream::setSize(int64_t newSize)
 
 size_t SharedFileStream::flush()
 {
-	try
-	{
-		FastLock l(m_sfh->m_cs);
-		return m_sfh->m_file.flush(); // https://drdump.com/Problem.aspx?ProblemID=130529
-	}
-	catch (const Exception& e)
-	{
-		dcassert(0);
-		LogManager::message("SharedFileStream::flush() = " + e.getError());
+	if (!ClientManager::isShutdown()) // fix https://drdump.com/Problem.aspx?ProblemID=130529 
+	// при закрытии файлов - буфера и так скидываются на винты.
+	{ 
+		try
+		{
+			FastLock l(m_sfh->m_cs);
+			return m_sfh->m_file.flush(); 
+		}
+		catch (const Exception& e)
+		{
+			dcassert(0);
+			LogManager::message("SharedFileStream::flush() = " + e.getError());
+		}
 	}
 	return 0;
 }

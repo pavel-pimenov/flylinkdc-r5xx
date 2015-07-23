@@ -18,8 +18,6 @@
 #ifndef IPGUARD_H
 #define IPGUARD_H
 
-#ifdef PPA_INCLUDE_IPGUARD
-
 #include "Socket.h"
 #include "Singleton.h"
 #include "SimpleXML.h"
@@ -38,8 +36,10 @@ class IpGuard : public Singleton<IpGuard>, private SettingsManagerListener
 			SettingsManager::getInstance()->removeListener(this);
 		}
 		
-		bool check(const string& aIP, string& reason);
-		void check(uint32_t aIP, Socket* socket = nullptr);
+		bool check_ip_str(const string& aIP, string& reason);
+		void check_ip_str(const string& aIP, Socket* socket = nullptr);
+		static bool is_block_ip(const string& aIP, uint32_t& p_ip4);
+		
 		
 		void load();
 		void clear()
@@ -60,6 +60,5 @@ class IpGuard : public Singleton<IpGuard>, private SettingsManagerListener
 			load();
 		}
 };
-#endif // PPA_INCLUDE_IPGUARD
 
 #endif // IPGUARD_H

@@ -37,9 +37,7 @@
 #include "../FlyFeatures/flyServer.h"
 #include "syslog/syslog.h"
 
-#ifdef PPA_INCLUDE_IPGUARD
 #include "IpGuard.h"
-#endif // PPA_INCLUDE_IPGUARD
 #include "PGLoader.h"
 #ifdef SSA_IPGRANT_FEATURE
 #include "IPGrant.h"
@@ -147,9 +145,7 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	IpGrant::newInstance();
 #endif
 	//HistoryManager::newInstance();//[-] FlylinkDC this functional released in DB Manager
-#ifdef PPA_INCLUDE_IPGUARD
 	IpGuard::newInstance();
-#endif
 #ifdef PPA_INCLUDE_IPFILTER
 	PGLoader::newInstance();
 #endif
@@ -312,9 +308,7 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		MappingManager::deleteInstance();
 		ConnectivityManager::deleteInstance();
 		WebServerManager::deleteInstance();
-#ifdef PPA_INCLUDE_IPGUARD
 		IpGuard::deleteInstance();
-#endif
 		if (pGuiInitProc)
 		{
 			pGuiInitProc(pGuiParam);

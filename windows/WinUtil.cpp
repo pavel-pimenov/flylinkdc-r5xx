@@ -2166,7 +2166,12 @@ void WinUtil::unRegisterDclstHandler()// [+] IRainman dclst support
 void WinUtil::openBitTorrent(const tstring& p_magnetURI) // [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=223
 {
 	string l_BtHandler = SETTING(BT_MAGNET_OPEN_CMD);
-	if (l_BtHandler.empty())
+	if (!l_BtHandler.empty() && File::isExist(Text::toT(l_BtHandler)))
+	{
+		AppendQuotsToPath(l_BtHandler);
+		translateLinkToextProgramm(p_magnetURI, Util::emptyStringT, Text::toT(l_BtHandler));
+	}
+	else
 	{
 		::MessageBox(nullptr, CTSTRING(SETTINGS_BITTORRENT_ERROR_CONFIG),  _T(APPNAME) T_VERSIONSTRING, MB_OK | MB_ICONERROR);
 		// TODO support auto detect with "OpenWithProgids" key http://msdn.microsoft.com/en-us/library/bb166549(v=VS.100).aspx
@@ -2186,11 +2191,6 @@ void WinUtil::openBitTorrent(const tstring& p_magnetURI) // [+] IRainman http://
 		{
 		  translateLinkToextProgramm(p_magnetURI, _T(".torrent"));
 		}*/
-	}
-	else
-	{
-		AppendQuotsToPath(l_BtHandler);
-		translateLinkToextProgramm(p_magnetURI, Util::emptyStringT, Text::toT(l_BtHandler));
 	}
 }
 void WinUtil::openFile(const tstring& file)
@@ -2255,80 +2255,79 @@ void WinUtil::translateLinkToextProgramm(const tstring& url, const tstring& p_Ex
 		x += _T("\\shell\\open\\command");
 	}
 	// [~] IRainman
-#if 0
-	// fix  https://code.google.com/p/flylinkdc/issues/detail?id=928
-	
-	CRegKey key;
-	LocalArray<TCHAR, MAX_PATH> regbuf;
-	ULONG len = MAX_PATH;
-	if (!p_openCmd.empty() || key.Open(HKEY_CLASSES_ROOT, x.c_str(), KEY_READ) == ERROR_SUCCESS) // [!] IRainman
+	if (url.find(_T("magnet:?xt=urn:btih")) != tstring::npos) // fix  https://code.google.com/p/flylinkdc/issues/detail?id=928 fix  https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/17
 	{
-		if (!p_openCmd.empty() || key.QueryStringValue(NULL, regbuf.data(), &len) == ERROR_SUCCESS) // [!] IRainman
+		CRegKey key;
+		LocalArray<TCHAR, MAX_PATH> regbuf;
+		ULONG len = MAX_PATH;
+		if (!p_openCmd.empty() || key.Open(HKEY_CLASSES_ROOT, x.c_str(), KEY_READ) == ERROR_SUCCESS) // [!] IRainman
 		{
-			/*
-			 * Various values (for http handlers):
-			 *  C:\PROGRA~1\MOZILL~1\FIREFOX.EXE -url "%1"
-			 *  "C:\Program Files\Internet Explorer\iexplore.exe" -nohome
-			 *  "C:\Apps\Opera7\opera.exe"
-			 *  C:\PROGRAMY\MOZILLA\MOZILLA.EXE -url "%1"
-			 *  C:\PROGRA~1\NETSCAPE\NETSCAPE\NETSCP.EXE -url "%1"
-			 */
-			// [!] IRainman
-			tstring cmd;
-			if (!p_openCmd.empty())
+			if (!p_openCmd.empty() || key.QueryStringValue(NULL, regbuf.data(), &len) == ERROR_SUCCESS) // [!] IRainman
 			{
-				cmd = p_openCmd;
-			}
-			else
-			{
-				cmd = regbuf.data(); // otherwise you consistently get two trailing nulls
-			}
-			// [~] IRainman
-			
-			if (cmd.length() > 1)
-			{
-				string::size_type start, end;
-				if (cmd[0] == '"')
+				/*
+				 * Various values (for http handlers):
+				 *  C:\PROGRA~1\MOZILL~1\FIREFOX.EXE -url "%1"
+				 *  "C:\Program Files\Internet Explorer\iexplore.exe" -nohome
+				 *  "C:\Apps\Opera7\opera.exe"
+				 *  C:\PROGRAMY\MOZILLA\MOZILLA.EXE -url "%1"
+				 *  C:\PROGRA~1\NETSCAPE\NETSCAPE\NETSCP.EXE -url "%1"
+				 */
+				// [!] IRainman
+				tstring cmd;
+				if (!p_openCmd.empty())
 				{
-					start = 1;
-					end = cmd.find('"', 1);
+					cmd = p_openCmd;
 				}
 				else
 				{
-					start = 0;
-					end = cmd.find(' ', 1);
+					cmd = regbuf.data(); // otherwise you consistently get two trailing nulls
 				}
-				if (end == string::npos)
-					end = cmd.length();
-					
-				tstring cmdLine(cmd);
-				cmd = cmd.substr(start, end - start);
-				size_t arg_pos;
-				if ((arg_pos = cmdLine.find(_T("%1"))) != string::npos)
+				// [~] IRainman
+
+				if (cmd.length() > 1)
 				{
-					cmdLine.replace(arg_pos, 2, url);
-				}
-				else
-				{
-					cmdLine.append(_T(" \"") + url + _T('\"'));
-				}
-				
-				STARTUPINFO si = { sizeof(si), 0 };
-				PROCESS_INFORMATION pi = { 0 };
-				const int iLen = cmdLine.length() + 1;
-				AutoArray<TCHAR> buf(iLen);
-				_tcscpy_s(buf, iLen, cmdLine.c_str());
-				if (::CreateProcess(cmd.c_str(), buf, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
-				{
-					::CloseHandle(pi.hThread);
-					::CloseHandle(pi.hProcess);
-					return;
+					string::size_type start, end;
+					if (cmd[0] == '"')
+					{
+						start = 1;
+						end = cmd.find('"', 1);
+					}
+					else
+					{
+						start = 0;
+						end = cmd.find(' ', 1);
+					}
+					if (end == string::npos)
+						end = cmd.length();
+
+					tstring cmdLine(cmd);
+					cmd = cmd.substr(start, end - start);
+					size_t arg_pos;
+					if ((arg_pos = cmdLine.find(_T("%1"))) != string::npos)
+					{
+						cmdLine.replace(arg_pos, 2, url);
+					}
+					else
+					{
+						cmdLine.append(_T(" \"") + url + _T('\"')); // Here assembled a command line + key (ex: C:\uTorrent\uTorrent.exe \magnet:urn... )
+					}
+
+					STARTUPINFO si = { sizeof(si), 0 };
+					PROCESS_INFORMATION pi = { 0 };
+					const int iLen = cmdLine.length() + 1;
+					AutoArray<TCHAR> buf(iLen);
+					_tcscpy_s(buf, iLen, cmdLine.c_str());
+					if (::CreateProcess(cmd.c_str(), buf, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+					{
+						::CloseHandle(pi.hThread);
+						::CloseHandle(pi.hProcess);
+						return;
+					}
 				}
 			}
 		}
 	}
-#endif //
-	
+
 	::ShellExecute(NULL, NULL, url.c_str(), NULL, NULL, SW_SHOWNORMAL);
 }
 

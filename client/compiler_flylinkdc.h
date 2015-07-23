@@ -159,11 +159,8 @@ typedef unsigned __int64 uint64_t;
 # define PPA_INCLUDE_APEX_EX_MESSAGE_BOX // TODO: глючит - много дампов по переполнению стека, необходимо найти альтернативу.
 #endif
 #define PPA_USER_COMMANDS_HUBS_SET
+#define PPA_INCLUDE_IPFILTER
 #ifndef FLYLINKDC_HE
-# define PPA_INCLUDE_IPGUARD
-# ifdef PPA_INCLUDE_IPGUARD
-#  define PPA_INCLUDE_IPFILTER
-# endif // PPA_INCLUDE_IPGUARD
 # define PPA_INCLUDE_LASTIP_AND_USER_RATIO
 # ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 #  define PPA_INCLUDE_COLUMN_RATIO

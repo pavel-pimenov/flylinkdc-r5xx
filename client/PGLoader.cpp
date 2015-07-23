@@ -22,6 +22,7 @@
 #include "ResourceManager.h"
 #include "LogManager.h"
 #include "File.h"
+#include "IpGuard.h"
 #include "../windows/resource.h"
 #include <boost/algorithm/string.hpp>
 
@@ -144,28 +145,23 @@ void PGLoader::load(const string& p_data /*= Util::emptyString*/)
 	l_IPTrust_log.step("parse IPTrust.ini done");
 }
 
-bool PGLoader::check(const string& aIP)
+bool PGLoader::check(uint32_t p_ip4)
 {
-	if (aIP.empty())
-		return false;
-		
 #ifdef _DEBUG
 	static boost::atomic_int g_count(0);
 	dcdebug("PGLoader::check  count = %d\n", int(++g_count));
 #endif
-	
 	FastLock l(m_cs);
-	
 	if (!m_ipTrustListBlock.empty())
 	{
-		if (m_ipTrustListBlock.checkIp(aIP))
+		if (m_ipTrustListBlock.checkIp(p_ip4))
 		{
 			return true;
 		}
 	}
 	if (!m_ipTrustListAllow.empty())
 	{
-		const auto l_ipguard = m_ipTrustListAllow.checkIp(aIP);
+		const auto l_ipguard = m_ipTrustListAllow.checkIp(p_ip4);
 		return !l_ipguard;
 	}
 	else

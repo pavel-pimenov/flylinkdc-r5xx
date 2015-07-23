@@ -120,8 +120,7 @@ LRESULT NetworkPage::OnEnKillfocusExternalIp(WORD /*wNotifyCode*/, WORD /*wID*/,
 	{
 		boost::system::error_code ec;
 		const auto l_ip = boost::asio::ip::address_v4::from_string(l_externalIP, ec);
-		// TODO - убрать count и попробовать без буста - http://stackoverflow.com/questions/318236/how-do-you-validate-that-a-string-is-a-valid-ip-address-in-c?
-		if (ec || std::count(l_externalIP.cbegin(), l_externalIP.cend(), '.') != 3)
+		if (ec)
 		{
 			const auto l_last_ip = SETTING(EXTERNAL_IP);
 			::MessageBox(NULL, Text::toT("Error IP = " + l_externalIP + ", restore last valid IP = " + l_last_ip).c_str(), _T("IP Error!"), MB_OK | MB_ICONERROR);

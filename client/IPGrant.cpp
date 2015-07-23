@@ -64,12 +64,12 @@ void IpGrant::load()
 	}
 }
 
-bool IpGrant::check(const string& aIP)
+bool IpGrant::check(uint32_t p_ip4)
 {
-	if (aIP.empty())
+	if (p_ip4 == INADDR_NONE)
 		return false;
 	FastLock l(m_cs);
-	return m_ipList.checkIp(aIP);
+	return m_ipList.checkIp(p_ip4);
 }
 
 #endif // SSA_IPGRANT_FEATURE

@@ -30,9 +30,7 @@
 #include "../client/CompatibilityManager.h"
 #include "../client/Wildcards.h"
 #include "../client/MappingManager.h"
-#ifdef PPA_INCLUDE_IPGUARD
 #include "../client/IpGuard.h"
-#endif
 #include "../windows/ChatBot.h"
 
 #include "../jsoncpp/include/json/value.h"
@@ -110,8 +108,10 @@ uint16_t CFlyServerConfig::g_ban_flood_command = 10;      // Блокируем на 10 сек
 
 uint16_t CFlyServerConfig::g_max_unique_tth_search  = 10; // Не принимаем в течении 10 секунд одинаковых поисков по TTH для одного и того-же целевого IP:PORT (UDP)
 uint16_t CFlyServerConfig::g_max_unique_file_search = 10; // Не принимаем в течении 10 секунд одинаковых поисков по File для одного и того-же целевого IP:PORT (UDP)
-string CFlyServerConfig::g_regex_find_ip = "\\d\\d?\\d?\\.\\d\\d?\\d?.\\d\\d?\\d?.\\d\\d?\\d?";
+string CFlyServerConfig::g_regex_find_ip = "\\d\\d?\\d?\\.\\d\\d?\\d?\\.\\d\\d?\\d?\\.\\d\\d?\\d?";
 std::vector<std::string> CFlyServerConfig::g_mapping_hubs;
+//std::unordered_set<unsigned long> CFlyServerConfig::g_block_ip;
+std::unordered_set<std::string> CFlyServerConfig::g_block_ip_str;
 std::unordered_set<std::string> CFlyServerConfig::g_block_hubs;
 #ifdef USE_SUPPORT_HUB
 string CFlyServerConfig::g_support_hub = "dchub://dc.fly-server.ru";
@@ -439,8 +439,26 @@ void CFlyServerConfig::loadConfig()
 					{
 						checkStrKey(n);
 						m_scan.insert(n);
-	        });
+					});
 
+					{
+						//g_block_ip.clear();
+						g_block_ip_str.clear();
+						const string l_block_ip_std = l_xml.getChildAttribSplit("block_ip", g_block_ip_str, [&](const string& n)
+						{
+							checkStrKey(n);
+							g_block_ip_str.insert(n);
+						});
+						LogManager::message("Block IP: " + l_block_ip_std);
+/*
+for (auto i = g_block_ip_str.cbegin(); i != g_block_ip_str.cend(); ++i)
+						{
+							boost::asio::ip::address_v4 l_ip4;
+							l_ip4.from_string(*i);
+							g_block_ip.insert(l_ip4.to_ulong());
+						}
+*/
+					}
 					l_xml.getChildAttribSplit("mapping_hubs", g_mapping_hubs, [this](const string& n)
 					{
             checkStrKey(n);
@@ -1084,7 +1102,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 	syslog(LOG_USER | LOG_INFO, "%s %s %s [%s]", l_cid.c_str(), l_pid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
 }
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 36
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 38 (36 - устарел)
 {
 	bool l_is_send = false;
 	bool l_is_error = false;
@@ -1378,17 +1396,15 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 	}
 	const string l_log_marker = "[" + l_Server.getServerAndPort() + "]";
 	CFlyLog l_fly_server_log(l_log_marker);
-#ifdef PPA_INCLUDE_IPGUARD
-	if (BOOLSETTING(ENABLE_IPGUARD) && IpGuard::isValidInstance()) 
+	if (IpGuard::isValidInstance()) 
 	{
 		string l_reason;
-		if (IpGuard::getInstance()->check(l_Server.getIp(), l_reason))
+		if (IpGuard::getInstance()->check_ip_str(Socket::resolve(l_Server.getIp()), l_reason))
 		{
 			l_fly_server_log.step(" (" + l_Server.getIp() + "): IPGuard: " + l_reason);
 			return Util::emptyString;
 		}
 	}
-#endif
 	string l_result_query;
 	//static const char g_hdrs[]		= "Content-Type: application/x-www-form-urlencoded"; // TODO - оно нужно?
 	//static const size_t g_hdrs_len   = strlen(g_hdrs); // Можно заменить на (sizeof(g_hdrs)-1) ...

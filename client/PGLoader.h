@@ -20,7 +20,7 @@ class PGLoader : public Singleton<PGLoader>, private SettingsManagerListener
 		{
 			SettingsManager::getInstance()->removeListener(this);
 		}
-		bool check(const string& p_IP);
+		bool check(uint32_t p_ip4);
 		void addLine(string& p_Line, CFlyLog& p_log);
 		void load(const string& p_data = Util::emptyString);
 		static string getConfigFileName()

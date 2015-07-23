@@ -678,6 +678,7 @@ enum Strings   // @DontAdd
 	IP, // "IP:"
 	IPFILTER_BLOCK_OUT_CONNECTION, // "Blocked outgoing connection to"
 	IPGUARD, // "IPGuard"
+	IPGUARD_BLOCK_LIST, // "IPGuard-block-list"
 	IPGUARD_DEFAULT_POLICY, // "Default policy"
 	IPGUARD_ENABLE, // "Enable IPGuard"
 	IPGUARD_INTRO, // "IPGuard blocks malicious IP ranges only, and it is not by any means a substitute for firewall or other internet security software!\r\n\r\nWarning: IPGuard affects all connections in FlylinkDC++"

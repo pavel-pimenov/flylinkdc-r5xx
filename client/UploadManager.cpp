@@ -601,7 +601,7 @@ ok: //[!] TODO убрать goto
 		{
 			if (!(hasReserved || isFavorite || isAutoSlot || hasFreeSlot || isHasUpload))
 			{
-				hasSlotByIP = IpGrant::getInstance()->check(aSource->getRemoteIp());
+				hasSlotByIP = IpGrant::getInstance()->check(Socket::convertIP4(aSource->getRemoteIp()));
 			}
 		}
 #endif // SSA_IPGRANT_FEATURE

@@ -406,6 +406,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		{
 			return (T*)GetItemData(iItem);
 		}
+		public:
 		int getSelectedCount() const
 		{
 			return GetSelectedCount();    // !SMT!-S

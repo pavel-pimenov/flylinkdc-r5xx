@@ -1796,7 +1796,7 @@ int kssl_keytab_is_available(KSSL_CTX *kssl_ctx)
         krb5_free_principal(krb5context, princ);
     if (krb5context)
         krb5_free_context(krb5context);
-    return (rc);
+    return rc;
 }
 
 int kssl_tgt_is_available(KSSL_CTX *kssl_ctx)
@@ -1850,7 +1850,7 @@ int kssl_tgt_is_available(KSSL_CTX *kssl_ctx)
         krb5_free_principal(krb5context, krb5creds.server);
     if (krb5context)
         krb5_free_context(krb5context);
-    return (rc);
+    return rc;
 }
 
 # if !defined(OPENSSL_SYS_WINDOWS) && !defined(OPENSSL_SYS_WIN32)

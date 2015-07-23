@@ -673,6 +673,7 @@
 	<string name="Ip">IP:</string>
 	<string name="IpfilterBlockOutConnection">Blocked outgoing connection to</string>
 	<string name="Ipguard">IPGuard</string>
+	<string name="IpguardBlockList">IPGuard-block-list</string>
 	<string name="IpguardDefaultPolicy">Default policy</string>
 	<string name="IpguardEnable">Enable IPGuard</string>
 	<string name="IpguardIntro">IPGuard blocks malicious IP ranges only, and it is not by any means a substitute for firewall or other internet security software!\r\n\r\nWarning: IPGuard affects all connections in FlylinkDC++</string>

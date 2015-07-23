@@ -133,13 +133,14 @@ class SimpleXML
 			return l_trim_val;
 		}
 		template<class T>
-		void getChildAttribSplit(const string& aName,
-		                         T& aCollection,
-		                         std::function<void(const string&)> inserter,
-		                         bool p_check_dup = true
-		                        ) const // [+] IRainman
+		string getChildAttribSplit(const string& aName,
+		                           T& aCollection,
+		                           std::function<void(const string&)> inserter,
+		                           bool p_check_dup = true
+		                          ) const // [+] IRainman
 		{
-			const StringTokenizer<string> tokinizer(getChildAttrib(aName), ',');
+			string l_value = getChildAttrib(aName);
+			const StringTokenizer<string> tokinizer(l_value, ',');
 			const auto& tokens = tokinizer.getTokens();
 			aCollection.clear();
 #ifdef _DEBUG
@@ -152,7 +153,7 @@ class SimpleXML
 			}
 #endif
 			for_each(tokens.cbegin(), tokens.cend(), inserter);
-			
+			return l_value;
 		}
 		int64_t getLongLongChildAttrib(const string& aName) const
 		{

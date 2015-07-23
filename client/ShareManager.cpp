@@ -1070,6 +1070,9 @@ void ShareManager::internalCalcShareSize() // [!] IRainman opt.
 		}
 	}
 	dcassert(g_sharedSize == g_CurrentShareSize);
+#ifdef _DEBUG
+	g_sharedSize == g_CurrentShareSize;
+#endif
 }
 
 ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const string& aName, const Directory::Ptr& aParent, bool p_is_job)
@@ -1154,8 +1157,18 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 				int64_t l_size = i->getSize();
 				if (i->isLink() && l_size == 0) // https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/14
 				{
-					File l_get_size(l_PathAndFileName, File::READ, File::OPEN | File::SHARED);
-					l_size = l_get_size.getSize();
+					try
+					{
+						File l_get_size(l_PathAndFileName, File::READ, File::OPEN | File::SHARED);
+						l_size = l_get_size.getSize();
+					}
+					catch (FileException& e)
+					{
+						string l_error = "Error share link file: " + l_PathAndFileName + " error = " + e.getError();
+						LogManager::message(l_error);
+						CFlyServerJSON::pushError(37, l_error);
+						continue;
+					}
 				}
 				const int64_t l_ts = i->getLastWriteTime();
 				CFlyDirMap::iterator l_dir_item = l_dir_map.find(l_lower_name);

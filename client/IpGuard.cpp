@@ -18,15 +18,13 @@
 
 #include "stdinc.h"
 
-#ifdef PPA_INCLUDE_IPGUARD
-
 #include "IpGuard.h"
 #include "Socket.h"
 #include "ResourceManager.h"
 #include "../windows/resource.h"
 #include "../XMLParser/xmlParser.h"
 #include "LogManager.h"
-
+#include "../FlyFeatures/flyServer.h"
 
 #ifdef _DEBUG
 boost::atomic_int g_count(0);
@@ -111,8 +109,16 @@ void IpGuard::load()
 		m_ipGuardList.clear();
 	}
 }
+bool IpGuard::is_block_ip(const string& aIP, uint32_t& p_ip4)
+{
+	p_ip4 = Socket::convertIP4(aIP);
+	if (CFlyServerConfig::g_block_ip_str.find(aIP) != CFlyServerConfig::g_block_ip_str.end())
+		return true;
+	else
+		return false;
+}
 
-bool IpGuard::check(const string& aIP, string& reason)
+bool IpGuard::check_ip_str(const string& aIP, string& reason)
 {
 	if (aIP.empty())
 		return false;
@@ -120,44 +126,65 @@ bool IpGuard::check(const string& aIP, string& reason)
 #ifdef _DEBUG
 	dcdebug("IPGuard::check  count = %d\n", int(++g_count));
 #endif
-	
-	if (m_ipGuardList.checkIp(aIP))
-		return !BOOLSETTING(IP_GUARD_IS_DENY_ALL);
+	uint32_t l_ip4;
+	if (IpGuard::is_block_ip(aIP, l_ip4))
+	{
+		reason = "Block IP: " + aIP;
+		return true;
+	}
+	if (BOOLSETTING(ENABLE_IPGUARD))
+	{
+		if (m_ipGuardList.checkIp(l_ip4))
+		{
+			return !BOOLSETTING(IP_GUARD_IS_DENY_ALL);
+		}
 		
-	reason = STRING(IPGUARD_DEFAULT_POLICY);
-	return BOOLSETTING(IP_GUARD_IS_DENY_ALL);
+		reason = STRING(IPGUARD_DEFAULT_POLICY);
+		return BOOLSETTING(IP_GUARD_IS_DENY_ALL);
+	}
+	else
+		return false;
 }
 
-void IpGuard::check(uint32_t aIP, Socket* socket /*= nullptr*/)
+void IpGuard::check_ip_str(const string& aIP, Socket* socket /*= nullptr*/)
 {
-	if (aIP == 0)
+	if (aIP.empty())
 		return;
 		
 #ifdef _DEBUG
 	dcdebug("IPGuard::check  count = %d\n", int(++g_count));
 #endif
-	
-	
-	if (m_ipGuardList.checkIp(ntohl(aIP)))
+	uint32_t l_ip4;
+	if (IpGuard::is_block_ip(aIP, l_ip4))
 	{
-		if (!BOOLSETTING(IP_GUARD_IS_DENY_ALL))
+		if (socket)
 		{
-			if (socket != nullptr)
-				socket->disconnect();
-				
-			throw SocketException(STRING(IPGUARD) + ": (" + inet_ntoa(*(in_addr*)&aIP) + ")");
-		}
-		
-		return;
-	}
-	
-	if (BOOLSETTING(IP_GUARD_IS_DENY_ALL))
-	{
-		if (socket != nullptr)
 			socket->disconnect();
+		}
+		throw SocketException(STRING(IPGUARD_BLOCK_LIST) + ": (" + aIP + ")");
+	}
+	if (BOOLSETTING(ENABLE_IPGUARD))
+	{
+		if (m_ipGuardList.checkIp(l_ip4))
+		{
+			if (!BOOLSETTING(IP_GUARD_IS_DENY_ALL))
+			{
+				if (socket)
+				{
+					socket->disconnect();
+				}
+				throw SocketException(STRING(IPGUARD) + ": (" + aIP + ")");
+			}
+			return;
+		}
+		if (BOOLSETTING(IP_GUARD_IS_DENY_ALL))
+		{
+			if (socket)
+			{
+				socket->disconnect();
+			}
 			
-		throw SocketException(STRING(IPGUARD) + ": " + STRING(IPGUARD_DEFAULT_POLICY) + " (" + inet_ntoa(*(in_addr*)&aIP) + ")");
+			throw SocketException(STRING(IPGUARD) + ": " + STRING(IPGUARD_DEFAULT_POLICY) + " (" + aIP + ")");
+		}
 	}
 }
-
-#endif // PPA_INCLUDE_IPGUARD

@@ -134,10 +134,7 @@ class IPList
 		void addLine(std::string& Line, CFlyLog& p_log);
 		void addData(const std::string& Data, CFlyLog& p_log);
 		
-		// Check IP in list as number
 		bool checkIp(uint32_t ip);
-		// Check IP in list as string "*.*.*.*"
-		bool checkIp(const std::string& ipNumber);
 		
 		void clear();
 };

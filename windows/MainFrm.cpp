@@ -1080,11 +1080,11 @@ HWND MainFrame::createToolbar()    //[~]Drakon. Enlighting toolbars.
 					nTB.idCommand = g_ToolbarButtons[i].id;
 					nTB.fsStyle = g_ToolbarButtons[i].check ? TBSTYLE_CHECK : TBSTYLE_BUTTON;
 					nTB.fsState = TBSTATE_ENABLED;
-#ifdef _DEBUG
+#ifndef _DEBUG
 					nTB.iString = ctrlToolbar.AddStrings(_T("Debug hint"));
 #else
-					LPCTSTR l_str = CTSTRING_I(g_ToolbarButtons[i].tooltip);
-					nTB.iString = ctrlToolbar.AddStrings(l_str); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=29760
+					const tstring l_str = CTSTRING_I(g_ToolbarButtons[i].tooltip);
+					nTB.iString = ctrlToolbar.AddStrings(l_str.c_str()); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=29760
 #endif
 				}
 				ctrlToolbar.AddButtons(1, &nTB);
