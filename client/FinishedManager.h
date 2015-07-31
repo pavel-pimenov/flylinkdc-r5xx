@@ -140,18 +140,18 @@ class FinishedManager : public Singleton<FinishedManager>,
 			e_Download = 0,
 			e_Upload = 1
 		};
-		const FinishedItemList& lockList(eType p_type)
+		static const FinishedItemList& lockList(eType p_type)
 		{
 			g_cs[p_type]->AcquireLockShared();
-			return m_finished[p_type];
+			return g_finished[p_type];
 		}
-		void unlockList(eType p_upload)
+		static void unlockList(eType p_upload)
 		{
 			g_cs[p_upload]->ReleaseLockShared();
 		}
 		
-		void removeItem(FinishedItem* item, eType p_type);
-		void removeAll(eType p_type);
+		static void removeItem(FinishedItem* item, eType p_type);
+		static void removeAll(eType p_type);
 		void pushHistoryFinishedItem(FinishedItem* p_item, int p_type);
 		void updateStatus()
 		{
@@ -172,7 +172,7 @@ class FinishedManager : public Singleton<FinishedManager>,
 		void rotation_items(FinishedItem* p_item, eType p_type);
 		
 		static std::unique_ptr<webrtc::RWLockWrapper> g_cs[2]; // index = eType
-		FinishedItemList m_finished[2]; // index = eType
+		static FinishedItemList g_finished[2]; // index = eType
 };
 
 #endif // !defined(FINISHED_MANAGER_H)

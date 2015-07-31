@@ -73,7 +73,7 @@ class DHT :
 		//Node::Ptr createNode(const CID& cid, const string& ip, uint16_t port, bool update, bool isUdpKeyValid);
 
 		/** Adds node to routing table */
-		Node::Ptr addNode(const CID& cid, const string& ip, uint16_t port, const UDPKey& udpKey, bool update, bool isUdpKeyValid);
+		Node::Ptr addDHTNode(const CID& cid, const string& ip, uint16_t port, const UDPKey& udpKey, bool update, bool isUdpKeyValid);
 		
 		/** Returns counts of nodes available in k-buckets */
 		size_t getNodesCount()

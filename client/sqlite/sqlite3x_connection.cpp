@@ -42,9 +42,9 @@ void sqlite3_connection::check_db_open()
 	 throw database_error("database is not open");
 }
 
-void sqlite3_connection::open(const char *db) {
-	if(sqlite3_open(db, &this->db)!=SQLITE_OK)
-		throw database_error("unable to open database", db);
+void sqlite3_connection::open(const char *p_db) {
+	if(sqlite3_open(p_db, &this->db)!=SQLITE_OK)
+		throw database_error("unable to open database", p_db);
 }
 
 void sqlite3_connection::close() {

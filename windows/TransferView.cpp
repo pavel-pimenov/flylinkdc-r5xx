@@ -102,7 +102,7 @@ static ResourceManager::Strings columnNames[] = { ResourceManager::USER,
                                                   ResourceManager::P2P_GUARD       // COLUMN_P2P_GUARD
                                                 };
 
-TransferView::TransferView() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd)
+TransferView::TransferView() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd), m_is_need_resort(false)
 {
 }
 
@@ -138,7 +138,7 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	BOOST_STATIC_ASSERT(_countof(columnSizes) == COLUMN_LAST);
 	BOOST_STATIC_ASSERT(_countof(columnNames) == COLUMN_LAST);
 	
-	for (size_t j = 0; j < COLUMN_LAST; j++)
+	for (uint8_t j = 0; j < COLUMN_LAST; j++)
 	{
 		const int fmt = (j == COLUMN_SIZE || j == COLUMN_TIMELEFT || j == COLUMN_SPEED) ? LVCFMT_RIGHT : LVCFMT_LEFT;
 		ctrlTransfers.InsertColumn(j, TSTRING_I(columnNames[j]), fmt, columnSizes[j], j);
@@ -265,7 +265,7 @@ void TransferView::setButtonState()
 void TransferView::prepareClose()
 {
 	safe_destroy_timer();
-	clean_task();
+	clear_and_destroy_task();
 	ctrlTransfers.saveHeaderOrder(SettingsManager::MAINFRAME_ORDER, SettingsManager::MAINFRAME_WIDTHS,
 	                              SettingsManager::MAINFRAME_VISIBLE);
 	                              
@@ -513,14 +513,14 @@ LRESULT TransferView::onForce(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 			const vector<ItemInfo*>& children = ctrlTransfers.findChildren(ii->getGroupCond());
 			for (auto j = children.cbegin(); j != children.cend(); ++j)
 			{
-				ItemInfo* ii = *j;
+				ItemInfo* jj = *j;
 				
-				int h = ctrlTransfers.findItem(ii);
+				int h = ctrlTransfers.findItem(jj);
 				if (h != -1)
 					ctrlTransfers.SetItemText(h, COLUMN_STATUS, CTSTRING(CONNECTING_FORCED));
 					
-				ii->transferFailed = false;
-				ConnectionManager::getInstance()->force(ii->m_hintedUser);
+				jj->transferFailed = false;
+				ConnectionManager::getInstance()->force(jj->m_hintedUser);
 			}
 		}
 		else
@@ -563,8 +563,8 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 		}
 		case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
 		{
-			ItemInfo* ii = reinterpret_cast<ItemInfo*>(cd->nmcd.lItemlParam);
-			if (!ii) //[+]PPA падаем под wine
+			ItemInfo* l_ii = reinterpret_cast<ItemInfo*>(cd->nmcd.lItemlParam);
+			if (!l_ii) //[+]PPA падаем под wine
 				return CDRF_DODEFAULT;
 			const int colIndex = ctrlTransfers.findColumn(cd->iSubItem);
 			cd->clrTextBk = Colors::g_bgColor;
@@ -575,9 +575,9 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			if (colIndex == COLUMN_STATUS)
 			{
 				CRect rc3;
-				auto l_stat = ii->getText(COLUMN_STATUS);
+				auto l_stat = l_ii->getText(COLUMN_STATUS);
 				int l_shift = 0;
-				if (ii->m_status == ItemInfo::STATUS_RUNNING)
+				if (l_ii->m_status == ItemInfo::STATUS_RUNNING)
 				{
 					if (!BOOLSETTING(SHOW_PROGRESS_BARS))
 					{
@@ -587,11 +587,11 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					
 					// Get the color of this bar
 					COLORREF clr = SETTING(PROGRESS_OVERRIDE_COLORS) ?
-					               (ii->download ? (!ii->parent ? SETTING(DOWNLOAD_BAR_COLOR) : SETTING(PROGRESS_SEGMENT_COLOR)) : SETTING(UPLOAD_BAR_COLOR)) :
+					               (l_ii->download ? (!l_ii->parent ? SETTING(DOWNLOAD_BAR_COLOR) : SETTING(PROGRESS_SEGMENT_COLOR)) : SETTING(UPLOAD_BAR_COLOR)) :
 						               GetSysColor(COLOR_HIGHLIGHT);
-					if (!ii->download && BOOLSETTING(UP_TRANSFER_COLORS)) //[+]PPA
+					if (!l_ii->download && BOOLSETTING(UP_TRANSFER_COLORS)) //[+]PPA
 				{
-						const auto l_NumSlot = ii->getUser()->getSlots();
+						const auto l_NumSlot = l_ii->getUser()->getSlots();
 						if (l_NumSlot != 0)
 						{
 							if (l_NumSlot < 5)
@@ -627,7 +627,7 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					CRect rc2 = rc;
 					
 					// Text rect
-					if (BOOLSETTING(STEALTHY_STYLE_ICO) || ii->m_is_force_passive)
+					if (BOOLSETTING(STEALTHY_STYLE_ICO) || l_ii->m_is_force_passive)
 					{
 						rc2.left += 22; // indented for icon and text
 						rc2.right -= 2; // and without messing with the border of the cell
@@ -665,7 +665,7 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					if (!useStealthyStyle)
 					{
 						oldcol = ::SetTextColor(dc, SETTING(PROGRESS_OVERRIDE_COLORS2) ?
-						                        (ii->download ? SETTING(PROGRESS_TEXT_COLOR_DOWN) : SETTING(PROGRESS_TEXT_COLOR_UP)) :
+						                        (l_ii->download ? SETTING(PROGRESS_TEXT_COLOR_DOWN) : SETTING(PROGRESS_TEXT_COLOR_UP)) :
 							                        OperaColors::TextFromBackground(clr));
 					}
 					else
@@ -677,7 +677,10 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					}
 					
 					// Draw the background and border of the bar
-					if (ii->m_size == 0) ii->m_size = 1;
+					if (l_ii->m_size == 0)
+					{
+						l_ii->m_size = 1;
+					}
 					
 					if (useODCstyle || useStealthyStyle)
 					{
@@ -705,9 +708,9 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 						
 						// Draw the outline AND the background using pen+brush
 						if (useStealthyStyle)
-							::Rectangle(dc, rc4.left, rc4.top, rc4.left + (LONG)(rc4.Width() * ii->getProgressPosition() + 0.5), rc4.bottom);
+							::Rectangle(dc, rc4.left, rc4.top, rc4.left + (LONG)(rc4.Width() * l_ii->getProgressPosition() + 0.5), rc4.bottom);
 						else
-							::Rectangle(dc, rc.left, rc.top, rc.left + (LONG)(rc.Width() * ii->getProgressPosition() + 0.5), rc.bottom);
+							::Rectangle(dc, rc.left, rc.top, rc.left + (LONG)(rc.Width() * l_ii->getProgressPosition() + 0.5), rc.bottom);
 							
 						if (useStealthyStyle)
 						{
@@ -718,9 +721,9 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 							// ::ExtTextOut(dc, rc3.left + ii->m_is_force_passive ? 16:0, top, ETO_CLIPPED, rc3, l_stat.c_str(), l_stat.length(), NULL);
 							//}
 							
-							rc.right = rc.left + (int)(((int64_t)rc.Width()) * ii->m_actual / ii->m_size);
+							rc.right = rc.left + (int)(((int64_t)rc.Width()) * l_ii->m_actual / l_ii->m_size);
 							
-							if (ii->m_pos != 0)
+							if (l_ii->m_pos != 0)
 								rc.bottom -= 1;
 								
 							rc.top += 1;
@@ -759,22 +762,22 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					// Draw the background and border of the bar
 					if (!useODCstyle && !useStealthyStyle)
 					{
-						CBarShader statusBar(rc.bottom - rc.top, rc.right - rc.left, SETTING(PROGRESS_BACK_COLOR), ii->m_size);
+						CBarShader statusBar(rc.bottom - rc.top, rc.right - rc.left, SETTING(PROGRESS_BACK_COLOR), l_ii->m_size);
 						
-						rc.right = rc.left + (int)(rc.Width() * ii->m_pos / ii->m_size);
-						if (!ii->download)
+						rc.right = rc.left + (int)(rc.Width() * l_ii->m_pos / l_ii->m_size);
+						if (!l_ii->download)
 						{
-							statusBar.FillRange(0, ii->m_actual, HLS_TRANSFORM(clr, -20, 30));
-							statusBar.FillRange(ii->m_actual, ii->m_actual,  clr);
+							statusBar.FillRange(0, l_ii->m_actual, HLS_TRANSFORM(clr, -20, 30));
+							statusBar.FillRange(l_ii->m_actual, l_ii->m_actual,  clr);
 						}
 						else
 						{
-							statusBar.FillRange(0, ii->m_actual, clr);
-							if (ii->parent)
-								statusBar.FillRange(ii->m_actual, ii->m_actual, SETTING(PROGRESS_SEGMENT_COLOR));
+							statusBar.FillRange(0, l_ii->m_actual, clr);
+							if (l_ii->parent)
+								statusBar.FillRange(l_ii->m_actual, l_ii->m_actual, SETTING(PROGRESS_SEGMENT_COLOR));
 						}
-						if (ii->m_pos > ii->m_actual)
-							statusBar.FillRange(ii->m_actual, ii->m_pos, SETTING(PROGRESS_COMPRESS_COLOR));
+						if (l_ii->m_pos > l_ii->m_actual)
+							statusBar.FillRange(l_ii->m_actual, l_ii->m_pos, SETTING(PROGRESS_COMPRESS_COLOR));
 							
 						statusBar.Draw(cdc, rc.top, rc.left, SETTING(PROGRESS_3DDEPTH));
 					}
@@ -782,27 +785,27 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					{
 						if (!useStealthyStyle)
 						{
-							int right = rc.left + (int)((int64_t)rc.Width() * ii->m_actual / ii->m_size);
+							int right = rc.left + (int)((int64_t)rc.Width() * l_ii->m_actual / l_ii->m_size);
 							COLORREF a, b;
 							OperaColors::EnlightenFlood(clr, a, b);
 							OperaColors::FloodFill(cdc, rc.left + 1, rc.top + 1, right, rc.bottom - 1, a, b, BOOLSETTING(PROGRESSBAR_ODC_BUMPED));
 						}
 					}
 					
-					if (BOOLSETTING(STEALTHY_STYLE_ICO) || ii->m_is_force_passive)
+					if (BOOLSETTING(STEALTHY_STYLE_ICO) || l_ii->m_is_force_passive)
 					{
 						// Draw icon - Nasty way to do the filelist icon, but couldn't get other ways to work well,
 						// TODO: do separating filelists from other transfers the proper way...
-						if (ii->m_is_force_passive)
+						if (l_ii->m_is_force_passive)
 						{
 							l_shift += 16;
 							DrawIconEx(dc, rc2.left - 20, rc2.top + 2, WinUtil::g_hFirewallIcon, 16, 16, NULL, NULL, DI_NORMAL | DI_COMPAT);
 						}
-						if (ii->isFileList())
+						if (l_ii->isFileList())
 						{
 							DrawIconEx(dc, rc2.left - 20 + l_shift, rc2.top, g_user_icon, 16, 16, NULL, NULL, DI_NORMAL | DI_COMPAT);
 						}
-						else if (ii->m_status == ItemInfo::STATUS_RUNNING)
+						else if (l_ii->m_status == ItemInfo::STATUS_RUNNING)
 						{
 							RECT rc9 = rc2;
 							rc9.left -= 19 - l_shift; //[~] Sergey Shushkanov
@@ -814,11 +817,11 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 							if (!BOOLSETTING(THROTTLE_ENABLE))
 							{
 								const int64_t speedignore = Util::toInt64(SETTING(UPLOAD_SPEED));
-speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (ii->download ? SETTING(TOP_SPEED) : SETTING(TOP_UP_SPEED)) / 5 : speedignore * 20;
+speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (l_ii->download ? SETTING(TOP_SPEED) : SETTING(TOP_UP_SPEED)) / 5 : speedignore * 20;
 							}
 							else
 							{
-								if (!ii->download)
+								if (!l_ii->download)
 								{
 									speedmark = ThrottleManager::getInstance()->getUploadLimitInKBytes() / 5;
 								}
@@ -829,7 +832,7 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (ii->download ? SETTIN
 							}
 							CImageList & l_images = HLS_S(hls > 30) || HLS_L(hls) < 70 ? m_speedImages : m_speedImagesBW;
 							
-							const int64_t speedkb = ii->m_speed / 1000;
+							const int64_t speedkb = l_ii->m_speed / 1000;
 							if (speedkb >= speedmark * 4)
 								l_images.DrawEx(4, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
 							else if (speedkb >= speedmark * 3)
@@ -894,7 +897,7 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (ii->download ? SETTIN
 				else
 				{
 					// Отрисуем статусы отличные от RUNNING!
-					if (ii->m_is_force_passive)
+					if (l_ii->m_is_force_passive)
 					{
 						l_stat +=  WSTRING(FORCE_PASSIVE_MODE);
 						l_shift += 16;
@@ -921,15 +924,15 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (ii->download ? SETTIN
 			}
 			else if (colIndex == COLUMN_P2P_GUARD) // TODO
 			{
-				ItemInfo* ii = (ItemInfo*)cd->nmcd.lItemlParam;
-				if (!ii) //[+]PPA падаем под wine
+				ItemInfo* jj = (ItemInfo*)cd->nmcd.lItemlParam;
+				if (!jj) //[+]PPA падаем под wine
 					return CDRF_DODEFAULT;
 				ctrlTransfers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
 				ctrlTransfers.SetItemFilled(cd, rc, cd->clrText, cd->clrText);
-				const tstring& l_value = ii->getText(colIndex);
+				const tstring& l_value = jj->getText(colIndex);
 				if (!l_value.empty())
 				{
-					LONG top = rc.top + (rc.Height() - 15) / 2;
+					// LONG top = rc.top + (rc.Height() - 15) / 2;
 					//if ((top - rc.top) < 2)
 					//  top = rc.top + 1;
 					//const POINT ps = { rc.left, top };
@@ -940,12 +943,12 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (ii->download ? SETTIN
 			}
 			else if (colIndex == COLUMN_ANTIVIRUS)
 			{
-				ItemInfo* ii = (ItemInfo*)cd->nmcd.lItemlParam;
-				if (!ii) //[+]PPA падаем под wine
+				ItemInfo* jj = (ItemInfo*)cd->nmcd.lItemlParam;
+				if (!jj) //[+]PPA падаем под wine
 					return CDRF_DODEFAULT;
 				ctrlTransfers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
 				ctrlTransfers.SetItemFilled(cd, rc, cd->clrText, cd->clrText);
-				const tstring& l_value = ii->getText(colIndex);
+				const tstring& l_value = jj->getText(colIndex);
 				if (!l_value.empty())
 				{
 					LONG top = rc.top + (rc.Height() - 15) / 2;
@@ -1031,7 +1034,7 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (ii->download ? SETTIN
 			         colIndex != COLUMN_HUB &&
 			         colIndex != COLUMN_STATUS &&
 			         colIndex != COLUMN_LOCATION &&
-			         ii->m_status != ItemInfo::STATUS_RUNNING)
+			         l_ii->m_status != ItemInfo::STATUS_RUNNING)
 			{
 				cd->clrText = OperaColors::blendColors(Colors::g_bgColor, Colors::g_textColor, 0.4);
 				return CDRF_NEWFONT;
@@ -1148,15 +1151,21 @@ TransferView::ItemInfo* TransferView::findItem(const UpdateInfo& ui, int& pos) c
 			const auto& children = ctrlTransfers.findChildren(ii->getGroupCond()); // TODO - ссылка?
 			for (auto k = children.cbegin(); k != children.cend(); ++k)
 			{
-				ItemInfo* ii = *k;
-				if (ui == *ii)       // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=139847  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62292
+				ItemInfo* jj = *k;
+				if (ui == *jj)       // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=139847  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62292
 				{
-					return ii;
+					return jj;
 				}
 			}
 		}
 	}
 	return nullptr;
+}
+
+void TransferView::doTimerTask()
+{
+	m_is_need_resort = true;
+	CFlyTaskAdapter::doTimerTask();
 }
 
 LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -1171,6 +1180,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	CLockRedraw<> l_lock_draw(ctrlTransfers);
 	for (auto i = t.cbegin(); i != t.cend(); ++i)
 	{
+		dcassert(m_tasks.is_destroy_task() == false);
 		switch (i->first)
 		{
 			case TRANSFER_ADD_ITEM:
@@ -1303,7 +1313,11 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 		};
 		delete i->second;  // [1] https://www.box.net/shared/307aa981b9cef05fc096
 	}
-	ctrlTransfers.resort();
+	if (m_is_need_resort && !MainFrame::isAppMinimized())
+	{
+		m_is_need_resort = false;
+		ctrlTransfers.resort();
+	}
 	return 0; //TODO crash
 }
 
@@ -1391,7 +1405,6 @@ void TransferView::ItemInfo::update(const UpdateInfo& ui)
 	}
 	if (ui.updateMask & UpdateInfo::MASK_CIPHER)
 	{
-		dcassert(m_cipher.empty()); // [+] IRainman fix: if cipher is set already, not try to set twice. Cipher can not change during a single connection.
 		m_cipher = ui.m_cipher;
 	}
 	if (ui.updateMask & UpdateInfo::MASK_SEGMENT)
@@ -1492,30 +1505,30 @@ TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const Conn
 	return ui;
 }
 
-void TransferView::on(ConnectionManagerListener::Added, const ConnectionQueueItem* aCqi)
+void TransferView::on(ConnectionManagerListener::Added, const ConnectionQueueItem* aCqi) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
 	m_tasks.add(TRANSFER_ADD_ITEM, createUpdateInfoForAddedEvent(aCqi)); // [!] IRainman fix.
 }
 
-void TransferView::on(ConnectionManagerListener::ConnectionStatusChanged, const ConnectionQueueItem* aCqi)
+void TransferView::on(ConnectionManagerListener::ConnectionStatusChanged, const ConnectionQueueItem* aCqi) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
 	m_tasks.add(TRANSFER_UPDATE_ITEM, createUpdateInfoForAddedEvent(aCqi)); // [!] IRainman fix.
 }
 
-void TransferView::on(ConnectionManagerListener::UserUpdated, const ConnectionQueueItem* aCqi)
+void TransferView::on(ConnectionManagerListener::UserUpdated, const ConnectionQueueItem* aCqi) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
 	m_tasks.add(TRANSFER_UPDATE_ITEM, createUpdateInfoForAddedEvent(aCqi));
 }
-void TransferView::on(ConnectionManagerListener::Removed, const ConnectionQueueItem* aCqi)
+void TransferView::on(ConnectionManagerListener::Removed, const ConnectionQueueItem* aCqi) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
 	m_tasks.add(TRANSFER_REMOVE_ITEM, new UpdateInfo(aCqi->getHintedUser(), aCqi->isDownload())); // [!] IRainman fix.
 }
 
-void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueItem* aCqi, const string& aReason)
+void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueItem* aCqi, const string& aReason) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
 	UpdateInfo* ui = new UpdateInfo(aCqi->getHintedUser(), aCqi->isDownload()); // [!] IRainman fix.
@@ -1659,7 +1672,7 @@ void TransferView::on(DownloadManagerListener::Requesting, const DownloadPtr& aD
 	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
 
-void TransferView::on(DownloadManagerListener::Starting, const DownloadPtr& aDownload)
+void TransferView::on(DownloadManagerListener::Starting, const DownloadPtr& aDownload) noexcept
 {
 	UpdateInfo* ui = new UpdateInfo(aDownload->getHintedUser(), true); // [!] IRainman fix.
 	
@@ -1672,7 +1685,7 @@ void TransferView::on(DownloadManagerListener::Starting, const DownloadPtr& aDow
 	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
 // TODO - убрать тики для массива
-void TransferView::on(DownloadManagerListener::Tick, const DownloadArray& dl, uint64_t CurrentTick)
+void TransferView::on(DownloadManagerListener::Tick, const DownloadArray& dl, uint64_t CurrentTick) noexcept
 {
 	if (!MainFrame::isAppMinimized())// [+]IRainman opt
 	{
@@ -1692,7 +1705,7 @@ void TransferView::on(DownloadManagerListener::Tick, const DownloadArray& dl, ui
 	}
 }
 
-void TransferView::on(DownloadManagerListener::Failed, const DownloadPtr& aDownload, const string& aReason)
+void TransferView::on(DownloadManagerListener::Failed, const DownloadPtr& aDownload, const string& aReason) noexcept
 {
 	UpdateInfo* ui = new UpdateInfo(aDownload->getHintedUser(), true, true); // [!] IRainman fix. https://code.google.com/p/flylinkdc/issues/detail?id=1291
 	ui->setStatus(ItemInfo::STATUS_WAITING);
@@ -1715,10 +1728,10 @@ void TransferView::on(DownloadManagerListener::Failed, const DownloadPtr& aDownl
 	ui->setStatusString(tmpReason);
 	
 	SHOW_POPUPF(POPUP_DOWNLOAD_FAILED,
-	            TSTRING(FILE) + _T(": ") + Util::getFileName(ui->m_target) + _T('\n') +
-	            TSTRING(USER) + _T(": ") + WinUtil::getNicks(ui->m_hintedUser) + _T('\n') +
-	            TSTRING(REASON) + _T(": ") + tmpReason, TSTRING(DOWNLOAD_FAILED) + _T(' '), NIIF_WARNING);
-	            
+	TSTRING(FILE) + _T(": ") + Util::getFileName(ui->m_target) + _T('\n') +
+	TSTRING(USER) + _T(": ") + WinUtil::getNicks(ui->m_hintedUser) + _T('\n') +
+	TSTRING(REASON) + _T(": ") + tmpReason, TSTRING(DOWNLOAD_FAILED) + _T(' '), NIIF_WARNING);
+	
 	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
 
@@ -1733,7 +1746,7 @@ void TransferView::on(DownloadManagerListener::Status, const UserConnection* p_c
 	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
 
-void TransferView::on(UploadManagerListener::Starting, const UploadPtr& aUpload)
+void TransferView::on(UploadManagerListener::Starting, const UploadPtr& aUpload) noexcept
 {
 	UpdateInfo* ui = new UpdateInfo(aUpload->getHintedUser(), false); // [!] IRainman fix.
 	
@@ -1753,7 +1766,7 @@ void TransferView::on(UploadManagerListener::Starting, const UploadPtr& aUpload)
 	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
 // TODO - убрать тики для массива
-void TransferView::on(UploadManagerListener::Tick, const UploadArray& ul, uint64_t CurrentTick)
+void TransferView::on(UploadManagerListener::Tick, const UploadArray& ul, uint64_t CurrentTick) noexcept
 {
 	if (!MainFrame::isAppMinimized())// [+]IRainman opt
 	{
@@ -1836,7 +1849,7 @@ void TransferView::CollapseAll()
 {
 	for (int q = ctrlTransfers.GetItemCount() - 1; q != -1; --q)
 	{
-		ItemInfo* m = (ItemInfo*)ctrlTransfers.getItemData(q);
+		ItemInfo* m = ctrlTransfers.getItemData(q);
 		if (m->download)
 		{
 			if (m->parent)
@@ -1874,10 +1887,10 @@ LRESULT TransferView::onDisconnectAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /
 		const vector<ItemInfo*>& children = ctrlTransfers.findChildren(ii->getGroupCond());
 		for (auto j = children.cbegin(); j != children.cend(); ++j)
 		{
-			ItemInfo* ii = *j;
-			ii->disconnect();
+			ItemInfo* jj = *j;
+			jj->disconnect();
 			
-			int h = ctrlTransfers.findItem(ii);
+			int h = ctrlTransfers.findItem(jj);
 			if (h != -1)
 			{
 				ctrlTransfers.SetItemText(h, COLUMN_STATUS, CTSTRING(DISCONNECTED));

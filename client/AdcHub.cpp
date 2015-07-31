@@ -64,7 +64,7 @@ const string AdcSupports::DHT0_SUPPORT("ADDHT0");
 #endif
 const string AdcSupports::ZLIF_SUPPORT("ADZLIF");
 
-const vector<StringList> AdcHub::searchExts;
+const vector<StringList> AdcHub::m_searchExts;
 
 AdcHub::AdcHub(const string& aHubURL, bool secure, bool p_is_auto_connect) : Client(aHubURL, '\n', secure, p_is_auto_connect), m_oldPassword(false), sid(0)
 {
@@ -744,11 +744,11 @@ void AdcHub::handle(AdcCommand::CMD, const AdcCommand& c) noexcept
 {
 	if (c.getParameters().size() < 1)
 		return;
-	const string& name = c.getParam(0);
+	const string& l_name = c.getParam(0);
 	bool rem = c.hasFlag("RM", 1);
 	if (rem)
 	{
-		fire(ClientListener::HubUserCommand(), this, (int)UserCommand::TYPE_REMOVE, 0, name, Util::emptyString);
+		fire(ClientListener::HubUserCommand(), this, (int)UserCommand::TYPE_REMOVE, 0, l_name, Util::emptyString);
 		return;
 	}
 	bool sep = c.hasFlag("SP", 1);
@@ -760,14 +760,14 @@ void AdcHub::handle(AdcCommand::CMD, const AdcCommand& c) noexcept
 		return;
 	if (sep)
 	{
-		fire(ClientListener::HubUserCommand(), this, (int)UserCommand::TYPE_SEPARATOR, ctx, name, Util::emptyString);
+		fire(ClientListener::HubUserCommand(), this, (int)UserCommand::TYPE_SEPARATOR, ctx, l_name, Util::emptyString);
 		return;
 	}
 	bool once = c.hasFlag("CO", 1);
 	string txt;
 	if (!c.getParam("TT", 1, txt))
 		return;
-	fire(ClientListener::HubUserCommand(), this, (int)(once ? UserCommand::TYPE_RAW_ONCE : UserCommand::TYPE_RAW), ctx, name, txt);
+	fire(ClientListener::HubUserCommand(), this, (int)(once ? UserCommand::TYPE_RAW_ONCE : UserCommand::TYPE_RAW), ctx, l_name, txt);
 }
 
 void AdcHub::sendUDP(const AdcCommand& cmd) noexcept
@@ -1170,15 +1170,15 @@ void AdcHub::sendUserCmd(const UserCommand& command, const StringMap& params)
 
 const vector<StringList>& AdcHub::getSearchExts()
 {
-	if (!searchExts.empty())
-		return searchExts;
+	if (!m_searchExts.empty())
+		return m_searchExts;
 		
 	// the list is always immutable except for this function where it is initially being filled.
-	auto& xSearchExts = const_cast<vector<StringList>&>(searchExts);
+	auto& xSearchExts = const_cast<vector<StringList>&>(m_searchExts);
 	
 	xSearchExts.resize(6);
 	
-	/// @todo simplify this as searchExts[0] = { "mp3", "etc" } when VC++ supports initializer lists
+	/// @todo simplify this as m_searchExts[0] = { "mp3", "etc" } when VC++ supports initializer lists
 	
 	// these extensions *must* be sorted alphabetically!
 	// TODO - изменить этот код
@@ -1291,7 +1291,7 @@ const vector<StringList>& AdcHub::getSearchExts()
 		l.push_back("wmv");
 	}
 	
-	return searchExts;
+	return m_searchExts;
 }
 
 StringList AdcHub::parseSearchExts(int flag)
@@ -1355,8 +1355,8 @@ void AdcHub::search_token(const SearchParamToken& p_search_param)
 			uint8_t gr = 0;
 			StringList rx;
 			
-			const auto& searchExts = getSearchExts();
-			for (auto i = searchExts.cbegin(), iend = searchExts.cend(); i != iend; ++i)
+			const auto& l_searchExts = getSearchExts();
+			for (auto i = l_searchExts.cbegin(), iend = l_searchExts.cend(); i != iend; ++i)
 			{
 				const StringList& def = *i;
 				
@@ -1389,7 +1389,7 @@ void AdcHub::search_token(const SearchParamToken& p_search_param)
 					continue;
 					
 				// let's include this group!
-				gr += 1 << (i - searchExts.cbegin());
+				gr += 1 << (i - l_searchExts.cbegin());
 				
 				exts = temp; // the exts to still add (that were not defined in the group)
 				

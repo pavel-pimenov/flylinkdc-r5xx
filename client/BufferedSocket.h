@@ -140,7 +140,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		{
 			write(aData.data(), aData.length());
 		}
-		void write(const char* aBuf, size_t aLen) noexcept;
+		void write(const char* aBuf, size_t aLen);
 		/** Send the file f over this socket. */
 		void transmitFile(InputStream* f)
 		{

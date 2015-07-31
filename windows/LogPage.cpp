@@ -71,6 +71,7 @@ PropPage::ListItem LogPage::listItems[] =
 #endif
 	{ SettingsManager::LOG_CUSTOM_LOCATION,     ResourceManager::SETTINGS_LOG_CUSTOM_LOCATION }, // [+]IRainman
 	{ SettingsManager::LOG_SQLITE_TRACE,        ResourceManager::SETTINGS_LOG_TRACE_SQLITE },
+	{ SettingsManager::LOG_VIRUS_TRACE, ResourceManager::SETTINGS_LOG_VIRUS_TRACE },
 	{ SettingsManager::LOG_DDOS_TRACE,          ResourceManager::SETTINGS_LOG_DDOS_TRACE },
 	{ SettingsManager::LOG_CMDDEBUG_TRACE,          ResourceManager::SETTINGS_LOG_CMDDEBUG_TRACE },
 	{ SettingsManager::LOG_DHT_TRACE,           ResourceManager::SETTINGS_LOG_DHT_TRACE },
@@ -97,6 +98,11 @@ LRESULT LogPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	
 	::EnableWindow(GetDlgItem(IDC_LOG_FORMAT), false);
 	::EnableWindow(GetDlgItem(IDC_LOG_FILE), false);
+#ifdef FLYLINKDC_USE_ROTATION_FINISHED_MANAGER
+	// For fix - crash https://drdump.com/DumpGroup.aspx?DumpGroupID=301739
+	::EnableWindow(GetDlgItem(IDC_SETTINGS_MAX_FINISHED_UPLOADS), false);
+	::EnableWindow(GetDlgItem(IDC_SETTINGS_MAX_FINISHED_DOWNLOADS), false);
+#endif
 	setEnabled();
 	oldSelection = -1;
 	

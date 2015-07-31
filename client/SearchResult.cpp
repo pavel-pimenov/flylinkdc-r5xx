@@ -98,7 +98,8 @@ SearchResult::SearchResult(Types aType, int64_t aSize, const string& aFile, cons
 	m_is_tth_download(false),
 	m_is_tth_check(false),
 	m_token(aToken),
-	m_is_p2p_guard_calc(false)
+	m_is_p2p_guard_calc(false),
+	m_virus_level(0)
 {
 	initSlot();
 	m_is_tth_share = aType == TYPE_FILE; // Constructor for ShareManager
@@ -117,7 +118,8 @@ SearchResult::SearchResult(const UserPtr& aUser, Types aType, uint8_t aSlots, ui
 	m_is_tth_remembrance(false),
 	m_is_tth_download(false),
 	m_is_tth_check(false),
-	m_is_p2p_guard_calc(false)
+	m_is_p2p_guard_calc(false),
+	m_virus_level(0)
 {
 }
 

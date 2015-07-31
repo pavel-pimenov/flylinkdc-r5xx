@@ -844,7 +844,7 @@ void ShareManager::addDirectory(const string& realPath, const string& virtualNam
 		{
 			string l_error;
 			l_error.resize(FULL_MAX_PATH);
-			snprintf(&l_error[0], l_error.size(), CSTRING(CHECK_FORBIDDEN_DIR), realPath.c_str(), g_forbiddenPaths[i].m_descr);
+			_snprintf(&l_error[0], l_error.size(), CSTRING(CHECK_FORBIDDEN_DIR), realPath.c_str(), g_forbiddenPaths[i].m_descr);
 			throw ShareException(l_error, realPath); // [14] https://www.box.net/shared/a7b3712835bebeea8a46
 			// Wizard - 2012-04-29_06-52-32_Y2577HXWPTRKFMIKQFFIWZACQZ7SL7WCXWKKVPQ_9A7CA00D_crash-stack-r502-beta23-build-9860.dmp
 			// Wizard - 2012-05-03_22-00-59_Z6RGCCG4JZVMG24NSQTF7MM3FB55VKJEMCXFO5I_00595FCE_crash-stack-r502-beta24-build-9900.dmp
@@ -1071,7 +1071,7 @@ void ShareManager::internalCalcShareSize() // [!] IRainman opt.
 	}
 	dcassert(g_sharedSize == g_CurrentShareSize);
 #ifdef _DEBUG
-	g_sharedSize == g_CurrentShareSize;
+	g_sharedSize = g_CurrentShareSize;
 #endif
 }
 
@@ -1220,7 +1220,7 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 						l_dir_item_second.m_media_ptr = nullptr;
 					}
 				}
-				catch (const HashException& e)
+				catch (const HashException&)
 				{
 				}
 			}
@@ -1860,7 +1860,7 @@ void ShareManager::Directory::filesToXml(OutputStream& xmlFile, string& indent, 
 
 static const char* typeAudio[] = { ".mp3", ".mp2", ".mid", ".wav", ".ogg", ".wma", ".669", ".aac", ".aif", ".amf", ".ams", ".ape", ".dbm", ".dsm", ".far", ".mdl", ".med", ".mod", ".mol", ".mp1", ".mpa", ".mpc", ".mpp", ".mtm", ".nst", ".okt", ".psm", ".ptm", ".rmi", ".s3m", ".stm", ".ult", ".umx", ".wow",
                                    ".lqt", // [+] FlylinkDC++
-                                   ".vqf", ".m4a"
+								   ".vqf", ".m4a"
                                  };
 static const char* typeCompressed[] = { ".rar", ".zip", ".ace", ".arj", ".hqx", ".lha", ".sea", ".tar", ".tgz", ".uc2", ".bz2", ".lzh" };
 static const char* typeDocument[] = { ".htm", ".doc", ".txt", ".nfo", ".pdf", ".chm",
@@ -1884,8 +1884,8 @@ static const char* typeVideo[] = { ".avi", ".mpg", ".mov", ".flv", ".asf",  ".px
                                  };
 static const char* typeCDImage[] = { ".iso", ".nrg", ".mdf", ".mds", ".vcd", ".bwt", ".ccd", ".cdi", ".pdi", ".cue", ".isz", ".img", ".vc4", ".cso"};  // [+] FlylinkDC++
 
-static const string type2Audio[] = { ".au", ".it", ".ra", ".xm", ".aiff", ".flac", ".midi"};
-static const string type2Document[] = {".xlsx", ".docx", ".pptx", ".html" }; //[+]Drakon (Office 2007)
+static const string type2Audio[] = { ".au", ".it", ".ra", ".xm", ".aiff", ".flac", ".midi", ".wv"};
+static const string type2Document[] = {".xlsx", ".docx", ".pptx", ".html" }; //[+]Drakon (Office 2007+)
 static const string type2Compressed[] = { ".7z", //[+]PPA
                                           ".gz", ".tz", ".z"
                                         };

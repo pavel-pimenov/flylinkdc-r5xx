@@ -802,6 +802,7 @@ unsigned char Identity::calcVirusType()
 		}
 		setVirusPath(l_virus_path);
 		setVirusType(l_virus_type | Identity::VT_CALC_AVDB);
+		// TODO - выкинуть из чата
 	}
 	return getVirusType();
 }
@@ -869,11 +870,11 @@ tstring Identity::getHubs() const
 	{
 		tstring hubs;
 		hubs.resize(64);
-		hubs.resize(snwprintf(&hubs[0], hubs.size(), _T("%u (%u/%u/%u)"),
-		                      l_hub_normal + l_hub_reg + l_hub_op,
-		                      l_hub_normal,
-		                      l_hub_reg,
-		                      l_hub_op));
+		hubs.resize(_snwprintf(&hubs[0], hubs.size(), _T("%u (%u/%u/%u)"),
+		                       l_hub_normal + l_hub_reg + l_hub_op,
+		                       l_hub_normal,
+		                       l_hub_reg,
+		                       l_hub_op));
 		return hubs;
 	}
 	else

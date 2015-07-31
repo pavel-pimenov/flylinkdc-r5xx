@@ -91,7 +91,7 @@ LRESULT RSSNewsFrame::updateList(const RSSManager::NewsList& list)
 	CLockRedraw<true> l_lock_draw(ctrlList);
 	for (auto i = list.cbegin(); i != list.cend(); ++i)
 	{
-		addEntry(*i);
+		addRSSEntry(*i);
 	}
 	return 1;
 }
@@ -206,7 +206,7 @@ void RSSNewsFrame::on(RSSListener::Added, const RSSItem* p_item) noexcept
 // 41 падение в этой области https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=23689
 // http://i.imgur.com/Si4oqEI.png
 {
-	addEntry(p_item);
+	addRSSEntry(p_item);
 	m_Message = p_item->getTitle() + " - " + p_item->getSource() + "\r\n";
 }
 

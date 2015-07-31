@@ -127,57 +127,57 @@ LRESULT PropPageTextStyles::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARA
 	bg = SETTING(BACKGROUND_COLOR);
 	
 	TextStyles[ TS_GENERAL ].Init(
-	    this, settings, (char*)CSTRING(GENERAL_TEXT), (char*)CSTRING(GENERAL_TEXT),
+	    this, (char*)CSTRING(GENERAL_TEXT), (char*)CSTRING(GENERAL_TEXT),
 	    SettingsManager::TEXT_GENERAL_BACK_COLOR, SettingsManager::TEXT_GENERAL_FORE_COLOR,
 	    SettingsManager::TEXT_GENERAL_BOLD, SettingsManager::TEXT_GENERAL_ITALIC);
 	    
 	TextStyles[ TS_MYNICK ].Init(
-	    this, settings, (char*)CSTRING(MY_NICK), (char*)CSTRING(MY_NICK),
+	    this, (char*)CSTRING(MY_NICK), (char*)CSTRING(MY_NICK),
 	    SettingsManager::TEXT_MYNICK_BACK_COLOR, SettingsManager::TEXT_MYNICK_FORE_COLOR,
 	    SettingsManager::TEXT_MYNICK_BOLD, SettingsManager::TEXT_MYNICK_ITALIC);
 	    
 	TextStyles[ TS_MYMSG ].Init(
-	    this, settings, (char*)CSTRING(MY_MESSAGE), (char*)CSTRING(MY_MESSAGE),
+	    this, (char*)CSTRING(MY_MESSAGE), (char*)CSTRING(MY_MESSAGE),
 	    SettingsManager::TEXT_MYOWN_BACK_COLOR, SettingsManager::TEXT_MYOWN_FORE_COLOR,
 	    SettingsManager::TEXT_MYOWN_BOLD, SettingsManager::TEXT_MYOWN_ITALIC);
 	    
 	TextStyles[ TS_PRIVATE ].Init(
-	    this, settings, (char*)CSTRING(PRIVATE_MESSAGE), (char*)CSTRING(PRIVATE_MESSAGE),
+	    this, (char*)CSTRING(PRIVATE_MESSAGE), (char*)CSTRING(PRIVATE_MESSAGE),
 	    SettingsManager::TEXT_PRIVATE_BACK_COLOR, SettingsManager::TEXT_PRIVATE_FORE_COLOR,
 	    SettingsManager::TEXT_PRIVATE_BOLD, SettingsManager::TEXT_PRIVATE_ITALIC);
 	    
 	TextStyles[ TS_SYSTEM ].Init(
-	    this, settings, (char*)CSTRING(SYSTEM_MESSAGE), (char*)CSTRING(SYSTEM_MESSAGE),
+	    this, (char*)CSTRING(SYSTEM_MESSAGE), (char*)CSTRING(SYSTEM_MESSAGE),
 	    SettingsManager::TEXT_SYSTEM_BACK_COLOR, SettingsManager::TEXT_SYSTEM_FORE_COLOR,
 	    SettingsManager::TEXT_SYSTEM_BOLD, SettingsManager::TEXT_SYSTEM_ITALIC);
 	    
 	TextStyles[ TS_SERVER ].Init(
-	    this, settings, (char*)CSTRING(SERVER_MESSAGE), (char*)CSTRING(SERVER_MESSAGE),
+	    this, (char*)CSTRING(SERVER_MESSAGE), (char*)CSTRING(SERVER_MESSAGE),
 	    SettingsManager::TEXT_SERVER_BACK_COLOR, SettingsManager::TEXT_SERVER_FORE_COLOR,
 	    SettingsManager::TEXT_SERVER_BOLD, SettingsManager::TEXT_SERVER_ITALIC);
 	    
 	TextStyles[ TS_TIMESTAMP ].Init(
-	    this, settings, (char*)CSTRING(TIMESTAMP), (char*)CSTRING(TEXT_STYLE_TIME_SAMPLE),
+	    this, (char*)CSTRING(TIMESTAMP), (char*)CSTRING(TEXT_STYLE_TIME_SAMPLE),
 	    SettingsManager::TEXT_TIMESTAMP_BACK_COLOR, SettingsManager::TEXT_TIMESTAMP_FORE_COLOR,
 	    SettingsManager::TEXT_TIMESTAMP_BOLD, SettingsManager::TEXT_TIMESTAMP_ITALIC);
 	    
 	TextStyles[ TS_URL ].Init(
-	    this, settings, (char*)CSTRING(TEXT_STYLE_URL), (char*)CSTRING(TEXT_STYLE_URL_SAMPLE),
+	    this, (char*)CSTRING(TEXT_STYLE_URL), (char*)CSTRING(TEXT_STYLE_URL_SAMPLE),
 	    SettingsManager::TEXT_URL_BACK_COLOR, SettingsManager::TEXT_URL_FORE_COLOR,
 	    SettingsManager::TEXT_URL_BOLD, SettingsManager::TEXT_URL_ITALIC);
 	    
 	TextStyles[ TS_FAVORITE ].Init(
-	    this, settings, (char*)CSTRING(FAV_USER), (char*)CSTRING(FAV_USER),
+	    this, (char*)CSTRING(FAV_USER), (char*)CSTRING(FAV_USER),
 	    SettingsManager::TEXT_FAV_BACK_COLOR, SettingsManager::TEXT_FAV_FORE_COLOR,
 	    SettingsManager::TEXT_FAV_BOLD, SettingsManager::TEXT_FAV_ITALIC);
 	    
 	TextStyles[ TS_FAV_ENEMY ].Init(
-	    this, settings, (char*)CSTRING(FAV_ENEMY_USER), (char*)CSTRING(FAV_ENEMY_USER),
+	    this, (char*)CSTRING(FAV_ENEMY_USER), (char*)CSTRING(FAV_ENEMY_USER),
 	    SettingsManager::TEXT_ENEMY_BACK_COLOR, SettingsManager::TEXT_ENEMY_FORE_COLOR,
 	    SettingsManager::TEXT_ENEMY_BOLD, SettingsManager::TEXT_ENEMY_ITALIC);
 	    
 	TextStyles[ TS_OP ].Init(
-	    this, settings, (char*)CSTRING(OPERATOR), (char*)CSTRING(OPERATOR),
+	    this, (char*)CSTRING(OPERATOR), (char*)CSTRING(OPERATOR),
 	    SettingsManager::TEXT_OP_BACK_COLOR, SettingsManager::TEXT_OP_FORE_COLOR,
 	    SettingsManager::TEXT_OP_BOLD, SettingsManager::TEXT_OP_ITALIC);
 	    
@@ -222,17 +222,17 @@ void PropPageTextStyles::write()
 	PropPage::write((HWND)*this, items);
 	
 	tstring f = WinUtil::encodeFont(m_Font);
-	settings->set(SettingsManager::TEXT_FONT, Text::fromT(f));
+	g_settings->set(SettingsManager::TEXT_FONT, Text::fromT(f));
 	
 	m_BackColor = TextStyles[ TS_GENERAL ].crBackColor;
 	m_ForeColor = TextStyles[ TS_GENERAL ].crTextColor;
 	
-	settings->set(SettingsManager::TEXT_COLOR, (int)fg);
-	settings->set(SettingsManager::BACKGROUND_COLOR, (int)bg);
+	g_settings->set(SettingsManager::TEXT_COLOR, (int)fg);
+	g_settings->set(SettingsManager::BACKGROUND_COLOR, (int)bg);
 	
 	for (int i = 1; i < _countof(colours); i++)
 	{
-		settings->set((SettingsManager::IntSetting)colours[i].setting, (int)colours[i].value);
+		g_settings->set(SettingsManager::IntSetting(colours[i].setting), (int)colours[i].value);
 	}
 	
 	for (int i = 0; i < TS_LAST; i++)
@@ -429,7 +429,7 @@ LRESULT PropPageTextStyles::onBlackAndWhite(WORD /*wNotifyCode*/, WORD /*wID*/, 
 }
 
 void PropPageTextStyles::TextStyleSettings::Init(
-    PropPageTextStyles *pParent, SettingsManager *pSM,
+    PropPageTextStyles *pParent,
     LPCSTR sText, LPCSTR sPreviewText,
     SettingsManager::IntSetting iBack, SettingsManager::IntSetting iFore,
     SettingsManager::IntSetting iBold, SettingsManager::IntSetting iItalic)
@@ -440,7 +440,6 @@ void PropPageTextStyles::TextStyleSettings::Init(
 	dwReserved = 0;
 	
 	m_pParent = pParent;
-	settings = pSM;
 	m_sText = sText;
 	m_sPreviewText = sPreviewText;
 	m_iBackColor = iBack;
@@ -452,20 +451,20 @@ void PropPageTextStyles::TextStyleSettings::Init(
 void PropPageTextStyles::TextStyleSettings::LoadSettings()
 {
 	dwEffects = 0;
-	crBackColor = settings->get(m_iBackColor);
-	crTextColor = settings->get(m_iForeColor);
-	if (settings->get(m_iBold)) dwEffects |= CFE_BOLD;
-	if (settings->get(m_iItalic)) dwEffects |= CFE_ITALIC;
+	crBackColor = g_settings->get(m_iBackColor);
+	crTextColor = g_settings->get(m_iForeColor);
+	if (g_settings->get(m_iBold)) dwEffects |= CFE_BOLD;
+	if (g_settings->get(m_iItalic)) dwEffects |= CFE_ITALIC;
 }
 
 void PropPageTextStyles::TextStyleSettings::SaveSettings()
 {
-	settings->set(m_iBackColor, (int) crBackColor);
-	settings->set(m_iForeColor, (int) crTextColor);
+	g_settings->set(m_iBackColor, (int) crBackColor);
+	g_settings->set(m_iForeColor, (int) crTextColor);
 	BOOL boBold = ((dwEffects & CFE_BOLD) == CFE_BOLD);
-	settings->set(m_iBold, (int) boBold);
+	g_settings->set(m_iBold, (int) boBold);
 	BOOL boItalic = ((dwEffects & CFE_ITALIC) == CFE_ITALIC);
-	settings->set(m_iItalic, (int) boItalic);
+	g_settings->set(m_iItalic, (int) boItalic);
 }
 
 void PropPageTextStyles::TextStyleSettings::EditBackColor()

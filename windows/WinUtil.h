@@ -1173,6 +1173,7 @@ struct FileImage : public BaseImageList
 		};
 		
 		int getIconIndex(const string& aFileName);
+		string getVirusIconIndex(const string& aFileName, int& p_icon_index);
 		
 		static bool isBdFolder(const string& nameDir)
 		{
@@ -1507,7 +1508,7 @@ class WinUtil
 		static FlatTabCtrl* g_tabCtrl;
 #endif
 		static HHOOK g_hook;
-		static bool isAppActive;
+		static bool g_isAppActive;
 		static bool mutesounds;
 		
 		static void init(HWND hWnd);

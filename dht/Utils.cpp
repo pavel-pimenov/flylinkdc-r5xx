@@ -36,7 +36,7 @@ namespace dht
 
 FastCriticalSection Utils::g_Utilscs; // [!] IRainman opt: use spin lock here.
 boost::unordered_map<string, boost::unordered_multiset<uint32_t>> Utils::g_receivedPackets;
-std::list<const Utils::OutPacket> Utils::g_sentPackets;
+std::list<Utils::OutPacket> Utils::g_sentPackets;
 
 CID Utils::getDistance(const CID& cid1, const CID& cid2)
 {

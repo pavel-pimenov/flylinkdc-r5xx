@@ -1813,7 +1813,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 	}
 	else if (wParam == SET_PM_TRAY_ICON) // Установка иконки о получении сообщения.
 	{
-		if (m_bIsPM == false && (!WinUtil::isAppActive || g_bAppMinimized)) // [!] InfinitySky. Будет лучше менять иконку при получении сообщения всегда, если эта иконка не установлена и если окно не активно (как в Skype).
+		if (m_bIsPM == false && (!WinUtil::g_isAppActive || g_bAppMinimized)) // [!] InfinitySky. Будет лучше менять иконку при получении сообщения всегда, если эта иконка не установлена и если окно не активно (как в Skype).
 		{
 			m_bIsPM = true; // Иконка о получении лички установлена.
 			
@@ -2076,7 +2076,8 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 {
 	if (!PropertiesDlg::g_is_create)
 	{
-		PropertiesDlg dlg(m_hWnd, SettingsManager::getInstance());
+		
+		PropertiesDlg dlg(m_hWnd);
 		
 		const unsigned short lastTCP = static_cast<unsigned short>(SETTING(TCP_PORT));
 		const unsigned short lastUDP = static_cast<unsigned short>(SETTING(UDP_PORT));
@@ -2813,10 +2814,10 @@ void MainFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 {
 	if (BaseChatFrame::g_isStartupProcess == false)
 	{
-		RECT rect;
-		GetClientRect(&rect);
+		RECT l_rect;
+		GetClientRect(&l_rect);
 		// position bars and offset their dimensions
-		UpdateBarsPosition(rect, bResizeBars);
+		UpdateBarsPosition(l_rect, bResizeBars);
 		
 		if (m_ctrlStatus.IsWindow() && m_ctrlLastLines.IsWindow())
 		{
@@ -2878,8 +2879,8 @@ void MainFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 			m_ctrlStatus.GetRect(STATUS_PART_8, &tabSPEED_OUTRect);
 #endif
 		}
-		CRect rc = rect;
-		CRect rc2 = rect;
+		CRect rc  = l_rect;
+		CRect rc2 = l_rect;
 		
 		switch (WinUtil::GetTabsPosition())
 		{
@@ -3410,8 +3411,8 @@ void MainFrame::on(QueueManagerListener::Finished, const QueueItemPtr& qi, const
 LRESULT MainFrame::onActivateApp(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 {
 	bHandled = FALSE;
-	WinUtil::isAppActive = (wParam == TRUE); // wParam == TRUE if window is activated, FALSE if deactivated
-	if (WinUtil::isAppActive)
+	WinUtil::g_isAppActive = (wParam == TRUE); // wParam == TRUE if window is activated, FALSE if deactivated
+	if (WinUtil::g_isAppActive)
 	{
 		setTrayAndTaskbarIcons(); // [!] IRainman fix.
 	}

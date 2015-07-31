@@ -474,7 +474,7 @@ void ADLSearchManager::matchesFile(DestDirList& destDirVector, DirectoryListing:
 			if (is->isForbidden && !getSentRaw())
 			{
 				AutoArray<char> buf(FULL_MAX_PATH);
-				snprintf(buf, FULL_MAX_PATH, CSTRING(CHECK_FORBIDDEN), currentFile->getName().c_str());
+				_snprintf(buf, FULL_MAX_PATH, CSTRING(CHECK_FORBIDDEN), currentFile->getName().c_str());
 				
 				ClientManager::getInstance()->setClientStatus(user, buf.data(), is->raw, false);
 				

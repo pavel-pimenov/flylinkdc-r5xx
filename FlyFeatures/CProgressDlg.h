@@ -152,10 +152,10 @@ public:
 		if (progress)
 		{
 			const int maxcount = 256;
-			int time = m_Dt * (abs(range.iHigh - range.iLow) - progress) / 1000;
+			const int l_time = m_Dt * (abs(range.iHigh - range.iLow) - progress) / 1000;
 
 			TCHAR text[maxcount];
-			swprintf (text, maxcount, _T("%d сек"), time);
+			swprintf (text, maxcount, _T("%d сек"), l_time);
 
 			SetDlgItemText(IDTIME, text);
 		}

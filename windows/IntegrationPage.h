@@ -28,7 +28,7 @@
 class IntegrationPage : public CPropertyPage<IDD_INTEGRATION_PAGE>, public PropPage
 {
 	public:
-		explicit IntegrationPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_INTEGRATION_PROP))
+		explicit IntegrationPage( ) : PropPage( TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_INTEGRATION_PROP))
 			, _isShellIntegration(false)
 			, _isStartupIntegration(false)
 			, _canShellIntegration(false)

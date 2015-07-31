@@ -81,7 +81,7 @@ LRESULT RSSPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	auto cnt = ctrlCommands.GetItemCount();
 	for (auto i = lst.cbegin(); i != lst.cend(); ++i)
 	{
-		addEntry((*i), cnt++);
+		addRSSEntry(*i, cnt++);
 	}
 	RSSManager::getInstance()->unlockFeedList();
 	
@@ -94,7 +94,7 @@ void RSSPage::write()
 }
 
 // При добавлении.
-void RSSPage::addEntry(const RSSFeed* rf, int pos)
+void RSSPage::addRSSEntry(const RSSFeed* rf, int pos)
 {
 	TStringList lst;
 	lst.push_back(Text::toT(rf->getFeedURL()));
@@ -113,7 +113,7 @@ LRESULT RSSPage::onAddFeed(WORD , WORD , HWND , BOOL&)
 	{
 		RSSFeed* feed = RSSManager::getInstance()->addNewFeed(Text::fromT(dlg.m_strURL), Text::fromT(dlg.m_strName), Text::fromT(dlg.m_strCodeing) , true);
 		if (feed)
-			addEntry(feed,  ctrlCommands.GetItemCount());
+			addRSSEntry(feed,  ctrlCommands.GetItemCount());
 	}
 	return 0;
 }
@@ -183,7 +183,7 @@ LRESULT RSSPage::onChangeFeed(WORD , WORD , HWND , BOOL&)
 				feed->setCodeing(Text::fromT(dlg.m_strCodeing));
 				// Update ctrlCommands
 				ctrlCommands.DeleteItem(sel);
-				addEntry(feed,  sel);
+				addRSSEntry(feed,  sel);
 			}
 		}
 		RSSManager::getInstance()->unlockFeedList();

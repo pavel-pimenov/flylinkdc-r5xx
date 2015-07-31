@@ -32,7 +32,7 @@ class JAControl
 		~JAControl() { }
 		
 	public:
-		// UpdateInfo
+		// JAUpdateAllInfo
 		void JAUpdateAllInfo();
 		bool ProcessCopyData(COPYDATASTRUCT* pCopyDataStruct);
 		

@@ -51,7 +51,7 @@ BufferedSocket::BufferedSocket(char aSeparator) :
 // should be rewritten using ThrottleManager
 //sleep(0), // !SMT!-S
 	m_is_disconnecting(false),
-	m_threadId(-1),
+	m_threadId(ThreadID(-1)),
 	m_myInfoCount(0),
 	m_is_all_my_info_loaded(false),
 	m_is_hide_share(false)
@@ -445,7 +445,7 @@ void BufferedSocket::threadRead()
 		throw SocketException(STRING(CONNECTION_CLOSED));
 	}
 	
-	string::size_type pos = 0;
+	string::size_type l_pos = 0;
 	// always uncompressed data
 	string l;
 	int bufpos = 0, total = left;
@@ -464,7 +464,7 @@ void BufferedSocket::threadRead()
 			{
 				const int BUF_SIZE = 1024;
 				// Special to autodetect nmdc connections...
-				string::size_type pos = 0; //  warning C6246: Local declaration of 'pos' hides declaration of the same name in outer scope.
+				string::size_type l_zpos = 0; //  warning C6246: Local declaration of 'pos' hides declaration of the same name in outer scope.
 				std::unique_ptr<char[]> buffer(new char[BUF_SIZE]);
 				l = line;
 				// decompress all input data and store in l.
@@ -494,16 +494,16 @@ void BufferedSocket::threadRead()
 				StringList l_all_myInfo;
 				CFlySearchArrayTTH l_tth_search;
 				CFlySearchArrayFile l_file_search;
-				while ((pos = l.find(m_separator)) != string::npos)
+				while ((l_zpos = l.find(m_separator)) != string::npos)
 				{
-					if (pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
+					if (l_zpos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
 					{
-						if (all_search_parser(pos, l, l_tth_search, l_file_search) == false)
+						if (all_search_parser(l_zpos, l, l_tth_search, l_file_search) == false)
 						{
-							all_myinfo_parser(pos, l, l_all_myInfo, true);
+							all_myinfo_parser(l_zpos, l, l_all_myInfo, true);
 						}
 					}
-					l.erase(0, pos + 1 /* separator char */); //[3] https://www.box.net/shared/74efa5b96079301f7194
+					l.erase(0, l_zpos + 1 /* separator char */); //[3] https://www.box.net/shared/74efa5b96079301f7194
 				}
 				// store remainder
 				if (!l_all_myInfo.empty())
@@ -564,7 +564,7 @@ void BufferedSocket::threadRead()
 				StringList l_all_myInfo;
 				CFlySearchArrayTTH l_tth_search;
 				CFlySearchArrayFile l_file_search;
-				while ((pos = l.find(m_separator)) != string::npos)
+				while ((l_pos = l.find(m_separator)) != string::npos)
 				{
 #if 0
 					if (l_count_separator++ && l.length() > 0 && BOOLSETTING(LOG_PROTOCOL))
@@ -574,15 +574,15 @@ void BufferedSocket::threadRead()
 						LogManager::message(l_log);
 					}
 #endif
-					if (pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
+					if (l_pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
 					{
-						if (all_search_parser(pos, l, l_tth_search, l_file_search) == false)
+						if (all_search_parser(l_pos, l, l_tth_search, l_file_search) == false)
 						{
-							all_myinfo_parser(pos, l, l_all_myInfo, false);
+							all_myinfo_parser(l_pos, l, l_all_myInfo, false);
 						}
 					}
 					
-					l.erase(0, pos + 1 /* separator char */);
+					l.erase(0, l_pos + 1 /* separator char */);
 					// TODO - erase не эффективно.
 					if (l.length() < (size_t)left)
 					{
@@ -613,7 +613,7 @@ void BufferedSocket::threadRead()
 					fire(BufferedSocketListener::SearchArrayFile(), l_file_search);
 				}
 				
-				if (pos == string::npos)
+				if (l_pos == string::npos)
 					left = 0;
 				line = l;
 				break;

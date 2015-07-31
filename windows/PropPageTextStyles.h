@@ -11,7 +11,7 @@
 class PropPageTextStyles: public CPropertyPage<IDD_TEXT_STYLES_PAGE>, public PropPage
 {
 	public:
-		explicit PropPageTextStyles(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_TEXT_STYLES))
+		explicit PropPageTextStyles( ) : PropPage( TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_TEXT_STYLES))
 		{
 			fg = 0;
 			bg = 0;
@@ -97,10 +97,10 @@ class PropPageTextStyles: public CPropertyPage<IDD_TEXT_STYLES_PAGE>, public Pro
 		class TextStyleSettings: public CHARFORMAT2
 		{
 			public:
-				TextStyleSettings() : m_pParent(nullptr), settings(nullptr) { }
+				TextStyleSettings() : m_pParent(nullptr) { }
 				~TextStyleSettings() { }
 				
-				void Init(PropPageTextStyles *pParent, SettingsManager *pSM,
+				void Init(PropPageTextStyles *pParent, 
 				          LPCSTR sText, LPCSTR sPreviewText,
 				          SettingsManager::IntSetting iBack, SettingsManager::IntSetting iFore,
 				          SettingsManager::IntSetting iBold, SettingsManager::IntSetting iItalic);
@@ -114,7 +114,6 @@ class PropPageTextStyles: public CPropertyPage<IDD_TEXT_STYLES_PAGE>, public Pro
 				string m_sPreviewText;
 				
 				PropPageTextStyles *m_pParent;
-				SettingsManager *settings;
 				SettingsManager::IntSetting m_iBackColor;
 				SettingsManager::IntSetting m_iForeColor;
 				SettingsManager::IntSetting m_iBold;

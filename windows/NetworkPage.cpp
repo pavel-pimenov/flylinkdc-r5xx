@@ -146,11 +146,11 @@ void NetworkPage::write()
 	const auto l_current_set = SETTING(INCOMING_CONNECTIONS);
 	if (l_current_set != ct)
 	{
-		settings->set(SettingsManager::INCOMING_CONNECTIONS, ct);
+		g_settings->set(SettingsManager::INCOMING_CONNECTIONS, ct);
 	}
 	
 #ifdef RIP_USE_CONNECTION_AUTODETECT
-	settings->set(SettingsManager::INCOMING_AUTODETECT_FLAG, int(IsDlgButtonChecked(IDC_AUTODETECT)));
+	g_settings->set(SettingsManager::INCOMING_AUTODETECT_FLAG, int(IsDlgButtonChecked(IDC_AUTODETECT)));
 #endif
 }
 

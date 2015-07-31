@@ -251,7 +251,7 @@
 ;Россия;Владимир;GusOnline;;DC:4111
 ;Россия;Владимир;LiteNET;;10.35.252.130
 ;Россия;Владимир;TelecomMK;;triada.mydc.ru:666
-;Россия;Владимир;Мегасети;;dc.megaseti.ru
+;Россия;Владимир;Мегасети;;dc.megaseti.ru,dc.megaseti.net
 ;Россия;Волгоград;Dom-ru;;88.87.66.27
 ;Россия;Волгоград;E-telecom;;dc.next-one.ru,dc.e-telecom.ru:4111,p2p.unity-net.pvt:1090,p2p.powernet.pvt,dc.lancom.pvt,p2p.rilannet,p2p.powernet,p2p.starnet:5000,dc.mlcom.pvt
 ;Россия;Волгоград;NextOne;NextOne;von-ent.lan,dc.starnet:5000,p2p.unity-net.pvt:1090,demon.lan,molodejj.lan,10.112.123.2,megara.next-one.ru,dc.yandex.lan,10.112.18.70,10.113.47.30,10.113.104.222,83.167.65.174,vlz.e-telecom.ru,zebra.lan,vlz.sytes.net,10.134.5.63
@@ -338,6 +338,7 @@
 ;Россия;Железногорск (Курск);ЖелГорТелеКом;;217.145.19.4:411
 ;Россия;Железногорск Красноярского края;Городская телефонная сеть;;dc.k26.ru,172.17.76.12,games.k26.ru
 ;Россия;Железногорск Красноярского края;Девятка-ру;;dc.9-ka.ru,box.9-ka.lan,dc.optizone.ru,dc.sibserver.ru,dc.krasfiles.ru
+;Россия;Железнодорожный;Infoline;;krossfire.asuscomm.com
 ;Россия;Железнодорожный;NetByNet;;chronos-hub.no-ip.org,85.159.40.241,p2p.itcn.ru,10.171.68.32,80.90.113.30,85.159.40.183,dc1.piring-net.net,dc2.piring-net.net:411,dc.piring-net.net:411,95.52.3.241,85.159.41.8:412,10.5.9.125
 ;Россия;Железнодорожный;Электрон;ITCE-hub и Zaryanet;dc.local,p2p.zaryanet.ru
 ;Россия;Жигулевск;Жигулевск;;dc.querr.ru,cheb-21.ru
@@ -734,7 +735,7 @@
 ;Россия;Новосибирск;МТС;;p2p.local,peers.cn.ru,hub.magnet.211.ru,p2p.hnet.ru,dc.211.ru
 ;Россия;Новосибирск;НИР-Телеком;;dc.klubok.org
 ;Россия;Новосибирск;НовАКТВ;;hub1.tvoyinter.net,hub2.tvoyinter.net
-;Россия;Новосибирск;Новотелеком;Peers;peers.cn.ru,80.64.81.124,allavtovo.ru,dc.cifracom.ru,dc.dcmagnets.ru,piknik-dc.ru,dc.tiera.ru,dc.di-strict.ru,trolley.di-strict.ru,dc-forumdruzei.sytes.net,dc.fierycity.ru,hub.avtostay.ru
+;Россия;Новосибирск;Новотелеком;Peers;peers.cn.ru,80.64.81.124,allavtovo.ru,dc.cifracom.ru,dc.dcmagnets.ru,piknik-dc.ru,dc.tiera.ru,dc.di-strict.ru,trolley.di-strict.ru,dc-forumdruzei.sytes.net,dc.fierycity.ru,hub.avtostay.ru,mynsk.no-ip.org
 ;Россия;Новосибирск;Ростелеком;;dc.filimania.com,von-ent.lan,p2p.academ.org,dc.adslclub.ru,dc.1nsk.ru,peers.ws,peers.cn.ru,dc.optizone.ru,dc.ws-files.ru,dc-hub.kuzbass.net,dc.doom55.ru,dc.gmss.ru,dc.klubok.org,dc.nsk.adslclub.ru
 ;Россия;Новосибирск;Сибирские сети;;allavtovo.ru,tech.211.ru,sweet.211.ru,magnet.211.ru,dc.211.ru,178.49.23.67:411,89.31.117.58:411,peers.cn.ru,hub.magnet.211.ru
 ;Россия;Новосибирск;Сибирский Медеведь;;hub.magnet.211.ru,sweet.211.ru

@@ -97,3 +97,6 @@ tth-history.leveldb
 test/Debug/*
 test/ipch/*
 test/Release/*
+*.ipdb
+*.iobj
+.vs

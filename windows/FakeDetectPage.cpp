@@ -100,32 +100,32 @@ LRESULT FakeDetect::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	
 	cRaw.Attach(GetDlgItem(IDC_DISCONNECT_RAW));
 	ADDSTRINGS
-	cRaw.SetCurSel(settings->get(SettingsManager::DISCONNECT_RAW));
+	cRaw.SetCurSel(g_settings->get(SettingsManager::DISCONNECT_RAW));
 	cRaw.Detach();
 	
 	cRaw.Attach(GetDlgItem(IDC_TIMEOUT_RAW));
 	ADDSTRINGS
-	cRaw.SetCurSel(settings->get(SettingsManager::TIMEOUT_RAW));
+	cRaw.SetCurSel(g_settings->get(SettingsManager::TIMEOUT_RAW));
 	cRaw.Detach();
 	
 	cRaw.Attach(GetDlgItem(IDC_FAKE_RAW));
 	ADDSTRINGS
-	cRaw.SetCurSel(settings->get(SettingsManager::FAKESHARE_RAW));
+	cRaw.SetCurSel(g_settings->get(SettingsManager::FAKESHARE_RAW));
 	cRaw.Detach();
 	
 	cRaw.Attach(GetDlgItem(IDC_LISTLEN));
 	ADDSTRINGS
-	cRaw.SetCurSel(settings->get(SettingsManager::LISTLEN_MISMATCH));
+	cRaw.SetCurSel(g_settings->get(SettingsManager::LISTLEN_MISMATCH));
 	cRaw.Detach();
 	
 	cRaw.Attach(GetDlgItem(IDC_FILELIST_TOO_SMALL));
 	ADDSTRINGS
-	cRaw.SetCurSel(settings->get(SettingsManager::FILELIST_TOO_SMALL));
+	cRaw.SetCurSel(g_settings->get(SettingsManager::FILELIST_TOO_SMALL));
 	cRaw.Detach();
 	
 	cRaw.Attach(GetDlgItem(IDC_FILELIST_UNAVAILABLE));
 	ADDSTRINGS
-	cRaw.SetCurSel(settings->get(SettingsManager::FILELIST_UNAVAILABLE));
+	cRaw.SetCurSel(g_settings->get(SettingsManager::FILELIST_UNAVAILABLE));
 	cRaw.Detach();
 	
 #undef ADDSTRINGS

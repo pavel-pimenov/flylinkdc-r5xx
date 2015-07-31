@@ -65,14 +65,14 @@ class Utils
 		struct OutPacket
 		{
 			OutPacket(const string& _ip, uint64_t _time, uint32_t _cmd) : ip(_ip), time(_time), cmd(_cmd) {}
-			const string      ip;
-			const uint64_t    time;
-			const uint32_t    cmd;
+			string      ip;
+			uint64_t    time;
+			uint32_t    cmd;
 		};
 		
 		static FastCriticalSection g_Utilscs; // [!] IRainman opt: use spin lock here.
 		static boost::unordered_map<string, boost::unordered_multiset<uint32_t>> g_receivedPackets;
-		static std::list<const OutPacket> g_sentPackets;
+		static std::list<OutPacket> g_sentPackets;
 };
 
 } // namespace dht

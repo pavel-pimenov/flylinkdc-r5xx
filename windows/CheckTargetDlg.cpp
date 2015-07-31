@@ -30,7 +30,7 @@ LRESULT CheckTargetDlg::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 	
 	SetWindowText(CTSTRING(REPLACE_DLG_TITLE));
 	AutoArray<TCHAR> buf(512);
-	snwprintf(buf.data(), 512, CTSTRING(REPLACE_DESCR), mFileName.c_str());
+	_snwprintf(buf.data(), 512, CTSTRING(REPLACE_DESCR), mFileName.c_str());
 	mFileName = Util::getFileName(mFileName);
 	SetDlgItemText(IDC_REPLACE_DESCR, buf.data());
 	SetDlgItemText(IDC_REPLACE_BORDER_EXISTS, CTSTRING(REPLACE_BORDER_EXISTS));
@@ -41,7 +41,7 @@ LRESULT CheckTargetDlg::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 	SetDlgItemText(IDC_REPLACE_NAME_NEW, CTSTRING(MAGNET_DLG_FILE));
 	SetDlgItemText(IDC_REPLACE_SIZE_NEW, CTSTRING(MAGNET_DLG_SIZE));
 	SetDlgItemText(IDC_REPLACE_REPLACE, CTSTRING(REPLACE_REPLACE));
-	snwprintf(buf.data(), 512, CTSTRING(REPLACE_RENAME), mRenameName.c_str());
+	_snwprintf(buf.data(), 512, CTSTRING(REPLACE_RENAME), mRenameName.c_str());
 	SetDlgItemText(IDC_REPLACE_RENAME, buf.data());
 	SetDlgItemText(IDC_REPLACE_SKIP, CTSTRING(REPLACE_SKIP));
 	SetDlgItemText(IDC_REPLACE_APPLY, CTSTRING(REPLACE_APPLY));

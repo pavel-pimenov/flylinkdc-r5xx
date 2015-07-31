@@ -417,13 +417,13 @@ const string& toLower(const string& str, string& tmp) noexcept
 	}
 	return tmp;
 }
-const string& toLabel(const string& str, string& tmp)
+const string& toLabel(const string& str, string& tmp) noexcept
 {
 	tmp = str;
 	boost::replace_all(tmp, "&", "&&");
 	return tmp;
 }
-const wstring& toLabel(const wstring& str, wstring& tmp)
+const wstring& toLabel(const wstring& str, wstring& tmp) noexcept
 {
 	tmp = str;
 	boost::replace_all(tmp, L"&", L"&&");

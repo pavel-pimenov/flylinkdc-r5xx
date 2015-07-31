@@ -67,7 +67,9 @@ void LogManager::init()
 	
 	g_logOptions[TRACE_SQLITE][FILE]     = SettingsManager::LOG_FILE_TRACE_SQLITE;
 	g_logOptions[TRACE_SQLITE][FORMAT]   = SettingsManager::LOG_FORMAT_TRACE_SQLITE;
-	g_logOptions[DDOS_TRACE][FILE]     = SettingsManager::LOG_FILE_DDOS_TRACE;
+	g_logOptions[VIRUS_TRACE][FILE] = SettingsManager::LOG_FILE_VIRUS_TRACE;
+	g_logOptions[VIRUS_TRACE][FORMAT] = SettingsManager::LOG_FORMAT_VIRUS_TRACE;
+	g_logOptions[DDOS_TRACE][FILE] = SettingsManager::LOG_FILE_DDOS_TRACE;
 	g_logOptions[DDOS_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_DDOS_TRACE;
 	g_logOptions[CMDDEBUG_TRACE][FILE]     = SettingsManager::LOG_FILE_CMDDEBUG_TRACE;
 	g_logOptions[CMDDEBUG_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_CMDDEBUG_TRACE;
@@ -208,6 +210,16 @@ void LogManager::log(LogArea area, const StringMap& params, bool p_only_file /* 
 		const string path = SETTING(LOG_DIRECTORY) + Util::formatParams(getSetting(area, FILE), params, false);
 		const string msg = Util::formatParams(getSetting(area, FORMAT), params, false);
 		log(path, msg);
+	}
+}
+
+void LogManager::virus_message(const string& p_message)
+{
+	if (BOOLSETTING(LOG_VIRUS_TRACE))
+	{
+		StringMap params;
+		params["message"] = p_message;
+		LOG(VIRUS_TRACE, params);
 	}
 }
 

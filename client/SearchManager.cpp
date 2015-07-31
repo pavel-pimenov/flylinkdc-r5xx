@@ -487,7 +487,7 @@ void SearchManager::onRES(const AdcCommand& cmd, const UserPtr& from, const boos
 	}
 }
 
-void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const boost::asio::ip::address_v4& remoteIp)
+void SearchManager::onPSR(const AdcCommand& p_cmd, UserPtr from, const boost::asio::ip::address_v4& remoteIp)
 {
 	uint16_t udpPort = 0;
 	uint32_t partialCount = 0;
@@ -496,7 +496,7 @@ void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const boost::asio
 	string nick;
 	PartsInfo partialInfo;
 	
-	for (auto i = cmd.getParameters().cbegin(); i != cmd.getParameters().cend(); ++i)
+	for (auto i = p_cmd.getParameters().cbegin(); i != p_cmd.getParameters().cend(); ++i)
 	{
 		const string& str = *i;
 		if (str.compare(0, 2, "U4", 2) == 0)

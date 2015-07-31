@@ -80,7 +80,7 @@ void AppearancePage::write()
 	const string l_filetheme = WinUtil::getDataFromMap(ctrlTheme.GetCurSel(), m_ThemeList);
 	if (SETTING(THEME_MANAGER_THEME_DLL_NAME) != l_filetheme)
 	{
-		settings->set(SettingsManager::THEME_MANAGER_THEME_DLL_NAME, l_filetheme);
+		g_settings->set(SettingsManager::THEME_MANAGER_THEME_DLL_NAME, l_filetheme);
 		if (m_ThemeList.size() != 1)
 			MessageBox(CTSTRING(THEME_CHANGE_THEME_INFO), CTSTRING(THEME_CHANGE_THEME), MB_OK | MB_ICONEXCLAMATION);
 	}

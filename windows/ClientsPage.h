@@ -8,7 +8,7 @@
 class ClientsPage : public EmptyPage
 {
 	public:
-		explicit ClientsPage(SettingsManager *s) : EmptyPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_FAKEDETECT) + _T('\\') + TSTRING(SETTINGS_CLIENTS))
+		explicit ClientsPage() : EmptyPage(TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_FAKEDETECT) + _T('\\') + TSTRING(SETTINGS_CLIENTS))
 		{
 		}
 };

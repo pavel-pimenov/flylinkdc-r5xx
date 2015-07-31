@@ -22,7 +22,7 @@ void AppendInternalKey(std::string* result, const ParsedInternalKey& key) {
 
 std::string ParsedInternalKey::DebugString() const {
   char buf[50];
-  snprintf(buf, sizeof(buf), "' @ %llu : %d",
+  _snprintf(buf, sizeof(buf), "' @ %llu : %d",
            (unsigned long long) sequence,
            int(type));
   std::string result = "'";

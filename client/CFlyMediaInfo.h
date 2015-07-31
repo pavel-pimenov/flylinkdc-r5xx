@@ -15,6 +15,7 @@
 struct CFlyServerCache
 {
 	std::string m_ratio;
+	std::string m_antivirus;
 	std::string m_video;
 	std::string m_audio;
 	std::string m_audio_br;
@@ -102,7 +103,7 @@ class CFlyMediaInfo
 			{
 				char l_buf[30];
 				l_buf[0] = 0;
-				snprintf(l_buf, _countof(l_buf), "%ux%u", m_mediaX, m_mediaY);
+				_snprintf(l_buf, _countof(l_buf), "%ux%u", m_mediaX, m_mediaY);
 				return l_buf;
 			}
 			return string();

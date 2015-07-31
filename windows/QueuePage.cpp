@@ -191,5 +191,5 @@ void QueuePage::write()
 	l_downlaskClick.Detach();
 	// ~Add Combo
 	
-	settings->set(SettingsManager::ON_DOWNLOAD_SETTING, ct);
+	g_settings->set(SettingsManager::ON_DOWNLOAD_SETTING, ct);
 }

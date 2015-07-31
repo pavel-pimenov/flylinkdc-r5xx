@@ -17,13 +17,12 @@
  */
 
 #include "stdafx.h"
-
 #include "Resource.h"
-
 #include "PropPage.h"
-
 #include "../client/SettingsManager.h"
 #include "WinUtil.h"
+
+SettingsManager * g_settings;
 
 void PropPage::read(HWND page, Item const* items, ListItem* listItems /* = NULL */, HWND list /* = 0 */)
 {
@@ -46,7 +45,7 @@ void PropPage::read(HWND page, Item const* items, ListItem* listItems /* = NULL 
 						throw;
 					}
 					::SetDlgItemText(page, i->itemID,
-					                 Text::toT(settings->get((SettingsManager::StrSetting)i->setting, useDef)).c_str());
+					                 Text::toT(g_settings->get((SettingsManager::StrSetting)i->setting, useDef)).c_str());
 					break;
 				case T_INT:
 				
@@ -56,7 +55,7 @@ void PropPage::read(HWND page, Item const* items, ListItem* listItems /* = NULL 
 						throw;
 					}
 					::SetDlgItemInt(page, i->itemID,
-					                settings->get((SettingsManager::IntSetting)i->setting, useDef), FALSE);
+					                g_settings->get(SettingsManager::IntSetting(i->setting), useDef), FALSE);
 					break;
 				case T_BOOL:
 					if (GetDlgItem(page, i->itemID) == NULL)
@@ -64,7 +63,7 @@ void PropPage::read(HWND page, Item const* items, ListItem* listItems /* = NULL 
 						// Control not exist ? Why ??
 						throw;
 					}
-					if (settings->getBool((SettingsManager::IntSetting)i->setting, useDef))
+					if (g_settings->getBool(SettingsManager::IntSetting(i->setting), useDef))
 						::CheckDlgButton(page, i->itemID, BST_CHECKED);
 					else
 						::CheckDlgButton(page, i->itemID, BST_UNCHECKED);
@@ -121,14 +120,14 @@ void PropPage::write(HWND page, Item const* items, ListItem* listItems /* = NULL
 				case T_STR:
 				{
 					WinUtil::GetDlgItemText(page, i->itemID, buf);
-					l_showUserWarning |= settings->set((SettingsManager::StrSetting)i->setting, Text::fromT(buf));// [!] IRainman
+					l_showUserWarning |= g_settings->set(SettingsManager::StrSetting(i->setting), Text::fromT(buf));// [!] IRainman
 					// Crash https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=78416
 					break;
 				}
 				case T_INT:
 				{
 					WinUtil::GetDlgItemText(page, i->itemID, buf);
-					l_showUserWarning |= settings->set((SettingsManager::IntSetting)i->setting, Util::toInt(buf));// [!] IRainman
+					l_showUserWarning |= g_settings->set(SettingsManager::IntSetting(i->setting), Util::toInt(buf));// [!] IRainman
 					break;
 				}
 				case T_BOOL:
@@ -140,9 +139,9 @@ void PropPage::write(HWND page, Item const* items, ListItem* listItems /* = NULL
 						throw;
 					}
 					if (::IsDlgButtonChecked(page, i->itemID) == BST_CHECKED)
-						l_showUserWarning |= settings->set((SettingsManager::IntSetting)i->setting, true);// [!] IRainman
+						l_showUserWarning |= g_settings->set(SettingsManager::IntSetting(i->setting), true);// [!] IRainman
 					else
-						l_showUserWarning |= settings->set((SettingsManager::IntSetting)i->setting, false);// [!] IRainman
+						l_showUserWarning |= g_settings->set((SettingsManager::IntSetting)i->setting, false);// [!] IRainman
 					break;
 				}
 				case T_END:

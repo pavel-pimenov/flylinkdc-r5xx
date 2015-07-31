@@ -318,11 +318,11 @@ Ztring::size_type ZtringList::Find (const Ztring &ToFind, size_type Pos, const Z
 // Return the length of the longest string in the list.
 Ztring::size_type ZtringList::MaxStringLength_Get ()
 {
-   size_type Max = 0;
+   size_type l_Max = 0;
    for (ZtringList::const_iterator it=begin(); it!=end(); ++it)
-      if (it->size()>Max)
-         Max=it->size();
-   return Max;
+      if (it->size()>l_Max)
+		  l_Max=it->size();
+   return l_Max;
 }
 
 //***************************************************************************

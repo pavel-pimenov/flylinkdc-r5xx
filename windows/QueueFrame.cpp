@@ -45,7 +45,8 @@ static ResourceManager::Strings columnNames[] = { ResourceManager::FILENAME, Res
 
 QueueFrame::QueueFrame() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd), menuItems(0), queueSize(0), queueItems(0), m_dirty(false),
 	usingDirMenu(false), readdItems(0), m_fileLists(nullptr), showTree(true)
-	, showTreeContainer(WC_BUTTON, this, SHOWTREE_MESSAGE_MAP)
+	, showTreeContainer(WC_BUTTON, this, SHOWTREE_MESSAGE_MAP),
+	m_last_count(0), m_last_total(0)
 {
 	memzero(statusSizes, sizeof(statusSizes));
 }
@@ -169,7 +170,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 					{
 						tstring buf;
 						buf.resize(64);
-						buf.resize(snwprintf(&buf[0], buf.size(), CTSTRING(WAITING_USERS_ONLINE), l_online, l_count_source));
+						buf.resize(_snwprintf(&buf[0], buf.size(), CTSTRING(WAITING_USERS_ONLINE), l_online, l_count_source));
 						return buf;
 					}
 				}
@@ -190,7 +191,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 						default:
 							tstring buf;
 							buf.resize(64);
-							buf.resize(snwprintf(&buf[0], buf.size(), CTSTRING(ALL_USERS_OFFLINE), l_count_source));
+							buf.resize(_snwprintf(&buf[0], buf.size(), CTSTRING(ALL_USERS_OFFLINE), l_count_source));
 							return buf;
 					};
 				}
@@ -205,7 +206,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 				{
 					tstring buf;
 					buf.resize(64);
-					buf.resize(snwprintf(&buf[0], buf.size(), CTSTRING(USERS_ONLINE), l_online, l_count_source));
+					buf.resize(_snwprintf(&buf[0], buf.size(), CTSTRING(USERS_ONLINE), l_online, l_count_source));
 					return buf;
 				}
 			}
@@ -673,7 +674,7 @@ void QueueFrame::removeDirectories(HTREEITEM ht)
 	ctrlDirs.DeleteItem(ht);
 }
 
-void QueueFrame::on(QueueManagerListener::Removed, const QueueItemPtr& aQI)
+void QueueFrame::on(QueueManagerListener::Removed, const QueueItemPtr& aQI) noexcept
 {
 	if (!ClientManager::isShutdown())
 	{
@@ -685,7 +686,7 @@ void QueueFrame::on(QueueManagerListener::Removed, const QueueItemPtr& aQI)
 	// onSpeaker(0, 0, 0, *reinterpret_cast<BOOL*>(NULL));
 }
 
-void QueueFrame::on(QueueManagerListener::Moved, const QueueItemPtr& aQI, const string& oldTarget)
+void QueueFrame::on(QueueManagerListener::Moved, const QueueItemPtr& aQI, const string& oldTarget) noexcept
 {
 	m_tasks.add(REMOVE_ITEM, new StringTask(oldTarget));
 	
@@ -934,10 +935,10 @@ void QueueFrame::moveSelected()
 	{
 		// [!] IRainman fix http://code.google.com/p/flylinkdc/issues/detail?id=82
 		vector<const QueueItemInfo*> l_movingItems;
-		int i = -1;
-		while ((i = ctrlQueue.GetNextItem(i, LVNI_SELECTED)) != -1)
+		int j = -1;
+		while ((j = ctrlQueue.GetNextItem(j, LVNI_SELECTED)) != -1)
 		{
-			const QueueItemInfo* ii = ctrlQueue.getItemData(i);
+			const QueueItemInfo* ii = ctrlQueue.getItemData(j);
 			l_movingItems.push_back(ii);
 		}
 		const string l_toDir = Text::fromT(name);
@@ -1369,10 +1370,10 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 LRESULT QueueFrame::onRecheck(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	StringList tmp;
-	int i = -1;
-	while ((i = ctrlQueue.GetNextItem(i, LVNI_SELECTED)) != -1)
+	int j = -1;
+	while ((j = ctrlQueue.GetNextItem(j, LVNI_SELECTED)) != -1)
 	{
-		const QueueItemInfo* ii = ctrlQueue.getItemData(i);
+		const QueueItemInfo* ii = ctrlQueue.getItemData(j);
 		tmp.push_back(ii->getTarget());
 	}
 	for (auto i = begin(tmp); i != end(tmp); ++i)
@@ -1744,25 +1745,34 @@ void QueueFrame::setAutoPriority(HTREEITEM ht, const bool& ap)
 
 void QueueFrame::updateStatus()
 {
-	if (ctrlStatus.IsWindow())
+	if (m_closed == false && ctrlStatus.IsWindow())
 	{
 		int64_t total = 0;
-		int cnt = ctrlQueue.GetSelectedCount();
+		unsigned cnt = ctrlQueue.GetSelectedCount();
 		if (cnt == 0)
 		{
 			cnt = ctrlQueue.GetItemCount();
+			
 			if (showTree)
 			{
-				int i = -1;
-				while ((i = ctrlQueue.GetNextItem(i, LVNI_ALL)) != -1)
+				if (m_last_count != cnt)
 				{
-					const QueueItemInfo* ii = ctrlQueue.getItemData(i);
-					if (ii)
+					int i = -1;
+					while (m_closed == false && (i = ctrlQueue.GetNextItem(i, LVNI_ALL)) != -1)
 					{
-						const int64_t l_size = ii->getSize(); // https://drdump.com/Problem.aspx?ProblemID=131118
-						if (l_size > 0)
+						const QueueItemInfo* ii = ctrlQueue.getItemData(i);
+						if (ii)
+						{
+							const int64_t l_size = ii->getSize(); // https://drdump.com/Problem.aspx?ProblemID=131118 + https://drdump.com/Problem.aspx?ProblemID=143789
 							total += l_size;
+						}
 					}
+					m_last_count = cnt;
+					m_last_total = total;
+				}
+				else
+				{
+					total = m_last_total;
 				}
 			}
 			else
@@ -1776,9 +1786,8 @@ void QueueFrame::updateStatus()
 			while ((i = ctrlQueue.GetNextItem(i, LVNI_SELECTED)) != -1)
 			{
 				const QueueItemInfo* ii = ctrlQueue.getItemData(i);
-				total += (ii->getSize() > 0) ? ii->getSize() : 0;
+				total += ii->getSize();
 			}
-			
 		}
 		
 		tstring tmp1 = TSTRING(ITEMS) + _T(": ") + Util::toStringW(cnt);
@@ -1825,57 +1834,62 @@ void QueueFrame::updateStatus()
 		}
 		
 		if (u)
+		{
 			UpdateLayout(TRUE);
+		}
 	}
 }
 
 void QueueFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 {
-	RECT rect;
-	GetClientRect(&rect);
-	// position bars and offset their dimensions
-	UpdateBarsPosition(rect, bResizeBars);
-	
-	if (ctrlStatus.IsWindow())
+	if (m_closed == false)
 	{
-		CRect sr;
-		int w[6];
-		ctrlStatus.GetClientRect(sr);
-		w[5] = sr.right - 16;
+		RECT rect;
+		GetClientRect(&rect);
+		// position bars and offset their dimensions
+		UpdateBarsPosition(rect, bResizeBars);
+		
+		if (ctrlStatus.IsWindow())
+		{
+			CRect sr;
+			int w[6];
+			ctrlStatus.GetClientRect(sr);
+			w[5] = sr.right - 16;
 #define setw(x) w[x] = max(w[x+1] - statusSizes[x], 0)
-		setw(4);
-		setw(3);
-		setw(2);
-		setw(1);
-		
-		w[0] = 36;
-		
-		ctrlStatus.SetParts(6, w);
-		
-		ctrlStatus.GetRect(0, sr);
-		if (ctrlShowTree.IsWindow())
-			ctrlShowTree.MoveWindow(sr);
-	}
-	
-	if (showTree)
-	{
-		if (GetSinglePaneMode() != SPLIT_PANE_NONE)
-		{
-			SetSinglePaneMode(SPLIT_PANE_NONE);
-			updateQueue();
+			setw(4);
+			setw(3);
+			setw(2);
+			setw(1);
+			
+			w[0] = 36;
+			
+			ctrlStatus.SetParts(6, w);
+			
+			ctrlStatus.GetRect(0, sr);
+			if (ctrlShowTree.IsWindow())
+				ctrlShowTree.MoveWindow(sr);
 		}
-	}
-	else
-	{
-		if (GetSinglePaneMode() != SPLIT_PANE_RIGHT)
+		
+		if (showTree)
 		{
-			SetSinglePaneMode(SPLIT_PANE_RIGHT);
-			updateQueue();
+			if (GetSinglePaneMode() != SPLIT_PANE_NONE)
+			{
+				SetSinglePaneMode(SPLIT_PANE_NONE);
+				updateQueue();
+			}
 		}
+		else
+		{
+			if (GetSinglePaneMode() != SPLIT_PANE_RIGHT)
+			{
+				SetSinglePaneMode(SPLIT_PANE_RIGHT);
+				updateQueue();
+			}
+		}
+		
+		CRect rc = rect;
+		SetSplitterRect(rc);
 	}
-	
-	CRect rc = rect;
-	SetSplitterRect(rc);
 }
 
 LRESULT QueueFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
@@ -1884,7 +1898,7 @@ LRESULT QueueFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	{
 		m_closed = true;
 		safe_destroy_timer();
-		clean_task();
+		clear_and_destroy_task();
 		SettingsManager::getInstance()->removeListener(this);
 		QueueManager::getInstance()->removeListener(this);
 		
@@ -2151,11 +2165,11 @@ LRESULT QueueFrame::onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 
 LRESULT QueueFrame::onRemoveOffline(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	int i = -1;
+	int j = -1;
 	m_remove_source_array.clear();
-	while ((i = ctrlQueue.GetNextItem(i, LVNI_SELECTED)) != -1)
+	while ((j = ctrlQueue.GetNextItem(j, LVNI_SELECTED)) != -1)
 	{
-		const QueueItemInfo* ii = ctrlQueue.getItemData(i);
+		const QueueItemInfo* ii = ctrlQueue.getItemData(j);
 		WLock l(*QueueItem::g_cs);
 		const auto& sources = ii->getQueueItem()->getSourcesL();
 		for (auto i =  sources.cbegin(); i != sources.cend(); ++i)  // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=111640

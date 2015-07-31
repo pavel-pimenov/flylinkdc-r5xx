@@ -638,7 +638,9 @@ CFlylinkDBManager::CFlylinkDBManager()
 		                              
 #endif // FLYLINKDC_USE_GATHER_IDENTITY_STAT
 		m_flySQLiteDB.executenonquery(
-		    "CREATE TABLE IF NOT EXISTS stat_db.fly_statistic(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,stat_value_json text not null,stat_time int64, flush_time int64);");
+		    "CREATE TABLE IF NOT EXISTS stat_db.fly_statistic(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,stat_value_json text not null,stat_time int64, flush_time int64, type text);");
+		safeAlter("ALTER TABLE stat_db.fly_statistic add column type text");
+		
 		// Таблицы - мертвые
 		m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS fly_last_ip(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
 		                              "dic_nick integer not null, dic_hub integer not null,dic_ip integer not null);");
@@ -1196,14 +1198,15 @@ void CFlylinkDBManager::push_dc_command_statistic(const std::string& p_hub, cons
 #endif // FLYLINKDC_USE_COLLECT_STAT
 //========================================================================================================
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
-void CFlylinkDBManager::push_json_statistic(const std::string& p_value)
+void CFlylinkDBManager::push_json_statistic(const std::string& p_value, const string& p_type, bool p_is_stat_server)
 {
 	Lock l(m_cs);
 	try
 	{
-		m_insert_statistic_json.init(m_flySQLiteDB, "insert into stat_db.fly_statistic (stat_value_json,stat_time) values(?,strftime('%s','now','localtime'))");
+		m_insert_statistic_json.init(m_flySQLiteDB, "insert into stat_db.fly_statistic(stat_value_json,stat_time,type) values(?,strftime('%s','now','localtime'), ?)");
 		// TODO stat_time пока не используется, но пусть будет :)
 		m_insert_statistic_json->bind(1, p_value, SQLITE_STATIC);
+		m_insert_statistic_json->bind(2, p_type, SQLITE_STATIC);
 		m_insert_statistic_json->executenonquery();
 		++m_count_json_stat;
 	}
@@ -1224,7 +1227,7 @@ void CFlylinkDBManager::flush_lost_json_statistic(bool& p_is_error)
 			std::vector<__int64> l_json_array_id;
 			if (m_count_json_stat)
 			{
-				m_select_statistic_json.init(m_flySQLiteDB, "select id,stat_value_json from stat_db.fly_statistic limit 30");
+				m_select_statistic_json.init(m_flySQLiteDB, "select id,stat_value_json,type from stat_db.fly_statistic limit 50");
 				// where flush_time is null (пока не используем это поле и не храним локальную статистику - не придумал как подчищать данные)
 				sqlite3_reader l_q = m_select_statistic_json->executereader();
 				while (l_q.read())
@@ -1232,15 +1235,18 @@ void CFlylinkDBManager::flush_lost_json_statistic(bool& p_is_error)
 					bool l_is_send = false;
 					const auto l_id = l_q.getint64(0);
 					const std::string l_post_query = l_q.getstring(1);
-					/*const std::string l_result =*/
-					CFlyServerJSON::postQuery(true, true, false, false, "fly-stat", l_post_query, l_is_send, p_is_error); // [!] PVS V808 'l_result' object of 'basic_string' type was created but was not utilized. cflylinkdbmanager.cpp 545
+					std::string l_type_query = l_q.getstring(2);
+					if (l_type_query.empty())
+						l_type_query = "fly-stat";
+					const bool l_is_stat_server = l_type_query == "fly-stat";
+					CFlyServerJSON::postQuery(true, l_is_stat_server, false, false, l_type_query.c_str(), l_post_query, l_is_send, p_is_error);
 					if (p_is_error)
 						break;
 					if (l_is_send)
 						l_json_array_id.push_back(l_id);
 				}
 			}
-			if (l_json_array_id.size() < 30)
+			if (l_json_array_id.size() < 50)
 				m_count_json_stat = 0; // Все записи будут удалены ниже. скидываем счетчик в ноль чтобы не делать больше селекта
 			else
 				m_count_json_stat = 1; // Записи еще возможно есть - через минуту пробуем снова.
@@ -1438,7 +1444,7 @@ void CFlylinkDBManager::save_location(const CFlyLocationIPArray& p_geo_ip)
 		}
 		l_trans.commit();
 		{
-			FastLock l(m_cache_location_cs);
+			FastLock l_fast(m_cache_location_cs);
 			m_location_cache_array.clear();
 			m_location_unknown_ip.clear();
 		}
@@ -1484,7 +1490,7 @@ void CFlylinkDBManager::get_country(uint32_t p_ip, uint16_t& p_index)
 		if (get_country_sqlite(p_ip, l_location))
 		{
 			m_country_cache.push_back(l_location);
-			p_index = m_country_cache.size();
+			p_index = uint16_t(m_country_cache.size());
 		}
 	}
 }
@@ -3014,7 +3020,7 @@ void CFlylinkDBManager::store_all_ratio_and_last_ip(uint32_t p_hub_id,
 			l_sql->bind(3, __int64(p_hub_id));
 			for (auto i = p_upload_download_stats->begin(); i != p_upload_download_stats->end(); ++i)
 			{
-				__int64 l_last_ip_id = get_dic_idL(boost::asio::ip::address_v4(i->first).to_string(), e_DIC_IP, false); // TODO - второй раз делаем запрос ! криво - изменить структуру fly_ratio
+				l_last_ip_id = get_dic_idL(boost::asio::ip::address_v4(i->first).to_string(), e_DIC_IP, false); // TODO - второй раз делаем запрос ! криво - изменить структуру fly_ratio
 				dcassert(i->second.get_upload() != 0 || i->second.get_download() != 0);
 				if (l_last_ip_id &&  // Коннект еще не наступил - не пишем в базу 0
 				        i->second.is_dirty() &&
@@ -3318,7 +3324,7 @@ void CFlylinkDBManager::sweep_db()
 	try
 	{
 		{
-			FastLock l(m_path_cache_cs);
+			FastLock l_fast(m_path_cache_cs);
 			sqlite3_transaction l_trans(m_flySQLiteDB);
 			for (auto i = m_path_cache.cbegin(); i != m_path_cache.cend(); ++i)
 			{
@@ -3333,7 +3339,7 @@ void CFlylinkDBManager::sweep_db()
 			// Зачищаем мусорок, который остался в файлах.
 			{
 				const char* l_clean_file = "delete from fly_file where not exists (select * from fly_hash_block fhb where fly_file.tth_id=fhb.tth_id)";
-				CFlyLogFile l(l_clean_file);
+				CFlyLogFile l_log(l_clean_file);
 				m_flySQLiteDB.executenonquery(l_clean_file);
 			}
 			l_trans.commit();
@@ -3341,7 +3347,7 @@ void CFlylinkDBManager::sweep_db()
 		load_path_cache();
 		{
 			const char* l_clean_path = "delete from fly_path where not exists (select * from fly_file where dic_path=fly_path.id)";
-			CFlyLogFile l(l_clean_path);
+			CFlyLogFile l_log(l_clean_path);
 			m_flySQLiteDB.executenonquery(l_clean_path);
 		}
 		{
@@ -3350,7 +3356,7 @@ void CFlylinkDBManager::sweep_db()
 		}
 		{
 			const char* l_clean_sql_media = "delete from media_db.fly_media where tth_id not in(select tth_id from fly_file)";
-			CFlyLogFile l(l_clean_sql_media);
+			CFlyLogFile l_log(l_clean_sql_media);
 			m_flySQLiteDB.executenonquery(l_clean_sql_media);
 		}
 #ifdef PPA_USE_VACUUM
@@ -3431,7 +3437,7 @@ void CFlylinkDBManager::load_path_cache()
 	Lock l(m_cs); // пока падаем https://drdump.com/Problem.aspx?ProblemID=118720
 	m_convert_ftype_stop_key = 0;
 	{
-		FastLock l(m_path_cache_cs);
+		FastLock l_fast(m_path_cache_cs);
 		m_path_cache.clear();
 	}
 	try
@@ -3441,7 +3447,7 @@ void CFlylinkDBManager::load_path_cache()
 		// Версия 2
 		// select id,name,(select 1 from fly_file where dic_path = fly_path.id and (media_audio is not null or media_video is not null) limit 1) cnt_mediainfo from fly_path
 		sqlite3_reader l_q = m_load_path_cache->executereader();
-		FastLock l(m_path_cache_cs);
+		FastLock l_fast(m_path_cache_cs);
 		while (l_q.read())
 		{
 			m_path_cache.insert(std::make_pair(l_q.getstring(1), CFlyPathItem(l_q.getint64(0), false, l_q.getint(2) == 0)));
@@ -4182,7 +4188,7 @@ tstring CFlylinkDBManager::get_ratioW() const
 	if (m_global_ratio.get_download() > 0)
 	{
 		LocalArray<TCHAR, 32> buf;
-		snwprintf(buf.data(), buf.size(), _T("%.2f"), get_ratio());
+		_snwprintf(buf.data(), buf.size(), _T("%.2f"), get_ratio());
 		return buf.data();
 	}
 	return Util::emptyStringT;

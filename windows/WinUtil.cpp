@@ -129,7 +129,7 @@ HHOOK WinUtil::g_hook = nullptr;
 bool WinUtil::urlDcADCRegistered = false;
 bool WinUtil::urlMagnetRegistered = false;
 bool WinUtil::DclstRegistered = false;
-bool WinUtil::isAppActive = false;
+bool WinUtil::g_isAppActive = false;
 //DWORD WinUtil::comCtlVersion = 0; [-] IRainman: please use CompatibilityManager::getComCtlVersion()
 CHARFORMAT2 Colors::g_TextStyleTimestamp;
 CHARFORMAT2 Colors::g_ChatTextGeneral;
@@ -2283,7 +2283,7 @@ void WinUtil::translateLinkToextProgramm(const tstring& url, const tstring& p_Ex
 					cmd = regbuf.data(); // otherwise you consistently get two trailing nulls
 				}
 				// [~] IRainman
-
+				
 				if (cmd.length() > 1)
 				{
 					string::size_type start, end;
@@ -2299,7 +2299,7 @@ void WinUtil::translateLinkToextProgramm(const tstring& url, const tstring& p_Ex
 					}
 					if (end == string::npos)
 						end = cmd.length();
-
+						
 					tstring cmdLine(cmd);
 					cmd = cmd.substr(start, end - start);
 					size_t arg_pos;
@@ -2311,7 +2311,7 @@ void WinUtil::translateLinkToextProgramm(const tstring& url, const tstring& p_Ex
 					{
 						cmdLine.append(_T(" \"") + url + _T('\"')); // Here assembled a command line + key (ex: C:\uTorrent\uTorrent.exe \magnet:urn... )
 					}
-
+					
 					STARTUPINFO si = { sizeof(si), 0 };
 					PROCESS_INFORMATION pi = { 0 };
 					const int iLen = cmdLine.length() + 1;
@@ -2327,7 +2327,7 @@ void WinUtil::translateLinkToextProgramm(const tstring& url, const tstring& p_Ex
 			}
 		}
 	}
-
+	
 	::ShellExecute(NULL, NULL, url.c_str(), NULL, NULL, SW_SHOWNORMAL);
 }
 
@@ -2712,49 +2712,61 @@ void WinUtil::saveHeaderOrder(CListViewCtrl& ctrl, SettingsManager::StrSetting o
 	SettingsManager::set(widths, tmp);
 }
 
-int FileImage::getIconIndex(const string& aFileName)
+string FileImage::getVirusIconIndex(const string& aFileName, int& p_icon_index)
 {
-	if (BOOLSETTING(USE_SYSTEM_ICONS))
+	p_icon_index = 0;
+	auto x = Text::toLower(Util::getFileExtWithoutDot(aFileName)); //TODO часто зовем
+	if (x.compare(0, 3, "exe", 3) == 0)
 	{
-		auto x = Text::toLower(Util::getFileExtWithoutDot(aFileName)); //TODO часто зовем
-		if (x.compare(0, 3, "exe", 3) == 0)
+		// Проверка на двойные расширения
+		string xx = Util::getFileName(aFileName);
+		xx = Text::toLower(Util::getFileDoubleExtWithoutDot(xx));
+		if (!xx.empty())
 		{
-			// Проверка на двойные расширения
-			string xx = Util::getFileName(aFileName);
-			xx = Text::toLower(Util::getFileDoubleExtWithoutDot(xx));
-			if (!xx.empty())
+			if (CFlyServerConfig::isVirusExt(xx))
 			{
-				if (CFlyServerConfig::isVirusExt(xx))
+				static int g_virus_exe_icon_index = 0;
+				if (!g_virus_exe_icon_index)
 				{
-					static int g_virus_exe_icon_index = 0;
-					if (!g_virus_exe_icon_index)
-					{
-						m_images.AddIcon(WinUtil::g_hThermometerIcon);
-						m_imageCount++;
-						g_virus_exe_icon_index = m_imageCount - 1;
-					}
-					return g_virus_exe_icon_index;
+					m_images.AddIcon(WinUtil::g_hThermometerIcon);
+					m_imageCount++;
+					g_virus_exe_icon_index = m_imageCount - 1;
 				}
-				// Проверим медиа-расширение.exe
-				const auto i = xx.rfind('.');
-				dcassert(i != string::npos);
-				if (i != string::npos)
+				p_icon_index = g_virus_exe_icon_index;
+				return x;
+			}
+			// Проверим медиа-расширение.exe
+			const auto i = xx.rfind('.');
+			dcassert(i != string::npos);
+			if (i != string::npos)
+			{
+				const auto base_x = xx.substr(0, i);
+				if (CFlyServerConfig::isMediainfoExt(base_x))
 				{
-					const auto base_x = xx.substr(0, i);
-					if (CFlyServerConfig::isMediainfoExt(base_x))
+					static int g_media_virus_exe_icon_index = 0;
+					if (!g_media_virus_exe_icon_index)
 					{
-						static int g_media_virus_exe_icon_index = 0;
-						if (!g_media_virus_exe_icon_index)
-						{
-							m_images.AddIcon(WinUtil::g_hMedicalIcon);
-							m_imageCount++;
-							g_media_virus_exe_icon_index = m_imageCount - 1;
-						}
-						return g_media_virus_exe_icon_index;
+						m_images.AddIcon(WinUtil::g_hMedicalIcon);
+						m_imageCount++;
+						g_media_virus_exe_icon_index = m_imageCount - 1;
 					}
+					p_icon_index = g_media_virus_exe_icon_index; // g_virus_exe_icon_index;
+					return x;
 				}
 			}
 		}
+	}
+	return x;
+}
+
+int FileImage::getIconIndex(const string& aFileName)
+{
+	int p_icon_index = 0;
+	string x = getVirusIconIndex(aFileName, p_icon_index);
+	if (p_icon_index)
+		return p_icon_index;
+	if (BOOLSETTING(USE_SYSTEM_ICONS))
+	{
 		if (!x.empty())
 		{
 			//FastLock l(m_cs);

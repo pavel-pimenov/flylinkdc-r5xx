@@ -635,7 +635,7 @@ class Identity
 		{
 			if (p_val.empty())
 				return 0;
-			auto l_find = g_infoDicIndex.insert(make_pair(p_val, g_infoDic.size() + 1));
+			auto l_find = g_infoDicIndex.insert(make_pair(p_val, uint16_t(g_infoDic.size() + 1)));
 			if (l_find.second == true) // Новое значение в справочнике?
 			{
 				g_infoDic.push_back(&l_find.first->first);   // Сохраняем указатель на строчку

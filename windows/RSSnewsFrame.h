@@ -152,7 +152,7 @@ class RSSNewsFrame : public MDITabChildWindowImpl < RSSNewsFrame, RGB(0, 0, 0), 
 				const RSSItem* m_entry;
 		};
 		
-		void addEntry(const RSSItem* p_entry)
+		void addRSSEntry(const RSSItem* p_entry)
 		{
 			const RSSItemInfo *l_ii = new RSSItemInfo(p_entry);
 			const int l_loc = ctrlList.insertItem(l_ii, 0);

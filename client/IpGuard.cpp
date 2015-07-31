@@ -112,10 +112,7 @@ void IpGuard::load()
 bool IpGuard::is_block_ip(const string& aIP, uint32_t& p_ip4)
 {
 	p_ip4 = Socket::convertIP4(aIP);
-	if (CFlyServerConfig::g_block_ip_str.find(aIP) != CFlyServerConfig::g_block_ip_str.end())
-		return true;
-	else
-		return false;
+	return CFlyServerConfig::isBlockIP(aIP);
 }
 
 bool IpGuard::check_ip_str(const string& aIP, string& reason)

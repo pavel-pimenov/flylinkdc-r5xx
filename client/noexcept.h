@@ -31,8 +31,11 @@
 #endif
 #elif defined(_MSC_VER)
 
+#  if (_MSC_VER < 1900) // [+] FlylinkDC++ VC++2015
 #ifndef noexcept
 #define noexcept throw()
+#endif
+
 #endif
 
 #endif

@@ -124,33 +124,33 @@ void DefaultClickPage::write()
 	userlistaction.Attach(GetDlgItem(IDC_USERLIST_DBLCLICK));
 	transferlistaction.Attach(GetDlgItem(IDC_TRANSFERLIST_DBLCLICK));
 	chataction.Attach(GetDlgItem(IDC_CHAT_DBLCLICK));
-	settings->set(SettingsManager::USERLIST_DBLCLICK, userlistaction.GetCurSel());
-	settings->set(SettingsManager::TRANSFERLIST_DBLCLICK, transferlistaction.GetCurSel());
-	settings->set(SettingsManager::CHAT_DBLCLICK, chataction.GetCurSel());
+	g_settings->set(SettingsManager::USERLIST_DBLCLICK, userlistaction.GetCurSel());
+	g_settings->set(SettingsManager::TRANSFERLIST_DBLCLICK, transferlistaction.GetCurSel());
+	g_settings->set(SettingsManager::CHAT_DBLCLICK, chataction.GetCurSel());
 	userlistaction.Detach();
 	transferlistaction.Detach();
 	chataction.Detach();
 	
 	// !SMT!-UI
 	favuserlistaction.Attach(GetDlgItem(IDC_FAVUSERLIST_DBLCLICK));
-	settings->set(SettingsManager::FAVUSERLIST_DBLCLICK, favuserlistaction.GetCurSel());
+	g_settings->set(SettingsManager::FAVUSERLIST_DBLCLICK, favuserlistaction.GetCurSel());
 	favuserlistaction.Detach();
 	
 	magneturllistaction.Attach(GetDlgItem(IDC_MAGNETURLLIST_CLICK));
 	if (magneturllistaction.GetCurSel() == 0)
 	{
-		settings->set(SettingsManager::MAGNET_ASK, True);
+		g_settings->set(SettingsManager::MAGNET_ASK, True);
 	}
 	else
 	{
-		settings->set(SettingsManager::MAGNET_ASK, False);
+		g_settings->set(SettingsManager::MAGNET_ASK, False);
 		if (magneturllistaction.GetCurSel() == 1)
 		{
-			settings->set(SettingsManager::MAGNET_ACTION, False);
+			g_settings->set(SettingsManager::MAGNET_ACTION, False);
 		}
 		else
 		{
-			settings->set(SettingsManager::MAGNET_ACTION, True);
+			g_settings->set(SettingsManager::MAGNET_ACTION, True);
 		}
 	}
 	

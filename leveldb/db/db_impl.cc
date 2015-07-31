@@ -333,7 +333,7 @@ Status DBImpl::Recover(VersionEdit* edit) {
     }
     if (!expected.empty()) {
       char buf[50];
-      snprintf(buf, sizeof(buf), "%d missing files; e.g.",
+      _snprintf(buf, sizeof(buf), "%d missing files; e.g.",
                static_cast<int>(expected.size()));
       return Status::Corruption(buf, TableFileName(dbname_, *(expected.begin())));
     }
@@ -1363,14 +1363,14 @@ bool DBImpl::GetProperty(const Slice& property, std::string* value) {
       return false;
     } else {
       char buf[100];
-      snprintf(buf, sizeof(buf), "%d",
+      _snprintf(buf, sizeof(buf), "%d",
                versions_->NumLevelFiles(static_cast<int>(level)));
       *value = buf;
       return true;
     }
   } else if (in == "stats") {
     char buf[200];
-    snprintf(buf, sizeof(buf),
+    _snprintf(buf, sizeof(buf),
              "                               Compactions\n"
              "Level  Files Size(MB) Time(sec) Read(MB) Write(MB)\n"
              "--------------------------------------------------\n"
@@ -1379,7 +1379,7 @@ bool DBImpl::GetProperty(const Slice& property, std::string* value) {
     for (int level = 0; level < config::kNumLevels; level++) {
       int files = versions_->NumLevelFiles(level);
       if (stats_[level].micros > 0 || files > 0) {
-        snprintf(
+        _snprintf(
             buf, sizeof(buf),
             "%3d %8d %8.0f %9.0f %8.0f %9.0f\n",
             level,

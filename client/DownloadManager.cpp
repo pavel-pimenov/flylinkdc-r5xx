@@ -501,7 +501,7 @@ void DownloadManager::endData(UserConnection* aSource)
 	catch (const HashException& e)
 	{
 		//aSource->setDownload(nullptr);
-		const string l_error = "[DownloadManager::endData]HashException - for " + d->getPath();
+		const string l_error = "[DownloadManager::endData]HashException - for " + d->getPath() + " Error = " = e.getError();
 		LogManager::message(l_error);
 		CFlyServerJSON::pushError(30, l_error);
 		dcassert(0);

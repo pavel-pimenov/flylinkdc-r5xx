@@ -1347,7 +1347,7 @@ const tstring& ChatCtrl::get_URL(const long lBegin/*, const long lEnd*/) const
 		if (i->first == lBegin)
 			return i->second;
 	}
-	dcassert(0);
+	//dcassert(0);
 	return Util::emptyStringT;
 }
 tstring ChatCtrl::get_URL_RichEdit(ENLINK* p_EL) const

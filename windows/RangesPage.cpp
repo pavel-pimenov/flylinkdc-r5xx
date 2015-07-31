@@ -100,7 +100,7 @@ LRESULT RangesPage::onKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 void RangesPage::write()
 {
 	PropPage::write((HWND)*this, items);
-	settings->set(SettingsManager::IP_GUARD_IS_DENY_ALL, !ctrlPolicy.GetCurSel());
+	g_settings->set(SettingsManager::IP_GUARD_IS_DENY_ALL, !ctrlPolicy.GetCurSel());
 	
 	if (BOOLSETTING(ENABLE_IPGUARD))
 	{

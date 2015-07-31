@@ -27,6 +27,7 @@
 #include "CFlylinkDBManager.h"
 
 std::unique_ptr<webrtc::RWLockWrapper> FinishedManager::g_cs[2];
+FinishedItemList FinishedManager::g_finished[2];
 
 FinishedManager::FinishedManager()
 {
@@ -41,24 +42,19 @@ FinishedManager::~FinishedManager()
 {
 	QueueManager::getInstance()->removeListener(this);
 	UploadManager::getInstance()->removeListener(this);
-	{
-		webrtc::WriteLockScoped l(*g_cs[e_Upload]);
-		for_each(m_finished[e_Upload].begin(), m_finished[e_Upload].end(), DeleteFunction());
-	}
-	{
-		webrtc::WriteLockScoped l(*g_cs[e_Download]);
-		for_each(m_finished[e_Download].begin(), m_finished[e_Download].end(), DeleteFunction());
-	}
+	removeAll(e_Upload);
+	removeAll(e_Download);
 }
 
 void FinishedManager::removeItem(FinishedItem* p_item, eType p_type)
 {
 	webrtc::WriteLockScoped l(*g_cs[p_type]);
-	const auto it = find(m_finished[p_type].begin(), m_finished[p_type].end(), p_item);
+	const auto it = find(g_finished[p_type].begin(), g_finished[p_type].end(), p_item);
 	
-	if (it != m_finished[p_type].end())
+	if (it != g_finished[p_type].end())
 	{
-		m_finished[p_type].erase(it);
+		delete *it;
+		g_finished[p_type].erase(it);
 	}
 	else
 	{
@@ -69,15 +65,17 @@ void FinishedManager::removeItem(FinishedItem* p_item, eType p_type)
 void FinishedManager::removeAll(eType p_type)
 {
 	webrtc::WriteLockScoped l(*g_cs[p_type]);
-	for_each(m_finished[p_type].begin(), m_finished[p_type].end(), DeleteFunction());
-	m_finished[p_type].clear();
+	for_each(g_finished[p_type].begin(), g_finished[p_type].end(), DeleteFunction());
+	g_finished[p_type].clear();
 }
 
 void FinishedManager::rotation_items(FinishedItem* p_item, eType p_type)
 {
+	// For fix - crash https://drdump.com/DumpGroup.aspx?DumpGroupID=301739
 	webrtc::WriteLockScoped l(*g_cs[p_type]);
 	// [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
-	auto& l_item_array = m_finished[p_type];
+	auto& l_item_array = g_finished[p_type];
+#ifdef FLYLINKDC_USE_ROTATION_FINISHED_MANAGER
 	while (!l_item_array.empty()
 #ifndef _DEBUG
 	        && l_item_array.size() > static_cast<size_t>(p_type == e_Download ? SETTING(MAX_FINISHED_DOWNLOADS) : SETTING(MAX_FINISHED_UPLOADS)))
@@ -93,6 +91,7 @@ void FinishedManager::rotation_items(FinishedItem* p_item, eType p_type)
 		l_item_array.pop_front();
 	}
 	// [~] IRainman
+#endif // FLYLINKDC_USE_ROTATION_FINISHED_MANAGER
 	l_item_array.push_back(p_item);
 }
 
@@ -148,9 +147,10 @@ string FinishedManager::log(const CID& p_CID, const string& p_path, const string
 	const size_t BUF_SIZE = p_message.size() + FULL_MAX_PATH + 128;
 	{
 		std::unique_ptr<char[]> buf(new char[BUF_SIZE]);
-		snprintf(&buf[0], BUF_SIZE, p_message.c_str(), l_file_name.c_str(),
-		         Util::toString(ClientManager::getNicks(p_CID, Util::emptyString)).c_str());
-		         
+		buf[0] = 0;
+		_snprintf(&buf[0], BUF_SIZE, p_message.c_str(), l_file_name.c_str(),
+		          Util::toString(ClientManager::getNicks(p_CID, Util::emptyString)).c_str());
+		          
 		LogManager::message(&buf[0]);
 	}
 	return l_file_name;

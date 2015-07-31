@@ -816,15 +816,14 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 				unsigned m_MinuteElapsed;
 				int run()
 				{
+					bool l_is_error = CFlyServerJSON::sendDownloadCounter(m_is_sync_run == true);
+					CFlyServerJSON::sendAntivirusCounter(m_is_sync_run == true || l_is_error);
 					if (CFlyServerJSON::pushStatistic(m_is_sync_run) == false)
 					{
-						// ≈сли нет ошибок - скинем и счетчки загрузок + обновим антивирусную базу
+						// ≈сли нет ошибок и не закрываемс€ - обновим антивирусную базу
 						if (m_is_sync_run == false) // ≈сли запущено в фоновом режиме - стартанем обновление AvDB и сброс счетчиков загрузок
 						{
-							if (CFlyServerJSON::sendDownloadCounter() == false)
-							{
-								CFlyServerConfig::SyncAntivirusDB();
-							}
+							CFlyServerConfig::SyncAntivirusDB();
 						}
 					}
 					return 0;

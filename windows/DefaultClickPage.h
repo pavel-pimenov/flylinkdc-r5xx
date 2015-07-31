@@ -25,7 +25,7 @@
 class DefaultClickPage : public CPropertyPage<IDD_DEFAULT_CLICK_PAGE>, public PropPage
 {
 	public:
-		explicit DefaultClickPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_DEFAULT_CLICK))
+		explicit DefaultClickPage( ) : PropPage( TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_DEFAULT_CLICK))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

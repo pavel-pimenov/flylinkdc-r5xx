@@ -398,12 +398,14 @@ void NmdcHub::updateFromTag(Identity& id, const string & tag) // [!] IRainman op
 	// [-] id.setStringParam("TA", '<' + tag + '>'); [-] IRainman opt.
 }
 //=================================================================================================================
-void NmdcHub::NmdcSearch(const SearchParam& p_search_param) noexcept
+void NmdcHub::NmdcSearch(const SearchParam& p_search_param)
 {
 	ClientManagerListener::SearchReply l_re = ClientManagerListener::SEARCH_MISS; // !SMT!-S
 	SearchResultList l;
 	dcassert(p_search_param.m_max_results > 0);
 	dcassert(p_search_param.m_client);
+	if (ClientManager::isShutdown())
+		return;
 #ifdef PPA_USE_HIGH_LOAD_FOR_SEARCH_ENGINE_IN_DEBUG
 	ShareManager::getInstance()->search(l, p_search_param);
 #else
@@ -414,7 +416,7 @@ void NmdcHub::NmdcSearch(const SearchParam& p_search_param) noexcept
 		l_re = ClientManagerListener::SEARCH_HIT;
 		if (p_search_param.m_is_passive)
 		{
-			const string name = p_search_param.m_seeker.substr(4); //-V112
+			const string l_name = p_search_param.m_seeker.substr(4); //-V112
 			// Good, we have a passive seeker, those are easier...
 			string str;
 			for (auto i = l.cbegin(); i != l.cend(); ++i)
@@ -425,7 +427,7 @@ void NmdcHub::NmdcSearch(const SearchParam& p_search_param) noexcept
 //#ifdef IRAINMAN_USE_UNICODE_IN_NMDC
 //				str += name;
 //#else
-				str += Text::fromUtf8(name, getEncoding());
+				str += Text::fromUtf8(l_name, getEncoding());
 //#endif
 				str += '|';
 			}
@@ -557,13 +559,13 @@ void NmdcHub::searchParse(const string& param, bool p_is_passive)
 		
 	if (!p_is_passive)
 	{
-		const auto i = l_search_param.m_seeker.rfind(':');
-		if (i != string::npos)
+		const auto m = l_search_param.m_seeker.rfind(':');
+		if (m != string::npos)
 		{
-			const auto k = param.find("?9?TTH:", i); // Если идет запрос по TTH - пропускаем без проверки
+			const auto k = param.find("?9?TTH:", m); // Если идет запрос по TTH - пропускаем без проверки
 			if (k == string::npos)
 			{
-				if (ConnectionManager::getInstance()->checkIpFlood(l_search_param.m_seeker.substr(0, i), Util::toInt(l_search_param.m_seeker.substr(i + 1)), getIp(), param, getHubUrlAndIP()))
+				if (ConnectionManager::getInstance()->checkIpFlood(l_search_param.m_seeker.substr(0, m), Util::toInt(l_search_param.m_seeker.substr(m + 1)), getIp(), param, getHubUrlAndIP()))
 				{
 					return; // http://dchublist.ru/forum/viewtopic.php?f=6&t=1028&start=150
 				}
@@ -1036,13 +1038,13 @@ void NmdcHub::userCommandParse(const string& param)
 		j = param.find('$');
 		if (j == string::npos)
 			return;
-		string name = unescape(param.substr(i, j - i));
+		string l_name = unescape(param.substr(i, j - i));
 		// NMDC uses '\' as a separator but both ADC and our internal representation use '/'
-		Util::replace("/", "//", name);
-		Util::replace("\\", "/", name);
+		Util::replace("/", "//", l_name);
+		Util::replace("\\", "/", l_name);
 		i = j + 1;
 		string command = unescape(param.substr(i, param.length() - i));
-		fire(ClientListener::HubUserCommand(), this, type, ctx, name, command);
+		fire(ClientListener::HubUserCommand(), this, type, ctx, l_name, command);
 	}
 }
 //==========================================================================================
@@ -1834,17 +1836,17 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 	{
 		l_description = getCurrentDescription();
 	}
-	l_currentMyInfo.resize(snprintf(&l_currentMyInfo[0], l_currentMyInfo.size() - 1, "$MyINFO $ALL %s %s<%s,M:%c,H:%s,S:%d"
-	                                ">$ $%s%c$%s$",
-	                                fromUtf8(getMyNick()).c_str(),
-	                                fromUtf8Chat(escape(l_description)).c_str(),
-	                                l_version.c_str(), // [!] IRainman mimicry function.
-	                                l_modeChar,
-	                                currentCounts.c_str(),
-	                                UploadManager::getSlots(),
-	                                uploadSpeed.c_str(), status,
-	                                fromUtf8Chat(escape(getCurrentEmail())).c_str()));
-	                                
+	l_currentMyInfo.resize(_snprintf(&l_currentMyInfo[0], l_currentMyInfo.size() - 1, "$MyINFO $ALL %s %s<%s,M:%c,H:%s,S:%d"
+	                                 ">$ $%s%c$%s$",
+	                                 fromUtf8(getMyNick()).c_str(),
+	                                 fromUtf8Chat(escape(l_description)).c_str(),
+	                                 l_version.c_str(), // [!] IRainman mimicry function.
+	                                 l_modeChar,
+	                                 currentCounts.c_str(),
+	                                 UploadManager::getSlots(),
+	                                 uploadSpeed.c_str(), status,
+	                                 fromUtf8Chat(escape(getCurrentEmail())).c_str()));
+	                                 
 	const int64_t l_currentBytesShared =
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 	    getHideShare() ? 0 :
@@ -2052,7 +2054,7 @@ void NmdcHub::on(BufferedSocketListener::Connected) noexcept
 	m_lastUpdate = 0;
 }
 // TODO - сделать массовый разбор стартовой MyInfo и сброс напрямую в окно без листенеров?
-void NmdcHub::myInfoParse(const string& param) noexcept
+void NmdcHub::myInfoParse(const string& param)
 {
 	string::size_type i = 5;
 	string::size_type j = param.find(' ', i);
@@ -2216,8 +2218,11 @@ void NmdcHub::on(BufferedSocketListener::SearchArrayFile, const CFlySearchArrayF
 			// dcassert(i->find("?9?TTH:") == string::npos);
 			// TODO - научится обрабатывать - поиск по TTH с ограничениями по размеру
 			// "x.x.x.x:yyy T?F?57671680?9?TTH:A3VSWSWKCVC4N6EP2GX47OEMGT5ZL52BOS2LAHA"
-			searchParse(i->m_raw_search, i->m_is_passive); // TODO - у нас уже есть распасенное
-			COMMAND_DEBUG("$Search " + i->m_raw_search, DebugTask::HUB_IN, getIpPort());
+			if (!ClientManager::isShutdown())
+			{
+				searchParse(i->m_raw_search, i->m_is_passive); // TODO - у нас уже есть распасенное
+				COMMAND_DEBUG("$Search " + i->m_raw_search, DebugTask::HUB_IN, getIpPort());
+			}
 		}
 	}
 }

@@ -462,7 +462,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		                         );
 #endif // FLYLINKDC_USE_COLLECT_STAT
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
-		void push_json_statistic(const std::string& p_value);
+		void push_json_statistic(const std::string& p_value, const string& p_type, bool p_is_stat_server);
 		void flush_lost_json_statistic(bool& p_is_error);
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
 		__int64 convert_tth_history();

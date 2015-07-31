@@ -25,7 +25,7 @@
 class DownloadPage : public CPropertyPage<IDD_DOWNLOAD_PAGE>, public PropPage
 {
 	public:
-		explicit DownloadPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_DOWNLOADS))
+		explicit DownloadPage( ) : PropPage( TSTRING(SETTINGS_DOWNLOADS))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

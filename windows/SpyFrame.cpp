@@ -120,7 +120,7 @@ LRESULT SpyFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 	{
 		m_closed = true;
 		safe_destroy_timer();
-		clean_task();
+		clear_and_destroy_task();
 		if (m_log)
 		{
 			PostMessage(WM_SPEAKER, SAVE_LOG, (LPARAM)NULL);
@@ -331,7 +331,7 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 			{
 				auto s = (Stats*)i->second;
 				LocalArray<TCHAR, 50> buf;
-				snwprintf(buf.data(), buf.size(), CTSTRING(SEARCHES_PER), s->m_perS, s->m_perM);
+				_snwprintf(buf.data(), buf.size(), CTSTRING(SEARCHES_PER), s->m_perS, s->m_perM);
 				ctrlStatus.SetText(2, (TSTRING(TOTAL) + _T(' ') + Util::toStringW(m_total)).c_str());
 				ctrlStatus.SetText(3, buf.data());
 				ctrlStatus.SetText(4, (TSTRING(HITS) + _T(' ') + Util::toStringW((size_t)(ShareManager::getHits()))).c_str());
@@ -446,7 +446,7 @@ LRESULT SpyFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 	{
 		m_tasks.add(SAVE_LOG, nullptr);
 	}
-	onTimerTask();
+	doTimerTask();
 	return 0;
 }
 

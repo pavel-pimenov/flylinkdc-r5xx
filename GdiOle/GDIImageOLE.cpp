@@ -185,7 +185,9 @@ STDMETHODIMP CGDIImageOle::put_SetImage(CGDIImage *pImage, COLORREF clrBack, HWN
 	m_dwW = m_pImage->GetWidth();
 	m_dwH = m_pImage->GetHeight();
 	
-	SIZEL szPix = {m_dwW, m_dwH};
+	SIZEL szPix = {0};
+	szPix.cx = m_dwW;
+	szPix.cy = m_dwH;
 	SIZEL szHi;
 	AtlPixelToHiMetric(&szPix, &szHi);
 	m_sizeExtent.cx = szHi.cx;

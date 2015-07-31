@@ -134,7 +134,7 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 //[-]PPA    SetDlgItemText(IDC_TTH, WinUtil::tth.c_str());
 
 			char l_full_version[64];
-			snprintf(l_full_version, _countof(l_full_version), "%d", _MSC_FULL_VER);
+			_snprintf(l_full_version, _countof(l_full_version), "%d", _MSC_FULL_VER);
 			
 			SetDlgItemText(IDC_LINK, CTSTRING(MENU_HOMEPAGE));
 			m_url.init(GetDlgItem(IDC_LINK), _T(HOMEPAGE));

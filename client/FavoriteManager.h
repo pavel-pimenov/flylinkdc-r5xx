@@ -137,7 +137,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		void removeFavoriteUser(const UserPtr& aUser);
 		
 		void setUserDescription(const UserPtr& aUser, const string& description);
-		bool hasAutoGrantSlot(const UserPtr& aUser) const
+		static bool hasAutoGrantSlot(const UserPtr& aUser)
 		{
 			return getFlag(aUser, FavoriteUser::FLAG_GRANT_SLOT);
 		}

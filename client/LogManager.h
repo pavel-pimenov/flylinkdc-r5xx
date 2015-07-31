@@ -31,6 +31,7 @@ class LogManager
 #endif
 		               CUSTOM_LOCATION, // [+] IRainman
 		               TRACE_SQLITE,
+		               VIRUS_TRACE,
 		               DDOS_TRACE,
 		               CMDDEBUG_TRACE,
 		               DHT_TRACE,
@@ -42,6 +43,7 @@ class LogManager
 		enum {FILE, FORMAT};
 		static void init();
 		static void ddos_message(const string& params);
+		static void virus_message(const string& params);
 		static void flood_message(const string& params);
 		static void cmd_debug_message(const string& params);
 		static void dht_message(const string& params);

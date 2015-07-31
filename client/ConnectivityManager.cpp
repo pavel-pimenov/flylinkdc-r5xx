@@ -90,7 +90,7 @@ void ConnectivityManager::detectConnection()
 		SET_SETTING(BIND_ADDRESS, l_old_bind);
 		
 		AutoArray<char> buf(512);
-		snprintf(buf.data(), 512, CSTRING(UNABLE_TO_OPEN_PORT), e.getError().c_str());
+		_snprintf(buf.data(), 512, CSTRING(UNABLE_TO_OPEN_PORT), e.getError().c_str());
 		log(buf.data());
 		// PPA_INCLUDE_DEAD_CODE fire(ConnectivityManagerListener::Finished());
 		running = false;

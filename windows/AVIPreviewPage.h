@@ -28,7 +28,7 @@
 class AVIPreview : public CPropertyPage<IDD_AVIPREVIEW_PAGE>, public PropPage
 {
 	public:
-		explicit AVIPreview(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(SETTINGS_AVIPREVIEW))
+		explicit AVIPreview( ) : PropPage( TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(SETTINGS_AVIPREVIEW))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

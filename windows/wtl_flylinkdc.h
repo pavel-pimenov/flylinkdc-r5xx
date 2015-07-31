@@ -103,7 +103,7 @@ class CFlyTaskAdapter : public CFlySpeakerAdapter
 		}
 		
 	protected:
-		void onTimerTask()
+		virtual void doTimerTask()
 		{
 			if (!m_tasks.empty())
 			{
@@ -112,11 +112,12 @@ class CFlyTaskAdapter : public CFlySpeakerAdapter
 		}
 		LRESULT onTimerTask(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /* bHandled */)
 		{
-			onTimerTask();
+			doTimerTask();
 			return 0;
 		}
-		void clean_task()
+		void clear_and_destroy_task()
 		{
+			m_tasks.destroy_task();
 			m_tasks.clear_task();
 		}
 };

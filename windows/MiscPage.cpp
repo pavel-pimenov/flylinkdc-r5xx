@@ -130,6 +130,6 @@ void MiscPage::write()
 		m_ignoreListCnange = false;
 	}
 	/*if(SETTING(PSR_DELAY) < 5)
-	    settings->set(SettingsManager::PSR_DELAY, 5);*/
+	    g_settings->set(SettingsManager::PSR_DELAY, 5);*/
 }
 

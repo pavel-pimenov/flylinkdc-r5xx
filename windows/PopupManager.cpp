@@ -137,7 +137,7 @@ void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bo
 	m_popups.push_back(p);
 }
 
-void PopupManager::on(TimerManagerListener::Second /*type*/, uint64_t tick)
+void PopupManager::on(TimerManagerListener::Second /*type*/, uint64_t tick) noexcept
 {
 	// TODO - подписаться позже. dcassert(!BaseChatFrame::g_isStartupProcess);
 	dcassert(WinUtil::g_mainWnd);

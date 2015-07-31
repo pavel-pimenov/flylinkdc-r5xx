@@ -190,13 +190,13 @@ void SharedFileStream::setSize(int64_t newSize)
 
 size_t SharedFileStream::flush()
 {
-	if (!ClientManager::isShutdown()) // fix https://drdump.com/Problem.aspx?ProblemID=130529 
-	// при закрытии файлов - буфера и так скидываются на винты.
-	{ 
+	if (!ClientManager::isShutdown()) // fix https://drdump.com/Problem.aspx?ProblemID=130529
+		// при закрытии файлов - буфера и так скидываются на винты.
+	{
 		try
 		{
 			FastLock l(m_sfh->m_cs);
-			return m_sfh->m_file.flush(); 
+			return m_sfh->m_file.flush();
 		}
 		catch (const Exception& e)
 		{

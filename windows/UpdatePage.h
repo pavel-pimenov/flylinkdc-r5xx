@@ -28,7 +28,7 @@
 class UpdatePage : public CPropertyPage<IDD_UPDATE_PAGE>, public PropPage
 {
 	public:
-		explicit UpdatePage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_AUTOUPDATE_PROP))
+		explicit UpdatePage( ) : PropPage( TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_AUTOUPDATE_PROP))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

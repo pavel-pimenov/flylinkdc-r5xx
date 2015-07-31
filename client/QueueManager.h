@@ -221,7 +221,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 			qi->getChunksVisualisation(p_runnigChunksAndDownloadBytes, p_doneChunks);
 		}
 		
-		static bool getQueueInfo(const UserPtr& aUser, string& aTarget, int64_t& aSize, int& aFlags);
+		static bool getQueueInfo(const UserPtr& aUser, string& aTarget, int64_t& aSize, int& aFlags) noexcept;
 		DownloadPtr getDownload(UserConnection* aSource, string& aMessage) noexcept;
 		void putDownload(const string& p_path, DownloadPtr aDownload, bool finished, bool reportFinish = true) noexcept;
 		void setFile(const DownloadPtr& aDownload);

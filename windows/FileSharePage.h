@@ -31,7 +31,7 @@
 class FileSharePage : public CPropertyPage<IDD_FILE_SHARE_PAGE>, public PropPage
 {
 	public:
-		explicit FileSharePage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_UPLOADS) + _T('\\') + TSTRING(FILESHARE_TITLE))
+		explicit FileSharePage( ) : PropPage( TSTRING(SETTINGS_UPLOADS) + _T('\\') + TSTRING(FILESHARE_TITLE))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
@@ -64,9 +64,6 @@ class FileSharePage : public CPropertyPage<IDD_FILE_SHARE_PAGE>, public PropPage
 		static Item items[];
 		static TextItem texts[];
 		static ListItem listItems[];
-		
-		
-		
 		ExListViewCtrl ctrlList; // [+] IRainman
 		
 };
@@ -74,7 +71,7 @@ class FileSharePage : public CPropertyPage<IDD_FILE_SHARE_PAGE>, public PropPage
 class FileSharePage : public EmptyPage
 {
 	public:
-		FileSharePage(SettingsManager *s) : EmptyPage(s, TSTRING(SETTINGS_UPLOADS) + _T('\\') + TSTRING(FILESHARE_TITLE))
+		FileSharePage() : EmptyPage(TSTRING(SETTINGS_UPLOADS) + _T('\\') + TSTRING(FILESHARE_TITLE))
 		{
 		}
 };

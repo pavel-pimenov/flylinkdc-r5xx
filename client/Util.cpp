@@ -213,7 +213,7 @@ void Util::initialize()
 		{
 			File l_f_ro_test(g_paths[PATH_USER_CONFIG] + ".flylinkdc-test-readonly.tmp", File::WRITE, File::CREATE | File::TRUNCATE);
 		}
-		catch (const FileException& e)
+		catch (const FileException&)
 		{
 			const DWORD l_error = GetLastError();
 			if (l_error == 5)
@@ -1109,31 +1109,31 @@ string Util::formatBytes(int64_t aBytes) // TODO fix copy-paste
 	buf[0] = 0;
 	if (aBytes < 1024)
 	{
-		snprintf(buf, _countof(buf), "%d %s", (int)aBytes & 0xffffffff, CSTRING(B));
+		_snprintf(buf, _countof(buf), "%d %s", (int)aBytes & 0xffffffff, CSTRING(B));
 	}
 	else if (aBytes < 1048576)
 	{
-		snprintf(buf, _countof(buf), "%.02f %s", (double)aBytes / (1024.0), CSTRING(KB));
+		_snprintf(buf, _countof(buf), "%.02f %s", (double)aBytes / (1024.0), CSTRING(KB));
 	}
 	else if (aBytes < 1073741824)
 	{
-		snprintf(buf, _countof(buf), "%.02f %s", (double)aBytes / (1048576.0), CSTRING(MB));
+		_snprintf(buf, _countof(buf), "%.02f %s", (double)aBytes / (1048576.0), CSTRING(MB));
 	}
 	else if (aBytes < (int64_t)1099511627776)
 	{
-		snprintf(buf, _countof(buf), "%.02f %s", (double)aBytes / (1073741824.0), CSTRING(GB));
+		_snprintf(buf, _countof(buf), "%.02f %s", (double)aBytes / (1073741824.0), CSTRING(GB));
 	}
 	else if (aBytes < (int64_t)1125899906842624)
 	{
-		snprintf(buf, _countof(buf), "%.03f %s", (double)aBytes / (1099511627776.0), CSTRING(TB));
+		_snprintf(buf, _countof(buf), "%.03f %s", (double)aBytes / (1099511627776.0), CSTRING(TB));
 	}
 	else if (aBytes < (int64_t)1152921504606846976)
 	{
-		snprintf(buf, _countof(buf), "%.03f %s", (double)aBytes / (1125899906842624.0), CSTRING(PB));
+		_snprintf(buf, _countof(buf), "%.03f %s", (double)aBytes / (1125899906842624.0), CSTRING(PB));
 	}
 	else
 	{
-		snprintf(buf, _countof(buf), "%.03f %s", (double)aBytes / (1152921504606846976.0), CSTRING(EB));
+		_snprintf(buf, _countof(buf), "%.03f %s", (double)aBytes / (1152921504606846976.0), CSTRING(EB));
 	}
 	return buf;
 }
@@ -1143,31 +1143,31 @@ string Util::formatBytes(double aBytes) // TODO fix copy-paste
 	buf[0] = 0;
 	if (aBytes < 1024)
 	{
-		snprintf(buf, _countof(buf), "%d %s", (int)aBytes & 0xffffffff, CSTRING(B));
+		_snprintf(buf, _countof(buf), "%d %s", (int)aBytes & 0xffffffff, CSTRING(B));
 	}
 	else if (aBytes < 1048576)
 	{
-		snprintf(buf, _countof(buf), "%.02f %s", aBytes / (1024.0), CSTRING(KB));
+		_snprintf(buf, _countof(buf), "%.02f %s", aBytes / (1024.0), CSTRING(KB));
 	}
 	else if (aBytes < 1073741824)
 	{
-		snprintf(buf, _countof(buf), "%.02f %s", aBytes / (1048576.0), CSTRING(MB));
+		_snprintf(buf, _countof(buf), "%.02f %s", aBytes / (1048576.0), CSTRING(MB));
 	}
 	else if (aBytes < (int64_t)1099511627776)
 	{
-		snprintf(buf, _countof(buf), "%.02f %s", aBytes / (1073741824.0), CSTRING(GB));
+		_snprintf(buf, _countof(buf), "%.02f %s", aBytes / (1073741824.0), CSTRING(GB));
 	}
 	else if (aBytes < (int64_t)1125899906842624)
 	{
-		snprintf(buf, _countof(buf), "%.03f %s", aBytes / (1099511627776.0), CSTRING(TB));
+		_snprintf(buf, _countof(buf), "%.03f %s", aBytes / (1099511627776.0), CSTRING(TB));
 	}
 	else if (aBytes < (int64_t)1152921504606846976)
 	{
-		snprintf(buf, _countof(buf), "%.03f %s", aBytes / (1125899906842624.0), CSTRING(PB));
+		_snprintf(buf, _countof(buf), "%.03f %s", aBytes / (1125899906842624.0), CSTRING(PB));
 	}
 	else
 	{
-		snprintf(buf, _countof(buf), "%.03f %s", aBytes / (1152921504606846976.0), CSTRING(EB));
+		_snprintf(buf, _countof(buf), "%.03f %s", aBytes / (1152921504606846976.0), CSTRING(EB));
 	}
 	return buf;
 }
@@ -1177,31 +1177,31 @@ wstring Util::formatBytesW(int64_t aBytes)
 	wchar_t buf[64];
 	if (aBytes < 1024)
 	{
-		snwprintf(buf, _countof(buf), L"%d %s", (int)(aBytes & 0xffffffff), CWSTRING(B));
+		_snwprintf(buf, _countof(buf), L"%d %s", (int)(aBytes & 0xffffffff), CWSTRING(B));
 	}
 	else if (aBytes < 1048576)
 	{
-		snwprintf(buf, _countof(buf), L"%.02f %s", (double)aBytes / (1024.0), CWSTRING(KB));
+		_snwprintf(buf, _countof(buf), L"%.02f %s", (double)aBytes / (1024.0), CWSTRING(KB));
 	}
 	else if (aBytes < 1073741824)
 	{
-		snwprintf(buf, _countof(buf), L"%.02f %s", (double)aBytes / (1048576.0), CWSTRING(MB));
+		_snwprintf(buf, _countof(buf), L"%.02f %s", (double)aBytes / (1048576.0), CWSTRING(MB));
 	}
 	else if (aBytes < (int64_t)1099511627776)
 	{
-		snwprintf(buf, _countof(buf), L"%.02f %s", (double)aBytes / (1073741824.0), CWSTRING(GB));
+		_snwprintf(buf, _countof(buf), L"%.02f %s", (double)aBytes / (1073741824.0), CWSTRING(GB));
 	}
 	else if (aBytes < (int64_t)1125899906842624)
 	{
-		snwprintf(buf, _countof(buf), L"%.03f %s", (double)aBytes / (1099511627776.0), CWSTRING(TB));
+		_snwprintf(buf, _countof(buf), L"%.03f %s", (double)aBytes / (1099511627776.0), CWSTRING(TB));
 	}
 	else if (aBytes < (int64_t)1152921504606846976)
 	{
-		snwprintf(buf, _countof(buf), L"%.03f %s", (double)aBytes / (1125899906842624.0), CWSTRING(PB));
+		_snwprintf(buf, _countof(buf), L"%.03f %s", (double)aBytes / (1125899906842624.0), CWSTRING(PB));
 	}
 	else
 	{
-		snwprintf(buf, _countof(buf), L"%.03f %s", (double)aBytes / (1152921504606846976.0), CWSTRING(EB)); //TODO Crash beta-16
+		_snwprintf(buf, _countof(buf), L"%.03f %s", (double)aBytes / (1152921504606846976.0), CWSTRING(EB)); //TODO Crash beta-16
 	}
 	
 	return buf;
@@ -1212,15 +1212,15 @@ wstring Util::formatExactSize(int64_t aBytes)
 #ifdef _WIN32
 	wchar_t l_number[64];
 	l_number[0] = 0;
-	snwprintf(l_number, _countof(l_number), _T(I64_FMT), aBytes);
+	_snwprintf(l_number, _countof(l_number), _T(I64_FMT), aBytes);
 	wchar_t l_buf_nf[64];
 	l_buf_nf[0] = 0;
 	GetNumberFormat(LOCALE_USER_DEFAULT, 0, l_number, &g_nf, l_buf_nf, _countof(l_buf_nf));
-	snwprintf(l_buf_nf, _countof(l_buf_nf), _T("%s %s"), l_buf_nf, CWSTRING(B));
+	_snwprintf(l_buf_nf, _countof(l_buf_nf), _T("%s %s"), l_buf_nf, CWSTRING(B));
 	return l_buf_nf;
 #else
 	wchar_t buf[64];
-	snwprintf(buf, _countof(buf), _T(I64_FMT), (long long int)aBytes);
+	_snwprintf(buf, _countof(buf), _T(I64_FMT), (long long int)aBytes);
 	return tstring(buf) + TSTRING(B);
 #endif
 }
@@ -1771,7 +1771,7 @@ string Util::formatTime(const string &p_msg, const time_t p_t)
 
 string Util::formatTime(uint64_t rest, const bool withSecond /*= true*/)
 {
-#define formatTimeformatInterval(n) snprintf(buf, _countof(buf), first ? "%I64u " : " %I64u ", n);\
+#define formatTimeformatInterval(n) _snprintf(buf, _countof(buf), first ? "%I64u " : " %I64u ", n);\
 	/*[+] PVS Studio V576 Incorrect format. Consider checking the fourth actual argument of the '_snprintf' function. The argument is expected to be not greater than 32-bit.*/\
 	formatedTime += (string)buf;\
 	first = false
@@ -1784,6 +1784,7 @@ string Util::formatTime(uint64_t rest, const bool withSecond /*= true*/)
 	#endif
 	*/
 	char buf[32];
+	buf[0] = 0;
 	string formatedTime;
 	uint64_t n;
 	uint8_t i = 0;

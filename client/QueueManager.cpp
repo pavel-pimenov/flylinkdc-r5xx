@@ -2144,7 +2144,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 										CFlyServerJSON::addDownloadCounter(l_file);
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 #ifdef _DEBUG
-										//CFlyServerJSON::sendDownloadCounter();
+										//CFlyServerJSON::sendDownloadCounter(false);
 #endif
 									}
 								}
@@ -2890,7 +2890,7 @@ void QueueManager::on(SearchManagerListener::SR, const SearchResult& sr) noexcep
 							needsAutoMatch = !qi->countOnlineUsersGreatOrEqualThanL(SETTING(MAX_AUTO_MATCH_SOURCES));
 							
 							// [-] if (!BOOLSETTING(AUTO_SEARCH_AUTO_MATCH) || (l_count_online_users >= (size_t)SETTING(MAX_AUTO_MATCH_SOURCES))) [-] IRainman fix.
-							wantConnection = addSourceL(qi, HintedUser(sr.getUser(), sr.getHubURL()), 0);
+							wantConnection = addSourceL(qi, HintedUser(sr.getUser(), sr.getHubUrl()), 0);
 							
 							added = true;
 						}
@@ -2912,7 +2912,7 @@ void QueueManager::on(SearchManagerListener::SR, const SearchResult& sr) noexcep
 			try
 			{
 				const string path = Util::getFilePath(sr.getFile());
-				// [!] IRainman fix: please always match listing without hint! old code: sr->getHubURL().
+				// [!] IRainman fix: please always match listing without hint! old code: sr->getHubUrl().
 				addList(sr.getUser(), QueueItem::FLAG_MATCH_QUEUE | (path.empty() ? 0 : QueueItem::FLAG_PARTIAL_LIST), path);
 			}
 			catch (const Exception&)

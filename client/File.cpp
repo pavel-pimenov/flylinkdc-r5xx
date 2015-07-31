@@ -385,7 +385,7 @@ void File::addTrailingSlash(string & p_path)
 	}
 }
 
-void File::ensureDirectory(const tstring & aFile) noexcept
+void File::ensureDirectory(const tstring & aFile)
 {
 	dcassert(!aFile.empty());
 	// Skip the first dir...

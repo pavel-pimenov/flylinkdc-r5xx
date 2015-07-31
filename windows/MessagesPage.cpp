@@ -103,8 +103,8 @@ void MessagesPage::write()
 	timeCtrlBegin.Attach(GetDlgItem(IDC_AWAY_START_TIME));
 	timeCtrlEnd.Attach(GetDlgItem(IDC_AWAY_END_TIME));
 	
-	settings->set(SettingsManager::AWAY_START, timeCtrlBegin.GetCurSel());
-	settings->set(SettingsManager::AWAY_END, timeCtrlEnd.GetCurSel());
+	g_settings->set(SettingsManager::AWAY_START, timeCtrlBegin.GetCurSel());
+	g_settings->set(SettingsManager::AWAY_END, timeCtrlEnd.GetCurSel());
 	
 	timeCtrlBegin.Detach();
 	timeCtrlEnd.Detach();

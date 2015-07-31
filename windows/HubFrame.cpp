@@ -393,9 +393,13 @@ void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
 		m_ctrlUsers->SetImageList(g_userImage.getIconList(), LVSIL_SMALL);
 		//!!!!m_ctrlUsers->SetImageList(g_userStateImage.getIconList(), LVSIL_STATE);
 		m_Theme = GetWindowTheme(m_ctrlUsers->m_hWnd);
-		m_showJoins = p_fhe ? p_fhe->getShowJoins() : BOOLSETTING(SHOW_JOINS);
-		m_favShowJoins = BOOLSETTING(FAV_SHOW_JOINS);
+		initShowJoins(p_fhe);
 	}
+}
+void HubFrame::initShowJoins(const FavoriteHubEntry *p_fhe)
+{
+	m_showJoins = p_fhe ? p_fhe->getShowJoins() : BOOLSETTING(SHOW_JOINS);
+	m_favShowJoins = BOOLSETTING(FAV_SHOW_JOINS);
 }
 void HubFrame::updateSplitterPosition(const FavoriteHubEntry *p_fhe)
 {
@@ -1240,6 +1244,10 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 		dcassert(!ClientManager::isShutdown());
 		return false;
 	}
+	if (m_is_fynally_clear_user_list) // Пытаемся исключить появление юзеров после дисконнета (Часть 2)
+	{
+		return false;
+	}
 	UserInfo* ui = findUser(p_ou); // TODO - часто ищем. связать в список?
 	if (!ui)
 	{
@@ -1423,6 +1431,10 @@ void HubFrame::addStatus(const tstring& aLine, const bool bInChat /*= true*/, co
 }
 LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled */)
 {
+	if (ClientManager::isShutdown())
+	{
+		return 0;
+	}
 	switch (uMsg)
 	{
 		case WM_SPEAKER_UPDATE_USER:
@@ -1717,31 +1729,34 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 			{
 				const OnlineUserTask& u = static_cast<const OnlineUserTask&>(*i->second);
 				//dcassert(!ClientManager::isShutdown());
-				if (!ClientManager::isShutdown())
+				if (m_is_fynally_clear_user_list == false)
 				{
-					const UserPtr& user = u.m_ou->getUser();
-					const Identity& id  = u.m_ou->getIdentity();
-					
-					if (!id.isBotOrHub()) // [+] IRainman fix: no show has come/gone for bots, and a hub.
+					if (!ClientManager::isShutdown())
 					{
-						// !SMT!-S !SMT!-UI
-						const bool isFavorite = !FavoriteManager::isNoFavUserOrUserBanUpload(user); // [!] TODO: в ядро!
-						
-						const tstring& l_userNick = id.getNickT();
-						if (isFavorite)
+						const UserPtr& user = u.m_ou->getUser();
+						const Identity& id = u.m_ou->getIdentity();
+
+						if (!id.isBotOrHub()) // [+] IRainman fix: no show has come/gone for bots, and a hub.
 						{
-							PLAY_SOUND(SOUND_FAVUSER_OFFLINE);
-							SHOW_POPUP(POPUP_FAVORITE_DISCONNECTED, l_userNick + _T(" - ") + Text::toT(m_client->getHubName()), TSTRING(FAVUSER_OFFLINE));
-						}
-						
-						if (m_showJoins || (m_favShowJoins && isFavorite))
-						{
-							BaseChatFrame::addLine(_T("*** ") + TSTRING(PARTS) + _T(' ') + l_userNick, Colors::g_ChatTextSystem); // !SMT!-fix
+							// !SMT!-S !SMT!-UI
+							const bool isFavorite = !FavoriteManager::isNoFavUserOrUserBanUpload(user); // [!] TODO: в ядро!
+
+							const tstring& l_userNick = id.getNickT();
+							if (isFavorite)
+							{
+								PLAY_SOUND(SOUND_FAVUSER_OFFLINE);
+								SHOW_POPUP(POPUP_FAVORITE_DISCONNECTED, l_userNick + _T(" - ") + Text::toT(m_client->getHubName()), TSTRING(FAVUSER_OFFLINE));
+							}
+
+							if (m_showJoins || (m_favShowJoins && isFavorite))
+							{
+								BaseChatFrame::addLine(_T("*** ") + TSTRING(PARTS) + _T(' ') + l_userNick, Colors::g_ChatTextSystem); // !SMT!-fix
+							}
 						}
 					}
+					removeUser(u.m_ou);
+					m_needsUpdateStats = true; // [+] IRainman fix.
 				}
-				removeUser(u.m_ou);
-				m_needsUpdateStats = true; // [+] IRainman fix.
 			}
 			break;
 #endif // FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
@@ -1801,10 +1816,13 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 					setStatusText(2, (Util::toStringW(l_shownUsers) + (l_diff ? (_T('/') + Util::toStringW(l_allUsers)) : Util::emptyStringT) + _T(' ') + TSTRING(HUB_USERS)));
 					setStatusText(3, Util::formatBytesW(l_availableBytes));
 					setStatusText(4, l_allUsers ? (Util::formatBytesW(l_availableBytes / l_allUsers) + _T('/') + TSTRING(USER)) : Util::emptyStringT);
-					if (m_needsResort && m_ctrlUsers && m_ctrlStatus)
+					if (m_needsResort && m_ctrlUsers && m_ctrlStatus && !MainFrame::isAppMinimized())
 					{
 						m_needsResort = false;
 						m_ctrlUsers->resort(); // убран ресорт если окно не активное!
+#ifdef _DEBUG
+						LogManager::message("Resort! Hub = " + m_client->getHubUrl() + " count = " + Util::toString(m_ctrlUsers ? m_ctrlUsers->GetItemCount() : 0));
+#endif
 					}
 				}
 			}
@@ -2298,7 +2316,7 @@ LRESULT HubFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 #ifdef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 		safe_destroy_timer();
 #endif
-		clean_task();
+		clear_and_destroy_task();
 		storeColumsInfo();
 		RecentHubEntry* r = FavoriteManager::getRecentHubEntry(l_server);
 		if (r) // hub has been removed by the user from a list of recent hubs at a time when it was opened. https://crash-server.com/Bug.aspx?ClientID=ppa&ProblemID=9897
@@ -2328,7 +2346,7 @@ LRESULT HubFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 	else
 	{
 		clearTaskList();
-		clearUserList(true);
+		clearUserList(true); // TODO заблокировать прием сообщений
 		bHandled = FALSE;
 		return 0;
 	}
@@ -2552,7 +2570,7 @@ LRESULT HubFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOO
 			i = m_ctrlUsers->GetNextItem(i, LVNI_SELECTED);
 			if (i >= 0)
 			{
-				reinitUserMenu(((UserInfo*)m_ctrlUsers->getItemData(i))->getOnlineUser(), getHubHint()); // !SMT!-S // [!] IRainman fix.
+				reinitUserMenu((m_ctrlUsers->getItemData(i))->getOnlineUser(), getHubHint()); // !SMT!-S // [!] IRainman fix.
 			}
 		}
 		
@@ -2665,7 +2683,7 @@ void HubFrame::runUserCommand(UserCommand& uc)
 			int sel = -1;
 			while ((sel = m_ctrlUsers->GetNextItem(sel, LVNI_SELECTED)) != -1)
 			{
-				UserInfo *u = (UserInfo*)m_ctrlUsers->getItemData(sel);
+				UserInfo *u = m_ctrlUsers->getItemData(sel);
 				if (u->getUser()->isOnline())
 				{
 					StringMap tmp = ucParams;
@@ -2799,9 +2817,7 @@ LRESULT HubFrame::onCloseWindows(WORD , WORD wID, HWND , BOOL&)
 LRESULT HubFrame::onFileReconnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	const FavoriteHubEntry *fhe = FavoriteManager::getFavoriteHubEntry(m_server);
-	m_showJoins = fhe ? fhe->getShowJoins() : BOOLSETTING(SHOW_JOINS);
-	m_favShowJoins = BOOLSETTING(FAV_SHOW_JOINS);
-	
+	initShowJoins(fhe);
 	if ((!fhe || fhe->getNick().empty()) && SETTING(NICK).empty())
 	{
 		MessageBox(CTSTRING(ENTER_NICK), T_APPNAME_WITH_VERSION, MB_ICONSTOP | MB_OK);// TODO Добавить адрес хаба в сообщение
@@ -3204,7 +3220,7 @@ void HubFrame::on(ClientListener::DDoSSearchDetect, const string&) noexcept
 void HubFrame::on(ClientListener::UserUpdated, const OnlineUserPtr& user) noexcept   // !SMT!-fix
 {
 	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isShutdown() && m_closed == false)
 	{
 #ifdef FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
 		const auto l_ou_ptr = new OnlineUserPtr(user);
@@ -3223,7 +3239,7 @@ void HubFrame::on(ClientListener::UserUpdated, const OnlineUserPtr& user) noexce
 	}
 }
 
-void HubFrame::on(ClientListener::StatusMessage, const Client*, const string& line, int statusFlags)
+void HubFrame::on(ClientListener::StatusMessage, const Client*, const string& line, int statusFlags) noexcept
 {
 	speak(ADD_STATUS_LINE, Text::toDOS(line), !BOOLSETTING(FILTER_MESSAGES) || !(statusFlags & ClientListener::FLAG_IS_SPAM));
 }
@@ -3865,7 +3881,7 @@ LRESULT HubFrame::onAddNickToChat(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 			if (!m_lastUserName.empty())// SSA_SAVE_LAST_NICK_MACROS
 				m_lastUserName += _T(", ");// SSA_SAVE_LAST_NICK_MACROS
 				
-			m_lastUserName += Text::toT(((UserInfo*)m_ctrlUsers->getItemData(i))->getNick());// SSA_SAVE_LAST_NICK_MACROS
+			m_lastUserName += Text::toT((m_ctrlUsers->getItemData(i))->getNick());// SSA_SAVE_LAST_NICK_MACROS
 		}
 	}
 	appendNickToChat(m_lastUserName); // SSA_SAVE_LAST_NICK_MACROS
@@ -3911,7 +3927,7 @@ LRESULT HubFrame::onOpenUserLog(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
 		if (m_ctrlUsers)
 			if ((i = m_ctrlUsers->GetNextItem(i, LVNI_SELECTED)) != -1)
 			{
-				ui = (UserInfo*)m_ctrlUsers->getItemData(i);
+				ui = m_ctrlUsers->getItemData(i);
 			}
 	}
 	

@@ -1462,7 +1462,7 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl)
 				const double qwe = double(l_statedSize) / double(l_realSize);
 				char buf[128];
 				buf[0] = 0;
-				snprintf(buf, _countof(buf), CSTRING(CHECK_INFLATED), Util::toString(qwe).c_str()); //-V111
+				_snprintf(buf, _countof(buf), CSTRING(CHECK_INFLATED), Util::toString(qwe).c_str()); //-V111
 				detectString += buf;
 			}
 			detectString += STRING(CHECK_SHOW_REAL_SHARE);

@@ -189,8 +189,9 @@ void DHT::dispatch(const string& aLine, const string& ip, uint16_t port, bool is
 			key.m_key = CID(udpKey);
 			key.m_ip = DHT::getInstance()->getLastExternalIP();
 		}
-		Node::Ptr node = addNode(CID(cid), ip, port, key, true, isUdpKeyValid);
-
+		Node::Ptr l_node = addDHTNode(CID(cid), ip, port, key, true, isUdpKeyValid);
+		if (!l_node)
+			return;
 		// node is requiring FW check
 		string internalUdpPort;
 		if (cmd.getParam("FW", 1, internalUdpPort))
@@ -198,8 +199,8 @@ void DHT::dispatch(const string& aLine, const string& ip, uint16_t port, bool is
 			const bool l_firewalled = (Util::toInt(internalUdpPort) != port);
 			if (l_firewalled)
 			{
-				node->getUser()->setFlag(User::NMDC_FILES_PASSIVE);
-				node->getUser()->setFlag(User::NMDC_SEARCH_PASSIVE_BIT);
+				l_node->getUser()->setFlag(User::NMDC_FILES_PASSIVE);
+				l_node->getUser()->setFlag(User::NMDC_SEARCH_PASSIVE_BIT);
 			}
 			
 			// send him his external ip and port
@@ -279,15 +280,22 @@ Node::Ptr DHT::createNode(const CID& cid, const string& ip, uint16_t port, bool 
 /*
  * Adds node to routing table
  */
-Node::Ptr DHT::addNode(const CID& cid, const string& ip, uint16_t port, const UDPKey& udpKey, bool update, bool isUdpKeyValid)
+Node::Ptr DHT::addDHTNode(const CID& cid, const string& ip, uint16_t port, const UDPKey& udpKey, bool update, bool isUdpKeyValid)
 {
 	dcassert(!ClientManager::isShutdown());
-	// create user as offline (only TCP connected users will be online)
-        // https://drdump.com/DumpGroup.aspx?DumpGroupID=239463&Login=guest	
-	UserPtr u = ClientManager::getUser(cid, true); // TODO - утекает. если долго работать тут появляется много юзеров.
-												   // а когда их удаляем?
+	if (!ClientManager::isShutdown())
+	{
+		// create user as offline (only TCP connected users will be online)
+		// https://drdump.com/DumpGroup.aspx?DumpGroupID=239463&Login=guest	
+		UserPtr u = ClientManager::getUser(cid, true); // TODO - утекает. если долго работать тут появляется много юзеров.
+		// а когда их удаляем?
 		FastLock l(cs);
-	return m_bucket->addOrUpdate(u, ip, port, udpKey, update, isUdpKeyValid);
+		return m_bucket->addOrUpdate(u, ip, port, udpKey, update, isUdpKeyValid);
+	}
+	else
+	{
+		return Node::Ptr();
+	}
 }
 
 /*
@@ -461,7 +469,9 @@ void DHT::handle(AdcCommand::INF, const string& ip, uint16_t port, const UDPKey&
 	dcassert(!ClientManager::isShutdown());
 	const CID cid = CID(c.getParam(0));	
 	// add node to our routing table and put him online
-	const Node::Ptr node = addNode(cid, ip, port, udpKey, true, isUdpKeyValid);
+	const Node::Ptr node = addDHTNode(cid, ip, port, udpKey, true, isUdpKeyValid);
+        if(!node)
+           return;
 	auto& id = node->getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'node->getIdentity()' expression repeatedly. dht.cpp 440
 	InfType it = NONE;
 	for (auto i = c.getParameters().cbegin() + 1; i != c.getParameters().cend(); ++i)
@@ -553,7 +563,10 @@ void DHT::handle(AdcCommand::INF, const string& ip, uint16_t port, const UDPKey&
 // incoming search request
 void DHT::handle(AdcCommand::SCH, const string& ip, uint16_t port, const UDPKey& udpKey, const AdcCommand& c) noexcept
 {
-	SearchManager::getInstance()->processSearchRequest(ip, port, udpKey, c);
+	if (!ClientManager::isShutdown())
+	{
+		SearchManager::getInstance()->processSearchRequest(ip, port, udpKey, c);
+	}
 }
 
 // incoming search result
@@ -649,14 +662,14 @@ void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t port, const UDP
 		{
 			FastLock l(fwCheckCs);
 			// [!] IRainman opt.
-			const auto i = firewalledWanted.find(fromIP); // [1] https://www.box.net/shared/4b2e554c75f77c3f9054
-			if (i == firewalledWanted.end())
+			const auto j = firewalledWanted.find(fromIP); // [1] https://www.box.net/shared/4b2e554c75f77c3f9054
+			if (j == firewalledWanted.end())
 			{
             LogManager::dht_message("DHT::handle i == firewalledWanted.end() - fromIP = " + fromIP + ":" + Util::toString(port));
 				return; // we didn't requested firewall check from this node
       }
 				
-			firewalledWanted.erase(i);
+			firewalledWanted.erase(j);
 			if (firewalledChecks.find(fromIP) != firewalledChecks.end())
 			{
            LogManager::dht_message("DHT::handle i == firewalledChecks.find(fromIP) != firewalledChecks.end() - fromIP = " + fromIP + ":" + Util::toString(port));
@@ -834,7 +847,11 @@ void DHT::handle(AdcCommand::SND, const string& ip, uint16_t port, const UDPKey&
 	{
 		// add node to our routing table
 		if (isUdpKeyValid)
-			addNode(CID(c.getParam(0)), ip, port, udpKey, false, true);
+		{
+			const auto l_node =	addDHTNode(CID(c.getParam(0)), ip, port, udpKey, false, true);
+			if (!l_node)
+				return;
+		}
 			
 		try
 		{
@@ -873,7 +890,8 @@ void DHT::handle(AdcCommand::SND, const string& ip, uint16_t port, const UDPKey&
 					
 				// create verified node, it's not big risk here and allows faster bootstrapping
 				// if this node already exists in our routing table, don't update its ip/port for security reasons
-				addNode(cid, i4, u4, UDPKey(), false, true);
+				if (!addDHTNode(cid, i4, u4, UDPKey(), false, true))
+					return;
 			}
 #ifdef _DEBUG
 			int l_tail_count_node = 0;

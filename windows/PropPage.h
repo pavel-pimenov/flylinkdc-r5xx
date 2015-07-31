@@ -29,13 +29,14 @@
 class SettingsManager;
 #include "../client/ResourceManager.h"
 
+extern SettingsManager *g_settings;
 class PropPage
 #ifdef _DEBUG
 	: boost::noncopyable // [+] IRainman fix.
 #endif
 {
 	public:
-		PropPage(SettingsManager *src, const wstring& p_title) : settings(src), m_title(p_title)
+		PropPage(const wstring& p_title) : m_title(p_title)
 #ifdef _DEBUG
 			, m_check_read_write(0)
 #endif
@@ -76,7 +77,7 @@ class PropPage
 			if (BOOLSETTING(SETTINGS_WINDOW_COLORIZE))
 			{
 				m_hDialogBrush = CreateSolidBrush(Colors::g_bgColor /*GetSysColor(COLOR_BTNFACE)*/); // [!] IRainman fix.
-				return (long) m_hDialogBrush;
+				return LRESULT (m_hDialogBrush);
 			}
 			else
 			{
@@ -89,7 +90,7 @@ class PropPage
 			{
 				HDC hdc = (HDC)wParam;
 				SetBkMode(hdc, TRANSPARENT);
-				return (long) m_hDialogBrush;
+				return LRESULT(m_hDialogBrush);
 			}
 			else
 			{
@@ -130,10 +131,9 @@ class PropPage
 			ResourceManager::Strings translatedString;
 		};
 		
-	protected:
-	
-		SettingsManager *settings;
-		wstring m_title;
+			
+protected:
+	wstring m_title;
 		void read(HWND page, Item const* items, ListItem* listItems = NULL, HWND list = NULL);
 		void write(HWND page, Item const* items, ListItem* listItems = NULL, HWND list = NULL);
 		void cancel(HWND page);
@@ -154,7 +154,7 @@ class PropPage
 class EmptyPage : public CPropertyPage<IDD_EMPTY_PAGE>, public PropPage // [+] IRainman HE
 {
 	public:
-		EmptyPage(SettingsManager *s, const tstring& p_title) : PropPage(s, p_title)
+		EmptyPage(const tstring& p_title) : PropPage(p_title)
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

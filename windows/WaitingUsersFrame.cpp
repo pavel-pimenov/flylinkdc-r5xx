@@ -130,7 +130,7 @@ LRESULT WaitingUsersFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 	{
 		m_closed = true;
 		safe_destroy_timer();
-		clean_task();
+		clear_and_destroy_task();
 		UploadManager::getInstance()->removeListener(this);
 		SettingsManager::getInstance()->removeListener(this);
 		WinUtil::setButtonPressed(IDC_UPLOAD_QUEUE, false);
@@ -220,12 +220,12 @@ LRESULT WaitingUsersFrame::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 	{
 		if (m_ctrlList.getSelectedCount())
 		{
-			int i = -1;
+			int j = -1;
 			UserList RemoveUsers;
-			while ((i = m_ctrlList.GetNextItem(i, LVNI_SELECTED)) != -1)
+			while ((j = m_ctrlList.GetNextItem(j, LVNI_SELECTED)) != -1)
 			{
 				// Ok let's cheat here, if you try to remove more users here is not working :(
-				RemoveUsers.push_back(((UploadQueueItem*)m_ctrlList.getItemData(i))->getUser());
+				RemoveUsers.push_back((m_ctrlList.getItemData(j))->getUser());
 			}
 			UploadManager::LockInstanceQueue lockedInstance; // [+] IRainman opt.
 			for (auto i = RemoveUsers.cbegin(); i != RemoveUsers.cend(); ++i)
@@ -485,12 +485,12 @@ void WaitingUsersFrame::updateStatus()
 }
 void WaitingUsersFrame::removeSelected()
 {
-	int i = -1;
+	int j = -1;
 	UserList RemoveUsers;
-	while ((i = m_ctrlList.GetNextItem(i, LVNI_SELECTED)) != -1)
+	while ((j = m_ctrlList.GetNextItem(j, LVNI_SELECTED)) != -1)
 	{
 		// Ok let's cheat here, if you try to remove more users here is not working :(
-		RemoveUsers.push_back(((UploadQueueItem*)m_ctrlList.getItemData(i))->getUser());
+		RemoveUsers.push_back(m_ctrlList.getItemData(j)->getUser());
 	}
 	{
 		UploadManager::LockInstanceQueue lockedInstance; // [+] IRainman opt.
@@ -514,23 +514,23 @@ LRESULT WaitingUsersFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 	CFlyBusy l_busy(m_spoken);
 	CLockRedraw<> lockCtrlList(m_ctrlList);
 	CLockRedraw<> lockCtrlQueued(ctrlQueued);
-	for (auto i = t.cbegin(); i != t.cend(); ++i)
+	for (auto j = t.cbegin(); j != t.cend(); ++j)
 	{
-		switch (i->first)
+		switch (j->first)
 		{
 			case REMOVE_ITEM:
 			{
-				RemoveFile(static_cast<UploadQueueTask&>(*i->second).getItem());
+				RemoveFile(static_cast<UploadQueueTask&>(*j->second).getItem());
 			}
 			break;
 			case REMOVE:
 			{
-				RemoveUser(static_cast<UserTask&>(*i->second).getUser());
+				RemoveUser(static_cast<UserTask&>(*j->second).getUser());
 			}
 			break;
 			case ADD_ITEM:
 			{
-				AddFile(static_cast<UploadQueueTask&>(*i->second).getItem());
+				AddFile(static_cast<UploadQueueTask&>(*j->second).getItem());
 				m_needsResort = true;
 			}
 			break;
@@ -573,11 +573,11 @@ LRESULT WaitingUsersFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 			default:
 				dcassert(0);
 		}
-		if (i->first != UPDATE_ITEMS)
+		if (j->first != UPDATE_ITEMS)
 		{
 			m_needsUpdateStatus = true;
 		}
-		delete i->second;
+		delete j->second;
 	}
 	return 0;
 }

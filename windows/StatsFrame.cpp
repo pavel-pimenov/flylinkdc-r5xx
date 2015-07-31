@@ -93,7 +93,7 @@ LRESULT StatsFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	{
 		m_closed = true;
 		safe_destroy_timer();
-		clean_task();
+		clear_and_destroy_task();
 		// [+]IRainman
 		//DownloadManager::getInstance()->removeListener(this);
 		//UploadManager::getInstance()->removeListener(this);
@@ -304,7 +304,7 @@ LRESULT StatsFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	lastTick = tick;
 	//m_lastSocketsUp = u;
 	//m_lastSocketsDown = d;
-	onTimerTask();
+	doTimerTask();
 	return 0;
 }
 

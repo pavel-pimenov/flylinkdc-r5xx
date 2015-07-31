@@ -304,11 +304,11 @@ LRESULT SharePage::onClickedShare(int item)
 	Item i = items[item]; // The checkbox. Explicit index used - bad!
 	if (::IsDlgButtonChecked((HWND)* this, i.itemID) == BST_CHECKED)
 	{
-		settings->set((SettingsManager::IntSetting)i.setting, true);
+		g_settings->set((SettingsManager::IntSetting)i.setting, true);
 	}
 	else
 	{
-		settings->set((SettingsManager::IntSetting)i.setting, false);
+		g_settings->set(SettingsManager::IntSetting(i.setting), false);
 	}
 	
 	// Refresh the share. This is a blocking refresh. Might cause problems?

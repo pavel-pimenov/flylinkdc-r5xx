@@ -395,6 +395,7 @@ void RecentHubsFrame::updateList(const RecentHubEntry::List& fl)
 void RecentHubsFrame::addEntry(const RecentHubEntry* entry, int pos)
 {
 	TStringList l;
+	l.reserve(6);
 	l.push_back(Text::toT(entry->getName()));
 	l.push_back(Text::toT(entry->getDescription()));
 	l.push_back(Text::toT(entry->getUsers()));

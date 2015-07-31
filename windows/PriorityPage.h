@@ -28,7 +28,7 @@
 class PriorityPage : public CPropertyPage<IDD_PRIORITY_PAGE>, public PropPage
 {
 	public:
-		explicit PriorityPage(SettingsManager *s) : PropPage(s, TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(PRIORITY))
+		explicit PriorityPage( ) : PropPage( TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(PRIORITY))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

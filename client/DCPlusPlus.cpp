@@ -224,7 +224,7 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		string l_debugTag;
 		{
 			FastLock l(NmdcSupports::g_debugCsUnknownNmdcTagParam);
-			dcassert(NmdcSupports::g_debugUnknownNmdcTagParam.empty());
+			//dcassert(NmdcSupports::g_debugUnknownNmdcTagParam.empty());
 			const auto& l_debugUnknownNmdcTagParam = NmdcSupports::g_debugUnknownNmdcTagParam;
 			for (auto i = l_debugUnknownNmdcTagParam.begin(); i != l_debugUnknownNmdcTagParam.end(); ++i)
 			{
@@ -244,7 +244,7 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		string l_debugConnections;
 		{
 			FastLock l(AdcSupports::g_debugCsUnknownAdcFeatures);
-			dcassert(AdcSupports::g_debugUnknownAdcFeatures.empty());
+			// dcassert(AdcSupports::g_debugUnknownAdcFeatures.empty());
 			const auto& l_debugUnknownFeatures = AdcSupports::g_debugUnknownAdcFeatures;
 			for (auto i = l_debugUnknownFeatures.begin(); i != l_debugUnknownFeatures.end(); ++i)
 			{
@@ -351,6 +351,8 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		CFlylinkDBManager::shutdown_engine();
 		TimerManager::deleteInstance();
 		SettingsManager::deleteInstance();
+		extern SettingsManager* g_settings;
+		g_settings = nullptr;
 		
 		closelog();
 		::WSACleanup();

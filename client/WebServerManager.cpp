@@ -46,7 +46,7 @@ WebServerManager::~WebServerManager(void)
 	Stop();
 }
 
-void WebServerManager::Start()
+void WebServerManager::Start() noexcept
 {
 	if (started)
 		return;
@@ -505,7 +505,7 @@ string WebServerManager::getFinished(bool uploads)
 	TplSetParam(ret, "LANG_SIZE", STRING(SIZE));
 	
 	string ret_fin_list;
-	const FinishedItemList& fl = FinishedManager::getInstance()->lockList(uploads ? FinishedManager::e_Upload : FinishedManager::e_Download);
+	const FinishedItemList& fl = FinishedManager::lockList(uploads ? FinishedManager::e_Upload : FinishedManager::e_Download);
 	for (auto i = fl.cbegin(); (i != fl.cend()); ++i)
 	{
 		ret_fin_list += "<tr>\n";
@@ -514,7 +514,7 @@ string WebServerManager::getFinished(bool uploads)
 		ret_fin_list += "<td>" + Util::formatBytes((*i)->getSize()) + "</td>\n";
 		ret_fin_list += "</tr>\n";
 	}
-	FinishedManager::getInstance()->unlockList(uploads ? FinishedManager::e_Upload : FinishedManager::e_Download);
+	FinishedManager::unlockList(uploads ? FinishedManager::e_Upload : FinishedManager::e_Download);
 	TplSetParam(ret, "FINISHED_LIST", ret_fin_list);
 	return ret;
 }
@@ -1017,7 +1017,7 @@ void WebServerManager::on(SearchManagerListener::SR, const SearchResult& aResult
 			const string Row = Util::toString(row);
 			const string User = aResult.getUser()->getLastNick();
 //          string User = ClientManager::getNick(aResult->getUser()->getCID());
-//          string User = ClientManager::getNicks(HintedUser(aResult->getUser(), aResult->getHubURL()))[0];
+//          string User = ClientManager::getNicks(HintedUser(aResult->getUser(), aResult->getHubUrl()))[0];
 			const string& File = aResult.getFile();
 			const string FileName = aResult.getFileName();
 			results += "<form method=get name='form" + Row + "' action='search.htm'>\n";
@@ -1044,7 +1044,7 @@ void WebServerManager::on(SearchManagerListener::SR, const SearchResult& aResult
 #endif
 					results += "<td>" + User + "</td>\n<td>" + FileName + "</td>\n<td>" + STRING(DIRECTORY) + "</td>\n<td>" + File + "</td>\n</tr>\n";
 					results += "<input type=hidden name=number value='" + Row + "'/>\n";
-					AddSearchResult(row, aResult.getUser(), aResult.getHubURL());
+					AddSearchResult(row, aResult.getUser(), aResult.getHubUrl());
 					break;
 				}
 			}

@@ -73,6 +73,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 	, public ICGridEventKeys
 #endif
 {
+		friend class DirectoryListingFrame;
 	public:
 		static void openWindow(const tstring& str = Util::emptyStringT, LONGLONG size = 0, Search::SizeModes mode = Search::SIZE_ATLEAST, Search::TypeModes type = Search::TYPE_ANY);
 		static void closeAll();
@@ -292,15 +293,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		void UpdateLayout(BOOL bResizeBars = TRUE);
 		void runUserCommand(UserCommand& uc);
 		void onSizeMode();
-		void removeSelected()
-		{
-			int i = -1;
-			FastLock l(cs);
-			while ((i = ctrlResults.GetNextItem(-1, LVNI_SELECTED)) != -1)
-			{
-				ctrlResults.removeGroupedItem(ctrlResults.getItemData(i));
-			}
-		}
+		void removeSelected();
 #ifdef FLYLINKDC_USE_VIEW_AS_TEXT_OPTION
 		LRESULT onViewAsText(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
@@ -316,7 +309,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		
 		LRESULT onFreeSlots(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
-			m_onlyFree = (ctrlSlots.GetCheck() == 1);
+			m_onlyFree = ctrlSlots.GetCheck() == 1;
 			return 0;
 		}
 		
@@ -571,7 +564,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 				    if (total != 0)
 				    {
 				        LocalArray<TCHAR, 256> buf;
-				        snwprintf(buf, buf.size(), _T("%d %s"), total + 1, CTSTRING(USERS));
+				        _snwprintf(buf, buf.size(), _T("%d %s"), total + 1, CTSTRING(USERS));
 				
 				        parent->columns[COLUMN_HITS] = buf;
 				        if (total == 1)
@@ -745,7 +738,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		tstring m_target;
 		tstring m_statusLine; // [+] IRainman fix.
 		
-		FastCriticalSection cs; // [!] IRainman opt: use spin lock here.
+		FastCriticalSection m_fcs; // [!] IRainman opt: use spin lock here.
 		
 	public:
 		static TStringList g_lastSearches;
@@ -764,6 +757,17 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		CStatic m_ctrlUDPTestResult;
 		
 		size_t m_droppedResults;
+		
+		typedef  std::pair<TTHValue, string> CFlyAntivirusKey;
+		std::map<CFlyAntivirusKey, std::unordered_set<string>> m_virus_detector;
+		size_t check_antivirus_level(const CFlyAntivirusKey& p_key, const SearchResult &p_result, uint8_t p_level);
+		static std::unordered_map<TTHValue, uint8_t> g_virus_level_tth_map;
+		static std::unordered_set<string> g_virus_file_set;
+		static FastCriticalSection g_cs_virus_level;
+		static bool isVirusTTH(const TTHValue& p_tth);
+		static bool isVirusFileNameCheck(const string& p_file, const TTHValue& p_tth);
+		static bool registerVirusLevel(const SearchResult &p_result, int p_level);
+		static bool registerVirusLevel(const string& p_file, const TTHValue& p_tth, int p_level);
 		HTHEME m_Theme;
 		
 		StringMap m_ucLineParams;

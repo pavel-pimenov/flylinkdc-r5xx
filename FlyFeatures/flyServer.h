@@ -34,6 +34,8 @@
 #include "../client/LogManager.h"
 #include "../zlib/zlib.h"
 
+class SearchResult;
+
 bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, const TTHValue& p_tth, bool p_force = false);
 //=======================================================================
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -128,6 +130,8 @@ public:
  static bool isSupportTag (const string& p_tag);
  static bool isErrorLog (unsigned p_error_code);
  static bool isErrorSysLog (unsigned p_error_code);
+ static bool isBlockIP(const string& p_ip);
+ static void addBlockIP(const string& p_ip);
  void ConvertInform(string& p_inform) const;
 private:
  static StringSet g_include_tag; 
@@ -230,6 +234,8 @@ public:
   static uint16_t g_interval_flood_command;
   static uint16_t g_max_flood_command;
   static uint16_t g_ban_flood_command;
+  static uint16_t g_unique_files_for_virus_detect;
+  static DWORD    g_max_size_for_virus_detect;
 
 #ifdef USE_SUPPORT_HUB
   static string   g_support_hub;
@@ -237,6 +243,8 @@ public:
   static std::vector<std::string> g_mapping_hubs;
   //static std::unordered_set<unsigned long> g_block_ip;
   static std::unordered_set<std::string> g_block_ip_str;
+  static FastCriticalSection g_cs_block_ip;
+
   static std::unordered_set<std::string> g_block_hubs;
   static string g_regex_find_ip;
   static string g_faq_search_does_not_work;
@@ -256,6 +264,10 @@ class CFlyTTHKey
 		CFlyTTHKey(const TTHValue& p_tth, int64_t p_file_size):
 		m_tth(p_tth),m_file_size(p_file_size)
 		{
+		}
+		bool operator < (const CFlyTTHKey& p_val) const
+		{
+			return m_tth < p_val.m_tth && m_file_size < p_val.m_file_size;
 		}
 };
 //=======================================================================
@@ -289,6 +301,24 @@ struct CFlyServerInfo
 //=======================================================================
 typedef std::vector<CFlyServerKey> CFlyServerKeyArray;
 typedef std::vector<CFlyTTHKey> CFlyTTHKeyArray;
+//=======================================================================
+struct CFlyVirusFileInfo
+{
+	string m_nick;
+	string m_file_name;
+	string m_ip;
+	string m_ip_from_user;
+	string m_hub_name;
+	string m_hub_url;
+	time_t m_time;
+	unsigned m_count_file;
+	unsigned m_virus_level;
+	CFlyVirusFileInfo() :m_count_file(0), m_virus_level(0), m_time(0)
+	{
+	}
+};
+typedef std::vector<CFlyVirusFileInfo> CFlyVirusFileInfoArray;
+typedef std::map<CFlyTTHKey, CFlyVirusFileInfoArray > CFlyAntivirusTTHArray;
 //=======================================================================
 class CFlyServerAdapter
 {
@@ -426,10 +456,16 @@ public:
 		int p_timer_value);
 
 	static string g_fly_server_id;
-	static CFlyTTHKeyArray g_download_counter;
+	static CFlyTTHKeyArray g_download_counter;	
 	static void addDownloadCounter(const CFlyTTHKey& p_file);
-	static bool sendDownloadCounter();
-	static string connect(const CFlyServerKeyArray& p_fileInfoArray, bool p_is_fly_set_query, bool p_is_ext_info_for_single_file = false);
+	static bool sendDownloadCounter(bool p_is_only_db_if_network_error);
+
+	static CFlyAntivirusTTHArray g_antivirus_counter;
+	static void addAntivirusCounter(const CFlyTTHKey& p_key, const CFlyVirusFileInfo& p_file_info);
+	static void addAntivirusCounter(const SearchResult &p_search_result, int p_count_file, int p_level);
+	static bool sendAntivirusCounter(bool p_is_only_db_if_network_error);
+		
+		static string connect(const CFlyServerKeyArray& p_fileInfoArray, bool p_is_fly_set_query, bool p_is_ext_info_for_single_file = false);
 	static string postQueryTestPort(CFlyLog& p_log, const string& p_body, bool& p_is_send, bool& p_is_error);
 	static string postQuery(bool p_is_set,
 		bool p_is_stat_server,
@@ -444,6 +480,7 @@ public:
 private:
 	static CriticalSection g_cs_error_report;
 	static CriticalSection g_cs_download_counter;
+	static CriticalSection g_cs_antivirus_counter;
 	static string g_last_error_string;
 	static int g_count_dup_error_string;
 };

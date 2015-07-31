@@ -23,7 +23,7 @@ struct DebugTask // [+] IRainman.
 #ifdef _DEBUG
 		: m_type(LAST)
 #endif
-     
+		
 	{
 		m_time = 0;
 	}

@@ -199,7 +199,7 @@ class BufferedOutputStream : public OutputStream
 		}
 		~BufferedOutputStream() noexcept
 		{
-      // https://drdump.com/UploadedReport.aspx?DumpID=3549421
+			// https://drdump.com/UploadedReport.aspx?DumpID=3549421
 			try
 			{
 				// We must do this in order not to lose bytes when a download

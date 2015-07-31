@@ -46,7 +46,7 @@ class AboutDlgIndex : public CDialogImpl<AboutDlgIndex>
 		LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 		{
 			char l_full_version[64];
-			snprintf(l_full_version, _countof(l_full_version), "%d", _MSC_FULL_VER);
+			_snprintf(l_full_version, _countof(l_full_version), "%d", _MSC_FULL_VER);
 			SetDlgItemText(IDC_COMPT, (TSTRING(COMPILED_ON) + _T(' ') + Util::getCompileDate() + _T(' ') + Util::getCompileTime(_T("%H:%M:%S"))
 			                           + _T(",  Visual C++ version: ") + Text::toT(l_full_version)).c_str());
 			SetWindowText(CTSTRING(MENU_ABOUT));

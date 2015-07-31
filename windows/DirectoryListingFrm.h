@@ -519,16 +519,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 				{
 					return 0;
 				}
-				void calcImageIndex()
-				{
-					if (m_icon_index < 0)
-					{
-						if (type == DIRECTORY)
-							m_icon_index = FileImage::DIR_ICON;
-						else
-							m_icon_index = g_fileImage.getIconIndex(Text::fromT(getText(COLUMN_FILENAME)));
-					}
-				}
+				void calcImageIndex();
 				
 				void UpdatePathColumn(const DirectoryListing::File* f);
 				

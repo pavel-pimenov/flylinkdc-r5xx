@@ -102,6 +102,6 @@ void TabsPage::write()
 	
 	CComboBox tabsPosition;
 	tabsPosition.Attach(GetDlgItem(IDC_TABSCOMBO));
-	settings->set(SettingsManager::TABS_POS, tabsPosition.GetCurSel());
+	g_settings->set(SettingsManager::TABS_POS, tabsPosition.GetCurSel());
 	tabsPosition.Detach();
 }

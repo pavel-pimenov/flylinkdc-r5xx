@@ -253,7 +253,7 @@ void UserListColours::write()
 	
 	CComboBox HubPosition;
 	HubPosition.Attach(GetDlgItem(IDC_HUB_POSITION_COMBO));
-	settings->set(SettingsManager::HUB_POSITION, HubPosition.GetCurSel()); // Меняем настройку.
+	g_settings->set(SettingsManager::HUB_POSITION, HubPosition.GetCurSel()); // Меняем настройку.
 	//HubFrame::UpdateLayout(); // Обновляем отображение. Нужно как-то вызвать эту функцию.
 	HubPosition.Detach();
 	

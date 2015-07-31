@@ -38,7 +38,7 @@ class PropertiesDlg : public TreePropertySheet
 		MESSAGE_HANDLER(TCM_SETCURSEL, TreePropertySheet::onSetCurSel)
 		END_MSG_MAP()
 		
-		PropertiesDlg(HWND parent, SettingsManager *s);
+		PropertiesDlg(HWND parent);
 		~PropertiesDlg();
 		static bool g_needUpdate;
 		static bool g_is_create;

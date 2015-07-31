@@ -125,9 +125,9 @@ void ToolbarPage::write()
 		const int j = m_ctrlToolbar.GetItemData(i);
 		toolbar += Util::toString(j);
 	}
-	if (toolbar != settings->get(SettingsManager::TOOLBAR))
+	if (toolbar != g_settings->get(SettingsManager::TOOLBAR))
 	{
-		settings->set(SettingsManager::TOOLBAR, toolbar);
+		g_settings->set(SettingsManager::TOOLBAR, toolbar);
 		dcassert(WinUtil::g_mainWnd);
 		if (WinUtil::g_mainWnd)
 			::SendMessage(WinUtil::g_mainWnd, IDC_REBUILD_TOOLBAR, 0, 0);

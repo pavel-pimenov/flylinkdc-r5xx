@@ -144,7 +144,7 @@ class StatsFrame : public MDITabChildWindowImpl < StatsFrame, RGB(0, 0, 0), IDR_
 			const unsigned int scroll;
 			const int64_t speed;
 		};
-		typedef deque<const Stat> StatList;
+		typedef deque<Stat> StatList;
 		typedef StatList::const_iterator StatIter;
 		//typedef deque<const int64_t> AvgList;
 //		typedef AvgList::const_iterator AvgIter;

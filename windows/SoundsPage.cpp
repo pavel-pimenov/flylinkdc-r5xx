@@ -116,7 +116,7 @@ void Sounds::write()
 	
 	for (int i = 0; i < _countof(g_sounds); i++)
 	{
-		settings->set((SettingsManager::StrSetting)g_sounds[i].setting, ctrlSounds.ExGetItemText(i, 1));
+		g_settings->set(SettingsManager::StrSetting(g_sounds[i].setting), ctrlSounds.ExGetItemText(i, 1));
 	}
 	
 	SET_SETTING(SOUNDS_DISABLED, IsDlgButtonChecked(IDC_SOUND_ENABLE) == 1 ? false : true);
@@ -124,7 +124,7 @@ void Sounds::write()
 	ctrlSNDTheme.Attach(GetDlgItem(IDC_SOUNDS_COMBO));
 	const string l_filetheme = WinUtil::getDataFromMap(ctrlSNDTheme.GetCurSel(), m_SNDThemeList);
 	if (SETTING(THEME_MANAGER_SOUNDS_THEME_NAME) != l_filetheme)
-		settings->set(SettingsManager::THEME_MANAGER_SOUNDS_THEME_NAME, l_filetheme);
+		g_settings->set(SettingsManager::THEME_MANAGER_SOUNDS_THEME_NAME, l_filetheme);
 		
 	ctrlSNDTheme.Detach();
 	

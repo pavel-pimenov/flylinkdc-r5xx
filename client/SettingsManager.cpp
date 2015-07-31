@@ -90,6 +90,7 @@ const string SettingsManager::g_settingTags[] =
 	"WebServerLogFormat", "LogFormatCustomLocation",
 	
 	"LogFormatTraceSQLite",
+	"LogFormatVirusTrace",
 	"LogFormatDdosTrace",
 	"LogFormatCMDDebugTrace",
 	"LogFormatDHTTrace",
@@ -101,6 +102,7 @@ const string SettingsManager::g_settingTags[] =
 	"LogFormatStatus", "LogFileWebServer", "LogFileCustomLocation",
 	
 	"LogTraceSQLite",
+	"LogFileVirusTrace",
 	"LogFileDdosTrace",
 	"LogFileCMDDebugTrace",
 	"LogFileDHTTrace",
@@ -183,7 +185,7 @@ const string SettingsManager::g_settingTags[] =
 	"SendBloom",
 	"AutoSearchAutoMatch", "DownloadBarColor", "UploadBarColor", "LogSystem",
 	"LogCustomLocation", // [+] IRainman
-	"LogSQLiteTrace", "LogDDOSTrace", "LogDHTTrace", "LogPSRTrace", "LogFloodTrace", "LogCMDDebugTrace",
+	"LogSQLiteTrace", "LogVirusTrace", "LogDDOSTrace", "LogDHTTrace", "LogPSRTrace", "LogFloodTrace", "LogCMDDebugTrace",
 	"LogFilelistTransfers", "ShowStatusbar", "ShowToolbar", "ShowTransferview", "ShowTransferViewToolbar",
 	"SearchPassiveAlways", "SetMinislotSize", "ShutdownInterval",
 	//"CzertHiddenSettingA", "CzertHiddenSettingB",// [-] IRainman SpeedLimiter
@@ -578,6 +580,9 @@ void SettingsManager::setDefaults()
 #endif
 	setDefault(LOG_FILE_TRACE_SQLITE, "sqltrace.log");
 	setDefault(LOG_FORMAT_TRACE_SQLITE, "[%Y-%m-%d %H:%M:%S] (%[thread_id]) %[sql]");
+	
+	setDefault(LOG_FILE_VIRUS_TRACE, "antivirus.log");
+	setDefault(LOG_FORMAT_VIRUS_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
 	
 	setDefault(LOG_FILE_DDOS_TRACE, "ddos.log");
 	setDefault(LOG_FORMAT_DDOS_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
@@ -1608,6 +1613,7 @@ bool SettingsManager::set(StrSetting key, const string& value)
 		case LOG_FORMAT_SYSTEM:
 		case LOG_FORMAT_CUSTOM_LOCATION:
 		case LOG_FORMAT_TRACE_SQLITE:
+		case LOG_FORMAT_VIRUS_TRACE:
 		case LOG_FORMAT_DDOS_TRACE:
 		case LOG_FORMAT_FLOOD_TRACE:
 		case LOG_FORMAT_CMDDEBUG_TRACE:
@@ -1624,6 +1630,7 @@ bool SettingsManager::set(StrSetting key, const string& value)
 		case LOG_FILE_WEBSERVER:
 		case LOG_FILE_CUSTOM_LOCATION:
 		case LOG_FILE_TRACE_SQLITE:
+		case LOG_FILE_VIRUS_TRACE:
 		case LOG_FILE_DDOS_TRACE:
 		case LOG_FILE_DHT_TRACE:
 		case LOG_FILE_PSR_TRACE:
@@ -1674,7 +1681,8 @@ bool SettingsManager::set(StrSetting key, const string& value)
 		case PROT_USERS:
 		{
 			REPLACE_SPACES();
-			getInstance()->fire(SettingsManagerListener::UsersChanges());
+			if (isValidInstance())
+			   getInstance()->fire(SettingsManagerListener::UsersChanges());
 		}
 		break;
 		case LOW_PRIO_FILES:
@@ -1686,7 +1694,8 @@ bool SettingsManager::set(StrSetting key, const string& value)
 		case SKIPLIST_SHARE:
 		{
 			REPLACE_SPACES();
-			getInstance()->fire(SettingsManagerListener::ShareChanges());
+			if (isValidInstance())
+			    getInstance()->fire(SettingsManagerListener::ShareChanges());
 		}
 		break;
 		// [~] IRainamn opt.
@@ -2131,9 +2140,9 @@ void SettingsManager::setSearchTypeDefaults()
 	g_searchTypes.clear();
 	
 	// for conveniency, the default search exts will be the same as the ones defined by SEGA.
-	const auto& searchExts = AdcHub::getSearchExts();
-	for (size_t i = 0, n = searchExts.size(); i < n; ++i)
-		g_searchTypes[string(1, '1' + i)] = searchExts[i];
+	const auto& l_searchExts = AdcHub::getSearchExts();
+	for (size_t i = 0, n = l_searchExts.size(); i < n; ++i)
+		g_searchTypes[string(1, '1' + i)] = l_searchExts[i];
 		
 	fire(SettingsManagerListener::SearchTypesChanged());
 }

@@ -470,27 +470,27 @@ bool Client::isTrusted() const
 	return m_client_sock && m_client_sock->isTrusted();//[!] IRainman fix
 }
 
-string Client::getCipherName() const noexcept
+string Client::getCipherName() const
 {
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
-    if (!isReady())//[+] IRainman fast shutdown!
-    return Util::emptyString;
-    
-    FastLock lock(csSock); // [+] brain-ripper
+	if (!isReady())//[+] IRainman fast shutdown!
+		return Util::emptyString;
+		
+	FastLock lock(csSock); // [+] brain-ripper
 #endif
-    return m_client_sock ? m_client_sock->getCipherName() : Util::emptyString;//[!] IRainman fix
+	return m_client_sock ? m_client_sock->getCipherName() : Util::emptyString;//[!] IRainman fix
 }
 
 vector<uint8_t> Client::getKeyprint() const
-	{
+{
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
-		if (!isReady())//[+] IRainman fast shutdown!
-			return Util::emptyByteVector;
-			
-		FastLock lock(csSock); // [+] brain-ripper
+	if (!isReady())//[+] IRainman fast shutdown!
+		return Util::emptyByteVector;
+		
+	FastLock lock(csSock); // [+] brain-ripper
 #endif
-		return m_client_sock ? m_client_sock->getKeyprint() : Util::emptyByteVector; // [!] IRainman fix
-	}
+	return m_client_sock ? m_client_sock->getKeyprint() : Util::emptyByteVector; // [!] IRainman fix
+}
 
 void Client::updateCounts(bool aRemove)
 {
@@ -754,7 +754,7 @@ bool Client::allowPrivateMessagefromUser(const ChatMessage& message)
 				if (BOOLSETTING(LOG_IF_SUPPRESS_PMS))
 				{
 					LocalArray<char, 200> l_buf;
-					snprintf(l_buf.data(), l_buf.size(), CSTRING(LOG_IF_SUPPRESS_PMS), message.m_replyTo->getIdentity().getNick().c_str(), getHubName().c_str(), getHubUrl().c_str());
+					_snprintf(l_buf.data(), l_buf.size(), CSTRING(LOG_IF_SUPPRESS_PMS), message.m_replyTo->getIdentity().getNick().c_str(), getHubName().c_str(), getHubUrl().c_str());
 					LogManager::message(l_buf.data());
 				}
 				return false;
@@ -891,7 +891,7 @@ bool Client::allowChatMessagefromUser(const ChatMessage& message, const string& 
 void Client::messageYouHaweRightOperatorOnThisHub()
 {
 	AutoArray<char> buf(512);
-	snprintf(buf.data(), 512, CSTRING(AT_HUB_YOU_HAVE_RIGHT_OPERATOR), getHubUrl().c_str());
+	_snprintf(buf.data(), 512, CSTRING(AT_HUB_YOU_HAVE_RIGHT_OPERATOR), getHubUrl().c_str());
 	LogManager::message(buf.data());
 }
 bool  Client::isInOperatorList(const string& userName) const
@@ -963,7 +963,8 @@ bool Client::NmdcPartialSearch(const SearchParam& p_search_param)
 string Client::getCounts()
 {
 	char buf[128];
-	return string(buf, snprintf(buf, _countof(buf), "%u/%u/%u", g_counts[COUNT_NORMAL].load(), g_counts[COUNT_REGISTERED].load(), g_counts[COUNT_OP].load()));
+	buf[0] = 0;
+	return string(buf, _snprintf(buf, _countof(buf), "%u/%u/%u", g_counts[COUNT_NORMAL].load(), g_counts[COUNT_REGISTERED].load(), g_counts[COUNT_OP].load()));
 }
 
 const string& Client::getCountsIndivid() const

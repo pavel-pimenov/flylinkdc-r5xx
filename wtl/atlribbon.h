@@ -553,17 +553,17 @@ private:
 	// Put functions
 	void PutMaskEffect(WORD dwMaskVal, WORD dwEffectVal, REFPROPERTYKEY key, IPropertyStore* pStore)
 	{
-		PROPVARIANT propvar;
+		PROPVARIANT var;
 		UI_FONTPROPERTIES uProp = UI_FONTPROPERTIES_NOTAVAILABLE;
 		if ((dwMask & dwMaskVal) != 0)
 			uProp = dwEffects & dwEffectVal ? UI_FONTPROPERTIES_SET : UI_FONTPROPERTIES_NOTSET;
-		SetPropertyVal(key, uProp, &propvar);
-		pStore->SetValue(key, propvar);
+		SetPropertyVal(key, uProp, &var);
+		pStore->SetValue(key, var);
 	}
 
 	void PutVerticalPos(IPropertyStore* pStore)
 	{
-		PROPVARIANT propvar;
+		PROPVARIANT var;
 		UI_FONTVERTICALPOSITION uProp = UI_FONTVERTICALPOSITION_NOTAVAILABLE;
 
 		if ((dwMask & CFE_SUBSCRIPT) != 0)
@@ -581,21 +581,21 @@ private:
 				uProp = UI_FONTVERTICALPOSITION_SUBSCRIPT;
 		}
 
-		SetPropertyVal(UI_PKEY_FontProperties_VerticalPositioning, uProp, &propvar);
-		pStore->SetValue(UI_PKEY_FontProperties_VerticalPositioning, propvar);
+		SetPropertyVal(UI_PKEY_FontProperties_VerticalPositioning, uProp, &var);
+		pStore->SetValue(UI_PKEY_FontProperties_VerticalPositioning, var);
 	}
 
 	void PutFace(IPropertyStore* pStore)
 	{
-		PROPVARIANT propvar;
+		PROPVARIANT var;
 		SetPropertyVal(UI_PKEY_FontProperties_Family, 
-			dwMask & CFM_FACE ? szFaceName : L"", &propvar);
-		pStore->SetValue(UI_PKEY_FontProperties_Family, propvar);
+			dwMask & CFM_FACE ? szFaceName : L"", &var);
+		pStore->SetValue(UI_PKEY_FontProperties_Family, var);
 	}
 
 	void PutSize(IPropertyStore* pStore)
 	{
-		PROPVARIANT propvar;
+		PROPVARIANT var;
 		DECIMAL decVal;
 
 		if ((dwMask & CFM_SIZE) != 0)
@@ -603,8 +603,8 @@ private:
 		else
 			VarDecFromI4(0, &decVal);
 
-		SetPropertyVal(UI_PKEY_FontProperties_Size, &decVal, &propvar);
-		pStore->SetValue(UI_PKEY_FontProperties_Size, propvar);
+		SetPropertyVal(UI_PKEY_FontProperties_Size, &decVal, &var);
+		pStore->SetValue(UI_PKEY_FontProperties_Size, var);
 	}
 
 	void PutColor(IPropertyStore* pStore)

@@ -22,7 +22,6 @@
 #include <wininet.h>
 #include <atlcomtime.h>
 
-#include <array>
 #include "Text.h"
 #include "CFlyThread.h"
 #include "MerkleTree.h" // [+] SSA - иначе никак, где-то он уже включен
@@ -794,9 +793,9 @@ class Util
 		{
 			wchar_t buf[64];
 			if (!supressHours)
-				snwprintf(buf, _countof(buf), L"%01lu:%02d:%02d", (unsigned long)(aSec / (60 * 60)), (int)((aSec / 60) % 60), (int)(aSec % 60));
+				_snwprintf(buf, _countof(buf), L"%01lu:%02d:%02d", (unsigned long)(aSec / (60 * 60)), (int)((aSec / 60) % 60), (int)(aSec % 60));
 			else
-				snwprintf(buf, _countof(buf), L"%02d:%02d", (int)(aSec / 60), (int)(aSec % 60));
+				_snwprintf(buf, _countof(buf), L"%02d:%02d", (int)(aSec / 60), (int)(aSec % 60));
 			return buf;
 		}
 		
@@ -804,9 +803,9 @@ class Util
 		{
 			char buf[64];
 			if (!supressHours)
-				snprintf(buf, _countof(buf), "%01lu:%02d:%02d", (unsigned long)(aSec / (60 * 60)), (int)((aSec / 60) % 60), (int)(aSec % 60));
+				_snprintf(buf, _countof(buf), "%01lu:%02d:%02d", (unsigned long)(aSec / (60 * 60)), (int)((aSec / 60) % 60), (int)(aSec % 60));
 			else
-				snprintf(buf, _countof(buf), "%02d:%02d", (int)(aSec / 60), (int)(aSec % 60));
+				_snprintf(buf, _countof(buf), "%02d:%02d", (int)(aSec / 60), (int)(aSec % 60));
 			return buf;
 		}
 		
@@ -942,61 +941,61 @@ class Util
 		static string toString(short val)
 		{
 			char buf[8];
-			snprintf(buf, _countof(buf), "%d", (int)val);
+			_snprintf(buf, _countof(buf), "%d", (int)val);
 			return buf;
 		}
 		static string toString(uint16_t val)
 		{
 			char buf[8];
-			snprintf(buf, _countof(buf), "%u", (unsigned int)val);
+			_snprintf(buf, _countof(buf), "%u", (unsigned int)val);
 			return buf;
 		}
 		static string toString(int val)
 		{
 			char buf[16];
-			snprintf(buf, _countof(buf), "%d", val);
+			_snprintf(buf, _countof(buf), "%d", val);
 			return buf;
 		}
 		static string toStringPercent(int val)
 		{
 			char buf[16];
-			snprintf(buf, _countof(buf), "%d%%", val);
+			_snprintf(buf, _countof(buf), "%d%%", val);
 			return buf;
 		}
 		static string toString(unsigned int val)
 		{
 			char buf[16];
-			snprintf(buf, _countof(buf), "%u", val);
+			_snprintf(buf, _countof(buf), "%u", val);
 			return buf;
 		}
 		static string toString(long val)
 		{
 			char buf[24]; //-V112
-			snprintf(buf, _countof(buf), "%ld", val);
+			_snprintf(buf, _countof(buf), "%ld", val);
 			return buf;
 		}
 		static string toString(unsigned long val)
 		{
 			char buf[24]; //-V112
-			snprintf(buf, _countof(buf), "%lu", val);
+			_snprintf(buf, _countof(buf), "%lu", val);
 			return buf;
 		}
 		static string toString(long long val)
 		{
 			char buf[24];
-			snprintf(buf, _countof(buf), I64_FMT, val);
+			_snprintf(buf, _countof(buf), I64_FMT, val);
 			return buf;
 		}
 		static string toString(unsigned long long val)
 		{
 			char buf[24];
-			snprintf(buf, _countof(buf), U64_FMT, val);
+			_snprintf(buf, _countof(buf), U64_FMT, val);
 			return buf;
 		}
 		static string toString(double val)
 		{
 			char buf[24];
-			snprintf(buf, _countof(buf), "%0.2f", val);
+			_snprintf(buf, _countof(buf), "%0.2f", val);
 			return buf;
 		}
 		
@@ -1014,42 +1013,42 @@ class Util
 		static wstring toStringW(int32_t val)
 		{
 			wchar_t buf[32];
-			snwprintf(buf, _countof(buf), L"%d", val);
+			_snwprintf(buf, _countof(buf), L"%d", val);
 			return buf;
 		}
 		
 		static wstring toStringW(uint32_t val)
 		{
 			wchar_t buf[32];
-			snwprintf(buf, _countof(buf), L"%u", val);
+			_snwprintf(buf, _countof(buf), L"%u", val);
 			return buf;
 		}
 		
 		static wstring toStringW(int64_t val)
 		{
 			wchar_t buf[64];
-			snwprintf(buf, _countof(buf), _T(I64_FMT), val);
+			_snwprintf(buf, _countof(buf), _T(I64_FMT), val);
 			return buf;
 		}
 		
 		static wstring toStringW(uint64_t val)
 		{
 			wchar_t buf[64];
-			snwprintf(buf, _countof(buf), _T(U64_FMT), val);
+			_snwprintf(buf, _countof(buf), _T(U64_FMT), val);
 			return buf;
 		}
 		
 		static wstring toStringW(double val)
 		{
 			wchar_t buf[20];
-			snwprintf(buf, _countof(buf), L"%0.2f", val);
+			_snwprintf(buf, _countof(buf), L"%0.2f", val);
 			return buf;
 		}
 		
 		static string toHexEscape(char val)
 		{
 			char buf[sizeof(int) * 2 + 1 + 1];
-			snprintf(buf, _countof(buf), "%%%X", val & 0x0FF);
+			_snprintf(buf, _countof(buf), "%%%X", val & 0x0FF);
 			return buf;
 		}
 		static char fromHexEscape(const string &aString)
@@ -1584,7 +1583,7 @@ class BackgroundTaskExecuter : public BASE_THREAD
 			}
 		}
 		virtual void execute(const TASK_TYPE & toExecute) = 0;
-		typedef list<const TASK_TYPE> TaskList;
+		typedef list<TASK_TYPE> TaskList;
 		volatile bool m_stop;
 		volatile bool m_active;
 		TaskList m_tasks;

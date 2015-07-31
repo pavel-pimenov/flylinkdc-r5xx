@@ -157,9 +157,9 @@ Ztring EmptyZtring;
 //---------------------------------------------------------------------------
 #if defined(STREAM_MISSING)
     #if defined (_UNICODE)
-        #define _tnprintf snwprintf
+       // [-] FlylinkDC++ VC++2015 #define _tnprintf snwprintf
     #else
-        #define _tnprintf snprintf
+       // [-] FlylinkDC++ VC++2015 #define _tnprintf snprintf
     #endif
 #else
     typedef basic_stringstream<Char>  tStringStream;

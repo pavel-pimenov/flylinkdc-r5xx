@@ -32,6 +32,7 @@
 #include "../jsoncpp/include/json/reader.h"
 #include "../jsoncpp/include/json/writer.h"
 #endif
+#include "../FlyFeatures/flyServer.h"
 
 #ifdef _DEBUG
 // #define FLYLINKDC_USE_ZMQ
@@ -50,6 +51,9 @@ HIconWrapper SearchFrame::g_UDPOkIcon(IDR_ICON_SUCCESS_ICON);
 HIconWrapper SearchFrame::g_UDPWaitIcon(IDR_ICON_WARN_ICON);
 tstring SearchFrame::g_UDPTestText;
 boost::logic::tribool SearchFrame::g_isUDPTestOK = boost::logic::indeterminate;
+std::unordered_map<TTHValue, uint8_t> SearchFrame::g_virus_level_tth_map;
+std::unordered_set<string> SearchFrame::g_virus_file_set;
+FastCriticalSection SearchFrame::g_cs_virus_level;
 
 int SearchFrame::columnIndexes[] =
 {
@@ -822,6 +826,7 @@ void SearchFrame::onEnter()
 	m_search_param.m_size = l_size;
 	
 	ctrlResults.DeleteAndClearAllItems(); // [!] IRainman
+	
 	clearPausedResults();
 	
 	::EnableWindow(GetDlgItem(IDC_SEARCH_PAUSE), TRUE);
@@ -832,7 +837,7 @@ void SearchFrame::onEnter()
 	
 	s.clear();
 	{
-		FastLock l(cs);
+		FastLock l(m_fcs);
 		//strip out terms beginning with -
 		for (auto si = m_search.cbegin(); si != m_search.cend();)
 		{
@@ -931,7 +936,7 @@ void SearchFrame::onEnter()
 	}
 	
 	{
-		FastLock l(cs);
+		FastLock l(m_fcs);
 		
 		m_searchStartTime = GET_TICK();
 		// more 10 seconds for transfering results
@@ -1006,7 +1011,6 @@ LRESULT SearchFrame::onUDPPortTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 	return 0;
 }
 #endif //
-
 void SearchFrame::on(SearchManagerListener::UDPTest, const string& p_ip) noexcept
 {
 	const tstring l_ip_port = _T(" (") + Text::toT(p_ip) + _T(")");
@@ -1016,49 +1020,163 @@ void SearchFrame::on(SearchManagerListener::UDPTest, const string& p_ip) noexcep
 	m_ctrlUDPTestResult.SetWindowText(g_UDPTestText.c_str());
 	ClientManager::infoUpdated(true);
 }
-
+size_t SearchFrame::check_antivirus_level(const CFlyAntivirusKey& p_key, const SearchResult &aResult, uint8_t p_level)
+{
+	if (aResult.getSize() < CFlyServerConfig::g_max_size_for_virus_detect)
+	{
+		auto& l_tth_filter = m_virus_detector[p_key];
+		l_tth_filter.insert(aResult.getFileName());
+		if (l_tth_filter.size() > 1)
+		{
+			LogManager::virus_message("Search: ignore virus result (Level " + Util::toString(p_level) + "): TTH = " + aResult.getTTH().toBase32() +
+			                          " File: " + aResult.getFileName() + " Size:" + Util::toString(aResult.getSize()) +
+			                          " Hub: " + aResult.getHubUrl() + " Nick: " + aResult.getUser()->getLastNick() + " IP = " +
+			                          aResult.getIPAsString() + "Count files = " + Util::toString(l_tth_filter.size()));
+			m_droppedResults++;
+			return l_tth_filter.size();
+		}
+	}
+	return 0;
+}
+bool SearchFrame::isVirusTTH(const TTHValue& p_tth)
+{
+	FastLock l(g_cs_virus_level);
+	return g_virus_level_tth_map.find(p_tth) != g_virus_level_tth_map.cend();
+}
+bool SearchFrame::isVirusFileNameCheck(const string& p_file, const TTHValue& p_tth)
+{
+	FastLock l(g_cs_virus_level);
+	if (g_virus_file_set.find(p_file) != g_virus_file_set.cend())
+	{
+		g_virus_level_tth_map[p_tth] = 2;
+		return true;
+	}
+	return false;
+}
+void SearchFrame::removeSelected()
+{
+	int i = -1;
+	FastLock l(m_fcs);
+	while ((i = ctrlResults.GetNextItem(-1, LVNI_SELECTED)) != -1)
+	{
+		ctrlResults.removeGroupedItem(ctrlResults.getItemData(i));
+	}
+}
+bool SearchFrame::registerVirusLevel(const string& p_file, const TTHValue& p_tth, int p_level)
+{
+	FastLock l(g_cs_virus_level);
+	dcassert(!p_file.empty());
+	const auto l_res_map = g_virus_level_tth_map.insert(make_pair(p_tth, p_level));
+	const auto l_res_set = g_virus_file_set.insert(Text::uppercase(p_file));
+	return l_res_map.second || l_res_set.second; // Если файлы повторяются - не шлем на базу
+}
+bool SearchFrame::registerVirusLevel(const SearchResult &p_result, int p_level)
+{
+	p_result.m_virus_level = p_level;
+	return registerVirusLevel(p_result.getFileName(), p_result.getTTH(), p_level);
+}
 void SearchFrame::on(SearchManagerListener::SR, const SearchResult &aResult) noexcept
 {
 	if (isClosedOrShutdown())
 		return;
 	// Check that this is really a relevant search result...
 	{
-		FastLock l(cs);
+		FastLock l(m_fcs);
 		
 		if (m_search.empty())
 			return;
 			
 		m_needsUpdateStats = true; // [+] IRainman opt.
-		// [+] merge
 		if (!aResult.getToken() && m_search_param.m_token != aResult.getToken())
 		{
 			m_droppedResults++;
-			//PostMessage(WM_SPEAKER, FILTER_RESULT);//[-]IRainman optimize SearchFrame
 			return;
 		}
 		
+		const string l_ext = "x" + Util::getFileExt(aResult.getFileName());
+		const bool l_is_executable = ShareManager::checkType(l_ext, Search::TYPE_EXECUTABLE) && aResult.getSize();
 		if (m_isHash)
 		{
 			if (aResult.getType() != SearchResult::TYPE_FILE || TTHValue(m_search[0]) != aResult.getTTH())
 			{
 				m_droppedResults++;
-				//PostMessage(WM_SPEAKER, FILTER_RESULT);//[-]IRainman optimize SearchFrame
 				return;
 			}
+			// Level 4
+			// тут не учитываем ников - aResult.getUser()->getLastNick()
+			size_t l_count = check_antivirus_level(make_pair(aResult.getTTH(),  aResult.getHubName() + " ( " + aResult.getHubUrl() + " ) "), aResult, 4);
+			if (l_count > CFlyServerConfig::g_unique_files_for_virus_detect && l_is_executable)
+			{
+				const int l_virus_level = 4;
+				// TODO CFlyServerConfig::addBlockIP(aResult.getIPAsString());
+				if (registerVirusLevel(aResult, l_virus_level))
+				{
+					CFlyServerJSON::addAntivirusCounter(aResult, l_count, l_virus_level);
+				}
+			}
+			
 		}
 		else
 		{
 			if (m_search_param.m_file_type != Search::TYPE_EXECUTABLE && m_search_param.m_file_type != Search::TYPE_ANY && m_search_param.m_file_type != Search::TYPE_DIRECTORY)
 			{
-				const string l_ext = "x" + Util::getFileExt(aResult.getFileName());
-				const bool l_is_executable = ShareManager::checkType(l_ext, Search::TYPE_EXECUTABLE);
 				if (l_is_executable)
 				{
-					LogManager::message("Search: ignore virus result: " + aResult.getFileName() +
-					" Hub: " + aResult.getHubURL() + " Nick: " + aResult.getUser()->getLastNick());
+					const int l_virus_level = 3;
+					CFlyServerJSON::addAntivirusCounter(aResult, 0, l_virus_level);
+					aResult.m_virus_level = l_virus_level;
+					LogManager::virus_message("Search: ignore virus result  (Level 3): TTH = " + aResult.getTTH().toBase32() +
+					" File: " + aResult.getFileName() + +" Size:" + Util::toString(aResult.getSize()) +
+					" Hub: " + aResult.getHubUrl() + " Nick: " + aResult.getUser()->getLastNick() + " IP = " + aResult.getIPAsString());
 					// http://dchublist.ru/forum/viewtopic.php?p=22426#p22426
 					m_droppedResults++;
 					return;
+				}
+			}
+			
+			if (l_is_executable || ShareManager::checkType(l_ext, Search::TYPE_COMPRESSED))
+			{
+				// Level 1
+				size_t l_count = check_antivirus_level(make_pair(aResult.getTTH(), aResult.getUser()->getLastNick() + " Hub:" + aResult.getHubName() + " ( " + aResult.getHubUrl() + " ) "), aResult, 1);
+				if (l_count > CFlyServerConfig::g_unique_files_for_virus_detect && l_is_executable) // 100$ Virus - block IP ?
+				{
+					const int l_virus_level = 1;
+					// TODO CFlyServerConfig::addBlockIP(aResult.getIPAsString());
+					if (registerVirusLevel(aResult, l_virus_level))
+					{
+						CFlyServerJSON::addAntivirusCounter(aResult, l_count, l_virus_level);
+					}
+				}
+				// TODO - Включить блокировку поисковой выдачи return;
+				// Level 2
+				l_count = check_antivirus_level(make_pair(aResult.getTTH(), "."), aResult, 2);
+				if (l_count)
+				{
+					const int l_virus_level = 2;
+					// TODO - Включить блокировку поисковой выдачи return;
+				}
+			}
+			// https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/18
+			const Search::TypeModes l_local_filter[] =
+			{
+				Search::TYPE_AUDIO,
+				Search::TYPE_COMPRESSED,
+				Search::TYPE_DOCUMENT,
+				Search::TYPE_EXECUTABLE,
+				Search::TYPE_PICTURE,
+				Search::TYPE_VIDEO,
+				Search::TYPE_CD_IMAGE
+			};
+			for (auto k = 0; k < _countof(l_local_filter); ++k)
+			{
+				if (m_search_param.m_file_type == l_local_filter[k])
+				{
+					const bool l_is_filter = ShareManager::checkType(l_ext, l_local_filter[k]);
+					if (!l_is_filter)
+					{
+						m_droppedResults++;
+						return;
+					}
 				}
 			}
 			// match all here
@@ -1230,10 +1348,12 @@ LRESULT SearchFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wParam, LPARAM
 					l_si->columns[COLUMN_MEDIA_VIDEO] =  Text::toT(l_mediainfo_cache.m_video);
 					if (!l_mediainfo_cache.m_audio.empty())
 						l_is_know_tth |= true;
+					// TODO - убрать копи-паст
 					CFlyMediaInfo::translateDuration(l_mediainfo_cache.m_audio, l_si->columns[COLUMN_MEDIA_AUDIO], l_si->columns[COLUMN_DURATION]);
 					const string l_count_query = l_result_counter["count_query"].asString();
 					const string l_count_download = l_result_counter["count_download"].asString();
-					if (!l_count_query.empty() || !l_count_download.empty())
+					const string l_count_antivirus = l_result_counter["count_antivirus"].asString();
+					if (!l_count_query.empty() || !l_count_download.empty() || !l_count_antivirus.empty())
 					{
 						l_update_index.push_back(l_cur_item);
 						l_si->columns[COLUMN_FLY_SERVER_RATING] =  Text::toT(l_count_query);
@@ -1244,11 +1364,17 @@ LRESULT SearchFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wParam, LPARAM
 							else
 								l_si->columns[COLUMN_FLY_SERVER_RATING] = Text::toT(l_count_query + '/' + l_count_download);
 						}
+						if (!l_count_antivirus.empty())
+						{
+							l_si->columns[COLUMN_FLY_SERVER_RATING] += Text::toT(" + Virus! (" + l_count_antivirus + ")");
+							SearchFrame::registerVirusLevel(l_si->sr, 1000);
+						}
 						if (l_count_query == "1")
 							l_is_know_tth = false; // Файл на сервер первый раз появился.
 					}
 					CFlyServerCache l_cache = l_mediainfo_cache;
 					l_cache.m_ratio = Text::fromT(l_si->columns[COLUMN_FLY_SERVER_RATING]);
+					l_cache.m_antivirus = l_count_antivirus;
 					g_fly_server_cache[l_tth] = std::make_pair(l_si_find->second.first, l_cache); // Сохраняем рейтинг и медиаинфу в кэше
 				}
 			}
@@ -1436,9 +1562,37 @@ int SearchFrame::SearchInfo::compareItems(const SearchInfo* a, const SearchInfo*
 
 void SearchFrame::SearchInfo::calcImageIndex()
 {
-	if (m_icon_index < 0)
+	bool is_virus_tth = false;
+	if (sr.m_virus_level == 0 && sr.getSize())
 	{
-		m_icon_index = sr.getType() == SearchResult::TYPE_FILE ? g_fileImage.getIconIndex(sr.getFile()) : FileImage::DIR_ICON;
+		is_virus_tth = isVirusTTH(sr.getTTH());
+		if (is_virus_tth == false)
+		{
+			const string l_file_name = Text::uppercase(sr.getFileName());
+			is_virus_tth = isVirusFileNameCheck(l_file_name, sr.getTTH());
+		}
+	}
+	if (m_icon_index < 0 || is_virus_tth)
+	{
+		if (sr.getType() == SearchResult::TYPE_FILE)
+		{
+			if (sr.m_virus_level > 0 || is_virus_tth)
+			{
+				g_fileImage.getVirusIconIndex("x.avi.exe", m_icon_index); // TODO генерируем иконку - вируса
+				//if (m_icon_index == FileImage::g_virus_exe_icon_index)
+				//{
+				//  sr.m_virus_level = 1;
+				//}
+			}
+			else
+			{
+				m_icon_index = g_fileImage.getIconIndex(sr.getFile());
+			}
+		}
+		else
+		{
+			m_icon_index = FileImage::DIR_ICON;
+		}
 	}
 }
 
@@ -1472,7 +1626,7 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 		case COLUMN_HITS:
 			return m_hits == 0 ? Util::emptyStringT : Util::toStringW(m_hits + 1) + _T(' ') + TSTRING(USERS);
 		case COLUMN_NICK:
-			return Text::toT(Util::toString(ClientManager::getNicks(getUser()->getCID(), sr.getHubURL(), false)));
+			return Text::toT(Util::toString(ClientManager::getNicks(getUser()->getCID(), sr.getHubUrl(), false)));
 			// TODO - сохранить ник в columns и показывать его от туда?
 		case COLUMN_TYPE:
 			if (sr.getType() == SearchResult::TYPE_FILE)
@@ -1532,7 +1686,7 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 			// [-] PPA
 			//case COLUMN_CONNECTION: return Text::toT(ClientManager::getInstance()->getConnection(getUser()->getCID()));
 		case COLUMN_HUB:
-			return Text::toT(sr.getHubName() + " (" + sr.getHubURL() + ')');
+			return Text::toT(sr.getHubName() + " (" + sr.getHubUrl() + ')');
 		case COLUMN_EXACT_SIZE:
 			return sr.getSize() > 0 ? Util::formatExactSize(sr.getSize()) : Util::emptyStringT;
 		case COLUMN_IP:
@@ -1548,10 +1702,6 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 		default:
 		{
 			dcassert(col < COLUMN_LAST);
-			// [-] IRainman fix: It's not even funny. This is sad. :(
-			// [-] if (col >= COLUMN_LAST)
-			// [-] return Util::emptyStringT; // TODO Log
-			// [-] else
 			return columns[col];
 		}
 	}
@@ -1564,7 +1714,7 @@ void SearchFrame::SearchInfo::view()
 		if (sr.getType() == SearchResult::TYPE_FILE)
 		{
 			QueueManager::getInstance()->add(Util::getTempPath() + sr.getFileName(),
-			                                 sr.getSize(), sr.getTTH(), HintedUser(sr.getUser(), sr.getHubURL()),
+			                                 sr.getSize(), sr.getTTH(), HintedUser(sr.getUser(), sr.getHubUrl()),
 			                                 QueueItem::FLAG_CLIENT_VIEW | QueueItem::FLAG_TEXT);
 		}
 	}
@@ -1594,7 +1744,7 @@ void SearchFrame::SearchInfo::Download::operator()(const SearchInfo* si)
 				{
 					if (j)  // crash https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=44625
 					{
-						QueueManager::getInstance()->add(target, j->sr.getSize(), j->sr.getTTH(), HintedUser(j->getUser(), j->sr.getHubURL()), mask);
+						QueueManager::getInstance()->add(target, j->sr.getSize(), j->sr.getTTH(), HintedUser(j->getUser(), j->sr.getHubUrl()), mask);
 					}
 				}
 				catch (const Exception&)
@@ -1660,7 +1810,7 @@ void SearchFrame::SearchInfo::getList()
 {
 	try
 	{
-		QueueManager::getInstance()->addList(HintedUser(sr.getUser(), sr.getHubURL()), QueueItem::FLAG_CLIENT_VIEW, Text::fromT(getText(COLUMN_PATH)));
+		QueueManager::getInstance()->addList(HintedUser(sr.getUser(), sr.getHubUrl()), QueueItem::FLAG_CLIENT_VIEW, Text::fromT(getText(COLUMN_PATH)));
 	}
 	catch (const Exception&)
 	{
@@ -1672,7 +1822,7 @@ void SearchFrame::SearchInfo::browseList()
 {
 	try
 	{
-		QueueManager::getInstance()->addList(HintedUser(sr.getUser(), sr.getHubURL()), QueueItem::FLAG_CLIENT_VIEW | QueueItem::FLAG_PARTIAL_LIST, Text::fromT(getText(COLUMN_PATH)));
+		QueueManager::getInstance()->addList(HintedUser(sr.getUser(), sr.getHubUrl()), QueueItem::FLAG_CLIENT_VIEW | QueueItem::FLAG_PARTIAL_LIST, Text::fromT(getText(COLUMN_PATH)));
 	}
 	catch (const Exception&)
 	{
@@ -1698,7 +1848,7 @@ void SearchFrame::SearchInfo::CheckTTH::operator()(const SearchInfo* si)
 	
 	if (firstHubs && hubs.empty())
 	{
-		hubs = ClientManager::getHubs(si->sr.getUser()->getCID(), si->sr.getHubURL());
+		hubs = ClientManager::getHubs(si->sr.getUser()->getCID(), si->sr.getHubUrl());
 		firstHubs = false;
 	}
 	else if (!hubs.empty())
@@ -1971,6 +2121,9 @@ LRESULT SearchFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	}
 	else
 	{
+#ifdef _DEBUG
+		CFlyServerJSON::sendAntivirusCounter(false);
+#endif
 		bHandled = FALSE;
 		return 0;
 	}
@@ -2276,7 +2429,7 @@ void SearchFrame::runUserCommand(UserCommand & uc)
 		ucParams["tth"] = ucParams["fileTR"];
 		
 		StringMap tmp = ucParams;
-		ClientManager::getInstance()->userCommand(HintedUser(sr.getUser(), sr.getHubURL()), uc, tmp, true);
+		ClientManager::getInstance()->userCommand(HintedUser(sr.getUser(), sr.getHubUrl()), uc, tmp, true);
 	}
 }
 
@@ -2976,14 +3129,14 @@ LRESULT SearchFrame::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BO
 				sCopy = Util::formatBytes(sr.getSize());
 				break;
 			case IDC_COPY_HUB_URL:
-				sCopy = Util::formatDchubUrl(sr.getHubURL());
+				sCopy = Util::formatDchubUrl(sr.getHubUrl());
 				break;
 			case IDC_COPY_LINK:
 			case IDC_COPY_FULL_MAGNET_LINK:
 				if (sr.getType() == SearchResult::TYPE_FILE)
 					sCopy = Util::getMagnet(sr.getTTH(), sr.getFileName(), sr.getSize());
-				if (wID == IDC_COPY_FULL_MAGNET_LINK && !sr.getHubURL().empty())
-					sCopy += "&xs=" + Util::formatDchubUrl(sr.getHubURL());
+				if (wID == IDC_COPY_FULL_MAGNET_LINK && !sr.getHubUrl().empty())
+					sCopy += "&xs=" + Util::formatDchubUrl(sr.getHubUrl());
 				break;
 			case IDC_COPY_WMLINK: // !SMT!-UI
 				if (sr.getType() == SearchResult::TYPE_FILE)

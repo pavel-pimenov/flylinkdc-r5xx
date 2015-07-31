@@ -1770,7 +1770,7 @@ public:
 	{
 		T* pT = static_cast<T*>(this);
 		int nId = pT->GetDlgCtrlID();
-		NMHDR nmhdr = { pT->m_hWnd, nId, ZSN_ZOOMCHANGED };
+		NMHDR nmhdr = { pT->m_hWnd, (UINT_PTR)nId, ZSN_ZOOMCHANGED };
 		::SendMessage(pT->GetParent(), WM_NOTIFY, (WPARAM)nId, (LPARAM)&nmhdr);
 	}
 

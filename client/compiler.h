@@ -73,8 +73,8 @@
 
 # define strtoll _strtoi64
 
-# define snprintf _snprintf
-# define snwprintf _snwprintf
+// [-] FlylinkDC++ VC++2015 # define snprintf _snprintf
+// [-] FlylinkDC++ VC++2015 # define snwprintf _snwprintf
 
 #else
 # error No supported compiler found

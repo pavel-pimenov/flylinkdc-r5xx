@@ -18,7 +18,7 @@ extern Status WriteStringToFileSync(Env* env, const Slice& data,
 static std::string MakeFileName(const std::string& name, uint64_t number,
                                 const char* suffix) {
   char buf[100];
-  snprintf(buf, sizeof(buf), "/%06llu.%s",
+  _snprintf(buf, sizeof(buf), "/%06llu.%s",
            static_cast<unsigned long long>(number),
            suffix);
   return name + buf;
@@ -42,7 +42,7 @@ std::string SSTTableFileName(const std::string& name, uint64_t number) {
 std::string DescriptorFileName(const std::string& dbname, uint64_t number) {
   assert(number > 0);
   char buf[100];
-  snprintf(buf, sizeof(buf), "/MANIFEST-%06llu",
+  _snprintf(buf, sizeof(buf), "/MANIFEST-%06llu",
            static_cast<unsigned long long>(number));
   return dbname + buf;
 }

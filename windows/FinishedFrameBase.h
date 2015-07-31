@@ -64,6 +64,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			m_totalBytes(0),
 			m_totalSpeed(0),
 			m_totalCount(0),
+			m_totalCountLast(0),
 			m_type(FinishedManager::e_Download) ,
 			m_treeContainer(WC_TREEVIEW, this, FINISHED_TREE_MESSAGE_MAP),
 			m_listContainer(WC_LISTVIEW, this, FINISHED_LIST_MESSAGE_MAP)
@@ -325,8 +326,8 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				if (p->itemNew.lParam == e_Current)
 				{
 					m_is_crrent_tree_node = true;
-					updateList(FinishedManager::getInstance()->lockList(m_type));
-					FinishedManager::getInstance()->unlockList(m_type);
+					updateList(FinishedManager::lockList(m_type));
+					FinishedManager::unlockList(m_type);
 				}
 				else
 				{
@@ -401,8 +402,8 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 						{
 							setDirty(1);
 						}
-						updateStatus();
 					}
+					updateStatus();
 				}
 				break;
 				case SPEAK_REMOVE_LINE: // [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
@@ -453,7 +454,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 						else
 						{
 							m_totalSpeed -= ii->m_entry->getAvgSpeed();
-							FinishedManager::getInstance()->removeItem(ii->m_entry, m_type);
+							FinishedManager::removeItem(ii->m_entry, m_type);
 						}
 						m_totalBytes -= ii->m_entry->getSize();
 						m_totalCount--;
@@ -483,7 +484,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 					}
 					else
 					{
-						FinishedManager::getInstance()->removeAll(m_type);
+						FinishedManager::removeAll(m_type);
 					}
 					ctrlList.DeleteAndCleanAllItems(); // [!] IRainman
 					m_totalBytes = 0;
@@ -563,36 +564,36 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				}
 				
 				bool bShellMenuShown = false;
-				if ( BOOLSETTING(SHOW_SHELL_MENU) && 
-					ctrlList.GetSelectedCount() == 1)
+				if (BOOLSETTING(SHOW_SHELL_MENU) &&
+				        ctrlList.GetSelectedCount() == 1)
 				{
 					const auto l_index = ctrlList.GetSelectedIndex();
 					const auto* l_item_data = ctrlList.getItemData(l_index);
 					if (l_item_data && l_item_data->m_entry)
 					{
-					const string path = l_item_data->m_entry->getTarget();
-					if (File::isExist(path))
-					{
-						CShellContextMenu shellMenu;
-						shellMenu.SetPath(Text::toT(path));
-
-						CMenu* pShellMenu = shellMenu.GetMenu();
+						const string path = l_item_data->m_entry->getTarget();
+						if (File::isExist(path))
+						{
+							CShellContextMenu shellMenu;
+							shellMenu.SetPath(Text::toT(path));
+							
+							CMenu* pShellMenu = shellMenu.GetMenu();
 #ifdef FLYLINKDC_USE_VIEW_AS_TEXT_OPTION
-						pShellMenu->AppendMenu(MF_STRING, IDC_VIEW_AS_TEXT, CTSTRING(VIEW_AS_TEXT));
+							pShellMenu->AppendMenu(MF_STRING, IDC_VIEW_AS_TEXT, CTSTRING(VIEW_AS_TEXT));
 #endif
-						pShellMenu->AppendMenu(MF_STRING, IDC_OPEN_FOLDER, CTSTRING(OPEN_FOLDER));
-						pShellMenu->AppendMenu(MF_SEPARATOR);
-						pShellMenu->AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(REMOVE));
-						pShellMenu->AppendMenu(MF_STRING, IDC_TOTAL, CTSTRING(REMOVE_ALL));
-						pShellMenu->AppendMenu(MF_SEPARATOR);
-
-						UINT idCommand = shellMenu.ShowContextMenu(m_hWnd, pt);
-						if (idCommand != 0)
-							PostMessage(WM_COMMAND, idCommand);
-
-						bShellMenuShown = true;
+							pShellMenu->AppendMenu(MF_STRING, IDC_OPEN_FOLDER, CTSTRING(OPEN_FOLDER));
+							pShellMenu->AppendMenu(MF_SEPARATOR);
+							pShellMenu->AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(REMOVE));
+							pShellMenu->AppendMenu(MF_STRING, IDC_TOTAL, CTSTRING(REMOVE_ALL));
+							pShellMenu->AppendMenu(MF_SEPARATOR);
+							
+							UINT idCommand = shellMenu.ShowContextMenu(m_hWnd, pt);
+							if (idCommand != 0)
+								PostMessage(WM_COMMAND, idCommand);
+								
+							bShellMenuShown = true;
+						}
 					}
-				 }
 				}
 				
 				if (!bShellMenuShown)
@@ -768,6 +769,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		int64_t m_totalBytes;
 		int64_t m_totalSpeed;
 		int64_t m_totalCount;
+		int64_t m_totalCountLast;
 		
 		FinishedManager::eType m_type;
 		SettingsManager::IntSetting boldFinished;
@@ -786,10 +788,14 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		
 		void updateStatus()
 		{
-			m_ctrlStatus.SetText(1, (Util::toStringW(m_totalCount) + _T(' ') + TSTRING(ITEMS)).c_str());
-			m_ctrlStatus.SetText(2, Util::formatBytesW(m_totalBytes).c_str());
-			m_ctrlStatus.SetText(3, (Util::formatBytesW(m_totalCount > 0 ? m_totalSpeed / m_totalCount : 0) + _T('/') + WSTRING(S)).c_str());
-			setCountMessages(m_totalCount);
+			if (m_totalCountLast != m_totalCount)
+			{
+				m_totalCountLast = m_totalCount;
+				m_ctrlStatus.SetText(1, (Util::toStringW(m_totalCount) + _T(' ') + TSTRING(ITEMS)).c_str());
+				m_ctrlStatus.SetText(2, Util::formatBytesW(m_totalBytes).c_str());
+				m_ctrlStatus.SetText(3, (Util::formatBytesW(m_totalCount > 0 ? m_totalSpeed / m_totalCount : 0) + _T('/') + WSTRING(S)).c_str());
+				setCountMessages(m_totalCount);
+			}
 		}
 		
 		void updateList(const FinishedItemList& fl)

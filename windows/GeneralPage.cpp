@@ -74,7 +74,7 @@ void GeneralPage::write()
 	const string l_filelang = WinUtil::getDataFromMap(ctrlLanguage.GetCurSel(), m_languagesList);
 	if (SETTING(LANGUAGE_FILE) != l_filelang)
 	{
-		settings->set(SettingsManager::LANGUAGE_FILE, l_filelang);
+		g_settings->set(SettingsManager::LANGUAGE_FILE, l_filelang);
 		SettingsManager::getInstance()->save();
 		ResourceManager::loadLanguage(Util::getLocalisationPath() + l_filelang);
 		if (m_languagesList.size() != 1)
@@ -82,7 +82,7 @@ void GeneralPage::write()
 	}
 	ctrlLanguage.Detach();
 #ifndef IRAINMAN_TEMPORARY_DISABLE_XXX_ICON
-	settings->set(SettingsManager::FLY_GENDER, m_GenderTypeComboBox.GetCurSel());
+	g_settings->set(SettingsManager::FLY_GENDER, m_GenderTypeComboBox.GetCurSel());
 #endif
 }
 

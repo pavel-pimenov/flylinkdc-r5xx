@@ -25,6 +25,7 @@
 #include "DirectoryListingFrm.h"
 #include "LineDlg.h"
 #include "PrivateFrame.h"
+#include "SearchFrm.h"
 #include "dclstGenDlg.h"
 #include "MainFrm.h"
 #include "BarShader.h"
@@ -1041,7 +1042,7 @@ LRESULT DirectoryListingFrame::onMatchQueue(WORD /*wNotifyCode*/, WORD /*wID*/, 
 	const int x = QueueManager::getInstance()->matchListing(*dl);
 	const auto l_size = STRING(MATCHED_FILES).length() + 32;
 	AutoArray<TCHAR> buf(l_size);
-	snwprintf(buf.data(), l_size, CTSTRING(MATCHED_FILES), x);
+	_snwprintf(buf.data(), l_size, CTSTRING(MATCHED_FILES), x);
 	ctrlStatus.SetText(STATUS_TEXT, buf.data());
 	return 0;
 }
@@ -1785,7 +1786,7 @@ void DirectoryListingFrame::runUserCommand(UserCommand& uc)
 	int sel = -1;
 	while ((sel = ctrlList.GetNextItem(sel, LVNI_SELECTED)) != -1)
 	{
-		const ItemInfo* ii = (ItemInfo*)ctrlList.getItemData(sel);
+		const ItemInfo* ii = ctrlList.getItemData(sel);
 		if (uc.getType() == UserCommand::TYPE_RAW_ONCE)
 		{
 			if (l_nicks.find(dl->getUser()) != l_nicks.end())
@@ -1840,7 +1841,7 @@ LRESULT DirectoryListingFrame::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
 	int i = -1;
 	while ((i = ctrlList.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
-		const ItemInfo* ii = (ItemInfo*)ctrlList.getItemData(i);
+		const ItemInfo* ii = ctrlList.getItemData(i);
 		string sCopy;
 		switch (wID)
 		{
@@ -2118,6 +2119,33 @@ DirectoryListingFrame::ItemInfo::ItemInfo(DirectoryListing::Directory* d) : type
 	columns[COLUMN_BITRATE]   = d->getMinMaxBitrateDirAsString();
 }
 
+void DirectoryListingFrame::ItemInfo::calcImageIndex()
+{
+	if (m_icon_index < 0)
+	{
+		if (type == DIRECTORY)
+			m_icon_index = FileImage::DIR_ICON;
+		else
+		{
+			bool is_virus_tth = false;
+			const string l_file_name = Text::fromT(getText(COLUMN_FILENAME));
+			const auto l_tth = TTHValue(Text::fromT(getText(COLUMN_TTH)));
+			is_virus_tth = SearchFrame::isVirusTTH(l_tth);
+			if (is_virus_tth == false)
+			{
+				is_virus_tth = SearchFrame::isVirusFileNameCheck(Text::uppercase(l_file_name), l_tth);
+			}
+			if (is_virus_tth)
+			{
+				g_fileImage.getVirusIconIndex("x.avi.exe", m_icon_index);
+			}
+			else
+			{
+				m_icon_index = g_fileImage.getIconIndex(l_file_name);
+			}
+		}
+	}
+}
 void DirectoryListingFrame::ItemInfo::UpdatePathColumn(const DirectoryListing::File* f)
 {
 	if (columns[COLUMN_PATH].empty())
@@ -2251,9 +2279,11 @@ LRESULT DirectoryListingFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wPar
 						const string l_fly_audio = l_result_base_media["fly_audio"].asString();
 						CFlyMediaInfo::translateDuration(l_fly_audio, l_si_find->second->columns[COLUMN_MEDIA_AUDIO], l_si_find->second->columns[COLUMN_DURATION]);
 					}
+					// TODO - убрать копи-паст
 					const string l_count_query = l_result_counter["count_query"].asString();
 					const string l_count_download = l_result_counter["count_download"].asString();
-					if (!l_count_query.empty() || !l_count_download.empty())
+					const string l_count_antivirus = l_result_counter["count_antivirus"].asString();
+					if (!l_count_query.empty() || !l_count_download.empty() || !l_count_antivirus.empty())
 					{
 						l_update_index.push_back(l_cur_item);
 						l_si_find->second->columns[COLUMN_FLY_SERVER_RATING] =  Text::toT(l_count_query);
@@ -2264,11 +2294,18 @@ LRESULT DirectoryListingFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wPar
 							else
 								l_si_find->second->columns[COLUMN_FLY_SERVER_RATING] = Text::toT(l_count_query + '/' + l_count_download);
 						}
+						if (!l_count_antivirus.empty())
+						{
+							l_si_find->second->columns[COLUMN_FLY_SERVER_RATING] += Text::toT(" + Virus! (" + l_count_antivirus + ")");
+							
+							SearchFrame::registerVirusLevel(Text::fromT(l_si_find->second->columns[COLUMN_FILENAME]), l_tth, 1000);
+						}
 						if (l_count_query == "1")
 							l_is_know_tth = false; // Файл на сервер первый раз появился.
 					}
 					CFlyServerCache l_cache;
 					l_cache.m_ratio = Text::fromT(l_si_find->second->columns[COLUMN_FLY_SERVER_RATING]);
+					l_cache.m_antivirus = l_count_antivirus;
 					l_cache.m_audio = l_result_base_media["fly_audio"].asString();
 					l_cache.m_audio_br = l_result_base_media["fly_audio_br"].asString();
 					l_cache.m_video = l_result_base_media["fly_video"].asString();

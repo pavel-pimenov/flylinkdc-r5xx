@@ -1867,13 +1867,13 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 			if (bMaximized)
 			{
 				// Maximize and redraw everything
-				if (hWnd != NULL)
+				if (hWnd)
 					MDIMaximize(hWnd);
 				wndParent.SetRedraw(TRUE);
 				wndParent.RedrawWindow(NULL, NULL, RDW_INVALIDATE | RDW_ALLCHILDREN);
 				::SetFocus(GetMDIFrame());   // focus will be set back to this window
 			}
-			else if (hWnd != NULL && WinUtil::isAppActive && ::IsWindowVisible(m_hWnd) && !::IsChild(hWnd, ::GetFocus()))
+			else if (hWnd && WinUtil::g_isAppActive && ::IsWindowVisible(m_hWnd) && !::IsChild(hWnd, ::GetFocus()))
 			{
 				::SetFocus(hWnd);
 			}

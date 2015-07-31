@@ -238,10 +238,10 @@ void QueueItem::setSectionString(const string& p_section)
 			WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 			for (auto i = Sections.cbegin(); i < Sections.cend(); i += 2)
 			{
-				int64_t start = Util::toInt64(i->c_str());
-				int64_t size = Util::toInt64((i + 1)->c_str());
+				int64_t l_start = Util::toInt64(i->c_str());
+				int64_t l_size = Util::toInt64((i + 1)->c_str());
 				
-				addSegmentL(Segment(start, size));
+				addSegmentL(Segment(l_start, l_size));
 			}
 		}
 	}
@@ -612,15 +612,15 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 				continue;
 				
 			// overlap current chunk at last block boundary
-			int64_t pos = d->getPos() - (d->getPos() % blockSize);
-			int64_t size = d->getSize() - pos;
+			int64_t l_pos = d->getPos() - (d->getPos() % blockSize);
+			int64_t l_size = d->getSize() - l_pos;
 			
 			// new user should finish this chunk more than 2x faster
-			int64_t newChunkLeft = size / lastSpeed;
+			int64_t newChunkLeft = l_size / lastSpeed;
 			if (2 * newChunkLeft < d->getSecondsLeft())
 			{
 				dcdebug("Overlapping... old user: %I64d s, new user: %I64d s\n", d->getSecondsLeft(), newChunkLeft);
-				return Segment(d->getStartPos() + pos, size, true);
+				return Segment(d->getStartPos() + l_pos, l_size, true);
 			}
 		}
 	}
@@ -649,7 +649,8 @@ string QueueItem::getSectionStringL()
 	for (auto i = m_done_segment.cbegin(); i != m_done_segment.cend(); ++i)
 	{
 		char buf[48];
-		snprintf(buf, _countof(buf), "%I64d %I64d ", i->getStart(), i->getSize());
+		buf[0] = 0;
+		_snprintf(buf, _countof(buf), "%I64d %I64d ", i->getStart(), i->getSize());
 		l_strSections += buf;
 	}
 	if (!l_strSections.empty())

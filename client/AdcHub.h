@@ -93,7 +93,7 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		
 		boost::unordered_set<uint32_t> forbiddenCommands;
 		
-		static const vector<StringList> searchExts;
+		static const vector<StringList> m_searchExts;
 		
 		virtual void checkNick(string& nick);
 		

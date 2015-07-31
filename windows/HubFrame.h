@@ -528,6 +528,8 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		bool m_is_fynally_clear_user_list;
 		bool m_showJoins;
 		bool m_favShowJoins;
+		void initShowJoins(const FavoriteHubEntry *p_fhe);
+		
 		bool m_isUpdateColumnsInfoProcessed;
 		size_t m_ActivateCounter;
 		

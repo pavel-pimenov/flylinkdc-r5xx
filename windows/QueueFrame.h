@@ -60,7 +60,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		NOTIFY_HANDLER(IDC_QUEUE, NM_DBLCLK, onSearchDblClick) // !SMT!-UI
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
 		MESSAGE_HANDLER(WM_CLOSE, onClose)
-		MESSAGE_HANDLER(WM_TIMER, onTimerTask);
+		MESSAGE_HANDLER(WM_TIMER, onTimerTask)
 		MESSAGE_HANDLER(WM_SPEAKER, onSpeaker)
 		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
 		MESSAGE_HANDLER(WM_SETFOCUS, onSetFocus)
@@ -371,10 +371,11 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		CButton ctrlShowTree;
 		CContainedWindow showTreeContainer;
 		bool showTree;
-		
 		bool usingDirMenu;
 		
 		bool m_dirty;
+		unsigned m_last_count;
+		int64_t  m_last_total;
 		
 		int menuItems;
 		int readdItems;

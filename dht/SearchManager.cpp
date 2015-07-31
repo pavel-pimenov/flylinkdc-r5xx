@@ -369,8 +369,9 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
 					continue;
 					
 				// create user as offline (only TCP connected users will be online)
-				Node::Ptr source = DHT::getInstance()->addNode(cid, i4, u4, UDPKey(), false, false);
-				
+				Node::Ptr source = DHT::getInstance()->addDHTNode(cid, i4, u4, UDPKey(), false, false);
+				if (!source)
+					return;
 				if (partial)
 				{
 					if (!source->isOnline())
@@ -424,7 +425,7 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
 		
 		// extract possible nodes
 		unsigned int n = DHT_K;
-		while (xml.findChild("Node") && n-- > 0)
+		while (!ClientManager::isShutdown() && xml.findChild("Node") && n-- > 0)
 		{
 			const CID cid = CID(xml.getChildAttrib("CID"));
 			const CID distance = Utils::getDistance(cid, CID(s->m_term));
@@ -449,14 +450,13 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
 			// node won't be accepted for several reasons (invalid IP etc.)
 			// if routing table is full, node can be accepted
 			bool isAcceptable = true;// TODO
-			Node::Ptr node = DHT::getInstance()->addNode(cid, i4, u4, UDPKey(), false, false);
-			if (isAcceptable)
+			Node::Ptr node = DHT::getInstance()->addDHTNode(cid, i4, u4, UDPKey(), false, false);
+			if (isAcceptable && node)
 			{
 				// update our list of possible nodes
 				s->possibleNodes[distance] = node;
 			}
-		}
-		
+		}		
 		xml.stepOut();
 	}
 	catch (const SimpleXMLException&)
@@ -538,7 +538,7 @@ bool SearchManager::processSearchResults(const UserPtr& user, size_t slots)
 		{
 			// user is online, process his result
 			SearchResult sr = it->second.second;
-			sr.setSlots(slots); // slot count should be known now
+			sr.setSlots(uint8_t(slots)); // slot count should be known now
 			
 			::SearchManager::getInstance()->fire(::SearchManagerListener::SR(), sr);
 			m_searchResults.erase(it++);

@@ -125,7 +125,8 @@ class SearchResult : public SearchResultBaseTTH
 			m_is_tth_remembrance(false),
 			m_token(uint32_t (-1)),
 			m_is_tth_check(false),
-			m_is_p2p_guard_calc(false)
+			m_is_p2p_guard_calc(false),
+			m_virus_level(0)
 		{
 		}
 		SearchResult(Types aType, int64_t aSize, const string& aFile, const TTHValue& aTTH, uint32_t aToken);
@@ -142,9 +143,9 @@ class SearchResult : public SearchResultBaseTTH
 		}
 		HintedUser getHintedUser() const
 		{
-			return HintedUser(getUser(), getHubURL());
+			return HintedUser(getUser(), getHubUrl());
 		}
-		const string& getHubURL() const
+		const string& getHubUrl() const
 		{
 			return m_hubURL;
 		}
@@ -173,6 +174,7 @@ class SearchResult : public SearchResultBaseTTH
 		bool m_is_tth_share;
 		bool m_is_tth_download;
 		bool m_is_tth_remembrance;
+		mutable uint8_t m_virus_level;
 		const string&  getP2PGuard() const
 		{
 			return m_p2p_guard;

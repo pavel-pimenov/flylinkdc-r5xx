@@ -65,7 +65,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		NOTIFY_HANDLER(IDC_TRANSFERS, NM_CUSTOMDRAW, onCustomDraw)
 		NOTIFY_HANDLER(IDC_TRANSFERS, NM_DBLCLK, onDoubleClickTransfers)
 		MESSAGE_HANDLER(WM_CREATE, onCreate)
-		MESSAGE_HANDLER(WM_TIMER, onTimerTask);
+		MESSAGE_HANDLER(WM_TIMER, onTimerTask)
 		MESSAGE_HANDLER(WM_DESTROY, onDestroy)
 		MESSAGE_HANDLER(WM_SPEAKER, onSpeaker)
 		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
@@ -115,7 +115,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		
 		void runUserCommand(UserCommand& uc);
 		void prepareClose();
-		
+		void doTimerTask() override;
 		LRESULT onCollapseAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			CollapseAll();
@@ -548,6 +548,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		OMenu copyMenu; // !SMT!-UI
 		
 		StringMap ucLineParams;
+		bool m_is_need_resort;
 		
 		void on(ConnectionManagerListener::Added, const ConnectionQueueItem* aCqi) noexcept override;
 		void on(ConnectionManagerListener::Failed, const ConnectionQueueItem* aCqi, const string& aReason) noexcept override;

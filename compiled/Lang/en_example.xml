@@ -1349,6 +1349,7 @@
 	<string name="SettingsLogFilelistTransfers">Log file list transfers</string>
 	<string name="SettingsLogTraceSqlite">Log queries to the SQLite base</string>
 	<string name="SettingsLogDdosTrace">Log DDoS detect</string>
+	<string name="SettingsLogVirusTrace">Log Virus detect</string>
 	<string name="SettingsLogDhtTrace">Log DHT</string>
 	<string name="SettingsLogPsrTrace">Log PSR (partial search results)</string>
 	<string name="SettingsLogFloodTrace">Log Flood $Command detect</string>

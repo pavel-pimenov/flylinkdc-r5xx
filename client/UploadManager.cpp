@@ -259,12 +259,15 @@ bool UploadManager::hasUpload(const UserConnection* p_newLeacher, const string& 
 			{
 #if defined(NIGHT_BUILD) || defined(_DEBUG) || defined(FLYLINKDC_BETA)
 				char bufNewLeacherShare[64];
+				bufNewLeacherShare[0] = 0;
 				char bufUploadUserShare[64];
+				bufUploadUserShare[0] = 0;
 				char bufShareDelta[64];
+				bufShareDelta[0] = 0;
 				
-				snprintf(bufNewLeacherShare, sizeof(bufNewLeacherShare), "%I64d", newLeacherShare);
-				snprintf(bufUploadUserShare, sizeof(bufUploadUserShare), "%I64d", uploadUserShare);
-				snprintf(bufShareDelta, sizeof(bufShareDelta), "%I64d", int64_t(std::abs(long(newLeacherShare - uploadUserShare))));
+				_snprintf(bufNewLeacherShare, sizeof(bufNewLeacherShare), "%I64d", newLeacherShare);
+				_snprintf(bufUploadUserShare, sizeof(bufUploadUserShare), "%I64d", uploadUserShare);
+				_snprintf(bufShareDelta, sizeof(bufShareDelta), "%I64d", int64_t(std::abs(long(newLeacherShare - uploadUserShare))));
 #if 0
 				LogManager::ddos_message("[Drop duplicated connection] From IP =" + newLeacherIp
 				                         + ", share con = " + bufNewLeacherShare
@@ -558,7 +561,7 @@ ok: //[!] TODO убрать goto
 		hasReserved = BOOLSETTING(EXTRASLOT_TO_DL) && DownloadManager::checkFileDownload(aSource->getUser());// !SMT!-S
 	}
 	
-	const bool isFavorite = FavoriteManager::getInstance()->hasAutoGrantSlot(aSource->getUser())
+	const bool isFavorite = FavoriteManager::hasAutoGrantSlot(aSource->getUser())
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 # ifdef IRAINMAN_ENABLE_OP_VIP_MODE
 	                        || (SETTING(AUTOBAN_PPROTECT_OP) && aSource->getUser()->isSet(UserConnection::FLAG_OP))

@@ -70,7 +70,7 @@ string SocketException::errorToString(int aError) noexcept
 	{
 		char tmp[64];
 		tmp[0] = 0;
-		snprintf(tmp, _countof(tmp), CSTRING(UNKNOWN_ERROR), aError);
+		_snprintf(tmp, _countof(tmp), CSTRING(UNKNOWN_ERROR), aError);
 		msg = tmp;
 	}
 	
