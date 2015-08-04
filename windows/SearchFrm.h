@@ -39,6 +39,7 @@
 #define SEARCH_MESSAGE_MAP 6        // This could be any number, really...
 #define SHOWUI_MESSAGE_MAP 7
 #define FILTER_MESSAGE_MAP 8
+// #define SEARH_TREE_MESSAGE_MAP 9
 
 //#define FLYLINKDC_USE_ADVANCED_GRID_SEARCH
 #ifdef FLYLINKDC_USE_ADVANCED_GRID_SEARCH
@@ -194,6 +195,8 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			modeContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
 			sizeModeContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
 			fileTypeContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
+			//m_treeContainer(WC_TREEVIEW, this, SEARH_TREE_MESSAGE_MAP),
+			
 			//showUIContainer(WC_COMBOBOX, this, SHOWUI_MESSAGE_MAP),
 			//slotsContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
 			//collapsedContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
@@ -701,6 +704,13 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		CImageList images;
 		SearchInfoList ctrlResults;
 		TypedListViewCtrl<HubInfo, IDC_HUB> ctrlHubs;
+		
+#ifdef FLYLINKDC_USE_TREE_SEARCH
+		//CContainedWindow        m_treeContainer;
+		CTreeViewCtrl           m_ctrlTree;
+		HTREEITEM               m_RootItem;
+		HTREEITEM               m_CurrentItem;
+#endif
 		//OMenu resultsMenu;
 		OMenu targetMenu;
 		OMenu targetDirMenu;

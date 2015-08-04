@@ -15,7 +15,10 @@
 #include <ws2tcpip.h>
 #include <io.h>
 #define MAXHOSTNAMELEN 64
-#define snprintf _snprintf
+#if defined (_MSC_VER) && _MSC_VER < 1900
+  //#define snprintf _snprintf
+#endif
+
 #define socklen_t int
 #ifndef strncasecmp
 #if defined(_MSC_VER) && (_MSC_VER >= 1400)
@@ -389,7 +392,7 @@ miniwget3(const char * host,
 #endif
 	}
 
-	len = snprintf(buf, sizeof(buf),
+	len = _snprintf(buf, sizeof(buf),
                  "GET %s HTTP/%s\r\n"
 			     "Host: %s:%d\r\n"
 				 "Connection: Close\r\n"

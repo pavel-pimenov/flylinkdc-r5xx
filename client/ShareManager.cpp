@@ -1859,12 +1859,12 @@ void ShareManager::Directory::filesToXml(OutputStream& xmlFile, string& indent, 
 // These ones we can look up as ints (4 bytes...)...
 
 static const char* typeAudio[] = { ".mp3", ".mp2", ".mid", ".wav", ".ogg", ".wma", ".669", ".aac", ".aif", ".amf", ".ams", ".ape", ".dbm", ".dsm", ".far", ".mdl", ".med", ".mod", ".mol", ".mp1", ".mpa", ".mpc", ".mpp", ".mtm", ".nst", ".okt", ".psm", ".ptm", ".rmi", ".s3m", ".stm", ".ult", ".umx", ".wow",
-                                   ".lqt", // [+] FlylinkDC++
-								   ".vqf", ".m4a"
+                                   ".lqt",
+                                   ".vqf", ".m4a"
                                  };
 static const char* typeCompressed[] = { ".rar", ".zip", ".ace", ".arj", ".hqx", ".lha", ".sea", ".tar", ".tgz", ".uc2", ".bz2", ".lzh" };
 static const char* typeDocument[] = { ".htm", ".doc", ".txt", ".nfo", ".pdf", ".chm",
-                                      ".rtf", // [+] FlylinkDC++
+                                      ".rtf",
                                       ".xls",
                                       ".ppt",
                                       ".odt",
@@ -1875,24 +1875,34 @@ static const char* typeDocument[] = { ".htm", ".doc", ".txt", ".nfo", ".pdf", ".
                                       ".xps"
                                     };
 static const char* typeExecutable[] = { ".exe", ".com",
-                                        ".msi", //[+]PPA
+                                        ".msi",
                                         ".app", ".bat", ".cmd", ".jar", ".ps1", ".vbs", ".wsf"
                                       };
-static const char* typePicture[] = { ".jpg", ".gif", ".png", ".eps", ".img", ".pct", ".psp", ".pic", ".tif", ".rle", ".bmp", ".pcx", ".jpe", ".dcx", ".emf", ".ico", ".psd", ".tga", ".wmf", ".xif", ".cdr", ".sfw" };
+static const char* typePicture[] = { ".jpg", ".gif", ".png", ".eps", ".img", ".pct", ".psp", ".pic", ".tif", ".rle", ".bmp",
+                                     ".pcx", ".jpe", ".dcx", ".emf", ".ico", ".psd", ".tga", ".wmf", ".xif", ".cdr", ".sfw", ".bpg"
+                                   };
 static const char* typeVideo[] = { ".avi", ".mpg", ".mov", ".flv", ".asf",  ".pxp", ".wmv", ".ogm", ".mkv", ".m1v", ".m2v", ".mpe", ".mps", ".mpv", ".ram", ".vob", ".mp4", ".3gp", ".asx", ".swf",
-                                   ".sub", ".srt", ".ass", ".ssa" // [+] IRainman sub. types.
+                                   ".sub", ".srt", ".ass", ".ssa", ".tta", ".3g2", ".f4v", ".m4v", ".ogv"
                                  };
-static const char* typeCDImage[] = { ".iso", ".nrg", ".mdf", ".mds", ".vcd", ".bwt", ".ccd", ".cdi", ".pdi", ".cue", ".isz", ".img", ".vc4", ".cso"};  // [+] FlylinkDC++
+
+
+static const char* typeCDImage[] = { ".iso", ".nrg", ".mdf", ".mds", ".vcd", ".bwt", ".ccd", ".cdi", ".pdi", ".cue", ".isz", ".img", ".vc4", ".cso"};
+
+static const char* typeComics[] = { ".cba", ".cbt", ".cbz", ".cb7", ".cbw", ".cbl", ".cba", ".cbr" };
+static const char* typeBooks[] = { ".pdf", ".fb2" };
+static const string type2Books[] = { ".epub", ".mobi", ".djvu" };
 
 static const string type2Audio[] = { ".au", ".it", ".ra", ".xm", ".aiff", ".flac", ".midi", ".wv"};
-static const string type2Document[] = {".xlsx", ".docx", ".pptx", ".html" }; //[+]Drakon (Office 2007+)
-static const string type2Compressed[] = { ".7z", //[+]PPA
+static const string type2Document[] = {".xlsx", ".docx", ".pptx", ".html" };
+static const string type2Compressed[] = { ".7z",
                                           ".gz", ".tz", ".z"
                                         };
 static const string type2Picture[] = { ".ai", ".ps", ".pict", ".jpeg", ".tiff", ".webp" };
 static const string type2Video[] = { ".rm", ".divx", ".mpeg", ".mp1v", ".mp2v", ".mpv1", ".mpv2", ".qt", ".rv", ".vivo", ".rmvb", ".webm",
-                                     ".ts", ".ps" // Transport stream and Packages stream MPEG-2 file
+                                     ".ts", ".ps", ".m2ts"
                                    };
+
+
 
 #define IS_TYPE(x)  type == (*((uint32_t*)x))
 #define IS_TYPE2(x) stricmp(aString.c_str() + aString.length() - x.length(), x.c_str()) == 0
@@ -2046,6 +2056,36 @@ bool ShareManager::checkType(const string& aString, Search::TypeModes aType)
 			}
 		}
 		break;
+		case Search::TYPE_CD_COMICS:
+		{
+			for (size_t i = 0; i < _countof(typeComics); ++i)
+			{
+				if (IS_TYPE(typeComics[i]))
+				{
+					return true;
+				}
+			}
+		}
+		break;
+		case Search::TYPE_BOOK:
+		{
+			for (size_t i = 0; i < _countof(typeBooks); i++)
+			{
+				if (IS_TYPE(typeBooks[i]))
+				{
+					return true;
+				}
+			}
+			for (size_t i = 0; i < _countof(type2Books); i++)
+			{
+				if (IS_TYPE2(type2Books[i]))
+				{
+					return true;
+				}
+			}
+		}
+		break;
+		
 		default:
 			dcassert(0);
 			break;

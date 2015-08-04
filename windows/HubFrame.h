@@ -312,6 +312,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		tstring m_shortHubName;
 		uint8_t m_hub_name_update_count;
 		bool m_is_hub_name_updated;
+		bool m_is_process_disconnected;
 		bool m_is_first_goto_end;
 		void onTimerHubUpdated();
 		uint8_t m_second_count;
@@ -387,6 +388,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		
 		UserInfo::OnlineUserMap m_userMap;
 		bool m_needsUpdateStats;
+		// bool m_is_op_chat_opened;
 		bool m_needsResort;
 		
 		static int g_columnIndexes[COLUMN_LAST];
@@ -402,7 +404,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		UserInfo* findUser(const tstring& p_nick);   // !SMT!-S
 		UserInfo* findUser(const OnlineUserPtr& p_user)
 		{
-			dcassert(!m_is_fynally_clear_user_list);
+			dcassert(!m_is_process_disconnected);
 			//if(m_is_fynally_clear_user_list)
 			//{
 			//  LogManager::message("findUser after m_is_fynally_clear_user_list = " + p_user->getUser()->getLastNick());
@@ -482,7 +484,8 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 			force_speak();
 		}
 #endif
-		
+		void doDisconnected();
+		void doConnected();
 	public:
 		static void addDupeUsersToSummaryMenu(ClientManager::UserParams& p_param); // !SMT!-UI
 		bool isFlySupportHub() const
@@ -525,7 +528,6 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		CContainedWindow* m_ctrlFilterContainer;
 		CContainedWindow* m_ctrlChatContainer;
 		CContainedWindow* m_ctrlFilterSelContainer;
-		bool m_is_fynally_clear_user_list;
 		bool m_showJoins;
 		bool m_favShowJoins;
 		void initShowJoins(const FavoriteHubEntry *p_fhe);

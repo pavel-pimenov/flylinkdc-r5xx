@@ -155,6 +155,8 @@ LRESULT UsersFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 
 void UsersFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 {
+	if (isClosedOrShutdown())
+		return;
 	RECT rect;
 	GetClientRect(&rect);
 	// position bars and offset their dimensions

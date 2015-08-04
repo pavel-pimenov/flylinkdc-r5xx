@@ -896,7 +896,10 @@ void Client::messageYouHaweRightOperatorOnThisHub()
 }
 bool  Client::isInOperatorList(const string& userName) const
 {
-	return Wildcard::patternMatch(userName, m_opChat, ';', false);
+	if (m_opChat.empty())
+		return false;
+	else
+		return Wildcard::patternMatch(userName, m_opChat, ';', false);
 }
 
 // [~] IRainman fix.

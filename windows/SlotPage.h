@@ -9,7 +9,7 @@
 class SlotPage : public CPropertyPage<IDD_SLOT_PAGE>, public PropPage
 {
 	public:
-		explicit SlotPage( ) : PropPage( TSTRING(SLOTS))
+		explicit SlotPage() : PropPage(TSTRING(SLOTS))
 #ifdef SSA_IPGRANT_FEATURE
 			, m_isEnabledIPGrant(false)
 #endif

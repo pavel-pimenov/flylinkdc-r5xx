@@ -25,7 +25,7 @@
 class DCLSTPage : public CPropertyPage<IDD_DCLS_PAGE>, public PropPage
 {
 	public:
-		explicit DCLSTPage( ) : PropPage( TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(SETTINGS_DCLS_PAGE))
+		explicit DCLSTPage() : PropPage(TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(SETTINGS_DCLS_PAGE))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

@@ -400,6 +400,8 @@ void PrivateFrame::runUserCommand(UserCommand& uc)
 
 void PrivateFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 {
+	if (isClosedOrShutdown())
+		return;
 	if (g_isStartupProcess)
 		return;
 	dcassert(!ClientManager::isShutdown());

@@ -401,7 +401,8 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif //STRONG_USE_DHT
 		
 		void save_geoip(const CFlyLocationIPArray& p_geo_ip);
-		void save_p2p_guard(const CFlyP2PGuardArray& p_p2p_guard_ip);
+		void save_p2p_guard(const CFlyP2PGuardArray& p_p2p_guard_ip, const string&  p_manual_marker);
+		string load_manual_p2p_guard();
 		string is_p2p_guard(const uint32_t& p_ip);
 #ifdef FLYLINKDC_USE_GEO_IP
 		void get_country(uint32_t p_ip, uint16_t& p_index);
@@ -634,6 +635,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		vector<CFlyLocationDesc> m_country_cache;
 #endif
 		CFlySQLCommand m_select_p2p_guard;
+		CFlySQLCommand m_select_manual__p2p_guard;
 		CFlySQLCommand m_delete_p2p_guard;
 		CFlySQLCommand m_insert_p2p_guard;
 		

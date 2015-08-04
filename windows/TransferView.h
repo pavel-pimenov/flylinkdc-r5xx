@@ -73,6 +73,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		MESSAGE_HANDLER(WM_NOTIFYFORMAT, onNotifyFormat)
 		COMMAND_ID_HANDLER(IDC_FORCE, onForce)
 		COMMAND_ID_HANDLER(IDC_SEARCH_ALTERNATES, onSearchAlternates)
+		COMMAND_ID_HANDLER(IDC_ADD_P2P_GUARD, onAddP2PGuard)
 		COMMAND_ID_HANDLER(IDC_REMOVE, onRemove)
 		COMMAND_ID_HANDLER(IDC_REMOVEALL, onRemoveAll)
 		COMMAND_ID_HANDLER(IDC_DISCONNECT_ALL, onDisconnectAll)
@@ -135,6 +136,12 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			{
 				ctrlTransfers.forEachSelected(&ItemInfo::disconnect);
 			}
+			return 0;
+		}
+		
+		LRESULT onAddP2PGuard(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+		{
+			ctrlTransfers.forEachSelected(&ItemInfo::disconnectAndP2PGuard);
 			return 0;
 		}
 		
@@ -304,6 +311,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				}
 				
 				void disconnect();
+				void disconnectAndP2PGuard();
 				void removeAll();
 				
 				double getProgressPosition() const

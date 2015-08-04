@@ -135,7 +135,7 @@ Gdiplus::Pen g_pen_conter_side(Gdiplus::Color(), 1);
 #endif // IRAINMAN_USE_GDI_PLUS_TAB
 // [~] IRainaman opt.
 
-#define TASKBUTTON_PROGRESS
+#define FLYLINKDC_USE_TASKBUTTON_PROGRESS
 
 MainFrame* MainFrame::g_anyMF = nullptr;
 bool MainFrame::g_isShutdown = false;
@@ -189,7 +189,7 @@ MainFrame::MainFrame() :
 	m_wizard(false),
 #endif
 	m_numberOfReadBytes(0),
-	m_maxnumberOfReadBytes(0),
+	m_maxnumberOfReadBytes(100),
 	statusContainer(STATUSCLASSNAME, this, STATUS_MESSAGE_MAP),
 	m_diff(GET_TICK()) // [!] IRainman fix.
 {
@@ -515,7 +515,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 #ifdef IRAINMAN_IP_AUTOUPDATE
 	if (BOOLSETTING(IPUPDATE))
 	{
-		getIPupdate();
+		m_threadedUpdateIP.updateIP();
 	}
 #endif
 	
@@ -995,7 +995,7 @@ void MainFrame::onMinute(uint64_t aTick)
 		if (m_elapsedMinutesFromlastIPUpdate >= interval)
 		{
 			m_elapsedMinutesFromlastIPUpdate = 0;
-			getIPupdate();
+			m_threadedUpdateIP.updateIP();
 		}
 	}
 #endif
@@ -1546,7 +1546,50 @@ void MainFrame::updateQuickSearches(bool p_clean /*= false*/)
 		QuickSearchBox.SetWindowText(CTSTRING(QSEARCH_STR));
 }
 
-
+void MainFrame::getTaskbarState(int p_code /* = 0*/)    // MainFrm: The event handler TaskBar Button Color in ONE FUNCTION
+{
+#ifdef FLYLINKDC_USE_TASKBUTTON_PROGRESS
+	if (m_taskbarList) // [!] IRainman fix.
+	{
+		m_taskbarList->SetProgressState(m_hWnd, TBPF_NORMAL);
+		if (p_code == 1000)         //OnUpdateTotalResult
+		{
+			m_taskbarList->SetProgressValue(m_hWnd, 0, m_maxnumberOfReadBytes);
+		}
+		else if (p_code == 2000)    //OnUpdateResultReceive
+		{
+			m_taskbarList->SetProgressValue(m_hWnd, m_numberOfReadBytes, m_maxnumberOfReadBytes);
+		}
+		else if (HashManager::isValidInstance() && AutoUpdate::isValidInstance())
+		{
+			if (HashManager::getInstance()->IsHashing())
+			{
+				if (AutoUpdate::getInstance()->isUpdateStarted())
+					m_taskbarList->SetProgressState(m_hWnd, TBPF_ERROR);
+				else
+					m_taskbarList->SetProgressState(m_hWnd, TBPF_INDETERMINATE);
+				m_taskbarList->SetProgressValue(m_hWnd, HashManager::getInstance()->GetProgressValue(), HashManager::GetMaxProgressValue());
+			}
+			else if (HashManager::getInstance()->isHashingPaused())
+			{
+				m_taskbarList->SetProgressState(m_hWnd, TBPF_PAUSED);
+			}
+			else if (AutoUpdate::getInstance()->isUpdateStarted())
+			{
+				if (HashManager::getInstance()->IsHashing())
+					m_taskbarList->SetProgressState(m_hWnd, TBPF_ERROR);
+				else
+					m_taskbarList->SetProgressState(m_hWnd, TBPF_NORMAL);
+				m_taskbarList->SetProgressValue(m_hWnd, 100, 100);
+			}
+			else
+			{
+				m_taskbarList->SetProgressState(m_hWnd, TBPF_NOPROGRESS);
+			}
+		}
+	}
+#endif
+}
 LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 {
 	if (wParam != REMOVE_POPUP && wParam != PARSE_COMMAND_LINE && wParam != AUTO_CONNECT && wParam != STATUS_MESSAGE)
@@ -1568,30 +1611,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 		{
 			return 0; // [+] PPA Исключем лишнее обновление статусной строки и таскбара.
 		}
-		
-#ifdef TASKBUTTON_PROGRESS
-		if (m_taskbarList) // [!] IRainman fix.
-		{
-			if (HashManager::getInstance()->IsHashing())
-			{
-				m_taskbarList->SetProgressState(m_hWnd, TBPF_INDETERMINATE);
-				m_taskbarList->SetProgressValue(m_hWnd, HashManager::getInstance()->GetProgressValue(), HashManager::GetMaxProgressValue());
-			}
-			else if (HashManager::getInstance()->isHashingPaused())
-			{
-				m_taskbarList->SetProgressState(m_hWnd, TBPF_PAUSED);
-			}
-			//  else if (AutoUpdate::getInstance()->isUpdateStarted())
-			//  {
-			//      m_taskbarList->SetProgressState(m_hWnd, TBPF_NORMAL);
-			//  m_taskbarList->SetProgressValue(m_hWnd, 100, 100);
-			//  }
-			else
-			{
-				m_taskbarList->SetProgressState(m_hWnd, TBPF_NOPROGRESS);
-			}
-		}
-#endif
+		getTaskbarState();
 		
 #ifdef IRAINMAN_FAST_FLAT_TAB
 		bool u = false;
@@ -2076,7 +2096,7 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 {
 	if (!PropertiesDlg::g_is_create)
 	{
-		
+	
 		PropertiesDlg dlg(m_hWnd);
 		
 		const unsigned short lastTCP = static_cast<unsigned short>(SETTING(TCP_PORT));
@@ -3896,13 +3916,7 @@ LRESULT MainFrame::OnUpdateTotalResult(UINT uMsg, WPARAM wParam, LPARAM /*lParam
 	UpdateLayout();
 	bHandled = TRUE;
 	// [!] SSA TaskList
-	if (m_taskbarList)
-	{
-		m_taskbarList->SetProgressState(m_hWnd, TBPF_NORMAL);
-		m_taskbarList->SetProgressValue(m_hWnd, 0, m_maxnumberOfReadBytes);
-	}
-	
-	
+	getTaskbarState(1000);
 	return 0;
 }
 LRESULT MainFrame::OnUpdateResultReceive(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
@@ -3912,10 +3926,7 @@ LRESULT MainFrame::OnUpdateResultReceive(UINT uMsg, WPARAM wParam, LPARAM /*lPar
 	UpdateLayout();
 	bHandled = TRUE;
 	// [!] SSA TaskList
-	if (m_taskbarList)
-	{
-		m_taskbarList->SetProgressValue(m_hWnd, m_numberOfReadBytes, m_maxnumberOfReadBytes);
-	}
+	getTaskbarState(2000);
 	return 0;
 }
 

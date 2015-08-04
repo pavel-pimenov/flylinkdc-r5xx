@@ -41,8 +41,11 @@ struct Search
 		TYPE_VIDEO,
 		TYPE_DIRECTORY,
 		TYPE_TTH,
-		TYPE_CD_IMAGE, //[+] от flylinkdc++
-		TYPE_LAST
+		//[+] от flylinkdc++
+		TYPE_CD_IMAGE,
+		TYPE_CD_COMICS,
+		TYPE_BOOK,
+		TYPE_LAST_MODE
 	};
 	Search() : m_is_force_passive(false), m_sizeMode(SIZE_DONTCARE), m_size(0), m_fileTypes_bitmap(0), m_token(0)
 	{
@@ -61,7 +64,7 @@ struct Search
 	}
 	bool operator==(const Search& rhs) const
 	{
-		BOOST_STATIC_ASSERT(TYPE_LAST < 16); // Иначе не влезет в m_fileTypes_bitmap
+		BOOST_STATIC_ASSERT(TYPE_LAST_MODE < 16); // Иначе не влезет в m_fileTypes_bitmap
 		return m_sizeMode == rhs.m_sizeMode &&
 		       m_size == rhs.m_size &&
 		       m_fileTypes_bitmap == rhs.m_fileTypes_bitmap &&

@@ -98,12 +98,16 @@ class Wildcard
 		template<class STR>
 		static bool patternMatchLowerCase(const STR& text, const STR& patternlist, const typename STR::value_type delimiter, const bool useSet = true)
 		{
+			dcassert(!text.empty());
+			dcassert(!patternlist.empty());
 			const StringTokenizer<STR> tokens(patternlist, delimiter);
 			return patternMatchLowerCase(text, tokens.getTokens(), useSet);
 		}
 		template<class STR>
 		static bool patternMatch(const STR& text, const STR& patternlist, const typename STR::value_type delimiter, const bool useSet = true)
 		{
+			dcassert(!text.empty());
+			dcassert(!patternlist.empty());
 			return patternMatchLowerCase(Text::toLower(text), Text::toLower(patternlist), delimiter, useSet);
 		}
 		// [~] IRainman copy-past fix and opt.

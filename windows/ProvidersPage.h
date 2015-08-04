@@ -31,7 +31,7 @@ class ProvidersPage : public CPropertyPage<IDD_PROVIDERS_PAGE>, public PropPage
 {
 	public:
 	
-		explicit ProvidersPage( ) : PropPage( TSTRING(SETTINGS_PROVIDERS)) /*, bInited(false)*/
+		explicit ProvidersPage() : PropPage(TSTRING(SETTINGS_PROVIDERS))   /*, bInited(false)*/
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

@@ -161,7 +161,7 @@ unsigned int g_cnt = 10000;
 const unsigned int g_size = 1000;
 const unsigned int g_ext_cnt = 1000;
 #else
-unsigned int g_cnt = std::numeric_limits<unsigned int>::max();
+unsigned int g_cnt = INT_MAX; /* std::numeric_limits<unsigned int>::max(); */
 const unsigned int g_size = 1000 * 1000;
 const unsigned int g_ext_cnt = 1000;
 #endif
@@ -403,18 +403,18 @@ void processPreparing(DWORD_PTR affinityMask)
 	::SetThreadAffinityMask(::GetCurrentThread(), affinityMask); // устанавливаем используемый процессор (ядро).
 
 	// "Греем" железо для исключения возможности работы процессора на пониженных частотах во время теста.
-	volatile int heaterCount = std::numeric_limits<int>::min();
-	volatile int heater = std::numeric_limits<int>::min();
+	volatile int heaterCount = INT_MIN; // std::numeric_limits<int>::min();
+	volatile int heater = INT_MIN; // std::numeric_limits<int>::min();
 
 	for (volatile int i = 0; i != 10; ++i)
 	{
 		std::cout << ".";
-		for (; heater != std::numeric_limits<int>::max(); ++heater)
+		for (; heater != INT_MIN /*std::numeric_limits<int>::max()*/; ++heater)
 		{
 			++heaterCount;
 		}
 		std::cout << ".";
-		for (; heater != std::numeric_limits<int>::min(); --heater)
+		for (; heater != INT_MIN /*std::numeric_limits<int>::min() */; --heater)
 		{
 			--heaterCount;
 		}
@@ -438,7 +438,7 @@ template<> struct hash<boost::asio::ip::address_v4>
 static string toString(int val)
 		{
 			char buf[16];
-			snprintf(buf, _countof(buf), "%d", val);
+			_snprintf(buf, _countof(buf), "%d", val);
 			return buf;
 		}
 
@@ -488,6 +488,7 @@ void UseVectorPushBack(size_t dimension)
 }
 int _tmain(int argc, _TCHAR* argv[])
 {
+#if 0
 	CRITICAL_SECTION cs;
 	InitializeCriticalSectionAndSpinCount(&cs, 100); 
 //	InitializeCriticalSection(&cs); 
@@ -567,6 +568,8 @@ int _tmain(int argc, _TCHAR* argv[])
 
 
   return 0;
+#endif
+
   //boost::unordered_map<boost::asio::ip::address_v4, int> tmp;
   boost::asio::ip::address_v4 ip = boost::asio::ip::address_v4::from_string("010.010.010.010");
   //tmp[ip] = 1;
@@ -584,6 +587,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	std::cout << std::endl;
 
 	return 0;
+
 	// [+] IRainman fix.
 	::SetProcessPriorityBoost(::GetCurrentProcess(), FALSE); // Запрещаем системе изменять приоритет процесса.
 

@@ -175,6 +175,8 @@ LRESULT SpyFrame::onColumnClickResults(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHa
 
 void SpyFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 {
+	if (isClosedOrShutdown())
+		return;
 	RECT rect;
 	GetClientRect(&rect);
 	// position bars and offset their dimensions

@@ -91,6 +91,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow) // [+] InfinitySky.
 		COMMAND_ID_HANDLER(IDC_COPY_NICK     , onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_FILENAME , onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_TYPE, onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_PATH     , onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_SIZE     , onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_TTH      , onCopy)
@@ -127,6 +128,9 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 						break;
 					case IDC_COPY_FILENAME:
 						sCopy = l_item->getText(FinishedItem::COLUMN_FILE);
+						break;
+					case IDC_COPY_TYPE:
+						sCopy = l_item->getText(FinishedItem::COLUMN_TYPE);
 						break;
 					case IDC_COPY_PATH:
 						sCopy = l_item->getText(FinishedItem::COLUMN_PATH);
@@ -182,6 +186,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			WinUtil::splitTokens(columnIndexes, SettingsManager::get(columnOrder), FinishedItem::COLUMN_LAST);
 			WinUtil::splitTokensWidth(columnSizes, SettingsManager::get(columnWidth), FinishedItem::COLUMN_LAST);
 			static ResourceManager::Strings columnNames[] = { ResourceManager::FILENAME,
+			                                                  ResourceManager::TYPE,
 			                                                  ResourceManager::TIME,
 			                                                  ResourceManager::PATH,
 			                                                  ResourceManager::TTH,
@@ -215,6 +220,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			copyMenu.CreatePopupMenu();
 			copyMenu.AppendMenu(MF_STRING, IDC_COPY_NICK, CTSTRING(COPY_NICK));
 			copyMenu.AppendMenu(MF_STRING, IDC_COPY_FILENAME, CTSTRING(FILENAME));
+			copyMenu.AppendMenu(MF_STRING, IDC_COPY_TYPE, CTSTRING(TYPE));
 			copyMenu.AppendMenu(MF_STRING, IDC_COPY_PATH, CTSTRING(PATH));
 			copyMenu.AppendMenu(MF_STRING, IDC_COPY_SIZE, CTSTRING(SIZE));
 			copyMenu.AppendMenu(MF_STRING, IDC_COPY_HUB_URL, CTSTRING(HUB_ADDRESS));
@@ -841,6 +847,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 template <class T, int title, int id, int icon>
 int FinishedFrameBase<T, title, id, icon>::columnIndexes[] = { FinishedItem::COLUMN_DONE,
                                                                FinishedItem::COLUMN_FILE,
+                                                               FinishedItem::COLUMN_TYPE,
                                                                FinishedItem::COLUMN_PATH,
                                                                FinishedItem::COLUMN_TTH,
                                                                FinishedItem::COLUMN_NICK,
@@ -851,7 +858,7 @@ int FinishedFrameBase<T, title, id, icon>::columnIndexes[] = { FinishedItem::COL
                                                              };
 
 template <class T, int title, int id, int icon>
-int FinishedFrameBase<T, title, id, icon>::columnSizes[] = { 100, 110, 290, 125, 80, 80, 80, 80};
+int FinishedFrameBase<T, title, id, icon>::columnSizes[] = { 100, 110, 20, 290, 125, 80, 80, 80, 80};
 
 
 #endif // !defined(FINISHED_FRAME_BASE_H)

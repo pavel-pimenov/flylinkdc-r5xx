@@ -377,6 +377,8 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 			transferMenu.AppendMenu(MF_SEPARATOR);
 #endif
 			transferMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(CLOSE_CONNECTION));
+			transferMenu.AppendMenu(MF_STRING, IDC_ADD_P2P_GUARD, CTSTRING(CLOSE_CONNECTION_AND_ADD_IP_GUARD));
+			
 			transferMenu.SetMenuDefaultItem(IDC_PRIVATE_MESSAGE);
 			
 			if (!main && (i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1)
@@ -1808,6 +1810,20 @@ void TransferView::onTransferComplete(const Transfer* aTransfer, const bool down
 	}
 	
 	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
+}
+
+
+void TransferView::ItemInfo::disconnectAndP2PGuard()
+{
+	CFlyP2PGuardArray l_sqlite_array;
+	uint32_t l_ip = Socket::convertIP4(Text::fromT(m_transfer_ip));
+	if (l_ip)
+	{
+		const string l_marker = "Manual block IP";
+		l_sqlite_array.push_back(CFlyP2PGuardIP(l_marker, l_ip, l_ip));
+		CFlylinkDBManager::getInstance()->save_p2p_guard(l_sqlite_array, l_marker);
+	}
+	disconnect();
 }
 
 void TransferView::ItemInfo::disconnect()

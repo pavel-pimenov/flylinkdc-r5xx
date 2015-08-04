@@ -27,7 +27,10 @@ template<class T>
 class UCHandler
 {
 	public:
-		UCHandler() : m_menuPos(0), m_extraItems(0) { }
+		UCHandler() : m_menuPos(0), m_extraItems(0)
+		{
+			subMenu.CreatePopupMenu();
+		}
 		
 		typedef UCHandler<T> thisClass;
 		BEGIN_MSG_MAP(thisClass)
@@ -94,7 +97,20 @@ class UCHandler
 				if (/*isOp*/l_is_add_responses)
 					menu.AppendMenu(MF_SEPARATOR);
 					
-				CMenuHandle cur = menu.m_hMenu;
+				subMenu.DestroyMenu();
+				subMenu.m_hMenu = NULL;
+				
+				
+				if (BOOLSETTING(UC_SUBMENU))
+				{
+					subMenu.CreatePopupMenu();
+					subMenu.InsertSeparatorLast(TSTRING(SETTINGS_USER_COMMANDS));
+					
+					menu.AppendMenu(MF_POPUP, (UINT)(HMENU)subMenu, CTSTRING(SETTINGS_USER_COMMANDS));
+				}
+				
+				CMenuHandle cur = BOOLSETTING(UC_SUBMENU) ? subMenu.m_hMenu : menu.m_hMenu;
+				
 				for (auto ui = m_userCommands.begin(); ui != m_userCommands.end(); ++ui)
 				{
 					UserCommand& uc = *ui;
@@ -112,8 +128,8 @@ class UCHandler
 					if (uc.getType() == UserCommand::TYPE_RAW || uc.getType() == UserCommand::TYPE_RAW_ONCE)
 					{
 						tstring name;
-						cur = menu.m_hMenu;
 						const auto l_disp_name = uc.getDisplayName();
+						cur = BOOLSETTING(UC_SUBMENU) ? subMenu.m_hMenu : menu.m_hMenu;
 						for (auto i = l_disp_name.cbegin(); i != l_disp_name.cend(); ++i)
 						{
 							Text::toT(*i, name);
@@ -168,6 +184,7 @@ class UCHandler
 		}
 	private:
 		UserCommand::List m_userCommands;
+		OMenu subMenu;
 		int m_menuPos;
 		int m_extraItems;
 };

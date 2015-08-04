@@ -28,7 +28,7 @@
 class FavoriteDirsPage : public CPropertyPage<IDD_FAVORITE_DIRS_PAGE>, public PropPage
 {
 	public:
-		explicit FavoriteDirsPage( ) : PropPage( TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(SETTINGS_FAVORITE_DIRS_PAGE))
+		explicit FavoriteDirsPage() : PropPage(TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(SETTINGS_FAVORITE_DIRS_PAGE))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

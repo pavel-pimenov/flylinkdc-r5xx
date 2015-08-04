@@ -12,7 +12,9 @@
 #ifdef _WIN32
 #include <io.h>
 #include <winsock2.h>
-#define snprintf _snprintf
+#if defined (_MSC_VER) && _MSC_VER < 1900
+ // #define snprintf _snprintf
+#endif
 #else
 #include <unistd.h>
 #include <sys/types.h>
@@ -92,8 +94,8 @@ int soapPostSubmit(int fd,
     /* Connection: Close is normally there only in HTTP/1.1 but who knows */
 	portstr[0] = '\0';
 	if(port != 80)
-		snprintf(portstr, sizeof(portstr), ":%hu", port);
-	headerssize = snprintf(headerbuf, sizeof(headerbuf),
+		_snprintf(portstr, sizeof(portstr), ":%hu", port);
+	headerssize = _snprintf(headerbuf, sizeof(headerbuf),
                        "POST %s HTTP/%s\r\n"
 	                   "Host: %s%s\r\n"
 					   "User-Agent: " OS_STRING ", " UPNP_VERSION_STRING ", MiniUPnPc/" MINIUPNPC_VERSION_STRING "\r\n"

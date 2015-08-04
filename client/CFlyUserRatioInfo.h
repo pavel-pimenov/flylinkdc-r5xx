@@ -105,7 +105,7 @@ struct CFlyUserRatioInfo : public CFlyRatioItem
 		explicit CFlyUserRatioInfo(User* p_user);
 		~CFlyUserRatioInfo();
 		
-		bool try_load_ratio(const boost::asio::ip::address_v4& p_last_ip_from_sql);
+		bool tryLoadRatio(const boost::asio::ip::address_v4& p_last_ip_from_sql);
 		void addUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
 		void addDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
 		void incMessagesCount();

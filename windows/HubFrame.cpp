@@ -219,6 +219,7 @@ HubFrame::HubFrame(bool p_is_auto_connect,
 	, m_waitingForPW(false)
 	, m_password_do_modal(0)
 	, m_needsUpdateStats(false)
+	//, m_is_op_chat_opened(false)
 	, m_needsResort(false)
 	, m_showUsersContainer(nullptr)
 	, m_ctrlFilterContainer(nullptr)
@@ -239,7 +240,6 @@ HubFrame::HubFrame(bool p_is_auto_connect,
 #endif
 	, m_tabMenuShown(false)
 	, m_showJoins(false)
-	, m_is_fynally_clear_user_list(false)
 	, m_favShowJoins(false)
 	, m_isUpdateColumnsInfoProcessed(false)
 	, m_tabMenu(nullptr)
@@ -247,6 +247,7 @@ HubFrame::HubFrame(bool p_is_auto_connect,
 	, m_ActivateCounter(0)
 	, m_is_window_text_update(0)
 	, m_Theme(nullptr)
+	, m_is_process_disconnected(false)
 {
 	//m_userMapCS = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 	m_ctrlStatusCache.resize(5);
@@ -1239,15 +1240,12 @@ LRESULT HubFrame::onDoubleClickUsers(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
 
 bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 {
-	if (ClientManager::isShutdown())
+	if (ClientManager::isShutdown() && m_client && m_client->isConnected())
 	{
 		dcassert(!ClientManager::isShutdown());
 		return false;
 	}
-	if (m_is_fynally_clear_user_list) // ѕытаемс€ исключить по€вление юзеров после дисконнета („асть 2)
-	{
-		return false;
-	}
+	dcassert(!m_is_process_disconnected);
 	UserInfo* ui = findUser(p_ou); // TODO - часто ищем. св€зать в список?
 	if (!ui)
 	{
@@ -1261,7 +1259,7 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 			{
 				//webrtc::WriteLockScoped l(*m_userMapCS);
 				//Lock l(m_userMapCS);
-				dcassert(!m_is_fynally_clear_user_list);
+				dcassert(!m_is_process_disconnected);
 				m_userMap.insert(make_pair(p_ou, ui));
 			}
 			if (m_showUsers)// [+] IRainman optimization
@@ -1354,25 +1352,22 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 
 void HubFrame::removeUser(const OnlineUserPtr& p_ou)
 {
-	dcassert(!m_is_fynally_clear_user_list);
-	//if(!m_is_fynally_clear_user_list)
-	{
-		UserInfo* ui = findUser(p_ou);
-		if (!ui)
-			return;
-			
+	dcassert(!m_is_process_disconnected);
+	UserInfo* ui = findUser(p_ou);
+	if (!ui)
+		return;
+		
 #ifdef IRAINMAN_USE_HIDDEN_USERS
-		dcassert(ui->isHidden() == false);
+	dcassert(ui->isHidden() == false);
 #endif
-		if (m_showUsers)
-		{
-			m_ctrlUsers->deleteItem(ui);  // Lock - redraw при закрытии?
-		}
-		//webrtc::WriteLockScoped l(*m_userMapCS);
-		//Lock l(m_userMapCS);
-		m_userMap.erase(p_ou);
-		delete ui;
+	if (m_showUsers)
+	{
+		m_ctrlUsers->deleteItem(ui);  // Lock - redraw при закрытии?
 	}
+	//webrtc::WriteLockScoped l(*m_userMapCS);
+	//Lock l(m_userMapCS);
+	m_userMap.erase(p_ou);
+	delete ui;
 }
 
 void HubFrame::addStatus(const tstring& aLine, const bool bInChat /*= true*/, const bool bHistory /*= true*/, const CHARFORMAT2& cf /*= WinUtil::m_ChatTextSystem*/)
@@ -1429,6 +1424,50 @@ void HubFrame::addStatus(const tstring& aLine, const bool bInChat /*= true*/, co
 		LOG(STATUS, params);
 	}
 }
+void HubFrame::doConnected()
+{
+	m_is_process_disconnected = false;
+	dcassert(!ClientManager::isShutdown());
+	addStatus(TSTRING(CONNECTED), true, true, Colors::g_ChatTextServer);
+	setTabColor(RGB(10, 10, 10));
+	unsetIconState();
+	
+	ctrlClient.setHubParam(m_client->getHubUrl(), m_client->getMyNick()); // [+] IRainman fix.
+	
+	setStatusText(1, Text::toT(m_client->getCipherName()));
+	if (m_ctrlStatus)
+	{
+		UpdateLayout(false);
+	}
+	SHOW_POPUP(POPUP_HUB_CONNECTED, Text::toT(m_client->getHubUrl()), TSTRING(CONNECTED));
+	PLAY_SOUND(SOUND_HUBCON);
+#ifdef SCALOLAZ_HUB_MODE
+	HubModeChange();
+#endif
+	m_needsUpdateStats = true;
+}
+
+void HubFrame::doDisconnected()
+{
+	dcassert(!ClientManager::isShutdown());
+	
+	{
+		CFlyBusy l_busy(m_is_process_disconnected);
+		clearUserList(true);
+	}
+	if (!ClientManager::isShutdown())
+	{
+		setTabColor(RGB(128, 0, 0));
+		setIconState();
+		PLAY_SOUND(SOUND_HUBDISCON);
+		SHOW_POPUP(POPUP_HUB_DISCONNECTED, Text::toT(m_client->getHubUrl()), TSTRING(DISCONNECTED));
+#ifdef SCALOLAZ_HUB_MODE
+		HubModeChange();
+#endif
+		m_needsUpdateStats = true;
+	}
+}
+
 LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled */)
 {
 	if (ClientManager::isShutdown())
@@ -1533,47 +1572,18 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 		}
 		break;
 #endif // FLYLINKDC_ADD_CHAT_LINE_USE_WIN_MESSAGES_Q
+		/*
 		case WM_SPEAKER_CONNECTED:
-		{
-			m_is_fynally_clear_user_list = false;
-			dcassert(!ClientManager::isShutdown());
-			addStatus(TSTRING(CONNECTED), true, true, Colors::g_ChatTextServer);
-			setTabColor(RGB(10, 10, 10));
-			unsetIconState();
-			
-			ctrlClient.setHubParam(m_client->getHubUrl(), m_client->getMyNick()); // [+] IRainman fix.
-			
-			setStatusText(1, Text::toT(m_client->getCipherName()));
-			if (m_ctrlStatus)
-			{
-				UpdateLayout(false);
-			}
-			SHOW_POPUP(POPUP_HUB_CONNECTED, Text::toT(m_client->getHubUrl()), TSTRING(CONNECTED));
-			PLAY_SOUND(SOUND_HUBCON);
-#ifdef SCALOLAZ_HUB_MODE
-			HubModeChange();
-#endif
-			m_needsUpdateStats = true;
-		}
-		break;
-		case WM_SPEAKER_DISCONNECTED:
-		{
-			dcassert(!ClientManager::isShutdown());
-			
-			clearUserList(true);
-			if (!ClientManager::isShutdown())
-			{
-				setTabColor(RGB(128, 0, 0));
-				setIconState();
-				PLAY_SOUND(SOUND_HUBDISCON);
-				SHOW_POPUP(POPUP_HUB_DISCONNECTED, Text::toT(m_client->getHubUrl()), TSTRING(DISCONNECTED));
-#ifdef SCALOLAZ_HUB_MODE
-				HubModeChange();
-#endif
-				m_needsUpdateStats = true;
-			}
-		}
-		break;
+		        {
+		            doConnected();
+		        }
+		        break;
+		        case WM_SPEAKER_DISCONNECTED:
+		        {
+		            doDisconnected();
+		        }
+		        break;
+		*/
 #ifdef FLYLINKDC_PRIVATE_MESSAGE_USE_WIN_MESSAGES_Q
 		case WM_SPEAKER_PRIVATE_MESSAGE:
 		{
@@ -1691,7 +1701,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 #ifndef FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
 			case UPDATE_USER_JOIN:
 			{
-				if (!ClientManager::isShutdown())
+				if (!ClientManager::isShutdown() && m_client && m_client->isConnected())
 				{
 					const OnlineUserTask& u = static_cast<OnlineUserTask&>(*i->second);
 					if (updateUser(u.m_ou, -1))
@@ -1713,6 +1723,14 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 								BaseChatFrame::addLine(_T("*** ") + TSTRING(JOINS) + _T(' ') + id.getNickT(), Colors::g_ChatTextSystem);
 							}
 						}
+						// Automatically open "op chat"
+						//if (!m_is_op_chat_opened)
+						if (m_client->isInOperatorList(id.getNick()) && !PrivateFrame::isOpen(user))
+						{
+							PrivateFrame::openWindow(u.m_ou, HintedUser(user, m_client->getHubUrl()), m_client->getMyNick());
+							//m_is_op_chat_opened = true;
+						}
+						
 						m_needsUpdateStats = true; // [+] IRainman fix.
 					}
 					else
@@ -1729,25 +1747,25 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 			{
 				const OnlineUserTask& u = static_cast<const OnlineUserTask&>(*i->second);
 				//dcassert(!ClientManager::isShutdown());
-				if (m_is_fynally_clear_user_list == false)
+				if (m_is_process_disconnected == false)
 				{
 					if (!ClientManager::isShutdown())
 					{
 						const UserPtr& user = u.m_ou->getUser();
 						const Identity& id = u.m_ou->getIdentity();
-
+						
 						if (!id.isBotOrHub()) // [+] IRainman fix: no show has come/gone for bots, and a hub.
 						{
 							// !SMT!-S !SMT!-UI
 							const bool isFavorite = !FavoriteManager::isNoFavUserOrUserBanUpload(user); // [!] TODO: в €дро!
-
+							
 							const tstring& l_userNick = id.getNickT();
 							if (isFavorite)
 							{
 								PLAY_SOUND(SOUND_FAVUSER_OFFLINE);
 								SHOW_POPUP(POPUP_FAVORITE_DISCONNECTED, l_userNick + _T(" - ") + Text::toT(m_client->getHubName()), TSTRING(FAVUSER_OFFLINE));
 							}
-
+							
 							if (m_showJoins || (m_favShowJoins && isFavorite))
 							{
 								BaseChatFrame::addLine(_T("*** ") + TSTRING(PARTS) + _T(' ') + l_userNick, Colors::g_ChatTextSystem); // !SMT!-fix
@@ -1792,6 +1810,16 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 			}
 			break;
 #endif // FLYLINKDC_ADD_CHAT_LINE_USE_WIN_MESSAGES_Q
+			case CONNECTED:
+			{
+				doConnected();
+			}
+			break;
+			case DISCONNECTED:
+			{
+				doDisconnected();
+			}
+			break;
 			case ADD_STATUS_LINE:
 			{
 				dcassert(!ClientManager::isShutdown());
@@ -1821,7 +1849,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 						m_needsResort = false;
 						m_ctrlUsers->resort(); // убран ресорт если окно не активное!
 #ifdef _DEBUG
-						LogManager::message("Resort! Hub = " + m_client->getHubUrl() + " count = " + Util::toString(m_ctrlUsers ? m_ctrlUsers->GetItemCount() : 0));
+						//LogManager::message("Resort! Hub = " + m_client->getHubUrl() + " count = " + Util::toString(m_ctrlUsers ? m_ctrlUsers->GetItemCount() : 0));
 #endif
 					}
 				}
@@ -1950,6 +1978,8 @@ void HubFrame::setWindowTitle(const string& p_text)
 
 void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 {
+	if (isClosedOrShutdown())
+		return;
 	if (g_isStartupProcess)
 	{
 		return;
@@ -2353,7 +2383,6 @@ LRESULT HubFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 }
 void HubFrame::clearUserList(bool p_is_fynally_clear_user_list)
 {
-	m_is_fynally_clear_user_list = p_is_fynally_clear_user_list;
 	if (m_ctrlUsers)
 	{
 		CLockRedraw<> l_lock_draw(*m_ctrlUsers); // TODO это нужно или опустить ниже?
@@ -3203,8 +3232,8 @@ void HubFrame::on(ClientListener::Connected, const Client* c) noexcept
 	{
 		BaseChatFrame::addLine(_T("[!] FlylinkDC++ You have enabled 'Force firewall mode (passive!)' (window transfer, left bottom checkbox with wall)") /*+ TSTRING(PASSIVE_FORCE_NOTICE) + _T(" ") */, Colors::g_ChatTextSystem);
 	}
-	//speak(CONNECTED);
-	PostMessage(WM_SPEAKER_CONNECTED);
+	speak(CONNECTED);
+	//PostMessage(WM_SPEAKER_CONNECTED);
 	ChatBot::getInstance()->onHubAction(BotInit::RECV_CONNECT, c->getHubUrl());
 }
 
@@ -3296,8 +3325,9 @@ void HubFrame::on(Redirect, const Client*, const string& line) noexcept
 void HubFrame::on(ClientListener::Failed, const Client* c, const string& line) noexcept
 {
 	speak(ADD_STATUS_LINE, line);
-	//speak(DISCONNECTED);
-	PostMessage(WM_SPEAKER_DISCONNECTED);
+	speak(DISCONNECTED);
+	// speak(WM_SPEAKER_DISCONNECTED, nullptr);
+	//PostMessage(WM_SPEAKER_DISCONNECTED);
 	ChatBot::getInstance()->onHubAction(BotInit::RECV_DISCONNECT, c->getHubUrl());
 }
 void HubFrame::on(ClientListener::GetPassword, const Client*) noexcept
@@ -3564,7 +3594,10 @@ void HubFrame::InsertUserList(UserInfo* ui) // [!] IRainman opt.
 	if (m_filter.empty())
 	{
 		dcassert(m_ctrlUsers->findItem(ui) == -1);
-		m_ctrlUsers->insertItem(ui, I_IMAGECALLBACK);
+		if (m_client && m_client->isConnected())
+		{
+			m_ctrlUsers->insertItem(ui, I_IMAGECALLBACK);
+		}
 	}
 	else
 	{
@@ -3576,13 +3609,19 @@ void HubFrame::InsertUserList(UserInfo* ui) // [!] IRainman opt.
 		if (matchFilter(*ui, sel, doSizeCompare, mode, size))
 		{
 			dcassert(m_ctrlUsers->findItem(ui) == -1);
-			m_ctrlUsers->insertItem(ui, I_IMAGECALLBACK);
+			if (m_client && m_client->isConnected())
+			{
+				m_ctrlUsers->insertItem(ui, I_IMAGECALLBACK);
+			}
 		}
 		else
 		{
 			//deleteItem checks to see that the item exists in the list
 			//unnecessary to do it twice.
-			m_ctrlUsers->deleteItem(ui);
+			if (m_client && m_client->isConnected())
+			{
+				m_ctrlUsers->deleteItem(ui);
+			}
 		}
 	}
 }
@@ -4288,7 +4327,7 @@ void HubFrame::addPasswordCommand()
 
 UserInfo* HubFrame::findUser(const tstring& p_nick)   // !SMT!-S
 {
-	//dcassert(!m_is_fynally_clear_user_list);
+	dcassert(!m_is_process_disconnected);
 	dcassert(!p_nick.empty());
 	if (p_nick.empty())
 		return nullptr;

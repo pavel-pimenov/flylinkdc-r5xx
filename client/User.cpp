@@ -57,6 +57,7 @@ User::User(const CID& aCID) : m_cid(aCID),
 	, m_hub_id(0)
 	, m_ratio_ptr(nullptr)
 	, m_is_first_init_ratio(false)
+	, m_is_last_ip_dirty(false)
 #endif
 {
 #ifdef _DEBUG
@@ -184,6 +185,7 @@ void User::setIP(const boost::asio::ip::address_v4& p_last_ip)
 					if (m_ratio_ptr)
 						m_ratio_ptr->m_message_count = l_message_count;
 				}
+				setFlag(CHANGE_IP);
 			}
 		}
 		else
@@ -195,6 +197,7 @@ void User::setIP(const boost::asio::ip::address_v4& p_last_ip)
 	{
 		if (m_last_ip != p_last_ip)
 		{
+			m_is_last_ip_dirty = true;
 			m_last_ip = p_last_ip;
 			setFlag(CHANGE_IP);
 		}
@@ -301,13 +304,15 @@ void User::flushRatio()
 			l_is_ratio_exists = true;
 		}
 	}
-	if (l_is_ratio_exists)
+	if (l_is_ratio_exists || m_is_last_ip_dirty)
 	{
 		if (isSet(CHANGE_IP))
 		{
-			if (getHubID() && !m_nick.empty() && CFlylinkDBManager::isValidInstance())
+			dcassert(!m_last_ip.is_unspecified());
+			if (getHubID() && !m_nick.empty() && CFlylinkDBManager::isValidInstance() && !m_last_ip.is_unspecified())
 			{
 				CFlylinkDBManager::getInstance()->update_last_ip(getHubID(), m_nick, m_last_ip);
+				m_is_last_ip_dirty = false;
 			}
 		}
 	}
@@ -317,7 +322,7 @@ void User::initRatioL(const boost::asio::ip::address_v4& p_ip)
 	if (m_ratio_ptr == nullptr && !m_nick.empty() && m_hub_id)
 	{
 		m_ratio_ptr = new CFlyUserRatioInfo(this);
-		m_ratio_ptr->try_load_ratio(p_ip);
+		m_ratio_ptr->tryLoadRatio(p_ip);
 	}
 }
 void User::initRatio(bool p_force /* = false */)
@@ -338,7 +343,7 @@ void User::initRatio(bool p_force /* = false */)
 				l_try_ratio->m_message_count = l_message_count;
 				if (!l_last_ip_from_sql.is_unspecified())
 				{
-					l_try_ratio->try_load_ratio(l_last_ip_from_sql);
+					l_try_ratio->tryLoadRatio(l_last_ip_from_sql);
 				}
 				{
 					///webrtc::WriteLockScoped l(*g_ratio_cs);

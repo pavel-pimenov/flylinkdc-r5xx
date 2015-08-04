@@ -379,6 +379,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		void ViewTransferView(BOOL bVisible);
 		void onAwayPush();
 		void onDHTPush();
+		void getTaskbarState(int p_code = 0);
 		static unsigned int WINAPI stopper(void* p);
 		void UpdateLayout(BOOL bResizeBars = TRUE);
 		void onLimiter(const bool l_currentLimiter = BOOLSETTING(THROTTLE_ENABLE)) // [+] IRainman fix
@@ -582,7 +583,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		int run(); // TODO отказаться от наследования
 		
 #ifdef IRAINMAN_IP_AUTOUPDATE
-		void getIPupdate();
+		static void getIPupdate();
 		int m_elapsedMinutesFromlastIPUpdate;
 #endif
 		static void updateQuickSearches(bool p_clean = false);
@@ -859,6 +860,40 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 				}
 		} m_threadedStatisticSender;
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
+		
+#ifdef IRAINMAN_IP_AUTOUPDATE
+		class CFlyIPUpdater : public BASE_THREAD
+		{
+				bool m_is_running;
+			private:
+				int run()
+				{
+					getIPupdate();
+					return 0;
+				}
+			public:
+				CFlyIPUpdater() : m_is_running(false)
+				{
+				}
+				void updateIP()
+				{
+					dcassert(!m_is_running)
+					if (m_is_running == false)
+					{
+						CFlyBusy l_busy(m_is_running);
+						try
+						{
+							start(128);
+						}
+						catch (const ThreadException& e)
+						{
+							LogManager::message(e.getError());
+							// TODO - сохранить такие вещи и скинуть как ошибку
+						}
+					}
+				}
+		} m_threadedUpdateIP;
+#endif
 		
 };
 

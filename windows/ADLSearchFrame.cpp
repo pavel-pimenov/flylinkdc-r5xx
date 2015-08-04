@@ -148,6 +148,8 @@ LRESULT ADLSearchFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 // Recalculate frame control layout
 void ADLSearchFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 {
+	if (isClosedOrShutdown())
+		return;
 	RECT rect;
 	GetClientRect(&rect);
 	

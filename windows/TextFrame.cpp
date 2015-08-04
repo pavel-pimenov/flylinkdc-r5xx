@@ -117,6 +117,8 @@ LRESULT TextFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 
 void TextFrame::UpdateLayout(BOOL /*bResizeBars*/ /* = TRUE */)
 {
+	if (isClosedOrShutdown())
+		return;
 	CRect rc;
 	
 	GetClientRect(rc);

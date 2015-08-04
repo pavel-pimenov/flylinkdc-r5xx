@@ -132,6 +132,8 @@ LRESULT FlySQLExplorer::onSpeaker(UINT, WPARAM wParam, LPARAM, BOOL& bHandled)
 
 void FlySQLExplorer::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 {
+	if (m_closed || m_before_close || ClientManager::isShutdown())
+		return;
 	RECT rect;
 	GetClientRect(&rect);
 	UpdateBarsPosition(rect, bResizeBars);

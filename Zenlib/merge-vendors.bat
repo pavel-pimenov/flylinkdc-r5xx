@@ -1,2 +1,2 @@
 svn up
-svn merge https://flylinkdc.googlecode.com/svn/vendors/Zenlib
+svn merge svn://svn.fly-server.ru/flylinkdc/vendors/Zenlib

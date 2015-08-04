@@ -113,7 +113,7 @@ DWORD CFlyServerConfig::g_max_size_for_virus_detect = 10*1024*1024; // Максималь
 
 uint16_t CFlyServerConfig::g_max_unique_tth_search  = 10; // Не принимаем в течении 10 секунд одинаковых поисков по TTH для одного и того-же целевого IP:PORT (UDP)
 uint16_t CFlyServerConfig::g_max_unique_file_search = 10; // Не принимаем в течении 10 секунд одинаковых поисков по File для одного и того-же целевого IP:PORT (UDP)
-string CFlyServerConfig::g_regex_find_ip = "\\d\\d?\\d?\\.\\d\\d?\\d?\\.\\d\\d?\\d?\\.\\d\\d?\\d?";
+string CFlyServerConfig::g_regex_find_ip = "(\\d\\d?\\d?\\.\\d\\d?\\d?\\.\\d\\d?\\d?\\.\\d\\d?\\d?)";
 std::vector<std::string> CFlyServerConfig::g_mapping_hubs;
 //std::unordered_set<unsigned long> CFlyServerConfig::g_block_ip;
 std::unordered_set<std::string> CFlyServerConfig::g_block_ip_str;

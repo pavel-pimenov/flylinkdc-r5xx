@@ -25,7 +25,7 @@
 class SDCPage : public CPropertyPage<IDD_SDC_PAGE>, public PropPage
 {
 	public:
-		explicit SDCPage( ) : PropPage( TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_ADVANCED3))
+		explicit SDCPage() : PropPage(TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_ADVANCED3))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

@@ -390,7 +390,10 @@ void Util::loadP2PGuard()
 							{
 								const string l_note =  l_currentLine.substr(l_pos + 1);
 								dcassert(!l_note.empty())
-								l_sqlite_array.push_back(CFlyP2PGuardIP(l_note, l_startIP, l_endIP));
+								if (l_note.find("VimpelCom") == string::npos) // TODO научится вырезать RU после скачки
+								{
+									l_sqlite_array.push_back(CFlyP2PGuardIP(l_note, l_startIP, l_endIP));
+								}
 							}
 						}
 					}
@@ -404,7 +407,7 @@ void Util::loadP2PGuard()
 				linestart = lineend + 1;
 				{
 					CFlyLog l_geo_log_sqlite("[P2P Guard-sqlite]");
-					CFlylinkDBManager::getInstance()->save_p2p_guard(l_sqlite_array);
+					CFlylinkDBManager::getInstance()->save_p2p_guard(l_sqlite_array, "");
 				}
 				CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_TimeStampP2PGuard, l_timeStampFile);
 			}

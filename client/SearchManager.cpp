@@ -28,9 +28,9 @@
 
 uint16_t SearchManager::g_search_port = 0;
 
-const char* SearchManager::getTypeStr(int type)
+const char* SearchManager::getTypeStr(Search::TypeModes type)
 {
-	static const char* g_types[Search::TYPE_LAST] =
+	static const char* g_types[Search::TYPE_LAST_MODE] =
 	{
 		CSTRING(ANY),
 		CSTRING(AUDIO),
@@ -40,7 +40,10 @@ const char* SearchManager::getTypeStr(int type)
 		CSTRING(PICTURE),
 		CSTRING(VIDEO_AND_SUBTITLES),
 		CSTRING(DIRECTORY),
-		"TTH"
+		"TTH",
+		CSTRING(CD_DVD_IMAGES),
+		CSTRING(COMICS),
+		CSTRING(BOOK),
 	};
 	return g_types[type];
 }

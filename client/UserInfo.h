@@ -19,6 +19,8 @@
 #ifndef USERINFO_H
 #define USERINFO_H
 
+#pragma once
+
 #include "ClientManager.h"
 #include "TaskQueue.h"
 #include "LogManager.h"
@@ -43,6 +45,8 @@ enum Tasks
 #endif
 	GET_PASSWORD,
 	STATS,
+	DISCONNECTED,
+	CONNECTED,
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	DIRECT_MODE_DETECTED
 #endif

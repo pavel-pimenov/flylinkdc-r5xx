@@ -369,7 +369,7 @@ const string SettingsManager::g_settingTags[] =
 	"UpdateIPDHT",
 #endif
 	"KeepFinishedFilesOption",
-	"AllowNATTraversal", "UseExplorerTheme", "AutoDetectIncomingConnection",
+	"AllowNATTraversal", "UseExplorerTheme", "UcSubMenu", "AutoDetectIncomingConnection",
 	//"BetaInfo", //[+] NightOrion [-]
 #ifdef RIP_USE_PORTAL_BROWSER
 	"OpenPortalBrowser", //[+] BRAIN_RIPPER
@@ -1149,6 +1149,7 @@ void SettingsManager::setDefaults()
 	//setDefault(KEEP_DL_HISTORY, false);
 	//setDefault(KEEP_UL_HISTORY, false);
 	setDefault(SHOW_QUICK_SEARCH, TRUE);
+	setDefault(UC_SUBMENU, TRUE);
 	setDefault(SEARCH_DETECT_TTH, TRUE);
 	//setDefault(FULL_FILELIST_NFO, false);
 	setDefault(TABS_CLOSEBUTTONS, TRUE);
@@ -1682,7 +1683,7 @@ bool SettingsManager::set(StrSetting key, const string& value)
 		{
 			REPLACE_SPACES();
 			if (isValidInstance())
-			   getInstance()->fire(SettingsManagerListener::UsersChanges());
+				getInstance()->fire(SettingsManagerListener::UsersChanges());
 		}
 		break;
 		case LOW_PRIO_FILES:
@@ -1695,7 +1696,7 @@ bool SettingsManager::set(StrSetting key, const string& value)
 		{
 			REPLACE_SPACES();
 			if (isValidInstance())
-			    getInstance()->fire(SettingsManagerListener::ShareChanges());
+				getInstance()->fire(SettingsManagerListener::ShareChanges());
 		}
 		break;
 		// [~] IRainamn opt.
@@ -2126,9 +2127,9 @@ void SettingsManager::validateSearchTypeName(const string& name)
 	{
 		throw SearchTypeException("Invalid search type name"); // TODO translate
 	}
-	for (int type = Search::TYPE_ANY; type != Search::TYPE_LAST; ++type)
+	for (int type = Search::TYPE_ANY; type != Search::TYPE_LAST_MODE; ++type)
 	{
-		if (SearchManager::getTypeStr(type) == name)
+		if (SearchManager::getTypeStr(Search::TypeModes(type)) == name)
 		{
 			throw SearchTypeException("This search type already exists"); // TODO translate
 		}

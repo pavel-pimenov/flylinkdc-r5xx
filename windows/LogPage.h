@@ -26,7 +26,7 @@
 class LogPage : public CPropertyPage<IDD_LOG_PAGE>, public PropPage
 {
 	public:
-		explicit LogPage( ) : PropPage( TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_LOGS)), oldSelection(-1)
+		explicit LogPage() : PropPage(TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_LOGS)), oldSelection(-1)
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

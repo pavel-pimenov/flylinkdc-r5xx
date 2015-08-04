@@ -514,6 +514,7 @@ CFlylinkDBManager::CFlylinkDBManager()
 		                              "FROM fly_file group by tth_id having count(*) > 1");
 		                              
 		const int l_rev = m_flySQLiteDB.executeint("select max(rev) from fly_revision");
+		const int l_db_user_version = m_flySQLiteDB.executeint("PRAGMA user_version");
 		if (l_rev < 322)
 		{
 			safeAlter("ALTER TABLE fly_file add column hit int64 default 0");
@@ -606,6 +607,7 @@ CFlylinkDBManager::CFlylinkDBManager()
 		m_flySQLiteDB.executenonquery(
 		    "CREATE TABLE IF NOT EXISTS location_db.fly_p2pguard_ip(start_ip integer not null,stop_ip integer not null,note text);");
 		m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS location_db.i_fly_p2pguard_ip ON fly_p2pguard_ip(start_ip);");
+		m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS location_db.i_fly_p2pguard_note ON fly_p2pguard_ip(note);");
 		
 		m_flySQLiteDB.executenonquery(
 		    "CREATE TABLE IF NOT EXISTS location_db.fly_country_ip(start_ip integer not null,stop_ip integer not null,country text,flag_index integer);");
@@ -718,6 +720,17 @@ CFlylinkDBManager::CFlylinkDBManager()
 		m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS antivirus_db.i_suspect_user_share ON fly_suspect_user(share);");
 		
 #endif
+		if (l_db_user_version < 1)
+		{
+			// fix https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/18
+			m_flySQLiteDB.executenonquery("update fly_file set ftype=1 where name like '%.wv'");
+			m_flySQLiteDB.executenonquery("PRAGMA user_version=1");
+		}
+		if (l_db_user_version < 2)
+		{
+			m_flySQLiteDB.executenonquery("delete from location_db.fly_p2pguard_ip where note like '%VimpelCom%'");
+			m_flySQLiteDB.executenonquery("PRAGMA user_version=2");
+		}
 		
 		/*
 		{
@@ -1555,6 +1568,17 @@ uint8_t CFlylinkDBManager::get_country_sqlite(uint32_t p_ip, CFlyLocationDesc& p
 		Autoindex Inserts:                   0
 		CPU Time: user 0.000000 sys 0.000000
 		*/
+		
+		// TODO - склеить выборку в один запрос
+		/*
+		-- дл€ стран и p2p не запрашивать приватные адреса
+		select 1,country,flag_index,start_ip,stop_ip from (select country,flag_index,start_ip,stop_ip from fly_country_ip where start_ip <=780898514 order by start_ip desc limit 1) where stop_ip >=780898514
+		union all
+		select 2,location,flag_index, start_ip,stop_ip from (select location,start_ip,stop_ip,flag_index from fly_location_ip where start_ip <=780898514 order by start_ip desc limit 1) where stop_ip >=780898514
+		union all
+		select 3, note,0,0,0 from (select note,stop_ip from fly_p2pguard_ip where start_ip <=780898514 order by start_ip desc limit 1) where stop_ip >=780898514
+		
+		*/
 		m_select_geoip.init(m_flySQLiteDB,
 		                    "select country,flag_index,start_ip,stop_ip from "
 		                    "(select country,flag_index,start_ip,stop_ip from location_db.fly_country_ip where start_ip <=? order by start_ip desc limit 1) "
@@ -1584,6 +1608,7 @@ uint8_t CFlylinkDBManager::get_country_sqlite(uint32_t p_ip, CFlyLocationDesc& p
 //========================================================================================================
 string CFlylinkDBManager::is_p2p_guard(const uint32_t& p_ip)
 {
+	dcassert(Util::isPrivateIp(p_ip) == false);
 	Lock l(m_cs); // ѕока падает...
 	dcassert(p_ip && p_ip != INADDR_NONE);
 	if (p_ip && p_ip != INADDR_NONE)
@@ -1610,15 +1635,38 @@ string CFlylinkDBManager::is_p2p_guard(const uint32_t& p_ip)
 	return Util::emptyString;
 }
 //========================================================================================================
-void CFlylinkDBManager::save_p2p_guard(const CFlyP2PGuardArray& p_p2p_guard_ip)
+string CFlylinkDBManager::load_manual_p2p_guard()
+{
+	string l_result;
+	try
+	{
+		m_select_manual__p2p_guard.init(m_flySQLiteDB,
+		                                "select start_ip from location_db.fly_p2pguard_ip where note = 'Manual block IP'");
+		sqlite3_reader l_q = m_select_manual__p2p_guard->executereader();
+		while (l_q.read())
+		{
+			l_result += boost::asio::ip::address_v4(l_q.getint(0)).to_string() + "\r\n";
+		}
+	}
+	catch (const database_error& e)
+	{
+		errorDB("SQLite - load_manual_p2p_guard: " + e.getError());
+	}
+	return l_result;
+}
+//========================================================================================================
+void CFlylinkDBManager::save_p2p_guard(const CFlyP2PGuardArray& p_p2p_guard_ip, const string& p_manual_marker)
 {
 	Lock l(m_cs); // TODO
 	try
 	{
 		CFlyBusy l_disable_log(g_DisableSQLtrace);
 		sqlite3_transaction l_trans(m_flySQLiteDB);
-		m_delete_p2p_guard.init(m_flySQLiteDB, "delete from location_db.fly_p2pguard_ip");
-		m_delete_p2p_guard->executenonquery();
+		if (p_manual_marker.empty())
+		{
+			m_delete_p2p_guard.init(m_flySQLiteDB, "delete from location_db.fly_p2pguard_ip where note <> 'Manual block IP'");
+			m_delete_p2p_guard->executenonquery();
+		}
 		m_insert_p2p_guard.init(m_flySQLiteDB, "insert into location_db.fly_p2pguard_ip (start_ip,stop_ip,note) values(?,?,?)");
 		for (auto i = p_p2p_guard_ip.begin(); i != p_p2p_guard_ip.end(); ++i)
 		{
@@ -3155,6 +3203,7 @@ void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string
 #endif
 	}
 #endif
+	
 	auto& l_hub_cache_item = m_last_ip_cache[p_hub_id][p_nick];
 	if (!p_last_ip.is_unspecified() && p_message_count)
 	{
@@ -4352,7 +4401,34 @@ bool CFlyLevelDB::open_level_db(const string& p_db_name)
 		if (l_status.IsIOError())
 		{
 			LogManager::message("[CFlyLevelDB::open_level_db] l_status.IsIOError() = " + l_result_error, true);
-			dcassert(0);
+			//dcassert(0);
+			StringList l_delete_file = File::findFiles(p_db_name + '\\', "*.*");
+			unsigned l_count_delete_error = 0;
+			for (auto i = l_delete_file.cbegin(); i != l_delete_file.cend(); ++i)
+			{
+				if (i->size())
+					if ((*i)[i->size() - 1] != '\\')
+					{
+						if (!File::deleteFile(*i))
+						{
+							++l_count_delete_error;
+							LogManager::message("[CFlyLevelDB::open_level_db] error delete corrupt leveldb file  = " + *i, true);
+						}
+						else
+						{
+							LogManager::message("[CFlyLevelDB::open_level_db] OK delete corrupt leveldb file  = " + *i, true);
+						}
+					}
+			}
+			if (l_count_delete_error == 0)
+			{
+				// Create new leveldb-database
+				l_status = leveldb::DB::Open(m_options, p_db_name, &m_db);
+				if (l_status.ok())
+				{
+					LogManager::message("[CFlyLevelDB::open_level_db] OK Create new leveldb database: " + p_db_name, true);
+				}
+			}
 			// most likely there's another instance running or the permissions are wrong
 //			messageF(STRING_F(DB_OPEN_FAILED_IO, getNameLower() % Text::toUtf8(ret.ToString()) % APPNAME % dbPath % APPNAME), false, true);
 //			exit(0);

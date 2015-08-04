@@ -1,2 +1,2 @@
 svn up
-svn merge https://flylinkdc.googlecode.com/svn/vendors/MediaInfoLib
+svn merge svn://svn.fly-server.ru/flylinkdc/vendors/MediaInfoLib

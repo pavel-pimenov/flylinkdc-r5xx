@@ -129,6 +129,8 @@ LRESULT CDMDebugFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 
 void CDMDebugFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 {
+	if (isClosedOrShutdown())
+		return;
 	RECT rect = { 0 };
 	GetClientRect(&rect);
 	

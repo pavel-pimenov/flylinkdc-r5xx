@@ -25,7 +25,7 @@
 class ProxyPage : public CPropertyPage<IDD_PROXY_PAGE>, public PropPage
 {
 	public:
-		explicit ProxyPage( ) : PropPage( TSTRING(SETTINGS_NETWORK) + _T('\\') + TSTRING(SETTINGS_PROXY))
+		explicit ProxyPage() : PropPage(TSTRING(SETTINGS_NETWORK) + _T('\\') + TSTRING(SETTINGS_PROXY))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

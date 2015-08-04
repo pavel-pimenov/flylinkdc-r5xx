@@ -246,6 +246,13 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 		                   WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS // | LVS_EX_INFOTIP
 		                   , WS_EX_CLIENTEDGE, IDC_RESULTS);
 	}
+#ifdef FLYLINKDC_USE_TREE_SEARCH
+	m_ctrlTree.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TVS_HASBUTTONS | TVS_LINESATROOT | TVS_HASLINES | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP, WS_EX_CLIENTEDGE, IDC_TRANSFER_TREE);
+	m_ctrlTree.SetBkColor(Colors::g_bgColor);
+	m_ctrlTree.SetTextColor(Colors::g_textColor);
+	WinUtil::SetWindowThemeExplorer(m_ctrlTree.m_hWnd);
+	//m_treeContainer.SubclassWindow(m_ctrlTree);
+#endif
 	SET_EXTENDENT_LIST_VIEW_STYLE(ctrlResults);
 	resultsContainer.SubclassWindow(ctrlResults.m_hWnd);
 	m_Theme = GetWindowTheme(ctrlResults.m_hWnd);
@@ -434,7 +441,9 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	ctrlFiletype.AddString(CTSTRING(VIDEO_AND_SUBTITLES));
 	ctrlFiletype.AddString(CTSTRING(DIRECTORY));
 	ctrlFiletype.AddString(_T("TTH"));
-	ctrlFiletype.AddString(_T("CD-DVD Image"));
+	ctrlFiletype.AddString(CTSTRING(CD_DVD_IMAGES));
+	ctrlFiletype.AddString(CTSTRING(COMICS));
+	ctrlFiletype.AddString(CTSTRING(BOOK));
 	if (BOOLSETTING(SAVE_SEARCH_SETTINGS))
 	{
 		ctrlFiletype.SetCurSel(SETTING(SAVED_SEARCH_TYPE));
@@ -1165,7 +1174,9 @@ void SearchFrame::on(SearchManagerListener::SR, const SearchResult &aResult) noe
 				Search::TYPE_EXECUTABLE,
 				Search::TYPE_PICTURE,
 				Search::TYPE_VIDEO,
-				Search::TYPE_CD_IMAGE
+				Search::TYPE_CD_IMAGE,
+				Search::TYPE_CD_COMICS,
+				Search::TYPE_BOOK,
 			};
 			for (auto k = 0; k < _countof(l_local_filter); ++k)
 			{
@@ -1631,7 +1642,7 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 		case COLUMN_TYPE:
 			if (sr.getType() == SearchResult::TYPE_FILE)
 			{
-				tstring type = Text::toT(Util::getFileExtWithoutDot(Text::fromT(getText(COLUMN_FILENAME))));
+				const tstring type = Text::toT(Util::getFileExtWithoutDot(Text::fromT(getText(COLUMN_FILENAME))));
 				return type;
 			}
 			else
@@ -2131,6 +2142,8 @@ LRESULT SearchFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 
 void SearchFrame::UpdateLayout(BOOL bResizeBars)
 {
+	if (isClosedOrShutdown())
+		return;
 	m_tooltip.Activate(FALSE);
 	RECT rect;
 	GetClientRect(&rect);
@@ -2162,11 +2175,21 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 	if (m_showUI)
 	{
 		CRect rc = rect;
-		
-		rc.left += width;
+#ifdef FLYLINKDC_USE_TREE_SEARCH
+		const int l_width_tree = 200;
+#else
+		const int l_width_tree = 0;
+#endif
+		rc.left += width + l_width_tree;
 		rc.bottom -= 26;
 		ctrlResults.MoveWindow(rc);
 		
+#ifdef FLYLINKDC_USE_TREE_SEARCH
+		CRect rc_tree = rc;
+		rc_tree.left -= l_width_tree;
+		rc_tree.right = rc_tree.left + l_width_tree - 5;
+		m_ctrlTree.MoveWindow(rc_tree);
+#endif
 		// "Search for".
 		rc.left = lMargin; // Левая граница.
 		rc.right = width - rMargin; // Правая граница.
@@ -2553,7 +2576,7 @@ LRESULT SearchFrame::onSearchByTTH(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 	return 0;
 }
 
-void SearchFrame::addSearchResult(SearchInfo * si)
+void SearchFrame::addSearchResult(SearchInfo* si)
 {
 	const SearchResult& sr = si->sr;
 	const auto l_user        = sr.getUser();
@@ -2590,7 +2613,7 @@ void SearchFrame::addSearchResult(SearchInfo * si)
 	{
 		for (auto s = ctrlResults.getParents().cbegin(); s != ctrlResults.getParents().cend(); ++s)
 		{
-			const SearchInfo* si2 = (*s).second.parent;
+			const SearchInfo* si2 = s->second.parent;
 			const auto& sr2 = si2->sr;
 			if (l_user->getCID() == sr2.getUser()->getCID())
 			{
@@ -2605,6 +2628,34 @@ void SearchFrame::addSearchResult(SearchInfo * si)
 	if (m_running)
 	{
 		m_resultsCount++;
+#ifdef FLYLINKDC_USE_TREE_SEARCH
+		// Обработка гуя
+		{
+		
+			m_RootItem = m_ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
+			                                   m_transfer_type == e_TransferDownload ? _T("Download") : _T("Upload"),
+			                                   0, // g_ISPImage.m_flagImageCount + 14, // nImage
+			                                   0, // g_ISPImage.m_flagImageCount + 14, // nSelectedImage
+			                                   0, // nState
+			                                   0, // nStateMask
+			                                   e_Root, // lParam
+			                                   0, // aParent,
+			                                   0  // hInsertAfter
+			                                  );
+			m_CurrentItem = m_ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
+			                                      _T("Current session (RAM)"),
+			                                      0, // g_ISPImage.m_flagImageCount + 14, // nImage
+			                                      0, // g_ISPImage.m_flagImageCount + 14, // nSelectedImage
+			                                      0, // nState
+			                                      0, // nStateMask
+			                                      e_Current, // lParam
+			                                      m_RootItem, // aParent,
+			                                      0  // hInsertAfter
+			                                     );
+			                                     
+		}
+#endif
+		
 		
 		CLockRedraw<> l_lock_draw(ctrlResults); //[+]IRainman optimize SearchFrame
 		

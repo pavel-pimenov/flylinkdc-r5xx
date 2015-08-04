@@ -51,8 +51,8 @@
 namespace ZenLib
 {
 
-//***************************************************************************
-// Constructor/Destructor
+//---------------------------------------------------------------------------
+// Debug
 #ifdef ZENLIB_DEBUG
     #include <stdio.h>
     #include <windows.h>

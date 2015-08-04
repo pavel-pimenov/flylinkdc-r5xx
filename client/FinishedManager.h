@@ -33,6 +33,7 @@ class FinishedItem
 		{
 			COLUMN_FIRST,
 			COLUMN_FILE = COLUMN_FIRST,
+			COLUMN_TYPE,
 			COLUMN_DONE,
 			COLUMN_PATH,
 			COLUMN_TTH,
@@ -82,6 +83,8 @@ class FinishedItem
 			{
 				case COLUMN_FILE:
 					return Text::toT(Util::getFileName(getTarget()));
+				case COLUMN_TYPE:
+					return Text::toT(Util::getFileExtWithoutDot(getTarget()));
 				case COLUMN_DONE:
 					return Text::toT(id ? Util::formatDigitalClockGMT(getTime()) : Util::formatDigitalClock(getTime()));
 				case COLUMN_PATH:

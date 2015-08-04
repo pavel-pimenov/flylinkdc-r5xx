@@ -28,7 +28,7 @@
 class QueuePage : public CPropertyPage<IDD_QUEUE_PAGE>, public PropPage
 {
 	public:
-		explicit QueuePage( ) : PropPage( TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(SETTINGS_QUEUE))
+		explicit QueuePage() : PropPage(TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(SETTINGS_QUEUE))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

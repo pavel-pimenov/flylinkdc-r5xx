@@ -18,7 +18,10 @@
 #include <ws2tcpip.h>
 #include <io.h>
 #define MAXHOSTNAMELEN 64
-#define snprintf _snprintf
+//Windows - MSVC (before Visual Studio 2015)
+#if defined (_MSC_VER) && _MSC_VER < 1900
+  // #define snprintf _snprintf
+#endif
 #define herror
 #define socklen_t int
 #else /* #ifdef _WIN32 */
@@ -152,7 +155,7 @@ int connecthostport(const char * host, unsigned short port,
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_family = AF_UNSPEC; /* AF_INET, AF_INET6 or AF_UNSPEC */
 	/* hints.ai_protocol = IPPROTO_TCP; */
-	snprintf(port_str, sizeof(port_str), "%hu", port);
+	_snprintf(port_str, sizeof(port_str), "%hu", port);
 	if(host[0] == '[')
 	{
 		/* literal ip v6 address */

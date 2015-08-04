@@ -725,6 +725,8 @@ LRESULT PublicHubsFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 
 void PublicHubsFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 {
+	if (isClosedOrShutdown())
+		return;
 	RECT rect;
 	GetClientRect(&rect);
 	// position bars and offset their dimensions

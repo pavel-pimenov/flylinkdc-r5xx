@@ -30,7 +30,7 @@ class SocketException;
 class SearchManager : public Speaker<SearchManagerListener>, public Singleton<SearchManager>, public BASE_THREAD
 {
 	public:
-		static const char* getTypeStr(int type);
+		static const char* getTypeStr(Search::TypeModes type);
 		
 		void search_auto(const string& p_tth)
 		{

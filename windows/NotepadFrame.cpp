@@ -84,6 +84,8 @@ LRESULT NotepadFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 
 void NotepadFrame::UpdateLayout(BOOL /*bResizeBars*/ /* = TRUE */)
 {
+	if (isClosedOrShutdown())
+		return;
 	CRect rc;
 	
 	GetClientRect(rc);

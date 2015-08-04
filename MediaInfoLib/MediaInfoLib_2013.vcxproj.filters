@@ -84,6 +84,15 @@
     <Filter Include="ThirdParty\aes">
       <UniqueIdentifier>{99956db6-193f-4170-9dbb-c58a8896c033}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ThirdParty\sha1-gladman">
+      <UniqueIdentifier>{9d8aabd9-7bcb-4498-8012-940f4b8f3009}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty\hmac-gladman">
+      <UniqueIdentifier>{bcbc02fe-a599-4952-8c04-96c585a76a98}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty\sha2-gladman">
+      <UniqueIdentifier>{44a4d7fd-e473-4816-a8ed-27fc9c7258d0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\MediaInfo\File__Analyze.cpp">
@@ -728,6 +737,18 @@
     <ClCompile Include="Source\MediaInfo\Audio\File_Caf.cpp">
       <Filter>Source Files\Audio</Filter>
     </ClCompile>
+    <ClCompile Include="Source\ThirdParty\hmac-gladman\hmac.c">
+      <Filter>ThirdParty\hmac-gladman</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ThirdParty\hmac-gladman\pwd2key.c">
+      <Filter>ThirdParty\hmac-gladman</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ThirdParty\sha1-gladman\sha1.c">
+      <Filter>ThirdParty\sha1-gladman</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ThirdParty\sha2-gladman\sha2.c">
+      <Filter>ThirdParty\sha2-gladman</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\MediaInfo\File__Analyse_Automatic.h">
@@ -1371,6 +1392,18 @@
     </ClInclude>
     <ClInclude Include="Source\MediaInfo\Audio\File_Caf.h">
       <Filter>Header Files\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ThirdParty\hmac-gladman\hmac.h">
+      <Filter>ThirdParty\hmac-gladman</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ThirdParty\hmac-gladman\pwd2key.h">
+      <Filter>ThirdParty\hmac-gladman</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ThirdParty\sha1-gladman\sha1.h">
+      <Filter>ThirdParty\sha1-gladman</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ThirdParty\sha2-gladman\sha2.h">
+      <Filter>ThirdParty\sha2-gladman</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

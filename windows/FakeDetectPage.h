@@ -33,7 +33,7 @@
 class FakeDetect : public CPropertyPage<IDD_FAKEDETECT_PAGE>, public PropPage
 {
 	public:
-		explicit FakeDetect( ) : PropPage( TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_FAKEDETECT))
+		explicit FakeDetect() : PropPage(TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_FAKEDETECT))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

@@ -75,7 +75,7 @@ class IntPreviewPage: public CPropertyPage<IDD_INT_PREVIEW_PAGE>, public PropPag
 class IntPreviewPage : public EmptyPage
 {
 	public:
-		IntPreviewPage() : EmptyPage( TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(SETTINGS_AVIPREVIEW) + _T('\\') + TSTRING(SETTINGS_INT_PREVIEW_PAGE))
+		IntPreviewPage() : EmptyPage(TSTRING(SETTINGS_DOWNLOADS) + _T('\\') + TSTRING(SETTINGS_AVIPREVIEW) + _T('\\') + TSTRING(SETTINGS_INT_PREVIEW_PAGE))
 		{
 		}
 };

@@ -10,7 +10,7 @@
 class RangesPage : public CPropertyPage<IDD_RANGES_PAGE>, public PropPage
 {
 	public:
-		explicit RangesPage( ) : PropPage( TSTRING(IPGUARD)), m_isEnabledIPGuard(false)
+		explicit RangesPage() : PropPage(TSTRING(IPGUARD)), m_isEnabledIPGuard(false)
 		{
 			SetTitle(m_title.c_str());
 		}
@@ -74,6 +74,7 @@ class RangesPage : public CPropertyPage<IDD_RANGES_PAGE>, public PropPage
 		string m_IPGuard;
 		string m_IPGuardPATH;
 		string m_IPFilter;
+		string m_ManualP2PGuard;
 		string m_IPFilterPATH;
 		bool m_isEnabledIPGuard;
 };

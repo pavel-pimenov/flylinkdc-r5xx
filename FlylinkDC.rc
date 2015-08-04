@@ -1070,7 +1070,7 @@ BEGIN
     CONTROL         "Passive (behind a firewall)",IDC_PASSIVE,"Button",BS_AUTORADIOBUTTON | BS_TOP | BS_MULTILINE | WS_TABSTOP,210,128,258,18
     LTEXT           "IP",IDC_SETTINGS_IP,332,117,10,8,NOT WS_GROUP
     EDITTEXT        IDC_SERVER,346,115,80,14,ES_AUTOHSCROLL
-    GROUPBOX        "OP Chat names (wildcards supported)",IDC_OPCHAT,205,151,267,30
+    GROUPBOX        "OP Chat names + auto open PM (wildcards supported, use semicolon to separate)",IDC_OPCHAT,205,151,267,30
     EDITTEXT        IDC_OPCHAT_STR,210,162,256,14,ES_AUTOHSCROLL
     RTEXT           "Group:",IDC_FAVGROUP,210,187,104,8
     COMBOBOX        IDC_FAVGROUP_BOX,318,185,148,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
@@ -1230,20 +1230,22 @@ EXSTYLE WS_EX_STATICEDGE
 CAPTION "IPGuard"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    GROUPBOX        "P2P Guard",IDC_STATIC,4,264,316,31
+    GROUPBOX        "P2P Guard",IDC_STATIC,4,209,316,88
     CONTROL         "Enable IPGuard",IDC_ENABLE_IPGUARD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,12,254,8
-    LTEXT           "IPGuard is intended to be used for blocking malicious ip ranges only, and it is not by any means a substitute for firewall or other internet security software!\n\nWarning: IPGuard affects all connections in FlylinkDC++",IDC_INTRO_IPGUARD,10,21,306,46
+    LTEXT           "IPGuard is intended to be used for blocking malicious ip ranges only, and it is not by any means a substitute for firewall or other internet security software!\n\nWarning: IPGuard affects all connections in FlylinkDC++",IDC_INTRO_IPGUARD,10,21,306,42
     RTEXT           "Default Policy:",IDC_DEFAULT_POLICY_STR,12,68,117,8
     COMBOBOX        IDC_DEFAULT_POLICY,133,66,66,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     LTEXT           "except specified",IDC_DEFAULT_POLICY_EXCEPT_STR,202,68,112,8
-    EDITTEXT        IDC_FLYLINK_GUARD_IP,10,81,304,61,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL
-    GROUPBOX        "IPTrust.ini (download-upload)",IDC_FLYLINK_TRUST_IP_BOX,4,147,316,115
-    EDITTEXT        IDC_FLYLINK_TRUST_IP,10,157,304,78,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL
-    LTEXT           "IPTrust.ini URL:",IDC_FLYLINK_TRUST_IP_URL_STR,11,236,264,8
-    EDITTEXT        IDC_FLYLINK_TRUST_IP_URL,10,245,304,14,ES_AUTOHSCROLL
-    CONTROL         "Enable P2P Guard",IDC_ENABLE_P2P_GUARD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,273,134,8
-    GROUPBOX        "IP Guard",IDC_STATIC,4,2,316,144
-    LTEXT           "Lock of parasitic traffic based on the 'black list' ( ipfilter.zip from http://emule-security.org )",IDC_ENABLE_P2P_GUARD_STR,10,283,307,8
+    EDITTEXT        IDC_FLYLINK_GUARD_IP,10,81,304,41,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL
+    GROUPBOX        "IPTrust.ini (download-upload)",IDC_FLYLINK_TRUST_IP_BOX,4,126,316,82
+    EDITTEXT        IDC_FLYLINK_TRUST_IP,10,136,304,51,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL
+    LTEXT           "IPTrust.ini URL:",IDC_FLYLINK_TRUST_IP_URL_STR,11,191,264,8
+    EDITTEXT        IDC_FLYLINK_TRUST_IP_URL,10,191,304,14,ES_AUTOHSCROLL
+    CONTROL         "Enable P2P Guard",IDC_ENABLE_P2P_GUARD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,217,134,8
+    GROUPBOX        "IP Guard",IDC_STATIC,4,2,316,125
+    LTEXT           "Lock of parasitic traffic based on the 'black list' ( ipfilter.zip from http://emule-security.org )",IDC_ENABLE_P2P_GUARD_STR,10,227,303,8
+    GROUPBOX        "Manual P2P Guard",IDC_FLYLINK_MANUAL_P2P_GUARD,11,235,103,60
+    EDITTEXT        IDC_FLYLINK_MANUAL_P2P_GUARD_IP_LIST,15,247,95,46,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY | ES_WANTRETURN | WS_VSCROLL
 END
 
 IDD_SLOT_PAGE DIALOGEX 0, 0, 325, 300

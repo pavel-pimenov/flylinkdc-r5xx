@@ -26,7 +26,7 @@
 class TabsPage : public CPropertyPage<IDD_TABS_PAGE>, public PropPage
 {
 	public:
-		explicit TabsPage( ) : PropPage( TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_TABS))
+		explicit TabsPage() : PropPage(TSTRING(SETTINGS_APPEARANCE) + _T('\\') + TSTRING(SETTINGS_TABS))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

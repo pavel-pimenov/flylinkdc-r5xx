@@ -29,7 +29,7 @@
 class AppearancePage : public CPropertyPage<IDD_APPEARANCE_PAGE>, public PropPage
 {
 	public:
-		explicit AppearancePage( ) : PropPage( TSTRING(SETTINGS_APPEARANCE))
+		explicit AppearancePage() : PropPage(TSTRING(SETTINGS_APPEARANCE))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

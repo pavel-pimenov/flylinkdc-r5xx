@@ -21,7 +21,8 @@
  		max_flood_command="100"
 		ban_flood_command="20"
 		exclude_error_syslog=""
-		exclude_error_log="9,5,16,10,4,17,26,29,25,24"
+		regex_find_ip="\d\d?\d?\.\d\d?\d?\.\d\d?\d?\.\d\d?\d?"
+		exclude_error_log="9,5,16,10,4,17,26,29,25,24,36"
 		ignore_flood_command="Search,Quit,MyINFO,UserIP,RevConnectToMe,ConnectToMe,UserCommand"
 		zlib_compress_level = "9"
 		scan ="avi,mkv,mp3,flac,ogg,mp4,mpg,divx,flv,mov,mpeg,wma,m2ts"
@@ -37,7 +38,8 @@
 		block_share_name = "thumbs.db,zbthumbnail.info"
 		block_share_mask = "~utorrentpartfile*,.~lock.*.*#"
 		custom_compress_ext = "msi,3gp,avi,divx,flv,m4v,mkv,mov,mp4,mpg,mpeg,vob,wmv,bik,qt,rm,dts,aac,ac3,ape,fla,flac,m4a,mp1,mp2,mp3,ogg,wma,wv,mka,vqf,lqt,tiff,tif,jpg,gif,djvu,djv,part1,part2,part3,part4,part5,part6,part7,part8,part9,part10,cab,cso,0,000,7z,a01,ace,ain,alz,apz,ar,arc,arh,ari,arj,ark,axx,bhx,bz,bz2,bzip,bzip2,c00,c01,c02,car,cb7,cbr,cbz,deb,dgc,dist,f,fdp,gca,gz,gzi,gzip,ha,hbc,hbc2,hbe,hki,hki2,hpk,hyp,ice,ipg,ipk,ish,j,jgz,jic,kgb,lbr,lha,lzh,lzma,lzo,lzx,pak,paq6,paq7,paq8,par,par2,pbi,pea,pf,pim,pit,piz,pkg,puz,qda,r00,r01,r02,r03,r30,rar,rev,rk,rpm,rte,rzs,s00,s01,s02,sar,sdn,sea,sen,sfs,sfx,sh,shar,shr,sit,sitx,spt,sqx,sqz,tbz,tbz2,tg,tgz,tlz,tlzma,txz,tz,uha,wad,war,xef,xez,xmcdz,xpi,xz,y,z,z02,z04,zap,zip,zipx,zix,zoo,zpi,zz"
-		mapping_hubs = "dchub://yarinfohub.no-ip.org:1209,dchub://info.yarhub.ru,dchub://dc.ozerki.net,dchub://ozerki.org,dchub://178.130.0.214,dchub://ozerki.org,dchub://dc.cifracom.ru,dchub://ozerki.org"
-		block_hubs = "adc://adchub.com:1687"
+		mapping_hubs = "dchub://yarinfohub.no-ip.org:1209,dchub://info.yarhub.ru,dchub://dc.ozerki.net,dchub://ozerki.org,dchub://dc.triolan.net.ua,dchub://mydc.pp.ua:420,dchub://dc.triolan.com.ua,dchub://myhub.pp.ua:420,dchub://dc.triolan.ua,dchub://mydc.pp.ua:420,dchub://hubsergdc.sloboda.net,dchub://hubsergdc.ukroffice.com,dchub://flylinkdc.dyndns.org,dchub://dc.fly-server.ru,dchub://dc.yarcom.ru,dchub://dc.yarhub.ru,dchub://dcfree.dyndns.biz,dchub://planet-dc.ru"
+		block_hubs = "adc://adchub.com:1687,dchub://mgland.ru,dchub://cinemann.ru,dchub://dc.mgland.ru,dchub://coolhub.ru,dchub://elitedc.ru"
+		block_ip ="206.123.249.115,208.103.122.166,66.212.143.106,217.118.79.44,80.95.0.130,217.118.79.39"
 	/>
 </Bootstraps>	

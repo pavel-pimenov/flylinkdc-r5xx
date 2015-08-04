@@ -376,7 +376,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  UPDATE_IP_DHT, // [!] IRainman UPDATE_IP -> UPDATE_IP_DHT: Flylink contains two methods of IP update!
 #endif
 		                  KEEP_FINISHED_FILES_OPTION,
-		                  ALLOW_NAT_TRAVERSAL, USE_EXPLORER_THEME, AUTO_DETECT_CONNECTION,
+		                  ALLOW_NAT_TRAVERSAL, USE_EXPLORER_THEME, UC_SUBMENU, AUTO_DETECT_CONNECTION,
 		                  // BETA_INFO, // [+] NightOrion [-]
 #ifdef RIP_USE_PORTAL_BROWSER
 		                  OPEN_PORTAL_BROWSER, //[+] BRAIN_RIPPER

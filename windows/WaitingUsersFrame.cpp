@@ -164,6 +164,8 @@ LRESULT WaitingUsersFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 
 void WaitingUsersFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 {
+	if (isClosedOrShutdown())
+		return;
 	RECT rect;
 	GetClientRect(&rect);
 	// position bars and offset their dimensions

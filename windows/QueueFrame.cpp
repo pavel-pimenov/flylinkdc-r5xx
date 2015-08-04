@@ -1842,7 +1842,8 @@ void QueueFrame::updateStatus()
 
 void QueueFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 {
-	if (m_closed == false)
+	if (isClosedOrShutdown())
+		return;
 	{
 		RECT rect;
 		GetClientRect(&rect);

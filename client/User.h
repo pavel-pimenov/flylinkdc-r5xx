@@ -313,6 +313,8 @@ class User : public intrusive_ptr_base<User>, public Flags
 		CFlyUserRatioInfo* m_ratio_ptr;
 		uint32_t  m_hub_id;
 		bool      m_is_first_init_ratio;
+		friend struct CFlyUserRatioInfo;
+		bool      m_is_last_ip_dirty;
 		////static std::unique_ptr<webrtc::RWLockWrapper> g_ratio_cs;
 		mutable FastCriticalSection m_ratio_cs;
 #endif

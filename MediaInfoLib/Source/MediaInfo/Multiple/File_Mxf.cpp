@@ -1919,15 +1919,17 @@ File_Mxf::File_Mxf()
     IdIsAlwaysSame_Offset=0;
     PartitionMetadata_PreviousPartition=(int64u)-1;
     PartitionMetadata_FooterPartition=(int64u)-1;
+    RandomIndexMetadatas_MaxOffset=(int64u)-1;
     DTS_Delay=0;
     StreamPos_StartAtOne=true;
-    SDTI_TimeCode_StartTimecode_ms=(int64u)-1;
+    SDTI_TimeCode_RepetitionCount=0;
     SDTI_SizePerFrame=0;
     SDTI_IsPresent=false;
     SDTI_IsInIndexStreamOffset=true;
     SystemScheme1_TimeCodeArray_StartTimecode_ms=(int64u)-1;
     SystemScheme1_FrameRateFromDescriptor=0;
     Essences_FirstEssence_Parsed=false;
+    MayHaveCaptionsInStream=false;
     StereoscopicPictureSubDescriptor_IsPresent=false;
     UserDefinedAcquisitionMetadata_UdamSetIdentifier_IsSony=false;
     Essences_UsedForFrameCount=(int32u)-1;
@@ -2102,7 +2104,7 @@ void File_Mxf::Streams_Finish()
     Fill(Stream_General, 0, General_Format_Profile, Mxf_OperationalPattern(OperationalPattern));
 
     //Time codes
-    if (SDTI_TimeCode_StartTimecode_ms!=(int64u)-1)
+    if (SDTI_TimeCode_StartTimecode.IsValid())
     {
         bool IsDuplicate=false;
         for (size_t Pos2=0; Pos2<Count_Get(Stream_Other); Pos2++)
@@ -2115,7 +2117,7 @@ void File_Mxf::Streams_Finish()
             Fill(Stream_Other, StreamPos_Last, Other_Type, "Time code");
             Fill(Stream_Other, StreamPos_Last, Other_Format, "SMPTE TC");
             Fill(Stream_Other, StreamPos_Last, Other_MuxingMode, "SDTI");
-            Fill(Stream_Other, StreamPos_Last, Other_TimeCode_FirstFrame, SDTI_TimeCode_StartTimecode.c_str());
+            Fill(Stream_Other, StreamPos_Last, Other_TimeCode_FirstFrame, SDTI_TimeCode_StartTimecode.ToString());
         }
     }
     if (SystemScheme1_TimeCodeArray_StartTimecode_ms!=(int64u)-1)
@@ -2482,9 +2484,9 @@ void File_Mxf::Streams_Finish_Essence(int32u EssenceUID, int128u TrackUID)
         //Fill(StreamKind_Last, StreamPos_Last, Fill_Parameter(StreamKind_Last, Generic_TimeCode_FirstFrame), TC.ToString().c_str());
         //Fill(StreamKind_Last, StreamPos_Last, Fill_Parameter(StreamKind_Last, Generic_TimeCode_Source), "Time code track (stripped)");
     }
-    if (SDTI_TimeCode_StartTimecode_ms!=(int64u)-1)
+    if (SDTI_TimeCode_StartTimecode.IsValid())
     {
-        Fill(StreamKind_Last, StreamPos_Last, "Delay_SDTI", SDTI_TimeCode_StartTimecode_ms);
+        Fill(StreamKind_Last, StreamPos_Last, "Delay_SDTI", SDTI_TimeCode_StartTimecode.ToMilliseconds());
         if (StreamKind_Last!=Stream_Max)
             (*Stream_More)[StreamKind_Last][StreamPos_Last](Ztring().From_Local("Delay_SDTI"), Info_Options)=__T("N NT");
 
@@ -3428,6 +3430,20 @@ void File_Mxf::Streams_Finish_Component_ForTimeCode(const int128u& ComponentUID,
         {
             //Note: Origin is not part of the StartTimecode for the first frame in the source package. From specs: "For a Timecode Track with a single Timecode Component and with origin N, where N greater than 0, the timecode value at the Zero Point of the Track equals the start timecode of the Timecode Component incremented by N units."
             TimeCode TC(Component2->second.MxfTimeCode.StartTimecode+Config->File_IgnoreEditsBefore, (int8u)Component2->second.MxfTimeCode.RoundedTimecodeBase, Component2->second.MxfTimeCode.DropFrame);
+            bool IsHybridTimeCode=false;
+            if (Component->second.StructuralComponents.size()==2 && !Pos)
+            {
+                components::iterator Component_TC2=Components.find(Component->second.StructuralComponents[1]);
+                if (Component_TC2!=Components.end() && Component_TC2->second.MxfTimeCode.StartTimecode!=(int64u)-1)
+                {
+                    TimeCode TC2(Component_TC2->second.MxfTimeCode.StartTimecode+Config->File_IgnoreEditsBefore, (int8u)Component_TC2->second.MxfTimeCode.RoundedTimecodeBase, Component2->second.MxfTimeCode.DropFrame);
+                    if (TC2.ToFrames()-TC.ToFrames()==2)
+                    {
+                        TC++;
+                        IsHybridTimeCode=true;
+                    }
+                }
+            }
             Stream_Prepare(Stream_Other);
             Fill(Stream_Other, StreamPos_Last, Other_ID, Ztring::ToZtring(TrackID)+(IsSourcePackage?__T("-Source"):__T("-Material")));
             Fill(Stream_Other, StreamPos_Last, Other_Type, "Time code");
@@ -3456,6 +3472,9 @@ void File_Mxf::Streams_Finish_Component_ForTimeCode(const int128u& ComponentUID,
             {
                 MxfTimeCodeMaterial=Component2->second.MxfTimeCode;
             }
+
+            if (IsHybridTimeCode)
+                break;
         }
     }
 }
@@ -4953,29 +4972,7 @@ void File_Mxf::Header_Parse()
         if (IsParsingEnd && PartitionPack_Parsed && !Partitions.empty() && Partitions[Partitions.size()-1].StreamOffset+Partitions[Partitions.size()-1].PartitionPackByteCount+Partitions[Partitions.size()-1].HeaderByteCount+Partitions[Partitions.size()-1].IndexByteCount==File_Offset+Buffer_Offset
          && !(Code_Compare1==Elements::RandomIndexMetadata1 && Code_Compare2==Elements::RandomIndexMetadata2 && Code_Compare3==Elements::RandomIndexMetadata3 && Code_Compare4==Elements::RandomIndexMetadata4))
         {
-            if (RandomIndexMetadatas.empty())
-            {
-                if (!RandomIndexMetadatas_AlreadyParsed)
-                {
-                    Partitions_Pos=0;
-                    while (Partitions_Pos<Partitions.size() && Partitions[Partitions_Pos].StreamOffset!=PartitionMetadata_PreviousPartition)
-                        Partitions_Pos++;
-                    if (Partitions_Pos==Partitions.size())
-                    {
-                        GoTo(PartitionMetadata_PreviousPartition);
-                        Open_Buffer_Unsynch();
-                    }
-                    else
-                        TryToFinish();
-                }
-            }
-            else
-            {
-                GoTo(RandomIndexMetadatas[0].ByteOffset);
-                RandomIndexMetadatas.erase(RandomIndexMetadatas.begin());
-                PartitionPack_Parsed=false;
-                Open_Buffer_Unsynch();
-            }
+            NextRandomIndexMetadata();
             return;
         }
     #endif //MEDIAINFO_DEMUX || MEDIAINFO_SEEK
@@ -5274,30 +5271,7 @@ void File_Mxf::Data_Parse()
 
         if (IsParsingEnd)
         {
-            //We have the necessary for indexes, jumping to next index
-            Skip_XX(Element_Size,                               "Data");
-            if (RandomIndexMetadatas.empty())
-            {
-                if (!RandomIndexMetadatas_AlreadyParsed)
-                {
-                    Partitions_Pos=0;
-                    while (Partitions_Pos<Partitions.size() && Partitions[Partitions_Pos].StreamOffset!=PartitionMetadata_PreviousPartition)
-                        Partitions_Pos++;
-                    if (Partitions_Pos==Partitions.size())
-                    {
-                        GoTo(PartitionMetadata_PreviousPartition);
-                        Open_Buffer_Unsynch();
-                    }
-                    else
-                        TryToFinish();
-                }
-            }
-            else
-            {
-                GoTo(RandomIndexMetadatas[0].ByteOffset);
-                RandomIndexMetadatas.erase(RandomIndexMetadatas.begin());
-                Open_Buffer_Unsynch();
-            }
+            NextRandomIndexMetadata();
             return;
         }
 
@@ -5414,9 +5388,6 @@ void File_Mxf::Data_Parse()
             //Check of Essence used as a reference for frame count
             if (Essences_UsedForFrameCount==(int32u)-1)
                 Essences_UsedForFrameCount=Essence->first;
-            else if ((Essence->second.StreamKind==Stream_Audio && Essences[Essences_UsedForFrameCount].StreamKind>Stream_Audio)
-                  || (Essence->second.StreamKind==Stream_Video && Essences[Essences_UsedForFrameCount].StreamKind>Stream_Video))
-                    Essences_UsedForFrameCount=Essence->first;
 
             //Demux
             #if MEDIAINFO_DEMUX
@@ -5791,6 +5762,9 @@ void File_Mxf::Data_Parse()
         }
         Open_Buffer_Unsynch();
     }
+
+    if (File_Offset+Buffer_Offset+Element_Size>=RandomIndexMetadatas_MaxOffset)
+        NextRandomIndexMetadata();
 }
 
 //***************************************************************************
@@ -6590,13 +6564,17 @@ void File_Mxf::RandomIndexMetadata()
     Skip_B4(                                                    "Length");
 
     FILLING_BEGIN();
-        if (MediaInfoLib::Config.ParseSpeed_Get()<1.0 && !RandomIndexMetadatas_AlreadyParsed && !RandomIndexMetadatas.empty())
+        if (MediaInfoLib::Config.ParseSpeed_Get()<1.0 && !RandomIndexMetadatas_AlreadyParsed && !RandomIndexMetadatas.empty() && Config->File_Mxf_ParseIndex_Get())
         {
             IsParsingEnd=true;
             IsCheckingRandomAccessTable=true;
             GoTo(RandomIndexMetadatas[0].ByteOffset);
             RandomIndexMetadatas.erase(RandomIndexMetadatas.begin());
             Open_Buffer_Unsynch();
+
+            //Hints
+            if (File_Buffer_Size_Hint_Pointer)
+                (*File_Buffer_Size_Hint_Pointer)=64*1024;
         }
         RandomIndexMetadatas_AlreadyParsed=true;
     FILLING_END();
@@ -7630,6 +7608,7 @@ void File_Mxf::SDTI_SystemMetadataPack() //SMPTE 385M + 326M
     {
         if (!Partitions.empty() && File_Offset+Buffer_Offset<Partitions[Partitions_Pos].StreamOffset+Partitions[Partitions_Pos].BodyOffset)
             SDTI_IsInIndexStreamOffset=false;
+
         SDTI_IsPresent=true;
     }
 
@@ -7662,27 +7641,23 @@ void File_Mxf::SDTI_SystemMetadataPack() //SMPTE 385M + 326M
     Skip_B2(                                                    "continuity count");
 
     //Some computing
-    float64 FrameRate;
+    int8u  FrameRate;
+    int8u  RepetitionMaxCount;
     switch (CPR_Rate) //See SMPTE 326M
     {
-        case 0x01 : FrameRate=24; break;
-        case 0x02 : FrameRate=25; break;
-        case 0x03 : FrameRate=30; break;
-        case 0x04 : FrameRate=48; break;
-        case 0x05 : FrameRate=50; break;
-        case 0x06 : FrameRate=60; break;
-        case 0x07 : FrameRate=72; break;
-        case 0x08 : FrameRate=75; break;
-        case 0x09 : FrameRate=90; break;
-        case 0x0A : FrameRate=96; break;
-        case 0x0B : FrameRate=100; break;
-        case 0x0C : FrameRate=120; break;
-        default   : FrameRate=0; break;
-    }
-    if (CPR_DropFrame)
-    {
-        FrameRate*=1000;
-        FrameRate/=1001;
+        case 0x01 : FrameRate=24;  RepetitionMaxCount=0; break;
+        case 0x02 : FrameRate=25;  RepetitionMaxCount=0; break;
+        case 0x03 : FrameRate=30;  RepetitionMaxCount=0; break;
+        case 0x04 : FrameRate=48;  RepetitionMaxCount=1; break;
+        case 0x05 : FrameRate=50;  RepetitionMaxCount=1; break;
+        case 0x06 : FrameRate=60;  RepetitionMaxCount=1; break;
+        case 0x07 : FrameRate=72;  RepetitionMaxCount=2; break;
+        case 0x08 : FrameRate=75;  RepetitionMaxCount=2; break;
+        case 0x09 : FrameRate=90;  RepetitionMaxCount=2; break;
+        case 0x0A : FrameRate=96;  RepetitionMaxCount=3; break;
+        case 0x0B : FrameRate=100; RepetitionMaxCount=3; break;
+        case 0x0C : FrameRate=120; RepetitionMaxCount=3; break;
+        default   : FrameRate=0;   RepetitionMaxCount=0; break;
     }
 
     //Parsing
@@ -7736,37 +7711,47 @@ void File_Mxf::SDTI_SystemMetadataPack() //SMPTE 385M + 326M
 
         BS_End();
 
-        int64u TimeCode_ms=(int64u)(Hours_Tens     *10*60*60*1000
-                               + Hours_Units       *60*60*1000
-                               + Minutes_Tens      *10*60*1000
-                               + Minutes_Units        *60*1000
-                               + Seconds_Tens         *10*1000
-                               + Seconds_Units           *1000
-                               + (FrameRate?float64_int32s((Frames_Tens*10+Frames_Units)*1000/FrameRate):0));
+        //TimeCode
+        TimeCode TimeCode_Current(  Hours_Tens  *10+Hours_Units,
+                                    Minutes_Tens*10+Minutes_Units, 
+                                    Seconds_Tens*10+Seconds_Units, 
+                                    Frames_Tens *10+Frames_Units,
+                                    FrameRate/(RepetitionMaxCount+1),
+                                    DropFrame,
+                                    RepetitionMaxCount?true:false);
+        if (RepetitionMaxCount)
+        {
+            if (SDTI_TimeCode_Previous.IsValid() && TimeCode_Current==SDTI_TimeCode_Previous)
+            {
+                SDTI_TimeCode_RepetitionCount++;
+                TimeCode_Current++;
+            }
+            else
+            {
+                if (!SDTI_TimeCode_StartTimecode.IsValid() && SDTI_TimeCode_Previous.IsValid())
+                {
+                    SDTI_TimeCode_StartTimecode=SDTI_TimeCode_Previous;
+                    while(SDTI_TimeCode_RepetitionCount<RepetitionMaxCount)
+                    {
+                        SDTI_TimeCode_StartTimecode++;
+                        SDTI_TimeCode_RepetitionCount++;
+                    }
+                }
+                SDTI_TimeCode_RepetitionCount=0;
+                SDTI_TimeCode_Previous=TimeCode_Current;
+            }
+        }
+        else if (!SDTI_TimeCode_StartTimecode.IsValid())
+            SDTI_TimeCode_StartTimecode=TimeCode_Current;
 
-        Element_Info1(Ztring().Duration_From_Milliseconds(TimeCode_ms));
+        Element_Info1(Ztring().From_UTF8(TimeCode_Current.ToString().c_str()));
+        Element_Level--;
+        Element_Info1(Ztring().From_UTF8(TimeCode_Current.ToString().c_str()));
+        Element_Level++;
 
         Element_End0();
 
         Skip_B8(                                            "Zero");
-
-        //TimeCode
-        if (SDTI_TimeCode_StartTimecode_ms==(int64u)-1)
-        {
-            SDTI_TimeCode_StartTimecode_ms=TimeCode_ms;
-
-            SDTI_TimeCode_StartTimecode+=('0'+Hours_Tens);
-            SDTI_TimeCode_StartTimecode+=('0'+Hours_Units);
-            SDTI_TimeCode_StartTimecode+=':';
-            SDTI_TimeCode_StartTimecode+=('0'+Minutes_Tens);
-            SDTI_TimeCode_StartTimecode+=('0'+Minutes_Units);
-            SDTI_TimeCode_StartTimecode+=':';
-            SDTI_TimeCode_StartTimecode+=('0'+Seconds_Tens);
-            SDTI_TimeCode_StartTimecode+=('0'+Seconds_Units);
-            SDTI_TimeCode_StartTimecode+=DropFrame?';':':';
-            SDTI_TimeCode_StartTimecode+=('0'+Frames_Tens);
-            SDTI_TimeCode_StartTimecode+=('0'+Frames_Units);
-        }
     }
     else
         Skip_XX(17,                                             "Junk");
@@ -9743,6 +9728,25 @@ void File_Mxf::PartitionMetadata()
                         break;
             default   : ;
         }
+
+    if ((Code.lo&0xFF0000)==0x030000) //If Body Partition Pack
+    {
+        if (IsParsingEnd)
+        {
+            //Parsing only index
+            RandomIndexMetadatas_MaxOffset=File_Offset+Buffer_Offset+Element_Size+HeaderByteCount+IndexByteCount;
+
+            //Hints
+            if (File_Buffer_Size_Hint_Pointer && Buffer_Offset+Element_Size+HeaderByteCount+IndexByteCount>=Buffer_Size)
+            {
+                size_t Buffer_Size_Target=(size_t)(Buffer_Offset+Element_Size+HeaderByteCount+IndexByteCount-Buffer_Size);
+                if (Buffer_Size_Target<128*1024)
+                    Buffer_Size_Target=128*1024;
+                //if ((*File_Buffer_Size_Hint_Pointer)<Buffer_Size_Target)
+                    (*File_Buffer_Size_Hint_Pointer)=Buffer_Size_Target;
+            }
+        }
+    }
 
     if ((Code.lo&0xFF0000)==0x040000) //If Footer Partition Pack
     {
@@ -14848,7 +14852,10 @@ void File_Mxf::ChooseParser__Aaf_GC_Data(const essences::iterator &Essence, cons
         case 0x02 : //Ancillary
                     #if defined(MEDIAINFO_ANCILLARY_YES)
                         if (!Ancillary)
+                        {
                             Ancillary=new File_Ancillary();
+                            MayHaveCaptionsInStream=true;
+                        }
                         Essence->second.Parsers.push_back(Ancillary);
                         Ancillary_IsBinded=true;
                     #endif //defined(MEDIAINFO_ANCILLARY_YES)
@@ -14934,6 +14941,7 @@ void File_Mxf::ChooseParser_Avc(const essences::iterator &Essence, const descrip
     //Filling
     #if defined(MEDIAINFO_AVC_YES)
         File_Avc* Parser=new File_Avc;
+        MayHaveCaptionsInStream=true;
     #else
         //Filling
         File__Analyze* Parser=new File_Unknown();
@@ -14990,6 +14998,7 @@ void File_Mxf::ChooseParser_Mpegv(const essences::iterator &Essence, const descr
     #if defined(MEDIAINFO_MPEGV_YES)
         File_Mpegv* Parser=new File_Mpegv();
         Parser->Ancillary=&Ancillary;
+        MayHaveCaptionsInStream=true;
         #if MEDIAINFO_ADVANCED
             Parser->InitDataNotRepeated_Optional=true;
         #endif // MEDIAINFO_ADVANCED
@@ -15502,11 +15511,44 @@ void File_Mxf::Locators_Test()
 #endif //defined(MEDIAINFO_REFERENCES_YES)
 
 //---------------------------------------------------------------------------
+void File_Mxf::NextRandomIndexMetadata()
+{
+    //We have the necessary for indexes, jumping to next index
+    Skip_XX(Element_Size,                               "Data");
+    if (RandomIndexMetadatas.empty())
+    {
+        if (!RandomIndexMetadatas_AlreadyParsed)
+        {
+            Partitions_Pos=0;
+            while (Partitions_Pos<Partitions.size() && Partitions[Partitions_Pos].StreamOffset!=PartitionMetadata_PreviousPartition)
+                Partitions_Pos++;
+            if (Partitions_Pos==Partitions.size())
+            {
+                GoTo(PartitionMetadata_PreviousPartition);
+                Open_Buffer_Unsynch();
+            }
+            else
+                TryToFinish();
+        }
+        else
+            TryToFinish();
+    }
+    else
+    {
+        GoTo(RandomIndexMetadatas[0].ByteOffset);
+        RandomIndexMetadatas.erase(RandomIndexMetadatas.begin());
+        Open_Buffer_Unsynch();
+    }
+
+    RandomIndexMetadatas_MaxOffset=(int64u)-1;
+}
+
+//---------------------------------------------------------------------------
 void File_Mxf::TryToFinish()
 {
     Frame_Count_NotParsedIncluded=(int64u)-1;
 
-    if (!IsSub && IsParsingEnd && File_Size!=(int64u)-1 && Config->ParseSpeed<1 && IsParsingMiddle_MaxOffset==(int64u)-1 && File_Size/2>0x4000000) //TODO: 64 MB by default;
+    if (MayHaveCaptionsInStream && !IsSub && IsParsingEnd && File_Size!=(int64u)-1 && Config->ParseSpeed && Config->ParseSpeed<1 && IsParsingMiddle_MaxOffset==(int64u)-1 && File_Size/2>0x4000000) //TODO: 64 MB by default; // Do not search in the middle of the file if quick pass or full pass
     {
         IsParsingMiddle_MaxOffset=File_Size/2+0x4000000; //TODO: 64 MB by default;
         GoTo(File_Size/2);
@@ -15515,6 +15557,8 @@ void File_Mxf::TryToFinish()
         Streams_Count=(size_t)-1;
         return;
     }
+
+    Finish();
 }
 
 } //NameSpace

@@ -30,7 +30,7 @@
 class GeneralPage : public CPropertyPage<IDD_GENERAL_PAGE>, public PropPage
 {
 	public:
-		explicit GeneralPage( ) : PropPage( TSTRING(SETTINGS_GENERAL))
+		explicit GeneralPage() : PropPage(TSTRING(SETTINGS_GENERAL))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

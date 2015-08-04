@@ -30,7 +30,12 @@
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#define snprintf _snprintf
+
+//Windows - MSVC (before Visual Studio 2015)
+#if defined (_MSC_VER) && _MSC_VER < 1900
+// #define snprintf _snprintf
+#endif
+
 #undef ERROR  // wingdi.h
 #endif
 
@@ -83,7 +88,7 @@ std::string ErrorName(int err, const ConstantLabel * err_table) {
   }
 
   char buffer[16];
-  snprintf(buffer, sizeof(buffer), "0x%08x", err);
+  _snprintf(buffer, sizeof(buffer), "0x%08x", err);
   return buffer;
 }
 

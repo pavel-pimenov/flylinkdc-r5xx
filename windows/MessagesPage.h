@@ -14,7 +14,7 @@
 class MessagesPage : public CPropertyPage<IDD_MESSAGES_PAGE>, public PropPage
 {
 	public:
-		explicit MessagesPage( ) : PropPage( TSTRING(SETTINGS_MESSAGES))
+		explicit MessagesPage() : PropPage(TSTRING(SETTINGS_MESSAGES))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

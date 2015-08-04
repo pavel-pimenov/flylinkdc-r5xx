@@ -30,7 +30,7 @@ class RSSFeed;
 class RSSPage : public CPropertyPage<IDD_RSS_PAGE>, public PropPage
 {
 	public:
-		explicit RSSPage( ) : PropPage( TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_RSS_PROP))
+		explicit RSSPage() : PropPage(TSTRING(SETTINGS_ADVANCED) + _T('\\') + TSTRING(SETTINGS_RSS_PROP))
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;

@@ -1,4 +1,97 @@
 ------------------------------------------------------------------------
+r18825 | ppa | 2015-08-03 17:29:29 +0300 (Пн, 03 авг 2015) | 1 line
+
+* Mediainfo-git
+------------------------------------------------------------------------
+r18824 | ppa | 2015-08-03 17:28:23 +0300 (Пн, 03 авг 2015) | 34 lines
+
+Merged revision(s) 18813-18822 from trunk:
+* [merge] mediainfo 
+--------------
++ MXF: consideraing 60 fps timecode tracks with 2 components having a difference of 2 frames as a single timecode
++ EBUCore 1.6: switch to the link of the final XSD
+x XDCAM: some directory structures were wrongly detected as XDCAM structure having a XML file
+x MXF: SDTI 60 fps times were wrong
+x #B927, DPX: date/time specific DPX format was used instead of the ISO-like one
+x #B927, EBUCore: invalid content in attribute startDate 
+x ProRes: streams with apcs CodecID were displayed with an incoherent bit depth instead of no bit depth
+
+........
+* D Очереди скачки и Очереди отдачи добавлена колонка Тип 
+  https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/21
+........
+* Если через точку с запятой  введены пользователи в избранном хабе (окно - Op Names) то при коннекте к хабу открываются их лички (RoLex)
+........
+# Убрал #define snprintf _snprintf + экран
+# Astyle
+........
+# Не собиралось - опечатки поправил и snprintf
+........
+# Убрал лишние файлы из openssl и boost
+........
+* sqlite 3.8.11.1
+* Исправил баг Не запоминает IP в контакт листе если не качем байты (получить отклик)
+  https://code.google.com/p/flylinkdc/issues/detail?id=1586
+* Исправил https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/19
+  OPCHAT, // "OP Chat names + auto open PM (wildcards supported, use semicolon to separate)"
+........
+# Попытка исправить задвоение ников в результате дисконнекта
+  https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/22
+........
+
+------------------------------------------------------------------------
+r18810 | ppa | 2015-08-02 21:15:36 +0300 (Вс, 02 авг 2015) | 25 lines
+
+Merged revision(s) 18803-18809 from trunk:
+* Добаивл расширение .fb2 к книгам
+........
+# test не собирался в VC++2015 - добавил немного boost-а
+........
+* [Патч от SCALOlаz] Хитрая раскраска прогресса хешширования и автообновления в окне статуса
+........
+* Миграция с google-code в приватную репку - обновил svn::external
+........
+# Исключаем VimpelCom из базы - ложные боты
+........
+* Updating the database ISPs
+   http://www.assembla.com/spaces/customlocations-greylink
+   Build on the base 1304, created 2014-11-20 23:54:35 +0300
+   Total in database:
+    - ISP - 1407
+    - ISPs logo - 1416
+    - Address range - 5998
+   Archive CustomLocations.7z created by NightOrion
+
+
+........
+* Исправил ошибку с регэкспом поиска IP
+........
+
+------------------------------------------------------------------------
+r18802 | pavel.pimenov@gmail.com | 2015-07-31 20:21:28 +0300 (Пт, 31 июл 2015) | 17 lines
+
+Merged revision(s) 18799-18801 from trunk:
+# SEARCH: Added PNG for types: CSTRING(COMICS),CSTRING(BOOK)
+........
+* Команды хаба и пользовтеля унесены в отдельное под-меню (отключается в настройках)
+  https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/20
+* Конверируем все файлы с расширением .wv в формат - звук
+  https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/18
+* К группам поиска добавлены 
+  - комиксы (".cba", ".cbt", ".cbz", ".cb7", ".cbw", ".cbl", ".cba", ".cbr" )
+  - электронные книги. (.epub", ".mobi", ".djvu, ".pdf")
+* В контекстном меню передачи можно IP адрес занести в базу p2pGuard для последующей блокировки
+* Обновление IP при старте вытащил в отдельную ветку - не будет подмерзать при старте если интернет очень плохой
+# При закрытии окон не обновляем расположения детей - оптимизация в *::UpdateLayout
+........
+# Log
+........
+
+------------------------------------------------------------------------
+r18801 | pavel.pimenov@gmail.com | 2015-07-31 20:04:49 +0300 (Пт, 31 июл 2015) | 1 line
+
+# Log
+------------------------------------------------------------------------
 r18798 | pavel.pimenov@gmail.com | 2015-07-30 19:40:33 +0300 (Чт, 30 июл 2015) | 33 lines
 
 Merged revision(s) 18785-18797 from trunk:

@@ -59,8 +59,10 @@ LRESULT RangesPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	{
 		m_IPFilterPATH = PGLoader::getInstance()->getConfigFileName();
 		m_IPFilter = File(m_IPFilterPATH, File::READ, File::OPEN).read();
+		m_ManualP2PGuard = CFlylinkDBManager::getInstance()->load_manual_p2p_guard();
 		SetDlgItemText(IDC_FLYLINK_TRUST_IP, Text::toT(m_IPFilter).c_str());
 		SetDlgItemText(IDC_FLYLINK_PATH, Text::toT(m_IPFilterPATH).c_str());
+		SetDlgItemText(IDC_FLYLINK_MANUAL_P2P_GUARD_IP_LIST, Text::toT(m_ManualP2PGuard).c_str());
 	}
 	
 	catch (const FileException&)
@@ -147,6 +149,10 @@ void RangesPage::write()
 			return;
 		}
 	}
+	// TODO - запись
+	tstring l_ManualP2PGuard;
+	GET_TEXT(IDC_FLYLINK_MANUAL_P2P_GUARD_IP_LIST, l_ManualP2PGuard);
+	//const string l_new = Text::fromT(l_ManualP2PGuard);
 }
 
 void RangesPage::fixControls()

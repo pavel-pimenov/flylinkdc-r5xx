@@ -204,6 +204,7 @@
 	<string name="ClientProfileNowUpdated">Client profiles are now updated.</string>
 	<string name="Close">Close</string>
 	<string name="CloseConnection">Close connection</string>
+	<string name="CloseConnectionAndAddIpGuard">Add P2P Guard database</string>
 	<string name="CloseHot">Close\tCtrl+W</string>
 	<string name="CmdAwayMsg">On/Off away mode with specific (message)</string>
 	<string name="CmdClearChat">Clear chat window</string>
@@ -943,7 +944,7 @@
 	<string name="OnDownloadAutorename">Rename automatically</string>
 	<string name="OnDownloadReplace">Replace file with new one - if Keep finished files set, then this is equal Ask User</string>
 	<string name="OnDownloadSkip">Skip such files</string>
-	<string name="Opchat">OP Chat names (wildcards supported)</string>
+	<string name="Opchat">OP Chat names + auto open PM (wildcards supported, use semicolon to separate)</string>
 	<string name="Open">Open</string>
 	<string name="OpenFolder">Open folder</string>
 	<string name="OpenHubLog">Open hub log</string>
@@ -1763,10 +1764,14 @@
 	<string name="UseDht">Enable DHT. Publish shared files on DHT and use it for searching alternate sources</string>
 	<string name="UseDhtNotanswer">Do not ask again</string>
 	<string name="UseExplorerTheme">Use Explorer theme in listviews and treeviews</string>
+	<string name="UcSubmenu">Place usercommands to submenu</string>
 	<string name="UseMagnetsInPlayersSpam">Use magnets in players spam</string>
 	<string name="UseRegexpOrWc">Use RegExp and/or wildcards</string>
 	<string name="Version">Version</string>
 	<string name="VideoAndSubtitles">Video and subtitles</string>
+	<string name="CdDvdImages">CD-DVD Image</string>
+	<string name="Comics">Comics</string>
+	<string name="Book">Book</string>
 	<string name="ViewAsText">View as text</string>
 	<string name="ViewGridcontrols">Use grid-style controls</string>
 	<string name="VirtualName">Virtual name</string>

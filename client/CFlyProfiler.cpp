@@ -39,7 +39,10 @@
 #define PRINTFU64() "%I64u"
 #define PATHSLASH() '\\'
 #define threadlocal __declspec(thread)
-#define snprintf _snprintf
+//Windows - MSVC (before Visual Studio 2015)
+#if defined (_MSC_VER) && _MSC_VER < 1900
+// #define snprintf _snprintf
+#endif
 
 #undef inline
 #define inline __forceinline
@@ -1124,7 +1127,7 @@ struct HTMLDumper
 			time(&now);
 			tm *now_tm = localtime(&now);
 			strftime(timeFormat, 255, "%Y%m%d_%H%M%S", now_tm);
-			snprintf(fileFormat, 255, "%s-profiler-%s.html", programName ? programName : "flylinkdc-r502-beta", timeFormat);
+			_snprintf(fileFormat, 255, "%s-profiler-%s.html", programName ? programName : "flylinkdc-r502-beta", timeFormat);
 			strftime(timeFormat, 255, "%#c", now_tm);
 			f = fopen(fileFormat, "wb+");
 			

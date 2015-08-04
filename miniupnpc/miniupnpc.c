@@ -30,7 +30,9 @@
 #include <ws2tcpip.h>
 #include <io.h>
 #include <iphlpapi.h>
-#define snprintf _snprintf
+#if defined (_MSC_VER) && _MSC_VER < 1900
+  // #define snprintf _snprintf
+#endif
 #define strdup _strdup
 #ifndef strncasecmp
 #if defined(_MSC_VER) && (_MSC_VER >= 1400)
@@ -145,10 +147,10 @@ char * simpleUPnPcommand2(int s, const char * url, const char * service,
     int n;
 
 	*bufsize = 0;
-	snprintf(soapact, sizeof(soapact), "%s#%s", service, action);
+	_snprintf(soapact, sizeof(soapact), "%s#%s", service, action);
 	if(args==NULL)
 	{
-		/*soapbodylen = */snprintf(soapbody, sizeof(soapbody),
+		/*soapbodylen = */_snprintf(soapbody, sizeof(soapbody),
 						"<?xml version=\"1.0\"?>\r\n"
 	    	              "<" SOAPPREFIX ":Envelope "
 						  "xmlns:" SOAPPREFIX "=\"http://schemas.xmlsoap.org/soap/envelope/\" "
@@ -164,7 +166,7 @@ char * simpleUPnPcommand2(int s, const char * url, const char * service,
 		char * p;
 		const char * pe, * pv;
 		int soapbodylen;
-		soapbodylen = snprintf(soapbody, sizeof(soapbody),
+		soapbodylen = _snprintf(soapbody, sizeof(soapbody),
 						"<?xml version=\"1.0\"?>\r\n"
 	    	            "<" SOAPPREFIX ":Envelope "
 						"xmlns:" SOAPPREFIX "=\"http://schemas.xmlsoap.org/soap/envelope/\" "
@@ -586,7 +588,7 @@ upnpDiscoverDevices(const char * const deviceTypes[],
 	/* receiving SSDP response packet */
 	for(deviceIndex = 0; deviceTypes[deviceIndex]; deviceIndex++) {
 		/* sending the SSDP M-SEARCH packet */
-		n = snprintf(bufr, sizeof(bufr),
+		n = _snprintf(bufr, sizeof(bufr),
 		             MSearchMsgFmt,
 		             ipv6 ?
 		             (linklocal ? "[" UPNP_MCAST_LL_ADDR "]" :  "[" UPNP_MCAST_SL_ADDR "]")
@@ -850,7 +852,7 @@ build_absolute_url(const char * baseurl, const char * descURL,
 		}
 #else /* defined(IF_NAMESIZE) && !defined(_WIN32) */
 	/* under windows, scope is numerical */
-		l += 3 + snprintf(scope_str, sizeof(scope_str), "%u", scope_id);
+		l += 3 + _snprintf(scope_str, sizeof(scope_str), "%u", scope_id);
 #endif /* defined(IF_NAMESIZE) && !defined(_WIN32) */
 	}
 	s = malloc(l);

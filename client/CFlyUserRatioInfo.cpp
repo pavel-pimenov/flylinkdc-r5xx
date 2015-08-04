@@ -44,9 +44,10 @@ void CFlyUserRatioInfo::flushRatioL()
 	{
 		CFlylinkDBManager::getInstance()->store_all_ratio_and_last_ip(m_user->getHubID(), m_user->m_nick, m_ip_map_ptr, m_message_count, m_user->m_last_ip); // TODO зачем передавать туда m_user->m_last_ip?
 		set_dirty(false);
+		m_user->m_is_last_ip_dirty = false;
 	}
 }
-bool CFlyUserRatioInfo::try_load_ratio(const boost::asio::ip::address_v4& p_last_ip_from_sql)
+bool CFlyUserRatioInfo::tryLoadRatio(const boost::asio::ip::address_v4& p_last_ip_from_sql)
 {
 	//dcassert(!p_last_ip_from_sql.is_unspecified());
 	if (BOOLSETTING(ENABLE_RATIO_USER_LIST) && m_user->getHubID() && !m_user->m_nick.empty()) // Не грузили данные по рейтингу?

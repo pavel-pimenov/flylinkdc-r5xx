@@ -5,7 +5,7 @@
 
 #include "version.h"
 
-#ifdef _WIN32
+// https://msdn.microsoft.com/ru-ru/library/windows/desktop/aa383745%28v=vs.85%29.aspx
 
 #ifndef _WIN32_WINNT
 # ifdef FLYLINKDC_SUPPORT_WIN_XP
@@ -22,7 +22,5 @@
 #  define _WIN32_IE _WIN32_IE_IE80
 # endif
 #endif // _WIN32_IE
-
-#endif // _WIN32
 
 #endif // DCPLUSPLUS_DCPP_COMPILER_FLYLINKDC_H

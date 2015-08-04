@@ -123,6 +123,8 @@ LRESULT RSSNewsFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 
 void RSSNewsFrame::UpdateLayout(BOOL bResizeBars /*= TRUE*/)
 {
+	if (isClosedOrShutdown())
+		return;
 	RECT rect;
 	GetClientRect(&rect);
 	

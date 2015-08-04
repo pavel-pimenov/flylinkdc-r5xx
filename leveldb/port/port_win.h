@@ -31,11 +31,12 @@
 #ifndef STORAGE_LEVELDB_PORT_PORT_WIN_H_
 #define STORAGE_LEVELDB_PORT_PORT_WIN_H_
 
-#ifdef _MSC_VER
-//#define snprintf _snprintf
+//Windows - MSVC (before Visual Studio 2015)
+#if defined (_MSC_VER) && _MSC_VER < 1900
+ // #define snprintf _snprintf
+#endif
 #define close _close
 #define fread_unlocked _fread_nolock
-#endif
 
 //[+]PPA
 # pragma warning(disable: 4100) // unreferenced formal parameter

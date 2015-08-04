@@ -77,7 +77,7 @@ class PropPage
 			if (BOOLSETTING(SETTINGS_WINDOW_COLORIZE))
 			{
 				m_hDialogBrush = CreateSolidBrush(Colors::g_bgColor /*GetSysColor(COLOR_BTNFACE)*/); // [!] IRainman fix.
-				return LRESULT (m_hDialogBrush);
+				return LRESULT(m_hDialogBrush);
 			}
 			else
 			{
@@ -131,9 +131,9 @@ class PropPage
 			ResourceManager::Strings translatedString;
 		};
 		
-			
-protected:
-	wstring m_title;
+		
+	protected:
+		wstring m_title;
 		void read(HWND page, Item const* items, ListItem* listItems = NULL, HWND list = NULL);
 		void write(HWND page, Item const* items, ListItem* listItems = NULL, HWND list = NULL);
 		void cancel(HWND page);

@@ -343,8 +343,8 @@ typedef unsigned int            intu;
     #define snwprintf swprintf
 #endif
 
-//Windows - MSVC
-#if defined (_MSC_VER)
+//Windows - MSVC (before Visual Studio 2015)
+#if defined (_MSC_VER) && _MSC_VER < 1900
     // [-] VC++2015 #define snprintf _snprintf
     // [-] VC++2015 #define snwprintf _snwprintf
 #endif

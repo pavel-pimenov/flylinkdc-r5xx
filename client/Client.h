@@ -589,7 +589,6 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			return m_opChat;
 		}
 	private:
-		bool isInOperatorList(const string& userName) const;
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		uint32_t m_HubID;
 #endif
@@ -601,6 +600,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		string m_keyprint;
 		// [+] IRainman fix.
 		string m_opChat;
+		//boost::unordered_set<string> m_auto_open_pm;
 		bool m_exclChecks;
 		// [~] IRainman fix.
 		
@@ -608,6 +608,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		bool m_secure;
 		CountType m_countType;
 	public:
+		bool isInOperatorList(const string& userName) const;
 		static string g_last_search_string;
 };
 

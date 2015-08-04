@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by D:\DropSvn\flylinkdc\FlylinkDC.rc
+// Used by Q:\vc15\r5xx\FlylinkDC.rc
 //
 #define IDD_ABOUTBOX                    100
 #define IDD_DCLS_PAGE                   101
@@ -865,10 +865,12 @@
 #define IDC_RAW4_TEXT                   1667
 #define IDC_FLYLINK_TRUST_IP            1668
 #define IDC_RAW5_TEXT                   1669
+#define IDC_FLYLINK_MANUAL_P2P_GUARD_IP_LIST 1669
 #define IDC_FLYLINK_PATH                1670
 #define IDC_RAW1_TEXT                   1671
 #define IDC_FLYLINK_TRUST_IP_BOX        1672
 #define IDC_RAW2_TEXT                   1673
+#define IDC_FLYLINK_MANUAL_P2P_GUARD    1673
 #define IDC_SLOT_CONTROL_GROUP          1674
 #define IDC_RAW3_TEXT                   1675
 #define IDC_TE_URLTEST                  1676
@@ -1548,6 +1550,7 @@
 #define IDC_SYSUPTIME                   2376
 #define IDC_TOTAL_MESSAGES              2377
 #define IDC_TRANSFER_TREE               2378
+#define IDC_COPY_TYPE                   2379
 #define IDC_DOWNLOAD_TARGET             2500
 #define IDC_FLYLINKDC_LOCATION          2501
 #define IDC_FLYLINKDC_FOUND_NEW_VERSION 2502
@@ -1562,6 +1565,7 @@
 #define IDC_ENABLE_P2P_GUARD_STR        2512
 #define IDC_WHOIS_IP2                   2513
 #define IDC_WHOIS_URL                   2514
+#define IDC_ADD_P2P_GUARD               2515
 #define IDC_DOWNLOAD_TARGET_DIR         3000
 #define IDC_SELECT_WINDOW               3500
 #define IDC_USER_COMMAND                4000
