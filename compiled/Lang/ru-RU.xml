@@ -1384,7 +1384,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsAutoPriorityDefault">Использовать автоприоритет</String>
 		<String Name="SettingsAutoRefreshTime">Обновление шары</String>
 		<String Name="SettingsAutoSearch">Поиск альтернативных ТТН-источников каждые</String>
-		<String Name="SettingsAutoSearchAutoMatch">Автоматическое добавление в очередь (для автопоиска) (если нажмете галку – начнет качать много файл-листов!)</String>
+		<String Name="SettingsAutoSearchAutoMatch">Скачивать файл-лист, если в нём найден один из нужных файлов</String>
 		<String Name="SettingsAutoSearchLimit">Макс. кол-во источников для автопоиска</String>
 		<String Name="SettingsAutoSlots">Макс. автослотов</String>
 		<String Name="SettingsAvipreview">Предпросмотр</String>

@@ -32,8 +32,10 @@
 #include "UCHandler.h"
 
 #define EDIT_MESSAGE_MAP 10     // This could be any number, really...
-#define FILTER_MESSAGE_MAP 8
-#define HUBSTATUS_MESSAGE_MAP 5 // Status frame
+#ifndef FILTER_MESSAGE_MAP
+#define FILTER_MESSAGE_MAP 11
+#endif
+#define HUBSTATUS_MESSAGE_MAP 12 // Status frame
 
 // #define FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 

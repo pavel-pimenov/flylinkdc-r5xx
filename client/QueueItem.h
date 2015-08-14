@@ -380,7 +380,7 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 		{
 			m_block_size = p_block_size;
 		}
-		uint64_t getBlockSizeSQL()
+		uint64_t get_block_size_sql()
 		{
 			if (m_block_size == 0)
 			{

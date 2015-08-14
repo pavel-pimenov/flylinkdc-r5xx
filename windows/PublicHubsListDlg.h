@@ -83,7 +83,7 @@ class PublicHubListDlg : public CDialogImpl<PublicHubListDlg>
 			SET_LIST_COLOR(ctrlList);
 			ctrlList.GetClientRect(rc);
 			ctrlList.InsertColumn(0, CTSTRING(SETTINGS_NAME), LVCFMT_LEFT, rc.Width() - 4, 0);
-			const StringList lists = SPLIT_SETTING_AND_LOWER(HUBLIST_SERVERS);;
+			const StringList lists = SPLIT_SETTING_AND_LOWER(HUBLIST_SERVERS);
 			auto cnt = ctrlList.GetItemCount();
 			for (auto idx = lists.cbegin(); idx != lists.cend(); ++idx)
 			{

@@ -9,17 +9,20 @@
 #define YANDEX_DOWNLOADER
 
 [Setup]
+
+#ifndef FLYLIKDC_USE_CUSTOM_SETUP_INFO
 AppName=FlylinkDC++{code:Postfix| }
 #include "version_info.txt"
 AppVerName={code:LoadVerName}
 VersionInfoDescription=FlylinkDC++ Setup
 VersionInfoProductName=FlylinkDC++
 AppPublisher=FlylinkDC++ Team
-AppPublisherURL=http://www.flylinkdc.ru
-AppSupportURL=http://flylinkdc.blogspot.com/
-AppUpdatesURL=http://www.flylinkdc.ru
+AppPublisherURL=http://flylinkdc.blogspot.com
+AppSupportURL=http://flylinkdc.blogspot.com
+AppUpdatesURL=http://flylinkdc.blogspot.com
 DefaultDirName={pf}\FlylinkDC++{code:Postfix|_}
 DefaultGroupName=FlylinkDC++{code:Postfix| }
+#endif
 
 #ifndef FLYLIKDC_USE_CUSTOM_ICON
 SetupIconFile="..\res\FlylinkDC.ico"
@@ -42,6 +45,8 @@ SignTool=signppafly5
 ; signppafly5 "C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\signtool.exe" sign /a /d $qFlylinkDC++ r5xx$q /du $qhttp://flylinkdc.blogspot.com$q /t $qhttp://timestamp.verisign.com/scripts/timstamp.dll$q  $f
 ; signppafly4 "C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\signtool.exe" sign /a /d $qFlylinkDC++ r4xx$q /du $qhttp://flylinkdc.blogspot.com$q /t $qhttp://timestamp.verisign.com/scripts/timstamp.dll$q  $f
 ; signppastrong "C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\signtool.exe" sign /a /d $qStrongDC++ sqlite$q /du $qhttp://flylinkdc.blogspot.com$q /t $qhttp://timestamp.verisign.com/scripts/timstamp.dll$q  $f
+
+#ifndef FLYLIKDC_USE_CUSTOM_SETUP_LANGUAGE_RU
 
 [Languages]
 
@@ -112,6 +117,8 @@ Name: "pt_BR"; MessagesFile: "custom_lang\custom_messages-PT-BR.isl"
 
 #endif
 
+#endif 
+
 [Files]
 Source: "..\compiled\Settings\custom_menu.xml"; DestDir: "{app}\Settings"; Flags: onlyifdoesntexist
 Source: "..\compiled\AVIPreview.exe"; DestDir: "{app}"; Flags: overwritereadonly ignoreversion
@@ -174,7 +181,9 @@ Type: files; Name: "{app}\PortalBrowser\PortalBrowser.xml"
 #ifndef PPA_VIP
 [Run]
 Filename: "{app}\FlylinkDC{code:Postfix|_}.exe"; Description: "{cm:LaunchProgram,FlylinkDC++{code:Postfix| }}"; Flags: nowait postinstall skipifsilent
+#ifndef FLYLIKDC_USE_CUSTOM_RUN_TEST_DRIVE
 Filename: "http://flylinkdc.blogspot.com/"; Description: "{cm:TestDrive}"; Flags: nowait postinstall shellexec skipifsilent
+#endif
 
 #ifndef FLYLIKDC_USE_CUSTOM_ICON
 

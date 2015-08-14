@@ -96,6 +96,7 @@ SearchResult::SearchResult(Types aType, int64_t aSize, const string& aFile, cons
 	m_user(ClientManager::getMe_UseOnlyForNonHubSpecifiedTasks()),
 	m_is_tth_remembrance(false),
 	m_is_tth_download(false),
+	m_is_virus(false),
 	m_is_tth_check(false),
 	m_token(aToken),
 	m_is_p2p_guard_calc(false),
@@ -117,6 +118,7 @@ SearchResult::SearchResult(const UserPtr& aUser, Types aType, uint8_t aSlots, ui
 	m_is_tth_share(false),
 	m_is_tth_remembrance(false),
 	m_is_tth_download(false),
+	m_is_virus(false),
 	m_is_tth_check(false),
 	m_is_p2p_guard_calc(false),
 	m_virus_level(0)
@@ -129,7 +131,7 @@ void SearchResult::calcP2PGuard()
 	{
 		if (m_search_ip4.to_ulong())
 		{
-			m_p2p_guard = CFlylinkDBManager::getInstance()->is_p2p_guard(m_search_ip4.to_ulong());
+			m_p2p_guard_text = CFlylinkDBManager::getInstance()->is_p2p_guard(m_search_ip4.to_ulong());
 			m_is_p2p_guard_calc = true;
 		}
 	}
@@ -155,6 +157,8 @@ void SearchResult::checkTTH()
 				const auto l_status_file = CFlylinkDBManager::getInstance()->get_status_file(getTTH());
 				if (l_status_file & CFlylinkDBManager::PREVIOUSLY_DOWNLOADED)
 					m_is_tth_download = true;
+				if (l_status_file & CFlylinkDBManager::VIRUS_FILE_KNOWN)
+					m_is_virus = true;
 				if (l_status_file & CFlylinkDBManager::PREVIOUSLY_BEEN_IN_SHARE)
 					m_is_tth_remembrance = true;
 			}

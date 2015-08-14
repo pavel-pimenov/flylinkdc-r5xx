@@ -277,7 +277,8 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		
 		void push_download_tth(const TTHValue& p_tth);
 		void push_add_share_tth(const TTHValue& p_tth);
-		static string getDBSizeInfo();
+		void push_add_virus_database_tth(const TTHValue& p_tth);
+		static string get_db_size_info();
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		void store_all_ratio_and_last_ip(uint32_t p_hub_id,
 		                                 const string& p_nick,
@@ -312,15 +313,16 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		enum FileStatus // [+] IRainman fix
 		{
 			UNKNOWN = 0,
-			PREVIOUSLY_DOWNLOADED = 1,
-			PREVIOUSLY_BEEN_IN_SHARE = 2,
-			COUPLE = PREVIOUSLY_DOWNLOADED | PREVIOUSLY_BEEN_IN_SHARE
+			PREVIOUSLY_DOWNLOADED = 0x01,
+			PREVIOUSLY_BEEN_IN_SHARE = 0x02,
+			COUPLE = PREVIOUSLY_DOWNLOADED | PREVIOUSLY_BEEN_IN_SHARE,
+			VIRUS_FILE_KNOWN = 0x04
 		};
 		
 		FileStatus get_status_file(const TTHValue& p_tth);
 		
 		bool get_tree(const TTHValue& p_root, TigerTree& p_tt, __int64& p_block_size);
-		unsigned __int64 getBlockSizeSQL(const TTHValue& p_root, __int64 p_size);
+		unsigned __int64 get_block_size_sql(const TTHValue& p_root, __int64 p_size);
 		__int64 get_path_id(string p_path, bool p_create, bool p_case_convet, bool& p_is_no_mediainfo, bool p_sweep_path);
 		void add_tree(const TigerTree& p_tt);
 	private:
@@ -359,7 +361,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void sweep_db();
 		void load_dir(__int64 p_path_id, CFlyDirMap& p_dir_map, bool p_is_no_mediainfo);
 #ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
-		void SweepFiles(__int64 p_path_id, const CFlyDirMap& p_sweep_files);
+		void sweep_files(__int64 p_path_id, const CFlyDirMap& p_sweep_files);
 #endif
 #ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
 		void log(const int p_area, const StringMap& p_params);
@@ -405,8 +407,8 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		string load_manual_p2p_guard();
 		string is_p2p_guard(const uint32_t& p_ip);
 #ifdef FLYLINKDC_USE_GEO_IP
-		void get_country(uint32_t p_ip, uint16_t& p_index);
-		uint16_t get_country_index_from_cache(uint16_t p_index)
+		void get_country_and_location(uint32_t p_ip, uint16_t& p_country_index, uint32_t& p_location_index);
+		uint16_t get_country_index_from_cache(int16_t p_index)
 		{
 			dcassert(p_index > 0);
 			FastLock l(m_cache_location_cs);
@@ -433,16 +435,15 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		}
 	private:
 #ifdef FLYLINKDC_USE_GEO_IP
-		uint8_t  get_country_sqlite(uint32_t p_ip, CFlyLocationDesc& p_location);
-		bool find_cache_countryL(uint32_t p_ip, uint16_t& p_index);
+		string load_country_locations_p2p_guard_from_db(uint32_t p_ip, uint32_t& p_location_cache_index, uint16_t& p_country_cache_index);
+		bool find_cache_country(uint32_t p_ip, uint16_t& p_index);
+		bool find_cache_location(uint32_t p_ip, uint32_t& p_location_index, uint16_t& p_flag_index);
 		__int64 get_dic_country_id(const string& p_country);
 		void clear_dic_cache_country();
 #endif
 	public:
 	
 		void save_location(const CFlyLocationIPArray& p_geo_ip);
-		void get_location(uint32_t p_ip, int32_t& p_index);
-		void get_location_sql(uint32_t p_ip, int32_t& p_index);
 		__int64 get_dic_location_id(const string& p_location);
 		//void clear_dic_cache_location();
 		
@@ -608,10 +609,19 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlySQLCommand m_delete_registry;
 		
 		
-		CFlySQLCommand m_select_location;
 		FastCriticalSection m_cache_location_cs;
 		vector<CFlyLocationDesc> m_location_cache_array;
-		boost::unordered_set<uint32_t> m_location_unknown_ip;
+		struct CFlyCacheIPInfo
+		{
+			string m_description_p2p_guard;
+			uint32_t m_location_cache_index;
+			uint16_t m_country_cache_index;
+			uint16_t m_flag_location_index;
+			CFlyCacheIPInfo() : m_location_cache_index(0), m_country_cache_index(0), m_flag_location_index(0)
+			{
+			}
+		};
+		boost::unordered_map<uint32_t, CFlyCacheIPInfo> m_ip_info_cache;
 		
 		int m_count_fly_location_ip_record;
 		bool is_fly_location_ip_valid() const
@@ -629,12 +639,15 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		boost::unordered_set<string> m_lost_location_cache;
 #endif
 #ifdef FLYLINKDC_USE_GEO_IP
-		CFlySQLCommand m_select_geoip;
+		CFlySQLCommand m_select_country_and_location;
+		// TODO CFlySQLCommand m_select_only_location;
 		CFlySQLCommand m_insert_geoip;
 		CFlySQLCommand m_delete_geoip;
 		vector<CFlyLocationDesc> m_country_cache;
 #endif
-		CFlySQLCommand m_select_p2p_guard;
+#ifdef _DEBUG
+		boost::unordered_map<uint32_t, unsigned> m_count_ip_sql_query_guard;
+#endif
 		CFlySQLCommand m_select_manual__p2p_guard;
 		CFlySQLCommand m_delete_p2p_guard;
 		CFlySQLCommand m_insert_p2p_guard;

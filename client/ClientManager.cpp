@@ -304,12 +304,15 @@ StringList ClientManager::getAntivirusNicks(const CID& p_cid)
 	const OnlinePairC op = g_onlineUsers.equal_range(p_cid);
 	for (auto i = op.first; i != op.second; ++i)
 	{
-		if (i->second->getIdentity().calcVirusType())
+		if (i->second->getIdentity().calcVirusType() & ~Identity::VT_CALC_AVDB)
 		{
 			ret.insert(i->second->getIdentity().getVirusDesc());
 		}
 	}
-	return StringList(ret.begin(), ret.end());
+	if (!ret.empty())
+		return StringList(ret.begin(), ret.end());
+	else
+		return StringList();
 #else
 	return StringList();
 #endif
@@ -819,8 +822,10 @@ void ClientManager::userCommand(const HintedUser& hintedUser, const UserCommand&
 	auto& l_ñlient = ou->getClient();
 	const string& opChat = l_ñlient.getOpChat();
 	if (opChat.find('*') == string::npos && opChat.find('?') == string::npos)
+	{
 		params["opchat"] = opChat;
-		
+	}
+	
 	ou->getIdentity().getParams(params, "user", compatibility);
 	l_ñlient.getHubIdentity().getParams(params, "hub", false);
 	l_ñlient.getMyIdentity().getParams(params, "my", compatibility);

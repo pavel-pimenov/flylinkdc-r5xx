@@ -30,6 +30,7 @@
 #include "MappingManager.h"
 
 #include "../FlyFeatures/flyServer.h"
+#include "ZenLib/Format/Http/Http_Utils.h"
 
 CFlyUnknownCommand NmdcHub::g_unknown_command;
 CFlyUnknownCommandArray NmdcHub::g_unknown_command_array;
@@ -1152,12 +1153,12 @@ void NmdcHub::helloParse(const string& param)
 	}
 }
 //==========================================================================================
-void NmdcHub::userIPParse(const string& param)
+void NmdcHub::userIPParse(const string& p_ip_list)
 {
-	if (!param.empty())
+	if (!p_ip_list.empty())
 	{
 		OnlineUserList v;
-		const StringTokenizer<string> t(param, "$$");
+		const StringTokenizer<string> t(p_ip_list, "$$", p_ip_list.size() / 30);
 		const StringList& sl = t.getTokens();
 		{
 			// [-] brain-ripper
@@ -1193,7 +1194,6 @@ void NmdcHub::userIPParse(const string& param)
 				}
 				OnlineUserPtr ou = findUser(l_user);
 				
-				
 				if (!ou)
 					continue;
 					
@@ -1207,10 +1207,96 @@ void NmdcHub::userIPParse(const string& param)
 					dcassert(!l_ip.empty());
 					ou->getIdentity().setIp(l_ip);
 				}
+				// "FlylinkDC-dev"
+				if (m_isAutobanAntivirusIP || m_isAutobanAntivirusNick
+				        // && getHubUrl().find("dc.fly-server.ru") != string::npos
+				   )
+				{
+					const auto l_avdb_result = ou->getIdentity().calcVirusType(true);
+					if ((l_avdb_result & Identity::VT_SHARE) && (l_avdb_result & Identity::VT_IP) ||
+					        (l_avdb_result & Identity::VT_NICK) && (l_avdb_result & Identity::VT_IP) ||
+					        (l_avdb_result & Identity::VT_NICK) && (l_avdb_result & Identity::VT_SHARE) ||
+					        (l_avdb_result & Identity::VT_IP)
+					   )
+					{
+						const string l_size = Util::toString(ou->getIdentity().getBytesShared());
+						if (
+						    (l_avdb_result & Identity::VT_NICK) && (l_avdb_result & Identity::VT_SHARE) && !(l_avdb_result & Identity::VT_IP) ||
+						    (l_avdb_result & Identity::VT_IP) && (l_avdb_result & Identity::VT_SHARE) && !(l_avdb_result & Identity::VT_NICK) ||
+						    (l_avdb_result & Identity::VT_NICK) && (l_avdb_result & Identity::VT_IP) && !(l_avdb_result & Identity::VT_SHARE) ||
+						    (l_avdb_result & Identity::VT_IP)
+						)
+							if (!CFlyServerConfig::g_antivirus_db_url.empty())
+							{
+								// http://te-home.net/avdb.php?do=send&size=<размер шары>&addr=<ип адрес, не обязательно>&nick=<ник юзера>&path=<путь к вирусам, не обязательно>
+								const auto l_encode_nick = ZenLib::Format::Http::URL_Encoded_Encode(l_user);
+								const string l_get_avdb_query =
+								    CFlyServerConfig::g_antivirus_db_url +
+								    "/avdb.php?do=send"
+								    "&size=" + l_size +
+								    "&addr=" + l_ip +
+								    "&nick=" + l_encode_nick;
+								std::vector<byte> l_binary_data;
+								CFlyHTTPDownloader l_http_downloader;
+								auto l_result_size = l_http_downloader.getBinaryDataFromInet(l_get_avdb_query, l_binary_data, 300);
+								//if (l_result_size == 0)
+								//{
+								const string l_log_message = "[ " + getMyNick() + " ] Update antivirus DB! result size =" + Util::toString(l_result_size) + ", [" + l_get_avdb_query + " ]";
+								CFlyServerJSON::pushError(40, l_log_message);
+								LogManager::virus_message(l_log_message);
+								//}
+							}
+						const auto l_avd_report = ou->getIdentity().getVirusDesc();
+						string l_ban_command;
+						const string l_info = l_ip + " " + getMyNick() + " Autoban virus-bot! Nick:[ " + l_user + " ] IP: [" + l_ip + " ] Share: [ " + Util::toString(ou->getIdentity().getBytesShared()) +
+						                      " ] AVDB: " + l_avd_report + " Hub: " + getHubUrl();
+						if (m_isAutobanAntivirusNick)
+						{
+							/*
+							<FlylinkDC-dev> 13:38:03 Hub:   [Outgoing][162.211.230.164:411]     $To: ork5005 From: FlylinkDC-dev $<FlylinkDC-dev> You are being kicked because: virus|<FlylinkDC-dev> is kicking ork5005 because: virus|$Kick ork5005|
+							13:38:03 Hub:   [Incoming][162.211.230.164:411]     <FlylinkDC-dev> is kicking ork5005 because: virus
+							13:38:03 Hub:   [Incoming][162.211.230.164:411]     <PtokaX> *** ork5005 с IP 95.183.29.221 был кикнут FlylinkDC-dev.
+							13:38:03 Hub:   [Incoming][162.211.230.164:411]     $Quit ork5005
+							*/
+							l_ban_command = "$Kick " + l_user + "|";
+							send(l_ban_command);
+							l_ban_command += " Info:" + l_info;
+						}
+						else
+						{
+							l_ban_command = !m_AntivirusCommandIP.empty() ? m_AntivirusCommandIP + " " : string("!banip ") + l_info;
+							hubMessage(l_ban_command);
+						}
+						CFlyServerJSON::pushError(39, l_ban_command);
+						LogManager::virus_message(l_ban_command);
+					}
+				}
 				v.push_back(ou);
 			}
 		}
-		fire_user_updated(v);
+		fire_user_updated(v); // TODO - слать сообщения о смене только IP
+		/*
+		if (getMyNick() == "FlylinkDC-dev" && getHubUrl().find("dc.fly-server.ru") != string::npos)
+		{
+		for (auto j = v.cbegin(); j != v.cend(); ++j)
+		{
+		const auto ou = *j;
+		const string l_user = ou->getUser()->getLastNick();
+		const string l_ip   = ou->getIdentity().getIpAsString();
+		const auto l_avdb_result = ou->getIdentity().calcVirusType(true);
+		if ((l_avdb_result & Identity::VT_SHARE) || (l_avdb_result & Identity::VT_IP)) // TODO VT_NICK
+		{
+		const auto l_avd_report = ou->getIdentity().getVirusDesc();
+		const string l_ban_command = "!banip " + l_ip + " Remove virus-bot: Nick:[ " + l_user + " ] IP: [" + l_ip + " ] AVDB: " + l_avd_report + " Hub: " + getHubUrl() + " |";
+		CFlyServerJSON::pushError(39, l_ban_command);
+		LogManager::message(l_ban_command);
+		LogManager::virus_message(l_ban_command);
+		hubMessage(l_ban_command);
+		}
+		}
+		}
+		}
+		*/
 	}
 }
 //==========================================================================================
@@ -1605,9 +1691,9 @@ void NmdcHub::onLine(const string& aLine)
 		messageYouHaweRightOperatorOnThisHub();
 	}
 	// [~] IRainman.
-	else if (cmd == "myinfo")
-	{
-	}
+	//else if (cmd == "myinfo")
+	//{
+	//}
 	else if (cmd == "UserComman" || cmd == "myinfo")
 	{
 		// Где-то ошибка в плагине - много спама идет на сервер - отрубил нахрен

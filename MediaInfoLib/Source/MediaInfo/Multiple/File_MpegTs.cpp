@@ -324,7 +324,7 @@ void File_MpegTs::Streams_Accept()
                 Config->File_IgnoreSequenceFilesCount_Set(false);
         #endif //MEDIAINFO_ADVANCED
 
-        TestContinuousFileNames();
+        TestContinuousFileNames(24, Ztring(), true);
     }
 }
 
@@ -505,7 +505,7 @@ void File_MpegTs::Streams_Update_Programs()
                         {
                             Ztring LawRating_Temp=Complete_Stream->Streams[elementary_PID]->Parser->Retrieve(Stream_General, 0, General_LawRating);
                             if (!LawRating_Temp.empty())
-                                LawRating+=LawRating_Temp+__T(" / ");;
+                                LawRating+=LawRating_Temp+__T(" / ");
                             Ztring Title_Temp=Complete_Stream->Streams[elementary_PID]->Parser->Retrieve(Stream_General, 0, General_Title);
                             if (!Title_Temp.empty())
                                 Title+=Title_Temp+__T(" / ");

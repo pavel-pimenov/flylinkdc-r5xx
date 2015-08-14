@@ -330,6 +330,7 @@ uint64_t CFlyLog::calcSumTime() const
 void CFlyLog::step(const string& p_message_step, const bool p_reset_count /*= true */)
 {
 	const uint64_t l_current = GET_TICK();
+	dcassert(p_message_step.size() == string(p_message_step.c_str()).size());
 	log("[Step ] " + m_message + ' ' + p_message_step + " [" + Util::toString(l_current - m_tc) + " ms]");
 	if (p_reset_count)
 		m_tc = l_current;

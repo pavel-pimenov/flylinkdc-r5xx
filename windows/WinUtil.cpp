@@ -2721,9 +2721,10 @@ string FileImage::getVirusIconIndex(const string& aFileName, int& p_icon_index)
 		// Проверка на двойные расширения
 		string xx = Util::getFileName(aFileName);
 		xx = Text::toLower(Util::getFileDoubleExtWithoutDot(xx));
-		if (!xx.empty())
+		bool is_virus = (aFileName.size() > 13 && stricmp(aFileName.c_str() + aFileName.size() - 11, " dvdrip.exe") == 0);
+		if (!xx.empty() || is_virus)
 		{
-			if (CFlyServerConfig::isVirusExt(xx))
+			if (is_virus || CFlyServerConfig::isVirusExt(xx))
 			{
 				static int g_virus_exe_icon_index = 0;
 				if (!g_virus_exe_icon_index)

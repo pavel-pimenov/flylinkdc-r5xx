@@ -161,7 +161,7 @@ void VideoPreview::clear()
 	if (!_currentFilePreview.empty())
 	{
 		QueueManager::LockFileQueueShared l_fileQueue;
-		auto qi = QueueManager::g_fileQueue.find(_currentFilePreview);
+		auto qi = QueueManager::FileQueue::find_target(_currentFilePreview);
 		if (qi)
 		{
 				qi->setDelegate(nullptr);

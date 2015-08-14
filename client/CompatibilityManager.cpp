@@ -628,7 +628,7 @@ string CompatibilityManager::generateFullSystemStatusMessage()
 	    STRING(CURRENT_SYSTEM_STATE) + ":\r\n" + generateGlobalMemoryStatusMessage() +
 	    '\t' + STRING(CPU_SPEED) + ": " + Util::toString(ProcSpeedCalc()) + " MHz" +
 	    getIncompatibleSoftwareMessage() + "\r\n" +
-	    CFlylinkDBManager::getDBSizeInfo();
+	    CFlylinkDBManager::get_db_size_info();
 }
 
 string CompatibilityManager::generateNetworkStats()

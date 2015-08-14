@@ -32,8 +32,8 @@
 
 
 DirectoryListing::DirectoryListing(const HintedUser& aUser) :
-	hintedUser(aUser), abort(false), root(new Directory(nullptr, Util::emptyString, false, false, true)),
-	includeSelf(false), m_is_mediainfo(false), m_own_list(false)
+	hintedUser(aUser), abort(false), root(new Directory(this, nullptr, Util::emptyString, false, false, true)),
+	includeSelf(false), m_is_mediainfo(false), m_is_own_list(false)
 {
 }
 
@@ -93,7 +93,7 @@ UserPtr DirectoryListing::getUserFromFilename(const string& fileName)
 		                             );
 	}
 	
-	CID cid(name.substr(i + 1));
+	const CID cid(name.substr(i + 1));
 	if (cid.isZero())
 	{
 		// return UserPtr();
@@ -136,7 +136,7 @@ class ListLoader : public SimpleXMLReader::CallBack
 		ListLoader(DirectoryListing* aList, DirectoryListing::Directory* root,
 		           bool aUpdating, const UserPtr& p_user, bool p_own_list)
 			: list(aList), cur(root), base("/"), m_is_in_listing(false),
-			  m_is_updating(aUpdating), user(p_user), m_own_list(p_own_list),
+			  m_is_updating(aUpdating), user(p_user), m_is_own_list(p_own_list),
 			  m_is_mediainfo_list(false), m_is_first_check_mediainfo_list(false),
 			  m_empty_file_name_counter(0)
 		{
@@ -164,7 +164,7 @@ class ListLoader : public SimpleXMLReader::CallBack
 		string base;
 		bool m_is_in_listing;
 		bool m_is_updating;
-		bool m_own_list;
+		bool m_is_own_list;
 		bool m_is_mediainfo_list;
 		bool m_is_first_check_mediainfo_list;
 		int m_empty_file_name_counter;
@@ -176,15 +176,15 @@ string DirectoryListing::updateXML(const string& xml, bool p_own_list)
 	return loadXML(mis, true, p_own_list);
 }
 
-string DirectoryListing::loadXML(InputStream& is, bool updating, bool p_own_list)
+string DirectoryListing::loadXML(InputStream& is, bool updating, bool p_is_own_list)
 {
 	CFlyLog l_log("[loadXML]");
-	ListLoader ll(this, getRoot(), updating, getUser(), p_own_list);
+	ListLoader ll(this, getRoot(), updating, getUser(), p_is_own_list);
 	l_log.step("start parse");
 	SimpleXMLReader(&ll).parse(is);
 	l_log.step("stop parse");
 	m_is_mediainfo = ll.isMediainfoList();
-	m_own_list = p_own_list;
+	m_is_own_list = p_is_own_list;
 	return ll.getBase();
 }
 
@@ -271,7 +271,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 			
 			const string& l_h = getAttrib(attribs, g_STTH, 2);
 			
-			if (l_h.empty() || (m_own_list == false && l_h.compare(0, 39, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", 39) == 0))
+			if (l_h.empty() || (m_is_own_list == false && l_h.compare(0, 39, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", 39) == 0))
 			{
 				dcassert(0);
 				return;
@@ -351,10 +351,11 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 				l_i_hit = l_hit.empty() ? 0 : atoi(l_hit.c_str());
 			}
 			DirectoryListing::File* f = new DirectoryListing::File(cur, l_name, l_size, l_tth, l_i_hit, l_i_ts, l_mediaXY);
+			cur->m_virus_detect.add(l_name, l_size);
 			cur->files.push_back(f);
 			if (l_size) // http://code.google.com/p/flylinkdc/issues/detail?id=1098
 			{
-				if (m_own_list)//[+] FlylinkDC++
+				if (m_is_own_list)//[+] FlylinkDC++
 				{
 					f->setFlag(DirectoryListing::FLAG_SHARED_OWN);  // TODO - убить FLAG_SHARED_OWN
 				}
@@ -373,6 +374,8 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 							const auto l_status_file = CFlylinkDBManager::getInstance()->get_status_file(f->getTTH()); // TODO - унести в отдельную нитку?
 							if (l_status_file & CFlylinkDBManager::PREVIOUSLY_DOWNLOADED)
 								f->setFlag(DirectoryListing::FLAG_DOWNLOAD);
+							if (l_status_file & CFlylinkDBManager::VIRUS_FILE_KNOWN)
+								f->setFlag(DirectoryListing::FLAG_VIRUS_FILE);
 							if (l_status_file & CFlylinkDBManager::PREVIOUSLY_BEEN_IN_SHARE)
 								f->setFlag(DirectoryListing::FLAG_OLD_TTH);
 						}
@@ -407,7 +410,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 			}
 			if (d == nullptr)
 			{
-				d = new DirectoryListing::Directory(cur, l_file_name, false, !incomp, isMediainfoList());
+				d = new DirectoryListing::Directory(list, cur, l_file_name, false, !incomp, isMediainfoList());
 				cur->directories.push_back(d);
 			}
 			cur = d;
@@ -442,7 +445,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 				}
 				if (d == nullptr)
 				{
-					d = new DirectoryListing::Directory(cur, *i, false, false, isMediainfoList());
+					d = new DirectoryListing::Directory(list, cur, *i, false, false, isMediainfoList());
 					cur->directories.push_back(d);
 				}
 				cur = d;
@@ -635,8 +638,79 @@ struct DirectoryEmpty
 
 DirectoryListing::Directory::~Directory()
 {
+
+	if (m_directory_list && m_virus_detect.is_virus_dir())
+	{
+		CFlyVirusFileList l_file_list;
+		l_file_list.m_virus_path = m_directory_list->getPath(this);
+		l_file_list.m_hub_url = m_directory_list->getHintedUser().hint;
+		l_file_list.m_nick = m_directory_list->getUser()->getLastNick();
+		l_file_list.m_ip = m_directory_list->getUser()->getIPAsString();
+		l_file_list.m_time = GET_TIME();
+		for (auto j = files.begin(); j != files.end(); ++j)
+		{
+			if (CFlyVirusDetector::is_virus_file((*j)->getName(), (*j)->getSize()))
+			{
+				CFlyTTHKey l_key((*j)->getTTH(), (*j)->getSize());
+				l_file_list.m_files[l_key].push_back((*j)->getName());
+			}
+		}
+		CFlyServerJSON::addAntivirusCounter(l_file_list);		
+	}
 	for_each(directories.begin(), directories.end(), DeleteFunction());
 	for_each(files.begin(), files.end(), DeleteFunction());
+}
+
+bool DirectoryListing::CFlyVirusDetector::is_virus_dir() const
+{
+	if (m_count_exe > 100) // TODO - config
+	{
+		if (m_max_size_exe == m_min_size_exe)
+			return true;
+		if (m_count_others == 0)  // TODO - config
+		{
+			const auto l_avg = m_sum_size_exe / m_count_exe;
+			if (abs(int64_t(l_avg) - m_max_size_exe) < 100 * 1024) // TODO - config
+				return true;
+		}
+	}
+	return false;
+}
+
+bool DirectoryListing::CFlyVirusDetector::is_virus_file(const string& p_file, int64_t p_size)
+{
+	const auto l_len = p_file.size();
+	if (l_len >= 4 && p_size && p_size < 1024 * 1024 * 30) // TODO config
+	{
+		// const auto l_Text::toLower(Util::getFileExt(name));
+		const char l_ext[4] = { tolower(p_file[l_len - 4]), tolower(p_file[l_len - 3]), tolower(p_file[l_len - 2]), p_file[l_len - 1] };
+		if (l_ext[0] == '.' &&
+		        (l_ext[1] == 'e' && l_ext[2] == 'x' && l_ext[3] == 'e') ||
+		        (l_ext[1] == 'z' && l_ext[2] == 'i' && l_ext[3] == 'p') ||
+		        (l_ext[1] == 'r' && l_ext[2] == 'a' && l_ext[3] == 'r'))
+			return true;
+	}
+	return false;
+}
+void DirectoryListing::CFlyVirusDetector::add(const string& p_file, int64_t p_size)
+{
+	if (is_virus_file(p_file, p_size))
+	{
+		m_count_exe++;
+		m_sum_size_exe += p_size;
+		if (p_size > m_max_size_exe)
+		{
+			m_max_size_exe = p_size;
+		}
+		if (p_size < m_min_size_exe)
+		{
+			m_min_size_exe = p_size;
+		}
+	}
+	else
+	{
+		m_count_others++;
+	}
 }
 
 void DirectoryListing::Directory::filterList(DirectoryListing& dirList)
@@ -813,7 +887,7 @@ void DirectoryListing::Directory::checkDupes(const DirectoryListing* lst)
 	{
 		(*i)->checkDupes(lst);
 		result |= (*i)->getFlags() & (
-		              FLAG_OLD_TTH | FLAG_DOWNLOAD | FLAG_SHARED | FLAG_NOT_SHARED);
+			FLAG_OLD_TTH | FLAG_DOWNLOAD | FLAG_SHARED | FLAG_NOT_SHARED ); // TODO | FLAG_VIRUS_FILE
 	}
 	if (files.size())
 		result |= FLAG_DOWNLOAD_FOLDER;
@@ -824,8 +898,8 @@ void DirectoryListing::Directory::checkDupes(const DirectoryListing* lst)
 		if ((*i)->getSize() > 0)
 		{
 			result |= (*i)->getFlags() & (
-			              FLAG_OLD_TTH | FLAG_DOWNLOAD |  FLAG_SHARED | FLAG_NOT_SHARED);
-			if (!(*i)->isAnySet(FLAG_OLD_TTH | FLAG_DOWNLOAD |  FLAG_SHARED))
+				FLAG_OLD_TTH | FLAG_DOWNLOAD | FLAG_SHARED | FLAG_NOT_SHARED);
+			if (!(*i)->isAnySet(FLAG_OLD_TTH | FLAG_DOWNLOAD | FLAG_SHARED)) 
 				result &= ~FLAG_DOWNLOAD_FOLDER;
 		}
 	}

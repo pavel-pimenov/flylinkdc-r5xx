@@ -25,7 +25,7 @@
 #include "HubFrame.h"
 #include "../client/QueueManager.h"
 
-#define PM_MESSAGE_MAP 8        // This could be any number, really...
+#define PM_MESSAGE_MAP 9
 
 class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 255), IDR_PRIVATE, IDR_PRIVATE_OFF > ,
 	private ClientManagerListener, public UCHandler<PrivateFrame>,

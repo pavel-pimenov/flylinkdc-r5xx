@@ -27,15 +27,15 @@
 #include "ExMessageBox.h" // [+] InfinitySky. From Apex.
 #include "MainFrm.h"
 
-int QueueFrame::columnIndexes[] = { COLUMN_TARGET, COLUMN_STATUS, COLUMN_SEGMENTS, COLUMN_SIZE, COLUMN_PROGRESS, COLUMN_DOWNLOADED, COLUMN_PRIORITY,
+int QueueFrame::columnIndexes[] = { COLUMN_TARGET, COLUMN_TYPE, COLUMN_STATUS, COLUMN_SEGMENTS, COLUMN_SIZE, COLUMN_PROGRESS, COLUMN_DOWNLOADED, COLUMN_PRIORITY,
                                     COLUMN_USERS, COLUMN_PATH,
                                     COLUMN_LOCAL_PATH, // http://code.google.com/p/flylinkdc/issues/detail?id=1261
                                     COLUMN_EXACT_SIZE, COLUMN_ERRORS, COLUMN_ADDED, COLUMN_TTH
                                   };
 
-int QueueFrame::columnSizes[] = { 200, 300, 70, 75, 100, 120, 75, 200, 200, 200, 75, 200, 100, 125 };
+int QueueFrame::columnSizes[] = { 200, 20, 300, 70, 75, 100, 120, 75, 200, 200, 200, 75, 200, 100, 125 };
 
-static ResourceManager::Strings columnNames[] = { ResourceManager::FILENAME, ResourceManager::STATUS, ResourceManager::SEGMENTS, ResourceManager::SIZE,
+static ResourceManager::Strings columnNames[] = { ResourceManager::FILENAME, ResourceManager::TYPE, ResourceManager::STATUS, ResourceManager::SEGMENTS, ResourceManager::SIZE,
                                                   ResourceManager::DOWNLOADED_PARTS, ResourceManager::DOWNLOADED,
                                                   ResourceManager::PRIORITY, ResourceManager::USERS, ResourceManager::PATH,
                                                   ResourceManager::LOCAL_PATH,
@@ -144,11 +144,12 @@ LRESULT QueueFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 
 const tstring QueueFrame::QueueItemInfo::getText(int col) const
 {
-	// [-] if (!qi) return Util::emptyStringT; [-] IRainman fix: imposibru! Please report to me if the app crashing here.
 	switch (col)
 	{
 		case COLUMN_TARGET:
-			return Text::toT(Util::getFileName(getTarget())); // [!] IRainman fix done [13] https://www.box.net/shared/0lg6ozkidynjg7ezkhgz
+			return Text::toT(Util::getFileName(getTarget()));
+		case COLUMN_TYPE:
+			return Text::toT(Util::getFileExtWithoutDot(getTarget()));
 		case COLUMN_STATUS:
 		{
 			RLock l(*QueueItem::g_cs);
@@ -284,12 +285,18 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 				{
 					const auto l_status_file = CFlylinkDBManager::getInstance()->get_status_file(getTTH());
 					if (l_status_file & CFlylinkDBManager::PREVIOUSLY_DOWNLOADED)
-						l_result += TSTRING(I_DOWNLOADED_THIS_FILE); //[!]NightOrion(translate)
+						l_result += TSTRING(I_DOWNLOADED_THIS_FILE);
+					if (l_status_file & CFlylinkDBManager::VIRUS_FILE_KNOWN)
+					{
+						if (!l_result.empty())
+							l_result += _T(" + ");
+						l_result += TSTRING(VIRUS_FILE);
+					}
 					if (l_status_file & CFlylinkDBManager::PREVIOUSLY_BEEN_IN_SHARE)
 					{
 						if (!l_result.empty())
 							l_result += _T(" + ");
-						l_result +=  TSTRING(THIS_FILE_WAS_IN_MY_SHARE); //[!]NightOrion(translate)
+						l_result +=  TSTRING(THIS_FILE_WAS_IN_MY_SHARE); 
 					}
 				}
 			}

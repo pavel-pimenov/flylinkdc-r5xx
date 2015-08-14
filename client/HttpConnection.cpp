@@ -18,7 +18,7 @@
 
 #include "stdinc.h"
 
-#if 0
+#ifdef FLYLINKDC_USE_CROOKED_HTTP_CONNECTION
 #include "HttpConnection.h"
 #include "LogManager.h"
 #include "SettingsManager.h"

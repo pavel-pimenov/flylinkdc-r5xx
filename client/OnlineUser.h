@@ -266,11 +266,11 @@ class Identity
 		}
 		unsigned char getVirusType() const
 		{
-			return m_virus_type & Identity::VT_CALC_AVDB;
+			return m_virus_type & ~Identity::VT_CALC_AVDB;
 		}
-		unsigned char calcVirusType();
+		unsigned char calcVirusType(bool p_force = false);
 #endif
-		string calcP2PGuard();
+		void calcP2PGuard();
 		
 		bool isVirusOnlySingleType(VirusType p_type) const
 		{

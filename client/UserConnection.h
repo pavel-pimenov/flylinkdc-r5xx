@@ -387,7 +387,9 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		void on(Line, const string&) noexcept override;
 		void on(Data, uint8_t* data, size_t p_len) noexcept override;
 		void on(BytesSent, size_t p_Bytes, size_t p_Actual) noexcept override;
+#ifdef FLYLINKDC_USE_CROOKED_HTTP_CONNECTION
 		void on(ModeChange) noexcept override;
+#endif
 		void on(TransmitDone) noexcept override;
 		void on(Failed, const string&) noexcept override;
 		void on(Updated) noexcept override;

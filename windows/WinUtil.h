@@ -782,7 +782,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 					appendRemoveAllItems(p_menu);
 					appendSeparator(p_menu);
 					
-					appenUserSummaryMenu(p_menu);
+					//appenUserSummaryMenu(p_menu);
 				}
 			}
 		}

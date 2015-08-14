@@ -172,7 +172,8 @@ class FavoriteHubEntry
 		        hideShare(false),
 		        exclusiveHub(false), showJoins(false), exclChecks(false), mode(0),
 		        searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)), overrideId(0),
-		        headerSort(-1), headerSortAsc(true), suppressChatAndPM(false)
+		        headerSort(-1), headerSortAsc(true), suppressChatAndPM(false),
+		        autobanAntivirusIP(false), autobanAntivirusNick(false)
 		{
 		} // !SMT!-S
 		virtual ~FavoriteHubEntry() noexcept { }
@@ -211,7 +212,9 @@ class FavoriteHubEntry
 		GETSET(bool, chatusersplitstate, ChatUserSplitState);
 #endif
 		GETSET(bool, hideShare, HideShare); // Save paramethers always IRAINMAN_INCLUDE_HIDE_SHARE_MOD
-		GETSET(bool, showJoins, ShowJoins); // Show joins
+		GETSET(bool, showJoins, ShowJoins);
+		GETSET(bool, autobanAntivirusIP, AutobanAntivirusIP);
+		GETSET(bool, autobanAntivirusNick, AutobanAntivirusNick);
 		GETSET(bool, exclChecks, ExclChecks); // Excl. from client checking
 		GETSET(bool, exclusiveHub, ExclusiveHub); // Exclusive Hub Mod
 		GETSET(bool, suppressChatAndPM, SuppressChatAndPM);
@@ -228,6 +231,8 @@ class FavoriteHubEntry
 		GETSET(string, clientVersion, ClientVersion);
 		GETSET(bool, overrideId, OverrideId); // !SMT!-S
 		// [~] IRainman mimicry function
+		
+		GETSET(string, antivirusCommandIP, AntivirusCommandIP);
 		
 		GETSET(uint32_t, searchInterval, SearchInterval);
 		GETSET(string, encoding, Encoding);

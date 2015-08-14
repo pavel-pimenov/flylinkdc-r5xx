@@ -149,7 +149,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		
 		void getBloom(ByteVector& v, size_t k, size_t m, size_t h) const;
 		
-		static Search::TypeModes getFType(const string& fileName) noexcept;
+		static Search::TypeModes getFType(const string& p_fileName, bool p_include_flylinkdc_ext = false) noexcept;
 		static string validateVirtual(const string& aVirt) noexcept;
 		bool hasVirtual(const string& name) const noexcept;
 		

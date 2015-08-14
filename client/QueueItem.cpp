@@ -158,7 +158,7 @@ static string getDCTempName(const string& aFileName, const TTHValue& aRoot)
 //==========================================================================================
 void QueueItem::calcBlockSize()
 {
-	m_block_size = CFlylinkDBManager::getInstance()->getBlockSizeSQL(getTTH(), getSize());
+	m_block_size = CFlylinkDBManager::getInstance()->get_block_size_sql(getTTH(), getSize());
 	dcassert(m_block_size);
 	
 #ifdef _DEBUG

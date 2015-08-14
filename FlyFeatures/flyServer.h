@@ -49,6 +49,26 @@ struct CServerItem
 	{
 		return getIp() + ':' + Util::toString(getPort());
 	}
+	bool init(const string& p_ip_port)
+	{
+		m_time_response = 0;
+		const auto l_port_pos = p_ip_port.find(':');
+		if (l_port_pos != string::npos)
+		{
+			m_ip = p_ip_port.substr(0, l_port_pos);
+			m_port = atoi(p_ip_port.c_str() + l_port_pos + 1);
+			const bool l_result = !m_ip.empty() && m_port;
+			dcassert(l_result);
+			return l_result;
+		}
+		else
+		{
+			dcassert(0);
+			m_ip.clear();
+			m_port = 0;
+		}
+		return false;
+	}
 	GETSET(string, m_ip, Ip);
 	GETSET(uint16_t, m_port, Port);
 	GETSET(uint32_t, m_time_response, TimeResponse);
@@ -152,6 +172,7 @@ private:
 //
  static std::vector<CServerItem> g_mirror_read_only_servers;
  static std::vector<CServerItem> g_mirror_test_port_servers;
+ static CServerItem g_local_test_server;
  static CServerItem g_main_server;
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
  static CServerItem g_stat_server;
@@ -302,6 +323,21 @@ struct CFlyServerInfo
 typedef std::vector<CFlyServerKey> CFlyServerKeyArray;
 typedef std::vector<CFlyTTHKey> CFlyTTHKeyArray;
 //=======================================================================
+struct CFlyVirusFileList
+{
+	string m_nick;
+	string m_ip;
+	string m_hub_url;
+	string m_virus_path;
+	time_t m_time;
+	std::map<CFlyTTHKey, std::vector<string> > m_files;
+	CFlyVirusFileList() : m_time(0)
+	{
+	}
+};
+//=======================================================================
+typedef std::vector<CFlyVirusFileList> CFlyVirusFileListArray;
+//=======================================================================
 struct CFlyVirusFileInfo
 {
 	string m_nick;
@@ -317,6 +353,7 @@ struct CFlyVirusFileInfo
 	{
 	}
 };
+//=======================================================================
 typedef std::vector<CFlyVirusFileInfo> CFlyVirusFileInfoArray;
 typedef std::map<CFlyTTHKey, CFlyVirusFileInfoArray > CFlyAntivirusTTHArray;
 //=======================================================================
@@ -464,8 +501,11 @@ public:
 	static void addAntivirusCounter(const CFlyTTHKey& p_key, const CFlyVirusFileInfo& p_file_info);
 	static void addAntivirusCounter(const SearchResult &p_search_result, int p_count_file, int p_level);
 	static bool sendAntivirusCounter(bool p_is_only_db_if_network_error);
-		
-		static string connect(const CFlyServerKeyArray& p_fileInfoArray, bool p_is_fly_set_query, bool p_is_ext_info_for_single_file = false);
+
+	static CFlyVirusFileListArray g_antivirus_file_list;
+	static void addAntivirusCounter(const CFlyVirusFileList& p_file_list);
+
+	static string connect(const CFlyServerKeyArray& p_fileInfoArray, bool p_is_fly_set_query, bool p_is_ext_info_for_single_file = false);
 	static string postQueryTestPort(CFlyLog& p_log, const string& p_body, bool& p_is_send, bool& p_is_error);
 	static string postQuery(bool p_is_set,
 		bool p_is_stat_server,

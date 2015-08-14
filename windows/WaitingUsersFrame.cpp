@@ -26,15 +26,15 @@
 
 #include "BarShader.h"
 
-int WaitingUsersFrame::columnSizes[] = { 250, 100, 75, 75, 75, 75, 100, 100, 100, 100, 150, 75 }; // !SMT!-UI
-int WaitingUsersFrame::columnIndexes[] = { UploadQueueItem::COLUMN_FILE, UploadQueueItem::COLUMN_PATH, UploadQueueItem::COLUMN_NICK, UploadQueueItem::COLUMN_HUB, UploadQueueItem::COLUMN_TRANSFERRED, UploadQueueItem::COLUMN_SIZE, UploadQueueItem::COLUMN_ADDED, UploadQueueItem::COLUMN_WAITING,
+int WaitingUsersFrame::columnSizes[] = { 250, 20, 100, 75, 75, 75, 75, 100, 100, 100, 100, 150, 75 }; // !SMT!-UI
+int WaitingUsersFrame::columnIndexes[] = { UploadQueueItem::COLUMN_FILE, UploadQueueItem::COLUMN_TYPE, UploadQueueItem::COLUMN_PATH, UploadQueueItem::COLUMN_NICK, UploadQueueItem::COLUMN_HUB, UploadQueueItem::COLUMN_TRANSFERRED, UploadQueueItem::COLUMN_SIZE, UploadQueueItem::COLUMN_ADDED, UploadQueueItem::COLUMN_WAITING,
                                            UploadQueueItem::COLUMN_LOCATION, UploadQueueItem::COLUMN_IP, // !SMT!-IP
 #ifdef PPA_INCLUDE_DNS
                                            UploadQueueItem::COLUMN_DNS, // !SMT!-IP
 #endif
                                            UploadQueueItem::COLUMN_SLOTS, UploadQueueItem::COLUMN_SHARE // !SMT!-UI
                                          };
-static ResourceManager::Strings columnNames[] = { ResourceManager::FILENAME, ResourceManager::PATH, ResourceManager::NICK,
+static ResourceManager::Strings columnNames[] = { ResourceManager::FILENAME, ResourceManager::TYPE, ResourceManager::PATH, ResourceManager::NICK,
                                                   ResourceManager::HUB, ResourceManager::TRANSFERRED, ResourceManager::SIZE, ResourceManager::ADDED, ResourceManager::WAITING_TIME,
                                                   ResourceManager::LOCATION_BARE, ResourceManager::IP_BARE,
 #ifdef PPA_INCLUDE_DNS
@@ -439,7 +439,7 @@ void WaitingUsersFrame::AddFile(UploadQueueItemPtr aUQI)
 		}
 	}
 	aUQI->update();
-	m_ctrlList.insertItem(m_ctrlList.GetItemCount(), aUQI, aUQI->getImageIndex()); // aUQI->getImageIndex()
+	m_ctrlList.insertItem(m_ctrlList.GetItemCount(), aUQI, aUQI->getImageIndex()); // aUQI->getImageIndex() TODO - image callback
 }
 
 HTREEITEM WaitingUsersFrame::GetParentItem()

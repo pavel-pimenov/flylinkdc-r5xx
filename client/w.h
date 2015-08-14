@@ -47,7 +47,7 @@
 // Messages available for use by applications.
 
 #define WM_SPEAKER (WM_APP + 500)
-#define WM_SPEAKER_UPDATE_USER (WM_USER + 1)
+// #define WM_SPEAKER_UPDATE_USER (WM_USER + 1)
 // #define WM_SPEAKER_CONNECTED (WM_USER + 2)
 // #define WM_SPEAKER_DISCONNECTED (WM_USER + 3)
 #define WM_SPEAKER_CHEATING_USER  (WM_USER + 4)
@@ -68,7 +68,7 @@
 #define WM_SPEAKER_REMOVE_USER (WM_USER + x + 2)
 #endif
 
-#define WM_SPEAKER_BEGIN   WM_SPEAKER_UPDATE_USER
+#define WM_SPEAKER_BEGIN   WM_SPEAKER_CHEATING_USER
 #define WM_SPEAKER_END     WM_SPEAKER_USER_REPORT
 
 class CFlyTickDelta

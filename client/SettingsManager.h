@@ -23,7 +23,7 @@
 #include "Speaker.h"
 #include "Singleton.h"
 #include "..\boost\boost\logic\tribool.hpp"
-#define MAX_SOCKET_BUFFER_SIZE 64 * 1024 // [+] IRainman fix.
+#define MAX_SOCKET_BUFFER_SIZE (64 * 1024) // [+] IRainman fix.
 
 #define URL_GET_IP_DEFAULT  "http://checkip.dyndns.com"
 
@@ -294,7 +294,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  AUTOBAN_PPROTECT_OP,
 #endif
 		                  BAN_SLOTS, BAN_SLOTS_H, /*old BAN_SHARE_MAX,*/ BAN_SHARE, BAN_LIMIT, BANMSG_PERIOD, BAN_STEALTH, BAN_FORCE_PM, /*old BAN_SKIP_OPS,*/ EXTRASLOT_TO_DL, // !SMT!-S
-		                  BAN_COLOR, DUPE_COLOR, MULTILINE_CHAT_INPUT, EXTERNAL_PREVIEW, SEND_SLOTGRANT_MSG, FAVUSERLIST_DBLCLICK, // !SMT!-UI
+						  BAN_COLOR, DUPE_COLOR, VIRUS_COLOR, MULTILINE_CHAT_INPUT, EXTERNAL_PREVIEW, SEND_SLOTGRANT_MSG, FAVUSERLIST_DBLCLICK, // !SMT!-UI
 		                  PROTECT_PRIVATE, PROTECT_PRIVATE_RND, PROTECT_PRIVATE_SAY, // !SMT!-PSW
 		                  
 		                  UP_TRANSFER_COLORS, // By Drakon

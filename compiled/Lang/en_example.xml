@@ -688,6 +688,7 @@
 	<string name="ItunesNotPlay">You have no media playing in iTunes</string>
 	<string name="ItunesNotRun">Supported version of iTunes is not running</string>
 	<string name="IDownloadedThisFile">I downloaded this file</string>
+	<string name="VirusFile">Virus file(!)</string>
 	<string name="JaHelp">/ja - For JetAudio spamming\r\n\r\n- %[filepath] - name of the file currently playing\r\n- %[title] - name of the currently playing item (without file extension)\r\n- %[artist] - artist\r\n- %[state] - current state of JetAudio (playing/paused/stopped)\r\n- %[elapsed] - time elapsed in minutes:seconds\r\n- %[percent] - time elapsed presented as percentage from total length\r\n- %[bar] - ASCII progress bar, 10 characters wide no including brackets (ex. [----|-----])\r\n- %[length] - total length of the current file\r\n- %[version] - Version on JetAudio\r\n- %[magnet] - magnet to current file (if not shared - show only filename )\r\n\r\nEmpty = Default String -&gt; +me listens %[artist] - %[title] * listened to %[percent], JetAudio %[version]</string>
 	<string name="JaHelpDesc">JetAudio Help</string>
 	<string name="JaNotRun">Supported version of JetAudio is not running</string>
@@ -1460,6 +1461,9 @@
 	<string name="SettingsSounds">Sounds</string>
 	<string name="SettingsSpeedsNotAccurate">Note: because of changing download speeds, this is not 100% accurate…</string>
 	<string name="SettingsStatisticsSend">Allow the program to collect and send anonymous usage statistics to developers.</string>
+	<string name="SettingsAntivirusAutobanForIp">Antivirus autoban (IP):</string>
+	<string name="SettingsAntivirusAutobanForNick">Antivirus autoban (Nick):</string>
+	<string name="SettingsAntivirusCommandIp">RAW command (default !banip):</string>
 	<string name="SettingsStatusInChat">View status messages in main chat</string>
 	<string name="SettingsStripTopic">Hide hub topics</string>
 	<string name="SettingsTabs">Tabs</string>

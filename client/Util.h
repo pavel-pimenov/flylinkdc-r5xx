@@ -691,20 +691,48 @@ class Util
 			}
 			return Util::emptyString;
 		}
+		template <class T> static inline void check_path(const T& path)
+		{
+#ifdef _DEBUG
+			dcassert(!path.empty());
+			dcassert(path[path.size() - 1] != '/' && path[path.size() - 1] != '\\');
+#endif
+		}
 		static wstring getFileExtWithoutDot(const wstring& path)
 		{
+			check_path(path);
 			const auto i = path.rfind('.');
-			return i != wstring::npos ? path.substr(i + 1) : Util::emptyStringW;
+			if (i != wstring::npos)
+			{
+				const auto l_res = path.substr(i + 1);
+				if (l_res.rfind(PATH_SEPARATOR) == string::npos)
+					return l_res;
+			}
+			return Util::emptyStringW;
 		}
 		static string getFileExt(const string& path)
 		{
+			check_path(path);
 			const auto i = path.rfind('.');
-			return i != string::npos ? path.substr(i) : Util::emptyString;
+			if (i != string::npos)
+			{
+				const auto l_res = path.substr(i);
+				if (l_res.rfind(PATH_SEPARATOR) == string::npos)
+					return l_res;
+			}
+			return Util::emptyString;
 		}
 		static wstring getFileExt(const wstring& path)
 		{
-			const auto i = path.rfind('.');
-			return i != wstring::npos ? path.substr(i) : Util::emptyStringW;
+			check_path(path);
+			const auto i = path.rfind(L'.');
+			if (i != string::npos)
+			{
+				const auto l_res = path.substr(i);
+				if (l_res.rfind(PATH_SEPARATOR) == string::npos)
+					return l_res;
+			}
+			return Util::emptyStringW;
 		}
 		static string getLastDir(const string& path)
 		{
@@ -713,7 +741,7 @@ class Util
 				return Util::emptyString;
 				
 			const auto j = path.rfind(PATH_SEPARATOR, i - 1);
-			return (j != string::npos) ? path.substr(j + 1, i - j - 1) : path;
+			return j != string::npos ? path.substr(j + 1, i - j - 1) : path;
 		}
 		static wstring getLastDir(const wstring& path)
 		{
@@ -722,7 +750,7 @@ class Util
 				return Util::emptyStringW;
 				
 			const auto j = path.rfind(PATH_SEPARATOR, i - 1);
-			return (j != wstring::npos) ? path.substr(j + 1, i - j - 1) : path;
+			return j != wstring::npos ? path.substr(j + 1, i - j - 1) : path;
 		}
 		
 		template<typename string_t>
@@ -1249,7 +1277,7 @@ class Util
 					m_country_cache_index(-1)
 				{
 				}
-				explicit CustomNetworkIndex(int16_t p_location_cache_index, int16_t p_country_cache_index) :
+				explicit CustomNetworkIndex(int32_t p_location_cache_index, int16_t p_country_cache_index) :
 					m_location_cache_index(p_location_cache_index),
 					m_country_cache_index(p_country_cache_index)
 				{
@@ -1264,7 +1292,7 @@ class Util
 				}
 				tstring getDescription() const;
 				tstring getCountry() const;
-				int16_t getFlagIndex() const;
+				int32_t getFlagIndex() const;
 				int16_t getCountryIndex() const;
 			private:
 				int16_t m_country_cache_index;
@@ -1272,7 +1300,7 @@ class Util
 		};
 		
 		static CustomNetworkIndex getIpCountry(uint32_t p_ip);
-		static CustomNetworkIndex getIpCountry(const string& IP);
+		static CustomNetworkIndex getIpCountry(const string& p_ip);
 		
 	private:
 		// [~] IRainman opt.

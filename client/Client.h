@@ -588,6 +588,10 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			return m_opChat;
 		}
+	protected:
+		bool m_isAutobanAntivirusIP;
+		bool m_isAutobanAntivirusNick;
+		string m_AntivirusCommandIP;
 	private:
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		uint32_t m_HubID;

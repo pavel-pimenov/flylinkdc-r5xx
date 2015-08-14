@@ -36,9 +36,15 @@
 #include "../FlyFeatures/GradientLabel.h"
 #include "../FlyFeatures/flyServer.h"
 
-#define SEARCH_MESSAGE_MAP 6        // This could be any number, really...
+#ifdef _DEBUG
+#define FLYLINKDC_USE_TREE_SEARCH
+#endif
+
+#define SEARCH_MESSAGE_MAP 6
 #define SHOWUI_MESSAGE_MAP 7
-#define FILTER_MESSAGE_MAP 8
+#define SEARCH_FILTER_MESSAGE_MAP 11
+
+
 // #define SEARH_TREE_MESSAGE_MAP 9
 
 //#define FLYLINKDC_USE_ADVANCED_GRID_SEARCH
@@ -176,7 +182,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		MESSAGE_HANDLER(WM_KEYUP, onChar)
 		ALT_MSG_MAP(SHOWUI_MESSAGE_MAP)
 		MESSAGE_HANDLER(BM_SETCHECK, onShowUI)
-		ALT_MSG_MAP(FILTER_MESSAGE_MAP)
+		ALT_MSG_MAP(SEARCH_FILTER_MESSAGE_MAP)
 		MESSAGE_HANDLER(WM_CTLCOLORLISTBOX, onCtlColor)
 		MESSAGE_HANDLER(WM_KEYUP, onFilterChar)
 		COMMAND_CODE_HANDLER(CBN_SELCHANGE, onSelChange)
@@ -214,8 +220,8 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			//doSearchPassiveContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
 			resultsContainer(WC_LISTVIEW, this, SEARCH_MESSAGE_MAP),
 			hubsContainer(WC_LISTVIEW, this, SEARCH_MESSAGE_MAP),
-			ctrlFilterContainer(WC_EDIT, this, FILTER_MESSAGE_MAP),
-			ctrlFilterSelContainer(WC_COMBOBOX, this, FILTER_MESSAGE_MAP),
+			ctrlFilterContainer(WC_EDIT, this, SEARCH_FILTER_MESSAGE_MAP),
+			ctrlFilterSelContainer(WC_COMBOBOX, this, SEARCH_FILTER_MESSAGE_MAP),
 			m_initialSize(0), m_initialMode(Search::SIZE_ATLEAST), m_initialType(Search::TYPE_ANY),
 			m_showUI(true), m_onlyFree(false), m_isHash(false), m_droppedResults(0), m_resultsCount(0),
 			m_expandSR(false),
@@ -226,7 +232,8 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			m_searchStartTime(0),
 			m_waitingResults(false),
 			m_needsUpdateStats(false), // [+] IRainman opt.
-			m_Theme(nullptr)
+			m_Theme(nullptr),
+			m_need_resort(false)
 		{
 		}
 		
@@ -700,16 +707,27 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		CButton m_ctrlStoreSettings;
 		bool m_showUI;
 		bool m_lastFindTTH;
-		
+		bool m_need_resort;
 		CImageList images;
 		SearchInfoList ctrlResults;
 		TypedListViewCtrl<HubInfo, IDC_HUB> ctrlHubs;
 		
 #ifdef FLYLINKDC_USE_TREE_SEARCH
+		
+		enum CFlyTreeNodeType
+		{
+			e_Root = -1,
+			e_Ext = 2,
+			e_Folder = 3,
+			e_Last
+		};
+		
 		//CContainedWindow        m_treeContainer;
 		CTreeViewCtrl           m_ctrlTree;
-		HTREEITEM               m_RootItem;
-		HTREEITEM               m_CurrentItem;
+		HTREEITEM   m_RootTreeItem;
+		HTREEITEM               m_TypeTreeItem[e_Last];
+		std::unordered_map<string, HTREEITEM>   m_tree_ext_map;
+		std::unordered_map<Search::TypeModes, HTREEITEM> m_tree_type;
 #endif
 		//OMenu resultsMenu;
 		OMenu targetMenu;
@@ -722,11 +740,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		StringList targets;
 		StringList wholeTargets;
 		SearchInfo::Array m_pausedResults;
-		void clearPausedResults()
-		{
-			for_each(m_pausedResults.begin(), m_pausedResults.end(), DeleteFunction());
-			m_pausedResults.clear();
-		}
+		void clearPausedResults();
 		
 		CEdit ctrlFilter;
 		CComboBox ctrlFilterSel;

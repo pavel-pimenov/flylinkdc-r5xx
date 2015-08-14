@@ -13,7 +13,6 @@ Name: "program"; Description: "{cm:ProgramFiles}"; Types: full compact custom; F
 Name: "PortalBrowser"; Description: "{cm:PortalBrowser}"; Types: full; Flags: checkablealone
 Name: "PortalBrowser\xml"; Description: "{cm:Portals}"; Flags: dontinheritcheck
 Name: "PortalBrowser\xml\SovietServer"; Description: "SovietServer (Инфолайн, Смайл-нет)"; Types: full; Flags: dontinheritcheck; Languages: ru_RU
-Name: "PortalBrowser\xml\dcmagnets"; Description: "DC.Magnets"; Types: full; Flags: dontinheritcheck; Languages: ru_RU
 Name: "PortalBrowser\xml\dcblog"; Description: "FlylinkDC Blog"; Types: full; Flags: dontinheritcheck; Languages: ru_RU
 Name: "PortalBrowser\doc"; Description: "{cm:PortalDoc}"; Types: full; Flags: dontinheritcheck
 
@@ -353,13 +352,10 @@ Name: "DCPlusPlus\Spain\Campuseros_net"; Description: "Campuseros.net"; Flags: e
 Source: "..\compiled\PortalBrowser\PortalBrowser.xsd"; DestDir: "{app}\PortalBrowser";  Components: PortalBrowser\xml; Flags: ignoreversion
 Source: "..\compiled\PortalBrowser\dcblog.xml"; DestDir: "{app}\PortalBrowser\XMLUpdate"; Components: PortalBrowser\xml\dcblog; Flags: ignoreversion; AfterInstall: MyAfterInstall
 Source: "..\compiled\PortalBrowser\SovietServer.xml"; DestDir: "{app}\PortalBrowser\XMLUpdate";  Components: PortalBrowser\xml\SovietServer; Flags: ignoreversion; AfterInstall: MyAfterInstall
-Source: "..\compiled\PortalBrowser\dcmagnets.xml"; DestDir: "{app}\PortalBrowser\XMLUpdate";  Components: PortalBrowser\xml\dcmagnets; Flags: ignoreversion; AfterInstall: MyAfterInstall
 Source: "..\compiled\PortalBrowser\XMLformatDoc.htm"; DestDir: "{app}\PortalBrowser";  Components: PortalBrowser\doc; Flags: ignoreversion
 Source: "..\compiled\PortalBrowser\XMLFormatChangelog.txt"; DestDir: "{app}\PortalBrowser";  Components: PortalBrowser\xml; Flags: ignoreversion
 Source: "..\compiled\PortalBrowser\SovietServer\icons_large.bmp"; DestDir: "{app}\PortalBrowser\SovietServer";  Components: PortalBrowser\xml\SovietServer; Flags: ignoreversion
 Source: "..\compiled\PortalBrowser\SovietServer\icons_small.bmp"; DestDir: "{app}\PortalBrowser\SovietServer";  Components: PortalBrowser\xml\SovietServer; Flags: ignoreversion
-Source: "..\compiled\PortalBrowser\dcmagnets\icons_large.bmp"; DestDir: "{app}\PortalBrowser\dcmagnets";  Components: PortalBrowser\xml\dcmagnets; Flags: ignoreversion
-Source: "..\compiled\PortalBrowser\dcmagnets\icons_small.bmp"; DestDir: "{app}\PortalBrowser\dcmagnets";  Components: PortalBrowser\xml\dcmagnets; Flags: ignoreversion
 Source: "..\compiled\PortalBrowser\dcBlog\icons_large.bmp"; DestDir: "{app}\PortalBrowser\dcBlog";  Flags: ignoreversion
 Source: "..\compiled\PortalBrowser\dcBlog\icons_small.bmp"; DestDir: "{app}\PortalBrowser\dcBlog";  Flags: ignoreversion
 

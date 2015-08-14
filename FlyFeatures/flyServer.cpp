@@ -83,6 +83,7 @@ std::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_log;
 std::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_syslog;
 std::vector<CServerItem> CFlyServerConfig::g_mirror_read_only_servers;
 std::vector<CServerItem> CFlyServerConfig::g_mirror_test_port_servers;
+CServerItem CFlyServerConfig::g_local_test_server;
 CServerItem CFlyServerConfig::g_main_server;
 uint16_t CFlyServerAdapter::CFlyServerQueryThread::g_minimal_interval_in_ms  = 2000; 
 
@@ -142,10 +143,18 @@ const CServerItem& CFlyServerConfig::getStatServer()
 //======================================================================================================
 const std::vector<CServerItem>& CFlyServerConfig::getMirrorTestPortServerArray()
 {
-	dcassert(!g_mirror_test_port_servers.empty());
+	dcassert(!g_mirror_test_port_servers.empty() || !g_local_test_server.getIp().empty());
 	if (g_mirror_test_port_servers.empty())
 	{
-		g_mirror_test_port_servers.push_back(g_main_server);
+		// Если определен локальны тест-сервер - кидаемся на него
+		if (!g_local_test_server.getIp().empty())
+		{
+			g_mirror_test_port_servers.push_back(g_local_test_server);
+		}
+		else
+		{
+			g_mirror_test_port_servers.push_back(g_main_server);
+		}
 	}
     return g_mirror_test_port_servers;
 }
@@ -328,6 +337,12 @@ void CFlyServerConfig::loadConfig()
 #ifdef _DEBUG
   //#define USE_FLYSERVER_LOCAL_FILE
 #endif
+		const auto l_path_local_test_file = Text::toT(Util::getExePath()) + _T("fly-server-getip.config");
+		if (File::isExist(l_path_local_test_file))
+		{
+			const string l_test_server_port = File(l_path_local_test_file, File::READ, File::OPEN).read();
+			g_local_test_server.init(l_test_server_port);
+		}
 #ifdef USE_FLYSERVER_LOCAL_FILE
 		const string l_url_config_file = "file://C:/vc10/etc/flylinkdc-config-r5xx.xml"; 
 		g_debug_fly_server_url = "localhost";
@@ -531,13 +546,18 @@ for (auto i = g_block_ip_str.cbegin(); i != g_block_ip_str.cend(); ++i)
 						if(l_port_pos != string::npos)
 							g_mirror_read_only_servers.push_back(CServerItem(n.substr(0, l_port_pos), atoi(n.c_str() + l_port_pos + 1)));
 					});
-					// Достанем зеркала серверов для тестов
-					l_xml.getChildAttribSplit("mirror_test_port_server", g_mirror_test_port_servers, [this](const string& n)
+					// Достанем зеркала серверов для тестов 
+					if (g_local_test_server.getIp().empty()) // (если нет переопределения локального)
 					{
-						const auto l_port_pos = n.find(':');
-						if(l_port_pos != string::npos)
-							g_mirror_test_port_servers.push_back(CServerItem(n.substr(0, l_port_pos), atoi(n.c_str() + l_port_pos + 1)));
-					});
+						l_xml.getChildAttribSplit("mirror_test_port_server", g_mirror_test_port_servers, [this](const string& n)
+						{
+							CServerItem l_server;
+							if (l_server.init(n))
+							{
+								g_mirror_test_port_servers.push_back(l_server);
+							}
+						});
+					}
           
 
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -774,6 +794,7 @@ string CFlyServerConfig::DBDelete()
 string CFlyServerJSON::g_fly_server_id;
 CFlyTTHKeyArray CFlyServerJSON::g_download_counter;
 CFlyAntivirusTTHArray CFlyServerJSON::g_antivirus_counter;
+CFlyVirusFileListArray CFlyServerJSON::g_antivirus_file_list;
 //===================================================================================================================================
 void CFlyServerAdapter::post_message_for_update_mediainfo()
 {
@@ -1138,7 +1159,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 	syslog(LOG_USER | LOG_INFO, "%s %s %s [%s]", l_cid.c_str(), l_pid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
 }
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 38 (36 - устарел)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 40 (36 - устарел)
 {
 	bool l_is_send = false;
 	bool l_is_error = false;
@@ -1642,6 +1663,12 @@ void CFlyServerJSON::addAntivirusCounter(const SearchResult &p_search_result, in
 	CFlyServerJSON::addAntivirusCounter(l_key, l_server_item);
 }
 //======================================================================================================
+void CFlyServerJSON::addAntivirusCounter(const CFlyVirusFileList& p_file_list)
+{
+	Lock l(g_cs_antivirus_counter);
+	g_antivirus_file_list.push_back(p_file_list);
+}
+//======================================================================================================
 void CFlyServerJSON::addAntivirusCounter(const CFlyTTHKey& p_key, const CFlyVirusFileInfo& p_file_info)
 {
 	Lock l(g_cs_antivirus_counter);
@@ -1715,10 +1742,71 @@ bool CFlyServerJSON::sendAntivirusCounter(bool p_is_only_db_if_network_error)
 			}
 		}
 	}
-	// TODO - словить исключение и если нужно сохранить l_copy_array в базе.
-	// чтобы не потерять счетчики.
-	return l_is_error;
+	//
+	if (!g_antivirus_file_list.empty())
+	{
+		CFlyVirusFileListArray l_copy_array;
+		{
+			Lock l(g_cs_antivirus_counter);
+			l_copy_array.swap(g_antivirus_file_list);
+		}
+		l_is_error = login();
+		std::string  l_post_query;
+		Json::Value  l_root;
+		Json::Value& l_arrays = l_root["array_file_list"];
+		int l_count_record = 0;
+		for (auto i = l_copy_array.cbegin(); i != l_copy_array.cend(); ++i)
+		{
+			Json::Value& l_array_item = l_arrays[l_count_record++];
+			l_array_item["nick"] = i->m_nick;
+			l_array_item["ip"] = i->m_ip;
+			l_array_item["hub_url"] = i->m_hub_url;
+			l_array_item["virus_path"] = i->m_virus_path;
+			l_array_item["time"] = i->m_time;
 
+			Json::Value& l_tth_array = l_array_item["TTH"];
+			int l_count_tth = 0;
+			for (auto j = i->m_files.cbegin(); j != i->m_files.cend(); ++j)
+			{
+				const auto l_status_file = CFlylinkDBManager::getInstance()->get_status_file(j->first.m_tth);
+				if (l_status_file & CFlylinkDBManager::VIRUS_FILE_KNOWN)
+					continue;
+				Json::Value& l_tth = l_tth_array[l_count_tth++];
+				l_tth["tth"] = j->first.m_tth.toBase32();
+				CFlylinkDBManager::getInstance()->push_add_virus_database_tth(j->first.m_tth);
+				l_tth["size"] = j->first.m_file_size;
+				Json::Value& l_files_array = l_tth["files"];
+				int l_count_files = 0;
+				for (auto k = j->second.cbegin(); k != j->second.cend(); ++k)
+				{
+					l_files_array[l_count_files++] = *k;
+				}
+			}
+			if(l_count_tth)
+			{
+				l_post_query = l_root.toStyledString();
+			}
+			bool l_is_send = false;
+#ifndef _DEBUG
+			if (l_is_error == false && p_is_only_db_if_network_error == false)
+#endif
+			{
+				if (!l_post_query.empty())
+				{
+					postQuery(true, false, false, true, "fly-antivirus", l_post_query, l_is_send, l_is_error, 1000);
+					l_post_query.clear();
+				}
+			}
+		}
+		if (l_is_error || p_is_only_db_if_network_error == true)
+		{
+			if (!l_post_query.empty() && BOOLSETTING(USE_FLY_SERVER_STATICTICS_SEND))
+			{
+				CFlylinkDBManager::getInstance()->push_json_statistic(l_post_query, "fly-antivirus", false);
+			}
+		}
+	}
+	return l_is_error;
 }
 //======================================================================================================
 void CFlyServerJSON::addDownloadCounter(const CFlyTTHKey& p_file)

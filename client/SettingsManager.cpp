@@ -286,7 +286,7 @@ const string SettingsManager::g_settingTags[] =
 	"AutoBanProtectOP",
 #endif
 	"BanSlots", "BanSlotsH", /*old "BanShareMax",*/ "BanShare", "BanLimit", "BanmsgPeriod", "BanStealth", "BanForcePM", /* old "BanSkipOps",*/ "ExtraSlotToDl", // !SMT!-S
-	"BanColor", "DupeColor", "MultilineChatInput", "ExternalPreview", "SendSlotgrantMsg", "FavUserDblClick",// !SMT!-UI
+	"BanColor", "DupeColor", "VirusColor","MultilineChatInput", "ExternalPreview", "SendSlotgrantMsg", "FavUserDblClick",// !SMT!-UI
 	"ProtectPrivate", "ProtectPrivateRnd", "ProtectPrivateSay", // !SMT!-PSW
 	"UploadTransfersColors", // [+] Drakon
 	"StartupBackup", // [+] Drakon
@@ -539,7 +539,7 @@ void SettingsManager::setDefaults()
 	//setDefault(IGNORE_HUB_PMS, false);
 	//setDefault(IGNORE_BOT_PMS, false);
 	setDefault(BUFFER_SIZE_FOR_DOWNLOADS, 1024);
-	setDefault(HUBLIST_SERVERS, "http://dchublist.ru/hublist.xml.bz2;http://www.te-home.net/?do=hublist&get=hublist-ru.xml.bz2;http://dchublist.com/hublist.xml.bz2;http://hublist.flexhub.org/hublist.xml.bz2");
+	setDefault(HUBLIST_SERVERS, "http://dchublist.ru/hublist.xml.bz2;http://www.te-home.net/?do=hublist&get=hublist-ru.xml.bz2;http://hublist.flexhub.org/hublist.xml.bz2");
 	//setDefault(DOWNLOAD_SLOTS, 0); // [+] PPA
 	//setDefault(MAX_DOWNLOAD_SPEED, 0);
 	setDefault(LOG_DIRECTORY, Util::getLocalPath() + "Logs" PATH_SEPARATOR_STR);
@@ -1103,6 +1103,7 @@ void SettingsManager::setDefaults()
 	// !SMT!-UI
 	setDefault(BAN_COLOR, RGB(116, 154, 179));
 	setDefault(DUPE_COLOR, RGB(115, 247, 230));
+	setDefault(VIRUS_COLOR, RGB(115, 0, 0));
 	setDefault(DUPE_EX1_COLOR, RGB(115, 247, 230));
 	setDefault(DUPE_EX2_COLOR, RGB(115, 247, 230));//NSL
 	//setDefault(MULTILINE_CHAT_INPUT, false);
@@ -1300,7 +1301,7 @@ void SettingsManager::setDefaults()
 #endif
 #ifdef FLYLINKDC_HE
 	setDefault(AUTOUPDATE_USE_CUSTOM_URL, TRUE);
-	setDefault(AUTOUPDATE_SERVER_URL, "http://studia2000.sytes.net/flyupdate"); // TODO: move to google.
+	setDefault(AUTOUPDATE_SERVER_URL, "http://studia2000.sytes.net/flyupdate");
 	importDctheme(Text::toT(Util::getThemesPath()) + _T("Green_Orange.dctheme"), true);
 # ifdef _WIN64
 	setDefault(THEME_MANAGER_THEME_DLL_NAME, "resourceGO_x64.dll");
@@ -1674,6 +1675,13 @@ bool SettingsManager::set(StrSetting key, const string& value)
 		{
 			string l_trim_val = value;
 			boost::algorithm::trim(l_trim_val);
+			if (key == AUTOUPDATE_SERVER_URL)
+			{
+				if (l_trim_val.find(".googlecode.com") != string::npos)
+				{
+					l_trim_val.clear();
+				}
+			}
 			strSettings[key - STR_FIRST] = l_trim_val;
 			l_auto = false; // [+] IRainman
 		}
@@ -2314,6 +2322,7 @@ void SettingsManager::importDctheme(const tstring& file, const bool asDefault /*
 			// FileList Colors
 			importData("BanColor", BAN_COLOR);
 			importData("DupeColor", DUPE_COLOR);
+			importData("VirusColor", VIRUS_COLOR);
 			importData("DupeEx1Color", DUPE_EX1_COLOR);
 			importData("DupeEx2Color", DUPE_EX2_COLOR);
 			// Popup Colors
@@ -2457,6 +2466,7 @@ void SettingsManager::exportDctheme(const tstring& file)
 	// FileList Colors
 	exportData("BanColor", BAN_COLOR);
 	exportData("DupeColor", DUPE_COLOR);
+	exportData("VirusColor", VIRUS_COLOR);
 	exportData("DupeEx1Color", DUPE_EX1_COLOR);
 	exportData("DupeEx2Color", DUPE_EX2_COLOR);
 	// Popup Colors

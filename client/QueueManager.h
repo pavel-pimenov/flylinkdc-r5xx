@@ -184,7 +184,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 	
 		static bool getTTH(const string& p_target, TTHValue& p_tth)
 		{
-			return g_fileQueue.getTTH(p_target, p_tth);
+			return QueueManager::FileQueue::getTTH(p_target, p_tth);
 		}
 		
 		/** Move the target location of a queued item. Running items are silently ignored */
@@ -243,11 +243,11 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 	private:
 		static void calcPriorityAndGetRunningFilesL(QueueItem::PriorityArray& p_proir_array, QueueItemList& p_running_file)
 		{
-			g_fileQueue.calcPriorityAndGetRunningFilesL(p_proir_array, p_running_file);
+			QueueManager::FileQueue::calcPriorityAndGetRunningFilesL(p_proir_array, p_running_file);
 		}
 		static size_t getRunningFileCount(const size_t p_stop_key)
 		{
-			return g_fileQueue.getRunningFileCount(p_stop_key);
+			return QueueManager::FileQueue::getRunningFileCount(p_stop_key);
 		}
 	public:
 		static bool getTargetByRoot(const TTHValue& tth, string& p_target, string& p_tempTarget);
@@ -319,42 +319,40 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 			public:
 				FileQueue();
 				~FileQueue();
-				void add(const QueueItemPtr& qi); // [!] IRainman fix.
-				QueueItemPtr add(const string& aTarget, int64_t aSize,
-				                 Flags::MaskType aFlags, QueueItem::Priority p,
-				                 const string& aTempTarget, time_t aAdded, const TTHValue& root);
-				bool getTTH(const string& p_name, TTHValue& p_tth) const;
-				QueueItemPtr find(const string& p_target) const;
-				void find(QueueItemList& sl, int64_t aSize, const string& ext) const;
-				void find(StringList& sl, int64_t aSize, const string& ext) const;
-				int find(QueueItemList& p_ql, const TTHValue& p_tth, int p_count_limit = 0) const;
-				QueueItemPtr findQueueItem(const TTHValue& p_tth) const; // [+] IRainman opt.
-				static uint8_t getMaxSegments(const uint64_t filesize);
+				static void add(const QueueItemPtr& qi); // [!] IRainman fix.
+				static QueueItemPtr add(const string& aTarget, int64_t aSize,
+				                        Flags::MaskType aFlags, QueueItem::Priority p,
+				                        const string& aTempTarget, time_t aAdded, const TTHValue& root);
+				static bool  getTTH(const string& p_name, TTHValue& p_tth);
+				static QueueItemPtr find_target(const string& p_target);
+				static int  find_tth(QueueItemList& p_ql, const TTHValue& p_tth, int p_count_limit = 0);
+				static QueueItemPtr findQueueItem(const TTHValue& p_tth);
+				static uint8_t getMaxSegments(const uint64_t p_filesize);
 				// find some PFS sources to exchange parts info
-				void findPFSSourcesL(PFSSourceList&);
+				static void findPFSSourcesL(PFSSourceList&);
 				
 #ifdef STRONG_USE_DHT
 				// return a PFS tth to DHT publish
-				TTHValue* findPFSPubTTH();
+				static TTHValue* findPFSPubTTH();
 #endif
 				QueueItemPtr findAutoSearch(deque<string>& p_recent) const; // [!] IRainman fix.
-				size_t getSize() const
+				static size_t getSize()
 				{
-					return m_queue.size();
+					return g_queue.size();
 				}
-				bool empty() const // [+] IRainman opt.
+				static bool empty() // [+] IRainman opt.
 				{
-					return m_queue.empty();
+					return g_queue.empty();
 				}
-				QueueItem::QIStringMap& getQueueL()
+				static QueueItem::QIStringMap& getQueueL()
 				{
-					return m_queue;
+					return g_queue;
 				}
-				void calcPriorityAndGetRunningFilesL(QueueItem::PriorityArray& p_changedPriority, QueueItemList& p_runningFiles);
-				size_t getRunningFileCount(const size_t p_stop_key) const;
+				static void calcPriorityAndGetRunningFilesL(QueueItem::PriorityArray& p_changedPriority, QueueItemList& p_runningFiles);
+				static size_t getRunningFileCount(const size_t p_stop_key);
 				void moveTarget(const QueueItemPtr& qi, const string& aTarget); // [!] IRainman fix.
 				void remove(const QueueItemPtr& qi); // [!] IRainman fix.
-				void clearAll();
+				static void clearAll();
 				
 #ifdef FLYLINKDC_USE_RWLOCK
 				static std::unique_ptr<webrtc::RWLockWrapper> g_csFQ;
@@ -362,9 +360,9 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 				static std::unique_ptr<CriticalSection> g_csFQ;
 #endif
 			private:
-				QueueItem::QIStringMap m_queue;
-				std::unordered_map<TTHValue, int> m_queue_tth_map;
-				void remove_internal(const QueueItemPtr& qi);
+				static QueueItem::QIStringMap g_queue;
+				static std::unordered_map<TTHValue, int> g_queue_tth_map;
+				static void remove_internal(const QueueItemPtr& qi);
 				
 		};
 		

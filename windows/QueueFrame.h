@@ -192,6 +192,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		{
 			COLUMN_FIRST,
 			COLUMN_TARGET = COLUMN_FIRST,
+			COLUMN_TYPE,
 			COLUMN_STATUS,
 			COLUMN_SEGMENTS,
 			COLUMN_SIZE,

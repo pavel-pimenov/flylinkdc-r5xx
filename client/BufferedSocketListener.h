@@ -37,7 +37,9 @@ class BufferedSocketListener
 		typedef X<2> Line;
 		typedef X<3> Data;
 		typedef X<4> BytesSent;
+#ifdef FLYLINKDC_USE_CROOKED_HTTP_CONNECTION
 		typedef X<5> ModeChange;
+#endif
 		typedef X<6> TransmitDone;
 		typedef X<7> Failed;
 		typedef X<8> Updated;
@@ -55,7 +57,9 @@ class BufferedSocketListener
 		virtual void on(SearchArrayFile, const CFlySearchArrayFile&) noexcept { } // [+]PPA
 		virtual void on(Data, uint8_t*, size_t) noexcept { }
 		virtual void on(BytesSent, size_t p_Bytes, size_t p_Actual) noexcept { }
-		virtual void on(ModeChange) noexcept { }
+#ifdef FLYLINKDC_USE_CROOKED_HTTP_CONNECTION
+		virtual void on(ModeChange) noexcept {}
+#endif
 		virtual void on(TransmitDone) noexcept { }
 		virtual void on(Failed, const string&) noexcept { }
 		virtual void on(Updated) noexcept { }

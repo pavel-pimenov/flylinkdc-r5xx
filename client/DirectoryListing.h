@@ -41,6 +41,8 @@ class DirectoryListing : public UserInfoBase
 			FLAG_OLD_TTH            = 1 << 3, //[+]PPA
 			FLAG_DOWNLOAD_FOLDER    = 1 << 4, //[+]PPA
 			FLAG_SHARED_OWN         = 1 << 5, //[+]NightOrion TODO do flag at file-list, not in every file in this list
+			FLAG_VIRUS_FILE         = 1 << 6,
+			FLAG_VIRUS_FILE_FOLDER  = 1 << 7 // TODO
 		};
 		
 		class File :
@@ -81,6 +83,22 @@ class DirectoryListing : public UserInfoBase
 				std::shared_ptr<CFlyMediaInfo> m_media;
 				GETSET(bool, adls, Adls);
 		};
+		class CFlyVirusDetector
+		{
+			public:
+				CFlyVirusDetector() : m_sum_size_exe(0), m_count_others(0), m_count_exe(0), m_max_size_exe(0), m_min_size_exe(std::numeric_limits<int64_t>::max())
+				{
+				}
+				uint32_t m_count_exe;
+				uint32_t m_count_others;
+				int64_t m_max_size_exe;
+				int64_t m_min_size_exe;
+				int64_t m_sum_size_exe;
+				
+				bool is_virus_dir() const;
+				static bool is_virus_file(const string& p_file, int64_t p_size);
+				void add(const string& p_file, int64_t p_size);
+		};
 		
 		class Directory : public Flags //!fulDC! !SMT!-UI
 #ifdef _DEBUG
@@ -103,27 +121,31 @@ class DirectoryListing : public UserInfoBase
 				List directories;
 				
 				File::List files;
+				CFlyVirusDetector m_virus_detect;
+				DirectoryListing* m_directory_list;
 				size_t getFileCount() const
 				{
 					return files.size();
 				}
 				
-				Directory(Directory* aParent, const string& aName, bool _adls, bool aComplete, bool p_is_mediainfo)
-					: name(aName), parent(aParent), adls(_adls), complete(aComplete), m_is_mediainfo(p_is_mediainfo) { }
-					
+				Directory(DirectoryListing* p_directory_list, Directory* aParent, const string& aName, bool _adls, bool aComplete, bool p_is_mediainfo)
+					: name(aName), parent(aParent), adls(_adls), complete(aComplete), m_is_mediainfo(p_is_mediainfo), m_directory_list(p_directory_list)
+				{
+				}
+				
 				virtual ~Directory();
 				
 				size_t   getTotalFileCount(bool adls = false) const;
 				size_t   getTotalFolderCount() const;
 				uint64_t getTotalSize(bool adls = false) const;
 				uint64_t getTotalHit() const;
-				int64_t getTotalTS() const;
+				int64_t  getTotalTS() const;
 				std::pair<uint32_t, uint32_t> getMinMaxBitrateDir() const;
 				std::pair<uint32_t, uint32_t> getMinMaxBitrateFile() const;
-				tstring getMinMaxBitrateDirAsString() const;
+				tstring  getMinMaxBitrateDirAsString() const;
 				uint64_t getSumSize() const;
 				uint64_t getSumHit() const;
-				int64_t getMaxTS() const;
+				int64_t  getMaxTS() const;
 				void filterList(DirectoryListing& dirList);
 				void filterList(TTHSet& l);
 				void getHashList(TTHSet& l);
@@ -139,7 +161,7 @@ class DirectoryListing : public UserInfoBase
 		class AdlDirectory : public Directory
 		{
 			public:
-				AdlDirectory(const string& aFullPath, Directory* aParent, const string& aName) : Directory(aParent, aName, true, true, true), fullPath(aFullPath) { }
+				AdlDirectory(const string& aFullPath, Directory* aParent, const string& aName) : Directory(nullptr, aParent, aName, true, true, true), fullPath(aFullPath) { }
 				
 				GETSET(string, fullPath, FullPath);
 		};
@@ -202,7 +224,7 @@ class DirectoryListing : public UserInfoBase
 		
 		Directory* root;
 		bool m_is_mediainfo;
-		bool m_own_list;
+		bool m_is_own_list;
 		Directory* find(const string& aName, Directory* current);
 		
 };

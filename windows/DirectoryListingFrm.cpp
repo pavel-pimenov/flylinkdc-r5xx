@@ -1919,6 +1919,9 @@ LRESULT DirectoryListingFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 		SET_SETTING(DIRLIST_COLUMNS_SORT_ASC, ctrlList.isAscending());
 		SET_SETTING(DIRECTORYLISTINGFRAME_SPLIT, m_nProportionalPos);
 		PostMessage(WM_CLOSE);
+#ifdef _DEBUG
+		CFlyServerJSON::sendAntivirusCounter(false);
+#endif
 		return 0;
 	}
 	else
@@ -2004,6 +2007,8 @@ void DirectoryListingFrame::getItemColor(const Flags::MaskType flags, COLORREF &
 		bg = SETTING(DUPE_COLOR);
 	if (flags & DirectoryListing::FLAG_DOWNLOAD)
 		bg = SETTING(DUPE_EX1_COLOR);
+	if (flags & DirectoryListing::FLAG_VIRUS_FILE)
+		bg = SETTING(VIRUS_COLOR);
 	if (flags & DirectoryListing::FLAG_DOWNLOAD_FOLDER)
 	{
 		DWORD l_color = SETTING(DUPE_EX1_COLOR);
@@ -2011,7 +2016,9 @@ void DirectoryListingFrame::getItemColor(const Flags::MaskType flags, COLORREF &
 		bg = l_color;
 	}
 	else if (flags & DirectoryListing::FLAG_OLD_TTH)
-		bg =  SETTING(DUPE_EX2_COLOR) ;
+	{
+		bg = SETTING(DUPE_EX2_COLOR);
+	}
 		
 }
 
@@ -2155,6 +2162,12 @@ void DirectoryListingFrame::ItemInfo::UpdatePathColumn(const DirectoryListing::F
 		// TODO Копипаста
 		if (f->isSet(DirectoryListing::FLAG_DOWNLOAD))
 			columns[COLUMN_PATH] = TSTRING(I_DOWNLOADED_THIS_FILE); //[!]NightOrion(translate)
+		if (f->isSet(DirectoryListing::FLAG_VIRUS_FILE))
+		{
+			if (!columns[COLUMN_PATH].empty())
+				columns[COLUMN_PATH] += _T(" + ");
+			columns[COLUMN_PATH] += TSTRING(VIRUS_FILE);
+		}
 		if (f->isSet(DirectoryListing::FLAG_OLD_TTH))
 		{
 			if (!columns[COLUMN_PATH].empty())

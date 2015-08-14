@@ -26,8 +26,10 @@ class StringTokenizer
 		T2 m_tokens;
 		
 		template<class T3>
-		void slice(const T& str, const T3& tok, const size_t tokLen, int p_count_hunt = 1) // [+] IRainman copy-past fix.
+		void slice(const T& str, const T3& tok, const size_t tokLen, int p_count_hint = 0) // [+] IRainman copy-past fix.
 		{
+			if (p_count_hint)
+				m_tokens.reserve(p_count_hint);
 			T::size_type next = 0;
 			while (true)
 			{
@@ -51,22 +53,19 @@ class StringTokenizer
 		StringTokenizer()
 		{
 		}
-		explicit StringTokenizer(const T& str, const typename T::value_type tok, int p_count_hunt) // [!] IRainman fix: no needs link to T::value_type.
+		explicit StringTokenizer(const T& str, const typename T::value_type tok, int p_count_hint) // [!] IRainman fix: no needs link to T::value_type.
 		{
-			slice(str, tok, 1, p_count_hunt);
+			slice(str, tok, 1, p_count_hint);
 		}
-		
 		explicit StringTokenizer(const T& str, const typename T::value_type tok) // [!] IRainman fix: no needs link to T::value_type.
 		{
 			slice(str, tok, 1);
 		}
-		
-		explicit StringTokenizer(const T& str, const typename T::value_type* tok)
+		explicit StringTokenizer(const T& str, const typename T::value_type* tok, int p_count_hint = 0)
 		{
 			const T tmp(tok);
-			slice(str, tmp, tmp.size());
+			slice(str, tmp, tmp.size(), p_count_hint);
 		}
-		
 		const T2& getTokens() const
 		{
 			return m_tokens;

@@ -1476,12 +1476,6 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 	}
 	switch (uMsg)
 	{
-		case WM_SPEAKER_UPDATE_USER:
-		{
-			unique_ptr<OnlineUserPtr> l_ou(reinterpret_cast<OnlineUserPtr*>(wParam));
-			m_needsUpdateStats |= updateUser(*l_ou, lParam); // Ускоряем апдейт колонки (если lparam != 0)
-		}
-		break;
 #ifdef FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
 		case WM_SPEAKER_UPDATE_USER_JOIN:
 		{
@@ -1558,12 +1552,7 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 				addLine(from, myMess, msg->thirdPerson, Text::toT(msg->format()), Colors::g_ChatTextGeneral);
 				auto& l_user = msg->m_from->getUser();
 				l_user->incMessagesCount();
-				const auto l_ou_ptr = new OnlineUserPtr(msg->m_from);
-				if (PostMessage(WM_SPEAKER_UPDATE_USER, WPARAM(l_ou_ptr), LPARAM(COLUMN_MESSAGES)) == FALSE)
-				{
-					dcassert(0);
-					delete l_ou_ptr;
-				}
+				speak(UPDATE_COLUMN_MESSAGE, msg->m_from);
 			}
 			else
 			{
@@ -1698,6 +1687,19 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 	{
 		switch (i->first)
 		{
+			case UPDATE_COLUMN_MESSAGE:
+			{
+				const OnlineUserTask& u = static_cast<OnlineUserTask&>(*i->second);
+				m_needsUpdateStats |= updateUser(u.m_ou, COLUMN_MESSAGES);
+			}
+			break;
+			case UPDATE_USER:
+			{
+				const OnlineUserTask& u = static_cast<OnlineUserTask&>(*i->second);
+				m_needsUpdateStats |= updateUser(u.m_ou, 0);
+			}
+			break;
+			
 #ifndef FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
 			case UPDATE_USER_JOIN:
 			{
@@ -1747,6 +1749,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 			{
 				const OnlineUserTask& u = static_cast<const OnlineUserTask&>(*i->second);
 				//dcassert(!ClientManager::isShutdown());
+				dcassert(m_is_process_disconnected == false);
 				if (m_is_process_disconnected == false)
 				{
 					if (!ClientManager::isShutdown())
@@ -1795,12 +1798,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 						auto& l_user = msg->m_from->getUser();
 						l_user->incMessagesCount();
 						m_client->incMessagesCount();
-						const auto l_ou_ptr = new OnlineUserPtr(msg->m_from);
-						if (PostMessage(WM_SPEAKER_UPDATE_USER, WPARAM(l_ou_ptr), LPARAM(COLUMN_MESSAGES)) == FALSE)
-						{
-							dcassert(0);
-							delete l_ou_ptr;
-						}
+						speak(UPDATE_COLUMN_MESSAGE, msg->m_from);
 					}
 					else
 					{
@@ -3277,13 +3275,7 @@ void HubFrame::on(ClientListener::UsersUpdated, const Client*, const OnlineUserL
 {
 	for (auto i = aList.cbegin(); i != aList.cend(); ++i)
 	{
-		const auto l_ou_ptr = new OnlineUserPtr(*i);
-		if (PostMessage(WM_SPEAKER_UPDATE_USER, WPARAM(l_ou_ptr)) == FALSE)
-		{
-			dcassert(0);
-			delete l_ou_ptr;
-		}
-//		speak(UPDATE_USER, *i); // !SMT!-fix
+		speak(UPDATE_USER, *i);
 #ifdef _DEBUG
 //		LogManager::message("[array OnlineUserPtr] void HubFrame::on(UsersUpdated nick = " + (*i)->getUser()->getLastNick());
 #endif
@@ -4226,7 +4218,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			if (ui)
 			{
 //				PROFILE_THREAD_SCOPED_DESC("CDDS_ITEMPREPAINT");
-				ui->calcLocation(); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=120907
+				ui->calcLocation();
 				ui->calcVirusType();
 				ui->calcP2PGuard();
 				Colors::getUserColor(m_client->isOp(), ui->getUser(), cd->clrText, cd->clrTextBk, ui->m_flag_mask, ui->getOnlineUser()); // !SMT!-UI
@@ -4262,10 +4254,6 @@ void HubFrame::addDupeUsersToSummaryMenu(ClientManager::UserParams& p_param)
 			for (auto i = frame->m_userMap.cbegin(); i != frame->m_userMap.cend(); ++i) // TODO https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=28097
 			{
 				const auto& l_id = i->second->getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'i->second->getIdentity()' expression repeatedly. hubframe.cpp 3673
-//			if (l_id.getNick() == "Strannik")
-//			{
-//				string l_iii = "dddd";
-//			}
 				const auto l_cur_ip = l_id.getUser()->getLastIPfromRAM().to_string();
 				if ((p_param.m_bytesShared && l_id.getBytesShared() == p_param.m_bytesShared) ||
 				        (p_param.m_nick == l_id.getNick()) ||

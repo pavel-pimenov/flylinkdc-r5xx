@@ -139,8 +139,8 @@ class PortalBrowserFrame : public MDITabChildWindowImpl < PortalBrowserFrame, RG
 		TRANSLATEBROWSERACCELERATOR m_TranslateBrowserAccelerator;
 		HANDLE m_hBrowser;
 		
-		static std::map<std::wstring, PortalBrowserFrame*> m_Frames;
-		static FastCriticalSection m_cs; // [!] IRainman opt: use spin lock here.
+		static std::map<std::wstring, PortalBrowserFrame*> g_portal_frames;
+		static FastCriticalSection g_cs; // [!] IRainman opt: use spin lock here.
 		
 		std::wstring m_strName;
 		bool m_bSizing;

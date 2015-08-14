@@ -208,7 +208,7 @@ LRESULT PublicHubsFrame::onSelChangedISPTree(int /*idCtrl*/, LPNMHDR pnmh, BOOL&
 			buf.resize(100);
 			if (m_ctrlTree.GetItemText(p->itemNew.hItem, &buf[0], buf.size()))
 			{
-				const string l_url = Text::fromT(buf);
+				const string l_url = Text::fromT(buf.c_str());
 				CFlyLog l_log("Download Hub List");
 				std::vector<byte> l_data;
 				l_log.step("URL = " + l_url);
@@ -280,7 +280,7 @@ void PublicHubsFrame::loadPublicListHubs()
 	                                             0, // aParent,
 	                                             0  // hInsertAfter
 	                                            );
-	const StringList lists = SPLIT_SETTING_AND_LOWER(HUBLIST_SERVERS);;
+	const StringList lists = SPLIT_SETTING_AND_LOWER(HUBLIST_SERVERS);
 	HTREEITEM p_first_item = nullptr;
 	for (auto i = lists.cbegin(); i != lists.cend(); ++i)
 	{

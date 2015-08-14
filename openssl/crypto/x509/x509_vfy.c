@@ -177,13 +177,13 @@ int X509_verify_cert(X509_STORE_CTX *ctx)
      * first we make sure the chain we are going to build is present and that
      * the first entry is in place
      */
-        if (((ctx->chain = sk_X509_new_null()) == NULL) ||
-            (!sk_X509_push(ctx->chain, ctx->cert))) {
-            X509err(X509_F_X509_VERIFY_CERT, ERR_R_MALLOC_FAILURE);
-            goto end;
-        }
-        CRYPTO_add(&ctx->cert->references, 1, CRYPTO_LOCK_X509);
-        ctx->last_untrusted = 1;
+    if (((ctx->chain = sk_X509_new_null()) == NULL) ||
+        (!sk_X509_push(ctx->chain, ctx->cert))) {
+        X509err(X509_F_X509_VERIFY_CERT, ERR_R_MALLOC_FAILURE);
+        goto end;
+    }
+    CRYPTO_add(&ctx->cert->references, 1, CRYPTO_LOCK_X509);
+    ctx->last_untrusted = 1;
 
     /* We use a temporary STACK so we can chop and hack at it */
     if (ctx->untrusted != NULL

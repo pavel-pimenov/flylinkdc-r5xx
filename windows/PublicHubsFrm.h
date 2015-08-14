@@ -28,7 +28,7 @@
 #include "../client/FavoriteManager.h"
 #include "../client/StringSearch.h"
 
-#define FILTER_MESSAGE_MAP 8
+#define HUB_FILTER_MESSAGE_MAP 8
 #define HUB_TREE_MESSAGE_MAP 9
 #define HUB_LIST_MESSAGE_MAP 10
 class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0, 0), IDR_INTERNET_HUBS > ,
@@ -38,7 +38,7 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 {
 	public:
 		PublicHubsFrame() : users(0), m_hubs(0), visibleHubs(0), m_ISPRootItem(0), m_PublicListRootItem(0)
-			, m_filterContainer(WC_EDIT, this, FILTER_MESSAGE_MAP)
+			, m_filterContainer(WC_EDIT, this, HUB_FILTER_MESSAGE_MAP)
 			, m_treeContainer(WC_TREEVIEW, this, HUB_TREE_MESSAGE_MAP)
 			, m_listContainer(WC_LISTVIEW, this, HUB_LIST_MESSAGE_MAP)
 		{
@@ -88,7 +88,7 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 		CHAIN_MSG_MAP(CSplitterImpl<PublicHubsFrame>)
 		ALT_MSG_MAP(HUB_TREE_MESSAGE_MAP)
 		ALT_MSG_MAP(HUB_LIST_MESSAGE_MAP)
-		ALT_MSG_MAP(FILTER_MESSAGE_MAP)
+		ALT_MSG_MAP(HUB_FILTER_MESSAGE_MAP)
 		MESSAGE_HANDLER(WM_KEYUP, onFilterChar)
 		END_MSG_MAP()
 		

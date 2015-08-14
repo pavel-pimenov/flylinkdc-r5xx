@@ -4,8 +4,8 @@
 #include "WinUtil.h"
 #include <fstream>
 
-std::map<std::wstring, PortalBrowserFrame*> PortalBrowserFrame::m_Frames;
-FastCriticalSection PortalBrowserFrame::m_cs;
+std::map<std::wstring, PortalBrowserFrame*> PortalBrowserFrame::g_portal_frames;
+FastCriticalSection PortalBrowserFrame::g_cs;
 
 static LPCWSTR s_ErrorStringTable[] =
 {
@@ -31,14 +31,14 @@ PortalBrowserFrame::PortalBrowserFrame(LPCWSTR pszName, WORD wID):
 PortalBrowserFrame::~PortalBrowserFrame()
 {
 	{
-		FastLock l(m_cs);
-		auto i = m_Frames.begin();
+		FastLock l(g_cs);
+		auto i = g_portal_frames.begin();
 		
-		while (i != m_Frames.end())
+		while (i != g_portal_frames.end())
 		{
 			if (i->second == this)
 			{
-				m_Frames.erase(i);
+				g_portal_frames.erase(i);
 				break;
 			}
 			++i;
@@ -51,9 +51,9 @@ PortalBrowserFrame::~PortalBrowserFrame()
 BOOL PortalBrowserFrame::PreTranslateMessage(MSG* pMsg)
 {
 	BOOL bRet = FALSE;
-	FastLock l(m_cs);
-	auto i = m_Frames.begin();
-	while (i != m_Frames.end())
+	FastLock l(g_cs);
+	auto i = g_portal_frames.begin();
+	while (i != g_portal_frames.end())
 	{
 		bRet |= i->second->PreTranslateMessage_ByInstance(pMsg);
 		++i;
@@ -122,13 +122,13 @@ void PortalBrowserFrame::openWindow(WORD wID)
 	else
 		return;
 		
-	FastLock l(m_cs);
-	auto i = m_Frames.find(pPortal->strName.c_str());
+	FastLock l(g_cs);
+	auto i = g_portal_frames.find(pPortal->strName);
 	
-	if (i == m_Frames.end())
+	if (i == g_portal_frames.end())
 	{
 		PortalBrowserFrame *pFrame = new PortalBrowserFrame(pPortal->strName.c_str(), wID);
-		m_Frames[pPortal->strName.c_str()] = pFrame;
+		g_portal_frames[pPortal->strName] = pFrame;
 		
 		pFrame->CreateEx(WinUtil::g_mdiClient, pFrame->rcDefault, pPortal->strName.c_str(), 0, 0, (LPVOID)&is);
 		WinUtil::setButtonPressed(wID, true);
@@ -176,10 +176,10 @@ bool PortalBrowserFrame::isMDIChildActive(HWND hWnd)
 
 void PortalBrowserFrame::closeWindow(LPCWSTR pszName)
 {
-	FastLock l(m_cs);
-	auto i = m_Frames.find(pszName);
+	FastLock l(g_cs);
+	auto i = g_portal_frames.find(pszName);
 	
-	if (i != m_Frames.end())
+	if (i != g_portal_frames.end())
 	{
 		::PostMessage(i->second->m_hWnd, WM_CLOSE, NULL, NULL);
 	}

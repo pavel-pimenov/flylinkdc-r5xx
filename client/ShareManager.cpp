@@ -1164,9 +1164,14 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 					}
 					catch (FileException& e)
 					{
+						const auto l_error_code = GetLastError();
 						string l_error = "Error share link file: " + l_PathAndFileName + " error = " + e.getError();
 						LogManager::message(l_error);
-						CFlyServerJSON::pushError(37, l_error);
+						// https://msdn.microsoft.com/en-us/library/windows/desktop/ms681382%28v=vs.85%29.aspx
+						if (l_error_code != 1920 && l_error_code != 2 && l_error_code != 3)
+						{
+							CFlyServerJSON::pushError(37, l_error);
+						}
 						continue;
 					}
 				}
@@ -1228,7 +1233,7 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 	}
 #ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
 	if (l_path_id && !m_sweep_guard)
-		CFlylinkDBManager::getInstance()->SweepFiles(l_path_id, l_dir_map);
+		CFlylinkDBManager::getInstance()->sweep_files(l_path_id, l_dir_map);
 #endif
 	return dir;
 }
@@ -1925,7 +1930,6 @@ bool ShareManager::checkType(const string& aString, Search::TypeModes aType)
 		
 	if (aString.length() < 5)
 		return false;
-		
 	const char* c = aString.c_str() + aString.length() - 3;
 	if (!Text::isAscii(c))
 		return false;
@@ -2056,7 +2060,7 @@ bool ShareManager::checkType(const string& aString, Search::TypeModes aType)
 			}
 		}
 		break;
-		case Search::TYPE_CD_COMICS:
+		case Search::TYPE_COMICS:
 		{
 			for (size_t i = 0; i < _countof(typeComics); ++i)
 			{
@@ -2093,7 +2097,7 @@ bool ShareManager::checkType(const string& aString, Search::TypeModes aType)
 	return false;
 }
 
-Search::TypeModes ShareManager::getFType(const string& aFileName) noexcept
+Search::TypeModes ShareManager::getFType(const string& aFileName, bool p_include_flylinkdc_ext /* = false*/) noexcept
 {
 	dcassert(!aFileName.empty());
 	if (aFileName.empty())
@@ -2119,7 +2123,13 @@ Search::TypeModes ShareManager::getFType(const string& aFileName) noexcept
 		return Search::TYPE_PICTURE;
 	else if (checkType(aFileName, Search::TYPE_CD_IMAGE)) //[+] from FlylinkDC++
 		return Search::TYPE_CD_IMAGE;
-		
+	if (p_include_flylinkdc_ext)
+	{
+		if (checkType(aFileName, Search::TYPE_COMICS))
+			return Search::TYPE_COMICS;
+		else if (checkType(aFileName, Search::TYPE_BOOK))
+			return Search::TYPE_BOOK;
+	}
 	return Search::TYPE_ANY;
 }
 

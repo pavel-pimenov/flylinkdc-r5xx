@@ -64,6 +64,7 @@ class UploadQueueItem : public intrusive_ptr_base<UploadQueueItem>, // [!] IRain
 			switch (col)
 			{
 				case COLUMN_FILE:
+				case COLUMN_TYPE:
 				case COLUMN_PATH:
 				case COLUMN_NICK:
 				case COLUMN_HUB:
@@ -90,6 +91,7 @@ class UploadQueueItem : public intrusive_ptr_base<UploadQueueItem>, // [!] IRain
 		{
 			COLUMN_FIRST,
 			COLUMN_FILE = COLUMN_FIRST,
+			COLUMN_TYPE,
 			COLUMN_PATH,
 			COLUMN_NICK,
 			COLUMN_HUB,

@@ -1366,6 +1366,8 @@ string Util::toString(char p_sep, const StringSet& p_set)
 
 string Util::toString(const StringList& lst)
 {
+	if (lst.empty())
+		return emptyString;
 	if (lst.size() == 1)
 		return lst[0];
 	string tmp("[");
@@ -1989,7 +1991,7 @@ tstring Util::CustomNetworkIndex::getDescription() const
 	}
 }
 //======================================================================================================================================
-int16_t Util::CustomNetworkIndex::getFlagIndex() const
+int32_t Util::CustomNetworkIndex::getFlagIndex() const
 {
 	if (m_location_cache_index > 0)
 	{
@@ -2020,14 +2022,8 @@ Util::CustomNetworkIndex Util::getIpCountry(uint32_t p_ip)
 	if (p_ip && p_ip != INADDR_NONE)
 	{
 		uint16_t l_country_index = 0;
-#ifdef FLYLINKDC_USE_GEO_IP
-		if (!Util::isPrivateIp(p_ip))
-		{
-			CFlylinkDBManager::getInstance()->get_country(p_ip, l_country_index);
-		}
-#endif
-		int32_t  l_location_index = -1;
-		CFlylinkDBManager::getInstance()->get_location(p_ip, l_location_index);
+		uint32_t  l_location_index = -1;
+		CFlylinkDBManager::getInstance()->get_country_and_location(p_ip, l_country_index, l_location_index);
 		if (l_location_index > 0)
 		{
 			const CustomNetworkIndex l_index(l_location_index, l_country_index);

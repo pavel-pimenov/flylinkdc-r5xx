@@ -43,7 +43,7 @@ struct Search
 		TYPE_TTH,
 		//[+] от flylinkdc++
 		TYPE_CD_IMAGE,
-		TYPE_CD_COMICS,
+		TYPE_COMICS,
 		TYPE_BOOK,
 		TYPE_LAST_MODE
 	};

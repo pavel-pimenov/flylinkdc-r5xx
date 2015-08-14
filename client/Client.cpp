@@ -49,7 +49,9 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 	m_is_hide_share(0),
 	m_is_override_name(false),
 	m_is_fly_support_hub(false),
-	m_is_suppress_chat_and_pm(false)
+	m_is_suppress_chat_and_pm(false),
+	m_isAutobanAntivirusIP(false),
+	m_isAutobanAntivirusNick(false)
 {
 	dcassert(p_HubURL == Text::toLower(p_HubURL));
 	const auto l_my_user = new User(ClientManager::getMyCID());
@@ -278,6 +280,9 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 		m_opChat = hub->getOpChat();
 		m_exclChecks = hub->getExclChecks();
 		// [~] IRainman fix.
+		m_isAutobanAntivirusIP = hub->getAutobanAntivirusIP();
+		m_isAutobanAntivirusNick = hub->getAutobanAntivirusNick();
+		m_AntivirusCommandIP = hub->getAntivirusCommandIP();
 	}
 	else
 	{
@@ -304,6 +309,9 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 		m_opChat.clear();
 		m_exclChecks = false;
 		// [~] IRainman fix.
+		m_isAutobanAntivirusIP = false;
+		m_isAutobanAntivirusNick = false;
+		m_AntivirusCommandIP.clear();
 	}
 	/* [-] IRainman mimicry function
 	// !SMT!-S

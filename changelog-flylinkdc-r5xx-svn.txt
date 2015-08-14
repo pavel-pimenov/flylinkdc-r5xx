@@ -1,4 +1,99 @@
 ------------------------------------------------------------------------
+r18850 | ppa | 2015-08-14 18:02:00 +0300 (Пт, 14 авг 2015) | 5 lines
+
+Merged revision(s) 18848 from trunk:
+* openssl-git
+* Подкрашиваем вирусные файлы найденные в файл-листах
+........
+
+------------------------------------------------------------------------
+r18849 | ppa | 2015-08-14 18:00:20 +0300 (Пт, 14 авг 2015) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r18847 | ppa | 2015-08-14 15:21:17 +0300 (Пт, 14 авг 2015) | 7 lines
+
+Merged revision(s) 18844-18846 from trunk:
+* Подкрашиваем иконкой вирус случаи если файл вида "*[пробел]dvdrip.exe"
+* Сбор статистики по вирусным файл-листам
+........
+# mediainfo
+........
+
+------------------------------------------------------------------------
+r18846 | ppa | 2015-08-14 15:18:56 +0300 (Пт, 14 авг 2015) | 1 line
+
+# mediainfo
+------------------------------------------------------------------------
+r18843 | ppa | 2015-08-14 07:59:37 +0300 (Пт, 14 авг 2015) | 1 line
+
+# repair-move
+------------------------------------------------------------------------
+r18842 | ppa | 2015-08-14 07:58:52 +0300 (Пт, 14 авг 2015) | 1 line
+
+# setup
+------------------------------------------------------------------------
+r18841 | ppa | 2015-08-13 21:06:45 +0300 (Чт, 13 авг 2015) | 54 lines
+
+Merged revision(s) 18825-18839 from trunk:
+* Mediainfo-git
+........
+* В очередь закачки добавлена колонка - тип файла
+# mediainfo-git
+* Объеденил запросы выборки городов-провайдеров и стран.
+  TODO - добавить детект P2P Guard
+* Выкинул WM_SPEAKER_UPDATE_USER и вернул UPDATE_COLUMN_MESSAGE
+........
+* [merge] Mediainfo-git
+........
+# Оптимизнул CFlylinkDBManager::get_country_and_locations_sqlite
+........
+# Оптимизировал загрузку из таблицы location_db.fly_p2pguard_ip
+........
+# Вернул блокировку - ругается иногда.
+........
+* Если пользователей выделено несколько, то для них не собираем информацию в контекстном меню (тормозит)
+# Выкинул мертвые методы в классе FileQueue
+........
+* Вырезаем .googlecode.com в настройках.
+* Добавлена функция выкидывания вирусных-ботов из хаба сразу после подключения (указанному пользователю требуются права оператора и получения Ip адреса юзеров при коннекте)
+  имя пользователя и команда бана настраивается в опициях избранного хаба - блокировка идет по IP
+........
+# Добавлена обратная связь с avdb
+........
+# Починил ошибочный вывод черепков
+........
+* Исправлена сортировка в окне поиска
+* Удален http://dchublist.com/hublist.xml.bz2
+* Изменил вирусный автобан - нужно ставить галку вместо ника.
+........
+* mediainfo Version 0.7.76, 2015-08-06
++ XML output: line breaks and indents in between attributes for readability
++ Trace feature: XML trace update, only if compiled with trace feature
++ Amazon S3 support (REST API v2), CLI/DLL only and if compiled with libcurl support
++ FFV1: improved slice analysis (currently activated only with trace feature and for 1st frame)
+x MXF: optimization of the parsing, reading a lot less data (e.g. can be reduced from 1 GB to 10 MB with some UHD files)
+x MXF: wrong frame count with files not having the video stream as the first stream
+x Dolby E in MPEG-TS: "SMPTE ST 302" information was accidentally removed
+x MPEG-TS: avoid filling delay from file name, not applicable on MPEG-TS
+x MXF: better handling of huge padding blocks, better handling of descriptors without link to a TrackID
+x IMX: streams claiming that they are IMX are actually pure MPEG Video, probing both IMX and MPEG Video
+
+........
+# Перевел на команду banip
+# Поправил сортировку по размеру в окне поиска
+# Удалил портал dcmagnets
+........
+* Поддержка переопределения сервера для теста портов
+# Ускоряем обработку буфера сокетов при закрытии приложения.
+* Добавлена галка для кика вирусного юзера (для случая когда команда banip не доступна)
+........
+
+------------------------------------------------------------------------
+r18840 | ppa | 2015-08-13 21:04:54 +0300 (Чт, 13 авг 2015) | 1 line
+
+* Добавлены конфиги випок - придумать как лучше
+------------------------------------------------------------------------
 r18825 | ppa | 2015-08-03 17:29:29 +0300 (Пн, 03 авг 2015) | 1 line
 
 * Mediainfo-git

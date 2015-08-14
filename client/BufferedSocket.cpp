@@ -87,6 +87,10 @@ void BufferedSocket::setMode(Modes aMode, size_t aRollback)
 	{
 		case MODE_LINE:
 			m_rollback = aRollback;
+			//dcassert(!ClientManager::isShutdown());
+#ifdef _DEBUG
+			//LogManager::message("BufferedSocket:: = MODE_LINE [2] - m_rollback = aRollback");
+#endif;
 			break;
 		case MODE_ZPIPE:
 			m_ZfilterIn = std::unique_ptr<UnZFilter>(new UnZFilter); // [IntelC++ 2012 beta2] warning #734: "std::unique_ptr<_Ty, _Dx>::unique_ptr(const std::unique_ptr<_Ty, _Dx>::_Myt &) [with _Ty=UnZFilter, _Dx=std::default_delete<UnZFilter>]" (declared at line 2347 of "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\memory"), required for copy that was eliminated, is inaccessible
@@ -393,7 +397,24 @@ void BufferedSocket::all_myinfo_parser(const string::size_type p_pos_next_separa
 		}
 		else
 		{
-			fire(BufferedSocketListener::Line(), l_line_item); // TODO - отказаться от временной переменной l и скользить по окну inbuf
+			dcassert(m_mode == MODE_LINE);
+#ifdef _DEBUG
+			for (auto i = l_line_item.cbegin(); i != l_line_item.cend(); ++i)
+			{
+				// dcassert(isascii(*i));
+			}
+			if (l_line_item.length() && ClientManager::isShutdown())
+			{
+				if (!(l_line_item[0] == '<' || l_line_item[0] == '$' || l_line_item[l_line_item.length() - 1] == '|'))
+				{
+					LogManager::message("OnLine: " + l_line_item);
+				}
+			}
+#endif
+			if (!ClientManager::isShutdown())
+			{
+				fire(BufferedSocketListener::Line(), l_line_item); // TODO - отказаться от временной переменной l и скользить по окну inbuf
+			}
 		}
 	}
 }
@@ -433,13 +454,13 @@ void BufferedSocket::threadRead()
 	if (m_state != RUNNING)
 		return;
 		
-	int left = (m_mode == MODE_DATA) ? ThrottleManager::getInstance()->read(sock.get(), &m_inbuf[0], (int)m_inbuf.size()) : sock->read(&m_inbuf[0], (int)m_inbuf.size());
-	if (left == -1)
+	int l_left = (m_mode == MODE_DATA) ? ThrottleManager::getInstance()->read(sock.get(), &m_inbuf[0], (int)m_inbuf.size()) : sock->read(&m_inbuf[0], (int)m_inbuf.size());
+	if (l_left == -1)
 	{
 		// EWOULDBLOCK, no data received...
 		return;
 	}
-	else if (left == 0)
+	else if (l_left == 0)
 	{
 		// This socket has been closed...
 		throw SocketException(STRING(CONNECTION_CLOSED));
@@ -448,15 +469,16 @@ void BufferedSocket::threadRead()
 	string::size_type l_pos = 0;
 	// always uncompressed data
 	string l;
-	int bufpos = 0, total = left;
+	int l_bufpos = 0;
+	int l_total = l_left;
 #ifdef _DEBUG
 	if (m_mode == MODE_LINE)
 	{
-		// LogManager::message("BufferedSocket::threadRead[MODE_LINE] = " + string((char*) & inbuf[0], left));
+		// LogManager::message("BufferedSocket::threadRead[MODE_LINE] = " + string((char*) & inbuf[0], l_left));
 	}
 #endif
 	
-	while (left > 0)
+	while (l_left > 0)
 	{
 		switch (m_mode)
 		{
@@ -468,17 +490,17 @@ void BufferedSocket::threadRead()
 				std::unique_ptr<char[]> buffer(new char[BUF_SIZE]);
 				l = line;
 				// decompress all input data and store in l.
-				while (left)
+				while (l_left)
 				{
-					size_t in = BUF_SIZE;
-					size_t used = left;
-					bool ret = (*m_ZfilterIn)(&m_inbuf[0] + total - left, used, &buffer[0], in);
-					left -= used;
-					l.append(&buffer[0], in);
+					size_t l_in = BUF_SIZE;
+					size_t l_used = l_left;
+					bool ret = (*m_ZfilterIn)(&m_inbuf[0] + l_total - l_left, l_used, &buffer[0], l_in);
+					l_left -= l_used;
+					l.append(&buffer[0], l_in);
 					// if the stream ends before the data runs out, keep remainder of data in inbuf
 					if (!ret)
 					{
-						bufpos = total - left;
+						l_bufpos = l_total - l_left;
 						setMode(MODE_LINE, m_rollback);
 						break;
 					}
@@ -489,35 +511,36 @@ void BufferedSocket::threadRead()
 #ifdef _DEBUG
 				// LogManager::message("BufferedSocket::threadRead[MODE_ZPIPE] = " + l);
 #endif
-//
-
-				StringList l_all_myInfo;
-				CFlySearchArrayTTH l_tth_search;
-				CFlySearchArrayFile l_file_search;
-				while ((l_zpos = l.find(m_separator)) != string::npos)
+				//
+				if (!ClientManager::isShutdown())
 				{
-					if (l_zpos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
+					StringList l_all_myInfo;
+					CFlySearchArrayTTH l_tth_search;
+					CFlySearchArrayFile l_file_search;
+					while ((l_zpos = l.find(m_separator)) != string::npos)
 					{
-						if (all_search_parser(l_zpos, l, l_tth_search, l_file_search) == false)
+						if (l_zpos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
 						{
-							all_myinfo_parser(l_zpos, l, l_all_myInfo, true);
+							if (all_search_parser(l_zpos, l, l_tth_search, l_file_search) == false)
+							{
+								all_myinfo_parser(l_zpos, l, l_all_myInfo, true);
+							}
 						}
+						l.erase(0, l_zpos + 1 /* separator char */); //[3] https://www.box.net/shared/74efa5b96079301f7194
 					}
-					l.erase(0, l_zpos + 1 /* separator char */); //[3] https://www.box.net/shared/74efa5b96079301f7194
-				}
-				// store remainder
-				if (!l_all_myInfo.empty())
-				{
-					fire(BufferedSocketListener::MyInfoArray(), l_all_myInfo);
-				}
-				if (!l_tth_search.empty())
-				{
-					fire(BufferedSocketListener::SearchArrayTTH(), l_tth_search);
-				}
-				if (!l_file_search.empty())
-				{
-					fire(BufferedSocketListener::SearchArrayFile(), l_file_search);
-				}
+					// store remainder
+					if (!l_all_myInfo.empty())
+					{
+						fire(BufferedSocketListener::MyInfoArray(), l_all_myInfo);
+					}
+					if (!l_tth_search.empty())
+					{
+						fire(BufferedSocketListener::SearchArrayTTH(), l_tth_search);
+					}
+					if (!l_file_search.empty())
+					{
+						fire(BufferedSocketListener::SearchArrayFile(), l_file_search);
+					}
 #else
 				// process all lines
 				while ((pos = l.find(m_separator)) != string::npos)
@@ -525,6 +548,15 @@ void BufferedSocket::threadRead()
 					if (pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
 						fire(BufferedSocketListener::Line(), l.substr(0, pos));
 					l.erase(0, pos + 1 /* separator char */); // TODO не эффективно
+				}
+#endif
+				}
+#ifdef _DEBUG
+				else
+				{
+					const string l_log = "Skip MODE_LINE [after ZLIB] - FlylinkDC++ Destoy... l = " + l;
+					LogManager::message(l_log);
+					
 				}
 #endif
 				// store remainder
@@ -553,7 +585,8 @@ void BufferedSocket::threadRead()
 				
 				
 				//======================================================================
-				l = line + string((char*) & m_inbuf[bufpos], left);
+				l = line + string((char*)& m_inbuf[l_bufpos], l_left);
+				//dcassert(isalnum(l[0]) || isalpha(l[0]) || isascii(l[0]));
 #if 0
 				int l_count_separator = 0;
 #endif
@@ -561,89 +594,110 @@ void BufferedSocket::threadRead()
 				//LogManager::message("MODE_LINE . line = " + line);
 				//LogManager::message("MODE_LINE = " + l);
 #endif
-				StringList l_all_myInfo;
-				CFlySearchArrayTTH l_tth_search;
-				CFlySearchArrayFile l_file_search;
-				while ((l_pos = l.find(m_separator)) != string::npos)
+				if (!ClientManager::isShutdown())
 				{
+					StringList l_all_myInfo;
+					CFlySearchArrayTTH l_tth_search;
+					CFlySearchArrayFile l_file_search;
+					while ((l_pos = l.find(m_separator)) != string::npos)
+					{
 #if 0
-					if (l_count_separator++ && l.length() > 0 && BOOLSETTING(LOG_PROTOCOL))
-					{
-						StringMap params;
-						const string l_log = "MODE_LINE l_count_separator = " + Util::toString(l_count_separator) + " left = " + Util::toString(left) + " l.length()=" + Util::toString(l.length()) + " l = " + l;
-						LogManager::message(l_log);
-					}
-#endif
-					if (l_pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
-					{
-						if (all_search_parser(l_pos, l, l_tth_search, l_file_search) == false)
+						if (l_count_separator++ && l.length() > 0 && BOOLSETTING(LOG_PROTOCOL))
 						{
-							all_myinfo_parser(l_pos, l, l_all_myInfo, false);
+							StringMap params;
+							const string l_log = "MODE_LINE l_count_separator = " + Util::toString(l_count_separator) + " l_left = " + Util::toString(l_left) + " l.length()=" + Util::toString(l.length()) + " l = " + l;
+							LogManager::message(l_log);
+						}
+#endif
+						if (l_pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
+						{
+							if (all_search_parser(l_pos, l, l_tth_search, l_file_search) == false)
+							{
+								all_myinfo_parser(l_pos, l, l_all_myInfo, false);
+							}
+						}
+						
+						l.erase(0, l_pos + 1 /* separator char */);
+						// TODO - erase не эффективно.
+						if (l.length() < (size_t)l_left)
+						{
+							l_left = l.length();
+						}
+						//dcassert(mode == MODE_LINE);
+						if (m_mode != MODE_LINE)
+						{
+							// dcassert(mode == MODE_LINE);
+							// TOOD ? m_myInfoStop = true;
+							// we changed mode; remainder of l is invalid.
+							l.clear();
+							l_bufpos = l_total - l_left;
+							break;
 						}
 					}
-					
-					l.erase(0, l_pos + 1 /* separator char */);
-					// TODO - erase не эффективно.
-					if (l.length() < (size_t)left)
+					//
+					if (!l_all_myInfo.empty())
 					{
-						left = l.length();
+						fire(BufferedSocketListener::MyInfoArray(), l_all_myInfo); // [+]PPA
 					}
-					//dcassert(mode == MODE_LINE);
-					if (m_mode != MODE_LINE)
+					if (!l_tth_search.empty())
 					{
-						// dcassert(mode == MODE_LINE);
-						// TOOD ? m_myInfoStop = true;
-						// we changed mode; remainder of l is invalid.
-						l.clear();
-						bufpos = total - left;
-						break;
+						fire(BufferedSocketListener::SearchArrayTTH(), l_tth_search);
+					}
+					if (!l_file_search.empty())
+					{
+						fire(BufferedSocketListener::SearchArrayFile(), l_file_search);
 					}
 				}
-				//
-				if (!l_all_myInfo.empty())
+				else
 				{
-					fire(BufferedSocketListener::MyInfoArray(), l_all_myInfo); // [+]PPA
-				}
-				if (!l_tth_search.empty())
-				{
-					fire(BufferedSocketListener::SearchArrayTTH(), l_tth_search);
-				}
-				if (!l_file_search.empty())
-				{
-					fire(BufferedSocketListener::SearchArrayFile(), l_file_search);
+#ifdef _DEBUG
+					const string l_log = "Skip MODE_LINE [normal] - FlylinkDC++ Destoy... l = " + l;
+					LogManager::message(l_log);
+#endif
+					l.clear();
+					l_bufpos = l_total - l_left;
+					l_left = 0;
+					l_pos = string::npos;
 				}
 				
 				if (l_pos == string::npos)
-					left = 0;
+				{
+					l_left = 0;
+				}
 				line = l;
 				break;
 			}
 			case MODE_DATA:
-				while (left > 0)
+				while (l_left > 0)
 				{
 					if (m_dataBytes == -1)
 					{
-						fire(BufferedSocketListener::Data(), &m_inbuf[bufpos], left);
-						bufpos += (left - m_rollback);
-						left = m_rollback;
+						fire(BufferedSocketListener::Data(), &m_inbuf[l_bufpos], l_left);
+						l_bufpos += (l_left - m_rollback);
+						l_left = m_rollback;
 						m_rollback = 0;
 					}
 					else
 					{
-						const int high = (int)min(m_dataBytes, (int64_t)left);
-						dcassert(high != 0);
+						const int high = (int)min(m_dataBytes, (int64_t)l_left);
+						//dcassert(high != 0);
 						if (high != 0) // [+] IRainman fix.
 						{
-							fire(BufferedSocketListener::Data(), &m_inbuf[bufpos], high);
-							bufpos += high;
-							left -= high;
+							fire(BufferedSocketListener::Data(), &m_inbuf[l_bufpos], high);
+							l_bufpos += high;
+							l_left -= high;
 							
 							m_dataBytes -= high;
 						}
 						if (m_dataBytes == 0)
 						{
 							m_mode = MODE_LINE;
+#ifdef _DEBUG
+							LogManager::message("BufferedSocket:: = MODE_LINE [1]");
+#endif;
+#ifdef FLYLINKDC_USE_CROOKED_HTTP_CONNECTION
 							fire(BufferedSocketListener::ModeChange());
+#endif
 							break; // [DC++] break loop, in case setDataMode is called with less than read buffer size
 						}
 					}

@@ -379,11 +379,13 @@ void UserConnection::on(BytesSent, size_t p_Bytes, size_t p_Actual) noexcept
 	fire(UserConnectionListener::BytesSent(), this, p_Bytes, p_Actual);
 }
 
+#ifdef FLYLINKDC_USE_CROOKED_HTTP_CONNECTION
 void UserConnection::on(ModeChange) noexcept
 {
 	setLastActivity();
 	fire(UserConnectionListener::ModeChange(), this);
 }
+#endif
 
 void UserConnection::on(TransmitDone) noexcept
 {

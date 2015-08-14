@@ -1010,10 +1010,6 @@ size_t UploadManager::addFailedUpload(const UserConnection* aSource, const strin
 	if (it == m_slotQueue.end())
 	{
 		++queue_position;
-		//WaitingUser l_wu;
-		//l_wu.m_hintedUser = source.getHintedUser();
-		//l_wu.setToken(source.getToken());
-		//l_wu.m_files.insert(uqi);
 		m_slotQueue.push_back(WaitingUser(aSource->getHintedUser(), aSource->getUserConnectionToken(), uqi));
 	}
 	else
@@ -1488,6 +1484,7 @@ void UploadManager::load()
 void UploadQueueItem::update()
 {
 	setText(COLUMN_FILE, Text::toT(Util::getFileName(getFile())));
+	setText(COLUMN_TYPE, Text::toT(Util::getFileExtWithoutDot(getFile())));
 	setText(COLUMN_PATH, Text::toT(Util::getFilePath(getFile())));
 	setText(COLUMN_NICK, getUser()->getLastNickT()); // [1] https://www.box.net/shared/plriwg50qendcr3kbjp5
 	setText(COLUMN_HUB, Text::toT(Util::toString(ClientManager::getHubNames(getHintedUser().user->getCID(), Util::emptyString))));

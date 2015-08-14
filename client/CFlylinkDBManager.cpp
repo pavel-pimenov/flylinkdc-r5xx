@@ -158,7 +158,7 @@ bool CFlylinkDBManager::safeAlter(const char* p_sql)
 	return false;
 }
 //========================================================================================================
-string CFlylinkDBManager::getDBSizeInfo()
+string CFlylinkDBManager::get_db_size_info()
 {
 	auto getFileSize = [](const ::tstring & p_file_name) -> int64_t
 	{
@@ -191,11 +191,11 @@ string CFlylinkDBManager::getDBSizeInfo()
 void CFlylinkDBManager::errorDB(const string& p_txt)
 {
 	string l_message = p_txt + "\r\n" + STRING(DATA_BASE_ERROR_STRING);
-	const string l_error = "CFlylinkDBManager::errorDB. p_txt = " + p_txt;
+	const string l_error = "CID: " + ClientManager::getMyCID().toBase32() + " CFlylinkDBManager::errorDB. p_txt = " + p_txt;
 	const char* l_rnrn = "\r\n";
 	l_message += l_rnrn;
 	l_message += l_rnrn;
-	l_message += getDBSizeInfo();
+	l_message += get_db_size_info();
 	bool l_is_force_exit = false;
 	tstring l_russian_error;
 	bool l_is_db_malformed = p_txt.find(": database disk image is malformed") != string::npos;
@@ -363,7 +363,7 @@ CFlylinkDBManager::CFlylinkDBManager()
 			}
 		}
 		
-		LogManager::message(getDBSizeInfo(), true);
+		LogManager::message(get_db_size_info(), true);
 		LogManager::message("sqlite3_threadsafe() = " + Util::toString(sqlite3_threadsafe()), true);
 		dcassert(sqlite3_threadsafe() == 1);
 		
@@ -1366,75 +1366,6 @@ void CFlylinkDBManager::save_lost_location(const string& p_ip)
 }
 #endif
 //========================================================================================================
-void CFlylinkDBManager::get_location(uint32_t p_ip, int32_t& p_index)
-{
-	dcassert(p_ip);
-	dcassert(p_ip);
-	uint16_t l_flag_index = 0;
-	{
-		FastLock l(m_cache_location_cs);
-		p_index = 0;
-		if (m_location_unknown_ip.find(p_ip) != m_location_unknown_ip.end())
-			return;
-		for (auto i = m_location_cache_array.cbegin(); i != m_location_cache_array.cend(); ++i, ++p_index)
-		{
-			if (p_ip >= i->m_start_ip && p_ip < i->m_stop_ip)
-			{
-				++p_index;
-				l_flag_index = i->m_flag_index;
-				break;
-			}
-		}
-	}
-	if (l_flag_index == 0)
-	{
-		get_location_sql(p_ip, p_index);
-	}
-}
-//========================================================================================================
-void CFlylinkDBManager::get_location_sql(uint32_t p_ip, int32_t& p_index)
-{
-	dcassert(p_ip);
-	// Lock l(m_cs);
-	try
-	{
-		m_select_location.init(m_flySQLiteDB,
-		                       "select location,start_ip,stop_ip,flag_index from "
-		                       "(select location,start_ip,stop_ip,flag_index from location_db.fly_location_ip where start_ip <=? order by start_ip desc limit 1) "
-		                       "where stop_ip >=?");
-		m_select_location->bind(1, __int64(p_ip));
-		m_select_location->bind(2, __int64(p_ip));
-		sqlite3_reader l_q = m_select_location->executereader();
-		CFlyLocationDesc l_location;
-		uint16_t l_first_index = 0;
-		p_index = 0;
-		while (l_q.read())
-		{
-			l_location.m_description = Text::toT(l_q.getstring(0));
-			l_location.m_start_ip   = l_q.getint(1);
-			l_location.m_stop_ip    = l_q.getint(2);
-			l_location.m_flag_index = l_q.getint(3);
-			if (l_location.m_flag_index)
-				l_first_index = l_location.m_flag_index;
-			{
-				FastLock l(m_cache_location_cs);
-				m_location_cache_array.push_back(l_location);
-				p_index = m_location_cache_array.size();
-			}
-		}
-		if (p_index == 0)
-		{
-			FastLock l(m_cache_location_cs);
-			m_location_unknown_ip.insert(p_ip);
-		}
-	}
-	catch (const database_error& e)
-	{
-		errorDB("SQLite - get_location_sql: " + e.getError());
-	}
-	return;
-}
-//========================================================================================================
 void CFlylinkDBManager::save_location(const CFlyLocationIPArray& p_geo_ip)
 {
 	Lock l(m_cs);
@@ -1459,7 +1390,7 @@ void CFlylinkDBManager::save_location(const CFlyLocationIPArray& p_geo_ip)
 		{
 			FastLock l_fast(m_cache_location_cs);
 			m_location_cache_array.clear();
-			m_location_unknown_ip.clear();
+			m_ip_info_cache.clear();
 		}
 	}
 	catch (const database_error& e)
@@ -1475,10 +1406,18 @@ __int64 CFlylinkDBManager::get_dic_country_id(const string& p_country)
 	return get_dic_idL(p_country, e_DIC_COUNTRY, true);
 }
 //========================================================================================================
-bool CFlylinkDBManager::find_cache_countryL(uint32_t p_ip, uint16_t& p_index)
+bool CFlylinkDBManager::find_cache_country(uint32_t p_ip, uint16_t& p_index)
 {
+	FastLock l(m_cache_location_cs);
 	dcassert(p_ip);
 	p_index = 0;
+	const auto l_result = m_ip_info_cache.find(p_ip);
+	if (m_ip_info_cache.find(p_ip) != m_ip_info_cache.end())
+	{
+		const auto& l_record = l_result->second;
+		p_index = l_record.m_country_cache_index;
+		return true;
+	}
 	dcassert(m_country_cache.size() <= 0xFFFF);
 	for (auto i =  m_country_cache.begin(); i !=  m_country_cache.end(); ++i)
 	{
@@ -1492,147 +1431,157 @@ bool CFlylinkDBManager::find_cache_countryL(uint32_t p_ip, uint16_t& p_index)
 	return false;
 }
 //========================================================================================================
-void CFlylinkDBManager::get_country(uint32_t p_ip, uint16_t& p_index)
+bool CFlylinkDBManager::find_cache_location(uint32_t p_ip, uint32_t& p_location_index, uint16_t& p_flag_location_index)
+{
+	FastLock l(m_cache_location_cs);
+	p_location_index = 0;
+	p_flag_location_index = 0;
+	const auto l_result = m_ip_info_cache.find(p_ip);
+	if (m_ip_info_cache.find(p_ip) != m_ip_info_cache.end())
+	{
+		const auto& l_record = l_result->second;
+		p_location_index = l_record.m_location_cache_index;
+		p_flag_location_index = l_record.m_flag_location_index;
+		return true;
+	}
+	for (auto i = m_location_cache_array.cbegin(); i != m_location_cache_array.cend(); ++i, ++p_location_index)
+	{
+		if (p_ip >= i->m_start_ip && p_ip < i->m_stop_ip)
+		{
+			++p_location_index;
+			p_flag_location_index = i->m_flag_index;
+			return true;
+		}
+	}
+	return false;
+}
+//========================================================================================================
+void CFlylinkDBManager::get_country_and_location(uint32_t p_ip, uint16_t& p_country_index, uint32_t& p_location_index)
 {
 	dcassert(p_ip);
-	FastLock l(m_cache_location_cs);
-	const bool l_is_find = find_cache_countryL(p_ip, p_index);
-	if (l_is_find == false)
+	uint16_t l_flag_location_index = 0; // TODO ?
+	const bool l_is_find_country   = Util::isPrivateIp(p_ip) || find_cache_country(p_ip, p_country_index);
+	const bool l_is_find_location = find_cache_location(p_ip, p_location_index, l_flag_location_index);
+	if (l_is_find_country == false || l_is_find_location == false)
 	{
-		CFlyLocationDesc l_location;
-		if (get_country_sqlite(p_ip, l_location))
-		{
-			m_country_cache.push_back(l_location);
-			p_index = uint16_t(m_country_cache.size());
-		}
+		load_country_locations_p2p_guard_from_db(p_ip, p_location_index, p_country_index);
 	}
 }
 //========================================================================================================
-uint8_t CFlylinkDBManager::get_country_sqlite(uint32_t p_ip, CFlyLocationDesc& p_location)
+string CFlylinkDBManager::load_country_locations_p2p_guard_from_db(uint32_t p_ip, uint32_t& p_location_cache_index, uint16_t& p_country_cache_index)
 {
 	dcassert(p_ip);
-	//Lock l(m_cs);
+	Lock l(m_cs); // Без этого падает почему-то
+	string l_p2p_guard_text;
 	try
 	{
 		// http://www.sql.ru/forum/783621/faq-nahozhdenie-zapisey-gde-zadannoe-znachenie-nahoditsya-mezhdu-znacheniyami-poley
 		// http://habrahabr.ru/post/138067/
-		//
-		/*
-		.timer ON
-		.stats ON
 		
-		sqlite> select country, flag_index,start_ip,stop_ip from fly_country_ip where start_ip <= 3642671164 and stop_ip > 3642671164;
-		Ukraine|227|3642671104|3642675199
-		Memory Used:                         2424360 (max 2430776) bytes
-		Number of Outstanding Allocations:   670 (max 683)
-		Number of Pcache Overflow Bytes:     2348992 (max 2352216) bytes
-		Number of Scratch Overflow Bytes:    0 (max 0) bytes
-		Largest Allocation:                  64000 bytes
-		Largest Pcache Allocation:           4244 bytes
-		Largest Scratch Allocation:          0 bytes
-		Lookaside Slots Used:                13 (max 65)
-		Successful lookaside attempts:       267
-		Lookaside failures due to size:      56
-		Lookaside failures due to OOM:       0
-		Pager Heap Usage:                    2342920 bytes
-		Page cache hits:                     552
-		Page cache misses:                   0
-		Page cache writes:                   0
-		Schema Heap Usage:                   2384 bytes
-		Statement Heap/Lookaside Usage:      3560 bytes
-		Fullscan Steps:                      0
-		Sort Operations:                     0
-		Autoindex Inserts:                   0
-		CPU Time: user 0.109201 sys 0.000000
-		sqlite> SELECT country, flag_index,start_ip,stop_ip FROM (SELECT * FROM fly_country_ip WHERE start_ip <= 3642671164 ORDER BY start_ip DESC LIMIT 1)  WHERE stop_ip >= 3642671164;
-		Ukraine|227|3642671104|3642675199
-		Memory Used:                         2424856 (max 2430776) bytes
-		Number of Outstanding Allocations:   671 (max 683)
-		Number of Pcache Overflow Bytes:     2348992 (max 2352216) bytes
-		Number of Scratch Overflow Bytes:    0 (max 0) bytes
-		Largest Allocation:                  64000 bytes
-		Largest Pcache Allocation:           4244 bytes
-		Largest Scratch Allocation:          0 bytes
-		Lookaside Slots Used:                12 (max 65)
-		Successful lookaside attempts:       344
-		Lookaside failures due to size:      67
-		Lookaside failures due to OOM:       0
-		Pager Heap Usage:                    2342920 bytes
-		Page cache hits:                     7
-		Page cache misses:                   0
-		Page cache writes:                   0
-		Schema Heap Usage:                   2384 bytes
-		Statement Heap/Lookaside Usage:      3928 bytes
-		Fullscan Steps:                      0
-		Sort Operations:                     0
-		Autoindex Inserts:                   0
-		CPU Time: user 0.000000 sys 0.000000
-		*/
-		
+		// TODO - optimisation if(!Util::isPrivateIp(p_ip))
 		// TODO - склеить выборку в один запрос
-		/*
-		-- для стран и p2p не запрашивать приватные адреса
-		select 1,country,flag_index,start_ip,stop_ip from (select country,flag_index,start_ip,stop_ip from fly_country_ip where start_ip <=780898514 order by start_ip desc limit 1) where stop_ip >=780898514
-		union all
-		select 2,location,flag_index, start_ip,stop_ip from (select location,start_ip,stop_ip,flag_index from fly_location_ip where start_ip <=780898514 order by start_ip desc limit 1) where stop_ip >=780898514
-		union all
-		select 3, note,0,0,0 from (select note,stop_ip from fly_p2pguard_ip where start_ip <=780898514 order by start_ip desc limit 1) where stop_ip >=780898514
-		
-		*/
-		m_select_geoip.init(m_flySQLiteDB,
-		                    "select country,flag_index,start_ip,stop_ip from "
-		                    "(select country,flag_index,start_ip,stop_ip from location_db.fly_country_ip where start_ip <=? order by start_ip desc limit 1) "
-		                    "where stop_ip >=?");
-		m_select_geoip->bind(1, __int64(p_ip));
-		m_select_geoip->bind(2, __int64(p_ip));
-		sqlite3_reader l_q = m_select_geoip->executereader();
-		if (l_q.read())
+		// для стран и p2p не запрашивать приватные адреса
+		m_select_country_and_location.init(m_flySQLiteDB,
+		                                   "select country,flag_index,start_ip,stop_ip,0 from "
+		                                   "(select country,flag_index,start_ip,stop_ip from location_db.fly_country_ip where start_ip <=? order by start_ip desc limit 1) "
+		                                   "where stop_ip >=?"
+		                                   "\nunion all\n"
+		                                   "select location,flag_index,start_ip,stop_ip,1 from "
+		                                   "(select location,flag_index,start_ip,stop_ip from location_db.fly_location_ip where start_ip <=? order by start_ip desc limit 1) "
+		                                   "where stop_ip >=?"
+		                                   "\nunion all\n"
+		                                   "select note,0,start_ip,stop_ip,2 from "
+		                                   "(select note,start_ip,stop_ip from location_db.fly_p2pguard_ip where start_ip <=? order by start_ip desc limit 1) "
+		                                   "where stop_ip >=?");
+		m_select_country_and_location->bind(1, __int64(p_ip));
+		m_select_country_and_location->bind(2, __int64(p_ip));
+		m_select_country_and_location->bind(3, __int64(p_ip));
+		m_select_country_and_location->bind(4, __int64(p_ip));
+		m_select_country_and_location->bind(5, __int64(p_ip));
+		m_select_country_and_location->bind(6, __int64(p_ip));
+		sqlite3_reader l_q = m_select_country_and_location->executereader();
+		CFlyLocationDesc l_location;
+		p_location_cache_index = 0;
+		p_country_cache_index = 0;
+		l_location.m_flag_index = 0;
+		unsigned l_count_country = 0;
+		CFlyCacheIPInfo* l_ip_cahe_item = nullptr;
 		{
-			p_location.m_description = Text::toT(l_q.getstring(0));
-			p_location.m_flag_index = l_q.getint(1);
-			p_location.m_start_ip = l_q.getint(2);
-			p_location.m_stop_ip = l_q.getint(3);
+			FastLock l(m_cache_location_cs);
+			l_ip_cahe_item = &m_ip_info_cache[p_ip];
 		}
-		else
+		while (l_q.read())
 		{
-			p_location.m_flag_index = 0;
+			const unsigned l_id = l_q.getint(4);
+			dcassert(l_id < 3)
+			const string l_description = l_q.getstring(0);
+			l_location.m_description = Text::toT(l_description);
+			l_location.m_flag_index = l_q.getint(1);
+			l_location.m_start_ip = l_q.getint(2);
+			l_location.m_stop_ip = l_q.getint(3);
+			switch (l_q.getint(4))
+			{
+				case 0:
+				{
+					l_count_country++;
+					{
+						FastLock l(m_cache_location_cs);
+						m_country_cache.push_back(l_location);
+						p_country_cache_index = uint16_t(m_country_cache.size());
+						l_ip_cahe_item->m_country_cache_index = p_country_cache_index;
+						l_ip_cahe_item->m_flag_location_index = l_location.m_flag_index;
+					}
+					break;
+				}
+				case 1:
+				{
+					FastLock l(m_cache_location_cs);
+					m_location_cache_array.push_back(l_location);
+					p_location_cache_index = m_location_cache_array.size();
+					l_ip_cahe_item->m_location_cache_index = p_location_cache_index;
+					l_ip_cahe_item->m_flag_location_index = l_location.m_flag_index;
+					break;
+				}
+				case 2:
+				{
+					{
+						FastLock l(m_cache_location_cs);
+						l_ip_cahe_item->m_description_p2p_guard = l_description;
+					}
+					l_p2p_guard_text = l_description;
+					break;
+				}
+				default:
+					dcassert(0);
+			}
 		}
-		dcassert(l_q.read() == false); // Второго диапазона в GeoIPCountryWhois.csv быть не должно!
+		dcassert(l_count_country <= 1); // Второго диапазона в GeoIPCountryWhois.csv быть не должно!
 	}
 	catch (const database_error& e)
 	{
-		errorDB("SQLite - get_country_sqlite: " + e.getError());
+		errorDB("SQLite - load_country_locations_p2p_guard_from_db: " + e.getError());
 	}
-	return uint8_t(p_location.m_flag_index);
+	return l_p2p_guard_text;
 }
 //========================================================================================================
 string CFlylinkDBManager::is_p2p_guard(const uint32_t& p_ip)
 {
 	dcassert(Util::isPrivateIp(p_ip) == false);
-	Lock l(m_cs); // Пока падает...
 	dcassert(p_ip && p_ip != INADDR_NONE);
+	string l_p2p_guard_text;
 	if (p_ip && p_ip != INADDR_NONE)
 	{
-		try
 		{
-			m_select_p2p_guard.init(m_flySQLiteDB,
-			                        "select note from "
-			                        "(select note,stop_ip from location_db.fly_p2pguard_ip where start_ip <=? order by start_ip desc limit 1) "
-			                        "where stop_ip >=?");
-			m_select_p2p_guard->bind(1, __int64(p_ip));
-			m_select_p2p_guard->bind(2, __int64(p_ip));
-			sqlite3_reader l_q = m_select_p2p_guard->executereader();
-			if (l_q.read())
-			{
-				return l_q.getstring(0);
-			}
+			FastLock l(m_cache_location_cs);
+			const auto l_p2p = m_ip_info_cache.find(p_ip);
+			if (l_p2p != m_ip_info_cache.end())
+				return l_p2p->second.m_description_p2p_guard;
 		}
-		catch (const database_error& e)
-		{
-			errorDB("SQLite - is_p2p_guard: " + e.getError());
-		}
+		uint16_t l_country_index;
+		uint32_t l_location_index;
+		l_p2p_guard_text = load_country_locations_p2p_guard_from_db(p_ip, l_location_index, l_country_index);
 	}
-	return Util::emptyString;
+	return l_p2p_guard_text;
 }
 //========================================================================================================
 string CFlylinkDBManager::load_manual_p2p_guard()
@@ -1660,6 +1609,10 @@ void CFlylinkDBManager::save_p2p_guard(const CFlyP2PGuardArray& p_p2p_guard_ip, 
 	Lock l(m_cs); // TODO
 	try
 	{
+		{
+			FastLock l(m_cache_location_cs);
+			m_ip_info_cache.clear();
+		}
 		CFlyBusy l_disable_log(g_DisableSQLtrace);
 		sqlite3_transaction l_trans(m_flySQLiteDB);
 		if (p_manual_marker.empty())
@@ -1721,8 +1674,7 @@ int CFlylinkDBManager::calc_antivirus_flag(const string& p_nick, const boost::as
 		FastLock l(m_virus_cs);
 		if (m_virus_user.find(p_nick) != m_virus_user.end() ||
 		        (p_share && m_virus_share.find(p_share) != m_virus_share.end()) ||
-		        (!p_ip4.is_unspecified() && m_virus_ip4.find(p_ip4.to_ulong()) != m_virus_ip4.end())
-		   )
+		        (!p_ip4.is_unspecified() && m_virus_ip4.find(p_ip4.to_ulong()) != m_virus_ip4.end()))
 		{
 			if (!p_ip4.is_unspecified())
 			{
@@ -2451,7 +2403,7 @@ size_t CFlylinkDBManager::load_queue()
 				const uint8_t l_maxSegments = uint8_t(l_q.getint(9));
 				const __int64 l_ID = l_q.getint64(0);
 				m_queue_id = std::max(m_queue_id, l_ID);
-				QueueItemPtr qi = QueueManager::g_fileQueue.find(l_target); //TODO после отказа от конвертации XML варианта очереди можно удалить
+				QueueItemPtr qi = QueueManager::FileQueue::find_target(l_target); //TODO после отказа от конвертации XML варианта очереди можно удалить
 				if (!qi)
 				{
 					qi = QueueManager::g_fileQueue.add(l_target, l_size, Flags::MaskType(l_flags), l_p, l_tempTarget,
@@ -3591,7 +3543,7 @@ __int64 CFlylinkDBManager::get_path_idL(string p_path, bool p_create, bool p_cas
 }
 //========================================================================================================
 #ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
-void CFlylinkDBManager::SweepFiles(__int64 p_path_id, const CFlyDirMap& p_sweep_files)
+void CFlylinkDBManager::sweep_files(__int64 p_path_id, const CFlyDirMap& p_sweep_files)
 {
 	Lock l(m_cs);
 	try
@@ -3613,7 +3565,7 @@ void CFlylinkDBManager::SweepFiles(__int64 p_path_id, const CFlyDirMap& p_sweep_
 	}
 	catch (const database_error& e)
 	{
-		errorDB("SQLite - SweepFiles: " + e.getError());
+		errorDB("SQLite - sweep_files: " + e.getError());
 	}
 }
 #endif
@@ -3775,7 +3727,7 @@ bool CFlylinkDBManager::check_tth(const string& p_fname, __int64 p_path_id,
 }
 //========================================================================================================
 // [+] brain-ripper
-unsigned __int64 CFlylinkDBManager::getBlockSizeSQL(const TTHValue& p_root, __int64 p_size)
+unsigned __int64 CFlylinkDBManager::get_block_size_sql(const TTHValue& p_root, __int64 p_size)
 {
 	unsigned __int64 l_blocksize = 0;
 	Lock l(m_cs);
@@ -3801,7 +3753,7 @@ unsigned __int64 CFlylinkDBManager::getBlockSizeSQL(const TTHValue& p_root, __in
 	}
 	catch (const database_error& e)
 	{
-		errorDB("SQLite - getBlockSizeSQL: " + e.getError());
+		errorDB("SQLite - get_block_size_sql: " + e.getError());
 	}
 	l_blocksize = TigerTree::getMaxBlockSize(p_size);
 	dcassert(l_blocksize);
@@ -3819,7 +3771,7 @@ bool CFlylinkDBManager::get_tree(const TTHValue& p_root, TigerTree& p_tt, __int6
 		if (l_cache_tt != m_tiger_tree_cache.end())
 		{
 #ifdef _DEBUG
-			LogManager::message("[!] Cache! bingo! CFlylinkDBManager::getTree TTH Root = " + p_root.toBase32());
+			//LogManager::message("[!] Cache! bingo! CFlylinkDBManager::getTree TTH Root = " + p_root.toBase32());
 #endif
 			p_tt = l_cache_tt->second;
 			return true;
@@ -4243,6 +4195,14 @@ tstring CFlylinkDBManager::get_ratioW() const
 	return Util::emptyStringT;
 }
 #endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
+
+//========================================================================================================
+void CFlylinkDBManager::push_add_virus_database_tth(const TTHValue& p_tth)
+{
+#ifdef FLYLINKDC_USE_LEVELDB
+	m_flyLevelDB.set_bit(p_tth, VIRUS_FILE_KNOWN);
+#endif // FLYLINKDC_USE_LEVELDB
+}
 //========================================================================================================
 void CFlylinkDBManager::push_add_share_tth(const TTHValue& p_tth)
 {
@@ -4264,8 +4224,8 @@ CFlylinkDBManager::FileStatus CFlylinkDBManager::get_status_file(const TTHValue&
 	string l_status;
 	m_flyLevelDB.get_value(p_tth, l_status);
 	int l_result = Util::toInt(l_status);
-	dcassert(l_result >= 0 && l_result <= 3);
-	return static_cast<FileStatus>(l_result); // 1 - скачивал, 2 - был в шаре, 3 - 1+2 и то и то :)
+	dcassert(l_result >= 0 && l_result <= 7);
+	return static_cast<FileStatus>(l_result); // 1 - скачивал, 2 - был в шаре, 3 - 1+2 и то и то, 4- вирусня
 #else
 	Lock l(m_cs);
 	try

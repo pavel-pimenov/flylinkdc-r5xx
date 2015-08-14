@@ -780,23 +780,23 @@ void FavoriteUser::update(const OnlineUser& info) // !SMT!-fix
 	setUrl(info.getClient().getHubUrl());
 }
 
-string Identity::calcP2PGuard()
+void Identity::calcP2PGuard()
 {
-	string l_p2p_guard;
 	if (!m_is_p2p_guard_calc)
 	{
 		if (getIp().to_ulong())
 		{
-			l_p2p_guard = CFlylinkDBManager::getInstance()->is_p2p_guard(getIp().to_ulong());
+			const string l_p2p_guard = CFlylinkDBManager::getInstance()->is_p2p_guard(getIp().to_ulong());
 			setP2PGuard(l_p2p_guard);
 			m_is_p2p_guard_calc = true;
 		}
 	}
-	return l_p2p_guard;
 }
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
-unsigned char Identity::calcVirusType()
+unsigned char Identity::calcVirusType(bool p_force /* = false */)
 {
+	if (p_force)
+		m_virus_type = 0;
 	if (!(m_virus_type & Identity::VT_CALC_AVDB))
 	{
 		unsigned char l_virus_type = 0;

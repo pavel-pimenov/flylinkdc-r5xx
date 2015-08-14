@@ -44,8 +44,21 @@
 #endif
 
 
+#ifdef FLYLINKDC_USE_RWLOCK
+std::unique_ptr<webrtc::RWLockWrapper> QueueManager::FileQueue::g_csFQ = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
+#else
+std::unique_ptr<CriticalSection> QueueManager::FileQueue::g_csFQ = std::unique_ptr<CriticalSection>(new CriticalSection);
+#endif
+QueueItem::QIStringMap QueueManager::FileQueue::g_queue;
+std::unordered_map<TTHValue, int> QueueManager::FileQueue::g_queue_tth_map;
+
+QueueManager::FileQueue QueueManager::g_fileQueue;
+QueueManager::UserQueue QueueManager::g_userQueue;
+
+
 using boost::adaptors::map_values;
 using boost::range::for_each;
+
 
 class DirectoryItem
 #ifdef _DEBUG
@@ -68,15 +81,6 @@ class DirectoryItem
 	private:
 		const UserPtr m_user;
 };
-
-#ifdef FLYLINKDC_USE_RWLOCK
-std::unique_ptr<webrtc::RWLockWrapper> QueueManager::FileQueue::g_csFQ = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
-#else
-std::unique_ptr<CriticalSection> QueueManager::FileQueue::g_csFQ = std::unique_ptr<CriticalSection>(new CriticalSection);
-#endif
-QueueManager::FileQueue QueueManager::g_fileQueue;
-QueueManager::UserQueue QueueManager::g_userQueue;
-
 QueueManager::FileQueue::FileQueue()
 {
 }
@@ -149,8 +153,8 @@ QueueItemPtr QueueManager::FileQueue::add(const string& aTarget, int64_t aSize,
 			File::renameFile(aTempTarget + ".antifrag", qi->getTempTarget());
 		}
 	}
-	dcassert(find(aTarget) == nullptr);
-	if (find(aTarget) == nullptr)
+	dcassert(find_target(aTarget) == nullptr);
+	if (find_target(aTarget) == nullptr)
 	{
 		add(qi);
 	}
@@ -165,8 +169,8 @@ QueueItemPtr QueueManager::FileQueue::add(const string& aTarget, int64_t aSize,
 void QueueManager::FileQueue::add(const QueueItemPtr& qi) // [!] IRainman fix.
 {
 	WLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
-	m_queue.insert(make_pair(qi->getTarget(), qi));
-	auto l_count_tth = m_queue_tth_map.insert(make_pair(qi->getTTH(), 1));
+	g_queue.insert(make_pair(qi->getTarget(), qi));
+	auto l_count_tth = g_queue_tth_map.insert(make_pair(qi->getTTH(), 1));
 	if (l_count_tth.second == false)
 	{
 		l_count_tth.first->second++;
@@ -175,14 +179,14 @@ void QueueManager::FileQueue::add(const QueueItemPtr& qi) // [!] IRainman fix.
 void QueueManager::FileQueue::remove_internal(const QueueItemPtr& qi)
 {
 	WLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
-	m_queue.erase(qi->getTarget());
-	auto l_count_tth = m_queue_tth_map.find(qi->getTTH());
-	dcassert(l_count_tth != m_queue_tth_map.end());
-	if (l_count_tth != m_queue_tth_map.end())
+	g_queue.erase(qi->getTarget());
+	auto l_count_tth = g_queue_tth_map.find(qi->getTTH());
+	dcassert(l_count_tth != g_queue_tth_map.end());
+	if (l_count_tth != g_queue_tth_map.end())
 	{
 		if (l_count_tth->second == 1)
 		{
-			m_queue_tth_map.erase(qi->getTTH());
+			g_queue_tth_map.erase(qi->getTTH());
 		}
 		else
 		{
@@ -193,8 +197,8 @@ void QueueManager::FileQueue::remove_internal(const QueueItemPtr& qi)
 void QueueManager::FileQueue::clearAll()
 {
 	WLock l_lock_fq(*g_csFQ);
-	m_queue_tth_map.clear();
-	m_queue.clear();
+	g_queue_tth_map.clear();
+	g_queue.clear();
 }
 
 void QueueManager::FileQueue::remove(const QueueItemPtr& qi) // [!] IRainman fix.
@@ -207,28 +211,13 @@ void QueueManager::FileQueue::remove(const QueueItemPtr& qi) // [!] IRainman fix
 	}
 }
 
-void QueueManager::FileQueue::find(QueueItemList& sl, int64_t aSize, const string& suffix) const
-{
-	RLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
-	for (auto i = m_queue.cbegin(); i != m_queue.cend(); ++i)
-	{
-		if (i->second->getSize() == aSize)
-		{
-			const string& t = i->second->getTarget();
-			if (suffix.empty() || (suffix.length() < t.length() &&
-			                       stricmp(suffix.c_str(), t.c_str() + (t.length() - suffix.length())) == 0))
-				sl.push_back(i->second);
-		}
-	}
-}
-
-int QueueManager::FileQueue::find(QueueItemList& p_ql, const TTHValue& p_tth, int p_count_limit /*= 0 */) const
+int QueueManager::FileQueue::find_tth(QueueItemList& p_ql, const TTHValue& p_tth, int p_count_limit /*= 0 */)
 {
 	int l_count = 0;
 	RLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
-	if (m_queue_tth_map.find(p_tth) != m_queue_tth_map.end())
+	if (g_queue_tth_map.find(p_tth) != g_queue_tth_map.end())
 	{
-		for (auto i = m_queue.cbegin(); i != m_queue.cend(); ++i)
+		for (auto i = g_queue.cbegin(); i != g_queue.cend(); ++i)
 		{
 			const QueueItemPtr& qi = i->second;
 			if (qi->getTTH() == p_tth)
@@ -242,11 +231,11 @@ int QueueManager::FileQueue::find(QueueItemList& p_ql, const TTHValue& p_tth, in
 	return l_count;
 }
 
-QueueItemPtr QueueManager::FileQueue::findQueueItem(const TTHValue& p_tth) const // [+] IRainman opt.
+QueueItemPtr QueueManager::FileQueue::findQueueItem(const TTHValue& p_tth)
 {
 	QueueItemList l_ql;
 	///////////l_ql.reserve(1);
-	if (find(l_ql, p_tth, 1))
+	if (find_tth(l_ql, p_tth, 1))
 	{
 		return l_ql.front();
 	}
@@ -302,24 +291,24 @@ QueueItemPtr QueueManager::FileQueue::findAutoSearch(deque<string>& p_recent) co
 {
 	WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 	RLock l_lock_fq(*g_csFQ);
-	dcassert(!m_queue.empty()); // https://crash-server.com/Problem.aspx?ProblemID=32091
+	dcassert(!g_queue.empty()); // https://crash-server.com/Problem.aspx?ProblemID=32091
 	// http://code.google.com/p/flylinkdc/issues/detail?id=1121
 	// We pick a start position at random, hoping that we will find something to search for...
-	if (!m_queue.empty())
+	if (!g_queue.empty())
 	{
-		const auto start = (QueueItem::QIStringMap::size_type)Util::rand((uint32_t)m_queue.size());
+		const auto start = (QueueItem::QIStringMap::size_type)Util::rand((uint32_t)g_queue.size());
 		
-		auto i = m_queue.cbegin();
+		auto i = g_queue.cbegin();
 		advance(i, start);
 		
-		QueueItemPtr cand = findCandidateL(i, m_queue.end(), p_recent);
+		QueueItemPtr cand = findCandidateL(i, g_queue.end(), p_recent);
 		if (cand == nullptr)
 		{
-			cand = findCandidateL(m_queue.begin(), i, p_recent);
+			cand = findCandidateL(g_queue.begin(), i, p_recent);
 		}
 		else if (cand->getNextSegmentL(0, 0, 0, nullptr).getSize() == 0)
 		{
-			QueueItemPtr cand2 = findCandidateL(m_queue.begin(), i, p_recent);
+			QueueItemPtr cand2 = findCandidateL(g_queue.begin(), i, p_recent);
 			if (cand2 != nullptr && cand2->getNextSegmentL(0, 0, 0, nullptr).getSize() != 0)
 			{
 				cand = cand2;
@@ -388,11 +377,11 @@ void QueueManager::UserQueue::addL(const QueueItemPtr& qi, const UserPtr& aUser,
 	}
 }
 
-bool QueueManager::FileQueue::getTTH(const string& p_name, TTHValue& p_tth) const
+bool QueueManager::FileQueue::getTTH(const string& p_name, TTHValue& p_tth)
 {
 	RLock l_lock_fq(*g_csFQ);
-	auto i = m_queue.find(p_name);
-	if (i != m_queue.cend())
+	auto i = g_queue.find(p_name);
+	if (i != g_queue.cend())
 	{
 		p_tth = i->second->getTTH();
 		return true;
@@ -400,11 +389,11 @@ bool QueueManager::FileQueue::getTTH(const string& p_name, TTHValue& p_tth) cons
 	return false;
 }
 
-QueueItemPtr QueueManager::FileQueue::find(const string& p_target) const // [!] IRainman fix.
+QueueItemPtr QueueManager::FileQueue::find_target(const string& p_target)
 {
 	RLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
-	auto i = m_queue.find(p_target); // TODO - fix http://code.google.com/p/flylinkdc/issues/detail?id=1246
-	if (i != m_queue.cend())
+	auto i = g_queue.find(p_target); // TODO - fix http://code.google.com/p/flylinkdc/issues/detail?id=1246
+	if (i != g_queue.cend())
 		return i->second;
 	return nullptr;
 }
@@ -428,7 +417,7 @@ QueueItemPtr QueueManager::UserQueue::getNextL(const UserPtr& aUser, QueueItem::
 				if (l_source->second.isSet(QueueItem::Source::FLAG_PARTIAL)) // TODO Crash
 				{
 					// check partial source
-					const Segment segment = qi->getNextSegmentL(qi->getBlockSizeSQL(), wantedSize, lastSpeed, l_source->second.getPartialSource());
+					const Segment segment = qi->getNextSegmentL(qi->get_block_size_sql(), wantedSize, lastSpeed, l_source->second.getPartialSource());
 					if (allowRemove && segment.getStart() != -1 && segment.getSize() == 0)
 					{
 						// no other partial chunk from this user, remove him from queue
@@ -460,7 +449,7 @@ QueueItemPtr QueueManager::UserQueue::getNextL(const UserPtr& aUser, QueueItem::
 				}
 				if (!qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
 				{
-					const auto blockSize = qi->getBlockSizeSQL();
+					const auto blockSize = qi->get_block_size_sql();
 					const Segment segment = qi->getNextSegmentL(blockSize, wantedSize, lastSpeed, l_source->second.getPartialSource());
 					if (segment.getSize() == 0)
 					{
@@ -487,11 +476,11 @@ void QueueManager::UserQueue::addDownloadL(const QueueItemPtr& qi, const Downloa
 	m_running[d->getUser()] = qi;
 }
 
-size_t QueueManager::FileQueue::getRunningFileCount(const size_t p_stop_key) const
+size_t QueueManager::FileQueue::getRunningFileCount(const size_t p_stop_key)
 {
 	size_t l_cnt = 0;
 	RLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
-	for (auto i = m_queue.cbegin(); i != m_queue.cend(); ++i)
+	for (auto i = g_queue.cbegin(); i != g_queue.cend(); ++i)
 	{
 		const QueueItemPtr& q = i->second;
 		if (q->isRunningL()) //
@@ -502,10 +491,10 @@ size_t QueueManager::FileQueue::getRunningFileCount(const size_t p_stop_key) con
 		}
 		// TODO - можно не бегать по очереди а считать в онлайне.
 		// Алгоритм:
-		// 1. при удалении из m_queue -1 (если m_queue.download заполнена)
-		// 2  при добавлении к m_queue +1 (если m_queue.download заполнена)
-		// 2. при добавлении в m_queue.download +1
-		// 3. при опустошении m_queue.download -1
+		// 1. при удалении из g_queue -1 (если m_queue.download заполнена)
+		// 2  при добавлении к g_queue +1 (если m_queue.download заполнена)
+		// 2. при добавлении в g_queue.download +1
+		// 3. при опустошении g_queue.download -1
 		
 	}
 	return l_cnt;
@@ -513,7 +502,7 @@ size_t QueueManager::FileQueue::getRunningFileCount(const size_t p_stop_key) con
 
 void QueueManager::FileQueue::calcPriorityAndGetRunningFilesL(QueueItem::PriorityArray& p_changedPriority, QueueItemList& p_runningFiles)
 {
-	for (auto i = m_queue.cbegin(); i != m_queue.cend(); ++i)
+	for (auto i = g_queue.cbegin(); i != g_queue.cend(); ++i)
 	{
 		const QueueItemPtr& q = i->second;
 		if (q->isRunningL())
@@ -629,7 +618,7 @@ void QueueManager::Rechecker::execute(const string& p_file) // [!] IRainman core
 	{
 		// [-] Lock l(qm->cs); [-] IRainman fix.
 		
-		q = QueueManager::g_fileQueue.find(p_file);
+		q = QueueManager::FileQueue::find_target(p_file);
 		if (!q || q->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
 			return;
 			
@@ -686,7 +675,7 @@ void QueueManager::Rechecker::execute(const string& p_file) // [!] IRainman core
 		// [-] Lock l(qm->cs); [-] IRainman fix.
 		
 		// get q again in case it has been (re)moved
-		q = QueueManager::g_fileQueue.find(p_file);
+		q = QueueManager::FileQueue::find_target(p_file);
 		if (!q)
 			return;
 		__int64 l_block_size;
@@ -757,7 +746,7 @@ void QueueManager::Rechecker::execute(const string& p_file) // [!] IRainman core
 	// [-] Lock l(qm->cs); [-] IRainman fix. //[4] https://www.box.net/shared/4c41b1400336247cce1c
 	
 	// get q again in case it has been (re)moved
-	q = QueueManager::g_fileQueue.find(p_file);
+	q = QueueManager::FileQueue::find_target(p_file);
 	
 	if (!q)
 		return;
@@ -871,7 +860,7 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 			
 			PartsInfoReqParam* param = new PartsInfoReqParam;
 			
-			qi->getPartialInfoL(param->parts, qi->getBlockSizeSQL());
+			qi->getPartialInfoL(param->parts, qi->get_block_size_sql());
 			
 			param->tth = qi->getTTH().toBase32();
 			param->ip  = source->getIp();
@@ -1087,7 +1076,7 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& aRo
 	{
 		// [-] Lock l(cs); [-] IRainman fix.
 		
-		QueueItemPtr q = g_fileQueue.find(l_target);
+		QueueItemPtr q = QueueManager::FileQueue::find_target(l_target);
 		// По TTH искать нельзя
 		// Проблема описана тут http://www.flylinkdc.ru/2014/04/flylinkdc-strongdc-tth.html
 #if 0
@@ -1096,7 +1085,7 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& aRo
 		        (BOOLSETTING(ENABLE_MULTI_CHUNK) && aSize > SETTING(MIN_MULTI_CHUNK_SIZE) * 1024 * 1024) // [+] IRainman size in MB.
 		   )
 		{
-			// q = fileQueue.findQueueItem(aRoot);
+			// q = QueueManager::FileQueue::findQueueItem(aRoot);
 		}
 #endif
 		if (!q)
@@ -1222,7 +1211,7 @@ void QueueManager::readd(const string& p_target, const UserPtr& aUser)
 {
 	bool wantConnection = false;
 	{
-		const QueueItemPtr q = g_fileQueue.find(p_target);
+		const QueueItemPtr q = QueueManager::FileQueue::find_target(p_target);
 		WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 		if (q && q->isBadSourceL(aUser))
 		{
@@ -1508,7 +1497,7 @@ void QueueManager::QueueManagerWaiter::execute(const WaiterFile& p_currentFile) 
 	auto qm = QueueManager::getInstance();
 	qm->setAutoPriority(l_source, false); // [+] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1030
 	qm->setPriority(l_source, QueueItem::PAUSED);
-	const QueueItemPtr qi = QueueManager::g_fileQueue.find(l_source);
+	const QueueItemPtr qi = QueueManager::FileQueue::find_target(l_source);
 	dcassert(qi->getPriority() == QueueItem::PAUSED);
 	while (qi)
 	{
@@ -1531,7 +1520,7 @@ void QueueManager::move(const string& aSource, const string& aTarget) noexcept
 		return;
 		
 	// [+] IRainman: auto pausing running downloads before moving.
-	const QueueItemPtr qs = g_fileQueue.find(aSource);
+	const QueueItemPtr qs = QueueManager::FileQueue::find_target(aSource);
 	if (!qs)
 		return;
 		
@@ -1564,7 +1553,7 @@ void QueueManager::move(const string& aSource, const string& aTarget) noexcept
 		// [-]  return;
 		
 		// Let's see if the target exists...then things get complicated...
-		const QueueItemPtr qt = g_fileQueue.find(l_target);
+		const QueueItemPtr qt = QueueManager::FileQueue::find_target(l_target);
 		if (!qt || stricmp(aSource, l_target) == 0)
 		{
 			// Good, update the target and move in the queue...
@@ -1636,7 +1625,7 @@ void QueueManager::getTargets(const TTHValue& tth, StringList& sl)
 {
 	// [-] Lock l(cs); [-] IRainman fix.
 	QueueItemList l_ql;
-	g_fileQueue.find(l_ql, tth);
+	g_fileQueue.find_tth(l_ql, tth);
 	for (auto i = l_ql.cbegin(); i != l_ql.cend(); ++i)
 	{
 		sl.push_back((*i)->getTarget());
@@ -1738,7 +1727,7 @@ void QueueManager::setFile(const DownloadPtr& d)
 {
 	if (d->getType() == Transfer::TYPE_FILE)
 	{
-		const QueueItemPtr qi = g_fileQueue.find(d->getPath());
+		const QueueItemPtr qi = QueueManager::FileQueue::find_target(d->getPath());
 		if (!qi)
 		{
 			throw QueueException(STRING(TARGET_REMOVED));
@@ -1808,7 +1797,7 @@ void QueueManager::setFile(const DownloadPtr& d)
 		{
 			// [-] Lock l(cs); [-] IRainman fix.
 			
-			QueueItemPtr qi = g_fileQueue.find(d->getPath());
+			QueueItemPtr qi = QueueManager::FileQueue::find_target(d->getPath());
 			if (!qi)
 			{
 				throw QueueException(STRING(TARGET_REMOVED));
@@ -1975,7 +1964,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 		
 		if (aDownload->getType() == Transfer::TYPE_PARTIAL_LIST)
 		{
-			QueueItemPtr q = g_fileQueue.find(p_path);
+			QueueItemPtr q = QueueManager::FileQueue::find_target(p_path);
 			if (q)
 			{
 				if (!aDownload->getPFS().empty())
@@ -2026,7 +2015,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 		}
 		else
 		{
-			QueueItemPtr q = g_fileQueue.find(p_path);
+			QueueItemPtr q = QueueManager::FileQueue::find_target(p_path);
 			if (q)
 			{
 				if (aDownload->getType() == Transfer::TYPE_FULL_LIST)
@@ -2357,7 +2346,7 @@ void QueueManager::remove(const string& aTarget) noexcept
 	{
 		// [-] Lock l(cs); [-] IRainman fix.
 		
-		QueueItemPtr q = g_fileQueue.find(aTarget);
+		QueueItemPtr q = FileQueue::find_target(aTarget);
 		if (!q)
 			return;
 			
@@ -2416,7 +2405,7 @@ void QueueManager::removeSource(const string& aTarget, const UserPtr& aUser, Fla
 	do
 	{
 		WLock l(*QueueItem::g_cs); // [!] IRainman fix.
-		QueueItemPtr q = g_fileQueue.find(aTarget);
+		QueueItemPtr q = QueueManager::FileQueue::find_target(aTarget);
 		if (!q)
 			return;
 			
@@ -2531,7 +2520,7 @@ void QueueManager::setPriority(const string& aTarget, QueueItem::Priority p) noe
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
-		QueueItemPtr q = g_fileQueue.find(aTarget);
+		QueueItemPtr q = QueueManager::FileQueue::find_target(aTarget);
 		if (q != nullptr && q->getPriority() != p)
 		{
 			bool isFinished;
@@ -2578,7 +2567,7 @@ void QueueManager::setAutoPriority(const string& aTarget, bool ap) noexcept
 	if (!ClientManager::isShutdown())
 	{
 		vector<pair<string, QueueItem::Priority>> priorities;
-		QueueItemPtr q = g_fileQueue.find(aTarget);
+		QueueItemPtr q = QueueManager::FileQueue::find_target(aTarget);
 		if (q && q->getAutoPriority() != ap)
 		{
 			q->setAutoPriority(ap);
@@ -2762,7 +2751,7 @@ void QueueLoader::startTag(const string& name, StringPairList& attribs, bool sim
 			if (added == 0)
 				added = GET_TIME();
 				
-			QueueItemPtr qi = QueueManager::g_fileQueue.find(m_target);
+			QueueItemPtr qi = QueueManager::FileQueue::find_target(m_target);
 			
 			if (qi == NULL)
 			{
@@ -2869,7 +2858,7 @@ void QueueManager::on(SearchManagerListener::SR, const SearchResult& sr) noexcep
 		// Lock l(cs); [-] IRainman fix.
 		QueueItemList l_matches;
 		
-		g_fileQueue.find(l_matches, sr.getTTH());
+		g_fileQueue.find_tth(l_matches, sr.getTTH());
 		
 		if (!l_matches.empty()) // [+] IRainman opt.
 		{
@@ -2984,7 +2973,7 @@ void QueueManager::on(ClientManagerListener::UserDisconnected, const UserPtr& aU
 bool QueueManager::getTargetByRoot(const TTHValue& tth, string& p_target, string& p_tempTarget)
 {
 	// [-] Lock l(cs); [-] IRainman fix.
-	QueueItemPtr qi = g_fileQueue.findQueueItem(tth);
+	QueueItemPtr qi = QueueManager::FileQueue::findQueueItem(tth);
 	if (!qi)
 		return false;
 	p_target = qi->getTarget();
@@ -2996,7 +2985,7 @@ bool QueueManager::getTargetByRoot(const TTHValue& tth, string& p_target, string
 bool QueueManager::isChunkDownloaded(const TTHValue& tth, int64_t startPos, int64_t& bytes, string& p_target)
 {
 	// [-] Lock l(cs); [-] IRainman fix.
-	QueueItemPtr qi = g_fileQueue.findQueueItem(tth);
+	QueueItemPtr qi = QueueManager::FileQueue::findQueueItem(tth);
 	if (!qi)
 		return false;
 	RLock l(*QueueItem::g_cs); // TODO - унести это ниже!
@@ -3107,7 +3096,7 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 		// [-] Lock l(cs); [-] IRainman fix.
 		
 		// Locate target QueueItem in download queue
-		QueueItemPtr qi = g_fileQueue.findQueueItem(tth);
+		QueueItemPtr qi = QueueManager::FileQueue::findQueueItem(tth);
 		if (!qi)
 			return false;
 		LogManager::psr_message("[QueueManager::handlePartialResult] findQueueItem - OK TTH = " + tth.toBase32());
@@ -3129,8 +3118,8 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 		}
 		
 		// Get my parts info
-		const auto blockSize = qi->getBlockSizeSQL();
-		qi->getPartialInfoL(outPartialInfo, qi->getBlockSizeSQL());
+		const auto blockSize = qi->get_block_size_sql();
+		qi->getPartialInfoL(outPartialInfo, qi->get_block_size_sql());
 		
 		// Any parts for me?
 		wantConnection = qi->isNeededPartL(partialSource.getPartialInfo(), blockSize);
@@ -3191,7 +3180,7 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 bool QueueManager::handlePartialSearch(const TTHValue& tth, PartsInfo& p_outPartsInfo)
 {
 	// Locate target QueueItem in download queue
-	QueueItemPtr qi = g_fileQueue.findQueueItem(tth);
+	const QueueItemPtr qi = QueueManager::FileQueue::findQueueItem(tth);
 	if (!qi)
 		return false;
 	if (qi->getSize() < PARTIAL_SHARE_MIN_SIZE)
@@ -3205,7 +3194,7 @@ bool QueueManager::handlePartialSearch(const TTHValue& tth, PartsInfo& p_outPart
 	if (!File::isExist(qi->isFinishedL() ? qi->getTarget() : qi->getTempTarget()))
 		return false;
 		
-	qi->getPartialInfoL(p_outPartsInfo, qi->getBlockSizeSQL());
+	qi->getPartialInfoL(p_outPartsInfo, qi->get_block_size_sql());
 	return !p_outPartsInfo.empty();
 }
 
@@ -3219,7 +3208,7 @@ void QueueManager::FileQueue::findPFSSourcesL(PFSSourceList& sl)
 	const uint64_t now = GET_TICK();
 	// http://code.google.com/p/flylinkdc/issues/detail?id=1121
 	RLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
-	for (auto i = m_queue.cbegin(); i != m_queue.cend(); ++i)
+	for (auto i = g_queue.cbegin(); i != g_queue.cend(); ++i)
 	{
 		const auto& q = i->second;
 		
@@ -3282,7 +3271,7 @@ TTHValue* QueueManager::FileQueue::findPFSPubTTH()
 	RLock l(*QueueItem::g_cs);
 	RLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
 	
-	for (auto i = m_queue.cbegin(); i != m_queue.cend(); ++i)
+	for (auto i = g_queue.cbegin(); i != g_queue.cend(); ++i)
 	{
 		const auto& qi = i->second;
 		// [-] IRainman fix: not possible in normal state.
@@ -3297,7 +3286,7 @@ TTHValue* QueueManager::FileQueue::findPFSPubTTH()
 		{
 			if (cand == nullptr || cand->getNextPublishingTime() > qi->getNextPublishingTime() || (cand->getNextPublishingTime() == qi->getNextPublishingTime() && cand->getPriority() < qi->getPriority()))
 			{
-				if (qi->getDownloadedBytes() > qi->getBlockSizeSQL())
+				if (qi->getDownloadedBytes() > qi->get_block_size_sql())
 					cand = qi;
 			}
 		}

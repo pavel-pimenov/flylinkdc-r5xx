@@ -771,9 +771,12 @@
 #define IDC_THOLD_STR                   1572
 #define IDC_ENCODINGTEXT                1573
 #define IDC_BUFFER_STR                  1574
+#define IDC_ANTIVIRUS_AUTOBAN_FOR_IP    1574
 #define IDC_RELOAD_BL                   1575
+#define IDC_ANTIVIRUS_COMMAND_IP        1575
 #define IDC_ENCODING                    1576
 #define IDC_CONNECTION_DETECTION        1577
+#define IDC_ANTIVIRUS_AUTOBAN_FOR_NICK  1577
 #define IDC_PG_STATUS                   1578
 #define IDC_PG_DOWN                     1579
 #define IDC_SETTINGS_USE_DHT            1580
@@ -894,6 +897,8 @@
 #define IDC_OPCHAT                      1694
 #define IDC_ENABLE_WEBSERVER            1695
 #define IDC_OPCHAT_STR                  1696
+#define IDC_ANTIVIRUS_NICK_STR          1697
+#define IDC_ANTIVIRUS_COMMAND_IP_STR    1698
 #define IDC_MAX_MSG_LENGTH              1700
 #define IDC_MAX_MSG_LENGTH_STR          1701
 #define IDC_POPUP_COLORS                1702

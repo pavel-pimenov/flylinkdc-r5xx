@@ -1841,7 +1841,7 @@ LRESULT TransferView::onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hW
 		const string target = Text::fromT(ii->m_target);
 		if (ii->download)
 		{
-			const auto qi = QueueManager::g_fileQueue.find(target);
+			const auto qi = QueueManager::FileQueue::find_target(target);
 			if (qi)
 			{
 				startMediaPreview(wID, qi); // [!]

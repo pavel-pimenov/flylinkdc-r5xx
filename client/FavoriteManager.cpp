@@ -772,6 +772,9 @@ void FavoriteManager::save()
 				xml.addChildAttrib("Mode", Util::toString((*i)->getMode()));
 				xml.addChildAttribIfNotEmpty("IP", (*i)->getIP());
 				xml.addChildAttribIfNotEmpty("OpChat", (*i)->getOpChat());
+				xml.addChildAttrib("AutobanAntivirusIP", (*i)->getAutobanAntivirusIP());
+				xml.addChildAttrib("AutobanAntivirusNick", (*i)->getAutobanAntivirusNick());
+				xml.addChildAttribIfNotEmpty("AntivirusCommandIP", (*i)->getAntivirusCommandIP());
 				xml.addChildAttrib("SearchInterval", Util::toString((*i)->getSearchInterval()));
 				// [!] IRainman mimicry function
 				// [-] xml.addChildAttrib("CliendId", (*i)->getClientId()); // !SMT!-S
@@ -1212,6 +1215,10 @@ void FavoriteManager::load(SimpleXML& aXml
 					e->setMode(Util::toInt(aXml.getChildAttrib("Mode")));
 					e->setIP(aXml.getChildAttribTrim("IP"));
 					e->setOpChat(aXml.getChildAttrib("OpChat"));
+					e->setAutobanAntivirusIP(aXml.getBoolChildAttrib("AutobanAntivirusIP"));
+					e->setAutobanAntivirusNick(aXml.getBoolChildAttrib("AutobanAntivirusNick"));
+					e->setAntivirusCommandIP(aXml.getChildAttrib("AntivirusCommandIP"));
+					
 					// [+] IRainman mimicry function
 					//if (l_configVersion <= xxxx)
 					const string& l_ClientID = aXml.getChildAttrib("CliendId"); // !SMT!-S
