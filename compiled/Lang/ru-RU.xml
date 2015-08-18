@@ -229,6 +229,7 @@
 		<String Name="ClientProfileNowUpdated">Профили клиентов обновлены.</String>
 		<String Name="Close">Закрыть</String>
 		<String Name="CloseConnection">Закрыть соединение</String>
+		<string name="CloseConnectionAndAddIpGuard">Закрыть соединение и добавить IP адрес в базу данных блокировки P2P Guard</string>
 		<String Name="CloseHot">Закрыть	Ctrl + W</String>
 		<String Name="CmdAwayMsg">Вкл/Выкл режим «Ушёл» с сообщением</String>
 		<String Name="CmdClearChat">Очистить окно чата</String>
@@ -467,6 +468,8 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="DownloadFailed">Неудачное скачивание:</String>
 		<String Name="DownloadFinishedIdle">Скачивание завершено, ожидание…</String>
 		<String Name="DownloadQueue">Очередь скачивания</String>
+		<string name="OpenDownloadQueue">Открыть очередь скачивания</string>
+		<string name="OpenUploadQueue">Открыть очередь отдачи</string>
 		<String Name="DownloadStarting">Скачивание начинается…</String>
 		<String Name="DownloadTo">Скачать в…</String>
 		<String Name="DownloadWholeDir">Скачать всю папку</String>

@@ -204,7 +204,7 @@
 	<string name="ClientProfileNowUpdated">Client profiles are now updated.</string>
 	<string name="Close">Close</string>
 	<string name="CloseConnection">Close connection</string>
-	<string name="CloseConnectionAndAddIpGuard">Add P2P Guard database</string>
+	<string name="CloseConnectionAndAddIpGuard">Close Connection and add P2P Guard database</string>
 	<string name="CloseHot">Close\tCtrl+W</string>
 	<string name="CmdAwayMsg">On/Off away mode with specific (message)</string>
 	<string name="CmdClearChat">Clear chat window</string>
@@ -410,6 +410,8 @@
 	<string name="DownloadFailed">Download failed:</string>
 	<string name="DownloadFinishedIdle">Download finished, idle…</string>
 	<string name="DownloadQueue">Download queue</string>
+	<string name="OpenDownloadQueue">Open download queue</string>
+	<string name="OpenUploadQueue">Open upload queue</string>
 	<string name="DownloadStarting">Download is starting…</string>
 	<string name="DownloadTo">Download to…</string>
 	<string name="DownloadWholeDir">Download whole directory</string>
