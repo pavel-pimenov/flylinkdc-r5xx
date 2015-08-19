@@ -41,17 +41,17 @@ class FinishedFrame :
 		DECLARE_FRAME_WND_CLASS_EX(_T("FinishedFrame"), IDR_FINISHED_DL, 0, COLOR_3DFACE);
 		
 	private:
-		void on(AddedDl, const FinishedItem* p_entry, bool p_is_sqlite) noexcept override
+		void on(AddedDl, const FinishedItemPtr& p_entry, bool p_is_sqlite) noexcept override
 		{
 			if (p_is_sqlite)
-				SendMessage(WM_SPEAKER, SPEAK_ADD_LINE, (WPARAM)p_entry);
+				SendMessage(WM_SPEAKER, SPEAK_ADD_LINE, (WPARAM)new FinishedItemPtr(p_entry));
 			else
-				PostMessage(WM_SPEAKER, SPEAK_ADD_LINE, (WPARAM)p_entry);
+				PostMessage(WM_SPEAKER, SPEAK_ADD_LINE, (WPARAM)new FinishedItemPtr(p_entry));
 		}
 		
-		void on(RemovedDl, const FinishedItem* p_entry) noexcept override // [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
+		void on(RemovedDl, const FinishedItemPtr& p_entry) noexcept override // [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
 		{
-			SendMessage(WM_SPEAKER, SPEAK_REMOVE_LINE, (WPARAM)p_entry);
+			SendMessage(WM_SPEAKER, SPEAK_REMOVE_LINE, (WPARAM)new FinishedItemPtr(p_entry));
 		}
 };
 

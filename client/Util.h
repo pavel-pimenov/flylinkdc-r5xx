@@ -1495,7 +1495,7 @@ template<int C> class ColumnBase
 			m_info[col] = val;
 		}
 	private:
-		tstring m_info[C]; //[+] PPA
+		tstring m_info[C];
 };
 
 // [+] IRainman core: execute task with other thread.

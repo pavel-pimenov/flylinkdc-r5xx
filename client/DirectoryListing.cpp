@@ -655,7 +655,7 @@ DirectoryListing::Directory::~Directory()
 				l_file_list.m_files[l_key].push_back((*j)->getName());
 			}
 		}
-		CFlyServerJSON::addAntivirusCounter(l_file_list);		
+		CFlyServerJSON::addAntivirusCounter(l_file_list);
 	}
 	for_each(directories.begin(), directories.end(), DeleteFunction());
 	for_each(files.begin(), files.end(), DeleteFunction());
@@ -887,7 +887,7 @@ void DirectoryListing::Directory::checkDupes(const DirectoryListing* lst)
 	{
 		(*i)->checkDupes(lst);
 		result |= (*i)->getFlags() & (
-			FLAG_OLD_TTH | FLAG_DOWNLOAD | FLAG_SHARED | FLAG_NOT_SHARED ); // TODO | FLAG_VIRUS_FILE
+		              FLAG_OLD_TTH | FLAG_DOWNLOAD | FLAG_SHARED | FLAG_NOT_SHARED);  // TODO | FLAG_VIRUS_FILE
 	}
 	if (files.size())
 		result |= FLAG_DOWNLOAD_FOLDER;
@@ -898,8 +898,8 @@ void DirectoryListing::Directory::checkDupes(const DirectoryListing* lst)
 		if ((*i)->getSize() > 0)
 		{
 			result |= (*i)->getFlags() & (
-				FLAG_OLD_TTH | FLAG_DOWNLOAD | FLAG_SHARED | FLAG_NOT_SHARED);
-			if (!(*i)->isAnySet(FLAG_OLD_TTH | FLAG_DOWNLOAD | FLAG_SHARED)) 
+			              FLAG_OLD_TTH | FLAG_DOWNLOAD | FLAG_SHARED | FLAG_NOT_SHARED);
+			if (!(*i)->isAnySet(FLAG_OLD_TTH | FLAG_DOWNLOAD | FLAG_SHARED))
 				result &= ~FLAG_DOWNLOAD_FOLDER;
 		}
 	}

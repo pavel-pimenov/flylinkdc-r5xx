@@ -119,7 +119,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			int i = -1;
 			while ((i = ctrlList.GetNextItem(i, LVNI_SELECTED)) != -1)
 			{
-				const FinishedItemInfo * l_item = ctrlList.getItemData(i);
+				const auto l_item = ctrlList.getItemData(i);
 				tstring sCopy;
 				switch (wID)
 				{
@@ -388,7 +388,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			
 			if (item->iItem != -1)
 			{
-				FinishedItemInfo *ii = ctrlList.getItemData(item->iItem);
+				const auto ii = ctrlList.getItemData(item->iItem);
 				WinUtil::openFile(Text::toT(ii->m_entry->getTarget()));
 			}
 			return 0;
@@ -400,15 +400,16 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			{
 				case SPEAK_ADD_LINE: //  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=77059
 				{
-					FinishedItem* entry = reinterpret_cast<FinishedItem*>(lParam);
-					addFinishedEntry(entry, m_is_crrent_tree_node); // https://drdump.com/UploadedReport.aspx?DumpID=3064705 https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=110193 + http://www.flickr.com/photos/96019675@N02/11199325634/
-					if (entry->getID() == 0)
+					const FinishedItemPtr* l_entry = reinterpret_cast<FinishedItemPtr*>(lParam);
+					addFinishedEntry(*l_entry, m_is_crrent_tree_node); // https://drdump.com/UploadedReport.aspx?DumpID=3064705 https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=110193 + http://www.flickr.com/photos/96019675@N02/11199325634/
+					if ((*l_entry)->getID() == 0)
 					{
 						if (SettingsManager::get(boldFinished))
 						{
 							setDirty(1);
 						}
 					}
+					delete l_entry;
 					updateStatus();
 				}
 				break;
@@ -416,18 +417,18 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				{
 					if (m_is_crrent_tree_node)
 					{
-						FinishedItem* entry = reinterpret_cast<FinishedItem*>(lParam);
+						const FinishedItemPtr* l_entry = reinterpret_cast<FinishedItemPtr*>(lParam);
 						const int l_cnt = ctrlList.GetItemCount();
 						for (int i = 0; i < l_cnt; ++i)
 						{
 							auto l_item = ctrlList.getItemData(i);
-							if (l_item && l_item->m_entry == entry)
+							if (l_item && l_item->m_entry == *l_entry)
 							{
 								ctrlList.DeleteItem(i);
-								delete l_item;
 								break;
 							}
 						}
+						delete l_entry;
 						updateStatus();
 					}
 				}
@@ -450,7 +451,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 					int i = -1, p = -1;
 					while ((i = ctrlList.GetNextItem(-1, LVNI_SELECTED)) != -1)
 					{
-						FinishedItemInfo *ii = ctrlList.getItemData(i);
+						const auto ii = ctrlList.getItemData(i);
 						if (!m_is_crrent_tree_node)
 						{
 							vector<__int64> l_id;
@@ -464,9 +465,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 						}
 						m_totalBytes -= ii->m_entry->getSize();
 						m_totalCount--;
-						safe_delete(ii->m_entry);
 						ctrlList.DeleteItem(i);
-						delete ii;
 						p = i;
 					}
 					ctrlList.SelectItem((p < ctrlList.GetItemCount() - 1) ? p : ctrlList.GetItemCount() - 1);
@@ -483,7 +482,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 						l_id.reserve(l_cnt);
 						for (int i = 0; i < l_cnt; ++i)
 						{
-							FinishedItemInfo *ii = ctrlList.getItemData(i);
+							const auto ii = ctrlList.getItemData(i);
 							l_id.push_back(ii->m_entry->getID());
 						}
 						CFlylinkDBManager::getInstance()->delete_transfer_history(l_id);
@@ -508,7 +507,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			int i;
 			if ((i = ctrlList.GetNextItem(-1, LVNI_SELECTED)) != -1)
 			{
-				FinishedItemInfo *ii = ctrlList.getItemData(i);
+				const auto ii = ctrlList.getItemData(i);
 				if (ii != NULL)
 					TextFrame::openWindow(Text::toT(ii->m_entry->getTarget()));
 			}
@@ -520,7 +519,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			int i;
 			if ((i = ctrlList.GetNextItem(-1, LVNI_SELECTED)) != -1)
 			{
-				FinishedItemInfo *ii = ctrlList.getItemData(i);
+				const auto ii = ctrlList.getItemData(i);
 				if (ii)
 				{
 					WinUtil::openFile(Text::toT(ii->m_entry->getTarget()));
@@ -533,7 +532,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			int i = -1;
 			while ((i = ctrlList.GetNextItem(i, LVNI_SELECTED)) != -1)
 			{
-				FinishedItemInfo *ii = ctrlList.getItemData(i);
+				const auto ii = ctrlList.getItemData(i);
 				if (ii)
 				{
 					if (ii->m_entry->getTTH() != TTHValue() && !File::isExist(ii->m_entry->getTarget()))
@@ -550,7 +549,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			int i;
 			if ((i = ctrlList.GetNextItem(-1, LVNI_SELECTED)) != -1)
 			{
-				FinishedItemInfo *ii = ctrlList.getItemData(i);
+				const auto ii = ctrlList.getItemData(i);
 				if (ii)
 				{
 					WinUtil::openFolder(Text::toT(ii->m_entry->getTarget()));
@@ -627,7 +626,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			int i;
 			if ((i = ctrlList.GetNextItem(-1, LVNI_SELECTED)) != -1)
 			{
-				if (const FinishedItemInfo *ii = ctrlList.getItemData(i))
+				if (const auto ii = ctrlList.getItemData(i))
 				{
 					const UserPtr u = ClientManager::findUser(ii->m_entry->getCID());
 					if (u && u->isOnline())
@@ -659,7 +658,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			int i;
 			if ((i = ctrlList.GetNextItem(-1, LVNI_SELECTED)) != -1)
 			{
-				if (const FinishedItemInfo *ii = ctrlList.getItemData(i))
+				if (const auto ii = ctrlList.getItemData(i))
 				{
 					const UserPtr u = ClientManager::findUser(ii->m_entry->getCID());
 					if (u && u->isOnline())
@@ -726,21 +725,21 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		class FinishedItemInfo
 		{
 			public:
-				FinishedItemInfo(FinishedItem* fi) : m_entry(fi)
+				FinishedItemInfo(const FinishedItemPtr& fi) : m_entry(fi)
 				{
 					for (size_t i = FinishedItem::COLUMN_FIRST; i < FinishedItem::COLUMN_LAST; ++i) //-V104
 					{
-						columns[i] = fi->getText(i); //-V107
+						m_columns[i] = fi->getText(i); //-V107
 					}
 				}
 				const tstring& getText(int col) const
 				{
-					dcassert(col >= 0 && col < COLUMN_LAST);
-					return columns[col];
+					dcassert(col >= 0 && col < FinishedItem::COLUMN_LAST);
+					return m_columns[col];
 				}
 				static int compareItems(const FinishedItemInfo* a, const FinishedItemInfo* b, int col)
 				{
-					return FinishedItem::compareItems(a->m_entry, b->m_entry, col);
+					return FinishedItem::compareItems(a->m_entry.get(), b->m_entry.get(), col);
 				}
 				
 				int getImageIndex() const
@@ -752,9 +751,9 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 					return 0;
 				}
 			public:
-				FinishedItem* m_entry;
+				FinishedItemPtr m_entry;
 			private:
-				tstring columns[FinishedItem::COLUMN_LAST];
+				tstring m_columns[FinishedItem::COLUMN_LAST];
 		};
 		
 		
@@ -814,7 +813,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			updateStatus();
 		}
 		
-		void addFinishedEntry(FinishedItem* p_entry, bool p_ensure_visible)
+		void addFinishedEntry(const FinishedItemPtr& p_entry, bool p_ensure_visible)
 		{
 			const auto ii = new FinishedItemInfo(p_entry);
 			m_totalBytes += p_entry->getSize();

@@ -219,14 +219,14 @@ void ClientManager::prepareClose()
 }
 void ClientManager::putClient(Client* p_client)
 {
-	if (!g_isShutdown) // При закрытии не шлем уведомление (на него подписан только фрейм поиска)
-	{
-		fire(ClientManagerListener::ClientDisconnected(), p_client);
-	}
 	p_client->removeListeners();
 	{
 		webrtc::WriteLockScoped l(*g_csClients);
 		g_clients.erase(p_client->getHubUrl());
+	}
+	if (!g_isShutdown) // При закрытии не шлем уведомление (на него подписан только фрейм поиска)
+	{
+		fire(ClientManagerListener::ClientDisconnected(), p_client);
 	}
 	p_client->shutdown();
 	delete p_client;

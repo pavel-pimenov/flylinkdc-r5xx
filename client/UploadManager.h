@@ -29,8 +29,8 @@ typedef pair<UserPtr, unsigned int> CurrentConnectionPair;
 typedef std::unordered_map<UserPtr, unsigned int, User::Hash> CurrentConnectionMap;
 typedef std::vector<UploadPtr> UploadList;
 
-class UploadQueueItem : public intrusive_ptr_base<UploadQueueItem>, // [!] IRainman fix: cleanup.
-	public ColumnBase< 12 >, // [+] PPA. TODO fix me: use COLUMN_LAST.
+class UploadQueueItem :
+	public ColumnBase< 13 >,
 	public UserInfoBase //[+] PPA
 {
 	public:
@@ -40,14 +40,12 @@ class UploadQueueItem : public intrusive_ptr_base<UploadQueueItem>, // [!] IRain
 #ifdef _DEBUG
 			++g_upload_queue_item_count;
 #endif
-			inc();
 		}
 		~UploadQueueItem()
 		{
 #ifdef _DEBUG
 			--g_upload_queue_item_count;
 #endif
-			//dec();
 		}
 		void update();
 		const UserPtr& getUser() const
@@ -58,38 +56,10 @@ class UploadQueueItem : public intrusive_ptr_base<UploadQueueItem>, // [!] IRain
 		{
 			return 0; //g_fileImage.getIconIndex(getFile());
 		}
-		static int compareItems(const UploadQueueItem* a, const UploadQueueItem* b, uint8_t col)
-		{
-			//+BugMaster: small optimization; fix; correct IP sorting
-			switch (col)
-			{
-				case COLUMN_FILE:
-				case COLUMN_TYPE:
-				case COLUMN_PATH:
-				case COLUMN_NICK:
-				case COLUMN_HUB:
-					return stricmp(a->getText(col), b->getText(col));
-				case COLUMN_TRANSFERRED:
-					return compare(a->m_pos, b->m_pos);
-				case COLUMN_SIZE:
-					return compare(a->m_size, b->m_size);
-				case COLUMN_ADDED:
-				case COLUMN_WAITING:
-					return compare(a->m_time, b->m_time);
-				case COLUMN_SLOTS:
-					return compare(a->getUser()->getSlots(), b->getUser()->getSlots()); // !SMT!-UI
-				case COLUMN_SHARE:
-					return compare(a->getUser()->getBytesShared(), b->getUser()->getBytesShared()); // !SMT!-UI
-				case COLUMN_IP:
-					return compare(Socket::convertIP4(Text::fromT(a->getText(col))), Socket::convertIP4(Text::fromT(b->getText(col))));
-			}
-			return stricmp(a->getText(col), b->getText(col));
-			//-BugMaster: small optimization; fix; correct IP sorting
-			//return 0; [-] IRainman.
-		}
+		static int compareItems(const UploadQueueItem* a, const UploadQueueItem* b, uint8_t col);
 		enum
 		{
-			COLUMN_FIRST,
+			COLUMN_FIRST, // Не забудь увеличить ColumnBase<13>
 			COLUMN_FILE = COLUMN_FIRST,
 			COLUMN_TYPE,
 			COLUMN_PATH,
@@ -106,7 +76,7 @@ class UploadQueueItem : public intrusive_ptr_base<UploadQueueItem>, // [!] IRain
 #endif
 			COLUMN_SLOTS, // !SMT!-UI
 			COLUMN_SHARE, // !SMT!-UI
-			COLUMN_LAST
+			COLUMN_LAST // Не забудь увеличить ColumnBase<13>
 		};
 		
 		GETC(HintedUser, m_hintedUser, HintedUser);
@@ -126,9 +96,9 @@ class WaitingUser
 #endif
 {
 	public:
-		WaitingUser(const HintedUser& p_hintedUser, const std::string& p_token, UploadQueueItem* p_uqi) : m_hintedUser(p_hintedUser), m_token(p_token)
+		WaitingUser(const HintedUser& p_hintedUser, const std::string& p_token, const UploadQueueItemPtr& p_uqi) : m_hintedUser(p_hintedUser), m_token(p_token)
 		{
-			m_waiting_files.insert(p_uqi);
+			m_waiting_files.push_back(p_uqi);
 		}
 		operator const UserPtr&() const
 		{
@@ -138,7 +108,7 @@ class WaitingUser
 		{
 			return m_hintedUser.user;
 		}
-		boost::unordered_set<UploadQueueItem*> m_waiting_files; // Опасно торчит указатель
+		std::vector<UploadQueueItemPtr> m_waiting_files;
 		HintedUser m_hintedUser;
 		GETSET(string, m_token, Token);
 };

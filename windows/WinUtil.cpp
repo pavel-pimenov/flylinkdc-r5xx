@@ -4366,8 +4366,8 @@ void WinUtil::SetBBCodeForCEdit(CEdit& ctrlMessage, WORD wID) // [+] SSA
 #ifdef SCALOLAZ_BB_COLOR_BUTTON
 		case IDC_COLOR:
 		{
-			CColorDialog dlg(SETTING(TEXT_GENERAL_FORE_COLOR), 0, ctrlMessage.m_hWnd /*g_mainWnd*/);
-			if (dlg.DoModal(g_mainWnd) == IDOK)
+			CColorDialog dlg(SETTING(TEXT_GENERAL_FORE_COLOR), 0, ctrlMessage.m_hWnd /*mainWnd*/);
+			if (dlg.DoModal(ctrlMessage.m_hWnd) == IDOK)
 			{
 				const string hexString = RGB2HTMLHEX(dlg.GetColor());
 				tstring tcolor = _T("[color=#") + (Text::toT(hexString)) + _T("]");
@@ -4377,6 +4377,12 @@ void WinUtil::SetBBCodeForCEdit(CEdit& ctrlMessage, WORD wID) // [+] SSA
 			break;
 		}
 #endif // SCALOLAZ_BB_COLOR_BUTTON
+		
+		//  case IDC_WIKI:
+		//      startTag = _T("[ruwiki]");
+		//      endTag = _T("[/ruwiki]");
+		//      break;
+		
 		default:
 			dcassert(0);
 	}

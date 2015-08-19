@@ -46,14 +46,13 @@ FinishedManager::~FinishedManager()
 	removeAll(e_Download);
 }
 
-void FinishedManager::removeItem(FinishedItem* p_item, eType p_type)
+void FinishedManager::removeItem(const FinishedItemPtr& p_item, eType p_type)
 {
 	webrtc::WriteLockScoped l(*g_cs[p_type]);
 	const auto it = find(g_finished[p_type].begin(), g_finished[p_type].end(), p_item);
 	
 	if (it != g_finished[p_type].end())
 	{
-		delete *it;
 		g_finished[p_type].erase(it);
 	}
 	else
@@ -65,11 +64,11 @@ void FinishedManager::removeItem(FinishedItem* p_item, eType p_type)
 void FinishedManager::removeAll(eType p_type)
 {
 	webrtc::WriteLockScoped l(*g_cs[p_type]);
-	for_each(g_finished[p_type].begin(), g_finished[p_type].end(), DeleteFunction());
+	//for_each(g_finished[p_type].begin(), g_finished[p_type].end(), DeleteFunction());
 	g_finished[p_type].clear();
 }
 
-void FinishedManager::rotation_items(FinishedItem* p_item, eType p_type)
+void FinishedManager::rotation_items(const FinishedItemPtr& p_item, eType p_type)
 {
 	// For fix - crash https://drdump.com/DumpGroup.aspx?DumpGroupID=301739
 	webrtc::WriteLockScoped l(*g_cs[p_type]);
@@ -106,7 +105,7 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItemPtr& qi,
 		}
 		if (isFile || (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_DCLST_LIST) && BOOLSETTING(LOG_FILELIST_TRANSFERS)))
 		{
-			FinishedItem* item = new FinishedItem(qi->getTarget(), p_download->getHintedUser(), qi->getSize(), p_download->getRunningAverage(), GET_TIME(), qi->getTTH(), p_download->getUser()->getIPAsString());
+			std::shared_ptr<FinishedItem> item(new FinishedItem(qi->getTarget(), p_download->getHintedUser(), qi->getSize(), p_download->getRunningAverage(), GET_TIME(), qi->getTTH(), p_download->getUser()->getIPAsString()));
 			if (SETTING(DB_LOG_FINISHED_DOWNLOADS))
 			{
 				CFlylinkDBManager::getInstance()->save_transfer_history(e_TransferDownload, item);
@@ -117,7 +116,7 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItemPtr& qi,
 		}
 	}
 }
-void FinishedManager::pushHistoryFinishedItem(FinishedItem* p_item, int p_type)
+void FinishedManager::pushHistoryFinishedItem(const FinishedItemPtr& p_item, int p_type)
 {
 	if (p_type)
 		fire(FinishedManagerListener::AddedUl(), p_item, true);
@@ -131,7 +130,7 @@ void FinishedManager::on(UploadManagerListener::Complete, const UploadPtr& u) no
 	{
 		PLAY_SOUND(SOUND_UPLOADFILE);
 		
-		FinishedItem* item = new FinishedItem(u->getPath(), u->getHintedUser(), u->getFileSize(), u->getRunningAverage(), GET_TIME(), u->getTTH(), u->getUser()->getIPAsString());
+		std::shared_ptr<FinishedItem> item(new FinishedItem(u->getPath(), u->getHintedUser(), u->getFileSize(), u->getRunningAverage(), GET_TIME(), u->getTTH(), u->getUser()->getIPAsString()));
 		if (SETTING(DB_LOG_FINISHED_UPLOADS))
 		{
 			CFlylinkDBManager::getInstance()->save_transfer_history(e_TransferUpload, item);

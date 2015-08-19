@@ -301,7 +301,7 @@ void PrivateFrame::processFrameCommand(const tstring& fullMessageText, const tst
 
 void PrivateFrame::sendMessage(const tstring& msg, bool thirdperson /*= false*/)
 {
-	ClientManager::getInstance()->privateMessage(HintedUser(m_replyTo, getHubHint()), Text::fromT(msg), thirdperson);
+	ClientManager::privateMessage(HintedUser(m_replyTo, getHubHint()), Text::fromT(msg), thirdperson);
 }
 
 LRESULT PrivateFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)

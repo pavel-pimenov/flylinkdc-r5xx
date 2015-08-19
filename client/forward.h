@@ -52,7 +52,8 @@ class FavoriteUser;
 class File;
 
 class FinishedItem;
-typedef std::deque<FinishedItem*> FinishedItemList; // [!] IRainman opt: change vector to deque
+typedef std::shared_ptr<FinishedItem> FinishedItemPtr;
+typedef std::deque<FinishedItemPtr> FinishedItemList;
 
 class FinishedManager;
 
@@ -89,7 +90,7 @@ class TigerHash;
 typedef HashValue<TigerHash> TTHValue;
 
 class UploadQueueItem;
-typedef UploadQueueItem* UploadQueueItemPtr;
+typedef std::shared_ptr<UploadQueueItem> UploadQueueItemPtr;
 
 // http://code.google.com/p/flylinkdc/issues/detail?id=1413
 //class UploadQueueItemInfo;

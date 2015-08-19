@@ -34,7 +34,10 @@
 #include "WinUtil.h"
 #include "TransferView.h"
 #include "MainFrm.h"
-
+#ifdef SCALOLAZ_USE_TRANSFER_CONTROL
+#include "QueueFrame.h"
+#include "WaitingUsersFrame.h"
+#endif
 #include "BarShader.h"
 #include "ResourceLoader.h" // [+] InfinitySky. PNG Support from Apex 1.3.8.
 
@@ -364,23 +367,33 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 			
 			transferMenu.CreatePopupMenu();
 			transferMenu.AppendMenu(MF_STRING, IDC_FORCE, CTSTRING(FORCE_ATTEMPT));
-			transferMenu.AppendMenu(MF_SEPARATOR); //[+] Drakon
 			transferMenu.AppendMenu(MF_STRING, IDC_PRIORITY_PAUSED, CTSTRING(PAUSED)); //[+] Drakon
-			transferMenu.AppendMenu(MF_SEPARATOR);
 			transferMenu.AppendMenu(MF_STRING, IDC_SEARCH_ALTERNATES, CTSTRING(SEARCH_FOR_ALTERNATES));
+			transferMenu.AppendMenu(MF_SEPARATOR);
 			appendPreviewItems(transferMenu);
 			transferMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)usercmdsMenu, CTSTRING(SETTINGS_USER_COMMANDS));
 			transferMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)copyMenu, CTSTRING(COPY)); // !SMT!-UI
 			transferMenu.AppendMenu(MF_SEPARATOR);
+			
+#ifdef SCALOLAZ_USE_TRANSFER_CONTROL
+			if (!ii->download)
+			{
+				transferMenu.AppendMenu(MF_STRING, IDC_UPLOAD_QUEUE, CTSTRING(OPEN_UPLOAD_QUEUE));
+				//transferMenu.SetMenuDefaultItem(IDC_UPLOAD_QUEUE);
+			}
+			else
+			{
+				transferMenu.AppendMenu(MF_STRING, IDC_QUEUE, CTSTRING(OPEN_DOWNLOAD_QUEUE));
+				//transferMenu.SetMenuDefaultItem(IDC_QUEUE);
+			}
+			transferMenu.AppendMenu(MF_SEPARATOR);
+#endif  //SCALOLAZ_USE_TRANSFER_CONTROL
 #ifdef PPA_INCLUDE_DROP_SLOW
 			transferMenu.AppendMenu(MF_STRING, IDC_MENU_SLOWDISCONNECT, CTSTRING(SETCZDC_DISCONNECTING_ENABLE));
-			transferMenu.AppendMenu(MF_SEPARATOR);
 #endif
-			transferMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(CLOSE_CONNECTION));
 			transferMenu.AppendMenu(MF_STRING, IDC_ADD_P2P_GUARD, CTSTRING(CLOSE_CONNECTION_AND_ADD_IP_GUARD));
-			
-			transferMenu.SetMenuDefaultItem(IDC_PRIVATE_MESSAGE);
-			
+			transferMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(CLOSE_CONNECTION));
+			transferMenu.AppendMenu(MF_SEPARATOR);
 			if (!main && (i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1)
 			{
 				const ItemInfo* itemI = ctrlTransfers.getItemData(i);
@@ -445,6 +458,7 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 			}
 			
 			activatePreviewItems(transferMenu);
+			transferMenu.SetMenuDefaultItem(IDC_PRIVATE_MESSAGE);
 			
 			if (!main)
 			{
@@ -477,7 +491,24 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 	bHandled = FALSE;
 	return FALSE;
 }
-
+#ifdef SCALOLAZ_USE_TRANSFER_CONTROL
+LRESULT TransferView::onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	switch (wID)
+	{
+		case IDC_QUEUE:
+			QueueFrame::openWindow();
+			break;
+		case IDC_UPLOAD_QUEUE:
+			WaitingUsersFrame::openWindow();
+			break;
+		default:
+			dcassert(0);
+			break;
+	}
+	return 0;
+}
+#endif
 void TransferView::runUserCommand(UserCommand& uc)
 {
 	if (!WinUtil::getUCParams(m_hWnd, uc, ucLineParams))

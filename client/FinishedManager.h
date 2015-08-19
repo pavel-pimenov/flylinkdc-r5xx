@@ -153,9 +153,9 @@ class FinishedManager : public Singleton<FinishedManager>,
 			g_cs[p_upload]->ReleaseLockShared();
 		}
 		
-		static void removeItem(FinishedItem* item, eType p_type);
+		static void removeItem(const FinishedItemPtr& p_item, eType p_type);
 		static void removeAll(eType p_type);
-		void pushHistoryFinishedItem(FinishedItem* p_item, int p_type);
+		void pushHistoryFinishedItem(const FinishedItemPtr& p_item, int p_type);
 		void updateStatus()
 		{
 			fire(FinishedManagerListener::UpdateStatus());
@@ -172,7 +172,7 @@ class FinishedManager : public Singleton<FinishedManager>,
 		void on(UploadManagerListener::Complete, const UploadPtr& aUpload) noexcept override;
 		
 		string log(const CID& p_CID, const string& p_path, const string& p_message);
-		void rotation_items(FinishedItem* p_item, eType p_type);
+		void rotation_items(const FinishedItemPtr& p_item, eType p_type);
 		
 		static std::unique_ptr<webrtc::RWLockWrapper> g_cs[2]; // index = eType
 		static FinishedItemList g_finished[2]; // index = eType

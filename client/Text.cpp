@@ -259,14 +259,20 @@ const string& wideToUtf8(const wstring& str, string& tgt) noexcept
 		return Util::emptyString;
 #ifdef _WIN32
 	wstring::size_type size = 0;
-	tgt.resize(str.length() * 2);
+	tgt.resize(str.length() * 2 + 1);
 	while ((size = WideCharToMultiByte(CP_UTF8, 0, str.c_str(), str.length(), &tgt[0], tgt.length(), NULL, NULL)) == 0)
 	{
 //[+]PPA        dcdebug("wideToUtf8-[error]: %s str.length() = %d\n", tgt.c_str(),str.length());
 		if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
+		{
+			dcassert(0);
 			tgt.resize(tgt.size() * 2);
+		}
 		else
+		{
+			dcassert(0);
 			break;
+		}
 	}
 	tgt.resize(size);
 //[+]PPA    dcdebug("wideToUtf8: %s\n", tgt.c_str());
@@ -339,18 +345,21 @@ const string& utf8ToAcp(const string& str, string& tmp, const string& toCharset)
 
 const wstring& utf8ToWide(const string& str, wstring& tgt) noexcept
 {
+	if (str.empty())
+		return Util::emptyStringT;
 #ifdef _WIN32
 	wstring::size_type size = 0;
-	tgt.resize(str.length() + 1); // 2012-04-29_13-46-19_ZB4DIS35ERNZ4WVNI7Y32THCOYPXEXPADDKUGBY_22E0B325_crash-stack-r501-x64-build-9869.dmp
+	tgt.resize(str.length() + 1);
 	while ((size = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), &tgt[0], (int)tgt.length())) == 0)
-		// 2012-05-11_23-57-17_H6LZ4GA3P2232TLWUOMIEM72RWRDPDCPIB6JE7Y_B3194916_crash-stack-r502-beta26-x64-build-9946.dmp
 	{
 		if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
 		{
+			dcassert(0);
 			tgt.resize(tgt.size() * 2);
 		}
 		else
 		{
+			dcassert(0);
 			break;
 		}
 		

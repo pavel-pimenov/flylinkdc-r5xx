@@ -399,12 +399,12 @@ LRESULT WaitingUsersFrame::onItemChanged(int /*idCtrl*/, LPNMHDR /* pnmh */, BOO
 	return 0;
 }
 
-void WaitingUsersFrame::RemoveFile(UploadQueueItemPtr aUQI)
+void WaitingUsersFrame::RemoveFile(const UploadQueueItemPtr& aUQI)
 {
-	m_ctrlList.deleteItem(aUQI);
+	m_ctrlList.deleteItem(aUQI.get());
 }
 
-void WaitingUsersFrame::AddFile(UploadQueueItemPtr aUQI)
+void WaitingUsersFrame::AddFile(const UploadQueueItemPtr& aUQI)
 {
 	dcassert(aUQI != nullptr);
 	HTREEITEM userNode = ctrlQueued.GetRootItem();
@@ -432,6 +432,7 @@ void WaitingUsersFrame::AddFile(UploadQueueItemPtr aUQI)
 	if (selNode)
 	{
 		TCHAR selBuf[256];
+		selBuf[0] = 0;
 		ctrlQueued.GetItemText(selNode, selBuf, 255);
 		if (_tcscmp(selBuf, (aUQI->getUser()->getLastNickT() + _T(" - ") + WinUtil::getHubNames(aUQI->getHintedUser()).first).c_str()) != 0)
 		{
@@ -439,7 +440,7 @@ void WaitingUsersFrame::AddFile(UploadQueueItemPtr aUQI)
 		}
 	}
 	aUQI->update();
-	m_ctrlList.insertItem(m_ctrlList.GetItemCount(), aUQI, aUQI->getImageIndex()); // aUQI->getImageIndex() TODO - image callback
+	m_ctrlList.insertItem(m_ctrlList.GetItemCount(), aUQI.get(), aUQI->getImageIndex()); // aUQI->getImageIndex() TODO - image callback
 }
 
 HTREEITEM WaitingUsersFrame::GetParentItem()
@@ -616,7 +617,7 @@ LRESULT WaitingUsersFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHan
 	*/
 	CRect rc;
 	LPNMLVCUSTOMDRAW cd = reinterpret_cast<LPNMLVCUSTOMDRAW>(pnmh);
-	UploadQueueItem *ii = (UploadQueueItem*)cd->nmcd.lItemlParam;
+	UploadQueueItem *ii = (UploadQueueItem*)cd->nmcd.lItemlParam; // ??
 	
 	switch (cd->nmcd.dwDrawStage)
 	{

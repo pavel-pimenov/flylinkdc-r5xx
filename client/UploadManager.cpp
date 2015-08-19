@@ -61,13 +61,6 @@ UploadManager::~UploadManager()
 	ClientManager::getInstance()->removeListener(this);
 	{
 		Lock l(m_csQueue); // [!] IRainman opt.
-		for (auto ii = m_slotQueue.cbegin(); ii != m_slotQueue.cend(); ++ii)
-		{
-			for (auto i = ii->m_waiting_files.cbegin(); i != ii->m_waiting_files.cend(); ++i)
-			{
-				(*i)->dec();
-			}
-		}
 		m_slotQueue.clear();
 	}
 	while (true)
@@ -208,7 +201,7 @@ bool UploadManager::handleBan(UserConnection* aSource/*, bool forceBan, bool noC
 			}
 			if (sendPm)
 			{
-				ClientManager::getInstance()->privateMessage(aSource->getHintedUser(), banstr, false);
+				ClientManager::privateMessage(aSource->getHintedUser(), banstr, false);
 			}
 			// [~] IRainman fix.
 		}
@@ -823,7 +816,7 @@ void UploadManager::reserveSlot(const HintedUser& hintedUser, uint64_t aTime)
 	
 	if (BOOLSETTING(SEND_SLOTGRANT_MSG)) // !SMT!-S
 	{
-		ClientManager::getInstance()->privateMessage(hintedUser, "+me " + STRING(SLOT_GRANTED_MSG) + ' ' + Util::formatSeconds(aTime), false); // !SMT!-S
+		ClientManager::privateMessage(hintedUser, "+me " + STRING(SLOT_GRANTED_MSG) + ' ' + Util::formatSeconds(aTime), false); // !SMT!-S
 	}
 }
 
@@ -836,7 +829,7 @@ void UploadManager::unreserveSlot(const HintedUser& hintedUser)
 	save(); // !SMT!-S
 	if (BOOLSETTING(SEND_SLOTGRANT_MSG)) // !SMT!-S
 	{
-		ClientManager::getInstance()->privateMessage(hintedUser, "+me " + STRING(SLOT_REMOVED_MSG), false); // !SMT!-S
+		ClientManager::privateMessage(hintedUser, "+me " + STRING(SLOT_REMOVED_MSG), false); // !SMT!-S
 	}
 }
 
@@ -997,16 +990,16 @@ size_t UploadManager::addFailedUpload(const UserConnection* aSource, const strin
 	{
 		it->setToken(aSource->getUserConnectionToken());
 		// https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=130703
-		for (auto fileIter = it->m_waiting_files.cbegin(); fileIter != it->m_waiting_files.cend(); ++fileIter) //TODO https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128318
+		for (auto i = it->m_waiting_files.cbegin(); i != it->m_waiting_files.cend(); ++i) //TODO https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128318
 		{
-			if ((*fileIter)->getFile() == file)
+			if ((*i)->getFile() == file)
 			{
-				(*fileIter)->setPos(pos);
+				(*i)->setPos(pos);
 				return queue_position;
 			}
 		}
 	}
-	UploadQueueItem* uqi = new UploadQueueItem(aSource->getHintedUser(), file, pos, size);
+	UploadQueueItemPtr uqi(new UploadQueueItem(aSource->getHintedUser(), file, pos, size));
 	if (it == m_slotQueue.end())
 	{
 		++queue_position;
@@ -1014,7 +1007,7 @@ size_t UploadManager::addFailedUpload(const UserConnection* aSource, const strin
 	}
 	else
 	{
-		it->m_waiting_files.insert(uqi);
+		it->m_waiting_files.push_back(uqi);
 	}
 	// Crash https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=29270
 	if (g_count_WaitingUsersFrame)
@@ -1031,7 +1024,6 @@ void UploadManager::clearWaitingFilesL(const WaitingUser& p_wu)
 		{
 			fire(UploadManagerListener::QueueItemRemove(), (*i));
 		}
-		(*i)->dec();
 	}
 }
 void UploadManager::clearUserFilesL(const UserPtr& aUser)
@@ -1480,6 +1472,36 @@ void UploadManager::load()
 	}
 	testSlotTimeout();
 }
+int UploadQueueItem::compareItems(const UploadQueueItem* a, const UploadQueueItem* b, uint8_t col)
+{
+	//+BugMaster: small optimization; fix; correct IP sorting
+	switch (col)
+	{
+		case COLUMN_FILE:
+		case COLUMN_TYPE:
+		case COLUMN_PATH:
+		case COLUMN_NICK:
+		case COLUMN_HUB:
+			return stricmp(a->getText(col), b->getText(col));
+		case COLUMN_TRANSFERRED:
+			return compare(a->m_pos, b->m_pos);
+		case COLUMN_SIZE:
+			return compare(a->m_size, b->m_size);
+		case COLUMN_ADDED:
+		case COLUMN_WAITING:
+			return compare(a->m_time, b->m_time);
+		case COLUMN_SLOTS:
+			return compare(a->getUser()->getSlots(), b->getUser()->getSlots()); // !SMT!-UI
+		case COLUMN_SHARE:
+			return compare(a->getUser()->getBytesShared(), b->getUser()->getBytesShared()); // !SMT!-UI
+		case COLUMN_IP:
+			return compare(Socket::convertIP4(Text::fromT(a->getText(col))), Socket::convertIP4(Text::fromT(b->getText(col))));
+	}
+	return stricmp(a->getText(col), b->getText(col));
+	//-BugMaster: small optimization; fix; correct IP sorting
+	//return 0; [-] IRainman.
+}
+
 // http://code.google.com/p/flylinkdc/issues/detail?id=1413
 void UploadQueueItem::update()
 {

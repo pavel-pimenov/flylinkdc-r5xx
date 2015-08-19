@@ -36,10 +36,10 @@ class FinishedManagerListener
 		typedef X<3> RemovedDl; // [+] IRainman
 		typedef X<4> UpdateStatus;
 		
-		virtual void on(AddedDl, const FinishedItem*, bool p_is_sqlite) noexcept { }
-		virtual void on(AddedUl, const FinishedItem*, bool p_is_sqlite) noexcept { }
-		virtual void on(RemovedUl, const FinishedItem*) noexcept { } // [+] IRainman
-		virtual void on(RemovedDl, const FinishedItem*) noexcept { } // [+] IRainman
+		virtual void on(AddedDl, const FinishedItemPtr&, bool p_is_sqlite) noexcept { }
+		virtual void on(AddedUl, const FinishedItemPtr&, bool p_is_sqlite) noexcept {}
+		virtual void on(RemovedUl, const FinishedItemPtr&) noexcept {} // [+] IRainman
+		virtual void on(RemovedDl, const FinishedItemPtr&) noexcept {} // [+] IRainman
 		virtual void on(UpdateStatus) noexcept {}
 		
 		

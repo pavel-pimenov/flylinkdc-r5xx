@@ -1993,16 +1993,16 @@ void CFlylinkDBManager::load_transfer_history(eTypeTransfer p_type, int p_day)
 		sqlite3_reader l_q = m_select_transfer.get()->executereader();
 		while (l_q.read())
 		{
-			FinishedItem* item = new FinishedItem(l_q.getstring(0),
-			                                      l_q.getstring(1),
-			                                      l_q.getstring(2),
-			                                      l_q.getint64(3),
-			                                      l_q.getint64(4),
-			                                      l_q.getint64(5),
-			                                      TTHValue(l_q.getstring(7)),
-			                                      l_q.getstring(6),
-			                                      l_q.getint64(8)
-			                                     );
+			std::shared_ptr<FinishedItem> item(new FinishedItem(l_q.getstring(0),
+			                                                    l_q.getstring(1),
+			                                                    l_q.getstring(2),
+			                                                    l_q.getint64(3),
+			                                                    l_q.getint64(4),
+			                                                    l_q.getint64(5),
+			                                                    TTHValue(l_q.getstring(7)),
+			                                                    l_q.getstring(6),
+			                                                    l_q.getint64(8)
+			                                                   ));
 			FinishedManager::getInstance()->pushHistoryFinishedItem(item, p_type);
 		}
 		FinishedManager::getInstance()->updateStatus();
@@ -2040,7 +2040,7 @@ void CFlylinkDBManager::delete_transfer_history(const vector<__int64>& p_id_arra
 	}
 }
 //========================================================================================================
-void CFlylinkDBManager::save_transfer_history(eTypeTransfer p_type, const FinishedItem* p_item)
+void CFlylinkDBManager::save_transfer_history(eTypeTransfer p_type, const FinishedItemPtr& p_item)
 {
 	// TODO const int l_tick = GET_TICK();
 	const string l_name = Text::toLower(Util::getFileName(p_item->getTarget()));

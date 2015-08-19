@@ -286,7 +286,7 @@ const string SettingsManager::g_settingTags[] =
 	"AutoBanProtectOP",
 #endif
 	"BanSlots", "BanSlotsH", /*old "BanShareMax",*/ "BanShare", "BanLimit", "BanmsgPeriod", "BanStealth", "BanForcePM", /* old "BanSkipOps",*/ "ExtraSlotToDl", // !SMT!-S
-	"BanColor", "DupeColor", "VirusColor","MultilineChatInput", "ExternalPreview", "SendSlotgrantMsg", "FavUserDblClick",// !SMT!-UI
+	"BanColor", "DupeColor", "VirusColor", "MultilineChatInput", "ExternalPreview", "SendSlotgrantMsg", "FavUserDblClick", // !SMT!-UI
 	"ProtectPrivate", "ProtectPrivateRnd", "ProtectPrivateSay", // !SMT!-PSW
 	"UploadTransfersColors", // [+] Drakon
 	"StartupBackup", // [+] Drakon

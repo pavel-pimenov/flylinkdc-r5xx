@@ -150,7 +150,7 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 			BaseChatFrame::addStatus(aLine, bInChat, bHistory, cf);
 		}
 		
-		void sendMessage(const tstring& msg, bool thirdperson = false);
+		void sendMessage(const tstring& msg, bool thirdperson = false) override;
 		
 		const UserPtr& getUser() const
 		{

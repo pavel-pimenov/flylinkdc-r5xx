@@ -41,14 +41,14 @@ class FinishedULFrame : public FinishedFrameBase<FinishedULFrame, ResourceManage
 		
 	private:
 	
-		void on(AddedUl, const FinishedItem* p_entry, bool p_is_sqlite) noexcept override
+		void on(AddedUl, const FinishedItemPtr& p_entry, bool p_is_sqlite) noexcept override
 		{
-			PostMessage(WM_SPEAKER, SPEAK_ADD_LINE, (WPARAM)p_entry);
+			PostMessage(WM_SPEAKER, SPEAK_ADD_LINE, (WPARAM)new FinishedItemPtr(p_entry));
 		}
 		
-		void on(RemovedUl, const FinishedItem* p_entry) noexcept override// [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
+		void on(RemovedUl, const FinishedItemPtr& p_entry) noexcept override// [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
 		{
-			PostMessage(WM_SPEAKER, SPEAK_REMOVE_LINE, (WPARAM)p_entry);
+			PostMessage(WM_SPEAKER, SPEAK_REMOVE_LINE, (WPARAM)new FinishedItemPtr(p_entry));
 		}
 };
 

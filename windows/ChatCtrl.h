@@ -181,8 +181,15 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 		
 		void setHubParam(const string& sUrl, const string& sNick)
 		{
-			m_MyNickLower = WinUtil::toAtlString(sNick);
-			m_MyNickLower.MakeLower();
+			if (!sNick.empty())
+			{
+				m_MyNickLower = WinUtil::toAtlString(sNick);
+				m_MyNickLower.MakeLower();
+			}
+			else
+			{
+				m_MyNickLower = _T("");
+			}
 			m_HubHint = sUrl;    // !SMT!-S
 		}
 		const string& getHubHint() const// [+] IRainman fix.

@@ -190,8 +190,8 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		CStatusBarCtrl ctrlStatus;
 		int statusSizes[4]; // TODO: fix my size.
 		
-		void AddFile(UploadQueueItemPtr aUQI);
-		void RemoveFile(UploadQueueItemPtr aUQI);
+		void AddFile(const UploadQueueItemPtr& aUQI);
+		void RemoveFile(const UploadQueueItemPtr& aUQI);
 		void RemoveUser(const UserPtr& aUser);
 		
 		void updateStatus();
@@ -202,19 +202,17 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		
 		struct UploadQueueTask : public Task
 		{
-			UploadQueueTask(UploadQueueItem* item) : m_item(item)
+			UploadQueueTask(const UploadQueueItemPtr& item) : m_item(item)
 			{
-				m_item->inc();
 			}
 			~UploadQueueTask()
 			{
-				m_item->dec();
 			}
-			UploadQueueItem* getItem() const
+			UploadQueueItemPtr getItem() const
 			{
 				return m_item;
 			}
-			UploadQueueItem* m_item;
+			UploadQueueItemPtr m_item;
 		};
 		
 		struct UserTask : public Task
@@ -231,7 +229,7 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		// [~] IRainman opt
 		
 		// UploadManagerListener
-		void on(UploadManagerListener::QueueAdd, UploadQueueItem* aUQI) noexcept override
+		void on(UploadManagerListener::QueueAdd, const UploadQueueItemPtr& aUQI) noexcept override
 		{
 			m_tasks.add(ADD_ITEM, new UploadQueueTask(aUQI));
 		}
@@ -239,7 +237,7 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		{
 			m_tasks.add(REMOVE, new UserTask(aUser));
 		}
-		void on(UploadManagerListener::QueueItemRemove, UploadQueueItem* aUQI) noexcept override
+		void on(UploadManagerListener::QueueItemRemove, const UploadQueueItemPtr& aUQI) noexcept override
 		{
 			m_tasks.add(REMOVE_ITEM, new UploadQueueTask(aUQI));
 		}

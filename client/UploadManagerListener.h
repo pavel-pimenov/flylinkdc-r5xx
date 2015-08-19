@@ -30,9 +30,9 @@ class UploadManagerListener
 		virtual void on(Tick, const UploadArray&, uint64_t/*[+]IRainman refactoring transfer mechanism*/) noexcept { }
 		virtual void on(Complete, const UploadPtr& aUpload) noexcept { }
 		virtual void on(Failed, const UploadPtr& aUpload, const string&) noexcept { }
-		virtual void on(QueueAdd, UploadQueueItem*) noexcept { }
+		virtual void on(QueueAdd, const UploadQueueItemPtr&) noexcept { }
 		virtual void on(QueueRemove, const UserPtr&) noexcept { }
-		virtual void on(QueueItemRemove, UploadQueueItem*) noexcept { }
+		virtual void on(QueueItemRemove, const UploadQueueItemPtr&) noexcept { }
 		virtual void on(QueueUpdate) noexcept { }
 		
 };

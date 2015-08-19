@@ -88,7 +88,7 @@ bool ChatBot::botSendMessage2(int msgid, const WCHAR* objid, const void *param, 
 		switch (msgid)
 		{
 			case BotInit::SEND_PM:
-				ClientManager::getInstance()->privateMessage(HintedUser(user, Util::emptyString), Text::fromT((WCHAR*)param), false);
+				ClientManager::privateMessage(HintedUser(user, Util::emptyString), Text::fromT((WCHAR*)param), false);
 				return true;
 			case BotInit::USER_CLOSE:
 				/* TODO //in MainFrame: needs only if simple PM frame, move to PrivateFrame.
@@ -404,7 +404,7 @@ void ChatBot::externalFailure()
 	// stop further notifications
 	m_init.RecvMessage = nullptr;
 	m_init.RecvMessage2 = nullptr;
-	ClientManager::getInstance()->privateMessage(HintedUser(ClientManager::getMe_UseOnlyForNonHubSpecifiedTasks(), Util::emptyString), "ChatBot died!", false);
+	ClientManager::privateMessage(HintedUser(ClientManager::getMe_UseOnlyForNonHubSpecifiedTasks(), Util::emptyString), "ChatBot died!", false);
 }
 
 void ChatBot::onMessageV1(const Identity& myId, const Identity& msgFrom, const tstring& message, bool newSession)

@@ -72,7 +72,6 @@
 #endif
 
 #ifdef _WIN64
-# pragma warning(disable: 4244) // conversion from 'xxx' to 'yyy', possible loss of data
 # pragma warning(disable: 4267) // conversion from 'xxx' to 'yyy', possible loss of data
 #endif
 

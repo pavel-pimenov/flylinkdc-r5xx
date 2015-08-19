@@ -18,7 +18,7 @@
 
 #if !defined(TRANSFER_VIEW_H)
 #define TRANSFER_VIEW_H
-
+#define SCALOLAZ_USE_TRANSFER_CONTROL
 #pragma once
 
 #include "../client/DownloadManagerListener.h"
@@ -88,7 +88,10 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		MESSAGE_HANDLER_HWND(WM_MEASUREITEM, OMenu::onMeasureItem)
 		MESSAGE_HANDLER_HWND(WM_DRAWITEM, OMenu::onDrawItem)
 		COMMAND_ID_HANDLER(IDC_PRIORITY_PAUSED, onPauseSelectedItem)
-		
+#ifdef SCALOLAZ_USE_TRANSFER_CONTROL
+		COMMAND_ID_HANDLER(IDC_UPLOAD_QUEUE, onOpenWindows)
+		COMMAND_ID_HANDLER(IDC_QUEUE, onOpenWindows)
+#endif
 		COMMAND_ID_HANDLER(IDC_COPY_TTH, onCopy) // !JhaoDa
 		COMMAND_ID_HANDLER(IDC_COPY_LINK, onCopy) // !SMT!-UI
 		COMMAND_ID_HANDLER(IDC_COPY_WMLINK, onCopy) // !SMT!-UI
@@ -113,7 +116,9 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		LRESULT onForceAutoPassiveMode(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
 		LRESULT onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-		
+#ifdef SCALOLAZ_USE_TRANSFER_CONTROL
+		LRESULT onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+#endif
 		void runUserCommand(UserCommand& uc);
 		void prepareClose();
 		void doTimerTask() override;

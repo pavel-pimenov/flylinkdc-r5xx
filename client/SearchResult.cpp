@@ -71,7 +71,7 @@ string SearchResultBaseTTH::toSR(const Client& c) const
 	{
 		tmp.append(acpFile, 0, acpFile.length() - 1);
 	}
-	dcassert(getFreeSlots() != 0 && getSlots() != 0);
+	//dcassert(getFreeSlots() != 0 && getSlots() != 0);
 	tmp.append(1, ' ');
 	tmp.append(Util::toString(getFreeSlots()));
 	tmp.append(1, '/');

@@ -31,6 +31,7 @@ template <class T> bool safe_post_message(HWND p_wnd, int p_x, T* p_ptr)
 	if (::PostMessage(p_wnd, WM_SPEAKER, WPARAM(p_x), LPARAM(p_ptr)) == FALSE)
 	{
 		delete p_ptr;
+		dcassert(0);
 		return false;
 	}
 	return true;

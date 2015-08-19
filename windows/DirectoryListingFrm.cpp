@@ -2019,7 +2019,7 @@ void DirectoryListingFrame::getItemColor(const Flags::MaskType flags, COLORREF &
 	{
 		bg = SETTING(DUPE_EX2_COLOR);
 	}
-		
+	
 }
 
 // !fulDC!

@@ -263,6 +263,7 @@ void TreePropertySheet::doCamShoot()
 	DeleteObject(membit);
 	DeleteDC(memDC);
 	DeleteDC(scrDC);
+	//PLAY_SOUND(SOUND_CAMSHOOT);
 }
 #endif
 

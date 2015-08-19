@@ -296,7 +296,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 					{
 						if (!l_result.empty())
 							l_result += _T(" + ");
-						l_result +=  TSTRING(THIS_FILE_WAS_IN_MY_SHARE); 
+						l_result +=  TSTRING(THIS_FILE_WAS_IN_MY_SHARE);
 					}
 				}
 			}
