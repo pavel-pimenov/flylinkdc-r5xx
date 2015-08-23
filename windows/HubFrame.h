@@ -494,6 +494,11 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		{
 			return m_client->isFlySupportHub();
 		}
+		bool isFlyAntivirusHub() const
+		{
+			return m_client->isFlyAntivirusHub();
+		}
+		
 		// [+] IRainman: copy-past fix.
 		void sendMessage(const tstring& msg, bool thirdperson = false)
 		{
@@ -535,6 +540,9 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		void initShowJoins(const FavoriteHubEntry *p_fhe);
 		
 		bool m_isUpdateColumnsInfoProcessed;
+		bool m_is_red_virus_icon_index;
+		uint8_t m_virus_icon_index;
+		void flickerVirusIcon();
 		size_t m_ActivateCounter;
 		
 		void updateSplitterPosition(const FavoriteHubEntry *p_fhe);

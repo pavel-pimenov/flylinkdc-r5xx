@@ -1852,7 +1852,7 @@ void TransferView::ItemInfo::disconnectAndP2PGuard()
 	{
 		const string l_marker = "Manual block IP";
 		l_sqlite_array.push_back(CFlyP2PGuardIP(l_marker, l_ip, l_ip));
-		CFlylinkDBManager::getInstance()->save_p2p_guard(l_sqlite_array, l_marker);
+		CFlylinkDBManager::getInstance()->save_p2p_guard(l_sqlite_array, l_marker,1);
 	}
 	disconnect();
 }

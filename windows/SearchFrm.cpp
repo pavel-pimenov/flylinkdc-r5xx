@@ -41,8 +41,7 @@
 #include "../zmq/include/zmq.h"
 #endif
 
-TStringList SearchFrame::g_lastSearches;
-
+std::list<wstring> SearchFrame::g_lastSearches;
 HIconWrapper SearchFrame::g_purge_icon(IDR_PURGE);
 HIconWrapper SearchFrame::g_pause_icon(IDR_PAUSE);
 HIconWrapper SearchFrame::g_search_icon(IDR_SEARCH);
@@ -212,10 +211,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	ctrlSearchBox.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                     WS_VSCROLL | CBS_DROPDOWN | CBS_AUTOHSCROLL, 0);
 	CFlylinkDBManager::getInstance()->load_registry(g_lastSearches, e_SearchHistory); //[+]PPA
-	for (auto i = g_lastSearches.cbegin(); i != g_lastSearches.cend(); ++i)
-	{
-		ctrlSearchBox.InsertString(0, i->c_str());
-	}
+	init_last_search_box();
 	searchBoxContainer.SubclassWindow(ctrlSearchBox.m_hWnd);
 	ctrlSearchBox.SetExtendedUI();
 	
@@ -298,6 +294,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	ctrlFilterContainer.SubclassWindow(ctrlFilter.m_hWnd);
 	ctrlFilter.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
 	
+	
 	ctrlFilterSel.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_HSCROLL |
 	                     WS_VSCROLL | CBS_DROPDOWNLIST, WS_EX_CLIENTEDGE);
 	                     
@@ -376,7 +373,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	ctrlShowUI.SetButtonStyle(BS_AUTOCHECKBOX, false);
 	ctrlShowUI.SetCheck(1);
 	ctrlShowUI.SetFont(Fonts::g_systemFont);
-	//showUIContainer.SubclassWindow(ctrlShowUI.m_hWnd);
+	showUIContainer.SubclassWindow(ctrlShowUI.m_hWnd);
 	
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	m_ctrlFlyServer.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
@@ -593,7 +590,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	initHubs();
 	if (!m_initialString.empty())
 	{
-		g_lastSearches.push_back(m_initialString);
+		g_lastSearches.push_front(m_initialString);
 		ctrlSearchBox.InsertString(0, m_initialString.c_str());
 		ctrlSearchBox.SetCurSel(0);
 		ctrlMode.SetCurSel(m_initialMode);
@@ -904,19 +901,18 @@ void SearchFrame::onEnter()
 	m_isHash = (m_search_param.m_file_type == Search::TYPE_TTH);
 	
 	// Add new searches to the last-search dropdown list
-	if (!BOOLSETTING(FORGET_SEARCH_REQUEST) && find(g_lastSearches.begin(), g_lastSearches.end(), s) == g_lastSearches.end())
+	if (!BOOLSETTING(FORGET_SEARCH_REQUEST))
 	{
-		int i = max(SETTING(SEARCH_HISTORY) - 1, 0);
+		g_lastSearches.remove(s.c_str());
+		const int i = max(SETTING(SEARCH_HISTORY) - 1, 0);
 		
-		if (ctrlSearchBox.GetCount() > i)
-			ctrlSearchBox.DeleteString(i);
-		ctrlSearchBox.InsertString(0, s.c_str());
-		
-		while (g_lastSearches.size() > (TStringList::size_type)i)
+		while (g_lastSearches.size() > TStringList::size_type(i))
 		{
-			g_lastSearches.erase(g_lastSearches.begin());
+			g_lastSearches.pop_back();
 		}
-		g_lastSearches.push_back(s);
+		g_lastSearches.push_front(s);
+		init_last_search_box();
+		CFlylinkDBManager::getInstance()->clean_registry(e_SearchHistory, 0);
 		CFlylinkDBManager::getInstance()->save_registry(g_lastSearches, e_SearchHistory); //[+]PPA
 	}
 	MainFrame::updateQuickSearches();//[+]IRainman
@@ -3191,10 +3187,12 @@ LRESULT SearchFrame::onPurge(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*
 	m_tooltip.Activate(FALSE);
 	ctrlSearchBox.ResetContent();
 	g_lastSearches.clear();
-	CFlylinkDBManager::getInstance()->save_registry(g_lastSearches, e_SearchHistory);//[+]IRainman
+	CFlylinkDBManager::getInstance()->clean_registry(e_SearchHistory, 0);
 	MainFrame::updateQuickSearches(true);//[+]IRainman
 	if (!BOOLSETTING(POPUPS_DISABLED))
+	{
 		m_tooltip.Activate(TRUE);
+	}
 	return 0;
 }
 

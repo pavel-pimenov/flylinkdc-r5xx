@@ -447,6 +447,7 @@ void Client::on(Failed, const string& aLine) noexcept
 
 void Client::disconnect(bool p_graceLess)
 {
+	m_virus_nick.clear();
 	state = STATE_DISCONNECTED;//[!] IRainman fix
 	FavoriteManager::removeUserCommand(getHubUrl());
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET

@@ -203,7 +203,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			fileTypeContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
 			//m_treeContainer(WC_TREEVIEW, this, SEARH_TREE_MESSAGE_MAP),
 			
-			//showUIContainer(WC_COMBOBOX, this, SHOWUI_MESSAGE_MAP),
+			showUIContainer(WC_COMBOBOX, this, SHOWUI_MESSAGE_MAP),
 			//slotsContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
 			//collapsedContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
@@ -650,6 +650,18 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		CStatusBarCtrl ctrlStatus;
 		CEdit ctrlSearch;
 		CComboBox ctrlSearchBox;
+		void init_last_search_box()
+		{
+			while (ctrlSearchBox.GetCount())
+			{
+				ctrlSearchBox.DeleteString(0);
+			}
+			for (auto i = g_lastSearches.cbegin(); i != g_lastSearches.cend(); ++i)
+			{
+				ctrlSearchBox.AddString(i->c_str());
+			}
+		}
+		
 		CEdit ctrlSize;
 		CComboBox ctrlMode;
 		CComboBox ctrlSizeMode;
@@ -685,7 +697,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		bool m_storeIP;
 #endif
 		//CContainedWindow storeSettingsContainer;
-		//CContainedWindow showUIContainer;
+		CContainedWindow showUIContainer;
 		//CContainedWindow purgeContainer;
 		//CContainedWindow doSearchContainer;
 		//CContainedWindow doSearchPassiveContainer;
@@ -765,7 +777,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		FastCriticalSection m_fcs; // [!] IRainman opt: use spin lock here.
 		
 	public:
-		static TStringList g_lastSearches;
+		static std::list<wstring> g_lastSearches;
 		
 	private:
 		static HIconWrapper g_purge_icon; // [~] Sergey Shushkanov

@@ -137,6 +137,10 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			return m_is_fly_support_hub;
 		}
+		bool isFlyAntivirusHub() const
+		{
+			return  m_isAutobanAntivirusIP || m_isAutobanAntivirusNick;
+		}
 		bool isSupressChatAndPM() const
 		{
 			return m_is_suppress_chat_and_pm;
@@ -591,6 +595,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 	protected:
 		bool m_isAutobanAntivirusIP;
 		bool m_isAutobanAntivirusNick;
+		boost::unordered_set<string> m_virus_nick;
 		string m_AntivirusCommandIP;
 	private:
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
@@ -613,6 +618,11 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		CountType m_countType;
 	public:
 		bool isInOperatorList(const string& userName) const;
+		unsigned getVirusBotCount() const
+		{
+			return m_virus_nick.size();
+		}
+		
 		static string g_last_search_string;
 };
 

@@ -118,6 +118,7 @@ class Identity
 		{
 			memzero(&m_bits_info, sizeof(m_bits_info));
 			m_is_p2p_guard_calc = false;
+			m_is_real_user_ip_from_hub = false;
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 			m_virus_type = 0;
 #endif
@@ -126,6 +127,7 @@ class Identity
 		{
 			memzero(&m_bits_info, sizeof(m_bits_info));
 			m_is_p2p_guard_calc = false;
+			m_is_real_user_ip_from_hub = false;
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 			m_virus_type = 0;
 #endif
@@ -161,6 +163,7 @@ class Identity
 			m_virus_type = rhs.m_virus_type;
 #endif
 			m_is_p2p_guard_calc = rhs.m_is_p2p_guard_calc;
+			m_is_real_user_ip_from_hub = rhs.m_is_real_user_ip_from_hub;
 			
 			memcpy(&m_bits_info, &rhs.m_bits_info, sizeof(m_bits_info));
 			return *this;
@@ -238,6 +241,10 @@ class Identity
 		
 		void setIp(const string& p_ip);
 		bool isFantomIP() const;
+		boost::asio::ip::address_v4 getIpRAW() const
+		{
+			return m_ip;
+		}
 		boost::asio::ip::address_v4 getIp() const
 		{
 			if (!m_ip.is_unspecified())
@@ -253,6 +260,7 @@ class Identity
 	private:
 		boost::asio::ip::address_v4 m_ip; // "I4" // [!] IRainman fix: needs here, details https://code.google.com/p/flylinkdc/issues/detail?id=1330
 	public:
+		bool m_is_real_user_ip_from_hub;
 		bool m_is_p2p_guard_calc;
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		unsigned char m_virus_type;

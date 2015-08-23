@@ -1122,6 +1122,8 @@
     <Image Include="res\mode_offline.ico" />
     <Image Include="res\offline.ico" />
     <Image Include="res\online.ico" />
+    <Image Include="res\skull.ico" />
+    <Image Include="res\skull_red.ico" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compiled\Settings\common\IPTrust.ini">

@@ -687,6 +687,8 @@
     <Image Include="res\mode_passive.ico" />
     <Image Include="res\offline.ico" />
     <Image Include="res\online.ico" />
+    <Image Include="res\skull.ico" />
+    <Image Include="res\skull_red.ico" />
     <Image Include="res\StateUsers.png" />
     <Image Include="res\thermometer2.ico" />
     <Image Include="res\wifi-router.ico" />

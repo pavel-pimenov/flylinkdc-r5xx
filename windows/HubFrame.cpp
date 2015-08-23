@@ -246,6 +246,7 @@ HubFrame::HubFrame(bool p_is_auto_connect,
 	, m_userMenu(nullptr)
 	, m_ActivateCounter(0)
 	, m_is_window_text_update(0)
+	, m_virus_icon_index(0)
 	, m_Theme(nullptr)
 	, m_is_process_disconnected(false)
 {
@@ -710,6 +711,10 @@ HubFrame* HubFrame::openWindow(bool p_is_auto_connect,
 	if (frm->isFlySupportHub())
 	{
 		frm->setCustomIcon(*WinUtil::g_HubFlylinkDCIcon.get());
+	}
+	else if (frm->isFlyAntivirusHub())
+	{
+		frm->setCustomIcon(*WinUtil::g_HubAntivirusIcon.get());
 	}
 	return frm;
 }
@@ -1450,7 +1455,7 @@ void HubFrame::doConnected()
 void HubFrame::doDisconnected()
 {
 	dcassert(!ClientManager::isShutdown());
-	
+	m_virus_icon_index = 0;
 	{
 		CFlyBusy l_busy(m_is_process_disconnected);
 		clearUserList(true);
@@ -3187,6 +3192,32 @@ void HubFrame::timer_process_internal()
 		m_second_count = 60;
 		ClientManager::infoUpdated(m_client);
 	}
+	if (m_virus_icon_index && m_client->getVirusBotCount() == 0)
+	{
+		m_virus_icon_index = 0;
+		flickerVirusIcon();
+	}
+	else
+	if (m_virus_icon_index == 0 && m_client->is_all_my_info_loaded())
+	{
+		const auto l_count_virus_bot = m_client->getVirusBotCount();
+		if (l_count_virus_bot > 1)
+		{
+			if (l_count_virus_bot < 10)
+			{
+				m_virus_icon_index = 1;
+			}
+			else
+			{
+				m_virus_icon_index = 3;
+			}
+		}
+	}
+	if (m_virus_icon_index && (m_second_count % 2) == 0)
+	{
+		flickerVirusIcon();
+	}
+	
 }
 #ifdef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 LRESULT HubFrame::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
@@ -3241,6 +3272,19 @@ void HubFrame::on(ClientListener::DDoSSearchDetect, const string&) noexcept
 	if (!ClientManager::isShutdown())
 	{
 		setCustomIcon(*WinUtil::g_HubDDoSIcon.get());
+	}
+}
+void HubFrame::flickerVirusIcon()
+{
+	if (m_virus_icon_index)
+	{
+		const auto l_index = m_virus_icon_index - (m_is_red_virus_icon_index ? 1 : 0);
+		setCustomIcon(*WinUtil::g_HubVirusIcon[l_index].get());
+		m_is_red_virus_icon_index = !m_is_red_virus_icon_index;
+	}
+	else
+	{
+		setCustomIcon(*WinUtil::g_HubOnIcon.get());
 	}
 }
 

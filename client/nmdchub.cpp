@@ -251,6 +251,7 @@ void NmdcHub::putUser(const string& aNick)
 		ou = i->second;
 		m_users.erase(i);
 		decBytesSharedL(ou->getIdentity());
+		m_virus_nick.erase(aNick);
 	}
 	
 	if (!ou->getUser()->getCID().isZero()) // [+] IRainman fix.
@@ -1201,11 +1202,21 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 				{
 					ou->getIdentity().setIP6(l_ip);
 					ou->getIdentity().setUseIP6();
+					ou->getIdentity().m_is_real_user_ip_from_hub = true;
 				}
 				else
 				{
 					dcassert(!l_ip.empty());
 					ou->getIdentity().setIp(l_ip);
+					ou->getIdentity().m_is_real_user_ip_from_hub = true;
+					if (m_virus_nick.find(l_user) == m_virus_nick.end())
+					{
+						if (CFlylinkDBManager::getInstance()->is_virus_bot(l_user, ou->getIdentity().getBytesShared(), ou->getIdentity().getIpRAW()))
+						{
+							m_virus_nick.insert(l_user);
+						}
+					}
+					
 				}
 				// "FlylinkDC-dev"
 				if (m_isAutobanAntivirusIP || m_isAutobanAntivirusNick
@@ -2146,15 +2157,15 @@ void NmdcHub::myInfoParse(const string& param)
 	string::size_type j = param.find(' ', i);
 	if (j == string::npos || j == i)
 		return;
-	string nick = param.substr(i, j - i);
+	string l_nick = param.substr(i, j - i);
 	
-	dcassert(!nick.empty())
-	if (nick.empty())
+	dcassert(!l_nick.empty())
+	if (l_nick.empty())
 		return;
 		
 	i = j + 1;
 	
-	OnlineUserPtr ou = getUser(nick, false, m_bLastMyInfoCommand == DIDNT_GET_YET_FIRST_MYINFO); // При первом коннекте исключаем поиск
+	OnlineUserPtr ou = getUser(l_nick, false, m_bLastMyInfoCommand == DIDNT_GET_YET_FIRST_MYINFO); // При первом коннекте исключаем поиск
 	
 	j = param.find('$', i);
 	dcassert(j != string::npos)
@@ -2228,6 +2239,13 @@ void NmdcHub::myInfoParse(const string& param)
 		LogManager::message("ShareSize < 0 !, param = " + param);
 	}
 	changeBytesSharedL(ou->getIdentity(), l_share_size);
+	if (m_virus_nick.find(l_nick) == m_virus_nick.end())
+	{
+		if (CFlylinkDBManager::getInstance()->is_virus_bot(l_nick, l_share_size, ou->getIdentity().m_is_real_user_ip_from_hub ? ou->getIdentity().getIpRAW() : boost::asio::ip::address_v4()))
+		{
+			m_virus_nick.insert(l_nick);
+		}
+	}
 	if (!ClientManager::isShutdown())
 	{
 		fire(ClientListener::UserUpdated(), ou); // !SMT!-fix

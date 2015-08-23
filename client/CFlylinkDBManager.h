@@ -221,9 +221,12 @@ enum eTypeSegment
 	e_IncopatibleSoftwareList = 10,
 	// 11, - не занимать
 	e_DeleteCounterAntivirusDB = 12,
-	e_TimeStampAntivirusDB = 13,
+	// 13 - устаревший e_TimeStampAntivirusDB
 	e_MergeCounterAntivirusDB = 14,
-	e_TimeStampP2PGuard = 15,
+	// 15 - устаревший e_TimeStampP2PGuard
+	e_TimeStampAntivirusDB = 16,
+	e_TimeStampIBlockListCom = 17,
+	e_TimeStampP2PGuard = 18
 };
 struct CFlyRegistryValue
 {
@@ -265,7 +268,7 @@ struct CFlyDirItem : public CFlyBaseDirItem
 	}
 };
 typedef std::vector<CFlyDirItem> CFlyDirItemArray;
-typedef boost::unordered_map<string, CFlyRegistryValue> CFlyRegistryMap;
+typedef std::unordered_map<string, CFlyRegistryValue> CFlyRegistryMap;
 typedef boost::unordered_map<string, CFlyPathItem> CFlyPathCache;
 class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 {
@@ -351,7 +354,8 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void scan_path(CFlyDirItemArray& p_directories);
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		int sync_antivirus_db(const string& p_antivirus_db, const uint64_t p_unixtime);
-		void purge_antivirus_db(const uint64_t p_delete_counter, const uint64_t p_unixtime);
+		int get_antivirus_record_count();
+		void purge_antivirus_db(const uint64_t p_delete_counter, const uint64_t p_unixtime, bool p_is_clean_cache);
 #endif
 		size_t get_count_folders()
 		{
@@ -373,6 +377,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 	private:
 		int merge_queue_sub_itemsL(QueueItemPtr& p_QueueItem, __int64 p_id);
 		void remove_queue_itemL(const __int64 p_id);
+		void clean_registryL(int p_Segment, __int64 p_tick);
 	public:
 		void merge_queue_all_items(std::vector<QueueItemPtr>& p_QueueItemArray);
 		void merge_queue_all_segments(const CFlySegmentArray& p_QueueSegmentArray);
@@ -382,12 +387,35 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void save_ignore(const StringSet& p_ignores);
 		void load_registry(CFlyRegistryMap& p_values, int p_Segment);
 		void save_registry(const CFlyRegistryMap& p_values, int p_Segment, bool p_is_cleanup_old_value);
-		void load_registry(TStringList& p_values, int p_Segment);
+		void clean_registry(int p_Segment, __int64 p_tick);
+		
 		void set_registry_variable_int64(eTypeSegment p_TypeSegment, __int64 p_value);
 		__int64 get_registry_variable_int64(eTypeSegment p_TypeSegment);
 		void set_registry_variable_string(eTypeSegment p_TypeSegment, const string& p_value);
 		string get_registry_variable_string(eTypeSegment p_TypeSegment);
-		void save_registry(const TStringList& p_values, int p_Segment);
+		template <class T> void load_registry(T& p_values, int p_Segment)
+		{
+			p_values.clear();
+			CFlyRegistryMap l_values;
+			load_registry(l_values, p_Segment);
+			for (auto k = l_values.cbegin(); k != l_values.cend(); ++k)
+			{
+				p_values.push_back(Text::toT(k->first));
+			}
+		}
+		template <class T>  void save_registry(const T& p_values, int p_Segment)
+		{
+			CFlyRegistryMap l_values;
+			for (auto i = p_values.cbegin(); i != p_values.cend(); ++i)
+			{
+				const auto& l_res = l_values.insert(CFlyRegistryMap::value_type(
+				                                        Text::fromT(*i),
+				                                        CFlyRegistryValue()));
+				dcassert(l_res.second);
+			}
+			save_registry(l_values, p_Segment, true);
+		}
+		
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		bool load_media_info(const TTHValue& p_tth, CFlyMediaInfo& p_media_info, bool p_only_inform);
 		bool find_fly_server_cache(const TTHValue& p_tth, CFlyServerCache& p_value);
@@ -403,7 +431,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif //STRONG_USE_DHT
 		
 		void save_geoip(const CFlyLocationIPArray& p_geo_ip);
-		void save_p2p_guard(const CFlyP2PGuardArray& p_p2p_guard_ip, const string&  p_manual_marker);
+		void save_p2p_guard(const CFlyP2PGuardArray& p_p2p_guard_ip, const string&  p_manual_marker, int p_type);
 		string load_manual_p2p_guard();
 		string is_p2p_guard(const uint32_t& p_ip);
 #ifdef FLYLINKDC_USE_GEO_IP
@@ -553,15 +581,11 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		boost::unordered_set<std::string> m_virus_user;
 		boost::unordered_set<int64_t> m_virus_share;
 		boost::unordered_set<unsigned long> m_virus_ip4;
-		void clear_virus_cacheL()
-		{
-			FastLock l(m_virus_cs);
-			m_virus_user.clear();
-			m_virus_share.clear();
-			m_virus_ip4.clear();
-		}
+		void clear_virus_cacheL();
 	public:
+		void load_avdb();
 		int calc_antivirus_flag(const string& p_nick, const boost::asio::ip::address_v4& p_ip4, int64_t p_share, string& p_virus_path);
+		bool is_virus_bot(const string& p_nick, int64_t p_share, const boost::asio::ip::address_v4& p_ip4);
 #endif
 	private:
 	

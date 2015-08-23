@@ -113,6 +113,9 @@ std::unique_ptr<HIconWrapper> WinUtil::g_HubOnIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOffIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubFlylinkDCIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubDDoSIcon;
+std::unique_ptr<HIconWrapper> WinUtil::g_HubAntivirusIcon;
+std::unique_ptr<HIconWrapper> WinUtil::g_HubVirusIcon[4];
+
 //static WinUtil::ShareMap WinUtil::UsersShare; // !SMT!-UI
 TStringList LastDir::g_dirs;
 HWND WinUtil::g_mainWnd = nullptr;
@@ -145,6 +148,7 @@ CHARFORMAT2 Colors::g_TextStyleOPs;
 CHARFORMAT2 Colors::g_TextStyleURL;
 CHARFORMAT2 Colors::g_ChatTextPrivate;
 CHARFORMAT2 Colors::g_ChatTextLog;
+
 int WinUtil::g_tabPos = SettingsManager::TABS_TOP;// [!] IRainman optimize
 
 // [!] brain-ripper
@@ -272,7 +276,6 @@ static const char* countryNames[] = { "ANDORRA", "UNITED ARAB EMIRATES", "AFGHAN
 
 // https://drdump.com/DumpGroup.aspx?DumpGroupID=303960
 
-// TODO #pragma optimize("", off)
 HLSCOLOR RGB2HLS(COLORREF rgb)
 {
 	unsigned char minval = min(GetRValue(rgb), min(GetGValue(rgb), GetBValue(rgb)));
@@ -470,6 +473,19 @@ void Colors::getUserColor(bool p_is_op, const UserPtr& user, COLORREF &fg, COLOR
 	{
 		fg = SETTING(NORMAL_COLOUR);
 	}
+}
+
+void WinUtil::initThemeIcons()
+{
+	g_HubOnIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_HUB));
+	g_HubOffIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_HUB_OFF));
+	g_HubFlylinkDCIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_MAINFRAME));
+	g_HubDDoSIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_ICON_MEDICAL_BAG));
+	g_HubAntivirusIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_ICON_THERMOMETR_BAG));
+	g_HubVirusIcon[0] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_SKULL_ICO));
+	g_HubVirusIcon[1] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_SKULL_RED_ICO));
+	g_HubVirusIcon[2] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_SKULL2_ICO));
+	g_HubVirusIcon[3] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_SKULL2_RED_ICO));
 }
 
 // !SMT!-UI

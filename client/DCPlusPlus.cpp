@@ -110,10 +110,18 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	// LOAD_STEP("Fly server", g_fly_server_config.loadConfig());
 	
 	LOAD_STEP("SQLite database init... Please wait!!!", CFlylinkDBManager::newInstance());
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
+#ifdef _DEBUG
+	CFlyServerConfig::SyncAntivirusDB();
+#endif
+	LOAD_STEP("Antivirus DB", CFlylinkDBManager::getInstance()->load_avdb());
+#endif
+	
 #ifdef FLYLINKDC_USE_GEO_IP
 	LOAD_STEP("Geo IP", Util::loadGeoIp());
 #endif
-	LOAD_STEP("P2P Guard", Util::loadP2PGuard());
+	LOAD_STEP("P2P Guard", Util::loadP2PGuard()); // Этот грузить всегда первым - выполняет зачистку базы
+	LOAD_STEP("iblocklist.com", Util::loadIBlockList());
 	
 	LOAD_STEP("Custom Locations", Util::loadCustomlocations());
 	

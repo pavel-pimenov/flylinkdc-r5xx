@@ -195,6 +195,10 @@
 #define IDR_MODE_OFFLINE_ICO            306
 #define IDR_ONLINE_ICO                  307
 #define IDR_OFFLINE_ICO                 308
+#define IDR_SKULL_ICO                   309
+#define IDR_SKULL_RED_ICO               310
+#define IDR_SKULL2_ICO                  311
+#define IDR_SKULL2_RED_ICO              312
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
 #define IDC_COPY_HUB                    1002

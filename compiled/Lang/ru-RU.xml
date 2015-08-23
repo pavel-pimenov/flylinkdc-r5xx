@@ -76,6 +76,7 @@
 		<String Name="AlwaysAsk">Всегда спрашивать</String>
 		<String Name="Any">Любой</String>
 		<String Name="Antivirus">AVDB</String>
+		<String Name="P2pGuard">P2P Guard</String>
 		<String Name="AscrollChat">Автопрокрутка чата</String>
 		<String Name="Ask">Попросить</String>
 		<String Name="AskSlot">Попросить слоты</String>
@@ -229,7 +230,7 @@
 		<String Name="ClientProfileNowUpdated">Профили клиентов обновлены.</String>
 		<String Name="Close">Закрыть</String>
 		<String Name="CloseConnection">Закрыть соединение</String>
-		<string name="CloseConnectionAndAddIpGuard">Закрыть соединение и добавить IP адрес в базу данных блокировки P2P Guard</string>
+		<String Name="CloseConnectionAndAddIpGuard">Закрыть Соединение и добавить в базу P2P Guard</String>
 		<String Name="CloseHot">Закрыть	Ctrl + W</String>
 		<String Name="CmdAwayMsg">Вкл/Выкл режим «Ушёл» с сообщением</String>
 		<String Name="CmdClearChat">Очистить окно чата</String>
@@ -309,7 +310,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 %[userDE] – описание пользователя*
 %[userEM] – e-mail пользователя*
 %[userSS] – шара пользователя в байтах*
-%[userSSshort] – шара пользователя в Гб*
+%[userSSshort] – шара пользователя в ГБ*
 %[useri4] – IP пользователя (если хаб поддерживает)
 %[fileFN] – имя файла (только меню поиска)
 %[line:reason] – открыть окно для ввода "reason"
@@ -412,6 +413,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="DecompressionError">Ошибка при распаковке</String>
 		<String Name="Default">По умолчанию</String>
 		<String Name="DefaultAwayMessage">Здравствуй, %[userNI]! Меня, скорее всего, нет рядом или я чем-то занят с %H:%M %d-%m-%Y. Освобожусь, отвечу позже. Всего Доброго!</String>
+		<String Name="DefaultNcdcHubEncodingtext">Кодировка хаба по-умолчанию:</String>
 		<String Name="DefPasswordHint">Пользователь отключил приём сообщений. В случае экстренной необходимости воспользуйтесь паролем «%[pm_pass]», но помните, что попрошайки слотов могут быть занесены в бан-/игнор-листы. Таким образом, не смогут качать даже в порядке очереди и посылать сообщения даже с паролем.</String>
 		<String Name="DefPasswordOkHint">Пароль верен. Пользователь сможет получать ваши сообщения.</String>
 		<String Name="DeleteChecked">Удалить выбранные файл-листы</String>
@@ -468,8 +470,8 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="DownloadFailed">Неудачное скачивание:</String>
 		<String Name="DownloadFinishedIdle">Скачивание завершено, ожидание…</String>
 		<String Name="DownloadQueue">Очередь скачивания</String>
-		<string name="OpenDownloadQueue">Открыть очередь скачивания</string>
-		<string name="OpenUploadQueue">Открыть очередь отдачи</string>
+		<String Name="OpenDownloadQueue">Открыть Очередь скачивания</String>
+		<String Name="OpenUploadQueue">Открыть Очередь отдачи</String>
 		<String Name="DownloadStarting">Скачивание начинается…</String>
 		<String Name="DownloadTo">Скачать в…</String>
 		<String Name="DownloadWholeDir">Скачать всю папку</String>
@@ -683,7 +685,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="Hour">час</String>
 		<String Name="Hours">часов</String>
 		<String Name="Hub">Хаб</String>
-		<String Name="HublistCacheCorrupted">Список хабов, загруженный из кеша, повреждён или имеет неподдерживаемый формат…</String>
+		<String Name="HublistCacheCorrupted">Список хабов, загруженный из кэша, повреждён или имеет неподдерживаемый формат…</String>
 		<String Name="HublistDownloadCorrupted">Загруженный список хабов повреждён или имеет неподдерживаемый формат…</String>
 		<String Name="Hubs">Хабы</String>
 		<String Name="HubAddress">Адрес</String>
@@ -741,6 +743,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="Ip">IP:</String>
 		<String Name="IpfilterBlockOutConnection">Блокировано исходящее соединение к</String>
 		<String Name="Ipguard">Фильтр IP (IPGuard)</String>
+		<String Name="IpguardBlockList">IPGuard-block-list</String>
 		<String Name="IpguardDefaultPolicy">Политика по умолчанию</String>
 		<String Name="IpguardEnable">Включить IPGuard</String>
 		<String Name="IpguardIntro">IPGuard используется для запрещения/разрешения доступа с определённых IP диапазонов, он ни в коей мере не заменяет файервол или другое программное обеспечение защиты компьютера!
@@ -773,6 +776,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="ItunesNotPlay">В данный момент iTunes ничего не воспроизводит</String>
 		<String Name="ItunesNotRun">Поддерживаемая версия iTunes не запущена</String>
 		<String Name="IDownloadedThisFile">Я скачивал этот файл…</String>
+		<String Name="VirusFile">Вирусный файл (!)</String>
 		<String Name="JaHelp">/ja – работает с JetAudio
 
 - %[filepath] – имя проигрываемого файла
@@ -1056,7 +1060,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="OnDownloadAutorename">Переименовать автоматически</String>
 		<String Name="OnDownloadReplace">Заменить файл (! не работает при «Оставлять завершённые файлы» !)</String>
 		<String Name="OnDownloadSkip">Пропустить</String>
-		<String Name="Opchat">Имена в OP-чате и авто-открытие личек (возможны маски и разделения ;)</String>
+		<String Name="Opchat">Имена в OP-чате и авто-открытие личек (разделитель ';', возможны маски)</String>
 		<String Name="Open">Открыть</String>
 		<String Name="OpenFolder">Открыть папку</String>
 		<String Name="OpenHubLog">Открыть журнал хаба</String>
@@ -1067,8 +1071,8 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="OverlapChunks">Перехват последнего сегмента наиболее быстрым пользователем</String>
 		<String Name="OutdatedOsDetected">Вы запустили FlylinkDC++ в устаревшей, больше не поддерживаемой корпорацией Майкрософт версии ОС. Мы не можем гарантировать стабильную работу программы в этих условиях. Показать подробности?</String>
 		<String Name="OwnCertificateFile">Свой сертификат</String>
-		<String name="P2pGuardEnable">Включить P2P Guard</String>
-		<String name="P2pGuardEnableStr">Блокирует трафик с/для 'черного списка' ( ipfilter.zip с http://emule-security.org )</String>
+		<String Name="P2pGuardEnable">Включить P2P Guard</String>
+		<String Name="P2pGuardEnableStr">Блокирует трафик с/для 'черного списка' ( ipfilter.zip с http://emule-security.org )</String>
 		<String Name="Parts">Ушёл:</String>
 		<String Name="PassiveNotice">Вы подключены к хабу в пассивном режиме, рекомендуем переключиться в активный режим – инструкция:</String>
 		<String Name="PassiveSearchNotice">У вас установлен активный режим, но активирован поиск в пассивном режиме. Не используйте пассивный поиск, если у вас работает поиск без данной опции, т. к. вы не увидите результатов поиска от пассивных клиентов!!!</String>
@@ -1079,7 +1083,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="Path">Путь</String>
 		<String Name="Paused">Пауза</String>
 		<String Name="PauseSearch">Пауза</String>
-		<String Name="Pb">ПБ</String>
+		<String Name="Pb">Пб</String>
 		<String Name="Picture">Картинка</String>
 		<String Name="Pk">PK-строка</String>
 		<String Name="Play">Тест</String>
@@ -1239,6 +1243,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="Remove">&amp;Удалить</String>
 		<String Name="Remove2">Удалить</String>
 		<String Name="RemoveAll">Удалить всё</String>
+		<String Name="RemoveAllQueue">Удалить все файлы из Очереди (!)</String>
 		<String Name="RemoveAllMarks">Снять все отметки</String>
 		<String Name="RemoveExtraSlot">Удалить дополнительный слот</String>
 		<String Name="RemoveFromAll">Удалить пользователя из очереди</String>
@@ -1300,6 +1305,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SearchForAlternates">Поиск альтернатив</String>
 		<String Name="SearchForFile">Поиск файла</String>
 		<String Name="SearchInResults">Поиск в результатах</String>
+		<String Name="SearchFilterItemFilepath">Файл &amp; Путь</String>
 		<String Name="SearchOptions">Настройки поиска</String>
 		<String Name="SearchSpamFrom">Поиск-спам обнаружен</String>
 		<String Name="SearchSpy">Поиск-шпион</String>
@@ -1387,7 +1393,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsAutoPriorityDefault">Использовать автоприоритет</String>
 		<String Name="SettingsAutoRefreshTime">Обновление шары</String>
 		<String Name="SettingsAutoSearch">Поиск альтернативных ТТН-источников каждые</String>
-		<String Name="SettingsAutoSearchAutoMatch">Скачивать файл-лист, если в нём найден один из нужных файлов</String>
+		<String Name="SettingsAutoSearchAutoMatch">Скачивать весь файл-лист если автопоиск нашёл совпадение</String>
 		<String Name="SettingsAutoSearchLimit">Макс. кол-во источников для автопоиска</String>
 		<String Name="SettingsAutoSlots">Макс. автослотов</String>
 		<String Name="SettingsAvipreview">Предпросмотр</String>
@@ -1482,6 +1488,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsLogFilelistTransfers">Журнал полученных списков файлов</String>
 		<String Name="SettingsLogTraceSqlite">Журнал обращений к базе SQLite</String>
 		<String Name="SettingsLogDdosTrace">Журнал обнаружения DDoS</String>
+		<String Name="SettingsLogVirusTrace">Лог обнаружения вирусов</String>
 		<String Name="SettingsLogDhtTrace">Журнал DHT</String>
 		<String Name="SettingsLogPsrTrace">Журнал результатов частичного поиска</String>
 		<String Name="SettingsLogFloodTrace">Журнал обнаружения флуда $Command</String>
@@ -1591,6 +1598,9 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsSounds">Звуки</String>
 		<String Name="SettingsSpeedsNotAccurate">Примечание: скорость определяется не на 100% точно…</String>
 		<String Name="SettingsStatisticsSend">Разрешить программе сбор и отправку анонимной статистики разработчикам.</String>
+		<String Name="SettingsAntivirusAutobanForIp">Автобан антивирусом (по IP):</String>
+		<String Name="SettingsAntivirusAutobanForNick">Автобан антивирусом (по Нику):</String>
+		<String Name="SettingsAntivirusCommandIp">RAW команда (по умолчанию !banip):</String>
 		<String Name="SettingsStatusInChat">Показывать статусные сообщения в главном чате</String>
 		<String Name="SettingsStripTopic">Скрывать темы хабов (на вкладках и в заголовке окна)</String>
 		<String Name="SettingsTabs">Вкладки</String>
@@ -1725,6 +1735,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SpeedSuperUser">Суперпользователь (ограничение не действует)</String>
 		<String Name="Supports">Поддержка</String>
 		<String Name="SupportsServerDesc">Хаб поддержки FlylinkDC++</String>
+		<String Name="SuppressFavChatAndPm">Отключить чат и личные сообщения</String>
 		<String Name="Suspend">Приостановить</String>
 		<String Name="SxmlEmptyTagName">Пустое имя тега не допускается</String>
 		<String Name="SxmlInvalidFile">Неверный XML-файл, отсутствует или множественный корневой тег</String>
@@ -1926,10 +1937,14 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="UseDht">Включить DHT. Публиковать расшаренные файлы на DHT и использовать его для поиска альтернативных источников</String>
 		<String Name="UseDhtNotanswer">Не спрашивать снова</String>
 		<String Name="UseExplorerTheme">Использовать тему проводника в списках</String>
+		<String Name="UcSubmenu">Располагать команды хаба и команды пользователя в подменю</String>
 		<String Name="UseMagnetsInPlayersSpam">Использовать магнетки в сообщениях плееров</String>
 		<String Name="UseRegexpOrWc">Используются регулярные выражения или маски</String>
 		<String Name="Version">Версия</String>
 		<String Name="VideoAndSubtitles">Видео и субтитры</String>
+		<String Name="CdDvdImages">CD-DVD образ</String>
+		<String Name="Comics">Комикс</String>
+		<String Name="Book">Книга</String>
 		<String Name="ViewAsText">Показать как текст</String>
 		<String Name="ViewGridcontrols">Показывать разделители списков</String>
 		<String Name="VirtualName">Виртуальное название</String>

@@ -397,7 +397,7 @@ void BufferedSocket::all_myinfo_parser(const string::size_type p_pos_next_separa
 		}
 		else
 		{
-			dcassert(m_mode == MODE_LINE);
+			dcassert(m_mode == MODE_LINE || m_mode == MODE_ZPIPE);
 #ifdef _DEBUG
 			for (auto i = l_line_item.cbegin(); i != l_line_item.cend(); ++i)
 			{

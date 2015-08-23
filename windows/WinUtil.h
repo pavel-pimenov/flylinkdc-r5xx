@@ -1492,14 +1492,11 @@ class WinUtil
 		static std::unique_ptr<HIconWrapper> g_HubOffIcon;
 		static std::unique_ptr<HIconWrapper> g_HubFlylinkDCIcon;
 		static std::unique_ptr<HIconWrapper> g_HubDDoSIcon;
+		static std::unique_ptr<HIconWrapper> g_HubAntivirusIcon;
+		static std::unique_ptr<HIconWrapper> g_HubVirusIcon[4];
 		
-		static void initThemeIcons()
-		{
-			g_HubOnIcon  = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_HUB));
-			g_HubOffIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_HUB_OFF));
-			g_HubFlylinkDCIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_MAINFRAME));
-			g_HubDDoSIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_ICON_MEDICAL_BAG));
-		}
+		static void initThemeIcons();
+		
 		static HWND g_mainWnd;
 		static HWND g_mdiClient;
 #ifdef RIP_USE_SKIN

@@ -337,9 +337,85 @@ int Util::getFlagIndexByCode(uint16_t p_countryCode) // [!] IRainman: countryCod
 	return 0;
 }
 //==========================================================================
+void Util::loadIBlockList()
+{
+	// https://www.iblocklist.com/
+		CFlyLog l_log("[iblocklist.com]");
+		const string fileName = getConfigPath(
+#ifndef USE_SETTINGS_PATH_TO_UPDATA_DATA
+			true
+#endif
+			) + "iblocklist-com.ini";
+
+		try
+		{
+			const uint64_t l_timeStampFile = File::getSafeTimeStamp(fileName);
+			const uint64_t l_timeStampDb = CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_TimeStampIBlockListCom);
+			if (l_timeStampFile != l_timeStampDb)
+			{
+				const string l_data = File(fileName, File::READ, File::OPEN).read();
+				l_log.step("read:" + fileName);
+				size_t linestart = 0;
+				size_t lineend = 0;
+				CFlyP2PGuardArray l_sqlite_array;
+				l_sqlite_array.reserve(19000);
+				for (;;)
+				{
+					lineend = l_data.find('\n', linestart);
+					if (lineend == string::npos)
+						break;
+					if (lineend == linestart)
+					{
+						linestart++;
+						continue;
+					}
+					const string l_currentLine = l_data.substr(linestart, lineend - linestart);
+					linestart = lineend + 1;
+					size_t ip_range_start = l_currentLine.find(':');
+					if (ip_range_start == string::npos)
+						continue;
+					uint32_t a = 0, b = 0, c = 0, d = 0, a2 = 0, b2 = 0, c2 = 0, d2 = 0;
+					const int l_Items = sscanf_s(l_currentLine.c_str() + ip_range_start + 1, "%u.%u.%u.%u-%u.%u.%u.%u", &a, &b, &c, &d, &a2, &b2, &c2, &d2);
+					if (l_Items == 8)
+					{
+						const uint32_t l_startIP = (a << 24) + (b << 16) + (c << 8) + d;
+						const uint32_t l_endIP = (a2 << 24) + (b2 << 16) + (c2 << 8) + d2;
+						if (l_startIP > l_endIP)
+						{
+							dcassert(0);
+							l_log.step("Error parse : " + STRING(INVALID_RANGE) + " Line: " + l_currentLine);
+						}
+						else
+						{
+							if (ip_range_start)
+							{
+								const string l_note = l_currentLine.substr(0, ip_range_start);
+								dcassert(!l_note.empty())
+								l_sqlite_array.push_back(CFlyP2PGuardIP(l_note, l_startIP, l_endIP));
+							}
+						}
+					}
+					else
+					{
+						dcassert(0);
+						l_log.step("Error parse: " + l_currentLine);
+					}					
+				}
+				{
+					CFlyLog l_geo_log_sqlite("[iblocklist.com-sqlite]");
+					CFlylinkDBManager::getInstance()->save_p2p_guard(l_sqlite_array, "",3);
+				}
+				CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_TimeStampIBlockListCom, l_timeStampFile);
+			}
+		}
+		catch (const FileException&)
+		{
+			LogManager::message("Error open " + fileName);
+		}
+}
+
 void Util::loadP2PGuard()
 {
-	{
 		CFlyLog l_log("[P2P Guard]");
 		/*
 		What steps will reproduce the problem?
@@ -371,7 +447,13 @@ void Util::loadP2PGuard()
 					lineend = l_data.find('\n', linestart);
 					if (lineend == string::npos)
 						break;
+					if (lineend == linestart)
+					{
+						linestart++;
+						continue;
+					}
 					const string l_currentLine = l_data.substr(linestart, lineend - linestart - 1);
+					linestart = lineend + 1;
 					uint32_t a = 0, b = 0, c = 0, d = 0, a2 = 0, b2 = 0, c2 = 0, d2 = 0;
 					const int l_Items = sscanf_s(l_currentLine.c_str(), "%u.%u.%u.%u-%u.%u.%u.%u", &a, &b, &c, &d, &a2, &b2, &c2, &d2);
 					if (l_Items == 8)
@@ -402,12 +484,10 @@ void Util::loadP2PGuard()
 						dcassert(0);
 						l_log.step("Error parse: " + l_currentLine);
 					}
-					linestart = lineend + 1;
 				}
-				linestart = lineend + 1;
 				{
 					CFlyLog l_geo_log_sqlite("[P2P Guard-sqlite]");
-					CFlylinkDBManager::getInstance()->save_p2p_guard(l_sqlite_array, "");
+					CFlylinkDBManager::getInstance()->save_p2p_guard(l_sqlite_array, "",2);
 				}
 				CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_TimeStampP2PGuard, l_timeStampFile);
 			}
@@ -415,8 +495,7 @@ void Util::loadP2PGuard()
 		catch (const FileException&)
 		{
 			LogManager::message("Error open " + fileName);
-		}
-	}
+		}	
 }
 
 //==========================================================================
@@ -2614,17 +2693,32 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vecto
 	for (auto i = m_get_http_header_item.begin(); i != m_get_http_header_item.end(); ++i)
 	{
 		dcassert(i->size());
-		vector<char> l_buf(i->size() + 1);
-		strcpy(&l_buf[0], i->c_str());
-		DWORD dwBufSize = l_buf.size();
-		auto bResult = HttpQueryInfoA(hURL, HTTP_QUERY_CUSTOM, &l_buf[0], &dwBufSize, NULL);
-		if (!bResult)
+#if 0
+		if (*i == "Content-Length")
 		{
-			i->clear();
+			char file_size_buf[20];
+			file_size_buf[0] = 0;
+			DWORD file_size_buf_len = sizeof(file_size_buf);
+			DWORD l_zero = 0;
+			if (!HttpQueryInfo(hURL, HTTP_QUERY_CONTENT_LENGTH | HTTP_QUERY_FLAG_NUMBER, file_size_buf, &file_size_buf_len, &l_zero))
+			{
+				*i = file_size_buf;
+			}
 		}
 		else
+#endif
 		{
-			*i = &l_buf[0];
+			vector<char> l_buf(i->size() + 1);
+			strcpy(&l_buf[0], i->c_str());
+			DWORD dwBufSize = l_buf.size();
+			if (!HttpQueryInfoA(hURL, HTTP_QUERY_CUSTOM, &l_buf[0], &dwBufSize, NULL))
+			{
+				i->clear();
+			}
+			else
+			{
+				*i = &l_buf[0];
+			}
 		}
 	}
 	if (isUserCancel)

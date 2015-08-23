@@ -1085,9 +1085,9 @@ BEGIN
     LTEXT           "RAW command (default !banip):",IDC_ANTIVIRUS_COMMAND_IP,213,194,104,8
     EDITTEXT        IDC_ANTIVIRUS_COMMAND_IP_STR,213,205,112,14,ES_AUTOHSCROLL
     CONTROL         "Antivirus autoban (IP)",IDC_ANTIVIRUS_AUTOBAN_FOR_IP,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,211,182,86,8
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,211,182,116,8
     CONTROL         "Antivirus autoban (Nick)",IDC_ANTIVIRUS_AUTOBAN_FOR_NICK,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,329,182,96,8
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,329,182,132,8
 END
 
 IDD_TEXT_STYLES_PAGE DIALOGEX 0, 0, 325, 300
@@ -2967,6 +2967,10 @@ IDR_ICON_QUESTION_ICON  ICON                    "res\\f_question_16.ico"
 IDR_ICON_PAUSE_ICON     ICON                    "res\\f_grey_16.ico"
 IDR_ICON_MEDICAL_BAG    ICON                    "res\\medical_bag.ico"
 IDR_ICON_THERMOMETR_BAG ICON                    "res\\thermometer2.ico"
+IDR_SKULL_ICO           ICON                    "res\\skull.ico"
+IDR_SKULL_RED_ICO       ICON                    "res\\skull_red.ico"
+IDR_SKULL2_ICO           ICON                   "res\\skull2.ico"
+IDR_SKULL2_RED_ICO       ICON                   "res\\skull2_red.ico"
 IDR_ICON_FIREWALL       ICON                    "res\\firewall.ico"
 IDR_ICON_CLOCK          ICON                    "res\\clock.ico"
 IDR_ICON_CAMSHOOT_ICO   ICON                    "res\\Cam.ico"

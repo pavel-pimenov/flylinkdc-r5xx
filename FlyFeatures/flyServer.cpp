@@ -654,11 +654,19 @@ bool CFlyServerConfig::SyncAntivirusDB()
  //  CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_DeleteCounterAntivirusDB,0);
 #endif
   __int64 l_cur_merge_counter = 0;
+  uint64_t l_result_size = 0;
+  int  l_new_delete_counter = 0;
   for(int i=0;i<2;++i)
   {
     l_http_downloader.m_get_http_header_item.clear();
     l_http_downloader.m_get_http_header_item.push_back("Avdb-Delete-Count");
     l_http_downloader.m_get_http_header_item.push_back("Avdb-Version-Count");
+	l_http_downloader.m_get_http_header_item.push_back("Avdb-Total-Count");
+	l_http_downloader.m_get_http_header_item.push_back("Avdb-Record-Count");
+
+	//TODO - пока не пашет 
+	// l_http_downloader.m_get_http_header_item.push_back("Content-Length");
+	
     l_cur_merge_counter = CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_MergeCounterAntivirusDB);
     const string l_url = g_antivirus_db_url + 
                    "/avdb.php?do=load"
@@ -668,40 +676,46 @@ bool CFlyServerConfig::SyncAntivirusDB()
                    "&nosort=1"
                    "&copath=1";
     l_binary_data.clear();
-	auto l_result_size = l_http_downloader.getBinaryDataFromInet(l_url, l_binary_data, g_winet_connect_timeout/2); 
+	l_result_size = l_http_downloader.getBinaryDataFromInet(l_url, l_binary_data, g_winet_connect_timeout / 2);
 	if(l_result_size == 0)
      { 
-		 l_log.step("Antivirus DB error download. " + l_url);
+		 const string l_error = "Antivirus DB error download. URL = " + l_url;
+		 l_log.step(l_error);
+		 CFlyServerJSON::pushError(41, l_error);
 		 return false;
      }
+#if 0
+	if (l_result_size != Util::toInt64(l_http_downloader.m_get_http_header_item[3]))
+	{
+		const string l_error = "Antivirus DB error download. URL = " + l_url + " size = " + Util::toString(l_result_size) + " Content-Length = " + l_http_downloader.m_get_http_header_item[3];
+		l_log.step(l_error);
+		CFlyServerJSON::pushError(41, l_error);
+		return false;
+	}
+#endif
     if(!l_http_downloader.m_get_http_header_item[0].empty())
     {
-        const int  l_new_delete_counter = Util::toInt(l_http_downloader.m_get_http_header_item[0]);
+        l_new_delete_counter = Util::toInt(l_http_downloader.m_get_http_header_item[0]);
 		dcassert(l_new_delete_counter);
 	    const auto l_cur_delete_counter = CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_DeleteCounterAntivirusDB);
-        if(l_cur_delete_counter != l_new_delete_counter)
+		if (l_cur_delete_counter != l_new_delete_counter)
         {
-            if(l_time_stamp == 0)
-            {
-              CFlylinkDBManager::getInstance()->purge_antivirus_db(l_new_delete_counter,l_start_sync);
-              break;
-            }
-            else
-            {
-            l_time_stamp = 0;
-              CFlylinkDBManager::getInstance()->purge_antivirus_db(l_new_delete_counter,l_time_stamp);
-            }
+			CFlylinkDBManager::getInstance()->purge_antivirus_db(l_new_delete_counter, 0, false);
+			if (l_time_stamp == 0 && l_result_size > 1)
+				break;
+			else
+				l_time_stamp = 0;
             l_log.step("Reload antivirus DB Avdb-Delete-Count = " + Util::toString(l_new_delete_counter));
             continue; 
         }
     }
-    if(l_result_size > 1) 
-    {
-      l_buf = string((char*)l_binary_data.data(), l_result_size);
-    }
    break;
   }
-   if (!l_buf.empty())
+  if (l_result_size > 1)
+  {
+	  l_buf = string((char*)l_binary_data.data(), l_result_size);
+  }
+  if (!l_buf.empty())
    {
     const int l_new_merge_counter = Util::toInt(l_http_downloader.m_get_http_header_item[1]);
 	dcassert(l_new_merge_counter);
@@ -714,18 +728,35 @@ bool CFlyServerConfig::SyncAntivirusDB()
     const auto l_count = CFlylinkDBManager::getInstance()->sync_antivirus_db(l_buf,l_start_sync);
     if(l_count)
 	{
-	    l_log.step("Add new records: " + Util::toString(l_count));
+			const auto l_record_count_add = Util::toInt64(l_http_downloader.m_get_http_header_item[3]);
+			dcassert(l_record_count_add == l_count);
+			l_log.step("Add new records: " + Util::toString(l_count));
 	}
    }
-   if(l_cur_merge_counter)
+  // Record-count-check
+  const auto l_count_record = CFlylinkDBManager::getInstance()->get_antivirus_record_count();
+  const string l_error_count = " Antivirus DB record count (sqlite) = " + Util::toString(l_count_record);
+  l_log.step(l_error_count);
+  const auto l_record_count_remote = Util::toInt64(l_http_downloader.m_get_http_header_item[2]);
+  dcassert(l_record_count_remote);
+  if (l_record_count_remote && l_count_record != l_record_count_remote)
+  {
+	  dcassert(0);
+	  const string l_error = "Antivirus DB record count (remote) = " + Util::toString(l_record_count_remote) + " Force reload all record...";
+	  l_log.step(l_error);
+	  CFlylinkDBManager::getInstance()->purge_antivirus_db(l_new_delete_counter, 0, false);
+	  CFlyServerJSON::pushError(41, l_error_count + ' ' + l_error);
+  }
+  if (l_cur_merge_counter)
    {
 	 // TODO Добавилось N-записей к базе - перегрузить их в кэш
-     l_log.step("Antivirus DB version: " + Util::toString(l_cur_merge_counter));
+	   l_log.step("Antivirus DB version: " + Util::toString(l_cur_merge_counter) + " Count virus record:" + Util::toString(l_count_record));
    }
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
    if(l_is_change_version)
    {
-        ClientManager::resetAntivirusInfo(); 
+	   CFlylinkDBManager::getInstance()->load_avdb();
+	   ClientManager::resetAntivirusInfo();
    }
 #endif
   }
@@ -1159,7 +1190,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 	syslog(LOG_USER | LOG_INFO, "%s %s %s [%s]", l_cid.c_str(), l_pid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
 }
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 40 (36 - устарел)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 41 (36 - устарел)
 {
 	bool l_is_send = false;
 	bool l_is_error = false;
