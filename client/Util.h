@@ -388,9 +388,9 @@ class Util
 		// [~] IRainman opt.
 		static void initialize();
 		static void loadCustomlocations();
-		static void loadGeoIp(); 
-		static void loadP2PGuard(); 
-		static void loadIBlockList(); 
+		static void loadGeoIp();
+		static void loadP2PGuard();
+		static void loadIBlockList();
 		
 		//[+] IRainman identify URI of DC protocols, magnet, or http links.
 		static bool isNmdc(const tstring& p_HubURL)

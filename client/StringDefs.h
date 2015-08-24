@@ -1179,6 +1179,7 @@ enum Strings   // @DontAdd
 	SEARCH_FILTER_ITEM_FILEPATH, // "File & Path"
 	SEARCH_FILTER_LBL_EXCLUDE, // "And exclude match"
 	SEARCH_OPTIONS, // "Search options"
+	SEARCH_SHOWHIDEPANEL, // "Show/Hide Settings Panel"
 	SEARCH_SPAM_FROM, // "Search spam detected from"
 	SEARCH_SPY, // "Search Spy"
 	SEARCH_STRING, // "Search String"

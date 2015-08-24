@@ -374,6 +374,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	ctrlShowUI.SetCheck(1);
 	ctrlShowUI.SetFont(Fonts::g_systemFont);
 	showUIContainer.SubclassWindow(ctrlShowUI.m_hWnd);
+	m_tooltip.AddTool(ctrlShowUI, ResourceManager::SEARCH_SHOWHIDEPANEL);
 	
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	m_ctrlFlyServer.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
@@ -2179,7 +2180,7 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 		ctrlStatus.GetClientRect(sr);
 		int tmp = (sr.Width()) > 420 ? 376 : ((sr.Width() > 116) ? sr.Width() - 100 : 16);
 		
-		w[0] = 36;
+		w[0] = 42;
 		w[1] = sr.right - tmp;
 		w[2] = w[1] + (tmp - 16) / 3;
 		w[3] = w[2] + (tmp - 16) / 3;
@@ -2189,9 +2190,10 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 		
 		// Layout showUI button in statusbar part #0
 		ctrlStatus.GetRect(0, sr);
+		sr.left += 4;
+		sr.right += 4;
 		ctrlShowUI.MoveWindow(sr);
 	}
-	
 	if (m_showUI)
 	{
 		CRect rc = rect;

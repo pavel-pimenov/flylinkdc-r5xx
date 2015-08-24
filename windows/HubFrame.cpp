@@ -3197,8 +3197,7 @@ void HubFrame::timer_process_internal()
 		m_virus_icon_index = 0;
 		flickerVirusIcon();
 	}
-	else
-	if (m_virus_icon_index == 0 && m_client->is_all_my_info_loaded())
+	else if (m_virus_icon_index == 0 && m_client->is_all_my_info_loaded())
 	{
 		const auto l_count_virus_bot = m_client->getVirusBotCount();
 		if (l_count_virus_bot > 1)

@@ -920,7 +920,7 @@ string Identity::formatSpeedLimit(const uint32_t limit) // [+] IRainman
 
 void Identity::getReport(string& p_report) const
 {
-	p_report = "\r\n *** FlylinkDC user info ***\r\n";// [+] FlylinkDC
+	p_report = "\r\n *** FlylinkDC user info ***\r\n";
 	const string sid = getSIDString();
 	{
 		// [+] IRainman fix.
@@ -1021,6 +1021,9 @@ void Identity::getReport(string& p_report) const
 		// Справочные значения заберем через функцию get т.к. в мапе их нет
 		appendIfValueNotEmpty("DC client", getStringParam("AP"));
 		appendIfValueNotEmpty("Client version", getStringParam("VE"));
+		
+		appendIfValueNotEmpty("P2P Guard", getP2PGuard());
+		appendIfValueNotEmpty("Antivirus database:", getVirusDesc());
 		
 		webrtc::ReadLockScoped l(*g_rw_cs);
 		for (auto i = m_stringInfo.cbegin(); i != m_stringInfo.cend(); ++i)

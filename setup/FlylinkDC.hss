@@ -770,5 +770,6 @@ Source: "..\compiled\Settings\common\GeoIPCountryWhois.csv";  DestDir: "{code:fU
 Source: "..\compiled\Settings\common\CustomLocations.bmp";    DestDir: "{code:fUser}"; Flags: onlyifdoesntexist
 Source: "..\compiled\Settings\common\CustomLocations.ini";    DestDir: "{code:fUser}"; Flags: onlyifdoesntexist
 Source: "..\compiled\Settings\common\P2PGuard.ini";    DestDir: "{code:fUser}"; Flags: overwritereadonly
+Source: "..\compiled\Settings\common\iblocklist-com.ini";    DestDir: "{code:fUser}"; Flags: overwritereadonly
 
 #include "inc_finally.hss"
