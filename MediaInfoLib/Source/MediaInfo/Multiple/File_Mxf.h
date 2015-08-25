@@ -76,7 +76,8 @@ protected :
     void Streams_Finish_Track (const int128u& TrackUID);
     void Streams_Finish_Track_ForTimeCode (const int128u& TrackUID, bool IsSourcePackage);
     void Streams_Finish_Track_ForAS11 (const int128u& TrackUID);
-    void Streams_Finish_Essence (int32u EssenceUID, int128u TrackUID);
+	void Streams_Finish_Essence(int32u EssenceUID, const int128u& TrackUID);
+	void Streams_Finish_Essence_FillID(int32u EssenceUID, const int128u& TrackUID);
     void Streams_Finish_Descriptor (const int128u& DescriptorUID, const int128u& PackageUID);
     void Streams_Finish_Locator (const int128u& DescriptorUID, const int128u& LocatorUID);
     void Streams_Finish_Component (const int128u& ComponentUID, float64 EditRate, int32u TrackID, int64u Origin);
@@ -134,7 +135,7 @@ protected :
     void LensUnitMetadata();
     void CameraUnitMetadata();
     void UserDefinedAcquisitionMetadata();
-    void Filler53();
+    void DMFiller();
     void Sequence();
     void SourceClip();
     void TimecodeComponent();

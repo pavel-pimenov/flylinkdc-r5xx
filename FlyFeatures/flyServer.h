@@ -149,6 +149,7 @@ public:
  bool isSupportFile(const string& p_file_ext, uint64_t p_size) const;
  static bool isSupportTag (const string& p_tag);
  static bool isErrorLog (unsigned p_error_code);
+ static bool isExcludeCIDfromErrorLog(unsigned p_error_code);
  static bool isErrorSysLog (unsigned p_error_code);
  static bool isBlockIP(const string& p_ip);
  static void addBlockIP(const string& p_ip);
@@ -157,6 +158,7 @@ private:
  static StringSet g_include_tag; 
  static StringSet g_exclude_tag; 
  static std::unordered_set<unsigned> g_exclude_error_log;
+ static std::unordered_set<unsigned> g_exclude_cid_error_log;
  static std::unordered_set<unsigned> g_exclude_error_syslog;
  static std::vector<std::string> g_exclude_tag_inform;
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -257,7 +259,8 @@ public:
   static uint16_t g_ban_flood_command;
   static uint16_t g_unique_files_for_virus_detect;
   static DWORD    g_max_size_for_virus_detect;
-
+  static bool     g_is_append_cid_error_log;
+  
 #ifdef USE_SUPPORT_HUB
   static string   g_support_hub;
 #endif // USE_SUPPORT_HUB

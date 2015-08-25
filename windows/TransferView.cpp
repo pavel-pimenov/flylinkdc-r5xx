@@ -1717,27 +1717,6 @@ void TransferView::on(DownloadManagerListener::Starting, const DownloadPtr& aDow
 	
 	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
-// TODO - убрать тики для массива
-void TransferView::on(DownloadManagerListener::Tick, const DownloadArray& dl, uint64_t CurrentTick) noexcept
-{
-	if (!MainFrame::isAppMinimized())// [+]IRainman opt
-	{
-		for (auto j = dl.cbegin(); j != dl.cend(); ++j)
-		{
-			UpdateInfo* ui = new UpdateInfo(j->m_hinted_user, true); // [!] IRainman fix.
-			ui->setStatus(ItemInfo::STATUS_RUNNING);
-			ui->setActual(j->m_actual);
-			ui->setPos(j->m_pos);
-			ui->setSize(j->m_size);
-			ui->setTimeLeft(j->m_second_left);
-			ui->setSpeed(j->m_running_average);
-			ui->setType(Transfer::Type(j->m_type)); // TODO
-			ui->setStatusString(j->m_status_string);
-			m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
-		}
-	}
-}
-
 void TransferView::on(DownloadManagerListener::Failed, const DownloadPtr& aDownload, const string& aReason) noexcept
 {
 	UpdateInfo* ui = new UpdateInfo(aDownload->getHintedUser(), true, true); // [!] IRainman fix. https://code.google.com/p/flylinkdc/issues/detail?id=1291
@@ -1799,7 +1778,28 @@ void TransferView::on(UploadManagerListener::Starting, const UploadPtr& aUpload)
 	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
 // TODO - убрать тики для массива
-void TransferView::on(UploadManagerListener::Tick, const UploadArray& ul, uint64_t CurrentTick) noexcept
+void TransferView::on(DownloadManagerListener::Tick, const DownloadArray& dl) noexcept
+{
+	if (!MainFrame::isAppMinimized())// [+]IRainman opt
+	{
+		for (auto j = dl.cbegin(); j != dl.cend(); ++j)
+		{
+			UpdateInfo* ui = new UpdateInfo(j->m_hinted_user, true); // [!] IRainman fix.
+			ui->setStatus(ItemInfo::STATUS_RUNNING);
+			ui->setActual(j->m_actual);
+			ui->setPos(j->m_pos);
+			ui->setSize(j->m_size);
+			ui->setTimeLeft(j->m_second_left);
+			ui->setSpeed(j->m_running_average);
+			ui->setType(Transfer::Type(j->m_type)); // TODO
+			ui->setStatusString(j->m_status_string);
+			m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
+		}
+	}
+}
+
+// TODO - убрать тики для массива
+void TransferView::on(UploadManagerListener::Tick, const UploadArray& ul) noexcept
 {
 	if (!MainFrame::isAppMinimized())// [+]IRainman opt
 	{
@@ -1811,10 +1811,13 @@ void TransferView::on(UploadManagerListener::Tick, const UploadArray& ul, uint64
 				continue;
 			}
 			UpdateInfo* ui = new UpdateInfo(j->m_hinted_user, false); // [!] IRainman fix.
+			ui->setStatus(ItemInfo::STATUS_RUNNING);
 			ui->setActual(j->m_actual);
 			ui->setPos(j->m_pos);
+			ui->setSize(j->m_size);
 			ui->setTimeLeft(j->m_second_left);
 			ui->setSpeed(j->m_running_average);
+			ui->setType(Transfer::Type(j->m_type)); // TODO
 			ui->setStatusString(j->m_status_string);
 			m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 		}

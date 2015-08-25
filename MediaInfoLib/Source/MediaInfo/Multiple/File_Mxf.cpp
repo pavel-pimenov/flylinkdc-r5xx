@@ -270,7 +270,7 @@ namespace Elements
     UUID(060E2B34, 02530101, 0D010101, 01010300, 0000, "SMPTE ST 377-1", Segment, "Segment")
     UUID(060E2B34, 02530101, 0D010101, 01010600, 0000, "SMPTE ST 377-1", Event, "Event")
     UUID(060E2B34, 02530101, 0D010101, 01010800, 0000, "SMPTE ST 377-1", CommentMarker, "Comment Marker")
-    UUID(060E2B34, 02530101, 0D010101, 01010900, 0000, "SMPTE ST 377-1", Filler53, "")
+    UUID(060E2B34, 02530101, 0D010101, 01010900, 0000, "SMPTE ST 377-1", DMFiller, "")
     UUID(060E2B34, 02530101, 0D010101, 01010F00, 0000, "SMPTE ST 377-1", Sequence, "")
     UUID(060E2B34, 02530101, 0D010101, 01011100, 0000, "SMPTE ST 377-1", SourceClip, "")
     UUID(060E2B34, 02530101, 0D010101, 01011400, 0000, "SMPTE ST 377-1", TimecodeComponent, "")
@@ -2401,7 +2401,7 @@ void File_Mxf::Streams_Finish_Track_ForAS11(const int128u& TrackUID)
 }
 
 //---------------------------------------------------------------------------
-void File_Mxf::Streams_Finish_Essence(int32u EssenceUID, int128u TrackUID)
+void File_Mxf::Streams_Finish_Essence(int32u EssenceUID, const int128u& TrackUID)
 {
     essences::iterator Essence=Essences.find(EssenceUID);
     if (Essence==Essences.end() || Essence->second.Stream_Finish_Done)
@@ -2629,57 +2629,23 @@ void File_Mxf::Streams_Finish_Essence(int32u EssenceUID, int128u TrackUID)
             Stream_Prepare(StreamKind_Last);
             Merge(*(*Parser), StreamKind_Last, StreamPos, StreamPos_Last);
         }
+
+        if (StreamKind_Last!=Stream_Other && (*Parser)->Count_Get(Stream_Other))
+        {
+            stream_t StreamKind_Last_Main=StreamKind_Last;
+            size_t StreamPos_Last_Main=StreamPos_Last;
+            for (size_t StreamPos=0; StreamPos<(*Parser)->Count_Get(Stream_Other); StreamPos++)
+            {
+                Stream_Prepare(Stream_Other);
+                Merge(*(*Parser), Stream_Other, StreamPos, StreamPos_Last);
+            }
+            Streams_Finish_Essence_FillID(EssenceUID, TrackUID);
+            StreamKind_Last=StreamKind_Last_Main;
+            StreamPos_Last=StreamPos_Last_Main;
+        }
     }
 
-    if (Retrieve(StreamKind_Last, StreamPos_Last, General_ID).empty() || StreamKind_Last==Stream_Text || StreamKind_Last==Stream_Other) //TODO: better way to do detect subID
-    {
-        //Looking for Material package TrackID
-        int32u TrackID=(int32u)-1;
-        for (packages::iterator SourcePackage=Packages.begin(); SourcePackage!=Packages.end(); ++SourcePackage)
-            if (SourcePackage->second.PackageUID.hi.hi) //Looking fo a SourcePackage with PackageUID only
-            {
-                //Testing if the Track is in this SourcePackage
-                for (size_t Tracks_Pos=0; Tracks_Pos<SourcePackage->second.Tracks.size(); Tracks_Pos++)
-                    if (SourcePackage->second.Tracks[Tracks_Pos]==TrackUID)
-                    {
-                        tracks::iterator Track=Tracks.find(SourcePackage->second.Tracks[Tracks_Pos]);
-                        if (Track!=Tracks.end())
-                            TrackID=Track->second.TrackID;
-                    }
-            }
-
-        Ztring ID;
-        Ztring ID_String;
-        if (TrackID!=(int32u)-1)
-            ID=Ztring::ToZtring(TrackID);
-        else if (Tracks[TrackUID].TrackID!=(int32u)-1)
-            ID=Ztring::ToZtring(Tracks[TrackUID].TrackID);
-        else
-        {
-            ID=Ztring::ToZtring(Essence->first);
-            ID_String=Ztring::ToZtring(Essence->first, 16);
-        }
-        if (!ID.empty())
-        {
-            for (size_t StreamPos=StreamPos_Last-((*Parser)->Count_Get(StreamKind_Last)?((*Parser)->Count_Get(StreamKind_Last)-1):0); StreamPos<=StreamPos_Last; StreamPos++) //If more than 1 stream
-            {
-                Ztring ID_Temp(ID);
-                if (!Retrieve(StreamKind_Last, StreamPos, General_ID).empty())
-                {
-                    ID_Temp+=__T("-");
-                    ID_Temp+=Retrieve(StreamKind_Last, StreamPos, General_ID);
-                }
-                Fill(StreamKind_Last, StreamPos, General_ID, ID_Temp, true);
-                if (!ID_String.empty())
-                    Fill(StreamKind_Last, StreamPos, General_ID_String, ID_String, true);
-            }
-        }
-        if (!Tracks[TrackUID].TrackName.empty())
-        {
-            for (size_t StreamPos=StreamPos_Last-((*Parser)->Count_Get(StreamKind_Last)?((*Parser)->Count_Get(StreamKind_Last)-1):0); StreamPos<=StreamPos_Last; StreamPos++) //If more than 1 stream
-                Fill(StreamKind_Last, StreamPos, "Title", Tracks[TrackUID].TrackName);
-        }
-    }
+    Streams_Finish_Essence_FillID(EssenceUID, TrackUID);
 
     //Special case - DV
     #if defined(MEDIAINFO_DVDIF_YES)
@@ -2831,6 +2797,66 @@ void File_Mxf::Streams_Finish_Essence(int32u EssenceUID, int128u TrackUID)
 
     //Done
     Essence->second.Stream_Finish_Done=true;
+}
+
+//---------------------------------------------------------------------------
+void File_Mxf::Streams_Finish_Essence_FillID(int32u EssenceUID, const int128u& TrackUID)
+{
+    essences::iterator Essence=Essences.find(EssenceUID);
+    if (Essence==Essences.end() || Essence->second.Stream_Finish_Done)
+        return;
+
+   parsers::iterator Parser=Essence->second.Parsers.begin();
+
+   if (Retrieve(StreamKind_Last, StreamPos_Last, General_ID).empty() || StreamKind_Last==Stream_Text || StreamKind_Last==Stream_Other) //TODO: better way to do detect subID
+    {
+        //Looking for Material package TrackID
+        int32u TrackID=(int32u)-1;
+        for (packages::iterator SourcePackage=Packages.begin(); SourcePackage!=Packages.end(); ++SourcePackage)
+            if (SourcePackage->second.PackageUID.hi.hi) //Looking fo a SourcePackage with PackageUID only
+            {
+                //Testing if the Track is in this SourcePackage
+                for (size_t Tracks_Pos=0; Tracks_Pos<SourcePackage->second.Tracks.size(); Tracks_Pos++)
+                    if (SourcePackage->second.Tracks[Tracks_Pos]==TrackUID)
+                    {
+                        tracks::iterator Track=Tracks.find(SourcePackage->second.Tracks[Tracks_Pos]);
+                        if (Track!=Tracks.end())
+                            TrackID=Track->second.TrackID;
+                    }
+            }
+
+        Ztring ID;
+        Ztring ID_String;
+        if (TrackID!=(int32u)-1)
+            ID=Ztring::ToZtring(TrackID);
+        else if (Tracks[TrackUID].TrackID!=(int32u)-1)
+            ID=Ztring::ToZtring(Tracks[TrackUID].TrackID);
+        else
+        {
+            ID=Ztring::ToZtring(Essence->first);
+            ID_String=Ztring::ToZtring(Essence->first, 16);
+        }
+        if (!ID.empty())
+        {
+            for (size_t StreamPos=StreamPos_Last-((*Parser)->Count_Get(StreamKind_Last)?((*Parser)->Count_Get(StreamKind_Last)-1):0); StreamPos<=StreamPos_Last; StreamPos++) //If more than 1 stream
+            {
+                Ztring ID_Temp(ID);
+                if (!Retrieve(StreamKind_Last, StreamPos, General_ID).empty())
+                {
+                    ID_Temp+=__T("-");
+                    ID_Temp+=Retrieve(StreamKind_Last, StreamPos, General_ID);
+                }
+                Fill(StreamKind_Last, StreamPos, General_ID, ID_Temp, true);
+                if (!ID_String.empty())
+                    Fill(StreamKind_Last, StreamPos, General_ID_String, ID_String, true);
+            }
+        }
+        if (!Tracks[TrackUID].TrackName.empty())
+        {
+            for (size_t StreamPos=StreamPos_Last-((*Parser)->Count_Get(StreamKind_Last)?((*Parser)->Count_Get(StreamKind_Last)-1):0); StreamPos<=StreamPos_Last; StreamPos++) //If more than 1 stream
+                Fill(StreamKind_Last, StreamPos, "Title", Tracks[TrackUID].TrackName);
+        }
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -5124,7 +5150,7 @@ void File_Mxf::Data_Parse()
     ELEMENT(LensUnitMetadata,                                   "Lens Unit Metadata")
     ELEMENT(CameraUnitMetadata,                                 "Camera Unit Metadata")
     ELEMENT(UserDefinedAcquisitionMetadata,                     "User Defined Acquisition Metadata")
-    ELEMENT(Filler53,                                           "Filler")
+    ELEMENT(DMFiller,                                           "Descriptive Metadata Filler")
     ELEMENT(Sequence,                                           "Sequence")
     ELEMENT(SourceClip,                                         "Source Clip")
     ELEMENT(TimecodeComponent,                                  "Timecode Component")
@@ -5293,7 +5319,7 @@ void File_Mxf::Data_Parse()
             //Searching single descriptor if it is the only valid descriptor
             descriptors::iterator SingleDescriptor=Descriptors.end();
             for (descriptors::iterator SingleDescriptor_Temp=Descriptors.begin(); SingleDescriptor_Temp!=Descriptors.end(); ++SingleDescriptor_Temp)
-                if (SingleDescriptor_Temp->second.StreamKind!=Stream_Max)
+                if (SingleDescriptor_Temp->second.StreamKind!=Stream_Max || SingleDescriptor_Temp->second.LinkedTrackID!=(int32u)-1)
                 {
                     if (SingleDescriptor!=Descriptors.end())
                     {
@@ -5522,7 +5548,7 @@ void File_Mxf::Data_Parse()
                 {
                     parsers::iterator Parser=Essence->second.Parsers.begin();
 
-                    //Ancillary with
+                    //Ancillary, SMPTE ST 436
                     int16u Count;
                     Get_B2 (Count,                                  "Number of Lines");
                     if (Count*14>Element_Size)
@@ -5533,15 +5559,15 @@ void File_Mxf::Data_Parse()
                     }
                     for (int16u Pos=0; Pos<Count; Pos++)
                     {
-                        Element_Begin1("Packet");
-                        int32u Size2, Count2;
-                        int16u LineNumber, Size;
-                        Get_B2 (LineNumber,                         "Line Number");
+                        Element_Begin1("Line");
+                        int32u ArrayCount, ArrayLength;
+                        int16u LineNumber, SampleCount;
+                        Get_B2 (LineNumber,                         "Line Number"); Element_Info1(LineNumber);
                         Skip_B1(                                    "Wrapping Type");
                         Skip_B1(                                    "Payload Sample Coding");
-                        Get_B2 (Size,                               "Payload Sample Count");
-                        Get_B4 (Size2,                              "Size?");
-                        Get_B4 (Count2,                             "Count?");
+                        Get_B2 (SampleCount,                        "Payload Sample Count");
+                        Get_B4 (ArrayCount,                         "Payload Array Count");
+                        Get_B4 (ArrayLength,                        "Payload Array Length");
 
                         if (Essence->second.Frame_Count_NotParsedIncluded!=(int64u)-1)
                             (*Parser)->Frame_Count_NotParsedIncluded=Essence->second.Frame_Count_NotParsedIncluded;
@@ -5567,9 +5593,13 @@ void File_Mxf::Data_Parse()
                                     }
                             }
                         #endif //defined(MEDIAINFO_ANCILLARY_YES)
-                        if (Element_Offset+Size>Element_Size)
-                            Size=(int16u)(Element_Size-Element_Offset);
-                        Open_Buffer_Continue((*Parser), Buffer+Buffer_Offset+(size_t)(Element_Offset), Size);
+                        int64u Parsing_Size=SampleCount;
+                        int64u Array_Size=ArrayCount*ArrayLength;
+                        if (Element_Offset+Parsing_Size>Element_Size)
+                            Parsing_Size=Element_Size-Element_Offset; // There is a problem
+                        if (Parsing_Size>Array_Size)
+                            Parsing_Size=Array_Size; // There is a problem
+                        Open_Buffer_Continue((*Parser), Buffer+Buffer_Offset+(size_t)(Element_Offset), Parsing_Size);
                         if ((Code_Compare4&0xFF00FF00)==0x17000100 && LineNumber==21 && (*Parser)->Count_Get(Stream_Text)==0)
                         {
                             (*Parser)->Accept();
@@ -5577,9 +5607,9 @@ void File_Mxf::Data_Parse()
                             (*Parser)->Fill(Stream_Text, StreamPos_Last, Text_Format, "EIA-608");
                             (*Parser)->Fill(Stream_Text, StreamPos_Last, Text_MuxingMode, "VBI / Line 21");
                         }
-                        Element_Offset+=Size;
-                        if (Size<Size2*Count2)
-                            Skip_XX(Size2*Count2-Size,              "Padding");
+                        Element_Offset+=Parsing_Size;
+                        if (Parsing_Size<Array_Size)
+                            Skip_XX(Array_Size-Parsing_Size,    "Padding");
                         Element_End0();
                     }
                 }
@@ -6599,7 +6629,7 @@ void File_Mxf::RandomIndexMetadata()
 }
 
 //---------------------------------------------------------------------------
-void File_Mxf::Filler53()
+void File_Mxf::DMFiller()
 {
     switch(Code2)
     {

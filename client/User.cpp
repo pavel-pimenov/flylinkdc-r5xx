@@ -466,11 +466,12 @@ void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility
 				sm["description"] = getDescription();
 				sm["email"] = getEmail();
 				sm["share"] = Util::toString(getBytesShared());
-				sm["shareshort"] = Util::formatBytes(getBytesShared());
+				const auto l_share = Util::formatBytes(getBytesShared());
+				sm["shareshort"] = l_share;
 #ifdef FLYLINKDC_USE_REALSHARED_IDENTITY
 				sm["realshareformat"] = Util::formatBytes(getRealBytesShared());
 #else
-				sm["realshareformat"] = Util::formatBytes(getBytesShared());
+				sm["realshareformat"] = l_share;
 #endif
 			}
 		}

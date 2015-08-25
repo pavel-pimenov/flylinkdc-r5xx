@@ -68,7 +68,7 @@ class DownloadManagerListener
 		/**
 		 * Sent once a second if something has actually been downloaded.
 		 */
-		virtual void on(Tick, const DownloadArray&, uint64_t/*[+]IRainman refactoring transfer mechanism*/) noexcept { }
+		virtual void on(Tick, const DownloadArray&) noexcept { }
 		
 		/**
 		 * This is the last message sent before a download is deleted.

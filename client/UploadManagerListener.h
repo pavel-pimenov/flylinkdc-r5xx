@@ -27,7 +27,7 @@ class UploadManagerListener
 		typedef X<7> QueueUpdate;
 		
 		virtual void on(Starting, const UploadPtr& aUpload) noexcept { }
-		virtual void on(Tick, const UploadArray&, uint64_t/*[+]IRainman refactoring transfer mechanism*/) noexcept { }
+		virtual void on(Tick, const UploadArray&) noexcept {}
 		virtual void on(Complete, const UploadPtr& aUpload) noexcept { }
 		virtual void on(Failed, const UploadPtr& aUpload, const string&) noexcept { }
 		virtual void on(QueueAdd, const UploadQueueItemPtr&) noexcept { }

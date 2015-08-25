@@ -151,7 +151,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	}
 	if (!l_tickList.empty())
 	{
-		fire(DownloadManagerListener::Tick(), l_tickList, aTick);//[!]IRainman refactoring transfer mechanism + uint64_t aTick
+		fire(DownloadManagerListener::Tick(), l_tickList);//[!]IRainman refactoring transfer mechanism + uint64_t aTick
 	}
 	
 	for (auto i = dropTargets.cbegin(); i != dropTargets.cend(); ++i)

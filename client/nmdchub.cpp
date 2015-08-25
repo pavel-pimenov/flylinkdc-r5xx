@@ -1115,6 +1115,10 @@ void NmdcHub::lockParse(const string& aLine)
 		OnlineUserPtr ou = getUser(getMyNick(), false, false); // [!] IRainman fix: use OnlineUserPtr
 		validateNick(ou->getIdentity().getNick());
 	}
+	else
+	{
+		dcassert(0);
+	}
 }
 //==========================================================================================
 void NmdcHub::helloParse(const string& param)

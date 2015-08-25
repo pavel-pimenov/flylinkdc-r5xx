@@ -191,8 +191,11 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 		}
 		else
 		{
-			m_clientName = hub->getClientName();
-			m_clientVersion = hub->getClientVersion();
+			if (hub)
+			{
+				m_clientName = hub->getClientName();
+				m_clientVersion = hub->getClientVersion();
+			}
 		}
 	}
 	else // FlylinkDC native
@@ -627,7 +630,11 @@ void Client::on(Second, uint64_t aTick) noexcept
 		// Try to reconnect...
 		connect();
 	}
-	
+	else if (state == STATE_IDENTIFY && (getLastActivity() + 30000) < aTick) // (c) PPK http://www.czdc.org
+	{
+		if(m_client_sock)
+ 		   m_client_sock->disconnect(false);
+	}
 	if (m_searchQueue.m_interval == 0)
 	{
 		dcassert(m_searchQueue.m_interval != 0);

@@ -183,6 +183,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 {
 #ifdef FLYLINKDC_USE_TREE_SEARCH
 	m_RootTreeItem = nullptr;
+	m_CurrentTreeItem = nullptr;
 	memset(m_TypeTreeItem, 0, sizeof(m_TypeTreeItem));
 #endif
 	
@@ -2598,6 +2599,42 @@ LRESULT SearchFrame::onSearchByTTH(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 	return 0;
 }
 
+#ifdef FLYLINKDC_USE_TREE_SEARCH
+
+LRESULT SearchFrame::onSelChangedTree(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
+{
+	NMTREEVIEW* p = (NMTREEVIEW*)pnmh;
+	m_CurrentTreeItem = p->itemNew.hItem;
+	/*  m_is_crrent_tree_node = false;
+	    m_totalBytes = 0;
+	    m_totalSpeed = 0;
+	    m_totalCount = 0;
+	    if (p->itemNew.state & TVIS_SELECTED)
+	    {
+	        CWaitCursor l_cursor_wait; //-V808
+	        ctrlList.DeleteAllItems();
+	        if (p->itemNew.lParam == e_Current)
+	        {
+	            m_is_crrent_tree_node = true;
+	            updateList(FinishedManager::lockList(m_type));
+	            FinishedManager::unlockList(m_type);
+	        }
+	        else
+	        {
+	            if (size_t(p->itemNew.lParam) < m_transfer_histogram.size())
+	            {
+	                CFlylinkDBManager::getInstance()->load_transfer_history(m_transfer_type, m_transfer_histogram[p->itemNew.lParam].m_date_as_int);
+	            }
+	        }
+	        ctrlList.resort();
+	        updateStatus();
+	    }
+	    */
+	return 0;
+}
+
+#endif
+
 void SearchFrame::addSearchResult(SearchInfo* si)
 {
 	const SearchResult& sr = si->sr;
@@ -2689,8 +2726,8 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 				{
 					const auto l_item = m_ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
 					                                          Text::toT(l_file_ext).c_str(),
-					                                          0, // // nImage
-					                                          0, // // nSelectedImage
+					                                          0, // nImage
+					                                          0, // nSelectedImage
 					                                          0, // nState
 					                                          0, // nStateMask
 					                                          e_Ext, // lParam
@@ -2703,9 +2740,7 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 		}
 #endif
 		
-		
 		CLockRedraw<> l_lock_draw(ctrlResults); //[+]IRainman optimize SearchFrame
-		
 		if (!si->getText(COLUMN_TTH).empty())
 		{
 			ctrlResults.insertGroupedItem(si, m_expandSR, false, true);
@@ -2716,11 +2751,10 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 			ctrlResults.insertItem(si, I_IMAGECALLBACK); // si->getImageIndex()
 			ctrlResults.getParents().insert(make_pair(const_cast<TTHValue*>(&sr.getTTH()), pp));
 		}
-		if (!filter.empty())
+		if (!m_filter.empty())
 		{
 			updateSearchList(si);
 		}
-		
 		if (BOOLSETTING(BOLD_SEARCH))
 		{
 			setDirty(0);
@@ -3448,7 +3482,7 @@ LRESULT SearchFrame::onFilterChar(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*
 {
 	if (!BOOLSETTING(FILTER_ENTER) || (wParam == VK_RETURN))
 	{
-		WinUtil::GetWindowText(filter, ctrlFilter);
+		WinUtil::GetWindowText(m_filter, ctrlFilter);
 		updateSearchList();
 	}
 	bHandled = false;
@@ -3578,37 +3612,37 @@ bool SearchFrame::parseFilter(FilterModes& mode, int64_t& size)
 	tstring::size_type end = (tstring::size_type)tstring::npos;
 	int64_t multiplier = 1;
 	
-	if (filter.compare(0, 2, _T(">="), 2) == 0)
+	if (m_filter.compare(0, 2, _T(">="), 2) == 0)
 	{
 		mode = GREATER_EQUAL;
 		start = 2;
 	}
-	else if (filter.compare(0, 2, _T("<="), 2) == 0)
+	else if (m_filter.compare(0, 2, _T("<="), 2) == 0)
 	{
 		mode = LESS_EQUAL;
 		start = 2;
 	}
-	else if (filter.compare(0, 2, _T("=="), 2) == 0)
+	else if (m_filter.compare(0, 2, _T("=="), 2) == 0)
 	{
 		mode = EQUAL;
 		start = 2;
 	}
-	else if (filter.compare(0, 2, _T("!="), 2) == 0)
+	else if (m_filter.compare(0, 2, _T("!="), 2) == 0)
 	{
 		mode = NOT_EQUAL;
 		start = 2;
 	}
-	else if (filter[0] == _T('<'))
+	else if (m_filter[0] == _T('<'))
 	{
 		mode = LESS;
 		start = 1;
 	}
-	else if (filter[0] == _T('>'))
+	else if (m_filter[0] == _T('>'))
 	{
 		mode = GREATER;
 		start = 1;
 	}
-	else if (filter[0] == _T('='))
+	else if (m_filter[0] == _T('='))
 	{
 		mode = EQUAL;
 		start = 1;
@@ -3616,52 +3650,52 @@ bool SearchFrame::parseFilter(FilterModes& mode, int64_t& size)
 	
 	if (start == tstring::npos)
 		return false;
-	if (filter.length() <= start)
+	if (m_filter.length() <= start)
 		return false;
 		
-	if ((end = Util::findSubString(filter, _T("TiB"))) != tstring::npos)
+	if ((end = Util::findSubString(m_filter, _T("TiB"))) != tstring::npos)
 	{
 		multiplier = 1024LL * 1024LL * 1024LL * 1024LL;
 	}
-	else if ((end = Util::findSubString(filter, _T("GiB"))) != tstring::npos)
+	else if ((end = Util::findSubString(m_filter, _T("GiB"))) != tstring::npos)
 	{
 		multiplier = 1024 * 1024 * 1024;
 	}
-	else if ((end = Util::findSubString(filter, _T("MiB"))) != tstring::npos)
+	else if ((end = Util::findSubString(m_filter, _T("MiB"))) != tstring::npos)
 	{
 		multiplier = 1024 * 1024;
 	}
-	else if ((end = Util::findSubString(filter, _T("KiB"))) != tstring::npos)
+	else if ((end = Util::findSubString(m_filter, _T("KiB"))) != tstring::npos)
 	{
 		multiplier = 1024;
 	}
-	else if ((end = Util::findSubString(filter, _T("TB"))) != tstring::npos)
+	else if ((end = Util::findSubString(m_filter, _T("TB"))) != tstring::npos)
 	{
 		multiplier = 1000LL * 1000LL * 1000LL * 1000LL;
 	}
-	else if ((end = Util::findSubString(filter, _T("GB"))) != tstring::npos)
+	else if ((end = Util::findSubString(m_filter, _T("GB"))) != tstring::npos)
 	{
 		multiplier = 1000 * 1000 * 1000;
 	}
-	else if ((end = Util::findSubString(filter, _T("MB"))) != tstring::npos)
+	else if ((end = Util::findSubString(m_filter, _T("MB"))) != tstring::npos)
 	{
 		multiplier = 1000 * 1000;
 	}
-	else if ((end = Util::findSubString(filter, _T("kB"))) != tstring::npos)
+	else if ((end = Util::findSubString(m_filter, _T("kB"))) != tstring::npos)
 	{
 		multiplier = 1000;
 	}
-	else if ((end = Util::findSubString(filter, _T("B"))) != tstring::npos)
+	else if ((end = Util::findSubString(m_filter, _T("B"))) != tstring::npos)
 	{
 		multiplier = 1;
 	}
 	
 	if (end == tstring::npos)
 	{
-		end = filter.length();
+		end = m_filter.length();
 	}
 	
-	tstring tmpSize = filter.substr(start, end - start);
+	const tstring tmpSize = m_filter.substr(start, end - start);
 	size = static_cast<int64_t>(Util::toDouble(Text::fromT(tmpSize)) * multiplier);
 	
 	return true;
@@ -3670,8 +3704,11 @@ bool SearchFrame::parseFilter(FilterModes& mode, int64_t& size)
 bool SearchFrame::matchFilter(const SearchInfo* si, int sel, bool doSizeCompare, FilterModes mode, int64_t size)
 {
 	bool insert = true;
-	if (filter.empty())
+	if (m_filter.empty())
+	{
+	
 		return true;
+	}
 	if (doSizeCompare)
 	{
 		switch (mode)
@@ -3699,7 +3736,7 @@ bool SearchFrame::matchFilter(const SearchInfo* si, int sel, bool doSizeCompare,
 	}
 	try
 	{
-		std::wregex reg(filter, std::regex_constants::icase);
+		std::wregex reg(m_filter, std::regex_constants::icase);
 		tstring s = si->getText(static_cast<uint8_t>(sel));
 		
 		insert = std::regex_search(s.begin(), s.end(), reg);
@@ -3712,37 +3749,34 @@ bool SearchFrame::matchFilter(const SearchInfo* si, int sel, bool doSizeCompare,
 	return insert;
 }
 
-void SearchFrame::updateSearchList(SearchInfo* si)
+void SearchFrame::updateSearchList(SearchInfo* p_si)
 {
 	int64_t size = -1;
 	FilterModes mode = NONE;
-	
-	int sel = ctrlFilterSel.GetCurSel();
+	const int sel = ctrlFilterSel.GetCurSel();
 	bool doSizeCompare = sel == COLUMN_SIZE && parseFilter(mode, size);
-	
-	if (si != NULL)
+	if (p_si)
 	{
-		if (!matchFilter(si, sel, doSizeCompare, mode, size))
-			ctrlResults.deleteItem(si);
+		if (!matchFilter(p_si, sel, doSizeCompare, mode, size))
+			ctrlResults.deleteItem(p_si);
 	}
 	else
 	{
 		CLockRedraw<> l_lock_draw(ctrlResults);
 		ctrlResults.DeleteAllItems();
-		
 		for (auto i = ctrlResults.getParents().cbegin(); i != ctrlResults.getParents().cend(); ++i)
 		{
-			SearchInfo* si = (*i).second.parent;
-			si->collapsed = true;
-			if (matchFilter(si, sel, doSizeCompare, mode, size))
+			SearchInfo* l_si = (*i).second.parent;
+			l_si->collapsed = true;
+			if (matchFilter(l_si, sel, doSizeCompare, mode, size))
 			{
-				dcassert(ctrlResults.findItem(si) == -1);
-				int k = ctrlResults.insertItem(si, I_IMAGECALLBACK); // si->getImageIndex()
+				dcassert(ctrlResults.findItem(l_si) == -1);
+				int k = ctrlResults.insertItem(l_si, I_IMAGECALLBACK); // si->getImageIndex()
 				
-				const vector<SearchInfo*>& children = ctrlResults.findChildren(si->getGroupCond());
+				const vector<SearchInfo*>& children = ctrlResults.findChildren(l_si->getGroupCond());
 				if (!children.empty())
 				{
-					if (si->collapsed)
+					if (l_si->collapsed)
 					{
 						ctrlResults.SetItemState(k, INDEXTOSTATEIMAGEMASK(1), LVIS_STATEIMAGEMASK);
 					}
@@ -3762,7 +3796,7 @@ void SearchFrame::updateSearchList(SearchInfo* si)
 
 LRESULT SearchFrame::onSelChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
-	WinUtil::GetWindowText(filter, ctrlFilter);
+	WinUtil::GetWindowText(m_filter, ctrlFilter);
 	updateSearchList();
 	bHandled = false;
 	return 0;

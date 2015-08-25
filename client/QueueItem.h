@@ -351,14 +351,7 @@ class QueueItem : public Flags
 		
 		string getListName() const;
 		const string& getTempTarget();
-		void setTempTarget(const string& p_TempTarget)
-		{
-			if (m_tempTarget != p_TempTarget)
-			{
-				setDirty(true);
-				m_tempTarget = p_TempTarget;
-			}
-		}
+		void setTempTarget(const string& p_TempTarget);
 		
 #define GETSET_DIRTY(type, name, name2) \
 private: type name; \
@@ -417,15 +410,7 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 		{
 			return m_priority;
 		}
-		void setPriority(Priority p_priority)
-		{
-			if (m_priority != p_priority)
-			{
-				setDirtySegment(true);
-				m_priority = p_priority;
-			}
-		}
-		
+		void setPriority(Priority p_priority);
 		int16_t calcTransferFlagL(bool& partial, bool& trusted, bool& untrusted, bool& tthcheck, bool& zdownload, bool& chunked, double& ratio) const;
 		QueueItem::Priority calculateAutoPriority() const;
 		

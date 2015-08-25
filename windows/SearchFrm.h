@@ -161,6 +161,9 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		COMMAND_ID_HANDLER(IDC_SEARCH_SIZEMODE, onFiletypeChange)
 		COMMAND_ID_HANDLER(IDC_SEARCH_SIZE, onFiletypeChange)
 		COMMAND_ID_HANDLER(IDC_SEARCH_MODE, onFiletypeChange)
+#ifdef FLYLINKDC_USE_TREE_SEARCH
+		NOTIFY_HANDLER(IDC_TRANSFER_TREE, TVN_SELCHANGED, onSelChangedTree);
+#endif
 		COMMAND_RANGE_HANDLER(IDC_DOWNLOAD_FAVORITE_DIRS, IDC_DOWNLOAD_FAVORITE_DIRS + 499, onDownload)
 		COMMAND_RANGE_HANDLER(IDC_DOWNLOAD_WHOLE_FAVORITE_DIRS, IDC_DOWNLOAD_WHOLE_FAVORITE_DIRS + 499, onDownloadWhole)
 		COMMAND_RANGE_HANDLER(IDC_DOWNLOAD_TARGET, IDC_DOWNLOAD_TARGET + 499, onDownloadTarget)
@@ -253,7 +256,6 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		LRESULT onMergeFlyServerResult(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
 #endif
-		
 		LRESULT onSearchByTTH(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onMarkAsDownloaded(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
@@ -298,6 +300,9 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		LRESULT onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 #else
 		void on(TimerManagerListener::Second, uint64_t aTick) noexcept override;
+#endif
+#ifdef FLYLINKDC_USE_TREE_SEARCH
+		LRESULT onSelChangedTree(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
 #endif
 		
 		void UpdateLayout(BOOL bResizeBars = TRUE);
@@ -706,7 +711,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		CContainedWindow hubsContainer;
 		CContainedWindow ctrlFilterContainer;
 		CContainedWindow ctrlFilterSelContainer;
-		tstring filter;
+		tstring m_filter;
 		
 		CStatic searchLabel, sizeLabel, optionLabel, typeLabel, hubsLabel, srLabel;
 #ifdef FLYLINKDC_USE_ADVANCED_GRID_SEARCH
@@ -737,6 +742,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		//CContainedWindow        m_treeContainer;
 		CTreeViewCtrl           m_ctrlTree;
 		HTREEITEM   m_RootTreeItem;
+		HTREEITEM   m_CurrentTreeItem;
 		HTREEITEM               m_TypeTreeItem[e_Last];
 		std::unordered_map<string, HTREEITEM>   m_tree_ext_map;
 		std::unordered_map<Search::TypeModes, HTREEITEM> m_tree_type;

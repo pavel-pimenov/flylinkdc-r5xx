@@ -337,6 +337,22 @@ string QueueItem::getListName() const
 		return getTarget() + ".xml";
 	}
 }
+void QueueItem::setPriority(Priority p_priority)
+{
+	if (m_priority != p_priority)
+	{
+		setDirtySegment(true);
+		m_priority = p_priority;
+	}
+}
+void QueueItem::setTempTarget(const string& p_TempTarget)
+{
+	if (m_tempTarget != p_TempTarget)
+	{
+		setDirty(true);
+		m_tempTarget = p_TempTarget;
+	}
+}
 
 const string& QueueItem::getTempTarget()
 {

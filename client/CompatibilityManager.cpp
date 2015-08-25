@@ -745,18 +745,16 @@ WORD CompatibilityManager::getDllPlatform(const string& fullpath)
 {
 	PLOADED_IMAGE imgLoad = nullptr;
 	WORD bRet = IMAGE_FILE_MACHINE_UNKNOWN;
-	try
+	imgLoad = ::ImageLoad(Text::fromUtf8(fullpath).c_str(), Util::emptyString.c_str()); // TODO: IRainman: I don't know to use unicode here, Windows sucks.
+	if (imgLoad && imgLoad->FileHeader)
 	{
-		imgLoad = ::ImageLoad(Text::fromUtf8(fullpath).c_str(), Util::emptyString.c_str()); // TODO: IRainman: I don't know to use unicode here, Windows sucks.
-		if (imgLoad && imgLoad->FileHeader)
-			bRet = imgLoad->FileHeader->FileHeader.Machine;
-	}
-	catch (...)
-	{
+		bRet = imgLoad->FileHeader->FileHeader.Machine;
 	}
 	if (imgLoad)
+	{
 		::ImageUnload(imgLoad);
-		
+	}
+	
 	return bRet;
 }
 

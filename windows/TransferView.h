@@ -377,14 +377,15 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 #endif
 			UpdateInfo(const HintedUser& aHintedUser, const bool isDownload, const bool isTransferFailed = false) :
 				updateMask(0), download(isDownload), m_hintedUser(aHintedUser), // fix empty string
-				transferFailed(isTransferFailed), type(Transfer::TYPE_LAST), running(0)
+				transferFailed(isTransferFailed), type(Transfer::TYPE_LAST), running(0), m_is_force_passive(false),
+				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0)
 			{
 			}
 			UpdateInfo() :
-				updateMask(0), download(true), transferFailed(false), type(Transfer::TYPE_LAST), running(0)
+				updateMask(0), download(true), transferFailed(false), type(Transfer::TYPE_LAST), running(0), m_is_force_passive(false),
+				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0)
 			{
 			}
-			
 			~UpdateInfo()
 			{
 			}
@@ -576,11 +577,11 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		}
 		void on(DownloadManagerListener::Failed, const DownloadPtr& aDownload, const string& aReason) noexcept override;
 		void on(DownloadManagerListener::Starting, const DownloadPtr& aDownload) noexcept override;
-		void on(DownloadManagerListener::Tick, const DownloadArray& aDownload, uint64_t CurrentTick) noexcept override;//[!]IRainman refactoring transfer mechanism + uint64_t CurrentTick
+		void on(DownloadManagerListener::Tick, const DownloadArray& aDownload) noexcept override;
 		void on(DownloadManagerListener::Status, const UserConnection*, const string&) noexcept override;
 		
 		void on(UploadManagerListener::Starting, const UploadPtr& aUpload) noexcept override;
-		void on(UploadManagerListener::Tick, const UploadArray& aUpload, uint64_t CurrentTick) noexcept override;//[!]IRainman refactoring transfer mechanism + uint64_t CurrentTick
+		void on(UploadManagerListener::Tick, const UploadArray& aUpload) noexcept override;
 		void on(UploadManagerListener::Complete, const UploadPtr& aUpload) noexcept override
 		{
 			onTransferComplete(aUpload.get(), false, aUpload->getPath(), false); // [!] IRainman fix.

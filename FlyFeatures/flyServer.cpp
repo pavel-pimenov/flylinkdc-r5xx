@@ -80,6 +80,7 @@ StringSet CFlyServerConfig::g_include_tag;
 StringSet CFlyServerConfig::g_exclude_tag; 
 std::vector<std::string> CFlyServerConfig::g_exclude_tag_inform;
 std::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_log;
+std::unordered_set<unsigned> CFlyServerConfig::g_exclude_cid_error_log;
 std::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_syslog;
 std::vector<CServerItem> CFlyServerConfig::g_mirror_read_only_servers;
 std::vector<CServerItem> CFlyServerConfig::g_mirror_test_port_servers;
@@ -110,6 +111,8 @@ uint16_t CFlyServerConfig::g_interval_flood_command = 1;  // Сколько секунд агре
 uint16_t CFlyServerConfig::g_max_flood_command = 20;       // Не более 5 одинаковых команд в секунду
 uint16_t CFlyServerConfig::g_ban_flood_command = 10;      // Блокируем на 10 секунд команды если попали в бан
 uint16_t CFlyServerConfig::g_unique_files_for_virus_detect = 2;
+bool     CFlyServerConfig::g_is_append_cid_error_log = true; // Добавлять ID к логу ошибок
+
 DWORD CFlyServerConfig::g_max_size_for_virus_detect = 10*1024*1024; // Максимальный размер (10M)
 
 uint16_t CFlyServerConfig::g_max_unique_tth_search  = 10; // Не принимаем в течении 10 секунд одинаковых поисков по TTH для одного и того-же целевого IP:PORT (UDP)
@@ -204,6 +207,11 @@ bool CFlyServerConfig::isErrorSysLog(unsigned p_error_code)
 bool CFlyServerConfig::isErrorLog (unsigned p_error_code)
 {
     return g_exclude_error_log.find(p_error_code) == g_exclude_error_log.end();
+}
+//======================================================================================================
+bool CFlyServerConfig::isExcludeCIDfromErrorLog(unsigned p_error_code)
+{
+	return g_exclude_cid_error_log.find(p_error_code) != g_exclude_cid_error_log.end();
 }
 //======================================================================================================
 bool CFlyServerConfig::isSupportTag(const string& p_tag)
@@ -455,6 +463,9 @@ void CFlyServerConfig::loadConfig()
 					initDWORD("winet_receive_timeout",g_winet_receive_timeout);
 					initDWORD("winet_send_timeout",g_winet_send_timeout);
 					initUINT16("winet_min_response_time_for_log",g_winet_min_response_time_for_log,50);
+					uint16_t l_is_append_cid_error_log = 0;
+					initUINT16("append_cid_error_log", l_is_append_cid_error_log, 1);
+					g_is_append_cid_error_log = l_is_append_cid_error_log != 0;
 
 					m_min_file_size = Util::toInt64(l_xml.getChildAttrib("min_file_size")); // В конфиге min_size - переименовать
 					dcassert(m_min_file_size);
@@ -533,8 +544,13 @@ for (auto i = g_block_ip_str.cbegin(); i != g_block_ip_str.cend(); ++i)
 					});
 					l_xml.getChildAttribSplit("exclude_error_log", g_exclude_error_log, [this](const string& n)
 					{
-              g_exclude_error_log.insert(Util::toInt(n));
+						g_exclude_error_log.insert(Util::toInt(n));
 					});
+					l_xml.getChildAttribSplit("exclude_cid_error_log", g_exclude_cid_error_log, [this](const string& n)
+					{
+						g_exclude_cid_error_log.insert(Util::toInt(n));
+					});
+					
 					l_xml.getChildAttribSplit("exclude_error_syslog", g_exclude_error_syslog, [this](const string& n)
 					{
               g_exclude_error_syslog.insert(Util::toInt(n));
@@ -1196,7 +1212,12 @@ bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Co
 	bool l_is_error = false;
 	if (!p_error.empty())
 	{
-		p_error = "[BUG][" + Util::toString(p_error_code) + "] " + p_error;
+		string l_cid;
+		if (CFlyServerConfig::g_is_append_cid_error_log && !CFlyServerConfig::isExcludeCIDfromErrorLog(p_error_code))
+		{
+			l_cid = '[' + ClientManager::getMyCID().toBase32() + ']';
+		}
+		p_error = l_cid + "[BUG][" + Util::toString(p_error_code) + "] " + p_error;
 		if (CFlyServerConfig::isErrorSysLog(p_error_code))
 		{
 			pushSyslogError(p_error);

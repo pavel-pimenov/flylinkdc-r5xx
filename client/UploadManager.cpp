@@ -1324,7 +1324,7 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	}
 	if (!l_tickList.empty())
 	{
-		fire(UploadManagerListener::Tick(), l_tickList, aTick); //[!]IRainman refactoring transfer mechanism + uint64_t aTick
+		fire(UploadManagerListener::Tick(), l_tickList);
 		// TODO - Выполняем под локом
 	}
 	
