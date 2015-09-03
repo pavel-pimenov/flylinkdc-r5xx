@@ -231,9 +231,11 @@ private:
  {
 		return p_StringList.find(p_name) != p_StringList.end();
  }
+ static bool SyncAntivirusDB(bool& p_is_need_reload);
 public:
   void loadConfig();
-  static bool SyncAntivirusDB();
+  static void SyncAntivirusDBSafe();
+
   static string getAllMediainfoExt()
   {
       return Util::toString(',', g_mediainfo_ext);

@@ -824,7 +824,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 						// Если нет ошибок и не закрываемся - обновим антивирусную базу
 						if (m_is_sync_run == false) // Если запущено в фоновом режиме - стартанем обновление AvDB и сброс счетчиков загрузок
 						{
-							CFlyServerConfig::SyncAntivirusDB();
+							CFlyServerConfig::SyncAntivirusDBSafe();
 						}
 					}
 					return 0;
@@ -837,7 +837,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 				void tryStartThread(const bool p_is_sync_run)
 				{
 					m_is_sync_run = p_is_sync_run;
-					if (++m_MinuteElapsed % 60 == 0 || p_is_sync_run) // Передачу делаем раз в час. (TODO - вынести в настройку)
+					if (++m_MinuteElapsed % 30 == 0 || p_is_sync_run) // Передачу делаем раз в 30 минут. (TODO - вынести в настройку)
 					{
 						m_MinuteElapsed = 0;
 						try

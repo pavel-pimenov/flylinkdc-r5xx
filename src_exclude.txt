@@ -101,3 +101,6 @@ test/Release/*
 *.ipdb
 *.iobj
 .vs
+GdiOle\GdiOle_i.c
+GdiOle\GdiOle_i.h
+GdiOle\GdiOle_p.c

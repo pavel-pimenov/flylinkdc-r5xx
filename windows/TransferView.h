@@ -82,8 +82,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		COMMAND_ID_HANDLER(IDC_MENU_SLOWDISCONNECT, onSlowDisconnect)
 		COMMAND_ID_HANDLER(IDC_FORCE_PASSIVE_MODE, onForcePassiveMode)
 		COMMAND_ID_HANDLER(IDC_AUTO_PASSIVE_MODE, onForceAutoPassiveMode)
-		
-		
+		COMMAND_ID_HANDLER(IDC_AVDB_BLOCK_CONNECTIONS, onAVDBBlockConnections)
 		MESSAGE_HANDLER_HWND(WM_INITMENUPOPUP, OMenu::onInitMenuPopup)
 		MESSAGE_HANDLER_HWND(WM_MEASUREITEM, OMenu::onMeasureItem)
 		MESSAGE_HANDLER_HWND(WM_DRAWITEM, OMenu::onDrawItem)
@@ -114,6 +113,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		LRESULT onSlowDisconnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onForcePassiveMode(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onForceAutoPassiveMode(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+		LRESULT onAVDBBlockConnections(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
 		LRESULT onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 #ifdef SCALOLAZ_USE_TRANSFER_CONTROL
@@ -538,6 +538,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		ItemInfoList ctrlTransfers;
 		CButton m_PassiveModeButton;
 		CButton m_AutoPassiveModeButton;
+		CButton m_AVDB_BlockButton;
 	public:
 		void UpdateLayout();
 		void setButtonState();
@@ -545,6 +546,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 	
 		CFlyToolTipCtrl m_force_passive_tooltip;
 		CFlyToolTipCtrl m_active_passive_tooltip;
+		CFlyToolTipCtrl m_avdb_block_tooltip;
 		
 		static int columnIndexes[];
 		static int columnSizes[];
@@ -571,9 +573,9 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		void on(ConnectionManagerListener::ConnectionStatusChanged, const ConnectionQueueItem* aCqi) noexcept override;
 		
 		void on(DownloadManagerListener::Requesting, const DownloadPtr& aDownload) noexcept override;
-		void on(DownloadManagerListener::Complete, const DownloadPtr& aDownload, bool isTree) noexcept override
+		void on(DownloadManagerListener::Complete, const DownloadPtr& aDownload) noexcept override
 		{
-			onTransferComplete(aDownload.get(), true, Util::getFileName(aDownload->getPath()), isTree); // [!] IRainman fix.
+			onTransferComplete(aDownload.get(), true, Util::getFileName(aDownload->getPath())); // [!] IRainman fix.
 		}
 		void on(DownloadManagerListener::Failed, const DownloadPtr& aDownload, const string& aReason) noexcept override;
 		void on(DownloadManagerListener::Starting, const DownloadPtr& aDownload) noexcept override;
@@ -584,7 +586,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		void on(UploadManagerListener::Tick, const UploadArray& aUpload) noexcept override;
 		void on(UploadManagerListener::Complete, const UploadPtr& aUpload) noexcept override
 		{
-			onTransferComplete(aUpload.get(), false, aUpload->getPath(), false); // [!] IRainman fix.
+			onTransferComplete(aUpload.get(), false, aUpload->getPath()); // [!] IRainman fix.
 		}
 		void on(QueueManagerListener::StatusUpdated, const QueueItemPtr&) noexcept override;
 		void on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept override; // [+] IRainman opt.
@@ -594,7 +596,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		
 		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
 		
-		void onTransferComplete(const Transfer* aTransfer, const bool download, const string& aFileName, const bool isTree); // [!] IRainman fix.
+		void onTransferComplete(const Transfer* aTransfer, const bool download, const string& aFileName); // [!] IRainman fix.
 		void starting(UpdateInfo* ui, const Transfer* t);
 		
 		void CollapseAll();

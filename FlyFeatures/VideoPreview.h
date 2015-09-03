@@ -195,7 +195,7 @@ class VideoPreview :
 		mutable CriticalSection csDownloadItems;
 		mutable CriticalSection csInfo;
 		
-		Semaphore taskSem;
+		Semaphore m_taskSem;
 		
 		list<pair<Tasks, TaskData*> > m_tasks;
 		int run();
@@ -209,7 +209,7 @@ class VideoPreview :
 		    Lock l(cs);
 		    m_tasks.push_back(make_pair(task, data));
 		   }
-		   taskSem.signal();
+		   m_taskSem.signal();
 		}
 		bool _serverStarted;
 		

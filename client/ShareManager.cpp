@@ -1870,7 +1870,7 @@ static const char* typeAudio[] = { ".mp3", ".mp2", ".mid", ".wav", ".ogg", ".wma
                                    ".lqt",
                                    ".vqf", ".m4a"
                                  };
-static const char* typeCompressed[] = { ".rar", ".zip", ".ace", ".arj", ".hqx", ".lha", ".sea", ".tar", ".tgz", ".uc2", ".bz2", ".lzh" };
+static const char* typeCompressed[] = { ".rar", ".zip", ".ace", ".arj", ".hqx", ".lha", ".sea", ".tar", ".tgz", ".uc2", ".bz2", ".lzh", ".cab" };
 static const char* typeDocument[] = { ".htm", ".doc", ".txt", ".nfo", ".pdf", ".chm",
                                       ".rtf",
                                       ".xls",
@@ -2112,6 +2112,13 @@ Search::TypeModes ShareManager::getFType(const string& aFileName, bool p_include
 		return Search::TYPE_DIRECTORY;
 	}
 	
+	if (p_include_flylinkdc_ext)
+	{
+		if (checkType(aFileName, Search::TYPE_COMICS))
+			return Search::TYPE_COMICS;
+		else if (checkType(aFileName, Search::TYPE_BOOK))
+			return Search::TYPE_BOOK;
+	}
 	if (checkType(aFileName, Search::TYPE_VIDEO))
 		return Search::TYPE_VIDEO;
 	else if (checkType(aFileName, Search::TYPE_AUDIO))
@@ -2126,13 +2133,6 @@ Search::TypeModes ShareManager::getFType(const string& aFileName, bool p_include
 		return Search::TYPE_PICTURE;
 	else if (checkType(aFileName, Search::TYPE_CD_IMAGE)) //[+] from FlylinkDC++
 		return Search::TYPE_CD_IMAGE;
-	if (p_include_flylinkdc_ext)
-	{
-		if (checkType(aFileName, Search::TYPE_COMICS))
-			return Search::TYPE_COMICS;
-		else if (checkType(aFileName, Search::TYPE_BOOK))
-			return Search::TYPE_BOOK;
-	}
 	return Search::TYPE_ANY;
 }
 
@@ -2347,6 +2347,15 @@ void ShareManager::search(SearchResultList& aResults, const SearchParam& p_searc
 				                                                       "",
 				                                                       p_search_param.m_client->getHubUrlAndIP(),
 				                                                       tth.toBase32());
+			}
+#endif
+		}
+		else
+		{
+#ifdef FLYLINKDC_BETA
+			if (p_search_param.m_client)
+			{
+				LogManager::message("Error TTH Search: " + p_search_param.m_filter + " Hub = " + p_search_param.m_client->getHubUrl());
 			}
 #endif
 		}

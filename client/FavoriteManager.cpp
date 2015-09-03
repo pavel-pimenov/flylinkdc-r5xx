@@ -1656,8 +1656,8 @@ void FavoriteManager::on(UserDisconnected, const UserPtr& aUser) noexcept
 
 void FavoriteManager::on(UserConnected, const UserPtr& aUser) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
-	// [-] if (!ClientManager::isShutdown()) [-] IRainman: already in ClientManager.
+	//dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
 	{
 		if (isNotEmpty()) // [+]PPA
 		{

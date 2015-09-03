@@ -74,6 +74,7 @@ class User : public intrusive_ptr_base<User>, public Flags
 			PG_IPTRUST_BLOCK_BIT,
 			PG_P2PGUARD_BLOCK_BIT,
 #endif
+			PG_AVDB_BLOCK_BIT,
 			CHANGE_IP_BIT
 		};
 		
@@ -115,6 +116,7 @@ class User : public intrusive_ptr_base<User>, public Flags
 			PG_IPTRUST_BLOCK = 1 << PG_IPTRUST_BLOCK_BIT,
 			PG_P2PGUARD_BLOCK = 1 << PG_P2PGUARD_BLOCK_BIT,
 #endif
+			PG_AVDB_BLOCK = 1 << PG_AVDB_BLOCK_BIT,
 			CHANGE_IP = 1 << CHANGE_IP_BIT
 		};
 #ifdef IRAINMAN_ENABLE_AUTO_BAN

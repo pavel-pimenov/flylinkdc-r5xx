@@ -201,63 +201,36 @@ const string& acpToUtf8(const string& str, string& tmp, const string& fromCharse
 	return wideToUtf8(acpToWide(str, wtmp, fromCharset), tmp);
 }
 
-const wstring& acpToWide(const string& str, wstring& tmp, const string& fromCharset) noexcept
+const wstring& acpToWide(const string& str, wstring& tgt, const string& fromCharset) noexcept
 {
 	if (str.empty())
 		return Util::emptyStringW;
-#ifdef _WIN32
 	const int l_code_page = getCodePage(fromCharset); //[+]FlylinkDC++ Team
-	int n = MultiByteToWideChar(l_code_page, MB_PRECOMPOSED, str.c_str(), (int)str.length(), NULL, 0);
-	if (n == 0)
+	string::size_type size = 0;
+	tgt.resize(str.length() + 1);
+	while ((size = MultiByteToWideChar(l_code_page, MB_PRECOMPOSED, str.c_str(), str.length(), &tgt[0], tgt.length())) == 0)
 	{
-		return Util::emptyStringW;
-	}
-	tmp.resize(n);
-	n = MultiByteToWideChar(l_code_page, MB_PRECOMPOSED, str.c_str(), (int)str.length(), &tmp[0], n); //TODO
-	if (n == 0)
-	{
-		return Util::emptyStringW;
-	}
-//[+]PPA    dcdebug("acpToWide: %s\n", str.c_str());
-	return tmp;
-#else
-	size_t rv;
-	wchar_t wc;
-	const char *src = str.c_str();
-	size_t n = str.length() + 1;
-	
-	tmp.clear();
-	tmp.reserve(n);
-	
-	while (n > 0)
-	{
-		rv = mbrtowc(&wc, src, n, NULL);
-		if (rv == 0 || rv == (size_t) - 2)
+		//[+]PPA        dcdebug("acpToWide-[error]: %s str.length() = %d\n", tgt.c_str(),str.length());
+		if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
 		{
-			break;
-		}
-		else if (rv == (size_t) - 1)
-		{
-			tmp.push_back(L'_');
-			++src;
-			--n;
+			dcassert(0);
+			tgt.resize(tgt.size() * 2);
 		}
 		else
 		{
-			tmp.push_back(wc);
-			src += rv;
-			n -= rv;
+			dcassert(0);
+			break;
 		}
 	}
-	return tmp;
-#endif
+	tgt.resize(size);
+	//[+]PPA    dcdebug("acpToWide: %s\n", tgt.c_str());
+	return tgt;
 }
 
 const string& wideToUtf8(const wstring& str, string& tgt) noexcept
 {
 	if (str.empty())
 		return Util::emptyString;
-#ifdef _WIN32
 	wstring::size_type size = 0;
 	tgt.resize(str.length() * 2 + 1);
 	while ((size = WideCharToMultiByte(CP_UTF8, 0, str.c_str(), str.length(), &tgt[0], tgt.length(), NULL, NULL)) == 0)
@@ -277,52 +250,32 @@ const string& wideToUtf8(const wstring& str, string& tgt) noexcept
 	tgt.resize(size);
 //[+]PPA    dcdebug("wideToUtf8: %s\n", tgt.c_str());
 	return tgt;
-#else
-	const string::size_type n = str.length();// [!] IRainman add const
-	tgt.clear();
-	for (string::size_type i = 0; i < n; ++i)
-	{
-		wcToUtf8(str[i], tgt);
-	}
-	return tgt;
-#endif
 }
 
-const string& wideToAcp(const wstring& str, string& tmp, const string& toCharset) noexcept
+const string& wideToAcp(const wstring& str, string& tgt, const string& toCharset) noexcept
 {
 	if (str.empty())
 		return Util::emptyString;
-#ifdef _WIN32
 	const int l_code_page = getCodePage(toCharset); //[+]FlylinkDC++ Team
-	int n = WideCharToMultiByte(l_code_page, 0, str.c_str(), (int)str.length(), NULL, 0, NULL, NULL);
-	if (n == 0)
+	tgt.resize(str.length() * 2 + 1);
+	int size = 0;
+	while ((size = WideCharToMultiByte(l_code_page, 0, str.c_str(), str.length(), &tgt[0], tgt.length(), NULL, NULL)) == 0)
 	{
-		return Util::emptyString;
+		if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
+		{
+			dcassert(0);
+			tgt.resize(tgt.size() * 2);
+		}
+		else
+		{
+			dcassert(0);
+			break;
+		}
 	}
-	tmp.resize(n);
-	n = WideCharToMultiByte(l_code_page, 0, str.c_str(), (int)str.length(), &tmp[0], n, NULL, NULL);
-	if (n == 0)
-	{
-		return Util::emptyString;
-	}
+	tgt.resize(size);
+	
 //[+]PPA    dcdebug("wideToAcp: %s\n", tmp.c_str());
-	return tmp;
-#else
-	const wchar_t* src = str.c_str();
-	int n = wcsrtombs(NULL, &src, 0, NULL);
-	if (n < 1)
-	{
-		return Util::emptyString;
-	}
-	src = str.c_str();
-	tmp.resize(n);
-	n = wcsrtombs(&tmp[0], &src, n, NULL);
-	if (n < 1)
-	{
-		return Util::emptyString;
-	}
-	return tmp;
-#endif
+	return tgt;
 }
 bool validateUtf8(const string& p_str, int p_pos /* = 0 */) noexcept
 {
@@ -347,7 +300,6 @@ const wstring& utf8ToWide(const string& str, wstring& tgt) noexcept
 {
 	if (str.empty())
 		return Util::emptyStringT;
-#ifdef _WIN32
 	wstring::size_type size = 0;
 	tgt.resize(str.length() + 1);
 	while ((size = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), &tgt[0], (int)tgt.length())) == 0)
@@ -366,26 +318,6 @@ const wstring& utf8ToWide(const string& str, wstring& tgt) noexcept
 	}
 	tgt.resize(size);
 	return tgt;
-#else
-	tgt.reserve(str.length());
-	string::size_type n = str.length();
-	for (string::size_type i = 0; i < n;)
-	{
-		wchar_t c = 0;
-		int x = utf8ToWc(str.c_str() + i, c);
-		if (x < 0)
-		{
-			tgt += '_';
-			i += abs(x);
-		}
-		else
-		{
-			i += x;
-			tgt += c;
-		}
-	}
-	return tgt;
-#endif
 }
 
 const wstring& toLower(const wstring& str, wstring& tmp) noexcept
@@ -444,11 +376,7 @@ const string& toUtf8(const string& str, const string& fromCharset, string& tmp) 
 		return str;
 	if (isUTF8(fromCharset, tmp)) //[+]FlylinkDC++ Team
 		return str;
-#ifdef _WIN32
 	return acpToUtf8(str, tmp, fromCharset);
-#else
-	return convert(str, tmp, fromCharset, utf8);
-#endif
 }
 
 const string& fromUtf8(const string& str, const string& toCharset, string& tmp) noexcept
@@ -457,11 +385,7 @@ const string& fromUtf8(const string& str, const string& toCharset, string& tmp) 
 		return str;
 	if (isUTF8(toCharset, tmp)) //[+]FlylinkDC++ Team
 		return str;
-#ifdef _WIN32
 	return utf8ToAcp(str, tmp, toCharset);
-#else
-	return convert(str, tmp, utf8, toCharset);
-#endif
 }
 
 #ifdef PPA_INCLUDE_DEAD_CODE
@@ -470,7 +394,6 @@ const string& convert(const string& str, string& tmp, const string& fromCharset,
 	if (str.empty())
 		return str;
 		
-#ifdef _WIN32
 	if (stricmp(fromCharset, toCharset) == 0)
 		return str;
 	if (isUTF8(toCharset, tmp)) //[+]FlylinkDC++ Team
@@ -481,56 +404,8 @@ const string& convert(const string& str, string& tmp, const string& fromCharset,
 	// We don't know how to convert arbitrary charsets
 	dcdebug("Unknown conversion from %s to %s\n", fromCharset.c_str(), toCharset.c_str());
 	return str;
-#else
-	
-	// Initialize the converter
-	iconv_t cd = iconv_open(toCharset.c_str(), fromCharset.c_str());
-	if (cd == (iconv_t) - 1)
-		return str;
-	
-	size_t rv;
-	size_t len = str.length() * 2; // optimization
-	size_t inleft = str.length();
-	size_t outleft = len;
-	tmp.resize(len);
-	const char *inbuf = str.data();
-	char *outbuf = (char *)tmp.data();
-	
-	while (inleft > 0)
-	{
-		rv = iconv(cd, (ICONV_CONST char **) & inbuf, &inleft, &outbuf, &outleft);
-		if (rv == (size_t) - 1)
-		{
-			size_t used = outbuf - tmp.data();
-			if (errno == E2BIG)
-			{
-				len *= 2;
-				tmp.resize(len);
-				outbuf = (char *)tmp.data() + used;
-				outleft = len - used;
-			}
-			else if (errno == EILSEQ)
-			{
-				++inbuf;
-				--inleft;
-				tmp[used] = '_';
-			}
-			else
-			{
-				tmp.replace(used, inleft, string(inleft, '_'));
-				inleft = 0;
-			}
-		}
-	}
-	iconv_close(cd);
-	if (outleft > 0)
-	{
-		tmp.resize(len - outleft);
-	}
-	return tmp;
-#endif
 }
-#endif
+#endif // PPA_INCLUDE_DEAD_CODE
 
 string toDOS(string tmp)
 {

@@ -89,7 +89,7 @@ VideoPreview::run()
 
 bool VideoPreview::checkEvents()
 {
-	while (taskSem.wait())
+	while (m_taskSem.wait())
 	{
 		pair<Tasks, TaskData*> p;
 		p.second = 0;

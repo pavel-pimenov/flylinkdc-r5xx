@@ -199,6 +199,8 @@
 #define IDR_SKULL_RED_ICO               310
 #define IDR_SKULL2_ICO                  311
 #define IDR_SKULL2_RED_ICO              312
+#define IDR_VIP_ICO_SCALOLAZ            313
+#define IDR_VIP_ICO_MILENAHUB           314
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
 #define IDC_COPY_HUB                    1002
@@ -1575,6 +1577,7 @@
 #define IDC_WHOIS_IP2                   2513
 #define IDC_WHOIS_URL                   2514
 #define IDC_ADD_P2P_GUARD               2515
+#define IDC_AVDB_BLOCK_CONNECTIONS      2516
 #define IDC_DOWNLOAD_TARGET_DIR         3000
 #define IDC_SELECT_WINDOW               3500
 #define IDC_USER_COMMAND                4000

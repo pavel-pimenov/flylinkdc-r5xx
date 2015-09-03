@@ -31,6 +31,7 @@
 #include <openssl/pem.h>
 #include "FlylinkDCKey.h"
 #include "InetDownloaderReporter.h"
+#include "flyServer.h"
 
 static const string g_dev_error = "\r\nPlease send a text or a screenshot of the error to developers ppa74@ya.ru";
 static const wstring UPDATE_FILE_NAME = L"flylink.upd";
@@ -547,7 +548,9 @@ void AutoUpdate::startUpdateThisThread()
 void AutoUpdate::fail(const string& p_error)
 {
 	dcdebug("AutoUpdate: New command when already failed: %s\n", p_error.c_str());
-	LogManager::message(STRING(AUTOUPDATE) + ' ' + p_error);
+	const auto l_error = STRING(AUTOUPDATE) + ' ' + p_error;
+	LogManager::message(l_error);
+	CFlyServerJSON::pushError(44, l_error);
 }
 
 void AutoUpdate::message(const string& p_message)
@@ -749,7 +752,8 @@ bool AutoUpdate::prepareFile(const AutoUpdateFile& file, const string& tempFolde
 	else
 	{
 		fail("Util::getDataFromInet error: sizeRead = " +
-		                                   Util::toString(sizeRead) + " file.m_packedSize = " + Util::toString(file.m_packedSize) + " [ " + file.m_sDownloadURL + " ]");
+			Util::toString(sizeRead) + " file.m_packedSize = " + Util::toString(file.m_packedSize) + 
+			" [ " + file.m_sDownloadURL + " ]" + " Error: " + l_http_downloader.getErroMessage());
 	}
 	
 	return false;

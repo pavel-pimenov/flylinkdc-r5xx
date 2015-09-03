@@ -87,6 +87,7 @@ class CInternetHandle
 class CFlyHTTPDownloader
 {
 		DWORD m_flag;
+		string m_error_message;
 	public:
 		CFlyHTTPDownloader() : m_flag(0)
 		{
@@ -100,6 +101,10 @@ class CFlyHTTPDownloader
 		void setInetFlag(DWORD p_flag)
 		{
 			m_flag = p_flag;
+		}
+		const string& getErroMessage() const
+		{
+			return m_error_message;
 		}
 };
 

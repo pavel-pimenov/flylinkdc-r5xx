@@ -61,7 +61,7 @@ HIconWrapper HubFrame::g_hModeNoneIco(IDR_MODE_OFFLINE_ICO);
 int HubFrame::g_columnSizes[] = { 100,    // COLUMN_NICK
                                   75,     // COLUMN_SHARED
                                   150,    // COLUMN_EXACT_SHARED
-                                  5,      // COLUMN_ANTIVIRUS
+                                  50,     // COLUMN_ANTIVIRUS
                                   150,    // COLUMN_DESCRIPTION
                                   150,    // COLUMN_APPLICATION
 #ifdef IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB
@@ -707,6 +707,14 @@ HubFrame* HubFrame::openWindow(bool p_is_auto_connect,
 		if (::IsIconic(frm->m_hWnd))
 			::ShowWindow(frm->m_hWnd, SW_RESTORE);
 		frm->MDIActivate(frm->m_hWnd);
+	}
+	if (const auto l_index = frm->getVIPIconIndex())
+	{
+		dcassert((l_index - 1) < _countof(WinUtil::g_HubFlylinkDCIconVIP));
+		if ((l_index - 1) < _countof(WinUtil::g_HubFlylinkDCIconVIP))
+		{
+			frm->setCustomIcon(*WinUtil::g_HubFlylinkDCIconVIP[l_index - 1].get());
+		}
 	}
 	if (frm->isFlySupportHub())
 	{

@@ -368,6 +368,35 @@ const string& QueueItem::getTempTarget()
 				sm["targetdrive"] = Util::getLocalPath().substr(0, 3);
 				
 			setTempTarget(Util::formatParams(SETTING(TEMP_DOWNLOAD_DIRECTORY), sm, false) + l_dc_temp_name);
+			
+			{
+				static bool g_is_first_check = false;
+				if (!g_is_first_check && !m_tempTarget.empty())
+				{
+					g_is_first_check = true;
+#ifndef _DEBUG
+					const auto l_marker_file = Util::getFilePath(m_tempTarget) + ".flylinkdc-test-readonly-" + Util::toString(GET_TIME()) + ".tmp";
+#else
+					const auto l_marker_file = Util::getFilePath(m_tempTarget) + ".flylinkdc-test-readonly.tmp";
+#endif
+					try
+					{
+						{
+							File l_f_ro_test(l_marker_file, File::WRITE, File::CREATE | File::TRUNCATE);
+						}
+						File::deleteFile(l_marker_file);
+					}
+					catch (const Exception&)
+					{
+						//const DWORD l_error = GetLastError();
+						//if (l_error == 5) TODO - позже включить
+						{
+							SET_SETTING(TEMP_DOWNLOAD_DIRECTORY, "");
+							CFlyServerJSON::pushError(42, "Error create/write + " + l_marker_file + " Error =" + Util::translateError());
+						}
+					}
+				}
+			}
 		}
 		if (SETTING(TEMP_DOWNLOAD_DIRECTORY).empty())
 		{

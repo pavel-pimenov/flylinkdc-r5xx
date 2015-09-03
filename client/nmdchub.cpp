@@ -1256,7 +1256,13 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 								auto l_result_size = l_http_downloader.getBinaryDataFromInet(l_get_avdb_query, l_binary_data, 300);
 								//if (l_result_size == 0)
 								//{
-								const string l_log_message = "[ " + getMyNick() + " ] Update antivirus DB! result size =" + Util::toString(l_result_size) + ", [" + l_get_avdb_query + " ] Hub: " + getHubUrl();
+								dcassert(l_result_size == 1);
+								string l_value;
+								if (l_result_size == 1)
+									l_value += l_binary_data[0];
+								dcassert(l_value == "1");
+								const string l_log_message = "[ " + getMyNick() + " ] Update antivirus DB! result size =" + Util::toString(l_result_size) + " Value: [" + l_value +
+								                             "], [" + l_get_avdb_query + " ] Hub: " + getHubUrl();
 								CFlyServerJSON::pushError(40, l_log_message);
 								LogManager::virus_message(l_log_message);
 								//}

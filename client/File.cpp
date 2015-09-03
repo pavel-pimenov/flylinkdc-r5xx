@@ -321,7 +321,7 @@ size_t File::bz2CompressFile(const wstring & p_file, const wstring & p_file_bz2)
 int64_t File::getSize(const tstring & aFileName) noexcept
 {
 	auto i = FileFindIter(aFileName);
-	return i != FileFindIter::end ? i->getSize() : -1;
+	return i != FileFindIter::end ? i->getSize() : -1; // -1 не менять!
 }
 
 bool File::isExist(const tstring & aFileName) noexcept // [+] IRainman

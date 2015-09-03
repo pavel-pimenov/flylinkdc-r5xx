@@ -1331,6 +1331,7 @@
 	<string name="SettingsFirewallPassive">Firewall (passive, the worst case)</string>
 	<string name="SettingsFirewallPassiveForce">Force firewall mode (passive!)</string>
 	<string name="SettingsFirewallAutoPassive">Automatic passive connection (timeout at 2 minutes)</string>
+	<string name="SettingsFirewallBlockDownloadFromAvdbUsers">Block download from virus-users (AVDB)</string>
 	<string name="SettingsFirewallUpnp">UPnP (for WiFi router)</string>
 	<string name="SettingsFormat">Format</string>
 	<string name="SettingsGeneral">General</string>

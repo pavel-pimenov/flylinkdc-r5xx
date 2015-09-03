@@ -491,7 +491,7 @@ void DownloadManager::endData(UserConnection* aSource)
 	
 	if (d->getType() != Transfer::TYPE_FILE)
 	{
-		fire(DownloadManagerListener::Complete(), d, d->getType() == Transfer::TYPE_TREE);
+		fire(DownloadManagerListener::Complete(), d);
 	}
 	
 	try

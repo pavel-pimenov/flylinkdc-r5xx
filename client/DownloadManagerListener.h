@@ -74,7 +74,7 @@ class DownloadManagerListener
 		 * This is the last message sent before a download is deleted.
 		 * No more messages will be sent after it.
 		 */
-		virtual void on(Complete, const DownloadPtr& aDownload, bool) noexcept { }
+		virtual void on(Complete, const DownloadPtr& aDownload) noexcept { }
 		
 		/**
 		 * This indicates some sort of failure with a particular download.

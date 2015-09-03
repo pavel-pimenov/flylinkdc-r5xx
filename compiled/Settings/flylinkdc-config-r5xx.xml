@@ -25,7 +25,7 @@
 		exclude_error_syslog=""
 		append_cid_error_log="1"
 		regex_find_ip="(\d\d?\d?\.\d\d?\d?\.\d\d?\d?\.\d\d?\d?)"
-		exclude_error_log="9,5,16,10,4,17,26,29,25,24,36,39"
+		exclude_error_log="9,5,16,10,4,17,26,29,25,24,36,39,43,40"
 		exclude_cid_error_log="35,38"
 		ignore_flood_command="Search,Quit,MyINFO,UserIP,RevConnectToMe,ConnectToMe,UserCommand"
 		zlib_compress_level = "9"

@@ -56,7 +56,7 @@ void BootstrapManager::dht_live_check(const char* p_operation,const string& p_pa
 		 std::vector<byte> l_data;
 		 const string l_url = i->first + p_param;
 		 l_dht_log.step("Bootstrap count = " + Util::toString(i->second.first) + ", URL: " + l_url);
-     CFlyHTTPDownloader l_http_downloader;
+		 CFlyHTTPDownloader l_http_downloader;
 		 l_http_downloader.getBinaryDataFromInet(l_url, l_data, 1000);
 		}
 	}
@@ -121,7 +121,7 @@ bool BootstrapManager::bootstrap()
 		const size_t l_size = l_http_downloader.getBinaryDataFromInet(l_url, l_data, 2000);
 		if (l_size == 0)
 		{
-			l_dht_log.step(STRING(ERROR_STRING));
+			l_dht_log.step(STRING(ERROR_STRING) + " Error: " + l_http_downloader.getErroMessage());
 			return false;
 		}
 		else

@@ -137,6 +137,10 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			return m_is_fly_support_hub;
 		}
+		uint8_t getVIPIconIndex() const
+		{
+			return m_vip_icon_index;
+		}
 		bool isFlyAntivirusHub() const
 		{
 			return  m_isAutobanAntivirusIP || m_isAutobanAntivirusNick;
@@ -363,6 +367,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 	private:
 		uint32_t m_message_count;
 		bool m_is_fly_support_hub;
+		uint8_t m_vip_icon_index;
 		bool m_is_suppress_chat_and_pm;
 		boost::logic::tribool m_is_local_hub;
 		

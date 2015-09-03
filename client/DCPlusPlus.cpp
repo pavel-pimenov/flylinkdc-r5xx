@@ -112,7 +112,7 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	LOAD_STEP("SQLite database init... Please wait!!!", CFlylinkDBManager::newInstance());
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 #ifdef _DEBUG
-	CFlyServerConfig::SyncAntivirusDB();
+	CFlyServerConfig::SyncAntivirusDBSafe();
 #endif
 	LOAD_STEP("Antivirus DB", CFlylinkDBManager::getInstance()->load_avdb());
 #endif
@@ -295,10 +295,10 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 #endif
 		QueueManager::getInstance()->saveQueue(true);
 		SettingsManager::getInstance()->save();
-		
-		preparingCoreToShutdown(); // Зовем тут второй раз т.к. вероятно при автообновлении оно не зовется.
 		ConnectionManager::getInstance()->shutdown();
 		MappingManager::getInstance()->close();
+		
+		preparingCoreToShutdown(); // Зовем тут второй раз т.к. вероятно при автообновлении оно не зовется.
 		
 #ifdef PPA_INCLUDE_DNS
 		Socket::dnsCache.waitShutdown(); // !SMT!-IP

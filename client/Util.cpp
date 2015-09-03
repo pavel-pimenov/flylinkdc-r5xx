@@ -209,9 +209,13 @@ void Util::initialize()
 	{
 		// ѕроверим права записи
 		g_paths[PATH_USER_CONFIG] = g_paths[PATH_GLOBAL_CONFIG] + "Settings" PATH_SEPARATOR_STR;
+		const auto l_marker_file = g_paths[PATH_USER_CONFIG] + ".flylinkdc-test-readonly.tmp";
 		try
 		{
-			File l_f_ro_test(g_paths[PATH_USER_CONFIG] + ".flylinkdc-test-readonly.tmp", File::WRITE, File::CREATE | File::TRUNCATE);
+			{
+				File l_f_ro_test(l_marker_file, File::WRITE, File::CREATE | File::TRUNCATE);
+			}
+			File::deleteFile(l_marker_file);
 		}
 		catch (const FileException&)
 		{
@@ -219,7 +223,7 @@ void Util::initialize()
 			if (l_error == 5)
 			{
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-				CFlyServerJSON::pushSyslogError("[BUG][11] error create/write .flylinkdc-test-readonly.tmp + " + g_paths[PATH_USER_CONFIG]);
+				CFlyServerJSON::pushSyslogError("[BUG][11] error create/write + " + l_marker_file);
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 				intiProfileConfig();
 				// ≈сли возможно уносим настройки в профиль (если их тамеще нет)
@@ -2627,7 +2631,8 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vecto
 	CInternetHandle hInternet(InternetOpen(g_full_user_agent.c_str(), INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0));
 	if (!hInternet)
 	{
-		LogManager::message("InternetOpen [" + url + "] error = " + Util::translateError());
+		m_error_message = "InternetOpen [" + url + "] error = " + Util::translateError();
+		LogManager::message(m_error_message);
 		dcassert(0);
 		return 0;
 	}
@@ -2656,7 +2661,8 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vecto
 	if (!hURL)
 	{
 		dcassert(0);
-		LogManager::message("InternetOpenUrl [" + url + "] error = " + Util::translateError());
+		m_error_message = "InternetOpenUrl [" + url + "] error = " + Util::translateError();
+		LogManager::message(m_error_message);
 		// TODO - залогировать коды ошибок дл€ статы
 		return 0;
 	}
@@ -2669,7 +2675,8 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vecto
 		if (!InternetReadFile(hURL, &p_dataOut[totalBytesRead], frameBufferSize, &l_BytesRead))
 		{
 			dcassert(0);
-			LogManager::message("InternetReadFile [" + url + "] error = " + Util::translateError());
+			m_error_message = "InternetReadFile [" + url + "] error = " + Util::translateError();
+			LogManager::message(m_error_message);
 			//// TODO - залогировать коды ошибок дл€ статы
 			return 0;
 		}
@@ -2685,6 +2692,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vecto
 				if (!reporter->ReportResultReceive(l_BytesRead))
 				{
 					isUserCancel = true;
+					m_error_message = "isUserCancel!";
 					break;
 				}
 			}

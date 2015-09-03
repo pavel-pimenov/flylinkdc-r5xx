@@ -1213,7 +1213,79 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 			}
 		}
 		
-		void insertGroupedItem(T* item, bool autoExpand, bool extra, bool p_use_image_callback)
+		int insertChildNonVisual(T* item, ParentPair* pp, bool p_auto_expand, bool p_use_visual, bool p_use_image_callback)
+		{
+			T* parent = nullptr;
+			int pos = -1;
+			if (pp->children.empty())
+			{
+				T* oldParent = pp->parent;
+				parent = oldParent->createParent();
+				if (parent != oldParent)
+				{
+					uniqueParent = true;
+					parents.erase(const_cast<K*>(&oldParent->getGroupCond()));
+					deleteItem(oldParent);
+					
+					ParentPair newPP = { parent };
+					pp = &(parents.insert(ParentMapPair(const_cast<K*>(&parent->getGroupCond()), newPP)).first->second);
+					
+					parent->parent = nullptr; // ensure that parent of this item is really NULL
+					oldParent->parent = parent;
+					pp->children.push_back(oldParent); // mark old parent item as a child
+					parent->m_hits++;
+					if (p_use_visual)
+					{
+						pos = insertItem(getSortPos(parent), parent, p_use_image_callback ? I_IMAGECALLBACK : parent->getImageIndex());
+					}
+				}
+				else
+				{
+					uniqueParent = false;
+					if (p_use_visual)
+					{
+						pos = findItem(parent);
+					}
+				}
+				
+				if (pos != -1)
+				{
+					if (p_auto_expand)
+					{
+						if (p_use_visual)
+							SetItemState(pos, INDEXTOSTATEIMAGEMASK(2), LVIS_STATEIMAGEMASK);
+						parent->collapsed = false;
+					}
+					else
+					{
+						if (p_use_visual)
+							SetItemState(pos, INDEXTOSTATEIMAGEMASK(1), LVIS_STATEIMAGEMASK);
+					}
+				}
+			}
+			else
+			{
+				parent = pp->parent;
+				if (p_use_visual)
+					pos = findItem(parent);
+			}
+			
+			pp->children.push_back(item);
+			parent->m_hits++;
+			item->parent = parent;
+			if (pos != -1 && p_use_visual)
+			{
+				if (!parent->collapsed)
+				{
+					insertChild(item, pos + static_cast<int>(pp->children.size()));
+				}
+				updateItem(pos); // TODO - упростить?
+			}
+			
+			return pos;
+		}
+		
+		int insertGroupedItem(T* item, bool autoExpand, bool extra, bool p_use_image_callback)
 		{
 			T* parent = nullptr;
 			ParentPair* pp = nullptr;
@@ -1231,67 +1303,14 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 				parents.insert(ParentMapPair(const_cast<K*>(&parent->getGroupCond()), newPP));
 				
 				parent->parent = nullptr; // ensure that parent of this item is really NULL
-				insertItem(getSortPos(parent), parent, p_use_image_callback ? I_IMAGECALLBACK : parent->getImageIndex());
-				return;
-			}
-			else if (pp->children.empty())
-			{
-				T* oldParent = pp->parent;
-				parent = oldParent->createParent();
-				if (parent != oldParent)
-				{
-					uniqueParent = true;
-					parents.erase(const_cast<K*>(&oldParent->getGroupCond()));
-					deleteItem(oldParent);
-					
-					ParentPair newPP = { parent };
-					pp = &(parents.insert(ParentMapPair(const_cast<K*>(&parent->getGroupCond()), newPP)).first->second);
-					
-					parent->parent = nullptr; // ensure that parent of this item is really NULL
-					oldParent->parent = parent;
-					pp->children.push_back(oldParent); // mark old parent item as a child
-					parent->m_hits++;
-					
-					pos = insertItem(getSortPos(parent), parent, p_use_image_callback ? I_IMAGECALLBACK : parent->getImageIndex());
-				}
-				else
-				{
-					uniqueParent = false;
-					pos = findItem(parent);
-				}
-				
-				if (pos != -1)
-				{
-					if (autoExpand)
-					{
-						SetItemState(pos, INDEXTOSTATEIMAGEMASK(2), LVIS_STATEIMAGEMASK);
-						parent->collapsed = false;
-					}
-					else
-					{
-						SetItemState(pos, INDEXTOSTATEIMAGEMASK(1), LVIS_STATEIMAGEMASK);
-					}
-				}
+				pos = insertItem(getSortPos(parent), parent, p_use_image_callback ? I_IMAGECALLBACK : parent->getImageIndex());
+				return pos;
 			}
 			else
 			{
-				parent = pp->parent;
-				pos = findItem(parent);
+				pos = insertChildNonVisual(item, pp, autoExpand, true, p_use_image_callback);
 			}
-			
-			pp->children.push_back(item);
-			parent->m_hits++;
-			item->parent = parent;
-			//item->updateMainItem();
-			
-			if (pos != -1)
-			{
-				if (!parent->collapsed)
-				{
-					insertChild(item, pos + static_cast<int>(pp->children.size()));
-				}
-				updateItem(pos);
-			}
+			return pos;
 		}
 		
 		void removeParent(T* parent)
@@ -1381,6 +1400,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 				delete ti;
 			}
 			const int l_Count = GetItemCount();
+			dcassert(l_Count == 0)
 			for (int i = 0; i < l_Count; i++)
 			{
 				T* si = getItemData(i);

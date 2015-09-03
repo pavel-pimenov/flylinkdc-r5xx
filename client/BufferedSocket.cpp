@@ -488,7 +488,7 @@ void BufferedSocket::threadRead()
 				// Special to autodetect nmdc connections...
 				string::size_type l_zpos = 0; //  warning C6246: Local declaration of 'pos' hides declaration of the same name in outer scope.
 				std::unique_ptr<char[]> buffer(new char[BUF_SIZE]);
-				l = line;
+				l = m_line;
 				// decompress all input data and store in l.
 				while (l_left)
 				{
@@ -554,13 +554,13 @@ void BufferedSocket::threadRead()
 #ifdef _DEBUG
 				else
 				{
-					const string l_log = "Skip MODE_LINE [after ZLIB] - FlylinkDC++ Destoy... l = " + l;
+					const string l_log = "Skip MODE_LINE [after ZLIB] - FlylinkDC++ Destroy... l = " + l;
 					LogManager::message(l_log);
 					
 				}
 #endif
 				// store remainder
-				line = l;
+				m_line = l;
 				
 				break;
 			}
@@ -585,13 +585,13 @@ void BufferedSocket::threadRead()
 				
 				
 				//======================================================================
-				l = line + string((char*)& m_inbuf[l_bufpos], l_left);
+				l = m_line + string((char*)& m_inbuf[l_bufpos], l_left);
 				//dcassert(isalnum(l[0]) || isalpha(l[0]) || isascii(l[0]));
 #if 0
 				int l_count_separator = 0;
 #endif
 #ifdef _DEBUG
-				//LogManager::message("MODE_LINE . line = " + line);
+				//LogManager::message("MODE_LINE . m_line = " + m_line);
 				//LogManager::message("MODE_LINE = " + l);
 #endif
 				if (!ClientManager::isShutdown())
@@ -651,7 +651,7 @@ void BufferedSocket::threadRead()
 				else
 				{
 #ifdef _DEBUG
-					const string l_log = "Skip MODE_LINE [normal] - FlylinkDC++ Destoy... l = " + l;
+					const string l_log = "Skip MODE_LINE [normal] - FlylinkDC++ Destroy... l = " + l;
 					LogManager::message(l_log);
 #endif
 					l.clear();
@@ -664,7 +664,7 @@ void BufferedSocket::threadRead()
 				{
 					l_left = 0;
 				}
-				line = l;
+				m_line = l;
 				break;
 			}
 			case MODE_DATA:
@@ -705,7 +705,7 @@ void BufferedSocket::threadRead()
 				break;
 		}
 	}
-	if (m_mode == MODE_LINE && line.size() > static_cast<size_t>(SETTING(MAX_COMMAND_LENGTH)))
+	if (m_mode == MODE_LINE && m_line.size() > static_cast<size_t>(SETTING(MAX_COMMAND_LENGTH)))
 	{
 		throw SocketException(STRING(COMMAND_TOO_LONG));
 	}
@@ -911,7 +911,9 @@ void BufferedSocket::write(const char* aBuf, size_t aLen)
 		return;
 	FastLock l(cs);
 	if (m_writeBuf.empty())
+	{
 		addTaskL(SEND_DATA, nullptr);
+	}
 #ifdef _DEBUG
 	if (aLen > 1)
 	{
@@ -945,7 +947,7 @@ void BufferedSocket::threadSendData()
 			return;
 		}
 		
-		int w = sock->wait(POLL_TIMEOUT, Socket::WAIT_READ | Socket::WAIT_WRITE);
+		const int w = sock->wait(POLL_TIMEOUT, Socket::WAIT_READ | Socket::WAIT_WRITE);
 		
 		if (w & Socket::WAIT_READ)
 		{
@@ -968,7 +970,7 @@ void BufferedSocket::threadSendData()
 bool BufferedSocket::checkEvents()
 {
 	// [!] application hangs http://www.flickr.com/photos/96019675@N02/9605525265/ http://code.google.com/p/flylinkdc/issues/detail?id=1245
-	while (m_state == RUNNING ? taskSem.wait(0) : taskSem.wait())
+	while (m_state == RUNNING ? m_taskSem.wait(0) : m_taskSem.wait())
 	{
 		pair<Tasks, std::unique_ptr<TaskData>> p;
 		{
@@ -1172,7 +1174,7 @@ void BufferedSocket::addTaskL(Tasks p_task, TaskData* p_data)
 {
 	dcassert(p_task == DISCONNECT || p_task == SHUTDOWN || p_task == UPDATED || sock.get());
 	m_tasks.push_back(make_pair(p_task, unique_ptr<TaskData>(p_data)));
-	taskSem.signal();
+	m_taskSem.signal();
 }
 
 /**

@@ -439,7 +439,6 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		ClientManager()
 		{
 			TimerManager::getInstance()->addListener(this);
-			//quickTick = GET_TICK();  [-] IRainman.
 			createMe(SETTING(PRIVATE_ID), SETTING(NICK)); // [+] IRainman fix.
 		}
 		

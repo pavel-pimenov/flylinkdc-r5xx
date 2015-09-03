@@ -85,39 +85,58 @@ bool UserConnection::isIPGuard(ResourceManager::Strings p_id_string, bool p_is_d
 #ifdef PPA_INCLUDE_IPFILTER
 	l_is_ip_guard = PGLoader::getInstance()->check(l_ip4);
 	string l_p2p_guard;
-	if (
-#ifndef FLYLINKDC_BETA  // TODO - возможно оставить и совсем
-	    BOOLSETTING(ENABLE_P2P_GUARD) &&
-#endif
-	    p_is_download_connection == false)
+	if (BOOLSETTING(ENABLE_P2P_GUARD) && p_is_download_connection == false)
 	{
 		l_p2p_guard = CFlylinkDBManager::getInstance()->is_p2p_guard(l_ip4);
 		if (!l_p2p_guard.empty())
 		{
-			if (BOOLSETTING(ENABLE_P2P_GUARD))
+			l_is_ip_guard = true;
+			l_p2p_guard = " [P2PGuard] " + l_p2p_guard + " [http://emule-security.org]";
+			if (getUser())
 			{
-				l_is_ip_guard = true;
-				l_p2p_guard = " [P2PGuard] " + l_p2p_guard + " [http://emule-security.org]";
-				if (getUser())
-				{
-					l_p2p_guard += "[User = " + getUser()->getLastNick() + "] [Hub:" + getHubUrl() + "] [Nick:" + ClientManager::findMyNick(getHubUrl()) + "]";
-				}
-				CFlyServerJSON::pushError(38, "(" + getRemoteIp() + ')' + l_p2p_guard);
+				l_p2p_guard += "[User = " + getUser()->getLastNick() + "] [Hub:" + getHubUrl() + "] [Nick:" + ClientManager::findMyNick(getHubUrl()) + "]";
 			}
+			CFlyServerJSON::pushError(38, "(" + getRemoteIp() + ')' + l_p2p_guard);
+		}
+	}
+	bool l_is_avdb_guard;
+	string l_avdb_guard;
+	if (BOOLSETTING(AVDB_BLOCK_CONNECTIONS))
+	{
+		const auto l_nick         = getUser()->getLastNick();
+		const auto l_bytes_shared = getUser()->getBytesShared();
+		l_is_avdb_guard = CFlylinkDBManager::getInstance()->is_avdb_guard(l_nick, l_bytes_shared, l_ip4);
+		if (l_is_avdb_guard)
+		{
+			l_is_ip_guard = true;
+			l_avdb_guard = " [AVDBGuard] ";
+			if (getUser())
+			{
+				l_avdb_guard += "[User = " + getUser()->getLastNick() + "] [Hub:" + getHubUrl() + "] [Nick:" + ClientManager::findMyNick(getHubUrl()) + "]";
+			}
+			CFlyServerJSON::pushError(43, "(" + getRemoteIp() + ')' + l_avdb_guard);
 		}
 	}
 	if (l_is_ip_guard)
 	{
-		error(STRING(YOUR_IP_IS_BLOCKED) + l_p2p_guard);
+		const auto l_block_message = l_p2p_guard + l_avdb_guard;
+		error(STRING(YOUR_IP_IS_BLOCKED) + l_block_message);
 		if (l_p2p_guard.empty())
 		{
-			getUser()->setFlag(User::PG_IPTRUST_BLOCK);
+			if (l_avdb_guard.empty())
+			{
+				getUser()->setFlag(User::PG_IPTRUST_BLOCK);
+			}
 		}
 		else
 		{
 			getUser()->setFlag(User::PG_P2PGUARD_BLOCK);
 		}
-		LogManager::message("IPFilter: " + ResourceManager::getString(p_id_string) + " (" + getRemoteIp() + ") " + l_p2p_guard);
+		if (!l_avdb_guard.empty())
+		{
+			getUser()->setFlag(User::PG_AVDB_BLOCK);
+		}
+		LogManager::message("IPFilter: " + ResourceManager::getString(p_id_string) + " (" + getRemoteIp() + ") " + l_block_message);
 		QueueManager::getInstance()->removeSource(getUser(), QueueItem::Source::FLAG_REMOVED);
 		return true;
 	}

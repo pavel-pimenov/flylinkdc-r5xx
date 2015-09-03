@@ -2925,7 +2925,7 @@ IDR_QUEUE               ICON                    "res\\Download-Queue.ico"
 IDR_FINISHED_DL         ICON                    "res\\Finished-Downloads.ico"
 IDR_UPLOAD_QUEUE        ICON                    "res\\Upload-Queue.ico"
 IDR_FINISHED_UL         ICON                    "res\\Finished-Uploads.ico"
-IDR_NETWORK_STATISTICS_ICON ICON                    "res\\Network-Statistics.ico"
+IDR_NETWORK_STATISTICS_ICON ICON                "res\\Network-Statistics.ico"
 IDC_WIFI_ROUTER_ICO     ICON                    "res\\wifi-router.ico"
 IDR_SEARCH              ICON                    "res\\Search.ico"
 IDR_ADLSEARCH           ICON                    "res\\ADLSearch.ico"
@@ -2979,6 +2979,8 @@ IDR_MODE_PASSIVE_ICO    ICON                    "res\\mode_passive.ico"
 IDR_MODE_OFFLINE_ICO    ICON                    "res\\mode_offline.ico"
 IDR_OFFLINE_ICO         ICON                    "res\\offline.ico"
 IDR_ONLINE_ICO          ICON                    "res\\online.ico"
+IDR_VIP_ICO_SCALOLAZ    ICON                    "res\\vip_scalolaz.ico"
+IDR_VIP_ICO_MILENAHUB   ICON                    "res\\vip_milenahub.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

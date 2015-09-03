@@ -650,8 +650,19 @@ for (auto i = g_block_ip_str.cbegin(); i != g_block_ip_str.cend(); ++i)
 	}
 }
 //======================================================================================================
-bool CFlyServerConfig::SyncAntivirusDB()
+void CFlyServerConfig::SyncAntivirusDBSafe()
 {
+	bool l_is_need_reload;
+	SyncAntivirusDB(l_is_need_reload);
+	if (l_is_need_reload)
+	{
+		SyncAntivirusDB(l_is_need_reload);
+	}
+}
+//======================================================================================================
+bool CFlyServerConfig::SyncAntivirusDB(bool& p_is_need_reload)
+{
+	p_is_need_reload = false;
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 #ifndef USE_FLYSERVER_LOCAL_FILE
   //dcassert(!g_antivirus_db_url.empty());
@@ -659,6 +670,7 @@ bool CFlyServerConfig::SyncAntivirusDB()
   {
   if(!g_antivirus_db_url.empty())
   {
+  const bool l_is_remove_priv_ip = false;
   bool l_is_change_version = false;
   uint64_t l_time_stamp = CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_TimeStampAntivirusDB);
   const auto l_start_sync = GET_TIME();
@@ -679,23 +691,27 @@ bool CFlyServerConfig::SyncAntivirusDB()
     l_http_downloader.m_get_http_header_item.push_back("Avdb-Version-Count");
 	l_http_downloader.m_get_http_header_item.push_back("Avdb-Total-Count");
 	l_http_downloader.m_get_http_header_item.push_back("Avdb-Record-Count");
+	if (l_is_remove_priv_ip)
+	    l_http_downloader.m_get_http_header_item.push_back("Avdb-Private-Count");
 
 	//TODO - пока не пашет 
 	// l_http_downloader.m_get_http_header_item.push_back("Content-Length");
 	
     l_cur_merge_counter = CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_MergeCounterAntivirusDB);
-    const string l_url = g_antivirus_db_url + 
+    string l_url = g_antivirus_db_url + 
                    "/avdb.php?do=load"
                    "&time=" + Util::toString(l_time_stamp) + 
                    "&vers=" + Util::toString(l_cur_merge_counter) +
                    "&cotime=0"
                    "&nosort=1"
                    "&copath=1";
+	if (l_is_remove_priv_ip)
+		l_url += "&nopriv=1";
     l_binary_data.clear();
 	l_result_size = l_http_downloader.getBinaryDataFromInet(l_url, l_binary_data, g_winet_connect_timeout / 2);
 	if(l_result_size == 0)
      { 
-		 const string l_error = "Antivirus DB error download. URL = " + l_url;
+		 const string l_error = "Antivirus DB error download. URL = " + l_url + " Error: " + l_http_downloader.getErroMessage();
 		 l_log.step(l_error);
 		 CFlyServerJSON::pushError(41, l_error);
 		 return false;
@@ -751,17 +767,21 @@ bool CFlyServerConfig::SyncAntivirusDB()
    }
   // Record-count-check
   const auto l_count_record = CFlylinkDBManager::getInstance()->get_antivirus_record_count();
-  const string l_error_count = " Antivirus DB record count (sqlite) = " + Util::toString(l_count_record);
+  const string l_error_count = "Antivirus DB record count (sqlite) = " + Util::toString(l_count_record);
   l_log.step(l_error_count);
   const auto l_record_count_remote = Util::toInt64(l_http_downloader.m_get_http_header_item[2]);
+  unsigned l_record_count_private_ip_remote = 0;
+  if (l_is_remove_priv_ip)
+	  l_record_count_private_ip_remote = Util::toInt(l_http_downloader.m_get_http_header_item[4]);
   dcassert(l_record_count_remote);
-  if (l_record_count_remote && l_count_record != l_record_count_remote)
+  if (l_record_count_remote && l_count_record != (l_record_count_remote - l_record_count_private_ip_remote))
   {
 	  dcassert(0);
-	  const string l_error = "Antivirus DB record count (remote) = " + Util::toString(l_record_count_remote) + " Force reload all record...";
+	  const string l_error = " (remote) = " + Util::toString(l_record_count_remote) + " reload all records!";
 	  l_log.step(l_error);
 	  CFlylinkDBManager::getInstance()->purge_antivirus_db(l_new_delete_counter, 0, false);
 	  CFlyServerJSON::pushError(41, l_error_count + ' ' + l_error);
+	  p_is_need_reload = true;
   }
   if (l_cur_merge_counter)
    {
@@ -948,7 +968,6 @@ static void initCIDPID(Json::Value& p_info)
 			  p_info["PID"] = ClientManager::getMyPID().toBase32();
 		}
 		p_info["Client"] = Text::fromT(g_full_user_agent);
-
 }
 //======================================================================================================
 bool CFlyServerJSON::login()
@@ -961,7 +980,7 @@ bool CFlyServerJSON::login()
 		CFlyLog l_log("[fly-login]");
 		Json::Value  l_root;   
 		Json::Value& l_info = l_root["login"];
-    initCIDPID(l_info);
+        initCIDPID(l_info);
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION
 		std::vector<std::string> l_lost_ip_array;
 		CFlylinkDBManager::getInstance()->get_lost_location(l_lost_ip_array);
@@ -999,7 +1018,7 @@ bool CFlyServerJSON::login()
 }
 static void getDiskAndMemoryStat(Json::Value& p_info)
 {
-    initCIDPID(p_info);
+	    initCIDPID(p_info);
 		p_info["OS"] = CompatibilityManager::getFormatedOsVersion();
 		p_info["CPUCount"] = CompatibilityManager::getProcessorsCount();
 		{
@@ -1116,7 +1135,7 @@ bool CFlyServerJSON::pushTestPort(
 {
 		CFlyLog l_log("[fly-test-port]");
 		Json::Value  l_info;   
-    initCIDPID(l_info);
+        initCIDPID(l_info);
 		if(p_timer_value)
 		{
 			l_info["Interval"] = p_timer_value;
@@ -1206,7 +1225,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 	syslog(LOG_USER | LOG_INFO, "%s %s %s [%s]", l_cid.c_str(), l_pid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
 }
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 41 (36 - устарел)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 44 (36 - устарел)
 {
 	bool l_is_send = false;
 	bool l_is_error = false;
@@ -1225,7 +1244,7 @@ bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Co
 		Lock l(g_cs_error_report);
 		if (CFlyServerConfig::isErrorLog(p_error_code))
 		{
-			CFlyLog l_log("[fly-error]");
+			CFlyLog l_log("[fly-message]");
 			l_log.step(p_error);
 			if (p_error != g_last_error_string)
 			{
@@ -1472,10 +1491,7 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 			           // ≈сли не удалось отправить или отключено/отложено. 
 			           // собираем стату локально (чтобы в будущем построить аналитику на клиенте)
 		{
-		if(BOOLSETTING(USE_FLY_SERVER_STATICTICS_SEND))
-		  {
-			  CFlylinkDBManager::getInstance()->push_json_statistic(l_post_query, "fly-stat", true);
-		  }
+			  CFlylinkDBManager::getInstance()->push_json_statistic(l_post_query, "fly-stat", true);		  
         }
 		return l_is_flush_error;
 }
@@ -1742,6 +1758,7 @@ bool CFlyServerJSON::sendAntivirusCounter(bool p_is_only_db_if_network_error)
 		l_is_error = login();
 		std::string l_post_query;
 			Json::Value  l_root;
+			initCIDPID(l_root);
 			Json::Value& l_arrays = l_root["array"];
 			int l_count_tth = 0;
 			for (auto i = l_copy_array.cbegin(); i != l_copy_array.cend(); ++i)
@@ -1763,7 +1780,7 @@ bool CFlyServerJSON::sendAntivirusCounter(bool p_is_only_db_if_network_error)
 						if (!j->m_ip_from_user.empty())
 							l_file_array_item["ip_user"] = j->m_ip_from_user;
 					}
-					if (j->m_hub_url.empty()) // ѕишем им€ если адреса не оказалось.
+					if (j->m_hub_url.empty() && !j->m_hub_name.empty()) // ѕишем им€ если адреса не оказалось.
 						l_file_array_item["hub"] = j->m_hub_name;
 					if (!j->m_hub_url.empty())
 						l_file_array_item["hub_url"] = j->m_hub_url;
@@ -1788,10 +1805,7 @@ bool CFlyServerJSON::sendAntivirusCounter(bool p_is_only_db_if_network_error)
 		}
 			if (l_is_error || p_is_only_db_if_network_error == true)
 		{
-			if (!l_post_query.empty() && BOOLSETTING(USE_FLY_SERVER_STATICTICS_SEND))
-			{
 				CFlylinkDBManager::getInstance()->push_json_statistic(l_post_query, "fly-antivirus", false);
-			}
 		}
 	}
 	//
@@ -1805,6 +1819,7 @@ bool CFlyServerJSON::sendAntivirusCounter(bool p_is_only_db_if_network_error)
 		l_is_error = login();
 		std::string  l_post_query;
 		Json::Value  l_root;
+		initCIDPID(l_root);
 		Json::Value& l_arrays = l_root["array_file_list"];
 		int l_count_record = 0;
 		for (auto i = l_copy_array.cbegin(); i != l_copy_array.cend(); ++i)
@@ -1852,10 +1867,7 @@ bool CFlyServerJSON::sendAntivirusCounter(bool p_is_only_db_if_network_error)
 		}
 		if (l_is_error || p_is_only_db_if_network_error == true)
 		{
-			if (!l_post_query.empty() && BOOLSETTING(USE_FLY_SERVER_STATICTICS_SEND))
-			{
 				CFlylinkDBManager::getInstance()->push_json_statistic(l_post_query, "fly-antivirus", false);
-			}
 		}
 	}
 	return l_is_error;
@@ -1896,12 +1908,9 @@ bool CFlyServerJSON::sendDownloadCounter(bool p_is_only_db_if_network_error)
 	  l_post_query.clear();
      }
 	if (l_is_error || p_is_only_db_if_network_error == true)
-  {
-	  if (!l_post_query.empty() && BOOLSETTING(USE_FLY_SERVER_STATICTICS_SEND))
-	  {
+    {
 		  CFlylinkDBManager::getInstance()->push_json_statistic(l_post_query, "fly-download", false);
-	  }
-  }
+    }
 	}
    // TODO - словить исключение и если нужно сохранить l_copy_array в базе.
    // чтобы не потер€ть счетчики.

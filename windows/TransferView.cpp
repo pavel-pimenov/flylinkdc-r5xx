@@ -66,7 +66,7 @@ int TransferView::columnIndexes[] =
 int TransferView::columnSizes[] =
 {
 	150, // COLUMN_USER
-	5,   // COLUMN_ANTIVIRUS
+	50,  // COLUMN_ANTIVIRUS
 	150, // COLUMN_HUB
 	250, // COLUMN_STATUS
 	75,  // COLUMN_TIMELEFT
@@ -128,6 +128,11 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	m_active_passive_tooltip.SetDelayTime(TTDT_AUTOPOP, 15000);
 	dcassert(m_active_passive_tooltip.IsWindow());
 	
+	
+	m_avdb_block_tooltip.Create(m_hWnd, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP /*| TTS_BALLOON*/, WS_EX_TOPMOST);
+	m_avdb_block_tooltip.SetDelayTime(TTDT_AUTOPOP, 15000);
+	dcassert(m_avdb_block_tooltip.IsWindow());
+	
 	ResourceLoader::LoadImageList(IDR_ARROWS, m_arrows, 16, 16);
 	ResourceLoader::LoadImageList(IDR_TSPEEDS, m_speedImages, 16, 16);
 	ResourceLoader::LoadImageList(IDR_TSPEEDS_BW, m_speedImagesBW, 16, 16);
@@ -180,6 +185,18 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	                               IDC_AUTO_PASSIVE_MODE);
 	m_AutoPassiveModeButton.SetIcon(WinUtil::g_hClockIcon);
 	m_AutoPassiveModeButton.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
+	
+	
+	m_AVDB_BlockButton.Create(m_hWnd,
+	                          rcDefault,
+	                          NULL,
+	                          //WS_CHILD| WS_VISIBLE | BS_ICON | BS_AUTOCHECKBOX| BS_PUSHLIKE | BS_FLAT
+	                          WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_ICON | /*BS_AUTOCHECKBOX | */BS_FLAT
+	                          , 0,
+	                          IDC_AVDB_BLOCK_CONNECTIONS);
+	m_AVDB_BlockButton.SetIcon(*WinUtil::g_HubVirusIcon[2]);
+	m_AVDB_BlockButton.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
+	
 	
 	//purgeContainer.SubclassWindow(ctrlPurge.m_hWnd);
 	setButtonState();
@@ -263,6 +280,9 @@ void TransferView::setButtonState()
 	
 	m_AutoPassiveModeButton.SetCheck(BOOLSETTING(AUTO_PASSIVE_INCOMING_CONNECTIONS) ? BST_CHECKED : BST_UNCHECKED);
 	m_active_passive_tooltip.AddTool(m_AutoPassiveModeButton, ResourceManager::SETTINGS_FIREWALL_AUTO_PASSIVE);
+	
+	m_AVDB_BlockButton.SetCheck(BOOLSETTING(AVDB_BLOCK_CONNECTIONS) ? BST_CHECKED : BST_UNCHECKED);
+	m_avdb_block_tooltip.AddTool(m_AVDB_BlockButton, ResourceManager::SETTINGS_FIREWALL_BLOCK_DOWNLOAD_FROM_AVDB_USERS);
 	UpdateLayout();
 }
 void TransferView::prepareClose()
@@ -284,6 +304,20 @@ void TransferView::prepareClose()
 	//WinUtil::UnlinkStaticMenus(transferMenu); // !SMT!-UI
 }
 
+
+LRESULT TransferView::onAVDBBlockConnections(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	if (m_AVDB_BlockButton.GetCheck() == BST_CHECKED)
+	{
+		SettingsManager::getInstance()->set(SettingsManager::AVDB_BLOCK_CONNECTIONS, 1);
+	}
+	else
+	{
+		SettingsManager::getInstance()->set(SettingsManager::AVDB_BLOCK_CONNECTIONS, 0);
+	}
+	setButtonState();
+	return 0;
+}
 LRESULT TransferView::onForceAutoPassiveMode(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	if (m_AutoPassiveModeButton.GetCheck() == BST_CHECKED)
@@ -318,8 +352,9 @@ void TransferView::UpdateLayout()
 	GetClientRect(&rc);
 	if (BOOLSETTING(SHOW_TRANSFERVIEW_TOOLBAR))
 	{
-		m_PassiveModeButton.MoveWindow(2, 2, 45, 24);
 		m_AutoPassiveModeButton.MoveWindow(2, 26, 45, 24);
+		m_PassiveModeButton.MoveWindow(2, 2,  45, 24);
+		m_AVDB_BlockButton.MoveWindow(2, 48, 45, 24);
 		rc.left += 45;
 	}
 	ctrlTransfers.MoveWindow(&rc);
@@ -936,11 +971,10 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (l_ii->download ? SETT
 						l_shift += 16;
 						// TODO - drawIcons
 					}
+					ctrlTransfers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc3);
+					ctrlTransfers.SetItemFilled(cd, rc3, cd->clrText, cd->clrText);
 					if (!l_stat.empty())
 					{
-						ctrlTransfers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc3);
-						ctrlTransfers.SetItemFilled(cd, rc3, cd->clrText, cd->clrText);
-						
 						LONG top = rc3.top + (rc3.Height() - 15 /*WinUtil::getTextHeight(cd->nmcd.hdc)*/) / 2;
 						if (l_shift)
 						{
@@ -1275,6 +1309,10 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 								ui.updateMask &= ~UpdateInfo::MASK_STATUS_STRING;
 								ui.updateMask &= ~UpdateInfo::MASK_TIMELEFT;
 							}
+							else
+							{
+								//dcassert(0);
+							}
 						}
 						
 						/* if target has changed, regroup the item */
@@ -1291,7 +1329,9 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 						}
 						else if (ii == parent || !parent->collapsed)
 						{
-							updateItem(ctrlTransfers.findItem(ii), ui.updateMask);
+							const auto l_pos = ctrlTransfers.findItem(ii);
+							//dcassert(l_pos == pos);
+							updateItem(l_pos, ui.updateMask);
 						}
 						break;
 					}
@@ -1566,7 +1606,7 @@ void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueIt
 	dcassert(!ClientManager::isShutdown());
 	UpdateInfo* ui = new UpdateInfo(aCqi->getHintedUser(), aCqi->isDownload()); // [!] IRainman fix.
 #ifdef PPA_INCLUDE_IPFILTER
-	if (ui->m_hintedUser.user->isAnySet(User::PG_IPTRUST_BLOCK | User::PG_IPGUARD_BLOCK | User::PG_P2PGUARD_BLOCK))
+	if (ui->m_hintedUser.user->isAnySet(User::PG_IPTRUST_BLOCK | User::PG_IPGUARD_BLOCK | User::PG_P2PGUARD_BLOCK | User::PG_AVDB_BLOCK))
 	{
 		string l_status = STRING(CONNECTION_BLOCKED);
 		if (ui->m_hintedUser.user->isSet(User::PG_IPTRUST_BLOCK))
@@ -1581,6 +1621,11 @@ void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueIt
 		{
 			l_status += " [P2PGuard.ini]";
 		}
+		if (ui->m_hintedUser.user->isSet(User::PG_AVDB_BLOCK))
+		{
+			l_status += " [Antivirus DB]";
+		}
+		
 		ui->setStatusString(Text::toT(l_status + " [" + aReason + "]"));
 	}
 	else
@@ -1824,7 +1869,7 @@ void TransferView::on(UploadManagerListener::Tick, const UploadArray& ul) noexce
 	}
 }
 
-void TransferView::onTransferComplete(const Transfer* aTransfer, const bool download, const string& aFileName, const bool isTree)
+void TransferView::onTransferComplete(const Transfer* aTransfer, const bool download, const string& aFileName)
 {
 #ifdef _DEBUG
 	LogManager::message("Transfer complete " + aTransfer->getUserConnectionToken());
@@ -1832,11 +1877,18 @@ void TransferView::onTransferComplete(const Transfer* aTransfer, const bool down
 	UpdateInfo* ui = new UpdateInfo(aTransfer->getHintedUser(), download); // [!] IRainman fix.
 	
 	ui->setStatus(ItemInfo::STATUS_WAITING);
-	ui->setPos(0);
-	ui->setStatusString(download ? TSTRING(DOWNLOAD_FINISHED_IDLE) : TSTRING(UPLOAD_FINISHED_IDLE));
+	if (aTransfer->getType() == Transfer::TYPE_FULL_LIST)
+	{
+		ui->setPos(aTransfer->getSize());
+		ui->setActual(aTransfer->getSize());
+	}
+	else
+	{
+		ui->setPos(0);
+	}
 	ui->setRunning(0);
-	
-	if (!download && !isTree)
+	ui->setStatusString(download ? TSTRING(DOWNLOAD_FINISHED_IDLE) : TSTRING(UPLOAD_FINISHED_IDLE));
+	if (!download && !aTransfer->getType() != Transfer::TYPE_TREE)
 	{
 		SHOW_POPUP(POPUP_UPLOAD_FINISHED,
 		           TSTRING(FILE) + _T(": ") + Text::toT(aFileName) + _T('\n') +

@@ -162,6 +162,7 @@ const string SettingsManager::g_settingTags[] =
 	// Ints //
 	
 	"IncomingConnections",
+	"AvdbBlcokConnections",
 	"AutoPassiveIncomingConnections",
 	"ForcePassiveIncomingConnections", "InPort", "Slots", "AutoFollow", "ClearSearch",
 	"BackgroundColor", "TextColor", "ShareHidden",
@@ -1292,6 +1293,7 @@ void SettingsManager::setDefaults()
 	setDefault(INT_PREVIEW_CLIENT_PATH, "C:\\Program Files\\SMPlayer\\smplayer.exe");  // [+] SSA
 	setDefault(INT_PREVIEW_USE_VIDEO_SCROLL, TRUE);
 	setDefault(INT_PREVIEW_START_CLIENT, TRUE);
+	setDefault(AVDB_BLOCK_CONNECTIONS, TRUE);
 #ifdef NIGHTORION_USE_STATISTICS_REQUEST
 	setDefault(SETTINGS_STATISTICS_ASK, TRUE);
 #endif
@@ -1404,12 +1406,16 @@ void SettingsManager::load(const string& aFileName)
 	}
 	
 	if (SETTING(PRIVATE_ID).length() != 39 || CID(SETTING(PRIVATE_ID)).isZero())
+	{
 		set(PRIVATE_ID, CID::generate().toBase32());
+	}
 #ifdef STRONG_USE_DHT
 	if (SETTING(DHT_KEY).length() != 39 || CID(SETTING(DHT_KEY)).isZero())
+	{
 		set(DHT_KEY, CID::generate().toBase32());
+	}
 #endif
-		
+	
 	const string l_config_version = get(CONFIG_VERSION, false);
 	const int l_version = Util::toInt(l_config_version); // [!] FlylinkDC used revision version (not kernel version!)
 	

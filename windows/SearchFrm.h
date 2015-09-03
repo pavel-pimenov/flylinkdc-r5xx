@@ -36,9 +36,9 @@
 #include "../FlyFeatures/GradientLabel.h"
 #include "../FlyFeatures/flyServer.h"
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
 #define FLYLINKDC_USE_TREE_SEARCH
-#endif
+//#endif
 
 #define SEARCH_MESSAGE_MAP 6
 #define SHOWUI_MESSAGE_MAP 7
@@ -671,7 +671,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		CComboBox ctrlMode;
 		CComboBox ctrlSizeMode;
 		CComboBox ctrlFiletype;
-		CImageList searchTypes;
+		CImageList m_searchTypesImageList;
 		CButton ctrlPurge;
 		CButton ctrlPauseSearch;
 		CButton ctrlDoSearch;
@@ -740,12 +740,16 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		};
 		
 		//CContainedWindow        m_treeContainer;
-		CTreeViewCtrl           m_ctrlTree;
+		CTreeViewCtrl           m_ctrlSearchFilterTree;
 		HTREEITEM   m_RootTreeItem;
 		HTREEITEM   m_CurrentTreeItem;
-		HTREEITEM               m_TypeTreeItem[e_Last];
 		std::unordered_map<string, HTREEITEM>   m_tree_ext_map;
+		std::unordered_map<HTREEITEM, std::vector<std::pair<SearchInfo*, string > > > m_filter_map;
 		std::unordered_map<Search::TypeModes, HTREEITEM> m_tree_type;
+		bool m_is_expand_tree;
+		bool is_filter_item(const SearchInfo* si);
+		void clear_tree_filter_contaners();
+		void set_tree_item_status(const SearchInfo* p_si);
 #endif
 		//OMenu resultsMenu;
 		OMenu targetMenu;

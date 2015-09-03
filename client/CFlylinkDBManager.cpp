@@ -171,7 +171,7 @@ string CFlylinkDBManager::get_db_size_info()
 	string l_message;
 	const auto l_path = Util::getConfigPath();
 	dcassert(!l_path.empty());
-	if (!l_path.empty())
+	if (l_path.size() > 2)
 	{
 		const char* l_rnrn = "\r\n";
 		l_message = "Database locations:\r\n";
@@ -183,6 +183,21 @@ string CFlylinkDBManager::get_db_size_info()
 			const auto l_size = getFileSize(Text::toT(l_path) + Text::toT(g_db_file_names[i]));
 			l_message += " (" + Util::formatBytes(l_size) + ")";
 			l_message += l_rnrn;
+		}
+		
+		__int64 l_free_space = 0;
+		char l_disk[3] = { 0 };
+		l_disk[0] = l_path[0];
+		l_disk[1] = l_path[1];
+		if (GetDiskFreeSpaceExA(l_disk, NULL, (PULARGE_INTEGER)&l_free_space, NULL))
+		{
+			l_message += l_rnrn;
+			l_message = "Free space:" + Util::formatBytes(l_free_space);
+			l_message += l_rnrn;
+		}
+		else
+		{
+			dcassert(0);
 		}
 	}
 	return l_message;
@@ -1214,19 +1229,22 @@ void CFlylinkDBManager::push_dc_command_statistic(const std::string& p_hub, cons
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 void CFlylinkDBManager::push_json_statistic(const std::string& p_value, const string& p_type, bool p_is_stat_server)
 {
-	Lock l(m_cs);
-	try
+	if (!p_value.empty() && BOOLSETTING(USE_FLY_SERVER_STATICTICS_SEND))
 	{
-		m_insert_statistic_json.init(m_flySQLiteDB, "insert into stat_db.fly_statistic(stat_value_json,stat_time,type) values(?,strftime('%s','now','localtime'), ?)");
-		// TODO stat_time пока не используется, но пусть будет :)
-		m_insert_statistic_json->bind(1, p_value, SQLITE_STATIC);
-		m_insert_statistic_json->bind(2, p_type, SQLITE_STATIC);
-		m_insert_statistic_json->executenonquery();
-		++m_count_json_stat;
-	}
-	catch (const database_error& e)
-	{
-		errorDB("SQLite - push_json_statistic: " + e.getError());
+		Lock l(m_cs);
+		try
+		{
+			m_insert_statistic_json.init(m_flySQLiteDB, "insert into stat_db.fly_statistic(stat_value_json,stat_time,type) values(?,strftime('%s','now','localtime'), ?)");
+			// TODO stat_time пока не используется, но пусть будет :)
+			m_insert_statistic_json->bind(1, p_value, SQLITE_STATIC);
+			m_insert_statistic_json->bind(2, p_type, SQLITE_STATIC);
+			m_insert_statistic_json->executenonquery();
+			++m_count_json_stat;
+		}
+		catch (const database_error& e)
+		{
+			errorDB("SQLite - push_json_statistic: " + e.getError());
+		}
 	}
 }
 //========================================================================================================
@@ -1569,6 +1587,21 @@ string CFlylinkDBManager::load_country_locations_p2p_guard_from_db(uint32_t p_ip
 	return l_p2p_guard_text;
 }
 //========================================================================================================
+bool CFlylinkDBManager::is_avdb_guard(const string& p_nick, int64_t p_share, const uint32_t& p_ip)
+{
+	dcassert(Util::isPrivateIp(p_ip) == false);
+	dcassert(p_ip && p_ip != INADDR_NONE);
+	FastLock l(m_virus_cs);
+	bool l_is_share_virus = p_share && m_virus_share.find(p_share) != m_virus_share.end();
+	bool l_is_ip_virus    = m_virus_ip4.find(p_ip) != m_virus_ip4.end();
+	if (l_is_ip_virus || l_is_share_virus ||
+	        (m_virus_user.find(p_nick) != m_virus_user.end() && l_is_share_virus || l_is_ip_virus))
+	{
+		return true;
+	}
+	return false;
+}
+//========================================================================================================
 string CFlylinkDBManager::is_p2p_guard(const uint32_t& p_ip)
 {
 	dcassert(Util::isPrivateIp(p_ip) == false);
@@ -1807,7 +1840,11 @@ int CFlylinkDBManager::sync_antivirus_db(const string& p_antivirus_db, const uin
 	int l_count_new_user = 0;
 	if (BOOLSETTING(AUTOUPDATE_ANTIVIRUS_DB))
 	{
+		CFlyBusy l_disable_log(g_DisableSQLtrace);
 		Lock l(m_cs); // TODO - Вернул лок - не понятно почему-то иногда падает
+#ifdef _DEBUG
+		std::unordered_set<string> l_dup_nick_ip;
+#endif
 		try
 		{
 			sqlite3_transaction l_trans(m_flySQLiteDB);
@@ -1860,6 +1897,15 @@ int CFlylinkDBManager::sync_antivirus_db(const string& p_antivirus_db, const uin
 				l_sql->bind(2, l_share);
 				l_sql->bind(3, int64_t(l_boost_ip4.to_ulong()));
 				l_sql->bind(4, l_virus_path, SQLITE_STATIC);
+#ifdef _DEBUG
+				const auto l_key = l_nick + " + " + l_boost_ip4.to_string();
+				const auto l_res = l_dup_nick_ip.insert(l_key);
+				if (l_res.second == false)
+				{
+					dcassert(0);
+					LogManager::message("antivirus_db.fly_suspect_user duplicate user:" + l_key);
+				}
+#endif
 				l_sql->executenonquery();
 				{
 					FastLock lf(m_virus_cs);

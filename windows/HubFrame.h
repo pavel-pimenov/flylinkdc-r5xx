@@ -490,6 +490,10 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		void doConnected();
 	public:
 		static void addDupeUsersToSummaryMenu(ClientManager::UserParams& p_param); // !SMT!-UI
+		uint8_t getVIPIconIndex() const
+		{
+			return m_client->getVIPIconIndex();
+		}
 		bool isFlySupportHub() const
 		{
 			return m_client->isFlySupportHub();

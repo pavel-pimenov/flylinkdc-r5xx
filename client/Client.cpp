@@ -49,6 +49,7 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 	m_is_hide_share(0),
 	m_is_override_name(false),
 	m_is_fly_support_hub(false),
+	m_vip_icon_index(0),
 	m_is_suppress_chat_and_pm(false),
 	m_isAutobanAntivirusIP(false),
 	m_isAutobanAntivirusNick(false)
@@ -75,15 +76,25 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 			}
 		}
 	}
-	if (l_lower_url.find("dc.fly-server.ru") != string::npos ||
-	        l_lower_url.find("adcs.flylinkdc.com") != string::npos
-#ifdef _DEBUG
-	        || l_lower_url.find("scalolaz.no-ip.org") != string::npos
-#endif
-	   )
+	static const char* g_vip_icons_array[] =   // VIP_ICON
+	{
+		"scalolaz.no-ip.org",
+		"dc.milenahub.ru"
+	};
+	if (l_lower_url.find("dc.fly-server.ru") != string::npos || l_lower_url.find("adcs.flylinkdc.com") != string::npos)
 	{
 		m_is_fly_support_hub = true;
 	}
+	m_vip_icon_index = 0;
+	for (int i = 0; i < _countof(g_vip_icons_array); ++i)
+	{
+		if (l_lower_url.find(g_vip_icons_array[i]) != string::npos)
+		{
+			m_vip_icon_index = i + 1;
+			break;
+		}
+	}
+	
 	m_myOnlineUser = new OnlineUser(UserPtr(l_my_user), *this, 0); // [+] IRainman fix.
 	m_hubOnlineUser = new OnlineUser(UserPtr(l_hub_user), *this, AdcCommand::HUB_SID); // [+] IRainman fix.
 	
@@ -632,8 +643,8 @@ void Client::on(Second, uint64_t aTick) noexcept
 	}
 	else if (state == STATE_IDENTIFY && (getLastActivity() + 30000) < aTick) // (c) PPK http://www.czdc.org
 	{
-		if(m_client_sock)
- 		   m_client_sock->disconnect(false);
+		if (m_client_sock)
+			m_client_sock->disconnect(false);
 	}
 	if (m_searchQueue.m_interval == 0)
 	{
