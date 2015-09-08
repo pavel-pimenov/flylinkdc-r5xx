@@ -79,7 +79,9 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 	static const char* g_vip_icons_array[] =   // VIP_ICON
 	{
 		"scalolaz.no-ip.org",
-		"dc.milenahub.ru"
+		"dc.milenahub.ru",
+		"stealthhub.ru",
+		"keepclear.org"
 	};
 	if (l_lower_url.find("dc.fly-server.ru") != string::npos || l_lower_url.find("adcs.flylinkdc.com") != string::npos)
 	{

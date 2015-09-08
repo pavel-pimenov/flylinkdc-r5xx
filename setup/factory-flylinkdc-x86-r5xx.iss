@@ -12,7 +12,7 @@ WizardImageFile=setup-1.bmp
 WizardSmallImageFile=setup-2.bmp
 
 [Files]
-Source: "..\PortalBrowser\dcblog.xml"; DestDir: "{app}\PortalBrowser\XMLUpdate";  Flags: ignoreversion; AfterInstall: MyAfterInstall
+Source: "..\PortalBrowser\PortalBrowser.xml"; DestDir: "{app}\PortalBrowser";  Flags: ignoreversion; 
 Source: "..\compiled\PortalBrowser\dcBlog\icons_large.bmp"; DestDir: "{app}\PortalBrowser\dcBlog";  Flags: ignoreversion
 Source: "..\compiled\PortalBrowser\dcBlog\icons_small.bmp"; DestDir: "{app}\PortalBrowser\dcBlog";  Flags: ignoreversion
 

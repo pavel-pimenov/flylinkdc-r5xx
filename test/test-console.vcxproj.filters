@@ -7,6 +7,9 @@
       <Filter>boost</Filter>
     </ClCompile>
     <ClCompile Include="..\client\CFlyProfiler.cpp" />
+    <ClCompile Include="..\boost\libs\iostreams\src\mapped_file.cpp">
+      <Filter>boost</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />

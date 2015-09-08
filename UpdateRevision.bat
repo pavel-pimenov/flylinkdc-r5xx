@@ -2,7 +2,7 @@
 call svn update
 
 set NOCOMMIT=
-set VERSION_NUM=502
+set VERSION_NUM=503
 set BETA_STATE=
 set BETA_NUM=
 

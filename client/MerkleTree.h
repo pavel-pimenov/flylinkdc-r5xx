@@ -48,7 +48,7 @@ class MerkleTree
 		static const size_t BASE_BLOCK_SIZE = baseBlockSize;
 		
 		typedef HashValue<Hasher> MerkleValue;
-		typedef vector<MerkleValue> MerkleList;
+		typedef std::vector<MerkleValue> MerkleList;
 		
 		MerkleTree() : fileSize(0), blockSize(BASE_BLOCK_SIZE) { }
 		MerkleTree(int64_t aBlockSize) : fileSize(0), blockSize(aBlockSize) { }
@@ -274,8 +274,8 @@ class MerkleTree
 		}
 		
 	protected:
-		typedef pair<MerkleValue, int64_t> MerkleBlock;
-		typedef vector<MerkleBlock> MBList;
+		typedef std::pair<MerkleValue, int64_t> MerkleBlock;
+		typedef std::vector<MerkleBlock> MBList;
 		
 		MBList blocks;
 		

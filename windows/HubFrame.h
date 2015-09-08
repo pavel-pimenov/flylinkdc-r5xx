@@ -277,6 +277,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		}
 		
 		static void timer_process_all();
+		static void rotation_virus_skull();
 		
 	private:
 		enum FilterModes
@@ -307,7 +308,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		
 		virtual void doDestroyFrame();
 		typedef boost::unordered_map<string, HubFrame*> FrameMap;
-		static CriticalSection g_frames_cs; // TODO - возможно он не нужен
+		static CriticalSection g_frames_cs;
 		static FrameMap g_frames;
 		void timer_process_internal();
 		
@@ -545,8 +546,11 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		
 		bool m_isUpdateColumnsInfoProcessed;
 		bool m_is_red_virus_icon_index;
+		bool m_is_ddos_detect;
 		uint8_t m_virus_icon_index;
-		void flickerVirusIcon();
+		static int g_last_red_virus_icon_index;
+		bool flickerVirusIcon();
+		void setCustomVIPIcon();
 		size_t m_ActivateCounter;
 		
 		void updateSplitterPosition(const FavoriteHubEntry *p_fhe);

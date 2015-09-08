@@ -374,6 +374,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 	public:
 		void prepareClose();
 		void shutdown();
+		static void connectToFlySupportHub();
 	private:
 		/** Used during loading to prevent saving. */
 		

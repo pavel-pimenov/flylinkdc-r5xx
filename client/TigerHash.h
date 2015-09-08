@@ -32,6 +32,7 @@
 #ifndef DCPLUSPLUS_DCPP_TIGER_HASH_H
 #define DCPLUSPLUS_DCPP_TIGER_HASH_H
 
+#include "compiler.h"
 class TigerHash
 {
 	public:

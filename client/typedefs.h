@@ -25,7 +25,9 @@
 #include "forward.h"
 #include "noexcept.h"
 
-typedef wstring tstring;
+using std::wstring;
+
+typedef std::wstring tstring;
 typedef std::vector<string> StringList;
 typedef std::pair<string, string> StringPair;
 typedef std::vector<StringPair> StringPairList;

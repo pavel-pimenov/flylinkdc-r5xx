@@ -201,6 +201,8 @@
 #define IDR_SKULL2_RED_ICO              312
 #define IDR_VIP_ICO_SCALOLAZ            313
 #define IDR_VIP_ICO_MILENAHUB           314
+#define IDR_VIP_ICO_STEALTHHUB          315
+#define IDR_VIP_ICO_KEEPCLEAR           316
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
 #define IDC_COPY_HUB                    1002

@@ -998,19 +998,7 @@ void FavoriteManager::load()
 #ifdef USE_SUPPORT_HUB
 	if (BOOLSETTING(CONNECT_TO_SUPPORT_HUB)) // [+] SSA
 	{
-		if (!g_SupportsHubExist)
-		{
-			g_SupportsHubExist = true;
-			FavoriteHubEntry* e = new FavoriteHubEntry();
-			e->setName(STRING(SUPPORTS_SERVER_DESC));
-			e->setConnect(true);
-			e->setDescription(STRING(SUPPORTS_SERVER_DESC));
-			e->setServer(CFlyServerConfig::g_support_hub);
-			{
-				webrtc::WriteLockScoped l(*g_csHubs);
-				g_favoriteHubs.push_back(e);
-			}
-		}
+		connectToFlySupportHub();
 	}
 #endif // USE_SUPPORT_HUB
 	
@@ -1061,7 +1049,22 @@ void FavoriteManager::load()
 	}
 #endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 }
-
+void FavoriteManager::connectToFlySupportHub()
+{
+	if (!g_SupportsHubExist)
+	{
+		g_SupportsHubExist = true;
+		FavoriteHubEntry* e = new FavoriteHubEntry();
+		e->setName(STRING(SUPPORTS_SERVER_DESC));
+		e->setConnect(true);
+		e->setDescription(STRING(SUPPORTS_SERVER_DESC));
+		e->setServer(CFlyServerConfig::g_support_hub);
+		{
+			webrtc::WriteLockScoped l(*g_csHubs);
+			g_favoriteHubs.push_back(e);
+		}
+	}
+}
 bool FavoriteManager::replaceDeadHub()
 {
 	bool l_result = false;
@@ -1125,9 +1128,14 @@ void FavoriteManager::load(SimpleXML& aXml
 			}
 			aXml.resetCurrentChild();
 			g_AllHubUrls.clear();
+			bool l_is_fly_hub_exists = false;
+			unsigned l_count_active_ru_hub = 0;
+			const unsigned l_limit_russian_hub = 1;
 			while (aXml.findChild("Hub"))
 			{
 				const string l_CurrentServerUrl = Text::toLower(Util::formatDchubUrl(aXml.getChildAttrib("Server")));
+				if (l_is_fly_hub_exists == false && l_CurrentServerUrl == CFlyServerConfig::g_support_hub)
+					l_is_fly_hub_exists = true;
 				if (l_CurrentServerUrl.find("kurskhub.ru") != string::npos ||  // http://dchublist.ru/forum/viewtopic.php?p=24102#p24102
 				        CFlyServerConfig::g_block_hubs.count(l_CurrentServerUrl))
 				{
@@ -1144,6 +1152,18 @@ void FavoriteManager::load(SimpleXML& aXml
 				const string& l_Name = aXml.getChildAttrib("Name");
 				e->setName(l_Name);
 				const bool l_connect = aXml.getBoolChildAttrib("Connect");
+				if (l_connect &&
+				        (l_CurrentServerUrl.rfind(".ru") != string::npos ||
+				         l_CurrentServerUrl.rfind("ozerki.org") != string::npos ||
+				         l_CurrentServerUrl.rfind("dc.filimania.com") != string::npos ||
+				         l_CurrentServerUrl.rfind("dc.rutrack.net") != string::npos ||
+				         l_CurrentServerUrl.rfind("artcool.org") != string::npos ||
+				         l_CurrentServerUrl.rfind("kcahdep.org") != string::npos
+				        ))
+				{
+					l_count_active_ru_hub++;
+				}
+				
 				e->setConnect(l_connect);
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 				const bool l_ISPDelete  = aXml.getBoolChildAttrib("ISPDelete");
@@ -1309,6 +1329,16 @@ void FavoriteManager::load(SimpleXML& aXml
 #endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 			}
 			//
+			if ((l_is_fly_hub_exists == false && l_count_active_ru_hub >= l_limit_russian_hub) || g_favoriteHubs.empty()) // TODO - проверить что один и не локальный?
+			{
+				if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAddSupportHub) == 0 || g_favoriteHubs.empty())
+				{
+					CFlyServerJSON::pushError(45, "Promo hub:" + CFlyServerConfig::g_support_hub);
+					CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_autoAddSupportHub, l_count_active_ru_hub);
+					FavoriteManager::connectToFlySupportHub();
+				}
+			}
+			
 			needSave |= replaceDeadHub();
 			//
 			aXml.stepOut();

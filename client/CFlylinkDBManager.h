@@ -226,7 +226,8 @@ enum eTypeSegment
 	// 15 - устаревший e_TimeStampP2PGuard
 	e_TimeStampAntivirusDB = 16,
 	e_TimeStampIBlockListCom = 17,
-	e_TimeStampP2PGuard = 18
+	e_TimeStampP2PGuard = 18,
+	e_autoAddSupportHub = 19
 };
 struct CFlyRegistryValue
 {

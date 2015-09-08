@@ -1,4 +1,176 @@
 ------------------------------------------------------------------------
+r19001 | ppa | 2015-09-08 12:58:39 +0300 (Вт, 08 сен 2015) | 1 line
+
+# Поправка к телеметрии по редиректу
+------------------------------------------------------------------------
+r19000 | ppa | 2015-09-08 09:53:48 +0300 (Вт, 08 сен 2015) | 16 lines
+
+Merged revision(s) 18993-18998 from trunk:
+# Патч от Скалолаза - расширена информация в FlylinkDC user info
+........
+* Вернул детект ddos в виде аптечки (затиралось черепками)
+* Черепки стали мигать реже глазами
+........
+# Опечатка в onTransferComplete
+# Починил рисование vip иконок
+........
+# etc
+........
+# Исправлено пропадание флага у хабов https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1611
+........
+# r4xx - телеметрия редиректов
+........
+
+------------------------------------------------------------------------
+r18993 | ppa | 2015-09-07 06:34:30 +0300 (Пн, 07 сен 2015) | 1 line
+
+# Патч от Скалолаза - расширена информация в FlylinkDC user info
+------------------------------------------------------------------------
+r18992 | ppa | 2015-09-06 12:16:41 +0300 (Вс, 06 сен 2015) | 8 lines
+
+Merged revision(s) 18982-18990 from trunk:
+* Обновление WTL
+
+# Исправил ошибку с Lock
+........
+* Добавлены иконки для dchub://stealthhub.ru и dchub://keepclear.org
+........
+
+------------------------------------------------------------------------
+r18991 | ppa | 2015-09-06 12:14:53 +0300 (Вс, 06 сен 2015) | 1 line
+
+# vip
+------------------------------------------------------------------------
+r18989 | ppa | 2015-09-05 19:08:36 +0300 (Сб, 05 сен 2015) | 1 line
+
+# Исправил ошибку с Lock
+------------------------------------------------------------------------
+r18988 | ppa | 2015-09-05 19:03:52 +0300 (Сб, 05 сен 2015) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r18987 | ppa | 2015-09-05 16:40:23 +0300 (Сб, 05 сен 2015) | 1 line
+
+#
+------------------------------------------------------------------------
+r18984 | ppa | 2015-09-04 18:10:26 +0300 (Пт, 04 сен 2015) | 3 lines
+
+# r4xx
+* Удалил совецкий портал - там торренты
+# Продвижение хаба без вирусов dc.fly-server.ru (часть 1)
+------------------------------------------------------------------------
+r18981 | ppa | 2015-09-04 17:57:40 +0300 (Пт, 04 сен 2015) | 4 lines
+
+Merged revision(s) 18980 from trunk:
+# Для аналитики
+........
+
+------------------------------------------------------------------------
+r18979 | ppa | 2015-09-04 17:38:37 +0300 (Пт, 04 сен 2015) | 5 lines
+
+Merged revision(s) 18978 from trunk:
+* Удалил совецкий портал - там торренты
+# Продвижение хаба без вирусов dc.fly-server.ru (часть 1)
+........
+
+------------------------------------------------------------------------
+r18976 | ppa | 2015-09-04 13:01:38 +0300 (Пт, 04 сен 2015) | 85 lines
+
+Merged revision(s) 18944-18975 from trunk:
+# Добавлена упаковка p2pguard - вырезаем страны СНГ
+........
+* Updating the database ISPs
+   http://www.assembla.com/spaces/customlocations-greylink
+   Build on the base 1304, created 2014-11-20 23:54:35 +0300
+   Total in database:
+    - ISP - 1407
+    - ISPs logo - 1416
+    - Address range - 5998
+   Archive CustomLocations.7z created by NightOrion
+
+
+........
+* Updating the database ISPs
+   http://www.assembla.com/spaces/customlocations-greylink
+   Build on the base 1304, created 2014-11-20 23:54:35 +0300
+   Total in database:
+    - ISP - 1407
+    - ISPs logo - 1416
+    - Address range - 5998
+   Archive CustomLocations.7z created by NightOrion
+
+
+........
+* Updating the database ISPs
+   http://www.assembla.com/spaces/customlocations-greylink
+   Build on the base 1304, created 2014-11-20 23:54:35 +0300
+   Total in database:
+    - ISP - 1407
+    - ISPs logo - 1416
+    - Address range - 5998
+   Archive CustomLocations.7z created by NightOrion
+
+
+........
+* Updating the database ISPs
+   http://www.assembla.com/spaces/customlocations-greylink
+   Build on the base 1304, created 2014-11-20 23:54:35 +0300
+   Total in database:
+    - ISP - 1407
+    - ISPs logo - 1416
+    - Address range - 5998
+   Archive CustomLocations.7z created by NightOrion
+
+
+........
+# Удалил из p2pguard.ini диапазоны СНГ
+........
+* ptokax - перевез с гугла
+........
+* ptokax + mediainfo
+........
+* Updating the database ISPs
+   http://www.assembla.com/spaces/customlocations-greylink
+   Build on the base 1304, created 2014-11-20 23:54:35 +0300
+   Total in database:
+    - ISP - 1407
+    - ISPs logo - 1416
+    - Address range - 5998
+   Archive CustomLocations.7z created by NightOrion
+
+
+........
+* Убрал лишние нули в P2PGuard.ini
+........
+* mediainfolib Version 0.7.77, 2015-09-02
+x MediaTrace #10: versioned xsd, creating library name and version
+x MediaTrace: XML content was not escaped
+x #B947, Amazon S3 support (REST API v2), CLI/DLL only and if compiled with libcurl support: Analyze file on s3 was not working if secret key contains / character
+
+........
+* Собрал портал - пока не проверял как работает
+........
+# Убрал ReleaseFullOpt
+........
+* Починил портал и выкинул dcmagnets
+* К логам добавлен номер билда
+........
+* mediainfolib Version 0.7.77
+# Синхронизация инсталляций r4xx - для 4-ки пока не ставится
+........
+# В антивирус поиска добавлен путь к файлу
+........
+
+------------------------------------------------------------------------
+r18971 | ppa | 2015-09-04 11:49:12 +0300 (Пт, 04 сен 2015) | 1 line
+
+* r5xx-release
+------------------------------------------------------------------------
+r18968 | ppa | 2015-09-04 10:23:18 +0300 (Пт, 04 сен 2015) | 2 lines
+
+* Починил портал и выкинул dcmagnets
+* К логам добавлен номер билда
+------------------------------------------------------------------------
 r18943 | ppa | 2015-09-02 19:08:57 +0300 (Ср, 02 сен 2015) | 17 lines
 
 Merged revision(s) 18936-18942 from trunk:

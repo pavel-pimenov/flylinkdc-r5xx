@@ -1938,6 +1938,10 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 	if (isFlySupportHub())
 	{
 		l_description = MappingManager::getPortmapInfo(false, false);
+		if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAddSupportHub))
+		{
+			l_description += "+Promo";
+		}
 	}
 	else
 	{

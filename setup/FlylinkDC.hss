@@ -11,10 +11,6 @@ WizardSmallImageFile=setup-2.bmp
 [Components]
 Name: "program"; Description: "{cm:ProgramFiles}"; Types: full compact custom; Flags: fixed
 Name: "PortalBrowser"; Description: "{cm:PortalBrowser}"; Types: full; Flags: checkablealone
-Name: "PortalBrowser\xml"; Description: "{cm:Portals}"; Flags: dontinheritcheck
-Name: "PortalBrowser\xml\SovietServer"; Description: "SovietServer (Инфолайн, Смайл-нет)"; Types: full; Flags: dontinheritcheck; Languages: ru_RU
-Name: "PortalBrowser\xml\dcblog"; Description: "FlylinkDC Blog"; Types: full; Flags: dontinheritcheck; Languages: ru_RU
-Name: "PortalBrowser\doc"; Description: "{cm:PortalDoc}"; Types: full; Flags: dontinheritcheck
 
 ;Name: "settings_vista"; Description: "{cm:Settings_Vista}"; Types: full; MinVersion: 0,6.0
 
@@ -349,13 +345,10 @@ Name: "DCPlusPlus\Spain\Campuseros_net"; Description: "Campuseros.net"; Flags: e
 
 ;Source: "dcppboot.xml"; DestDir: "{code:fUser}"; Components: settings_vista; MinVersion: 0,6.0; Flags: onlyifdoesntexist ignoreversion
 
-Source: "..\compiled\PortalBrowser\PortalBrowser.xsd"; DestDir: "{app}\PortalBrowser";  Components: PortalBrowser\xml; Flags: ignoreversion
-Source: "..\compiled\PortalBrowser\dcblog.xml"; DestDir: "{app}\PortalBrowser\XMLUpdate"; Components: PortalBrowser\xml\dcblog; Flags: ignoreversion; AfterInstall: MyAfterInstall
-Source: "..\compiled\PortalBrowser\SovietServer.xml"; DestDir: "{app}\PortalBrowser\XMLUpdate";  Components: PortalBrowser\xml\SovietServer; Flags: ignoreversion; AfterInstall: MyAfterInstall
-Source: "..\compiled\PortalBrowser\XMLformatDoc.htm"; DestDir: "{app}\PortalBrowser";  Components: PortalBrowser\doc; Flags: ignoreversion
-Source: "..\compiled\PortalBrowser\XMLFormatChangelog.txt"; DestDir: "{app}\PortalBrowser";  Components: PortalBrowser\xml; Flags: ignoreversion
-Source: "..\compiled\PortalBrowser\SovietServer\icons_large.bmp"; DestDir: "{app}\PortalBrowser\SovietServer";  Components: PortalBrowser\xml\SovietServer; Flags: ignoreversion
-Source: "..\compiled\PortalBrowser\SovietServer\icons_small.bmp"; DestDir: "{app}\PortalBrowser\SovietServer";  Components: PortalBrowser\xml\SovietServer; Flags: ignoreversion
+Source: "..\compiled\PortalBrowser\PortalBrowser.xsd"; DestDir: "{app}\PortalBrowser";  Components: PortalBrowser; Flags: ignoreversion
+Source: "..\compiled\PortalBrowser\PortalBrowser.xml"; DestDir: "{app}\PortalBrowser";  Components: PortalBrowser; Flags: ignoreversion
+Source: "..\compiled\PortalBrowser\XMLformatDoc.htm"; DestDir: "{app}\PortalBrowser";  Components: PortalBrowser; Flags: ignoreversion
+Source: "..\compiled\PortalBrowser\XMLFormatChangelog.txt"; DestDir: "{app}\PortalBrowser";  Components: PortalBrowser; Flags: ignoreversion
 Source: "..\compiled\PortalBrowser\dcBlog\icons_large.bmp"; DestDir: "{app}\PortalBrowser\dcBlog";  Flags: ignoreversion
 Source: "..\compiled\PortalBrowser\dcBlog\icons_small.bmp"; DestDir: "{app}\PortalBrowser\dcBlog";  Flags: ignoreversion
 
@@ -467,9 +460,9 @@ Source: "vip_mahachkala_amglan\Favorites.xml"; DestDir: "{code:fUser}"; Componen
 Source: "vip_mahachkala_mychuk\Favorites.xml"; DestDir: "{code:fUser}"; Components: DCPlusPlus\Russia\vip_mahachkala_mychuk; Flags: onlyifdoesntexist ignoreversion
 Source: "vip_mahachkala_mychuk\DCPlusPlus.xml"; DestDir: "{code:fUser}"; Components: DCPlusPlus\Russia\vip_mahachkala_mychuk; Flags: onlyifdoesntexist ignoreversion
 Source: "vip_mahachkala_mychuk\custom_menu.xml"; DestDir: "{code:fUser}"; Components: DCPlusPlus\Russia\vip_mahachkala_mychuk; Flags: overwritereadonly ignoreversion
-Source: "vip_mahachkala_mychuk\PortalBrowser\Mycuk.xml"; DestDir: "{app}\PortalBrowser\XMLUpdate"; Components: DCPlusPlus\Russia\vip_mahachkala_mychuk; Flags: ignoreversion; AfterInstall: MyAfterInstall
-Source: "vip_mahachkala_mychuk\PortalBrowser\Mycuk.NET\InterLAN_icons_large.bmp"; DestDir: "{app}\PortalBrowser\Mycuk.NET"; Components: DCPlusPlus\Russia\vip_mahachkala_mychuk; Flags: ignoreversion
-Source: "vip_mahachkala_mychuk\PortalBrowser\Mycuk.NET\InterLAN_icons_small.bmp"; DestDir: "{app}\PortalBrowser\Mycuk.NET"; Components: DCPlusPlus\Russia\vip_mahachkala_mychuk; Flags: ignoreversion
+;Source: "vip_mahachkala_mychuk\PortalBrowser\Mycuk.xml"; DestDir: "{app}\PortalBrowser\XMLUpdate"; Components: DCPlusPlus\Russia\vip_mahachkala_mychuk; Flags: ignoreversion; AfterInstall: MyAfterInstall
+;Source: "vip_mahachkala_mychuk\PortalBrowser\Mycuk.NET\InterLAN_icons_large.bmp"; DestDir: "{app}\PortalBrowser\Mycuk.NET"; Components: DCPlusPlus\Russia\vip_mahachkala_mychuk; Flags: ignoreversion
+;Source: "vip_mahachkala_mychuk\PortalBrowser\Mycuk.NET\InterLAN_icons_small.bmp"; DestDir: "{app}\PortalBrowser\Mycuk.NET"; Components: DCPlusPlus\Russia\vip_mahachkala_mychuk; Flags: ignoreversion
 Source: "vip_vlad33service\Favorites.xml"; DestDir: "{code:fUser}"; Components: DCPlusPlus\Russia\vip_vlad33service; Flags: onlyifdoesntexist ignoreversion
 Source: "mini-vip\vip_signaltv\Favorites.xml"; DestDir: "{code:fUser}"; Components: DCPlusPlus\Russia\vip_signaltv; Flags: onlyifdoesntexist ignoreversion
 Source: "mini-vip\vip_signaltv\DCPlusPlus.xml"; DestDir: "{code:fUser}"; Components: DCPlusPlus\Russia\vip_signaltv; Flags: onlyifdoesntexist ignoreversion
@@ -589,7 +582,7 @@ Source: "mini-vip\Kemerovo\Favorites.xml"; DestDir: "{code:fUser}"; Components: 
 Source: "mini-vip\Kemerovo\DCPlusPlus.xml"; DestDir: "{code:fUser}"; Components: DCPlusPlus\Russia\Kemerovo; Flags: onlyifdoesntexist ignoreversion
 Source: "mini-vip\Kemerovo_WebStream\Favorites.xml"; DestDir: "{code:fUser}"; Components: DCPlusPlus\Russia\Kemerovo_WebStream; Flags: onlyifdoesntexist ignoreversion
 Source: "mini-vip\Kemerovo_WebStream\DCPlusPlus.xml"; DestDir: "{code:fUser}"; Components: DCPlusPlus\Russia\Kemerovo_WebStream; Flags: onlyifdoesntexist ignoreversion
-Source: "mini-vip\Kemerovo_WebStream\PortalBrowser.xml"; DestDir: "{app}\PortalBrowser\XMLUpdate";  Components: DCPlusPlus\Russia\Kemerovo_WebStream; Flags: ignoreversion; AfterInstall: MyAfterInstall
+Source: "mini-vip\Kemerovo_WebStream\PortalBrowser.xml"; DestDir: "{app}\PortalBrowser\XMLUpdate";  Components: DCPlusPlus\Russia\Kemerovo_WebStream; Flags: ignoreversion;
 Source: "mini-vip\Kemerovo_WebStream\club42\WebStream-24.bmp"; DestDir: "{app}\PortalBrowser\club42"; Components: DCPlusPlus\Russia\Kemerovo_WebStream; Flags: ignoreversion
 Source: "mini-vip\Kemerovo_WebStream\club42\WebStream-16.bmp"; DestDir: "{app}\PortalBrowser\club42"; Components: DCPlusPlus\Russia\Kemerovo_WebStream; Flags: ignoreversion
 Source: "vip_kemhub\Favorites.xml"; DestDir: "{code:fUser}"; Components: DCPlusPlus\Russia\vip_kemhub; Flags: onlyifdoesntexist ignoreversion

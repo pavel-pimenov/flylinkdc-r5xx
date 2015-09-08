@@ -16,7 +16,6 @@
 		<SoundHubDisconnected type="string">.\Sounds\DisconnectHUB.wav</SoundHubDisconnected>
 		<SoundFavUserOnline type="string">.\Sounds\FavUser.wav</SoundFavUserOnline>
 		<SoundFavUserOffline type="string">.\Sounds\FavUserDisconnected.wav</SoundFavUserOffline>
-		<VersionFile type="string">http://p2p.kuzbass.net/FlylinkDC_version.xml</VersionFile>
 		<UrlGetIp type="string">http://p2p.kuzbass.net/getip.php</UrlGetIp>
 		<UrlTestIp type="string">http://p2p.kuzbass.net/test.php</UrlTestIp>
 		<IncomingConnections type="int">2</IncomingConnections>

@@ -351,6 +351,7 @@ struct CFlyVirusFileInfo
 	string m_ip_from_user;
 	string m_hub_name;
 	string m_hub_url;
+	string m_virus_path;
 	time_t m_time;
 	unsigned m_count_file;
 	unsigned m_virus_level;

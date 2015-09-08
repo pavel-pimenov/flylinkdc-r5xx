@@ -257,6 +257,7 @@ void File::setEOF()
 
 size_t File::flush()
 {
+#ifndef _CONSOLE
 	if (isOpen() && !ClientManager::isShutdown())
 	{
 		//static int g_count = 0;
@@ -275,6 +276,7 @@ size_t File::flush()
 			}
 		}
 	}
+#endif
 	return 0;
 }
 

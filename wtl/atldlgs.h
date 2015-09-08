@@ -1,13 +1,10 @@
-// Windows Template Library - WTL version 9.0
+// Windows Template Library - WTL version 9.10
 // Copyright (C) Microsoft Corporation, WTL Team. All rights reserved.
 //
 // This file is a part of the Windows Template Library.
 // The use and distribution terms for this software are covered by the
-// Common Public License 1.0 (http://opensource.org/licenses/cpl1.0.php)
-// which can be found in the file CPL.TXT at the root of this distribution.
-// By using this software in any fashion, you are agreeing to be bound by
-// the terms of this license. You must not remove this notice, or
-// any other, from this software.
+// Microsoft Public License (http://opensource.org/licenses/MS-PL)
+// which can be found in the file MS-PL.txt at the root folder.
 
 #ifndef __ATLDLGS_H__
 #define __ATLDLGS_H__
@@ -3320,7 +3317,7 @@ public:
 		}
 		else if (IS_INTRESOURCE(Menu.m_lpstr))
 		{
-			WORD menuData[] = {0xFFFF, (WORD)Menu.m_lpstr};
+			WORD menuData[] = { 0xFFFF, LOWORD(Menu.m_lpstr) };
 			AddData(menuData, sizeof(menuData));
 		}
 		else
@@ -3342,7 +3339,7 @@ public:
 		}
 		else if (IS_INTRESOURCE(ClassName.m_lpstr))
 		{
-			WORD classData[] = {0xFFFF, (WORD)ClassName.m_lpstr};
+			WORD classData[] = { 0xFFFF, LOWORD(ClassName.m_lpstr) };
 			AddData(classData, sizeof(classData));
 		}
 		else
@@ -3404,7 +3401,7 @@ public:
 		ATLASSERT(ClassName.m_lpstr != NULL);
 		if (IS_INTRESOURCE(ClassName.m_lpstr))
 		{
-			WORD wData[] = {0xFFFF, (WORD)ClassName.m_lpstr};
+			WORD wData[] = { 0xFFFF, LOWORD(ClassName.m_lpstr) };
 			AddData(wData, sizeof(wData));
 		}
 		else
@@ -3419,7 +3416,7 @@ public:
 		}
 		else if (IS_INTRESOURCE(Text.m_lpstr))
 		{
-			WORD wData[] = {0xFFFF, (WORD)Text.m_lpstr};
+			WORD wData[] = { 0xFFFF, LOWORD(Text.m_lpstr) };
 			AddData(wData, sizeof(wData));
 		}
 		else
@@ -5972,9 +5969,9 @@ public:
 
 // Operations - setting values
 	// common buttons
-	void SetCommonButtons(TASKDIALOG_COMMON_BUTTON_FLAGS dwCommonButtons)
+	void SetCommonButtons(TASKDIALOG_COMMON_BUTTON_FLAGS dwCommonButtonsArg)
 	{
-		this->dwCommonButtons = dwCommonButtons;
+		this->dwCommonButtons = dwCommonButtonsArg;
 	}
 
 	// window title text
@@ -6030,31 +6027,31 @@ public:
 	}
 
 	// buttons
-	void SetButtons(const TASKDIALOG_BUTTON* pButtons, UINT cButtons, int nDefaultButton = 0)
+	void SetButtons(const TASKDIALOG_BUTTON* pButtonsArg, UINT cButtonsArg, int nDefaultButtonArg = 0)
 	{
-		this->pButtons = pButtons;
-		this->cButtons = cButtons;
-		if(nDefaultButton != 0)
-			this->nDefaultButton = nDefaultButton;
+		this->pButtons = pButtonsArg;
+		this->cButtons = cButtonsArg;
+		if(nDefaultButtonArg != 0)
+			this->nDefaultButton = nDefaultButtonArg;
 	}
 
-	void SetDefaultButton(int nDefaultButton)
+	void SetDefaultButton(int nDefaultButtonArg)
 	{
-		this->nDefaultButton = nDefaultButton;
+		this->nDefaultButton = nDefaultButtonArg;
 	}
 
 	// radio buttons
-	void SetRadioButtons(const TASKDIALOG_BUTTON* pRadioButtons, UINT cRadioButtons, int nDefaultRadioButton = 0)
+	void SetRadioButtons(const TASKDIALOG_BUTTON* pRadioButtonsArg, UINT cRadioButtonsArg, int nDefaultRadioButtonArg = 0)
 	{
-		this->pRadioButtons = pRadioButtons;
-		this->cRadioButtons = cRadioButtons;
-		if(nDefaultRadioButton != 0)
-			this->nDefaultRadioButton = nDefaultRadioButton;
+		this->pRadioButtons = pRadioButtonsArg;
+		this->cRadioButtons = cRadioButtonsArg;
+		if(nDefaultRadioButtonArg != 0)
+			this->nDefaultRadioButton = nDefaultRadioButtonArg;
 	}
 
-	void SetDefaultRadioButton(int nDefaultRadioButton)
+	void SetDefaultRadioButton(int nDefaultRadioButtonArg)
 	{
-		this->nDefaultRadioButton = nDefaultRadioButton;
+		this->nDefaultRadioButton = nDefaultRadioButtonArg;
 	}
 
 	// verification text
@@ -6132,9 +6129,9 @@ public:
 	}
 
 	// width (in DLUs)
-	void SetWidth(UINT cxWidth)
+	void SetWidth(UINT cxWidthArg)
 	{
-		this->cxWidth = cxWidth;
+		this->cxWidth = cxWidthArg;
 	}
 
 	// modify flags

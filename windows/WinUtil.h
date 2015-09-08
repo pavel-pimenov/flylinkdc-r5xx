@@ -1494,7 +1494,7 @@ class WinUtil
 		static std::unique_ptr<HIconWrapper> g_HubDDoSIcon;
 		static std::unique_ptr<HIconWrapper> g_HubAntivirusIcon;
 		static std::unique_ptr<HIconWrapper> g_HubVirusIcon[4];
-		static std::unique_ptr<HIconWrapper> g_HubFlylinkDCIconVIP[2]; // VIP_ICON
+		static std::unique_ptr<HIconWrapper> g_HubFlylinkDCIconVIP[4]; // VIP_ICON
 		
 		static void initThemeIcons();
 		

@@ -119,7 +119,9 @@
 #include <stdlib.h>
 
 // [+] IRainman opt: FlylinkDC++ only using utf-8 files.
+#ifndef PORTALBROWSER_EXPORTS
 #define _XML_FAST_UTF8_FILES_FOR_WINDOWS
+#endif
 
 
 #ifdef _UNICODE

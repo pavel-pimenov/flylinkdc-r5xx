@@ -487,7 +487,7 @@ LRESULT PortalBrowserFrame::HandleFullScreen(UINT /*uMsg*/, WPARAM wParam, LPARA
 	return TRUE;
 }
 
-static std::vector<PORTAL_BROWSER_ITEM_STRUCT> s_PortalList;
+static std::vector<PORTAL_BROWSER_ITEM_STRUCT> g_PortalList;
 
 static HICON IconFromBitmap(HBITMAP hBMP)
 {
@@ -523,7 +523,7 @@ static bool FillMenu(CMenuHandle &menu, IPortalList const *pPortalList)
 		if (!menu.m_hMenu)
 			menu.CreatePopupMenu();
 			
-		s_PortalList.reserve(szCount);
+		g_PortalList.reserve(szCount);
 		for (size_t i = 0; i < szCount; i++)
 		{
 			const IPortalList::PORTAL_DATA* l_data = pPortalList->GetData(i);
@@ -537,9 +537,9 @@ static bool FillMenu(CMenuHandle &menu, IPortalList const *pPortalList)
 			
 			HBITMAP hSmallBMP = pPortalList->GetBitmap(i, true);
 			HBITMAP hLargeBMP = pPortalList->GetBitmap(i, false);
-			s_PortalList.push_back(PORTAL_BROWSER_ITEM_STRUCT(pPortalList->GetName(i), pPortalList->GetHubUrl(i), l_data, hLargeBMP, hSmallBMP, IconFromBitmap(hSmallBMP)));
+			g_PortalList.push_back(PORTAL_BROWSER_ITEM_STRUCT(pPortalList->GetName(i), pPortalList->GetHubUrl(i), l_data, hLargeBMP, hSmallBMP, IconFromBitmap(hSmallBMP)));
 		}
-		s_PortalList.shrink_to_fit();
+		g_PortalList.shrink_to_fit();
 	}
 	
 	return bRet;
@@ -548,7 +548,7 @@ static bool FillMenu(CMenuHandle &menu, IPortalList const *pPortalList)
 bool InitPortalBrowserMenuItems(CMenuHandle &menu)
 {
 	bool bRet = false;
-	HMODULE hLib = NULL;
+	HMODULE hLib = nullptr;
 	__try
 	{
 #ifdef _WIN64
@@ -580,10 +580,8 @@ bool InitPortalBrowserMenuItems(CMenuHandle &menu)
 		if (hLib)
 		{
 			FreeLibrary(hLib);
-			hLib = NULL;
 		}
 	}
-	
 	return bRet;
 }
 
@@ -757,13 +755,13 @@ PORTAL_BROWSER_ITEM_STRUCT const *GetPortalBrowserListData(size_t ind)
 {
 	PORTAL_BROWSER_ITEM_STRUCT *p = nullptr;
 	
-	if (ind < s_PortalList.size())
-		p = &s_PortalList[ind];
+	if (ind < g_PortalList.size())
+		p = &g_PortalList[ind];
 		
 	return p;
 }
 
 size_t GetPortalBrowserListCount()
 {
-	return s_PortalList.size();
+	return g_PortalList.size();
 }

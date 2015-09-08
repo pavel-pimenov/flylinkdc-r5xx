@@ -1,13 +1,10 @@
-// Windows Template Library - WTL version 9.0
+// Windows Template Library - WTL version 9.10
 // Copyright (C) Microsoft Corporation, WTL Team. All rights reserved.
 //
 // This file is a part of the Windows Template Library.
 // The use and distribution terms for this software are covered by the
-// Common Public License 1.0 (http://opensource.org/licenses/cpl1.0.php)
-// which can be found in the file CPL.TXT at the root of this distribution.
-// By using this software in any fashion, you are agreeing to be bound by
-// the terms of this license. You must not remove this notice, or
-// any other, from this software.
+// Microsoft Public License (http://opensource.org/licenses/MS-PL)
+// which can be found in the file MS-PL.txt at the root folder.
 
 #ifndef __ATLCTRLW_H__
 #define __ATLCTRLW_H__
@@ -1825,23 +1822,23 @@ public:
 				else
 #endif // _WTL_CMDBAR_VISTA_MENUS && defined(_WTL_CMDBAR_VISTA_STD_MENUBAR)
 				{
-				if(m_bFlatMenus)
-				{
+					if(m_bFlatMenus)
+					{
 #ifndef COLOR_MENUHILIGHT
-					const int COLOR_MENUHILIGHT = 29;
+						const int COLOR_MENUHILIGHT = 29;
 #endif // !COLOR_MENUHILIGHT
-					bool bDisabled = ((lpTBCustomDraw->nmcd.uItemState & CDIS_DISABLED) == CDIS_DISABLED);
-					if(!bDisabled && ((lpTBCustomDraw->nmcd.uItemState & CDIS_HOT) == CDIS_HOT || 
-						(lpTBCustomDraw->nmcd.uItemState & CDIS_SELECTED) == CDIS_SELECTED))
-					{
-						::FillRect(lpTBCustomDraw->nmcd.hdc, &lpTBCustomDraw->nmcd.rc, ::GetSysColorBrush(COLOR_MENUHILIGHT));
-						::FrameRect(lpTBCustomDraw->nmcd.hdc, &lpTBCustomDraw->nmcd.rc, ::GetSysColorBrush(COLOR_HIGHLIGHT));
-						lpTBCustomDraw->clrText = ::GetSysColor(m_bParentActive ? COLOR_HIGHLIGHTTEXT : COLOR_GRAYTEXT);
-					}
-					else if(bDisabled || !m_bParentActive)
-					{
-						lpTBCustomDraw->clrText = ::GetSysColor(COLOR_GRAYTEXT);
-					}
+						bool bDisabled = ((lpTBCustomDraw->nmcd.uItemState & CDIS_DISABLED) == CDIS_DISABLED);
+						if(!bDisabled && ((lpTBCustomDraw->nmcd.uItemState & CDIS_HOT) == CDIS_HOT || 
+							(lpTBCustomDraw->nmcd.uItemState & CDIS_SELECTED) == CDIS_SELECTED))
+						{
+							::FillRect(lpTBCustomDraw->nmcd.hdc, &lpTBCustomDraw->nmcd.rc, ::GetSysColorBrush(COLOR_MENUHILIGHT));
+							::FrameRect(lpTBCustomDraw->nmcd.hdc, &lpTBCustomDraw->nmcd.rc, ::GetSysColorBrush(COLOR_HIGHLIGHT));
+							lpTBCustomDraw->clrText = ::GetSysColor(m_bParentActive ? COLOR_HIGHLIGHTTEXT : COLOR_GRAYTEXT);
+						}
+						else if(bDisabled || !m_bParentActive)
+						{
+							lpTBCustomDraw->clrText = ::GetSysColor(COLOR_GRAYTEXT);
+						}
 
 						_ParentCustomDrawHelper(lpTBCustomDraw);
 
@@ -1874,28 +1871,28 @@ public:
 
 	void _ParentCustomDrawHelper(LPNMTBCUSTOMDRAW lpTBCustomDraw)
 	{
-					CDCHandle dc = lpTBCustomDraw->nmcd.hdc;
-					dc.SetTextColor(lpTBCustomDraw->clrText);
-					dc.SetBkMode(lpTBCustomDraw->nStringBkMode);
+		CDCHandle dc = lpTBCustomDraw->nmcd.hdc;
+		dc.SetTextColor(lpTBCustomDraw->clrText);
+		dc.SetBkMode(lpTBCustomDraw->nStringBkMode);
 
-					HFONT hFont = GetFont();
-					HFONT hFontOld = NULL;
-					if(hFont != NULL)
-						hFontOld = dc.SelectFont(hFont);
+		HFONT hFont = GetFont();
+		HFONT hFontOld = NULL;
+		if(hFont != NULL)
+			hFontOld = dc.SelectFont(hFont);
 
-					const int cchText = 200;
-					TCHAR szText[cchText] = { 0 };
-					TBBUTTONINFO tbbi = { 0 };
-					tbbi.cbSize = sizeof(TBBUTTONINFO);
-					tbbi.dwMask = TBIF_TEXT;
-					tbbi.pszText = szText;
-					tbbi.cchText = cchText;
-					GetButtonInfo((int)lpTBCustomDraw->nmcd.dwItemSpec, &tbbi);
+		const int cchText = 200;
+		TCHAR szText[cchText] = { 0 };
+		TBBUTTONINFO tbbi = { 0 };
+		tbbi.cbSize = sizeof(TBBUTTONINFO);
+		tbbi.dwMask = TBIF_TEXT;
+		tbbi.pszText = szText;
+		tbbi.cchText = cchText;
+		GetButtonInfo((int)lpTBCustomDraw->nmcd.dwItemSpec, &tbbi);
 
-					dc.DrawText(szText, -1, &lpTBCustomDraw->nmcd.rc, DT_SINGLELINE | DT_CENTER | DT_VCENTER | (m_bShowKeyboardCues ? 0 : DT_HIDEPREFIX));
+		dc.DrawText(szText, -1, &lpTBCustomDraw->nmcd.rc, DT_SINGLELINE | DT_CENTER | DT_VCENTER | (m_bShowKeyboardCues ? 0 : DT_HIDEPREFIX));
 
-					if(hFont != NULL)
-						dc.SelectFont(hFontOld);
+		if(hFont != NULL)
+			dc.SelectFont(hFontOld);
 	}
 
 // Message hook handlers
@@ -2960,7 +2957,7 @@ public:
 		bool bRet = false;
 		for(int i = 0; i < nCount; i++)
 		{
-			REBARBANDINFO rbbi = { (UINT)RunTimeHelper::SizeOf_REBARBANDINFO(), RBBIM_CHILD | RBBIM_STYLE };
+			REBARBANDINFO rbbi = { RunTimeHelper::SizeOf_REBARBANDINFO(), RBBIM_CHILD | RBBIM_STYLE };
 			BOOL bRetBandInfo = (BOOL)::SendMessage(hWndReBar, RB_GETBANDINFO, i, (LPARAM)&rbbi);
 			if(bRetBandInfo && rbbi.hwndChild == m_hWnd)
 			{
@@ -2980,7 +2977,7 @@ public:
 	void GetSystemSettings()
 	{
 		// refresh our font
-		NONCLIENTMETRICS info = { (UINT)RunTimeHelper::SizeOf_NONCLIENTMETRICS() };
+		NONCLIENTMETRICS info = { RunTimeHelper::SizeOf_NONCLIENTMETRICS() };
 		BOOL bRet = ::SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(info), &info, 0);
 		ATLASSERT(bRet);
 		if(bRet)
@@ -3874,7 +3871,7 @@ public:
 		int nCount = (int)::SendMessage(GetParent(), RB_GETBANDCOUNT, 0, 0L);
 		for(int i = 0; i < nCount; i++)
 		{
-			REBARBANDINFO rbi = { (UINT)RunTimeHelper::SizeOf_REBARBANDINFO(), RBBIM_CHILD | RBBIM_CHILDSIZE | RBBIM_IDEALSIZE };
+			REBARBANDINFO rbi = { RunTimeHelper::SizeOf_REBARBANDINFO(), RBBIM_CHILD | RBBIM_CHILDSIZE | RBBIM_IDEALSIZE };
 			::SendMessage(GetParent(), RB_GETBANDINFO, i, (LPARAM)&rbi);
 			if(rbi.hwndChild == m_hWnd)
 			{
@@ -3945,7 +3942,7 @@ public:
 			for(int i = 0; i < nCount; i++)
 			{
 #if (_WIN32_IE >= 0x0500)
-				REBARBANDINFO rbi = { (UINT)RunTimeHelper::SizeOf_REBARBANDINFO(), RBBIM_CHILD | RBBIM_CHILDSIZE | RBBIM_IDEALSIZE | RBBIM_STYLE };
+				REBARBANDINFO rbi = { RunTimeHelper::SizeOf_REBARBANDINFO(), RBBIM_CHILD | RBBIM_CHILDSIZE | RBBIM_IDEALSIZE | RBBIM_STYLE };
 				::SendMessage(GetParent(), RB_GETBANDINFO, i, (LPARAM)&rbi);
 				if(rbi.hwndChild == m_hWnd)
 				{
@@ -3959,7 +3956,7 @@ public:
 					break;
 				}
 #elif (_WIN32_IE >= 0x0400)
-				REBARBANDINFO rbi = { (UINT)RunTimeHelper::SizeOf_REBARBANDINFO(), RBBIM_CHILD | RBBIM_CHILDSIZE | RBBIM_IDEALSIZE };
+				REBARBANDINFO rbi = { RunTimeHelper::SizeOf_REBARBANDINFO(), RBBIM_CHILD | RBBIM_CHILDSIZE | RBBIM_IDEALSIZE };
 				::SendMessage(GetParent(), RB_GETBANDINFO, i, (LPARAM)&rbi);
 				if(rbi.hwndChild == m_hWnd)
 				{
@@ -3970,7 +3967,7 @@ public:
 					break;
 				}
 #else // (_WIN32_IE < 0x0400)
-				REBARBANDINFO rbi = { (UINT)RunTimeHelper::SizeOf_REBARBANDINFO(), RBBIM_CHILD | RBBIM_CHILDSIZE };
+				REBARBANDINFO rbi = { RunTimeHelper::SizeOf_REBARBANDINFO(), RBBIM_CHILD | RBBIM_CHILDSIZE };
 				::SendMessage(GetParent(), RB_GETBANDINFO, i, (LPARAM)&rbi);
 				if(rbi.hwndChild == m_hWnd)
 				{
@@ -4005,7 +4002,7 @@ public:
 #endif
 		_baseClass::GetSystemSettings();
 
-		NONCLIENTMETRICS info = { (UINT)RunTimeHelper::SizeOf_NONCLIENTMETRICS() };
+		NONCLIENTMETRICS info = { RunTimeHelper::SizeOf_NONCLIENTMETRICS() };
 		BOOL bRet = ::SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(info), &info, 0);
 		ATLASSERT(bRet);
 		if(bRet)

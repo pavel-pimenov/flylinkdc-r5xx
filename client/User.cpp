@@ -921,7 +921,7 @@ string Identity::formatSpeedLimit(const uint32_t limit) // [+] IRainman
 
 void Identity::getReport(string& p_report) const
 {
-	p_report = "\r\n *** FlylinkDC user info ***\r\n";
+	p_report = " *** FlylinkDC user info ***\r\n";
 	const string sid = getSIDString();
 	{
 		// [+] IRainman fix.
@@ -970,6 +970,35 @@ void Identity::getReport(string& p_report) const
 		{
 			appendIfValueNotEmpty("Nicks", Util::toString(ClientManager::getNicks(user->getCID(), Util::emptyString)));
 		}
+		
+		{
+			webrtc::ReadLockScoped l(*g_rw_cs);
+			for (auto i = m_stringInfo.cbegin(); i != m_stringInfo.cend(); ++i)
+			{
+				auto name = string((char*)(&i->first), 2);
+				const auto& value = i->second;
+				// TODO: translate known tags and format values to something more readable
+				switch (i->first)
+				{
+					case TAG('C', 'S'): // ok
+						name = "Cheat description";
+						break;
+					case TAG('D', 'E'): // ok
+						name = STRING(DESCRIPTION);
+						break;
+					case TAG('E', 'M'): // ok
+						name = "E-mail";
+						break;
+					case TAG('K', 'P'): // ok
+						name = "KeyPrint";
+						break;
+					default:
+						name += " (unknown)";
+				}
+				appendIfValueNotEmpty(name, value);
+			}
+		}
+		
 		appendIfValueNotEmpty(STRING(HUBS), Text::fromT(getHubs()));
 		if (!isNmdc)
 		{
@@ -1026,32 +1055,6 @@ void Identity::getReport(string& p_report) const
 		appendIfValueNotEmpty("P2P Guard", getP2PGuard());
 		appendIfValueNotEmpty("Antivirus database:", getVirusDesc());
 		
-		webrtc::ReadLockScoped l(*g_rw_cs);
-		for (auto i = m_stringInfo.cbegin(); i != m_stringInfo.cend(); ++i)
-		{
-			auto name = string((char*)(&i->first), 2);
-			const auto& value = i->second;
-			// TODO: translate known tags and format values to something more readable
-			switch (i->first)
-			{
-				case TAG('C', 'S'): // ok
-					name = "Cheat description";
-					break;
-				case TAG('D', 'E'): // ok
-					name = STRING(DESCRIPTION);
-					break;
-				case TAG('E', 'M'): // ok
-					name = "E-mail";
-					break;
-				case TAG('K', 'P'): // ok
-					name = "KeyPrint";
-					break;
-				default:
-					name += " (unknown)";
-			}
-			
-			appendIfValueNotEmpty(name, value);
-		}
 	}
 }
 

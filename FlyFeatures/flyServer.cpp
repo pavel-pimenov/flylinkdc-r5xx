@@ -1225,9 +1225,9 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 	syslog(LOG_USER | LOG_INFO, "%s %s %s [%s]", l_cid.c_str(), l_pid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
 }
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 44 (36 - устарел)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 46 (36 - устарел)
 {
-	bool l_is_send = false;
+	bool l_is_send  = false;
 	bool l_is_error = false;
 	if (!p_error.empty())
 	{
@@ -1236,7 +1236,7 @@ bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Co
 		{
 			l_cid = '[' + ClientManager::getMyCID().toBase32() + ']';
 		}
-		p_error = l_cid + "[BUG][" + Util::toString(p_error_code) + "] " + p_error;
+		p_error = l_cid + "[" + A_REVISION_NUM_STR + "][BUG][" + Util::toString(p_error_code) + "] " + p_error;
 		if (CFlyServerConfig::isErrorSysLog(p_error_code))
 		{
 			pushSyslogError(p_error);
@@ -1324,6 +1324,10 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 		if (g_DisableSQLJournal || BOOLSETTING(SQLITE_USE_JOURNAL_MEMORY))
 		{
 			l_info["is_journal_memory"] = 1;
+		}
+		if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAddSupportHub))
+		{
+			l_info["is_promo_fly_hub"] = 1;
 		}
 		extern bool g_UseWALJournal;
 		if (g_UseWALJournal)
@@ -1491,7 +1495,7 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 			           // ≈сли не удалось отправить или отключено/отложено. 
 			           // собираем стату локально (чтобы в будущем построить аналитику на клиенте)
 		{
-			  CFlylinkDBManager::getInstance()->push_json_statistic(l_post_query, "fly-stat", true);		  
+			  CFlylinkDBManager::getInstance()->push_json_statistic(l_post_query, "fly-stat", true);
         }
 		return l_is_flush_error;
 }
@@ -1721,6 +1725,7 @@ void CFlyServerJSON::addAntivirusCounter(const SearchResult &p_search_result, in
 	l_server_item.m_hub_name = p_search_result.getHubName();
 	l_server_item.m_hub_url = p_search_result.getHubUrl();
 	l_server_item.m_ip = p_search_result.getIPAsString();
+	l_server_item.m_virus_path = p_search_result.getFilePath();
 	if (l_server_item.m_ip.empty())
 	{
 		l_server_item.m_ip_from_user = p_search_result.getUser()->getIPAsString();
@@ -1759,6 +1764,7 @@ bool CFlyServerJSON::sendAntivirusCounter(bool p_is_only_db_if_network_error)
 		std::string l_post_query;
 			Json::Value  l_root;
 			initCIDPID(l_root);
+			l_root["time"] = Util::formatDigitalClock(time(nullptr));
 			Json::Value& l_arrays = l_root["array"];
 			int l_count_tth = 0;
 			for (auto i = l_copy_array.cbegin(); i != l_copy_array.cend(); ++i)
@@ -1791,6 +1797,11 @@ bool CFlyServerJSON::sendAntivirusCounter(bool p_is_only_db_if_network_error)
 					}
 					// Ќе нужен l_file_array_item["count_file"] = j->m_count_file;
 					l_file_array_item["level"] = j->m_virus_level;
+					if (!j->m_virus_path.empty())
+					{
+						l_file_array_item["virus_path"] = j->m_virus_path;
+					}
+					
 					l_file_array_item["time"] = j->m_time;
 				}
 			l_post_query = l_root.toStyledString();
@@ -1820,6 +1831,7 @@ bool CFlyServerJSON::sendAntivirusCounter(bool p_is_only_db_if_network_error)
 		std::string  l_post_query;
 		Json::Value  l_root;
 		initCIDPID(l_root);
+		l_root["time"] = Util::formatDigitalClock(time(nullptr));
 		Json::Value& l_arrays = l_root["array_file_list"];
 		int l_count_record = 0;
 		for (auto i = l_copy_array.cbegin(); i != l_copy_array.cend(); ++i)
@@ -1827,7 +1839,10 @@ bool CFlyServerJSON::sendAntivirusCounter(bool p_is_only_db_if_network_error)
 			Json::Value& l_array_item = l_arrays[l_count_record++];
 			l_array_item["nick"] = i->m_nick;
 			l_array_item["ip"] = i->m_ip;
-			l_array_item["hub_url"] = i->m_hub_url;
+			if (!i->m_hub_url.empty())
+			{
+				l_array_item["hub_url"] = i->m_hub_url;
+			}
 			l_array_item["virus_path"] = i->m_virus_path;
 			l_array_item["time"] = i->m_time;
 

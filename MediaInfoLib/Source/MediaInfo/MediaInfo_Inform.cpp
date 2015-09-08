@@ -64,13 +64,11 @@ Ztring MediaInfo_Internal::Inform()
         if (MediaInfoLib::Config.Trace_Level_Get() || MediaInfoLib::Config.Inform_Get()==__T("Details"))
         {
             if (!Details.empty())
-            {
-                Ztring Content=Details;
-
                 return Details;
-            }
             else if (Info)
                 return Info->Details_Get();
+            else
+                return Ztring();
         }
     #endif //MEDIAINFO_TRACE
 
@@ -683,6 +681,9 @@ Ztring &MediaInfo_Internal::Xml_Content_Escape_Modifying (Ztring &Content, size_
                             Content[Pos]=__T('&');
                             Content.insert(Pos+1, __T("gt;"));
                             Pos+=3;
+                            break;
+            case __T('\r'):
+            case __T('\n'):
                             break;
             default:
                         if (Content[Pos]<0x20)

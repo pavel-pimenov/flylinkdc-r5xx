@@ -169,6 +169,14 @@ void SearchResult::checkTTH()
 	}
 }
 
+string SearchResult::getFilePath() const
+{
+	if (getType() == TYPE_FILE)
+		return Util::getFilePath(getFile());
+	else
+		return Util::emptyString;
+}
+
 string SearchResult::getFileName() const
 {
 	if (getType() == TYPE_FILE)

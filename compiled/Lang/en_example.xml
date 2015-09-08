@@ -1601,7 +1601,7 @@
 	<string name="SuccessfullyGetTthStream">Successfully get TTH from NTFS stream:</string>
 	<string name="SpeedSuperUser">Can bypass limiter</string>
 	<string name="Supports">Supports</string>
-	<string name="SupportsServerDesc">FlylinkDC++ Support/help hub</string>
+	<string name="SupportsServerDesc">FlylinkDC++ Support hub</string>
 	<string name="SuppressFavChatAndPm">Suppress chat and private messages</string>
 	<string name="Suspend">Suspend</string>
 	<string name="SxmlEmptyTagName">Empty tag names not allowed</string>

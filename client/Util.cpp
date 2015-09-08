@@ -476,10 +476,7 @@ void Util::loadP2PGuard()
 						{
 							const string l_note =  l_currentLine.substr(l_pos + 1);
 							dcassert(!l_note.empty())
-							if (l_note.find("VimpelCom") == string::npos) // TODO научится вырезать RU после скачки
-							{
-								l_sqlite_array.push_back(CFlyP2PGuardIP(l_note, l_startIP, l_endIP));
-							}
+							l_sqlite_array.push_back(CFlyP2PGuardIP(l_note, l_startIP, l_endIP));
 						}
 					}
 				}
@@ -2619,7 +2616,7 @@ string Util::getExtInternetError()
 }
 #endif
 //[+] SSA
-uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vector<byte>& p_dataOut, LONG timeOut /*=0*/, IDateReceiveReporter* reporter /* = NULL */)
+uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vector<unsigned char>& p_dataOut, LONG timeOut /*=0*/, IDateReceiveReporter* reporter /* = NULL */)
 {
 	const DWORD frameBufferSize = 4096;
 	dcassert(frameBufferSize);

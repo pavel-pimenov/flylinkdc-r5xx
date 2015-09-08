@@ -1,13 +1,10 @@
-// Windows Template Library - WTL version 9.0
+// Windows Template Library - WTL version 9.10
 // Copyright (C) Microsoft Corporation, WTL Team. All rights reserved.
 //
 // This file is a part of the Windows Template Library.
 // The use and distribution terms for this software are covered by the
-// Common Public License 1.0 (http://opensource.org/licenses/cpl1.0.php)
-// which can be found in the file CPL.TXT at the root of this distribution.
-// By using this software in any fashion, you are agreeing to be bound by
-// the terms of this license. You must not remove this notice, or
-// any other, from this software.
+// Microsoft Public License (http://opensource.org/licenses/MS-PL)
+// which can be found in the file MS-PL.txt at the root folder.
 
 #ifndef __ATLCRACK_H__
 #define __ATLCRACK_H__
@@ -1614,7 +1611,7 @@ public: \
 ///////////////////////////////////////////////////////////////////////////////
 // New NT4 & NT5 messages
 
-#if(_WIN32_WINNT >= 0x0400)
+#if (_WIN32_WINNT >= 0x0400)
 
 // void OnMouseHover(WPARAM wParam, CPoint ptPos)
 #define MSG_WM_MOUSEHOVER(func) \
@@ -1640,7 +1637,7 @@ public: \
 
 #endif // _WIN32_WINNT >= 0x0400
 
-#if(WINVER >= 0x0500)
+#if (WINVER >= 0x0500)
 
 // void OnMenuRButtonUp(WPARAM wParam, CMenuHandle menu)
 #define MSG_WM_MENURBUTTONUP(func) \
@@ -1697,7 +1694,7 @@ public: \
 
 #endif // WINVER >= 0x0500
 
-#if(_WIN32_WINNT >= 0x0500)
+#if (_WIN32_WINNT >= 0x0500)
 
 // BOOL OnAppCommand(CWindow wndFocus, short cmd, WORD uDevice, int dwKeys)
 #define MSG_WM_APPCOMMAND(func) \

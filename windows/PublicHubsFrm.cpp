@@ -68,7 +68,9 @@ LRESULT PublicHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	ctrlStatus.SetParts(3, w);
 	
 	m_ctrlHubs.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-	                  WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS /*|LVS_SHAREIMAGELISTS */, WS_EX_CLIENTEDGE, IDC_HUBLIST);
+	                  WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS |
+					  LVS_SHAREIMAGELISTS, // https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1611
+					  WS_EX_CLIENTEDGE, IDC_HUBLIST);
 	SET_EXTENDENT_LIST_VIEW_STYLE(m_ctrlHubs);
 	
 	// Create listview columns
@@ -802,7 +804,7 @@ void PublicHubsFrame::updateTree()
 }
 void PublicHubsFrame::updateList()
 {
-	CLockRedraw<> l_lock_draw(m_ctrlHubs);
+	//CLockRedraw<> l_lock_draw(m_ctrlHubs);
 	m_ctrlHubs.DeleteAllItems();
 	users = 0;
 	visibleHubs = 0;
@@ -835,7 +837,11 @@ void PublicHubsFrame::updateList()
 			l[COLUMN_MAXUSERS] = Util::toStringW(i->getMaxUsers());
 			l[COLUMN_RELIABILITY] = Util::toStringW(i->getReliability());
 			l[COLUMN_RATING] = Text::toT(i->getRating());
-			const auto l_index = m_ctrlHubs.insert(cnt++, l, WinUtil::getFlagIndexByName(i->getCountry().c_str())); // !SMT!-IP
+			const auto l_country = i->getCountry();
+			dcassert(!l_country.empty());
+			const auto l_index_country = WinUtil::getFlagIndexByName(l_country.c_str());
+			//const auto l_index = 
+				m_ctrlHubs.insert(cnt++, l, l_index_country); // !SMT!-IP
 			
 			/*
 			LVITEM lvItem = { 0 };

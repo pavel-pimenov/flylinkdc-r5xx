@@ -744,7 +744,8 @@ CFlylinkDBManager::CFlylinkDBManager()
 		}
 		if (l_db_user_version < 2)
 		{
-			m_flySQLiteDB.executenonquery("delete from location_db.fly_p2pguard_ip where note like '%VimpelCom%'");
+			// ”дал€ю уже на уровне конвертора файла.
+			// m_flySQLiteDB.executenonquery("delete from location_db.fly_p2pguard_ip where note like '%VimpelCom%'");
 			m_flySQLiteDB.executenonquery("PRAGMA user_version=2");
 		}
 		
@@ -1970,7 +1971,7 @@ __int64 CFlylinkDBManager::get_registry_variable_int64(eTypeSegment p_TypeSegmen
 //========================================================================================================
 void CFlylinkDBManager::load_registry(CFlyRegistryMap& p_values, int p_Segment)
 {
-	//Lock l(m_cs);
+	Lock l(m_cs);
 	try
 	{
 		m_get_registry.init(m_flySQLiteDB, "select key,val_str,val_number from fly_registry where segment=? order by rowid")->bind(1, p_Segment);

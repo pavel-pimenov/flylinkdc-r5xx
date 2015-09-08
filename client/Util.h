@@ -20,7 +20,9 @@
 #define DCPLUSPLUS_DCPP_UTIL_H
 
 #include <wininet.h>
+#ifndef _CONSOLE
 #include <atlcomtime.h>
+#endif
 
 #include "Text.h"
 #include "CFlyThread.h"
@@ -93,7 +95,7 @@ class CFlyHTTPDownloader
 		{
 		}
 		std::vector<string> m_get_http_header_item;
-		uint64_t getBinaryDataFromInet(const string& url, std::vector<byte>& p_dataOut, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
+		uint64_t getBinaryDataFromInet(const string& url, std::vector<unsigned char>& p_dataOut, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
 		void clear()
 		{
 			m_get_http_header_item.clear();
@@ -187,9 +189,9 @@ static void RemoveQuotsFromPath(STR& p_path) // [+] IRainman
 		p_path = p_path.substr(1, p_path.length() - 2);
 }
 
-template <class T> class FlyLinkVector : public vector<T>
+template <class T> class FlyLinkVector : public std::vector<T>
 {
-		typedef vector<T> inherited;
+		typedef std::vector<T> inherited;
 	public:
 		void erase_and_check(const T& p_Value)
 		{
@@ -251,7 +253,7 @@ class CompareFirst
 {
 	public:
 		explicit CompareFirst(const T1& compareTo) : a(compareTo) { }
-		bool operator()(const pair<T1, T2>& p)
+		bool operator()(const std::pair<T1, T2>& p)
 		{
 			return op()(p.first, a);
 		}
@@ -382,7 +384,7 @@ class Util
 		static const string emptyString;
 		static const wstring emptyStringW;
 		
-		static const vector<uint8_t> emptyByteVector; // [+] IRainman opt.
+		static const std::vector<uint8_t> emptyByteVector; // [+] IRainman opt.
 		
 		static const string m_dot;
 		static const string m_dot_dot;
@@ -400,19 +402,19 @@ class Util
 		//[+] IRainman identify URI of DC protocols, magnet, or http links.
 		static bool isNmdc(const tstring& p_HubURL)
 		{
-			return strnicmp(_T("dchub://"), p_HubURL.c_str(), 8) == 0;
+			return _wcsnicmp(L"dchub://", p_HubURL.c_str(), 8) == 0;
 		}
 		static bool isNmdcS(const tstring& p_HubURL)
 		{
-			return strnicmp(_T("nmdcs://"), p_HubURL.c_str(), 8) == 0;
+			return _wcsnicmp(L"nmdcs://", p_HubURL.c_str(), 8) == 0;
 		}
 		static bool isAdc(const tstring& p_HubURL)
 		{
-			return strnicmp(_T("adc://"), p_HubURL.c_str(), 6) == 0;
+			return _wcsnicmp(L"adc://", p_HubURL.c_str(), 6) == 0;
 		}
 		static bool isAdcS(const tstring& p_HubURL)
 		{
-			return strnicmp(_T("adcs://"), p_HubURL.c_str(), 7) == 0;
+			return _wcsnicmp(L"adcs://", p_HubURL.c_str(), 7) == 0;
 		}
 		static bool isNmdc(const string& p_HubURL)
 		{
@@ -458,11 +460,11 @@ class Util
 		}
 		static bool isMagnetLink(const wchar_t* p_URL)
 		{
-			return strnicmp(p_URL, _T("magnet:?"), 8) == 0;
+			return _wcsnicmp(p_URL, L"magnet:?", 8) == 0;
 		}
 		static bool isMagnetLink(const tstring& p_URL)
 		{
-			return strnicmp(p_URL.c_str(), _T("magnet:?"), 8) == 0;
+			return _wcsnicmp(p_URL.c_str(), L"magnet:?", 8) == 0;
 		}
 #if 0
 		static bool isImageLink(const tstring& p_URL)
@@ -480,7 +482,7 @@ class Util
 		// [~] http://code.google.com/p/flylinkdc/issues/detail?id=223
 		static bool isHttpLink(const tstring& p_url)
 		{
-			return strnicmp(p_url.c_str(), _T("http://"), 7) == 0;
+			return _wcsnicmp(p_url.c_str(), L"http://", 7) == 0;
 		}
 		static bool isHttpLink(const string& p_url)
 		{
@@ -495,7 +497,7 @@ class Util
 		
 		static bool isHttpsLink(const tstring& p_url)
 		{
-			return strnicmp(p_url.c_str(), _T("https://"), 8) == 0;
+			return _wcsnicmp(p_url.c_str(), L"https://", 8) == 0;
 		}
 		static bool isHttpsLink(const string& p_url)
 		{
@@ -1178,6 +1180,7 @@ class Util
 		
 		// static string formatMessage(const string& message);[-] IRainman fix
 #ifdef _WIN32
+#ifndef _CONSOLE
 		static tstring getCompileDate(const LPCTSTR& p_format = _T("%Y-%m-%d"))
 		{
 			COleDateTime tCompileDate;
@@ -1191,11 +1194,12 @@ class Util
 			tCompileDate.ParseDateTime(_T(__TIME__), LOCALE_NOUSEROVERRIDE, 1033);
 			return tCompileDate.Format(p_format).GetString();
 		}
+#endif // _CONSOLE
 #endif // _WIN32
 		static void setLimiter(bool aLimiter);
 		
 		// [+] SSA Get TTH & MD5 of file
-		static bool getTTH_MD5(const string& p_filename, const size_t p_buffSize, unique_ptr<TigerTree>* p_tth, unique_ptr<MD5Calc>* p_md5 = 0, bool p_isAbsPath = true);
+		static bool getTTH_MD5(const string& p_filename, const size_t p_buffSize, std::unique_ptr<TigerTree>* p_tth, std::unique_ptr<MD5Calc>* p_md5 = 0, bool p_isAbsPath = true);
 		static void BackupSettings();// [+] NightOrion
 		static string formatDchubUrl(const string& DchubUrl);// [+] NightOrion
 		

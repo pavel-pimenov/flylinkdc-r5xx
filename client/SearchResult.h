@@ -137,6 +137,7 @@ class SearchResult : public SearchResultBaseTTH
 		             const string& aHubURL, const boost::asio::ip::address_v4& aIP4, const TTHValue& aTTH, uint32_t aToken);
 		             
 		string getFileName() const;
+		string getFilePath() const;
 		
 		const UserPtr& getUser() const
 		{

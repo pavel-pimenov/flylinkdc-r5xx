@@ -1888,7 +1888,7 @@ void TransferView::onTransferComplete(const Transfer* aTransfer, const bool down
 	}
 	ui->setRunning(0);
 	ui->setStatusString(download ? TSTRING(DOWNLOAD_FINISHED_IDLE) : TSTRING(UPLOAD_FINISHED_IDLE));
-	if (!download && !aTransfer->getType() != Transfer::TYPE_TREE)
+	if (!download && aTransfer->getType() != Transfer::TYPE_TREE)
 	{
 		SHOW_POPUP(POPUP_UPLOAD_FINISHED,
 		           TSTRING(FILE) + _T(": ") + Text::toT(aFileName) + _T('\n') +

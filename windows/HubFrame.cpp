@@ -45,6 +45,7 @@
 #include "FavHubProperties.h"
 #include "../client/MappingManager.h"
 
+int HubFrame::g_last_red_virus_icon_index = 0;
 HubFrame::FrameMap HubFrame::g_frames;
 CriticalSection HubFrame::g_frames_cs;
 
@@ -249,6 +250,8 @@ HubFrame::HubFrame(bool p_is_auto_connect,
 	, m_virus_icon_index(0)
 	, m_Theme(nullptr)
 	, m_is_process_disconnected(false)
+	, m_is_red_virus_icon_index(false)
+	, m_is_ddos_detect(false)
 {
 	//m_userMapCS = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 	m_ctrlStatusCache.resize(5);
@@ -708,25 +711,31 @@ HubFrame* HubFrame::openWindow(bool p_is_auto_connect,
 			::ShowWindow(frm->m_hWnd, SW_RESTORE);
 		frm->MDIActivate(frm->m_hWnd);
 	}
-	if (const auto l_index = frm->getVIPIconIndex())
-	{
-		dcassert((l_index - 1) < _countof(WinUtil::g_HubFlylinkDCIconVIP));
-		if ((l_index - 1) < _countof(WinUtil::g_HubFlylinkDCIconVIP))
-		{
-			frm->setCustomIcon(*WinUtil::g_HubFlylinkDCIconVIP[l_index - 1].get());
-		}
-	}
-	if (frm->isFlySupportHub())
-	{
-		frm->setCustomIcon(*WinUtil::g_HubFlylinkDCIcon.get());
-	}
-	else if (frm->isFlyAntivirusHub())
-	{
-		frm->setCustomIcon(*WinUtil::g_HubAntivirusIcon.get());
-	}
+	frm->setCustomVIPIcon();
 	return frm;
 }
-
+void HubFrame::setCustomVIPIcon()
+{
+	if (m_is_ddos_detect == false)
+	{
+		if (const auto l_index = getVIPIconIndex())
+		{
+			dcassert((l_index - 1) < _countof(WinUtil::g_HubFlylinkDCIconVIP));
+			if ((l_index - 1) < _countof(WinUtil::g_HubFlylinkDCIconVIP))
+			{
+				setCustomIcon(*WinUtil::g_HubFlylinkDCIconVIP[l_index - 1].get());
+			}
+		}
+		if (isFlySupportHub())
+		{
+			setCustomIcon(*WinUtil::g_HubFlylinkDCIcon.get());
+		}
+		else if (isFlyAntivirusHub())
+		{
+			setCustomIcon(*WinUtil::g_HubAntivirusIcon.get());
+		}
+	}
+}
 void HubFrame::processFrameMessage(const tstring& fullMessageText, bool& resetInputMessageText)
 {
 	if (m_waitingForPW)
@@ -3027,6 +3036,7 @@ LRESULT HubFrame::onFollow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/,
 		if (ClientManager::isConnected(m_redirect))
 		{
 			addStatus(TSTRING(REDIRECT_ALREADY_CONNECTED), true, false, Colors::g_ChatTextServer);
+			CFlyServerJSON::pushError(46, "HubFrame::onFollow " + getHubHint()+ " -> " + m_redirect + " ALREADY CONNECTED");
 			return 0;
 		}
 		//dcassert(g_frames.find(server) != g_frames.end());
@@ -3069,7 +3079,23 @@ LRESULT HubFrame::onEnterUsers(int /*idCtrl*/, LPNMHDR /* pnmh */, BOOL& /*bHand
 	}
 	return 0;
 }
-
+void HubFrame::rotation_virus_skull()
+{
+	Lock l(g_frames_cs);
+	int l_index = 0;
+	for (auto i = g_frames.cbegin(); i != g_frames.cend(); ++i)
+	{
+		if (l_index++ >= g_last_red_virus_icon_index)
+		{
+			if (i->second->flickerVirusIcon())
+			{
+				g_last_red_virus_icon_index = l_index;
+				return;
+			}
+		}
+	}
+	g_last_red_virus_icon_index = 0;
+}
 void HubFrame::resortUsers()
 {
 	Lock l(g_frames_cs);
@@ -3200,14 +3226,14 @@ void HubFrame::timer_process_internal()
 		m_second_count = 60;
 		ClientManager::infoUpdated(m_client);
 	}
-	if (m_virus_icon_index && m_client->getVirusBotCount() == 0)
+	const auto l_count_virus_bot = m_client->getVirusBotCount();
+	if (m_virus_icon_index && l_count_virus_bot == 0)
 	{
 		m_virus_icon_index = 0;
 		flickerVirusIcon();
 	}
 	else if (m_virus_icon_index == 0 && m_client->is_all_my_info_loaded())
 	{
-		const auto l_count_virus_bot = m_client->getVirusBotCount();
 		if (l_count_virus_bot > 1)
 		{
 			if (l_count_virus_bot < 10)
@@ -3220,11 +3246,10 @@ void HubFrame::timer_process_internal()
 			}
 		}
 	}
-	if (m_virus_icon_index && (m_second_count % 2) == 0)
-	{
-		flickerVirusIcon();
-	}
-	
+	//if (m_virus_icon_index && (m_second_count % 2) == 0)
+	//{
+	//  flickerVirusIcon();
+	//}
 }
 #ifdef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 LRESULT HubFrame::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
@@ -3276,23 +3301,29 @@ void HubFrame::on(ClientListener::Connected, const Client* c) noexcept
 void HubFrame::on(ClientListener::DDoSSearchDetect, const string&) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	if (m_is_ddos_detect == false && !ClientManager::isShutdown())
 	{
 		setCustomIcon(*WinUtil::g_HubDDoSIcon.get());
+		m_is_ddos_detect = true;
 	}
 }
-void HubFrame::flickerVirusIcon()
+bool HubFrame::flickerVirusIcon()
 {
-	if (m_virus_icon_index)
+	if (m_is_ddos_detect == false)
 	{
-		const auto l_index = m_virus_icon_index - (m_is_red_virus_icon_index ? 1 : 0);
-		setCustomIcon(*WinUtil::g_HubVirusIcon[l_index].get());
-		m_is_red_virus_icon_index = !m_is_red_virus_icon_index;
+		if (m_virus_icon_index)
+		{
+			const auto l_index = m_virus_icon_index - (m_is_red_virus_icon_index ? 1 : 0);
+			setCustomIcon(*WinUtil::g_HubVirusIcon[l_index].get());
+			m_is_red_virus_icon_index = !m_is_red_virus_icon_index;
+			return true;
+		}
+		else
+		{
+			setCustomVIPIcon();
+		}
 	}
-	else
-	{
-		setCustomIcon(*WinUtil::g_HubOnIcon.get());
-	}
+	return false;
 }
 
 void HubFrame::on(ClientListener::UserUpdated, const OnlineUserPtr& user) noexcept   // !SMT!-fix
@@ -3350,10 +3381,12 @@ void HubFrame::on(Redirect, const Client*, const string& line) noexcept
 	if (ClientManager::isConnected(redirAdr))
 	{
 		speak(ADD_STATUS_LINE, STRING(REDIRECT_ALREADY_CONNECTED), true);
+		CFlyServerJSON::pushError(46, "HubFrame::on(Redirect) " + getHubHint() + " -> " + line + " REDIRECT_ALREADY_CONNECTED");
 		return;
 	}
 	
 	m_redirect = redirAdr;
+	CFlyServerJSON::pushError(46, "HubFrame::on(Redirect) " + getHubHint() + " -> " + line + " auto follow = " + Util::toString(BOOLSETTING(AUTO_FOLLOW)));
 #ifdef PPA_INCLUDE_AUTO_FOLLOW
 	if (BOOLSETTING(AUTO_FOLLOW))
 	{

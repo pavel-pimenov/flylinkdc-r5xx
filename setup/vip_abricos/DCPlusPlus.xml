@@ -65,7 +65,6 @@
 		<WebMagnet type="string">&lt;a href="%[magnet]" title="%[name]" target="_blank"&gt;%[name] (%[size])&lt;/a&gt;</WebMagnet>
 		<RatioTemplate type="string">/me ratio: %[ratio] (Uploaded: %[up] | Downloaded: %[down])</RatioTemplate>
 		<UrlTestIp type="string">http://forum.wafl.ru/files/flylink/test.php</UrlTestIp>
-		<CustomMenuURL type="string">file://./Settings/custom_menu.xml</CustomMenuURL>
 		<IncomingConnections type="int">0</IncomingConnections>
 		<InPort type="int">3498</InPort>
 		<Slots type="int">15</Slots>
