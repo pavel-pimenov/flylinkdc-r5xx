@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<Favorites>
-	<Hubs>
-		<Hub Name="Megalan" Connect="1" Description="" Server="dcpp.megalan.tv:411" UserDescription="" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="3542" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" UserListState="1" HeaderOrder="0,1,2,3,4,5,6,7,8" HeaderWidths="100,75,75,75,100,50,72,52,96" HeaderVisible="1,1,1,1,1,1,1,1,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0"/>
-	</Hubs>
-	<Users/>
-	<UserCommands/>
-	<FavoriteDirs/>
-</Favorites>

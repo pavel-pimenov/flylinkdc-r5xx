@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<Favorites>
-	<Hubs>
-		<Hub Name="REAL-DC" Connect="1" Description="" Nick="" Password="" Server="adcs://dc.astrakhan.ru:1026" UserDescription="" Encoding="Russian_Russia.1251" AwayMsg="" Email="" WindowPosX="0" WindowPosY="0" WindowSizeX="0" WindowSizeY="0" WindowType="3" ChatUserSplit="7500" StealthMode="0" HideShare="0" SendUserIpOnLogon="0" ShowJoins="1" ExclChecks="1" ExclusiveHub="0" UserListState="1" HeaderOrder="0,1,2,3,4,5,6,7,8,9,10,11,12,13" HeaderWidths="100,75,150,150,150,50,40,40,100,50,50,100,300,80" HeaderVisible="1,1,1,1,1,1,1,1,1,1,1,1,1,1" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat="" CliendId="StrgDC++ V:2.40" OverrideId="0" Group=""/>
-	</Hubs>
-	<Users/>
-	<UserCommands/>
-	<FavoriteDirs/>
-</Favorites>

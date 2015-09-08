@@ -1,8 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<Favorites>
-	<Hubs>
-		<Hub Name="Остров Свободы" Connect="1" Description="" Nick="" Password="" Server="hub.ostrovsvobody.ru" UserDescription="" AwayMsg="" Email="" WindowPosX="86" WindowPosY="110" WindowSizeX="1300" WindowSizeY="390" WindowType="3" ChatUserSplit="6491" StealthMode="0" HideShare="0" ShowJoins="0" ExclChecks="0" ExclusiveHub="0" UserListState="1" HeaderOrder="0,3,1,4,5,6,7,8,2,9,10,11,12" HeaderWidths="170,69,111,75,100,50,40,40,96,30,30,50,80" HeaderVisible="1,0,1,0,0,0,0,0,1,0,0,0,0" RawOne="" RawTwo="" RawThree="" RawFour="" RawFive="" Mode="0" IP="" OpChat="" CliendId="FakeDC V:1.0" OverrideId="0"/>
-	</Hubs>
-	<UserCommands/>
-	<FavoriteDirs/>
-</Favorites>

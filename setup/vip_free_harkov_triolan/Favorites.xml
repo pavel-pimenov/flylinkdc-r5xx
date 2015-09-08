@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<Favorites>
-	<Hubs>
-		<Hub Name="Triolan" Connect="1" Server="dc.triolan.net.ua" UserListState="1" />
-		<Hub Name="Клубнячковый HUB DC++" Connect="1" Description="Kharkov - Triolan" Server="mydc.pp.ua:420" UserListState="1"/>
-		<Hub Name="Первая столица" Connect="1" Server="hub.balunet.org" UserListState="1"/>
-	</Hubs>
-</Favorites>

@@ -1,2 +1,0 @@
-VersionInfoVersion=7.7.503.19001 
-AppVersion= 7.7.503.19001 
