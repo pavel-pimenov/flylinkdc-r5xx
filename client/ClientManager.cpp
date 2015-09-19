@@ -95,6 +95,7 @@ std::map<string, CFlyClientStatistic > ClientManager::getClientStat()
 			l_item.m_count_user = i->second->getUserCount();
 			l_item.m_share_size = i->second->getAvailableBytes();
 			l_item.m_message_count = i->second->getMessagesCount();
+			l_item.m_is_active = i->second->isActive();
 			if (l_item.m_message_count)
 			{
 				i->second->clearMessagesCount();
@@ -742,6 +743,18 @@ OnlineUser* ClientManager::findOnlineUserHintL(const CID& cid, const string& hin
 	
 	return nullptr;
 }
+void ClientManager::resend_ext_json()
+{
+	NmdcHub::inc_version_fly_info();
+	webrtc::ReadLockScoped l(*g_csClients);
+	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
+	{
+		if (i->second->isConnected())
+		{
+			i->second->resendMyINFO(true, false);
+		}
+	}
+}
 void ClientManager::upnp_error_force_passive()
 {
 	CFlyLog l_log("[UPNP error]");
@@ -751,7 +764,7 @@ void ClientManager::upnp_error_force_passive()
 	{
 		if (i->second->isConnected())
 		{
-			if (i->second->resendMyINFO(true))
+			if (i->second->resendMyINFO(false, true))
 			{
 				l_log.log("Force passive mode for :" + i->second->getHubUrlAndIP());
 			}
@@ -777,13 +790,13 @@ void ClientManager::connect(const HintedUser& p_user, const string& p_token, boo
 		{
 			if (p_is_force_passive)
 			{
-				(&u->getClientBase())->resendMyINFO(p_is_force_passive);
+				(&u->getClientBase())->resendMyINFO(false, p_is_force_passive);
 			}
 			u->getClientBase().connect(*u, p_token, p_is_force_passive);
 			p_is_active_client = u->getClientBase().isActive();
 			if (p_is_active_client && p_is_force_passive)
 			{
-				// (&u->getClientBase())->resendMyINFO(false); // Вернем активный режим
+				// (&u->getClientBase())->resendMyINFO(false,false); // Вернем активный режим
 				// Не делаем это - флуд получается
 			}
 		}
@@ -941,7 +954,7 @@ void ClientManager::on(AdcSearch, const Client* c, const AdcCommand& adc, const 
 			}
 		}
 	}
-	// [!] IRainman-S
+	// [!] IRainman
 	const string l_Seeker = c->getIpPort();
 	StringSearch::List l_reguest;
 	const ClientManagerListener::SearchReply l_re = SearchManager::getInstance()->respond(adc, from, isUdpActive, l_Seeker, l_reguest);
@@ -949,7 +962,7 @@ void ClientManager::on(AdcSearch, const Client* c, const AdcCommand& adc, const 
 	{
 		Speaker<ClientManagerListener>::fire(ClientManagerListener::IncomingSearch(), l_Seeker, i->getPattern(), l_re);
 	}
-	// [~] IRainman-S
+	// [~] IRainman
 }
 
 void ClientManager::search(const SearchParamOwner& p_search_param)

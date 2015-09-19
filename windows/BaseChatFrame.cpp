@@ -842,7 +842,7 @@ void BaseChatFrame::appendLogToChat(const string& path , const size_t linesCount
 		}
 		buf = f.read(LOG_SIZE_TO_READ);
 	}
-	catch (const FileException& e)
+	catch (const FileException&)
 	{
 		// LogManager::message("BaseChatFrame::appendLogToChat, Error load = " + path + " Error = " + e.getError());
 	}

@@ -287,6 +287,7 @@
 	<string name="ConnectAll">Connect to all users</string>
 	<string name="ConnectFavuserHub">Connect to hub</string>
 	<string name="ConnectToSupportHub">Connect to support hub on each startup</string>
+	<string name="DisableAutoremoveVirusHub">Disable auto-remove virus-hubs</string>
 	<string name="ContactListMenu">Contact list</string>
 	<string name="ContinueSearch">Continue</string>
 	<string name="Copy">Copy</string>
@@ -540,6 +541,7 @@
 	<string name="FlyHubCountry">Country</string>
 	<string name="FlyHubCity">City</string>
 	<string name="FlyHubIsp">ISP</string>
+	<string name="FlyHubGender">Gender</string>
 	<string name="Flyupdate">FlylinkDC++ Updater</string>
 	<string name="FlyupdateCannotupdate">FlylinkDC++ automatic update failed. Please download latest install of FlylinkDC++ and run it manually</string>
 	<string name="FlyupdateCheckupdatebase">Checking FlylinkDC++ update…</string>
@@ -903,6 +905,7 @@
 	<string name="Next">Next</string>
 	<string name="Nick">Nick</string>
 	<string name="NickTaken">Your nick is already taken, please change to something else!</string>
+	<string name="HubFull">Hub Full!</string>
 	<string name="NickUnknown">(Nick unknown)</string>
 	<string name="AddNickToChat">Add nick to chat</string>
 	<string name="No">No</string>
@@ -1160,6 +1163,7 @@
 	<string name="Saved">Save…</string>
 	<string name="SavePassword">Save password</string>
 	<string name="SaveSearchSettingsText">Save Search settings</string>
+	<string name="UseSearchGroupTreeSettingsText">Use group tree</string>
 	<string name="SaveSearchSettingsTooltip">This option involves maintaining search parameters: size, type, method, and so on.</string>
 	<string name="Search">Search</string>
 	<string name="SearchDetectTth">Automatically switch search type to TTH when one is found in search string</string>
@@ -1687,6 +1691,11 @@
 	<string name="U">U:</string>
 	<string name="UdRatio">Upload/Download</string>
 	<string name="FlyServerUdpTestPortWait">UDP port test…</string>
+	<string name="FlyGender">Gender</string>
+	<string name="FlyGenderNone">Don't say</string>
+	<string name="FlyGenderMale">Male</string>
+	<string name="FlyGenderFemale">Female</string>
+	<string name="FlyGenderAsexual">Asexual</string>
 	<string name="UnableToCreateThread">Unable to create thread</string>
 	<string name="UnableToOpenFilelist">Unable to open File-list:</string>
 	<string name="UnableToOpenPort">Unable to open %s port(s). You must set up your connection manually</string>

@@ -1251,9 +1251,16 @@ class UserStateImage : public BaseImageList
 	public:
 		void init();
 };
+class GenderImage : public BaseImageList
+{
+	public:
+		void init();
+};
+
 
 extern UserImage g_userImage;
 extern UserStateImage g_userStateImage;
+extern GenderImage g_genderImage;
 
 class ISPImage : public BaseImageList
 {

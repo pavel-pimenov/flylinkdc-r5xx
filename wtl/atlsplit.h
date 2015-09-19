@@ -672,9 +672,10 @@ public:
 		if(!m_bFullDrag)
 			DrawGhostBar();
 
-		if(!m_bFullDrag || (m_xySplitterPos != m_xySplitterPosNew))
+		if((m_xySplitterPosNew != -1) && (!m_bFullDrag || (m_xySplitterPos != m_xySplitterPosNew)))
 		{
 			m_xySplitterPos = m_xySplitterPosNew;
+			m_xySplitterPosNew = -1;
 			UpdateSplitterLayout();
 			T* pT = static_cast<T*>(this);
 			pT->UpdateWindow();

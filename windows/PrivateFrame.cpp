@@ -90,9 +90,17 @@ bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 	const auto& id = bMyMess ? to : replyTo;
 	const auto& myId = bMyMess ? replyTo : to; // [+] IRainman fix.
 	
+	const string l_key = id.getUser()->getLastNick() + " + " + sHubHint;
+	const string l_message = Text::fromT(aMessage);
+	const bool l_is_spam = CFlyServerConfig::isSpam(l_message);
 	const auto i = g_pm_frames.find(id.getUser());
 	if (i == g_pm_frames.end())
 	{
+		if (l_is_spam)
+		{
+			CFlyServerJSON::pushError(47, "Ignore first private spam: [ " + l_message + " ] [user+hub = " + l_key + "]");
+			return true; // Типа все ок
+		}
 		if (notOpenNewWindow || g_pm_frames.size() > MAX_PM_FRAMES)
 			return false; // !SMT!-S
 		/*
@@ -104,12 +112,13 @@ bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 		15:54:04 <HackFresse> если список юзеров этого хаба отсортировать по количеству хабов и промотать на середину -- 14 хабов у юзера
 		15:56:49 <HackFresse> все сразу флудить начнут вряд-ли, а штук 5 по 20 личек -- всего 100 окон, + какие-то открытые без флуда, клиент виснуть не должен (если 200 окон отрабатывает нормально)
 		*/
-		auto& l_count_pm = g_count_pm[id.getUser()->getLastNick() + "~" + sHubHint];
+		auto& l_count_pm = g_count_pm[l_key];
 		if (l_count_pm > 10)
 		{
 			return false;
 		}
 		++l_count_pm;
+		// TODO - Add antispam!
 		PrivateFrame* p = new PrivateFrame(HintedUser(id.getUser(), sHubHint), myId.getNick());
 		g_pm_frames.insert(make_pair(id.getUser(), p));
 		p->addLine(from, bMyMess, bThirdPerson, aMessage);
@@ -143,12 +152,17 @@ bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 	}
 	else
 	{
+		if (l_is_spam)
+		{
+			CFlyServerJSON::pushError(48, "Detect private spam: [ " + l_message + " ] [user+hub = " + l_key + "]");
+		}
 		if (!bMyMess)
 		{
 			SHOW_POPUP_EXT(POPUP_PM, Text::toT(id.getNick() + " - " + sHubHint), PM_PREVIEW, aMessage, 250, TSTRING(PRIVATE_MESSAGE));
 			PLAY_SOUND_BEEP(PRIVATE_MESSAGE_BEEP);
 			ChatBot::getInstance()->onMessage(myId, id, aMessage, false); // !SMT!-CB
 		}
+		// Add block spam???
 		i->second->addLine(from, bMyMess, bThirdPerson, aMessage);
 	}
 	return true;

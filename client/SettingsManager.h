@@ -262,7 +262,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  ACCEPTED_DISCONNECTS, ACCEPTED_TIMEOUTS,
 		                  OPEN_PUBLIC, OPEN_FAVORITE_HUBS, OPEN_FAVORITE_USERS, OPEN_QUEUE, OPEN_FINISHED_DOWNLOADS,
 		                  OPEN_FINISHED_UPLOADS, OPEN_SEARCH_SPY, OPEN_NETWORK_STATISTICS, OPEN_NOTEPAD, OUTGOING_CONNECTIONS,
-		                  NO_IP_OVERRIDE, FORGET_SEARCH_REQUEST, SAVE_SEARCH_SETTINGS, SAVED_SEARCH_TYPE, SAVED_SEARCH_SIZEMODE, SAVED_SEARCH_MODE, BOLD_FINISHED_DOWNLOADS, BOLD_FINISHED_UPLOADS, BOLD_QUEUE,
+		                  NO_IP_OVERRIDE, FORGET_SEARCH_REQUEST, SAVE_SEARCH_SETTINGS, USE_SEARCH_GROUP_TREE_SETTINGS, SAVED_SEARCH_TYPE, SAVED_SEARCH_SIZEMODE, SAVED_SEARCH_MODE, BOLD_FINISHED_DOWNLOADS, BOLD_FINISHED_UPLOADS, BOLD_QUEUE,
 		                  BOLD_HUB, BOLD_PM, BOLD_SEARCH, BOLD_NEWRSS, TABS_POS,
 		                  HUB_POSITION, // [+] InfinitySky.
 		                  SOCKET_IN_BUFFER, SOCKET_OUT_BUFFER,
@@ -383,7 +383,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 #endif
 		                  MIN_MULTI_CHUNK_SIZE, // [+] IRainman
 		                  MIN_MEDIAINFO_SIZE, //[+]PPA
-#ifndef IRAINMAN_TEMPORARY_DISABLE_XXX_ICON
+#ifdef FLYLINKDC_USE_XXX_ICON
 		                  FLY_GENDER, //[+] PPA
 #endif
 		                  SHOW_SEEKERS_IN_SPY_FRAME,// [+] IRainman
@@ -430,6 +430,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  DCLST_ACTION, // [+] SSA
 		                  DCLST_INCLUDESELF, // [+] SSA
 		                  CONNECT_TO_SUPPORT_HUB, // [+] SSA
+		                  DISABLE_AUTOREMOVE_VIRUS_HUB,
 		                  FILESHARE_INC_FILELIST, // [+] SSA
 		                  FILESHARE_REINDEX_ON_START, // [+] SSA
 		                  SQLITE_USE_JOURNAL_MEMORY, // [+] IRainman

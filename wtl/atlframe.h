@@ -2948,6 +2948,9 @@ public:
 		{
 			if(m_arrUIMap[i].m_nID == nID)
 			{
+				if((m_arrUIData[i].m_wState & UPDUI_TEXT) != 0)
+					delete [] m_arrUIData[i].m_lpstrText;
+
 				BOOL bRet = m_arrUIMap.RemoveAt(i);
 				ATLASSERT(bRet);
 				bRet = m_arrUIData.RemoveAt(i);

@@ -29,8 +29,8 @@ PropPage::TextItem GeneralPage::texts[] =
 	{ IDC_SETTINGS_PERSONAL_INFORMATION, ResourceManager::SETTINGS_PERSONAL_INFORMATION },
 	{ IDC_SETTINGS_NICK, ResourceManager::NICK },
 	{ IDC_SETTINGS_EMAIL, ResourceManager::EMAIL },
-#ifndef IRAINMAN_TEMPORARY_DISABLE_XXX_ICON
-	{ IDC_SETTINGS_GENDER, ResourceManager::GENDER }, GENDER, // "Gender"
+#ifdef FLYLINKDC_USE_XXX_ICON
+	{ IDC_SETTINGS_GENDER, ResourceManager::FLY_GENDER },
 #endif
 	{ IDC_SETTINGS_DESCRIPTION, ResourceManager::DESCRIPTION },
 	{ IDC_SETTINGS_UPLOAD_LINE_SPEED, ResourceManager::SETTINGS_UPLOAD_LINE_SPEED },
@@ -44,6 +44,7 @@ PropPage::TextItem GeneralPage::texts[] =
 	{ IDC_CD_GP, ResourceManager::CUST_DESC },
 	{ IDC_TECHSUPPORT_BORDER, ResourceManager::TECHSUPPORT },
 	{ IDC_CONNECT_TO_SUPPORT_HUB, ResourceManager::CONNECT_TO_SUPPORT_HUB },
+	{ IDC_DISABLE_AUTOREMOVE_VIRUS_HUB, ResourceManager::DISABLE_AUTOREMOVE_VIRUS_HUB},
 	{ IDC_SETTINGS_LANGUAGE, ResourceManager::SETTINGS_LANGUAGE },
 	{ IDC_USE_FLY_SERVER_STATICTICS_SEND, ResourceManager::SETTINGS_STATISTICS_SEND },
 	{ IDC_ENCODINGTEXT, ResourceManager::SETTINGS_STATISTICS_SEND },
@@ -67,6 +68,7 @@ PropPage::Item GeneralPage::items[] =
 	{ IDC_CHECK_ADD_SLOTS, SettingsManager::ADD_DESCRIPTION_SLOTS,    PropPage::T_BOOL },
 #endif
 	{ IDC_CONNECT_TO_SUPPORT_HUB, SettingsManager::CONNECT_TO_SUPPORT_HUB, PropPage::T_BOOL },
+	{ IDC_DISABLE_AUTOREMOVE_VIRUS_HUB, SettingsManager::DISABLE_AUTOREMOVE_VIRUS_HUB, PropPage::T_BOOL },
 	{ IDC_USE_FLY_SERVER_STATICTICS_SEND, SettingsManager::USE_FLY_SERVER_STATICTICS_SEND, PropPage::T_BOOL },
 	{ 0, 0, PropPage::T_END }
 };
@@ -85,16 +87,17 @@ void GeneralPage::write()
 			MessageBox(CTSTRING(CHANGE_LANGUAGE_INFO), CTSTRING(CHANGE_LANGUAGE), MB_OK | MB_ICONEXCLAMATION);
 	}
 	ctrlLanguage.Detach();
-#ifndef IRAINMAN_TEMPORARY_DISABLE_XXX_ICON
+#ifdef FLYLINKDC_USE_XXX_ICON
 	g_settings->set(SettingsManager::FLY_GENDER, m_GenderTypeComboBox.GetCurSel());
+	ClientManager::resend_ext_json();
 #endif
 }
 
-#ifndef IRAINMAN_TEMPORARY_DISABLE_XXX_ICON
-void GeneralPage::AddGenderItem(LPWSTR p_Text, int p_image_index, int p_index) // [+] FlylinkDC++
+#ifdef FLYLINKDC_USE_XXX_ICON
+void GeneralPage::AddGenderItem(LPCWSTR p_Text, int p_image_index, int p_index) // [+] FlylinkDC++
 {
 	COMBOBOXEXITEM cbitem = {CBEIF_TEXT | CBEIF_IMAGE | CBEIF_SELECTEDIMAGE};
-	cbitem.pszText = p_Text;
+	cbitem.pszText = (LPWSTR)p_Text;
 	cbitem.iItem = p_index;
 	cbitem.iImage = p_image_index;
 	cbitem.iSelectedImage = p_image_index;
@@ -104,6 +107,7 @@ void GeneralPage::AddGenderItem(LPWSTR p_Text, int p_image_index, int p_index) /
 
 LRESULT GeneralPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
+	::EnableWindow(GetDlgItem(IDC_DISABLE_AUTOREMOVE_VIRUS_HUB), FALSE);
 #ifndef IRAINMAN_ENABLE_SLOTS_AND_LIMIT_IN_DESCRIPTION
 	::EnableWindow(GetDlgItem(IDC_CHECK_ADD_TO_DESCRIPTION), FALSE);
 	::EnableWindow(GetDlgItem(IDC_CHECK_ADD_SLOTS), FALSE);
@@ -136,7 +140,7 @@ LRESULT GeneralPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	
 	ctrlConnection.SetCurSel(ctrlConnection.FindString(0, Text::toT(SETTING(UPLOAD_SPEED)).c_str()));
 	
-#ifndef IRAINMAN_TEMPORARY_DISABLE_XXX_ICON
+#ifdef FLYLINKDC_USE_XXX_ICON
 	m_GenderTypeComboBox.Attach(GetDlgItem(IDC_GENDER));
 	ResourceLoader::LoadImageList(IDR_USERS, m_GenderTypesImageList, 16, 16);
 	m_GenderTypeComboBox.SetImageList(m_GenderTypesImageList);
@@ -156,12 +160,12 @@ LRESULT GeneralPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	desc.LimitText(64);
 	desc.Detach();
 	
-#ifndef IRAINMAN_TEMPORARY_DISABLE_XXX_ICON
-	int l_id = 104;
-	AddGenderItem(_T("Don't say")), l_id++, 0);
-	AddGenderItem(_T("Male")), l_id++, 1);
-	AddGenderItem(_T("Female")), l_id++, 2);
-	AddGenderItem(_T("Asexual")), l_id++, 3);
+#ifdef FLYLINKDC_USE_XXX_ICON
+	int l_id = 20;
+	AddGenderItem(CWSTRING(FLY_GENDER_NONE), l_id++, 0);
+	AddGenderItem(CWSTRING(FLY_GENDER_MALE), l_id++, 1);
+	AddGenderItem(CWSTRING(FLY_GENDER_FEMALE), l_id++, 2);
+	AddGenderItem(CWSTRING(FLY_GENDER_ASEXUAL), l_id++, 3);
 	m_GenderTypeComboBox.SetCurSel(SETTING(FLY_GENDER));
 #endif
 	
@@ -170,8 +174,8 @@ LRESULT GeneralPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	combo.AddString(Text::toT(Text::g_code1251).c_str());
 	combo.AddString(_T("System default"));
 	if (Text::g_systemCharset == Text::g_code1251)
-{
-	combo.SetCurSel(0);
+	{
+		combo.SetCurSel(0);
 	}
 	else
 	{
@@ -184,7 +188,7 @@ LRESULT GeneralPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	return TRUE;
 }
 
-       LRESULT GeneralPage::onTextChanged(WORD /*wNotifyCode*/, WORD wID, HWND hWndCtl, BOOL& /*bHandled*/)
+LRESULT GeneralPage::onTextChanged(WORD /*wNotifyCode*/, WORD wID, HWND hWndCtl, BOOL& /*bHandled*/)
 {
 	tstring buf;
 	GET_TEXT(wID, buf);

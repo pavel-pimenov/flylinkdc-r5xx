@@ -148,7 +148,13 @@ class SimpleXML
 			{
 				std::set<string> l_dup_check;
 				for (auto i = tokens.cbegin(); i != tokens.cend(); ++i)
-					l_dup_check.insert(*i);
+				{
+					auto l_item = *i;
+					l_dup_check.insert(l_item);
+					boost::replace_all(l_item, "\r", "");
+					boost::replace_all(l_item, "\n", "");
+					dcassert(l_item == *i);
+				}
 				dcassert(l_dup_check.size() == tokens.size());
 			}
 #endif

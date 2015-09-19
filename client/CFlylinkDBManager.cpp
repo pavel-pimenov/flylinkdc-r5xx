@@ -192,7 +192,7 @@ string CFlylinkDBManager::get_db_size_info()
 		if (GetDiskFreeSpaceExA(l_disk, NULL, (PULARGE_INTEGER)&l_free_space, NULL))
 		{
 			l_message += l_rnrn;
-			l_message = "Free space:" + Util::formatBytes(l_free_space);
+			l_message = "Free space:" + Util::formatBytes(l_free_space) + "( Disk = " + string(l_disk) + " )";
 			l_message += l_rnrn;
 		}
 		else
@@ -4157,6 +4157,7 @@ void CFlylinkDBManager::add_tree_internal_bind_and_executeL(sqlite3_command* p_s
 		p_sql->bind(2);
 	}
 	p_sql->bind(3, p_tt.getBlockSize());
+	dcassert(p_tt.getRoot() != TTHValue());
 	p_sql->bind(4, p_tt.getRoot().data, 24, SQLITE_STATIC);
 	p_sql->executenonquery();
 }

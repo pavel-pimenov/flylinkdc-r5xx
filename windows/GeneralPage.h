@@ -37,7 +37,7 @@ class GeneralPage : public CPropertyPage<IDD_GENERAL_PAGE>, public PropPage
 		}
 		~GeneralPage()
 		{
-#ifndef IRAINMAN_TEMPORARY_DISABLE_XXX_ICON
+#ifdef FLYLINKDC_USE_XXX_ICON
 			m_GenderTypesImageList.Destroy();
 #endif
 		}
@@ -90,10 +90,10 @@ class GeneralPage : public CPropertyPage<IDD_GENERAL_PAGE>, public PropPage
 		CComboBox ctrlConnection;
 		CEdit nick;
 		CEdit desc;
-#ifndef IRAINMAN_TEMPORARY_DISABLE_XXX_ICON
+#ifdef FLYLINKDC_USE_XXX_ICON
 		CComboBoxEx m_GenderTypeComboBox;
 		CImageList m_GenderTypesImageList;
-		void AddGenderItem(LPWSTR p_Text, int p_image_index, int p_index);
+		void AddGenderItem(LPCWSTR p_Text, int p_image_index, int p_index);
 #endif
 };
 

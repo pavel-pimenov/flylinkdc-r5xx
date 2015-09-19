@@ -601,31 +601,31 @@ void SearchManager::onPSR(const AdcCommand& p_cmd, UserPtr from, const boost::as
 	
 }
 
-ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc, const CID& from, bool isUdpActive, const string& hubIpPort, StringSearch::List& reguest) // [!] IRainman-S
+ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc, const CID& from, bool isUdpActive, const string& hubIpPort, StringSearch::List& reguest) // [!] IRainman
 {
 	// Filter own searches
 	if (from == ClientManager::getMyCID()) // [!] IRainman fix.
-		return ClientManagerListener::SEARCH_MISS; // [!] IRainman-S
+		return ClientManagerListener::SEARCH_MISS; // [!] IRainman
 		
 	UserPtr p = ClientManager::findUser(from);
 	if (!p)
-		return ClientManagerListener::SEARCH_MISS; // [!] IRainman-S
+		return ClientManagerListener::SEARCH_MISS; // [!] IRainman
 		
 	SearchResultList results;
-	ShareManager::getInstance()->search(results, adc.getParameters(), isUdpActive ? 10 : 5, reguest); // [!] IRainman-S
+	ShareManager::getInstance()->search(results, adc.getParameters(), isUdpActive ? 10 : 5, reguest); // [!] IRainman
 	
 	string token;
 	
 	adc.getParam("TO", 0, token);
 	
-	ClientManagerListener::SearchReply l_sr = ClientManagerListener::SEARCH_MISS; // [+] IRainman-S
+	ClientManagerListener::SearchReply l_sr = ClientManagerListener::SEARCH_MISS; // [+] IRainman
 	
 	// TODO: don't send replies to passive users
 	if (results.empty())
 	{
 		string tth;
 		if (!adc.getParam("TR", 0, tth))
-			return l_sr; // [!] IRainman-S
+			return l_sr; // [!] IRainman
 			
 		PartsInfo partialInfo;
 		if (QueueManager::handlePartialSearch(TTHValue(tth), partialInfo))
@@ -633,7 +633,7 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 			AdcCommand cmd(AdcCommand::CMD_PSR, AdcCommand::TYPE_UDP);
 			toPSR(cmd, true, Util::emptyString, hubIpPort, tth, partialInfo);
 			ClientManager::getInstance()->send(cmd, from);
-			l_sr = ClientManagerListener::SEARCH_PARTIAL_HIT; // [+] IRainman-S
+			l_sr = ClientManagerListener::SEARCH_PARTIAL_HIT; // [+] IRainman
 			LogManager::psr_message(
 			    "[SearchManager::respond] hubIpPort = " + hubIpPort +
 			    " tth = " + tth +
@@ -651,9 +651,9 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 				cmd.addParam("TO", token);
 			ClientManager::getInstance()->send(cmd, from);
 		}
-		l_sr = ClientManagerListener::SEARCH_HIT; // [+] IRainman-S
+		l_sr = ClientManagerListener::SEARCH_HIT; // [+] IRainman
 	}
-	return l_sr; // [+] IRainman-S
+	return l_sr; // [+] IRainman
 }
 /*
 string SearchManager::clean(const string& aSearchString)

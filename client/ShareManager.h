@@ -102,7 +102,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		static void   addCacheFile(const string& p_search, const SearchResultList& p_search_result);
 	public:
 		void   search(SearchResultList& aResults, const SearchParam& p_search_param) noexcept;
-		void   search(SearchResultList& aResults, const StringList& params, StringList::size_type maxResults, StringSearch::List& reguest) noexcept; // [!] IRainman-S add StringSearch::List& reguest
+		void   search(SearchResultList& aResults, const StringList& params, StringList::size_type maxResults, StringSearch::List& reguest) noexcept; // [!] IRainman add StringSearch::List& reguest
 		
 		bool findByRealPathName(const string& realPathname, TTHValue* outTTHPtr, string* outfilenamePtr = NULL, int64_t* outSizePtr = NULL); // [+] SSA
 		

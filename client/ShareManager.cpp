@@ -2355,7 +2355,9 @@ void ShareManager::search(SearchResultList& aResults, const SearchParam& p_searc
 #ifdef FLYLINKDC_BETA
 			if (p_search_param.m_client)
 			{
-				LogManager::message("Error TTH Search: " + p_search_param.m_filter + " Hub = " + p_search_param.m_client->getHubUrl());
+				const string l_error = "Error TTH Search: " + p_search_param.m_filter + " Hub = " + p_search_param.m_client->getHubUrl() + " raw:" + p_search_param.getRAWQuery();
+				LogManager::message(l_error);
+				CFlyServerJSON::pushError(49, l_error);
 			}
 #endif
 		}
@@ -2595,12 +2597,12 @@ l->second->search(aResults, aStrings, maxResults);
 aStrings.m_includePtr = old;
 }
 
-void ShareManager::search(SearchResultList& results, const StringList& params, StringList::size_type maxResults, StringSearch::List& reguest) noexcept // [!] IRainman-S add StringSearch::List& reguest
+void ShareManager::search(SearchResultList& results, const StringList& params, StringList::size_type maxResults, StringSearch::List& reguest) noexcept // [!] IRainman add StringSearch::List& reguest
 {
 	dcassert(!ClientManager::isShutdown());
 	
 	AdcSearch srch(params);
-	reguest = srch.m_includeX; // [+] IRainman-S
+	reguest = srch.m_includeX; // [+] IRainman
 	if (srch.m_hasRoot)
 	{
 		webrtc::ReadLockScoped l(*g_csShare);

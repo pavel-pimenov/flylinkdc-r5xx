@@ -93,7 +93,8 @@ int HubFrame::g_columnSizes[] = { 100,    // COLUMN_NICK
                                   300,     // COLUMN_CID
                                   200,      // COLUMN_TAG
                                   40      // COLUMN_P2P_GUARD
-#ifdef FLYLINKDC_USE_FLYHUB
+#ifdef FLYLINKDC_USE_EXT_JSON
+                                  , 20   // FLY_HUB_GENDER
                                   , 50   // COLUMN_FLY_HUB_COUNTRY
                                   , 50   // COLUMN_FLY_HUB_CITY
                                   , 50   // COLUMN_FLY_HUB_ISP
@@ -133,7 +134,8 @@ int HubFrame::g_columnIndexes[] = { COLUMN_NICK,
                                     COLUMN_CID,
                                     COLUMN_TAG,
                                     COLUMN_P2P_GUARD
-#ifdef FLYLINKDC_USE_FLYHUB
+#ifdef FLYLINKDC_USE_EXT_JSON
+                                    , COLUMN_FLY_HUB_GENDER
                                     , COLUMN_FLY_HUB_COUNTRY
                                     , COLUMN_FLY_HUB_CITY
                                     , COLUMN_FLY_HUB_ISP
@@ -173,10 +175,11 @@ static ResourceManager::Strings g_columnNames[] = { ResourceManager::NICK,      
                                                     ResourceManager::CID,             // COLUMN_CID
                                                     ResourceManager::TAG,             // COLUMN_TAG
                                                     ResourceManager::P2P_GUARD,       // COLUMN_P2P_GUARD
-#ifdef FLYLINKDC_USE_FLYHUB
+#ifdef FLYLINKDC_USE_EXT_JSON
+                                                    ResourceManager::FLY_HUB_GENDER, // COLUMN_FLY_HUB_GENDER
                                                     ResourceManager::FLY_HUB_COUNTRY, // COLUMN_FLY_HUB_COUNTRY
-                                                    ResourceManager::FLY_HUB_CITY, // ,COLUMN_FLY_HUB_CITY
-                                                    ResourceManager::FLY_HUB_ISP //,COLUMN_FLY_HUB_ISP
+                                                    ResourceManager::FLY_HUB_CITY,   // ,COLUMN_FLY_HUB_CITY
+                                                    ResourceManager::FLY_HUB_ISP    // COLUMN_FLY_HUB_ISP
 #endif
                                                   };
 
@@ -216,7 +219,6 @@ HubFrame::HubFrame(bool p_is_auto_connect,
 	, m_hub_name_update_count(0)
 	, m_is_hub_name_updated(false)
 	, m_is_first_goto_end(false)
-	, m_server(aServer)
 	, m_waitingForPW(false)
 	, m_password_do_modal(0)
 	, m_needsUpdateStats(false)
@@ -252,12 +254,14 @@ HubFrame::HubFrame(bool p_is_auto_connect,
 	, m_is_process_disconnected(false)
 	, m_is_red_virus_icon_index(false)
 	, m_is_ddos_detect(false)
+	, m_is_ext_json_hub(false)
 {
 	//m_userMapCS = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 	m_ctrlStatusCache.resize(5);
 	m_showUsersStore = p_UserListState;
 	m_showUsers = false;
-	m_client = ClientManager::getInstance()->getClient(aServer, p_is_auto_connect);
+	m_server = CFlyServerConfig::getAlternativeHub(aServer);
+	m_client = ClientManager::getInstance()->getClient(m_server, p_is_auto_connect);
 	m_nProportionalPos = p_ChatUserSplit;
 	m_client->setName(aName);
 	m_client->setRawOne(aRawOne);
@@ -298,6 +302,7 @@ void HubFrame::createCtrlUsers()
 		m_ctrlUsers->Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 		                    WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS, WS_EX_STATICEDGE, IDC_USERS);
 		SET_EXTENDENT_LIST_VIEW_STYLE_PTR(m_ctrlUsers);
+		init_gender_imagelist();
 	}
 }
 LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
@@ -347,10 +352,11 @@ void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
 		m_ctrlUsers->setColumnOwnerDraw(COLUMN_MESSAGES);
 		m_ctrlUsers->setColumnOwnerDraw(COLUMN_ANTIVIRUS);
 		m_ctrlUsers->setColumnOwnerDraw(COLUMN_P2P_GUARD);
-#ifdef FLYLINKDC_USE_FLYHUB
-		m_ctrlUsers->setColumnOwnerDraw(COLUMN_FLY_HUB_COUNTRY);
-		m_ctrlUsers->setColumnOwnerDraw(COLUMN_FLY_HUB_CITY);
-		m_ctrlUsers->setColumnOwnerDraw(COLUMN_FLY_HUB_ISP);
+#ifdef FLYLINKDC_USE_EXT_JSON
+		//m_ctrlUsers->setColumnOwnerDraw(COLUMN_FLY_HUB_COUNTRY);
+		//m_ctrlUsers->setColumnOwnerDraw(COLUMN_FLY_HUB_CITY);
+		//m_ctrlUsers->setColumnOwnerDraw(COLUMN_FLY_HUB_ISP);
+		m_ctrlUsers->setColumnOwnerDraw(COLUMN_FLY_HUB_GENDER);
 #endif
 		// m_ctrlUsers->SetCallbackMask(m_ctrlUsers->GetCallbackMask() | LVIS_STATEIMAGEMASK);
 		if (p_fhe)
@@ -396,10 +402,14 @@ void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
 			m_ctrlUsers->setAscending(BOOLSETTING(HUBFRAME_COLUMNS_SORT_ASC));
 		}
 		m_ctrlUsers->SetImageList(g_userImage.getIconList(), LVSIL_SMALL);
-		//!!!!m_ctrlUsers->SetImageList(g_userStateImage.getIconList(), LVSIL_STATE);
 		m_Theme = GetWindowTheme(m_ctrlUsers->m_hWnd);
 		initShowJoins(p_fhe);
 	}
+}
+void HubFrame::on(ClientListener::FirstExtJSON, const Client*) noexcept
+{
+	m_is_ext_json_hub = true;
+	init_gender_imagelist();
 }
 void HubFrame::initShowJoins(const FavoriteHubEntry *p_fhe)
 {
@@ -1331,13 +1341,19 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 					if (pos != -1)
 					{
 					
-						// const int l_top_index      = m_ctrlUsers->GetTopIndex();
+					
 						// Для невидимых юзеров тоже нужно апдейтить колонки (Шара/сообщения и т.д.
 						// if (pos >= l_top_index && pos <= l_top_index + m_ctrlUsers->GetCountPerPage()) // TODO m_ctrlUsers->GetCountPerPage() закешировать?
 						{
 #if 0
+#ifdef _DEBUG
+							const int l_top_index = m_ctrlUsers->GetTopIndex();
 							const int l_item_count = m_ctrlUsers->GetItemCount();
 							
+							//if (Text::toT(ui->getUser()->getLastNick()) == _T("Талисман"))
+							//{
+							//  LogManager::message("Талисман");
+							//}
 							LogManager::message("[!!!!!!!!!!!] bool HubFrame::updateUser! ui->getUser()->getLastNick() = " + ui->getUser()->getLastNick()
 							                    + " top/count_per_page/all_count = " +
 							                    Util::toString(l_top_index) + "/" +
@@ -1345,8 +1361,17 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 							                    Util::toString(l_item_count) + "  pos =" + Util::toString(pos)
 							                   );
 #endif
+#endif
 							if (p_index_column <= 0)
 							{
+								if (m_is_ext_json_hub)
+								{
+									const auto l_gender = ui->getIdentity().getGenderType();
+									if (l_gender > 1)
+									{
+										m_ctrlUsers->SetItemState(pos, INDEXTOSTATEIMAGEMASK(l_gender), LVIS_STATEIMAGEMASK);
+									}
+								}
 								m_ctrlUsers->updateItem(pos);
 							}
 							else
@@ -1709,6 +1734,19 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 	{
 		switch (i->first)
 		{
+			case UPADTE_COLUMN_DESC:
+			{
+				const OnlineUserTask& u = static_cast<OnlineUserTask&>(*i->second);
+				m_needsUpdateStats |= updateUser(u.m_ou, COLUMN_DESCRIPTION);
+			}
+			break;
+			case UPADTE_COLUMN_SHARE:
+			{
+				const OnlineUserTask& u = static_cast<OnlineUserTask&>(*i->second);
+				m_needsUpdateStats |= updateUser(u.m_ou, COLUMN_EXACT_SHARED);
+				m_needsUpdateStats |= updateUser(u.m_ou, COLUMN_SHARED); // TODO  передать второй параметр
+			}
+			break;
 			case UPDATE_COLUMN_MESSAGE:
 			{
 				const OnlineUserTask& u = static_cast<OnlineUserTask&>(*i->second);
@@ -2911,7 +2949,7 @@ LRESULT HubFrame::OnSpeakerFirstUserJoin(UINT uMsg, WPARAM wParam, LPARAM lParam
 		const auto l_user_info = m_userMap.findUser(*i);
 		if (l_user_info)
 		{
-			m_ctrlUsers->insertItem(l_user_info, I_IMAGECALLBACK);
+			InsertItemInternal(ui);
 		}
 	}
 	return 0;
@@ -2935,7 +2973,7 @@ void HubFrame::usermap2ListrView()
 	}
 	for (auto i = l_user_array.begin(); i != l_user_array.end(); ++i)
 	{
-		m_ctrlUsers->insertItem(*i, I_IMAGECALLBACK);
+		InsertItemInternal(ui);
 	}
 }
 void HubFrame::firstLoadAllUsers()
@@ -2959,7 +2997,7 @@ void HubFrame::usermap2ListrView()
 #ifdef IRAINMAN_USE_HIDDEN_USERS
 		dcassert(ui->isHidden() == false);
 #endif
-		m_ctrlUsers->insertItem(ui, I_IMAGECALLBACK);
+		InsertItemInternal(ui);
 	}
 }
 void HubFrame::firstLoadAllUsers()
@@ -3036,7 +3074,7 @@ LRESULT HubFrame::onFollow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/,
 		if (ClientManager::isConnected(m_redirect))
 		{
 			addStatus(TSTRING(REDIRECT_ALREADY_CONNECTED), true, false, Colors::g_ChatTextServer);
-			CFlyServerJSON::pushError(46, "HubFrame::onFollow " + getHubHint()+ " -> " + m_redirect + " ALREADY CONNECTED");
+			CFlyServerJSON::pushError(46, "HubFrame::onFollow " + getHubHint() + " -> " + m_redirect + " ALREADY CONNECTED");
 			return 0;
 		}
 		//dcassert(g_frames.find(server) != g_frames.end());
@@ -3226,23 +3264,27 @@ void HubFrame::timer_process_internal()
 		m_second_count = 60;
 		ClientManager::infoUpdated(m_client);
 	}
-	const auto l_count_virus_bot = m_client->getVirusBotCount();
-	if (m_virus_icon_index && l_count_virus_bot == 0)
+	dcassert(m_client);
+	if (m_client)
 	{
-		m_virus_icon_index = 0;
-		flickerVirusIcon();
-	}
-	else if (m_virus_icon_index == 0 && m_client->is_all_my_info_loaded())
-	{
-		if (l_count_virus_bot > 1)
+		const auto l_count_virus_bot = m_client->getVirusBotCount();
+		if (m_virus_icon_index && l_count_virus_bot == 0)
 		{
-			if (l_count_virus_bot < 10)
+			m_virus_icon_index = 0;
+			flickerVirusIcon();
+		}
+		else if (m_virus_icon_index == 0 && m_client->is_all_my_info_loaded())
+		{
+			if (l_count_virus_bot > 1)
 			{
-				m_virus_icon_index = 1;
-			}
-			else
-			{
-				m_virus_icon_index = 3;
+				if (l_count_virus_bot < 10)
+				{
+					m_virus_icon_index = 1;
+				}
+				else
+				{
+					m_virus_icon_index = 3;
+				}
 			}
 		}
 	}
@@ -3325,6 +3367,22 @@ bool HubFrame::flickerVirusIcon()
 	}
 	return false;
 }
+void HubFrame::on(ClientListener::UserDescUpdated, const OnlineUserPtr& user) noexcept
+{
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown() && m_closed == false)
+	{
+		speak(UPADTE_COLUMN_DESC, user);
+	}
+}
+void HubFrame::on(ClientListener::UserShareUpdated, const OnlineUserPtr& user) noexcept
+{
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown() && m_closed == false)
+	{
+		speak(UPADTE_COLUMN_SHARE, user);
+	}
+}
 
 void HubFrame::on(ClientListener::UserUpdated, const OnlineUserPtr& user) noexcept   // !SMT!-fix
 {
@@ -3377,18 +3435,42 @@ void HubFrame::on(ClientListener::UserRemoved, const Client*, const OnlineUserPt
 
 void HubFrame::on(Redirect, const Client*, const string& line) noexcept
 {
-	const auto redirAdr = Util::formatDchubUrl(line); // [+] IRainman fix http://code.google.com/p/flylinkdc/issues/detail?id=1237
+	string redirAdr = Util::formatDchubUrl(line); // [+] IRainman fix http://code.google.com/p/flylinkdc/issues/detail?id=1237
+	redirAdr = CFlyServerConfig::getAlternativeHub(redirAdr);
+	bool l_is_double_redir = false;
 	if (ClientManager::isConnected(redirAdr))
 	{
 		speak(ADD_STATUS_LINE, STRING(REDIRECT_ALREADY_CONNECTED), true);
-		CFlyServerJSON::pushError(46, "HubFrame::on(Redirect) " + getHubHint() + " -> " + line + " REDIRECT_ALREADY_CONNECTED");
-		return;
+		const string l_reserve_server = "dchub://dc.livedc.ru";
+		if (ClientManager::isConnected(l_reserve_server))
+		{
+			return;
+		}
+		else
+		{
+			redirAdr = l_reserve_server;
+			l_is_double_redir = true;
+			const string l_redirect = "HubFrame::on(Redirect) " + getHubHint() + " -> " + line + " REDIRECT_ALREADY_CONNECTED -> connect to " + l_reserve_server;
+			if (m_last_redirect != l_redirect)
+			{
+				m_last_redirect = l_redirect;
+				CFlyServerJSON::pushError(46, m_last_redirect);
+			}
+		}
 	}
 	
 	m_redirect = redirAdr;
-	CFlyServerJSON::pushError(46, "HubFrame::on(Redirect) " + getHubHint() + " -> " + line + " auto follow = " + Util::toString(BOOLSETTING(AUTO_FOLLOW)));
+	if (l_is_double_redir == false)
+	{
+		const string l_redirect = "HubFrame::on(Redirect) " + getHubHint() + " -> " + line + " auto follow = " + Util::toString(BOOLSETTING(AUTO_FOLLOW));
+		if (m_last_redirect != l_redirect)
+		{
+			m_last_redirect = l_redirect;
+			CFlyServerJSON::pushError(46, m_last_redirect);
+		}
+	}
 #ifdef PPA_INCLUDE_AUTO_FOLLOW
-	if (BOOLSETTING(AUTO_FOLLOW))
+	if (BOOLSETTING(AUTO_FOLLOW) || l_is_double_redir == true)
 	{
 		PostMessage(WM_COMMAND, IDC_FOLLOW, 0);
 	}
@@ -3400,7 +3482,7 @@ void HubFrame::on(Redirect, const Client*, const string& line) noexcept
 }
 void HubFrame::on(ClientListener::Failed, const Client* c, const string& line) noexcept
 {
-	speak(ADD_STATUS_LINE, line);
+	speak(ADD_STATUS_LINE, "[Hub = " + c->getHubUrl()  + "] " + line);
 	speak(DISCONNECTED);
 	// speak(WM_SPEAKER_DISCONNECTED, nullptr);
 	//PostMessage(WM_SPEAKER_DISCONNECTED);
@@ -3491,6 +3573,10 @@ void HubFrame::on(ClientListener::Message, const Client*,  std::unique_ptr<ChatM
 		PostMessage(WM_SPEAKER_ADD_CHAT_LINE, WPARAM(l_message_ptr));
 #endif
 	}
+}
+void HubFrame::on(ClientListener::HubFull, const Client*) noexcept
+{
+	speak(ADD_STATUS_LINE, STRING(HUB_FULL), true);
 }
 void HubFrame::on(ClientListener::NickTaken, const Client*) noexcept
 {
@@ -3658,7 +3744,25 @@ bool HubFrame::parseFilter(FilterModes& mode, int64_t& size)
 	
 	return true;
 }
-
+void HubFrame::InsertItemInternal(const UserInfo* ui)
+{
+	if (m_is_ext_json_hub)
+	{
+		const auto l_gender = ui->getIdentity().getGenderType();
+		if (l_gender > 1)
+		{
+			m_ctrlUsers->insertItemState(ui, I_IMAGECALLBACK, ui->getIdentity().getGenderType());
+		}
+		else
+		{
+			m_ctrlUsers->insertItem(ui, I_IMAGECALLBACK);
+		}
+	}
+	else
+	{
+		m_ctrlUsers->insertItem(ui, I_IMAGECALLBACK);
+	}
+}
 void HubFrame::InsertUserList(UserInfo* ui) // [!] IRainman opt.
 {
 #ifdef IRAINMAN_USE_HIDDEN_USERS
@@ -3672,7 +3776,7 @@ void HubFrame::InsertUserList(UserInfo* ui) // [!] IRainman opt.
 		dcassert(m_ctrlUsers->findItem(ui) == -1);
 		if (m_client && m_client->isConnected())
 		{
-			m_ctrlUsers->insertItem(ui, I_IMAGECALLBACK);
+			InsertItemInternal(ui);
 		}
 	}
 	else
@@ -3687,7 +3791,7 @@ void HubFrame::InsertUserList(UserInfo* ui) // [!] IRainman opt.
 			dcassert(m_ctrlUsers->findItem(ui) == -1);
 			if (m_client && m_client->isConnected())
 			{
-				m_ctrlUsers->insertItem(ui, I_IMAGECALLBACK);
+				InsertItemInternal(ui);
 			}
 		}
 		else
@@ -3728,7 +3832,7 @@ void HubFrame::updateUserList() // [!] IRainman opt.
 #endif
 			if (matchFilter(*ui, sel, doSizeCompare, mode, size))
 			{
-				m_ctrlUsers->insertItem(ui, I_IMAGECALLBACK);
+				InsertItemInternal(ui);
 			}
 		}
 	}
@@ -4136,24 +4240,25 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			if (!ui)
 				return CDRF_DODEFAULT;
 			const int l_column_id = m_ctrlUsers->findColumn(cd->iSubItem);
-#ifndef IRAINMAN_TEMPORARY_DISABLE_XXX_ICON
-			if (l_column_id == COLUMN_DESCRIPTION &&
-			        (ui->getIdentity().getUser()->isSet(User::GREY_XXX_5) ||
-			         ui->getIdentity().getUser()->isSet(User::GREY_XXX_6)))
+#ifdef FLYLINKDC_USE_XXX_ICON
+			if (l_column_id == COLUMN_FLY_HUB_GENDER)
 			{
-				m_ctrlUsers->GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
-				LONG top = rc.top + (rc.Height() - 15) / 2;
-				if ((top - rc.top) < 2)
-					top = rc.top + 1;
-				const POINT p = { rc.left, top };
-				const int l_indx_icon = int(ui->getIdentity().getUser()->isSet(User::GREY_XXX_6)) << 1 | int(ui->getIdentity().getUser()->isSet(User::GREY_XXX_5));
-				g_userImage.Draw(cd->nmcd.hdc, 104 + l_indx_icon , p);
-				const tstring l_w_full_name = m_ctrlUsers->ExGetItemTextT((int)cd->nmcd.dwItemSpec, cd->iSubItem));
-				if (!l_w_full_name.empty())
+				const int l_indx_icon = ui->getIdentity().getGenderType();
+				if (l_indx_icon)
 				{
-					::ExtTextOut(cd->nmcd.hdc, rc.left + 16, top + 1, ETO_CLIPPED, rc, l_w_full_name.c_str(), l_w_full_name.length(), NULL);
+					m_ctrlUsers->GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
+					LONG top = rc.top + (rc.Height() - 15) / 2;
+					if ((top - rc.top) < 2)
+						top = rc.top + 1;
+					const POINT p = { rc.left, top };
+					g_userImage.Draw(cd->nmcd.hdc, 19 + l_indx_icon, p);
+					const tstring l_w_full_name = ui->getIdentity().getGenderTypeAsString(l_indx_icon);
+					if (!l_w_full_name.empty())
+					{
+						::ExtTextOut(cd->nmcd.hdc, rc.left + 16, top + 1, ETO_CLIPPED, rc, l_w_full_name.c_str(), l_w_full_name.size(), NULL);
+					}
+					return CDRF_SKIPDEFAULT;
 				}
-				return CDRF_SKIPDEFAULT;
 			}
 			else
 #endif

@@ -236,7 +236,8 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			m_waitingResults(false),
 			m_needsUpdateStats(false), // [+] IRainman opt.
 			m_Theme(nullptr),
-			m_need_resort(false)
+			m_need_resort(false),
+			m_is_use_tree(true)
 		{
 		}
 		
@@ -722,6 +723,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		CButton ctrlSlots, ctrlShowUI, ctrlCollapsed;
 		
 		CButton m_ctrlStoreSettings;
+		CButton m_ctrlUseGroupTreeSettings;
 		bool m_showUI;
 		bool m_lastFindTTH;
 		bool m_need_resort;
@@ -743,6 +745,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		CTreeViewCtrl           m_ctrlSearchFilterTree;
 		HTREEITEM   m_RootTreeItem;
 		HTREEITEM   m_CurrentTreeItem;
+		HTREEITEM   m_OldTreeItem;
 		std::unordered_map<string, HTREEITEM>   m_tree_ext_map;
 		std::unordered_map<HTREEITEM, std::vector<std::pair<SearchInfo*, string > > > m_filter_map;
 		std::unordered_map<Search::TypeModes, HTREEITEM> m_tree_type;
@@ -751,6 +754,20 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		void clear_tree_filter_contaners();
 		void set_tree_item_status(const SearchInfo* p_si);
 #endif
+		//std::unordered_set<SearchInfo*> m_search_info_leak_detect;
+		SearchInfo* check_new(SearchInfo* p_ptr)
+		{
+			//const auto l_res = m_search_info_leak_detect.insert(p_ptr);
+			//dcassert(l_res.second == true);
+			return p_ptr;
+		}
+		SearchInfo* check_delete(SearchInfo* p_ptr)
+		{
+			//dcassert(m_search_info_leak_detect.count(p_ptr) == 1)
+			//m_search_info_leak_detect.erase(p_ptr);
+			return p_ptr;
+		}
+		
 		//OMenu resultsMenu;
 		OMenu targetMenu;
 		OMenu targetDirMenu;
@@ -771,6 +788,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		bool m_isHash;
 		bool m_expandSR;
 		bool m_storeSettings;
+		bool m_is_use_tree;
 		bool m_running;
 		bool m_isExactSize;
 		bool m_waitingResults;

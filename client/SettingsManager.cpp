@@ -252,7 +252,7 @@ const string SettingsManager::g_settingTags[] =
 	"AcceptedDisconnects", "AcceptedTimeouts",
 	"OpenPublic", "OpenFavoriteHubs", "OpenFavoriteUsers", "OpenQueue", "OpenFinishedDownloads",
 	"OpenFinishedUploads", "OpenSearchSpy", "OpenNetworkStatistics", "OpenNotepad", "OutgoingConnections",
-	"NoIPOverride", "ForgetSearchRequest", "SaveSearchSettings", "SavedSearchType", "SavedSearchSizeMode", "SavedSearchMode", "BoldFinishedDownloads",
+	"NoIPOverride", "ForgetSearchRequest", "SaveSearchSettings", "UseSearchGroupTreeSettings", "SavedSearchType", "SavedSearchSizeMode", "SavedSearchMode", "BoldFinishedDownloads",
 	"BoldFinishedUploads", "BoldQueue",
 	"BoldHub", "BoldPm", "BoldSearch", "BoldNewrss", "TabsPos",
 	"HubPosition", // [+] InfinitySky.
@@ -377,7 +377,7 @@ const string SettingsManager::g_settingTags[] =
 #endif
 	"MinMultiChunksSize", // [+] IRainman
 	"MediainfoMinSize", //[+]PPA
-#ifndef IRAINMAN_TEMPORARY_DISABLE_XXX_ICON
+#ifdef FLYLINKDC_USE_XXX_ICON
 	"Gender", // [+] PPA
 #endif
 	"ShowSeekersInSpyFrame", // [+] IRainman
@@ -425,6 +425,7 @@ const string SettingsManager::g_settingTags[] =
 	"DCLSTAction", // [+] SSA
 	"DCLSTIncludeSelf", // [+] SSA
 	"ConnectToSupportHub", // [+] SSA
+	"DisableAutoRemoveVirusHubs",
 	"FileShareIncludeInFileList", // [+] SSA
 	"FileShareReindexOnStart", // [+] SSA
 	"SQLiteUseJournnalMemory", // [+] IRainman
@@ -956,7 +957,8 @@ void SettingsManager::setDefaults()
 	setDefault(ACCEPTED_TIMEOUTS, 10);
 	setDefault(EMOTICONS_FILE, "FlylinkSmilesInternational");
 //	setDefault(FORGET_SEARCH_REQUEST, false);    // [+] SCALOlaz: do not save s-queue to dropbox list
-	setDefault(SAVE_SEARCH_SETTINGS, TRUE); // [+] SCALOlaz: save selected type in search frame
+	setDefault(SAVE_SEARCH_SETTINGS, FALSE); // [+] SCALOlaz: save selected type in search frame
+	setDefault(USE_SEARCH_GROUP_TREE_SETTINGS, TRUE);
 	setDefault(SAVED_SEARCH_TYPE, 0);
 	setDefault(SAVED_SEARCH_SIZEMODE, 2);
 	setDefault(SAVED_SEARCH_MODE, 1);
@@ -1272,6 +1274,7 @@ void SettingsManager::setDefaults()
 #ifdef FLYLINKDC_HE
 	setDefault(CONNECT_TO_SUPPORT_HUB, TRUE); // [+] SSA - maybe set to true in EU version?
 #endif
+	setDefault(DISABLE_AUTOREMOVE_VIRUS_HUB, FALSE);
 	setDefault(FILESHARE_INC_FILELIST, TRUE); // [+] SSA
 	setDefault(FILESHARE_REINDEX_ON_START, TRUE); // [+] SSA
 	//setDefault(SQLITE_USE_JOURNAL_MEMORY, false); // [+] IRainman

@@ -1278,7 +1278,8 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			//Цвет заливки в заивисимости от настроек и состояния вкладки
 			
 			unique_ptr<Gdiplus::LinearGradientBrush> l_tabBrush;
-			if (CompatibilityManager::isOsVistaPlus())
+			extern bool g_DisableGDIPlus;
+			if (CompatibilityManager::isOsVistaPlus() && g_DisableGDIPlus == false)
 			{
 				l_tabBrush = unique_ptr<Gdiplus::LinearGradientBrush>(
 				                 new Gdiplus::LinearGradientBrush(Gdiplus::RectF(pos, ((WinUtil::GetTabsPosition() == SettingsManager::TABS_TOP) ? (ypos + tabAnim + 3) : ypos), magic_width, ((SETTING(TABS_POS) == 0 || SETTING(TABS_POS) == 1) ? (m_height - tabAnim - 2) : m_height)),

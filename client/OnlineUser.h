@@ -589,6 +589,44 @@ class Identity
 		string getApplication() const;
 		tstring getHubs() const;
 		
+#ifdef FLYLINKDC_USE_EXT_JSON
+		string getFlyHubCountry() const
+		{
+			return getStringParam("F1");
+		}
+		string getFlyHubCity() const
+		{
+			return getStringParam("F2");
+		}
+		string getFlyHubISP() const
+		{
+			return getStringParam("F3");
+		}
+		int getGenderType() const
+		{
+			return Util::toInt(getStringParam("F4"));
+		}
+		tstring getGenderTypeAsString() const
+		{
+			return  getGenderTypeAsString(getGenderType());
+		}
+		tstring getGenderTypeAsString(int p_index) const
+		{
+			switch (p_index)
+			{
+				case 1:
+					return WSTRING(FLY_GENDER_NONE);
+				case 2:
+					return WSTRING(FLY_GENDER_MALE);
+				case 3:
+					return WSTRING(FLY_GENDER_FEMALE);
+				case 4:
+					return WSTRING(FLY_GENDER_ASEXUAL);
+			}
+			return Util::emptyStringT;
+		}
+#endif
+		
 		// [+] IRainman
 		static string formatShareBytes(uint64_t p_bytes);
 		static string formatIpString(const string& value);
@@ -683,6 +721,9 @@ class OnlineUser :
 {
 		friend class NmdcHub;
 	public:
+#ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
+		string m_raw_myinfo;
+#endif
 		enum
 		{
 			COLUMN_FIRST,

@@ -2219,7 +2219,7 @@ public:
 class CToolInfo : public TOOLINFO
 {
 public:
-	CToolInfo(UINT nFlags, HWND hWnd, UINT nIDTool = 0, LPRECT lpRect = NULL, LPTSTR lpstrText = LPSTR_TEXTCALLBACK, LPARAM lUserParam = NULL)
+	CToolInfo(UINT nFlags, HWND hWnd, UINT_PTR nIDTool = 0, LPRECT lpRect = NULL, LPTSTR lpstrText = LPSTR_TEXTCALLBACK, LPARAM lUserParam = NULL)
 	{
 		Init(nFlags, hWnd, nIDTool, lpRect, lpstrText, lUserParam);
 	}
@@ -2228,7 +2228,7 @@ public:
 
 	operator LPARAM() { return (LPARAM)this; }
 
-	void Init(UINT nFlags, HWND hWnd, UINT nIDTool = 0, LPRECT lpRect = NULL, LPTSTR lpstrText = LPSTR_TEXTCALLBACK, LPARAM lUserParam = NULL)
+	void Init(UINT nFlags, HWND hWnd, UINT_PTR nIDTool = 0, LPRECT lpRect = NULL, LPTSTR lpstrText = LPSTR_TEXTCALLBACK, LPARAM lUserParam = NULL)
 	{
 		ATLASSERT(::IsWindow(hWnd));
 		memset(this, 0, sizeof(TOOLINFO));
@@ -2286,7 +2286,7 @@ public:
 		::SendMessage(m_hWnd, TTM_GETTEXT, 0, (LPARAM)&lpToolInfo);
 	}
 
-	void GetText(LPTSTR lpstrText, HWND hWnd, UINT nIDTool = 0) const
+	void GetText(LPTSTR lpstrText, HWND hWnd, UINT_PTR nIDTool = 0) const
 	{
 		ATLASSERT(::IsWindow(m_hWnd));
 		ATLASSERT(hWnd != NULL);
@@ -2300,7 +2300,7 @@ public:
 		return (BOOL)::SendMessage(m_hWnd, TTM_GETTOOLINFO, 0, (LPARAM)lpToolInfo);
 	}
 
-	BOOL GetToolInfo(HWND hWnd, UINT nIDTool, UINT* puFlags, LPRECT lpRect, LPTSTR lpstrText) const
+	BOOL GetToolInfo(HWND hWnd, UINT_PTR nIDTool, UINT* puFlags, LPRECT lpRect, LPTSTR lpstrText) const
 	{
 		ATLASSERT(::IsWindow(m_hWnd));
 		ATLASSERT(hWnd != NULL);
@@ -2328,7 +2328,7 @@ public:
 		::SendMessage(m_hWnd, TTM_NEWTOOLRECT, 0, (LPARAM)lpToolInfo);
 	}
 
-	void SetToolRect(HWND hWnd, UINT nIDTool, LPCRECT lpRect)
+	void SetToolRect(HWND hWnd, UINT_PTR nIDTool, LPCRECT lpRect)
 	{
 		ATLASSERT(::IsWindow(m_hWnd));
 		ATLASSERT(hWnd != NULL);
@@ -2419,10 +2419,16 @@ public:
 		return size;
 	}
 
-	BOOL SetTitle(UINT uIcon, LPCTSTR lpstrTitle)
+	BOOL SetTitle(UINT_PTR uIcon, LPCTSTR lpstrTitle)
 	{
 		ATLASSERT(::IsWindow(m_hWnd));
 		return (BOOL)::SendMessage(m_hWnd, TTM_SETTITLE, uIcon, (LPARAM)lpstrTitle);
+	}
+
+	BOOL SetTitle(HICON hIcon, LPCTSTR lpstrTitle)
+	{
+		ATLASSERT(::IsWindow(m_hWnd));
+		return (BOOL)::SendMessage(m_hWnd, TTM_SETTITLE, (WPARAM)hIcon, (LPARAM)lpstrTitle);
 	}
 #endif // (_WIN32_IE >= 0x0500)
 
@@ -2453,7 +2459,7 @@ public:
 		return (BOOL)::SendMessage(m_hWnd, TTM_ADDTOOL, 0, (LPARAM)lpToolInfo);
 	}
 
-	BOOL AddTool(HWND hWnd, ATL::_U_STRINGorID text = LPSTR_TEXTCALLBACK, LPCRECT lpRectTool = NULL, UINT nIDTool = 0)
+	BOOL AddTool(HWND hWnd, ATL::_U_STRINGorID text = LPSTR_TEXTCALLBACK, LPCRECT lpRectTool = NULL, UINT_PTR nIDTool = 0)
 	{
 		ATLASSERT(::IsWindow(m_hWnd));
 		ATLASSERT(hWnd != NULL);
@@ -2470,7 +2476,7 @@ public:
 		::SendMessage(m_hWnd, TTM_DELTOOL, 0, (LPARAM)lpToolInfo);
 	}
 
-	void DelTool(HWND hWnd, UINT nIDTool = 0)
+	void DelTool(HWND hWnd, UINT_PTR nIDTool = 0)
 	{
 		ATLASSERT(::IsWindow(m_hWnd));
 		ATLASSERT(hWnd != NULL);
@@ -2516,7 +2522,7 @@ public:
 		::SendMessage(m_hWnd, TTM_UPDATETIPTEXT, 0, (LPARAM)lpToolInfo);
 	}
 
-	void UpdateTipText(ATL::_U_STRINGorID text, HWND hWnd, UINT nIDTool = 0)
+	void UpdateTipText(ATL::_U_STRINGorID text, HWND hWnd, UINT_PTR nIDTool = 0)
 	{
 		ATLASSERT(::IsWindow(m_hWnd));
 		ATLASSERT(hWnd != NULL);
@@ -2525,7 +2531,7 @@ public:
 		::SendMessage(m_hWnd, TTM_UPDATETIPTEXT, 0, ti);
 	}
 
-	BOOL EnumTools(UINT nTool, LPTOOLINFO lpToolInfo) const
+	BOOL EnumTools(UINT_PTR nTool, LPTOOLINFO lpToolInfo) const
 	{
 		ATLASSERT(::IsWindow(m_hWnd));
 		return (BOOL)::SendMessage(m_hWnd, TTM_ENUMTOOLS, nTool, (LPARAM)lpToolInfo);
@@ -2543,7 +2549,7 @@ public:
 		::SendMessage(m_hWnd, TTM_TRACKACTIVATE, bActivate, (LPARAM)lpToolInfo);
 	}
 
-	void TrackActivate(HWND hWnd, UINT nIDTool, BOOL bActivate)
+	void TrackActivate(HWND hWnd, UINT_PTR nIDTool, BOOL bActivate)
 	{
 		ATLASSERT(::IsWindow(m_hWnd));
 		ATLASSERT(hWnd != NULL);

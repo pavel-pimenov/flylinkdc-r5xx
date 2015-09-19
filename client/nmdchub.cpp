@@ -31,12 +31,18 @@
 
 #include "../FlyFeatures/flyServer.h"
 #include "ZenLib/Format/Http/Http_Utils.h"
+#include "../jsoncpp/include/json/reader.h"
 
 CFlyUnknownCommand NmdcHub::g_unknown_command;
 CFlyUnknownCommandArray NmdcHub::g_unknown_command_array;
 FastCriticalSection NmdcHub::g_unknown_cs;
+uint8_t NmdcHub::g_version_fly_info = 33;
 
-NmdcHub::NmdcHub(const string& aHubURL, bool secure, bool p_is_auto_connect) : Client(aHubURL, '|', false, p_is_auto_connect), m_supportFlags(0), m_modeChar(0),
+NmdcHub::NmdcHub(const string& aHubURL, bool secure, bool p_is_auto_connect) :
+	Client(aHubURL, '|', false, p_is_auto_connect),
+	m_supportFlags(0),
+	m_modeChar(0),
+	m_version_fly_info(0),
 	m_lastBytesShared(0),
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 	m_hubSupportsSlots(false),
@@ -251,7 +257,10 @@ void NmdcHub::putUser(const string& aNick)
 		ou = i->second;
 		m_users.erase(i);
 		decBytesSharedL(ou->getIdentity());
-		m_virus_nick.erase(aNick);
+		{
+			FastLock l(m_cs_virus);
+			m_virus_nick.erase(aNick);
+		}
 	}
 	
 	if (!ou->getUser()->getCID().isZero()) // [+] IRainman fix.
@@ -1007,10 +1016,11 @@ void NmdcHub::supportsParse(const string& param)
 		{
 			m_supportFlags |= SUPPORTS_USERIP2;
 		}
-#ifdef FLYLINKDC_USE_FLYHUB
-		else if (*i == "FlyHUB")
+#ifdef FLYLINKDC_USE_EXT_JSON
+		else if (*i == "ExtJSON")
 		{
-			m_supportFlags |= SUPPORTS_FLYHUB;
+			m_supportFlags |= SUPPORTS_EXTJSON;
+			fire(ClientListener::FirstExtJSON(), this);
 		}
 #endif
 	}
@@ -1083,7 +1093,7 @@ void NmdcHub::lockParse(const string& aLine)
 		if (CryptoManager::isExtended(lock))
 		{
 			StringList feat;
-#ifdef FLYLINKDC_USE_FLYHUB
+#ifdef FLYLINKDC_USE_EXT_JSON
 			feat.reserve(9);
 #else
 			feat.reserve(8);
@@ -1094,8 +1104,8 @@ void NmdcHub::lockParse(const string& aLine)
 			feat.push_back("UserIP2");
 			feat.push_back("TTHSearch");
 			feat.push_back("ZPipe0");
-#ifdef FLYLINKDC_USE_FLYHUB
-			feat.push_back("FlyHUB");
+#ifdef FLYLINKDC_USE_EXT_JSON
+			feat.push_back("ExtJSON");
 #endif
 			
 			if (CryptoManager::getInstance()->TLSOk())
@@ -1213,11 +1223,14 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 					dcassert(!l_ip.empty());
 					ou->getIdentity().setIp(l_ip);
 					ou->getIdentity().m_is_real_user_ip_from_hub = true;
-					if (m_virus_nick.find(l_user) == m_virus_nick.end())
 					{
-						if (CFlylinkDBManager::getInstance()->is_virus_bot(l_user, ou->getIdentity().getBytesShared(), ou->getIdentity().getIpRAW()))
+						FastLock l(m_cs_virus);
+						if (m_virus_nick.find(l_user) == m_virus_nick.end())
 						{
-							m_virus_nick.insert(l_user);
+							if (CFlylinkDBManager::getInstance()->is_virus_bot(l_user, ou->getIdentity().getBytesShared(), ou->getIdentity().getIpRAW()))
+							{
+								m_virus_nick.insert(l_user);
+							}
 						}
 					}
 					
@@ -1230,16 +1243,21 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 					const auto l_avdb_result = ou->getIdentity().calcVirusType(true);
 					if ((l_avdb_result & Identity::VT_SHARE) && (l_avdb_result & Identity::VT_IP) ||
 					        (l_avdb_result & Identity::VT_NICK) && (l_avdb_result & Identity::VT_IP) ||
-					        (l_avdb_result & Identity::VT_NICK) && (l_avdb_result & Identity::VT_SHARE) ||
-					        (l_avdb_result & Identity::VT_IP)
+					        (l_avdb_result & Identity::VT_NICK) && (l_avdb_result & Identity::VT_SHARE)
 					   )
 					{
 						const string l_size = Util::toString(ou->getIdentity().getBytesShared());
+						const bool l_is_nick_share = (l_avdb_result & Identity::VT_NICK) && (l_avdb_result & Identity::VT_SHARE) && !(l_avdb_result & Identity::VT_IP);
+						const bool l_is_ip_share = (l_avdb_result & Identity::VT_IP) && (l_avdb_result & Identity::VT_SHARE) && !(l_avdb_result & Identity::VT_NICK);
+						const bool l_is_nick_ip = (l_avdb_result & Identity::VT_NICK) && (l_avdb_result & Identity::VT_IP) && !(l_avdb_result & Identity::VT_SHARE);
+						const bool l_is_all_field = (l_avdb_result & Identity::VT_NICK) && (l_avdb_result & Identity::VT_SHARE) && (l_avdb_result & Identity::VT_IP);
+						bool l_is_avdb_callback = false;
 						if (
-						    (l_avdb_result & Identity::VT_NICK) && (l_avdb_result & Identity::VT_SHARE) && !(l_avdb_result & Identity::VT_IP) ||
-						    (l_avdb_result & Identity::VT_IP) && (l_avdb_result & Identity::VT_SHARE) && !(l_avdb_result & Identity::VT_NICK) ||
-						    (l_avdb_result & Identity::VT_NICK) && (l_avdb_result & Identity::VT_IP) && !(l_avdb_result & Identity::VT_SHARE) ||
-						    (l_avdb_result & Identity::VT_IP)
+						    // (l_avdb_result & Identity::VT_NICK) && (l_avdb_result & Identity::VT_SHARE) &&  (l_avdb_result & Identity::VT_IP) || - это остылать не нужно они и так в базе уже есть
+						    l_is_nick_share ||
+						    l_is_ip_share ||
+						    l_is_nick_ip
+						    //! нельз€ провер€ть только по IP (l_avdb_result & Identity::VT_IP)
 						)
 							if (!CFlyServerConfig::g_antivirus_db_url.empty())
 							{
@@ -1251,26 +1269,38 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 								    "&size=" + l_size +
 								    "&addr=" + l_ip +
 								    "&nick=" + l_encode_nick;
-								std::vector<byte> l_binary_data;
-								CFlyHTTPDownloader l_http_downloader;
-								auto l_result_size = l_http_downloader.getBinaryDataFromInet(l_get_avdb_query, l_binary_data, 300);
-								//if (l_result_size == 0)
-								//{
-								dcassert(l_result_size == 1);
-								string l_value;
-								if (l_result_size == 1)
-									l_value += l_binary_data[0];
-								dcassert(l_value == "1");
-								const string l_log_message = "[ " + getMyNick() + " ] Update antivirus DB! result size =" + Util::toString(l_result_size) + " Value: [" + l_value +
-								                             "], [" + l_get_avdb_query + " ] Hub: " + getHubUrl();
-								CFlyServerJSON::pushError(40, l_log_message);
-								LogManager::virus_message(l_log_message);
-								//}
+								if (l_get_avdb_query != m_last_antivirus_detect_url)
+								{
+									m_last_antivirus_detect_url = l_get_avdb_query;
+									std::vector<byte> l_binary_data;
+									CFlyHTTPDownloader l_http_downloader;
+									auto l_result_size = l_http_downloader.getBinaryDataFromInet(l_get_avdb_query, l_binary_data, 300);
+									dcassert(l_result_size == 1);
+									string l_value;
+									if (l_result_size == 1)
+										l_value += l_binary_data[0];
+									dcassert(l_value == "1");
+									const string l_log_message = "[ " + getMyNick() + " ] Update antivirus DB! result size =" + Util::toString(l_result_size) + " Value: [" + l_value +
+									                             "], [" + l_get_avdb_query + " ] Hub: " + getHubUrl();
+									CFlyServerJSON::pushError(40, l_log_message);
+									LogManager::virus_message(l_log_message);
+									l_is_avdb_callback = true;
+								}
 							}
 						const auto l_avd_report = ou->getIdentity().getVirusDesc();
 						string l_ban_command;
-						const string l_info = l_ip + " " + getMyNick() + " Autoban virus-bot! Nick:[ " + l_user + " ] IP: [" + l_ip + " ] Share: [ " + Util::toString(ou->getIdentity().getBytesShared()) +
-						                      " ] AVDB: " + l_avd_report + " Hub: " + getHubUrl();
+						string l_info = l_ip + " " + getMyNick() + " Autoban virus-bot! Nick:[ " + l_user + " ] IP: [" + l_ip + " ] Share: [ " + Util::toString(ou->getIdentity().getBytesShared()) +
+						                " ] AVDB: " + l_avd_report + " Hub: " + getHubUrl() + " Time: " + Util::formatDigitalClock(GET_TIME()) + " Detect: ";
+						if (l_is_nick_share)
+							l_info += "Nick+Share";
+						if (l_is_ip_share)
+							l_info += "IP+Share";
+						if (l_is_nick_ip)
+							l_info += "Nick+IP";
+						if (l_is_all_field)
+							l_info += "Nick+IP+Share";
+						if (l_is_avdb_callback)
+							l_info += " + update AVDB";
 						if (m_isAutobanAntivirusNick)
 						{
 							/*
@@ -1601,10 +1631,11 @@ void NmdcHub::onLine(const string& aLine)
 		bMyInfoCommand = true;
 		myInfoParse(param); // [+]PPA http://code.google.com/p/flylinkdc/issues/detail?id=1384
 	}
-#ifdef FLYLINKDC_USE_FLYHUB
-	else if (cmd == "FlyINFO")
+#ifdef FLYLINKDC_USE_EXT_JSON
+	else if (cmd == "ExtJSON")
 	{
-		bMyInfoCommand = false;
+		//bMyInfoCommand = false;
+		extJSONParse(param);
 	}
 #endif
 	else if (cmd == "Quit")
@@ -1851,14 +1882,14 @@ void NmdcHub::hubMessage(const string& aMessage, bool thirdPerson)
 	send(fromUtf8Chat('<' + getMyNick() + "> " + escape(thirdPerson ? "/me " + aMessage : aMessage) + '|')); // IRAINMAN_USE_UNICODE_IN_NMDC
 }
 
-bool NmdcHub::resendMyINFO(bool p_is_force_passive)
+bool NmdcHub::resendMyINFO(bool p_always_send, bool p_is_force_passive)
 {
 	if (p_is_force_passive)
 	{
 		if (m_modeChar == 'P')
 			return false; // ”ходим из обновлени€ MyINFO - уже находимс€ в пассивном режиме
 	}
-	myInfo(false, p_is_force_passive);
+	myInfo(p_always_send, p_is_force_passive);
 	return true;
 }
 
@@ -1912,24 +1943,8 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 	{
 		status |= NmdcSupports::TLS;
 	}
-#ifndef IRAINMAN_TEMPORARY_DISABLE_XXX_ICON
-	switch (SETTING(FLY_GENDER))
-	{
-		case 1:
-			status |= 0x20;
-			break;
-		case 2:
-			status |= 0x40;
-			break;
-		case 3:
-			status |= 0x60;
-			break;
-	}
-#endif
-//[+]FlylinkDC
 	const string currentCounts = fhe && fhe->getExclusiveHub() ? getCountsIndivid() : getCounts();
-//[~]FlylinkDC
-
+	
 	// IRAINMAN_USE_UNICODE_IN_NMDC
 	string l_currentMyInfo;
 	l_currentMyInfo.resize(256);
@@ -1971,21 +1986,49 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 		LogManager::message("Duplicate send MyINFO = " + l_currentMyInfo + " hub: " + getHubUrl());
 	}
 #endif
-	if (p_always_send ||
-	        (l_currentBytesShared != m_lastBytesShared && m_lastUpdate + l_limit < currentTick) ||
-	        l_currentMyInfo != m_lastMyInfo)  // [!] IRainman opt.
+	const bool l_is_change_my_info = (l_currentBytesShared != m_lastBytesShared && m_lastUpdate + l_limit < currentTick) || l_currentMyInfo != m_lastMyInfo;
+	const bool l_is_change_fly_info = g_version_fly_info != m_version_fly_info || m_lastExtJSONInfo.empty();
+	if (p_always_send || l_is_change_my_info || l_is_change_fly_info)
 	{
-		m_lastMyInfo = l_currentMyInfo;
-		m_lastBytesShared = l_currentBytesShared;
-		send(m_lastMyInfo + Util::toString(l_currentBytesShared) + "$|");
-#ifdef FLYLINKDC_USE_FLYHUB
-#ifdef _DEBUG
-		string m_lastFlyInfo = "$FlyINFO $ALL " + getMyNick() + " Russia$Lipetsk$Beeline";
-		send(m_lastFlyInfo + "$|");
-#endif
-#endif
+		if (l_is_change_my_info)
+		{
+			m_lastMyInfo = l_currentMyInfo;
+			m_lastBytesShared = l_currentBytesShared;
+			send(m_lastMyInfo + Util::toString(l_currentBytesShared) + "$|");
+			m_lastUpdate = currentTick;
+		}
+#ifdef FLYLINKDC_USE_EXT_JSON
+		if ((m_supportFlags & SUPPORTS_EXTJSON) && l_is_change_fly_info)
+		{
+			m_version_fly_info = g_version_fly_info;
+			Json::Value l_json_info;
+			if (!SETTING(FLY_LOCATOR_COUNTRY).empty())
+				l_json_info["Country"] = SETTING(FLY_LOCATOR_COUNTRY).substr(0, 30);
+			if (!SETTING(FLY_LOCATOR_CITY).empty())
+				l_json_info["City"] = SETTING(FLY_LOCATOR_CITY).substr(0, 30);
+			if (!SETTING(FLY_LOCATOR_ISP).empty())
+				l_json_info["ISP"] = SETTING(FLY_LOCATOR_ISP).substr(0, 30);
+			l_json_info["Gender"] = SETTING(FLY_GENDER) + 1;
+			
+			string l_json_str = l_json_info.toStyledString();
+			
+			boost::replace_all(l_json_str, "\r", " "); // TODO убрать внутрь jsoncpp
+			boost::replace_all(l_json_str, "\n", " ");
+			
+			boost::replace_all(l_json_str, "  ", " ");
+			boost::replace_all(l_json_str, "$", "");
+			boost::replace_all(l_json_str, "|", "");
+			
+			const string l_lastExtJSONInfo = "$ExtJSON $ALL " + getMyNick() + " " + l_json_str;
+			if (m_lastExtJSONInfo != l_lastExtJSONInfo)
+			{
+				m_lastExtJSONInfo = l_lastExtJSONInfo;
+				send(m_lastExtJSONInfo + "$|");
+				m_lastUpdate = currentTick;
+			}
+		}
+#endif // FLYLINKDC_USE_EXT_JSON
 		m_modeChar = l_modeChar;
-		m_lastUpdate = currentTick;
 	}
 }
 
@@ -2158,13 +2201,62 @@ void NmdcHub::on(BufferedSocketListener::Connected) noexcept
 	{
 		return;
 	}
+	m_version_fly_info = 0;
 	m_modeChar = 0;
 	m_supportFlags = 0;
 	m_lastMyInfo.clear();
 	m_lastBytesShared = 0;
 	m_lastUpdate = 0;
+	m_lastExtJSONInfo.clear();
 }
-// TODO - сделать массовый разбор стартовой MyInfo и сброс напр€мую в окно без листенеров?
+#ifdef FLYLINKDC_USE_EXT_JSON
+void NmdcHub::extJSONParse(const string& param)
+{
+	string::size_type i = 5;
+	string::size_type j = param.find(' ', i);
+	if (j == string::npos || j == i)
+		return;
+	string l_nick = param.substr(i, j - i);
+	
+	dcassert(!l_nick.empty())
+	if (l_nick.empty())
+		return;
+		
+//#ifdef _DEBUG
+//	string l_json_result = "{ \"City\":[\"$ForceMove\", \"abc.com\", \"&#124; \"] } | ";
+//#else
+	string l_json_result = param.substr(i + l_nick.size() + 1);
+//#endif
+	try
+	{
+		Json::Value l_root;
+		Json::Reader l_reader(Json::Features::strictMode());
+		const bool l_parsingSuccessful = l_reader.parse(l_json_result, l_root);
+		if (!l_parsingSuccessful && !l_json_result.empty())
+		{
+			dcassert(0);
+			LogManager::message("Failed to parse json ExtJSON:" + l_json_result);
+		}
+		else
+		{
+			OnlineUserPtr ou = getUser(l_nick, false, false);
+			ou->getIdentity().setStringParam("F1", l_root["Country"].asString());
+			ou->getIdentity().setStringParam("F2", l_root["City"].asString());
+			ou->getIdentity().setStringParam("F3", l_root["ISP"].asString());
+			ou->getIdentity().setStringParam("F4", l_root["Gender"].asString());
+			if (!ClientManager::isShutdown())
+			{
+				fire(ClientListener::UserUpdated(), ou); // TODO обновл€ть тольок JSON
+			}
+		}
+	}
+	catch (std::runtime_error& e)
+	{
+		CFlyServerJSON::pushError(50, "NmdcHub::extJSONParse error JSON =  " + l_json_result + " error = " + string(e.what()));
+	}
+}
+#endif // FLYLINKDC_USE_EXT_JSON
+
 void NmdcHub::myInfoParse(const string& param)
 {
 	string::size_type i = 5;
@@ -2180,12 +2272,57 @@ void NmdcHub::myInfoParse(const string& param)
 	i = j + 1;
 	
 	OnlineUserPtr ou = getUser(l_nick, false, m_bLastMyInfoCommand == DIDNT_GET_YET_FIRST_MYINFO); // ѕри первом коннекте исключаем поиск
-	
+#ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
+	string l_my_info_before_change;
+	if (ou->m_raw_myinfo != param)
+	{
+		if (ou->m_raw_myinfo.empty())
+		{
+			// LogManager::message("[!!!!!!!!!!!] First MyINFO = " + param);
+		}
+		else
+		{
+			l_my_info_before_change = ou->m_raw_myinfo;
+			// LogManager::message("[!!!!!!!!!!!] Change MyINFO New = " + param + " Old = " + ou->m_raw_myinfo);
+		}
+		ou->m_raw_myinfo = param;
+	}
+	else
+	{
+		//dcassert(0);
+#ifdef _DEBUG
+		LogManager::message("[!!!!!!!!!!!] Dup MyINFO = " + param + " hub = " + getHubUrl());
+#endif
+	}
+#endif // FLYLINKDC_USE_CHECK_CHANGE_MYINFO
 	j = param.find('$', i);
 	dcassert(j != string::npos)
 	if (j == string::npos)
 		return;
-		
+	bool l_is_only_desc_change = false;
+#ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
+	if (!l_my_info_before_change.empty())
+	{
+		const string::size_type l_pos_begin_tag = param.find('<', i);
+		if (l_pos_begin_tag != string::npos)
+		{
+			const string::size_type l_pos_begin_tag_old = l_my_info_before_change.find('<', i);
+			if (l_pos_begin_tag_old != string::npos)
+			{
+			
+				if (strcmp(param.c_str() + l_pos_begin_tag, l_my_info_before_change.c_str() + l_pos_begin_tag_old) == 0)
+				{
+					l_is_only_desc_change = true;
+#ifdef _DEBUG
+					LogManager::message("[!!!!!!!!!!!] Only change Description New = " +
+					                    param.substr(0, l_pos_begin_tag) + " old = " +
+					                    l_my_info_before_change.substr(0, l_pos_begin_tag_old));
+#endif
+				}
+			}
+		}
+	}
+#endif // FLYLINKDC_USE_CHECK_CHANGE_MYINFO 
 	string tmpDesc = unescape(param.substr(i, j - i));
 	// Look for a tag...
 	if (!tmpDesc.empty() && tmpDesc[tmpDesc.size() - 1] == '>')
@@ -2195,7 +2332,7 @@ void NmdcHub::myInfoParse(const string& param)
 		{
 			// Hm, we have something...disassemble it...
 			//dcassert(tmpDesc.length() > x + 2)
-			if (tmpDesc.length()  > x + 2)
+			if (tmpDesc.length()  > x + 2 && l_is_only_desc_change == false)
 			{
 				const string l_tag = tmpDesc.substr(x + 1, tmpDesc.length() - x - 2);
 				updateFromTag(ou->getIdentity(), l_tag); // т€жела€ операци€ с токенами. TODO - оптимизнуть
@@ -2207,6 +2344,13 @@ void NmdcHub::myInfoParse(const string& param)
 	{
 		ou->getIdentity().setDescription(tmpDesc); //
 	}
+#ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
+	if (l_is_only_desc_change && !ClientManager::isShutdown())
+	{
+		fire(ClientListener::UserDescUpdated(), ou);
+		return;
+	}
+#endif // FLYLINKDC_USE_CHECK_CHANGE_MYINFO 
 	
 	i = j + 3;
 	j = param.find('$', i);
@@ -2244,7 +2388,29 @@ void NmdcHub::myInfoParse(const string& param)
 	j = param.find('$', i);
 	if (j == string::npos)
 		return;
-		
+#ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
+// ѕроверим что мен€етс только шара
+	bool l_is_change_only_share = false;
+	if (!l_my_info_before_change.empty())
+	{
+		if (i < l_my_info_before_change.size())
+		{
+			if (strcmp(param.c_str() + i, l_my_info_before_change.c_str() + i) != 0)
+			{
+				if (strncmp(param.c_str(), l_my_info_before_change.c_str(), i) == 0)
+				{
+					l_is_change_only_share = true;
+#ifdef _DEBUG
+					LogManager::message("[!!!!!!!!!!!] Only change Share New = " +
+					                    param.substr(i) + " old = " +
+					                    l_my_info_before_change.substr(i) + " l_nick = " + l_nick + " hub = " + getHubUrl());
+#endif
+				}
+			}
+		}
+	}
+#endif // FLYLINKDC_USE_CHECK_CHANGE_MYINFO
+	
 	auto l_share_size = Util::toInt64(param.c_str() + i); // »ногда шара бывает == -1 http://www.flickr.com/photos/96019675@N02/9732534452/
 	if (l_share_size < 0)
 	{
@@ -2253,13 +2419,24 @@ void NmdcHub::myInfoParse(const string& param)
 		LogManager::message("ShareSize < 0 !, param = " + param);
 	}
 	changeBytesSharedL(ou->getIdentity(), l_share_size);
-	if (m_virus_nick.find(l_nick) == m_virus_nick.end())
 	{
-		if (CFlylinkDBManager::getInstance()->is_virus_bot(l_nick, l_share_size, ou->getIdentity().m_is_real_user_ip_from_hub ? ou->getIdentity().getIpRAW() : boost::asio::ip::address_v4()))
+		FastLock l(m_cs_virus);
+		if (m_virus_nick.find(l_nick) == m_virus_nick.end())
 		{
-			m_virus_nick.insert(l_nick);
+			if (CFlylinkDBManager::getInstance()->is_virus_bot(l_nick, l_share_size, ou->getIdentity().m_is_real_user_ip_from_hub ? ou->getIdentity().getIpRAW() : boost::asio::ip::address_v4()))
+			{
+				m_virus_nick.insert(l_nick);
+			}
 		}
 	}
+#ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
+	if (l_is_change_only_share && !ClientManager::isShutdown())
+	{
+		fire(ClientListener::UserShareUpdated(), ou);
+		return;
+	}
+#endif // FLYLINKDC_USE_CHECK_CHANGE_MYINFO 
+	
 	if (!ClientManager::isShutdown())
 	{
 		fire(ClientListener::UserUpdated(), ou); // !SMT!-fix

@@ -785,7 +785,7 @@ void Identity::calcP2PGuard()
 {
 	if (!m_is_p2p_guard_calc)
 	{
-		if (getIp().to_ulong())
+		if (getIp().to_ulong() && Util::isPrivateIp(getIp().to_ulong()) == false)
 		{
 			const string l_p2p_guard = CFlylinkDBManager::getInstance()->is_p2p_guard(getIp().to_ulong());
 			setP2PGuard(l_p2p_guard);

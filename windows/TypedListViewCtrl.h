@@ -381,17 +381,15 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 				SortItems(&compareFunc, (LPARAM)this);
 			}
 		}
-		/*
-		        int insertItemState(const T* item, int image, int state)
-		        {
-		            return insertItemState(getSortPos(item), item, image, INDEXTOSTATEIMAGEMASK(state));
-		        }
-		        int insertItemState(int i, const T* item, int image, int state)
-		        {
-		            return InsertItem(LVIF_TEXT | LVIF_PARAM | LVIF_IMAGE | LVIF_STATE, i,
-		                              LPSTR_TEXTCALLBACK, state, LVIS_STATEIMAGEMASK, image, (LPARAM)item); // TODO I_IMAGECALLBACK
-		        }
-		*/
+		int insertItemState(const T* item, int image, int state)
+		{
+			return insertItemState(getSortPos(item), item, image, INDEXTOSTATEIMAGEMASK(state));
+		}
+		int insertItemState(int i, const T* item, int image, int state)
+		{
+			return InsertItem(LVIF_TEXT | LVIF_PARAM | LVIF_IMAGE | LVIF_STATE, i,
+			                  LPSTR_TEXTCALLBACK, state, LVIS_STATEIMAGEMASK, image, (LPARAM)item); // TODO I_IMAGECALLBACK
+		}
 		int insertItem(const T* item, int image)
 		{
 			return insertItem(getSortPos(item), item, image);
@@ -518,7 +516,12 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		{
 			const int l_cnt = GetHeader().GetItemCount();
 			for (int j = 0; j < l_cnt; ++j)
-				SetItemText(i, j, LPSTR_TEXTCALLBACK);
+			{
+				if (m_columnList[j].m_is_owner_draw == false)
+				{
+					SetItemText(i, j, LPSTR_TEXTCALLBACK);
+				}
+			}
 		}
 		
 		void updateItem(int i, int col)
@@ -1404,7 +1407,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 			for (int i = 0; i < l_Count; i++)
 			{
 				T* si = getItemData(i);
-				delete si;
+				delete si; // https://drdump.com/DumpGroup.aspx?DumpGroupID=358387
 			}
 			
 			parents.clear();

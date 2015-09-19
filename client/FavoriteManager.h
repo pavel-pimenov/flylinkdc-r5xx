@@ -293,7 +293,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		void updateRecent(const RecentHubEntry* entry);
 		
 		static RecentHubEntry* getRecentHubEntry(const string& aServer);
-		static PreviewApplication* addPreviewApp(const string& name, const string& application, const string& arguments, const string& extension);
+		static PreviewApplication* addPreviewApp(const string& name, const string& application, const string& arguments, string p_extension);
 		static void removePreviewApp(const size_t index);
 		static PreviewApplication* getPreviewApp(const size_t index);
 		static void removeallRecent();

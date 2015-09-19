@@ -73,6 +73,7 @@ CServerItem CFlyServerConfig::g_stat_server;
 #ifdef STRONG_USE_DHT
 std::vector<DHTServer>	  CFlyServerConfig::g_dht_servers;
 #endif // STRONG_USE_DHT
+std::vector<string>	  CFlyServerConfig::g_spam_urls;
 DWORD CFlyServerConfig::g_winet_connect_timeout = 2000;
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 static volatile long g_running;
@@ -256,6 +257,17 @@ bool CFlyServerConfig::isParasitFile(const string& p_file)
 	return isCheckName(g_parasitic_files, p_file); // [!] IRainman opt.
 }
 //======================================================================================================
+bool CFlyServerConfig::isSpam(const string& p_line)
+{
+	const string l_lower_line = Text::toLower(p_line);
+	for (auto i = g_spam_urls.cbegin(); i != g_spam_urls.cend(); ++i)
+	{
+		if (l_lower_line.find(*i) != string::npos)
+			return true;
+	}
+	return false;
+}
+//======================================================================================================
 #ifdef STRONG_USE_DHT
 const DHTServer& CFlyServerConfig::getRandomDHTServer()
 {
@@ -267,9 +279,10 @@ const DHTServer& CFlyServerConfig::getRandomDHTServer()
 	}
 	else
 	{
+		dcassert(0);
 		// fix https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=113332
 		// TODO - ѕопытатьс€ повторить.
-		g_dht_servers.push_back(DHTServer("http://ssa.in.ua/dcDHT.php", "")); 
+		g_dht_servers.push_back(DHTServer("http://dht.fly-server.ru/dcDHT.php", "")); 
 		return g_dht_servers[0];
 	}
 }
@@ -343,7 +356,7 @@ void CFlyServerConfig::loadConfig()
 		LPCSTR l_res_data;
 		std::string l_data;
 #ifdef _DEBUG
-  //#define USE_FLYSERVER_LOCAL_FILE
+   #define USE_FLYSERVER_LOCAL_FILE
 #endif
 		const auto l_path_local_test_file = Text::toT(Util::getExePath()) + _T("fly-server-getip.config");
 		if (File::isExist(l_path_local_test_file))
@@ -397,6 +410,18 @@ void CFlyServerConfig::loadConfig()
 					l_xml.stepOut();
 				}
 #endif // STRONG_USE_DHT
+				{
+					l_xml.stepIn();
+					while (l_xml.findChild("antispam"))
+					{
+						const string& l_url = l_xml.getChildAttrib("url");
+						if (!l_url.empty())
+						{
+							g_spam_urls.push_back(l_url);
+						}
+					}
+					l_xml.stepOut();
+				}
 				l_xml.stepIn();
 				if (l_xml.findChild("fly-server"))
 				{
@@ -648,6 +673,30 @@ for (auto i = g_block_ip_str.cbegin(); i != g_block_ip_str.cend(); ++i)
 						g_ignore_flood_command.insert("RevConnectToMe");
 		}
 	}
+}
+//======================================================================================================
+std::string CFlyServerConfig::getAlternativeHub(const string& p_url)
+{
+	const auto l_dead_hubs = getDeadHub();
+	for (auto i = l_dead_hubs.cbegin(); i != l_dead_hubs.cend(); ++i)
+	{
+		if (p_url == i->first)
+			return i->second;
+	}
+	return p_url;
+}
+//======================================================================================================
+std::vector<StringPair> CFlyServerConfig::getDeadHub()
+{
+	std::vector<StringPair> l_dead_hubs;
+	if (CFlyServerConfig::g_mapping_hubs.size() && g_mapping_hubs.size()%2 == 0)
+	{
+		for (auto j = 0; j < CFlyServerConfig::g_mapping_hubs.size() - 1; j += 2)
+		{
+			l_dead_hubs.push_back(make_pair(CFlyServerConfig::g_mapping_hubs[j], CFlyServerConfig::g_mapping_hubs[j + 1]));
+		}
+	}
+	return l_dead_hubs;
 }
 //======================================================================================================
 void CFlyServerConfig::SyncAntivirusDBSafe()
@@ -1225,7 +1274,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 	syslog(LOG_USER | LOG_INFO, "%s %s %s [%s]", l_cid.c_str(), l_pid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
 }
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 46 (36 - устарел)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 50 (36 - устарел)
 {
 	bool l_is_send  = false;
 	bool l_is_error = false;
@@ -1374,6 +1423,7 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 					 {
 					  l_item["Count"] = i->second.m_count_user;
 					  l_item["Share"] = i->second.m_share_size;
+					  l_item["Active"] = int(i->second.m_is_active);
 					  if(i->second.m_message_count)
 					  {
 							l_item["Messages"] = i->second.m_message_count;

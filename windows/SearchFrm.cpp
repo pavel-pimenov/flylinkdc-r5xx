@@ -133,6 +133,7 @@ SearchFrame::FrameMap SearchFrame::g_search_frames;
 
 SearchFrame::~SearchFrame()
 {
+	//dcassert(m_search_info_leak_detect.empty());
 	dcassert(m_closed);
 	images.Destroy();
 	m_searchTypesImageList.Destroy();
@@ -251,6 +252,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	m_ctrlSearchFilterTree.SetImageList(m_searchTypesImageList, TVSIL_NORMAL);
 	
 	//m_treeContainer.SubclassWindow(m_ctrlSearchFilterTree);
+	m_is_use_tree = SETTING(USE_SEARCH_GROUP_TREE_SETTINGS);
 #endif
 	SET_EXTENDENT_LIST_VIEW_STYLE(ctrlResults);
 	resultsContainer.SubclassWindow(ctrlResults.m_hWnd);
@@ -360,12 +362,23 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	m_ctrlStoreSettings.SetWindowText(CTSTRING(SAVE_SEARCH_SETTINGS_TEXT));
 	//storeSettingsContainer.SubclassWindow(m_ctrlStoreSettings.m_hWnd);
 	
+	
 	m_tooltip.AddTool(m_ctrlStoreSettings, ResourceManager::SAVE_SEARCH_SETTINGS_TOOLTIP);
 	if (BOOLSETTING(FREE_SLOTS_DEFAULT))
 	{
 		ctrlSlots.SetCheck(TRUE);
 		m_onlyFree = true;
 	}
+	
+	m_ctrlUseGroupTreeSettings.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
+	m_ctrlUseGroupTreeSettings.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
+	if (BOOLSETTING(USE_SEARCH_GROUP_TREE_SETTINGS))
+	{
+		m_ctrlUseGroupTreeSettings.SetCheck(TRUE);
+	}
+	m_ctrlUseGroupTreeSettings.SetFont(Fonts::g_systemFont, FALSE);
+	m_ctrlUseGroupTreeSettings.SetWindowText(CTSTRING(USE_SEARCH_GROUP_TREE_SETTINGS_TEXT));
+	
 	ctrlShowUI.Create(ctrlStatus.m_hWnd, rcDefault, _T("+/-"), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 	ctrlShowUI.SetButtonStyle(BS_AUTOCHECKBOX, false);
 	ctrlShowUI.SetCheck(1);
@@ -589,6 +602,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 #ifdef FLYLINKDC_USE_TREE_SEARCH
 	m_RootTreeItem = nullptr;
 	m_CurrentTreeItem = nullptr;
+	m_OldTreeItem = nullptr;
 	clear_tree_filter_contaners();
 #endif
 	if (!m_initialString.empty())
@@ -1235,7 +1249,12 @@ void SearchFrame::on(SearchManagerListener::SR, const SearchResult &aResult) noe
 		//PostMessage(WM_SPEAKER, FILTER_RESULT);//[-]IRainman optimize SearchFrame
 		return;
 	}
-	safe_post_message(*this, ADD_RESULT, new SearchInfo(aResult));
+	auto l_ptr = new SearchInfo(aResult);
+	check_new(l_ptr);
+	if (safe_post_message(*this, ADD_RESULT, l_ptr) == false)
+	{
+		check_delete(l_ptr);
+	}
 }
 //===================================================================================================================================
 /*
@@ -1456,6 +1475,31 @@ LRESULT SearchFrame::onCollapsed(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 #endif
 	m_storeSettings = m_ctrlStoreSettings.GetCheck() == 1;
 	SET_SETTING(SAVE_SEARCH_SETTINGS, m_storeSettings);
+	m_is_use_tree = m_ctrlUseGroupTreeSettings.GetCheck() == 1;
+	SET_SETTING(USE_SEARCH_GROUP_TREE_SETTINGS, m_is_use_tree);
+	UpdateLayout();
+	if (!m_is_use_tree)
+	{
+		if (m_RootTreeItem)
+		{
+			m_OldTreeItem = m_CurrentTreeItem;
+			m_ctrlSearchFilterTree.SelectItem(m_RootTreeItem);
+		}
+	}
+	else
+	{
+		if (m_OldTreeItem)
+		{
+			if (m_ctrlSearchFilterTree.SelectItem(m_OldTreeItem))
+			{
+				m_CurrentTreeItem = m_OldTreeItem;
+			}
+			else
+			{
+				dcassert(0);
+			}
+		}
+	}
 	return 0;
 }
 //===================================================================================================================================
@@ -1965,7 +2009,7 @@ LRESULT SearchFrame::onDownloadWithPrio(WORD /*wNotifyCode*/, WORD wID, HWND /*h
 		int i = -1;
 		while ((i = ctrlResults.GetNextItem(i, LVNI_SELECTED)) != -1)
 		{
-			SearchInfo* si = ctrlResults.getItemData(i);
+			const SearchInfo* si = ctrlResults.getItemData(i);
 			dir = Text::toT(FavoriteManager::getInstance()->getDownloadDirectory(Util::getFileExt(si->sr.getFileName())));
 			(SearchInfo::Download(dir, this, p))(si); //-V607
 		}
@@ -2145,7 +2189,7 @@ LRESULT SearchFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		waitForFlyServerStop();
 #endif
-		ctrlResults.DeleteAndClearAllItems();
+		ctrlResults.DeleteAndClearAllItems(); // https://drdump.com/DumpGroup.aspx?DumpGroupID=358387
 		clearPausedResults();
 		ctrlHubs.DeleteAndCleanAllItems(); // [!] IRainman
 		ctrlResults.saveHeaderOrder(SettingsManager::SEARCHFRAME_ORDER, SettingsManager::SEARCHFRAME_WIDTHS,
@@ -2202,7 +2246,7 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 	{
 		CRect rc = rect;
 #ifdef FLYLINKDC_USE_TREE_SEARCH
-		const int l_width_tree = 200;
+		const int l_width_tree = m_is_use_tree ? 200 : 0;
 #else
 		const int l_width_tree = 0;
 #endif
@@ -2211,10 +2255,13 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 		ctrlResults.MoveWindow(rc);
 		
 #ifdef FLYLINKDC_USE_TREE_SEARCH
-		CRect rc_tree = rc;
-		rc_tree.left -= l_width_tree;
-		rc_tree.right = rc_tree.left + l_width_tree - 5;
-		m_ctrlSearchFilterTree.MoveWindow(rc_tree);
+		if (m_is_use_tree)
+		{
+			CRect rc_tree = rc;
+			rc_tree.left -= l_width_tree;
+			rc_tree.right = rc_tree.left + l_width_tree - 5;
+			m_ctrlSearchFilterTree.MoveWindow(rc_tree);
+		}
 #endif
 		// "Search for".
 		rc.left = lMargin; // Левая граница.
@@ -2338,6 +2385,10 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 		rc.bottom += 17;
 		m_ctrlStoreSettings.MoveWindow(rc);
 		
+		rc.top += 17;
+		rc.bottom += 17;
+		m_ctrlUseGroupTreeSettings.MoveWindow(rc);
+		
 		// "Hubs".
 		rc.left = lMargin;
 		rc.right = width - rMargin;
@@ -2348,8 +2399,9 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 		ctrlHubs.MoveWindow(rc);
 		
 		if (!CompatibilityManager::isWine())
+		{
 			hubsLabel.MoveWindow(rc.left + lMargin, rc.top - labelH, width - rMargin, labelH - 1);
-			
+		}
 	}
 	else   // if(m_showUI)
 	{
@@ -2372,6 +2424,7 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 		m_ctrlStoreIP.MoveWindow(rc);
 #endif
 		m_ctrlStoreSettings.MoveWindow(rc);
+		m_ctrlUseGroupTreeSettings.MoveWindow(rc);
 		ctrlHubs.MoveWindow(rc);
 		//  srLabel.MoveWindow(rc);
 		//  ctrlFilterSel.MoveWindow(rc);
@@ -2492,6 +2545,7 @@ LRESULT SearchFrame::onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOO
 	        hWnd == m_ctrlStoreIP.m_hWnd ||
 #endif
 	        hWnd == m_ctrlStoreSettings.m_hWnd ||
+	        hWnd == m_ctrlUseGroupTreeSettings.m_hWnd ||
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	        hWnd == m_ctrlFlyServer.m_hWnd ||
 #endif
@@ -2554,7 +2608,8 @@ void SearchFrame::onTab(bool shift)
 		m_ctrlFlyServer.m_hWnd,
 #endif
 		m_ctrlStoreSettings.m_hWnd, ctrlDoSearch.m_hWnd, ctrlSearch.m_hWnd,
-		ctrlResults.m_hWnd
+		ctrlResults.m_hWnd,
+		m_ctrlUseGroupTreeSettings.m_hWnd
 	};
 	
 	HWND focus = GetFocus();
@@ -2606,6 +2661,9 @@ LRESULT SearchFrame::onSearchByTTH(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 
 LRESULT SearchFrame::onSelChangedTree(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
 {
+	dcassert(m_closed == false);
+	if (m_closed == true)
+		return 0;
 	NMTREEVIEW* p = (NMTREEVIEW*)pnmh;
 	m_CurrentTreeItem = p->itemNew.hItem;
 	CLockRedraw<> l_lock_draw(ctrlResults);
@@ -2659,6 +2717,12 @@ bool SearchFrame::is_filter_item(const SearchInfo* si)
 
 void SearchFrame::addSearchResult(SearchInfo* si)
 {
+	dcassert(m_closed == false);
+	if (m_closed == true)
+	{
+		check_delete(si);
+		delete si;
+	}
 	const SearchResult& sr = si->sr;
 	const auto l_user        = sr.getUser();
 	if (!sr.getIP().is_unspecified())
@@ -2674,6 +2738,7 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 		{
 			if (l_user->getCID() == pp->parent->getUser()->getCID() && sr.getFile() == pp->parent->sr.getFile())
 			{
+				check_delete(si);
 				delete si;
 				return;
 			}
@@ -2684,6 +2749,7 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 				{
 					if (sr.getFile() == (*k)->sr.getFile())
 					{
+						check_delete(si);
 						delete si;
 						return;
 					}
@@ -2701,6 +2767,7 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 			{
 				if (sr.getFile() == sr2.getFile())
 				{
+					check_delete(si);
 					delete si;
 					return;
 				}
@@ -2786,10 +2853,12 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 				if (l_is_filter_ok)
 #endif
 				{
+					dcassert(m_closed == false);
 					ctrlResults.insertGroupedItem(si, m_expandSR, false, true);
 				}
 				else
 				{
+					dcassert(m_closed == false);
 					if (pp == nullptr)
 					{
 						ctrlResults.getParents().insert(make_pair(const_cast<TTHValue*>(&sr.getTTH()), l_pp));
@@ -2802,6 +2871,7 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 			}
 			else
 			{
+				dcassert(m_closed == false);
 #ifdef FLYLINKDC_USE_TREE_SEARCH
 				if (m_CurrentTreeItem == m_RootTreeItem || m_CurrentTreeItem == nullptr)
 #endif
@@ -3811,6 +3881,7 @@ bool SearchFrame::matchFilter(const SearchInfo* si, int sel, bool doSizeCompare,
 void SearchFrame::set_tree_item_status(const SearchInfo* p_si)
 {
 	dcassert(ctrlResults.findItem(p_si) == -1);
+	dcassert(m_closed == false);
 	const int k = ctrlResults.insertItem(p_si, I_IMAGECALLBACK);
 	
 	const vector<SearchInfo*>& children = ctrlResults.findChildren(p_si->getGroupCond());
@@ -3836,6 +3907,7 @@ void SearchFrame::clear_tree_filter_contaners()
 	m_filter_map.clear();
 	m_tree_type.clear();
 	m_CurrentTreeItem = nullptr;
+	m_OldTreeItem = nullptr;
 	m_RootTreeItem = nullptr;
 	m_is_expand_tree = false;
 	m_ctrlSearchFilterTree.DeleteAllItems();
@@ -3843,6 +3915,7 @@ void SearchFrame::clear_tree_filter_contaners()
 
 void SearchFrame::updateSearchList(SearchInfo* p_si)
 {
+	dcassert(m_closed == false);
 	int64_t size = -1;
 	FilterModes mode = NONE;
 	const int sel = ctrlFilterSel.GetCurSel();

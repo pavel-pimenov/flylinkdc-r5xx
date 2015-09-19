@@ -30,6 +30,7 @@
 #include "ZenLib/Translation.h"
 #include "ZenLib/InfoMap.h"
 using namespace ZenLib;
+//[-] FlylinkDC++ using namespace std;
 //---------------------------------------------------------------------------
 
 namespace MediaInfoLib

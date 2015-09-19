@@ -186,8 +186,8 @@ class UserConnection : public Speaker<UserConnectionListener>,
 				socket->setLineMode(rollback);
 		}
 		
-		void connect(const string& aServer, uint16_t aPort, uint16_t localPort, const BufferedSocket::NatRoles natRole) throw(SocketException, ThreadException);
-		void accept(const Socket& aServer) throw(SocketException, ThreadException);
+		void connect(const string& aServer, uint16_t aPort, uint16_t localPort, const BufferedSocket::NatRoles natRole);
+		void accept(const Socket& aServer);
 		
 		void updated()
 		{

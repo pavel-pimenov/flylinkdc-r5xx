@@ -31,7 +31,8 @@ struct CFlyClientStatistic
 	uint32_t  m_count_user;
 	uint32_t  m_message_count;
 	int64_t   m_share_size;
-	CFlyClientStatistic(): m_count_user(0), m_share_size(0), m_message_count(0)
+	bool m_is_active;
+	CFlyClientStatistic() : m_count_user(0), m_share_size(0), m_message_count(0), m_is_active(false)
 	{
 	}
 	bool empty() const
@@ -62,7 +63,7 @@ class ClientBase
 			return m_isActivMode
 			       && !SETTING(FORCE_PASSIVE_INCOMING_CONNECTIONS);
 		}
-		virtual bool resendMyINFO(bool p_is_force_passive) = 0;
+		virtual bool resendMyINFO(bool p_always_send, bool p_is_force_passive) = 0;
 		P2PType getType() const
 		{
 			return m_type;
@@ -563,7 +564,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
 		mutable FastCriticalSection csSock; // [!] IRainman opt: no needs recursive mutex here.
 #endif
-		
+		mutable FastCriticalSection m_cs_virus;
 		int64_t m_availableBytes;
 		bool    m_isChangeAvailableBytes;
 		
@@ -625,6 +626,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		bool isInOperatorList(const string& userName) const;
 		unsigned getVirusBotCount() const
 		{
+			FastLock l(m_cs_virus);
 			return m_virus_nick.size();
 		}
 		

@@ -1509,7 +1509,7 @@ void AdcHub::addParam(AdcCommand& c, const string& var, const string& value)
 	}
 }
 
-bool AdcHub::resendMyINFO(bool p_is_force_passive)
+bool AdcHub::resendMyINFO(bool p_always_send, bool p_is_force_passive)
 {
 	return false;
 }

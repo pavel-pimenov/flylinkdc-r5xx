@@ -23,6 +23,7 @@
 #include "PreviewDlg.h"
 #include "WinUtil.h"
 #include "../FlyFeatures/flyServer.h"
+#include <boost/algorithm/string.hpp>
 
 LRESULT PreviewDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
@@ -31,7 +32,9 @@ LRESULT PreviewDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	SetDlgItemText(IDC_PREV_APPLICATION, CTSTRING(SETTINGS_PREVIEW_DLG_APPLICATION));
 	SetDlgItemText(IDC_PREV_ARG, CTSTRING(SETTINGS_PREVIEW_DLG_ARGUMENTS));
 	tstring l_def_text = CTSTRING(SETTINGS_PREVIEW_DLG_EXT);
-	l_def_text += _T("\r\nDefault: ") + Text::toT(CFlyServerConfig::getAllMediainfoExt());
+	string l_ext = CFlyServerConfig::getAllMediainfoExt();
+	boost::replace_all(l_ext, ",", ";");
+	l_def_text += _T("\r\nDefault: ") + Text::toT(l_ext);
 	SetDlgItemText(IDC_PREV_EXT, l_def_text.c_str());
 	
 	//SetDlgItemText(IDC_PREVIEW_BROWSE, CTSTRING(BROWSE)); // [~] JhaoDa, not necessary any more
@@ -70,21 +73,17 @@ LRESULT PreviewDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
 	if (wID == IDOK)
 	{
 		if (ctrlName.GetWindowTextLength() == 0 ||
-		        ctrlApplication.GetWindowTextLength() == 0
-		   )
+		        ctrlApplication.GetWindowTextLength() == 0)
 		{
 			MessageBox(CWSTRING(NAME_COMMAND_EMPTY));
-			return 0;
-		}
-		if (ctrlExtensions.GetWindowTextLength() == 0)
-		{
-			MessageBox(_T("Please, enter extensions"));
 			return 0;
 		}
 		GET_TEXT(IDC_PREVIEW_NAME, m_name);
 		GET_TEXT(IDC_PREVIEW_APPLICATION, m_application);
 		GET_TEXT(IDC_PREVIEW_ARGUMENTS, m_argument);
 		GET_TEXT(IDC_PREVIEW_EXTENSION, m_extensions);
+		boost::replace_all(m_extensions, " ", "");
+		boost::replace_all(m_extensions, ",", ";");
 	}
 	EndDialog(wID);
 	return 0;

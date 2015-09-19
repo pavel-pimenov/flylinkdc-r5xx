@@ -803,23 +803,27 @@ BEGIN
     EDITTEXT        IDC_NICK,10,22,150,14,ES_AUTOHSCROLL
     LTEXT           "E-Mail",IDC_SETTINGS_EMAIL,165,12,78,8
     EDITTEXT        IDC_EMAIL,165,22,149,14,ES_AUTOHSCROLL
-    LTEXT           "Description",IDC_SETTINGS_DESCRIPTION,10,40,76,9
-    EDITTEXT        IDC_DESCRIPTION,10,50,304,14,ES_AUTOHSCROLL
+    LTEXT           "Description",IDC_SETTINGS_DESCRIPTION,95,40,76,9
+    EDITTEXT        IDC_DESCRIPTION,95,49,217,14,ES_AUTOHSCROLL
     CONTROL         "Add to description:",IDC_CHECK_ADD_TO_DESCRIPTION,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,69,149,10
     CONTROL         "Amount of slots",IDC_CHECK_ADD_SLOTS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,21,81,139,10
     RTEXT           "Bandwidth",IDC_SETTINGS_NOMINALBW,172,81,77,8
     COMBOBOX        IDC_CONNECTION,254,79,60,95,CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Speed limit",IDC_CHECK_ADD_LIMIT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,21,93,139,10
-    GROUPBOX        "Language",IDC_SETTINGS_LANGUAGE,4,109,316,59
+    GROUPBOX        "Language",IDC_SETTINGS_LANGUAGE,4,109,316,88
     COMBOBOX        IDC_LANGUAGE,10,121,142,14,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CTEXT           "Is your language not displayed?",IDC_LANG_LINK,165,123,149,10
     CONTROL         "Connect to support hub on each startup",IDC_CONNECT_TO_SUPPORT_HUB,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,173,303,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,199,303,10
     CONTROL         "Allow the program to collect and send anonymous usage statistics to developers.",IDC_USE_FLY_SERVER_STATICTICS_SEND,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,186,303,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,212,303,10
     LTEXT           "Default hub encoding:",IDC_ENCODINGTEXT,10,138,52,8
     COMBOBOX        IDC_ENCODING,10,151,142,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Disable auto-remove virus-hubs",IDC_DISABLE_AUTOREMOVE_VIRUS_HUB,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,226,301,10
+    CONTROL         "",IDC_GENDER,"ComboBoxEx32",CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP,11,49,71,95
+    LTEXT           "Gender",IDC_SETTINGS_GENDER,13,39,64,8
 END
 
 IDD_ADVANCED_PAGE DIALOGEX 0, 0, 325, 300
@@ -2925,7 +2929,7 @@ IDR_QUEUE               ICON                    "res\\Download-Queue.ico"
 IDR_FINISHED_DL         ICON                    "res\\Finished-Downloads.ico"
 IDR_UPLOAD_QUEUE        ICON                    "res\\Upload-Queue.ico"
 IDR_FINISHED_UL         ICON                    "res\\Finished-Uploads.ico"
-IDR_NETWORK_STATISTICS_ICON ICON                "res\\Network-Statistics.ico"
+IDR_NETWORK_STATISTICS_ICON ICON                    "res\\Network-Statistics.ico"
 IDC_WIFI_ROUTER_ICO     ICON                    "res\\wifi-router.ico"
 IDR_SEARCH              ICON                    "res\\Search.ico"
 IDR_ADLSEARCH           ICON                    "res\\ADLSearch.ico"
@@ -2969,8 +2973,8 @@ IDR_ICON_MEDICAL_BAG    ICON                    "res\\medical_bag.ico"
 IDR_ICON_THERMOMETR_BAG ICON                    "res\\thermometer2.ico"
 IDR_SKULL_ICO           ICON                    "res\\skull.ico"
 IDR_SKULL_RED_ICO       ICON                    "res\\skull_red.ico"
-IDR_SKULL2_ICO           ICON                   "res\\skull2.ico"
-IDR_SKULL2_RED_ICO       ICON                   "res\\skull2_red.ico"
+IDR_SKULL2_ICO          ICON                    "res\\skull2.ico"
+IDR_SKULL2_RED_ICO      ICON                    "res\\skull2_red.ico"
 IDR_ICON_FIREWALL       ICON                    "res\\firewall.ico"
 IDR_ICON_CLOCK          ICON                    "res\\clock.ico"
 IDR_ICON_CAMSHOOT_ICO   ICON                    "res\\Cam.ico"
@@ -2981,11 +2985,8 @@ IDR_OFFLINE_ICO         ICON                    "res\\offline.ico"
 IDR_ONLINE_ICO          ICON                    "res\\online.ico"
 IDR_VIP_ICO_SCALOLAZ    ICON                    "res\\vip_scalolaz.ico"
 IDR_VIP_ICO_MILENAHUB   ICON                    "res\\vip_milenahub.ico"
-IDR_VIP_ICO_STEALTHHUB  ICON        "res\\vip_stealthhub.ico"
-IDR_VIP_ICO_KEEPCLEAR   ICON        "res\\vip_keepclear_org.ico"
-
-
-
+IDR_VIP_ICO_STEALTHHUB  ICON                    "res\\vip_stealthhub.ico"
+IDR_VIP_ICO_KEEPCLEAR   ICON                    "res\\vip_keepclear_org.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -3005,6 +3006,7 @@ IDR_PLAYERS_CONTROL_MINI PNG                     "res\\PlayersControl-mini.png"
 IDR_SETTINGS_ICONS      PNG                     "res\\Settings-icons.png"
 IDR_USERS               PNG                     "res\\Users.png"
 IDR_STATE_USERS         PNG                     "res\\StateUsers.png"
+IDR_GENDER_USERS        PNG                    "res\\Gender.png"
 IDR_FLAGS               PNG                     "res\\Flags.png"
 IDR_ARROWS              PNG                     "res\\Arrows.png"
 IDR_TSPEEDS             PNG                     "res\\TranferSpeeds.png"

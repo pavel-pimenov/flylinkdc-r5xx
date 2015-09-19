@@ -246,7 +246,8 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		LRESULT onCloseWindows(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onRefresh(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
-			if (m_client->isConnected())
+			dcassert(m_client);
+			if (m_client && m_client->isConnected())
 			{
 				clearUserList(false);
 				m_client->refreshUserList(false);
@@ -321,6 +322,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		uint8_t m_second_count;
 		void setShortHubName(const tstring& p_name);
 		string m_redirect;
+		string m_last_redirect;
 		tstring m_complete;
 		tstring m_last_hub_message;
 		bool m_waitingForPW;
@@ -401,6 +403,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		void removeUser(const OnlineUserPtr& p_ou);
 		
 		void InsertUserList(UserInfo* ui);
+		void InsertItemInternal(const UserInfo* ui);
 		void updateUserList(); // [!] IRainman opt.
 		bool parseFilter(FilterModes& mode, int64_t& size);
 		bool matchFilter(UserInfo& ui, int sel, bool doSizeCompare = false, FilterModes mode = NONE, int64_t size = 0);
@@ -439,6 +442,8 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		// ClientListener
 		void on(ClientListener::Connecting, const Client*) noexcept override;
 		void on(ClientListener::Connected, const Client*) noexcept override;
+		void on(ClientListener::UserDescUpdated, const OnlineUserPtr&) noexcept override;
+		void on(ClientListener::UserShareUpdated, const OnlineUserPtr&) noexcept override;
 		void on(ClientListener::UserUpdated, const OnlineUserPtr&) noexcept override; // !SMT!-fix
 		void on(ClientListener::UsersUpdated, const Client*, const OnlineUserList&) noexcept override;
 		void on(ClientListener::UserRemoved, const Client*, const OnlineUserPtr&) noexcept override;
@@ -449,6 +454,8 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		void on(ClientListener::Message, const Client*, std::unique_ptr<ChatMessage>&) noexcept override;
 		//void on(PrivateMessage, const Client*, const string &strFromUserName, const UserPtr&, const UserPtr&, const UserPtr&, const string&, bool = true) noexcept override; // !SMT!-S [-] IRainman fix.
 		void on(NickTaken, const Client*) noexcept override;
+		void on(HubFull, const Client*) noexcept override;
+		void on(FirstExtJSON, const Client*) noexcept override;
 		void on(ClientListener::CheatMessage, const string&) noexcept override;
 		void on(ClientListener::UserReport, const Client*, const string&) noexcept override; // [+] IRainman
 		void on(ClientListener::HubTopic, const Client*, const string&) noexcept override;
@@ -493,21 +500,29 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		static void addDupeUsersToSummaryMenu(ClientManager::UserParams& p_param); // !SMT!-UI
 		uint8_t getVIPIconIndex() const
 		{
-			return m_client->getVIPIconIndex();
+			dcassert(m_client);
+			if (m_client)
+				return m_client->getVIPIconIndex();
+			else
+				return 0;
 		}
 		bool isFlySupportHub() const
 		{
-			return m_client->isFlySupportHub();
+			dcassert(m_client);
+			return m_client && m_client->isFlySupportHub();
 		}
 		bool isFlyAntivirusHub() const
 		{
-			return m_client->isFlyAntivirusHub();
+			dcassert(m_client);
+			return m_client && m_client->isFlyAntivirusHub();
 		}
 		
 		// [+] IRainman: copy-past fix.
 		void sendMessage(const tstring& msg, bool thirdperson = false)
 		{
-			m_client->hubMessage(Text::fromT(msg), thirdperson);
+			dcassert(m_client);
+			if (m_client)
+				m_client->hubMessage(Text::fromT(msg), thirdperson);
 		}
 		void processFrameCommand(const tstring& fullMessageText, const tstring& cmd, tstring& param, bool& resetInputMessageText);
 		void processFrameMessage(const tstring& fullMessageText, bool& resetInputMessageText);
@@ -532,6 +547,13 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		{
 			return m_ctrlFilterSel ? m_ctrlFilterSel->GetCurSel() : m_FilterSelPos;
 		}
+		void init_gender_imagelist()
+		{
+			if (m_ctrlUsers && m_is_ext_json_hub)
+			{
+				m_ctrlUsers->SetImageList(g_genderImage.getIconList(), LVSIL_STATE);
+			}
+		}
 		tstring m_filter;
 		string m_window_text;
 		uint8_t m_is_window_text_update;
@@ -547,6 +569,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		bool m_isUpdateColumnsInfoProcessed;
 		bool m_is_red_virus_icon_index;
 		bool m_is_ddos_detect;
+		bool m_is_ext_json_hub;
 		uint8_t m_virus_icon_index;
 		static int g_last_red_virus_icon_index;
 		bool flickerVirusIcon();

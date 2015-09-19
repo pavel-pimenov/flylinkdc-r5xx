@@ -78,7 +78,7 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 	}
 	static const char* g_vip_icons_array[] =   // VIP_ICON
 	{
-		"scalolaz.no-ip.org",
+		"dcsamara.net",
 		"dc.milenahub.ru",
 		"stealthhub.ru",
 		"keepclear.org"
@@ -463,7 +463,10 @@ void Client::on(Failed, const string& aLine) noexcept
 
 void Client::disconnect(bool p_graceLess)
 {
-	m_virus_nick.clear();
+	{
+		FastLock l(m_cs_virus);
+		m_virus_nick.clear();
+	}
 	state = STATE_DISCONNECTED;//[!] IRainman fix
 	FavoriteManager::removeUserCommand(getHubUrl());
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET

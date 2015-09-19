@@ -158,7 +158,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		// [+] IRainman fix.
 		struct UserParams
 		{
-			uint64_t m_bytesShared;
+			int64_t m_bytesShared;
 			int m_slots;
 			int m_limit;
 			std::string m_ip;
@@ -313,6 +313,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		
 		void send(AdcCommand& c, const CID& to);
 		static void upnp_error_force_passive();
+		static void resend_ext_json();
 		void connect(const HintedUser& user, const string& p_token, bool p_is_force_passive, bool& p_is_active_client);
 		static void privateMessage(const HintedUser& user, const string& msg, bool thirdPerson);
 		void userCommand(const HintedUser& user, const UserCommand& uc, StringMap& params, bool compatibility);

@@ -27,7 +27,7 @@
 #include "ConnectionManager.h"
 #include "LogManager.h"
 #include "../FlyFeatures/flyServer.h"
-
+#include <boost/algorithm/string.hpp>
 
 bool FavoriteManager::g_SupportsHubExist = false;
 bool FavoriteManager::g_isNotEmpty = false;
@@ -1068,31 +1068,27 @@ void FavoriteManager::connectToFlySupportHub()
 bool FavoriteManager::replaceDeadHub()
 {
 	bool l_result = false;
-	std::vector<std::pair<std::string, std::string> > l_dead_hubs;
-	if (CFlyServerConfig::g_mapping_hubs.size())
+	// TODO if (BOOLSETTING(DISABLE_AUTOREMOVE_VIRUS_HUB) == false)
 	{
-		for (auto j = 0; j < CFlyServerConfig::g_mapping_hubs.size() - 1; j += 2)
+		std::vector<StringPair> l_dead_hubs = CFlyServerConfig::getDeadHub();
+		for (auto i = l_dead_hubs.cbegin(); i != l_dead_hubs.cend(); ++i)
 		{
-			l_dead_hubs.push_back(make_pair(CFlyServerConfig::g_mapping_hubs[j], CFlyServerConfig::g_mapping_hubs[j + 1]));
-		}
-	}
-	for (auto i = l_dead_hubs.cbegin(); i != l_dead_hubs.cend(); ++i)
-	{
-		if (FavoriteHubEntry* l_HubEntry = getFavoriteHubEntry(i->first))
-		{
-			if (g_AllHubUrls.count(i->second) == 0)
+			if (FavoriteHubEntry* l_HubEntry = getFavoriteHubEntry(i->first))
 			{
-				l_HubEntry->setServer(i->second);
-				g_AllHubUrls.insert(i->second);
-				l_HubEntry->setConnect(true);
-				CFlyServerJSON::pushError(32, "Dead Hub replace: " + i->first + " -> " + i->second);
+				if (g_AllHubUrls.count(i->second) == 0)
+				{
+					l_HubEntry->setServer(i->second);
+					g_AllHubUrls.insert(i->second);
+					l_HubEntry->setConnect(true);
+					CFlyServerJSON::pushError(32, "Dead Hub replace: " + i->first + " -> " + i->second);
+				}
+				else
+				{
+					l_HubEntry->setConnect(false);
+					CFlyServerJSON::pushError(34, "Dead Hub disable auto-connect: " + i->first);
+				}
+				l_result = true;
 			}
-			else
-			{
-				l_HubEntry->setConnect(false);
-				CFlyServerJSON::pushError(34, "Dead Hub disable auto-connect: " + i->first);
-			}
-			l_result = true;
 		}
 	}
 	return l_result;
@@ -1783,9 +1779,11 @@ RecentHubEntry* FavoriteManager::getRecentHubEntry(const string& aServer)
 	return nullptr;
 }
 // [!] IRainman fix.
-PreviewApplication* FavoriteManager::addPreviewApp(const string& name, const string& application, const string& arguments, const string& extension) // [!] PVS V813 Decreased performance. The 'name', 'application', 'arguments', 'extension' arguments should probably be rendered as constant references. favoritemanager.h 366
+PreviewApplication* FavoriteManager::addPreviewApp(const string& name, const string& application, const string& arguments, string p_extension) // [!] PVS V813 Decreased performance. The 'name', 'application', 'arguments', 'extension' arguments should probably be rendered as constant references. favoritemanager.h 366
 {
-	PreviewApplication* pa = new PreviewApplication(name, application, arguments, extension);
+	boost::replace_all(p_extension, " ", "");
+	boost::replace_all(p_extension, ",", ";");
+	PreviewApplication* pa = new PreviewApplication(name, application, arguments, p_extension);
 	g_previewApplications.push_back(pa);
 	return pa;
 }

@@ -183,15 +183,8 @@ void NmdcSupports::setStatus(Identity& id, const char status, const string& conn
 	CHECK_ST(X1);
 	CHECK_ST(X2);
 	*/
-#ifndef IRAINMAN_TEMPORARY_DISABLE_XXX_ICON
-	if (status & 0x20)
-		u->setFlag(User::GREY_XXX_5);
-	if (status & 0x40)
-		u->setFlag(User::GREY_XXX_6);
-#endif
-		
 #undef CHECK_ST
-		
+	
 }
 /*
 string NmdcSupports::getSupports(const Identity& id)

@@ -118,8 +118,8 @@ class NmdcHub : public Client, private Flags
 			SUPPORTS_USERCOMMAND = 0x01,
 			SUPPORTS_NOGETINFO = 0x02,
 			SUPPORTS_USERIP2 = 0x04,
-#ifdef FLYLINKDC_USE_FLYHUB
-			SUPPORTS_FLYHUB = 0x08
+#ifdef FLYLINKDC_USE_EXT_JSON
+			SUPPORTS_EXTJSON = 0x08
 #endif
 		};
 		
@@ -131,9 +131,12 @@ class NmdcHub : public Client, private Flags
 		
 		NickMap  m_users;
 		string   m_lastMyInfo;
+		string   m_lastExtJSONInfo;
 		int64_t  m_lastBytesShared;
 		uint64_t m_lastUpdate;
 		uint8_t  m_supportFlags;
+		uint8_t  m_version_fly_info;
+		
 		char m_modeChar; // last Mode MyINFO
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 		bool m_hubSupportsSlots;//[+] FlylinkDC
@@ -146,13 +149,19 @@ class NmdcHub : public Client, private Flags
 		static CFlyUnknownCommand g_unknown_command;
 		static CFlyUnknownCommandArray g_unknown_command_array;
 		static FastCriticalSection g_unknown_cs;
+		static uint8_t g_version_fly_info;
 	public:
+		static void inc_version_fly_info()
+		{
+			++g_version_fly_info;
+		}
 		static void log_all_unknown_command();
 		static string get_all_unknown_command();
 	private:
 		void processAutodetect(bool p_is_myinfo);
 		
 		DefinedMeyInfoState m_bLastMyInfoCommand; // [+] FlylinkDC
+		string m_last_antivirus_detect_url;
 		
 		NmdcHub(const string& aHubURL, bool secure, bool p_is_auto_connect);
 		~NmdcHub();
@@ -246,9 +255,12 @@ class NmdcHub : public Client, private Flags
 		void NmdcSearch(const SearchParam& p_search_param);
 		string calcExternalIP() const;
 		void revConnectToMe(const OnlineUser& aUser);
-		bool resendMyINFO(bool p_is_force_passive);
+		bool resendMyINFO(bool p_always_send, bool p_is_force_passive);
 		void myInfo(bool p_alwaysSend, bool p_is_force_passive = false);
 		void myInfoParse(const string& param);
+#ifdef FLYLINKDC_USE_EXT_JSON
+		void extJSONParse(const string& param);
+#endif
 		void searchParse(const string& param, bool p_is_passive);
 		void connectToMeParse(const string& param);
 		void revConnectToMeParse(const string& param);

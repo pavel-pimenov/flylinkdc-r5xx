@@ -1850,6 +1850,11 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="U">О:</String>
 		<String Name="UdRatio">Отдано/загружено</String>
 		<String Name="FlyServerUdpTestPortWait">Тест UDP-порта…</String>
+		<string name="FlyHubGender">Пол</string>
+		<string name="FlyGenderNone">Не скажу</string>
+		<string name="FlyGenderMale">Мужской</string>
+		<string name="FlyGenderFemale">Женский</string>
+		<string name="FlyGenderAsexual">Бесполый</string>
 		<String Name="UnableToCreateThread">Невозможно создать поток</String>
 		<String Name="UnableToOpenFilelist">Невозможно открыть список:</String>
 		<String Name="UnableToOpenPort">Не могу открыть %s порт(ы). Вы должны настроить соединение вручную.</String>

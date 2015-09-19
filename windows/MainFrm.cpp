@@ -3494,6 +3494,7 @@ LRESULT MainFrame::onChangeLocation(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 			SET_SETTING(FLY_LOCATOR_COUNTRY, Text::fromT(l_dlg.m_Country));
 			SET_SETTING(FLY_LOCATOR_CITY, Text::fromT(l_dlg.m_City));
 			SET_SETTING(FLY_LOCATOR_ISP, Text::fromT(l_dlg.m_Provider));
+			ClientManager::resend_ext_json();
 		}
 	}
 	

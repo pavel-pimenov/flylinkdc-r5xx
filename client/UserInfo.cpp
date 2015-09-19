@@ -105,9 +105,15 @@ int UserInfo::compareItems(const UserInfo* a, const UserInfo* b, int col)
 		}
 		case COLUMN_GEO_LOCATION:
 		{
+			PROFILE_THREAD_SCOPED_DESC("COLUMN_GEO_LOCATION")
 			const_cast<UserInfo*>(a)->calcLocation();
 			const_cast<UserInfo*>(b)->calcLocation();
 			return Util::DefaultSort(a->getText(col).c_str(), b->getText(col).c_str());
+		}
+		case COLUMN_FLY_HUB_GENDER:
+		{
+			PROFILE_THREAD_SCOPED_DESC("COLUMN_FLY_HUB_GENDER")
+			return compare(a->getIdentity().getGenderType(), b->getIdentity().getGenderType());
 		}
 	}
 	{
@@ -228,11 +234,23 @@ tstring UserInfo::getText(int p_col) const
 		{
 			return Text::toT(getIdentity().getTag());
 		}
-#ifdef FLYLINKDC_USE_FLYHUB
+#ifdef FLYLINKDC_USE_EXT_JSON
 		case COLUMN_FLY_HUB_COUNTRY:
+		{
+			return Text::toT(getIdentity().getFlyHubCountry());
+		}
 		case COLUMN_FLY_HUB_CITY:
+		{
+			return Text::toT(getIdentity().getFlyHubCity());
+		}
 		case COLUMN_FLY_HUB_ISP:
-			return Util::emptyStringT;
+		{
+			return Text::toT(getIdentity().getFlyHubISP());
+		}
+		case COLUMN_FLY_HUB_GENDER:
+		{
+			return getIdentity().getGenderTypeAsString();
+		}
 #endif
 		default:
 		{

@@ -217,7 +217,10 @@ private:
 public:
  static const DHTServer& getRandomDHTServer();
 #endif // STRONG_USE_DHT
+public:
+ static bool isSpam(const string& p_line);
 private:
+ static std::vector<string> g_spam_urls;
  static StringSet g_parasitic_files;
  static StringSet g_mediainfo_ext;
  static StringSet g_virus_ext;
@@ -246,6 +249,8 @@ public:
   static bool isIgnoreFloodCommand(const string& p_command);
   static bool isCompressExt(const string& p_ext);
   static bool isBlockShare(const string& p_name);
+  static std::vector<StringPair> getDeadHub();
+  static std::string getAlternativeHub(const string& p_url);
   string DBDelete();
   static DWORD    g_winet_connect_timeout;
   static DWORD    g_winet_receive_timeout;

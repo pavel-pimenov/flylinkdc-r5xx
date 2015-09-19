@@ -197,7 +197,6 @@ typedef unsigned __int64 uint64_t;
 #ifdef IRAINMAN_EXCHANGED_UPNP_ALGORITHM
 # define IRAINMAN_FULL_UPNP_LOG
 #endif
-#define IRAINMAN_TEMPORARY_DISABLE_XXX_ICON // TODO refactoring this code, or complitly delete.
 #define SPEED_APPROXIMATION_INTERVAL_S 30 // [!]IRainman: Interval of speed approximation in seconds.
 #ifndef FLYLINKDC_HE
 # define IRAINMAN_ENABLE_AUTO_BAN
@@ -433,9 +432,8 @@ typedef unsigned __int64 uint64_t;
 #define FLYLINKDC_USE_DDOS_DETECT
 // TODO #define FLYLINKDC_USE_GPU_TTH
 
-#ifdef _DEBUG
-// #define FLYLINKDC_USE_FLYHUB
-#endif
+#define FLYLINKDC_USE_EXT_JSON
+#define FLYLINKDC_USE_XXX_ICON
 
 // Make sure we're using the templates from algorithm...
 #ifdef min

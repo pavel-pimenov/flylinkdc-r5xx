@@ -130,6 +130,7 @@
 #define IDD_WIZARD_SHARE                230
 #define IDD_WIZARD_NET_IP               231
 #define IDD_WIZARD_NET_ACTIVE           232
+#define IDR_GENDER_USERS                234
 #define IDD_UPNPCHECK                   237
 #define IDD_WIZARD_NETA_TESTSETUP       238
 #define IDR_ISP_HUBLIST                 239
@@ -1163,6 +1164,8 @@
 #define IDC_TECHSUPPORT_BORDER          1963
 #define IDC_CONNECT_TO_SUPPORT_HUB      1964
 #define IDC_FILESHARE_BORDER            1965
+#define IDC_DISABLE_REDIRECT_FROM_VIRUS_HUB 1965
+#define IDC_DISABLE_AUTOREMOVE_VIRUS_HUB 1965
 #define IDC_FILESHARE_LIST              1966
 #define IDC_FILESHARE_REINDEX           1967
 #define IDC_FILESHARE_BOOLEANS          1968

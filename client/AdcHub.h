@@ -79,7 +79,7 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		typedef boost::unordered_map<uint32_t, OnlineUser*> SIDMap;
 		
 		void getUserList(OnlineUserList& p_list) const;
-		bool resendMyINFO(bool p_is_force_passive);
+		bool resendMyINFO(bool p_always_send, bool p_is_force_passive);
 		
 		bool m_oldPassword;
 		Socket m_udp;

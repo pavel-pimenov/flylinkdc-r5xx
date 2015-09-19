@@ -57,10 +57,6 @@ class User : public intrusive_ptr_base<User>, public Flags
 			TTH_GET_BIT, //[+]FlylinkDC
 #endif
 			TLS_BIT,
-#ifndef IRAINMAN_TEMPORARY_DISABLE_XXX_ICON
-			GREY_XXX_5_BIT,
-			GREY_XXX_6_BIT,
-#endif
 			AWAY_BIT, //[+]FlylinkDC
 			SERVER_BIT,
 			FIREBALL_BIT,
@@ -97,10 +93,6 @@ class User : public intrusive_ptr_base<User>, public Flags
 #endif
 			TLS = 1 << TLS_BIT,             //< Client supports TLS
 			ADCS = TLS,                     //< Client supports TLS
-#ifndef IRAINMAN_TEMPORARY_DISABLE_XXX_ICON
-			GREY_XXX_5 = 1 << GREY_XXX_5_BIT,
-			GREY_XXX_6 = 1 << GREY_XXX_6_BIT,
-#endif
 			AWAY = 1 << AWAY_BIT,
 			SERVER = 1 << SERVER_BIT,
 			FIREBALL = 1 << FIREBALL_BIT,

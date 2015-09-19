@@ -238,7 +238,7 @@ const string& wideToUtf8(const wstring& str, string& tgt) noexcept
 //[+]PPA        dcdebug("wideToUtf8-[error]: %s str.length() = %d\n", tgt.c_str(),str.length());
 		if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
 		{
-			dcassert(0);
+			//dcassert(0);
 			tgt.resize(tgt.size() * 2);
 		}
 		else

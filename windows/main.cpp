@@ -234,6 +234,7 @@ void splash_callBack(void* p_x, const tstring& p_a)
 CEdit g_dummy;
 CWindow g_splash;
 bool g_DisableSplash = false;
+bool g_DisableGDIPlus = false;
 #ifdef SSA_WIZARD_FEATURE
 bool g_ShowWizard = false;
 #endif
@@ -532,11 +533,11 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 #else
 	SingleInstance dcapp(_T("{FLYDC-AEE8350A-B49A-4753-AB4B-E55479A48350}"));
 #endif
-	bool multipleInstances = false;
-	bool magnet = false;
-	bool delay = false;
-	bool openfile = false;
-	bool sharefolder = false;
+	bool l_is_multipleInstances = false;
+	bool l_is_magnet = false;
+	bool l_is_delay = false;
+	bool l_is_openfile = false;
+	bool l_is_sharefolder = false;
 #ifdef _DEBUG
 	// [!] brain-ripper
 	// Dear developer, if you don't want to see Splash screen in debug version,
@@ -572,14 +573,16 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		g_EnableSQLtrace = true;
 	if (_tcsstr(lpstrCmdLine, _T("/nologo")) != NULL)
 		g_DisableSplash = true;
+	if (_tcsstr(lpstrCmdLine, _T("/nogdiplus")) != NULL)
+		g_DisableGDIPlus = true;
 	if (_tcsstr(lpstrCmdLine, _T("/q")) != NULL)
-		multipleInstances = true;
+		l_is_multipleInstances = true;
 	if (_tcsstr(lpstrCmdLine, _T("/nowine")) != NULL)
 		CompatibilityManager::setWine(false);
 	if (_tcsstr(lpstrCmdLine, _T("/forcewine")) != NULL)
 		CompatibilityManager::setWine(true);
 	if (_tcsstr(lpstrCmdLine, _T("/magnet")) != NULL)
-		magnet = true;
+		l_is_magnet = true;
 #ifdef FLYLINKDC_BETA
 	if (_tcsstr(lpstrCmdLine, _T("/strongdc")) != NULL)
 		g_UseStrongDCTag = true;
@@ -592,17 +595,17 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 #endif
 	if (_tcsstr(lpstrCmdLine, _T("/c")) != NULL)
 	{
-		multipleInstances = true;
-		delay = true;
+		l_is_multipleInstances = true;
+		l_is_delay = true;
 	}
 #ifdef SSA_WIZARD_FEATURE
 	if (_tcsstr(lpstrCmdLine, _T("/wizard")) != NULL)
 		g_ShowWizard = true;
 #endif
 	if (_tcsstr(lpstrCmdLine, _T("/open")) != NULL)
-		openfile = true;
+		l_is_openfile = true;
 	if (_tcsstr(lpstrCmdLine, _T("/share")) != NULL)
-		sharefolder = true;
+		l_is_sharefolder = true;
 #ifdef SSA_SHELL_INTEGRATION
 	if (_tcsstr(lpstrCmdLine, _T("/installShellExt")) != NULL)
 	{
@@ -659,7 +662,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	{
 		// Allow for more than one instance...
 		bool multiple = false;
-		if (multipleInstances == false && magnet == false && openfile == false && sharefolder == false)
+		if (l_is_multipleInstances == false && l_is_magnet == false && l_is_openfile == false && l_is_sharefolder == false)
 		{
 			if (MessageBox(NULL, CTSTRING(ALREADY_RUNNING), T_APPNAME_WITH_VERSION, MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1 | MB_TOPMOST) == IDYES)   // [~] Drakon.
 			{
@@ -671,12 +674,12 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 			multiple = true;
 		}
 		
-		if (delay == true)
+		if (l_is_delay == true)
 		{
 			Thread::sleep(2500);        // let's put this one out for a break
 		}
 		
-		if (multiple == false || magnet == true || openfile == true || sharefolder == true)
+		if (multiple == false || l_is_magnet == true || l_is_openfile == true || l_is_sharefolder == true)
 		{
 			HWND hOther = NULL;
 			EnumWindows(searchOtherInstance, (LPARAM)&hOther);

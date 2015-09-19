@@ -27,8 +27,6 @@
 #include "ConnectionManagerListener.h"
 #include "HintedUser.h"
 
-class SocketException;
-
 class TokenManager
 {
 	public:

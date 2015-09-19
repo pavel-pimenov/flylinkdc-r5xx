@@ -20,12 +20,10 @@
 #define DCPLUSPLUS_DCPP_SEARCH_MANAGER_H
 
 #include "CFlyThread.h"
-#include "StringSearch.h" // [+] IRainman-S
+#include "StringSearch.h" // [+] IRainman
 #include "SearchManagerListener.h"
 #include "AdcCommand.h"
 #include "ClientManager.h"
-
-class SocketException;
 
 class SearchManager : public Speaker<SearchManagerListener>, public Singleton<SearchManager>, public BASE_THREAD
 {
@@ -50,7 +48,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 			ClientManager::getInstance()->search(l_search_param);
 		}
 		
-		ClientManagerListener::SearchReply respond(const AdcCommand& cmd, const CID& cid, bool isUdpActive, const string& hubIpPort, StringSearch::List& reguest); // [!] IRainman-S add  StringSearch::List& reguest and return type
+		ClientManagerListener::SearchReply respond(const AdcCommand& cmd, const CID& cid, bool isUdpActive, const string& hubIpPort, StringSearch::List& reguest); // [!] IRainman add  StringSearch::List& reguest and return type
 		
 		static uint16_t getSearchPortUint()
 		{
