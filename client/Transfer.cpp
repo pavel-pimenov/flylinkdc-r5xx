@@ -35,7 +35,8 @@ Transfer::Transfer(UserConnection* p_conn, const string& p_path, const TTHValue&
 	m_isSecure(p_conn->isSecure()), m_isTrusted(p_conn->isTrusted()),
 	m_start(0), m_lastTick(GET_TICK()), // [!] IRainman fix.
 	m_chiper_name(p_chiper_name),
-	m_ip(p_ip) // TODO - перевести на boost? падаем
+	m_ip(p_ip), // TODO - перевести на boost? падаем
+	m_fileSize(-1)
 	// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62265
 {
 	// p_conn->getRemoteIp()
@@ -79,8 +80,14 @@ int64_t Transfer::getSecondsLeft(const bool wholeFile) const
 {
 	//[!]IRainman refactoring transfer mechanism
 	const int64_t avg = getRunningAverage();
-	const int64_t bytesLeft = (wholeFile ? ((Upload*)this)->getFileSize() : getSize()) - getPos();
-	return bytesLeft / ((avg > 0) ? avg : 1);
+	const int64_t bytesLeft = (wholeFile ? getFileSize() : getSize()) - getPos();
+	if (bytesLeft > 0)
+		return bytesLeft / ((avg > 0) ? avg : 1);
+	else
+	{
+		//dcassert(0);
+		return 0;
+	}
 }
 
 void Transfer::getParams(const UserConnection* aSource, StringMap& params) const

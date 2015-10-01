@@ -41,6 +41,8 @@
 #include "BarShader.h"
 #include "ResourceLoader.h" // [+] InfinitySky. PNG Support from Apex 1.3.8.
 
+tstring TransferView::g_sSelectedIP;
+
 HIconWrapper TransferView::g_user_icon(IDR_TUSER);
 int TransferView::columnIndexes[] =
 {
@@ -492,6 +494,14 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 				transferMenu.EnableMenuItem(IDC_PRIORITY_PAUSED, MFS_DISABLED); //[+] Drakon
 			}
 			
+#ifdef IRAINMAN_ENABLE_WHOIS
+			if (!ii->m_transfer_ip.empty())
+			{
+				g_sSelectedIP = ii->m_transfer_ip;  // set tstring for 'openlink function'
+				WinUtil::AppendMenuOnWhoisIP(transferMenu, g_sSelectedIP, false);
+			}
+#endif
+			
 			activatePreviewItems(transferMenu);
 			transferMenu.SetMenuDefaultItem(IDC_PRIVATE_MESSAGE);
 			
@@ -526,6 +536,16 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 	bHandled = FALSE;
 	return FALSE;
 }
+#ifdef IRAINMAN_ENABLE_WHOIS
+LRESULT TransferView::onWhoisIP(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	if (!g_sSelectedIP.empty())
+	{
+		WinUtil::CheckOnWhoisIP(wID, g_sSelectedIP);
+	}
+	return 0;
+}
+#endif // IRAINMAN_ENABLE_WHOIS
 #ifdef SCALOLAZ_USE_TRANSFER_CONTROL
 LRESULT TransferView::onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
@@ -1265,6 +1285,21 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 				}
 			}
 			break;
+			case TRANSFER_REMOVE_DOWNLOAD_ITEM:
+			{
+				const auto &ui = static_cast<UpdateInfo&>(*i->second);
+				int pos = -1;
+				for (int j = 0; j < ctrlTransfers.GetItemCount(); ++j)
+				{
+					ItemInfo* ii = ctrlTransfers.getItemData(j);
+					if (ui.download && ii->m_target == ui.m_target)
+					{
+						ctrlTransfers.DeleteItem(pos);
+						delete ii;
+					}
+				}
+			}
+			break;
 			case TRANSFER_REMOVE_ITEM:
 			{
 				const auto &ui = static_cast<UpdateInfo&>(*i->second);
@@ -1283,6 +1318,10 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 						ctrlTransfers.DeleteItem(pos);
 						delete ii;
 					}
+				}
+				else
+				{
+					//  dcassert(0);
 				}
 			}
 			break;
@@ -1552,22 +1591,22 @@ TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const Conn
 	ui->setForcePassive(aCqi->m_is_force_passive);
 	if (ui->download)
 	{
-		string target;
-		int64_t size;
-		int flags;
-		if (QueueManager::getQueueInfo(aCqi->getUser(), target, size, flags))// deadlock
+		string l_target;
+		int64_t l_size;
+		int l_flags;
+		if (QueueManager::getQueueInfo(aCqi->getUser(), l_target, l_size, l_flags))// deadlock
 		{
-			Transfer::Type type = Transfer::TYPE_FILE;
-			if (flags & QueueItem::FLAG_USER_LIST)
-				type = Transfer::TYPE_FULL_LIST;
-			else if (flags & QueueItem::FLAG_DCLST_LIST)
-				type = Transfer::TYPE_FULL_LIST;
-			else if (flags & QueueItem::FLAG_PARTIAL_LIST)
-				type = Transfer::TYPE_PARTIAL_LIST;
+			Transfer::Type l_type = Transfer::TYPE_FILE;
+			if (l_flags & QueueItem::FLAG_USER_LIST)
+				l_type = Transfer::TYPE_FULL_LIST;
+			else if (l_flags & QueueItem::FLAG_DCLST_LIST)
+				l_type = Transfer::TYPE_FULL_LIST;
+			else if (l_flags & QueueItem::FLAG_PARTIAL_LIST)
+				l_type = Transfer::TYPE_PARTIAL_LIST;
 				
-			ui->setType(type);
-			ui->setTarget(target);
-			ui->setSize(size);
+			ui->setType(l_type);
+			ui->setTarget(l_target);
+			ui->setSize(l_size);
 		}
 	}
 	
@@ -1603,41 +1642,43 @@ void TransferView::on(ConnectionManagerListener::Removed, const ConnectionQueueI
 
 void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueItem* aCqi, const string& aReason) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
-	UpdateInfo* ui = new UpdateInfo(aCqi->getHintedUser(), aCqi->isDownload()); // [!] IRainman fix.
-#ifdef PPA_INCLUDE_IPFILTER
-	if (ui->m_hintedUser.user->isAnySet(User::PG_IPTRUST_BLOCK | User::PG_IPGUARD_BLOCK | User::PG_P2PGUARD_BLOCK | User::PG_AVDB_BLOCK))
+	if (!ClientManager::isShutdown())
 	{
-		string l_status = STRING(CONNECTION_BLOCKED);
-		if (ui->m_hintedUser.user->isSet(User::PG_IPTRUST_BLOCK))
+		UpdateInfo* ui = new UpdateInfo(aCqi->getHintedUser(), aCqi->isDownload()); // [!] IRainman fix.
+#ifdef PPA_INCLUDE_IPFILTER
+		if (ui->m_hintedUser.user->isAnySet(User::PG_IPTRUST_BLOCK | User::PG_IPGUARD_BLOCK | User::PG_P2PGUARD_BLOCK | User::PG_AVDB_BLOCK))
 		{
-			l_status += " [IPTrust.ini]";
+			string l_status = STRING(CONNECTION_BLOCKED);
+			if (ui->m_hintedUser.user->isSet(User::PG_IPTRUST_BLOCK))
+			{
+				l_status += " [IPTrust.ini]";
+			}
+			if (ui->m_hintedUser.user->isSet(User::PG_IPGUARD_BLOCK))
+			{
+				l_status += " [IPGuard.ini]";
+			}
+			if (ui->m_hintedUser.user->isSet(User::PG_P2PGUARD_BLOCK))
+			{
+				l_status += " [P2PGuard.ini]";
+			}
+			if (ui->m_hintedUser.user->isSet(User::PG_AVDB_BLOCK))
+			{
+				l_status += " [Antivirus DB]";
+			}
+			
+			ui->setStatusString(Text::toT(l_status + " [" + aReason + "]"));
 		}
-		if (ui->m_hintedUser.user->isSet(User::PG_IPGUARD_BLOCK))
+		else
+#endif
 		{
-			l_status += " [IPGuard.ini]";
-		}
-		if (ui->m_hintedUser.user->isSet(User::PG_P2PGUARD_BLOCK))
-		{
-			l_status += " [P2PGuard.ini]";
-		}
-		if (ui->m_hintedUser.user->isSet(User::PG_AVDB_BLOCK))
-		{
-			l_status += " [Antivirus DB]";
+			string l_status = aReason;
+			aCqi->addAutoPassiveStatus(l_status);
+			ui->setStatusString(Text::toT(l_status));
 		}
 		
-		ui->setStatusString(Text::toT(l_status + " [" + aReason + "]"));
+		ui->setStatus(ItemInfo::STATUS_WAITING);
+		m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 	}
-	else
-#endif
-	{
-		string l_status = aReason;
-		aCqi->addAutoPassiveStatus(l_status);
-		ui->setStatusString(Text::toT(l_status));
-	}
-	
-	ui->setStatus(ItemInfo::STATUS_WAITING);
-	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
 
 static tstring getFile(const Transfer::Type& type, const tstring& fileName)
@@ -1766,7 +1807,6 @@ void TransferView::on(DownloadManagerListener::Failed, const DownloadPtr& aDownl
 {
 	UpdateInfo* ui = new UpdateInfo(aDownload->getHintedUser(), true, true); // [!] IRainman fix. https://code.google.com/p/flylinkdc/issues/detail?id=1291
 	ui->setStatus(ItemInfo::STATUS_WAITING);
-	ui->setPos(0);
 	ui->setSize(aDownload->getSize());
 	ui->setTarget(aDownload->getPath());
 	ui->setType(aDownload->getType());
@@ -1797,7 +1837,6 @@ void TransferView::on(DownloadManagerListener::Status, const UserConnection* p_c
 	// dcassert(const_cast<UserConnection*>(uc)->getDownload()); // TODO при окончании закачки это поле уже пустое https://www.box.net/shared/4cknwlue3njzksmciu63
 	UpdateInfo* ui = new UpdateInfo(p_conn->getHintedUser(), true); // [!] IRainman fix.
 	ui->setStatus(ItemInfo::STATUS_WAITING);
-	ui->setPos(0);
 	ui->setStatusString(Text::toT(aReason));
 	
 	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
@@ -2161,7 +2200,6 @@ void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, co
 		UpdateInfo* ui = new UpdateInfo(p_download->getHintedUser(), true); // [!] IRainman fix.
 		
 		ui->setStatus(ItemInfo::STATUS_WAITING);
-		ui->setPos(0);
 		ui->setStatusString(TSTRING(DOWNLOAD_FINISHED_IDLE));
 		
 		m_tasks.add(TRANSFER_UPDATE_ITEM, ui); // [!] IRainman opt.
@@ -2170,16 +2208,21 @@ void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, co
 		ui = new UpdateInfo(p_download->getHintedUser(), true); // [!] IRainman fix.
 		
 		ui->setTarget(qi->getTarget());
-		ui->setPos(0);
-		ui->setActual(0);
-		ui->setTimeLeft(0);
 		ui->setStatusString(TSTRING(DOWNLOAD_FINISHED_IDLE));
 		ui->setStatus(ItemInfo::STATUS_WAITING);
-		ui->setRunning(0);
 		
 		SHOW_POPUP(POPUP_DOWNLOAD_FINISHED, TSTRING(FILE) + _T(": ") + Util::getFileName(ui->m_target), TSTRING(DOWNLOAD_FINISHED_IDLE));
 		
 		m_tasks.add(TRANSFER_UPDATE_PARENT, ui);  // [!] IRainman opt.
+		
+#if 0 // TODO
+		{
+			UpdateInfo* ui = new UpdateInfo(p_download->getHintedUser(), true);
+			ui->setTarget(p_download->getPath());
+			m_tasks.add(TRANSFER_REMOVE_DOWNLOAD_ITEM, ui);
+		}
+#endif
+		
 	}
 }
 
@@ -2192,12 +2235,8 @@ void TransferView::on(QueueManagerListener::Removed, const QueueItemPtr& qi) noe
 			
 		UpdateInfo* ui = new UpdateInfo(); // [!] IRainman fix.
 		ui->setTarget(qi->getTarget());
-		ui->setPos(0);
-		ui->setActual(0);
-		ui->setTimeLeft(0);
 		ui->setStatusString(TSTRING(DISCONNECTED));
 		ui->setStatus(ItemInfo::STATUS_WAITING);
-		ui->setRunning(0);
 		
 		m_tasks.add(TRANSFER_UPDATE_PARENT, ui);
 	}

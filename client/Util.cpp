@@ -108,36 +108,34 @@ void Util::intiProfileConfig()
 	g_paths[PATH_ALL_USER_CONFIG] = getSysPath(COMMON_APPDATA) + "FlylinkDC++" PATH_SEPARATOR_STR;
 # endif
 }
-
+static const string g_configFileLists[] =
+{
+	"ADLSearch.xml",
+	"DCPlusPlus.xml",
+	"Favorites.xml",
+	"IPTrust.ini",
+#ifdef SSA_IPGRANT_FEATURE
+	"IPGrant.ini",
+#endif
+	"IPGuard.ini"
+};
 void Util::MoveSettings()
 {
-// TODO - убрать копипаст с бэкапом
-	static const char* FileList[] =
-	{
-		"ADLSearch.xml",
-		"DCPlusPlus.xml",
-		"Favorites.xml",
-		"IPTrust.ini",
-#ifdef SSA_IPGRANT_FEATURE
-		"IPGrant.ini",
-#endif
-		"IPGuard.ini",
-	};
 	const string bkpath = g_paths[PATH_USER_CONFIG];
-	const string& sourcepath = g_paths[PATH_EXE] + "Settings" PATH_SEPARATOR_STR;
+	const string sourcepath = g_paths[PATH_EXE] + "Settings" PATH_SEPARATOR_STR;
 	File::ensureDirectory(bkpath);
-	for (size_t i = 0; i < _countof(FileList); ++i)
+	for (size_t i = 0; i < _countof(g_configFileLists); ++i)
 	{
-		if (!File::isExist(bkpath + *FileList[i]) && File::isExist(sourcepath + FileList[i]))
+		if (!File::isExist(bkpath + g_configFileLists[i]) && File::isExist(sourcepath + g_configFileLists[i]))
 		{
 			try
 			{
-				File::copyFile(sourcepath + FileList[i], bkpath + FileList[i]);
+				File::copyFile(sourcepath + g_configFileLists[i], bkpath + g_configFileLists[i]);
 			}
 			catch (const FileException & e)
 			{
-				const string l_error = "Error [Util::MoveSettings] File::copyFile = sourcepath + FileList[i] = " + sourcepath + FileList[i]
-				                       + " , bkpath + FileList[i] = " + bkpath + FileList[i] + " error = " + e.getError();
+				const string l_error = "Error [Util::MoveSettings] File::copyFile = sourcepath + FileList[i] = " + sourcepath + g_configFileLists[i]
+				                       + " , bkpath + FileList[i] = " + bkpath + g_configFileLists[i] + " error = " + e.getError();
 				LogManager::message(l_error);
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 				CFlyServerJSON::pushSyslogError("[BUG][12]  + " + l_error);
@@ -686,17 +684,18 @@ void Util::loadCustomlocations()// [!] IRainman: this function workings fine. Pl
 	}
 }
 
-void Util::migrate(const string& file)
+void Util::migrate(const string& p_file)
 {
 	if (g_localMode)
 		return;
-	if (File::getSize(file) != -1)
+	if (File::getSize(p_file) != -1)
 		return;
-	string fname = getFileName(file);
+	string fname = getFileName(p_file);
 	string old = g_paths[PATH_GLOBAL_CONFIG] + "Settings\\" + fname;
 	if (File::getSize(old) == -1)
 		return;
-	File::renameFile(old, file);
+	LogManager::message("Util::migrate old = " + old + " new = " + p_file);
+	File::renameFile(old, p_file);
 }
 
 void Util::loadBootConfig()
@@ -1184,6 +1183,26 @@ string Util::getAwayMessage(StringMap& params)
 	{
 		return formatParams((g_awayMsg.empty() ? SETTING(DEFAULT_AWAY_MESSAGE) : g_awayMsg), params, false, g_awayTime);
 	}
+}
+
+wstring Util::formatSecondsW(int64_t aSec, bool supressHours /*= false*/)
+{
+	wchar_t buf[64];
+	if (!supressHours)
+		_snwprintf(buf, _countof(buf), L"%01lu:%02u:%02u", unsigned long(aSec / (60 * 60)), unsigned((aSec / 60) % 60), unsigned(aSec % 60));
+	else
+		_snwprintf(buf, _countof(buf), L"%02u:%02u", unsigned(aSec / 60), unsigned(aSec % 60));
+	return buf;
+}
+
+string Util::formatSeconds(int64_t aSec, bool supressHours /*= false*/) // [+] IRainman opt
+{
+	char buf[64];
+	if (!supressHours)
+		_snprintf(buf, _countof(buf), "%01lu:%02u:%02u", unsigned long(aSec / (60 * 60)), unsigned((aSec / 60) % 60), unsigned(aSec % 60));
+	else
+		_snprintf(buf, _countof(buf), "%02u:%02u", unsigned(aSec / 60), unsigned(aSec % 60));
+	return buf;
 }
 
 string Util::formatBytes(int64_t aBytes) // TODO fix copy-paste
@@ -2616,6 +2635,13 @@ string Util::getExtInternetError()
 }
 #endif
 //[+] SSA
+void CFlyHTTPDownloader::create_error_message(const char* p_type, const string& p_url)
+{
+	m_error_message = p_type;
+	if (m_is_add_url)
+		m_error_message += " [ " + p_url + "] ";
+	m_error_message += " error = " + Util::translateError();
+}
 uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vector<unsigned char>& p_dataOut, LONG timeOut /*=0*/, IDateReceiveReporter* reporter /* = NULL */)
 {
 	const DWORD frameBufferSize = 4096;
@@ -2628,7 +2654,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vecto
 	CInternetHandle hInternet(InternetOpen(g_full_user_agent.c_str(), INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0));
 	if (!hInternet)
 	{
-		m_error_message = "InternetOpen [" + url + "] error = " + Util::translateError();
+		create_error_message("InternetOpen", url);
 		LogManager::message(m_error_message);
 		dcassert(0);
 		return 0;
@@ -2658,7 +2684,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vecto
 	if (!hURL)
 	{
 		dcassert(0);
-		m_error_message = "InternetOpenUrl [" + url + "] error = " + Util::translateError();
+		create_error_message("InternetOpenUrlA", url);
 		LogManager::message(m_error_message);
 		// TODO - залогировать коды ошибок для статы
 		return 0;
@@ -2672,7 +2698,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vecto
 		if (!InternetReadFile(hURL, &p_dataOut[totalBytesRead], frameBufferSize, &l_BytesRead))
 		{
 			dcassert(0);
-			m_error_message = "InternetReadFile [" + url + "] error = " + Util::translateError();
+			create_error_message("InternetReadFile", url);
 			LogManager::message(m_error_message);
 			//// TODO - залогировать коды ошибок для статы
 			return 0;
@@ -2843,33 +2869,21 @@ bool Util::getTTH_MD5(const string& p_filename, size_t p_buffSize, unique_ptr<Ti
 // [+] NightOrion
 void Util::BackupSettings()
 {
-	static const char* FileList[] =
-	{
-		"ADLSearch.xml",
-		"DCPlusPlus.xml",
-		"Favorites.xml",
-		"IPTrust.ini",
-#ifdef SSA_IPGRANT_FEATURE
-		"IPGrant.ini",
-#endif
-		"IPGuard.ini"
-	};
-	
 	const string bkpath = formatTime(getConfigPath() + "BackUp\\%Y-%m-%d\\", time(NULL));
 	const string& sourcepath = getConfigPath();
 	File::ensureDirectory(bkpath);
-	for (size_t i = 0; i < _countof(FileList); ++i)
+	for (size_t i = 0; i < _countof(g_configFileLists); ++i)
 	{
-		if (!File::isExist(bkpath + *FileList[i]) && File::isExist(sourcepath + FileList[i]))
+		if (!File::isExist(bkpath + g_configFileLists[i]) && File::isExist(sourcepath + g_configFileLists[i]))
 		{
 			try
 			{
-				File::copyFile(sourcepath + FileList[i], bkpath + FileList[i]); // Exception 2012-05-03_22-05-14_LZE57W5HZ7NI3VC773UG4DNJ4QIKP7Q7AEBLWOA_AA236F48_crash-stack-r502-beta24-x64-build-9900.dmp
+				File::copyFile(sourcepath + g_configFileLists[i], bkpath + g_configFileLists[i]); // Exception 2012-05-03_22-05-14_LZE57W5HZ7NI3VC773UG4DNJ4QIKP7Q7AEBLWOA_AA236F48_crash-stack-r502-beta24-x64-build-9900.dmp
 			}
 			catch (FileException &)
 			{
-				LogManager::message("Error File::copyFile = sourcepath + FileList[i] = " + sourcepath + FileList[i]
-				                    + " , bkpath + FileList[i] = " + bkpath + FileList[i]);
+				LogManager::message("Error File::copyFile = sourcepath + FileList[i] = " + sourcepath + g_configFileLists[i]
+				                    + " , bkpath + FileList[i] = " + bkpath + g_configFileLists[i]);
 			}
 		}
 	}

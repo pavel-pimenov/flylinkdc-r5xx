@@ -493,10 +493,10 @@ void DownloadManager::endData(UserConnection* aSource)
 	{
 		fire(DownloadManagerListener::Complete(), d);
 	}
-	
 	try
 	{
 		QueueManager::getInstance()->putDownload(d->getPath(), d, true, false);
+		
 	}
 	catch (const HashException& e)
 	{

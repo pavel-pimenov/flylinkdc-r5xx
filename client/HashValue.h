@@ -76,6 +76,10 @@ struct HashValue
 	uint8_t data[BYTES];
 };
 
+class TigerHash;
+template<class Hasher> struct HashValue;
+typedef HashValue<TigerHash> TTHValue;
+
 namespace std
 {
 template<typename T>

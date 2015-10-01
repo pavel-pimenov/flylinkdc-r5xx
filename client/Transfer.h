@@ -140,6 +140,7 @@ class Transfer
 		}
 		
 		GETSET(Segment, m_segment, Segment);
+		GETSET(int64_t, m_fileSize, FileSize);
 		GETSET(Type, m_type, Type);
 		// [!] IRainman refactoring transfer mechanism
 		uint64_t getStart() const

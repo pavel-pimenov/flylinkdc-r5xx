@@ -336,7 +336,7 @@ void RoutingTable::loadNodes(SimpleXML& xml)
 					if (DHT::getInstance()->getLastExternalIP() == "0.0.0.0")
 					 DHT::getInstance()->setLastExternalIP(l_node.m_udpKey.m_ip);
 				}
-				BootstrapManager::getInstance()->addBootstrapNode(l_node.m_ip, l_node.m_udpPort, l_node.m_cid, l_node.m_udpKey);
+				BootstrapManager::addBootstrapNode(l_node.m_ip, l_node.m_udpPort, l_node.m_cid, l_node.m_udpKey);
 			}
 		}
 	}
@@ -372,7 +372,7 @@ void RoutingTable::loadNodes(SimpleXML& xml)
 					//UserPtr u = ClientManager::getUser(cid);
 					//addOrUpdate(u, i4, u4, udpKey, false, true);
 				
-					BootstrapManager::getInstance()->addBootstrapNode(i4, u4, cid, udpKey);
+					BootstrapManager::addBootstrapNode(i4, u4, cid, udpKey);
 				}
 			}
 			xml.stepOut();

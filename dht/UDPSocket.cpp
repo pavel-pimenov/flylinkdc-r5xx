@@ -47,7 +47,7 @@ namespace dht
 #define BUFSIZE                 16384
 #define MAGICVALUE_UDP          0x5b
 
-UDPSocket::UDPSocket(void) : m_stop(false), port(0), delay(100)
+UDPSocket::UDPSocket(void) : m_stop(false), m_port(0), delay(100)
 #ifdef _DEBUG
 	, m_sentBytes(0), m_receivedBytes(0), m_sentPackets(0), m_receivedPackets(0)
 #endif
@@ -74,7 +74,7 @@ void UDPSocket::disconnect()
 	{
 		m_stop = true;
 		socket->disconnect();
-		port = 0;
+		m_port = 0;
 		
 		join();
 		
@@ -100,7 +100,7 @@ void UDPSocket::listen()
 		const string& l_bind = SETTING(BIND_ADDRESS);
 		const auto l_dht_port = static_cast<uint16_t>(SETTING(DHT_PORT));
 		dcassert(l_dht_port);
-		port = socket->bind(l_dht_port, l_bind);
+		m_port = socket->bind(l_dht_port, l_bind);
 		
 		start(64);
 	}
@@ -139,12 +139,9 @@ void UDPSocket::checkIncoming()
 					}
 					else
 					{
-						if(DHT::isValidInstance() && port == DHT::getInstance()->getPort()) // Тест прошел по порту DHT?
+						if(DHT::isValidInstance() && m_port == DHT::getInstance()->getPort()) // Тест прошел по порту DHT?
 						{
-							if(BootstrapManager::isValidInstance())
-							{
-								BootstrapManager::getInstance()->inc_live_check(); 
-							}
+								BootstrapManager::inc_live_check(); 
 						}
 					}
 				}
@@ -243,6 +240,7 @@ void UDPSocket::checkOutgoing(uint64_t& p_timer)
 
 			unsigned long length = compressBound(packet->data.length()) + 20; //-V614
 #ifdef FLYLINKDC_BETA
+			if (BOOLSETTING(LOG_DHT_TRACE))
 			{
 				LogManager::dht_message("[UDPSocket::checkOutgoing()] before compress " 
 					" ip:port = [" + packet->ip + ":" + Util::toString(packet->port) + "] " 
@@ -322,7 +320,7 @@ int UDPSocket::run()
 					socket->create(Socket::TYPE_UDP);
 					socket->setInBufSize();
 					socket->setSocketOpt(SO_REUSEADDR, 1);
-					socket->bind(port, SETTING(BIND_ADDRESS));
+					socket->bind(m_port, SETTING(BIND_ADDRESS));
 					if (failed)
 					{
 						LogManager::message(STRING(DHT_ENABLED));
@@ -371,13 +369,16 @@ void UDPSocket::send(AdcCommand& cmd, const string& ip, uint16_t p_port, const C
 	m_sendQueue.push_back(p);
     }
 #ifdef FLYLINKDC_BETA
-	string l_udp_key_log;
-	if(!udpKey.isZero())
+	if (BOOLSETTING(LOG_DHT_TRACE))
 	{
-		 l_udp_key_log = " udpKey = [ " + udpKey.m_key.toBase32() + + " ip = " + udpKey.m_ip + "]";
+		string l_udp_key_log;
+		if (!udpKey.isZero())
+		{
+			l_udp_key_log = " udpKey = [ " + udpKey.m_key.toBase32() + +" ip = " + udpKey.m_ip + "]";
+		}
+		LogManager::dht_message("[UDPSocket::send] cmd [" + cmd.toString(ClientManager::getMyCID(), true) +
+			"] ip:port = [" + ip + ":" + Util::toString(p_port) + "] TargetCID=" + targetCID.toBase32() + l_udp_key_log);
 	}
-	LogManager::dht_message("[UDPSocket::send] cmd [" + cmd.toString(ClientManager::getMyCID(),true) +
-		      "] ip:port = [" + ip + ":" + Util::toString(p_port) + "] TargetCID=" + targetCID.toBase32() + l_udp_key_log);
 #endif
 }
 

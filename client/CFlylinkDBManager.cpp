@@ -1048,7 +1048,8 @@ void CFlylinkDBManager::convert_fly_hash_blockL()
 			l_convert_log.step(m_flySQLiteDB.executenonquery("delete from fly_hash_block where tth is null"));
 		}
 		convert_fly_hash_block_crate_unicque_tthL(l_convert_log);
-		
+		convert_tth_historyL();
+		set_registry_variable_int64(e_IsTTHLevelDBConvert, 1);
 		l_convert_log.step(m_flySQLiteDB.executenonquery("drop table fly_hash"));
 #ifdef FLYLINKDC_USE_FAST_CONVERT
 		if (!g_UseSynchronousOff)
@@ -4390,19 +4391,17 @@ void CFlylinkDBManager::log(const int p_area, const StringMap& p_params)
 }
 #endif // FLYLINKDC_LOG_IN_SQLITE_BASE
 //========================================================================================================
-__int64 CFlylinkDBManager::convert_tth_history()
+__int64 CFlylinkDBManager::convert_tth_historyL()
 {
-#ifdef FLYLINKDC_USE_LEVELDB
 	__int64 l_count = 0;
-	if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_IsTTHLevelDBConvert) == 0)
+	try
 	{
-		Lock l(m_cs);
-		try
+		m_flySQLiteDB.executenonquery("create table IF NOT EXISTS fly_tth(tth char(24) PRIMARY KEY NOT NULL);");
 		{
 			auto_ptr<sqlite3_command> l_sql(new sqlite3_command(m_flySQLiteDB,
-			                                                    "select tth, sum(val) from ( "
-			                                                    "select 2 val, tth from fly_hash_block) "
-			                                                    "group by tth"));
+			                                                    "select tth, 2 as val from fly_hash_block group by tth "
+			                                                    "union all "
+			                                                    "select tth, 1 as val from fly_tth"));
 			sqlite3_reader l_q = l_sql->executereader();
 			while (l_q.read())
 			{
@@ -4415,16 +4414,29 @@ __int64 CFlylinkDBManager::convert_tth_history()
 					++l_count;
 				}
 			}
-			CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_IsTTHLevelDBConvert, 1);
-			return l_count;
 		}
-		catch (const database_error& e)
-		{
-			errorDB("SQLite - convert_tth_history: " + e.getError());
-		}
+		m_flySQLiteDB.executenonquery("DROP TABLE fly_tth");
+		return l_count;
+	}
+	catch (const database_error& e)
+	{
+		errorDB("SQLite - convert_tth_historyL: " + e.getError());
 	}
 	return l_count;
-#endif
+}
+//========================================================================================================
+__int64 CFlylinkDBManager::convert_tth_history()
+{
+#ifdef FLYLINKDC_USE_LEVELDB
+	__int64 l_count = 0;
+	if (get_registry_variable_int64(e_IsTTHLevelDBConvert) == 0)
+	{
+		Lock l(m_cs);
+		l_count = convert_tth_historyL();
+		set_registry_variable_int64(e_IsTTHLevelDBConvert, 1);
+	}
+	return l_count;
+#endif // FLYLINKDC_USE_LEVELDB
 }
 #ifdef FLYLINKDC_USE_LEVELDB
 //========================================================================================================

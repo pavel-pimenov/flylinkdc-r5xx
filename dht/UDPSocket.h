@@ -75,7 +75,7 @@ class UDPSocket :
 		/** Returns port used to listening to UDP socket */
 		uint16_t getPort() const
 		{
-			return socket.get() ? port : 0;
+			return socket.get() ? m_port : 0;
 		}
 		
 		/** Sends command to ip and port */
@@ -89,7 +89,7 @@ class UDPSocket :
 		volatile bool m_stop; // [!] IRainman fix: this variable is volatile.
 		
 		/** Port for communicating in this network */
-		uint16_t port;
+		uint16_t m_port;
 		
 		/** Queue for sending packets through UDP socket */
 		std::deque<Packet*> m_sendQueue;

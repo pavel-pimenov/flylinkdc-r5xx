@@ -234,7 +234,6 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				explicit QueueItemInfo(const QueueItemPtr& aQI) : m_qi(aQI)
 				{
 #ifdef _DEBUG
-					m_size   = m_qi->getSize();
 					m_Target = m_qi->getTarget();
 #endif
 				}
@@ -304,7 +303,6 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				
 				int64_t getSize() const
 				{
-					dcassert(m_size == m_qi->getSize())
 					return m_qi->getSize();
 				}
 				int64_t getDownloadedBytes() const
@@ -342,7 +340,6 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				const QueueItemPtr m_qi;
 #ifdef _DEBUG
 				string m_Target;
-				int64_t m_size;
 #endif
 		};
 		

@@ -20,6 +20,7 @@
 #define HASHBLOOM_H_
 
 #include "typedefs.h"
+#include "HashValue.h"
 
 /**
  * According to http://www.eecs.harvard.edu/~michaelm/NEWWORK/postscripts/BloomFilterSurvey.pdf

@@ -206,9 +206,9 @@ void preparingCoreToShutdown() // [+] IRainamn fix.
 		g_is_first = true;
 		CFlyLog l_log("[Core shutdown]");
 		TimerManager::getInstance()->shutdown();
+		ClientManager::getInstance()->shutdown(); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1374
 		WebServerManager::getInstance()->shutdown();
 		HashManager::getInstance()->shutdown();
-		ClientManager::getInstance()->shutdown(); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1374
 		ClientManager::getInstance()->prepareClose();
 		FavoriteManager::getInstance()->prepareClose();
 		ShareManager::getInstance()->shutdown();

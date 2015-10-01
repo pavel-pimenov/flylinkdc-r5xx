@@ -249,7 +249,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 			dcassert(m_client);
 			if (m_client && m_client->isConnected())
 			{
-				clearUserList(false);
+				clearUserList();
 				m_client->refreshUserList(false);
 			}
 			return 0;
@@ -311,6 +311,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		typedef boost::unordered_map<string, HubFrame*> FrameMap;
 		static CriticalSection g_frames_cs;
 		static FrameMap g_frames;
+		void erase_frame(const string& p_redirect);
 		void timer_process_internal();
 		
 		tstring m_shortHubName;
@@ -426,7 +427,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		
 		void autoConnectStart();
 		
-		void clearUserList(bool p_is_fynally_clear_user_list);
+		void clearUserList();
 		void clearTaskList();
 		
 		void appendHubAndUsersItems(OMenu& p_menu, const bool isChat);
@@ -496,6 +497,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 #endif
 		void doDisconnected();
 		void doConnected();
+		void clearTaskAndUserList();
 	public:
 		static void addDupeUsersToSummaryMenu(ClientManager::UserParams& p_param); // !SMT!-UI
 		uint8_t getVIPIconIndex() const

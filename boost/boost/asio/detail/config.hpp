@@ -224,9 +224,7 @@
 # endif // defined(__GNUC__)
 # if defined(BOOST_ASIO_MSVC)
 #  if (_MSC_VER >= 1900)
-# ifndef BOOST_ASIO_ERROR_CATEGORY_NOEXCEPT  // [+] FlylinkDC++
 #   define BOOST_ASIO_ERROR_CATEGORY_NOEXCEPT noexcept(true)
-# endif
 #  endif // (_MSC_VER >= 1900)
 # endif // defined(BOOST_ASIO_MSVC)
 # if !defined(BOOST_ASIO_ERROR_CATEGORY_NOEXCEPT)

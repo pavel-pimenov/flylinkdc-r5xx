@@ -55,6 +55,11 @@ std::unordered_map<TTHValue, int> QueueManager::FileQueue::g_queue_tth_map;
 QueueManager::FileQueue QueueManager::g_fileQueue;
 QueueManager::UserQueue QueueManager::g_userQueue;
 
+QueueManager::UserQueue::UserQueueMap QueueManager::UserQueue::g_userQueueMap[QueueItem::LAST];
+QueueManager::UserQueue::RunningMap QueueManager::UserQueue::g_runningMap;
+std::unique_ptr<webrtc::RWLockWrapper> QueueManager::UserQueue::g_userQueueMapCS = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
+std::unique_ptr<webrtc::RWLockWrapper> QueueManager::UserQueue::g_runningMapCS = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
+
 
 using boost::adaptors::map_values;
 using boost::range::for_each;
@@ -334,11 +339,11 @@ void QueueManager::FileQueue::moveTarget(const QueueItemPtr& qi, const string& a
 bool QueueManager::UserQueue::userIsDownloadedFiles(const UserPtr& aUser, QueueItemList& p_status_update_array)
 {
 	bool hasDown = false;
-	RLock l(*QueueItem::g_cs); // [!] IRainman fix. DeadLock[3]
+	webrtc::ReadLockScoped l(*g_userQueueMapCS);
 	for (size_t i = 0; i < QueueItem::LAST; ++i)
 	{
-		const auto j = m_userQueue[i].find(aUser);
-		if (j != m_userQueue[i].end())
+		const auto j = g_userQueueMap[i].find(aUser);
+		if (j != g_userQueueMap[i].end())
 		{
 			p_status_update_array.insert(p_status_update_array.end(), j->second.cbegin(), j->second.cend()); // Без лока?
 			if (i != QueueItem::PAUSED)
@@ -359,7 +364,8 @@ void QueueManager::UserQueue::addL(const QueueItemPtr& qi) // [!] IRainman fix.
 void QueueManager::UserQueue::addL(const QueueItemPtr& qi, const UserPtr& aUser, bool p_is_first_load) // [!] IRainman fix.
 {
 	dcassert(qi->getPriority() < QueueItem::LAST);
-	auto& uq = m_userQueue[qi->getPriority()][aUser];
+	webrtc::WriteLockScoped l(*g_userQueueMapCS);
+	auto& uq = g_userQueueMap[qi->getPriority()][aUser];
 	
 // При первой загрузки очереди из базы не зовем calcAverageSpeedAndCalcAndGetDownloadedBytesL
 	if (p_is_first_load == false
@@ -404,8 +410,9 @@ QueueItemPtr QueueManager::UserQueue::getNextL(const UserPtr& aUser, QueueItem::
 	m_lastError.clear();
 	do
 	{
-		const auto i = m_userQueue[p].find(aUser);
-		if (i != m_userQueue[p].cend())
+		webrtc::ReadLockScoped l(*g_userQueueMapCS);
+		const auto i = g_userQueueMap[p].find(aUser);
+		if (i != g_userQueueMap[p].cend())
 		{
 			dcassert(!i->second.empty());
 			for (auto j = i->second.cbegin(); j != i->second.cend(); ++j)
@@ -472,8 +479,9 @@ void QueueManager::UserQueue::addDownloadL(const QueueItemPtr& qi, const Downloa
 {
 	qi->addDownloadL(d);
 	// Only one download per user...
-	dcassert(m_running.find(d->getUser()) == m_running.end());
-	m_running[d->getUser()] = qi;
+	webrtc::WriteLockScoped l_lock(*g_runningMapCS);
+	dcassert(g_runningMap.find(d->getUser()) == g_runningMap.end());
+	g_runningMap[d->getUser()] = qi;
 }
 
 size_t QueueManager::FileQueue::getRunningFileCount(const size_t p_stop_key)
@@ -526,7 +534,10 @@ void QueueManager::FileQueue::calcPriorityAndGetRunningFilesL(QueueItem::Priorit
 
 bool QueueManager::UserQueue::removeDownloadL(const QueueItemPtr& qi, const UserPtr& user) // [!] IRainman fix: this function needs external lock.
 {
-	m_running.erase(user);
+	{
+		webrtc::WriteLockScoped l_lock(*g_runningMapCS);
+		g_runningMap.erase(user);
+	}
 	return qi->removeDownloadL(user);
 }
 
@@ -540,8 +551,9 @@ void QueueManager::UserQueue::setQIPriority(const QueueItemPtr& qi, QueueItem::P
 
 QueueItemPtr QueueManager::UserQueue::getRunningL(const UserPtr& aUser) // [!] IRainman fix.
 {
-	const auto i = m_running.find(aUser);
-	return i == m_running.cend() ? nullptr : i->second;
+	webrtc::ReadLockScoped l_lock(*g_runningMapCS);
+	const auto i = g_runningMap.find(aUser);
+	return i == g_runningMap.cend() ? nullptr : i->second;
 }
 
 void QueueManager::UserQueue::removeQueueItemL(const QueueItemPtr& qi, bool p_is_remove_running) // [!] IRainman fix.
@@ -574,39 +586,41 @@ void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr&
 			return;
 		}
 	}
-	
-	auto& ulm = m_userQueue[qi->getPriority()];
-	const auto& j = ulm.find(aUser);
-	if (j == ulm.cend())
 	{
-		LogManager::message("Error QueueManager::UserQueue::removeUserL [dcassert(j != ulm.cend())] aUser = [" +
-		                    aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
-		dcassert(j != ulm.cend());
-		return;
-	}
-	
-	auto& uq = j->second;
-	const auto& i = find(uq.begin(), uq.end(), qi);
-	// TODO - перевести на set const auto& i = uq.find(qi);
-	if (i == uq.cend())
-	{
-		LogManager::message("Error QueueManager::UserQueue::removeUserL [dcassert(i != uq.cend());] aUser = [" +
-		                    aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
-		dcassert(i != uq.cend());
-		return;
-	}
+		webrtc::WriteLockScoped l(*g_userQueueMapCS);
+		auto& ulm = g_userQueueMap[qi->getPriority()];
+		const auto& j = ulm.find(aUser);
+		if (j == ulm.cend())
+		{
+			LogManager::message("Error QueueManager::UserQueue::removeUserL [dcassert(j != ulm.cend())] aUser = [" +
+			                    aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
+			dcassert(j != ulm.cend());
+			return;
+		}
+		
+		auto& uq = j->second;
+		const auto& i = find(uq.begin(), uq.end(), qi);
+		// TODO - перевести на set const auto& i = uq.find(qi);
+		if (i == uq.cend())
+		{
+			LogManager::message("Error QueueManager::UserQueue::removeUserL [dcassert(i != uq.cend());] aUser = [" +
+			                    aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
+			dcassert(i != uq.cend());
+			return;
+		}
 #ifdef _DEBUG
-	if (uq.size() > 5)
-	{
-		// LogManager::message("void QueueManager::UserQueue::removeUserL User = " + aUser->getLastNick() +
-		//                    " uq.size = " + Util::toString(uq.size()));
-	}
+		if (uq.size() > 5)
+		{
+			// LogManager::message("void QueueManager::UserQueue::removeUserL User = " + aUser->getLastNick() +
+			//                    " uq.size = " + Util::toString(uq.size()));
+		}
 #endif
-	
-	uq.erase(i);
-	if (uq.empty())
-	{
-		ulm.erase(j);
+		
+		uq.erase(i);
+		if (uq.empty())
+		{
+			ulm.erase(j);
+		}
 	}
 }
 void QueueManager::Rechecker::execute(const string& p_file) // [!] IRainman core.
@@ -616,8 +630,6 @@ void QueueManager::Rechecker::execute(const string& p_file) // [!] IRainman core
 	TTHValue tth;
 	
 	{
-		// [-] Lock l(qm->cs); [-] IRainman fix.
-		
 		q = QueueManager::FileQueue::find_target(p_file);
 		if (!q || q->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
 			return;
@@ -2340,15 +2352,13 @@ void QueueManager::removeAll()
 	g_fileQueue.clearAll();
 	CFlylinkDBManager::getInstance()->remove_queue_all_items();
 }
-void QueueManager::remove(const string& aTarget) noexcept
+bool QueueManager::remove(const string& aTarget)
 {
 	UserList x;
 	{
-		// [-] Lock l(cs); [-] IRainman fix.
-		
 		QueueItemPtr q = FileQueue::find_target(aTarget);
 		if (!q)
-			return;
+			return false;
 			
 		if (q->isSet(QueueItem::FLAG_DIRECTORY_DOWNLOAD))
 		{
@@ -2396,6 +2406,7 @@ void QueueManager::remove(const string& aTarget) noexcept
 	{
 		ConnectionManager::getInstance()->disconnect(*i, true);
 	}
+	return true;
 }
 
 void QueueManager::removeSource(const string& aTarget, const UserPtr& aUser, Flags::MaskType reason, bool removeConn /* = true */) noexcept
@@ -2462,16 +2473,23 @@ void QueueManager::removeSource(const UserPtr& aUser, Flags::MaskType reason) no
 	bool isRunning = false;
 	string removeRunning;
 	{
-		// [!] IRainman fix.
-		// [-] Lock l(cs);
 		QueueItemPtr qi;
 		WLock l(*QueueItem::g_cs);
-		// [~] IRainman fix.
 		while ((qi = g_userQueue.getNextL(aUser, QueueItem::PAUSED)) != nullptr)
 		{
 			if (qi->isSet(QueueItem::FLAG_USER_LIST))
 			{
-				remove(qi->getTarget());
+				bool l_is_found = remove(qi->getTarget());
+				if (l_is_found == false)
+				{
+					break;
+					/*
+					Читаем например с с юзера список файлов. В трансфере (внизу, окно передач) висит -1Б ( у меня гавноинторенты, но можно повторить на БОЛЬШОМ файллисте наверное),
+					Идём в Очередь Скачивания. Слева в дереве - в ПКМ на File Lists выбираем Удалить всё / Удалить... бла-бла-бла
+					Внизу в трансфере на строке с -1Б давим ПКМ, выбираем Удалить пользователя из очереди
+					Флай виснет намертво.
+					*/
+				}
 			}
 			else
 			{

@@ -251,14 +251,15 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 		dcassert(0);
 		return;
 	}
-	
 	OnlineUserPtr ou; // [!] IRainman fix: use OnlineUserPtr here!
-	if (c.isCIDexists())
+	string l_cid;
+	if (c.getParam("ID", 0, l_cid))
 	{
 #ifdef _DEBUG
 		// LogManager::message("CID [+1] " + c.getParamCID().toBase32() + " Params = " +  c.getParamString(false));
 #endif
-		ou = findUser(c.getParamCID());
+		const auto l_CID = CID(l_cid);
+		ou = findUser(l_CID);
 		if (ou)
 		{
 			if (ou->getIdentity().getSID() != c.getFrom())
@@ -271,7 +272,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 				}
 				// fix http://code.google.com/p/flylinkdc/issues/detail?id=1435
 				const string l_message = ou->getIdentity().getNick() + " (" + ou->getIdentity().getSIDString() +
-				                         ") has same CID {" + c.getParamCID().toBase32() + "} as " + nick + " (" + AdcCommand::fromSID(c.getFrom()) + "), ignoring.";
+				                         ") has same CID {" + l_cid + "} as " + nick + " (" + AdcCommand::fromSID(c.getFrom()) + "), ignoring.";
 				fire(ClientListener::StatusMessage(), this, l_message, ClientListener::FLAG_IS_SPAM);
 				
 				//LogManager::ddos_message("Magic spam message filtered on hub: " + getHubUrl() + " detail:" + l_message);
@@ -280,7 +281,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 		}
 		else
 		{
-			ou = getUser(c.getFrom(), c.getParamCID());
+			ou = getUser(c.getFrom(), l_CID);
 		}
 	}
 	else if (c.getFrom() == AdcCommand::HUB_SID)
@@ -531,15 +532,20 @@ void AdcHub::handle(AdcCommand::SID, const AdcCommand& c) noexcept
 void AdcHub::handle(AdcCommand::MSG, const AdcCommand& c) noexcept
 {
 	if (isSupressChatAndPM())
+	{
 		return;
-		
+	}
+	
 	if (c.getParameters().empty())
 		return;
-		
-	unique_ptr<ChatMessage> message(new ChatMessage(c.getParam(0), findUser(c.getFrom())));
-	if (!message->m_from)
+	auto l_user = findUser(c.getFrom());
+	if (!l_user)
+	{
+		LogManager::message("Ignore message from SID = " + Util::toString(c.getFrom()) + " Message = " + c.getParam(0));
 		return;
-		
+	}
+	unique_ptr<ChatMessage> message(new ChatMessage(c.getParam(0), l_user));
+	
 	string temp;
 	
 	message->thirdPerson = c.hasFlag("ME", 1);
@@ -648,7 +654,7 @@ void AdcHub::handle(AdcCommand::QUI, const AdcCommand& c) noexcept
 void AdcHub::handle(AdcCommand::CTM, const AdcCommand& c) noexcept
 {
 	OnlineUserPtr ou = findUser(c.getFrom()); // [!] IRainman fix.
-	if (!ou || isMe(ou)) // [!] IRainman fix.
+	if (isMeCheck(ou))
 		return;
 	if (c.getParameters().size() < 3)
 		return;
@@ -703,7 +709,7 @@ void AdcHub::handle(AdcCommand::RCM, const AdcCommand& c) noexcept
 	}
 	
 	OnlineUserPtr ou = findUser(c.getFrom());
-	if (!ou || isMe(ou)) // [!] IRainman fix.
+	if (isMeCheck(ou))
 		return;
 		
 	const string& protocol = c.getParam(0);
@@ -985,7 +991,7 @@ void AdcHub::handle(AdcCommand::NAT, const AdcCommand& c) noexcept
 		return;
 		
 	OnlineUserPtr ou = findUser(c.getFrom()); // [!] IRainman fix.
-	if (!ou || isMe(ou) || c.getParameters().size() < 3) // [!] IRainman fix.
+	if (isMeCheck(ou) || c.getParameters().size() < 3) // [!] IRainman fix.
 		return;
 		
 	const string& protocol = c.getParam(0);
@@ -1026,7 +1032,7 @@ void AdcHub::handle(AdcCommand::RNT, const AdcCommand& c) noexcept
 		return;
 		
 	OnlineUserPtr ou = findUser(c.getFrom()); // [!] IRainman fix.
-	if (!ou || isMe(ou) || c.getParameters().size() < 3)// [!] IRainman fix.
+	if (isMeCheck(ou) || c.getParameters().size() < 3)// [!] IRainman fix.
 		return;
 		
 	const string& protocol = c.getParam(0);

@@ -403,7 +403,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		void previewload(SimpleXML& aXml);
 		void previewsave(SimpleXML& aXml);
 		
-		static string getConfigFile()
+		static string getConfigFavoriteFile()
 		{
 			return Util::getConfigPath() + "Favorites.xml";
 		}

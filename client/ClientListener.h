@@ -4,7 +4,9 @@
 #include "SearchQueue.h"
 
 #include "ChatMessage.h"
-
+class Client;
+class CID;
+class AdcCommand;
 class ClientListener
 {
 	public:

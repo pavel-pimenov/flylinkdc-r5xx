@@ -843,7 +843,7 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 					if (!showTree || l_is_cur_dir)
 					{
 						const int pos = ctrlQueue.findItem(ii);
-						dcassert(pos != -1);
+						//dcassert(pos != -1);
 						if (pos != -1)
 						{
 							const int l_top_index = ctrlQueue.GetTopIndex();

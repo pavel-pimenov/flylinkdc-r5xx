@@ -1419,18 +1419,7 @@ LRESULT ChatCtrl::onWhoisIP(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BO
 {
 	if (!g_sSelectedIP.empty())
 	{
-		tstring m_link;
-		switch (wID)
-		{
-			case IDC_WHOIS_IP:
-				m_link = _T("http://www.ripe.net/perl/whois?form_type=simple&full_query_string=&searchtext=") + g_sSelectedIP;
-				break;
-			case IDC_WHOIS_IP2:
-				m_link = _T("http://bgp.he.net/ip/") + g_sSelectedIP + _T("#_whois") ;
-				break;
-		}
-		if (!m_link.empty())
-			WinUtil::openLink(m_link);
+		WinUtil::CheckOnWhoisIP(wID, g_sSelectedIP);
 	}
 	return 0;
 }

@@ -27,36 +27,36 @@ namespace dht
 {
 
 
-class BootstrapManager :
-	public Singleton<BootstrapManager>
+class BootstrapManager 
 {
 	public:
 		BootstrapManager(void);
 		~BootstrapManager(void);
 		
-		bool bootstrap();
-		bool process();
-		void shutdown();
-		void live_check_process();
-		void inc_live_check()
+		static bool bootstrap();
+		static bool process();
+		static void shutdown();
+		static void live_check_process();
+		static void inc_live_check()
 		{
-			++m_count_dht_test_ok;
+			++g_count_dht_test_ok;
 		}
-		void flush_live_check();
-		string create_url_for_dht_server();
-		void addBootstrapNode(const string& ip, uint16_t udpPort, const CID& targetCID, const UDPKey& udpKey);
+		static unsigned get_live_check()
+		{
+			return g_count_dht_test_ok;
+		}
+		static void addBootstrapNode(const string& ip, uint16_t udpPort, const CID& targetCID, const UDPKey& udpKey);
 		
 	private:
-		void dht_live_check(const char* p_operation,const string& p_param);
+		static void flush_live_check();
+		static string create_url_for_dht_server();
+		static void dht_live_check(const char* p_operation, const string& p_param);
 
-		int m_count_dht_test_ok;
-		std::unordered_map<string, std::pair<int, uint64_t> > m_dht_bootstrap_count; // Счетчик + временная метка
-		std::string m_user_agent;
-		CriticalSection m_cs;
-		/** List of bootstrap nodes */
-		deque<BootstrapNode> bootstrapNodes;
-		/** Downloaded node list */
-		
+		static unsigned g_count_dht_test_ok;
+		static std::unordered_map<string, std::pair<int, uint64_t> > g_dht_bootstrap_count; // Счетчик + временная метка
+		static std::string g_user_agent;
+		static CriticalSection g_cs;
+		static deque<BootstrapNode> g_bootstrapNodes;
 };
 
 }

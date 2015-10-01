@@ -139,23 +139,23 @@ class AdcCommand
 		
 		uint32_t getCommand() const
 		{
-			return cmdInt;
+			return m_cmdInt;
 		}
 		char getType() const
 		{
-			return type;
+			return m_type;
 		}
 		void setType(char t)
 		{
-			type = t;
+			m_type = t;
 		}
 		string getFourCC() const
 		{
 			string tmp(4, 0); //-V112
-			tmp[0] = type;
-			tmp[1] = cmd[0];
-			tmp[2] = cmd[1];
-			tmp[3] = cmd[2];
+			tmp[0] = m_type;
+			tmp[1] = m_cmd[0];
+			tmp[2] = m_cmd[1];
+			tmp[3] = m_cmd[2];
 			return tmp;
 		}
 		const string& getFeatures() const
@@ -207,26 +207,26 @@ class AdcCommand
 		
 		bool operator==(uint32_t aCmd)
 		{
-			return cmdInt == aCmd;
+			return m_cmdInt == aCmd;
 		}
 		
 		static string escape(const string& str, bool old);
 		uint32_t getTo() const
 		{
-			return to;
+			return m_to;
 		}
 		AdcCommand& setTo(const uint32_t sid)
 		{
-			to = sid;
+			m_to = sid;
 			return *this;
 		}
 		uint32_t getFrom() const
 		{
-			return from;
+			return m_from;
 		}
 		void setFrom(const uint32_t sid)
 		{
-			from = sid;
+			m_from = sid;
 		}
 		
 		static uint32_t toSID(const string& aSID)
@@ -237,15 +237,17 @@ class AdcCommand
 		{
 			return string(reinterpret_cast<const char*>(&aSID), sizeof(aSID));
 		}
+		/*
 		bool isCIDexists() const
 		{
-			return !m_CID.isZero();
+		    return !m_CID.isZero();
 		}
 		const CID& getParamCID() const
 		{
-			return m_CID;
+		    dcassert(!m_CID.isZero());
+		    return m_CID;
 		}
-		
+		*/
 		string getParamString(bool nmdc) const;
 		
 	private:
@@ -255,14 +257,14 @@ class AdcCommand
 		string features;
 		union
 		{
-			char cmdChar[4]; //-V112
-			uint8_t cmd[4]; //-V112
-			uint32_t cmdInt;
+			char m_cmdChar[4]; //-V112
+			uint8_t m_cmd[4]; //-V112
+			uint32_t m_cmdInt;
 		};
-		uint32_t from;
-		uint32_t to;
-		char type;
-		CID m_CID;
+		uint32_t m_from;
+		uint32_t m_to;
+		char m_type;
+		//CID m_CID;
 		
 };
 

@@ -71,6 +71,10 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
 		MESSAGE_HANDLER(WM_SIZE, onSize)
 		MESSAGE_HANDLER(WM_NOTIFYFORMAT, onNotifyFormat)
+#ifdef IRAINMAN_ENABLE_WHOIS
+		COMMAND_ID_HANDLER(IDC_WHOIS_IP, onWhoisIP)
+		COMMAND_ID_HANDLER(IDC_WHOIS_IP2, onWhoisIP)
+#endif
 		COMMAND_ID_HANDLER(IDC_FORCE, onForce)
 		COMMAND_ID_HANDLER(IDC_SEARCH_ALTERNATES, onSearchAlternates)
 		COMMAND_ID_HANDLER(IDC_ADD_P2P_GUARD, onAddP2PGuard)
@@ -118,6 +122,9 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		LRESULT onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 #ifdef SCALOLAZ_USE_TRANSFER_CONTROL
 		LRESULT onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+#endif
+#ifdef IRAINMAN_ENABLE_WHOIS
+		LRESULT onWhoisIP(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 #endif
 		void runUserCommand(UserCommand& uc);
 		void prepareClose();
@@ -200,6 +207,9 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		{
 			return ctrlTransfers;
 		}
+#ifdef IRAINMAN_ENABLE_WHOIS
+		static tstring g_sSelectedIP;
+#endif
 	private:
 		enum
 		{
@@ -207,7 +217,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			TRANSFER_REMOVE_ITEM,
 			TRANSFER_UPDATE_ITEM,
 			TRANSFER_UPDATE_PARENT,
-			TRANSFER_UPDATE_PARENT_WITH_PARSE // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=1082
+			TRANSFER_UPDATE_PARENT_WITH_PARSE, // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=1082
+			TRANSFER_REMOVE_DOWNLOAD_ITEM
 		};
 		
 		enum

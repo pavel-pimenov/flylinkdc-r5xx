@@ -213,7 +213,7 @@ HubFrame::HubFrame(bool p_is_auto_connect,
 #else
 	CFlyTaskAdapter(m_hWnd)
 #endif
-	, m_client(nullptr) // на всякий случай :)
+	, m_client(nullptr)
 	, m_ctrlUsers(nullptr)
 	, m_second_count(60)
 	, m_hub_name_update_count(0)
@@ -281,10 +281,7 @@ void HubFrame::doDestroyFrame()
 
 HubFrame::~HubFrame()
 {
-	{
-		Lock l(g_frames_cs);
-		g_frames.erase(m_server);
-	}
+	erase_frame("");
 	safe_delete(m_ctrlChatContainer);
 	ClientManager::getInstance()->putClient(m_client);
 	m_client = nullptr;
@@ -356,7 +353,7 @@ void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
 		//m_ctrlUsers->setColumnOwnerDraw(COLUMN_FLY_HUB_COUNTRY);
 		//m_ctrlUsers->setColumnOwnerDraw(COLUMN_FLY_HUB_CITY);
 		//m_ctrlUsers->setColumnOwnerDraw(COLUMN_FLY_HUB_ISP);
-		m_ctrlUsers->setColumnOwnerDraw(COLUMN_FLY_HUB_GENDER);
+		// m_ctrlUsers->setColumnOwnerDraw(COLUMN_FLY_HUB_GENDER);
 #endif
 		// m_ctrlUsers->SetCallbackMask(m_ctrlUsers->GetCallbackMask() | LVIS_STATEIMAGEMASK);
 		if (p_fhe)
@@ -550,7 +547,7 @@ void HubFrame::destroyMessagePanel(bool p_is_destroy)
 	const bool l_is_shutdown = p_is_destroy || ClientManager::isShutdown();
 	if (m_ctrlFilter)
 	{
-		if (!l_is_shutdown)
+		if (!l_is_shutdown && m_closed == false)
 		{
 			WinUtil::GetWindowText(m_filter, *m_ctrlFilter);
 			m_FilterSelPos = m_ctrlFilterSel->GetCurSel();
@@ -621,7 +618,15 @@ void HubFrame::onBeforeActiveTab(HWND aWnd)
 		Lock l(g_frames_cs);
 		for (auto i = g_frames.cbegin(); i != g_frames.cend(); ++i) // TODO помнить последний и не перебирать все для разрушения.
 		{
-			i->second->destroyMessagePanel(false);
+			auto& l_frame = i->second;
+			if (!l_frame->isClosedOrShutdown())
+			{
+				i->second->destroyMessagePanel(false);
+			}
+			else
+			{
+				dcassert(0);
+			}
 		}
 	}
 }
@@ -1493,15 +1498,18 @@ void HubFrame::doConnected()
 #endif
 	m_needsUpdateStats = true;
 }
+void HubFrame::clearTaskAndUserList()
+{
+	CFlyBusy l_busy(m_is_process_disconnected);
+	clearTaskList();
+	clearUserList();
+}
 
 void HubFrame::doDisconnected()
 {
 	dcassert(!ClientManager::isShutdown());
 	m_virus_icon_index = 0;
-	{
-		CFlyBusy l_busy(m_is_process_disconnected);
-		clearUserList(true);
-	}
+	clearTaskAndUserList();
 	if (!ClientManager::isShutdown())
 	{
 		setTabColor(RGB(128, 0, 0));
@@ -2026,12 +2034,12 @@ void HubFrame::updateWindowText()
 void HubFrame::setWindowTitle(const string& p_text)
 {
 	dcassert(!ClientManager::isShutdown());
-	if (m_window_text != p_text)
+	if (m_window_text != p_text || m_is_window_text_update == 0)
 	{
 		m_window_text = p_text;
 		++m_is_window_text_update;
+		updateWindowText();
 	}
-	updateWindowText();
 }
 
 void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
@@ -2401,6 +2409,8 @@ LRESULT HubFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 	if (!m_closed)
 	{
 		m_closed = true;
+		m_client->removeListener(this);
+		erase_frame("");
 #ifdef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 		safe_destroy_timer();
 #endif
@@ -2426,20 +2436,19 @@ LRESULT HubFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 			SettingsManager::getInstance()->removeListener(this);
 			FavoriteManager::getInstance()->removeListener(this);
 		}
-		m_client->removeListener(this); // DeadLock
 		m_client->disconnect(true);
 		PostMessage(WM_CLOSE);
 		return 0;
 	}
 	else
 	{
-		clearTaskList();
-		clearUserList(true); // TODO заблокировать прием сообщений
+		m_tasks.lock_task();
+		clearTaskAndUserList();
 		bHandled = FALSE;
 		return 0;
 	}
 }
-void HubFrame::clearUserList(bool p_is_fynally_clear_user_list)
+void HubFrame::clearUserList()
 {
 	if (m_ctrlUsers)
 	{
@@ -3067,6 +3076,17 @@ void HubFrame::OnSwitchedPanels()
 	UpdateLayout();
 }
 #endif
+void HubFrame::erase_frame(const string& p_redirect)
+{
+	Lock l(g_frames_cs);
+	g_frames.erase(m_server);
+	if (!p_redirect.empty())
+	{
+		g_frames.insert(make_pair(p_redirect, this));
+		m_server = p_redirect;
+	}
+}
+
 LRESULT HubFrame::onFollow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	if (!m_redirect.empty())
@@ -3079,18 +3099,12 @@ LRESULT HubFrame::onFollow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/,
 		}
 		//dcassert(g_frames.find(server) != g_frames.end());
 		//dcassert(g_frames[server] == this);
-		{
-			Lock l(g_frames_cs);
-			g_frames.erase(m_server);
-			g_frames.insert(make_pair(m_redirect, this));
-			m_server = m_redirect;
-		}
+		erase_frame(m_redirect);
 		// the client is dead, long live the client!
 		m_client->removeListener(this);
-		clearUserList(true);
 		ClientManager::getInstance()->putClient(m_client);
 		m_client = nullptr;
-		clearTaskList();
+		clearTaskAndUserList();
 		m_client = ClientManager::getInstance()->getClient(m_redirect, false);
 		RecentHubEntry r;
 		r.setServer(m_redirect);
@@ -3258,40 +3272,36 @@ void HubFrame::timer_process_internal()
 			dcdebug("HubFrame::timer_process_internal() [3] force_speak Hub = %s\n", this->getHubHint().c_str());
 			force_speak();
 		}
+		dcassert(m_client);
+		if (m_client && m_ctrlFilter) // Мгаем глазами только на активном хабе
+		{
+			const auto l_count_virus_bot = m_client->getVirusBotCount();
+			if (m_virus_icon_index && l_count_virus_bot == 0)
+			{
+				m_virus_icon_index = 0;
+				flickerVirusIcon();
+			}
+			else if (m_virus_icon_index == 0 && m_client->is_all_my_info_loaded())
+			{
+				if (l_count_virus_bot > 1)
+				{
+					if (l_count_virus_bot < 10)
+					{
+						m_virus_icon_index = 1;
+					}
+					else
+					{
+						m_virus_icon_index = 3;
+					}
+				}
+			}
+		}
 	}
 	if (--m_second_count == 0)
 	{
 		m_second_count = 60;
 		ClientManager::infoUpdated(m_client);
 	}
-	dcassert(m_client);
-	if (m_client)
-	{
-		const auto l_count_virus_bot = m_client->getVirusBotCount();
-		if (m_virus_icon_index && l_count_virus_bot == 0)
-		{
-			m_virus_icon_index = 0;
-			flickerVirusIcon();
-		}
-		else if (m_virus_icon_index == 0 && m_client->is_all_my_info_loaded())
-		{
-			if (l_count_virus_bot > 1)
-			{
-				if (l_count_virus_bot < 10)
-				{
-					m_virus_icon_index = 1;
-				}
-				else
-				{
-					m_virus_icon_index = 3;
-				}
-			}
-		}
-	}
-	//if (m_virus_icon_index && (m_second_count % 2) == 0)
-	//{
-	//  flickerVirusIcon();
-	//}
 }
 #ifdef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 LRESULT HubFrame::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
@@ -3351,18 +3361,22 @@ void HubFrame::on(ClientListener::DDoSSearchDetect, const string&) noexcept
 }
 bool HubFrame::flickerVirusIcon()
 {
-	if (m_is_ddos_detect == false)
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown() && m_closed == false)
 	{
-		if (m_virus_icon_index)
+		if (m_is_ddos_detect == false)
 		{
-			const auto l_index = m_virus_icon_index - (m_is_red_virus_icon_index ? 1 : 0);
-			setCustomIcon(*WinUtil::g_HubVirusIcon[l_index].get());
-			m_is_red_virus_icon_index = !m_is_red_virus_icon_index;
-			return true;
-		}
-		else
-		{
-			setCustomVIPIcon();
+			if (m_virus_icon_index)
+			{
+				const auto l_index = m_virus_icon_index - (m_is_red_virus_icon_index ? 1 : 0);
+				setCustomIcon(*WinUtil::g_HubVirusIcon[l_index].get());
+				m_is_red_virus_icon_index = !m_is_red_virus_icon_index;
+				return true;
+			}
+			else
+			{
+				setCustomVIPIcon();
+			}
 		}
 	}
 	return false;
@@ -4240,7 +4254,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			if (!ui)
 				return CDRF_DODEFAULT;
 			const int l_column_id = m_ctrlUsers->findColumn(cd->iSubItem);
-#ifdef FLYLINKDC_USE_XXX_ICON
+#if 0 // FLYLINKDC_USE_XXX_ICON
 			if (l_column_id == COLUMN_FLY_HUB_GENDER)
 			{
 				const int l_indx_icon = ui->getIdentity().getGenderType();

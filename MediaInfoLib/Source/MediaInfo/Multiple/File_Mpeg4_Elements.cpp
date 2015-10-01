@@ -1726,7 +1726,7 @@ void File_Mpeg4::mdat_xxxx()
 
                 Stream_Temp.IsFilled=true;
 
-                if (Config->ParseSpeed<1)
+                if (Config->ParseSpeed<1 && !mdat_Pos.empty())
                 {
                     bool File_Offset_Next_IsValid;
                     int64u File_Offset_Next;
@@ -1798,7 +1798,7 @@ void File_Mpeg4::mdat_StreamJump()
 {
     //Finding right file offset
     int64u ToJump=File_Size;
-    if (mdat_Pos_Temp!=mdat_Pos_Max)
+    if (!mdat_Pos.empty() && mdat_Pos_Temp!=mdat_Pos_Max)
     {
         ToJump=mdat_Pos_Temp->Offset;
         #if MEDIAINFO_DEMUX
@@ -4780,6 +4780,8 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxxVideo()
             else
                 Fill(Stream_Video, StreamPos_Last, Video_BitDepth, Depth/3);
         }
+        else if (Codec=="AVrp")
+            Fill(Stream_Video, StreamPos_Last, Video_BitDepth, 10);
 
         //Descriptors or a list (we can see both!)
         if (Element_Offset+8<=Element_Size

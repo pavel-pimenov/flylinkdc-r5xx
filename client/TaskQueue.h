@@ -45,7 +45,7 @@ class TaskQueue
 	public:
 		typedef std::vector<std::pair<uint8_t, Task*> > List;
 		
-		TaskQueue() : m_destroy_guard(0)
+		TaskQueue() : m_destroy_guard(0), m_lock_count(0)
 		{
 		}
 		
@@ -53,9 +53,15 @@ class TaskQueue
 		{
 			deleteTasks(m_tasks);// [!] IRainman fix.
 		}
-		bool is_destroy_task() const
+		bool is_destroy_task()
 		{
+			FastLock l(m_csTaskQueue);
 			return m_destroy_guard > 0;
+		}
+		bool is_lock_task()
+		{
+			FastLock l(m_csTaskQueue);
+			return m_lock_count > 0;
 		}
 		bool empty()
 		{
@@ -79,13 +85,20 @@ class TaskQueue
 			return l_tmp;
 		}
 #endif
-		void add(uint8_t type, Task* data)
+		bool add(uint8_t type, Task* data)
 		{
 			FastLock l(m_csTaskQueue);
 			dcassert(m_destroy_guard == 0);
-			if (m_destroy_guard == 0)
+			dcassert(m_lock_count == 0)
+			if (m_destroy_guard == 0 && m_lock_count == 0)
 			{
 				m_tasks.push_back(std::make_pair(type, data)); // [2] https://www.box.net/shared/6hnn9eeg42q1qammnlub
+				return true;
+			}
+			else
+			{
+				delete data;
+				return false;
 			}
 		}
 		void get(List& p_list)
@@ -101,6 +114,16 @@ class TaskQueue
 			get(l_tmp);
 			deleteTasks(l_tmp);
 			// [~] IRainman fix
+		}
+		void lock_task()
+		{
+			FastLock l(m_csTaskQueue);
+			m_lock_count++;
+		}
+		void unlock_task()
+		{
+			FastLock l(m_csTaskQueue);
+			m_lock_count--;
 		}
 		void destroy_task()
 		{
@@ -123,6 +146,7 @@ class TaskQueue
 		FastCriticalSection m_csTaskQueue;
 		List m_tasks;
 		unsigned m_destroy_guard;
+		unsigned m_lock_count;
 };
 
 #endif

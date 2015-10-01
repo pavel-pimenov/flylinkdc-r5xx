@@ -20,7 +20,7 @@
 #define DCPLUSPLUS_DCPP_ADC_SUPPORTS_H
 
 #include "AdcCommand.h"
-
+class Identity;
 class AdcSupports // [+] IRainman fix.
 {
 	public:

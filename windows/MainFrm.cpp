@@ -715,6 +715,12 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	winampMenu.AppendMenu(MF_STRING, ID_MEDIA_MENU_WINAMP_START + SettingsManager::WinMediaPlayerClassic, CTSTRING(MEDIA_MENU_WPC));
 	winampMenu.AppendMenu(MF_STRING, ID_MEDIA_MENU_WINAMP_START + SettingsManager::JetAudio, CTSTRING(MEDIA_MENU_JA));
 	
+	try
+	{
+		File::ensureDirectory(SETTING(LOG_DIRECTORY));
+	}
+	catch (const FileException&) {}
+	
 	
 	if (SETTING(PROTECT_START) && SETTING(PASSWORD) != g_magic_password && !SETTING(PASSWORD).empty())
 	{
@@ -726,34 +732,10 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		}
 	}
 	
-	if (BOOLSETTING(OPEN_FAVORITE_HUBS)) PostMessage(WM_COMMAND, IDC_FAVORITES);
-	if (BOOLSETTING(OPEN_FAVORITE_USERS)) PostMessage(WM_COMMAND, IDC_FAVUSERS);
-	if (BOOLSETTING(OPEN_QUEUE)) PostMessage(WM_COMMAND, IDC_QUEUE);
-	if (BOOLSETTING(OPEN_FINISHED_DOWNLOADS)) PostMessage(WM_COMMAND, IDC_FINISHED);
-	if (BOOLSETTING(OPEN_WAITING_USERS)) PostMessage(WM_COMMAND, IDC_UPLOAD_QUEUE);
-	if (BOOLSETTING(OPEN_FINISHED_UPLOADS)) PostMessage(WM_COMMAND, IDC_FINISHED_UL);
-	if (BOOLSETTING(OPEN_SEARCH_SPY)) PostMessage(WM_COMMAND, IDC_SEARCH_SPY);
-	if (BOOLSETTING(OPEN_NETWORK_STATISTICS)) PostMessage(WM_COMMAND, IDC_NET_STATS);
-	if (BOOLSETTING(OPEN_NOTEPAD)) PostMessage(WM_COMMAND, IDC_NOTEPAD);
-#ifdef IRAINMAN_INCLUDE_PROTO_DEBUG_FUNCTION
-	if (BOOLSETTING(OPEN_CDMDEBUG)) PostMessage(WM_COMMAND, IDC_CDMDEBUG_WINDOW);
-#endif
-	if (!BOOLSETTING(SHOW_STATUSBAR)) PostMessage(WM_COMMAND, ID_VIEW_STATUS_BAR);
-	if (!BOOLSETTING(SHOW_TOOLBAR)) PostMessage(WM_COMMAND, ID_VIEW_TOOLBAR);
-	if (!BOOLSETTING(SHOW_TRANSFERVIEW)) PostMessage(WM_COMMAND, ID_VIEW_TRANSFER_VIEW);
-	if (!BOOLSETTING(SHOW_WINAMP_CONTROL)) PostMessage(WM_COMMAND, ID_TOGGLE_TOOLBAR);
-	if (!BOOLSETTING(SHOW_QUICK_SEARCH)) PostMessage(WM_COMMAND, ID_TOGGLE_QSEARCH);
-#ifdef IRAINMAN_INCLUDE_RSS
-	if (BOOLSETTING(OPEN_RSS)) PostMessage(WM_COMMAND, IDC_RSS); // [+] SSA
-#endif
 	
-#ifdef RIP_USE_PORTAL_BROWSER
-	// [+] BRAIN_RIPPER
-	if (BOOLSETTING(OPEN_PORTAL_BROWSER))
-	{
-		OpenVisiblePortals(m_hWnd);
-	}
-#endif
+	openDefaultWindows();
+	
+	ConnectivityManager::getInstance()->setup(true);
 	
 	if (!WinUtil::isShift())
 	{
@@ -763,13 +745,6 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	
 	PostMessage(WM_SPEAKER, PARSE_COMMAND_LINE);
 	
-	try
-	{
-		File::ensureDirectory(SETTING(LOG_DIRECTORY));
-	}
-	catch (const FileException&) {  }
-	
-	ConnectivityManager::getInstance()->setup(true);
 	HICON l_trayIcon = NULL;
 #ifdef FLYLINKDC_USE_EXTERNAL_MAIN_ICON
 	if (File::isExist(Util::getICOPath()))
@@ -821,14 +796,48 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	
 	InetDownloadReporter::getInstance()->SetCurrentHWND((HWND)(*this));
 	
+	
+#ifdef RIP_USE_PORTAL_BROWSER
+	// [+] BRAIN_RIPPER
+	if (BOOLSETTING(OPEN_PORTAL_BROWSER))
+	{
+		OpenVisiblePortals(m_hWnd);
+	}
+#endif
+	
 	// We want to pass this one on to the splitter...hope it get's there...
 	bHandled = FALSE;
+	
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 	g_fly_server_stat.stopTick(CFlyServerStatistics::TIME_START_GUI);
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
 	create_timer(1000, 3);
 	m_transferView.UpdateLayout();
 	return 0;
+}
+void MainFrame::openDefaultWindows()
+{
+	if (BOOLSETTING(OPEN_FAVORITE_HUBS)) PostMessage(WM_COMMAND, IDC_FAVORITES);
+	if (BOOLSETTING(OPEN_FAVORITE_USERS)) PostMessage(WM_COMMAND, IDC_FAVUSERS);
+	if (BOOLSETTING(OPEN_QUEUE)) PostMessage(WM_COMMAND, IDC_QUEUE);
+	if (BOOLSETTING(OPEN_FINISHED_DOWNLOADS)) PostMessage(WM_COMMAND, IDC_FINISHED);
+	if (BOOLSETTING(OPEN_WAITING_USERS)) PostMessage(WM_COMMAND, IDC_UPLOAD_QUEUE);
+	if (BOOLSETTING(OPEN_FINISHED_UPLOADS)) PostMessage(WM_COMMAND, IDC_FINISHED_UL);
+	if (BOOLSETTING(OPEN_SEARCH_SPY)) PostMessage(WM_COMMAND, IDC_SEARCH_SPY);
+	if (BOOLSETTING(OPEN_NETWORK_STATISTICS)) PostMessage(WM_COMMAND, IDC_NET_STATS);
+	if (BOOLSETTING(OPEN_NOTEPAD)) PostMessage(WM_COMMAND, IDC_NOTEPAD);
+#ifdef IRAINMAN_INCLUDE_PROTO_DEBUG_FUNCTION
+	if (BOOLSETTING(OPEN_CDMDEBUG)) PostMessage(WM_COMMAND, IDC_CDMDEBUG_WINDOW);
+#endif
+	if (!BOOLSETTING(SHOW_STATUSBAR)) PostMessage(WM_COMMAND, ID_VIEW_STATUS_BAR);
+	if (!BOOLSETTING(SHOW_TOOLBAR)) PostMessage(WM_COMMAND, ID_VIEW_TOOLBAR);
+	if (!BOOLSETTING(SHOW_TRANSFERVIEW)) PostMessage(WM_COMMAND, ID_VIEW_TRANSFER_VIEW);
+	if (!BOOLSETTING(SHOW_WINAMP_CONTROL)) PostMessage(WM_COMMAND, ID_TOGGLE_TOOLBAR);
+	if (!BOOLSETTING(SHOW_QUICK_SEARCH)) PostMessage(WM_COMMAND, ID_TOGGLE_QSEARCH);
+#ifdef IRAINMAN_INCLUDE_RSS
+	if (BOOLSETTING(OPEN_RSS)) PostMessage(WM_COMMAND, IDC_RSS); // [+] SSA
+#endif
+	
 }
 
 int MainFrame::tuneTransferSplit()

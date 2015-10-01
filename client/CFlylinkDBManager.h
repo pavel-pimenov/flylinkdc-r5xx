@@ -498,6 +498,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void flush_lost_json_statistic(bool& p_is_error);
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
 		__int64 convert_tth_history();
+		__int64 convert_tth_historyL();
 		static size_t getCountQueueSources()
 		{
 			return g_count_queue_source;

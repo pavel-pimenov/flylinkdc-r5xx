@@ -856,7 +856,7 @@ void FavoriteManager::save()
 		
 		xml.stepOut();
 		
-		const string fname = getConfigFile();
+		const string fname = getConfigFavoriteFile();
 		
 		const string l_tmp_file = fname + ".tmp";
 		{
@@ -885,7 +885,7 @@ void FavoriteManager::save()
 		dcassert(0);
 		dcdebug("FavoriteManager::save: %s\n", e.getError().c_str());
 		LogManager::message("FavoriteManager::save error = " + e.getError());
-		CFlyServerJSON::pushError(14, "error create favorites.xml file:" + getConfigFile() + " error = " + e.getError());
+		CFlyServerJSON::pushError(14, "error create favorites.xml file:" + getConfigFavoriteFile() + " error = " + e.getError());
 	}
 }
 
@@ -979,8 +979,9 @@ void FavoriteManager::load()
 	try
 	{
 		SimpleXML xml;
-		Util::migrate(getConfigFile());
-		xml.fromXML(File(getConfigFile(), File::READ, File::OPEN).read());
+		Util::migrate(getConfigFavoriteFile());
+		//LogManager::message("FavoriteManager::load File = " + getConfigFavoriteFile());
+		xml.fromXML(File(getConfigFavoriteFile(), File::READ, File::OPEN).read());
 		
 		if (xml.findChild("Favorites"))
 		{
@@ -991,7 +992,7 @@ void FavoriteManager::load()
 	}
 	catch (const Exception& e)
 	{
-		LogManager::message("[Error] FavoriteManager::load " + e.getError());
+		LogManager::message("[Error] FavoriteManager::load " + e.getError() + " File = " + getConfigFavoriteFile());
 		dcdebug("FavoriteManager::load: %s\n", e.getError().c_str());
 	}
 	
@@ -1133,6 +1134,8 @@ void FavoriteManager::load(SimpleXML& aXml
 				if (l_is_fly_hub_exists == false && l_CurrentServerUrl == CFlyServerConfig::g_support_hub)
 					l_is_fly_hub_exists = true;
 				if (l_CurrentServerUrl.find("kurskhub.ru") != string::npos ||  // http://dchublist.ru/forum/viewtopic.php?p=24102#p24102
+				        l_CurrentServerUrl.find("tankafett.biz") != string::npos ||
+				        l_CurrentServerUrl.find(".dchub.net") != string::npos ||
 				        CFlyServerConfig::g_block_hubs.count(l_CurrentServerUrl))
 				{
 					CFlyServerJSON::pushError(35, "Block hub: " + l_CurrentServerUrl);

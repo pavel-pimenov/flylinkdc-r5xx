@@ -25,48 +25,17 @@
 
 #include <boost/intrusive_ptr.hpp>
 
-class AdcCommand;
-
-class ADLSearch;
-
-class BufferedSocket;
-
-class CID;
-
-typedef std::vector<uint16_t> PartsInfo;
-
-class Client;
-
-class ClientManager;
-
-class ConnectionQueueItem;
-
-class DirectoryItem;
-typedef DirectoryItem* DirectoryItemPtr;
-
 class FavoriteHubEntry;
 typedef std::vector<FavoriteHubEntry*> FavoriteHubEntryList;
-
-class FavoriteUser;
-
-class File;
 
 class FinishedItem;
 typedef std::shared_ptr<FinishedItem> FinishedItemPtr;
 typedef std::deque<FinishedItemPtr> FinishedItemList;
 
-class FinishedManager;
-
-template<class Hasher>
-struct HashValue;
-
-//struct HintedUser;
-// [-] typedef std::vector<HintedUser> HintedUserList; [-] IRainman: deprecated.
-
 class HubEntry;
 typedef std::deque<HubEntry> HubEntryList; // [!] IRainman opt: change vector to deque
 
-class Identity;
+//class Identity;
 
 class OnlineUser;
 typedef boost::intrusive_ptr<OnlineUser> OnlineUserPtr;
@@ -75,19 +44,6 @@ typedef std::vector<OnlineUserPtr> OnlineUserList;
 class QueueItem;
 typedef std::shared_ptr<QueueItem> QueueItemPtr;
 typedef std::list<QueueItemPtr> QueueItemList; // На vector - нельзя падаем
-
-class RecentHubEntry;
-
-class ServerSocket;
-
-class Socket;
-class SocketException;
-
-class StringSearch;
-
-class TigerHash;
-
-typedef HashValue<TigerHash> TTHValue;
 
 class UploadQueueItem;
 typedef std::shared_ptr<UploadQueueItem> UploadQueueItemPtr;

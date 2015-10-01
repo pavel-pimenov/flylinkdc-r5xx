@@ -52,7 +52,7 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		}
 		void send(const AdcCommand& cmd);
 		
-		string getMySID()
+		string getMySID() const
 		{
 			return AdcCommand::fromSID(sid);
 		}

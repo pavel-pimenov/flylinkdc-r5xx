@@ -91,11 +91,12 @@ class CFlyHTTPDownloader
 		DWORD m_flag;
 		string m_error_message;
 	public:
-		CFlyHTTPDownloader() : m_flag(0)
+		bool m_is_add_url;
+		CFlyHTTPDownloader() : m_flag(0), m_is_add_url(true)
 		{
 		}
 		std::vector<string> m_get_http_header_item;
-		uint64_t getBinaryDataFromInet(const string& url, std::vector<unsigned char>& p_dataOut, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
+		uint64_t getBinaryDataFromInet(const string& p_url, std::vector<unsigned char>& p_dataOut, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
 		void clear()
 		{
 			m_get_http_header_item.clear();
@@ -108,6 +109,7 @@ class CFlyHTTPDownloader
 		{
 			return m_error_message;
 		}
+		void create_error_message(const char* p_type, const string& p_url);
 };
 
 template <class T>
@@ -825,26 +827,8 @@ class Util
 		
 		static wstring formatExactSize(int64_t aBytes);
 		
-		static wstring formatSecondsW(int64_t aSec, bool supressHours = false)
-		{
-			wchar_t buf[64];
-			if (!supressHours)
-				_snwprintf(buf, _countof(buf), L"%01lu:%02d:%02d", (unsigned long)(aSec / (60 * 60)), (int)((aSec / 60) % 60), (int)(aSec % 60));
-			else
-				_snwprintf(buf, _countof(buf), L"%02d:%02d", (int)(aSec / 60), (int)(aSec % 60));
-			return buf;
-		}
-		
-		static string formatSeconds(int64_t aSec, bool supressHours = false) // [+] IRainman opt
-		{
-			char buf[64];
-			if (!supressHours)
-				_snprintf(buf, _countof(buf), "%01lu:%02d:%02d", (unsigned long)(aSec / (60 * 60)), (int)((aSec / 60) % 60), (int)(aSec % 60));
-			else
-				_snprintf(buf, _countof(buf), "%02d:%02d", (int)(aSec / 60), (int)(aSec % 60));
-			return buf;
-		}
-		
+		static wstring formatSecondsW(int64_t aSec, bool supressHours = false);
+		static string formatSeconds(int64_t aSec, bool supressHours = false);
 		static string formatParams(const string& msg, const StringMap& params, bool filter, const time_t p_t = time(NULL));
 		static string formatTime(const string& msg, const time_t p_t);
 		static string formatTime(uint64_t rest, const bool withSecond = true);

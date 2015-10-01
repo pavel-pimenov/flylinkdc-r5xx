@@ -391,6 +391,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		OnlineUserPtr m_myOnlineUser;
 		OnlineUserPtr m_hubOnlineUser;
 	public:
+		bool isMeCheck(const OnlineUserPtr& ou);
 		bool isMe(const OnlineUserPtr& ou)
 		{
 			return ou == getMyOnlineUser();
@@ -522,7 +523,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		virtual bool hubIsNotSupportSlot() const = 0;// [+]IRainman
 #endif // IRAINMAN_ENABLE_AUTO_BAN
 //[~]FlylinkDC
-	protected:
+
 		friend class ClientManager;
 		friend class User;
 		Client(const string& p_HubURL, char p_separator_, bool p_is_secure, bool p_is_auto_connect);
@@ -623,6 +624,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		bool m_secure;
 		CountType m_countType;
 	public:
+	
 		bool isInOperatorList(const string& userName) const;
 		unsigned getVirusBotCount() const
 		{

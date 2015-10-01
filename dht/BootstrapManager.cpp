@@ -34,74 +34,80 @@
 
 namespace dht
 {
+unsigned BootstrapManager::g_count_dht_test_ok = 0;
+std::unordered_map<string, std::pair<int, uint64_t> > BootstrapManager::g_dht_bootstrap_count; 
+std::string BootstrapManager::g_user_agent;
+CriticalSection BootstrapManager::g_cs;
+deque<BootstrapNode> BootstrapManager::g_bootstrapNodes;
 
-BootstrapManager::BootstrapManager(void):m_count_dht_test_ok(0)
+BootstrapManager::BootstrapManager(void)
 {
 }
 
 BootstrapManager::~BootstrapManager(void)
 {
-	dcassert(m_dht_bootstrap_count.empty());
-	dcassert(m_count_dht_test_ok == 0);
+	dcassert(g_dht_bootstrap_count.empty());
+	dcassert(g_count_dht_test_ok == 0);
 }
 
 void BootstrapManager::dht_live_check(const char* p_operation,const string& p_param)
 {
     create_url_for_dht_server(); // TODO - потестить это внимательнее
-	if(!m_dht_bootstrap_count.empty())
+	if(!g_dht_bootstrap_count.empty())
 	{
 		CFlyLog l_dht_log(p_operation);
-		for(auto i=m_dht_bootstrap_count.cbegin();i!= m_dht_bootstrap_count.cend();++i)
+		for(auto i=g_dht_bootstrap_count.cbegin();i!= g_dht_bootstrap_count.cend();++i)
 		{
 		 std::vector<byte> l_data;
 		 const string l_url = i->first + p_param;
 		 l_dht_log.step("Bootstrap count = " + Util::toString(i->second.first) + ", URL: " + l_url);
 		 CFlyHTTPDownloader l_http_downloader;
+		 // TODO if (SettingsManager::g_TestUDPDHTLevel == true) 
 		 l_http_downloader.getBinaryDataFromInet(l_url, l_data, 1000);
 		}
 	}
 }
 void BootstrapManager::flush_live_check()
 {
-	if(m_count_dht_test_ok)
+	if(g_count_dht_test_ok)
 	{
 	  static uint32_t g_live_count = 0;
 	  dht_live_check("[DHT live check]","&live=" + Util::toString(++g_live_count));
-	  m_count_dht_test_ok = 0;
+	  g_count_dht_test_ok = 0;
 	}
 }
 void BootstrapManager::shutdown()
 {
 	dht_live_check("[Shutdown DHT]","&stop=1");
-    m_dht_bootstrap_count.clear();
-	m_count_dht_test_ok = 0;
+    g_dht_bootstrap_count.clear();
+	g_count_dht_test_ok = 0;
 }
 string BootstrapManager::create_url_for_dht_server()
 {
 	const DHTServer& l_server = CFlyServerConfig::getRandomDHTServer();
-    m_user_agent = l_server.getAgent();
-	if(m_user_agent.empty()) // TODO - убить агента
-	   m_user_agent = APPNAME " " A_VERSIONSTRING;
+    g_user_agent = l_server.getAgent();
+	if(g_user_agent.empty()) // TODO - убить агента
+	   g_user_agent = APPNAME " " A_VERSIONSTRING;
 	string l_url = l_server.getUrl() + "?cid=" + ClientManager::getMyCID().toBase32() + "&encryption=1";  // [!] IRainman fix.
 	// store only active nodes to database
 	if (ClientManager::isActive(nullptr))
 	{
 		l_url += "&u4=" + Util::toString(DHT::getInstance()->getPort());
 	}
-	m_dht_bootstrap_count[l_url].first++;
+	g_dht_bootstrap_count[l_url].first++;
 	return l_url;
 }
 bool BootstrapManager::bootstrap()
 {
-	if(m_user_agent.empty())
+	if(g_user_agent.empty())
 	{
 		create_url_for_dht_server();
 	}
-	if (bootstrapNodes.empty())
+	if (g_bootstrapNodes.empty())
 	{
 		CFlyLog l_dht_log("[DHT]");
 		const string l_url = create_url_for_dht_server();
-		auto& l_check_spam = m_dht_bootstrap_count[l_url];
+		auto& l_check_spam = g_dht_bootstrap_count[l_url];
 		const auto l_tick = GET_TICK();
 		if(l_check_spam.second)
 		{
@@ -181,30 +187,30 @@ bool BootstrapManager::bootstrap()
 
 void BootstrapManager::addBootstrapNode(const string& ip, uint16_t udpPort, const CID& targetCID, const UDPKey& udpKey)
 {
-	Lock l(m_cs);
+	Lock l(g_cs);
 	const BootstrapNode l_node = {ip, udpPort, targetCID, udpKey };
-	bootstrapNodes.push_back(l_node);
+	g_bootstrapNodes.push_back(l_node);
 }
 
 void BootstrapManager::live_check_process()
 {
-	Lock l(m_cs);
+	Lock l(g_cs);
 	flush_live_check();
 }
 bool BootstrapManager::process()
 {
-	Lock l(m_cs);
-	if (!bootstrapNodes.empty())
+	Lock l(g_cs);
+	if (!g_bootstrapNodes.empty())
 	{
 		// send bootstrap request
 		AdcCommand cmd(AdcCommand::CMD_GET, AdcCommand::TYPE_UDP);
 		cmd.addParam("nodes");
 		cmd.addParam("dht.xml");
 		
-		const BootstrapNode& node = bootstrapNodes.front();
+		const BootstrapNode& node = g_bootstrapNodes.front();
 		DHT::getInstance()->send(cmd, node.m_ip, node.m_udpPort, node.m_cid, node.m_udpKey);
 		
-		bootstrapNodes.pop_front();
+		g_bootstrapNodes.pop_front();
 		return true;
 	}
 	else

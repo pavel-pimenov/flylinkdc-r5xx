@@ -113,7 +113,7 @@ HIconWrapper WinUtil::g_hClockIcon(IDR_ICON_CLOCK);
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOnIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOffIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubFlylinkDCIcon;
-std::unique_ptr<HIconWrapper> WinUtil::g_HubFlylinkDCIconVIP[4]; // VIP_ICON
+std::unique_ptr<HIconWrapper> WinUtil::g_HubFlylinkDCIconVIP[7]; // VIP_ICON
 std::unique_ptr<HIconWrapper> WinUtil::g_HubDDoSIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubAntivirusIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubVirusIcon[4];
@@ -482,11 +482,15 @@ void WinUtil::initThemeIcons()
 	g_HubOnIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_HUB));
 	g_HubOffIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_HUB_OFF));
 	g_HubFlylinkDCIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_MAINFRAME));
-	g_HubFlylinkDCIconVIP[0] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_SCALOLAZ)); // VIP_ICON
-	g_HubFlylinkDCIconVIP[1] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_MILENAHUB)); // VIP_ICON
+	g_HubFlylinkDCIconVIP[0] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_SCALOLAZ));
+	g_HubFlylinkDCIconVIP[1] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_MILENAHUB));
 	//g_HubFlylinkDCIconVIP[1] = std::unique_ptr<HIconWrapper>(new HIconWrapper());
 	g_HubFlylinkDCIconVIP[2] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_STEALTHHUB));
 	g_HubFlylinkDCIconVIP[3] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_KEEPCLEAR));
+	g_HubFlylinkDCIconVIP[4] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_PRIME));
+	g_HubFlylinkDCIconVIP[5] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_PERSEUS));
+	g_HubFlylinkDCIconVIP[6] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_ALLAVTOVO)); // VIP_ICON
+	
 	
 	g_HubDDoSIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_ICON_MEDICAL_BAG));
 	g_HubAntivirusIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_ICON_THERMOMETR_BAG));
@@ -4998,6 +5002,33 @@ void WinUtil::SetWindowThemeExplorer(HWND p_hWnd)
 	}
 }
 
+#ifdef IRAINMAN_ENABLE_WHOIS
+void WinUtil::CheckOnWhoisIP(WORD wID, tstring whoisIP)
+{
+	if (!whoisIP.empty())
+	{
+		tstring m_link;
+		switch (wID)
+		{
+			case IDC_WHOIS_IP:
+				m_link = _T("http://www.ripe.net/perl/whois?form_type=simple&full_query_string=&searchtext=") + whoisIP;
+				break;
+			case IDC_WHOIS_IP2:
+				m_link = _T("http://bgp.he.net/ip/") + whoisIP + _T("#_whois");
+				break;
+		}
+		if (!m_link.empty())
+			WinUtil::openLink(m_link);
+	}
+}
+void WinUtil::AppendMenuOnWhoisIP(CMenu &p_menuname, tstring p_IP, bool p_inSubmenu)
+{
+	// ToDo::  if p_inSubmenu == true : create and append into SubMenu
+	p_menuname.AppendMenu(MF_STRING, IDC_WHOIS_IP, (TSTRING(WHO_IS) + _T(" Ripe.net  ") + p_IP).c_str());
+	p_menuname.AppendMenu(MF_STRING, IDC_WHOIS_IP2, (TSTRING(WHO_IS) + _T("  Bgp.He  ") + p_IP).c_str());
+	//p_menu.AppendMenu(MF_SEPARATOR);
+}
+#endif
 
 void Preview::startMediaPreview(WORD wID, const QueueItemPtr& qi)
 {

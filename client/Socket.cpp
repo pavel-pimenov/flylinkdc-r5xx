@@ -762,7 +762,7 @@ int Socket::wait(uint64_t millis, int waitFor)
 	
 	waitFor = WAIT_NONE;
 	
-	dcassert(m_sock != INVALID_SOCKET); // https://github.com/eiskaltdcpp/eiskaltdcpp/commit/b031715
+	//dcassert(m_sock != INVALID_SOCKET); // https://github.com/eiskaltdcpp/eiskaltdcpp/commit/b031715
 	if (m_sock != INVALID_SOCKET)
 	{
 		if (rfdp && FD_ISSET(m_sock, rfdp)) // https://www.box.net/shared/t3apqdurqxzicy4bg1h0

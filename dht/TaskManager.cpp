@@ -63,7 +63,7 @@ void TaskManager::start()
 void TaskManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 {
 	dcdrun(Thread::ConditionLocker b(m_debugIsTimerExecute);)
-    BootstrapManager::getInstance()->live_check_process();
+    BootstrapManager::live_check_process();
 
 //	CFlyLog l_TaskManagerLog("TimerManagerListener::Second aTick = " + Util::toString(aTick) + " GetCurrentThreadId() = " + Util::toString(GetCurrentThreadId()));
 	auto l_dht = DHT::getInstance();
@@ -101,7 +101,7 @@ void TaskManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 		if (l_15000 || l_nodes_cnt)
 		 {
 			// bootstrap if we doesn't know any remote node
-			const bool l_result = BootstrapManager::getInstance()->process(); 
+			const bool l_result = BootstrapManager::process(); 
 			if(l_result == false)
 			{
 				m_lastDownloadDHTError = aTick;

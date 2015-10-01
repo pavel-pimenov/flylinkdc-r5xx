@@ -69,8 +69,8 @@ LRESULT PublicHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	
 	m_ctrlHubs.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                  WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS |
-					  LVS_SHAREIMAGELISTS, // https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1611
-					  WS_EX_CLIENTEDGE, IDC_HUBLIST);
+	                  LVS_SHAREIMAGELISTS, // https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1611
+	                  WS_EX_CLIENTEDGE, IDC_HUBLIST);
 	SET_EXTENDENT_LIST_VIEW_STYLE(m_ctrlHubs);
 	
 	// Create listview columns
@@ -145,15 +145,15 @@ LRESULT PublicHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	
 	updateList();
 	loadISPHubs();
-//	ctrlHubs.setSort(COLUMN_USERS, ExListViewCtrl::SORT_INT, false);
-	const int l_sort = SETTING(HUBS_PUBLIC_COLUMNS_SORT);
-	int l_sort_type = ExListViewCtrl::SORT_STRING_NOCASE;
-	if (l_sort == 2 || l_sort > 4)
-		l_sort_type = ExListViewCtrl::SORT_INT;
-	if (l_sort == 5)
-		l_sort_type = ExListViewCtrl::SORT_BYTES;
-	m_ctrlHubs.setSort(SETTING(HUBS_PUBLIC_COLUMNS_SORT), l_sort_type, BOOLSETTING(HUBS_PUBLIC_COLUMNS_SORT_ASC));
-	
+	m_ctrlHubs.setSort(COLUMN_USERS, ExListViewCtrl::SORT_INT, false);
+	/*  const int l_sort = SETTING(HUBS_PUBLIC_COLUMNS_SORT);
+	    int l_sort_type = ExListViewCtrl::SORT_STRING_NOCASE;
+	    if (l_sort == 2 || l_sort > 4)
+	        l_sort_type = ExListViewCtrl::SORT_INT;
+	    if (l_sort == 5)
+	        l_sort_type = ExListViewCtrl::SORT_BYTES;
+	    m_ctrlHubs.setSort(SETTING(HUBS_PUBLIC_COLUMNS_SORT), l_sort_type, BOOLSETTING(HUBS_PUBLIC_COLUMNS_SORT_ASC));
+	*/
 	hubsMenu.CreatePopupMenu();
 	hubsMenu.AppendMenu(MF_STRING, IDC_CONNECT, CTSTRING(CONNECT));
 	hubsMenu.AppendMenu(MF_STRING, IDC_ADD, CTSTRING(ADD_TO_FAVORITES_HUBS));
@@ -648,7 +648,7 @@ LRESULT PublicHubsFrame::onClickedConnect(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 	if (!checkNick())
 		return 0;
 		
-	if (m_ctrlHubs.GetSelectedCount() >= 10) // maximum hubs per one connection
+	if (m_ctrlHubs.GetSelectedCount() >= 100) // maximum hubs per one connection
 	{
 		if (MessageBox(CTSTRING(PUBLIC_HUBS_WARNING), _T(" "), MB_ICONWARNING | MB_YESNO) == IDNO)
 			return 0;
@@ -840,8 +840,8 @@ void PublicHubsFrame::updateList()
 			const auto l_country = i->getCountry();
 			dcassert(!l_country.empty());
 			const auto l_index_country = WinUtil::getFlagIndexByName(l_country.c_str());
-			//const auto l_index = 
-				m_ctrlHubs.insert(cnt++, l, l_index_country); // !SMT!-IP
+			//const auto l_index =
+			m_ctrlHubs.insert(cnt++, l, l_index_country); // !SMT!-IP
 			
 			/*
 			LVITEM lvItem = { 0 };

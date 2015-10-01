@@ -237,7 +237,8 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			m_needsUpdateStats(false), // [+] IRainman opt.
 			m_Theme(nullptr),
 			m_need_resort(false),
-			m_is_use_tree(true)
+			m_is_use_tree(true),
+			m_is_before_search(false)
 		{
 		}
 		
@@ -793,6 +794,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		bool m_isExactSize;
 		bool m_waitingResults;
 		bool m_needsUpdateStats; // [+] IRainman opt.
+		bool m_is_before_search;
 		
 		SearchParamTokenMultiClient m_search_param;
 		int64_t m_exactSize2;
@@ -871,6 +873,9 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		};
 		typedef std::map<int, TARGET_STRUCT> TargetsMap; // !SMT!-S
 		TargetsMap dlTargets; // !SMT!-S
+		string m_UDPTestExternalIP;
+		void checkUDPTest();
+		
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		void mergeFlyServerInfo();
 		void runTestPort();
@@ -887,7 +892,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		void download(SearchResult* aSR, const tstring& aDir, bool view);
 		
 		void on(SearchManagerListener::SR, const SearchResult &aResult) noexcept override;
-		void on(SearchManagerListener::UDPTest, const string& p_ip) noexcept override;
+		
 		//void on(SearchManagerListener::Searching, SearchQueueItem* aSearch) noexcept override;
 		
 		// ClientManagerListener

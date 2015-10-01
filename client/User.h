@@ -31,6 +31,7 @@
 #include "CFlyUserRatioInfo.h"
 
 class ClientBase;
+class Client;
 
 #define TAG(x,y) (x + (y << 8)) // TODO static_assert
 

@@ -142,7 +142,7 @@ LRESULT GeneralPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	
 #ifdef FLYLINKDC_USE_XXX_ICON
 	m_GenderTypeComboBox.Attach(GetDlgItem(IDC_GENDER));
-	ResourceLoader::LoadImageList(IDR_USERS, m_GenderTypesImageList, 16, 16);
+	ResourceLoader::LoadImageList(IDR_GENDER_USERS, m_GenderTypesImageList, 16, 16);
 	m_GenderTypeComboBox.SetImageList(m_GenderTypesImageList);
 #else
 	::EnableWindow(GetDlgItem(IDC_GENDER), FALSE);
@@ -161,7 +161,7 @@ LRESULT GeneralPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	desc.Detach();
 	
 #ifdef FLYLINKDC_USE_XXX_ICON
-	int l_id = 20;
+	int l_id = 0;
 	AddGenderItem(CWSTRING(FLY_GENDER_NONE), l_id++, 0);
 	AddGenderItem(CWSTRING(FLY_GENDER_MALE), l_id++, 1);
 	AddGenderItem(CWSTRING(FLY_GENDER_FEMALE), l_id++, 2);

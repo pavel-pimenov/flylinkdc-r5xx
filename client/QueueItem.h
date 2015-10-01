@@ -30,6 +30,7 @@ typedef std::unordered_map<UserPtr, DownloadPtr, User::Hash> DownloadMap;
 extern const string g_dc_temp_extension;
 
 class QueueManager;
+typedef std::vector<uint16_t> PartsInfo;
 
 #ifdef FLYLINKDC_USE_RWLOCK
 #define RLock webrtc::ReadLockScoped

@@ -2987,6 +2987,11 @@ IDR_VIP_ICO_SCALOLAZ    ICON                    "res\\vip_scalolaz.ico"
 IDR_VIP_ICO_MILENAHUB   ICON                    "res\\vip_milenahub.ico"
 IDR_VIP_ICO_STEALTHHUB  ICON                    "res\\vip_stealthhub.ico"
 IDR_VIP_ICO_KEEPCLEAR   ICON                    "res\\vip_keepclear_org.ico"
+IDR_VIP_ICO_PRIME       ICON                    "res\\vip_prime.ico"
+IDR_VIP_ICO_PERSEUS     ICON                    "res\\vip_perseus.ico"
+IDR_VIP_ICO_ALLAVTOVO   ICON                    "res\\vip_allavtovo.ico"
+
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

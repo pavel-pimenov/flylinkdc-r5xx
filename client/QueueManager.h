@@ -28,11 +28,14 @@
 STANDARD_EXCEPTION(QueueException);
 
 class UserConnection;
-
 class ConnectionQueueItem;
 class QueueLoader;
+class DirectoryItem;
+typedef DirectoryItem* DirectoryItemPtr;
 
-class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManagerListener>, private TimerManagerListener,
+class QueueManager : public Singleton<QueueManager>,
+	public Speaker<QueueManagerListener>,
+	private TimerManagerListener,
 	private SearchManagerListener, private ClientManagerListener
 {
 	public:
@@ -190,7 +193,7 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 		/** Move the target location of a queued item. Running items are silently ignored */
 		void move(const string& aSource, const string& aTarget) noexcept;
 		
-		void remove(const string& aTarget) noexcept;
+		bool remove(const string& aTarget);
 		void removeAll();
 		void removeSource(const string& aTarget, const UserPtr& aUser, Flags::MaskType reason, bool removeConn = true) noexcept;
 		void removeSource(const UserPtr& aUser, Flags::MaskType reason) noexcept;
@@ -402,10 +405,12 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 				
 			private:
 				/** QueueItems by priority and user (this is where the download order is determined) */
-				UserQueueMap m_userQueue[QueueItem::LAST];
+				static UserQueueMap g_userQueueMap[QueueItem::LAST];
 				/** Currently running downloads, a QueueItem is always either here or in the userQueue */
-				RunningMap m_running;
+				static RunningMap g_runningMap;
 				/** Last error message to sent to TransferView */
+				static std::unique_ptr<webrtc::RWLockWrapper> g_userQueueMapCS;
+				static std::unique_ptr<webrtc::RWLockWrapper> g_runningMapCS;
 				string m_lastError;
 		};
 		

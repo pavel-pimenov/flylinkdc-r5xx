@@ -22,6 +22,8 @@
 #include "forward.h"
 #include "noexcept.h"
 
+class RecentHubEntry;
+
 class FavoriteManagerListener
 {
 	public:

@@ -21,7 +21,7 @@
 
 #include "forward.h"
 #include "noexcept.h"
-
+class Client;
 class ClientManagerListener
 {
 	public:

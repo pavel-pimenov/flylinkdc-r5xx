@@ -119,7 +119,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 #endif
 		void addTab(HWND hWnd, COLORREF color = RGB(0, 0, 0), uint16_t icon = 0, uint16_t stateIcon = 0, bool p_mini = false)
 		{
-			TabInfo* i = new TabInfo(hWnd, color, icon, (stateIcon != 0) ? stateIcon : icon, !g_isStartupProcess);
+			TabInfo* i = new TabInfo(hWnd, color, icon, (stateIcon != 0) ? stateIcon : icon, true); // !g_isStartupProcess
 			i->m_mini = p_mini;
 			if ((icon == IDR_HUB || icon == IDR_PRIVATE
 #ifdef USE_OFFLINE_ICON_FOR_FILELIST
@@ -1019,6 +1019,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 					hWnd(p_Wnd), m_len(0), m_xpos(0), m_row(0), m_dirty(false),
 					m_hCustomIcon(nullptr), m_bState(false), m_mini(false),
 					m_color_pen(p_color), m_icon_index(p_icon), m_state_icon_index(p_stateIcon), m_count_messages(0)
+					//,m_title_id(p_title_id)
 				{
 					memzero(&m_size, sizeof(m_size));
 					name[0] = 0;
@@ -1050,6 +1051,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				bool m_bState;
 				bool m_mini;
 				bool m_dirty;
+				//int m_title_id;
 				bool update(const bool always = false)
 				{
 					LocalArray<TCHAR, MAX_LENGTH> textNew;
@@ -1066,6 +1068,14 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 							}
 							textNew[m_len] = '\0';
 						}
+					}
+					else
+					{
+						//if (m_title_id)
+						//{
+						//  _tcscpy(textNew.data(), CTSTRING_I(ResourceManager::Strings(m_title_id)));
+						//  m_len = _tcslen(textNew.data());
+						//}
 					}
 					if (textNew[0] == '\0')
 					{
@@ -1110,6 +1120,15 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 							_tcscpy(name.data(), textNew.data()); // diff[1]
 						}
 					}
+					else
+					{
+						//if (m_title_id)
+						//{
+						//  _tcscpy(textNew.data(), CTSTRING_I(ResourceManager::Strings(m_title_id)));
+						//  m_len = _tcslen(textNew.data());
+						//}
+					}
+					
 					if (textNew[0] == '\0')
 					{
 						m_len = _tcslen(text); // diff[2]
@@ -1142,6 +1161,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 							if (m_len)
 							{
 								CDCHandle dc(::GetDC(hWnd)); // Error ~CDC() call DeleteDC
+								if (dc)
 								{
 									CSelectFont l_font(dc, Fonts::g_systemFont); //-V808
 									dc.GetTextExtent(name.data(), m_len, &m_size); //-V107
@@ -1150,8 +1170,11 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 								{
 									m_size.cx     += 10;
 								}
-								int l_res = ::ReleaseDC(hWnd, dc);
-								dcassert(l_res);
+								if (dc)
+								{
+									int l_res = ::ReleaseDC(hWnd, dc);
+									dcassert(l_res);
+								}
 							}
 						}
 						break;
@@ -1792,7 +1815,9 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 {
 	public:
 	
-		MDITabChildWindowImpl() : m_closed(false), m_before_close(false) { }
+		MDITabChildWindowImpl() : m_closed(false), m_before_close(false)
+			//, m_title_id(0)
+		{}
 #ifdef RIP_USE_SKIN
 		ITabCtrl*
 #else
@@ -1929,7 +1954,7 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 		{
 			bHandled = FALSE;
 			dcassert(getTab());
-			getTab()->addTab(m_hWnd, C, I, I_state);
+			getTab()->addTab(/*m_title_id,*/ m_hWnd, C, I, I_state);
 			return 0;
 		}
 		virtual void onBeforeActiveTab(HWND aWnd) {}
@@ -2095,6 +2120,7 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 			getTab()->setCustomIcon(m_hWnd, p_custom);
 		}
 		
+		// int  m_title_id;
 	protected:
 		bool m_closed;
 		bool m_before_close;

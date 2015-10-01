@@ -204,6 +204,9 @@
 #define IDR_VIP_ICO_MILENAHUB           314
 #define IDR_VIP_ICO_STEALTHHUB          315
 #define IDR_VIP_ICO_KEEPCLEAR           316
+#define IDR_VIP_ICO_PRIME 317
+#define IDR_VIP_ICO_PERSEUS 318
+#define IDR_VIP_ICO_ALLAVTOVO 319
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
 #define IDC_COPY_HUB                    1002

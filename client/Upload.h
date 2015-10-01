@@ -24,7 +24,6 @@ class Upload : public Transfer, public Flags
 		
 	private:
 	
-		GETSET(int64_t, m_fileSize, FileSize);
 		GETSET(InputStream*, m_read_stream, ReadStream);
 		
 		uint8_t m_delayTime;

@@ -1056,29 +1056,33 @@ template < class T, int title, int ID = -1 >
 class StaticFrame
 {
 	public:
+		StaticFrame()
+		{
+		}
 		virtual ~StaticFrame()
 		{
-			frame = nullptr;
+			g_frame = nullptr;
 		}
 		
-		static T* frame;
+		static T* g_frame;
 		static void openWindow()
 		{
-			if (frame == nullptr)
+			if (g_frame == nullptr)
 			{
-				frame = new T();
-				frame->CreateEx(WinUtil::g_mdiClient, frame->rcDefault, CTSTRING_I(ResourceManager::Strings(title)));
+				g_frame = new T();
+				// g_frame->m_title_id = title;
+				g_frame->CreateEx(WinUtil::g_mdiClient, g_frame->rcDefault, CTSTRING_I(ResourceManager::Strings(title)));
 				WinUtil::setButtonPressed(ID, true);
 			}
 			else
 			{
 				// match the behavior of MainFrame::onSelected()
-				HWND hWnd = frame->m_hWnd;
+				HWND hWnd = g_frame->m_hWnd;
 				if (isMDIChildActive(hWnd))
 				{
 					::PostMessage(hWnd, WM_CLOSE, NULL, NULL);
 				}
-				else if (frame->MDIGetActive() != hWnd)
+				else if (g_frame->MDIGetActive() != hWnd)
 				{
 					MainFrame::getMainFrame()->MDIActivate(hWnd);
 					WinUtil::setButtonPressed(ID, true);
@@ -1086,8 +1090,8 @@ class StaticFrame
 				else if (BOOLSETTING(TOGGLE_ACTIVE_WINDOW))
 				{
 					::SetWindowPos(hWnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
-					frame->MDINext(hWnd);
-					hWnd = frame->MDIGetActive();
+					g_frame->MDINext(hWnd);
+					hWnd = g_frame->MDIGetActive();
 					WinUtil::setButtonPressed(ID, true);
 				}
 				if (::IsIconic(hWnd))
@@ -1103,12 +1107,15 @@ class StaticFrame
 		// !SMT!-S
 		static void closeWindow()
 		{
-			if (frame) ::PostMessage(frame->m_hWnd, WM_CLOSE, NULL, NULL);
+			if (g_frame)
+			{
+				::PostMessage(g_frame->m_hWnd, WM_CLOSE, NULL, NULL);
+			}
 		}
 };
 
 template<class T, int title, int ID>
-T* StaticFrame<T, title, ID>::frame = NULL;
+T* StaticFrame<T, title, ID>::g_frame = NULL;
 
 struct toolbarButton
 {
@@ -1501,7 +1508,7 @@ class WinUtil
 		static std::unique_ptr<HIconWrapper> g_HubDDoSIcon;
 		static std::unique_ptr<HIconWrapper> g_HubAntivirusIcon;
 		static std::unique_ptr<HIconWrapper> g_HubVirusIcon[4];
-		static std::unique_ptr<HIconWrapper> g_HubFlylinkDCIconVIP[4]; // VIP_ICON
+		static std::unique_ptr<HIconWrapper> g_HubFlylinkDCIconVIP[7]; // VIP_ICON
 		
 		static void initThemeIcons();
 		
@@ -1761,7 +1768,10 @@ class WinUtil
 		// [~] IRainman optimize.
 		static bool isUseExplorerTheme();
 		static void SetWindowThemeExplorer(HWND p_hWnd);
-		
+#ifdef IRAINMAN_ENABLE_WHOIS
+		static void CheckOnWhoisIP(WORD wID, const tstring whoisIP);
+		static void AppendMenuOnWhoisIP(CMenu &p_menuname, const tstring p_IP, const bool p_inSubmenu);
+#endif
 		static tstring getAddresses(CComboBox& BindCombo); // [<-] IRainman moved from Network Page.
 		
 		static void GetTimeValues(CComboBox& p_ComboBox); // [+] InfinitySky.
@@ -1857,10 +1867,13 @@ class WinUtil
 		template<class xxString, class xxComponent>
 		static size_t GetWindowText(xxString& text, const xxComponent& element)
 		{
-			text.resize(element.GetWindowTextLength());
-			if (text.size() > 0)
+			if (element.IsWindow())
 			{
-				element.GetWindowText(&text[0], text.size() + 1);
+				text.resize(element.GetWindowTextLength());
+				if (text.size() > 0)
+				{
+					element.GetWindowText(&text[0], text.size() + 1);
+				}
 			}
 			return text.size();
 		}

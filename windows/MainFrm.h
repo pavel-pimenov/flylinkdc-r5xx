@@ -681,6 +681,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		
 		bool m_bTrayIcon;
 		int tuneTransferSplit();
+		void openDefaultWindows();
 		bool m_bIsPM;
 		static bool g_bAppMinimized;
 		

@@ -71,7 +71,7 @@ struct Search
 		       m_query == rhs.m_query;
 	}
 };
-
+class Client;
 class SearchParamBase
 {
 	public:

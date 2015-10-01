@@ -252,7 +252,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	m_ctrlSearchFilterTree.SetImageList(m_searchTypesImageList, TVSIL_NORMAL);
 	
 	//m_treeContainer.SubclassWindow(m_ctrlSearchFilterTree);
-	m_is_use_tree = SETTING(USE_SEARCH_GROUP_TREE_SETTINGS);
+	m_is_use_tree = SETTING(USE_SEARCH_GROUP_TREE_SETTINGS) != 0;
 #endif
 	SET_EXTENDENT_LIST_VIEW_STYLE(ctrlResults);
 	resultsContainer.SubclassWindow(ctrlResults.m_hWnd);
@@ -808,6 +808,8 @@ void SearchFrame::onEnter()
 	BOOL tmp_Handled;
 	onEditChange(0, 0, NULL, tmp_Handled); // if in searchbox TTH - select filetypeTTH
 	
+	CFlyBusy l_busy(m_is_before_search);
+	
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	clearFlyServerQueue();
 #endif
@@ -1041,14 +1043,21 @@ LRESULT SearchFrame::onUDPPortTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 	return 0;
 }
 #endif //
-void SearchFrame::on(SearchManagerListener::UDPTest, const string& p_ip) noexcept
+void SearchFrame::checkUDPTest()
 {
-	const tstring l_ip_port = _T(" (") + Text::toT(p_ip) + _T(")");
-	g_UDPTestText = CTSTRING(OK) + l_ip_port;
-	g_isUDPTestOK = true;
-	m_ctrlUDPMode.SetIcon(g_UDPOkIcon);
-	m_ctrlUDPTestResult.SetWindowText(g_UDPTestText.c_str());
-	ClientManager::infoUpdated(true);
+	if (SettingsManager::g_TestUDPSearchLevel)
+	{
+		if (m_UDPTestExternalIP != SettingsManager::g_UDPTestExternalIP)
+		{
+			m_UDPTestExternalIP = SettingsManager::g_UDPTestExternalIP;
+			const tstring l_ip_port = _T(" (") + Text::toT(m_UDPTestExternalIP) + _T(")");
+			g_UDPTestText = CTSTRING(OK) + l_ip_port;
+			g_isUDPTestOK = true;
+			m_ctrlUDPMode.SetIcon(g_UDPOkIcon);
+			m_ctrlUDPTestResult.SetWindowText(g_UDPTestText.c_str());
+			ClientManager::infoUpdated(true);
+		}
+	}
 }
 size_t SearchFrame::check_antivirus_level(const CFlyAntivirusKey& p_key, const SearchResult &aResult, uint8_t p_level)
 {
@@ -1544,6 +1553,7 @@ void SearchFrame::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	if (!isClosedOrShutdown())
 	{
 		const auto l_tick = GET_TICK();
+		checkUDPTest();
 		if (!MainFrame::isAppMinimized(m_hWnd)) // [+] IRainman opt.
 		{
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -2721,6 +2731,11 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 	if (m_closed == true)
 	{
 		check_delete(si);
+		delete si;
+	}
+	if (m_is_before_search == true)
+	{
+		dcassert(0);
 		delete si;
 	}
 	const SearchResult& sr = si->sr;

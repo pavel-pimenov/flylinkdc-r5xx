@@ -80,6 +80,9 @@ public :
           void      ReadByHuman_Set (bool NewValue);
           bool      ReadByHuman_Get ();
 
+          void      Legacy_Set (bool NewValue);
+          bool      Legacy_Get ();
+
           void      LegacyStreamDisplay_Set (bool Value);
           bool      LegacyStreamDisplay_Get ();
 
@@ -95,6 +98,9 @@ public :
           void      Trace_Level_Set (const ZtringListList &NewDetailsLevel);
           float32   Trace_Level_Get ();
           std::bitset<32> Trace_Layers_Get ();
+
+          void      Compat_Set (int64u NewValue);
+          int64u    Compat_Get ();
 
           void      Trace_TimeSection_OnlyFirstOccurrence_Set (bool Value);
           bool      Trace_TimeSection_OnlyFirstOccurrence_Get ();
@@ -288,11 +294,13 @@ private :
     float32         ParseSpeed;
     float32         Verbosity;
     float32         Trace_Level;
+    int64u          Compat;
     bool            Trace_TimeSection_OnlyFirstOccurrence;
     std::bitset<32> Trace_Layers; //0-7: Container, 8: Stream
     std::map<Ztring, bool> Trace_Modificators; //If we want to add/remove some details
     bool            Language_Raw;
     bool            ReadByHuman;
+    bool            Legacy;
     bool            LegacyStreamDisplay;
     bool            SkipBinaryData;
     int8u           Demux;

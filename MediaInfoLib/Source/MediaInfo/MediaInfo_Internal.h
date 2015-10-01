@@ -157,7 +157,9 @@ public :
     MediaInfo_Config_MediaInfo Config;
 
     static Ztring Xml_Name_Escape(const Ztring &Name);
-    static Ztring Xml_Content_Escape(const Ztring &Content, size_t &Modified);
+#if defined(MEDIAINFO_XML_YES)
+	static Ztring Xml_Content_Escape(const Ztring &Content, size_t &Modified);
+#endif
     static Ztring &Xml_Content_Escape_Modifying(Ztring &Content, size_t &Modified);
 
 private :

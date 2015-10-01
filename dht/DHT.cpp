@@ -83,7 +83,6 @@ void DHT::start()
 		// 	SET_SETTING(EXTERNAL_IP, Util::emptyString); //fix https://code.google.com/p/flylinkdc/issues/detail?id=1264
 			
 		// [!] IRainman fix
-		BootstrapManager::newInstance();
 		SearchManager::newInstance();
 		TaskManager::newInstance();
 		ConnectionManager::newInstance();
@@ -117,7 +116,7 @@ void DHT::stop(bool exiting)
 	
 	if (exiting || !BOOLSETTING(USE_DHT))
 	{
-		BootstrapManager::getInstance()->shutdown();
+		BootstrapManager::shutdown();
 		CFlyLog l_TaskManagerLog("DHT::stop");
 		m_dht_socket.disconnect(); // [+] IRainman fix.
 		
@@ -130,7 +129,6 @@ void DHT::stop(bool exiting)
 		dcassert(TaskManager::getInstance()->isDebugTimerExecute() == false);
 		TaskManager::deleteInstance(); //[!] Разрушили хотя другой поток может еще выполняться
 		                               // Поймал assert в TaskManager::on(TimerManagerListener::Second
-		BootstrapManager::deleteInstance(); // fix https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&Login=Guest&DumpGroupID=87207
 		SearchManager::deleteInstance();
 		RoutingTable::resetNodesCount(); // http://code.google.com/p/flylinkdc/issues/detail?id=1003
 	}
@@ -246,21 +244,33 @@ void DHT::dispatch(const string& aLine, const string& ip, uint16_t port, bool is
 /*
  * Sends command to ip and port
  */
-void DHT::send(AdcCommand& cmd, const string& ip, uint16_t port, const CID& targetCID, const UDPKey& udpKey)
+bool DHT::send(AdcCommand& cmd, const string& ip, uint16_t port, const CID& targetCID, const UDPKey& udpKey)
 {
+	if (SettingsManager::g_TestUDPDHTLevel == true) 
 	{
-		// FW check
-		FastLock l(fwCheckCs);
-		if (requestFWCheck/* && (firewalledWanted.size() + firewalledChecks.size() < FW_RESPONSES)*/)
 		{
-			if (firewalledWanted.find(ip) == firewalledWanted.end()) // only when not requested from this node yet // [!] IRainman opt.
+			// FW check
+			FastLock l(fwCheckCs);
+			if (requestFWCheck/* && (firewalledWanted.size() + firewalledChecks.size() < FW_RESPONSES)*/)
 			{
-				firewalledWanted.insert(ip);
-				cmd.addParam("FW", Util::toString(getPort()));
+				if (firewalledWanted.find(ip) == firewalledWanted.end()) // only when not requested from this node yet // [!] IRainman opt.
+				{
+					firewalledWanted.insert(ip);
+					cmd.addParam("FW", Util::toString(getPort()));
+				}
 			}
 		}
+		m_dht_socket.send(cmd, ip, port, targetCID, udpKey);
+		return true;
 	}
-	m_dht_socket.send(cmd, ip, port, targetCID, udpKey);
+	else
+	{
+		//dcassert(0);
+#ifdef FLYLINKDC_BETA
+		LogManager::dht_message("Skip DHT::send - error test DHT port!");
+#endif
+	}
+	return false;
 }
 
 	/*

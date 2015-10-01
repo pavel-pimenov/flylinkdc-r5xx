@@ -21,15 +21,15 @@
 
 #include "ClientManager.h"
 
-AdcCommand::AdcCommand(uint32_t aCmd, char aType /* = TYPE_CLIENT */) : cmdInt(aCmd), from(0), type(aType) { }
-AdcCommand::AdcCommand(uint32_t aCmd, const uint32_t aTarget, char aType) : cmdInt(aCmd), from(0), to(aTarget), type(aType) { }
-AdcCommand::AdcCommand(Severity sev, Error err, const string& desc, char aType /* = TYPE_CLIENT */) : cmdInt(CMD_STA), from(0), type(aType)
+AdcCommand::AdcCommand(uint32_t aCmd, char aType /* = TYPE_CLIENT */) : m_cmdInt(aCmd), m_from(0), m_type(aType) { }
+AdcCommand::AdcCommand(uint32_t aCmd, const uint32_t aTarget, char aType) : m_cmdInt(aCmd), m_from(0), m_to(aTarget), m_type(aType) { }
+AdcCommand::AdcCommand(Severity sev, Error err, const string& desc, char aType /* = TYPE_CLIENT */) : m_cmdInt(CMD_STA), m_from(0), m_type(aType)
 {
 	addParam((sev == SEV_SUCCESS && err == SUCCESS) ? "000" : Util::toString(sev * 100 + err));
 	addParam(desc);
 }
 
-AdcCommand::AdcCommand(const string& aLine, bool nmdc /* = false */) : cmdInt(0), type(TYPE_CLIENT)
+AdcCommand::AdcCommand(const string& aLine, bool nmdc /* = false */) : m_cmdInt(0), m_type(TYPE_CLIENT)
 {
 	parse(aLine, nmdc);
 }
@@ -37,16 +37,16 @@ AdcCommand::AdcCommand(const string& aLine, bool nmdc /* = false */) : cmdInt(0)
 void AdcCommand::parse(const string& aLine, bool nmdc /* = false */)
 {
 	string::size_type i = 5;
-	m_CID.init();
+	//m_CID.init();
 	if (nmdc)
 	{
 		// "$ADCxxx ..."
 		if (aLine.length() < 7)
 			throw ParseException("Too short");
-		type = TYPE_CLIENT;
-		cmd[0] = aLine[4];
-		cmd[1] = aLine[5];
-		cmd[2] = aLine[6];
+		m_type = TYPE_CLIENT;
+		m_cmd[0] = aLine[4];
+		m_cmd[1] = aLine[5];
+		m_cmd[2] = aLine[6];
 		i += 3;
 	}
 	else
@@ -54,20 +54,20 @@ void AdcCommand::parse(const string& aLine, bool nmdc /* = false */)
 		// "yxxx ..."
 		if (aLine.length() < 4)
 			throw ParseException("Too short");
-		type = aLine[0];
-		cmd[0] = aLine[1];
-		cmd[1] = aLine[2];
-		cmd[2] = aLine[3];
+		m_type = aLine[0];
+		m_cmd[0] = aLine[1];
+		m_cmd[1] = aLine[2];
+		m_cmd[2] = aLine[3];
 	}
 	
-	if (type != TYPE_BROADCAST && type != TYPE_CLIENT && type != TYPE_DIRECT && type != TYPE_ECHO && type != TYPE_FEATURE && type != TYPE_INFO && type != TYPE_HUB && type != TYPE_UDP)
+	if (m_type != TYPE_BROADCAST && m_type != TYPE_CLIENT && m_type != TYPE_DIRECT && m_type != TYPE_ECHO && m_type != TYPE_FEATURE && m_type != TYPE_INFO && m_type != TYPE_HUB && m_type != TYPE_UDP)
 	{
 		throw ParseException("Invalid type");
 	}
 	
-	if (type == TYPE_INFO)
+	if (m_type == TYPE_INFO)
 	{
-		from = HUB_SID;
+		m_from = HUB_SID;
 	}
 	
 	string::size_type len = aLine.length();
@@ -101,25 +101,25 @@ void AdcCommand::parse(const string& aLine, bool nmdc /* = false */)
 			case ' ':
 				// New parameter...
 			{
-				if ((type == TYPE_BROADCAST || type == TYPE_DIRECT || type == TYPE_ECHO || type == TYPE_FEATURE) && !fromSet)
+				if ((m_type == TYPE_BROADCAST || m_type == TYPE_DIRECT || m_type == TYPE_ECHO || m_type == TYPE_FEATURE) && !fromSet)
 				{
 					if (cur.length() != 4)
 					{
 						throw ParseException("Invalid SID length");
 					}
-					from = toSID(cur);
+					m_from = toSID(cur);
 					fromSet = true;
 				}
-				else if ((type == TYPE_DIRECT || type == TYPE_ECHO) && !toSet)
+				else if ((m_type == TYPE_DIRECT || m_type == TYPE_ECHO) && !toSet)
 				{
 					if (cur.length() != 4)
 					{
 						throw ParseException("Invalid SID length");
 					}
-					to = toSID(cur);
+					m_to = toSID(cur);
 					toSet = true;
 				}
-				else if (type == TYPE_FEATURE && !featureSet)
+				else if (m_type == TYPE_FEATURE && !featureSet)
 				{
 					if (cur.length() % 5 != 0)
 					{
@@ -131,10 +131,15 @@ void AdcCommand::parse(const string& aLine, bool nmdc /* = false */)
 				else
 				{
 					parameters.push_back(cur);
-					if (cur.size() == 41 && cur[0] == 'I' && cur[1] == 'D')
+					/*
+					if (cur.size() > 2 && cur[0] == 'I' && cur[1] == 'D')
 					{
-						m_CID = CID(cur.substr(2));
+					    if (cur.size() == 41)
+					    {
+					        m_CID = CID(cur.substr(2));
+					    }
 					}
+					*/
 				}
 				cur.clear();
 			}
@@ -146,25 +151,25 @@ void AdcCommand::parse(const string& aLine, bool nmdc /* = false */)
 	}
 	if (!cur.empty())
 	{
-		if ((type == TYPE_BROADCAST || type == TYPE_DIRECT || type == TYPE_ECHO || type == TYPE_FEATURE) && !fromSet)
+		if ((m_type == TYPE_BROADCAST || m_type == TYPE_DIRECT || m_type == TYPE_ECHO || m_type == TYPE_FEATURE) && !fromSet)
 		{
 			if (cur.length() != 4)
 			{
 				throw ParseException("Invalid SID length");
 			}
-			from = toSID(cur);
+			m_from = toSID(cur);
 			fromSet = true;
 		}
-		else if ((type == TYPE_DIRECT || type == TYPE_ECHO) && !toSet)
+		else if ((m_type == TYPE_DIRECT || m_type == TYPE_ECHO) && !toSet)
 		{
 			if (cur.length() != 4)
 			{
 				throw ParseException("Invalid SID length");
 			}
-			to = toSID(cur);
+			m_to = toSID(cur);
 			toSet = true;
 		}
-		else if (type == TYPE_FEATURE && !featureSet)
+		else if (m_type == TYPE_FEATURE && !featureSet)
 		{
 			if (cur.length() % 5 != 0)
 			{
@@ -179,17 +184,17 @@ void AdcCommand::parse(const string& aLine, bool nmdc /* = false */)
 		}
 	}
 	
-	if ((type == TYPE_BROADCAST || type == TYPE_DIRECT || type == TYPE_ECHO || type == TYPE_FEATURE) && !fromSet)
+	if ((m_type == TYPE_BROADCAST || m_type == TYPE_DIRECT || m_type == TYPE_ECHO || m_type == TYPE_FEATURE) && !fromSet)
 	{
 		throw ParseException("Missing from_sid");
 	}
 	
-	if (type == TYPE_FEATURE && !featureSet)
+	if (m_type == TYPE_FEATURE && !featureSet)
 	{
 		throw ParseException("Missing feature");
 	}
 	
-	if ((type == TYPE_DIRECT || type == TYPE_ECHO) && !toSet)
+	if ((m_type == TYPE_DIRECT || m_type == TYPE_ECHO) && !toSet)
 	{
 		throw ParseException("Missing to_sid");
 	}
@@ -247,21 +252,21 @@ string AdcCommand::getHeaderString(uint32_t sid, bool nmdc) const
 		tmp += getType();
 	}
 	
-	tmp += cmdChar;
+	tmp += m_cmdChar;
 	
-	if (type == TYPE_BROADCAST || type == TYPE_DIRECT || type == TYPE_ECHO || type == TYPE_FEATURE)
+	if (m_type == TYPE_BROADCAST || m_type == TYPE_DIRECT || m_type == TYPE_ECHO || m_type == TYPE_FEATURE)
 	{
 		tmp += ' ';
 		tmp += fromSID(sid);
 	}
 	
-	if (type == TYPE_DIRECT || type == TYPE_ECHO)
+	if (m_type == TYPE_DIRECT || m_type == TYPE_ECHO)
 	{
 		tmp += ' ';
-		tmp += fromSID(to);
+		tmp += fromSID(m_to);
 	}
 	
-	if (type == TYPE_FEATURE)
+	if (m_type == TYPE_FEATURE)
 	{
 		tmp += ' ';
 		tmp += features;
@@ -271,11 +276,11 @@ string AdcCommand::getHeaderString(uint32_t sid, bool nmdc) const
 
 string AdcCommand::getHeaderString(const CID& cid) const
 {
-	dcassert(type == TYPE_UDP);
+	dcassert(m_type == TYPE_UDP);
 	string tmp;
-	
+	tmp.reserve(44);
 	tmp += getType();
-	tmp += cmdChar;
+	tmp += m_cmdChar;
 	tmp += ' ';
 	tmp += cid.toBase32();
 	return tmp;

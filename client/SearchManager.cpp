@@ -410,7 +410,7 @@ int SearchManager::UdpQueue::run()
 				auto l_ip = x.substr(15 + 39);
 				if (l_ip.size() && l_ip[l_ip.size() - 1] == '|')
 					l_ip = l_ip.substr(0, l_ip.size() - 1);
-				SearchManager::getInstance()->fire(SearchManagerListener::UDPTest(), l_ip);
+				SettingsManager::g_UDPTestExternalIP = l_ip;
 			}
 			else
 			{
