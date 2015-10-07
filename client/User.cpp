@@ -61,7 +61,9 @@ User::User(const CID& aCID) : m_cid(aCID),
 #endif
 {
 #ifdef _DEBUG
+#ifdef FLYLINKDC_USE_RATIO_CS
 	m_ratio_cs.use_log();
+#endif
 	++g_user_counts;
 # ifdef ENABLE_DEBUG_LOG_IN_USER_CLASS
 	dcdebug(" [!!!!!!]   [!!!!!!]  User::User(const CID& aCID) this = %p, g_user_counts = %d\n", this, g_user_counts);
@@ -101,7 +103,9 @@ void User::setLastNick(const string& p_nick)
 				{
 					{
 						////webrtc::WriteLockScoped l(*g_ratio_cs);
+#ifdef FLYLINKDC_USE_RATIO_CS
 						FastLock l(m_ratio_cs);
+#endif
 						safe_delete(m_ratio_ptr);
 					}
 					m_nick = p_nick;
@@ -179,7 +183,9 @@ void User::setIP(const boost::asio::ip::address_v4& p_last_ip)
 				{
 					const auto l_message_count = m_ratio_ptr->m_message_count;
 					///webrtc::WriteLockScoped l(*g_ratio_cs);
+#ifdef FLYLINKDC_USE_RATIO_CS
 					FastLock l(m_ratio_cs);
+#endif
 					safe_delete(m_ratio_ptr);
 					initRatioL(p_last_ip);
 					if (m_ratio_ptr)
@@ -221,7 +227,9 @@ uint64_t User::getBytesUpload()
 {
 	initRatio();
 	///webrtc::ReadLockScoped l(*g_ratio_cs);
+#ifdef FLYLINKDC_USE_RATIO_CS
 	FastLock l(m_ratio_cs);
+#endif
 	if (m_ratio_ptr)
 	{
 		return m_ratio_ptr->get_upload();
@@ -235,7 +243,9 @@ uint64_t User::getMessageCount()
 {
 	initRatio();
 	/////webrtc::ReadLockScoped l(*g_ratio_cs);
+#ifdef FLYLINKDC_USE_RATIO_CS
 	FastLock l(m_ratio_cs);
+#endif
 	if (m_ratio_ptr)
 	{
 		return m_ratio_ptr->m_message_count;
@@ -249,7 +259,9 @@ uint64_t User::getBytesDownload()
 {
 	initRatio();
 	/////webrtc::ReadLockScoped l(*g_ratio_cs);
+#ifdef FLYLINKDC_USE_RATIO_CS
 	FastLock l(m_ratio_cs);
+#endif
 	if (m_ratio_ptr)
 	{
 		return m_ratio_ptr->get_download();
@@ -279,7 +291,9 @@ void User::incMessagesCount()
 void User::AddRatioUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size)
 {
 	////webrtc::WriteLockScoped l(*g_ratio_cs);
+#ifdef FLYLINKDC_USE_RATIO_CS
 	FastLock l(m_ratio_cs);
+#endif
 	initRatioL(p_ip);
 	if (m_ratio_ptr)
 		m_ratio_ptr->addUpload(p_ip, p_size);
@@ -287,7 +301,9 @@ void User::AddRatioUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_si
 void User::AddRatioDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size)
 {
 	////webrtc::WriteLockScoped l(*g_ratio_cs);
+#ifdef FLYLINKDC_USE_RATIO_CS
 	FastLock l(m_ratio_cs);
+#endif
 	initRatioL(p_ip);
 	if (m_ratio_ptr)
 		m_ratio_ptr->addDownload(p_ip, p_size);
@@ -297,7 +313,9 @@ void User::flushRatio()
 	///webrtc::ReadLockScoped l(*g_ratio_cs);
 	bool l_is_ratio_exists = false;
 	{
+#ifdef FLYLINKDC_USE_RATIO_CS
 		FastLock l(m_ratio_cs);
+#endif
 		if (m_ratio_ptr)
 		{
 			m_ratio_ptr->flushRatioL();
@@ -347,7 +365,9 @@ void User::initRatio(bool p_force /* = false */)
 				}
 				{
 					///webrtc::WriteLockScoped l(*g_ratio_cs);
+#ifdef FLYLINKDC_USE_RATIO_CS
 					FastLock l(m_ratio_cs);
+#endif
 					if (m_ratio_ptr)
 					{
 						delete m_ratio_ptr;
@@ -384,7 +404,9 @@ tstring User::getUpload()
 tstring User::getUDratio()
 {
 	///webrtc::ReadLockScoped l(*g_ratio_cs);
+#ifdef FLYLINKDC_USE_RATIO_CS
 	FastLock l(m_ratio_cs);
+#endif
 	if (m_ratio_ptr && (m_ratio_ptr->get_download() || m_ratio_ptr->get_upload()))
 		return Util::toStringW(m_ratio_ptr->get_download() ? ((double)m_ratio_ptr->get_upload() / (double)m_ratio_ptr->get_download()) : 0) +
 		       L" (" + Util::formatBytesW(m_ratio_ptr->get_upload()) + _T('/') + Util::formatBytesW(m_ratio_ptr->get_download()) + L")";

@@ -232,7 +232,7 @@ Ztring MediaInfo_Internal::Inform()
 #endif
     }
     else
-    if (XML)  Retour+=__T("<media>\n");
+    if (XML)  Retour+=__T("<File>\n");
 
     for (size_t StreamKind=(size_t)Stream_General; StreamKind<Stream_Max; StreamKind++)
     {
@@ -311,7 +311,8 @@ Ztring MediaInfo_Internal::Inform()
         }
     #endif //MEDIAINFO_TRACE
 
-    if (XML)  Retour+=__T("</media>\n");
+    if (XML_0_7_78)  Retour+=__T("</media>\n");
+    else if (XML)  Retour+=__T("</File>\n");
 
     return Retour;
 

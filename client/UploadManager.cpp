@@ -1205,6 +1205,11 @@ void UploadManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 		m_lastFreeSlots = l_freeSlots;
 	}
 }
+void UploadManager::on(GetListLength, UserConnection* conn) noexcept
+{
+	conn->error("GetListLength not supported");
+	conn->disconnect(false);
+}
 
 void UploadManager::on(AdcCommand::GFI, UserConnection* aSource, const AdcCommand& c) noexcept
 {

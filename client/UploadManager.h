@@ -269,6 +269,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		void on(Get, UserConnection*, const string&, int64_t) noexcept override;
 		void on(Send, UserConnection*) noexcept override;
 		void on(TransmitDone, UserConnection*) noexcept override;
+		void on(GetListLength, UserConnection*) noexcept override;
 		
 		void on(AdcCommand::GET, UserConnection*, const AdcCommand&) noexcept override;
 		void on(AdcCommand::GFI, UserConnection*, const AdcCommand&) noexcept override;

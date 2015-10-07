@@ -894,55 +894,57 @@ string Socket::getDefaultGateWay(boost::logic::tribool& p_is_wifi_router)
 #endif
 }
 //============================================================================
-bool Socket::getLocalIPPort(uint16_t& p_port, string& p_ip, bool p_is_calc_ip) const noexcept
+bool Socket::getLocalIPPort(uint16_t& p_port, string& p_ip, bool p_is_calc_ip) const
 {
-    p_port = 0;
-    p_ip.clear();
-    if (m_sock == INVALID_SOCKET)
-{
-dcassert(m_sock != INVALID_SOCKET);
-	return false;
-}
-sockaddr_in sock_addr = { { 0 } };
-socklen_t len = sizeof(sock_addr);
-if (getsockname(m_sock, (struct sockaddr*)&sock_addr, &len) == 0)
-{
-if (p_is_calc_ip)
+	p_port = 0;
+	p_ip.clear();
+	if (m_sock == INVALID_SOCKET)
 	{
-		p_ip = inet_ntoa(sock_addr.sin_addr);
-		dcassert(!p_ip.empty());
+		dcassert(m_sock != INVALID_SOCKET);
+		return false;
+	}
+	sockaddr_in sock_addr = { { 0 } };
+	socklen_t len = sizeof(sock_addr);
+	if (getsockname(m_sock, (struct sockaddr*)&sock_addr, &len) == 0)
+	{
+		if (p_is_calc_ip)
+		{
+			p_ip = inet_ntoa(sock_addr.sin_addr);
+			dcassert(!p_ip.empty());
+		}
+		else
+		{
+			p_port = ntohs(sock_addr.sin_port);
+			dcassert(p_port);
+		}
+		return true;
 	}
 	else
 	{
-		p_port = ntohs(sock_addr.sin_port);
-		dcassert(p_port);
+		const string l_error = "Error Socket::getLocalIPPort() ::WSAGetLastError() = " + Util::toString(::WSAGetLastError());
+		LogManager::message(l_error);
+		CFlyServerJSON::pushError(23, l_error);
 	}
-	return true;
-}
-else
-{
-	const string l_error = "Error Socket::getLocalIPPort() ::WSAGetLastError() = " + Util::toString(::WSAGetLastError());
-	LogManager::message(l_error);
-	CFlyServerJSON::pushError(23, l_error);
-}
-dcassert(0);
-return false;
+	dcassert(0);
+	return false;
 }
 //============================================================================
-string Socket::getLocalIp() const noexcept
+#ifdef PPA_INCLUDE_DEAD_CODE
+string Socket::getLocalIp() const
 {
-    uint16_t p_port;
-    string p_ip;
-    getLocalIPPort(p_port, p_ip, true);
-    return p_ip;
+	uint16_t p_port;
+	string p_ip;
+	getLocalIPPort(p_port, p_ip, true);
+	return p_ip;
 }
+#endif
 //============================================================================
-uint16_t Socket::getLocalPort() const noexcept
+uint16_t Socket::getLocalPort() const
 {
-    uint16_t p_port = 0;
-    string p_ip;
-    getLocalIPPort(p_port, p_ip, false);
-    return p_port;
+	uint16_t p_port = 0;
+	string p_ip;
+	getLocalIPPort(p_port, p_ip, false);
+	return p_port;
 }
 //============================================================================
 void Socket::socksUpdated()

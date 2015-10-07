@@ -113,7 +113,7 @@ class QueueItem : public Flags
 		 * Source parts info
 		 * Meaningful only when Source::FLAG_PARTIAL is set
 		 */
-		class PartialSource : public intrusive_ptr_base < PartialSource > // TODO убрать intrusive_ptr_base
+		class PartialSource
 		{
 			public:
 				PartialSource(const string& aMyNick, const string& aHubIpPort, const boost::asio::ip::address_v4& aIp, uint16_t udp) :
@@ -121,7 +121,7 @@ class QueueItem : public Flags
 					
 				~PartialSource() { }
 				
-				typedef boost::intrusive_ptr<PartialSource> Ptr;
+				typedef std::shared_ptr<PartialSource> Ptr;
 				bool isCandidate(const uint64_t p_now) const // [+] FlylinkDC++
 				{
 					return getPendingQueryCount() < 10 && getUdpPort() != 0 && getNextQueryTime() <= p_now;
@@ -158,12 +158,7 @@ class QueueItem : public Flags
 					| FLAG_NO_TREE | FLAG_TTH_INCONSISTENCY | FLAG_UNTRUSTED
 				};
 				
-				Source() : partialSource(nullptr) {}
-				
-				PartialSource::Ptr& getPartialSource()
-				{
-					return partialSource;
-				}
+				Source()  {}
 				
 				bool isCandidate(const bool isBadSourse) const // [+] FlylinkDC++
 				{

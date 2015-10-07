@@ -288,6 +288,8 @@ void NetworkPage::fixControls()
 	::EnableWindow(GetDlgItem(IDC_PORT_TCP),  l_port_enabled);
 	::EnableWindow(GetDlgItem(IDC_PORT_UDP),  l_port_enabled);
 	::EnableWindow(GetDlgItem(IDC_PORT_TLS),  l_port_enabled && CryptoManager::getInstance()->TLSOk());
+	::EnableWindow(GetDlgItem(IDC_BIND_ADDRESS), !auto_detect);
+	//::EnableWindow(GetDlgItem(IDC_SETTINGS_BIND_ADDRESS_HELP), !auto_detect);
 	//::EnableWindow(GetDlgItem(IDC_NATT), passive); // for passive settings only,  [-] IRainman fix: why??
 	
 #ifdef RIP_USE_CONNECTION_AUTODETECT

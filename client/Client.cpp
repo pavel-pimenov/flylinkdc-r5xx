@@ -84,7 +84,8 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 		"keepclear.org",
 		"prime-hub.ru",
 		"planet-dc.ru",
-		"allavtovo.ru"
+		"allavtovo.ru",
+		"adc.podryad.tv"
 	};
 	if (l_lower_url.find("dc.fly-server.ru") != string::npos ||
 	        l_lower_url.find("adcs.flylinkdc.com") != string::npos ||
@@ -579,18 +580,20 @@ string Client::getLocalIp() const
 	{
 		return MappingManager::getExternaIP();
 	}
-	{
-#ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
-		FastLock lock(csSock); // [+] brain-ripper
-#endif
-		if (m_client_sock)
-		{
-			return m_client_sock->getLocalIp();
-		}
-	}
 	const string l_local_ip = Util::getLocalOrBindIp(false);
 	return l_local_ip;
 	// [~] IRainman fix.
+	/*
+	{
+	#ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
+	        FastLock lock(csSock); // [+] brain-ripper
+	#endif
+	        if (m_client_sock)
+	        {
+	            return m_client_sock->getLocalIp();
+	        }
+	    }
+	*/
 }
 
 uint64_t Client::search_internal(const SearchParamToken& p_search_param)

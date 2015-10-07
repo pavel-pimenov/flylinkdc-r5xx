@@ -1255,6 +1255,20 @@ void TransferView::doTimerTask()
 	CFlyTaskAdapter::doTimerTask();
 }
 
+void TransferView::onSpeakerAddItem(const UpdateInfo& ui)
+{
+	ItemInfo* ii = new ItemInfo(ui.m_hintedUser, ui.download);
+	ii->update(ui);
+	if (ii->download)
+	{
+		ctrlTransfers.insertGroupedItem(ii, false, false, true);
+	}
+	else
+	{
+		ctrlTransfers.insertItem(ii, IMAGE_UPLOAD);
+	}
+}
+
 LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	TaskQueue::List t;
@@ -1273,29 +1287,20 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 			case TRANSFER_ADD_ITEM:
 			{
 				auto &ui = static_cast<UpdateInfo&>(*i->second);
-				ItemInfo* ii = new ItemInfo(ui.m_hintedUser, ui.download);
-				ii->update(ui);
-				if (ii->download)
-				{
-					ctrlTransfers.insertGroupedItem(ii, false, false, true);
-				}
-				else
-				{
-					ctrlTransfers.insertItem(ii, IMAGE_UPLOAD);
-				}
+				onSpeakerAddItem(ui);
 			}
 			break;
 			case TRANSFER_REMOVE_DOWNLOAD_ITEM:
 			{
 				const auto &ui = static_cast<UpdateInfo&>(*i->second);
-				int pos = -1;
 				for (int j = 0; j < ctrlTransfers.GetItemCount(); ++j)
 				{
 					ItemInfo* ii = ctrlTransfers.getItemData(j);
-					if (ui.download && ii->m_target == ui.m_target)
+					if (// ui.download &&
+					    ii->m_target == ui.m_target)
 					{
-						ctrlTransfers.DeleteItem(pos);
-						delete ii;
+						ctrlTransfers.removeGroupedItem(ii);
+						j = 0;
 					}
 				}
 			}
@@ -1377,6 +1382,11 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 					ii->update(ui);
 					dcassert(pos != -1);
 					updateItem(pos, ui.updateMask);
+				}
+				else
+				{
+					// dcassert(0);
+					// onSpeakerAddItem(ui); // потеряли....
 				}
 			}
 			break;
@@ -2194,8 +2204,10 @@ void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, co
 	if (!ClientManager::isShutdown())
 	{
 		if (qi->isUserList())
+		{
 			return;
-			
+		}
+		
 		// update download item
 		UpdateInfo* ui = new UpdateInfo(p_download->getHintedUser(), true); // [!] IRainman fix.
 		
@@ -2215,13 +2227,8 @@ void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, co
 		
 		m_tasks.add(TRANSFER_UPDATE_PARENT, ui);  // [!] IRainman opt.
 		
-#if 0 // TODO
-		{
-			UpdateInfo* ui = new UpdateInfo(p_download->getHintedUser(), true);
-			ui->setTarget(p_download->getPath());
-			m_tasks.add(TRANSFER_REMOVE_DOWNLOAD_ITEM, ui);
-		}
-#endif
+		/*
+		*/
 		
 	}
 }
@@ -2230,15 +2237,20 @@ void TransferView::on(QueueManagerListener::Removed, const QueueItemPtr& qi) noe
 {
 	if (!ClientManager::isShutdown())
 	{
+		/*
 		if (qi->isUserList())
-			return;
-			
+		    return;
+		
 		UpdateInfo* ui = new UpdateInfo(); // [!] IRainman fix.
 		ui->setTarget(qi->getTarget());
 		ui->setStatusString(TSTRING(DISCONNECTED));
 		ui->setStatus(ItemInfo::STATUS_WAITING);
-		
 		m_tasks.add(TRANSFER_UPDATE_PARENT, ui);
+		*/
+		
+		UpdateInfo* ui = new UpdateInfo();
+		ui->setTarget(qi->getTarget());
+		m_tasks.add(TRANSFER_REMOVE_DOWNLOAD_ITEM, ui);
 	}
 }
 

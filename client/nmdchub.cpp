@@ -58,6 +58,9 @@ NmdcHub::NmdcHub(const string& aHubURL, bool secure, bool p_is_auto_connect) :
 
 NmdcHub::~NmdcHub()
 {
+#ifdef FLYLINKDC_USE_EXT_JSON
+	dcassert(m_ext_json_deferred.empty());
+#endif
 	clearUsers();
 }
 
@@ -251,6 +254,9 @@ void NmdcHub::putUser(const string& aNick)
 	OnlineUserPtr ou;
 	{
 		webrtc::WriteLockScoped l(*m_cs);
+#ifdef FLYLINKDC_USE_EXT_JSON
+		m_ext_json_deferred.erase(aNick);
+#endif
 		const auto& i = m_users.find(aNick);
 		if (i == m_users.end())
 			return;
@@ -290,6 +296,9 @@ void NmdcHub::clearUsers()
 		{
 			webrtc::WriteLockScoped l(*m_cs);
 			u2.swap(m_users);
+#ifdef FLYLINKDC_USE_EXT_JSON
+			m_ext_json_deferred.clear();
+#endif
 			clearAvailableBytesL();
 		}
 		for (auto i = u2.cbegin(); i != u2.cend(); ++i)
@@ -1644,6 +1653,10 @@ void NmdcHub::onLine(const string& aLine)
 		{
 			putUser(param);
 		}
+		else
+		{
+			dcassert(0);
+		}
 	}
 	else if (cmd == "ConnectToMe")
 	{
@@ -2210,18 +2223,30 @@ void NmdcHub::on(BufferedSocketListener::Connected) noexcept
 	m_lastExtJSONInfo.clear();
 }
 #ifdef FLYLINKDC_USE_EXT_JSON
-void NmdcHub::extJSONParse(const string& param)
+bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false */)
 {
 	string::size_type i = 5;
 	string::size_type j = param.find(' ', i);
 	if (j == string::npos || j == i)
-		return;
+		return false;
 	string l_nick = param.substr(i, j - i);
 	
 	dcassert(!l_nick.empty())
 	if (l_nick.empty())
-		return;
-		
+	{
+		dcassert(0);
+		return false;
+	}
+	if (p_is_disable_fire == false)
+	{
+		webrtc::WriteLockScoped l(*m_cs);
+		if (m_ext_json_deferred.find(l_nick) == m_ext_json_deferred.end())
+		{
+			m_ext_json_deferred.insert(std::make_pair(l_nick, param));
+			return false;
+		}
+	}
+	
 //#ifdef _DEBUG
 //	string l_json_result = "{ \"City\":[\"$ForceMove\", \"abc.com\", \"&#124; \"] } | ";
 //#else
@@ -2236,6 +2261,7 @@ void NmdcHub::extJSONParse(const string& param)
 		{
 			dcassert(0);
 			LogManager::message("Failed to parse json ExtJSON:" + l_json_result);
+			return false;
 		}
 		else
 		{
@@ -2246,14 +2272,19 @@ void NmdcHub::extJSONParse(const string& param)
 			ou->getIdentity().setStringParam("F4", l_root["Gender"].asString());
 			if (!ClientManager::isShutdown())
 			{
-				fire(ClientListener::UserUpdated(), ou); // TODO обновлять тольок JSON
+				if (p_is_disable_fire == false)
+				{
+					fire(ClientListener::UserUpdated(), ou); // TODO обновлять тольок JSON
+				}
 			}
 		}
+		return true;
 	}
 	catch (std::runtime_error& e)
 	{
 		CFlyServerJSON::pushError(50, "NmdcHub::extJSONParse error JSON =  " + l_json_result + " error = " + string(e.what()));
 	}
+	return false;
 }
 #endif // FLYLINKDC_USE_EXT_JSON
 
@@ -2267,8 +2298,10 @@ void NmdcHub::myInfoParse(const string& param)
 	
 	dcassert(!l_nick.empty())
 	if (l_nick.empty())
+	{
+		dcassert(0);
 		return;
-		
+	}
 	i = j + 1;
 	
 	OnlineUserPtr ou = getUser(l_nick, false, m_bLastMyInfoCommand == DIDNT_GET_YET_FIRST_MYINFO); // При первом коннекте исключаем поиск
@@ -2439,6 +2472,24 @@ void NmdcHub::myInfoParse(const string& param)
 	
 	if (!ClientManager::isShutdown())
 	{
+#ifdef FLYLINKDC_USE_EXT_JSON
+		string l_ext_json_param;
+		{
+			webrtc::ReadLockScoped l(*m_cs);
+			const auto l_find_ext_json = m_ext_json_deferred.find(l_nick);
+			if (l_find_ext_json != m_ext_json_deferred.end())
+			{
+				l_ext_json_param = l_find_ext_json->second;
+			}
+		}
+		if (!l_ext_json_param.empty())
+		{
+			extJSONParse(l_ext_json_param, true);
+			webrtc::WriteLockScoped l(*m_cs);
+			m_ext_json_deferred.erase(l_nick);
+		}
+		
+#endif
 		fire(ClientListener::UserUpdated(), ou); // !SMT!-fix
 	}
 }

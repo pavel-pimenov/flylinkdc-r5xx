@@ -185,7 +185,7 @@ ExCImage* g_splash_png = nullptr;
 
 LRESULT CALLBACK splashCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	if (uMsg == WM_PAINT)
+	if (uMsg == WM_PAINT && g_splash_png)
 	{
 	
 		// Get some information
@@ -201,7 +201,10 @@ LRESULT CALLBACK splashCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		rc3.top = rc3.bottom - 20;
 		
 		HDC comp = CreateCompatibleDC(dc); // [+]
-		SelectObject(comp, *g_splash_png); // [+]
+		if (g_splash_png)
+		{
+			SelectObject(comp, *g_splash_png); // [+]
+		}
 		
 		BitBlt(dc, 0, 0 , g_splash_size_x, g_splash_size_y, comp, 0, 0, SRCCOPY);
 		DeleteDC(comp);

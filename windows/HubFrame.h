@@ -37,17 +37,14 @@
 #endif
 #define HUBSTATUS_MESSAGE_MAP 12 // Status frame
 
-// #define FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
+#define FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 
 struct CompareItems;
 
 class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HUB, IDR_HUB_OFF > , private ClientListener,
 	public  CSplitterImpl<HubFrame>,
-#ifdef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 	private CFlyTimerAdapter,
-#else
 	private CFlyTaskAdapter,
-#endif
 	public UCHandler<HubFrame>,
 	public UserInfoBaseHandler < HubFrame, UserInfoGuiTraits::NO_CONNECT_FAV_HUB | UserInfoGuiTraits::NICK_TO_CHAT | UserInfoGuiTraits::USER_LOG | UserInfoGuiTraits::INLINE_CONTACT_LIST, OnlineUserPtr > ,
 	private SettingsManagerListener,
@@ -277,7 +274,9 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 			return *m_ctrlUsers;
 		}
 		
+#ifndef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 		static void timer_process_all();
+#endif
 		static void rotation_virus_skull();
 		
 	private:
@@ -389,9 +388,9 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		} m_userMapInitThread;
 		
 		//std::unique_ptr<webrtc::RWLockWrapper> m_userMapCS;
-		CriticalSection m_userMapCS;
 #endif
 		
+		CriticalSection m_userMapCS;
 		UserInfo::OnlineUserMap m_userMap;
 		bool m_needsUpdateStats;
 		// bool m_is_op_chat_opened;

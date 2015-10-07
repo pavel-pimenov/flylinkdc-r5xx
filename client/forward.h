@@ -53,7 +53,7 @@ typedef std::shared_ptr<UploadQueueItem> UploadQueueItemPtr;
 //typedef UploadQueueItemInfo* UploadQueueItemInfoPtr;
 
 class User;
-typedef boost::intrusive_ptr<User> UserPtr;
+typedef std::shared_ptr<User> UserPtr;
 typedef std::vector<UserPtr> UserList;
 
 class UserCommand;

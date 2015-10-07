@@ -340,11 +340,11 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 						if (!l_audio.empty() || !l_video.empty())
 						{
 							const string& l_br = getAttrib(attribs, g_SBR, 4);
-							l_mediaXY = std::make_shared<CFlyMediaInfo> (getAttrib(attribs, g_SWH, 3),
-							                                             atoi(l_br.c_str()),
-							                                             l_audio,
-							                                             l_video
-							                                            );
+							l_mediaXY = std::make_shared<CFlyMediaInfo>(CFlyMediaInfo(getAttrib(attribs, g_SWH, 3),
+							                                                          atoi(l_br.c_str()),
+							                                                          l_audio,
+							                                                          l_video)
+							                                           );
 						}
 					}
 				}

@@ -761,7 +761,7 @@ void QueueItem::addSegmentL(const Segment& segment)
 		--prev;
 		if (prev->getEnd() >= i->getStart())
 		{
-			Segment big(prev->getStart(), i->getEnd() - prev->getStart());
+			const Segment big(prev->getStart(), i->getEnd() - prev->getStart());
 			m_done_segment.erase(prev);
 			m_done_segment.erase(i++);
 			m_done_segment.insert(big);

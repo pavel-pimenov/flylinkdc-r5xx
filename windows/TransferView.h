@@ -202,7 +202,11 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 	private:
 		class ItemInfo;
 	public:
+#ifdef FLYLINKDC_USE_TREEE_LIST_VIEW_WITHOUT_POINTER
+		typedef TypedTreeListViewCtrlSafe<ItemInfo, IDC_TRANSFERS, tstring> ItemInfoList;
+#else
 		typedef TypedTreeListViewCtrl<ItemInfo, IDC_TRANSFERS, tstring, noCaseStringHash, noCaseStringEq> ItemInfoList;
+#endif
 		ItemInfoList& getUserList()
 		{
 			return ctrlTransfers;
@@ -540,7 +544,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			}
 			tstring m_ip; // TODO - зачем тут tstring?
 		};
-		
+		void onSpeakerAddItem(const UpdateInfo& ui);
 		void parseQueueItemUpdateInfoL(UpdateInfo* p_ui, const QueueItemPtr& p_queueItem);
 		// [~] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
 		

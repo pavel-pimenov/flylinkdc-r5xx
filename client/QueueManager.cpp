@@ -57,8 +57,12 @@ QueueManager::UserQueue QueueManager::g_userQueue;
 
 QueueManager::UserQueue::UserQueueMap QueueManager::UserQueue::g_userQueueMap[QueueItem::LAST];
 QueueManager::UserQueue::RunningMap QueueManager::UserQueue::g_runningMap;
-std::unique_ptr<webrtc::RWLockWrapper> QueueManager::UserQueue::g_userQueueMapCS = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
+#ifdef FLYLINKDC_USE_USER_QUEUE_CS
+Lock std::unique_ptr<webrtc::RWLockWrapper> QueueManager::UserQueue::g_userQueueMapCS = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
+#endif
+#ifdef FLYLINKDC_USE_RUNNING_QUEUE_CS
 std::unique_ptr<webrtc::RWLockWrapper> QueueManager::UserQueue::g_runningMapCS = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
+#endif
 
 
 using boost::adaptors::map_values;
@@ -339,7 +343,9 @@ void QueueManager::FileQueue::moveTarget(const QueueItemPtr& qi, const string& a
 bool QueueManager::UserQueue::userIsDownloadedFiles(const UserPtr& aUser, QueueItemList& p_status_update_array)
 {
 	bool hasDown = false;
-	webrtc::ReadLockScoped l(*g_userQueueMapCS);
+#ifdef FLYLINKDC_USE_USER_QUEUE_CS
+	Lock webrtc::ReadLockScoped l(*g_userQueueMapCS);
+#endif
 	for (size_t i = 0; i < QueueItem::LAST; ++i)
 	{
 		const auto j = g_userQueueMap[i].find(aUser);
@@ -364,7 +370,9 @@ void QueueManager::UserQueue::addL(const QueueItemPtr& qi) // [!] IRainman fix.
 void QueueManager::UserQueue::addL(const QueueItemPtr& qi, const UserPtr& aUser, bool p_is_first_load) // [!] IRainman fix.
 {
 	dcassert(qi->getPriority() < QueueItem::LAST);
-	webrtc::WriteLockScoped l(*g_userQueueMapCS);
+#ifdef FLYLINKDC_USE_USER_QUEUE_CS
+	Lock webrtc::WriteLockScoped l(*g_userQueueMapCS);
+#endif
 	auto& uq = g_userQueueMap[qi->getPriority()][aUser];
 	
 // ѕри первой загрузки очереди из базы не зовем calcAverageSpeedAndCalcAndGetDownloadedBytesL
@@ -410,7 +418,9 @@ QueueItemPtr QueueManager::UserQueue::getNextL(const UserPtr& aUser, QueueItem::
 	m_lastError.clear();
 	do
 	{
+#ifdef FLYLINKDC_USE_USER_QUEUE_CS
 		webrtc::ReadLockScoped l(*g_userQueueMapCS);
+#endif
 		const auto i = g_userQueueMap[p].find(aUser);
 		if (i != g_userQueueMap[p].cend())
 		{
@@ -479,7 +489,9 @@ void QueueManager::UserQueue::addDownloadL(const QueueItemPtr& qi, const Downloa
 {
 	qi->addDownloadL(d);
 	// Only one download per user...
+#ifdef FLYLINKDC_USE_RUNNING_QUEUE_CS
 	webrtc::WriteLockScoped l_lock(*g_runningMapCS);
+#endif
 	dcassert(g_runningMap.find(d->getUser()) == g_runningMap.end());
 	g_runningMap[d->getUser()] = qi;
 }
@@ -535,7 +547,9 @@ void QueueManager::FileQueue::calcPriorityAndGetRunningFilesL(QueueItem::Priorit
 bool QueueManager::UserQueue::removeDownloadL(const QueueItemPtr& qi, const UserPtr& user) // [!] IRainman fix: this function needs external lock.
 {
 	{
+#ifdef FLYLINKDC_USE_RUNNING_QUEUE_CS
 		webrtc::WriteLockScoped l_lock(*g_runningMapCS);
+#endif
 		g_runningMap.erase(user);
 	}
 	return qi->removeDownloadL(user);
@@ -551,7 +565,9 @@ void QueueManager::UserQueue::setQIPriority(const QueueItemPtr& qi, QueueItem::P
 
 QueueItemPtr QueueManager::UserQueue::getRunningL(const UserPtr& aUser) // [!] IRainman fix.
 {
+#ifdef FLYLINKDC_USE_RUNNING_QUEUE_CS
 	webrtc::ReadLockScoped l_lock(*g_runningMapCS);
+#endif
 	const auto i = g_runningMap.find(aUser);
 	return i == g_runningMap.cend() ? nullptr : i->second;
 }
@@ -587,7 +603,10 @@ void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr&
 		}
 	}
 	{
-		webrtc::WriteLockScoped l(*g_userQueueMapCS);
+	
+#ifdef FLYLINKDC_USE_USER_QUEUE_CS
+		Lock webrtc::WriteLockScoped l(*g_userQueueMapCS);
+#endif
 		auto& ulm = g_userQueueMap[qi->getPriority()];
 		const auto& j = ulm.find(aUser);
 		if (j == ulm.cend())
@@ -3163,15 +3182,15 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 				si = qi->findSourceL(aUser);
 				si->second.setFlag(QueueItem::Source::FLAG_PARTIAL);
 				
-				QueueItem::PartialSource* ps = new QueueItem::PartialSource(partialSource.getMyNick(),
-				                                                            partialSource.getHubIpPort(), partialSource.getIp(), partialSource.getUdpPort());
+				const auto ps = std::make_shared<QueueItem::PartialSource>(QueueItem::PartialSource(partialSource.getMyNick(),
+				                                                           partialSource.getHubIpPort(), partialSource.getIp(), partialSource.getUdpPort()));
 				si->second.setPartialSource(ps);
 				
 				g_userQueue.addL(qi, aUser, false);
 				dcassert(si != qi->getSourcesL().end());
 				fire_sources_updated(qi);
 				LogManager::psr_message(
-				    "[QueueManager::handlePartialResult] new QueueItem::PartialSource = nick = " + partialSource.getMyNick() +
+				    "[QueueManager::handlePartialResult] new QueueItem::PartialSource nick = " + partialSource.getMyNick() +
 				    " HubIpPort = " + partialSource.getHubIpPort() +
 				    " IP = " + partialSource.getIp().to_string() +
 				    " UDP port = " + Util::toString(partialSource.getUdpPort())

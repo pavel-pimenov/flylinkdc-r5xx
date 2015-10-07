@@ -242,7 +242,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		{
 			public:
 				typedef boost::intrusive_ptr<Directory> Ptr;
-				typedef std::map<string, Ptr> Map;
+				typedef std::map<string, Ptr> DirectoryMap;
 				
 				struct ShareFile : public CFlyLowerName
 #ifdef _DEBUG
@@ -331,7 +331,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 						Search::TypeModes ftype;
 				};
 				
-				Map m_directories;
+				DirectoryMap m_directories;
 				ShareFile::Set m_files;
 				int64_t size;
 				

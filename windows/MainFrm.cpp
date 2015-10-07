@@ -905,7 +905,9 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	
 	if (!g_bAppMinimized || !BOOLSETTING(MINIMIZE_TRAY) /* [-] IRainman opt: not need to update the window title when it is minimized to tray. || BOOLSETTING(SHOW_CURRENT_SPEED_IN_TITLE)*/)
 	{
+#ifndef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 		HubFrame::timer_process_all();
+#endif
 #ifdef FLYLINKDC_CALC_MEMORY_USAGE
 		if ((aTick / 1000) % 3 == 0)
 		{

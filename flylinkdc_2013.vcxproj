@@ -680,6 +680,7 @@
     <Image Include="res\Cam.png" />
     <Image Include="res\clock.ico" />
     <Image Include="res\firewall.ico" />
+    <Image Include="res\Gender.png" />
     <Image Include="res\ISPImages.png" />
     <Image Include="res\medical_bag.ico" />
     <Image Include="res\mode_active.ico" />
@@ -693,8 +694,12 @@
     <Image Include="res\skull_red.ico" />
     <Image Include="res\StateUsers.png" />
     <Image Include="res\thermometer2.ico" />
+    <Image Include="res\vip_allavtovo.ico" />
     <Image Include="res\vip_keepclear_org.ico" />
+    <Image Include="res\vip_korobka.ico" />
     <Image Include="res\vip_milenahub.ico" />
+    <Image Include="res\vip_perseus.ico" />
+    <Image Include="res\vip_prime.ico" />
     <Image Include="res\vip_scalolaz.ico" />
     <Image Include="res\vip_stealthhub.ico" />
     <Image Include="res\wifi-router.ico" />

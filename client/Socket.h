@@ -216,9 +216,11 @@ class Socket
 		}
 #endif
 		
-		string getLocalIp() const noexcept;
+#ifdef PPA_INCLUDE_DEAD_CODE
+		string getLocalIp() const;
+#endif
 		static string getDefaultGateWay(boost::logic::tribool& p_is_wifi_router);
-		uint16_t getLocalPort() const noexcept;
+		uint16_t getLocalPort() const;
 		
 		// Low level interface
 		virtual void create(SocketType aType = TYPE_TCP);
@@ -308,7 +310,7 @@ class Socket
 		static Stats g_stats;
 	private:
 		void socksAuth(uint64_t timeout);
-		bool getLocalIPPort(uint16_t& p_port, string& p_ip, bool p_is_calc_ip) const noexcept;
+		bool getLocalIPPort(uint16_t& p_port, string& p_ip, bool p_is_calc_ip) const;
 #ifdef _WIN32
 		static int getLastError()
 		{

@@ -16,16 +16,24 @@ static LPCWSTR s_ErrorStringTable[] =
 };
 
 PortalBrowserFrame::PortalBrowserFrame(LPCWSTR pszName, WORD wID):
-	m_hLib(NULL),
-	m_hBrowser(),
+	m_hLib(nullptr),
+	m_hBrowser(nullptr),
 	m_bSizing(false),
 	m_bActive(false),
-	m_DestroyBrowser(NULL),
-	m_GetBrowserWnd(NULL),
-	m_TranslateBrowserAccelerator(NULL),
+	m_DestroyBrowser(nullptr),
+	m_GetBrowserWnd(nullptr),
+	m_TranslateBrowserAccelerator(nullptr),
 	m_wID(wID),
 	m_LastSizeState(0xffffffff)
 {
+	static bool g_is_first = false;
+	if (g_is_first == false)
+	{
+		g_is_first = true;
+		extern tstring g_full_user_agent;
+		const auto l_agent = Text::fromT(g_full_user_agent);
+		UrlMkSetSessionOption(URLMON_OPTION_USERAGENT, (LPVOID)l_agent.c_str(), l_agent.length(), 0);
+	}
 }
 
 PortalBrowserFrame::~PortalBrowserFrame()
@@ -203,7 +211,7 @@ void PortalBrowserFrame::Cleanup()
 }
 static void LoadExternalPortalBrowserXML()
 {
-	const string& l_url = SETTING(PORTAL_BROWSER_UPDATE_URL);
+	const string l_url = SETTING(PORTAL_BROWSER_UPDATE_URL);
 	if (l_url.empty())
 		return;
 		

@@ -1015,7 +1015,7 @@ void AdcHub::handle(AdcCommand::NAT, const AdcCommand& c) noexcept
 	}
 	
 	// Trigger connection attempt sequence locally ...
-	dcdebug("triggering connecting attempt in NAT: remote port = %s, local IP = %s, local port = %d\n", port.c_str(), m_client_sock->getLocalIp().c_str(), m_client_sock->getLocalPort());
+	dcdebug("triggering connecting attempt in NAT: remote port = %s, local IP = %s, local port = %d\n", port.c_str(), getLocalIp().c_str(), m_client_sock->getLocalPort());
 	ConnectionManager::getInstance()->adcConnect(*ou, static_cast<uint16_t>(Util::toInt(port)), m_client_sock->getLocalPort(), BufferedSocket::NAT_CLIENT, token, secure);
 	
 	// ... and signal other client to do likewise.
@@ -1055,7 +1055,7 @@ void AdcHub::handle(AdcCommand::RNT, const AdcCommand& c) noexcept
 	}
 	
 	// Trigger connection attempt sequence locally
-	dcdebug("triggering connecting attempt in RNT: remote port = %s, local IP = %s, local port = %d\n", port.c_str(), m_client_sock->getLocalIp().c_str(), m_client_sock->getLocalPort());
+	dcdebug("triggering connecting attempt in RNT: remote port = %s, local IP = %s, local port = %d\n", port.c_str(), getLocalIp().c_str(), m_client_sock->getLocalPort());
 	ConnectionManager::getInstance()->adcConnect(*ou, static_cast<uint16_t>(Util::toInt(port)), m_client_sock->getLocalPort(), BufferedSocket::NAT_SERVER, token, secure);
 }
 

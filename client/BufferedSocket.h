@@ -159,10 +159,13 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		}
 		void disconnect(bool graceless = false);
 		
+#ifdef PPA_INCLUDE_DEAD_CODE
 		string getLocalIp() const
 		{
 			return sock->getLocalIp();
 		}
+#endif
+		
 		uint16_t getLocalPort() const
 		{
 			return sock->getLocalPort();

@@ -300,6 +300,10 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 			fire(UserConnectionListener::ListLength(), this, param);
 		}
 	}
+	else if (cmd == "$GetListLen")
+	{
+		fire(UserConnectionListener::GetListLength(), this);
+	}
 	else
 	{
 		if (getUser() && aLine.length() < 255)

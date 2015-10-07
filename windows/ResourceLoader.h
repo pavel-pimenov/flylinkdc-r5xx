@@ -33,14 +33,12 @@
 
 #include <atlimage.h>
 
-class ExCImage : public CImage, public intrusive_ptr_base<ExCImage>
+class ExCImage : public CImage
 #ifdef _DEBUG
 	, boost::noncopyable
 #endif
 {
 	public:
-		typedef boost::intrusive_ptr<ExCImage> Ptr;
-		
 		ExCImage(): m_hBuffer(nullptr)
 		{
 		}

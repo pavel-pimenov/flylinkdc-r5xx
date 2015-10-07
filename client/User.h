@@ -37,7 +37,7 @@ class Client;
 
 
 /** A user connected to one or more hubs. */
-class User : public intrusive_ptr_base<User>, public Flags
+class User : public Flags
 {
 	public:
 		// [!]IRainman This enum is necessary for a comfortable job status flags
@@ -261,7 +261,9 @@ class User : public intrusive_ptr_base<User>, public Flags
 		uint64_t getBytesUploadRAW() const
 		{
 			////////webrtc::ReadLockScoped l(*g_ratio_cs);
+#ifdef FLYLINKDC_USE_RATIO_CS
 			FastLock l(m_ratio_cs);
+#endif
 			if (m_ratio_ptr)
 				return m_ratio_ptr->get_upload();
 			else
@@ -270,7 +272,9 @@ class User : public intrusive_ptr_base<User>, public Flags
 		uint64_t getBytesDownloadRAW() const
 		{
 			/////////webrtc::ReadLockScoped l(*g_ratio_cs);
+#ifdef FLYLINKDC_USE_RATIO_CS
 			FastLock l(m_ratio_cs);
+#endif
 			if (m_ratio_ptr)
 				return m_ratio_ptr->get_download();
 			else
@@ -279,7 +283,9 @@ class User : public intrusive_ptr_base<User>, public Flags
 		bool isLastIP() // [+] IRainman fix.
 		{
 			////////webrtc::ReadLockScoped l(*g_ratio_cs);
+#ifdef FLYLINKDC_USE_RATIO_CS
 			FastLock l(m_ratio_cs);
+#endif
 			if (m_ratio_ptr)
 			{
 				return !m_last_ip.is_unspecified();
@@ -311,7 +317,9 @@ class User : public intrusive_ptr_base<User>, public Flags
 		friend struct CFlyUserRatioInfo;
 		bool      m_is_last_ip_dirty;
 		////static std::unique_ptr<webrtc::RWLockWrapper> g_ratio_cs;
+#ifdef FLYLINKDC_USE_RATIO_CS
 		mutable FastCriticalSection m_ratio_cs;
+#endif
 #endif
 };
 

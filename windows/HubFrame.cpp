@@ -208,11 +208,8 @@ HubFrame::HubFrame(bool p_is_auto_connect,
                    bool p_SuppressChatAndPM
                    //bool p_ChatUserSplitState
                   ) :
-#ifdef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 	CFlyTimerAdapter(m_hWnd)
-#else
-	CFlyTaskAdapter(m_hWnd)
-#endif
+	, CFlyTaskAdapter(m_hWnd)
 	, m_client(nullptr)
 	, m_ctrlUsers(nullptr)
 	, m_second_count(60)
@@ -1295,7 +1292,7 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 			ui = new UserInfo(p_ou);
 			{
 				//webrtc::WriteLockScoped l(*m_userMapCS);
-				//Lock l(m_userMapCS);
+				Lock l(m_userMapCS);
 				dcassert(!m_is_process_disconnected);
 				m_userMap.insert(make_pair(p_ou, ui));
 			}
@@ -1326,9 +1323,11 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 			{
 				m_ctrlUsers->deleteItem(ui);
 			}
-			//webrtc::WriteLockScoped l(*m_userMapCS);
-			//Lock l(m_userMapCS);
-			m_userMap.erase(ui->getOnlineUser());
+			{
+				//webrtc::WriteLockScoped l(*m_userMapCS);
+				Lock l(m_userMapCS);
+				m_userMap.erase(ui->getOnlineUser());
+			}
 			delete ui;
 			return true;
 		}
@@ -1416,9 +1415,11 @@ void HubFrame::removeUser(const OnlineUserPtr& p_ou)
 	{
 		m_ctrlUsers->deleteItem(ui);  // Lock - redraw при закрытии?
 	}
-	//webrtc::WriteLockScoped l(*m_userMapCS);
-	//Lock l(m_userMapCS);
-	m_userMap.erase(p_ou);
+	{
+		//webrtc::WriteLockScoped l(*m_userMapCS);
+		Lock l(m_userMapCS);
+		m_userMap.erase(p_ou);
+	}
 	delete ui;
 }
 
@@ -2457,7 +2458,7 @@ void HubFrame::clearUserList()
 	}
 	{
 		//webrtc::WriteLockScoped l(*m_userMapCS);
-		//Lock l(m_userMapCS);
+		Lock l(m_userMapCS);
 		for (auto i = m_userMap.cbegin(); i != m_userMap.cend(); ++i)
 		{
 			delete i->second; //[2] https://www.box.net/shared/202f89c842ee60bdecb9
@@ -3164,7 +3165,7 @@ void HubFrame::closeDisconnected()
 	{
 		const auto l_client = i->second->m_client;
 		dcassert(l_client);
-		if (!l_client->isConnected())
+		if (l_client && !l_client->isConnected())
 		{
 			i->second->PostMessage(WM_CLOSE);
 		}
@@ -3226,16 +3227,16 @@ void HubFrame::resortForFavsFirst(bool justDoIt /* = false */)
 	}
 }
 
+#ifndef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 void HubFrame::timer_process_all()
 {
-#ifndef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 	Lock l(g_frames_cs);
 	for (auto i = g_frames.cbegin(); i != g_frames.cend(); ++i)
 	{
 		i->second->timer_process_internal(); // TODO прокинуть флаг видимости чтобы не обнвлять статус
 	}
-#endif
 }
+#endif
 // [+] IRainman opt.
 void HubFrame::timer_process_internal()
 {
@@ -3837,7 +3838,7 @@ void HubFrame::updateUserList() // [!] IRainman opt.
 		const int sel = getFilterSelPos();
 		const bool doSizeCompare = sel == COLUMN_SHARED && parseFilter(mode, size);
 		//webrtc::ReadLockScoped l(*m_userMapCS);
-		//Lock l(m_userMapCS);
+		Lock l(m_userMapCS);
 		for (auto i = m_userMap.cbegin(); i != m_userMap.cend(); ++i)
 		{
 			UserInfo* ui = i->second;
@@ -3994,7 +3995,7 @@ void HubFrame::appendHubAndUsersItems(OMenu& p_menu, const bool isChat)
 		// in ListView. for now, just disable menu item to workaronud problem
 		if (!isMe)
 		{
-			appendAndActivateUserItems(p_menu);
+			appendAndActivateUserItems(p_menu, false);
 			
 			if (isChat)
 			{
@@ -4011,7 +4012,7 @@ void HubFrame::appendHubAndUsersItems(OMenu& p_menu, const bool isChat)
 			// Pocet oznacenych
 			int iCount = m_ctrlUsers->GetSelectedCount();
 			p_menu.InsertSeparatorFirst(Util::toStringW(iCount) + _T(' ') + TSTRING(HUB_USERS));
-			appendAndActivateUserItems(p_menu);
+			appendAndActivateUserItems(p_menu, false);
 		}
 	}
 	
@@ -4447,13 +4448,14 @@ void HubFrame::addDupeUsersToSummaryMenu(ClientManager::UserParams& p_param)
 	косяк с пкм после alt+d ни куда не делся
 	L: есть значительная вероятность того, что после моего рефакторинга проблемы исчезнут, прошу отписаться.
 	*/
+	vector<std::pair<tstring, UINT> > l_menu_strings;
 	{
 		Lock l(g_frames_cs);
 		for (auto f = g_frames.cbegin(); f != g_frames.cend(); ++f)
 		{
 			const auto& frame = f->second;
 			//webrtc::ReadLockScoped l(*frame->m_userMapCS);
-			//Lock l(frame->m_userMapCS);
+			Lock l(frame->m_userMapCS);
 			for (auto i = frame->m_userMap.cbegin(); i != frame->m_userMap.cend(); ++i) // TODO https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=28097
 			{
 				const auto& l_id = i->second->getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'i->second->getIdentity()' expression repeatedly. hubframe.cpp 3673
@@ -4489,14 +4491,27 @@ void HubFrame::addDupeUsersToSummaryMenu(ClientManager::UserParams& p_param)
 							info += _T(",   FavInfo: ") + Text::toT(favInfo);
 						}
 					}
-					userSummaryMenu.AppendMenu(MF_SEPARATOR);
-					userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED | flags, IDC_NONE, info.c_str());
+					l_menu_strings.push_back(make_pair(info, flags));
 					if (!l_id.getApplication().empty() || !l_cur_ip.empty())
 					{
-						userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, Text::toT(l_id.getTag() + ",   IP: " + l_cur_ip).c_str());
+						l_menu_strings.push_back(make_pair(Text::toT(l_id.getTag() + ",   IP: " + l_cur_ip), 0));
+					}
+					else
+					{
+						l_menu_strings.push_back(make_pair(_T(""), 0));
 					}
 				}
 			}
+		}
+	}
+	for (auto i = l_menu_strings.cbegin(); i != l_menu_strings.cend(); ++i)
+	{
+		userSummaryMenu.AppendMenu(MF_SEPARATOR);
+		userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED | i->second, IDC_NONE, i->first.c_str());
+		++i;
+		if (i != l_menu_strings.cend() && !i->first.empty())
+		{
+			userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, i->first.c_str());
 		}
 	}
 }
@@ -4527,7 +4542,7 @@ UserInfo* HubFrame::findUser(const tstring& p_nick)   // !SMT!-S
 	if (ou)
 	{
 		//webrtc::ReadLockScoped l(*m_userMapCS);
-		//Lock l(m_userMapCS);
+		Lock l(m_userMapCS);
 		return m_userMap.findUser(ou);
 	}
 	else

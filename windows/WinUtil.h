@@ -749,7 +749,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			m_selectedUser = user;
 		}
 		// [~] IRainman fix.
-		void appendAndActivateUserItems(CMenu& p_menu)
+		void appendAndActivateUserItems(CMenu& p_menu, bool p_is_only_first_user_info = true)
 		{
 			dcassert(_debugIsClean);
 			dcdrun(_debugIsClean = false;)
@@ -762,7 +762,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			{
 				__if_exists(T::getUserList) // ??
 				{
-					doAction(&UserInfoBase::createSummaryInfo, m_selectedHint);
+					doAction(&UserInfoBase::createSummaryInfo, m_selectedHint, p_is_only_first_user_info);
 					FavUserTraits traits; // empty
 					
 					if (ENABLE(options, NICK_TO_CHAT))
@@ -1017,7 +1017,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 		}
 		
 		// !SMT!-S
-		void doAction(void (UserInfoBase::*func)(const string &hubHint), const string &hubHint)
+		void doAction(void (UserInfoBase::*func)(const string &hubHint), const string &hubHint, bool p_is_only_first_user_info = true)
 		{
 			if (m_selectedUser)
 			{
@@ -1027,7 +1027,14 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			{
 				__if_exists(T::getUserList)
 				{
-					((T*)this)->getUserList().forEachSelectedT(boost::bind(func, _1, hubHint));
+					if (p_is_only_first_user_info)
+					{
+						((T*)this)->getUserList().forFirstSelectedT(boost::bind(func, _1, hubHint));
+					}
+					else
+					{
+						((T*)this)->getUserList().forEachSelectedT(boost::bind(func, _1, hubHint));
+					}
 				}
 			}
 		}
@@ -1508,7 +1515,7 @@ class WinUtil
 		static std::unique_ptr<HIconWrapper> g_HubDDoSIcon;
 		static std::unique_ptr<HIconWrapper> g_HubAntivirusIcon;
 		static std::unique_ptr<HIconWrapper> g_HubVirusIcon[4];
-		static std::unique_ptr<HIconWrapper> g_HubFlylinkDCIconVIP[7]; // VIP_ICON
+		static std::unique_ptr<HIconWrapper> g_HubFlylinkDCIconVIP[8]; // VIP_ICON
 		
 		static void initThemeIcons();
 		

@@ -1052,7 +1052,7 @@ void ClientManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) noexcep
 		UserMap::const_iterator i = g_users.begin();
 		while (i != g_users.end())
 		{
-			if (i->second->unique()) // [3] https://www.box.net/shared/e9e7f84166facfeaacc8
+			if (i->second.unique()) // [3] https://www.box.net/shared/e9e7f84166facfeaacc8
 			{
 #ifdef IRAINMAN_USE_NICKS_IN_CM
 				const auto n = g_nicks.find(i->second->getCID());
@@ -1082,7 +1082,7 @@ void ClientManager::createMe(const string& cid, const string& nick)
 	TigerHash l_tiger;
 	l_tiger.update(g_pid.data(), CID::SIZE);
 	const CID l_myCID = CID(l_tiger.finalize());
-	g_me = new User(l_myCID);
+	g_me = std::make_shared<User>(User(l_myCID));
 	
 	
 #ifndef _DEBUG
@@ -1096,7 +1096,7 @@ void ClientManager::createMe(const string& cid, const string& nick)
 	}
 #endif
 	
-	g_uflylinkdc = new User(g_pid);
+	g_uflylinkdc = std::make_shared<User>(User(g_pid));
 	
 	g_iflylinkdc.setSID(AdcCommand::HUB_SID);
 #ifdef IRAINMAN_USE_HIDDEN_USERS

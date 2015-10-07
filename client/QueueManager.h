@@ -409,8 +409,12 @@ class QueueManager : public Singleton<QueueManager>,
 				/** Currently running downloads, a QueueItem is always either here or in the userQueue */
 				static RunningMap g_runningMap;
 				/** Last error message to sent to TransferView */
+#ifdef FLYLINKDC_USE_USER_QUEUE_CS
 				static std::unique_ptr<webrtc::RWLockWrapper> g_userQueueMapCS;
+#endif
+#ifdef FLYLINKDC_USE_RUNNING_QUEUE_CS
 				static std::unique_ptr<webrtc::RWLockWrapper> g_runningMapCS;
+#endif
 				string m_lastError;
 		};
 		

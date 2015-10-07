@@ -1326,13 +1326,23 @@ wstring Util::formatExactSize(int64_t aBytes)
 	return tstring(buf) + TSTRING(B);
 #endif
 }
-
 string Util::getLocalOrBindIp(const bool p_check_bind_address)
 {
 	string tmp;
 	char buf[256];
 	if (!gethostname(buf, 255)) // двойной вызов
 	{
+		boost::logic::tribool l_is_wifi_router;
+		string l_gateway_ip = Socket::getDefaultGateWay(l_is_wifi_router);
+		const auto l_dot = l_gateway_ip.rfind('.');
+		if (l_dot != string::npos)
+		{
+			l_gateway_ip = l_gateway_ip.substr(0, l_dot + 1);
+		}
+		else
+		{
+			l_gateway_ip.clear();
+		}
 		const hostent* he = gethostbyname(buf);
 		if (he == nullptr || he->h_addr_list[0] == 0)
 			return Util::emptyString;
@@ -1345,21 +1355,32 @@ string Util::getLocalOrBindIp(const bool p_check_bind_address)
 			return tmp;
 		if (Util::isPrivateIp(tmp) || strncmp(tmp.c_str(), "169", 3) == 0)
 		{
-			for (; he->h_addr_list[i]; ++i)
+			auto findBindIP = [&](const string & p_gateway_mask) -> string
 			{
-				memcpy(&dest.sin_addr, he->h_addr_list[i], he->h_length);
-				const string tmp2 = inet_ntoa(dest.sin_addr);
-				if (p_check_bind_address && tmp2 == SETTING(BIND_ADDRESS)) // http://code.google.com/p/flylinkdc/issues/detail?id=1359
-					return tmp2;
-				if (tmp2 == "192.168.56.1") // Virtual Box ?
+				for (; he->h_addr_list[i]; ++i)
 				{
-					continue;
+					memcpy(&dest.sin_addr, he->h_addr_list[i], he->h_length);
+					const string tmp2 = inet_ntoa(dest.sin_addr);
+					if (tmp2.find(p_gateway_mask) != string::npos)
+					{
+						return tmp2;
+					}
+					if (p_check_bind_address && tmp2 == SETTING(BIND_ADDRESS)) // http://code.google.com/p/flylinkdc/issues/detail?id=1359
+						return tmp2;
+					if (tmp2 == "192.168.56.1") // Virtual Box ?
+					{
+						continue;
+					}
+					else if (!Util::isPrivateIp(tmp2) && strncmp(tmp2.c_str(), "169", 3) != 0)
+					{
+						tmp = tmp2;
+					}
 				}
-				else if (!Util::isPrivateIp(tmp2) && strncmp(tmp2.c_str(), "169", 3) != 0)
-				{
-					tmp = tmp2;
-				}
-			}
+				return tmp;
+			};
+			const auto l_bind_address = findBindIP(l_gateway_ip);
+			if (!l_bind_address.empty())
+				return l_bind_address;
 		}
 	}
 	return tmp;

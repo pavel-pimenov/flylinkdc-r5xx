@@ -82,7 +82,7 @@ class CFlySpeakerAdapter : public CFlyHandlerAdapter
 			}
 			return l_res;
 		}
-		BOOL force_speak()
+		BOOL force_speak() const
 		{
 			ATLASSERT(::IsWindow(m_win_handler));
 			const auto l_res = PostMessage(m_win_handler, WM_SPEAKER, 0, 0);

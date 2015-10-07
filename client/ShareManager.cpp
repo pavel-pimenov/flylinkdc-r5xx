@@ -590,7 +590,7 @@ const string g_SMAudio = "MA";
 
 struct ShareLoader : public SimpleXMLReader::CallBack
 {
-		ShareLoader(ShareManager::DirList& aDirs) : dirs(aDirs), cur(0), depth(0) { }
+		ShareLoader(ShareManager::DirList& aDirs) : dirs(aDirs), cur(nullptr), depth(0) { }
 		void startTag(const string& p_name, StringPairList& p_attribs, bool p_simple)
 		{
 			if (p_name == g_SDirectory)
@@ -1069,7 +1069,7 @@ void ShareManager::internalCalcShareSize() // [!] IRainman opt.
 			g_CurrentShareSize = l_CurrentShareSize;
 		}
 	}
-	dcassert(g_sharedSize == g_CurrentShareSize);
+	//dcassert(g_sharedSize == g_CurrentShareSize);
 #ifdef _DEBUG
 	g_sharedSize = g_CurrentShareSize;
 #endif
