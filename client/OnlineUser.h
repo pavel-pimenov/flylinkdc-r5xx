@@ -483,6 +483,12 @@ class Identity
 			e_InfoBitMap,
 			e_DownloadSpeed,
 			e_SharedFiles,
+			e_ExtJSONRAMWorkingSet,
+			e_ExtJSONRAMPeakWorkingSet,
+			e_ExtJSONRAMFree,
+			e_ExtJSONSQLiteDBSize,
+			e_ExtJSONCountFiles,
+			//e_ExtJSONGDI,
 			e_TypeUInt32AttrLast
 		};
 		GSUINTBITS(32);
@@ -527,6 +533,13 @@ class Identity
 		
 		GSUINT(32, SharedFiles); // "SF"
 		
+		GSUINT(32, ExtJSONRAMWorkingSet);
+		GSUINT(32, ExtJSONRAMPeakWorkingSet);
+		GSUINT(32, ExtJSONRAMFree);
+		GSUINT(32, ExtJSONCountFiles);
+		GSUINT(32, ExtJSONSQLiteDBSize);
+		//GSUINT(32, ExtJSONGDI);
+		
 		GSUINTC(32, HubNormalRegOper, CHANGES_HUBS); // "HN"/"HR"/"HO" - Экономим RAM - 32 бита по 10 бит каждому значению
 		uint16_t getHubNormal() const // "HN"
 		{
@@ -568,17 +581,20 @@ class Identity
 //////////////////// int64 ///////////////////
 	private:
 	
-#ifdef FLYLINKDC_USE_REALSHARED_IDENTITY
-#define FLYLINKDC_USE_IDENTITY_64_BIT
 		enum eTypeInt64Attr
 		{
-			e_RealBytesShared = 0,
+			e_ExtJSONLastSharedDate = 0,
+#ifdef FLYLINKDC_USE_REALSHARED_IDENTITY
+			e_RealBytesShared = 1,
+#endif
 			e_TypeInt64AttrLast
 		};
 		GSINTBITS(64);
 	public:
+#ifdef FLYLINKDC_USE_REALSHARED_IDENTITY
 		GSINT(64, RealBytesShared) // "RS"
 #endif
+		GSINT(64, ExtJSONLastSharedDate)
 //////////////////////////////////
 	public:
 		string getCID() const
@@ -705,9 +721,7 @@ class Identity
 #pragma pack(push,1)
 		struct
 		{
-#ifdef FLYLINKDC_USE_IDENTITY_64_BIT
 			int64_t  info_int64 [e_TypeInt64AttrLast];
-#endif
 			uint32_t info_uint32[e_TypeUInt32AttrLast];
 			uint16_t info_uint16[e_TypeUInt16AttrLast];
 			uint8_t  info_uint8 [e_TypeUInt8AttrLast];

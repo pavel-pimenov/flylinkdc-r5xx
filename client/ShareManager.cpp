@@ -64,14 +64,12 @@ QueryCacheMap ShareManager::g_file_cache_map;
 ShareManager::HashFileMap ShareManager::g_tthIndex;
 ShareManager::ShareMap ShareManager::g_shares;
 int64_t ShareManager::g_sharedSize = 0;
+int64_t ShareManager::g_lastSharedDate = 0;
+size_t ShareManager::g_lastSharedFiles = 0;
 StringList ShareManager::g_notShared;
 
 bool ShareManager::g_isNeedsUpdateShareSize;
-#ifdef _DEBUG
 int64_t ShareManager::g_CurrentShareSize = -1;
-#else
-int64_t ShareManager::g_CurrentShareSize = 0;
-#endif
 
 ShareManager::ShareManager() : xmlListLen(0), bzXmlListLen(0),
 	xmlDirty(true), forceXmlRefresh(false), refreshDirs(false), update(false), initial(true), m_listN(0), m_count_sec(0),
@@ -141,6 +139,17 @@ ShareManager::~ShareManager()
 	File::deleteFile(getEmptyBZXmlFile()); // needs to update Client version in empty file list.
 #endif
 	// [~] IRainman fix.
+}
+void ShareManager::shutdown()
+{
+	dcassert(!isShutdown());
+	dcassert(CFlylinkDBManager::isValidInstance());
+	if (g_CurrentShareSize >= 0 && CFlylinkDBManager::isValidInstance())
+	{
+		CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_LastShareSize, g_CurrentShareSize);
+	}
+	g_isShutdown = true;
+	internalClearCache(true);
 }
 
 ShareManager::Directory::Directory(const string& aName, const ShareManager::Directory::Ptr& aParent) :
@@ -259,13 +268,6 @@ bool ShareManager::isTTHShared(const TTHValue& tth)
 	}
 	return false;
 }
-
-size_t ShareManager::getSharedFiles()
-{
-	webrtc::ReadLockScoped l(*g_csShare);
-	return g_tthIndex.size();
-}
-
 string ShareManager::toRealPath(const TTHValue& tth)
 {
 	webrtc::ReadLockScoped l(*g_csShare);
@@ -712,7 +714,7 @@ bool ShareManager::loadCache() noexcept
 			//internalClearCache(true);
 			//l_cache_loader_log.step("internalClearCache");
 			// https://code.google.com/p/flylinkdc/issues/detail?id=1545
-			if (getSharedSize() > 0)
+			if (getSharedSize() >= 0)
 			{
 				// Получили размер шары из кэша - не выполняем повторный обход в internalCalcShareSize();
 				g_isNeedsUpdateShareSize = false;
@@ -1047,6 +1049,15 @@ int64_t ShareManager::getShareSize(const string& realPath)
 	}
 	return -1;
 }
+int64_t ShareManager::getShareSize()
+{
+	if (g_CurrentShareSize == -1)
+	{
+		dcassert(CFlylinkDBManager::isValidInstance());
+		g_CurrentShareSize = CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_LastShareSize);
+	}
+	return g_CurrentShareSize;
+}
 
 void ShareManager::internalCalcShareSize() // [!] IRainman opt.
 {
@@ -1065,6 +1076,7 @@ void ShareManager::internalCalcShareSize() // [!] IRainman opt.
 				{
 					l_CurrentShareSize += i->second->getSize();
 				}
+				g_lastSharedFiles = g_tthIndex.size();
 			}
 			g_CurrentShareSize = l_CurrentShareSize;
 		}
@@ -1220,6 +1232,10 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 						                                                        Search::TypeModes(l_dir_item_second.m_ftype)
 						                                                       )
 						                                  );
+						if (l_dir_item_second.m_StampShare > g_lastSharedDate)
+						{
+							g_lastSharedDate = l_dir_item_second.m_StampShare;
+						}
 						auto f = const_cast<ShareManager::Directory::ShareFile*>(&(*lastFileIter));
 						f->initMediainfo(l_dir_item_second.m_media_ptr);
 						l_dir_item_second.m_media_ptr = nullptr;
@@ -1411,7 +1427,6 @@ void ShareManager::rebuildIndicesL()
 void ShareManager::updateIndicesL(Directory& dir, const Directory::ShareFile::Set::iterator& i)
 {
 	const auto& f = *i;
-	
 	const auto& j = g_tthIndex.find(f.getTTH());
 	if (j == g_tthIndex.end())
 	{
@@ -2722,6 +2737,7 @@ void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const T
 				Directory::ShareFile* f = const_cast<Directory::ShareFile*>(&(*i));
 				f->setTTH(root);
 				g_tthIndex.insert(make_pair(f->getTTH(), i));
+				// TODO g_lastSharedDate =
 				g_isNeedsUpdateShareSize = true;
 			}
 			else
@@ -2742,7 +2758,7 @@ void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const T
 			forceXmlRefresh = true;
 		}
 	}
-	// Сбросим кеш поиска
+	// Сбросим кэш поиска
 	internalClearCache(true);
 }
 

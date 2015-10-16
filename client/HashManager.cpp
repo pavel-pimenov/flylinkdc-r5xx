@@ -770,6 +770,13 @@ int HashManager::Hasher::run()
 				}
 				if (m_running)
 				{
+					if (m_path_id == 0)
+					{
+						dcassert(m_path_id);
+						const auto l_path = Text::toLower(Util::getFilePath(l_fname));
+						bool l_is_no_mediainfo;
+						m_path_id = CFlylinkDBManager::getInstance()->get_path_id(l_path, false, false, l_is_no_mediainfo, false);
+					}
 #ifdef IRAINMAN_NTFS_STREAM_TTH
 					if (l_is_ntfs)
 					{

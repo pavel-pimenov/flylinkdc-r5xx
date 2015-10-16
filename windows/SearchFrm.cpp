@@ -2732,17 +2732,19 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 	{
 		check_delete(si);
 		delete si;
+		return;
 	}
 	if (m_is_before_search == true)
 	{
 		dcassert(0);
 		delete si;
+		return;
 	}
 	const SearchResult& sr = si->sr;
 	const auto l_user        = sr.getUser();
 	if (!sr.getIP().is_unspecified())
 	{
-		l_user->setIP(sr.getIP());
+		l_user->setIP(sr.getIP(), true);
 	}
 	// Check previous search results for dupes
 	SearchInfoList::ParentPair* pp = nullptr;

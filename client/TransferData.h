@@ -24,6 +24,7 @@ class TransferData
 		uint8_t m_type;
 		double m_percent;
 		tstring m_status_string;
+		string m_path;
 		
 		void calc_percent()
 		{

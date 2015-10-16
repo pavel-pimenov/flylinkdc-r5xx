@@ -156,11 +156,14 @@ bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 		{
 			CFlyServerJSON::pushError(48, "Detect private spam: [ " + l_message + " ] [user+hub = " + l_key + "]");
 		}
-		if (!bMyMess)
+		else
 		{
-			SHOW_POPUP_EXT(POPUP_PM, Text::toT(id.getNick() + " - " + sHubHint), PM_PREVIEW, aMessage, 250, TSTRING(PRIVATE_MESSAGE));
-			PLAY_SOUND_BEEP(PRIVATE_MESSAGE_BEEP);
-			ChatBot::getInstance()->onMessage(myId, id, aMessage, false); // !SMT!-CB
+			if (!bMyMess)
+			{
+				SHOW_POPUP_EXT(POPUP_PM, Text::toT(id.getNick() + " - " + sHubHint), PM_PREVIEW, aMessage, 250, TSTRING(PRIVATE_MESSAGE));
+				PLAY_SOUND_BEEP(PRIVATE_MESSAGE_BEEP);
+				ChatBot::getInstance()->onMessage(myId, id, aMessage, false); // !SMT!-CB
+			}
 		}
 		// Add block spam???
 		i->second->addLine(from, bMyMess, bThirdPerson, aMessage);

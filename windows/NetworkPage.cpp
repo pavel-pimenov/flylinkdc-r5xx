@@ -325,7 +325,7 @@ void NetworkPage::updateTestPortIcon(bool p_is_wait)
 				::SetWindowText(GetDlgItem(IDC_GETIP), l_caption.c_str());
 			}
 		}
-		auto calcIconsIndex = [&](const int p_icon, const boost::logic::tribool & p_status)
+		auto calcIconsIndex = [&](const int p_icon, const boost::logic::tribool & p_status) -> bool
 		{
 			if (p_is_wait && m_count_test_port_tick == 0)
 			{
@@ -334,6 +334,7 @@ void NetworkPage::updateTestPortIcon(bool p_is_wait)
 			else if (p_status)
 			{
 				SetStage(p_icon, StageSuccess);
+				return true;
 			}
 			else if (!p_status) //  || (m_count_test_port_tick > 1 && boost::logic::indeterminate(p_status))
 			{
@@ -343,6 +344,7 @@ void NetworkPage::updateTestPortIcon(bool p_is_wait)
 			{
 				SetStage(p_icon, StageQuestion);
 			}
+			return false;
 		};
 		calcIconsIndex(IDC_NETWORK_TEST_PORT_TCP_ICO, SettingsManager::g_TestTCPLevel);
 		calcIconsIndex(IDC_NETWORK_TEST_PORT_UDP_ICO, SettingsManager::g_TestUDPSearchLevel);

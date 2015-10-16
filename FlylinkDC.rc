@@ -2991,6 +2991,7 @@ IDR_VIP_ICO_PRIME       ICON                    "res\\vip_prime.ico"
 IDR_VIP_ICO_PERSEUS     ICON                    "res\\vip_perseus.ico"
 IDR_VIP_ICO_ALLAVTOVO   ICON                    "res\\vip_allavtovo.ico"
 IDR_VIP_ICO_KOROBKA     ICON                    "res\\vip_korobka.ico"
+IDR_VIP_ICO_NSK154      ICON                    "res\\vip_nsk154hub.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

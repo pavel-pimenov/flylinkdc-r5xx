@@ -1795,6 +1795,7 @@ void TransferView::on(DownloadManagerListener::Requesting, const DownloadPtr& aD
 	ui->setActual(aDownload->getActual());
 	ui->setSize(aDownload->getSize());
 	ui->setStatus(ItemInfo::STATUS_RUNNING);
+	ui->setTarget(aDownload->getPath());
 	ui->updateMask &= ~UpdateInfo::MASK_STATUS; // hack to avoid changing item status
 	ui->setStatusString(TSTRING(REQUESTING) + _T(' ') + getFile(aDownload->getType(), Text::toT(Util::getFileName(aDownload->getPath()))) + _T("..."));
 	
@@ -1861,6 +1862,7 @@ void TransferView::on(UploadManagerListener::Starting, const UploadPtr& aUpload)
 	ui->setStatus(ItemInfo::STATUS_RUNNING);
 	ui->setActual(aUpload->getStartPos() + aUpload->getActual());
 	ui->setSize(aUpload->getType() == Transfer::TYPE_TREE ? aUpload->getSize() : aUpload->getFileSize());
+	ui->setTarget(aUpload->getPath());
 	ui->setRunning(1);
 	// [-] ui->setIP(aUpload->getUserConnection()->getRemoteIp()); // !SMT!-IP [-] IRainman opt.
 	
@@ -1887,6 +1889,7 @@ void TransferView::on(DownloadManagerListener::Tick, const DownloadArray& dl) no
 			ui->setSpeed(j->m_running_average);
 			ui->setType(Transfer::Type(j->m_type)); // TODO
 			ui->setStatusString(j->m_status_string);
+			ui->setTarget(j->m_path);
 			m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 		}
 	}
@@ -1913,6 +1916,7 @@ void TransferView::on(UploadManagerListener::Tick, const UploadArray& ul) noexce
 			ui->setSpeed(j->m_running_average);
 			ui->setType(Transfer::Type(j->m_type)); // TODO
 			ui->setStatusString(j->m_status_string);
+			ui->setTarget(j->m_path);
 			m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 		}
 	}
@@ -1925,6 +1929,7 @@ void TransferView::onTransferComplete(const Transfer* aTransfer, const bool down
 #endif
 	UpdateInfo* ui = new UpdateInfo(aTransfer->getHintedUser(), download); // [!] IRainman fix.
 	
+	ui->setTarget(aTransfer->getPath());
 	ui->setStatus(ItemInfo::STATUS_WAITING);
 	if (aTransfer->getType() == Transfer::TYPE_FULL_LIST)
 	{
@@ -2211,6 +2216,7 @@ void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, co
 		// update download item
 		UpdateInfo* ui = new UpdateInfo(p_download->getHintedUser(), true); // [!] IRainman fix.
 		
+		ui->setTarget(qi->getTarget());
 		ui->setStatus(ItemInfo::STATUS_WAITING);
 		ui->setStatusString(TSTRING(DOWNLOAD_FINISHED_IDLE));
 		
@@ -2237,9 +2243,9 @@ void TransferView::on(QueueManagerListener::Removed, const QueueItemPtr& qi) noe
 {
 	if (!ClientManager::isShutdown())
 	{
+		//if (qi->isUserList())
+		//  return;
 		/*
-		if (qi->isUserList())
-		    return;
 		
 		UpdateInfo* ui = new UpdateInfo(); // [!] IRainman fix.
 		ui->setTarget(qi->getTarget());

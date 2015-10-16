@@ -541,6 +541,10 @@
 	<string name="FlyHubCountry">Country</string>
 	<string name="FlyHubCity">City</string>
 	<string name="FlyHubIsp">ISP</string>
+	<string name="FlyHubCountFiles">Files</string>
+	<string name="FlyHubLastShareDate">Last Share</string>
+	<string name="FlyHubRam">RAM</string>
+	<string name="FlyHubSqliteDbSize">SQLite DB size</string>
 	<string name="FlyHubGender">Gender</string>
 	<string name="Flyupdate">FlylinkDC++ Updater</string>
 	<string name="FlyupdateCannotupdate">FlylinkDC++ automatic update failed. Please download latest install of FlylinkDC++ and run it manually</string>

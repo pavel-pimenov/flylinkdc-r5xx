@@ -246,7 +246,7 @@ void DHT::dispatch(const string& aLine, const string& ip, uint16_t port, bool is
  */
 bool DHT::send(AdcCommand& cmd, const string& ip, uint16_t port, const CID& targetCID, const UDPKey& udpKey)
 {
-	if (SettingsManager::g_TestUDPDHTLevel == true) 
+	if (1) // SettingsManager::g_TestUDPDHTLevel == true)
 	{
 		{
 			// FW check

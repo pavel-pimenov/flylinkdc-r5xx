@@ -77,7 +77,7 @@ void WebServerManager::Start() noexcept
 #endif
 	try
 	{
-		socket.listen(static_cast<uint16_t>SETTING(WEBSERVER_PORT), SETTING(WEBSERVER_BIND_ADDRESS));
+		socket.listen(static_cast<uint16_t>(SETTING(WEBSERVER_PORT)), SETTING(WEBSERVER_BIND_ADDRESS));
 		socket.addListener(this);
 		fire(WebServerListener::Setup());
 	}
@@ -1012,7 +1012,7 @@ void WebServerManager::on(SearchManagerListener::SR, const SearchResult& aResult
 		if (!aResult.getToken() && m_search_token != aResult.getToken())
 			return;
 			
-		if (row < static_cast<size_t>SETTING(WEBSERVER_SEARCHSIZE))
+		if (row < static_cast<size_t>(SETTING(WEBSERVER_SEARCHSIZE)))
 		{
 			const string Row = Util::toString(row);
 			const string User = aResult.getUser()->getLastNick();

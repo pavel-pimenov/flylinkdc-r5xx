@@ -85,7 +85,8 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 		"prime-hub.ru",
 		"planet-dc.ru",
 		"allavtovo.ru",
-		"adc.podryad.tv"
+		"adc.podryad.tv",
+		"nsk154hub.ru"
 	};
 	if (l_lower_url.find("dc.fly-server.ru") != string::npos ||
 	        l_lower_url.find("adcs.flylinkdc.com") != string::npos ||
@@ -700,45 +701,59 @@ bool Client::isFloodCommand(const string& p_command, const string& p_line)
 				auto& l_result = l_flood_find.first->second;
 				l_result.m_count++;
 				l_result.m_tick = l_item.m_tick;
-				if (l_result.m_command.size() == 5)
+				if (BOOLSETTING(LOG_FLOOD_TRACE))
 				{
-					l_result.m_command.push_back("[+more...]");
-				}
-				else
-				{
-					if (l_result.m_command.size() < 5)
-						l_result.m_command.push_back(p_line);
+					l_result.m_flood_command.push_back(make_pair(p_line, GET_TICK() - l_result.m_start_tick));
 				}
 				const auto l_delta = l_result.m_tick - l_result.m_start_tick;
 				if (l_delta > CFlyServerConfig::g_interval_flood_command * 1000)
 				{
-					// Прошла секунда и команд пришло больше 20-ти (CFlyServerConfig::g_max_flood_command)
-					// логируем счетчик и баним на 10 секунд данные команды (CFlyServerConfig::g_ban_flood_command)
+					// Прошла секунда и команд пришло больше 100 (CFlyServerConfig::g_max_flood_command)
+					// логируем счетчик и баним на 20 секунд данные команды (CFlyServerConfig::g_ban_flood_command)
 					if (l_result.m_count > CFlyServerConfig::g_max_flood_command)  // в секунду больше чем 20
 					{
 						if (l_result.m_is_ban == false) // В лог кидаем первую мессагу
 						{
 							if (BOOLSETTING(LOG_FLOOD_TRACE))
 							{
-								const string l_msg = "[Start flood][" + m_HubURL + "] command = " + l_flood_find.first->first +
-								                     " count = " + Util::toString(l_result.m_count);
-								LogManager::flood_message(l_msg + " last_commands = " + Util::toString(l_result.m_command));
+								const string l_msg = "[Start flood][" + m_HubURL + "] command = " + l_flood_find.first->first
+								                     + " count = " + Util::toString(l_result.m_count);
+								LogManager::flood_message(l_msg);
+								unsigned l_index = 0;
+								for (auto i = l_result.m_flood_command.cbegin(); i != l_result.m_flood_command.cend(); ++i)
+								{
+									LogManager::flood_message("[DeltaTime:" + Util::toString(i->second) + "][Index = " + Util::toString(l_index) + "][Message = " + i->first + "]");
+								}
+								l_result.m_flood_command.clear();
 							}
 							l_result.m_is_ban = true;
 						}
-						if (l_delta > CFlyServerConfig::g_ban_flood_command * 1000) // 10 секунд данные команды в бане!
+						if (l_delta > CFlyServerConfig::g_ban_flood_command * 1000) // 20 секунд данные команды в бане!
 						{
 							if (BOOLSETTING(LOG_FLOOD_TRACE))
 							{
 								const string l_msg = "[Stop flood][" + m_HubURL + "] command = " + l_flood_find.first->first +
 								                     " count = " + Util::toString(l_result.m_count);
 								LogManager::flood_message(l_msg);
+								l_result.m_flood_command.clear();
 							}
-							l_result.m_count = 0;
-							l_result.m_start_tick = l_result.m_tick;
 							l_result.m_is_ban = false;
+							l_result.m_count = 0;
+							l_result.m_start_tick = l_result.m_tick = GET_TICK();
+							
 						}
 						return l_result.m_is_ban;
+					}
+					else
+					{
+						// Команд прибежало мало - зачищаемся
+						l_result.m_is_ban = false;
+						l_result.m_count = 0;
+						l_result.m_start_tick = l_result.m_tick = GET_TICK();
+						if (BOOLSETTING(LOG_FLOOD_TRACE))
+						{
+							l_result.m_flood_command.clear();
+						}
 					}
 				}
 			}

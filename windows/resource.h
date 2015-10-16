@@ -208,6 +208,7 @@
 #define IDR_VIP_ICO_PERSEUS 318
 #define IDR_VIP_ICO_ALLAVTOVO 319
 #define IDR_VIP_ICO_KOROBKA 320
+#define IDR_VIP_ICO_NSK154  321
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
 #define IDC_COPY_HUB                    1002

@@ -371,6 +371,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csUserCommand;
 		
 		static uint16_t g_dontSave;
+		unsigned m_count_hub;
 	public:
 		void prepareClose();
 		void shutdown();

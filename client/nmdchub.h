@@ -260,7 +260,7 @@ class NmdcHub : public Client, private Flags
 		void myInfoParse(const string& param);
 #ifdef FLYLINKDC_USE_EXT_JSON
 		bool extJSONParse(const string& param, bool p_is_disable_fire = false);
-		std::unordered_map<string, string> m_ext_json_deferred;
+		//std::unordered_map<string, string> m_ext_json_deferred;
 #endif
 		void searchParse(const string& param, bool p_is_passive);
 		void connectToMeParse(const string& param);

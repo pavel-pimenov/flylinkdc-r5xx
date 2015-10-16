@@ -28,6 +28,7 @@
 #include "ThrottleManager.h"
 #include "StringTokenizer.h"
 #include "MappingManager.h"
+#include "CompatibilityManager.h"
 
 #include "../FlyFeatures/flyServer.h"
 #include "ZenLib/Format/Http/Http_Utils.h"
@@ -59,7 +60,7 @@ NmdcHub::NmdcHub(const string& aHubURL, bool secure, bool p_is_auto_connect) :
 NmdcHub::~NmdcHub()
 {
 #ifdef FLYLINKDC_USE_EXT_JSON
-	dcassert(m_ext_json_deferred.empty());
+	//dcassert(m_ext_json_deferred.empty());
 #endif
 	clearUsers();
 }
@@ -255,7 +256,7 @@ void NmdcHub::putUser(const string& aNick)
 	{
 		webrtc::WriteLockScoped l(*m_cs);
 #ifdef FLYLINKDC_USE_EXT_JSON
-		m_ext_json_deferred.erase(aNick);
+		//m_ext_json_deferred.erase(aNick);
 #endif
 		const auto& i = m_users.find(aNick);
 		if (i == m_users.end())
@@ -297,7 +298,7 @@ void NmdcHub::clearUsers()
 			webrtc::WriteLockScoped l(*m_cs);
 			u2.swap(m_users);
 #ifdef FLYLINKDC_USE_EXT_JSON
-			m_ext_json_deferred.clear();
+			//m_ext_json_deferred.clear();
 #endif
 			clearAvailableBytesL();
 		}
@@ -1970,6 +1971,14 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 		{
 			l_description += "+Promo";
 		}
+		if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAddFirstSupportHub))
+		{
+			l_description += "+PromoF";
+		}
+		if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAdd1251SupportHub))
+		{
+			l_description += "+PromoL";
+		}
 	}
 	else
 	{
@@ -2022,6 +2031,36 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 			if (!SETTING(FLY_LOCATOR_ISP).empty())
 				l_json_info["ISP"] = SETTING(FLY_LOCATOR_ISP).substr(0, 30);
 			l_json_info["Gender"] = SETTING(FLY_GENDER) + 1;
+			if (!getHideShare())
+			{
+				if (const auto l_count_files = ShareManager::getLastSharedFiles())
+				{
+					l_json_info["Files"] = l_count_files;
+				}
+			}
+			if (ShareManager::getLastSharedDate())
+			{
+				l_json_info["LastDate"] = ShareManager::getLastSharedDate();
+			}
+			extern int g_RAM_WorkingSetSize;
+			if (g_RAM_WorkingSetSize)
+			{
+				l_json_info["RAM"] = g_RAM_WorkingSetSize;
+			}
+			if (CompatibilityManager::getFreePhysMemory())
+			{
+				l_json_info["RAMFree"] = CompatibilityManager::getFreePhysMemory() / 1024 / 1024;
+			}
+			extern int g_RAM_PeakWorkingSetSize;
+			if (g_RAM_PeakWorkingSetSize)
+			{
+				l_json_info["RAMPeak"] = g_RAM_PeakWorkingSetSize;
+			}
+			extern int64_t g_SQLiteDBSize;
+			if (g_SQLiteDBSize)
+			{
+				l_json_info["SQLSize"] = int(g_SQLiteDBSize / 1024 / 1024); // Mb
+			}
 			
 			string l_json_str = l_json_info.toStyledString();
 			
@@ -2239,12 +2278,14 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 	}
 	if (p_is_disable_fire == false)
 	{
+		/*
 		webrtc::WriteLockScoped l(*m_cs);
 		if (m_ext_json_deferred.find(l_nick) == m_ext_json_deferred.end())
 		{
-			m_ext_json_deferred.insert(std::make_pair(l_nick, param));
-			return false;
+		    m_ext_json_deferred.insert(std::make_pair(l_nick, param));
+		    return false;
 		}
+		*/
 	}
 	
 //#ifdef _DEBUG
@@ -2270,6 +2311,14 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 			ou->getIdentity().setStringParam("F2", l_root["City"].asString());
 			ou->getIdentity().setStringParam("F3", l_root["ISP"].asString());
 			ou->getIdentity().setStringParam("F4", l_root["Gender"].asString());
+			ou->getIdentity().setExtJSONRAMWorkingSet(l_root["RAM"].asInt());
+			ou->getIdentity().setExtJSONRAMPeakWorkingSet(l_root["RAMPeak"].asInt());
+			ou->getIdentity().setExtJSONRAMFree(l_root["RAMFree"].asInt());
+			//ou->getIdentity().setExtJSONGDI(l_root["GDI"].asInt());
+			ou->getIdentity().setExtJSONCountFiles(l_root["Files"].asInt());
+			ou->getIdentity().setExtJSONLastSharedDate(l_root["LastDate"].asInt64());
+			ou->getIdentity().setExtJSONSQLiteDBSize(l_root["SQLSize"].asInt());
+			
 			if (!ClientManager::isShutdown())
 			{
 				if (p_is_disable_fire == false)
@@ -2473,21 +2522,23 @@ void NmdcHub::myInfoParse(const string& param)
 	if (!ClientManager::isShutdown())
 	{
 #ifdef FLYLINKDC_USE_EXT_JSON
+		/*
 		string l_ext_json_param;
 		{
-			webrtc::ReadLockScoped l(*m_cs);
-			const auto l_find_ext_json = m_ext_json_deferred.find(l_nick);
-			if (l_find_ext_json != m_ext_json_deferred.end())
-			{
-				l_ext_json_param = l_find_ext_json->second;
-			}
+		    webrtc::ReadLockScoped l(*m_cs);
+		    const auto l_find_ext_json = m_ext_json_deferred.find(l_nick);
+		    if (l_find_ext_json != m_ext_json_deferred.end())
+		    {
+		        l_ext_json_param = l_find_ext_json->second;
+		    }
 		}
 		if (!l_ext_json_param.empty())
 		{
-			extJSONParse(l_ext_json_param, true);
-			webrtc::WriteLockScoped l(*m_cs);
-			m_ext_json_deferred.erase(l_nick);
+		    extJSONParse(l_ext_json_param, true);
+		    webrtc::WriteLockScoped l(*m_cs);
+		    //m_ext_json_deferred.erase(l_nick);
 		}
+		*/
 		
 #endif
 		fire(ClientListener::UserUpdated(), ou); // !SMT!-fix

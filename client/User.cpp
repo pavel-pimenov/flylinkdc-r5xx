@@ -144,14 +144,14 @@ void User::storeIP(const string& p_ip)
 	}
 }
 #endif
-void User::setIP(const string& p_ip)
+void User::setIP(const string& p_ip, bool p_is_set_only_ip)
 {
 	boost::system::error_code ec;
 	const auto l_ip = boost::asio::ip::address_v4::from_string(p_ip, ec);
 	dcassert(!ec);
 	if (!ec)
 	{
-		setIP(l_ip);
+		setIP(l_ip, p_is_set_only_ip);
 	}
 	else
 	{
@@ -163,9 +163,9 @@ void User::setIP(const string& p_ip)
 	}
 }
 
-void User::setIP(const boost::asio::ip::address_v4& p_last_ip)
+void User::setIP(const boost::asio::ip::address_v4& p_last_ip, bool p_is_set_only_ip)
 {
-	if (m_ratio_ptr)
+	if (m_ratio_ptr && p_is_set_only_ip == false)
 	{
 		dcassert(!p_last_ip.is_unspecified());
 		if (m_last_ip != p_last_ip) // TODO подумать где лучше делать преобразование
@@ -191,6 +191,8 @@ void User::setIP(const boost::asio::ip::address_v4& p_last_ip)
 					if (m_ratio_ptr)
 						m_ratio_ptr->m_message_count = l_message_count;
 				}
+				m_is_last_ip_dirty = true;
+				m_last_ip = p_last_ip;
 				setFlag(CHANGE_IP);
 			}
 		}
@@ -276,7 +278,7 @@ void User::fixLastIP()
 	initRatio();
 	if (!m_last_ip.is_unspecified())
 	{
-		setIP(m_last_ip);
+		setIP(m_last_ip, true);
 	}
 }
 void User::incMessagesCount()
@@ -1119,7 +1121,7 @@ void Identity::setIp(const string& p_ip) // "I4"
 	dcassert(!ec);
 	if (!ec)
 	{
-		getUser()->setIP(m_ip);
+		getUser()->setIP(m_ip, true);
 	}
 	else
 	{

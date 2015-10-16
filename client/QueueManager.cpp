@@ -1335,7 +1335,10 @@ bool QueueManager::addSourceL(const QueueItemPtr& qi, const UserPtr& aUser, Flag
 		dcassert(p_is_first_load == true && !qi->isBadSourceExceptL(aUser, addBad) || p_is_first_load == false);
 		if (qi->isBadSourceExceptL(aUser, addBad))
 		{
-			throw QueueException(STRING(DUPLICATE_SOURCE) + ": " + Util::getFileName(qi->getTarget()));
+			throw QueueException(STRING(DUPLICATE_SOURCE) +
+			                     " TTH = " + Util::getFileName(qi->getTarget()) +
+			                     " Nick = " + aUser->getLastNick() +
+			                     " id = " + Util::toString(qi->getFlyQueueID()));
 		}
 		
 		qi->addSourceL(aUser);

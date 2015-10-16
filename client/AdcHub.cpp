@@ -958,7 +958,7 @@ void AdcHub::handle(AdcCommand::GET, const AdcCommand& c) noexcept
 			return;
 		}
 		
-		const size_t n = ShareManager::getSharedFiles();
+		const size_t n = ShareManager::getLastSharedFiles();
 		
 		// When h >= 32, m can't go above 2^h anyway since it's stored in a size_t.
 		if (m > (static_cast<size_t>(5 * Util::roundUp((int64_t)(n * k / log(2.)), (int64_t)64))) || (h < 32 && m > static_cast<size_t>(1U << h)))
@@ -1550,8 +1550,8 @@ void AdcHub::info(bool p_force)
 	else
 #endif
 	{
-		addParam(c, "SS", ShareManager::getInstance()->getShareSizeString()); // [!] Flylink++ HideShare mode
-		addParam(c, "SF", Util::toString(ShareManager::getSharedFiles())); // [!] Flylink++ HideShare mode
+		addParam(c, "SS", ShareManager::getShareSizeString()); // [!] Flylink++ HideShare mode
+		addParam(c, "SF", Util::toString(ShareManager::getLastSharedFiles())); // [!] Flylink++ HideShare mode
 	}
 	
 	
@@ -1618,10 +1618,11 @@ void AdcHub::info(bool p_force)
 		{
 			addParam(c, "I4", getFavIp());
 		}
-		else if (!SETTING(EXTERNAL_IP).empty())
-		{
-			addParam(c, "I4", Socket::resolve(SETTING(EXTERNAL_IP)));
-		}
+		// Fix http://dchublist.ru/forum/viewtopic.php?f=15&t=1224
+		//else if (!SETTING(EXTERNAL_IP).empty())
+		//{
+		//  addParam(c, "I4", Socket::resolve(SETTING(EXTERNAL_IP)));
+		//}
 		else
 		{
 			addParam(c, "I4", "0.0.0.0");

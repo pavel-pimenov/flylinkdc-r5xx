@@ -206,7 +206,7 @@ ConnectionQueueItem* ConnectionManager::getCQI_L(const HintedUser& aHintedUser, 
 		g_uploads.push_back(cqi);
 	}
 	
-	fire(ConnectionManagerListener::Added(), cqi); // TODO - выбросить фаер без блокировки наруже
+	fire(ConnectionManagerListener::Added(), cqi); // TODO - выбросить фаер без блокировки наружу
 	return cqi;
 }
 
@@ -454,9 +454,9 @@ void ConnectionManager::cleanupIpFlood(const uint64_t p_tick)
 		if (l_is_min_ban_close)
 		{
 #ifdef _DEBUG
-			LogManager::ddos_message("BlockID = " + Util::toString(j->second.m_block_id) + ", Removed mini-ban for: " +
-			                         j->first.first + j->second.getPorts() + ", Hub IP = " + j->first.second.to_string() +
-			                         " m_ddos_map.size() = " + Util::toString(m_ddos_map.size()));
+			//LogManager::ddos_message("BlockID = " + Util::toString(j->second.m_block_id) + ", Removed mini-ban for: " +
+			//                         j->first.first + j->second.getPorts() + ", Hub IP = " + j->first.second.to_string() +
+			//                         " m_ddos_map.size() = " + Util::toString(m_ddos_map.size()));
 #endif
 		}
 		// Если коннектов совершено много и IP находится в бане, но уже прошло время больше чем 10 Минут(по умолчанию)
@@ -1282,7 +1282,7 @@ void ConnectionManager::setIP(UserConnection* p_uc, ConnectionQueueItem* p_qi)
 	#else // PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	*/
 	
-	p_uc->getUser()->setIP(p_uc->getSocket()->getIp());
+	p_uc->getUser()->setIP(p_uc->getSocket()->getIp(), true);
 	
 	
 //#endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO

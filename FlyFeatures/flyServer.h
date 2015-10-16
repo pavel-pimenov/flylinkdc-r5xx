@@ -250,7 +250,7 @@ public:
   static bool isCompressExt(const string& p_ext);
   static bool isBlockShare(const string& p_name);
   static std::vector<StringPair> getDeadHub();
-  static std::string getAlternativeHub(const string& p_url);
+  static int getAlternativeHub(string& p_url);
   string DBDelete();
   static DWORD    g_winet_connect_timeout;
   static DWORD    g_winet_receive_timeout;
@@ -270,6 +270,7 @@ public:
   
 #ifdef USE_SUPPORT_HUB
   static string   g_support_hub;
+  static string   g_support_hub_en;
 #endif // USE_SUPPORT_HUB
   static std::vector<std::string> g_mapping_hubs;
   //static std::unordered_set<unsigned long> g_block_ip;

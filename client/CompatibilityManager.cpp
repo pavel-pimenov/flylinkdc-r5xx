@@ -46,6 +46,7 @@
 string CompatibilityManager::g_incopatibleSoftwareList;
 string CompatibilityManager::g_startupInfo;
 DWORDLONG CompatibilityManager::g_TotalPhysMemory;
+DWORDLONG CompatibilityManager::g_FreePhysMemory;
 OSVERSIONINFOEX CompatibilityManager::g_osvi = {0};
 SYSTEM_INFO CompatibilityManager::g_sysInfo = {0};
 bool CompatibilityManager::g_supports[LAST_SUPPORTS];
@@ -648,7 +649,19 @@ string CompatibilityManager::generateNetworkStats()
 	         );
 	return l_buf.data();
 }
-
+void CompatibilityManager::caclPhysMemoryStat()
+{
+	// Total RAM
+	MEMORYSTATUSEX curMem = { 0 };
+	curMem.dwLength = sizeof(curMem);
+	g_FreePhysMemory = 0;
+	g_TotalPhysMemory = 0;
+	if (getGlobalMemoryStatusFromOS(&curMem))
+	{
+		g_TotalPhysMemory = curMem.ullTotalPhys;
+		g_FreePhysMemory = curMem.ullAvailPhys;
+	}
+}
 string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 {
 	std::vector<char> l_buf(2048);
@@ -660,18 +673,14 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 			LPFUNC _GetProcessMemoryInfo = (LPFUNC)GetProcAddress(hInstPsapi, "GetProcessMemoryInfo");
 			if (_GetProcessMemoryInfo)
 			{
-				PROCESS_MEMORY_COUNTERS pmc = {0};
-				pmc.cb = sizeof(pmc);
-				_GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc));
-				// Total RAM
-				MEMORYSTATUSEX curMem = {0};
-				curMem.dwLength = sizeof(curMem);
-				DWORDLONG l_FreePhysMemory = 0;
-				if (getGlobalMemoryStatusFromOS(&curMem))
-				{
-					g_TotalPhysMemory = curMem.ullTotalPhys;
-					l_FreePhysMemory = curMem.ullAvailPhys;
-				}
+				PROCESS_MEMORY_COUNTERS l_pmc = {0};
+				l_pmc.cb = sizeof(l_pmc);
+				_GetProcessMemoryInfo(GetCurrentProcess(), &l_pmc, sizeof(l_pmc));
+				extern int g_RAM_PeakWorkingSetSize;
+				extern int g_RAM_WorkingSetSize;
+				g_RAM_WorkingSetSize = l_pmc.WorkingSetSize / 1024 / 1024;
+				g_RAM_PeakWorkingSetSize = l_pmc.PeakWorkingSetSize / 1024 / 1024;
+				caclPhysMemoryStat();
 				FILETIME tmpa = {0};
 				FILETIME tmpb = {0};
 				FILETIME kernelTimeFT = {0};
@@ -709,7 +718,7 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				          A_VERSIONSTRING, Text::fromT(Util::getCompileDate()).c_str(),
 				          CompatibilityManager::getWindowsVersionName().c_str(),
 				          //CompatibilityManager::getProcArchString().c_str(),
-				          CompatibilityManager::ProcSpeedCalc(), l_procs.c_str(), Util::formatBytes(g_TotalPhysMemory).c_str(), Util::formatBytes(l_FreePhysMemory).c_str(),
+				          CompatibilityManager::ProcSpeedCalc(), l_procs.c_str(), Util::formatBytes(g_TotalPhysMemory).c_str(), Util::formatBytes(g_FreePhysMemory).c_str(),
 				          Util::formatTime(
 #ifdef FLYLINKDC_SUPPORT_WIN_XP
 				              GetTickCount()
@@ -717,16 +726,16 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				              GetTickCount64()
 #endif
 				              / 1000).c_str(), Util::formatSeconds((kernelTime + userTime) / (10I64 * 1000I64 * 1000I64)).c_str(), Util::formatTime(Util::getUpTime()).c_str(),
-				          Util::formatBytes(pmc.WorkingSetSize).c_str(),
-				          Util::formatBytes(pmc.PeakWorkingSetSize).c_str(),
-				          Util::formatBytes(pmc.PagefileUsage).c_str(),
-				          Util::formatBytes(pmc.PeakPagefileUsage).c_str(),
+				          Util::formatBytes(l_pmc.WorkingSetSize).c_str(),
+				          Util::formatBytes(l_pmc.PeakWorkingSetSize).c_str(),
+				          Util::formatBytes(l_pmc.PagefileUsage).c_str(),
+				          Util::formatBytes(l_pmc.PeakPagefileUsage).c_str(),
 				          GetGuiResources(GetCurrentProcess(), GR_GDIOBJECTS),
 				          GetGuiResources(GetCurrentProcess(), 2/* GR_GDIOBJECTS_PEAK */),
 				          GetGuiResources(GetCurrentProcess(), GR_USEROBJECTS),
 				          GetGuiResources(GetCurrentProcess(), 4 /*GR_USEROBJECTS_PEAK*/),
 				          Util::formatBytes(ShareManager::getSharedSize()).c_str(),
-				          ShareManager::getSharedFiles(),
+				          ShareManager::getLastSharedFiles(),
 				          ClientManager::getTotalUsers(),
 				          Client::getTotalCounts(),
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO

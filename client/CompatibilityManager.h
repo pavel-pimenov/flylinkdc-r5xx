@@ -137,6 +137,11 @@ class CompatibilityManager
 		{
 			return g_TotalPhysMemory;
 		}
+		static DWORDLONG getFreePhysMemory()
+		{
+			return g_FreePhysMemory;
+		}
+		static void caclPhysMemoryStat();
 		
 		static float ProcSpeedCalc();
 		static WORD getDllPlatform(const string& fullpath);
@@ -181,6 +186,7 @@ class CompatibilityManager
 		static bool g_supports[LAST_SUPPORTS];
 		static LONG g_comCtlVersion;
 		static DWORDLONG g_TotalPhysMemory;
+		static DWORDLONG g_FreePhysMemory;
 		
 		static void detectOsSupports();
 		static bool detectWine();// [+] PPA

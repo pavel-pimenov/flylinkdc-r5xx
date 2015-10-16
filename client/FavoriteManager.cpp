@@ -67,7 +67,7 @@ const FavoriteManager::mimicrytag FavoriteManager::g_MimicryTags[] =
 	FavoriteManager::mimicrytag(nullptr, nullptr),          // terminating, don't delete this
 };
 
-FavoriteManager::FavoriteManager() : m_lastId(0)
+FavoriteManager::FavoriteManager() : m_lastId(0), m_count_hub(0)
 {
 	SettingsManager::getInstance()->addListener(this);
 	ClientManager::getInstance()->addListener(this);
@@ -957,7 +957,7 @@ bool FavoriteManager::load_from_url()
 #endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 void FavoriteManager::load()
 {
-
+	m_count_hub = 0;
 	// Add NMDC standard op commands
 	static const char g_kickstr[] = /*"$Kick %[userNI]|";*/
 	    "$To: %[userNI] From: %[myNI] $<%[myNI]> You are being kicked because: %[kickline:Reason]|<%[myNI]> is kicking %[userNI] because: %[kickline:Reason]|$Kick %[userNI]|";
@@ -997,7 +997,7 @@ void FavoriteManager::load()
 	}
 	
 #ifdef USE_SUPPORT_HUB
-	if (BOOLSETTING(CONNECT_TO_SUPPORT_HUB)) // [+] SSA
+	if (BOOLSETTING(CONNECT_TO_SUPPORT_HUB) || m_count_hub == 0) // [+] SSA
 	{
 		connectToFlySupportHub();
 	}
@@ -1055,14 +1055,22 @@ void FavoriteManager::connectToFlySupportHub()
 	if (!g_SupportsHubExist)
 	{
 		g_SupportsHubExist = true;
-		FavoriteHubEntry* e = new FavoriteHubEntry();
-		e->setName(STRING(SUPPORTS_SERVER_DESC));
-		e->setConnect(true);
-		e->setDescription(STRING(SUPPORTS_SERVER_DESC));
-		e->setServer(CFlyServerConfig::g_support_hub);
+		if (!getFavoriteHubEntry(CFlyServerConfig::g_support_hub))
 		{
-			webrtc::WriteLockScoped l(*g_csHubs);
-			g_favoriteHubs.push_back(e);
+			FavoriteHubEntry* e = new FavoriteHubEntry();
+			e->setName(STRING(SUPPORTS_SERVER_DESC));
+			e->setConnect(true);
+			e->setEncoding(Text::g_code1251);
+			e->setDescription(STRING(SUPPORTS_SERVER_DESC));
+			e->setServer(CFlyServerConfig::g_support_hub);
+			{
+				webrtc::WriteLockScoped l(*g_csHubs);
+				g_favoriteHubs.push_back(e);
+			}
+		}
+		else
+		{
+			dcassert(0);
 		}
 	}
 }
@@ -1101,6 +1109,7 @@ void FavoriteManager::load(SimpleXML& aXml
 #endif
                           )
 {
+	m_count_hub = 0;
 	bool needSave = false;
 	{
 		CFlySafeGuard<uint16_t> l_satrt(g_dontSave);
@@ -1130,6 +1139,7 @@ void FavoriteManager::load(SimpleXML& aXml
 			const unsigned l_limit_russian_hub = 1;
 			while (aXml.findChild("Hub"))
 			{
+				const bool l_is_connect = aXml.getBoolChildAttrib("Connect");
 				const string l_CurrentServerUrl = Text::toLower(Util::formatDchubUrl(aXml.getChildAttrib("Server")));
 				if (l_is_fly_hub_exists == false && l_CurrentServerUrl == CFlyServerConfig::g_support_hub)
 					l_is_fly_hub_exists = true;
@@ -1145,13 +1155,12 @@ void FavoriteManager::load(SimpleXML& aXml
 #ifdef USE_SUPPORT_HUB
 				if (l_CurrentServerUrl == CFlyServerConfig::g_support_hub)
 					g_SupportsHubExist = true;
-#endif USE_SUPPORT_HUB
+#endif // USE_SUPPORT_HUB
 					
 				FavoriteHubEntry* e = new FavoriteHubEntry();
 				const string& l_Name = aXml.getChildAttrib("Name");
 				e->setName(l_Name);
-				const bool l_connect = aXml.getBoolChildAttrib("Connect");
-				if (l_connect &&
+				if (l_is_connect &&
 				        (l_CurrentServerUrl.rfind(".ru") != string::npos ||
 				         l_CurrentServerUrl.rfind("ozerki.org") != string::npos ||
 				         l_CurrentServerUrl.rfind("dc.filimania.com") != string::npos ||
@@ -1162,8 +1171,12 @@ void FavoriteManager::load(SimpleXML& aXml
 				{
 					l_count_active_ru_hub++;
 				}
+				if (l_is_connect)
+				{
+					m_count_hub++;
+				}
 				
-				e->setConnect(l_connect);
+				e->setConnect(l_is_connect);
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 				const bool l_ISPDelete  = aXml.getBoolChildAttrib("ISPDelete");
 				const string& l_ISPMode = aXml.getChildAttrib("ISPMode");
@@ -1328,20 +1341,48 @@ void FavoriteManager::load(SimpleXML& aXml
 #endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 			}
 			//
-			if ((l_is_fly_hub_exists == false && l_count_active_ru_hub >= l_limit_russian_hub) || g_favoriteHubs.empty()) // TODO - проверить что один и не локальный?
+			if (l_is_fly_hub_exists == false)
 			{
-				if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAddSupportHub) == 0 || g_favoriteHubs.empty())
+				if (l_count_active_ru_hub >= l_limit_russian_hub || g_favoriteHubs.empty()) // TODO - проверить что один и не локальный?
 				{
-					CFlyServerJSON::pushError(45, "Promo hub:" + CFlyServerConfig::g_support_hub);
-					CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_autoAddSupportHub, l_count_active_ru_hub);
-					FavoriteManager::connectToFlySupportHub();
+					if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAddSupportHub) == 0 || g_favoriteHubs.empty())
+					{
+						CFlyServerJSON::pushError(45, "Promo hub:" + CFlyServerConfig::g_support_hub);
+						CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_autoAddSupportHub, l_count_active_ru_hub);
+						FavoriteManager::connectToFlySupportHub();
+						needSave = true;
+					}
+				}
+				else
+				{
+					if (Text::g_systemCharset == Text::g_code1251)
+					{
+						if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAdd1251SupportHub) == 0)
+						{
+							CFlyServerJSON::pushError(45, "Promo hub Locale 1251:" + CFlyServerConfig::g_support_hub);
+							CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_autoAdd1251SupportHub, 1);
+							FavoriteManager::connectToFlySupportHub();
+							needSave = true;
+						}
+					}
 				}
 			}
-			
 			needSave |= replaceDeadHub();
 			//
 			aXml.stepOut();
 		}
+		if (m_count_hub == 0)
+		{
+			CFlyServerJSON::pushError(45, "Promo hub (First!):" + CFlyServerConfig::g_support_hub);
+			CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_autoAddFirstSupportHub, 1);
+			FavoriteManager::connectToFlySupportHub();
+			needSave = true;
+		}
+		else
+		{
+			// CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_autoAddFirstSupportHub, 0);
+		}
+		
 		aXml.resetCurrentChild();
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 		if (!p_is_url)
@@ -1470,7 +1511,9 @@ FavoriteHubEntry* FavoriteManager::getFavoriteHubEntry(const string& aServer)
 	for (auto i = g_favoriteHubs.cbegin(); i != g_favoriteHubs.cend(); ++i)
 	{
 		if ((*i)->getServer() == aServer)
+		{
 			return (*i);
+		}
 	}
 	return nullptr;
 }
@@ -1482,7 +1525,9 @@ FavoriteHubEntryList FavoriteManager::getFavoriteHubs(const string& group)
 	for (auto i = g_favoriteHubs.cbegin(), iend = g_favoriteHubs.cend(); i != iend; ++i)
 	{
 		if ((*i)->getGroup() == group)
+		{
 			ret.push_back(*i);
+		}
 	}
 	return ret;
 }

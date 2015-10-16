@@ -374,7 +374,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		
 		struct CFlyFloodCommand
 		{
-			std::vector<string> m_command;
+			std::vector<std::pair<string, int64_t>> m_flood_command;
 			int64_t  m_start_tick;
 			int64_t  m_tick;
 			uint32_t m_count;

@@ -9,7 +9,7 @@
 		<Section name="FlylinkDC++" URL="search/label/flylinkdc" SearchURL=""/>
 		<Section name="StrongDC++ sqlite" URL="search/label/strongdc-sqlite" SearchURL=""/>
 	</Portal>
-	<Portal name="DC++ Шара" URL="http://dcshara.ru/" SearchURL="engine/search.php?filmname=%QUERY%" XMLVersion="1" DefaultCharset="utf8">
+	<Portal name="DC++ Шара" URL="http://dcshara.ru/" SearchURL="index.php?do=search&amp;subaction=search&amp;search_start=1&amp;full_search=0&amp;result_from=1&amp;titleonly=3&amp;story=%QUERY%" XMLVersion="1" DefaultCharset="utf8">
 		<Images Large="dcshara\icons_large.bmp" Small="dcshara\icons_small.bmp" SmallImageID="0" LargeImageID="0"/>
 		<Default StartSection="0" SearchSection="0"/>
 		<Flags DenyNewWnd="1" DenyExternalLinksNewWindow="1"/>

@@ -597,6 +597,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		OMenu* m_tabMenu;
 		OMenu* m_userMenu;
 		bool   m_tabMenuShown;
+		boost::unordered_map<string, unsigned> m_count_redirect_map;
 		
 #ifdef SCALOLAZ_HUB_MODE
 		CStatic* m_ctrlShowMode;

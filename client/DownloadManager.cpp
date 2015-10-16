@@ -81,6 +81,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 				l_td.m_start = d->getStart();
 				l_td.m_size = d->getSize();
 				l_td.m_type = d->getType();
+				l_td.m_path = d->getPath();
 				l_td.calc_percent();
 				if (d->isSet(Download::FLAG_DOWNLOAD_PARTIAL))
 				{

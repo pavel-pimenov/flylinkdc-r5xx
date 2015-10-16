@@ -382,7 +382,9 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			
 			bool operator==(const ItemInfo& ii) const
 			{
-				return download == ii.download && m_hintedUser.user == ii.m_hintedUser.user; // [!] IRainman fix.
+				return download == ii.download &&
+				       //(m_target == ii.m_target || m_target.empty() && ii.m_target.empty()) &&
+				       m_hintedUser.user == ii.m_hintedUser.user; // [!] IRainman fix.
 			}
 #if 0
 			UpdateInfo(const HintedUser& aUser, const bool isDownload, const bool isTransferFailed = false) :

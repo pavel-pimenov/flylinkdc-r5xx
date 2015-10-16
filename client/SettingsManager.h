@@ -497,51 +497,19 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 			UnknownPlayer = PlayersCount
 		};
 		
-		static const string& get(StrSetting key, const bool useDefault = true) // [!] IRainman opt.
-		{
-			if (isSet[key] || !useDefault)
-				return strSettings[key - STR_FIRST];
-			else
-				return strDefaults[key - STR_FIRST];
-		}
-		
-		static int get(IntSetting key, const bool useDefault = true) // [!] IRainman opt.
-		{
-			if (isSet[key] || !useDefault)
-				return intSettings[key - INT_FIRST];
-			else
-				return intDefaults[key - INT_FIRST];
-		}
-		
-		// [!] IRainman don't uncoment this code, FlylinkDC++ save all statistics on database!
-		//int64_t get(Int64Setting key, const bool useDefault = true) const
-		//{
-		//  return (isSet[key] || !useDefault) ? int64Settings[key - INT64_FIRST] : int64Defaults[key - INT64_FIRST];
-		//}
+		static const string& get(StrSetting key, const bool useDefault = true);
+		static int get(IntSetting key, const bool useDefault = true);
 		static bool getBool(IntSetting key, const bool useDefault = true) // [!] IRainman opt.
 		{
 			return get(key, useDefault) != 0;
 		}
 		// [!] IRainman all set function return status: true is value automatically corrected, or false if not.
-		static bool set(StrSetting key, const string& value);// [!] IRainman
-		static bool set(IntSetting key, int value);// [!] IRainman
-		static bool set(IntSetting key, const string& value)// [!] IRainman
+		static bool set(StrSetting key, const string& value);
+		static bool set(IntSetting key, int value);
+		static bool set(IntSetting key, const std::string& value);
+		static bool set(IntSetting key, bool value)
 		{
-			if (value.empty())
-			{
-				intSettings[key - INT_FIRST] = 0;
-				isSet[key] = false;
-				return false;// [!] IRainman
-			}
-			else
-			{
-				return set(key, Util::toInt(value));// [!] IRainman
-			}
-		}
-		
-		static bool set(IntSetting key, bool value)// [!] IRainman
-		{
-			return set(key, (int)value);
+			return set(key, int(value));
 		}
 		
 		static void setDefault(StrSetting key, const string& value) // [!] IRainman opt.
@@ -570,7 +538,6 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		{
 			isSet[key] = false;
 		}
-		
 		void load()
 		{
 			Util::migrate(getConfigFile());
@@ -602,32 +569,10 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		}
 		static const StringList& getExtensions(const string& name); // [!] IRainman opt.
 		
-		static unsigned short getNewPortValue(unsigned short p_OldPortValue)// [+] IRainman
-		{
-			unsigned short l_NewPortValue;
-			do
-			{
-				l_NewPortValue = static_cast<unsigned short>(Util::rand(10000, 32000));
-			}
-			while (l_NewPortValue == p_OldPortValue);
-			
-			return l_NewPortValue;
-		}
-		static const string& getSoundFilename(const SettingsManager::StrSetting p_sound) // [+] IRainman fix.
-		{
-			if (getBool(SOUNDS_DISABLED, true))
-				return Util::emptyString;
-				
-			return get(p_sound, true);
-		}
-		static bool getBeepEnabled(const SettingsManager::IntSetting p_sound) // [+] IRainman fix.
-		{
-			return !getBool(SOUNDS_DISABLED, true) && getBool(p_sound, true);
-		}
-		static bool getPopupEnabled(const SettingsManager::IntSetting p_popup) // [+] IRainman fix.
-		{
-			return !getBool(POPUPS_DISABLED, true) && getBool(p_popup, true);
-		}
+		static unsigned short getNewPortValue(unsigned short p_OldPortValue); // [+] IRainman
+		static string getSoundFilename(const SettingsManager::StrSetting p_sound); // [+] IRainman fix.
+		static bool getBeepEnabled(const SettingsManager::IntSetting p_sound); // [+] IRainman fix.
+		static bool getPopupEnabled(const SettingsManager::IntSetting p_popup); // [+] IRainman fix.
 	private:
 		friend class Singleton<SettingsManager>;
 		SettingsManager();
@@ -656,14 +601,14 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 };
 
 // Shorthand accessor macros
-#define SETTING(k) (SettingsManager::get(SettingsManager::k, true))
-#define BOOLSETTING(k) (SettingsManager::getBool(SettingsManager::k, true))
+#define SETTING(k) SettingsManager::get(SettingsManager::k, true)
+#define BOOLSETTING(k) SettingsManager::getBool(SettingsManager::k, true)
 
 // [+] IRainman: copy-past fix.
-#define SET_SETTING(k, v) (SettingsManager::set(SettingsManager::k, v))
-#define SOUND_SETTING(k) (SettingsManager::getSoundFilename(SettingsManager::k))
-#define SOUND_BEEP_BOOLSETTING(k) (SettingsManager::getBeepEnabled(SettingsManager::k))
-#define POPUP_ENABLED(k) (SettingsManager::getPopupEnabled(SettingsManager::k))
+#define SET_SETTING(k, v) SettingsManager::set(SettingsManager::k, v)
+#define SOUND_SETTING(k) SettingsManager::getSoundFilename(SettingsManager::k)
+#define SOUND_BEEP_BOOLSETTING(k) SettingsManager::getBeepEnabled(SettingsManager::k)
+#define POPUP_ENABLED(k) SettingsManager::getPopupEnabled(SettingsManager::k)
 
 #define SPLIT_SETTING_AND_LOWER(key) Util::splitSettingAndLower(SETTING(key))
 // [~] IRainman: copy-past fix.

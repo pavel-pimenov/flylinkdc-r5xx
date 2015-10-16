@@ -1289,6 +1289,7 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 				l_td.m_start = u->getStart();
 				l_td.m_size  = u->getType() == Transfer::TYPE_TREE ? u->getSize() : u->getFileSize();
 				l_td.m_type  = u->getType();
+				l_td.m_path = u->getPath();
 				l_td.calc_percent();
 				if (u->isSet(Upload::FLAG_UPLOAD_PARTIAL))
 				{

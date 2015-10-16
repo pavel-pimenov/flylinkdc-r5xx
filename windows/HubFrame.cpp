@@ -98,6 +98,10 @@ int HubFrame::g_columnSizes[] = { 100,    // COLUMN_NICK
                                   , 50   // COLUMN_FLY_HUB_COUNTRY
                                   , 50   // COLUMN_FLY_HUB_CITY
                                   , 50   // COLUMN_FLY_HUB_ISP
+                                  , 50   // COLUMN_FLY_HUB_COUNT_FILES
+                                  , 100  // COLUMN_FLY_HUB_LAST_SHARE_DATE
+                                  , 100   // COLUMN_FLY_HUB_RAM
+                                  , 100  // COLUMN_FLY_HUB_SQLITE_DB_SIZE
 #endif
                                 }; // !SMT!-IP
 
@@ -139,6 +143,10 @@ int HubFrame::g_columnIndexes[] = { COLUMN_NICK,
                                     , COLUMN_FLY_HUB_COUNTRY
                                     , COLUMN_FLY_HUB_CITY
                                     , COLUMN_FLY_HUB_ISP
+                                    , COLUMN_FLY_HUB_COUNT_FILES
+                                    , COLUMN_FLY_HUB_LAST_SHARE_DATE
+                                    , COLUMN_FLY_HUB_RAM
+                                    , COLUMN_FLY_HUB_SQLITE_DB_SIZE
 #endif
                                   };
 
@@ -179,7 +187,12 @@ static ResourceManager::Strings g_columnNames[] = { ResourceManager::NICK,      
                                                     ResourceManager::FLY_HUB_GENDER, // COLUMN_FLY_HUB_GENDER
                                                     ResourceManager::FLY_HUB_COUNTRY, // COLUMN_FLY_HUB_COUNTRY
                                                     ResourceManager::FLY_HUB_CITY,   // ,COLUMN_FLY_HUB_CITY
-                                                    ResourceManager::FLY_HUB_ISP    // COLUMN_FLY_HUB_ISP
+                                                    ResourceManager::FLY_HUB_ISP,    // COLUMN_FLY_HUB_ISP
+                                                    ResourceManager::FLY_HUB_COUNT_FILES,     // COLUMN_FLY_HUB_COUNT_FILES
+                                                    ResourceManager::FLY_HUB_LAST_SHARE_DATE, // COLUMN_FLY_HUB_LAST_SHARE_DATE
+                                                    ResourceManager::FLY_HUB_RAM,             // COLUMN_FLY_HUB_RAM
+                                                    ResourceManager::FLY_HUB_SQLITE_DB_SIZE   // COLUMN_FLY_HUB_SQLITE_DB_SIZE
+
 #endif
                                                   };
 
@@ -257,7 +270,8 @@ HubFrame::HubFrame(bool p_is_auto_connect,
 	m_ctrlStatusCache.resize(5);
 	m_showUsersStore = p_UserListState;
 	m_showUsers = false;
-	m_server = CFlyServerConfig::getAlternativeHub(aServer);
+	m_server = aServer;
+	CFlyServerConfig::getAlternativeHub(m_server);
 	m_client = ClientManager::getInstance()->getClient(m_server, p_is_auto_connect);
 	m_nProportionalPos = p_ChatUserSplit;
 	m_client->setName(aName);
@@ -1453,7 +1467,7 @@ void HubFrame::addStatus(const tstring& aLine, const bool bInChat /*= true*/, co
 					const string l_ip = l_match[0].str();
 					boost::system::error_code ec;
 					const auto l_ip_boost = boost::asio::ip::address_v4::from_string(l_ip, ec);
-					if (!ec)
+					if (!ec && Text::fromT(l_ipT) != l_ip)
 					{
 						m_client->getMyIdentity().setIp(l_ip);
 						const string l_message = "*** FlylinkDC++ automatic change IP " + Text::fromT(l_ipT) + " to " + l_ip + " [Hub " + m_client->getHubUrlAndIP() + "] Last Message: " + Text::fromT(m_last_hub_message);
@@ -3179,7 +3193,7 @@ void HubFrame::reconnectDisconnected()
 	{
 		const auto& l_client = i->second->m_client;
 		dcassert(l_client);
-		if (!l_client->isConnected())
+		if (l_client && !l_client->isConnected())
 		{
 			l_client->reconnect();
 		}
@@ -3451,12 +3465,12 @@ void HubFrame::on(ClientListener::UserRemoved, const Client*, const OnlineUserPt
 void HubFrame::on(Redirect, const Client*, const string& line) noexcept
 {
 	string redirAdr = Util::formatDchubUrl(line); // [+] IRainman fix http://code.google.com/p/flylinkdc/issues/detail?id=1237
-	redirAdr = CFlyServerConfig::getAlternativeHub(redirAdr);
+	const int l_code = CFlyServerConfig::getAlternativeHub(redirAdr);
 	bool l_is_double_redir = false;
+	const string l_reserve_server = "dchub://dc.livedc.ru";
 	if (ClientManager::isConnected(redirAdr))
 	{
 		speak(ADD_STATUS_LINE, STRING(REDIRECT_ALREADY_CONNECTED), true);
-		const string l_reserve_server = "dchub://dc.livedc.ru";
 		if (ClientManager::isConnected(l_reserve_server))
 		{
 			return;
@@ -3465,11 +3479,11 @@ void HubFrame::on(Redirect, const Client*, const string& line) noexcept
 		{
 			redirAdr = l_reserve_server;
 			l_is_double_redir = true;
-			const string l_redirect = "HubFrame::on(Redirect) " + getHubHint() + " -> " + line + " REDIRECT_ALREADY_CONNECTED -> connect to " + l_reserve_server;
+			const string l_redirect = "HubFrame::on(Redirect) " + getHubHint() + " -> " + redirAdr + " REDIRECT_ALREADY_CONNECTED -> connect to " + l_reserve_server;
 			if (m_last_redirect != l_redirect)
 			{
 				m_last_redirect = l_redirect;
-				CFlyServerJSON::pushError(46, m_last_redirect);
+				CFlyServerJSON::pushError(l_code, m_last_redirect);
 			}
 		}
 	}
@@ -3477,11 +3491,20 @@ void HubFrame::on(Redirect, const Client*, const string& line) noexcept
 	m_redirect = redirAdr;
 	if (l_is_double_redir == false)
 	{
-		const string l_redirect = "HubFrame::on(Redirect) " + getHubHint() + " -> " + line + " auto follow = " + Util::toString(BOOLSETTING(AUTO_FOLLOW));
+		string l_loop_message;
+		if (++m_count_redirect_map[m_redirect] > 1)
+		{
+			if (!ClientManager::isConnected(l_reserve_server))
+			{
+				m_redirect = l_reserve_server;
+				l_loop_message = "(stop loop) ";
+			}
+		}
+		const string l_redirect = "HubFrame::on(Redirect) " + l_loop_message + getHubHint() + " -> " + m_redirect + " auto follow = " + Util::toString(BOOLSETTING(AUTO_FOLLOW));
 		if (m_last_redirect != l_redirect)
 		{
 			m_last_redirect = l_redirect;
-			CFlyServerJSON::pushError(46, m_last_redirect);
+			CFlyServerJSON::pushError(l_loop_message.empty() ? l_code : 51, m_last_redirect);
 		}
 	}
 #ifdef PPA_INCLUDE_AUTO_FOLLOW

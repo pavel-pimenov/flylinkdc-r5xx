@@ -118,14 +118,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		
 		void getFileInfo(AdcCommand& p_cmd, const string& aFile);
 		// [!] IRainman opt.
-		static int64_t getShareSize()
-		{
-			dcassert(g_CurrentShareSize != -1); // TODO - баг. попытка получить размер шары до вызова internalCalcShareSize
-			if (g_CurrentShareSize == -1)
-				return 0;
-			else
-				return g_CurrentShareSize;
-		}
+		static int64_t getShareSize();
 	private:
 		void internalCalcShareSize();
 		static void internalClearCache(bool p_is_force);
@@ -133,7 +126,14 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		// [~] IRainman opt.
 		int64_t getShareSize(const string& realPath);
 		
-		static size_t getSharedFiles();
+		static size_t getLastSharedFiles()
+		{
+			return g_lastSharedFiles;
+		}
+		static int64_t getLastSharedDate()
+		{
+			return g_lastSharedDate;
+		}
 		static string getShareSizeString()
 		{
 			return Util::toString(getShareSize());
@@ -184,6 +184,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 	private:
 		static int64_t g_sharedSize;
 		static size_t g_hits;
+		static int64_t g_lastSharedDate;
 		
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 		static string getEmptyBZXmlFile()
@@ -448,6 +449,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		typedef std::unordered_map<TTHValue, Directory::ShareFile::Set::const_iterator> HashFileMap; // TODO - boost
 		
 		static HashFileMap g_tthIndex;
+		static size_t g_lastSharedFiles;
 		static QueryNotExistsSet g_file_not_exists_set;
 		static QueryCacheMap g_file_cache_map;
 		
@@ -504,12 +506,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		__int64 rebuildMediainfo(CFlyLog& p_log);
 		__int64 rebuildMediainfo(Directory& p_dir, CFlyLog& p_log, ShareManager::MediainfoFileArray& p_result);
 #endif
-		void shutdown()//[+]IRainman stopping buildTree
-		{
-			dcassert(!isShutdown());
-			g_isShutdown = true;
-			internalClearCache(true);
-		}
+		void shutdown();
 		static bool isShutdown() // TODO унести в интерфейсный класс - друган Singleton-а
 		{
 			return g_isShutdown;

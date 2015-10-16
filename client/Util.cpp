@@ -788,7 +788,7 @@ void Util::fixFileNameMaxPathLimit(string& p_File)
 		p_File       = p_File.erase(l_limit);
 		p_File  += l_ext;
 		dcassert(p_File == Util::validateFileName(p_File));
-		LogManager::message("Fix MAX_PATH limit [" + l_orig_file + "] convert -> [" + p_File + "] http://code.google.com/p/flylinkdc/issues/detail?id=1447");
+		LogManager::message("Fix MAX_PATH limit [" + l_orig_file + "] convert -> [" + p_File + "]");
 	}
 }
 /**

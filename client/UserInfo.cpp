@@ -115,6 +115,22 @@ int UserInfo::compareItems(const UserInfo* a, const UserInfo* b, int col)
 			PROFILE_THREAD_SCOPED_DESC("COLUMN_FLY_HUB_GENDER")
 			return compare(a->getIdentity().getGenderType(), b->getIdentity().getGenderType());
 		}
+		case COLUMN_FLY_HUB_COUNT_FILES:
+		{
+			return compare(a->getIdentity().getExtJSONCountFiles(), b->getIdentity().getExtJSONCountFiles());
+		}
+		case COLUMN_FLY_HUB_LAST_SHARE_DATE:
+		{
+			return compare(a->getIdentity().getExtJSONLastSharedDate(), b->getIdentity().getExtJSONLastSharedDate());
+		}
+		case COLUMN_FLY_HUB_RAM:
+		{
+			return compare(a->getIdentity().getExtJSONRAMWorkingSet(), b->getIdentity().getExtJSONRAMWorkingSet());
+		}
+		case COLUMN_FLY_HUB_SQLITE_DB_SIZE:
+		{
+			return compare(a->getIdentity().getExtJSONSQLiteDBSize(), b->getIdentity().getExtJSONSQLiteDBSize());
+		}
 	}
 	{
 		PROFILE_THREAD_SCOPED_DESC("COLUMN_DEFAULT")
@@ -251,6 +267,46 @@ tstring UserInfo::getText(int p_col) const
 		{
 			return getIdentity().getGenderTypeAsString();
 		}
+		case COLUMN_FLY_HUB_COUNT_FILES:
+		{
+			if (getIdentity().getExtJSONCountFiles())
+				return Text::toT(Util::toString(getIdentity().getExtJSONCountFiles()));
+			else
+				return Util::emptyStringT;
+		}
+		case COLUMN_FLY_HUB_LAST_SHARE_DATE:
+		{
+			if (getIdentity().getExtJSONLastSharedDate())
+				return Text::toT(Util::formatDigitalClock(getIdentity().getExtJSONLastSharedDate()));
+			else
+				return Util::emptyStringT;
+		}
+		case COLUMN_FLY_HUB_RAM:
+		{
+			if (getIdentity().getExtJSONRAMWorkingSet() || getIdentity().getExtJSONRAMPeakWorkingSet() || getIdentity().getExtJSONRAMFree())
+			{
+				string l_res = Util::toString(getIdentity().getExtJSONRAMWorkingSet());
+				if (getIdentity().getExtJSONRAMPeakWorkingSet() != getIdentity().getExtJSONRAMWorkingSet())
+				{
+					l_res  += " [Max: " + Util::toString(getIdentity().getExtJSONRAMPeakWorkingSet()) + "]";
+				}
+				if (getIdentity().getExtJSONRAMFree())
+				{
+					l_res += " [Free: " + Util::toString(getIdentity().getExtJSONRAMFree()) + "]";
+				}
+				return Text::toT(l_res);
+			}
+			else
+				return Util::emptyStringT;
+		}
+		case COLUMN_FLY_HUB_SQLITE_DB_SIZE:
+		{
+			if (getIdentity().getExtJSONSQLiteDBSize())
+				return Util::formatBytesW(int64_t(getIdentity().getExtJSONSQLiteDBSize()) * 1024 * 1024);
+			else
+				return Util::emptyStringT;
+		}
+		
 #endif
 		default:
 		{

@@ -25,3 +25,5 @@ copy .\update\Update5.xml ..\..\flylinkdc-update\5xx\release
 copy .\update\Update5.sign ..\..\flylinkdc-update\5xx\release
 
 explorer ..\..\flylinkdc-update\5xx
+cd Q:\vc15\r4xx-release\compiled
+call edit_readme_changelog_lite.bat

@@ -216,7 +216,7 @@ const string SettingsManager::g_settingTags[] =
 	"MaxHashSpeed",
 	"SaveTthInNtfsFilestream", "SetMinLenghtTthInNtfsFilestream", // [+] NightOrion
 	"UseAutoPriorityByDefault", "UseOldSharingUI",
-	"FavShowJoins", "LogStatusMessages", "PMLogLines", "SearchAlternateColour", "SoundsDisabled",
+	"FavShowJoins", "LogStatusMessages", "PMLogLines", "SearchAlternateColour", "FlySoundsDisabled",
 	"PopupsDisabled", // [+] InfinitySky.
 	"PopupsTabsEnabled",    // [+] SCALOlaz
 	"PopupsMessagepanelEnabled",
@@ -863,7 +863,7 @@ void SettingsManager::setDefaults()
 	setDefault(PERCENT_FAKE_SHARE_TOLERATED, 20);
 	setDefault(REPORT_ALTERNATES, TRUE);
 	
-	//setDefault(SOUNDS_DISABLED, false);
+	setDefault(SOUNDS_DISABLED, TRUE);
 	//setDefault(POPUPS_DISABLED, false); // [+] InfinitySky.
 	setDefault(POPUPS_TABS_ENABLED, TRUE);  //[+] SCALOlaz
 	setDefault(POPUPS_MESSAGEPANEL_ENABLED, TRUE);
@@ -1390,7 +1390,7 @@ void SettingsManager::load(const string& aFileName)
 	}
 	catch (const FileException&)
 	{
-		dcassert(0);
+		//dcassert(0);
 	}
 	catch (const SimpleXMLException&) // TODO Битый конфиг XML https://crash-server.com/Problem.aspx?ProblemID=15638
 	{
@@ -1582,7 +1582,7 @@ void SettingsManager::loadOtherSettings()
 	}
 	catch (const FileException&)
 	{
-		dcassert(0);
+		//dcassert(0);
 	}
 	catch (const SimpleXMLException&) // TODO Битый конфиг XML https://crash-server.com/Problem.aspx?ProblemID=15638
 	{
@@ -1591,7 +1591,7 @@ void SettingsManager::loadOtherSettings()
 	
 }
 
-bool SettingsManager::set(StrSetting key, const string& value)
+bool SettingsManager::set(StrSetting key, const std::string& value)
 {
 	// [!] Please do not initialize l_auto because when you make changes, you can quietly break logic,
 	// and so though the compiler will issue a warning of a potentially uninitialized variable.
@@ -1805,10 +1805,7 @@ bool SettingsManager::set(IntSetting key, int value)
 			//[!] IRainman when you run a second copy of the application
 			// should not create two copies ShareManager
 			int maxBanShare = 20;
-			if (ShareManager::isValidInstance())
-			{
-				maxBanShare = min(maxBanShare, static_cast<int>(ShareManager::getSharedSize() / static_cast<int64_t>(1024 * 1024 * 1024)));
-			}
+			maxBanShare = min(maxBanShare, static_cast<int>(ShareManager::getSharedSize() / static_cast<int64_t>(1024 * 1024 * 1024)));
 			VERIFI(0, maxBanShare);
 			break;
 		}
@@ -2209,12 +2206,67 @@ const StringList& SettingsManager::getExtensions(const string& name)
 
 SettingsManager::SearchTypesIter SettingsManager::getSearchType(const string& name)
 {
-	SearchTypesIter ret = g_searchTypes.find(name);
+	auto ret = g_searchTypes.find(name);
 	if (ret == g_searchTypes.end())
 	{
 		throw SearchTypeException("No such search type"); // TODO translate
 	}
 	return ret;
+}
+unsigned short SettingsManager::getNewPortValue(unsigned short p_OldPortValue)// [+] IRainman
+{
+	unsigned short l_NewPortValue;
+	do
+	{
+		l_NewPortValue = static_cast<unsigned short>(Util::rand(10000, 32000));
+	}
+	while (l_NewPortValue == p_OldPortValue);
+	
+	return l_NewPortValue;
+}
+string SettingsManager::getSoundFilename(const SettingsManager::StrSetting p_sound) // [+] IRainman fix.
+{
+	if (getBool(SOUNDS_DISABLED, true))
+		return Util::emptyString;
+		
+	return get(p_sound, true);
+}
+bool SettingsManager::getBeepEnabled(const SettingsManager::IntSetting p_sound) // [+] IRainman fix.
+{
+	return !getBool(SOUNDS_DISABLED, true) && getBool(p_sound, true);
+}
+bool SettingsManager::getPopupEnabled(const SettingsManager::IntSetting p_popup) // [+] IRainman fix.
+{
+	return !getBool(POPUPS_DISABLED, true) && getBool(p_popup, true);
+}
+const string& SettingsManager::get(StrSetting key, const bool useDefault /*= true*/) // [!] IRainman opt.
+{
+	if (isSet[key] || !useDefault)
+		return strSettings[key - STR_FIRST];
+	else
+		return strDefaults[key - STR_FIRST];
+}
+
+int SettingsManager::get(IntSetting key, const bool useDefault /*= true*/)
+{
+	if (isSet[key] || !useDefault)
+		return intSettings[key - INT_FIRST];
+	else
+		return intDefaults[key - INT_FIRST];
+}
+
+bool SettingsManager::set(IntSetting key, const std::string& value)// [!] IRainman
+{
+	if (value.empty())
+	{
+		intSettings[key - INT_FIRST] = 0;
+		isSet[key] = false;
+		return false;// [!] IRainman
+	}
+	else
+	{
+		return set(key, Util::toInt(value));// [!] IRainman
+	}
 }
 
 // [+] IRainman fix: avoid to import-export color scheme in kernel.

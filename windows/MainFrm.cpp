@@ -117,6 +117,8 @@ int HashProgressDlg::g_is_execute = 0;
 bool g_TabsCloseButtonEnabled;
 bool g_isStartupProcess = true;
 DWORD g_GDI_count = 0;
+int   g_RAM_WorkingSetSize = 0;
+int   g_RAM_PeakWorkingSetSize = 0;
 CMenu g_mnu;
 
 int g_magic_width;
@@ -902,7 +904,14 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	{
 		setIcon(((aTick / 1000) & 1) ? *m_normalicon : *m_pmicon); // !SMT!-UI
 	}
-	
+	PROCESS_MEMORY_COUNTERS l_pmc = { 0 };
+	const auto l_mem = GetProcessMemoryInfo(GetCurrentProcess(), &l_pmc, sizeof(l_pmc));
+	if (l_mem)
+	{
+		g_GDI_count = GetGuiResources(GetCurrentProcess(), GR_GDIOBJECTS);
+		g_RAM_WorkingSetSize = l_pmc.WorkingSetSize / 1024 / 1024;
+		g_RAM_PeakWorkingSetSize = l_pmc.PeakWorkingSetSize / 1024 / 1024;
+	}
 	if (!g_bAppMinimized || !BOOLSETTING(MINIMIZE_TRAY) /* [-] IRainman opt: not need to update the window title when it is minimized to tray. || BOOLSETTING(SHOW_CURRENT_SPEED_IN_TITLE)*/)
 	{
 #ifndef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
@@ -911,16 +920,15 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 #ifdef FLYLINKDC_CALC_MEMORY_USAGE
 		if ((aTick / 1000) % 3 == 0)
 		{
-			PROCESS_MEMORY_COUNTERS l_pmc = {0};
-			const auto l_mem = GetProcessMemoryInfo(GetCurrentProcess(), &l_pmc, sizeof(l_pmc));
 			char l_buf[128];
 			l_buf[0] = 0;
 			if (l_mem)
 			{
-				g_GDI_count  = GetGuiResources(GetCurrentProcess(), GR_GDIOBJECTS);
-				_snprintf(l_buf, _countof(l_buf), " [RAM: %dM / %dM][GDI: %d]",
-				          int(l_pmc.WorkingSetSize / 1024 / 1024),
-				          int(l_pmc.PeakWorkingSetSize / 1024 / 1024),
+				CompatibilityManager::caclPhysMemoryStat();
+				_snprintf(l_buf, _countof(l_buf), " [RAM: %dM / %dM][Free:%dM][GDI: %d]",
+				          g_RAM_WorkingSetSize,
+				          g_RAM_PeakWorkingSetSize,
+				          int(CompatibilityManager::getFreePhysMemory() / 1024 / 1024),
 				          int(g_GDI_count));
 			}
 			const tstring* l_temp = new tstring(tstring(T_APPNAME_WITH_VERSION) + Text::toT(l_buf));
@@ -2224,6 +2232,10 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 			
 			// TODO move this call to kernel.
 			ClientManager::infoUpdated(true); // Для fly-server шлем принудительно
+		}
+		else
+		{
+			m_transferView.setButtonState();
 		}
 	}
 	return 0;

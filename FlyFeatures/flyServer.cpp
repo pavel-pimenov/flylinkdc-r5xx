@@ -109,7 +109,7 @@ uint16_t CFlyServerConfig::g_max_ddos_connect_to_me = 10; // Ќе более 10 коннект
 uint16_t CFlyServerConfig::g_ban_ddos_connect_to_me = 10; // Ѕлокируем подключени€ к этому IP в течении 10 минут
 
 uint16_t CFlyServerConfig::g_interval_flood_command = 1;  // —колько секунд агрегируем одинаковые команды
-uint16_t CFlyServerConfig::g_max_flood_command = 20;       // Ќе более 5 одинаковых команд в секунду
+uint16_t CFlyServerConfig::g_max_flood_command = 100;       // Ќе более 100 одинаковых команд в секунду
 uint16_t CFlyServerConfig::g_ban_flood_command = 10;      // Ѕлокируем на 10 секунд команды если попали в бан
 uint16_t CFlyServerConfig::g_unique_files_for_virus_detect = 2;
 bool     CFlyServerConfig::g_is_append_cid_error_log = true; // ƒобавл€ть ID к логу ошибок
@@ -125,6 +125,7 @@ std::unordered_set<std::string> CFlyServerConfig::g_block_ip_str;
 std::unordered_set<std::string> CFlyServerConfig::g_block_hubs;
 #ifdef USE_SUPPORT_HUB
 string CFlyServerConfig::g_support_hub = "dchub://dc.fly-server.ru";
+string CFlyServerConfig::g_support_hub_en = "dchub://nemesis.te-home.net";
 #endif // USE_SUPPORT_HUB
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 string CFlyServerConfig::g_antivirus_db_url;
@@ -417,7 +418,8 @@ void CFlyServerConfig::loadConfig()
 						const string& l_url = l_xml.getChildAttrib("url");
 						if (!l_url.empty())
 						{
-							g_spam_urls.push_back(l_url);
+							dcassert(Text::toLower(l_url) == l_url);
+							g_spam_urls.push_back(Text::toLower(l_url));
 						}
 					}
 					l_xml.stepOut();
@@ -509,6 +511,7 @@ void CFlyServerConfig::loadConfig()
 
 #ifdef USE_SUPPORT_HUB
 					initString("support_hub",g_support_hub);
+					initString("support_hub_en", g_support_hub_en);					
 #endif // USE_SUPPORT_HUB
 					initString("regex_find_ip", g_regex_find_ip);
 					initString("faq_search",g_faq_search_does_not_work);
@@ -668,6 +671,7 @@ for (auto i = g_block_ip_str.cbegin(); i != g_block_ip_str.cend(); ++i)
 						g_ignore_flood_command.insert("UserCommand");
 						g_ignore_flood_command.insert("Quit"); 
 						g_ignore_flood_command.insert("MyINFO"); 
+						g_ignore_flood_command.insert("ExtJSON");
 						g_ignore_flood_command.insert("ConnectToMe"); 
 						g_ignore_flood_command.insert("UserIP");
 						g_ignore_flood_command.insert("RevConnectToMe");
@@ -675,15 +679,23 @@ for (auto i = g_block_ip_str.cbegin(); i != g_block_ip_str.cend(); ++i)
 	}
 }
 //======================================================================================================
-std::string CFlyServerConfig::getAlternativeHub(const string& p_url)
+int CFlyServerConfig::getAlternativeHub(string& p_url)
 {
+	if (p_url.find("tankafett.biz") != string::npos || p_url.find(".dchub.net") != string::npos)
+	{
+		p_url = CFlyServerConfig::g_support_hub_en;
+		return 52;
+	}
 	const auto l_dead_hubs = getDeadHub();
 	for (auto i = l_dead_hubs.cbegin(); i != l_dead_hubs.cend(); ++i)
 	{
 		if (p_url == i->first)
-			return i->second;
+		{
+			p_url = i->second;
+			return 53;
+		}
 	}
-	return p_url;
+	return 46;
 }
 //======================================================================================================
 std::vector<StringPair> CFlyServerConfig::getDeadHub()
@@ -1275,7 +1287,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 	syslog(LOG_USER | LOG_INFO, "%s %s %s [%s]", l_cid.c_str(), l_pid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
 }
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 50 (36 - устарел)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 53 (36 - устарел)
 {
 	bool l_is_send  = false;
 	bool l_is_error = false;
@@ -1379,6 +1391,10 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 		{
 			l_info["is_promo_fly_hub"] = 1;
 		}
+		if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAddFirstSupportHub))
+		{
+			l_info["is_promo_fly_hub_first"] = 1;
+		}		
 		extern bool g_UseWALJournal;
 		if (g_UseWALJournal)
 		{
@@ -1405,9 +1421,9 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 		// јгрегационные параметры
 		{
 		    Json::Value& l_stat_info = l_info["Stat"];
-			l_stat_info["Files"] = Util::toString(ShareManager::getSharedFiles());
+			l_stat_info["Files"] = Util::toString(ShareManager::getLastSharedFiles());
 			l_stat_info["Folders"] = Util::toString(CFlylinkDBManager::getInstance()->get_count_folders());
-			l_stat_info["Size"]  = ShareManager::getInstance()->getShareSizeString();
+			l_stat_info["Size"]  = ShareManager::getShareSizeString();
 			// TODO - эти параметры можно посчитать из массива Clients
 			l_stat_info["Users"] = Util::toString(ClientManager::getTotalUsers());
 			l_stat_info["Hubs"]  = Util::toString(Client::getTotalCounts());

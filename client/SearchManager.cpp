@@ -331,7 +331,7 @@ int SearchManager::UdpQueue::run()
 			}
 			if (!remoteIp.is_unspecified())
 			{
-				user->setIP(remoteIp);
+				user->setIP(remoteIp, true);
 #ifdef _DEBUG
 				//ClientManager::setIPUser(user, remoteIp); // TODO - может не нужно тут?
 #endif

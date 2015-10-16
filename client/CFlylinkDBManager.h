@@ -227,7 +227,10 @@ enum eTypeSegment
 	e_TimeStampAntivirusDB = 16,
 	e_TimeStampIBlockListCom = 17,
 	e_TimeStampP2PGuard = 18,
-	e_autoAddSupportHub = 19
+	e_autoAddSupportHub = 19,
+	e_autoAddFirstSupportHub = 20,
+	e_LastShareSize = 21,
+	e_autoAdd1251SupportHub = 22
 };
 struct CFlyRegistryValue
 {
@@ -378,6 +381,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 	private:
 		int merge_queue_sub_itemsL(QueueItemPtr& p_QueueItem, __int64 p_id);
 		void remove_queue_itemL(const __int64 p_id);
+		void remove_queue_item_sourcesL(const __int64 p_id, const CID& p_cid);
 		void clean_registryL(int p_Segment, __int64 p_tick);
 	public:
 		void merge_queue_all_items(std::vector<QueueItemPtr>& p_QueueItemArray);
@@ -622,6 +626,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlySQLCommand m_insert_fly_queue_source;
 		CFlySQLCommand m_del_fly_queue;
 		CFlySQLCommand m_del_fly_queue_source;
+		CFlySQLCommand m_del_fly_queue_source_cid;
 		CFlySQLCommand m_get_fly_queue;
 		CFlySQLCommand m_get_fly_queue_all_source;
 		
