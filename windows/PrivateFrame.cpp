@@ -148,7 +148,9 @@ bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 		// [~] TODO! и видимо в ядро!
 		SHOW_POPUP_EXT(POPUP_NEW_PM, Text::toT(id.getNick() + " - " + sHubHint), PM_PREVIEW, aMessage, 250, TSTRING(PRIVATE_MESSAGE));
 		PLAY_SOUND_BEEP(PRIVATE_MESSAGE_BEEP_OPEN);
+#ifdef FLYLINKDC_USE_CHAT_BOT
 		ChatBot::getInstance()->onMessage(myId, id, aMessage, true); // !SMT!-CB
+#endif
 	}
 	else
 	{
@@ -162,7 +164,9 @@ bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 			{
 				SHOW_POPUP_EXT(POPUP_PM, Text::toT(id.getNick() + " - " + sHubHint), PM_PREVIEW, aMessage, 250, TSTRING(PRIVATE_MESSAGE));
 				PLAY_SOUND_BEEP(PRIVATE_MESSAGE_BEEP);
+#ifdef FLYLINKDC_USE_CHAT_BOT
 				ChatBot::getInstance()->onMessage(myId, id, aMessage, false); // !SMT!-CB
+#endif
 			}
 		}
 		// Add block spam???

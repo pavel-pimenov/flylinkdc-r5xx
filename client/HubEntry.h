@@ -268,7 +268,7 @@ class RecentHubEntry
 		typedef List::const_iterator Iter;
 		
 		explicit RecentHubEntry() : name("*"), description("*"), users("*"), shared("*"), datetime("*") {} // [+] IRainman: copy-past fix.
-		~RecentHubEntry() noexcept { }
+		~RecentHubEntry() { }
 		
 		GETSET(string, name, Name);
 		GETSET(string, server, Server);

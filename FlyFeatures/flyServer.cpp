@@ -681,7 +681,9 @@ for (auto i = g_block_ip_str.cbegin(); i != g_block_ip_str.cend(); ++i)
 //======================================================================================================
 int CFlyServerConfig::getAlternativeHub(string& p_url)
 {
-	if (p_url.find("tankafett.biz") != string::npos || p_url.find(".dchub.net") != string::npos)
+	if (p_url.find("tankafett.biz") != string::npos || 
+		p_url.find(".dchub.net") != string::npos ||
+		p_url.find(".dchublist.biz") != string::npos)
 	{
 		p_url = CFlyServerConfig::g_support_hub_en;
 		return 52;
@@ -1287,7 +1289,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 	syslog(LOG_USER | LOG_INFO, "%s %s %s [%s]", l_cid.c_str(), l_pid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
 }
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 53 (36 - устарел)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 54 (36 - устарел)
 {
 	bool l_is_send  = false;
 	bool l_is_error = false;
@@ -1373,10 +1375,12 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 			l_info["VID"] = l_VID_Array;
 		}
 #ifndef USE_STRONGDC_SQLITE
+#ifdef FLYLINKDC_USE_CHAT_BOT
 		if(ChatBot::isLoaded())
 		{
 			l_info["is_chat_bot"] = 1;
 		}
+#endif
 		if(SETTING(ENABLE_AUTO_BAN))
 		{
 			l_info["is_autoban"] = 1;

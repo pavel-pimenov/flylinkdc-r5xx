@@ -54,7 +54,6 @@ class ConnectionQueueItem
 	public:
 		typedef ConnectionQueueItem* Ptr;
 		typedef FlyLinkVector<Ptr> List;
-		typedef List::const_iterator Iter;
 		
 		enum State
 		{

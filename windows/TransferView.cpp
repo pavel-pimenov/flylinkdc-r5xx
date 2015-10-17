@@ -2238,25 +2238,38 @@ void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, co
 		
 	}
 }
-
+/*
+void TransferView::on(QueueManagerListener::AddedArray, const std::vector<QueueItemPtr>& p_qi_array) noexcept
+{
+    if (!ClientManager::isShutdown())
+    {
+    }
+}
+void TransferView::on(QueueManagerListener::Added, const QueueItemPtr& qi) noexcept
+{
+    if (!ClientManager::isShutdown())
+    {
+    }
+}
+*/
 void TransferView::on(QueueManagerListener::Removed, const QueueItemPtr& qi) noexcept
 {
 	if (!ClientManager::isShutdown())
 	{
-		//if (qi->isUserList())
-		//  return;
 		/*
+		if (qi->isUserList())
+		  return;
 		
 		UpdateInfo* ui = new UpdateInfo(); // [!] IRainman fix.
 		ui->setTarget(qi->getTarget());
 		ui->setStatusString(TSTRING(DISCONNECTED));
 		ui->setStatus(ItemInfo::STATUS_WAITING);
 		m_tasks.add(TRANSFER_UPDATE_PARENT, ui);
-		*/
 		
 		UpdateInfo* ui = new UpdateInfo();
 		ui->setTarget(qi->getTarget());
 		m_tasks.add(TRANSFER_REMOVE_DOWNLOAD_ITEM, ui);
+		*/
 	}
 }
 

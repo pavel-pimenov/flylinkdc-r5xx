@@ -100,6 +100,8 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		static void   addUnknownFile(const string& p_search);
 		static bool   isCacheFile(const string& p_search, SearchResultList& p_search_result);
 		static void   addCacheFile(const string& p_search, const SearchResultList& p_search_result);
+	private:
+		bool   search_tth(const TTHValue& p_tth, SearchResultList& aResults, bool p_is_check_parent);
 	public:
 		void   search(SearchResultList& aResults, const SearchParam& p_search_param) noexcept;
 		void   search(SearchResultList& aResults, const StringList& params, StringList::size_type maxResults, StringSearch::List& reguest) noexcept; // [!] IRainman add StringSearch::List& reguest
@@ -429,6 +431,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		uint64_t m_lastXmlUpdate;
 		uint64_t m_lastFullUpdate;
 		
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csTTHIndex;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShare;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShareNotExists;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShareCache;

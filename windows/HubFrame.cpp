@@ -45,7 +45,6 @@
 #include "FavHubProperties.h"
 #include "../client/MappingManager.h"
 
-int HubFrame::g_last_red_virus_icon_index = 0;
 HubFrame::FrameMap HubFrame::g_frames;
 CriticalSection HubFrame::g_frames_cs;
 
@@ -227,6 +226,7 @@ HubFrame::HubFrame(bool p_is_auto_connect,
 	, m_ctrlUsers(nullptr)
 	, m_second_count(60)
 	, m_hub_name_update_count(0)
+	, m_reconnect_count(0)
 	, m_is_hub_name_updated(false)
 	, m_is_first_goto_end(false)
 	, m_waitingForPW(false)
@@ -994,7 +994,7 @@ const tstring& HubFrame::getNick(const UserPtr& aUser)
 FavoriteHubEntry* HubFrame::addAsFavorite(const FavoriteManager::AutoStartType p_autoconnect/* = FavoriteManager::NOT_CHANGE*/)// [!] IRainman fav options
 {
 	auto fm = FavoriteManager::getInstance();
-	FavoriteHubEntry* existingHub = fm->getFavoriteHubEntry(m_client->getHubUrl());
+	FavoriteHubEntry* existingHub = FavoriteManager::getFavoriteHubEntry(m_client->getHubUrl());
 	if (!existingHub)
 	{
 		FavoriteHubEntry aEntry;
@@ -3146,23 +3146,7 @@ LRESULT HubFrame::onEnterUsers(int /*idCtrl*/, LPNMHDR /* pnmh */, BOOL& /*bHand
 	}
 	return 0;
 }
-void HubFrame::rotation_virus_skull()
-{
-	Lock l(g_frames_cs);
-	int l_index = 0;
-	for (auto i = g_frames.cbegin(); i != g_frames.cend(); ++i)
-	{
-		if (l_index++ >= g_last_red_virus_icon_index)
-		{
-			if (i->second->flickerVirusIcon())
-			{
-				g_last_red_virus_icon_index = l_index;
-				return;
-			}
-		}
-	}
-	g_last_red_virus_icon_index = 0;
-}
+
 void HubFrame::resortUsers()
 {
 	Lock l(g_frames_cs);
@@ -3269,6 +3253,31 @@ void HubFrame::timer_process_internal()
 #endif
 			   )
 			{
+				dcassert(m_client);
+				if (m_client)
+				{
+					const auto l_count_virus_bot = m_client->getVirusBotCount();
+					if (m_virus_icon_index && l_count_virus_bot == 0)
+					{
+						m_virus_icon_index = 0;
+						flickerVirusIcon();
+					}
+					else if (m_virus_icon_index == 0 && m_client->is_all_my_info_loaded())
+					{
+						if (l_count_virus_bot > 1)
+						{
+							if (l_count_virus_bot < 10)
+							{
+								m_virus_icon_index = 1;
+							}
+							else
+							{
+								m_virus_icon_index = 3;
+							}
+						}
+					}
+				}
+				
 				dcdebug("HubFrame::timer_process_internal() [2] m_needsUpdateStats Hub = %s\n", this->getHubHint().c_str());
 				dcassert(!ClientManager::isShutdown());
 				speak(STATS);
@@ -3286,30 +3295,6 @@ void HubFrame::timer_process_internal()
 		{
 			dcdebug("HubFrame::timer_process_internal() [3] force_speak Hub = %s\n", this->getHubHint().c_str());
 			force_speak();
-		}
-		dcassert(m_client);
-		if (m_client && m_ctrlFilter) // ћгаем глазами только на активном хабе
-		{
-			const auto l_count_virus_bot = m_client->getVirusBotCount();
-			if (m_virus_icon_index && l_count_virus_bot == 0)
-			{
-				m_virus_icon_index = 0;
-				flickerVirusIcon();
-			}
-			else if (m_virus_icon_index == 0 && m_client->is_all_my_info_loaded())
-			{
-				if (l_count_virus_bot > 1)
-				{
-					if (l_count_virus_bot < 10)
-					{
-						m_virus_icon_index = 1;
-					}
-					else
-					{
-						m_virus_icon_index = 3;
-					}
-				}
-			}
 		}
 	}
 	if (--m_second_count == 0)
@@ -3362,7 +3347,9 @@ void HubFrame::on(ClientListener::Connected, const Client* c) noexcept
 	}
 	speak(CONNECTED);
 	//PostMessage(WM_SPEAKER_CONNECTED);
+#ifdef FLYLINKDC_USE_CHAT_BOT
 	ChatBot::getInstance()->onHubAction(BotInit::RECV_CONNECT, c->getHubUrl());
+#endif
 }
 
 void HubFrame::on(ClientListener::DDoSSearchDetect, const string&) noexcept
@@ -3431,7 +3418,9 @@ void HubFrame::on(ClientListener::UserUpdated, const OnlineUserPtr& user) noexce
 #ifdef _DEBUG
 //		LogManager::message("[single OnlineUserPtr] void HubFrame::on(ClientListener::UserUpdated nick = " + user->getUser()->getLastNick());
 #endif
+#ifdef FLYLINKDC_USE_CHAT_BOT
 		ChatBot::getInstance()->onUserAction(BotInit::RECV_UPDATE, user->getUser());
+#endif
 	}
 }
 
@@ -3448,7 +3437,9 @@ void HubFrame::on(ClientListener::UsersUpdated, const Client*, const OnlineUserL
 #ifdef _DEBUG
 //		LogManager::message("[array OnlineUserPtr] void HubFrame::on(UsersUpdated nick = " + (*i)->getUser()->getLastNick());
 #endif
+#ifdef FLYLINKDC_USE_CHAT_BOT
 		ChatBot::getInstance()->onUserAction(BotInit::RECV_UPDATE, (*i)->getUser());
+#endif
 	}
 }
 void HubFrame::on(ClientListener::UserRemoved, const Client*, const OnlineUserPtr& user) noexcept
@@ -3459,7 +3450,9 @@ void HubFrame::on(ClientListener::UserRemoved, const Client*, const OnlineUserPt
 #else
 	speak(REMOVE_USER, user);
 #endif
+#ifdef FLYLINKDC_USE_CHAT_BOT
 	ChatBot::getInstance()->onUserAction(BotInit::RECV_PART, user->getUser()); // !SMT!-fix
+#endif
 }
 
 void HubFrame::on(Redirect, const Client*, const string& line) noexcept
@@ -3524,7 +3517,9 @@ void HubFrame::on(ClientListener::Failed, const Client* c, const string& line) n
 	speak(DISCONNECTED);
 	// speak(WM_SPEAKER_DISCONNECTED, nullptr);
 	//PostMessage(WM_SPEAKER_DISCONNECTED);
+#ifdef FLYLINKDC_USE_CHAT_BOT
 	ChatBot::getInstance()->onHubAction(BotInit::RECV_DISCONNECT, c->getHubUrl());
+#endif
 }
 void HubFrame::on(ClientListener::GetPassword, const Client*) noexcept
 {
@@ -3619,6 +3614,24 @@ void HubFrame::on(ClientListener::HubFull, const Client*) noexcept
 void HubFrame::on(ClientListener::NickTaken, const Client*) noexcept
 {
 	speak(ADD_STATUS_LINE, STRING(NICK_TAKEN), true);
+	auto l_fe = FavoriteManager::getFavoriteHubEntry(m_client->getHubUrl());
+	if (l_fe)
+	{
+		string l_nick = l_fe->getNick();
+		string l_fly_user = l_fe->getNick() + "_RND_" + Util::toString(Util::rand());
+		if (l_fly_user.length() > 25)
+		{
+			l_fly_user = l_nick.substr(0, 10);
+			l_fly_user  += "_RND_" + Util::toString(Util::rand());
+		}
+		l_fe->setNick(l_fly_user);
+		CFlyServerJSON::pushError(54, "Hub = " + m_client->getHubUrl() + " New random nick = " + l_fly_user);
+		if (m_reconnect_count < 3)
+		{
+			m_client->reconnect();
+			m_reconnect_count++;
+		}
+	}
 }
 void HubFrame::on(ClientListener::CheatMessage, const string& line) noexcept
 {
@@ -3638,7 +3651,9 @@ void HubFrame::on(ClientListener::HubTopic, const Client*, const string& line) n
 void HubFrame::on(DirectModeDetected, const string& strHubUrl)  noexcept
 {
 	if (m_client->getHubUrl() == strHubUrl)
+	{
 		speak(DIRECT_MODE_DETECTED, strHubUrl, true);
+	}
 }
 #endif
 LRESULT HubFrame::onFilterChar(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)

@@ -56,6 +56,7 @@
 bool ShareManager::g_isShutdown = false;
 bool ShareManager::g_ignoreFileSizeHFS = false; // http://www.flylinkdc.ru/2015/01/hfs-mac-windows.html
 size_t ShareManager::g_hits = 0;
+std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csTTHIndex = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csShare = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csShareNotExists = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csShareCache = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
@@ -242,7 +243,7 @@ bool ShareManager::destinationShared(const string& file_or_dir_name) // [+] IRai
 #if 0
 bool ShareManager::getRealPathAndSize(const TTHValue& tth, string& path, int64_t& size)
 {
-	webrtc::ReadLockScoped l(*g_csShare);
+	webrtc::ReadLockScoped l(*g_csTTHIndex);
 	const auto& i = g_tthIndex.find(tth);
 	if (i != g_tthIndex.cend())
 	{
@@ -263,14 +264,14 @@ bool ShareManager::isTTHShared(const TTHValue& tth)
 {
 	if (!isShutdown())
 	{
-		webrtc::ReadLockScoped l(*g_csShare);
+		webrtc::ReadLockScoped l(*g_csTTHIndex);
 		return g_tthIndex.find(tth) != g_tthIndex.end();
 	}
 	return false;
 }
 string ShareManager::toRealPath(const TTHValue& tth)
 {
-	webrtc::ReadLockScoped l(*g_csShare);
+	webrtc::ReadLockScoped l(*g_csTTHIndex);
 	const auto& i = g_tthIndex.find(tth);
 	if (i != g_tthIndex.end())
 	{
@@ -295,7 +296,7 @@ string ShareManager::toVirtual(const TTHValue& tth)
 		return Transfer::g_user_list_name;
 	}
 	{
-		webrtc::ReadLockScoped l(*g_csShare);
+		webrtc::ReadLockScoped l(*g_csTTHIndex);
 		const auto& i = g_tthIndex.find(tth);
 		if (i != g_tthIndex.end())
 		{
@@ -400,7 +401,7 @@ void ShareManager::getFileInfo(AdcCommand& cmd, const string& aFile)
 		throw ShareException(UserConnection::g_FILE_NOT_AVAILABLE, aFile);
 		
 	TTHValue val(aFile.c_str() + 4); //[+]FlylinkDC++
-	webrtc::ReadLockScoped l(*g_csShare);
+	webrtc::ReadLockScoped l(*g_csTTHIndex);
 	const auto& i = g_tthIndex.find(val);
 	if (i == g_tthIndex.end())
 	{
@@ -450,6 +451,7 @@ ShareManager::Directory::ShareFile::Set::const_iterator ShareManager::findFileL(
 {
 	if (virtualFile.compare(0, 4, "TTH/", 4) == 0)
 	{
+		webrtc::ReadLockScoped l(*g_csTTHIndex);
 		const auto& i = g_tthIndex.find(TTHValue(virtualFile.substr(4)));
 		if (i == g_tthIndex.end())
 		{
@@ -1071,7 +1073,7 @@ void ShareManager::internalCalcShareSize() // [!] IRainman opt.
 			g_isNeedsUpdateShareSize = false;
 			int64_t l_CurrentShareSize = 0;
 			{
-				webrtc::ReadLockScoped l(*g_csShare);
+				webrtc::ReadLockScoped l(*g_csTTHIndex);
 				for (auto i = g_tthIndex.cbegin(); i != g_tthIndex.cend(); ++i)
 				{
 					l_CurrentShareSize += i->second->getSize();
@@ -1415,7 +1417,10 @@ void ShareManager::rebuildIndicesL()
 {
 	g_sharedSize = 0;
 	g_isNeedsUpdateShareSize = true;
-	g_tthIndex.clear();
+	{
+		webrtc::WriteLockScoped l(*g_csTTHIndex);
+		g_tthIndex.clear();
+	}
 	m_bloom.clear();
 	
 	for (auto i = m_list_directories.cbegin(); i != m_list_directories.cend(); ++i)
@@ -1427,17 +1432,20 @@ void ShareManager::rebuildIndicesL()
 void ShareManager::updateIndicesL(Directory& dir, const Directory::ShareFile::Set::iterator& i)
 {
 	const auto& f = *i;
-	const auto& j = g_tthIndex.find(f.getTTH());
-	if (j == g_tthIndex.end())
 	{
-		dir.size += f.getSize();
-		g_sharedSize += f.getSize();
+		webrtc::WriteLockScoped l(*g_csTTHIndex);
+		const auto& j = g_tthIndex.find(f.getTTH());
+		if (j == g_tthIndex.end())
+		{
+			dir.size += f.getSize();
+			g_sharedSize += f.getSize();
+		}
+		
+		dir.addType(f.getFType());
+		
+		g_tthIndex.insert(make_pair(f.getTTH(), i));
+		g_isNeedsUpdateShareSize = true;
 	}
-	
-	dir.addType(f.getFType());
-	
-	g_tthIndex.insert(make_pair(f.getTTH(), i));
-	g_isNeedsUpdateShareSize = true;
 	dcassert(Text::toLower(f.getName()) == f.getLowName());
 	m_bloom.add(Text::toLower(f.getName())); // TODO - тут заюзать  f.getLowName()
 	
@@ -1577,7 +1585,7 @@ void ShareManager::getBloom(ByteVector& v, size_t k, size_t m, size_t h) const
 	HashBloom bloom;
 	bloom.reset(k, m, h);
 	{
-		webrtc::ReadLockScoped l(*g_csShare);
+		webrtc::ReadLockScoped l(*g_csTTHIndex);
 		for (auto i = g_tthIndex.cbegin(); i != g_tthIndex.cend(); ++i)
 		{
 			bloom.add(i->first);
@@ -2270,10 +2278,25 @@ if (l->second)
 	}
 }
 }
-
+bool ShareManager::search_tth(const TTHValue& p_tth, SearchResultList& aResults, bool p_is_check_parent)
+{
+	webrtc::ReadLockScoped l(*g_csTTHIndex); // Тут пока лок по записи т.к. не вынесен.
+	const auto& i = g_tthIndex.find(p_tth);
+	if (i == g_tthIndex.end())
+		return false;
+	dcassert(i->second->getParent());
+	if (p_is_check_parent && !i->second->getParent())
+		return false;
+	const auto &l_fileMap = i->second;
+	// TODO - для TTH сильно толстый объект  SearchResult
+	const SearchResult sr(SearchResult::TYPE_FILE, l_fileMap->getSize(), l_fileMap->getParent()->getFullName() + l_fileMap->getName(), l_fileMap->getTTH(), -1/*token*/);
+	incHits();
+	aResults.push_back(sr);
+	return true;
+}
 void ShareManager::searchTTHArray(CFlySearchArrayTTH& p_all_search_array, const Client* p_client)
 {
-	webrtc::ReadLockScoped l(*g_csShare);
+	webrtc::ReadLockScoped l(*g_csTTHIndex);
 	for (auto j = p_all_search_array.begin(); j != p_all_search_array.end(); ++j)
 	{
 		const auto& i = g_tthIndex.find(j->m_tth);
@@ -2298,7 +2321,7 @@ void ShareManager::searchTTHArray(CFlySearchArrayTTH& p_all_search_array, const 
 
 bool ShareManager::isUnknownTTH(const TTHValue& p_tth)
 {
-	webrtc::ReadLockScoped l(*g_csShare);
+	webrtc::ReadLockScoped l(*g_csTTHIndex);
 	return g_tthIndex.find(p_tth) == g_tthIndex.end();
 }
 
@@ -2339,29 +2362,17 @@ void ShareManager::search(SearchResultList& aResults, const SearchParam& p_searc
 		if (isTTHBase64(p_search_param.m_filter)) //[+]FlylinkDC++ opt.
 		{
 			const TTHValue l_tth(p_search_param.m_filter.c_str() + 4);
-			{
-				webrtc::ReadLockScoped l(*g_csShare); // Тут пока лок по записи т.к. не вынесен.
-				const auto& i = g_tthIndex.find(l_tth);
-				if (i == g_tthIndex.end())
-					return;
-				dcassert(i->second->getParent());
-				if (!i->second->getParent())
-					return;
-				const auto &l_fileMap = i->second;
-				// TODO - для TTH сильно толстый объект  SearchResult
-				const SearchResult sr(SearchResult::TYPE_FILE, l_fileMap->getSize(), l_fileMap->getParent()->getFullName() + l_fileMap->getName(), l_fileMap->getTTH(), -1/*token*/);
-				incHits();
-				aResults.push_back(sr);
-			}
+			if (search_tth(l_tth, aResults, true) == false)
+				return;
 #ifdef FLYLINKDC_USE_COLLECT_STAT
 			{
 				CFlylinkDBManager::getInstance()->push_event_statistic("ShareManager::search",
-				                                                       "TTH",
-				                                                       aString,
-				                                                       "",
-				                                                       "",
-				                                                       p_search_param.m_client->getHubUrlAndIP(),
-				                                                       tth.toBase32());
+				"TTH",
+				aString,
+				"",
+				"",
+				p_search_param.m_client->getHubUrlAndIP(),
+				tth.toBase32());
 			}
 #endif
 		}
@@ -2620,15 +2631,7 @@ void ShareManager::search(SearchResultList& results, const StringList& params, S
 	reguest = srch.m_includeX; // [+] IRainman
 	if (srch.m_hasRoot)
 	{
-		webrtc::ReadLockScoped l(*g_csShare);
-		const auto& i = g_tthIndex.find(srch.m_root);
-		if (i == g_tthIndex.end())
-			return;
-		const auto &l_fileMap = i->second; // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'i->second' expression repeatedly. sharemanager.cpp 2240
-		const SearchResult sr(SearchResult::TYPE_FILE, l_fileMap->getSize(), l_fileMap->getParent()->getFullName() + l_fileMap->getName(), l_fileMap->getTTH(), -1  /*token*/);
-		incHits();
-		results.push_back(sr);
-		return;
+		search_tth(srch.m_root, results, false);
 	}
 	
 	webrtc::ReadLockScoped l(*g_csShare);
@@ -2731,6 +2734,7 @@ void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const T
 			const auto i = d->findFileL(l_file_name);
 			if (i != d->m_files.end())
 			{
+				webrtc::WriteLockScoped l(*g_csTTHIndex);
 				if (root != i->getTTH())
 					g_tthIndex.erase(i->getTTH());
 				// Get rid of false constness...

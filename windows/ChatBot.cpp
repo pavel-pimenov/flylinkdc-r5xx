@@ -5,6 +5,7 @@
 
 #include "stdafx.h"
 
+#ifdef FLYLINKDC_USE_CHAT_BOT
 #include "../client/ClientManager.h"
 #include "../client/FavoriteUser.h"
 #include "../client/UploadManager.h"
@@ -542,3 +543,4 @@ WCHAR* ParamSet::cutParams()
 	m_bufSize = m_bufUsed = 0;
 	return res;
 }
+#endif // FLYLINKDC_USE_CHAT_BOT

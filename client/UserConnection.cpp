@@ -92,11 +92,15 @@ bool UserConnection::isIPGuard(ResourceManager::Strings p_id_string, bool p_is_d
 		{
 			l_is_ip_guard = true;
 			l_p2p_guard = " [P2PGuard] " + l_p2p_guard + " [http://emule-security.org]";
+			const bool l_is_manual = l_p2p_guard == "Manual block IP";
 			if (getUser())
 			{
 				l_p2p_guard += "[User = " + getUser()->getLastNick() + "] [Hub:" + getHubUrl() + "] [Nick:" + ClientManager::findMyNick(getHubUrl()) + "]";
 			}
-			CFlyServerJSON::pushError(38, "(" + getRemoteIp() + ')' + l_p2p_guard);
+			if (!l_is_manual)
+			{
+				CFlyServerJSON::pushError(38, "(" + getRemoteIp() + ')' + l_p2p_guard);
+			}
 		}
 	}
 	bool l_is_avdb_guard;
@@ -316,7 +320,8 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 			
 		dcdebug("Unknown NMDC command: %.50s\n", aLine.c_str());
 #ifdef FLYLINKDC_BETA
-		LogManager::message("Unknown NMDC command: = " + aLine + " hub = " + getHubUrl());
+		LogManager::message("Unknown NMDC command: = " + aLine + " hub = " + getHubUrl() + " remote IP = " + getRemoteIpPort()
+		+ " Nick = " + getHintedUser().user->getLastNick());
 #endif
 		unsetFlag(FLAG_NMDC);
 	}

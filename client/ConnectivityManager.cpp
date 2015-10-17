@@ -250,8 +250,11 @@ void ConnectivityManager::mappingFinished(const string& p_mapper)
 #endif
 		// PPA_INCLUDE_DEAD_CODE fire(ConnectivityManagerListener::Finished());
 	}
-	log(getInformation());
-	SET_SETTING(MAPPER, p_mapper);
+	if (!ClientManager::isShutdown())
+	{
+		log(getInformation());
+		SET_SETTING(MAPPER, p_mapper);
+	}
 	running = false;
 }
 

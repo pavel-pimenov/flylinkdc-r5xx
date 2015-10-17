@@ -9,6 +9,8 @@
 
 #pragma once
 
+#ifdef FLYLINKDC_USE_CHAT_BOT
+
 #include "../client/User.h"
 #include "ChatBotAPI.h"
 
@@ -73,5 +75,6 @@ class ParamSet
 		size_t m_bufSize, m_bufUsed;
 };
 
+#endif // FLYLINKDC_USE_CHAT_BOT
 
 #endif // CHAT_BOT_H

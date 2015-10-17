@@ -868,7 +868,6 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 		m_second_count = 60;
 		onMinute(aTick);
 	}
-	HubFrame::rotation_virus_skull();
 // [+]IRainman Speedmeter
 	m_diff = (/*(lastUpdate == 0) ? aTick - 1000 :*/ aTick - g_lastUpdate); // [!] IRainman fix.
 	const uint64_t l_CurrentUp   = Socket::g_stats.m_tcp.totalUp;

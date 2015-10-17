@@ -277,7 +277,6 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 #ifndef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 		static void timer_process_all();
 #endif
-		static void rotation_virus_skull();
 		
 	private:
 		enum FilterModes
@@ -315,6 +314,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		
 		tstring m_shortHubName;
 		uint8_t m_hub_name_update_count;
+		uint8_t m_reconnect_count;
 		bool m_is_hub_name_updated;
 		bool m_is_process_disconnected;
 		bool m_is_first_goto_end;
@@ -572,7 +572,6 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		bool m_is_ddos_detect;
 		bool m_is_ext_json_hub;
 		uint8_t m_virus_icon_index;
-		static int g_last_red_virus_icon_index;
 		bool flickerVirusIcon();
 		void setCustomVIPIcon();
 		size_t m_ActivateCounter;

@@ -25,8 +25,7 @@ class ToolbarEntry
 	public:
 		typedef ToolbarEntry* Ptr;
 		typedef vector<Ptr> List;
-//		typedef List::const_iterator Iter;
-
+		
 		ToolbarEntry() noexcept
 		{
 			bandcount = 0;

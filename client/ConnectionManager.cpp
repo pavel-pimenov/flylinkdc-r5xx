@@ -169,7 +169,7 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 	{
 		{
 			webrtc::WriteLockScoped l(*g_csDownloads);
-			const ConnectionQueueItem::Iter i = find(g_downloads.begin(), g_downloads.end(), aUser);
+			const auto i = find(g_downloads.begin(), g_downloads.end(), aUser);
 			if (i == g_downloads.end())
 			{
 				getCQI_L(HintedUser(aUser, Util::emptyString), true, Util::emptyString); // http://code.google.com/p/flylinkdc/issues/detail?id=1037
@@ -1295,7 +1295,7 @@ void ConnectionManager::addDownloadConnection(UserConnection* p_conn)
 	{
 		webrtc::ReadLockScoped l(*g_csDownloads);
 		
-		const ConnectionQueueItem::Iter i = find(g_downloads.begin(), g_downloads.end(), p_conn->getUser());
+		const auto i = find(g_downloads.begin(), g_downloads.end(), p_conn->getUser());
 		if (i != g_downloads.end())
 		{
 			cqi = *i;
@@ -1445,7 +1445,7 @@ void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCo
 	bool down;
 	{
 		webrtc::ReadLockScoped l(*g_csDownloads);
-		const ConnectionQueueItem::Iter i = find(g_downloads.begin(), g_downloads.end(), aSource->getUser());
+		const auto i = find(g_downloads.begin(), g_downloads.end(), aSource->getUser());
 		
 		if (i != g_downloads.cend())
 		{
@@ -1509,7 +1509,7 @@ void ConnectionManager::force(const UserPtr& aUser)
 {
 	webrtc::ReadLockScoped l(*g_csDownloads);
 	
-	const ConnectionQueueItem::Iter i = find(g_downloads.begin(), g_downloads.end(), aUser);
+	const auto i = find(g_downloads.begin(), g_downloads.end(), aUser);
 	if (i != g_downloads.end())
 	{
 		fire(ConnectionManagerListener::Forced(), *i);
@@ -1562,7 +1562,7 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 		if (aSource->isSet(UserConnection::FLAG_DOWNLOAD))
 		{
 			webrtc::WriteLockScoped l(*g_csDownloads); // TODO http://code.google.com/p/flylinkdc/issues/detail?id=1439
-			const ConnectionQueueItem::Iter i = find(g_downloads.begin(), g_downloads.end(), aSource->getUser());
+			const auto i = find(g_downloads.begin(), g_downloads.end(), aSource->getUser());
 			dcassert(i != g_downloads.end());
 			if (i == g_downloads.end())
 			{
@@ -1586,7 +1586,7 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 		else if (aSource->isSet(UserConnection::FLAG_UPLOAD))
 		{
 			webrtc::WriteLockScoped l(*g_csUploads); // http://code.google.com/p/flylinkdc/issues/detail?id=1439
-			const ConnectionQueueItem::Iter i = find(g_uploads.begin(), g_uploads.end(), aSource->getUser());
+			const auto i = find(g_uploads.begin(), g_uploads.end(), aSource->getUser());
 			dcassert(i != g_uploads.end());
 			if (i == g_uploads.end())
 			{

@@ -609,6 +609,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		void on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept override; // [+] IRainman opt.
 		void on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept override; // [+] IRainman opt.
 		void on(QueueManagerListener::Removed, const QueueItemPtr&) noexcept override;
+		// void on(QueueManagerListener::Added, const QueueItemPtr&) noexcept override;
+		// virtual void on(AddedArray, const std::vector<QueueItemPtr>& p_qi_array) noexcept;
 		void on(QueueManagerListener::Finished, const QueueItemPtr&, const string&, const DownloadPtr& aDownload) noexcept override;
 		
 		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;

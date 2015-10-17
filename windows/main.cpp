@@ -417,7 +417,9 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	CMessageLoop theLoop;
 	_Module.AddMessageLoop(&theLoop);
 	
+#ifdef FLYLINKDC_USE_CHAT_BOT
 	ChatBot::newInstance(); // !SMT!-CB
+#endif
 	
 	startup(splash_callBack, g_DisableSplash ? (void*)0 : (void*)g_splash.m_hWnd, GuiInit, NULL);
 	startupFlyFeatures(splash_callBack, g_DisableSplash ? (void*)0 : (void*)g_splash.m_hWnd); // [+] SSA
@@ -496,7 +498,10 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 		}  // [!] IRainman fix: correct unload.
 	} // !SMT!-fix
 	
+#ifdef FLYLINKDC_USE_CHAT_BOT
 	ChatBot::deleteInstance(); // !SMT!-CB
+#endif
+	
 	shutdown(GuiUninit, NULL/*, true*/); // TODO http://code.google.com/p/flylinkdc/issues/detail?id=1245
 #if defined(__PROFILER_ENABLED__)
 	Profiler::dumphtml();
@@ -658,9 +663,8 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	TimerManager::newInstance();
 	ClientManager::newInstance();
 	CompatibilityManager::detectUncompatibleSoftware();
-	
 	ThrottleManager::getInstance()->startup(); // [+] IRainman fix.
-	
+	CompatibilityManager::caclPhysMemoryStat();
 	if (dcapp.IsAnotherInstanceRunning())
 	{
 		// Allow for more than one instance...

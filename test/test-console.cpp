@@ -592,11 +592,46 @@ void convert_p2p_guard()
         }
     }
 }
+uint8_t TestFunc1(const uint8_t &ui8NickLen, const bool &bFromPM)
+{
+	return bFromPM ? ui8NickLen : ui8NickLen + 1;
+}
+uint8_t TestFunc2(const uint8_t ui8NickLen, const bool bFromPM)
+{
+	return bFromPM ? ui8NickLen : ui8NickLen + 1;
+}
 int _tmain(int argc, _TCHAR* argv[])
 {
+	//    	<wasd_remote> 20:58:16 <PPK> TestFunc1(const uint8_t &ui8NickLen, const bool &bFromPM) versus TestFunc2(const uint8_t ui8NickLen, const bool bFromPM)
+	//		<wasd_remote> 20:58:26 <PPK> both called 18446744073709551615 times
+	// const auto max_count = 18446744073709551615L;
+	const __int64 max_count = 10000000000000L;
+	uint8_t sum = 0;
+	bool l_bool = false;
+	START_PERFORMANCE_CHECK(1);
+	for (__int64 i = 0; i<max_count; ++i)
+	{
+		sum += TestFunc1(sum, l_bool);
+		l_bool = !l_bool;
+	}
+	FINISH_PERFORMANCE_CHECK(1);
+	std::cout << sum << std::endl;
+	sum = 0;
+	l_bool = false;
+	START_PERFORMANCE_CHECK(2);
+	for (__int64 j = 0; j<max_count; ++j)
+	{
+		sum += TestFunc2(sum, l_bool);
+		l_bool = !l_bool;
+	}
+	FINISH_PERFORMANCE_CHECK(2);
+	std::cout << sum << std::endl;
 
+	return 0;
     convert_p2p_guard();
     return 0;
+
+
 #if 0
     CRITICAL_SECTION cs;
     InitializeCriticalSectionAndSpinCount(&cs, 100);

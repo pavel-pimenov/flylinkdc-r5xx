@@ -1617,7 +1617,7 @@ bool CFlylinkDBManager::is_avdb_guard(const string& p_nick, int64_t p_share, con
 //========================================================================================================
 string CFlylinkDBManager::is_p2p_guard(const uint32_t& p_ip)
 {
-	dcassert(Util::isPrivateIp(p_ip) == false);
+	// dcassert(Util::isPrivateIp(p_ip) == false);
 	dcassert(p_ip && p_ip != INADDR_NONE);
 	string l_p2p_guard_text;
 	if (p_ip && p_ip != INADDR_NONE)
@@ -2404,7 +2404,7 @@ size_t CFlylinkDBManager::load_queue()
 		{
 			boost::unordered_map<int, std::vector< std::pair<CID, string> > > l_sources_map;
 			{
-				m_get_fly_queue_all_source.init(m_flySQLiteDB, "select fly_queue_id,cid,nick from fly_queue_source"); //  where fly_queue_id = 5
+				m_get_fly_queue_all_source.init(m_flySQLiteDB, "select fly_queue_id,cid,nick from fly_queue_source where fly_queue_id"); //
 				sqlite3_reader l_q = m_get_fly_queue_all_source->executereader();
 				while (l_q.read())
 				{
@@ -2433,7 +2433,7 @@ size_t CFlylinkDBManager::load_queue()
 			                    "Nick,"
 			                    "CountSubSource"
 			                    //",HubHint "
-			                    " from fly_queue"; // where id = 5
+			                    " from fly_queue";
 			m_get_fly_queue.init(m_flySQLiteDB, l_sql);
 			vector<__int64> l_bad_targets;
 			vector<std::pair<__int64, CID> > l_lost_sources;
@@ -2521,7 +2521,6 @@ size_t CFlylinkDBManager::load_queue()
 						const string l_nick = l_q.getstring(11);
 						//const string l_hub_hint = l_q.getstring(13);
 						add_sourceL(qi, l_cid, l_nick/*, l_hub_hint*/);
-						g_count_queue_source++;
 					}
 					else
 					{
@@ -2541,7 +2540,6 @@ size_t CFlylinkDBManager::load_queue()
 						-- SELECT CID,count(*) FROM fly_queue_source group by CID having count(*) > 1 and max(fly_queue_id) != min(fly_queue_id) order by 2 desc
 						*/
 						const auto& l_source_items = l_sources_map[l_ID];
-						g_count_queue_source += l_source_items.size();
 						// TODO - возможно появление дублей https://code.google.com/p/flylinkdc/issues/detail?id=931
 						for (auto i = l_source_items.cbegin(); i != l_source_items.cend(); ++i)
 						{
@@ -2556,10 +2554,6 @@ size_t CFlylinkDBManager::load_queue()
 						// dcassert(l_CountSubSource == l_source_items.size());
 						// TODO - доабвить зачистку CID в главной записе
 						// l_sources_map.erase(l_ID);
-					}
-					else
-					{
-						g_count_queue_source++;
 					}
 					qi->setDirtyAll(false);
 				}
@@ -2620,6 +2614,7 @@ void CFlylinkDBManager::add_sourceL(const QueueItemPtr& p_QueueItem, const CID& 
 			WLock l(*QueueItem::g_cs); // [+] IRainman fix.
 			//TODO- LOCK ??      QueueManager::LockFileQueueShared l_fileQueue; //[+]PPA
 			wantConnection = QueueManager::getInstance()->addSourceL(p_QueueItem, l_user, 0, true) && l_user->isOnline(); // Добавить флаг ускоренной загрузки первый раз.
+			g_count_queue_source++;
 		}
 		catch (const Exception& e)
 		{

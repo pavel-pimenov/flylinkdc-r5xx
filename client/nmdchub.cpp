@@ -2331,6 +2331,7 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 	}
 	catch (std::runtime_error& e)
 	{
+		dcassert(0);
 		CFlyServerJSON::pushError(50, "NmdcHub::extJSONParse error JSON =  " + l_json_result + " error = " + string(e.what()));
 	}
 	return false;
