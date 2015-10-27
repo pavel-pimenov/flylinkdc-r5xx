@@ -41,18 +41,18 @@ class QueueManager : public Singleton<QueueManager>,
 	public:
 		/** Add a file to the queue. */
 		void addFromWebServer(const string& aTarget, int64_t aSize, const TTHValue& aRoot);
-		void add(const string& aTarget, int64_t aSize, const TTHValue& aRoot, const UserPtr& aUser,
-		         Flags::MaskType aFlags = 0, bool addBad = true, bool p_first_file = true) throw(QueueException, FileException);
+		void add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSize, const TTHValue& aRoot, const UserPtr& aUser,
+		         Flags::MaskType aFlags = 0, bool addBad = true, bool p_first_file = true);
 		/** Add a user's filelist to the queue. */
-		void addList(const UserPtr& aUser, Flags::MaskType aFlags, const string& aInitialDir = Util::emptyString) throw(QueueException, FileException);
+		void addList(const UserPtr& aUser, Flags::MaskType aFlags, const string& aInitialDir = Util::emptyString) ;
 		
 		//[+] SSA check user IP
 		void addCheckUserIP(const UserPtr& aUser)
 		{
-			add(Util::emptyString, -1, TTHValue(), aUser, QueueItem::FLAG_USER_GET_IP);
+			add(0, Util::emptyString, -1, TTHValue(), aUser, QueueItem::FLAG_USER_GET_IP);
 		}
 		// [+] IRainman dclst support.
-		void addDclst(const string& p_dclstFile) throw(QueueException, FileException)
+		void addDclst(const string& p_dclstFile)
 		{
 			dclstLoader.addTask(p_dclstFile);
 		}
@@ -258,17 +258,16 @@ class QueueManager : public Singleton<QueueManager>,
 		/** Sanity check for the target filename */
 		static string checkTarget(const string& aTarget, const int64_t aSize, bool p_is_validation_path = true);
 		/** Add a source to an existing queue item */
-		bool addSourceL(const QueueItemPtr& qi, const UserPtr& aUser, Flags::MaskType addBad, bool p_is_first_load = false);
+		static bool addSourceL(const QueueItemPtr& qi, const UserPtr& aUser, Flags::MaskType addBad, bool p_is_first_load = false);
 	private:
-		GETSET(uint64_t, lastSave, LastSave);
-		// [!] IRainman opt.
-		// [-] GETSET(string, queueFile, QueueFile);
+		static uint64_t g_lastSave;
+	public:
 		static string getQueueFile()
 		{
 			return Util::getConfigPath() + "Queue.xml";
 		}
 		// [~] IRainman opt.
-		bool exists_queueFile;
+		bool m_is_exists_queueFile;
 		
 		enum { MOVER_LIMIT = 10 * 1024 * 1024 };
 		class FileMover : public BackgroundTaskExecuter<pair<string, string>> // [!] IRainman core.
@@ -323,9 +322,15 @@ class QueueManager : public Singleton<QueueManager>,
 				FileQueue();
 				~FileQueue();
 				static void add(const QueueItemPtr& qi); // [!] IRainman fix.
-				static QueueItemPtr add(const string& aTarget, int64_t aSize,
-				                        Flags::MaskType aFlags, QueueItem::Priority p,
-				                        const string& aTempTarget, time_t aAdded, const TTHValue& root);
+				static QueueItemPtr add(int64_t FlyQueueID,
+				                        const string& aTarget,
+				                        int64_t aSize,
+				                        Flags::MaskType aFlags,
+				                        QueueItem::Priority p,
+				                        const string& aTempTarget,
+				                        time_t aAdded,
+				                        const TTHValue& root,
+				                        uint8_t p_maxSegments);
 				static bool  getTTH(const string& p_name, TTHValue& p_tth);
 				static QueueItemPtr find_target(const string& p_target);
 				static int  find_tth(QueueItemList& p_ql, const TTHValue& p_tth, int p_count_limit = 0);
@@ -433,7 +438,7 @@ class QueueManager : public Singleton<QueueManager>,
 		/** Recent searches list, to avoid searching for the same thing too often */
 		deque<string> m_recent;
 		/** The queue needs to be saved */
-		bool m_dirty;
+		static bool g_dirty;
 		/** Next search */
 		uint64_t nextSearch;
 		/** File lists not to delete */
@@ -447,7 +452,7 @@ class QueueManager : public Singleton<QueueManager>,
 		void moveStuckFile(const QueueItemPtr& qi); // [!] IRainman fix.
 		void rechecked(const QueueItemPtr& qi); // [!] IRainman fix.
 		
-		void setDirty();
+		static void setDirty();
 		
 		string getListPath(const UserPtr& user) const;
 		

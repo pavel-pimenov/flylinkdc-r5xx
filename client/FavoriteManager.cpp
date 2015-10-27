@@ -694,12 +694,16 @@ void FavoriteManager::removeRecent(const RecentHubEntry* entry)
 
 void FavoriteManager::updateRecent(const RecentHubEntry* entry)
 {
-	const auto i = find(g_recentHubs.begin(), g_recentHubs.end(), entry);
-	if (i == g_recentHubs.end())
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
 	{
-		return;
+		const auto i = find(g_recentHubs.begin(), g_recentHubs.end(), entry);
+		if (i == g_recentHubs.end())
+		{
+			return;
+		}
+		fire(FavoriteManagerListener::RecentUpdated(), entry);
 	}
-	fire(FavoriteManagerListener::RecentUpdated(), entry);
 }
 
 void FavoriteManager::save()
@@ -1217,8 +1221,15 @@ void FavoriteManager::load(SimpleXML& aXml
 					if (l_Group == "ISP")
 						m_sync_hub_local.insert(l_CurrentServerUrl);
 #endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
-					e->setNick(aXml.getChildAttrib("Nick"));
-					e->setPassword(aXml.getChildAttrib("Password"));
+					auto l_nick = aXml.getChildAttrib("Nick");
+					const auto l_password = aXml.getChildAttrib("Password");
+					const auto l_pos_rnd_marker = l_nick.rfind("_RND_");
+					if (l_password.empty() && l_pos_rnd_marker != string::npos && atoi(l_nick.substr(l_pos_rnd_marker + 5).c_str()) > 1000)
+					{
+						l_nick.clear();
+					}
+					e->setNick(l_nick);
+					e->setPassword(l_password);
 					e->setUserDescription(aXml.getChildAttrib("UserDescription"));
 					e->setAwayMsg(aXml.getChildAttrib("AwayMsg"));
 					e->setEmail(aXml.getChildAttrib("Email"));

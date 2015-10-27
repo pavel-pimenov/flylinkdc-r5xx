@@ -197,10 +197,10 @@ void CDMDebugFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		               SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
-void CDMDebugFrame::addLine(DebugTask& task)
+void CDMDebugFrame::addLine(const DebugTask& task)
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!isClosedOrShutdown());
+	if (!isClosedOrShutdown() && !m_stop)
 	{
 		if (ctrlCMDPad.GetWindowTextLength() > MAX_TEXT_LEN)
 		{
@@ -211,6 +211,8 @@ void CDMDebugFrame::addLine(DebugTask& task)
 		BOOL noscroll = TRUE;
 		POINT p = ctrlCMDPad.PosFromChar(ctrlCMDPad.GetWindowTextLength() - 1);
 		CRect r;
+		if (m_stop)
+			return; // Костыль-1
 		ctrlCMDPad.GetClientRect(r);
 		
 		if (r.PtInRect(p) || MDIGetActive() != m_hWnd)
@@ -219,14 +221,20 @@ void CDMDebugFrame::addLine(DebugTask& task)
 		}
 		else
 		{
+			if (m_stop)
+				return; // Костыль-1
 			ctrlCMDPad.SetRedraw(FALSE); // Strange!! This disables the scrolling...????
 		}
 		
+		if (m_stop)
+			return; // Костыль-1
 		auto l_message = DebugTask::format(task);
 		LogManager::cmd_debug_message(l_message);
 		l_message += "\r\n";
+		if (m_stop)
+			return; // Костыль-1
 		ctrlCMDPad.AppendText(Text::toT(l_message).c_str()); // [!] IRainman fix.
-		if (noscroll)
+		if (noscroll && !m_stop)
 		{
 			ctrlCMDPad.SetRedraw(TRUE);
 		}
@@ -290,7 +298,7 @@ int CDMDebugFrame::run()
 			break;
 		}
 		{
-			FastLock l(cs);
+			FastLock l(m_cs);
 			dcassert(!m_cmdList.empty()); // [~]
 			
 			std::swap(task, m_cmdList.front()); // [!] opt: use swap.

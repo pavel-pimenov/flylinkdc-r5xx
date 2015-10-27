@@ -384,44 +384,7 @@ void HashManager::Hasher::instantPause()
 	}
 }
 
-static const size_t g_HashBufferSize = 16 * 1024 * 1024;
-
-#ifdef FLYLINKDC_HE
-
-# ifdef _WIN32
-
-static inline DWORD getpagesize() // [+] IRainman opt: for align hasher buffer in memory with respect pagesize for current architecture in Win32.
-{
-	SYSTEM_INFO si = { 0 };
-	GetSystemInfo(&si);
-	return max(si.dwPageSize, si.dwAllocationGranularity);
-}
-
-# endif // _WIN32
-
-# ifdef _DEBUG
-
-static inline size_t getHashBufferSize()
-{
-	const size_t l_PageSize = getpagesize();
-	const size_t BUF_SIZE = g_HashBufferSize - (g_HashBufferSize % l_PageSize);
-	const string l_message = "Page size on this system = " + Util::toString(l_PageSize) + " bytes.\nBUF_SIZE = " + Util::toString(BUF_SIZE) + " bytes.\n";
-	dcdebug("%s", l_message.c_str());
-	return BUF_SIZE;
-}
-static const size_t BUF_SIZE = getHashBufferSize();
-
-# else // _DEBUG
-
-static const size_t BUF_SIZE = g_HashBufferSize - (g_HashBufferSize % getpagesize());
-
-# endif // _DEBUG
-
-#else // FLYLINKDC_HE
-
-static const size_t BUF_SIZE = g_HashBufferSize;
-
-#endif // FLYLINKDC_HE
+static size_t g_HashBufferSize = 16 * 1024 * 1024;
 
 bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, TigerTree& tth, int64_t& p_size, bool p_is_link)
 {
@@ -458,7 +421,7 @@ bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, TigerTree&
 	}
 	else
 	{
-		if ((BUF_SIZE % l_sector_size) != 0)
+		if ((g_HashBufferSize % l_sector_size) != 0)
 		{
 			return false;
 		}
@@ -490,7 +453,7 @@ bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, TigerTree&
 	}
 	DWORD hn = 0;
 	DWORD rn = 0;
-	uint8_t* hbuf = buf + BUF_SIZE;
+	uint8_t* hbuf = buf + g_HashBufferSize;
 	uint8_t* rbuf = buf;
 	
 	OVERLAPPED over = { 0 };
@@ -500,7 +463,7 @@ bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, TigerTree&
 	bool ok = false;
 	
 	uint64_t lastRead = GET_TICK();
-	if (!::ReadFile(h, hbuf, BUF_SIZE, &hn, &over))
+	if (!::ReadFile(h, hbuf, g_HashBufferSize, &hn, &over))
 	{
 		const auto l_error =   GetLastError();
 		if (l_error == ERROR_HANDLE_EOF)
@@ -555,7 +518,7 @@ bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, TigerTree&
 			{
 				lastRead = GET_TICK();
 			}
-			res = ReadFile(h, rbuf, BUF_SIZE, &rn, &over);
+			res = ReadFile(h, rbuf, g_HashBufferSize, &rn, &over);
 		}
 		else
 		{
@@ -612,10 +575,9 @@ int HashManager::Hasher::run()
 {
 	setThreadPriority(Thread::IDLE);
 	
-	uint8_t* buf = nullptr;
-	bool virtualBuf = true;
-	
-	bool last = false;
+	uint8_t* l_buf = nullptr;
+	bool l_is_virtualBuf = true;
+	bool l_is_last = false;
 	for (;;)
 	{
 		m_s.wait();
@@ -637,7 +599,7 @@ int HashManager::Hasher::run()
 				m_path_id = w.begin()->second.m_path_id;
 				m_CurrentBytesLeft -= m_currentSize;// [+]IRainman
 				w.erase(w.begin());
-				last = w.empty();
+				l_is_last = w.empty();
 				if (!m_running)
 				{
 					uiStartTime = GET_TICK();
@@ -647,7 +609,7 @@ int HashManager::Hasher::run()
 			else
 			{
 				m_currentSize = 0;
-				last = true;
+				l_is_last = true;
 				m_fname.clear();
 				m_running = false;
 				iMaxBytes = 0;
@@ -655,7 +617,6 @@ int HashManager::Hasher::run()
 				m_CurrentBytesLeft = 0;// [+]IRainman
 			}
 		}
-		// [-] dcassert(!m_fname.empty()); [-] IRainman fix: normal behavior when you close the program while hashing, and the forced interruption of the process.
 		string l_fname;
 		{
 			FastLock l(cs);
@@ -669,16 +630,36 @@ int HashManager::Hasher::run()
 			File::isExist(l_fname, l_size, l_outFiletime, l_is_link); // TODO - вернуть признак isLink
 			int64_t l_sizeLeft = l_size;
 #ifdef _WIN32
-			if (buf == NULL)
+			if (l_buf == NULL)
 			{
-				virtualBuf = true;
-				buf = (uint8_t*)VirtualAlloc(NULL, 2 * BUF_SIZE, MEM_COMMIT, PAGE_READWRITE);
+				l_is_virtualBuf = true;
+				l_buf = (uint8_t*)VirtualAlloc(NULL, g_HashBufferSize, MEM_COMMIT, PAGE_READWRITE);
 			}
 #endif
-			if (buf == NULL)
+			if (l_buf == NULL)
 			{
-				virtualBuf = false;
-				buf = new uint8_t[BUF_SIZE]; // bad_alloc! https://www.box.net/shared/d07faa588d5f44d577a0
+				l_is_virtualBuf = false;
+				bool l_is_bad_alloc;
+				do
+				{
+					try
+					{
+						dcassert(g_HashBufferSize);
+						l_is_bad_alloc = false;
+						l_buf = new uint8_t[g_HashBufferSize];
+					}
+					catch (std::bad_alloc&)
+					{
+						l_buf = nullptr;
+						g_HashBufferSize /= 2;
+						l_is_bad_alloc = g_HashBufferSize > 128;
+						if (l_is_bad_alloc == false)
+						{
+							throw;
+						}
+					}
+				}
+				while (l_is_bad_alloc == true);
 			}
 			try
 			{
@@ -708,7 +689,7 @@ int HashManager::Hasher::run()
 				if (!l_is_ntfs)
 				{
 #endif
-					if (!virtualBuf || !BOOLSETTING(FAST_HASH) || !fastHash(l_fname, buf, fastTTH, l_size, l_is_link))
+					if (l_is_virtualBuf == false || !BOOLSETTING(FAST_HASH) || !fastHash(l_fname, l_buf, fastTTH, l_size, l_is_link))
 					{
 #else
 				if (!BOOLSETTING(FAST_HASH) || !fastHash(fname, 0, fastTTH, l_size))
@@ -722,7 +703,7 @@ int HashManager::Hasher::run()
 							File l_slow_file_reader(l_fname, File::READ, File::OPEN);
 							do
 							{
-								size_t bufSize = BUF_SIZE;
+								size_t bufSize = g_HashBufferSize;
 								
 								if (GetMaxHashSpeed() > 0) // [+] brain-ripper
 								{
@@ -738,10 +719,10 @@ int HashManager::Hasher::run()
 								{
 									lastRead = GET_TICK();
 								}
-								n = l_slow_file_reader.read(buf, bufSize);
+								n = l_slow_file_reader.read(l_buf, bufSize);
 								if (n > 0) // [+]PPA
 								{
-									tth->update(buf, n);
+									tth->update(l_buf, n);
 									{
 										FastLock l(cs);
 										m_currentSize = max(static_cast<uint64_t>(m_currentSize - n), static_cast<uint64_t>(0)); // TODO - max от 0 для беззнакового?
@@ -772,10 +753,12 @@ int HashManager::Hasher::run()
 				{
 					if (m_path_id == 0)
 					{
-						dcassert(m_path_id);
+						//dcassert(m_path_id);
 						const auto l_path = Text::toLower(Util::getFilePath(l_fname));
+						dcassert(!l_path.empty());
 						bool l_is_no_mediainfo;
 						m_path_id = CFlylinkDBManager::getInstance()->get_path_id(l_path, false, false, l_is_no_mediainfo, false);
+						dcassert(m_path_id);
 					}
 #ifdef IRAINMAN_NTFS_STREAM_TTH
 					if (l_is_ntfs)
@@ -811,13 +794,13 @@ int HashManager::Hasher::run()
 			}
 		}
 		
-		if (buf != NULL && (last || m_stop))
+		if (l_buf != NULL && (l_is_last || m_stop))
 		{
-			if (virtualBuf)
-				VirtualFree(buf, 0, MEM_RELEASE);
+			if (l_is_virtualBuf)
+				VirtualFree(l_buf, 0, MEM_RELEASE);
 			else
-				delete [] buf;
-			buf = nullptr;
+				delete [] l_buf;
+			l_buf = nullptr;
 		}
 	}
 	return 0;

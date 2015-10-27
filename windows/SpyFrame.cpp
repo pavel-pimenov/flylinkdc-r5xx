@@ -220,7 +220,7 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	if (t.empty())
 		return 0;
 		
-	CFlyBusy l_busy(m_spoken);
+	CFlyBusyBool l_busy(m_spoken);
 	CLockRedraw<> lockCtrlList(ctrlSearches);
 	for (auto i = t.cbegin(); i != t.cend(); ++i)
 	{

@@ -72,6 +72,8 @@ class CFlySpeakerAdapter : public CFlyHandlerAdapter
 		}
 		BOOL async_speak()
 		{
+			extern bool g_isShutdown;
+			dcassert(!g_isShutdown);
 			BOOL l_res = false;
 			ATLASSERT(::IsWindow(m_win_handler));
 			if (!m_spoken)
@@ -84,6 +86,8 @@ class CFlySpeakerAdapter : public CFlyHandlerAdapter
 		}
 		BOOL force_speak() const
 		{
+			extern bool g_isShutdown;
+			dcassert(!g_isShutdown);
 			ATLASSERT(::IsWindow(m_win_handler));
 			const auto l_res = PostMessage(m_win_handler, WM_SPEAKER, 0, 0);
 			dcassert(l_res);

@@ -1104,6 +1104,8 @@ static void getDiskAndMemoryStat(Json::Value& p_info)
 				l_disk_info["DBUser"] = getFileSize(l_path + _T("\\FlylinkDC_user.sqlite")); 
 				l_disk_info["DBAntivirus"] = getFileSize(l_path + _T("\\FlylinkDC_antivirus.sqlite")); 
                 l_disk_info["DBTransfer"] = getFileSize(l_path + _T("\\FlylinkDC_transfers.sqlite")); 
+				l_disk_info["DBQueue"] = getFileSize(l_path + _T("\\FlylinkDC_queue.sqlite"));
+				
 				// TODO - сделать обоход общего массива				
 
 				DWORD l_cluster, l_sector_size, l_freeclustor;
@@ -1455,6 +1457,7 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 			}
 			// TODO l_stat_info["MaxUsers"] = 
 			l_stat_info["DBQueueSources"] = CFlylinkDBManager::getCountQueueSources();        
+			l_stat_info["DBQueueFiles"] = CFlylinkDBManager::getCountQueueFiles();
 			l_stat_info["FavUsers"]       = FavoriteManager::getCountFavsUsers();
 			l_stat_info["Threads"]        = Thread::getThreadsCount();
 		}

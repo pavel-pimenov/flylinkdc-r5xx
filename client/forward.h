@@ -44,6 +44,8 @@ typedef std::vector<OnlineUserPtr> OnlineUserList;
 class QueueItem;
 typedef std::shared_ptr<QueueItem> QueueItemPtr;
 typedef std::list<QueueItemPtr> QueueItemList; // На vector - нельзя падаем
+//typedef unsigned QueueItemID;
+//typedef std::deque<QueueItemID> QueueItemIDArray;
 
 class UploadQueueItem;
 typedef std::shared_ptr<UploadQueueItem> UploadQueueItemPtr;

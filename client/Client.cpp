@@ -86,7 +86,9 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 		"planet-dc.ru",
 		"allavtovo.ru",
 		"adc.podryad.tv",
-		"nsk154hub.ru"
+		"nsk154hub.ru",
+		"prostoigra24.ru",
+		"eva-hub.ru"
 	};
 	if (l_lower_url.find("dc.fly-server.ru") != string::npos ||
 	        l_lower_url.find("adcs.flylinkdc.com") != string::npos ||
@@ -242,8 +244,10 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 		if (updateNick)
 		{
 			string l_nick = hub->getNick(true);
+			if (!getRandomNick().empty())
+				l_nick = getRandomNick();
 			checkNick(l_nick);
-			setCurrentNick(l_nick);
+			setMyNick(l_nick);
 		}
 		
 		if (!hub->getUserDescription().empty())
@@ -313,7 +317,7 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 		{
 			string l_nick = SETTING(NICK);
 			checkNick(l_nick);
-			setCurrentNick(l_nick);
+			setMyNick(l_nick);
 		}
 		setCurrentDescription(
 #ifdef IRAINMAN_ENABLE_SLOTS_AND_LIMIT_IN_DESCRIPTION
@@ -387,8 +391,21 @@ void Client::connect()
 		state = STATE_DISCONNECTED;
 		fire(ClientListener::Failed(), this, e.getError());
 	}
-	m_isActivMode = ClientManager::isActive(fhe); // [+] IRainman opt.
+	//m_isActivMode = ClientManager::isActive(fhe); // [+] IRainman opt.
 	updateActivity();
+}
+bool ClientBase::isActive() const
+{
+	if (SETTING(FORCE_PASSIVE_INCOMING_CONNECTIONS))
+	{
+		return false;
+	}
+	else
+	{
+		const FavoriteHubEntry* fe = FavoriteManager::getFavoriteHubEntry(getHubUrl());
+		const auto l_res = ClientManager::isActive(fe);
+		return l_res;
+	}
 }
 
 void Client::send(const char* aMessage, size_t aLen)

@@ -707,7 +707,7 @@ void QueueFrame::on(QueueManagerListener::Moved, const QueueItemPtr& aQI, const 
 
 void QueueFrame::on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept // [+] IRainman opt.
 {
-	if (!MainFrame::isAppMinimized(m_hWnd) && !isClosedOrShutdown())
+	if (!MainFrame::isAppMinimized(m_hWnd) && !isClosedOrShutdown() && !p_list.empty())
 	{
 		on(QueueManagerListener::StatusUpdatedList(), p_list);
 		m_tasks.add(UPDATE_STATUSBAR, nullptr); // [!]IRainman optimize QueueFrame
@@ -749,7 +749,7 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	m_tasks.get(t);
 	if (t.empty())
 		return 0;
-	CFlyBusy l_busy(m_spoken);
+	CFlyBusyBool l_busy(m_spoken);
 	
 	dcassert(m_closed == false);
 	for (auto ti = t.cbegin(); ti != t.cend(); ++ti)

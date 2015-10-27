@@ -1804,8 +1804,9 @@ bool SettingsManager::set(IntSetting key, int value)
 		{
 			//[!] IRainman when you run a second copy of the application
 			// should not create two copies ShareManager
-			int maxBanShare = 20;
-			maxBanShare = min(maxBanShare, static_cast<int>(ShareManager::getSharedSize() / static_cast<int64_t>(1024 * 1024 * 1024)));
+			const int maxBanShare = 20;
+			//const auto l_share = ShareManager::getShareSize();
+			//maxBanShare = min(maxBanShare, static_cast<int>(ShareManager::getShareSize() / static_cast<int64_t>(1024 * 1024 * 1024)));
 			VERIFI(0, maxBanShare);
 			break;
 		}
@@ -1993,28 +1994,28 @@ bool SettingsManager::set(IntSetting key, int value)
 		}
 		case TCP_PORT:
 		{
-			VERIFI(1, 65535);
+			VERIFI(1024, 65535);
 			GET_NEW_PORT_VALUE_IF_CONFLICTS(TLS_PORT);
 			GET_NEW_PORT_VALUE_IF_CONFLICTS(WEBSERVER_PORT);
 			break;
 		}
 		case TLS_PORT:
 		{
-			VERIFI(1, 65535);
+			VERIFI(1024, 65535);
 			GET_NEW_PORT_VALUE_IF_CONFLICTS(WEBSERVER_PORT);
 			GET_NEW_PORT_VALUE_IF_CONFLICTS(TCP_PORT);
 			break;
 		}
 		case WEBSERVER_PORT:
 		{
-			VERIFI(1, 65535);
+			VERIFI(1024, 65535);
 			GET_NEW_PORT_VALUE_IF_CONFLICTS(TLS_PORT);
 			GET_NEW_PORT_VALUE_IF_CONFLICTS(TCP_PORT);
 			break;
 		}
 		case UDP_PORT:
 		{
-			VERIFI(1, 65535);
+			VERIFI(1024, 65535);
 #ifdef STRONG_USE_DHT
 			GET_NEW_PORT_VALUE_IF_CONFLICTS(DHT_PORT);
 #endif
@@ -2023,7 +2024,7 @@ bool SettingsManager::set(IntSetting key, int value)
 #ifdef STRONG_USE_DHT
 		case DHT_PORT:
 		{
-			VERIFI(1, 65535);
+			VERIFI(1024, 65535);
 			GET_NEW_PORT_VALUE_IF_CONFLICTS(UDP_PORT);
 			break;
 		}

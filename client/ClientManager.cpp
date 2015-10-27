@@ -25,6 +25,7 @@
 #include "AdcHub.h"
 #include "NmdcHub.h"
 #include "QueueManager.h"
+#include "MappingManager.h"
 
 #ifdef STRONG_USE_DHT
 #include "../dht/dht.h"
@@ -39,6 +40,7 @@ UserPtr ClientManager::g_uflylinkdc; // [+] IRainman fix: User for message from 
 Identity ClientManager::g_iflylinkdc; // [+] IRainman fix: Identity for User for message from client.
 UserPtr ClientManager::g_me; // [+] IRainman fix: this is static object.
 CID ClientManager::g_pid; // [+] IRainman fix: this is static object.
+bool g_isShutdown = false;
 bool ClientManager::g_isShutdown = false;
 bool ClientManager::g_isSpyFrame = false;
 ClientManager::ClientList ClientManager::g_clients;
@@ -116,6 +118,28 @@ void ClientManager::resetAntivirusInfo()
 	}
 }
 #endif
+void ClientManager::shutdown()
+{
+	dcassert(!isShutdown());
+	ClientManager::g_isShutdown = true;
+	::g_isShutdown = true;
+	TimerManager::getInstance()->removeListener(this);
+}
+
+void ClientManager::clear()
+{
+	{
+		webrtc::WriteLockScoped l(*g_csOnlineUsers);
+		g_onlineUsers.clear();
+	}
+	{
+		webrtc::WriteLockScoped l(*g_csUsers);
+#ifdef IRAINMAN_USE_NICKS_IN_CM
+		g_nicks.clear();
+#endif
+		g_users.clear();
+	}
+}
 
 size_t ClientManager::getTotalUsers()
 {
@@ -655,7 +679,7 @@ CID ClientManager::makeCid(const string& aNick, const string& aHubUrl)
 	return CID(th.finalize());
 }
 
-void ClientManager::putOnline(const OnlineUserPtr& ou) noexcept
+void ClientManager::putOnline(const OnlineUserPtr& ou, bool p_is_fire_online) noexcept
 {
 	//dcassert(!isShutdown());
 	if (!isShutdown()) // Вернул проверку на всякий случай.
@@ -673,7 +697,10 @@ void ClientManager::putOnline(const OnlineUserPtr& ou) noexcept
 		if (!user->isOnline())
 		{
 			user->setFlag(User::ONLINE);
-			fire(ClientManagerListener::UserConnected(), user);
+			if (p_is_fire_online)
+			{
+				fire(ClientManagerListener::UserConnected(), user);
+			}
 		}
 	}
 }
@@ -1197,8 +1224,15 @@ int ClientManager::getMode(const FavoriteHubEntry* p_hub
 		*pbWantAutodetect = false;
 #endif
 	if (!p_hub)
+	{
+		const auto l_type = SETTING(INCOMING_CONNECTIONS);
+		if (l_type == SettingsManager::INCOMING_FIREWALL_UPNP && MappingManager::getExternaIP().empty())
+		{
+			return SettingsManager::INCOMING_FIREWALL_PASSIVE;
+		}
 		return SETTING(INCOMING_CONNECTIONS);
-		
+	}
+	
 	int mode = 0;
 	if (p_hub)
 	{
@@ -1213,18 +1247,21 @@ int ClientManager::getMode(const FavoriteHubEntry* p_hub
 			default:
 			{
 				mode = SETTING(INCOMING_CONNECTIONS);
-#ifdef RIP_USE_CONNECTION_AUTODETECT
-				// If autodetection turned on, use passive mode until
-				// active mode detected
-				if (mode != SettingsManager::INCOMING_FIREWALL_PASSIVE && SETTING(INCOMING_AUTODETECT_FLAG) &&
-				        !Util::isAdcHub(p_hub->getServer()) // [!] IRainman temporary fix http://code.google.com/p/flylinkdc/issues/detail?id=363
-				   )
-				{
-					mode = SettingsManager::INCOMING_FIREWALL_PASSIVE;
-					if (pbWantAutodetect)
-						*pbWantAutodetect = true;
-				}
-#endif
+				/*
+				#ifdef RIP_USE_CONNECTION_AUTODETECT
+				                // If autodetection turned on, use passive mode until
+				                // active mode detected
+				                if (mode != SettingsManager::INCOMING_FIREWALL_PASSIVE && SETTING(INCOMING_AUTODETECT_FLAG) &&
+				                        !Util::isAdcHub(p_hub->getServer()) // [!] IRainman temporary fix http://code.google.com/p/flylinkdc/issues/detail?id=363
+				                   )
+				                {
+				                    mode = SettingsManager::INCOMING_FIREWALL_PASSIVE;
+				                    if (pbWantAutodetect)
+				                        *pbWantAutodetect = true;
+				                }
+				#endif
+				*/
+				
 			}
 		}
 	}
@@ -1232,7 +1269,29 @@ int ClientManager::getMode(const FavoriteHubEntry* p_hub
 	{
 		mode = SETTING(INCOMING_CONNECTIONS);
 	}
+	if (mode != SettingsManager::INCOMING_FIREWALL_PASSIVE &&
+	        MappingManager::getExternaIP().empty() &&
+	        SettingsManager::g_TestTCPLevel == false)
+	{
+		mode = SettingsManager::INCOMING_FIREWALL_PASSIVE;
+	}
 	return mode;
+}
+bool ClientManager::isActive(const FavoriteHubEntry* p_hub
+#ifdef RIP_USE_CONNECTION_AUTODETECT
+                             , bool *pbWantAutodetect /* = NULL */
+#endif
+                            )
+{
+	const auto l_mode = getMode(p_hub
+#ifdef RIP_USE_CONNECTION_AUTODETECT
+	                            , pbWantAutodetect
+#endif
+	                           );
+	if (l_mode != SettingsManager::INCOMING_FIREWALL_PASSIVE)
+		return true;
+	else
+		return false;
 }
 
 void ClientManager::cancelSearch(void* aOwner)

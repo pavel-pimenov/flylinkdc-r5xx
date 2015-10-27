@@ -309,7 +309,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 			fire(UserConnectionListener::ListLength(), this, param);
 		}
 	}
-	else if (cmd == "$GetListLen")
+	else if (cmd == "GetListLen")
 	{
 		fire(UserConnectionListener::GetListLength(), this);
 	}
@@ -320,8 +320,12 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 			
 		dcdebug("Unknown NMDC command: %.50s\n", aLine.c_str());
 #ifdef FLYLINKDC_BETA
-		LogManager::message("Unknown NMDC command: = " + aLine + " hub = " + getHubUrl() + " remote IP = " + getRemoteIpPort()
-		+ " Nick = " + getHintedUser().user->getLastNick());
+		string l_log = "Unknown NMDC command: = " + aLine + " hub = " + getHubUrl() + " remote IP = " + getRemoteIpPort();
+		if (getHintedUser().user)
+		{
+			l_log += " Nick = " + getHintedUser().user->getLastNick();
+		}
+		LogManager::message(l_log);
 #endif
 		unsetFlag(FLAG_NMDC);
 	}

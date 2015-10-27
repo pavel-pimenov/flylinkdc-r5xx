@@ -37,10 +37,12 @@ std::unique_ptr<CriticalSection> QueueItem::g_cs = std::unique_ptr<CriticalSecti
 const string g_dc_temp_extension = "dctmp";
 
 QueueItem::QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, Flags::MaskType aFlag,
-                     time_t aAdded, const TTHValue& p_tth) :
-	target(aTarget), maxSegments(1), fileBegin(0),
+                     time_t aAdded, const TTHValue& p_tth, uint8_t p_maxSegments, int64_t p_FlyQueueID, const string& aTempTarget) :
+	target(aTarget),
+	m_tempTarget(aTempTarget),
+	maxSegments(std::max(uint8_t(1), p_maxSegments)), fileBegin(0),
 	size(aSize), m_priority(aPriority), added(aAdded),
-	autoPriority(false), nextPublishingTime(0), flyQueueID(0), flyCountSourceInSQL(0),
+	autoPriority(false), nextPublishingTime(0), flyQueueID(p_FlyQueueID),
 	m_dirty(true),
 	m_dirty_source(false),
 	m_dirty_segment(false),
@@ -220,7 +222,7 @@ void QueueItem::getOnlineUsers(UserList& list) const
 	}
 }
 
-void QueueItem::setSectionString(const string& p_section)
+void QueueItem::setSectionString(const string& p_section, bool p_is_first_load)
 {
 	if (p_section.empty())
 		return;
@@ -228,7 +230,7 @@ void QueueItem::setSectionString(const string& p_section)
 	const StringTokenizer<string> SectionTokens(p_section, ' ');
 	const StringList &Sections = SectionTokens.getTokens();
 	
-	if (!Sections.empty())
+	if (!Sections.empty()) // TODO - парсинг секций отложить
 	{
 		// must be multiply of 2
 		dcassert((Sections.size() & 1) == 0);
@@ -241,26 +243,34 @@ void QueueItem::setSectionString(const string& p_section)
 				int64_t l_start = Util::toInt64(i->c_str());
 				int64_t l_size = Util::toInt64((i + 1)->c_str());
 				
-				addSegmentL(Segment(l_start, l_size));
+				addSegmentL(Segment(l_start, l_size), p_is_first_load);
 			}
 		}
 	}
 }
 
-void QueueItem::addSourceL(const UserPtr& aUser)
+void QueueItem::addSourceL(const UserPtr& aUser, bool p_is_first_load)
 {
-	dcassert(!isSourceL(aUser));
-	SourceIter i = findBadSourceL(aUser);
-	if (i != m_badSources.end())
+	if (p_is_first_load == true)
 	{
-		m_sources.insert(*i);
-		m_badSources.erase(i->first);
+		m_sources.insert(std::make_pair(aUser, Source()));
 	}
 	else
 	{
-		m_sources.insert(std::make_pair(aUser, Source()));  // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=139307
+		dcassert(!isSourceL(aUser));
+		SourceIter i = findBadSourceL(aUser);
+		if (i != m_badSources.end())
+		{
+			m_sources.insert(*i);
+			m_badSources.erase(i->first);
+		}
+		else
+		{
+			m_sources.insert(std::make_pair(aUser, Source()));  // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=139307
+		}
+		setDirtySource(true);
 	}
-	setDirtySource(true);
+	
 }
 // [+] fix ? http://code.google.com/p/flylinkdc/issues/detail?id=1236 .
 void QueueItem::getPFSSourcesL(const QueueItemPtr& p_qi, SourceListBuffer& p_sourceList, uint64_t p_now)
@@ -354,6 +364,10 @@ void QueueItem::setTempTarget(const string& p_TempTarget)
 	}
 }
 
+const string& QueueItem::getTempTargetConst() const
+{
+	return m_tempTarget;
+}
 const string& QueueItem::getTempTarget()
 {
 	if (!isSet(QueueItem::FLAG_USER_LIST) && m_tempTarget.empty())
@@ -373,26 +387,31 @@ const string& QueueItem::getTempTarget()
 				static bool g_is_first_check = false;
 				if (!g_is_first_check && !m_tempTarget.empty())
 				{
+				
 					g_is_first_check = true;
+					File::ensureDirectory(SETTING(TEMP_DOWNLOAD_DIRECTORY));
+					const tstring l_temp_targetT = Text::toT(m_tempTarget);
 #ifndef _DEBUG
-					const auto l_marker_file = Util::getFilePath(m_tempTarget) + ".flylinkdc-test-readonly-" + Util::toString(GET_TIME()) + ".tmp";
+					const auto l_marker_file = Util::getFilePath(l_temp_targetT) + _T(".flylinkdc-test-readonly-") + Util::toStringW(GET_TIME()) + _T(".tmp");
 #else
-					const auto l_marker_file = Util::getFilePath(m_tempTarget) + ".flylinkdc-test-readonly.tmp";
+					const auto l_marker_file = Util::getFilePath(l_temp_targetT) + _T(".flylinkdc-test-readonly.tmp");
 #endif
 					try
 					{
 						{
 							File l_f_ro_test(l_marker_file, File::WRITE, File::CREATE | File::TRUNCATE);
 						}
-						File::deleteFile(l_marker_file);
+						File::deleteFileT(l_marker_file);
 					}
 					catch (const Exception&)
 					{
+						dcassert(0);
 						//const DWORD l_error = GetLastError();
 						//if (l_error == 5) TODO - позже включить
 						{
 							SET_SETTING(TEMP_DOWNLOAD_DIRECTORY, "");
-							CFlyServerJSON::pushError(42, "Error create/write + " + l_marker_file + " Error =" + Util::translateError());
+							const string l_log = "Error create/write + " + Text::fromT(l_marker_file) + " Error =" + Util::translateError();
+							CFlyServerJSON::pushError(42, l_log);
 						}
 					}
 				}
@@ -733,7 +752,7 @@ uint64_t QueueItem::calcAverageSpeedAndCalcAndGetDownloadedBytesL() const // [!]
 	return m_downloadedBytes;
 }
 
-void QueueItem::addSegmentL(const Segment& segment)
+void QueueItem::addSegmentL(const Segment& segment, bool p_is_first_load)
 {
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 	if (m_delegater != nullptr && segment.getSize() > 0)
@@ -754,7 +773,10 @@ void QueueItem::addSegmentL(const Segment& segment)
 	// Consolidate segments
 	if (m_done_segment.size() == 1)
 		return;
-	setDirtySegment(true);
+	if (p_is_first_load == false)
+	{
+		setDirtySegment(true);
+	}
 	for (auto i = ++m_done_segment.cbegin(); i != m_done_segment.cend();)
 	{
 		SegmentSet::iterator prev = i;
@@ -765,7 +787,10 @@ void QueueItem::addSegmentL(const Segment& segment)
 			m_done_segment.erase(prev);
 			m_done_segment.erase(i++);
 			m_done_segment.insert(big);
-			setDirtySegment(true);
+			if (p_is_first_load == false)
+			{
+				setDirtySegment(true);
+			}
 		}
 		else
 		{

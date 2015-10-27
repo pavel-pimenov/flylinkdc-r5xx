@@ -130,7 +130,11 @@ void BufferedSocket::resizeInBuf()
 		catch (std::bad_alloc&)
 		{
 			l_size /= 2; // Заказываем в 2 раза меньше
-			l_is_bad_alloc = l_size > 1024;
+			l_is_bad_alloc = l_size > 128;
+			if (l_is_bad_alloc == false)
+			{
+				throw;
+			}
 		}
 	}
 	while (l_is_bad_alloc == true);
@@ -284,7 +288,8 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
                                        CFlySearchArrayTTH& p_tth_search,
                                        CFlySearchArrayFile& p_file_search)
 {
-	if (p_line.compare(0, 8, "$Search ", 8) == 0)
+	extern bool g_isStartupProcess;
+	if (g_isStartupProcess == false && p_line.compare(0, 8, "$Search ", 8) == 0)
 	{
 		if (m_is_hide_share == false)
 		{
@@ -386,7 +391,7 @@ void BufferedSocket::all_myinfo_parser(const string::size_type p_pos_next_separa
 			{
 				fire(BufferedSocketListener::MyInfoArray(), p_all_myInfo); // [+]PPA
 			}
-			m_is_all_my_info_loaded = true; // закончился стартовый поток $MyINFO
+			set_all_my_info_loaded(); // закончился стартовый поток $MyINFO
 		}
 	}
 	if (p_all_myInfo.empty())
@@ -717,6 +722,7 @@ void BufferedSocket::disconnect(bool p_graceless /*= false */)
 	{
 		m_is_disconnecting = true;
 	}
+	m_is_all_my_info_loaded = false;
 	addTask(DISCONNECT, nullptr);
 }
 

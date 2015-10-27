@@ -72,10 +72,12 @@ void NmdcHub::disconnect(bool p_graceless)
 {
 	Client::disconnect(p_graceless);
 	clearUsers();
+	m_delay_search.clear();
 }
 
 void NmdcHub::connect(const OnlineUser& p_user, const string& p_token, bool p_is_force_passive)
 {
+	m_delay_search.clear();
 	checkstate();
 	dcdebug("NmdcHub::connect %s\n", p_user.getIdentity().getNick().c_str());
 	if (p_is_force_passive == false && isActive())
@@ -230,7 +232,7 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 	
 	if (!ou->getUser()->getCID().isZero()) // [+] IRainman fix.
 	{
-		cm->putOnline(ou);
+		cm->putOnline(ou, is_all_my_info_loaded());
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
 		UserManager::checkUser(ou);
 #endif
@@ -385,7 +387,7 @@ void NmdcHub::updateFromTag(Identity& id, const string & tag) // [!] IRainman op
 		}
 		else if ((j = i->find(' ')) != string::npos)
 		{
-			dcassert(j > 1);
+			//dcassert(j > 1);
 			if (j > 1)
 				id.setStringParam("AP", i->substr(0, j - 1));
 			id.setStringParam("VE", i->substr(j + 1));
@@ -1132,7 +1134,8 @@ void NmdcHub::lockParse(const string& aLine)
 		}
 		
 		key(CryptoManager::getInstance()->makeKey(lock));
-		OnlineUserPtr ou = getUser(getMyNick(), false, false); // [!] IRainman fix: use OnlineUserPtr
+		const auto l_nick = getMyNick();
+		OnlineUserPtr ou = getUser(l_nick, false, true);
 		validateNick(ou->getIdentity().getNick());
 	}
 	else
@@ -1576,6 +1579,7 @@ void NmdcHub::onLine(const string& aLine)
 //				l_is_passive = false;
 //			}
 #endif
+	extern bool g_isStartupProcess;
 	if (x == string::npos)
 	{
 		cmd = aLine.substr(1);
@@ -1585,7 +1589,7 @@ void NmdcHub::onLine(const string& aLine)
 		cmd = aLine.substr(1, x - 1);
 		param = toUtf8(aLine.substr(x + 1));
 		l_is_search = cmd == "Search"; // TODO - этого больше не будет - похерить
-		if (l_is_search)
+		if (l_is_search && g_isStartupProcess == false)
 		{
 			if (getHideShare())
 			{
@@ -1631,7 +1635,7 @@ void NmdcHub::onLine(const string& aLine)
 #endif
 	
 	bool bMyInfoCommand = false;
-	if (l_is_search)
+	if (l_is_search && g_isStartupProcess == false)
 	{
 		dcassert(0);  // Используем void NmdcHub::on(BufferedSocketListener::SearchArrayFile
 		searchParse(param, l_is_passive);
@@ -1656,7 +1660,7 @@ void NmdcHub::onLine(const string& aLine)
 		}
 		else
 		{
-			dcassert(0);
+			//dcassert(0);
 		}
 	}
 	else if (cmd == "ConnectToMe")
@@ -2051,6 +2055,22 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 			{
 				l_json_info["RAMFree"] = CompatibilityManager::getFreePhysMemory() / 1024 / 1024;
 			}
+			if (g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_START_GUI])
+			{
+				l_json_info["StartGUI"] = unsigned(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_START_GUI]);
+			}
+			if (g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_START_CORE])
+			{
+				l_json_info["StartCore"] = unsigned(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_START_CORE]);
+			}
+			if (CFlylinkDBManager::getCountQueueFiles())
+			{
+				l_json_info["QueueFiles"] = CFlylinkDBManager::getCountQueueFiles();
+			}
+			if (CFlylinkDBManager::getCountQueueSources())
+			{
+				l_json_info["QueueSrc"] = CFlylinkDBManager::getCountQueueSources();
+			}
 			extern int g_RAM_PeakWorkingSetSize;
 			if (g_RAM_PeakWorkingSetSize)
 			{
@@ -2060,6 +2080,16 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 			if (g_SQLiteDBSize)
 			{
 				l_json_info["SQLSize"] = int(g_SQLiteDBSize / 1024 / 1024); // Mb
+			}
+			extern int64_t g_SQLiteDBSizeFree;
+			if (g_SQLiteDBSizeFree)
+			{
+				l_json_info["SQLFree"] = int(g_SQLiteDBSizeFree / 1024 / 1024); // Mb
+			}
+			extern int64_t g_LevelDBSize;
+			if (g_LevelDBSize)
+			{
+				l_json_info["LDBHistSize"] = int(g_LevelDBSize / 1024 / 1024); // Mb
 			}
 			
 			string l_json_str = l_json_info.toStyledString();
@@ -2103,7 +2133,8 @@ void NmdcHub::search_token(const SearchParamToken& p_search_param)
 		LogManager::message("Error search port = 0 : ");
 		CFlyServerJSON::pushError(21, "Error search port = 0 :");
 	}
-	if (isActive() && !l_is_passive)
+	const bool l_is_active = isActive();
+	if (l_is_active && !l_is_passive)
 	{
 		tmp2 = calcExternalIP();
 	}
@@ -2113,11 +2144,11 @@ void NmdcHub::search_token(const SearchParamToken& p_search_param)
 	}
 	const string l_search_command = "$Search " + tmp2 + ' ' + c1 + '?' + c2 + '?' + Util::toString(p_search_param.m_size) + '?' + Util::toString(p_search_param.m_file_type + 1) + '?' + tmp + '|';
 #ifdef _DEBUG
-	const string l_debug_string =  "[Search:" + l_search_command + "][" + (isActive() ? string("Active") : string("Passive")) + " search][Client:" + getHubUrl() + "]";
+	const string l_debug_string = "[Search:" + l_search_command + "][" + (l_is_active ? string("Active") : string("Passive")) + " search][Client:" + getHubUrl() + "]";
 	dcdebug("[NmdcHub::search] %s \r\n", l_debug_string.c_str());
 #endif
 	g_last_search_string.clear();
-	if (isActive())
+	if (l_is_active)
 	{
 		g_last_search_string = "UDP port: " + tmp2;
 	}
@@ -2130,8 +2161,8 @@ void NmdcHub::search_token(const SearchParamToken& p_search_param)
 			g_last_search_string += " [GlobalPassive]";
 		if (SETTING(FORCE_PASSIVE_INCOMING_CONNECTIONS))
 			g_last_search_string += " [ForcePassive]";
-		if (m_isActivMode)
-			g_last_search_string += " [Client:Active]";
+		//if (m_isActivMode)
+		//  g_last_search_string += " [Client:ActiveFirst]";
 	}
 	//LogManager::message(l_debug_string);
 	// TODO - check flood (BETA)
@@ -2318,12 +2349,18 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 			ou->getIdentity().setExtJSONCountFiles(l_root["Files"].asInt());
 			ou->getIdentity().setExtJSONLastSharedDate(l_root["LastDate"].asInt64());
 			ou->getIdentity().setExtJSONSQLiteDBSize(l_root["SQLSize"].asInt());
+			ou->getIdentity().setExtJSONlevelDBHistSize(l_root["LDBHistSize"].asInt());
+			ou->getIdentity().setExtJSONSQLiteDBSizeFree(l_root["SQLFree"].asInt());
+			ou->getIdentity().setExtJSONQueueFiles(l_root["QueueFiles"].asInt());
+			ou->getIdentity().setExtJSONQueueSrc(l_root["QueueSrc"].asInt());
+			ou->getIdentity().setExtJSONTimesStartCore(l_root["StartCore"].asInt());
+			ou->getIdentity().setExtJSONTimesStartGUI(l_root["StartGUI"].asInt());
 			
 			if (!ClientManager::isShutdown())
 			{
 				if (p_is_disable_fire == false)
 				{
-					fire(ClientListener::UserUpdated(), ou); // TODO обновлять тольок JSON
+					fire(ClientListener::UserUpdated(), ou); // TODO обновлять только JSON
 				}
 			}
 		}
@@ -2555,7 +2592,23 @@ void NmdcHub::on(BufferedSocketListener::SearchArrayTTH, CFlySearchArrayTTH& p_s
 		{
 			l_ip = calcExternalIP();
 		}
-		ShareManager::searchTTHArray(p_search_array, this); // https://drdump.com/DumpGroup.aspx?DumpGroupID=264417
+		for (auto k = m_delay_search.begin(); k != m_delay_search.end(); ++k)
+		{
+			k->m_is_skip = false;
+			p_search_array.push_back(*k);
+		}
+		m_delay_search.clear();
+		if (ShareManager::searchTTHArray(p_search_array, this) == false)
+		{
+			for (auto j = p_search_array.begin(); j != p_search_array.end(); ++j)
+			{
+				if (j->m_is_skip)
+				{
+					m_delay_search.push_back(*j); // https://drdump.com/DumpGroup.aspx?DumpGroupID=264417
+				}
+			}
+			return;
+		}
 		static int g_id_search_array = 0;
 		g_id_search_array++;
 		unique_ptr<Socket> l_udp;
@@ -2618,7 +2671,7 @@ void NmdcHub::on(BufferedSocketListener::SearchArrayFile, const CFlySearchArrayF
 			// "x.x.x.x:yyy T?F?57671680?9?TTH:A3VSWSWKCVC4N6EP2GX47OEMGT5ZL52BOS2LAHA"
 			if (!ClientManager::isShutdown())
 			{
-				searchParse(i->m_raw_search, i->m_is_passive); // TODO - у нас уже есть распасенное
+				searchParse(i->m_raw_search, i->m_is_passive); // TODO - у нас уже есть распарсенное
 				COMMAND_DEBUG("$Search " + i->m_raw_search, DebugTask::HUB_IN, getIpPort());
 			}
 		}

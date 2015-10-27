@@ -79,13 +79,13 @@ void ConnectivityManager::detectConnection()
 	// ps: need to migrate this functionality from the wizard here!
 	
 	log(STRING(DETERMIN_CON_TYPE));
+	SET_SETTING(INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_PASSIVE);
 	try
 	{
 		listen();
 	}
 	catch (const Exception& e)
 	{
-		SET_SETTING(INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_PASSIVE);
 		SET_SETTING(ALLOW_NAT_TRAVERSAL, true);
 		SET_SETTING(BIND_ADDRESS, l_old_bind);
 		
@@ -103,6 +103,7 @@ void ConnectivityManager::detectConnection()
 	if (l_is_wifi_router)
 	{
 		log("WiFi router detected IP = " + l_ip_gateway);
+		SET_SETTING(INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_UPNP);
 		// PPA_INCLUDE_DEAD_CODE fire(ConnectivityManagerListener::Finished());
 	}
 	else
@@ -117,7 +118,6 @@ void ConnectivityManager::detectConnection()
 			return;
 		}
 	}
-	SET_SETTING(INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_UPNP);
 	log(STRING(LOCAL_NET_NAT_DETECT));
 	
 	if (!MappingManager::getInstance()->open())

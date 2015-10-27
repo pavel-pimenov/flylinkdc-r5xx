@@ -485,7 +485,30 @@ string File::read()
 		return Util::emptyString;
 	return read((uint32_t)sz);
 }
-
+uint64_t File::calcFilesSize(const string& path, const string& pattern)
+{
+	uint64_t l_size = 0;
+	WIN32_FIND_DATA data;
+	HANDLE hFind = FindFirstFileEx(formatPath(Text::toT(path + pattern)).c_str(),
+	                               CompatibilityManager::g_find_file_level,
+	                               &data,
+	                               FindExSearchNameMatch,
+	                               NULL,
+	                               0);
+	if (hFind != INVALID_HANDLE_VALUE)
+	{
+		do
+		{
+			if (!(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+			{
+				l_size += (int64_t)data.nFileSizeLow | ((int64_t)data.nFileSizeHigh) << 32;
+			}
+		}
+		while (FindNextFile(hFind, &data));
+		FindClose(hFind);
+	}
+	return l_size;
+}
 StringList File::findFiles(const string& path, const string& pattern, bool p_append_path /*= true */)
 {
 	StringList ret;

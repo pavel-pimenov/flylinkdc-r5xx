@@ -1611,9 +1611,8 @@ void File_Mk::Segment_Cluster_BlockGroup_Block()
                             Demux_Level=Demux_Level_old;
                         #endif //MEDIAINFO_DEMUX
                         Open_Buffer_Continue(l_StreamTrackNumber.Parser, (size_t)Laces[Pos]);
-                        if (l_StreamTrackNumber.Parser->Status[IsFilled]
-                         || l_StreamTrackNumber.Parser->Status[IsFinished]
-                         || l_StreamTrackNumber.PacketCount>=300)
+                        if (l_StreamTrackNumber.Parser->Status[IsFinished]
+                         || (l_StreamTrackNumber.PacketCount>=300 && MediaInfoLib::Config.ParseSpeed_Get()<1))
                             l_StreamTrackNumber.Searching_Payload=false;
                     }
                     else

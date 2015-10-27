@@ -2992,7 +2992,8 @@ IDR_VIP_ICO_PERSEUS     ICON                    "res\\vip_perseus.ico"
 IDR_VIP_ICO_ALLAVTOVO   ICON                    "res\\vip_allavtovo.ico"
 IDR_VIP_ICO_KOROBKA     ICON                    "res\\vip_korobka.ico"
 IDR_VIP_ICO_NSK154      ICON                    "res\\vip_nsk154hub.ico"
-
+IDR_VIP_ICO_PROSTOIGRA  ICON                    "res\\vip_prostoigra24.ico"
+IDR_VIP_ICO_EVAHUB      ICON                    "res\\vip_eva.ico"
 /////////////////////////////////////////////////////////////////////////////
 //
 // PNG

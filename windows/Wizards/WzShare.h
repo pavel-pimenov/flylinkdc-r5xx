@@ -92,8 +92,8 @@ public:
 
 	bool IsShareDisabledForFolder(const tstring& target)
 	{
-		const string& targetFolder = Text::fromT(target);
-		const string& tempFolder = SETTING(TEMP_DOWNLOAD_DIRECTORY);
+		const string targetFolder = Text::fromT(target);
+		const string tempFolder = SETTING(TEMP_DOWNLOAD_DIRECTORY);
 		if (stricmp(tempFolder, targetFolder) == 0)
 		{
 			MessageBox(CTSTRING(DONT_SHARE_TEMP_DIRECTORY), CTSTRING(WIZARD_TITLE), MB_OK | MB_ICONERROR);

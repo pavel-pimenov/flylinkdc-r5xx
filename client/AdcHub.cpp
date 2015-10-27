@@ -140,7 +140,7 @@ OnlineUserPtr AdcHub::getUser(const uint32_t aSID, const CID& aCID)
 	
 	if (aSID != AdcCommand::HUB_SID)
 	{
-		ClientManager::getInstance()->putOnline(ou);
+		ClientManager::getInstance()->putOnline(ou, true);
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
 		UserManager::checkUser(ou);
 #endif
@@ -833,8 +833,8 @@ void AdcHub::handle(AdcCommand::STA, const AdcCommand& c) noexcept
 	{
 		return;
 	}
-	
-	switch (Util::toInt(c.getParam(0).c_str() + 1))
+	const auto l_code = Util::toInt(c.getParam(0).c_str() + 1);
+	switch (l_code)
 	{
 	
 		case AdcCommand::ERROR_BAD_PASSWORD:
@@ -874,6 +874,13 @@ void AdcHub::handle(AdcCommand::STA, const AdcCommand& c) noexcept
 	}
 	unique_ptr<ChatMessage> message(new ChatMessage(c.getParam(1), ou));
 	fire(ClientListener::Message(), this, message);
+	if (l_code == AdcCommand::ERROR_NICK_INVALID || l_code == AdcCommand::ERROR_NICK_TAKEN)
+	{
+		dcassert(m_client_sock);
+		if (m_client_sock)
+			m_client_sock->disconnect(false);
+		fire(ClientListener::NickTaken(), this);
+	}
 }
 
 void AdcHub::handle(AdcCommand::SCH, const AdcCommand& c) noexcept

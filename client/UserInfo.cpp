@@ -131,6 +131,15 @@ int UserInfo::compareItems(const UserInfo* a, const UserInfo* b, int col)
 		{
 			return compare(a->getIdentity().getExtJSONSQLiteDBSize(), b->getIdentity().getExtJSONSQLiteDBSize());
 		}
+		case COLUMN_FLY_HUB_QUEUE:
+		{
+			return compare(a->getIdentity().getExtJSONQueueFiles(), b->getIdentity().getExtJSONQueueFiles());
+		}
+		case COLUMN_FLY_HUB_TIMES:
+		{
+			return compare(a->getIdentity().getExtJSONTimesStartGUI() + a->getIdentity().getExtJSONTimesStartCore(),
+			               b->getIdentity().getExtJSONTimesStartGUI() + b->getIdentity().getExtJSONTimesStartCore());
+		}
 	}
 	{
 		PROFILE_THREAD_SCOPED_DESC("COLUMN_DEFAULT")
@@ -283,28 +292,63 @@ tstring UserInfo::getText(int p_col) const
 		}
 		case COLUMN_FLY_HUB_RAM:
 		{
-			if (getIdentity().getExtJSONRAMWorkingSet() || getIdentity().getExtJSONRAMPeakWorkingSet() || getIdentity().getExtJSONRAMFree())
+			string l_res;
+			if (getIdentity().getExtJSONRAMWorkingSet())
 			{
-				string l_res = Util::toString(getIdentity().getExtJSONRAMWorkingSet());
-				if (getIdentity().getExtJSONRAMPeakWorkingSet() != getIdentity().getExtJSONRAMWorkingSet())
-				{
-					l_res  += " [Max: " + Util::toString(getIdentity().getExtJSONRAMPeakWorkingSet()) + "]";
-				}
-				if (getIdentity().getExtJSONRAMFree())
-				{
-					l_res += " [Free: " + Util::toString(getIdentity().getExtJSONRAMFree()) + "]";
-				}
-				return Text::toT(l_res);
+				l_res = Util::formatBytes(int64_t(getIdentity().getExtJSONRAMWorkingSet() * 1024 * 1024));
 			}
-			else
-				return Util::emptyStringT;
+			if (getIdentity().getExtJSONRAMPeakWorkingSet() != getIdentity().getExtJSONRAMWorkingSet())
+			{
+				l_res += " [Max: " + Util::formatBytes(int64_t(getIdentity().getExtJSONRAMPeakWorkingSet() * 1024 * 1024)) + "]";
+			}
+			if (getIdentity().getExtJSONRAMFree())
+			{
+				l_res += " [Free: " + Util::formatBytes(int64_t(getIdentity().getExtJSONRAMFree() * 1024 * 1024)) + "]";
+			}
+			return Text::toT(l_res);
 		}
 		case COLUMN_FLY_HUB_SQLITE_DB_SIZE:
 		{
+			string l_res;
 			if (getIdentity().getExtJSONSQLiteDBSize())
-				return Util::formatBytesW(int64_t(getIdentity().getExtJSONSQLiteDBSize()) * 1024 * 1024);
-			else
-				return Util::emptyStringT;
+			{
+				l_res = Util::formatBytes(int64_t(getIdentity().getExtJSONSQLiteDBSize()) * 1024 * 1024);
+			}
+			if (getIdentity().getExtJSONSQLiteDBSizeFree())
+			{
+				l_res += " [Free: " + Util::formatBytes(int64_t(getIdentity().getExtJSONSQLiteDBSizeFree()) * 1024 * 1024) + "]";
+			}
+			if (getIdentity().getExtJSONlevelDBHistSize())
+			{
+				l_res += " [LevelDB: " + Util::formatBytes(int64_t(getIdentity().getExtJSONlevelDBHistSize()) * 1024 * 1024) + "]";
+			}
+			return Text::toT(l_res);
+		}
+		case COLUMN_FLY_HUB_QUEUE:
+		{
+			string l_res;
+			if (getIdentity().getExtJSONQueueFiles())
+			{
+				l_res = "[Files: " + Util::toString(getIdentity().getExtJSONQueueFiles()) + "]";
+			}
+			if (getIdentity().getExtJSONQueueSrc())
+			{
+				l_res += " [Sources: " + Util::toString(getIdentity().getExtJSONQueueSrc()) + "]";
+			}
+			return Text::toT(l_res);
+		}
+		case COLUMN_FLY_HUB_TIMES:
+		{
+			string l_res;
+			if (getIdentity().getExtJSONTimesStartCore())
+			{
+				l_res = "[Start core: " + Util::toString(getIdentity().getExtJSONTimesStartCore()) + "]";
+			}
+			if (getIdentity().getExtJSONTimesStartGUI())
+			{
+				l_res += " [Start GUI: " + Util::toString(getIdentity().getExtJSONTimesStartGUI()) + "]";
+			}
+			return Text::toT(l_res);
 		}
 		
 #endif

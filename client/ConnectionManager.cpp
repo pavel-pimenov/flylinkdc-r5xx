@@ -80,8 +80,8 @@ void TokenManager::removeToken(const string& aToken) noexcept
 	auto p = m_tokens.find(aToken);
 	if (p != m_tokens.end())
 		m_tokens.erase(p);
-	else
-		dcassert(0);
+	//else
+	//  dcassert(0);
 }
 
 

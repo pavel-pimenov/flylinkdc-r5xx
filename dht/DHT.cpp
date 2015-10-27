@@ -554,7 +554,7 @@ void DHT::handle(AdcCommand::INF, const string& ip, uint16_t port, const UDPKey&
 		// put him online so we can make a connection with him
 		node->inc();
 		node->setOnline(true);
-		ClientManager::getInstance()->putOnline(node.get());
+		ClientManager::getInstance()->putOnline(node.get(),true);
 		
 		// FIXME: if node has not been added into the routing table (for whatever reason), we should take some action
 		// to avoid having him online forever (bringing memory leak for such nodes)

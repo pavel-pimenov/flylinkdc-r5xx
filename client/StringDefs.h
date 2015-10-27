@@ -550,6 +550,8 @@ enum Strings   // @DontAdd
 	FLY_HUB_LAST_SHARE_DATE, // "Last Share"
 	FLY_HUB_RAM, // "RAM"
 	FLY_HUB_SQLITE_DB_SIZE, // "SQLite DB size"
+	FLY_HUB_QUEUE, // "Queue"
+	FLY_HUB_TIMES, // "Times"
 	FLY_HUB_GENDER, // "Gender"
 	FLYUPDATE, // "FlylinkDC++ Updater"
 	FLYUPDATE_CANNOTUPDATE, // "FlylinkDC++ automatic update failed. Please download latest install of FlylinkDC++ and run it manually"

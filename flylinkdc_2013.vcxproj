@@ -912,7 +912,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="compiled\Settings\flylinkdc-config-r5xx.xml" />
+    <Xml Include="compiled\Settings\flylinkdc-config-r5xx.xml">
+      <SubType>Designer</SubType>
+    </Xml>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

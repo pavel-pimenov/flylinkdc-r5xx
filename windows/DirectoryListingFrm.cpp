@@ -521,7 +521,7 @@ void DirectoryListingFrame::changeDir(DirectoryListing::Directory* p_dir)
 	CWaitCursor l_cursor_wait; //-V808
 	CLockRedraw<> l_lock_draw(ctrlList);
 	{
-		CFlyBusy l_busy(m_updating);
+		CFlyBusyBool l_busy(m_updating);
 		// http://code.google.com/p/flylinkdc/issues/detail?id=1223
 		auto& l_prev_selected_file = m_selected_file_history[m_prev_directory];
 		string l_cur_selected_item_name = m_selected_file_history[p_dir];

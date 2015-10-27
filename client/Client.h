@@ -46,7 +46,9 @@ class ClientBase
 #endif
 {
 	public:
-		ClientBase() : m_type(DIRECT_CONNECT), m_isActivMode(false) { }
+		ClientBase() : m_type(DIRECT_CONNECT)
+			//  , m_isActivMode(false)
+		{ }
 		virtual ~ClientBase() {} // [cppcheck]
 		
 		enum P2PType { DIRECT_CONNECT // Никак не используется TODO DHT - заменить на bool??
@@ -56,13 +58,9 @@ class ClientBase
 		             };
 	protected:
 		P2PType m_type;
-		bool m_isActivMode;// [+] IRainman opt.
+		//bool m_isActivMode;// [+] IRainman opt.
 	public:
-		bool isActive() const
-		{
-			return m_isActivMode
-			       && !SETTING(FORCE_PASSIVE_INCOMING_CONNECTIONS);
-		}
+		bool isActive() const;
 		virtual bool resendMyINFO(bool p_always_send, bool p_is_force_passive) = 0;
 		P2PType getType() const
 		{
@@ -322,6 +320,10 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		}
 		void send(const char* aMessage, size_t aLen);
 		
+		void setMyNick(const string& p_nick)
+		{
+			getMyIdentity().setNick(p_nick);
+		}
 		const string& getMyNick() const // [!] IRainman opt.
 		{
 			return getMyIdentity().getNick();
@@ -423,14 +425,6 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		// [~] IRainman fix.
 		
 		GETSET(string, defpassword, Password);
-		
-		// [!] IRainman fix
-		// [-] GETSET(string, currentNick, CurrentNick);
-		// [-] GETSET(string, currentDescription, CurrentDescription);
-		void setCurrentNick(const string& p_nick)
-		{
-			getMyIdentity().setNick(p_nick);
-		}
 		const string getCurrentDescription() const
 		{
 			return getMyIdentity().getDescription();
@@ -439,7 +433,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			getMyIdentity().setDescription(descr);
 		}
-		// [~] IRainman fix.
+		GETSET(string, randomNick, RandomNick)
 		GETSET(string, name, Name)
 		GETSET(string, rawOne, RawOne);
 		GETSET(string, rawTwo, RawTwo);

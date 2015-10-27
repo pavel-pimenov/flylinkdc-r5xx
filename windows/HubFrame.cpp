@@ -100,7 +100,9 @@ int HubFrame::g_columnSizes[] = { 100,    // COLUMN_NICK
                                   , 50   // COLUMN_FLY_HUB_COUNT_FILES
                                   , 100  // COLUMN_FLY_HUB_LAST_SHARE_DATE
                                   , 100   // COLUMN_FLY_HUB_RAM
-                                  , 100  // COLUMN_FLY_HUB_SQLITE_DB_SIZE
+                                  , 100   // COLUMN_FLY_HUB_SQLITE_DB_SIZE
+                                  , 100   // COLUMN_FLY_HUB_QUEUE
+                                  , 100   // COLUMN_FLY_HUB_TIMES
 #endif
                                 }; // !SMT!-IP
 
@@ -146,6 +148,8 @@ int HubFrame::g_columnIndexes[] = { COLUMN_NICK,
                                     , COLUMN_FLY_HUB_LAST_SHARE_DATE
                                     , COLUMN_FLY_HUB_RAM
                                     , COLUMN_FLY_HUB_SQLITE_DB_SIZE
+                                    , COLUMN_FLY_HUB_QUEUE
+                                    , COLUMN_FLY_HUB_TIMES
 #endif
                                   };
 
@@ -190,7 +194,9 @@ static ResourceManager::Strings g_columnNames[] = { ResourceManager::NICK,      
                                                     ResourceManager::FLY_HUB_COUNT_FILES,     // COLUMN_FLY_HUB_COUNT_FILES
                                                     ResourceManager::FLY_HUB_LAST_SHARE_DATE, // COLUMN_FLY_HUB_LAST_SHARE_DATE
                                                     ResourceManager::FLY_HUB_RAM,             // COLUMN_FLY_HUB_RAM
-                                                    ResourceManager::FLY_HUB_SQLITE_DB_SIZE   // COLUMN_FLY_HUB_SQLITE_DB_SIZE
+                                                    ResourceManager::FLY_HUB_SQLITE_DB_SIZE,   // COLUMN_FLY_HUB_SQLITE_DB_SIZE
+                                                    ResourceManager::FLY_HUB_QUEUE, // COLUMN_FLY_HUB_QUEUE
+                                                    ResourceManager::FLY_HUB_TIMES // COLUMN_FLY_HUB_TIMES
 
 #endif
                                                   };
@@ -558,7 +564,7 @@ void HubFrame::destroyMessagePanel(bool p_is_destroy)
 	const bool l_is_shutdown = p_is_destroy || ClientManager::isShutdown();
 	if (m_ctrlFilter)
 	{
-		if (!l_is_shutdown && m_closed == false)
+		if (!l_is_shutdown && m_closed == false && m_before_close == false)
 		{
 			WinUtil::GetWindowText(m_filter, *m_ctrlFilter);
 			m_FilterSelPos = m_ctrlFilterSel->GetCurSel();
@@ -1515,7 +1521,7 @@ void HubFrame::doConnected()
 }
 void HubFrame::clearTaskAndUserList()
 {
-	CFlyBusy l_busy(m_is_process_disconnected);
+	CFlyBusyBool l_busy(m_is_process_disconnected);
 	clearTaskList();
 	clearUserList();
 }
@@ -1747,7 +1753,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 #ifdef _DEBUG
 	//LogManager::message("LRESULT HubFrame::onSpeaker: m_tasks.size() = " + Util::toString(t.size()));
 #endif
-	CFlyBusy l_busy(m_spoken);
+	CFlyBusyBool l_busy(m_spoken);
 	//unique_ptr<CLockRedraw < > > l_lock_redraw;
 	//if(m_ctrlUsers)
 	//{
@@ -2400,7 +2406,7 @@ void HubFrame::storeColumsInfo()
 		}
 		{
 			Lock l(g_frames_cs);
-			if (g_frames.size() == 1 || BaseChatFrame::g_isStartupProcess == false) // Сохраняем только на последней итерации или когда не закрываем приложение.
+			if (g_frames.size() == 1 || BaseChatFrame::g_isStartupProcess == false) // Сохраняем только на последней итерации, или когда не закрываем приложение.
 			{
 				FavoriteManager::getInstance()->save();
 			}
@@ -2431,16 +2437,19 @@ LRESULT HubFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 #endif
 		clear_and_destroy_task();
 		storeColumsInfo();
-		RecentHubEntry* r = FavoriteManager::getRecentHubEntry(l_server);
-		if (r) // hub has been removed by the user from a list of recent hubs at a time when it was opened. https://crash-server.com/Bug.aspx?ClientID=ppa&ProblemID=9897
+		if (!ClientManager::isShutdown())
 		{
-			LocalArray<TCHAR, 256> buf;
-			GetWindowText(buf.data(), 255);
-			r->setName(Text::fromT(buf.data()));
-			r->setUsers(Util::toString(m_client->getUserCount()));
-			r->setShared(Util::toString(m_client->getAvailableBytes()));
-			r->setDateTime(Util::formatDigitalClock(time(NULL)));
-			FavoriteManager::getInstance()->updateRecent(r);
+			RecentHubEntry* r = FavoriteManager::getRecentHubEntry(l_server);
+			if (r) // hub has been removed by the user from a list of recent hubs at a time when it was opened. https://crash-server.com/Bug.aspx?ClientID=ppa&ProblemID=9897
+			{
+				LocalArray<TCHAR, 256> buf;
+				GetWindowText(buf.data(), 255);
+				r->setName(Text::fromT(buf.data()));
+				r->setUsers(Util::toString(m_client->getUserCount()));
+				r->setShared(Util::toString(m_client->getAvailableBytes()));
+				r->setDateTime(Util::formatDigitalClock(time(NULL)));
+				FavoriteManager::getInstance()->updateRecent(r);
+			}
 		}
 // TODO     ClientManager::getInstance()->addListener(this);
 #ifdef RIP_USE_CONNECTION_AUTODETECT
@@ -3152,7 +3161,10 @@ void HubFrame::resortUsers()
 	Lock l(g_frames_cs);
 	for (auto i = g_frames.cbegin(); i != g_frames.cend(); ++i)
 	{
-		i->second->resortForFavsFirst(true);
+		if (!i->second->isClosedOrShutdown())
+		{
+			i->second->resortForFavsFirst(true);
+		}
 	}
 }
 
@@ -3161,11 +3173,14 @@ void HubFrame::closeDisconnected()
 	Lock l(g_frames_cs);
 	for (auto i = g_frames.cbegin(); i != g_frames.cend(); ++i)
 	{
-		const auto l_client = i->second->m_client;
-		dcassert(l_client);
-		if (l_client && !l_client->isConnected())
+		if (!i->second->isClosedOrShutdown())
 		{
-			i->second->PostMessage(WM_CLOSE);
+			const auto l_client = i->second->m_client;
+			dcassert(l_client);
+			if (l_client && !l_client->isConnected())
+			{
+				i->second->PostMessage(WM_CLOSE);
+			}
 		}
 	}
 }
@@ -3175,11 +3190,14 @@ void HubFrame::reconnectDisconnected()
 	Lock l(g_frames_cs);
 	for (auto i = g_frames.cbegin(); i != g_frames.cend(); ++i)
 	{
-		const auto& l_client = i->second->m_client;
-		dcassert(l_client);
-		if (l_client && !l_client->isConnected())
+		if (!i->second->isClosedOrShutdown())
 		{
-			l_client->reconnect();
+			const auto& l_client = i->second->m_client;
+			dcassert(l_client);
+			if (l_client && !l_client->isConnected())
+			{
+				l_client->reconnect();
+			}
 		}
 	}
 }
@@ -3199,12 +3217,15 @@ void HubFrame::closeAll(size_t thershold)
 		Lock l(g_frames_cs);
 		for (auto i = g_frames.cbegin(); i != g_frames.cend(); ++i)
 		{
-			dcassert(i->second->m_client);
-			if (thershold == 0 || (
-			            i->second->m_client && // [+] fix https://crash-server.com/Bug.aspx?ClientID=ppa&ProblemID=27659
-			            i->second->m_client->getUserCount() <= thershold))
+			if (!i->second->isClosedOrShutdown())
 			{
-				i->second->PostMessage(WM_CLOSE);
+				dcassert(i->second->m_client);
+				if (thershold == 0 || (
+				            i->second->m_client &&
+				            i->second->m_client->getUserCount() <= thershold))
+				{
+					i->second->PostMessage(WM_CLOSE);
+				}
 			}
 		}
 	}
@@ -3231,7 +3252,10 @@ void HubFrame::timer_process_all()
 	Lock l(g_frames_cs);
 	for (auto i = g_frames.cbegin(); i != g_frames.cend(); ++i)
 	{
-		i->second->timer_process_internal(); // TODO прокинуть флаг видимости чтобы не обнвлять статус
+		if (!i->second->isClosedOrShutdown())
+		{
+			i->second->timer_process_internal(); // TODO прокинуть флаг видимости чтобы не обнвлять статус
+		}
 	}
 }
 #endif
@@ -3274,6 +3298,7 @@ void HubFrame::timer_process_internal()
 							{
 								m_virus_icon_index = 3;
 							}
+							flickerVirusIcon();
 						}
 					}
 				}
@@ -3364,7 +3389,7 @@ void HubFrame::on(ClientListener::DDoSSearchDetect, const string&) noexcept
 bool HubFrame::flickerVirusIcon()
 {
 	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown() && m_closed == false)
+	if (!isClosedOrShutdown())
 	{
 		if (m_is_ddos_detect == false)
 		{
@@ -3386,7 +3411,7 @@ bool HubFrame::flickerVirusIcon()
 void HubFrame::on(ClientListener::UserDescUpdated, const OnlineUserPtr& user) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown() && m_closed == false)
+	if (!isClosedOrShutdown())
 	{
 		speak(UPADTE_COLUMN_DESC, user);
 	}
@@ -3394,7 +3419,7 @@ void HubFrame::on(ClientListener::UserDescUpdated, const OnlineUserPtr& user) no
 void HubFrame::on(ClientListener::UserShareUpdated, const OnlineUserPtr& user) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown() && m_closed == false)
+	if (!isClosedOrShutdown())
 	{
 		speak(UPADTE_COLUMN_SHARE, user);
 	}
@@ -3403,7 +3428,7 @@ void HubFrame::on(ClientListener::UserShareUpdated, const OnlineUserPtr& user) n
 void HubFrame::on(ClientListener::UserUpdated, const OnlineUserPtr& user) noexcept   // !SMT!-fix
 {
 	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown() && m_closed == false)
+	if (!isClosedOrShutdown())
 	{
 #ifdef FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
 		const auto l_ou_ptr = new OnlineUserPtr(user);
@@ -3618,13 +3643,15 @@ void HubFrame::on(ClientListener::NickTaken, const Client*) noexcept
 	if (l_fe)
 	{
 		string l_nick = l_fe->getNick();
-		string l_fly_user = l_fe->getNick() + "_RND_" + Util::toString(Util::rand());
-		if (l_fly_user.length() > 25)
+		string l_fly_user = l_fe->getNick() + "_R" + Util::toString(Util::rand()).substr(0, 3);
+		if (l_fly_user.length() > 15)
 		{
-			l_fly_user = l_nick.substr(0, 10);
-			l_fly_user  += "_RND_" + Util::toString(Util::rand());
+			l_fly_user = l_nick.substr(0, 12);
+			l_fly_user  += "_R" + Util::toString(Util::rand()).substr(0, 3);
 		}
-		l_fe->setNick(l_fly_user);
+		m_client->setMyNick(l_fly_user);
+		m_client->setRandomNick(l_fly_user);
+		ctrlClient.setHubParam(m_client->getHubUrl(), m_client->getMyNick());
 		CFlyServerJSON::pushError(54, "Hub = " + m_client->getHubUrl() + " New random nick = " + l_fly_user);
 		if (m_reconnect_count < 3)
 		{
@@ -4492,10 +4519,14 @@ void HubFrame::addDupeUsersToSummaryMenu(ClientManager::UserParams& p_param)
 		for (auto f = g_frames.cbegin(); f != g_frames.cend(); ++f)
 		{
 			const auto& frame = f->second;
+			if (frame->isClosedOrShutdown())
+				continue;
 			//webrtc::ReadLockScoped l(*frame->m_userMapCS);
 			Lock l(frame->m_userMapCS);
 			for (auto i = frame->m_userMap.cbegin(); i != frame->m_userMap.cend(); ++i) // TODO https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=28097
 			{
+				if (frame->isClosedOrShutdown())
+					continue;
 				const auto& l_id = i->second->getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'i->second->getIdentity()' expression repeatedly. hubframe.cpp 3673
 				const auto l_cur_ip = l_id.getUser()->getLastIPfromRAM().to_string();
 				if ((p_param.m_bytesShared && l_id.getBytesShared() == p_param.m_bytesShared) ||

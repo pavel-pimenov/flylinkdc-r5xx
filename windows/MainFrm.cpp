@@ -972,7 +972,7 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			const wstring l_dlstr = Util::formatBytesW(g_downdiff);
 			const wstring l_ulstr = Util::formatBytesW(g_updiff);
 #endif
-			Stats->push_back(TSTRING(SHARED) + _T(": ") + Util::formatBytesW(ShareManager::getSharedSize()));
+			Stats->push_back(TSTRING(SHARED) + _T(": ") + Util::formatBytesW(ShareManager::getShareSize()));
 			Stats->push_back(TSTRING(H) + _T(' ') + Text::toT(Client::getCounts()));
 			Stats->push_back(TSTRING(SLOTS) + _T(": ") + Util::toStringW(UploadManager::getFreeSlots()) + _T('/') + Util::toStringW(UploadManager::getSlots())
 			                 + _T(" (") + Util::toStringW(UploadManager::getInstance()->getFreeExtraSlots()) + _T('/') + Util::toStringW(SETTING(EXTRA_SLOTS)) + _T(")"));
@@ -2366,9 +2366,9 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 	HubFrame* frm = nullptr;
 	{
 		// TODO - убрать много флажков
-		CFlyBusy l_busy_1(BaseChatFrame::g_isStartupProcess);
-		CFlyBusy l_busy_2(g_isStartupProcess);
-		CFlyBusy l_busy_3(TimerManager::g_isStartupShutdownProcess);
+		CFlyBusyBool l_busy_1(BaseChatFrame::g_isStartupProcess);
+		CFlyBusyBool l_busy_2(g_isStartupProcess);
+		CFlyBusyBool l_busy_3(TimerManager::g_isStartupShutdownProcess);
 		for (auto i = fl.cbegin(); i != fl.cend(); ++i)
 		{
 			FavoriteHubEntry* entry = *i;

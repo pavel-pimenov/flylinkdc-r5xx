@@ -272,7 +272,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		/** Constructs a synthetic, hopefully unique CID */
 		static CID makeCid(const string& nick, const string& hubUrl);
 		
-		void putOnline(const OnlineUserPtr& ou) noexcept; // [!] IRainman fix.
+		void putOnline(const OnlineUserPtr& ou, bool p_is_fire_online) noexcept; // [!] IRainman fix.
 		void putOffline(const OnlineUserPtr& ou, bool p_is_disconnect = false) noexcept; // [!] IRainman fix.
 		
 		static bool isMe(const CID& p_cid)
@@ -327,14 +327,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 		                     , bool *pbWantAutodetect = NULL
 #endif
-		                    )
-		{
-			return getMode(p_hub
-#ifdef RIP_USE_CONNECTION_AUTODETECT
-			               , pbWantAutodetect
-#endif
-			              ) != SettingsManager::INCOMING_FIREWALL_PASSIVE;
-		}
+		                    );
 #ifdef IRAINMAN_NON_COPYABLE_CLIENTS_IN_CLIENT_MANAGER
 		const Client::List& getClientsL() const
 		{
@@ -366,26 +359,8 @@ class ClientManager : public Speaker<ClientManagerListener>,
 #ifdef STRONG_USE_DHT
 		static OnlineUserPtr findDHTNode(const CID& cid);
 #endif
-		void shutdown()
-		{
-			dcassert(!isShutdown());
-			g_isShutdown = true;
-			TimerManager::getInstance()->removeListener(this);
-		}
-		static void clear()
-		{
-			{
-				webrtc::WriteLockScoped l(*g_csOnlineUsers);
-				g_onlineUsers.clear();
-			}
-			{
-				webrtc::WriteLockScoped l(*g_csUsers);
-#ifdef IRAINMAN_USE_NICKS_IN_CM
-				g_nicks.clear();
-#endif
-				g_users.clear();
-			}
-		}
+		void shutdown();
+		static void clear();
 		static bool isShutdown()
 		{
 			return g_isShutdown;

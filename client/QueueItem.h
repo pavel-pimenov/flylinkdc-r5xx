@@ -179,7 +179,7 @@ class QueueItem : public Flags
 		typedef std::set<Segment> SegmentSet;
 		
 		QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, Flags::MaskType aFlag,
-		          time_t aAdded, const TTHValue& tth);
+		          time_t aAdded, const TTHValue& tth, uint8_t p_maxSegments, int64_t p_FlyQueueID, const string& aTempTarget);
 		          
 		~QueueItem();
 		
@@ -299,10 +299,22 @@ class QueueItem : public Flags
 		}
 		void setDirtySource(bool p_dirty)
 		{
+#ifdef _DEBUG
+			if (p_dirty)
+			{
+				m_dirty_source = p_dirty;
+			}
+#endif
 			m_dirty_source = p_dirty;
 		}
 		void setDirtySegment(bool p_dirty)
 		{
+#ifdef _DEBUG
+			if (p_dirty)
+			{
+				m_dirty_segment = p_dirty;
+			}
+#endif
 			m_dirty_segment = p_dirty;
 		}
 		const DownloadMap& getDownloadsL() // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
@@ -320,14 +332,16 @@ class QueueItem : public Flags
 		/** Next segment that is not done and not being downloaded, zero-sized segment returned if there is none is found */
 		Segment getNextSegmentL(const int64_t blockSize, const int64_t wantedSize, const int64_t lastSpeed, const PartialSource::Ptr &partialSource) const; // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
 		
-		void addSegmentL(const Segment& segment);
+		void addSegmentL(const Segment& segment, bool p_is_first_load = false);
 		void resetDownloaded()
 		{
+			bool l_is_dirty = true;
 			{
 				WLock l(*g_cs);
+				l_is_dirty = !m_done_segment.empty();
 				m_done_segment.clear();
 			}
-			setDirtySegment(true);
+			setDirtySegment(l_is_dirty);
 		}
 		
 		bool isFinishedL() const
@@ -347,6 +361,7 @@ class QueueItem : public Flags
 		
 		string getListName() const;
 		const string& getTempTarget();
+		const string& getTempTargetConst() const;
 		void setTempTarget(const string& p_TempTarget);
 		
 #define GETSET_DIRTY(type, name, name2) \
@@ -391,13 +406,12 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 #endif
 		GETSET_DIRTY(string, target, Target);
 		GETSET_DIRTY(uint64_t, fileBegin, FileBegin);
-		GETSET_DIRTY(uint64_t, nextPublishingTime, NextPublishingTime);
+		GETSET(uint64_t, nextPublishingTime, NextPublishingTime);
 		GETSET_DIRTY(int64_t, size, Size);
-		GETSET_DIRTY(time_t, added, Added);
+		GETSET(time_t, added, Added);
 		GETSET_DIRTY(uint8_t, maxSegments, MaxSegments);
 		GETSET_DIRTY(bool, autoPriority, AutoPriority);
 		GETSET_DIRTY(int64_t, flyQueueID, FlyQueueID);
-		GETSET_DIRTY(int, flyCountSourceInSQL, FlyCountSourceInSQL);
 		
 	private:
 		Priority m_priority;
@@ -430,7 +444,7 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 		{
 			return m_averageSpeed; // [+] IRainman opt.
 		}
-		void setSectionString(const string& p_section);
+		void setSectionString(const string& p_section, bool p_is_first_load);
 	private:
 		mutable uint64_t m_averageSpeed; // [+] IRainman opt.
 		mutable uint64_t m_downloadedBytes; // [+] IRainman opt.
@@ -439,7 +453,7 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 		SourceMap m_badSources;
 		string m_tempTarget;
 		
-		void addSourceL(const UserPtr& aUser);
+		void addSourceL(const UserPtr& aUser, bool p_is_first_load);
 		void removeSourceL(const UserPtr& aUser, Flags::MaskType reason);
 		
 #ifdef SSA_VIDEO_PREVIEW_FEATURE

@@ -1363,7 +1363,7 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 		{
 			if ((Util::getUpTime() > 10 * 24 * 60 * 60) && // > 10 days uptime
 			        (Socket::g_stats.m_tcp.totalUp > 100ULL * 1024 * 1024 * 1024) && // > 100 GiB uploaded
-			        (ShareManager::getSharedSize() > 1.5 * 1024 * 1024 * 1024 * 1024)) // > 1.5 TiB shared
+			        (ShareManager::getShareSize() > 1.5 * 1024 * 1024 * 1024 * 1024)) // > 1.5 TiB shared
 			{
 				isFileServer = true;
 				ClientManager::infoUpdated();

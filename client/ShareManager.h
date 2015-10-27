@@ -94,7 +94,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		static int64_t removeExcludeFolder(const string &path, bool returnSize = true);
 		static int64_t addExcludeFolder(const string &path);
 		
-		static void   searchTTHArray(CFlySearchArrayTTH& p_tth_aray, const Client* p_client);
+		static bool   searchTTHArray(CFlySearchArrayTTH& p_tth_aray, const Client* p_client);
 		static bool   isUnknownTTH(const TTHValue& p_tth);
 		static bool   isUnknownFile(const string& p_search);
 		static void   addUnknownFile(const string& p_search);
@@ -178,13 +178,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		
 		GETSET(string, bzXmlFile, BZXmlFile);
 		
-		static int64_t getSharedSize()
-		{
-			return g_sharedSize;
-		}
-		
 	private:
-		static int64_t g_sharedSize;
 		static size_t g_hits;
 		static int64_t g_lastSharedDate;
 		
@@ -431,7 +425,8 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		uint64_t m_lastXmlUpdate;
 		uint64_t m_lastFullUpdate;
 		
-		static std::unique_ptr<webrtc::RWLockWrapper> g_csTTHIndex;
+		static FastCriticalSection g_csTTHIndex;
+		static FastCriticalSection g_csBloom;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShare;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShareNotExists;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShareCache;
@@ -461,6 +456,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		static int64_t g_CurrentShareSize;
 		static bool g_isShutdown;
 		static bool g_ignoreFileSizeHFS;
+		static int g_RebuildIndexes;
 		//[~]IRainman
 		
 		BloomFilter<5> m_bloom;

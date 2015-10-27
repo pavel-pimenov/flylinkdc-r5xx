@@ -514,7 +514,7 @@ LRESULT WaitingUsersFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 	if (t.empty())
 		return 0;
 		
-	CFlyBusy l_busy(m_spoken);
+	CFlyBusyBool l_busy(m_spoken);
 	CLockRedraw<> lockCtrlList(m_ctrlList);
 	CLockRedraw<> lockCtrlQueued(ctrlQueued);
 	for (auto j = t.cbegin(); j != t.cend(); ++j)

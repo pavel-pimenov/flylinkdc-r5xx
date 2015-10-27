@@ -376,10 +376,10 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif // FLYLINKDC_LOG_IN_SQLITE_BASE
 		size_t load_queue();
 		void add_sourceL(const QueueItemPtr& p_QueueItem, const CID& p_cid, const string& p_nick/*, const string& p_hub_hint*/);
-		bool merge_queue_itemL(QueueItemPtr& p_QueueItem);
+		bool merge_queue_item(QueueItemPtr& p_QueueItem);
 		void merge_queue_segmentL(const CFlySegment& p_QueueSegment);
 	private:
-		int merge_queue_sub_itemsL(QueueItemPtr& p_QueueItem, __int64 p_id);
+		void merge_queue_sub_itemsL(QueueItemPtr& p_QueueItem, __int64 p_id);
 		void remove_queue_itemL(const __int64 p_id);
 		void remove_queue_item_sourcesL(const __int64 p_id, const CID& p_cid);
 		void clean_registryL(int p_Segment, __int64 p_tick);
@@ -503,6 +503,10 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
 		__int64 convert_tth_history();
 		__int64 convert_tth_historyL();
+		static size_t getCountQueueFiles()
+		{
+			return g_count_queue_files;
+		}
 		static size_t getCountQueueSources()
 		{
 			return g_count_queue_source;
@@ -605,7 +609,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlySQLCommand m_insert_store_all_ip_and_message_count;
 		
 		auto_ptr<sqlite3_command> m_insert_fly_hash_block;
-		auto_ptr<sqlite3_command> m_update_fly_hash_block;
+		//auto_ptr<sqlite3_command> m_update_fly_hash_block;
 		auto_ptr<sqlite3_command> m_insert_file;
 		auto_ptr<sqlite3_command> m_update_file;
 		auto_ptr<sqlite3_command> m_check_tth_sql;
@@ -709,10 +713,11 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		typedef boost::unordered_map<string, __int64> CFlyCacheDIC;
 		std::vector<CFlyCacheDIC> m_DIC;
 		
-		auto_ptr<sqlite3_command> m_select_transfer;
-		auto_ptr<sqlite3_command> m_select_transfer_histrogram;
-		auto_ptr<sqlite3_command> m_insert_transfer;
-		auto_ptr<sqlite3_command> m_delete_transfer;
+		CFlySQLCommand m_select_transfer;
+		CFlySQLCommand m_select_transfer_tth;
+		CFlySQLCommand m_select_transfer_histrogram;
+		CFlySQLCommand m_insert_transfer;
+		CFlySQLCommand m_delete_transfer;
 		
 		__int64 find_dic_idL(const string& p_name, const eTypeDIC p_DIC, bool p_cache_result);
 		__int64 get_dic_idL(const string& p_name, const eTypeDIC p_DIC, bool p_create);
@@ -730,6 +735,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		int     m_convert_ftype_stop_key;
 		size_t  m_count_json_stat;
 		static size_t g_count_queue_source;
+		static size_t g_count_queue_files;
 		std::unordered_map<TTHValue, TigerTree> m_tiger_tree_cache; // http://code.google.com/p/flylinkdc/issues/detail?id=1418
 };
 #endif

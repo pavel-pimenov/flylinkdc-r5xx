@@ -111,18 +111,32 @@ template <class T> class CFlyTestStatistic
 };
 #endif // _DEBUG
 
-class CFlyBusy
+class CFlyBusyBool
 {
 		bool& m_flag;
 	public:
-		explicit CFlyBusy(bool& p_flag) : m_flag(p_flag)
+		explicit CFlyBusyBool(bool& p_flag) : m_flag(p_flag)
 		{
-			//dcassert(p_flag == false);
 			m_flag = true;
+		}
+		~CFlyBusyBool()
+		{
+			m_flag = false;
+		}
+};
+
+class CFlyBusy
+{
+		int& m_count;
+	public:
+		explicit CFlyBusy(int& p_count) : m_count(p_count)
+		{
+			//dcassert(m_count >= 0);
+			++m_count;
 		}
 		~CFlyBusy()
 		{
-			m_flag = false;
+			--m_count;
 		}
 };
 

@@ -1277,7 +1277,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	if (t.empty()) // [+] IRainman opt
 		return 0;
 		
-	CFlyBusy l_busy(m_spoken);
+	CFlyBusyBool l_busy(m_spoken);
 	CLockRedraw<> l_lock_draw(ctrlTransfers);
 	for (auto i = t.cbegin(); i != t.cend(); ++i)
 	{
@@ -1351,7 +1351,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 								ui.updateMask &= ~UpdateInfo::MASK_ACTUAL;
 								ui.updateMask &= ~UpdateInfo::MASK_SIZE;
 								ui.updateMask &= ~UpdateInfo::MASK_STATUS_STRING;
-								ui.updateMask &= ~UpdateInfo::MASK_TIMELEFT;
+								//ui.updateMask &= ~UpdateInfo::MASK_TIMELEFT;
 							}
 							else
 							{
@@ -1579,7 +1579,7 @@ void TransferView::updateItem(int ii, uint32_t updateMask)
 	if (updateMask & UpdateInfo::MASK_IP)
 	{
 		ctrlTransfers.updateItem(ii, COLUMN_IP);
-		// ctrlTransfers.updateItem(ii, COLUMN_LOCATION);
+		//ctrlTransfers.updateItem(ii, COLUMN_LOCATION);
 	}
 	if (updateMask & UpdateInfo::MASK_SEGMENT)
 	{
@@ -2105,7 +2105,8 @@ void TransferView::on(QueueManagerListener::Tick, const QueueItemList& p_list) n
 void TransferView::on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept // [+] IRainman opt.
 {
 	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!p_list.empty());
+	if (!ClientManager::isShutdown() && !p_list.empty())
 	{
 		for (auto i = p_list.cbegin(); i != p_list.cend(); ++i)
 		{

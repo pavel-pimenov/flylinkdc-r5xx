@@ -881,7 +881,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 					dcassert(!m_is_running)
 					if (m_is_running == false)
 					{
-						CFlyBusy l_busy(m_is_running);
+						CFlyBusyBool l_busy(m_is_running);
 						try
 						{
 							start(128);

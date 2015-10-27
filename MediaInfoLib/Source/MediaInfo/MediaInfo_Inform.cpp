@@ -49,6 +49,41 @@ namespace MediaInfoLib
 {
 
 //---------------------------------------------------------------------------
+#if defined(MEDIAINFO_XML_YES)
+Ztring Xml_Name_Escape_0_7_78 (const Ztring &Name)
+{
+    Ztring ToReturn(Name);
+
+    if (ToReturn.operator()(0)>='0' && ToReturn.operator()(0)<='9')
+        ToReturn.insert(0, 1, __T('_'));
+    ToReturn.FindAndReplace(__T(" "), __T("_"), 0, Ztring_Recursive);
+    ToReturn.FindAndReplace(__T("/"), __T("_"), 0, Ztring_Recursive);
+    ToReturn.FindAndReplace(__T("("), Ztring(), 0, Ztring_Recursive);
+    ToReturn.FindAndReplace(__T(")"), Ztring(), 0, Ztring_Recursive);
+    ToReturn.FindAndReplace(__T("*"), __T("_"), 0, Ztring_Recursive);
+    ToReturn.FindAndReplace(__T(","), __T("_"), 0, Ztring_Recursive);
+    ToReturn.FindAndReplace(__T(":"), __T("_"), 0, Ztring_Recursive);
+    ToReturn.FindAndReplace(__T("@"), __T("_"), 0, Ztring_Recursive);
+    ToReturn.FindAndReplace(__T("."), __T("_"), 0, Ztring_Recursive);
+    size_t ToReturn_Pos=0;
+    while (ToReturn_Pos<ToReturn.size())
+    {
+        if (!(ToReturn[ToReturn_Pos]>=__T('A') && ToReturn[ToReturn_Pos]<=__T('Z'))
+         && !(ToReturn[ToReturn_Pos]>=__T('a') && ToReturn[ToReturn_Pos]<=__T('z'))
+         && !(ToReturn[ToReturn_Pos]>=__T('0') && ToReturn[ToReturn_Pos]<=__T('9'))
+         && !(ToReturn[ToReturn_Pos]==__T('_')))
+            ToReturn.erase(ToReturn_Pos, 1);
+        else
+            ToReturn_Pos++;
+    }
+    if (ToReturn.empty())
+        ToReturn="Unknown";
+
+    return ToReturn;
+}
+#endif //defined(MEDIAINFO_XML_YES)
+
+//---------------------------------------------------------------------------
 extern MediaInfo_Config Config;
 //---------------------------------------------------------------------------
 
@@ -228,7 +263,7 @@ Ztring MediaInfo_Internal::Inform()
 #if defined(MEDIAINFO_XML_YES)
 		size_t Modified;
         Retour+=__T("<media ref=\"")+MediaInfo_Internal::Xml_Content_Escape(Get(Stream_General, 0, General_CompleteName), Modified)+__T("\">\n");
-        Retour+=__T("<MediaInfo version=\"0.1\">\n");
+        Retour+=__T("<MediaInfo xmlns=\"https://mediaarea.net/mediainfo\" version=\"2.0alpha1\">\n");
 #endif
     }
     else
@@ -300,7 +335,7 @@ Ztring MediaInfo_Internal::Inform()
         {
             if (MediaInfoLib::Config.Trace_Level_Get() || MediaInfoLib::Config.Inform_Get()==__T("Details"))
             {
-                Retour+=__T("<MediaTrace version=\"0.1\">\n");
+                Retour+=__T("<MediaTrace xmlns=\"https://mediaarea.net/mediatrace\" version=\"0.1\">\n");
                 if (!Details.empty())
                     Retour+=Details;
                 else if (Info)
@@ -370,6 +405,7 @@ Ztring MediaInfo_Internal::Inform (stream_t StreamKind, size_t StreamPos, bool I
         #endif //defined(MEDIAINFO_CSV_YES)
         #endif //defined(MEDIAINFO_TEXT_YES) && (defined(MEDIAINFO_HTML_YES) || defined(MEDIAINFO_XML_YES) || defined(MEDIAINFO_CSV_YES))
         size_t Size=Count_Get(StreamKind, StreamPos);
+        bool IsExtra=false;
         for (size_t Champ_Pos=0; Champ_Pos<Size; Champ_Pos++)
         {
             //Pour chaque champ
@@ -378,15 +414,27 @@ Ztring MediaInfo_Internal::Inform (stream_t StreamKind, size_t StreamPos, bool I
             bool Shouldshow=false;
             if (XML_0_7_78)
             {
+                if (Champ_Pos>=Stream[StreamKind][StreamPos].size())
+                    Shouldshow=true;
+                else
+                {
                 Ztring Options=Get((stream_t)StreamKind, StreamPos, Champ_Pos, Info_Options);
                 if (InfoOption_ShowInXml<Options.size() && Options[InfoOption_ShowInXml]==__T('Y'))
                     Shouldshow=true;
+                }
             }
             else 
 				if ((MediaInfoLib::Config.Complete_Get() || Get((stream_t)StreamKind, StreamPos, Champ_Pos, Info_Options)[InfoOption_ShowInInform]==__T('Y')))
                 Shouldshow=true;
             if (Shouldshow && !Get((stream_t)StreamKind, StreamPos, Champ_Pos, Info_Text).empty())
             {
+                //Extra
+                if (XML_0_7_78 && !IsExtra && Champ_Pos>=Stream[StreamKind][StreamPos].size())
+                {
+                     Retour+=__T("<extra>\n");
+                     IsExtra=true;
+                }
+                    
                 Ztring Nom=Get((stream_t)StreamKind, StreamPos, Champ_Pos, Info_Name_Text);
                 if (Nom.empty() || XML_0_7_78)
                     Nom=Get((stream_t)StreamKind, StreamPos, Champ_Pos, Info_Name); //Texte n'existe pas
@@ -414,9 +462,19 @@ Ztring MediaInfo_Internal::Inform (stream_t StreamKind, size_t StreamPos, bool I
                 #if defined(MEDIAINFO_XML_YES)
                 if (XML)
                 {
-                    Nom=Xml_Name_Escape(Nom);
+                    if (XML_0_7_78)
+                        Nom=Xml_Name_Escape_0_7_78(Nom);
+                    else
+                        Nom=Xml_Name_Escape(Nom);
                     size_t Modified;
                     Xml_Content_Escape_Modifying(Valeur, Modified);
+                    if (XML_0_7_78 && Nom.size()>8 && Nom.rfind(__T("_Version"))==Nom.size()-8 && Valeur.size()>8 && Valeur.rfind(__T("Version "), 0)==0)
+                    {
+                        Valeur.erase(0, 8); // Remove useless "Version "
+                        size_t SlashPos = Valeur.find(__T(" / "));
+                        if (SlashPos!=string::npos)
+                            Valeur.erase(SlashPos);
+                    }
 
                     Retour+=__T("<");
                     Retour+=Nom;
@@ -446,6 +504,12 @@ Ztring MediaInfo_Internal::Inform (stream_t StreamKind, size_t StreamPos, bool I
                     Retour+=Nom + MediaInfoLib::Config.Language_Get(__T("  Config_Text_Separator")) + Valeur;
                 Retour+=MediaInfoLib::Config.LineSeparator_Get();
             }
+        }
+
+        //Extra
+        if (IsExtra)
+        {
+            Retour+=__T("</extra>\n");
         }
 
         Retour.FindAndReplace(__T("\\r\\n"), __T("\n"), 0, Ztring_Recursive);

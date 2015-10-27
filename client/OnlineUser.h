@@ -486,8 +486,14 @@ class Identity
 			e_ExtJSONRAMWorkingSet,
 			e_ExtJSONRAMPeakWorkingSet,
 			e_ExtJSONRAMFree,
+			e_ExtJSONlevelDBHistSize,
 			e_ExtJSONSQLiteDBSize,
+			e_ExtJSONSQLiteDBSizeFree,
 			e_ExtJSONCountFiles,
+			e_ExtJSONQueueFiles,
+			e_ExtJSONQueueSrc,
+			e_ExtJSONTimesStartCore,
+			e_ExtJSONTimesStartGUI,
 			//e_ExtJSONGDI,
 			e_TypeUInt32AttrLast
 		};
@@ -538,6 +544,13 @@ class Identity
 		GSUINT(32, ExtJSONRAMFree);
 		GSUINT(32, ExtJSONCountFiles);
 		GSUINT(32, ExtJSONSQLiteDBSize);
+		GSUINT(32, ExtJSONlevelDBHistSize);
+		GSUINT(32, ExtJSONSQLiteDBSizeFree);
+		GSUINT(32, ExtJSONQueueFiles);
+		GSUINT(32, ExtJSONQueueSrc);
+		GSUINT(32, ExtJSONTimesStartCore);
+		GSUINT(32, ExtJSONTimesStartGUI);
+		
 		//GSUINT(32, ExtJSONGDI);
 		
 		GSUINTC(32, HubNormalRegOper, CHANGES_HUBS); // "HN"/"HR"/"HO" - Экономим RAM - 32 бита по 10 бит каждому значению

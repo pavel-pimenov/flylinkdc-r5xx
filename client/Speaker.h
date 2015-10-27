@@ -39,7 +39,6 @@ class Speaker
 # endif
 #endif
 
-#ifdef _DEBUG_SPEAKER_LISTENER_LIST_LEVEL_2
 		void log_listener_list(const ListenerList& p_list, const char* p_log_message)
 		{
 			dcdebug("[log_listener_list][%s][tid = %u] [this=%p] count = %d ", p_log_message, GetSelfThreadID(), this, p_list.size());
@@ -49,7 +48,7 @@ class Speaker
 			}
 			dcdebug("\r\n");
 		}
-#endif // _DEBUG_SPEAKER_LISTENER_LIST_LEVEL_2
+		
 	public:
 		explicit Speaker() noexcept
 		{
@@ -63,8 +62,25 @@ class Speaker
 #endif // IRAINMAN_USE_SIMPLE_SPEAKER
 		}
 		
-		/// @todo simplify when we have variadic templates
+		template<typename... ArgT>
+		void fire(ArgT && ... args)
+		{
+			Lock l(m_listenerCS);
+			ListenerList tmp = m_listeners;
+#if _DEBUG
+			extern bool g_isShutdown;
+			if (g_isShutdown && !tmp.empty())
+			{
+				log_listener_list(tmp, "fire-destroy!");
+			}
+#endif
+			for (auto i = tmp.cbegin(); i != tmp.cend(); ++i)
+			{
+				(*i)->on(std::forward<ArgT>(args)...);
+			}
+		}
 		
+#if 0 // VC++ 2010
 		template<typename T0>
 		void fire(T0 && type) noexcept
 		{
@@ -249,6 +265,8 @@ void fire(T0 && type, T1 && p1, T2 && p2, T3 && p3, T4 && p4, T5 && p5, T6 && p6
 after_fire_process();
 #endif // IRAINMAN_USE_SIMPLE_SPEAKER
 }
+#endif // 0  VC++2010
+
 #ifdef IRAINMAN_USE_SIMPLE_SPEAKER
 void addListener(Listener* aListener)
 {

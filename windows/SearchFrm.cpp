@@ -562,6 +562,8 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	resultsMenu.SetMenuDefaultItem(IDC_DOWNLOAD_FAVORITE_DIRS);
 	*/
 	m_ctrlUDPMode.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | SS_ICON | BS_CENTER | BS_PUSHBUTTON , 0);
+	g_UDPTestText.clear();
+	g_isUDPTestOK = boost::logic::indeterminate;
 	if (g_isUDPTestOK)
 	{
 		m_ctrlUDPMode.SetIcon(g_UDPOkIcon);
@@ -808,7 +810,7 @@ void SearchFrame::onEnter()
 	BOOL tmp_Handled;
 	onEditChange(0, 0, NULL, tmp_Handled); // if in searchbox TTH - select filetypeTTH
 	
-	CFlyBusy l_busy(m_is_before_search);
+	CFlyBusyBool l_busy(m_is_before_search);
 	
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	clearFlyServerQueue();
@@ -1514,7 +1516,8 @@ LRESULT SearchFrame::onCollapsed(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 //===================================================================================================================================
 void SearchFrame::runTestPort()
 {
-	if (boost::logic::indeterminate(SettingsManager::g_TestUDPSearchLevel))
+	SettingsManager::g_TestUDPSearchLevel = boost::logic::indeterminate;
+	// !if (boost::logic::indeterminate(SettingsManager::g_TestUDPSearchLevel))
 	{
 		g_isUDPTestOK = false;
 		string p_external_ip;
@@ -1803,7 +1806,7 @@ void SearchFrame::SearchInfo::view()
 	{
 		if (sr.getType() == SearchResult::TYPE_FILE)
 		{
-			QueueManager::getInstance()->add(Util::getTempPath() + sr.getFileName(),
+			QueueManager::getInstance()->add(0, Util::getTempPath() + sr.getFileName(),
 			                                 sr.getSize(), sr.getTTH(), HintedUser(sr.getUser(), sr.getHubUrl()),
 			                                 QueueItem::FLAG_CLIENT_VIEW | QueueItem::FLAG_TEXT);
 		}
@@ -1824,7 +1827,7 @@ void SearchFrame::SearchInfo::Download::operator()(const SearchInfo* si)
 		if (si->sr.getType() == SearchResult::TYPE_FILE)
 		{
 			const string target = Text::fromT(tgt + si->getText(COLUMN_FILENAME));
-			QueueManager::getInstance()->add(target, si->sr.getSize(), si->sr.getTTH(), si->sr.getHintedUser(), mask);
+			QueueManager::getInstance()->add(0, target, si->sr.getSize(), si->sr.getTTH(), si->sr.getHintedUser(), mask);
 			
 			const vector<SearchInfo*> l_children = sf->getUserList().findChildren(si->getGroupCond()); // Ссылку делать нельзя
 			for (auto i = l_children.cbegin(); i != l_children.cend(); ++i)  // Тут вектор иногда инвалидирует
@@ -1834,7 +1837,7 @@ void SearchFrame::SearchInfo::Download::operator()(const SearchInfo* si)
 				{
 					if (j)  // crash https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=44625
 					{
-						QueueManager::getInstance()->add(target, j->sr.getSize(), j->sr.getTTH(), HintedUser(j->getUser(), j->sr.getHubUrl()), mask);
+						QueueManager::getInstance()->add(0, target, j->sr.getSize(), j->sr.getTTH(), HintedUser(j->getUser(), j->sr.getHubUrl()), mask);
 					}
 				}
 				catch (const Exception&)
@@ -1880,7 +1883,7 @@ void SearchFrame::SearchInfo::DownloadTarget::operator()(const SearchInfo* si)
 		if (si->sr.getType() == SearchResult::TYPE_FILE)
 		{
 			string target = Text::fromT(tgt);
-			QueueManager::getInstance()->add(target, si->sr.getSize(), si->sr.getTTH(), si->sr.getHintedUser());
+			QueueManager::getInstance()->add(0, target, si->sr.getSize(), si->sr.getTTH(), si->sr.getHintedUser());
 			
 			if (WinUtil::isShift())
 				QueueManager::getInstance()->setPriority(target, QueueItem::HIGHEST);

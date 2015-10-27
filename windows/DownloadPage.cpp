@@ -82,6 +82,8 @@ LRESULT DownloadPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 void DownloadPage::write()
 {
 	PropPage::write((HWND)*this, items);
+	const tstring l_dir = Text::toT(SETTING(TEMP_DOWNLOAD_DIRECTORY));
+	File::ensureDirectory(l_dir);
 }
 
 LRESULT DownloadPage::onClickedBrowseDir(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)

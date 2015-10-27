@@ -113,7 +113,7 @@ HIconWrapper WinUtil::g_hClockIcon(IDR_ICON_CLOCK);
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOnIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOffIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubFlylinkDCIcon;
-std::unique_ptr<HIconWrapper> WinUtil::g_HubFlylinkDCIconVIP[9]; // VIP_ICON
+std::unique_ptr<HIconWrapper> WinUtil::g_HubFlylinkDCIconVIP[11]; // VIP_ICON
 std::unique_ptr<HIconWrapper> WinUtil::g_HubDDoSIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubAntivirusIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubVirusIcon[4];
@@ -492,7 +492,8 @@ void WinUtil::initThemeIcons()
 	g_HubFlylinkDCIconVIP[6] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_ALLAVTOVO));
 	g_HubFlylinkDCIconVIP[7] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_KOROBKA)); // VIP_ICON
 	g_HubFlylinkDCIconVIP[8] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_NSK154));
-	
+	g_HubFlylinkDCIconVIP[9] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_PROSTOIGRA));
+	g_HubFlylinkDCIconVIP[10] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_EVAHUB));
 	
 	g_HubDDoSIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_ICON_MEDICAL_BAG));
 	g_HubAntivirusIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_ICON_THERMOMETR_BAG));
@@ -2628,7 +2629,7 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 						try
 						{
 							// [!] SSA - Download Folder
-							QueueManager::getInstance()->add(fname, fsize, TTHValue(fhash), HintedUser(),
+							QueueManager::getInstance()->add(0, fname, fsize, TTHValue(fhash), HintedUser(),
 							                                 l_isDCLST ? QueueItem::FLAG_DCLST_LIST :
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 							                                 (isViewMedia ? QueueItem::FLAG_MEDIA_VIEW : 0)
@@ -2651,7 +2652,7 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 						try
 						{
 							// [!] SSA to do open here
-							QueueManager::getInstance()->add(fname, fsize, TTHValue(fhash), HintedUser(), QueueItem::FLAG_CLIENT_VIEW | (l_isDCLST ? QueueItem::FLAG_DCLST_LIST : 0));
+							QueueManager::getInstance()->add(0, fname, fsize, TTHValue(fhash), HintedUser(), QueueItem::FLAG_CLIENT_VIEW | (l_isDCLST ? QueueItem::FLAG_DCLST_LIST : 0));
 						}
 						catch (const Exception& e)
 						{

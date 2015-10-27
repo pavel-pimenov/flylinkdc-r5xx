@@ -545,6 +545,8 @@
 	<string name="FlyHubLastShareDate">Last Share</string>
 	<string name="FlyHubRam">RAM</string>
 	<string name="FlyHubSqliteDbSize">SQLite DB size</string>
+	<string name="FlyHubQueue">Queue</string>
+	<string name="FlyHubTimes">Times</string>
 	<string name="FlyHubGender">Gender</string>
 	<string name="Flyupdate">FlylinkDC++ Updater</string>
 	<string name="FlyupdateCannotupdate">FlylinkDC++ automatic update failed. Please download latest install of FlylinkDC++ and run it manually</string>
