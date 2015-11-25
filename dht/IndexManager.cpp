@@ -59,7 +59,7 @@ void IndexManager::addSource(const TTHValue& p_tth, const CID& p_cid, const stri
 	l_DHTFile.push_back(l_source);
 	CFlylinkDBManager::getInstance()->save_dht_files(l_DHTFile);
 /*
-	Lock l(cs);
+	CFlyLock(cs);
 	
 	TTHMap::iterator i = tthList.find(p_tth);
 	if (i != tthList.end())
@@ -100,7 +100,7 @@ bool IndexManager::findResult(const TTHValue& p_tth, SourceList& p_sources) cons
 	static FastCriticalSection cs_tth_dup;
 	static boost::unordered_map<string,int> g_tth_dup;
 
-	FastLock l(cs_tth_dup);
+	CFlyFastLock(cs_tth_dup);
 	if(g_tth_dup[p_tth.toBase32()]++ > 1)
 	{
 		LogManager::message("[dht] IndexManager::findResult dup = " + p_tth.toBase32() + 
@@ -110,7 +110,7 @@ bool IndexManager::findResult(const TTHValue& p_tth, SourceList& p_sources) cons
 	return CFlylinkDBManager::getInstance()->find_dht_files(p_tth,p_sources) > 0;
 /*
 // TODO: does file exist in my own sharelist?
-	FastLock l(cs);
+	CFlyFastLock(cs);
 	TTHMap::const_iterator i = tthList.find(tth);
 	if (i != tthList.end())
 	{
@@ -127,9 +127,10 @@ bool IndexManager::findResult(const TTHValue& p_tth, SourceList& p_sources) cons
  */
 void IndexManager::publishNextFile()
 {
+	dcassert(!ClientManager::isShutdown());
 	File f;
 	{
-		FastLock l(cs);
+		CFlyFastLock(cs);
 		
 		if (publishQueue.empty() || publishing >= MAX_PUBLISHES_AT_TIME)
 			return;
@@ -217,7 +218,7 @@ void IndexManager::checkExpiration(uint64_t p_Tick)
 	}
 /*	
 	bool dirty = false;
-	FastLock l(cs);	
+	CFlyFastLock(cs);	
 	auto i = tthList.begin();
 	while (i != tthList.end())
 	{
@@ -249,9 +250,10 @@ void IndexManager::checkExpiration(uint64_t p_Tick)
 /** Publishes shared file */
 void IndexManager::publishFile(const TTHValue& tth, int64_t size)
 {
+	dcassert(!ClientManager::isShutdown());
 	if (size > MIN_PUBLISH_FILESIZE)
 	{
-		FastLock l(cs);
+		CFlyFastLock(cs);
 		publishQueue.push_back(File(tth, size, false)); // TODO 2012-04-23_22-28-18_5X2A4DH3DN4RBHJBW7A6UCJNXV3HW6UQSGTDS4I_40B6FDE8_crash-stack-r501-build-9812.dmp
 		// 2012-04-23_22-28-18_A24UAZGII2D4JQ5B2GQO7BSOJZGHSOZLL6QR4RA_DE100545_crash-stack-r501-build-9812.dmp
 		// 2012-04-29_13-38-26_GGKPIT76OJFJ4NI7NQ6B7QRB66WKJMIDUIIVFEI_AF901814_crash-stack-r501-build-9869.dmp
@@ -270,7 +272,8 @@ void IndexManager::publishFile(const TTHValue& tth, int64_t size)
  */
 void IndexManager::publishPartialFile(const TTHValue& tth)
 {
-	FastLock l(cs);
+	dcassert(!ClientManager::isShutdown());
+	CFlyFastLock(cs);
 	publishQueue.push_front(File(tth, 0, true));
 }
 

@@ -23,6 +23,7 @@
 #include "HintedUser.h"
 #include "webrtc/system_wrappers/interface/rw_lock_wrapper.h"
 #include "Download.h"
+#include "CFlyThread.h"
 
 typedef std::unordered_map<UserPtr, DownloadPtr, User::Hash> DownloadMap;
 
@@ -33,11 +34,11 @@ class QueueManager;
 typedef std::vector<uint16_t> PartsInfo;
 
 #ifdef FLYLINKDC_USE_RWLOCK
-#define RLock webrtc::ReadLockScoped
-#define WLock webrtc::WriteLockScoped
+#define RLock CFlyReadLock
+#define WLock CFlyWriteLock
 #else
-#define RLock Lock
-#define WLock Lock
+#define RLock CFlyLock
+#define WLock CFlyLock
 #endif
 
 
@@ -255,12 +256,13 @@ class QueueItem : public Flags
 			return m_downloadedBytes;
 		}
 		uint64_t calcAverageSpeedAndCalcAndGetDownloadedBytesL() const; // [!] IRainman opt.
+		void calcDownloadedBytesL() const;
 		// TODO - попробовать переписать функцию на +/- убрав постоянные итерации по коллекции
 		// на больших очередях будет тормозить?
 		/* [-] IRainman no needs! Please lock fully consciously!
 		uint64_t calcAverageSpeedAndDownloadedBytes() const
 		{
-		RLock l(*QueueItem::g_cs);
+		RLock(*QueueItem::g_cs);
 		return calcAverageSpeedAndDownloadedBytesL();
 		}
 		[-] */
@@ -325,7 +327,7 @@ class QueueItem : public Flags
 		bool removeDownloadL(const UserPtr& p_user);
 		size_t getDownloadsSegmentCount() const
 		{
-			// RLock l(*QueueItem::g_cs);
+			// RLock(*QueueItem::g_cs);
 			return m_downloads.size();
 		}
 		
@@ -337,7 +339,7 @@ class QueueItem : public Flags
 		{
 			bool l_is_dirty = true;
 			{
-				WLock l(*g_cs);
+				WLock(*g_cs);
 				l_is_dirty = !m_done_segment.empty();
 				m_done_segment.clear();
 			}
@@ -405,7 +407,7 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 		}
 #endif
 		GETSET_DIRTY(string, target, Target);
-		GETSET_DIRTY(uint64_t, fileBegin, FileBegin);
+		GETSET(uint64_t, timeFileBegin, TimeFileBegin);
 		GETSET(uint64_t, nextPublishingTime, NextPublishingTime);
 		GETSET_DIRTY(int64_t, size, Size);
 		GETSET(time_t, added, Added);
@@ -473,7 +475,7 @@ class CFlySegment
 		int m_id;
 		int m_priority;
 		string m_segment;
-		CFlySegment()
+		CFlySegment() // :m_id(0), m_priority(0)
 		{
 		}
 		explicit CFlySegment(const QueueItemPtr& p_QueueItem)

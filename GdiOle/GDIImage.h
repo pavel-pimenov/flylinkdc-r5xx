@@ -6,6 +6,8 @@
 #include <boost/atomic.hpp>
 #include <unordered_set>
 #include <set>
+#include <memory>
+#include "webrtc/system_wrappers/interface/rw_lock_wrapper.h"
 
 
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
@@ -56,32 +58,36 @@ class CGDIImage
 		HWND m_hCallbackWnd;
 		DWORD m_dwCallbackMsg;
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
-		static FastCriticalSection g_GDIcs;
+		static std::unique_ptr<webrtc::RWLockWrapper> g_GDIcs;
 		static std::unordered_set<CGDIImage*> g_GDIImageSet;
 		friend class CFlyServerJSON;
 		friend class CGDIImageOle;
 		static unsigned g_AnimationDeathDetectCount;
 		static unsigned g_AnimationCount;
 		static unsigned g_AnimationCountMax;
-		static bool g_isShutdown;
 		void calcStatisticsL() const
 		{
 			g_AnimationCount = m_Callbacks.size();
-			if(g_AnimationCount > g_AnimationCountMax )
+			if (g_AnimationCount > g_AnimationCountMax)
+			{
 				g_AnimationCountMax = g_AnimationCount;
+			}
 		}
 
 		static bool isGDIImageLive(CGDIImage* p_image)
 		{
-			FastLock l(g_GDIcs);
+			CFlyReadLock(*g_GDIcs);
 			const bool l_res = g_GDIImageSet.find(p_image) != g_GDIImageSet.end();
-			if(!l_res)
+			if (!l_res)
+			{
+				dcassert(0);
 				++g_AnimationDeathDetectCount;
+			}
 			return l_res;
 		}
 		static void GDIImageDeath(CGDIImage* p_image)
 		{
-			FastLock l(g_GDIcs);
+			CFlyWriteLock(*g_GDIcs);
 			const auto l_size = g_GDIImageSet.size();
 			g_GDIImageSet.erase(p_image);
 			dcassert(g_GDIImageSet.size() == l_size-1);
@@ -92,12 +98,9 @@ class CGDIImage
 		~CGDIImage();
 		
 	public:
-		static void shutdown()
-		{
-			g_isShutdown = true;
-		}
 		static bool isShutdown()
 		{
+			extern bool g_isShutdown;
 			return g_isShutdown;
 		}
 		static CGDIImage *CreateInstance(LPCWSTR pszFileName, HWND hCallbackWnd, DWORD dwCallbackMsg);

@@ -24,6 +24,12 @@
 
 SettingsManager * g_settings;
 
+PropPage::TextItem EmptyPage::texts[] = // [+] IRainman HE
+{
+	{ IDC_FUNCTIONAL_IS_DISABLED, ResourceManager::THIS_FUNCTIONAL_IS_DISABLED },
+	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
+};
+
 void PropPage::read(HWND page, Item const* items, ListItem* listItems /* = NULL */, HWND list /* = 0 */)
 {
 #ifdef _DEBUG
@@ -189,11 +195,48 @@ void PropPage::translate(HWND page, TextItem* textItems)
 	}
 }
 
-PropPage::TextItem EmptyPage::texts[] = // [+] IRainman HE
+
+#ifdef SCALOLAZ_PROPPAGE_COLOR
+LRESULT PropPage::OnCtlColorDlg(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	{ IDC_FUNCTIONAL_IS_DISABLED, ResourceManager::THIS_FUNCTIONAL_IS_DISABLED },
-	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
-};
+	if (BOOLSETTING(SETTINGS_WINDOW_COLORIZE))
+	{
+		m_hDialogBrush = CreateSolidBrush(Colors::g_bgColor /*GetSysColor(COLOR_BTNFACE)*/); // [!] IRainman fix.
+		return LRESULT(m_hDialogBrush);
+	}
+	else
+	{
+		return 0;
+	}
+}
+LRESULT PropPage::OnCtlColorStatic(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	if (BOOLSETTING(SETTINGS_WINDOW_COLORIZE))
+	{
+		HDC hdc = (HDC)wParam;
+		SetBkMode(hdc, TRANSPARENT);
+		return LRESULT(m_hDialogBrush);
+	}
+	else
+	{
+		return 0;
+	}
+}
+/*
+LRESULT PropPage::OnEraseBackground(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+if (BOOLSETTING(SETTINGS_WINDOW_COLORIZE))
+{
+//  m_hDialogBrush = CreateSolidBrush( RGB(250, 250, 250) );    // Custom BG color
+return 1;
+}
+else
+{
+return 0;
+}
+}
+*/
+#endif
 
 /**
  * @file

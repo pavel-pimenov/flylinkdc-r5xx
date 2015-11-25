@@ -1,4 +1,6 @@
 .svn
+.git
+.hg
 developer.key
 CustomLocations.7z
 Customlocations-5.rar
@@ -7,7 +9,7 @@ UpdateMaker.exe
 test-console.pdb
 FlyUpdate.pdb
 UpdateMaker.pdb
-vc100.pdb
+vc1?0.pdb
 vc10
 vc12
 vc13

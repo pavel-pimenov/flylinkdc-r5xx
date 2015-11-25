@@ -53,6 +53,7 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 	m_is_suppress_chat_and_pm(false),
 	m_isAutobanAntivirusIP(false),
 	m_isAutobanAntivirusNick(false)
+	//m_count_validate_denide(0)
 {
 	dcassert(p_HubURL == Text::toLower(p_HubURL));
 	const auto l_my_user = new User(ClientManager::getMyCID());
@@ -88,7 +89,8 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 		"adc.podryad.tv",
 		"nsk154hub.ru",
 		"prostoigra24.ru",
-		"eva-hub.ru"
+		"eva-hub.ru",
+		"aab-new-adrenalin.ru"
 	};
 	if (l_lower_url.find("dc.fly-server.ru") != string::npos ||
 	        l_lower_url.find("adcs.flylinkdc.com") != string::npos ||
@@ -153,9 +155,9 @@ void Client::reset_socket()
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
 	if (m_client_sock)
 		m_client_sock->removeListeners(); // http://code.google.com/p/flylinkdc/issues/detail?id=791
-	FastLock lock(csSock); // [+] brain-ripper
-	if (m_client_sock)
-		BufferedSocket::putSocket(m_client_sock);
+	CFlyFastLock(lock(csSock); // [+] brain-ripper
+	             if (m_client_sock)
+	             BufferedSocket::putSocket(m_client_sock);
 #else
 	if (m_client_sock)
 	{
@@ -164,7 +166,7 @@ void Client::reset_socket()
 	}
 #endif
 }
-void Client::reconnect()
+             void Client::reconnect()
 {
 	disconnect(true);
 	setAutoReconnect(true);
@@ -260,6 +262,7 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 		}
 		else
 		{
+		
 			setCurrentDescription(
 #ifdef IRAINMAN_ENABLE_SLOTS_AND_LIMIT_IN_DESCRIPTION
 			    speedDescription +
@@ -375,21 +378,21 @@ void Client::connect()
 	try
 	{
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
-		FastLock lock(csSock); // [+] brain-ripper
+		CFlyFastLock(lock(csSock); // [+] brain-ripper
 #endif
-		m_client_sock = BufferedSocket::getBufferedSocket(m_separator);
-		m_client_sock->addListener(this);
-		m_client_sock->connect(m_address,
-		                       m_port,
-		                       m_secure,
-		                       BOOLSETTING(ALLOW_UNTRUSTED_HUBS),
-		                       true);
-		dcdebug("Client::connect() %p\n", (void*)this);
+		             m_client_sock = BufferedSocket::getBufferedSocket(m_separator);
+		             m_client_sock->addListener(this);
+		             m_client_sock->connect(m_address,
+		                                    m_port,
+		                                    m_secure,
+		                                    BOOLSETTING(ALLOW_UNTRUSTED_HUBS),
+		                                    true);
+		             dcdebug("Client::connect() %p\n", (void*)this);
 	}
-	catch (const Exception& e)
+	             catch (const Exception& e)
 	{
 		state = STATE_DISCONNECTED;
-		fire(ClientListener::Failed(), this, e.getError());
+		fly_fire2(ClientListener::Failed(), this, e.getError());
 	}
 	//m_isActivMode = ClientManager::isActive(fhe); // [+] IRainman opt.
 	updateActivity();
@@ -403,7 +406,7 @@ bool ClientBase::isActive() const
 	else
 	{
 		const FavoriteHubEntry* fe = FavoriteManager::getFavoriteHubEntry(getHubUrl());
-		const auto l_res = ClientManager::isActive(fe);
+		const auto l_res = ClientManager::isActive(fe) || isDetectActiveConnection();
 		return l_res;
 	}
 }
@@ -419,11 +422,11 @@ void Client::send(const char* aMessage, size_t aLen)
 	updateActivity();
 	{
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
-		FastLock lock(csSock); // [+] brain-ripper
+		CFlyFastLock(lock(csSock); // [+] brain-ripper
 #endif
-		m_client_sock->write(aMessage, aLen);
+		             m_client_sock->write(aMessage, aLen);
 	}
-	if (!CompatibilityManager::isWine())
+	             if (!CompatibilityManager::isWine())
 	{
 		COMMAND_DEBUG(aMessage, DebugTask::HUB_OUT, getIpPort());
 	}
@@ -434,7 +437,7 @@ void Client::on(Connected) noexcept
 	updateActivity();
 	{
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
-		FastLock lock(csSock); // [+] brain-ripper
+		CFlyFastLock(lock(csSock); // [+] brain-ripper
 #endif
 		boost::system::error_code ec;
 		m_ip      = boost::asio::ip::address_v4::from_string(m_client_sock->getIp(), ec);
@@ -451,7 +454,7 @@ void Client::on(Connected) noexcept
 			{
 				state = STATE_DISCONNECTED;
 				m_client_sock->removeListener(this);
-				fire(ClientListener::Failed(), this, "Keyprint mismatch");
+				fly_fire2(ClientListener::Failed(), this, "Keyprint mismatch");
 				return;
 			}
 		}
@@ -459,7 +462,7 @@ void Client::on(Connected) noexcept
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 	FavoriteManager::changeConnectionStatus(getHubUrl(), ConnectionStatus::SUCCES);
 #endif
-	fire(ClientListener::Connected(), this);
+	fly_fire1(ClientListener::Connected(), this);
 	state = STATE_PROTOCOL;
 }
 
@@ -471,80 +474,80 @@ void Client::on(Failed, const string& aLine) noexcept
 	
 	{
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
-		FastLock lock(csSock); // [+] brain-ripper
+		CFlyFastLock(lock(csSock); // [+] brain-ripper
 #endif
 		if (m_client_sock)
-			m_client_sock->removeListener(this);
+		m_client_sock->removeListener(this);
 	}
-	// [-] IRainman.
-	//SetEvent(m_hEventClientInitialized);
-	updateActivity();
+// [-] IRainman.
+//SetEvent(m_hEventClientInitialized);
+updateActivity();
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 	FavoriteManager::changeConnectionStatus(getHubUrl(), ConnectionStatus::CONNECTION_FAILURE);
 #endif
-	fire(ClientListener::Failed(), this, aLine);
+	fly_fire2(ClientListener::Failed(), this, aLine);
 }
 
 void Client::disconnect(bool p_graceLess)
 {
 	{
-		FastLock l(m_cs_virus);
+		CFlyFastLock(m_cs_virus);
 		m_virus_nick.clear();
 	}
 	state = STATE_DISCONNECTED;//[!] IRainman fix
 	FavoriteManager::removeUserCommand(getHubUrl());
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
-	FastLock lock(csSock); // [+] brain-ripper
+	CFlyFastLock(lock(csSock); // [+] brain-ripper
 #endif
-	if (m_client_sock)
-		m_client_sock->disconnect(p_graceLess);
+	             if (m_client_sock)
+	             m_client_sock->disconnect(p_graceLess);
 }
 
-bool Client::isSecure() const
+             bool Client::isSecure() const
 {
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
 	if (!isReady())//[+] IRainman fast shutdown!
 		return false;
 		
-	FastLock lock(csSock); // [+] brain-ripper
+	CFlyFastLock(lock(csSock); // [+] brain-ripper
 #endif
-	return m_client_sock && m_client_sock->isSecure();//[!] IRainman fix
+	             return m_client_sock && m_client_sock->isSecure();//[!] IRainman fix
 }
 
-bool Client::isTrusted() const
+             bool Client::isTrusted() const
 {
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
 	if (!isReady())//[+] IRainman fast shutdown!
 		return false;
 		
-	FastLock lock(csSock); // [+] brain-ripper
+	CFlyFastLock(lock(csSock); // [+] brain-ripper
 #endif
-	return m_client_sock && m_client_sock->isTrusted();//[!] IRainman fix
+	             return m_client_sock && m_client_sock->isTrusted();//[!] IRainman fix
 }
 
-string Client::getCipherName() const
+             string Client::getCipherName() const
 {
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
 	if (!isReady())//[+] IRainman fast shutdown!
 		return Util::emptyString;
 		
-	FastLock lock(csSock); // [+] brain-ripper
+	CFlyFastLock(lock(csSock); // [+] brain-ripper
 #endif
-	return m_client_sock ? m_client_sock->getCipherName() : Util::emptyString;//[!] IRainman fix
+	             return m_client_sock ? m_client_sock->getCipherName() : Util::emptyString;//[!] IRainman fix
 }
 
-vector<uint8_t> Client::getKeyprint() const
+             vector<uint8_t> Client::getKeyprint() const
 {
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
 	if (!isReady())//[+] IRainman fast shutdown!
 		return Util::emptyByteVector;
 		
-	FastLock lock(csSock); // [+] brain-ripper
+	CFlyFastLock(lock(csSock); // [+] brain-ripper
 #endif
-	return m_client_sock ? m_client_sock->getKeyprint() : Util::emptyByteVector; // [!] IRainman fix
+	             return m_client_sock ? m_client_sock->getKeyprint() : Util::emptyByteVector; // [!] IRainman fix
 }
 
-void Client::updateCounts(bool aRemove)
+             void Client::updateCounts(bool aRemove)
 {
 	// We always remove the count and then add the correct one if requested...
 	if (m_countType != COUNT_UNCOUNTED)
@@ -604,7 +607,7 @@ string Client::getLocalIp() const
 	/*
 	{
 	#ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
-	        FastLock lock(csSock); // [+] brain-ripper
+	        CFlyFastLock(lock(csSock); // [+] brain-ripper
 	#endif
 	        if (m_client_sock)
 	        {
@@ -679,7 +682,7 @@ void Client::on(Second, uint64_t aTick) noexcept
 	}
 	if (m_searchQueue.m_interval == 0)
 	{
-		dcassert(m_searchQueue.m_interval != 0);
+		//dcassert(m_searchQueue.m_interval != 0);
 		return;
 	}
 	
@@ -847,7 +850,7 @@ bool Client::allowPrivateMessagefromUser(const ChatMessage& message)
 	{
 		if (BOOLSETTING(IGNORE_HUB_PMS) && !isInOperatorList(message.m_replyTo->getIdentity().getNick()))
 		{
-			fire(ClientListener::StatusMessage(), this, STRING(IGNORED_HUB_BOT_PM) + ": " + message.m_text);
+			fly_fire2(ClientListener::StatusMessage(), this, STRING(IGNORED_HUB_BOT_PM) + ": " + message.m_text);
 			return false;
 		}
 		else if (FavoriteManager::getInstance()->hasIgnorePM(message.m_replyTo->getUser()))
@@ -863,7 +866,7 @@ bool Client::allowPrivateMessagefromUser(const ChatMessage& message)
 	{
 		if (BOOLSETTING(IGNORE_BOT_PMS) && !isInOperatorList(message.m_replyTo->getIdentity().getNick()))
 		{
-			fire(ClientListener::StatusMessage(), this, STRING(IGNORED_HUB_BOT_PM) + ": " + message.m_text);
+			fly_fire2(ClientListener::StatusMessage(), this, STRING(IGNORED_HUB_BOT_PM) + ": " + message.m_text);
 			return false;
 		}
 		else if (FavoriteManager::getInstance()->hasIgnorePM(message.m_replyTo->getUser()))
@@ -894,7 +897,7 @@ bool Client::allowPrivateMessagefromUser(const ChatMessage& message)
 				privateMessage(message.m_replyTo, Util::formatParams(SETTING(PM_PASSWORD_HINT), params, false), false);
 				if (BOOLSETTING(PROTECT_PRIVATE_SAY))
 				{
-					fire(ClientListener::StatusMessage(), this, STRING(REJECTED_PRIVATE_MESSAGE_FROM) + ": " + message.m_replyTo->getIdentity().getNick());
+					fly_fire2(ClientListener::StatusMessage(), this, STRING(REJECTED_PRIVATE_MESSAGE_FROM) + ": " + message.m_replyTo->getIdentity().getNick());
 				}
 				return false;
 			}
@@ -1108,11 +1111,11 @@ void Client::processingPassword()
 	if (!getPassword().empty())
 	{
 		password(getPassword());
-		fire(ClientListener::StatusMessage(), this, STRING(STORED_PASSWORD_SENT));
+		fly_fire2(ClientListener::StatusMessage(), this, STRING(STORED_PASSWORD_SENT));
 	}
 	else
 	{
-		fire(ClientListener::GetPassword(), this);
+		fly_fire1(ClientListener::GetPassword(), this);
 	}
 }
 

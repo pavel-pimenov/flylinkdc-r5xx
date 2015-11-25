@@ -53,17 +53,17 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 	public:
 		void outgoingPrivateMessage(const UserPtr& user, const string& hubHint, const tstring& message)
 		{
-			fire(UserManagerListener::OutgoingPrivateMessage(), user, hubHint, message);
+			fly_fire3(UserManagerListener::OutgoingPrivateMessage(), user, hubHint, message);
 		}
 		void openUserUrl(const UserPtr& user);
 		void collectSummaryInfo(const UserPtr& user, const string& hubHint)
 		{
-			fire(UserManagerListener::CollectSummaryInfo(), user, hubHint);
+			fly_fire2(UserManagerListener::CollectSummaryInfo(), user, hubHint);
 		}
 #ifdef FLYLINKDC_USE_SQL_EXPLORER
 		void browseSqlExplorer(const UserPtr& user, const string& hubHint)
 		{
-			fire(UserManagerListener::BrowseSqlExplorer(), user, hubHint);
+			fly_fire3(UserManagerListener::BrowseSqlExplorer(), user, hubHint);
 		}
 #endif
 		enum PasswordStatus
@@ -83,14 +83,14 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 		static tstring getIgnoreListAsString();
 		static void getIgnoreList(StringSet& p_ignoreList)
 		{
-			webrtc::ReadLockScoped l(*g_csIgnoreList);
+			CFlyReadLock(*g_csIgnoreList);
 			dcassert(g_ignoreListLoaded);
 			p_ignoreList = g_ignoreList;
 		}
 		static void addToIgnoreList(const string& userName)
 		{
 			{
-				webrtc::WriteLockScoped l(*g_csIgnoreList);
+				CFlyWriteLock(*g_csIgnoreList);
 				dcassert(g_ignoreListLoaded);
 				g_ignoreList.insert(userName);
 			}
@@ -99,7 +99,7 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 		static void removeFromIgnoreList(const string& userName)
 		{
 			{
-				webrtc::WriteLockScoped l(*g_csIgnoreList);
+				CFlyWriteLock(*g_csIgnoreList);
 				dcassert(g_ignoreListLoaded);
 				g_ignoreList.erase(userName);
 			}
@@ -111,7 +111,7 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 			if (!g_isEmptyIgnoreList && !nick.empty())
 			{
 				dcassert(!nick.empty());
-				webrtc::ReadLockScoped l(*g_csIgnoreList);
+				CFlyReadLock(*g_csIgnoreList);
 				dcassert(g_ignoreListLoaded);
 				return g_ignoreList.find(nick) != g_ignoreList.cend();
 			}
@@ -123,7 +123,7 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 		static void setIgnoreList(const IgnoreMap& newlist)
 		{
 			{
-				webrtc::WriteLockScoped l(*g_csIgnoreList);
+				CFlyWriteLock(*g_csIgnoreList);
 				g_ignoreList = newlist;
 			}
 			saveIgnoreList();

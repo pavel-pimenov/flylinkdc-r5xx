@@ -872,7 +872,7 @@ void SearchFrame::onEnter()
 	
 	s.clear();
 	{
-		FastLock l(m_fcs);
+		CFlyFastLock(m_fcs);
 		//strip out terms beginning with -
 		for (auto si = m_search.cbegin(); si != m_search.cend();)
 		{
@@ -970,7 +970,7 @@ void SearchFrame::onEnter()
 	}
 	
 	{
-		FastLock l(m_fcs);
+		CFlyFastLock(m_fcs);
 		
 		m_searchStartTime = GET_TICK();
 		// more 10 seconds for transfering results
@@ -1080,12 +1080,12 @@ size_t SearchFrame::check_antivirus_level(const CFlyAntivirusKey& p_key, const S
 }
 bool SearchFrame::isVirusTTH(const TTHValue& p_tth)
 {
-	FastLock l(g_cs_virus_level);
+	CFlyFastLock(g_cs_virus_level);
 	return g_virus_level_tth_map.find(p_tth) != g_virus_level_tth_map.cend();
 }
 bool SearchFrame::isVirusFileNameCheck(const string& p_file, const TTHValue& p_tth)
 {
-	FastLock l(g_cs_virus_level);
+	CFlyFastLock(g_cs_virus_level);
 	if (g_virus_file_set.find(p_file) != g_virus_file_set.cend())
 	{
 		g_virus_level_tth_map[p_tth] = 2;
@@ -1096,7 +1096,7 @@ bool SearchFrame::isVirusFileNameCheck(const string& p_file, const TTHValue& p_t
 void SearchFrame::removeSelected()
 {
 	int i = -1;
-	FastLock l(m_fcs);
+	CFlyFastLock(m_fcs);
 	while ((i = ctrlResults.GetNextItem(-1, LVNI_SELECTED)) != -1)
 	{
 		ctrlResults.removeGroupedItem(ctrlResults.getItemData(i));
@@ -1104,7 +1104,7 @@ void SearchFrame::removeSelected()
 }
 bool SearchFrame::registerVirusLevel(const string& p_file, const TTHValue& p_tth, int p_level)
 {
-	FastLock l(g_cs_virus_level);
+	CFlyFastLock(g_cs_virus_level);
 	dcassert(!p_file.empty());
 	const auto l_res_map = g_virus_level_tth_map.insert(make_pair(p_tth, p_level));
 	const auto l_res_set = g_virus_file_set.insert(Text::uppercase(p_file));
@@ -1121,7 +1121,7 @@ void SearchFrame::on(SearchManagerListener::SR, const SearchResult &aResult) noe
 		return;
 	// Check that this is really a relevant search result...
 	{
-		FastLock l(m_fcs);
+		CFlyFastLock(m_fcs);
 		
 		if (m_search.empty())
 			return;
@@ -1308,7 +1308,7 @@ bool SearchFrame::scan_list_view_from_merge()
 				{
 					const TTHValue& l_tth = sr2.getTTH();
 					CFlyServerKey l_info(l_tth, l_file_size);
-					Lock l(g_cs_fly_server);
+					CFlyLock(g_cs_fly_server);
 					const auto l_find_ratio = g_fly_server_cache.find(l_tth);
 					if (l_find_ratio == g_fly_server_cache.end()) // Если значение рейтинга есть в кэше то не запрашиваем о нем инфу с сервера
 					{
@@ -1357,7 +1357,7 @@ LRESULT SearchFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wParam, LPARAM
 		std::unique_ptr<Json::Value> l_root(reinterpret_cast<Json::Value*>(wParam));
 		const Json::Value& l_arrays = (*l_root)["array"];
 		const Json::Value::ArrayIndex l_count = l_arrays.size();
-		Lock l(g_cs_fly_server);
+		CFlyLock(g_cs_fly_server);
 		for (Json::Value::ArrayIndex i = 0; i < l_count; ++i)
 		{
 			const Json::Value& l_cur_item_in = l_arrays[i];
@@ -1526,7 +1526,6 @@ void SearchFrame::runTestPort()
 		bool l_is_udp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, p_external_ip, 0);
 		if (l_is_udp_port_send)
 		{
-			SettingsManager::g_TestUDPSearchLevel = true;
 			SettingsManager::g_UDPTestExternalIP  = p_external_ip;
 		}
 	}
@@ -3646,7 +3645,7 @@ void SearchFrame::filtering(SearchInfo* si /*= nullptr */)
 	{
 		return;
 	}
-	//Lock l(cs);
+	//CFlyLock(cs);
 	updatePrevTimeFilter();
 	//TODO boost::thread t(boost::bind(&SearchFrame::updateSearchListSafe, this, si));
 }
@@ -3741,7 +3740,7 @@ LRESULT SearchFrame::onGridItemChanged(int idCtrl, LPNMHDR pnmh, BOOL& /*bHandle
 
 void SearchFrame::updateSearchListSafe(SearchInfo* si)
 {
-	//Lock l(cs);
+	//CFlyLock(cs);
 	try
 	{
 		updateSearchList(si);

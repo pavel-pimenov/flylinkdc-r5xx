@@ -76,7 +76,6 @@ std::vector<DHTServer>	  CFlyServerConfig::g_dht_servers;
 std::vector<string>	  CFlyServerConfig::g_spam_urls;
 DWORD CFlyServerConfig::g_winet_connect_timeout = 2000;
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-static volatile long g_running;
 StringSet CFlyServerConfig::g_include_tag; 
 StringSet CFlyServerConfig::g_exclude_tag; 
 std::vector<std::string> CFlyServerConfig::g_exclude_tag_inform;
@@ -100,7 +99,8 @@ std::unordered_map<TTHValue, std::pair<CFlyServerInfo*, CFlyServerCache> > CFlyS
 ::CriticalSection CFlyServerJSON::g_cs_antivirus_counter;
 string CFlyServerJSON::g_last_error_string;
 int CFlyServerJSON::g_count_dup_error_string = 0;
-
+CFlyServerJSON::CFlyTestPortResult CFlyServerJSON::g_test_port_map;
+FastCriticalSection CFlyServerJSON::g_cs_test_port;
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 FastCriticalSection CFlyServerConfig::g_cs_block_ip;
 
@@ -126,6 +126,7 @@ std::unordered_set<std::string> CFlyServerConfig::g_block_hubs;
 #ifdef USE_SUPPORT_HUB
 string CFlyServerConfig::g_support_hub = "dchub://dc.fly-server.ru";
 string CFlyServerConfig::g_support_hub_en = "dchub://nemesis.te-home.net";
+string CFlyServerConfig::g_support_upnp = "http://www.flylinkdc.ru/2015/11/upnp.html";
 #endif // USE_SUPPORT_HUB
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 string CFlyServerConfig::g_antivirus_db_url;
@@ -139,7 +140,9 @@ StringSet CFlyServerConfig::g_block_share_ext;
 StringSet CFlyServerConfig::g_custom_compress_ext;
 StringSet CFlyServerConfig::g_block_share_name;
 StringList CFlyServerConfig::g_block_share_mask;
+
 extern ::tstring g_full_user_agent;
+
 //======================================================================================================
 const CServerItem& CFlyServerConfig::getStatServer()
 {
@@ -182,7 +185,7 @@ void CFlyServerConfig::addBlockIP(const string& p_ip)
 		dcassert(!p_ip.empty())
 		if (!p_ip.empty())
 		{
-			FastLock l(g_cs_block_ip);
+			CFlyFastLock(g_cs_block_ip);
 			CFlyServerConfig::g_block_ip_str.insert(p_ip);
 		}
 }
@@ -192,7 +195,7 @@ bool CFlyServerConfig::isBlockIP(const string& p_ip)
 	dcassert(!p_ip.empty())
 		if (!p_ip.empty())
 		{
-			FastLock l(g_cs_block_ip);
+			CFlyFastLock(g_cs_block_ip);
 			if (CFlyServerConfig::g_block_ip_str.find(p_ip) != CFlyServerConfig::g_block_ip_str.end())
 				return true;
 			else
@@ -363,7 +366,14 @@ void CFlyServerConfig::loadConfig()
 		if (File::isExist(l_path_local_test_file))
 		{
 			const string l_test_server_port = File(l_path_local_test_file, File::READ, File::OPEN).read();
-			g_local_test_server.init(l_test_server_port);
+			if (g_local_test_server.init(l_test_server_port))
+			{
+				l_fly_server_log.step("Ok! Init fly-server from: " + Text::fromT(l_path_local_test_file) + "Server: " + g_local_test_server.getServerAndPort());
+			}
+			else
+			{
+				l_fly_server_log.step("Error! Init fly-server from: " + Text::fromT(l_path_local_test_file));
+			}
 		}
 #ifdef USE_FLYSERVER_LOCAL_FILE
 		const string l_url_config_file = "file://C:/vc10/etc/flylinkdc-config-r5xx.xml"; 
@@ -513,6 +523,8 @@ void CFlyServerConfig::loadConfig()
 					initString("support_hub",g_support_hub);
 					initString("support_hub_en", g_support_hub_en);					
 #endif // USE_SUPPORT_HUB
+					initString("support_upnp", g_support_upnp);
+					
 					initString("regex_find_ip", g_regex_find_ip);
 					initString("faq_search",g_faq_search_does_not_work);
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION
@@ -530,7 +542,7 @@ void CFlyServerConfig::loadConfig()
 						//g_block_ip.clear();
 						string l_block_ip_str;
 						{
-							FastLock l(g_cs_block_ip);
+							CFlyFastLock(g_cs_block_ip);
 							g_block_ip_str.clear();
 							l_block_ip_str = l_xml.getChildAttribSplit("block_ip", g_block_ip_str, [&](const string& n)
 							{
@@ -940,7 +952,7 @@ void CFlyServerAdapter::post_message_for_update_mediainfo()
 			dcassert(::IsWindow(m_hMediaWnd));
 			if (::IsWindow(m_hMediaWnd))
 			{
-				Lock l(g_cs_fly_server);
+				CFlyLock(g_cs_fly_server);
 				m_GetFlyServerArray.clear(); // [crash][2] https://drdump.com/DumpGroup.aspx?DumpGroupID=296220
 			}
 			if (!l_json_result.empty() && ::IsWindow(m_hMediaWnd))
@@ -951,7 +963,7 @@ void CFlyServerAdapter::post_message_for_update_mediainfo()
 			if (!l_parsingSuccessful && !l_json_result.empty())
 			{
 				{
-					Lock l(g_cs_fly_server);
+					CFlyLock(g_cs_fly_server);
 					m_tth_media_file_map.clear();  // Если возникла ошибка передачи запроса на чтение, запись не шлем.
 				}
 				delete l_root;
@@ -975,7 +987,7 @@ void CFlyServerAdapter::post_message_for_update_mediainfo()
 				dcassert(::IsWindow(m_hMediaWnd));
 				if (::IsWindow(m_hMediaWnd))
 				{
-					Lock l(g_cs_fly_server);
+					CFlyLock(g_cs_fly_server);
 					m_tth_media_file_map.clear(); // Если возникла ошибка передачи запроса на чтение, запись не шлем.
 					// crash https://drdump.com/Problem.aspx?ProblemID=121494
 				}
@@ -991,7 +1003,7 @@ void CFlyServerAdapter::push_mediainfo_to_fly_server()
 	{
 		CFlyServerKeyArray l_copy_map;
 		{
-			Lock l(g_cs_fly_server);
+			CFlyLock(g_cs_fly_server);
 			l_copy_map.swap(m_SetFlyServerArray);
 		}
 		if (!l_copy_map.empty())
@@ -1193,12 +1205,59 @@ string CFlyServerJSON::postQueryTestPort(CFlyLog& p_log,const string& p_body, bo
     return l_result;
 }
 //======================================================================================================
+bool CFlyServerJSON::setTestPortOK(unsigned short p_port, const std::string& p_type)
+{
+	dcassert(p_type == "udp" || p_type == "tcp");
+	CFlyFastLock(g_cs_test_port);
+	const auto i = g_test_port_map.find(make_pair(p_port, p_type));
+	if (i != g_test_port_map.end())
+	{
+		const auto l_delta = GET_TICK() - i->second.second;
+		if (l_delta < 60000)
+		{
+			i->second.first = true;
+		}
+		else
+		{
+			dcassert(0);
+			CFlyServerJSON::pushError(57, "Error timeout l_delta = " + Util::toString(l_delta) + " " + p_type + " = " + Util::toString(p_port));
+		}
+		return true;
+	}
+	//dcassert(0);
+	return false;
+}
+//======================================================================================================
+bool CFlyServerJSON::isTestPortOK(unsigned short p_port, const std::string& p_type, bool p_is_assert /*= false */)
+{
+	dcassert(p_type == "udp" || p_type == "tcp");
+	CFlyFastLock(g_cs_test_port);
+	const auto i = g_test_port_map.find(make_pair(p_port, p_type));
+	if (i != g_test_port_map.end())
+	{
+		return i->second.first;
+	}
+	if (p_is_assert)
+	{
+		//dcassert(0);
+		static bool g_is_first = false;
+		if (!g_is_first)
+		{
+			g_is_first = true;
+			// TODO - много спама - разобраться почему.
+			// CFlyServerJSON::pushError(57, "Call isTestPortOK before test port " + p_type + " = " + Util::toString(p_port));
+		}
+	}
+	return false;
+}
+//======================================================================================================
 bool CFlyServerJSON::pushTestPort(
 		const std::vector<unsigned short>& p_udp_port,
 		const std::vector<unsigned short>& p_tcp_port,
 		string& p_external_ip,
 		int p_timer_value)
 {
+	    CFlyTestPortResult l_test_port_map;
 		CFlyLog l_log("[fly-test-port]");
 		Json::Value  l_info;   
         initCIDPID(l_info);
@@ -1212,9 +1271,10 @@ bool CFlyServerJSON::pushTestPort(
 			{
 				auto& l_ports = l_info[p_key];
 				for(int i = 0;i < int(p_port.size()); ++i)
-		    {
+		     {
 					l_ports[i]["port"] = p_port[i];
-			  }
+					l_test_port_map[make_pair(p_port[i], p_key)] = make_pair(false, 0);
+			 }
 		}
 		};
 		initPort(p_udp_port,"udp");
@@ -1249,30 +1309,42 @@ bool CFlyServerJSON::pushTestPort(
 		p_external_ip.clear();
 	  const auto l_result = postQueryTestPort(l_log, l_post_query,l_is_send,l_is_error);
     dcassert(!l_result.empty());
-		// TODO - приделать счетчик таймаута и передавать его в статистику или в след пакет?
-		if(!l_is_send)
+	// TODO - приделать счетчик таймаута и передавать его в статистику или в след пакет?
+	if(!l_is_send)
+	{
+		l_log.step("Error POST query");
+	}
+	else
+	{	
+		const auto l_cur_time = GET_TICK();
 		{
-					l_log.step("Error POST query");
+			CFlyFastLock(g_cs_test_port);
+			for (auto i = l_test_port_map.cbegin(); i != l_test_port_map.cend(); ++i)
+			{
+				auto& l_item = g_test_port_map[i->first];
+				l_item = i->second;
+				l_item.second = l_cur_time;
+			}
 		}
-		else
-    if(!l_result.empty())
+		if (!l_result.empty())
 		{
 			Json::Value l_root;
-			Json::Reader reader(Json::Features::strictMode()); 
+			Json::Reader reader(Json::Features::strictMode());
 			const bool parsingSuccessful = reader.parse(l_result, l_root);
 			if (!parsingSuccessful)
 			{
 				l_log.step("Error parse JSON: " + l_result);
-        dcassert(0);
+				dcassert(0);
 			}
-		else
-		{
-        dcassert(!l_root.isNull());
-        dcassert(l_root.isMember("ip"));
-					p_external_ip = l_root["ip"].asString();
+			else
+			{
+				dcassert(!l_root.isNull());
+				dcassert(l_root.isMember("ip"));
+				p_external_ip = l_root["ip"].asString();
+			}
 		}
-		}
-		return l_is_send;
+	}
+	return l_is_send;
 }
 //======================================================================================================
 void CFlyServerJSON::pushSyslogError(const string& p_error)
@@ -1291,7 +1363,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 	syslog(LOG_USER | LOG_INFO, "%s %s %s [%s]", l_cid.c_str(), l_pid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
 }
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 54 (36 - устарел)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 57 (36 - устарел)
 {
 	bool l_is_send  = false;
 	bool l_is_error = false;
@@ -1307,7 +1379,7 @@ bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Co
 		{
 			pushSyslogError(p_error);
 		}
-		Lock l(g_cs_error_report);
+		CFlyLock(g_cs_error_report);
 		if (CFlyServerConfig::isErrorLog(p_error_code))
 		{
 			CFlyLog l_log("[fly-message]");
@@ -1344,6 +1416,7 @@ bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Co
 		}
 		else
 		{
+			LogManager::message(p_error);
 			l_is_send = true;
 		}
 	}
@@ -1353,7 +1426,6 @@ bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Co
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 {
-	Thread::ConditionLockerWithSpin l(g_running);
     bool l_is_flush_error = login();
 	CFlyLog l_log("[fly-stat]");
 	Json::Value  l_info;   
@@ -1410,6 +1482,14 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 		if (g_UseSynchronousOff)
 		{
 			l_info["is_synchronous_off"] = 1;
+		}
+		if (CompatibilityManager::g_is_teredo)
+		{
+			l_info["is_teredo"] = 1;
+		}
+		if (CompatibilityManager::g_is_ipv6_enabled)
+		{
+			l_info["is_ipv6"] = 1;
 		}
 		//
 		const auto l_ISP_URL = SETTING(ISP_RESOURCE_ROOT_URL);
@@ -1586,8 +1666,6 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 													DWORD p_time_out /*= 0*/,
                           const CServerItem* p_server /*= nullptr */)
 {
-//  Thread::ConditionLockerWithSpin l(g_running);
-    //dcassert(g_running == 1);
 	p_is_send = false;
 	p_is_error = false;
 	dcassert(!p_body.empty());
@@ -1812,13 +1890,13 @@ void CFlyServerJSON::addAntivirusCounter(const SearchResult &p_search_result, in
 //======================================================================================================
 void CFlyServerJSON::addAntivirusCounter(const CFlyVirusFileList& p_file_list)
 {
-	Lock l(g_cs_antivirus_counter);
+	CFlyLock(g_cs_antivirus_counter);
 	g_antivirus_file_list.push_back(p_file_list);
 }
 //======================================================================================================
 void CFlyServerJSON::addAntivirusCounter(const CFlyTTHKey& p_key, const CFlyVirusFileInfo& p_file_info)
 {
-	Lock l(g_cs_antivirus_counter);
+	CFlyLock(g_cs_antivirus_counter);
 	dcassert(!p_file_info.m_file_name.empty());
 	dcassert(p_file_info.m_virus_level);
 	g_antivirus_counter[p_key].push_back(p_file_info);
@@ -1831,7 +1909,7 @@ bool CFlyServerJSON::sendAntivirusCounter(bool p_is_only_db_if_network_error)
 	{
 		CFlyAntivirusTTHArray l_copy_array;
 		{
-			Lock l(g_cs_antivirus_counter);
+			CFlyLock(g_cs_antivirus_counter);
 			l_copy_array.swap(g_antivirus_counter);
 		}
 		l_is_error = login();
@@ -1898,7 +1976,7 @@ bool CFlyServerJSON::sendAntivirusCounter(bool p_is_only_db_if_network_error)
 	{
 		CFlyVirusFileListArray l_copy_array;
 		{
-			Lock l(g_cs_antivirus_counter);
+			CFlyLock(g_cs_antivirus_counter);
 			l_copy_array.swap(g_antivirus_file_list);
 		}
 		l_is_error = login();
@@ -1964,7 +2042,7 @@ bool CFlyServerJSON::sendAntivirusCounter(bool p_is_only_db_if_network_error)
 //======================================================================================================
 void CFlyServerJSON::addDownloadCounter(const CFlyTTHKey& p_file)
 {
-	Lock l(g_cs_download_counter);
+	CFlyLock(g_cs_download_counter);
 	g_download_counter.push_back(p_file);
 }
 //======================================================================================================
@@ -1975,7 +2053,7 @@ bool CFlyServerJSON::sendDownloadCounter(bool p_is_only_db_if_network_error)
 	{
 	CFlyTTHKeyArray l_copy_array;
 	{
-		Lock l(g_cs_download_counter);
+		CFlyLock(g_cs_download_counter);
 		l_copy_array.swap(g_download_counter);
 	}	
   l_is_error = login();
@@ -2008,8 +2086,7 @@ bool CFlyServerJSON::sendDownloadCounter(bool p_is_only_db_if_network_error)
 //======================================================================================================
 string CFlyServerJSON::connect(const CFlyServerKeyArray& p_fileInfoArray, bool p_is_fly_set_query, bool p_is_ext_info_for_single_file /* = false*/)
 {
-	dcassert(!p_fileInfoArray.empty());
-	Thread::ConditionLockerWithSpin l(g_running);
+  dcassert(!p_fileInfoArray.empty());
   bool l_is_error = login(); // Запросим свой ИД у сервера
   string l_result_query;
   if(l_is_error == false)

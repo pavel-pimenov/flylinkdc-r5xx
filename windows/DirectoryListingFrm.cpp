@@ -65,7 +65,7 @@ DirectoryListingFrame::~DirectoryListingFrame()
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	dcassert(m_merge_item_map.empty());
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
-	Lock l(g_csUsersMap);
+	CFlyLock(g_csUsersMap);
 	if (dl->getUser() && !dl->getUser()->getCID().isZero() && g_usersMap.find(dl->getUser()) != g_usersMap.end())
 		g_usersMap.erase(dl->getUser());
 }
@@ -74,7 +74,7 @@ void DirectoryListingFrame::openWindow(const tstring& aFile, const tstring& aDir
 {
 	bool l_is_users_map_exists;
 	{
-		Lock l(g_csUsersMap);
+		CFlyLock(g_csUsersMap);
 		auto i = g_usersMap.end();
 		if (!p_isDCLST && aHintedUser.user && !aHintedUser.user->getCID().isZero())
 			i = g_usersMap.find(aHintedUser);
@@ -119,7 +119,7 @@ void DirectoryListingFrame::openWindow(const HintedUser& aUser, const string& tx
 {
 	bool l_is_users_map_exists;
 	{
-		Lock l(g_csUsersMap);
+		CFlyLock(g_csUsersMap);
 		auto i = g_usersMap.find(aUser);
 		l_is_users_map_exists = i != g_usersMap.end();
 		if (l_is_users_map_exists)
@@ -2258,7 +2258,7 @@ LRESULT DirectoryListingFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wPar
 		std::unique_ptr<Json::Value> l_root(reinterpret_cast<Json::Value*>(wParam));
 		const Json::Value& l_arrays = (*l_root)["array"];
 		const Json::Value::ArrayIndex l_count = l_arrays.size();
-		Lock l(g_cs_fly_server);
+		CFlyLock(g_cs_fly_server);
 		for (Json::Value::ArrayIndex i = 0; i < l_count; ++i)
 		{
 			const Json::Value& l_cur_item_in = l_arrays[i];
@@ -2392,7 +2392,7 @@ bool DirectoryListingFrame::scan_list_view_from_merge()
 				if (g_fly_server_config.isSupportFile(l_file_ext, l_file_size))
 				{
 					const TTHValue& l_tth = l_item_info->file->getTTH();
-					Lock l(g_cs_fly_server);
+					CFlyLock(g_cs_fly_server);
 					const auto l_find_ratio = g_fly_server_cache.find(l_tth);
 					if (l_find_ratio == g_fly_server_cache.end()) // Если значение рейтинга есть в кэше то не запрашиваем о нем инфу с сервера
 					{

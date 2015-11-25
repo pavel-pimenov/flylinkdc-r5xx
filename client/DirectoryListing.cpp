@@ -235,10 +235,6 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 		// dcdebug("ListLoader::startTag g_max_attribs_size = %d , attribs.capacity() = %d\n", g_max_attribs_size, attribs.capacity());
 	}
 #endif
-	if (ShareManager::isShutdown())
-	{
-		throw AbortException("ListLoader::startTag - ShareManager::isShutdown()");
-	}
 	if (ClientManager::isShutdown())
 	{
 		throw AbortException("ListLoader::startTag - ClientManager::isShutdown()");

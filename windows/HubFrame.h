@@ -319,6 +319,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		bool m_is_process_disconnected;
 		bool m_is_first_goto_end;
 		void onTimerHubUpdated();
+		int8_t m_upnp_message_tick;
 		uint8_t m_second_count;
 		void setShortHubName(const tstring& p_name);
 		string m_redirect;
@@ -395,6 +396,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		bool m_needsUpdateStats;
 		// bool m_is_op_chat_opened;
 		bool m_needsResort;
+		unsigned m_count_speak;
 		
 		static int g_columnIndexes[COLUMN_LAST];
 		static int g_columnSizes[COLUMN_LAST];
@@ -461,7 +463,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		void on(ClientListener::HubTopic, const Client*, const string&) noexcept override;
 		void on(ClientListener::StatusMessage, const Client*, const string& line, int statusFlags) noexcept override;
 #ifdef RIP_USE_CONNECTION_AUTODETECT
-		void on(ConnectionManagerListener::DirectModeDetected, const string&) noexcept override;
+		void on(ConnectionManagerListener::OpenTCPPortDetected, const string&) noexcept override;
 #endif
 		void on(ClientListener::DDoSSearchDetect, const string&) noexcept override;
 		
@@ -491,7 +493,10 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		void speak(Tasks s, ChatMessage* p_message_ptr)
 		{
 			m_tasks.add(static_cast<uint8_t>(s), new MessageTask(p_message_ptr));
-			force_speak();
+			if (++m_count_speak < 2)
+			{
+				force_speak();
+			}
 		}
 #endif
 		void doDisconnected();

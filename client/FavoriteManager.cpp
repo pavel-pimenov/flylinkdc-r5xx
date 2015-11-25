@@ -88,7 +88,7 @@ FavoriteManager::~FavoriteManager()
 
 size_t FavoriteManager::getCountFavsUsers()
 {
-	webrtc::ReadLockScoped l(*g_csUsers);
+	CFlyReadLock(*g_csUsers);
 	return g_fav_users_map.size();
 }
 void FavoriteManager::splitClientId(const string& p_id, string& p_name, string& p_version)
@@ -120,7 +120,7 @@ UserCommand FavoriteManager::addUserCommand(int type, int ctx, Flags::MaskType f
 	UserCommand uc(m_lastId++, type, ctx, flags, name, command, to, hub);
 	{
 		// No dupes, add it...
-		webrtc::WriteLockScoped l(*g_csUserCommand);
+		CFlyWriteLock(*g_csUserCommand);
 #ifdef PPA_USER_COMMANDS_HUBS_SET
 		if (!hub.empty())
 		{
@@ -139,7 +139,7 @@ UserCommand FavoriteManager::addUserCommand(int type, int ctx, Flags::MaskType f
 
 bool FavoriteManager::getUserCommand(int cid, UserCommand& uc)
 {
-	webrtc::ReadLockScoped l(*g_csUserCommand);
+	CFlyReadLock(*g_csUserCommand);
 	for (auto i = g_userCommands.cbegin(); i != g_userCommands.cend(); ++i)
 	{
 		if (i->getId() == cid)
@@ -154,7 +154,7 @@ bool FavoriteManager::getUserCommand(int cid, UserCommand& uc)
 bool FavoriteManager::moveUserCommand(int cid, int pos)
 {
 	dcassert(pos == -1 || pos == 1);
-	webrtc::WriteLockScoped l(*g_csUserCommand);
+	CFlyWriteLock(*g_csUserCommand);
 	for (auto i = g_userCommands.begin(); i != g_userCommands.end(); ++i)
 	{
 		if (i->getId() == cid)
@@ -169,7 +169,7 @@ bool FavoriteManager::moveUserCommand(int cid, int pos)
 void FavoriteManager::updateUserCommand(const UserCommand& uc)
 {
 	{
-		webrtc::WriteLockScoped l(*g_csUserCommand);
+		CFlyWriteLock(*g_csUserCommand);
 		for (auto i = g_userCommands.begin(); i != g_userCommands.end(); ++i)
 		{
 			if (i->getId() == uc.getId())
@@ -187,7 +187,7 @@ void FavoriteManager::updateUserCommand(const UserCommand& uc)
 
 int FavoriteManager::findUserCommand(const string& aName, const string& p_Hub)
 {
-	webrtc::ReadLockScoped l(*g_csUserCommand);
+	CFlyReadLock(*g_csUserCommand);
 #ifdef PPA_USER_COMMANDS_HUBS_SET
 	if (isHubExistsL(p_Hub))
 #endif
@@ -206,7 +206,7 @@ int FavoriteManager::findUserCommand(const string& aName, const string& p_Hub)
 void FavoriteManager::removeUserCommand(int cid)
 {
 	{
-		webrtc::WriteLockScoped l(*g_csUserCommand);
+		CFlyWriteLock(*g_csUserCommand);
 		for (auto i = g_userCommands.cbegin(); i != g_userCommands.cend(); ++i)
 		{
 			if (i->getId() == cid)
@@ -228,8 +228,8 @@ void FavoriteManager::shutdown()
 }
 void FavoriteManager::prepareClose()
 {
-	CFlyLog l_log("[User command cleanup]");
-	webrtc::WriteLockScoped l(*g_csUserCommand);
+	//CFlyLog l_log("[User command cleanup]");
+	CFlyWriteLock(*g_csUserCommand);
 #ifdef PPA_USER_COMMANDS_HUBS_SET
 	g_userCommandsHubUrl.clear();
 #endif
@@ -238,7 +238,7 @@ size_t FavoriteManager::countUserCommand(const string& p_Hub)
 {
 	size_t l_count = 0;
 	{
-		webrtc::ReadLockScoped l(*g_csUserCommand);
+		CFlyReadLock(*g_csUserCommand);
 #ifdef PPA_USER_COMMANDS_HUBS_SET
 		if (isHubExistsL(p_Hub))
 #endif
@@ -254,7 +254,7 @@ size_t FavoriteManager::countUserCommand(const string& p_Hub)
 }
 void FavoriteManager::removeUserCommand(const string& p_Hub)
 {
-	webrtc::WriteLockScoped l(*g_csUserCommand);
+	CFlyWriteLock(*g_csUserCommand);
 #ifdef PPA_USER_COMMANDS_HUBS_SET
 	if (isHubExistsL(p_Hub))
 #endif
@@ -309,7 +309,7 @@ void FavoriteManager::removeUserCommand(const string& p_Hub)
 
 void FavoriteManager::removeHubUserCommands(int ctx, const string& p_Hub)
 {
-	webrtc::WriteLockScoped l(*g_csUserCommand);
+	CFlyWriteLock(*g_csUserCommand);
 #ifdef PPA_USER_COMMANDS_HUBS_SET
 	if (isHubExistsL(p_Hub))
 #endif
@@ -380,7 +380,7 @@ bool FavoriteManager::getFavUserParam(const UserPtr& aUser, FavoriteUser::MaskTy
 	dcassert(!ClientManager::isShutdown());
 	if (isNotEmpty()) // [+]PPA
 	{
-		webrtc::ReadLockScoped l(*g_csUsers);
+		CFlyReadLock(*g_csUsers);
 		const auto l_user = g_fav_users_map.find(aUser->getCID());
 		if (l_user != g_fav_users_map.end())
 		{
@@ -397,7 +397,7 @@ bool FavoriteManager::isNoFavUserOrUserIgnorePrivate(const UserPtr& aUser) // [+
 	dcassert(!ClientManager::isShutdown());
 	if (isNotEmpty()) // [+]PPA
 	{
-		webrtc::ReadLockScoped l(*g_csUsers);
+		CFlyReadLock(*g_csUsers);
 		const auto l_user = g_fav_users_map.find(aUser->getCID());
 		return l_user == g_fav_users_map.end() || l_user->second.isSet(FavoriteUser::FLAG_IGNORE_PRIVATE);
 	}
@@ -416,7 +416,7 @@ bool FavoriteManager::getFavoriteUser(const UserPtr& p_user, FavoriteUser& p_fav
 	dcassert(!ClientManager::isShutdown());
 	if (isNotEmpty()) // [+]PPA
 	{
-		webrtc::ReadLockScoped l(*g_csUsers);
+		CFlyReadLock(*g_csUsers);
 		const auto l_user = g_fav_users_map.find(p_user->getCID());
 		if (l_user != g_fav_users_map.end())
 		{
@@ -432,7 +432,7 @@ bool FavoriteManager::isFavoriteUser(const UserPtr& aUser, bool& p_is_ban)
 	dcassert(!ClientManager::isShutdown());
 	if (isNotEmpty()) // [+]PPA
 	{
-		webrtc::ReadLockScoped l(*g_csUsers);
+		CFlyReadLock(*g_csUsers);
 		bool l_result;
 		const auto& l_find = g_fav_users_map.find(aUser->getCID());
 		if (l_find != g_fav_users_map.end())
@@ -470,11 +470,11 @@ void FavoriteManager::addFavoriteUser(const UserPtr& aUser)
 	// [!] SSA see _addUserIfnotExist function
 	{
 		FavoriteMap::iterator i;
-		webrtc::WriteLockScoped l(*g_csUsers);
+		CFlyWriteLock(*g_csUsers);
 		if (!addUserL(aUser, i))
 			return;
 			
-		fire(FavoriteManagerListener::UserAdded(), i->second);
+		fly_fire1(FavoriteManagerListener::UserAdded(), i->second);
 	}
 	save();
 }
@@ -482,12 +482,12 @@ void FavoriteManager::addFavoriteUser(const UserPtr& aUser)
 void FavoriteManager::removeFavoriteUser(const UserPtr& aUser)
 {
 	{
-		webrtc::WriteLockScoped l(*g_csUsers);
+		CFlyWriteLock(*g_csUsers);
 		const auto i = g_fav_users_map.find(aUser->getCID());
 		if (i == g_fav_users_map.end())
 			return;
 			
-		fire(FavoriteManagerListener::UserRemoved(), i->second);
+		fly_fire1(FavoriteManagerListener::UserRemoved(), i->second);
 		g_fav_users_map.erase(i);
 		updateEmptyStateL();
 	}
@@ -498,7 +498,7 @@ string FavoriteManager::getUserUrl(const UserPtr& aUser)
 {
 	if (isNotEmpty()) // [+]PPA
 	{
-		webrtc::ReadLockScoped l(*g_csUsers);
+		CFlyReadLock(*g_csUsers);
 		const auto& i = g_fav_users_map.find(aUser->getCID());
 		if (i != g_fav_users_map.end())
 		{
@@ -517,7 +517,7 @@ FavoriteHubEntry* FavoriteManager::addFavorite(const FavoriteHubEntry& aEntry, c
 		if (p_autostart != NOT_CHANGE)
 		{
 			l_fhe->setConnect(p_autostart == ADD);
-			fire(FavoriteManagerListener::FavoriteAdded(), (FavoriteHubEntry*)NULL); // rebuild fav hubs list
+			fly_fire1(FavoriteManagerListener::FavoriteAdded(), (FavoriteHubEntry*)NULL); // rebuild fav hubs list
 		}
 		return l_fhe;
 		// [~] IRainman
@@ -525,10 +525,10 @@ FavoriteHubEntry* FavoriteManager::addFavorite(const FavoriteHubEntry& aEntry, c
 	FavoriteHubEntry* f = new FavoriteHubEntry(aEntry);
 	f->setConnect(p_autostart == ADD);// [+] IRainman fav options
 	{
-		webrtc::WriteLockScoped l(*g_csHubs); // [+] IRainman fix.
+		CFlyWriteLock(*g_csHubs); // [+] IRainman fix.
 		g_favoriteHubs.push_back(f);
 	}
-	fire(FavoriteManagerListener::FavoriteAdded(), f);
+	fly_fire1(FavoriteManagerListener::FavoriteAdded(), f);
 	save();
 	return f;
 }
@@ -536,14 +536,14 @@ FavoriteHubEntry* FavoriteManager::addFavorite(const FavoriteHubEntry& aEntry, c
 void FavoriteManager::removeFavorite(const FavoriteHubEntry* entry)
 {
 	{
-		webrtc::WriteLockScoped l(*g_csHubs); // [+] IRainman fix.
+		CFlyWriteLock(*g_csHubs); // [+] IRainman fix.
 		auto i = find(g_favoriteHubs.begin(), g_favoriteHubs.end(), entry);
 		if (i == g_favoriteHubs.end())
 			return;
 			
 		g_favoriteHubs.erase(i);
 	}
-	fire(FavoriteManagerListener::FavoriteRemoved(), entry);
+	fly_fire1(FavoriteManagerListener::FavoriteRemoved(), entry);
 	delete entry;
 	save();
 }
@@ -553,7 +553,7 @@ bool FavoriteManager::addFavoriteDir(string aDirectory, const string& aName, con
 	AppendPathSeparator(aDirectory); //[+]PPA
 	
 	{
-		webrtc::WriteLockScoped l(*g_csDirs);
+		CFlyWriteLock(*g_csDirs);
 		for (auto i = g_favoriteDirs.cbegin(); i != g_favoriteDirs.cend(); ++i)
 		{
 			if ((strnicmp(aDirectory, i->dir, i->dir.length()) == 0) && (strnicmp(aDirectory, i->dir, aDirectory.length()) == 0))
@@ -584,7 +584,7 @@ bool FavoriteManager::removeFavoriteDir(const string& aName)
 	
 	bool upd = false;
 	{
-		webrtc::WriteLockScoped l(*g_csDirs);
+		CFlyWriteLock(*g_csDirs);
 		for (auto j = g_favoriteDirs.cbegin(); j != g_favoriteDirs.cend(); ++j)
 		{
 			if (stricmp(j->dir.c_str(), d.c_str()) == 0)
@@ -606,7 +606,7 @@ bool FavoriteManager::renameFavoriteDir(const string& aName, const string& anoth
 {
 	bool upd = false;
 	{
-		webrtc::WriteLockScoped l(*g_csDirs);
+		CFlyWriteLock(*g_csDirs);
 		for (auto j = g_favoriteDirs.begin(); j != g_favoriteDirs.end(); ++j)
 		{
 			if (stricmp(j->name.c_str(), aName.c_str()) == 0)
@@ -628,7 +628,7 @@ bool FavoriteManager::updateFavoriteDir(const string& aName, const string& dir, 
 {
 	bool upd = false;
 	{
-		webrtc::WriteLockScoped l(*g_csDirs);
+		CFlyWriteLock(*g_csDirs);
 		for (auto j = g_favoriteDirs.begin(); j != g_favoriteDirs.end(); ++j)
 		{
 			if (stricmp(j->name.c_str(), aName.c_str()) == 0)
@@ -652,7 +652,7 @@ string FavoriteManager::getDownloadDirectory(const string& ext) const
 {
 	if (ext.size() > 1)
 	{
-		webrtc::ReadLockScoped l(*g_csDirs);
+		CFlyReadLock(*g_csDirs);
 		for (auto i = g_favoriteDirs.cbegin(); i != g_favoriteDirs.cend(); ++i)
 		{
 			for (auto j = i->ext.cbegin(); j != i->ext.cend(); ++j) // [!] IRainman opt.
@@ -675,7 +675,7 @@ void FavoriteManager::addRecent(const RecentHubEntry& aEntry)
 	RecentHubEntry* f = new RecentHubEntry(aEntry);
 	g_recentHubs.push_back(f);
 	g_recent_dirty = true;
-	fire(FavoriteManagerListener::RecentAdded(), f);
+	fly_fire1(FavoriteManagerListener::RecentAdded(), f);
 }
 
 void FavoriteManager::removeRecent(const RecentHubEntry* entry)
@@ -686,7 +686,7 @@ void FavoriteManager::removeRecent(const RecentHubEntry* entry)
 		return;
 	}
 	
-	fire(FavoriteManagerListener::RecentRemoved(), entry);
+	fly_fire1(FavoriteManagerListener::RecentRemoved(), entry);
 	g_recentHubs.erase(i);
 	g_recent_dirty = true;
 	delete entry;
@@ -702,7 +702,7 @@ void FavoriteManager::updateRecent(const RecentHubEntry* entry)
 		{
 			return;
 		}
-		fire(FavoriteManagerListener::RecentUpdated(), entry);
+		fly_fire1(FavoriteManagerListener::RecentUpdated(), entry);
 	}
 }
 
@@ -711,7 +711,7 @@ void FavoriteManager::save()
 	if (g_dontSave)
 		return;
 	CFlySafeGuard<uint16_t> l_satrt(g_dontSave);
-	// Lock l(cs); [-] IRainman opt.
+	// CFlyLock(cs); [-] IRainman opt.
 	try
 	{
 		SimpleXML xml;
@@ -725,7 +725,7 @@ void FavoriteManager::save()
 		xml.stepIn();
 		
 		{
-			webrtc::ReadLockScoped l(*g_csHubs); // [+] IRainman fix.
+			CFlyReadLock(*g_csHubs); // [+] IRainman fix.
 			for (auto i = g_favHubGroups.cbegin(), iend = g_favHubGroups.cend(); i != iend; ++i)
 			{
 				xml.addTag("Group");
@@ -798,7 +798,7 @@ void FavoriteManager::save()
 		xml.addTag("Users");
 		xml.stepIn();
 		{
-			webrtc::ReadLockScoped l(*g_csUsers);
+			CFlyReadLock(*g_csUsers);
 			for (auto i = g_fav_users_map.cbegin(), iend = g_fav_users_map.cend(); i != iend; ++i)
 			{
 				const auto &u = i->second; // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'i->second' expression repeatedly. favoritemanager.cpp 687
@@ -828,7 +828,7 @@ void FavoriteManager::save()
 		xml.addTag("UserCommands");
 		xml.stepIn();
 		{
-			webrtc::ReadLockScoped l(*g_csUserCommand); // [+] IRainman opt.
+			CFlyReadLock(*g_csUserCommand); // [+] IRainman opt.
 			for (auto i = g_userCommands.cbegin(); i != g_userCommands.cend(); ++i)
 			{
 				if (!i->isSet(UserCommand::FLAG_NOSAVE))
@@ -848,7 +848,7 @@ void FavoriteManager::save()
 		xml.addTag("FavoriteDirs");
 		xml.stepIn();
 		{
-			webrtc::ReadLockScoped l(*g_csDirs);
+			CFlyReadLock(*g_csDirs);
 			for (auto i = g_favoriteDirs.cbegin(), iend = g_favoriteDirs.cend(); i != iend; ++i)
 			{
 				xml.addTag("Directory", i->dir);
@@ -1068,7 +1068,7 @@ void FavoriteManager::connectToFlySupportHub()
 			e->setDescription(STRING(SUPPORTS_SERVER_DESC));
 			e->setServer(CFlyServerConfig::g_support_hub);
 			{
-				webrtc::WriteLockScoped l(*g_csHubs);
+				CFlyWriteLock(*g_csHubs);
 				g_favoriteHubs.push_back(e);
 			}
 		}
@@ -1126,7 +1126,7 @@ void FavoriteManager::load(SimpleXML& aXml
 			if (!p_is_url)
 #endif
 			{
-				webrtc::WriteLockScoped l(*g_csHubs); // [+] IRainman fix.
+				CFlyWriteLock(*g_csHubs); // [+] IRainman fix.
 				while (aXml.findChild("Group"))
 				{
 					const string& name = aXml.getChildAttrib("Name");
@@ -1294,7 +1294,7 @@ void FavoriteManager::load(SimpleXML& aXml
 					{
 						FavHubGroupProperties props = { aXml.getBoolChildAttrib("Public") };
 						
-						webrtc::WriteLockScoped l(*g_csHubs); // [+] IRainman fix.
+						CFlyWriteLock(*g_csHubs); // [+] IRainman fix.
 						
 						g_favHubGroups["ISP"] = props;
 						g_favHubGroups["ISP Recycled"] = props;
@@ -1309,7 +1309,7 @@ void FavoriteManager::load(SimpleXML& aXml
 					else
 					{
 						{
-							webrtc::WriteLockScoped l(*g_csHubs);
+							CFlyWriteLock(*g_csHubs);
 							g_favoriteHubs.push_back(e);
 						}
 						if (p_is_url)
@@ -1334,7 +1334,7 @@ void FavoriteManager::load(SimpleXML& aXml
 					if (l_ISPDelete)
 					{
 						needSave = true;
-						webrtc::WriteLockScoped l(*g_csHubs);
+						CFlyWriteLock(*g_csHubs);
 						auto i = find(g_favoriteHubs.begin(), g_favoriteHubs.end(), l_HubEntry);
 						if (i != g_favoriteHubs.end())
 						{
@@ -1347,7 +1347,7 @@ void FavoriteManager::load(SimpleXML& aXml
 				}
 #else
 					{
-						webrtc::WriteLockScoped l(*g_csHubs);
+						CFlyWriteLock(*g_csHubs);
 						favoriteHubs.push_back(e);
 					}
 #endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
@@ -1433,7 +1433,7 @@ void FavoriteManager::load(SimpleXML& aXml
 						u = ClientManager::getUser(CID(cid), true);
 					}
 					
-					webrtc::WriteLockScoped l(*g_csUsers);
+					CFlyWriteLock(*g_csUsers);
 					auto i = g_fav_users_map.insert(make_pair(u->getCID(), FavoriteUser(u, nick, hubUrl))).first;
 					
 					if (aXml.getBoolChildAttrib("IgnorePrivate")) // !SMT!-S
@@ -1488,11 +1488,10 @@ void FavoriteManager::load(SimpleXML& aXml
 
 void FavoriteManager::userUpdated(const OnlineUser& info)
 {
-	dcassert(!ClientManager::isShutdown());
-	if (isNotEmpty()) // [+]PPA
+	if (!ClientManager::isShutdown() && isNotEmpty()) // [+]PPA
 	{
 		{
-			webrtc::WriteLockScoped l(*g_csUsers);
+			CFlyWriteLock(*g_csUsers);
 			auto i = g_fav_users_map.find(info.getUser()->getCID());
 			if (i == g_fav_users_map.end())
 				return;
@@ -1505,7 +1504,7 @@ void FavoriteManager::userUpdated(const OnlineUser& info)
 
 FavoriteHubEntry* FavoriteManager::getFavoriteHubEntry(const string& aServer)
 {
-	webrtc::ReadLockScoped l(*g_csHubs); // [+] IRainman fix.
+	CFlyReadLock(*g_csHubs); // [+] IRainman fix.
 #ifdef _DEBUG
 	static int g_count;
 	static string g_last_url;
@@ -1533,7 +1532,7 @@ FavoriteHubEntry* FavoriteManager::getFavoriteHubEntry(const string& aServer)
 FavoriteHubEntryList FavoriteManager::getFavoriteHubs(const string& group)
 {
 	FavoriteHubEntryList ret;
-	webrtc::ReadLockScoped l(*g_csHubs);
+	CFlyReadLock(*g_csHubs);
 	for (auto i = g_favoriteHubs.cbegin(), iend = g_favoriteHubs.cend(); i != iend; ++i)
 	{
 		if ((*i)->getGroup() == group)
@@ -1556,7 +1555,7 @@ bool FavoriteManager::isPrivate(const string& p_url) const
 			const string& name = fav->getGroup();
 			if (!name.empty())
 			{
-				webrtc::ReadLockScoped l(*g_csHubs); // [+] IRainman fix.
+				CFlyReadLock(*g_csHubs); // [+] IRainman fix.
 				const auto group = g_favHubGroups.find(name);
 				if (group != g_favHubGroups.end())
 				{
@@ -1571,10 +1570,10 @@ bool FavoriteManager::isPrivate(const string& p_url) const
 // !SMT!-S
 void FavoriteManager::setUploadLimit(const UserPtr& aUser, int lim, bool createUser/* = true*/)
 {
-	ConnectionManager::getInstance()->setUploadLimit(aUser, lim);
+	ConnectionManager::setUploadLimit(aUser, lim);
 	{
 		FavoriteMap::iterator i;
-		webrtc::WriteLockScoped l(*g_csUsers);
+		CFlyWriteLock(*g_csUsers);
 		const bool added = addUserL(aUser, i, createUser);
 		if (i == g_fav_users_map.end())
 			return;
@@ -1590,7 +1589,7 @@ bool FavoriteManager::getFlag(const UserPtr& aUser, FavoriteUser::Flags f)
 	dcassert(!ClientManager::isShutdown());
 	if (isNotEmpty()) // [+]PPA
 	{
-		webrtc::ReadLockScoped l(*g_csUsers);
+		CFlyReadLock(*g_csUsers);
 		const auto i = g_fav_users_map.find(aUser->getCID());
 		if (i != g_fav_users_map.end())
 		{
@@ -1605,7 +1604,7 @@ void FavoriteManager::setFlag(const UserPtr& aUser, FavoriteUser::Flags f, bool 
 	dcassert(!ClientManager::isShutdown());
 	{
 		FavoriteMap::iterator i;
-		webrtc::WriteLockScoped l(*g_csUsers);
+		CFlyWriteLock(*g_csUsers);
 		const bool added = addUserL(aUser, i, createUser);
 		if (i == g_fav_users_map.end())
 			return;
@@ -1625,7 +1624,7 @@ void FavoriteManager::setUserDescription(const UserPtr& aUser, const string& aDe
 	if (isNotEmpty()) // [+]PPA
 	{
 		{
-			webrtc::WriteLockScoped l(*g_csUsers);
+			CFlyWriteLock(*g_csUsers);
 			auto i = g_fav_users_map.find(aUser->getCID());
 			if (i == g_fav_users_map.end())
 				return;
@@ -1678,7 +1677,7 @@ UserCommand::List FavoriteManager::getUserCommands(int ctx, const StringList& hu
 	
 	UserCommand::List lst;
 	{
-		webrtc::ReadLockScoped l(*g_csUserCommand);
+		CFlyReadLock(*g_csUserCommand);
 		for (auto i = g_userCommands.cbegin(); i != g_userCommands.cend(); ++i)
 		{
 			const UserCommand& uc = *i;
@@ -1726,33 +1725,37 @@ void FavoriteManager::on(UserUpdated, const OnlineUserPtr& user) noexcept
 void FavoriteManager::on(UserDisconnected, const UserPtr& aUser) noexcept
 {
 	dcassert(!ClientManager::isShutdown()); // TODO: it's normal situation https://code.google.com/p/flylinkdc/issues/detail?id=1317
-	if (isNotEmpty()) // [+]PPA
-	{
-		{
-			webrtc::WriteLockScoped l(*g_csUsers);
-			auto i = g_fav_users_map.find(aUser->getCID());
-			if (i == g_fav_users_map.end())
-				return;
-			i->second.setLastSeen(GET_TIME()); // TODO: if ClientManager::isShutdown() this data is not update :( https://code.google.com/p/flylinkdc/issues/detail?id=1317
-		}
-		fire(FavoriteManagerListener::StatusChanged(), aUser);
-		// save(); http://code.google.com/p/flylinkdc/issues/detail?id=1409
-	}
-}
-
-void FavoriteManager::on(UserConnected, const UserPtr& aUser) noexcept
-{
-	//dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
 		if (isNotEmpty()) // [+]PPA
 		{
 			{
-				webrtc::ReadLockScoped l(*g_csUsers);
+				CFlyWriteLock(*g_csUsers);
+				auto i = g_fav_users_map.find(aUser->getCID());
+				if (i == g_fav_users_map.end())
+					return;
+				i->second.setLastSeen(GET_TIME()); // TODO: if ClientManager::isShutdown() this data is not update :( https://code.google.com/p/flylinkdc/issues/detail?id=1317
+			}
+			fly_fire1(FavoriteManagerListener::StatusChanged(), aUser);
+			// save(); http://code.google.com/p/flylinkdc/issues/detail?id=1409
+		}
+	}
+}
+
+void FavoriteManager::on(UserConnected, const UserPtr& aUser) noexcept
+{
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
+	{
+		if (isNotEmpty()) // [+]PPA
+		{
+			{
+				CFlyReadLock(*g_csUsers);
 				if (!isUserExistL(aUser))
 					return;
 			}
-			fire(FavoriteManagerListener::StatusChanged(), aUser);
+			fly_fire1(FavoriteManagerListener::StatusChanged(), aUser);
 		}
 	}
 }
@@ -1798,20 +1801,26 @@ void FavoriteManager::changeConnectionStatus(const string& hubUrl, ConnectionSta
 	{
 		hub->setConnectionStatus(status);
 #ifdef UPDATE_CON_STATUS_ON_FAV_HUBS_IN_REALTIME
-		fire(FavoriteManagerListener::FavoriteStatusChanged(), hub);
+		fly_fire1(FavoriteManagerListener::FavoriteStatusChanged(), hub);
 #endif
 	}
 }
 #endif
 void FavoriteManager::speakUserUpdate(const bool added, FavoriteMap::iterator& i) // [+] IRainman
 {
-	if (added)
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
 	{
-		fire(FavoriteManagerListener::UserAdded(), i->second);
-	}
-	else
-	{
-		fire(FavoriteManagerListener::StatusChanged(), i->second.getUser());
+		{
+			if (added)
+			{
+				fly_fire1(FavoriteManagerListener::UserAdded(), i->second);
+			}
+			else
+			{
+				fly_fire1(FavoriteManagerListener::StatusChanged(), i->second.getUser());
+			}
+		}
 	}
 }
 void FavoriteManager::on(SettingsManagerListener::Save, SimpleXML& xml)

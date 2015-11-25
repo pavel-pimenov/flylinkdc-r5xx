@@ -125,7 +125,7 @@ namespace MediaInfoLib
 {
 
 //---------------------------------------------------------------------------
-const Char*  MediaInfo_Version=__T("MediaInfoLib - v0.7.78");
+const Char*  MediaInfo_Version=__T("MediaInfoLib - v0.7.79");
 const Char*  MediaInfo_Url=__T("http://MediaArea.net/MediaInfo");
       Ztring EmptyZtring;       //Use it when we can't return a reference to a true Ztring
 const Ztring EmptyZtring_Const; //Use it when we can't return a reference to a true Ztring, const version
@@ -575,6 +575,8 @@ Ztring MediaInfo_Config::Option (const String &Option, const String &Value_Raw)
     }
     else if (Option_Lower==__T("details")) //Legacy for trace_level
     {
+        if (Value == __T("0"))
+            Trace_Level=0;
         return MediaInfo_Config::Option(__T("Trace_Level"), Value);
     }
     else if (Option_Lower==__T("details_get")) //Legacy for trace_level
@@ -1510,8 +1512,8 @@ Ztring MediaInfo_Config::Language_Get (const Ztring &Value)
 Ztring MediaInfo_Config::Language_Get (const Ztring &Count, const Ztring &Value, bool ValueIsAlwaysSame)
 {
     //Integrity
-    if (Count.empty())
-        return EmptyString_Get();
+    if (Count.empty() || Count.find_first_not_of(__T("0123456789.+-/*() "))!=string::npos)
+        return Count;
 
     //Different Plurals are available or not?
     if (Language_Get(Value+__T("1")).empty())
@@ -1622,7 +1624,7 @@ void MediaInfo_Config::Inform_Set (const ZtringListList &NewValue)
         if (NewValue.Read(0, 0)==__T("MAXML"))
             Trace_Format_Set(Trace_Format_XML); //All must be XML
         else
-        Trace_Format_Set(Trace_Format_Tree); // TODO: better coherency in options
+            Trace_Format_Set(Trace_Format_Tree); // TODO: better coherency in options
 
         CriticalSectionLocker CSL(CS);
 

@@ -206,7 +206,7 @@ class VideoPreview :
 		void addTask(Tasks task, TaskData* data)
 		{
 		   {
-		    Lock l(cs);
+		    CFlyLock(cs);
 		    m_tasks.push_back(make_pair(task, data));
 		   }
 		   m_taskSem.signal();

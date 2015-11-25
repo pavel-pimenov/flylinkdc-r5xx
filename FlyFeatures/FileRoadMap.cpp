@@ -38,7 +38,7 @@ void FileRoadMap::AddSegment(int64_t pos, int64_t size)
 			return;
 	}
 	const FileRoadMapItem item(newPos, newSize);
-	FastLock l(cs);
+	CFlyFastLock(cs);
 	const auto l_res = m_map.insert(item);
 	dcassert(l_res.second == true);
 	//LogManager::message("[FileRoadMap::AddSegment] newPos = " + Util::toString(newPos) + " newSize = "  + 
@@ -65,7 +65,7 @@ bool FileRoadMap::GetInsertableSizeAndPos(int64_t& pos, int64_t& size)
 	if (pos + size > m_totalSize)
 		size = m_totalSize - pos;
 		
-	FastLock l(cs);
+	CFlyFastLock(cs);
 	for (auto item = m_map.cbegin(); item != m_map.cend(); ++item)
 	{
 		const auto& itemR = (*item);

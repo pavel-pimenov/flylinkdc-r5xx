@@ -135,7 +135,7 @@ void SearchManager::findFile(const string& tth, uint32_t p_token)
 	//      DHT::getInstance()->info(i->getIp(), i->getUdpPort(), true);
 	//
 	//      const SearchResult sr(u, SearchResult::TYPE_FILE, 0, 0, i->getSize(), tth, "DHT", Util::emptyString, i->getIp(), TTHValue(tth), token);
-	//      dcpp::SearchManager::getInstance()->fire(SearchManagerListener::SR(), sr);
+	//      dcpp::SearchManager::getInstance()->fly_fire1(SearchManagerListener::SR(), sr);
 	//  }
 	//
 	//  return;
@@ -195,7 +195,7 @@ void SearchManager::search(Search& s)
 		return;
 	}
 	
-	FastLock l(cs);
+	CFlyFastLock(cs);
 	// store search
 	m_searches[s.m_token] = &s;
 	
@@ -329,7 +329,7 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
 	if (!cmd.getParam("NX", 1, nodes))
 		return; // missing search token?
 		
-	FastLock l(cs);
+	CFlyFastLock(cs);
 	SearchMap::iterator i = m_searches.find(l_token);
 	if (i == m_searches.end())
 	{
@@ -406,7 +406,7 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
 					}
 					else
 					{
-						::SearchManager::getInstance()->fire(::SearchManagerListener::SR(), sr);
+						::SearchManager::getInstance()->fly_fire1(::SearchManagerListener::SR(), sr);
 					}
 					}
 					else
@@ -493,7 +493,7 @@ void SearchManager::publishFile(const Node::Map& nodes, const string& tth, int64
  */
 void SearchManager::processSearches()
 {
-	FastLock l(cs);
+	CFlyFastLock(cs);
 	
 	SearchMap::iterator it = m_searches.begin();
 	while (it != m_searches.end())
@@ -540,7 +540,7 @@ bool SearchManager::processSearchResults(const UserPtr& user, size_t slots)
 			SearchResult sr = it->second.second;
 			sr.setSlots(uint8_t(slots)); // slot count should be known now
 			
-			::SearchManager::getInstance()->fire(::SearchManagerListener::SR(), sr);
+			::SearchManager::getInstance()->fly_fire1(::SearchManagerListener::SR(), sr);
 			m_searchResults.erase(it++);
 			
 			ok = true;
@@ -564,7 +564,7 @@ bool SearchManager::processSearchResults(const UserPtr& user, size_t slots)
  */
 bool SearchManager::isAlreadySearchingFor(const string& p_term)
 {
-	FastLock l(cs);
+	CFlyFastLock(cs);
 	for (auto i = m_searches.cbegin(); i != m_searches.cend(); ++i)
 	{
 		if (i->second->m_term == p_term)

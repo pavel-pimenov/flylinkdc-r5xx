@@ -48,7 +48,7 @@ class CFlySQLCommand
 		}
 		sqlite3_command* init(sqlite3_connection& p_db, const char* p_sql)
 		{
-			FastLock l(m_cs);
+			CFlyFastLock(m_cs);
 			if (!m_sql.get())
 			{
 				m_sql = unique_ptr<sqlite3_command>(new sqlite3_command(p_db, p_sql));
@@ -111,7 +111,7 @@ struct CFlyIPRange
 {
 	uint32_t m_start_ip;
 	uint32_t m_stop_ip;
-	CFlyIPRange()
+	CFlyIPRange() //: m_start_ip(0), m_stop_ip(0)
 	{
 	}
 	CFlyIPRange(uint32_t p_start_ip, uint32_t p_stop_ip): m_start_ip(p_start_ip), m_stop_ip(p_stop_ip)
@@ -291,7 +291,8 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		                                 const string& p_nick,
 		                                 CFlyUploadDownloadMap* p_upload_download_stats,
 		                                 const uint32_t p_message_count,
-		                                 const boost::asio::ip::address_v4& p_last_ip);
+		                                 const boost::asio::ip::address_v4& p_last_ip,
+		                                 bool p_is_last_ip_or_message_count_dirty);
 		uint32_t get_dic_hub_id(const string& p_hub);
 		void load_global_ratio();
 		void load_all_hub_into_cacheL();
@@ -363,7 +364,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif
 		size_t get_count_folders()
 		{
-			FastLock l(m_path_cache_cs);
+			CFlyFastLock(m_path_cache_cs);
 			return m_path_cache.size();
 		}
 		void sweep_db();
@@ -374,7 +375,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
 		void log(const int p_area, const StringMap& p_params);
 #endif // FLYLINKDC_LOG_IN_SQLITE_BASE
-		size_t load_queue();
+		int32_t load_queue();
 		void add_sourceL(const QueueItemPtr& p_QueueItem, const CID& p_cid, const string& p_nick/*, const string& p_hub_hint*/);
 		bool merge_queue_item(QueueItemPtr& p_QueueItem);
 		void merge_queue_segmentL(const CFlySegment& p_QueueSegment);
@@ -445,26 +446,26 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		uint16_t get_country_index_from_cache(int16_t p_index)
 		{
 			dcassert(p_index > 0);
-			FastLock l(m_cache_location_cs);
+			CFlyFastLock(m_cache_location_cs);
 			return m_country_cache[p_index - 1].m_flag_index;
 		}
 		CFlyLocationDesc get_country_from_cache(uint16_t p_index)
 		{
 			dcassert(p_index > 0);
-			FastLock l(m_cache_location_cs);
+			CFlyFastLock(m_cache_location_cs);
 			return m_country_cache[p_index - 1];
 		}
 #endif
 		uint16_t get_location_index_from_cache(int32_t p_index)
 		{
 			dcassert(p_index > 0);
-			FastLock l(m_cache_location_cs);
+			CFlyFastLock(m_cache_location_cs);
 			return m_location_cache_array[p_index - 1].m_flag_index;
 		}
 		CFlyLocationDesc get_location_from_cache(int32_t p_index)
 		{
 			dcassert(p_index > 0);
-			FastLock l(m_cache_location_cs);
+			CFlyFastLock(m_cache_location_cs);
 			return m_location_cache_array[p_index - 1];
 		}
 	private:
@@ -503,11 +504,11 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
 		__int64 convert_tth_history();
 		__int64 convert_tth_historyL();
-		static size_t getCountQueueFiles()
+		static int32_t getCountQueueFiles()
 		{
 			return g_count_queue_files;
 		}
-		static size_t getCountQueueSources()
+		static int32_t getCountQueueSources()
 		{
 			return g_count_queue_source;
 		}
@@ -530,8 +531,9 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		// If two threads share such an object, they must protect access to it using their own locking protocol.
 		// More details are available in the public header files.
 		sqlite3_connection m_flySQLiteDB;
-		boost::unordered_map<string, CFlyHashCacheItem> m_cache_hash_files;
-		
+		typedef boost::unordered_map<string, CFlyHashCacheItem> CFlyHashCacheMap;
+		CFlyHashCacheMap m_cache_hash_files;
+		FastCriticalSection  m_cache_hash_files_cs;
 #ifdef FLYLINKDC_USE_LEVELDB
 		// FastCriticalSection    m_leveldb_cs;
 		CFlyLevelDB        m_flyLevelDB;
@@ -579,16 +581,22 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		auto_ptr<sqlite3_command> m_add_tree_find;
 		
 		CFlySQLCommand m_select_ratio_load;
-		CFlySQLCommand m_select_all_last_ip_and_message_count;
 		
+#ifdef FLYLINKDC_USE_LASTIP_CACHE
+		CFlySQLCommand m_select_all_last_ip_and_message_count;
 		boost::unordered_map<uint32_t, boost::unordered_map<std::string, CFlyLastIPCacheItem> > m_last_ip_cache;
 		FastCriticalSection m_last_ip_cs;
+#else
+		CFlySQLCommand m_select_last_ip_and_message_count;
+		CFlySQLCommand m_insert_last_ip_and_message_count;
+		CFlySQLCommand m_insert_last_ip;
+#endif // FLYLINKDC_USE_LASTIP_CACHE
 		
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		CFlySQLCommand m_find_virus_nick_and_share;
 		CFlySQLCommand m_find_virus_nick_and_share_and_ip4;
 		
-		FastCriticalSection m_virus_cs;
+		std::unique_ptr<webrtc::RWLockWrapper> m_virus_cs;
 		boost::unordered_set<std::string> m_virus_user;
 		boost::unordered_set<int64_t> m_virus_share;
 		boost::unordered_set<unsigned long> m_virus_ip4;
@@ -626,6 +634,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlySQLCommand m_get_blocksize;  // [+] brain-ripper
 		CFlySQLCommand m_insert_fly_path;
 		CFlySQLCommand m_insert_and_full_update_fly_queue;
+		CFlySQLCommand m_select_for_update_fly_queue;
 		CFlySQLCommand m_update_segments_fly_queue;
 		CFlySQLCommand m_insert_fly_queue_source;
 		CFlySQLCommand m_del_fly_queue;
@@ -723,7 +732,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		__int64 get_dic_idL(const string& p_name, const eTypeDIC p_DIC, bool p_create);
 		//void clear_dic_cache(const eTypeDIC p_DIC);
 		
-		bool safeAlter(const char* p_sql);
+		bool safeAlter(const char* p_sql, bool p_is_all_log = false);
 		void pragma_executor(const char* p_pragma);
 		void update_file_infoL(const string& p_fname, __int64 p_path_id,
 		                       int64_t p_Size, int64_t p_TimeStamp, __int64 p_tth_id);
@@ -734,8 +743,8 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		string  m_last_path;
 		int     m_convert_ftype_stop_key;
 		size_t  m_count_json_stat;
-		static size_t g_count_queue_source;
-		static size_t g_count_queue_files;
+		static int32_t g_count_queue_source;
+		static int32_t g_count_queue_files;
 		std::unordered_map<TTHValue, TigerTree> m_tiger_tree_cache; // http://code.google.com/p/flylinkdc/issues/detail?id=1418
 };
 #endif

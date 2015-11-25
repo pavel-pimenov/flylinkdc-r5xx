@@ -53,7 +53,7 @@ void IpGrant::load()
 		}
 		l_IPGrant_log.step("parse IPGrant.ini");
 		{
-			FastLock l(m_cs);
+			CFlyFastLock(m_cs);
 			m_ipList.clear();
 			if (!l_data.empty())
 			{
@@ -68,7 +68,7 @@ bool IpGrant::check(uint32_t p_ip4)
 {
 	if (p_ip4 == INADDR_NONE)
 		return false;
-	FastLock l(m_cs);
+	CFlyFastLock(m_cs);
 	return m_ipList.checkIp(p_ip4);
 }
 

@@ -41,7 +41,7 @@ class ConnectionManagerListener
 		typedef X<6> Forced;
 		
 #ifdef RIP_USE_CONNECTION_AUTODETECT
-		typedef X<7> DirectModeDetected; // [+] brain-ripper
+		typedef X<7> OpenTCPPortDetected; // [+] brain-ripper
 #endif
 		
 		virtual void on(Added, const ConnectionQueueItem*) noexcept { }
@@ -52,7 +52,7 @@ class ConnectionManagerListener
 		virtual void on(Failed, const ConnectionQueueItem*, const string&) noexcept { }
 		virtual void on(ConnectionStatusChanged, const ConnectionQueueItem*) noexcept { }
 #ifdef RIP_USE_CONNECTION_AUTODETECT
-		virtual void on(DirectModeDetected, const string&) noexcept { }
+		virtual void on(OpenTCPPortDetected, const string&) noexcept {}
 #endif
 		virtual void on(UserUpdated, const ConnectionQueueItem*) noexcept { }
 		virtual void on(Forced, const ConnectionQueueItem*) noexcept { }

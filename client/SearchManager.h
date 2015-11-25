@@ -50,6 +50,10 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 		
 		ClientManagerListener::SearchReply respond(const AdcCommand& cmd, const CID& cid, bool isUdpActive, const string& hubIpPort, StringSearch::List& reguest); // [!] IRainman add  StringSearch::List& reguest and return type
 		
+		static bool isSearchPortValid()
+		{
+			return g_search_port != 0;
+		}
 		static uint16_t getSearchPortUint()
 		{
 			dcassert(g_search_port);
@@ -92,7 +96,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 				void addResult(const string& buf, const boost::asio::ip::address_v4& p_ip4)
 				{
 					{
-						FastLock l(m_cs);
+						CFlyFastLock(m_cs);
 						m_resultList.push_back(make_pair(buf, p_ip4));
 					}
 					m_s.signal();

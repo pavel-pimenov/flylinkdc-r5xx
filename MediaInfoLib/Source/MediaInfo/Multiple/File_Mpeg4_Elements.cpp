@@ -197,10 +197,10 @@ Ztring Mpeg4_Vendor(int32u Vendor)
 const char* Mpeg4_chan(int16u Ordering)
 {
     //Source: http://developer.apple.com/library/mac/#documentation/MusicAudio/Reference/CACoreAudioReference/CoreAudioTypes/CompositePage.html
-    //Arbitrary decision (0° = Front):
-    //Front = 0°-80°
-    //Side = 80°-120°
-    //Rear = 120°-180°
+    //Arbitrary decision (0Â° = Front):
+    //Front = 0Â°-80Â°
+    //Side = 80Â°-120Â°
+    //Rear = 120Â°-180Â°
     switch(Ordering)
     {
         case 100 : return "Front: C";
@@ -545,8 +545,8 @@ const char* Mpegv_matrix_coefficients(int8u matrix_coefficients);
 #if defined(MEDIAINFO_DTS_YES)
     extern const char*  DTS_ChannelPositions[16];
     extern const char*  DTS_ChannelPositions2[16];
-    extern std::string DTS_HD_SpeakerActivityMask (int16u SpeakerActivityMask);
-    extern std::string DTS_HD_SpeakerActivityMask2 (int16u SpeakerActivityMask);
+    extern std::string DTS_HD_SpeakerActivityMask (int16u SpeakerActivityMask, bool AddCs=false, bool AddLrsRrs=false);
+    extern std::string DTS_HD_SpeakerActivityMask2 (int16u SpeakerActivityMask, bool AddCs=false, bool AddLrsRrs=false);
 #endif //defined(MEDIAINFO_DTS_YES)
 
 //***************************************************************************
@@ -1368,9 +1368,10 @@ void File_Mpeg4::ftyp()
 
     //Parsing
     std::vector<int32u> ftyps;
+    int32u MajorBrandVersion;
     Get_C4 (MajorBrand,                                         "MajorBrand");
     ftyps.push_back(MajorBrand);
-    Skip_B4(                                                    "MajorBrandVersion");
+    Get_B4 (MajorBrandVersion,                                  "MajorBrandVersion");
     while (Element_Offset<Element_Size)
     {
         int32u CompatibleBrand;
@@ -1390,6 +1391,32 @@ void File_Mpeg4::ftyp()
                 default : ;
             }
         CodecID_Fill(Ztring().From_CC4(MajorBrand), Stream_General, 0, InfoCodecID_Format_Mpeg4);
+        Ztring CodecID_String=Ztring().From_CC4(MajorBrand);
+        if (MajorBrand==Elements::ftyp_qt)
+        {
+            ZtringList Version;
+            Version.Separator_Set(0, __T("."));
+            Version.push_back(Ztring().From_CC2(MajorBrandVersion>>16));
+            Version.push_back(Ztring().From_CC1((int8u)(MajorBrandVersion>>8)));
+            if (MajorBrandVersion&0xFF)
+                Version.push_back(Ztring().From_CC1((int8u)MajorBrandVersion));
+            Fill(Stream_General, 0, General_CodecID_Version, Version.Read());
+            CodecID_String += __T(' ');
+            CodecID_String += Version.Read();
+        }
+        if (ftyps.size()>1)
+        {
+            ZtringList Compat;
+            Compat.Separator_Set(0, __T("/"));
+            for (size_t i=1; i<ftyps.size(); i++)
+                if (ftyps[i])
+                    Compat.push_back(Ztring().From_CC4(ftyps[i]));
+            Fill(Stream_General, 0, General_CodecID_Compatible, Compat.Read());
+            CodecID_String += __T(" (");
+            CodecID_String += Compat.Read();
+            CodecID_String += __T(')');
+        }
+        Fill(Stream_General, 0, General_CodecID_String, CodecID_String, true);
     FILLING_END();
 }
 
@@ -2841,7 +2868,9 @@ void File_Mpeg4::moov_trak()
 
     FILLING_BEGIN();
         Fill_Flush();
+        moov_trak_tkhd_Flags_Track_enabled=true;
         moov_trak_tkhd_TrackID=(int32u)-1;
+        moov_trak_tkhd_Alternate_group=0;
         moov_trak_tkhd_Width=0;
         moov_trak_tkhd_Height=0;
         moov_trak_tkhd_DisplayAspectRatio=0;
@@ -5527,10 +5556,10 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxx_fiel()
 {
     //Source: http://developer.apple.com/quicktime/icefloe/dispatch019.html#fiel
     //Source: QuickTimeFileFormat2011.pdf:
-    // 1 – T is displayed earliest, T is stored first in the file.
-    // 6 – B is displayed earliest, B is stored first in the file.
-    // 9 – B is displayed earliest, T is stored first in the file.
-    //14 – T is displayed earliest, B is stored first in the file.
+    // 1 â€“ T is displayed earliest, T is stored first in the file.
+    // 6 â€“ B is displayed earliest, B is stored first in the file.
+    // 9 â€“ B is displayed earliest, T is stored first in the file.
+    //14 â€“ T is displayed earliest, B is stored first in the file.
     Element_Name("Field/Frame Information");
 
     //Parsing
@@ -6272,7 +6301,7 @@ void File_Mpeg4::moov_trak_tkhd()
     float32 a, b, u, c, d, v, x, y, w;
     int64u Duration;
     int16u Volume;
-        Skip_Flags(Flags, 0,                                    "Track Enabled");
+        Get_Flags(Flags, 0, moov_trak_tkhd_Flags_Track_enabled, "Track Enabled");
         Skip_Flags(Flags, 1,                                    "Track in Movie");
         Skip_Flags(Flags, 2,                                    "Track in Preview");
         Skip_Flags(Flags, 3,                                    "Track in Poster");
@@ -6284,7 +6313,7 @@ void File_Mpeg4::moov_trak_tkhd()
     Skip_B4(                                                    "Reserved");
     Skip_B4(                                                    "Reserved");
     Skip_B2(                                                    "Layer");
-    Skip_B2(                                                    "Alternate group");
+    Get_B2(moov_trak_tkhd_Alternate_group,                      "Alternate group");
     Get_B2 (Volume,                                             "Volume"); Param_Info1(Ztring::ToZtring(((float)Volume)/256));
     Skip_B2(                                                    "Reserved");
     Element_Begin1("Matrix structure");
@@ -6311,6 +6340,8 @@ void File_Mpeg4::moov_trak_tkhd()
             Streams.erase(Temp);
         }
 
+        if (!moov_trak_tkhd_Flags_Track_enabled) Fill(StreamKind_Last, StreamPos_Last, "Disabled", "Yes");
+        if (moov_trak_tkhd_Alternate_group) Fill(StreamKind_Last, StreamPos_Last, "Alternate Group", moov_trak_tkhd_Alternate_group);
         if (moov_mvhd_TimeScale)
             Fill(StreamKind_Last, StreamPos_Last, "Duration", float64_int64s(((float64)Duration)*1000/moov_mvhd_TimeScale));
         Fill(StreamKind_Last, StreamPos_Last, "Encoded_Date", Date_Created);

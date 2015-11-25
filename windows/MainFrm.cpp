@@ -140,9 +140,9 @@ Gdiplus::Pen g_pen_conter_side(Gdiplus::Color(), 1);
 #define FLYLINKDC_USE_TASKBUTTON_PROGRESS
 
 MainFrame* MainFrame::g_anyMF = nullptr;
-bool MainFrame::g_isShutdown = false;
-uint64_t MainFrame::iCurrentShutdownTime = 0;
-bool MainFrame::isShutdownStatus = false;
+bool MainFrame::g_isHardwareShutdown = false;
+uint64_t MainFrame::g_CurrentShutdownTime = 0;
+bool MainFrame::g_isShutdownStatus = false;
 CComboBox MainFrame::QuickSearchBox;
 bool MainFrame::m_bDisableAutoComplete = false;
 bool MainFrame::g_bAppMinimized = false;
@@ -166,9 +166,9 @@ MainFrame::MainFrame() :
 	m_lastUp(0),
 	m_lastMove(0),
 	m_lastDown(0), // [+] IRainman Speedmeter
-	tbarcreated(false),
-	wtbarcreated(false),
-	qtbarcreated(false),
+	m_is_tbarcreated(false),
+	m_is_wtbarcreated(false),
+	m_is_qtbarcreated(false),
 	m_oldshutdown(false),
 	m_stopperThread(nullptr),
 	m_bHashProgressVisible(false),
@@ -185,6 +185,8 @@ MainFrame::MainFrame() :
 	m_index_new_version_menu_item(0),
 	m_bTrayIcon(false),
 	m_bIsPM(false),
+	m_count_status_change(0),
+	m_count_tab_change(0),
 	QuickSearchBoxContainer(WC_COMBOBOX, this, QUICK_SEARCH_MAP),
 	QuickSearchEditContainer(WC_EDIT , this, QUICK_SEARCH_MAP),
 #ifdef SSA_WIZARD_FEATURE
@@ -517,7 +519,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 #ifdef IRAINMAN_IP_AUTOUPDATE
 	if (BOOLSETTING(IPUPDATE))
 	{
-		m_threadedUpdateIP.updateIP();
+		m_threadedUpdateIP.updateIP(BOOLSETTING(IPUPDATE));
 	}
 #endif
 	
@@ -535,6 +537,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	
 	LogManager::g_mainWnd = m_hWnd;
 	LogManager::g_LogMessageID = STATUS_MESSAGE;
+	LogManager::g_isLogSpeakerEnabled = true;
 	WinUtil::init(m_hWnd);
 	
 	m_trayMessage = RegisterWindowMessage(_T("TaskbarCreated"));
@@ -572,9 +575,9 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	createMainMenu();
 	
 	// [!] TODO убрать флажки нафиг! Достаточно валидность указателя проверять, я уже молчу про то, что этот флажёк не гарнтирует вообще ничего.
-	tbarcreated = false;
-	wtbarcreated = false;
-	qtbarcreated = false;
+	m_is_tbarcreated = false;
+	m_is_wtbarcreated = false;
+	m_is_qtbarcreated = false;
 	// [!] TODO
 	
 #ifdef RIP_USE_SKIN
@@ -737,7 +740,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	
 	openDefaultWindows();
 	
-	ConnectivityManager::getInstance()->setup(true);
+	ConnectivityManager::getInstance()->setup_connections(true);
 	
 	if (!WinUtil::isShift())
 	{
@@ -913,6 +916,17 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	}
 	if (!g_bAppMinimized || !BOOLSETTING(MINIMIZE_TRAY) /* [-] IRainman opt: not need to update the window title when it is minimized to tray. || BOOLSETTING(SHOW_CURRENT_SPEED_IN_TITLE)*/)
 	{
+		if (m_count_status_change)
+		{
+			UpdateLayout(TRUE);
+			m_count_status_change = 0;
+		}
+		if (m_count_tab_change)
+		{
+			m_ctrlTab.SmartInvalidate();
+			m_count_tab_change = 0;
+		}
+		
 #ifndef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 		HubFrame::timer_process_all();
 #endif
@@ -985,10 +999,10 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			                 + l_dlstr + _T('/') + TSTRING(S));
 			Stats->push_back(TSTRING(U) + _T(" [") + Util::toStringW(UploadManager::getUploadCount()) + _T("][") + ((!l_ThrottleEnable || ThrottleManager::getInstance()->getUploadLimitInKBytes() == 0) ? TSTRING(N) : Util::toStringW((int)ThrottleManager::getInstance()->getUploadLimitInKBytes()) + TSTRING(KILO)) + _T("] ") + l_ulstr + _T('/') + TSTRING(S));
 			g_CountSTATS++;
-			if (!PostMessage(WM_SPEAKER, STATS, (LPARAM)Stats))
+			if (!PostMessage(WM_SPEAKER, MAIN_STATS, (LPARAM)Stats))
 			{
 				dcassert(0);
-				LogManager::message("Error PostMessage(WM_SPEAKER, STATS, (LPARAM)Stats) - mailto ppa74@ya.ru");
+				LogManager::message("Error PostMessage(WM_SPEAKER, MAIN_STATS, (LPARAM)Stats) - mailto ppa74@ya.ru");
 				g_CountSTATS--;
 				delete Stats;
 			}
@@ -1014,7 +1028,7 @@ void MainFrame::onMinute(uint64_t aTick)
 		if (m_elapsedMinutesFromlastIPUpdate >= interval)
 		{
 			m_elapsedMinutesFromlastIPUpdate = 0;
-			m_threadedUpdateIP.updateIP();
+			m_threadedUpdateIP.updateIP(BOOLSETTING(IPUPDATE));
 		}
 	}
 #endif
@@ -1027,7 +1041,7 @@ HWND MainFrame::createToolbar()    //[~]Drakon. Enlighting toolbars.
 //	const size_t PortalsCount = GetPortalBrowserListCount(); //TODO - переменная перестала использоваться...
 #endif
 
-	if (!tbarcreated)
+	if (!m_is_tbarcreated)
 	{
 		if (SETTING(TOOLBARIMAGE).empty())
 		{
@@ -1065,7 +1079,7 @@ HWND MainFrame::createToolbar()    //[~]Drakon. Enlighting toolbars.
 		InitPortalBrowserToolbarImages(largeImages, largeImagesHot);
 #endif
 		
-		tbarcreated = true;
+		m_is_tbarcreated = true;
 	}
 	
 #ifdef RIP_USE_SKIN
@@ -1138,7 +1152,7 @@ HWND MainFrame::createToolbar()    //[~]Drakon. Enlighting toolbars.
 
 HWND MainFrame::createWinampToolbar() // [~]Drakon. Toolbar fix.
 {
-	if (!wtbarcreated)
+	if (!m_is_wtbarcreated)
 	{
 		ResourceLoader::LoadImageList(IDR_PLAYERS_CONTROL, winampImages, 24, 24);
 		ResourceLoader::LoadImageList(IDR_PLAYERS_CONTROL_HL, winampImagesHot, 24, 24);
@@ -1182,14 +1196,14 @@ HWND MainFrame::createWinampToolbar() // [~]Drakon. Toolbar fix.
 			}
 		}
 		ctrlWinampToolbar.AutoSize();
-		wtbarcreated = true;
+		m_is_wtbarcreated = true;
 	}
 	return ctrlWinampToolbar.m_hWnd;
 }
 
 HWND MainFrame::createQuickSearchBar()
 {
-	if (!qtbarcreated)
+	if (!m_is_qtbarcreated)
 	{
 	
 		ctrlQuickSearchBar.Create(m_hWnd, NULL, NULL, ATL_SIMPLE_CMDBAR_PANE_STYLE | TBSTYLE_FLAT | TBSTYLE_TOOLTIPS, 0, ATL_IDW_TOOLBAR);
@@ -1228,7 +1242,7 @@ HWND MainFrame::createQuickSearchBar()
 			QuickSearchEdit.Attach(hWnd);
 			QuickSearchEditContainer.SubclassWindow(QuickSearchEdit.m_hWnd);
 		}
-		qtbarcreated = true;
+		m_is_qtbarcreated = true;
 	}
 	return ctrlQuickSearchBar.m_hWnd;
 }
@@ -1623,7 +1637,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 			return 0; // Выходим если уже закрываемся (иначе проскакивет спик от REMOVE_POPUP)
 		}
 	}
-	if (wParam == STATS)
+	if (wParam == MAIN_STATS)
 	{
 		auto_ptr<TStringList> pstr(reinterpret_cast<TStringList*>(lParam));
 		if (--g_CountSTATS)
@@ -1704,32 +1718,32 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 				}
 			}
 			
-			if (g_isShutdown)
+			if (isShutDown())
 			{
 				const uint64_t iSec = GET_TICK() / 1000;
-				if (!isShutdownStatus)
+				if (!g_isShutdownStatus)
 				{
 					if (!m_ShutdownIcon)
 					{
 						m_ShutdownIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_SHUTDOWN));
 					}
 					m_ctrlStatus.SetIcon(STATUS_PART_SHUTDOWN_TIME, *m_ShutdownIcon);
-					isShutdownStatus = true;
+					g_isShutdownStatus = true;
 				}
 				if (DownloadManager::getDownloadCount() > 0)
 				{
-					iCurrentShutdownTime = iSec;
+					g_CurrentShutdownTime = iSec;
 					m_ctrlStatus.SetText(STATUS_PART_SHUTDOWN_TIME, _T(""));
 				}
 				else
 				{
-					const int timeout = SETTING(SHUTDOWN_TIMEOUT);
-					const int64_t timeLeft = timeout - (iSec - iCurrentShutdownTime);
-					m_ctrlStatus.SetText(STATUS_PART_SHUTDOWN_TIME, (_T(' ') + Util::formatSecondsW(timeLeft, timeLeft < 3600)).c_str(), SBT_POPOUT);
-					if (iCurrentShutdownTime + timeout <= iSec)
+					const int l_timeout = SETTING(SHUTDOWN_TIMEOUT);
+					const int64_t l_timeLeft = l_timeout - (iSec - g_CurrentShutdownTime);
+					m_ctrlStatus.SetText(STATUS_PART_SHUTDOWN_TIME, (_T(' ') + Util::formatSecondsW(l_timeLeft, l_timeLeft < 3600)).c_str(), SBT_POPOUT);
+					if (g_CurrentShutdownTime + l_timeout <= iSec)
 					{
 						// We better not try again. It WON'T work...
-						g_isShutdown = false;
+						g_isHardwareShutdown = false;
 						
 						const bool bDidShutDown = WinUtil::shutDown(SETTING(SHUTDOWN_ACTION));
 						if (bDidShutDown)
@@ -1747,29 +1761,30 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 			}
 			else
 			{
-				if (isShutdownStatus)
+				if (g_isShutdownStatus)
 				{
 					m_ctrlStatus.SetText(STATUS_PART_SHUTDOWN_TIME, _T(""));
 					m_ctrlStatus.SetIcon(STATUS_PART_SHUTDOWN_TIME, NULL);
-					isShutdownStatus = false;
+					g_isShutdownStatus = false;
 				}
 			}
 			
 			if (u)
 			{
-				UpdateLayout(TRUE);
+				m_count_status_change++;
 			}
 		}
 		
 #ifdef IRAINMAN_FAST_FLAT_TAB
 		if (!u)
 		{
-			m_ctrlTab.SmartInvalidate();
+			// - не понял зачем оно нужно m_count_tab_change++;
 		}
 #endif
 	}
 	else if (wParam == STATUS_MESSAGE)
 	{
+		LogManager::g_isLogSpeakerEnabled = true;
 		string* msg = (string*)lParam; // [!] IRainman opt
 		if (!m_closing && m_ctrlStatus.IsWindow())
 		{
@@ -2118,23 +2133,21 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 	
 		PropertiesDlg dlg(m_hWnd);
 		
-		const unsigned short lastTCP = static_cast<unsigned short>(SETTING(TCP_PORT));
-		const unsigned short lastUDP = static_cast<unsigned short>(SETTING(UDP_PORT));
-		const unsigned short lastTLS = static_cast<unsigned short>(SETTING(TLS_PORT));
+		const unsigned short l_lastTCP = static_cast<unsigned short>(SETTING(TCP_PORT));
+		const unsigned short l_lastUDP = static_cast<unsigned short>(SETTING(UDP_PORT));
+		const unsigned short l_lastTLS = static_cast<unsigned short>(SETTING(TLS_PORT));
 #ifdef STRONG_USE_DHT
-		const unsigned short lastDHT = static_cast<unsigned short>(SETTING(DHT_PORT));
-		dcassert(lastDHT);
+		const unsigned short l_lastDHT = static_cast<unsigned short>(SETTING(DHT_PORT));
+		dcassert(l_lastDHT);
+		const bool l_lastDHTConn = BOOLSETTING(USE_DHT);
 #endif
-		const auto lastCloseButtons = BOOLSETTING(TABS_CLOSEBUTTONS);
+		const auto l_lastCloseButtons = BOOLSETTING(TABS_CLOSEBUTTONS);
 		
-		const int lastConn = SETTING(INCOMING_CONNECTIONS);
-#ifdef STRONG_USE_DHT
-		const bool lastDHTConn = BOOLSETTING(USE_DHT);
-#endif
-		const string lastMapper = SETTING(MAPPER);
-		const string lastBind   = SETTING(BIND_ADDRESS);
+		const int l_lastConn = SETTING(INCOMING_CONNECTIONS);
+		const string l_lastMapper = SETTING(MAPPER);
+		const string l_lastBind = SETTING(BIND_ADDRESS);
 		
-		const bool lastSortFavUsersFirst = BOOLSETTING(SORT_FAVUSERS_FIRST);
+		const bool l_lastSortFavUsersFirst = BOOLSETTING(SORT_FAVUSERS_FIRST);
 		
 		if (dlg.DoModal(m_hWnd) == IDOK)
 		{
@@ -2145,15 +2158,30 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 				PostMessage(WM_SPEAKER, AUTO_CONNECT);
 			}
 			
-			// TODO fix me: move to kernel.
-			ConnectivityManager::getInstance()->setup(SETTING(INCOMING_CONNECTIONS) != lastConn || SETTING(TCP_PORT) != lastTCP || SETTING(UDP_PORT) != lastUDP ||
-			                                          SETTING(TLS_PORT) != lastTLS ||
+			const unsigned short l_newTCP = static_cast<unsigned short>(SETTING(TCP_PORT));
+			const unsigned short l_newUDP = static_cast<unsigned short>(SETTING(UDP_PORT));
+			const unsigned short l_newTLS = static_cast<unsigned short>(SETTING(TLS_PORT));
 #ifdef STRONG_USE_DHT
-			                                          SETTING(DHT_PORT) != lastDHT || BOOLSETTING(USE_DHT) != lastDHTConn ||
+			const unsigned short l_newDHT = static_cast<unsigned short>(SETTING(DHT_PORT));
+			const bool l_newDHTConn = BOOLSETTING(USE_DHT);
 #endif
-			                                          SETTING(MAPPER) != lastMapper || SETTING(BIND_ADDRESS) != lastBind);
-			                                          
-			if (BOOLSETTING(SORT_FAVUSERS_FIRST) != lastSortFavUsersFirst)
+			const int l_newConn = SETTING(INCOMING_CONNECTIONS);
+			const string l_newMapper = SETTING(MAPPER);
+			const string l_newBind = SETTING(BIND_ADDRESS);
+			
+			// TODO fix me: move to kernel.
+			ConnectivityManager::getInstance()->setup_connections(l_newConn != l_lastConn ||
+			                                                      l_newTCP != l_lastTCP ||
+			                                                      l_newUDP != l_lastUDP ||
+			                                                      l_newTLS != l_lastTLS ||
+#ifdef STRONG_USE_DHT
+			                                                      l_newDHT != l_lastDHT ||
+			                                                      l_newDHTConn != l_lastDHTConn ||
+#endif
+			                                                      l_newMapper != l_lastMapper ||
+			                                                      l_newBind != l_lastBind);
+			                                                      
+			if (BOOLSETTING(SORT_FAVUSERS_FIRST) != l_lastSortFavUsersFirst)
 				HubFrame::resortUsers();
 				
 			if (BOOLSETTING(URL_HANDLER))
@@ -2218,7 +2246,7 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 				m_ctrlTab.updateTabs();
 				UpdateLayout();
 			}
-			if (lastCloseButtons != BOOLSETTING(TABS_CLOSEBUTTONS))
+			if (l_lastCloseButtons != BOOLSETTING(TABS_CLOSEBUTTONS))
 			{
 				m_ctrlTab.updateTabs();
 			}
@@ -2245,7 +2273,15 @@ void MainFrame::getIPupdate()
 	string l_external_ip;
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	std::vector<unsigned short> l_udp_port, l_tcp_port;
-	// l_udp_port.push_back(SETTING(UDP_PORT));
+	static bool g_is_first;
+	if (g_is_first == false)
+	{
+		g_is_first = true;
+		l_udp_port.push_back(SETTING(UDP_PORT));
+		l_udp_port.push_back(SETTING(DHT_PORT));
+		l_tcp_port.push_back(SETTING(TCP_PORT));
+		l_tcp_port.push_back(SETTING(TLS_PORT));
+	}
 	bool l_is_udp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, SETTING(IPUPDATE_INTERVAL));
 	if (l_is_udp_port_send && !l_external_ip.empty())
 	{
@@ -2683,9 +2719,6 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 				LogManager::g_mainWnd = nullptr;
 				m_closing = true;
 				safe_destroy_timer();
-#ifdef IRAINMAN_INCLUDE_SMILE
-				CGDIImage::shutdown();
-#endif
 				BaseChatFrame::g_isStartupProcess = true; // [+] IRainman fix: probably fix crash in gui on shutdown.
 				NmdcHub::log_all_unknown_command();
 				// TODO: possible small memory leak on shutdown, details here https://code.google.com/p/flylinkdc/source/detail?r=15141
@@ -3751,8 +3784,9 @@ LRESULT MainFrame::OnAnimChangeFrame(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lP
 		if (pImage)
 		{
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
-			dcassert(CGDIImage::isGDIImageLive(pImage));
-			if (CGDIImage::isGDIImageLive(pImage)) // fix http://code.google.com/p/flylinkdc/issues/detail?id=1255
+			const bool l_is_live_gdi = CGDIImage::isGDIImageLive(pImage);
+			dcassert(l_is_live_gdi);
+			if (l_is_live_gdi) // fix http://code.google.com/p/flylinkdc/issues/detail?id=1255
 			{
 				pImage->DrawFrame();
 			}

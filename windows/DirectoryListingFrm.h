@@ -324,7 +324,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		{
 			if (aUser && !aUser->getCID().isZero())
 			{
-				Lock l(g_csUsersMap);
+				CFlyLock(g_csUsersMap);
 				g_usersMap.insert(UserPair(aUser, this));
 			}
 		}

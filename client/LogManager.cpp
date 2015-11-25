@@ -24,23 +24,21 @@
 #include "TimerManager.h"
 
 #ifdef _DEBUG
-boost::unordered_map<string, pair<string, size_t> > LogManager::g_patchCache;
+boost::unordered_map<string, pair<string, size_t> > LogManager::g_pathCache;
 size_t LogManager::g_debugTotal;
 size_t LogManager::g_debugMissed;
-int LogManager::g_debugConcurrencyEventCount;
-int LogManager::g_debugParallelWritesFiles;
 #else
-boost::unordered_map<string, string> LogManager::g_patchCache;
+boost::unordered_map<string, string> LogManager::g_pathCache;
 #endif
 bool LogManager::g_isInit = false;
 int LogManager::g_logOptions[LAST][2];
-FastCriticalSection LogManager::g_csPatchCache;
-#ifdef IRAINMAN_USE_NG_LOG_MANAGER
-std::unordered_set<string> LogManager::g_currentlyOpenedFiles;
-FastCriticalSection LogManager::g_csCurrentlyOpenedFiles;
-#endif
+FastCriticalSection LogManager::g_csPathCache;
+FastCriticalSection LogManager::g_csFile;
+CFlyMessagesBuffer LogManager::g_LogFilesBuffer;
+FastCriticalSection LogManager::g_csLogFilesBuffer;
 HWND LogManager::g_mainWnd = nullptr;
 int  LogManager::g_LogMessageID = 0;
+bool LogManager::g_isLogSpeakerEnabled = false;
 
 void LogManager::init()
 {
@@ -91,34 +89,30 @@ void LogManager::init()
 
 LogManager::LogManager()
 {
+	flush_all_log();
 }
 
 void LogManager::log(const string& p_area, const string& p_msg) noexcept
 {
 	dcassert(g_isInit);
-#ifndef IRAINMAN_USE_NG_LOG_MANAGER
-	FastLock l(m_csPatchCache);
-#endif
 	string l_area;
-	bool newPatch;
+	bool l_is_new_path;
 	{
-#ifdef IRAINMAN_USE_NG_LOG_MANAGER
-		FastLock l(g_csPatchCache);
-#endif
-		const auto l_fine_it = g_patchCache.find(p_area);
-		newPatch = l_fine_it == g_patchCache.end();
-		if (newPatch)
+		CFlyFastLock(g_csPathCache);
+		const auto l_fine_it = g_pathCache.find(p_area);
+		l_is_new_path = l_fine_it == g_pathCache.end();
+		if (l_is_new_path)
 		{
-			if (g_patchCache.size() > 250)
-				g_patchCache.clear();
+			if (g_pathCache.size() > 250)
+				g_pathCache.clear();
 				
 			l_area = Util::validateFileName(p_area);
 #ifdef _DEBUG
 			g_debugMissed++;
 			const std::pair<string, size_t> l_pair(l_area, 0);
-			g_patchCache[p_area] = l_pair;
+			g_pathCache[p_area] = l_pair;
 #else
-			g_patchCache[p_area] = l_area;
+			g_pathCache[p_area] = l_area;
 #endif
 		}
 		else
@@ -126,65 +120,85 @@ void LogManager::log(const string& p_area, const string& p_msg) noexcept
 #ifdef _DEBUG
 			g_debugTotal++;
 			if (++l_fine_it->second.second % 100 == 0)
-				dcdebug("log path cache: size=%i [%s] %i\n", g_patchCache.size(), p_area.c_str(), l_fine_it->second.second);
-				
+			{
+				dcdebug("log path cache: size=%i [%s] %i\n", g_pathCache.size(), p_area.c_str(), l_fine_it->second.second);
+			}
+			
 			l_area = l_fine_it->second.first;
 #else
 			l_area = l_fine_it->second;
 #endif
 		}
 	}
-#ifdef IRAINMAN_USE_NG_LOG_MANAGER
-	while (true)
 	{
+		CFlyFastLock(g_csLogFilesBuffer);
+		const string l_msg = p_msg + "\r\n";
+		auto l_log = g_LogFilesBuffer.insert(make_pair(l_area, l_msg));
+		if (l_log.second == false)
 		{
-			FastLock l(g_csCurrentlyOpenedFiles);
-#ifdef _DEBUG
-			if (!g_currentlyOpenedFiles.empty())
+			l_log.first->second += l_msg;
+		}
+	}
+	dcassert(!l_area.empty());
+	if (l_is_new_path)
+	{
+		CFlyFastLock(g_csFile);
+		File::ensureDirectory(l_area);
+	}
+	if (TimerManager::g_isStartupShutdownProcess == true || TimerManager::g_isRun == false)
+	{
+		flush_all_log();
+	}
+}
+void LogManager::flush_all_log()
+{
+	CFlyMessagesBuffer l_buffer;
+	{
+		CFlyFastLock(g_csLogFilesBuffer);
+		l_buffer.swap(g_LogFilesBuffer);
+	}
+	for (auto i = l_buffer.cbegin(); i != l_buffer.cend(); ++i)
+	{
+		try
+		{
+			flush_file(i->first, i->second);
+		}
+		catch (const FileException& e)
+		{
+			if (GetLastError() == 3) // ERROR_PATH_NOT_FOUND
 			{
-				g_debugParallelWritesFiles++;
+				try
+				{
+					{
+						CFlyFastLock(g_csFile);
+						File::ensureDirectory(i->first);
+					}
+					flush_file(i->first, i->second);
+				}
+				catch (const FileException& e)
+				{
+					dcassert(0);
+				}
 			}
-#endif
-			if (g_currentlyOpenedFiles.insert(l_area).second == true)
-			{
-				break;
-			}
-#ifdef _DEBUG
 			else
 			{
-				++g_debugConcurrencyEventCount;
+				dcassert(0);
 			}
-#endif
 		}
-		Thread::sleep(1);
 	}
-#endif // IRAINMAN_USE_NG_LOG_MANAGER
-	try
-	{
-		if (newPatch)
-		{
-			File::ensureDirectory(l_area);
-		}
-		dcassert(!l_area.empty());
-		File f(l_area, File::WRITE, File::OPEN | File::CREATE);
-		if (f.setEndPos(0) == 0)
-		{
-			f.write("\xef\xbb\xbf");
-		}
-		f.write(p_msg + "\r\n");
-	}
-	catch (const FileException&)
-	{
-		//-V565
-		//dcassert(0);
-	}
-#ifdef IRAINMAN_USE_NG_LOG_MANAGER
-	{
-		FastLock l(g_csCurrentlyOpenedFiles);
-		g_currentlyOpenedFiles.erase(l_area);
-	}
-#endif
 }
+
+void LogManager::flush_file(const string& p_area, const string& p_msg)
+{
+	CFlyFastLock(g_csFile);
+	File f(p_area, File::WRITE, File::OPEN | File::CREATE);
+	if (f.setEndPos(0) == 0)
+	{
+		f.write("\xef\xbb\xbf");
+	}
+	f.write(p_msg);
+}
+
 const string& LogManager::getSetting(int area, int sel)
 {
 	return SettingsManager::get(static_cast<SettingsManager::StrSetting>(g_logOptions[area][sel]), true);
@@ -206,7 +220,7 @@ void LogManager::log(LogArea area, const StringMap& params, bool p_only_file /* 
 	else
 #endif // FLYLINKDC_LOG_IN_SQLITE_BASE
 	{
-		//Lock l(cs); [-] IRainman fix: no needs lock here, see log function.
+		//CFlyLock(cs); [-] IRainman fix: no needs lock here, see log function.
 		const string path = SETTING(LOG_DIRECTORY) + Util::formatParams(getSetting(area, FILE), params, false);
 		const string msg = Util::formatParams(getSetting(area, FORMAT), params, false);
 		log(path, msg);
@@ -284,7 +298,7 @@ void LogManager::message(const string& msg, bool p_only_file /*= false */)
 		params["message"] = msg;
 		log(SYSTEM, params, p_only_file); // [1] https://www.box.net/shared/9e63916273d37e5b2932
 	}
-	if (TimerManager::g_isStartupShutdownProcess == false)
+	if (LogManager::g_isLogSpeakerEnabled == true && TimerManager::g_isStartupShutdownProcess == false)
 	{
 		if (LogManager::g_mainWnd)
 		{
@@ -292,8 +306,10 @@ void LogManager::message(const string& msg, bool p_only_file /*= false */)
 			// TODO safe_post_message(LogManager::g_mainWnd, g_LogMessageID, l_str_messages);
 			if (::PostMessage(LogManager::g_mainWnd, WM_SPEAKER, g_LogMessageID, (LPARAM)l_str_messages) == FALSE)
 			{
-				dcassert(0);
+				// TODO - LOG dcassert(0);
+				dcdebug("[LogManager::g_mainWnd] PostMessage error %d\n", GetLastError());
 				delete l_str_messages;
+				LogManager::g_isLogSpeakerEnabled = false; // Fix error 1816
 			}
 		}
 	}
@@ -331,7 +347,7 @@ void CFlyLog::step(const string& p_message_step, const bool p_reset_count /*= tr
 {
 	const uint64_t l_current = GET_TICK();
 	dcassert(p_message_step.size() == string(p_message_step.c_str()).size());
-	log("[Step ] " + m_message + ' ' + p_message_step + " [" + Util::toString(l_current - m_tc) + " ms]");
+	log("[Step] " + m_message + ' ' + p_message_step + " [" + Util::toString(l_current - m_tc) + " ms]");
 	if (p_reset_count)
 		m_tc = l_current;
 }
@@ -344,11 +360,11 @@ void CFlyLog::loadStep(const string& p_message_step, const bool p_reset_count /*
 	m_tc = l_current;
 	if (p_reset_count)
 	{
-		log("[Step ] " + m_message + " Begin load " + p_message_step + " [" + Util::toString(l_step) + " ms]");
+		log("[Step] " + m_message + " Begin load " + p_message_step + " [" + Util::toString(l_step) + " ms]");
 	}
 	else
 	{
-		log("[Step ] " + m_message + " End load " + p_message_step + " [" + Util::toString(l_step) + " ms and " + Util::toString(l_total) + " ms after start]");
+		log("[Step] " + m_message + " End load " + p_message_step + " [" + Util::toString(l_step) + " ms and " + Util::toString(l_total) + " ms after start]");
 	}
 }
 

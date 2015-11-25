@@ -74,7 +74,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		{
 			DOWNLOAD_LISTING,
 			BROWSE_LISTING,
-			STATS,
+			MAIN_STATS,
 			AUTO_CONNECT,
 			PARSE_COMMAND_LINE,
 			VIEW_FILE_AND_DELETE,
@@ -557,13 +557,13 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		{
 			if (b)
 			{
-				iCurrentShutdownTime = TimerManager::getTick() / 1000;
+				g_CurrentShutdownTime = TimerManager::getTick() / 1000;
 			}
-			g_isShutdown = b;
+			g_isHardwareShutdown = b;
 		}
 		static bool isShutDown()
 		{
-			return g_isShutdown;
+			return g_isHardwareShutdown;
 		}
 		
 		static void setAwayButton(bool check)
@@ -675,9 +675,9 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		CContainedWindow QuickSearchEditContainer;
 		static bool m_bDisableAutoComplete;
 		
-		bool tbarcreated;
-		bool wtbarcreated; // [+]Drakon
-		bool qtbarcreated; // [+]Drakon
+		bool m_is_tbarcreated;
+		bool m_is_wtbarcreated; // [+]Drakon
+		bool m_is_qtbarcreated; // [+]Drakon
 		
 		bool m_bTrayIcon;
 		int tuneTransferSplit();
@@ -685,10 +685,12 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		bool m_bIsPM;
 		static bool g_bAppMinimized;
 		
-		static bool g_isShutdown;
-		static uint64_t iCurrentShutdownTime;
+		static bool g_isHardwareShutdown;
+		static uint64_t g_CurrentShutdownTime;
 		std::unique_ptr<HIconWrapper> m_ShutdownIcon;
-		static bool isShutdownStatus;
+		static bool g_isShutdownStatus;
+		unsigned m_count_status_change;
+		unsigned m_count_tab_change;
 		
 		CMenu trayMenu;
 		CMenu tbMenu;
@@ -866,6 +868,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		class CFlyIPUpdater : public BASE_THREAD
 		{
 				bool m_is_running;
+				bool m_is_ip_update;
 			private:
 				int run()
 				{
@@ -873,14 +876,15 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 					return 0;
 				}
 			public:
-				CFlyIPUpdater() : m_is_running(false)
+				CFlyIPUpdater() : m_is_running(false), m_is_ip_update(false)
 				{
 				}
-				void updateIP()
+				void updateIP(bool p_ip_update)
 				{
 					dcassert(!m_is_running)
 					if (m_is_running == false)
 					{
+						m_is_ip_update = p_ip_update;
 						CFlyBusyBool l_busy(m_is_running);
 						try
 						{

@@ -140,6 +140,10 @@ int UserInfo::compareItems(const UserInfo* a, const UserInfo* b, int col)
 			return compare(a->getIdentity().getExtJSONTimesStartGUI() + a->getIdentity().getExtJSONTimesStartCore(),
 			               b->getIdentity().getExtJSONTimesStartGUI() + b->getIdentity().getExtJSONTimesStartCore());
 		}
+		case COLUMN_FLY_HUB_SUPPORT_INFO:
+		{
+			return compare(a->getIdentity().getExtJSONSupportInfo(), b->getIdentity().getExtJSONSupportInfo());
+		}
 	}
 	{
 		PROFILE_THREAD_SCOPED_DESC("COLUMN_DEFAULT")
@@ -349,6 +353,10 @@ tstring UserInfo::getText(int p_col) const
 				l_res += " [Start GUI: " + Util::toString(getIdentity().getExtJSONTimesStartGUI()) + "]";
 			}
 			return Text::toT(l_res);
+		}
+		case COLUMN_FLY_HUB_SUPPORT_INFO:
+		{
+			return Text::toT(getIdentity().getExtJSONSupportInfo());
 		}
 		
 #endif

@@ -262,9 +262,7 @@ const string SettingsManager::g_settingTags[] =
 	"TLSPort", "UseTLS", "MaxCommandLength", "AllowUntrustedHubs", "AllowUntrustedClients",
 	"FastHash", "DownConnPerSec",
 	"HighestPrioSize", "HighPrioSize", "NormalPrioSize", "LowPrioSize", "LowestPrio",
-#ifdef IRAINMAN_ENABLE_SLOTS_AND_LIMIT_IN_DESCRIPTION
 	"ShowDescription", "ShowDescriptionSlots", "ShowDescriptionLimit",
-#endif
 	"ProtectTray", "ProtectStart", "ProtectClose",
 	"StripTopic", "TbImageSize", "TbImageSizeHot", "OpenCdmDebug", "ShowWinampControl", "HubThreshold", "PGOn", "GuardUp", "GuardDown", "GuardSearch", "PGLog",
 	"PreviewPm", "FilterEnter", "PopupTime", "PopupW", "PopupH", "PopupTransp", "AwayThrottle", "AwayStart", "AwayEnd", "OdcStyleBumped", "TopSpeed", "StealthyStyle",
@@ -984,11 +982,9 @@ void SettingsManager::setDefaults()
 	setDefault(TRANSFERS_COLUMNS_SORT, 2); // COLUMN_FILENAME
 	setDefault(TRANSFERS_COLUMNS_SORT_ASC, TRUE);
 	// ApexDC++
-#ifdef IRAINMAN_ENABLE_SLOTS_AND_LIMIT_IN_DESCRIPTION
-	setDefault(ADD_TO_DESCRIPTION, TRUE);
-	setDefault(ADD_DESCRIPTION_SLOTS, TRUE);
-	setDefault(ADD_DESCRIPTION_LIMIT, TRUE);
-#endif
+	setDefault(ADD_TO_DESCRIPTION, FALSE);
+	setDefault(ADD_DESCRIPTION_SLOTS, FALSE);
+	setDefault(ADD_DESCRIPTION_LIMIT, FALSE);
 	//setDefault(PROTECT_TRAY, false);
 	//setDefault(PROTECT_START, false);
 	//setDefault(PROTECT_CLOSE, false);
@@ -1502,6 +1498,14 @@ void SettingsManager::load(const string& aFileName)
 	}
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 	{
+		if (SETTING(USE_CUSTOM_MENU) == false && SETTING(CUSTOM_MENU_PATH) == "file://./Settings/custom_menu.xml")
+		{
+			if (Text::g_systemCharset == Text::g_code1251)
+			{
+				set(USE_CUSTOM_MENU, true);
+				set(CUSTOM_MENU_PATH, "http://etc.fly-server.ru/etc/custom_menu_RU.xml");
+			}
+		}
 		const string l_file = Util::getConfigPath() + "ISP-root.url";
 		std::fstream l_isp_url_file(l_file, std::ios_base::in);
 		if (l_isp_url_file.is_open())
@@ -1577,7 +1581,7 @@ void SettingsManager::loadOtherSettings()
 		SimpleXML xml;
 		xml.fromXML(File(getConfigFile(), File::READ, File::OPEN).read());
 		xml.stepIn();
-		fire(SettingsManagerListener::Load(), xml);
+		fly_fire1(SettingsManagerListener::Load(), xml);
 		xml.stepOut();
 	}
 	catch (const FileException&)
@@ -1700,7 +1704,9 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 		{
 			REPLACE_SPACES();
 			if (isValidInstance())
-				getInstance()->fire(SettingsManagerListener::UsersChanges());
+			{
+				getInstance()->fly_fire(SettingsManagerListener::UsersChanges());
+			}
 		}
 		break;
 		case LOW_PRIO_FILES:
@@ -1713,7 +1719,9 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 		{
 			REPLACE_SPACES();
 			if (isValidInstance())
-				getInstance()->fire(SettingsManagerListener::ShareChanges());
+			{
+				getInstance()->fly_fire(SettingsManagerListener::ShareChanges());
+			}
 		}
 		break;
 		// [~] IRainamn opt.
@@ -2117,7 +2125,7 @@ void SettingsManager::save(const string& aFileName)
 	}
 	xml.stepOut();*/
 	
-	fire(SettingsManagerListener::Save(), xml);
+	fly_fire1(SettingsManagerListener::Save(), xml);
 	
 	try
 	{
@@ -2160,7 +2168,7 @@ void SettingsManager::setSearchTypeDefaults()
 	for (size_t i = 0, n = l_searchExts.size(); i < n; ++i)
 		g_searchTypes[string(1, '1' + i)] = l_searchExts[i];
 		
-	fire(SettingsManagerListener::SearchTypesChanged());
+	fly_fire(SettingsManagerListener::SearchTypesChanged());
 }
 
 void SettingsManager::addSearchType(const string& name, const StringList& extensions, bool validated)
@@ -2176,14 +2184,14 @@ void SettingsManager::addSearchType(const string& name, const StringList& extens
 	}
 	
 	g_searchTypes[name] = extensions;
-	fire(SettingsManagerListener::SearchTypesChanged());
+	fly_fire(SettingsManagerListener::SearchTypesChanged());
 }
 
 void SettingsManager::delSearchType(const string& name)
 {
 	validateSearchTypeName(name);
 	g_searchTypes.erase(name);
-	fire(SettingsManagerListener::SearchTypesChanged());
+	fly_fire(SettingsManagerListener::SearchTypesChanged());
 }
 
 void SettingsManager::renameSearchType(const string& oldName, const string& newName)
@@ -2197,7 +2205,7 @@ void SettingsManager::renameSearchType(const string& oldName, const string& newN
 void SettingsManager::modSearchType(const string& name, const StringList& extensions)
 {
 	getSearchType(name)->second = extensions;
-	fire(SettingsManagerListener::SearchTypesChanged());
+	fly_fire(SettingsManagerListener::SearchTypesChanged());
 }
 
 const StringList& SettingsManager::getExtensions(const string& name)

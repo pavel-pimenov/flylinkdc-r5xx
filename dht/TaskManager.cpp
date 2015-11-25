@@ -140,7 +140,7 @@ void TaskManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 	std::vector<RoutingTable*> tmp;
 	
 	{
-		FastLock l(cs);
+		CFlyFastLock(cs);
 		tmp = zones;
 	}
 	

@@ -21,9 +21,9 @@
 
 #include "ClientManager.h"
 
-AdcCommand::AdcCommand(uint32_t aCmd, char aType /* = TYPE_CLIENT */) : m_cmdInt(aCmd), m_from(0), m_type(aType) { }
+AdcCommand::AdcCommand(uint32_t aCmd, char aType /* = TYPE_CLIENT */) : m_cmdInt(aCmd), m_from(0), m_type(aType), m_to(0) {}
 AdcCommand::AdcCommand(uint32_t aCmd, const uint32_t aTarget, char aType) : m_cmdInt(aCmd), m_from(0), m_to(aTarget), m_type(aType) { }
-AdcCommand::AdcCommand(Severity sev, Error err, const string& desc, char aType /* = TYPE_CLIENT */) : m_cmdInt(CMD_STA), m_from(0), m_type(aType)
+AdcCommand::AdcCommand(Severity sev, Error err, const string& desc, char aType /* = TYPE_CLIENT */) : m_cmdInt(CMD_STA), m_from(0), m_type(aType), m_to(0)
 {
 	addParam((sev == SEV_SUCCESS && err == SUCCESS) ? "000" : Util::toString(sev * 100 + err));
 	addParam(desc);

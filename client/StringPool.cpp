@@ -27,7 +27,7 @@ FastCriticalSection StringPool::g_csStringMap;
 
 void StringPool::on(TimerManagerListener::Minute, uint64_t /*aTick*/) noexcept
 {
-	FastLock l(g_csStringMap);
+	CFlyFastLock(g_csStringMap);
 	auto i = g_stringMap.cbegin();
 	while (i != g_stringMap.end())
 	{

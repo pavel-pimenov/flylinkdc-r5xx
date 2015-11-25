@@ -50,7 +50,7 @@ class StringPool : public Singleton<StringPool>, private TimerManagerListener
 		{
 			StringPoolItemPtr ptr;
 			{
-				FastLock l(g_csStringMap);
+				CFlyFastLock(g_csStringMap);
 				auto i = g_stringMap.insert(make_pair(str, 0));
 				ptr = &(*i.first);
 			}

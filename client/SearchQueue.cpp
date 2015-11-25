@@ -27,7 +27,7 @@ bool SearchQueue::add(const Search& s)
 	dcassert(s.m_owners.size() == 1);
 	dcassert(m_interval >= 10000); // min interval is 10 seconds.
 	
-	FastLock l(m_cs);
+	CFlyFastLock(m_cs);
 	
 	for (auto i = m_searchQueue.begin(); i != m_searchQueue.end(); ++i)
 	{
@@ -97,7 +97,7 @@ bool SearchQueue::pop(Search& s, uint64_t p_now)
 		return false;
 		
 	{
-		FastLock l(m_cs);
+		CFlyFastLock(m_cs);
 		if (!m_searchQueue.empty())
 		{
 			s = m_searchQueue.front();
@@ -115,7 +115,7 @@ uint64_t SearchQueue::getSearchTime(void* aOwner, uint64_t p_now)
 	if (aOwner == 0)
 		return 0xFFFFFFFF; // for auto searches.
 		
-	FastLock l(m_cs);
+	CFlyFastLock(m_cs);
 	
 #ifdef _DEBUG
 	const auto l_new_now = GET_TICK();
@@ -142,7 +142,7 @@ uint64_t SearchQueue::getSearchTime(void* aOwner, uint64_t p_now)
 
 bool SearchQueue::cancelSearch(void* aOwner)
 {
-	FastLock l(m_cs);
+	CFlyFastLock(m_cs);
 	for (auto i = m_searchQueue.begin(); i != m_searchQueue.end(); ++i)
 	{
 		// [!] IRainman opt.

@@ -121,7 +121,7 @@ bool Utils::checkFlood(const string& ip, const AdcCommand& cmd)
 			requestCmd = AdcCommand::CMD_GET;
 		case AdcCommand::CMD_RES: // default value of requestCmd
 			{
-				FastLock l(g_Utilscs);
+				CFlyFastLock(g_Utilscs);
 				for (auto i = g_sentPackets.cbegin(); i != g_sentPackets.cend(); ++i)
 				{
 					if (i->cmd == requestCmd && i->ip == ip)
@@ -135,7 +135,7 @@ bool Utils::checkFlood(const string& ip, const AdcCommand& cmd)
 			return false;
 	}
 	
-	FastLock l(g_Utilscs);
+	CFlyFastLock(g_Utilscs);
 	auto& packetsPerIp = g_receivedPackets[ip];
 	packetsPerIp.insert(cmd.getCommand());
 	
@@ -153,7 +153,7 @@ bool Utils::checkFlood(const string& ip, const AdcCommand& cmd)
  */
 void Utils::cleanFlood()
 {
-	FastLock l(g_Utilscs);
+	CFlyFastLock(g_Utilscs);
 	g_receivedPackets.clear();
 }
 
@@ -164,7 +164,7 @@ void Utils::trackOutgoingPacket(const string& ip, const AdcCommand& cmd) // TODO
 {
 	const uint64_t now = GET_TICK();
 
-	FastLock l(g_Utilscs);
+	CFlyFastLock(g_Utilscs);
 
 	switch (cmd.getCommand())
 	{

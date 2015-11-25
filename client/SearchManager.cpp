@@ -202,7 +202,7 @@ int SearchManager::UdpQueue::run()
 			break;
 			
 		{
-			FastLock l(m_cs);
+			CFlyFastLock(m_cs);
 			if (m_resultList.empty()) continue;
 			
 			x = m_resultList.front().first;
@@ -352,7 +352,7 @@ int SearchManager::UdpQueue::run()
 			
 			const TTHValue l_tth_value(tth);
 			const SearchResult sr(user, type, slots, freeSlots, size, file, Util::emptyString, url, remoteIp, l_tth_value, -1 /*0 == auto*/);
-			SearchManager::getInstance()->fire(SearchManagerListener::SR(), sr);
+			SearchManager::getInstance()->fly_fire1(SearchManagerListener::SR(), sr);
 #ifdef FLYLINKDC_USE_COLLECT_STAT
 			CFlylinkDBManager::getInstance()->push_event_statistic("SearchManager::UdpQueue::run()", "$SR", x, remoteIp, "", url, tth);
 #endif
@@ -406,7 +406,7 @@ int SearchManager::UdpQueue::run()
 			const auto l_magic = x.substr(15, 39);
 			if (ClientManager::getMyCID().toBase32() == l_magic)
 			{
-				SettingsManager::g_TestUDPSearchLevel = true;
+				SettingsManager::g_TestUDPSearchLevel = CFlyServerJSON::setTestPortOK(SETTING(UDP_PORT), "udp");
 				auto l_ip = x.substr(15 + 39);
 				if (l_ip.size() && l_ip[l_ip.size() - 1] == '|')
 					l_ip = l_ip.substr(0, l_ip.size() - 1);
@@ -415,7 +415,7 @@ int SearchManager::UdpQueue::run()
 			else
 			{
 				SettingsManager::g_TestUDPSearchLevel = false;
-				LogManager::message("Error magic value = " + l_magic);
+				CFlyServerJSON::pushError(57, "UDP Error magic value = " + l_magic);
 			}
 		}
 		/*else if(x.compare(1, 4, "SCH ",4) == 0 && x[x.length() - 1] == 0x0a) {
@@ -486,7 +486,7 @@ void SearchManager::onRES(const AdcCommand& cmd, const UserPtr& from, const boos
 			
 		const uint8_t slots = ClientManager::getInstance()->getSlots(from->getCID());
 		const SearchResult sr(from, type, slots, (uint8_t)freeSlots, size, file, hubName, hub, p_remoteIp, TTHValue(tth), l_token);
-		fire(SearchManagerListener::SR(), sr);
+		fly_fire1(SearchManagerListener::SR(), sr);
 	}
 }
 

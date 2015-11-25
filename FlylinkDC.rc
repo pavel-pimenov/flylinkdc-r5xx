@@ -1086,7 +1086,7 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,423,275,50,14
     CONTROL         "Suppress chat and private messages",IDC_SUPPRESS_FAV_CHAT_AND_PM,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,8,224,186,8
-    LTEXT           "RAW command (default !banip):",IDC_ANTIVIRUS_COMMAND_IP,213,194,104,8
+    LTEXT           "Chat command (default !banip):",IDC_ANTIVIRUS_COMMAND_IP,213,194,104,8
     EDITTEXT        IDC_ANTIVIRUS_COMMAND_IP_STR,213,205,112,14,ES_AUTOHSCROLL
     CONTROL         "Antivirus autoban (IP)",IDC_ANTIVIRUS_AUTOBAN_FOR_IP,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,211,182,116,8
@@ -2994,6 +2994,7 @@ IDR_VIP_ICO_KOROBKA     ICON                    "res\\vip_korobka.ico"
 IDR_VIP_ICO_NSK154      ICON                    "res\\vip_nsk154hub.ico"
 IDR_VIP_ICO_PROSTOIGRA  ICON                    "res\\vip_prostoigra24.ico"
 IDR_VIP_ICO_EVAHUB      ICON                    "res\\vip_eva.ico"
+IDR_VIP_ICO_ADRENALIN   ICON                    "res\\vip_adrenalin.ico"
 /////////////////////////////////////////////////////////////////////////////
 //
 // PNG

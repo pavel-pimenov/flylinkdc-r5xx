@@ -98,7 +98,7 @@ std::string ErrorName(int err, const ConstantLabel * err_table) {
 
 const int LogMessage::NO_LOGGING = LS_ERROR + 1;
 
-#if _DEBUG
+#ifdef _DEBUG
 static const int LOG_DEFAULT = LS_INFO;
 #else  // !_DEBUG
 static const int LOG_DEFAULT = LogMessage::NO_LOGGING;

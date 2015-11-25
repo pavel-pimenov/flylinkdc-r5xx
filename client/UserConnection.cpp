@@ -92,7 +92,7 @@ bool UserConnection::isIPGuard(ResourceManager::Strings p_id_string, bool p_is_d
 		{
 			l_is_ip_guard = true;
 			l_p2p_guard = " [P2PGuard] " + l_p2p_guard + " [http://emule-security.org]";
-			const bool l_is_manual = l_p2p_guard == "Manual block IP";
+			const bool l_is_manual = l_p2p_guard.find("Manual block IP") != string::npos;
 			if (getUser())
 			{
 				l_p2p_guard += "[User = " + getUser()->getLastNick() + "] [Hub:" + getHubUrl() + "] [Nick:" + ClientManager::findMyNick(getHubUrl()) + "]";
@@ -175,7 +175,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 		if (getUser() && aLine.length() < 255)
 			ClientManager::getInstance()->setUnknownCommand(getUser(), aLine);
 			
-		fire(UserConnectionListener::ProtocolError(), this, "Invalid data");
+		fly_fire2(UserConnectionListener::ProtocolError(), this, "Invalid data");
 		return;
 	}
 	
@@ -196,12 +196,16 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 	if (cmd == "FLY-TEST-PORT")
 	{
 		const auto l_magic = param.substr(0, 39);
-		SettingsManager::g_TestTCPLevel = ClientManager::getMyCID().toBase32() == l_magic;
-		if (!SettingsManager::g_TestTCPLevel)
+		SettingsManager::g_TestTCPLevel = false;
+		if (ClientManager::getMyCID().toBase32() == l_magic)
 		{
-			LogManager::message("Error magic value = " + l_magic);
+			SettingsManager::g_TestTCPLevel = CFlyServerJSON::setTestPortOK(SETTING(TCP_PORT), "tcp");
 		}
 		else
+		{
+			CFlyServerJSON::pushError(57, "TCP Error magic value = " + l_magic);
+		}
+		if (SettingsManager::g_TestTCPLevel)
 		{
 			SettingsManager::getInstance()->set(SettingsManager::FORCE_PASSIVE_INCOMING_CONNECTIONS, 0);
 			SettingsManager::getInstance()->set(SettingsManager::AUTO_PASSIVE_INCOMING_CONNECTIONS, 0);
@@ -211,7 +215,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 	{
 		if (!param.empty())
 		{
-			fire(UserConnectionListener::MyNick(), this, param);
+			fly_fire2(UserConnectionListener::MyNick(), this, param);
 		}
 	}
 	else if (cmd == "Direction")
@@ -219,7 +223,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 		x = param.find(' ');
 		if (x != string::npos)
 		{
-			fire(UserConnectionListener::Direction(), this, param.substr(0, x), param.substr(x + 1));
+			fly_fire3(UserConnectionListener::Direction(), this, param.substr(0, x), param.substr(x + 1));
 		}
 	}
 	else if (cmd == "Error")
@@ -232,11 +236,11 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 			{
 				if (getDownload()->isSet(Download::FLAG_USER_GET_IP)) // Crash https://drdump.com/Problem.aspx?ClientID=ppa&ProblemID=90376
 				{
-					fire(UserConnectionListener::CheckUserIP(), this);
+					fly_fire1(UserConnectionListener::CheckUserIP(), this);
 				}
 				else
 				{
-					fire(UserConnectionListener::FileNotAvailable(), this);
+					fly_fire1(UserConnectionListener::FileNotAvailable(), this);
 				}
 			}
 		}
@@ -248,7 +252,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 				ConnectionManager::addCTM2HUB(getServerPort(), getHintedUser());
 			}
 			dcdebug("Unknown $Error %s\n", param.c_str());
-			fire(UserConnectionListener::ProtocolError(), this, param);
+			fly_fire2(UserConnectionListener::ProtocolError(), this, param);
 		}
 	}
 	else if (cmd == "Get")
@@ -256,7 +260,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 		x = param.find('$');
 		if (x != string::npos)
 		{
-			fire(UserConnectionListener::Get(), this, Text::toUtf8(param.substr(0, x), m_last_encoding), Util::toInt64(param.substr(x + 1)) - (int64_t)1);
+			fly_fire3(UserConnectionListener::Get(), this, Text::toUtf8(param.substr(0, x), m_last_encoding), Util::toInt64(param.substr(x + 1)) - (int64_t)1);
 		}
 	}
 	else if (cmd == "Key")
@@ -267,7 +271,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 			uint32_t l_ip4;
 			if (!IpGuard::is_block_ip(l_ip, l_ip4))
 			{
-				fire(UserConnectionListener::Key(), this, param);
+				fly_fire2(UserConnectionListener::Key(), this, param);
 			}
 			else
 			{
@@ -280,22 +284,22 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 		if (!param.empty())
 		{
 			x = param.find(' ');
-			fire(UserConnectionListener::CLock(), this, (x != string::npos) ? param.substr(0, x) : param);
+			fly_fire2(UserConnectionListener::CLock(), this, (x != string::npos) ? param.substr(0, x) : param);
 		}
 	}
 	else if (cmd == "Send")
 	{
-		fire(UserConnectionListener::Send(), this);
+		fly_fire1(UserConnectionListener::Send(), this);
 	}
 	else if (cmd == "MaxedOut")
 	{
-		fire(UserConnectionListener::MaxedOut(), this, param);
+		fly_fire2(UserConnectionListener::MaxedOut(), this, param);
 	}
 	else if (cmd == "Supports")
 	{
 		if (!param.empty())
 		{
-			fire(UserConnectionListener::Supports(), this, StringTokenizer<string>(param, ' ').getTokensForWrite()); // [!] IRainman fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
+			fly_fire2(UserConnectionListener::Supports(), this, StringTokenizer<string>(param, ' ').getTokensForWrite()); // [!] IRainman fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
 		}
 	}
 	else if (cmd.compare(0, 3, "ADC", 3) == 0)
@@ -306,12 +310,12 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 	{
 		if (!param.empty())
 		{
-			fire(UserConnectionListener::ListLength(), this, param);
+			fly_fire2(UserConnectionListener::ListLength(), this, param);
 		}
 	}
 	else if (cmd == "GetListLen")
 	{
-		fire(UserConnectionListener::GetListLength(), this);
+		fly_fire1(UserConnectionListener::GetListLength(), this);
 	}
 	else
 	{
@@ -383,18 +387,18 @@ void UserConnection::handle(AdcCommand::STA t, const AdcCommand& c)
 		const string& code = c.getParam(0);
 		if (!code.empty() && code[0] - '0' == AdcCommand::SEV_FATAL)
 		{
-			fire(UserConnectionListener::ProtocolError(), this, c.getParam(1));
+			fly_fire2(UserConnectionListener::ProtocolError(), this, c.getParam(1));
 			return;
 		}
 	}
 	
-	fire(t, this, c);
+	fly_fire2(t, this, c);
 }
 
 void UserConnection::on(Connected) noexcept
 {
 	setLastActivity();
-	fire(UserConnectionListener::Connected(), this);
+	fly_fire1(UserConnectionListener::Connected(), this);
 }
 void UserConnection::on(Data, uint8_t* p_data, size_t p_len) noexcept
 {
@@ -403,7 +407,7 @@ void UserConnection::on(Data, uint8_t* p_data, size_t p_len) noexcept
 	if (p_len && BOOLSETTING(ENABLE_RATIO_USER_LIST))
 		getUser()->AddRatioDownload(getSocket()->getIp4(), p_len);
 #endif
-	fire(UserConnectionListener::Data(), this, p_data, p_len);
+	fly_fire3(UserConnectionListener::Data(), this, p_data, p_len);
 }
 
 void UserConnection::on(BytesSent, size_t p_Bytes, size_t p_Actual) noexcept
@@ -413,25 +417,25 @@ void UserConnection::on(BytesSent, size_t p_Bytes, size_t p_Actual) noexcept
 	if (p_Actual && BOOLSETTING(ENABLE_RATIO_USER_LIST))
 		getUser()->AddRatioUpload(getSocket()->getIp4(), p_Actual);
 #endif
-	fire(UserConnectionListener::BytesSent(), this, p_Bytes, p_Actual);
+	fly_fire3(UserConnectionListener::BytesSent(), this, p_Bytes, p_Actual);
 }
 
 #ifdef FLYLINKDC_USE_CROOKED_HTTP_CONNECTION
 void UserConnection::on(ModeChange) noexcept
 {
 	setLastActivity();
-	fire(UserConnectionListener::ModeChange(), this);
+	fly_fire1(UserConnectionListener::ModeChange(), this);
 }
 #endif
 
 void UserConnection::on(TransmitDone) noexcept
 {
-	fire(UserConnectionListener::TransmitDone(), this);
+	fly_fire1(UserConnectionListener::TransmitDone(), this);
 }
 
 void UserConnection::on(Updated) noexcept
 {
-	fire(UserConnectionListener::Updated(), this);
+	fly_fire1(UserConnectionListener::Updated(), this);
 }
 
 void UserConnection::on(Failed, const string& aLine) noexcept
@@ -441,7 +445,7 @@ void UserConnection::on(Failed, const string& aLine) noexcept
 	{
 		getUser()->fixLastIP();
 	}
-	fire(UserConnectionListener::Failed(), this, aLine);
+	fly_fire2(UserConnectionListener::Failed(), this, aLine);
 	delete this;
 }
 

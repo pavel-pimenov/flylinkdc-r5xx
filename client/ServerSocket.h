@@ -52,7 +52,7 @@ class ServerSocket : public Speaker<ServerSocketListener>
 		/** This is called by windows whenever an "FD_ACCEPT" is sent...doesn't work with unix... */
 		void incoming()
 		{
-			fire(ServerSocketListener::IncomingConnection());
+			fly_fire(ServerSocketListener::IncomingConnection());
 		}
 		
 		socket_t getSock() const

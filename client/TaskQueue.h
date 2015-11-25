@@ -55,28 +55,28 @@ class TaskQueue
 		}
 		bool is_destroy_task()
 		{
-			FastLock l(m_csTaskQueue);
+			CFlyFastLock(m_csTaskQueue);
 			return m_destroy_guard > 0;
 		}
 		bool is_lock_task()
 		{
-			FastLock l(m_csTaskQueue);
+			CFlyFastLock(m_csTaskQueue);
 			return m_lock_count > 0;
 		}
 		bool empty()
 		{
-			FastLock l(m_csTaskQueue);
+			CFlyFastLock(m_csTaskQueue);
 			return m_tasks.empty();
 		}
 #if 0
 		size_t size()
 		{
-			FastLock l(m_csTaskQueue);
+			CFlyFastLock(m_csTaskQueue);
 			return tasks.size();
 		}
 		string get_debug_info()
 		{
-			FastLock l(m_csTaskQueue);
+			CFlyFastLock(m_csTaskQueue);
 			string l_tmp;
 			for (auto i = tasks.cbegin(); i != tasks.cend(); ++i)
 			{
@@ -87,7 +87,7 @@ class TaskQueue
 #endif
 		bool add(uint8_t type, Task* data)
 		{
-			FastLock l(m_csTaskQueue);
+			CFlyFastLock(m_csTaskQueue);
 			dcassert(m_destroy_guard == 0);
 			dcassert(m_lock_count == 0)
 			if (m_destroy_guard == 0 && m_lock_count == 0)
@@ -104,7 +104,7 @@ class TaskQueue
 		void get(List& p_list)
 		{
 			// [!] IRainman fix: FlylinkDC != StrongDC: please be more attentive to the code during the merge.
-			FastLock l(m_csTaskQueue);
+			CFlyFastLock(m_csTaskQueue);
 			swap(m_tasks, p_list);
 		}
 		void clear()
@@ -117,17 +117,17 @@ class TaskQueue
 		}
 		void lock_task()
 		{
-			FastLock l(m_csTaskQueue);
+			CFlyFastLock(m_csTaskQueue);
 			m_lock_count++;
 		}
 		void unlock_task()
 		{
-			FastLock l(m_csTaskQueue);
+			CFlyFastLock(m_csTaskQueue);
 			m_lock_count--;
 		}
 		void destroy_task()
 		{
-			FastLock l(m_csTaskQueue);
+			CFlyFastLock(m_csTaskQueue);
 			dcassert(m_destroy_guard == 0);
 			++m_destroy_guard;
 		}

@@ -51,12 +51,12 @@ void SettingsAutoUpdate::fail(const string& p_error)
 {
 	dcdebug("SettingsAutoUpdate: New command when already failed: %s\n", p_error.c_str());
 	//LogManager::message("SettingsAutoUpdate: " + p_error);
-	fire(SettingsAutoUpdateListener::Failed(), p_error);
+	fly_fire1(SettingsAutoUpdateListener::Failed(), p_error);
 }
 
 void SettingsAutoUpdate::_StartFileUpdateThisThread(const string& localPath, const string& urlPath)
 {
-	fire(SettingsAutoUpdateListener::UpdateStarted(), localPath);
+	fly_fire1(SettingsAutoUpdateListener::UpdateStarted(), localPath);
 	string tempPath = Util::getTempPath();
 	AppendPathSeparator(tempPath);
 	tempPath += Util::getFileName(localPath);
@@ -70,7 +70,7 @@ void SettingsAutoUpdate::_StartFileUpdateThisThread(const string& localPath, con
 			try
 			{
 				File::renameFile(tempPath, localPath);
-				fire(SettingsAutoUpdateListener::UpdateFinished(), localPath);
+				fly_fire1(SettingsAutoUpdateListener::UpdateFinished(), localPath);
 			}
 			catch (FileException& ex)
 			{

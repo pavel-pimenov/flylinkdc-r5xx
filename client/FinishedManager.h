@@ -158,7 +158,7 @@ class FinishedManager : public Singleton<FinishedManager>,
 		void pushHistoryFinishedItem(const FinishedItemPtr& p_item, int p_type);
 		void updateStatus()
 		{
-			fire(FinishedManagerListener::UpdateStatus());
+			fly_fire(FinishedManagerListener::UpdateStatus());
 		}
 		
 		

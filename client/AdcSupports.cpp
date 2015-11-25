@@ -83,7 +83,7 @@ void AdcSupports::setSupports(Identity& id, StringList & su)
 									else
 									{
 										//dcassert(0);
-										FastLock l(g_debugCsUnknownAdcFeatures);
+										CFlyFastLock(g_debugCsUnknownAdcFeatures);
 										g_debugUnknownAdcFeatures[*i] = Util::toString(su);
 									}
 #endif
@@ -160,7 +160,7 @@ void NmdcSupports::setStatus(Identity& id, const char status, const string& conn
 				{
 					coef = 0;
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES
-					// FastLock l(g_debugCsUnknownNmdcConnection);
+					// CFlyFastLock(g_debugCsUnknownNmdcConnection);
 					// g_debugUnknownNmdcConnection.insert(postfix);
 #endif
 				}
@@ -206,7 +206,7 @@ void NmdcSupports::setSupports(Identity& id, StringList & su)
 #ifdef _DEBUG
         //else
         {
-            FastLock l(AdcSupports::_debugCsUnknownFeatures);
+            CFlyFastLock(AdcSupports::_debugCsUnknownFeatures);
             AdcSupports::_debugUnknownFeatures.insert(*i);
         }
 #endif

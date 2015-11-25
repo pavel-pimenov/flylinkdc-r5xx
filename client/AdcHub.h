@@ -138,7 +138,7 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		// [-] IRainman see class Client, not rewrite this!
 		//void on(Connecting) noexcept override
 		//{
-		//  fire(ClientListener::Connecting(), this);
+		//  fly_fire1(ClientListener::Connecting(), this);
 		//}
 		void on(Connected) noexcept override;
 		void on(Line, const string& aLine) noexcept override;

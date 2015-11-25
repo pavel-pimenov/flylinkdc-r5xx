@@ -5,11 +5,11 @@ bool DebugManager::g_isCMDDebug = false;
 
 void DebugManager::SendCommandMessage(const string& command, DebugTask::Type type, const string& ip) noexcept
 {
-	fire(DebugManagerListener::DebugEvent(), DebugTask(command, type, ip)); // [!] IRainman: use real time.
+	fly_fire1(DebugManagerListener::DebugEvent(), DebugTask(command, type, ip)); // [!] IRainman: use real time.
 }
 void DebugManager::SendDetectionMessage(const string& mess) noexcept
 {
-	fire(DebugManagerListener::DebugEvent(), DebugTask(mess, DebugTask::DETECTION)); // [!] IRainman: use real time.
+	fly_fire1(DebugManagerListener::DebugEvent(), DebugTask(mess, DebugTask::DETECTION)); // [!] IRainman: use real time.
 }
 DebugTask::DebugTask(const string& message, Type type, const string& p_ip_and_port /*= Util::emptyString */) :
 	m_message(message), m_ip_and_port(p_ip_and_port), m_time(GET_TIME()), m_type(type)

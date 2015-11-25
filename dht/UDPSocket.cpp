@@ -57,7 +57,7 @@ UDPSocket::UDPSocket(void) : m_stop(false), m_port(0), delay(100)
 UDPSocket::~UDPSocket(void)
 {
 	disconnect();
-	FastLock l(cs);
+	CFlyFastLock(cs);
 	for_each(m_sendQueue.begin(), m_sendQueue.end(), DeleteFunction());
 	
 #ifdef _DEBUG
@@ -129,21 +129,27 @@ void UDPSocket::checkIncoming()
 		{
 			if(l_buf.size() > 16 &&  memcmp(l_buf.data(), "$FLY-TEST-PORT ",15) == 0)
 			{
+				SettingsManager::g_TestUDPDHTLevel = false;
 				if (l_buf.size() > 16 + 39 + 1)
 				{
 					const string l_magic((char*)l_buf.data() + 15,39);
-					SettingsManager::g_TestUDPDHTLevel = ClientManager::getMyCID().toBase32() == l_magic;
-					if(!SettingsManager::g_TestUDPDHTLevel)
+					
+					if (ClientManager::getMyCID().toBase32() != l_magic)
 					{
-            CFlyServerJSON::pushError(17, "DHT Error magic value = " + l_magic);
+						CFlyServerJSON::pushError(57, "DHT Error magic value = " + l_magic);
 					}
 					else
 					{
+						SettingsManager::g_TestUDPDHTLevel = CFlyServerJSON::setTestPortOK(SETTING(DHT_PORT), "udp");
 						if(DHT::isValidInstance() && m_port == DHT::getInstance()->getPort()) // Тест прошел по порту DHT?
 						{
 								BootstrapManager::inc_live_check(); 
 						}
 					}
+				}
+				else
+				{
+					CFlyServerJSON::pushError(57, "DHT Error value l_buf.size() > 16 + 39 + 1");
 				}
 				return;
 			}
@@ -153,7 +159,7 @@ void UDPSocket::checkIncoming()
 				// it seems to be encrypted packet
 				if (!decryptPacket(&l_buf[0], len, inet_ntoa(remoteAddr.sin_addr), isUdpKeyValid))
 				{
-          CFlyServerJSON::pushError(17, "DHT Error decryptPacket");
+					CFlyServerJSON::pushError(17, "DHT Error decryptPacket" + string(inet_ntoa(remoteAddr.sin_addr)));
 					return;
 			}
 			}
@@ -167,7 +173,9 @@ void UDPSocket::checkIncoming()
 				const auto l_res_uzlib = decompressPacket(l_destBuf, l_buf);
 				if (l_res_uzlib != Z_OK) 
 				{
-          CFlyServerJSON::pushError(17, "DHT Error decompress, Error = "+ Util::toString(l_res_uzlib) + " len = " + Util::toString(len));
+					CFlyServerJSON::pushError(17, "DHT Error decompress, Error = " + Util::toString(l_res_uzlib) + 
+						" len = " + Util::toString(len) + 
+						" IP = " + string(inet_ntoa(remoteAddr.sin_addr)));
 					return;
 			}
 			}
@@ -197,9 +205,8 @@ void UDPSocket::checkIncoming()
 			}
 			else
 			{
-          CFlyServerJSON::pushError(17, "DHT Error ADC_PACKET_HEADER || ADC_PACKET_FOOTER l_destBuf.size() = " + Util::toString(l_destBuf.size()));
+				CFlyServerJSON::pushError(17, "DHT Error ADC_PACKET_HEADER || ADC_PACKET_FOOTER l_destBuf.size() = " + Util::toString(l_destBuf.size()) + " IP = " + string(inet_ntoa(remoteAddr.sin_addr)));
 			}
-			
 			sleep(25);
 		}
 	}
@@ -211,7 +218,7 @@ void UDPSocket::checkOutgoing(uint64_t& p_timer)
 	const uint64_t now = GET_TICK();
 	
 	{
-		FastLock l(cs);
+		CFlyFastLock(cs);
 		
 		size_t queueSize = m_sendQueue.size();
 		if (queueSize && (now - p_timer > delay))
@@ -264,7 +271,7 @@ void UDPSocket::checkOutgoing(uint64_t& p_timer)
 		}
 		catch (const SocketException& e)
 		{
-        dcdebug("DHT::run Write error: %s\n", e.getError());
+        dcdebug("DHT::run Write error: %s\n", e.getError().c_str());
         CFlyServerJSON::pushError(17, "DHT::run Write error: " + e.getError());
 		}
 	}
@@ -331,7 +338,7 @@ int UDPSocket::run()
 				catch (const SocketException& p_e2)
 				{
 					dcdebug("DHT::run Stopped listening: %s\n", p_e2.getError().c_str());
-          CFlyServerJSON::pushError(17, "DHT::run Stopped listening: " + p_e2.getError());
+					CFlyServerJSON::pushError(17, "DHT::run Stopped listening: " + p_e2.getError());
 					
 					if (!failed)
 					{
@@ -365,7 +372,7 @@ void UDPSocket::send(AdcCommand& cmd, const string& ip, uint16_t p_port, const C
 	COMMAND_DEBUG(command, DebugTask::HUB_OUT, ip + ':' + Util::toString(p_port) + " [DHT]");
 	Packet* p = new Packet(ip, p_port, command, targetCID, udpKey);
 	{
-	FastLock l(cs);
+	CFlyFastLock(cs);
 	m_sendQueue.push_back(p);
     }
 #ifdef FLYLINKDC_BETA

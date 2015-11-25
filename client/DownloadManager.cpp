@@ -45,7 +45,7 @@ DownloadManager::~DownloadManager()
 	while (true)
 	{
 		{
-			webrtc::ReadLockScoped l(*g_csDownload);
+			CFlyReadLock(*g_csDownload);
 			if (g_download_map.empty())
 				break;
 		}
@@ -64,7 +64,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	DownloadArray l_tickList;
 	{
 		int64_t l_currentSpeed = 0;// [+] IRainman refactoring transfer mechanism
-		webrtc::ReadLockScoped l(*g_csDownload);
+		CFlyReadLock(*g_csDownload);
 		// Tick each ongoing download
 		l_tickList.reserve(g_download_map.size());
 		for (auto i = g_download_map.cbegin(); i != g_download_map.cend(); ++i)
@@ -152,7 +152,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	}
 	if (!l_tickList.empty())
 	{
-		fire(DownloadManagerListener::Tick(), l_tickList);//[!]IRainman refactoring transfer mechanism + uint64_t aTick
+		fly_fire1(DownloadManagerListener::Tick(), l_tickList);//[!]IRainman refactoring transfer mechanism + uint64_t aTick
 	}
 	
 	for (auto i = dropTargets.cbegin(); i != dropTargets.cend(); ++i)
@@ -163,7 +163,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 
 void DownloadManager::remove_idlers(UserConnection* aSource)
 {
-	webrtc::WriteLockScoped l(*g_csDownload);
+	CFlyWriteLock(*g_csDownload);
 	dcassert(aSource->getUser());
 	// ћогут быть не найдены.
 	// лишн€€ проверка dcassert(m_idlers.find(aSource->getUser()) != m_idlers.end());
@@ -172,7 +172,7 @@ void DownloadManager::remove_idlers(UserConnection* aSource)
 
 void DownloadManager::checkIdle(const UserPtr& aUser)
 {
-	webrtc::ReadLockScoped l(*g_csDownload);
+	CFlyReadLock(*g_csDownload);
 	dcassert(aUser);
 	const auto & l_find = g_idlers.find(aUser);
 	if (l_find != g_idlers.end())
@@ -243,11 +243,11 @@ void DownloadManager::checkDownloads(UserConnection* aConn)
 	{
 		if (!errorMessage.empty())
 		{
-			fire(DownloadManagerListener::Status(), aConn, errorMessage);
+			fly_fire2(DownloadManagerListener::Status(), aConn, errorMessage);
 		}
 		
 		aConn->setState(UserConnection::STATE_IDLE);
-		webrtc::WriteLockScoped l(*g_csDownload);
+		CFlyWriteLock(*g_csDownload);
 		dcassert(aConn->getUser());
 		dcassert(g_idlers.find(aConn->getUser()) == g_idlers.end());
 		g_idlers[aConn->getUser()] = aConn;
@@ -262,12 +262,12 @@ void DownloadManager::checkDownloads(UserConnection* aConn)
 	}
 	
 	{
-		webrtc::WriteLockScoped l(*g_csDownload);
+		CFlyWriteLock(*g_csDownload);
 		dcassert(d->getUser());
 		dcassert(g_download_map.find(d->getUser()) == g_download_map.end());
 		g_download_map[d->getUser()] = d;
 	}
-	fire(DownloadManagerListener::Requesting(), d);
+	fly_fire1(DownloadManagerListener::Requesting(), d);
 	
 	dcdebug("Requesting " I64_FMT "/" I64_FMT "\n", d->getStartPos(), d->getSize());
 	AdcCommand cmd(AdcCommand::CMD_GET);
@@ -388,7 +388,7 @@ void DownloadManager::startData(UserConnection* aSource, int64_t start, int64_t 
 	
 	aSource->setState(UserConnection::STATE_RUNNING);
 	
-	fire(DownloadManagerListener::Starting(), d);
+	fly_fire1(DownloadManagerListener::Starting(), d);
 	
 	if (d->getPos() == d->getSize())
 	{
@@ -457,7 +457,7 @@ void DownloadManager::endData(UserConnection* aSource)
 		{
 			// This tree is for a different file, remove from queue...// [!]PPA TODO подтереть fly_hash_block
 			removeDownload(d);
-			fire(DownloadManagerListener::Failed(), d, STRING(INVALID_TREE));
+			fly_fire2(DownloadManagerListener::Failed(), d, STRING(INVALID_TREE));
 			
 			QueueManager::getInstance()->removeSource(d->getPath(), aSource->getUser(), QueueItem::Source::FLAG_BAD_TREE, false);
 			
@@ -492,7 +492,7 @@ void DownloadManager::endData(UserConnection* aSource)
 	
 	if (d->getType() != Transfer::TYPE_FILE)
 	{
-		fire(DownloadManagerListener::Complete(), d);
+		fly_fire1(DownloadManagerListener::Complete(), d);
 	}
 	try
 	{
@@ -515,7 +515,7 @@ void DownloadManager::endData(UserConnection* aSource)
 //[-] IRainman refactoring transfer mechanism
 //int64_t DownloadManager::getRunningAverage()
 //{
-//	webrtc::ReadLockScoped l(*g_csDownload);
+//	CFlyReadLock(*g_csDownload);
 //	int64_t avg = 0;
 //	for (auto i = downloads.cbegin(); i != downloads.cend(); ++i)
 //	{
@@ -557,7 +557,7 @@ void DownloadManager::failDownload(UserConnection* aSource, const string& reason
 	{
 		const string l_path = d->getPath();
 		removeDownload(d);
-		fire(DownloadManagerListener::Failed(), d, reason);
+		fly_fire2(DownloadManagerListener::Failed(), d, reason);
 		
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
 		if (d->isSet(Download::FLAG_USER_CHECK))
@@ -605,7 +605,7 @@ void DownloadManager::removeDownload(const DownloadPtr& d)
 	}
 	
 	{
-		webrtc::WriteLockScoped l(*g_csDownload);
+		CFlyWriteLock(*g_csDownload);
 		//////////////dcassert(g_download_map.find(d->getUser()) != g_download_map.end());
 		g_download_map.erase(d->getUser());
 	}
@@ -613,7 +613,7 @@ void DownloadManager::removeDownload(const DownloadPtr& d)
 
 void DownloadManager::abortDownload(const string& aTarget)
 {
-	webrtc::ReadLockScoped l(*g_csDownload);
+	CFlyReadLock(*g_csDownload);
 	for (auto i = g_download_map.cbegin(); i != g_download_map.cend(); ++i)
 	{
 		auto d = i->second;
@@ -695,7 +695,7 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource)
 	dcdebug("File Not Available: %s\n", d->getPath().c_str());
 	
 	removeDownload(d);
-	fire(DownloadManagerListener::Failed(), d, STRING(FILE_NOT_AVAILABLE));
+	fly_fire2(DownloadManagerListener::Failed(), d, STRING(FILE_NOT_AVAILABLE));
 	
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
 	if (d->isSet(Download::FLAG_USER_CHECK))
@@ -713,7 +713,7 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource)
 // !SMT!-S
 bool DownloadManager::checkFileDownload(const UserPtr& aUser)
 {
-	webrtc::ReadLockScoped l(*g_csDownload);
+	CFlyReadLock(*g_csDownload);
 	const auto& l_find = g_download_map.find(aUser);
 	if (l_find != g_download_map.end())
 		if (l_find->second->getType() != Download::TYPE_PARTIAL_LIST &&

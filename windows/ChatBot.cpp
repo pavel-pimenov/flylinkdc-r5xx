@@ -275,7 +275,7 @@ WCHAR* ChatBot::onQueryDownloads(const WCHAR* cid)
 	if (user)
 	{
 		ParamSet ps;
-		RLock l(*QueueItem::g_cs);
+		RLock(*QueueItem::g_cs);
 		QueueManager::LockFileQueueShared l_fileQueue;
 		const auto& downloads = l_fileQueue.getQueueL();
 		for (auto j = downloads.cbegin(); j != downloads.cend(); ++j)

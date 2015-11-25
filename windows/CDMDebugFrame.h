@@ -132,7 +132,7 @@ class CDMDebugFrame : private DebugManagerListener, public BASE_THREAD,
 		void addCmd(const DebugTask& task)
 		{
 			{
-				FastLock l(m_cs);
+				CFlyFastLock(m_cs);
 				m_cmdList.push_back(task);
 			}
 			m_sem.signal();

@@ -92,7 +92,7 @@ void NmdcHub::connect(const OnlineUser& p_user, const string& p_token, bool p_is
 void NmdcHub::resetAntivirusInfo()
 {
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
-	webrtc::ReadLockScoped l(*m_cs);
+	CFlyReadLock(*m_cs);
 	for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 	{
 		i->second->getIdentity().resetAntivirusInfo();
@@ -109,7 +109,7 @@ void NmdcHub::refreshUserList(bool refreshOnly)
 		v.reserve(m_users.size());
 		{
 			// [!] IRainman fix potential deadlock.
-			webrtc::ReadLockScoped l(*m_cs);
+			CFlyReadLock(*m_cs);
 			for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 			{
 				v.push_back(i->second);
@@ -128,7 +128,7 @@ void NmdcHub::refreshUserList(bool refreshOnly)
 
 OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_load)
 {
-	FastLock l(cs);
+	CFlyFastLock(cs);
 	OnlineUser * l_ou_ptr;
 	bool l_is_CID_User = nullptr;
 	if (p_hub)
@@ -200,7 +200,7 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 	if (p_hub)
 	{
 		{
-			webrtc::WriteLockScoped l(*m_cs);
+			CFlyWriteLock(*m_cs);
 			ou = m_users.insert(make_pair(aNick, getHubOnlineUser().get())).first->second;
 			ou->inc();
 		}
@@ -208,7 +208,7 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 	}
 	else if (aNick == getMyNick())
 	{
-		webrtc::WriteLockScoped l(*m_cs);
+		CFlyWriteLock(*m_cs);
 		ou = m_users.insert(make_pair(aNick, getMyOnlineUser().get())).first->second;
 		ou->inc();
 	}
@@ -223,7 +223,7 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 		                       );
 		OnlineUser* newUser = new OnlineUser(p, *this, 0);
 		{
-			webrtc::WriteLockScoped l(*m_cs);
+			CFlyWriteLock(*m_cs);
 			ou = m_users.insert(make_pair(aNick, newUser)).first->second; //2012-06-09_18-19-42_JBOQDRXR35PEW7OJOPLNPXJSQDETX4IUV3SHOHA_DEF32407_crash-stack-r501-x64-build-10294.dmp
 			ou->inc();
 		}
@@ -247,7 +247,7 @@ void NmdcHub::supports(const StringList& feat)
 
 OnlineUserPtr NmdcHub::findUser(const string& aNick) const
 {
-	webrtc::ReadLockScoped l(*m_cs);
+	CFlyReadLock(*m_cs);
 	const auto& i = m_users.find(aNick); // [3] https://www.box.net/shared/03a0bb07362fc510b8a5
 	return i == m_users.end() ? nullptr : i->second; // 2012-04-29_13-38-26_EJMPFXUHZAKEQON7Y6X7EIKZVS3S3GMF43CWO3Y_C95F3090_crash-stack-r501-build-9869.dmp
 }
@@ -256,7 +256,7 @@ void NmdcHub::putUser(const string& aNick)
 {
 	OnlineUserPtr ou;
 	{
-		webrtc::WriteLockScoped l(*m_cs);
+		CFlyWriteLock(*m_cs);
 #ifdef FLYLINKDC_USE_EXT_JSON
 		//m_ext_json_deferred.erase(aNick);
 #endif
@@ -267,7 +267,7 @@ void NmdcHub::putUser(const string& aNick)
 		m_users.erase(i);
 		decBytesSharedL(ou->getIdentity());
 		{
-			FastLock l(m_cs_virus);
+			CFlyFastLock(m_cs_virus);
 			m_virus_nick.erase(aNick);
 		}
 	}
@@ -277,7 +277,7 @@ void NmdcHub::putUser(const string& aNick)
 		ClientManager::getInstance()->putOffline(ou); // [2] https://www.box.net/shared/7b796492a460fe528961
 	}
 	
-	fire(ClientListener::UserRemoved(), this, ou); // [+] IRainman fix.
+	fly_fire2(ClientListener::UserRemoved(), this, ou); // [+] IRainman fix.
 	ou->dec();// [!] IRainman fix memoryleak
 }
 
@@ -285,7 +285,7 @@ void NmdcHub::clearUsers()
 {
 	if (ClientManager::isShutdown())
 	{
-		webrtc::WriteLockScoped l(*m_cs);
+		CFlyWriteLock(*m_cs);
 		for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 		{
 			i->second->dec();
@@ -297,7 +297,7 @@ void NmdcHub::clearUsers()
 	{
 		NickMap u2;
 		{
-			webrtc::WriteLockScoped l(*m_cs);
+			CFlyWriteLock(*m_cs);
 			u2.swap(m_users);
 #ifdef FLYLINKDC_USE_EXT_JSON
 			//m_ext_json_deferred.clear();
@@ -409,7 +409,7 @@ void NmdcHub::updateFromTag(Identity& id, const string & tag) // [!] IRainman op
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_TAG
 		else
 		{
-			FastLock l(NmdcSupports::g_debugCsUnknownNmdcTagParam);
+			CFlyFastLock(NmdcSupports::g_debugCsUnknownNmdcTagParam);
 			NmdcSupports::g_debugUnknownNmdcTagParam[tag]++;
 			// dcassert(0);
 			// TODO - сброс ошибочных тэгов в качестве статы?
@@ -613,6 +613,10 @@ void NmdcHub::searchParse(const string& param, bool p_is_passive)
 	}
 	else if (isActive())
 	{
+		if (!SearchManager::isSearchPortValid())
+		{
+			return;
+		}
 		if (l_search_param.m_seeker == calcExternalIP())
 		{
 			return;
@@ -890,12 +894,12 @@ void NmdcHub::chatMessageParse(const string& aLine)
 	
 	if ((l_utf8_line.find("Hub-Security") != string::npos) && (l_utf8_line.find("was kicked by") != string::npos))
 	{
-		fire(ClientListener::StatusMessage(), this, unescape(l_utf8_line), ClientListener::FLAG_IS_SPAM);
+		fly_fire3(ClientListener::StatusMessage(), this, unescape(l_utf8_line), ClientListener::FLAG_IS_SPAM);
 		return;
 	}
 	else if ((l_utf8_line.find("is kicking") != string::npos) && (l_utf8_line.find("because:") != string::npos))
 	{
-		fire(ClientListener::StatusMessage(), this, unescape(l_utf8_line), ClientListener::FLAG_IS_SPAM);
+		fly_fire3(ClientListener::StatusMessage(), this, unescape(l_utf8_line), ClientListener::FLAG_IS_SPAM);
 		return;
 	}
 	// [~] IRainman fix.
@@ -939,7 +943,7 @@ void NmdcHub::chatMessageParse(const string& aLine)
 	}
 	if (nick.empty())
 	{
-		fire(ClientListener::StatusMessage(), this, unescape(l_utf8_line));
+		fly_fire2(ClientListener::StatusMessage(), this, unescape(l_utf8_line));
 		return;
 	}
 	
@@ -963,7 +967,7 @@ void NmdcHub::chatMessageParse(const string& aLine)
 		{
 			chatMessage->m_from = l_user; ////getUser(nick, false, false); // Тут внутри снова идет поиск findUser(nick)
 			chatMessage->m_from->getIdentity().setHub();
-			fire(ClientListener::UserUpdated(), chatMessage->m_from);
+			fly_fire1(ClientListener::UserUpdated(), chatMessage->m_from);
 		}
 	}
 	if (!isSupressChatAndPM())
@@ -971,7 +975,7 @@ void NmdcHub::chatMessageParse(const string& aLine)
 		chatMessage->translate_me();
 		if (!allowChatMessagefromUser(*chatMessage, nick)) // [+] IRainman fix.
 			return;
-		fire(ClientListener::Message(), this, chatMessage);
+		fly_fire2(ClientListener::Message(), this, chatMessage);
 	}
 	return;
 	
@@ -1007,7 +1011,7 @@ void NmdcHub::hubNameParse(const string& p_param)
 		getHubIdentity().setNick(unescape(l_param.substr(0, i)));
 		getHubIdentity().setDescription(unescape(l_param.substr(i + 3)));
 	}
-	fire(ClientListener::HubUpdated(), this);
+	fly_fire1(ClientListener::HubUpdated(), this);
 }
 //==========================================================================================
 void NmdcHub::supportsParse(const string& param)
@@ -1032,7 +1036,7 @@ void NmdcHub::supportsParse(const string& param)
 		else if (*i == "ExtJSON")
 		{
 			m_supportFlags |= SUPPORTS_EXTJSON;
-			fire(ClientListener::FirstExtJSON(), this);
+			fly_fire1(ClientListener::FirstExtJSON(), this);
 		}
 #endif
 	}
@@ -1050,7 +1054,7 @@ void NmdcHub::userCommandParse(const string& param)
 	if (type == UserCommand::TYPE_SEPARATOR || type == UserCommand::TYPE_CLEAR)
 	{
 		int ctx = Util::toInt(param.substr(i));
-		fire(ClientListener::HubUserCommand(), this, type, ctx, Util::emptyString, Util::emptyString);
+		fly_fire5(ClientListener::HubUserCommand(), this, type, ctx, Util::emptyString, Util::emptyString);
 	}
 	else if (type == UserCommand::TYPE_RAW || type == UserCommand::TYPE_RAW_ONCE)
 	{
@@ -1068,7 +1072,7 @@ void NmdcHub::userCommandParse(const string& param)
 		Util::replace("\\", "/", l_name);
 		i = j + 1;
 		string command = unescape(param.substr(i, param.length() - i));
-		fire(ClientListener::HubUserCommand(), this, type, ctx, l_name, command);
+		fly_fire5(ClientListener::HubUserCommand(), this, type, ctx, l_name, command);
 	}
 }
 //==========================================================================================
@@ -1177,7 +1181,7 @@ void NmdcHub::helloParse(const string& param)
 				//SetEvent(m_hEventClientInitialized);
 			}
 		}
-		fire(ClientListener::UserUpdated(), ou); // !SMT!-fix
+		fly_fire1(ClientListener::UserUpdated(), ou); // !SMT!-fix
 	}
 }
 //==========================================================================================
@@ -1200,7 +1204,7 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 			// some elements of this class can be (theoretically)
 			// changed in other thread
 			
-			// Lock _l(cs); [-] IRainman fix.
+			// CFlyLock(cs); [-] IRainman fix.
 			for (auto it = sl.cbegin(); it != sl.cend(); ++it)
 			{
 				string::size_type j = 0;
@@ -1237,7 +1241,7 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 					ou->getIdentity().setIp(l_ip);
 					ou->getIdentity().m_is_real_user_ip_from_hub = true;
 					{
-						FastLock l(m_cs_virus);
+						CFlyFastLock(m_cs_virus);
 						if (m_virus_nick.find(l_user) == m_virus_nick.end())
 						{
 							if (CFlylinkDBManager::getInstance()->is_virus_bot(l_user, ou->getIdentity().getBytesShared(), ou->getIdentity().getIpRAW()))
@@ -1402,7 +1406,7 @@ void NmdcHub::nickListParse(const string& param)
 			// some elements of this class can be (theoretically)
 			// changed in other thread
 			
-			// Lock _l(cs); [-] IRainman fix: no needs lock here!
+			// CFlyLock(cs); [-] IRainman fix: no needs lock here!
 			
 			for (auto it = sl.cbegin(); it != sl.cend(); ++it)
 			{
@@ -1453,7 +1457,7 @@ void NmdcHub::opListParse(const string& param)
 			// some elements of this class can be (theoretically)
 			// changed in other thread
 			
-			// Lock _l(cs); [-] IRainman fix: no needs any lock here!
+			// CFlyLock(cs); [-] IRainman fix: no needs any lock here!
 			
 			for (auto it = sl.cbegin(); it != sl.cend(); ++it) // fix copy-paste
 			{
@@ -1476,6 +1480,37 @@ void NmdcHub::opListParse(const string& param)
 		myInfo(false);
 	}
 }
+//==========================================================================================
+void NmdcHub::getUserList(OnlineUserList& p_list) const
+{
+	CFlyReadLock(*m_cs);
+	p_list.reserve(m_users.size());
+	for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
+	{
+		p_list.push_back(i->second);
+	}
+}
+//==========================================================================================
+void NmdcHub::AutodetectInit()
+{
+#ifdef RIP_USE_CONNECTION_AUTODETECT
+	m_bAutodetectionPending = true;
+	m_iRequestCount = 0;
+	resetDetectActiveConnection();
+#endif
+	m_bLastMyInfoCommand = DIDNT_GET_YET_FIRST_MYINFO;
+}
+//==========================================================================================
+#ifdef RIP_USE_CONNECTION_AUTODETECT
+void NmdcHub::AutodetectComplete()
+{
+	m_bAutodetectionPending = false;
+	m_iRequestCount = 0;
+	setDetectActiveConnection();
+	// send MyInfo, to update state on hub
+	myInfo(true);
+}
+#endif // RIP_USE_CONNECTION_AUTODETECT
 //==========================================================================================
 void NmdcHub::toParse(const string& param)
 {
@@ -1520,14 +1555,14 @@ void NmdcHub::toParse(const string& param)
 			// Assume it's from the hub
 			message->m_replyTo = getUser(rtNick, false, false); // [!] IRainman fix: use OnlineUserPtr
 			message->m_replyTo->getIdentity().setHub();
-			fire(ClientListener::UserUpdated(), message->m_replyTo); // !SMT!-fix
+			fly_fire1(ClientListener::UserUpdated(), message->m_replyTo); // !SMT!-fix
 		}
 		if (message->m_from == nullptr)
 		{
 			// Assume it's from the hub
 			message->m_from = getUser(fromNick, false, false); // [!] IRainman fix: use OnlineUserPtr
 			message->m_from->getIdentity().setHub();
-			fire(ClientListener::UserUpdated(), message->m_from); // !SMT!-fix
+			fly_fire1(ClientListener::UserUpdated(), message->m_from); // !SMT!-fix
 		}
 		
 		// Update pointers just in case they've been invalidated
@@ -1540,14 +1575,14 @@ void NmdcHub::toParse(const string& param)
 	// [+]IRainman fix: message from you to you is not allowed! Block magical spam.
 	if (message->m_to->getUser() == message->m_from->getUser() && message->m_from->getUser() == message->m_replyTo->getUser())
 	{
-		fire(ClientListener::StatusMessage(), this, message->m_text, ClientListener::FLAG_IS_SPAM);
+		fly_fire3(ClientListener::StatusMessage(), this, message->m_text, ClientListener::FLAG_IS_SPAM);
 		LogManager::message("Magic spam message (from you to you) filtered on hub: " + getHubUrl() + ".");
 		return;
 	}
 	if (!allowPrivateMessagefromUser(*message)) // [+] IRainman fix.
 		return;
 		
-	fire(ClientListener::Message(), this, message); // [+]
+	fly_fire2(ClientListener::Message(), this, message); // [+]
 }
 //==========================================================================================
 void NmdcHub::onLine(const string& aLine)
@@ -1701,18 +1736,19 @@ void NmdcHub::onLine(const string& aLine)
 		dcassert(m_client_sock);
 		if (m_client_sock)
 			m_client_sock->disconnect(false);
-		fire(ClientListener::Redirect(), this, param);
+		fly_fire2(ClientListener::Redirect(), this, param);
 	}
 	else if (cmd == "HubIsFull")
 	{
-		fire(ClientListener::HubFull(), this);
+		fly_fire1(ClientListener::HubFull(), this);
 	}
 	else if (cmd == "ValidateDenide")        // Mind the spelling...
 	{
 		dcassert(m_client_sock);
 		if (m_client_sock)
 			m_client_sock->disconnect(false);
-		fire(ClientListener::NickTaken(), this);
+		fly_fire1(ClientListener::NickTaken(), this);
+		//m_count_validate_denide++;
 	}
 	else if (cmd == "UserIP")
 	{
@@ -1753,7 +1789,7 @@ void NmdcHub::onLine(const string& aLine)
 	}
 	else if (cmd == "HubTopic")
 	{
-		fire(ClientListener::HubTopic(), this, param);
+		fly_fire2(ClientListener::HubTopic(), this, param);
 	}
 	// [+] IRainman.
 	else if (cmd == "LogedIn")
@@ -1776,7 +1812,7 @@ void NmdcHub::onLine(const string& aLine)
 		dcdebug("NmdcHub::onLine Unknown command %s\n", aLine.c_str());
 		string l_message;
 		{
-			FastLock l(g_unknown_cs);
+			CFlyFastLock(g_unknown_cs);
 			g_unknown_command_array[getHubUrl()][cmd]++;
 			auto& l_item = g_unknown_command[cmd + "[" + getHubUrl() + "]"];
 			l_item.second++;
@@ -1796,7 +1832,7 @@ void NmdcHub::onLine(const string& aLine)
 }
 string NmdcHub::get_all_unknown_command()
 {
-	FastLock l(g_unknown_cs);
+	CFlyFastLock(g_unknown_cs);
 	string l_message;
 	for (auto i = g_unknown_command_array.cbegin(); i != g_unknown_command_array.cend(); ++i)
 	{
@@ -1813,7 +1849,7 @@ string NmdcHub::get_all_unknown_command()
 void NmdcHub::log_all_unknown_command()
 {
 	{
-		FastLock l(g_unknown_cs);
+		CFlyFastLock(g_unknown_cs);
 		for (auto i = g_unknown_command.cbegin(); i != g_unknown_command.cend(); ++i)
 		{
 			const string l_message = "NmdcHub::onLine summary unknown command! Count = " +
@@ -1929,11 +1965,17 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 	else
 	{
 		if (SETTING(OUTGOING_CONNECTIONS) == SettingsManager::OUTGOING_SOCKS5)
+		{
 			l_modeChar = '5';
+		}
 		else if (isActive())
+		{
 			l_modeChar = 'A';
+		}
 		else
+		{
 			l_modeChar = 'P';
+		}
 	}
 	const int64_t upLimit = BOOLSETTING(THROTTLE_ENABLE) ? ThrottleManager::getInstance()->getUploadLimitInKBytes() : 0;// [!] IRainman SpeedLimiter
 	const string uploadSpeed = (upLimit > 0) ? Util::toString(upLimit) + " KiB/s" : SETTING(UPLOAD_SPEED); // [!] IRainman SpeedLimiter
@@ -1967,31 +2009,42 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 	string l_currentMyInfo;
 	l_currentMyInfo.resize(256);
 	const string l_version = getClientName() + " V:" + getTagVersion();
-	string l_description;
-	if (isFlySupportHub())
+	string l_ExtJSONSupport;
+	if (m_supportFlags & SUPPORTS_EXTJSON)
 	{
-		l_description = MappingManager::getPortmapInfo(false, false);
-		if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAddSupportHub))
+		l_ExtJSONSupport = MappingManager::getPortmapInfo(false, false);
+		if (isFlySupportHub())
 		{
-			l_description += "+Promo";
+			if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAddSupportHub))
+			{
+				l_ExtJSONSupport += "+Promo";
+			}
+			if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAddFirstSupportHub))
+			{
+				l_ExtJSONSupport += "+PromoF";
+			}
+			if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAdd1251SupportHub))
+			{
+				l_ExtJSONSupport += "+PromoL";
+			}
+			if (isDetectActiveConnection())
+			{
+				l_ExtJSONSupport += "+TCP(ok)";
+			}
 		}
-		if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAddFirstSupportHub))
+		if (CompatibilityManager::g_is_teredo)
 		{
-			l_description += "+PromoF";
+			l_ExtJSONSupport += "+Teredo";
 		}
-		if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAdd1251SupportHub))
+		if (CompatibilityManager::g_is_ipv6_enabled)
 		{
-			l_description += "+PromoL";
+			l_ExtJSONSupport += "+IPv6";
 		}
-	}
-	else
-	{
-		l_description = getCurrentDescription();
 	}
 	l_currentMyInfo.resize(_snprintf(&l_currentMyInfo[0], l_currentMyInfo.size() - 1, "$MyINFO $ALL %s %s<%s,M:%c,H:%s,S:%d"
 	                                 ">$ $%s%c$%s$",
 	                                 fromUtf8(getMyNick()).c_str(),
-	                                 fromUtf8Chat(escape(l_description)).c_str(),
+	                                 fromUtf8Chat(escape(getCurrentDescription())).c_str(),
 	                                 l_version.c_str(), // [!] IRainman mimicry function.
 	                                 l_modeChar,
 	                                 currentCounts.c_str(),
@@ -2013,7 +2066,7 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 	}
 #endif
 	const bool l_is_change_my_info = (l_currentBytesShared != m_lastBytesShared && m_lastUpdate + l_limit < currentTick) || l_currentMyInfo != m_lastMyInfo;
-	const bool l_is_change_fly_info = g_version_fly_info != m_version_fly_info || m_lastExtJSONInfo.empty();
+	const bool l_is_change_fly_info = g_version_fly_info != m_version_fly_info || m_lastExtJSONInfo.empty() || m_lastExtJSONSupport != l_ExtJSONSupport;
 	if (p_always_send || l_is_change_my_info || l_is_change_fly_info)
 	{
 		if (l_is_change_my_info)
@@ -2026,6 +2079,7 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 #ifdef FLYLINKDC_USE_EXT_JSON
 		if ((m_supportFlags & SUPPORTS_EXTJSON) && l_is_change_fly_info)
 		{
+			m_lastExtJSONSupport = l_ExtJSONSupport;
 			m_version_fly_info = g_version_fly_info;
 			Json::Value l_json_info;
 			if (!SETTING(FLY_LOCATOR_COUNTRY).empty())
@@ -2035,6 +2089,8 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 			if (!SETTING(FLY_LOCATOR_ISP).empty())
 				l_json_info["ISP"] = SETTING(FLY_LOCATOR_ISP).substr(0, 30);
 			l_json_info["Gender"] = SETTING(FLY_GENDER) + 1;
+			if (!l_ExtJSONSupport.empty())
+				l_json_info["Support"] = l_ExtJSONSupport;
 			if (!getHideShare())
 			{
 				if (const auto l_count_files = ShareManager::getLastSharedFiles())
@@ -2242,17 +2298,17 @@ void NmdcHub::privateMessage(const OnlineUserPtr& aUser, const string& aMessage,
 	
 	privateMessage(aUser->getIdentity().getNick(), aMessage, thirdPerson);
 	// Emulate a returning message...
-	// Lock l(cs); // !SMT!-fix: no data to lock
+	// CFlyLock(cs); // !SMT!-fix: no data to lock
 	
 	// [!] IRainman fix.
 	const OnlineUserPtr& me = getMyOnlineUser();
-	// fire(ClientListener::PrivateMessage(), this, getMyNick(), me, aUser, me, '<' + getMyNick() + "> " + aMessage, thirdPerson); // !SMT!-S [-] IRainman fix.
+	// fly_fire1(ClientListener::PrivateMessage(), this, getMyNick(), me, aUser, me, '<' + getMyNick() + "> " + aMessage, thirdPerson); // !SMT!-S [-] IRainman fix.
 	
 	unique_ptr<ChatMessage> message(new ChatMessage(aMessage, me, aUser, me, thirdPerson));
 	if (!allowPrivateMessagefromUser(*message))
 		return;
 		
-	fire(ClientListener::Message(), this, message);
+	fly_fire2(ClientListener::Message(), this, message);
 	// [~] IRainman fix.
 }
 
@@ -2310,7 +2366,7 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 	if (p_is_disable_fire == false)
 	{
 		/*
-		webrtc::WriteLockScoped l(*m_cs);
+		CFlyWriteLock(*m_cs);
 		if (m_ext_json_deferred.find(l_nick) == m_ext_json_deferred.end())
 		{
 		    m_ext_json_deferred.insert(std::make_pair(l_nick, param));
@@ -2342,6 +2398,7 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 			ou->getIdentity().setStringParam("F2", l_root["City"].asString());
 			ou->getIdentity().setStringParam("F3", l_root["ISP"].asString());
 			ou->getIdentity().setStringParam("F4", l_root["Gender"].asString());
+			ou->getIdentity().setExtJSONSupportInfo(l_root["Support"].asString());
 			ou->getIdentity().setExtJSONRAMWorkingSet(l_root["RAM"].asInt());
 			ou->getIdentity().setExtJSONRAMPeakWorkingSet(l_root["RAMPeak"].asInt());
 			ou->getIdentity().setExtJSONRAMFree(l_root["RAMFree"].asInt());
@@ -2352,7 +2409,7 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 			ou->getIdentity().setExtJSONlevelDBHistSize(l_root["LDBHistSize"].asInt());
 			ou->getIdentity().setExtJSONSQLiteDBSizeFree(l_root["SQLFree"].asInt());
 			ou->getIdentity().setExtJSONQueueFiles(l_root["QueueFiles"].asInt());
-			ou->getIdentity().setExtJSONQueueSrc(l_root["QueueSrc"].asInt());
+			ou->getIdentity().setExtJSONQueueSrc(l_root["QueueSrc"].asInt64()); //TODO - временны баг - тут 32 бита
 			ou->getIdentity().setExtJSONTimesStartCore(l_root["StartCore"].asInt());
 			ou->getIdentity().setExtJSONTimesStartGUI(l_root["StartGUI"].asInt());
 			
@@ -2360,7 +2417,7 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 			{
 				if (p_is_disable_fire == false)
 				{
-					fire(ClientListener::UserUpdated(), ou); // TODO обновлять только JSON
+					fly_fire1(ClientListener::UserUpdated(), ou); // TODO обновлять только JSON
 				}
 			}
 		}
@@ -2377,6 +2434,7 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 
 void NmdcHub::myInfoParse(const string& param)
 {
+	dcassert(!ClientManager::isShutdown());
 	string::size_type i = 5;
 	string::size_type j = param.find(' ', i);
 	if (j == string::npos || j == i)
@@ -2467,7 +2525,7 @@ void NmdcHub::myInfoParse(const string& param)
 #ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
 	if (l_is_only_desc_change && !ClientManager::isShutdown())
 	{
-		fire(ClientListener::UserDescUpdated(), ou);
+		fly_fire1(ClientListener::UserDescUpdated(), ou);
 		return;
 	}
 #endif // FLYLINKDC_USE_CHECK_CHANGE_MYINFO 
@@ -2540,7 +2598,7 @@ void NmdcHub::myInfoParse(const string& param)
 	}
 	changeBytesSharedL(ou->getIdentity(), l_share_size);
 	{
-		FastLock l(m_cs_virus);
+		CFlyFastLock(m_cs_virus);
 		if (m_virus_nick.find(l_nick) == m_virus_nick.end())
 		{
 			if (CFlylinkDBManager::getInstance()->is_virus_bot(l_nick, l_share_size, ou->getIdentity().m_is_real_user_ip_from_hub ? ou->getIdentity().getIpRAW() : boost::asio::ip::address_v4()))
@@ -2552,7 +2610,7 @@ void NmdcHub::myInfoParse(const string& param)
 #ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
 	if (l_is_change_only_share && !ClientManager::isShutdown())
 	{
-		fire(ClientListener::UserShareUpdated(), ou);
+		fly_fire1(ClientListener::UserShareUpdated(), ou);
 		return;
 	}
 #endif // FLYLINKDC_USE_CHECK_CHANGE_MYINFO 
@@ -2563,7 +2621,7 @@ void NmdcHub::myInfoParse(const string& param)
 		/*
 		string l_ext_json_param;
 		{
-		    webrtc::ReadLockScoped l(*m_cs);
+		    CFlyReadLock(*m_cs);
 		    const auto l_find_ext_json = m_ext_json_deferred.find(l_nick);
 		    if (l_find_ext_json != m_ext_json_deferred.end())
 		    {
@@ -2573,13 +2631,17 @@ void NmdcHub::myInfoParse(const string& param)
 		if (!l_ext_json_param.empty())
 		{
 		    extJSONParse(l_ext_json_param, true);
-		    webrtc::WriteLockScoped l(*m_cs);
+		    CFlyWriteLock(*m_cs);
 		    //m_ext_json_deferred.erase(l_nick);
 		}
 		*/
 		
 #endif
-		fire(ClientListener::UserUpdated(), ou); // !SMT!-fix
+		dcassert(!ClientManager::isShutdown());
+		if (!ClientManager::isShutdown())
+		{
+			fly_fire1(ClientListener::UserUpdated(), ou); // !SMT!-fix
+		}
 	}
 }
 
@@ -2680,7 +2742,7 @@ void NmdcHub::on(BufferedSocketListener::SearchArrayFile, const CFlySearchArrayF
 
 void NmdcHub::on(BufferedSocketListener::DDoSSearchDetect, const string& p_error) noexcept
 {
-	fire(ClientListener::DDoSSearchDetect(), p_error);
+	fly_fire1(ClientListener::DDoSSearchDetect(), p_error);
 }
 
 void NmdcHub::on(BufferedSocketListener::MyInfoArray, StringList& p_myInfoArray) noexcept
@@ -2706,7 +2768,7 @@ void NmdcHub::on(BufferedSocketListener::Line, const string& aLine) noexcept
 #ifdef IRAINMAN_INCLUDE_PROTO_DEBUG_FUNCTION
 		if (BOOLSETTING(NMDC_DEBUG))
 		{
-			fire(ClientListener::StatusMessage(), this, "<NMDC>" + toUtf8(aLine) + "</NMDC>");
+			fly_fire2(ClientListener::StatusMessage(), this, "<NMDC>" + toUtf8(aLine) + "</NMDC>");
 		}
 #endif
 		onLine(aLine);
@@ -2734,7 +2796,7 @@ void NmdcHub::RequestConnectionForAutodetect()
 			if (bWantAutodetect)
 			{
 			
-				webrtc::ReadLockScoped l(*m_cs);
+				CFlyReadLock(*m_cs);
 				for (auto i = m_users.cbegin(); i != m_users.cend() && m_iRequestCount < c_MAX_CONNECTION_REQUESTS_COUNT; ++i)
 				{
 					if (i->second->getIdentity().isBot() ||

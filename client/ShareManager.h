@@ -425,7 +425,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		uint64_t m_lastXmlUpdate;
 		uint64_t m_lastFullUpdate;
 		
-		static FastCriticalSection g_csTTHIndex;
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csTTHIndex;
 		static FastCriticalSection g_csBloom;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShare;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShareNotExists;
@@ -454,7 +454,6 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		//[+]IRainman opt.
 		static bool g_isNeedsUpdateShareSize;
 		static int64_t g_CurrentShareSize;
-		static bool g_isShutdown;
 		static bool g_ignoreFileSizeHFS;
 		static int g_RebuildIndexes;
 		//[~]IRainman
@@ -476,8 +475,8 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		//[~]IRainman
 		void rebuildIndicesL();
 		
-		void updateIndicesL(Directory& aDirectory);
-		void updateIndicesL(Directory& dir, const Directory::ShareFile::Set::iterator& i);
+		bool updateIndicesDirL(Directory& aDirectory);
+		bool updateIndicesL(Directory& dir, const Directory::ShareFile::Set::iterator& i);
 		
 		Directory::Ptr mergeL(const Directory::Ptr& directory);
 		
@@ -506,10 +505,6 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		__int64 rebuildMediainfo(Directory& p_dir, CFlyLog& p_log, ShareManager::MediainfoFileArray& p_result);
 #endif
 		void shutdown();
-		static bool isShutdown() // TODO унести в интерфейсный класс - друган Singleton-а
-		{
-			return g_isShutdown;
-		}
 		static void setIgnoreFileSizeHFS()
 		{
 			g_ignoreFileSizeHFS = true;

@@ -110,7 +110,7 @@ uint32_t IPList::add(const std::string& IPNumber, uint32_t maskLevel)
 uint32_t IPList::getMaskByLevel(uint32_t maskLevel)
 {
 	uint32_t umask = INADDR_NONE;
-//	FastLock l(m_cs);  лок не нужен (контейнер не меняется)
+//	CFlyFastLock(m_cs);  лок не нужен (контейнер не меняется)
 	for (auto it = m_maskList.begin(); it != m_maskList.end(); ++it)
 	{
 		if (it->second == maskLevel)
@@ -298,7 +298,7 @@ bool IPList::checkIp(UINT32 ip)
 {
 	bool found = false;
 	size_t i = 0;
-	FastLock l(m_cs);
+	CFlyFastLock(m_cs);
 	while (!found && i < m_usedList.size())
 	{
 		found = m_ipRangeList[m_usedList[i]].check(ip); // TODO: Please optimize my searching faster than brute force search!
@@ -309,7 +309,7 @@ bool IPList::checkIp(UINT32 ip)
 
 void IPList::clear()
 {
-	FastLock l(m_cs);
+	CFlyFastLock(m_cs);
 	for (size_t i = 0; i < m_usedList.size(); i++)
 		m_ipRangeList[m_usedList[i]].clear();
 		

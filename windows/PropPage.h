@@ -72,44 +72,10 @@ class PropPage
 #endif
 		END_MSG_MAP()
 #ifdef SCALOLAZ_PROPPAGE_COLOR
-		LRESULT OnCtlColorDlg(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-		{
-			if (BOOLSETTING(SETTINGS_WINDOW_COLORIZE))
-			{
-				m_hDialogBrush = CreateSolidBrush(Colors::g_bgColor /*GetSysColor(COLOR_BTNFACE)*/); // [!] IRainman fix.
-				return LRESULT(m_hDialogBrush);
-			}
-			else
-			{
-				return 0;
-			}
-		}
-		LRESULT OnCtlColorStatic(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-		{
-			if (BOOLSETTING(SETTINGS_WINDOW_COLORIZE))
-			{
-				HDC hdc = (HDC)wParam;
-				SetBkMode(hdc, TRANSPARENT);
-				return LRESULT(m_hDialogBrush);
-			}
-			else
-			{
-				return 0;
-			}
-		}
+		LRESULT OnCtlColorDlg(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+		LRESULT OnCtlColorStatic(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 		/*
-		LRESULT OnEraseBackground(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-		{
-		    if (BOOLSETTING(SETTINGS_WINDOW_COLORIZE))
-		    {
-		        //  m_hDialogBrush = CreateSolidBrush( RGB(250, 250, 250) );    // Custom BG color
-		        return 1;
-		    }
-		    else
-		    {
-		        return 0;
-		    }
-		}
+		LRESULT OnEraseBackground(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 		*/
 		HBRUSH m_hDialogBrush;
 #endif

@@ -312,6 +312,9 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		void shutdown();
 		void addTask(Tasks task, TaskData* data);
 		void addTaskL(Tasks task, TaskData* data);
+	private:
+		void BufferedSocket::parseMyINfoAndSearch(StringList& p_all_myInfo, CFlySearchArrayTTH& p_tth_search, CFlySearchArrayFile& p_file_search);
+		
 };
 
 #endif // !defined(BUFFERED_SOCKET_H)

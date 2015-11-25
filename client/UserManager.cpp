@@ -41,7 +41,7 @@ StringList UserManager::g_protectedUsersLower;
 void UserManager::saveIgnoreList()
 {
 
-	webrtc::ReadLockScoped l(*g_csIgnoreList);
+	CFlyReadLock(*g_csIgnoreList);
 	dcassert(g_ignoreListLoaded); // [!] IRainman fix: You can not save the ignore list if it was not pre-loaded - it will erase the data!
 	CFlylinkDBManager::getInstance()->save_ignore(g_ignoreList);
 	g_isEmptyIgnoreList = g_ignoreList.empty();
@@ -49,7 +49,7 @@ void UserManager::saveIgnoreList()
 
 UserManager::UserManager()
 {
-	webrtc::WriteLockScoped l(*g_csIgnoreList);
+	CFlyWriteLock(*g_csIgnoreList);
 	dcassert(!g_ignoreListLoaded);
 	CFlylinkDBManager::getInstance()->load_ignore(g_ignoreList);
 	g_isEmptyIgnoreList = g_ignoreList.empty();
@@ -66,7 +66,7 @@ UserManager::~UserManager()
 UserManager::PasswordStatus UserManager::checkPrivateMessagePassword(const ChatMessage& pm)
 {
 	const UserPtr& user = pm.m_replyTo->getUser();
-	FastLock l(g_csPsw);
+	CFlyFastLock(g_csPsw);
 	if (checkedPasswordUsers.find(user) != checkedPasswordUsers.cend())
 	{
 		return FREE;
@@ -123,12 +123,12 @@ void UserManager::on(SettingsManagerListener::UsersChanges) noexcept
 {
 	auto protUsers = SPLIT_SETTING_AND_LOWER(PROT_USERS);
 	
-	webrtc::WriteLockScoped l(*g_csProtectedUsers);
+	CFlyWriteLock(*g_csProtectedUsers);
 	swap(g_protectedUsersLower, protUsers);
 }
 bool UserManager::expectPasswordFromUser(const UserPtr& user)
 {
-	FastLock l(g_csPsw);
+	CFlyFastLock(g_csPsw);
 	auto i = waitingPasswordUsers.find(user);
 	if (i == waitingPasswordUsers.end())
 	{
@@ -149,7 +149,7 @@ bool UserManager::expectPasswordFromUser(const UserPtr& user)
 tstring UserManager::getIgnoreListAsString()
 {
 	tstring l_result;
-	webrtc::ReadLockScoped l(*g_csIgnoreList);
+	CFlyReadLock(*g_csIgnoreList);
 	for (auto i = g_ignoreList.cbegin(); i != g_ignoreList.cend(); ++i)
 	{
 		l_result += _T(' ') + Text::toT((*i));
@@ -162,11 +162,11 @@ void UserManager::openUserUrl(const UserPtr& aUser)
 	const string& url = FavoriteManager::getUserUrl(aUser);
 	if (!url.empty())
 	{
-		fire(UserManagerListener::OpenHub(), url);
+		fly_fire1(UserManagerListener::OpenHub(), url);
 	}
 }
 bool UserManager::isInProtectedUserList(const string& userName)
 {
-	webrtc::ReadLockScoped l(*g_csProtectedUsers);
+	CFlyReadLock(*g_csProtectedUsers);
 	return Wildcard::patternMatchLowerCase(Text::toLower(userName), g_protectedUsersLower, false);
 }

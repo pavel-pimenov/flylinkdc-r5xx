@@ -58,7 +58,7 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 		/** @return Number of downloads. */
 		static size_t getDownloadCount()
 		{
-			//webrtc::ReadLockScoped l(*g_csDownload);
+			//CFlyReadLock(*g_csDownload);
 			return g_download_map.size();
 		}
 		

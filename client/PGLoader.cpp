@@ -116,7 +116,7 @@ void PGLoader::load(const string& p_data /*= Util::emptyString*/)
 		l_data = p_data;
 	}
 	
-	FastLock l(m_cs);
+	CFlyFastLock(m_cs);
 	l_IPTrust_log.step("parse IPTrust.ini");
 	m_ipTrustListAllow.clear();
 	m_ipTrustListBlock.clear();
@@ -151,7 +151,7 @@ bool PGLoader::check(uint32_t p_ip4)
 	static boost::atomic_int g_count(0);
 	dcdebug("PGLoader::check  count = %d\n", int(++g_count));
 #endif
-	FastLock l(m_cs);
+	CFlyFastLock(m_cs);
 	if (!m_ipTrustListBlock.empty())
 	{
 		if (m_ipTrustListBlock.checkIp(p_ip4))

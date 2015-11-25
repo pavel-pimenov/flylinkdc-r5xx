@@ -182,7 +182,7 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 	dcassert(m_state == STARTING);
 	
 	dcdebug("threadConnect %s:%d/%d\n", aAddr.c_str(), (int)localPort, (int)aPort);
-	fire(BufferedSocketListener::Connecting());
+	fly_fire(BufferedSocketListener::Connecting());
 	
 	const uint64_t endTime = GET_TICK() + LONG_TIMEOUT;
 	m_state = RUNNING;
@@ -220,7 +220,7 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 					if (!socketIsDisconecting())
 					{
 						resizeInBuf();
-						fire(BufferedSocketListener::Connected()); //[1] https://www.box.net/shared/52748dbc4f8a46f0a71b
+						fly_fire(BufferedSocketListener::Connected());
 					}
 					return;
 				}
@@ -240,7 +240,7 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 			if (connSucceeded)
 			{
 			    resizeInBuf();
-			    fire(BufferedSocketListener::Connected());
+			    fly_fire1(__FUNCTION__,BufferedSocketListener::Connected());
 			    return;
 			}
 			[~] IRainman fix end*/
@@ -289,9 +289,9 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
                                        CFlySearchArrayFile& p_file_search)
 {
 	extern bool g_isStartupProcess;
-	if (g_isStartupProcess == false && p_line.compare(0, 8, "$Search ", 8) == 0)
+	if (p_line.compare(0, 8, "$Search ", 8) == 0)
 	{
-		if (m_is_hide_share == false)
+		if (m_is_hide_share == false && g_isStartupProcess == false)
 		{
 			const string l_line_item = p_line.substr(0, p_pos_next_separator);
 			auto l_marker_tth = l_line_item.find("?0?9?TTH:");
@@ -327,7 +327,7 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 						LogManager::message(l_error);
 						if (!m_count_search_ddos)
 						{
-							fire(BufferedSocketListener::DDoSSearchDetect(), l_error);
+							fly_fire1(BufferedSocketListener::DDoSSearchDetect(), l_error);
 						}
 						m_count_search_ddos++;
 					}
@@ -389,7 +389,7 @@ void BufferedSocket::all_myinfo_parser(const string::size_type p_pos_next_separa
 		{
 			if (!p_all_myInfo.empty())
 			{
-				fire(BufferedSocketListener::MyInfoArray(), p_all_myInfo); // [+]PPA
+				fly_fire1(BufferedSocketListener::MyInfoArray(), p_all_myInfo);
 			}
 			set_all_my_info_loaded(); // закончился стартовый поток $MyINFO
 		}
@@ -418,7 +418,7 @@ void BufferedSocket::all_myinfo_parser(const string::size_type p_pos_next_separa
 #endif
 			if (!ClientManager::isShutdown())
 			{
-				fire(BufferedSocketListener::Line(), l_line_item); // TODO - отказаться от временной переменной l и скользить по окну inbuf
+				fly_fire1(BufferedSocketListener::Line(), l_line_item); // TODO - отказаться от временной переменной l и скользить по окну inbuf
 			}
 		}
 	}
@@ -449,11 +449,30 @@ void BufferedSocket::all_myinfo_parser(const string::size_type p_pos_next_separa
                                         const auto l_stop = boost::asio::ip::address_v4::from_string("240.200.17.18", ec);
                                         boost::asio::ip::address_v4 l_rnd_ip(Util::rand(l_start.to_ulong(), l_stop.to_ulong()));
                                         snprintf(bbb, sizeof(bbb), "$UserIP Guest%d %s$$", i, l_rnd_ip.to_string().c_str());
-                                        fire(BufferedSocketListener::Line(), bbb);
+                                        fly_fire1(BufferedSocketListener::Line(), bbb);
                                     }
 #endif
 
 */
+void BufferedSocket::parseMyINfoAndSearch(
+    StringList& p_all_myInfo,
+    CFlySearchArrayTTH& p_tth_search,
+    CFlySearchArrayFile& p_file_search)
+{
+	if (!p_all_myInfo.empty())
+	{
+		fly_fire1(BufferedSocketListener::MyInfoArray(), p_all_myInfo);
+	}
+	if (!p_tth_search.empty())
+	{
+		fly_fire1(BufferedSocketListener::SearchArrayTTH(), p_tth_search);
+	}
+	if (!p_file_search.empty())
+	{
+		fly_fire1(BufferedSocketListener::SearchArrayFile(), p_file_search);
+	}
+}
+
 void BufferedSocket::threadRead()
 {
 	if (m_state != RUNNING)
@@ -533,25 +552,13 @@ void BufferedSocket::threadRead()
 						}
 						l.erase(0, l_zpos + 1 /* separator char */); //[3] https://www.box.net/shared/74efa5b96079301f7194
 					}
-					// store remainder
-					if (!l_all_myInfo.empty())
-					{
-						fire(BufferedSocketListener::MyInfoArray(), l_all_myInfo);
-					}
-					if (!l_tth_search.empty())
-					{
-						fire(BufferedSocketListener::SearchArrayTTH(), l_tth_search);
-					}
-					if (!l_file_search.empty())
-					{
-						fire(BufferedSocketListener::SearchArrayFile(), l_file_search);
-					}
+					parseMyINfoAndSearch(l_all_myInfo, l_tth_search, l_file_search);
 #else
 				// process all lines
 				while ((pos = l.find(m_separator)) != string::npos)
 				{
 					if (pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
-						fire(BufferedSocketListener::Line(), l.substr(0, pos));
+						fly_fire1(__FUNCTION__, BufferedSocketListener::Line(), l.substr(0, pos));
 					l.erase(0, pos + 1 /* separator char */); // TODO не эффективно
 				}
 #endif
@@ -639,19 +646,7 @@ void BufferedSocket::threadRead()
 							break;
 						}
 					}
-					//
-					if (!l_all_myInfo.empty())
-					{
-						fire(BufferedSocketListener::MyInfoArray(), l_all_myInfo); // [+]PPA
-					}
-					if (!l_tth_search.empty())
-					{
-						fire(BufferedSocketListener::SearchArrayTTH(), l_tth_search);
-					}
-					if (!l_file_search.empty())
-					{
-						fire(BufferedSocketListener::SearchArrayFile(), l_file_search);
-					}
+					parseMyINfoAndSearch(l_all_myInfo, l_tth_search, l_file_search);
 				}
 				else
 				{
@@ -677,7 +672,7 @@ void BufferedSocket::threadRead()
 				{
 					if (m_dataBytes == -1)
 					{
-						fire(BufferedSocketListener::Data(), &m_inbuf[l_bufpos], l_left);
+						fly_fire2(BufferedSocketListener::Data(), &m_inbuf[l_bufpos], l_left);
 						l_bufpos += (l_left - m_rollback);
 						l_left = m_rollback;
 						m_rollback = 0;
@@ -688,7 +683,7 @@ void BufferedSocket::threadRead()
 						//dcassert(high != 0);
 						if (high != 0) // [+] IRainman fix.
 						{
-							fire(BufferedSocketListener::Data(), &m_inbuf[l_bufpos], high);
+							fly_fire2(BufferedSocketListener::Data(), &m_inbuf[l_bufpos], high);
 							l_bufpos += high;
 							l_left -= high;
 							
@@ -701,7 +696,7 @@ void BufferedSocket::threadRead()
 							LogManager::message("BufferedSocket:: = MODE_LINE [1]");
 #endif;
 #ifdef FLYLINKDC_USE_CROOKED_HTTP_CONNECTION
-							fire(BufferedSocketListener::ModeChange());
+							fly_fire(BufferedSocketListener::ModeChange());
 #endif
 							break; // [DC++] break loop, in case setDataMode is called with less than read buffer size
 						}
@@ -805,7 +800,7 @@ void BufferedSocket::threadSendFile(InputStream* file)
 			
 			if (bytesRead > 0)
 			{
-				fire(BufferedSocketListener::BytesSent(), bytesRead, 0);
+				fly_fire2(BufferedSocketListener::BytesSent(), bytesRead, 0);
 				// Инфу о том что считали с диск не шлем фаером
 			}
 			
@@ -831,7 +826,7 @@ void BufferedSocket::threadSendFile(InputStream* file)
 		
 		if (readDone && readPos == 0)
 		{
-			fire(BufferedSocketListener::TransmitDone());
+			fly_fire(BufferedSocketListener::TransmitDone());
 			return;
 		}
 		
@@ -863,8 +858,7 @@ void BufferedSocket::threadSendFile(InputStream* file)
 			if (written > 0)
 			{
 				writePos += written;
-				
-				fire(BufferedSocketListener::BytesSent(), 0, written);
+				fly_fire2(BufferedSocketListener::BytesSent(), 0, written);
 			}
 			else if (written == -1)
 			{
@@ -879,7 +873,7 @@ void BufferedSocket::threadSendFile(InputStream* file)
 					
 					if (bytesRead > 0)
 					{
-						fire(BufferedSocketListener::BytesSent(), bytesRead, 0);
+						fly_fire2(BufferedSocketListener::BytesSent(), bytesRead, 0);
 					}
 					
 					if (actual == 0)
@@ -915,7 +909,7 @@ void BufferedSocket::write(const char* aBuf, size_t aLen)
 {
 	if (!hasSocket())
 		return;
-	FastLock l(cs);
+	CFlyFastLock(cs);
 	if (m_writeBuf.empty())
 	{
 		addTaskL(SEND_DATA, nullptr);
@@ -935,7 +929,7 @@ void BufferedSocket::threadSendData()
 		return;
 	ByteVector l_sendBuf;
 	{
-		FastLock l(cs);
+		CFlyFastLock(cs);
 		if (m_writeBuf.empty())
 		{
 			dcassert(!m_writeBuf.empty());
@@ -980,7 +974,7 @@ bool BufferedSocket::checkEvents()
 	{
 		pair<Tasks, std::unique_ptr<TaskData>> p;
 		{
-			FastLock l(cs);
+			CFlyFastLock(cs);
 			if (!m_tasks.empty())
 			{
 				swap(p, m_tasks.front()); // [!] IRainman opt.
@@ -1005,7 +999,7 @@ bool BufferedSocket::checkEvents()
 		{
 			if (p.first == UPDATED)
 			{
-				fire(BufferedSocketListener::Updated());
+				fly_fire(BufferedSocketListener::Updated());
 				continue;
 			}
 			else if (p.first == SEND_DATA)
@@ -1141,7 +1135,7 @@ void BufferedSocket::fail(const string& aError)
 		// fix https://drdump.com/Problem.aspx?ProblemID=112938
 		// fix https://drdump.com/Problem.aspx?ProblemID=112262
 		// fix https://drdump.com/Problem.aspx?ProblemID=112195
-		fire(BufferedSocketListener::Failed(), aError);
+		fly_fire1(BufferedSocketListener::Failed(), aError);
 	}
 }
 
@@ -1173,7 +1167,7 @@ void BufferedSocket::shutdown()
 
 void BufferedSocket::addTask(Tasks p_task, TaskData* p_data)
 {
-	FastLock l(cs);
+	CFlyFastLock(cs);
 	addTaskL(p_task, p_data);
 }
 void BufferedSocket::addTaskL(Tasks p_task, TaskData* p_data)

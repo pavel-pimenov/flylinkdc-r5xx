@@ -104,7 +104,7 @@ void DHT::test_dht_port()
 	string l_external_ip;
 	std::vector<unsigned short> l_udp_port, l_tcp_port;
 	l_udp_port.push_back(SETTING(DHT_PORT));
-	bool l_is_udp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0);
+	const bool l_is_udp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0);
 	dcassert(l_is_udp_port_send);
 }
 void DHT::stop(bool exiting)
@@ -250,7 +250,7 @@ bool DHT::send(AdcCommand& cmd, const string& ip, uint16_t port, const CID& targ
 	{
 		{
 			// FW check
-			FastLock l(fwCheckCs);
+			CFlyFastLock(fwCheckCs);
 			if (requestFWCheck/* && (firewalledWanted.size() + firewalledChecks.size() < FW_RESPONSES)*/)
 			{
 				if (firewalledWanted.find(ip) == firewalledWanted.end()) // only when not requested from this node yet // [!] IRainman opt.
@@ -282,7 +282,7 @@ Node::Ptr DHT::createNode(const CID& cid, const string& ip, uint16_t port, bool 
 		// create user as offline (only TCP connected users will be online)
 		UserPtr u = ClientManager::getInstance()->getUser(cid,true);
 
-		FastLock l(cs);
+		CFlyFastLock(cs);
 		return m_bucket->createNode(u, ip, port, update, isUdpKeyValid);
 	}
 */
@@ -299,7 +299,7 @@ Node::Ptr DHT::addDHTNode(const CID& cid, const string& ip, uint16_t port, const
 		// https://drdump.com/DumpGroup.aspx?DumpGroupID=239463&Login=guest	
 		UserPtr u = ClientManager::getUser(cid, true); // TODO - утекает. если долго работать тут появляется много юзеров.
 		// а когда их удаляем?
-		FastLock l(cs);
+		CFlyFastLock(cs);
 		return m_bucket->addOrUpdate(u, ip, port, udpKey, update, isUdpKeyValid);
 	}
 	else
@@ -313,7 +313,7 @@ Node::Ptr DHT::addDHTNode(const CID& cid, const string& ip, uint16_t port, const
  */
 void DHT::getClosestNodes(const CID& cid, std::map<CID, Node::Ptr>& closest, unsigned int max, uint8_t maxType)
 {
-	FastLock l(cs);
+	CFlyFastLock(cs);
 	m_bucket->getClosestNodes(cid, closest, max, maxType);
 }
 
@@ -322,7 +322,7 @@ void DHT::getClosestNodes(const CID& cid, std::map<CID, Node::Ptr>& closest, uns
  */
 void DHT::checkExpiration(uint64_t aTick)
 {
-	FastLock l(fwCheckCs);
+	CFlyFastLock(fwCheckCs);
 	firewalledWanted.clear();
 }
 
@@ -465,7 +465,7 @@ void DHT::loadData()
  */
 void DHT::saveData()
 {
-	FastLock l(cs);
+	CFlyFastLock(cs);
 	m_bucket->saveNodes();
 }
 
@@ -670,7 +670,7 @@ void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t port, const UDP
 		}
 		else if (resTo == "FWCHECK")
 		{
-			FastLock l(fwCheckCs);
+			CFlyFastLock(fwCheckCs);
 			// [!] IRainman opt.
 			const auto j = firewalledWanted.find(fromIP); // [1] https://www.box.net/shared/4b2e554c75f77c3f9054
 			if (j == firewalledWanted.end())
@@ -808,7 +808,7 @@ void DHT::handle(AdcCommand::PSR, const string& p_ip, uint16_t port, const UDPKe
 void DHT::handle(AdcCommand::MSG, const string& /*ip*/, uint16_t /*port*/, const UDPKey& /*udpKey*/, const AdcCommand& /*c*/) noexcept
 {
 	// not implemented yet
-	//fire(ClientListener::PrivateMessage(), this, *node, to, node, c.getParam(0), c.hasFlag("ME", 1));
+	//fly_fire1(ClientListener::PrivateMessage(), this, *node, to, node, c.getParam(0), c.hasFlag("ME", 1));
 	
 	//privateMessage(*node, "Sorry, private messages aren't supported yet!", false);
 }

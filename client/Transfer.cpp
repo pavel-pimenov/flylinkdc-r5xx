@@ -55,7 +55,7 @@ Transfer::Transfer(UserConnection* p_conn, const string& p_path, const TTHValue&
 void Transfer::tick(uint64_t p_CurrentTick)
 {
 	//[!]IRainman refactoring transfer mechanism
-	FastLock l(m_cs);
+	CFlyFastLock(m_cs);
 	setLastTick(p_CurrentTick);
 	dcassert(!m_samples.empty());
 	if (!m_samples.empty()) // https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=57070
@@ -126,7 +126,7 @@ void Transfer::getParams(const UserConnection* aSource, StringMap& params) const
 void Transfer::setStart(uint64_t tick)
 {
 	m_start = tick;
-	FastLock l(m_cs);
+	CFlyFastLock(m_cs);
 	setLastTick(tick);
 	m_samples.push_back(Sample(m_start, 0));
 }

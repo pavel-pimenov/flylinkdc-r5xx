@@ -111,7 +111,7 @@ class IPList
 		uint32_t addRange(const std::string& fromIP, const std::string& toIP);
 		void addRangeListAndSort(uint32_t p_ip, uint32_t p_level)
 		{
-			FastLock l(m_cs);
+			CFlyFastLock(m_cs);
 			m_ipRangeList[p_level].add(p_ip);
 			if (std::find(m_usedList.begin(), m_usedList.end(), p_level) == m_usedList.end())
 			{
@@ -128,7 +128,7 @@ class IPList
 		~IPList();
 		bool empty()
 		{
-			FastLock l(m_cs);
+			CFlyFastLock(m_cs);
 			return m_usedList.empty();
 		}
 		void addLine(std::string& Line, CFlyLog& p_log);

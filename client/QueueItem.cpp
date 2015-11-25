@@ -40,7 +40,7 @@ QueueItem::QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, F
                      time_t aAdded, const TTHValue& p_tth, uint8_t p_maxSegments, int64_t p_FlyQueueID, const string& aTempTarget) :
 	target(aTarget),
 	m_tempTarget(aTempTarget),
-	maxSegments(std::max(uint8_t(1), p_maxSegments)), fileBegin(0),
+	maxSegments(std::max(uint8_t(1), p_maxSegments)), timeFileBegin(0),
 	size(aSize), m_priority(aPriority), added(aAdded),
 	autoPriority(false), nextPublishingTime(0), flyQueueID(p_FlyQueueID),
 	m_dirty(true),
@@ -75,7 +75,7 @@ QueueItem::~QueueItem()
 int16_t QueueItem::calcTransferFlagL(bool& partial, bool& trusted, bool& untrusted, bool& tthcheck, bool& zdownload, bool& chunked, double& ratio) const
 {
 	int16_t segs = 0;
-	// Пока убрал т.к. вешаемся. RLock l(*QueueItem::g_cs);
+	// Пока убрал т.к. вешаемся. RLock(*QueueItem::g_cs);
 	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 	{
 		const auto d = i->second;
@@ -211,7 +211,7 @@ void QueueItem::getOnlineUsers(UserList& list) const
 	//dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
-		RLock l(*QueueItem::g_cs); // [+] IRainman fix.
+		RLock(*QueueItem::g_cs); // [+] IRainman fix.
 		for (auto i = m_sources.cbegin(); i != m_sources.cend(); ++i)
 		{
 			if (i->first->isOnline())
@@ -237,7 +237,7 @@ void QueueItem::setSectionString(const string& p_section, bool p_is_first_load)
 		
 		if ((Sections.size() & 1) == 0)
 		{
-			WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+			WLock(*QueueItem::g_cs); // [+] IRainman fix.
 			for (auto i = Sections.cbegin(); i < Sections.cend(); i += 2)
 			{
 				int64_t l_start = Util::toInt64(i->c_str());
@@ -427,7 +427,7 @@ const string& QueueItem::getTempTarget()
 #ifdef _DEBUG
 bool QueueItem::isSourceValid(const QueueItem::Source* p_source_ptr)
 {
-	RLock l(*g_cs);
+	RLock(*g_cs);
 	for (auto i = m_sources.cbegin(); i != m_sources.cend(); ++i)
 	{
 		if (p_source_ptr == &i->second)
@@ -448,7 +448,7 @@ bool QueueItem::removeDownloadL(const UserPtr& p_user)
 	//dcassert(m_downloads.find(p_user) != m_downloads.end());
 	const auto l_size_before = m_downloads.size();
 	m_downloads.erase(p_user);
-	dcassert(l_size_before != m_downloads.size());
+	dcassert(l_size_before != m_downloads.size() || l_size_before == 0);
 	return l_size_before != m_downloads.size();
 }
 Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wantedSize, const int64_t lastSpeed, const PartialSource::Ptr &partialSource) const
@@ -723,20 +723,25 @@ string QueueItem::getSectionStringL()
 	}
 	return l_strSections;
 }
-uint64_t QueueItem::calcAverageSpeedAndCalcAndGetDownloadedBytesL() const // [!] IRainman opt.
+void QueueItem::calcDownloadedBytesL() const
 {
 	uint64_t l_totalDownloaded = 0;
-	uint64_t l_totalSpeed = 0; // Скорость 64 битная нужна?
-	// count done segments
 	for (auto i = m_done_segment.cbegin(); i != m_done_segment.cend(); ++i)
 	{
 		l_totalDownloaded += i->getSize();
 	}
+	m_downloadedBytes = l_totalDownloaded;
+}
+
+uint64_t QueueItem::calcAverageSpeedAndCalcAndGetDownloadedBytesL() const // [!] IRainman opt.
+{
+	uint64_t l_totalSpeed = 0; // Скорость 64 битная нужна?
+	calcDownloadedBytesL();
 	// count running segments
 	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 	{
 		const auto d = i->second;
-		l_totalDownloaded += d->getPos(); // [!] IRainman fix done: [6] https://www.box.net/shared/bcc1e978be39a1e0cbf6
+		m_downloadedBytes += d->getPos();
 		l_totalSpeed += d->getRunningAverage();
 	}
 	/*
@@ -748,7 +753,6 @@ uint64_t QueueItem::calcAverageSpeedAndCalcAndGetDownloadedBytesL() const // [!]
 	#endif
 	*/
 	m_averageSpeed    = l_totalSpeed;
-	m_downloadedBytes = l_totalDownloaded;
 	return m_downloadedBytes;
 }
 
@@ -876,7 +880,7 @@ void QueueItem::getPartialInfoL(PartsInfo& p_partialInfo, uint64_t p_blockSize) 
 // [+] IRainman fix.
 void QueueItem::getChunksVisualisation(vector<pair<Segment, Segment>>& p_runnigChunksAndDownloadBytes, vector<Segment>& p_doneChunks) const
 {
-	RLock l(*QueueItem::g_cs); // [+] IRainman fix.
+	RLock(*QueueItem::g_cs); // [+] IRainman fix.
 	
 	p_runnigChunksAndDownloadBytes.reserve(m_downloads.size()); // [!] IRainman fix done: [9] https://www.box.net/shared/9ccc91535264c1609a1e
 	// m_downloads.size() для list - дорого!

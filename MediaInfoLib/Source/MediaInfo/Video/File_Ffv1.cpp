@@ -783,9 +783,9 @@ void File_Ffv1::slice(states &States)
     {
         if ((version == 3 && micro_version > 1) || version > 3)
         {
-            states States;
-            memset(States, 129, states_size);
-            Skip_RC(States,                                     "?");
+            states l_States;
+			memset(l_States, 129, states_size);
+			Skip_RC(l_States, "?");
 
             if ((version > 2 || (!current_slice->x && !current_slice->y)))
                 Element_Offset--;
@@ -831,6 +831,14 @@ void File_Ffv1::slice(states &States)
 
     if (!coder_type && ((version == 3 && micro_version > 1) || version > 3))
         BS_End();
+
+    if (coder_type && version > 2)
+    {
+        int8u s = 129;
+        RC->get_rac(&s);
+        Element_Offset=RC->Buffer_Cur-Buffer;
+        Element_Offset--;
+    }
 }
 
 //---------------------------------------------------------------------------

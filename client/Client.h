@@ -45,8 +45,11 @@ class ClientBase
 	: boost::noncopyable // [+] IRainman fix.
 #endif
 {
+#ifdef RIP_USE_CONNECTION_AUTODETECT
+		bool m_is_detect_active_connection;
+#endif
 	public:
-		ClientBase() : m_type(DIRECT_CONNECT)
+		ClientBase() : m_type(DIRECT_CONNECT), m_is_detect_active_connection(false)
 			//  , m_isActivMode(false)
 		{ }
 		virtual ~ClientBase() {} // [cppcheck]
@@ -58,8 +61,21 @@ class ClientBase
 		             };
 	protected:
 		P2PType m_type;
-		//bool m_isActivMode;// [+] IRainman opt.
 	public:
+#ifdef RIP_USE_CONNECTION_AUTODETECT
+		bool isDetectActiveConnection() const
+		{
+			return m_is_detect_active_connection;
+		}
+		void setDetectActiveConnection()
+		{
+			m_is_detect_active_connection = true;
+		}
+		void resetDetectActiveConnection()
+		{
+			m_is_detect_active_connection = false;
+		}
+#endif
 		bool isActive() const;
 		virtual bool resendMyINFO(bool p_always_send, bool p_is_force_passive) = 0;
 		P2PType getType() const
@@ -92,7 +108,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			if (!p_list.empty())
 			{
-				fire(ClientListener::UsersUpdated(), this, p_list);
+				fly_fire2(ClientListener::UsersUpdated(), this, p_list);
 			}
 		}
 		
@@ -103,22 +119,22 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		}
 		void decBytesSharedL(Identity& p_id)
 		{
-			dcdrun(const auto oldSum = m_availableBytes);
-			dcassert(oldSum >= 0);
-			const auto old = p_id.getBytesShared();
-			dcassert(old >= 0);
-			m_availableBytes -= old;
-			m_isChangeAvailableBytes = old != 0;
+			//dcdrun(const auto l_oldSum = m_availableBytes);
+			//dcassert(l_oldSum >= 0);
+			const auto l_old = p_id.getBytesShared();
+			//dcassert(l_old >= 0);
+			m_availableBytes -= l_old;
+			m_isChangeAvailableBytes = l_old != 0;
 		}
 		void changeBytesSharedL(Identity& p_id, const int64_t p_bytes)
 		{
 			// https://code.google.com/p/flylinkdc/issues/detail?id=1231
 			dcassert(p_bytes >= 0);
-			dcdrun(const auto oldSum = m_availableBytes);
-			dcassert(oldSum >= 0);
+			//dcdrun(const auto l_oldSum = m_availableBytes);
+			//dcassert(l_oldSum >= 0);
 			const auto l_old = p_id.getBytesShared();
 			m_isChangeAvailableBytes = p_bytes != l_old;
-			dcassert(l_old >= 0);
+			//dcassert(l_old >= 0);
 			m_availableBytes -= l_old;
 			p_id.setBytesShared(p_bytes);
 			m_availableBytes += p_bytes;
@@ -151,6 +167,10 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		void setSuppressChatAndPM(bool p_value)
 		{
 			m_is_suppress_chat_and_pm = p_value;
+		}
+		bool getSuppressChatAndPM() const
+		{
+			return m_is_suppress_chat_and_pm;
 		}
 		bool isLocalHub() const
 		{
@@ -200,7 +220,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			// void Client::connect()
 			// void Client::on(Failed, const string& aLine)
 			// void Client::disconnect(bool p_graceLess)
-			// FastLock lock(csSock); // [+] brain-ripper
+			// CFlyFastLock(lock(csSock); // [+] brain-ripper
 			// return sock && sock->isConnected();
 		}
 		
@@ -269,7 +289,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		
 		void updated(const OnlineUserPtr& aUser)
 		{
-			fire(ClientListener::UserUpdated(), aUser);    // !SMT!-fix
+			fly_fire1(ClientListener::UserUpdated(), aUser);    // !SMT!-fix
 		}
 		
 		static int getTotalCounts()
@@ -295,17 +315,17 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		
 		void cheatMessage(const string& msg)
 		{
-			fire(ClientListener::CheatMessage(), msg);
+			fly_fire1(ClientListener::CheatMessage(), msg);
 		}
 		/* [!] IRainman fix
 		void reportUser(const Identity& i)
 		{
-		    fire(ClientListener::UserReport(), this, i);
+		    fly_fire2(ClientListener::UserReport(), this, i);
 		}
 		*/
 		void reportUser(const string& report) // TODO: use onlineuser here?
 		{
-			fire(ClientListener::UserReport(), this, report);
+			fly_fire2(ClientListener::UserReport(), this, report);
 		}
 		// [~] IRainman fix
 		void reconnect();
@@ -562,6 +582,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		mutable FastCriticalSection m_cs_virus;
 		int64_t m_availableBytes;
 		bool    m_isChangeAvailableBytes;
+		//unsigned m_count_validate_denide;
 		
 		void updateCounts(bool aRemove);
 		void updateActivity()
@@ -581,7 +602,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		// BufferedSocketListener
 		virtual void on(Connecting) noexcept override
 		{
-			fire(ClientListener::Connecting(), this);
+			fly_fire1(ClientListener::Connecting(), this);
 		}
 		virtual void on(Connected) noexcept override;
 		virtual void on(Line, const string& aLine) noexcept override;
@@ -622,7 +643,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		bool isInOperatorList(const string& userName) const;
 		unsigned getVirusBotCount() const
 		{
-			FastLock l(m_cs_virus);
+			CFlyFastLock(m_cs_virus);
 			return m_virus_nick.size();
 		}
 		

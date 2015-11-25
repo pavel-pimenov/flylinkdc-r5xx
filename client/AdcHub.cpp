@@ -76,7 +76,7 @@ AdcHub::~AdcHub()
 }
 void AdcHub::getUserList(OnlineUserList& p_list) const
 {
-	webrtc::ReadLockScoped l(*m_cs);
+	CFlyReadLock(*m_cs);
 	p_list.reserve(m_users.size());
 	for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 	{
@@ -89,7 +89,7 @@ void AdcHub::getUserList(OnlineUserList& p_list) const
 void AdcHub::resetAntivirusInfo()
 {
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
-	webrtc::ReadLockScoped l(*m_cs);
+	CFlyReadLock(*m_cs);
 	for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 	{
 		i->second->getIdentity().resetAntivirusInfo();
@@ -108,14 +108,14 @@ OnlineUserPtr AdcHub::getUser(const uint32_t aSID, const CID& aCID)
 	// [+] IRainman fix.
 	if (aCID.isZero())
 	{
-		webrtc::WriteLockScoped l(*m_cs);
+		CFlyWriteLock(*m_cs);
 		ou = m_users.insert(make_pair(aSID, getHubOnlineUser().get())).first->second;
 		ou->inc();
 	}
 	else if (ClientManager::isMe(aCID))
 	{
 		{
-			webrtc::WriteLockScoped l(*m_cs);
+			CFlyWriteLock(*m_cs);
 			ou = m_users.insert(make_pair(aSID, getMyOnlineUser().get())).first->second;
 			ou->inc();
 		}
@@ -133,7 +133,7 @@ OnlineUserPtr AdcHub::getUser(const uint32_t aSID, const CID& aCID)
 		u->setHubID(getHubID());
 #endif
 		OnlineUser* newUser = new OnlineUser(u, *this, aSID);
-		webrtc::WriteLockScoped l(*m_cs);
+		CFlyWriteLock(*m_cs);
 		ou = m_users.insert(make_pair(aSID, newUser)).first->second;
 		ou->inc();
 	}
@@ -153,7 +153,7 @@ OnlineUserPtr AdcHub::findUser(const string& aNick) const
 #ifdef _DEBUG
 	//LogManager::message("AdcHub::findUser [slow] aNick = " + aNick);
 #endif
-	webrtc::ReadLockScoped l(*m_cs);
+	CFlyReadLock(*m_cs);
 	for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 	{
 		if (i->second->getIdentity().getNick() == aNick)
@@ -169,7 +169,7 @@ OnlineUserPtr AdcHub::findUser(const uint32_t aSID) const// [!] IRainman fix ret
 #ifdef _DEBUG
 	// LogManager::message("AdcHub::findUser aSID = " + Util::toString(aSID));
 #endif
-	webrtc::ReadLockScoped l(*m_cs);
+	CFlyReadLock(*m_cs);
 	const auto& i = m_users.find(aSID);
 	return i == m_users.end() ? nullptr : i->second;
 }
@@ -179,7 +179,7 @@ OnlineUserPtr AdcHub::findUser(const CID& aCID) const// [!] IRainman fix return 
 #ifdef _DEBUG
 	// LogManager::message("AdcHub::findUser [slow] aCID = " + aCID.toBase32());
 #endif
-	webrtc::ReadLockScoped l(*m_cs);
+	CFlyReadLock(*m_cs);
 	for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 	{
 		if (i->second->getUser()->getCID() == aCID)
@@ -194,7 +194,7 @@ void AdcHub::putUser(const uint32_t aSID, bool p_is_disconnect)
 {
 	OnlineUserPtr ou = 0;
 	{
-		webrtc::WriteLockScoped l(*m_cs);
+		CFlyWriteLock(*m_cs);
 		const auto& i = m_users.find(aSID);
 		if (i == m_users.end())
 			return;
@@ -208,7 +208,7 @@ void AdcHub::putUser(const uint32_t aSID, bool p_is_disconnect)
 		ClientManager::getInstance()->putOffline(ou, p_is_disconnect);
 	}
 	
-	fire(ClientListener::UserRemoved(), this, ou);
+	fly_fire2(ClientListener::UserRemoved(), this, ou);
 	ou->dec();
 }
 
@@ -216,7 +216,7 @@ void AdcHub::clearUsers()
 {
 	if (ClientManager::isShutdown())
 	{
-		webrtc::WriteLockScoped l(*m_cs);
+		CFlyWriteLock(*m_cs);
 		for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 		{
 			i->second->dec();
@@ -228,7 +228,7 @@ void AdcHub::clearUsers()
 	{
 		SIDMap tmp;
 		{
-			webrtc::WriteLockScoped l(*m_cs);
+			CFlyWriteLock(*m_cs);
 			m_users.swap(tmp);
 			clearAvailableBytesL();
 		}
@@ -273,7 +273,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 				// fix http://code.google.com/p/flylinkdc/issues/detail?id=1435
 				const string l_message = ou->getIdentity().getNick() + " (" + ou->getIdentity().getSIDString() +
 				                         ") has same CID {" + l_cid + "} as " + nick + " (" + AdcCommand::fromSID(c.getFrom()) + "), ignoring.";
-				fire(ClientListener::StatusMessage(), this, l_message, ClientListener::FLAG_IS_SPAM);
+				fly_fire3(ClientListener::StatusMessage(), this, l_message, ClientListener::FLAG_IS_SPAM);
 				
 				//LogManager::ddos_message("Magic spam message filtered on hub: " + getHubUrl() + " detail:" + l_message);
 				return;
@@ -458,7 +458,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 		setAutoReconnect(true);
 		// [-] setMyIdentity(ou->getIdentity()); [-] IRainman fix.
 		updateCounts(false);
-		fire(ClientListener::UserUpdated(), ou); // fix https://code.google.com/p/flylinkdc/issues/detail?id=1537
+		fly_fire1(ClientListener::UserUpdated(), ou); // fix https://code.google.com/p/flylinkdc/issues/detail?id=1537
 	}
 	else if (ou->getIdentity().isHub())
 	{
@@ -467,11 +467,11 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 		if (SETTING(STRIP_TOPIC))
 			ou->getIdentity().setDescription(Util::emptyString);
 		// [~] FlylinkDC++
-		fire(ClientListener::HubUpdated(), this);
+		fly_fire1(ClientListener::HubUpdated(), this);
 	}
 	else
 	{
-		fire(ClientListener::UserUpdated(), ou);
+		fly_fire1(ClientListener::UserUpdated(), ou);
 	}
 }
 
@@ -500,7 +500,7 @@ void AdcHub::handle(AdcCommand::SUP, const AdcCommand& c) noexcept
 	
 	if (!baseOk)
 	{
-		fire(ClientListener::StatusMessage(), this, "Failed to negotiate base protocol"); // TODO: translate
+		fly_fire2(ClientListener::StatusMessage(), this, "Failed to negotiate base protocol"); // TODO: translate
 		disconnect(false);
 		return;
 	}
@@ -508,7 +508,7 @@ void AdcHub::handle(AdcCommand::SUP, const AdcCommand& c) noexcept
 	{
 		m_oldPassword = true;
 		// Some hubs fake BASE support without TIGR support =/
-		fire(ClientListener::StatusMessage(), this, "Hub probably uses an old version of ADC, please encourage the owner to upgrade"); // TODO: translate
+		fly_fire2(ClientListener::StatusMessage(), this, "Hub probably uses an old version of ADC, please encourage the owner to upgrade"); // TODO: translate
 	}
 }
 
@@ -565,14 +565,14 @@ void AdcHub::handle(AdcCommand::MSG, const AdcCommand& c) noexcept
 			
 		if (allowPrivateMessagefromUser(*message)) // [+] IRainman.
 		{
-			fire(ClientListener::Message(), this, message);
+			fly_fire2(ClientListener::Message(), this, message);
 		}
 	}
 	else
 	{
 		if (allowChatMessagefromUser(*message, Util::emptyString)) // [+] IRainman.
 		{
-			fire(ClientListener::Message(), this, message);
+			fly_fire2(ClientListener::Message(), this, message);
 		}
 	}
 }
@@ -617,7 +617,7 @@ void AdcHub::handle(AdcCommand::QUI, const AdcCommand& c) noexcept
 			{
 				tmp = victim->getIdentity().getNick() + " was kicked: " + tmp;
 			}
-			fire(ClientListener::StatusMessage(), this, tmp, ClientListener::FLAG_IS_SPAM);
+			fly_fire3(ClientListener::StatusMessage(), this, tmp, ClientListener::FLAG_IS_SPAM);
 		}
 		
 		putUser(s, c.getParam("DI", 1, tmp)); // TODO тут внутри повторно ищем юзера (OnlineUserPtr victim = findUser(s);)
@@ -642,11 +642,11 @@ void AdcHub::handle(AdcCommand::QUI, const AdcCommand& c) noexcept
 		}
 		if (!victim && c.getParam("MS", 1, tmp))
 		{
-			fire(ClientListener::StatusMessage(), this, tmp);
+			fly_fire2(ClientListener::StatusMessage(), this, tmp);
 		}
 		if (c.getParam("RD", 1, tmp))
 		{
-			fire(ClientListener::Redirect(), this, tmp);
+			fly_fire2(ClientListener::Redirect(), this, tmp);
 		}
 	}
 }
@@ -754,7 +754,7 @@ void AdcHub::handle(AdcCommand::CMD, const AdcCommand& c) noexcept
 	bool rem = c.hasFlag("RM", 1);
 	if (rem)
 	{
-		fire(ClientListener::HubUserCommand(), this, (int)UserCommand::TYPE_REMOVE, 0, l_name, Util::emptyString);
+		fly_fire5(ClientListener::HubUserCommand(), this, (int)UserCommand::TYPE_REMOVE, 0, l_name, Util::emptyString);
 		return;
 	}
 	bool sep = c.hasFlag("SP", 1);
@@ -766,14 +766,14 @@ void AdcHub::handle(AdcCommand::CMD, const AdcCommand& c) noexcept
 		return;
 	if (sep)
 	{
-		fire(ClientListener::HubUserCommand(), this, (int)UserCommand::TYPE_SEPARATOR, ctx, l_name, Util::emptyString);
+		fly_fire5(ClientListener::HubUserCommand(), this, (int)UserCommand::TYPE_SEPARATOR, ctx, l_name, Util::emptyString);
 		return;
 	}
-	bool once = c.hasFlag("CO", 1);
+	const bool once = c.hasFlag("CO", 1);
 	string txt;
 	if (!c.getParam("TT", 1, txt))
 		return;
-	fire(ClientListener::HubUserCommand(), this, (int)(once ? UserCommand::TYPE_RAW_ONCE : UserCommand::TYPE_RAW), ctx, l_name, txt);
+	fly_fire5(ClientListener::HubUserCommand(), this, (int)(once ? UserCommand::TYPE_RAW_ONCE : UserCommand::TYPE_RAW), ctx, l_name, txt);
 }
 
 void AdcHub::sendUDP(const AdcCommand& cmd) noexcept
@@ -782,7 +782,7 @@ void AdcHub::sendUDP(const AdcCommand& cmd) noexcept
 	string l_ip;
 	uint16_t l_port;
 	{
-		webrtc::ReadLockScoped l(*m_cs);
+		CFlyReadLock(*m_cs);
 		const auto& i = m_users.find(cmd.getTo());
 		if (i == m_users.end())
 		{
@@ -873,13 +873,12 @@ void AdcHub::handle(AdcCommand::STA, const AdcCommand& c) noexcept
 		}
 	}
 	unique_ptr<ChatMessage> message(new ChatMessage(c.getParam(1), ou));
-	fire(ClientListener::Message(), this, message);
-	if (l_code == AdcCommand::ERROR_NICK_INVALID || l_code == AdcCommand::ERROR_NICK_TAKEN)
+	fly_fire2(ClientListener::Message(), this, message);
+	if (l_code == AdcCommand::ERROR_NICK_INVALID || l_code == AdcCommand::ERROR_NICK_TAKEN || l_code == AdcCommand::ERROR_BAD_PASSWORD)
 	{
-		dcassert(m_client_sock);
 		if (m_client_sock)
 			m_client_sock->disconnect(false);
-		fire(ClientListener::NickTaken(), this);
+		fly_fire1(ClientListener::NickTaken(), this);
 	}
 }
 
@@ -892,7 +891,7 @@ void AdcHub::handle(AdcCommand::SCH, const AdcCommand& c) noexcept
 		return;
 	}
 	
-	fire(ClientListener::AdcSearch(), this, c, ou->getUser()->getCID());
+	fly_fire3(ClientListener::AdcSearch(), this, c, ou->getUser()->getCID());
 }
 
 void AdcHub::handle(AdcCommand::RES, const AdcCommand& c) noexcept
@@ -1164,7 +1163,7 @@ void AdcHub::sendUserCmd(const UserCommand& command, const StringMap& params)
 		else
 		{
 			const string& to = command.getTo();
-			webrtc::ReadLockScoped l(*m_cs);
+			CFlyReadLock(*m_cs);
 			for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 			{
 				if (i->second->getIdentity().getNick() == to)
@@ -1497,7 +1496,7 @@ void AdcHub::password(const string& pwd)
 
 void AdcHub::addParam(AdcCommand& c, const string& var, const string& value)
 {
-	FastLock l(m_info_cs);
+	CFlyFastLock(m_info_cs);
 	const auto& i = m_lastInfoMap.find(var);
 	
 	if (i != m_lastInfoMap.end())
@@ -1636,7 +1635,7 @@ void AdcHub::info(bool p_force)
 		}
 	}
 	
-	if (isActive())
+	if (isActive() && SearchManager::isSearchPortValid())
 	{
 		addParam(c, "U4", SearchManager::getSearchPort());
 		su += "," + AdcSupports::TCP4_FEATURE;
@@ -1668,7 +1667,7 @@ void AdcHub::refreshUserList(bool)
 	OnlineUserList v;
 	{
 		// [!] IRainman fix potential deadlock.
-		webrtc::ReadLockScoped l(*m_cs);
+		CFlyReadLock(*m_cs);
 		for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 		{
 			if (i->first != AdcCommand::HUB_SID)
@@ -1721,7 +1720,7 @@ void AdcHub::on(Connected c) noexcept
 	}
 	
 	{
-		FastLock l(m_info_cs);
+		CFlyFastLock(m_info_cs);
 		m_lastInfoMap.clear();
 	}
 	sid = 0;
@@ -1764,7 +1763,7 @@ void AdcHub::on(Line l, const string& aLine) noexcept
 #ifdef IRAINMAN_INCLUDE_PROTO_DEBUG_FUNCTION
 		if (BOOLSETTING(ADC_DEBUG))
 		{
-			fire(ClientListener::StatusMessage(), this, "<ADC>" + aLine + "</ADC>");
+			fly_fire2(ClientListener::StatusMessage(), this, "<ADC>" + aLine + "</ADC>");
 		}
 #endif
 		dispatch(aLine);

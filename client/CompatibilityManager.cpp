@@ -53,6 +53,8 @@ bool CompatibilityManager::g_supports[LAST_SUPPORTS];
 LONG CompatibilityManager::g_comCtlVersion = 0;
 DWORD CompatibilityManager::g_oldPriorityClass = 0;
 string CompatibilityManager::g_upnp_router_model;
+bool CompatibilityManager::g_is_teredo = false;
+bool CompatibilityManager::g_is_ipv6_enabled = false;
 FINDEX_INFO_LEVELS CompatibilityManager::g_find_file_level = FindExInfoStandard;
 // http://msdn.microsoft.com/ru-ru/library/windows/desktop/aa364415%28v=vs.85%29.aspx
 // FindExInfoBasic
@@ -89,6 +91,7 @@ void CompatibilityManager::init()
 		g_find_file_level = FindExInfoBasic;
 		g_find_file_flags = FIND_FIRST_EX_LARGE_FETCH;
 	}
+	g_is_teredo = checkTeredo();
 }
 
 void CompatibilityManager::getSystemInfoFromOS()
@@ -149,8 +152,8 @@ void CompatibilityManager::detectOsSupports()
 #endif
 	    !CURRENT_VER_SP(6, 1, 1) && // Windows 7 SP1 & Windows Server 2008 R2 SP1  http://en.wikipedia.org/wiki/Windows_7 http://en.wikipedia.org/wiki/Windows_Server_2008_R2
 	    !CURRENT_VER_SP(6, 2, 0) &&   // Windows 8 & Windows Server 2012 http://en.wikipedia.org/wiki/Windows_8 http://ru.wikipedia.org/wiki/Windows_Server_2012
-	    !CURRENT_VER_SP(6, 3, 0))   // Windows 8.1 & Windows Server 2012 R2 http://en.wikipedia.org/wiki/Windows_8.1 http://ru.wikipedia.org/wiki/Windows_Server_2012
-// TODO - Windows 10
+	    !CURRENT_VER_SP(6, 3, 0) &&  // Windows 8.1 & Windows Server 2012 R2 http://en.wikipedia.org/wiki/Windows_8.1 http://ru.wikipedia.org/wiki/Windows_Server_2012
+		!CURRENT_VER_SP(10, 0, 0)) // https://msdn.microsoft.com/ru-ru/library/windows/desktop/ms724833(v=vs.85).aspx  мануал (ну как и раньше, только дополнен Windows 10/0)
 	{
 #ifdef FLYLINKDC_USE_CHECK_OLD_OS
 		set(RUNNING_AN_UNSUPPORTED_OS);
@@ -183,6 +186,7 @@ struct DllInfo
 	char* info;
 };
 
+// TODO - config
 static const DllInfo g_IncompatibleDll[] =
 {
 	_T("nvappfilter.dll"), "NVIDIA ActiveArmor (NVIDIA Firewall)",
@@ -784,3 +788,222 @@ void CompatibilityManager::restoreProcessPriority()
 		SetPriorityClass(GetCurrentProcess(), g_oldPriorityClass);
 }
 
+bool CompatibilityManager::checkTeredo()
+{
+	// http://blog.cherepovets.ru/serovds/2013/07/30/teredo-winxp/
+	g_is_ipv6_enabled = false;
+	{
+		SOCKET s = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+		if (INVALID_SOCKET != s)
+		{
+			closesocket(s);
+			g_is_ipv6_enabled = true;
+		}
+	}
+	bool l_result = false;
+	// https://msdn.microsoft.com/en-us/library/aa365915.aspx
+#define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
+#define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
+	
+	const unsigned WORKING_BUFFER_SIZE = 15000;
+	const unsigned MAX_TRIES = 3;
+	
+	DWORD dwSize = 0;
+	DWORD dwRetVal = 0;
+	
+	unsigned int i = 0;
+	
+	// Set the flags to pass to GetAdaptersAddresses
+	ULONG flags = GAA_FLAG_INCLUDE_PREFIX;
+	
+	// default to unspecified address family (both)
+	ULONG family = AF_UNSPEC;
+	//        family = AF_INET;
+	//        family = AF_INET6;
+	
+	LPVOID lpMsgBuf = NULL;
+	
+	PIP_ADAPTER_ADDRESSES pAddresses = NULL;
+	ULONG outBufLen = 0;
+	ULONG Iterations = 0;
+	
+	PIP_ADAPTER_ADDRESSES pCurrAddresses = NULL;
+	PIP_ADAPTER_UNICAST_ADDRESS pUnicast = NULL;
+	PIP_ADAPTER_ANYCAST_ADDRESS pAnycast = NULL;
+	PIP_ADAPTER_MULTICAST_ADDRESS pMulticast = NULL;
+	IP_ADAPTER_DNS_SERVER_ADDRESS *pDnServer = NULL;
+	IP_ADAPTER_PREFIX *pPrefix = NULL;
+	
+	
+	/*
+	printf("Calling GetAdaptersAddresses function with family = ");
+	if (family == AF_INET)
+	printf("AF_INET\n");
+	if (family == AF_INET6)
+	printf("AF_INET6\n");
+	if (family == AF_UNSPEC)
+	printf("AF_UNSPEC\n\n");
+	*/
+	// Allocate a 15 KB buffer to start with.
+	outBufLen = WORKING_BUFFER_SIZE;
+	
+	do
+	{
+	
+		pAddresses = (IP_ADAPTER_ADDRESSES *)MALLOC(outBufLen);
+		if (pAddresses == NULL)
+		{
+			dcassert(0);
+			return false;
+		}
+		
+		dwRetVal =
+		    GetAdaptersAddresses(family, flags, NULL, pAddresses, &outBufLen);
+		    
+		if (dwRetVal == ERROR_BUFFER_OVERFLOW)
+		{
+			FREE(pAddresses);
+			pAddresses = NULL;
+		}
+		else
+		{
+			break;
+		}
+		
+		Iterations++;
+		
+	}
+	while ((dwRetVal == ERROR_BUFFER_OVERFLOW) && (Iterations < MAX_TRIES));
+	
+	if (dwRetVal == NO_ERROR)
+	{
+		// If successful, output some information from the data we received
+		pCurrAddresses = pAddresses;
+		while (pCurrAddresses)
+		{
+			//printf("\tLength of the IP_ADAPTER_ADDRESS struct: %ld\n",
+			//       pCurrAddresses->Length);
+			//printf("\tIfIndex (IPv4 interface): %u\n", pCurrAddresses->IfIndex);
+			/*
+			printf("\tAdapter name: %s\n", pCurrAddresses->AdapterName);
+			
+			pUnicast = pCurrAddresses->FirstUnicastAddress;
+			if (pUnicast != NULL) {
+			for (i = 0; pUnicast != NULL; i++)
+			pUnicast = pUnicast->Next;
+			printf("\tNumber of Unicast Addresses: %d\n", i);
+			} else
+			printf("\tNo Unicast Addresses\n");
+			
+			pAnycast = pCurrAddresses->FirstAnycastAddress;
+			if (pAnycast) {
+			for (i = 0; pAnycast != NULL; i++)
+			pAnycast = pAnycast->Next;
+			printf("\tNumber of Anycast Addresses: %d\n", i);
+			} else
+			printf("\tNo Anycast Addresses\n");
+			
+			pMulticast = pCurrAddresses->FirstMulticastAddress;
+			if (pMulticast) {
+			for (i = 0; pMulticast != NULL; i++)
+			pMulticast = pMulticast->Next;
+			printf("\tNumber of Multicast Addresses: %d\n", i);
+			} else
+			printf("\tNo Multicast Addresses\n");
+			
+			pDnServer = pCurrAddresses->FirstDnsServerAddress;
+			if (pDnServer) {
+			for (i = 0; pDnServer != NULL; i++)
+			pDnServer = pDnServer->Next;
+			printf("\tNumber of DNS Server Addresses: %d\n", i);
+			} else
+			printf("\tNo DNS Server Addresses\n");
+			*/
+			//TOOD printf("\tDNS Suffix: %wS\n", pCurrAddresses->DnsSuffix);
+			
+			//if (pCurrAddresses->Ipv6Enabled)
+			//{
+			//  g_is_ipv6_enabled |= true;
+			//}
+			if (wcscmp(pCurrAddresses->FriendlyName, _T("Teredo Tunneling Pseudo-Interface")) == 0)
+			{
+				l_result = true;
+				break;
+			}
+			
+			//printf("\tDescription: %wS\n", pCurrAddresses->Description);
+			//printf("\tFriendly name: %wS\n", pCurrAddresses->FriendlyName);
+			
+			/*
+			if (pCurrAddresses->PhysicalAddressLength != 0) {
+			printf("\tPhysical address: ");
+			for (i = 0; i < (int) pCurrAddresses->PhysicalAddressLength;
+			i++) {
+			if (i == (pCurrAddresses->PhysicalAddressLength - 1))
+			printf("%.2X\n",
+			(int) pCurrAddresses->PhysicalAddress[i]);
+			else
+			printf("%.2X-",
+			(int) pCurrAddresses->PhysicalAddress[i]);
+			}
+			}
+			*/
+			// printf("\tFlags: %ld\n", pCurrAddresses->Flags);
+			// printf("\tFlags.Ipv6Enabled: %d\n", int(pCurrAddresses->Ipv6Enabled));
+			// TODO printf("\tMtu: %lu\n", pCurrAddresses->Mtu);
+			// TODO printf("\tIfType: %ld\n", pCurrAddresses->IfType);
+			// TODO printf("\tOperStatus: %ld\n", pCurrAddresses->OperStatus);
+			// TODO printf("\tIpv6IfIndex (IPv6 interface): %u\n",
+			// TODO        pCurrAddresses->Ipv6IfIndex);
+			/*
+			printf("\tZoneIndices (hex): ");
+			for (i = 0; i < 16; i++)
+			printf("%lx ", pCurrAddresses->ZoneIndices[i]);
+			printf("\n");
+			
+			printf("\tTransmit link speed: %I64u\n", pCurrAddresses->TransmitLinkSpeed);
+			printf("\tReceive link speed: %I64u\n", pCurrAddresses->ReceiveLinkSpeed);
+			
+			pPrefix = pCurrAddresses->FirstPrefix;
+			if (pPrefix) {
+			for (i = 0; pPrefix != NULL; i++)
+			pPrefix = pPrefix->Next;
+			printf("\tNumber of IP Adapter Prefix entries: %d\n", i);
+			} else
+			printf("\tNumber of IP Adapter Prefix entries: 0\n");
+			*/
+			//printf("\n");
+			
+			pCurrAddresses = pCurrAddresses->Next;
+		}
+	}
+	else
+	{
+		//printf("Call to GetAdaptersAddresses failed with error: %d\n",dwRetVal);
+		if (dwRetVal == ERROR_NO_DATA)
+		{
+			//  printf("\tNo addresses were found for the requested parameters\n");
+		}
+		else
+		{
+			dcassert(0);
+			/*
+			if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+			FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL, dwRetVal, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			// Default language
+			(LPTSTR)& lpMsgBuf, 0, NULL))
+			{
+			//printf("\tError: %s", lpMsgBuf);
+			LocalFree(lpMsgBuf);
+			}
+			*/
+		}
+	}
+	
+	if (pAddresses)
+	{
+		FREE(pAddresses);
+	}
+	return l_result;
+}

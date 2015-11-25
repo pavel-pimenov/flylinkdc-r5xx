@@ -61,7 +61,7 @@ void ConnectivityManager::detectConnection()
 	running = true;
 	
 	m_status.clear();
-	// PPA_INCLUDE_DEAD_CODE fire(ConnectivityManagerListener::Started());
+	// PPA_INCLUDE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Started());
 	
 	const string l_old_bind = SETTING(BIND_ADDRESS);
 	// restore connectivity settings to their default value.
@@ -92,7 +92,7 @@ void ConnectivityManager::detectConnection()
 		AutoArray<char> buf(512);
 		_snprintf(buf.data(), 512, CSTRING(UNABLE_TO_OPEN_PORT), e.getError().c_str());
 		log(buf.data());
-		// PPA_INCLUDE_DEAD_CODE fire(ConnectivityManagerListener::Finished());
+		// PPA_INCLUDE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Finished());
 		running = false;
 		return;
 	}
@@ -104,7 +104,7 @@ void ConnectivityManager::detectConnection()
 	{
 		log("WiFi router detected IP = " + l_ip_gateway);
 		SET_SETTING(INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_UPNP);
-		// PPA_INCLUDE_DEAD_CODE fire(ConnectivityManagerListener::Finished());
+		// PPA_INCLUDE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Finished());
 	}
 	else
 	{
@@ -113,7 +113,7 @@ void ConnectivityManager::detectConnection()
 		{
 			SET_SETTING(INCOMING_CONNECTIONS, SettingsManager::INCOMING_DIRECT); // Вот тут сомнительно
 			log(STRING(PUBLIC_IP_DETECTED) + " IP = " + l_ip);
-			// PPA_INCLUDE_DEAD_CODE fire(ConnectivityManagerListener::Finished());
+			// PPA_INCLUDE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Finished());
 			running = false;
 			return;
 		}
@@ -126,7 +126,7 @@ void ConnectivityManager::detectConnection()
 	}
 }
 
-void ConnectivityManager::setup(bool settingsChanged)
+void ConnectivityManager::setup_connections(bool settingsChanged)
 {
 	try
 	{
@@ -155,7 +155,25 @@ void ConnectivityManager::setup(bool settingsChanged)
 	catch (const Exception& e)
 	{
 		dcassert(0);
-		LogManager::message("ConnectivityManager::setup error = " + e.getError());
+		const string l_error = "ConnectivityManager::setup error = " + e.getError();
+		CFlyServerJSON::pushError(56, l_error);
+	}
+	if (settingsChanged && SETTING(INCOMING_CONNECTIONS) != SettingsManager::INCOMING_FIREWALL_PASSIVE)
+	{
+		// Test Port
+		string l_external_ip;
+		std::vector<unsigned short> l_udp_port, l_tcp_port;
+		l_udp_port.push_back(SETTING(UDP_PORT));
+		l_udp_port.push_back(SETTING(DHT_PORT));
+		l_tcp_port.push_back(SETTING(TCP_PORT));
+		l_tcp_port.push_back(SETTING(TLS_PORT));
+		if (CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0))
+		{
+			if (!l_external_ip.empty())
+			{
+				SET_SETTING(EXTERNAL_IP, l_external_ip);
+			}
+		}
 	}
 }
 
@@ -248,7 +266,7 @@ void ConnectivityManager::mappingFinished(const string& p_mapper)
 			}
 		}
 #endif
-		// PPA_INCLUDE_DEAD_CODE fire(ConnectivityManagerListener::Finished());
+		// PPA_INCLUDE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Finished());
 	}
 	if (!ClientManager::isShutdown())
 	{
@@ -331,7 +349,7 @@ void ConnectivityManager::log(const string& message)
 	{
 		m_status = message;
 		LogManager::message(STRING(CONNECTIVITY) + ' ' + m_status);
-		// PPA_INCLUDE_DEAD_CODE fire(ConnectivityManagerListener::Message(), m_status);
+		// PPA_INCLUDE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Message(), m_status);
 	}
 	else
 	{

@@ -41,12 +41,12 @@ class TaskManager :
 		
 		void addZone(RoutingTable* zone)
 		{
-			FastLock l(cs);
+			CFlyFastLock(cs);
 			zones.push_back(zone);
 		}
 		void removeZone(RoutingTable* zone)
 		{
-			FastLock l(cs);
+			CFlyFastLock(cs);
 			zones.erase(remove(zones.begin(), zones.end(), zone), zones.end());
 		}
 #ifdef _DEBUG

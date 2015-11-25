@@ -51,7 +51,7 @@ void WebServerManager::Start() noexcept
 	if (started)
 		return;
 	{
-		FastLock l(cs);
+		CFlyFastLock(cs);
 		if (started)
 			return;
 			
@@ -79,7 +79,7 @@ void WebServerManager::Start() noexcept
 	{
 		socket.listen(static_cast<uint16_t>(SETTING(WEBSERVER_PORT)), SETTING(WEBSERVER_BIND_ADDRESS));
 		socket.addListener(this);
-		fire(WebServerListener::Setup());
+		fly_fire(WebServerListener::Setup());
 	}
 	catch (const SocketException&) {} //-V565
 }
@@ -89,7 +89,7 @@ void WebServerManager::Stop()
 	if (!started)
 		return;
 	{
-		FastLock l(cs);
+		CFlyFastLock(cs);
 		if (!started)
 			return;
 			
@@ -271,7 +271,7 @@ void WebServerManager::getPage(string& p_InOut, const string& IP, UserStatus Cur
 			} // system  managment
 			if (CurrentUser.ispower() && action >= 0)
 			{
-				fire(WebServerListener::ShutdownPC(), action);
+				fly_fire1(WebServerListener::ShutdownPC(), action);
 				pagehtml += "&nbsp;" + STRING(WEBSERVER_REGUEST_SENT_OK);
 				//LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 			}
@@ -545,7 +545,7 @@ string WebServerManager::getDLQueue()
 	                                         
 	// [!] IRainman fix. TODO.
 	string ret_select;
-	RLock l(*QueueItem::g_cs);
+	RLock(*QueueItem::g_cs);
 	QueueManager::LockFileQueueShared l_fileQueue;
 	const auto& li = l_fileQueue.getQueueL();
 	for (auto j = li.cbegin(); j != li.cend(); ++j)
@@ -1008,7 +1008,7 @@ void WebServerManager::search(string p_search_str, Search::TypeModes p_search_ty
 void WebServerManager::on(SearchManagerListener::SR, const SearchResult& aResult) noexcept
 {
 	{
-		FastLock l(cs);
+		CFlyFastLock(cs);
 		if (!aResult.getToken() && m_search_token != aResult.getToken())
 			return;
 			

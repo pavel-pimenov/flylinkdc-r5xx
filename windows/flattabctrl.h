@@ -81,6 +81,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		explicit FlatTabCtrlImpl() :
 			m_rows(1),
 			m_height(0),
+			m_height_font(0),
 			m_active(nullptr),
 			m_moving(nullptr),
 			m_is_intab(false),
@@ -1963,16 +1964,21 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 		
 		LRESULT onMDIActivate(UINT /*uMsg*/, WPARAM /*wParam */, LPARAM lParam, BOOL& bHandled)
 		{
-			dcassert(getTab());
-			if (m_hWnd == (HWND)lParam)
+			extern bool g_isShutdown;
+			//dcassert(!g_isShutdown);
+			if (!g_isShutdown)
 			{
-				// не помогает от мерцания - искать другой способ.
-				// CLockRedraw<> l_lock_draw(m_hWnd);
-				onBeforeActiveTab(m_hWnd);
-				getTab()->setActive(m_hWnd);
-				onAfterActiveTab(m_hWnd);
+				dcassert(getTab());
+				if (m_hWnd == (HWND)lParam)
+				{
+					// не помогает от мерцания - искать другой способ.
+					// CLockRedraw<> l_lock_draw(m_hWnd);
+					onBeforeActiveTab(m_hWnd);
+					getTab()->setActive(m_hWnd);
+					onAfterActiveTab(m_hWnd);
+				}
+				onInvalidateAfterActiveTab(m_hWnd);
 			}
-			onInvalidateAfterActiveTab(m_hWnd);
 			bHandled = FALSE;
 			return 1;
 		}

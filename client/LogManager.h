@@ -21,6 +21,7 @@
 
 #include "Util.h"
 
+typedef std::unordered_map<string, string> CFlyMessagesBuffer;
 class LogManager
 {
 	public:
@@ -55,40 +56,35 @@ class LogManager
 		static void saveSetting(int area, int sel, const string& setting);
 		
 		static HWND g_mainWnd;
+		static bool g_isLogSpeakerEnabled;
 		static int  g_LogMessageID;
+		static void flush_all_log();
 	private:
+		static void flush_file(const string& p_area, const string& p_msg);
 		static void log(const string& p_area, const string& p_msg) noexcept;
 		
 		static int g_logOptions[LAST][2];
 #ifdef _DEBUG
-		static boost::unordered_map<string, pair<string, size_t> > g_patchCache;
+		static boost::unordered_map<string, pair<string, size_t> > g_pathCache;
 		static size_t g_debugTotal;
 		static size_t g_debugMissed;
-		static int g_debugConcurrencyEventCount;
 		static int g_debugParallelWritesFiles;
 #else
-		static boost::unordered_map<string, string> g_patchCache;
+		static boost::unordered_map<string, string> g_pathCache;
 #endif
-		static FastCriticalSection g_csPatchCache; // [!] IRainman opt: use spin lock here.
+		static FastCriticalSection g_csPathCache; // [!] IRainman opt: use spin lock here.
 		static bool g_isInit;
 		
-#ifdef IRAINMAN_USE_NG_LOG_MANAGER
-		static std::unordered_set<string> g_currentlyOpenedFiles;
-		static FastCriticalSection g_csCurrentlyOpenedFiles;
-#endif
+		static CFlyMessagesBuffer g_LogFilesBuffer;
+		static FastCriticalSection g_csLogFilesBuffer;
+		static FastCriticalSection g_csFile;
 		
 		LogManager();
 		~LogManager()
 		{
 #ifdef _DEBUG
 			dcdebug("LogManager: path cache stats: total found = %i, missed = %i, current size = %i\n"
-#ifdef IRAINMAN_USE_NG_LOG_MANAGER
-			        "LogManager: parallel writes files = %i, concurrency event count = %i\n"
-#endif
-			        , g_debugTotal, g_debugMissed, g_patchCache.size()
-#ifdef IRAINMAN_USE_NG_LOG_MANAGER
-			        , g_debugParallelWritesFiles, g_debugConcurrencyEventCount
-#endif
+			        , g_debugTotal, g_debugMissed, g_pathCache.size()
 			       ); //-V111
 #endif
 		}

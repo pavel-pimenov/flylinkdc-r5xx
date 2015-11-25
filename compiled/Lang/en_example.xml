@@ -548,6 +548,7 @@
 	<string name="FlyHubQueue">Queue</string>
 	<string name="FlyHubTimes">Times</string>
 	<string name="FlyHubGender">Gender</string>
+	<string name="FlyHubSupportInfo">Support info</string>
 	<string name="Flyupdate">FlylinkDC++ Updater</string>
 	<string name="FlyupdateCannotupdate">FlylinkDC++ automatic update failed. Please download latest install of FlylinkDC++ and run it manually</string>
 	<string name="FlyupdateCheckupdatebase">Checking FlylinkDC++ update…</string>
@@ -1477,7 +1478,7 @@
 	<string name="SettingsStatisticsSend">Allow the program to collect and send anonymous usage statistics to developers.</string>
 	<string name="SettingsAntivirusAutobanForIp">Antivirus autoban (IP):</string>
 	<string name="SettingsAntivirusAutobanForNick">Antivirus autoban (Nick):</string>
-	<string name="SettingsAntivirusCommandIp">RAW command (default !banip):</string>
+	<string name="SettingsAntivirusCommandIp">Chat command (default !banip):</string>
 	<string name="SettingsStatusInChat">View status messages in main chat</string>
 	<string name="SettingsStripTopic">Hide hub topics</string>
 	<string name="SettingsTabs">Tabs</string>

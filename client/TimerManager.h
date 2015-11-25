@@ -59,6 +59,7 @@ class TimerManager : public Speaker<TimerManagerListener>, public Singleton<Time
 		}
 		static uint64_t getTick();
 		static bool g_isStartupShutdownProcess;
+		static bool g_isRun;
 	private:
 		friend class Singleton<TimerManager>;
 		boost::timed_mutex m_mtx;

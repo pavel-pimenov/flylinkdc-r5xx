@@ -60,13 +60,13 @@ UploadManager::~UploadManager()
 	TimerManager::getInstance()->removeListener(this);
 	ClientManager::getInstance()->removeListener(this);
 	{
-		Lock l(m_csQueue); // [!] IRainman opt.
+		CFlyLock(m_csQueue); // [!] IRainman opt.
 		m_slotQueue.clear();
 	}
 	while (true)
 	{
 		{
-			webrtc::ReadLockScoped l(*g_csUploadsDelay);
+			CFlyReadLock(*g_csUploadsDelay);
 			if (g_uploads.empty())
 				break;
 		}
@@ -177,7 +177,7 @@ bool UploadManager::handleBan(UserConnection* aSource/*, bool forceBan, bool noC
 			const auto& key = user->getCID().toBase32();
 			bool sendPm;
 			{
-				webrtc::WriteLockScoped l(*g_csBans); // [+] IRainman opt.
+				CFlyWriteLock(*g_csBans); // [+] IRainman opt.
 				auto t = g_lastBans.find(key);
 				if (t == g_lastBans.end()) // new banned user
 				{
@@ -216,7 +216,7 @@ bool UploadManager::isBanReply(const UserPtr& user)
 {
 	const auto& key = user->getCID().toBase32();
 	{
-		webrtc::ReadLockScoped l(*g_csBans); // [+] IRainman opt.
+		CFlyReadLock(*g_csBans); // [+] IRainman opt.
 		const auto t = g_lastBans.find(key);
 		if (t != g_lastBans.end())
 			return (TimerManager::getTick() - t->second.tick) < 2000;
@@ -233,7 +233,7 @@ bool UploadManager::hasUpload(const UserConnection* p_newLeacher, const string& 
 		const auto& newLeacherShare = p_newLeacher->getUser()->getBytesShared(); // [!] IRainamn fix, old code: ClientManager::getInstance()->getBytesShared(aSource->getUser());
 		const auto& newLeacherNick = p_newLeacher->getUser()->getLastNick();
 		
-		webrtc::ReadLockScoped l(*g_csUploadsDelay); // [!] IRainman opt.
+		CFlyReadLock(*g_csUploadsDelay); // [!] IRainman opt.
 		
 		for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
 		{
@@ -305,7 +305,7 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 			const string l_hash_key = Util::toString(l_User.user->getCID().toHash()) + aFile;
 			uint8_t l_count_dos;
 			{
-				FastLock l(csDos); // [!] IRainman opt.
+				CFlyFastLock(csDos); // [!] IRainman opt.
 				l_count_dos = ++m_dos_map[l_hash_key];
 			}
 			static const uint8_t l_count_attempts = 30;
@@ -541,12 +541,12 @@ ok: //[!] TODO убрать goto
 
 	auto slotType = aSource->getSlotType();
 	
-	// [-] Lock l(cs); [-] IRainman opt.
+	// [-] CFlyLock(cs); [-] IRainman opt.
 	
 	//[!] IRainman autoban fix: please check this code after merge
 	bool hasReserved;
 	{
-		webrtc::ReadLockScoped l(*g_csReservedSlots); // [+] IRainman opt.
+		CFlyReadLock(*g_csReservedSlots); // [+] IRainman opt.
 		hasReserved = g_reservedSlots.find(aSource->getUser()) != g_reservedSlots.end();
 	}
 	if (!hasReserved)
@@ -584,7 +584,7 @@ ok: //[!] TODO убрать goto
 		bool hasFreeSlot = getFreeSlots() > 0;
 		if (hasFreeSlot)
 		{
-			Lock l(m_csQueue);  // [+] IRainman opt.
+			CFlyLock(m_csQueue);  // [+] IRainman opt.
 			hasFreeSlot = (m_slotQueue.empty() && m_notifiedUsers.empty() || (m_notifiedUsers.find(aSource->getUser()) != m_notifiedUsers.end()));
 		}
 		
@@ -645,7 +645,7 @@ ok: //[!] TODO убрать goto
 	}
 	
 	{
-		Lock l(m_csQueue);  // [+] IRainman opt.
+		CFlyLock(m_csQueue);  // [+] IRainman opt.
 		
 		// remove file from upload queue
 		clearUserFilesL(aSource->getUser());
@@ -660,7 +660,7 @@ ok: //[!] TODO убрать goto
 	
 	bool resumed = false;
 	{
-		webrtc::WriteLockScoped l(*g_csUploadsDelay);
+		CFlyWriteLock(*g_csUploadsDelay);
 		for (auto i = g_delayUploads.cbegin(); i != g_delayUploads.cend(); ++i)
 		{
 			auto up = *i;
@@ -699,7 +699,7 @@ ok: //[!] TODO убрать goto
 	u->setType(type);
 	
 	{
-		webrtc::WriteLockScoped l(*g_csUploadsDelay);
+		CFlyWriteLock(*g_csUploadsDelay);
 		g_uploads.push_back(u);
 		increaseUserConnectionAmountL(u->getUser());// [+] IRainman SpeedLimiter
 	}
@@ -719,7 +719,7 @@ ok: //[!] TODO убрать goto
 /*[-] IRainman refactoring transfer mechanism
 int64_t UploadManager::getRunningAverage()
 {
-    Lock l(cs);
+    CFlyLock(cs);
     int64_t avg = 0;
     for (auto i = uploads.cbegin(); i != uploads.cend(); ++i)
     {
@@ -755,7 +755,7 @@ void UploadManager::increaseUserConnectionAmountL(const UserPtr& p_user)
 void UploadManager::decreaseUserConnectionAmountL(const UserPtr& p_user)
 {
 	const auto i = g_uploadsPerUser.find(p_user);
-	dcassert(i != g_uploadsPerUser.end());
+	//dcassert(i != g_uploadsPerUser.end());
 	if (i != g_uploadsPerUser.end())
 	{
 		i->second--;
@@ -775,8 +775,8 @@ unsigned int UploadManager::getUserConnectionAmountL(const UserPtr& p_user)
 
 void UploadManager::removeUpload(UploadPtr& aUpload, bool delay)
 {
-	webrtc::WriteLockScoped l(*g_csUploadsDelay);
-	dcassert(find(g_uploads.begin(), g_uploads.end(), aUpload) != g_uploads.end());
+	CFlyWriteLock(*g_csUploadsDelay);
+	//dcassert(find(g_uploads.begin(), g_uploads.end(), aUpload) != g_uploads.end());
 	g_uploads.erase(remove(g_uploads.begin(), g_uploads.end(), aUpload), g_uploads.end());
 	decreaseUserConnectionAmountL(aUpload->getUser());// [+] IRainman SpeedLimiter
 	
@@ -793,13 +793,13 @@ void UploadManager::removeUpload(UploadPtr& aUpload, bool delay)
 void UploadManager::reserveSlot(const HintedUser& hintedUser, uint64_t aTime)
 {
 	{
-		webrtc::WriteLockScoped l(*g_csReservedSlots); // [!] IRainman opt.
+		CFlyWriteLock(*g_csReservedSlots); // [!] IRainman opt.
 		g_reservedSlots[hintedUser.user] = GET_TICK() + aTime * 1000;
 	}
 	save(); // !SMT!-S
 	if (hintedUser.user->isOnline())
 	{
-		Lock l(m_csQueue); // [+] IRainman opt.
+		CFlyLock(m_csQueue); // [+] IRainman opt.
 		// find user in uploadqueue to connect with correct token
 		auto it = std::find_if(m_slotQueue.cbegin(), m_slotQueue.cend(), [&](const UserPtr & u)
 		{
@@ -823,7 +823,7 @@ void UploadManager::reserveSlot(const HintedUser& hintedUser, uint64_t aTime)
 void UploadManager::unreserveSlot(const HintedUser& hintedUser)
 {
 	{
-		webrtc::WriteLockScoped l(*g_csReservedSlots); // [!] IRainman opt.
+		CFlyWriteLock(*g_csReservedSlots); // [!] IRainman opt.
 		g_reservedSlots.erase(hintedUser.user);
 	}
 	save(); // !SMT!-S
@@ -868,7 +868,7 @@ void UploadManager::on(UserConnectionListener::Send, UserConnection* aSource) no
 	
 	aSource->setState(UserConnection::STATE_RUNNING);
 	aSource->transmitFile(u->getReadStream());
-	fire(UploadManagerListener::Starting(), u);
+	fly_fire1(UploadManagerListener::Starting(), u);
 }
 
 void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcCommand& c) noexcept
@@ -920,7 +920,7 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 		// [~]
 		aSource->setState(UserConnection::STATE_RUNNING);
 		aSource->transmitFile(u->getReadStream());
-		fire(UploadManagerListener::Starting(), u);
+		fly_fire1(UploadManagerListener::Starting(), u);
 	}
 }
 
@@ -938,7 +938,7 @@ void UploadManager::on(UserConnectionListener::Failed, UserConnection* aSource, 
 	
 	if (u)
 	{
-		fire(UploadManagerListener::Failed(), u, aError);
+		fly_fire2(UploadManagerListener::Failed(), u, aError);
 		
 		dcdebug("UM::onFailed (%s): Removing upload\n", aError.c_str());
 		removeUpload(u);
@@ -976,14 +976,14 @@ void UploadManager::logUpload(const UploadPtr& aUpload)
 		aUpload->getParams(params);
 		LOG(UPLOAD, params);
 	}
-	fire(UploadManagerListener::Complete(), aUpload);
+	fly_fire1(UploadManagerListener::Complete(), aUpload);
 }
 
 size_t UploadManager::addFailedUpload(const UserConnection* aSource, const string& file, int64_t pos, int64_t size)
 {
 	size_t queue_position = 0;
 	
-	Lock l(m_csQueue); // [+] IRainman opt.
+	CFlyLock(m_csQueue); // [+] IRainman opt.
 	
 	auto it = std::find_if(m_slotQueue.begin(), m_slotQueue.end(), [&](const UserPtr & u) -> bool { ++queue_position; return u == aSource->getUser(); });
 	if (it != m_slotQueue.end())
@@ -1012,7 +1012,7 @@ size_t UploadManager::addFailedUpload(const UserConnection* aSource, const strin
 	// Crash https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=29270
 	if (g_count_WaitingUsersFrame)
 	{
-		fire(UploadManagerListener::QueueAdd(), uqi);
+		fly_fire1(UploadManagerListener::QueueAdd(), uqi);
 	}
 	return queue_position;
 }
@@ -1022,7 +1022,7 @@ void UploadManager::clearWaitingFilesL(const WaitingUser& p_wu)
 	{
 		if (g_count_WaitingUsersFrame)
 		{
-			fire(UploadManagerListener::QueueItemRemove(), (*i));
+			fly_fire1(UploadManagerListener::QueueItemRemove(), (*i));
 		}
 	}
 }
@@ -1037,7 +1037,7 @@ void UploadManager::clearUserFilesL(const UserPtr& aUser)
 		clearWaitingFilesL(*it);
 		if (g_count_WaitingUsersFrame)
 		{
-			fire(UploadManagerListener::QueueRemove(), aUser);
+			fly_fire1(UploadManagerListener::QueueRemove(), aUser);
 		}
 		m_slotQueue.erase(it);
 	}
@@ -1056,7 +1056,7 @@ void UploadManager::addConnection(UserConnection* p_conn)
 
 void UploadManager::testSlotTimeout(uint64_t aTick /*= GET_TICK()*/)
 {
-	webrtc::WriteLockScoped l(*g_csReservedSlots); // [+] IRainman opt.
+	CFlyWriteLock(*g_csReservedSlots); // [+] IRainman opt.
 	for (auto j = g_reservedSlots.cbegin(); j != g_reservedSlots.cend();)
 	{
 		if (j->second < aTick)  // !SMT!-S
@@ -1086,7 +1086,7 @@ void UploadManager::process_slot(UserConnection::SlotTypes p_slot_type, int p_de
 }
 void UploadManager::removeConnection(UserConnection* aSource, bool p_is_remove_listener /*= true */)
 {
-	dcassert(aSource->getUpload() == nullptr);
+	//dcassert(aSource->getUpload() == nullptr);
 	if (p_is_remove_listener)
 	{
 		aSource->removeListener(this);
@@ -1102,7 +1102,7 @@ void UploadManager::notifyQueuedUsers(int64_t p_tick)
 		return; //no users to notify
 	vector<WaitingUser> l_notifyList;
 	{
-		Lock l(m_csQueue); // [+] IRainman opt.
+		CFlyLock(m_csQueue); // [+] IRainman opt.
 		int freeslots = getFreeSlots();
 		if (freeslots > 0)
 		{
@@ -1115,7 +1115,7 @@ void UploadManager::notifyQueuedUsers(int64_t p_tick)
 				clearWaitingFilesL(wu);
 				if (g_count_WaitingUsersFrame)
 				{
-					fire(UploadManagerListener::QueueRemove(), wu.getUser()); // TODO унести из лока?
+					fly_fire1(UploadManagerListener::QueueRemove(), wu.getUser()); // TODO унести из лока?
 				}
 				if (wu.getUser()->isOnline())
 				{
@@ -1141,15 +1141,15 @@ void UploadManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 	{
 #ifdef PPA_INCLUDE_DOS_GUARD
 		{
-			FastLock l(csDos);
+			CFlyFastLock(csDos);
 			m_dos_map.clear();
 		}
 #endif
-		// [-] Lock l(cs); [-] IRainman opt.
+		// [-] CFlyLock(cs); [-] IRainman opt.
 		testSlotTimeout(aTick);//[!] FlylinkDC
 		
 		{
-			Lock l(m_csQueue); // [+] IRainman opt.
+			CFlyLock(m_csQueue); // [+] IRainman opt.
 			
 			for (auto i = m_notifiedUsers.cbegin(); i != m_notifiedUsers.cend();)
 			{
@@ -1165,7 +1165,7 @@ void UploadManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 		
 		if (BOOLSETTING(AUTO_KICK))
 		{
-			webrtc::ReadLockScoped l(*g_csUploadsDelay);
+			CFlyReadLock(*g_csUploadsDelay);
 			
 			for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
 			{
@@ -1254,7 +1254,7 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	{
 		int64_t l_currentSpeed = 0;//[+]IRainman refactoring transfer mechanism
 		{
-			webrtc::WriteLockScoped l(*g_csUploadsDelay);
+			CFlyWriteLock(*g_csUploadsDelay);
 			for (auto i = g_delayUploads.cbegin(); i != g_delayUploads.cend();)
 			{
 				if (auto u = *i)
@@ -1274,7 +1274,7 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 		}
 		SharedFileStream::cleanup();
 		l_tickList.reserve(g_uploads.size());
-		webrtc::ReadLockScoped l(*g_csUploadsDelay);
+		CFlyReadLock(*g_csUploadsDelay);
 		for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
 		{
 			auto u = *i;
@@ -1330,7 +1330,7 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	}
 	if (!l_tickList.empty())
 	{
-		fire(UploadManagerListener::Tick(), l_tickList);
+		fly_fire1(UploadManagerListener::Tick(), l_tickList);
 		// TODO - Выполняем под локом
 	}
 	
@@ -1338,7 +1338,7 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	
 	if (g_count_WaitingUsersFrame)
 	{
-		fire(UploadManagerListener::QueueUpdate());
+		fly_fire(UploadManagerListener::QueueUpdate());
 	}
 	
 	if (!isFireball)
@@ -1376,14 +1376,14 @@ void UploadManager::on(ClientManagerListener::UserDisconnected, const UserPtr& a
 {
 	if (!aUser->isOnline())
 	{
-		Lock l(m_csQueue);  // [+] IRainman opt.
+		CFlyLock(m_csQueue);  // [+] IRainman opt.
 		clearUserFilesL(aUser);
 	}
 }
 
 void UploadManager::removeDelayUpload(const UserPtr& aUser)
 {
-	webrtc::WriteLockScoped l(*g_csUploadsDelay);
+	CFlyWriteLock(*g_csUploadsDelay);
 	for (auto i = g_delayUploads.cbegin(); i != g_delayUploads.cend(); ++i)
 	{
 		auto up = *i;
@@ -1403,7 +1403,7 @@ void UploadManager::abortUpload(const string& aFile, bool waiting)
 {
 	bool nowait = true;
 	{
-		webrtc::ReadLockScoped l(*g_csUploadsDelay);
+		CFlyReadLock(*g_csUploadsDelay);
 		for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
 		{
 			auto u = *i;
@@ -1422,7 +1422,7 @@ void UploadManager::abortUpload(const string& aFile, bool waiting)
 	{
 		Thread::sleep(100);
 		{
-			webrtc::ReadLockScoped l(*g_csUploadsDelay);
+			CFlyReadLock(*g_csUploadsDelay);
 			nowait = true;
 			for (auto j = g_uploads.cbegin(); j != g_uploads.cend(); ++j)
 			{
@@ -1445,7 +1445,7 @@ void UploadManager::abortUpload(const string& aFile, bool waiting)
 // !SMT!-S
 time_t UploadManager::getReservedSlotTime(const UserPtr& aUser)
 {
-	webrtc::ReadLockScoped l(*g_csReservedSlots); // [!] IRainman opt.
+	CFlyReadLock(*g_csReservedSlots); // [!] IRainman opt.
 	const auto j = g_reservedSlots.find(aUser);
 	return j != g_reservedSlots.end() ? j->second : 0;
 }
@@ -1455,7 +1455,7 @@ void UploadManager::save()
 {
 	CFlyRegistryMap values;
 	{
-		webrtc::ReadLockScoped l(*g_csReservedSlots); // [!] IRainman opt.
+		CFlyReadLock(*g_csReservedSlots); // [!] IRainman opt.
 		for (auto i = g_reservedSlots.cbegin(); i != g_reservedSlots.cend(); ++i)
 		{
 			values[i->first->getCID().toBase32()] = CFlyRegistryValue(i->second);
@@ -1469,11 +1469,11 @@ void UploadManager::load()
 {
 	CFlyRegistryMap l_values;
 	CFlylinkDBManager::getInstance()->load_registry(l_values, e_ExtraSlot);
-	// [-] Lock l(cs); [-] IRainman opt.
+	// [-] CFlyLock(cs); [-] IRainman opt.
 	for (auto k = l_values.cbegin(); k != l_values.cend(); ++k)
 	{
 		auto user = ClientManager::getUser(CID(k->first), true);
-		webrtc::WriteLockScoped l(*g_csReservedSlots); // [+] IRainman opt.
+		CFlyWriteLock(*g_csReservedSlots); // [+] IRainman opt.
 		g_reservedSlots[user] = uint32_t(k->second.m_val_int64);
 	}
 	testSlotTimeout();

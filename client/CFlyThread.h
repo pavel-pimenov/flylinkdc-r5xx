@@ -19,6 +19,8 @@
 #ifndef DCPLUSPLUS_DCPP_THREAD_H
 #define DCPLUSPLUS_DCPP_THREAD_H
 
+#pragma once
+
 // [+] IRainman fix.
 #define GetSelfThreadID() ::GetCurrentThreadId()
 typedef DWORD ThreadID;
@@ -39,6 +41,8 @@ typedef DWORD ThreadID;
 #include <fstream>
 #include <ctime>
 #endif
+
+#include "CFlyLockProfiler.h"
 
 #ifdef RIP_USE_THREAD_POOL
 #define BASE_THREAD ThreadPool
@@ -227,6 +231,7 @@ class Thread : public BaseThread
 			}
 		}
 		
+#ifdef _DEBUG
 		class ConditionLocker
 #ifdef _DEBUG
 			: private boost::noncopyable
@@ -245,25 +250,7 @@ class Thread : public BaseThread
 			private:
 				volatile long& m_condition;
 		};
-		
-		class ConditionLockerWithSpin
-#ifdef _DEBUG
-			: private boost::noncopyable
-#endif
-		{
-			public:
-				explicit ConditionLockerWithSpin(volatile long& condition) : m_condition(condition)
-				{
-					waitLockStateWithSpin(m_condition);
-				}
-				
-				~ConditionLockerWithSpin()
-				{
-					unlockState(m_condition);
-				}
-			private:
-				volatile long& m_condition;
-		};
+#endif // _DEBUG        
 		// [~] IRainman fix.
 		explicit Thread() : m_threadHandle(INVALID_HANDLE_VALUE) { }
 		virtual ~Thread()
@@ -403,6 +390,14 @@ class CriticalSection
 			EnterCriticalSection(&cs);
 			log("lock");
 		}
+		LONG getLockCount() const
+		{
+			return cs.LockCount;
+		}
+		LONG getRecursionCount() const
+		{
+			return cs.RecursionCount;
+		}
 		void unlock()
 		{
 			LeaveCriticalSection(&cs);
@@ -442,25 +437,6 @@ class CriticalSection
 		}
 	private:
 		CRITICAL_SECTION cs;
-#ifndef IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
-	public:
-		void lockShared()
-		{
-			lock();
-		}
-		void unlockShared()
-		{
-			unlock();
-		}
-		void lockUnique()
-		{
-			lock();
-		}
-		void unlockUnique()
-		{
-			unlock();
-		}
-#endif // IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
 };
 
 // [+] IRainman fix: detect spin lock recursive entry
@@ -533,6 +509,15 @@ class FastCriticalSection
 			Thread::unlockState(m_state); // [!] IRainman fix.
 			dcdrun(DEBUG_SPIN_LOCK_ERASE());
 		}
+		LONG getLockCount() const
+		{
+			return 0;
+		}
+		LONG getRecursionCount() const
+		{
+			return 0;
+		}
+
 	private:
 		volatile long m_state;
 #ifdef _DEBUG
@@ -562,31 +547,57 @@ class FastCriticalSection
 #else
 typedef CriticalSection FastCriticalSection;
 #endif // IRAINMAN_USE_SPIN_LOCK
-template<class T>
-class LockBase
-#ifdef _DEBUG
-	: boost::noncopyable
+
+template<class T>  class LockBase
+#ifdef FLYLINKDC_USE_PROFILER_CS
+	: protected CFlyLockProfiler
 #endif
 {
 	public:
-		explicit LockBase(T& aCs) : cs(aCs)
+		explicit LockBase(T& aCs
+#ifdef FLYLINKDC_USE_PROFILER_CS
+		                  , const char* p_function = nullptr
+#endif
+		                 ) : cs(aCs)
+#ifdef FLYLINKDC_USE_PROFILER_CS
+			, CFlyLockProfiler(p_function)
+#endif
 		{
 			cs.lock();
-		} // https://www.box.net/shared/81bdfde50b7c189f8240
+#ifdef FLYLINKDC_USE_PROFILER_CS
+			log("D:\\CriticalSectionLog-lock.txt", cs.getRecursionCount());
+#endif
+		}
 		~LockBase()
 		{
+#ifdef FLYLINKDC_USE_PROFILER_CS
+			log("D:\\CriticalSectionLog-unlock.txt", cs.getRecursionCount(), true);
+#endif
 			cs.unlock();
 		}
 	private:
 		T& cs;
 };
 typedef LockBase<CriticalSection> Lock;
+#ifdef FLYLINKDC_USE_PROFILER_CS
+#define CFlyLock(cs) Lock l_lock(cs,__FUNCTION__);
+#define CFlyLockLine(cs, line) Lock l_lock(cs,line);
+#else
+#define CFlyLock(cs) Lock l_lock(cs);
+#endif
 #ifdef IRAINMAN_USE_SPIN_LOCK
 typedef LockBase<FastCriticalSection> FastLock;
 #else
 typedef Lock FastLock;
 #endif // IRAINMAN_USE_SPIN_LOCK
+
+#ifdef FLYLINKDC_USE_PROFILER_CS
+#define CFlyFastLock(cs) FastLock l_lock(cs,__FUNCTION__);
+#else
+#define CFlyFastLock(cs) FastLock l_lock(cs);
 #endif
+
+#endif // FLYLINKDC_USE_BOOST_LOCK
 
 #else
 #define DEADLOCK_TIMEOUT 30000
@@ -773,25 +784,6 @@ class CriticalSection : public CBaseLock
 		{
 			Term();
 		}
-#ifndef IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
-	public:
-		void lockShared()
-		{
-			lock();
-		}
-		void unlockShared()
-		{
-			unlock();
-		}
-		void lockUnique()
-		{
-			lock();
-		}
-		void unlockUnique()
-		{
-			unlock();
-		}
-#endif // IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
 };
 
 class Lock
@@ -838,68 +830,6 @@ typedef Lock FastLock;
 // in full shared-critical section ( slowly :( ).
 // Author modifications Alexey Solomin (a.rainman@gmail.com), 2012.
 
-class FastSharedCriticalSection
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
-{
-	private:
-		dcdrun(DEBUG_SPIN_LOCK_DECL());
-		volatile long sharedOwners;
-		volatile long uniqueOwner;
-	public:
-		FastSharedCriticalSection() : sharedOwners(0), uniqueOwner(0)
-		{
-			dcdrun(DEBUG_SPIN_LOCK_INIT());
-		}
-		
-		void lockShared()
-		{
-			dcdrun(DEBUG_SPIN_LOCK_INSERT());
-			Thread::waitCondition(uniqueOwner);
-			Thread::safeInc(sharedOwners);
-		}
-		
-		void unlockShared()
-		{
-			Thread::safeDec(sharedOwners);
-			dcdrun(DEBUG_SPIN_LOCK_ERASE());
-		}
-		
-		void lockUnique()
-		{
-			dcdrun(DEBUG_SPIN_LOCK_INSERT());
-			Thread::waitLockState(uniqueOwner);
-			Thread::waitCondition(sharedOwners);
-		}
-		
-		bool tryLockUnique()
-		{
-			if (Thread::failStateLock(uniqueOwner))
-			{
-				return false;
-			}
-			else
-			{
-				if (sharedOwners)
-				{
-					unlockUnique();
-					return false;
-				}
-				else
-				{
-					dcdrun(DEBUG_SPIN_LOCK_INSERT());
-					return true;
-				}
-			}
-		}
-		
-		void unlockUnique()
-		{
-			Thread::unlockState(uniqueOwner);
-			dcdrun(DEBUG_SPIN_LOCK_ERASE());
-		}
-};
 
 #ifdef _DEBUG
 //# define RECURSIVE_SHARED_CRITICAL_SECTION_DEBUG
@@ -909,310 +839,6 @@ class FastSharedCriticalSection
 # endif // RECURSIVE_SHARED_CRITICAL_SECTION_DEAD_LOCK_TRACE
 #endif
 
-#ifdef IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
-
-// TODO портировать часть из WebRTC
-// chromium\src\third_party\webrtc\system_wrappers\source\rw_lock_win.cc
-// https://github.com/rillian/webrtc/blob/f9f128a6306634d0b66f81dca71dac69f0f8fe00/webrtc/system_wrappers/source/rw_lock_win.cc
-// Реализация динамически детектирует винду а если Vista или выше используется нативные RWСекции ядра винды!
-
-class SharedCriticalSection
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
-{
-	private:
-		std::multiset<ThreadID> sharedOwners;
-		FastCriticalSection sharedOwnersSL;
-		
-		volatile long uniqueOwnerIsSet;
-		volatile long /*ThreadID*/ uniqueOwnerId;
-		volatile int uniqueOwnerRecursivCount;
-		
-		bool isUniqueOwner(const ThreadID currentThreadId) const
-		{
-#pragma warning(push)
-#pragma warning(disable:4389)
-			return uniqueOwnerId == currentThreadId;
-#pragma warning(pop)
-		}
-		
-		void addSharedOwner(const ThreadID currentThreadId)
-		{
-			FastLock l(sharedOwnersSL);
-			sharedOwners.insert(currentThreadId);
-#ifdef RECURSIVE_SHARED_CRITICAL_SECTION_DEBUG
-			dcassert(sharedOwners.size() < 25);
-#endif
-		}
-		
-		void deleteSharedOwner(const ThreadID currentThreadId)
-		{
-			FastLock l(sharedOwnersSL);
-#ifdef RECURSIVE_SHARED_CRITICAL_SECTION_DEBUG
-			const auto i = sharedOwners.find(currentThreadId);
-			if (i == sharedOwners.cend())
-			{
-				dcassert(0); // remove zombie.
-			}
-			sharedOwners.erase(i);
-#else
-			sharedOwners.erase(sharedOwners.find(currentThreadId));
-#endif
-		}
-		
-	public:
-#pragma warning(push)
-#pragma warning(disable:4245)
-		SharedCriticalSection() : uniqueOwnerIsSet(0), uniqueOwnerRecursivCount(0), uniqueOwnerId(-1)
-		{
-		}
-#pragma warning(pop)
-		
-		~SharedCriticalSection()
-		{
-			dcassert(sharedOwners.empty());
-			dcassert(uniqueOwnerIsSet == 0);
-			dcassert(uniqueOwnerRecursivCount == 0);
-			dcassert(uniqueOwnerId == -1);
-		}
-		
-		void lockShared()
-		{
-			const ThreadID currentThreadId = GetSelfThreadID();
-			if (isUniqueOwner(currentThreadId))
-			{
-				addSharedOwner(currentThreadId); // recursive entry after write.
-			}
-			else
-			{
-				{
-					FastLock l(sharedOwnersSL);
-					const auto i = sharedOwners.find(currentThreadId);
-					if (i != sharedOwners.cend())
-					{
-						sharedOwners.insert(i, currentThreadId);
-						return; // recursive entry after read.
-					}
-				}
-				Thread::ConditionLockerWithSpin l(uniqueOwnerIsSet);
-				addSharedOwner(currentThreadId); // non recursive entry.
-			}
-		}
-		
-		void unlockShared()
-		{
-			const ThreadID currentThreadId = GetSelfThreadID();
-			deleteSharedOwner(currentThreadId);
-		}
-		
-		bool tryLockUnique()
-		{
-			const ThreadID currentThreadId = GetSelfThreadID();
-			if (isUniqueOwner(currentThreadId))
-			{
-				uniqueOwnerRecursivCount++;
-#ifdef RECURSIVE_SHARED_CRITICAL_SECTION_DEBUG
-				dcassert(uniqueOwnerRecursivCount > 0);
-#endif
-				return true; // recursive entry after write.
-			}
-			
-			if (Thread::failStateLock(uniqueOwnerIsSet))
-			{
-				return false;
-			}
-			
-			{
-				FastLock l(sharedOwnersSL);
-				if (sharedOwners.size() == sharedOwners.count(currentThreadId))
-				{
-					return true; // non recursive entry or recursive entry after read.
-				}
-			}
-			
-			return false;
-		}
-		
-		void lockUnique()
-		{
-			const ThreadID currentThreadId = GetSelfThreadID();
-			if (isUniqueOwner(currentThreadId))
-			{
-				uniqueOwnerRecursivCount++;
-#ifdef RECURSIVE_SHARED_CRITICAL_SECTION_DEBUG
-				dcassert(uniqueOwnerRecursivCount > 0);
-#endif
-				return; // recursive entry after write.
-			}
-			
-			Thread::waitLockStateWithSpin(uniqueOwnerIsSet);
-			
-#ifdef RECURSIVE_SHARED_CRITICAL_SECTION_DEBUG
-			dcassert(uniqueOwnerRecursivCount == 0);
-#pragma warning(push)
-#pragma warning(disable:4245)
-			dcassert(uniqueOwnerId == -1);
-#pragma warning(pop)
-#endif // RECURSIVE_SHARED_CRITICAL_SECTION_DEBUG
-			Thread::safeExchange(uniqueOwnerId, currentThreadId);
-			
-			size_t recursivSharedCountOfCurrentThreadId;
-			{
-				FastLock l(sharedOwnersSL);
-				recursivSharedCountOfCurrentThreadId = sharedOwners.count(currentThreadId);
-			}
-			
-			unsigned int spin = CRITICAL_SECTION_SPIN_COUNT;
-			if (recursivSharedCountOfCurrentThreadId)
-			{
-#ifdef RECURSIVE_SHARED_CRITICAL_SECTION_NOT_ALLOW_UNIQUE_RECUSIVE_ENTRY_AFTER_SHARED_LOCK
-				dcdebug("Attention, potential deadlock! Attempting unique recursive lock after a shared lock on thread %d", currentThreadId);
-				dcassert(0);
-#endif
-				while (true)
-				{
-					{
-						FastLock l(sharedOwnersSL);
-						if (recursivSharedCountOfCurrentThreadId == sharedOwners.size())
-						{
-							return; // recursive entry after read.
-						}
-					}
-					Thread::sleepWithSpin(spin);
-				}
-			}
-			else
-			{
-				while (true)
-				{
-					{
-						FastLock l(sharedOwnersSL);
-						if (sharedOwners.empty())
-						{
-							return; // non recursive entry.
-						}
-					}
-					Thread::sleepWithSpin(spin);
-				}
-			}
-		}
-		
-		void unlockUnique()
-		{
-#ifdef RECURSIVE_SHARED_CRITICAL_SECTION_DEBUG
-			const ThreadID currentThreadId = GetSelfThreadID();
-			dcassert(uniqueOwnerIsSet == 1);
-#pragma warning(push)
-#pragma warning(disable:4389)
-			dcassert(uniqueOwnerId == currentThreadId);
-#pragma warning(pop)
-			dcassert(uniqueOwnerRecursivCount >= 0);
-#endif // RECURSIVE_SHARED_CRITICAL_SECTION_DEBUG
-			if (uniqueOwnerRecursivCount == 0) // exit from the initial entry.
-			{
-#pragma warning(push)
-#pragma warning(disable:4245)
-				Thread::safeExchange(uniqueOwnerId, -1);
-#pragma warning(pop)
-				
-				Thread::safeExchange(uniqueOwnerIsSet, 0);
-			}
-			else // exit after recursive entry.
-			{
-				uniqueOwnerRecursivCount--;
-			}
-		}
-};
-#else
-typedef CriticalSection SharedCriticalSection;
-#endif // IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
-
-template<class T>
-class SharedLockBase
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
-{
-	private:
-		T& cs;
-	public:
-		explicit SharedLockBase(T& shared_cs) : cs(shared_cs)
-		{
-			cs.lockShared();
-		}
-		
-		~SharedLockBase()
-		{
-			cs.unlockShared();
-		}
-};
-
-typedef SharedLockBase<FastSharedCriticalSection> FastSharedLock;
-
-#ifdef IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
-typedef SharedLockBase<SharedCriticalSection> SharedLock;
-#else
-typedef Lock SharedLock;
-#endif
-
-template<class T>
-class UniqueLockBase
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
-{
-	private:
-		T& cs;
-	public:
-		explicit UniqueLockBase(T& shared_cs) : cs(shared_cs)
-		{
-			cs.lockUnique();
-		}
-		
-		~UniqueLockBase()
-		{
-			cs.unlockUnique();
-		}
-};
-
-typedef UniqueLockBase<FastSharedCriticalSection> FastUniqueLock;
-
-#ifdef IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
-typedef UniqueLockBase<SharedCriticalSection> UniqueLock;
-#else
-typedef Lock UniqueLock;
-#endif
-
-template<class T>
-class BaseTryUniqueLock
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
-{
-	private:
-		T& cs;
-		const bool succes;
-	public:
-		explicit BaseTryUniqueLock(T& shared_cs) : cs(shared_cs), succes(cs.tryLockUnique())
-		{
-		}
-		
-		bool locked() const
-		{
-			return succes;
-		}
-		
-		~BaseTryUniqueLock()
-		{
-			if (succes)
-				cs.unlockUnique();
-		}
-};
-
-typedef BaseTryUniqueLock<FastSharedCriticalSection> TryFastUniqueLock;
-
-typedef BaseTryUniqueLock<SharedCriticalSection> TryUniqueLock;
 
 #else // IRAINMAN_USE_SHARED_SPIN_LOCK
 

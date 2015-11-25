@@ -204,7 +204,7 @@ typedef unsigned __int64 uint64_t;
 # define IRAINMAN_INCLUDE_RSS // Disable this to cut rss-manager from code.
 # define IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 #endif // FLYLINKDC_HE
-#define IRAINMAN_ENABLE_SLOTS_AND_LIMIT_IN_DESCRIPTION
+// #define IRAINMAN_ENABLE_SLOTS_AND_LIMIT_IN_DESCRIPTION
 #define IRAINMAN_ENABLE_OP_VIP_MODE
 #ifdef IRAINMAN_ENABLE_OP_VIP_MODE
 # define IRAINMAN_ENABLE_OP_VIP_MODE_ON_NMDC
@@ -235,7 +235,6 @@ typedef unsigned __int64 uint64_t;
 //#define IRAINMAN_ENABLE_TTH_GET_FLAG // This code is off. All clients support ADC teams have this flag is always set. Our version 4xx also do not use it. He is unlikely to ever need. Leave only to simplify merge.
 //#define IRAINMAN_CONNECTION_MANAGER_TOKENS_DEBUG // TODO: must correct work with tokens in the ConnectionManager. This error runs either with Strong, or even from a very long time. After confirming correct downloads, I'll probably fix the problem.
 //#define IRAINMAN_CORRRECT_CALL_FOR_CLIENT_MANAGER_DEBUG // TODO: correct the error with the transfer of incorrect addresses in ClientManager :: findHub: error or very old or relatively new and due to the large merzh in the making of the branches r5xx.
-#define IRAINMAN_USE_SIMPLE_SPEAKER // https://code.google.com/p/flylinkdc/issues/detail?id=1095
 #define IRAINMAN_USE_NG_CORE
 #ifdef IRAINMAN_USE_NG_CORE
 # define IRAINMAN_ALLOW_ALL_CLIENT_FEATURES_ON_NMDC // TODO: use new ADC features.
@@ -244,8 +243,9 @@ typedef unsigned __int64 uint64_t;
 //#  define IRAINMAN_USE_OLD_CODE_IN_USER_INFO_ONLY_FOR_TEST 1
 # endif // IRAINMAN_USE_NG_FAST_USER_INFO
 # define IRAINMAN_IDENTITY_IS_NON_COPYABLE
-# define IRAINMAN_USE_NG_LOG_MANAGER
+#ifndef _DEBUG
 # define IRAINMAN_USE_SPIN_LOCK
+#endif
 # define IRAINMAN_USE_READ_WRITE_POLITICS
 # ifdef IRAINMAN_USE_READ_WRITE_POLITICS
 // [!] IRainman opt: use policies without copying data.
@@ -257,7 +257,7 @@ typedef unsigned __int64 uint64_t;
 # endif // IRAINMAN_USE_READ_WRITE_POLITICS
 # ifdef FLYLINKDC_HE
 #  ifdef IRAINMAN_USE_READ_WRITE_POLITICS
-#   define IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
+#// [-]   define IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
 // [!] IRainman opt: use policies without copying data.
 #   ifdef IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
 #    define IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
@@ -297,8 +297,7 @@ typedef unsigned __int64 uint64_t;
 # define RIP_USE_STREAM_SUPPORT_DETECTION
 #endif
 //
-// Выключено - https://code.google.com/p/flylinkdc/issues/detail?id=625
-// #define RIP_USE_CONNECTION_AUTODETECT
+#define RIP_USE_CONNECTION_AUTODETECT
 
 #define RIP_USE_PORTAL_BROWSER
 //#define RIP_USE_SKIN    // not yet implemented, don't turn on

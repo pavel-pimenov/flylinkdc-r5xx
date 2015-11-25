@@ -11,7 +11,7 @@ if not exist .\compiled\FlylinkDC*.exe goto :builderror
 move *-src-*.7z "U:\webdav\src-bin-pdb\flylinkdc-r5xx"
 move *.7z "U:\webdav\src-bin-pdb\flylinkdc-r5xx"
 
-copy changelog-flylinkdc*.txt "U:\webdav\src-bin-pdb"
+rem copy changelog-flylinkdc*.txt "U:\webdav\src-bin-pdb"
 
 copy ..\flylinkdc-update\5xx\stable-lib-dll\*.dll .\compiled\PortalBrowser
 

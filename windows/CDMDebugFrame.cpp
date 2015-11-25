@@ -298,7 +298,7 @@ int CDMDebugFrame::run()
 			break;
 		}
 		{
-			FastLock l(m_cs);
+			CFlyFastLock(m_cs);
 			dcassert(!m_cmdList.empty()); // [~]
 			
 			std::swap(task, m_cmdList.front()); // [!] opt: use swap.

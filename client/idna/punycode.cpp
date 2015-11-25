@@ -7,6 +7,8 @@
  * This is ANSI C code (C89) implementing Punycode (RFC 3492).
  */
 
+#include "stdinc.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>

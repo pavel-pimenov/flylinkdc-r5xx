@@ -39,7 +39,7 @@ PortalBrowserFrame::PortalBrowserFrame(LPCWSTR pszName, WORD wID):
 PortalBrowserFrame::~PortalBrowserFrame()
 {
 	{
-		FastLock l(g_cs);
+		CFlyFastLock(g_cs);
 		auto i = g_portal_frames.begin();
 		
 		while (i != g_portal_frames.end())
@@ -59,12 +59,15 @@ PortalBrowserFrame::~PortalBrowserFrame()
 BOOL PortalBrowserFrame::PreTranslateMessage(MSG* pMsg)
 {
 	BOOL bRet = FALSE;
-	FastLock l(g_cs);
-	auto i = g_portal_frames.begin();
-	while (i != g_portal_frames.end())
+	if (!g_portal_frames.empty())
 	{
-		bRet |= i->second->PreTranslateMessage_ByInstance(pMsg);
-		++i;
+		CFlyFastLock(g_cs);
+		auto i = g_portal_frames.begin();
+		while (i != g_portal_frames.end())
+		{
+			bRet |= i->second->PreTranslateMessage_ByInstance(pMsg);
+			++i;
+		}
 	}
 	return bRet;
 }
@@ -130,7 +133,7 @@ void PortalBrowserFrame::openWindow(WORD wID)
 	else
 		return;
 		
-	FastLock l(g_cs);
+	CFlyFastLock(g_cs);
 	auto i = g_portal_frames.find(pPortal->strName);
 	
 	if (i == g_portal_frames.end())
@@ -184,7 +187,7 @@ bool PortalBrowserFrame::isMDIChildActive(HWND hWnd)
 
 void PortalBrowserFrame::closeWindow(LPCWSTR pszName)
 {
-	FastLock l(g_cs);
+	CFlyFastLock(g_cs);
 	auto i = g_portal_frames.find(pszName);
 	
 	if (i != g_portal_frames.end())
@@ -465,7 +468,6 @@ LRESULT PortalBrowserFrame::onEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 LRESULT PortalBrowserFrame::onMDIActivate(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	m_bActive = (HWND)lParam == m_hWnd;
-	
 	HandleFullScreen(WM_QUEUE_HANDLE_FULL_SCREEN, m_bActive, 0, bHandled);
 	
 	bHandled = FALSE;
@@ -477,20 +479,24 @@ LRESULT PortalBrowserFrame::HandleFullScreen(UINT /*uMsg*/, WPARAM wParam, LPARA
 {
 	bool bActive = wParam != 0;
 	
-	if (bActive && IsZoomed())
+	extern bool g_isShutdown;
+	if (!g_isShutdown)
 	{
-		MainFrame::getMainFrame()->ViewTransferView(FALSE);
-		
-		DWORD dwState = MainFrame::getMainFrame()->UIGetState(ID_VIEW_TRANSFER_VIEW);
-		MainFrame::getMainFrame()->UISetState(ID_VIEW_TRANSFER_VIEW, dwState | CUpdateUIBase::UPDUI_DISABLED);
-	}
-	else
-	{
-		if (BOOLSETTING(SHOW_TRANSFERVIEW))
-			MainFrame::getMainFrame()->ViewTransferView(TRUE);
+		if (bActive && IsZoomed())
+		{
+			MainFrame::getMainFrame()->ViewTransferView(FALSE);
 			
-		DWORD dwState = MainFrame::getMainFrame()->UIGetState(ID_VIEW_TRANSFER_VIEW);
-		MainFrame::getMainFrame()->UISetState(ID_VIEW_TRANSFER_VIEW, dwState & (~CUpdateUIBase::UPDUI_DISABLED));
+			DWORD dwState = MainFrame::getMainFrame()->UIGetState(ID_VIEW_TRANSFER_VIEW);
+			MainFrame::getMainFrame()->UISetState(ID_VIEW_TRANSFER_VIEW, dwState | CUpdateUIBase::UPDUI_DISABLED);
+		}
+		else
+		{
+			if (BOOLSETTING(SHOW_TRANSFERVIEW))
+				MainFrame::getMainFrame()->ViewTransferView(TRUE);
+				
+			DWORD dwState = MainFrame::getMainFrame()->UIGetState(ID_VIEW_TRANSFER_VIEW);
+			MainFrame::getMainFrame()->UISetState(ID_VIEW_TRANSFER_VIEW, dwState & (~CUpdateUIBase::UPDUI_DISABLED));
+		}
 	}
 	return TRUE;
 }

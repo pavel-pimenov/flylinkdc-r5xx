@@ -140,7 +140,7 @@ class AutoUpdate :
 		
 		friend class Singleton<AutoUpdate>;
 		
-		explicit AutoUpdate(): m_isUpdateStarted(0),  m_isUpdate(false), m_manualUpdate(false), m_exitOnUpdate(false), m_mainFrameHWND(nullptr) { }
+		explicit AutoUpdate() : m_isUpdateStarted(0), m_isUpdate(false), m_manualUpdate(false), m_exitOnUpdate(false), m_mainFrameHWND(nullptr), m_guiDelegate(nullptr) {}
 		
 		virtual ~AutoUpdate()
 		{

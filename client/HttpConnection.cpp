@@ -63,11 +63,11 @@ void HttpConnection::downloadFile(const string& aUrl, const string& aUserAgent)
 	// set download type
 	if (stricmp(currentUrl.substr(currentUrl.size() - 4).c_str(), ".bz2") == 0)
 	{
-		fire(HttpConnectionListener::TypeBZ2(), this);
+		fly_fire1(HttpConnectionListener::TypeBZ2(), this);
 	}
 	else
 	{
-		fire(HttpConnectionListener::TypeNormal(), this);
+		fly_fire1(HttpConnectionListener::TypeNormal(), this);
 	}
 	
 	bool isSecure = false;
@@ -119,7 +119,7 @@ void HttpConnection::downloadFile(const string& aUrl, const string& aUserAgent)
 	}
 	catch (const Exception& e)
 	{
-		fire(HttpConnectionListener::Failed(), this, e.getError() + " (" + currentUrl + ")");
+		fly_fire1(HttpConnectionListener::Failed(), this, e.getError() + " (" + currentUrl + ")");
 	}
 }
 
@@ -176,14 +176,14 @@ void HttpConnection::on(BufferedSocketListener::Line, const string & aLine) noex
 #ifdef RIP_USE_CORAL
 				if (SETTING(CORAL) && coralizeState != CST_NOCORALIZE)
 				{
-					fire(HttpConnectionListener::Retried(), this, coralizeState == CST_CONNECTED);
+					fly_fire1(HttpConnectionListener::Retried(), this, coralizeState == CST_CONNECTED);
 					coralizeState = CST_NOCORALIZE;
 					dcdebug("HTTP error with Coral, retrying : %s\n", currentUrl.c_str());
 					downloadFile(currentUrl);
 					return;
 				}
 #endif
-				fire(HttpConnectionListener::Failed(), this, aLine + " (" + currentUrl + ")");
+				fly_fire1(HttpConnectionListener::Failed(), this, aLine + " (" + currentUrl + ")");
 #ifdef RIP_USE_CORAL
 				coralizeState = CST_DEFAULT;
 #endif
@@ -219,11 +219,11 @@ void HttpConnection::on(BufferedSocketListener::Line, const string & aLine) noex
 		
 		if (location302 == currentUrl)
 		{
-			fire(HttpConnectionListener::Failed(), this, "Endless redirection loop: " + currentUrl);
+			fly_fire1(HttpConnectionListener::Failed(), this, "Endless redirection loop: " + currentUrl);
 			return;
 		}
 		
-		fire(HttpConnectionListener::Redirected(), this, location302);
+		fly_fire1(HttpConnectionListener::Redirected(), this, location302);
 		
 #ifdef RIP_USE_CORAL
 		coralizeState = CST_DEFAULT;
@@ -242,7 +242,7 @@ void HttpConnection::on(BufferedSocketListener::Line, const string & aLine) noex
 	else if (Util::findSubString(aLine, "Content-Encoding") != string::npos)
 	{
 		if (aLine.substr(18, aLine.length() - 19) == "x-bzip2")
-			fire(HttpConnectionListener::TypeBZ2(), this);
+			fly_fire1(HttpConnectionListener::TypeBZ2(), this);
 	}
 }
 
@@ -252,7 +252,7 @@ void HttpConnection::on(BufferedSocketListener::Failed, const string & aLine) no
 #ifdef RIP_USE_CORAL
 	if (SETTING(CORAL) && coralizeState == CST_DEFAULT)
 	{
-		fire(HttpConnectionListener::Retried(), this, coralizeState == CST_CONNECTED);
+		fly_fire1(HttpConnectionListener::Retried(), this, coralizeState == CST_CONNECTED);
 		coralizeState = CST_NOCORALIZE;
 		dcdebug("Coralized address failed, retrying : %s\n", currentUrl.c_str());
 		downloadFile(currentUrl);
@@ -260,24 +260,24 @@ void HttpConnection::on(BufferedSocketListener::Failed, const string & aLine) no
 	}
 	coralizeState = CST_DEFAULT;
 #endif
-	fire(HttpConnectionListener::Failed(), this, aLine + " (" + currentUrl + ")");
+	fly_fire1(HttpConnectionListener::Failed(), this, aLine + " (" + currentUrl + ")");
 }
 
 void HttpConnection::on(BufferedSocketListener::ModeChange) noexcept
 {
 	socket_cleanup(false);
-	fire(HttpConnectionListener::Complete(), this, currentUrl
+	fly_fire1(HttpConnectionListener::Complete(), this, currentUrl
 #ifdef RIP_USE_CORAL
 	, BOOLSETTING(CORAL) && coralizeState != CST_NOCORALIZE
 #endif
-	    );
+	         );
 #ifdef RIP_USE_CORAL
 	coralizeState = CST_DEFAULT;
 #endif
 }
 void HttpConnection::on(BufferedSocketListener::Data, uint8_t * aBuf, size_t aLen) noexcept
 {
-	fire(HttpConnectionListener::Data(), this, aBuf, aLen);
+	fly_fire1(HttpConnectionListener::Data(), this, aBuf, aLen);
 }
 #endif
 

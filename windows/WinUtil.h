@@ -1515,7 +1515,7 @@ class WinUtil
 		static std::unique_ptr<HIconWrapper> g_HubDDoSIcon;
 		static std::unique_ptr<HIconWrapper> g_HubAntivirusIcon;
 		static std::unique_ptr<HIconWrapper> g_HubVirusIcon[4];
-		static std::unique_ptr<HIconWrapper> g_HubFlylinkDCIconVIP[11]; // VIP_ICON
+		static std::unique_ptr<HIconWrapper> g_HubFlylinkDCIconVIP[12]; // VIP_ICON
 		
 		static void initThemeIcons();
 		
@@ -1776,10 +1776,11 @@ class WinUtil
 		static bool isUseExplorerTheme();
 		static void SetWindowThemeExplorer(HWND p_hWnd);
 #ifdef IRAINMAN_ENABLE_WHOIS
-		static void CheckOnWhoisIP(WORD wID, const tstring whoisIP);
-		static void AppendMenuOnWhoisIP(CMenu &p_menuname, const tstring p_IP, const bool p_inSubmenu);
+		static void CheckOnWhoisIP(WORD wID, const tstring& whoisIP);
+		static void AppendMenuOnWhoisIP(CMenu &p_menuname, const tstring& p_IP, const bool p_inSubmenu);
 #endif
 		static tstring getAddresses(CComboBox& BindCombo); // [<-] IRainman moved from Network Page.
+		static bool isTeredo();
 		
 		static void GetTimeValues(CComboBox& p_ComboBox); // [+] InfinitySky.
 		

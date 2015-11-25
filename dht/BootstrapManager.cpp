@@ -187,19 +187,19 @@ bool BootstrapManager::bootstrap()
 
 void BootstrapManager::addBootstrapNode(const string& ip, uint16_t udpPort, const CID& targetCID, const UDPKey& udpKey)
 {
-	Lock l(g_cs);
+	CFlyLock(g_cs);
 	const BootstrapNode l_node = {ip, udpPort, targetCID, udpKey };
 	g_bootstrapNodes.push_back(l_node);
 }
 
 void BootstrapManager::live_check_process()
 {
-	Lock l(g_cs);
+	CFlyLock(g_cs);
 	flush_live_check();
 }
 bool BootstrapManager::process()
 {
-	Lock l(g_cs);
+	CFlyLock(g_cs);
 	if (!g_bootstrapNodes.empty())
 	{
 		// send bootstrap request

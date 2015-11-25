@@ -43,18 +43,18 @@ class BufferedSocketListener
 		typedef X<6> TransmitDone;
 		typedef X<7> Failed;
 		typedef X<8> Updated;
-		typedef X<9> MyInfoArray; // [+]PPA
-		typedef X<10> SearchArrayTTH; //[+]PPA
-		typedef X<11> SearchArrayFile; //[+]PPA
-		typedef X<12> DDoSSearchDetect; // [+]PPA
+		typedef X<9> MyInfoArray;
+		typedef X<10> SearchArrayTTH;
+		typedef X<11> SearchArrayFile;
+		typedef X<12> DDoSSearchDetect;
 		
 		virtual void on(Connecting) noexcept { }
 		virtual void on(Connected) noexcept { }
 		virtual void on(Line, const string&) noexcept { }
-		virtual void on(MyInfoArray, StringList&) noexcept { } // [+]PPA
-		virtual void on(DDoSSearchDetect, const string&) noexcept { } // [+]PPA
-		virtual void on(SearchArrayTTH, CFlySearchArrayTTH&) noexcept { } // [+]PPA
-		virtual void on(SearchArrayFile, const CFlySearchArrayFile&) noexcept { } // [+]PPA
+		virtual void on(MyInfoArray, StringList&) noexcept { }
+		virtual void on(DDoSSearchDetect, const string&) noexcept { }
+		virtual void on(SearchArrayTTH, CFlySearchArrayTTH&) noexcept { }
+		virtual void on(SearchArrayFile, const CFlySearchArrayFile&) noexcept { }
 		virtual void on(Data, uint8_t*, size_t) noexcept { }
 		virtual void on(BytesSent, size_t p_Bytes, size_t p_Actual) noexcept { }
 #ifdef FLYLINKDC_USE_CROOKED_HTTP_CONNECTION

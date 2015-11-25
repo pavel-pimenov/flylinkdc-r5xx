@@ -2377,6 +2377,7 @@ int ssl3_send_client_key_exchange(SSL *s)
                     || (pkey->pkey.rsa == NULL)) {
                     SSLerr(SSL_F_SSL3_SEND_CLIENT_KEY_EXCHANGE,
                            ERR_R_INTERNAL_ERROR);
+                    EVP_PKEY_free(pkey);
                     goto err;
                 }
                 rsa = pkey->pkey.rsa;
@@ -2824,6 +2825,11 @@ int ssl3_send_client_key_exchange(SSL *s)
 
             pkey_ctx = EVP_PKEY_CTX_new(pub_key =
                                         X509_get_pubkey(peer_cert), NULL);
+            if (pkey_ctx == NULL) {
+                SSLerr(SSL_F_SSL3_SEND_CLIENT_KEY_EXCHANGE,
+                       ERR_R_MALLOC_FAILURE);
+                goto err;
+            }
             /*
              * If we have send a certificate, and certificate key
              *
@@ -3217,7 +3223,6 @@ int ssl3_send_client_certificate(SSL *s)
          * If we get an error, we need to ssl->rwstate=SSL_X509_LOOKUP;
          * return(-1); We then get retied later
          */
-        i = 0;
         i = ssl_do_client_cert_cb(s, &x509, &pkey);
         if (i < 0) {
             s->rwstate = SSL_X509_LOOKUP;

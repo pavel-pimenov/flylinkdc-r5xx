@@ -52,7 +52,7 @@ class ConnectivityManager : public Singleton<ConnectivityManager>
 {
 	public:
 		void detectConnection();
-		void setup(bool settingsChanged);
+		void setup_connections(bool settingsChanged);
 		bool isRunning() const
 		{
 			return running;

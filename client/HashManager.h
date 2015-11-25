@@ -120,7 +120,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 			// "join" hangs on WaitForSingleObject(threadHandle, INFINITE),
 			// and threadHandle thread hangs on this very critical section
 			// in HashManager::hashDone
-			//Lock l(cs); //[!]IRainman
+			//CFlyLock(cs); //[!]IRainman
 			hasher.shutdown();
 			hasher.join();
 		}
@@ -174,13 +174,13 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 				{
 					if (p_filePath.size())
 					{
-						//FastLock l(m_cs); // [!] IRainman fix.
+						//CFlyFastLock(m_cs); // [!] IRainman fix.
 						g_error_tth_stream.insert(p_filePath[0]);
 					}
 				}
 				static bool isBan(const string& p_filePath)
 				{
-					//FastLock l(m_cs); // [!] IRainman fix.
+					//CFlyFastLock(m_cs); // [!] IRainman fix.
 					return p_filePath.size() && g_error_tth_stream.find(p_filePath[0]) != g_error_tth_stream.end(); // [!] IRainman opt.
 				}
 				//FastCriticalSection m_cs; // [+] IRainman fix.
@@ -260,11 +260,11 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 				
 				void stopHashing(const string& baseDir);
 				int run();
-				bool fastHash(const string& fname, uint8_t* buf, TigerTree& tth, int64_t& size, bool p_is_link);
+				bool fastHash(const string& fname, uint8_t* buf, unsigned p_buf_size, TigerTree& tth, int64_t& size, bool p_is_link);
 				// [+] brain-ripper
 				void getStats(string& curFile, int64_t& bytesLeft, size_t& filesLeft)
 				{
-					FastLock l(cs);
+					CFlyFastLock(cs);
 					curFile = m_fname;
 					getBytesAndFileLeft(bytesLeft, filesLeft);
 				}
@@ -326,7 +326,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 					int64_t bytesLeft;
 					size_t filesLeft;
 					{
-						FastLock l(cs);
+						CFlyFastLock(cs);
 						getBytesAndFileLeft(bytesLeft, filesLeft);
 					}
 					
@@ -345,7 +345,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 						int64_t bytesLeft;
 						size_t filesLeft;
 						{
-							FastLock l(cs);
+							CFlyFastLock(cs);
 							getBytesAndFileLeft(bytesLeft, filesLeft);
 						}
 						bytes = iMaxBytes >= bytesLeft ? iMaxBytes - bytesLeft : iMaxBytes;

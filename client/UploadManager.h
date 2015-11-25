@@ -125,7 +125,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		/** @return Number of uploads. */
 		static size_t getUploadCount()
 		{
-			// webrtc::ReadLockScoped l(*g_csUploadsDelay);
+			// CFlyReadLock(*g_csUploadsDelay);
 			return g_uploads.size();
 		}
 		

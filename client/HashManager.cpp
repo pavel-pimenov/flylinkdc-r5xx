@@ -180,7 +180,7 @@ void HashManager::addFileFromStream(int64_t p_path_id, const string& p_name, con
 #if 0
 bool HashManager::checkTTH(const string& fname, const string& fpath, int64_t p_path_id, int64_t aSize, int64_t aTimeStamp, TTHValue& p_out_tth)
 {
-	// Lock l(cs); [-] IRainman fix: no data to lock.
+	// CFlyLock(cs); [-] IRainman fix: no data to lock.
 	const bool l_db = CFlylinkDBManager::getInstance()->check_tth(fname, p_path_id, aSize, aTimeStamp, p_out_tth);
 #ifdef IRAINMAN_NTFS_STREAM_TTH
 	const string name = fpath + fname;
@@ -224,7 +224,7 @@ bool HashManager::checkTTH(const string& fname, const string& fpath, int64_t p_p
 void HashManager::hashDone(__int64 p_path_id, const string& aFileName, int64_t aTimeStamp, const TigerTree& tth, int64_t speed,
                            bool p_is_ntfs, int64_t p_size)
 {
-	// Lock l(cs); [-] IRainman fix: no data to lock.
+	// CFlyLock(cs); [-] IRainman fix: no data to lock.
 	dcassert(!aFileName.empty());
 	if (aFileName.empty())
 	{
@@ -254,7 +254,7 @@ void HashManager::hashDone(__int64 p_path_id, const string& aFileName, int64_t a
 		LogManager::message(STRING(HASHING_FAILED) + ' ' + aFileName + e.getError());
 		return;
 	}
-	fire(HashManagerListener::TTHDone(), aFileName, tth.getRoot(), aTimeStamp, l_out_media, p_size);
+	fly_fire5(HashManagerListener::TTHDone(), aFileName, tth.getRoot(), aTimeStamp, l_out_media, p_size);
 	CFlylinkDBManager::getInstance()->push_add_share_tth(tth.getRoot());
 	
 	string fn = aFileName;
@@ -286,7 +286,7 @@ void HashManager::addFile(__int64 p_path_id, const string& p_file_name, int64_t 
 
 void HashManager::Hasher::hashFile(__int64 p_path_id, const string& fileName, int64_t size)
 {
-	FastLock l(cs);
+	CFlyFastLock(cs);
 	CFlyHashTaskItem l_task_item;
 	l_task_item.m_file_size = size;
 	l_task_item.m_path_id   = p_path_id;
@@ -313,13 +313,13 @@ void HashManager::Hasher::hashFile(__int64 p_path_id, const string& fileName, in
 
 bool HashManager::Hasher::pause()
 {
-	FastLock l(cs);
+	CFlyFastLock(cs);
 	return paused++ > 0;
 }
 
 void HashManager::Hasher::resume()
 {
-	FastLock l(cs);
+	CFlyFastLock(cs);
 	while (--paused > 0)
 	{
 		m_s.signal();
@@ -328,13 +328,13 @@ void HashManager::Hasher::resume()
 
 bool HashManager::Hasher::isPaused() const
 {
-	FastLock l(cs);
+	CFlyFastLock(cs);
 	return paused > 0;
 }
 
 void HashManager::Hasher::stopHashing(const string& baseDir)
 {
-	FastLock l(cs);
+	CFlyFastLock(cs);
 	if (baseDir.empty())
 	{
 		// [+]IRainman When user closes the program with a chosen operation "abort hashing"
@@ -371,7 +371,7 @@ void HashManager::Hasher::instantPause()
 {
 	bool wait = false;
 	{
-		FastLock l(cs);
+		CFlyFastLock(cs);
 		if (paused > 0)
 		{
 			paused++;
@@ -386,7 +386,7 @@ void HashManager::Hasher::instantPause()
 
 static size_t g_HashBufferSize = 16 * 1024 * 1024;
 
-bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, TigerTree& tth, int64_t& p_size, bool p_is_link)
+bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, unsigned p_buf_size, TigerTree& tth, int64_t& p_size, bool p_is_link)
 {
 	int64_t l_size = p_size;
 	HANDLE h = INVALID_HANDLE_VALUE;
@@ -528,7 +528,7 @@ bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, TigerTree&
 		tth.update(hbuf, hn);
 		
 		{
-			FastLock l(cs);
+			CFlyFastLock(cs);
 			m_currentSize = max(m_currentSize - hn, _LL(0));
 		}
 		
@@ -576,6 +576,7 @@ int HashManager::Hasher::run()
 	setThreadPriority(Thread::IDLE);
 	
 	uint8_t* l_buf = nullptr;
+	unsigned l_buf_size = 0;
 	bool l_is_virtualBuf = true;
 	bool l_is_last = false;
 	for (;;)
@@ -591,7 +592,7 @@ int HashManager::Hasher::run()
 			continue;
 		}
 		{
-			FastLock l(cs);
+			CFlyFastLock(cs);
 			if (!w.empty())
 			{
 				m_fname = w.begin()->first;
@@ -619,7 +620,7 @@ int HashManager::Hasher::run()
 		}
 		string l_fname;
 		{
-			FastLock l(cs);
+			CFlyFastLock(cs);
 			l_fname = m_fname;
 		}
 		if (!l_fname.empty())
@@ -633,7 +634,9 @@ int HashManager::Hasher::run()
 			if (l_buf == NULL)
 			{
 				l_is_virtualBuf = true;
-				l_buf = (uint8_t*)VirtualAlloc(NULL, g_HashBufferSize, MEM_COMMIT, PAGE_READWRITE);
+				l_buf_size = g_HashBufferSize * 2;
+				l_buf = (uint8_t*)VirtualAlloc(NULL, l_buf_size , MEM_COMMIT, PAGE_READWRITE); // Нельзя убирать *2!
+				// какой-то %%% заюзал это в fastHash
 			}
 #endif
 			if (l_buf == NULL)
@@ -660,6 +663,7 @@ int HashManager::Hasher::run()
 					}
 				}
 				while (l_is_bad_alloc == true);
+				l_buf_size = g_HashBufferSize;
 			}
 			try
 			{
@@ -689,7 +693,7 @@ int HashManager::Hasher::run()
 				if (!l_is_ntfs)
 				{
 #endif
-					if (l_is_virtualBuf == false || !BOOLSETTING(FAST_HASH) || !fastHash(l_fname, l_buf, fastTTH, l_size, l_is_link))
+					if (l_is_virtualBuf == false || !BOOLSETTING(FAST_HASH) || !fastHash(l_fname, l_buf, l_buf_size, fastTTH, l_size, l_is_link))
 					{
 #else
 				if (!BOOLSETTING(FAST_HASH) || !fastHash(fname, 0, fastTTH, l_size))
@@ -724,7 +728,7 @@ int HashManager::Hasher::run()
 								{
 									tth->update(l_buf, n);
 									{
-										FastLock l(cs);
+										CFlyFastLock(cs);
 										m_currentSize = max(static_cast<uint64_t>(m_currentSize - n), static_cast<uint64_t>(0)); // TODO - max от 0 для беззнакового?
 									}
 									l_sizeLeft -= n;
@@ -780,7 +784,7 @@ int HashManager::Hasher::run()
 			}
 		}
 		{
-			FastLock l(cs);
+			CFlyFastLock(cs);
 			m_fname.clear();
 			m_currentSize = 0;
 			m_path_id = 0;

@@ -233,9 +233,6 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 			public:
 				explicit QueueItemInfo(const QueueItemPtr& aQI) : m_qi(aQI)
 				{
-#ifdef _DEBUG
-					m_Target = m_qi->getTarget();
-#endif
 				}
 				
 				~QueueItemInfo()
@@ -297,7 +294,6 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				
 				const string& getTarget() const
 				{
-					dcassert(m_Target == m_qi->getTarget());
 					return m_qi->getTarget();
 				}
 				
@@ -338,9 +334,6 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				
 			private:
 				const QueueItemPtr m_qi;
-#ifdef _DEBUG
-				string m_Target;
-#endif
 		};
 		
 		struct QueueItemInfoTask :  public Task

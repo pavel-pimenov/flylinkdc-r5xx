@@ -9,6 +9,7 @@
 	<antispam url="dchub://aab-new-adrenalin.ru"/>
 	<antispam url="www.pribambasiki.ru"/>
 	<antispam url="new games ugadajjka"/>
+	<antispam url="hub.sovietred.ru:4111"/>
 	<fly-server 
 		ip ="media.fly-server.ru"
 		port ="37015"
@@ -31,10 +32,10 @@
 		interval_flood_command="5"
  		max_flood_command="100"
 		ban_flood_command="20"
-		exclude_error_syslog="9,5,16,10,4,17,26,29,25,24,36,39,43,40,46,44,41,48,47"
+		exclude_error_syslog="9,5,16,10,4,17,26,29,25,24,36,39,43,40,46,44,41,48,47,55,54"
 		append_cid_error_log="1"
 		regex_find_ip="(\d\d?\d?\.\d\d?\d?\.\d\d?\d?\.\d\d?\d?)"
-		exclude_error_log="9,5,16,10,4,17,26,29,25,24,36,39,43,40,48,47"
+		exclude_error_log="9,5,16,10,4,17,26,29,25,24,36,39,43,40,48,47,46,55,54"
 		exclude_cid_error_log="35,38,45,32,34,49"
 		ignore_flood_command="Search,Quit,MyINFO,UserIP,RevConnectToMe,ConnectToMe,UserCommand,ExtJSON"
 		zlib_compress_level = "9"

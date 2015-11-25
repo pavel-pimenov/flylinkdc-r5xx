@@ -48,7 +48,7 @@ FinishedManager::~FinishedManager()
 
 void FinishedManager::removeItem(const FinishedItemPtr& p_item, eType p_type)
 {
-	webrtc::WriteLockScoped l(*g_cs[p_type]);
+	CFlyWriteLock(*g_cs[p_type]);
 	const auto it = find(g_finished[p_type].begin(), g_finished[p_type].end(), p_item);
 	
 	if (it != g_finished[p_type].end())
@@ -63,7 +63,7 @@ void FinishedManager::removeItem(const FinishedItemPtr& p_item, eType p_type)
 
 void FinishedManager::removeAll(eType p_type)
 {
-	webrtc::WriteLockScoped l(*g_cs[p_type]);
+	CFlyWriteLock(*g_cs[p_type]);
 	//for_each(g_finished[p_type].begin(), g_finished[p_type].end(), DeleteFunction());
 	g_finished[p_type].clear();
 }
@@ -71,7 +71,7 @@ void FinishedManager::removeAll(eType p_type)
 void FinishedManager::rotation_items(const FinishedItemPtr& p_item, eType p_type)
 {
 	// For fix - crash https://drdump.com/DumpGroup.aspx?DumpGroupID=301739
-	webrtc::WriteLockScoped l(*g_cs[p_type]);
+	CFlyWriteLock(*g_cs[p_type]);
 	// [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
 	auto& l_item_array = g_finished[p_type];
 #ifdef FLYLINKDC_USE_ROTATION_FINISHED_MANAGER
@@ -83,9 +83,9 @@ void FinishedManager::rotation_items(const FinishedItemPtr& p_item, eType p_type
 #endif
 	{
 		if (p_type == e_Download)
-			fire(FinishedManagerListener::RemovedDl(), *l_item_array.cbegin());
+			fly_fire1(FinishedManagerListener::RemovedDl(), *l_item_array.cbegin());
 		else
-			fire(FinishedManagerListener::RemovedUl(), *l_item_array.cbegin());
+			fly_fire1(FinishedManagerListener::RemovedUl(), *l_item_array.cbegin());
 		delete *l_item_array.cbegin(); // Мутное место
 		l_item_array.pop_front();
 	}
@@ -111,7 +111,7 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItemPtr& qi,
 				CFlylinkDBManager::getInstance()->save_transfer_history(e_TransferDownload, item);
 			}
 			rotation_items(item, e_Download);
-			fire(FinishedManagerListener::AddedDl(), item, false);
+			fly_fire2(FinishedManagerListener::AddedDl(), item, false);
 			log(p_download->getUser()->getCID(), qi->getTarget(), STRING(FINISHED_DOWNLOAD));
 		}
 	}
@@ -119,9 +119,13 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItemPtr& qi,
 void FinishedManager::pushHistoryFinishedItem(const FinishedItemPtr& p_item, int p_type)
 {
 	if (p_type)
-		fire(FinishedManagerListener::AddedUl(), p_item, true);
+	{
+		fly_fire2(FinishedManagerListener::AddedUl(), p_item, true);
+	}
 	else
-		fire(FinishedManagerListener::AddedDl(), p_item, true);
+	{
+		fly_fire2(FinishedManagerListener::AddedDl(), p_item, true);
+	}
 }
 
 void FinishedManager::on(UploadManagerListener::Complete, const UploadPtr& u) noexcept
@@ -136,7 +140,7 @@ void FinishedManager::on(UploadManagerListener::Complete, const UploadPtr& u) no
 			CFlylinkDBManager::getInstance()->save_transfer_history(e_TransferUpload, item);
 		}
 		rotation_items(item, e_Upload);
-		fire(FinishedManagerListener::AddedUl(), item, false);
+		fly_fire2(FinishedManagerListener::AddedUl(), item, false);
 	}
 }
 

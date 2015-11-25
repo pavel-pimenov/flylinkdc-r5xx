@@ -31,7 +31,8 @@ template <class T> bool safe_post_message(HWND p_wnd, int p_x, T* p_ptr)
 	if (::PostMessage(p_wnd, WM_SPEAKER, WPARAM(p_x), LPARAM(p_ptr)) == FALSE)
 	{
 		delete p_ptr;
-		dcassert(0);
+// TODO - LOG dcassert(0);
+		dcdebug("safe_post_message error %d\n", GetLastError());
 		return false;
 	}
 	return true;
@@ -80,7 +81,11 @@ class CFlySpeakerAdapter : public CFlyHandlerAdapter
 			{
 				m_spoken = true;
 				l_res = PostMessage(m_win_handler, WM_SPEAKER, 0, 0);
-				dcassert(l_res);
+// TODO - LOG               dcassert(l_res);
+				if (l_res == 0)
+				{
+					dcdebug("[async_speak] PostMessage error %d\n", GetLastError());
+				}
 			}
 			return l_res;
 		}
@@ -90,7 +95,11 @@ class CFlySpeakerAdapter : public CFlyHandlerAdapter
 			dcassert(!g_isShutdown);
 			ATLASSERT(::IsWindow(m_win_handler));
 			const auto l_res = PostMessage(m_win_handler, WM_SPEAKER, 0, 0);
-			dcassert(l_res);
+// TODO - LOG               dcassert(l_res);
+			if (l_res == 0)
+			{
+				dcdebug("[force_speak] PostMessage error %d\n", GetLastError());
+			}
 			return l_res;
 		}
 };

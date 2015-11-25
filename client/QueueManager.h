@@ -183,8 +183,8 @@ class QueueManager : public Singleton<QueueManager>,
 	private:
 		typedef std::unordered_map<TTHValue, const DirectoryListing::File*> TTHMap; // TODO boost
 		static void buildMap(const DirectoryListing::Directory* dir, TTHMap& tthMap) noexcept;
+		void fire_remove_internal(const QueueItemPtr& p_qi, bool p_is_remove_item, bool p_is_force_remove_item = false);
 	public:
-	
 		static bool getTTH(const string& p_target, TTHValue& p_tth)
 		{
 			return QueueManager::FileQueue::getTTH(p_target, p_tth);
@@ -194,6 +194,7 @@ class QueueManager : public Singleton<QueueManager>,
 		void move(const string& aSource, const string& aTarget) noexcept;
 		
 		bool remove(const string& aTarget);
+		
 		void removeAll();
 		void removeSource(const string& aTarget, const UserPtr& aUser, Flags::MaskType reason, bool removeConn = true) noexcept;
 		void removeSource(const UserPtr& aUser, Flags::MaskType reason) noexcept;
@@ -218,7 +219,7 @@ class QueueManager : public Singleton<QueueManager>,
 		static void getChunksVisualisation(const QueueItemPtr& qi, vector<pair<Segment, Segment>>& p_runnigChunksAndDownloadBytes, vector<Segment>& p_doneChunks) // [!] IRainman fix.
 		{
 			/* [-] IRainman fix.
-			   [-] Lock l(cs);
+			   [-] CFlyLock(cs);
 			   [-] if (qi)
 			   [-] */
 			qi->getChunksVisualisation(p_runnigChunksAndDownloadBytes, p_doneChunks);

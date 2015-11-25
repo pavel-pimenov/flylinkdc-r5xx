@@ -94,7 +94,7 @@ bool VideoPreview::checkEvents()
 		pair<Tasks, TaskData*> p;
 		p.second = 0;
 		{
-			Lock l(cs); // [1] https://www.box.net/shared/8051e3afc6d6ee56fdfe
+			CFlyLock(cs); // [1] https://www.box.net/shared/8051e3afc6d6ee56fdfe
 			dcassert(!m_tasks.empty());
 			if (m_tasks.empty())  
 				return false;
@@ -223,7 +223,7 @@ void VideoPreview::AddTempFileToPreview(QueueItem* tempItem, HWND serverReadyRep
 		_fileRoadMap = unique_ptr<FileRoadMap>(new FileRoadMap(_previewFileSize));
 		QueueItem::SegmentSet segments;
 		{
-			RLock l(*QueueItem::g_cs);
+			RLock(*QueueItem::g_cs);
 			segments =  tempItem->getDoneL();
 		}
 		for (auto i = segments.cbegin(); i != segments.cend(); ++i)
@@ -242,7 +242,7 @@ void VideoPreview::fail(const string& aError)
 	if (!failed)
 	{
 		failed = true;
-		fire(VideoPreviewListener::Failed(), aError);
+		fly_fire1(VideoPreviewListener::Failed(), aError);
 	}
 }
 
@@ -354,7 +354,7 @@ void VideoPreview::accept(const Socket& sock) noexcept
 
 bool VideoPreview::IsAvailableData(int64_t pos, int64_t size) const
 {
-	Lock l(csRoadMap);
+	CFlyLock(csRoadMap);
 	if (_fileRoadMap.get() != NULL)
 		return _fileRoadMap->IsAvaiable(pos, size);
 		
@@ -363,7 +363,7 @@ bool VideoPreview::IsAvailableData(int64_t pos, int64_t size) const
 
 void VideoPreview::addSegment(int64_t start, int64_t size)
 {
-	Lock l(csRoadMap);
+	CFlyLock(csRoadMap);
 	_fileRoadMap->AddSegment(start, size);
 	if (!_viewStarted && ::IsWindow(_callWnd))
 		_ServerStartedReportNoWait(_callWnd);
@@ -372,14 +372,14 @@ void VideoPreview::addSegment(int64_t start, int64_t size)
 
 void VideoPreview::setFileAlreadyDownloaded()
 {
-	Lock l(csRoadMap);
+	CFlyLock(csRoadMap);
 	_fileRoadMap->AddSegment(0, _previewFileSize);
 }
 
 
 void VideoPreview::SetDownloadSegment(int64_t pos, int64_t size)
 {
-	Lock l(csDownloadItems);
+	CFlyLock(csDownloadItems);
 	
 	
 	int64_t posNew = pos;
@@ -424,7 +424,7 @@ void VideoPreview::on(QueueManagerListener::FileMoved, const string& n) noexcept
 {
 	if (n.compare(_currentFilePreview) == 0)
 	{
-		Lock l(csRoadMap);
+		CFlyLock(csRoadMap);
 		m_tempFilename = n;
 		_canUseFile = true;
 		LocalArray<CHAR, 256>buff;
@@ -436,7 +436,7 @@ void VideoPreview::on(QueueManagerListener::FileMoved, const string& n) noexcept
 
 size_t VideoPreview::getDownloadItems(int64_t blockSize, vector<int64_t>& ItemsArray)
 {
-	Lock l(csDownloadItems);
+	CFlyLock(csDownloadItems);
 	MapVItems::const_iterator i = _ask2Download.cbegin();
 	while (i != _ask2Download.cend())
 	{
@@ -731,7 +731,7 @@ void VideoPreviewSocketProcessor::parseHeader(const string& headerString)
 
 void VideoPreview::_AddLogInfo(const std::string& loginfo)
 {
-	Lock l(csInfo);
+	CFlyLock(csInfo);
 	if (_logInfoData.size() >= MAX_INFO_STACK_COUNT)
 		_logInfoData.pop();
 		
@@ -741,7 +741,7 @@ void VideoPreview::_AddLogInfo(const std::string& loginfo)
 
 bool VideoPreview::GetNextLogItem(string& outString)
 {
-	Lock l(csInfo);
+	CFlyLock(csInfo);
 	if (!_logInfoData.empty())
 	{
 		outString = _logInfoData.front();

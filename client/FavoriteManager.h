@@ -238,7 +238,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		};
 		static void setFavHubGroups(FavHubGroups& p_favHubGroups)
 		{
-			webrtc::WriteLockScoped l(*g_csHubs);
+			CFlyWriteLock(*g_csHubs);
 			swap(g_favHubGroups, p_favHubGroups);
 		}
 		// [!] IRainman fix.
@@ -311,7 +311,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		
 		static UserCommand::List getUserCommands()
 		{
-			webrtc::ReadLockScoped l(*g_csUserCommand);
+			CFlyReadLock(*g_csUserCommand);
 			return g_userCommands;
 		}
 		UserCommand::List getUserCommands(int ctx, const StringList& hub/* [-] IRainman fix, bool& op*/) const;

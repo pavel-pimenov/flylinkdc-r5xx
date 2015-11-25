@@ -21,6 +21,7 @@
 #ifdef _DEBUG
 #include "ClientManager.h"
 #endif
+#include "LogManager.h"
 
 #ifdef _DEBUG
 // [!] IRainman fix.
@@ -34,6 +35,7 @@ using namespace boost::posix_time;
 static auto g_start = microsec_clock::universal_time(); // [!] IRainamn fix.
 
 bool TimerManager::g_isStartupShutdownProcess = false;
+bool TimerManager::g_isRun = false;
 
 TimerManager::TimerManager()
 {
@@ -43,10 +45,12 @@ TimerManager::TimerManager()
 
 TimerManager::~TimerManager()
 {
+	dcassert(g_isStartupShutdownProcess);
 }
 
 void TimerManager::shutdown()
 {
+	g_isRun = false;
 	g_isStartupShutdownProcess = true;
 	m_mtx.unlock();
 	join();
@@ -83,10 +87,16 @@ int TimerManager::run()
 #ifdef TIMER_MANAGER_DEBUG
 		dcdebug("TimerManagerListener::Second() with tick=%u\n", t);
 #endif
+		static unsigned g_count_sec = 100;
+		if ((++g_count_sec % 3) == 0)
+		{
+			LogManager::flush_all_log();
+		}
 		dcassert(!ClientManager::isShutdown());
 		if (g_isStartupShutdownProcess == true) // Пока стартуем не тикаем таймером
 			continue;
-		fire(TimerManagerListener::Second(), t);
+		g_isRun = true;
+		fly_fire1(TimerManagerListener::Second(), t);
 		// ======================================================
 		if (nextMin <= now)
 		{
@@ -94,7 +104,7 @@ int TimerManager::run()
 #ifdef TIMER_MANAGER_DEBUG
 			dcdebug("TimerManagerListener::Minute() with tick=%u\n", t);
 #endif
-			fire(TimerManagerListener::Minute(), t);
+			fly_fire1(TimerManagerListener::Minute(), t);
 			// ======================================================
 			if (nextHour <= now)
 			{
@@ -102,7 +112,7 @@ int TimerManager::run()
 #ifdef TIMER_MANAGER_DEBUG
 				dcdebug("TimerManagerListener::Hour() with tick=%u\n", t);
 #endif
-				fire(TimerManagerListener::Hour(), t);
+				fly_fire1(TimerManagerListener::Hour(), t);
 			}
 			// ======================================================
 		}
@@ -111,6 +121,7 @@ int TimerManager::run()
 	// [~] IRainman fix
 	
 	m_mtx.unlock();
+	g_isRun = false;
 	dcdebug("TimerManager done\n");
 	return 0;
 }

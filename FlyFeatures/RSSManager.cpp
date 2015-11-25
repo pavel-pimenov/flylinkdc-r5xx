@@ -38,7 +38,7 @@ RSSFeed::~RSSFeed()
 void
 RSSFeed::clearNewsList()
 {
-	FastLock l(csNews);
+	CFlyFastLock(csNews);
 	for (auto i = m_newsList.cbegin(); i != m_newsList.cend(); ++i)
 	{
 		delete *i;
@@ -302,7 +302,7 @@ RSSFeed::ProcessRSS(void* data, RSSParser parser, bool isUtf8)
 								maxLastDate = pubDate;
 								
 							RSSItem* item = new RSSItem(Util::ConvertFromHTML(title), url, Util::ConvertFromHTML(desc), pubDate, author, category, source);
-							FastLock l(csNews);
+							CFlyFastLock(csNews);
 							m_newsList.push_back(item);
 						}
 																		
@@ -311,7 +311,7 @@ RSSFeed::ProcessRSS(void* data, RSSParser parser, bool isUtf8)
 					if (maxLastDate > lastNewsDate)
 						lastNewsDate = maxLastDate;
 
-					FastLock l(csNews);
+					CFlyFastLock(csNews);
 					return !m_newsList.empty();
 				}
 			}
@@ -369,7 +369,7 @@ RSSFeed::ProcessRSS(void* data, RSSParser parser, bool isUtf8)
 								maxLastDate = pubDate;
 								
 							RSSItem* item = new RSSItem(Util::ConvertFromHTML(title), url, desc, pubDate, author, category, source);
-							FastLock l(csNews);
+							CFlyFastLock(csNews);
 							m_newsList.push_back(item);
 						}
 						xml->stepOut();
@@ -379,7 +379,7 @@ RSSFeed::ProcessRSS(void* data, RSSParser parser, bool isUtf8)
 		if (maxLastDate > lastNewsDate)
 			lastNewsDate = maxLastDate;
 
-		FastLock l(csNews);
+		CFlyFastLock(csNews);
 		return !m_newsList.empty();
 		}
 	}
@@ -518,7 +518,7 @@ RSSFeed::ProcessAtom(void* data, RSSParser parser, bool isUtf8)
 							maxLastDate = pubDate;
 							
 						RSSItem* item = new RSSItem(Util::ConvertFromHTML(title), url, Util::ConvertFromHTML(desc), pubDate, author, category, source);
-						FastLock l(csNews);
+						CFlyFastLock(csNews);
 						m_newsList.push_back(item);
 					}
 
@@ -527,7 +527,7 @@ RSSFeed::ProcessAtom(void* data, RSSParser parser, bool isUtf8)
 				if (maxLastDate > lastNewsDate)
 					lastNewsDate = maxLastDate;
 
-				FastLock l(csNews);
+				CFlyFastLock(csNews);
 				return !m_newsList.empty();
 			}
 		}
@@ -559,14 +559,14 @@ RSSManager::~RSSManager(void)
 	TimerManager::getInstance()->removeListener(this);
 	waitShutdown();
 	{
-	FastLock l(csNews);
+	CFlyFastLock(csNews);
 	for (auto j = m_newsList.cbegin(); j != m_newsList.cend(); ++j)
 	{
 		delete *j;
 	}
 	}
 	{
-	Lock l(csFeed);
+	CFlyLock(csFeed);
 	for (auto i = m_feeds.cbegin(); i != m_feeds.cend(); ++i)
 	{
 		delete *i;
@@ -580,7 +580,7 @@ RSSManager::updateAllFeeds()
 	unsigned int iNewNews = 0;
 	NewsList l_fire_added_array;
 	{
-		Lock l_feed(csFeed); // [+] IRainman fix.
+		CFlyLock(csFeed); // [+] IRainman fix.
 		for (auto i = m_feeds.cbegin(); i != m_feeds.cend(); ++i)
 		{
 			if ((*i)->UpdateFeedNewXML())
@@ -589,7 +589,7 @@ RSSManager::updateAllFeeds()
 				for (auto j = list.cbegin(); j != list.cend(); ++j)
 				{
 					const RSSItem *l_item = new RSSItem(*j);
-					FastLock l_news(csNews);
+					CFlyFastLock(csNews);
 					if (canAdd(l_item))
 					{
 						m_newsList.push_back(l_item);
@@ -606,12 +606,12 @@ RSSManager::updateAllFeeds()
 	}
 	for(auto i=l_fire_added_array.begin();i !=  l_fire_added_array.end(); ++i)
 	{
-     fire(RSSListener::Added(), *i);
+     fly_fire1(RSSListener::Added(), *i);
 	}
 
 	if (iNewNews)
 	{
-		fire(RSSListener::NewRSS(), iNewNews);
+		fly_fire1(RSSListener::NewRSS(), iNewNews);
 	}
 }
 
@@ -638,7 +638,7 @@ RSSManager::fail(const string& p_error)
 {
 	dcdebug("RSSManager: New command when already failed: %s\n", p_error.c_str());
 	//LogManager::message("RSSManager: " + p_error);
-	fire(RSSListener::Failed(), p_error);
+	fly_fire1(RSSListener::Failed(), p_error);
 }
 
 void
@@ -662,7 +662,7 @@ bool RSSManager::hasRSSFeed(const string & url, const string & name)
 void RSSManager::load(SimpleXML& aXml)
 {
 	{
-	Lock l(csFeed);
+	CFlyLock(csFeed);
 	aXml.resetCurrentChild();
 	if (aXml.findChild("Rss"))
 	{
@@ -691,7 +691,7 @@ void RSSManager::load(SimpleXML& aXml)
 RSSFeed*
 RSSManager::addNewFeed(const string& url, const string& name, const string& codeing, bool bUpdateFeeds/* = false */)
 {
-	Lock l(csFeed); // [+] IRainman fix.
+	CFlyLock(csFeed); // [+] IRainman fix.
 	if (!hasRSSFeed(url, name))
 	{
 		RSSFeed* rFeed = new RSSFeed(url, name, codeing);
@@ -707,7 +707,7 @@ bool
 RSSManager::removeFeedAt(size_t pos)
 {
 	bool bRes = false;
-	Lock l(csFeed); // [+] IRainman fix.
+	CFlyLock(csFeed); // [+] IRainman fix.
 	if (/*[-] PVS pos >=0 && */ pos < m_feeds.size()) // 17713 PVS V547    Expression 'pos >= 0' is always true. Unsigned type value is always >= 0.   FlyFeatures rssmanager.cpp  605 False
 	{
 		RSSFeed* feed = m_feeds.at(pos);
@@ -736,7 +736,7 @@ RSSManager::removeFeedAt(size_t pos)
 
 void RSSManager::save(SimpleXML& aXml)
 {
-	Lock l(csFeed);
+	CFlyLock(csFeed);
 	aXml.addTag("Rss");
 	aXml.stepIn();
 	for (auto i = m_feeds.cbegin(); i != m_feeds.cend(); ++i)

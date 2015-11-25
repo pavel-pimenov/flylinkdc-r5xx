@@ -49,8 +49,8 @@ class DebugManager : public Singleton<DebugManager>, public Speaker<DebugManager
 		void SendDetectionMessage(const string& mess) noexcept;
 		static bool g_isCMDDebug;
 };
-#define COMMAND_DEBUG(command, direction, ip) if (DebugManager::g_isCMDDebug) { DebugManager::getInstance()->SendCommandMessage(command, direction, ip); }
-#define DETECTION_DEBUG(message) if (DebugManager::g_isCMDDebug) { DebugManager::getInstance()->SendDetectionMessage(message); }
+#define COMMAND_DEBUG(command, direction, ip) if (DebugManager::g_isCMDDebug && !ClientManager::isShutdown()) { DebugManager::getInstance()->SendCommandMessage(command, direction, ip); }
+#define DETECTION_DEBUG(message) if (DebugManager::g_isCMDDebug && !ClientManager::isShutdown()) { DebugManager::getInstance()->SendDetectionMessage(message); }
 #else
 #define COMMAND_DEBUG(message, direction, ip)
 #define DETECTION_DEBUG(message)

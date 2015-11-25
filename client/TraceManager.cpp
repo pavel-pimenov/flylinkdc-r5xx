@@ -41,7 +41,7 @@ void  TraceManager::print(const string& msg)
 
 	tid = GetCurrentThreadId();
 	
-	Lock l(cs);
+	CFlyLock(cs);
 	
 	try
 	{

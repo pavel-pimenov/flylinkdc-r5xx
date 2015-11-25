@@ -213,7 +213,7 @@ void ChatCtrl::restore_chat_cache()
 	CLockRedraw<true> l_lock_draw(m_hWnd);
 	CWaitCursor l_cursor_wait; //-V808
 	{
-		//webrtc::ReadLockScoped l(*m_cs_chat_cache);
+		//CFlyReadLock(*m_cs_chat_cache);
 #if 0
 		for (int i = 0; i < 3000; ++i)
 		{
@@ -244,7 +244,7 @@ void ChatCtrl::restore_chat_cache()
 			}
 		}
 		{
-			//webrtc::WriteLockScoped l(*m_cs_chat_cache);
+			//CFlyWriteLock(*m_cs_chat_cache);
 			m_chat_cache.clear();
 			m_chat_cache_length = 0;
 		}
@@ -274,7 +274,7 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message)
 	if (ClientManager::isShutdown())
 		return;
 	{
-		//webrtc::WriteLockScoped l(*m_cs_chat_cache);
+		//CFlyWriteLock(*m_cs_chat_cache);
 		if (m_is_cache_chat_empty == false)
 		{
 			m_chat_cache.push_back(p_message);

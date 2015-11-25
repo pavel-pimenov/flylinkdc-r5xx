@@ -269,26 +269,34 @@ LRESULT UsersFrame::onConnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 
 void UsersFrame::addUser(const FavoriteUser& user)
 {
-	auto ui = new UserInfo(user); // [+] IRainman fix.
-	int i = ctrlUsers.insertItem(ui, 0);
-	bool b = user.isSet(FavoriteUser::FLAG_GRANT_SLOT);
-	ctrlUsers.SetCheckState(i, b);
-	updateUser(i, ui, user); // [!] IRainman fix.
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
+	{
+		auto ui = new UserInfo(user); // [+] IRainman fix.
+		int i = ctrlUsers.insertItem(ui, 0);
+		bool b = user.isSet(FavoriteUser::FLAG_GRANT_SLOT);
+		ctrlUsers.SetCheckState(i, b);
+		updateUser(i, ui, user); // [!] IRainman fix.
+	}
 }
 
 void UsersFrame::updateUser(const UserPtr& user)
 {
-	const int l_cnt = ctrlUsers.GetItemCount();
-	for (int i = 0; i < l_cnt; ++i)
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
 	{
-		dcassert(l_cnt == ctrlUsers.GetItemCount());
-		UserInfo *ui = ctrlUsers.getItemData(i);
-		if (ui->getUser() == user)
+		const int l_cnt = ctrlUsers.GetItemCount();
+		for (int i = 0; i < l_cnt; ++i)
 		{
-			FavoriteUser currentFavUser;
-			if (FavoriteManager::getFavoriteUser(user, currentFavUser))
+			dcassert(l_cnt == ctrlUsers.GetItemCount());
+			UserInfo *ui = ctrlUsers.getItemData(i);
+			if (ui->getUser() == user)
 			{
-				updateUser(i, ui, currentFavUser);
+				FavoriteUser currentFavUser;
+				if (FavoriteManager::getFavoriteUser(user, currentFavUser))
+				{
+					updateUser(i, ui, currentFavUser);
+				}
 			}
 		}
 	}
@@ -296,37 +304,45 @@ void UsersFrame::updateUser(const UserPtr& user)
 
 void UsersFrame::updateUser(const int i, UserInfo* p_ui, const FavoriteUser& favUser) // [+] IRainman fix.
 {
-	p_ui->columns[COLUMN_SEEN] = favUser.getUser()->isOnline() ? TSTRING(ONLINE) : Text::toT(Util::formatDigitalClock(favUser.getLastSeen()));
-	
-	// !SMT!-UI
-	int imageIndex = favUser.getUser()->isOnline() ? (favUser.getUser()->isAway() ? 1 : 0) : 2;
-	
-	if (favUser.getUploadLimit() == FavoriteUser::UL_BAN || favUser.isSet(FavoriteUser::FLAG_IGNORE_PRIVATE))
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
 	{
-		imageIndex += 3;
+		p_ui->columns[COLUMN_SEEN] = favUser.getUser()->isOnline() ? TSTRING(ONLINE) : Text::toT(Util::formatDigitalClock(favUser.getLastSeen()));
+
+		// !SMT!-UI
+		int imageIndex = favUser.getUser()->isOnline() ? (favUser.getUser()->isAway() ? 1 : 0) : 2;
+
+		if (favUser.getUploadLimit() == FavoriteUser::UL_BAN || favUser.isSet(FavoriteUser::FLAG_IGNORE_PRIVATE))
+		{
+			imageIndex += 3;
+		}
+
+		p_ui->update(favUser);
+
+		ctrlUsers.SetItem(i, 0, LVIF_IMAGE, NULL, imageIndex, 0, 0, NULL);
+
+		ctrlUsers.updateItem(i);
+		setCountMessages(ctrlUsers.GetItemCount());
 	}
-	
-	p_ui->update(favUser);
-	
-	ctrlUsers.SetItem(i, 0, LVIF_IMAGE, NULL, imageIndex, 0, 0, NULL);
-	
-	ctrlUsers.updateItem(i);
-	setCountMessages(ctrlUsers.GetItemCount());
 }
 
 void UsersFrame::removeUser(const FavoriteUser& aUser)
 {
-	const int l_cnt = ctrlUsers.GetItemCount();
-	for (int i = 0; i < l_cnt; ++i)
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
 	{
-		dcassert(l_cnt == ctrlUsers.GetItemCount());
-		UserInfo *ui = ctrlUsers.getItemData(i);
-		if (ui->getUser() == aUser.getUser())
+		const int l_cnt = ctrlUsers.GetItemCount();
+		for (int i = 0; i < l_cnt; ++i)
 		{
-			ctrlUsers.DeleteItem(i);
-			delete ui;
-			setCountMessages(ctrlUsers.GetItemCount());
-			return;
+			dcassert(l_cnt == ctrlUsers.GetItemCount());
+			UserInfo *ui = ctrlUsers.getItemData(i);
+			if (ui->getUser() == aUser.getUser())
+			{
+				ctrlUsers.DeleteItem(i);
+				delete ui;
+				setCountMessages(ctrlUsers.GetItemCount());
+				return;
+			}
 		}
 	}
 }
@@ -357,23 +373,27 @@ LRESULT UsersFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 
 void UsersFrame::UserInfo::update(const FavoriteUser& u)
 {
-	columns[COLUMN_NICK] = Text::toT(u.getNick());
-	columns[COLUMN_HUB] = user->isOnline() ? WinUtil::getHubNames(u.getUser(), u.getUrl()).first : Text::toT(u.getUrl());
-	columns[COLUMN_SEEN] = user->isOnline() ? TSTRING(ONLINE) : Text::toT(Util::formatDigitalClock(u.getLastSeen()));
-	columns[COLUMN_DESCRIPTION] = Text::toT(u.getDescription());
-	
-	// !SMT!-S
-	if (u.isSet(FavoriteUser::FLAG_IGNORE_PRIVATE))
-		columns[COLUMN_IGNORE] = TSTRING(IGNORE_S);
-	else if (u.isSet(FavoriteUser::FLAG_FREE_PM_ACCESS))
-		columns[COLUMN_IGNORE] = TSTRING(FREE_PM_ACCESS);
-	else
-		columns[COLUMN_IGNORE].clear();
-		
-	columns[COLUMN_SPEED_LIMIT] = Text::toT(FavoriteUser::getSpeedLimitText(u.getUploadLimit()));
-	//[+]PPA
-	columns[COLUMN_USER_SLOTS] = Util::toStringW(u.getUser()->getSlots());
-	columns[COLUMN_CID] = Text::toT(u.getUser()->getCID().toBase32());
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
+	{
+		columns[COLUMN_NICK] = Text::toT(u.getNick());
+		columns[COLUMN_HUB] = user->isOnline() ? WinUtil::getHubNames(u.getUser(), u.getUrl()).first : Text::toT(u.getUrl());
+		columns[COLUMN_SEEN] = user->isOnline() ? TSTRING(ONLINE) : Text::toT(Util::formatDigitalClock(u.getLastSeen()));
+		columns[COLUMN_DESCRIPTION] = Text::toT(u.getDescription());
+
+		// !SMT!-S
+		if (u.isSet(FavoriteUser::FLAG_IGNORE_PRIVATE))
+			columns[COLUMN_IGNORE] = TSTRING(IGNORE_S);
+		else if (u.isSet(FavoriteUser::FLAG_FREE_PM_ACCESS))
+			columns[COLUMN_IGNORE] = TSTRING(FREE_PM_ACCESS);
+		else
+			columns[COLUMN_IGNORE].clear();
+
+		columns[COLUMN_SPEED_LIMIT] = Text::toT(FavoriteUser::getSpeedLimitText(u.getUploadLimit()));
+		//[+]PPA
+		columns[COLUMN_USER_SLOTS] = Util::toStringW(u.getUser()->getSlots());
+		columns[COLUMN_CID] = Text::toT(u.getUser()->getCID().toBase32());
+	}
 }
 
 LRESULT UsersFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
@@ -406,6 +426,35 @@ LRESULT UsersFrame::onOpenUserLog(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 		WinUtil::openLog(SETTING(LOG_FILE_PRIVATE_CHAT), params, TSTRING(NO_LOG_FOR_USER));
 	}
 	return 0;
+}
+void UsersFrame::on(UserAdded, const FavoriteUser& aUser) noexcept
+{
+	dcassert(0);
+	dcassert(!ClientManager::isShutdown());
+//	if (!ClientManager::isShutdown())
+	{
+#ifdef IRAINMAN_USE_NON_RECURSIVE_BEHAVIOR
+		PostMessage(WM_CLOSE);
+#else
+		addUser(aUser);
+#endif
+	}
+}
+void UsersFrame::on(UserRemoved, const FavoriteUser& aUser) noexcept
+{
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
+	{
+		removeUser(aUser);
+	}
+}
+void UsersFrame::on(StatusChanged, const UserPtr& aUser) noexcept
+{
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
+	{
+		safe_post_message(*this, USER_UPDATED, new UserPtr(aUser));
+	}
 }
 
 void UsersFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)

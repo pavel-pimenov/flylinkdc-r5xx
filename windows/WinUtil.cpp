@@ -113,7 +113,7 @@ HIconWrapper WinUtil::g_hClockIcon(IDR_ICON_CLOCK);
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOnIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOffIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubFlylinkDCIcon;
-std::unique_ptr<HIconWrapper> WinUtil::g_HubFlylinkDCIconVIP[11]; // VIP_ICON
+std::unique_ptr<HIconWrapper> WinUtil::g_HubFlylinkDCIconVIP[12]; // VIP_ICON
 std::unique_ptr<HIconWrapper> WinUtil::g_HubDDoSIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubAntivirusIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubVirusIcon[4];
@@ -494,6 +494,7 @@ void WinUtil::initThemeIcons()
 	g_HubFlylinkDCIconVIP[8] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_NSK154));
 	g_HubFlylinkDCIconVIP[9] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_PROSTOIGRA));
 	g_HubFlylinkDCIconVIP[10] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_EVAHUB));
+	g_HubFlylinkDCIconVIP[11] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_ADRENALIN));
 	
 	g_HubDDoSIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_ICON_MEDICAL_BAG));
 	g_HubAntivirusIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_ICON_THERMOMETR_BAG));
@@ -2808,7 +2809,7 @@ int FileImage::getIconIndex(const string& aFileName)
 	{
 		if (!x.empty())
 		{
-			//FastLock l(m_cs);
+			//CFlyFastLock(m_cs);
 			const auto j = m_indexis.find(x);
 			if (j != m_indexis.end())
 			{
@@ -2819,7 +2820,7 @@ int FileImage::getIconIndex(const string& aFileName)
 		SHFILEINFO fi = { 0 };
 		if (SHGetFileInfo(Text::toT(x).c_str(), FILE_ATTRIBUTE_NORMAL, &fi, sizeof(fi), SHGFI_ICON | SHGFI_SMALLICON | SHGFI_USEFILEATTRIBUTES))
 		{
-			//FastLock l(m_cs);
+			//CFlyFastLock(m_cs);
 			m_images.AddIcon(fi.hIcon);
 			::DestroyIcon(fi.hIcon);
 			m_indexis[x] = m_imageCount++;
@@ -4269,10 +4270,15 @@ bool WinUtil::FillCustomMenu(CMenuHandle &menu, string& menuName) //[+] SSA: Cus
 }
 // [~] SSA: Custom menu support.
 #endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+
+
+
 tstring WinUtil::getAddresses(CComboBox& BindCombo) // [<-] IRainman moved from Network Page.
 {
+	std::unordered_set<string> l_unique_ip;
 	tstring l_result_tool_tip;
 	BindCombo.AddString(_T("0.0.0.0"));
+	l_unique_ip.insert("0.0.0.0");
 	IP_ADAPTER_INFO* AdapterInfo = nullptr;
 	DWORD dwBufLen = NULL;
 	
@@ -4291,11 +4297,26 @@ tstring WinUtil::getAddresses(CComboBox& BindCombo) // [<-] IRainman moved from 
 			IP_ADDR_STRING* pIpList = &pAdapterInfo->IpAddressList;
 			while (pIpList)
 			{
-				string l_ip_and_desc = pIpList->IpAddress.String;
+				const string l_ip_and_desc = pIpList->IpAddress.String;
 				l_result_tool_tip += Text::toT(l_ip_and_desc) + _T("\t");
 				l_result_tool_tip += Text::toT(pAdapterInfo->Description);
 				l_result_tool_tip += _T("\r\n");
-				BindCombo.AddString(Text::toT(l_ip_and_desc).c_str());
+				const auto l_res = l_unique_ip.insert(l_ip_and_desc);
+				if (l_res.second == true)
+				{
+					if (Util::isPrivateIp(l_ip_and_desc))
+					{
+						BindCombo.AddString(Text::toT(l_ip_and_desc).c_str());
+					}
+					else
+					{
+						dcassert(0);
+					}
+				}
+				else
+				{
+					dcassert(0);
+				}
 				pIpList = pIpList->Next;
 			}
 			pAdapterInfo = pAdapterInfo->Next;
@@ -5006,7 +5027,7 @@ void WinUtil::SetWindowThemeExplorer(HWND p_hWnd)
 }
 
 #ifdef IRAINMAN_ENABLE_WHOIS
-void WinUtil::CheckOnWhoisIP(WORD wID, tstring whoisIP)
+void WinUtil::CheckOnWhoisIP(WORD wID, const tstring& whoisIP)
 {
 	if (!whoisIP.empty())
 	{
@@ -5024,7 +5045,7 @@ void WinUtil::CheckOnWhoisIP(WORD wID, tstring whoisIP)
 			WinUtil::openLink(m_link);
 	}
 }
-void WinUtil::AppendMenuOnWhoisIP(CMenu &p_menuname, tstring p_IP, bool p_inSubmenu)
+void WinUtil::AppendMenuOnWhoisIP(CMenu& p_menuname, const tstring& p_IP, bool p_inSubmenu)
 {
 	// ToDo::  if p_inSubmenu == true : create and append into SubMenu
 	p_menuname.AppendMenu(MF_STRING, IDC_WHOIS_IP, (TSTRING(WHO_IS) + _T(" Ripe.net  ") + p_IP).c_str());

@@ -44,7 +44,7 @@ class IpGrant : public Singleton<IpGrant>, private SettingsManagerListener
 		void load();
 		void clear()
 		{
-			FastLock l(m_cs);
+			CFlyFastLock(m_cs);
 			m_ipList.clear();
 		}
 		

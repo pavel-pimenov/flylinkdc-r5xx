@@ -75,39 +75,15 @@ class NmdcHub : public Client, private Flags
 		static string validateMessage(string tmp, bool reverse);
 		void refreshUserList(bool);
 		
-		void getUserList(OnlineUserList& p_list) const
-		{
-			webrtc::ReadLockScoped l(*m_cs);
-			p_list.reserve(m_users.size());
-			for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
-			{
-				p_list.push_back(i->second);
-			}
-		}
-		void AutodetectInit()
-		{
-#ifdef RIP_USE_CONNECTION_AUTODETECT
-			m_bAutodetectionPending = true;
-			m_iRequestCount = 0;
-#endif
-			m_bLastMyInfoCommand = DIDNT_GET_YET_FIRST_MYINFO;
-		}
+		void getUserList(OnlineUserList& p_list) const;
+		void AutodetectInit();
 		
 #ifdef RIP_USE_CONNECTION_AUTODETECT
-		void AutodetectComplete()
-		{
-			m_bAutodetectionPending = false;
-			m_iRequestCount = 0;
-			
-			// send MyInfo, to update state on hub
-			myInfo(false);
-		}
-		
+		void AutodetectComplete();
 		bool IsAutodetectPending() const
 		{
 			return m_bAutodetectionPending;
 		}
-		
 		void RequestConnectionForAutodetect();
 #endif
 		
@@ -132,6 +108,7 @@ class NmdcHub : public Client, private Flags
 		NickMap  m_users;
 		string   m_lastMyInfo;
 		string   m_lastExtJSONInfo;
+		string   m_lastExtJSONSupport;
 		int64_t  m_lastBytesShared;
 		uint64_t m_lastUpdate;
 		uint8_t  m_supportFlags;

@@ -37,7 +37,7 @@ class TokenManager
 		~TokenManager()
 		{
 #ifdef _DEBUG
-			FastLock l(m_cs);
+			CFlyFastLock(m_cs);
 			dcassert(m_tokens.empty());
 #endif
 		}
@@ -143,7 +143,7 @@ class ExpectedMap
 #endif
 		        )
 		{
-			FastLock l(cs);
+			CFlyFastLock(cs);
 			m_expectedConnections.insert(make_pair(aNick, NickHubPair(aMyNick, aHubUrl
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 			                                                          , reason
@@ -153,7 +153,7 @@ class ExpectedMap
 		
 		NickHubPair remove(const string& aNick)
 		{
-			FastLock l(cs);
+			CFlyFastLock(cs);
 			const auto& i = m_expectedConnections.find(aNick);
 			if (i == m_expectedConnections.end())
 				return NickHubPair(Util::emptyString, Util::emptyString
@@ -212,7 +212,7 @@ class ConnectionManager :
 		
 		void getDownloadConnection(const UserPtr& aUser);
 		void force(const UserPtr& aUser);
-		void setUploadLimit(const UserPtr& aUser, int lim);
+		static void setUploadLimit(const UserPtr& aUser, int lim);
 		
 		void disconnect(const UserPtr& aUser);
 		void disconnect(const UserPtr& aUser, bool isDownload); // [!] IRainman fix.

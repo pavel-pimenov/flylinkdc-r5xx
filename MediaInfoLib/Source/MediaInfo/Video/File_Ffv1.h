@@ -70,7 +70,8 @@ class Slice
 public:
 
     Slice() : run_index(0), run_mode(RUN_MODE_STOP),
-        sample_buffer(NULL)
+		sample_buffer(NULL), run_segment_length(0),
+		x(0),y(0),w(0),h(0)
     {
         for (size_t i = 0; i < MAX_QUANT_TABLES; ++i)
             plane_states[i] = NULL;

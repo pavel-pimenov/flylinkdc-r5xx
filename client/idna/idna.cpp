@@ -13,6 +13,8 @@
  *  \version 0.3: Sep 11, 2012 :
  *    A. Solomin - code cleanup, special for FlylinkDC++.
  */
+#include "stdinc.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -20,9 +22,10 @@
 #include <ctype.h>
 #include <assert.h>
 
+#include "../CFlyThread.h"
+
 #include "punycode.h"
 #include "idna.h"
-#include "../CFlyThread.h"
 
 #pragma warning( disable : 4127 )
 
@@ -421,7 +424,7 @@ BOOL IDNA_convert_to_ACE (
   int    i;
   size_t len = 0;
   BOOL   rc = FALSE;
-  Lock l(g_critSection);
+  CFlyLock(g_critSection);
   labels = split_labels (name);
 
   for (i = 0; labels[i]; i++)
@@ -489,7 +492,7 @@ BOOL IDNA_convert_from_ACE (
   int    i;
   BOOL   rc = FALSE;
 
-  Lock l(g_critSection);
+  CFlyLock(g_critSection);
 
   labels  = split_labels (name);
 

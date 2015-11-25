@@ -139,7 +139,7 @@ class RSSManager :
 		void updateFeeds()
 		{
 			{
-				Lock l(csFeed);
+				CFlyLock(csFeed);
 				if (m_feeds.empty()) // [+] IRainman fix.
 					return;
 			}

@@ -125,7 +125,7 @@ class DHT :
 		
 		void setRequestFWCheck()
 		{
-			FastLock l(fwCheckCs); // [!] IRainman fix: needs lock fwCheckCs here!
+			CFlyFastLock(fwCheckCs); // [!] IRainman fix: needs lock fwCheckCs here!
 			requestFWCheck = true;
 			firewalledWanted.clear();
 			firewalledChecks.clear();
@@ -133,7 +133,7 @@ class DHT :
 		
 		void lock(const std::function<void()>& f) noexcept
 		{
-			FastLock l(cs);
+			CFlyFastLock(cs);
 			f();
 		};
 		

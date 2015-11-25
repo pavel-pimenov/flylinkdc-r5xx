@@ -77,14 +77,14 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		
 		static bool isConnected(const string& aUrl)
 		{
-			webrtc::ReadLockScoped l(*g_csClients);
+			CFlyReadLock(*g_csClients);
 			return g_clients.find(aUrl) != g_clients.end();
 		}
 		Client* findClient(const string& p_Url) const;
 //[+] FlylinkDC
 		static bool isOnline(const UserPtr& aUser)
 		{
-			webrtc::ReadLockScoped l(*g_csOnlineUsers);
+			CFlyReadLock(*g_csOnlineUsers);
 			return g_onlineUsers.find(aUser->getCID()) != g_onlineUsers.end();
 		}
 //[~] FlylinkDC
@@ -221,7 +221,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		{
 			StringList l_result;
 			l_result.reserve(1);
-			webrtc::ReadLockScoped l(*g_csOnlineUsers);
+			CFlyReadLock(*g_csOnlineUsers);
 			for (auto i = g_onlineUsers.cbegin(); i != g_onlineUsers.cend(); ++i)
 			{
 				if (i->second->getIdentity().getIpAsString() == p_ip) // TODO - boost
@@ -234,7 +234,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 #ifndef IRAINMAN_IDENTITY_IS_NON_COPYABLE
 		static Identity getIdentity(const UserPtr& user)
 		{
-			webrtc::ReadLockScoped l(*g_csOnlineUsers);
+			CFlyReadLock(*g_csOnlineUsers);
 			const OnlineUser* ou = getOnlineUserL(user);
 			if (ou)
 				return  ou->getIdentity(); // https://www.box.net/shared/1w3v80olr2oro7s1gqt4
@@ -244,7 +244,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 #endif // IRAINMAN_IDENTITY_IS_NON_COPYABLE
 		static OnlineUser* getOnlineUserL(const UserPtr& p)
 		{
-			// Lock l(cs);  - getOnlineUser() return value should be guarded outside
+			// CFlyLock(cs);  - getOnlineUser() return value should be guarded outside
 			if (p == nullptr)
 				return nullptr;
 				
@@ -260,7 +260,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		{
 		    int64_t l_share = 0;
 		    {
-		        webrtc::ReadLockScoped l(*g_csOnlineUsers);
+		        CFlyReadLock(*g_csOnlineUsers);
 		        OnlineIterC i = g_onlineUsers.find(p->getCID());
 		        if (i != g_onlineUsers.end())
 		            l_share = i->second->getIdentity().getBytesShared();
@@ -363,6 +363,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static void clear();
 		static bool isShutdown()
 		{
+			extern bool g_isShutdown;
 			return g_isShutdown;
 		}
 		
@@ -452,7 +453,6 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		void on(TimerManagerListener::Minute, uint64_t aTick) noexcept override;
 		
 		/** Indication that the application is being closed */
-		static bool g_isShutdown;
 		static bool g_isSpyFrame;
 };
 

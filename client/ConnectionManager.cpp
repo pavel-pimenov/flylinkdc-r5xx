@@ -46,7 +46,7 @@ ConnectionQueueItem::List ConnectionManager::g_uploads;
 string TokenManager::makeToken() noexcept
 {
 	string l_token;
-	FastLock l(m_cs);
+	CFlyFastLock(m_cs);
 	do {
 		l_token = Util::toString(Util::rand());
 	}
@@ -57,7 +57,7 @@ string TokenManager::makeToken() noexcept
 
 string TokenManager::getToken() noexcept
 {
-	FastLock l(m_cs);
+	CFlyFastLock(m_cs);
 	const string l_token = Util::toString(Util::rand());
 	m_tokens.insert(l_token);
 	return l_token;
@@ -65,7 +65,7 @@ string TokenManager::getToken() noexcept
 
 bool TokenManager::addToken(const string& aToken) noexcept
 {
-	FastLock l(m_cs);
+	CFlyFastLock(m_cs);
 	if (m_tokens.find(aToken) == m_tokens.end())
 	{
 		m_tokens.insert(aToken);
@@ -76,7 +76,7 @@ bool TokenManager::addToken(const string& aToken) noexcept
 
 void TokenManager::removeToken(const string& aToken) noexcept
 {
-	FastLock l(m_cs);
+	CFlyFastLock(m_cs);
 	auto p = m_tokens.find(aToken);
 	if (p != m_tokens.end())
 		m_tokens.erase(p);
@@ -168,7 +168,7 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 	if (!ClientManager::isShutdown())
 	{
 		{
-			webrtc::WriteLockScoped l(*g_csDownloads);
+			CFlyWriteLock(*g_csDownloads);
 			const auto i = find(g_downloads.begin(), g_downloads.end(), aUser);
 			if (i == g_downloads.end())
 			{
@@ -206,13 +206,13 @@ ConnectionQueueItem* ConnectionManager::getCQI_L(const HintedUser& aHintedUser, 
 		g_uploads.push_back(cqi);
 	}
 	
-	fire(ConnectionManagerListener::Added(), cqi); // TODO - выбросить фаер без блокировки наружу
+	fly_fire1(ConnectionManagerListener::Added(), cqi); // TODO - выбросить фаер без блокировки наружу
 	return cqi;
 }
 
 void ConnectionManager::putCQI_L(ConnectionQueueItem* cqi)
 {
-	fire(ConnectionManagerListener::Removed(), cqi); // TODO - зовется фаер под локом?
+	fly_fire1(ConnectionManagerListener::Removed(), cqi); // TODO - зовется фаер под локом?
 	if (cqi->isDownload())
 	{
 		g_downloads.erase_and_check(cqi);
@@ -232,7 +232,7 @@ void ConnectionManager::putCQI_L(ConnectionQueueItem* cqi)
 #if 0
 bool ConnectionManager::getCipherNameAndIP(UserConnection* p_conn, string& p_chiper_name, string& p_ip)
 {
-	webrtc::ReadLockScoped l(*g_csConnection);
+	CFlyReadLock(*g_csConnection);
 	const auto l_conn = g_userConnections.find(p_conn);
 	dcassert(l_conn != g_userConnections.end());
 	if (l_conn != g_userConnections.end())
@@ -250,7 +250,7 @@ UserConnection* ConnectionManager::getConnection(bool aNmdc, bool secure) noexce
 	UserConnection* uc = new UserConnection(secure);
 	uc->addListener(this);
 	{
-		webrtc::WriteLockScoped l(*g_csConnection);
+		CFlyWriteLock(*g_csConnection);
 		dcassert(g_userConnections.find(uc) == g_userConnections.end());
 		g_userConnections.insert(uc);
 	}
@@ -265,7 +265,7 @@ void ConnectionManager::putConnection(UserConnection* aConn)
 {
 	aConn->removeListener(this);
 	aConn->disconnect(true);
-	webrtc::WriteLockScoped l(*g_csConnection);
+	CFlyWriteLock(*g_csConnection);
 	dcassert(g_userConnections.find(aConn) != g_userConnections.end());
 	g_userConnections.erase(aConn);
 }
@@ -275,24 +275,24 @@ void ConnectionManager::onUserUpdated(const UserPtr& aUser)
 	if (!ClientManager::isShutdown())
 	{
 		{
-			webrtc::ReadLockScoped l(*g_csDownloads);
+			CFlyReadLock(*g_csDownloads);
 			for (auto i = g_downloads.cbegin(); i != g_downloads.cend(); ++i)
 			{
 				ConnectionQueueItem* cqi = *i;
 				if (cqi->getUser() == aUser)
 				{
-					fire(ConnectionManagerListener::UserUpdated(), cqi);
+					fly_fire1(ConnectionManagerListener::UserUpdated(), cqi);
 				}
 			}
 		}
 		{
-			webrtc::ReadLockScoped l(*g_csUploads);
+			CFlyReadLock(*g_csUploads);
 			for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
 			{
 				ConnectionQueueItem* cqi = *i;
 				if (cqi->getUser() == aUser)
 				{
-					fire(ConnectionManagerListener::UserUpdated(), cqi);
+					fly_fire1(ConnectionManagerListener::UserUpdated(), cqi);
 				}
 			}
 		}
@@ -315,7 +315,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 	UserList l_idlers;
 #endif
 	{
-		webrtc::ReadLockScoped l(*g_csDownloads);
+		CFlyReadLock(*g_csDownloads);
 		uint16_t attempts = 0;
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
 		l_idlers.swap(m_checkIdle); // [!] IRainman opt: use swap.
@@ -381,14 +381,14 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 							                                      cqi->m_is_force_passive,
 							                                      cqi->m_is_active_client // <- Out param!
 							                                     );
-							fire(ConnectionManagerListener::ConnectionStatusChanged(), cqi);
+							fly_fire1(ConnectionManagerListener::ConnectionStatusChanged(), cqi);
 							attempts++;
 						}
 						else
 						{
 							cqi->m_count_waiting = 0;
 							cqi->setState(ConnectionQueueItem::NO_DOWNLOAD_SLOTS);
-							fire(ConnectionManagerListener::Failed(), cqi, STRING(ALL_DOWNLOAD_SLOTS_TAKEN));
+							fly_fire2(ConnectionManagerListener::Failed(), cqi, STRING(ALL_DOWNLOAD_SLOTS_TAKEN));
 						}
 					}
 					else if (cqi->getState() == ConnectionQueueItem::NO_DOWNLOAD_SLOTS && startDown)
@@ -404,14 +404,14 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 					cqi->setErrors(cqi->getErrors() + 1);
 					if (cqi->m_count_waiting > 2)
 					{
-						fire(ConnectionManagerListener::Failed(), cqi, STRING(CONNECTION_TIMEOUT)); // CONNECTION_DID_NOT_WORK
+						fly_fire2(ConnectionManagerListener::Failed(), cqi, STRING(CONNECTION_TIMEOUT)); // CONNECTION_DID_NOT_WORK
 						cqi->setState(ConnectionQueueItem::WAITING);
 						// TODO - удаление пока не делаем - нужно потестировать лучше
 						// l_removed.push_back(cqi);
 					}
 					else
 					{
-						fire(ConnectionManagerListener::Failed(), cqi, STRING(CONNECTION_TIMEOUT));
+						fly_fire2(ConnectionManagerListener::Failed(), cqi, STRING(CONNECTION_TIMEOUT));
 						cqi->setState(ConnectionQueueItem::WAITING);
 					}
 				}
@@ -424,12 +424,12 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 		{
 			if ((*m)->isDownload())
 			{
-				webrtc::WriteLockScoped l(*g_csDownloads);
+				CFlyWriteLock(*g_csDownloads);
 				putCQI_L(*m);
 			}
 			else
 			{
-				webrtc::WriteLockScoped l(*g_csUploads);
+				CFlyWriteLock(*g_csUploads);
 				putCQI_L(*m);
 			}
 		}
@@ -445,7 +445,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 
 void ConnectionManager::cleanupIpFlood(const uint64_t p_tick)
 {
-	webrtc::WriteLockScoped l_ddos(*g_csDdosCheck);
+	CFlyWriteLock(*g_csDdosCheck);
 	for (auto j = m_ddos_map.cbegin(); j != m_ddos_map.cend();)
 	{
 		// Если коннектов совершено меньше чем предел в течении минуты - убираем адрес из таблицы - с ним все хорошо!
@@ -486,7 +486,7 @@ void ConnectionManager::cleanupIpFlood(const uint64_t p_tick)
 }
 void ConnectionManager::cleanupDuplicateSearchFile(const uint64_t p_tick)
 {
-	webrtc::WriteLockScoped l_lock(*g_csFileFilter);
+	CFlyWriteLock(*g_csFileFilter);
 	for (auto j = g_duplicate_search_file.cbegin(); j != g_duplicate_search_file.cend();)
 	{
 		if ((p_tick - j->second.m_first_tick) > 1000 * CFlyServerConfig::g_max_unique_file_search)
@@ -508,7 +508,7 @@ void ConnectionManager::cleanupDuplicateSearchFile(const uint64_t p_tick)
 }
 void ConnectionManager::cleanupDuplicateSearchTTH(const uint64_t p_tick)
 {
-	webrtc::WriteLockScoped l_lock(*g_csTTHFilter);
+	CFlyWriteLock(*g_csTTHFilter);
 	for (auto j = g_duplicate_search_tth.cbegin(); j != g_duplicate_search_tth.cend();)
 	{
 		if ((p_tick - j->second.m_first_tick) > 1000 * CFlyServerConfig::g_max_unique_tth_search)
@@ -531,7 +531,7 @@ void ConnectionManager::cleanupDuplicateSearchTTH(const uint64_t p_tick)
 void ConnectionManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 {
 	cleanupIpFlood(aTick);
-	webrtc::ReadLockScoped l(*g_csConnection);
+	CFlyReadLock(*g_csConnection);
 	for (auto j = g_userConnections.cbegin(); j != g_userConnections.cend(); ++j)
 	{
 		auto& l_connection = *j;
@@ -691,7 +691,7 @@ void ConnectionManager::accept(const Socket& sock, bool secure, Server* p_server
 }
 bool ConnectionManager::checkDuplicateSearchFile(const string& p_search_command)
 {
-	webrtc::WriteLockScoped l_lock(*g_csFileFilter);
+	CFlyWriteLock(*g_csFileFilter);
 	const auto l_tick = GET_TICK();
 	CFlyTickFile l_item;
 	l_item.m_first_tick = l_tick;
@@ -736,7 +736,7 @@ bool ConnectionManager::checkDuplicateSearchFile(const string& p_search_command)
 
 bool ConnectionManager::checkDuplicateSearchTTH(const string& p_search_command, const TTHValue& p_tth)
 {
-	webrtc::WriteLockScoped l_lock(*g_csTTHFilter);
+	CFlyWriteLock(*g_csTTHFilter);
 	const auto l_tick = GET_TICK();
 	CFlyTickTTH l_item;
 	l_item.m_first_tick = l_tick;
@@ -779,7 +779,7 @@ void ConnectionManager::addCTM2HUB(const string& p_server_port, const HintedUser
 	const string l_cmt2hub = "CTM2HUB = " + p_server_port + " <<= DDoS block from: " + p_hinted_user.hint;;
 	bool l_is_duplicate;
 	{
-		webrtc::WriteLockScoped l_ddos(*g_csDdosCheck);
+		CFlyWriteLock(*g_csDdosCheck);
 		dcassert(p_hinted_user.user);
 		l_is_duplicate = g_ddos_ctm2hub.insert(Text::toLower(p_server_port)).second;
 	}
@@ -804,7 +804,7 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 		// const auto l_ip = boost::asio::ip::address_v4::from_string(aIPServer, ec);
 		const CFlyDDOSkey l_key(l_server_lower, p_ip_hub);
 		// dcassert(!ec); // TODO - тут бывает и Host
-		webrtc::WriteLockScoped l_ddos(*g_csDdosCheck);
+		CFlyWriteLock(*g_csDdosCheck);
 		if (!g_ddos_ctm2hub.empty() && g_ddos_ctm2hub.find(l_server_lower + ':' + Util::toString(aPort)) != g_ddos_ctm2hub.end())
 		{
 			const string l_cmt2hub = "Block CTM2HUB = " + aIPServer + ':' + Util::toString(aPort) + " HubInfo: " + p_HubInfo + " UserInfo: " + p_userInfo;
@@ -863,7 +863,7 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 			}
 		}
 	}
-	webrtc::ReadLockScoped l(*g_csConnection);
+	CFlyReadLock(*g_csConnection);
 	
 	// We don't want to be used as a flooding instrument
 	int count = 0;
@@ -1120,15 +1120,15 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 			if (hub && hub->IsAutodetectPending())
 			{
 				// set connection type to ACTIVE
-				if (fhub)
-					fhub->setMode(1);
-					
+				// TODO - if (fhub)
+				//     fhub->setMode(1);
+				
 				hub->AutodetectComplete();
 				
 				// TODO: allow to disable through GUI saving of detected mode to
 				// favorite hub's settings
 				
-				fire(ConnectionManagerListener::DirectModeDetected(), i.m_HubUrl);
+				fly_fire1(ConnectionManagerListener::OpenTCPPortDetected(), i.m_HubUrl);
 			}
 			
 			putConnection(aSource);
@@ -1148,7 +1148,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 	// First, we try looking in the pending downloads...hopefully it's one of them...
 	if (!ClientManager::isShutdown())
 	{
-		webrtc::ReadLockScoped l(*g_csDownloads);
+		CFlyReadLock(*g_csDownloads);
 		for (auto i = g_downloads.cbegin(); i != g_downloads.cend(); ++i)
 		{
 			ConnectionQueueItem* cqi = *i;
@@ -1293,7 +1293,7 @@ void ConnectionManager::addDownloadConnection(UserConnection* p_conn)
 	dcassert(p_conn->isSet(UserConnection::FLAG_DOWNLOAD));
 	ConnectionQueueItem* cqi = nullptr;
 	{
-		webrtc::ReadLockScoped l(*g_csDownloads);
+		CFlyReadLock(*g_csDownloads);
 		
 		const auto i = find(g_downloads.begin(), g_downloads.end(), p_conn->getUser());
 		if (i != g_downloads.end())
@@ -1305,7 +1305,7 @@ void ConnectionManager::addDownloadConnection(UserConnection* p_conn)
 				p_conn->setFlag(UserConnection::FLAG_ASSOCIATED);
 				
 #ifdef FLYLINKDC_USE_CONNECTED_EVENT
-				fire(ConnectionManagerListener::Connected(), cqi);
+				fly_fire1(ConnectionManagerListener::Connected(), cqi);
 #endif
 				dcdebug("ConnectionManager::addDownloadConnection, leaving to downloadmanager\n");
 			}
@@ -1339,7 +1339,7 @@ void ConnectionManager::addUploadConnection(UserConnection* p_conn)
 	
 	ConnectionQueueItem* cqi = nullptr;
 	{
-		webrtc::WriteLockScoped l(*g_csUploads);
+		CFlyWriteLock(*g_csUploads);
 		
 		const auto i = find(g_uploads.begin(), g_uploads.end(), p_conn->getUser());
 		if (i == g_uploads.cend())
@@ -1349,7 +1349,7 @@ void ConnectionManager::addUploadConnection(UserConnection* p_conn)
 			cqi->setState(ConnectionQueueItem::ACTIVE);
 			
 #ifdef FLYLINKDC_USE_CONNECTED_EVENT
-			fire(ConnectionManagerListener::Connected(), cqi);
+			fly_fire1(ConnectionManagerListener::Connected(), cqi);
 #endif
 			dcdebug("ConnectionManager::addUploadConnection, leaving to uploadmanager\n");
 		}
@@ -1444,7 +1444,7 @@ void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCo
 	dcassert(!l_token.empty());
 	bool down;
 	{
-		webrtc::ReadLockScoped l(*g_csDownloads);
+		CFlyReadLock(*g_csDownloads);
 		const auto i = find(g_downloads.begin(), g_downloads.end(), aSource->getUser());
 		
 		if (i != g_downloads.cend())
@@ -1507,12 +1507,12 @@ void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCo
 
 void ConnectionManager::force(const UserPtr& aUser)
 {
-	webrtc::ReadLockScoped l(*g_csDownloads);
+	CFlyReadLock(*g_csDownloads);
 	
 	const auto i = find(g_downloads.begin(), g_downloads.end(), aUser);
 	if (i != g_downloads.end())
 	{
-		fire(ConnectionManagerListener::Forced(), *i);
+		fly_fire1(ConnectionManagerListener::Forced(), *i);
 		(*i)->setLastAttempt(0);
 	}
 }
@@ -1561,7 +1561,7 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 	{
 		if (aSource->isSet(UserConnection::FLAG_DOWNLOAD))
 		{
-			webrtc::WriteLockScoped l(*g_csDownloads); // TODO http://code.google.com/p/flylinkdc/issues/detail?id=1439
+			CFlyWriteLock(*g_csDownloads); // TODO http://code.google.com/p/flylinkdc/issues/detail?id=1439
 			const auto i = find(g_downloads.begin(), g_downloads.end(), aSource->getUser());
 			dcassert(i != g_downloads.end());
 			if (i == g_downloads.end())
@@ -1574,7 +1574,7 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 				cqi->setState(ConnectionQueueItem::WAITING);
 				cqi->setLastAttempt(GET_TICK());
 				cqi->setErrors(protocolError ? -1 : (cqi->getErrors() + 1));
-				fire(ConnectionManagerListener::Failed(), cqi, aError);
+				fly_fire2(ConnectionManagerListener::Failed(), cqi, aError);
 				if (isShuttingDown()) // TODO
 				{
 					putCQI_L(cqi); // Удалять всегда нельзя - только при разрушении
@@ -1585,7 +1585,7 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 		}
 		else if (aSource->isSet(UserConnection::FLAG_UPLOAD))
 		{
-			webrtc::WriteLockScoped l(*g_csUploads); // http://code.google.com/p/flylinkdc/issues/detail?id=1439
+			CFlyWriteLock(*g_csUploads); // http://code.google.com/p/flylinkdc/issues/detail?id=1439
 			const auto i = find(g_uploads.begin(), g_uploads.end(), aSource->getUser());
 			dcassert(i != g_uploads.end());
 			if (i == g_uploads.end())
@@ -1614,7 +1614,7 @@ void ConnectionManager::on(UserConnectionListener::ProtocolError, UserConnection
 
 void ConnectionManager::disconnect(const UserPtr& aUser)
 {
-	webrtc::ReadLockScoped l(*g_csConnection);
+	CFlyReadLock(*g_csConnection);
 	for (auto i = g_userConnections.cbegin(); i != g_userConnections.cend(); ++i)
 	{
 		UserConnection* uc = *i;
@@ -1630,7 +1630,7 @@ void ConnectionManager::disconnect(const UserPtr& aUser)
 
 void ConnectionManager::disconnect(const UserPtr& aUser, bool isDownload) // [!] IRainman fix.
 {
-	webrtc::ReadLockScoped l(*g_csConnection);
+	CFlyReadLock(*g_csConnection);
 	for (auto i = g_userConnections.cbegin(); i != g_userConnections.cend(); ++i)
 	{
 		UserConnection* uc = *i;
@@ -1657,7 +1657,7 @@ void ConnectionManager::shutdown()
 	ClientManager::getInstance()->removeListener(this);
 	disconnect();
 	{
-		webrtc::ReadLockScoped l(*g_csConnection);
+		CFlyReadLock(*g_csConnection);
 		for (auto j = g_userConnections.cbegin(); j != g_userConnections.cend(); ++j)
 		{
 			(*j)->disconnect(true);
@@ -1667,7 +1667,7 @@ void ConnectionManager::shutdown()
 	while (true)
 	{
 		{
-			webrtc::ReadLockScoped l(*g_csConnection);
+			CFlyReadLock(*g_csConnection);
 			if (g_userConnections.empty())
 			{
 				break;
@@ -1687,7 +1687,7 @@ void ConnectionManager::shutdown()
 	// Сбрасываем рейтинг в базу пока не нашли причину почему тут остаются записи.
 	{
 		{
-			webrtc::ReadLockScoped l(*g_csDownloads);
+			CFlyReadLock(*g_csDownloads);
 			for (auto i = g_downloads.cbegin(); i != g_downloads.cend(); ++i)
 			{
 				ConnectionQueueItem* cqi = *i;
@@ -1695,7 +1695,7 @@ void ConnectionManager::shutdown()
 			}
 		}
 		{
-			webrtc::ReadLockScoped l(*g_csUploads);
+			CFlyReadLock(*g_csUploads);
 			for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
 			{
 				ConnectionQueueItem* cqi = *i;
@@ -1726,7 +1726,7 @@ void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* p_c
 // !SMT!-S
 void ConnectionManager::setUploadLimit(const UserPtr& aUser, int lim)
 {
-	webrtc::ReadLockScoped l(*g_csConnection);
+	CFlyReadLock(*g_csConnection);
 	for (auto i = g_userConnections.cbegin(); i != g_userConnections.cend(); ++i)
 	{
 		if ((*i)->isSet(UserConnection::FLAG_UPLOAD) && (*i)->getUser() == aUser)

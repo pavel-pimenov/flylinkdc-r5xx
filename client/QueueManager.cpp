@@ -180,7 +180,7 @@ QueueItemPtr QueueManager::FileQueue::add(int64_t p_FlyQueueID,
 
 void QueueManager::FileQueue::add(const QueueItemPtr& qi) // [!] IRainman fix.
 {
-	WLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
+	WLock(*g_csFQ); // [+] IRainman fix.
 	g_queue.insert(make_pair(qi->getTarget(), qi));
 	auto l_count_tth = g_queue_tth_map.insert(make_pair(qi->getTTH(), 1));
 	if (l_count_tth.second == false)
@@ -190,7 +190,7 @@ void QueueManager::FileQueue::add(const QueueItemPtr& qi) // [!] IRainman fix.
 }
 void QueueManager::FileQueue::remove_internal(const QueueItemPtr& qi)
 {
-	WLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
+	WLock(*g_csFQ); // [+] IRainman fix.
 	g_queue.erase(qi->getTarget());
 	auto l_count_tth = g_queue_tth_map.find(qi->getTTH());
 	dcassert(l_count_tth != g_queue_tth_map.end());
@@ -208,7 +208,7 @@ void QueueManager::FileQueue::remove_internal(const QueueItemPtr& qi)
 }
 void QueueManager::FileQueue::clearAll()
 {
-	WLock l_lock_fq(*g_csFQ);
+	WLock(*g_csFQ);
 	g_queue_tth_map.clear();
 	g_queue.clear();
 }
@@ -226,7 +226,7 @@ void QueueManager::FileQueue::remove(const QueueItemPtr& qi) // [!] IRainman fix
 int QueueManager::FileQueue::find_tth(QueueItemList& p_ql, const TTHValue& p_tth, int p_count_limit /*= 0 */)
 {
 	int l_count = 0;
-	RLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
+	RLock(*g_csFQ); // [+] IRainman fix.
 	if (g_queue_tth_map.find(p_tth) != g_queue_tth_map.end())
 	{
 		for (auto i = g_queue.cbegin(); i != g_queue.cend(); ++i)
@@ -301,36 +301,39 @@ static QueueItemPtr findCandidateL(const QueueItem::QIStringMap::const_iterator&
 
 QueueItemPtr QueueManager::FileQueue::findAutoSearch(deque<string>& p_recent) const // [!] IRainman fix.
 {
-	WLock l(*QueueItem::g_cs); // [+] IRainman fix.
-	RLock l_lock_fq(*g_csFQ);
-	dcassert(!g_queue.empty()); // https://crash-server.com/Problem.aspx?ProblemID=32091
-	// http://code.google.com/p/flylinkdc/issues/detail?id=1121
-	// We pick a start position at random, hoping that we will find something to search for...
-	if (!g_queue.empty())
+	WLock(*QueueItem::g_cs); // [+] IRainman fix.
 	{
-		const auto start = (QueueItem::QIStringMap::size_type)Util::rand((uint32_t)g_queue.size());
-		
-		auto i = g_queue.cbegin();
-		advance(i, start);
-		
-		QueueItemPtr cand = findCandidateL(i, g_queue.end(), p_recent);
-		if (cand == nullptr)
+		RLock(*g_csFQ);
+		dcassert(!g_queue.empty()); // https://crash-server.com/Problem.aspx?ProblemID=32091
+		// http://code.google.com/p/flylinkdc/issues/detail?id=1121
+		// We pick a start position at random, hoping that we will find something to search for...
+		if (!g_queue.empty())
 		{
-			cand = findCandidateL(g_queue.begin(), i, p_recent);
-		}
-		else if (cand->getNextSegmentL(0, 0, 0, nullptr).getSize() == 0)
-		{
-			QueueItemPtr cand2 = findCandidateL(g_queue.begin(), i, p_recent);
-			if (cand2 != nullptr && cand2->getNextSegmentL(0, 0, 0, nullptr).getSize() != 0)
+			const auto start = (QueueItem::QIStringMap::size_type)Util::rand((uint32_t)g_queue.size());
+			
+			auto i = g_queue.cbegin();
+			advance(i, start);
+			
+			QueueItemPtr cand = findCandidateL(i, g_queue.end(), p_recent);
+			if (cand == nullptr)
 			{
-				cand = cand2;
+				cand = findCandidateL(g_queue.begin(), i, p_recent);
 			}
+			else if (cand->getNextSegmentL(0, 0, 0, nullptr).getSize() == 0)
+			{
+				QueueItemPtr cand2 = findCandidateL(g_queue.begin(), i, p_recent);
+				if (cand2 != nullptr && cand2->getNextSegmentL(0, 0, 0, nullptr).getSize() != 0)
+				{
+					cand = cand2;
+				}
+			}
+			return cand;
 		}
-		return cand;
-	}
-	else
-	{
-		return QueueItemPtr();
+		else
+		{
+			return QueueItemPtr();
+		}
+		
 	}
 }
 
@@ -347,7 +350,7 @@ bool QueueManager::UserQueue::userIsDownloadedFiles(const UserPtr& aUser, QueueI
 {
 	bool hasDown = false;
 #ifdef FLYLINKDC_USE_USER_QUEUE_CS
-	Lock webrtc::ReadLockScoped l(*g_userQueueMapCS);
+	Lock CFlyReadLock(*g_userQueueMapCS);
 #endif
 	for (size_t i = 0; i < QueueItem::LAST; ++i)
 	{
@@ -374,7 +377,7 @@ void QueueManager::UserQueue::addL(const QueueItemPtr& qi, const UserPtr& aUser,
 {
 	dcassert(qi->getPriority() < QueueItem::LAST);
 #ifdef FLYLINKDC_USE_USER_QUEUE_CS
-	Lock webrtc::WriteLockScoped l(*g_userQueueMapCS);
+	Lock CFlyWriteLock(*g_userQueueMapCS);
 #endif
 	auto& uq = g_userQueueMap[qi->getPriority()][aUser];
 	
@@ -402,7 +405,7 @@ void QueueManager::UserQueue::addL(const QueueItemPtr& qi, const UserPtr& aUser,
 
 bool QueueManager::FileQueue::getTTH(const string& p_name, TTHValue& p_tth)
 {
-	RLock l_lock_fq(*g_csFQ);
+	RLock(*g_csFQ);
 	auto i = g_queue.find(p_name);
 	if (i != g_queue.cend())
 	{
@@ -414,7 +417,7 @@ bool QueueManager::FileQueue::getTTH(const string& p_name, TTHValue& p_tth)
 
 QueueItemPtr QueueManager::FileQueue::find_target(const string& p_target)
 {
-	RLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
+	RLock(*g_csFQ); // [+] IRainman fix.
 	auto i = g_queue.find(p_target); // TODO - fix http://code.google.com/p/flylinkdc/issues/detail?id=1246
 	if (i != g_queue.cend())
 		return i->second;
@@ -428,7 +431,7 @@ QueueItemPtr QueueManager::UserQueue::getNextL(const UserPtr& aUser, QueueItem::
 	do
 	{
 #ifdef FLYLINKDC_USE_USER_QUEUE_CS
-		webrtc::ReadLockScoped l(*g_userQueueMapCS);
+		CFlyReadLock(*g_userQueueMapCS);
 #endif
 		const auto i = g_userQueueMap[p].find(aUser);
 		if (i != g_userQueueMap[p].cend())
@@ -499,7 +502,7 @@ void QueueManager::UserQueue::addDownloadL(const QueueItemPtr& qi, const Downloa
 	qi->addDownloadL(d);
 	// Only one download per user...
 #ifdef FLYLINKDC_USE_RUNNING_QUEUE_CS
-	webrtc::WriteLockScoped l_lock(*g_runningMapCS);
+	CFlyWriteLock(*g_runningMapCS);
 #endif
 	dcassert(g_runningMap.find(d->getUser()) == g_runningMap.end());
 	g_runningMap[d->getUser()] = qi;
@@ -508,7 +511,7 @@ void QueueManager::UserQueue::addDownloadL(const QueueItemPtr& qi, const Downloa
 size_t QueueManager::FileQueue::getRunningFileCount(const size_t p_stop_key)
 {
 	size_t l_cnt = 0;
-	RLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
+	RLock(*g_csFQ); // [+] IRainman fix.
 	for (auto i = g_queue.cbegin(); i != g_queue.cend(); ++i)
 	{
 		const QueueItemPtr& q = i->second;
@@ -557,7 +560,7 @@ bool QueueManager::UserQueue::removeDownloadL(const QueueItemPtr& qi, const User
 {
 	{
 #ifdef FLYLINKDC_USE_RUNNING_QUEUE_CS
-		webrtc::WriteLockScoped l_lock(*g_runningMapCS);
+		CFlyWriteLock(*g_runningMapCS);
 #endif
 		g_runningMap.erase(user);
 	}
@@ -566,7 +569,7 @@ bool QueueManager::UserQueue::removeDownloadL(const QueueItemPtr& qi, const User
 
 void QueueManager::UserQueue::setQIPriority(const QueueItemPtr& qi, QueueItem::Priority p) // [!] IRainman fix.
 {
-	WLock l(*QueueItem::g_cs); // [+] IRainamn fix.
+	WLock(*QueueItem::g_cs); // [+] IRainamn fix.
 	removeQueueItemL(qi, false);
 	qi->setPriority(p); // TODO для установки приоритета - нужно удалить и снова добавить запись в контейнер? - это зовется очень часто
 	addL(qi);
@@ -575,7 +578,7 @@ void QueueManager::UserQueue::setQIPriority(const QueueItemPtr& qi, QueueItem::P
 QueueItemPtr QueueManager::UserQueue::getRunningL(const UserPtr& aUser) // [!] IRainman fix.
 {
 #ifdef FLYLINKDC_USE_RUNNING_QUEUE_CS
-	webrtc::ReadLockScoped l_lock(*g_runningMapCS);
+	CFlyReadLock(*g_runningMapCS);
 #endif
 	const auto i = g_runningMap.find(aUser);
 	return i == g_runningMap.cend() ? nullptr : i->second;
@@ -605,8 +608,9 @@ void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr&
 		l_isSource = qi->isSourceL(aUser); // crash https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=78346
 		if (!l_isSource)
 		{
-			LogManager::message("Error QueueManager::UserQueue::removeUserL [dcassert(isSource)] aUser = [" +
-			                    aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
+			const string l_error = "Error QueueManager::UserQueue::removeUserL [dcassert(isSource)] aUser = " +
+			                       (aUser ? aUser->getLastNick() : string("null"));
+			CFlyServerJSON::pushError(55, l_error);
 			dcassert(l_isSource);
 			return;
 		}
@@ -614,14 +618,15 @@ void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr&
 	{
 	
 #ifdef FLYLINKDC_USE_USER_QUEUE_CS
-		Lock webrtc::WriteLockScoped l(*g_userQueueMapCS);
+		Lock CFlyWriteLock(*g_userQueueMapCS);
 #endif
 		auto& ulm = g_userQueueMap[qi->getPriority()];
 		const auto& j = ulm.find(aUser);
 		if (j == ulm.cend())
 		{
-			LogManager::message("Error QueueManager::UserQueue::removeUserL [dcassert(j != ulm.cend())] aUser = [" +
-			                    aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
+			const string l_error = "Error QueueManager::UserQueue::removeUserL [dcassert(j != ulm.cend())] aUser = " +
+			                       (aUser ? aUser->getLastNick() : string("null"));
+			CFlyServerJSON::pushError(55, l_error);
 			dcassert(j != ulm.cend());
 			return;
 		}
@@ -631,8 +636,9 @@ void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr&
 		// TODO - перевести на set const auto& i = uq.find(qi);
 		if (i == uq.cend())
 		{
-			LogManager::message("Error QueueManager::UserQueue::removeUserL [dcassert(i != uq.cend());] aUser = [" +
-			                    aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru");
+			const string l_error = "Error QueueManager::UserQueue::removeUserL [dcassert(i != uq.cend());] aUser = " +
+			                       (aUser ? aUser->getLastNick() : string("null"));
+			CFlyServerJSON::pushError(55, l_error);
 			dcassert(i != uq.cend());
 			return;
 		}
@@ -662,14 +668,14 @@ void QueueManager::Rechecker::execute(const string& p_file) // [!] IRainman core
 		if (!q || q->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
 			return;
 			
-		qm->fire(QueueManagerListener::RecheckStarted(), q->getTarget());
+		qm->fly_fire1(QueueManagerListener::RecheckStarted(), q->getTarget());
 		dcdebug("Rechecking %s\n", p_file.c_str());
 		
 		tempSize = File::getSize(q->getTempTarget());
 		
 		if (tempSize == -1)
 		{
-			qm->fire(QueueManagerListener::RecheckNoFile(), q->getTarget());
+			qm->fly_fire1(QueueManagerListener::RecheckNoFile(), q->getTarget());
 			// [+] IRainman fix.
 			q->resetDownloaded();
 			qm->rechecked(q);
@@ -679,7 +685,7 @@ void QueueManager::Rechecker::execute(const string& p_file) // [!] IRainman core
 		
 		if (tempSize < 64 * 1024)
 		{
-			qm->fire(QueueManagerListener::RecheckFileTooSmall(), q->getTarget());
+			qm->fly_fire1(QueueManagerListener::RecheckFileTooSmall(), q->getTarget());
 			// [+] IRainman fix.
 			q->resetDownloaded();
 			qm->rechecked(q);
@@ -701,7 +707,7 @@ void QueueManager::Rechecker::execute(const string& p_file) // [!] IRainman core
 		
 		if (q->isRunningL())
 		{
-			qm->fire(QueueManagerListener::RecheckDownloadsRunning(), q->getTarget());
+			qm->fly_fire1(QueueManagerListener::RecheckDownloadsRunning(), q->getTarget());
 			return;
 		}
 		
@@ -712,7 +718,7 @@ void QueueManager::Rechecker::execute(const string& p_file) // [!] IRainman core
 	string l_tempTarget;
 	
 	{
-		// [-] Lock l(qm->cs); [-] IRainman fix.
+		// [-] CFlyLock(qm->cs); [-] IRainman fix.
 		
 		// get q again in case it has been (re)moved
 		q = QueueManager::FileQueue::find_target(p_file);
@@ -721,7 +727,7 @@ void QueueManager::Rechecker::execute(const string& p_file) // [!] IRainman core
 		__int64 l_block_size;
 		if (!CFlylinkDBManager::getInstance()->get_tree(tth, tt, l_block_size))
 		{
-			qm->fire(QueueManagerListener::RecheckNoTree(), q->getTarget());
+			qm->fly_fire1(QueueManagerListener::RecheckNoTree(), q->getTarget());
 			return;
 		}
 		
@@ -783,7 +789,7 @@ void QueueManager::Rechecker::execute(const string& p_file) // [!] IRainman core
 		return;
 	}
 	
-	// [-] Lock l(qm->cs); [-] IRainman fix. //[4] https://www.box.net/shared/4c41b1400336247cce1c
+	// [-] CFlyLock(qm->cs); [-] IRainman fix. //[4] https://www.box.net/shared/4c41b1400336247cce1c
 	
 	// get q again in case it has been (re)moved
 	q = QueueManager::FileQueue::find_target(p_file);
@@ -799,7 +805,7 @@ void QueueManager::Rechecker::execute(const string& p_file) // [!] IRainman core
 	}
 	
 	{
-		WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+		WLock(*QueueItem::g_cs); // [+] IRainman fix.
 		for (auto i = l_sizes.cbegin(); i != l_sizes.cend(); ++i)
 		{
 			q->addSegmentL(Segment(i->first, i->second));
@@ -886,7 +892,7 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 	
 	{
 		PFSSourceList sl;
-		RLock l(*QueueItem::g_cs); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1236
+		RLock(*QueueItem::g_cs); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1236
 		//find max 10 pfs sources to exchange parts
 		//the source basis interval is 5 minutes
 		g_fileQueue.findPFSSourcesL(sl);
@@ -1112,7 +1118,7 @@ void QueueManager::add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSiz
 	bool l_wantConnection;
 	
 	{
-		// [-] Lock l(cs); [-] IRainman fix.
+		// [-] CFlyLock(cs); [-] IRainman fix.
 		
 		QueueItemPtr q = QueueManager::FileQueue::find_target(l_target);
 		// По TTH искать нельзя
@@ -1149,8 +1155,10 @@ void QueueManager::add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSiz
 						m_curOnDownloadSettings = SettingsManager::ON_DOWNLOAD_ASK;
 						
 					if (m_curOnDownloadSettings == SettingsManager::ON_DOWNLOAD_ASK)
-						fire(QueueManagerListener::TryAdding(), l_target, aSize, l_existingFileSize, l_eistingFileTime, m_curOnDownloadSettings);
-						
+					{
+						fly_fire5(QueueManagerListener::TryAdding(), l_target, aSize, l_existingFileSize, l_eistingFileTime, m_curOnDownloadSettings);
+					}
+					
 					switch (m_curOnDownloadSettings)
 					{
 							/* FLylinkDC Team TODO: IRainman: давайте копировать имеющийся файл в папку назначения? будем трафик экономить! p.s: см. выше. :)
@@ -1173,7 +1181,7 @@ void QueueManager::add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSiz
 			q = g_fileQueue.add(p_FlyQueueID, l_target, aSize, aFlags, QueueItem::DEFAULT, l_tempTarget, GET_TIME(), aRoot, 1);
 			if (q)
 			{
-				fire(QueueManagerListener::Added(), q);
+				fly_fire1(QueueManagerListener::Added(), q);
 			}
 		}
 		else
@@ -1190,7 +1198,7 @@ void QueueManager::add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSiz
 			// [!] IRainman fix.
 			bool isFinished;
 			{
-				RLock l(*QueueItem::g_cs); // [+]
+				RLock(*QueueItem::g_cs); // [+]
 				isFinished = q->isFinishedL();
 			}
 			if (isFinished)
@@ -1203,7 +1211,7 @@ void QueueManager::add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSiz
 		}
 		if (aUser && q)
 		{
-			WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+			WLock(*QueueItem::g_cs); // [+] IRainman fix.
 			l_wantConnection = addSourceL(q, aUser, (Flags::MaskType)(addBad ? QueueItem::Source::FLAG_MASK : 0));
 		}
 		else
@@ -1236,7 +1244,7 @@ void QueueManager::readdAll(const QueueItemPtr& q)
 {
 	QueueItem::SourceMap l_badSources;
 	{
-		WLock l(*QueueItem::g_cs);
+		WLock(*QueueItem::g_cs);
 		l_badSources = q->getBadSourcesL(); // fix https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62702
 	}
 	for (auto s = l_badSources.cbegin(); s != l_badSources.cend(); ++s)
@@ -1250,7 +1258,7 @@ void QueueManager::readd(const string& p_target, const UserPtr& aUser)
 	bool wantConnection = false;
 	{
 		const QueueItemPtr q = QueueManager::FileQueue::find_target(p_target);
-		WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+		WLock(*QueueItem::g_cs); // [+] IRainman fix.
 		if (q && q->isBadSourceL(aUser))
 		{
 			wantConnection = addSourceL(q, aUser, QueueItem::Source::FLAG_MASK);
@@ -1317,7 +1325,7 @@ bool QueueManager::addSourceL(const QueueItemPtr& qi, const UserPtr& aUser, Flag
 	dcassert(aUser); // [!] IRainman fix: Unable to add a source if the user is empty! Check your code!
 	bool wantConnection;
 	{
-		// [-] WLock l(*QueueItem::g_cs); // [-] IRainman fix.
+		// [-] WLock(*QueueItem::g_cs); // [-] IRainman fix.
 		
 		//dcassert(p_is_first_load == true && !userQueue.getRunningL(aUser) || p_is_first_load == false);
 		if (p_is_first_load)
@@ -1330,7 +1338,7 @@ bool QueueManager::addSourceL(const QueueItemPtr& qi, const UserPtr& aUser, Flag
 			                 && !g_userQueue.getRunningL(aUser);
 		}
 		
-		dcassert(p_is_first_load == true && !qi->isSourceL(aUser) || p_is_first_load == false);
+		// TODO - LOG dcassert(p_is_first_load == true && !qi->isSourceL(aUser) || p_is_first_load == false);
 		if (qi->isSourceL(aUser))
 		{
 			if (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
@@ -1381,7 +1389,7 @@ void QueueManager::addDirectory(const string& aDir, const UserPtr& aUser, const 
 {
 	bool needList;
 	{
-		FastLock l(csDirectories);
+		CFlyFastLock(csDirectories);
 		
 		const auto dp = m_directories.equal_range(aUser);
 		
@@ -1413,7 +1421,7 @@ void QueueManager::addDirectory(const string& aDir, const UserPtr& aUser, const 
 
 QueueItem::Priority QueueManager::hasDownload(const UserPtr& aUser)
 {
-	WLock l(*QueueItem::g_cs); // [!] IRainman fix.
+	WLock(*QueueItem::g_cs); // [!] IRainman fix.
 	QueueItemPtr qi = g_userQueue.getNextL(aUser, QueueItem::LOWEST);
 	if (!qi)
 	{
@@ -1451,32 +1459,34 @@ int QueueManager::matchListing(const DirectoryListing& dl) noexcept
 	// [!] IRainman fix.
 	if (!g_fileQueue.empty()) // [!] opt
 	{
-		// [-] Lock l(cs); [-]
+		// [-] CFlyLock(cs); [-]
 		TTHMap l_tthMap;// tthMap.clear(); [!]
 		buildMap(dl.getRoot(), l_tthMap); // [!]
 		dcassert(!l_tthMap.empty());
 		{
-			WLock l(*QueueItem::g_cs);
-			RLock l_lock_fq(*g_fileQueue.g_csFQ);
-			// [~] IRainman fix.
-			for (auto i = g_fileQueue.getQueueL().cbegin(); i != g_fileQueue.getQueueL().cend(); ++i)
+			WLock(*QueueItem::g_cs);
 			{
-				const QueueItemPtr& qi = i->second;
-				if (qi->isFinishedL())
-					continue;
-				if (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
-					continue;
-				const auto j = l_tthMap.find(qi->getTTH());
-				if (j != l_tthMap.end() && j->second->getSize() == qi->getSize()) // [!] IRainman fix.
+				RLock(*g_fileQueue.g_csFQ);
+				// [~] IRainman fix.
+				for (auto i = g_fileQueue.getQueueL().cbegin(); i != g_fileQueue.getQueueL().cend(); ++i)
 				{
-					try
+					const QueueItemPtr& qi = i->second;
+					if (qi->isFinishedL())
+						continue;
+					if (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
+						continue;
+					const auto j = l_tthMap.find(qi->getTTH());
+					if (j != l_tthMap.end() && j->second->getSize() == qi->getSize()) // [!] IRainman fix.
 					{
-						addSourceL(qi, dl.getUser(), QueueItem::Source::FLAG_FILE_NOT_AVAILABLE);
-						matches++;
-					}
-					catch (const Exception&)
-					{
-						// Ignore...
+						try
+						{
+							addSourceL(qi, dl.getUser(), QueueItem::Source::FLAG_FILE_NOT_AVAILABLE);
+							matches++;
+						}
+						catch (const Exception&)
+						{
+							// Ignore...
+						}
 					}
 				}
 			}
@@ -1580,7 +1590,7 @@ void QueueManager::move(const string& aSource, const string& aTarget) noexcept
 	// [-] IRainman fix.
 	// [-] bool delSource = false;
 	
-	// [-] Lock l(cs);
+	// [-] CFlyLock(cs);
 	// [-] QueueItemPtr qs = fileQueue.find(aSource);
 	// [-] if (qs)
 	{
@@ -1598,9 +1608,9 @@ void QueueManager::move(const string& aSource, const string& aTarget) noexcept
 		if (!qt || stricmp(aSource, l_target) == 0)
 		{
 			// Good, update the target and move in the queue...
-			fire(QueueManagerListener::Moved(), qs, aSource);
+			fly_fire2(QueueManagerListener::Moved(), qs, aSource);
 			g_fileQueue.moveTarget(qs, l_target);
-			//fire(QueueManagerListener::Added(), qs);// [-]IRainman
+			//fly_fire1(QueueManagerListener::Added(), qs);// [-]IRainman
 			setDirty();
 		}
 		else
@@ -1610,7 +1620,7 @@ void QueueManager::move(const string& aSource, const string& aTarget) noexcept
 				return; // TODO спросить юзера!
 				
 			{
-				WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+				WLock(*QueueItem::g_cs); // [+] IRainman fix.
 				for (auto i = qs->getSourcesL().cbegin(); i != qs->getSourcesL().cend(); ++i)
 				{
 					try
@@ -1636,7 +1646,7 @@ void QueueManager::move(const string& aSource, const string& aTarget) noexcept
 
 bool QueueManager::getQueueInfo(const UserPtr& aUser, string& aTarget, int64_t& aSize, int& aFlags) noexcept
 {
-	WLock l(*QueueItem::g_cs); // [!] IRainman fix.
+	WLock(*QueueItem::g_cs); // [!] IRainman fix.
 	const QueueItemPtr qi = g_userQueue.getNextL(aUser);
 	if (!qi)
 		return false;
@@ -1658,7 +1668,7 @@ uint8_t QueueManager::FileQueue::getMaxSegments(const uint64_t filesize)
 
 void QueueManager::getTargets(const TTHValue& tth, StringList& sl)
 {
-	// [-] Lock l(cs); [-] IRainman fix.
+	// [-] CFlyLock(cs); [-] IRainman fix.
 	QueueItemList l_ql;
 	g_fileQueue.find_tth(l_ql, tth);
 	for (auto i = l_ql.cbegin(); i != l_ql.cend(); ++i)
@@ -1669,7 +1679,7 @@ void QueueManager::getTargets(const TTHValue& tth, StringList& sl)
 
 DownloadPtr QueueManager::getDownload(UserConnection* aSource, string& aMessage) noexcept
 {
-	// [-] Lock l(cs); [-] IRainman fix.
+	// [-] CFlyLock(cs); [-] IRainman fix.
 	const auto l_ip = aSource->getRemoteIp();
 	const auto l_chiper_name = aSource->getCipherName();
 	const UserPtr u = aSource->getUser();
@@ -1677,7 +1687,7 @@ DownloadPtr QueueManager::getDownload(UserConnection* aSource, string& aMessage)
 	QueueItemPtr q;
 	DownloadPtr d;
 	{
-		WLock l(*QueueItem::g_cs); // [+] IRainman fix. // TOOD Dead lock [3] https://code.google.com/p/flylinkdc/issues/detail?id=1028
+		WLock(*QueueItem::g_cs); // [+] IRainman fix. // TOOD Dead lock [3] https://code.google.com/p/flylinkdc/issues/detail?id=1028
 		//TODO- LOCK ?? QueueManager::LockFileQueueShared l_fileQueue; //[+]PPA
 		
 		q = g_userQueue.getNextL(u, QueueItem::LOWEST, aSource->getChunkSize(), aSource->getSpeed(), true);
@@ -1774,7 +1784,7 @@ void QueueManager::setFile(const DownloadPtr& d)
 			
 			bool found = false;
 			// ok, we got a fast slot, so it's possible to disconnect original user now
-			RLock l(*QueueItem::g_cs); // [+] IRainman fix.
+			RLock(*QueueItem::g_cs); // [+] IRainman fix.
 			for (auto i = qi->getDownloadsL().cbegin(); i != qi->getDownloadsL().cend(); ++i)
 			{
 				const auto& j = i->second;
@@ -1830,7 +1840,7 @@ void QueueManager::setFile(const DownloadPtr& d)
 	else if (d->getType() == Transfer::TYPE_FULL_LIST)
 	{
 		{
-			// [-] Lock l(cs); [-] IRainman fix.
+			// [-] CFlyLock(cs); [-] IRainman fix.
 			
 			QueueItemPtr qi = QueueManager::FileQueue::find_target(d->getPath());
 			if (!qi)
@@ -1886,10 +1896,10 @@ void QueueManager::internalMoveFile(const string& source, const string& p_target
 	try
 	{
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
-		getInstance()->fire(QueueManagerListener::TryFileMoving(), p_target);
+		getInstance()->fly_fire1(QueueManagerListener::TryFileMoving(), p_target);
 #endif
 		File::renameFile(source, p_target);
-		getInstance()->fire(QueueManagerListener::FileMoved(), p_target);
+		getInstance()->fly_fire1(QueueManagerListener::FileMoved(), p_target);
 	}
 	catch (const FileException& /*e1*/)
 	{
@@ -1912,7 +1922,7 @@ void QueueManager::moveStuckFile(const QueueItemPtr& qi)
 	moveFile(qi->getTempTarget(), qi->getTarget());
 	
 	{
-		WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+		WLock(*QueueItem::g_cs); // [+] IRainman fix.
 		if (qi->isFinishedL())
 		{
 			g_userQueue.removeQueueItemL(qi);
@@ -1923,20 +1933,19 @@ void QueueManager::moveStuckFile(const QueueItemPtr& qi)
 	
 	if (!BOOLSETTING(KEEP_FINISHED_FILES_OPTION))
 	{
-		fire_removed(qi);
-		g_fileQueue.remove(qi);
+		fire_remove_internal(qi, false);
 	}
 	else
 	{
 		{
-			WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+			WLock(*QueueItem::g_cs); // [+] IRainman fix.
 			qi->addSegmentL(Segment(0, qi->getSize()));
 		}
 		fire_status_updated(qi);
 	}
 	if (!ClientManager::isShutdown())
 	{
-		fire(QueueManagerListener::RecheckAlreadyFinished(), l_target);
+		fly_fire1(QueueManagerListener::RecheckAlreadyFinished(), l_target);
 	}
 }
 void QueueManager::fire_sources_updated(const QueueItemPtr& qi)
@@ -1944,7 +1953,7 @@ void QueueManager::fire_sources_updated(const QueueItemPtr& qi)
 	//dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
-		fire(QueueManagerListener::SourcesUpdated(), qi);
+		fly_fire1(QueueManagerListener::SourcesUpdated(), qi);
 	}
 }
 
@@ -1952,7 +1961,7 @@ void QueueManager::fire_removed(const QueueItemPtr& qi)
 {
 	if (!ClientManager::isShutdown())
 	{
-		fire(QueueManagerListener::Removed(), qi);
+		fly_fire1(QueueManagerListener::Removed(), qi);
 	}
 }
 void QueueManager::fire_status_updated(const QueueItemPtr& qi)
@@ -1960,12 +1969,12 @@ void QueueManager::fire_status_updated(const QueueItemPtr& qi)
 	//dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
-		fire(QueueManagerListener::StatusUpdated(), qi);
+		fly_fire1(QueueManagerListener::StatusUpdated(), qi);
 	}
 }
 void QueueManager::rechecked(const QueueItemPtr& qi)
 {
-	fire(QueueManagerListener::RecheckDone(), qi->getTarget());
+	fly_fire1(QueueManagerListener::RecheckDone(), qi->getTarget());
 	fire_status_updated(qi);
 	
 	setDirty();
@@ -1993,7 +2002,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 	bool downloadList = false;
 	
 	{
-		// [-] WLock l(*QueueItem::g_cs); // [-] IRainman fix.
+		// [-] WLock(*QueueItem::g_cs); // [-] IRainman fix.
 		
 		aDownload->reset_download_file();  // https://drdump.com/Problem.aspx?ProblemID=130529
 		
@@ -2011,7 +2020,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 						fulldir = q->isSet(QueueItem::FLAG_DIRECTORY_DOWNLOAD);
 						if (fulldir)
 						{
-							FastLock l(csDirectories);
+							CFlyFastLock(csDirectories);
 							fulldir &= m_directories.find(aDownload->getUser()) != m_directories.end();
 						}
 					}
@@ -2020,13 +2029,13 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 					{
 						dcassert(p_is_finished);
 						fileName = aDownload->getPFS();
-						flags = (q->isSet(QueueItem::FLAG_DIRECTORY_DOWNLOAD) ? (QueueItem::FLAG_DIRECTORY_DOWNLOAD) : 0)
+						flags = (q->isSet(QueueItem::FLAG_DIRECTORY_DOWNLOAD) ? QueueItem::FLAG_DIRECTORY_DOWNLOAD : 0)
 						        | (q->isSet(QueueItem::FLAG_MATCH_QUEUE) ? QueueItem::FLAG_MATCH_QUEUE : 0)
 						        | QueueItem::FLAG_TEXT;
 					}
 					else
 					{
-						fire(QueueManagerListener::PartialList(), l_hintedUser, aDownload->getPFS());
+						fly_fire2(QueueManagerListener::PartialList(), l_hintedUser, aDownload->getPFS());
 					}
 				}
 				else
@@ -2038,14 +2047,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 					flags = q->getFlags() & ~QueueItem::FLAG_PARTIAL_LIST;
 				}
 				
-				fire_removed(q);
-				
-				{
-					WLock l(*QueueItem::g_cs); // [+] IRainman fix.
-					g_userQueue.removeQueueItemL(q);
-				}
-				
-				g_fileQueue.remove(q);
+				fire_remove_internal(q, true, true);
 			}
 		}
 		else
@@ -2074,7 +2076,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 						HashManager::addTree(aDownload->getTigerTree());
 						
 						{
-							WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+							WLock(*QueueItem::g_cs); // [+] IRainman fix.
 							g_userQueue.removeDownloadL(q, aDownload->getUser()); // [!] IRainman fix.
 						}
 						
@@ -2095,7 +2097,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 						{
 							dir = q->getTempTarget();
 							{
-								WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+								WLock(*QueueItem::g_cs); // [+] IRainman fix.
 								q->addSegmentL(Segment(0, q->getSize()));
 							}
 						}
@@ -2104,7 +2106,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 							aDownload->setOverlapped(false);
 							
 							{
-								WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+								WLock(*QueueItem::g_cs); // [+] IRainman fix.
 								q->addSegmentL(aDownload->getSegment());
 							}
 						}
@@ -2113,7 +2115,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 						bool isFinishedFile;
 						if (isFile)
 						{
-							RLock l(*QueueItem::g_cs); // [+] IRainman fix.
+							RLock(*QueueItem::g_cs); // [+] IRainman fix.
 							isFinishedFile = q->isFinishedL();
 						}
 						else
@@ -2128,7 +2130,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 								UploadManager::abortUpload(q->getTempTarget());
 								
 								{
-									WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+									WLock(*QueueItem::g_cs); // [+] IRainman fix.
 									// Disconnect all possible overlapped downloads
 									for (auto i = q->getDownloadsL().cbegin(); i != q->getDownloadsL().cend(); ++i)
 									{
@@ -2177,11 +2179,11 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 							
 							if (!ClientManager::isShutdown())
 							{
-								fire(QueueManagerListener::Finished(), q, dir, aDownload);
+								fly_fire3(QueueManagerListener::Finished(), q, dir, aDownload);
 							}
 							
 							{
-								WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+								WLock(*QueueItem::g_cs); // [+] IRainman fix.
 								if (q->isSet(QueueItem::FLAG_USER_LIST)) // [<-] IRainman fix: moved form MainFrame to core.
 								{
 									// [!] IRainman fix: please always match listing without hint!
@@ -2198,8 +2200,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 							
 							if (!BOOLSETTING(KEEP_FINISHED_FILES_OPTION) || aDownload->getType() == Transfer::TYPE_FULL_LIST)
 							{
-								fire_removed(q);
-								g_fileQueue.remove(q);
+								fire_remove_internal(q, false);
 							}
 							else
 							{
@@ -2209,7 +2210,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 						else
 						{
 							{
-								WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+								WLock(*QueueItem::g_cs); // [+] IRainman fix.
 								g_userQueue.removeDownloadL(q, aDownload->getUser()); // [!] IRainman fix.
 							}
 							
@@ -2227,7 +2228,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 					{
 						bool isEmpty;
 						{
-							RLock l(*QueueItem::g_cs); // [+] IRainman fix.
+							RLock(*QueueItem::g_cs); // [+] IRainman fix.
 							isEmpty = q->calcAverageSpeedAndCalcAndGetDownloadedBytesL() == 0;
 						}
 						if (isEmpty)
@@ -2251,7 +2252,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 								dcassert(downloaded < aDownload->getSize());
 								
 								{
-									WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+									WLock(*QueueItem::g_cs); // [+] IRainman fix.
 									q->addSegmentL(Segment(aDownload->getStartPos(), downloaded));
 								}
 								
@@ -2266,7 +2267,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 					}
 					
 					{
-						WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+						WLock(*QueueItem::g_cs); // [+] IRainman fix.
 						g_userQueue.removeDownloadL(q, aDownload->getUser()); // [!] IRainman fix.
 					}
 					
@@ -2275,7 +2276,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 					if (aDownload->isSet(Download::FLAG_OVERLAP))
 					{
 						// overlapping segment disconnected, unoverlap original segment
-						WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+						WLock(*QueueItem::g_cs); // [+] IRainman fix.
 						q->setOverlappedL(aDownload->getSegment(), false); // [!] IRainman fix.
 					}
 				}
@@ -2346,7 +2347,7 @@ void QueueManager::processList(const string& name, const HintedUser& hintedUser,
 	{
 		vector<DirectoryItemPtr> dl;
 		{
-			FastLock l(csDirectories);
+			CFlyFastLock(csDirectories);
 			const auto dp = m_directories.equal_range(hintedUser.user) | map_values;
 			dl.assign(boost::begin(dp), boost::end(dp));
 			m_directories.erase(hintedUser.user);
@@ -2375,6 +2376,19 @@ void QueueManager::removeAll()
 	g_fileQueue.clearAll();
 	CFlylinkDBManager::getInstance()->remove_queue_all_items();
 }
+void QueueManager::fire_remove_internal(const QueueItemPtr& p_qi, bool p_is_remove_item, bool p_is_force_remove_item)
+{
+	fire_removed(p_qi);
+	if (p_is_remove_item)
+	{
+		WLock(*QueueItem::g_cs);
+		if (p_is_force_remove_item || p_is_remove_item && !p_qi->isFinishedL())
+		{
+			g_userQueue.removeQueueItemL(p_qi);
+		}
+	}
+	g_fileQueue.remove(p_qi);
+}
 bool QueueManager::remove(const string& aTarget)
 {
 	UserList x;
@@ -2385,10 +2399,10 @@ bool QueueManager::remove(const string& aTarget)
 			
 		if (q->isSet(QueueItem::FLAG_DIRECTORY_DOWNLOAD))
 		{
-			RLock l(*QueueItem::g_cs); // [+] IRainman fix.
+			RLock(*QueueItem::g_cs); // [+] IRainman fix.
 			dcassert(q->getSourcesL().size() == 1);
 			{
-				FastLock l_lock(csDirectories); // [+] IRainman fix.
+				CFlyFastLock(csDirectories); // [+] IRainman fix.
 				for_each(m_directories.equal_range(q->getSourcesL().begin()->first) | map_values, DeleteFunction()); // Мутное место
 				m_directories.erase(q->getSourcesL().begin()->first);
 			}
@@ -2399,7 +2413,7 @@ bool QueueManager::remove(const string& aTarget)
 		
 		if (q->isRunningL())
 		{
-			RLock l(*QueueItem::g_cs); // [+] IRainman fix.
+			RLock(*QueueItem::g_cs); // [+] IRainman fix.
 			const auto& d = q->getDownloadsL();
 			for (auto i = d.cbegin(); i != d.cend(); ++i)
 			{
@@ -2411,17 +2425,7 @@ bool QueueManager::remove(const string& aTarget)
 			File::deleteFile(q->getTempTarget());
 		}
 		
-		fire_removed(q);
-		
-		{
-			WLock l(*QueueItem::g_cs); // [+] IRainman fix.
-			if (!q->isFinishedL())
-			{
-				g_userQueue.removeQueueItemL(q);
-			}
-		}
-		g_fileQueue.remove(q);
-		
+		fire_remove_internal(q, true);
 		setDirty();
 	}
 	
@@ -2438,7 +2442,7 @@ void QueueManager::removeSource(const string& aTarget, const UserPtr& aUser, Fla
 	bool removeCompletely = false;
 	do
 	{
-		WLock l(*QueueItem::g_cs); // [!] IRainman fix.
+		WLock(*QueueItem::g_cs); // [!] IRainman fix.
 		QueueItemPtr q = QueueManager::FileQueue::find_target(aTarget);
 		if (!q)
 			return;
@@ -2497,7 +2501,7 @@ void QueueManager::removeSource(const UserPtr& aUser, Flags::MaskType reason) no
 	string removeRunning;
 	{
 		QueueItemPtr qi;
-		WLock l(*QueueItem::g_cs);
+		WLock(*QueueItem::g_cs);
 		while ((qi = g_userQueue.getNextL(aUser, QueueItem::PAUSED)) != nullptr)
 		{
 			if (qi->isSet(QueueItem::FLAG_USER_LIST))
@@ -2566,7 +2570,7 @@ void QueueManager::setPriority(const string& aTarget, QueueItem::Priority p) noe
 		{
 			bool isFinished;
 			{
-				RLock l(*QueueItem::g_cs); // [+] IRainman fix.
+				RLock(*QueueItem::g_cs); // [+] IRainman fix.
 				isFinished = q->isFinishedL();
 			}
 			if (!isFinished)
@@ -2634,50 +2638,52 @@ void QueueManager::saveQueue(bool force) noexcept
 		
 	CFlySegmentArray l_segment_array;
 	{
-		RLock l(*QueueItem::g_cs); // TODO после исправления дедлока - убрать данную блокировку. https://code.google.com/p/flylinkdc/issues/detail?id=1028
-		RLock l_lock_fq(*FileQueue::g_csFQ);
-		std::vector<QueueItemPtr> l_items;
-		l_items.reserve(g_fileQueue.getQueueL().size());
-		for (auto i = g_fileQueue.getQueueL().begin(); i != g_fileQueue.getQueueL().end(); ++i)
+		RLock(*QueueItem::g_cs); // TODO после исправления дедлока - убрать данную блокировку. https://code.google.com/p/flylinkdc/issues/detail?id=1028
 		{
-			auto& qi  = i->second;
-			if (!qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
+			RLock(*FileQueue::g_csFQ);
+			std::vector<QueueItemPtr> l_items;
+			l_items.reserve(g_fileQueue.getQueueL().size());
+			for (auto i = g_fileQueue.getQueueL().begin(); i != g_fileQueue.getQueueL().end(); ++i)
 			{
-				if (qi->getFlyQueueID() &&
-				qi->isDirtySegment() == true &&
-				qi->isDirtyBase() == false &&
-				qi->isDirtySource() == false)
+				auto& qi = i->second;
+				if (!qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
 				{
-				
-					const CFlySegment l_QueueSegment(qi);
-					l_segment_array.push_back(l_QueueSegment);
-					qi->setDirtySegment(false); // Считаем что обновление сегментов пройдет без ошибок.
-				}
-				else if (qi->isDirtyAll())
-				{
+					if (qi->getFlyQueueID() &&
+					qi->isDirtySegment() == true &&
+					qi->isDirtyBase() == false &&
+					qi->isDirtySource() == false)
+					{
+					
+						const CFlySegment l_QueueSegment(qi);
+						l_segment_array.push_back(l_QueueSegment);
+						qi->setDirtySegment(false); // Считаем что обновление сегментов пройдет без ошибок.
+					}
+					else if (qi->isDirtyAll())
+					{
 #ifdef _DEBUG
-					const auto& l_first = i->first;
-					LogManager::message("merge_queue_item(qi) getFlyQueueID = " + Util::toString(qi->getFlyQueueID()) + " *l_first = " + l_first);
+						const auto& l_first = i->first;
+						LogManager::message("merge_queue_item(qi) getFlyQueueID = " + Util::toString(qi->getFlyQueueID()) + " *l_first = " + l_first);
 #endif
-					l_items.push_back(qi);
+						l_items.push_back(qi);
+					}
 				}
 			}
-		}
-		if (!l_items.empty())
-		{
-			if (l_items.size() > 50)
+			if (!l_items.empty())
 			{
-				CFlyLog l_log("[Save queue to SQLite]");
-				l_log.log("Store: " + Util::toString(l_items.size()) + " items...");
-				CFlylinkDBManager::getInstance()->merge_queue_all_items(l_items);
-			}
-			else
-			{
+				if (l_items.size() > 50)
+				{
+					CFlyLog l_log("[Save queue to SQLite]");
+					l_log.log("Store: " + Util::toString(l_items.size()) + " items...");
+					CFlylinkDBManager::getInstance()->merge_queue_all_items(l_items);
+				}
+				else
+				{
 #ifdef _DEBUG
-				CFlyLog l_log("[Save small! queue to SQLite]");
-				l_log.log("Store small: " + Util::toString(l_items.size()) + " items...");
+					CFlyLog l_log("[Save small! queue to SQLite]");
+					l_log.log("Store small: " + Util::toString(l_items.size()) + " items...");
 #endif
-				CFlylinkDBManager::getInstance()->merge_queue_all_items(l_items);
+					CFlylinkDBManager::getInstance()->merge_queue_all_items(l_items);
+				}
 			}
 		}
 	}
@@ -2808,7 +2814,7 @@ void QueueLoader::startTag(const string& name, StringPairList& attribs, bool sim
 				if (downloaded > 0)
 				{
 					{
-						WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+						WLock(*QueueItem::g_cs); // [+] IRainman fix.
 						qi->addSegmentL(Segment(0, downloaded));
 					}
 					qi->setPriority(qi->calculateAutoPriority());
@@ -2817,7 +2823,7 @@ void QueueLoader::startTag(const string& name, StringPairList& attribs, bool sim
 				const bool ap = Util::toInt(getAttrib(attribs, sAutoPriority, 6)) == 1;
 				qi->setAutoPriority(ap);
 				
-				qm->fire(QueueManagerListener::Added(), qi);
+				qm->fly_fire1(QueueManagerListener::Added(), qi);
 			}
 			if (!simple)
 				m_cur = qi;
@@ -2830,7 +2836,7 @@ void QueueLoader::startTag(const string& name, StringPairList& attribs, bool sim
 			if (size > 0 && start >= 0 && (start + size) <= m_cur->getSize())
 			{
 				{
-					WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+					WLock(*QueueItem::g_cs); // [+] IRainman fix.
 					m_cur->addSegmentL(Segment(start, size));
 				}
 				m_cur->setPriority(m_cur->calculateAutoPriority());
@@ -2857,7 +2863,7 @@ void QueueLoader::startTag(const string& name, StringPairList& attribs, bool sim
 			bool wantConnection;
 			try
 			{
-				WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+				WLock(*QueueItem::g_cs); // [+] IRainman fix.
 				wantConnection = QueueManager::addSourceL(m_cur, user, 0) && user->isOnline();
 			}
 			catch (const Exception&)
@@ -2903,14 +2909,14 @@ void QueueManager::on(SearchManagerListener::SR, const SearchResult& sr) noexcep
 	bool needsAutoMatch = false;
 	
 	{
-		// Lock l(cs); [-] IRainman fix.
+		// CFlyLock(cs); [-] IRainman fix.
 		QueueItemList l_matches;
 		
 		g_fileQueue.find_tth(l_matches, sr.getTTH());
 		
 		if (!l_matches.empty()) // [+] IRainman opt.
 		{
-			WLock l(*QueueItem::g_cs); // [!] http://code.google.com/p/flylinkdc/issues/detail?id=1082
+			WLock(*QueueItem::g_cs); // [!] http://code.google.com/p/flylinkdc/issues/detail?id=1082
 			for (auto i = l_matches.cbegin(); i != l_matches.cend(); ++i)
 			{
 				const QueueItemPtr& qi = *i;
@@ -2970,13 +2976,13 @@ void QueueManager::on(ClientManagerListener::UserConnected, const UserPtr& aUser
 #ifdef IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
 	bool hasDown = false;
 	{
-		RLock l(*QueueItem::g_cs); // [!] IRainman fix.
+		RLock(*QueueItem::g_cs); // [!] IRainman fix.
 		for (size_t i = 0; i < QueueItem::LAST; ++i)
 		{
 			const auto j = g_userQueue.getListL(i).find(aUser);
 			if (j != g_userQueue.getListL(i).end())
 			{
-				fire(QueueManagerListener::StatusUpdatedList(), j->second); // [!] IRainman opt.
+				fly_fire1(QueueManagerListener::StatusUpdatedList(), j->second); // [!] IRainman opt.
 				if (i != QueueItem::PAUSED)
 					hasDown = true;
 			}
@@ -2987,7 +2993,7 @@ void QueueManager::on(ClientManagerListener::UserConnected, const UserPtr& aUser
 	const bool hasDown = g_userQueue.userIsDownloadedFiles(aUser, l_status_update_array);
 	if (!l_status_update_array.empty())
 	{
-		fire(QueueManagerListener::StatusUpdatedList(), l_status_update_array); // [!] IRainman opt.
+		fly_fire1(QueueManagerListener::StatusUpdatedList(), l_status_update_array); // [!] IRainman opt.
 	}
 #endif // IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
 	
@@ -3001,13 +3007,13 @@ void QueueManager::on(ClientManagerListener::UserConnected, const UserPtr& aUser
 void QueueManager::on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) noexcept
 {
 #ifdef IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
-	RLock l(*QueueItem::g_cs); // [!] IRainman fix.
+	RLock(*QueueItem::g_cs); // [!] IRainman fix.
 	for (size_t i = 0; i < QueueItem::LAST; ++i)
 	{
 		const auto j = g_userQueue.getListL(i).find(aUser);
 		if (j != g_userQueue.getListL(i).end())
 		{
-			fire(QueueManagerListener::StatusUpdatedList(), j->second); // [!] IRainman opt.
+			fly_fire1(QueueManagerListener::StatusUpdatedList(), j->second); // [!] IRainman opt.
 		}
 	}
 #else
@@ -3018,7 +3024,7 @@ void QueueManager::on(ClientManagerListener::UserDisconnected, const UserPtr& aU
 		g_userQueue.userIsDownloadedFiles(aUser, l_status_update_array);
 		if (!l_status_update_array.empty())
 		{
-			fire(QueueManagerListener::StatusUpdatedList(), l_status_update_array); // [!] IRainman opt.
+			fly_fire1(QueueManagerListener::StatusUpdatedList(), l_status_update_array); // [!] IRainman opt.
 		}
 	}
 #endif // IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
@@ -3026,7 +3032,7 @@ void QueueManager::on(ClientManagerListener::UserDisconnected, const UserPtr& aU
 #if 0
 bool QueueManager::getTargetByRoot(const TTHValue& tth, string& p_target, string& p_tempTarget)
 {
-	// [-] Lock l(cs); [-] IRainman fix.
+	// [-] CFlyLock(cs); [-] IRainman fix.
 	QueueItemPtr qi = QueueManager::FileQueue::findQueueItem(tth);
 	if (!qi)
 		return false;
@@ -3038,11 +3044,11 @@ bool QueueManager::getTargetByRoot(const TTHValue& tth, string& p_target, string
 
 bool QueueManager::isChunkDownloaded(const TTHValue& tth, int64_t startPos, int64_t& bytes, string& p_target)
 {
-	// [-] Lock l(cs); [-] IRainman fix.
+	// [-] CFlyLock(cs); [-] IRainman fix.
 	QueueItemPtr qi = QueueManager::FileQueue::findQueueItem(tth);
 	if (!qi)
 		return false;
-	RLock l(*QueueItem::g_cs); // TODO - унести это ниже!
+	RLock(*QueueItem::g_cs); // TODO - унести это ниже!
 	p_target = qi->isFinishedL() ? qi->getTarget() : qi->getTempTarget();
 	
 	return qi->isChunkDownloadedL(startPos, bytes);
@@ -3061,15 +3067,17 @@ void QueueManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	
 	if (!ClientManager::isShutdown())
 	{
-		RLock l(*QueueItem::g_cs);
-		RLock l_lock_fq(*FileQueue::g_csFQ);
-		QueueItemList l_runningItems;
-		calcPriorityAndGetRunningFilesL(l_priorities, l_runningItems);
-		if (!l_runningItems.empty())
+		RLock(*QueueItem::g_cs);
 		{
-			// Внутри зовется
-			// int16_t QueueItem::calcTransferFlagL где нужен лок на  RLock l(*QueueItem::g_cs);
-			fire(QueueManagerListener::Tick(), l_runningItems); // [!] IRainman opt.
+			RLock(*FileQueue::g_csFQ);
+			QueueItemList l_runningItems;
+			calcPriorityAndGetRunningFilesL(l_priorities, l_runningItems);
+			if (!l_runningItems.empty())
+			{
+				// Внутри зовется
+				// int16_t QueueItem::calcTransferFlagL где нужен лок на  RLock(*QueueItem::g_cs);
+				fly_fire1(QueueManagerListener::Tick(), l_runningItems); // [!] IRainman opt.
+			}
 		}
 	}
 	
@@ -3086,7 +3094,7 @@ bool QueueManager::dropSource(const DownloadPtr& aDownload)
 	bool   allowDropSource;
 	uint64_t overallSpeed;
 	{
-		RLock l(*QueueItem::g_cs); // [!] IRainman fix.
+		RLock(*QueueItem::g_cs); // [!] IRainman fix.
 		
 		const QueueItemPtr q = g_userQueue.getRunningL(aDownload->getUser());
 		
@@ -3147,7 +3155,7 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 	dcassert(outPartialInfo.empty());
 	
 	{
-		// [-] Lock l(cs); [-] IRainman fix.
+		// [-] CFlyLock(cs); [-] IRainman fix.
 		
 		// Locate target QueueItem in download queue
 		QueueItemPtr qi = QueueManager::FileQueue::findQueueItem(tth);
@@ -3155,7 +3163,7 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 			return false;
 		LogManager::psr_message("[QueueManager::handlePartialResult] findQueueItem - OK TTH = " + tth.toBase32());
 		
-		WLock l(*QueueItem::g_cs); // [+] IRainman fix.
+		WLock(*QueueItem::g_cs); // [+] IRainman fix.
 		
 		// don't add sources to finished files
 		// this could happen when "Keep finished files in queue" is enabled
@@ -3242,10 +3250,10 @@ bool QueueManager::handlePartialSearch(const TTHValue& tth, PartsInfo& p_outPart
 		return false;
 	}
 	
-	RLock l(*QueueItem::g_cs); // [+] IRainman fix.
+	RLock(*QueueItem::g_cs); // [+] IRainman fix.
 	
 	// don't share when file does not exist
-	if (!File::isExist(qi->isFinishedL() ? qi->getTarget() : qi->getTempTarget()))
+	if (!File::isExist(qi->isFinishedL() ? qi->getTarget() : qi->getTempTargetConst()))
 		return false;
 		
 	qi->getPartialInfoL(p_outPartsInfo, qi->get_block_size_sql());
@@ -3261,7 +3269,7 @@ void QueueManager::FileQueue::findPFSSourcesL(PFSSourceList& sl)
 #endif
 	const uint64_t now = GET_TICK();
 	// http://code.google.com/p/flylinkdc/issues/detail?id=1121
-	RLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
+	RLock(*g_csFQ); // [+] IRainman fix.
 	for (auto i = g_queue.cbegin(); i != g_queue.cend(); ++i)
 	{
 		const auto& q = i->second;
@@ -3322,36 +3330,37 @@ TTHValue* QueueManager::FileQueue::findPFSPubTTH()
 {
 	const uint64_t now = GET_TICK();
 	QueueItemPtr cand;
-	RLock l(*QueueItem::g_cs);
-	RLock l_lock_fq(*g_csFQ); // [+] IRainman fix.
-	
-	for (auto i = g_queue.cbegin(); i != g_queue.cend(); ++i)
+	RLock(*QueueItem::g_cs);
 	{
-		const auto& qi = i->second;
-		// [-] IRainman fix: not possible in normal state.
-		// if (qi == nullptr)  // PVS-Studio V595 The pointer was utilized before it was verified against nullptr.
-		// continue;
-		// [~]
+		RLock(*g_csFQ); // [+] IRainman fix.
 		
-		if (!File::isExist(qi->isFinishedL() ? qi->getTarget() : qi->getTempTarget())) // don't share when file does not exist
-			continue;
-			
-		if (qi->getPriority() > QueueItem::PAUSED && qi->getSize() >= PARTIAL_SHARE_MIN_SIZE && now >= qi->getNextPublishingTime())
+		for (auto i = g_queue.cbegin(); i != g_queue.cend(); ++i)
 		{
-			if (cand == nullptr || cand->getNextPublishingTime() > qi->getNextPublishingTime() || (cand->getNextPublishingTime() == qi->getNextPublishingTime() && cand->getPriority() < qi->getPriority()))
+			const auto& qi = i->second;
+			// [-] IRainman fix: not possible in normal state.
+			// if (qi == nullptr)  // PVS-Studio V595 The pointer was utilized before it was verified against nullptr.
+			// continue;
+			// [~]
+			
+			if (!File::isExist(qi->isFinishedL() ? qi->getTarget() : qi->getTempTargetConst())) // don't share when file does not exist
+				continue;
+				
+			if (qi->getPriority() > QueueItem::PAUSED && qi->getSize() >= PARTIAL_SHARE_MIN_SIZE && now >= qi->getNextPublishingTime())
 			{
-				if (qi->getDownloadedBytes() > qi->get_block_size_sql())
-					cand = qi;
+				if (cand == nullptr || cand->getNextPublishingTime() > qi->getNextPublishingTime() || (cand->getNextPublishingTime() == qi->getNextPublishingTime() && cand->getPriority() < qi->getPriority()))
+				{
+					if (qi->getDownloadedBytes() > qi->get_block_size_sql())
+						cand = qi;
+				}
 			}
 		}
+		
+		if (cand)
+		{
+			cand->setNextPublishingTime(now + PFS_REPUBLISH_TIME);      // one hour
+			return new TTHValue(cand->getTTH());
+		}
 	}
-	
-	if (cand)
-	{
-		cand->setNextPublishingTime(now + PFS_REPUBLISH_TIME);      // one hour
-		return new TTHValue(cand->getTTH());
-	}
-	
 	return nullptr;
 }
 #endif

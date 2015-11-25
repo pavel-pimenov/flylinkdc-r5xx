@@ -247,8 +247,6 @@ template<typename T> struct TypeTraits
 	private: const type name; \
 	public: TypeTraits<type>::ParameterType get##name2() const { return name; }
 
-#define LIT(x) x, (sizeof(x)-1)
-
 /** Evaluates op(pair<T1, T2>.first, compareTo) */
 template < class T1, class T2, class op = std::equal_to<T1> >
 class CompareFirst
@@ -1515,7 +1513,7 @@ class BackgroundTaskExecuter : public BASE_THREAD
 		{
 			dcassert(!m_stop);
 			{
-				FastLock l(m_csTasks);
+				CFlyFastLock(m_csTasks);
 				m_tasks.push_front(toAdd);
 				if (m_active)
 					return;
@@ -1551,7 +1549,7 @@ class BackgroundTaskExecuter : public BASE_THREAD
 			catch (const ThreadException& e)
 			{
 				{
-					FastLock l(m_csTasks);
+					CFlyFastLock(m_csTasks);
 					m_active = false;
 				}
 				LogManager::message("BackgroundTaskExecuter::startThread failed: " + e.getError());
@@ -1574,7 +1572,7 @@ class BackgroundTaskExecuter : public BASE_THREAD
 						{
 							if (lbefore >= PAUSE_IN_MILLS_BEFORE_THREAD_DEADS || m_stop)
 							{
-								FastLock l(m_csTasks);
+								CFlyFastLock(m_csTasks);
 								if (m_tasks.empty())
 								{
 									m_active = false;
@@ -1597,7 +1595,7 @@ class BackgroundTaskExecuter : public BASE_THREAD
 						}
 					}
 					
-					FastLock l(m_csTasks);
+					CFlyFastLock(m_csTasks);
 					std::swap(next, m_tasks.back());
 					m_tasks.pop_back();
 				}

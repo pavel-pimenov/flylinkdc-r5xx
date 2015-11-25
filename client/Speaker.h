@@ -56,18 +56,47 @@ class Speaker
 		virtual ~Speaker()
 		{
 			dcassert(m_listeners.empty());
-#ifndef IRAINMAN_USE_SIMPLE_SPEAKER
-			dcassert(listeners_to_delayed_remove.empty());
-			dcassert(listeners_to_delayed_add.empty());
-#endif // IRAINMAN_USE_SIMPLE_SPEAKER
 		}
 		
+#ifdef FLYLINKDC_USE_PROFILER_CS
+		template<typename... ArgT>
+		void fire_log(const char* p_function, int p_line, ArgT && ... args)
+		{
+			const string l_f = p_function + string(" Line: ") + Util::toString(p_line);
+			CFlyLockLine(m_listenerCS, l_f.c_str());
+			ListenerList tmp = m_listeners;
+#ifdef _DEBUG
+			extern bool g_isShutdown;
+			if (g_isShutdown && !tmp.empty())
+			{
+				log_listener_list(tmp, "fire-destroy!");
+			}
+#endif
+			for (auto i = tmp.cbegin(); i != tmp.cend(); ++i)
+			{
+				(*i)->on(std::forward<ArgT>(args)...);
+			}
+		}
+#define fly_fire(p_type) fire_log(__FUNCTION__,__LINE__,p_type);
+#define fly_fire1(p_type,p_arg_1) fire_log(__FUNCTION__,__LINE__,p_type,p_arg_1);
+#define fly_fire2(p_type,p_arg_1,p_arg_2) fire_log(__FUNCTION__,__LINE__,p_type,p_arg_1,p_arg_2);
+#define fly_fire3(p_type,p_arg_1,p_arg_2,p_arg_3) fire_log(__FUNCTION__,__LINE__,p_type,p_arg_1,p_arg_2,p_arg_3);
+#define fly_fire4(p_type,p_arg_1,p_arg_2,p_arg_3,p_arg_4) fire_log(__FUNCTION__,__LINE__,p_type,p_arg_1,p_arg_2,p_arg_3,p_arg_4);
+#define fly_fire5(p_type,p_arg_1,p_arg_2,p_arg_3,p_arg_4,p_arg_5) fire_log(__FUNCTION__,__LINE__,p_type,p_arg_1,p_arg_2,p_arg_3,p_arg_4,p_arg_5);
+#else
+#define fly_fire fire
+#define fly_fire1 fire
+#define fly_fire2 fire
+#define fly_fire3 fire
+#define fly_fire4 fire
+#define fly_fire5 fire
+#endif
 		template<typename... ArgT>
 		void fire(ArgT && ... args)
 		{
-			Lock l(m_listenerCS);
+			CFlyLock(m_listenerCS);
 			ListenerList tmp = m_listeners;
-#if _DEBUG
+#ifdef _DEBUG
 			extern bool g_isShutdown;
 			if (g_isShutdown && !tmp.empty())
 			{
@@ -85,7 +114,7 @@ class Speaker
 		void fire(T0 && type) noexcept
 		{
 #ifdef IRAINMAN_USE_SIMPLE_SPEAKER
-			Lock l(m_listenerCS);
+			CFlyLock(m_listenerCS);
 			ListenerList tmp = m_listeners;
 			for (auto i = tmp.cbegin(); i != tmp.cend(); ++i)
 #else
@@ -108,7 +137,7 @@ template<typename T0, typename T1>
 void fire(T0 && type, T1 && p1) noexcept
 {
 #ifdef IRAINMAN_USE_SIMPLE_SPEAKER
-	Lock l(m_listenerCS);
+	CFlyLock(m_listenerCS);
 	ListenerList tmp = m_listeners;
 	for (auto i = tmp.cbegin(); i != tmp.cend(); ++i)
 #else
@@ -131,7 +160,7 @@ template<typename T0, typename T1, typename T2>
 void fire(T0 && type, T1 && p1, T2 && p2) noexcept
 {
 #ifdef IRAINMAN_USE_SIMPLE_SPEAKER
-	Lock l(m_listenerCS);
+	CFlyLock(m_listenerCS);
 	ListenerList tmp = m_listeners;
 	for (auto i = tmp.cbegin(); i != tmp.cend(); ++i)
 #else
@@ -154,7 +183,7 @@ template<typename T0, typename T1, typename T2, typename T3>
 void fire(T0 && type, T1 && p1, T2 && p2, T3 && p3) noexcept
 {
 #ifdef IRAINMAN_USE_SIMPLE_SPEAKER
-	Lock l(m_listenerCS);
+	CFlyLock(m_listenerCS);
 	ListenerList tmp = m_listeners;
 	for (auto i = tmp.cbegin(); i != tmp.cend(); ++i)
 #else
@@ -177,7 +206,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4>
 void fire(T0 && type, T1 && p1, T2 && p2, T3 && p3, T4 && p4) noexcept
 {
 #ifdef IRAINMAN_USE_SIMPLE_SPEAKER
-	Lock l(m_listenerCS);
+	CFlyLock(m_listenerCS);
 	ListenerList tmp = m_listeners;
 	for (auto i = tmp.cbegin(); i != tmp.cend(); ++i)
 #else
@@ -200,7 +229,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 void fire(T0 && type, T1 && p1, T2 && p2, T3 && p3, T4 && p4, T5 && p5) noexcept
 {
 #ifdef IRAINMAN_USE_SIMPLE_SPEAKER
-	Lock l(m_listenerCS);
+	CFlyLock(m_listenerCS);
 	ListenerList tmp = m_listeners;
 	for (auto i = tmp.cbegin(); i != tmp.cend(); ++i)
 #else
@@ -223,7 +252,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 void fire(T0 && type, T1 && p1, T2 && p2, T3 && p3, T4 && p4, T5 && p5, T6 && p6) noexcept
 {
 #ifdef IRAINMAN_USE_SIMPLE_SPEAKER
-	Lock l(m_listenerCS);
+	CFlyLock(m_listenerCS);
 	ListenerList tmp = m_listeners;
 	for (auto i = tmp.cbegin(); i != tmp.cend(); ++i)
 #else
@@ -246,7 +275,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 void fire(T0 && type, T1 && p1, T2 && p2, T3 && p3, T4 && p4, T5 && p5, T6 && p6, T7 && p7) noexcept
 {
 #ifdef IRAINMAN_USE_SIMPLE_SPEAKER
-	Lock l(m_listenerCS);
+	CFlyLock(m_listenerCS);
 	ListenerList tmp = m_listeners;
 	for (auto i = tmp.cbegin(); i != tmp.cend(); ++i)
 #else
@@ -267,10 +296,9 @@ after_fire_process();
 }
 #endif // 0  VC++2010
 
-#ifdef IRAINMAN_USE_SIMPLE_SPEAKER
 void addListener(Listener* aListener)
 {
-	Lock l(m_listenerCS);
+	CFlyLock(m_listenerCS);
 	if (boost::range::find(m_listeners, aListener) == m_listeners.end())
 	{
 		m_listeners.push_back(aListener);
@@ -289,7 +317,7 @@ void addListener(Listener* aListener)
 
 void removeListener(Listener* aListener)
 {
-	Lock l(m_listenerCS);
+	CFlyLock(m_listenerCS);
 	if (!m_listeners.empty()) // Dead lock https://code.google.com/p/flylinkdc/issues/detail?id=1428 (TODO - сжать m_listeners)
 	{
 		auto it = boost::range::find(m_listeners, aListener);
@@ -311,153 +339,13 @@ void removeListener(Listener* aListener)
 
 void removeListeners()
 {
-	Lock l(m_listenerCS);
+	CFlyLock(m_listenerCS);
 	m_listeners.clear();
 }
 
 private:
 ListenerList m_listeners;
 CriticalSection m_listenerCS;
-
-#else // IRAINMAN_USE_SIMPLE_SPEAKER
-
-void addListener(Listener* p_Listener)
-{
-	{
-		TryFastUniqueLock l(m_listenerCS);
-		if (l.locked())
-		{
-			internal_addL(p_Listener);
-			return;
-		}
-	}
-	FastLock l(delayed_eventCS);
-	listeners_to_delayed_add.push_back(p_Listener);
-}
-
-void removeListener(Listener* p_Listener)
-{
-	{
-		TryFastUniqueLock l(m_listenerCS);
-		if (l.locked())
-		{
-			internal_removeL(p_Listener);
-			return;
-		}
-	}
-	FastLock l(delayed_eventCS);
-	listeners_to_delayed_remove.push_back(p_Listener);
-}
-
-void removeListeners()
-{
-	{
-		TryFastUniqueLock l(m_listenerCS);
-		if (l.locked())
-		{
-#ifdef _DEBUG_SPEAKER_LISTENER_LIST_LEVEL_2
-			log_listener_list(m_listeners, "removeListenerAll");
-#endif
-			m_listeners.clear();
-
-			FastLock l(delayed_eventCS);
-
-			dcassert(listeners_to_delayed_add.empty());
-			listeners_to_delayed_add.clear();
-
-			dcassert(listeners_to_delayed_remove.empty());
-			listeners_to_delayed_remove.clear();
-
-			return;
-		}
-
-	}
-	FastLock l(delayed_eventCS);
-	listeners_to_delayed_remove.insert(listeners_to_delayed_remove.end(), m_listeners.begin(), m_listeners.end());
-}
-
-private:
-void after_fire_process()
-{
-	FastLock l(delayed_eventCS);
-	if (!listeners_to_delayed_add.empty())
-	{
-		{
-			FastUniqueLock l(m_listenerCS);
-			for (auto i = listeners_to_delayed_add.cbegin(); i != listeners_to_delayed_add.cend(); ++i)
-				internal_addL(*i);
-		}
-		listeners_to_delayed_add.clear();
-	}
-	if (!listeners_to_delayed_remove.empty())
-	{
-		{
-			FastUniqueLock l(m_listenerCS);
-			for (auto i = listeners_to_delayed_remove.cbegin(); i != listeners_to_delayed_remove.cend(); ++i)
-				internal_removeL(*i);
-		}
-		listeners_to_delayed_remove.clear();
-	}
-}
-
-void internal_addL(Listener* listener_to_add)
-{
-	if (boost::range::find(m_listeners, listener_to_add) == m_listeners.cend())
-	{
-		m_listeners.push_back(listener_to_add);
-	}
-#ifdef _DEBUG_SPEAKER_LISTENER_LIST_LEVEL_1
-	else
-	{
-		dcassert(0);
-# ifdef _DEBUG_SPEAKER_LISTENER_LIST_LEVEL_2
-		log_listener_list(m_listeners, "addListener-twice!!!");
-# endif
-	}
-#endif // _DEBUG_SPEAKER_LISTENER_LIST_LEVEL_1
-}
-
-bool is_listener_zombie(Listener* p_listener)
-{
-	FastLock l(delayed_eventCS);
-	const auto it = boost::range::find(listeners_to_delayed_remove, p_listener);
-	if (it != listeners_to_delayed_remove.cend())
-	{
-		return true; //
-	}
-	else
-	{
-		return false;
-	}
-}
-
-void internal_removeL(Listener* listener_to_remove)
-{
-	const auto it = boost::range::find(m_listeners, listener_to_remove);
-	if (it != m_listeners.cend())
-	{
-		m_listeners.erase(it);
-	}
-#ifdef _DEBUG_SPEAKER_LISTENER_LIST_LEVEL_1
-	else
-	{
-		dcassert(0);
-# ifdef _DEBUG_SPEAKER_LISTENER_LIST_LEVEL_2
-		log_listener_list(m_listeners, "removeListener-zombie!!!");
-# endif
-	}
-#endif // _DEBUG_SPEAKER_LISTENER_LIST_LEVEL_1
-}
-
-ListenerList m_listeners;
-FastSharedCriticalSection m_listenerCS;
-
-ListenerList listeners_to_delayed_remove;
-ListenerList listeners_to_delayed_add;
-FastCriticalSection delayed_eventCS;
-
-#endif // IRAINMAN_USE_SIMPLE_SPEAKER
-
 };
 
 #endif // !defined(SPEAKER_H)

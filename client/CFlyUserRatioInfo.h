@@ -76,15 +76,47 @@ template <class T> class CFlyUploadDownloadPair
 };
 typedef CFlyUploadDownloadPair<double> CFlyGlobalRatioItem;
 typedef boost::unordered_map<unsigned long, CFlyUploadDownloadPair<uint64_t> > CFlyUploadDownloadMap; // TODO кей boost::asio::ip::address_v4
-struct CFlyRatioItem : public CFlyUploadDownloadPair<uint64_t>
+class CFlyRatioItem : public CFlyUploadDownloadPair<uint64_t>
 {
-	uint32_t m_message_count;
-	CFlyRatioItem(): m_message_count(0)
-	{
-	}
-	~CFlyRatioItem()
-	{
-	}
+		uint32_t m_message_count;
+		bool m_is_message_count_dirty;
+	public:
+		CFlyRatioItem() : m_message_count(0), m_is_message_count_dirty(false)
+		{
+		}
+		~CFlyRatioItem()
+		{
+		}
+		uint32_t get_message_count() const
+		{
+			return m_message_count;
+		}
+		void inc_messages_count()
+		{
+			++m_message_count;
+			set_message_dirty();
+		}
+		void set_messages_count(uint32_t p_value)
+		{
+			//dcassert(p_value);
+			if (p_value != m_message_count && p_value)
+			{
+				m_message_count = p_value;
+				set_message_dirty();
+			}
+		}
+		void set_message_dirty()
+		{
+			m_is_message_count_dirty = true;
+		}
+		void reset_message_dirty()
+		{
+			m_is_message_count_dirty = false;
+		}
+		bool is_message_dirty() const
+		{
+			return m_is_message_count_dirty;
+		}
 };
 class User;
 struct CFlyUserRatioInfo : public CFlyRatioItem

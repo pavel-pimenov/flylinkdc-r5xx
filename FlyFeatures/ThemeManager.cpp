@@ -57,7 +57,7 @@ void ThemeManager::loadResourceLib()
 #ifdef IRAINMAN_THEME_MANAGER_LISTENER_ENABLE
 		if (isResourceLibLoaded())
 		{
-			fire(ThemeManagerListener::ResourceLoaded(), themeDllName);
+			fly_fire1(ThemeManagerListener::ResourceLoaded(), themeDllName);
 		}
 #endif
 	}

@@ -211,6 +211,7 @@
 #define IDR_VIP_ICO_NSK154  321
 #define IDR_VIP_ICO_PROSTOIGRA 322
 #define IDR_VIP_ICO_EVAHUB 323
+#define IDR_VIP_ICO_ADRENALIN 324
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
 #define IDC_COPY_HUB                    1002

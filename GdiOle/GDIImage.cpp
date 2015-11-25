@@ -3,12 +3,11 @@
 #include "GdiImage.h"
 
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
-FastCriticalSection CGDIImage::g_GDIcs;
+std::unique_ptr<webrtc::RWLockWrapper> CGDIImage::g_GDIcs = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 std::unordered_set<CGDIImage*> CGDIImage::g_GDIImageSet;
 unsigned CGDIImage::g_AnimationDeathDetectCount = 0;
 unsigned CGDIImage::g_AnimationCount = 0;
 unsigned CGDIImage::g_AnimationCountMax = 0;
-bool CGDIImage::g_isShutdown = false;
 #endif // FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
 
 CGDIImage::CGDIImage(LPCWSTR pszFileName, HWND hCallbackWnd, DWORD dwCallbackMsg):
@@ -353,7 +352,7 @@ CGDIImage *CGDIImage::CreateInstance(LPCWSTR pszFileName, HWND hCallbackWnd, DWO
 {
 	CGDIImage* l_image = new CGDIImage(pszFileName, hCallbackWnd, dwCallbackMsg);
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
-	FastLock l(g_GDIcs);
+	CFlyWriteLock(*g_GDIcs);
 	g_GDIImageSet.insert(l_image);
 #endif
 	return l_image;

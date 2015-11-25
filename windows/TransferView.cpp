@@ -1730,13 +1730,14 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 		case COLUMN_STATUS:
 			return m_statusString;
 		case COLUMN_TIMELEFT:
-			return m_status == STATUS_RUNNING ? Util::formatSecondsW(m_timeLeft) : Util::emptyStringT;
+			dcassert(m_timeLeft >= 0);
+			return (m_status == STATUS_RUNNING && m_timeLeft > 0) ? Util::formatSecondsW(m_timeLeft) : Util::emptyStringT;
 		case COLUMN_SPEED:
 			return m_status == STATUS_RUNNING ? (Util::formatBytesW(m_speed) + _T('/') + WSTRING(S)) : Util::emptyStringT;
 		case COLUMN_FILE:
 			return getFile(m_type, Util::getFileName(m_target)); // TODO: opt me please.
 		case COLUMN_SIZE:
-			return Util::formatBytesW(m_size); // TODO: opt me please.
+			return m_size >= 0 ? Util::formatBytesW(m_size) : Util::emptyStringT;
 		case COLUMN_PATH:
 			return Util::getFilePath(m_target); // TODO: opt me please.
 		case COLUMN_IP:
@@ -2145,21 +2146,26 @@ void TransferView::parseQueueItemUpdateInfoL(UpdateInfo* ui, const QueueItemPtr&
 			ui->setTimeLeft((totalSpeed > 0) ? ((ui->size - ui->pos) / totalSpeed) : 0);
 			ui->setSpeed(totalSpeed);
 			
-			if (qi->getFileBegin() == 0)
+			if (qi->getTimeFileBegin() == 0)
 			{
 				// file is starting
-				qi->setFileBegin(GET_TICK());
+				qi->setTimeFileBegin(GET_TICK());
 				ui->setStatusString(TSTRING(DOWNLOAD_STARTING));
 				PLAY_SOUND(SOUND_BEGINFILE);
 				SHOW_POPUP(POPUP_DOWNLOAD_START, TSTRING(FILE) + _T(": ") + Util::getFileName(ui->m_target), TSTRING(DOWNLOAD_STARTING));
 			}
 			else
 			{
-				const uint64_t time = GET_TICK() - qi->getFileBegin();
+				const uint64_t time = GET_TICK() - qi->getTimeFileBegin();
 				if (time > 1000)
 				{
 					const tstring pos = Util::formatBytesW(ui->pos);
-					const double percent = (double)ui->pos * 100.0 / (double)ui->size;
+					double percent = double(ui->pos) * 100.0 / double(ui->size);
+					dcassert(percent <= 100);
+					if (percent > 100)
+					{
+						percent = 100;
+					}
 					const tstring elapsed = Util::formatSecondsW(time / 1000);
 					tstring flag;
 					if (partial)
@@ -2197,7 +2203,7 @@ void TransferView::parseQueueItemUpdateInfoL(UpdateInfo* ui, const QueueItemPtr&
 	}
 	else
 	{
-		qi->setFileBegin(0);
+		qi->setTimeFileBegin(0);
 		ui->setSize(qi->getSize());
 		ui->setStatus(ItemInfo::STATUS_WAITING);
 		ui->setRunning(0);

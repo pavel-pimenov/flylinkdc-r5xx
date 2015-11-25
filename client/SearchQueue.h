@@ -170,12 +170,12 @@ class SearchQueue
 		bool pop(Search& s, uint64_t now); // [!] IRainman opt
 		bool empty()
 		{
-			FastLock l(m_cs);
+			CFlyFastLock(m_cs);
 			return m_searchQueue.empty();
 		}
 		void clear()
 		{
-			FastLock l(m_cs);
+			CFlyFastLock(m_cs);
 			m_searchQueue.clear();
 		}
 		

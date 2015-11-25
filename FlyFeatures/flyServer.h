@@ -68,7 +68,7 @@ struct CServerItem
 			m_port = 0;
 		}
 		return false;
-	}
+	}	
 	GETSET(string, m_ip, Ip);
 	GETSET(uint16_t, m_port, Port);
 	GETSET(uint32_t, m_time_response, TimeResponse);
@@ -272,6 +272,7 @@ public:
   static string   g_support_hub;
   static string   g_support_hub_en;
 #endif // USE_SUPPORT_HUB
+  static string   g_support_upnp;
   static std::vector<std::string> g_mapping_hubs;
   //static std::unordered_set<unsigned long> g_block_ip;
   static std::unordered_set<std::string> g_block_ip_str;
@@ -415,7 +416,7 @@ class CFlyServerAdapter
 		}
 		void clearFlyServerQueue()
 		{
-			Lock l(g_cs_fly_server);
+			CFlyLock(g_cs_fly_server);
 			m_GetFlyServerArray.clear();
 			m_SetFlyServerArray.clear();
 		}
@@ -499,11 +500,13 @@ public:
 #endif
 	static bool pushError(unsigned p_error_code, string p_error);
 	static void pushSyslogError(const string& p_error);
-	static bool pushTestPort(const std::vector<unsigned short>& p_udp_port,
+	static bool setTestPortOK(unsigned short p_port, const std::string& p_type);
+	static bool isTestPortOK(unsigned short p_port, const std::string& p_type, bool p_is_assert = false);
+		static bool pushTestPort(const std::vector<unsigned short>& p_udp_port,
 		const std::vector<unsigned short>& p_tcp_port,
 		string& p_external_ip,
 		int p_timer_value);
-
+	
 	static string g_fly_server_id;
 	static CFlyTTHKeyArray g_download_counter;	
 	static void addDownloadCounter(const CFlyTTHKey& p_file);
@@ -533,8 +536,11 @@ private:
 	static CriticalSection g_cs_error_report;
 	static CriticalSection g_cs_download_counter;
 	static CriticalSection g_cs_antivirus_counter;
+	static FastCriticalSection g_cs_test_port;
 	static string g_last_error_string;
 	static int g_count_dup_error_string;
+	typedef std::map<std::pair<unsigned short, string>, std::pair<bool, uint64_t> > CFlyTestPortResult;
+	static CFlyTestPortResult g_test_port_map;
 };
 
 //=======================================================================

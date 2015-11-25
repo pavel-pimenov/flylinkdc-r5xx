@@ -127,7 +127,7 @@ void GPGPUOpenCL::release_cl()
 
 void GPGPUOpenCL::select_device(int num)
 {
-	Lock l(cs);
+	CFlyLock(cs);
 	
 	cl_context_properties ctx_props[3];
 	
@@ -199,7 +199,7 @@ dev_init_error:
 
 bool GPGPUOpenCL::krn_ttr(uint8_t *data, uint64_t bc, uint64_t last_bs, uint64_t res[3])
 {
-	Lock l(cs);
+	CFlyLock(cs);
 	
 	const uint64_t TTBLOCK_SIZE = 1024ULL;
 	const uint64_t TH_BYTES = 24ULL;

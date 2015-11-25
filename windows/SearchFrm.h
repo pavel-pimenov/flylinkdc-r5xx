@@ -238,7 +238,10 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			m_Theme(nullptr),
 			m_need_resort(false),
 			m_is_use_tree(true),
-			m_is_before_search(false)
+			m_is_before_search(false),
+			m_RootTreeItem(nullptr),
+			m_CurrentTreeItem(nullptr),
+			m_OldTreeItem(nullptr)
 		{
 		}
 		

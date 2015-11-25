@@ -512,6 +512,9 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 	// TODO - flush file
 #endif
+#ifdef FLYLINKDC_USE_PROFILER_CS
+	CFlyLockProfiler::print_stat();
+#endif
 	return nRet;
 }
 
@@ -755,6 +758,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	_Module.Term();
 	::CoUninitialize();
 	DestroySplash();
+	LogManager::flush_all_log();
 	return nRet;
 }
 

@@ -12,6 +12,7 @@ call "%VS140COMNTOOLS%\..\..\VC\bin\vcvars32.bat"
 if not exist .\compiled\FlylinkDC.exe goto :builderror
 
 "C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\signtool.exe" sign /a /d "FlylinkDC++ r5xx" /du "http://flylinkdc.blogspot.com" /t http://timestamp.verisign.com/scripts/timstamp.dll ".\compiled\FlylinkDC.exe"
+rem /fd sha256
 
 call Tools\MakePortalBrowserFileList.bat
 call src_gen_filename.bat -x86

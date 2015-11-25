@@ -228,14 +228,14 @@ class Identity
 		}
 		void setBytesShared(const int64_t bytes) // "SS"
 		{
-			webrtc::WriteLockScoped l(*g_rw_cs);
+			CFlyWriteLock(*g_rw_cs);
 			dcassert(bytes >= 0);
 			getUser()->setBytesShared(bytes);
 			change(CHANGES_SHARED | CHANGES_EXACT_SHARED);
 		}
 		const int64_t getBytesShared() const // "SS"
 		{
-			webrtc::ReadLockScoped l(*g_rw_cs);
+			CFlyReadLock(*g_rw_cs);
 			return getUser()->getBytesShared();
 		}
 		
@@ -653,6 +653,14 @@ class Identity
 					return WSTRING(FLY_GENDER_ASEXUAL);
 			}
 			return Util::emptyStringT;
+		}
+		string getExtJSONSupportInfo() const
+		{
+			return getStringParam("F5");
+		}
+		void setExtJSONSupportInfo(const string& p_value)
+		{
+			setStringParam("F5", p_value);
 		}
 #endif
 		

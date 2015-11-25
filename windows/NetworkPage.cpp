@@ -240,10 +240,6 @@ LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 		static HIconWrapper g_hWiFiRouterIco(IDC_WIFI_ROUTER_ICO, 48, 48);
 		GetDlgItem(IDC_WIFI_ROUTER_ICO).SendMessage(STM_SETICON, (WPARAM)(HICON)g_hWiFiRouterIco, 0L);
 	}
-	if (!m_is_manual)
-	{
-		runTestPort();
-	}
 	m_is_init = true;
 	return TRUE;
 }
@@ -315,7 +311,6 @@ void NetworkPage::updateTestPortIcon(bool p_is_wait)
 			if (m_test_port_flood == 0)
 			{
 				::EnableWindow(GetDlgItem(IDC_GETIP), TRUE);
-				dcassert(!m_original_test_port_caption.empty());
 				if (!m_original_test_port_caption.empty())
 					::SetWindowText(GetDlgItem(IDC_GETIP), m_original_test_port_caption.c_str());
 			}

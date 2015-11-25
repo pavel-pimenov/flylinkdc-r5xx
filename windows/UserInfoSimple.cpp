@@ -109,7 +109,7 @@ void UserInfoSimple::addSummaryMenu()
 	caption = false;
 	{
 		uint8_t l_count_menu = 0; // [+]PPA
-		RLock l(*QueueItem::g_cs);
+		RLock(*QueueItem::g_cs);
 		QueueManager::LockFileQueueShared l_fileQueue;
 		const auto& downloads = l_fileQueue.getQueueL();
 		for (auto j = downloads.cbegin(); j != downloads.cend(); ++j)

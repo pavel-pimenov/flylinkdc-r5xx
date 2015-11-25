@@ -66,7 +66,7 @@ class GPGPUManager
 		
 		void select(int pfm_idx)
 		{
-			FastLock l(cs);
+			CFlyFastLock(cs);
 			
 			if (pfm_idx >= 0 && pfm_idx < (int)platforms.size())
 			{
@@ -80,7 +80,7 @@ class GPGPUManager
 		
 		GPGPUPlatform * get()
 		{
-			FastLock l(cs);
+			CFlyFastLock(cs);
 			
 			dcassert(i_cur_pfm >= 0 && i_cur_pfm < (int)platforms.size());
 			return platforms[i_cur_pfm];
@@ -120,7 +120,7 @@ class GPGPUOpenCL : public GPGPUPlatform
 		
 		int get_cur_dev()
 		{
-			Lock l(cs);
+			CFlyLock(cs);
 			return cur_dev_num;
 		}
 		

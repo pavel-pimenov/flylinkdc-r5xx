@@ -26,6 +26,7 @@
 #include "NmdcHub.h"
 #include "QueueManager.h"
 #include "MappingManager.h"
+#include "../FlyFeatures/flyServer.h"
 
 #ifdef STRONG_USE_DHT
 #include "../dht/dht.h"
@@ -41,7 +42,6 @@ Identity ClientManager::g_iflylinkdc; // [+] IRainman fix: Identity for User for
 UserPtr ClientManager::g_me; // [+] IRainman fix: this is static object.
 CID ClientManager::g_pid; // [+] IRainman fix: this is static object.
 bool g_isShutdown = false;
-bool ClientManager::g_isShutdown = false;
 bool ClientManager::g_isSpyFrame = false;
 ClientManager::ClientList ClientManager::g_clients;
 
@@ -77,7 +77,7 @@ Client* ClientManager::getClient(const string& p_HubURL, bool p_is_auto_connect)
 	}
 	
 	{
-		webrtc::WriteLockScoped l(*g_csClients);
+		CFlyWriteLock(*g_csClients);
 		g_clients.insert(make_pair(c->getHubUrl(), c));
 	}
 	
@@ -88,7 +88,7 @@ Client* ClientManager::getClient(const string& p_HubURL, bool p_is_auto_connect)
 std::map<string, CFlyClientStatistic > ClientManager::getClientStat()
 {
 	std::map<string, CFlyClientStatistic> l_stat;
-	webrtc::ReadLockScoped l(*g_csClients);
+	CFlyReadLock(*g_csClients);
 	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 	{
 		CFlyClientStatistic l_item;
@@ -111,7 +111,7 @@ std::map<string, CFlyClientStatistic > ClientManager::getClientStat()
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 void ClientManager::resetAntivirusInfo()
 {
-	webrtc::ReadLockScoped l(*g_csClients);
+	CFlyReadLock(*g_csClients);
 	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 	{
 		i->second->resetAntivirusInfo();
@@ -121,7 +121,6 @@ void ClientManager::resetAntivirusInfo()
 void ClientManager::shutdown()
 {
 	dcassert(!isShutdown());
-	ClientManager::g_isShutdown = true;
 	::g_isShutdown = true;
 	TimerManager::getInstance()->removeListener(this);
 }
@@ -129,11 +128,11 @@ void ClientManager::shutdown()
 void ClientManager::clear()
 {
 	{
-		webrtc::WriteLockScoped l(*g_csOnlineUsers);
+		CFlyWriteLock(*g_csOnlineUsers);
 		g_onlineUsers.clear();
 	}
 	{
-		webrtc::WriteLockScoped l(*g_csUsers);
+		CFlyWriteLock(*g_csUsers);
 #ifdef IRAINMAN_USE_NICKS_IN_CM
 		g_nicks.clear();
 #endif
@@ -144,7 +143,7 @@ void ClientManager::clear()
 size_t ClientManager::getTotalUsers()
 {
 	size_t users = 0;
-	webrtc::ReadLockScoped l(*g_csClients);
+	CFlyReadLock(*g_csClients);
 	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 	{
 		users += i->second->getUserCount();
@@ -159,7 +158,7 @@ void ClientManager::setIPUser(const UserPtr& p_user, const string& p_ip, const u
 	if (p_ip.empty())
 		return;
 		
-	webrtc::WriteLockScoped l(*g_csOnlineUsers);
+	CFlyWriteLock(*g_csOnlineUsers);
 	const OnlinePairC p = g_onlineUsers.equal_range(p_user->getCID());
 	for (auto i = p.first; i != p.second; ++i)
 	{
@@ -180,7 +179,7 @@ void ClientManager::setIPUser(const UserPtr& p_user, const string& p_ip, const u
 
 bool ClientManager::getUserParams(const UserPtr& user, UserParams& p_params)
 {
-	webrtc::ReadLockScoped l(*g_csOnlineUsers);
+	CFlyReadLock(*g_csOnlineUsers);
 	const OnlineUser* u = getOnlineUserL(user);
 	if (u)
 	{
@@ -201,7 +200,7 @@ bool ClientManager::getUserParams(const UserPtr& user, UserParams& p_params)
 #ifndef IRAINMAN_NON_COPYABLE_CLIENTS_IN_CLIENT_MANAGER
 void ClientManager::getConnectedHubUrls(StringList& p_hub_url)
 {
-	webrtc::ReadLockScoped l(*g_csClients);
+	CFlyReadLock(*g_csClients);
 	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 	{
 		if (i->second->isConnected())
@@ -211,7 +210,7 @@ void ClientManager::getConnectedHubUrls(StringList& p_hub_url)
 
 void ClientManager::getConnectedHubInfo(HubInfoArray& p_hub_info)
 {
-	webrtc::ReadLockScoped l(*g_csClients);
+	CFlyReadLock(*g_csClients);
 	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 	{
 		if (i->second->isConnected())
@@ -224,13 +223,13 @@ void ClientManager::getConnectedHubInfo(HubInfoArray& p_hub_info)
 		}
 	}
 }
-#endif
+#endif // IRAINMAN_NON_COPYABLE_CLIENTS_IN_CLIENT_MANAGER
 void ClientManager::prepareClose()
 {
 	// http://www.flickr.com/photos/96019675@N02/11475592005/
 	/*
 	{
-	    webrtc::ReadLockScoped l(*g_csClients);
+	    CFlyReadLock(*g_csClients);
 	    for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 	    {
 	        i->second->removeListeners();
@@ -238,7 +237,7 @@ void ClientManager::prepareClose()
 	}
 	*/
 	{
-		webrtc::WriteLockScoped l(*g_csClients);
+		CFlyWriteLock(*g_csClients);
 		g_clients.clear();
 	}
 }
@@ -246,12 +245,12 @@ void ClientManager::putClient(Client* p_client)
 {
 	p_client->removeListeners();
 	{
-		webrtc::WriteLockScoped l(*g_csClients);
+		CFlyWriteLock(*g_csClients);
 		g_clients.erase(p_client->getHubUrl());
 	}
-	if (!g_isShutdown) // При закрытии не шлем уведомление (на него подписан только фрейм поиска)
+	if (!isShutdown()) // При закрытии не шлем уведомление (на него подписан только фрейм поиска)
 	{
-		fire(ClientManagerListener::ClientDisconnected(), p_client);
+		fly_fire1(ClientManagerListener::ClientDisconnected(), p_client);
 	}
 	p_client->shutdown();
 	delete p_client;
@@ -274,11 +273,11 @@ StringList ClientManager::getNicks(const CID& cid, const string& hintUrl)
 
 StringList ClientManager::getHubs(const CID& cid, const string& hintUrl, bool priv)
 {
-	//Lock l(cs); [-] IRainman opt.
+	//CFlyLock(cs); [-] IRainman opt.
 	StringList lst;
 	if (!priv)
 	{
-		webrtc::ReadLockScoped l(*g_csOnlineUsers); // [+] IRainman opt.
+		CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
 		const OnlinePairC op = g_onlineUsers.equal_range(cid);
 		for (auto i = op.first; i != op.second; ++i)
 		{
@@ -287,7 +286,7 @@ StringList ClientManager::getHubs(const CID& cid, const string& hintUrl, bool pr
 	}
 	else
 	{
-		webrtc::ReadLockScoped l(*g_csOnlineUsers); // [+] IRainman opt.
+		CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
 		OnlineUser* u = findOnlineUserHintL(cid, hintUrl);
 		if (u)
 			lst.push_back(u->getClientBase().getHubUrl());
@@ -297,14 +296,14 @@ StringList ClientManager::getHubs(const CID& cid, const string& hintUrl, bool pr
 
 StringList ClientManager::getHubNames(const CID& cid, const string& hintUrl, bool priv)
 {
-	//Lock l(cs); [-] IRainman opt.
+	//CFlyLock(cs); [-] IRainman opt.
 #ifdef _DEBUG
 	//LogManager::message("[!!!!!!!] ClientManager::getHubNames cid = " + cid.toBase32() + " hintUrl = " + hintUrl + " priv = " + Util::toString(priv));
 #endif
 	StringList lst;
 	if (!priv)
 	{
-		webrtc::ReadLockScoped l(*g_csOnlineUsers); // [+] IRainman opt.
+		CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
 		const OnlinePairC op = g_onlineUsers.equal_range(cid);
 		for (auto i = op.first; i != op.second; ++i)
 		{
@@ -313,7 +312,7 @@ StringList ClientManager::getHubNames(const CID& cid, const string& hintUrl, boo
 	}
 	else
 	{
-		webrtc::ReadLockScoped l(*g_csOnlineUsers); // [+] IRainman opt.
+		CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
 		OnlineUser* u = findOnlineUserHintL(cid, hintUrl);
 		if (u)
 			lst.push_back(u->getClientBase().getHubName());
@@ -325,7 +324,7 @@ StringList ClientManager::getAntivirusNicks(const CID& p_cid)
 {
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 	StringSet ret;
-	webrtc::ReadLockScoped l(*g_csOnlineUsers); // [+] IRainman opt.
+	CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
 	const OnlinePairC op = g_onlineUsers.equal_range(p_cid);
 	for (auto i = op.first; i != op.second; ++i)
 	{
@@ -344,11 +343,11 @@ StringList ClientManager::getAntivirusNicks(const CID& p_cid)
 }
 StringList ClientManager::getNicks(const CID& p_cid, const string& hintUrl, bool priv)
 {
-	//Lock l(cs); [-] IRainman opt.
+	//CFlyLock(cs); [-] IRainman opt.
 	StringSet ret;
 	if (!priv)
 	{
-		webrtc::ReadLockScoped l(*g_csOnlineUsers); // [+] IRainman opt.
+		CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
 		const OnlinePairC op = g_onlineUsers.equal_range(p_cid);
 		for (auto i = op.first; i != op.second; ++i)
 		{
@@ -357,7 +356,7 @@ StringList ClientManager::getNicks(const CID& p_cid, const string& hintUrl, bool
 	}
 	else
 	{
-		webrtc::ReadLockScoped l(*g_csOnlineUsers); // [+] IRainman opt.
+		CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
 		OnlineUser* u = findOnlineUserHintL(p_cid, hintUrl);
 		if (u)
 			ret.insert(u->getIdentity().getNick());
@@ -366,7 +365,7 @@ StringList ClientManager::getNicks(const CID& p_cid, const string& hintUrl, bool
 	{
 		// offline
 #ifdef IRAINMAN_USE_NICKS_IN_CM
-		webrtc::ReadLockScoped l(*g_csUsers);
+		CFlyReadLock(*g_csUsers);
 		NickMap::const_iterator i = g_nicks.find(p_cid);
 		if (i != g_nicks.end())
 		{
@@ -383,7 +382,7 @@ StringList ClientManager::getNicks(const CID& p_cid, const string& hintUrl, bool
 
 string ClientManager::getStringField(const CID& cid, const string& hint, const char* field) // [!] IRainman fix.
 {
-	webrtc::ReadLockScoped l(*g_csOnlineUsers);
+	CFlyReadLock(*g_csOnlineUsers);
 	
 	OnlinePairC p;
 	auto u = findOnlineUserHintL(cid, hint, p);
@@ -409,7 +408,7 @@ string ClientManager::getStringField(const CID& cid, const string& hint, const c
 /* [-] IRainman: deprecated.
 string ClientManager::getConnection(const CID& cid) const
 {
-    webrtc::ReadLockScoped l(*g_csOnlineUsers);
+    CFlyReadLock(*g_csOnlineUsers);
     OnlineIterC i = g_onlineUsers.find(cid);
     if (i != g_onlineUsers.end())
     {
@@ -424,7 +423,7 @@ string ClientManager::getConnection(const CID& cid) const
 */
 uint8_t ClientManager::getSlots(const CID& cid) const
 {
-	webrtc::ReadLockScoped l(*g_csOnlineUsers);
+	CFlyReadLock(*g_csOnlineUsers);
 	const OnlineIterC i = g_onlineUsers.find(cid);
 	if (i != g_onlineUsers.end())
 	{
@@ -436,7 +435,7 @@ uint8_t ClientManager::getSlots(const CID& cid) const
 // !SMT!-S
 Client* ClientManager::findClient(const string& aUrl) const
 {
-    webrtc::ReadLockScoped l(*g_csClients);
+    CFlyReadLock(*g_csClients);
     for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
     {
         if (i->second->getHubUrl() == aUrl)
@@ -450,7 +449,7 @@ Client* ClientManager::findClient(const string& aUrl) const
 Client* ClientManager::findClient(const string& p_url) const
 {
 	dcassert(!p_url.empty());
-	webrtc::ReadLockScoped l(*g_csClients);
+	CFlyReadLock(*g_csClients);
 	const auto& i = g_clients.find(p_url);
 	if (i != g_clients.end())
 	{
@@ -467,7 +466,7 @@ string ClientManager::findHub(const string& ipPort)
 	if (ipPort.empty()) //[+]FlylinkDC++ Team
 		return Util::emptyString;
 		
-	// [-] Lock l(cs); IRainman opt.
+	// [-] CFlyLock(cs); IRainman opt.
 	
 	string ip_or_host;
 	uint16_t port = 411;
@@ -476,7 +475,7 @@ string ClientManager::findHub(const string& ipPort)
 	boost::system::error_code ec;
 	const auto l_ip = boost::asio::ip::address_v4::from_string(ip_or_host, ec);
 	//dcassert(!ec);
-	webrtc::ReadLockScoped l(*g_csClients); // [+] IRainman opt.
+	CFlyReadLock(*g_csClients); // [+] IRainman opt.
 	for (auto j = g_clients.cbegin(); j != g_clients.cend(); ++j)
 	{
 		const Client* c = j->second;
@@ -508,7 +507,7 @@ string ClientManager::findHubEncoding(const string& aUrl)
 {
 	if (!aUrl.empty()) //[+]FlylinkDC++ Team
 	{
-		webrtc::ReadLockScoped l(*g_csClients);
+		CFlyReadLock(*g_csClients);
 		const auto& i = g_clients.find(aUrl);
 		if (i != g_clients.end())
 			return i->second->getEncoding();
@@ -526,7 +525,7 @@ UserPtr ClientManager::findLegacyUser(const string& aNick
 	if (!aNick.empty())
 	{
 #ifdef IRAINMAN_USE_NICKS_IN_CM
-		webrtc::ReadLockScoped l(*g_csUsers);
+		CFlyReadLock(*g_csUsers);
 #ifdef _DEBUG
 		static int g_count = 0;
 		if (++g_count % 1000 == 0)
@@ -547,7 +546,7 @@ UserPtr ClientManager::findLegacyUser(const string& aNick
 		}
 #else // IRAINMAN_USE_NICKS_IN_CM
 // [+] IRainman fix.
-		webrtc::ReadLockScoped l(*g_csClients);
+		CFlyReadLock(*g_csClients);
 		if (!aHubUrl.empty())
 		{
 			const auto& i = g_clients.find(aHubUrl);
@@ -588,7 +587,7 @@ UserPtr ClientManager::getUser(const string& p_Nick, const string& p_HubURL
 	dcassert(!p_Nick.empty());
 	const CID cid = makeCid(p_Nick, p_HubURL);
 	
-	webrtc::WriteLockScoped l(*g_csUsers);
+	CFlyWriteLock(*g_csUsers);
 //	dcassert(p_first_load == false || p_first_load == true && g_users.find(cid) == g_users.end())
 	const auto& l_result_insert = g_users.insert(make_pair(cid, nullptr));
 	if (!l_result_insert.second)
@@ -627,7 +626,7 @@ UserPtr ClientManager::getUser(const string& p_Nick, const string& p_HubURL
 UserPtr ClientManager::getUser(const CID& cid, bool p_create)
 {
 	dcassert(!ClientManager::isShutdown());
-	webrtc::WriteLockScoped l(*g_csUsers);
+	CFlyWriteLock(*g_csUsers);
 	const UserMap::const_iterator ui = g_users.find(cid);
 	if (ui != g_users.end())
 	{
@@ -644,7 +643,7 @@ UserPtr ClientManager::getUser(const CID& cid, bool p_create)
 
 UserPtr ClientManager::findUser(const CID& cid)
 {
-	webrtc::ReadLockScoped l(*g_csUsers);
+	CFlyReadLock(*g_csUsers);
 	const auto& ui = g_users.find(cid);
 	if (ui != g_users.end())
 	{
@@ -656,7 +655,7 @@ UserPtr ClientManager::findUser(const CID& cid)
 // deprecated
 bool ClientManager::isOp(const UserPtr& user, const string& aHubUrl)
 {
-	webrtc::ReadLockScoped l(*g_csOnlineUsers);
+	CFlyReadLock(*g_csOnlineUsers);
 	const OnlinePairC p = g_onlineUsers.equal_range(user->getCID());
 	for (auto i = p.first; i != p.second; ++i)
 	{
@@ -690,7 +689,7 @@ void ClientManager::putOnline(const OnlineUserPtr& ou, bool p_is_fire_online) no
 		dcassert(!user->getCID().isZero());
 		// [~] IRainman fix.
 		{
-			webrtc::WriteLockScoped l(*g_csOnlineUsers);
+			CFlyWriteLock(*g_csOnlineUsers);
 			g_onlineUsers.insert(make_pair(user->getCID(), ou.get()));
 		}
 		
@@ -699,7 +698,7 @@ void ClientManager::putOnline(const OnlineUserPtr& ou, bool p_is_fire_online) no
 			user->setFlag(User::ONLINE);
 			if (p_is_fire_online)
 			{
-				fire(ClientManagerListener::UserConnected(), user);
+				fly_fire1(ClientManagerListener::UserConnected(), user);
 			}
 		}
 	}
@@ -716,7 +715,7 @@ void ClientManager::putOffline(const OnlineUserPtr& ou, bool p_is_disconnect) no
 		// [~] IRainman fix.
 		OnlineIter::difference_type diff = 0;
 		{
-			webrtc::WriteLockScoped l(*g_csOnlineUsers); // [2]  https://www.box.net/shared/7b796492a460fe528961
+			CFlyWriteLock(*g_csOnlineUsers); // [2]  https://www.box.net/shared/7b796492a460fe528961
 			OnlinePair op = g_onlineUsers.equal_range(ou->getUser()->getCID()); // Ищется по одном - научиться убивать сразу массив.
 			// [-] dcassert(op.first != op.second); [!] L: this is normal and means that the user is offline.
 			for (OnlineIter i = op.first; i != op.second; ++i) // 2012-04-29_13-38-26_VJ7NL3IIKFGQ5D34D4RJGIBVWITPBAX7UKSF6RI_3258847B_crash-stack-r501-build-9869.dmp
@@ -739,11 +738,11 @@ void ClientManager::putOffline(const OnlineUserPtr& ou, bool p_is_disconnect) no
 			{
 				ConnectionManager::getInstance()->disconnect(u);
 			}
-			fire(ClientManagerListener::UserDisconnected(), u);
+			fly_fire1(ClientManagerListener::UserDisconnected(), u);
 		}
 		else if (diff > 1)
 		{
-			fire(ClientManagerListener::UserUpdated(), ou);
+			fly_fire1(ClientManagerListener::UserUpdated(), ou);
 		}
 	}
 }
@@ -773,7 +772,7 @@ OnlineUser* ClientManager::findOnlineUserHintL(const CID& cid, const string& hin
 void ClientManager::resend_ext_json()
 {
 	NmdcHub::inc_version_fly_info();
-	webrtc::ReadLockScoped l(*g_csClients);
+	CFlyReadLock(*g_csClients);
 	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 	{
 		if (i->second->isConnected())
@@ -786,7 +785,7 @@ void ClientManager::upnp_error_force_passive()
 {
 	CFlyLog l_log("[UPNP error]");
 	l_log.log("Foreach clients...");
-	webrtc::ReadLockScoped l(*g_csClients);
+	CFlyReadLock(*g_csClients);
 	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 	{
 		if (i->second->isConnected())
@@ -810,7 +809,7 @@ void ClientManager::connect(const HintedUser& p_user, const string& p_token, boo
 	{
 		const bool priv = FavoriteManager::getInstance()->isPrivate(p_user.hint);
 		
-		webrtc::ReadLockScoped l(*g_csOnlineUsers);
+		CFlyReadLock(*g_csOnlineUsers);
 		OnlineUser* u = findOnlineUserL(p_user, priv);
 		
 		if (u)
@@ -838,7 +837,7 @@ void ClientManager::privateMessage(const HintedUser& user, const string& msg, bo
 		// # u->getClientBase().privateMessage Нельзя выполнять под локом - там внутри есть fire
 		// Есть дампы от Mikhail Korbakov где вешаемся в дедлоке.
 		// http://www.flickr.com/photos/96019675@N02/11424193335/
-		webrtc::ReadLockScoped l(*g_csOnlineUsers);
+		CFlyReadLock(*g_csOnlineUsers);
 		u = findOnlineUserL(user, priv);
 	}
 	if (u)
@@ -849,7 +848,7 @@ void ClientManager::privateMessage(const HintedUser& user, const string& msg, bo
 
 void ClientManager::userCommand(const HintedUser& hintedUser, const UserCommand& uc, StringMap& params, bool compatibility)
 {
-	webrtc::ReadLockScoped l(*g_csOnlineUsers);
+	CFlyReadLock(*g_csOnlineUsers);
 	/** @todo we allow wrong hints for now ("false" param of findOnlineUser) because users
 	 * extracted from search results don't always have a correct hint; see
 	 * SearchManager::onRES(const AdcCommand& cmd, ...). when that is done, and SearchResults are
@@ -875,7 +874,7 @@ void ClientManager::userCommand(const HintedUser& hintedUser, const UserCommand&
 
 void ClientManager::send(AdcCommand& cmd, const CID& cid)
 {
-	webrtc::ReadLockScoped l(*g_csOnlineUsers);
+	CFlyReadLock(*g_csOnlineUsers);
 	OnlineIterC i = g_onlineUsers.find(cid);
 	if (i != g_onlineUsers.end())
 	{
@@ -917,11 +916,15 @@ void ClientManager::send(AdcCommand& cmd, const CID& cid)
 }
 void ClientManager::infoUpdated(Client* p_client)
 {
-	webrtc::ReadLockScoped l(*g_csClients);
-	dcassert(p_client);
-	if (p_client && p_client->isConnected())
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
 	{
-		p_client->info(false);
+		CFlyReadLock(*g_csClients);
+		dcassert(p_client);
+		if (p_client && p_client->isConnected())
+		{
+			p_client->info(false);
+		}
 	}
 }
 void ClientManager::infoUpdated(bool p_is_force /* = false*/)
@@ -931,19 +934,25 @@ void ClientManager::infoUpdated(bool p_is_force /* = false*/)
 	dcdebug("ClientManager::infoUpdated() count = %d\n", ++g_count);
 	LogManager::message("ClientManager::infoUpdated() count = " + Util::toString(g_count));
 #endif
-	webrtc::ReadLockScoped l(*g_csClients);
+	dcassert(!ClientManager::isShutdown());
+	if (ClientManager::isShutdown())
+		return;
+	CFlyReadLock(*g_csClients);
 	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 	{
 		Client* c = i->second;
-		if (c->isConnected())
+		if (ClientManager::isShutdown())
 		{
-			if (p_is_force && c->isFlySupportHub())
+			if (c->isConnected())
 			{
-				c->info(true);
-			}
-			else
-			{
-				c->info(false);
+				if (p_is_force && c->isFlySupportHub())
+				{
+					c->info(true);
+				}
+				else
+				{
+					c->info(false);
+				}
 			}
 		}
 	}
@@ -960,7 +969,7 @@ void ClientManager::fireIncomingSearch(const string& aSeeker, const string& aStr
 {
 	if (g_isSpyFrame)
 	{
-		Speaker<ClientManagerListener>::fire(ClientManagerListener::IncomingSearch(), aSeeker, aString, p_re);
+		Speaker<ClientManagerListener>::fly_fire3(ClientManagerListener::IncomingSearch(), aSeeker, aString, p_re);
 	}
 }
 //=================================================================================================================
@@ -968,7 +977,7 @@ void ClientManager::on(AdcSearch, const Client* c, const AdcCommand& adc, const 
 {
 	bool isUdpActive = false;
 	{
-		webrtc::ReadLockScoped l(*g_csOnlineUsers);
+		CFlyReadLock(*g_csOnlineUsers);
 		
 		OnlinePairC op = g_onlineUsers.equal_range((from));
 		for (auto i = op.first; i != op.second; ++i)
@@ -987,7 +996,7 @@ void ClientManager::on(AdcSearch, const Client* c, const AdcCommand& adc, const 
 	const ClientManagerListener::SearchReply l_re = SearchManager::getInstance()->respond(adc, from, isUdpActive, l_Seeker, l_reguest);
 	for (auto i = l_reguest.cbegin(); i != l_reguest.cend(); ++i)
 	{
-		Speaker<ClientManagerListener>::fire(ClientManagerListener::IncomingSearch(), l_Seeker, i->getPattern(), l_re);
+		Speaker<ClientManagerListener>::fly_fire3(ClientManagerListener::IncomingSearch(), l_Seeker, i->getPattern(), l_re);
 	}
 	// [~] IRainman
 }
@@ -998,7 +1007,7 @@ void ClientManager::search(const SearchParamOwner& p_search_param)
 	if (BOOLSETTING(USE_DHT) && p_search_param.m_file_type == Search::TYPE_TTH)
 		dht::DHT::getInstance()->findFile(p_search_param.m_filter);
 #endif
-	webrtc::ReadLockScoped l(*g_csClients);
+	CFlyReadLock(*g_csClients);
 	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 	{
 		Client* c = i->second;
@@ -1026,11 +1035,11 @@ uint64_t ClientManager::multi_search(const SearchParamTokenMultiClient& p_search
 		dht::DHT::getInstance()->findFile(p_search_param.m_filter, p_search_param.m_token);
 	}
 #endif
-	//Lock l(cs); [-] IRainman opt.
+	//CFlyLock(cs); [-] IRainman opt.
 	uint64_t estimateSearchSpan = 0;
 	if (p_search_param.m_clients.empty())
 	{
-		webrtc::ReadLockScoped l(*g_csClients); // [+] IRainman opt.
+		CFlyReadLock(*g_csClients); // [+] IRainman opt.
 		for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 			if (i->second->isConnected())
 			{
@@ -1040,7 +1049,7 @@ uint64_t ClientManager::multi_search(const SearchParamTokenMultiClient& p_search
 	}
 	else
 	{
-		webrtc::ReadLockScoped l(*g_csClients); // [+] IRainman opt.
+		CFlyReadLock(*g_csClients); // [+] IRainman opt.
 		for (auto it = p_search_param.m_clients.cbegin(); it != p_search_param.m_clients.cend(); ++it)
 		{
 			const string& client = *it;
@@ -1058,7 +1067,7 @@ uint64_t ClientManager::multi_search(const SearchParamTokenMultiClient& p_search
 
 void ClientManager::getOnlineClients(StringSet& p_onlineClients)
 {
-	webrtc::ReadLockScoped l(*g_csClients);
+	CFlyReadLock(*g_csClients);
 	p_onlineClients.clear();
 	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 	{
@@ -1069,9 +1078,9 @@ void ClientManager::getOnlineClients(StringSet& p_onlineClients)
 
 void ClientManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) noexcept
 {
-	//Lock l(cs); [-] IRainman opt.
+	//CFlyLock(cs); [-] IRainman opt.
 	{
-		webrtc::WriteLockScoped l(*g_csUsers);
+		CFlyWriteLock(*g_csUsers);
 		// Collect some garbage...
 #ifdef _DEBUG
 		// CFlyLog l_log("[ClientManager::Minute GC]");
@@ -1134,7 +1143,7 @@ void ClientManager::createMe(const string& cid, const string& nick)
 	// [~] IRainman fix.
 	g_me->setLastNick(nick);
 	{
-		webrtc::WriteLockScoped l(*g_csUsers);
+		CFlyWriteLock(*g_csUsers);
 		g_users.insert(make_pair(g_me->getCID(), g_me));
 	}
 }
@@ -1158,7 +1167,7 @@ void ClientManager::updateNick(const UserPtr& p_user, const string& p_nick) noex
 	// [-] dcassert(!p_nick.empty()); [-] IRainman fix: this is normal, if the user is offline.
 	if (!p_nick.empty())
 	{
-		webrtc::WriteLockScoped l(*g_csUsers);
+		CFlyWriteLock(*g_csUsers);
 		updateNick_internal(p_user, p_nick); // [!] IRainman fix.
 	}
 }
@@ -1206,7 +1215,7 @@ const string& ClientManager::findMyNick(const string& hubUrl)
 #ifdef IRAINMAN_CORRRECT_CALL_FOR_CLIENT_MANAGER_DEBUG
 	dcassert(!hubUrl.empty());
 #endif
-	webrtc::ReadLockScoped l(*g_csClients);
+	CFlyReadLock(*g_csClients);
 	const auto& i = g_clients.find(hubUrl);
 	if (i != g_clients.end())
 		return i->second->getMyNick(); // [!] IRainman opt.
@@ -1221,61 +1230,68 @@ int ClientManager::getMode(const FavoriteHubEntry* p_hub
 {
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	if (pbWantAutodetect)
+	{
 		*pbWantAutodetect = false;
+	}
 #endif
+	int l_mode = 0;
+	const bool l_is_tcp_port_firewall = CFlyServerJSON::isTestPortOK(SETTING(TCP_PORT), "tcp", true) == false;
+	const auto l_type = SETTING(INCOMING_CONNECTIONS);
 	if (!p_hub)
 	{
-		const auto l_type = SETTING(INCOMING_CONNECTIONS);
-		if (l_type == SettingsManager::INCOMING_FIREWALL_UPNP && MappingManager::getExternaIP().empty())
+		if (l_is_tcp_port_firewall || l_type == SettingsManager::INCOMING_FIREWALL_UPNP && MappingManager::getExternaIP().empty())
 		{
+#ifdef RIP_USE_CONNECTION_AUTODETECT
+			if (pbWantAutodetect)
+			{
+				*pbWantAutodetect = true;
+			}
+#endif
 			return SettingsManager::INCOMING_FIREWALL_PASSIVE;
 		}
-		return SETTING(INCOMING_CONNECTIONS);
+		return l_type;
 	}
-	
-	int mode = 0;
-	if (p_hub)
+	else
 	{
 		switch (p_hub->getMode())
 		{
 			case 1 :
-				mode = SettingsManager::INCOMING_DIRECT;
+				l_mode = SettingsManager::INCOMING_DIRECT;
 				break;
 			case 2 :
-				mode = SettingsManager::INCOMING_FIREWALL_PASSIVE;
+				l_mode = SettingsManager::INCOMING_FIREWALL_PASSIVE;
 				break;
 			default:
 			{
-				mode = SETTING(INCOMING_CONNECTIONS);
+				l_mode = l_type;
+				if (l_is_tcp_port_firewall == true)
+				{
+					l_mode = SettingsManager::INCOMING_FIREWALL_PASSIVE;
+					if (pbWantAutodetect)
+					{
+						*pbWantAutodetect = true;
+					}
+				}
 				/*
 				#ifdef RIP_USE_CONNECTION_AUTODETECT
-				                // If autodetection turned on, use passive mode until
-				                // active mode detected
-				                if (mode != SettingsManager::INCOMING_FIREWALL_PASSIVE && SETTING(INCOMING_AUTODETECT_FLAG) &&
-				                        !Util::isAdcHub(p_hub->getServer()) // [!] IRainman temporary fix http://code.google.com/p/flylinkdc/issues/detail?id=363
-				                   )
-				                {
-				                    mode = SettingsManager::INCOMING_FIREWALL_PASSIVE;
-				                    if (pbWantAutodetect)
-				                        *pbWantAutodetect = true;
-				                }
-				#endif
+				                                // If autodetection turned on, use passive mode until
+				                                // active mode detected
+				                                if (l_mode != SettingsManager::INCOMING_FIREWALL_PASSIVE && SETTING(INCOMING_AUTODETECT_FLAG) &&
+				                                        !Util::isAdcHub(p_hub->getServer()) // [!] IRainman temporary fix http://code.google.com/p/flylinkdc/issues/detail?id=363
+				                                   )
+				                                {
+				                                    l_mode = SettingsManager::INCOMING_FIREWALL_PASSIVE;
+				                                    if (pbWantAutodetect)
+				                                    {
+				                                        *pbWantAutodetect = true;
+				                                    }
+				                                }
+				                #endif
 				*/
-				
 			}
 		}
 	}
-	else
-	{
-		mode = SETTING(INCOMING_CONNECTIONS);
-	}
-	if (mode != SettingsManager::INCOMING_FIREWALL_PASSIVE &&
-	        MappingManager::getExternaIP().empty() &&
-	        SettingsManager::g_TestTCPLevel == false)
-	{
-		mode = SettingsManager::INCOMING_FIREWALL_PASSIVE;
-	}
-	return mode;
+	return l_mode;
 }
 bool ClientManager::isActive(const FavoriteHubEntry* p_hub
 #ifdef RIP_USE_CONNECTION_AUTODETECT
@@ -1296,7 +1312,7 @@ bool ClientManager::isActive(const FavoriteHubEntry* p_hub
 
 void ClientManager::cancelSearch(void* aOwner)
 {
-	webrtc::ReadLockScoped l(*g_csClients);
+	CFlyReadLock(*g_csClients);
 	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 	{
 		i->second->cancelSearch(aOwner);
@@ -1306,7 +1322,7 @@ void ClientManager::cancelSearch(void* aOwner)
 #ifdef STRONG_USE_DHT
 OnlineUserPtr ClientManager::findDHTNode(const CID& cid)
 {
-	webrtc::ReadLockScoped l(*g_csOnlineUsers);
+	CFlyReadLock(*g_csOnlineUsers);
 	
 	OnlinePairC op = g_onlineUsers.equal_range(cid);
 	for (auto i = op.first; i != op.second; ++i)
@@ -1326,14 +1342,14 @@ OnlineUserPtr ClientManager::findDHTNode(const CID& cid)
 
 void ClientManager::on(Connected, const Client* c) noexcept
 {
-	fire(ClientManagerListener::ClientConnected(), c);
+	fly_fire1(ClientManagerListener::ClientConnected(), c);
 }
 
 void ClientManager::on(UserUpdated, const OnlineUserPtr& user) noexcept
 {
 	if (!isShutdown())
 	{
-		fire(ClientManagerListener::UserUpdated(), user);
+		fly_fire1(ClientManagerListener::UserUpdated(), user);
 	}
 }
 
@@ -1346,7 +1362,7 @@ void ClientManager::on(UsersUpdated, const Client* client, const OnlineUserList&
 #ifdef _DEBUG
 //		LogManager::message("ClientManager::on(UsersUpdated nick = " + (*i)->getUser()->getLastNick());
 #endif
-		// [-] fire(ClientManagerListener::UserUpdated(), *i); [-] IRainman fix: No needs to update user twice.
+		// [-] fly_fire1(ClientManagerListener::UserUpdated(), *i); [-] IRainman fix: No needs to update user twice.
 	}
 }
 
@@ -1371,12 +1387,12 @@ void ClientManager::updateNick(const OnlineUserPtr& p_online_user)
 void ClientManager::on(HubUpdated, const Client* c) noexcept
 {
 	dcassert(!isShutdown());
-	fire(ClientManagerListener::ClientUpdated(), c);
+	fly_fire1(ClientManagerListener::ClientUpdated(), c);
 }
 
 void ClientManager::on(Failed, const Client* client, const string&) noexcept
 {
-	fire(ClientManagerListener::ClientDisconnected(), client);
+	fly_fire1(ClientManagerListener::ClientDisconnected(), client);
 }
 
 void ClientManager::on(HubUserCommand, const Client* client, int aType, int ctx, const string& name, const string& command) noexcept
@@ -1421,7 +1437,7 @@ void ClientManager::sendRawCommand(const OnlineUser& ou, const int aRawCommand)
 
 void ClientManager::setListLength(const UserPtr& p, const string& listLen)
 {
-	webrtc::ReadLockScoped l(*g_csOnlineUsers); // TODO Write
+	CFlyReadLock(*g_csOnlineUsers); // TODO Write
 	OnlineIterC i = g_onlineUsers.find(p->getCID());
 	if (i != g_onlineUsers.end())
 	{
@@ -1440,7 +1456,7 @@ void ClientManager::fileListDisconnected(const UserPtr& p)
 	string report;
 	Client* c = nullptr;
 	{
-		webrtc::ReadLockScoped l(*g_csOnlineUsers);
+		CFlyReadLock(*g_csOnlineUsers);
 		OnlineIterC i = g_onlineUsers.find(p->getCID());
 		if (i != g_onlineUsers.end()  && !i->second->isDHT())
 		{
@@ -1469,7 +1485,7 @@ void ClientManager::connectionTimeout(const UserPtr& p)
 	bool remove = false;
 	Client* c = nullptr;
 	{
-		webrtc::ReadLockScoped l(*g_csOnlineUsers);
+		CFlyReadLock(*g_csOnlineUsers);
 		OnlineIterC i = g_onlineUsers.find(p->getCID());
 		if (i != g_onlineUsers.end()  && !i->second->isDHT())
 		{
@@ -1509,7 +1525,7 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl)
 	string report;
 	OnlineUserPtr ou;
 	{
-		webrtc::ReadLockScoped l(*g_csOnlineUsers);
+		CFlyReadLock(*g_csOnlineUsers);
 		OnlineIterC i = g_onlineUsers.find(p->getCID());
 		if (i == g_onlineUsers.end() || i->second->isDHT())
 			return;
@@ -1565,7 +1581,7 @@ void ClientManager::setClientStatus(const UserPtr& p, const string& aCheatString
 	OnlineUserPtr ou;
 	string report;
 	{
-		webrtc::ReadLockScoped l(*g_csOnlineUsers);
+		CFlyReadLock(*g_csOnlineUsers);
 		OnlineIterC i = g_onlineUsers.find(p->getCID());
 		if (i == g_onlineUsers.end() || i->second->isDHT())
 			return;
@@ -1587,7 +1603,7 @@ void ClientManager::setClientStatus(const UserPtr& p, const string& aCheatString
 
 void ClientManager::setSupports(const UserPtr& p, StringList & aSupports, const uint8_t knownUcSupports) // [!] IRainamn fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
 {
-	webrtc::ReadLockScoped l(*g_csOnlineUsers);
+	CFlyReadLock(*g_csOnlineUsers);
 	OnlineIterC i = g_onlineUsers.find(p->getCID());
 	if (i != g_onlineUsers.end())
 	{
@@ -1609,7 +1625,7 @@ void ClientManager::setSupports(const UserPtr& p, StringList & aSupports, const 
 }
 void ClientManager::setUnknownCommand(const UserPtr& p, const string& aUnknownCommand)
 {
-	webrtc::ReadLockScoped l(*g_csOnlineUsers);
+	CFlyReadLock(*g_csOnlineUsers);
 	OnlineIterC i = g_onlineUsers.find(p->getCID());
 	if (i != g_onlineUsers.end())
 		i->second->getIdentity().setStringParam("UC", aUnknownCommand);
@@ -1621,7 +1637,7 @@ void ClientManager::reportUser(const HintedUser& user)
 	string report;// [+] FlylinkDC report
 	Client* client; // [+] IRainman fix
 	{
-		webrtc::ReadLockScoped l(*g_csOnlineUsers);
+		CFlyReadLock(*g_csOnlineUsers);
 		OnlineUser* ou = findOnlineUserL(user.user->getCID(), user.hint, priv);
 		if (!ou || ou->isDHT())
 			return;
@@ -1638,7 +1654,7 @@ void ClientManager::reportUser(const HintedUser& user)
 // [+] FlylinkDC
 void ClientManager::setFakeList(const UserPtr& p, const string& aCheatString)
 {
-	webrtc::ReadLockScoped l(*g_csOnlineUsers);
+	CFlyReadLock(*g_csOnlineUsers);
 	const OnlineIterC i = g_onlineUsers.find(p->getCID());
 	if (i != g_onlineUsers.end())
 	{

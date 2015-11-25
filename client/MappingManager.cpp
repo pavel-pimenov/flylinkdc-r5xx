@@ -29,6 +29,7 @@
 #include "Mapper_WinUPnP.h"
 #include "SearchManager.h"
 #include "ScopedFunctor.h"
+#include "../FlyFeatures/flyServer.h"
 
 #ifdef STRONG_USE_DHT
 #include "../dht/dht.h"
@@ -411,19 +412,27 @@ string MappingManager::getPortmapInfo(bool p_add_router_name, bool p_show_public
 		else if (p_status == false)
 			l_result += "(-)";
 		else
-			l_result += "(?)";
+			l_result.clear();
 		return l_result;
 	};
-	
-	l_description += calcTestPortInfo("UDP", SettingsManager::g_TestUDPSearchLevel, SETTING(UDP_PORT));
-	l_description += calcTestPortInfo("TCP", SettingsManager::g_TestTCPLevel, SETTING(TCP_PORT));
+	if (CFlyServerJSON::isTestPortOK(SETTING(UDP_PORT), "udp"))
+	{
+		l_description += calcTestPortInfo("UDP", SettingsManager::g_TestUDPSearchLevel, SETTING(UDP_PORT));
+	}
+	if (CFlyServerJSON::isTestPortOK(SETTING(TCP_PORT), "tcp"))
+	{
+		l_description += calcTestPortInfo("TCP", SettingsManager::g_TestTCPLevel, SETTING(TCP_PORT));
+	}
 #ifdef STRONG_USE_DHT
 	if (dht::DHT::isValidInstance() && dht::DHT::getInstance()->getPort())
 	{
-		l_description += calcTestPortInfo("DHT", SettingsManager::g_TestUDPDHTLevel, SETTING(DHT_PORT));
+		if (CFlyServerJSON::isTestPortOK(SETTING(DHT_PORT), "udp"))
+		{
+			l_description += calcTestPortInfo("DHT", SettingsManager::g_TestUDPDHTLevel, SETTING(DHT_PORT));
+		}
 	}
 #endif
-	if (CryptoManager::getInstance()->TLSOk())
+	if (CryptoManager::getInstance()->TLSOk() && SETTING(TLS_PORT) > 1024)
 	{
 		l_description += calcTestPortInfo("TLS", SettingsManager::g_TestTLSLevel, SETTING(TLS_PORT));
 	}
