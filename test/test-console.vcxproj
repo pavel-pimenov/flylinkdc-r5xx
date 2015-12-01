@@ -154,9 +154,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\boost\libs\filesystem\src\windows_file_codecvt.hpp" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\boost\libs\filesystem\src\codecvt_error_category.cpp" />
+    <ClCompile Include="..\boost\libs\filesystem\src\operations.cpp" />
+    <ClCompile Include="..\boost\libs\filesystem\src\path.cpp" />
+    <ClCompile Include="..\boost\libs\filesystem\src\path_traits.cpp" />
+    <ClCompile Include="..\boost\libs\filesystem\src\portability.cpp" />
+    <ClCompile Include="..\boost\libs\filesystem\src\unique_path.cpp" />
+    <ClCompile Include="..\boost\libs\filesystem\src\utf8_codecvt_facet.cpp" />
+    <ClCompile Include="..\boost\libs\filesystem\src\windows_file_codecvt.cpp" />
     <ClCompile Include="..\boost\libs\iostreams\src\mapped_file.cpp" />
     <ClCompile Include="..\boost\libs\system\src\error_code.cpp" />
     <ClCompile Include="..\client\CFlyProfiler.cpp" />

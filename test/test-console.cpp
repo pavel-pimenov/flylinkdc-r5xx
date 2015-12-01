@@ -15,7 +15,8 @@
 #include <boost/unordered/unordered_map.hpp>
 #include <boost/asio/ip/address_v4.hpp>
 
-//#include <boost/iostreams/device/mapped_file.hpp>
+#include <boost/iostreams/device/mapped_file.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/thread.hpp>
 #include <limits>
 #include "../client/CFlyProfiler.h"
@@ -192,20 +193,19 @@ DECLARE_PERFORMANCE_CHECKER(7, g_flylinkdc_map_insert);
 //DECLARE_PERFORMANCE_CHECKER(5, g_flylinkdc_perf_swap);
 
 
-//DECLARE_PERFORMANCE_FILE_STREAM(profiler-dir-scan.log, g_dir_scan);
+DECLARE_PERFORMANCE_FILE_STREAM(profiler-dir-scan.log, g_dir_scan);
 
-//DECLARE_PERFORMANCE_CHECKER(101, g_dir_scan);
-//DECLARE_PERFORMANCE_CHECKER(102, g_dir_scan);
-//DECLARE_PERFORMANCE_CHECKER(103, g_dir_scan);
+DECLARE_PERFORMANCE_CHECKER(101, g_dir_scan);
+DECLARE_PERFORMANCE_CHECKER(102, g_dir_scan);
+DECLARE_PERFORMANCE_CHECKER(103, g_dir_scan);
 ///////////////////////////////////////////
-/*
 static int g_hash_byte = 0;
-static long long g_sum_byte = 0;
+static __int64 g_sum_byte = 0;
+///////////////////////////////////////////
 static void Process_Files( const boost::filesystem::path &Path, bool recurse )
 {
-	std::cout << "Folder: " << Path << " [scan=" << g_sum_byte/1024/1024 << " Mb]\n";
-
-	boost::filesystem::directory_iterator end_itr; // default construction yields past-the-end
+//	std::cout << "Folder: " << Path << " [scan=" << g_sum_byte/1024/1024/1024 << " gb]\n";
+	boost::filesystem::directory_iterator end_itr;
 
 	for(
 	    boost::filesystem::directory_iterator itr( Path );
@@ -215,9 +215,7 @@ static void Process_Files( const boost::filesystem::path &Path, bool recurse )
 	{
 		if( recurse && boost::filesystem::is_directory( *itr ) )
 		{
-			// Погружаемся на 1 уровень вниз по дереву каталогов
 			boost::filesystem::path Deeper( *itr );
-
 			Process_Files( Deeper,recurse );
 			continue;
 		}
@@ -320,14 +318,9 @@ static void Process_Files( const boost::filesystem::path &Path, bool recurse )
 		    break;
 			}
 		}
-//рому содержится в filename, можно обрабатывать.
-		//const std::string filename = *itr->;
-		// std::cout << *itr << "\n";
 	}
-
 	return;
 }
-*/
 ///////////////////////////////////////////
 std::vector<std::string> g_target_vector;
 std::vector<std::string> getSourceVector()
@@ -610,6 +603,11 @@ uint8_t TestFunc2(const uint8_t ui8NickLen, const bool bFromPM)
 }
 int _tmain(int argc, _TCHAR* argv[])
 {
+	Process_Files("Y:\\dc-test-issue-956", true);  // boost::filesystem::current_path()
+	std::cout << std::endl << "g_hash_byte = " << g_hash_byte <<   " g_sum_byte = " << g_sum_byte <<  std::endl;
+	return 0;
+
+
 	get_adapters();
 	// getmac();
 	return 0;
@@ -752,9 +750,6 @@ int _tmain(int argc, _TCHAR* argv[])
     std::cout << "Tests started" << std::endl;
     // [~] IRainman fix.
 
-//	Process_Files("G:\\dc-test-issue-956", true);  // boost::filesystem::current_path()
-//	std::cout << std::endl << "g_hash_byte = " << g_hash_byte <<   " g_sum_byte = " << g_sum_byte <<  std::endl;
-//	return 0;
 
     test_critical_section();
     //testFastAlloc();

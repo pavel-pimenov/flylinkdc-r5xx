@@ -10,9 +10,36 @@
     <ClCompile Include="..\boost\libs\iostreams\src\mapped_file.cpp">
       <Filter>boost</Filter>
     </ClCompile>
+    <ClCompile Include="..\boost\libs\filesystem\src\path.cpp">
+      <Filter>boost</Filter>
+    </ClCompile>
+    <ClCompile Include="..\boost\libs\filesystem\src\codecvt_error_category.cpp">
+      <Filter>boost</Filter>
+    </ClCompile>
+    <ClCompile Include="..\boost\libs\filesystem\src\operations.cpp">
+      <Filter>boost</Filter>
+    </ClCompile>
+    <ClCompile Include="..\boost\libs\filesystem\src\path_traits.cpp">
+      <Filter>boost</Filter>
+    </ClCompile>
+    <ClCompile Include="..\boost\libs\filesystem\src\portability.cpp">
+      <Filter>boost</Filter>
+    </ClCompile>
+    <ClCompile Include="..\boost\libs\filesystem\src\unique_path.cpp">
+      <Filter>boost</Filter>
+    </ClCompile>
+    <ClCompile Include="..\boost\libs\filesystem\src\utf8_codecvt_facet.cpp">
+      <Filter>boost</Filter>
+    </ClCompile>
+    <ClCompile Include="..\boost\libs\filesystem\src\windows_file_codecvt.cpp">
+      <Filter>boost</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="..\boost\libs\filesystem\src\windows_file_codecvt.hpp">
+      <Filter>boost</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="boost">
