@@ -50,7 +50,11 @@ namespace dht
 
 #define MAX_PUBLISHED_FILES         200                             // max local files to publish
 #define MIN_PUBLISH_FILESIZE        1024 * 1024 // 1 MiB            // files below this size won't be published
+#ifdef _DEBUG
+#define REPUBLISH_TIME              30*1000    // 30 sec      // when our filelist should be republished
+#else
 #define REPUBLISH_TIME              5*60*60*1000    // 5 hours      // when our filelist should be republished
+#endif
 #define PFS_REPUBLISH_TIME          1*60*60*1000    // 1 hour       // when partially downloaded files should be republished
 #define MAX_PUBLISHES_AT_TIME       3                               // how many files can be published at one time
 #define PUBLISH_TIME                2*1000  // 2 seconds            // how often publishes files

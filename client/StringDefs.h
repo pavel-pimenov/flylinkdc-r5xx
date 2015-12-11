@@ -1439,7 +1439,6 @@ enum Strings   // @DontAdd
 	SETTINGS_PROVIDERS, // "Providers resources"
 	SETTINGS_PROXY, // "Proxy settings"
 	SETTINGS_PUBLIC_HUB_LIST, // "Internet Hubs-list"
-	SETTINGS_PUBLIC_HUB_LIST_HTTP_PROXY, // "HTTP Proxy for all http(s) connections. Format: \"Server:Port\""
 	SETTINGS_PUBLIC_HUB_LIST_URL, // "Internet Hubs-list URL"
 	SETTINGS_QUEUE, // "Queue"
 	SETTINGS_RC, // "Remote control"

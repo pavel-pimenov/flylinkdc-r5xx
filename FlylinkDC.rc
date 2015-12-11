@@ -1349,8 +1349,6 @@ BEGIN
     EDITTEXT        IDC_SOCKS_PASSWORD,164,59,150,14,ES_AUTOHSCROLL
     CONTROL         "Use SOCKS5 server to resolve hostnames",IDC_SOCKS_RESOLVE,
                     "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,12,76,254,8
-    GROUPBOX        "HTTP Proxy (for all http(s) connections)",IDC_SETTINGS_PUBLIC_HUB_LIST_HTTP_PROXY,4,91,316,32
-    EDITTEXT        IDC_PROXY,10,104,304,14,ES_AUTOHSCROLL
 END
 
 IDD_RSS_PAGE DIALOGEX 0, 0, 325, 300
@@ -2995,6 +2993,7 @@ IDR_VIP_ICO_NSK154      ICON                    "res\\vip_nsk154hub.ico"
 IDR_VIP_ICO_PROSTOIGRA  ICON                    "res\\vip_prostoigra24.ico"
 IDR_VIP_ICO_EVAHUB      ICON                    "res\\vip_eva.ico"
 IDR_VIP_ICO_ADRENALIN   ICON                    "res\\vip_adrenalin.ico"
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // PNG

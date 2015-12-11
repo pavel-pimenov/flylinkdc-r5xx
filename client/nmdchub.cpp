@@ -879,27 +879,27 @@ void NmdcHub::connectToMeParse(const string& param)
 #endif
 }
 //==========================================================================================
-void NmdcHub::chatMessageParse(const string& aLine)
+void NmdcHub::chatMessageParse(const string& p_line)
 {
 	// Check if we're being banned...
 	if (state != STATE_NORMAL)
 	{
-		if (Util::findSubString(aLine, "banned") != string::npos)
+		if (Util::findSubString(p_line, "banned") != string::npos)
 		{
 			setAutoReconnect(false);
 		}
 	}
 	// [+] IRainman fix.
-	const string l_utf8_line = toUtf8(aLine);
+	const string l_utf8_line = toUtf8(unescape(p_line));
 	
 	if ((l_utf8_line.find("Hub-Security") != string::npos) && (l_utf8_line.find("was kicked by") != string::npos))
 	{
-		fly_fire3(ClientListener::StatusMessage(), this, unescape(l_utf8_line), ClientListener::FLAG_IS_SPAM);
+		fly_fire3(ClientListener::StatusMessage(), this, l_utf8_line, ClientListener::FLAG_IS_SPAM);
 		return;
 	}
 	else if ((l_utf8_line.find("is kicking") != string::npos) && (l_utf8_line.find("because:") != string::npos))
 	{
-		fly_fire3(ClientListener::StatusMessage(), this, unescape(l_utf8_line), ClientListener::FLAG_IS_SPAM);
+		fly_fire3(ClientListener::StatusMessage(), this, l_utf8_line, ClientListener::FLAG_IS_SPAM);
 		return;
 	}
 	// [~] IRainman fix.
@@ -922,21 +922,22 @@ void NmdcHub::chatMessageParse(const string& aLine)
 	else if (l_utf8_line[0] == '<')
 	{
 		string::size_type pos = l_utf8_line.find("> ");
-
-		if (pos != string::npos) {
+		
+		if (pos != string::npos)
+		{
 			nick = l_utf8_line.substr(1, pos - 1);
 			message = l_utf8_line.substr(pos + 2);
-
+			
 			if (message.empty())
 				return;
-
-			if (isFloodCommand("<Nick>", aLine))
+				
+			if (isFloodCommand("<Nick>", p_line))
 				return;
 		}
 	}
 	if (nick.empty())
 	{
-		fly_fire2(ClientListener::StatusMessage(), this, unescape(l_utf8_line));
+		fly_fire2(ClientListener::StatusMessage(), this, l_utf8_line);
 		return;
 	}
 	
@@ -944,8 +945,16 @@ void NmdcHub::chatMessageParse(const string& aLine)
 	{
 		message = l_utf8_line;
 	}
+	
 	const auto l_user = findUser(nick);
-	std::unique_ptr<ChatMessage> chatMessage(new ChatMessage(unescape(message), l_user));
+#ifdef _DEBUG
+	if (message.find("&#124") != string::npos)
+	{
+		dcassert(0);
+	}
+#endif
+	
+	std::unique_ptr<ChatMessage> chatMessage(new ChatMessage(message, l_user));
 	chatMessage->thirdPerson = bThirdPerson;
 	if (!l_user)
 	{
@@ -1009,7 +1018,7 @@ void NmdcHub::hubNameParse(const string& p_param)
 //==========================================================================================
 void NmdcHub::supportsParse(const string& param)
 {
-	const StringTokenizer<string> st(param, ' '); // TODO убрать текены. сделать поиском. http://code.google.com/p/flylinkdc/issues/detail?id=1112
+	const StringTokenizer<string> st(param, ' '); // TODO убрать токены. сделать поиском.
 	const StringList& sl = st.getTokens();
 	for (auto i = sl.cbegin(); i != sl.cend(); ++i)
 	{
@@ -1025,6 +1034,11 @@ void NmdcHub::supportsParse(const string& param)
 		{
 			m_supportFlags |= SUPPORTS_USERIP2;
 		}
+		else if (*i == "NickRule")
+		{
+			m_supportFlags |= SUPPORTS_NICKRULE;
+		}
+		
 #ifdef FLYLINKDC_USE_EXT_JSON
 		else if (*i == "ExtJSON")
 		{
@@ -1033,6 +1047,18 @@ void NmdcHub::supportsParse(const string& param)
 		}
 #endif
 	}
+	// if (!(m_supportFlags & SUPPORTS_NICKRULE))
+	/*
+	<Mer> [00:27:44] *** Соединён
+	- [00:27:47] <MegaHub> Время работы: 129 дней 8 часов 23 минут 21 секунд. Пользователей онлайн: 10109
+	- [00:27:51] <MegaHub> Operation timeout (ValidateNick)
+	- [00:27:52] *** [Hub = dchub://hub.o-go.ru] Соединение закрыто
+	{
+	    const auto l_nick = getMyNick();
+	    OnlineUserPtr ou = getUser(l_nick, false, true);
+	    sendValidateNick(ou->getIdentity().getNick());
+	}
+	*/
 }
 //==========================================================================================
 void NmdcHub::userCommandParse(const string& param)
@@ -1116,6 +1142,7 @@ void NmdcHub::lockParse(const string& aLine)
 #ifdef FLYLINKDC_USE_EXT_JSON
 			feat.push_back("ExtJSON");
 #endif
+			feat.push_back("NickRule");
 			
 			if (CryptoManager::getInstance()->TLSOk())
 			{
@@ -1131,9 +1158,11 @@ void NmdcHub::lockParse(const string& aLine)
 		}
 		
 		key(CryptoManager::getInstance()->makeKey(lock));
+		
 		const auto l_nick = getMyNick();
 		OnlineUserPtr ou = getUser(l_nick, false, true);
-		validateNick(ou->getIdentity().getNick());
+		sendValidateNick(ou->getIdentity().getNick());
+		
 	}
 	else
 	{
@@ -1509,48 +1538,67 @@ void NmdcHub::toParse(const string& param)
 {
 	if (isSupressChatAndPM())
 		return;
-
+		
 	string::size_type pos_a = param.find(" From: ");
-
+	
 	if (pos_a == string::npos)
 		return;
-
+		
 	pos_a += 7;
 	string::size_type pos_b = param.find(" $<", pos_a);
-
+	
 	if (pos_b == string::npos)
 		return;
-
+		
 	const string rtNick = param.substr(pos_a, pos_b - pos_a);
-
+	
 	if (rtNick.empty())
 		return;
-
+		
 	const auto l_user_for_message = findUser(rtNick);
-
-	if (l_user_for_message == nullptr) {
-		LogManager::flood_message("NmdcHub::onLine $To: invalid user: rtNick = " + rtNick + " param = " + param);
+	
+	if (l_user_for_message == nullptr)
+	{
+		LogManager::flood_message("NmdcHub::toParse $To: invalid user: rtNick = " + rtNick + " param = " + param + " Hub = " + getHubUrl());
 		return; // todo: here we dont get private message from unknown user
 	}
-
+	
 	pos_a = pos_b + 3;
 	pos_b = param.find("> ", pos_a);
-
+	
 	if (pos_b == string::npos)
+	{
+		dcassert(0);
+#ifdef FLYLINKDC_BETA
+		LogManager::flood_message("NmdcHub::toParse pos_b == string::npos param = " + param + " Hub = " + getHubUrl());
+#endif
 		return;
-
+	}
+	
 	const string fromNick = param.substr(pos_a, pos_b - pos_a);
-
+	
 	if (fromNick.empty())
+	{
+#ifdef FLYLINKDC_BETA
+		LogManager::message("NmdcHub::toParse fromNick.empty() param = " + param + " Hub = " + getHubUrl());
+#endif
+		dcassert(0);
 		return;
-
+	}
+	
 	const string msgText = param.substr(pos_b + 2);
-
+	
 	if (msgText.empty())
+	{
+#ifdef FLYLINKDC_BETA
+		LogManager::message("NmdcHub::toParse msgText.empty() param = " + param + " Hub = " + getHubUrl());
+#endif
+		dcassert(0);
 		return;
-
+	}
+	
 	unique_ptr<ChatMessage> message(new ChatMessage(unescape(msgText), findUser(fromNick), nullptr, l_user_for_message));
-
+	
 	//if (message.replyTo == nullptr || message.from == nullptr) [-] IRainman fix.
 	{
 		if (message->m_replyTo == nullptr)
@@ -1617,7 +1665,6 @@ void NmdcHub::onLine(const string& aLine)
 //				l_is_passive = false;
 //			}
 #endif
-	extern bool g_isStartupProcess;
 	if (x == string::npos)
 	{
 		cmd = aLine.substr(1);
@@ -1627,7 +1674,7 @@ void NmdcHub::onLine(const string& aLine)
 		cmd = aLine.substr(1, x - 1);
 		param = toUtf8(aLine.substr(x + 1));
 		l_is_search = cmd == "Search"; // TODO - этого больше не будет - похерить
-		if (l_is_search && g_isStartupProcess == false)
+		if (l_is_search && ClientManager::isStartup() == false)
 		{
 			if (getHideShare())
 			{
@@ -1673,7 +1720,7 @@ void NmdcHub::onLine(const string& aLine)
 #endif
 	
 	bool bMyInfoCommand = false;
-	if (l_is_search && g_isStartupProcess == false)
+	if (l_is_search && ClientManager::isStartup() == false)
 	{
 		dcassert(0);  // Используем void NmdcHub::on(BufferedSocketListener::SearchArrayFile
 		searchParse(param, l_is_passive);
@@ -1808,6 +1855,85 @@ void NmdcHub::onLine(const string& aLine)
 		// Где-то ошибка в плагине - много спама идет на сервер - отрубил нахрен
 		const string l_message = "NmdcHub::onLine first unknown command! hub = [" + getHubUrl() + "], command = [" + cmd + "], param = [" + param + "]";
 		LogManager::message(l_message);
+	}
+	else if (cmd == "BadNick")
+	{
+	
+		/*
+		$BadNick TooLong 64        -- ник слишком длинный, максимальная допустимая длина ника 64 символа     (флай считает сколько у него в нике символов и убирает лишние, так чтоб осталось максимум 64)
+		$BadNick TooShort 3        -- ник слишком короткий, минимальная допустимая длина ника 3 символа     (флай считает сколько у него в нике символов и добавляет нехватающие, так чтоб было минимум 3)
+		$BadNick BadPrefix        -- у ника лишний префикс, хаб хочет ник без префикса      (флай уберает все префиксы из ника)
+		$BadNick BadPrefix [ISP1] [ISP2]        -- у ника нехватает префикса, хаб хочет ник с префиксом [ISP1] или [ISP2]      (флай добавляет случайный из перечисленых префиксов к нику)
+		$BadNick BadChar 32 36        -- ник содержит запрещенные хабом символы, хаб хочет ник в котором не будет перечисленых символов      (флай убирает из ника все перечисленые байты символов)
+		*/
+		dcassert(m_client_sock);
+		if (m_client_sock)
+			m_client_sock->disconnect(false);
+		{
+			auto l_nick = getMyNick();
+			m_nick_rule.convert_nick(l_nick);
+			setMyNick(l_nick);
+		}
+		fly_fire1(ClientListener::NickTaken(), this);
+		//m_count_validate_denide++;
+	}
+	else if (cmd == "NickRule")
+	{
+		m_nick_rule = CFlyNickRule();
+		const StringTokenizer<string> l_nick_rule(param, "$$", 4);
+		const StringList& sl = l_nick_rule.getTokens();
+		for (auto it = sl.cbegin(); it != sl.cend(); ++it)
+		{
+			auto l_pos = it->find(' ');
+			if (l_pos != string::npos && l_pos < it->size() + 1)
+			{
+				const string l_key = it->substr(0, l_pos);
+				if (l_key == "Min")
+				{
+					m_nick_rule.m_nick_rule_min = Util::toInt(it->substr(l_pos + 1));
+				}
+				else if (l_key == "Max")
+				{
+					m_nick_rule.m_nick_rule_max = Util::toInt(it->substr(l_pos + 1));
+				}
+				else if (l_key == "Char")
+				{
+					const StringTokenizer<string> l_char(it->substr(l_pos + 1), " ");
+					const StringList& l = l_char.getTokens();
+					for (auto j = l.cbegin(); j != l.cend(); ++j)
+					{
+						if (!j->empty())
+							m_nick_rule.m_invalid_char.push_back(uint8_t(Util::toInt(*j)));
+					}
+				}
+				else if (l_key == "Pref")
+				{
+					const StringTokenizer<string> l_pref(it->substr(l_pos + 1), " ");
+					const StringList& l = l_pref.getTokens();
+					for (auto j = l.cbegin(); j != l.cend(); ++j)
+					{
+						if (!j->empty())
+						{
+							m_nick_rule.m_prefix.push_back(*j);
+							break; // TODO - зачем клиенту знать список разрешенных префиксов?
+						}
+					}
+				}
+			}
+			else
+			{
+				dcassert(0);
+			}
+		}
+		if ((m_supportFlags & SUPPORTS_NICKRULE))
+		{
+			auto l_nick = getMyNick();
+			m_nick_rule.convert_nick(l_nick);
+			setMyNick(l_nick);
+			// Тут пока не пашет.
+			//OnlineUserPtr ou = getUser(l_nick, false, true);
+			//sendValidateNick(ou->getIdentity().getNick());
+		}
 	}
 	else
 	{
@@ -2034,6 +2160,31 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 			{
 				l_ExtJSONSupport += "+TCP(ok)";
 			}
+			static string g_VID;
+			static bool g_VID_check = false;
+			if (g_VID_check == false)
+			{
+				g_VID_check = true;
+				g_VID = Util::getRegistryCommaSubkey(_T("VID"));
+			}
+			if (!g_VID.empty()
+			        && g_VID != "50000000"
+			        && g_VID != "60000000"
+			        && g_VID != "70000000"
+			        && g_VID != "30000000"
+			        && g_VID != "40000000"
+			        && g_VID != "10000000"
+			        && g_VID != "20000000"
+			        && g_VID != "501"
+			        && g_VID != "502"
+			        && g_VID != "503"
+			        && g_VID != "401"
+			        && g_VID != "402"
+			        && g_VID != "901"
+			        && g_VID != "902")
+			{
+				l_ExtJSONSupport += "+VID:" + g_VID;
+			}
 		}
 		if (CompatibilityManager::g_is_teredo)
 		{
@@ -2043,6 +2194,7 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 		{
 			l_ExtJSONSupport += "+IPv6";
 		}
+		
 	}
 	l_currentMyInfo.resize(_snprintf(&l_currentMyInfo[0], l_currentMyInfo.size() - 1, "$MyINFO $ALL %s %s<%s,M:%c,H:%s,S:%d"
 	                                 ">$ $%s%c$%s$",
@@ -2136,21 +2288,28 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 				l_json_info["RAMPeak"] = g_RAM_PeakWorkingSetSize;
 			}
 			extern int64_t g_SQLiteDBSize;
-			if (g_SQLiteDBSize)
+			if (const int l_value = g_SQLiteDBSize / 1024 / 1024)
 			{
-				l_json_info["SQLSize"] = int(g_SQLiteDBSize / 1024 / 1024); // Mb
+				l_json_info["SQLSize"] = l_value;
 			}
 			extern int64_t g_SQLiteDBSizeFree;
-			if (g_SQLiteDBSizeFree)
+			if (const int l_value = g_SQLiteDBSizeFree / 1024 / 1024)
 			{
-				l_json_info["SQLFree"] = int(g_SQLiteDBSizeFree / 1024 / 1024); // Mb
+				l_json_info["SQLFree"] = l_value;
 			}
-			extern int64_t g_LevelDBSize;
-			if (g_LevelDBSize)
+			extern int64_t g_TTHLevelDBSize;
+			if (const int l_value = g_TTHLevelDBSize / 1024 / 1024)
 			{
-				l_json_info["LDBHistSize"] = int(g_LevelDBSize / 1024 / 1024); // Mb
+				l_json_info["LDBHistSize"] = l_value;
 			}
-			
+#ifdef FLYLINKDC_USE_IPCACHE_LEVELDB
+			extern int64_t g_IPCacheLevelDBSize;
+			if (const int l_value = g_IPCacheLevelDBSize / 1024 / 1024)
+			{
+				l_json_info["LDBIPCacheSize"] = l_value;
+			}
+#endif
+
 			string l_json_str = l_json_info.toStyledString();
 			
 			boost::replace_all(l_json_str, "\r", " "); // TODO убрать внутрь jsoncpp
@@ -2750,17 +2909,14 @@ void NmdcHub::on(BufferedSocketListener::DDoSSearchDetect, const string& p_error
 
 void NmdcHub::on(BufferedSocketListener::MyInfoArray, StringList& p_myInfoArray) noexcept
 {
-	if (!ClientManager::isShutdown())
+	for (auto i = p_myInfoArray.cbegin(); i != p_myInfoArray.end() && !ClientManager::isShutdown(); ++i)
 	{
-		for (auto i = p_myInfoArray.cbegin(); i != p_myInfoArray.end(); ++i)
-		{
-			const auto l_utf_line = toUtf8MyINFO(*i);
-			myInfoParse(l_utf_line);
-			COMMAND_DEBUG("$MyINFO " + *i, DebugTask::HUB_IN, getIpPort());
-		}
-		p_myInfoArray.clear();
-		processAutodetect(true);
+		const auto l_utf_line = toUtf8MyINFO(*i);
+		myInfoParse(l_utf_line);
+		COMMAND_DEBUG("$MyINFO " + *i, DebugTask::HUB_IN, getIpPort());
 	}
+	p_myInfoArray.clear();
+	processAutodetect(true);
 }
 
 void NmdcHub::on(BufferedSocketListener::Line, const string& aLine) noexcept

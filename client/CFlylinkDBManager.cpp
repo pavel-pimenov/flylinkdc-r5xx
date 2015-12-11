@@ -24,7 +24,10 @@ bool g_EnableSQLtrace       = false; // http://www.sqlite.org/c3ref/profile.html
 bool g_UseSynchronousOff    = false;
 int g_DisableSQLtrace      = 0;
 int64_t g_SQLiteDBSizeFree = 0;
-int64_t g_LevelDBSize = 0;
+int64_t g_TTHLevelDBSize = 0;
+#ifdef FLYLINKDC_USE_IPCACHE_LEVELDB
+int64_t g_IPCacheLevelDBSize = 0;
+#endif
 int64_t g_SQLiteDBSize = 0;
 
 int32_t CFlylinkDBManager::g_count_queue_source = 0;
@@ -376,9 +379,14 @@ CFlylinkDBManager::CFlylinkDBManager()
 				
 #ifdef FLYLINKDC_USE_LEVELDB
 				// Тут обязательно полный путь. иначе при смене рабочего каталога levelDB не сомжет открыть базу.
-				const string l_full_path_level_db = Util::getConfigPath() + "tth-history.leveldb";
-				m_flyLevelDB.open_level_db(l_full_path_level_db);
-				g_LevelDBSize = File::calcFilesSize(l_full_path_level_db, "\\*.*");
+				string l_full_path_level_db = Util::getConfigPath() + "tth-history.leveldb";
+				m_TTHLevelDB.open_level_db(l_full_path_level_db);
+				g_TTHLevelDBSize = File::calcFilesSize(l_full_path_level_db, "\\*.*");
+ #ifdef FLYLINKDC_USE_IPCACHE_LEVELDB				
+				l_full_path_level_db = Util::getConfigPath() + "ip-history.leveldb";
+				m_IPCacheLevelDB.open_level_db(l_full_path_level_db);
+				g_IPCacheLevelDBSize = File::calcFilesSize(l_full_path_level_db, "\\*.*");
+ #endif
 #endif // FLYLINKDC_USE_LEVELDB
 				SetCurrentDirectory(l_dir_buffer);
 			}
@@ -3224,7 +3232,7 @@ void CFlylinkDBManager::store_all_ratio_and_last_ip(uint32_t p_hub_id,
 		if (p_upload_download_stats && !p_upload_download_stats->empty())
 		{
 			sqlite3_transaction l_trans_insert(m_flySQLiteDB, p_upload_download_stats->size() > 1);
-			m_insert_ratio.init(m_flySQLiteDB, "insert or replace into fly_ratio (dic_ip,dic_nick,dic_hub,upload,download) values(?,?,?,?,?)");
+			m_insert_ratio.init(m_flySQLiteDB, "insert or replace into fly_ratio(dic_ip,dic_nick,dic_hub,upload,download) values(?,?,?,?,?)");
 			// TODO провести конвертацию в другой формат и файл БД + отказаться от DIC
 			sqlite3_command* l_sql = m_insert_ratio.get_sql();
 			l_sql->bind(2, l_dic_nick);
@@ -3261,10 +3269,12 @@ void CFlylinkDBManager::store_all_ratio_and_last_ip(uint32_t p_hub_id,
 void CFlylinkDBManager::update_last_ip(uint32_t p_hub_id, const string& p_nick, const boost::asio::ip::address_v4& p_last_ip)
 {
 	//dcassert(!p_last_ip.is_unspecified());
-	//CFlyLock(m_cs);  // TODO - тут нет обращения к базе
+#ifndef FLYLINKDC_USE_LASTIP_CACHE
+	CFlyLock(m_cs);
+#endif
 	try
 	{
-		const __int64 l_message_count = 0; // счетчик мессаг не зануляем
+		const uint32_t l_message_count = 0; // счетчик мессаг не зануляем
 		update_last_ip_deferredL(p_hub_id, p_nick, l_message_count, p_last_ip);
 	}
 	catch (const database_error& e)
@@ -3350,7 +3360,7 @@ void CFlylinkDBManager::flush_all_last_ip_and_message_count()
 #endif // FLYLINKDC_USE_LASTIP_CACHE
 }
 //========================================================================================================
-void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string& p_nick, const uint32_t p_message_count, const boost::asio::ip::address_v4& p_last_ip)
+void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string& p_nick, uint32_t p_message_count, boost::asio::ip::address_v4 p_last_ip)
 {
 	dcassert(p_hub_id);
 	dcassert(!p_nick.empty());
@@ -3439,12 +3449,24 @@ void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string
 		}
 	}
 #else
-	if (!p_last_ip.is_unspecified())
+#ifdef FLYLINKDC_USE_IPCACHE_LEVELDB
+	if (p_message_count == 0 || p_last_ip.is_unspecified())
+	{
+		CFlyIPMessageCache l_old = m_IPCacheLevelDB.get_last_ip_and_message_count(p_hub_id, p_nick);
+		if (p_message_count == 0)
+		  p_message_count = l_old.m_message_count;
+		if (p_last_ip.is_unspecified())
+			p_last_ip = boost::asio::ip::address_v4(l_old.m_ip);
+	}
+	m_IPCacheLevelDB.set_last_ip_and_message_count(p_hub_id, p_nick, p_message_count, p_last_ip);
+#else
+
+	if (!p_last_ip.is_unspecified() && p_message_count)
 	{
 		if (p_message_count)
 		{
 			m_insert_last_ip_and_message_count.init(m_flySQLiteDB,
-			                                        "insert or replace into user_db.user_info(nick,dic_hub,last_ip,message_count) values(?,?,?,?)");
+				"insert or replace into user_db.user_info(nick,dic_hub,last_ip,message_count) values(?,?,?,?)");
 			sqlite3_command* l_sql = m_insert_last_ip_and_message_count.get_sql();
 			l_sql->bind(1, p_nick, SQLITE_STATIC);
 			l_sql->bind(2, __int64(p_hub_id));
@@ -3452,7 +3474,10 @@ void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string
 			l_sql->bind(4, __int64(p_message_count));
 			l_sql->executenonquery();
 		}
-		else
+	}
+	else
+	{
+		if (!p_last_ip.is_unspecified())
 		{
 			m_insert_last_ip.init(m_flySQLiteDB,
 			                      "insert or replace into user_db.user_info(nick,dic_hub,last_ip) values(?,?,?)");
@@ -3462,7 +3487,25 @@ void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string
 			l_sql->bind(3, __int64(p_last_ip.to_ulong()));
 			l_sql->executenonquery();
 		}
+		else
+		if (p_message_count)
+		{
+			m_insert_message_count.init(m_flySQLiteDB,
+				"insert or replace into user_db.user_info(nick,dic_hub,message_count) values(?,?,?)");
+			sqlite3_command* l_sql = m_insert_message_count.get_sql();
+			l_sql->bind(1, p_nick, SQLITE_STATIC);
+			l_sql->bind(2, __int64(p_hub_id));
+			l_sql->bind(3, __int64(p_message_count));
+			l_sql->executenonquery();
+			
+		}
+		else
+		{
+			dcassert(0);
+		}
 	}
+#endif // FLYLINKDC_USE_IPCACHE_LEVELDB
+
 #endif // FLYLINKDC_USE_LASTIP_CACHE
 	
 }
@@ -4466,21 +4509,21 @@ tstring CFlylinkDBManager::get_ratioW() const
 void CFlylinkDBManager::push_add_virus_database_tth(const TTHValue& p_tth)
 {
 #ifdef FLYLINKDC_USE_LEVELDB
-	m_flyLevelDB.set_bit(p_tth, VIRUS_FILE_KNOWN);
+	m_TTHLevelDB.set_bit(p_tth, VIRUS_FILE_KNOWN);
 #endif // FLYLINKDC_USE_LEVELDB
 }
 //========================================================================================================
 void CFlylinkDBManager::push_add_share_tth(const TTHValue& p_tth)
 {
 #ifdef FLYLINKDC_USE_LEVELDB
-	m_flyLevelDB.set_bit(p_tth, PREVIOUSLY_BEEN_IN_SHARE);
+	m_TTHLevelDB.set_bit(p_tth, PREVIOUSLY_BEEN_IN_SHARE);
 #endif // FLYLINKDC_USE_LEVELDB
 }
 //========================================================================================================
 void CFlylinkDBManager::push_download_tth(const TTHValue& p_tth)
 {
 #ifdef FLYLINKDC_USE_LEVELDB
-	m_flyLevelDB.set_bit(p_tth, PREVIOUSLY_DOWNLOADED);
+	m_TTHLevelDB.set_bit(p_tth, PREVIOUSLY_DOWNLOADED);
 #endif // FLYLINKDC_USE_LEVELDB
 }
 //========================================================================================================
@@ -4488,7 +4531,7 @@ CFlylinkDBManager::FileStatus CFlylinkDBManager::get_status_file(const TTHValue&
 {
 #ifdef FLYLINKDC_USE_LEVELDB
 	string l_status;
-	m_flyLevelDB.get_value(p_tth, l_status);
+	m_TTHLevelDB.get_value(p_tth, l_status);
 	int l_result = Util::toInt(l_status);
 	dcassert(l_result >= 0 && l_result <= 7);
 	return static_cast<FileStatus>(l_result); // 1 - скачивал, 2 - был в шаре, 3 - 1+2 и то и то, 4- вирусня
@@ -4569,7 +4612,7 @@ __int64 CFlylinkDBManager::convert_tth_historyL()
 				dcassert(l_tth.size() == 24);
 				if (l_tth.size() == 24)
 				{
-					m_flyLevelDB.set_bit(TTHValue(&l_tth[0]), l_q.getint(1));
+					m_TTHLevelDB.set_bit(TTHValue(&l_tth[0]), l_q.getint(1));
 					++l_count;
 				}
 			}
@@ -4621,10 +4664,10 @@ CFlyLevelDB::CFlyLevelDB(): m_db(nullptr)
 //========================================================================================================
 CFlyLevelDB::~CFlyLevelDB()
 {
-	delete m_db;
-	delete m_options.filter_policy;
-	delete m_options.block_cache;
-	delete m_options.env; // http://code.google.com/p/leveldb/issues/detail?id=194 ?
+	safe_delete(m_db);
+	safe_delete(m_options.filter_policy);
+	safe_delete(m_options.block_cache);
+	safe_delete(m_options.env); // http://code.google.com/p/leveldb/issues/detail?id=194 ?
 	// TODO - leak delete m_options.comparator;
 }
 //========================================================================================================
@@ -4710,7 +4753,6 @@ bool CFlyLevelDB::set_value(const void* p_key, size_t p_key_len, const void* p_v
 	dcassert(m_db);
 	if (m_db)
 	{
-		// CFlyLock(m_leveldb_cs);
 		const leveldb::Slice l_key((const char*)p_key, p_key_len);
 		const leveldb::Slice l_val((const char*)p_val, p_val_len);
 		const auto l_status = m_db->Put(m_writeoptions, l_key, l_val);
@@ -4742,5 +4784,36 @@ uint32_t CFlyLevelDB::set_bit(const TTHValue& p_tth, uint32_t p_mask)
 	dcassert(0);
 	return 0;
 }
+#ifdef FLYLINKDC_USE_IPCACHE_LEVELDB
+//========================================================================================================
+CFlyIPMessageCache CFlyLevelDBCacheIP::get_last_ip_and_message_count(uint32_t p_hub_id, const string& p_nick)
+{
+	CFlyIPMessageCache l_res;
+	std::vector<char> l_key;
+	create_key(p_hub_id, p_nick, l_key);
+	string l_result;
+	if (get_value(l_key.data(), l_key.size(), l_result))
+	{
+		if (!l_result.empty())
+		{
+			dcassert(l_result.size() == sizeof(CFlyIPMessageCache))
+			if (l_result.size() == sizeof(CFlyIPMessageCache))
+			{
+				memcpy(&l_res, l_result.c_str(), sizeof(CFlyIPMessageCache));
+			}
+		}
+	}
+	return l_res;
+}
+//========================================================================================================
+void CFlyLevelDBCacheIP::set_last_ip_and_message_count(uint32_t p_hub_id, const string& p_nick, uint32_t p_message_count, const boost::asio::ip::address_v4& p_last_ip)
+{
+
+	std::vector<char> l_key;
+	create_key(p_hub_id, p_nick, l_key);
+	CFlyIPMessageCache l_value(p_message_count, p_last_ip.to_ulong());
+	set_value(l_key.data(), l_key.size(), &l_value, sizeof(l_value));
+}
+#endif // FLYLINKDC_USE_IPCACHE_LEVELDB
 //========================================================================================================
 #endif // FLYLINKDC_USE_LEVELDB

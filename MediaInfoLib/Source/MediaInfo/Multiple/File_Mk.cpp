@@ -236,14 +236,14 @@ void File_Mk::Streams_Finish()
                         Fill(StreamKind_Last, StreamPos_Last, Tag->first.To_UTF8().c_str(), Tag->second);
             }
         }
-    
+
         //Tags
         //Ztring Duration_Temp;
         float64 FrameRate_FromTags = 0.0;
         Ztring TagsList=Retrieve(StreamKind_Last, StreamPos_Last, "_STATISTICS_TAGS");
         if (TagsList.size())
         {
-            bool Tags_Verified=false; 
+            bool Tags_Verified=false;
             {
                 Ztring Happ = Retrieve(Stream_General, 0, "Encoded_Application");
                 Ztring Hutc = Retrieve(Stream_General, 0, "Encoded_Date");
@@ -260,7 +260,7 @@ void File_Mk::Streams_Finish()
 
             float64 Statistics_Duration=0;
             float64 Statistics_FrameCount=0;
-            for (Ztring::iterator Back = TagsList.begin();;Back++)
+            for (Ztring::iterator Back = TagsList.begin();;++Back)
             {
                 if ((Back == TagsList.end()) || (*Back == ' ') || (*Back == '\0'))
                 {
@@ -367,12 +367,12 @@ void File_Mk::Streams_Finish()
                     {
                         float64 Duration_Default=((float64)1000000000)/Temp->second.TrackDefaultDuration;
                         if (float64_int64s(Duration_Default) - Duration_Default*1.001000 > -0.000002
-                         && float64_int64s(Duration_Default) - Duration_Default*1.001000 < +0.000002) // Detection of precise 1.001 (e.g. 24000/1001) taking into account precision of 32-bit float 
+                         && float64_int64s(Duration_Default) - Duration_Default*1.001000 < +0.000002) // Detection of precise 1.001 (e.g. 24000/1001) taking into account precision of 32-bit float
                         {
                             FrameRate_FromTags = float64_int64s(FrameRate_FromTags) / 1.001;
                         }
                         if (float64_int64s(Duration_Default) - Duration_Default*1.001001 > -0.000002
-                         && float64_int64s(Duration_Default) - Duration_Default*1.001001 < +0.000002) // Detection of rounded 1.001 (e.g. 23976/1000) taking into account precision of 32-bit float 
+                         && float64_int64s(Duration_Default) - Duration_Default*1.001001 < +0.000002) // Detection of rounded 1.001 (e.g. 23976/1000) taking into account precision of 32-bit float
                         {
                             FrameRate_FromTags = float64_int64s(FrameRate_FromTags) / 1.001001;
                         }
@@ -560,6 +560,20 @@ void File_Mk::Streams_Finish()
             {
                 Fill(Stream_Video, StreamPos_Last, Video_FrameRate_Original, Retrieve(Stream_Video, StreamPos_Last, Video_FrameRate));
                 Clear(Stream_Video, StreamPos_Last, Video_FrameRate);
+            }
+
+            //Crop
+            if (Temp->second.PixelCropLeft || Temp->second.PixelCropRight)
+            {
+                Fill(Stream_Video, StreamPos_Last, Video_Width_Original, Retrieve(Stream_Video, StreamPos_Last, Video_Width), true);
+                Fill(Stream_Video, StreamPos_Last, Video_Width, Retrieve(Stream_Video, StreamPos_Last, Video_Width).To_int64u()-Temp->second.PixelCropLeft-Temp->second.PixelCropRight, 10, true);
+                Fill(Stream_Video, StreamPos_Last, Video_Width_Offset, Temp->second.PixelCropLeft, 10, true);
+            }
+            if (Temp->second.PixelCropTop || Temp->second.PixelCropBottom)
+            {
+                Fill(Stream_Video, StreamPos_Last, Video_Height_Original, Retrieve(Stream_Video, StreamPos_Last, Video_Height), true);
+                Fill(Stream_Video, StreamPos_Last, Video_Height, Retrieve(Stream_Video, StreamPos_Last, Video_Height).To_int64u()-Temp->second.PixelCropTop-Temp->second.PixelCropBottom, 10, true);
+                Fill(Stream_Video, StreamPos_Last, Video_Height_Offset, Temp->second.PixelCropTop, 10, true);
             }
         }
 
@@ -2282,7 +2296,7 @@ void File_Mk::Segment_Tags_Tag()
     if (Items0 != Segment_Tags_Tag_Items.end())
     {
         tagspertrack &Items = Segment_Tags_Tag_Items[0]; // Creates it if not yet present, else take the previous one
-            
+
         //Change the key of the current tag
         for (tagspertrack::iterator Item=Items0->second.begin(); Item!=Items0->second.end(); ++Item)
             Items[Item->first] = Item->second;
@@ -2365,7 +2379,6 @@ void File_Mk::Segment_Tags_Tag_SimpleTag_TagString()
     if (Segment_Tag_SimpleTag_TagNames[0]==__T("MAJOR_BRAND")) return; //QuickTime techinical info, useless
     if (Segment_Tag_SimpleTag_TagNames[0]==__T("MINOR_VERSION")) return; //QuickTime techinical info, useless
     if (Segment_Tag_SimpleTag_TagNames[0]==__T("PART_NUMBER")) Segment_Tag_SimpleTag_TagNames[0]=__T("Track/Position");
-    if (Segment_Tag_SimpleTag_TagNames[0]==__T("ORIGINAL") && Segment_Tag_SimpleTag_TagNames.size()==2 && Segment_Tag_SimpleTag_TagNames[1]==__T("URL")) return; //Useless
     if (Segment_Tag_SimpleTag_TagNames[0]==__T("ORIGINAL_MEDIA_TYPE")) Segment_Tag_SimpleTag_TagNames[0]=__T("OriginalSourceForm");
     if (Segment_Tag_SimpleTag_TagNames[0]==__T("SAMPLE") && Segment_Tag_SimpleTag_TagNames.size()==2 && Segment_Tag_SimpleTag_TagNames[1]==__T("PART_NUMBER")) return; //Useless
     if (Segment_Tag_SimpleTag_TagNames[0]==__T("SAMPLE") && Segment_Tag_SimpleTag_TagNames.size()==2 && Segment_Tag_SimpleTag_TagNames[1]==__T("TITLE")) {Segment_Tag_SimpleTag_TagNames.resize(1); Segment_Tag_SimpleTag_TagNames[0]=__T("Title_More");}
@@ -2373,10 +2386,11 @@ void File_Mk::Segment_Tags_Tag_SimpleTag_TagString()
     if (Segment_Tag_SimpleTag_TagNames[0]==__T("TERMS_OF_USE")) Segment_Tag_SimpleTag_TagNames[0]=__T("TermsOfUse");
     if (Segment_Tag_SimpleTag_TagNames[0]==__T("TITLE")) Segment_Tag_SimpleTag_TagNames[0]=__T("Title");
     if (Segment_Tag_SimpleTag_TagNames[0]==__T("TOTAL_PARTS")) Segment_Tag_SimpleTag_TagNames[0]=__T("Track/Position_Total");
-    for (size_t Pos=1; Pos<Segment_Tag_SimpleTag_TagNames.size(); Pos++)
+    for (size_t Pos=0; Pos<Segment_Tag_SimpleTag_TagNames.size(); Pos++)
     {
         if (Segment_Tag_SimpleTag_TagNames[Pos]==__T("BARCODE")) Segment_Tag_SimpleTag_TagNames[Pos]=__T("BarCode");
         if (Segment_Tag_SimpleTag_TagNames[Pos]==__T("COMMENT")) Segment_Tag_SimpleTag_TagNames[Pos]=__T("Comment");
+        if (Segment_Tag_SimpleTag_TagNames[Pos]==__T("ORIGINAL")) Segment_Tag_SimpleTag_TagNames[Pos]=__T("Original");
         if (Segment_Tag_SimpleTag_TagNames[Pos]==__T("URL")) Segment_Tag_SimpleTag_TagNames[Pos]=__T("Url");
     }
 
@@ -2440,7 +2454,7 @@ void File_Mk::Segment_Tags_Tag_Targets_TrackUID()
         if (Items0 != Segment_Tags_Tag_Items.end())
         {
             tagspertrack &Items = Segment_Tags_Tag_Items[Segment_Tags_Tag_Targets_TrackUID_Value]; // Creates it if not yet present, else take the previous one
-            
+
             //Change the key of the current tag
             for (tagspertrack::iterator Item=Items0->second.begin(); Item!=Items0->second.end(); ++Item)
                 Items[Item->first] = Item->second;
@@ -3176,7 +3190,12 @@ void File_Mk::Segment_Tracks_TrackEntry_Video_PixelCropBottom()
     Element_Name("PixelCropBottom");
 
     //Parsing
-    UInteger_Info();
+    int64u UInteger=UInteger_Get();
+    
+    //Filling
+    FILLING_BEGIN();
+        Stream[TrackNumber].PixelCropBottom=UInteger;
+    FILLING_END();
 }
 
 //---------------------------------------------------------------------------
@@ -3185,7 +3204,12 @@ void File_Mk::Segment_Tracks_TrackEntry_Video_PixelCropLeft()
     Element_Name("PixelCropLeft");
 
     //Parsing
-    UInteger_Info();
+    int64u UInteger=UInteger_Get();
+    
+    //Filling
+    FILLING_BEGIN();
+        Stream[TrackNumber].PixelCropLeft=UInteger;
+    FILLING_END();
 }
 
 //---------------------------------------------------------------------------
@@ -3194,7 +3218,12 @@ void File_Mk::Segment_Tracks_TrackEntry_Video_PixelCropRight()
     Element_Name("PixelCropRight");
 
     //Parsing
-    UInteger_Info();
+    int64u UInteger=UInteger_Get();
+    
+    //Filling
+    FILLING_BEGIN();
+        Stream[TrackNumber].PixelCropRight=UInteger;
+    FILLING_END();
 }
 
 //---------------------------------------------------------------------------
@@ -3203,7 +3232,12 @@ void File_Mk::Segment_Tracks_TrackEntry_Video_PixelCropTop()
     Element_Name("PixelCropTop");
 
     //Parsing
-    UInteger_Info();
+    int64u UInteger=UInteger_Get();
+    
+    //Filling
+    FILLING_BEGIN();
+        Stream[TrackNumber].PixelCropTop=UInteger;
+    FILLING_END();
 }
 
 //---------------------------------------------------------------------------

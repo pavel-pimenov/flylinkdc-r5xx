@@ -1,3 +1,7 @@
+Version 0.4.32, 2015-11-02
+--------------
+x Ztring::From_UTF8() was not handling 4 bytes UTF8 codes correctly
+
 Version 0.4.31, 2015-04-09
 --------------
 x BigEndian2float16() was buggy

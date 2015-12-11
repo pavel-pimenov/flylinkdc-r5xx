@@ -62,7 +62,7 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 			return g_download_map.size();
 		}
 		
-		bool startDownload(QueueItem::Priority prio);
+		bool isStartDownload(QueueItem::Priority prio);
 		static bool checkFileDownload(const UserPtr& aUser);
 		
 	private:

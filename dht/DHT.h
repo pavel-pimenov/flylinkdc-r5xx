@@ -113,14 +113,14 @@ class DHT :
 		}
 		
 		/** Returns our IP got from the last firewall check */
-		const string& getLastExternalIP() const // [!] IRainman opt: add link
+		static const string& getLastExternalIP()
 		{
-			return lastExternalIP;
+			return g_lastExternalIP;
 		}
 		
-		void setLastExternalIP(const string& ip)
+		static void setLastExternalIP(const string& ip)
 		{
-			lastExternalIP = ip;
+			g_lastExternalIP = ip;
 		}
 		
 		void setRequestFWCheck()
@@ -168,7 +168,7 @@ class DHT :
 		FastCriticalSection fwCheckCs; // [!] IRainman opt: no needs recursive mutex here.
 		
 		/** Our external IP got from last firewalled check */
-		string lastExternalIP;
+		static string g_lastExternalIP;
 		
 		/** Time when last packet was received */
 		uint64_t m_lastPacket;

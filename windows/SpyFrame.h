@@ -184,7 +184,7 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 		
 		typedef boost::unordered_map<string, SearchData> SpySearchMap;
 		
-		SpySearchMap m_searches;
+		SpySearchMap m_spy_searches;
 		
 		// ClientManagerListener
 		struct SMTSearchInfo : public Task

@@ -117,7 +117,7 @@ UserCommand FavoriteManager::addUserCommand(int type, int ctx, Flags::MaskType f
 //	LogManager::message("FavoriteManager::addUserCommand g_count = " + Util::toString(++g_count)
 //	                                   +  " g_max_len = " + Util::toString(g_max_len) + " str =  " + l_all);
 #endif
-	UserCommand uc(m_lastId++, type, ctx, flags, name, command, to, hub);
+	const UserCommand uc(m_lastId++, type, ctx, flags, name, command, to, hub);
 	{
 		// No dupes, add it...
 		CFlyWriteLock(*g_csUserCommand);
@@ -203,7 +203,7 @@ int FavoriteManager::findUserCommand(const string& aName, const string& p_Hub)
 	return -1;
 }
 
-void FavoriteManager::removeUserCommand(int cid)
+void FavoriteManager::removeUserCommandCID(int cid)
 {
 	{
 		CFlyWriteLock(*g_csUserCommand);
@@ -763,6 +763,10 @@ void FavoriteManager::save()
 				xml.addChildAttrib("ExclusiveHub", (*i)->getExclusiveHub()); // Exclusive Hub
 				xml.addChildAttrib("SuppressChatAndPM", (*i)->getSuppressChatAndPM());
 				xml.addChildAttrib("UserListState", (*i)->getUserListState());
+				if ((*i)->getISPDisableFlylinkDCSupportHub())
+				{
+					xml.addChildAttrib("ISPDisableFlylinkDCSupportHub", 1);
+				}
 				xml.addChildAttrib("HeaderOrder", (*i)->getHeaderOrder());
 				xml.addChildAttrib("HeaderWidths", (*i)->getHeaderWidths());
 				xml.addChildAttrib("HeaderVisible", (*i)->getHeaderVisible());
@@ -879,6 +883,7 @@ void FavoriteManager::save()
 		}
 		catch (SimpleXMLException& e)
 		{
+			dcassert(0);
 			LogManager::message("FavoriteManager::save error parse tmp file: " + l_tmp_file + " error = " + e.getError());
 			CFlyServerJSON::pushError(14, "error check favorites.xml file:" + l_tmp_file + " error = " + e.getError());
 			File::deleteFile(l_tmp_file);
@@ -1106,7 +1111,6 @@ bool FavoriteManager::replaceDeadHub()
 	}
 	return l_result;
 }
-
 void FavoriteManager::load(SimpleXML& aXml
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
                            , bool p_is_url /* = false*/
@@ -1114,7 +1118,8 @@ void FavoriteManager::load(SimpleXML& aXml
                           )
 {
 	m_count_hub = 0;
-	bool needSave = false;
+	static bool g_is_ISPDisableFlylinkDCSupportHub = false;
+	bool l_is_needSave = false;
 	{
 		CFlySafeGuard<uint16_t> l_satrt(g_dontSave);
 		//const int l_configVersion = Util::toInt(aXml.getChildAttrib("ConfigVersion"));// [+] IRainman fav options
@@ -1183,7 +1188,10 @@ void FavoriteManager::load(SimpleXML& aXml
 				
 				e->setConnect(l_is_connect);
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
-				const bool l_ISPDelete  = aXml.getBoolChildAttrib("ISPDelete");
+				const bool l_is_ISPDisableFlylinkDCSupportHub = aXml.getBoolChildAttrib("ISPDisableFlylinkDCSupportHub");
+				g_is_ISPDisableFlylinkDCSupportHub |= l_is_ISPDisableFlylinkDCSupportHub;
+				e->setISPDisableFlylinkDCSupportHub(l_is_ISPDisableFlylinkDCSupportHub);
+				const bool l_ISPDelete = aXml.getBoolChildAttrib("ISPDelete");
 				const string& l_ISPMode = aXml.getChildAttrib("ISPMode");
 				if (!l_ISPMode.empty())
 				{
@@ -1205,6 +1213,11 @@ void FavoriteManager::load(SimpleXML& aXml
 				e->setUserListState(l_UserListState);
 				const bool l_SuppressChatAndPM = aXml.getBoolChildAttrib("SuppressChatAndPM");
 				e->setSuppressChatAndPM(l_SuppressChatAndPM);
+				
+				const bool l_isOverrideId = Util::toInt(aXml.getChildAttrib("OverrideId")) != 0;
+				const string l_clientName = aXml.getChildAttrib("ClientName");
+				const string l_clientVersion = aXml.getChildAttrib("ClientVersion");
+				
 				// [!] IRainman fix.
 				if (Util::isAdcHub(l_CurrentServerUrl))
 				{
@@ -1275,10 +1288,10 @@ void FavoriteManager::load(SimpleXML& aXml
 					}
 					else
 					{
-						e->setClientName(aXml.getChildAttrib("ClientName"));
-						e->setClientVersion(aXml.getChildAttrib("ClientVersion"));
+						e->setClientName(l_clientName);
+						e->setClientVersion(l_clientVersion);
 					}
-					e->setOverrideId(Util::toInt(aXml.getChildAttrib("OverrideId")) != 0); // !SMT!-S
+					e->setOverrideId(l_isOverrideId); // !SMT!-S
 					// [~] IRainman mimicry function
 					e->setGroup(l_Group);
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
@@ -1316,7 +1329,7 @@ void FavoriteManager::load(SimpleXML& aXml
 						{
 							e->setGroup("ISP");
 							e->setConnect(true);
-							needSave = true;
+							l_is_needSave = true;
 						}
 					}
 				}
@@ -1329,11 +1342,14 @@ void FavoriteManager::load(SimpleXML& aXml
 						l_HubEntry->setSearchInterval(l_SearchInterval);
 						l_HubEntry->setUserListState(l_UserListState);
 						l_HubEntry->setSuppressChatAndPM(l_SuppressChatAndPM);
+						l_HubEntry->setClientName(l_clientName);
+						l_HubEntry->setClientVersion(l_clientVersion);
+						l_HubEntry->setOverrideId(l_isOverrideId);
 						l_HubEntry->setGroup("ISP");
 					}
 					if (l_ISPDelete)
 					{
-						needSave = true;
+						l_is_needSave = true;
 						CFlyWriteLock(*g_csHubs);
 						auto i = find(g_favoriteHubs.begin(), g_favoriteHubs.end(), l_HubEntry);
 						if (i != g_favoriteHubs.end())
@@ -1353,7 +1369,7 @@ void FavoriteManager::load(SimpleXML& aXml
 #endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 			}
 			//
-			if (l_is_fly_hub_exists == false)
+			if (l_is_fly_hub_exists == false && g_is_ISPDisableFlylinkDCSupportHub == false)
 			{
 				if (l_count_active_ru_hub >= l_limit_russian_hub || g_favoriteHubs.empty()) // TODO - проверить что один и не локальный?
 				{
@@ -1362,7 +1378,7 @@ void FavoriteManager::load(SimpleXML& aXml
 						CFlyServerJSON::pushError(45, "Promo hub:" + CFlyServerConfig::g_support_hub);
 						CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_autoAddSupportHub, l_count_active_ru_hub);
 						FavoriteManager::connectToFlySupportHub();
-						needSave = true;
+						l_is_needSave = true;
 					}
 				}
 				else
@@ -1374,21 +1390,21 @@ void FavoriteManager::load(SimpleXML& aXml
 							CFlyServerJSON::pushError(45, "Promo hub Locale 1251:" + CFlyServerConfig::g_support_hub);
 							CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_autoAdd1251SupportHub, 1);
 							FavoriteManager::connectToFlySupportHub();
-							needSave = true;
+							l_is_needSave = true;
 						}
 					}
 				}
 			}
-			needSave |= replaceDeadHub();
+			l_is_needSave |= replaceDeadHub();
 			//
 			aXml.stepOut();
 		}
-		if (m_count_hub == 0)
+		if (m_count_hub == 0 && g_is_ISPDisableFlylinkDCSupportHub == false)
 		{
 			CFlyServerJSON::pushError(45, "Promo hub (First!):" + CFlyServerConfig::g_support_hub);
 			CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_autoAddFirstSupportHub, 1);
 			FavoriteManager::connectToFlySupportHub();
-			needSave = true;
+			l_is_needSave = true;
 		}
 		else
 		{
@@ -1482,8 +1498,10 @@ void FavoriteManager::load(SimpleXML& aXml
 			}
 		}
 	}
-	if (needSave)
+	if (l_is_needSave)
+	{
 		save();
+	}
 }
 
 void FavoriteManager::userUpdated(const OnlineUser& info)

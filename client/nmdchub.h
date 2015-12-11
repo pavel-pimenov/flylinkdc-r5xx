@@ -95,8 +95,9 @@ class NmdcHub : public Client, private Flags
 			SUPPORTS_NOGETINFO = 0x02,
 			SUPPORTS_USERIP2 = 0x04,
 #ifdef FLYLINKDC_USE_EXT_JSON
-			SUPPORTS_EXTJSON = 0x08
+			SUPPORTS_EXTJSON = 0x08,
 #endif
+			SUPPORTS_NICKRULE = 0x10
 		};
 		
 		// MyInfo states.
@@ -139,7 +140,45 @@ class NmdcHub : public Client, private Flags
 		
 		DefinedMeyInfoState m_bLastMyInfoCommand; // [+] FlylinkDC
 		string m_last_antivirus_detect_url;
-		
+		struct CFlyNickRule
+		{
+			uint8_t m_nick_rule_min;
+			uint8_t m_nick_rule_max;
+			vector<char> m_invalid_char;
+			vector<string> m_prefix;
+			CFlyNickRule() : m_nick_rule_min(0), m_nick_rule_max(0)
+			{
+			}
+			void convert_nick(string& p_nick)
+			{
+				for (auto i = m_invalid_char.cbegin(); i != m_invalid_char.cend(); ++i)
+				{
+					std::replace(p_nick.begin(), p_nick.end(), *i, '_');
+				}
+				if (!m_prefix.empty())
+				{
+					const auto l_pref_pos = p_nick.find(m_prefix[0]);
+					if (l_pref_pos != 0 && l_pref_pos == string::npos)
+					{
+						p_nick = m_prefix[0] + p_nick;
+					}
+				}
+				if (m_nick_rule_max && p_nick.length() > m_nick_rule_max)
+				{
+					p_nick = p_nick.substr(0, m_nick_rule_max);
+				}
+				if (m_nick_rule_min && p_nick.length() < m_nick_rule_min)
+				{
+					p_nick += "_R";
+					while (p_nick.length() < m_nick_rule_min)
+					{
+						const auto l_nick_len = int(m_nick_rule_min - p_nick.length());
+						p_nick += Util::toString(Util::rand()).substr(0, l_nick_len);
+					}
+				}
+			}
+		};
+		CFlyNickRule m_nick_rule;
 		NmdcHub(const string& aHubURL, bool secure, bool p_is_auto_connect);
 		~NmdcHub();
 		
@@ -206,7 +245,7 @@ class NmdcHub : public Client, private Flags
 		}
 #endif
 		void privateMessage(const string& nick, const string& aMessage, bool thirdPerson);
-		void validateNick(const string& aNick)
+		void sendValidateNick(const string& aNick)
 		{
 			send("$ValidateNick " + fromUtf8(aNick) + '|');
 		}

@@ -355,9 +355,10 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 				void toXml(OutputStream& xmlFile, string& indent, string& tmp2, bool fullList) const;
 				void filesToXml(OutputStream& xmlFile, string& indent, string& tmp2) const;
 				
-				ShareFile::Set::const_iterator findFileL(const string& aFile) const
+				ShareFile::Set::const_iterator findFileIterL(const string& aFile) const
 				{
-					return std::find_if(m_files.begin(), m_files.end(), [&](const ShareFile & p_file) -> bool {return stricmp(p_file.getName(), aFile) == 0;});
+					const auto l_res = std::find_if(m_files.begin(), m_files.end(), [&](const ShareFile & p_file) -> bool {return stricmp(p_file.getName(), aFile) == 0;});
+					return l_res;
 					//Directory::ShareFile::StringComp(aFile));
 				}
 				
@@ -416,7 +417,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		bool forceXmlRefresh; /// bypass the 15-minutes guard
 		bool refreshDirs;
 		bool update;
-		bool initial;
+		bool m_is_initial;
 		
 		unsigned m_listN;
 		

@@ -681,6 +681,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client\AdcSupports.h" />
+    <ClInclude Include="client\CFlyLockProfiler.h" />
     <ClInclude Include="client\CFlyMediaInfo.h" />
     <ClInclude Include="client\CFlyProfiler.h" />
     <ClInclude Include="client\CFlyUserRatioInfo.h" />

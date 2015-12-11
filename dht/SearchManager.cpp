@@ -40,10 +40,10 @@ Search::~Search()
 	switch (m_type)
 	{
 		case TYPE_NODE:
-			IndexManager::getInstance()->setPublish(true);
+			IndexManager::setPublish(true);
 			break;
 		case TYPE_STOREFILE:
-			IndexManager::getInstance()->decPublishing();
+			IndexManager::decPublishing();
 			break;
 	}
 }
@@ -93,7 +93,9 @@ SearchManager::SearchManager() : m_lastTimeSearchFile(0)
 SearchManager::~SearchManager()
 {
 	for (auto i = m_searches.cbegin(); i != m_searches.cend(); ++i)
+	{
 		delete i->second;
+	}
 }
 
 /*
@@ -101,6 +103,7 @@ SearchManager::~SearchManager()
  */
 void SearchManager::findNode(const CID& cid)
 {
+	dcassert(BOOLSETTING(USE_DHT));
 	if (isAlreadySearchingFor(cid.toBase32()))
 		return;
 		
@@ -114,6 +117,7 @@ void SearchManager::findNode(const CID& cid)
  */
 void SearchManager::findFile(const string& tth, uint32_t p_token)
 {
+	dcassert(BOOLSETTING(USE_DHT));
 	// temporary fix to prevent UDP flood (search queue would be better here)
 	if (GET_TICK() - m_lastTimeSearchFile < 10000)
 		return;
@@ -153,9 +157,10 @@ void SearchManager::findFile(const string& tth, uint32_t p_token)
  */
 void SearchManager::findStore(const string& tth, int64_t size, bool partial)
 {
+	dcassert(BOOLSETTING(USE_DHT));
 	if (isAlreadySearchingFor(tth))
 	{
-		IndexManager::getInstance()->decPublishing();
+		IndexManager::decPublishing();
 		return;
 	}
 	
@@ -171,6 +176,7 @@ void SearchManager::findStore(const string& tth, int64_t size, bool partial)
  */
 void SearchManager::search(Search& s)
 {
+	dcassert(BOOLSETTING(USE_DHT));
 	// set search lifetime
 	s.m_lifeTime = GET_TICK();
 	switch (s.m_type)
@@ -207,6 +213,7 @@ void SearchManager::search(Search& s)
  */
 void SearchManager::processSearchRequest(const string& ip, uint16_t port, const UDPKey& udpKey, const AdcCommand& cmd)
 {
+	dcassert(BOOLSETTING(USE_DHT));
 	string token;
 	if (!cmd.getParam("TO", 1, token))
 		return; // missing search token?
@@ -319,6 +326,7 @@ void SearchManager::processSearchRequest(const string& ip, uint16_t port, const 
  */
 void SearchManager::processSearchResult(const AdcCommand& cmd)
 {
+	dcassert(BOOLSETTING(USE_DHT));
   string l_token_str;
 	if (!cmd.getParam("TO", 1, l_token_str))
 		return; // missing search token?
@@ -330,7 +338,7 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
 		return; // missing search token?
 		
 	CFlyFastLock(cs);
-	SearchMap::iterator i = m_searches.find(l_token);
+	auto i = m_searches.find(l_token);
 	if (i == m_searches.end())
 	{
 		// we didn't search for this
@@ -470,6 +478,7 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
  */
 void SearchManager::publishFile(const Node::Map& nodes, const string& tth, int64_t size, bool partial)
 {
+	dcassert(BOOLSETTING(USE_DHT));
 	// send PUB command to K nodes
 	int n = DHT_K;
 	for (auto i = nodes.cbegin(); i != nodes.cend() && n > 0; ++i, n--)
@@ -493,9 +502,10 @@ void SearchManager::publishFile(const Node::Map& nodes, const string& tth, int64
  */
 void SearchManager::processSearches()
 {
+	dcassert(BOOLSETTING(USE_DHT));
 	CFlyFastLock(cs);
 	
-	SearchMap::iterator it = m_searches.begin();
+	auto it = m_searches.begin();
 	while (it != m_searches.end())
 	{
 		Search* s = it->second;
@@ -528,6 +538,7 @@ void SearchManager::processSearches()
  */
 bool SearchManager::processSearchResults(const UserPtr& user, size_t slots)
 {
+	dcassert(BOOLSETTING(USE_DHT));
 	bool ok = false;
 	uint64_t tick = GET_TICK();
 	
@@ -564,11 +575,14 @@ bool SearchManager::processSearchResults(const UserPtr& user, size_t slots)
  */
 bool SearchManager::isAlreadySearchingFor(const string& p_term)
 {
+	dcassert(BOOLSETTING(USE_DHT));
 	CFlyFastLock(cs);
 	for (auto i = m_searches.cbegin(); i != m_searches.cend(); ++i)
 	{
 		if (i->second->m_term == p_term)
+		{
 			return true;
+		}
 	}
 	
 	return false;

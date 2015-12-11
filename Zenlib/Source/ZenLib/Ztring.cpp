@@ -157,7 +157,11 @@ Ztring EmptyZtring;
 //---------------------------------------------------------------------------
 #if defined(STREAM_MISSING)
     #if defined (_UNICODE)
-       // [-] FlylinkDC++ VC++2015 #define _tnprintf snwprintf
+        #if defined (MACOS) || defined (MACOSX)
+            #define _tnprintf swprintf
+        #else
+        //[-] FlylinkDC++ VC++2015  #define _tnprintf snwprintf
+        #endif
     #else
        // [-] FlylinkDC++ VC++2015 #define _tnprintf snprintf
     #endif
@@ -350,7 +354,21 @@ Ztring& Ztring::From_UTF8 (const char* S)
                 {
                     if ((*(Z+1)&0xC0)==0x80 && (*(Z+2)&0xC0)==0x80 && (*(Z+3)&0xC0)==0x80)
                     {
-                        operator += ((((wchar_t)(*Z&0x0F))<<18)|((*(Z+1)&0x3F)<<12)||((*(Z+2)&0x3F)<<6)|(*(Z+3)&0x3F));
+                        #if defined(_MSC_VER)
+                            #pragma warning(push)
+                            #pragma warning(disable:4127)
+                        #endif //defined(_MSC_VER)
+                        if (sizeof(wchar_t) == 2)
+                        #if defined(_MSC_VER)
+                            #pragma warning(pop)
+                        #endif //defined(_MSC_VER)
+                        {
+                            int32u Value = ((((int32u)(*Z&0x0F))<<18)|((*(Z+1)&0x3F)<<12)|((*(Z+2)&0x3F)<<6)|(*(Z+3)&0x3F));
+                            operator += (0xD800|((Value>>10)-0x40));
+                            operator += (0xDC00| (Value&0x3FF));
+                        }
+                        else
+                            operator += ((((wchar_t)(*Z&0x0F))<<18)|((*(Z+1)&0x3F)<<12)|((*(Z+2)&0x3F)<<6)|(*(Z+3)&0x3F));
                         Z+=4;
                     }
                     else
@@ -1553,7 +1571,17 @@ std::string Ztring::To_UTF8 () const
             #if defined(_MSC_VER)
                 #pragma warning(pop)
             #endif //defined(_MSC_VER)
+            {
+                if (((*Z) & 0xFC00) == 0xD800)
+                {
+                    //UTF-16
+                    wc =( (((int16u) *Z) & 0x3FF) + 0x40) << 10;
+                    Z++;
+                    wc |= (((int16u) *Z) & 0x3FF);
+                }
+                else
                 wc = (int16u) *Z; // avoid a cast problem if wchar_t is signed.
+            }
             else
                 wc = *Z;
 

@@ -37,7 +37,6 @@
 
 // [+] IRainman opt.
 extern bool g_TabsCloseButtonEnabled;
-extern bool g_isStartupProcess;
 extern CMenu g_mnu;
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
 extern Gdiplus::Pen g_pen_conter_side;
@@ -120,7 +119,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 #endif
 		void addTab(HWND hWnd, COLORREF color = RGB(0, 0, 0), uint16_t icon = 0, uint16_t stateIcon = 0, bool p_mini = false)
 		{
-			TabInfo* i = new TabInfo(hWnd, color, icon, (stateIcon != 0) ? stateIcon : icon, true); // !g_isStartupProcess
+			TabInfo* i = new TabInfo(hWnd, color, icon, (stateIcon != 0) ? stateIcon : icon, true); // !ClientManager::isStartup()
 			i->m_mini = p_mini;
 			if ((icon == IDR_HUB || icon == IDR_PRIVATE
 #ifdef USE_OFFLINE_ICON_FOR_FILELIST

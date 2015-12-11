@@ -304,7 +304,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		static int findUserCommand(const string& aName, const string& p_Hub);
 		static bool moveUserCommand(int cid, int pos);
 		static void updateUserCommand(const UserCommand& uc);
-		static void removeUserCommand(int cid);
+		static void removeUserCommandCID(int cid);
 		static void removeUserCommand(const string& p_Hub);
 		static size_t countUserCommand(const string& p_Hub);
 		void removeHubUserCommands(int ctx, const string& hub);

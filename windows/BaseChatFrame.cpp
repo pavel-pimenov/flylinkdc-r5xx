@@ -20,7 +20,6 @@
 #include "BaseChatFrame.h"
 #include "../client/QueueManager.h"
 
-bool BaseChatFrame::g_isStartupProcess = true;
 LRESULT BaseChatFrame::OnCreate(HWND p_hWnd, RECT &rcDefault)
 {
 	m_MessagePanelRECT = rcDefault;
@@ -122,7 +121,8 @@ void BaseChatFrame::destroyMessageCtrl(bool p_is_shutdown)
 void BaseChatFrame::createMessagePanel()
 {
 	dcassert(!ClientManager::isShutdown());
-	if (!m_msgPanel && g_isStartupProcess == false)
+	
+	if (!m_msgPanel && ClientManager::isStartup() == false)
 	{
 		m_msgPanel = new MessagePanel(m_ctrlMessage);
 		m_msgPanel->InitPanel(m_MessagePanelHWnd, m_MessagePanelRECT);
@@ -496,11 +496,13 @@ void BaseChatFrame::onEnter()
 		MessageBeep(MB_ICONEXCLAMATION);
 	}
 	
+	/*
 	if (m_bUseTempMultiChat)
-	{
-		m_bUseTempMultiChat = false;
-		UpdateLayout();
-	}
+	    {
+	        m_bUseTempMultiChat = false;
+	        UpdateLayout();
+	    }
+	*/
 }
 
 LRESULT BaseChatFrame::onWinampSpam(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -661,6 +663,12 @@ tstring BaseChatFrame::getIpCountry(const string& ip, bool ts, bool p_ipInChat, 
 
 void BaseChatFrame::addLine(const tstring& aLine, CHARFORMAT2& cf /*= Colors::g_ChatTextGeneral */)
 {
+#ifdef _DEBUG
+	if (aLine.find(_T("&#124")) != tstring::npos)
+	{
+		dcassert(0);
+	}
+#endif
 	if (m_bTimeStamps)
 	{
 		const ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, _T('[') + Text::toT(Util::getShortTimeString()) + _T("] "), aLine, cf, false);
@@ -854,4 +862,19 @@ void BaseChatFrame::appendLogToChat(const string& path , const size_t linesCount
 		l_message.m_Msg = Text::toT(l_lines.getTokens()[i] + '\n');
 		ctrlClient.AppendText(l_message);
 	}
+}
+bool BaseChatFrame::isMultiChat(int& p_h, int & p_chat_columns) const
+{
+	/*[+] Это условие для тех, кто любит большие шрифты,
+	будет включаться многострочный ввод принудительно,
+	чтоб не портить расположение элементов Sergey Shushkanov */
+	const bool bUseMultiChat = BOOLSETTING(MULTILINE_CHAT_INPUT) || m_bUseTempMultiChat
+#ifdef MULTILINE_CHAT_IF_BIG_FONT_SET
+	                           || Fonts::g_fontHeight > FONT_SIZE_FOR_AUTO_MULTILINE_CHAT //[+] TEST VERSION Sergey Shushkanov
+#endif
+	                           ;
+	                           
+	p_h = bUseMultiChat ? 20 : 14;//[+] TEST VERSION Sergey Shushkanov
+	p_chat_columns = bUseMultiChat ? 2 : 1; // !Decker! // [~] Sergey Shushkanov
+	return bUseMultiChat;
 }

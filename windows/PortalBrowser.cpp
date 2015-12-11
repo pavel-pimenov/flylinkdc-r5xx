@@ -492,8 +492,10 @@ LRESULT PortalBrowserFrame::HandleFullScreen(UINT /*uMsg*/, WPARAM wParam, LPARA
 		else
 		{
 			if (BOOLSETTING(SHOW_TRANSFERVIEW))
+			{
 				MainFrame::getMainFrame()->ViewTransferView(TRUE);
-				
+			}
+			
 			DWORD dwState = MainFrame::getMainFrame()->UIGetState(ID_VIEW_TRANSFER_VIEW);
 			MainFrame::getMainFrame()->UISetState(ID_VIEW_TRANSFER_VIEW, dwState & (~CUpdateUIBase::UPDUI_DISABLED));
 		}

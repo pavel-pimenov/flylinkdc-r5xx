@@ -1434,7 +1434,6 @@
 	<string name="SettingsProviders">Providers resources</string>
 	<string name="SettingsProxy">Proxy settings</string>
 	<string name="SettingsPublicHubList">Internet Hubs-list</string>
-	<string name="SettingsPublicHubListHttpProxy">HTTP Proxy for all http(s) connections. Format: \"Server:Port\"</string>
 	<string name="SettingsPublicHubListUrl">Internet Hubs-list URL</string>
 	<string name="SettingsQueue">Queue</string>
 	<string name="SettingsRc">Remote control</string>

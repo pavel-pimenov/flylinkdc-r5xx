@@ -31,9 +31,15 @@
 
 namespace dht
 {
+uint64_t IndexManager::g_nextRepublishTime = 0;
+std::deque<File> IndexManager::g_publishQueue;
+FastCriticalSection IndexManager::g_cs;
+bool IndexManager::g_isRepublishTime = false;
+bool IndexManager::g_is_publish = false;
+volatile long IndexManager::g_publishing = 0;
 
 IndexManager::IndexManager() :
-	nextRepublishTime(GET_TICK()), publishing(0), publish(false), m_hour_count(0)
+	m_hour_count(0)
 {
 }
 
@@ -46,6 +52,7 @@ IndexManager::~IndexManager()
  */
 void IndexManager::addSource(const TTHValue& p_tth, const CID& p_cid, const string& p_ip, uint16_t p_port, uint64_t p_size, bool p_partial)
 {
+	dcassert(BOOLSETTING(USE_DHT));
 	SourceTTH l_source;
 	l_source.setTTH(p_tth);
 	l_source.setCID(p_cid);
@@ -96,6 +103,7 @@ void IndexManager::addSource(const TTHValue& p_tth, const CID& p_cid, const stri
  */
 bool IndexManager::findResult(const TTHValue& p_tth, SourceList& p_sources) const
 {
+	dcassert(BOOLSETTING(USE_DHT));
 #ifdef _DEBUG
 	static FastCriticalSection cs_tth_dup;
 	static boost::unordered_map<string,int> g_tth_dup;
@@ -127,18 +135,19 @@ bool IndexManager::findResult(const TTHValue& p_tth, SourceList& p_sources) cons
  */
 void IndexManager::publishNextFile()
 {
+	dcassert(BOOLSETTING(USE_DHT));
 	dcassert(!ClientManager::isShutdown());
 	File f;
 	{
-		CFlyFastLock(cs);
+		CFlyFastLock(g_cs);
 		
-		if (publishQueue.empty() || publishing >= MAX_PUBLISHES_AT_TIME)
+		if (g_publishQueue.empty() || g_publishing >= MAX_PUBLISHES_AT_TIME)
 			return;
 			
 		incPublishing();
 		
-		f = publishQueue.front(); // get the first file in queue
-		publishQueue.pop_front(); // and remove it from queue
+		f = g_publishQueue.front(); // get the first file in queue
+		g_publishQueue.pop_front(); // and remove it from queue
 	}
 	SearchManager::getInstance()->findStore(f.tth.toBase32(), f.size, f.partial);
 }
@@ -148,6 +157,7 @@ void IndexManager::publishNextFile()
  */
 void IndexManager::loadIndexes(SimpleXML& xml)
 {
+	dcassert(BOOLSETTING(USE_DHT));
 	TTHArray l_tthList;
 	xml.resetCurrentChild();
 	if (xml.findChild("Files"))
@@ -184,6 +194,7 @@ void IndexManager::loadIndexes(SimpleXML& xml)
  */
 void IndexManager::processPublishSourceRequest(const string& ip, uint16_t port, const UDPKey& udpKey, const AdcCommand& cmd)
 {
+	dcassert(BOOLSETTING(USE_DHT));
 	const CID cid = CID(cmd.getParam(0));
 	
 	string tth;
@@ -211,6 +222,7 @@ void IndexManager::processPublishSourceRequest(const string& ip, uint16_t port, 
  */
 void IndexManager::checkExpiration(uint64_t p_Tick)
 {
+	dcassert(BOOLSETTING(USE_DHT));
 	if (++m_hour_count > 60)
 	{
 		CFlylinkDBManager::getInstance()->check_expiration_dht_files(p_Tick);
@@ -250,20 +262,12 @@ void IndexManager::checkExpiration(uint64_t p_Tick)
 /** Publishes shared file */
 void IndexManager::publishFile(const TTHValue& tth, int64_t size)
 {
+	dcassert(BOOLSETTING(USE_DHT));
 	dcassert(!ClientManager::isShutdown());
 	if (size > MIN_PUBLISH_FILESIZE)
 	{
-		CFlyFastLock(cs);
-		publishQueue.push_back(File(tth, size, false)); // TODO 2012-04-23_22-28-18_5X2A4DH3DN4RBHJBW7A6UCJNXV3HW6UQSGTDS4I_40B6FDE8_crash-stack-r501-build-9812.dmp
-		// 2012-04-23_22-28-18_A24UAZGII2D4JQ5B2GQO7BSOJZGHSOZLL6QR4RA_DE100545_crash-stack-r501-build-9812.dmp
-		// 2012-04-29_13-38-26_GGKPIT76OJFJ4NI7NQ6B7QRB66WKJMIDUIIVFEI_AF901814_crash-stack-r501-build-9869.dmp
-		// 2012-05-03_22-00-59_AZWODHUBAHNNZWNBFTNWRY7AGXVT46UH22UHYWI_DC008D1E_crash-stack-r502-beta24-build-9900.dmp
-		// 2012-05-03_22-05-14_U77FRCHNRJDNVF325OSOPZU3K6DGTORPWW4TIOY_BA6785FB_crash-stack-r502-beta24-x64-build-9900.dmp
-		// 2012-05-03_22-05-14_YZKXKY3PNHETPRYT6NABRMBYPRA5AOURK7EE3IA_A1F7CCFE_crash-stack-r502-beta24-x64-build-9900.dmp
-		// 2012-04-29_13-38-26_PR6EDIVLYDASGBBREFIKGXB5WW36ZY6MSLK2CQQ_0873ADD2_crash-stack-r501-build-9869.dmp
-		// 2012-04-29_13-38-26_V3HKSEV52WSC3PHSO5DOTEIPESQ5JZWRZRH3PIQ_ED6821C8_crash-stack-r501-build-9869.dmp
-		// 2012-05-11_23-57-17_U77FRCHNRJDNVF325OSOPZU3K6DGTORPWW4TIOY_D7B8E691_crash-stack-r502-beta26-x64-build-9946.dmp
-		// 2012-06-09_18-15-11_MRLAHWANAPWOZ3AKPZY5DHT56OP6SWGLVRHAIRY_30E3C1A5_crash-stack-r501-build-10294.dmp
+		CFlyFastLock(g_cs);
+		g_publishQueue.push_back(File(tth, size, false));
 	}
 }
 
@@ -272,9 +276,10 @@ void IndexManager::publishFile(const TTHValue& tth, int64_t size)
  */
 void IndexManager::publishPartialFile(const TTHValue& tth)
 {
+	dcassert(BOOLSETTING(USE_DHT));
 	dcassert(!ClientManager::isShutdown());
-	CFlyFastLock(cs);
-	publishQueue.push_front(File(tth, 0, true));
+	CFlyFastLock(g_cs);
+	g_publishQueue.push_front(File(tth, 0, true));
 }
 
 

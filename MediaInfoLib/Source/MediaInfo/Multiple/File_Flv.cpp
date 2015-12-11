@@ -1384,6 +1384,7 @@ void File_Flv::audio_AAC()
                 if (Stream[Stream_Audio].Parser)
                 {
                     Open_Buffer_Continue(Stream[Stream_Audio].Parser);
+				if (Stream[Stream_Audio].Parser) // try fix https://drdump.com/Problem.aspx?ProblemID=131242
                     Stream[Stream_Audio].Parser->Open_Buffer_Unsynch();
                 }
                 else

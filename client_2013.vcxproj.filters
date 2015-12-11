@@ -1440,6 +1440,9 @@
     <ClInclude Include="client\WildcardsReg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="client\CFlyLockProfiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

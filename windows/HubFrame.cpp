@@ -468,7 +468,7 @@ void HubFrame::createMessagePanel()
 {
 	bool l_is_need_update = false;
 	dcassert(!ClientManager::isShutdown());
-	if (m_ctrlFilter == nullptr && g_isStartupProcess == false)
+	if (m_ctrlFilter == nullptr && ClientManager::isStartup() == false)
 	{
 		++m_ActivateCounter;
 		createCtrlUsers();
@@ -634,7 +634,7 @@ void HubFrame::destroyOMenu()
 void HubFrame::onBeforeActiveTab(HWND aWnd)
 {
 	dcassert(m_hWnd);
-	if (BaseChatFrame::g_isStartupProcess == false)
+	if (ClientManager::isStartup() == false)
 	{
 		CFlyLock(g_frames_cs);
 		for (auto i = g_frames.cbegin(); i != g_frames.cend(); ++i) // TODO помнить последний и не перебирать все для разрушения.
@@ -646,7 +646,7 @@ void HubFrame::onBeforeActiveTab(HWND aWnd)
 			}
 			else
 			{
-				dcassert(0);
+				//      dcassert(0);
 			}
 		}
 	}
@@ -664,7 +664,7 @@ void HubFrame::onInvalidateAfterActiveTab(HWND aWnd)
 {
 	if (!ClientManager::isShutdown())
 	{
-		if (BaseChatFrame::g_isStartupProcess == false)
+		if (ClientManager::isStartup() == false)
 		{
 			if (m_ctrlStatus)
 			{
@@ -1748,7 +1748,7 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 }
 LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam */, BOOL& /*bHandled*/)
 {
-//	dcassert(g_isStartupProcess == false && !ClientManager::isShutdown());
+//	dcassert(ClientManager::isStartup() == false && !ClientManager::isShutdown());
 	//PROFILE_THREAD_SCOPED()
 	TaskQueue::List t;
 	m_tasks.get(t);
@@ -2038,6 +2038,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 				{
 					//BaseChatFrame::addLine(_T("[!]FlylinkDC++ ") + _T("Detected direct connection type, switching to active mode"), WinUtil::m_ChatTextSystem);
 					BaseChatFrame::addLine(Text::toT(static_cast<StatusTask&>(*i->second).m_str) + _T(": ") + _T("[FlylinkDC++] TCP port is open! Connection type auto-switching to active mode"), Colors::g_ChatTextSystem);
+					HubModeChange();
 				}
 				break;
 #endif
@@ -2054,7 +2055,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 
 void HubFrame::updateWindowText()
 {
-	if (BaseChatFrame::g_isStartupProcess == false) // Пока конструируемся не нужно апдейтить текст
+	if (ClientManager::isStartup() == false) // Пока конструируемся не нужно апдейтить текст
 	{
 		if (m_is_window_text_update)
 		{
@@ -2084,7 +2085,7 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 {
 	if (isClosedOrShutdown())
 		return;
-	if (g_isStartupProcess)
+	if (ClientManager::isStartup() == true)
 	{
 		return;
 	}
@@ -2187,20 +2188,9 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 			}
 		}   // end  if (m_ctrlStatus->IsWindow()...
 	}
-	/*[+] Это условие для тех кто любит большие шрифты,
-	будет включаться многострочный ввод принудительно,
-	чтоб не портить расположение элементов Sergey Shushkanov */
-	const bool bUseMultiChat = BOOLSETTING(MULTILINE_CHAT_INPUT) || m_bUseTempMultiChat
-#ifdef MULTILINE_CHAT_IF_BIG_FONT_SET
-	                           || Fonts::g_fontHeight > FONT_SIZE_FOR_AUTO_MULTILINE_CHAT //[+] TEST VERSION Sergey Shushkanov
-#endif
-	                           ;
-	                           
-	const int h = bUseMultiChat ? 20 : 14;//[+] TEST VERSION Sergey Shushkanov
-	const int chat_columns = bUseMultiChat ? 2 : 1; // !Decker! // [~] Sergey Shushkanov
-	
+	int h = 0, chat_columns = 0;
+	const bool bUseMultiChat = isMultiChat(h, chat_columns);
 	CRect rc = rect;
-	//if(m_ctrlStatus) // Если фрейм активный - то поднимаем чат немного.
 	rc.bottom -= h * chat_columns + 15;  // !Decker! //[~] Sergey Shushkanov
 	if (m_ctrlStatus)
 	{
@@ -2423,7 +2413,7 @@ void HubFrame::storeColumsInfo()
 		}
 		{
 			CFlyLock(g_frames_cs);
-			if (g_frames.size() == 1 || BaseChatFrame::g_isStartupProcess == false) // Сохраняем только на последней итерации, или когда не закрываем приложение.
+			if (g_frames.size() == 1 || ClientManager::isStartup() == false) // Сохраняем только на последней итерации, или когда не закрываем приложение.
 			{
 				FavoriteManager::getInstance()->save();
 			}
@@ -2623,7 +2613,7 @@ void HubFrame::addLine(const Identity& p_from, const bool bMyMess, const bool bT
 		m_last_hub_message = aLine;
 	}
 	BaseChatFrame::addLine(p_from, bMyMess, bThirdPerson, aLine, cf, extra);
-	if (g_isStartupProcess == false)
+	if (ClientManager::isStartup() == false)
 	{
 		SHOW_POPUP(POPUP_CHAT_LINE, aLine, TSTRING(CHAT_MESSAGE));
 	}
@@ -2642,7 +2632,7 @@ void HubFrame::addLine(const Identity& p_from, const bool bMyMess, const bool bT
 		
 		LOG(CHAT, params);
 	}
-	if (g_isStartupProcess == false && BOOLSETTING(BOLD_HUB))
+	if (ClientManager::isStartup() == false && BOOLSETTING(BOLD_HUB))
 	{
 		if (m_client->is_all_my_info_loaded())
 		{
@@ -3281,7 +3271,7 @@ void HubFrame::timer_process_internal()
 {
 	if (!m_spoken)
 	{
-		if (BaseChatFrame::g_isStartupProcess == false
+		if (ClientManager::isStartup() == false
 #ifdef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 		        && !MainFrame::isAppMinimized(m_hWnd)
 #endif
@@ -3568,10 +3558,13 @@ void HubFrame::on(Redirect, const Client*, const string& line) noexcept
 }
 void HubFrame::on(ClientListener::Failed, const Client* c, const string& line) noexcept
 {
-	speak(ADD_STATUS_LINE, "[Hub = " + c->getHubUrl()  + "] " + line);
+	if (!ClientManager::isShutdown())
+	{
+		speak(ADD_STATUS_LINE, "[Hub = " + c->getHubUrl() + "] " + line);
+		// speak(WM_SPEAKER_DISCONNECTED, nullptr);
+		//PostMessage(WM_SPEAKER_DISCONNECTED);
+	}
 	speak(DISCONNECTED);
-	// speak(WM_SPEAKER_DISCONNECTED, nullptr);
-	//PostMessage(WM_SPEAKER_DISCONNECTED);
 #ifdef FLYLINKDC_USE_CHAT_BOT
 	ChatBot::getInstance()->onHubAction(BotInit::RECV_DISCONNECT, c->getHubUrl());
 #endif
@@ -3645,6 +3638,12 @@ void HubFrame::on(ClientListener::HubUpdated, const Client*) noexcept
 void HubFrame::on(ClientListener::Message, const Client*,  std::unique_ptr<ChatMessage>& message) noexcept
 {
 	const auto l_message_ptr = message.release();
+#ifdef _DEBUG
+	if (l_message_ptr->m_text.find("&#124") != string::npos)
+	{
+		dcassert(0);
+	}
+#endif
 	if (l_message_ptr->isPrivate())
 	{
 #ifndef FLYLINKDC_PRIVATE_MESSAGE_USE_WIN_MESSAGES_Q
@@ -3673,21 +3672,24 @@ void HubFrame::on(ClientListener::NickTaken, const Client*) noexcept
 	auto l_fe = FavoriteManager::getFavoriteHubEntry(m_client->getHubUrl());
 	if (l_fe)
 	{
-		string l_nick = l_fe->getNick();
-		string l_fly_user = l_fe->getNick() + "_R" + Util::toString(Util::rand()).substr(0, 3);
-		if (l_fly_user.length() > 15)
+		if (l_fe->getPassword().empty())
 		{
-			l_fly_user = l_nick.substr(0, 12);
-			l_fly_user  += "_R" + Util::toString(Util::rand()).substr(0, 3);
-		}
-		m_client->setMyNick(l_fly_user);
-		m_client->setRandomNick(l_fly_user);
-		ctrlClient.setHubParam(m_client->getHubUrl(), m_client->getMyNick());
-		CFlyServerJSON::pushError(54, "Hub = " + m_client->getHubUrl() + " New random nick = " + l_fly_user);
-		if (m_reconnect_count < 3)
-		{
-			m_client->reconnect();
-			m_reconnect_count++;
+			string l_nick = l_fe->getNick();
+			string l_fly_user = l_fe->getNick() + "_R" + Util::toString(Util::rand()).substr(0, 3);
+			if (l_fly_user.length() > 15)
+			{
+				l_fly_user = l_nick.substr(0, 12);
+				l_fly_user += "_R" + Util::toString(Util::rand()).substr(0, 3);
+			}
+			m_client->setMyNick(l_fly_user);
+			m_client->setRandomNick(l_fly_user);
+			ctrlClient.setHubParam(m_client->getHubUrl(), m_client->getMyNick());
+			CFlyServerJSON::pushError(54, "Hub = " + m_client->getHubUrl() + " New random nick = " + l_fly_user);
+			if (m_reconnect_count < 3)
+			{
+				m_client->reconnect();
+				m_reconnect_count++;
+			}
 		}
 	}
 }
@@ -4330,8 +4332,12 @@ LRESULT HubFrame::onSizeMove(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 
 LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 {
-	//dcassert(g_isStartupProcess != true);
-	if (g_isStartupProcess == true)
+	//dcassert(ClientManager::isStartup() != true);
+	if (ClientManager::isStartup() == true)
+	{
+		return CDRF_DODEFAULT;
+	}
+	if (ClientManager::isShutdown() == true)
 	{
 		return CDRF_DODEFAULT;
 	}

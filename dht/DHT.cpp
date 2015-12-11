@@ -40,10 +40,11 @@
 #include "../FlyFeatures/flyServer.h"
 namespace dht
 {
+string DHT::g_lastExternalIP;
 
 DHT::DHT(void) : m_bucket(nullptr), m_lastPacket(0), requestFWCheck(true), m_firewalled(true)
 {
-	lastExternalIP = Util::getLocalOrBindIp(true); // hack
+	g_lastExternalIP = Util::getLocalOrBindIp(true); // hack
 	m_type = ClientBase::DHT;
 	
 	IndexManager::newInstance();
@@ -170,10 +171,10 @@ void DHT::dispatch(const string& aLine, const string& ip, uint16_t port, bool is
 			
 			
 		// ignore message from myself
-		if (l_CID == ClientManager::getMyCID() || ip == lastExternalIP) // [!] IRainman fix.
+		if (l_CID == ClientManager::getMyCID() || ip == g_lastExternalIP) // [!] IRainman fix.
 		{
-        LogManager::dht_message("DHT::dispatch] CID(cid) == ClientManager::getMyCID() || ip == lastExternalIP. error ip = " + ip + 
-			":" + Util::toString(port) + " cid = " + cmd.toString(l_CID) + " lastExternalIP = " + lastExternalIP);
+        LogManager::dht_message("DHT::dispatch] CID(cid) == ClientManager::getMyCID() || ip == g_lastExternalIP. error ip = " + ip + 
+			":" + Util::toString(port) + " cid = " + cmd.toString(l_CID) + " g_lastExternalIP = " + g_lastExternalIP);
 			return;
     }
 			
@@ -185,7 +186,7 @@ void DHT::dispatch(const string& aLine, const string& ip, uint16_t port, bool is
 		if (cmd.getParam("UK", 1, udpKey))
 		{
 			key.m_key = CID(udpKey);
-			key.m_ip = DHT::getInstance()->getLastExternalIP();
+			key.m_ip = DHT::getLastExternalIP();
 		}
 		Node::Ptr l_node = addDHTNode(CID(cid), ip, port, key, true, isUdpKeyValid);
 		if (!l_node)
@@ -246,6 +247,7 @@ void DHT::dispatch(const string& aLine, const string& ip, uint16_t port, bool is
  */
 bool DHT::send(AdcCommand& cmd, const string& ip, uint16_t port, const CID& targetCID, const UDPKey& udpKey)
 {
+	dcassert(BOOLSETTING(USE_DHT));
 	if (1) // SettingsManager::g_TestUDPDHTLevel == true)
 	{
 		{
@@ -729,7 +731,7 @@ void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t port, const UDP
 				if (fw >= 0)
 				{
 					// we are probably firewalled, so our internal UDP port is unaccessible
-					if (externalIP != lastExternalIP || !m_firewalled)
+					if (externalIP != g_lastExternalIP || !m_firewalled)
 					{
 						LogManager::message("DHT: " + STRING(DHT_FIREWALLED_UDP) + " (IP: " + externalIP + ") port:" + externalUdpPort);
           }
@@ -737,7 +739,7 @@ void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t port, const UDP
 				}
 				else
 				{
-					if (externalIP != lastExternalIP || m_firewalled)
+					if (externalIP != g_lastExternalIP || m_firewalled)
 					{
 						LogManager::message("DHT: " + STRING(DHT_OUR_UPD_PORT_OPEND) + " (IP: " + externalIP + ") port:" + externalUdpPort);
           }
@@ -754,7 +756,7 @@ void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t port, const UDP
 				firewalledChecks.clear();
 				firewalledWanted.clear();
 				
-				lastExternalIP = externalIP;
+				g_lastExternalIP = externalIP;
 				requestFWCheck = false;
 			}
 		}

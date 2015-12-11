@@ -161,11 +161,8 @@ class FavoriteHubEntry
 	FavoriteHubEntry() noexcept :
 		connect(false), encoding(Text::g_systemCharset), windowposx(0), windowposy(0), windowsizex(0),
 		        windowsizey(0), windowtype(0), chatusersplit(0),
-#ifdef FLYLINKDC_HE
-		        userliststate(false),
-#else
 		        userliststate(true),
-#endif
+		        m_ISPDisableFlylinkDCSupportHub(false),
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
 		        chatusersplitstate(true),
 #endif
@@ -208,6 +205,7 @@ class FavoriteHubEntry
 		GETSET(int, windowtype, WindowType);
 		GETSET(int, chatusersplit, ChatUserSplit);
 		GETSET(bool, userliststate, UserListState);
+		GETSET(bool, m_ISPDisableFlylinkDCSupportHub, ISPDisableFlylinkDCSupportHub);
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
 		GETSET(bool, chatusersplitstate, ChatUserSplitState);
 #endif

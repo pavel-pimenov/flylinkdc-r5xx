@@ -64,25 +64,14 @@ LRESULT DCLSTPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	magnetClick.AddString(CTSTRING(DOWNLOAD));
 	magnetClick.AddString(CTSTRING(OPEN));
 	
-	if (SETTING(DCLST_ASK) == 1)
+//	if (SETTING(DCLST_ASK) == 1)
+//	{
+//		magnetClick.SetCurSel(0);
+//	}
+//	else
 	{
-		magnetClick.SetCurSel(0);
-	}
-	else
-	{
-		int action = SETTING(DCLST_ACTION);
-		switch (action)
-		{
-			case 0:
-				magnetClick.SetCurSel(1);
-				break;
-			case 1:
-				magnetClick.SetCurSel(2);
-				break;
-			default:
-				magnetClick.SetCurSel(3);
-				break;
-		}
+		const int action = SETTING(DCLST_ACTION);
+		magnetClick.SetCurSel(action);
 	}
 	magnetClick.Detach();
 	
@@ -95,6 +84,10 @@ void DCLSTPage::write()
 {
 	PropPage::write((HWND)*this, items);
 	SET_SETTING(DCLST_CREATE_IN_SAME_FOLDER,    IsDlgButtonChecked(IDC_DCLS_CREATE_IN_FOLDER) == BST_CHECKED);
+	magnetClick.Attach(GetDlgItem(IDC_DCLST_CLICK));
+	g_settings->set(SettingsManager::DCLST_ACTION, magnetClick.GetCurSel());
+	magnetClick.Detach();
+	
 }
 
 LRESULT DCLSTPage::OnClickedUseDCLST(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)

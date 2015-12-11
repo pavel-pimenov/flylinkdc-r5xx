@@ -36,14 +36,24 @@ class StringTokenizer
 				const T::size_type cur = str.find(tok, next);
 				if (cur != T::npos)
 				{
-					m_tokens.push_back(str.substr(next, cur - next));
+					const T l_value = str.substr(next, cur - next);
+					//dcassert(!l_value.empty());
+					//if (!l_value.empty())
+					{
+						m_tokens.push_back(l_value);
+					}
 					next = cur + tokLen;
 				}
 				else
 				{
 					if (next < str.size())
 					{
-						m_tokens.push_back(str.substr(next, str.size() - next)); // 2012-05-03_22-05-14_YNJS7AEGAWCUMRBY2HTUTLYENU4OS2PKNJXT6ZY_F4B220A1_crash-stack-r502-beta24-x64-build-9900.dmp
+						const T l_value = str.substr(next, str.size() - next);
+						//dcassert(!l_value.empty());
+						//if (!l_value.empty())
+						{
+							m_tokens.push_back(l_value);
+						}
 					}
 					break;
 				}

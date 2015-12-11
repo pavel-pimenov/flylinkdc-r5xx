@@ -28,8 +28,8 @@
 
 void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bool preview /*= false*/)
 {
-	dcassert(BaseChatFrame::g_isStartupProcess == false);
-	if (BaseChatFrame::g_isStartupProcess == true)
+	dcassert(ClientManager::isStartup() == false);
+	if (ClientManager::isStartup() == true)
 		return;
 		
 	if (!m_is_activated)
@@ -139,7 +139,7 @@ void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bo
 
 void PopupManager::on(TimerManagerListener::Second /*type*/, uint64_t tick) noexcept
 {
-	// TODO - подписаться позже. dcassert(!BaseChatFrame::g_isStartupProcess);
+	// TODO - подписаться позже. dcassert(!ClientManager::isStartup());
 	dcassert(WinUtil::g_mainWnd);
 	if (WinUtil::g_mainWnd)
 	{

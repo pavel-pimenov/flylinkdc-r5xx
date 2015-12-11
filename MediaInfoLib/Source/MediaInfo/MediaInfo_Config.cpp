@@ -125,7 +125,7 @@ namespace MediaInfoLib
 {
 
 //---------------------------------------------------------------------------
-const Char*  MediaInfo_Version=__T("MediaInfoLib - v0.7.79");
+const Char*  MediaInfo_Version=__T("MediaInfoLib - v0.7.80");
 const Char*  MediaInfo_Url=__T("http://MediaArea.net/MediaInfo");
       Ztring EmptyZtring;       //Use it when we can't return a reference to a true Ztring
 const Ztring EmptyZtring_Const; //Use it when we can't return a reference to a true Ztring, const version
@@ -1495,7 +1495,13 @@ Ztring MediaInfo_Config::Language_Get (const Ztring &Value)
     CriticalSectionLocker CSL(CS);
 
     if (Value.find(__T(" / "))==string::npos)
-        return Language.Get(Value);
+    {
+        if (Value.size()<7 || Value.find(__T("/String"))+7!=Value.size())
+            return Language.Get(Value);
+        Ztring Temp(Value);
+        Temp.resize(Value.size()-7);
+        return Language.Get(Temp);
+    }
 
     ZtringList List;
     List.Separator_Set(0, __T(" / "));

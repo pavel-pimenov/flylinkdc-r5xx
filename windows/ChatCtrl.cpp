@@ -167,7 +167,7 @@ ChatCtrl::CFlyChatCache::CFlyChatCache(const Identity& p_id, const bool bMyMess,
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
-		m_bUseEmo = bUseEmo || !TimerManager::g_isStartupShutdownProcess; // Пока конструируемся - смайлы не добавляем чтобы не тормозить
+		m_bUseEmo = bUseEmo || !ClientManager::isStartup(); // Пока запускаемся - аним-смайлы отрубаем
 		if (p_is_remove_rn)
 			Text::normalizeStringEnding(m_Msg);
 		m_Msg += '\n';

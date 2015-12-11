@@ -511,7 +511,7 @@
 ;Россия;Красноярск;КрасЛан;;dc.kraslan.ru,dc.optizone.ru,dc.dcfiles.ru
 ;Россия;Красноярск;Крастел;;93.88.172.250
 ;Россия;Красноярск;Мемфис;;dc.rastrnet.ru,dc.kraslan.ru,dc.avers-telecom.ru,dcc.krk.ru,dc.fliknet.ru,dc.kraset.ru,sib-tracker.ru,megadc.ru,dc.inetik.ru,dc.kinf.ru,89.105.130.215,dc.krasfiles.ru,dc.24ms.net,dc.krskdom.ru
-;Россия;Красноярск;Мультима;;dc.krasfiles.ru,dc.krasdc.ru,dc.krk.ru,dc.kraslan.ru,dc.cifracom.ru,dc.fliknet.ru,freekras.no-ip.org,dc.krcity.ru
+;Россия;Красноярск;Мультима;;dc.krasfiles.ru,dc.krasdc.ru,dc.krk.ru,dc.kraslan.ru,dc.cifracom.ru,dc.softorion.ru,dc.rastrnet.ru,dc.fliknet.ru,megadc.ru,freekras.no-ip.org,dc.inetik.ru,dc.optizone.ru,golden-cube.no-ip.biz,dc.krcity.ru,siberianet.ru
 ;Россия;Красноярск;Оптизон;;dc.optizone.ru
 ;Россия;Красноярск;Орион-Телеком;;dc.krasdc.ru,dc.kr-ix.ru,dcc.orionnet.ru,dc.rastrnet.ru,dc.kraslan.ru,dc.inetik.ru,intermal.g-service.ru,internet.zaka4ays9.org.ua,gia.pptp.vzletka.net,dc.krasfiles.ru,p2p.multima.ru,dc.avers-telecom.ru,megadc.ru,sib-tracker.ru,achinsk.ru,internal.g-service.ru,dc.krcity.ru,dc.sibanime.ru,right-side.no-ip.biz,freekras.no-ip.org,immortalhub.mine.nu,dc.nazarovo-tel.ru,dc.24ms.net,dc.kinf.ru,dc.telemax-net.ru,89.105.130.215,dcc.krk.ru,dc.kraslan.ru:411
 ;Россия;Красноярск;Растр;;dc.sibanime.ru,dc.dcfiles.ru,rastrnet.ru
@@ -713,7 +713,7 @@
 ;Россия;Новосибирск;Academ-org;;p2p.academ.org,dcpp.nsunet.ru,10.3.50.86:411,peers.cn.ru,dc.mcduck.info:411,89.31.117.58,blyhub.homenet,atlantidap2p.homenet,synergetic-hub.org
 ;Россия;Новосибирск;CityHomeNet;;antarktida.homenet,dc.piknik-dc.ru:4111,p2p.citynsk.ru,p2p.homenet,blyhub.homenet,atlantidap2p.homenet,vipernsk.citynsk.ru,dsmagnet.ru,peers.cn.ru,p2p.local
 ;Россия;Новосибирск;CKNET;;dc.cknet.ru
-;Россия;Новосибирск;Dc-avtostay-ru;;178.49.3.57
+;Россия;Новосибирск;Dc-avtostay-ru;;hub.avtostay.ru,peers.cn.ru
 ;Россия;Новосибирск;ER-Telecom Holding;;sun-city.no-ip.biz:4111
 ;Россия;Новосибирск;Homenet;;p2p.homenet,atlantidap2p.homenet,blyhub.homenet,babylon.nsunet.ru,dcpp.nsunet.ru,p2p.citynsk.ru,p2p.x1planet.ru,dc.playground.ru,int.myvnc.com:411,peers.cn.ru,blyhub.ru,atlantida.hnet.ru,p2p.hnet.ru
 ;Россия;Новосибирск;HomeNet-p2p;;blyhub.hnet.ru,atlantida.hnet.ru,p2p.hnet.ru
@@ -1192,6 +1192,7 @@
 ;Россия;Ярославль;ТТК;;dc.yar-net.ru,dc.tiera.ru,dc.spammerws.net
 ;Россия;Ярцево;Интернет67;;dc-dor.internet67.ru,dc-yar.internet67.ru
 ;Россия;Ясногорск;TTK;;dc.ttk-chita.ru
+;Росссия;Невинномысск;Мобайл Тренд;;10.0.0.6
 ;Узбекистан;Nukus;Uzonline;;hi.uz
 ;Узбекистан;Андижон;Uzonline;;allavtovo.ru,dc.unionbest.org:4111,dc.mside.net,dc.cifracom.ru,dc.filimania.com,dc.dcmagnets.ru,piknik-dc.ru,artcool.org,dc.tiera.ru,spb-hub.ru,prime-hub.ru,godc.ru,dc.fly-server.ru
 ;Узбекистан;Зарафшан;TuronNET;;172.6.18.6,10.254.1.54,10.254.1.58
@@ -1323,6 +1324,7 @@
 ;Украина;Ровно;Airbites;;dchub.airbites.net.ua:4111
 ;Украина;Ровно;Campus Networks;;hub.campus.lan
 ;Украина;Ровно;Ukr-west;;dc.sat-dv.ru
+;Украина;Ровно воля;Воля;;commfort-volia.sytes.net
 ;Украина;С.Журавлёвка Симферопольский р-н;Cip Net;;cip-net.no-ip.org
 ;Украина;Свердловск;LuGaNeT Portal DC;;dclugalan.sytes.net:411
 ;Украина;Свердловск;Домашняя сеть FlyNet;FlyNet FlyLink;dc.lan

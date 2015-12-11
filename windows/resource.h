@@ -339,7 +339,6 @@
 #define IDC_MAXSPEED                    1125
 #define IDC_SPEEDSPIN                   1126
 #define IDC_FAVUSERS                    1127
-#define IDC_PROXY                       1128
 #define IDC_ADD_TO_FAVORITES            1129
 #define IDC_FILESPIN                    1130
 #define IDC_HELP_HOMEPAGE               1131
@@ -456,7 +455,6 @@
 #define IDC_SETTINGS_SPEEDS_NOT_ACCURATE 1241
 #define IDC_SETTINGS_PUBLIC_HUB_LIST    1242
 #define IDC_SETTINGS_PUBLIC_HUB_LIST_URL 1243
-#define IDC_SETTINGS_PUBLIC_HUB_LIST_HTTP_PROXY 1244
 #define IDC_BITTORRENT_PROGRAMM         1245
 #define IDC_SETTINGS_SHARED_DIRECTORIES 1246
 #define IDC_SETTINGS_FILES_MAX          1247

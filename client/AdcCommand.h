@@ -277,6 +277,11 @@ class CommandHandler
 		{
 			try
 			{
+				dcassert(!ClientManager::isShutdown());
+				if (ClientManager::isShutdown())
+				{
+					return;
+				}
 				AdcCommand cmd(aLine, nmdc);
 				
 #define C(n) case AdcCommand::CMD_##n: ((T*)this)->handle(AdcCommand::n(), cmd); break;

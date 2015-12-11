@@ -238,7 +238,7 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 				//[~]IRainman refactoring SpyFrame
 				tstring l_SeekersNames;
 				{
-					auto& l_searh_item =  m_searches[si->s];
+					auto& l_searh_item = m_spy_searches[si->s];
 					if (m_showNick)// [+] IRainman
 					{
 						if (::strncmp(si->seeker.c_str(), "Hub:", 4))

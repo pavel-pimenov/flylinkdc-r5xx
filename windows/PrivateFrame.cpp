@@ -423,7 +423,7 @@ void PrivateFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 {
 	if (isClosedOrShutdown())
 		return;
-	if (g_isStartupProcess)
+	if (ClientManager::isStartup())
 		return;
 	dcassert(!ClientManager::isShutdown());
 	if (ClientManager::isShutdown())
@@ -447,19 +447,8 @@ void PrivateFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 			m_ctrlLastLinesToolTip->SetMaxTipWidth(max(w[0], 400));
 		}
 	}
-	
-	/*[+] Это условие для тех, кто любит большие шрифты,
-	будет включаться многострочный ввод принудительно,
-	чтоб не портить расположение элементов Sergey Shushkanov */
-	const bool bUseMultiChat = BOOLSETTING(MULTILINE_CHAT_INPUT) || m_bUseTempMultiChat
-#ifdef MULTILINE_CHAT_IF_BIG_FONT_SET
-	                           || Fonts::g_fontHeight > FONT_SIZE_FOR_AUTO_MULTILINE_CHAT //[+] TEST VERSION Sergey Shushkanov
-#endif
-	                           ;
-	                           
-	const int h = bUseMultiChat ? 20 : 14;//[+] TEST VERSION Sergey Shushkanov
-	const int chat_columns = bUseMultiChat ? 2 : 1; // !Decker! // [~] Sergey Shushkanov
-	
+	int h = 0, chat_columns = 0;
+	const bool bUseMultiChat = isMultiChat(h, chat_columns);
 	CRect rc = rect;
 	rc.bottom -= h * chat_columns + 15; // !Decker! //[~] Sergey Shushkanov
 	
@@ -728,7 +717,7 @@ void PrivateFrame::onInvalidateAfterActiveTab(HWND aWnd)
 void PrivateFrame::createMessagePanel()
 {
 	dcassert(!ClientManager::isShutdown());
-	if (m_ctrlStatus == nullptr && g_isStartupProcess == false)
+	if (m_ctrlStatus == nullptr && ClientManager::isStartup() == false)
 	{
 		BaseChatFrame::createMessageCtrl(this, PM_MESSAGE_MAP, false); // TODO - проверить hub
 		if (!m_ctrlChatContainer.IsWindow())

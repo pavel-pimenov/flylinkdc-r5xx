@@ -42,7 +42,7 @@
 #endif //defined(MEDIAINFO_PBCORE_YES)
 #include "MediaInfo/MediaInfo_Internal.h"
 #include "MediaInfo/File__Analyze.h"
-#include "ThirdParty/base64/base64.h"
+#include "ThirdParty/base64/base64.h" // FlylinkDC++
 //---------------------------------------------------------------------------
 
 namespace MediaInfoLib
@@ -243,31 +243,39 @@ Ztring MediaInfo_Internal::Inform()
     Ztring Retour;
     bool HTML=false;
     bool XML=false;
-    bool XML_0_7_78=false;
+    bool XML_0_7_78_MA=false;
+    bool XML_0_7_78_MI=false;
     bool CSV=false;
+    #if defined(MEDIAINFO_HTML_YES)
     if (MediaInfoLib::Config.Inform_Get()==__T("HTML"))
         HTML=true;
+    #endif //defined(MEDIAINFO_HTML_YES)
+    #if defined(MEDIAINFO_XML_YES)
     if (MediaInfoLib::Config.Inform_Get()==__T("XML"))
         XML=true;
     if (MediaInfoLib::Config.Inform_Get()==__T("MAXML"))
-    {
-        XML=true;
-        XML_0_7_78=true;
-    }
+        XML_0_7_78_MA=true;
+    if (MediaInfoLib::Config.Inform_Get()==__T("MIXML"))
+        XML_0_7_78_MI=true;
+    #endif //defined(MEDIAINFO_XML_YES)
+    #if defined(MEDIAINFO_CSV_YES)
     if (MediaInfoLib::Config.Inform_Get()==__T("CSV"))
         CSV=true;
+    #endif //defined(MEDIAINFO_CSV_YES)
 
-    if (HTML) Retour+=__T("<html>\n\n<head>\n<META http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" /></head>\n<body>\n");
-    if (XML_0_7_78)
+    if (HTML)
+        Retour+=__T("<html>\n\n<head>\n<META http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" /></head>\n<body>\n");
+    #if defined(MEDIAINFO_XML_YES)
+    if (XML_0_7_78_MA || XML_0_7_78_MI)
     {
-#if defined(MEDIAINFO_XML_YES)
-		size_t Modified;
+        size_t Modified;
         Retour+=__T("<media ref=\"")+MediaInfo_Internal::Xml_Content_Escape(Get(Stream_General, 0, General_CompleteName), Modified)+__T("\">\n");
-        Retour+=__T("<MediaInfo xmlns=\"https://mediaarea.net/mediainfo\" version=\"2.0alpha1\">\n");
-#endif
     }
-    else
-    if (XML)  Retour+=__T("<File>\n");
+    if (XML_0_7_78_MA)
+        Retour+=__T("<MediaInfo xmlns=\"https://mediaarea.net/mediainfo\" version=\"2.0beta1\">\n");
+    if (XML)
+        Retour+=__T("<File>\n");
+    #endif //defined(MEDIAINFO_XML_YES)
 
     for (size_t StreamKind=(size_t)Stream_General; StreamKind<Stream_Max; StreamKind++)
     {
@@ -276,10 +284,10 @@ Ztring MediaInfo_Internal::Inform()
         {
             //Pour chaque stream
             if (HTML) Retour+=__T("<table width=\"100%\" border=\"0\" cellpadding=\"1\" cellspacing=\"2\" style=\"border:1px solid Navy\">\n<tr>\n    <td width=\"150\"><h2>");
-            if (XML) Retour+=__T("<track type=\"");
+            if (XML || XML_0_7_78_MA || XML_0_7_78_MI) Retour+=__T("<track type=\"");
             Ztring A=Get((stream_t)StreamKind, StreamPos, __T("StreamKind/String"));
             Ztring B=Get((stream_t)StreamKind, StreamPos, __T("StreamKindPos"));
-            if (!XML && !B.empty())
+            if (!XML && !XML_0_7_78_MA && !XML_0_7_78_MI && !B.empty())
             {
                 if (CSV)
                     A+=__T(",");
@@ -288,29 +296,29 @@ Ztring MediaInfo_Internal::Inform()
                 A+=B;
             }
             Retour+=A;
-            if (XML)
+            if (XML || XML_0_7_78_MA || XML_0_7_78_MI)
             {
                 Retour+=__T("\"");
                 if (!B.empty())
                 {
-                    Retour+=__T(" streamid=\"");
+                    Retour+=__T(" typeorder=\"");
                     Retour+=B;
                     Retour+=__T("\"");
                 }
             }
             if (HTML) Retour+=__T("</h2></td>\n  </tr>");
-            if (XML) Retour+=__T(">");
+            if (XML || XML_0_7_78_MA || XML_0_7_78_MI) Retour+=__T(">");
             Retour+=MediaInfoLib::Config.LineSeparator_Get();
             Retour+=Inform((stream_t)StreamKind, StreamPos, false);
             Retour.FindAndReplace(__T("\\"), __T("|SC1|"), 0, Ztring_Recursive);
             if (HTML) Retour+=__T("</table>\n<br />");
-            if (XML) Retour+=__T("</track>\n");
+            if (XML || XML_0_7_78_MA || XML_0_7_78_MI) Retour+=__T("</track>\n");
             Retour+=MediaInfoLib::Config.LineSeparator_Get();
         }
     }
 
     if (HTML) Retour+=__T("\n</body>\n</html>\n");
-    if (XML_0_7_78)  Retour+=__T("</MediaInfo>\n");
+    if (XML_0_7_78_MA)  Retour+=__T("</MediaInfo>\n");
 
     Retour.FindAndReplace(__T("\\r\\n"), __T("\n"), 0, Ztring_Recursive);
     Retour.FindAndReplace(__T("\\r"), __T("\n"), 0, Ztring_Recursive);
@@ -331,7 +339,7 @@ Ztring MediaInfo_Internal::Inform()
     Retour.FindAndReplace(__T("|SC9|"), __T("),"), 0, Ztring_Recursive);
 
     #if MEDIAINFO_TRACE
-        if (XML_0_7_78)
+        if (XML_0_7_78_MA)
         {
             if (MediaInfoLib::Config.Trace_Level_Get() || MediaInfoLib::Config.Inform_Get()==__T("Details"))
             {
@@ -346,8 +354,10 @@ Ztring MediaInfo_Internal::Inform()
         }
     #endif //MEDIAINFO_TRACE
 
-    if (XML_0_7_78)  Retour+=__T("</media>\n");
-    else if (XML)  Retour+=__T("</File>\n");
+    if (XML_0_7_78_MA || XML_0_7_78_MI)
+        Retour+=__T("</media>\n");
+    if (XML)
+        Retour+=__T("</File>\n");
 
     return Retour;
 
@@ -380,11 +390,9 @@ Ztring MediaInfo_Internal::Inform (stream_t StreamKind, size_t StreamPos, bool I
         #endif //defined(MEDIAINFO_HTML_YES)
         #if defined(MEDIAINFO_XML_YES)
         bool XML=MediaInfoLib::Config.Inform_Get()==__T("XML")?true:false;
-        bool XML_0_7_78=MediaInfoLib::Config.Inform_Get()==__T("MAXML")?true:false;
+        bool XML_0_7_78=(MediaInfoLib::Config.Inform_Get()==__T("MAXML") || MediaInfoLib::Config.Inform_Get()==__T("MIXML"))?true:false;
         if (XML_0_7_78)
             XML=true;
-		#else
-		    bool XML_0_7_78 = false;
         #endif //defined(MEDIAINFO_XML_YES)
         #if defined(MEDIAINFO_CSV_YES)
         bool CSV=MediaInfoLib::Config.Inform_Get()==__T("CSV")?true:false;
@@ -412,6 +420,7 @@ Ztring MediaInfo_Internal::Inform (stream_t StreamKind, size_t StreamPos, bool I
             //Ztring A=Get((stream_t)4, 2, 0, Info_Measure_Text); // TODO Bug sinon? voir Ztring
             Ztring A=Get((stream_t)StreamKind, StreamPos, Champ_Pos, Info_Measure_Text); // TODO Bug sinon? voir Ztring
             bool Shouldshow=false;
+            #if defined(MEDIAINFO_XML_YES)
             if (XML_0_7_78)
             {
                 if (Champ_Pos>=Stream[StreamKind][StreamPos].size())
@@ -423,20 +432,28 @@ Ztring MediaInfo_Internal::Inform (stream_t StreamKind, size_t StreamPos, bool I
                     Shouldshow=true;
                 }
             }
-            else 
-				if ((MediaInfoLib::Config.Complete_Get() || Get((stream_t)StreamKind, StreamPos, Champ_Pos, Info_Options)[InfoOption_ShowInInform]==__T('Y')))
+            else
+            #endif //defined(MEDIAINFO_XML_YES
+            if ((MediaInfoLib::Config.Complete_Get() || Get((stream_t)StreamKind, StreamPos, Champ_Pos, Info_Options)[InfoOption_ShowInInform]==__T('Y')))
                 Shouldshow=true;
             if (Shouldshow && !Get((stream_t)StreamKind, StreamPos, Champ_Pos, Info_Text).empty())
             {
+                #if defined(MEDIAINFO_XML_YES)
                 //Extra
                 if (XML_0_7_78 && !IsExtra && Champ_Pos>=Stream[StreamKind][StreamPos].size())
                 {
                      Retour+=__T("<extra>\n");
                      IsExtra=true;
                 }
-                    
+                #endif //defined(MEDIAINFO_XML_YES
+
                 Ztring Nom=Get((stream_t)StreamKind, StreamPos, Champ_Pos, Info_Name_Text);
+                #if defined(MEDIAINFO_XML_YES)
                 if (Nom.empty() || XML_0_7_78)
+                #else
+                if (Nom.empty())
+                #endif //defined(MEDIAINFO_XML_YES
+
                     Nom=Get((stream_t)StreamKind, StreamPos, Champ_Pos, Info_Name); //Texte n'existe pas
                 #if defined(MEDIAINFO_TEXT_YES) && (defined(MEDIAINFO_HTML_YES) || defined(MEDIAINFO_XML_YES) || defined(MEDIAINFO_CSV_YES))
                 if (Text)
@@ -448,6 +465,17 @@ Ztring MediaInfo_Internal::Inform (stream_t StreamKind, size_t StreamPos, bool I
                      Nom.resize(Nom_Size, ' ');
                 }
                 Ztring Valeur=Get((stream_t)StreamKind, StreamPos, Champ_Pos, Info_Text);
+                #if defined(MEDIAINFO_XML_YES)
+                    if (XML_0_7_78 && MediaInfoLib::Config.Info_Get(StreamKind).Read(Champ_Pos, Info_Measure)==__T(" ms"))
+                    {
+                        size_t Decimal = Valeur.find(__T('.'));
+                        size_t Precision=3;
+                        if (Decimal != (size_t)-1)
+                            Precision+=Valeur.size()-Decimal-1;
+                        float64 Ms=Valeur.To_float64();
+                        Valeur.From_Number(Ms/1000, Precision);
+                    }
+                #endif // defined(MEDIAINFO_XML_YES)
                 Valeur.FindAndReplace(__T("\\"), __T("|SC1|"), 0, Ztring_Recursive);
                 #if defined(MEDIAINFO_HTML_YES)
                 if (HTML)

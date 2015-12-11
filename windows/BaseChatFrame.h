@@ -37,19 +37,17 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		NOTIFY_CODE_HANDLER(TTN_GETDISPINFO, onGetToolTip)
 		CHAIN_COMMANDS(isBase)
 		CHAIN_MSG_MAP_MEMBER(ctrlClient)
-		// CHAIN_MSG_MAP_MEMBER_PTR(m_msgPanel)
+		//CHAIN_MSG_MAP_MEMBER_PTR(m_msgPanel)
+		if (ClientManager::isStartup() == false) // try fix https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=38156
 		{
-			if (!g_isStartupProcess) // try fix https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=38156
+			if (m_msgPanel && m_msgPanel->ProcessWindowMessage(hWnd, uMsg, wParam, lParam, lResult))
 			{
-				if (m_msgPanel && m_msgPanel->ProcessWindowMessage(hWnd, uMsg, wParam, lParam, lResult))
-				{
-					return TRUE;
-				}
+				return TRUE;
 			}
-			else
-			{
-				// dcassert(0);
-			}
+		}
+		else
+		{
+			// dcassert(0);
 		}
 		COMMAND_ID_HANDLER(IDC_MESSAGEPANEL, onMultilineChatInputButton)
 		COMMAND_ID_HANDLER(ID_TEXT_TRANSCODE, OnTextTranscode)
@@ -188,6 +186,7 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		tstring m_currentCommand;
 		size_t m_curCommandPosition;
 		bool m_bUseTempMultiChat;
+		bool isMultiChat(int& p_h, int& p_chat_columns) const;
 	private:
 		bool m_bProcessNextChar;
 		bool m_bTimeStamps;
@@ -196,6 +195,4 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		
 		bool adjustChatInputSize(BOOL& bHandled);
 		void insertLineHistoryToChatInput(const WPARAM wParam, BOOL& bHandled);
-	public:
-		static bool g_isStartupProcess;
 };

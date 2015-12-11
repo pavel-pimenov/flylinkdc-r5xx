@@ -73,7 +73,7 @@ bool ShareManager::g_isNeedsUpdateShareSize;
 int64_t ShareManager::g_CurrentShareSize = -1;
 
 ShareManager::ShareManager() : xmlListLen(0), bzXmlListLen(0),
-	xmlDirty(true), forceXmlRefresh(false), refreshDirs(false), update(false), initial(true), m_listN(0), m_count_sec(0),
+	xmlDirty(true), forceXmlRefresh(false), refreshDirs(false), update(false), m_is_initial(true), m_listN(0), m_count_sec(0),
 	m_lastXmlUpdate(0), m_lastFullUpdate(GET_TICK()), m_bloom(1 << 20),
 #ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
 	m_sweep_guard(false),
@@ -331,7 +331,8 @@ string ShareManager::toReal(const string& virtualFile
 	}
 	
 	CFlyReadLock(*g_csShare);
-	return findFileL(virtualFile)->getRealPath();
+	const auto l_file = findFileL(virtualFile);
+	return l_file->getRealPath();
 }
 
 TTHValue ShareManager::getTTH(const string& virtualFile) const
@@ -464,7 +465,9 @@ ShareManager::Directory::ShareFile::Set::const_iterator ShareManager::findFileL(
 	                       //Directory::ShareFile::StringComp(v.second)
 	                      );
 	if (it == v.first->m_files.end())
+	{
 		throw ShareException(UserConnection::g_FILE_NOT_AVAILABLE, virtualFile);
+	}
 	return it;
 }
 
@@ -930,7 +933,7 @@ void ShareManager::Directory::mergeL(const Directory::Ptr& source)
 		const auto& ti = m_directories.find(subSource->getName());
 		if (ti == m_directories.end())
 		{
-			if (findFileL(subSource->getName()) != m_files.end())
+			if (findFileIterL(subSource->getName()) != m_files.end())
 			{
 				dcdebug("File named the same as directory");
 			}
@@ -952,7 +955,7 @@ void ShareManager::Directory::mergeL(const Directory::Ptr& source)
 	
 	for (auto i = source->m_files.cbegin(); i != source->m_files.cend(); ++i)
 	{
-		if (findFileL(i->getName()) == m_files.end())
+		if (findFileIterL(i->getName()) == m_files.end())
 		{
 			if (m_directories.find(i->getName()) != m_directories.end())
 			{
@@ -1072,7 +1075,7 @@ void ShareManager::internalCalcShareSize() // [!] IRainman opt.
 {
 	if (g_isNeedsUpdateShareSize)
 	{
-		if (!ClientManager::isShutdown()) 
+		if (!ClientManager::isShutdown())
 		{
 			g_isNeedsUpdateShareSize = false;
 			int64_t l_CurrentShareSize = 0;
@@ -1398,22 +1401,22 @@ __int64 ShareManager::rebuildMediainfo(CFlyLog& p_log)
 
 bool ShareManager::updateIndicesDirL(Directory& dir)
 {
-	dcassert(!ClientManager::isShutdown());
+	//dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
 		{
 			CFlyFastLock(g_csBloom);
 			m_bloom.add(Text::toLower(dir.getName())); // TODO сохранить имя в нижнем?
 		}
-
+		
 		for (auto i = dir.m_directories.cbegin(); i != dir.m_directories.cend(); ++i)
 		{
 			if (updateIndicesDirL(*i->second) == false)
 				return false;
 		}
-
+		
 		dir.size = 0;
-
+		
 		for (auto i = dir.m_files.cbegin(); i != dir.m_files.cend();)
 		{
 			if (updateIndicesL(dir, i++) == false)
@@ -1429,22 +1432,22 @@ void ShareManager::rebuildIndicesL()
 	//dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
-
+	
 		g_isNeedsUpdateShareSize = true;
 		{
 			CFlyWriteLock(*g_csTTHIndex);
 			g_tthIndex.clear();
 		}
-	{
-		CFlyFastLock(g_csBloom);
-		m_bloom.clear();
-	}
-
-	for (auto i = m_list_directories.cbegin(); i != m_list_directories.cend(); ++i)
-	{
-		if (updateIndicesDirL(**i) == false)
-			break;
-	}
+		{
+			CFlyFastLock(g_csBloom);
+			m_bloom.clear();
+		}
+		
+		for (auto i = m_list_directories.cbegin(); i != m_list_directories.cend(); ++i)
+		{
+			if (updateIndicesDirL(**i) == false)
+				break;
+		}
 	}
 }
 
@@ -1461,9 +1464,9 @@ bool ShareManager::updateIndicesL(Directory& dir, const Directory::ShareFile::Se
 			{
 				dir.size += f.getSize();
 			}
-
+			
 			dir.addType(f.getFType());
-
+			
 			g_tthIndex.insert(make_pair(f.getTTH(), i));
 			g_isNeedsUpdateShareSize = true;
 		}
@@ -1472,14 +1475,13 @@ bool ShareManager::updateIndicesL(Directory& dir, const Directory::ShareFile::Se
 			CFlyFastLock(g_csBloom);
 			m_bloom.add(Text::toLower(f.getName())); // TODO - тут заюзать  f.getLowName()
 		}
-
+		
 #ifdef STRONG_USE_DHT
 		if (!ClientManager::isShutdown())
 		{
-			dht::IndexManager* im = dht::IndexManager::getInstance();
-			if (im->isTimeForPublishing())
+			if (m_is_initial == false && dht::IndexManager::isTimeForPublishing() && BOOLSETTING(USE_DHT))
 			{
-				im->publishFile(f.getTTH(), f.getSize());
+				dht::IndexManager::publishFile(f.getTTH(), f.getSize());
 			}
 		}
 		else
@@ -1504,15 +1506,18 @@ void ShareManager::refresh(bool dirs /* = false */, bool aUpdate /* = true */, b
 	refreshDirs = dirs;
 	join();
 	bool cached;
-	if (initial)
+	if (m_is_initial)
 	{
 		cached = loadCache();
-		initial = false;
+		m_is_initial = false;
 	}
 	else
 	{
 		cached = false;
 	}
+	
+	dht::IndexManager::setTimeForPublishing();
+	
 	try
 	{
 		start(0);
@@ -1601,16 +1606,18 @@ int ShareManager::run()
 	}
 	if (!ClientManager::isShutdown())
 	{
-
+	
 		if (update)
 		{
 			ClientManager::infoUpdated();
 		}
-
+		
 #ifdef STRONG_USE_DHT
-		dht::IndexManager* im = dht::IndexManager::getInstance();
-		if (im->isTimeForPublishing())
-			im->setNextPublishing();
+		if (dht::IndexManager::isTimeForPublishing())
+		{
+			dht::IndexManager::setNextPublishing();
+		}
+		
 #endif
 	}
 	m_is_refreshing.clear();
@@ -2791,7 +2798,7 @@ void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const T
 		if (Directory::Ptr d = getDirectoryL(fname)) // TODO прокинуть p_path_id и искать по нему?
 		{
 			const string l_file_name = Util::getFileName(fname);
-			const auto i = d->findFileL(l_file_name);
+			const auto i = d->findFileIterL(l_file_name);
 			if (i != d->m_files.end())
 			{
 				CFlyWriteLock(*g_csTTHIndex);
@@ -3010,7 +3017,7 @@ bool ShareManager::findByRealPathName(const string& realPathname, TTHValue* outT
 		return false;
 	// [~] IRainman fix.
 	
-	const auto iFile =  d->findFileL(Util::getFileName(realPathname));
+	const auto iFile = d->findFileIterL(Util::getFileName(realPathname));
 	if (iFile != d->m_files.end())
 	{
 		if (outTTHPtr)

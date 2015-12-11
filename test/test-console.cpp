@@ -223,7 +223,7 @@ static void Process_Files( const boost::filesystem::path &Path, bool recurse )
 		{
 			switch(i)
 			{
-			case 1: // atl-map
+			case 2: // atl-map
 			{
 				START_PERFORMANCE_CHECK(101);
 				CAtlFile l_file;
@@ -258,7 +258,7 @@ static void Process_Files( const boost::filesystem::path &Path, bool recurse )
 			FINISH_PERFORMANCE_CHECK(101);
 			}
 		    break;
-			case 2: // boost - map
+			case 1: // boost - map
 			{
 				START_PERFORMANCE_CHECK(102);
 				boost::iostreams::mapped_file_source l_map_file;

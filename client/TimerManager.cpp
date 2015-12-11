@@ -18,9 +18,7 @@
 
 #include "stdinc.h"
 #include "TimerManager.h"
-#ifdef _DEBUG
 #include "ClientManager.h"
-#endif
 #include "LogManager.h"
 
 #ifdef _DEBUG
@@ -34,7 +32,6 @@
 using namespace boost::posix_time;
 static auto g_start = microsec_clock::universal_time(); // [!] IRainamn fix.
 
-bool TimerManager::g_isStartupShutdownProcess = false;
 bool TimerManager::g_isRun = false;
 
 TimerManager::TimerManager()
@@ -45,13 +42,12 @@ TimerManager::TimerManager()
 
 TimerManager::~TimerManager()
 {
-	dcassert(g_isStartupShutdownProcess);
+	dcassert(ClientManager::isShutdown());
 }
 
 void TimerManager::shutdown()
 {
 	g_isRun = false;
-	g_isStartupShutdownProcess = true;
 	m_mtx.unlock();
 	join();
 }
@@ -93,8 +89,10 @@ int TimerManager::run()
 			LogManager::flush_all_log();
 		}
 		dcassert(!ClientManager::isShutdown());
-		if (g_isStartupShutdownProcess == true) // Пока стартуем не тикаем таймером
+		if (ClientManager::isShutdown() || ClientManager::isStartup()) // Когда закрываемся или запускаемся - не тикаем таймером
+		{
 			continue;
+		}
 		g_isRun = true;
 		fly_fire1(TimerManagerListener::Second(), t);
 		// ======================================================

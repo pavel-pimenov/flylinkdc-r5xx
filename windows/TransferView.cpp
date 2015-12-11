@@ -1805,6 +1805,7 @@ void TransferView::on(DownloadManagerListener::Requesting, const DownloadPtr& aD
 
 void TransferView::on(DownloadManagerListener::Starting, const DownloadPtr& aDownload) noexcept
 {
+	dcassert(!ClientManager::isShutdown());
 	UpdateInfo* ui = new UpdateInfo(aDownload->getHintedUser(), true); // [!] IRainman fix.
 	
 	ui->setStatus(ItemInfo::STATUS_RUNNING);
@@ -1817,6 +1818,7 @@ void TransferView::on(DownloadManagerListener::Starting, const DownloadPtr& aDow
 }
 void TransferView::on(DownloadManagerListener::Failed, const DownloadPtr& aDownload, const string& aReason) noexcept
 {
+	dcassert(!ClientManager::isShutdown());
 	UpdateInfo* ui = new UpdateInfo(aDownload->getHintedUser(), true, true); // [!] IRainman fix. https://code.google.com/p/flylinkdc/issues/detail?id=1291
 	ui->setStatus(ItemInfo::STATUS_WAITING);
 	ui->setSize(aDownload->getSize());
@@ -1846,6 +1848,7 @@ void TransferView::on(DownloadManagerListener::Failed, const DownloadPtr& aDownl
 
 void TransferView::on(DownloadManagerListener::Status, const UserConnection* p_conn, const string& aReason) noexcept
 {
+	dcassert(!ClientManager::isShutdown());
 	// dcassert(const_cast<UserConnection*>(uc)->getDownload()); // TODO при окончании закачки это поле уже пустое https://www.box.net/shared/4cknwlue3njzksmciu63
 	UpdateInfo* ui = new UpdateInfo(p_conn->getHintedUser(), true); // [!] IRainman fix.
 	ui->setStatus(ItemInfo::STATUS_WAITING);
@@ -1856,6 +1859,7 @@ void TransferView::on(DownloadManagerListener::Status, const UserConnection* p_c
 
 void TransferView::on(UploadManagerListener::Starting, const UploadPtr& aUpload) noexcept
 {
+	dcassert(!ClientManager::isShutdown());
 	UpdateInfo* ui = new UpdateInfo(aUpload->getHintedUser(), false); // [!] IRainman fix.
 	
 	starting(ui, aUpload.get());
@@ -1877,6 +1881,7 @@ void TransferView::on(UploadManagerListener::Starting, const UploadPtr& aUpload)
 // TODO - убрать тики для массива
 void TransferView::on(DownloadManagerListener::Tick, const DownloadArray& dl) noexcept
 {
+	dcassert(!ClientManager::isShutdown());
 	if (!MainFrame::isAppMinimized())// [+]IRainman opt
 	{
 		for (auto j = dl.cbegin(); j != dl.cend(); ++j)
@@ -1899,6 +1904,7 @@ void TransferView::on(DownloadManagerListener::Tick, const DownloadArray& dl) no
 // TODO - убрать тики для массива
 void TransferView::on(UploadManagerListener::Tick, const UploadArray& ul) noexcept
 {
+	dcassert(!ClientManager::isShutdown());
 	if (!MainFrame::isAppMinimized())// [+]IRainman opt
 	{
 		for (auto j = ul.cbegin(); j != ul.cend(); ++j)
@@ -1925,6 +1931,7 @@ void TransferView::on(UploadManagerListener::Tick, const UploadArray& ul) noexce
 
 void TransferView::onTransferComplete(const Transfer* aTransfer, const bool download, const string& aFileName)
 {
+	dcassert(!ClientManager::isShutdown());
 #ifdef _DEBUG
 	LogManager::message("Transfer complete " + aTransfer->getUserConnectionToken());
 #endif

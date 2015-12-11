@@ -70,7 +70,7 @@ void TaskManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	if (l_dht->isConnected() && l_dht->getNodesCount() >= DHT_K)
 	{
 		auto l_dht_idx = IndexManager::getInstance();
-		if (!l_dht->isFirewalled() && l_dht_idx->getPublish() && aTick >= nextPublishTime)
+		if (!l_dht->isFirewalled() && IndexManager::isPublish() && aTick >= nextPublishTime)
 		{
 			// publish next file
 			l_dht_idx->publishNextFile();

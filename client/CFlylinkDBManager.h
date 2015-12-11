@@ -90,6 +90,31 @@ class CFlyLevelDB
 		}
 		uint32_t set_bit(const TTHValue& p_tth, uint32_t p_mask);
 };
+#ifdef FLYLINKDC_USE_IPCACHE_LEVELDB
+#pragma pack(push, 1)
+struct CFlyIPMessageCache
+{
+	uint32_t m_message_count;
+	unsigned long m_ip;
+	CFlyIPMessageCache(uint32_t p_message_count = 0, unsigned long p_ip = 0) : m_message_count(), m_ip(p_ip)
+	{
+	}
+};
+#pragma pack(pop)
+class CFlyLevelDBCacheIP : public CFlyLevelDB
+{
+	public:
+		void set_last_ip_and_message_count(uint32_t p_hub_id, const string& p_nick, uint32_t p_message_count, const boost::asio::ip::address_v4& p_last_ip);
+		CFlyIPMessageCache get_last_ip_and_message_count(uint32_t p_hub_id, const string& p_nick);
+	private:
+		void create_key(uint32_t p_hub_id, const string& p_nick, std::vector<char>& p_key)
+		{
+			p_key.resize(sizeof(uint32_t) + p_nick.size());
+			memcpy(&p_key[0], &p_hub_id, sizeof(p_hub_id));
+			memcpy(&p_key[0] + sizeof(p_hub_id), p_nick.c_str(), p_nick.size());
+		}
+};
+#endif // FLYLINKDC_USE_IPCACHE_LEVELDB
 #endif // FLYLINKDC_USE_LEVELDB
 
 enum eTypeTransfer
@@ -303,7 +328,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		bool load_last_ip_and_user_stat(uint32_t p_hub_id, const string& p_nick, uint32_t& p_message_count, boost::asio::ip::address_v4& p_last_ip);
 		void update_last_ip(uint32_t p_hub_id, const string& p_nick, const boost::asio::ip::address_v4& p_last_ip);
 	private:
-		void update_last_ip_deferredL(uint32_t p_hub_id, const string& p_nick, uint32_t p_message_count, const boost::asio::ip::address_v4& p_last_ip);
+		void update_last_ip_deferredL(uint32_t p_hub_id, const string& p_nick, uint32_t p_message_count, boost::asio::ip::address_v4 p_last_ip);
 		void flush_all_last_ip_and_message_count();
 		void add_tree_internal_bind_and_executeL(sqlite3_command* p_sql, const TigerTree& p_tt);
 		__int64 add_treeL(const TigerTree& p_tt);
@@ -520,7 +545,6 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void clean_fly_hash_blockL();
 		
 		mutable CriticalSection m_cs;
-		// TODO CriticalSection m_leveldb_cs;
 		// http://leveldb.googlecode.com/svn/trunk/doc/index.html Concurrency
 		//  A database may only be opened by one process at a time. The leveldb implementation acquires
 		// a lock from the operating system to prevent misuse. Within a single process, the same leveldb::DB
@@ -535,8 +559,10 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlyHashCacheMap m_cache_hash_files;
 		FastCriticalSection  m_cache_hash_files_cs;
 #ifdef FLYLINKDC_USE_LEVELDB
-		// FastCriticalSection    m_leveldb_cs;
-		CFlyLevelDB        m_flyLevelDB;
+		CFlyLevelDB         m_TTHLevelDB;
+ #ifdef FLYLINKDC_USE_IPCACHE_LEVELDB
+		CFlyLevelDBCacheIP  m_IPCacheLevelDB;
+ #endif
 #else
 		auto_ptr<sqlite3_command> m_get_status_file;
 #endif // FLYLINKDC_USE_LEVELDB
@@ -590,6 +616,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlySQLCommand m_select_last_ip_and_message_count;
 		CFlySQLCommand m_insert_last_ip_and_message_count;
 		CFlySQLCommand m_insert_last_ip;
+		CFlySQLCommand m_insert_message_count;
 #endif // FLYLINKDC_USE_LASTIP_CACHE
 		
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB

@@ -987,7 +987,7 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 	// DHT PFS announce
 	if (tthPub)
 	{
-		dht::IndexManager::getInstance()->publishPartialFile(*tthPub);
+		dht::IndexManager::publishPartialFile(*tthPub);
 		delete tthPub;
 	}
 #endif

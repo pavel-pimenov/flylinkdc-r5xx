@@ -288,10 +288,9 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
                                        CFlySearchArrayTTH& p_tth_search,
                                        CFlySearchArrayFile& p_file_search)
 {
-	extern bool g_isStartupProcess;
 	if (p_line.compare(0, 8, "$Search ", 8) == 0)
 	{
-		if (m_is_hide_share == false && g_isStartupProcess == false)
+		if (m_is_hide_share == false && ClientManager::isStartup() == false)
 		{
 			const string l_line_item = p_line.substr(0, p_pos_next_separator);
 			auto l_marker_tth = l_line_item.find("?0?9?TTH:");

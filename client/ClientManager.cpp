@@ -42,6 +42,7 @@ Identity ClientManager::g_iflylinkdc; // [+] IRainman fix: Identity for User for
 UserPtr ClientManager::g_me; // [+] IRainman fix: this is static object.
 CID ClientManager::g_pid; // [+] IRainman fix: this is static object.
 bool g_isShutdown = false;
+bool g_isStartupProcess = true;
 bool ClientManager::g_isSpyFrame = false;
 ClientManager::ClientList ClientManager::g_clients;
 
@@ -1404,7 +1405,7 @@ void ClientManager::on(HubUserCommand, const Client* client, int aType, int ctx,
 			const int cmd = FavoriteManager::findUserCommand(name, client->getHubUrl());
 			if (cmd != -1)
 			{
-				FavoriteManager::removeUserCommand(cmd);
+				FavoriteManager::removeUserCommandCID(cmd);
 			}
 		}
 		else if (aType == UserCommand::TYPE_CLEAR)
@@ -1661,6 +1662,26 @@ void ClientManager::setFakeList(const UserPtr& p, const string& aCheatString)
 		auto& id = i->second->getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'i->second' expression repeatedly. cheatmanager.h 285
 		id.setCheat(i->second->getClient(), aCheatString, false);
 	}
+}
+
+StringList ClientManager::getUserByIp(const string &p_ip) // TODO - boost
+{
+	StringList l_result;
+	l_result.reserve(1);
+	std::unordered_set<string> l_fix_dup;
+	CFlyReadLock(*g_csOnlineUsers);
+	for (auto i = g_onlineUsers.cbegin(); i != g_onlineUsers.cend(); ++i)
+	{
+		if (i->second->getIdentity().getIpAsString() == p_ip) // TODO - boost
+		{
+			const auto l_res = l_fix_dup.insert(i->second->getUser()->getLastNick());
+			if (l_res.second == true)
+			{
+				l_result.push_back(i->second->getUser()->getLastNick());
+			}
+		}
+	}
+	return l_result;
 }
 
 /**

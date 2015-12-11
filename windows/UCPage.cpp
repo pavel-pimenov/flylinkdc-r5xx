@@ -121,7 +121,7 @@ LRESULT UCPage::onRemoveMenu(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*
 	if (ctrlCommands.GetSelectedCount() == 1)
 	{
 		int i = ctrlCommands.GetNextItem(-1, LVNI_SELECTED);
-		FavoriteManager::removeUserCommand(ctrlCommands.GetItemData(i));
+		FavoriteManager::removeUserCommandCID(ctrlCommands.GetItemData(i));
 		ctrlCommands.DeleteItem(i);
 	}
 	return 0;

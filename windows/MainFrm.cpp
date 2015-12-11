@@ -115,7 +115,6 @@
 int HashProgressDlg::g_is_execute = 0;
 
 bool g_TabsCloseButtonEnabled;
-bool g_isStartupProcess = true;
 DWORD g_GDI_count = 0;
 int   g_RAM_WorkingSetSize = 0;
 int   g_RAM_PeakWorkingSetSize = 0;
@@ -670,6 +669,8 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	// [-] IRainman tabPos = SETTING(TABS_POS);
 	
 	m_transferView.Create(m_hWnd);
+	ViewTransferView(BOOLSETTING(SHOW_TRANSFERVIEW));
+	
 	tuneTransferSplit();
 	
 	UIAddToolBar(hWndToolBar);
@@ -677,7 +678,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	UIAddToolBar(hWndQuickSearchBar);
 	UISetCheck(ID_VIEW_TOOLBAR, 1);
 	UISetCheck(ID_VIEW_STATUS_BAR, 1);
-	UISetCheck(ID_VIEW_TRANSFER_VIEW, 1);
+	UISetCheck(ID_VIEW_TRANSFER_VIEW, BOOLSETTING(SHOW_TRANSFERVIEW));
 	UISetCheck(ID_VIEW_TRANSFER_VIEW_TOOLBAR, BOOLSETTING(SHOW_TRANSFERVIEW_TOOLBAR));
 	UISetCheck(ID_TOGGLE_TOOLBAR, 1);
 	UISetCheck(ID_TOGGLE_QSEARCH, 1);
@@ -836,7 +837,10 @@ void MainFrame::openDefaultWindows()
 #endif
 	if (!BOOLSETTING(SHOW_STATUSBAR)) PostMessage(WM_COMMAND, ID_VIEW_STATUS_BAR);
 	if (!BOOLSETTING(SHOW_TOOLBAR)) PostMessage(WM_COMMAND, ID_VIEW_TOOLBAR);
-	if (!BOOLSETTING(SHOW_TRANSFERVIEW)) PostMessage(WM_COMMAND, ID_VIEW_TRANSFER_VIEW);
+	if (!BOOLSETTING(SHOW_TRANSFERVIEW))
+	{
+		//  PostMessage(WM_COMMAND, ID_VIEW_TRANSFER_VIEW);
+	}
 	if (!BOOLSETTING(SHOW_WINAMP_CONTROL)) PostMessage(WM_COMMAND, ID_TOGGLE_TOOLBAR);
 	if (!BOOLSETTING(SHOW_QUICK_SEARCH)) PostMessage(WM_COMMAND, ID_TOGGLE_QSEARCH);
 #ifdef IRAINMAN_INCLUDE_RSS
@@ -863,7 +867,7 @@ int MainFrame::tuneTransferSplit()
 
 LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
-	if (TimerManager::g_isStartupShutdownProcess || m_closing || BaseChatFrame::g_isStartupProcess)
+	if (m_closing || ClientManager::isStartup())
 		return 0;
 	const uint64_t aTick = GET_TICK();
 	if (--m_second_count == 0)
@@ -968,7 +972,7 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 		
 		if (g_CountSTATS == 0) // Генерируем статистику только когда предыдущая порция обработана
 		{
-			dcassert(!TimerManager::g_isStartupShutdownProcess);
+			dcassert(!ClientManager::isStartup());
 			TStringList* Stats = new TStringList();
 			Stats->push_back(Util::getAway() ? TSTRING(AWAY_STATUS) : Util::emptyStringT);
 #ifdef STRONG_USE_DHT
@@ -1630,7 +1634,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 #ifdef IRAINMAN_INCLUDE_SMILE
 		dcassert(!CGDIImage::isShutdown());
 #endif
-		dcassert(!BaseChatFrame::g_isStartupProcess);
+		dcassert(ClientManager::isStartup() == false);
 		if (m_closing)
 		{
 			dcdebug("MainFrame::onSpeaker and m_closing  wParam = %d\r\n", wParam);
@@ -2401,10 +2405,8 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 	CFlyLockWindowUpdate l(WinUtil::g_mdiClient); // [+]PPA
 	HubFrame* frm = nullptr;
 	{
-		// TODO - убрать много флажков
-		CFlyBusyBool l_busy_1(BaseChatFrame::g_isStartupProcess);
-		CFlyBusyBool l_busy_2(g_isStartupProcess);
-		CFlyBusyBool l_busy_3(TimerManager::g_isStartupShutdownProcess);
+		extern bool g_isStartupProcess;
+		CFlyBusyBool l_busy_1(g_isStartupProcess);
 		for (auto i = fl.cbegin(); i != fl.cend(); ++i)
 		{
 			FavoriteHubEntry* entry = *i;
@@ -2719,7 +2721,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 				LogManager::g_mainWnd = nullptr;
 				m_closing = true;
 				safe_destroy_timer();
-				BaseChatFrame::g_isStartupProcess = true; // [+] IRainman fix: probably fix crash in gui on shutdown.
+				ClientManager::stopStartup();
 				NmdcHub::log_all_unknown_command();
 				// TODO: possible small memory leak on shutdown, details here https://code.google.com/p/flylinkdc/source/detail?r=15141
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
@@ -2737,8 +2739,8 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 				
 				// [-] ConnectionManager::getInstance()->disconnect(); [-] IRainman fix: called in global shutdown(): ConnectionManager::getInstance()->shutdown().
 				
-				//CReBarCtrl l_rebar = m_hWndToolBar;
-				//ToolbarManager::getInstance()->getFrom(l_rebar, "MainToolBar");
+				CReBarCtrl l_rebar = m_hWndToolBar;
+				ToolbarManager::getInstance()->getFrom(l_rebar, "MainToolBar"); // Для сохранения позиций тулбара (SCALOlаz)
 				
 				updateTray(false);
 				if (m_nProportionalPos > 300) // http://code.google.com/p/flylinkdc/issues/detail?id=1398
@@ -2888,7 +2890,7 @@ LRESULT MainFrame::onGetTTH(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/
 
 void MainFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 {
-	if (BaseChatFrame::g_isStartupProcess == false)
+	if (ClientManager::isStartup() == false)
 	{
 		RECT l_rect;
 		GetClientRect(&l_rect);
@@ -3365,9 +3367,9 @@ void MainFrame::ViewTransferView(BOOL bVisible)
 
 LRESULT MainFrame::OnViewTransferView(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	const BOOL bVisible = !m_transferView.IsWindowVisible();
-	ViewTransferView(bVisible);
+	const BOOL bVisible = !BOOLSETTING(SHOW_TRANSFERVIEW);
 	SET_SETTING(SHOW_TRANSFERVIEW, bVisible);
+	ViewTransferView(bVisible);
 	return 0;
 }
 LRESULT MainFrame::OnViewTransferViewToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)

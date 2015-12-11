@@ -197,7 +197,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		
 		/** @internal */
 		void addConnection(UserConnection* p_conn);
-		void removeDelayUpload(const UserPtr& aUser);
+		static void removeDelayUpload(const UserPtr& aUser);
 		static void abortUpload(const string& aFile, bool waiting = true);
 		
 		GETSET(int, extraPartial, ExtraPartial);

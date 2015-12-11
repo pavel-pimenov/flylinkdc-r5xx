@@ -1,4 +1,148 @@
 ------------------------------------------------------------------------
+r19306 | ppa | 2015-12-09 13:06:53 +0300 (Ср, 09 дек 2015) | 6 lines
+
+Merged revision(s) 19303-19305 from trunk:
+* Исправлена ошибка блокировки в SQLite - update_last_ip
+# Убрал устравшую настройку для HTTP прокси (устарела и не используется - параметры прокси забираются из системы)
+* В поиске шипоне не дублируем пользователей с одинаковым ником.
+
+
+------------------------------------------------------------------------
+r19305 | ppa | 2015-12-09 13:04:14 +0300 (Ср, 09 дек 2015) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r19302 | ppa | 2015-12-08 16:35:57 +0300 (Вт, 08 дек 2015) | 1 line
+
+# Astyle
+------------------------------------------------------------------------
+r19301 | ppa | 2015-12-08 16:35:15 +0300 (Вт, 08 дек 2015) | 8 lines
+
+Merged revision(s) 19300 from trunk:
+* Исправлен вывод в чат кодов вида &#124 (спасибо KCAHDEP)
+* Формат хранения лого поменял на PM\\%Y - %B\\%[userNI]-%[hubURL].log (удобнее сортировать если год в начале)
+# Натыкал dcassert(!ClientManager::isShutdown()); 
+# Поддержка атрибута ISPDisableFlylinkDCSupportHub для ISP сборок
+
+........
+
+------------------------------------------------------------------------
+r19300 | ppa | 2015-12-08 16:31:47 +0300 (Вт, 08 дек 2015) | 5 lines
+
+* Исправлен вывод в чат кодов вида &#124 (спасибо KCAHDEP)
+* Формат хранения лого поменял на PM\\%Y - %B\\%[userNI]-%[hubURL].log (удобнее сортировать если год в начале)
+# Натыкал dcassert(!ClientManager::isShutdown()); 
+# Поддержка атрибута ISPDisableFlylinkDCSupportHub для ISP сборок
+
+------------------------------------------------------------------------
+r19299 | ppa | 2015-12-07 16:16:26 +0300 (Пн, 07 дек 2015) | 4 lines
+
+Merged revision(s) 19298 from trunk:
+* Исправлены паденяи при закрытии приложения https://drdump.com/DumpGroup.aspx?DumpGroupID=408067&Login=guest (спасибо KMV)
+........
+
+------------------------------------------------------------------------
+r19298 | ppa | 2015-12-07 16:11:57 +0300 (Пн, 07 дек 2015) | 1 line
+
+* Исправлены паденяи при закрытии приложения https://drdump.com/DumpGroup.aspx?DumpGroupID=408067&Login=guest (спасибо KMV)
+------------------------------------------------------------------------
+r19295 | ppa | 2015-12-07 10:11:47 +0300 (Пн, 07 дек 2015) | 7 lines
+
+Merged revision(s) 19294 from trunk:
+* Лог личных сообщений пишется в файл с учетом адреса хаба по маске PM\\%B - %Y\\%[userNI]-%[hubURL].log (спасибо KCAHDEP)
+* Если для хаба записан пароль в избранных - не генерируем ему ник с _Rxxx в случае разрыва сетии (спасибо KCAHDEP)
+# Добавлена поддержка ISPDisableFlylinkDCSupportHub
+# Фильтрация VID
+........
+
+------------------------------------------------------------------------
+r19294 | ppa | 2015-12-07 10:09:13 +0300 (Пн, 07 дек 2015) | 4 lines
+
+* Лог личных сообщений пишется в файл с учетом адреса хаба по маске PM\\%B - %Y\\%[userNI]-%[hubURL].log (спасибо KCAHDEP)
+* Если для хаба записан пароль в избранных - не генерируем ему ник с _Rxxx в случае разрыва сетии (спасибо KCAHDEP)
+# Добавлена поддержка ISPDisableFlylinkDCSupportHub
+# Фильтрация VID
+------------------------------------------------------------------------
+r19293 | ppa | 2015-12-05 20:51:24 +0300 (Сб, 05 дек 2015) | 4 lines
+
+Merged revision(s) 19292 from trunk:
+* Исправлена ошибка Operation timeout (ValidateNick) (спасибо пользователю Mer с хаба dchub://dc.fly-server.ru)
+........
+
+------------------------------------------------------------------------
+r19291 | ppa | 2015-12-04 15:55:32 +0300 (Пт, 04 дек 2015) | 1 line
+
+
+------------------------------------------------------------------------
+r19290 | ppa | 2015-12-04 15:06:01 +0300 (Пт, 04 дек 2015) | 52 lines
+
+Merged revision(s) 19271-19289 from trunk:
+# [merge]
+# [mediainfo]
++ Matroska: support of MKVMerge statistics tags (duration frame count, stream size, bit rate) per track, thanks to ndjamena
++ FLAC: Channel positions, thanks to ndjamena
++ FLAC: difference between detected bit depth and stored bit depth
++ MPEG-TS: if DTVCC transport stream is present and no DTVCC service descriptor, scan also in the middle of the file in order to detect more caption services
++ Subtitle frame rate computing if frame count and duration are available (hidden by default)
++ Subtitles in Matroska: count of elements
++ Matroska, MXF and MP4/MOV: detection of truncated files
++ DTS: difference between ES Matrix and ES Discrete
++ DTS: display ES Matrix or ES Discrete even if HRA or MA is present
++ DTS: difference between DTS-HRA with 96k option and pure DTS-96/24
++ DTS: detection of DTS:X
++ Samples per frame info
++ AC-3: detection of Atmos inside TrueHD
++ Video frame rate: showing precision of 1/1.001 frame rates (e.g. "23.976 (24000/1001) fps" and "23.976 (23976/1000) fps")
++ MPEG-4/MOV: showing the complete list of compatible brands in the CodecID field
++ MPEG-4/MOV: Alternate groups
++ MPEG-4/MOV: "Disabled" tag
++ MPEG-4/MOV: "Forced" tag
++ MPEG-4/MOV: showing links between tracks (chapters for, subtitles for, fallback for)
++ MXF: handling of more acquisition metadata items
++ MXF: Package name
++ AVC: Store method of interlaced content (Interleaved Fields or Separated Fields)
++ EBUCore: acquisition metadata (Proof of concept, for feedback only)
+x Matroska: frame rate detection algorithm revisited, less wrong numbers are expected
+x SDP/Teletext: some pages were sometimes (when present in 2 different SDP lines) displayed several times
+x MPEG-4/MOV: some hint tracks were not displayed
+# [zenlib]
+x Ztring::From_UTF8() was not handling 4 bytes UTF8 codes correctly
+........
+* Логирование ошибок автообновления
+* mediainfo
+........
+* Исправлено сохраенени отключенного состояния окна передачи (спасибо KCAHDEP)
+* Поддержка команд $NickRule и $BadNick (часть 1)
+........
+* Исправлено сохраенени отключенного состояния окна передачи (часть 2)(спасибо KCAHDEP)
+* mediainfo 0.7.81
+  + #F446, Matroska: Handling of cropping values, thanks to Max Pozdeev
+  x #B914, Matroska: Undefined number of chapters in some M4V with Timed Text, thanks to Max Pozdeev
+
+........
+# Исправлено сохранения позиции медиа-панели (спасибо SCALOlаz и KCAHDEP)
+........
+* OpenSSL 1.0.1q
+........
+* Для тех кто любит большие шрифты, будет включаться многострочный ввод принудительно, чтоб не портить расположение элементов (Sergey Shushkanov)
+* Исправлен парсер ников содрежащих < > (с) RoLex
+........
+
+------------------------------------------------------------------------
+r19289 | ppa | 2015-12-04 14:54:07 +0300 (Пт, 04 дек 2015) | 2 lines
+
+* Для тех кто любит большие шрифты, будет включаться многострочный ввод принудительно, чтоб не портить расположение элементов (Sergey Shushkanov)
+* Исправлен парсер ников содрежащих < > (с) RoLex
+------------------------------------------------------------------------
+r19274 | ppa | 2015-12-02 06:43:49 +0300 (Ср, 02 дек 2015) | 1 line
+
+# ZenLib
+------------------------------------------------------------------------
+r19273 | ppa | 2015-12-02 06:27:20 +0300 (Ср, 02 дек 2015) | 2 lines
+
+* Исправлена ошибка при вызове update_last_ip (Спасибо Вадим Алексеенков)
+* Обновлена Mediainfo и ZenLib
+------------------------------------------------------------------------
 r19269 | ppa | 2015-11-25 09:12:59 +0300 (Ср, 25 ноя 2015) | 4 lines
 
 Merged revision(s) 19268 from trunk:

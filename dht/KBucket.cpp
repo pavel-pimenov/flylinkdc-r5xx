@@ -43,7 +43,7 @@ Node::Node(const UserPtr& u) :
 UDPKey Node::getUdpKey() const
 {
 	// if our external IP changed from the last time, we can't encrypt packet with this key
-	if (DHT::getInstance()->getLastExternalIP() == key.m_ip)
+	if (DHT::getLastExternalIP() == key.m_ip)
 		return key;
 	else
 		return UDPKey();
@@ -333,8 +333,10 @@ void RoutingTable::loadNodes(SimpleXML& xml)
 			{
 				if (!l_node.m_udpKey.m_ip.empty() && !l_node.m_udpKey.m_key.isZero() )
 				{
-					if (DHT::getInstance()->getLastExternalIP() == "0.0.0.0")
-					 DHT::getInstance()->setLastExternalIP(l_node.m_udpKey.m_ip);
+					if (DHT::getLastExternalIP() == "0.0.0.0")
+					{
+						DHT::setLastExternalIP(l_node.m_udpKey.m_ip);
+					}
 				}
 				BootstrapManager::addBootstrapNode(l_node.m_ip, l_node.m_udpPort, l_node.m_cid, l_node.m_udpKey);
 			}
@@ -365,8 +367,10 @@ void RoutingTable::loadNodes(SimpleXML& xml)
 						udpKey.m_ip = keyIp;
 					
 						// since we don't know our IP yet, we can use stored one
-						if (DHT::getInstance()->getLastExternalIP() == "0.0.0.0")
-							DHT::getInstance()->setLastExternalIP(keyIp);
+						if (DHT::getLastExternalIP() == "0.0.0.0")
+						{
+							DHT::setLastExternalIP(keyIp);
+						}
 					}
 				
 					//UserPtr u = ClientManager::getUser(cid);

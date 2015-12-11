@@ -406,7 +406,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		
 		LRESULT onRowsChanged(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 		{
-			if (BaseChatFrame::g_isStartupProcess == false)
+			if (ClientManager::isStartup() == false)
 			{
 				UpdateLayout();
 				Invalidate();

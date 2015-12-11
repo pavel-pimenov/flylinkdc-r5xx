@@ -477,14 +477,19 @@ void Client::on(Failed, const string& aLine) noexcept
 		CFlyFastLock(lock(csSock); // [+] brain-ripper
 #endif
 		if (m_client_sock)
+	{
 		m_client_sock->removeListener(this);
+		}
 	}
 // [-] IRainman.
 //SetEvent(m_hEventClientInitialized);
-updateActivity();
+	if (!ClientManager::isShutdown())
+	{
+		updateActivity();
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
-	FavoriteManager::changeConnectionStatus(getHubUrl(), ConnectionStatus::CONNECTION_FAILURE);
+		FavoriteManager::changeConnectionStatus(getHubUrl(), ConnectionStatus::CONNECTION_FAILURE);
 #endif
+	}
 	fly_fire2(ClientListener::Failed(), this, aLine);
 }
 

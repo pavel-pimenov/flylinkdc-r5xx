@@ -224,7 +224,9 @@ string AutoUpdate::getUpdateFilesList(const string& p_componentName,
 					}
 					else
 					{
-						::MessageBox(m_mainFrameHWND, _T("update5Node.isEmpty() - send error - ppa74@ya.ru") , CWSTRING(AUTOUPDATE_TITLE), MB_OK | MB_ICONERROR);
+						const string l_error = "update5Node.isEmpty() - send error - ppa74@ya.ru (p_rootNode = [" + string(p_rootNode) + "]";
+						CFlyServerJSON::pushError(58, l_error);
+						::MessageBox(m_mainFrameHWND, Text::toT(l_error).c_str(), CWSTRING(AUTOUPDATE_TITLE), MB_OK | MB_ICONERROR);
 					}
 				}
 			}
@@ -335,8 +337,10 @@ void AutoUpdate::startUpdateThisThread()
 					{
 						m_isUpdate        = false;
 						m_manualUpdate    = false;
-						fail(STRING(AUTOUPDATE_ERROR_VERIF) + l_check_message);
-						::MessageBox(m_mainFrameHWND, Text::toT(l_check_message).c_str() , CWSTRING(AUTOUPDATE_TITLE), MB_OK | MB_ICONERROR);
+						const string l_error = STRING(AUTOUPDATE_ERROR_VERIF) + l_check_message;
+						fail(l_error);
+						CFlyServerJSON::pushError(58, l_error);
+						::MessageBox(m_mainFrameHWND, Text::toT(l_error).c_str(), CWSTRING(AUTOUPDATE_TITLE), MB_OK | MB_ICONERROR);
 						return;
 					}
 				}
@@ -518,6 +522,7 @@ void AutoUpdate::startUpdateThisThread()
 								if (l_userAsk)
 								{
 									const tstring l_message = TSTRING(AUTOUPDATE_DOWNLOAD_FAILED) + _T("\r\n") + TSTRING(FAILED_TO_LOAD) + _T("\r\n") + Text::toT(l_errorFileName);
+									CFlyServerJSON::pushError(58, Text::fromT(l_message));
 									::MessageBox(m_mainFrameHWND, l_message.c_str() , CWSTRING(AUTOUPDATE_TITLE), MB_OK | MB_ICONERROR);
 								}
 								else
@@ -743,7 +748,9 @@ bool AutoUpdate::prepareFile(const AutoUpdateFile& file, const string& tempFolde
 			catch (const FileException& e)
 			{
 				const string l_ErrorString = e.getError() + ' ' + destinationPath + g_dev_error;
-				fail(STRING(ERROR_STRING) + '[' + l_ErrorString + ']');
+				const string l_error = STRING(ERROR_STRING) + '[' + l_ErrorString + ']';
+				fail(l_error);
+				CFlyServerJSON::pushError(58, l_error);
 				::MessageBox(0, Text::toT(l_ErrorString).c_str(), CTSTRING(AUTOUPDATE_ERROR), MB_ICONSTOP);
 				return false;
 			}
@@ -953,7 +960,9 @@ void AutoUpdate::runFlyUpdate()
 		}
 		else
 		{
-			MessageBox(nullptr, (TSTRING(AUTOUPDATE_ERROR_START_FLYUPDATE_FAILED) + Text::toT(Util::translateError())).c_str(), CTSTRING(AUTOUPDATE_ERROR), MB_OK | MB_ICONERROR);
+			const tstring l_error = TSTRING(AUTOUPDATE_ERROR_START_FLYUPDATE_FAILED) + Text::toT(Util::translateError());
+			CFlyServerJSON::pushError(58, Text::fromT(l_error));
+			MessageBox(nullptr, l_error.c_str(), CTSTRING(AUTOUPDATE_ERROR), MB_OK | MB_ICONERROR);
 		}
 	}
 }

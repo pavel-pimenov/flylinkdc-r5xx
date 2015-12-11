@@ -51,23 +51,23 @@ class IndexManager :
 		void loadIndexes(SimpleXML& xml);
 		
 		/** How many files is currently being published */
-		void incPublishing()
+		static void incPublishing()
 		{
-			Thread::safeInc(publishing); // [!] IRainman opt.
+			Thread::safeInc(g_publishing); // [!] IRainman opt.
 		}
-		void decPublishing()
+		static void decPublishing()
 		{
-			Thread::safeDec(publishing); // [!] IRainman opt.
+			Thread::safeDec(g_publishing); // [!] IRainman opt.
 		}
 		
 		/** Is publishing allowed? */
-		void setPublish(bool _publish)
+		static void setPublish(bool p_publish)
 		{
-			publish = _publish;
+			g_is_publish = p_publish;
 		}
-		bool getPublish() const
+		static bool isPublish()
 		{
-			return publish;
+			return g_is_publish;
 		}
 		
 		/** Processes incoming request to publish file */
@@ -77,41 +77,47 @@ class IndexManager :
 		void checkExpiration(uint64_t aTick);
 		
 		/** Publishes shared file */
-		void publishFile(const TTHValue& tth, int64_t size);
+		static void publishFile(const TTHValue& tth, int64_t size);
 		
 		/** Publishes partially downloaded file */
-		void publishPartialFile(const TTHValue& tth);
+		static void publishPartialFile(const TTHValue& tth);
 		
 		/** Set time when our sharelist should be republished */
-		void setNextPublishing()
+		static void setNextPublishing()
 		{
-			nextRepublishTime = GET_TICK() + REPUBLISH_TIME;
+			g_nextRepublishTime = GET_TICK() + REPUBLISH_TIME;
 		}
 		
 		/** Is time when we should republish our sharelist? */
-		bool isTimeForPublishing() const
+		static bool isTimeForPublishing()
 		{
-			return GET_TICK() >= nextRepublishTime;
+			return g_isRepublishTime;
 		}
+		static void setTimeForPublishing()
+		{
+			g_isRepublishTime = GET_TICK() >= g_nextRepublishTime;
+		}		 
 		
 	private:
 	
 		/** Contains known hashes in the network and their sources */
 		
 		/** Queue of files prepared for publishing */
-		std::deque<File> publishQueue;
+		static std::deque<File> g_publishQueue;
 		
 		/** Is publishing allowed? */
-		bool publish;
+		static bool g_is_publish;
 		
 		/** How many files is currently being published */
-		volatile long publishing; // [!] IRainman opt: use simple variable here.
+		static volatile long g_publishing;
 		
 		/** Time when our sharelist should be republished */
-		uint64_t nextRepublishTime;
+		static uint64_t g_nextRepublishTime;
+
+		static bool g_isRepublishTime;
 		
 		/** Synchronizes access to tthList */
-		mutable FastCriticalSection cs; // [!] IRainman opt: use spin lock here.
+		static FastCriticalSection g_cs; // [!] IRainman opt: use spin lock here.
 		
 		/** Add new source to tth list */
 		void addSource(const TTHValue& tth, const CID& cid, const string& ip, uint16_t port, uint64_t size, bool partial);

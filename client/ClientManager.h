@@ -217,20 +217,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		
 		static void setIPUser(const UserPtr& p_user, const string& p_ip, const uint16_t p_udpPort = 0);
 		
-		static StringList getUserByIp(const string &p_ip) // TODO - boost
-		{
-			StringList l_result;
-			l_result.reserve(1);
-			CFlyReadLock(*g_csOnlineUsers);
-			for (auto i = g_onlineUsers.cbegin(); i != g_onlineUsers.cend(); ++i)
-			{
-				if (i->second->getIdentity().getIpAsString() == p_ip) // TODO - boost
-				{
-					l_result.push_back(i->second->getUser()->getLastNick());
-				}
-			}
-			return l_result;
-		}
+		static StringList getUserByIp(const string &p_ip);
 #ifndef IRAINMAN_IDENTITY_IS_NON_COPYABLE
 		static Identity getIdentity(const UserPtr& user)
 		{
@@ -366,7 +353,16 @@ class ClientManager : public Speaker<ClientManagerListener>,
 			extern bool g_isShutdown;
 			return g_isShutdown;
 		}
-		
+		static bool isStartup()
+		{
+			extern bool g_isStartupProcess;
+			return g_isStartupProcess;
+		}
+		static void stopStartup()
+		{
+			extern bool g_isStartupProcess;
+			g_isStartupProcess = false;
+		}
 	private:
 	
 		//mutable CriticalSection cs; [-] IRainman opt.

@@ -34,7 +34,6 @@ PropPage::TextItem ProxyPage::texts[] =
 	{ IDC_SETTINGS_SOCKS5_USERNAME, ResourceManager::SETTINGS_SOCKS5_USERNAME },
 	{ IDC_SETTINGS_SOCKS5_PASSWORD, ResourceManager::PASSWORD },
 	{ IDC_SOCKS_RESOLVE, ResourceManager::SETTINGS_SOCKS5_RESOLVE },
-	{ IDC_SETTINGS_PUBLIC_HUB_LIST_HTTP_PROXY, ResourceManager::SETTINGS_PUBLIC_HUB_LIST_HTTP_PROXY },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 	
 };
@@ -46,7 +45,6 @@ PropPage::Item ProxyPage::items[] =
 	{ IDC_SOCKS_USER,       SettingsManager::SOCKS_USER,    PropPage::T_STR },
 	{ IDC_SOCKS_PASSWORD,   SettingsManager::SOCKS_PASSWORD, PropPage::T_STR },
 	{ IDC_SOCKS_RESOLVE,    SettingsManager::SOCKS_RESOLVE, PropPage::T_BOOL },
-	{ IDC_PROXY, SettingsManager::HTTP_PROXY, PropPage::T_STR },
 	{ 0, 0, PropPage::T_END }
 };
 

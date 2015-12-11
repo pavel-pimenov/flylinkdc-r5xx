@@ -764,6 +764,7 @@ namespace Elements
     const int64u moov_trak_tapt_enof=0x656E6F66;
     const int64u moov_trak_tapt_prof=0x70726F66;
     const int64u moov_trak_tkhd=0x746B6864;
+    const int64u moov_trak_txas=0x74786173;
     const int64u moov_trak_tref=0x74726566;
     const int64u moov_trak_tref_dpnd=0x64706E64;
     const int64u moov_trak_tref_chap=0x63686170;
@@ -1102,6 +1103,7 @@ void File_Mpeg4::Data_Parse()
                 ATOM(moov_trak_tapt_enof)
                 ATOM_END
             ATOM(moov_trak_tkhd)
+            ATOM(moov_trak_txas)
             LIST(moov_trak_tref)
                 ATOM_BEGIN
                 ATOM(moov_trak_tref_chap)
@@ -1321,12 +1323,16 @@ void File_Mpeg4::cdat()
 
     #if MEDIAINFO_DEMUX
         Demux(Buffer+Buffer_Offset, (size_t)Element_Size, ContentType_MainStream);
-        Streams[(int32u)Element_Code].Parsers[0]->FrameInfo.DTS=FrameInfo.DTS;
-        Streams[(int32u)Element_Code].Parsers[0]->FrameInfo.DUR=FrameInfo.DUR/(Element_Size/2);
+        for (size_t Pos=0; Pos<Streams[(int32u)Element_Code].Parsers.size(); Pos++)
+        {
+            Streams[(int32u)Element_Code].Parsers[Pos]->FrameInfo.DTS=FrameInfo.DTS;
+            Streams[(int32u)Element_Code].Parsers[Pos]->FrameInfo.DUR=FrameInfo.DUR/(Element_Size/2);
+        }
     #endif //MEDIAINFO_DEMUX
     while (Element_Offset+2<=Element_Size)
     {
-        Open_Buffer_Continue(Streams[(int32u)Element_Code].Parsers[0], Buffer+Buffer_Offset+(size_t)Element_Offset, 2);
+        for (size_t Pos=0; Pos<Streams[(int32u)Element_Code].Parsers.size(); Pos++)
+            Open_Buffer_Continue(Streams[(int32u)Element_Code].Parsers[Pos], Buffer+Buffer_Offset+(size_t)Element_Offset, 2);
         Element_Offset+=2;
     }
 }
@@ -2578,11 +2584,13 @@ void File_Mpeg4::moov_meta_ilst_xxxx_data()
                     {
                         if (moov_meta_ilst_xxxx_name_Name=="iTunMOVI" && Element_Size>8)
                         {
-                            File_PropertyList MI;
-                            Open_Buffer_Init(&MI);
-                            Open_Buffer_Continue(&MI, Buffer+Buffer_Offset+8, (size_t)(Element_Size-8));
-                            Open_Buffer_Finalize(&MI);
-                            Merge(MI, Stream_General, 0, 0);
+                            #if defined(MEDIAINFO_PROPERTYLIST_YES)
+                                File_PropertyList MI;
+                                Open_Buffer_Init(&MI);
+                                Open_Buffer_Continue(&MI, Buffer+Buffer_Offset+8, (size_t)(Element_Size-8));
+                                Open_Buffer_Finalize(&MI);
+                                Merge(MI, Stream_General, 0, 0);
+                            #endif //defined(MEDIAINFO_PROPERTYLIST_YES)
                         }
                         else
                             Metadata_Get(Parameter, moov_meta_ilst_xxxx_name_Name);
@@ -2868,9 +2876,7 @@ void File_Mpeg4::moov_trak()
 
     FILLING_BEGIN();
         Fill_Flush();
-        moov_trak_tkhd_Flags_Track_enabled=true;
         moov_trak_tkhd_TrackID=(int32u)-1;
-        moov_trak_tkhd_Alternate_group=0;
         moov_trak_tkhd_Width=0;
         moov_trak_tkhd_Height=0;
         moov_trak_tkhd_DisplayAspectRatio=0;
@@ -3046,8 +3052,13 @@ void File_Mpeg4::moov_trak_mdia_hdlr()
                 //Fill(Stream_Other, StreamPos_Last, Other_Type, "Alias"); //TODO: what is the meaning of such hdlr?
                 break;
             case Elements::moov_trak_mdia_hdlr_hint :
-                //Stream_Prepare(Stream_Other);
-                //Fill(Stream_Other, StreamPos_Last, Other_Type, "Hint"); //TODO: what is the meaning of such hdlr?
+                if (StreamKind_Last==Stream_Max) //Note: some files have both vmhd and hmhd, I don't know the meaning of such header, so skipping hmhd for the moment
+                {
+                    Stream_Prepare(Stream_Other);
+                    Fill(Stream_Other, StreamPos_Last, Other_Type, "Hint");
+                    Streams[moov_trak_tkhd_TrackID].StreamKind=Stream_Other;
+                    Streams[moov_trak_tkhd_TrackID].StreamPos=StreamPos_Last;
+                }
                 break;
             case Elements::moov_trak_mdia_hdlr_ocsm :
                 if (StreamKind_Last!=Stream_Other)
@@ -3489,16 +3500,6 @@ void File_Mpeg4::moov_trak_mdia_minf_hmhd()
     Skip_B4(                                                    "maxbitrate");
     Skip_B4(                                                    "avgbitrate");
     Skip_B4(                                                    "reserved");
-
-    FILLING_BEGIN();
-        if (StreamKind_Last==Stream_Max) //Note: some files have both vmhd and hmhd, I don't know the meaning of such header, so skipping hmhd for the moment
-        {
-            Stream_Prepare(Stream_Other);
-            Fill(Stream_Other, StreamPos_Last, Other_Type, "Hint");
-            Streams[moov_trak_tkhd_TrackID].StreamKind=Stream_Other;
-            Streams[moov_trak_tkhd_TrackID].StreamPos=StreamPos_Last;
-        }
-    FILLING_END();
 }
 
 //---------------------------------------------------------------------------
@@ -3995,12 +3996,13 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_tmcd_name()
 void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_tx3g()
 {
     Element_Name("Text");
-
     //Parsing
+    bool tx3gallforced, tx3ghasforced;
+    int32u Flags;
     Skip_B4(                                                    "Reserved");
     Skip_B2(                                                    "Reserved");
     Skip_B2(                                                    "Data reference index");
-    Info_B4(Flags,                                              "displayFlags");
+    Get_B4(Flags,                                               "displayFlags");
         Skip_Flags(Flags,  5,                                   "Scroll in");
         Skip_Flags(Flags,  6,                                   "Scroll out");
         Skip_Flags(Flags,  7,                                   "Horizontal scroll");
@@ -4008,6 +4010,9 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_tx3g()
         Skip_Flags(Flags, 10,                                   "Continuous karaoke");
         Skip_Flags(Flags, 17,                                   "write text vertically");
         Skip_Flags(Flags, 18,                                   "fill text region");
+        Skip_Flags(Flags, 29,                                   "vertical placement");
+        Get_Flags(Flags, 30, tx3ghasforced,                     "some samples are forced");
+        Get_Flags(Flags, 31, tx3gallforced,                     "all samples are forced");
     Skip_B1(                                                    "horizontal-justification");
     Skip_B1(                                                    "vertical-justification");
     Skip_B1(                                                    "background-color-rgba (red)");
@@ -4044,9 +4049,10 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_tx3g()
 
     FILLING_BEGIN();
         CodecID_Fill(__T("tx3g"), StreamKind_Last, StreamPos_Last, InfoCodecID_Format_Mpeg4);
+        Streams[moov_trak_tkhd_TrackID].HasForcedSamples = tx3ghasforced;
+        Streams[moov_trak_tkhd_TrackID].AllForcedSamples = tx3gallforced;
         Fill(StreamKind_Last, StreamPos_Last, Fill_Parameter(StreamKind_Last, Generic_Codec), "tx3g", Unlimited, true, true);
         Fill(StreamKind_Last, StreamPos_Last, Fill_Parameter(StreamKind_Last, Generic_Format), "Timed Text", Unlimited, true, true);
-
         #ifdef MEDIAINFO_TIMEDTEXT_YES
             File_TimedText* Parser=new File_TimedText;
             int64u Elemen_Code_Save=Element_Code;
@@ -5468,13 +5474,17 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxx_dvc1()
                 BS_End();
                 Get_B4 (framerate,                              "FrameRate");
                 Element_Begin1("Sequence HDR");
-                    File_Vc1* Parser=new File_Vc1;
-                    Parser->FrameIsAlwaysComplete=true;
-                    Open_Buffer_Init(Parser);
-                    Open_Buffer_Continue(Parser);
-                    Element_Offset=Element_Size;
-                    Streams[moov_trak_tkhd_TrackID].Parsers.push_back(Parser);
-                    mdat_MustParse=true; //Data is in MDAT*/
+                    #if defined(MEDIAINFO_VC1_YES)
+                        File_Vc1* Parser=new File_Vc1;
+                        Parser->FrameIsAlwaysComplete=true;
+                        Open_Buffer_Init(Parser);
+                        Open_Buffer_Continue(Parser);
+                        Element_Offset=Element_Size;
+                        Streams[moov_trak_tkhd_TrackID].Parsers.push_back(Parser);
+                        mdat_MustParse=true; //Data is in MDAT*/
+                    #else //defined(MEDIAINFO_VC1_YES)
+                        Skip_XX(Element_Size - Element_Offset,  "VC-1 data");
+                    #endif //defined(MEDIAINFO_VC1_YES)
                 Element_End0();
         break;
     }
@@ -5825,16 +5835,18 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxx_wave_enda()
         return; //Handling only the first description
 
     FILLING_BEGIN();
-        if (Streams[moov_trak_tkhd_TrackID].IsPcm)
-        {
-            if (Streams[moov_trak_tkhd_TrackID].Parsers.size()==1)
-                ((File_Pcm*)Streams[moov_trak_tkhd_TrackID].Parsers[0])->Endianness=Endianness?'L':'B';
-            if (Streams[moov_trak_tkhd_TrackID].Parsers.size()==2)
+        #if defined(MEDIAINFO_PCM_YES)
+            if (Streams[moov_trak_tkhd_TrackID].IsPcm)
             {
-                ((File_ChannelGrouping*)Streams[moov_trak_tkhd_TrackID].Parsers[0])->Endianness=Endianness?'L':'B';
-                ((File_Pcm*)Streams[moov_trak_tkhd_TrackID].Parsers[1])->Endianness=Endianness?'L':'B';
+                if (Streams[moov_trak_tkhd_TrackID].Parsers.size()==1)
+                    ((File_Pcm*)Streams[moov_trak_tkhd_TrackID].Parsers[0])->Endianness=Endianness?'L':'B';
+                if (Streams[moov_trak_tkhd_TrackID].Parsers.size()==2)
+                {
+                    ((File_ChannelGrouping*)Streams[moov_trak_tkhd_TrackID].Parsers[0])->Endianness=Endianness?'L':'B';
+                    ((File_Pcm*)Streams[moov_trak_tkhd_TrackID].Parsers[1])->Endianness=Endianness?'L':'B';
+                }
             }
-        }
+        #endif //defined(MEDIAINFO_PCM_YES)
     FILLING_END();
 }
 
@@ -6300,8 +6312,9 @@ void File_Mpeg4::moov_trak_tkhd()
     Ztring Date_Created, Date_Modified;
     float32 a, b, u, c, d, v, x, y, w;
     int64u Duration;
-    int16u Volume;
-        Get_Flags(Flags, 0, moov_trak_tkhd_Flags_Track_enabled, "Track Enabled");
+    int16u Volume, Alternate_Group;
+    bool Enabled;
+        Get_Flags(Flags, 0, Enabled,                            "Track Enabled");
         Skip_Flags(Flags, 1,                                    "Track in Movie");
         Skip_Flags(Flags, 2,                                    "Track in Preview");
         Skip_Flags(Flags, 3,                                    "Track in Poster");
@@ -6313,7 +6326,7 @@ void File_Mpeg4::moov_trak_tkhd()
     Skip_B4(                                                    "Reserved");
     Skip_B4(                                                    "Reserved");
     Skip_B2(                                                    "Layer");
-    Get_B2(moov_trak_tkhd_Alternate_group,                      "Alternate group");
+    Get_B2(Alternate_Group,                                     "Alternate group");
     Get_B2 (Volume,                                             "Volume"); Param_Info1(Ztring::ToZtring(((float)Volume)/256));
     Skip_B2(                                                    "Reserved");
     Element_Begin1("Matrix structure");
@@ -6339,9 +6352,8 @@ void File_Mpeg4::moov_trak_tkhd()
             Temp->second.Parsers.clear(); //They are a copy, we don't want that the destructor deletes the Parser
             Streams.erase(Temp);
         }
-
-        if (!moov_trak_tkhd_Flags_Track_enabled) Fill(StreamKind_Last, StreamPos_Last, "Disabled", "Yes");
-        if (moov_trak_tkhd_Alternate_group) Fill(StreamKind_Last, StreamPos_Last, "Alternate Group", moov_trak_tkhd_Alternate_group);
+        Streams[moov_trak_tkhd_TrackID].IsEnabled = Enabled;
+        if (Alternate_Group) Fill(StreamKind_Last, StreamPos_Last, "AlternateGroup", Alternate_Group);
         if (moov_mvhd_TimeScale)
             Fill(StreamKind_Last, StreamPos_Last, "Duration", float64_int64s(((float64)Duration)*1000/moov_mvhd_TimeScale));
         Fill(StreamKind_Last, StreamPos_Last, "Encoded_Date", Date_Created);
@@ -6360,7 +6372,14 @@ void File_Mpeg4::moov_trak_tkhd()
         #endif //MEDIAINFO_EVENTS
     FILLING_END();
 }
+void File_Mpeg4::moov_trak_txas()
+{
+    Element_Name("Track Exclude");
 
+    FILLING_BEGIN();
+        Streams[moov_trak_tkhd_TrackID].IsExcluded=true;
+    FILLING_END();
+}
 //---------------------------------------------------------------------------
 void File_Mpeg4::moov_trak_tref()
 {
@@ -6374,12 +6393,15 @@ void File_Mpeg4::moov_trak_tref_chap()
 
     //Parsing
     int32u TrackID;
+
     while (Element_Offset<Element_Size)
     {
         Get_B4(TrackID,                                         "track-ID");
 
         FILLING_BEGIN();
             Streams[TrackID].IsChapter=true;
+            Streams[TrackID].ChaptersFor.push_back(moov_trak_tkhd_TrackID);
+            Streams[moov_trak_tkhd_TrackID].Chapters.push_back(TrackID);
         FILLING_END();
     }
 }
@@ -6388,10 +6410,16 @@ void File_Mpeg4::moov_trak_tref_chap()
 void File_Mpeg4::moov_trak_tref_clcp()
 {
     Element_Name("Closed Caption Track");
-
+    int32u TrackID;
     //Parsing
     while (Element_Offset<Element_Size)
-        Skip_B4(                                                "track-ID");
+    {
+        Get_B4(TrackID,                                         "track-ID");
+        FILLING_BEGIN();
+            Streams[moov_trak_tkhd_TrackID].CC.push_back(TrackID);
+            Streams[TrackID].CCFor.push_back(moov_trak_tkhd_TrackID);
+        FILLING_END();
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -6408,30 +6436,48 @@ void File_Mpeg4::moov_trak_tref_dpnd()
 void File_Mpeg4::moov_trak_tref_fall()
 {
     Element_Name("Audio Track Reference");
-
+    int32u TrackID;
     //Parsing
     while (Element_Offset<Element_Size)
-        Skip_B4(                                                "track-ID");
+    {
+        Get_B4(TrackID,                                        "track-ID");
+        FILLING_BEGIN();
+            Streams[moov_trak_tkhd_TrackID].FallBackTo.push_back(TrackID);
+            Streams[TrackID].FallBackFrom.push_back(moov_trak_tkhd_TrackID);
+        FILLING_END();
+    }
 }
 
 //---------------------------------------------------------------------------
 void File_Mpeg4::moov_trak_tref_folw()
 {
     Element_Name("Default Track");
-
+    int32u TrackID;
     //Parsing
     while (Element_Offset<Element_Size)
-        Skip_B4(                                                "track-ID");
+    {
+        Get_B4(TrackID,                                        "track-ID");
+        FILLING_BEGIN();
+            Streams[moov_trak_tkhd_TrackID].Subtitle.push_back(TrackID);
+            Streams[TrackID].SubtitleFor.push_back(moov_trak_tkhd_TrackID);
+        FILLING_END();
+    }
 }
 
 //---------------------------------------------------------------------------
 void File_Mpeg4::moov_trak_tref_forc()
 {
     Element_Name("Forced Subtitle Track");
-
+    int32u TrackID;
     //Parsing
     while (Element_Offset<Element_Size)
-        Skip_B4(                                                "track-ID");
+    {
+        Get_B4(TrackID,                                        "track-ID");
+        FILLING_BEGIN();
+            Streams[moov_trak_tkhd_TrackID].Forced.push_back(TrackID);
+            Streams[TrackID].ForcedFor.push_back(moov_trak_tkhd_TrackID);
+        FILLING_END();
+    }
 }
 
 //---------------------------------------------------------------------------

@@ -58,7 +58,6 @@ class TimerManager : public Speaker<TimerManagerListener>, public Singleton<Time
 			return time(nullptr);
 		}
 		static uint64_t getTick();
-		static bool g_isStartupShutdownProcess;
 		static bool g_isRun;
 	private:
 		friend class Singleton<TimerManager>;

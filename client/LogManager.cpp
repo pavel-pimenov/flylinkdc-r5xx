@@ -22,6 +22,7 @@
 #include "CFlylinkDBManager.h"
 #include "CompatibilityManager.h"
 #include "TimerManager.h"
+#include "ClientManager.h"
 
 #ifdef _DEBUG
 boost::unordered_map<string, pair<string, size_t> > LogManager::g_pathCache;
@@ -145,7 +146,7 @@ void LogManager::log(const string& p_area, const string& p_msg) noexcept
 		CFlyFastLock(g_csFile);
 		File::ensureDirectory(l_area);
 	}
-	if (TimerManager::g_isStartupShutdownProcess == true || TimerManager::g_isRun == false)
+	if (ClientManager::isStartup() == true || ClientManager::isShutdown() == true || TimerManager::g_isRun == false)
 	{
 		flush_all_log();
 	}
@@ -298,7 +299,7 @@ void LogManager::message(const string& msg, bool p_only_file /*= false */)
 		params["message"] = msg;
 		log(SYSTEM, params, p_only_file); // [1] https://www.box.net/shared/9e63916273d37e5b2932
 	}
-	if (LogManager::g_isLogSpeakerEnabled == true && TimerManager::g_isStartupShutdownProcess == false)
+	if (LogManager::g_isLogSpeakerEnabled == true && ClientManager::isStartup() == false && ClientManager::isShutdown() == false)
 	{
 		if (LogManager::g_mainWnd)
 		{

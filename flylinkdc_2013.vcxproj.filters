@@ -1135,6 +1135,10 @@
     <Image Include="res\vip_allavtovo.ico" />
     <Image Include="res\vip_korobka.ico" />
     <Image Include="res\Gender.png" />
+    <Image Include="res\vip_nsk154hub.ico" />
+    <Image Include="res\vip_prostoigra24.ico" />
+    <Image Include="res\vip_eva.ico" />
+    <Image Include="res\vip_adrenalin.ico" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compiled\Settings\common\IPTrust.ini">

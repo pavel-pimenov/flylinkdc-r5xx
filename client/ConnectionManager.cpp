@@ -212,14 +212,17 @@ ConnectionQueueItem* ConnectionManager::getCQI_L(const HintedUser& aHintedUser, 
 
 void ConnectionManager::putCQI_L(ConnectionQueueItem* cqi)
 {
-	fly_fire1(ConnectionManagerListener::Removed(), cqi); // TODO - зовется фаер под локом?
+	if (!ClientManager::isShutdown())
+	{
+		fly_fire1(ConnectionManagerListener::Removed(), cqi); // TODO - зовется фаер под локом?
+	}
 	if (cqi->isDownload())
 	{
 		g_downloads.erase_and_check(cqi);
 	}
 	else
 	{
-		UploadManager::getInstance()->removeDelayUpload(cqi->getUser());
+		UploadManager::removeDelayUpload(cqi->getUser());
 		g_uploads.erase_and_check(cqi);
 	}
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
@@ -301,6 +304,7 @@ void ConnectionManager::onUserUpdated(const UserPtr& aUser)
 
 void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 {
+	dcassert(!ClientManager::isShutdown());
 	if (((aTick / 1000) % (CFlyServerConfig::g_max_unique_tth_search + 2)) == 0)
 	{
 		cleanupDuplicateSearchTTH(aTick);
@@ -357,7 +361,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 						continue;
 					}
 					
-					bool startDown = DownloadManager::getInstance()->startDownload(prio);
+					const bool startDown = DownloadManager::getInstance()->isStartDownload(prio);
 					
 					if (cqi->getState() == ConnectionQueueItem::WAITING)
 					{
@@ -1108,7 +1112,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 			FavoriteHubEntry* fhub = FavoriteManager::getFavoriteHubEntry(i.m_HubUrl);
 			if (!fhub)
 				dcdebug("REASON_DETECT_CONNECTION: can't find favorite hub %s\n", i.m_HubUrl.c_str());
-			dcassert(fhub);
+			//dcassert(fhub);
 			
 			// WARNING: only Nmdc hub requests for REASON_DETECT_CONNECTION.
 			// if another hub added, one must implement autodetection in base Client class
@@ -1598,6 +1602,10 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 				putCQI_L(cqi);
 			}
 		}
+	}
+	else
+	{
+		//dcassert(0);
 	}
 	putConnection(aSource);
 }

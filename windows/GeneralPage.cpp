@@ -78,6 +78,7 @@ void GeneralPage::write()
 	PropPage::write((HWND)(*this), items);
 	ctrlLanguage.Attach(GetDlgItem(IDC_LANGUAGE));
 	const string l_filelang = WinUtil::getDataFromMap(ctrlLanguage.GetCurSel(), m_languagesList);
+	dcassert(!l_filelang.empty());
 	if (SETTING(LANGUAGE_FILE) != l_filelang)
 	{
 		g_settings->set(SettingsManager::LANGUAGE_FILE, l_filelang);

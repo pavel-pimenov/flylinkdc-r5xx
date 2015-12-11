@@ -67,7 +67,7 @@ const string SettingsManager::g_settingTags[] =
 	"TextFont", "MainFrameOrder", "MainFrameWidths", "HubFrameOrder", "HubFrameWidths",
 	"DefaultCodepage", "LanguageFile", "SearchFrameOrder", "SearchFrameWidths", "FavoritesFrameOrder", "FavoritesFrameWidths", "FavoritesFrameVisible",
 	"HublistServers", "QueueFrameOrder", "QueueFrameWidths", "PublicHubsFrameOrder", "PublicHubsFrameWidths", "PublicHubsFrameVisible",
-	"UsersFrameOrder", "UsersFrameWidths", "UsersFrameVisible", "HttpProxy", "LogDir", "LogFormatPostDownload",
+	"UsersFrameOrder", "UsersFrameWidths", "UsersFrameVisible", "LogDir", "LogFormatPostDownload",
 	
 	"LogFormatPostUpload", "LogFormatMainChat", "LogFormatPrivateChat", "FinishedOrder", "FinishedWidths",
 	"TempDownloadDirectory", "BindAddress", "SocksServer", "SocksUser", "SocksPassword", "ConfigVersion",
@@ -567,9 +567,9 @@ void SettingsManager::setDefaults()
 #ifdef RIP_USE_LOG_PROTOCOL
 	setDefault(LOG_FORMAT_PROTOCOL, "[%Y-%m-%d %H:%M:%S] %[message]");
 #endif
-	setDefault(LOG_FILE_MAIN_CHAT, "%B - %Y\\%[hubURL].log");
-	setDefault(LOG_FILE_STATUS, "%B - %Y\\%[hubURL]_status.log");
-	setDefault(LOG_FILE_PRIVATE_CHAT, "PM\\%B - %Y\\%[userNI].log");
+	setDefault(LOG_FILE_MAIN_CHAT, "%Y - %B\\%[hubURL].log");
+	setDefault(LOG_FILE_STATUS, "%Y - %B\\%[hubURL]_status.log");
+	setDefault(LOG_FILE_PRIVATE_CHAT, "PM\\%Y - %B\\%[userNI]-%[hubURL].log");
 	setDefault(LOG_FILE_UPLOAD, "Uploads.log");
 	setDefault(LOG_FILE_DOWNLOAD, "Downloads.log");
 	setDefault(LOG_FILE_SYSTEM, "System.log");
@@ -1320,7 +1320,18 @@ void SettingsManager::setDefaults()
 
 bool SettingsManager::LoadLanguage()
 {
-	return ResourceManager::loadLanguage(Util::getLocalisationPath() + get(LANGUAGE_FILE));
+	auto l_path = Util::getLocalisationPath();
+	auto l_name = get(LANGUAGE_FILE);
+	if (l_name.empty())
+	{
+		dcassert(0);
+		if (Text::g_systemCharset == Text::g_code1251)
+		{
+			l_name = "ru-RU.xml";
+		}
+	}
+	l_path += l_name;
+	return ResourceManager::loadLanguage(l_path);
 }
 
 void SettingsManager::load(const string& aFileName)
@@ -1488,13 +1499,19 @@ void SettingsManager::load(const string& aFileName)
 				boost::replace_all(l_result, "_", "-");
 				l_result += ".xml";
 				if (File::isExist(Util::getLocalisationPath() + l_result))
+				{
 					set(LANGUAGE_FILE, l_result);
+				}
 			}
 			else
+			{
 				set(LANGUAGE_FILE, getLanguageFileFromOldName());
+			}
 		}
 		else
+		{
 			set(LANGUAGE_FILE, getLanguageFileFromOldName());
+		}
 	}
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 	{
@@ -1674,6 +1691,12 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 			}
 			l_auto |= Text::safe_strftime_translate(l_new_value);
 			strSettings[key - STR_FIRST] = l_new_value;
+			if (key == LOG_FILE_PRIVATE_CHAT && l_new_value == "PM\\%B - %Y\\%[userNI].log")
+			{
+				l_auto = false;
+				l_new_value = "PM\\%Y - %B\\%[userNI]-%[hubURL].log";
+				strSettings[key - STR_FIRST] = l_new_value;
+			}
 		}
 		break;
 		case BIND_ADDRESS:
