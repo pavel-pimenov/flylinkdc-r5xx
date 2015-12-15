@@ -49,6 +49,7 @@ PrivateFrame::~PrivateFrame()
 
 void PrivateFrame::doDestroyFrame()
 {
+	destroyUserMenu();
 	destroyMessagePanel(true);
 }
 
@@ -578,7 +579,7 @@ LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 	GetCursorPos(&cpt);
 	
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };        // location of mouse click
-	OMenu Mnu;
+
 	
 	if (m_msgPanel && m_msgPanel->OnContextMenu(pt, wParam))
 		return TRUE;
@@ -608,27 +609,25 @@ LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 			{
 				return S_OK;
 			}
-			OMenu menu;
-			menu.CreatePopupMenu();
-			clearUserMenu();
+			OMenu* l_user_menu = createUserMenu();
+			l_user_menu->ClearMenu();
+			clearUserMenu(); // !SMT!-S
 			
 			reinitUserMenu(m_replyTo, getHubHint()); // [!] IRainman fix.
 			
-			appendUcMenu(menu, UserCommand::CONTEXT_USER, ClientManager::getHubs(m_replyTo.user->getCID(), getHubHint()));
-			if (!(menu.GetMenuState(menu.GetMenuItemCount() - 1, MF_BYPOSITION) & MF_SEPARATOR))
+			appendUcMenu(*l_user_menu, UserCommand::CONTEXT_USER, ClientManager::getHubs(m_replyTo.user->getCID(), getHubHint()));
+			if (!(l_user_menu->GetMenuState(l_user_menu->GetMenuItemCount() - 1, MF_BYPOSITION) & MF_SEPARATOR))
 			{
-				menu.AppendMenu(MF_SEPARATOR);
+				l_user_menu->AppendMenu(MF_SEPARATOR);
 			}
-			//#ifdef OLD_MENU_HEADER //[~]JhaoDa
-			menu.InsertSeparatorFirst(m_replyToRealName);
-			//#endif
-			appendAndActivateUserItems(menu);
+			l_user_menu->InsertSeparatorFirst(m_replyToRealName);
+			appendAndActivateUserItems(*l_user_menu);
 			
-			menu.AppendMenu(MF_STRING, IDC_CLOSE_WINDOW, CTSTRING(CLOSE_HOT));
-			menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, cpt.x, cpt.y, m_hWnd);
+			l_user_menu->AppendMenu(MF_STRING, IDC_CLOSE_WINDOW, CTSTRING(CLOSE_HOT));
+			l_user_menu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, cpt.x, cpt.y, m_hWnd);
 			
-			cleanUcMenu(menu);
-			WinUtil::unlinkStaticMenus(menu); // TODO - fix copy-paste
+			WinUtil::unlinkStaticMenus(*l_user_menu); // TODO - fix copy-paste
+			cleanUcMenu(*l_user_menu);
 			bHandled = TRUE;
 		}
 		else

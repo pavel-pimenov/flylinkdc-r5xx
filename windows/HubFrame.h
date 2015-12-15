@@ -599,8 +599,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		CContainedWindow* m_showUsersContainer;
 		
 		OMenu* m_tabMenu;
-		OMenu* m_userMenu;
-		bool   m_tabMenuShown;
+		bool   m_isTabMenuShown;
 		boost::unordered_map<string, unsigned> m_count_redirect_map;
 		
 #ifdef SCALOLAZ_HUB_MODE
@@ -613,8 +612,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		void TuneSplitterPanes();
 		void addPasswordCommand();
 		OMenu* createTabMenu();
-		OMenu* createUserMenu();
-		void destroyOMenu();
+		void destroyTabMenu();
 	public:
 		void createMessagePanel();
 		void destroyMessagePanel(bool p_is_destroy);

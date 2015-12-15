@@ -37,7 +37,7 @@ class LOCKABLE RWLockWrapper {
 // provides more compact locking syntax.
 class SCOPED_LOCKABLE ReadLockScoped
 #ifdef FLYLINKDC_USE_PROFILER_CS
-	: protected CFlyLockProfiler
+	: public CFlyLockProfiler
 #endif
 {
  public:
@@ -70,7 +70,7 @@ class SCOPED_LOCKABLE ReadLockScoped
 
 class SCOPED_LOCKABLE WriteLockScoped 
 #ifdef FLYLINKDC_USE_PROFILER_CS
-	: protected CFlyLockProfiler
+	: public CFlyLockProfiler
 #endif
 {
  public:

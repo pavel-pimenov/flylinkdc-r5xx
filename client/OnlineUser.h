@@ -228,14 +228,14 @@ class Identity
 		}
 		void setBytesShared(const int64_t bytes) // "SS"
 		{
-			CFlyWriteLock(*g_rw_cs);
+			// CFlyWriteLock(*g_rw_cs);
 			dcassert(bytes >= 0);
 			getUser()->setBytesShared(bytes);
 			change(CHANGES_SHARED | CHANGES_EXACT_SHARED);
 		}
 		const int64_t getBytesShared() const // "SS"
 		{
-			CFlyReadLock(*g_rw_cs);
+			// CFlyReadLock(*g_rw_cs);
 			return getUser()->getBytesShared();
 		}
 		
@@ -662,6 +662,84 @@ class Identity
 		{
 			setStringParam("F5", p_value);
 		}
+		string getExtJSONHubRamAsText() const
+		{
+			string l_res;
+			if (getExtJSONRAMWorkingSet())
+			{
+				l_res = Util::formatBytes(int64_t(getExtJSONRAMWorkingSet() * 1024 * 1024));
+			}
+			if (getExtJSONRAMPeakWorkingSet() != getExtJSONRAMWorkingSet())
+			{
+				l_res += " [Max: " + Util::formatBytes(int64_t(getExtJSONRAMPeakWorkingSet() * 1024 * 1024)) + "]";
+			}
+			if (getExtJSONRAMFree())
+			{
+				l_res += " [Free: " + Util::formatBytes(int64_t(getExtJSONRAMFree() * 1024 * 1024)) + "]";
+			}
+			return l_res;
+		}
+
+		string getExtJSONCountFilesAsText() const
+		{
+			if (getExtJSONCountFiles())
+				return Util::toString(getExtJSONCountFiles());
+			else
+				return Util::emptyString;
+		}
+		string getExtJSONLastSharedDateAsText() const
+		{
+			if (getExtJSONLastSharedDate())
+				return Util::formatDigitalClock(getExtJSONLastSharedDate());
+			else
+				return Util::emptyString;
+		}
+
+		string getExtJSONSQLiteDBSizeAsText() const
+		{
+			string l_res;
+			if (getExtJSONSQLiteDBSize())
+			{
+				l_res = Util::formatBytes(int64_t(getExtJSONSQLiteDBSize()) * 1024 * 1024);
+			}
+			if (getExtJSONSQLiteDBSizeFree())
+			{
+				l_res += " [Free: " + Util::formatBytes(int64_t(getExtJSONSQLiteDBSizeFree()) * 1024 * 1024) + "]";
+			}
+			if (getExtJSONlevelDBHistSize())
+			{
+				l_res += " [LevelDB: " + Util::formatBytes(int64_t(getExtJSONlevelDBHistSize()) * 1024 * 1024) + "]";
+			}
+			return l_res;
+		}
+		string getExtJSONQueueFilesText() const
+		{
+			string l_res;
+			if (getExtJSONQueueFiles())
+			{
+				l_res = "[Files: " + Util::toString(getExtJSONQueueFiles()) + "]";
+			}
+			if (getExtJSONQueueSrc())
+			{
+				l_res += " [Sources: " + Util::toString(getExtJSONQueueSrc()) + "]";
+			}
+			return l_res;
+		}
+		string getExtJSONTimesStartCoreText() const
+		{
+			string l_res;
+			if (getExtJSONTimesStartCore())
+			{
+				l_res = "[Start core: " + Util::toString(getExtJSONTimesStartCore()) + "]";
+			}
+			if (getExtJSONTimesStartGUI())
+			{
+				l_res += " [Start GUI: " + Util::toString(getExtJSONTimesStartGUI()) + "]";
+			}
+			return l_res;
+		}
+
+
 #endif
 		
 		// [+] IRainman
@@ -706,6 +784,7 @@ class Identity
 		
 		typedef boost::unordered_map<short, string> InfMap;
 		
+		mutable FastCriticalSection m_si_fcs;
 		InfMap m_stringInfo;
 		
 		typedef vector<const string*> StringDictionaryReductionPointers;

@@ -77,8 +77,18 @@ CGDIImage::~CGDIImage()
 	_ASSERTE(m_Callbacks.empty());
 	if (m_hTimer)
 	{
-		    m_allowCreateTimer = false;
-			DeleteTimerQueueTimer(NULL, m_hTimer, INVALID_HANDLE_VALUE); // INVALID_HANDLE_VALUE - дождемся завершения callback
+			EnterCriticalSection(&m_csCallback);
+			m_allowCreateTimer = false;
+			if (!DeleteTimerQueueTimer(NULL, m_hTimer, INVALID_HANDLE_VALUE))
+			{
+				auto l_code = GetLastError();
+				if (l_code != ERROR_IO_PENDING)
+				{
+					dcassert(0);
+				}
+			}
+			m_hTimer = NULL;
+			LeaveCriticalSection(&m_csCallback);
 	}
 	safe_delete(m_pImage);
 	cleanup();
@@ -125,16 +135,23 @@ DWORD CGDIImage::GetFrameDelay(DWORD dwFrame)
 bool CGDIImage::SelectActiveFrame(DWORD dwFrame)
 {
 	dcassert(!isShutdown());
-	static const GUID g_Guid = Gdiplus::FrameDimensionTime;
-	if (m_pImage) // crash https://drdump.com/DumpGroup.aspx?DumpGroupID=230505&Login=guest
-		m_pImage->SelectActiveFrame(&g_Guid, dwFrame); // [1] https://www.box.net/shared/x4tgntvw818gzd274nek
-	return true;
-	/* [!]TODO
-	if(m_pImage)
-	  return m_pImage->SelectActiveFrame(&g_Guid, dwFrame) == Ok;
+	if (!isShutdown())
+	{
+			static const GUID g_Guid = Gdiplus::FrameDimensionTime;
+			if (m_pImage) // crash https://drdump.com/DumpGroup.aspx?DumpGroupID=230505&Login=guest
+				m_pImage->SelectActiveFrame(&g_Guid, dwFrame); // [1] https://www.box.net/shared/x4tgntvw818gzd274nek
+			return true;
+			/* [!]TODO
+			if(m_pImage)
+			return m_pImage->SelectActiveFrame(&g_Guid, dwFrame) == Ok;
+			else
+			return false;
+			*/
+	}
 	else
-	  return false;
-	  */
+	{
+		return false;
+	}
 }
 
 DWORD CGDIImage::GetFrameCount()
@@ -196,7 +213,14 @@ void CGDIImage::destroyTimer(CGDIImage *pGDIImage, HANDLE p_CompletionEvent)
 	if (pGDIImage->m_hTimer)
 	{
 		pGDIImage->m_allowCreateTimer = false;
-		DeleteTimerQueueTimer(NULL, pGDIImage->m_hTimer, p_CompletionEvent); 
+		if(!DeleteTimerQueueTimer(NULL, pGDIImage->m_hTimer, p_CompletionEvent))
+		{
+			auto l_code = GetLastError();
+			if (l_code != ERROR_IO_PENDING)
+			{
+				dcassert(0);
+			}
+		}
 		pGDIImage->m_hTimer = NULL;
 	}
 	LeaveCriticalSection(&pGDIImage->m_csCallback); // 
@@ -212,7 +236,6 @@ VOID CALLBACK CGDIImage::OnTimer(PVOID lpParameter, BOOLEAN TimerOrWaitFired)
 			return;
 		}
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
-			dcassert(isGDIImageLive(pGDIImage));
 			if(isGDIImageLive(pGDIImage)) // fix http://code.google.com/p/flylinkdc/issues/detail?id=1255
 			{
 #endif
@@ -232,7 +255,6 @@ VOID CALLBACK CGDIImage::OnTimer(PVOID lpParameter, BOOLEAN TimerOrWaitFired)
 					pGDIImage->DrawFrame();
 			}
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
-			dcassert(isGDIImageLive(pGDIImage));
 			if(isGDIImageLive(pGDIImage)) // fix http://code.google.com/p/flylinkdc/issues/detail?id=1255
 			{
 #endif
@@ -243,7 +265,11 @@ VOID CALLBACK CGDIImage::OnTimer(PVOID lpParameter, BOOLEAN TimerOrWaitFired)
 			// [~] IRainman fix.
 			if (!pGDIImage->m_Callbacks.empty())
 			{
-				CreateTimerQueueTimer(&pGDIImage->m_hTimer, NULL, OnTimer, pGDIImage, dwDelay, 0, WT_EXECUTEDEFAULT); // TODO - разрушать все таймера при стопе
+				dcassert(!isShutdown());
+				if (!isShutdown())
+				{
+					CreateTimerQueueTimer(&pGDIImage->m_hTimer, NULL, OnTimer, pGDIImage, dwDelay, 0, WT_EXECUTEDEFAULT); // TODO - разрушать все таймера при стопе
+				}
 			}
 			LeaveCriticalSection(&pGDIImage->m_csCallback);
 			// Move to the next frame

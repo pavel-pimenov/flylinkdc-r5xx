@@ -102,7 +102,7 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			    _T("Nikitos\r\nTankafett\r\nR00T_ADMIN\r\ni.Kliok\r\nhat3k\r\nVladV\r\nXcell\r\nBlackRiderUA\r\nHavokdan\r\nShumoffon\r\n")
 			    
 			    _T("\r\nBeta-testers:\r\n")
-			    _T(" Pafuntik\r\nkotik\r\nTirael\r\nMoonRainbow\r\nBlackRiderUA\r\nBlack-code\r\nJhaoDa\r\nPapochka\r\nR00T_ADMIN\r\nNikitos\r\n-_SoRuS_-\r\nЛеонид Жилин lss.jilin@gmail.com\r\nShadoWx");
+			    _T(" Pafuntik\r\nkotik\r\nTirael\r\nMoonRainbow\r\nBlackRiderUA\r\nBlack-code\r\nJhaoDa\r\nPapochka\r\nR00T_ADMIN\r\nNikitos\r\n-_SoRuS_-\r\nЛеонид Жилин lss.jilin@gmail.com\r\nShadoWx\r\nKCAHDEP");
 			CEdit ctrlThanks(GetDlgItem(IDC_THANKS));
 			ctrlThanks.FmtLines(TRUE);
 			ctrlThanks.AppendText(l_thanks, TRUE);

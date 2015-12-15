@@ -350,13 +350,13 @@ void ZipFile::CreateZipFileList(StringPairList& files, const string& srcPath, co
 			
 			if (keepEmpty || !subFiles.empty())
 			{
-				files.emplace_back(std::make_pair(newSrcPath, newDstPath));
+				files.push_back(std::make_pair(newSrcPath, newDstPath));
 				files.insert(files.end(), subFiles.begin(), subFiles.end());
 			}
 		}
 		else
 		{
-			files.emplace_back(std::make_pair(srcPath + name, dstPath + name));
+			files.push_back(std::make_pair(srcPath + name, dstPath + name));
 		}
 	}
 }

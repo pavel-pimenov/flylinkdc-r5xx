@@ -91,6 +91,7 @@ class Speaker
 #define fly_fire4 fire
 #define fly_fire5 fire
 #endif
+#if _MSC_VER > 1600 // > VC++2010
 		template<typename... ArgT>
 		void fire(ArgT && ... args)
 		{
@@ -109,7 +110,10 @@ class Speaker
 			}
 		}
 		
-#if 0 // VC++ 2010
+#else // VC++2010
+
+#define IRAINMAN_USE_SIMPLE_SPEAKER
+
 		template<typename T0>
 		void fire(T0 && type) noexcept
 		{
@@ -294,7 +298,7 @@ void fire(T0 && type, T1 && p1, T2 && p2, T3 && p3, T4 && p4, T5 && p5, T6 && p6
 after_fire_process();
 #endif // IRAINMAN_USE_SIMPLE_SPEAKER
 }
-#endif // 0  VC++2010
+#endif // <= VC++2010
 
 void addListener(Listener* aListener)
 {

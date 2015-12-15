@@ -113,6 +113,7 @@ Transfer(p_conn, p_item->getTarget(), p_item->getTTH(), p_ip, p_chiper_name),
 
 Download::~Download()
 {
+	dcassert(m_download_file == nullptr);
 	//////////getUserConnection()->setDownload(nullptr);
 }
 

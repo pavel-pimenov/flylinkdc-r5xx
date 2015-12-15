@@ -286,7 +286,7 @@ string SSLSocket::getCipherName() const noexcept
     if (!ssl)
     return Util::emptyString;
     
-    return SSL_get_cipher_name(ssl);
+    return SSL_get_cipher_name(ssl); // https://drdump.com/Problem.aspx?ProblemID=173215
 }
 
 vector<uint8_t> SSLSocket::getKeyprint() const noexcept

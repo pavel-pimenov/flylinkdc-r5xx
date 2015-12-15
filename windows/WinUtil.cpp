@@ -84,6 +84,7 @@ COLORREF Colors::g_bgColor = 0;
 
 HFONT Fonts::g_font = nullptr;
 int Fonts::g_fontHeight = 0;
+int Fonts::g_fontSystemHeight = 0;
 HFONT Fonts::g_boldFont = nullptr;
 HFONT Fonts::g_systemFont = nullptr;
 HFONT Fonts::g_halfFont = nullptr;
@@ -954,6 +955,7 @@ void Fonts::init()
 	g_font = ::CreateFontIndirect(&lf[0]);
 	g_fontHeight = WinUtil::getTextHeight(WinUtil::g_mainWnd, g_font);
 	g_systemFont = (HFONT)::GetStockObject(DEFAULT_GUI_FONT);
+	g_fontSystemHeight = WinUtil::getTextHeight(WinUtil::g_mainWnd, g_systemFont);
 }
 
 void Colors::init()

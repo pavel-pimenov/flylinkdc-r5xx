@@ -506,10 +506,12 @@ void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility
 #undef APPEND
 #undef SKIP_EMPTY
 	}
-	CFlyReadLock(*g_rw_cs);
-	for (auto i = m_stringInfo.cbegin(); i != m_stringInfo.cend(); ++i)
 	{
-		sm[prefix + string((char*)(&i->first), 2)] =  i->second;
+		CFlyFastLock(m_si_fcs);
+		for (auto i = m_stringInfo.cbegin(); i != m_stringInfo.cend(); ++i)
+		{
+			sm[prefix + string((char*)(&i->first), 2)] = i->second;
+		}
 	}
 }
 // Вернул тэг - http://code.google.com/p/flylinkdc/source/detail?r=14812
@@ -615,91 +617,93 @@ FastCriticalSection csTest;
 string Identity::getStringParam(const char* name) const // [!] IRainman fix.
 {
 	CHECK_GET_SET_COMMAND();
-	
+
 #ifdef PPA_INCLUDE_TEST
 	{
 		static std::map<short, int> g_cnt;
 		CFlyFastLock(ll(csTest);
-		             auto& j = g_cnt[*(short*)name];
-		             j++;
-		             //if (j % 100 == 0)
+		auto& j = g_cnt[*(short*)name];
+		j++;
+		//if (j % 100 == 0)
 		{
 			LogManager::message("Identity::getStringParam = " + string(name) + " count = " + Util::toString(j));
 			//dcdebug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! get[%s] = %d \n", name, j);
 		}
 	}
 #endif
-	
+
 	switch (*(short*)name) // http://code.google.com/p/flylinkdc/issues/detail?id=1314
 	{
-		case TAG('A', 'P'):
-		{
-			const auto l_dic_value = getDicAP();
-			if (l_dic_value > 0)
-			{
-				CFlyReadLock(*g_rw_cs);
-				
-				const string& l_value = getDicValL(l_dic_value);
-#ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
-				CFlylinkDBManager::getInstance()->identity_get(name, l_value); // TODO вывести из лока g_rw_cs
-#endif
-				return l_value;
-			}
-			else
-			{
-				return Util::emptyString;
-			}
-		}
-		case TAG('V', 'E'):
-		{
-			const auto l_dic_value = getDicVE();
-			if (l_dic_value > 0)
-			{
-				CFlyReadLock(*g_rw_cs);
-				const string& l_value = getDicValL(l_dic_value);
-#ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
-				CFlylinkDBManager::getInstance()->identity_get(name, l_value); // TODO вывести из лока g_rw_cs
-#endif
-				return l_value;
-			}
-			else
-			{
-				return Util::emptyString;
-			}
-		}
-		case TAG('E', 'M'):
-		{
-			if (!getNotEmptyStringBit(EM))
-			{
-#ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
-				CFlylinkDBManager::getInstance()->identity_get(name, "");
-#endif
-				return Util::emptyString;
-			}
-			break;
-		}
-		case TAG('D', 'E'):
-		{
-			if (!getNotEmptyStringBit(DE))
-			{
-#ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
-				CFlylinkDBManager::getInstance()->identity_get(name, "");
-#endif
-				return Util::emptyString;
-			}
-			break;
-		}
-	};
-	
-	CFlyReadLock(*g_rw_cs);
-	
-	const auto i = m_stringInfo.find(*(short*)name);
-	if (i != m_stringInfo.end())
+	case TAG('A', 'P'):
 	{
+		const auto l_dic_value = getDicAP();
+		if (l_dic_value > 0)
+		{
+			CFlyReadLock(*g_rw_cs);
+
+			const string& l_value = getDicValL(l_dic_value);
 #ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
-		CFlylinkDBManager::getInstance()->identity_get(name, i->second);
+			CFlylinkDBManager::getInstance()->identity_get(name, l_value); // TODO вывести из лока g_rw_cs
 #endif
-		return i->second;
+			return l_value;
+		}
+		else
+		{
+			return Util::emptyString;
+		}
+	}
+	case TAG('V', 'E'):
+	{
+		const auto l_dic_value = getDicVE();
+		if (l_dic_value > 0)
+		{
+			CFlyReadLock(*g_rw_cs);
+			const string& l_value = getDicValL(l_dic_value);
+#ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
+			CFlylinkDBManager::getInstance()->identity_get(name, l_value); // TODO вывести из лока g_rw_cs
+#endif
+			return l_value;
+		}
+		else
+		{
+			return Util::emptyString;
+		}
+	}
+	case TAG('E', 'M'):
+	{
+		if (!getNotEmptyStringBit(EM))
+		{
+#ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
+			CFlylinkDBManager::getInstance()->identity_get(name, "");
+#endif
+			return Util::emptyString;
+		}
+		break;
+	}
+	case TAG('D', 'E'):
+	{
+		if (!getNotEmptyStringBit(DE))
+		{
+#ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
+			CFlylinkDBManager::getInstance()->identity_get(name, "");
+#endif
+			return Util::emptyString;
+		}
+		break;
+	}
+	};
+
+	{
+		CFlyFastLock(m_si_fcs);
+
+		const auto i = m_stringInfo.find(*(short*)name);
+		if (i != m_stringInfo.end())
+		{
+#ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
+			CFlylinkDBManager::getInstance()->identity_get(name, i->second);
+#endif
+			return i->second;
+	}
 	}
 	return Util::emptyString;
 }
@@ -754,6 +758,13 @@ void Identity::setStringParam(const char* name, const string& val) // [!] IRainm
 	if (l_is_processing_stringInfo_map)
 	{
 		CFlyWriteLock(*g_rw_cs);
+#ifdef FLYLINKDC_USE_PROFILER_CS
+		char l_name[3] = { 0 };
+		l_name[0] = name[0];
+		l_name[1] = name[1];
+		l_lock.m_add_log_info = l_name;
+		l_lock.m_add_log_info += " Value = " + val + " User = " + getUser()->getLastNick();
+#endif
 		
 		switch (*(short*)name) // TODO: move to instantly method
 		{
@@ -778,14 +789,16 @@ void Identity::setStringParam(const char* name, const string& val) // [!] IRainm
 				break;
 			}
 		}
-		
-		if (val.empty())
 		{
-			m_stringInfo.erase(*(short*)name);
-		}
-		else
-		{
-			m_stringInfo[*(short*)name] = val;
+			CFlyFastLock(m_si_fcs);
+			if (val.empty())
+			{
+				m_stringInfo.erase(*(short*)name);
+			}
+			else
+			{
+				m_stringInfo[*(short*)name] = val;
+			}
 		}
 	}
 	else
@@ -1000,7 +1013,7 @@ void Identity::getReport(string& p_report) const
 		}
 		
 		{
-			CFlyReadLock(*g_rw_cs);
+			CFlyFastLock(m_si_fcs);
 			for (auto i = m_stringInfo.cbegin(); i != m_stringInfo.cend(); ++i)
 			{
 				auto name = string((char*)(&i->first), 2);
@@ -1019,6 +1032,15 @@ void Identity::getReport(string& p_report) const
 						break;
 					case TAG('K', 'P'): // ok
 						name = "KeyPrint";
+						break;
+					case TAG('V', 'E'):
+					case TAG('A', 'P'):
+					case TAG('F', '1'):
+					case TAG('F', '2'):
+					case TAG('F', '3'):
+					case TAG('F', '4'):
+					case TAG('F', '5'):
+						continue;
 						break;
 					default:
 						name += " (unknown)";
@@ -1081,7 +1103,19 @@ void Identity::getReport(string& p_report) const
 		appendIfValueNotEmpty("Client version", getStringParam("VE"));
 		
 		appendIfValueNotEmpty("P2P Guard", getP2PGuard());
-		appendIfValueNotEmpty("Antivirus database:", getVirusDesc());
+		appendIfValueNotEmpty("Antivirus database", getVirusDesc());
+		appendIfValueNotEmpty("Support info", getExtJSONSupportInfo());
+		appendIfValueNotEmpty("Gender", Text::fromT(getGenderTypeAsString()));
+
+		appendIfValueNotEmpty("Country", getFlyHubCountry());
+		appendIfValueNotEmpty("City", getFlyHubCity());
+		appendIfValueNotEmpty("ISP", getFlyHubISP());
+		
+		appendIfValueNotEmpty("Count files", getExtJSONCountFilesAsText());
+		appendIfValueNotEmpty("Last share", getExtJSONLastSharedDateAsText());
+		appendIfValueNotEmpty("SQLite DB size", getExtJSONSQLiteDBSizeAsText());
+		appendIfValueNotEmpty("Queue info:", getExtJSONQueueFilesText());
+		appendIfValueNotEmpty("Start/stop core:", getExtJSONTimesStartCoreText());
 		
 	}
 }

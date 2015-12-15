@@ -1684,7 +1684,7 @@ void ConnectionManager::shutdown()
 #ifdef _DEBUG
 		LogManager::message("Wait remove from g_userConnections!");
 #endif
-		Thread::sleep(20);
+		Thread::sleep(10);
 	}
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	// TODO: please fix me: this code is not valid! downloads and uploads is empty!

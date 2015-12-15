@@ -1096,6 +1096,10 @@ class Util
 		static string encodeURI(const string& /*aString*/, bool reverse = false);
 		static string getLocalOrBindIp(const bool p_check_bind_address);
 		static bool isPrivateIp(const string& p_ip);
+		static bool isNotPrivateIpAndNot169(const string& p_ip)
+		{
+		  return !isPrivateIp(p_ip) && strncmp(p_ip.c_str(), "169", 3) != 0;
+		}
 		static bool isPrivateIp(uint32_t p_ip)
 		{
 			return ((p_ip & 0xff000000) == 0x0a000000 || // 10.0.0.0/8

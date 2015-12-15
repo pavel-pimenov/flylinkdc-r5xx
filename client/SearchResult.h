@@ -27,6 +27,9 @@
 #include <boost/asio/ip/address_v4.hpp>
 
 class CFlySearchItemTTH
+#ifdef _DEBUG
+	// TODO : boost::noncopyable
+#endif
 {
 	public:
 		const TTHValue m_tth;
@@ -44,7 +47,11 @@ class CFlySearchItemTTH
 			dcassert(m_search.size() > 4);
 		}
 };
+#if _MSC_VER > 1600 // > VC++2010
 typedef std::vector<CFlySearchItemTTH> CFlySearchArrayTTH;
+#else
+typedef std::list<CFlySearchItemTTH> CFlySearchArrayTTH;
+#endif
 class CFlySearchItemFile : public SearchParam
 {
 };

@@ -260,12 +260,11 @@ HubFrame::HubFrame(bool p_is_auto_connect,
 #ifdef SCALOLAZ_HUB_MODE
 	, m_ctrlShowMode(nullptr)
 #endif
-	, m_tabMenuShown(false)
+	, m_isTabMenuShown(false)
 	, m_showJoins(false)
 	, m_favShowJoins(false)
 	, m_isUpdateColumnsInfoProcessed(false)
 	, m_tabMenu(nullptr)
-	, m_userMenu(nullptr)
 	, m_ActivateCounter(0)
 	, m_is_window_text_update(0)
 	, m_virus_icon_index(0)
@@ -296,8 +295,13 @@ HubFrame::HubFrame(bool p_is_auto_connect,
 
 void HubFrame::doDestroyFrame()
 {
-	destroyOMenu();
+	destroyUserMenu();
+	destroyTabMenu();
 	destroyMessagePanel(true);
+}
+void HubFrame::destroyTabMenu()
+{
+	safe_delete(m_tabMenu);
 }
 
 HubFrame::~HubFrame()
@@ -614,21 +618,6 @@ OMenu* HubFrame::createTabMenu()
 		m_tabMenu->CreatePopupMenu();
 	}
 	return m_tabMenu;
-}
-OMenu* HubFrame::createUserMenu()
-{
-	if (!m_userMenu)
-	{
-		m_userMenu = new OMenu;
-		m_userMenu->CreatePopupMenu();
-	}
-	return m_userMenu;
-}
-
-void HubFrame::destroyOMenu()
-{
-	safe_delete(m_tabMenu);
-	safe_delete(m_userMenu);
 }
 
 void HubFrame::onBeforeActiveTab(HWND aWnd)
@@ -965,8 +954,7 @@ void HubFrame::processFrameCommand(const tstring& fullMessageText, const tstring
 			
 		sayMessage += param;
 		sendMessage(sayMessage);
-		if (m_ctrlMessage)
-			m_ctrlMessage->SetWindowText(_T(""));
+		clearMessageWindow();
 	}
 // ~SSA_SAVE_LAST_NICK_MACROS
 	else
@@ -2036,8 +2024,10 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 				case OPEN_TCP_PORT_DETECTED:
 				{
-					//BaseChatFrame::addLine(_T("[!]FlylinkDC++ ") + _T("Detected direct connection type, switching to active mode"), WinUtil::m_ChatTextSystem);
-					BaseChatFrame::addLine(Text::toT(static_cast<StatusTask&>(*i->second).m_str) + _T(": ") + _T("[FlylinkDC++] TCP port is open! Connection type auto-switching to active mode"), Colors::g_ChatTextSystem);
+					const string l_message = static_cast<StatusTask&>(*i->second).m_str + ": [FlylinkDC++] TCP port is open! Connection type auto-switching to active mode";
+					LogManager::message(l_message);
+					// BaseChatFrame::addLine(Text::toT(l_message), Colors::g_ChatTextSystem);
+					// BaseChatFrame::addLine(_T("[!]FlylinkDC++ ") + _T("Detected direct connection type, switching to active mode"), WinUtil::m_ChatTextSystem);
 					HubModeChange();
 				}
 				break;
@@ -2237,7 +2227,9 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 	rc.right -= iButtonPanelLength + 2; //[~] Sergey Shushkanov
 	CRect ctrlMessageRect = rc;
 	if (m_ctrlMessage)
+	{
 		m_ctrlMessage->MoveWindow(rc);
+	}
 		
 	if (bUseMultiChat) //[+] TEST VERSION Sergey Shushkanov
 	{
@@ -2248,7 +2240,9 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 	rc.bottom -= 1; // [+] Sergey Shushkanov
 	
 	if (m_msgPanel)
+	{
 		m_msgPanel->UpdatePanel(rc);
+	}
 	rc.right  += l_panelWidth;
 	rc.bottom += 1;
 	
@@ -2644,7 +2638,7 @@ LRESULT HubFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 {
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };        // location of mouse click
 	CMenu hSysMenu;
-	m_tabMenuShown = true;
+	m_isTabMenuShown = true;
 	OMenu* l_tabMenu = createTabMenu();
 	const string& l_name = m_client->getHubName();
 	l_tabMenu->InsertSeparatorFirst(Text::toT(!l_name.empty() ? (l_name.size() > 50 ? l_name.substr(0, 50) + "…" : l_name) : m_client->getHubUrl()));
@@ -2671,7 +2665,7 @@ LRESULT HubFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOO
 {
 	CRect rc;            // client area of window
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };        // location of mouse click
-	m_tabMenuShown = false;
+	m_isTabMenuShown = false;
 	
 	m_ctrlUsers->GetHeader().GetWindowRect(&rc);
 	
@@ -2786,7 +2780,7 @@ void HubFrame::runUserCommand(UserCommand& uc)
 	m_client->getMyIdentity().getParams(ucParams, "my", true);
 	m_client->getHubIdentity().getParams(ucParams, "hub", false);
 	
-	if (m_tabMenuShown)
+	if (m_isTabMenuShown)
 	{
 		m_client->escapeParams(ucParams);
 		m_client->sendUserCmd(uc, ucParams);

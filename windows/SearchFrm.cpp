@@ -1793,8 +1793,14 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 			return Util::emptyStringT; // Вертаем пустышку - отрисуют на ownerDraw
 		default:
 		{
-			dcassert(col < COLUMN_LAST);
-			return columns[col];
+			if (col < COLUMN_LAST)
+			{
+				return columns[col];
+			}
+			else
+			{
+				return Util::emptyStringT;
+			}
 		}
 	}
 	// return Util::emptyStringT; // [IntelC++ 2012 beta2] warning #111: statement is unreachable

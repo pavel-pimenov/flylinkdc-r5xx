@@ -57,7 +57,7 @@ class SharedFileStream : public IOStream
 		
 		size_t flush();
 		
-		static FastCriticalSection g_cs;
+		static FastCriticalSection g_shares_file_cs;
 #ifdef FLYLINKDC_USE_SHARED_FILE_STREAM_RW_POOL
 		static SharedFileHandleMap g_readpool;
 		static SharedFileHandleMap g_writepool;

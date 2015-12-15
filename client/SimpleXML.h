@@ -116,7 +116,22 @@ class SimpleXML
 			checkChildSelected();
 			return Util::toInt(getChildAttrib(aName));
 		}
-		int getInt64ChildAttrib(const string& aName,  const string& aDefault) const // [+] IRainman fix.
+		int getIntChildAttrib(const string& p_name, int p_min, int p_max, bool& p_is_fix_value) const
+		{
+			const auto l_value = getIntChildAttrib(p_name);
+			if (l_value > p_max)
+			{
+				p_is_fix_value |= true;
+				return p_max;
+			}
+			if (l_value < p_min)
+			{
+				p_is_fix_value |= true;
+				return p_min;
+			}
+			return l_value;
+		}
+		int getInt64ChildAttrib(const string& aName, const string& aDefault) const // [+] IRainman fix.
 		{
 			checkChildSelected();
 			return Util::toInt64(getChildAttrib(aName, aDefault));

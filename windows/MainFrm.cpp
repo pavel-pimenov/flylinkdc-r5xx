@@ -1117,7 +1117,7 @@ HWND MainFrame::createToolbar()    //[~]Drakon. Enlighting toolbars.
 					nTB.idCommand = g_ToolbarButtons[i].id;
 					nTB.fsStyle = g_ToolbarButtons[i].check ? TBSTYLE_CHECK : TBSTYLE_BUTTON;
 					nTB.fsState = TBSTATE_ENABLED;
-#ifndef _DEBUG
+#ifdef _DEBUG
 					nTB.iString = ctrlToolbar.AddStrings(_T("Debug hint"));
 #else
 					const tstring l_str = CTSTRING_I(g_ToolbarButtons[i].tooltip);

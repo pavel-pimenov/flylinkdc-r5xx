@@ -248,7 +248,10 @@ void NmdcHub::supports(const StringList& feat)
 OnlineUserPtr NmdcHub::findUser(const string& aNick) const
 {
 	CFlyReadLock(*m_cs);
-	const auto& i = m_users.find(aNick); // [3] https://www.box.net/shared/03a0bb07362fc510b8a5
+	const auto& i = m_users.find(aNick); 
+#ifdef FLYLINKDC_USE_PROFILER_CS
+	l_lock.m_add_log_info = " User = " + aNick;
+#endif
 	return i == m_users.end() ? nullptr : i->second; // 2012-04-29_13-38-26_EJMPFXUHZAKEQON7Y6X7EIKZVS3S3GMF43CWO3Y_C95F3090_crash-stack-r501-build-9869.dmp
 }
 

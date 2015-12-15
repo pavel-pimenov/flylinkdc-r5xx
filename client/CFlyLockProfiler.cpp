@@ -21,7 +21,7 @@ void CFlyLockProfiler::log(const char* p_path, int p_recursion_count, bool p_is_
 		if (l_tick_delta > l_item.second)
 			l_item.second = l_tick_delta;
 	}
-	if (l_tick_delta > 20)
+	if (l_tick_delta > 10)
 	{
 		string l_path = p_path;
 		if (ClientManager::isShutdown())
@@ -32,6 +32,10 @@ void CFlyLockProfiler::log(const char* p_path, int p_recursion_count, bool p_is_
 		{
 			l_path += ".startup.txt";
 		}
+		if (!m_add_log_info.empty())
+		{
+			l_path += ".extinfo.txt";
+		}
 		FILE *f = fopen(l_path.c_str(), "ab+");
 		if (f)
 		{
@@ -41,13 +45,15 @@ void CFlyLockProfiler::log(const char* p_path, int p_recursion_count, bool p_is_
 			time(&now);
 			tm *now_tm = localtime(&now);
 			strftime(timeFormat, _countof(timeFormat), "%d.%m.%Y %H:%M:%S", now_tm);
-			fprintf(f, "[%6d][%s] %s tick_delta = %d RecursionCount = %d\r\n",
-			        ::GetCurrentThreadId(),
-			        timeFormat,
-			        m_function ? m_function : "",
-			        //l_delta,
-			        l_tick_delta,
-			        p_recursion_count);
+			fprintf(f, "[%6d][%s] %s tick_delta = %d RecursionCount = %d ext_info = %s\r\n",
+					::GetCurrentThreadId(),
+					timeFormat,
+					m_function ? m_function : "",
+					//l_delta,
+					l_tick_delta,
+					p_recursion_count,
+					m_add_log_info.c_str()
+					);
 			if (m_function == nullptr)
 			{
 				now_tm = nullptr;

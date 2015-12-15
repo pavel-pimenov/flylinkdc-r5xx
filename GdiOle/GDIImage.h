@@ -76,6 +76,10 @@ class CGDIImage
 
 		static bool isGDIImageLive(CGDIImage* p_image)
 		{
+			if (isShutdown())
+			{
+				return false;
+			}
 			CFlyReadLock(*g_GDIcs);
 			const bool l_res = g_GDIImageSet.find(p_image) != g_GDIImageSet.end();
 			if (!l_res)

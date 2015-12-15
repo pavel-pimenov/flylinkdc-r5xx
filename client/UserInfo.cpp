@@ -282,77 +282,27 @@ tstring UserInfo::getText(int p_col) const
 		}
 		case COLUMN_FLY_HUB_COUNT_FILES:
 		{
-			if (getIdentity().getExtJSONCountFiles())
-				return Text::toT(Util::toString(getIdentity().getExtJSONCountFiles()));
-			else
-				return Util::emptyStringT;
+			return Text::toT(getIdentity().getExtJSONCountFilesAsText());
 		}
 		case COLUMN_FLY_HUB_LAST_SHARE_DATE:
 		{
-			if (getIdentity().getExtJSONLastSharedDate())
-				return Text::toT(Util::formatDigitalClock(getIdentity().getExtJSONLastSharedDate()));
-			else
-				return Util::emptyStringT;
+			return Text::toT(getIdentity().getExtJSONLastSharedDateAsText());
 		}
 		case COLUMN_FLY_HUB_RAM:
 		{
-			string l_res;
-			if (getIdentity().getExtJSONRAMWorkingSet())
-			{
-				l_res = Util::formatBytes(int64_t(getIdentity().getExtJSONRAMWorkingSet() * 1024 * 1024));
-			}
-			if (getIdentity().getExtJSONRAMPeakWorkingSet() != getIdentity().getExtJSONRAMWorkingSet())
-			{
-				l_res += " [Max: " + Util::formatBytes(int64_t(getIdentity().getExtJSONRAMPeakWorkingSet() * 1024 * 1024)) + "]";
-			}
-			if (getIdentity().getExtJSONRAMFree())
-			{
-				l_res += " [Free: " + Util::formatBytes(int64_t(getIdentity().getExtJSONRAMFree() * 1024 * 1024)) + "]";
-			}
-			return Text::toT(l_res);
+			return Text::toT(getIdentity().getExtJSONHubRamAsText());
 		}
 		case COLUMN_FLY_HUB_SQLITE_DB_SIZE:
 		{
-			string l_res;
-			if (getIdentity().getExtJSONSQLiteDBSize())
-			{
-				l_res = Util::formatBytes(int64_t(getIdentity().getExtJSONSQLiteDBSize()) * 1024 * 1024);
-			}
-			if (getIdentity().getExtJSONSQLiteDBSizeFree())
-			{
-				l_res += " [Free: " + Util::formatBytes(int64_t(getIdentity().getExtJSONSQLiteDBSizeFree()) * 1024 * 1024) + "]";
-			}
-			if (getIdentity().getExtJSONlevelDBHistSize())
-			{
-				l_res += " [LevelDB: " + Util::formatBytes(int64_t(getIdentity().getExtJSONlevelDBHistSize()) * 1024 * 1024) + "]";
-			}
-			return Text::toT(l_res);
+			return Text::toT(getIdentity().getExtJSONSQLiteDBSizeAsText());
 		}
 		case COLUMN_FLY_HUB_QUEUE:
 		{
-			string l_res;
-			if (getIdentity().getExtJSONQueueFiles())
-			{
-				l_res = "[Files: " + Util::toString(getIdentity().getExtJSONQueueFiles()) + "]";
-			}
-			if (getIdentity().getExtJSONQueueSrc())
-			{
-				l_res += " [Sources: " + Util::toString(getIdentity().getExtJSONQueueSrc()) + "]";
-			}
-			return Text::toT(l_res);
+			return Text::toT(getIdentity().getExtJSONQueueFilesText());
 		}
 		case COLUMN_FLY_HUB_TIMES:
 		{
-			string l_res;
-			if (getIdentity().getExtJSONTimesStartCore())
-			{
-				l_res = "[Start core: " + Util::toString(getIdentity().getExtJSONTimesStartCore()) + "]";
-			}
-			if (getIdentity().getExtJSONTimesStartGUI())
-			{
-				l_res += " [Start GUI: " + Util::toString(getIdentity().getExtJSONTimesStartGUI()) + "]";
-			}
-			return Text::toT(l_res);
+			return Text::toT(getIdentity().getExtJSONTimesStartCoreText());
 		}
 		case COLUMN_FLY_HUB_SUPPORT_INFO:
 		{

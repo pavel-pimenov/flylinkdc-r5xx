@@ -84,7 +84,7 @@ void BaseChatFrame::createMessageCtrl(ATL::CMessageMap *p_map, DWORD p_MsgMapID,
 	createChatCtrl();
 	m_ctrlMessage = new CEdit;
 	m_ctrlMessage->Create(m_MessagePanelHWnd, m_MessagePanelRECT, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-	                      WS_VSCROLL | (BOOLSETTING(MULTILINE_CHAT_INPUT) ? 0 : ES_AUTOHSCROLL) | ES_MULTILINE | ES_AUTOVSCROLL ,
+	                      WS_VSCROLL | ES_MULTILINE | ES_AUTOVSCROLL ,
 	                      WS_EX_CLIENTEDGE); // !Decker!
 	if (!m_LastMessage.empty())
 	{
@@ -180,6 +180,17 @@ bool BaseChatFrame::adjustChatInputSize(BOOL& bHandled)
 		if (!BOOLSETTING(MULTILINE_CHAT_INPUT) && !m_bUseTempMultiChat && BOOLSETTING(USE_AUTO_MULTI_CHAT_SWITCH))
 		{
 			m_bUseTempMultiChat = true;
+			UpdateLayout();
+		}
+	}
+	if (m_ctrlMessage && m_ctrlMessage->GetWindowTextLength() > 0)
+	{
+		tstring fullMessageText;
+		WinUtil::GetWindowText(fullMessageText, *m_ctrlMessage);
+		const auto l_count_lines = std::count(fullMessageText.cbegin(), fullMessageText.cend(), L'\r');
+		if (l_count_lines != m_MultiChatCountLines)
+		{
+			m_MultiChatCountLines = l_count_lines;
 			UpdateLayout();
 		}
 	}
@@ -435,7 +446,9 @@ void BaseChatFrame::onEnter()
 			else if ((stricmp(cmd.c_str(), _T("clear")) == 0) || (stricmp(cmd.c_str(), _T("cls")) == 0) || (stricmp(cmd.c_str(), _T("c")) == 0))
 			{
 				if (ctrlClient.IsWindow())
+				{
 					ctrlClient.Clear();
+				}
 			}
 			
 			else if (stricmp(cmd.c_str(), _T("ts")) == 0)
@@ -489,20 +502,22 @@ void BaseChatFrame::onEnter()
 			processFrameMessage(fullMessageText, resetInputMessageText);
 		}
 		if (resetInputMessageText)
-			m_ctrlMessage->SetWindowText(_T(""));
+		{
+			clearMessageWindow();
+			UpdateLayout();
+			return;
+		}
 	}
 	else
 	{
 		MessageBeep(MB_ICONEXCLAMATION);
 	}
 	
-	/*
 	if (m_bUseTempMultiChat)
 	    {
 	        m_bUseTempMultiChat = false;
 	        UpdateLayout();
 	    }
-	*/
 }
 
 LRESULT BaseChatFrame::onWinampSpam(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -863,6 +878,38 @@ void BaseChatFrame::appendLogToChat(const string& path , const size_t linesCount
 		ctrlClient.AppendText(l_message);
 	}
 }
+#ifdef _DEBUG
+bool BaseChatFrame::isMultiChat(int& p_h, int & p_chat_columns) const
+{
+	/*[+] Это условие для тех, кто любит большие шрифты,
+	будет включаться многострочный ввод принудительно,
+	чтоб не портить расположение элементов Sergey Shushkanov */
+	int textHeight = 0;
+	if (m_ctrlMessage)
+	{
+		textHeight = WinUtil::getTextHeight(m_ctrlMessage->GetDC());
+	}
+	if (textHeight < 14)
+	{
+		textHeight = 14;
+	}
+	const bool bUseMultiChat = BOOLSETTING(MULTILINE_CHAT_INPUT) || m_bUseTempMultiChat
+#ifdef MULTILINE_CHAT_IF_BIG_FONT_SET
+		|| textHeight > FONT_SIZE_FOR_AUTO_MULTILINE_CHAT //[+] TEST VERSION Sergey Shushkanov
+#endif
+	if (bUseMultiChat)
+	{
+		p_h = textHeight * (m_MultiChatCountLines + 1);
+		
+	}
+	else
+	{
+		p_h = textHeight; //[+] TEST VERSION Sergey Shushkanov
+	}
+	p_chat_columns = bUseMultiChat ? 2 : 1; // !Decker! // [~] Sergey Shushkanov
+	return bUseMultiChat;
+}
+#else
 bool BaseChatFrame::isMultiChat(int& p_h, int & p_chat_columns) const
 {
 	/*[+] Это условие для тех, кто любит большие шрифты,
@@ -870,11 +917,26 @@ bool BaseChatFrame::isMultiChat(int& p_h, int & p_chat_columns) const
 	чтоб не портить расположение элементов Sergey Shushkanov */
 	const bool bUseMultiChat = BOOLSETTING(MULTILINE_CHAT_INPUT) || m_bUseTempMultiChat
 #ifdef MULTILINE_CHAT_IF_BIG_FONT_SET
-	                           || Fonts::g_fontHeight > FONT_SIZE_FOR_AUTO_MULTILINE_CHAT //[+] TEST VERSION Sergey Shushkanov
+		|| Fonts::g_fontHeight > FONT_SIZE_FOR_AUTO_MULTILINE_CHAT //[+] TEST VERSION Sergey Shushkanov
 #endif
-	                           ;
-	                           
+		;
+
 	p_h = bUseMultiChat ? 20 : 14;//[+] TEST VERSION Sergey Shushkanov
 	p_chat_columns = bUseMultiChat ? 2 : 1; // !Decker! // [~] Sergey Shushkanov
 	return bUseMultiChat;
+}
+#endif
+OMenu* BaseChatFrame::createUserMenu()
+{
+	if (!m_userMenu)
+	{
+		m_userMenu = new OMenu;
+		m_userMenu->CreatePopupMenu();
+	}
+	return m_userMenu;
+}
+
+void BaseChatFrame::destroyUserMenu()
+{
+	safe_delete(m_userMenu);
 }

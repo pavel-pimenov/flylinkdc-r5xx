@@ -23,7 +23,7 @@
 #include "ClientManager.h"
 #include "../FlyFeatures/flyServer.h"
 
-FastCriticalSection SharedFileStream::g_cs;
+FastCriticalSection SharedFileStream::g_shares_file_cs;
 #ifdef FLYLINKDC_USE_SHARED_FILE_STREAM_RW_POOL
 SharedFileStream::SharedFileHandleMap SharedFileStream::g_readpool;
 SharedFileStream::SharedFileHandleMap SharedFileStream::g_writepool;
@@ -35,7 +35,7 @@ std::unordered_set<std::string> SharedFileStream::g_shared_stream_errors;
 SharedFileStream::SharedFileStream(const string& aFileName, int aAccess, int aMode)
 {
 	dcassert(!aFileName.empty());
-	CFlyFastLock(g_cs);
+	CFlyFastLock(g_shares_file_cs);
 #ifdef FLYLINKDC_USE_SHARED_FILE_STREAM_RW_POOL
 	auto& pool = aAccess == File::READ ? g_readpool : g_writepool;
 #else
@@ -88,7 +88,7 @@ SharedFileStream::SharedFileStream(const string& aFileName, int aAccess, int aMo
 void SharedFileStream::check_before_destoy()
 {
 	{
-		CFlyFastLock(g_cs);
+		CFlyFastLock(g_shares_file_cs);
 #ifdef FLYLINKDC_USE_SHARED_FILE_STREAM_RW_POOL
 		auto& pool = m_sfh->m_mode == File::READ ? g_readpool : g_writepool;
 #else
@@ -101,7 +101,7 @@ void SharedFileStream::check_before_destoy()
 // TODO - убрать
 void SharedFileStream::cleanup()
 {
-	CFlyFastLock(g_cs);
+	CFlyFastLock(g_shares_file_cs);
 #ifdef FLYLINKDC_USE_SHARED_FILE_STREAM_RW_POOL
 	auto& pool = m_sfh->m_mode == File::READ ? g_readpool : g_writepool;
 #else
@@ -126,7 +126,7 @@ void SharedFileStream::cleanup()
 }
 SharedFileStream::~SharedFileStream()
 {
-	CFlyFastLock(g_cs);
+	CFlyFastLock(g_shares_file_cs);
 	
 	m_sfh->m_ref_cnt--;
 	if (m_sfh->m_ref_cnt == 0)
@@ -139,6 +139,7 @@ SharedFileStream::~SharedFileStream()
 #else
 		auto& pool = g_rwpool;
 #endif
+		dcassert(pool.find(m_sfh->m_path) != pool.end());
 		pool.erase(m_sfh->m_path);
 	}
 }

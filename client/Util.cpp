@@ -1371,7 +1371,7 @@ string Util::getLocalOrBindIp(const bool p_check_bind_address)
 					{
 						continue;
 					}
-					else if (!Util::isPrivateIp(tmp2) && strncmp(tmp2.c_str(), "169", 3) != 0)
+					else if (isNotPrivateIpAndNot169(tmp2))
 					{
 						tmp = tmp2;
 					}
@@ -1399,8 +1399,8 @@ bool Util::isPrivateIp(const string& ip)
 	return false;
 }
 
-typedef const uint8_t* ccp;
-static wchar_t utf8ToLC(ccp& str)
+
+static wchar_t utf8ToLC(const uint8_t* & str)
 {
 	wchar_t c = 0;
 	if (str[0] & 0x80)

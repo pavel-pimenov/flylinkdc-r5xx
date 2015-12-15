@@ -114,7 +114,7 @@ class NmdcHub : public Client, private Flags
 		uint64_t m_lastUpdate;
 		uint8_t  m_supportFlags;
 		uint8_t  m_version_fly_info;
-		std::vector<CFlySearchItemTTH> m_delay_search;
+		CFlySearchArrayTTH m_delay_search;
 		char m_modeChar; // last Mode MyINFO
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 		bool m_hubSupportsSlots;//[+] FlylinkDC

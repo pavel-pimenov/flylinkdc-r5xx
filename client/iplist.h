@@ -109,18 +109,7 @@ class IPList
 		
 		uint32_t addRange(uint32_t fromIP, uint32_t toIP);
 		uint32_t addRange(const std::string& fromIP, const std::string& toIP);
-		void addRangeListAndSort(uint32_t p_ip, uint32_t p_level)
-		{
-			CFlyFastLock(m_cs);
-			m_ipRangeList[p_level].add(p_ip);
-			if (std::find(m_usedList.begin(), m_usedList.end(), p_level) == m_usedList.end())
-			{
-				m_usedList.push_back(p_level);
-				std::sort(m_usedList.begin(), m_usedList.end());
-			}
-		}
-		
-		
+		void addRangeListAndSort(uint32_t p_ip, uint32_t p_level);
 		string translateIPError(int32_t& p_errorCode);
 		
 	public:

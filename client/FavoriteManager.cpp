@@ -234,6 +234,7 @@ void FavoriteManager::prepareClose()
 	g_userCommandsHubUrl.clear();
 #endif
 }
+#ifdef _DEBUG
 size_t FavoriteManager::countUserCommand(const string& p_Hub)
 {
 	size_t l_count = 0;
@@ -252,6 +253,7 @@ size_t FavoriteManager::countUserCommand(const string& p_Hub)
 	}
 	return l_count;
 }
+#endif
 void FavoriteManager::removeUserCommand(const string& p_Hub)
 {
 	CFlyWriteLock(*g_csUserCommand);
@@ -1246,11 +1248,19 @@ void FavoriteManager::load(SimpleXML& aXml
 					e->setUserDescription(aXml.getChildAttrib("UserDescription"));
 					e->setAwayMsg(aXml.getChildAttrib("AwayMsg"));
 					e->setEmail(aXml.getChildAttrib("Email"));
-					e->setWindowPosX(aXml.getIntChildAttrib("WindowPosX"));
-					e->setWindowPosY(aXml.getIntChildAttrib("WindowPosY"));
-					e->setWindowSizeX(aXml.getIntChildAttrib("WindowSizeX"));
-					e->setWindowSizeY(aXml.getIntChildAttrib("WindowSizeY"));
-					e->setWindowType(aXml.getIntChildAttrib("WindowType", "3")); // Если кея нет - SW_MAXIMIZE
+					bool l_is_fix_value = false;
+					e->setWindowPosX(aXml.getIntChildAttrib("WindowPosX", 0, 10, l_is_fix_value));
+					e->setWindowPosY(aXml.getIntChildAttrib("WindowPosY", 0, 100, l_is_fix_value));
+					e->setWindowSizeX(aXml.getIntChildAttrib("WindowSizeX", 50, 1600, l_is_fix_value));
+					e->setWindowSizeY(aXml.getIntChildAttrib("WindowSizeY", 50, 1600, l_is_fix_value));
+					if (l_is_fix_value == false)
+					{
+						e->setWindowType(aXml.getIntChildAttrib("WindowType", "3")); // Если кея нет - SW_MAXIMIZE
+					}
+					else
+					{
+						e->setWindowType(3); // SW_MAXIMIZE
+					}
 					e->setChatUserSplit(aXml.getIntChildAttrib("ChatUserSplitSize"));
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
 					e->setChatUserSplitState(aXml.getBoolChildAttrib("ChatUserSplitState"));

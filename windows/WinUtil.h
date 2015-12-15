@@ -1444,6 +1444,7 @@ struct Fonts
 	static void decodeFont(const tstring& setting, LOGFONT &dest);
 	
 	static int g_fontHeight;
+	static int g_fontSystemHeight;
 	static HFONT g_font;
 	static HFONT g_boldFont;
 	static HFONT g_systemFont;

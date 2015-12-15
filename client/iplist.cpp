@@ -30,6 +30,7 @@
 #include "Util.h"
 #include "ResourceManager.h"
 #include "LogManager.h"
+#include "ClientManager.h"
 
 IPList::IPList()
 {
@@ -45,7 +46,6 @@ IPList::IPList()
 
 IPList::~IPList()
 {
-	clear();
 }
 
 
@@ -294,15 +294,31 @@ void IPList::addData(const std::string& Data, CFlyLog& p_log)
 		}
 	}
 }
+void IPList::addRangeListAndSort(uint32_t p_ip, uint32_t p_level)
+{
+	dcassert(!ClientManager::isShutdown());
+	CFlyFastLock(m_cs);
+	m_ipRangeList[p_level].add(p_ip);
+	if (std::find(m_usedList.begin(), m_usedList.end(), p_level) == m_usedList.end())
+	{
+		m_usedList.push_back(p_level);
+		std::sort(m_usedList.begin(), m_usedList.end());
+	}
+}
+
 bool IPList::checkIp(UINT32 ip)
 {
 	bool found = false;
-	size_t i = 0;
-	CFlyFastLock(m_cs);
-	while (!found && i < m_usedList.size())
+	dcassert(!ClientManager::isShutdown());
+	if (ClientManager::isShutdown())
 	{
-		found = m_ipRangeList[m_usedList[i]].check(ip); // TODO: Please optimize my searching faster than brute force search!
-		i++;
+		size_t i = 0;
+		CFlyFastLock(m_cs);
+		while (!found && i < m_usedList.size())
+		{
+			found = m_ipRangeList[m_usedList[i]].check(ip); // TODO: Please optimize my searching faster than brute force search!
+			i++;
+		}
 	}
 	return found;
 }
@@ -311,8 +327,9 @@ void IPList::clear()
 {
 	CFlyFastLock(m_cs);
 	for (size_t i = 0; i < m_usedList.size(); i++)
+	{
 		m_ipRangeList[m_usedList[i]].clear();
-		
+	}		
 	m_usedList.clear();
 }
 

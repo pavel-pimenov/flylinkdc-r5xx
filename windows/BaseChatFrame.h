@@ -66,12 +66,16 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 	private:
 		void createChatCtrl();
 	protected:
+		OMenu* m_userMenu;
+		OMenu* createUserMenu();
+		void destroyUserMenu();
 		void createMessageCtrl(ATL::CMessageMap *p_map, DWORD p_MsgMapID, bool p_is_suppress_chat_and_pm);
 		void destroyMessageCtrl(bool p_is_shutdown);
 		
 		BaseChatFrame() :
 			m_curCommandPosition(0),
 			m_bUseTempMultiChat(false),
+			m_MultiChatCountLines(0),
 			m_bProcessNextChar(false),
 			m_bTimeStamps(BOOLSETTING(TIME_STAMPS)),
 			m_currentNeedlePos(-1),
@@ -82,6 +86,7 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 			m_ctrlMessage(nullptr),
 			m_ctrlMessageContainer(nullptr),
 			m_LastSelPos(0),
+			m_userMenu(nullptr),
 			m_is_suppress_chat_and_pm(false)
 		{
 		}
@@ -187,12 +192,22 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		size_t m_curCommandPosition;
 		bool m_bUseTempMultiChat;
 		bool isMultiChat(int& p_h, int& p_chat_columns) const;
+		void clearMessageWindow()
+		{
+			if (m_ctrlMessage)
+			{
+				m_ctrlMessage->SetWindowText(_T(""));
+			}
+			m_MultiChatCountLines = 0;
+		}
+	protected:
+		unsigned m_MultiChatCountLines;
 	private:
 		bool m_bProcessNextChar;
 		bool m_bTimeStamps;
 		tstring m_currentNeedle;      // search in chat window
 		long m_currentNeedlePos;      // search in chat window
-		
+
 		bool adjustChatInputSize(BOOL& bHandled);
 		void insertLineHistoryToChatInput(const WPARAM wParam, BOOL& bHandled);
 };

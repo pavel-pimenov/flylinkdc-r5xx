@@ -140,10 +140,13 @@ Client::~Client()
 		LogManager::message("[Error] Client::~Client() sock == nullptr");
 	}
 	FavoriteManager::removeUserCommand(getHubUrl());
-	dcassert(FavoriteManager::countUserCommand(getHubUrl()) == 0);
-	// In case we were deleted before we Failed
-	// [-] TimerManager::getInstance()->removeListener(this); [-] IRainman fix: please see shutdown().
-	updateCounts(true);
+	if (!ClientManager::isShutdown())
+	{
+		dcassert(FavoriteManager::countUserCommand(getHubUrl()) == 0);
+		// In case we were deleted before we Failed
+		// [-] TimerManager::getInstance()->removeListener(this); [-] IRainman fix: please see shutdown().
+		updateCounts(true);
+	}
 //[+]FlylinkDC
 	// [-] IRainman.
 	//if (m_hEventClientInitialized)

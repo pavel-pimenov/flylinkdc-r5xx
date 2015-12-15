@@ -1880,11 +1880,19 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 				
 			// If the currently m_active MDI child is maximized, we want to create this one maximized too
 			ATL::CWindow wndParent = hWndParent;
+#ifdef FLYLINKDC_USE_MDI_MAXIMIZED
 			BOOL bMaximized = FALSE;
+#else
+			BOOL bMaximized = TRUE;
+#endif
 			
+#ifdef FLYLINKDC_USE_MDI_MAXIMIZED
 			if (MDIGetActive(&bMaximized) == NULL)
+			{
 				bMaximized = BOOLSETTING(MDI_MAXIMIZED);
-				
+			}
+#endif
+
 			if (bMaximized)
 				wndParent.SetRedraw(FALSE);
 				
@@ -1993,11 +2001,13 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 			{
 				m_hMenu = NULL;
 			}
+#ifdef FLYLINKDC_USE_MDI_MAXIMIZED
 			BOOL bMaximized = FALSE;
 			if (::SendMessage(m_hWndMDIClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMaximized) != NULL)
 			{
 				SET_SETTING(MDI_MAXIMIZED, (bMaximized > 0));
 			}
+#endif
 			return 0;
 		}
 		
