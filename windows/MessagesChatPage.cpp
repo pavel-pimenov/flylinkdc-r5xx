@@ -57,7 +57,6 @@ MessagesChatPage::ListItem MessagesChatPage::g_listItems_chat[] =
 	{ SettingsManager::FORMAT_BOT_MESSAGE, ResourceManager::FORMAT_BOT_MESSAGE },// [+] IRainman
 	{ SettingsManager::MULTILINE_CHAT_INPUT, ResourceManager::MULTILINE_CHAT_INPUT },
 	{ SettingsManager::MULTILINE_CHAT_INPUT_BY_CTRL_ENTER, ResourceManager::MULTILINE_CHAT_INPUT_BY_CTRL_ENTER },//[+] SSA
-	{ SettingsManager::USE_AUTO_MULTI_CHAT_SWITCH, ResourceManager::USE_AUTO_MULTI_CHAT_SWITCH }, // [+] SSA
 	{ SettingsManager::SHOW_MULTI_CHAT_BTN, ResourceManager::SHOW_MULTI_CHAT_BTN }, // [+] IRainman
 #ifdef SCALOLAZ_CHAT_REFFERING_TO_NICK
 	{ SettingsManager::CHAT_REFFERING_TO_NICK, ResourceManager::CHAT_REFFERING_TO_NICK },   // [+] SCALOlaz

@@ -1780,7 +1780,6 @@
 	<string name="UserWentOffline">User went offline</string>
 	<string name="UserWentOnline">User went online</string>
 	<string name="Use12HourFormat">Use 12 hour format</string>
-	<string name="UseAutoMultiChatSwitch">Use automatic switch to Multiline chat</string>
 	<string name="UseBitrateFixForSpam">Use Bitrate/Sample fix for QCD/QMP players</string>
 	<string name="UseCustomListBackground">Use custom list background style</string>
 	<string name="UseCustomMenu">Use custom menus</string>

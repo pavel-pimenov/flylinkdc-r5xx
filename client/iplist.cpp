@@ -329,7 +329,7 @@ void IPList::clear()
 	for (size_t i = 0; i < m_usedList.size(); i++)
 	{
 		m_ipRangeList[m_usedList[i]].clear();
-	}		
+	}
 	m_usedList.clear();
 }
 

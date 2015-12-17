@@ -429,83 +429,69 @@ void PrivateFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 	dcassert(!ClientManager::isShutdown());
 	if (ClientManager::isShutdown())
 		return;
-	RECT rect;
-	GetClientRect(&rect);
-	// position bars and offset their dimensions
-	UpdateBarsPosition(rect, bResizeBars);
-	if (m_ctrlStatus && m_ctrlLastLinesToolTip)
+	if (m_ctrlMessage)
 	{
-		if (m_ctrlStatus->IsWindow() && m_ctrlLastLinesToolTip->IsWindow())
+		RECT rect;
+		GetClientRect(&rect);
+		// position bars and offset their dimensions
+		UpdateBarsPosition(rect, bResizeBars);
+		if (m_ctrlStatus && m_ctrlLastLinesToolTip)
 		{
-			CRect sr;
-			int w[1]; // Прикольный массив :)
-			m_ctrlStatus->GetClientRect(sr);
-			
-			w[0] = sr.right - 16;
-			
-			m_ctrlStatus->SetParts(1, w);
-			
-			m_ctrlLastLinesToolTip->SetMaxTipWidth(max(w[0], 400));
+			if (m_ctrlStatus->IsWindow() && m_ctrlLastLinesToolTip->IsWindow())
+			{
+				CRect sr;
+				int w[1]; // Прикольный массив :)
+				m_ctrlStatus->GetClientRect(sr);
+				
+				w[0] = sr.right - 16;
+				
+				m_ctrlStatus->SetParts(1, w);
+				
+				m_ctrlLastLinesToolTip->SetMaxTipWidth(max(w[0], 400));
+			}
+		}
+		int h = 0, chat_columns = 0;
+		const bool bUseMultiChat = isMultiChat(h, chat_columns);
+		CRect rc = rect;
+		//rc.bottom -= h + 15;
+		rc.bottom -= h + Fonts::g_fontHeightPixl * int(bUseMultiChat) + 15;
+		
+		if (ctrlClient.IsWindow())
+		{
+			ctrlClient.MoveWindow(rc);
+		}
+		
+		const int iButtonPanelLength = MessagePanel::GetPanelWidth();
+		
+		rc = rect;
+		rc.bottom -= 4;
+		rc.top = rc.bottom - h - Fonts::g_fontHeightPixl * int(bUseMultiChat) - 7;
+		rc.left += 2;
+		rc.right -= iButtonPanelLength + 2;
+		if (m_ctrlMessage)
+		{
+			m_ctrlMessage->MoveWindow(rc);
+		}
+		
+		if (bUseMultiChat)
+		{
+			rc.top += h + 6;
+		}
+		rc.left = rc.right;
+		rc.bottom -= 1;
+		
+		if (m_msgPanel)
+		{
+			m_msgPanel->UpdatePanel(rc);
 		}
 	}
-	int h = 0, chat_columns = 0;
-	const bool bUseMultiChat = isMultiChat(h, chat_columns);
-	CRect rc = rect;
-	rc.bottom -= h * chat_columns + 15; // !Decker! //[~] Sergey Shushkanov
-	
-	if (ctrlClient.IsWindow())
-	{
-		ctrlClient.MoveWindow(rc);
-	}
-	
-	const int iButtonPanelLength = MessagePanel::GetPanelWidth();
-	
-	rc = rect;
-	rc.bottom -= 4; //[~] Sergey Shushkanov
-	rc.top = rc.bottom - h * chat_columns - 7; // !Decker!
-	rc.left += 2; //[~] Sergey Shushkanov
-	rc.right -= iButtonPanelLength + 2; //[~] Sergey Shushkanov
-	if (m_ctrlMessage)
-		m_ctrlMessage->MoveWindow(rc);
-		
-	if (bUseMultiChat) //[+] TEST VERSION Sergey Shushkanov
-	{
-		rc.top += h + 6; //[+] TEST VERSION Sergey Shushkanov
-	}//[+] TEST VERSION Sergey Shushkanov
-	//rc.top += h * (chat_columns - 1); // !Decker! // [-] Sergey Shushkanov
-	rc.left = rc.right; // [~] Sergey Shushkanov
-	rc.bottom -= 1; // [+] Sergey Shushkanov
-	
-	if (m_msgPanel)
-		m_msgPanel->UpdatePanel(rc);
-		
-	/*rc = rect;
-	rc.bottom -= 1;
-	rc.top = rc.bottom - h * chat_columns - 7; // !Decker!
-	rc.left += 1;
-	rc.right -= iButtonPanelLength;
-	CRect ctrlMessageRect = rc;
-	ctrlMessage.MoveWindow(rc);
-	
-	rc.top += h * (chat_columns - 1) + 4; // !Decker!
-	rc.left = rc.right + 1;
-	
-	m_msgPanel.UpdatePanel(rc); [-] DONT DELETE!!! Sergey Shushkanov */
 }
-/* [-] IRainman fix.
-string PrivateFrame::getHubHint() const
-{
-    return ctrlClient.getClient() ? ctrlClient.getClient()->getHubUrl() : Util::emptyString;
-}
-*/
 void PrivateFrame::updateTitle()
 {
-	//[+]FlylinkDC++ Team
 	if (m_closed)
 		return;
 	if (!m_replyTo.user)
 		return;
-	//[~]FlylinkDC++ Team
 	pair<tstring, bool> hubs = WinUtil::getHubNames(m_replyTo, getHubHint());
 	
 	bool banIcon = false;
@@ -579,7 +565,7 @@ LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 	GetCursorPos(&cpt);
 	
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };        // location of mouse click
-
+	
 	
 	if (m_msgPanel && m_msgPanel->OnContextMenu(pt, wParam))
 		return TRUE;

@@ -40,6 +40,8 @@ class PopupWnd : public CWindowImpl<PopupWnd, CWindow>
 		
 		PopupWnd(const tstring& aMsg, const tstring& aTitle, CRect rc, uint32_t aId, HBITMAP hBmp): visible(GET_TICK()), id(aId), msg(aMsg), title(aTitle), bmp(hBmp), height(0)
 		{
+			memset(&logFont, 0, sizeof(logFont));
+			memset(&myFont, 0, sizeof(myFont));
 			if ((SETTING(POPUP_TYPE) == BALLOON) || (SETTING(POPUP_TYPE) == SPLASH))
 				Create(NULL, rc, NULL, WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, WS_EX_TOOLWINDOW);
 			else if ((SETTING(POPUP_TYPE) == CUSTOM) && (bmp != NULL))

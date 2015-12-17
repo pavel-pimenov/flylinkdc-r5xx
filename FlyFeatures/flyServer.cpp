@@ -378,7 +378,6 @@ void CFlyServerConfig::loadConfig()
 #ifdef USE_FLYSERVER_LOCAL_FILE
 		const string l_url_config_file = "file://C:/vc10/etc/flylinkdc-config-r5xx.xml"; 
 		g_debug_fly_server_url = "localhost";
-    //g_debug_fly_server_url = "37.187.111.84";
 #else
 		const string l_url_config_file = "http://etc.fly-server.ru/etc/flylinkdc-config-r5xx.xml"; // TODO etc.fly-server.ru
 #endif

@@ -177,7 +177,7 @@ bool BaseChatFrame::adjustChatInputSize(BOOL& bHandled)
 	if (needsAdjust)
 	{
 		bHandled = FALSE;
-		if (!BOOLSETTING(MULTILINE_CHAT_INPUT) && !m_bUseTempMultiChat && BOOLSETTING(USE_AUTO_MULTI_CHAT_SWITCH))
+		if (!BOOLSETTING(MULTILINE_CHAT_INPUT) && !m_bUseTempMultiChat)
 		{
 			m_bUseTempMultiChat = true;
 			UpdateLayout();
@@ -188,7 +188,7 @@ bool BaseChatFrame::adjustChatInputSize(BOOL& bHandled)
 		tstring fullMessageText;
 		WinUtil::GetWindowText(fullMessageText, *m_ctrlMessage);
 		const auto l_count_lines = std::count(fullMessageText.cbegin(), fullMessageText.cend(), L'\r');
-		if (l_count_lines != m_MultiChatCountLines)
+		if (l_count_lines != m_MultiChatCountLines && m_MultiChatCountLines < 5)
 		{
 			m_MultiChatCountLines = l_count_lines;
 			UpdateLayout();
@@ -514,10 +514,10 @@ void BaseChatFrame::onEnter()
 	}
 	
 	if (m_bUseTempMultiChat)
-	    {
-	        m_bUseTempMultiChat = false;
-	        UpdateLayout();
-	    }
+	{
+		m_bUseTempMultiChat = false;
+		UpdateLayout();
+	}
 }
 
 LRESULT BaseChatFrame::onWinampSpam(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -878,54 +878,21 @@ void BaseChatFrame::appendLogToChat(const string& path , const size_t linesCount
 		ctrlClient.AppendText(l_message);
 	}
 }
-#ifdef _DEBUG
 bool BaseChatFrame::isMultiChat(int& p_h, int & p_chat_columns) const
 {
-	/*[+] Это условие для тех, кто любит большие шрифты,
-	будет включаться многострочный ввод принудительно,
-	чтоб не портить расположение элементов Sergey Shushkanov */
-	int textHeight = 0;
-	if (m_ctrlMessage)
+	const bool bUseMultiChat = BOOLSETTING(MULTILINE_CHAT_INPUT) || m_bUseTempMultiChat || Fonts::g_fontHeightPixl > 16 || m_MultiChatCountLines > 1;
+	if (bUseMultiChat && m_MultiChatCountLines)
 	{
-		textHeight = WinUtil::getTextHeight(m_ctrlMessage->GetDC());
-	}
-	if (textHeight < 14)
-	{
-		textHeight = 14;
-	}
-	const bool bUseMultiChat = BOOLSETTING(MULTILINE_CHAT_INPUT) || m_bUseTempMultiChat
-#ifdef MULTILINE_CHAT_IF_BIG_FONT_SET
-		|| textHeight > FONT_SIZE_FOR_AUTO_MULTILINE_CHAT //[+] TEST VERSION Sergey Shushkanov
-#endif
-	if (bUseMultiChat)
-	{
-		p_h = textHeight * (m_MultiChatCountLines + 1);
-		
+		p_h = Fonts::g_fontHeightPixl * m_MultiChatCountLines;
 	}
 	else
 	{
-		p_h = textHeight; //[+] TEST VERSION Sergey Shushkanov
+		p_h = Fonts::g_fontHeightPixl;
 	}
-	p_chat_columns = bUseMultiChat ? 2 : 1; // !Decker! // [~] Sergey Shushkanov
+	p_chat_columns = bUseMultiChat ? 2 : 1;
 	return bUseMultiChat;
 }
-#else
-bool BaseChatFrame::isMultiChat(int& p_h, int & p_chat_columns) const
-{
-	/*[+] Это условие для тех, кто любит большие шрифты,
-	будет включаться многострочный ввод принудительно,
-	чтоб не портить расположение элементов Sergey Shushkanov */
-	const bool bUseMultiChat = BOOLSETTING(MULTILINE_CHAT_INPUT) || m_bUseTempMultiChat
-#ifdef MULTILINE_CHAT_IF_BIG_FONT_SET
-		|| Fonts::g_fontHeight > FONT_SIZE_FOR_AUTO_MULTILINE_CHAT //[+] TEST VERSION Sergey Shushkanov
-#endif
-		;
 
-	p_h = bUseMultiChat ? 20 : 14;//[+] TEST VERSION Sergey Shushkanov
-	p_chat_columns = bUseMultiChat ? 2 : 1; // !Decker! // [~] Sergey Shushkanov
-	return bUseMultiChat;
-}
-#endif
 OMenu* BaseChatFrame::createUserMenu()
 {
 	if (!m_userMenu)

@@ -235,7 +235,8 @@ void FavoriteHubsFrame::openSelected()
 		                     entry->getWindowSizeY(),
 		                     entry->getWindowType(),
 		                     entry->getChatUserSplit(),
-		                     entry->getUserListState());
+		                     entry->getUserListState(),
+		                     entry->getSuppressChatAndPM());
 	}
 	return;
 }

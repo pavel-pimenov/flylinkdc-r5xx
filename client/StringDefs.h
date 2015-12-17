@@ -1785,7 +1785,6 @@ enum Strings   // @DontAdd
 	USER_WENT_OFFLINE, // "User went offline"
 	USER_WENT_ONLINE, // "User went online"
 	USE_12_HOUR_FORMAT, // "Use 12 hour format"
-	USE_AUTO_MULTI_CHAT_SWITCH, // "Use automatic switch to Multiline chat"
 	USE_BITRATE_FIX_FOR_SPAM, // "Use Bitrate/Sample fix for QCD/QMP players"
 	USE_CUSTOM_LIST_BACKGROUND, // "Use custom list background style"
 	USE_CUSTOM_MENU, // "Use custom menus"

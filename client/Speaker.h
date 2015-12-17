@@ -111,9 +111,9 @@ class Speaker
 		}
 		
 #else // VC++2010
-
+		
 #define IRAINMAN_USE_SIMPLE_SPEAKER
-
+		
 		template<typename T0>
 		void fire(T0 && type) noexcept
 		{
@@ -299,57 +299,57 @@ after_fire_process();
 #endif // IRAINMAN_USE_SIMPLE_SPEAKER
 }
 #endif // <= VC++2010
-
-void addListener(Listener* aListener)
-{
-	CFlyLock(m_listenerCS);
-	if (boost::range::find(m_listeners, aListener) == m_listeners.end())
-	{
-		m_listeners.push_back(aListener);
-		m_listeners.shrink_to_fit();
-	}
-#ifdef _DEBUG_SPEAKER_LISTENER_LIST_LEVEL_1
-	else
-	{
-		dcassert(0);
-# ifdef _DEBUG_SPEAKER_LISTENER_LIST_LEVEL_2
-		log_listener_list(m_listeners, "addListener-twice!!!");
-# endif
-	}
-#endif // _DEBUG_SPEAKER_LISTENER_LIST_LEVEL_1
-}
-
-void removeListener(Listener* aListener)
-{
-	CFlyLock(m_listenerCS);
-	if (!m_listeners.empty()) // Dead lock https://code.google.com/p/flylinkdc/issues/detail?id=1428 (TODO - сжать m_listeners)
-	{
-		auto it = boost::range::find(m_listeners, aListener);
-		if (it != m_listeners.end())
+		
+		void addListener(Listener* aListener)
 		{
-			m_listeners.erase(it);
-		}
+			CFlyLock(m_listenerCS);
+			if (boost::range::find(m_listeners, aListener) == m_listeners.end())
+			{
+				m_listeners.push_back(aListener);
+				m_listeners.shrink_to_fit();
+			}
 #ifdef _DEBUG_SPEAKER_LISTENER_LIST_LEVEL_1
-		else
-		{
-			dcassert(0);
+			else
+			{
+				dcassert(0);
 # ifdef _DEBUG_SPEAKER_LISTENER_LIST_LEVEL_2
-			log_listener_list(m_listeners, "removeListener-zombie!!!");
+				log_listener_list(m_listeners, "addListener-twice!!!");
 # endif
-		}
+			}
 #endif // _DEBUG_SPEAKER_LISTENER_LIST_LEVEL_1
-	}
-}
-
-void removeListeners()
-{
-	CFlyLock(m_listenerCS);
-	m_listeners.clear();
-}
-
-private:
-ListenerList m_listeners;
-CriticalSection m_listenerCS;
+		}
+		
+		void removeListener(Listener* aListener)
+		{
+			CFlyLock(m_listenerCS);
+			if (!m_listeners.empty()) // Dead lock https://code.google.com/p/flylinkdc/issues/detail?id=1428 (TODO - сжать m_listeners)
+			{
+				auto it = boost::range::find(m_listeners, aListener);
+				if (it != m_listeners.end())
+				{
+					m_listeners.erase(it);
+				}
+#ifdef _DEBUG_SPEAKER_LISTENER_LIST_LEVEL_1
+				else
+				{
+					dcassert(0);
+# ifdef _DEBUG_SPEAKER_LISTENER_LIST_LEVEL_2
+					log_listener_list(m_listeners, "removeListener-zombie!!!");
+# endif
+				}
+#endif // _DEBUG_SPEAKER_LISTENER_LIST_LEVEL_1
+			}
+		}
+		
+		void removeListeners()
+		{
+			CFlyLock(m_listenerCS);
+			m_listeners.clear();
+		}
+		
+	private:
+		ListenerList m_listeners;
+		CriticalSection m_listenerCS;
 };
 
 #endif // !defined(SPEAKER_H)

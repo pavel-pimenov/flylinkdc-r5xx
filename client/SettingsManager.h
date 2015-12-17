@@ -397,7 +397,6 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  SHOW_EMOTIONS_BTN, //[+] SSA
 		                  SHOW_MULTI_CHAT_BTN, // [+] IRainman
 		                  CHAT_REFFERING_TO_NICK, // [+] SCALOlaz
-		                  USE_AUTO_MULTI_CHAT_SWITCH, // [+] SSA
 		                  USE_MAGNETS_IN_PLAYERS_SPAM, // [+] SSA
 		                  USE_BITRATE_FIX_FOR_SPAM, // [+] SSA
 		                  ON_DOWNLOAD_SETTING, //[+] SSA

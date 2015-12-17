@@ -106,7 +106,7 @@ RadoX-Pack v.2.5 International
    <Emoticon PasteText=":gcry:" Bitmap="SmilesMegaPack\girl_cry.bmp" Gif="AnimPack\girl_cry.gif"/>
    <Emoticon PasteText=":molus:" Bitmap="SmilesMegaPack\pray.bmp"/>
    <Emoticon PasteText=":'(" Bitmap="SmilesMegaPack\cry!.bmp"/>
-   <Emoticon PasteText=":cryyen:" Bitmap="SmilesMegaPack\cry.bmp" Gif="AnimPack\cry.gif"/>
+   <Emoticon PasteText=":cryyen:" Bitmap="SmilesMegaPack\cry.bmp"Gif="AnimPack\cry.gif"/>
    <Emoticon PasteText=":cryin:" Bitmap="SmilesMegaPack\crylol.bmp"/>
    <Emoticon PasteText=":$" Bitmap="SmilesMegaPack\bad1.bmp" Gif="AnimPack\bad1.gif"/>
    <Emoticon PasteText=">_<" Bitmap="SmilesMegaPack\bad2.bmp"/>
@@ -191,7 +191,7 @@ RadoX-Pack v.2.5 International
    <Emoticon PasteText=";*" Bitmap="SmilesMegaPack\Flirt2.bmp"/>
    <Emoticon PasteText=":girl2:" Bitmap="SmilesMegaPack\flirt brunette.bmp"/>
    <Emoticon PasteText=":gflirt:" Bitmap="SmilesMegaPack\wub.bmp" Gif="AnimPack\wub.gif"/>
-   <Emoticon PasteText=":love:" Bitmap="SmilesMegaPack\Love1.bmp" Gif="AnimPack\Love1.gif"/>
+   <Emoticon PasteText=":love:" Bitmap="SmilesMegaPack\Love1.bmp"Gif="AnimPack\Love1.gif"/>
    <Emoticon PasteText="8P" Bitmap="SmilesMegaPack\crazy_love.bmp"/>
    <Emoticon PasteText=":kissed:" Bitmap="SmilesMegaPack\Love2.bmp"/>
    <Emoticon PasteText=":lovely:" Bitmap="SmilesMegaPack\Love3.bmp"/>
@@ -282,8 +282,8 @@ RadoX-Pack v.2.5 International
    <Emoticon PasteText=":suxx:" Bitmap="SmilesMegaPack\P_rdown.bmp"/>
    <Emoticon PasteText="\_/m" Bitmap="SmilesMegaPack\P_rockleft.bmp"/>
    <Emoticon PasteText="m\_/" Bitmap="SmilesMegaPack\P_rockright.bmp"/>
-   <Emoticon PasteText="\m/_" Bitmap="SmilesMegaPack\P_rrockl.bmp" Gif="AnimPack\P_rrockl.gif"/>
-   <Emoticon PasteText="_\m/" Bitmap="SmilesMegaPack\P_rrockr.bmp" Gif="AnimPack\P_rrockr.gif"/>
+   <Emoticon PasteText="\m/_" Bitmap="SmilesMegaPack\P_rrockl.bmp"Gif="AnimPack\P_rrockl.gif"/>
+   <Emoticon PasteText="_\m/" Bitmap="SmilesMegaPack\P_rrockr.bmp"Gif="AnimPack\P_rrockr.gif"/>
    <Emoticon PasteText=":stop:" Bitmap="SmilesMegaPack\P_stop.bmp"/>
    <Emoticon PasteText=":you:" Bitmap="SmilesMegaPack\P_U.bmp"/>
    <Emoticon PasteText=":pvictory:" Bitmap="SmilesMegaPack\P_victory.bmp"/>

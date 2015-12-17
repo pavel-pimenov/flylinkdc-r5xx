@@ -1444,7 +1444,7 @@ struct Fonts
 	static void decodeFont(const tstring& setting, LOGFONT &dest);
 	
 	static int g_fontHeight;
-	static int g_fontSystemHeight;
+	static int g_fontHeightPixl;
 	static HFONT g_font;
 	static HFONT g_boldFont;
 	static HFONT g_systemFont;
@@ -1596,8 +1596,8 @@ class WinUtil
 		
 		static LONG getTextHeight(HDC dc)
 		{
-			TEXTMETRIC tm;
-			dcdrun(const BOOL l_res =) ::GetTextMetrics(dc, &tm);
+			TEXTMETRIC tm = {0};
+			const BOOL l_res = ::GetTextMetrics(dc, &tm);
 			dcassert(l_res);
 			return tm.tmHeight;
 		}

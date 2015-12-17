@@ -66,7 +66,9 @@ class MessagePanel
 		CButton ctrlStrikeBtn;
 		CButton ctrlItalicBtn;
 		CButton ctrlUnderlineBtn;
+#ifdef FLYLINKDC_USE_BB_SIZE_CODE
 		CComboBox ctrlSizeSel;
+#endif
 		CButton ctrlTransCodeBtn;
 #ifdef SCALOLAZ_BB_COLOR_BUTTON
 		CButton ctrlColorBtn;

@@ -1892,7 +1892,7 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 				bMaximized = BOOLSETTING(MDI_MAXIMIZED);
 			}
 #endif
-
+			
 			if (bMaximized)
 				wndParent.SetRedraw(FALSE);
 				

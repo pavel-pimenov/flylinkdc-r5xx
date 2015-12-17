@@ -308,19 +308,19 @@ void UsersFrame::updateUser(const int i, UserInfo* p_ui, const FavoriteUser& fav
 	if (!ClientManager::isShutdown())
 	{
 		p_ui->columns[COLUMN_SEEN] = favUser.getUser()->isOnline() ? TSTRING(ONLINE) : Text::toT(Util::formatDigitalClock(favUser.getLastSeen()));
-
+		
 		// !SMT!-UI
 		int imageIndex = favUser.getUser()->isOnline() ? (favUser.getUser()->isAway() ? 1 : 0) : 2;
-
+		
 		if (favUser.getUploadLimit() == FavoriteUser::UL_BAN || favUser.isSet(FavoriteUser::FLAG_IGNORE_PRIVATE))
 		{
 			imageIndex += 3;
 		}
-
+		
 		p_ui->update(favUser);
-
+		
 		ctrlUsers.SetItem(i, 0, LVIF_IMAGE, NULL, imageIndex, 0, 0, NULL);
-
+		
 		ctrlUsers.updateItem(i);
 		setCountMessages(ctrlUsers.GetItemCount());
 	}
@@ -380,7 +380,7 @@ void UsersFrame::UserInfo::update(const FavoriteUser& u)
 		columns[COLUMN_HUB] = user->isOnline() ? WinUtil::getHubNames(u.getUser(), u.getUrl()).first : Text::toT(u.getUrl());
 		columns[COLUMN_SEEN] = user->isOnline() ? TSTRING(ONLINE) : Text::toT(Util::formatDigitalClock(u.getLastSeen()));
 		columns[COLUMN_DESCRIPTION] = Text::toT(u.getDescription());
-
+		
 		// !SMT!-S
 		if (u.isSet(FavoriteUser::FLAG_IGNORE_PRIVATE))
 			columns[COLUMN_IGNORE] = TSTRING(IGNORE_S);
@@ -388,7 +388,7 @@ void UsersFrame::UserInfo::update(const FavoriteUser& u)
 			columns[COLUMN_IGNORE] = TSTRING(FREE_PM_ACCESS);
 		else
 			columns[COLUMN_IGNORE].clear();
-
+			
 		columns[COLUMN_SPEED_LIMIT] = Text::toT(FavoriteUser::getSpeedLimitText(u.getUploadLimit()));
 		//[+]PPA
 		columns[COLUMN_USER_SLOTS] = Util::toStringW(u.getUser()->getSlots());

@@ -108,6 +108,7 @@ LRESULT PropPageTextStyles::onSelectColor(WORD /*wNotifyCode*/, WORD wID, HWND /
 
 LRESULT PropPageTextStyles::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
+	memset(&m_Font, 0, sizeof(m_Font));
 	m_Preview.disable_chat_cache();
 	PropPage::translate((HWND)(*this), texts);
 	PropPage::read((HWND)*this, items);

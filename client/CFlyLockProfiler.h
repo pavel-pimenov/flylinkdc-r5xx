@@ -4,9 +4,9 @@
 #pragma once
 
 #ifdef _DEBUG
- #if _MSC_VER > 1600 // VC++ 2010
-   #define FLYLINKDC_USE_PROFILER_CS
- #endif
+#if _MSC_VER > 1600 // VC++ 2010
+#define FLYLINKDC_USE_PROFILER_CS
+#endif
 #endif
 
 #ifdef FLYLINKDC_USE_PROFILER_CS

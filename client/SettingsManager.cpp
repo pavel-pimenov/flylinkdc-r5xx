@@ -391,7 +391,6 @@ const string SettingsManager::g_settingTags[] =
 	"ShowEmothionButton", // [+] SSA
 	"ShowMultiChatButton", // [+] IRainman
 	"ChatRefferingToNick", // [+] SCALOlaz
-	"UseAutoMultilineChat", // [+] SSA
 	"UseMagnetsInPlayerSpam", // [+] SSA
 	"UseBitrateFixForSpam", // [+] SSA
 	"OnDownloadSetting", // [+] SSA
@@ -1116,7 +1115,6 @@ void SettingsManager::setDefaults()
 	setDefault(CHAT_REFFERING_TO_NICK, TRUE);  // [+] SCALOlaz
 # endif
 #endif
-	setDefault(USE_AUTO_MULTI_CHAT_SWITCH, TRUE);
 	setDefault(USE_MAGNETS_IN_PLAYERS_SPAM, TRUE);
 	//setDefault(USE_BITRATE_FIX_FOR_SPAM, false);
 	//setDefault(EXTERNAL_PREVIEW, false);

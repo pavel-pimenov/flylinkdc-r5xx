@@ -382,11 +382,11 @@ CFlylinkDBManager::CFlylinkDBManager()
 				string l_full_path_level_db = Util::getConfigPath() + "tth-history.leveldb";
 				m_TTHLevelDB.open_level_db(l_full_path_level_db);
 				g_TTHLevelDBSize = File::calcFilesSize(l_full_path_level_db, "\\*.*");
- #ifdef FLYLINKDC_USE_IPCACHE_LEVELDB				
+#ifdef FLYLINKDC_USE_IPCACHE_LEVELDB
 				l_full_path_level_db = Util::getConfigPath() + "ip-history.leveldb";
 				m_IPCacheLevelDB.open_level_db(l_full_path_level_db);
 				g_IPCacheLevelDBSize = File::calcFilesSize(l_full_path_level_db, "\\*.*");
- #endif
+#endif
 #endif // FLYLINKDC_USE_LEVELDB
 				SetCurrentDirectory(l_dir_buffer);
 			}
@@ -3454,19 +3454,19 @@ void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string
 	{
 		CFlyIPMessageCache l_old = m_IPCacheLevelDB.get_last_ip_and_message_count(p_hub_id, p_nick);
 		if (p_message_count == 0)
-		  p_message_count = l_old.m_message_count;
+			p_message_count = l_old.m_message_count;
 		if (p_last_ip.is_unspecified())
 			p_last_ip = boost::asio::ip::address_v4(l_old.m_ip);
 	}
 	m_IPCacheLevelDB.set_last_ip_and_message_count(p_hub_id, p_nick, p_message_count, p_last_ip);
 #else
-
+	
 	if (!p_last_ip.is_unspecified() && p_message_count)
 	{
 		if (p_message_count)
 		{
 			m_insert_last_ip_and_message_count.init(m_flySQLiteDB,
-				"insert or replace into user_db.user_info(nick,dic_hub,last_ip,message_count) values(?,?,?,?)");
+			                                        "insert or replace into user_db.user_info(nick,dic_hub,last_ip,message_count) values(?,?,?,?)");
 			sqlite3_command* l_sql = m_insert_last_ip_and_message_count.get_sql();
 			l_sql->bind(1, p_nick, SQLITE_STATIC);
 			l_sql->bind(2, __int64(p_hub_id));
@@ -3487,17 +3487,16 @@ void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string
 			l_sql->bind(3, __int64(p_last_ip.to_ulong()));
 			l_sql->executenonquery();
 		}
-		else
-		if (p_message_count)
+		else if (p_message_count)
 		{
 			m_insert_message_count.init(m_flySQLiteDB,
-				"insert or replace into user_db.user_info(nick,dic_hub,message_count) values(?,?,?)");
+			                            "insert or replace into user_db.user_info(nick,dic_hub,message_count) values(?,?,?)");
 			sqlite3_command* l_sql = m_insert_message_count.get_sql();
 			l_sql->bind(1, p_nick, SQLITE_STATIC);
 			l_sql->bind(2, __int64(p_hub_id));
 			l_sql->bind(3, __int64(p_message_count));
 			l_sql->executenonquery();
-			
+	
 		}
 		else
 		{
@@ -3505,7 +3504,7 @@ void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string
 		}
 	}
 #endif // FLYLINKDC_USE_IPCACHE_LEVELDB
-
+	
 #endif // FLYLINKDC_USE_LASTIP_CACHE
 	
 }

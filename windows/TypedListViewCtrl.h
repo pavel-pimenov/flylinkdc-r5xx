@@ -570,6 +570,8 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		
 		void DeleteAndCleanAllItemsNoLock()
 		{
+			// dcassert(m_is_destroy_items == false);
+			//CFlyBusyBool l_busy(m_is_destroy_items);
 			const int l_cnt = GetItemCount();
 			for (int i = 0; i < l_cnt; ++i)
 			{
@@ -1079,7 +1081,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 {
 	public:
 	
-		TypedTreeListViewCtrl() : uniqueParent(false) // [cppcheck] Member variable 'TypedTreeListViewCtrl<T,ctrlId,K,hashFunc,equalKey>::uniqueParent' is not initialized in the constructor.
+		TypedTreeListViewCtrl() : m_is_destroy_items(false), uniqueParent(false) // [cppcheck] Member variable 'TypedTreeListViewCtrl<T,ctrlId,K,hashFunc,equalKey>::uniqueParent' is not initialized in the constructor.
 		{
 		}
 		~TypedTreeListViewCtrl()
@@ -1331,6 +1333,8 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 		
 		void removeParent(T* parent)
 		{
+			dcassert(m_is_destroy_items == false);
+			CFlyBusyBool l_busy(m_is_destroy_items);
 			ParentPair* pp = findParentPair(parent->getGroupCond());
 			if (pp)
 			{
@@ -1353,6 +1357,8 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 			}
 			else
 			{
+				dcassert(m_is_destroy_items == false);
+				CFlyBusyBool l_busy(m_is_destroy_items);
 				T* parent = item->parent;
 				ParentPair* pp = findParentPair(parent->getGroupCond());
 				
@@ -1397,11 +1403,15 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 			}
 			
 			if (removeFromMemory)
+			{
 				delete item;
+			}
 		}
 		
 		void DeleteAndClearAllItems() // [!] IRainman Dear BM: please use actual name!
 		{
+			dcassert(m_is_destroy_items == false);
+			CFlyBusyBool l_busy(m_is_destroy_items);
 			CLockRedraw<> l_lock_draw(m_hWnd); // [+] IRainman opt.
 			// HACK: ugly hack but at least it doesn't crash and there's no memory leak
 			for (auto i = parents.cbegin(); i != parents.cend(); ++i)
@@ -1449,9 +1459,13 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 		
 		void resort()
 		{
-			if (getSortColumn() != -1)
+			dcassert(!isDestroyItems());
+			if (!isDestroyItems())
 			{
-				SortItems(&compareFunc, (LPARAM)this);
+				if (getSortColumn() != -1)
+				{
+					SortItems(&compareFunc, (LPARAM)this);
+				}
 			}
 		}
 		
@@ -1516,12 +1530,16 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 		{
 			return parents;
 		}
-		
+		bool isDestroyItems() const
+		{
+			return m_is_destroy_items;
+		}
+	protected:
+		bool m_is_destroy_items;
 	private:
 	
 		/** map of all parent items with their associated children */
 		ParentMap parents;
-		
 		/** +/- images */
 		CImageList states;
 		
@@ -1581,7 +1599,7 @@ class TypedTreeListViewCtrlSafe : public TypedListViewCtrl<T, ctrlId>
 {
 	public:
 	
-		TypedTreeListViewCtrlSafe() : uniqueParent(false)
+		TypedTreeListViewCtrlSafe() : m_is_destroy_items(false), uniqueParent(false)
 		{
 		}
 		~TypedTreeListViewCtrlSafe()

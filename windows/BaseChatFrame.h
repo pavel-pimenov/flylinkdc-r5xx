@@ -207,7 +207,7 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		bool m_bTimeStamps;
 		tstring m_currentNeedle;      // search in chat window
 		long m_currentNeedlePos;      // search in chat window
-
+		
 		bool adjustChatInputSize(BOOL& bHandled);
 		void insertLineHistoryToChatInput(const WPARAM wParam, BOOL& bHandled);
 };

@@ -1284,6 +1284,12 @@ void SearchFrame::on(SearchManagerListener::Searching, SearchQueueItem* aSearch)
 //===================================================================================================================================
 bool SearchFrame::scan_list_view_from_merge()
 {
+	if (ctrlResults.isDestroyItems())
+	{
+		clearFlyServerQueue();
+		// https://drdump.com/Problem.aspx?ProblemID=173368
+		return false;
+	}
 	if (BOOLSETTING(ENABLE_FLY_SERVER))
 	{
 		const int l_item_count = ctrlResults.GetItemCount();
@@ -1295,6 +1301,11 @@ bool SearchFrame::scan_list_view_from_merge()
 		for (int j = l_top_index; j < l_item_count && j < l_top_index + l_count_per_page; ++j)
 		{
 			dcassert(!isClosedOrShutdown());
+			if (isClosedOrShutdown())
+			{
+				clearFlyServerQueue();
+				return false;
+			}
 			SearchInfo* l_item_info = ctrlResults.getItemData(j);
 			if (l_item_info == nullptr || l_item_info->m_already_processed || l_item_info->parent) // ”же не первый раз или это дочерний узел по TTH?
 				continue;
@@ -1369,7 +1380,7 @@ LRESULT SearchFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wParam, LPARAM
 				SearchInfo* l_si = l_si_find->second.first;
 				int l_cur_item = -1;
 				dcassert(!isClosedOrShutdown());
-				if (!isClosedOrShutdown())
+				if (!isClosedOrShutdown() && !ctrlResults.isDestroyItems())
 					l_cur_item = ctrlResults.findItem(l_si);
 				else
 					return 0;

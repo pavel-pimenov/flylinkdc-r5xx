@@ -377,14 +377,6 @@ typedef unsigned __int64 uint64_t;
 //# define OLD_MENU_HEADER // [+] JhaoDa: if disable use new menu style, like Windows 7 +
 //#endif
 
-/*[+] Это условие для тех кто любит большие шрифты,
-будет включаться многострочный ввод принудительно,
-чтоб не портить расположение элементов Sergey Shushkanov */
-//#define MULTILINE_CHAT_IF_BIG_FONT_SET 1
-#ifdef MULTILINE_CHAT_IF_BIG_FONT_SET
-# define FONT_SIZE_FOR_AUTO_MULTILINE_CHAT 17
-#endif
-
 #ifdef IRAINMAN_INCLUDE_SMILE
 # define IRAINMAN_INCLUDE_GDI_OLE 1
 #endif

@@ -248,7 +248,7 @@ void NmdcHub::supports(const StringList& feat)
 OnlineUserPtr NmdcHub::findUser(const string& aNick) const
 {
 	CFlyReadLock(*m_cs);
-	const auto& i = m_users.find(aNick); 
+	const auto& i = m_users.find(aNick);
 #ifdef FLYLINKDC_USE_PROFILER_CS
 	l_lock.m_add_log_info = " User = " + aNick;
 #endif
@@ -2312,7 +2312,7 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 				l_json_info["LDBIPCacheSize"] = l_value;
 			}
 #endif
-
+			
 			string l_json_str = l_json_info.toStyledString();
 			
 			boost::replace_all(l_json_str, "\r", " "); // TODO убрать внутрь jsoncpp

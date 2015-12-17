@@ -2178,113 +2178,116 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 			}
 		}   // end  if (m_ctrlStatus->IsWindow()...
 	}
-	int h = 0, chat_columns = 0;
-	const bool bUseMultiChat = isMultiChat(h, chat_columns);
-	CRect rc = rect;
-	rc.bottom -= h * chat_columns + 15;  // !Decker! //[~] Sergey Shushkanov
-	if (m_ctrlStatus)
+	if (m_msgPanel)
 	{
-		TuneSplitterPanes();
-		if (!m_showUsers) // Если список пользователей не отображается.
+		int h = 0, chat_columns = 0;
+		const bool bUseMultiChat = isMultiChat(h, chat_columns);
+		CRect rc = rect;
+		rc.bottom -= h + Fonts::g_fontHeightPixl * int(bUseMultiChat) + 15;
+		if (m_ctrlStatus)
 		{
-			if (GetSinglePaneMode() == SPLIT_PANE_NONE) // Если никакая сторона не скрыта.
+			TuneSplitterPanes();
+			if (!m_showUsers) // Если список пользователей не отображается.
 			{
+				if (GetSinglePaneMode() == SPLIT_PANE_NONE) // Если никакая сторона не скрыта.
+				{
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
-				SetSinglePaneMode((m_isClientUsersSwitch == true) ? SPLIT_PANE_LEFT : SPLIT_PANE_RIGHT);
+					SetSinglePaneMode((m_isClientUsersSwitch == true) ? SPLIT_PANE_LEFT : SPLIT_PANE_RIGHT);
 #else
-				SetSinglePaneMode(SPLIT_PANE_LEFT);
+					SetSinglePaneMode(SPLIT_PANE_LEFT);
 #endif
+				}
 			}
-		}
-		else // Если список пользователей отображается.
-		{
-			if (GetSinglePaneMode() != SPLIT_PANE_NONE) // Если какая-то сторона скрыта.
-				SetSinglePaneMode(SPLIT_PANE_NONE); // Никакая сторона не скрыта.
-		}
-		SetSplitterRect(rc);
-	}
-	
-	int iButtonPanelLength = MessagePanel::GetPanelWidth();
-	const int l_panelWidth = iButtonPanelLength;
-	if (m_msgPanel)
-	{
-		if (!bUseMultiChat) // Only for Single Line chat
-		{
-			iButtonPanelLength += m_showUsers ?  222 : 0;
-		}
-		else
-		{
-			if (m_showUsers && iButtonPanelLength < 222)
+			else // Если список пользователей отображается.
 			{
-				iButtonPanelLength  = 222;
+				if (GetSinglePaneMode() != SPLIT_PANE_NONE) // Если какая-то сторона скрыта.
+					SetSinglePaneMode(SPLIT_PANE_NONE); // Никакая сторона не скрыта.
 			}
+			SetSplitterRect(rc);
 		}
-	}
-	rc = rect;
-	rc.bottom -= 4; //[~] Sergey Shushkanov
-	rc.top = rc.bottom - h * chat_columns - 7; // !Decker!
-	rc.left += 2; //[~] Sergey Shushkanov
-	rc.right -= iButtonPanelLength + 2; //[~] Sergey Shushkanov
-	CRect ctrlMessageRect = rc;
-	if (m_ctrlMessage)
-	{
-		m_ctrlMessage->MoveWindow(rc);
-	}
 		
-	if (bUseMultiChat) //[+] TEST VERSION Sergey Shushkanov
-	{
-		rc.top += h + 6; //[+] TEST VERSION Sergey Shushkanov
-	}//[+] TEST VERSION Sergey Shushkanov
-	//rc.top += h * (chat_columns - 1);  !Decker! // [-] Sergey Shushkanov
-	rc.left = rc.right; // [~] Sergey Shushkanov
-	rc.bottom -= 1; // [+] Sergey Shushkanov
-	
-	if (m_msgPanel)
-	{
-		m_msgPanel->UpdatePanel(rc);
-	}
-	rc.right  += l_panelWidth;
-	rc.bottom += 1;
-	
-	if (m_ctrlFilter && m_ctrlFilterSel)
-	{
-		if (m_showUsers)
+		int iButtonPanelLength = MessagePanel::GetPanelWidth();
+		const int l_panelWidth = iButtonPanelLength;
+		if (m_msgPanel)
 		{
-			if (bUseMultiChat)
+			if (!bUseMultiChat) // Only for Single Line chat
 			{
-				rc = ctrlMessageRect;
-				rc.bottom = rc.top + h + 3; // [~] JhaoDa
-				rc.left = rc.right + 2; // [~] Sergey Shushkanov
-				rc.right += 119; // [~] Sergey Shushkanov
-				m_ctrlFilter->MoveWindow(rc);
-				
-				rc.left = rc.right + 2; // [~] Sergey Shushkanov
-				rc.right = rc.left + 101; // [~] Sergey Shushkanov
-				rc.top = rc.top + 1; // [~] JhaoDa
-				m_ctrlFilterSel->MoveWindow(rc);
+				iButtonPanelLength += m_showUsers ?  222 : 0;
 			}
 			else
 			{
-				rc.left = rc.right + 5; // [~] Sergey Shushkanov
-				rc.right = rc.left + 116; // [~] Sergey Shushkanov
+				if (m_showUsers && iButtonPanelLength < 222)
+				{
+					iButtonPanelLength  = 222;
+				}
+			}
+		}
+		rc = rect;
+		rc.bottom -= 4;
+		rc.top = rc.bottom - h - Fonts::g_fontHeightPixl * int(bUseMultiChat) - 7;
+		rc.left += 2;
+		rc.right -= iButtonPanelLength + 2;
+		CRect ctrlMessageRect = rc;
+		if (m_ctrlMessage)
+		{
+			m_ctrlMessage->MoveWindow(rc);
+		}
+		
+		if (bUseMultiChat && m_MultiChatCountLines < 2)
+		{
+			rc.top += h + 6;
+		}
+		rc.left = rc.right;
+		rc.bottom -= 1;
+		
+		if (m_msgPanel)
+		{
+			m_msgPanel->UpdatePanel(rc);
+		}
+		rc.right  += l_panelWidth;
+		rc.bottom += 1;
+		
+		if (m_ctrlFilter && m_ctrlFilterSel)
+		{
+			if (m_showUsers)
+			{
+				if (bUseMultiChat)
+				{
+					rc = ctrlMessageRect;
+					rc.bottom = rc.top + 18; // [~] JhaoDa
+					rc.left = rc.right + 2; // [~] Sergey Shushkanov
+					rc.right += 119; // [~] Sergey Shushkanov
+					rc.top -= 3;
+					m_ctrlFilter->MoveWindow(rc);
+					
+					rc.left = rc.right + 2; // [~] Sergey Shushkanov
+					rc.right = rc.left + 101; // [~] Sergey Shushkanov
+					rc.top -= 1;
+					m_ctrlFilterSel->MoveWindow(rc);
+				}
+				else
+				{
+					rc.left = rc.right + 5; // [~] Sergey Shushkanov
+					rc.right = rc.left + 116; // [~] Sergey Shushkanov
+					m_ctrlFilter->MoveWindow(rc);
+					
+					rc.left = rc.right + 2; // [~] Sergey Shushkanov
+					rc.right = rc.left + 99; // [~] Sergey Shushkanov
+					m_ctrlFilterSel->MoveWindow(rc);
+				}
+			}
+			else
+			{
+				rc.left = 0;
+				rc.right = 0;
 				m_ctrlFilter->MoveWindow(rc);
-				
-				rc.left = rc.right + 2; // [~] Sergey Shushkanov
-				rc.right = rc.left + 99; // [~] Sergey Shushkanov
 				m_ctrlFilterSel->MoveWindow(rc);
 			}
 		}
-		else
+		if (m_tooltip_hubframe && !BOOLSETTING(POPUPS_DISABLED))
 		{
-			rc.left = 0;
-			rc.right = 0;
-			m_ctrlFilter->MoveWindow(rc);
-			m_ctrlFilterSel->MoveWindow(rc);
+			m_tooltip_hubframe->Activate(TRUE);
 		}
-	}
-	if (m_tooltip_hubframe && !BOOLSETTING(POPUPS_DISABLED))
-	{
-		m_tooltip_hubframe->Activate(TRUE);
 	}
 }
 void HubFrame::TuneSplitterPanes()
@@ -3704,7 +3707,7 @@ void HubFrame::on(ClientListener::HubTopic, const Client*, const string& line) n
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 void HubFrame::on(OpenTCPPortDetected, const string& strHubUrl)  noexcept
 {
-	if (m_client->getHubUrl() == strHubUrl)
+	if (m_client && m_client->getHubUrl() == strHubUrl)
 	{
 		speak(OPEN_TCP_PORT_DETECTED, strHubUrl, true);
 	}

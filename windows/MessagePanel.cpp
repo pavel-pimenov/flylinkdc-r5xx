@@ -69,7 +69,9 @@ void MessagePanel::DestroyPanel(bool p_is_shutdown)
 #ifdef SCALOLAZ_BB_COLOR_BUTTON
 	ctrlColorBtn.DestroyWindow();
 #endif
+#ifdef FLYLINKDC_USE_BB_SIZE_CODE
 	ctrlSizeSel.DestroyWindow();
+#endif
 	m_tooltip.DestroyWindow();
 }
 LRESULT MessagePanel::InitPanel(HWND& p_hWnd, RECT &p_rcDefault)
@@ -117,6 +119,7 @@ LRESULT MessagePanel::InitPanel(HWND& p_hWnd, RECT &p_rcDefault)
 	ctrlColorBtn.SetIcon(g_hColorIco);
 	m_tooltip.AddTool(ctrlColorBtn, ResourceManager::BBCODE_PANEL_COLOR);
 #endif
+#ifdef FLYLINKDC_USE_BB_SIZE_CODE
 	ctrlSizeSel.Create(m_hWnd, p_rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_HSCROLL |
 	                   WS_VSCROLL | CBS_DROPDOWNLIST, WS_EX_CLIENTEDGE);
 	ctrlSizeSel.SetFont(Fonts::g_font);
@@ -126,6 +129,7 @@ LRESULT MessagePanel::InitPanel(HWND& p_hWnd, RECT &p_rcDefault)
 	ctrlSizeSel.AddString(L"+1");
 	ctrlSizeSel.AddString(L"+2");
 	ctrlSizeSel.SetCurSel(2);
+#endif
 	
 	m_tooltip.SetMaxTipWidth(200);   //[+] SCALOlaz: activate tooltips
 	if (!BOOLSETTING(POPUPS_DISABLED) && BOOLSETTING(POPUPS_MESSAGEPANEL_ENABLED))
@@ -148,7 +152,8 @@ LRESULT MessagePanel::UpdatePanel(CRect& rect)
 	
 	rc.left += 2; // [+] Sergey Shuhskanov.
 	rc.right += 23; // [~] Sergey Shuhskanov.
-	rc.bottom += 1;
+	//rc.bottom += 1;
+	rc.top = rc.bottom - 19;
 	
 	if (BOOLSETTING(SHOW_SEND_MESSAGE_BUTTON))
 	{
@@ -227,12 +232,14 @@ LRESULT MessagePanel::UpdatePanel(CRect& rect)
 			ctrlColorBtn.ShowWindow(SW_HIDE);
 		}
 #endif // SCALOLAZ_BB_COLOR_BUTTON
+#ifdef FLYLINKDC_USE_BB_SIZE_CODE
 		// Size Selection
 		//rc.left = rc.right + 1;
 		//rc.right += 40;
 		//ctrlSizeSel.ShowWindow(SW_SHOW);
 		//ctrlSizeSel.MoveWindow(rc);
 		ctrlSizeSel.ShowWindow(SW_HIDE);// [!] SSA - Will enable on implementation of size-BBCode
+#endif // FLYLINKDC_USE_BB_SIZE_CODE
 	}
 	else
 	{
@@ -240,7 +247,9 @@ LRESULT MessagePanel::UpdatePanel(CRect& rect)
 		ctrlStrikeBtn.ShowWindow(SW_HIDE);
 		ctrlUnderlineBtn.ShowWindow(SW_HIDE);
 		ctrlItalicBtn.ShowWindow(SW_HIDE);
+#ifdef FLYLINKDC_USE_BB_SIZE_CODE
 		ctrlSizeSel.ShowWindow(SW_HIDE);
+#endif
 		ctrlTransCodeBtn.ShowWindow(SW_HIDE);
 #ifdef SCALOLAZ_BB_COLOR_BUTTON
 		ctrlColorBtn.ShowWindow(SW_HIDE);

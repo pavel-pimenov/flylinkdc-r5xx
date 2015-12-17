@@ -679,7 +679,7 @@ class Identity
 			}
 			return l_res;
 		}
-
+		
 		string getExtJSONCountFilesAsText() const
 		{
 			if (getExtJSONCountFiles())
@@ -694,7 +694,7 @@ class Identity
 			else
 				return Util::emptyString;
 		}
-
+		
 		string getExtJSONSQLiteDBSizeAsText() const
 		{
 			string l_res;
@@ -738,8 +738,8 @@ class Identity
 			}
 			return l_res;
 		}
-
-
+		
+		
 #endif
 		
 		// [+] IRainman

@@ -30,6 +30,7 @@ class Popups : public CPropertyPage<IDD_POPUPS_PAGE>, public PropPage
 		{
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
+			memset(&myFont, 0, sizeof(myFont));
 		}
 		
 		~Popups()

@@ -560,9 +560,9 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		FastCriticalSection  m_cache_hash_files_cs;
 #ifdef FLYLINKDC_USE_LEVELDB
 		CFlyLevelDB         m_TTHLevelDB;
- #ifdef FLYLINKDC_USE_IPCACHE_LEVELDB
+#ifdef FLYLINKDC_USE_IPCACHE_LEVELDB
 		CFlyLevelDBCacheIP  m_IPCacheLevelDB;
- #endif
+#endif
 #else
 		auto_ptr<sqlite3_command> m_get_status_file;
 #endif // FLYLINKDC_USE_LEVELDB

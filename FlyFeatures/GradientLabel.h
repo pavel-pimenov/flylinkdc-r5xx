@@ -108,7 +108,7 @@ public:
       CWindow wnd = GetParent();
       CFontHandle font = wnd.GetFont();
       if( !font.IsNull() ) {
-         LOGFONT lf;
+         LOGFONT lf = {0};
          font.GetLogFont(&lf);
          lf.lfWeight = FW_BOLD;
          m_font.CreateFontIndirect(&lf);

@@ -15,9 +15,9 @@
 /FlyFeatures.vcxproj.user
 
 /*.opensdf
-
 /*.sdf
 /*.suo
+/*.7z
 
 /GdiOle/GdiOle.vcxproj.user
 
@@ -90,6 +90,10 @@ vc11
 /compiled/Settings/*.sqlite-wal
 /compiled/Settings/*.sqlite-journal
 /compiled/Settings/IPTrust.ini
+/compiled/Settings/common/P2PGuard.ini
+/compiled/Settings/P2PGuard.ini
+/compiled/update
+
 
 /compiled/Settings/files.xml.bz2
 

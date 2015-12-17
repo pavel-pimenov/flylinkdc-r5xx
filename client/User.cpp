@@ -617,85 +617,85 @@ FastCriticalSection csTest;
 string Identity::getStringParam(const char* name) const // [!] IRainman fix.
 {
 	CHECK_GET_SET_COMMAND();
-
+	
 #ifdef PPA_INCLUDE_TEST
 	{
 		static std::map<short, int> g_cnt;
 		CFlyFastLock(ll(csTest);
-		auto& j = g_cnt[*(short*)name];
-		j++;
-		//if (j % 100 == 0)
+		             auto& j = g_cnt[*(short*)name];
+		             j++;
+		             //if (j % 100 == 0)
 		{
 			LogManager::message("Identity::getStringParam = " + string(name) + " count = " + Util::toString(j));
 			//dcdebug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! get[%s] = %d \n", name, j);
 		}
 	}
 #endif
-
+	
 	switch (*(short*)name) // http://code.google.com/p/flylinkdc/issues/detail?id=1314
 	{
-	case TAG('A', 'P'):
-	{
-		const auto l_dic_value = getDicAP();
-		if (l_dic_value > 0)
+		case TAG('A', 'P'):
 		{
-			CFlyReadLock(*g_rw_cs);
-
-			const string& l_value = getDicValL(l_dic_value);
+			const auto l_dic_value = getDicAP();
+			if (l_dic_value > 0)
+			{
+				CFlyReadLock(*g_rw_cs);
+				
+				const string& l_value = getDicValL(l_dic_value);
 #ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
-			CFlylinkDBManager::getInstance()->identity_get(name, l_value); // TODO вывести из лока g_rw_cs
+				CFlylinkDBManager::getInstance()->identity_get(name, l_value); // TODO вывести из лока g_rw_cs
 #endif
-			return l_value;
+				return l_value;
+			}
+			else
+			{
+				return Util::emptyString;
+			}
 		}
-		else
+		case TAG('V', 'E'):
 		{
-			return Util::emptyString;
-		}
-	}
-	case TAG('V', 'E'):
-	{
-		const auto l_dic_value = getDicVE();
-		if (l_dic_value > 0)
-		{
-			CFlyReadLock(*g_rw_cs);
-			const string& l_value = getDicValL(l_dic_value);
+			const auto l_dic_value = getDicVE();
+			if (l_dic_value > 0)
+			{
+				CFlyReadLock(*g_rw_cs);
+				const string& l_value = getDicValL(l_dic_value);
 #ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
-			CFlylinkDBManager::getInstance()->identity_get(name, l_value); // TODO вывести из лока g_rw_cs
+				CFlylinkDBManager::getInstance()->identity_get(name, l_value); // TODO вывести из лока g_rw_cs
 #endif
-			return l_value;
+				return l_value;
+			}
+			else
+			{
+				return Util::emptyString;
+			}
 		}
-		else
+		case TAG('E', 'M'):
 		{
-			return Util::emptyString;
-		}
-	}
-	case TAG('E', 'M'):
-	{
-		if (!getNotEmptyStringBit(EM))
-		{
+			if (!getNotEmptyStringBit(EM))
+			{
 #ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
-			CFlylinkDBManager::getInstance()->identity_get(name, "");
+				CFlylinkDBManager::getInstance()->identity_get(name, "");
 #endif
-			return Util::emptyString;
+				return Util::emptyString;
+			}
+			break;
 		}
-		break;
-	}
-	case TAG('D', 'E'):
-	{
-		if (!getNotEmptyStringBit(DE))
+		case TAG('D', 'E'):
 		{
+			if (!getNotEmptyStringBit(DE))
+			{
 #ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
-			CFlylinkDBManager::getInstance()->identity_get(name, "");
+				CFlylinkDBManager::getInstance()->identity_get(name, "");
 #endif
-			return Util::emptyString;
+				return Util::emptyString;
+			}
+			break;
 		}
-		break;
-	}
 	};
-
+	
 	{
 		CFlyFastLock(m_si_fcs);
-
+		
 		const auto i = m_stringInfo.find(*(short*)name);
 		if (i != m_stringInfo.end())
 		{
@@ -703,7 +703,7 @@ string Identity::getStringParam(const char* name) const // [!] IRainman fix.
 			CFlylinkDBManager::getInstance()->identity_get(name, i->second);
 #endif
 			return i->second;
-	}
+		}
 	}
 	return Util::emptyString;
 }
@@ -1106,7 +1106,7 @@ void Identity::getReport(string& p_report) const
 		appendIfValueNotEmpty("Antivirus database", getVirusDesc());
 		appendIfValueNotEmpty("Support info", getExtJSONSupportInfo());
 		appendIfValueNotEmpty("Gender", Text::fromT(getGenderTypeAsString()));
-
+		
 		appendIfValueNotEmpty("Country", getFlyHubCountry());
 		appendIfValueNotEmpty("City", getFlyHubCity());
 		appendIfValueNotEmpty("ISP", getFlyHubISP());
