@@ -53,8 +53,8 @@ boost::logic::tribool MappingManager::g_is_wifi_router = boost::logic::indetermi
 MappingManager::MappingManager() : m_renewal(0), m_listeners_count(0)
 {
 	g_defaultGatewayIP = Socket::getDefaultGateWay(g_is_wifi_router);
-	addMapper<Mapper_NATPMP>();
 	addMapper<Mapper_MiniUPnPc>();
+	addMapper<Mapper_NATPMP>();
 #ifdef HAVE_NATUPNP_H
 	addMapper<Mapper_WinUPnP>();
 #endif

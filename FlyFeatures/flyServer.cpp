@@ -682,7 +682,9 @@ for (auto i = g_block_ip_str.cbegin(); i != g_block_ip_str.cend(); ++i)
 						g_ignore_flood_command.insert("UserCommand");
 						g_ignore_flood_command.insert("Quit"); 
 						g_ignore_flood_command.insert("MyINFO"); 
-						g_ignore_flood_command.insert("ExtJSON");
+#ifdef FLYLINKDC_USE_EXT_JSON
+						g_ignore_flood_command.insert("ExtJSON2");
+#endif
 						g_ignore_flood_command.insert("ConnectToMe"); 
 						g_ignore_flood_command.insert("UserIP");
 						g_ignore_flood_command.insert("RevConnectToMe");

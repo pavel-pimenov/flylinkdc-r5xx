@@ -548,7 +548,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		{
 			return g_bAppMinimized;
 		}
-		CToolBarCtrl& getToolBar()
+		CFlyToolBarCtrl& getToolBar()
 		{
 			return ctrlToolbar;
 		}
@@ -661,14 +661,14 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		// FlylinkDC Team TODO: needs?
 		static int g_CountSTATS; //[+]PPA
 		CImageList m_images;
-		CToolBarCtrl ctrlToolbar;
-		CToolBarCtrl ctrlWinampToolbar;
+		CFlyToolBarCtrl ctrlToolbar;
+		CFlyToolBarCtrl ctrlWinampToolbar;
 		
 #ifdef RIP_USE_SKIN
 		CSkinableTab m_SkinableTabBar;
 		CSkinManager m_SkinManager;
 #endif
-		CToolBarCtrl ctrlQuickSearchBar;
+		CFlyToolBarCtrl ctrlQuickSearchBar;
 		static CComboBox QuickSearchBox;
 		CEdit QuickSearchEdit;
 		CContainedWindow QuickSearchBoxContainer;

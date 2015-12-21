@@ -188,7 +188,7 @@ struct PORTAL_BROWSER_ITEM_STRUCT
 
 bool InitPortalBrowserMenuItems(CMenuHandle &menu);
 bool InitPortalBrowserMenuImages(CImageList &images, CMDICommandBarCtrl &CmdBar);
-size_t InitPortalBrowserToolbarItems(CImageList &largeImages, CImageList &largeImagesHot, CToolBarCtrl &ctrlToolbar, bool bBeginOfToolbar);
+size_t InitPortalBrowserToolbarItems(CImageList &largeImages, CImageList &largeImagesHot, CFlyToolBarCtrl &ctrlToolbar, bool bBeginOfToolbar);
 size_t InitPortalBrowserToolbarImages(CImageList &largeImages, CImageList &largeImagesHot);
 
 PORTAL_BROWSER_ITEM_STRUCT const *GetPortalBrowserListData(size_t ind);

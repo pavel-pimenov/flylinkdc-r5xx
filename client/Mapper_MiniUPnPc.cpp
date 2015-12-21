@@ -43,7 +43,7 @@ bool Mapper_MiniUPnPc::init()
 	}
 	l_log.step("BIND_ADDRESS = " + SETTING(BIND_ADDRESS));
 	UPNPDev* devices = upnpDiscover(2000,
-	                                SettingsManager::getInstance()->isDefault(SettingsManager::BIND_ADDRESS) ? nullptr : SETTING(BIND_ADDRESS).c_str(),
+	                                SettingsManager::isDefault(SettingsManager::BIND_ADDRESS) ? nullptr : SETTING(BIND_ADDRESS).c_str(),
 	                                0, 0, 0, 0);
 	if (!devices)
 	{
@@ -108,12 +108,12 @@ bool Mapper_MiniUPnPc::add(const unsigned short port, const Protocol protocol, c
 	                                            description.c_str(), protocols[protocol], 0, 0);
 	if (l_upnp_res == UPNPCOMMAND_SUCCESS)
 	{
-		LogManager::message("[MiniUPnPc::add] OK bind_addres = " + l_bind_addres);
+		LogManager::message("[MiniUPnPc::add] OK bind_address = " + l_bind_addres);
 		return true;
 	}
 	else
 	{
-		log_error(l_upnp_res, "UPNP_AddPortMapping, Error bind_addres = " + l_bind_addres);
+		log_error(l_upnp_res, "UPNP_AddPortMapping, Error bind_address = " + l_bind_addres);
 	}
 	return false;
 }

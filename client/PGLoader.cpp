@@ -25,6 +25,7 @@
 #include "IpGuard.h"
 #include "../windows/resource.h"
 #include <boost/algorithm/string.hpp>
+//#include <boost/asio/ip/address_v4.hpp>
 
 #ifdef PPA_INCLUDE_IPFILTER
 
@@ -148,6 +149,9 @@ void PGLoader::load(const string& p_data /*= Util::emptyString*/)
 bool PGLoader::check(uint32_t p_ip4)
 {
 #ifdef _DEBUG
+	//boost::system::error_code ec;
+	//const auto l_ip_boost = boost::asio::ip::address_v4::from_string("10.91.2.180", ec);
+	//p_ip4 = l_ip_boost.to_ulong();
 	static boost::atomic_int g_count(0);
 	dcdebug("PGLoader::check  count = %d\n", int(++g_count));
 #endif

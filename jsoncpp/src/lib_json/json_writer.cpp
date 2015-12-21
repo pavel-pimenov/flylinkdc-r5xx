@@ -265,10 +265,11 @@ FastWriter::writeValue( const Value &value )
 // Class StyledWriter
 // //////////////////////////////////////////////////////////////////
 
-StyledWriter::StyledWriter()
+StyledWriter::StyledWriter(bool p_use_end_line)
    : rightMargin_( 500 )
-   , indentSize_( 1 )
+   , indentSize_( 0 )
    , addChildValues_()
+   , use_end_line_(p_use_end_line)
 {
 }
 
@@ -450,8 +451,13 @@ StyledWriter::writeIndent()
       char last = document_[document_.length()-1];
       if ( last == ' ' )     // already indented
          return;
-      if ( last != '\n' )    // Comments may add new-line
-         document_ += '\n';
+	  if (last != '\n')    // Comments may add new-line
+	  {
+		  if (use_end_line_)
+		  {
+			  document_ += '\n';
+		  }
+	  }
    }
    document_ += indentString_;
 }
@@ -468,15 +474,21 @@ StyledWriter::writeWithIndent( const std::string &value )
 void 
 StyledWriter::indent()
 {
-   indentString_ += std::string( indentSize_, ' ' );
+	if (indentSize_)
+	{
+		indentString_ += std::string(indentSize_, ' ');
+	}
 }
 
 
 void 
 StyledWriter::unindent()
 {
-   assert( int(indentString_.size()) >= indentSize_ );
-   indentString_.resize( indentString_.size() - indentSize_ );
+	if (indentSize_)
+	{
+		assert(int(indentString_.size()) >= indentSize_);
+		indentString_.resize(indentString_.size() - indentSize_);
+	}
 }
 
 

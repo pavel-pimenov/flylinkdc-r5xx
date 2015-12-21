@@ -748,7 +748,7 @@ bool SimpleXMLReader::process()
 				|| literal(LITN("<?xml"), true, STATE_DECL_VERSION)
 				|| literal(LITN("<!--"), false, STATE_COMMENT)
 				|| element()
-				|| spaceOrError("Expecting XML declaration, element or comment");
+				|| spaceOrError("Expecting XML declaration, element or comment"); // https://drdump.com/Problem.aspx?ProblemID=174359
 				break;
 			case STATE_DECL_VERSION:
 				skipSpace()

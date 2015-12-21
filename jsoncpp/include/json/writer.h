@@ -86,7 +86,7 @@ namespace Json {
    class JSON_API StyledWriter: public Writer
    {
    public:
-      StyledWriter();
+	   StyledWriter(bool p_use_end_line);
       virtual ~StyledWriter(){}
 
    public: // overridden from Writer
@@ -115,6 +115,7 @@ namespace Json {
       ChildValues childValues_;
       std::string document_;
       std::string indentString_;
+	  bool use_end_line_; // [+]FlylinkDC++
       int rightMargin_;
       int indentSize_;
       bool addChildValues_;

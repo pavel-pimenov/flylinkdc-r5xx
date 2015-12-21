@@ -643,7 +643,7 @@ size_t InitPortalBrowserToolbarImages(CImageList &largeImages, CImageList &large
 	return added;
 }
 
-size_t InitPortalBrowserToolbarItems(CImageList &largeImages, CImageList &largeImagesHot, CToolBarCtrl &ctrlToolbar, bool bBeginOfToolbar)
+size_t InitPortalBrowserToolbarItems(CImageList &largeImages, CImageList &largeImagesHot, CFlyToolBarCtrl &ctrlToolbar, bool bBeginOfToolbar)
 {
 	const size_t PortalsCount = GetPortalBrowserListCount();
 	size_t added = 0;
@@ -680,7 +680,7 @@ size_t InitPortalBrowserToolbarItems(CImageList &largeImages, CImageList &largeI
 				nTB.idCommand = IDC_PORTAL_BROWSER + i;
 				nTB.fsStyle = TBSTYLE_CHECK;
 				nTB.fsState = TBSTATE_ENABLED;
-				nTB.iString = (INT_PTR)(pPBItem->strName.c_str());
+				nTB.iString = ctrlToolbar.AddStringsSafe(pPBItem->strName.c_str());
 				ctrlToolbar.AddButtons(1, &nTB);
 				added++;
 			}

@@ -26,6 +26,18 @@
 #include "../client/ResourceManager.h"
 #include "../client/TaskQueue.h"
 
+class CFlyToolBarCtrl : public CToolBarCtrl
+{
+	private:
+		int AddStrings(LPCTSTR lpszStrings);
+	public:
+		// https ://msdn.microsoft.com/en-us/library/windows/desktop/bb760476%28v=vs.85%29.aspx
+		// Zero - based index of the button string, or a pointer to a string buffer that contains text for the button.
+		INT_PTR AddStringsSafe(const TCHAR* p_str)
+		{
+			return (INT_PTR)p_str;
+		}
+};
 template <class T> bool safe_post_message(HWND p_wnd, int p_x, T* p_ptr)
 {
 	if (::PostMessage(p_wnd, WM_SPEAKER, WPARAM(p_x), LPARAM(p_ptr)) == FALSE)

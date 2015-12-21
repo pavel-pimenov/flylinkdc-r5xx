@@ -933,7 +933,7 @@ void Fonts::init()
 {
 	LOGFONT lf[2] = {0};
 	::GetObject((HFONT)GetStockObject(DEFAULT_GUI_FONT), sizeof(lf[0]), &lf[0]);
-	// SettingsManager::getInstance()->setDefault(SettingsManager::TEXT_FONT, Text::fromT(encodeFont(lf))); // !SMT!-F
+	// SettingsManager::setDefault(SettingsManager::TEXT_FONT, Text::fromT(encodeFont(lf))); // !SMT!-F
 	
 	//--------------------------------- [~] Sergey Shuhskanov
 	lf[0].lfWeight = FW_BOLD;

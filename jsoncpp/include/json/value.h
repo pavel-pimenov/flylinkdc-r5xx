@@ -434,7 +434,7 @@ namespace Json {
       /// Include delimiters and embedded newlines.
       std::string getComment( CommentPlacement placement ) const;
 
-      std::string toStyledString() const;
+	  std::string toStyledString(bool p_use_end_line = true) const;
 
       const_iterator begin() const;
       const_iterator end() const;

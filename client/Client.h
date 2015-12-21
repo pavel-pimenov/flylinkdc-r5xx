@@ -96,7 +96,6 @@ class ClientBase
 		virtual bool isOp() const = 0;
 		virtual void connect(const OnlineUser& user, const string& p_token, bool p_is_force_passive) = 0;
 		virtual void privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson = false) = 0;
-		
 };
 
 /** Yes, this should probably be called a Hub */
@@ -111,7 +110,6 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 				fly_fire2(ClientListener::UsersUpdated(), this, p_list);
 			}
 		}
-		
 		void clearAvailableBytesL()
 		{
 			m_isChangeAvailableBytes = true;

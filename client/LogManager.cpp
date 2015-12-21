@@ -166,7 +166,8 @@ void LogManager::flush_all_log()
 		}
 		catch (const FileException& e)
 		{
-			if (GetLastError() == 3) // ERROR_PATH_NOT_FOUND
+			const auto l_code = GetLastError();
+			if (l_code == 3) // ERROR_PATH_NOT_FOUND
 			{
 				try
 				{

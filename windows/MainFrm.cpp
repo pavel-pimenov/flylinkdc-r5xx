@@ -1117,12 +1117,8 @@ HWND MainFrame::createToolbar()    //[~]Drakon. Enlighting toolbars.
 					nTB.idCommand = g_ToolbarButtons[i].id;
 					nTB.fsStyle = g_ToolbarButtons[i].check ? TBSTYLE_CHECK : TBSTYLE_BUTTON;
 					nTB.fsState = TBSTATE_ENABLED;
-#ifdef _DEBUG
-					nTB.iString = ctrlToolbar.AddStrings(_T("Debug hint"));
-#else
-					const tstring l_str = CTSTRING_I(g_ToolbarButtons[i].tooltip);
-					nTB.iString = ctrlToolbar.AddStrings(l_str.c_str()); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=29760
-#endif
+					nTB.iString = ctrlToolbar.AddStringsSafe(CTSTRING_I(g_ToolbarButtons[i].tooltip));
+					dcassert(nTB.iString != -1);
 				}
 				ctrlToolbar.AddButtons(1, &nTB);
 			}
@@ -1186,11 +1182,8 @@ HWND MainFrame::createWinampToolbar() // [~]Drakon. Toolbar fix.
 					wTB.idCommand = g_WinampToolbarButtons[i].id;
 					wTB.fsState = TBSTATE_ENABLED;
 					wTB.fsStyle = g_WinampToolbarButtons[i].check ? TBSTYLE_CHECK : TBSTYLE_BUTTON;
-#ifdef _DEBUG
-					wTB.iString = ctrlToolbar.AddStrings(_T("Debug hint"));
-#else
-					wTB.iString = ctrlWinampToolbar.AddStrings(CTSTRING_I(g_WinampToolbarButtons[i].tooltip)); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=29760
-#endif
+					wTB.iString = ctrlWinampToolbar.AddStringsSafe(CTSTRING_I(g_WinampToolbarButtons[i].tooltip));
+					dcassert(wTB.iString != -1);
 					if (wTB.idCommand  == IDC_WINAMP_SPAM)   // SSA First icon
 					{
 						wTB.fsStyle |= TBSTYLE_DROPDOWN;

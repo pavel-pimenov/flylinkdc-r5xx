@@ -60,7 +60,7 @@ NmdcHub::NmdcHub(const string& aHubURL, bool secure, bool p_is_auto_connect) :
 NmdcHub::~NmdcHub()
 {
 #ifdef FLYLINKDC_USE_EXT_JSON
-	//dcassert(m_ext_json_deferred.empty());
+	dcassert(m_ext_json_deferred.empty());
 #endif
 	clearUsers();
 }
@@ -261,7 +261,9 @@ void NmdcHub::putUser(const string& aNick)
 	{
 		CFlyWriteLock(*m_cs);
 #ifdef FLYLINKDC_USE_EXT_JSON
-		//m_ext_json_deferred.erase(aNick);
+#ifdef _DEBUG
+		m_ext_json_deferred.erase(aNick);
+#endif
 #endif
 		const auto& i = m_users.find(aNick);
 		if (i == m_users.end())
@@ -303,7 +305,9 @@ void NmdcHub::clearUsers()
 			CFlyWriteLock(*m_cs);
 			u2.swap(m_users);
 #ifdef FLYLINKDC_USE_EXT_JSON
-			//m_ext_json_deferred.clear();
+#ifdef _DEBUG
+			m_ext_json_deferred.clear();
+#endif
 #endif
 			clearAvailableBytesL();
 		}
@@ -453,7 +457,7 @@ void NmdcHub::NmdcSearch(const SearchParam& p_search_param)
 //#ifdef IRAINMAN_USE_UNICODE_IN_NMDC
 //				str += name;
 //#else
-				str += Text::fromUtf8(l_name, getEncoding());
+				str += fromUtf8(l_name);
 //#endif
 				str += '|';
 			}
@@ -757,7 +761,7 @@ void NmdcHub::revConnectToMeParse(const string& param)
 		}
 		else
 		{
-			send("$ConnectToMe " + fromUtf8(u->getIdentity().getNick()) + ' ' + getLocalIp() + ':' + Util::toString(m_client_sock->getLocalPort()) + (secure ? "NS " : "N ") + fromUtf8(getMyNick()) + '|');
+			send("$ConnectToMe " + fromUtf8(u->getIdentity().getNick()) + ' ' + getLocalIp() + ':' + Util::toString(m_client_sock->getLocalPort()) + (secure ? "NS " : "N ") + getMyNickFromUtf8() + '|');
 		}
 	}
 	else
@@ -1043,9 +1047,9 @@ void NmdcHub::supportsParse(const string& param)
 		}
 		
 #ifdef FLYLINKDC_USE_EXT_JSON
-		else if (*i == "ExtJSON")
+		else if (*i == "ExtJSON2")
 		{
-			m_supportFlags |= SUPPORTS_EXTJSON;
+			m_supportFlags |= SUPPORTS_EXTJSON2;
 			fly_fire1(ClientListener::FirstExtJSON(), this);
 		}
 #endif
@@ -1143,8 +1147,9 @@ void NmdcHub::lockParse(const string& aLine)
 			feat.push_back("TTHSearch");
 			feat.push_back("ZPipe0");
 #ifdef FLYLINKDC_USE_EXT_JSON
-			feat.push_back("ExtJSON");
+			feat.push_back("ExtJSON2");
 #endif
+			feat.push_back("HubURL");
 			feat.push_back("NickRule");
 			
 			if (CryptoManager::getInstance()->TLSOk())
@@ -1446,7 +1451,7 @@ void NmdcHub::nickListParse(const string& param)
 				string tmp;
 				// Let's assume 10 characters per nick...
 				tmp.reserve(v.size() * (11 + 10 + getMyNick().length()));
-				string n = ' ' +  fromUtf8(getMyNick()) + '|';
+				string n = ' ' +  getMyNickFromUtf8() + '|';
 				for (auto i = v.cbegin(); i != v.cend(); ++i)
 				{
 					tmp += "$GetINFO ";
@@ -1938,6 +1943,10 @@ void NmdcHub::onLine(const string& aLine)
 			//sendValidateNick(ou->getIdentity().getNick());
 		}
 	}
+	else if (cmd == "GetHubURL")
+	{
+		send("$MyHubURL " + getHubUrl() + "|");
+	}
 	else
 	{
 		//dcassert(0);
@@ -2059,7 +2068,7 @@ void NmdcHub::revConnectToMe(const OnlineUser& aUser)
 {
 	checkstate();
 	dcdebug("NmdcHub::revConnectToMe %s\n", aUser.getIdentity().getNick().c_str());
-	send("$RevConnectToMe " + fromUtf8(getMyNick()) + ' ' + fromUtf8(aUser.getIdentity().getNick()) + '|'); //[1] https://www.box.net/shared/f8330d2c54b2d7dcf3e4
+	send("$RevConnectToMe " + getMyNickFromUtf8() + ' ' + fromUtf8(aUser.getIdentity().getNick()) + '|'); //[1] https://www.box.net/shared/f8330d2c54b2d7dcf3e4
 }
 
 void NmdcHub::hubMessage(const string& aMessage, bool thirdPerson)
@@ -2142,7 +2151,7 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 	l_currentMyInfo.resize(256);
 	const string l_version = getClientName() + " V:" + getTagVersion();
 	string l_ExtJSONSupport;
-	if (m_supportFlags & SUPPORTS_EXTJSON)
+	if (m_supportFlags & SUPPORTS_EXTJSON2)
 	{
 		l_ExtJSONSupport = MappingManager::getPortmapInfo(false, false);
 		if (isFlySupportHub())
@@ -2197,11 +2206,10 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 		{
 			l_ExtJSONSupport += "+IPv6";
 		}
-		
 	}
 	l_currentMyInfo.resize(_snprintf(&l_currentMyInfo[0], l_currentMyInfo.size() - 1, "$MyINFO $ALL %s %s<%s,M:%c,H:%s,S:%d"
 	                                 ">$ $%s%c$%s$",
-	                                 fromUtf8(getMyNick()).c_str(),
+	                                 getMyNickFromUtf8().c_str(),
 	                                 fromUtf8Chat(escape(getCurrentDescription())).c_str(),
 	                                 l_version.c_str(), // [!] IRainman mimicry function.
 	                                 l_modeChar,
@@ -2235,7 +2243,7 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 			m_lastUpdate = currentTick;
 		}
 #ifdef FLYLINKDC_USE_EXT_JSON
-		if ((m_supportFlags & SUPPORTS_EXTJSON) && l_is_change_fly_info)
+		if ((m_supportFlags & SUPPORTS_EXTJSON2) && l_is_change_fly_info)
 		{
 			m_lastExtJSONSupport = l_ExtJSONSupport;
 			m_version_fly_info = g_version_fly_info;
@@ -2313,8 +2321,9 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 			}
 #endif
 			
-			string l_json_str = l_json_info.toStyledString();
+			string l_json_str = l_json_info.toStyledString(false);
 			
+			boost::algorithm::trim(l_json_str); // TODO - убрать в конце пробел в json
 			boost::replace_all(l_json_str, "\r", " "); // TODO убрать внутрь jsoncpp
 			boost::replace_all(l_json_str, "\n", " ");
 			
@@ -2322,11 +2331,11 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 			boost::replace_all(l_json_str, "$", "");
 			boost::replace_all(l_json_str, "|", "");
 			
-			const string l_lastExtJSONInfo = "$ExtJSON $ALL " + getMyNick() + " " + l_json_str;
+			const string l_lastExtJSONInfo = "$ExtJSON " + getMyNickFromUtf8() + " " + escape(l_json_str);
 			if (m_lastExtJSONInfo != l_lastExtJSONInfo)
 			{
 				m_lastExtJSONInfo = l_lastExtJSONInfo;
-				send(m_lastExtJSONInfo + "$|");
+				send(m_lastExtJSONInfo + "|");
 				m_lastUpdate = currentTick;
 			}
 		}
@@ -2361,7 +2370,7 @@ void NmdcHub::search_token(const SearchParamToken& p_search_param)
 	}
 	else
 	{
-		tmp2 = "Hub:" + fromUtf8(getMyNick());
+		tmp2 = "Hub:" + getMyNickFromUtf8();
 	}
 	const string l_search_command = "$Search " + tmp2 + ' ' + c1 + '?' + c2 + '?' + Util::toString(p_search_param.m_size) + '?' + Util::toString(p_search_param.m_file_type + 1) + '?' + tmp + '|';
 #ifdef _DEBUG
@@ -2452,7 +2461,7 @@ string NmdcHub::validateMessage(string tmp, bool reverse)
 
 void NmdcHub::privateMessage(const string& nick, const string& message, bool thirdPerson)
 {
-	send("$To: " + fromUtf8(nick) + " From: " + fromUtf8(getMyNick()) + " $" + fromUtf8Chat(escape('<' + getMyNick() + "> " + (thirdPerson ? "/me " + message : message))) + '|'); // IRAINMAN_USE_UNICODE_IN_NMDC
+	send("$To: " + fromUtf8(nick) + " From: " + getMyNickFromUtf8() + " $" + fromUtf8Chat(escape('<' + getMyNick() + "> " + (thirdPerson ? "/me " + message : message))) + '|'); // IRAINMAN_USE_UNICODE_IN_NMDC
 }
 
 void NmdcHub::privateMessage(const OnlineUserPtr& aUser, const string& aMessage, bool thirdPerson)   // !SMT!-S
@@ -2516,11 +2525,10 @@ void NmdcHub::on(BufferedSocketListener::Connected) noexcept
 #ifdef FLYLINKDC_USE_EXT_JSON
 bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false */)
 {
-	string::size_type i = 5;
-	string::size_type j = param.find(' ', i);
-	if (j == string::npos || j == i)
+	string::size_type j = param.find(' ', 0);
+	if (j == string::npos)
 		return false;
-	string l_nick = param.substr(i, j - i);
+	const string l_nick = param.substr(0, j);
 	
 	dcassert(!l_nick.empty())
 	if (l_nick.empty())
@@ -2530,20 +2538,20 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 	}
 	if (p_is_disable_fire == false)
 	{
-		/*
+#ifdef _DEBUG
 		CFlyWriteLock(*m_cs);
 		if (m_ext_json_deferred.find(l_nick) == m_ext_json_deferred.end())
 		{
-		    m_ext_json_deferred.insert(std::make_pair(l_nick, param));
-		    return false;
+			m_ext_json_deferred.insert(std::make_pair(l_nick, param));
+			return false;
 		}
-		*/
+#endif
 	}
 	
 //#ifdef _DEBUG
 //	string l_json_result = "{ \"City\":[\"$ForceMove\", \"abc.com\", \"&#124; \"] } | ";
 //#else
-	string l_json_result = param.substr(i + l_nick.size() + 1);
+	const string l_json_result = unescape(param.substr(l_nick.size() + 1));
 //#endif
 	try
 	{
@@ -2783,25 +2791,24 @@ void NmdcHub::myInfoParse(const string& param)
 	if (!ClientManager::isShutdown())
 	{
 #ifdef FLYLINKDC_USE_EXT_JSON
-		/*
+#ifdef _DEBUG
 		string l_ext_json_param;
 		{
-		    CFlyReadLock(*m_cs);
-		    const auto l_find_ext_json = m_ext_json_deferred.find(l_nick);
-		    if (l_find_ext_json != m_ext_json_deferred.end())
-		    {
-		        l_ext_json_param = l_find_ext_json->second;
-		    }
+			CFlyReadLock(*m_cs);
+			const auto l_find_ext_json = m_ext_json_deferred.find(l_nick);
+			if (l_find_ext_json != m_ext_json_deferred.end())
+			{
+				l_ext_json_param = l_find_ext_json->second;
+			}
 		}
 		if (!l_ext_json_param.empty())
 		{
-		    extJSONParse(l_ext_json_param, true);
-		    CFlyWriteLock(*m_cs);
-		    //m_ext_json_deferred.erase(l_nick);
+			extJSONParse(l_ext_json_param, true);
+			CFlyWriteLock(*m_cs);
+			m_ext_json_deferred.erase(l_nick);
 		}
-		*/
-		
-#endif
+#endif // _DEBUG        
+#endif // FLYLINKDC_USE_EXT_JSON
 		dcassert(!ClientManager::isShutdown());
 		if (!ClientManager::isShutdown())
 		{
@@ -2852,7 +2859,7 @@ void NmdcHub::on(BufferedSocketListener::SearchArrayTTH, CFlySearchArrayTTH& p_s
 					string l_nick = i->m_search.substr(4); //-V112
 					// Good, we have a passive seeker, those are easier...
 					str[str.length() - 1] = 5;
-					str += Text::fromUtf8(l_nick, getEncoding());
+					str += fromUtf8(l_nick);
 					str += '|';
 					send(str);
 				}

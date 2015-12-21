@@ -55,6 +55,7 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 #ifdef SCALOLAZ_BB_COLOR_BUTTON
 		COMMAND_ID_HANDLER(IDC_COLOR, onTextStyleSelect)
 #endif
+		COMMAND_HANDLER(IDC_CHAT_MESSAGE_EDIT, EN_CHANGE, onChange)
 		END_MSG_MAP()
 	public:
 		void createMessagePanel();
@@ -110,6 +111,8 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		}
 		void onEnter();
 		LRESULT onWinampSpam(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+		LRESULT onChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+		
 		LRESULT onTextStyleSelect(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			if (m_ctrlMessage)
@@ -209,5 +212,6 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		long m_currentNeedlePos;      // search in chat window
 		
 		bool adjustChatInputSize(BOOL& bHandled);
+		void checkMultiLine();
 		void insertLineHistoryToChatInput(const WPARAM wParam, BOOL& bHandled);
 };

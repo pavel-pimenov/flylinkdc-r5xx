@@ -120,7 +120,7 @@ class IPList
 			CFlyFastLock(m_cs);
 			return m_usedList.empty();
 		}
-		void addLine(std::string& Line, CFlyLog& p_log);
+		void addLine(std::string Line, CFlyLog& p_log);
 		void addData(const std::string& Data, CFlyLog& p_log);
 		
 		bool checkIp(uint32_t ip);

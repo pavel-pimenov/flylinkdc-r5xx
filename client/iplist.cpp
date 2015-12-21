@@ -195,7 +195,7 @@ uint32_t IPList::addRange(uint32_t fromIP, uint32_t toIP)
 	return NO_IP_ERROR;
 }
 
-void IPList::addLine(std::string& Line, CFlyLog& p_log)
+void IPList::addLine(std::string Line, CFlyLog& p_log)
 {
 	dcassert(!Line.empty() && Line[0] != '#')
 	int32_t l_errorCode = 0;
@@ -282,14 +282,20 @@ void IPList::addData(const std::string& Data, CFlyLog& p_log)
 		lineend = Data.find('\n', linestart);
 		if (lineend == string::npos)
 		{
-			string line = Data.substr(linestart);
-			addLine(line, p_log);
+			const string line = Data.substr(linestart);
+			if (!line.empty())
+			{
+				addLine(line, p_log);
+			}
 			break;
 		}
 		else
 		{
-			string line = Data.substr(linestart, lineend - linestart - 1);
-			addLine(line, p_log);
+			const string line = Data.substr(linestart, lineend - linestart - 1);
+			if (!line.empty())
+			{
+				addLine(line, p_log);
+			}
 			linestart = lineend + 1;
 		}
 	}
@@ -310,7 +316,7 @@ bool IPList::checkIp(UINT32 ip)
 {
 	bool found = false;
 	dcassert(!ClientManager::isShutdown());
-	if (ClientManager::isShutdown())
+	if (!ClientManager::isShutdown())
 	{
 		size_t i = 0;
 		CFlyFastLock(m_cs);

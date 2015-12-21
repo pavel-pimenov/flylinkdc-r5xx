@@ -65,8 +65,8 @@ void ConnectivityManager::detectConnection()
 	
 	const string l_old_bind = SETTING(BIND_ADDRESS);
 	// restore connectivity settings to their default value.
-	SettingsManager::getInstance()->unset(SettingsManager::EXTERNAL_IP);
-	SettingsManager::getInstance()->unset(SettingsManager::BIND_ADDRESS);
+	SettingsManager::unset(SettingsManager::EXTERNAL_IP);
+	SettingsManager::unset(SettingsManager::BIND_ADDRESS);
 	if (MappingManager::getInstance()->getOpened())
 	{
 		MappingManager::getInstance()->close();

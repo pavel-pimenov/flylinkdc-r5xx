@@ -1557,9 +1557,9 @@ Value::getComment( CommentPlacement placement ) const
 
 
 std::string 
-Value::toStyledString() const
+Value::toStyledString(bool p_use_end_line /* = true */) const
 {
-   StyledWriter writer;
+	StyledWriter writer(p_use_end_line);
    return writer.write( *this );
 }
 

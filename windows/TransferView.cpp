@@ -311,11 +311,11 @@ LRESULT TransferView::onAVDBBlockConnections(WORD /*wNotifyCode*/, WORD /*wID*/,
 {
 	if (m_AVDB_BlockButton.GetCheck() == BST_CHECKED)
 	{
-		SettingsManager::getInstance()->set(SettingsManager::AVDB_BLOCK_CONNECTIONS, 1);
+		SettingsManager::set(SettingsManager::AVDB_BLOCK_CONNECTIONS, 1);
 	}
 	else
 	{
-		SettingsManager::getInstance()->set(SettingsManager::AVDB_BLOCK_CONNECTIONS, 0);
+		SettingsManager::set(SettingsManager::AVDB_BLOCK_CONNECTIONS, 0);
 	}
 	setButtonState();
 	return 0;
@@ -324,11 +324,11 @@ LRESULT TransferView::onForceAutoPassiveMode(WORD /*wNotifyCode*/, WORD /*wID*/,
 {
 	if (m_AutoPassiveModeButton.GetCheck() == BST_CHECKED)
 	{
-		SettingsManager::getInstance()->set(SettingsManager::AUTO_PASSIVE_INCOMING_CONNECTIONS, 1);
+		SettingsManager::set(SettingsManager::AUTO_PASSIVE_INCOMING_CONNECTIONS, 1);
 	}
 	else
 	{
-		SettingsManager::getInstance()->set(SettingsManager::AUTO_PASSIVE_INCOMING_CONNECTIONS, 0);
+		SettingsManager::set(SettingsManager::AUTO_PASSIVE_INCOMING_CONNECTIONS, 0);
 	}
 	setButtonState();
 	return 0;
@@ -338,11 +338,11 @@ LRESULT TransferView::onForcePassiveMode(WORD /*wNotifyCode*/, WORD /*wID*/, HWN
 {
 	if (m_PassiveModeButton.GetCheck() == BST_CHECKED)
 	{
-		SettingsManager::getInstance()->set(SettingsManager::FORCE_PASSIVE_INCOMING_CONNECTIONS, 1);
+		SettingsManager::set(SettingsManager::FORCE_PASSIVE_INCOMING_CONNECTIONS, 1);
 	}
 	else
 	{
-		SettingsManager::getInstance()->set(SettingsManager::FORCE_PASSIVE_INCOMING_CONNECTIONS, 0);
+		SettingsManager::set(SettingsManager::FORCE_PASSIVE_INCOMING_CONNECTIONS, 0);
 	}
 	setButtonState();
 	return 0;

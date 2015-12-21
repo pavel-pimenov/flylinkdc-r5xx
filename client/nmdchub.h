@@ -95,7 +95,7 @@ class NmdcHub : public Client, private Flags
 			SUPPORTS_NOGETINFO = 0x02,
 			SUPPORTS_USERIP2 = 0x04,
 #ifdef FLYLINKDC_USE_EXT_JSON
-			SUPPORTS_EXTJSON = 0x08,
+			SUPPORTS_EXTJSON2 = 0x08,
 #endif
 			SUPPORTS_NICKRULE = 0x10
 		};
@@ -204,6 +204,10 @@ class NmdcHub : public Client, private Flags
 		{
 			return Text::fromUtf8(str, getEncoding());
 		}
+		string getMyNickFromUtf8() const
+		{
+			return fromUtf8(getMyNick());
+		}
 #ifdef IRAINMAN_USE_UNICODE_IN_NMDC
 		string toUtf8(const string& str) const
 		{
@@ -276,7 +280,9 @@ class NmdcHub : public Client, private Flags
 		void myInfoParse(const string& param);
 #ifdef FLYLINKDC_USE_EXT_JSON
 		bool extJSONParse(const string& param, bool p_is_disable_fire = false);
-		//std::unordered_map<string, string> m_ext_json_deferred;
+#ifdef _DEBUG
+		std::unordered_map<string, string> m_ext_json_deferred;
+#endif
 #endif
 		void searchParse(const string& param, bool p_is_passive);
 		void connectToMeParse(const string& param);

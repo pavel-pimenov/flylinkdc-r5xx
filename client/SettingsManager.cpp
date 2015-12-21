@@ -1337,7 +1337,9 @@ void SettingsManager::load(const string& aFileName)
 	try
 	{
 		SimpleXML xml;
-		xml.fromXML(File(aFileName, File::READ, File::OPEN).read());
+		const string l_xml = File(aFileName, File::READ, File::OPEN).read();
+		// help for https://drdump.com/DumpGroup.aspx?DumpGroupID=421611
+		xml.fromXML(l_xml);
 		xml.stepIn();
 		if (xml.findChild("Settings"))
 		{

@@ -1589,6 +1589,7 @@
 #define IDC_WHOIS_URL                   2514
 #define IDC_ADD_P2P_GUARD               2515
 #define IDC_AVDB_BLOCK_CONNECTIONS      2516
+#define IDC_CHAT_MESSAGE_EDIT           2517
 #define IDC_DOWNLOAD_TARGET_DIR         3000
 #define IDC_SELECT_WINDOW               3500
 #define IDC_USER_COMMAND                4000

@@ -454,7 +454,7 @@ void PrivateFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		const bool bUseMultiChat = isMultiChat(h, chat_columns);
 		CRect rc = rect;
 		//rc.bottom -= h + 15;
-		rc.bottom -= h + Fonts::g_fontHeightPixl * int(bUseMultiChat) + 15;
+		rc.bottom -= h + (Fonts::g_fontHeightPixl + 1) * int(bUseMultiChat) + 18;
 		
 		if (ctrlClient.IsWindow())
 		{
@@ -465,7 +465,7 @@ void PrivateFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		
 		rc = rect;
 		rc.bottom -= 4;
-		rc.top = rc.bottom - h - Fonts::g_fontHeightPixl * int(bUseMultiChat) - 7;
+		rc.top = rc.bottom - h - Fonts::g_fontHeightPixl * int(bUseMultiChat) - 12;
 		rc.left += 2;
 		rc.right -= iButtonPanelLength + 2;
 		if (m_ctrlMessage)

@@ -123,7 +123,7 @@ void ShareMiscPage::write()
 			GPGPUTTHManager::getInstance()->get()->select_device(sel_dev_num);
 		}
 		
-		SettingsManager::getInstance()->set(SettingsManager::TTH_GPU_DEV_NUM, sel_dev_num);
+		SettingsManager::set(SettingsManager::TTH_GPU_DEV_NUM, sel_dev_num);
 		SettingsManager::getInstance()->save();
 	}
 	else if (sel_dev_num != CB_ERR && sel_dev_num == SETTING(TTH_GPU_DEV_NUM)

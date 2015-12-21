@@ -83,9 +83,12 @@ void BaseChatFrame::createMessageCtrl(ATL::CMessageMap *p_map, DWORD p_MsgMapID,
 	dcassert(m_ctrlMessage == nullptr);
 	createChatCtrl();
 	m_ctrlMessage = new CEdit;
-	m_ctrlMessage->Create(m_MessagePanelHWnd, m_MessagePanelRECT, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-	                      WS_VSCROLL | ES_MULTILINE | ES_AUTOVSCROLL ,
-	                      WS_EX_CLIENTEDGE); // !Decker!
+	m_ctrlMessage->Create(m_MessagePanelHWnd,
+	                      m_MessagePanelRECT,
+	                      NULL,
+	                      WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VSCROLL | ES_MULTILINE | ES_AUTOVSCROLL,
+	                      WS_EX_CLIENTEDGE,
+	                      IDC_CHAT_MESSAGE_EDIT);
 	if (!m_LastMessage.empty())
 	{
 		m_ctrlMessage->SetWindowText(m_LastMessage.c_str());
@@ -167,6 +170,20 @@ void BaseChatFrame::restoreStatusFromCache()
 	}
 }
 
+void BaseChatFrame::checkMultiLine()
+{
+	if (m_ctrlMessage && m_ctrlMessage->GetWindowTextLength() > 0)
+	{
+		tstring fullMessageText;
+		WinUtil::GetWindowText(fullMessageText, *m_ctrlMessage);
+		const auto l_count_lines = std::count(fullMessageText.cbegin(), fullMessageText.cend(), L'\r');
+		if (l_count_lines != m_MultiChatCountLines && m_MultiChatCountLines < 10)
+		{
+			m_MultiChatCountLines = l_count_lines;
+			UpdateLayout();
+		}
+	}
+}
 bool BaseChatFrame::adjustChatInputSize(BOOL& bHandled)
 {
 	bool needsAdjust = WinUtil::isCtrlOrAlt();
@@ -183,17 +200,7 @@ bool BaseChatFrame::adjustChatInputSize(BOOL& bHandled)
 			UpdateLayout();
 		}
 	}
-	if (m_ctrlMessage && m_ctrlMessage->GetWindowTextLength() > 0)
-	{
-		tstring fullMessageText;
-		WinUtil::GetWindowText(fullMessageText, *m_ctrlMessage);
-		const auto l_count_lines = std::count(fullMessageText.cbegin(), fullMessageText.cend(), L'\r');
-		if (l_count_lines != m_MultiChatCountLines && m_MultiChatCountLines < 5)
-		{
-			m_MultiChatCountLines = l_count_lines;
-			UpdateLayout();
-		}
-	}
+	checkMultiLine();
 	return needsAdjust;
 }
 LRESULT BaseChatFrame::onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -282,6 +289,11 @@ void BaseChatFrame::insertLineHistoryToChatInput(const WPARAM wParam, BOOL& bHan
 	{
 		bHandled = FALSE;
 	}
+}
+LRESULT BaseChatFrame::onChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	checkMultiLine();
+	return 0;
 }
 
 bool BaseChatFrame::processingServices(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
@@ -381,6 +393,7 @@ void BaseChatFrame::processingHotKeys(UINT uMsg, WPARAM wParam, LPARAM /*lParam*
 						ctrlClient.SendMessage(WM_VSCROLL, SB_PAGEDOWN);
 					break;
 				default:
+					checkMultiLine();
 					bHandled = FALSE;
 			}
 		}
@@ -744,6 +757,7 @@ LRESULT BaseChatFrame::onMultilineChatInputButton(WORD /*wNotifyCode*/, WORD /*w
 	SET_SETTING(MULTILINE_CHAT_INPUT, !BOOLSETTING(MULTILINE_CHAT_INPUT));
 	m_bUseTempMultiChat = false;
 	UpdateLayout();
+	checkMultiLine();
 	return 0;
 }
 
@@ -880,7 +894,7 @@ void BaseChatFrame::appendLogToChat(const string& path , const size_t linesCount
 }
 bool BaseChatFrame::isMultiChat(int& p_h, int & p_chat_columns) const
 {
-	const bool bUseMultiChat = BOOLSETTING(MULTILINE_CHAT_INPUT) || m_bUseTempMultiChat || Fonts::g_fontHeightPixl > 16 || m_MultiChatCountLines > 1;
+	const bool bUseMultiChat = BOOLSETTING(MULTILINE_CHAT_INPUT) || m_bUseTempMultiChat || /* Fonts::g_fontHeightPixl > 16 || */  m_MultiChatCountLines > 1;
 	if (bUseMultiChat && m_MultiChatCountLines)
 	{
 		p_h = Fonts::g_fontHeightPixl * m_MultiChatCountLines;
