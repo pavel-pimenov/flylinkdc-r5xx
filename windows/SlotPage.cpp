@@ -129,7 +129,7 @@ void SlotPage::write()
 					File fout(m_IPGrantPATH, File::WRITE, File::CREATE | File::TRUNCATE);
 					fout.write(l_new);
 				}
-				IpGrant::getInstance()->load();
+				IpGrant::load();
 			}
 			catch (const FileException&)
 			{
@@ -139,7 +139,7 @@ void SlotPage::write()
 	}
 	else
 	{
-		IpGrant::getInstance()->clear();
+		IpGrant::clear();
 	}
 #endif // SSA_IPGRANT_FEATURE
 }

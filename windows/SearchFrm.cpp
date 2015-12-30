@@ -1527,18 +1527,10 @@ LRESULT SearchFrame::onCollapsed(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 //===================================================================================================================================
 void SearchFrame::runTestPort()
 {
-	SettingsManager::g_TestUDPSearchLevel = boost::logic::indeterminate;
-	// !if (boost::logic::indeterminate(SettingsManager::g_TestUDPSearchLevel))
+	if (boost::logic::indeterminate(SettingsManager::g_TestUDPSearchLevel))
 	{
-		g_isUDPTestOK = false;
-		string p_external_ip;
-		std::vector<unsigned short> l_udp_port, l_tcp_port;
-		l_udp_port.push_back(SETTING(UDP_PORT));
-		bool l_is_udp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, p_external_ip, 0);
-		if (l_is_udp_port_send)
-		{
-			SettingsManager::g_UDPTestExternalIP  = p_external_ip;
-		}
+		g_isUDPTestOK = false; // TODO - убрать этот флаг
+		SearchManager::runTestUDPPort();
 	}
 }
 //===================================================================================================================================
@@ -4042,6 +4034,7 @@ void SearchFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
+		CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
 		if (ctrlResults.isRedraw())
 		{
 			ctrlResults.setFlickerFree(Colors::g_bgBrush);

@@ -25,6 +25,9 @@
 
 #ifdef SSA_IPGRANT_FEATURE
 
+FastCriticalSection IpGrant::g_cs;
+IPList IpGrant::g_ipList;
+
 void IpGrant::load()
 {
 	if (BOOLSETTING(EXTRA_SLOT_BY_IP))
@@ -53,11 +56,11 @@ void IpGrant::load()
 		}
 		l_IPGrant_log.step("parse IPGrant.ini");
 		{
-			CFlyFastLock(m_cs);
-			m_ipList.clear();
+			CFlyFastLock(g_cs);
+			g_ipList.clear();
 			if (!l_data.empty())
 			{
-				m_ipList.addData(l_data, l_IPGrant_log);
+				g_ipList.addData(l_data, l_IPGrant_log);
 			}
 		}
 		l_IPGrant_log.step("parse IPGrant.ini done");
@@ -68,8 +71,8 @@ bool IpGrant::check(uint32_t p_ip4)
 {
 	if (p_ip4 == INADDR_NONE)
 		return false;
-	CFlyFastLock(m_cs);
-	return m_ipList.checkIp(p_ip4);
+	CFlyFastLock(g_cs);
+	return g_ipList.checkIp(p_ip4);
 }
 
 #endif // SSA_IPGRANT_FEATURE

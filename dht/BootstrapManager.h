@@ -26,8 +26,15 @@
 namespace dht
 {
 
+class CFlyDHThttpChecker : public BackgroundTaskExecuter<string>
+{
+	public:
+		explicit CFlyDHThttpChecker() { }
+	private:
+		void execute(const string& p_url);
+};
 
-class BootstrapManager 
+class BootstrapManager
 {
 	public:
 		BootstrapManager(void);
@@ -36,7 +43,12 @@ class BootstrapManager
 		static bool bootstrap();
 		static bool process();
 		static void shutdown();
+		static void full_shutdown();
 		static void live_check_process();
+		static void clear_live_check()
+		{
+			g_count_dht_test_ok = 0;
+		}
 		static void inc_live_check()
 		{
 			++g_count_dht_test_ok;
@@ -46,17 +58,33 @@ class BootstrapManager
 			return g_count_dht_test_ok;
 		}
 		static void addBootstrapNode(const string& ip, uint16_t udpPort, const CID& targetCID, const UDPKey& udpKey);
+		void shutdown_thread()
+		{
+		}
 		
 	private:
 		static void flush_live_check();
+		static string calc_live_url();
 		static string create_url_for_dht_server();
 		static void dht_live_check(const char* p_operation, const string& p_param);
-
+		
 		static unsigned g_count_dht_test_ok;
-		static std::unordered_map<string, std::pair<int, uint64_t> > g_dht_bootstrap_count; // —четчик + временна€ метка
+		struct
+				CFLyDHTUrl
+		{
+			int m_count;
+			int64_t m_tick;
+			string m_full_url;
+			CFLyDHTUrl() : m_count(0), m_tick(0)
+			{
+			}
+		};
+		static std::unordered_map<string, std::pair<int, CFLyDHTUrl> > g_dht_bootstrap_count; // —четчик + полный урл
 		static std::string g_user_agent;
 		static CriticalSection g_cs;
 		static deque<BootstrapNode> g_bootstrapNodes;
+		
+		static CFlyDHThttpChecker g_http_checker;
 };
 
 }

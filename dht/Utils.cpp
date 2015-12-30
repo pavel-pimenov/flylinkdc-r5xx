@@ -65,12 +65,12 @@ bool Utils::isGoodIPPort(const string& ip, uint16_t port)
 		return false;
 		
 	// [+] SSA - http://code.google.com/p/flylinkdc/issues/detail?id=254 Блокировать входящие соединения через DHT из заблокированного IPGuard-ом диапазона адресов.
-		string l_reason;
-		if (IpGuard::getInstance()->check_ip_str(ip, l_reason))
-		{
-			LogManager::message("DHT (" + ip + "): IPGuard: " + l_reason);
-			return false;
-		}
+	string l_reason;
+	if (IpGuard::check_ip_str(ip, l_reason))
+	{
+		LogManager::message("DHT (" + ip + "): IPGuard: " + l_reason);
+		return false;
+	}
 	
 	return true;
 }
@@ -120,19 +120,19 @@ bool Utils::checkFlood(const string& ip, const AdcCommand& cmd)
 		case AdcCommand::CMD_SND:
 			requestCmd = AdcCommand::CMD_GET;
 		case AdcCommand::CMD_RES: // default value of requestCmd
+		{
+			CFlyFastLock(g_Utilscs);
+			for (auto i = g_sentPackets.cbegin(); i != g_sentPackets.cend(); ++i)
 			{
-				CFlyFastLock(g_Utilscs);
-				for (auto i = g_sentPackets.cbegin(); i != g_sentPackets.cend(); ++i)
+				if (i->cmd == requestCmd && i->ip == ip)
 				{
-					if (i->cmd == requestCmd && i->ip == ip)
-					{
-						g_sentPackets.erase(i);
-						return true;
-					}
+					g_sentPackets.erase(i);
+					return true;
 				}
 			}
-			dcdebug("Received unwanted response from %s. Packet dropped.\n", ip.c_str());
-			return false;
+		}
+		dcdebug("Received unwanted response from %s. Packet dropped.\n", ip.c_str());
+		return false;
 	}
 	
 	CFlyFastLock(g_Utilscs);
@@ -163,9 +163,9 @@ void Utils::cleanFlood()
 void Utils::trackOutgoingPacket(const string& ip, const AdcCommand& cmd) // TODO - move 2 DHT
 {
 	const uint64_t now = GET_TICK();
-
+	
 	CFlyFastLock(g_Utilscs);
-
+	
 	switch (cmd.getCommand())
 	{
 			// request packets
@@ -185,11 +185,11 @@ void Utils::trackOutgoingPacket(const string& ip, const AdcCommand& cmd) // TODO
 	{
 		const uint64_t diff = now - g_sentPackets.front().time;
 		if (diff >= TIME_FOR_RESPONSE)
-		{		  
+		{
 			if (BOOLSETTING(LOG_DHT_TRACE))
 			{
 				LogManager::dht_message("[Utils::trackOutgoingPacket] Clean up old items: cmd [" +
-					Util::toString(g_sentPackets.front().cmd) + "] ip = [" + g_sentPackets.front().ip + "] diffTime = " + Util::toString(diff));
+				                        Util::toString(g_sentPackets.front().cmd) + "] ip = [" + g_sentPackets.front().ip + "] diffTime = " + Util::toString(diff));
 			}
 			g_sentPackets.pop_front();
 		}

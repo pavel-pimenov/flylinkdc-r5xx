@@ -21,7 +21,7 @@ void CFlyLockProfiler::log(const char* p_path, int p_recursion_count, bool p_is_
 		if (l_tick_delta > l_item.second)
 			l_item.second = l_tick_delta;
 	}
-	if (l_tick_delta > 10)
+	if (l_tick_delta > 100)
 	{
 		string l_path = p_path;
 		if (ClientManager::isShutdown())
@@ -62,7 +62,9 @@ void CFlyLockProfiler::log(const char* p_path, int p_recursion_count, bool p_is_
 		}
 	}
 }
-
+CFlyLockProfiler::~CFlyLockProfiler()
+{
+}
 void CFlyLockProfiler::print_stat()
 {
 	BoostFastLock l(g_cs_stat_map);

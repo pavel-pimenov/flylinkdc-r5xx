@@ -549,7 +549,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			COUNT_UNCOUNTED,
 		};
 		
-		static boost::atomic<uint16_t> g_counts[COUNT_UNCOUNTED];
+		static uint16_t g_counts[COUNT_UNCOUNTED];
 		
 		enum States
 		{

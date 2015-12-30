@@ -27,7 +27,7 @@
 #include "Wildcards.h"
 #include "../FlyFeatures/flyServer.h"
 
-boost::atomic<uint16_t> Client::g_counts[COUNT_UNCOUNTED];
+uint16_t Client::g_counts[COUNT_UNCOUNTED];
 string Client::g_last_search_string;
 Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool p_is_auto_connect) :
 	m_cs(std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock())),
@@ -362,19 +362,12 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 void Client::connect()
 {
 	reset_socket();
-	// [!]IRainman moved to two function:
-	// void Client::on(Failed, const string& aLine)
-	// void Client::disconnect(bool p_graceLess)
 	clearAvailableBytesL();
 	setAutoReconnect(true);
 	setReconnDelay(120 + Util::rand(0, 60));
 	const FavoriteHubEntry* fhe = reloadSettings(true);
-	// [!]IRainman fix.
-	resetRegistered(); // [!]
-	resetOp(); // [+]
-	// [-] setMyIdentity(Identity(ClientManager::getInstance()->getMe(), 0)); [-]
-	// [-] setHubIdentity(Identity()); [-]
-	// [~] IRainman fix.
+	resetRegistered();
+	resetOp();
 	
 	state = STATE_CONNECTING;
 	
@@ -686,7 +679,13 @@ void Client::on(Second, uint64_t aTick) noexcept
 	else if (state == STATE_IDENTIFY && (getLastActivity() + 30000) < aTick) // (c) PPK http://www.czdc.org
 	{
 		if (m_client_sock)
+		{
 			m_client_sock->disconnect(false);
+		}
+	}
+	else if ((state == STATE_CONNECTING || state == STATE_PROTOCOL) && (getLastActivity() + 60000) < aTick)
+	{
+		reconnect();
 	}
 	if (m_searchQueue.m_interval == 0)
 	{
@@ -1057,7 +1056,7 @@ string Client::getCounts()
 {
 	char buf[128];
 	buf[0] = 0;
-	return string(buf, _snprintf(buf, _countof(buf), "%u/%u/%u", g_counts[COUNT_NORMAL].load(), g_counts[COUNT_REGISTERED].load(), g_counts[COUNT_OP].load()));
+	return string(buf, _snprintf(buf, _countof(buf), "%u/%u/%u", g_counts[COUNT_NORMAL], g_counts[COUNT_REGISTERED], g_counts[COUNT_OP]));
 }
 
 const string& Client::getCountsIndivid() const

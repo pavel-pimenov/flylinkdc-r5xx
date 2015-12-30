@@ -1805,21 +1805,17 @@ void FavoriteManager::previewload(SimpleXML& aXml)
 
 void FavoriteManager::previewsave(SimpleXML& aXml)
 {
-	//dcassert(!ClientManager::isShutdown());
-	//if (!ClientManager::isShutdown())
+	aXml.addTag("PreviewApps");
+	aXml.stepIn();
+	for (auto i = g_previewApplications.cbegin(); i != g_previewApplications.cend(); ++i)
 	{
-		aXml.addTag("PreviewApps");
-		aXml.stepIn();
-		for (auto i = g_previewApplications.cbegin(); i != g_previewApplications.cend(); ++i)
-		{
-			aXml.addTag("Application");
-			aXml.addChildAttrib("Name", (*i)->getName());
-			aXml.addChildAttrib("Application", (*i)->getApplication());
-			aXml.addChildAttrib("Arguments", (*i)->getArguments());
-			aXml.addChildAttrib("Extension", (*i)->getExtension());
-		}
-		aXml.stepOut();
+		aXml.addTag("Application");
+		aXml.addChildAttrib("Name", (*i)->getName());
+		aXml.addChildAttrib("Application", (*i)->getApplication());
+		aXml.addChildAttrib("Arguments", (*i)->getArguments());
+		aXml.addChildAttrib("Extension", (*i)->getExtension());
 	}
+	aXml.stepOut();
 }
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 void FavoriteManager::changeConnectionStatus(const string& hubUrl, ConnectionStatus::Status status)
@@ -1853,6 +1849,7 @@ void FavoriteManager::speakUserUpdate(const bool added, FavoriteMap::iterator& i
 }
 void FavoriteManager::on(SettingsManagerListener::Save, SimpleXML& xml)
 {
+	CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
 	previewsave(xml);
 }
 void FavoriteManager::on(SettingsManagerListener::Load, SimpleXML& xml)

@@ -27,25 +27,23 @@
 
 #include "iplist.h"
 
-class IpGrant : public Singleton<IpGrant>, private SettingsManagerListener
+class IpGrant
 {
 	public:
 		IpGrant()
 		{
-			SettingsManager::getInstance()->addListener(this);
 		}
 		
 		~IpGrant()
 		{
-			SettingsManager::getInstance()->removeListener(this);
 		}
 		
-		bool check(uint32_t p_ip4);
-		void load();
-		void clear()
+		static bool check(uint32_t p_ip4);
+		static void load();
+		static void clear()
 		{
-			CFlyFastLock(m_cs);
-			m_ipList.clear();
+			CFlyFastLock(g_cs);
+			g_ipList.clear();
 		}
 		
 		static string getConfigFileName()
@@ -54,14 +52,8 @@ class IpGrant : public Singleton<IpGrant>, private SettingsManagerListener
 		}
 	private:
 	
-		FastCriticalSection m_cs; // [!] IRainman opt: use spin lock here.
-		IPList m_ipList;
-		
-		// SettingsManagerListener
-		void on(SettingsManagerListener::Load, SimpleXML& /*xml*/) override
-		{
-			load();
-		}
+		static FastCriticalSection g_cs;
+		static IPList g_ipList;
 };
 #endif // SSA_IPGRANT_FEATURE
 

@@ -237,7 +237,7 @@ int MappingManager::run()
 					l_is_ok = true;
 				}
 #endif // STRONG_USE_DHT
-				this->log(l_info + l_info_port + " with the " + mapper.getMapperName() + " interface");
+				log(l_info + l_info_port + " with the " + mapper.getMapperName() + " interface");
 			}
 			return l_is_ok;
 		};
@@ -432,7 +432,7 @@ string MappingManager::getPortmapInfo(bool p_add_router_name, bool p_show_public
 		}
 	}
 #endif
-	if (CryptoManager::getInstance()->TLSOk() && SETTING(TLS_PORT) > 1024)
+	if (CryptoManager::TLSOk() && SETTING(TLS_PORT) > 1024)
 	{
 		l_description += calcTestPortInfo("TLS", SettingsManager::g_TestTLSLevel, SETTING(TLS_PORT));
 	}

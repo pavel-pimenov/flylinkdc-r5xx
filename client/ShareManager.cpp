@@ -74,12 +74,13 @@ int64_t ShareManager::g_CurrentShareSize = -1;
 
 ShareManager::ShareManager() : xmlListLen(0), bzXmlListLen(0),
 	xmlDirty(true), forceXmlRefresh(false), refreshDirs(false), update(false), m_is_initial(true), m_listN(0), m_count_sec(0),
-	m_lastXmlUpdate(0), m_lastFullUpdate(GET_TICK()), m_bloom(1 << 20),
+	m_bloom(1 << 20),
 #ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
 	m_sweep_guard(false),
 #endif
 	m_sweep_path(false)
 {
+	m_lastXmlUpdate = m_lastFullUpdate = GET_TICK();
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 	// [!] IRainman TODO: needs refactoring.
 	const string emptyXmlName = getEmptyBZXmlFile();
@@ -743,6 +744,7 @@ bool ShareManager::loadCache() noexcept
 
 void ShareManager::on(SettingsManagerListener::Save, SimpleXML& xml)
 {
+	CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
 	save(xml);
 }
 void ShareManager::on(SettingsManagerListener::Load, SimpleXML& xml)
@@ -1645,7 +1647,7 @@ void ShareManager::generateXmlList()
 	if (updateXmlListInProcess.test_and_set()) // [+] IRainman opt.
 		return;
 		
-	if (forceXmlRefresh || (xmlDirty && (m_lastXmlUpdate + 15 * 60 * 1000 < GET_TICK() || m_lastXmlUpdate < m_lastFullUpdate)))
+	if (forceXmlRefresh || (xmlDirty && (m_lastXmlUpdate + 15 * 60 * 1000 < GET_TICK() || m_lastXmlUpdate <= m_lastFullUpdate)))
 	{
 		CFlyLog l_creation_log("[Share cache creator]");
 		m_listN++;

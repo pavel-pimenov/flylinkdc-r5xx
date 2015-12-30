@@ -213,6 +213,8 @@ class ConnectionManager :
 		void getDownloadConnection(const UserPtr& aUser);
 		void force(const UserPtr& aUser);
 		static void setUploadLimit(const UserPtr& aUser, int lim);
+		static void test_tcp_port();
+		static bool g_is_test_tcp_port;
 		
 		void disconnect(const UserPtr& aUser);
 		void disconnect(const UserPtr& aUser, bool isDownload); // [!] IRainman fix.
@@ -224,7 +226,7 @@ class ConnectionManager :
 		}
 		
 		/** Find a suitable port to listen on, and start doing it */
-		void listen();
+		void start_tcp_tls_listener();
 		void disconnect();
 		
 		uint16_t getPort() const
@@ -402,8 +404,8 @@ class ConnectionManager :
 		void on(TimerManagerListener::Minute, uint64_t aTick) noexcept override;
 // DEAD_CODE
 		// ClientManagerListener
-		void on(ClientManagerListener::UserConnected, const UserPtr& aUser) noexcept override { onUserUpdated(aUser); }
-		void on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) noexcept override { onUserUpdated(aUser); }
+		void on(ClientManagerListener::UserConnected, const UserPtr& aUser) noexcept override;
+		void on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) noexcept override;
 		
 		void onUserUpdated(const UserPtr& aUser);
 		

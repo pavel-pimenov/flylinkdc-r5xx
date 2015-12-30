@@ -19,32 +19,28 @@
 #define IPGUARD_H
 
 #include "Socket.h"
-#include "Singleton.h"
-#include "SimpleXML.h"
 #include "iplist.h"
 
-class IpGuard : public Singleton<IpGuard>, private SettingsManagerListener
+class IpGuard
 {
 	public:
 		IpGuard()
 		{
-			SettingsManager::getInstance()->addListener(this);
 		}
 		
 		~IpGuard()
 		{
-			SettingsManager::getInstance()->removeListener(this);
 		}
 		
-		bool check_ip_str(const string& aIP, string& reason);
-		void check_ip_str(const string& aIP, Socket* socket = nullptr);
+		static bool check_ip_str(const string& aIP, string& reason);
+		static void check_ip_str(const string& aIP, Socket* socket = nullptr);
 		static bool is_block_ip(const string& aIP, uint32_t& p_ip4);
 		
 		
-		void load();
-		void clear()
+		static void load();
+		static void clear()
 		{
-			m_ipGuardList.clear();
+			g_ipGuardList.clear();
 		}
 		static const string getIPGuardFileName()
 		{
@@ -52,13 +48,7 @@ class IpGuard : public Singleton<IpGuard>, private SettingsManagerListener
 		}
 		
 	private:
-		IPList m_ipGuardList;
-		
-		// SettingsManagerListener
-		void on(SettingsManagerListener::Load, SimpleXML& /*xml*/) override
-		{
-			load();
-		}
+		static IPList g_ipGuardList;
 };
 
 #endif // IPGUARD_H

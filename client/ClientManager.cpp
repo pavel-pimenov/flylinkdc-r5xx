@@ -697,7 +697,7 @@ void ClientManager::putOnline(const OnlineUserPtr& ou, bool p_is_fire_online) no
 		if (!user->isOnline())
 		{
 			user->setFlag(User::ONLINE);
-			if (p_is_fire_online)
+			if (p_is_fire_online && !ClientManager::isShutdown())
 			{
 				fly_fire1(ClientManagerListener::UserConnected(), user);
 			}
@@ -707,7 +707,7 @@ void ClientManager::putOnline(const OnlineUserPtr& ou, bool p_is_fire_online) no
 
 void ClientManager::putOffline(const OnlineUserPtr& ou, bool p_is_disconnect) noexcept
 {
-	dcassert(!isShutdown());
+	//dcassert(!isShutdown());
 	if (!isShutdown()) // Вернул проверку. падаем http://code.google.com/p/flylinkdc/source/detail?r=15119
 	{
 		// [!] IRainman fix: don't put any hub to online or offline! Any hubs as user is always offline!
@@ -739,9 +739,12 @@ void ClientManager::putOffline(const OnlineUserPtr& ou, bool p_is_disconnect) no
 			{
 				ConnectionManager::getInstance()->disconnect(u);
 			}
-			fly_fire1(ClientManagerListener::UserDisconnected(), u);
+			if (!ClientManager::isShutdown())
+			{
+				fly_fire1(ClientManagerListener::UserDisconnected(), u);
+			}
 		}
-		else if (diff > 1)
+		else if (diff > 1 && !ClientManager::isShutdown())
 		{
 			fly_fire1(ClientManagerListener::UserUpdated(), ou);
 		}

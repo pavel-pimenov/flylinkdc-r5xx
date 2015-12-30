@@ -1159,6 +1159,7 @@ void PublicHubsFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
+		CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
 		if (m_ctrlHubs.isRedraw())
 		{
 			RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);

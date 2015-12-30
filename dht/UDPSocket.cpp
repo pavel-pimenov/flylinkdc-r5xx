@@ -96,7 +96,7 @@ void UDPSocket::listen()
 		socket.reset(new Socket);
 		socket->create(Socket::TYPE_UDP);
 		socket->setSocketOpt(SO_REUSEADDR, 1);
-	    socket->setInBufSize();
+		socket->setInBufSize();
 		const string& l_bind = SETTING(BIND_ADDRESS);
 		const auto l_dht_port = static_cast<uint16_t>(SETTING(DHT_PORT));
 		dcassert(l_dht_port);
@@ -106,7 +106,7 @@ void UDPSocket::listen()
 	}
 	catch (const Exception& e)
 	{
-    CFlyServerJSON::pushError(17, "DHT Error UDPSocket::listen: " + e.getError());
+		CFlyServerJSON::pushError(17, "DHT Error UDPSocket::listen: " + e.getError());
 		socket.reset();
 		throw;
 	}
@@ -119,20 +119,20 @@ void UDPSocket::checkIncoming()
 		sockaddr_in remoteAddr =  { { 0 } };
 		std::vector<uint8_t> l_buf(BUFSIZE); // TODO - убрать вектор иначе идет инициализация 16к нулями
 		int len = socket->read(&l_buf[0], BUFSIZE, remoteAddr);
-    Socket::g_stats.m_udp.totalDown -= len;
-    Socket::g_stats.m_dht.totalDown += len;
+		Socket::g_stats.m_udp.totalDown -= len;
+		Socket::g_stats.m_dht.totalDown += len;
 		dcdrun(m_receivedBytes += len);
 		dcdrun(m_receivedPackets++);
 		if (ClientManager::isShutdown())
 			return;
 		if (len > 1)
 		{
-			if(l_buf.size() > 16 &&  memcmp(l_buf.data(), "$FLY-TEST-PORT ",15) == 0)
+			if (l_buf.size() > 16 &&  memcmp(l_buf.data(), "$FLY-TEST-PORT ", 15) == 0)
 			{
 				SettingsManager::g_TestUDPDHTLevel = false;
 				if (l_buf.size() > 16 + 39 + 1)
 				{
-					const string l_magic((char*)l_buf.data() + 15,39);
+					const string l_magic((char*)l_buf.data() + 15, 39);
 					
 					if (ClientManager::getMyCID().toBase32() != l_magic)
 					{
@@ -140,10 +140,11 @@ void UDPSocket::checkIncoming()
 					}
 					else
 					{
+						LogManager::message("Test DHT port - OK!");
 						SettingsManager::g_TestUDPDHTLevel = CFlyServerJSON::setTestPortOK(SETTING(DHT_PORT), "udp");
-						if(DHT::isValidInstance() && m_port == DHT::getInstance()->getPort()) // Тест прошел по порту DHT?
+						if (DHT::isValidInstance() && m_port == DHT::getInstance()->getPort()) // Тест прошел по порту DHT?
 						{
-								BootstrapManager::inc_live_check(); 
+							BootstrapManager::inc_live_check();
 						}
 					}
 				}
@@ -161,7 +162,7 @@ void UDPSocket::checkIncoming()
 				{
 					CFlyServerJSON::pushError(17, "DHT Error decryptPacket" + string(inet_ntoa(remoteAddr.sin_addr)));
 					return;
-			}
+				}
 			}
 			//else
 			//  return; // non-encrypted packets are forbidden
@@ -171,13 +172,13 @@ void UDPSocket::checkIncoming()
 			if (l_buf[0] == ADC_PACKED_PACKET_HEADER) // is this compressed packet?
 			{
 				const auto l_res_uzlib = decompressPacket(l_destBuf, l_buf);
-				if (l_res_uzlib != Z_OK) 
+				if (l_res_uzlib != Z_OK)
 				{
-					CFlyServerJSON::pushError(17, "DHT Error decompress, Error = " + Util::toString(l_res_uzlib) + 
-						" len = " + Util::toString(len) + 
-						" IP = " + string(inet_ntoa(remoteAddr.sin_addr)));
+					CFlyServerJSON::pushError(17, "DHT Error decompress, Error = " + Util::toString(l_res_uzlib) +
+					                          " len = " + Util::toString(len) +
+					                          " IP = " + string(inet_ntoa(remoteAddr.sin_addr)));
 					return;
-			}
+				}
 			}
 			else
 			{
@@ -187,7 +188,7 @@ void UDPSocket::checkIncoming()
 			// process decompressed packet
 			if (l_destBuf[0] == ADC_PACKET_HEADER && l_destBuf[l_destBuf.size() - 1] == ADC_PACKET_FOOTER && l_destBuf.size() > 2) // is it valid ADC command?
 			{
-				const string s((char*)l_destBuf.data(), l_destBuf.size()-1);
+				const string s((char*)l_destBuf.data(), l_destBuf.size() - 1);
 #ifdef _DEBUG
 				const string s_debug((char*)l_destBuf.data(), l_destBuf.size());
 				dcassert(s == s_debug.substr(0, s_debug.length() - 1));
@@ -198,8 +199,8 @@ void UDPSocket::checkIncoming()
 				DHT::getInstance()->dispatch(s, ip, l_port, isUdpKeyValid);
 #ifdef FLYLINKDC_BETA
 				{
-				LogManager::dht_message("[UDPSocket::checkIncoming()] cmd [" + s +
-					"] ip:port = [" + ip + ":" + Util::toString(l_port) + "] isUdpKeyValid = " + Util::toString(isUdpKeyValid));
+					LogManager::dht_message("[UDPSocket::checkIncoming()] cmd [" + s +
+					                        "] ip:port = [" + ip + ":" + Util::toString(l_port) + "] isUdpKeyValid = " + Util::toString(isUdpKeyValid));
 				}
 #endif
 			}
@@ -240,24 +241,24 @@ void UDPSocket::checkOutgoing(uint64_t& p_timer)
 		try
 		{
 #ifdef _DEBUG
-                        // странное падение при сжатии вот такого пакета
-                        // https://drdump.com/DumpGroup.aspx?DumpGroupID=228387&Login=guest
+			// странное падение при сжатии вот такого пакета
+			// https://drdump.com/DumpGroup.aspx?DumpGroupID=228387&Login=guest
 			//packet->data = "URES DS5RRQOP5FKFTIGF3BHYEQQQSM6FDABAD5TCO5Y TO3417135716 NX<Nodes><Node\\sCID=\"DVZ7TJXSEYWFQULWOZ4G55IZ4HSOHTLDRKQR34I\"\\sI4=\"188.32.126.183\"\\sU4=\"6250\"/><Node\\sCID=\"DVS37KT4QYHB7W6EJ5M4KQXSEO66KY6QGQMPSMQ\"\\sI4=\"37.205.54.151\"\\sU4=\"6250\"/><Node\\sCID=\"DVWMKJVLO5FUIGEIW67WLJZEB43TKERJZ6YMYYQ\"\\sI4=\"79.111.36.195\"\\sU4=\"6250\"/><Node\\sCID=\"DUTVSK227K7HRQ5J2WNI7KFDVHYOB4OOQA2ALPQ\"\\sI4=\"89.176.50.203\"\\sU4=\"6250\"/></Nodes> UKSI7RCGGEDUTT7QC6STDOMZ47AA5OPAOMFSOG5GA";
 #endif
-
+			
 			unsigned long length = compressBound(packet->data.length()) + 20; //-V614
 #ifdef FLYLINKDC_BETA
 			if (BOOLSETTING(LOG_DHT_TRACE))
 			{
-				LogManager::dht_message("[UDPSocket::checkOutgoing()] before compress " 
-					" ip:port = [" + packet->ip + ":" + Util::toString(packet->port) + "] " 
-					" udpKey = [ " + packet->udpKey.m_key.toBase32() +  " ip = " + packet->udpKey.m_ip + "]"
-					" TargetCID = [" + packet->targetCID.toBase32() + " ] "
-					" data = " + packet->data );
+				LogManager::dht_message("[UDPSocket::checkOutgoing()] before compress "
+				                        " ip:port = [" + packet->ip + ":" + Util::toString(packet->port) + "] "
+				                        " udpKey = [ " + packet->udpKey.m_key.toBase32() +  " ip = " + packet->udpKey.m_ip + "]"
+				                        " TargetCID = [" + packet->targetCID.toBase32() + " ] "
+				                        " data = " + packet->data);
 			}
 #endif
-			std::unique_ptr<uint8_t[]> data(new uint8_t[length]); 
-
+			std::unique_ptr<uint8_t[]> data(new uint8_t[length]);
+			
 			// compress packet
 			compressPacket(packet->data, data.get(), length);
 			
@@ -266,13 +267,13 @@ void UDPSocket::checkOutgoing(uint64_t& p_timer)
 			dcdrun(m_sentBytes += packet->data.length());
 			dcdrun(m_sentPackets++);
 			const int l_len = socket->writeTo(packet->ip, packet->port, data.get(), length);
-      Socket::g_stats.m_udp.totalUp -= l_len; // TODO - прокинуть тип DHT
-      Socket::g_stats.m_dht.totalUp += l_len;
+			Socket::g_stats.m_udp.totalUp -= l_len; // TODO - прокинуть тип DHT
+			Socket::g_stats.m_dht.totalUp += l_len;
 		}
 		catch (const SocketException& e)
 		{
-        dcdebug("DHT::run Write error: %s\n", e.getError().c_str());
-        CFlyServerJSON::pushError(17, "DHT::run Write error: " + e.getError());
+			dcdebug("DHT::run Write error: %s\n", e.getError().c_str());
+			CFlyServerJSON::pushError(17, "DHT::run Write error: " + e.getError());
 		}
 	}
 }
@@ -301,21 +302,21 @@ int UDPSocket::run()
 	{
 		try
 		{
-			if(ClientManager::isShutdown())
+			if (ClientManager::isShutdown())
 				break;
 			// check outgoing queue
 			checkOutgoing(l_timer);
 			
-			if(ClientManager::isShutdown())
+			if (ClientManager::isShutdown())
 				break;
 			// check for incoming data
 			checkIncoming();
 		}
 		catch (const SocketException& p_e)
 		{
-      // Много ошибок
-      // dcassert(0);
-      // CFlyServerJSON::pushError(17, "DHT::run Error: " + p_e.getError());
+			// Много ошибок
+			// dcassert(0);
+			// CFlyServerJSON::pushError(17, "DHT::run Error: " + p_e.getError());
 			dcdebug("DHT::run Error: %s\n", p_e.what());
 			
 			bool failed = false;
@@ -354,7 +355,7 @@ int UDPSocket::run()
 				}
 			}
 		}
-	}	
+	}
 	return 0;
 }
 
@@ -372,9 +373,9 @@ void UDPSocket::send(AdcCommand& cmd, const string& ip, uint16_t p_port, const C
 	COMMAND_DEBUG(command, DebugTask::HUB_OUT, ip + ':' + Util::toString(p_port) + " [DHT]");
 	Packet* p = new Packet(ip, p_port, command, targetCID, udpKey);
 	{
-	CFlyFastLock(cs);
-	m_sendQueue.push_back(p);
-    }
+		CFlyFastLock(cs);
+		m_sendQueue.push_back(p);
+	}
 #ifdef FLYLINKDC_BETA
 	if (BOOLSETTING(LOG_DHT_TRACE))
 	{
@@ -384,7 +385,7 @@ void UDPSocket::send(AdcCommand& cmd, const string& ip, uint16_t p_port, const C
 			l_udp_key_log = " udpKey = [ " + udpKey.m_key.toBase32() + +" ip = " + udpKey.m_ip + "]";
 		}
 		LogManager::dht_message("[UDPSocket::send] cmd [" + cmd.toString(ClientManager::getMyCID(), true) +
-			"] ip:port = [" + ip + ":" + Util::toString(p_port) + "] TargetCID=" + targetCID.toBase32() + l_udp_key_log);
+		                        "] ip:port = [" + ip + ":" + Util::toString(p_port) + "] TargetCID=" + targetCID.toBase32() + l_udp_key_log);
 	}
 #endif
 }
@@ -416,16 +417,16 @@ void UDPSocket::encryptPacket(const CID& targetCID, const UDPKey& udpKey, uint8_
 	{
 		th.update(udpKey.m_key.data(), sizeof(udpKey.m_key));
 		th.update(targetCID.data(), sizeof(targetCID));
-
+		
 		RC4_KEY sentKey;
 		RC4_set_key(&sentKey, TigerTree::BYTES, th.finalize());
 		
 #ifdef FLYLINKDC_BETA
 		LogManager::dht_message("[UDPSocket::encryptPacket] udpKey.m_key = " + udpKey.m_key.toBase32() +
-			                    " targetCID = " + targetCID.toBase32() + 
-								" th.finalize() = " + CID(th.getResult()).toBase32() );
+		                        " targetCID = " + targetCID.toBase32() +
+		                        " th.finalize() = " + CID(th.getResult()).toBase32());
 #endif
-
+		                        
 		// encrypt data
 		memmove(destBuf + 2, destBuf, destSize);
 		
@@ -450,20 +451,20 @@ int  UDPSocket::decompressPacket(std::vector<uint8_t>& destBuf, const std::vecto
 	{
 		l_un_compress_result = uncompress(destBuf.data(), &l_decompress_size, buf.data() + 1, buf.size() - 1);
 		if (l_un_compress_result == Z_BUF_ERROR)
-			{
-				l_decompress_size *= 2;
-				destBuf.resize(l_decompress_size);
-				continue;
-			}
-			if (l_un_compress_result == Z_OK)
-			{
-				destBuf.resize(l_decompress_size);
-			}
-			break;
+		{
+			l_decompress_size *= 2;
+			destBuf.resize(l_decompress_size);
+			continue;
+		}
+		if (l_un_compress_result == Z_OK)
+		{
+			destBuf.resize(l_decompress_size);
+		}
+		break;
 	}
 	return l_un_compress_result;
-	}
-	
+}
+
 bool UDPSocket::decryptPacket(uint8_t* buf, int& len, const string& remoteIp, bool& isUdpKeyValid)
 {
 #ifdef HEADER_RC4_H
@@ -489,14 +490,14 @@ bool UDPSocket::decryptPacket(uint8_t* buf, int& len, const string& remoteIp, bo
 			th.update(Utils::getUdpKey(remoteIp).data(), sizeof(CID));
 		}
 		th.update(ClientManager::getMyCID().data(), sizeof(CID)); // [!] IRainman fix.
-
+		
 		RC4_KEY recvKey;
 		RC4_set_key(&recvKey, TigerTree::BYTES, th.finalize());
 #ifdef FLYLINKDC_BETA
 		LogManager::dht_message("[UDPSocket::decryptPacket] ClientManager::getMyCID() = " + ClientManager::getMyCID().toBase32() +
-			" remoteIp = " + remoteIp +
-			" Utils::getUdpKey(remoteIp) = " + Utils::getUdpKey(remoteIp).toBase32() +
-			" th.finalize() = " + CID(th.getResult()).toBase32());
+		                        " remoteIp = " + remoteIp +
+		                        " Utils::getUdpKey(remoteIp) = " + Utils::getUdpKey(remoteIp).toBase32() +
+		                        " th.finalize() = " + CID(th.getResult()).toBase32());
 #endif
 		// decrypt data
 		RC4(&recvKey, len, buf + 1, &destBuf[0]);

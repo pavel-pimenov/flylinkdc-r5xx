@@ -63,8 +63,12 @@ void TaskManager::start()
 void TaskManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 {
 	dcdrun(Thread::ConditionLocker b(m_debugIsTimerExecute);)
-    BootstrapManager::live_check_process();
-
+	if (ClientManager::isStartup())
+		return;
+	if (BootstrapManager::get_live_check() == 0)
+		return;
+	BootstrapManager::live_check_process();
+	
 //	CFlyLog l_TaskManagerLog("TimerManagerListener::Second aTick = " + Util::toString(aTick) + " GetCurrentThreadId() = " + Util::toString(GetCurrentThreadId()));
 	auto l_dht = DHT::getInstance();
 	if (l_dht->isConnected() && l_dht->getNodesCount() >= DHT_K)
@@ -80,10 +84,10 @@ void TaskManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	else
 	{
 		bool l_need_dht_download = true;
-		if(m_lastDownloadDHTError) // Были ошибки загрузки - ждем полчасика и не ломимся на DHT сервер?
+		if (m_lastDownloadDHTError) // Были ошибки загрузки - ждем полчасика и не ломимся на DHT сервер?
 		{
-			if(aTick - m_lastDownloadDHTError > 60 * 30 * 1000) // TODO! - конфигурируем число ? 
-				                                     // TODO-2 отмечаем сервер как глючный и не выбираем рандомно его некоторое время
+			if (aTick - m_lastDownloadDHTError > 60 * 30 * 1000) // TODO! - конфигурируем число ?
+				// TODO-2 отмечаем сервер как глючный и не выбираем рандомно его некоторое время
 			{
 				l_need_dht_download = true;
 				m_lastDownloadDHTError = 0;
@@ -91,40 +95,40 @@ void TaskManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 			else
 				l_need_dht_download = false;
 		}
-		if(l_need_dht_download)
+		if (l_need_dht_download)
 		{
-		const bool l_15000 = aTick - lastBootstrap > 15000;
-		const bool l_nodes_cnt = (aTick - lastBootstrap) >= 2000 && l_dht->getNodesCount() == 0; // < 2 * DHT_K; 
-		// TODO В оригинальном StrongDC++ тут на 0 проверяется
-		// if (aTick - lastBootstrap > 15000 || (DHT::getInstance()->getNodesCount() == 0 && aTick - lastBootstrap >= 2000))
-		// 2 * DHT_K Слава мержил из ветки wx - узнать где он это нашел.
-		if (l_15000 || l_nodes_cnt)
-		 {
-			// bootstrap if we doesn't know any remote node
-			const bool l_result = BootstrapManager::process(); 
-			if(l_result == false)
+			const bool l_15000 = aTick - lastBootstrap > 15000;
+			const bool l_nodes_cnt = (aTick - lastBootstrap) >= 2000 && l_dht->getNodesCount() == 0; // < 2 * DHT_K;
+			// TODO В оригинальном StrongDC++ тут на 0 проверяется
+			// if (aTick - lastBootstrap > 15000 || (DHT::getInstance()->getNodesCount() == 0 && aTick - lastBootstrap >= 2000))
+			// 2 * DHT_K Слава мержил из ветки wx - узнать где он это нашел.
+			if (l_15000 || l_nodes_cnt)
 			{
-				m_lastDownloadDHTError = aTick;
+				// bootstrap if we doesn't know any remote node
+				const bool l_result = BootstrapManager::process();
+				if (l_result == false)
+				{
+					m_lastDownloadDHTError = aTick;
+				}
+				else
+				{
+					m_lastDownloadDHTError = 0;
+				}
+				lastBootstrap = aTick;
 			}
-			else
-			{
-				m_lastDownloadDHTError = 0;
-			}
-			lastBootstrap = aTick;
-		 }
 		}
-	}	
+	}
 	if (aTick >= nextSearchTime)
 	{
 		SearchManager::getInstance()->processSearches();
 		nextSearchTime = aTick + SEARCH_PROCESSTIME;
-	}	
+	}
 	if (aTick >= nextSelfLookup)
 	{
 		// find myself in the network
 		SearchManager::getInstance()->findNode(ClientManager::getMyCID()); // [!] IRainman fix.
 		nextSelfLookup = aTick + SELF_LOOKUP_TIMER;
-	}	
+	}
 	if (aTick >= nextFirewallCheck)
 	{
 		l_dht->setRequestFWCheck();

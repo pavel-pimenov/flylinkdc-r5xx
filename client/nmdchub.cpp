@@ -291,6 +291,11 @@ void NmdcHub::clearUsers()
 	if (ClientManager::isShutdown())
 	{
 		CFlyWriteLock(*m_cs);
+#ifdef FLYLINKDC_USE_EXT_JSON
+#ifdef _DEBUG
+		m_ext_json_deferred.clear();
+#endif
+#endif
 		for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 		{
 			i->second->dec();
@@ -751,7 +756,7 @@ void NmdcHub::revConnectToMeParse(const string& param)
 	}
 	else if (BOOLSETTING(ALLOW_NAT_TRAVERSAL) && u->getUser()->isSet(User::NAT0))
 	{
-		bool secure = CryptoManager::getInstance()->TLSOk() && u->getUser()->isSet(User::TLS);
+		bool secure = CryptoManager::TLSOk() && u->getUser()->isSet(User::TLS);
 		// NMDC v2.205 supports "$ConnectToMe sender_nick remote_nick ip:port", but many NMDC hubsofts block it
 		// sender_nick at the end should work at least in most used hubsofts
 		if (m_client_sock->getLocalPort() == 0)
@@ -826,7 +831,7 @@ void NmdcHub::connectToMeParse(const string& param)
 		if (port[port.size() - 1] == 'S')
 		{
 			port.erase(port.size() - 1);
-			if (CryptoManager::getInstance()->TLSOk())
+			if (CryptoManager::TLSOk())
 			{
 				secure = true;
 			}
@@ -1152,7 +1157,7 @@ void NmdcHub::lockParse(const string& aLine)
 			feat.push_back("HubURL");
 			feat.push_back("NickRule");
 			
-			if (CryptoManager::getInstance()->TLSOk())
+			if (CryptoManager::TLSOk())
 			{
 				feat.push_back("TLS");
 			}
@@ -2049,7 +2054,7 @@ void NmdcHub::connectToMe(const OnlineUser& aUser
 	                                            );
 	ConnectionManager::g_ConnToMeCount++;
 	
-	const bool secure = CryptoManager::getInstance()->TLSOk() && aUser.getUser()->isSet(User::TLS);
+	const bool secure = CryptoManager::TLSOk() && aUser.getUser()->isSet(User::TLS);
 	const uint16_t port = secure ? ConnectionManager::getInstance()->getSecurePort() : ConnectionManager::getInstance()->getPort();
 	
 	if (port == 0)
@@ -2140,7 +2145,7 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 		status |= NmdcSupports::NAT0;
 	}
 	
-	if (CryptoManager::getInstance()->TLSOk())
+	if (CryptoManager::TLSOk())
 	{
 		status |= NmdcSupports::TLS;
 	}
@@ -2607,7 +2612,8 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 
 void NmdcHub::myInfoParse(const string& param)
 {
-	dcassert(!ClientManager::isShutdown());
+	if (ClientManager::isShutdown())
+		return;
 	string::size_type i = 5;
 	string::size_type j = param.find(' ', i);
 	if (j == string::npos || j == i)
@@ -2809,7 +2815,6 @@ void NmdcHub::myInfoParse(const string& param)
 		}
 #endif // _DEBUG        
 #endif // FLYLINKDC_USE_EXT_JSON
-		dcassert(!ClientManager::isShutdown());
 		if (!ClientManager::isShutdown())
 		{
 			fly_fire1(ClientListener::UserUpdated(), ou); // !SMT!-fix

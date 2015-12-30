@@ -246,7 +246,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		
 		Semaphore m_taskSem;
 		deque<pair<Tasks, std::unique_ptr<TaskData>> > m_tasks;
-		volatile ThreadID m_threadId; // [+] IRainman fix.
+		volatile DWORD m_threadId; // [+] IRainman fix.
 		ByteVector m_inbuf;
 		size_t m_myInfoCount; // Счетчик MyInfo
 		bool   m_is_all_my_info_loaded;  // Флаг передачи команды отличной от MyInfo (стартовая загрузка списка закончилась)

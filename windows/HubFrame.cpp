@@ -2983,6 +2983,7 @@ LRESULT HubFrame::OnSpeakerFirstUserJoin(UINT uMsg, WPARAM wParam, LPARAM lParam
 	unique_ptr<std::vector<OnlineUserPtr> > l_user_array(reinterpret_cast<std::vector<OnlineUserPtr> * >(wParam));
 	for (auto i = l_user_array->begin(); i != l_user_array->end(); ++i)
 	{
+		CFlyLock(m_userMapCS);
 		const auto l_user_info = m_userMap.findUser(*i);
 		if (l_user_info)
 		{
@@ -3028,6 +3029,7 @@ void HubFrame::firstLoadAllUsers()
 
 void HubFrame::usermap2ListrView()
 {
+	CFlyLock(m_userMapCS);
 	for (auto i = m_userMap.cbegin(); i != m_userMap.cend(); ++i)
 	{
 		const UserInfo* ui = i->second;
@@ -4301,6 +4303,7 @@ void HubFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 	dcassert(!ClientManager::isShutdown());
 	if (m_ctrlUsers && !ClientManager::isShutdown())
 	{
+		CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
 		m_ctrlUsers->SetImageList(g_userImage.getIconList(), LVSIL_SMALL);
 		//!!!!m_ctrlUsers->SetImageList(g_userStateImage.getIconList(), LVSIL_STATE);
 		if (m_ctrlUsers->isRedraw())
@@ -4633,20 +4636,31 @@ void HubFrame::addPasswordCommand()
 		m_LastMessage = l_pass;
 	}
 }
+UserInfo* HubFrame::findUser(const OnlineUserPtr& p_user)
+{
+	dcassert(!m_is_process_disconnected);
+	//if(m_is_fynally_clear_user_list)
+	//{
+	//  LogManager::message("findUser after m_is_fynally_clear_user_list = " + p_user->getUser()->getLastNick());
+	//}
+	CFlyLock(m_userMapCS);
+	return m_userMap.findUser(p_user);
+}
 
 UserInfo* HubFrame::findUser(const tstring& p_nick)   // !SMT!-S
 {
 	dcassert(!m_is_process_disconnected);
 	dcassert(!p_nick.empty());
 	if (p_nick.empty())
+	{
+		dcassert(0);
 		return nullptr;
+	}
 		
 	const OnlineUserPtr ou = m_client->findUser(Text::fromT(p_nick));
 	if (ou)
 	{
-		//CFlyReadLock(*m_userMapCS);
-		CFlyLock(m_userMapCS);
-		return m_userMap.findUser(ou);
+		return findUser(ou);
 	}
 	else
 	{

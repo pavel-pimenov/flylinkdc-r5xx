@@ -44,7 +44,7 @@ ConnectionManager::~ConnectionManager(void)
  */
 void ConnectionManager::connect(const Node::Ptr& node, const string& token)
 {
-	connect(node, token, CryptoManager::getInstance()->TLSOk() && node->getUser()->isSet(User::ADCS));
+	connect(node, token, CryptoManager::TLSOk() && node->getUser()->isSet(User::ADCS));
 }
 
 void ConnectionManager::connect(const Node::Ptr& node, const string& token, bool secure)
@@ -90,7 +90,7 @@ void ConnectionManager::connectToMe(const Node::Ptr& p_node, const AdcCommand& p
 	{
 		// Nothing special
 	}
-	else if (protocol == AdcSupports::SECURE_CLIENT_PROTOCOL_TEST && CryptoManager::getInstance()->TLSOk())
+	else if (protocol == AdcSupports::SECURE_CLIENT_PROTOCOL_TEST && CryptoManager::TLSOk())
 	{
 		secure = true;
 	}
@@ -133,7 +133,7 @@ void ConnectionManager::revConnectToMe(const Node::Ptr& node, const AdcCommand& 
 	{
 		secure = false;
 	}
-	else if (protocol == AdcSupports::SECURE_CLIENT_PROTOCOL_TEST && CryptoManager::getInstance()->TLSOk())
+	else if (protocol == AdcSupports::SECURE_CLIENT_PROTOCOL_TEST && CryptoManager::TLSOk())
 	{
 		secure = true;
 	}

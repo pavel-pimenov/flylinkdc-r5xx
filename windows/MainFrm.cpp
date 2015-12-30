@@ -515,13 +515,6 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 #endif
 		ShowWindow(SW_RESTORE);
 	}
-#ifdef IRAINMAN_IP_AUTOUPDATE
-	if (BOOLSETTING(IPUPDATE))
-	{
-		m_threadedUpdateIP.updateIP(BOOLSETTING(IPUPDATE));
-	}
-#endif
-	
 	if (BOOLSETTING(WEBSERVER))
 	{
 		try
@@ -743,10 +736,10 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	
 	ConnectivityManager::getInstance()->setup_connections(true);
 	
-	if (!WinUtil::isShift())
-	{
-		PostMessage(WM_SPEAKER, AUTO_CONNECT);
-	}
+	// if (!WinUtil::isShift())
+	// {
+	//PostMessage(WM_SPEAKER_AUTO_CONNECT); Унес на момент когда все порты открыты
+	// }
 	
 	
 	PostMessage(WM_SPEAKER, PARSE_COMMAND_LINE);
@@ -819,6 +812,11 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
 	create_timer(1000, 3);
 	m_transferView.UpdateLayout();
+	
+	if (BOOLSETTING(IPUPDATE))
+	{
+		m_threadedUpdateIP.updateIP(BOOLSETTING(IPUPDATE));
+	}
 	return 0;
 }
 void MainFrame::openDefaultWindows()
@@ -865,15 +863,21 @@ int MainFrame::tuneTransferSplit()
 	return m_nProportionalPos;
 }
 
-LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& p_bHandled)
 {
-	if (m_closing || ClientManager::isStartup())
+	if (m_closing)
+	{
 		return 0;
+	}
 	const uint64_t aTick = GET_TICK();
 	if (--m_second_count == 0)
 	{
 		m_second_count = 60;
 		onMinute(aTick);
+	}
+	if (ClientManager::isStartup())
+	{
+		return 0;
 	}
 // [+]IRainman Speedmeter
 	m_diff = (/*(lastUpdate == 0) ? aTick - 1000 :*/ aTick - g_lastUpdate); // [!] IRainman fix.
@@ -1620,9 +1624,26 @@ void MainFrame::getTaskbarState(int p_code /* = 0*/)    // MainFrm: The event ha
 	}
 #endif
 }
+
+LRESULT MainFrame::onSpeakerAutoConnect(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
+{
+#ifdef IRAINMAN_USE_NON_RECURSIVE_BEHAVIOR
+	FavoriteHubEntryList tmp;
+	{
+		FavoriteManager::LockInstanceHubs lockedInstanceHubs;
+		tmp = lockedInstanceHubs.getFavoriteHubs();
+	}
+	autoConnect(tmp);
+#else
+	FavoriteManager::LockInstanceHubs lockedInstanceHubs;
+	autoConnect(lockedInstanceHubs.getFavoriteHubs());
+#endif
+	return 0;
+}
+
 LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 {
-	if (wParam != REMOVE_POPUP && wParam != PARSE_COMMAND_LINE && wParam != AUTO_CONNECT && wParam != STATUS_MESSAGE)
+	if (wParam != REMOVE_POPUP && wParam != PARSE_COMMAND_LINE && wParam != STATUS_MESSAGE)
 	{
 #ifdef IRAINMAN_INCLUDE_SMILE
 		dcassert(!CGDIImage::isShutdown());
@@ -1824,21 +1845,6 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 			TextFrame::openWindow(*file);
 			File::deleteFileT(*file);
 		}
-	}
-	else if (wParam == AUTO_CONNECT)
-	{
-		// [!] IRainman fix, TODO: г-код в HubFrame :(
-#ifdef IRAINMAN_USE_NON_RECURSIVE_BEHAVIOR
-		FavoriteHubEntryList tmp;
-		{
-			FavoriteManager::LockInstanceHubs lockedInstanceHubs;
-			tmp = lockedInstanceHubs.getFavoriteHubs();
-		}
-		autoConnect(tmp);
-#else
-		FavoriteManager::LockInstanceHubs lockedInstanceHubs;
-		autoConnect(lockedInstanceHubs.getFavoriteHubs());
-#endif
 	}
 	else if (wParam == PARSE_COMMAND_LINE)
 	{
@@ -2152,9 +2158,8 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 			m_transferView.setButtonState();
 			if (missedAutoConnect && !SETTING(NICK).empty())
 			{
-				PostMessage(WM_SPEAKER, AUTO_CONNECT);
+				PostMessage(WM_SPEAKER_AUTO_CONNECT, 0);
 			}
-			
 			const unsigned short l_newTCP = static_cast<unsigned short>(SETTING(TCP_PORT));
 			const unsigned short l_newUDP = static_cast<unsigned short>(SETTING(UDP_PORT));
 			const unsigned short l_newTLS = static_cast<unsigned short>(SETTING(TLS_PORT));
@@ -2274,12 +2279,15 @@ void MainFrame::getIPupdate()
 	if (g_is_first == false)
 	{
 		g_is_first = true;
-		l_udp_port.push_back(SETTING(UDP_PORT));
-		l_udp_port.push_back(SETTING(DHT_PORT));
-		l_tcp_port.push_back(SETTING(TCP_PORT));
-		l_tcp_port.push_back(SETTING(TLS_PORT));
+		if (!BOOLSETTING(AUTO_DETECT_CONNECTION))
+		{
+			l_udp_port.push_back(SETTING(UDP_PORT));
+			l_tcp_port.push_back(SETTING(TCP_PORT));
+			l_tcp_port.push_back(SETTING(TLS_PORT));
+			l_udp_port.push_back(SETTING(DHT_PORT));
+		}
 	}
-	bool l_is_udp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, SETTING(IPUPDATE_INTERVAL));
+	bool l_is_udp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, SETTING(IPUPDATE_INTERVAL), "Get external IP");
 	if (l_is_udp_port_send && !l_external_ip.empty())
 	{
 		SET_SETTING(EXTERNAL_IP, l_external_ip);
@@ -2398,6 +2406,16 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 	CFlyLockWindowUpdate l(WinUtil::g_mdiClient); // [+]PPA
 	HubFrame* frm = nullptr;
 	{
+		int l_count_sec = 0;
+		while (ConnectionManager::g_is_test_tcp_port == false ||
+		        ConnectionManager::g_is_test_tcp_port == true && CFlyServerJSON::isTestPortOK(SETTING(TCP_PORT), "tcp") == false)
+		{
+			if (++l_count_sec > 50)
+			{
+				break;
+			}
+			sleep(100);
+		}
 		extern bool g_isStartupProcess;
 		CFlyBusyBool l_busy_1(g_isStartupProcess);
 		for (auto i = fl.cbegin(); i != fl.cend(); ++i)
@@ -2449,7 +2467,10 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 		HubFrame::openWindow(false, FavoriteManager::g_DefaultHubUrl);
 		LogManager::message("Default hub:" + FavoriteManager::g_DefaultHubUrl);
 	}
-	PopupManager::newInstance();
+	if (!PopupManager::isValidInstance())
+	{
+		PopupManager::newInstance();
+	}
 	//[!]PPA TODO  добавит галку для автостарта портала
 //	PortalBrowserFrame::openWindow(IDC_PORTAL_BROWSER);
 }
@@ -2707,47 +2728,41 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			
 			if ((m_oldshutdown || SETTING(PROTECT_CLOSE) || (checkState == BST_UNCHECKED) || (bForceNoWarning || ::MessageBox(m_hWnd, CTSTRING(REALLY_EXIT), T_APPNAME_WITH_VERSION, CTSTRING(ALWAYS_ASK), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES)) && !m_stopexit) // [~] InfinitySky.
 			{
-#ifndef _DEBUG
-				extern crash_rpt::CrashRpt g_crashRpt;
-				g_crashRpt.SetCustomInfo(_T("StopGUI"));
-#endif
-				LogManager::g_mainWnd = nullptr;
-				m_closing = true;
-				safe_destroy_timer();
-				ClientManager::stopStartup();
-				NmdcHub::log_all_unknown_command();
-				// TODO: possible small memory leak on shutdown, details here https://code.google.com/p/flylinkdc/source/detail?r=15141
-#ifdef FLYLINKDC_USE_GATHER_STATISTICS
-				CFlyTickDelta l_delta(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_SHUTDOWN_GUI]);
-				m_threadedStatisticSender.tryStartThread(true); // Синхронно сохраним в базу слепок перед завершением.
-#endif
-				shutdownFlyFeatures(); // Разрушаем и запускаем автоапдейт раньше
-				preparingCoreToShutdown(); // [!] IRainman fix.
-				
-				m_transferView.prepareClose();
-				
-				WebServerManager::getInstance()->removeListener(this);
-				UserManager::getInstance()->removeListener(this); // [+] IRainman
-				QueueManager::getInstance()->removeListener(this);
-				
-				// [-] ConnectionManager::getInstance()->disconnect(); [-] IRainman fix: called in global shutdown(): ConnectionManager::getInstance()->shutdown().
-				
-				CReBarCtrl l_rebar = m_hWndToolBar;
-				ToolbarManager::getInstance()->getFrom(l_rebar, "MainToolBar"); // Для сохранения позиций тулбара (SCALOlаz)
-				
-				updateTray(false);
-				if (m_nProportionalPos > 300) // http://code.google.com/p/flylinkdc/issues/detail?id=1398
 				{
-					SET_SETTING(TRANSFER_SPLIT_SIZE, m_nProportionalPos);
-					Util::setRegistryValueInt(_T("TransferSplitSize"), m_nProportionalPos);
-				}
-				storeWindowsPos();
-				ShowWindow(SW_HIDE);
-				//WinUtil::uninit();
-#ifndef _DEBUG
-				extern crash_rpt::CrashRpt g_crashRpt;
-				g_crashRpt.SetCustomInfo(_T(""));
+					CFlyCrashReportMarker l_crash(_T("StopGUI"));
+					LogManager::g_mainWnd = nullptr;
+					m_closing = true;
+					safe_destroy_timer();
+					ClientManager::stopStartup();
+					NmdcHub::log_all_unknown_command();
+					// TODO: possible small memory leak on shutdown, details here https://code.google.com/p/flylinkdc/source/detail?r=15141
+#ifdef FLYLINKDC_USE_GATHER_STATISTICS
+					CFlyTickDelta l_delta(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_SHUTDOWN_GUI]);
+					m_threadedStatisticSender.tryStartThread(true); // Синхронно сохраним в базу слепок перед завершением.
 #endif
+					shutdownFlyFeatures(); // Разрушаем и запускаем автоапдейт раньше
+					preparingCoreToShutdown(); // [!] IRainman fix.
+					
+					m_transferView.prepareClose();
+					
+					WebServerManager::getInstance()->removeListener(this);
+					UserManager::getInstance()->removeListener(this); // [+] IRainman
+					QueueManager::getInstance()->removeListener(this);
+					
+					ConnectionManager::getInstance()->disconnect();
+					
+					CReBarCtrl l_rebar = m_hWndToolBar;
+					ToolbarManager::getInstance()->getFrom(l_rebar, "MainToolBar"); // Для сохранения позиций тулбара (SCALOlаz)
+					
+					updateTray(false);
+					if (m_nProportionalPos > 300) // http://code.google.com/p/flylinkdc/issues/detail?id=1398
+					{
+						SET_SETTING(TRANSFER_SPLIT_SIZE, m_nProportionalPos);
+						Util::setRegistryValueInt(_T("TransferSplitSize"), m_nProportionalPos);
+					}
+					storeWindowsPos();
+					ShowWindow(SW_HIDE);
+				}
 				m_stopperThread = reinterpret_cast<HANDLE>(_beginthreadex(NULL, 0, &stopper, this, 0, nullptr));
 				
 			}

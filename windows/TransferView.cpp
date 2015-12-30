@@ -2094,6 +2094,7 @@ void TransferView::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
+		CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
 		if (ctrlTransfers.isRedraw())
 		{
 			ctrlTransfers.setFlickerFree(Colors::g_bgBrush);

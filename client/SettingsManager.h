@@ -550,6 +550,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		void setDefaults(); // !SMT!-S
 		void loadOtherSettings();
 		static void generateNewTCPPort();
+		static void generateNewUDPPort();
 		
 		// Search types
 		static void validateSearchTypeName(const string& name);

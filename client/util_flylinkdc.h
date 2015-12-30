@@ -24,6 +24,28 @@
 #include <boost/checked_delete.hpp>
 #include <boost/atomic.hpp>
 #endif
+#include <tchar.h>
+
+#ifndef _DEBUG
+class CFlyCrashReportMarker
+{
+	public:
+		CFlyCrashReportMarker(const TCHAR* p_value);
+		~CFlyCrashReportMarker();
+};
+#else
+class CFlyCrashReportMarker
+{
+	public:
+		CFlyCrashReportMarker(const TCHAR * p_value)
+		{
+		}
+		~CFlyCrashReportMarker()
+		{
+		}
+};
+#endif
+
 
 #ifdef _DEBUG
 

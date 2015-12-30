@@ -410,17 +410,8 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		bool parseFilter(FilterModes& mode, int64_t& size);
 		bool matchFilter(UserInfo& ui, int sel, bool doSizeCompare = false, FilterModes mode = NONE, int64_t size = 0);
 		UserInfo* findUser(const tstring& p_nick);   // !SMT!-S
-		UserInfo* findUser(const OnlineUserPtr& p_user)
-		{
-			dcassert(!m_is_process_disconnected);
-			//if(m_is_fynally_clear_user_list)
-			//{
-			//  LogManager::message("findUser after m_is_fynally_clear_user_list = " + p_user->getUser()->getLastNick());
-			//}
-			return m_userMap.findUser(p_user);
-		}
-		//const tstring& getNick(const UserPtr& aUser);
-		
+		UserInfo* findUser(const OnlineUserPtr& p_user);
+	
 		FavoriteHubEntry* addAsFavorite(const FavoriteManager::AutoStartType p_autoconnect = FavoriteManager::NOT_CHANGE);// [!] IRainman fav options
 		void removeFavoriteHub();
 		

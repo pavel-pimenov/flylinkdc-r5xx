@@ -143,6 +143,7 @@ void ToolbarManager::on(SettingsManagerListener::Load, SimpleXML& aXml)
 
 void ToolbarManager::on(SettingsManagerListener::Save, SimpleXML& aXml)
 {
+	CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
 	save(aXml);
 }
 

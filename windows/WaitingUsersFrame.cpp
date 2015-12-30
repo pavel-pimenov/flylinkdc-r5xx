@@ -590,6 +590,7 @@ void WaitingUsersFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
+		CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
 		if (m_ctrlList.isRedraw())
 		{
 			ctrlQueued.SetBkColor(Colors::g_bgColor);

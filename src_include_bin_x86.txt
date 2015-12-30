@@ -1,5 +1,6 @@
 compiled/Settings/Custom*.* 
 compiled/Themes/*.dll 
+compiled/Themes/*.dctheme
 compiled/lang/*.xml 
 compiled/EmoPacks/*.* 
 compiled/Sounds/*.* 

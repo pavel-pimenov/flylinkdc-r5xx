@@ -27,18 +27,19 @@
 namespace dht
 {
 
-struct Search {
+struct Search
+{
 
 	enum SearchType { TYPE_FILE = 1, TYPE_NODE = 3, TYPE_STOREFILE = 4 };   // standard types should match ADC protocol
-
-	Search(SearchType p_type,const string& p_term, uint32_t p_token) : 
-        m_term(p_term),
-        m_token(p_token),
-        m_type(p_type), 
-        partial(false), 
-        stopping(false),
-        m_filesize(0),
-        m_lifeTime(0)
+	
+	Search(SearchType p_type, const string& p_term, uint32_t p_token) :
+		m_term(p_term),
+		m_token(p_token),
+		m_type(p_type),
+		partial(false),
+		stopping(false),
+		m_filesize(0),
+		m_lifeTime(0)
 	{
 	}
 	

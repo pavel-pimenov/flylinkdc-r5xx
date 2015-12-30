@@ -113,7 +113,7 @@ uint16_t Socket::accept(const Socket& listeningSocket)
 	while (m_sock == SOCKET_ERROR && getLastError() == EINTR);
 	check(m_sock);
 	const string l_remote_ip = inet_ntoa(sock_addr.sin_addr);
-	IpGuard::getInstance()->check_ip_str(l_remote_ip, this);
+	IpGuard::check_ip_str(l_remote_ip, this);
 #ifdef _WIN32
 	// Make sure we disable any inherited windows message things for this socket.
 	::WSAAsyncSelect(m_sock, NULL, 0, 0);
@@ -186,7 +186,7 @@ void Socket::connect(const string& aAddr, uint16_t aPort)
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_addr.s_addr = inet_addr(l_addr.c_str());
 	string l_reason;
-	if (IpGuard::getInstance()->check_ip_str(l_addr, l_reason))
+	if (IpGuard::check_ip_str(l_addr, l_reason))
 	{
 		throw SocketException(STRING(IPGUARD_BLOCK_LIST) + ": (" + aAddr + ") :" + l_reason);
 	}
@@ -222,7 +222,7 @@ void Socket::socksConnect(const string& aAddr, uint16_t aPort, uint64_t timeout)
 		throw SocketException(STRING(SOCKS_FAILED));
 	}
 	string l_reason;
-	if (IpGuard::getInstance()->check_ip_str(resolve(aAddr), l_reason))
+	if (IpGuard::check_ip_str(resolve(aAddr), l_reason))
 	{
 		throw SocketException(STRING(IPGUARD_BLOCK_LIST) + ": (" + aAddr + ") :" + l_reason);
 	}

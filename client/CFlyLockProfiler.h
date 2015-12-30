@@ -30,6 +30,7 @@ class CFlyLockProfiler
 			//QueryPerformanceCounter(&m_start);
 			m_start_tick = GetTickCount();
 		}
+		~CFlyLockProfiler();
 		static void print_stat();
 	protected:
 		void log(const char* p_path, int p_recursion_count, bool p_is_unlock = false);

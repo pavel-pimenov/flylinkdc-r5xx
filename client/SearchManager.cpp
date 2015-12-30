@@ -66,6 +66,20 @@ SearchManager::~SearchManager()
 	}
 }
 
+void SearchManager::runTestUDPPort()
+{
+	if (boost::logic::indeterminate(SettingsManager::g_TestUDPSearchLevel))
+	{
+		string p_external_ip;
+		std::vector<unsigned short> l_udp_port, l_tcp_port;
+		l_udp_port.push_back(SETTING(UDP_PORT));
+		bool l_is_udp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, p_external_ip, 0, "UDP");
+		if (l_is_udp_port_send)
+		{
+			SettingsManager::g_UDPTestExternalIP = p_external_ip;
+		}
+	}
+}
 
 void SearchManager::listen()
 {
@@ -88,7 +102,10 @@ void SearchManager::listen()
 			g_search_port = socket->bind(static_cast<uint16_t>(l_port), l_ip);
 		}
 		SET_SETTING(UDP_PORT, g_search_port);
-		
+#ifdef _DEBUG
+		LogManager::message("Start search manager! UDP_PORT = " + Util::toString(g_search_port));
+#endif
+		runTestUDPPort();
 		start(64, "SearchManager");
 	}
 	catch (...)
@@ -386,7 +403,7 @@ int SearchManager::UdpQueue::run()
 			AdcCommand c(x.substr(0, x.length() - 1));
 			if (c.getParameters().empty())
 				continue;
-			string cid = c.getParam(0);
+			const string cid = c.getParam(0);
 			if (cid.size() != 39)
 				continue;
 				
@@ -406,10 +423,13 @@ int SearchManager::UdpQueue::run()
 			const auto l_magic = x.substr(15, 39);
 			if (ClientManager::getMyCID().toBase32() == l_magic)
 			{
+				LogManager::message("Test UDP port - OK!");
 				SettingsManager::g_TestUDPSearchLevel = CFlyServerJSON::setTestPortOK(SETTING(UDP_PORT), "udp");
 				auto l_ip = x.substr(15 + 39);
 				if (l_ip.size() && l_ip[l_ip.size() - 1] == '|')
+				{
 					l_ip = l_ip.substr(0, l_ip.size() - 1);
+				}
 				SettingsManager::g_UDPTestExternalIP = l_ip;
 			}
 			else
@@ -554,8 +574,13 @@ void SearchManager::onPSR(const AdcCommand& p_cmd, UserPtr from, const boost::as
 			if (!from)
 			{
 				dcdebug("Search result from unknown user");
-				LogManager::message("Error SearchManager::onPSR & ClientManager::findLegacyUser nick = " + nick + " url = " + url);
+				LogManager::psr_message("Error SearchManager::onPSR & ClientManager::findLegacyUser nick = " + nick + " url = " + url);
 				return;
+			}
+			else
+			{
+				dcdebug("Search result from valid user");
+				LogManager::psr_message("OK SearchManager::onPSR & ClientManager::findLegacyUser nick = " + nick + " url = " + url);
 			}
 		}
 	}

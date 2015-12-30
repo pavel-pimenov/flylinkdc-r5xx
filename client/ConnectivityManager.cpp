@@ -125,7 +125,26 @@ void ConnectivityManager::detectConnection()
 		running = false;
 	}
 }
-
+void ConnectivityManager::test_all_ports()
+{
+	if (SETTING(INCOMING_CONNECTIONS) != SettingsManager::INCOMING_FIREWALL_PASSIVE)
+	{
+		// Test Port
+		string l_external_ip;
+		std::vector<unsigned short> l_udp_port, l_tcp_port;
+		l_udp_port.push_back(SETTING(UDP_PORT));
+		l_udp_port.push_back(SETTING(DHT_PORT));
+		l_tcp_port.push_back(SETTING(TCP_PORT));
+		l_tcp_port.push_back(SETTING(TLS_PORT));
+		if (CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0, "UDP+DHT+TCP+TLS"))
+		{
+			if (!l_external_ip.empty())
+			{
+				SET_SETTING(EXTERNAL_IP, l_external_ip);
+			}
+		}
+	}
+}
 void ConnectivityManager::setup_connections(bool settingsChanged)
 {
 	try
@@ -158,21 +177,11 @@ void ConnectivityManager::setup_connections(bool settingsChanged)
 		const string l_error = "ConnectivityManager::setup error = " + e.getError();
 		CFlyServerJSON::pushError(56, l_error);
 	}
-	if (settingsChanged && SETTING(INCOMING_CONNECTIONS) != SettingsManager::INCOMING_FIREWALL_PASSIVE)
+	if (settingsChanged)
 	{
-		// Test Port
-		string l_external_ip;
-		std::vector<unsigned short> l_udp_port, l_tcp_port;
-		l_udp_port.push_back(SETTING(UDP_PORT));
-		l_udp_port.push_back(SETTING(DHT_PORT));
-		l_tcp_port.push_back(SETTING(TCP_PORT));
-		l_tcp_port.push_back(SETTING(TLS_PORT));
-		if (CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0))
+		if (SETTING(INCOMING_CONNECTIONS) != SettingsManager::INCOMING_FIREWALL_UPNP)
 		{
-			if (!l_external_ip.empty())
-			{
-				SET_SETTING(EXTERNAL_IP, l_external_ip);
-			}
+			test_all_ports();
 		}
 	}
 }
@@ -272,6 +281,10 @@ void ConnectivityManager::mappingFinished(const string& p_mapper)
 	{
 		log(getInformation());
 		SET_SETTING(MAPPER, p_mapper);
+		if (!p_mapper.empty())
+		{
+			test_all_ports();
+		}
 	}
 	running = false;
 }
@@ -283,7 +296,7 @@ void ConnectivityManager::listen() // TODO - fix copy-paste
 	{
 		try
 		{
-			ConnectionManager::getInstance()->listen();
+			ConnectionManager::getInstance()->start_tcp_tls_listener();
 		}
 		catch (const SocketException& e)
 		{
@@ -305,13 +318,35 @@ void ConnectivityManager::listen() // TODO - fix copy-paste
 		}
 		break;
 	}
-	try
+	for (int j = 0; j < 2; ++j)
 	{
-		SearchManager::getInstance()->listen();
-	}
-	catch (const Exception& e)
-	{
-		l_exceptions += " * UDP listen error = " + e.getError() + "\r\n";
+		try
+		{
+			SearchManager::getInstance()->listen();
+		}
+		catch (const SocketException& e)
+		{
+			if (e.getErrorCode() == 10048)
+			{
+				if (j == 0)
+				{
+					SET_SETTING(UDP_PORT, 0); // Первую попытку делаем подключаясь к порту = 0
+					continue;
+				}
+				SettingsManager::generateNewUDPPort();
+				LogManager::message("Try bind random UDP Port = " + Util::toString(SETTING(UDP_PORT)));
+				continue;
+			}
+			else
+			{
+				l_exceptions += " * UDP listen error = " + e.getError() + "\r\n";
+			}
+		}
+		catch (const Exception& e)
+		{
+			l_exceptions += " * UDP listen error = " + e.getError() + "\r\n";
+		}
+		break;
 	}
 	
 #ifdef STRONG_USE_DHT

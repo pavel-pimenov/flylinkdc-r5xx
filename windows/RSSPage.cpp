@@ -99,7 +99,7 @@ void RSSPage::addRSSEntry(const RSSFeed* rf, int pos)
 	TStringList lst;
 	lst.push_back(Text::toT(rf->getFeedURL()));
 	lst.push_back(Text::toT(rf->getSource()));
-	size_t codeingT = RSSManager::getInstance()->GetCodeingByString(rf->getCodeing());
+	size_t codeingT = RSSManager::GetCodeingByString(rf->getCodeing());
 	lst.push_back(GetCodeingFromMapName(codeingT));
 	ctrlCommands.insert(pos, lst, 0, (LPARAM)pos);
 }

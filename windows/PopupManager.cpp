@@ -24,8 +24,6 @@
 #include "MainFrm.h"
 
 
-//[!]PopupManager* Singleton< PopupManager >::instance = nullptr;
-
 void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bool preview /*= false*/)
 {
 	dcassert(ClientManager::isStartup() == false);
@@ -50,7 +48,7 @@ void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bo
 		msg += _T("...");
 	}
 	
-	if (SETTING(POPUP_TYPE) == BALLOON)
+	if (SETTING(POPUP_TYPE) == BALLOON && MainFrame::getMainFrame())
 	{
 		NOTIFYICONDATA m_nid = {0};
 		m_nid.cbSize = sizeof(NOTIFYICONDATA);

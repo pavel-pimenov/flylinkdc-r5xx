@@ -598,7 +598,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		typedef pair< HWND , DirectoryListingFrame* > FramePair;
 		static FrameMap g_dir_list_frames;
 		
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/);
+		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
 	private:
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		void mergeFlyServerInfo();

@@ -74,15 +74,15 @@ void DHT::start()
 		return;
 		
 	// start with global firewalled status
-	m_firewalled = !ClientManager::isActive(nullptr);
+	m_firewalled = false; //  !ClientManager::isActive(nullptr);
 	requestFWCheck = true;
 	//
 	
 	if (!m_bucket)
 	{
 		// if (BOOLSETTING(UPDATE_IP_DHT))
-		// 	SET_SETTING(EXTERNAL_IP, Util::emptyString); //fix https://code.google.com/p/flylinkdc/issues/detail?id=1264
-			
+		//  SET_SETTING(EXTERNAL_IP, Util::emptyString); //fix https://code.google.com/p/flylinkdc/issues/detail?id=1264
+		
 		// [!] IRainman fix
 		SearchManager::newInstance();
 		TaskManager::newInstance();
@@ -95,17 +95,21 @@ void DHT::start()
 		TaskManager::getInstance()->start();
 		
 		m_dht_socket.listen();// [+] IRainman fix.
-		DHT::test_dht_port();
+		if (SETTING(INCOMING_CONNECTIONS) != SettingsManager::INCOMING_FIREWALL_UPNP)
+		{
+			DHT::test_dht_port();
+		}
 	}
 	// [-] IRainman fix. socket.listen();
 }
 void DHT::test_dht_port()
 {
-		// Запускаем тест порта DHT - TODO в отдельном потоке
+	// Запускаем тест порта DHT - TODO в отдельном потоке
 	string l_external_ip;
 	std::vector<unsigned short> l_udp_port, l_tcp_port;
 	l_udp_port.push_back(SETTING(DHT_PORT));
-	const bool l_is_udp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0);
+	const bool l_is_udp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0, "DHT");
+	BootstrapManager::clear_live_check();
 	dcassert(l_is_udp_port_send);
 }
 void DHT::stop(bool exiting)
@@ -129,7 +133,7 @@ void DHT::stop(bool exiting)
 		ConnectionManager::deleteInstance();
 		dcassert(TaskManager::getInstance()->isDebugTimerExecute() == false);
 		TaskManager::deleteInstance(); //[!] Разрушили хотя другой поток может еще выполняться
-		                               // Поймал assert в TaskManager::on(TimerManagerListener::Second
+		// Поймал assert в TaskManager::on(TimerManagerListener::Second
 		SearchManager::deleteInstance();
 		RoutingTable::resetNodesCount(); // http://code.google.com/p/flylinkdc/issues/detail?id=1003
 	}
@@ -141,12 +145,12 @@ void DHT::stop(bool exiting)
 void DHT::dispatch(const string& aLine, const string& ip, uint16_t port, bool isUdpKeyValid)
 {
 	dcassert(!ClientManager::isShutdown());
-	if(ClientManager::isShutdown())
-	   return;
+	if (ClientManager::isShutdown())
+		return;
 	// check node's IP address
 	if (!Utils::isGoodIPPort(ip, port))
 	{
-      LogManager::dht_message("DHT::dispatch] isGoodIPPort - error ip = " + ip + ":" + Util::toString(port));
+		LogManager::dht_message("DHT::dispatch] isGoodIPPort - error ip = " + ip + ":" + Util::toString(port));
 		//socket.send(AdcCommand(AdcCommand::SEV_FATAL, AdcCommand::ERROR_BAD_IP, "Your client supplied invalid IP: " + ip, AdcCommand::TYPE_UDP), ip, port);
 		return; // invalid ip/port supplied
 	}
@@ -161,25 +165,25 @@ void DHT::dispatch(const string& aLine, const string& ip, uint16_t port, bool is
 			LogManager::dht_message("DHT::dispatch] cid.size() != 39 - error ip = " + ip + ":" + Util::toString(port) + " cid = " + cmd.toString(l_CID));
 			return;
 		}
-
+		
 		// flood protection
 		if (!Utils::checkFlood(ip, cmd))
-    {
-		LogManager::dht_message("DHT::dispatch] checkFlood - error ip = " + ip + ":" + Util::toString(port) + " cmd = " + cmd.toString(l_CID));
+		{
+			LogManager::dht_message("DHT::dispatch] checkFlood - error ip = " + ip + ":" + Util::toString(port) + " cmd = " + cmd.toString(l_CID));
 			return;
-    }
-			
-			
+		}
+		
+		
 		// ignore message from myself
 		if (l_CID == ClientManager::getMyCID() || ip == g_lastExternalIP) // [!] IRainman fix.
 		{
-        LogManager::dht_message("DHT::dispatch] CID(cid) == ClientManager::getMyCID() || ip == g_lastExternalIP. error ip = " + ip + 
-			":" + Util::toString(port) + " cid = " + cmd.toString(l_CID) + " g_lastExternalIP = " + g_lastExternalIP);
+			LogManager::dht_message("DHT::dispatch] CID(cid) == ClientManager::getMyCID() || ip == g_lastExternalIP. error ip = " + ip +
+			                        ":" + Util::toString(port) + " cid = " + cmd.toString(l_CID) + " g_lastExternalIP = " + g_lastExternalIP);
 			return;
-    }
-			
+		}
+		
 		m_lastPacket = GET_TICK();
-
+		
 		// all communication to this node will be encrypted with this key
 		UDPKey key;
 		string udpKey;
@@ -275,18 +279,18 @@ bool DHT::send(AdcCommand& cmd, const string& ip, uint16_t port, const CID& targ
 	return false;
 }
 
-	/*
-	 * Creates new (or update existing) node which is NOT added to our routing table 
-	 */
+/*
+ * Creates new (or update existing) node which is NOT added to our routing table
+ */
 /*
 Node::Ptr DHT::createNode(const CID& cid, const string& ip, uint16_t port, bool update, bool isUdpKeyValid)
-	{
-		// create user as offline (only TCP connected users will be online)
-		UserPtr u = ClientManager::getInstance()->getUser(cid,true);
+    {
+        // create user as offline (only TCP connected users will be online)
+        UserPtr u = ClientManager::getInstance()->getUser(cid,true);
 
-		CFlyFastLock(cs);
-		return m_bucket->createNode(u, ip, port, update, isUdpKeyValid);
-	}
+        CFlyFastLock(cs);
+        return m_bucket->createNode(u, ip, port, update, isUdpKeyValid);
+    }
 */
 
 /*
@@ -298,7 +302,7 @@ Node::Ptr DHT::addDHTNode(const CID& cid, const string& ip, uint16_t port, const
 	if (!ClientManager::isShutdown())
 	{
 		// create user as offline (only TCP connected users will be online)
-		// https://drdump.com/DumpGroup.aspx?DumpGroupID=239463&Login=guest	
+		// https://drdump.com/DumpGroup.aspx?DumpGroupID=239463&Login=guest
 		UserPtr u = ClientManager::getUser(cid, true); // TODO - утекает. если долго работать тут появляется много юзеров.
 		// а когда их удаляем?
 		CFlyFastLock(cs);
@@ -355,10 +359,10 @@ void DHT::info(const string& ip, uint16_t port, uint32_t type, const CID& target
 	cmd.addParam("TY", Util::toString(type));
 	cmd.addParam("AP", "FlylinkDC++"
 #ifdef FLYLINKDC_HE
-		"HE"
+	             "HE"
 #endif
-		);
-
+	            );
+	            
 	cmd.addParam("VE", A_VERSIONSTRING);
 	cmd.addParam("NI", SETTING(NICK));
 	cmd.addParam("SL", Util::toString(UploadManager::getSlots()));
@@ -373,7 +377,7 @@ void DHT::info(const string& ip, uint16_t port, uint32_t type, const CID& target
 	}
 	
 	string su;
-	if (CryptoManager::getInstance()->TLSOk())
+	if (CryptoManager::TLSOk())
 		su += AdcSupports::ADCS_FEATURE + ',';
 		
 	// TCP status according to global status
@@ -405,17 +409,17 @@ void DHT::connect(const OnlineUser& ou, const string& p_token, bool p_is_force_p
 /*
  * Sends private message to online node
  */
-void DHT::privateMessage(const OnlineUserPtr& ou, const string& aMessage, bool thirdPerson /* = false */ )
+void DHT::privateMessage(const OnlineUserPtr& ou, const string& aMessage, bool thirdPerson /* = false */)
 {
 	AdcCommand cmd(AdcCommand::CMD_MSG, AdcCommand::TYPE_UDP);
 	cmd.addParam(aMessage);
-	if(thirdPerson)
-	  cmd.addParam("ME", "1");
-
+	if (thirdPerson)
+		cmd.addParam("ME", "1");
+		
 	auto key = UDPKey();
 	key.m_ip = ou->getIdentity().getIpAsString();
 	key.m_key = ou->getUser()->getCID();
-
+	
 	send(cmd, ou->getIdentity().getIpAsString(), ou->getIdentity().getUdpPort(), ou->getUser()->getCID(), key);
 }
 
@@ -428,31 +432,32 @@ void DHT::loadData()
 	{
 		SimpleXML xml;
 		const string l_dht_xml_file = Util::getConfigPath() + DHT_FILE;
-		if(::File::isExist(l_dht_xml_file))
+		if (::File::isExist(l_dht_xml_file))
 		{
-		 CFlyLog l_log("[dht]");
-		 try
-		 {
-		  ::File l_xml_file(l_dht_xml_file, ::File::READ, ::File::OPEN);
-  		  xml.fromXML(l_xml_file.read());
-		  l_log.step("SimpleXML.load(dht.xml)");
-		  xml.stepIn();
-		 }
-		 catch (const FileException& e)
-		 {
- 		  LogManager::message("[dht][DHT::loadData] FileException [" + string(e.what()) + "]");
-		 }
-		 m_bucket->loadNodes(xml);
-	     l_log.step("loadNodes(dht.xml)");
-		 IndexManager::getInstance()->loadIndexes(xml);
-	     l_log.step("loadIndexes(dht.xml)");
-		 xml.stepOut();
-		 ::File::deleteFile(l_dht_xml_file);
+			CFlyLog l_log("[dht]");
+			try
+			{
+				::File l_xml_file(l_dht_xml_file, ::File::READ, ::File::OPEN);
+				xml.fromXML(l_xml_file.read());
+				l_log.step("SimpleXML.load(dht.xml)");
+				xml.stepIn();
+			}
+			catch (const FileException& e)
+			{
+				LogManager::message("[dht][DHT::loadData] FileException [" + string(e.what()) + "]");
+			}
+			m_bucket->loadNodes(xml);
+			l_log.step("loadNodes(dht.xml)");
+			IndexManager::getInstance()->loadIndexes(xml);
+			l_log.step("loadIndexes(dht.xml)");
+			xml.stepOut();
+			::File::deleteFile(l_dht_xml_file);
 		}
 		else
-		{ // Загружаем ноды из базы
-		 CFlyLog l_log("[dht] loadNodes(sqlite)");
-		 m_bucket->loadNodes(xml);
+		{
+			// Загружаем ноды из базы
+			CFlyLog l_log("[dht] loadNodes(sqlite)");
+			m_bucket->loadNodes(xml);
 		}
 	}
 	catch (const Exception& e)
@@ -479,11 +484,11 @@ void DHT::saveData()
 void DHT::handle(AdcCommand::INF, const string& ip, uint16_t port, const UDPKey& udpKey, bool isUdpKeyValid, const AdcCommand& c) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
-	const CID cid = CID(c.getParam(0));	
+	const CID cid = CID(c.getParam(0));
 	// add node to our routing table and put him online
 	const Node::Ptr node = addDHTNode(cid, ip, port, udpKey, true, isUdpKeyValid);
-        if(!node)
-           return;
+	if (!node)
+		return;
 	auto& id = node->getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'node->getIdentity()' expression repeatedly. dht.cpp 440
 	InfType it = NONE;
 	for (auto i = c.getParameters().cbegin() + 1; i != c.getParameters().cend(); ++i)
@@ -496,12 +501,12 @@ void DHT::handle(AdcCommand::INF, const string& ip, uint16_t port, const UDPKey&
 		{
 			case TAG('T', 'Y'):
 			{
-				it = (InfType)Util::toInt(i->c_str()+2);
+				it = (InfType)Util::toInt(i->c_str() + 2);
 				break;
 			}
 			case TAG('S', 'L'):
 			{
-				id.setSlots(Util::toInt(i->c_str()+2));
+				id.setSlots(Util::toInt(i->c_str() + 2));
 				break;
 			}
 			case TAG('F', 'S'):
@@ -511,7 +516,7 @@ void DHT::handle(AdcCommand::INF, const string& ip, uint16_t port, const UDPKey&
 			}
 			case TAG('U', 'S'):
 			{
-				id.setLimit(Util::toInt(i->c_str()+2));
+				id.setLimit(Util::toInt(i->c_str() + 2));
 				break;
 			}
 			case TAG('S', 'U'):
@@ -542,13 +547,13 @@ void DHT::handle(AdcCommand::INF, const string& ip, uint16_t port, const UDPKey&
 	/* [-] IRainman - see AdcSupports::setSupports.
 	if (id.isSupports(ADCS_FEATURE))
 	{
-		node->getUser()->setFlag(User::TLS);
+	    node->getUser()->setFlag(User::TLS);
 	}
-	  [-] */ 
+	  [-] */
 	/* [-] IRainman - deprecated.
 	if (id.getLimit())
 	{
-		id.setConnection(Util::formatBytes(uint64_t(id.getLimit())) + "/s");
+	    id.setConnection(Util::formatBytes(uint64_t(id.getLimit())) + "/s");
 	}
 	  [-] */
 	if (((it & CONNECTION) == CONNECTION) && !node->isOnline()) // only when connection is required
@@ -556,7 +561,7 @@ void DHT::handle(AdcCommand::INF, const string& ip, uint16_t port, const UDPKey&
 		// put him online so we can make a connection with him
 		node->inc();
 		node->setOnline(true);
-		ClientManager::getInstance()->putOnline(node.get(),true);
+		ClientManager::getInstance()->putOnline(node.get(), true);
 		
 		// FIXME: if node has not been added into the routing table (for whatever reason), we should take some action
 		// to avoid having him online forever (bringing memory leak for such nodes)
@@ -632,11 +637,11 @@ void DHT::handle(AdcCommand::RCM, const string& ip, uint16_t port, const UDPKey&
 void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t port, const UDPKey& /*udpKey*/, const AdcCommand& c) noexcept
 {
 	if (c.getParameters().size() < 3)
-  {
-      LogManager::dht_message("DHT::handle c.getParameters().size() < 3 - fromIP = " + fromIP + ":" + Util::toString(port) + " c = " + c.toString(CID()));
+	{
+		LogManager::dht_message("DHT::handle c.getParameters().size() < 3 - fromIP = " + fromIP + ":" + Util::toString(port) + " c = " + c.toString(CID()));
 		return;
-  }
-		
+	}
+	
 	int code = Util::toInt(c.getParam(1).substr(1));
 	
 	if (code == 0)
@@ -646,11 +651,11 @@ void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t port, const UDP
 		{
 			LogManager::dht_message("DHT::handle !c.getParam(FC, 2, resTo) - fromIP = " + fromIP + ":" + Util::toString(port) + " c = " + c.toString(CID()) + " FC = " + resTo);
 			return;
-    }
-			
+		}
+		
 		if (resTo == "PUB")
 		{
-        LogManager::dht_message("DHT::handle resTo == PUB - empty code!  fromIP = " + fromIP + ":" + Util::toString(port));
+			LogManager::dht_message("DHT::handle resTo == PUB - empty code!  fromIP = " + fromIP + ":" + Util::toString(port));
 			/*#ifdef _DEBUG
 			            // don't do anything
 			            string tth;
@@ -677,27 +682,27 @@ void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t port, const UDP
 			const auto j = firewalledWanted.find(fromIP); // [1] https://www.box.net/shared/4b2e554c75f77c3f9054
 			if (j == firewalledWanted.end())
 			{
-            LogManager::dht_message("DHT::handle i == firewalledWanted.end() - fromIP = " + fromIP + ":" + Util::toString(port));
+				LogManager::dht_message("DHT::handle i == firewalledWanted.end() - fromIP = " + fromIP + ":" + Util::toString(port));
 				return; // we didn't requested firewall check from this node
-      }
-				
+			}
+			
 			firewalledWanted.erase(j);
 			if (firewalledChecks.find(fromIP) != firewalledChecks.end())
 			{
-           LogManager::dht_message("DHT::handle i == firewalledChecks.find(fromIP) != firewalledChecks.end() - fromIP = " + fromIP + ":" + Util::toString(port));
+				LogManager::dht_message("DHT::handle i == firewalledChecks.find(fromIP) != firewalledChecks.end() - fromIP = " + fromIP + ":" + Util::toString(port));
 				return; // already received firewall check from this node
-      }
+			}
 			// [~] IRainman opt.
-				
+			
 			string externalIP;
 			string externalUdpPort;
 			if (!c.getParam("I4", 1, externalIP) || !c.getParam("U4", 1, externalUdpPort))
-				{
-            LogManager::dht_message("DHT::handle !c.getParam('I4', 1, externalIP) || !c.getParam('U4', 1, externalUdpPort) - fromIP = " + fromIP + ":" + Util::toString(port));
+			{
+				LogManager::dht_message("DHT::handle !c.getParam('I4', 1, externalIP) || !c.getParam('U4', 1, externalUdpPort) - fromIP = " + fromIP + ":" + Util::toString(port));
 				return; // no IP and port in response
-      }
+			}
 			const auto l_udp_port = static_cast<uint16_t>(Util::toInt(externalUdpPort));
-			firewalledChecks.insert(std::make_pair(fromIP, std::make_pair(externalIP,l_udp_port)));
+			firewalledChecks.insert(std::make_pair(fromIP, std::make_pair(externalIP, l_udp_port)));
 			if (firewalledChecks.size() >= FW_RESPONSES)
 			{
 				// when we received more firewalled statuses, we will be firewalled
@@ -734,7 +739,7 @@ void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t port, const UDP
 					if (externalIP != g_lastExternalIP || !m_firewalled)
 					{
 						LogManager::message("DHT: " + STRING(DHT_FIREWALLED_UDP) + " (IP: " + externalIP + ") port:" + externalUdpPort);
-          }
+					}
 					m_firewalled = true;
 				}
 				else
@@ -742,17 +747,17 @@ void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t port, const UDP
 					if (externalIP != g_lastExternalIP || m_firewalled)
 					{
 						LogManager::message("DHT: " + STRING(DHT_OUR_UPD_PORT_OPEND) + " (IP: " + externalIP + ") port:" + externalUdpPort);
-          }
-						
+					}
+					
 					m_firewalled = false;
 				}
-
+				
 				dcassert(!externalIP.empty())
 				if (BOOLSETTING(UPDATE_IP_DHT) && !externalIP.empty())
 				{
 					SET_SETTING(EXTERNAL_IP, externalIP);
 				}
-					
+				
 				firewalledChecks.clear();
 				firewalledWanted.clear();
 				
@@ -773,10 +778,10 @@ void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t port, const UDP
 void DHT::handle(AdcCommand::PSR, const string& p_ip, uint16_t port, const UDPKey& udpKey, const AdcCommand& c) noexcept
 {
 	const CID cid = CID(c.getParam(0));
-  dcassert(c.getParam(0).size() == 39);
-  // !!!!!!!!!!!!!!!!!!!!!// !!!!!!!!!!!!!!!!!!!!!
+	dcassert(c.getParam(0).size() == 39);
+	// !!!!!!!!!!!!!!!!!!!!!// !!!!!!!!!!!!!!!!!!!!!
 	// !!!!!!!!!!!!!!!!!!!!! c.getParameters().erase(c.getParameters().begin());  // remove CID from UDP command
-  // Не нужно удалять?
+	// Не нужно удалять?
 	
 	// connection allowed with online nodes only, so try to get them directly from ClientManager
 	const OnlineUserPtr node = ClientManager::findDHTNode(cid);
@@ -787,7 +792,7 @@ void DHT::handle(AdcCommand::PSR, const string& p_ip, uint16_t port, const UDPKe
 		dcassert(!l_ec);
 		if (!l_ec)
 		{
-		::SearchManager::getInstance()->onPSR(c, node->getUser(), l_ip4);
+			::SearchManager::getInstance()->onPSR(c, node->getUser(), l_ip4);
 		}
 		else
 		{
@@ -797,7 +802,7 @@ void DHT::handle(AdcCommand::PSR, const string& p_ip, uint16_t port, const UDPKe
 			CFlyServerJSON::pushError(27, l_message);
 #endif
 		}
-  }
+	}
 	else
 	{
 		// node is not online
@@ -860,11 +865,11 @@ void DHT::handle(AdcCommand::SND, const string& ip, uint16_t port, const UDPKey&
 		// add node to our routing table
 		if (isUdpKeyValid)
 		{
-			const auto l_node =	addDHTNode(CID(c.getParam(0)), ip, port, udpKey, false, true);
+			const auto l_node = addDHTNode(CID(c.getParam(0)), ip, port, udpKey, false, true);
 			if (!l_node)
 				return;
 		}
-			
+		
 		try
 		{
 			SimpleXML xml;
@@ -879,27 +884,27 @@ void DHT::handle(AdcCommand::SND, const string& ip, uint16_t port, const UDPKey&
 				
 				if (cid.isZero())
 				{
-              LogManager::dht_message("DHT::handle(AdcCommand::SND cid.isZero()! IP = " + ip + ":" + Util::toString(port));
+					LogManager::dht_message("DHT::handle(AdcCommand::SND cid.isZero()! IP = " + ip + ":" + Util::toString(port));
 					continue;
-        }
-					
+				}
+				
 				// don't bother with myself
 				if (ClientManager::getMyCID() == cid) // [!] IRainman fix.
 				{
-            LogManager::dht_message("DHT::handle(AdcCommand::SND ClientManager::getMyCID() == cid - IP = " + ip + ":" + Util::toString(port) + " CID = " + cid.toBase32());
+					LogManager::dht_message("DHT::handle(AdcCommand::SND ClientManager::getMyCID() == cid - IP = " + ip + ":" + Util::toString(port) + " CID = " + cid.toBase32());
 					continue;
-        }
-					
+				}
+				
 				const string& i4    = xml.getChildAttrib("I4");
 				const uint16_t u4         = static_cast<uint16_t>(xml.getIntChildAttrib("U4"));
 				
 				// don't bother with private IPs
 				if (!Utils::isGoodIPPort(i4, u4))
-					{
-              LogManager::dht_message("DHT::handle(AdcCommand::SND !Utils::isGoodIPPort(i4, u4) - IP = " + ip + ":" + Util::toString(port));
+				{
+					LogManager::dht_message("DHT::handle(AdcCommand::SND !Utils::isGoodIPPort(i4, u4) - IP = " + ip + ":" + Util::toString(port));
 					continue;
-        }
-					
+				}
+				
 				// create verified node, it's not big risk here and allows faster bootstrapping
 				// if this node already exists in our routing table, don't update its ip/port for security reasons
 				if (!addDHTNode(cid, i4, u4, UDPKey(), false, true))
@@ -910,7 +915,7 @@ void DHT::handle(AdcCommand::SND, const string& ip, uint16_t port, const UDPKey&
 			while (xml.findChild("Node") && l_tail_count_node++)
 			{
 			}
-			if(l_tail_count_node)
+			if (l_tail_count_node)
 			{
 				LogManager::message("DHT::handle(AdcCommand::SND l_tail_count_node = " + Util::toString(l_tail_count_node));
 			}

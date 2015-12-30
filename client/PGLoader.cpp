@@ -29,10 +29,14 @@
 
 #ifdef PPA_INCLUDE_IPFILTER
 
+FastCriticalSection PGLoader::g_cs;
+IPList  PGLoader::g_ipTrustListAllow;
+IPList  PGLoader::g_ipTrustListBlock;
+
 void PGLoader::load(const string& p_data /*= Util::emptyString*/)
 {
 	string l_data;
-	const string& l_url = SETTING(URL_IPTRUST);
+	const string l_url = SETTING(URL_IPTRUST);
 	bool l_is_download = false;
 	CFlyLog l_IPTrust_log("[IPTrust]");
 	if (p_data.empty())
@@ -117,10 +121,10 @@ void PGLoader::load(const string& p_data /*= Util::emptyString*/)
 		l_data = p_data;
 	}
 	
-	CFlyFastLock(m_cs);
+	CFlyFastLock(g_cs);
 	l_IPTrust_log.step("parse IPTrust.ini");
-	m_ipTrustListAllow.clear();
-	m_ipTrustListBlock.clear();
+	g_ipTrustListAllow.clear();
+	g_ipTrustListBlock.clear();
 	
 	if (!l_data.empty())
 	{
@@ -155,17 +159,17 @@ bool PGLoader::check(uint32_t p_ip4)
 	static boost::atomic_int g_count(0);
 	dcdebug("PGLoader::check  count = %d\n", int(++g_count));
 #endif
-	CFlyFastLock(m_cs);
-	if (!m_ipTrustListBlock.empty())
+	CFlyFastLock(g_cs);
+	if (!g_ipTrustListBlock.empty())
 	{
-		if (m_ipTrustListBlock.checkIp(p_ip4))
+		if (g_ipTrustListBlock.checkIp(p_ip4))
 		{
 			return true;
 		}
 	}
-	if (!m_ipTrustListAllow.empty())
+	if (!g_ipTrustListAllow.empty())
 	{
-		const auto l_ipguard = m_ipTrustListAllow.checkIp(p_ip4);
+		const auto l_ipguard = g_ipTrustListAllow.checkIp(p_ip4);
 		return !l_ipguard;
 	}
 	else
@@ -186,11 +190,11 @@ void PGLoader::addLine(string& p_Line, CFlyLog& p_log)
 	if (p_Line[0] == '-')
 	{
 		p_Line.erase(0, 1);
-		m_ipTrustListBlock.addLine(p_Line, p_log);
+		g_ipTrustListBlock.addLine(p_Line, p_log);
 	}
 	else
 	{
-		m_ipTrustListAllow.addLine(p_Line, p_log);
+		g_ipTrustListAllow.addLine(p_Line, p_log);
 	}
 }
 

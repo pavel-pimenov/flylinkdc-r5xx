@@ -605,7 +605,7 @@ ok: //[!] TODO убрать goto
 		{
 			if (!(hasReserved || isFavorite || isAutoSlot || hasFreeSlot || isHasUpload))
 			{
-				hasSlotByIP = IpGrant::getInstance()->check(Socket::convertIP4(aSource->getRemoteIp()));
+				hasSlotByIP = IpGrant::check(Socket::convertIP4(aSource->getRemoteIp()));
 			}
 		}
 #endif // SSA_IPGRANT_FEATURE
@@ -1064,7 +1064,7 @@ void UploadManager::clearWaitingFilesL(const WaitingUser& p_wu)
 }
 void UploadManager::clearUserFilesL(const UserPtr& aUser)
 {
-	dcassert(!ClientManager::isShutdown());
+	//dcassert(!ClientManager::isShutdown());
 	auto it = std::find_if(m_slotQueue.cbegin(), m_slotQueue.cend(), [&](const UserPtr & u)
 	{
 		return u == aUser;
@@ -1317,7 +1317,11 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 					}
 			}
 		}
-		SharedFileStream::cleanup();
+		static int g_count = 11;
+		if (++g_count % 10 == 0)
+		{
+			SharedFileStream::cleanup();
+		}
 		l_tickList.reserve(g_uploads.size());
 		CFlyReadLock(*g_csUploadsDelay);
 		for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)

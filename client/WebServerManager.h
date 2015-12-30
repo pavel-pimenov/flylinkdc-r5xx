@@ -163,21 +163,7 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 		void getLoginPage(string& p_out);
 		
 		// SettingsManagerListener
-		void on(SettingsManagerListener::Save, SimpleXML&) override
-		{
-			dcassert(!ClientManager::isShutdown())
-			if (!ClientManager::isShutdown())
-			{
-				if (BOOLSETTING(WEBSERVER))
-				{
-					Restart();
-				}
-				else
-				{
-					Stop();
-				}
-			}
-		}
+		void on(SettingsManagerListener::Save, SimpleXML&) override;
 		// SearchManagerListener
 		void on(SearchManagerListener::SR, const SearchResult& aResult) noexcept override;
 		

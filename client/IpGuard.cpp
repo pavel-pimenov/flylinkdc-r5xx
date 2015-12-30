@@ -23,12 +23,15 @@
 #include "ResourceManager.h"
 #include "../windows/resource.h"
 #include "../XMLParser/xmlParser.h"
+#include "SimpleXML.h"
 #include "LogManager.h"
 #include "../FlyFeatures/flyServer.h"
 
 #ifdef _DEBUG
 boost::atomic_int g_count(0);
 #endif
+
+IPList IpGuard::g_ipGuardList;
 
 void IpGuard::load()
 {
@@ -97,16 +100,16 @@ void IpGuard::load()
 		}
 		
 		l_IPGuard_log.step("parse IPGuard.ini");
-		m_ipGuardList.clear();
+		g_ipGuardList.clear();
 		if (!l_sIPGuard.empty())
 		{
-			m_ipGuardList.addData(l_sIPGuard, l_IPGuard_log);
+			g_ipGuardList.addData(l_sIPGuard, l_IPGuard_log);
 		}
 		l_IPGuard_log.step("parse IPGuard.ini done");
 	}
 	else
 	{
-		m_ipGuardList.clear();
+		g_ipGuardList.clear();
 	}
 }
 bool IpGuard::is_block_ip(const string& aIP, uint32_t& p_ip4)
@@ -131,7 +134,7 @@ bool IpGuard::check_ip_str(const string& aIP, string& reason)
 	}
 	if (BOOLSETTING(ENABLE_IPGUARD))
 	{
-		if (m_ipGuardList.checkIp(l_ip4))
+		if (g_ipGuardList.checkIp(l_ip4))
 		{
 			return !BOOLSETTING(IP_GUARD_IS_DENY_ALL);
 		}
@@ -162,7 +165,7 @@ void IpGuard::check_ip_str(const string& aIP, Socket* socket /*= nullptr*/)
 	}
 	if (BOOLSETTING(ENABLE_IPGUARD))
 	{
-		if (m_ipGuardList.checkIp(l_ip4))
+		if (g_ipGuardList.checkIp(l_ip4))
 		{
 			if (!BOOLSETTING(IP_GUARD_IS_DENY_ALL))
 			{

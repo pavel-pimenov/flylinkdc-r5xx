@@ -51,7 +51,7 @@ BufferedSocket::BufferedSocket(char aSeparator) :
 // should be rewritten using ThrottleManager
 //sleep(0), // !SMT!-S
 	m_is_disconnecting(false),
-	m_threadId(ThreadID(-1)),
+	m_threadId(DWORD(-1)),
 	m_myInfoCount(0),
 	m_is_all_my_info_loaded(false),
 	m_is_hide_share(false)
@@ -292,7 +292,10 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 	{
 		if (m_is_hide_share == false && ClientManager::isStartup() == false)
 		{
-			const string l_line_item = p_line.substr(0, p_pos_next_separator);
+#ifndef _DEBUG
+			const
+#endif
+			string l_line_item = p_line.substr(0, p_pos_next_separator);
 			auto l_marker_tth = l_line_item.find("?0?9?TTH:");
 			// TODO научиться обрабатывать лимит по размеру вида
 			// "x.x.x.x:yyy T?F?57671680?9?TTH:A3VSWSWKCVC4N6EP2GX47OEMGT5ZL52BOS2LAHA"
@@ -347,17 +350,48 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 //            LogManager::message("BufferedSocket::all_search_parser Skip unknown file = " + aString);
 #endif
 				CFlySearchItemFile l_item;
-				if (l_item.is_parse_nmdc_search(l_line_item.substr(8)) == true)
+				const bool l_is_valid_search = l_item.is_parse_nmdc_search(l_line_item.substr(8));
+				if (l_is_valid_search)
 				{
 					if (ShareManager::isUnknownFile(l_item.getRAWQuery()))
 					{
 						COMMAND_DEBUG("[File][FastSkip][Unknown files] " + l_line_item, DebugTask::HUB_IN, getIp() + ':' + Util::toString(getPort()));
 #ifdef _DEBUG
-						// LogManager::message("BufferedSocket::all_search_parser Skip unknown File = " + l_item.m_raw_search);
+//						LogManager::message("BufferedSocket::all_search_parser Skip unknown File = " + l_item.m_raw_search + " count_dup = " + Util::toString(l_count_dup));
 #endif
 					}
 					else
 					{
+#ifdef _DEBUG
+						int l_count_dup = 0;
+						std::map<string, int> l_stat_map;
+						{
+							static CriticalSection g_debug_cs;
+							static std::unordered_map<string, std::pair<int, std::map<string, int> > > g_count_dup_ip_port;
+							if (!l_item.m_is_passive)
+							{
+								CFlyLock(g_debug_cs);
+								l_count_dup = g_count_dup_ip_port[l_item.m_seeker].first++;
+								g_count_dup_ip_port[l_item.m_seeker].second[l_item.m_filter]++;
+								l_stat_map = g_count_dup_ip_port[l_item.m_seeker].second;
+							}
+						}
+						if (l_count_dup > 1)
+						{
+							l_line_item += " count_dup = " + Util::toString(l_count_dup);
+							
+							if (!l_stat_map.empty())
+							{
+								l_line_item += " [";
+								for (auto i = l_stat_map.cbegin(), iend = l_stat_map.cend(); i != iend; ++i)
+								{
+									l_line_item += "'" + i->first + "' = " + Util::toString(i->second);
+								}
+								l_line_item.push_back(']');
+							}
+						}
+						COMMAND_DEBUG("[File][Valid][files] " + l_line_item, DebugTask::HUB_IN, getIp() + ':' + Util::toString(getPort()));
+#endif
 						p_file_search.push_back(l_item);
 					}
 				}
@@ -906,6 +940,14 @@ void BufferedSocket::threadSendFile(InputStream* file)
 
 void BufferedSocket::write(const char* aBuf, size_t aLen)
 {
+	dcassert(!ClientManager::isShutdown());
+	if (ClientManager::isShutdown())
+	{
+#ifdef _DEBUG
+		LogManager::message("[ClientManager::isShutdown()]Skip BufferedSocket::write! Data = " + string(aBuf, aLen));
+#endif
+		return;
+	}
 	if (!hasSocket())
 		return;
 	CFlyFastLock(cs);
@@ -941,6 +983,12 @@ void BufferedSocket::threadSendData()
 	size_t done = 0;
 	while (left > 0)
 	{
+		if (ClientManager::isShutdown())
+		{
+#ifdef _DEBUG
+			LogManager::message("[ClientManager::isShutdown()]Skip BufferedSocket::threadSendData Data = " + string((const char*)&l_sendBuf[0], l_sendBuf.size()));
+#endif
+		}
 		if (socketIsDisconecting()) // [!] IRainman fix
 		{
 			return;
@@ -1086,7 +1134,7 @@ void BufferedSocket::checkSocket()
  */
 int BufferedSocket::run()
 {
-	m_threadId = GetSelfThreadID(); // [+] IRainman fix.
+	m_threadId = ::GetCurrentThreadId(); // [+] IRainman fix.
 	dcdebug("BufferedSocket::run() start %p\n", (void*)this);
 	while (true)
 	{
@@ -1148,7 +1196,7 @@ void BufferedSocket::shutdown()
 		addTask(SHUTDOWN, nullptr);
 	}
 	// [+]
-	if (m_threadId == GetSelfThreadID()) // shutdown called from the thread socket.
+	if (m_threadId == ::GetCurrentThreadId()) // shutdown called from the thread socket.
 	{
 		m_threadId = 0; // Set to delayed cleanup.
 	}

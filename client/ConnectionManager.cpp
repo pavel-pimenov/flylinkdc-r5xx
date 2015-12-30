@@ -29,6 +29,7 @@
 #include "../FlyFeatures/flyServer.h"
 
 uint16_t ConnectionManager::g_ConnToMeCount = 0;
+bool ConnectionManager::g_is_test_tcp_port = false;
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csConnection = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csDownloads = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csUploads = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
@@ -119,7 +120,7 @@ ConnectionManager::~ConnectionManager()
 	// [~]
 }
 
-void ConnectionManager::listen()
+void ConnectionManager::start_tcp_tls_listener()
 {
 	disconnect();
 	uint16_t port;
@@ -136,23 +137,41 @@ void ConnectionManager::listen()
 	}
 	SET_SETTING(TCP_PORT, server->getServerPort());
 	
-	if (!CryptoManager::getInstance()->TLSOk())
+	if (!CryptoManager::TLSOk())
 	{
 		LogManager::message("Skipping secure port: " + Util::toString(SETTING(USE_TLS)));
 		dcdebug("Skipping secure port: %d\n", SETTING(USE_TLS));
-		return;
-	}
-	
-	if (BOOLSETTING(AUTO_DETECT_CONNECTION))
-	{
-		secureServer = new Server(true, 0, Util::emptyString);
-		SET_SETTING(TLS_PORT, secureServer->getServerPort());
 	}
 	else
 	{
-		port = static_cast<uint16_t>(SETTING(TLS_PORT));
-		secureServer = new Server(true, port, l_bind);
+	
+		if (BOOLSETTING(AUTO_DETECT_CONNECTION))
+		{
+			secureServer = new Server(true, 0, Util::emptyString);
+			SET_SETTING(TLS_PORT, secureServer->getServerPort());
+		}
+		else
+		{
+			port = static_cast<uint16_t>(SETTING(TLS_PORT));
+			secureServer = new Server(true, port, l_bind);
+		}
 	}
+	test_tcp_port();
+	::PostMessage(LogManager::g_mainWnd, WM_SPEAKER_AUTO_CONNECT, 0, 0);
+}
+void ConnectionManager::test_tcp_port()
+{
+	// Запускаем тест порта DHT - TODO в отдельном потоке
+	string l_external_ip;
+	std::vector<unsigned short> l_udp_port, l_tcp_port;
+	l_udp_port.push_back(SETTING(TCP_PORT));
+	if (CryptoManager::TLSOk())
+	{
+		l_udp_port.push_back(SETTING(TLS_PORT));
+	}
+	const bool l_is_udp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0, CryptoManager::TLSOk() ? "TCP+TLS" : "TCP");
+	dcassert(l_is_udp_port_send);
+	g_is_test_tcp_port = true;
 }
 
 /**
@@ -272,9 +291,18 @@ void ConnectionManager::putConnection(UserConnection* aConn)
 	dcassert(g_userConnections.find(aConn) != g_userConnections.end());
 	g_userConnections.erase(aConn);
 }
+void ConnectionManager::on(ClientManagerListener::UserConnected, const UserPtr& aUser) noexcept
+{
+	onUserUpdated(aUser);
+}
+void ConnectionManager::on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) noexcept
+{
+	onUserUpdated(aUser);
+}
+
 void ConnectionManager::onUserUpdated(const UserPtr& aUser)
 {
-	dcassert(!ClientManager::isShutdown());
+	//dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
 		{

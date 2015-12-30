@@ -65,7 +65,7 @@ class RSSFeed
 		
 		typedef vector<RSSItem*> RSSItemList;
 //		typedef RSSItemList::const_iterator RSSItemIter;
-		
+
 		bool UpdateFeedNewXML();
 		
 		GETSET(time_t, lastNewsDate, LastNewsDate);
@@ -78,17 +78,19 @@ class RSSFeed
 			return m_newsList;
 		}
 	public:
-		enum RssFormat {
+		enum RssFormat
+		{
 			RSS_2_0,
 			RSS_ATOM,
 			RSS_UNKNOWN
 		};
-
-		enum RSSParser {
+		
+		enum RSSParser
+		{
 			XML_PARSER,
 			XML_SIMPLE
 		};
-
+		
 	private:
 		size_t GetRSSData(const string &url, string &data);
 		void clearNewsList();
@@ -99,7 +101,7 @@ class RSSFeed
 		bool ProcessRSS(void* data, RSSParser parser, bool isUtf8);
 		bool ProcessAtom(void* data, RSSParser parser, bool isUtf8);
 		time_t convertPubDate(const string& p_str_date); // [+]PPA
-
+		
 		FastCriticalSection csNews;
 		RSSItemList m_newsList;
 };
@@ -136,15 +138,7 @@ class RSSManager :
 		
 		typedef vector<RSSFeed*> FeedList;
 		
-		void updateFeeds()
-		{
-			{
-				CFlyLock(csFeed);
-				if (m_feeds.empty()) // [+] IRainman fix.
-					return;
-			}
-			addTask(CHECK_NEWS); // [!] IRainman fix done [2] https://www.box.net/shared/be613d6f54c533c0e1ff
-		}
+		void updateFeeds();
 		
 		const FeedList& lockFeedList()
 		{
@@ -165,38 +159,24 @@ class RSSManager :
 		{
 			csNews.unlock();
 		}
-		 
+		
 		bool hasRSSFeed(const string& url, const string& name);
 		
 		RSSFeed* addNewFeed(const string &url, const string & name, const string& codeing, bool bUpdateFeeds = false);
 		bool removeFeedAt(size_t pos);
 		
-		typedef StringList CodeingList;
-		
-		const string& getCodeing(const size_t i)
-		{
-			if (i < m_codeingList.size())
-				return m_codeingList[i];
-
-			return m_codeingList[0];
-		}
-		
-		size_t GetCodeingByString(const string& codeing);
+		static const string& getCodeing(const size_t i);
+		static size_t GetCodeingByString(const string& codeing);
 		
 	private:
 	
-		CodeingList m_codeingList;
-		
+		static StringList g_codeingList;
 		friend class Singleton<RSSManager>;
 		
 		RSSManager();
-		
 		virtual ~RSSManager() ;
-		
 		void clearLists();
-		
 		FeedList m_feeds;
-		
 		NewsList m_newsList;
 		
 		CriticalSection csFeed;
@@ -209,20 +189,14 @@ class RSSManager :
 		
 		bool canAdd(const RSSItem* p_item);
 		// SettingsManagerListener
-		virtual void on(SettingsManagerListener::Save, SimpleXML& xml) override
-		{
-			save(xml);
-		}
-		virtual void on(SettingsManagerListener::Load, SimpleXML& xml) override
-		{
-			load(xml);
-		}
+		virtual void on(SettingsManagerListener::Save, SimpleXML& xml) override;
+		virtual void on(SettingsManagerListener::Load, SimpleXML& xml) override;
 		
 		// TimerManagerListener
 		virtual void on(TimerManagerListener::Minute, uint64_t aTick) noexcept override;
 		void load(SimpleXML& aXml);
 		void save(SimpleXML& aXml);
-		unsigned int minuteCounter;
+		unsigned int m_minuteCounter;
 		
 		// Show ballon
 		// void ShowBallonNews(); TODO?

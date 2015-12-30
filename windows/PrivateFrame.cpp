@@ -654,6 +654,7 @@ void PrivateFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
+		CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
 		if (ctrlClient.IsWindow())
 		{
 			ctrlClient.SetBackgroundColor(Colors::g_bgColor);

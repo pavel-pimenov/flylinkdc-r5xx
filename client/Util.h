@@ -1513,18 +1513,24 @@ class BackgroundTaskExecuter : public BASE_THREAD
 			join();
 		}
 		
-		void addTask(const TASK_TYPE& toAdd)
+		void addTask(const TASK_TYPE& toAdd, bool p_is_check_shutdown = true)
 		{
-			dcassert(!m_stop);
+			if (p_is_check_shutdown == true)
 			{
-				CFlyFastLock(m_csTasks);
-				m_tasks.push_front(toAdd);
-				if (m_active)
-					return;
-					
-				m_active = true;
+				dcassert(!ClientManager::isShutdown());
+				dcassert(!m_stop);
 			}
-			startThread();
+			if (m_stop == false)
+			{
+				{
+					CFlyFastLock(m_csTasks);
+					m_tasks.push_front(toAdd);
+					if (m_active)
+						return;
+					m_active = true;
+				}
+				startThread();
+			}
 		}
 		void forceStop()
 		{
@@ -1563,7 +1569,7 @@ class BackgroundTaskExecuter : public BASE_THREAD
 		int run()
 		{
 #ifdef _DEBUG
-			m_runningThreadId = GetSelfThreadID();
+			m_runningThreadId = ::GetCurrentThreadId();
 #endif
 			setThreadPriority(PRIORITY); // AppVerifier ругается иногда тут http://www.flickr.com/photos/96019675@N02/10669352575/
 			for (;;)

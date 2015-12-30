@@ -53,6 +53,7 @@ class ConnectivityManager : public Singleton<ConnectivityManager>
 	public:
 		void detectConnection();
 		void setup_connections(bool settingsChanged);
+		void test_all_ports();
 		bool isRunning() const
 		{
 			return running;

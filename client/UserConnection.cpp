@@ -83,7 +83,7 @@ bool UserConnection::isIPGuard(ResourceManager::Strings p_id_string, bool p_is_d
 	}
 	bool l_is_ip_guard = false;
 #ifdef PPA_INCLUDE_IPFILTER
-	l_is_ip_guard = PGLoader::getInstance()->check(l_ip4);
+	l_is_ip_guard = PGLoader::check(l_ip4);
 	string l_p2p_guard;
 	if (BOOLSETTING(ENABLE_P2P_GUARD) && p_is_download_connection == false)
 	{
@@ -182,9 +182,9 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 	string cmd;
 	string param;
 	
-	string::size_type x;
+	string::size_type x = aLine.find(' ');
 	
-	if ((x = aLine.find(' ')) == string::npos)
+	if (x == string::npos)
 	{
 		cmd = aLine.substr(1);
 	}
@@ -199,6 +199,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 		SettingsManager::g_TestTCPLevel = false;
 		if (ClientManager::getMyCID().toBase32() == l_magic)
 		{
+			LogManager::message("Test TCP port - OK!");
 			SettingsManager::g_TestTCPLevel = CFlyServerJSON::setTestPortOK(SETTING(TCP_PORT), "tcp");
 		}
 		else

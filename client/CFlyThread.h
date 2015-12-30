@@ -21,10 +21,6 @@
 
 #pragma once
 
-// [+] IRainman fix.
-#define GetSelfThreadID() ::GetCurrentThreadId()
-typedef DWORD ThreadID;
-// [~] IRainman fix.
 
 #ifdef FLYLINKDC_USE_BOOST_LOCK
 #include <boost/utility.hpp>
@@ -145,7 +141,7 @@ class ThreadPool : public BaseThread
 #  define DEBUG_WAITS(waitTime) {\
 		if (++_debugWaits == waitTime)\
 		{\
-			dcdebug("Thread %d waits a lockout condition for more than " #waitTime " ms.\n", GetSelfThreadID());\
+			dcdebug("Thread %d waits a lockout condition for more than " #waitTime " ms.\n", ::GetCurrentThreadId());\
 			/*dcassert(0);*/\
 		} }
 # else
@@ -443,7 +439,7 @@ class CriticalSection
 #ifdef _DEBUG
 # define SPIN_LOCK_TRACE_RECURSIVE_ENTRY
 # ifdef SPIN_LOCK_TRACE_RECURSIVE_ENTRY
-#  define DEBUG_SPIN_LOCK_DECL() std::set<ThreadID> _debugOwners; volatile long _debugOwnersState
+#  define DEBUG_SPIN_LOCK_DECL() std::set<DWORD> _debugOwners; volatile long _debugOwnersState
 #  define DEBUG_SPIN_LOCK_INIT() _debugOwnersState = 0;
 #  define DEBUG_SPIN_LOCK_INSERT() {\
 		Thread::ConditionLocker cl(_debugOwnersState);\

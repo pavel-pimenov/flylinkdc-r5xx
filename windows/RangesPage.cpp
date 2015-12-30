@@ -57,7 +57,7 @@ LRESULT RangesPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	fixControls();
 	try
 	{
-		m_IPFilterPATH = PGLoader::getInstance()->getConfigFileName();
+		m_IPFilterPATH = PGLoader::getConfigFileName();
 		m_IPFilter = File(m_IPFilterPATH, File::READ, File::OPEN).read();
 		m_ManualP2PGuard = CFlylinkDBManager::getInstance()->load_manual_p2p_guard();
 		SetDlgItemText(IDC_FLYLINK_TRUST_IP, Text::toT(m_IPFilter).c_str());
@@ -117,7 +117,7 @@ void RangesPage::write()
 					File fout(m_IPGuardPATH, File::WRITE, File::CREATE | File::TRUNCATE);
 					fout.write(l_newG);
 				}
-				IpGuard::getInstance()->load();
+				IpGuard::load();
 			}
 			catch (const FileException&)
 			{
@@ -127,7 +127,7 @@ void RangesPage::write()
 	}
 	else
 	{
-		IpGuard::getInstance()->clear();
+		IpGuard::clear();
 	}
 	
 	tstring l_Trustbuf;
@@ -141,7 +141,7 @@ void RangesPage::write()
 			fout.write(l_newT);
 			fout.close();
 #ifdef PPA_INCLUDE_IPFILTER
-			PGLoader::getInstance()->load(l_newT);
+			PGLoader::load(l_newT);
 #endif
 		}
 		catch (const FileException&)

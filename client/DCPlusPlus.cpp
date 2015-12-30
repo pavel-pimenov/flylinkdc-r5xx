@@ -42,26 +42,32 @@
 #ifdef SSA_IPGRANT_FEATURE
 #include "IPGrant.h"
 #endif // SSA_IPGRANT_FEATURE
-// #include "HistoryManager.h" //[-] FlylinkDC this functional released in DB Manager
 
 #ifdef STRONG_USE_DHT
 #include "../dht/DHT.h"
-#endif
-
-#ifndef _DEBUG
-#include "../doctor-dump/CrashRpt.h"
 #endif
 
 #ifdef USE_FLYLINKDC_VLD
 #include "C:\Program Files (x86)\Visual Leak Detector\include\vld.h" // VLD качать тут http://vld.codeplex.com/
 #endif
 
+#ifndef _DEBUG
+#include "../doctor-dump/CrashRpt.h"
+CFlyCrashReportMarker::CFlyCrashReportMarker(const TCHAR* p_value)
+{
+	extern crash_rpt::CrashRpt g_crashRpt;
+	g_crashRpt.SetCustomInfo(p_value);
+}
+CFlyCrashReportMarker::~CFlyCrashReportMarker()
+{
+	extern crash_rpt::CrashRpt g_crashRpt;
+	g_crashRpt.SetCustomInfo(_T(""));
+}
+#endif // _DEBUG
+
 void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, GUIINITPROC pGuiInitProc, void *pGuiParam)
 {
-#ifndef _DEBUG
-	extern crash_rpt::CrashRpt g_crashRpt;
-	g_crashRpt.SetCustomInfo(_T("StartCore"));
-#endif
+	CFlyCrashReportMarker l_marker(_T("StartCore"));
 	
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 	CFlyTickDelta l_delta(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_START_CORE]);
@@ -75,7 +81,6 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 			i++;
 		else
 			break;
-			
 	}
 	while (i < 6);
 	
@@ -147,22 +152,19 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 #endif
 	LOAD_STEP("Ensure list path", QueueManager::newInstance());
 	LOAD_STEP("Create empty share", ShareManager::newInstance());
-	LOAD_STEP("Ensure fav patch", FavoriteManager::newInstance());
+	LOAD_STEP("Ensure fav path", FavoriteManager::newInstance());
 	LOAD_STEP("Ignore list", UserManager::newInstance()); // [+] IRainman core
-#ifdef SSA_IPGRANT_FEATURE
-	IpGrant::newInstance();
-#endif
 	//HistoryManager::newInstance();//[-] FlylinkDC this functional released in DB Manager
-	IpGuard::newInstance();
-#ifdef PPA_INCLUDE_IPFILTER
-	PGLoader::newInstance();
-#endif
 	if (pGuiInitProc)
 	{
 		LOAD_STEP("Gui and FlyFeatures", pGuiInitProc(pGuiParam));
 	}
-	
 	LOAD_STEP_L(SETTINGS, SettingsManager::getInstance()->loadOtherSettings());
+	LOAD_STEP("IPGuard.xml", IpGuard::load());
+	LOAD_STEP("IPTrus.ini", PGLoader::load());
+#ifdef SSA_IPGRANT_FEATURE
+	LOAD_STEP("IPGrant.ini", IpGrant::load());
+#endif
 	
 	FinishedManager::newInstance();
 	LOAD_STEP("ADLSearch", ADLSearchManager::newInstance());
@@ -190,12 +192,6 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	
 #undef LOAD_STEP
 #undef LOAD_STEP_L
-	
-#ifndef _DEBUG
-	extern crash_rpt::CrashRpt g_crashRpt;
-	g_crashRpt.SetCustomInfo(_T(""));
-#endif
-	
 }
 
 void preparingCoreToShutdown() // [+] IRainamn fix.
@@ -206,6 +202,7 @@ void preparingCoreToShutdown() // [+] IRainamn fix.
 		g_is_first = true;
 		CFlyLog l_log("[Core shutdown]");
 		TimerManager::getInstance()->shutdown();
+		dht::BootstrapManager::full_shutdown();
 		ClientManager::getInstance()->shutdown(); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1374
 		WebServerManager::getInstance()->shutdown();
 		HashManager::getInstance()->shutdown();
@@ -316,7 +313,6 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		MappingManager::deleteInstance();
 		ConnectivityManager::deleteInstance();
 		WebServerManager::deleteInstance();
-		IpGuard::deleteInstance();
 		if (pGuiInitProc)
 		{
 			pGuiInitProc(pGuiParam);
@@ -341,12 +337,6 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		QueueManager::deleteInstance();
 		ConnectionManager::deleteInstance();
 		SearchManager::deleteInstance();
-#ifdef SSA_IPGRANT_FEATURE
-		IpGrant::deleteInstance();
-#endif
-#ifdef PPA_INCLUDE_IPFILTER
-		PGLoader::deleteInstance();
-#endif
 		UserManager::deleteInstance(); // [+] IRainman core
 		FavoriteManager::deleteInstance();
 		ClientManager::deleteInstance();

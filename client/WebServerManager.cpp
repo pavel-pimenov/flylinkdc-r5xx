@@ -139,6 +139,23 @@ void WebServerManager::getLoginPage(string& p_out)
 	p_out += pagehtml;
 }
 
+void WebServerManager::on(SettingsManagerListener::Save, SimpleXML&)
+{
+	dcassert(!ClientManager::isShutdown())
+	if (!ClientManager::isShutdown())
+	{
+		CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
+		if (BOOLSETTING(WEBSERVER))
+		{
+			Restart();
+		}
+		else
+		{
+			Stop();
+		}
+	}
+}
+
 void WebServerManager::getPage(string& p_InOut, const string& IP, UserStatus CurrentUser)
 {
 #ifdef _DEBUG_WEB_SERVER_

@@ -65,6 +65,8 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 		}
 		
 		void listen();
+		static void runTestUDPPort();
+		
 		void disconnect();
 		void onSearchResult(const string& aLine)
 		{

@@ -75,7 +75,6 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 			DOWNLOAD_LISTING,
 			BROWSE_LISTING,
 			MAIN_STATS,
-			AUTO_CONNECT,
 			PARSE_COMMAND_LINE,
 			VIEW_FILE_AND_DELETE,
 			SET_STATUSTEXT,
@@ -132,6 +131,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		MESSAGE_HANDLER(WM_CLOSE, OnClose)
 		MESSAGE_HANDLER(WM_TIMER, onTimer)
 		MESSAGE_HANDLER(WM_SPEAKER, onSpeaker)
+		MESSAGE_HANDLER(WM_SPEAKER_AUTO_CONNECT, onSpeakerAutoConnect)
 		MESSAGE_HANDLER(FTM_SELECTED, onSelected)
 		MESSAGE_HANDLER(FTM_ROWS_CHANGED, onRowsChanged)
 		MESSAGE_HANDLER(WM_APP + 242, onTrayIcon) // TODO небезопасный код!
@@ -295,6 +295,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		
 		LRESULT onSize(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled);
 		LRESULT onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+		LRESULT onSpeakerAutoConnect(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		LRESULT onHashProgress(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
 		LRESULT onEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);

@@ -92,9 +92,11 @@ static int mutex_unlock(void **priv)
 static struct gcry_thread_cbs gcry_threads_other = { 0, NULL, mutex_init, mutex_destroy, mutex_lock, mutex_unlock, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 #endif
 
+bool CryptoManager::g_certsLoaded = false;
+vector<uint8_t> CryptoManager::g_keyprint;
+
 
 CryptoManager::CryptoManager():
-	certsLoaded(false),
 	lock("EXTENDEDPROTOCOLABCABCABCABCABCABC"),
 	pk("DCPLUSPLUS" DCVERSIONSTRING "ABCABC")
 {
@@ -247,9 +249,9 @@ CryptoManager::~CryptoManager()
 	// http://old.nabble.com/sk_SSL_COMP_new-and-sk_SSL_COMP_free-p27491190.html
 }
 
-bool CryptoManager::TLSOk() const noexcept
+bool CryptoManager::TLSOk() noexcept
 {
-    return BOOLSETTING(USE_TLS) && certsLoaded && !keyprint.empty();
+	return BOOLSETTING(USE_TLS) && g_certsLoaded && !g_keyprint.empty();
 }
 
 void CryptoManager::generateCertificate()
@@ -341,8 +343,8 @@ void CryptoManager::loadCertificates() noexcept
 	if (!BOOLSETTING(USE_TLS) || !clientContext || !clientVerContext || !serverContext || !serverVerContext)
 		return;
 		
-	keyprint.clear();
-	certsLoaded = false;
+	g_keyprint.clear();
+	g_certsLoaded = false;
 	/* [-] IRainman merge: вопрос к BrainRipper этот кусок полезный? :)
 	    SSL_CTX_set_verify(serverContext, SSL_VERIFY_NONE, 0);
 	    SSL_CTX_set_verify(clientContext, SSL_VERIFY_NONE, 0);
@@ -432,7 +434,7 @@ void CryptoManager::loadCertificates() noexcept
 		}
 	}
 	loadKeyprint();
-	certsLoaded = true;
+	g_certsLoaded = true;
 }
 
 
@@ -504,9 +506,9 @@ bool CryptoManager::checkCertificate() noexcept
 	return true;
 }
 
-const vector<uint8_t>& CryptoManager::getKeyprint() const noexcept
+const vector<uint8_t>& CryptoManager::getKeyprint() noexcept
 {
-    return keyprint;
+	return g_keyprint;
 }
 
 FILE* CryptoManager::openSertFile() noexcept
@@ -537,7 +539,7 @@ void CryptoManager::loadKeyprint() noexcept
 	
 	ssl::X509 x509(tmpx509);
 	
-	keyprint = ssl::X509_digest(x509, EVP_sha256());
+	g_keyprint = ssl::X509_digest(x509, EVP_sha256());
 }
 
 SSLSocket* CryptoManager::getClientSocket(bool allowUntrusted)

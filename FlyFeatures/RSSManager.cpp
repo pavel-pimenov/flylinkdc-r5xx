@@ -24,12 +24,14 @@
 #include "RSSManager.h"
 #include "../client/SimpleXML.h"
 #include "../client/ResourceManager.h"
+#include "../client/ClientManager.h"
 #include "../XMLParser/xmlParser.h"
 #include <boost/date_time/time_parsing.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
 
-// Class RSSFeed
+
+
 RSSFeed::~RSSFeed()
 {
 	clearNewsList();
@@ -93,15 +95,15 @@ RSSFeed::UpdateFeedNewXML()
 			bool isUtf8 = false;
 			if (codeingType == "utf-8")
 				isUtf8 = true;
-
+				
 			const RssFormat rssFormat = DetectRSSFormat(&xRootNode, XML_PARSER);
 			
 			switch (rssFormat)
 			{
-			case RSS_2_0:
-				return ProcessRSS(&xRootNode, XML_PARSER, isUtf8);
-			case RSS_ATOM:
-				return ProcessAtom(&xRootNode, XML_PARSER, isUtf8);
+				case RSS_2_0:
+					return ProcessRSS(&xRootNode, XML_PARSER, isUtf8);
+				case RSS_ATOM:
+					return ProcessAtom(&xRootNode, XML_PARSER, isUtf8);
 			}
 		}
 		else
@@ -134,7 +136,7 @@ RSSFeed::UpdateFeedOldParser(const string& data)
 			case RSS_ATOM:
 				return ProcessAtom(&xml, XML_SIMPLE, true);
 		}
-
+		
 	}
 	catch (SimpleXMLException& /*ex*/)
 	{
@@ -168,7 +170,8 @@ RSSFeed::RssFormat RSSFeed::DetectRSSFormat(void* data, RSSParser parser)
 				return RSS_ATOM;
 			}
 		}
-	}else if (parser == XML_SIMPLE)
+	}
+	else if (parser == XML_SIMPLE)
 	{
 		SimpleXML* xml = reinterpret_cast<SimpleXML*>(data);
 		if (xml != nullptr)
@@ -186,33 +189,33 @@ time_t RSSFeed::convertPubDate(const string& p_str_date) // move Util::
 	if (!p_str_date.empty())
 	{
 		SYSTEMTIME pTime = {0};
-
-		if( !InternetTimeToSystemTimeA(p_str_date.c_str(), &pTime, 0) && !InternetTimeToSystemTimeA(("Mon, " + p_str_date).c_str(), &pTime, 0) ) // http://code.google.com/p/flylinkdc/issues/detail?id=1061
+		
+		if (!InternetTimeToSystemTimeA(p_str_date.c_str(), &pTime, 0) && !InternetTimeToSystemTimeA(("Mon, " + p_str_date).c_str(), &pTime, 0))  // http://code.google.com/p/flylinkdc/issues/detail?id=1061
 		{
 			LogManager::message("Error InternetTimeToSystemTime p_str_date = " + p_str_date + " error = " + Util::translateError());
 		}
 		else
 		{
-		// RSS - http://news.yandex.ru/computers.rss 
-		// pDate - "18 Jun 2013 06:35:01 +0400"
-		// pTime = {wYear=400 wMonth=6 wDayOfWeek=18 ...} BUG
-		 tm l_tm = {0};
-		
-		 l_tm.tm_year = pTime.wYear - 1900;
-		 l_tm.tm_mon = pTime.wMonth - 1;
-		 l_tm.tm_mday = pTime.wDay;
-		
-		 l_tm.tm_hour = pTime.wHour;
-		 l_tm.tm_min = pTime.wMinute;
-		 l_tm.tm_sec = pTime.wSecond;
-		
-		 l_pubDate = mktime(&l_tm);
+			// RSS - http://news.yandex.ru/computers.rss
+			// pDate - "18 Jun 2013 06:35:01 +0400"
+			// pTime = {wYear=400 wMonth=6 wDayOfWeek=18 ...} BUG
+			tm l_tm = {0};
+			
+			l_tm.tm_year = pTime.wYear - 1900;
+			l_tm.tm_mon = pTime.wMonth - 1;
+			l_tm.tm_mday = pTime.wDay;
+			
+			l_tm.tm_hour = pTime.wHour;
+			l_tm.tm_min = pTime.wMinute;
+			l_tm.tm_sec = pTime.wSecond;
+			
+			l_pubDate = mktime(&l_tm);
 		}
 	}
-  return l_pubDate;
+	return l_pubDate;
 }
 
-bool 
+bool
 RSSFeed::ProcessRSS(void* data, RSSParser parser, bool isUtf8)
 {
 	time_t maxLastDate = 0;
@@ -274,7 +277,7 @@ RSSFeed::ProcessRSS(void* data, RSSParser parser, bool isUtf8)
 								pDate = pubDateNode.getText();
 							else if (pubDateNode.nClear())
 								pDate = pubDateNode.getClear().lpszValue;
-							
+								
 							pubDate = convertPubDate(pDate);
 						}
 						XMLParser::XMLNode authorNode =  itemNode.getChildNode("author");
@@ -305,25 +308,25 @@ RSSFeed::ProcessRSS(void* data, RSSParser parser, bool isUtf8)
 							CFlyFastLock(csNews);
 							m_newsList.push_back(item);
 						}
-																		
+						
 						itemNode = channelNode.getChildNode("item", &i);
 					}
 					if (maxLastDate > lastNewsDate)
 						lastNewsDate = maxLastDate;
-
+						
 					CFlyFastLock(csNews);
 					return !m_newsList.empty();
 				}
 			}
 		}
 	}
-  else if (parser == XML_SIMPLE)
+	else if (parser == XML_SIMPLE)
 	{
 		SimpleXML* xml = reinterpret_cast<SimpleXML*>(data);
 		if (xml != nullptr)
 		{
 			xml->resetCurrentChild();
-
+			
 			if (xml->findChild("rss"))
 			{
 				xml->stepIn();
@@ -355,14 +358,14 @@ RSSFeed::ProcessRSS(void* data, RSSParser parser, bool isUtf8)
 							pubDate = convertPubDate(pDate);
 						}
 						xml->resetCurrentChild();
-
+						
 						if (xml->findChild("author"))
 							removeCDATA(xml->getChildData(), author);
 						xml->resetCurrentChild();
 						if (xml->findChild("category"))
 							removeCDATA(xml->getChildData(), category);
 						xml->resetCurrentChild();
-
+						
 						if (pubDate == 0 || lastNewsDate < pubDate)
 						{
 							if (pubDate > maxLastDate)
@@ -376,18 +379,18 @@ RSSFeed::ProcessRSS(void* data, RSSParser parser, bool isUtf8)
 					}
 				}
 			}
-		if (maxLastDate > lastNewsDate)
-			lastNewsDate = maxLastDate;
-
-		CFlyFastLock(csNews);
-		return !m_newsList.empty();
+			if (maxLastDate > lastNewsDate)
+				lastNewsDate = maxLastDate;
+				
+			CFlyFastLock(csNews);
+			return !m_newsList.empty();
 		}
 	}
 	return false;
 }
 
 
-bool 
+bool
 RSSFeed::ProcessAtom(void* data, RSSParser parser, bool isUtf8)
 {
 	time_t maxLastDate = 0;
@@ -420,8 +423,8 @@ RSSFeed::ProcessAtom(void* data, RSSParser parser, bool isUtf8)
 						if (isUtf8) title = Text::fromUtf8(title);
 					}
 					int j = 0;
-					XMLParser::XMLNode linkNode = itemNode.getChildNode("link", &j);				
-					while  (!linkNode.isEmpty())
+					XMLParser::XMLNode linkNode = itemNode.getChildNode("link", &j);
+					while (!linkNode.isEmpty())
 					{
 						if (linkNode.nAttribute() && linkNode.isAttributeSet("rel") && linkNode.isAttributeSet("href"))
 						{
@@ -453,7 +456,7 @@ RSSFeed::ProcessAtom(void* data, RSSParser parser, bool isUtf8)
 							pDate = pubDateNode.getText();
 						else if (pubDateNode.nClear())
 							pDate = pubDateNode.getClear().lpszValue;
-
+							
 						if (pDate.length() > 0)
 						{
 							/*
@@ -461,23 +464,23 @@ RSSFeed::ProcessAtom(void* data, RSSParser parser, bool isUtf8)
 							InternetTimeToSystemTimeA(pDate.c_str(), &pTime, 0);
 							*/
 							// Using format in atom 2012-08-20T11:57:53.000Z
-
+							
 							std::string date_string, tod_string;
 							boost::date_time::split(pDate, 'T', date_string, tod_string);
-							tod_string = tod_string.substr(0,8)+".000";
-
+							tod_string = tod_string.substr(0, 8) + ".000";
+							
 							boost::posix_time::time_duration td = boost::date_time::parse_delimited_time_duration<boost::posix_time::time_duration>(tod_string);
-
+							
 							tm l_tm = {0};
 							///
-							l_tm.tm_year = atoi( date_string.substr(0, 4).c_str() ) - 1900;
-							l_tm.tm_mon = atoi(date_string.substr(5,2).c_str())  - 1;
-							l_tm.tm_mday = atoi(date_string.substr(8,2).c_str());
-
+							l_tm.tm_year = atoi(date_string.substr(0, 4).c_str()) - 1900;
+							l_tm.tm_mon = atoi(date_string.substr(5, 2).c_str())  - 1;
+							l_tm.tm_mday = atoi(date_string.substr(8, 2).c_str());
+							
 							l_tm.tm_hour = td.hours();
 							l_tm.tm_min = td.minutes();
 							l_tm.tm_sec = td.seconds();
-
+							
 							pubDate = mktime(&l_tm);
 							
 						}
@@ -511,7 +514,7 @@ RSSFeed::ProcessAtom(void* data, RSSParser parser, bool isUtf8)
 						categoryNode =  itemNode.getChildNode("category", &k);
 					}
 					if (isUtf8) category = Text::fromUtf8(category);
-
+					
 					if (pubDate == 0 || lastNewsDate < pubDate)
 					{
 						if (pubDate > maxLastDate)
@@ -521,17 +524,18 @@ RSSFeed::ProcessAtom(void* data, RSSParser parser, bool isUtf8)
 						CFlyFastLock(csNews);
 						m_newsList.push_back(item);
 					}
-
+					
 					itemNode = feedNode.getChildNode("entry", &i);
 				}
 				if (maxLastDate > lastNewsDate)
 					lastNewsDate = maxLastDate;
-
+					
 				CFlyFastLock(csNews);
 				return !m_newsList.empty();
 			}
 		}
-	}else if (parser == XML_SIMPLE)
+	}
+	else if (parser == XML_SIMPLE)
 	{
 		// [!] SSA - todo if needed?
 		SimpleXML* xml = reinterpret_cast<SimpleXML*>(data);
@@ -542,13 +546,15 @@ RSSFeed::ProcessAtom(void* data, RSSParser parser, bool isUtf8)
 	return false;
 }
 
+StringList RSSManager::g_codeingList;
+
 // Class RSSManager
 RSSManager::RSSManager(void)
-	: minuteCounter(0)
+	: m_minuteCounter(0)
 {
-	m_codeingList.push_back(Util::emptyString);
-	m_codeingList.push_back("utf-8");
-	m_codeingList.push_back("windows-1251");
+	g_codeingList.push_back(Util::emptyString);
+	g_codeingList.push_back("utf-8");
+	g_codeingList.push_back("windows-1251");
 	SettingsManager::getInstance()->addListener(this);
 	TimerManager::getInstance()->addListener(this);
 }
@@ -559,18 +565,18 @@ RSSManager::~RSSManager(void)
 	TimerManager::getInstance()->removeListener(this);
 	waitShutdown();
 	{
-	CFlyFastLock(csNews);
-	for (auto j = m_newsList.cbegin(); j != m_newsList.cend(); ++j)
-	{
-		delete *j;
+		CFlyFastLock(csNews);
+		for (auto j = m_newsList.cbegin(); j != m_newsList.cend(); ++j)
+		{
+			delete *j;
+		}
 	}
-	}
 	{
-	CFlyLock(csFeed);
-	for (auto i = m_feeds.cbegin(); i != m_feeds.cend(); ++i)
-	{
-		delete *i;
-	}
+		CFlyLock(csFeed);
+		for (auto i = m_feeds.cbegin(); i != m_feeds.cend(); ++i)
+		{
+			delete *i;
+		}
 	}
 }
 
@@ -604,11 +610,11 @@ RSSManager::updateAllFeeds()
 			}
 		}
 	}
-	for(auto i=l_fire_added_array.begin();i !=  l_fire_added_array.end(); ++i)
+	for (auto i = l_fire_added_array.begin(); i !=  l_fire_added_array.end(); ++i)
 	{
-     fly_fire1(RSSListener::Added(), *i);
+		fly_fire1(RSSListener::Added(), *i);
 	}
-
+	
 	if (iNewNews)
 	{
 		fly_fire1(RSSListener::NewRSS(), iNewNews);
@@ -644,7 +650,7 @@ RSSManager::fail(const string& p_error)
 void
 RSSManager::execute(const RSSManagerTasks& p_task)
 {
-	dcassert (p_task == CHECK_NEWS);
+	dcassert(p_task == CHECK_NEWS);
 	updateAllFeeds();
 }
 
@@ -662,30 +668,30 @@ bool RSSManager::hasRSSFeed(const string & url, const string & name)
 void RSSManager::load(SimpleXML& aXml)
 {
 	{
-	CFlyLock(csFeed);
-	aXml.resetCurrentChild();
-	if (aXml.findChild("Rss"))
-	{
-		aXml.stepIn();
-		while (aXml.findChild("Feed"))
+		CFlyLock(csFeed);
+		aXml.resetCurrentChild();
+		if (aXml.findChild("Rss"))
 		{
-			const string& realURL = aXml.getChildData();
-			if (realURL.empty())
+			aXml.stepIn();
+			while (aXml.findChild("Feed"))
 			{
-				continue;
+				const string& realURL = aXml.getChildData();
+				if (realURL.empty())
+				{
+					continue;
+				}
+				const string& sourceName = aXml.getChildAttrib("Name");
+				const string& codeingType = aXml.getChildAttrib("Codeing");
+				
+				const size_t iCodeingType = Util::toInt(codeingType);
+				
+				// add only unique RSS feeds
+				addNewFeed(realURL, sourceName, getCodeing(iCodeingType));
 			}
-			const string& sourceName = aXml.getChildAttrib("Name");
-			const string& codeingType = aXml.getChildAttrib("Codeing");
-			
-			const size_t iCodeingType = Util::toInt(codeingType);
-			
-			// add only unique RSS feeds
-			addNewFeed(realURL, sourceName, getCodeing(iCodeingType));
+			aXml.stepOut();
 		}
-		aXml.stepOut();
 	}
-	}
-	updateFeeds();	
+	updateFeeds();
 }
 
 RSSFeed*
@@ -698,7 +704,7 @@ RSSManager::addNewFeed(const string& url, const string& name, const string& code
 		m_feeds.push_back(rFeed);
 		if (bUpdateFeeds)
 			updateFeeds();
-
+			
 		return rFeed;
 	}
 	return nullptr;
@@ -743,7 +749,7 @@ void RSSManager::save(SimpleXML& aXml)
 	{
 		aXml.addTag("Feed", (*i)->getFeedURL());
 		aXml.addChildAttrib("Name", (*i)->getSource());
-		size_t codeingT = GetCodeingByString((*i)->getCodeing());
+		const size_t codeingT = GetCodeingByString((*i)->getCodeing());
 		aXml.addChildAttrib("Codeing", Util::toString(codeingT));
 	}
 	aXml.stepOut();
@@ -752,25 +758,55 @@ void RSSManager::on(TimerManagerListener::Minute, uint64_t tick) noexcept
 {
 	if (SETTING(RSS_AUTO_REFRESH_TIME) > 0)
 	{
-		if (++minuteCounter >= (unsigned int) SETTING(RSS_AUTO_REFRESH_TIME))
+		if (++m_minuteCounter >= (unsigned int) SETTING(RSS_AUTO_REFRESH_TIME))
 		{
 			updateFeeds(); // [!] IRainman fix done [2] https://www.box.net/shared/be613d6f54c533c0e1ff
-			minuteCounter = 0;
+			m_minuteCounter = 0;
 		}
 	}
+}
+const string& RSSManager::getCodeing(const size_t i)
+{
+	if (i < g_codeingList.size())
+	{
+		return g_codeingList[i];
+	}
+	return g_codeingList[0];
 }
 
 size_t RSSManager::GetCodeingByString(const string& codeing)
 {
 	string codeingType = codeing;
 	std::transform(codeingType.begin(), codeingType.end(), codeingType.begin(), ::tolower);
-	
-	for (size_t i = 0; i < m_codeingList.size(); i++)
+	for (size_t i = 0; i < g_codeingList.size(); i++)
 	{
-		if (codeingType == m_codeingList[i])
+		if (codeingType == g_codeingList[i])
 			return i;
 	}
 	return 0;
+}
+void RSSManager::updateFeeds()
+{
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
+	{
+		{
+			CFlyLock(csFeed);
+			if (m_feeds.empty()) // [+] IRainman fix.
+				return;
+		}
+		addTask(CHECK_NEWS); // [!] IRainman fix done [2] https://www.box.net/shared/be613d6f54c533c0e1ff
+	}
+}
+
+void RSSManager::on(SettingsManagerListener::Save, SimpleXML& xml)
+{
+	CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
+	save(xml);
+}
+void RSSManager::on(SettingsManagerListener::Load, SimpleXML& xml)
+{
+	load(xml);
 }
 
 #endif // IRAINMAN_INCLUDE_RSS

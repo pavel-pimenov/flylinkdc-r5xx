@@ -501,8 +501,10 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 #ifdef FLYLINKDC_USE_CHAT_BOT
 	ChatBot::deleteInstance(); // !SMT!-CB
 #endif
-	
 	shutdown(GuiUninit, NULL/*, true*/); // TODO http://code.google.com/p/flylinkdc/issues/detail?id=1245
+#ifdef FLYLINKDC_USE_PROFILER_CS
+	CFlyLockProfiler::print_stat();
+#endif
 #if defined(__PROFILER_ENABLED__)
 	Profiler::dumphtml();
 #endif
@@ -511,9 +513,6 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 #endif
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 	// TODO - flush file
-#endif
-#ifdef FLYLINKDC_USE_PROFILER_CS
-	CFlyLockProfiler::print_stat();
 #endif
 	return nRet;
 }

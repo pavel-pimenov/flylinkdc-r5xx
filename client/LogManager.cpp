@@ -133,7 +133,15 @@ void LogManager::log(const string& p_area, const string& p_msg) noexcept
 	}
 	{
 		CFlyFastLock(g_csLogFilesBuffer);
-		const string l_msg = p_msg + "\r\n";
+		string l_msg;
+#ifdef _DEBUG
+		if (ClientManager::isStartup())
+			l_msg += "[init]";
+		if (ClientManager::isShutdown())
+			l_msg += "[shutdown]";
+		l_msg += "[" + Util::toString(::GetCurrentThreadId()) + "]";
+#endif
+		l_msg += p_msg + "\r\n";
 		auto l_log = g_LogFilesBuffer.insert(make_pair(l_area, l_msg));
 		if (l_log.second == false)
 		{
@@ -146,7 +154,9 @@ void LogManager::log(const string& p_area, const string& p_msg) noexcept
 		CFlyFastLock(g_csFile);
 		File::ensureDirectory(l_area);
 	}
-	if (ClientManager::isStartup() == true || ClientManager::isShutdown() == true || TimerManager::g_isRun == false)
+#ifndef _DEBUG
+	if (ClientManager::isStartup() == true)
+#endif
 	{
 		flush_all_log();
 	}

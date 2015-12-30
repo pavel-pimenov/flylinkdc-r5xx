@@ -1,41 +1,33 @@
 #ifndef PGLOADER_H
 #define PGLOADER_H
 
-#include "Singleton.h"
 #include "SettingsManager.h"
 
 #ifdef PPA_INCLUDE_IPFILTER
 
 #include "iplist.h"
 
-class PGLoader : public Singleton<PGLoader>, private SettingsManagerListener
+class PGLoader
 {
 	public:
 		PGLoader()
 		{
-			SettingsManager::getInstance()->addListener(this);
 		}
 		
 		~PGLoader()
 		{
-			SettingsManager::getInstance()->removeListener(this);
 		}
-		bool check(uint32_t p_ip4);
-		void addLine(string& p_Line, CFlyLog& p_log);
-		void load(const string& p_data = Util::emptyString);
+		static bool check(uint32_t p_ip4);
+		static void addLine(string& p_Line, CFlyLog& p_log);
+		static void load(const string& p_data = Util::emptyString);
 		static string getConfigFileName()
 		{
 			return Util::getConfigPath() + "IPTrust.ini";
 		}
 	private:
-		FastCriticalSection m_cs; // [!] IRainman opt: use spin lock here.
-		IPList  m_ipTrustListAllow;
-		IPList  m_ipTrustListBlock;
-		// SettingsManagerListener
-		void on(SettingsManagerListener::Load, SimpleXML& /*xml*/) override
-		{
-			load();
-		}
+		static FastCriticalSection g_cs;
+		static IPList  g_ipTrustListAllow;
+		static IPList  g_ipTrustListBlock;
 };
 #endif // PPA_INCLUDE_IPFILTER
 

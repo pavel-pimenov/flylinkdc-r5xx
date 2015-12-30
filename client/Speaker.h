@@ -41,7 +41,7 @@ class Speaker
 
 		void log_listener_list(const ListenerList& p_list, const char* p_log_message)
 		{
-			dcdebug("[log_listener_list][%s][tid = %u] [this=%p] count = %d ", p_log_message, GetSelfThreadID(), this, p_list.size());
+			dcdebug("[log_listener_list][%s][tid = %u] [this=%p] count = %d ", p_log_message, ::GetCurrentThreadId(), this, p_list.size());
 			for (size_t i = 0; i != p_list.size(); ++i)
 			{
 				dcdebug("[%u] = %p, ", i, p_list[i]);

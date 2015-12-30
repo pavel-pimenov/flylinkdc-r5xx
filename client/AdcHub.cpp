@@ -668,7 +668,7 @@ void AdcHub::handle(AdcCommand::CTM, const AdcCommand& c) noexcept
 	{
 		// Nothing special
 	}
-	else if (protocol == AdcSupports::SECURE_CLIENT_PROTOCOL_TEST && CryptoManager::getInstance()->TLSOk())
+	else if (protocol == AdcSupports::SECURE_CLIENT_PROTOCOL_TEST && CryptoManager::TLSOk())
 	{
 		secure = true;
 	}
@@ -720,7 +720,7 @@ void AdcHub::handle(AdcCommand::RCM, const AdcCommand& c) noexcept
 	{
 		secure = false;
 	}
-	else if (protocol == AdcSupports::SECURE_CLIENT_PROTOCOL_TEST && CryptoManager::getInstance()->TLSOk())
+	else if (protocol == AdcSupports::SECURE_CLIENT_PROTOCOL_TEST && CryptoManager::TLSOk())
 	{
 		secure = true;
 	}
@@ -1010,7 +1010,7 @@ void AdcHub::handle(AdcCommand::NAT, const AdcCommand& c) noexcept
 	{
 		// Nothing special
 	}
-	else if (protocol == AdcSupports::SECURE_CLIENT_PROTOCOL_TEST && CryptoManager::getInstance()->TLSOk())
+	else if (protocol == AdcSupports::SECURE_CLIENT_PROTOCOL_TEST && CryptoManager::TLSOk())
 	{
 		secure = true;
 	}
@@ -1050,7 +1050,7 @@ void AdcHub::handle(AdcCommand::RNT, const AdcCommand& c) noexcept
 	{
 		// Nothing special
 	}
-	else if (protocol == AdcSupports::SECURE_CLIENT_PROTOCOL_TEST && CryptoManager::getInstance()->TLSOk())
+	else if (protocol == AdcSupports::SECURE_CLIENT_PROTOCOL_TEST && CryptoManager::TLSOk())
 	{
 		secure = true;
 	}
@@ -1078,7 +1078,7 @@ void AdcHub::handle(AdcCommand::ZOF, const AdcCommand& c) noexcept
 
 void AdcHub::connect(const OnlineUser& user, const string& token, bool p_is_force_passive)
 {
-	connect_secure(user, token, CryptoManager::getInstance()->TLSOk() && user.getUser()->isSet(User::ADCS));
+	connect_secure(user, token, CryptoManager::TLSOk() && user.getUser()->isSet(User::ADCS));
 }
 
 void AdcHub::connect_secure(const OnlineUser& user, const string& token, bool secure)
@@ -1607,10 +1607,10 @@ void AdcHub::info(bool p_force)
 	
 	string su(AdcSupports::SEGA_FEATURE);
 	
-	if (CryptoManager::getInstance()->TLSOk())
+	if (CryptoManager::TLSOk())
 	{
 		su += "," + AdcSupports::ADCS_FEATURE;
-		const auto &kp = CryptoManager::getInstance()->getKeyprint();
+		const auto &kp = CryptoManager::getKeyprint();
 		addParam(c, "KP", "SHA256/" + Encoder::toBase32(&kp[0], kp.size()));
 	}
 	if (isActive() || BOOLSETTING(ALLOW_NAT_TRAVERSAL))

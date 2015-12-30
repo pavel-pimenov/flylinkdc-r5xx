@@ -48,14 +48,14 @@ class CryptoManager : public Singleton<CryptoManager>
 		
 		SSLSocket* getClientSocket(bool allowUntrusted);
 		SSLSocket* getServerSocket(bool allowUntrusted);
-		const vector<uint8_t>& getKeyprint() const noexcept;
+		static const vector<uint8_t>& getKeyprint()noexcept;
 		
 		void generateCertificate() ;
 		
 		void loadCertificates() noexcept;
 		bool checkCertificate() noexcept;
 		
-		bool TLSOk() const noexcept;
+		static bool TLSOk() noexcept;
 		
 #ifdef HEADER_OPENSSLV_H
 		static void __cdecl locking_function(int mode, int n, const char *file, int line);
@@ -77,9 +77,8 @@ class CryptoManager : public Singleton<CryptoManager>
 #ifdef HEADER_OPENSSLV_H
 		ssl::DH dh;
 #endif
-		bool certsLoaded;
-		
-		vector<uint8_t> keyprint;
+		static bool g_certsLoaded;
+		static vector<uint8_t> g_keyprint;
 		const string lock;
 		const string pk;
 		

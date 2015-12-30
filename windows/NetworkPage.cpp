@@ -283,7 +283,7 @@ void NetworkPage::fixControls()
 	const BOOL l_port_enabled = !auto_detect && (upnp || nat);
 	::EnableWindow(GetDlgItem(IDC_PORT_TCP),  l_port_enabled);
 	::EnableWindow(GetDlgItem(IDC_PORT_UDP),  l_port_enabled);
-	::EnableWindow(GetDlgItem(IDC_PORT_TLS),  l_port_enabled && CryptoManager::getInstance()->TLSOk());
+	::EnableWindow(GetDlgItem(IDC_PORT_TLS),  l_port_enabled && CryptoManager::TLSOk());
 	::EnableWindow(GetDlgItem(IDC_BIND_ADDRESS), !auto_detect);
 	//::EnableWindow(GetDlgItem(IDC_SETTINGS_BIND_ADDRESS_HELP), !auto_detect);
 	//::EnableWindow(GetDlgItem(IDC_NATT), passive); // for passive settings only,  [-] IRainman fix: why??
@@ -343,7 +343,7 @@ void NetworkPage::updateTestPortIcon(bool p_is_wait)
 		};
 		calcIconsIndex(IDC_NETWORK_TEST_PORT_TCP_ICO, SettingsManager::g_TestTCPLevel);
 		calcIconsIndex(IDC_NETWORK_TEST_PORT_UDP_ICO, SettingsManager::g_TestUDPSearchLevel);
-		if (CryptoManager::getInstance()->TLSOk())
+		if (CryptoManager::TLSOk())
 		{
 			calcIconsIndex(IDC_NETWORK_TEST_PORT_TLS_TCP_ICO, SettingsManager::g_TestTLSLevel);
 		}
@@ -458,11 +458,11 @@ bool NetworkPage::runTestPort()
 	}
 #endif
 	l_tcp_port.push_back(SETTING(TCP_PORT));
-	if (CryptoManager::getInstance()->TLSOk())
+	if (CryptoManager::TLSOk())
 	{
 		l_tcp_port.push_back(SETTING(TLS_PORT));
 	}
-	const bool l_is_udp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0);
+	const bool l_is_udp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0, "Manual");
 	if (l_is_udp_port_send && m_is_manual == false)
 	{
 		SetDlgItemText(IDC_EXTERNAL_IP, Text::toT(l_external_ip).c_str());

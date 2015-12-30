@@ -1590,6 +1590,10 @@ void SettingsManager::generateNewTCPPort()
 {
 	set(TCP_PORT, getNewPortValue(get(TCP_PORT)));
 }
+void SettingsManager::generateNewUDPPort()
+{
+	set(UDP_PORT, getNewPortValue(get(UDP_PORT)));
+}
 
 void SettingsManager::loadOtherSettings()
 {
